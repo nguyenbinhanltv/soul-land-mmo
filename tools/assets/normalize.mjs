@@ -38,7 +38,9 @@ const extra = opt("--colors", "");
 const [hue0, hue1] = opt("--hair-hue", "190-260").split("-").map(Number);
 const splitAt = args.indexOf("--split"), split = splitAt >= 0 && !!args.splice(splitAt, 1);
 const vohonId = opt("--vohon", ""), halves = +opt("--halves", "-1");
-const files = args;
+const anchor = opt("--anchor", ""), maxH = opt("--max-h", "");
+// Đọc hết tùy chọn ở trên rồi mới lấy danh sách ảnh (bản sao, không dùng chung mảng args).
+const files = [...args];
 if (!outDir || !files.length) { console.error("Cách dùng: normalize.mjs --kind honsu|vohon|beast<bậc> --out <thư mục> <ảnh...>"); process.exit(1); }
 
 // Khung, gốc và chiều cao tối đa theo loại.
@@ -47,8 +49,8 @@ if (kind === "honsu") { FW = FH = HS_FRAME; [AX, AY] = HS_ORIGIN; MAXH = AY + 1;
 else if (kind === "vohon") { FW = FH = VH_FRAME; [AX, AY] = VH_ORIGIN; MAXH = FH; }
 else if (/^beast\d$/.test(kind)) { [FW, FH] = BEAST_FRAMES[+kind.slice(5)]; AX = FW >> 1; AY = FH - 1; MAXH = FH; }
 else { console.error(`--kind không hợp lệ: ${kind}`); process.exit(1); }
-const anchor = opt("--anchor", ""); if (anchor) [AX, AY] = anchor.split(",").map(Number);
-MAXH = +opt("--max-h", String(MAXH));
+if (anchor) [AX, AY] = anchor.split(",").map(Number);
+if (maxH) MAXH = +maxH;
 
 const lum = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
 const satOf = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx ? (mx - mn) / mx : 0; };

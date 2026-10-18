@@ -2,9 +2,9 @@
 
 Quy định ở `GAME_DESIGN.md` mục 5.11 (phần "Nguồn và giấy phép"). Tóm tắt:
 
-- Hình nhân vật, võ hồn, hồn thú **do nhóm tự vẽ** trong Aseprite, chỉ dùng màu trong `art/palette.gpl`.
-- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức.
-- **Ảnh AI chỉ là concept**, không đưa vào game. Ghi công cụ và prompt; không ghi tên họa sĩ còn sống trong prompt.
+- Hình nhân vật, võ hồn, hồn thú do nhóm tạo: **PixelLab qua dây chuyền `tools/assets`** (dùng thẳng trong game) hoặc vẽ tay trong Aseprite; chỉ dùng màu trong `art/palette.gpl` (cộng màu võ hồn và hồn hoàn theo 5.11).
+- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức, kể cả làm ảnh tham chiếu cho AI.
+- **Ảnh AI:** chỉ dùng công cụ mà điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice). Ghi công cụ, prompt và ngày; không ghi tên họa sĩ còn sống trong prompt. `tools/assets/validate.mjs --register` tự ghi dòng vào mục "Asset tạo bằng AI (PixelLab)".
 - **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận CC0, CC-BY hoặc OFL. CC-BY phải hiện tên tác giả trong màn hình giới thiệu của game.
 
 Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm key vào `manifest.json` và ghi một dòng ở đây.

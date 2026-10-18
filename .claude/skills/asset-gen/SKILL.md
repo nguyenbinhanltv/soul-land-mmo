@@ -5,6 +5,8 @@ description: Tạo sprite bằng PixelLab MCP rồi đưa vào game theo quy cá
 
 # Tạo asset bằng PixelLab
 
+Theo 5.11 (chốt sau PR #14): **ảnh PixelLab qua dây chuyền này được dùng thẳng trong game**; Aseprite chỉ để chỉnh tay khi cần. Ghi nguồn từng key trong `art/CREDITS.md` (validate làm tự động).
+
 Dây chuyền: **soạn prompt → gọi PixelLab MCP → tải ảnh thô → `normalize` → `pack` → `validate --register` → xem thử → PR**.
 Công cụ nằm ở `tools/assets/` (Node thuần, không cần cài gì):
 
@@ -12,7 +14,7 @@ Công cụ nằm ở `tools/assets/` (Node thuần, không cần cài gì):
 |---|---|
 | `normalize.mjs --kind honsu\|vohon\|beast<bậc> --out <dir> <ảnh…>` | Xóa nền, đặt chân vào gốc (hồn sư (16,30), phụ thể (24,38)), thu nearest-neighbor nếu quá khung, đưa màu về bảng, viền ngoài `#1a1020`. `--split` tách thân/tóc/áo theo màu khóa; `--vohon <id> --halves <y>` cho phụ thể. |
 | `pack.mjs --kind honsu\|vohon\|beast<bậc> --out <sheet.png> <dir>` | Ghép khung tên `{down\|right\|up}_{anim}_{i}.png` (và `absorb_{i}.png`) vào bố cục 16×4. `--breathe 18` tạo idle khung 2 (đầu, vai nhích 1 pixel); `--fill` chép tạm idle vào ô còn thiếu. |
-| `validate.mjs` | Kiểm mọi key trong manifest (chạy trong `npm run check`). `--register <key> --prompt "…" --tool "…" --note "…"` thêm key vào `manifest.json` và ghi dòng vào `art/CREDITS.md`. |
+| `validate.mjs` | Kiểm mọi key trong manifest (chạy trong `npm run check` và pre-commit khi đổi sprite/asset). `--register <key> --prompt "…" --tool "…" --note "…"` thêm key vào `manifest.json` và ghi dòng vào `art/CREDITS.md`. |
 | `preview.mjs <ra.png> <lớp…> --scale 6 --grid 32x32 [--crop x,y,w,h]` | Phóng to, chồng lớp để xem bằng mắt. |
 
 Ảnh thô PixelLab lưu ở `art/src/pixellab/<tên>/` (đúng tên khung như trên) để chạy lại normalize mà không phải gọi lại.
@@ -38,7 +40,7 @@ Chưa thử: attack/cast/hurt/die/absorb (template `lead-jab`, `fireball`, `taki
 ## Giữ phong cách đồng đều
 - **Một khung gốc cho mỗi nhân vật**: luôn tạo khung hướng xuống trước, duyệt bằng mắt, rồi mới xoay (v3) và làm animation từ nhân vật đó.
 - Nhân vật mới dùng khung gốc của nhân vật đã duyệt làm `init_image` (strength ~60).
-- Cùng bộ tham số `view`/`outline`/`shading`/`detail` như bảng trên; prompt mở đầu bằng "chibi …", kết thúc bằng "16-bit JRPG sprite". Tiền tố phong cách đầy đủ và prompt từng kiểu tóc/phụ thể: prompt pack của bước thiết kế mỹ thuật (mục 0–3) và bảng phụ thể ở 5.11.
+- Cùng bộ tham số `view`/`outline`/`shading`/`detail` như bảng trên; prompt mở đầu bằng "chibi …", kết thúc bằng "16-bit JRPG sprite". Mô tả phong cách (chibi, ánh sáng trên trái, viền tối có màu), bảng kiểu tóc và bảng phụ thể 20 võ hồn: mục 5.11; dịch sang tiếng Anh khi viết prompt.
 - Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 
 ## Màu khóa để tách lớp tóc/áo (hồn sư)
@@ -47,7 +49,7 @@ PixelLab vẽ cả người trong một ảnh. Để tách được lớp theo 5
 - Nếu ảnh đầu ra tóc xám, tô lại tóc sang lam bằng code trước khi xoay (đã làm với hồn sư nam).
 - `normalize --split`: lam → lớp tóc, xám → lớp áo, còn lại → thân; nét viền về lớp có nhiều điểm kề nhất. Tóc và áo đưa về dải 4 xám theo khoảng sáng của từng lớp, nên client hoán màu được (`recolor`).
 - Các bẫy đã gặp và đã xử lý trong `normalize`: da rất nhạt (hồng phấn) có độ bão hòa thấp; ánh sáng trên tóc gần trắng; bóng xanh tím trên quần trong khung walk; bóng da ám đỏ dưới tóc; mắt đỏ. Gặp kiểu lỗi mới thì xem màu nguồn (đếm màu trong ảnh) rồi chỉnh `layerOf`/`mapColor`.
-- **Giới hạn**: lớp thân tách ra có "lỗ" ở chỗ tóc che (trán, gáy). Kiểu tóc khác ngắn hơn sẽ lộ lỗ, nên mỗi kiểu tóc hiện cần vẽ cả người cho riêng kiểu đó (xem đề xuất trong PR bản thử đầu tiên).
+- **Giới hạn**: lớp thân tách ra có "lỗ" ở chỗ tóc che (trán, gáy). Kiểu tóc khác ngắn hơn sẽ lộ lỗ, nên chưa dùng chung một lớp thân cho cả 4 kiểu tóc được. Cách ghép lớp đang chờ chốt: GAME_DESIGN.md mục 8, câu 9 (đề xuất (b): vẽ liền theo giới × kiểu tóc rồi `--split`). Chưa chốt thì không tự đổi quy cách lớp.
 
 ## Quy trình "tạo <asset>"
 1. Đọc 5.11 (khung, gốc, bố cục, màu cho phép, bảng phụ thể) và xác định key: `hs_body_{m/f}`, `hs_outfit_{m/f}_0`, `hs_hair_{m/f}_{0–3}`, `vh_{id}_b`/`_f`, `b{bậc}` hoặc `beast_{loài}`.

@@ -2,9 +2,10 @@
 //   node tools/assets/validate.mjs                     kiểm mọi key trong shared/assets/sprites/manifest.json
 //   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH]
 //        kiểm file của key, thêm key vào manifest (nếu chưa có) và ghi/cập nhật một dòng trong art/CREDITS.md.
-// Kiểm: kích thước sheet đúng bố cục, alpha chỉ 0 hoặc 255, màu trong bảng (tóc/áo: chỉ dải 4 xám + viền),
-//       đủ khung bắt buộc, phụ thể không vẽ vào cột 12–15 và hàng 3, chân hồn sư chạm dòng y = 30.
-// Lỗi → thoát mã 1. Khung chép tạm (trùng idle khung đầu, do pack --fill) chỉ cảnh báo.
+// Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền),
+//       lớp thân thiếu khung bắt buộc, phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung.
+// Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
+//       chân hồn sư (gộp mọi lớp cùng giới, idle khung đầu mỗi hướng) không chạm dòng gốc y = 30.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN } from "./lib.mjs";

@@ -1,6 +1,7 @@
 // Kiểm tra kiểu TypeScript cho server và/hoặc client, chỉ chạy phần bị ảnh hưởng.
 //   node tools/check.mjs            -> kiểm tra cả hai
-//   node tools/check.mjs --staged   -> theo file đã git add (dùng cho pre-commit)
+//   node tools/check.mjs --staged   -> theo file đã git add (dùng cho pre-commit); đổi sprite/asset thì chạy thêm
+//                                      tools/assets/validate.mjs (npm run check luôn chạy validate)
 //   node tools/check.mjs --hook     -> đọc JSON hook của Claude Code từ stdin (PostToolUse Edit/Write)
 // Lỗi: thoát mã 1 (git) hoặc 2 (hook Claude, để AI đọc lỗi và tự sửa).
 import { spawnSync, execSync } from "node:child_process";
@@ -24,7 +25,7 @@ function targets(files) {
   return [...t];
 }
 
-let projects;
+let projects, assets = false;
 if (mode === "--hook") {
   let f;
   try { f = JSON.parse(readFileSync(0, "utf8") || "{}")?.tool_input?.file_path; } catch { f = undefined; }
@@ -33,6 +34,9 @@ if (mode === "--hook") {
 } else if (mode === "--staged") {
   const out = execSync("git diff --cached --name-only --diff-filter=ACMR", { cwd: root, encoding: "utf8" });
   projects = targets(out.split(/\r?\n/).filter(Boolean));
+  // Sprite, manifest, dây chuyền asset, bảng màu hoặc màu võ hồn đổi (kể cả xóa file) -> chạy validate (~0,1 giây).
+  const all = execSync("git diff --cached --name-only", { cwd: root, encoding: "utf8" });
+  assets = /^(shared\/assets\/sprites\/|tools\/assets\/|art\/palette\.gpl$|shared\/data\.ts$)/m.test(all);
 } else projects = ["server", "client"];
 
 let failed = false;
@@ -44,5 +48,9 @@ for (const p of projects) {
     failed = true;
     console.error(`[check] Lỗi TypeScript trong ${p}:\n${(r.stdout + r.stderr).trim()}`);
   } else if (mode !== "--hook") console.log(`[check] ${p}: OK`);
+}
+if (assets) {
+  const r = spawnSync(process.execPath, [path.join(root, "tools", "assets", "validate.mjs")], { cwd: root, stdio: "inherit" });
+  if (r.status !== 0) failed = true;
 }
 process.exit(failed ? (mode === "--hook" ? 2 : 1) : 0);
