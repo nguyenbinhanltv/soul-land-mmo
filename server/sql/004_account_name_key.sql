@@ -9,3 +9,7 @@ ALTER TABLE accounts ADD COLUMN IF NOT EXISTS name_key TEXT;
 -- Duy nhất theo tên chuẩn hóa. Postgres cho nhiều dòng NULL, nên tạo chỉ mục được ngay cả khi DB đã có hai tài khoản
 -- trùng tên sau chuẩn hóa: tài khoản cũ nhất nhận name_key, tài khoản còn lại giữ NULL (không xóa) và bị cảnh báo khi khởi động.
 CREATE UNIQUE INDEX IF NOT EXISTS accounts_name_key_idx ON accounts(name_key);
+
+-- Tài khoản bị loại vẫn đăng nhập được bằng mật khẩu riêng: login() tìm chúng khi mật khẩu sai với tài khoản giữ tên.
+-- Chỉ mục một phần để lượt tìm này không quét cả bảng (thường chỉ có vài dòng, hoặc không dòng nào).
+CREATE INDEX IF NOT EXISTS accounts_name_key_null_idx ON accounts(id) WHERE name_key IS NULL;

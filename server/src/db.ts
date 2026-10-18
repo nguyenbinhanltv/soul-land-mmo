@@ -124,8 +124,9 @@ export class PgStore implements Store {
    * Điền accounts.name_key (cột thêm ở 004_account_name_key.sql) cho tài khoản chưa có. Tính bằng nameKey trong JS,
    * không bằng SQL, để khớp tuyệt đối với login() và rate limit. Chạy mỗi lần khởi động, chỉ đụng dòng name_key IS NULL.
    * Hai tài khoản cũ trùng khóa (vd "Tam" và "ＴＡＭ", tạo trước khi có cột này): tài khoản cũ nhất giữ khóa; tài khoản
-   * còn lại KHÔNG bị xóa, giữ name_key NULL (không đăng nhập bằng tên được nữa, phiên đang mở vẫn dùng được tới khi hết hạn)
-   * và bị cảnh báo mỗi lần khởi động. Xử lý tay: đổi tên nó (UPDATE accounts SET name='…' WHERE id=…), lần khởi động sau tự điền.
+   * còn lại KHÔNG bị xóa, giữ name_key NULL và bị cảnh báo mỗi lần khởi động. Chủ của nó vẫn đăng nhập được bằng tên
+   * (mọi cách viết) và mật khẩu RIÊNG của mình (xem login), nên người tạo sau không bị kẻ chiếm tên trước khóa ngoài.
+   * Xử lý tay: đổi tên nó (UPDATE accounts SET name='…' WHERE id=…), lần khởi động sau tự điền.
    */
   async backfillNameKeys() {
     const r = await this.pool.query("SELECT id, name FROM accounts WHERE name_key IS NULL ORDER BY created_at, id");
@@ -136,7 +137,7 @@ export class PgStore implements Store {
       if (u.rowCount) continue;
       const owner = await this.pool.query("SELECT id, name FROM accounts WHERE name_key=$1", [key]);
       console.warn(`⚠  Tài khoản #${a.id} "${a.name}" trùng tên với tài khoản cũ hơn #${owner.rows[0]?.id} "${owner.rows[0]?.name}" `
-        + `sau khi chuẩn hóa. Giữ nguyên dữ liệu nhưng không đăng nhập bằng tên này được; đổi tên #${a.id} để dùng lại.`);
+        + `sau khi chuẩn hóa. Giữ nguyên dữ liệu; chủ #${a.id} vẫn vào được bằng mật khẩu riêng. Nên đổi tên #${a.id}.`);
     }
   }
   async login(name: string, password: string) {
@@ -152,7 +153,13 @@ export class PgStore implements Store {
       // Không tìm thấy dù chèn bị chặn: tên trùng y hệt một tài khoản cũ bị loại khi điền name_key (xem backfillNameKeys).
       if (!acc) return { error: "Tên này đã có người dùng." };
     }
-    if (!created && !checkPass(password, acc.pass_hash)) return { error: "Sai mật khẩu." };
+    if (!created && !checkPass(password, acc.pass_hash)) {
+      // Tài khoản cũ trùng tên bị loại khi điền name_key (backfillNameKeys) vẫn đăng nhập được bằng mật khẩu của chính nó.
+      const legacy = (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows
+        .find((r) => nameKey(r.name) === key && checkPass(password, r.pass_hash));
+      if (!legacy) return { error: "Sai mật khẩu." };
+      acc = legacy;
+    }
     const id = Number(acc.id);
     const token = newToken();
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);

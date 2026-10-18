@@ -46,11 +46,18 @@ else {
     // Giả lập dữ liệu tạo trước 004: chèn thẳng, name_key NULL. "ＶＩＮＨ…" tạo trước nên phải giữ tên.
     const ins = (n: string, t: string) => s.pool.query(
       "INSERT INTO accounts(name, pass_hash, created_at) VALUES ($1,'x:00',$2) RETURNING id", [n, t]).then((r) => Number(r.rows[0].id));
-    const old = await ins(`ＶＩＮＨ${u}`, "2020-01-01"), dup = await ins(`Vinh${u}`, "2021-01-01");
+    const old = await ins(`ＶＩＮＨ${u}`, "2020-01-01");
+    // Tài khoản tạo sau, có mật khẩu thật: tạo qua login rồi đưa về trạng thái trước 004.
+    const dup = ok(await s.login(`Vinh${u}`, "matkhau4"));
+    await s.pool.query("UPDATE accounts SET name_key=NULL, created_at='2021-01-01' WHERE id=$1", [dup]);
     await s.backfillNameKeys();
     const rows = (await s.pool.query("SELECT id, name_key FROM accounts WHERE id = ANY($1) ORDER BY id", [[old, dup]])).rows;
     assert.deepEqual(rows.map((r) => [Number(r.id), r.name_key]), [[old, nameKey(`Vinh${u}`)], [dup, null]]);
     await s.backfillNameKeys(); // chạy lại (lần khởi động sau) vẫn vậy
+    // Chủ tài khoản bị loại vẫn vào được tài khoản CỦA MÌNH bằng mật khẩu riêng, cách viết nào cũng được; sai mật khẩu thì không.
+    assert.equal(ok(await s.login(cleanName(`Vinh${u}`), "matkhau4")), dup);
+    assert.equal(ok(await s.login(cleanName(`ＶＩＮＨ${u}`), "matkhau4")), dup);
+    assert.ok("error" in await s.login(cleanName(`vinh${u}`), "saimatkhau"));
     assert.equal((await s.pool.query("SELECT count(*)::int n FROM accounts WHERE id = ANY($1)", [[old, dup]])).rows[0].n, 2);
     // Đổi tên tài khoản bị loại -> lần điền sau nó có khóa riêng và đăng nhập được bằng tên mới.
     await s.pool.query("UPDATE accounts SET name=$2 WHERE id=$1", [dup, `Vinh2${u}`]);
