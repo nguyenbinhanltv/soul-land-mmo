@@ -7,9 +7,12 @@ import { WebSocketTransport } from "@colyseus/ws-transport";
 import { ForestRoom } from "./rooms/ForestRoom.ts";
 import { store } from "./db.ts";
 import { VOHON } from "../../shared/data.ts";
+import { loginBegin, loginEnd } from "./ratelimit.ts";
 
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
+// Sau proxy của nền tảng deploy (Render, Railway, Fly.io…): đặt TRUST_PROXY=1 để lấy đúng IP người chơi cho rate limit.
+if (process.env.TRUST_PROXY) app.set("trust proxy", /^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY);
 app.use(express.json({ limit: "10kb" }));
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_ORIGIN ?? "*");
@@ -25,8 +28,17 @@ app.post("/api/login", async (req, res) => {
   const name = String(req.body?.name ?? "").trim(), password = String(req.body?.password ?? "");
   if (!/^[\p{L}\p{N}_ ]{3,20}$/u.test(name)) { res.status(400).json({ error: "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _." }); return; }
   if (password.length < 4) { res.status(400).json({ error: "Mật khẩu tối thiểu 4 ký tự." }); return; }
-  const r = await store.login(name, password);
-  if ("error" in r) { res.status(401).json(r); return; }
+  // Giới hạn số lần sai theo tên và theo IP (server/src/ratelimit.ts).
+  const ip = req.ip ?? req.socket.remoteAddress ?? "?";
+  const blocked = loginBegin(name, ip);
+  if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return; }
+  let r: Awaited<ReturnType<typeof store.login>>;
+  try { r = await store.login(name, password); } catch (e) { loginEnd(name, ip, null); throw e; }
+  const fail = loginEnd(name, ip, !("error" in r));
+  if (fail || "error" in r) {
+    if (fail?.retryAfter) res.setHeader("Retry-After", String(fail.retryAfter));
+    res.status(fail?.retryAfter ? 429 : 401).json({ error: fail?.error ?? "Tên đăng nhập hoặc mật khẩu không đúng." }); return;
+  }
   res.json({ token: r.token, character: await store.getCharacter(r.accountId) });
 });
 

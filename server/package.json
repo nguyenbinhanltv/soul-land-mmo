@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
     "start": "tsx --env-file-if-exists=.env src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:ratelimit": "tsx scripts/ratelimit-test.ts"
   },
   "dependencies": {
     "@colyseus/schema": "3.0.76",

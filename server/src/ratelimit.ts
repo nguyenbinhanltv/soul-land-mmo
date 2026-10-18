@@ -1,0 +1,146 @@
+// Giới hạn tần suất (rate limit) chống dò mật khẩu và spam chat. Lưu trong RAM, mất khi tắt server.
+// Đây là cấu hình bảo mật của server, không phải số cân bằng gameplay -> để hằng số ở đây, không đưa vào shared/data.ts.
+// Mọi hàm nhận `now` (ms) để kiểm thử với đồng hồ giả (xem server/scripts/ratelimit-test.ts).
+
+// ---------- Đăng nhập ----------
+/** Sai mật khẩu bao nhiêu lần (theo tên tài khoản) thì khóa tạm tên đó. */
+const LOGIN_NAME_MAX_FAILS = 5;
+/** Sai bao nhiêu lần từ cùng một IP (mọi tên cộng lại) thì khóa tạm IP đó. Cao hơn vì nhiều người có thể chung IP. */
+const LOGIN_IP_MAX_FAILS = 20;
+/** Lần khóa đầu dài 1 phút, mỗi lần khóa tiếp theo gấp đôi (1, 2, 4, 8… phút)… */
+const LOGIN_LOCK_BASE_MS = 60_000;
+/** …nhưng không quá 30 phút. */
+const LOGIN_LOCK_MAX_MS = 30 * 60_000;
+/** Không sai thêm lần nào trong 1 giờ thì xóa hẳn bộ đếm (kể cả mức khóa tăng dần). */
+const LOGIN_FORGET_MS = 60 * 60_000;
+
+// ---------- Chat ----------
+/** Độ dài tối đa một tin (khớp maxlength của ô chat trong client/index.html). */
+export const CHAT_MAX_LEN = 120;
+/** Token bucket: gửi liền tối đa 5 tin… */
+const CHAT_BURST = 5;
+/** …sau đó hồi 1 lượt mỗi 2 giây (tức tối đa ~30 tin/phút khi gửi đều). */
+const CHAT_REFILL_MS = 2_000;
+/** Không được gửi lại đúng nội dung tin trước trong vòng 30 giây. */
+const CHAT_REPEAT_MS = 30_000;
+/** Người chơi im lặng quá 10 phút thì xóa trạng thái chat của họ khỏi RAM. */
+const CHAT_FORGET_MS = 10 * 60_000;
+
+/** Dọn các mục cũ mỗi 5 phút để bộ nhớ không phình ra. */
+const SWEEP_MS = 5 * 60_000;
+
+interface FailEntry { fails: number; locks: number; lockUntil: number; last: number; pending: number; }
+
+class FailCounter {
+  map = new Map<string, FailEntry>();
+  constructor(private maxFails: number) {}
+
+  get(key: string, now: number) {
+    let e = this.map.get(key);
+    if (!e || (e.pending === 0 && e.lockUntil <= now && now - e.last > LOGIN_FORGET_MS)) {
+      e = { fails: 0, locks: 0, lockUntil: 0, last: now, pending: 0 }; this.map.set(key, e);
+    }
+    return e;
+  }
+
+  /** Số giây còn bị khóa (0 = không bị khóa). */
+  lockedFor(key: string, now: number) {
+    const e = this.map.get(key);
+    return e && e.lockUntil > now ? Math.ceil((e.lockUntil - now) / 1000) : 0;
+  }
+
+  /** Đang có quá nhiều lần thử chưa xong: số lần đã sai + đang xử lý chạm ngưỡng (chống bắn nhiều request song song). */
+  busy(key: string) {
+    const e = this.map.get(key);
+    return !!e && e.fails + e.pending >= this.maxFails;
+  }
+
+  begin(key: string, now: number) { this.get(key, now).pending++; }
+  end(key: string) { const e = this.map.get(key); if (e && e.pending > 0) e.pending--; }
+
+  /** Ghi nhận một lần sai. Chạm ngưỡng thì khóa (thời gian tăng dần). Trả về số lần còn được thử. */
+  fail(key: string, now: number) {
+    const e = this.get(key, now);
+    e.fails++; e.last = now;
+    if (e.fails >= this.maxFails) {
+      e.lockUntil = now + Math.min(LOGIN_LOCK_MAX_MS, LOGIN_LOCK_BASE_MS * 2 ** e.locks);
+      e.locks++; e.fails = 0;
+    }
+    return this.maxFails - e.fails;
+  }
+
+  reset(key: string) { const e = this.map.get(key); if (e) { e.fails = 0; e.locks = 0; e.lockUntil = 0; } }
+
+  sweep(now: number) {
+    for (const [k, e] of this.map) if (e.pending === 0 && e.lockUntil <= now && now - e.last > LOGIN_FORGET_MS) this.map.delete(k);
+  }
+}
+
+const byName = new FailCounter(LOGIN_NAME_MAX_FAILS);
+const byIp = new FailCounter(LOGIN_IP_MAX_FAILS);
+// Tên không phân biệt hoa thường, giống cách db.ts tìm tài khoản. Khóa theo tên dù tài khoản có tồn tại hay không.
+const nameKey = (name: string) => name.trim().toLowerCase();
+
+const waitText = (sec: number) => (sec >= 60 ? `${Math.ceil(sec / 60)} phút` : `${sec} giây`);
+const lockedMsg = (sec: number) => `Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ${waitText(sec)}.`;
+const lockedSec = (name: string, ip: string, now: number) => Math.max(byName.lockedFor(nameKey(name), now), byIp.lockedFor(ip, now));
+
+/**
+ * Gọi TRƯỚC khi kiểm tra mật khẩu. Bị khóa -> trả lỗi, KHÔNG được kiểm tra mật khẩu.
+ * Trả null -> được thử; sau đó BẮT BUỘC gọi loginEnd đúng một lần (kể cả khi lỗi, dùng try/finally).
+ */
+export function loginBegin(name: string, ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const sec = lockedSec(name, ip, now);
+  if (sec) return { error: lockedMsg(sec), retryAfter: sec };
+  if (byName.busy(nameKey(name)) || byIp.busy(ip)) return { error: "Đang xử lý quá nhiều lần đăng nhập. Vui lòng thử lại sau vài giây.", retryAfter: 3 };
+  byName.begin(nameKey(name), now); byIp.begin(ip, now);
+  return null;
+}
+
+/**
+ * Gọi sau khi kiểm tra mật khẩu. ok=null nghĩa là lỗi hệ thống (không tính là sai).
+ * Sai -> trả thông báo lỗi chung, không cho biết tài khoản có tồn tại hay không.
+ * Đúng -> xóa bộ đếm của tên; bộ đếm IP giữ nguyên để kẻ dò không "rửa" bằng tài khoản của chính mình.
+ */
+export function loginEnd(name: string, ip: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
+  const k = nameKey(name);
+  byName.end(k); byIp.end(ip);
+  if (ok === null) return null;
+  if (ok) { byName.reset(k); return null; }
+  const left = Math.min(byName.fail(k, now), byIp.fail(ip, now));
+  const sec = lockedSec(name, ip, now);
+  if (sec) return { error: lockedMsg(sec), retryAfter: sec };
+  return { error: `Tên đăng nhập hoặc mật khẩu không đúng.${left <= 2 ? ` Còn ${left} lần thử trước khi bị khóa tạm.` : ""}` };
+}
+
+// ---------- Chat ----------
+interface ChatEntry { tokens: number; at: number; lastText: string; lastAt: number; }
+const chat = new Map<string | number, ChatEntry>();
+
+/**
+ * Kiểm tra một tin chat của người chơi `key` (nên dùng accountId để vào lại phòng không được hồi lượt).
+ * Hợp lệ -> { text } đã cắt khoảng trắng. Bị chặn -> { error } để báo riêng cho người gửi. Tin rỗng -> null (bỏ qua im lặng).
+ */
+export function chatCheck(key: string | number, raw: unknown, now = Date.now()): { text: string } | { error: string } | null {
+  const text = String(raw ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return null;
+  if (text.length > CHAT_MAX_LEN) return { error: `Tin nhắn quá dài (tối đa ${CHAT_MAX_LEN} ký tự).` };
+  let e = chat.get(key);
+  if (!e) { e = { tokens: CHAT_BURST, at: now, lastText: "", lastAt: 0 }; chat.set(key, e); }
+  e.tokens = Math.min(CHAT_BURST, e.tokens + (now - e.at) / CHAT_REFILL_MS); e.at = now;
+  if (e.tokens < 1) return { error: `Bạn chat quá nhanh. Đợi ${Math.ceil(((1 - e.tokens) * CHAT_REFILL_MS) / 1000)} giây rồi gửi tiếp.` };
+  const norm = text.toLowerCase();
+  if (norm === e.lastText && now - e.lastAt < CHAT_REPEAT_MS) return { error: "Đừng gửi lặp lại cùng một nội dung liên tục." };
+  e.tokens -= 1; e.lastText = norm; e.lastAt = now;
+  return { text };
+}
+
+// ---------- Dọn dẹp ----------
+export function sweep(now = Date.now()) {
+  byName.sweep(now); byIp.sweep(now);
+  for (const [k, e] of chat) if (now - Math.max(e.at, e.lastAt) > CHAT_FORGET_MS) chat.delete(k);
+}
+setInterval(() => sweep(), SWEEP_MS).unref();
+
+/** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
+export function _resetAll() { byName.map.clear(); byIp.map.clear(); chat.clear(); }
