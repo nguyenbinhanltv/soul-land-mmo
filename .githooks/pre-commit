@@ -1,0 +1,3 @@
+#!/bin/sh
+# Chặn commit nếu code TypeScript bị lỗi kiểu. Bỏ qua khẩn cấp: git commit --no-verify
+exec node tools/check.mjs --staged

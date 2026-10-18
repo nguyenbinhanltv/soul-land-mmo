@@ -1,0 +1,5 @@
+* text=auto
+# Script shell phải giữ LF, nếu không sẽ lỗi khi chạy trên Linux/macOS (và Docker).
+.githooks/* text eol=lf
+*.sh text eol=lf
+*.png binary

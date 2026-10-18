@@ -1,0 +1,20 @@
+{
+  "name": "san-hon-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "bot": "node scripts/bot-test.mjs"
+  },
+  "dependencies": {
+    "colyseus.js": "0.16.22",
+    "phaser": "3.90.0",
+    "rung-san-hon-online": "file:.."
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "6.4.3"
+  }
+}

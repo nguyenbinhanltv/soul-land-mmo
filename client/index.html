@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rừng Săn Hồn Online</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌲</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="stage">
+    <div id="game"></div>
+    <div id="hud" hidden>
+      <section class="panel stats">
+        <div class="who"><span id="vhName">–</span><span id="lvl"></span></div>
+        <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
+        <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
+        <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
+        <div class="rings" id="rings"></div>
+      </section>
+      <section class="panel mapbox">
+        <canvas id="mini"></canvas>
+        <div id="zoneName"></div>
+        <div id="online"></div>
+      </section>
+      <div id="target" class="panel"></div>
+      <div id="prompt" class="panel"></div>
+      <div id="channel"><div class="label">Đang hấp thụ hồn hoàn…</div><div class="bar"><i id="chFill"></i></div></div>
+      <div id="banner"><b></b><span></span></div>
+      <div id="chatbox">
+        <div id="log"></div>
+        <input id="chat" maxlength="120" placeholder="Nhấn Enter để chat" autocomplete="off">
+      </div>
+      <div id="skills"></div>
+    </div>
+    <div id="joy"><div id="knob"></div></div>
+    <div id="overlay"><div class="card" id="card"></div></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

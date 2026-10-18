@@ -1,0 +1,12 @@
+# PostgreSQL cho máy local: docker compose up -d
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sanhon
+      POSTGRES_PASSWORD: sanhon
+      POSTGRES_DB: sanhon
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+volumes:
+  pgdata:
