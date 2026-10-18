@@ -1,0 +1,36 @@
+---
+name: server-feature
+description: Checklist server-authoritative khi thêm hoặc sửa luật chơi, message từ client, trạng thái đồng bộ hay API ở server (server/src/rooms/ForestRoom.ts, schema.ts, index.ts). Dùng khi làm bất cứ tính năng gameplay nào: chiến đấu, hồn kỹ, hấp thụ, rơi đồ, túi đồ, võ hồn, đội hình, chat.
+---
+
+# Tính năng phía server
+
+Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt buộc giữ). Server quyết định mọi thứ, client chỉ gửi ý định.
+
+## Logic đặt ở đâu
+- Luật chơi trong trận: `server/src/rooms/ForestRoom.ts`, lớp `ForestRoom`. Vòng lặp chạy `tick(dt)` với `TICK_RATE` lần/giây (`shared/data.ts`).
+- API REST (đăng nhập, thức tỉnh): `server/src/index.ts` (`/api/login`, `/api/me`, `/api/awaken`). Thức tỉnh do server tự roll, client không chọn kết quả.
+- Dữ liệu riêng của người chơi chỉ server biết: `pdata: Map<sessionId, PData>` (ví dụ `ringYears`, `absorbing`, `atkCd`). Trạng thái hồn thú riêng: `bdata`.
+- Số cân bằng lấy từ `shared/data.ts` (xem skill `balance-data`), không viết số mới trực tiếp vào room.
+
+## Checklist cho mỗi message từ client
+Đăng ký trong `onCreate()` bằng `this.onMessage(...)`. Message hiện có: `input`, `attack`, `skill`, `absorb`, `chat`. Thiết kế dự kiến thêm `switch {slot}`, `absorb {itemId, vohonId}`.
+
+1. **Ép kiểu và kẹp giá trị**: `Number(m?.x) || 0`, `String(m?.text ?? "")`. Xem mẫu `input` (chuẩn hóa vector về độ dài ≤ 1) và `chat` (`trim().slice(0, 120)`).
+2. **Kiểm tra chỉ số/id có thật**: ví dụ `skill` kiểm `i >= 0 && i < 4` và `i < p.rings.length`. Với `itemId`/`vohonId` phải kiểm tra món đồ/võ hồn đó thuộc tài khoản của `c.sessionId` (`pdata.get(id).accountId`).
+3. **Kiểm tra trạng thái**: người chơi tồn tại, không `dead`, không đang `absorbing`, hết hồi chiêu (`atkCd`, `p.cds[i]`), đủ hồn lực (`mpF`). Xem `attack()`, `skill()`, `tryAbsorb()`.
+4. **Giới hạn tần suất**: message gửi dồn dập không được tạo lợi thế (hồi chiêu do server đếm) và không được làm nghẽn server (chat, lệnh tốn tài nguyên).
+5. **Không tin số client gửi**: client không bao giờ gửi máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ. Vị trí do server tính trong `tick()` từ `d.input`. Sát thương tính trong `damageBeast()` / `hurtPlayer()`. Ngẫu nhiên (`Math.random()`) chỉ gọi ở server.
+6. Từ chối thì gửi lý do bằng `this.log(id, text, col)` (chữ tiếng Việt), đừng ném lỗi làm sập room.
+
+## Đồng bộ xuống client
+- **Trạng thái công khai** (ai cũng thấy): thêm trường trong `server/src/rooms/schema.ts` (`PlayerState`, `BeastState`, `DropState`, `ForestState`) với `@type(...)`, rồi đọc ở `client/src/scenes/GameScene.ts` (skill `client-ui`). Chọn kiểu nhỏ nhất đủ dùng (`uint8`, `float32`…).
+- **Dữ liệu riêng** (túi đồ, danh sách võ hồn, hồn cốt, hồn hạch): chỉ gửi cho chính chủ, ví dụ `this.clients.getById(id)?.send(...)` như hàm `log()`. Không đưa vào `MapSchema` công khai. Người khác chỉ thấy võ hồn đang ra trận, cấp và hồn hoàn của nó. Nếu muốn dùng tính năng lọc theo người xem của `@colyseus/schema` thì tra tài liệu đúng phiên bản đã ghim (3.0.76) qua context7 trước, không đoán API.
+- **Hiệu ứng hình ảnh** (không ảnh hưởng luật): `this.broadcast("fx", { k: ... })` và `this.broadcast("dmg", {...})`. Thêm loại `k` mới thì xử lý tương ứng ở `GameScene.fx()`.
+
+## Lưu dữ liệu
+- Lưu qua `store` trong `server/src/db.ts` (`save(id)` gọi `store.saveCharacter`). Cần bảng/cột mới: dùng skill `db-migration`.
+- Lưu ở `onLeave`, `onDispose` và sau sự kiện quan trọng (xem `finishAbsorb()`); bắt lỗi lưu để không sập room.
+
+## Xong thì
+`npm run check`, bật server rồi `npm run bot --prefix client` (skill `roadmap-step`).
