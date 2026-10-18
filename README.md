@@ -124,7 +124,8 @@ Sau mỗi bước, chạy kiểm thử ở trên rồi mới làm bước tiếp
 
 Repo có sẵn cấu hình chung trong `.claude/settings.json` (cùng áp dụng cho mọi người clone repo và mọi worktree):
 
-- **Plugin** từ marketplace `claude-plugins-official`: `typescript-lsp`, `context7`, `security-guidance`, `feature-dev`.
+- **Plugin** từ marketplace `claude-plugins-official`: `typescript-lsp`, `context7`, `security-guidance`, `feature-dev`,
+  `pr-review-toolkit`, `code-simplifier`.
   Lần đầu mở repo, Claude Code hỏi có tin thư mục này và cài marketplace/plugin không: chọn đồng ý.
 - **Hook**: sau mỗi lần AI sửa file, `node tools/check.mjs --hook` tự typecheck phần bị ảnh hưởng (server, client hoặc cả hai) và báo lỗi cho AI tự sửa.
 - **Skill dự án** trong `.claude/skills/`: `roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`.
