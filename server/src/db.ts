@@ -3,6 +3,7 @@
 import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { nameKey } from "./names.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -17,6 +18,7 @@ export interface Character {
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
   init(): Promise<void>;
+  /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. */
   login(name: string, password: string): Promise<{ token: string; accountId: number } | { error: string }>;
   accountFromToken(token: string): Promise<{ accountId: number; name: string } | null>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
@@ -45,8 +47,8 @@ function checkPass(pw: string, stored: string) {
 const newToken = () => randomBytes(24).toString("base64url");
 const copy = (c: Character): Character => ({ ...c, rings: [...c.rings] });
 
-class MemoryStore implements Store {
-  accounts = new Map<string, { id: number; pass: string }>();
+export class MemoryStore implements Store {
+  accounts = new Map<string, { id: number; pass: string }>();  // nameKey(tên) -> tài khoản
   names = new Map<number, string>();
   sessions = new Map<string, number>();
   rows = new Map<number, Character>();  // vohons.id -> võ hồn
@@ -54,8 +56,9 @@ class MemoryStore implements Store {
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
-    let acc = this.accounts.get(name.toLowerCase());
-    if (!acc) { acc = { id: this.seq++, pass: hashPass(password) }; this.accounts.set(name.toLowerCase(), acc); this.names.set(acc.id, name); }
+    const key = nameKey(name);
+    let acc = this.accounts.get(key);
+    if (!acc) { acc = { id: this.seq++, pass: hashPass(password) }; this.accounts.set(key, acc); this.names.set(acc.id, name); }
     else if (!checkPass(password, acc.pass)) return { error: "Sai mật khẩu." };
     const token = newToken(); this.sessions.set(token, acc.id);
     return { token, accountId: acc.id };
@@ -93,7 +96,7 @@ class MemoryStore implements Store {
   }
 }
 
-class PgStore implements Store {
+export class PgStore implements Store {
   pool: pg.Pool;
   constructor(url: string) {
     const ssl = process.env.PGSSL === "false" ? false : /supabase|sslmode=require/.test(url) || process.env.PGSSL === "true" ? { rejectUnauthorized: false } : false;
@@ -107,6 +110,7 @@ class PgStore implements Store {
     const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
     try {
       for (const f of files) await this.pool.query(readFileSync(new URL(f, dir), "utf8"));
+      await this.backfillNameKeys();
     } catch (e) {
       const host = (() => { try { return new URL(process.env.DATABASE_URL!).host; } catch { return "?"; } })();
       console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
@@ -116,16 +120,40 @@ class PgStore implements Store {
     }
     console.log("✓ Đã kết nối PostgreSQL và cập nhật bảng.");
   }
-  async login(name: string, password: string) {
-    const found = await this.pool.query("SELECT id, pass_hash FROM accounts WHERE lower(name)=lower($1)", [name]);
-    let id: number;
-    if (found.rowCount === 0) {
-      const ins = await this.pool.query("INSERT INTO accounts(name, pass_hash) VALUES ($1,$2) RETURNING id", [name, hashPass(password)]);
-      id = Number(ins.rows[0].id);
-    } else {
-      if (!checkPass(password, found.rows[0].pass_hash)) return { error: "Sai mật khẩu." };
-      id = Number(found.rows[0].id);
+  /**
+   * Điền accounts.name_key (cột thêm ở 004_account_name_key.sql) cho tài khoản chưa có. Tính bằng nameKey trong JS,
+   * không bằng SQL, để khớp tuyệt đối với login() và rate limit. Chạy mỗi lần khởi động, chỉ đụng dòng name_key IS NULL.
+   * Hai tài khoản cũ trùng khóa (vd "Tam" và "ＴＡＭ", tạo trước khi có cột này): tài khoản cũ nhất giữ khóa; tài khoản
+   * còn lại KHÔNG bị xóa, giữ name_key NULL (không đăng nhập bằng tên được nữa, phiên đang mở vẫn dùng được tới khi hết hạn)
+   * và bị cảnh báo mỗi lần khởi động. Xử lý tay: đổi tên nó (UPDATE accounts SET name='…' WHERE id=…), lần khởi động sau tự điền.
+   */
+  async backfillNameKeys() {
+    const r = await this.pool.query("SELECT id, name FROM accounts WHERE name_key IS NULL ORDER BY created_at, id");
+    for (const a of r.rows) {
+      const key = nameKey(a.name);
+      const u = await this.pool.query(
+        "UPDATE accounts SET name_key=$2 WHERE id=$1 AND NOT EXISTS (SELECT 1 FROM accounts WHERE name_key=$2) RETURNING id", [a.id, key]);
+      if (u.rowCount) continue;
+      const owner = await this.pool.query("SELECT id, name FROM accounts WHERE name_key=$1", [key]);
+      console.warn(`⚠  Tài khoản #${a.id} "${a.name}" trùng tên với tài khoản cũ hơn #${owner.rows[0]?.id} "${owner.rows[0]?.name}" `
+        + `sau khi chuẩn hóa. Giữ nguyên dữ liệu nhưng không đăng nhập bằng tên này được; đổi tên #${a.id} để dùng lại.`);
     }
+  }
+  async login(name: string, password: string) {
+    const key = nameKey(name);
+    const find = async () => (await this.pool.query("SELECT id, pass_hash FROM accounts WHERE name_key=$1", [key])).rows[0];
+    let acc = await find(), created = false;
+    if (!acc) {
+      const ins = await this.pool.query(
+        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, hashPass(password)]);
+      created = !!ins.rowCount;
+      // Hai yêu cầu tạo cùng tên một lúc: yêu cầu thua bị chỉ mục duy nhất chặn, lấy tài khoản vừa tạo và kiểm tra mật khẩu như thường.
+      acc = created ? ins.rows[0] : await find();
+      // Không tìm thấy dù chèn bị chặn: tên trùng y hệt một tài khoản cũ bị loại khi điền name_key (xem backfillNameKeys).
+      if (!acc) return { error: "Tên này đã có người dùng." };
+    }
+    if (!created && !checkPass(password, acc.pass_hash)) return { error: "Sai mật khẩu." };
+    const id = Number(acc.id);
     const token = newToken();
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
     return { token, accountId: id };

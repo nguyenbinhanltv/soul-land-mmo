@@ -1,7 +1,8 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { loginBegin, loginEnd, nameKey, chatCheck, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { loginBegin, loginEnd, chatCheck, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { nameKey } from "../src/names.ts";
 
 let now = 1_000_000;
 const sec = (s: number) => { now += s * 1000; };
@@ -61,10 +62,14 @@ test("Chuẩn hóa NFKC: các cách viết khác của cùng một tên dùng ch
   assert.equal(nameKey("ΟΔΥΣΣΕΥΣ"), nameKey("οδυσσευσ")); // "Σ" cuối từ
 });
 
-test("Đăng nhập đúng vào tài khoản trông giống (\"ＴＡＭ\") không xóa được bộ đếm của \"Tam\"", () => {
+test("\"ＴＡＭ\" và \"Tam\" chung khóa tên (db.ts cũng coi là một tài khoản): đăng nhập đúng bằng cách viết nào cũng xóa bộ đếm", () => {
+  assert.equal(nameKey("ＴＡＭ"), nameKey("Tam"));
   for (let i = 0; i < 4; i++) attempt("Tam", "1.1.1.1", false);
-  assert.equal(attempt("ＴＡＭ", "1.1.1.1", true), null); // db.ts coi đây là tài khoản khác: đăng nhập được
-  assert.match(attempt("Tam", "1.1.1.1", false)!, /thử lại sau 1 phút/);
+  assert.match(attempt("ＴＡＭ", "1.1.1.1", false)!, /thử lại sau 1 phút/); // lần sai thứ 5 tính chung
+  sec(61);
+  for (let i = 0; i < 4; i++) attempt("ＴＡＭ", "1.1.1.1", false);
+  assert.equal(attempt("tam", "1.1.1.1", true), null); // đúng mật khẩu của chính tài khoản đó
+  for (let i = 0; i < 4; i++) assert.doesNotMatch(attempt("Tam", "1.1.1.1", false)!, /quá nhiều|thử lại sau/);
 });
 
 test("Đăng nhập đúng xóa bộ đếm của (tên, IP) và của tên", () => {

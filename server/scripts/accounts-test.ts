@@ -1,0 +1,69 @@
+// Kiểm thử tìm/tạo tài khoản theo tên chuẩn hóa (server/src/names.ts) trong server/src/db.ts.
+// Chạy: npm run test:accounts --prefix server
+// Mặc định chỉ thử MemoryStore. Đặt TEST_DATABASE_URL (một DB RIÊNG để thử, vd Postgres của docker-compose)
+// để thử cả PgStore: test tạo tài khoản rác và chèn thẳng tài khoản trùng tên, KHÔNG trỏ vào DB thật.
+import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
+import { MemoryStore, PgStore, type Store } from "../src/db.ts";
+import { cleanName, nameKey } from "../src/names.ts";
+
+async function test(title: string, fn: () => Promise<void>) { await fn(); console.log(`✓ ${title}`); }
+const ok = (r: Awaited<ReturnType<Store["login"]>>) => { assert.ok(!("error" in r), JSON.stringify(r)); return r.accountId; };
+
+await test("cleanName giữ hoa/thường, chỉ chuẩn hóa NFKC và cắt khoảng trắng", async () => {
+  assert.equal(cleanName("  ＴＡＭ Ｔａｍ "), "TAM Tam");
+  assert.equal(cleanName("Đường Tam".normalize("NFD")), "Đường Tam".normalize("NFC"));
+  assert.equal(nameKey("ＴＡＭ"), nameKey("Tam"));
+});
+
+/** Các kịch bản chung cho mọi Store. `u` thêm hậu tố để chạy lại trên Postgres không đụng tài khoản cũ. */
+async function common(label: string, s: Store, u = "") {
+  await test(`${label}: "ＴＡＭ${u}" và "Tam${u}" là cùng một tài khoản, tên hiển thị giữ như lần tạo`, async () => {
+    const id = ok(await s.login(cleanName(`Tam${u}`), "matkhau1"));
+    assert.equal(ok(await s.login(cleanName(`ＴＡＭ${u}`), "matkhau1")), id);
+    assert.equal(ok(await s.login(cleanName(`tam${u}`), "matkhau1")), id);
+    assert.ok("error" in await s.login(cleanName(`ＴＡＭ${u}`), "saimatkhau")); // không tạo tài khoản mới
+    const r = await s.login(cleanName(`Ｔａｍ${u}`), "matkhau1") as { token: string };
+    assert.deepEqual(await s.accountFromToken(r.token), { accountId: id, name: `Tam${u}` });
+  });
+  await test(`${label}: dấu dựng sẵn và dấu tổ hợp là cùng một tài khoản`, async () => {
+    const id = ok(await s.login(cleanName(`Đường Tam${u}`), "matkhau2"));
+    assert.equal(ok(await s.login(cleanName(`ĐƯỜNG TAM${u}`.normalize("NFD")), "matkhau2")), id);
+  });
+}
+
+await common("MemoryStore", new MemoryStore());
+
+const url = process.env.TEST_DATABASE_URL;
+if (!url) console.log("(Bỏ qua PgStore: chưa đặt TEST_DATABASE_URL.)");
+else {
+  const s = new PgStore(url);
+  await s.init();
+  const u = " " + randomBytes(3).toString("hex");
+  await common("PgStore", s, u);
+
+  await test("PgStore: DB cũ có hai tài khoản trùng tên sau chuẩn hóa -> giữ tài khoản cũ nhất, không xóa tài khoản nào", async () => {
+    // Giả lập dữ liệu tạo trước 004: chèn thẳng, name_key NULL. "ＶＩＮＨ…" tạo trước nên phải giữ tên.
+    const ins = (n: string, t: string) => s.pool.query(
+      "INSERT INTO accounts(name, pass_hash, created_at) VALUES ($1,'x:00',$2) RETURNING id", [n, t]).then((r) => Number(r.rows[0].id));
+    const old = await ins(`ＶＩＮＨ${u}`, "2020-01-01"), dup = await ins(`Vinh${u}`, "2021-01-01");
+    await s.backfillNameKeys();
+    const rows = (await s.pool.query("SELECT id, name_key FROM accounts WHERE id = ANY($1) ORDER BY id", [[old, dup]])).rows;
+    assert.deepEqual(rows.map((r) => [Number(r.id), r.name_key]), [[old, nameKey(`Vinh${u}`)], [dup, null]]);
+    await s.backfillNameKeys(); // chạy lại (lần khởi động sau) vẫn vậy
+    assert.equal((await s.pool.query("SELECT count(*)::int n FROM accounts WHERE id = ANY($1)", [[old, dup]])).rows[0].n, 2);
+    // Đổi tên tài khoản bị loại -> lần điền sau nó có khóa riêng và đăng nhập được bằng tên mới.
+    await s.pool.query("UPDATE accounts SET name=$2 WHERE id=$1", [dup, `Vinh2${u}`]);
+    await s.backfillNameKeys();
+    assert.equal((await s.pool.query("SELECT name_key FROM accounts WHERE id=$1", [dup])).rows[0].name_key, nameKey(`Vinh2${u}`));
+  });
+
+  await test("PgStore: nhiều yêu cầu tạo cùng một tên cùng lúc -> chỉ một tài khoản", async () => {
+    const n = `Song${u}`, variants = [n, n.toUpperCase(), `Ｓｏｎｇ${u}`, n.toLowerCase()];
+    const ids = (await Promise.all(variants.map((v) => s.login(cleanName(v), "matkhau3")))).map(ok);
+    assert.equal(new Set(ids).size, 1);
+  });
+  await s.pool.end();
+}
+
+console.log("Tất cả kiểm thử tài khoản đều đạt.");

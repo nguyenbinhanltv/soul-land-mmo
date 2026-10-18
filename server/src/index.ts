@@ -7,6 +7,7 @@ import { WebSocketTransport } from "@colyseus/ws-transport";
 import { ForestRoom, awakenAccount } from "./rooms/ForestRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
+import { cleanName } from "./names.ts";
 
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
@@ -24,7 +25,8 @@ app.get("/health", (_q, r) => { r.json({ ok: true }); });
 
 // Đăng nhập (tự tạo tài khoản nếu tên chưa tồn tại).
 app.post("/api/login", async (req, res) => {
-  const name = String(req.body?.name ?? "").trim(), password = String(req.body?.password ?? "");
+  // Tên hiển thị sau NFKC (names.ts); store và rate limit tự so sánh theo nameKey(name).
+  const name = cleanName(String(req.body?.name ?? "")), password = String(req.body?.password ?? "");
   if (!/^[\p{L}\p{N}_ ]{3,20}$/u.test(name)) { res.status(400).json({ error: "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _." }); return; }
   if (password.length < 4) { res.status(400).json({ error: "Mật khẩu tối thiểu 4 ký tự." }); return; }
   // Giới hạn số lần sai theo tên và theo IP (server/src/ratelimit.ts).
