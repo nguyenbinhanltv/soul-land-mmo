@@ -157,15 +157,27 @@ const VOHON_INDEX = new Map(VOHON.map((v, i) => [v.id, i]));
 /** Chỉ số trong VOHON của một mã võ hồn (-1 nếu không có). */
 export const vohonIndex = (id: string) => VOHON_INDEX.get(id) ?? -1;
 
-// ---------- Lễ thức tỉnh và đổi võ hồn ----------
+// ---------- Lễ thức tỉnh, đội hình và đổi võ hồn ----------
 /** Võ hồn tặng cho mọi tài khoản khi thức tỉnh. */
 export const AWAKEN_GIFT = "lam_ngan_thao";
 /** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản. */
 export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR");
-/** Đổi võ hồn ra trận: phải rời giao chiến (không đánh, không bị đánh) ít nhất ngần này giây. */
-export const PICK_COMBAT_SECS = 5;
-/** Thời gian chờ giữa hai lần đổi võ hồn (giây). */
-export const PICK_CD = 2;
+/** Số ô của đội hình võ hồn (mục 3, 5.1). Bảng `teams` lưu ô 0..TEAM_SIZE-1. */
+export const TEAM_SIZE = 4;
+/** Hồi chiêu sau mỗi lần đổi võ hồn trong đội khi đang đánh (giây, mục 5.1 "Trong trận"). */
+export const SWITCH_CD = 3;
+/** Đổi đội hình (thay võ hồn khác vào đội): phải rời giao chiến (không đánh, không bị đánh) ít nhất ngần này giây. */
+export const TEAM_COMBAT_SECS = 5;
+/**
+ * Kiểm tra hình dạng đội hình: mảng đúng TEAM_SIZE ô, mỗi ô là mã dòng võ hồn (vohons.id, số nguyên dương) hoặc 0 = trống,
+ * không trùng nhau, có ít nhất một võ hồn. Sai thì null. Võ hồn có thuộc tài khoản hay không do server kiểm tra riêng.
+ */
+export function parseTeam(x: unknown): number[] | null {
+  if (!Array.isArray(x) || x.length !== TEAM_SIZE) return null;
+  if (!x.every((v) => typeof v === "number" && Number.isSafeInteger(v) && v >= 0)) return null;
+  const ids = x.filter((v) => v > 0);
+  return ids.length && new Set(ids).size === ids.length ? [...x] : null;
+}
 
 // ---------- Ngoại hình hồn sư khi tạo nhân vật (mục 3, 5.11) ----------
 /** Giới tính, chỉ số là cột `sex` (0 nam, 1 nữ); sprite dùng hậu tố `m` / `f`. */

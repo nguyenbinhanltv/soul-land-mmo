@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, type Looks } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, type Looks } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -31,8 +31,15 @@ export interface Store {
   listVohons(accountId: number): Promise<Character[]>;
   /** Thêm võ hồn mới. null nếu tài khoản đã có võ hồn này. */
   addVohon(accountId: number, name: string, vohon: string, level: number): Promise<Character | null>;
-  /** Chọn võ hồn ra trận. false nếu dòng `rowId` không thuộc tài khoản. */
-  setActive(accountId: number, rowId: number): Promise<boolean>;
+  /**
+   * Đội hình: mã dòng võ hồn (vohons.id) theo ô, dài TEAM_SIZE, 0 = ô trống. Tài khoản chưa có đội (tài khoản có từ trước
+   * bước 2.3a, hoặc vừa thức tỉnh) được tự xếp từ các võ hồn đang có: võ hồn ra trận ở ô 1, còn lại theo thứ tự nhận được.
+   * Chưa thức tỉnh thì toàn 0.
+   */
+  getTeam(accountId: number): Promise<number[]>;
+  /** Lưu đội hình cùng võ hồn ra trận (một lần ghi). false nếu đội sai (parseTeam), có võ hồn không thuộc tài khoản
+   *  hoặc `active` không nằm trong đội. */
+  saveTeam(accountId: number, team: number[], active: number): Promise<boolean>;
   saveCharacter(c: Character): Promise<void>;
   /** Thức tỉnh lần đầu: tạo các võ hồn khởi đầu và cho `active` ra trận.
    *  null nếu tài khoản đã có võ hồn (thức tỉnh chỉ diễn ra một lần). */
@@ -54,6 +61,10 @@ function checkPass(pw: string, stored: string) {
 }
 const newToken = () => randomBytes(24).toString("base64url");
 const copy = (c: Character): Character => ({ ...c, rings: [...c.rings] });
+/** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
+const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
+/** Đội hợp lệ và có võ hồn ra trận trong đó (kiểm tra chung cho cả hai store). */
+const teamOk = (team: number[], active: number) => !!parseTeam(team) && active > 0 && team.includes(active);
 
 export class MemoryStore implements Store {
   accounts = new Map<string, { id: number; pass: string }>();  // nameKey(tên) -> tài khoản
@@ -62,6 +73,7 @@ export class MemoryStore implements Store {
   rows = new Map<number, Character>();  // vohons.id -> võ hồn
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
+  teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -87,9 +99,19 @@ export class MemoryStore implements Store {
     this.rows.set(c.rowId, c);
     return copy(c);
   }
-  async setActive(accountId: number, rowId: number) {
-    if (this.rows.get(rowId)?.accountId !== accountId) return false;
-    this.active.set(accountId, rowId); return true;
+  async getTeam(accountId: number) {
+    let t = this.teams.get(accountId);
+    if (!t) {
+      const list = this.owned(accountId), act = this.active.get(accountId);
+      if (!list.length) return autoTeam([]);
+      t = autoTeam([...list.filter((c) => c.rowId === act), ...list.filter((c) => c.rowId !== act)].map((c) => c.rowId));
+      this.teams.set(accountId, t);
+    }
+    return [...t];
+  }
+  async saveTeam(accountId: number, team: number[], active: number) {
+    if (!teamOk(team, active) || team.some((r) => r && this.rows.get(r)?.accountId !== accountId)) return false;
+    this.teams.set(accountId, [...team]); this.active.set(accountId, active); return true;
   }
   async saveCharacter(c: Character) {
     const cur = this.rows.get(c.rowId);
@@ -208,11 +230,46 @@ export class PgStore implements Store {
       [accountId, vohon, level]);
     return r.rowCount ? this.row(r.rows[0], accountId, name) : null;
   }
-  async setActive(accountId: number, rowId: number) {
-    const r = await this.pool.query(
-      "UPDATE accounts SET active_vohon=$2 WHERE id=$1 AND EXISTS (SELECT 1 FROM vohons WHERE id=$2 AND account_id=$1)",
-      [accountId, rowId]);
-    return (r.rowCount ?? 0) > 0;
+  async getTeam(accountId: number) {
+    const read = async () =>
+      (await this.pool.query("SELECT slot, vohon_id FROM teams WHERE account_id=$1 AND slot < $2", [accountId, TEAM_SIZE])).rows;
+    let rows = await read();
+    if (!rows.length) {
+      // Chưa có đội: xếp từ võ hồn đang có, cùng thứ tự với getCharacter (võ hồn ra trận trước, rồi theo thứ tự nhận).
+      const v = await this.pool.query(
+        `SELECT v.id FROM vohons v JOIN accounts a ON a.id=v.account_id
+         WHERE v.account_id=$1 ORDER BY COALESCE(v.id = a.active_vohon, false) DESC, v.id LIMIT $2`, [accountId, TEAM_SIZE]);
+      if (!v.rowCount) return autoTeam([]);
+      // Hai phiên cùng xếp một lúc thì cùng ra một đội; dòng trùng bị bỏ qua.
+      await this.pool.query(
+        `INSERT INTO teams(account_id, slot, vohon_id)
+         SELECT $1, s - 1, id FROM unnest($2::bigint[]) WITH ORDINALITY AS u(id, s) ON CONFLICT DO NOTHING`,
+        [accountId, v.rows.map((x) => Number(x.id))]);
+      rows = await read();
+    }
+    const team = autoTeam([]);
+    for (const x of rows) team[x.slot] = Number(x.vohon_id);
+    return team;
+  }
+  async saveTeam(accountId: number, team: number[], active: number) {
+    if (!teamOk(team, active)) return false;
+    const ids = team.filter((r) => r > 0);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      const own = await db.query("SELECT count(*)::int AS n FROM vohons WHERE account_id=$1 AND id = ANY($2::bigint[])", [accountId, ids]);
+      if (own.rows[0].n !== ids.length) { await db.query("ROLLBACK"); return false; }
+      await db.query("DELETE FROM teams WHERE account_id=$1", [accountId]);
+      await db.query(
+        `INSERT INTO teams(account_id, slot, vohon_id)
+         SELECT $1, s - 1, id FROM unnest($2::bigint[]) WITH ORDINALITY AS u(id, s) WHERE id > 0`, [accountId, team]);
+      await db.query("UPDATE accounts SET active_vohon=$2 WHERE id=$1", [accountId, active]);
+      await db.query("COMMIT");
+      return true;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async saveCharacter(c: Character) {
     await this.pool.query(

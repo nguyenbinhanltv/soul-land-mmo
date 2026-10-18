@@ -16,7 +16,8 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 - Số cân bằng lấy từ `shared/data.ts` (xem skill `balance-data`), không viết số mới trực tiếp vào room.
 
 ## Checklist cho mỗi message từ client
-Đăng ký trong `onCreate()` bằng `this.onMessage(...)`. Message hiện có: `input`, `attack`, `skill`, `absorb`, `chat`. Thiết kế dự kiến thêm `switch {slot}`, `absorb {itemId, vohonId}`.
+Đăng ký trong `onCreate()` bằng `this.onMessage(...)`. Message hiện có: `input`, `attack`, `skill`, `absorb`, `chat`, `vohons`, `team {slots}` (xếp đội, ngoài giao chiến), `switch {slot}` (đổi võ hồn trong đội, cả khi đang đánh). Thiết kế dự kiến thêm `absorb {itemId, vohonId}`.
+Message chưa đăng ký thì Colyseus ngắt kết nối client gửi nó (`onMessage for "…" not registered`): bỏ message cũ thì cập nhật client và bot cùng lúc.
 
 1. **Ép kiểu và kẹp giá trị**: `Number(m?.x) || 0`, `String(m?.text ?? "")`. Xem mẫu `input` (chuẩn hóa vector về độ dài ≤ 1) và `chat` (`trim().slice(0, 120)`).
 2. **Kiểm tra chỉ số/id có thật**: ví dụ `skill` kiểm `i >= 0 && i < 4` và `i < p.rings.length`. Với `itemId`/`vohonId` phải kiểm tra món đồ/võ hồn đó thuộc tài khoản của `c.sessionId` (`pdata.get(id).accountId`).

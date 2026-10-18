@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, ringLimit, TILE, titleOf, DIRS4 } from "../../../shared/data.ts";
+import { TIERS, BEASTS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -107,9 +107,13 @@ export class GameScene extends Phaser.Scene {
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
+      // Phím số 1–4: đổi sang võ hồn ở ô tương ứng của đội; hồn kỹ dùng U, I, O, P (hud.SKILL_KEYS).
+      const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
+      const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
       else if (e.code === "KeyE") this.act("absorb");
-      else if (/^Digit[1-4]$/.test(e.code)) this.act("skill" + (Number(e.code.slice(5)) - 1));
+      else if (sk >= 0) this.act("skill" + sk);
+      else if (slot >= 0 && slot < TEAM_SIZE) this.act("switch" + slot);
     });
     addEventListener("keyup", (e) => { this.keys[e.code] = false; });
     addEventListener("blur", () => { this.keys = {}; });
@@ -133,6 +137,7 @@ export class GameScene extends Phaser.Scene {
     if (a === "attack") this.room.send("attack");
     else if (a === "absorb") this.room.send("absorb");
     else if (a.startsWith("skill")) this.room.send("skill", { i: Number(a.slice(5)) });
+    else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
   }
 
   sendInput() {
@@ -157,8 +162,11 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: t, y: m.y - 16, alpha: 0, delay: 350, duration: 550, onComplete: () => t.destroy() });
     });
     this.room.onMessage("fx", (m: any) => this.fx(m));
-    // Danh sách võ hồn sở hữu: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
-    this.room.onMessage("vohons", (m: OwnedVohons) => hud.renderRoster(m, (rowId) => this.room.send("pick", { rowId })));
+    // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
+    this.room.onMessage("vohons", (m: OwnedVohons) => {
+      hud.renderRoster(m, (slots) => this.room.send("team", { slots }));
+      hud.buildTeam(m, (slot) => this.act("switch" + slot));
+    });
     this.room.send("vohons");
   }
 
@@ -373,6 +381,7 @@ export class GameScene extends Phaser.Scene {
     const skKey = `${me.vh}|${me.rings.length}`;
     if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], (a) => this.act(a)); }
     hud.updateStats(me);
+    hud.updateTeam(me.swCd);
     const inCamp = me.x >= this.campRect.x && me.x <= this.campRect.x + this.campRect.w && me.y >= this.campRect.y && me.y <= this.campRect.y + this.campRect.h;
     const zone = this.zones.find((z) => me.x >= z.x0 && me.x < z.x1);
     const zname = inCamp || !zone ? "Doanh trại" : zone.name;

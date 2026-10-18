@@ -30,7 +30,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 Đây là những gì code đang chạy. Mục ghi ➜ sẽ bị thay ở giai đoạn tương ứng.
 
 - **Thức tỉnh** (một lần, chỉ khi tài khoản chưa có võ hồn): tặng Lam Ngân Thảo + người chơi tự chọn 1 võ hồn SSR bất kỳ; server kiểm tra lựa chọn và roll hồn lực bẩm sinh 1–10 (= cấp khởi đầu của cả hai võ hồn). Không còn thức tỉnh lại, không bao giờ xóa võ hồn. *Giữ nguyên.*
-- **Võ hồn sở hữu**: mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. Chọn 1 võ hồn ra trận (phím V), chỉ đổi được khi không giao chiến 5 giây và không hấp thụ. ➜ GĐ2.3: đội hình 4 võ hồn, đổi ngay trong trận.
+- **Võ hồn sở hữu và đội hình** (từ 2.3a): mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. Đội 4 ô xếp từ bộ sưu tập (phím V), chỉ xếp khi không giao chiến 5 giây và không hấp thụ. Trong trận phím 1–4 (hoặc chạm thanh đội hình) đổi ngay sang võ hồn trong đội, hồi 3 giây; cấm khi gục hoặc đang hấp thụ. Đổi võ hồn giữ tỉ lệ sinh lực / hồn lực. ➜ 2.3b: luật gục từng võ hồn, hồi sinh, chia kinh nghiệm cho cả đội.
 - **Bình cảnh**: cứ đến cấp 10, 20, 30… là kinh nghiệm dừng lại, phải hấp thụ hồn hoàn mới lên tiếp. *Giữ nguyên.*
 - **Niên hạn**: 5 bậc cố định 10 / 100 / 1.000 / 10.000 / 100.000 năm. ➜ GĐ3: thay bằng số năm cụ thể.
 - **Giới hạn hấp thụ**: theo bậc; vượt 1 bậc thì 60% thất bại, mất 70% máu. ➜ GĐ3: thay bằng giới hạn theo truyện, thất bại thì mất hồn hoàn.
@@ -107,12 +107,13 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - Mảnh dư dùng để **lên sao** (1★ → 6★, cần 20 / 40 / 80 / 120 / 200 mảnh). Mỗi sao tăng chỉ số gốc và mở thêm hiệu ứng cho hồn kỹ.
 
 **Trong trận:**
-- Phím đổi võ hồn chuyển ngay sang võ hồn khác trong đội, mỗi lần đổi hồi 3 giây.
+- Phím đổi võ hồn (1–4 trên máy tính, chạm ô trên thanh đội hình ở điện thoại) chuyển ngay sang võ hồn khác trong đội, mỗi lần đổi hồi 3 giây (`SWITCH_CD`). Hồn kỹ vì vậy chuyển sang phím U / I / O / P (đã làm ở 2.3a).
+- Xếp đội (thay võ hồn khác vào đội, đổi chỗ, bỏ ra) chỉ khi ngoài giao chiến (`TEAM_COMBAT_SECS`). Đội phải có ít nhất 1 võ hồn; võ hồn đang ra trận luôn nằm trong đội.
 - **Năng lượng tiên cơ:** đánh trúng thì tích năng lượng. Võ hồn đủ năng lượng khi được đổi vào sẽ tung **chiêu tiên cơ** ngay lúc xuất hiện. Đây là kỹ thuật nối combo chính.
 - Võ hồn đang ra trận gục thì tự đổi sang võ hồn còn sống. Võ hồn đã gục chỉ hồi lại ở doanh trại hoặc sau 60 giây ngoài trận.
 - Cả đội gục thì về doanh trại, không mất kinh nghiệm hay đồ (chờ chốt).
 
-**Kinh nghiệm:** chia cho cả 4 võ hồn trong đội; võ hồn đang ra trận nhận 40%, mỗi võ hồn còn lại 20% (đã chốt, làm ở bước 2.3). Võ hồn đang ở bình cảnh thì không nhận, phần đó không chia lại.
+**Kinh nghiệm:** chia cho cả 4 võ hồn trong đội; võ hồn đang ra trận nhận 40%, mỗi võ hồn còn lại 20% (đã chốt, làm ở bước 2.3b). Võ hồn đang ở bình cảnh thì không nhận, phần đó không chia lại.
 
 **Danh hiệu** theo cấp của võ hồn đang ra trận, hiện trên đầu hồn sư:
 
@@ -205,7 +206,7 @@ So cấp của võ hồn đang ra trận (tối đa 80) với cấp tương đư
 |---|---|---|---|
 | Kinh nghiệm nhận | 100% | 50% | 10% |
 
-- Giảm một lần trước khi chia cho đội 4 võ hồn (bước 2.3) và cho tổ đội người chơi (mục 5.9).
+- Giảm một lần trước khi chia cho đội 4 võ hồn (bước 2.3b) và cho tổ đội người chơi (mục 5.9).
 - **Chỉ giảm kinh nghiệm.** Hồn hoàn và các đồ rơi khác vẫn rơi bình thường, để người chơi quay về bản đồ dễ săn đúng hồn hoàn hợp vòng mà không bị thiệt.
 - Hồn thú mạnh hơn võ hồn không cho thêm kinh nghiệm.
 
@@ -632,16 +633,16 @@ shared/assets/ui/
 
 ## 6. Kiến trúc (bắt buộc giữ)
 - **Server quyết định mọi thứ.** Client chỉ gửi ý định: `input {x,y}`, `attack`, `skill {i}`, `switch {slot}`, `absorb {itemId, vohonId}`, `chat {text}`…
-  Đang có thêm: `vohons` (xin danh sách võ hồn sở hữu, server trả tin nhắn riêng `vohons`), `pick {rowId}` (chọn võ hồn ra trận, đến bước 2.3),
+  Đang có thêm: `vohons` (xin danh sách võ hồn sở hữu và đội hình, server trả tin nhắn riêng `vohons {active, team, list}`), `team {slots}` (xếp đội: đủ 4 ô, mỗi ô là `vohons.id` hoặc 0), `switch {slot}` (đổi võ hồn trong đội; thay `pick {rowId}` của bước 2.2),
   và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `MapRoom.ts`),
   `POST /api/looks {token, sex, hair, hairCol, outfitCol}` cho tạo nhân vật (một lần, luật trong `chooseLooks` ở `MapRoom.ts`; `/api/login` và `/api/me` trả thêm `looks`).
   Từ BĐ2 có thêm `travel {portal}` (xin đi qua cổng); server gửi riêng `portal` (đang đứng ở cổng nào, cấp đề xuất, có cảnh báo không) và `travel {mapId}` (đã được phép chuyển bản đồ).
   Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ hay bản đồ đích.
 - Trạng thái đồng bộ qua Colyseus Schema (`server/src/rooms/schema.ts`). Hiệu ứng hình ảnh gửi qua `broadcast("fx")` và `"dmg"`.
-- Túi đồ và võ hồn chỉ gửi cho chính chủ (không đồng bộ cho người khác). Người khác chỉ thấy ngoại hình hồn sư (giới tính, tóc, màu áo), võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- Túi đồ, võ hồn và đội hình chỉ gửi cho chính chủ (không đồng bộ cho người khác). Người khác chỉ thấy ngoại hình hồn sư (giới tính, tóc, màu áo), võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - Mỗi bản đồ là một file Tiled dùng chung cho server và client: `shared/assets/<mapId>.json` (đến BĐ2 chỉ có `shared/assets/tinh_dau.json`). Ô có thuộc tính `collides=true` là vật cản ở cả hai phía.
 - Dữ liệu lâu dài lưu trong PostgreSQL / Supabase (`server/sql/`). Bảng mới dùng `CREATE TABLE IF NOT EXISTS` và bật RLS.
-- **Bảng dữ liệu dự kiến:** `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn), `items` (mỗi món đồ có id riêng: loại, số năm, sao, cấp cường hóa, dòng chỉ số, đang gắn vào võ hồn nào), `teams` (đội hình), cột `accounts.map_id` + vị trí (BĐ2), `boss_claims` (lượt nhận thưởng boss mỗi ngày, BĐ5).
+- **Bảng dữ liệu dự kiến:** `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn), `items` (mỗi món đồ có id riêng: loại, số năm, sao, cấp cường hóa, dòng chỉ số, đang gắn vào võ hồn nào), `teams` (đội hình, đã có từ 2.3a: mỗi ô một dòng), cột `accounts.map_id` + vị trí (BĐ2), `boss_claims` (lượt nhận thưởng boss mỗi ngày, BĐ5).
 
 ### Kiến trúc nhiều bản đồ (từ BĐ1)
 **Một loại phòng cho mọi bản đồ**
@@ -672,7 +673,7 @@ shared/assets/ui/
 - Thuộc tính sai (loài không có trong `BEASTS`, cổng tới bản đồ không có trong `MAPS`, `arrive` không tồn tại ở bản đồ đích hoặc nằm trong một vùng `portal`) thì server ghi cảnh báo và bỏ object đó. Nên thêm bước kiểm tra file bản đồ vào `npm run check`.
 
 **Đi qua cổng và lưu vị trí**
-- **Lưu của mỗi người chơi chạy nối tiếp.** Lưu định kỳ chạy kiểu fire-and-forget và `save()` chụp dữ liệu nhân vật rồi mới `await` ghi DB, nên hai lần lưu của cùng một người có thể chồng nhau và lần chụp trước commit sau. Vì vậy dữ liệu riêng của mỗi client giữ một promise `saving` (lần lưu đang chạy hoặc đang chờ). Mọi lần ghi DB về nhân vật của người đó đều nối vào sau promise này: lưu định kỳ 30 giây, `onLeave`, `onDispose`, lưu ngay sau khi hấp thụ hồn hoàn, đổi võ hồn (cả `saveCharacter` võ hồn cũ lẫn `setActive`) và transaction đi cổng (`saving = saving.then(lưu)`, lỗi được bắt và ghi log để không làm gãy chuỗi), không gọi `save()` trực tiếp. Nhờ vậy tại mỗi thời điểm một người chơi chỉ có tối đa một lần ghi DB, và các lần ghi commit đúng thứ tự đã chụp.
+- **Lưu của mỗi người chơi chạy nối tiếp.** Lưu định kỳ chạy kiểu fire-and-forget và `save()` chụp dữ liệu nhân vật rồi mới `await` ghi DB, nên hai lần lưu của cùng một người có thể chồng nhau và lần chụp trước commit sau. Vì vậy dữ liệu riêng của mỗi client giữ một promise `saving` (lần lưu đang chạy hoặc đang chờ). Mọi lần ghi DB về nhân vật của người đó đều nối vào sau promise này: lưu định kỳ 30 giây, `onLeave`, `onDispose`, lưu ngay sau khi hấp thụ hồn hoàn, đổi võ hồn (cả `saveCharacter` võ hồn cũ lẫn `saveTeam`, từ 2.3a thay `setActive`) và transaction đi cổng (`saving = saving.then(lưu)`, lỗi được bắt và ghi log để không làm gãy chuỗi), không gọi `save()` trực tiếp. Nhờ vậy tại mỗi thời điểm một người chơi chỉ có tối đa một lần ghi DB, và các lần ghi commit đúng thứ tự đã chụp.
 - **Thứ tự bắt buộc khi duyệt `travel {portal}`** (tránh đua ghi giữa phòng cũ và phòng mới):
   1. Server kiểm tra như ở 5.3. Không hợp lệ thì báo lỗi, dừng.
   2. Đánh dấu client **đang chuyển bản đồ** (cờ trong dữ liệu riêng của người chơi). Từ lúc này phòng cũ bỏ qua input, đánh, hồn kỹ, hấp thụ, đổi võ hồn và `travel` tiếp theo của client đó; hồn thú bỏ mục tiêu là người này.
@@ -749,7 +750,12 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   *Đã làm:* `client/src/honsuArt.ts` vẽ từng khung vào bộ đệm pixel theo đúng bố cục cố định (16 cột × 4 hàng, đủ 7 animation, 3 hướng): `hs_body_{m,f}`, `hs_outfit_{m,f}_0` và `hs_hair_{m,f}_{0–3}` bằng dải 4 xám, `vh_{id}_b` / `vh_{id}_f` 48×48 cho 20 võ hồn (chỉ cột 0–11 hàng 0–2). `textures.ts` biến chúng thành texture có khung đánh số (bỏ qua key đã có ảnh thật trong manifest), phụ thể chỉ tạo khi có người dùng; áo và tóc hoán màu bằng `recolor` thành `hs_hair_f_2@3`, `hs_outfit_m_0@5`. Viền ngoài `#1a1020` giữ nguyên khi hoán màu, chỉ viền trong (xám tối nhất) đổi theo màu (chờ chốt).
   `GameScene`: mỗi hồn sư là một container theo thứ tự lớp 1–8 (bóng `hs_shadow`, cung trên vòng hồn hoàn, phụ thể sau, thân, áo, tóc, phụ thể trước, cung dưới vòng); chỉ lớp thân chạy animation `hs_body_{m,f}:{anim}_{hướng}`, các lớp khác đặt khung bằng `syncLayers` (bảng ánh xạ phụ thể: hurt → idle cột 0, die ẩn, absorb → idle hướng xuống mờ 60%). Animation chọn theo state: gục → `die`, hấp thụ → `absorb`, fx `slash` → `attack`, fx `soulring` → `cast` (vòng của hồn kỹ sáng và phình trong 300 ms), `dmg` có `id` → `hurt` kèm nháy trắng 2 lần, còn lại `walk` / `idle`. Hướng trái lật ngang mọi lớp. Đai lưng thôi mang màu võ hồn (đai là sắc tối của áo).
   Server: `PlayerState.dir` (uint8) tính bằng `dir4(input)` khi di chuyển, đứng yên giữ hướng cũ; bỏ `PlayerState.face`. Không đổi luật chơi; chỉ thêm `i` vào fx `soulring` và `id` vào `dmg` khi người chơi bị đánh (hiệu ứng hình ảnh). Ô xem trước ở màn tạo nhân vật dùng cùng hình vẽ (khung `idle` hướng xuống, 32×32). Bot kiểm tra 4 hướng nhìn và người khác thấy cùng hướng.
-- [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
+- [x] 2.3a Đội hình 4 võ hồn và đổi võ hồn trong trận.
+  *Đã làm:* `006_teams.sql` tạo bảng `teams` (mỗi ô một dòng `account_id, slot, vohon_id`, khóa ngoại kép tới `vohons(account_id, id)` nên võ hồn trong đội phải thuộc đúng tài khoản; bật RLS). Store có `getTeam` / `saveTeam` ở cả `PgStore` lẫn `MemoryStore`, bỏ `setActive`: `saveTeam` ghi đội và `accounts.active_vohon` trong một transaction. Tài khoản chưa có đội (tài khoản cũ, tài khoản vừa thức tỉnh) được `getTeam` tự xếp ở lần vào game: võ hồn ra trận ở ô 1, còn lại theo thứ tự nhận. Việc xếp này làm trong JS chứ không trong SQL để không chép `TEAM_SIZE` ra ngoài `data.ts`.
+  `data.ts`: `TEAM_SIZE` (4), `SWITCH_CD` (3 giây), `TEAM_COMBAT_SECS` (5 giây, thay `PICK_COMBAT_SECS`), `parseTeam()`; bỏ `PICK_CD`. Server bỏ message `pick`, thêm `team {slots}` (kiểm tra hình dạng, quyền sở hữu, không gục, không hấp thụ, ngoài giao chiến; từ chối thì gửi lại đội đang lưu) và `switch {slot}` (được cả khi đang đánh; cấm khi gục, đang hấp thụ, ô trống, còn hồi chiêu). Bỏ võ hồn ra trận khỏi đội thì võ hồn ở ô đầu tiên còn lại ra trận. Đổi võ hồn đổi chỉ số, hồn hoàn, phụ thể và giữ tỉ lệ sinh lực / hồn lực như bước 2.2; lưu tiến độ võ hồn vừa rút về. Lưu đội hình không ghi chồng: mỗi người tối đa một lần ghi đang chạy, đổi dồn dập thì ghi một lần bản mới nhất.
+  Đội hình chỉ gửi riêng trong tin `vohons`; `PlayerState` chỉ thêm `swCd` (hồi chiêu đổi còn lại). Client: thanh đội hình 4 ô cạnh thanh kỹ năng (tên, cấp, ô ra trận sáng viền, lớp phủ hồi chiêu; phím 1–4 hoặc chạm), bảng "Đội hình" (phím V / nút) gồm 4 ô và bộ sưu tập: chọn ô rồi chọn võ hồn để đặt (đã ở ô khác thì đổi chỗ), không chọn ô thì vào ô trống đầu tiên, nút "Bỏ". **Khác trước:** phím số 1–4 dành cho đổi võ hồn nên hồn kỹ chuyển sang U / I / O / P.
+  Bot: xếp đội, chặn đội sai (không sở hữu, trùng, thiếu ô, trống, không phải số), đổi chỗ, bỏ võ hồn ra trận khỏi đội, `switch` và hồi chiêu, ô trống và chỉ số sai, đổi trong trận được nhưng xếp đội trong trận bị chặn, B không nhận đội của A, vào lại thấy đội đã lưu. Đã thử thêm với PostgreSQL: tài khoản tạo bằng bản trước tự được xếp đội, chạy server hai lần liên tiếp.
+- [ ] 2.3b Luật gục và hồi sinh mới (võ hồn gục tự đổi sang võ hồn còn sống, hồi lại ở doanh trại hoặc sau 60 giây ngoài trận, cả đội gục thì về doanh trại), chia kinh nghiệm 40/20/20/20 cho đội (mục 5.1).
 - [ ] 2.4 Năng lượng và chiêu tiên cơ.
 - [ ] 2.5 Hồn kỹ riêng cho từng võ hồn (vòng 1–4 trước).
 - ~~2.6 Danh hiệu, đổi tên hồn thú và tên vùng theo mục 5.3.~~ ➜ **Đã gộp vào BĐ1.**
@@ -822,7 +828,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
    - Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp… xếp độ hiếm gì (UR?) và lấy bằng cách nào?
    - Chủ nhân của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh là ai? (Ảnh hưởng chân dung thẻ võ hồn, mục 5.11.)
 2. **Đội hình:** 4 võ hồn và cách chia kinh nghiệm 40/20/20/20 có ổn không?
-   - **Trả lời:** đồng ý: đội 4 võ hồn, chia kinh nghiệm 40/20/20/20. Làm ở bước 2.3.
+   - **Trả lời:** đồng ý: đội 4 võ hồn, chia kinh nghiệm 40/20/20/20. Đội hình làm ở bước 2.3a, chia kinh nghiệm ở 2.3b.
 3. **Hồn kỹ vòng 8–10:** muốn thiết kế thế nào?
 4. **Giới hạn hồn hoàn vòng 5–10:** con số trong bảng mục 5.2 cần đối chiếu lại với truyện.
 5. **Kinh tế:** có cho giao dịch giữa người chơi và PvP ngoài rừng không?

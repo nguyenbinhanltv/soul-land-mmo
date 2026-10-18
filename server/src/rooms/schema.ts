@@ -22,6 +22,7 @@ export class PlayerState extends Schema {
   @type("uint32") maxMp: number = 0;
   @type(["uint8"]) rings = new ArraySchema<number>();
   @type(["float32"]) cds = new ArraySchema<number>(0, 0, 0, 0);
+  @type("float32") swCd: number = 0;     // giây còn lại trước khi được đổi võ hồn trong đội lần tiếp (SWITCH_CD)
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;
   @type("boolean") dead: boolean = false;
