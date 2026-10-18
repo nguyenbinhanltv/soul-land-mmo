@@ -13,6 +13,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `SKILLS` (4 hồn kỹ dùng chung: `cost`, `cd`), `ringLimit(slot)`, `xpNeed(level)`, `atBottleneck(level, rings)`, `calcStats(vh, level, rings)`.
 - `MAPS` (bản đồ theo `mapId`: tên, loại, cấp đề xuất, niên hạn), `DEFAULT_MAP`, `BEASTS` (hồn thú theo loài: mã cố định, tên, bậc tạm đến bước 3.2), `beastIndex(id)`.
 - `TITLES`, `titleOf(level)` (danh hiệu theo cấp, mục 5.1).
+- `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `DEFAULT_LOOKS`, `parseLooks()` (ngoại hình hồn sư, mục 5.11). Màu chỉ lấy từ `art/palette.gpl`; thêm màu vào cuối mảng vì DB lưu chỉ số.
 - `TILE`, `TICK_RATE`.
 - Thiết kế còn nhắc bảng `DROPS` (tỉ lệ rơi, mục 5.3): **chưa có**, khi làm thì thêm vào đây.
 

@@ -2,9 +2,11 @@ import "./style.css";
 import Phaser from "phaser";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
-import { TIERS, VOHON, HE, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, type He } from "../../shared/data.ts";
-import { API, WS, post, storage, type Character } from "./net.ts";
+import { TIERS, VOHON, HE, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS,
+  type He, type Looks } from "../../shared/data.ts";
+import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
+import { drawHonsu } from "./textures.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -33,14 +35,89 @@ function loginScreen(err = "") {
     e.preventDefault();
     const btn = document.getElementById("go") as HTMLButtonElement; btn.disabled = true; btn.textContent = "Đang kết nối…";
     try {
-      const r = await post<{ token: string; character: Character | null }>("/api/login", { name: name.value.trim(), password: pass.value });
+      const r = await post<{ token: string } & Me>("/api/login", { name: name.value.trim(), password: pass.value });
       token = r.token; storage.set("shh-token", token); storage.set("shh-name", name.value.trim());
-      r.character ? welcomeScreen(r.character) : awakenIntro();
+      route(r);
     } catch (er) {
       document.getElementById("err")!.textContent = er instanceof TypeError ? `Không kết nối được server (${API}).` : (er as Error).message;
       btn.disabled = false; btn.textContent = "Vào game";
     }
   });
+}
+
+/** Màn kế tiếp theo trạng thái tài khoản: tạo nhân vật → lễ thức tỉnh → màn chào. */
+function route(me: Me) {
+  if (!me.looks.chosen) createScreen(me);
+  else if (me.character) welcomeScreen(me.character);
+  else awakenIntro();
+}
+
+/** Hỏi lại server trạng thái tài khoản rồi chuyển màn; phiên hết hạn thì về đăng nhập. */
+async function resume(err = "") {
+  try { route(await post<Me>("/api/me", { token })); } catch { loginScreen(err); }
+}
+
+/** Vẽ hồn sư xem trước lên canvas 16×24 (CSS phóng to, pixelated). */
+function paintPreview(cv: HTMLCanvasElement, L: Looks) {
+  const ctx = cv.getContext("2d")!;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.fillRect(3, 22, 10, 1);
+  drawHonsu((x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(8 + x, 22 + y, w, h); }, L, 0);
+}
+
+// Tạo nhân vật (mục 3, 5.11): chọn giới tính, kiểu tóc, màu tóc, màu áo. Chạy ngay trước bước chọn SSR của lễ thức tỉnh;
+// tài khoản cũ đang mang ngoại hình mặc định thì được chọn lại một lần. Server kiểm tra mọi giá trị.
+function createScreen(me: Me) {
+  const L: Looks = { sex: me.looks.sex, hair: me.looks.hair, hairCol: me.looks.hairCol, outfitCol: me.looks.outfitCol };
+  card.classList.add("wide");
+  card.innerHTML = `<h1>Tạo nhân vật</h1>
+    <p>${me.character
+      ? "Hồn sư của bạn đang mang ngoại hình mặc định. Bạn được chọn lại <b>một lần</b>; sau khi xác nhận sẽ không đổi được nữa."
+      : "Chọn ngoại hình hồn sư trước lễ thức tỉnh. Ngoại hình chỉ chọn được <b>một lần</b>."}</p>
+    <div class="maker">
+      <div class="pv"><canvas id="pv" width="16" height="24" aria-label="Xem trước hồn sư"></canvas><div id="pvTxt"></div></div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="btns"><button class="btn primary" id="ok">Xác nhận ngoại hình</button><button class="btn" id="out">Đổi tài khoản</button></div>
+    <div class="err" id="err"></div>`;
+  const opts = document.getElementById("opts")!, cv = document.getElementById("pv") as HTMLCanvasElement;
+  const seg = (k: keyof Looks, names: readonly string[]) => names.map((n, i) =>
+    `<button type="button" class="opt" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}">${n}</button>`).join("");
+  const sw = (k: keyof Looks, list: typeof HAIR_COLORS) => list.map((c, i) =>
+    `<button type="button" class="sw" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}" title="${c.name}" aria-label="${c.name}"
+      style="--a:${c.ramp[1]};--b:${c.ramp[2]};--c:${c.ramp[3]}"></button>`).join("");
+  const render = () => {
+    opts.innerHTML = `<h3>Giới tính</h3><div class="seg">${seg("sex", SEXES)}</div>
+      <h3>Kiểu tóc</h3><div class="seg">${seg("hair", HAIR_STYLES[L.sex])}</div>
+      <h3>Màu tóc · ${HAIR_COLORS[L.hairCol].name}</h3><div class="sws">${sw("hairCol", HAIR_COLORS)}</div>
+      <h3>Màu áo · ${OUTFIT_COLORS[L.outfitCol].name}</h3><div class="sws">${sw("outfitCol", OUTFIT_COLORS)}</div>`;
+    paintPreview(cv, L);
+    document.getElementById("pvTxt")!.textContent = `${SEXES[L.sex]} · ${HAIR_STYLES[L.sex][L.hair]}`;
+  };
+  // Một bộ nghe chung cho mọi nút (click chạy cả với chuột và chạm).
+  opts.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-k]"); if (!b) return;
+    const k = b.dataset.k as keyof Looks, i = Number(b.dataset.i);
+    if (L[k] === i) return;
+    L[k] = i; render();
+    opts.querySelector<HTMLButtonElement>(`button[data-k="${k}"][data-i="${i}"]`)?.focus();
+  });
+  render();
+  const ok = document.getElementById("ok") as HTMLButtonElement;
+  ok.onclick = async () => {
+    ok.disabled = true;
+    try {
+      const r = await post<{ looks: Me["looks"] }>("/api/looks", { token, ...L });
+      route({ ...me, looks: r.looks });
+    } catch (e) {
+      // Đã chọn ở tab khác, hoặc phiên hết hạn: hỏi lại server.
+      const m = (e as Error).message;
+      if (/đã chọn|hết hạn/.test(m)) return resume(m);
+      document.getElementById("err")!.textContent = m; ok.disabled = false;
+    }
+  };
+  document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
+  ok.focus();
 }
 
 // Lễ thức tỉnh: nhận Lam Ngân Thảo và tự chọn 1 võ hồn SSR. Server kiểm tra lựa chọn và roll hồn lực bẩm sinh.
@@ -87,9 +164,9 @@ async function awaken(vohon: string) {
     document.getElementById("go")!.onclick = () => join();
     document.getElementById("go")!.focus();
   } catch (e) {
-    // Đã thức tỉnh (ví dụ ở tab khác) -> về màn hình chào.
-    const me = await post<{ character: Character | null }>("/api/me", { token }).catch(() => null);
-    if (me?.character) return welcomeScreen(me.character);
+    // Đã thức tỉnh (ví dụ ở tab khác) -> về màn hình chào; chưa tạo nhân vật -> về màn tạo nhân vật.
+    const me = await post<Me>("/api/me", { token }).catch(() => null);
+    if (me && (me.character || !me.looks.chosen)) return route(me);
     document.getElementById("err")!.textContent = (e as Error).message; aw.disabled = false;
   }
 }
@@ -140,13 +217,14 @@ async function join() {
     game.scene.add("game", GameScene, true, { room, mapId });
   } catch (e) {
     const m = (e as Error).message ?? "";
-    if (/401|403|không hợp lệ|Chưa thức tỉnh/.test(m)) loginScreen(m); else loginScreen(`Không vào được phòng: ${m}`);
+    // Chưa tạo nhân vật hoặc chưa thức tỉnh (ví dụ tab khác vừa đổi): hỏi lại server để mở đúng màn.
+    if (/Chưa tạo nhân vật|Chưa thức tỉnh/.test(m)) resume(m);
+    else if (/401|403|không hợp lệ/.test(m)) loginScreen(m); else loginScreen(`Không vào được phòng: ${m}`);
   }
 }
 
 // Có phiên cũ -> thử tải nhân vật luôn.
 (async () => {
   if (!token) return loginScreen();
-  try { const r = await post<{ character: Character | null }>("/api/me", { token }); r.character ? welcomeScreen(r.character) : awakenIntro(); }
-  catch { loginScreen(); }
+  await resume();
 })();

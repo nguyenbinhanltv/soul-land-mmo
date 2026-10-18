@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { MapRoom, awakenAccount } from "./rooms/MapRoom.ts";
+import { MapRoom, awakenAccount, chooseLooks } from "./rooms/MapRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
@@ -40,14 +40,25 @@ app.post("/api/login", async (req, res) => {
     if (fail?.retryAfter) res.setHeader("Retry-After", String(fail.retryAfter));
     res.status(fail?.retryAfter ? 429 : 401).json({ error: fail?.error ?? "Tên đăng nhập hoặc mật khẩu không đúng." }); return;
   }
-  res.json({ token: r.token, character: await store.getCharacter(r.accountId) });
+  const [character, looks] = await Promise.all([store.getCharacter(r.accountId), store.getLooks(r.accountId)]);
+  res.json({ token: r.token, character, looks });
 });
 
-// Lấy nhân vật của phiên hiện tại.
+// Lấy nhân vật của phiên hiện tại: võ hồn ra trận (null = chưa thức tỉnh) và ngoại hình (looks.chosen = đã tạo nhân vật).
 app.post("/api/me", async (req, res) => {
   const acc = await store.accountFromToken(String(req.body?.token ?? ""));
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
-  res.json({ character: await store.getCharacter(acc.accountId) });
+  const [character, looks] = await Promise.all([store.getCharacter(acc.accountId), store.getLooks(acc.accountId)]);
+  res.json({ character, looks });
+});
+
+// Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần): luật kiểm tra nằm trong MapRoom.ts.
+app.post("/api/looks", async (req, res) => {
+  const acc = await store.accountFromToken(String(req.body?.token ?? ""));
+  if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
+  const r = await chooseLooks(acc.accountId, req.body);
+  if ("error" in r) { res.status(r.status).json({ error: r.error }); return; }
+  res.json(r);
 });
 
 // Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong MapRoom.ts.

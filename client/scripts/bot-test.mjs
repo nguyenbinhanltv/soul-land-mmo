@@ -1,4 +1,4 @@
-// Kiểm thử nhanh: 2 bot đăng nhập, qua lễ thức tỉnh, vào phòng bản đồ, đổi võ hồn ra trận, di chuyển, đánh hồn thú, thử hấp thụ.
+// Kiểm thử nhanh: 2 bot đăng nhập, tạo nhân vật, qua lễ thức tỉnh, vào phòng bản đồ, đổi võ hồn ra trận, di chuyển, đánh hồn thú, thử hấp thụ.
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 import { Client } from "colyseus.js";
 import { existsSync } from "node:fs";
@@ -8,10 +8,24 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const waitFor=async(fn,ms=2000)=>{for(let t=0;t<ms;t+=50){if(fn()) return true; await sleep(50);} return false;};
 let fails=0; const ok=(cond,msg)=>{console.log(cond?"  ✓":"  ✗",msg); if(!cond) fails++;};
 
-// Lễ thức tỉnh: tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
-async function bot(name,choice){
+// Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần), rồi lễ thức tỉnh:
+// tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
+async function bot(name,choice,looks){
   const l=await post("/api/login",{name,password:"abcd"});
-  console.log(`[${name}] ${l.character?"đã thức tỉnh từ trước":"tài khoản mới"}`);
+  console.log(`[${name}] ${l.character?"đã thức tỉnh từ trước":"tài khoản mới"}, ${l.looks?.chosen?"đã tạo nhân vật":"chưa tạo nhân vật"}`);
+  ok(l.looks&&["sex","hair","hairCol","outfitCol"].every(k=>Number.isInteger(l.looks[k])),"login trả ngoại hình");
+  if(!l.looks?.chosen){
+    if(!l.character) ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh trước khi tạo nhân vật -> 409");
+    let joined=true; try{ const r=await new Client(WS).joinOrCreate("map",{token:l.token}); await r.leave(); }catch{ joined=false; }
+    ok(!joined,"vào bản đồ trước khi tạo nhân vật bị từ chối");
+    for(const bad of [{...looks,sex:2},{...looks,hair:4},{...looks,hairCol:-1},{...looks,outfitCol:6},{...looks,hair:1.5},{...looks,sex:"1"},{sex:0}])
+      ok((await post("/api/looks",{token:l.token,...bad})).status===400,`ngoại hình sai ${JSON.stringify(bad)} -> 400`);
+    const r=await post("/api/looks",{token:l.token,...looks});
+    ok(r.status===200&&r.looks?.chosen&&r.looks.hairCol===looks.hairCol,`tạo nhân vật ${JSON.stringify(looks)}`);
+  }
+  ok((await post("/api/looks",{token:l.token,...looks})).status===409,"tạo nhân vật lần hai -> 409");
+  const me=await post("/api/me",{token:l.token});
+  ok(me.looks?.chosen,"/api/me: đã tạo nhân vật");
   if(!l.character){
     ok((await post("/api/awaken",{token:l.token})).status===400,"thiếu lựa chọn -> 400");
     ok((await post("/api/awaken",{token:l.token,vohon:"hao_thien_chuy"})).status===400,"chọn UR -> 400");
@@ -22,19 +36,22 @@ async function bot(name,choice){
   ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh lần hai -> 409");
   // Không gửi mapId: server chọn bản đồ mặc định và báo qua state.mapId.
   const room=await new Client(WS).joinOrCreate("map",{token:l.token});
-  const b={room,logs:[],owned:null,ownedMsgs:0};
+  const b={room,logs:[],owned:null,ownedMsgs:0,looks:me.looks};
   room.onMessage("log",m=>b.logs.push(m.text)); for(const t of ["chat","fx","dmg"]) room.onMessage(t,()=>{});
   room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   room.send("vohons");
   return b;
 }
-const A=await bot("Tester A","ta_hoa_phuong_hoang"), B=await bot("Tester B","bich_lan_xa_hoang");
+const A=await bot("Tester A","ta_hoa_phuong_hoang",{sex:1,hair:2,hairCol:3,outfitCol:4}), B=await bot("Tester B","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:5,outfitCol:1});
 await sleep(800);
 const st=A.room.state, p=st.players.get(A.room.sessionId);
 console.log("players",st.players.size,"beasts",st.beasts.size,"lvl",p.level,"hp",p.hp,"/",p.maxHp);
 
 // Bản đồ: hai bot cùng một phòng, state có mapId và file Tiled tương ứng tồn tại.
 ok(A.room.roomId===B.room.roomId,"A và B cùng phòng");
+// Ngoại hình đồng bộ qua schema: B thấy đúng ngoại hình A đã lưu.
+const aSeen=B.room.state.players.get(A.room.sessionId);
+ok(aSeen&&["sex","hair","hairCol","outfitCol"].every(k=>aSeen[k]===A.looks[k]),`B thấy ngoại hình A: ${aSeen&&[aSeen.sex,aSeen.hair,aSeen.hairCol,aSeen.outfitCol].join("/")}`);
 ok(typeof st.mapId==="string"&&st.mapId.length>0,`state.mapId = ${st.mapId}`);
 ok(existsSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url)),`có file shared/assets/${st.mapId}.json`);
 const species=new Set(); st.beasts.forEach(b=>species.add(b.species));

@@ -4,6 +4,11 @@ import { Schema, MapSchema, ArraySchema, type } from "@colyseus/schema";
 export class PlayerState extends Schema {
   @type("string") name: string = "";
   @type("uint8") vh: number = 0;
+  // Ngoại hình hồn sư (mục 5.11): chỉ số trong SEXES, HAIR_STYLES[sex], HAIR_COLORS, OUTFIT_COLORS (shared/data.ts).
+  @type("uint8") sex: number = 0;
+  @type("uint8") hair: number = 0;
+  @type("uint8") hairCol: number = 0;
+  @type("uint8") outfitCol: number = 0;
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
   @type("int8") face: number = 1;
