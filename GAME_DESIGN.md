@@ -453,7 +453,7 @@ Thành (bản đồ `town`) và khu làng của Thánh Hồn Thôn (vùng `safe`
 | Hồn hạch | 8 / 16 / 24 hồn hạch 5★ trở lên |
 
 ### 5.11 Mỹ thuật: hồn sư, võ hồn, hồn thú
-Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. Mục này là quy cách để thay dần bằng sprite vẽ tay mà không phải sửa luật chơi.
+Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textures.ts` (`honsuArt.ts`). Mục này là quy cách để thay dần bằng ảnh thật (tạo bằng PixelLab qua dây chuyền `tools/assets`, chỉnh tay bằng Aseprite khi cần) mà không phải sửa luật chơi.
 
 **Phong cách và bảng màu chung**
 - **Chibi pixel RPG** nhìn từ trên xuống, hơi nghiêng (kiểu RPG 16-bit). Đầu to bằng khoảng 2/5 chiều cao, mắt 1–2 pixel, tay chân ngắn.
@@ -596,7 +596,8 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 art/                         file nguồn, không tải trong game
   palette.gpl                bảng màu chung
   CREDITS.md                 nguồn gốc và giấy phép mọi asset
-  honsu/ vohon/ beast/ ui/   file .aseprite
+  src/pixellab/{bộ}/         ảnh thô PixelLab, đầu vào của tools/assets ({hướng}_{animation}_{i}.png)
+  honsu/ vohon/ beast/ ui/   file .aseprite (khi chỉnh tay)
 shared/assets/sprites/
   manifest.json              danh sách key đã có ảnh thật
   honsu/body_m.png           hs_body_m
@@ -615,19 +616,20 @@ shared/assets/ui/
 - Sprite vẽ bằng code cho mô hình mới phải dùng **đúng key mới** (`hs_body_m`, `vh_{id}_f`…) và cùng bố cục khung, để ảnh thật thay vào được ngay.
 - Key cũ `p{i}_{f}` (một hình mỗi võ hồn) đã bỏ ở bước 2.2b.
 
-**Quy trình AI concept → Aseprite → spritesheet**
-1. **Concept:** dùng AI tạo ảnh tham khảo theo bộ prompt chung (phong cách, góc nhìn, tỉ lệ chibi, nền trơn). Chọn 1 ảnh, ghi prompt và công cụ vào `art/CREDITS.md`. Ảnh concept không đưa vào game.
-2. **Hạ độ phân giải:** thu ảnh về khung 32×32 (hoặc 48×48 cho phụ thể) theo cách lấy điểm gần nhất, chỉ để làm nền tham khảo, mờ 30%, trên một lớp riêng trong Aseprite.
-3. **Vẽ lại bằng tay** trên lớp mới, chỉ dùng màu trong `art/palette.gpl`: bóng khối, viền, rồi sắc độ. Xóa lớp tham khảo trước khi xuất. **Không nộp ảnh AI thu nhỏ trực tiếp** (nhiễu màu, viền nhòe, không khớp khung).
-4. **Animation:** vẽ khung `idle` hướng xuống trước, rồi suy ra các hướng và animation khác. Khung xếp đúng bố cục cố định. Có thể đặt tag Aseprite theo hướng (`idle_down`, `idle_right`, `idle_up`…) để xem trước trong Aseprite; client không đọc tag.
-5. **Lớp phụ thể:** mở file thân làm lớp tham khảo (khóa), vẽ phụ thể trên 2 lớp `back` và `front`, xuất thành 2 ảnh.
-6. **Xuất:** `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16`. Phụ thể xuất từng lớp bằng `--layer back` / `--layer front`. Chỉ cần ảnh PNG; client tải bằng `load.spritesheet` và tạo animation theo chỉ số khung (xem phần Animation của hồn sư).
-7. **Kiểm tra:** thêm key vào `manifest.json`, chạy game, xem đủ 3 hướng và mọi animation ở mức phóng 2× và 4×, rồi ghi nguồn vào `art/CREDITS.md`.
+**Quy trình PixelLab → `tools/assets` → spritesheet** (chi tiết lệnh và tham số đã thử: skill `.claude/skills/asset-gen`)
+1. **Tạo ảnh bằng PixelLab** (MCP `pixellab`, token nằm trong cấu hình user, không ghi vào repo). Khung hướng xuống trước: `create_image_pixflux` 32×32 (phụ thể 48×48), nền trong suốt, góc `low top-down`. Duyệt bằng mắt rồi mới làm tiếp: xoay 4 hướng bằng `create_character mode="v3"` với ảnh tham chiếu là khung đó, animation bằng `animate_character` (ví dụ `walking-4-frames`). Nhân vật sau dùng khung gốc của nhân vật đã duyệt làm `init_image` để giữ phong cách. Prompt theo phong cách ở trên; không ghi tên họa sĩ còn sống hay tên game thương mại.
+2. **Màu khóa để tách lớp hồn sư:** tóc vẽ màu lam sáng, áo/quần/váy vẽ xám. Ảnh thô lưu ở `art/src/pixellab/{bộ}/{hướng}_{animation}_{i}.png`.
+3. **Chuẩn hóa** bằng `tools/assets/normalize.mjs`: xóa nền, đặt chân vào gốc (hồn sư (16, 30), phụ thể (24, 38)) theo từng nhóm animation, thu bằng điểm gần nhất nếu quá khung, đưa màu về `art/palette.gpl` (phụ thể thêm `col`/`robe` của võ hồn đó cùng 1 sắc tối, 1 sắc sáng), viền ngoài `#1a1020`. `--split` tách thân / áo / tóc theo màu khóa và đưa tóc, áo về dải 4 xám; `--vohon <id> --halves <y>` tách phụ thể thành nửa sau / nửa trước.
+4. **Ghép sheet** bằng `tools/assets/pack.mjs` theo bố cục cố định ở trên. `--breathe` tạo khung idle thứ 2 (đầu, vai nhích 1 pixel); `--fill` chép tạm idle vào ô chưa có animation (validate cảnh báo các ô này).
+5. **Kiểm tra và đăng ký:** `tools/assets/validate.mjs --register <key>` kiểm kích thước, màu ngoài bảng, khung bắt buộc, rồi thêm key vào `manifest.json` và một dòng vào `art/CREDITS.md` (công cụ, prompt, ngày). `npm run check` và git pre-commit chạy lại validate cho mọi key.
+6. **Xem trong game** ở mức phóng 2× và 4×: đủ 4 hướng, ghép thử ít nhất 2 màu tóc và 2 màu áo, đặt cạnh nền rừng sâu.
+7. **Chỉnh tay khi cần:** mở sheet trong Aseprite (bảng màu `art/palette.gpl`) để sửa pixel lỗi, rồi chạy lại bước 5. Xuất từ Aseprite: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16`.
+- **Giới hạn đã biết của ghép lớp từ ảnh PixelLab:** PixelLab vẽ cả người trong một ảnh. Tách lớp theo màu khóa cho thân, áo, tóc khớp nhau đúng với **kiểu tóc đã vẽ cùng**, nhưng lớp thân có lỗ ở chỗ tóc và áo che (đỉnh đầu, trán, gáy). Vì vậy chưa thể dùng một lớp thân chung cho cả 4 kiểu tóc như bảng lớp ở trên. Đề xuất đang chờ chốt: câu hỏi 9 ở mục 8.
 
 **Nguồn và giấy phép**
-- Dự án phi thương mại, chơi cùng bạn bè; được dùng tên và hình tượng nhân vật trong truyện (mục 1). Hình phải **do nhóm tự vẽ**.
-- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức. Chỉ được xem để tham khảo ý tưởng.
-- **Ảnh AI chỉ là concept.** Chỉ dùng công cụ AI mà điều khoản cho phép dùng kết quả. Không ghi tên họa sĩ còn sống trong prompt.
+- Dự án phi thương mại, chơi cùng bạn bè; được dùng tên và hình tượng nhân vật trong truyện (mục 1). Hình do nhóm tạo: **PixelLab qua dây chuyền `tools/assets`** hoặc vẽ tay trong Aseprite.
+- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức. Chỉ được xem để tham khảo ý tưởng. Không đưa ảnh của các nguồn đó vào PixelLab làm ảnh tham chiếu.
+- **Ảnh PixelLab được dùng thẳng trong game** sau khi qua `normalize` / `pack` / `validate`. Điều khoản PixelLab (https://pixellab.ai/termsofservice) cho phép dùng kết quả; mỗi key ghi một dòng trong `art/CREDITS.md`: file, key, công cụ, prompt, ngày. Công cụ AI khác chỉ dùng khi điều khoản cho phép dùng kết quả. Không ghi tên họa sĩ còn sống trong prompt.
 - **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận giấy phép CC0, CC-BY hoặc OFL. Mỗi asset một dòng trong `art/CREDITS.md`: tên file, tác giả, link gốc, giấy phép, đã chỉnh sửa gì. CC-BY phải hiện tên tác giả trong màn hình giới thiệu của game.
 
 ## 6. Kiến trúc (bắt buộc giữ)
@@ -806,13 +808,15 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   *Đã làm:* `client/src/sprites.ts`: `preloadSprites` đọc `manifest.json` (mảng `sprites`, đường dẫn và khung suy ra từ key; `beast_{loài}` ghi kèm `frame`), `createSheetAnims`/`createHonsuAnims`/`createBeastAnims`, `honsuAnimKey` (trái = phải + lật), `vohonFrame` (bảng ánh xạ khung phụ thể), `syncLayers`, `recolor` (key `hs_hair_f_2@3`), `addGridFrames` cho sheet vẽ bằng code.
   Manifest đang rỗng nên game chạy như cũ. Hiển thị hồn sư ghép lớp để bước 2.2b, hồn thú dạng sheet để M4. Thời gian khung `attack` của hồn thú tạm ghi 800 ms trong client cho đến bước 3.5.
 - [ ] M2 Hồn sư: thân nam và nữ, 4 kiểu tóc mỗi giới, áo hồn sư; đủ 3 hướng và 7 animation.
+  *Một phần (PR #14):* dây chuyền `tools/assets` (normalize, pack, validate trong `npm run check` và pre-commit, preview) và skill `asset-gen`. Ảnh PixelLab trong manifest: `hs_body_{m,f}`, `hs_outfit_{m,f}_0`, `hs_hair_{m,f}_0` (kiểu tóc 0), 3 hướng, `idle` + `walk`; `attack`/`cast`/`hurt`/`die`/`absorb` đang chép tạm khung idle. Còn: 3 kiểu tóc mỗi giới (đang vẽ bằng code, lệch nét với thân thật), 5 animation còn lại. Cách ghép lớp chờ chốt (mục 8, câu 9).
 - [ ] M3 Lớp phụ thể: Lam Ngân Thảo và 4 võ hồn mẫu (mỗi hệ một: Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
+  *Một phần (PR #14):* `vh_lam_ngan_thao_b` / `_f` bản thử: thảm dây dưới chân, một hình cho mọi hướng và khung; chưa có dây quấn tay.
 - [ ] M4 Hồn thú: 5 bậc theo bảng kích thước; sau bước BĐ1 (đã gộp 2.6) vẽ theo từng loài ở mục 5.3, ưu tiên 4 bản đồ của bản đầu. Tinh anh dùng sprite loài gốc kèm aura; thú vương 96×96.
 - [ ] M5 Giao diện thẻ võ hồn: chân dung 64×64 cho 20 võ hồn, khung thẻ SR/SSR/UR, biểu tượng 4 hệ. Cần trước khi làm giao diện đội hình đẹp ở 2.3.
 
 **Kỹ thuật (làm khi cần)**
 - [ ] Dự đoán chuyển động phía client (client-side prediction) để đỡ trễ khi ping cao.
-- Thay sprite vẽ bằng code bằng sprite Aseprite thật: đã tách thành nhóm **Mỹ thuật** (M1–M5) ở trên.
+- Thay sprite vẽ bằng code bằng ảnh thật: đã tách thành nhóm **Mỹ thuật** (M1–M5) ở trên.
 - [ ] Nhiều kênh khi một phòng quá 60 người. (Từ BĐ1, `filterBy(["mapId"])` tự mở phòng mới khi phòng đầy; còn thiếu hiển thị kênh và cho chọn kênh.)
 - [x] Giới hạn số lần đăng nhập sai và tin nhắn chat để chống dò mật khẩu và spam. (`server/src/ratelimit.ts`, lưu RAM: sai 5 lần cùng (tên, IP), 30 lần/tên từ mọi IP hoặc 20 lần/IP thì khóa 1 phút, gấp đôi mỗi lần tới tối đa 30 phút; chat 5 tin liền rồi 1 tin/2 giây, tối đa 120 ký tự, chặn lặp cùng nội dung trong 30 giây. Deploy sau proxy thì đặt `TRUST_PROXY=1`. Kiểm thử: `npm run test:ratelimit --prefix server`.)
 
@@ -829,6 +833,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 6. **Nền tảng:** ưu tiên điện thoại hay máy tính? Đội 4 võ hồn và nhiều phím kỹ năng sẽ khó điều khiển trên điện thoại.
    - **Trả lời:** ưu tiên máy tính; có bản điện thoại thì càng tốt. Giao diện mới phải dùng được bằng cả chuột lẫn chạm.
 7. **Mỹ thuật:** 6 màu tóc và 6 màu áo có đủ không? Có thêm tông da, kiểu áo khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) không? Ai vẽ phần nào?
+   - **Trả lời (nguồn ảnh):** dùng ảnh PixelLab qua dây chuyền `tools/assets` trực tiếp trong game (mục 5.11, Đã chốt: mỹ thuật nhân vật).
 8. **Bản đồ và boss** (phần đã chốt ở dưới; đây là các điểm người viết thiết kế tự đề xuất, cần xác nhận):
    - Giờ boss thế giới (đề xuất 21:00) và luân phiên Thái Thản Cự Viên / Thiên Thanh Ngưu Mãng theo ngày.
    - Hệ số sát thương: thú vương x2, boss thế giới x3. Kinh nghiệm tinh anh x2,5.
@@ -838,6 +843,9 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
    - Thánh Hồn Thôn có tinh anh nhưng không có thú vương; cấp võ hồn tính tối đa 80 khi so với cấp tương đương (vì vòng 8–10 cùng giới hạn 100.000 năm).
    - Thưởng boss thế giới: tỉ lệ hồn hoàn đỏ cho người không đứng đầu (đề xuất 10%) và tỉ lệ hồn cốt.
    - Tỉ lệ rơi mảnh UR từ rương thú vương trước BĐ6 (đề xuất 5%), hay giữ khóa UR cho tới boss thế giới.
+9. **Ghép lớp hồn sư với ảnh PixelLab** (bản thử PR #14, mục 5.11 "Giới hạn đã biết"): quy cách lớp ở 5.11 **chưa đổi**. Hai hướng:
+   - (a) Giữ như 5.11: một lớp thân chung mỗi giới, tóc 4 kiểu và áo là lớp riêng. Cần thân không có lỗ (đầu trọc, mặc áo lót), PixelLab khó vẽ khớp từng khung animation.
+   - (b) **Đề xuất, chờ người dùng chốt:** vẽ liền thân + áo + tóc cho mỗi tổ hợp giới × kiểu tóc (8 bộ), rồi `normalize --split` tách 3 lớp từ cùng một hình; tóc và áo vẫn ở dải xám để đổi màu, phụ thể vẫn tách lớp. Key thân và áo khi đó cần thêm chỉ số kiểu tóc (ví dụ `hs_body_m_2`). Mỗi bộ idle + walk 3 hướng tốn khoảng 5 lượt PixelLab.
 
 **Đã chốt sau review PR #8** (chi tiết ở mục 5.3, 5.8, 6 và BĐ1)
 - **Thánh Hồn Thôn có `kind` = `hunt`**; khu làng là vùng `safe` (không sinh hồn thú, không giao chiến). Chỉ Nặc Đinh Thành và Thiên Đấu Thành là `town`.
@@ -848,7 +856,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 **Đã chốt: mỹ thuật nhân vật** (chi tiết ở mục 3 và 5.11)
 - Người chơi có **nhân vật hồn sư riêng**, chọn **nam hoặc nữ** khi tạo tài khoản. Trên bản đồ là hồn sư; võ hồn đang ra trận hiện dạng **phụ thể khi phóng thích** (vũ khí, thú hồn, cánh, hào quang) cùng vòng hồn hoàn dưới chân. Đổi võ hồn thì đổi lớp phụ thể. Nhân vật truyện chỉ dùng cho chân dung và thẻ võ hồn.
 - Sprite **32×32, 4 hướng, chibi pixel RPG**, cao khoảng 2 ô bản đồ.
-- Nguồn asset: **AI tạo concept, vẽ lại và chỉnh pixel bằng Aseprite**; ảnh AI không đưa thẳng vào game.
+- Nguồn asset: **PixelLab (AI) qua dây chuyền `tools/assets` (normalize, pack, validate), dùng thẳng trong game**; Aseprite chỉ để chỉnh tay khi cần. Ghi nguồn từng key trong `art/CREDITS.md`. (Chốt sau bản thử PR #14; trước đó là "AI chỉ làm concept, vẽ lại bằng Aseprite".)
 - Tùy biến: nam/nữ, 4 kiểu tóc mỗi giới, vài màu tóc và màu áo; asset **ghép theo lớp** (thân, áo, tóc, phụ thể võ hồn).
 
 **Đã chốt: thế giới nhiều bản đồ, quái và boss theo cấp** (chi tiết ở mục 5.3, 5.4, 5.8, 6 và Lộ trình BĐ1–BĐ6)
