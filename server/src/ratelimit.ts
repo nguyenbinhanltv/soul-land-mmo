@@ -3,9 +3,13 @@
 // Mọi hàm nhận `now` (ms) để kiểm thử với đồng hồ giả (xem server/scripts/ratelimit-test.ts).
 
 // ---------- Đăng nhập ----------
-/** Sai mật khẩu bao nhiêu lần (theo tên tài khoản) thì khóa tạm tên đó. */
-const LOGIN_NAME_MAX_FAILS = 5;
-/** Sai bao nhiêu lần từ cùng một IP (mọi tên cộng lại) thì khóa tạm IP đó. Cao hơn vì nhiều người có thể chung IP. */
+/** Sai bao nhiêu lần với cùng một tên từ cùng một IP thì khóa cặp (tên, IP) đó.
+ *  Chỉ khóa cặp chứ không khóa cả tên, để người khác không thể cố tình gõ sai vài lần mà khóa được tài khoản của nạn nhân. */
+const LOGIN_PAIR_MAX_FAILS = 5;
+/** Sai bao nhiêu lần với một tên (mọi IP cộng lại) thì khóa hẳn tên đó: chống dò phân tán qua nhiều IP.
+ *  Cao hơn nhiều so với ngưỡng cặp để kẻ phá phải dùng nhiều IP mới khóa được tài khoản người khác. */
+const LOGIN_NAME_MAX_FAILS = 30;
+/** Sai bao nhiêu lần từ cùng một IP (mọi tên cộng lại) thì khóa tạm IP đó. Cao hơn ngưỡng cặp vì nhiều người có thể chung IP. */
 const LOGIN_IP_MAX_FAILS = 20;
 /** Lần khóa đầu dài 1 phút, mỗi lần khóa tiếp theo gấp đôi (1, 2, 4, 8… phút)… */
 const LOGIN_LOCK_BASE_MS = 60_000;
@@ -76,39 +80,58 @@ class FailCounter {
   }
 }
 
+const byPair = new FailCounter(LOGIN_PAIR_MAX_FAILS);
 const byName = new FailCounter(LOGIN_NAME_MAX_FAILS);
 const byIp = new FailCounter(LOGIN_IP_MAX_FAILS);
-// Tên không phân biệt hoa thường, giống cách db.ts tìm tài khoản. Khóa theo tên dù tài khoản có tồn tại hay không.
-const nameKey = (name: string) => name.trim().toLowerCase();
+
+/**
+ * Khóa của tên cho rate limit: chuẩn hóa NFKC rồi mới đổi chữ thường, để các cách viết khác nhau của cùng một tên
+ * (chữ full-width "Ｔａｍ", chữ dựng sẵn/tổ hợp…) dồn chung một bộ đếm, không lách được giới hạn.
+ * Thêm hai chỗ JS toLowerCase khác lower() của Postgres: "İ" -> "i" + dấu chấm tổ hợp, "Σ" cuối từ -> "ς".
+ * Đếm theo tên dù tài khoản có tồn tại hay không, nên thông báo lỗi không lộ điều đó.
+ */
+export const nameKey = (name: string) =>
+  name.normalize("NFKC").trim().toLowerCase().replace(/i\u0307/g, "i").replace(/ς/g, "σ");
+/**
+ * Tên đã ở dạng chuẩn (chuẩn hóa không đổi gì ngoài hoa/thường). db.ts không chuẩn hóa NFKC nên "Ｔａｍ" và "Tam"
+ * là HAI tài khoản khác nhau nhưng chung một khóa rate limit. Chỉ cho đăng nhập đúng xóa bộ đếm khi tên ở dạng chuẩn,
+ * nếu không kẻ dò sẽ tự tạo tài khoản "Ｔａｍ" rồi đăng nhập vào đó để "rửa" bộ đếm của "Tam".
+ */
+const canonical = (name: string) => nameKey(name) === name.trim().toLowerCase();
+// Tên chỉ gồm chữ, số, dấu cách, _ (kiểm tra ở index.ts) nên không thể chứa \u0000: ghép khóa cặp không bị trùng.
+const pairKey = (k: string, ip: string) => `${k}\u0000${ip}`;
 
 const waitText = (sec: number) => (sec >= 60 ? `${Math.ceil(sec / 60)} phút` : `${sec} giây`);
 const lockedMsg = (sec: number) => `Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ${waitText(sec)}.`;
-const lockedSec = (name: string, ip: string, now: number) => Math.max(byName.lockedFor(nameKey(name), now), byIp.lockedFor(ip, now));
+const lockedSec = (k: string, ip: string, now: number) =>
+  Math.max(byPair.lockedFor(pairKey(k, ip), now), byName.lockedFor(k, now), byIp.lockedFor(ip, now));
 
 /**
  * Gọi TRƯỚC khi kiểm tra mật khẩu. Bị khóa -> trả lỗi, KHÔNG được kiểm tra mật khẩu.
  * Trả null -> được thử; sau đó BẮT BUỘC gọi loginEnd đúng một lần (kể cả khi lỗi, dùng try/finally).
  */
 export function loginBegin(name: string, ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
-  const sec = lockedSec(name, ip, now);
+  const k = nameKey(name), pk = pairKey(k, ip);
+  const sec = lockedSec(k, ip, now);
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };
-  if (byName.busy(nameKey(name)) || byIp.busy(ip)) return { error: "Đang xử lý quá nhiều lần đăng nhập. Vui lòng thử lại sau vài giây.", retryAfter: 3 };
-  byName.begin(nameKey(name), now); byIp.begin(ip, now);
+  if (byPair.busy(pk) || byName.busy(k) || byIp.busy(ip)) return { error: "Đang xử lý quá nhiều lần đăng nhập. Vui lòng thử lại sau vài giây.", retryAfter: 3 };
+  byPair.begin(pk, now); byName.begin(k, now); byIp.begin(ip, now);
   return null;
 }
 
 /**
  * Gọi sau khi kiểm tra mật khẩu. ok=null nghĩa là lỗi hệ thống (không tính là sai).
  * Sai -> trả thông báo lỗi chung, không cho biết tài khoản có tồn tại hay không.
- * Đúng -> xóa bộ đếm của tên; bộ đếm IP giữ nguyên để kẻ dò không "rửa" bằng tài khoản của chính mình.
+ * Đúng -> xóa bộ đếm của cặp (tên, IP) và của tên (đã chứng minh biết mật khẩu), chỉ khi tên ở dạng chuẩn;
+ * bộ đếm IP giữ nguyên để kẻ dò không "rửa" bằng tài khoản của chính mình.
  */
 export function loginEnd(name: string, ip: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
-  const k = nameKey(name);
-  byName.end(k); byIp.end(ip);
+  const k = nameKey(name), pk = pairKey(k, ip);
+  byPair.end(pk); byName.end(k); byIp.end(ip);
   if (ok === null) return null;
-  if (ok) { byName.reset(k); return null; }
-  const left = Math.min(byName.fail(k, now), byIp.fail(ip, now));
-  const sec = lockedSec(name, ip, now);
+  if (ok) { if (canonical(name)) { byPair.reset(pk); byName.reset(k); } return null; }
+  const left = Math.min(byPair.fail(pk, now), byName.fail(k, now), byIp.fail(ip, now));
+  const sec = lockedSec(k, ip, now);
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };
   return { error: `Tên đăng nhập hoặc mật khẩu không đúng.${left <= 2 ? ` Còn ${left} lần thử trước khi bị khóa tạm.` : ""}` };
 }
@@ -137,10 +160,10 @@ export function chatCheck(key: string | number, raw: unknown, now = Date.now()):
 
 // ---------- Dọn dẹp ----------
 export function sweep(now = Date.now()) {
-  byName.sweep(now); byIp.sweep(now);
+  byPair.sweep(now); byName.sweep(now); byIp.sweep(now);
   for (const [k, e] of chat) if (now - Math.max(e.at, e.lastAt) > CHAT_FORGET_MS) chat.delete(k);
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byName.map.clear(); byIp.map.clear(); chat.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); chat.clear(); }
