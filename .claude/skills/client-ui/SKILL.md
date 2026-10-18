@@ -1,0 +1,30 @@
+---
+name: client-ui
+description: Quy tắc khi sửa giao diện và điều khiển phía client (client/src: GameScene.ts, hud.ts, main.ts, textures.ts, index.html, style.css). Dùng khi hiển thị trường đồng bộ mới, thêm nút/phím, HUD, hiệu ứng fx, màn hình đăng nhập/thức tỉnh hoặc điều khiển chạm.
+---
+
+# Giao diện phía client
+
+Client **chỉ hiển thị và gửi input**. Không tính máu, sát thương, rơi đồ, kết quả hấp thụ hay vị trí thật ở client; mọi luật nằm ở server (skill `server-feature`).
+
+## Bản đồ file
+- `client/src/main.ts`: đăng nhập, thức tỉnh (gọi `/api/...` qua `post()` trong `net.ts`), `joinOrCreate("forest", { token })`, rồi mở `GameScene`. Gắn class `touch` lên `body` khi `matchMedia("(pointer: coarse)")`.
+- `client/src/scenes/GameScene.ts`:
+  - `update()` đọc `this.room.state` mỗi khung hình (`st.players`, `st.beasts`, `st.drops`) rồi nội suy sprite. Trường mới thêm ở `server/src/rooms/schema.ts` thì đọc ở đây.
+  - `setupMessages()` nhận `log`, `chat`, `dmg`, `fx`; `fx(m)` vẽ hiệu ứng theo `m.k`. Message riêng mới từ server cũng đăng ký ở đây.
+  - `setupInput()` (bàn phím + joystick), `act()` gửi `attack` / `absorb` / `skill {i}`, `sendInput()` gửi `input {x,y}` chỉ khi hướng đổi.
+- `client/src/hud.ts`: HUD bằng HTML: `updateStats`, `buildSkills`, `log`, `banner`, `showTarget`, `showPrompt`, `ringColor`.
+- `client/index.html` + `client/src/style.css`: khung HUD (`#hud`, `#skills`, `#chatbox`, `#joy`/`#knob`, `#overlay`). Kiểu riêng cho chạm dùng `body.touch ...`.
+- `client/src/textures.ts`: sprite pixel vẽ bằng code (`makeTextures`).
+
+## Quy tắc
+1. **Gửi ý định, không gửi kết quả**: chỉ `this.room.send("<loại>", { ...tham số nhỏ })` như hướng đi, chỉ số ô kỹ năng, id món đồ. Server tự kiểm tra lại.
+2. **Hiển thị từ state/message của server**. Hiệu ứng chỉ để đẹp (tween, rung camera) thì được làm ở client, nhưng không được đổi trạng thái game.
+3. **Số liệu hiển thị** (màu niên hạn, tên võ hồn, giới hạn vòng) import từ `shared/data.ts` (ví dụ `TIERS`, `ringLimit`, `VOHON`). Không chép số sang client.
+4. **Ưu tiên máy tính**: chuột và phím là chính. Phím hiện có: WASD/mũi tên đi, J/Space đánh, 1–4 hồn kỹ, E hấp thụ, Enter chat. Phím mới không được trùng và phải bỏ qua khi đang gõ chat (xem cách `chat` focus xóa `this.keys`).
+5. **Chạm cho mobile khi hợp lý**: nút dùng `pointerdown` + `e.preventDefault()` (như `buildSkills`), bố cục chạm qua `body.touch`. Tính năng chỉ cần trên máy tính thì ghi rõ trong mô tả việc.
+6. **Chữ trên giao diện bằng tiếng Việt** có dấu đầy đủ, font `"Be Vietnam Pro"` như các text hiện có. Dùng đúng tên gốc Đấu La (võ hồn, hồn thú, địa danh) theo `GAME_DESIGN.md`.
+7. Dữ liệu riêng của chính chủ (túi đồ, danh sách võ hồn) chỉ đến qua message riêng; không giả định đọc được túi đồ người khác.
+
+## Xong thì
+`npm run check` (typecheck client), bật `npm run dev:server` + `npm run dev:client` rồi mở `http://localhost:5173` thử bằng chuột/phím, và giả lập chạm nếu có sửa điều khiển mobile. Sau đó `npm run bot --prefix client`.

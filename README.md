@@ -27,6 +27,7 @@ rung-san-hon-online/
 ├─ tools/gen-tiles.py      # sinh tileset tạm
 ├─ GAME_DESIGN.md          # luật chơi + lộ trình (cho người và AI đọc)
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
+├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
 ├─ Dockerfile              # deploy một container = một link
 └─ docker-compose.yml      # PostgreSQL local
 ```
@@ -118,6 +119,26 @@ Giao từng việc nhỏ, ví dụ:
 > qua schema, hiện một ô túi đồ nhỏ trên HUD. Server quyết định rơi đồ, client chỉ hiển thị.
 
 Sau mỗi bước, chạy kiểm thử ở trên rồi mới làm bước tiếp theo.
+
+### Cài đặt cho dev dùng Claude Code
+
+Repo có sẵn cấu hình chung trong `.claude/settings.json` (cùng áp dụng cho mọi người clone repo và mọi worktree):
+
+- **Plugin** từ marketplace `claude-plugins-official`: `typescript-lsp`, `context7`, `security-guidance`, `feature-dev`,
+  `pr-review-toolkit`, `code-simplifier`.
+  Lần đầu mở repo, Claude Code hỏi có tin thư mục này và cài marketplace/plugin không: chọn đồng ý.
+- **Hook**: sau mỗi lần AI sửa file, `node tools/check.mjs --hook` tự typecheck phần bị ảnh hưởng (server, client hoặc cả hai) và báo lỗi cho AI tự sửa.
+- **Skill dự án** trong `.claude/skills/`: `roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`.
+
+Việc mỗi người cần làm một lần trên máy mình:
+
+```bash
+npm i -g typescript-language-server typescript   # để plugin typescript-lsp chạy được
+npm run hooks                                    # bật git pre-commit hook
+```
+
+- `context7` (tra tài liệu thư viện mới nhất) cần đăng nhập Context7 khi Claude Code hỏi lần đầu; làm theo hướng dẫn hiện ra (hoặc dùng `/mcp`).
+- Cài đặt riêng của từng máy để ở `.claude/settings.local.json` (không commit).
 
 ## Phiên bản thư viện
 
