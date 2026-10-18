@@ -18,7 +18,9 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Thua không mất đồ:** không bao giờ mất võ hồn, hồn hoàn đã hấp thụ, hồn cốt hay hồn hạch đang gắn.
 
 ## 3. Mô hình chơi
-- **Người chơi (hồn sư) không có võ hồn riêng.** Người chơi chỉ điều khiển các **võ hồn sưu tầm được**. Mỗi võ hồn là một đơn vị nuôi riêng, có hình dạng nhân vật truyện đại diện (ví dụ Lam Ngân Thảo mang hình Đường Tam).
+- **Người chơi là một hồn sư có nhân vật riêng.** Khi tạo tài khoản, người chơi chọn **nam hoặc nữ**, kiểu tóc, màu tóc và màu áo (mục 5.11). Hồn sư chỉ là hình ảnh đại diện: cấp, chỉ số và hồn hoàn đều thuộc về từng võ hồn.
+- **Võ hồn là đơn vị nuôi riêng, sưu tầm được.** Trên bản đồ, người khác thấy hồn sư của bạn cùng **võ hồn đang ra trận ở dạng phóng thích**, như trong truyện: vũ khí trên tay, thú hồn phụ thể (tai, đuôi, cánh), hư ảnh hoặc hào quang quanh người, kèm các **vòng hồn hoàn của võ hồn đó** dưới chân. Đổi võ hồn thì đổi lớp phụ thể và bộ vòng hồn hoàn; thân hồn sư giữ nguyên.
+- **Nhân vật truyện dùng cho chân dung và thẻ võ hồn** trong giao diện (ví dụ thẻ Lam Ngân Thảo vẽ Đường Tam, thẻ Nhu Cốt Thố vẽ Tiểu Vũ), không dùng làm nhân vật trên bản đồ.
 - **Đội hình 4 võ hồn** (đã chốt). Trên bản đồ chỉ hiện võ hồn đang ra trận; đổi sang võ hồn khác trong đội ngay khi đang đánh.
 - **Mỗi võ hồn có 10 hồn hoàn**, ứng với cấp 1–100: bình cảnh ở cấp 10, 20, …, 100.
 - **Niên hạn tối đa: 10 vạn năm (100.000 năm).**
@@ -112,7 +114,7 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 
 **Kinh nghiệm:** chia cho cả 4 võ hồn trong đội; võ hồn đang ra trận nhận 40%, mỗi võ hồn còn lại 20% (đã chốt, làm ở bước 2.3). Võ hồn đang ở bình cảnh thì không nhận, phần đó không chia lại.
 
-**Danh hiệu** theo cấp của võ hồn đang ra trận, hiện trên đầu nhân vật:
+**Danh hiệu** theo cấp của võ hồn đang ra trận, hiện trên đầu hồn sư:
 
 | Cấp | Danh hiệu | | Cấp | Danh hiệu |
 |---|---|---|---|---|
@@ -251,13 +253,178 @@ Bản đồ hiện tại là **Tinh Đấu Đại Sâm Lâm**, chia vùng từ t
 | Hồn cốt | 6 / 12 / 24 hồn cốt cường hóa +10 |
 | Hồn hạch | 8 / 16 / 24 hồn hạch 5★ trở lên |
 
+### 5.11 Mỹ thuật: hồn sư, võ hồn, hồn thú
+Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. Mục này là quy cách để thay dần bằng sprite vẽ tay mà không phải sửa luật chơi.
+
+**Phong cách và bảng màu chung**
+- **Chibi pixel RPG** nhìn từ trên xuống, hơi nghiêng (kiểu RPG 16-bit). Đầu to bằng khoảng 2/5 chiều cao, mắt 1–2 pixel, tay chân ngắn.
+- **Ánh sáng từ trên bên trái.** Mỗi vùng màu dùng 3 sắc độ (tối, gốc, sáng); thêm sắc độ thứ 4 chỉ cho kim loại và hiệu ứng phát sáng.
+- **Viền tối có màu**, không dùng đen tuyền: viền ngoài `#1a1020`, viền trong cùng tông, tối hơn màu gốc. Không khử răng cưa (anti-alias) ở viền ngoài để sprite đọc rõ khi phóng to 2–6 lần.
+- **Bảng màu chung khoảng 48 màu**, lưu ở `art/palette.gpl` (bảng màu Aseprite). Ngoài bảng này chỉ được thêm màu chủ đạo của võ hồn, tức trường `col` và `robe` trong `VOHON` (`shared/data.ts`), và màu hồn hoàn trong `TIERS`.
+- **Da:** 3 sắc độ quanh `#f1c7a0` (màu da sprite hiện tại). Một tông da cho bản đầu (thêm tông khác chờ chốt).
+- **Nền tối dần theo độ sâu của rừng** (lớp `vignette`), nên mọi màu tối của võ hồn và hồn thú phải có viền sáng hoặc hào quang để không chìm. Ví dụ hồn hoàn đen dùng `glow` tím `#8a6bff` làm viền.
+
+**Quy cách sprite hồn sư**
+- **Khung 32×32 pixel**, gốc tại chân, điểm (16, 30), tức `origin = (0.5, 30/32)`. Thân cao khoảng 24–26 pixel; phần trên dành cho tóc buộc cao và mũ. Một ô bản đồ (`TILE` = 16) nên hồn sư cao khoảng 2 ô, rộng 1 ô.
+- **Bóng dưới chân** không vẽ trong sprite: client vẽ hình elip mờ 12×4 bằng code.
+- **4 hướng: xuống, phải, lên, trái.** Chỉ vẽ 3 hướng (xuống, phải, lên). Hướng trái lấy bằng cách lật ngang hướng phải trong client, áp cho mọi lớp cùng lúc. Server cần đồng bộ thêm hướng nhìn 4 phía (hiện chỉ có `face` = ±1).
+- **Ghép theo lớp.** Mỗi lớp là một spritesheet riêng có **cùng bố cục khung**. Thứ tự vẽ từ sau ra trước:
+
+| Thứ tự | Lớp | Nguồn | Ghi chú |
+|---|---|---|---|
+| 1 | Bóng | Code | Elip mờ dưới chân |
+| 2 | Vòng hồn hoàn, nửa sau | Code (hoặc ảnh `halo`) | Phần elip nằm sau thân |
+| 3 | Phụ thể võ hồn, nửa sau | `vh_{id}_b` | Cánh, đuôi, chân nhện, hư ảnh sau lưng, vũ khí khi bị thân che |
+| 4 | Thân | `hs_body_{m/f}` | Da, mặt, quần hoặc váy lót, giày |
+| 5 | Áo | `hs_outfit_{m/f}_0` | Đổi màu bằng hoán màu (xem dưới) |
+| 6 | Tóc | `hs_hair_{m/f}_{0–3}` | Đổi màu bằng hoán màu |
+| 7 | Phụ thể võ hồn, nửa trước | `vh_{id}_f` | Vũ khí trên tay, tai thú, dây leo trước người, hào quang phía trước |
+| 8 | Vòng hồn hoàn, nửa trước | Code (hoặc ảnh `halo`) | Phần elip nằm trước thân |
+| 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
+
+- **Phụ thể tách hai nửa (sau thân và trước thân) cho từng khung.** Người vẽ tự quyết pixel nào nằm sau, pixel nào nằm trước theo từng hướng: quay lưng (hướng lên) thì cánh nằm ở nửa trước, vũ khí nằm ở nửa sau. Nhờ vậy client không cần đổi thứ tự lớp theo hướng.
+- **Khung phụ thể 48×48**, là khung thân mở rộng 8 pixel mỗi phía, gốc tại (24, 38). Cánh, búa lớn và dây leo dưới đất được phép tràn ra ngoài khung 32×32.
+- **Hoán màu (palette swap):** tóc và áo vẽ bằng **dải 4 xám chuẩn** `#3a3a3a`, `#6a6a6a`, `#9a9a9a`, `#cacaca` (tối → sáng). Lúc tải, client tạo bản đã tô màu cho từng tổ hợp đang dùng bằng cách thay đúng 4 màu này bằng dải màu chọn. Không dùng `setTint` vì phép nhân màu làm mất sắc độ.
+
+**Tùy biến khi tạo nhân vật** (chờ chốt số lượng)
+
+| Mục | Nam | Nữ |
+|---|---|---|
+| Kiểu tóc 0 | Ngắn rối | Dài thả thẳng |
+| Kiểu tóc 1 | Dài buộc thấp sau gáy | Đuôi ngựa cao |
+| Kiểu tóc 2 | Dựng nhọn | Bím dài một bên |
+| Kiểu tóc 3 | Mái dài che một bên mắt | Ngắn ngang vai, có mái |
+| Màu tóc (dùng chung) | Đen, nâu, vàng kim, bạc, lam, hồng | |
+| Màu áo (dùng chung) | Lam, đỏ, lục, tím, trắng, đen | |
+
+- Áo bản đầu là **áo hồn sư** đơn giản: áo vải có đai lưng, nam mặc quần, nữ mặc váy ngắn trên quần bó. Kiểu áo khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) để sau.
+- Lưu 4 số nhỏ cho mỗi tài khoản: `sex` (0 nam, 1 nữ), `hair` (0–3), `hairCol` (0–5), `outfitCol` (0–5). Danh sách màu nằm trong `shared/data.ts` để client và server cùng kiểm tra.
+
+**Animation của hồn sư**
+
+| Tên (tag Aseprite) | Số khung | Thời gian mỗi khung | Lặp | Ghi chú |
+|---|---|---|---|---|
+| `idle` (đứng) | 2 | 400 ms | Có | Thở: đầu và vai nhích 1 pixel |
+| `walk` (đi) | 4 | 120 ms | Có | Chân trái, đứng, chân phải, đứng |
+| `attack` (đánh thường) | 3 | 80 / 80 / 140 ms | Không | Lấy đà, vung, thu về. Phụ thể vũ khí vung theo |
+| `cast` (tung hồn kỹ) | 3 | 100 / 200 / 140 ms | Không | Giơ tay, giữ (vòng hồn hoàn của hồn kỹ sáng lên), thả |
+| `hurt` (bị đánh) | 1 | 150 ms | Không | Ngửa người; client nháy trắng thêm 2 lần |
+| `die` (gục) | 3 | 120 / 120 / giữ | Không | Khuỵu, ngã, nằm. Ẩn phụ thể |
+| `absorb` (hấp thụ hồn hoàn) | 2 | 500 ms | Có | Ngồi xếp bằng thiền, **chỉ hướng xuống**. Phụ thể mờ 60% |
+
+- **Bố cục spritesheet cố định, mọi lớp giống nhau**, 16 cột × 4 hàng = 512×128 (lớp phụ thể: 768×192 vì khung 48×48):
+  - Hàng 0 hướng xuống, hàng 1 hướng phải, hàng 2 hướng lên. Trong mỗi hàng: cột 0–1 `idle`, 2–5 `walk`, 6–8 `attack`, 9–11 `cast`, 12 `hurt`, 13–15 `die`.
+  - Hàng 3: cột 0–1 `absorb` (hướng xuống); các cột còn lại để trống, dành cho animation thêm về sau.
+- Lớp phụ thể **bắt buộc có** `idle`, `walk`, `attack`, `cast`; `hurt` dùng lại khung `idle` nếu chưa vẽ; `die` để trống.
+- Client chỉ chạy animation trên lớp thân; các lớp khác đặt cùng chỉ số khung với lớp thân mỗi lần khung đổi.
+
+**Phụ thể của 20 võ hồn** (theo `VOHON`; màu chủ đạo là `col` / `robe` trong `data.ts`)
+
+| Võ hồn (`id`) | Dạng phụ thể khi phóng thích | Vị trí lớp | Màu chủ đạo | Hiệu ứng đặc trưng |
+|---|---|---|---|---|
+| Cửu Tinh Thất Sát Kiếm (`cuu_tinh_that_sat_kiem`) | Trường kiếm bạc, thân kiếm có hàng sao sáng | Tay phải | Bạc trắng `#cfe3ff`, chuôi `#3c4f70` | Kiếm khí mảnh; khi tung hồn kỹ có 3–4 thanh kiếm nhỏ bay quanh người (Vô Ngã Kiếm Trận) |
+| Lam Điện Bá Vương Long (`lam_dien_ba_vuong_long`) | Vảy rồng xanh phủ hai cẳng tay, vuốt rồng; hư ảnh đầu rồng sau lưng | Tay + lưng | Lam điện `#5ab8ff`, vảy `#1f3f8f` | Tia điện chạy dọc tay, chớp lóe 1 khung khi đánh trúng |
+| Kỳ Nhung Thông Thiên Cúc (`ky_nhung_thong_thien_cuc`) | Đóa cúc vàng lớn nở sau lưng, cánh hoa xoay quanh người | Lưng + bao quanh | Cam vàng `#ffb347`, nhụy `#8a4a12` | Cánh hoa bay theo vòng, rơi lả tả khi di chuyển |
+| Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | Đôi cánh lửa phượng hoàng | Lưng | Lửa cam `#ff6a2a`, lõi `#8f2a14` | Cánh vỗ theo nhịp đi; tàn lửa bay lên |
+| U Minh Linh Miêu (`u_minh_linh_mieu`) | Tai mèo, đuôi mèo, móng vuốt dài trên hai tay | Đầu + tay + lưng | Tím u minh `#b06bff`, đen tím `#3e2266` | Vệt cào tím; bóng mờ đuổi theo khi lướt |
+| Nguyệt Nhận (`nguyet_nhan`) | Đôi lưỡi trăng khuyết bạc cầm hai tay | Hai tay | Bạc `#e6e6f0`, xám `#4a4a5e` | Vệt chém hình trăng khuyết, ánh trăng lạnh |
+| Hỏa Long (`hoa_long`) | Hư ảnh rồng lửa nhỏ quấn quanh thân, đầu rồng trên vai | Bao quanh | Đỏ lửa `#ff4a2a`, `#7a1c10` | Hơi nóng gợn quanh người, tia lửa bắn ra khi đánh |
+| Nhu Cốt Thố (`nhu_cot_tho`) | Tai thỏ dài, đuôi bông; hai chân phát sáng | Đầu + lưng + dưới chân | Hồng phấn `#ffc2e2`, `#c86a9a` | Vệt sáng hồng hình cung khi lướt và đá |
+| Kim Vũ Miêu Ưng (`kim_vu_mieu_ung`) | Đôi cánh lông vàng kim, vuốt ưng ở tay | Lưng + tay | Vàng kim `#ffd54a`, `#7a5a12` | Lông vũ rơi; tia điện vàng lóe trên mép cánh |
+| Tử Vong Chu Hoàng (`tu_vong_chu_hoang`) | 4 chân nhện tím đen mọc sau lưng (hai bên vai) | Lưng | Tím độc `#9a4aff`, `#2a1240` | Sợi tơ tím; hơi độc mờ bay quanh chân |
+| Bích Lân Xà Hoàng (`bich_lan_xa_hoang`) | Rắn lục biếc quấn cánh tay, đầu rắn ngóc trên vai | Tay + vai | Lục biếc `#3ad98a`, `#145a38` | Vảy lân quang lấp lánh, sương độc xanh dưới chân |
+| Càn Khôn Hỗn Nguyên Tỏa (`can_khon_hon_nguyen_toa`) | Vòng xích vàng có ổ khóa lơ lửng quanh người | Bao quanh | Vàng đồng `#e0b04a`, `#5e4a18` | Xích xoay chậm; phù văn sáng khi tung hồn kỹ |
+| Hỏa Ảnh (`hoa_anh`) | Bóng lửa đỏ hình người đứng sau, hai tay bọc lửa | Lưng + tay | Đỏ thẫm `#ff3a4a`, `#701822` | Bóng lửa đi trễ nhịp so với thân |
+| Yêu Hồ (`yeu_ho`) | Tai cáo, 3 đuôi cáo xòe sau lưng | Đầu + lưng | Hồng yêu `#ff9ad5`, `#7a2a5a` | Ảo ảnh hồng nhấp nháy, đốm sáng hình giọt nước |
+| Xúc Xích (`xuc_xich`) | Xúc xích nướng to trên tay, 2–3 xúc xích nhỏ bay quanh | Tay + bao quanh | Nâu cam `#e8875a`, `#6a3a22` | Hơi nóng bốc lên, xúc xích nhỏ nảy lên xuống |
+| Quỷ Mị (`quy_mi`) | Hư ảnh quỷ mờ sau lưng, khói tím đen bao người | Lưng + bao quanh | Tím quỷ `#8a8aff`, `#22224a` | Bóng nhân đôi lệch 1–2 pixel; nhấp nháy khi tàng hình |
+| Thiên Càn Bạch Ngọc Đỉnh (`thien_can_bach_ngoc_dinh`) | Đỉnh ba chân bằng bạch ngọc lơ lửng trên lòng bàn tay | Tay (lơ lửng) | Ngọc ngà `#f0e0a0`, `#6a5a2a` | Khói ngọc trắng bốc từ miệng đỉnh; quầng sáng khi hồi máu |
+| Lam Ngân Thảo (`lam_ngan_thao`) | Dây cỏ lam ngân quấn hai tay, lan thành thảm dưới chân | Tay + dưới chân | Lam ngân `#4ab0ff`, `#1f4a6b` | Dây leo bò trên đất, đốm sáng xanh li ti |
+| Hạo Thiên Chùy (`hao_thien_chuy`) | Búa đen khổng lồ (đầu búa to gần bằng người) | Tay | Đen `#22222c`, ánh bạc `#9aa0b4` | Vân đen chạy trên búa; bụi và vết nứt đất khi nện |
+| Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | Tháp lưu ly 9 tầng nhỏ lơ lửng trên tay | Tay (lơ lửng) | Lưu ly `#7ef0ff`, `#2a6a7a` | Hào quang 7 màu xoay quanh tháp, chiếu tia sáng lên đồng đội |
+
+- Hiệu ứng lớn (kiếm trận, lãnh vực, sóng sét) vẽ bằng code hoặc sprite hiệu ứng riêng, **không** nhét vào lớp phụ thể.
+- **Võ Hồn Chân Thân** (vòng 7, mục 5.2) là bộ sprite riêng sau này; chưa vẽ ở giai đoạn này.
+
+**Vòng hồn hoàn**
+- Màu theo 5 bậc niên hạn, lấy `col` (thân vòng) và `glow` (viền sáng) trong `TIERS`: trắng, vàng, tím, đen, đỏ. Không chép mã màu sang chỗ khác.
+- **Dưới chân hồn sư:** mỗi hồn hoàn của võ hồn đang ra trận là một elip 20×6, viền 2 pixel màu `col` cộng 1 pixel `glow`. Vòng 1 sát chân, vòng sau cao hơn 2 pixel; 10 vòng cao khoảng 18 pixel, tới ngang ngực. Các vòng nhấp nhô chậm lệch pha nhau.
+- **Nửa sau và nửa trước:** cung trên của elip vẽ sau thân, cung dưới vẽ trước thân, để vòng trông như bao quanh người.
+- **Khi tung hồn kỹ vòng thứ i:** vòng i sáng gấp đôi và phình ra 2 pixel trong 300 ms.
+- **Hồn hoàn rơi trên đất:** giữ key `ring{tier}` 24×14 như hiện tại.
+- Bản đầu vẽ vòng bằng code (đã có `soulRingFx`). Nếu sau này vẽ tay thì dùng key `halo{tier}` 24×10, hai khung: cung trên và cung dưới.
+
+**Hồn thú**
+- Chỉ vẽ **2 hướng** (sang phải, trái là lật ngang) vì server chỉ gửi `face` = ±1. Gốc tại giữa đáy, cách mép dưới 2–4 pixel.
+- Kích thước khung theo bậc:
+
+| Bậc | Niên hạn | Khung | Kích thước trên bản đồ |
+|---|---|---|---|
+| 0 | 10 năm | 16×16 | 1 ô |
+| 1 | 100 năm | 32×32 | khoảng 1,5 ô |
+| 2 | 1.000 năm | 48×32 | khoảng 2 ô dài |
+| 3 | 10.000 năm | 48×48 | khoảng 2,5 ô |
+| 4 | 100.000 năm | 64×64 | khoảng 3,5 ô |
+| Tà hóa thú vương | (mục 5.4) | 96×96 | khoảng 5 ô |
+
+- Animation: `idle` 2 khung, `walk` 4, `attack` 3 (khung đầu là tư thế báo trước, giữ lâu để khớp vùng cảnh báo 0,8 giây ở mục 5.3), `hurt` 1, `die` 3. Spritesheet một hàng theo đúng thứ tự đó, 13 khung.
+- Trạng thái hung hăng (`aggro`) không vẽ khung riêng: client thêm mắt đỏ hoặc dấu "!" bằng code.
+- Mỗi loài hồn thú trong mục 5.3 một bộ sprite. Trước khi có loài (bước 2.6), giữ key theo bậc `b{tier}_…`.
+
+**Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
+- **Chân dung 64×64**, nhân vật truyện đại diện là trường `owner` trong `VOHON` (Đường Tam cho Lam Ngân Thảo, Tiểu Vũ cho Nhu Cốt Thố, Đường Hạo cho Hạo Thiên Chùy…). Hiển thị phóng 2 hoặc 3 lần với `image-rendering: pixelated`.
+- Võ hồn chưa rõ chủ nhân (Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, mục 8) thì chân dung vẽ chính võ hồn thay vì người.
+- **Thẻ võ hồn 96×128**: chân dung ở trên, tên võ hồn, khung viền theo độ hiếm (SR bạc, SSR vàng, UR đỏ tím), biểu tượng hệ 12×12 ở góc trên trái, sao ở dưới, hồn hoàn là các chấm màu theo bậc.
+- Biểu tượng 4 hệ: 12×12, một màu trên nền trong suốt, để CSS tô màu.
+
+**Tên file, key Phaser và thư mục**
+- Thư mục `shared/assets` là `publicDir` của Vite, nên ảnh đặt ở đây được client tải thẳng. Mã võ hồn (`id`) dùng trong tên file, **không dùng chỉ số mảng** (chỉ số có thể đổi khi thêm võ hồn).
+
+```
+art/                         file nguồn, không tải trong game
+  palette.gpl                bảng màu chung
+  CREDITS.md                 nguồn gốc và giấy phép mọi asset
+  honsu/ vohon/ beast/ ui/   file .aseprite
+shared/assets/sprites/
+  manifest.json              danh sách key đã có ảnh thật
+  honsu/body_m.png + .json   hs_body_m
+  honsu/hair_f_2.png + .json hs_hair_f_2
+  honsu/outfit_m_0.png + .json
+  vohon/{id}_b.png, {id}_f.png + {id}.json   vh_{id}_b, vh_{id}_f
+  beast/{loài}.png + .json   beast_{loài} (trước bước 2.6: b{tier})
+  ring/ring{tier}.png        ring{tier} (hồn hoàn rơi), halo{tier}
+shared/assets/ui/
+  portrait/{id}.png          chân dung 64×64
+  card/frame_{sr,ssr,ur}.png khung thẻ 96×128
+  icon/he_{he}.png           biểu tượng hệ 12×12
+```
+
+- **Cách thay dần:** `textures.ts` bỏ qua key đã tồn tại. Client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách (tránh lỗi 404), rồi `makeTextures()` vẽ bằng code những key còn thiếu. Vì vậy mỗi lần chỉ cần thêm ảnh và một dòng manifest; key nào chưa có ảnh vẫn chạy bằng sprite vẽ code.
+- Sprite vẽ bằng code cho mô hình mới phải dùng **đúng key mới** (`hs_body_m`, `vh_{id}_f`…) và cùng bố cục khung, để ảnh thật thay vào được ngay.
+- Key cũ `p{i}_{f}` (một hình mỗi võ hồn) bị bỏ khi làm bước 2.2b.
+
+**Quy trình AI concept → Aseprite → spritesheet**
+1. **Concept:** dùng AI tạo ảnh tham khảo theo bộ prompt chung (phong cách, góc nhìn, tỉ lệ chibi, nền trơn). Chọn 1 ảnh, ghi prompt và công cụ vào `art/CREDITS.md`. Ảnh concept không đưa vào game.
+2. **Hạ độ phân giải:** thu ảnh về khung 32×32 (hoặc 48×48 cho phụ thể) theo cách lấy điểm gần nhất, chỉ để làm nền tham khảo, mờ 30%, trên một lớp riêng trong Aseprite.
+3. **Vẽ lại bằng tay** trên lớp mới, chỉ dùng màu trong `art/palette.gpl`: bóng khối, viền, rồi sắc độ. Xóa lớp tham khảo trước khi xuất. **Không nộp ảnh AI thu nhỏ trực tiếp** (nhiễu màu, viền nhòe, không khớp khung).
+4. **Animation:** vẽ khung `idle` hướng xuống trước, rồi suy ra các hướng và animation khác. Tag Aseprite đặt đúng tên ở bảng animation, khung xếp theo bố cục cố định.
+5. **Lớp phụ thể:** mở file thân làm lớp tham khảo (khóa), vẽ phụ thể trên 2 lớp `back` và `front`, xuất thành 2 ảnh.
+6. **Xuất:** `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16 --data out.json --format json-array --list-tags`. Phụ thể xuất từng lớp bằng `--layer back` / `--layer front`. Client tải bằng `this.load.aseprite(key, png, json)` và tạo animation bằng `this.anims.createFromAseprite(key)`.
+7. **Kiểm tra:** thêm key vào `manifest.json`, chạy game, xem đủ 3 hướng và mọi animation ở mức phóng 2× và 4×, rồi ghi nguồn vào `art/CREDITS.md`.
+
+**Nguồn và giấy phép**
+- Dự án phi thương mại, chơi cùng bạn bè; được dùng tên và hình tượng nhân vật trong truyện (mục 1). Hình phải **do nhóm tự vẽ**.
+- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức. Chỉ được xem để tham khảo ý tưởng.
+- **Ảnh AI chỉ là concept.** Chỉ dùng công cụ AI mà điều khoản cho phép dùng kết quả. Không ghi tên họa sĩ còn sống trong prompt.
+- **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận giấy phép CC0, CC-BY hoặc OFL. Mỗi asset một dòng trong `art/CREDITS.md`: tên file, tác giả, link gốc, giấy phép, đã chỉnh sửa gì. CC-BY phải hiện tên tác giả trong màn hình giới thiệu của game.
+
 ## 6. Kiến trúc (bắt buộc giữ)
 - **Server quyết định mọi thứ.** Client chỉ gửi ý định: `input {x,y}`, `attack`, `skill {i}`, `switch {slot}`, `absorb {itemId, vohonId}`, `chat {text}`…
   Đang có thêm: `vohons` (xin danh sách võ hồn sở hữu, server trả tin nhắn riêng `vohons`), `pick {rowId}` (chọn võ hồn ra trận, đến bước 2.3),
   và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `ForestRoom.ts`).
   Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi hay kết quả hấp thụ.
 - Trạng thái đồng bộ qua Colyseus Schema (`server/src/rooms/schema.ts`). Hiệu ứng hình ảnh gửi qua `broadcast("fx")` và `"dmg"`.
-- Túi đồ và võ hồn chỉ gửi cho chính chủ (không đồng bộ cho người khác). Người khác chỉ thấy võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- Túi đồ và võ hồn chỉ gửi cho chính chủ (không đồng bộ cho người khác). Người khác chỉ thấy ngoại hình hồn sư (giới tính, tóc, màu áo), võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - Bản đồ là file Tiled dùng chung (`shared/assets/forest.json`). Ô có thuộc tính `collides=true` là vật cản ở cả hai phía.
 - Dữ liệu lâu dài lưu trong PostgreSQL / Supabase (`server/sql/`). Bảng mới dùng `CREATE TABLE IF NOT EXISTS` và bật RLS.
 - **Bảng dữ liệu dự kiến:** `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn), `items` (mỗi món đồ có id riêng: loại, số năm, sao, cấp cường hóa, dòng chỉ số, đang gắn vào võ hồn nào), `teams` (đội hình).
@@ -281,6 +448,8 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Tài khoản cũ giữ nguyên võ hồn đang có (vẫn ra trận) và được tặng Lam Ngân Thảo nếu chưa có, cấp = hồn lực bẩm sinh cũ (`characters.innate`) hoặc 1.
   Client: màn hình chọn SSR theo 4 hệ (chuột, chạm, bàn phím); trong rừng nút "Võ hồn" / phím V mở danh sách để chọn võ hồn ra trận.
   Đổi võ hồn giữ tỉ lệ sinh lực / hồn lực, hồi 2 giây (`PICK_CD`), cấm khi gục, đang hấp thụ hoặc giao chiến trong 5 giây (`PICK_COMBAT_SECS`).
+- [ ] 2.2a Tạo nhân vật: chọn nam/nữ, 4 kiểu tóc, màu tóc, màu áo (mục 5.11). Lưu `sex`, `hair`, `hairCol`, `outfitCol` cho tài khoản (file SQL mới), đồng bộ qua schema để người khác thấy. Làm ngay trước bước chọn SSR của lễ thức tỉnh; tài khoản cũ nhận ngoại hình mặc định và được chọn lại một lần ở lần vào game tới.
+- [ ] 2.2b Hiển thị hồn sư ghép lớp bằng code theo quy cách 5.11: thân, áo, tóc (đổi màu), lớp phụ thể đơn giản cho 20 võ hồn, vòng hồn hoàn dưới chân. Thêm hướng nhìn 4 phía vào schema. Bỏ key cũ `p{i}_{f}`.
 - [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
 - [ ] 2.4 Năng lượng và chiêu tiên cơ.
 - [ ] 2.5 Hồn kỹ riêng cho từng võ hồn (vòng 1–4 trước).
@@ -320,9 +489,16 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] 8.3 Thêm võ hồn mới.
 - [ ] 8.4 Bản đồ mới: Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa, Hải Thần Đảo.
 
+**Mỹ thuật: thay sprite vẽ bằng code** (quy cách ở mục 5.11; làm song song, không chặn các giai đoạn khác)
+- [ ] M1 Nền tảng: `art/palette.gpl`, `art/CREDITS.md`, `sprites/manifest.json`; client tải ảnh theo manifest bằng `load.aseprite`, key còn thiếu thì vẽ bằng code.
+- [ ] M2 Hồn sư: thân nam và nữ, 4 kiểu tóc mỗi giới, áo hồn sư; đủ 3 hướng và 7 animation.
+- [ ] M3 Lớp phụ thể: Lam Ngân Thảo và 4 võ hồn mẫu (mỗi hệ một: Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
+- [ ] M4 Hồn thú: 5 bậc theo bảng kích thước; sau bước 2.6 vẽ theo từng loài ở mục 5.3.
+- [ ] M5 Giao diện thẻ võ hồn: chân dung 64×64 cho 20 võ hồn, khung thẻ SR/SSR/UR, biểu tượng 4 hệ. Cần trước khi làm giao diện đội hình đẹp ở 2.3.
+
 **Kỹ thuật (làm khi cần)**
 - [ ] Dự đoán chuyển động phía client (client-side prediction) để đỡ trễ khi ping cao.
-- [ ] Thay sprite vẽ bằng code bằng sprite Aseprite thật.
+- Thay sprite vẽ bằng code bằng sprite Aseprite thật: đã tách thành nhóm **Mỹ thuật** (M1–M5) ở trên.
 - [ ] Nhiều kênh khi một phòng quá 60 người.
 - [x] Giới hạn số lần đăng nhập sai và tin nhắn chat để chống dò mật khẩu và spam. (`server/src/ratelimit.ts`, lưu RAM: sai 5 lần cùng (tên, IP), 30 lần/tên từ mọi IP hoặc 20 lần/IP thì khóa 1 phút, gấp đôi mỗi lần tới tối đa 30 phút; chat 5 tin liền rồi 1 tin/2 giây, tối đa 120 ký tự, chặn lặp cùng nội dung trong 30 giây. Deploy sau proxy thì đặt `TRUST_PROXY=1`. Kiểm thử: `npm run test:ratelimit --prefix server`.)
 
@@ -330,7 +506,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 1. **Sưu tầm võ hồn:** mảnh võ hồn, cộng với lễ thức tỉnh tặng Lam Ngân Thảo và cho tự chọn 1 SSR (mục 5.1), có ổn không?
    - **Trả lời:** thức tỉnh tự do: tặng Lam Ngân Thảo và tự chọn 1 võ hồn SSR bất kỳ trong danh sách SSR (không phải "chọn 1 trong 3"). Đã làm ở bước 2.2.
    - Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp… xếp độ hiếm gì (UR?) và lấy bằng cách nào?
-   - Chủ nhân của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh là ai?
+   - Chủ nhân của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh là ai? (Ảnh hưởng chân dung thẻ võ hồn, mục 5.11.)
 2. **Đội hình:** 4 võ hồn và cách chia kinh nghiệm 40/20/20/20 có ổn không?
    - **Trả lời:** đồng ý: đội 4 võ hồn, chia kinh nghiệm 40/20/20/20. Làm ở bước 2.3.
 3. **Hồn kỹ vòng 8–10:** muốn thiết kế thế nào?
@@ -338,3 +514,10 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 5. **Kinh tế:** có cho giao dịch giữa người chơi và PvP ngoài rừng không?
 6. **Nền tảng:** ưu tiên điện thoại hay máy tính? Đội 4 võ hồn và nhiều phím kỹ năng sẽ khó điều khiển trên điện thoại.
    - **Trả lời:** ưu tiên máy tính; có bản điện thoại thì càng tốt. Giao diện mới phải dùng được bằng cả chuột lẫn chạm.
+7. **Mỹ thuật:** 6 màu tóc và 6 màu áo có đủ không? Có thêm tông da, kiểu áo khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) không? Ai vẽ phần nào?
+
+**Đã chốt: mỹ thuật nhân vật** (chi tiết ở mục 3 và 5.11)
+- Người chơi có **nhân vật hồn sư riêng**, chọn **nam hoặc nữ** khi tạo tài khoản. Trên bản đồ là hồn sư; võ hồn đang ra trận hiện dạng **phụ thể khi phóng thích** (vũ khí, thú hồn, cánh, hào quang) cùng vòng hồn hoàn dưới chân. Đổi võ hồn thì đổi lớp phụ thể. Nhân vật truyện chỉ dùng cho chân dung và thẻ võ hồn.
+- Sprite **32×32, 4 hướng, chibi pixel RPG**, cao khoảng 2 ô bản đồ.
+- Nguồn asset: **AI tạo concept, vẽ lại và chỉnh pixel bằng Aseprite**; ảnh AI không đưa thẳng vào game.
+- Tùy biến: nam/nữ, 4 kiểu tóc mỗi giới, vài màu tóc và màu áo; asset **ghép theo lớp** (thân, áo, tóc, phụ thể võ hồn).
