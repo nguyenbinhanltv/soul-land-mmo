@@ -78,6 +78,14 @@ if(other){
   ok(/không sở hữu/.test(A.logs.at(-1)??""),"chặn đổi sang võ hồn không sở hữu");
 }
 
+// Hướng nhìn 4 phía (PlayerState.dir: 0 xuống, 1 phải, 2 lên, 3 trái) do server tính từ input.
+const aView=()=>B.room.state.players.get(A.room.sessionId);
+for(const [x,y,d] of [[0,1,0],[-1,0,3],[0,-1,2],[0.6,0.4,1]]){
+  A.room.send("input",{x,y});
+  ok(await waitFor(()=>p.dir===d&&aView()?.dir===d),`input ${x},${y} -> hướng ${d}, B thấy ${aView()?.dir}`);
+}
+A.room.send("input",{x:0,y:0}); await sleep(200);
+ok(p.dir===1,"đứng yên giữ hướng nhìn cũ");
 A.room.send("input",{x:1,y:0}); await sleep(1500);
 console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.sessionId).x.toFixed(1));
 for(let i=0;i<300;i++){

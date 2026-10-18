@@ -212,6 +212,11 @@ export function parseLooks(x: unknown): Looks | null {
   return Object.values(l).every((v) => v >= 0) ? l : null;
 }
 
+/** Hướng nhìn 4 phía của hồn sư (trường `dir` trong PlayerState): chỉ số trong mảng này. Hướng trái do client lật ngang hướng phải. */
+export const DIRS4 = ["down", "right", "up", "left"] as const;
+/** Hướng nhìn theo vector di chuyển: trục trội quyết định, chéo đúng 45° thì ưu tiên ngang. */
+export const dir4 = (x: number, y: number) => (Math.abs(x) >= Math.abs(y) ? (x >= 0 ? 1 : 3) : y > 0 ? 0 : 2);
+
 export const SKILLS = [
   { name: "Hồn Bạo",    cost: 12, cd: 3,   desc: "Nổ hồn lực quanh thân" },
   { name: "Thiểm Kích", cost: 16, cd: 4.5, desc: "Lao về phía trước" },

@@ -11,7 +11,7 @@ export class PlayerState extends Schema {
   @type("uint8") outfitCol: number = 0;
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
-  @type("int8") face: number = 1;
+  @type("uint8") dir: number = 0;      // hướng nhìn 4 phía, chỉ số trong DIRS4 (shared/data.ts): 0 xuống, 1 phải, 2 lên, 3 trái (thay `face` = ±1)
   @type("boolean") moving: boolean = false;
   @type("uint8") level: number = 1;
   @type("uint32") xp: number = 0;

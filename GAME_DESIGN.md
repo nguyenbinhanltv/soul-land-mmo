@@ -466,7 +466,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 **Quy cách sprite hồn sư**
 - **Khung 32×32 pixel**, gốc tại chân, điểm (16, 30), tức `origin = (0.5, 30/32)`. Thân cao khoảng 24–26 pixel; phần trên dành cho tóc buộc cao và mũ. Một ô bản đồ (`TILE` = 16) nên hồn sư cao khoảng 2 ô, rộng 1 ô.
 - **Bóng dưới chân** không vẽ trong sprite: client vẽ hình elip mờ 12×4 bằng code.
-- **4 hướng: xuống, phải, lên, trái.** Chỉ vẽ 3 hướng (xuống, phải, lên). Hướng trái lấy bằng cách lật ngang hướng phải trong client, áp cho mọi lớp cùng lúc. Server cần đồng bộ thêm hướng nhìn 4 phía (hiện chỉ có `face` = ±1).
+- **4 hướng: xuống, phải, lên, trái.** Chỉ vẽ 3 hướng (xuống, phải, lên). Hướng trái lấy bằng cách lật ngang hướng phải trong client, áp cho mọi lớp cùng lúc. Server đồng bộ hướng nhìn 4 phía qua `PlayerState.dir` (0 xuống, 1 phải, 2 lên, 3 trái; `DIRS4` / `dir4()` trong `data.ts`, từ bước 2.2b, thay `face` = ±1 của người chơi).
 - **Ghép theo lớp.** Mỗi lớp là một spritesheet riêng có **cùng bố cục khung**. Thứ tự vẽ từ sau ra trước:
 
 | Thứ tự | Lớp | Nguồn | Ghi chú |
@@ -563,7 +563,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 - **Nửa sau và nửa trước:** cung trên của elip vẽ sau thân, cung dưới vẽ trước thân, để vòng trông như bao quanh người.
 - **Khi tung hồn kỹ vòng thứ i:** vòng i sáng gấp đôi và phình ra 2 pixel trong 300 ms.
 - **Hồn hoàn rơi trên đất:** giữ key `ring{tier}` 24×14 như hiện tại.
-- Bản đầu vẽ vòng bằng code (đã có `soulRingFx`). Nếu sau này vẽ tay thì dùng key `halo{tier}` 24×10, hai khung: cung trên và cung dưới.
+- Bản đầu vẽ vòng bằng code: từ bước 2.2b client tự tạo `halo{tier}` (khung 24×10, khung 0 cung trên, khung 1 cung dưới) và `halo{tier}_lit` (28×12, vòng đang sáng). Nếu sau này vẽ tay thì thay `halo{tier}` bằng ảnh cùng quy cách.
 
 **Hồn thú**
 - Chỉ vẽ **2 hướng** (sang phải, trái là lật ngang) vì server chỉ gửi `face` = ±1. Gốc tại giữa đáy, cách mép dưới 2–4 pixel.
@@ -613,7 +613,7 @@ shared/assets/ui/
 
 - **Cách thay dần:** `textures.ts` bỏ qua key đã tồn tại. Client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách (tránh lỗi 404), rồi `makeTextures()` vẽ bằng code những key còn thiếu. Vì vậy mỗi lần chỉ cần thêm ảnh và một dòng manifest; key nào chưa có ảnh vẫn chạy bằng sprite vẽ code.
 - Sprite vẽ bằng code cho mô hình mới phải dùng **đúng key mới** (`hs_body_m`, `vh_{id}_f`…) và cùng bố cục khung, để ảnh thật thay vào được ngay.
-- Key cũ `p{i}_{f}` (một hình mỗi võ hồn) bị bỏ khi làm bước 2.2b.
+- Key cũ `p{i}_{f}` (một hình mỗi võ hồn) đã bỏ ở bước 2.2b.
 
 **Quy trình AI concept → Aseprite → spritesheet**
 1. **Concept:** dùng AI tạo ảnh tham khảo theo bộ prompt chung (phong cách, góc nhìn, tỉ lệ chibi, nền trơn). Chọn 1 ảnh, ghi prompt và công cụ vào `art/CREDITS.md`. Ảnh concept không đưa vào game.
@@ -745,7 +745,10 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Thứ tự do server giữ: chưa tạo nhân vật thì `/api/awaken` trả 409 và `onAuth` từ chối vào bản đồ (403 "Chưa tạo nhân vật."). Tài khoản cũ có `looks_chosen = false` nên nhận ngoại hình mặc định và phải chọn một lần trước khi vào game.
   `PlayerState` thêm `sex`, `hair`, `hairCol`, `outfitCol` (`uint8`). Client: màn "Tạo nhân vật" (chuột, chạm, bàn phím) có ô xem trước vẽ bằng code, đứng trước màn chọn SSR; tài khoản cũ thấy màn này ở lần vào tới. Trong game hồn sư vẫn vẽ bằng code (16×24, gốc tại chân) theo giới tính, kiểu tóc, màu tóc, màu áo; đai lưng mang màu võ hồn ra trận. Key tạm `p{vh}_{f}_{sex}{hair}{hairCol}{outfitCol}` tạo khi có người dùng, bỏ ở 2.2b.
   Bot đi qua bước tạo nhân vật: thử giá trị sai, thức tỉnh và vào bản đồ trước khi chọn, chọn lần hai, và B thấy đúng ngoại hình của A.
-- [ ] 2.2b Hiển thị hồn sư ghép lớp bằng code theo quy cách 5.11: thân, áo, tóc (đổi màu), lớp phụ thể đơn giản cho 20 võ hồn, vòng hồn hoàn dưới chân. Thêm hướng nhìn 4 phía vào schema. Bỏ key cũ `p{i}_{f}`.
+- [x] 2.2b Hiển thị hồn sư ghép lớp bằng code theo quy cách 5.11: thân, áo, tóc (đổi màu), lớp phụ thể đơn giản cho 20 võ hồn, vòng hồn hoàn dưới chân. Thêm hướng nhìn 4 phía vào schema. Bỏ key cũ `p{i}_{f}`.
+  *Đã làm:* `client/src/honsuArt.ts` vẽ từng khung vào bộ đệm pixel theo đúng bố cục cố định (16 cột × 4 hàng, đủ 7 animation, 3 hướng): `hs_body_{m,f}`, `hs_outfit_{m,f}_0` và `hs_hair_{m,f}_{0–3}` bằng dải 4 xám, `vh_{id}_b` / `vh_{id}_f` 48×48 cho 20 võ hồn (chỉ cột 0–11 hàng 0–2). `textures.ts` biến chúng thành texture có khung đánh số (bỏ qua key đã có ảnh thật trong manifest), phụ thể chỉ tạo khi có người dùng; áo và tóc hoán màu bằng `recolor` thành `hs_hair_f_2@3`, `hs_outfit_m_0@5`. Viền ngoài `#1a1020` giữ nguyên khi hoán màu, chỉ viền trong (xám tối nhất) đổi theo màu (chờ chốt).
+  `GameScene`: mỗi hồn sư là một container theo thứ tự lớp 1–8 (bóng `hs_shadow`, cung trên vòng hồn hoàn, phụ thể sau, thân, áo, tóc, phụ thể trước, cung dưới vòng); chỉ lớp thân chạy animation `hs_body_{m,f}:{anim}_{hướng}`, các lớp khác đặt khung bằng `syncLayers` (bảng ánh xạ phụ thể: hurt → idle cột 0, die ẩn, absorb → idle hướng xuống mờ 60%). Animation chọn theo state: gục → `die`, hấp thụ → `absorb`, fx `slash` → `attack`, fx `soulring` → `cast` (vòng của hồn kỹ sáng và phình trong 300 ms), `dmg` có `id` → `hurt` kèm nháy trắng 2 lần, còn lại `walk` / `idle`. Hướng trái lật ngang mọi lớp. Đai lưng thôi mang màu võ hồn (đai là sắc tối của áo).
+  Server: `PlayerState.dir` (uint8) tính bằng `dir4(input)` khi di chuyển, đứng yên giữ hướng cũ; bỏ `PlayerState.face`. Không đổi luật chơi; chỉ thêm `i` vào fx `soulring` và `id` vào `dmg` khi người chơi bị đánh (hiệu ứng hình ảnh). Ô xem trước ở màn tạo nhân vật dùng cùng hình vẽ (khung `idle` hướng xuống, 32×32). Bot kiểm tra 4 hướng nhìn và người khác thấy cùng hướng.
 - [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
 - [ ] 2.4 Năng lượng và chiêu tiên cơ.
 - [ ] 2.5 Hồn kỹ riêng cho từng võ hồn (vòng 1–4 trước).
