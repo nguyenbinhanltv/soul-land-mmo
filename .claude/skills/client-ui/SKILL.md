@@ -16,7 +16,7 @@ Client **chỉ hiển thị và gửi input**. Không tính máu, sát thương,
   - `setupInput()` (bàn phím + joystick), `act()` gửi `attack` / `absorb` / `skill {i}`, `sendInput()` gửi `input {x,y}` chỉ khi hướng đổi.
 - `client/src/hud.ts`: HUD bằng HTML: `updateStats`, `buildSkills`, `log`, `banner`, `showTarget`, `showPrompt`, `ringColor`.
 - `client/index.html` + `client/src/style.css`: khung HUD (`#hud`, `#skills`, `#chatbox`, `#joy`/`#knob`, `#overlay`). Kiểu riêng cho chạm dùng `body.touch ...`.
-- `client/src/textures.ts`: sprite pixel vẽ bằng code (`makeTextures`).
+- `client/src/textures.ts`: sprite pixel vẽ bằng code (`makeTextures`, `looksTextures`, `vohonTextures`); hình hồn sư và phụ thể vẽ trong `client/src/honsuArt.ts`, nền tảng sheet/animation/hoán màu ở `client/src/sprites.ts` (mục 5.11).
 
 ## Quy tắc
 1. **Gửi ý định, không gửi kết quả**: chỉ `this.room.send("<loại>", { ...tham số nhỏ })` như hướng đi, chỉ số ô kỹ năng, id món đồ. Server tự kiểm tra lại.

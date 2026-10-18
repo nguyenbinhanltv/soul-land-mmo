@@ -4,7 +4,7 @@
 import { Room, Client, ServerError } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex,
-  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD, BEASTS, MAPS, DEFAULT_MAP, parseLooks, type Looks } from "../../../shared/data.ts";
+  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD, BEASTS, MAPS, DEFAULT_MAP, parseLooks, dir4, type Looks } from "../../../shared/data.ts";
 import { loadMap, type GameMap } from "../map.ts";
 import { store, Character, type AccountLooks } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
@@ -204,7 +204,7 @@ export class MapRoom extends Room<MapState> {
     if (d.inv > 0 || p.dead) return;
     dmg = Math.round(dmg * VOHON[p.vh].def);
     d.hpF -= dmg; d.inv = 0.45; d.lastHit = 0; d.fight = 0;
-    this.broadcast("dmg", { x: p.x, y: p.y - 18, v: -dmg, c: "#ff6b6b" });
+    this.broadcast("dmg", { x: p.x, y: p.y - 18, v: -dmg, c: "#ff6b6b", id }); // id: client chạy animation hurt cho hồn sư này
     if (d.absorbing) { d.absorbing = null; p.absorb = 0; this.log(id, "Bị tấn công: quá trình hấp thụ bị gián đoạn!", "#ffb35c"); }
     if (d.hpF <= 0) {
       d.hpF = 0; p.dead = true; d.deadT = 2.5;
@@ -234,7 +234,7 @@ export class MapRoom extends Room<MapState> {
     const sk = SKILLS[i]; if (d.mpF < sk.cost) return this.log(id, "Không đủ hồn lực.");
     d.mpF -= sk.cost; p.cds[i] = sk.cd;
     const tier = p.rings[i], tm = TIER_MULT[tier], col = VOHON[p.vh].col, glow = TIERS[tier].glow;
-    this.broadcast("fx", { k: "soulring", id, tier });
+    this.broadcast("fx", { k: "soulring", id, tier, i }); // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó
     const inRange = (r: number) => [...this.state.beasts.entries()].filter(([, b]) => Math.hypot(b.x - p.x, b.y - p.y) < r);
     if (i === 0) {
       this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 48, col });
@@ -372,7 +372,8 @@ export class MapRoom extends Room<MapState> {
       if (p.moving) {
         if (d.absorbing) { d.absorbing = null; p.absorb = 0; this.log(id, "Di chuyển: đã hủy hấp thụ."); }
         this.map.moveEnt(p, ix * d.speed * dt, iy * d.speed * dt, 5, 4);
-        d.dir = { x: ix / il, y: iy / il }; if (Math.abs(ix) > 0.1) p.face = ix > 0 ? 1 : -1;
+        d.dir = { x: ix / il, y: iy / il };
+        p.dir = dir4(ix, iy);
       }
       if (d.absorbing) { d.absorbing.t += dt; p.absorb = Math.min(0.999, d.absorbing.t / d.absorbing.dur); if (d.absorbing.t >= d.absorbing.dur) this.finishAbsorb(id); }
       d.mpF = Math.min(p.maxMp, d.mpF + (4 + p.level * 0.15) * (VOHON[p.vh].mp > 1 ? 1.5 : 1) * dt);

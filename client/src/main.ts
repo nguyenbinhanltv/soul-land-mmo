@@ -6,7 +6,7 @@ import { TIERS, VOHON, HE, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_
   type He, type Looks } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
-import { drawHonsu } from "./textures.ts";
+import { paintHonsuPreview } from "./honsuArt.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -57,12 +57,11 @@ async function resume(err = "") {
   try { route(await post<Me>("/api/me", { token })); } catch { loginScreen(err); }
 }
 
-/** Vẽ hồn sư xem trước lên canvas 16×24 (CSS phóng to, pixelated). */
+/** Vẽ hồn sư xem trước lên canvas 32×32 (CSS phóng to, pixelated), cùng hình vẽ với trong game. */
 function paintPreview(cv: HTMLCanvasElement, L: Looks) {
   const ctx = cv.getContext("2d")!;
   ctx.clearRect(0, 0, cv.width, cv.height);
-  ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.fillRect(3, 22, 10, 1);
-  drawHonsu((x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(8 + x, 22 + y, w, h); }, L, 0);
+  paintHonsuPreview(ctx, L, 16, 30);
 }
 
 // Tạo nhân vật (mục 3, 5.11): chọn giới tính, kiểu tóc, màu tóc, màu áo. Chạy ngay trước bước chọn SSR của lễ thức tỉnh;
@@ -75,7 +74,7 @@ function createScreen(me: Me) {
       ? "Hồn sư của bạn đang mang ngoại hình mặc định. Bạn được chọn lại <b>một lần</b>; sau khi xác nhận sẽ không đổi được nữa."
       : "Chọn ngoại hình hồn sư trước lễ thức tỉnh. Ngoại hình chỉ chọn được <b>một lần</b>."}</p>
     <div class="maker">
-      <div class="pv"><canvas id="pv" width="16" height="24" aria-label="Xem trước hồn sư"></canvas><div id="pvTxt"></div></div>
+      <div class="pv"><canvas id="pv" width="32" height="32" aria-label="Xem trước hồn sư"></canvas><div id="pvTxt"></div></div>
       <div class="opts" id="opts"></div>
     </div>
     <div class="btns"><button class="btn primary" id="ok">Xác nhận ngoại hình</button><button class="btn" id="out">Đổi tài khoản</button></div>
