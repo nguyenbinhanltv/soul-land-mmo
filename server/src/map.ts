@@ -52,8 +52,9 @@ export function loadMap(mapId: string): GameMap {
         weights: String(prop("weights") ?? "1").split(",").map(Number), count: Number(prop("count") ?? 8),
         beasts: parseBeasts(mapId, o.name, String(prop("beasts") ?? "")),
       };
-      if (!z.beasts.length) { console.warn(`[map ${mapId}] Vùng "${o.name}" không khai báo loài hợp lệ, bỏ qua vùng.`); continue; }
-      z.weights.forEach((w, t) => {
+      // Thiếu loài thì vẫn giữ vùng (không đổi luật sinh hồn thú): pickSpecies lấy loài bất kỳ cùng bậc.
+      if (!z.beasts.length) console.warn(`[map ${mapId}] Vùng "${o.name}" không khai báo loài hợp lệ; dùng loài bất kỳ cùng bậc.`);
+      else z.weights.forEach((w, t) => {
         if (w > 0 && !z.beasts.some((b) => BEASTS[b.species].tier === t))
           console.warn(`[map ${mapId}] Vùng "${o.name}" không có loài bậc ${TIERS[t]?.age ?? t}; dùng loài bất kỳ cùng bậc.`);
       });

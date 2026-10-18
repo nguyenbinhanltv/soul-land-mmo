@@ -1,6 +1,6 @@
 import "./style.css";
 import Phaser from "phaser";
-import { Client } from "colyseus.js";
+import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { TIERS, VOHON, HE, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, type He } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character } from "./net.ts";
@@ -106,6 +106,19 @@ function welcomeScreen(c: Character) {
   document.getElementById("go")!.focus();
 }
 
+/** Chờ state đầu tiên của phòng để biết mapId; quá hạn hoặc bị rời phòng thì báo lỗi. */
+function waitMapId(room: Room, ms = 8000) {
+  return new Promise<string>((res, rej) => {
+    if (room.state?.mapId) return res(room.state.mapId);
+    const to = setTimeout(() => rej(new Error("Server không gửi thông tin bản đồ, hãy thử lại.")), ms);
+    room.onStateChange.once((s: any) => {
+      clearTimeout(to);
+      s?.mapId ? res(s.mapId) : rej(new Error("Server không gửi thông tin bản đồ, hãy thử lại."));
+    });
+    room.onLeave.once(() => { clearTimeout(to); rej(new Error("Mất kết nối với server khi đang vào bản đồ.")); });
+  });
+}
+
 let game: Phaser.Game | null = null;
 async function join() {
   card.innerHTML = `<h1>Đang vào rừng…</h1>`;
@@ -113,7 +126,7 @@ async function join() {
     const client = new Client(WS);
     // Server chọn bản đồ (đến BĐ2 là bản đồ mặc định); client đọc mapId từ state của phòng để tải đúng file Tiled.
     const room = await client.joinOrCreate("map", { token });
-    const mapId = await new Promise<string>((res) => (room.state?.mapId ? res(room.state.mapId) : room.onStateChange.once((s: any) => res(s.mapId))));
+    const mapId = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     overlay.hidden = true;
     room.onLeave((code) => {
       document.body.classList.remove("playing"); overlay.hidden = false;
