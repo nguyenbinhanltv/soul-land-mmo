@@ -831,7 +831,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 
 **Đã chốt sau review PR #8** (chi tiết ở mục 5.3, 5.8, 6 và BĐ1)
 - **Thánh Hồn Thôn có `kind` = `hunt`**; khu làng là vùng `safe` (không sinh hồn thú, không giao chiến). Chỉ Nặc Đinh Thành và Thiên Đấu Thành là `town`.
-- **Đi cổng:** phòng cũ đánh dấu client đang chuyển bản đồ, lưu đầy đủ nhân vật cùng `map_id`/vị trí mới và chờ ghi xong rồi mới gửi `travel`. Client đang chuyển thì `onLeave` và lưu định kỳ của phòng cũ không ghi gì nữa.
+- **Đi cổng:** lưu của mỗi người chơi chạy nối tiếp (chuỗi `saving`). Phòng cũ đánh dấu client đang chuyển bản đồ, chờ lần lưu đang chạy xong, lưu đầy đủ nhân vật cùng `map_id`/vị trí mới trong một transaction và chờ ghi xong rồi mới gửi `travel`. Client đang chuyển thì lưu định kỳ của phòng cũ bỏ qua người đó; `onLeave` chờ transaction đi cổng: commit rồi thì không ghi, lưu lỗi thì lưu như thường.
 - **BĐ1:** chỉ có một bản đồ; server dùng bản đồ mặc định trong `MAPS`, client join không kèm `mapId` và nhận `mapId` từ state của phòng, không từ `/api/me`. `/api/me` trả `mapId` từ BĐ2.
 - Điểm `arrive` nằm ngoài mọi vùng `portal`. Lượt nhận thưởng boss đặt lại lúc 00:00 giờ `Asia/Ho_Chi_Minh`.
 
