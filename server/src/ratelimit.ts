@@ -2,6 +2,8 @@
 // Đây là cấu hình bảo mật của server, không phải số cân bằng gameplay -> để hằng số ở đây, không đưa vào shared/data.ts.
 // Mọi hàm nhận `now` (ms) để kiểm thử với đồng hồ giả (xem server/scripts/ratelimit-test.ts).
 
+import { nameKey } from "./names.ts";
+
 // ---------- Đăng nhập ----------
 /** Sai bao nhiêu lần với cùng một tên từ cùng một IP thì khóa cặp (tên, IP) đó.
  *  Chỉ khóa cặp chứ không khóa cả tên, để người khác không thể cố tình gõ sai vài lần mà khóa được tài khoản của nạn nhân. */
@@ -84,20 +86,9 @@ const byPair = new FailCounter(LOGIN_PAIR_MAX_FAILS);
 const byName = new FailCounter(LOGIN_NAME_MAX_FAILS);
 const byIp = new FailCounter(LOGIN_IP_MAX_FAILS);
 
-/**
- * Khóa của tên cho rate limit: chuẩn hóa NFKC rồi mới đổi chữ thường, để các cách viết khác nhau của cùng một tên
- * (chữ full-width "Ｔａｍ", chữ dựng sẵn/tổ hợp…) dồn chung một bộ đếm, không lách được giới hạn.
- * Thêm hai chỗ JS toLowerCase khác lower() của Postgres: "İ" -> "i" + dấu chấm tổ hợp, "Σ" cuối từ -> "ς".
- * Đếm theo tên dù tài khoản có tồn tại hay không, nên thông báo lỗi không lộ điều đó.
- */
-export const nameKey = (name: string) =>
-  name.normalize("NFKC").trim().toLowerCase().replace(/i\u0307/g, "i").replace(/ς/g, "σ");
-/**
- * Tên đã ở dạng chuẩn (chuẩn hóa không đổi gì ngoài hoa/thường). db.ts không chuẩn hóa NFKC nên "Ｔａｍ" và "Tam"
- * là HAI tài khoản khác nhau nhưng chung một khóa rate limit. Chỉ cho đăng nhập đúng xóa bộ đếm khi tên ở dạng chuẩn,
- * nếu không kẻ dò sẽ tự tạo tài khoản "Ｔａｍ" rồi đăng nhập vào đó để "rửa" bộ đếm của "Tam".
- */
-const canonical = (name: string) => nameKey(name) === name.trim().toLowerCase();
+// Khóa của tên: nameKey (names.ts), đúng hàm db.ts dùng để tìm tài khoản. Các cách viết khác nhau của cùng một tên
+// ("Ｔａｍ", "TAM", "tam") vừa là cùng một tài khoản vừa dùng chung bộ đếm, không lách được giới hạn.
+// Đếm theo tên dù tài khoản có tồn tại hay không, nên thông báo lỗi không lộ điều đó.
 // Tên chỉ gồm chữ, số, dấu cách, _ (kiểm tra ở index.ts) nên không thể chứa \u0000: ghép khóa cặp không bị trùng.
 const pairKey = (k: string, ip: string) => `${k}\u0000${ip}`;
 
@@ -122,14 +113,14 @@ export function loginBegin(name: string, ip: string, now = Date.now()): { error:
 /**
  * Gọi sau khi kiểm tra mật khẩu. ok=null nghĩa là lỗi hệ thống (không tính là sai).
  * Sai -> trả thông báo lỗi chung, không cho biết tài khoản có tồn tại hay không.
- * Đúng -> xóa bộ đếm của cặp (tên, IP) và của tên (đã chứng minh biết mật khẩu), chỉ khi tên ở dạng chuẩn;
+ * Đúng -> xóa bộ đếm của cặp (tên, IP) và của tên (đã chứng minh biết mật khẩu của đúng tài khoản ứng với khóa tên);
  * bộ đếm IP giữ nguyên để kẻ dò không "rửa" bằng tài khoản của chính mình.
  */
 export function loginEnd(name: string, ip: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
   const k = nameKey(name), pk = pairKey(k, ip);
   byPair.end(pk); byName.end(k); byIp.end(ip);
   if (ok === null) return null;
-  if (ok) { if (canonical(name)) { byPair.reset(pk); byName.reset(k); } return null; }
+  if (ok) { byPair.reset(pk); byName.reset(k); return null; }
   const left = Math.min(byPair.fail(pk, now), byName.fail(k, now), byIp.fail(ip, now));
   const sec = lockedSec(k, ip, now);
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };
