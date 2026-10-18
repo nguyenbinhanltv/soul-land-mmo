@@ -2,7 +2,7 @@ import "./style.css";
 import Phaser from "phaser";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
-import { TIERS, VOHON, HE, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS,
+import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS,
   type He, type Looks } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
@@ -47,6 +47,7 @@ function loginScreen(err = "") {
 
 /** Màn kế tiếp theo trạng thái tài khoản: tạo nhân vật → lễ thức tỉnh → màn chào. */
 function route(me: Me) {
+  mapId = me.mapId;
   if (!me.looks.chosen) createScreen(me);
   else if (me.character) welcomeScreen(me.character);
   else awakenIntro();
@@ -159,7 +160,7 @@ async function awaken(vohon: string) {
       <div class="vh"><h2>${v.name}</h2><div class="k">${v.rarity} · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}</div>
       <div class="t">${v.trait}<br>Kèm theo võ hồn <b style="color:${gift.col}">${gift.name}</b>.
       <br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === 10 ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
-      <div class="btns"><button class="btn primary" id="go">Bước vào rừng</button></div>`;
+      <div class="btns"><button class="btn primary" id="go">Tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}</button></div>`;
     document.getElementById("go")!.onclick = () => join();
     document.getElementById("go")!.focus();
   } catch (e) {
@@ -175,8 +176,8 @@ function welcomeScreen(c: Character) {
   card.classList.remove("wide");
   card.innerHTML = `<div class="vh" style="color:${v.col}"><div class="orb"></div></div>
     <div class="vh"><h2>${esc(c.name)}</h2><div class="k">${v.name} ra trận – cấp ${c.level}, ${c.rings.length} hồn hoàn</div>
-    <div class="t"><small>Trong rừng, nhấn V hoặc nút “Đội hình” để xếp đội 4 võ hồn; nhấn 1–4 để đổi võ hồn ngay khi đang đánh.</small></div></div>
-    <div class="btns"><button class="btn primary" id="go">Vào rừng</button><button class="btn" id="out">Đổi tài khoản</button></div>`;
+    <div class="t"><small>Trong game, nhấn V hoặc nút “Đội hình” để xếp đội 4 võ hồn; nhấn 1–4 để đổi võ hồn ngay khi đang đánh.</small></div></div>
+    <div class="btns"><button class="btn primary" id="go">Vào ${esc(MAPS[mapId]?.name ?? "game")}</button><button class="btn" id="out">Đổi tài khoản</button></div>`;
   document.getElementById("go")!.onclick = () => join();
   document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
   document.getElementById("go")!.focus();
@@ -196,30 +197,52 @@ function waitMapId(room: Room, ms = 8000) {
 }
 
 let game: Phaser.Game | null = null;
-async function join() {
-  card.innerHTML = `<h1>Đang vào rừng…</h1>`;
+/** Bản đồ đang đứng do server lưu (/api/login, /api/me trả `mapId`); client chỉ chuyển nó để Colyseus ghép đúng phòng. */
+let mapId = "";
+async function join(retry = true) {
+  overlay.hidden = false; card.classList.remove("wide");
+  card.innerHTML = `<h1>Đang tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}…</h1>`;
   try {
     const client = new Client(WS);
-    // Server chọn bản đồ (đến BĐ2 là bản đồ mặc định); client đọc mapId từ state của phòng để tải đúng file Tiled.
-    const room = await client.joinOrCreate("map", { token });
-    const mapId = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
-    overlay.hidden = true;
-    room.onLeave((code) => {
-      document.body.classList.remove("playing"); overlay.hidden = false;
-      const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
-      card.innerHTML = `<h1>Đã rời rừng</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
-    });
-    game = new Phaser.Game({
-      type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true,
-      scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
-    });
-    game.scene.add("game", GameScene, true, { room, mapId });
+    const room = await client.joinOrCreate("map", { token, mapId });
+    const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
+    play(room, roomMap);
   } catch (e) {
     const m = (e as Error).message ?? "";
+    // Bản đồ trong DB khác bản đồ vừa xin vào (vd vừa đi cổng ở tab khác): hỏi lại /api/me rồi vào đúng phòng một lần.
+    if (retry && /Sai bản đồ/.test(m)) {
+      const me = await post<Me>("/api/me", { token }).catch(() => null);
+      if (me) { mapId = me.mapId; return join(false); }
+    }
     // Chưa tạo nhân vật hoặc chưa thức tỉnh (ví dụ tab khác vừa đổi): hỏi lại server để mở đúng màn.
     if (/Chưa tạo nhân vật|Chưa thức tỉnh/.test(m)) resume(m);
     else if (/401|403|không hợp lệ/.test(m)) loginScreen(m); else loginScreen(`Không vào được phòng: ${m}`);
   }
+}
+
+/** Mở Phaser cho phòng vừa vào. Server cho đi cổng (`travel {mapId}`) thì rời phòng cũ, hủy scene và vào phòng của bản đồ đích. */
+function play(room: Room, roomMap: string) {
+  overlay.hidden = true;
+  let travelling = false;
+  room.onLeave((code) => {
+    if (travelling) return;
+    document.body.classList.remove("playing"); overlay.hidden = false;
+    const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
+    card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
+  });
+  const onTravel = async (to: string) => {
+    if (travelling) return;
+    travelling = true; mapId = to;
+    await room.leave().catch(() => {});
+    game?.destroy(true); game = null;
+    document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
+    join();
+  };
+  game = new Phaser.Game({
+    type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true,
+    scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
+  });
+  game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel });
 }
 
 // Có phiên cũ -> thử tải nhân vật luôn.

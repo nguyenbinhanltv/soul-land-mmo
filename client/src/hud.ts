@@ -1,6 +1,6 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, SKILLS, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD } from "../../shared/data.ts";
-import type { OwnedVohons, Squad } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -192,4 +192,17 @@ export function renderRoster(data: OwnedVohons, setTeam: (team: number[]) => voi
 }
 
 export function showTarget(html: string | null) { const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }
+/** Hộp đi cổng (mục 5.3): tên bản đồ đích, cấp đề xuất, cảnh báo đỏ khi võ hồn ra trận dưới cấp; nút (hoặc phím F) để đi. */
+export function showPortal(info: PortalInfo | null, go: () => void) {
+  const el = $("#portal");
+  if (!info?.name) { el.hidden = true; el.innerHTML = ""; return; }
+  const lv = info.level ? ` (đề xuất cấp ${info.level[0]}–${info.level[1]})` : "";
+  el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp đề xuất!</span>` : ""}
+    <button type="button" class="${info.warn ? "danger" : ""}">${info.warn ? "Vẫn đi" : "Đi"}<kbd>F</kbd></button>`;
+  el.querySelector("div")!.textContent = `Đi tới ${info.toName ?? info.to}${lv}`;
+  el.querySelector("small")!.textContent = info.name;
+  const b = el.querySelector("button")!;
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); go(); });
+  el.hidden = false;
+}
 export function showPrompt(html: string | null) { const t = $("#prompt"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }

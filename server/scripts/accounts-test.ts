@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { MemoryStore, PgStore, type Store } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
+import { DEFAULT_MAP } from "../../shared/data.ts";
 
 async function test(title: string, fn: () => Promise<void>) { await fn(); console.log(`✓ ${title}`); }
 const ok = (r: Awaited<ReturnType<Store["login"]>>) => { assert.ok(!("error" in r), JSON.stringify(r)); return r.accountId; };
@@ -29,6 +30,32 @@ async function common(label: string, s: Store, u = "") {
   await test(`${label}: dấu dựng sẵn và dấu tổ hợp là cùng một tài khoản`, async () => {
     const id = ok(await s.login(cleanName(`Đường Tam${u}`), "matkhau2"));
     assert.equal(ok(await s.login(cleanName(`ĐƯỜNG TAM${u}`.normalize("NFD")), "matkhau2")), id);
+  });
+  await test(`${label}: bản đồ đang đứng, lớp chặn WHERE map_id và transaction đi cổng (BĐ2)`, async () => {
+    const id = ok(await s.login(cleanName(`Cổng${u}`), "matkhau5"));
+    const ch = (await s.awaken(id, `Cổng${u}`, ["lam_ngan_thao", "bich_lan_xa_hoang"], "bich_lan_xa_hoang", 3))!;
+    const other = ok(await s.login(cleanName(`Khác${u}`), "matkhau5"));
+    const och = (await s.awaken(other, `Khác${u}`, ["lam_ngan_thao", "ta_hoa_phuong_hoang"], "ta_hoa_phuong_hoang", 3))!;
+    const level = async () => (await s.listVohons(id)).find((v) => v.rowId === ch.rowId)!.level;
+    // Chưa lưu: bản đồ khởi đầu, vào ở spawn.
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: null, y: null });
+    assert.equal(await s.saveLocation(id, "tinh_dau", 1, 2), false);         // phòng khác bản đồ không ghi được
+    assert.equal(await s.saveLocation(id, DEFAULT_MAP, 10, 20), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 20 });
+    // Transaction lỗi thì không ghi gì: sai bản đồ đi, hoặc võ hồn không thuộc tài khoản.
+    const bench = (await s.listVohons(id)).find((v) => v.rowId !== ch.rowId)!;
+    await assert.rejects(s.saveTravel(id, [{ ...ch, level: 9 }], "tinh_dau", "nac_dinh_thanh", 88, 328));
+    await assert.rejects(s.saveTravel(id, [{ ...ch, level: 9 }, { ...och, accountId: id, level: 9 }], DEFAULT_MAP, "nac_dinh_thanh", 88, 328));
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 20 });
+    assert.equal(await level(), 3);
+    assert.equal((await s.listVohons(other))[1].level, 3);
+    // Thành công: võ hồn và bản đồ đổi cùng lúc; phòng cũ không còn ghi đè vị trí.
+    await s.saveTravel(id, [{ ...ch, level: 7 }, { ...bench, xp: 5 }], DEFAULT_MAP, "nac_dinh_thanh", 88, 328);
+    assert.deepEqual(await s.getLocation(id), { mapId: "nac_dinh_thanh", x: 88, y: 328 });
+    assert.equal(await level(), 7);
+    assert.equal((await s.listVohons(id)).find((v) => v.rowId === bench.rowId)!.xp, 5);
+    assert.equal(await s.saveLocation(id, DEFAULT_MAP, 1, 1), false);
+    assert.deepEqual(await s.getLocation(id), { mapId: "nac_dinh_thanh", x: 88, y: 328 });
   });
 }
 
@@ -63,6 +90,14 @@ else {
     await s.pool.query("UPDATE accounts SET name=$2 WHERE id=$1", [dup, `Vinh2${u}`]);
     await s.backfillNameKeys();
     assert.equal((await s.pool.query("SELECT name_key FROM accounts WHERE id=$1", [dup])).rows[0].name_key, nameKey(`Vinh2${u}`));
+  });
+
+  await test("PgStore: map_id không còn trong MAPS -> về bản đồ khởi đầu, vị trí bỏ, lưu được ở bản đồ đó", async () => {
+    const id = ok(await s.login(cleanName(`Lạc${u}`), "matkhau6"));
+    await s.pool.query("UPDATE accounts SET map_id='ban_do_da_bo', pos_x=5, pos_y=6 WHERE id=$1", [id]);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: null, y: null });
+    assert.equal(await s.saveLocation(id, DEFAULT_MAP, 30, 40), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 30, y: 40 });
   });
 
   await test("PgStore: nhiều yêu cầu tạo cùng một tên cùng lúc -> chỉ một tài khoản", async () => {

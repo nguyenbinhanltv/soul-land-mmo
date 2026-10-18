@@ -8,6 +8,8 @@ import { MapRoom, awakenAccount, chooseLooks } from "./rooms/MapRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
+import { loadMap } from "./map.ts";
+import { MAPS } from "../../shared/data.ts";
 
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
@@ -40,16 +42,17 @@ app.post("/api/login", async (req, res) => {
     if (fail?.retryAfter) res.setHeader("Retry-After", String(fail.retryAfter));
     res.status(fail?.retryAfter ? 429 : 401).json({ error: fail?.error ?? "Tên đăng nhập hoặc mật khẩu không đúng." }); return;
   }
-  const [character, looks] = await Promise.all([store.getCharacter(r.accountId), store.getLooks(r.accountId)]);
-  res.json({ token: r.token, character, looks });
+  const [character, looks, loc] = await Promise.all([store.getCharacter(r.accountId), store.getLooks(r.accountId), store.getLocation(r.accountId)]);
+  res.json({ token: r.token, character, looks, mapId: loc.mapId });
 });
 
-// Lấy nhân vật của phiên hiện tại: võ hồn ra trận (null = chưa thức tỉnh) và ngoại hình (looks.chosen = đã tạo nhân vật).
+// Lấy nhân vật của phiên hiện tại: võ hồn ra trận (null = chưa thức tỉnh), ngoại hình (looks.chosen = đã tạo nhân vật)
+// và bản đồ đang đứng (mapId, từ BĐ2): client truyền mapId này khi vào phòng để Colyseus ghép đúng bản đồ.
 app.post("/api/me", async (req, res) => {
   const acc = await store.accountFromToken(String(req.body?.token ?? ""));
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
-  const [character, looks] = await Promise.all([store.getCharacter(acc.accountId), store.getLooks(acc.accountId)]);
-  res.json({ character, looks });
+  const [character, looks, loc] = await Promise.all([store.getCharacter(acc.accountId), store.getLooks(acc.accountId), store.getLocation(acc.accountId)]);
+  res.json({ character, looks, mapId: loc.mapId });
 });
 
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần): luật kiểm tra nằm trong MapRoom.ts.
@@ -79,6 +82,8 @@ const gameServer = new Server({ transport: new WebSocketTransport({ server }) })
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
 
+// Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
+for (const id of Object.keys(MAPS)) loadMap(id);
 await store.init();
 await gameServer.listen(PORT);
 console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT}`);

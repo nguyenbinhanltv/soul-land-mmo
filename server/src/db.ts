@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, type Looks } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, DEFAULT_MAP, type Looks } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -18,6 +18,19 @@ export interface Character {
 
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; }
+
+/** Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí (vào ở `spawn`). */
+export interface Location { mapId: string; x: number | null; y: number | null; }
+/**
+ * Ánh xạ `accounts.map_id` sang bản đồ đang có: chưa lưu (null) hoặc mã không còn trong MAPS thì về DEFAULT_MAP (mục 5.3, 6).
+ * PgStore dùng cùng luật này trong SQL (`mapExpr`) cho lớp chặn `WHERE map_id`.
+ */
+export const resolveMap = (raw: string | null | undefined) => (raw && Object.hasOwn(MAPS, raw) ? raw : DEFAULT_MAP);
+const toLocation = (raw: string | null | undefined, x: unknown, y: unknown): Location => {
+  const mapId = resolveMap(raw);
+  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới.
+  return mapId === raw && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
+};
 
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
@@ -48,6 +61,19 @@ export interface Store {
   getLooks(accountId: number): Promise<AccountLooks>;
   /** Lưu ngoại hình lần đầu (đã kiểm tra bằng parseLooks). false nếu tài khoản đã chọn rồi. */
   chooseLooks(accountId: number, looks: Looks): Promise<boolean>;
+  /** Bản đồ đang đứng và vị trí (đã ánh xạ bằng resolveMap). */
+  getLocation(accountId: number): Promise<Location>;
+  /**
+   * Lưu vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng). Chỉ ghi khi bản đồ đang lưu (đã ánh xạ) vẫn là
+   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi.
+   */
+  saveLocation(accountId: number, mapId: string, x: number, y: number): Promise<boolean>;
+  /**
+   * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
+   * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
+   * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
+   */
+  saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number): Promise<void>;
 }
 
 function hashPass(pw: string) {
@@ -74,6 +100,7 @@ export class MemoryStore implements Store {
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
+  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null }>(); // accountId -> accounts.map_id, pos_x, pos_y
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -132,6 +159,22 @@ export class MemoryStore implements Store {
   async chooseLooks(accountId: number, looks: Looks) {
     if (this.looks.has(accountId)) return false;
     this.looks.set(accountId, { ...looks }); return true;
+  }
+  async getLocation(accountId: number) {
+    const l = this.locs.get(accountId);
+    return toLocation(l?.mapId, l?.x, l?.y);
+  }
+  async saveLocation(accountId: number, mapId: string, x: number, y: number) {
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
+    this.locs.set(accountId, { mapId, x, y }); return true;
+  }
+  async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number) {
+    // Kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ (không có await xen giữa): ghi hết hoặc không ghi gì.
+    for (const c of chars)
+      if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== from) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
+    for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
+    this.locs.set(accountId, { mapId: to, x, y });
   }
 }
 
@@ -304,6 +347,38 @@ export class PgStore implements Store {
     // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
     const l = x ? parseLooks({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col }) : null;
     return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
+  }
+  /** Biểu thức SQL của resolveMap(map_id): $known = mọi mã trong MAPS, $def = DEFAULT_MAP. */
+  mapExpr(known: string, def: string) { return `COALESCE(CASE WHEN map_id = ANY(${known}::text[]) THEN map_id END, ${def})`; }
+  async getLocation(accountId: number) {
+    const x = (await this.pool.query("SELECT map_id, pos_x, pos_y FROM accounts WHERE id=$1", [accountId])).rows[0];
+    return toLocation(x?.map_id, x?.pos_x, x?.pos_y);
+  }
+  async saveLocation(accountId: number, mapId: string, x: number, y: number) {
+    const r = await this.pool.query(
+      `UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4 WHERE id=$1 AND ${this.mapExpr("$5", "$6")} = $2`,
+      [accountId, mapId, x, y, Object.keys(MAPS), DEFAULT_MAP]);
+    return (r.rowCount ?? 0) > 0;
+  }
+  async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      for (const c of chars) {
+        const v = await db.query(
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+        if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+      }
+      const a = await db.query(
+        `UPDATE accounts SET map_id=$3, pos_x=$4, pos_y=$5 WHERE id=$1 AND ${this.mapExpr("$6", "$7")} = $2`,
+        [accountId, from, to, x, y, Object.keys(MAPS), DEFAULT_MAP]);
+      if (a.rowCount !== 1) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async chooseLooks(accountId: number, looks: Looks) {
     // Một lần duy nhất: điều kiện NOT looks_chosen làm hai yêu cầu cùng lúc chỉ một cái được ghi.

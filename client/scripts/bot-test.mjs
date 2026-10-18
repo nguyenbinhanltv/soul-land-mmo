@@ -1,5 +1,7 @@
 // Kiểm thử nhanh: 2 bot đăng nhập, tạo nhân vật, qua lễ thức tỉnh, vào phòng bản đồ, xếp đội hình, đổi võ hồn trong trận,
 // di chuyển, đánh hồn thú, thử hấp thụ, rồi vào lại để kiểm tra đội hình đã lưu.
+// Bot thứ ba (tài khoản mới mỗi lần chạy) đi cổng Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành,
+// thoát và vào lại để kiểm tra bản đồ và vị trí đã lưu (BĐ2).
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 // Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
@@ -29,6 +31,8 @@ async function bot(name,choice,looks){
   ok((await post("/api/looks",{token:l.token,...looks})).status===409,"tạo nhân vật lần hai -> 409");
   const me=await post("/api/me",{token:l.token});
   ok(me.looks?.chosen,"/api/me: đã tạo nhân vật");
+  ok(typeof me.mapId==="string"&&me.mapId===l.mapId,`/api/login và /api/me trả bản đồ đang đứng: ${me.mapId}`);
+  if(!l.character) ok(me.mapId==="thanh_hon_thon","tài khoản mới bắt đầu ở Thánh Hồn Thôn");
   if(!l.character){
     ok((await post("/api/awaken",{token:l.token})).status===400,"thiếu lựa chọn -> 400");
     ok((await post("/api/awaken",{token:l.token,vohon:"hao_thien_chuy"})).status===400,"chọn UR -> 400");
@@ -38,14 +42,16 @@ async function bot(name,choice,looks){
   }
   ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh lần hai -> 409");
   // Không gửi mapId: server chọn bản đồ mặc định và báo qua state.mapId.
-  const b={token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:!l.character};
+  const b={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:!l.character,mapId:me.mapId};
   await enter(b);
   return b;
 }
 /** Vào phòng bản đồ và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). */
 async function enter(b){
-  b.room=await new Client(WS).joinOrCreate("map",{token:b.token}); b.owned=null; b.ownedMsgs=0;
+  // Bản đồ đang đứng lấy từ /api/me (server lưu); client chỉ chuyển mapId để ghép phòng.
+  b.room=await new Client(WS).joinOrCreate("map",{token:b.token,mapId:b.mapId}); b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null;
   b.room.onMessage("log",m=>b.logs.push(m.text)); for(const t of ["chat","fx","dmg"]) b.room.onMessage(t,()=>{});
+  b.room.onMessage("portal",m=>{b.portal=m;}); b.room.onMessage("travel",m=>{b.travel=m;});
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
   b.room.onMessage("ko",m=>{b.ko=m;});
@@ -222,5 +228,69 @@ await enter(A); await waitFor(()=>A.owned);
 ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào lại: đội ${JSON.stringify(A.owned?.team)}, ra trận ${A.owned?.active}`);
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm từng võ hồn đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
+
+// ---------- BĐ2: cổng, chặn mềm, lưu bản đồ và vị trí ----------
+console.log("[cổng] tài khoản mới đi Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành");
+let C=await bot("Lữ "+Date.now().toString(36).slice(-6),"bich_lan_xa_hoang",{sex:0,hair:1,hairCol:2,outfitCol:3});
+const me=()=>C.room.state.players?.get(C.room.sessionId);
+let joinErr=""; try{ const r=await new Client(WS).joinOrCreate("map",{token:C.token,mapId:"nac_dinh_thanh"}); await r.leave(); }catch(e){ joinErr=String(e?.message??e); }
+ok(/Sai bản đồ/.test(joinErr),`vào bản đồ khác bản đồ đã lưu bị từ chối: ${joinErr}`);
+ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
+/** Đi theo vector (x,y) đến khi cond() đúng hoặc hết giờ, rồi dừng. */
+async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
+/** Đi tới cột x (pixel) theo phương ngang. */
+const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
+async function travelBy(name,to){
+  C.travel=null; C.room.send("travel",{portal:name});
+  ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`);
+  const x0=me().x; C.room.send("input",{x:1,y:0}); await sleep(300);
+  ok(me().x===x0,"đang chuyển bản đồ: server bỏ qua input");
+  await C.room.leave(); await sleep(300);
+  const m=await post("/api/me",{token:C.token});
+  ok(m.mapId===to,`/api/me sau khi đi cổng: ${m.mapId}`);
+  C.mapId=m.mapId; await enter(C); await waitFor(()=>me());
+  ok(C.room.state.mapId===to,`vào phòng ${C.room.state.mapId}`);
+}
+// Thánh Hồn Thôn: từ quảng trường làng (vùng an toàn) theo đường làng xuống cổng ở mép nam.
+C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong làng (vùng an toàn) không đánh được");
+C.room.send("travel",{portal:"Cổng không có"}); ok(await lastLog(C,/không tồn tại/),"cổng không tồn tại bị từ chối");
+C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); ok(await lastLog(C,/đứng trong cổng/),"không đứng trong cổng thì không đi được");
+await walkToX(36.5*16);
+ok(await walk(0,1,()=>C.portal?.name),`tới cổng: ${JSON.stringify(C.portal)}`);
+ok(C.portal?.to==="nac_dinh_thanh"&&C.portal.toName==="Nặc Đinh Thành"&&!C.portal.warn,"hộp cổng: đích Nặc Đinh Thành, không cảnh báo");
+C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); await sleep(200);
+await walk(0,-1,()=>!C.portal?.name,3000);
+ok(await lastLog(C,/rời cổng/),"rời cổng khi đang niệm: hủy");
+ok(!C.travel,"chưa được chuyển bản đồ");
+ok(await walk(0,1,()=>C.portal?.name),"quay lại cổng");
+await travelBy("Đi Nặc Đinh Thành","nac_dinh_thanh");
+ok(Math.hypot(me().x-5.5*16,me().y-20.5*16)<1,`xuất hiện ở điểm tu_thanh_hon_thon: ${me().x},${me().y}`);
+ok(!C.portal?.name,"điểm xuất hiện nằm ngoài cổng");
+ok(C.room.state.beasts.size===0,"Nặc Đinh Thành không có hồn thú");
+C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong thành không đánh được");
+// Nặc Đinh Thành: theo đại lộ sang cổng đông đi Tinh Đấu (chặn mềm: cảnh báo khi dưới cấp đề xuất nhưng vẫn đi được).
+ok(await walk(1,0,()=>C.portal?.name,15000),`tới cổng đông: ${JSON.stringify(C.portal)}`);
+const lvC=me().level;
+ok(C.portal?.to==="tinh_dau"&&JSON.stringify(C.portal.level)==="[10,60]"&&C.portal.warn===(lvC<10),`cấp đề xuất 10–60, cấp ${lvC} -> cảnh báo ${C.portal?.warn}`);
+await travelBy("Đi Tinh Đấu Đại Sâm Lâm","tinh_dau");
+ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Tinh Đấu: ${me().x},${me().y}`);
+// Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
+await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
+await C.room.leave(); await sleep(400);
+const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau",`thoát rồi /api/me: ${m2.mapId}`);
+C.mapId=m2.mapId; await enter(C); await waitFor(()=>me());
+ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
+// Đăng nhập lần nữa: phiên cũ bị đá (presence), phiên mới vào đúng bản đồ.
+let kicked=0; C.room.onLeave(code=>{kicked=code;});
+const l2=await post("/api/login",{name:C.name,password:"abcd"}); ok(l2.mapId==="tinh_dau","đăng nhập lại: /api/login trả tinh_dau");
+const C2={name:C.name,token:l2.token,logs:[],mapId:l2.mapId}; await enter(C2);
+ok(await waitFor(()=>kicked===4001),"phiên cũ bị đá khi tài khoản vào lại");
+C=C2;
+await waitFor(()=>me());
+// Đường về: cổng ở mép tây doanh trại -> Nặc Đinh Thành (cổng đông).
+ok(await walk(-1,0,()=>C.portal?.name,6000)&&C.portal.to==="nac_dinh_thanh",`tới cổng về Nặc Đinh Thành: ${C.portal?.name}`);
+await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh");
+ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
+await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);
