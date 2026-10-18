@@ -260,7 +260,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 - **Chibi pixel RPG** nhìn từ trên xuống, hơi nghiêng (kiểu RPG 16-bit). Đầu to bằng khoảng 2/5 chiều cao, mắt 1–2 pixel, tay chân ngắn.
 - **Ánh sáng từ trên bên trái.** Mỗi vùng màu dùng 3 sắc độ (tối, gốc, sáng); thêm sắc độ thứ 4 chỉ cho kim loại và hiệu ứng phát sáng.
 - **Viền tối có màu**, không dùng đen tuyền: viền ngoài `#1a1020`, viền trong cùng tông, tối hơn màu gốc. Không khử răng cưa (anti-alias) ở viền ngoài để sprite đọc rõ khi phóng to 2–6 lần.
-- **Bảng màu chung khoảng 48 màu**, lưu ở `art/palette.gpl` (bảng màu Aseprite). Ngoài bảng này chỉ được thêm màu chủ đạo của võ hồn, tức trường `col` và `robe` trong `VOHON` (`shared/data.ts`), và màu hồn hoàn trong `TIERS`.
+- **Bảng màu chung khoảng 48 màu**, lưu ở `art/palette.gpl` (bảng màu Aseprite). Ngoài bảng này chỉ được thêm màu chủ đạo của võ hồn, tức trường `col` và `robe` trong `VOHON` (`shared/data.ts`), cùng **tối đa 1 sắc tối và 1 sắc sáng suy ra từ mỗi màu đó** (để đủ 3 sắc độ), và màu hồn hoàn trong `TIERS`.
 - **Da:** 3 sắc độ quanh `#f1c7a0` (màu da sprite hiện tại). Một tông da cho bản đầu (thêm tông khác chờ chốt).
 - **Nền tối dần theo độ sâu của rừng** (lớp `vignette`), nên mọi màu tối của võ hồn và hồn thú phải có viền sáng hoặc hào quang để không chìm. Ví dụ hồn hoàn đen dùng `glow` tím `#8a6bff` làm viền.
 
@@ -285,6 +285,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 - **Phụ thể tách hai nửa (sau thân và trước thân) cho từng khung.** Người vẽ tự quyết pixel nào nằm sau, pixel nào nằm trước theo từng hướng: quay lưng (hướng lên) thì cánh nằm ở nửa trước, vũ khí nằm ở nửa sau. Nhờ vậy client không cần đổi thứ tự lớp theo hướng.
 - **Khung phụ thể 48×48**, là khung thân mở rộng 8 pixel mỗi phía, gốc tại (24, 38). Cánh, búa lớn và dây leo dưới đất được phép tràn ra ngoài khung 32×32.
 - **Hoán màu (palette swap):** tóc và áo vẽ bằng **dải 4 xám chuẩn** `#3a3a3a`, `#6a6a6a`, `#9a9a9a`, `#cacaca` (tối → sáng). Lúc tải, client tạo bản đã tô màu cho từng tổ hợp đang dùng bằng cách thay đúng 4 màu này bằng dải màu chọn. Không dùng `setTint` vì phép nhân màu làm mất sắc độ.
+  Key của texture đã hoán màu là **key gốc + `@` + chỉ số màu**: `hs_hair_f_2@3` là kiểu tóc nữ số 2 tô màu tóc số 3, `hs_outfit_m_0@5` là áo nam tô màu áo số 5. Chỉ tạo khi có người chơi đang dùng tổ hợp đó.
 
 **Tùy biến khi tạo nhân vật** (chờ chốt số lượng)
 
@@ -302,7 +303,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 
 **Animation của hồn sư**
 
-| Tên (tag Aseprite) | Số khung | Thời gian mỗi khung | Lặp | Ghi chú |
+| Animation | Số khung | Thời gian mỗi khung | Lặp | Ghi chú |
 |---|---|---|---|---|
 | `idle` (đứng) | 2 | 400 ms | Có | Thở: đầu và vai nhích 1 pixel |
 | `walk` (đi) | 4 | 120 ms | Có | Chân trái, đứng, chân phải, đứng |
@@ -315,8 +316,18 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 - **Bố cục spritesheet cố định, mọi lớp giống nhau**, 16 cột × 4 hàng = 512×128 (lớp phụ thể: 768×192 vì khung 48×48):
   - Hàng 0 hướng xuống, hàng 1 hướng phải, hàng 2 hướng lên. Trong mỗi hàng: cột 0–1 `idle`, 2–5 `walk`, 6–8 `attack`, 9–11 `cast`, 12 `hurt`, 13–15 `die`.
   - Hàng 3: cột 0–1 `absorb` (hướng xuống); các cột còn lại để trống, dành cho animation thêm về sau.
-- Lớp phụ thể **bắt buộc có** `idle`, `walk`, `attack`, `cast`; `hurt` dùng lại khung `idle` nếu chưa vẽ; `die` để trống.
-- Client chỉ chạy animation trên lớp thân; các lớp khác đặt cùng chỉ số khung với lớp thân mỗi lần khung đổi.
+- **Client tự tạo animation từ chỉ số khung cố định**, không dùng tag Aseprite: tải ảnh bằng `this.load.spritesheet(key, png, { frameWidth, frameHeight })`, rồi tạo animation bằng `this.anims.generateFrameNumbers(key, { start, end })` theo bố cục trên. Thời gian khung lấy từ bảng animation ở trên, ghi một lần thành hằng số trong client.
+  - Key animation có **tiền tố là key của sheet**: `{sheet}:{animation}_{hướng}`, ví dụ `hs_body_f:idle_down`, `hs_body_m:walk_right`, `hs_body_f:absorb_down`. Hướng là `down`, `right`, `up`; hướng trái dùng animation `_right` và lật ngang. Nhờ tiền tố, các sheet không va chạm nhau trong AnimationManager toàn cục của Phaser.
+  - Chỉ lớp thân có animation. Mỗi khi khung của lớp thân đổi, client tính (hàng, cột) của khung đó rồi đặt khung tương ứng cho áo, tóc và phụ thể.
+- **Lớp áo và tóc** vẽ đủ mọi khung như lớp thân, kể cả `hurt`, `die`, `absorb`.
+- **Lớp phụ thể chỉ vẽ** `idle`, `walk`, `attack`, `cast` (cột 0–11 của hàng 0–2). Cột 12–15 và hàng 3 để trống; client không đọc mà dùng **bảng ánh xạ khung cố định**:
+
+| Lớp thân đang ở | Khung phụ thể dùng | Ghi chú |
+|---|---|---|
+| `idle`, `walk`, `attack`, `cast` (cột 0–11) | Cùng hàng, cùng cột | |
+| `hurt` (cột 12) | Cùng hàng, cột 0 (`idle` khung đầu) | |
+| `die` (cột 13–15) | Không vẽ | Ẩn phụ thể |
+| `absorb` (hàng 3, cột 0–1) | Hàng 0, cột 0–1 (`idle` hướng xuống) | Mờ 60% |
 
 **Phụ thể của 20 võ hồn** (theo `VOHON`; màu chủ đạo là `col` / `robe` trong `data.ts`)
 
@@ -340,7 +351,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 | Quỷ Mị (`quy_mi`) | Hư ảnh quỷ mờ sau lưng, khói tím đen bao người | Lưng + bao quanh | Tím quỷ `#8a8aff`, `#22224a` | Bóng nhân đôi lệch 1–2 pixel; nhấp nháy khi tàng hình |
 | Thiên Càn Bạch Ngọc Đỉnh (`thien_can_bach_ngoc_dinh`) | Đỉnh ba chân bằng bạch ngọc lơ lửng trên lòng bàn tay | Tay (lơ lửng) | Ngọc ngà `#f0e0a0`, `#6a5a2a` | Khói ngọc trắng bốc từ miệng đỉnh; quầng sáng khi hồi máu |
 | Lam Ngân Thảo (`lam_ngan_thao`) | Dây cỏ lam ngân quấn hai tay, lan thành thảm dưới chân | Tay + dưới chân | Lam ngân `#4ab0ff`, `#1f4a6b` | Dây leo bò trên đất, đốm sáng xanh li ti |
-| Hạo Thiên Chùy (`hao_thien_chuy`) | Búa đen khổng lồ (đầu búa to gần bằng người) | Tay | Đen `#22222c`, ánh bạc `#9aa0b4` | Vân đen chạy trên búa; bụi và vết nứt đất khi nện |
+| Hạo Thiên Chùy (`hao_thien_chuy`) | Búa đen khổng lồ (đầu búa to gần bằng người) | Tay | Ánh bạc `#9aa0b4`, đen `#22222c` | Vân đen chạy trên búa; bụi và vết nứt đất khi nện |
 | Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | Tháp lưu ly 9 tầng nhỏ lơ lửng trên tay | Tay (lơ lửng) | Lưu ly `#7ef0ff`, `#2a6a7a` | Hào quang 7 màu xoay quanh tháp, chiếu tia sáng lên đồng đội |
 
 - Hiệu ứng lớn (kiếm trận, lãnh vực, sóng sét) vẽ bằng code hoặc sprite hiệu ứng riêng, **không** nhét vào lớp phụ thể.
@@ -367,7 +378,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 | 4 | 100.000 năm | 64×64 | khoảng 3,5 ô |
 | Tà hóa thú vương | (mục 5.4) | 96×96 | khoảng 5 ô |
 
-- Animation: `idle` 2 khung, `walk` 4, `attack` 3 (khung đầu là tư thế báo trước, giữ lâu để khớp vùng cảnh báo 0,8 giây ở mục 5.3), `hurt` 1, `die` 3. Spritesheet một hàng theo đúng thứ tự đó, 13 khung.
+- Animation: `idle` 2 khung, `walk` 4, `attack` 3 (khung đầu là tư thế báo trước, giữ lâu để khớp vùng cảnh báo 0,8 giây ở mục 5.3), `hurt` 1, `die` 3. Spritesheet một hàng theo đúng thứ tự đó, 13 khung. Key animation cũng có tiền tố sheet, ví dụ `beast_phong_lang:walk`.
 - Trạng thái hung hăng (`aggro`) không vẽ khung riêng: client thêm mắt đỏ hoặc dấu "!" bằng code.
 - Mỗi loài hồn thú trong mục 5.3 một bộ sprite. Trước khi có loài (bước 2.6), giữ key theo bậc `b{tier}_…`.
 
@@ -387,11 +398,11 @@ art/                         file nguồn, không tải trong game
   honsu/ vohon/ beast/ ui/   file .aseprite
 shared/assets/sprites/
   manifest.json              danh sách key đã có ảnh thật
-  honsu/body_m.png + .json   hs_body_m
-  honsu/hair_f_2.png + .json hs_hair_f_2
-  honsu/outfit_m_0.png + .json
-  vohon/{id}_b.png, {id}_f.png + {id}.json   vh_{id}_b, vh_{id}_f
-  beast/{loài}.png + .json   beast_{loài} (trước bước 2.6: b{tier})
+  honsu/body_m.png           hs_body_m
+  honsu/hair_f_2.png         hs_hair_f_2 (bản hoán màu: hs_hair_f_2@{màu})
+  honsu/outfit_m_0.png       hs_outfit_m_0 (bản hoán màu: hs_outfit_m_0@{màu})
+  vohon/{id}_b.png, {id}_f.png   vh_{id}_b, vh_{id}_f
+  beast/{loài}.png           beast_{loài} (trước bước 2.6: b{tier})
   ring/ring{tier}.png        ring{tier} (hồn hoàn rơi), halo{tier}
 shared/assets/ui/
   portrait/{id}.png          chân dung 64×64
@@ -407,9 +418,9 @@ shared/assets/ui/
 1. **Concept:** dùng AI tạo ảnh tham khảo theo bộ prompt chung (phong cách, góc nhìn, tỉ lệ chibi, nền trơn). Chọn 1 ảnh, ghi prompt và công cụ vào `art/CREDITS.md`. Ảnh concept không đưa vào game.
 2. **Hạ độ phân giải:** thu ảnh về khung 32×32 (hoặc 48×48 cho phụ thể) theo cách lấy điểm gần nhất, chỉ để làm nền tham khảo, mờ 30%, trên một lớp riêng trong Aseprite.
 3. **Vẽ lại bằng tay** trên lớp mới, chỉ dùng màu trong `art/palette.gpl`: bóng khối, viền, rồi sắc độ. Xóa lớp tham khảo trước khi xuất. **Không nộp ảnh AI thu nhỏ trực tiếp** (nhiễu màu, viền nhòe, không khớp khung).
-4. **Animation:** vẽ khung `idle` hướng xuống trước, rồi suy ra các hướng và animation khác. Tag Aseprite đặt đúng tên ở bảng animation, khung xếp theo bố cục cố định.
+4. **Animation:** vẽ khung `idle` hướng xuống trước, rồi suy ra các hướng và animation khác. Khung xếp đúng bố cục cố định. Có thể đặt tag Aseprite theo hướng (`idle_down`, `idle_right`, `idle_up`…) để xem trước trong Aseprite; client không đọc tag.
 5. **Lớp phụ thể:** mở file thân làm lớp tham khảo (khóa), vẽ phụ thể trên 2 lớp `back` và `front`, xuất thành 2 ảnh.
-6. **Xuất:** `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16 --data out.json --format json-array --list-tags`. Phụ thể xuất từng lớp bằng `--layer back` / `--layer front`. Client tải bằng `this.load.aseprite(key, png, json)` và tạo animation bằng `this.anims.createFromAseprite(key)`.
+6. **Xuất:** `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16`. Phụ thể xuất từng lớp bằng `--layer back` / `--layer front`. Chỉ cần ảnh PNG; client tải bằng `load.spritesheet` và tạo animation theo chỉ số khung (xem phần Animation của hồn sư).
 7. **Kiểm tra:** thêm key vào `manifest.json`, chạy game, xem đủ 3 hướng và mọi animation ở mức phóng 2× và 4×, rồi ghi nguồn vào `art/CREDITS.md`.
 
 **Nguồn và giấy phép**
