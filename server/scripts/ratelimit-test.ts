@@ -1,7 +1,7 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { loginBegin, loginEnd, nameKey, chatCheck, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { loginBegin, loginEnd, nameKey, ipKey, chatCheck, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
 
 let now = 1_000_000;
 const sec = (s: number) => { now += s * 1000; };
@@ -41,9 +41,10 @@ test("Mỗi lần khóa sau dài gấp đôi, tối đa 30 phút", () => {
 });
 
 test("Dò phân tán: tổng 30 lần sai một tên từ nhiều IP thì khóa tên ở mọi IP", () => {
-  for (let i = 0; i < 29; i++) attempt("Vinh Vinh", `10.0.${Math.floor(i / 4)}.${i % 4}`, false); // mỗi IP chỉ sai ≤ 4 lần
-  assert.equal(attempt("Vinh Vinh", "2.2.2.2", true), null, "chưa tới 30 thì chủ tài khoản vẫn vào được");
-  for (let i = 0; i < 29; i++) attempt("Vinh Vinh", `10.1.${Math.floor(i / 4)}.${i % 4}`, false);
+  for (let i = 0; i < 25; i++) attempt("Vinh Vinh", `10.0.${Math.floor(i / 4)}.${i % 4}`, false); // mỗi IP chỉ sai ≤ 4 lần
+  // Chưa tới 30 thì chủ tài khoản vẫn vào được, nhưng đăng nhập đúng KHÔNG xóa bộ đếm theo tên.
+  assert.equal(attempt("Vinh Vinh", "2.2.2.2", true), null);
+  for (let i = 0; i < 4; i++) attempt("Vinh Vinh", `10.1.0.${i}`, false);
   assert.match(attempt("Vinh Vinh", "10.9.9.9", false)!, /thử lại sau 1 phút/);
   assert.match(attempt("Vinh Vinh", "2.2.2.2", true)!, /thử lại sau 1 phút/);
   // Tên chưa có tài khoản cũng bị đếm và báo y hệt, nên không đoán được tài khoản có tồn tại hay không.
@@ -67,7 +68,7 @@ test("Đăng nhập đúng vào tài khoản trông giống (\"ＴＡＭ\") khô
   assert.match(attempt("Tam", "1.1.1.1", false)!, /thử lại sau 1 phút/);
 });
 
-test("Đăng nhập đúng xóa bộ đếm của (tên, IP) và của tên", () => {
+test("Đăng nhập đúng xóa bộ đếm của cặp (tên, IP)", () => {
   for (let i = 0; i < 4; i++) attempt("Đái Mộc Bạch", "1.1.1.1", false);
   assert.equal(attempt("Đái Mộc Bạch", "1.1.1.1", true), null);
   for (let i = 0; i < 4; i++) assert.doesNotMatch(attempt("Đái Mộc Bạch", "1.1.1.1", false)!, /quá nhiều/);
@@ -81,6 +82,18 @@ test("Một IP dò nhiều tên: sai 20 lần thì khóa IP, IP khác vẫn vào
   sec(61); attempt("Ninh Vinh Vinh", "6.6.6.6", true);
   for (let i = 0; i < 19; i++) attempt(`b${i}`, "6.6.6.6", false);
   assert.match(attempt("b99", "6.6.6.6", false)!, /thử lại sau 2 phút/);
+});
+
+test("IPv6 tính theo dải /64: đổi địa chỉ trong dải không lách được giới hạn", () => {
+  assert.equal(ipKey("2001:db8:1:2::1"), ipKey("2001:0db8:0001:0002:ffff:eeee:dddd:cccc"));
+  assert.notEqual(ipKey("2001:db8:1:2::1"), ipKey("2001:db8:1:3::1"));
+  assert.equal(ipKey("::1"), "0:0:0:0::/64");
+  assert.equal(ipKey("fe80::1%eth0"), ipKey("fe80::2"));
+  assert.equal(ipKey("::ffff:1.2.3.4"), "1.2.3.4");
+  assert.equal(ipKey("1.2.3.4"), "1.2.3.4");
+  for (let i = 0; i < 5; i++) attempt("Bạch Trầm Hương", `2001:db8:1:2::${i + 1}`, false);
+  assert.match(attempt("Bạch Trầm Hương", "2001:db8:1:2:abcd::9", true)!, /quá nhiều lần/);
+  assert.equal(attempt("Bạch Trầm Hương", "2001:db8:1:3::1", true), null);
 });
 
 test("Bắn nhiều request song song không vượt được giới hạn", () => {

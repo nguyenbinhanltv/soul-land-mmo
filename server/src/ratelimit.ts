@@ -1,4 +1,5 @@
 // Giới hạn tần suất (rate limit) chống dò mật khẩu và spam chat. Lưu trong RAM, mất khi tắt server.
+import { isIPv4, isIPv6 } from "node:net";
 // Đây là cấu hình bảo mật của server, không phải số cân bằng gameplay -> để hằng số ở đây, không đưa vào shared/data.ts.
 // Mọi hàm nhận `now` (ms) để kiểm thử với đồng hồ giả (xem server/scripts/ratelimit-test.ts).
 
@@ -9,7 +10,8 @@ const LOGIN_PAIR_MAX_FAILS = 5;
 /** Sai bao nhiêu lần với một tên (mọi IP cộng lại) thì khóa hẳn tên đó: chống dò phân tán qua nhiều IP.
  *  Cao hơn nhiều so với ngưỡng cặp để kẻ phá phải dùng nhiều IP mới khóa được tài khoản người khác. */
 const LOGIN_NAME_MAX_FAILS = 30;
-/** Sai bao nhiêu lần từ cùng một IP (mọi tên cộng lại) thì khóa tạm IP đó. Cao hơn ngưỡng cặp vì nhiều người có thể chung IP. */
+/** Sai bao nhiêu lần từ cùng một IP (mọi tên cộng lại) thì khóa tạm IP đó. Cao hơn ngưỡng cặp vì nhiều người có thể chung IP.
+ *  IPv6 tính theo cả dải /64 (xem ipKey), vì một người dùng thường được cấp nguyên dải đó. */
 const LOGIN_IP_MAX_FAILS = 20;
 /** Lần khóa đầu dài 1 phút, mỗi lần khóa tiếp theo gấp đôi (1, 2, 4, 8… phút)… */
 const LOGIN_LOCK_BASE_MS = 60_000;
@@ -94,10 +96,25 @@ export const nameKey = (name: string) =>
   name.normalize("NFKC").trim().toLowerCase().replace(/i\u0307/g, "i").replace(/ς/g, "σ");
 /**
  * Tên đã ở dạng chuẩn (chuẩn hóa không đổi gì ngoài hoa/thường). db.ts không chuẩn hóa NFKC nên "Ｔａｍ" và "Tam"
- * là HAI tài khoản khác nhau nhưng chung một khóa rate limit. Chỉ cho đăng nhập đúng xóa bộ đếm khi tên ở dạng chuẩn,
+ * là HAI tài khoản khác nhau nhưng chung một khóa rate limit. Chỉ cho đăng nhập đúng xóa bộ đếm cặp khi tên ở dạng chuẩn,
  * nếu không kẻ dò sẽ tự tạo tài khoản "Ｔａｍ" rồi đăng nhập vào đó để "rửa" bộ đếm của "Tam".
  */
 const canonical = (name: string) => nameKey(name) === name.trim().toLowerCase();
+
+/**
+ * Khóa của IP cho rate limit. IPv4 giữ nguyên (kể cả dạng "::ffff:1.2.3.4"). IPv6 lấy 64 bit đầu (dải /64):
+ * một máy thường có cả dải /64 nên đổi địa chỉ trong dải là không tốn gì, đếm từng địa chỉ thì lách được giới hạn.
+ */
+export function ipKey(ip: string) {
+  const v4 = ip.replace(/^::ffff:/i, "");
+  if (isIPv4(v4)) return v4;
+  const a = ip.replace(/%.*$/, "").toLowerCase(); // bỏ zone id "fe80::1%eth0"
+  if (!isIPv6(a)) return ip;
+  const [head, tail = ""] = a.split("::");
+  const h = head ? head.split(":") : [], t = a.includes("::") && tail ? tail.split(":") : [];
+  const full = a.includes("::") ? [...h, ...Array(8 - h.length - t.length).fill("0"), ...t] : h;
+  return full.slice(0, 4).map((x) => parseInt(x, 16).toString(16)).join(":") + "::/64";
+}
 // Tên chỉ gồm chữ, số, dấu cách, _ (kiểm tra ở index.ts) nên không thể chứa \u0000: ghép khóa cặp không bị trùng.
 const pairKey = (k: string, ip: string) => `${k}\u0000${ip}`;
 
@@ -110,8 +127,8 @@ const lockedSec = (k: string, ip: string, now: number) =>
  * Gọi TRƯỚC khi kiểm tra mật khẩu. Bị khóa -> trả lỗi, KHÔNG được kiểm tra mật khẩu.
  * Trả null -> được thử; sau đó BẮT BUỘC gọi loginEnd đúng một lần (kể cả khi lỗi, dùng try/finally).
  */
-export function loginBegin(name: string, ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
-  const k = nameKey(name), pk = pairKey(k, ip);
+export function loginBegin(name: string, rawIp: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const k = nameKey(name), ip = ipKey(rawIp), pk = pairKey(k, ip);
   const sec = lockedSec(k, ip, now);
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };
   if (byPair.busy(pk) || byName.busy(k) || byIp.busy(ip)) return { error: "Đang xử lý quá nhiều lần đăng nhập. Vui lòng thử lại sau vài giây.", retryAfter: 3 };
@@ -122,14 +139,16 @@ export function loginBegin(name: string, ip: string, now = Date.now()): { error:
 /**
  * Gọi sau khi kiểm tra mật khẩu. ok=null nghĩa là lỗi hệ thống (không tính là sai).
  * Sai -> trả thông báo lỗi chung, không cho biết tài khoản có tồn tại hay không.
- * Đúng -> xóa bộ đếm của cặp (tên, IP) và của tên (đã chứng minh biết mật khẩu), chỉ khi tên ở dạng chuẩn;
- * bộ đếm IP giữ nguyên để kẻ dò không "rửa" bằng tài khoản của chính mình.
+ * Đúng -> chỉ xóa bộ đếm của cặp (tên, IP), và chỉ khi tên ở dạng chuẩn (để người gõ nhầm vài lần không bị dồn khóa).
+ * Bộ đếm theo tên KHÔNG xóa, chỉ tự hết sau 1 giờ: tên gửi lên và tài khoản thật trong db.ts có thể lệch chuẩn hóa,
+ * nên không chắc lần đúng này là của chính tài khoản đang bị dò. Bộ đếm IP cũng giữ nguyên để kẻ dò không "rửa"
+ * bằng tài khoản của chính mình.
  */
-export function loginEnd(name: string, ip: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
-  const k = nameKey(name), pk = pairKey(k, ip);
+export function loginEnd(name: string, rawIp: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
+  const k = nameKey(name), ip = ipKey(rawIp), pk = pairKey(k, ip);
   byPair.end(pk); byName.end(k); byIp.end(ip);
   if (ok === null) return null;
-  if (ok) { if (canonical(name)) { byPair.reset(pk); byName.reset(k); } return null; }
+  if (ok) { if (canonical(name)) byPair.reset(pk); return null; }
   const left = Math.min(byPair.fail(pk, now), byName.fail(k, now), byIp.fail(ip, now));
   const sec = lockedSec(k, ip, now);
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };

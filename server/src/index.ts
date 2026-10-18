@@ -12,6 +12,7 @@ import { loginBegin, loginEnd } from "./ratelimit.ts";
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
 // Sau proxy của nền tảng deploy (Render, Railway, Fly.io…): đặt TRUST_PROXY=1 để lấy đúng IP người chơi cho rate limit.
+// Phải là SỐ proxy đứng trước server (thường là 1), không dùng "true": tin mọi X-Forwarded-For thì ai cũng giả được IP và lách giới hạn.
 if (process.env.TRUST_PROXY) app.set("trust proxy", /^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY);
 app.use(express.json({ limit: "10kb" }));
 app.use((req, res, next) => {
