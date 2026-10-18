@@ -1,0 +1,71 @@
+GIMP Palette
+Name: Rung San Hon
+Columns: 8
+#
+# Bảng màu chung của game (GAME_DESIGN.md mục 5.11), 48 màu.
+# Ngoài bảng này chỉ thêm: col/robe của VOHON (shared/data.ts) cùng tối đa 1 sắc tối và 1 sắc sáng
+# suy ra từ mỗi màu đó, và màu hồn hoàn (col/glow) của TIERS.
+#
+# Viền và tối
+ 26  16  32	Viền ngoài #1a1020
+ 43  36  48	Tối trung tính #2b2430
+# Dải xám hoán màu (tóc, áo)
+ 58  58  58	Xám chuẩn 1 tối #3a3a3a
+106 106 106	Xám chuẩn 2 #6a6a6a
+154 154 154	Xám chuẩn 3 #9a9a9a
+202 202 202	Xám chuẩn 4 sáng #cacaca
+# Trắng
+255 255 255	Trắng #ffffff
+# Da và mặt
+201 143 108	Da tối #c98f6c
+241 199 160	Da gốc #f1c7a0
+255 226 198	Da sáng #ffe2c6
+ 26  16  16	Mắt #1a1010
+224 138 122	Má, môi #e08a7a
+ 42  27  20	Tóc gốc nâu đen #2a1b14
+# Cỏ
+ 39  69  58	Cỏ tối nhất #27453a
+ 51  95  53	Cỏ tối #335f35
+ 70 126  56	Cỏ gốc #467e38
+ 90 148  64	Cỏ sáng #5a9440
+# Tán cây
+ 22  58  34	Tán tối #163a22
+ 30  74  42	Tán gốc #1e4a2a
+ 47 122  44	Tán sáng #2f7a2c
+# Đất và gỗ
+ 58  42  24	Gỗ tối #3a2a18
+ 90  59  34	Gỗ gốc #5a3b22
+149 125  87	Đất #957d57
+201 164 106	Đất sáng #c9a46a
+# Đá
+ 71  67  92	Đá tối #47435c
+ 90  86 114	Đá gốc #5a5672
+138 135 160	Đá sáng #8a87a0
+# Nước
+ 31  74 107	Nước tối #1f4a6b
+ 45 106 150	Nước gốc #2d6a96
+ 90 156 201	Nước sáng #5a9cc9
+# Lửa
+143  42  20	Lửa tối #8f2a14
+255 106  42	Lửa gốc #ff6a2a
+255 224 102	Lửa sáng #ffe066
+# Máu
+168  48  58	Máu #a8303a
+255  48  48	Mắt hung hăng #ff3030
+# Hoa
+255 210 230	Hoa hồng #ffd2e6
+255 242 122	Hoa vàng #fff27a
+# Phép tím
+ 43  26  64	Tím tối #2b1a40
+ 93  67 128	Tím gốc #5d4380
+138 107 255	Tím phát sáng #8a6bff
+# Kim loại vàng (4 sắc độ)
+106  74  18	Vàng kim 1 tối #6a4a12
+184 134  42	Vàng kim 2 #b8862a
+242 200  75	Vàng kim 3 #f2c84b
+255 242 176	Vàng kim 4 sáng #fff2b0
+# Kim loại bạc (4 sắc độ)
+ 60  79 112	Bạc 1 tối #3c4f70
+122 138 168	Bạc 2 #7a8aa8
+192 204 224	Bạc 3 #c0cce0
+244 248 255	Bạc 4 sáng #f4f8ff

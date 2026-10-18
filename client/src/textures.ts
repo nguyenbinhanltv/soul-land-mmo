@@ -1,5 +1,5 @@
-// Sprite pixel tạm thời được vẽ bằng code. Khi có sprite thật (Aseprite),
-// chỉ cần load ảnh với cùng key (p0_0, b2_1, ring3...) là thay được.
+// Sprite pixel tạm thời được vẽ bằng code. Ảnh thật được tải trước theo
+// shared/assets/sprites/manifest.json (sprites.ts); key nào đã có ảnh thì ở đây bỏ qua.
 import Phaser from "phaser";
 import { TIERS, VOHON } from "../../shared/data.ts";
 

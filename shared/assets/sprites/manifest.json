@@ -1,0 +1,4 @@
+{
+  "about": "Danh sách key đã có ảnh thật (GAME_DESIGN.md mục 5.11). Đường dẫn và khung suy ra từ key: hs_body_m -> honsu/body_m.png (32x32), vh_{id}_b -> vohon/{id}_b.png (48x48), b{tier} -> beast/b{tier}.png, ring{tier}/halo{tier} -> ring/. Hồn thú theo loài ghi kèm khung: { \"key\": \"beast_{loài}\", \"frame\": [48, 32] }. Key không có ở đây thì client vẽ bằng code.",
+  "sprites": []
+}
