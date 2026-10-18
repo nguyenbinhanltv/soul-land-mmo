@@ -175,7 +175,7 @@ function welcomeScreen(c: Character) {
   card.classList.remove("wide");
   card.innerHTML = `<div class="vh" style="color:${v.col}"><div class="orb"></div></div>
     <div class="vh"><h2>${esc(c.name)}</h2><div class="k">${v.name} ra trận – cấp ${c.level}, ${c.rings.length} hồn hoàn</div>
-    <div class="t"><small>Trong rừng, nhấn V hoặc nút “Võ hồn” để chọn võ hồn ra trận.</small></div></div>
+    <div class="t"><small>Trong rừng, nhấn V hoặc nút “Đội hình” để xếp đội 4 võ hồn; nhấn 1–4 để đổi võ hồn ngay khi đang đánh.</small></div></div>
     <div class="btns"><button class="btn primary" id="go">Vào rừng</button><button class="btn" id="out">Đổi tài khoản</button></div>`;
   document.getElementById("go")!.onclick = () => join();
   document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };

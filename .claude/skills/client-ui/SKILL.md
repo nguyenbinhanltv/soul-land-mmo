@@ -13,8 +13,9 @@ Client **chỉ hiển thị và gửi input**. Không tính máu, sát thương,
   - `preload()` tải file Tiled `shared/assets/<mapId>.json` theo `mapId` (vite phục vụ `shared/assets` làm thư mục public). Tên vùng lấy từ layer `zones` của file đó.
   - `update()` đọc `this.room.state` mỗi khung hình (`st.players`, `st.beasts`, `st.drops`) rồi nội suy sprite. Trường mới thêm ở `server/src/rooms/schema.ts` thì đọc ở đây.
   - `setupMessages()` nhận `log`, `chat`, `dmg`, `fx`; `fx(m)` vẽ hiệu ứng theo `m.k`. Message riêng mới từ server cũng đăng ký ở đây.
-  - `setupInput()` (bàn phím + joystick), `act()` gửi `attack` / `absorb` / `skill {i}`, `sendInput()` gửi `input {x,y}` chỉ khi hướng đổi.
-- `client/src/hud.ts`: HUD bằng HTML: `updateStats`, `buildSkills`, `log`, `banner`, `showTarget`, `showPrompt`, `ringColor`.
+  - `setupInput()` (bàn phím + joystick), `act()` gửi `attack` / `absorb` / `skill {i}` / `switch {slot}`, `sendInput()` gửi `input {x,y}` chỉ khi hướng đổi.
+  - `setupMessages()` nhận thêm tin riêng `vohons` (bộ sưu tập, đội hình, võ hồn ra trận) để vẽ bảng đội hình và thanh đội hình.
+- `client/src/hud.ts`: HUD bằng HTML: `updateStats`, `buildSkills` (phím `SKILL_KEYS`), `buildTeam` / `updateTeam` (thanh đội hình 4 ô, hồi chiêu đổi), `renderRoster` / `toggleRoster` (bảng xếp đội), `log`, `banner`, `showTarget`, `showPrompt`, `ringColor`.
 - `client/index.html` + `client/src/style.css`: khung HUD (`#hud`, `#skills`, `#chatbox`, `#joy`/`#knob`, `#overlay`). Kiểu riêng cho chạm dùng `body.touch ...`.
 - `client/src/textures.ts`: sprite pixel vẽ bằng code (`makeTextures`, `looksTextures`, `vohonTextures`); hình hồn sư và phụ thể vẽ trong `client/src/honsuArt.ts`, nền tảng sheet/animation/hoán màu ở `client/src/sprites.ts` (mục 5.11).
 
@@ -22,7 +23,7 @@ Client **chỉ hiển thị và gửi input**. Không tính máu, sát thương,
 1. **Gửi ý định, không gửi kết quả**: chỉ `this.room.send("<loại>", { ...tham số nhỏ })` như hướng đi, chỉ số ô kỹ năng, id món đồ. Server tự kiểm tra lại.
 2. **Hiển thị từ state/message của server**. Hiệu ứng chỉ để đẹp (tween, rung camera) thì được làm ở client, nhưng không được đổi trạng thái game.
 3. **Số liệu hiển thị** (màu niên hạn, tên võ hồn, giới hạn vòng) import từ `shared/data.ts` (ví dụ `TIERS`, `ringLimit`, `VOHON`). Không chép số sang client.
-4. **Ưu tiên máy tính**: chuột và phím là chính. Phím hiện có: WASD/mũi tên đi, J/Space đánh, 1–4 hồn kỹ, E hấp thụ, Enter chat. Phím mới không được trùng và phải bỏ qua khi đang gõ chat (xem cách `chat` focus xóa `this.keys`).
+4. **Ưu tiên máy tính**: chuột và phím là chính. Phím hiện có: WASD/mũi tên đi, J/Space đánh, U/I/O/P hồn kỹ 1–4, 1–4 đổi võ hồn trong đội, V bảng đội hình, E hấp thụ, Enter chat. Phím mới không được trùng và phải bỏ qua khi đang gõ chat (xem cách `chat` focus xóa `this.keys`).
 5. **Chạm cho mobile khi hợp lý**: nút dùng `pointerdown` + `e.preventDefault()` (như `buildSkills`), bố cục chạm qua `body.touch`. Tính năng chỉ cần trên máy tính thì ghi rõ trong mô tả việc.
 6. **Chữ trên giao diện bằng tiếng Việt** có dấu đầy đủ, font `"Be Vietnam Pro"` như các text hiện có. Dùng đúng tên gốc Đấu La (võ hồn, hồn thú, địa danh) theo `GAME_DESIGN.md`.
 7. Dữ liệu riêng của chính chủ (túi đồ, danh sách võ hồn) chỉ đến qua message riêng; không giả định đọc được túi đồ người khác.
