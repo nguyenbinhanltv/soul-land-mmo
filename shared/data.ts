@@ -111,6 +111,16 @@ const VOHON_INDEX = new Map(VOHON.map((v, i) => [v.id, i]));
 /** Chỉ số trong VOHON của một mã võ hồn (-1 nếu không có). */
 export const vohonIndex = (id: string) => VOHON_INDEX.get(id) ?? -1;
 
+// ---------- Lễ thức tỉnh và đổi võ hồn ----------
+/** Võ hồn tặng cho mọi tài khoản khi thức tỉnh. */
+export const AWAKEN_GIFT = "lam_ngan_thao";
+/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản. */
+export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR");
+/** Đổi võ hồn ra trận: phải rời giao chiến (không đánh, không bị đánh) ít nhất ngần này giây. */
+export const PICK_COMBAT_SECS = 5;
+/** Thời gian chờ giữa hai lần đổi võ hồn (giây). */
+export const PICK_CD = 2;
+
 export const SKILLS = [
   { name: "Hồn Bạo",    cost: 12, cd: 3,   desc: "Nổ hồn lực quanh thân" },
   { name: "Thiểm Kích", cost: 16, cd: 4.5, desc: "Lao về phía trước" },

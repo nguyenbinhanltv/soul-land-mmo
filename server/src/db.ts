@@ -1,10 +1,10 @@
-// Lưu trữ tài khoản và nhân vật.
+// Lưu trữ tài khoản và võ hồn sở hữu.
 // Có DATABASE_URL -> dùng PostgreSQL/Supabase. Không có -> lưu trong RAM (mất khi tắt server, chỉ để thử nhanh).
 import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
-/** Võ hồn đang ra trận của một tài khoản (một dòng bảng `vohons`). */
+/** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
   accountId: number; name: string;
   rowId: number;     // vohons.id
@@ -14,15 +14,23 @@ export interface Character {
   kills: number;
 }
 
+// Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
   init(): Promise<void>;
   login(name: string, password: string): Promise<{ token: string; accountId: number } | { error: string }>;
   accountFromToken(token: string): Promise<{ accountId: number; name: string } | null>;
-  /** Võ hồn đang ra trận (tạm thời: võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
+  /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
   getCharacter(accountId: number): Promise<Character | null>;
+  /** Mọi võ hồn tài khoản sở hữu, theo thứ tự nhận được. */
+  listVohons(accountId: number): Promise<Character[]>;
+  /** Thêm võ hồn mới. null nếu tài khoản đã có võ hồn này. */
+  addVohon(accountId: number, name: string, vohon: string, level: number): Promise<Character | null>;
+  /** Chọn võ hồn ra trận. false nếu dòng `rowId` không thuộc tài khoản. */
+  setActive(accountId: number, rowId: number): Promise<boolean>;
   saveCharacter(c: Character): Promise<void>;
-  /** Xóa mọi võ hồn của tài khoản và tạo võ hồn mới (thức tỉnh / thức tỉnh lại). */
-  awaken(accountId: number, name: string, vohon: string, level: number): Promise<Character>;
+  /** Thức tỉnh lần đầu: tạo các võ hồn khởi đầu và cho `active` ra trận.
+   *  null nếu tài khoản đã có võ hồn (thức tỉnh chỉ diễn ra một lần). */
+  awaken(accountId: number, name: string, starters: string[], active: string, level: number): Promise<Character | null>;
 }
 
 function hashPass(pw: string) {
@@ -35,12 +43,14 @@ function checkPass(pw: string, stored: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 const newToken = () => randomBytes(24).toString("base64url");
+const copy = (c: Character): Character => ({ ...c, rings: [...c.rings] });
 
 class MemoryStore implements Store {
   accounts = new Map<string, { id: number; pass: string }>();
   names = new Map<number, string>();
   sessions = new Map<string, number>();
-  chars = new Map<number, Character>();
+  rows = new Map<number, Character>();  // vohons.id -> võ hồn
+  active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -53,14 +63,33 @@ class MemoryStore implements Store {
   async accountFromToken(token: string) {
     const id = this.sessions.get(token); return id ? { accountId: id, name: this.names.get(id)! } : null;
   }
-  async getCharacter(id: number) { const c = this.chars.get(id); return c ? { ...c, rings: [...c.rings] } : null; }
-  async saveCharacter(c: Character) {
-    if (this.chars.get(c.accountId)?.rowId === c.rowId) this.chars.set(c.accountId, { ...c, rings: [...c.rings] });
+  owned(accountId: number) { return [...this.rows.values()].filter((c) => c.accountId === accountId).sort((a, b) => a.rowId - b.rowId); }
+  async getCharacter(accountId: number) {
+    const list = this.owned(accountId), c = list.find((x) => x.rowId === this.active.get(accountId)) ?? list[0];
+    return c ? copy(c) : null;
   }
-  async awaken(accountId: number, name: string, vohon: string, level: number) {
+  async listVohons(accountId: number) { return this.owned(accountId).map(copy); }
+  async addVohon(accountId: number, name: string, vohon: string, level: number) {
+    if (this.owned(accountId).some((c) => c.vohon === vohon)) return null;
     const c: Character = { accountId, name, rowId: this.rowSeq++, vohon, level, xp: 0, stars: 1, rings: [], kills: 0 };
-    this.chars.set(accountId, c);
-    return { ...c, rings: [] };
+    this.rows.set(c.rowId, c);
+    return copy(c);
+  }
+  async setActive(accountId: number, rowId: number) {
+    if (this.rows.get(rowId)?.accountId !== accountId) return false;
+    this.active.set(accountId, rowId); return true;
+  }
+  async saveCharacter(c: Character) {
+    const cur = this.rows.get(c.rowId);
+    if (cur?.accountId === c.accountId) this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon });
+  }
+  async awaken(accountId: number, name: string, starters: string[], active: string, level: number) {
+    if (this.owned(accountId).length) return null;
+    for (const v of starters) await this.addVohon(accountId, name, v, level);
+    const a = this.owned(accountId).find((c) => c.vohon === active);
+    if (!a) throw new Error(`Võ hồn ra trận ${active} không nằm trong danh sách khởi đầu.`);
+    this.active.set(accountId, a.rowId);
+    return copy(a);
   }
 }
 
@@ -106,28 +135,55 @@ class PgStore implements Store {
       "SELECT a.id, a.name FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token=$1 AND s.created_at > now() - interval '30 days'", [token]);
     return r.rowCount ? { accountId: Number(r.rows[0].id), name: r.rows[0].name as string } : null;
   }
+  row(x: any, accountId: number, name: string): Character {
+    return { accountId, name, rowId: Number(x.id), vohon: x.vohon, level: x.level, xp: x.xp, stars: x.stars,
+      rings: (x.rings ?? []).map(Number), kills: x.kills };
+  }
   async getCharacter(accountId: number) {
     const r = await this.pool.query(
       `SELECT v.*, a.name FROM vohons v JOIN accounts a ON a.id=v.account_id
-       WHERE v.account_id=$1 ORDER BY v.id LIMIT 1`, [accountId]);
-    if (!r.rowCount) return null;
-    const x = r.rows[0];
-    return { accountId, name: x.name, rowId: Number(x.id), vohon: x.vohon, level: x.level, xp: x.xp, stars: x.stars,
-      rings: (x.rings ?? []).map(Number), kills: x.kills };
+       WHERE v.account_id=$1 ORDER BY COALESCE(v.id = a.active_vohon, false) DESC, v.id LIMIT 1`, [accountId]);
+    return r.rowCount ? this.row(r.rows[0], accountId, r.rows[0].name) : null;
+  }
+  async listVohons(accountId: number) {
+    const r = await this.pool.query(
+      "SELECT v.*, a.name FROM vohons v JOIN accounts a ON a.id=v.account_id WHERE v.account_id=$1 ORDER BY v.id", [accountId]);
+    return r.rows.map((x) => this.row(x, accountId, x.name));
+  }
+  async addVohon(accountId: number, name: string, vohon: string, level: number, db: pg.Pool | pg.PoolClient = this.pool) {
+    const r = await db.query(
+      "INSERT INTO vohons(account_id, vohon, level) VALUES ($1,$2,$3) ON CONFLICT (account_id, vohon) DO NOTHING RETURNING *",
+      [accountId, vohon, level]);
+    return r.rowCount ? this.row(r.rows[0], accountId, name) : null;
+  }
+  async setActive(accountId: number, rowId: number) {
+    const r = await this.pool.query(
+      "UPDATE accounts SET active_vohon=$2 WHERE id=$1 AND EXISTS (SELECT 1 FROM vohons WHERE id=$2 AND account_id=$1)",
+      [accountId, rowId]);
+    return (r.rowCount ?? 0) > 0;
   }
   async saveCharacter(c: Character) {
     await this.pool.query(
-      "UPDATE vohons SET level=$2, xp=$3, stars=$4, rings=$5, kills=$6, updated_at=now() WHERE id=$1",
-      [c.rowId, c.level, c.xp, c.stars, c.rings, c.kills]);
+      "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
+      [c.rowId, c.accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
   }
-  async awaken(accountId: number, name: string, vohon: string, level: number) {
+  async awaken(accountId: number, name: string, starters: string[], active: string, level: number) {
     const db = await this.pool.connect();
     try {
       await db.query("BEGIN");
-      await db.query("DELETE FROM vohons WHERE account_id=$1", [accountId]);
-      const r = await db.query("INSERT INTO vohons(account_id, vohon, level) VALUES ($1,$2,$3) RETURNING id", [accountId, vohon, level]);
+      // Khóa dòng tài khoản: hai yêu cầu thức tỉnh cùng lúc không thể cùng tạo võ hồn.
+      await db.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+      const has = await db.query("SELECT 1 FROM vohons WHERE account_id=$1 LIMIT 1", [accountId]);
+      if (has.rowCount) { await db.query("ROLLBACK"); return null; }
+      let a: Character | null = null;
+      for (const v of starters) {
+        const c = await this.addVohon(accountId, name, v, level, db);
+        if (c && v === active) a = c;
+      }
+      if (!a) throw new Error(`Võ hồn ra trận ${active} không nằm trong danh sách khởi đầu.`);
+      await db.query("UPDATE accounts SET active_vohon=$2 WHERE id=$1", [accountId, a.rowId]);
       await db.query("COMMIT");
-      return { accountId, name, rowId: Number(r.rows[0].id), vohon, level, xp: 0, stars: 1, rings: [], kills: 0 };
+      return a;
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;

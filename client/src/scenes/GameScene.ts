@@ -3,6 +3,7 @@ import type { Room } from "colyseus.js";
 import { TIERS, ringLimit, TILE } from "../../../shared/data.ts";
 import { makeTextures, PLAYER_ORIGIN, BEAST_ORIGIN } from "../textures.ts";
 import * as hud from "../hud.ts";
+import type { OwnedVohons } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 interface PView { spr: Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; }
@@ -22,7 +23,7 @@ export class GameScene extends Phaser.Scene {
   joy = { x: 0, y: 0 };
   lastInput = "";
   lastZone = "";
-  ringsLen = -1;
+  skillsKey = "";
   hudT = 0;
   mini!: { ctx: CanvasRenderingContext2D; base: HTMLCanvasElement };
   mapW = 0; mapH = 0;
@@ -81,6 +82,8 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
+      if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
+      if (e.code === "Escape") { hud.toggleRoster(false); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
@@ -91,6 +94,7 @@ export class GameScene extends Phaser.Scene {
     addEventListener("keyup", (e) => { this.keys[e.code] = false; });
     addEventListener("blur", () => { this.keys = {}; });
     chat.addEventListener("focus", () => { this.keys = {}; });
+    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); });
 
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
     let jid: number | null = null;
@@ -132,6 +136,9 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: t, y: m.y - 16, alpha: 0, delay: 350, duration: 550, onComplete: () => t.destroy() });
     });
     this.room.onMessage("fx", (m: any) => this.fx(m));
+    // Danh sách võ hồn sở hữu: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
+    this.room.onMessage("vohons", (m: OwnedVohons) => hud.renderRoster(m, (rowId) => this.room.send("pick", { rowId })));
+    this.room.send("vohons");
   }
 
   ringFx(x: number, y: number, r0: number, r1: number, col: string, dur: number, delay = 0) {
@@ -281,7 +288,8 @@ export class GameScene extends Phaser.Scene {
 
   updateHud(me: any) {
     const st = this.room.state;
-    if (me.rings.length !== this.ringsLen) { this.ringsLen = me.rings.length; hud.buildSkills(me.vh, [...me.rings], (a) => this.act(a)); }
+    const skKey = `${me.vh}|${me.rings.length}`;
+    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], (a) => this.act(a)); }
     hud.updateStats(me);
     const inCamp = me.x >= this.campRect.x && me.x <= this.campRect.x + this.campRect.w && me.y >= this.campRect.y && me.y <= this.campRect.y + this.campRect.h;
     const zone = this.zones.find((z) => me.x >= z.x0 && me.x < z.x1);
