@@ -8,6 +8,9 @@ export const WS = API.replace(/^http/, "ws");
 /** Võ hồn đang ra trận. `vohon` là mã trong VOHON, `rings` là niên hạn (số năm) từng hồn hoàn. */
 export interface Character { accountId: number; name: string; rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; kills: number; }
 
+/** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu và võ hồn đang ra trận. */
+export interface OwnedVohons { active: number; list: { rowId: number; vohon: string; level: number; stars: number; rings: number[] }[]; }
+
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({ error: "Server trả về dữ liệu lỗi." }));

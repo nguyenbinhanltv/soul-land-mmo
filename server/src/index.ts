@@ -4,9 +4,8 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { ForestRoom } from "./rooms/ForestRoom.ts";
+import { ForestRoom, awakenAccount } from "./rooms/ForestRoom.ts";
 import { store } from "./db.ts";
-import { VOHON } from "../../shared/data.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 
 const PORT = Number(process.env.PORT ?? 2567);
@@ -49,17 +48,13 @@ app.post("/api/me", async (req, res) => {
   res.json({ character: await store.getCharacter(acc.accountId) });
 });
 
-// Thức tỉnh võ hồn: server tự roll để người chơi không gian lận được.
+// Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong ForestRoom.ts.
 app.post("/api/awaken", async (req, res) => {
   const acc = await store.accountFromToken(String(req.body?.token ?? ""));
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
-  const cur = await store.getCharacter(acc.accountId);
-  if (cur && !req.body?.reset) { res.json({ character: cur }); return; }
-  // Tạm thời (đến bước 2.2): ngẫu nhiên 1 võ hồn SSR. Hồn lực bẩm sinh 1–10 làm cấp khởi đầu.
-  const pool = VOHON.filter((v) => v.rarity === "SSR");
-  const vohon = pool[Math.floor(Math.random() * pool.length)].id;
-  const level = Math.random() < 0.04 ? 10 : 1 + Math.floor(Math.pow(Math.random(), 1.6) * 9);
-  res.json({ character: await store.awaken(acc.accountId, acc.name, vohon, level) });
+  const r = await awakenAccount(acc.accountId, acc.name, req.body?.vohon);
+  if ("error" in r) { res.status(r.status).json({ error: r.error }); return; }
+  res.json(r);
 });
 
 // Khi deploy: phục vụ luôn bản build của client -> chỉ cần một đường link.

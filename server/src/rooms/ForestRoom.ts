@@ -2,20 +2,25 @@
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError } from "colyseus";
 import { ForestState, PlayerState, BeastState, DropState } from "./schema.ts";
-import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex } from "../../../shared/data.ts";
+import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex,
+  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD } from "../../../shared/data.ts";
 import { hits, moveEnt, zones, spawn, inSpawn } from "../map.ts";
 import { store, Character } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
 
 interface PData {
   accountId: number;
-  ch: Character;        // dòng vohons đang ra trận (giữ id, mã, sao)
+  owned: Character[];   // mọi võ hồn sở hữu (chỉ gửi cho chính chủ)
+  ch: Character;        // võ hồn đang ra trận, là một phần tử của owned
   ringYears: number[];  // niên hạn thật của từng hồn hoàn; p.rings chỉ là bậc để hiển thị
   input: { x: number; y: number }; dir: { x: number; y: number };
   atk: number; speed: number; atkCd: number; inv: number; lastHit: number; deadT: number;
   absorbing: { dropId: string; t: number; dur: number; risk: number } | null;
   mpF: number; hpF: number;
+  fight: number;        // số giây kể từ lần cuối đánh trúng hoặc bị đánh
+  pickCd: number;       // chờ trước khi được đổi võ hồn tiếp
 }
+interface AuthData { accountId: number; ch: Character; owned: Character[]; }
 interface BData { zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number; }
 interface Proj { x: number; y: number; vx: number; vy: number; life: number; dmg: number; owner: string; col: string; }
 
@@ -34,9 +39,11 @@ export class ForestRoom extends Room<ForestState> {
   async onAuth(_client: Client, options: { token?: string }) {
     const acc = options?.token ? await store.accountFromToken(options.token) : null;
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
-    const ch = await store.getCharacter(acc.accountId);
+    const [ch, owned] = await Promise.all([store.getCharacter(acc.accountId), store.listVohons(acc.accountId)]);
     if (!ch) throw new ServerError(403, "Chưa thức tỉnh võ hồn.");
-    return ch;
+    const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned };
+    if (!owned.includes(auth.ch)) owned.push(auth.ch);
+    return auth;
   }
 
   onCreate() {
@@ -52,25 +59,27 @@ export class ForestRoom extends Room<ForestState> {
     this.onMessage("attack", (c) => this.attack(c.sessionId));
     this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
     this.onMessage("absorb", (c) => this.tryAbsorb(c));
+    this.onMessage("vohons", (c) => this.sendVohons(c));
+    this.onMessage("pick", (c, m: { rowId: number }) => { this.pick(c, Number(m?.rowId)).catch((e) => console.error("Đổi võ hồn thất bại", e)); });
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
-      const r = chatCheck((c.auth as Character)?.accountId ?? c.sessionId, m?.text);
+      const r = chatCheck((c.auth as AuthData)?.accountId ?? c.sessionId, m?.text);
       if (!r) return;
       if ("error" in r) return this.log(c.sessionId, r.error, "#ffb35c");
       this.broadcast("chat", { name: p.name, text: r.text });
     });
   }
 
-  onJoin(client: Client, _o: unknown, ch: Character) {
+  onJoin(client: Client, _o: unknown, auth: AuthData) {
+    const { ch, owned } = auth;
     // Một tài khoản chỉ được vào một lần: đá phiên cũ.
-    for (const other of this.clients) if (other !== client && (other.auth as Character)?.accountId === ch.accountId) other.leave(4001);
+    for (const other of this.clients) if (other !== client && (other.auth as AuthData)?.accountId === auth.accountId) other.leave(4001);
     const p = new PlayerState();
-    p.name = ch.name; p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
-    ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
+    p.name = ch.name; this.showVohon(p, ch);
     const pos = this.spawnPoint(); p.x = pos.x; p.y = pos.y;
-    const d: PData = { accountId: ch.accountId, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
-      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0 };
+    const d: PData = { accountId: auth.accountId, owned, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
+      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0, fight: 99, pickCd: 0 };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.recalc(client.sessionId, true);
@@ -110,9 +119,52 @@ export class ForestRoom extends Room<ForestState> {
     p.hp = Math.ceil(d.hpF); p.mp = Math.floor(d.mpF);
   }
 
-  async save(id: string) {
+  /** Hiện võ hồn `ch` lên trạng thái đồng bộ (người khác thấy võ hồn ra trận, cấp, hồn hoàn). */
+  showVohon(p: PlayerState, ch: Character) {
+    p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
+    p.rings.clear(); ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
+  }
+
+  /** Chép tiến độ đang chơi vào võ hồn ra trận (d.ch). */
+  syncCh(id: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    await store.saveCharacter({ ...d.ch, level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
+    Object.assign(d.ch, { level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
+  }
+
+  async save(id: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    this.syncCh(id);
+    await store.saveCharacter({ ...d.ch, rings: [...d.ch.rings] });
+  }
+
+  // ---------- Võ hồn sở hữu ----------
+  /** Danh sách võ hồn chỉ gửi riêng cho chính chủ, không nằm trong state đồng bộ. */
+  sendVohons(c: Client) {
+    const d = this.pdata.get(c.sessionId); if (!d) return;
+    this.syncCh(c.sessionId);
+    c.send("vohons", { active: d.ch.rowId, list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, stars: v.stars, rings: [...v.rings] })) });
+  }
+
+  /** Chọn võ hồn ra trận (đến bước 2.3: chỉ đổi khi ngoài giao chiến). */
+  async pick(c: Client, rowId: number) {
+    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
+    if (!p || !d || rowId === d.ch.rowId) return;
+    const next = d.owned.find((v) => v.rowId === rowId);
+    if (!next) return this.log(id, "Bạn không sở hữu võ hồn này.", "#ffb35c");
+    if (p.dead) return this.log(id, "Đã gục ngã, không thể đổi võ hồn.", "#ffb35c");
+    if (d.absorbing) return this.log(id, "Đang hấp thụ hồn hoàn, không thể đổi võ hồn.", "#ffb35c");
+    if (d.fight < PICK_COMBAT_SECS) return this.log(id, `Đang giao chiến: rời xa hồn thú ${PICK_COMBAT_SECS} giây rồi mới đổi võ hồn được.`, "#ffb35c");
+    if (d.pickCd > 0) return;
+    this.syncCh(id);
+    const prev = d.ch, hpR = d.hpF / Math.max(1, p.maxHp), mpR = d.mpF / Math.max(1, p.maxMp);
+    d.ch = next; d.ringYears = [...next.rings]; d.pickCd = PICK_CD;
+    this.showVohon(p, next);
+    // Giữ tỉ lệ sinh lực / hồn lực để đổi võ hồn không thành cách hồi đầy.
+    this.recalc(id, false); d.hpF = Math.max(1, hpR * p.maxHp); d.mpF = mpR * p.maxMp; this.recalc(id, false);
+    this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 34, col: VOHON[p.vh].col });
+    this.log(id, `${VOHON[p.vh].name} ra trận (cấp ${p.level}, ${p.rings.length} hồn hoàn).`, VOHON[p.vh].col);
+    this.sendVohons(c);
+    await Promise.all([store.saveCharacter({ ...prev, rings: [...prev.rings] }), store.setActive(d.accountId, next.rowId)]);
   }
 
   log(id: string, text: string, col?: string) { this.clients.getById(id)?.send("log", { text, col }); }
@@ -137,7 +189,7 @@ export class ForestRoom extends Room<ForestState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     if (d.inv > 0 || p.dead) return;
     dmg = Math.round(dmg * VOHON[p.vh].def);
-    d.hpF -= dmg; d.inv = 0.45; d.lastHit = 0;
+    d.hpF -= dmg; d.inv = 0.45; d.lastHit = 0; d.fight = 0;
     this.broadcast("dmg", { x: p.x, y: p.y - 18, v: -dmg, c: "#ff6b6b" });
     if (d.absorbing) { d.absorbing = null; p.absorb = 0; this.log(id, "Bị tấn công: quá trình hấp thụ bị gián đoạn!", "#ffb35c"); }
     if (d.hpF <= 0) {
@@ -201,6 +253,7 @@ export class ForestRoom extends Room<ForestState> {
     const crit = Math.random() < 0.12; if (crit) dmg *= 1.8;
     dmg = Math.max(1, Math.round(dmg));
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by;
+    const pd = this.pdata.get(by); if (pd) pd.fight = 0;
     const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1, kb = b.tier >= 3 ? 40 : 110;
     bd.kx = (dx / dd) * kb; bd.ky = (dy / dd) * kb;
     this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size, v: dmg, crit, c: crit ? "#ffe14d" : col, bid });
@@ -283,7 +336,7 @@ export class ForestRoom extends Room<ForestState> {
     // người chơi
     this.state.players.forEach((p, id) => {
       const d = this.pdata.get(id)!;
-      d.atkCd -= dt; d.inv -= dt; d.lastHit += dt;
+      d.atkCd -= dt; d.inv -= dt; d.lastHit += dt; d.fight += dt; d.pickCd -= dt;
       for (let i = 0; i < 4; i++) if (p.cds[i] > 0) p.cds[i] = Math.max(0, p.cds[i] - dt);
       if (p.dead) {
         d.deadT -= dt;
@@ -359,5 +412,18 @@ export class ForestRoom extends Room<ForestState> {
     this.saveT += dt;
     if (this.saveT > 30) { this.saveT = 0; this.state.players.forEach((_p, id) => this.save(id).catch(() => {})); }
   }
+}
+
+// ---------- Lễ thức tỉnh (gọi từ /api/awaken, trước khi vào phòng) ----------
+/** Tài khoản chưa có võ hồn: tặng Lam Ngân Thảo + 1 võ hồn SSR tự chọn. Hồn lực bẩm sinh do server roll. */
+export async function awakenAccount(accountId: number, name: string, choice: unknown):
+  Promise<{ character: Character } | { status: number; error: string }> {
+  const pick = AWAKEN_CHOICES.find((v) => v.id === choice);
+  if (!pick) return { status: 400, error: "Hãy chọn một võ hồn SSR trong danh sách." };
+  // Hồn lực bẩm sinh 1–10 thuộc về hồn sư: làm cấp khởi đầu của cả hai võ hồn.
+  const level = Math.random() < 0.04 ? 10 : 1 + Math.floor(Math.pow(Math.random(), 1.6) * 9);
+  const character = await store.awaken(accountId, name, [AWAKEN_GIFT, pick.id], pick.id, level);
+  if (!character) return { status: 409, error: "Tài khoản đã thức tỉnh võ hồn rồi." };
+  return { character };
 }
 

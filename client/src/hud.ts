@@ -1,5 +1,6 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
-import { TIERS, VOHON, SKILLS, ringLimit } from "../../shared/data.ts";
+import { TIERS, VOHON, SKILLS, HE, ringLimit, tierOfYears, vohonIndex } from "../../shared/data.ts";
+import type { OwnedVohons } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -62,6 +63,34 @@ export function updateStats(p: any) {
   });
   const ch = $("#channel");
   if (p.absorb > 0) { ch.style.display = "block"; $("#chFill").style.width = p.absorb * 100 + "%"; } else ch.style.display = "none";
+}
+
+// ---------- Võ hồn sở hữu (chọn võ hồn ra trận) ----------
+export function toggleRoster(open = $("#roster").hidden) {
+  $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
+}
+
+export function renderRoster(data: OwnedVohons, pick: (rowId: number) => void) {
+  const el = $("#roster"); el.innerHTML = "";
+  const head = document.createElement("div"); head.className = "rhead";
+  head.innerHTML = `<b>Võ hồn sở hữu (${data.list.length})</b><button class="x" aria-label="Đóng">×</button>`;
+  head.querySelector("button")!.addEventListener("click", () => toggleRoster(false));
+  el.appendChild(head);
+  for (const v of data.list) {
+    const def = VOHON[Math.max(0, vohonIndex(v.vohon))], on = v.rowId === data.active;
+    const b = document.createElement("button"); b.className = "rcard" + (on ? " on" : ""); b.disabled = on;
+    b.style.setProperty("--c", def.col);
+    b.innerHTML = `<i class="dot"></i><span><b></b><small></small></span><span class="rr"></span>`;
+    b.querySelector("b")!.textContent = def.name;
+    b.querySelector("small")!.textContent = `${def.rarity} · ${HE[def.he].name} · cấp ${v.level}` + (on ? " · đang ra trận" : "");
+    const rr = b.querySelector(".rr")!;
+    v.rings.forEach((y) => { const t = tierOfYears(y), r = document.createElement("i"); r.className = "ring"; r.style.color = ringColor(t); rr.appendChild(r); });
+    b.addEventListener("click", () => { b.blur(); pick(v.rowId); }); // bỏ focus: phím Space là đánh, không bấm lại nút
+    el.appendChild(b);
+  }
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = "Chỉ đổi được khi không giao chiến và không hấp thụ. Phím V để mở/đóng.";
+  el.appendChild(note);
 }
 
 export function showTarget(html: string | null) { const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }

@@ -1,20 +1,56 @@
-// Kiểm thử nhanh: 2 bot đăng nhập, di chuyển, đánh hồn thú, thử hấp thụ.
-// Chạy khi server đang bật: npm run bot --prefix client
+// Kiểm thử nhanh: 2 bot đăng nhập, qua lễ thức tỉnh, đổi võ hồn ra trận, di chuyển, đánh hồn thú, thử hấp thụ.
+// Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 import { Client } from "colyseus.js";
-const API="http://localhost:2567";
-const post=async(p,b)=>(await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)})).json();
+const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
+const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function bot(name){
+const waitFor=async(fn,ms=2000)=>{for(let t=0;t<ms;t+=50){if(fn()) return true; await sleep(50);} return false;};
+let fails=0; const ok=(cond,msg)=>{console.log(cond?"  ✓":"  ✗",msg); if(!cond) fails++;};
+
+// Lễ thức tỉnh: tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
+async function bot(name,choice){
   const l=await post("/api/login",{name,password:"abcd"});
-  const a=await post("/api/awaken",{token:l.token});
-  const room=await new Client("ws://localhost:2567").joinOrCreate("forest",{token:l.token});
-  const logs=[]; room.onMessage("log",m=>logs.push(m.text)); for(const t of ["chat","fx","dmg"]) room.onMessage(t,()=>{});
-  return {room,logs,ch:a.character};
+  console.log(`[${name}] ${l.character?"đã thức tỉnh từ trước":"tài khoản mới"}`);
+  if(!l.character){
+    ok((await post("/api/awaken",{token:l.token})).status===400,"thiếu lựa chọn -> 400");
+    ok((await post("/api/awaken",{token:l.token,vohon:"hao_thien_chuy"})).status===400,"chọn UR -> 400");
+    ok((await post("/api/awaken",{token:l.token,vohon:"lam_ngan_thao"})).status===400,"chọn Lam Ngân Thảo -> 400");
+    const a=await post("/api/awaken",{token:l.token,vohon:choice});
+    ok(a.status===200 && a.character?.vohon===choice,`thức tỉnh ${choice}, cấp ${a.character?.level}`);
+  }
+  ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh lần hai -> 409");
+  const room=await new Client(WS).joinOrCreate("forest",{token:l.token});
+  const b={room,logs:[],owned:null,ownedMsgs:0};
+  room.onMessage("log",m=>b.logs.push(m.text)); for(const t of ["chat","fx","dmg"]) room.onMessage(t,()=>{});
+  room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
+  room.send("vohons");
+  return b;
 }
-const A=await bot("Tester A"), B=await bot("Tester B");
+const A=await bot("Tester A","ta_hoa_phuong_hoang"), B=await bot("Tester B","bich_lan_xa_hoang");
 await sleep(800);
 const st=A.room.state, p=st.players.get(A.room.sessionId);
 console.log("players",st.players.size,"beasts",st.beasts.size,"lvl",p.level,"hp",p.hp,"/",p.maxHp);
+
+// Võ hồn sở hữu: chỉ chính chủ nhận danh sách.
+ok(await waitFor(()=>A.owned&&B.owned),"nhận danh sách võ hồn riêng");
+const vhs=A.owned?.list.map(v=>v.vohon)??[];
+console.log("  A sở hữu:",vhs.join(", "),"| ra trận:",A.owned?.active);
+ok(vhs.includes("lam_ngan_thao"),"A có Lam Ngân Thảo");
+ok(A.owned&&B.owned&&!A.owned.list.some(v=>B.owned.list.some(w=>w.rowId===v.rowId)),"danh sách A và B tách biệt");
+
+// Đổi võ hồn ra trận khi ngoài giao chiến.
+const other=A.owned?.list.find(v=>v.rowId!==A.owned.active);
+if(other){
+  const vh0=p.vh, n0=A.ownedMsgs, bView=()=>B.room.state.players.get(A.room.sessionId);
+  A.room.send("pick",{rowId:other.rowId});
+  ok(await waitFor(()=>A.ownedMsgs>n0&&A.owned.active===other.rowId),`đổi sang ${other.vohon}`);
+  ok(await waitFor(()=>p.vh!==vh0&&p.level===other.level),`state đồng bộ: vh ${vh0} -> ${p.vh}, cấp ${p.level}`);
+  ok(await waitFor(()=>bView()?.vh===p.vh),"B thấy A đổi võ hồn");
+  ok(B.ownedMsgs===1,"B không nhận danh sách võ hồn của A");
+  A.room.send("pick",{rowId:999999}); await sleep(200);
+  ok(/không sở hữu/.test(A.logs.at(-1)??""),"chặn đổi sang võ hồn không sở hữu");
+}
+
 A.room.send("input",{x:1,y:0}); await sleep(1500);
 console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.sessionId).x.toFixed(1));
 for(let i=0;i<300;i++){
@@ -25,7 +61,11 @@ for(let i=0;i<300;i++){
 }
 A.room.send("input",{x:0,y:0});
 console.log("drops",st.drops.size,"kills",p.kills,"xp",p.xp,"lvl",p.level,"logs",A.logs.slice(-2));
+// Vừa đánh xong: không được đổi võ hồn.
+if(other&&p.kills){ A.room.send("pick",{rowId:A.owned.list.find(v=>v.rowId!==A.owned.active).rowId}); await sleep(200); ok(/giao chiến/.test(A.logs.at(-1)??""),"chặn đổi võ hồn khi đang giao chiến"); }
 let dr=null; st.drops.forEach(d=>dr=d);
 if(dr){ for(let i=0;i<50 && Math.hypot(dr.x-p.x,dr.y-p.y)>10;i++){const dx=dr.x-p.x,dy=dr.y-p.y,d=Math.hypot(dx,dy); A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); await sleep(60);} A.room.send("input",{x:0,y:0}); await sleep(150); A.room.send("absorb"); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
 B.room.send("chat",{text:"xin chào"}); await sleep(200);
-await A.room.leave(); await B.room.leave(); process.exit(0);
+await A.room.leave(); await B.room.leave();
+console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
+process.exit(fails?1:0);

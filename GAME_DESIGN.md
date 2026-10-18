@@ -19,7 +19,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 
 ## 3. Mô hình chơi
 - **Người chơi (hồn sư) không có võ hồn riêng.** Người chơi chỉ điều khiển các **võ hồn sưu tầm được**. Mỗi võ hồn là một đơn vị nuôi riêng, có hình dạng nhân vật truyện đại diện (ví dụ Lam Ngân Thảo mang hình Đường Tam).
-- **Đội hình 4 võ hồn** (chờ chốt). Trên bản đồ chỉ hiện võ hồn đang ra trận; đổi sang võ hồn khác trong đội ngay khi đang đánh.
+- **Đội hình 4 võ hồn** (đã chốt). Trên bản đồ chỉ hiện võ hồn đang ra trận; đổi sang võ hồn khác trong đội ngay khi đang đánh.
 - **Mỗi võ hồn có 10 hồn hoàn**, ứng với cấp 1–100: bình cảnh ở cấp 10, 20, …, 100.
 - **Niên hạn tối đa: 10 vạn năm (100.000 năm).**
 - Thế giới mở thời gian thực, tất cả người chơi cùng một bản đồ.
@@ -27,7 +27,8 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 ## 4. Luật cốt lõi đã làm (bản cũ, sẽ thay dần)
 Đây là những gì code đang chạy. Mục ghi ➜ sẽ bị thay ở giai đoạn tương ứng.
 
-- **Thức tỉnh**: server chọn ngẫu nhiên 1 võ hồn SSR và hồn lực bẩm sinh 1–10 (= cấp khởi đầu). ➜ GĐ2.2: tặng Lam Ngân Thảo + tự chọn 1 SSR.
+- **Thức tỉnh** (một lần, chỉ khi tài khoản chưa có võ hồn): tặng Lam Ngân Thảo + người chơi tự chọn 1 võ hồn SSR bất kỳ; server kiểm tra lựa chọn và roll hồn lực bẩm sinh 1–10 (= cấp khởi đầu của cả hai võ hồn). Không còn thức tỉnh lại, không bao giờ xóa võ hồn. *Giữ nguyên.*
+- **Võ hồn sở hữu**: mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. Chọn 1 võ hồn ra trận (phím V), chỉ đổi được khi không giao chiến 5 giây và không hấp thụ. ➜ GĐ2.3: đội hình 4 võ hồn, đổi ngay trong trận.
 - **Bình cảnh**: cứ đến cấp 10, 20, 30… là kinh nghiệm dừng lại, phải hấp thụ hồn hoàn mới lên tiếp. *Giữ nguyên.*
 - **Niên hạn**: 5 bậc cố định 10 / 100 / 1.000 / 10.000 / 100.000 năm. ➜ GĐ3: thay bằng số năm cụ thể.
 - **Giới hạn hấp thụ**: theo bậc; vượt 1 bậc thì 60% thất bại, mất 70% máu. ➜ GĐ3: thay bằng giới hạn theo truyện, thất bại thì mất hồn hoàn.
@@ -98,8 +99,8 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - **Chấn đãng (bùng nổ vật lý):** Hạo Thiên Chùy + Nhu Cốt Thố + Lam Ngân Thảo + Quỷ Mị.
 - **Trúng độc:** Bích Lân Xà Hoàng + Tử Vong Chu Hoàng + Nguyệt Nhận + Thiên Càn Bạch Ngọc Đỉnh.
 
-**Sưu tầm võ hồn** (chờ chốt, vì không có gacha):
-- Khi tạo tài khoản, Tố Vân Đào làm lễ thức tỉnh: nhận Lam Ngân Thảo và **tự chọn 1 võ hồn SSR** trong danh sách.
+**Sưu tầm võ hồn** (không có gacha; lễ thức tỉnh đã chốt, phần mảnh võ hồn chờ chốt):
+- Khi tạo tài khoản, Tố Vân Đào làm lễ thức tỉnh: nhận Lam Ngân Thảo và **tự chọn 1 võ hồn SSR bất kỳ** trong danh sách 17 SSR cơ bản.
 - Các võ hồn khác mở bằng **mảnh võ hồn**: rơi từ hồn thú (mỗi vùng rơi mảnh của 2–3 võ hồn), tà hóa thú vương và nhiệm vụ. Đủ 50 mảnh thì mở võ hồn.
 - Mảnh dư dùng để **lên sao** (1★ → 6★, cần 20 / 40 / 80 / 120 / 200 mảnh). Mỗi sao tăng chỉ số gốc và mở thêm hiệu ứng cho hồn kỹ.
 
@@ -109,7 +110,7 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - Võ hồn đang ra trận gục thì tự đổi sang võ hồn còn sống. Võ hồn đã gục chỉ hồi lại ở doanh trại hoặc sau 60 giây ngoài trận.
 - Cả đội gục thì về doanh trại, không mất kinh nghiệm hay đồ (chờ chốt).
 
-**Kinh nghiệm:** chia cho cả 4 võ hồn trong đội; võ hồn đang ra trận nhận 40%, mỗi võ hồn còn lại 20% (chờ chốt). Võ hồn đang ở bình cảnh thì không nhận, phần đó không chia lại.
+**Kinh nghiệm:** chia cho cả 4 võ hồn trong đội; võ hồn đang ra trận nhận 40%, mỗi võ hồn còn lại 20% (đã chốt, làm ở bước 2.3). Võ hồn đang ở bình cảnh thì không nhận, phần đó không chia lại.
 
 **Danh hiệu** theo cấp của võ hồn đang ra trận, hiện trên đầu nhân vật:
 
@@ -252,6 +253,8 @@ Bản đồ hiện tại là **Tinh Đấu Đại Sâm Lâm**, chia vùng từ t
 
 ## 6. Kiến trúc (bắt buộc giữ)
 - **Server quyết định mọi thứ.** Client chỉ gửi ý định: `input {x,y}`, `attack`, `skill {i}`, `switch {slot}`, `absorb {itemId, vohonId}`, `chat {text}`…
+  Đang có thêm: `vohons` (xin danh sách võ hồn sở hữu, server trả tin nhắn riêng `vohons`), `pick {rowId}` (chọn võ hồn ra trận, đến bước 2.3),
+  và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `ForestRoom.ts`).
   Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi hay kết quả hấp thụ.
 - Trạng thái đồng bộ qua Colyseus Schema (`server/src/rooms/schema.ts`). Hiệu ứng hình ảnh gửi qua `broadcast("fx")` và `"dmg"`.
 - Túi đồ và võ hồn chỉ gửi cho chính chủ (không đồng bộ cho người khác). Người khác chỉ thấy võ hồn đang ra trận, cấp và hồn hoàn của nó.
@@ -272,7 +275,12 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Võ hồn tạm cũ được ánh xạ: Hỏa Long Thương → Hỏa Long, Băng Tuyết Hồ → Yêu Hồ, Lôi Ưng → Kim Vũ Miêu Ưng,
   Thanh Mộc Đằng → Lam Ngân Thảo, Kim Cương Thuẫn → Thiên Càn Bạch Ngọc Đỉnh. Bảng `characters` giữ lại, không còn ghi.
   Thức tỉnh tạm thời ngẫu nhiên 1 SSR; mỗi tài khoản vẫn chỉ dùng 1 võ hồn cho đến bước 2.2.
-- [ ] 2.2 Server: tài khoản sở hữu nhiều võ hồn, mỗi võ hồn có cấp, kinh nghiệm và hồn hoàn riêng. Lễ thức tỉnh: chọn 1 trong 3.
+- [x] 2.2 Server: tài khoản sở hữu nhiều võ hồn, mỗi võ hồn có cấp, kinh nghiệm và hồn hoàn riêng. Lễ thức tỉnh: tặng Lam Ngân Thảo + tự chọn 1 SSR.
+  *Đã làm:* Store có `listVohons`, `addVohon`, `getCharacter` (võ hồn ra trận), `setActive`; cột `accounts.active_vohon` (`003_owned_vohons.sql`).
+  `awaken` không còn xóa gì: chỉ chạy khi tài khoản chưa có võ hồn (409 nếu đã có), tạo Lam Ngân Thảo + SSR đã chọn cùng cấp bẩm sinh, SSR ra trận.
+  Tài khoản cũ giữ nguyên võ hồn đang có (vẫn ra trận) và được tặng Lam Ngân Thảo nếu chưa có, cấp = hồn lực bẩm sinh cũ (`characters.innate`) hoặc 1.
+  Client: màn hình chọn SSR theo 4 hệ (chuột, chạm, bàn phím); trong rừng nút "Võ hồn" / phím V mở danh sách để chọn võ hồn ra trận.
+  Đổi võ hồn giữ tỉ lệ sinh lực / hồn lực, hồi 2 giây (`PICK_CD`), cấm khi gục, đang hấp thụ hoặc giao chiến trong 5 giây (`PICK_COMBAT_SECS`).
 - [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
 - [ ] 2.4 Năng lượng và chiêu tiên cơ.
 - [ ] 2.5 Hồn kỹ riêng cho từng võ hồn (vòng 1–4 trước).
@@ -320,10 +328,13 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 
 ## 8. Câu hỏi còn mở
 1. **Sưu tầm võ hồn:** mảnh võ hồn, cộng với lễ thức tỉnh tặng Lam Ngân Thảo và cho tự chọn 1 SSR (mục 5.1), có ổn không?
+   - **Trả lời:** thức tỉnh tự do: tặng Lam Ngân Thảo và tự chọn 1 võ hồn SSR bất kỳ trong danh sách SSR (không phải "chọn 1 trong 3"). Đã làm ở bước 2.2.
    - Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp… xếp độ hiếm gì (UR?) và lấy bằng cách nào?
    - Chủ nhân của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh là ai?
 2. **Đội hình:** 4 võ hồn và cách chia kinh nghiệm 40/20/20/20 có ổn không?
+   - **Trả lời:** đồng ý: đội 4 võ hồn, chia kinh nghiệm 40/20/20/20. Làm ở bước 2.3.
 3. **Hồn kỹ vòng 8–10:** muốn thiết kế thế nào?
 4. **Giới hạn hồn hoàn vòng 5–10:** con số trong bảng mục 5.2 cần đối chiếu lại với truyện.
 5. **Kinh tế:** có cho giao dịch giữa người chơi và PvP ngoài rừng không?
 6. **Nền tảng:** ưu tiên điện thoại hay máy tính? Đội 4 võ hồn và nhiều phím kỹ năng sẽ khó điều khiển trên điện thoại.
+   - **Trả lời:** ưu tiên máy tính; có bản điện thoại thì càng tốt. Giao diện mới phải dùng được bằng cả chuột lẫn chạm.
