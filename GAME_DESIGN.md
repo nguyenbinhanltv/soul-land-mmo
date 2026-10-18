@@ -38,7 +38,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Hồn hoàn rơi**: 15 giây đầu chỉ người hạ hồn thú nhặt được, tồn tại 60 giây. *Giữ luật ưu tiên.*
 - **Hồn kỹ**: vòng 1–4 mở 4 hồn kỹ dùng chung. ➜ GĐ2: hồn kỹ riêng cho từng võ hồn.
 - **Chết**: mất 30% kinh nghiệm, hồi sinh ở doanh trại sau 2,5 giây. ➜ GĐ2: luật chết mới (mục 5.1).
-- **Vùng**: một bản đồ duy nhất (`forest.json`) chia vùng theo chiều đông, càng sâu càng mạnh (layer `zones` của Tiled). ➜ BĐ1–BĐ3: nhiều bản đồ, mỗi vùng khai báo loài và niên hạn (mục 5.3).
+- **Vùng**: một bản đồ duy nhất (`tinh_dau.json`, `mapId` = `tinh_dau`) chia 4 vùng theo chiều đông, càng sâu càng mạnh (layer `zones` của Tiled). Từ BĐ1 mỗi vùng khai báo loài (`beasts`), bậc vẫn tung theo `weights`. ➜ BĐ2–BĐ3: nhiều bản đồ, mỗi vùng khai báo loài và niên hạn (mục 5.3).
 - **Multiplayer**: thấy nhau, chat, cùng săn, tranh hồn hoàn. *Giữ nguyên.*
 
 Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong file này là đề xuất, chốt khi code.
@@ -630,12 +630,12 @@ shared/assets/ui/
 ## 6. Kiến trúc (bắt buộc giữ)
 - **Server quyết định mọi thứ.** Client chỉ gửi ý định: `input {x,y}`, `attack`, `skill {i}`, `switch {slot}`, `absorb {itemId, vohonId}`, `chat {text}`…
   Đang có thêm: `vohons` (xin danh sách võ hồn sở hữu, server trả tin nhắn riêng `vohons`), `pick {rowId}` (chọn võ hồn ra trận, đến bước 2.3),
-  và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `ForestRoom.ts`).
+  và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `MapRoom.ts`).
   Từ BĐ2 có thêm `travel {portal}` (xin đi qua cổng); server gửi riêng `portal` (đang đứng ở cổng nào, cấp đề xuất, có cảnh báo không) và `travel {mapId}` (đã được phép chuyển bản đồ).
   Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ hay bản đồ đích.
 - Trạng thái đồng bộ qua Colyseus Schema (`server/src/rooms/schema.ts`). Hiệu ứng hình ảnh gửi qua `broadcast("fx")` và `"dmg"`.
 - Túi đồ và võ hồn chỉ gửi cho chính chủ (không đồng bộ cho người khác). Người khác chỉ thấy ngoại hình hồn sư (giới tính, tóc, màu áo), võ hồn đang ra trận, cấp và hồn hoàn của nó.
-- Mỗi bản đồ là một file Tiled dùng chung cho server và client: `shared/assets/<mapId>.json` (trước BĐ1 chỉ có `shared/assets/forest.json`). Ô có thuộc tính `collides=true` là vật cản ở cả hai phía.
+- Mỗi bản đồ là một file Tiled dùng chung cho server và client: `shared/assets/<mapId>.json` (đến BĐ2 chỉ có `shared/assets/tinh_dau.json`). Ô có thuộc tính `collides=true` là vật cản ở cả hai phía.
 - Dữ liệu lâu dài lưu trong PostgreSQL / Supabase (`server/sql/`). Bảng mới dùng `CREATE TABLE IF NOT EXISTS` và bật RLS.
 - **Bảng dữ liệu dự kiến:** `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn), `items` (mỗi món đồ có id riêng: loại, số năm, sao, cấp cường hóa, dòng chỉ số, đang gắn vào võ hồn nào), `teams` (đội hình), cột `accounts.map_id` + vị trí (BĐ2), `boss_claims` (lượt nhận thưởng boss mỗi ngày, BĐ5).
 
@@ -644,7 +644,7 @@ shared/assets/ui/
 - `MapRoom` (`server/src/rooms/MapRoom.ts`) nhận `mapId`: `gameServer.define("map", MapRoom).filterBy(["mapId"])`. Colyseus ghép người cùng `mapId` vào chung phòng; phòng đầy (`maxClients`) thì tự mở phòng mới, tức là kênh mới.
 - `onCreate({ mapId })` kiểm tra `mapId` có trong `MAPS`, rồi nạp `shared/assets/<mapId>.json`. `server/src/map.ts` đổi thành `loadMap(mapId)`, trả về đối tượng bản đồ (ô chặn, vùng, cổng, tinh anh, boss, điểm hồi sinh), cache theo `mapId` để các kênh dùng chung. Client tải tilemap theo `mapId` đang đứng.
 - Khác biệt giữa các loại bản đồ nằm trong dữ liệu (`MAPS[mapId].kind`: `town`, `hunt`, `boss`), không tách lớp phòng con. Bản đồ `town` không sinh hồn thú và không tính giao chiến.
-- **Quy tắc "logic game chỉ nằm trong phòng" chuyển từ `ForestRoom.ts` sang `MapRoom.ts` ở bước BĐ1.** Bước đó cập nhật luôn `CLAUDE.md`, các skill trong `.claude/skills/` và mục 6 này; `awakenAccount` chuyển theo.
+- **Logic game chỉ nằm trong phòng `MapRoom.ts`** (đã chuyển từ `ForestRoom.ts` ở bước BĐ1, cùng `awakenAccount`; `CLAUDE.md` và các skill trong `.claude/skills/` đã trỏ sang `MapRoom.ts`).
 
 **Dữ liệu trong `shared/data.ts`**
 - `MAPS`: mã, tên, loại, khoảng cấp đề xuất, khoảng niên hạn, mảnh võ hồn, bộ hồn hạch, thú vương, có từ bước nào.
@@ -707,11 +707,16 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Tài khoản cũ giữ nguyên võ hồn đang có (vẫn ra trận) và được tặng Lam Ngân Thảo nếu chưa có, cấp = hồn lực bẩm sinh cũ (`characters.innate`) hoặc 1.
   Client: màn hình chọn SSR theo 4 hệ (chuột, chạm, bàn phím); trong rừng nút "Võ hồn" / phím V mở danh sách để chọn võ hồn ra trận.
   Đổi võ hồn giữ tỉ lệ sinh lực / hồn lực, hồi 2 giây (`PICK_CD`), cấm khi gục, đang hấp thụ hoặc giao chiến trong 5 giây (`PICK_COMBAT_SECS`).
-- [ ] **BĐ1** Tách `MapRoom`, đọc bản đồ theo `mapId` (làm ngay sau 2.2, trước 2.2a, 2.2b, 2.3). **Chưa đổi luật chơi.**
+- [x] **BĐ1** Tách `MapRoom`, đọc bản đồ theo `mapId` (làm ngay sau 2.2, trước 2.2a, 2.2b, 2.3). **Chưa đổi luật chơi.**
   - `ForestRoom` thành `MapRoom` nhận `mapId`; `define("map", MapRoom).filterBy(["mapId"])`. Bản đồ hiện tại đổi tên thành `shared/assets/tinh_dau.json`, `mapId` = `tinh_dau` (bản đồ duy nhất cho đến BĐ2). `map.ts` thành `loadMap(mapId)`. Client vào phòng `map` với `mapId` do server trả.
   - Bảng `MAPS` và `BEASTS` (theo loài) trong `data.ts`; `BeastState` thêm `species`. Vùng trong Tiled khai báo `beasts`; cho đến 3.2 vẫn giữ `weights` theo bậc, mỗi loài có bậc tạm để lấy chỉ số `TIERS`.
   - **Gộp bước 2.6:** danh hiệu trên đầu hồn sư theo cấp võ hồn ra trận (bảng 5.1); tên hồn thú và tên vùng lấy theo bảng Ngoại vi / Nội địa ở 5.3 (chọn loài khớp bậc).
   - Cập nhật `CLAUDE.md`, skill trong `.claude/skills/`, mục 6 và bot: logic game nằm trong `MapRoom.ts`.
+  *Đã làm:* `MapRoom` (`server/src/rooms/MapRoom.ts`, kèm `awakenAccount`) đăng ký `define("map", MapRoom).filterBy(["mapId"])`. `onCreate` lấy `mapId` từ tham số hoặc `DEFAULT_MAP`, từ chối mã không có trong `MAPS`, nạp `loadMap(mapId)` (cache theo `mapId`) và ghi `mapId` vào listing để phòng mở không kèm `mapId` vẫn ghép đúng khi sau này client gửi `mapId`.
+  Nguồn `mapId` ở BĐ1: client chỉ gửi `token`, server dùng bản đồ mặc định; client chờ state đầu tiên để đọc `MapState.mapId` rồi tải `shared/assets/<mapId>.json` (không lấy từ `/api/me`). `forest.json` đổi tên thành `tinh_dau.json`, `tools/gen-map.mjs` sinh ra đúng file này.
+  `data.ts`: `MAPS` (chỉ `tinh_dau`; mảnh võ hồn, bộ hồn hạch, thú vương thêm khi làm tới), `DEFAULT_MAP`, `BEASTS` 12 loài với bậc tạm, `TITLES`/`titleOf`. Bỏ tên hồn thú theo bậc trong `TIERS`. `BeastState.species` là chỉ số trong `BEASTS`; sinh hồn thú vẫn tung bậc theo `weights` rồi chọn loài cùng bậc trong `beasts` của vùng (vùng thiếu loài bậc đó thì lấy loài bất kỳ cùng bậc, server cảnh báo lúc nạp).
+  Vùng đổi tên: Bìa rừng, Rừng thưa, Rừng cổ thụ (trước là Rừng sâu), Hắc Ám Lâm (trước là Lõi rừng cổ). Vì vùng cũ trộn nhiều bậc nên mỗi vùng mượn thêm loài của vùng kế bên trong bảng 5.3. Bậc 10 vạn năm chưa có loài thường ở Ngoại vi / Nội địa: tạm dùng Xích Lân Mãng đến bước 3.2.
+  Client: danh hiệu (bảng 5.1) hiện trên tên hồn sư, tên hồn thú ở khung mục tiêu và thông báo hạ hồn thú lấy theo loài. Sprite hồn thú vẫn theo bậc đến M4. Bot vào phòng `map`, kiểm tra hai bot cùng phòng, `state.mapId`, file Tiled tồn tại và có nhiều loài.
 - [ ] 2.2a Tạo nhân vật: chọn nam/nữ, 4 kiểu tóc, màu tóc, màu áo (mục 5.11). Lưu `sex`, `hair`, `hairCol`, `outfitCol` cho tài khoản (file SQL mới), đồng bộ qua schema để người khác thấy. Làm ngay trước bước chọn SSR của lễ thức tỉnh; tài khoản cũ nhận ngoại hình mặc định và được chọn lại một lần ở lần vào game tới.
 - [ ] 2.2b Hiển thị hồn sư ghép lớp bằng code theo quy cách 5.11: thân, áo, tóc (đổi màu), lớp phụ thể đơn giản cho 20 võ hồn, vòng hồn hoàn dưới chân. Thêm hướng nhìn 4 phía vào schema. Bỏ key cũ `p{i}_{f}`.
 - [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
