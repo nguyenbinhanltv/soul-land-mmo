@@ -111,7 +111,9 @@ async function join() {
   card.innerHTML = `<h1>Đang vào rừng…</h1>`;
   try {
     const client = new Client(WS);
-    const room = await client.joinOrCreate("forest", { token });
+    // Server chọn bản đồ (đến BĐ2 là bản đồ mặc định); client đọc mapId từ state của phòng để tải đúng file Tiled.
+    const room = await client.joinOrCreate("map", { token });
+    const mapId = await new Promise<string>((res) => (room.state?.mapId ? res(room.state.mapId) : room.onStateChange.once((s: any) => res(s.mapId))));
     overlay.hidden = true;
     room.onLeave((code) => {
       document.body.classList.remove("playing"); overlay.hidden = false;
@@ -122,7 +124,7 @@ async function join() {
       type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true,
       scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
     });
-    game.scene.add("game", GameScene, true, { room });
+    game.scene.add("game", GameScene, true, { room, mapId });
   } catch (e) {
     const m = (e as Error).message ?? "";
     if (/401|403|không hợp lệ|Chưa thức tỉnh/.test(m)) loginScreen(m); else loginScreen(`Không vào được phòng: ${m}`);

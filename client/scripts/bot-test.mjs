@@ -1,6 +1,7 @@
-// Kiểm thử nhanh: 2 bot đăng nhập, qua lễ thức tỉnh, đổi võ hồn ra trận, di chuyển, đánh hồn thú, thử hấp thụ.
+// Kiểm thử nhanh: 2 bot đăng nhập, qua lễ thức tỉnh, vào phòng bản đồ, đổi võ hồn ra trận, di chuyển, đánh hồn thú, thử hấp thụ.
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 import { Client } from "colyseus.js";
+import { existsSync } from "node:fs";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -19,7 +20,8 @@ async function bot(name,choice){
     ok(a.status===200 && a.character?.vohon===choice,`thức tỉnh ${choice}, cấp ${a.character?.level}`);
   }
   ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh lần hai -> 409");
-  const room=await new Client(WS).joinOrCreate("forest",{token:l.token});
+  // Không gửi mapId: server chọn bản đồ mặc định và báo qua state.mapId.
+  const room=await new Client(WS).joinOrCreate("map",{token:l.token});
   const b={room,logs:[],owned:null,ownedMsgs:0};
   room.onMessage("log",m=>b.logs.push(m.text)); for(const t of ["chat","fx","dmg"]) room.onMessage(t,()=>{});
   room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
@@ -30,6 +32,14 @@ const A=await bot("Tester A","ta_hoa_phuong_hoang"), B=await bot("Tester B","bic
 await sleep(800);
 const st=A.room.state, p=st.players.get(A.room.sessionId);
 console.log("players",st.players.size,"beasts",st.beasts.size,"lvl",p.level,"hp",p.hp,"/",p.maxHp);
+
+// Bản đồ: hai bot cùng một phòng, state có mapId và file Tiled tương ứng tồn tại.
+ok(A.room.roomId===B.room.roomId,"A và B cùng phòng");
+ok(typeof st.mapId==="string"&&st.mapId.length>0,`state.mapId = ${st.mapId}`);
+ok(existsSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url)),`có file shared/assets/${st.mapId}.json`);
+const species=new Set(); st.beasts.forEach(b=>species.add(b.species));
+console.log("  loài đang có (chỉ số BEASTS):",[...species].sort((a,b)=>a-b).join(", "));
+ok(species.size>1,"hồn thú có nhiều loài");
 
 // Võ hồn sở hữu: chỉ chính chủ nhận danh sách.
 ok(await waitFor(()=>A.owned&&B.owned),"nhận danh sách võ hồn riêng");

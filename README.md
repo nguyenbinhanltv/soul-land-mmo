@@ -8,13 +8,13 @@ rung-san-hon-online/
 ├─ shared/
 │  ├─ data.ts              # số liệu cân bằng dùng chung (niên hạn, võ hồn, hồn kỹ, công thức)
 │  └─ assets/
-│     ├─ forest.json       # bản đồ Tiled – mở bằng Tiled để vẽ
+│     ├─ tinh_dau.json     # bản đồ Tiled (mỗi bản đồ một file <mapId>.json) – mở bằng Tiled để vẽ
 │     └─ tiles.png         # tileset 16×16 tạm thời
 ├─ server/
 │  ├─ src/index.ts         # Express API (đăng nhập, thức tỉnh) + Colyseus
-│  ├─ src/rooms/ForestRoom.ts  # toàn bộ luật chơi, chạy 20 lần/giây
+│  ├─ src/rooms/MapRoom.ts # toàn bộ luật chơi (một phòng mỗi bản đồ/kênh), chạy 20 lần/giây
 │  ├─ src/rooms/schema.ts  # trạng thái đồng bộ xuống client
-│  ├─ src/map.ts           # đọc va chạm và vùng từ file Tiled
+│  ├─ src/map.ts           # loadMap(mapId): đọc va chạm và vùng từ file Tiled
 │  ├─ src/db.ts            # PostgreSQL / bộ nhớ RAM
 │  └─ sql/001_init.sql     # bảng accounts, sessions, characters, inventory
 ├─ client/
@@ -79,9 +79,9 @@ Trên điện thoại có joystick ảo và nút bấm.
 
 ## Sửa bản đồ bằng Tiled
 
-1. Cài [Tiled](https://www.mapeditor.org), mở `shared/assets/forest.json`.
+1. Cài [Tiled](https://www.mapeditor.org), mở `shared/assets/<mapId>.json` (hiện có `tinh_dau.json`; mã bản đồ khai báo trong `MAPS` ở `shared/data.ts`).
 2. Layer `ground` là nền, `trees` là vật cản (cây, lều, lửa trại), `canopy` là tán cây phủ lên nhân vật.
-3. Layer đối tượng `zones` chứa các vùng săn (class `zone`) với thuộc tính `hint`, `weights` (tỉ lệ 5 niên hạn) và `count` (số hồn thú). Đối tượng class `spawn` là doanh trại.
+3. Layer đối tượng `zones` chứa các vùng săn (class `zone`) với thuộc tính `hint`, `weights` (tỉ lệ 5 niên hạn), `beasts` (mã loài trong `BEASTS` kèm trọng số, ví dụ `phong_lang:2,man_da_la_xa:1`) và `count` (số hồn thú). Đối tượng class `spawn` là doanh trại.
 4. Muốn ô nào chặn đường: chọn ô đó trong tileset và thêm thuộc tính bool `collides = true`.
 5. Lưu lại (giữ định dạng JSON). Khởi động lại server để nó đọc va chạm mới.
 

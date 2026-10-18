@@ -1,10 +1,11 @@
-// Phòng chơi chính: toàn bộ logic game chạy ở đây (server-authoritative).
+// Phòng của một bản đồ (mapId): toàn bộ logic game chạy ở đây (server-authoritative).
+// Mỗi bản đồ có thể có nhiều phòng (kênh); mọi phòng dùng chung một lớp, khác nhau ở dữ liệu bản đồ.
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError } from "colyseus";
-import { ForestState, PlayerState, BeastState, DropState } from "./schema.ts";
+import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex,
-  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD } from "../../../shared/data.ts";
-import { hits, moveEnt, zones, spawn, inSpawn } from "../map.ts";
+  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD, BEASTS, MAPS, DEFAULT_MAP } from "../../../shared/data.ts";
+import { loadMap, type GameMap } from "../map.ts";
 import { store, Character } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
 
@@ -27,9 +28,10 @@ interface Proj { x: number; y: number; vx: number; vy: number; life: number; dmg
 let nextId = 1;
 const uid = (p: string) => p + (nextId++).toString(36);
 
-export class ForestRoom extends Room<ForestState> {
+export class MapRoom extends Room<MapState> {
   maxClients = 60;
-  state = new ForestState();
+  state = new MapState();
+  map!: GameMap;
   pdata = new Map<string, PData>();
   bdata = new Map<string, BData>();
   projs: Proj[] = [];
@@ -46,7 +48,15 @@ export class ForestRoom extends Room<ForestState> {
     return auth;
   }
 
-  onCreate() {
+  onCreate(options: { mapId?: unknown }) {
+    // Đến BĐ2 client chưa gửi mapId: server dùng bản đồ mặc định. Client đọc state.mapId để tải đúng file Tiled.
+    const mapId = options?.mapId ?? DEFAULT_MAP;
+    if (typeof mapId !== "string" || !Object.hasOwn(MAPS, mapId)) throw new ServerError(400, "Bản đồ không tồn tại.");
+    this.map = loadMap(mapId);
+    this.state.mapId = mapId;
+    // Ghi mapId vào listing để filterBy(["mapId"]) ghép đúng phòng cả khi phòng được mở mà không có mapId trong tham số.
+    this.listing.mapId = mapId;
+    const { zones } = this.map;
     for (let z = 0; z < zones.length; z++) for (let i = 0; i < zones[z].count; i++) this.spawnBeast(z);
     this.setSimulationInterval((ms) => this.tick(Math.min(ms, 100) / 1000), 1000 / TICK_RATE);
 
@@ -102,9 +112,10 @@ export class ForestRoom extends Room<ForestState> {
 
   // ---------- Nhân vật ----------
   spawnPoint() {
+    const { spawn } = this.map;
     for (let k = 0; k < 30; k++) {
       const x = spawn.x + 8 + Math.random() * (spawn.w - 16), y = spawn.y + 8 + Math.random() * (spawn.h - 16);
-      if (!hits(x, y, 5, 4)) return { x, y };
+      if (!this.map.hits(x, y, 5, 4)) return { x, y };
     }
     return { x: spawn.x + spawn.w / 2, y: spawn.y + spawn.h / 2 };
   }
@@ -227,7 +238,7 @@ export class ForestRoom extends Room<ForestState> {
       for (const [bid] of inRange(50)) this.damageBeast(bid, d.atk * 2.2 * tm, id, col);
     } else if (i === 1) {
       const sx = p.x, sy = p.y; let dist = 0;
-      while (dist < 70 && !hits(p.x + d.dir.x * 2, p.y + d.dir.y * 2, 5, 4)) { p.x += d.dir.x * 2; p.y += d.dir.y * 2; dist += 2; }
+      while (dist < 70 && !this.map.hits(p.x + d.dir.x * 2, p.y + d.dir.y * 2, 5, 4)) { p.x += d.dir.x * 2; p.y += d.dir.y * 2; dist += 2; }
       d.inv = 0.35;
       this.broadcast("fx", { k: "trail", x0: sx, y0: sy, x1: p.x, y1: p.y, col });
       const L = Math.max(1, dist), ux = (p.x - sx) / L, uy = (p.y - sy) / L;
@@ -261,7 +272,7 @@ export class ForestRoom extends Room<ForestState> {
   }
 
   killBeast(bid: string, by: string) {
-    const b = this.state.beasts.get(bid)!; const td = TIERS[b.tier];
+    const b = this.state.beasts.get(bid)!; const td = TIERS[b.tier], name = BEASTS[b.species]?.name ?? "hồn thú";
     this.state.beasts.delete(bid); this.bdata.delete(bid);
     const p = this.state.players.get(by)!; p.kills++;
     this.addXp(by, td.xp);
@@ -269,7 +280,7 @@ export class ForestRoom extends Room<ForestState> {
     drop.x = b.x; drop.y = b.y; drop.tier = b.tier; drop.owner = by; drop.ownerTtl = 15; drop.ttl = 60;
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: td.size + 10, col: td.glow });
-    this.log(by, `Hạ ${td.beast} (${td.age}). Hồn hoàn đã xuất hiện, 15 giây đầu chỉ bạn hấp thụ được.`, td.glow);
+    this.log(by, `Hạ ${name} (${td.age}). Hồn hoàn đã xuất hiện, 15 giây đầu chỉ bạn hấp thụ được.`, td.glow);
   }
 
   // ---------- Hồn hoàn ----------
@@ -317,18 +328,28 @@ export class ForestRoom extends Room<ForestState> {
 
   // ---------- Hồn thú ----------
   spawnBeast(zi: number) {
-    const z = zones[zi]; let r = Math.random(), tier = 0;
+    const z = this.map.zones[zi]; let r = Math.random(), tier = 0;
     for (let i = 0; i < z.weights.length; i++) { r -= z.weights[i]; if (r <= 0) { tier = i; break; } }
     if (tier === 4 && [...this.state.beasts.values()].some((b) => b.tier === 4)) tier = 3;
+    const species = this.pickSpecies(zi, tier);
     for (let k = 0; k < 40; k++) {
       const x = z.x0 + 8 + Math.random() * (z.x1 - z.x0 - 16), y = z.y0 + 24 + Math.random() * (z.y1 - z.y0 - 48);
-      if (hits(x, y, 6, 4) || inSpawn(x, y)) continue;
+      if (this.map.hits(x, y, 6, 4) || this.map.inSpawn(x, y)) continue;
       if ([...this.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < 140)) continue;
-      const b = new BeastState(); b.x = x; b.y = y; b.tier = tier; b.hp = b.maxHp = TIERS[tier].hp;
+      const b = new BeastState(); b.x = x; b.y = y; b.tier = tier; b.species = species; b.hp = b.maxHp = TIERS[tier].hp;
       const id = uid("b"); this.state.beasts.set(id, b);
       this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0 });
       return;
     }
+  }
+
+  /** Chọn loài theo trọng số trong số loài của vùng có bậc tạm bằng `tier`; vùng thiếu thì lấy mọi loài cùng bậc. */
+  pickSpecies(zi: number, tier: number) {
+    let list = this.map.zones[zi].beasts.filter((b) => BEASTS[b.species].tier === tier);
+    if (!list.length) list = BEASTS.flatMap((b, i) => (b.tier === tier ? [{ species: i, w: 1 }] : []));
+    let r = Math.random() * list.reduce((a, b) => a + b.w, 0);
+    for (const b of list) { r -= b.w; if (r <= 0) return b.species; }
+    return list[list.length - 1].species;
   }
 
   // ---------- Vòng lặp ----------
@@ -347,7 +368,7 @@ export class ForestRoom extends Room<ForestState> {
       p.moving = il > 0.15;
       if (p.moving) {
         if (d.absorbing) { d.absorbing = null; p.absorb = 0; this.log(id, "Di chuyển: đã hủy hấp thụ."); }
-        moveEnt(p, ix * d.speed * dt, iy * d.speed * dt, 5, 4);
+        this.map.moveEnt(p, ix * d.speed * dt, iy * d.speed * dt, 5, 4);
         d.dir = { x: ix / il, y: iy / il }; if (Math.abs(ix) > 0.1) p.face = ix > 0 ? 1 : -1;
       }
       if (d.absorbing) { d.absorbing.t += dt; p.absorb = Math.min(0.999, d.absorbing.t / d.absorbing.dur); if (d.absorbing.t >= d.absorbing.dur) this.finishAbsorb(id); }
@@ -368,7 +389,7 @@ export class ForestRoom extends Room<ForestState> {
       }
       b.aggro = !!tgt;
       const hw = Math.max(3, td.size / 3);
-      if (bd.kx || bd.ky) { moveEnt(b, bd.kx * dt, bd.ky * dt, hw, 3); bd.kx *= 0.85; bd.ky *= 0.85; if (Math.abs(bd.kx) < 2 && Math.abs(bd.ky) < 2) { bd.kx = 0; bd.ky = 0; } }
+      if (bd.kx || bd.ky) { this.map.moveEnt(b, bd.kx * dt, bd.ky * dt, hw, 3); bd.kx *= 0.85; bd.ky *= 0.85; if (Math.abs(bd.kx) < 2 && Math.abs(bd.ky) < 2) { bd.kx = 0; bd.ky = 0; } }
       let mx = 0, my = 0, sp = td.spd;
       if (tgt) {
         const dx = tgt.x - b.x, dy = tgt.y - b.y, dd = Math.hypot(dx, dy);
@@ -381,13 +402,13 @@ export class ForestRoom extends Room<ForestState> {
         if (ed > 4) { mx = ex / ed; my = ey / ed; sp *= 0.4; }
       }
       b.moving = !!(mx || my);
-      if (b.moving) { moveEnt(b, mx * sp * dt, my * sp * dt, hw, 3); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
+      if (b.moving) { this.map.moveEnt(b, mx * sp * dt, my * sp * dt, hw, 3); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
     });
 
     // đạn hồn kỹ
     this.projs = this.projs.filter((pr) => {
       pr.x += pr.vx * dt; pr.y += pr.vy * dt; pr.life -= dt;
-      if (pr.life <= 0 || hits(pr.x, pr.y + 6, 1, 1)) return false;
+      if (pr.life <= 0 || this.map.hits(pr.x, pr.y + 6, 1, 1)) return false;
       for (const [bid, b] of this.state.beasts.entries())
         if (Math.hypot(b.x - pr.x, b.y - TIERS[b.tier].size / 2 - pr.y) < TIERS[b.tier].size / 2 + 5) { this.damageBeast(bid, pr.dmg, pr.owner, pr.col); return false; }
       return true;
@@ -404,7 +425,7 @@ export class ForestRoom extends Room<ForestState> {
     this.spawnT -= dt;
     if (this.spawnT <= 0) {
       this.spawnT = 1.2;
-      const counts = zones.map(() => 0); this.bdata.forEach((b) => counts[b.zone]++);
+      const { zones } = this.map, counts = zones.map(() => 0); this.bdata.forEach((b) => counts[b.zone]++);
       zones.forEach((z, i) => { if (counts[i] < z.count) this.spawnBeast(i); });
     }
 

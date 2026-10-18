@@ -1,17 +1,18 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, ringLimit, TILE } from "../../../shared/data.ts";
+import { TIERS, BEASTS, ringLimit, TILE, titleOf } from "../../../shared/data.ts";
 import { makeTextures, PLAYER_ORIGIN, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import type { OwnedVohons } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
-interface PView { spr: Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; }
+interface PView { spr: Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text; }
 interface Zone { name: string; hint: string; x0: number; x1: number; }
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
+  mapId = "";
   me = "";
   players = new Map<string, PView>();
   beasts = new Map<string, Phaser.GameObjects.Sprite>();
@@ -30,16 +31,17 @@ export class GameScene extends Phaser.Scene {
   mapW = 0; mapH = 0;
 
   constructor() { super("game"); }
-  init(data: { room: Room<any> }) { this.room = data.room; this.me = data.room.sessionId; }
+  init(data: { room: Room<any>; mapId: string }) { this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; }
 
   preload() {
-    this.load.tilemapTiledJSON("forest", "forest.json");
+    // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
+    this.load.tilemapTiledJSON(this.mapId, `${this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadSprites(this);
   }
 
   create() {
-    const map = this.make.tilemap({ key: "forest" });
+    const map = this.make.tilemap({ key: this.mapId });
     const ts = map.addTilesetImage("tiles", "tiles")!;
     map.createLayer("ground", ts, 0, 0)!.setDepth(-10);
     map.createLayer("trees", ts, 0, 0)!.setDepth(-5);
@@ -230,16 +232,22 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "7px", fontStyle: "600",
           color: id === this.me ? "#ffe9a0" : "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { spr, label }; this.players.set(id, v);
+        const title = this.add.text(p.x, p.y - 30, "", {
+          fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "6px", fontStyle: "700",
+          color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
+        }).setOrigin(0.5, 1).setDepth(99985);
+        v = { spr, label, title }; this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(spr, true, 0.2, 0.2);
       }
-      const { spr, label } = v;
+      const { spr, label, title } = v;
       if (Math.hypot(p.x - spr.x, p.y - spr.y) > 64) spr.setPosition(p.x, p.y);
       else spr.setPosition(spr.x + (p.x - spr.x) * lerp, spr.y + (p.y - spr.y) * lerp);
       spr.setTexture(`p${p.vh}_${p.moving ? step : 0}`).setFlipX(p.face < 0).setDepth(spr.y).setVisible(!p.dead);
       label.setPosition(spr.x, spr.y - 19).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1).
+      title.setPosition(spr.x, spr.y - 27).setVisible(!p.dead).setText(titleOf(p.level));
     });
-    for (const [id, v] of this.players) if (!seenP.has(id)) { v.spr.destroy(); v.label.destroy(); this.players.delete(id); }
+    for (const [id, v] of this.players) if (!seenP.has(id)) { v.spr.destroy(); v.label.destroy(); v.title.destroy(); this.players.delete(id); }
 
     // hồn thú
     const seenB = new Set<string>();
@@ -303,7 +311,7 @@ export class GameScene extends Phaser.Scene {
 
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${TIERS[tb.tier].beast} (${TIERS[tb.tier].age}) – ${tb.hp}/${tb.maxHp}` : null);
+    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} (${TIERS[tb.tier].age}) – ${tb.hp}/${tb.maxHp}` : null);
 
     let dr: any = null, dd = 22;
     st.drops.forEach((d: any) => { const k = Math.hypot(d.x - me.x, d.y - me.y); if (k < dd) { dd = k; dr = d; } });

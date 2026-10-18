@@ -1,4 +1,4 @@
-// Sinh bản đồ Tiled khởi đầu: shared/assets/forest.json
+// Sinh bản đồ Tiled khởi đầu: shared/assets/tinh_dau.json (mapId `tinh_dau` trong MAPS)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs
 import { writeFileSync } from "node:fs";
@@ -46,15 +46,16 @@ trees[30 * MW + 4] = GID.fire;
 const T = 16;
 const prop = (name, type, value) => ({ name, type, value });
 let oid = 1;
-const zoneObj = (name, hint, x0, x1, weights, count) => ({
+// beasts: mã loài trong BEASTS (shared/data.ts) kèm trọng số; weights: trọng số theo bậc TIERS (giữ đến bước 3.2).
+const zoneObj = (name, hint, x0, x1, weights, count, beasts) => ({
   id: oid++, name, type: "zone", x: x0 * T, y: 0, width: (x1 - x0) * T, height: MH * T, rotation: 0, visible: true,
-  properties: [prop("hint", "string", hint), prop("weights", "string", weights.join(",")), prop("count", "int", count)],
+  properties: [prop("hint", "string", hint), prop("weights", "string", weights.join(",")), prop("count", "int", count), prop("beasts", "string", beasts)],
 });
 const objects = [
-  zoneObj("Bìa rừng", "Hồn thú 10 – 100 năm", 9, 22, [0.85, 0.15, 0, 0, 0], 14),
-  zoneObj("Rừng thưa", "Hồn thú 100 – 1.000 năm", 22, 45, [0.2, 0.65, 0.15, 0, 0], 12),
-  zoneObj("Rừng sâu", "Hồn thú 1.000 – 10.000 năm", 45, 68, [0, 0.25, 0.6, 0.15, 0], 10),
-  zoneObj("Lõi rừng cổ", "Cẩn thận: hồn thú vạn năm", 68, 89, [0, 0, 0.35, 0.63, 0.02], 9),
+  zoneObj("Bìa rừng", "Hồn thú 10 – 100 năm", 9, 22, [0.85, 0.15, 0, 0, 0], 14, "phong_lang:2,man_da_la_xa:1,tu_van_bao:1"),
+  zoneObj("Rừng thưa", "Hồn thú 100 – 1.000 năm", 22, 45, [0.2, 0.65, 0.15, 0, 0], 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1,quy_ho:1"),
+  zoneObj("Rừng cổ thụ", "Hồn thú 1.000 – 10.000 năm", 45, 68, [0, 0.25, 0.6, 0.15, 0], 10, "quy_dang:1,nhan_dien_ma_chu:1,u_minh_lang:1,kiem_vi_hat:1"),
+  zoneObj("Hắc Ám Lâm", "Cẩn thận: hồn thú vạn năm", 68, 89, [0, 0, 0.35, 0.63, 0.02], 9, "u_minh_lang:1,am_kim_khung_trao_hung:1,kiem_vi_hat:1,quy_anh_bao:1,xich_lan_mang:1"),
   { id: oid++, name: "Doanh trại", type: "spawn", x: 1 * T, y: 25 * T, width: 8 * T, height: 11 * T, rotation: 0, visible: true, properties: [] },
 ];
 
@@ -77,5 +78,5 @@ const map = {
     tilewidth: T, tileheight: T, columns: 8, tilecount: 24, margin: 0, spacing: 0, tiles: collides,
   }],
 };
-writeFileSync(new URL("../shared/assets/forest.json", import.meta.url), JSON.stringify(map));
-console.log("Đã sinh shared/assets/forest.json", MW, "x", MH);
+writeFileSync(new URL("../shared/assets/tinh_dau.json", import.meta.url), JSON.stringify(map));
+console.log("Đã sinh shared/assets/tinh_dau.json", MW, "x", MH);

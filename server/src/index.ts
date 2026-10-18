@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { ForestRoom, awakenAccount } from "./rooms/ForestRoom.ts";
+import { MapRoom, awakenAccount } from "./rooms/MapRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
@@ -50,7 +50,7 @@ app.post("/api/me", async (req, res) => {
   res.json({ character: await store.getCharacter(acc.accountId) });
 });
 
-// Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong ForestRoom.ts.
+// Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/awaken", async (req, res) => {
   const acc = await store.accountFromToken(String(req.body?.token ?? ""));
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
@@ -65,7 +65,8 @@ if (existsSync(dist)) app.use(express.static(dist));
 
 const server = http.createServer(app);
 const gameServer = new Server({ transport: new WebSocketTransport({ server }) });
-gameServer.define("forest", ForestRoom);
+// Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới.
+gameServer.define("map", MapRoom).filterBy(["mapId"]);
 
 await store.init();
 await gameServer.listen(PORT);

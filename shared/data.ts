@@ -6,15 +6,15 @@ export interface TierDef {
   years: number;
   age: string; col: string; glow: string;
   hp: number; dmg: number; xp: number; spd: number;
-  atkb: number; hpb: number; size: number; beast: string; body: string;
+  atkb: number; hpb: number; size: number; body: string;
 }
 
 export const TIERS: TierDef[] = [
-  { years: 10,     age: "10 năm",      col: "#f3f3f3", glow: "#ffffff", hp: 30,   dmg: 4,  xp: 12,   spd: 26, atkb: 2,  hpb: 12,  size: 8,  beast: "Thỏ Gai",          body: "#d9cbb3" },
-  { years: 100,    age: "100 năm",     col: "#f2c84b", glow: "#ffe08a", hp: 95,   dmg: 9,  xp: 40,   spd: 32, atkb: 5,  hpb: 30,  size: 11, beast: "Lang Xám",         body: "#8b8f96" },
-  { years: 1000,   age: "1.000 năm",   col: "#a253e0", glow: "#c99bff", hp: 300,  dmg: 19, xp: 150,  spd: 36, atkb: 12, hpb: 80,  size: 13, beast: "Báo Vằn Tím",      body: "#5d4380" },
-  { years: 10000,  age: "10.000 năm",  col: "#1a1820", glow: "#8a6bff", hp: 950,  dmg: 42, xp: 500,  spd: 33, atkb: 30, hpb: 220, size: 16, beast: "Hùng Hắc Giáp",    body: "#2c2c35" },
-  { years: 100000, age: "100.000 năm", col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, beast: "Huyết Mãng Vương", body: "#8f1f2a" },
+  { years: 10,     age: "10 năm",      col: "#f3f3f3", glow: "#ffffff", hp: 30,   dmg: 4,  xp: 12,   spd: 26, atkb: 2,  hpb: 12,  size: 8,  body: "#d9cbb3" },
+  { years: 100,    age: "100 năm",     col: "#f2c84b", glow: "#ffe08a", hp: 95,   dmg: 9,  xp: 40,   spd: 32, atkb: 5,  hpb: 30,  size: 11, body: "#8b8f96" },
+  { years: 1000,   age: "1.000 năm",   col: "#a253e0", glow: "#c99bff", hp: 300,  dmg: 19, xp: 150,  spd: 36, atkb: 12, hpb: 80,  size: 13, body: "#5d4380" },
+  { years: 10000,  age: "10.000 năm",  col: "#1a1820", glow: "#8a6bff", hp: 950,  dmg: 42, xp: 500,  spd: 33, atkb: 30, hpb: 220, size: 16, body: "#2c2c35" },
+  { years: 100000, age: "100.000 năm", col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, body: "#8f1f2a" },
 ];
 
 export const TIER_MULT = [1, 1.35, 1.9, 2.8, 4.5];
@@ -25,6 +25,52 @@ export function tierOfYears(years: number) {
   for (let i = 0; i < TIERS.length; i++) if (years >= TIERS[i].years) t = i;
   return t;
 }
+
+// ---------- Bản đồ và hồn thú (GAME_DESIGN.md mục 5.3, 6) ----------
+export type MapKind = "town" | "hunt" | "boss";
+export interface MapDef {
+  /** Mã cố định, cũng là tên file Tiled `shared/assets/<id>.json`. */
+  id: string;
+  name: string; kind: MapKind;
+  level: [number, number]; // cấp đề xuất
+  years: [number, number]; // niên hạn hồn thú
+}
+
+/** Bản đồ đang có. Đến BĐ2 chỉ có một bản đồ; BĐ3 tách `tinh_dau` thành Ngoại vi và Nội địa. */
+export const MAPS: Record<string, MapDef> = {
+  tinh_dau: { id: "tinh_dau", name: "Tinh Đấu Đại Sâm Lâm", kind: "hunt", level: [1, 100], years: [10, 100000] },
+};
+/** Bản đồ server tự chọn khi vào game (đến BĐ2 chưa lưu bản đồ đang đứng). */
+export const DEFAULT_MAP = "tinh_dau";
+
+export interface BeastDef {
+  /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
+  id: string;
+  name: string;
+  /** Bậc tạm (chỉ số trong TIERS) để lấy chỉ số, cho đến khi hồn thú có tuổi theo số năm (bước 3.2). */
+  tier: number;
+}
+
+/** Hồn thú theo loài, tên theo bảng Ngoại vi / Nội địa ở mục 5.3. Thêm loài mới vào cuối mảng (state đồng bộ theo chỉ số). */
+export const BEASTS: BeastDef[] = [
+  { id: "phong_lang",             name: "Phong Lang",             tier: 0 },
+  { id: "man_da_la_xa",           name: "Mạn Đà La Xà",           tier: 0 },
+  { id: "tu_van_bao",             name: "Tử Văn Báo",             tier: 1 },
+  { id: "quy_dang",               name: "Quỷ Đằng",               tier: 1 },
+  { id: "loi_van_hau",            name: "Lôi Văn Hầu",            tier: 1 },
+  { id: "quy_ho",                 name: "Quỷ Hổ",                 tier: 2 },
+  { id: "nhan_dien_ma_chu",       name: "Nhân Diện Ma Chu",       tier: 2 },
+  { id: "u_minh_lang",            name: "U Minh Lang",            tier: 2 },
+  { id: "am_kim_khung_trao_hung", name: "Ám Kim Khủng Trảo Hùng", tier: 3 },
+  { id: "kiem_vi_hat",            name: "Kiếm Vĩ Hạt",            tier: 3 },
+  { id: "quy_anh_bao",            name: "Quỷ Ảnh Báo",            tier: 3 },
+  // Nội địa chưa có hồn thú thường 10 vạn năm; tạm dùng loài mãng xà lớn nhất cho bậc đỏ đến bước 3.2.
+  { id: "xich_lan_mang",          name: "Xích Lân Mãng",          tier: 4 },
+];
+
+const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
+/** Chỉ số trong BEASTS của một mã loài (-1 nếu không có). */
+export const beastIndex = (id: string) => BEAST_INDEX.get(id) ?? -1;
 
 // ---------- Võ hồn ----------
 export type He = "cuong_cong" | "man_cong" | "khong_che" | "phu_tro";
@@ -132,6 +178,10 @@ export const SKILLS = [
 export const ringLimit = (slot: number) => (slot === 1 ? 1 : slot <= 3 ? 2 : slot <= 6 ? 3 : 4);
 export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2);
 export const atBottleneck = (level: number, rings: number) => level >= 10 * (rings + 1);
+
+/** Danh hiệu theo cấp võ hồn ra trận, mỗi bậc 10 cấp (mục 5.1). */
+export const TITLES = ["Hồn Sĩ", "Hồn Sư", "Đại Hồn Sư", "Hồn Tôn", "Hồn Tông", "Hồn Vương", "Hồn Đế", "Hồn Thánh", "Hồn Đấu La", "Phong Hào Đấu La"];
+export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.length - 1, Math.floor((level - 1) / 10)))];
 
 export function calcStats(vh: number, level: number, rings: number[]) {
   const v = VOHON[vh];

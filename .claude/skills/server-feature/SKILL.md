@@ -1,6 +1,6 @@
 ---
 name: server-feature
-description: Checklist server-authoritative khi thêm hoặc sửa luật chơi, message từ client, trạng thái đồng bộ hay API ở server (server/src/rooms/ForestRoom.ts, schema.ts, index.ts). Dùng khi làm bất cứ tính năng gameplay nào: chiến đấu, hồn kỹ, hấp thụ, rơi đồ, túi đồ, võ hồn, đội hình, chat.
+description: Checklist server-authoritative khi thêm hoặc sửa luật chơi, message từ client, trạng thái đồng bộ hay API ở server (server/src/rooms/MapRoom.ts, schema.ts, map.ts, index.ts). Dùng khi làm bất cứ tính năng gameplay nào: chiến đấu, hồn kỹ, hấp thụ, rơi đồ, túi đồ, võ hồn, đội hình, chat.
 ---
 
 # Tính năng phía server
@@ -8,8 +8,10 @@ description: Checklist server-authoritative khi thêm hoặc sửa luật chơi,
 Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt buộc giữ). Server quyết định mọi thứ, client chỉ gửi ý định.
 
 ## Logic đặt ở đâu
-- Luật chơi trong trận: `server/src/rooms/ForestRoom.ts`, lớp `ForestRoom`. Vòng lặp chạy `tick(dt)` với `TICK_RATE` lần/giây (`shared/data.ts`).
-- API REST (đăng nhập, thức tỉnh): `server/src/index.ts` (`/api/login`, `/api/me`, `/api/awaken`). Thức tỉnh do server tự roll, client không chọn kết quả.
+- Luật chơi trong trận: `server/src/rooms/MapRoom.ts`, lớp `MapRoom`. Vòng lặp chạy `tick(dt)` với `TICK_RATE` lần/giây (`shared/data.ts`).
+- Một loại phòng cho mọi bản đồ: `gameServer.define("map", MapRoom).filterBy(["mapId"])` ở `index.ts`; mỗi phòng là một kênh. `onCreate` kiểm `mapId` có trong `MAPS` (mặc định `DEFAULT_MAP`), nạp bản đồ bằng `loadMap(mapId)` (`server/src/map.ts`, cache theo `mapId`) vào `this.map`, ghi `state.mapId`. Va chạm, vùng, điểm hồi sinh đọc qua `this.map` (`hits`, `moveEnt`, `zones`, `spawn`, `inSpawn`), không đọc file bản đồ cố định.
+- Khác biệt giữa các bản đồ nằm trong dữ liệu (`MAPS`, file Tiled), không tách lớp phòng con. Client không bao giờ tự chọn bản đồ đích.
+- API REST (đăng nhập, thức tỉnh): `server/src/index.ts` (`/api/login`, `/api/me`, `/api/awaken`). Luật thức tỉnh nằm trong `awakenAccount` ở `MapRoom.ts`; server tự roll, client không chọn kết quả.
 - Dữ liệu riêng của người chơi chỉ server biết: `pdata: Map<sessionId, PData>` (ví dụ `ringYears`, `absorbing`, `atkCd`). Trạng thái hồn thú riêng: `bdata`.
 - Số cân bằng lấy từ `shared/data.ts` (xem skill `balance-data`), không viết số mới trực tiếp vào room.
 
@@ -24,7 +26,7 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 6. Từ chối thì gửi lý do bằng `this.log(id, text, col)` (chữ tiếng Việt), đừng ném lỗi làm sập room.
 
 ## Đồng bộ xuống client
-- **Trạng thái công khai** (ai cũng thấy): thêm trường trong `server/src/rooms/schema.ts` (`PlayerState`, `BeastState`, `DropState`, `ForestState`) với `@type(...)`, rồi đọc ở `client/src/scenes/GameScene.ts` (skill `client-ui`). Chọn kiểu nhỏ nhất đủ dùng (`uint8`, `float32`…).
+- **Trạng thái công khai** (ai cũng thấy): thêm trường trong `server/src/rooms/schema.ts` (`PlayerState`, `BeastState`, `DropState`, `MapState`) với `@type(...)`, rồi đọc ở `client/src/scenes/GameScene.ts` (skill `client-ui`). Chọn kiểu nhỏ nhất đủ dùng (`uint8`, `float32`…).
 - **Dữ liệu riêng** (túi đồ, danh sách võ hồn, hồn cốt, hồn hạch): chỉ gửi cho chính chủ, ví dụ `this.clients.getById(id)?.send(...)` như hàm `log()`. Không đưa vào `MapSchema` công khai. Người khác chỉ thấy võ hồn đang ra trận, cấp và hồn hoàn của nó. Nếu muốn dùng tính năng lọc theo người xem của `@colyseus/schema` thì tra tài liệu đúng phiên bản đã ghim (3.0.76) qua context7 trước, không đoán API.
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật): `this.broadcast("fx", { k: ... })` và `this.broadcast("dmg", {...})`. Thêm loại `k` mới thì xử lý tương ứng ở `GameScene.fx()`.
 

@@ -27,6 +27,7 @@ export class BeastState extends Schema {
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
   @type("uint8") tier: number = 0;
+  @type("uint8") species: number = 0;  // chỉ số loài trong BEASTS (shared/data.ts)
   @type("uint32") hp: number = 0;
   @type("uint32") maxHp: number = 0;
   @type("int8") face: number = 1;
@@ -43,7 +44,8 @@ export class DropState extends Schema {
   @type("float32") ttl: number = 0;
 }
 
-export class ForestState extends Schema {
+export class MapState extends Schema {
+  @type("string") mapId: string = "";  // mã bản đồ trong MAPS; client tải shared/assets/<mapId>.json
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
   @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
   @type({ map: DropState }) drops = new MapSchema<DropState>();
