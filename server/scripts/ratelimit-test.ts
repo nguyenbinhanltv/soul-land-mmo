@@ -1,7 +1,7 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { loginBegin, loginEnd, chatCheck, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { loginBegin, loginEnd, nameKey, chatCheck, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
 
 let now = 1_000_000;
 const sec = (s: number) => { now += s * 1000; };
@@ -14,27 +14,60 @@ function test(title: string, fn: () => void) {
 }
 
 // ---------- Đăng nhập ----------
-test("Sai 5 lần theo tên thì khóa 1 phút, báo số lần còn lại khi gần hết", () => {
+test("Sai 5 lần với cùng (tên, IP) thì khóa cặp đó 1 phút, báo số lần còn lại khi gần hết", () => {
   assert.equal(attempt("Đường Tam", "1.1.1.1", false), "Tên đăng nhập hoặc mật khẩu không đúng.");
   attempt("Đường Tam", "1.1.1.1", false);
   assert.match(attempt("Đường Tam", "1.1.1.1", false)!, /Còn 2 lần/);
   assert.match(attempt("Đường Tam", "1.1.1.1", false)!, /Còn 1 lần/);
   assert.match(attempt("Đường Tam", "1.1.1.1", false)!, /thử lại sau 1 phút/);
-  // Đang khóa: kể cả mật khẩu đúng, khác hoa thường hay khác IP cũng không được thử.
+  // Đang khóa: từ IP đó, kể cả mật khẩu đúng hay khác hoa thường cũng không được thử.
   assert.match(attempt("Đường Tam", "1.1.1.1", true)!, /quá nhiều lần/);
-  assert.match(attempt("ĐƯỜNG TAM", "2.2.2.2", true)!, /quá nhiều lần/);
-  sec(59); assert.match(loginBegin("Đường Tam", "3.3.3.3", now)!.error, /thử lại sau 1 giây|thử lại sau \d+ giây/);
+  assert.match(attempt("ĐƯỜNG TAM", "1.1.1.1", true)!, /quá nhiều lần/);
+  sec(59); assert.match(loginBegin("Đường Tam", "1.1.1.1", now)!.error, /thử lại sau \d+ giây/);
   sec(2); assert.equal(attempt("Đường Tam", "1.1.1.1", true), null);
 });
 
+test("Kẻ phá gõ sai từ IP của mình không khóa được chủ tài khoản ở IP khác", () => {
+  for (let i = 0; i < 5; i++) attempt("Tiểu Vũ", "6.6.6.6", false);
+  assert.match(attempt("Tiểu Vũ", "6.6.6.6", true)!, /quá nhiều lần/);
+  assert.equal(attempt("Tiểu Vũ", "2.2.2.2", true), null);
+});
+
 test("Mỗi lần khóa sau dài gấp đôi, tối đa 30 phút", () => {
-  const lockFor = (ip: string) => { for (let i = 0; i < 5; i++) attempt("Tiểu Vũ", ip, false); return loginBegin("Tiểu Vũ", "9.9.9.9", now)!.retryAfter; };
+  const lockFor = () => { for (let i = 0; i < 5; i++) attempt("Tiểu Vũ", "1.1.1.1", false); return loginBegin("Tiểu Vũ", "1.1.1.1", now)!.retryAfter; };
   const seen: number[] = [];
-  for (let k = 0; k < 7; k++) { const s = lockFor(`1.1.1.${k}`); seen.push(s); sec(s + 1); }
+  for (let k = 0; k < 7; k++) { const s = lockFor(); seen.push(s); sec(s + 1); }
   assert.deepEqual(seen, [60, 120, 240, 480, 960, 1800, 1800]);
 });
 
-test("Đăng nhập đúng xóa bộ đếm của tên", () => {
+test("Dò phân tán: tổng 30 lần sai một tên từ nhiều IP thì khóa tên ở mọi IP", () => {
+  for (let i = 0; i < 29; i++) attempt("Vinh Vinh", `10.0.${Math.floor(i / 4)}.${i % 4}`, false); // mỗi IP chỉ sai ≤ 4 lần
+  assert.equal(attempt("Vinh Vinh", "2.2.2.2", true), null, "chưa tới 30 thì chủ tài khoản vẫn vào được");
+  for (let i = 0; i < 29; i++) attempt("Vinh Vinh", `10.1.${Math.floor(i / 4)}.${i % 4}`, false);
+  assert.match(attempt("Vinh Vinh", "10.9.9.9", false)!, /thử lại sau 1 phút/);
+  assert.match(attempt("Vinh Vinh", "2.2.2.2", true)!, /thử lại sau 1 phút/);
+  // Tên chưa có tài khoản cũng bị đếm và báo y hệt, nên không đoán được tài khoản có tồn tại hay không.
+  assert.equal(attempt("Khong Ton Tai", "3.3.3.3", false), "Tên đăng nhập hoặc mật khẩu không đúng.");
+  sec(61); assert.equal(attempt("Vinh Vinh", "2.2.2.2", true), null);
+});
+
+test("Chuẩn hóa NFKC: các cách viết khác của cùng một tên dùng chung bộ đếm", () => {
+  assert.equal(nameKey("Ｔａｍ Ｔａｍ"), nameKey("tam tam")); // chữ full-width
+  assert.equal(nameKey("Đường Tam".normalize("NFD")), nameKey("đường tam")); // dấu tổ hợp vs dựng sẵn
+  const variants = ["Tam Tam", "ＴＡＭ ＴＡＭ", "tam tam", "Ｔａｍ Ｔａｍ", " TAM TAM "];
+  for (const v of variants) attempt(v, "1.1.1.1", false);
+  assert.match(attempt("tam tam", "1.1.1.1", true)!, /quá nhiều lần/);
+  assert.equal(nameKey("İRİS"), nameKey("iris")); // "İ" của tiếng Thổ
+  assert.equal(nameKey("ΟΔΥΣΣΕΥΣ"), nameKey("οδυσσευσ")); // "Σ" cuối từ
+});
+
+test("Đăng nhập đúng vào tài khoản trông giống (\"ＴＡＭ\") không xóa được bộ đếm của \"Tam\"", () => {
+  for (let i = 0; i < 4; i++) attempt("Tam", "1.1.1.1", false);
+  assert.equal(attempt("ＴＡＭ", "1.1.1.1", true), null); // db.ts coi đây là tài khoản khác: đăng nhập được
+  assert.match(attempt("Tam", "1.1.1.1", false)!, /thử lại sau 1 phút/);
+});
+
+test("Đăng nhập đúng xóa bộ đếm của (tên, IP) và của tên", () => {
   for (let i = 0; i < 4; i++) attempt("Đái Mộc Bạch", "1.1.1.1", false);
   assert.equal(attempt("Đái Mộc Bạch", "1.1.1.1", true), null);
   for (let i = 0; i < 4; i++) assert.doesNotMatch(attempt("Đái Mộc Bạch", "1.1.1.1", false)!, /quá nhiều/);
