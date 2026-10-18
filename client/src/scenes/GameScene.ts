@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE } from "../../../shared/data.ts";
+import { TIERS, BEASTS, VOHON, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import type { OwnedVohons } from "../net.ts";
+import type { OwnedVohons, Squad } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -166,6 +166,13 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       hud.renderRoster(m, (slots) => this.room.send("team", { slots }));
       hud.buildTeam(m, (slot) => this.act("switch" + slot));
+    });
+    // Sinh lực từng võ hồn trong đội và võ hồn đã gục (luật gục từng võ hồn, bước 2.3b): cũng chỉ gửi riêng cho mình.
+    this.room.onMessage("squad", (m: Squad) => hud.setSquad(m));
+    this.room.onMessage("ko", (m: { fallen: string; next: string | null }) => {
+      const name = (id: string) => VOHON[Math.max(0, vohonIndex(id))].name;
+      if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
+      else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
     });
     this.room.send("vohons");
   }
@@ -381,7 +388,7 @@ export class GameScene extends Phaser.Scene {
     const skKey = `${me.vh}|${me.rings.length}`;
     if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], (a) => this.act(a)); }
     hud.updateStats(me);
-    hud.updateTeam(me.swCd);
+    hud.updateTeam(me);
     const inCamp = me.x >= this.campRect.x && me.x <= this.campRect.x + this.campRect.w && me.y >= this.campRect.y && me.y <= this.campRect.y + this.campRect.h;
     const zone = this.zones.find((z) => me.x >= z.x0 && me.x < z.x1);
     const zname = inCamp || !zone ? "Doanh trại" : zone.name;

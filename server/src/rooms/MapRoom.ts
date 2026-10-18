@@ -4,7 +4,8 @@
 import { Room, Client, ServerError } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex,
-  AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, parseTeam, BEASTS, MAPS, DEFAULT_MAP, parseLooks, dir4, type Looks } from "../../../shared/data.ts";
+  AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
+  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, MAPS, DEFAULT_MAP, parseLooks, dir4, type Looks } from "../../../shared/data.ts";
 import { loadMap, type GameMap } from "../map.ts";
 import { store, Character, type AccountLooks } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
@@ -18,7 +19,11 @@ interface PData {
   input: { x: number; y: number }; dir: { x: number; y: number };
   atk: number; speed: number; atkCd: number; inv: number; lastHit: number; deadT: number;
   absorbing: { dropId: string; t: number; dur: number; risk: number } | null;
-  mpF: number; hpF: number;
+  mpF: number; hpF: number; // hpF: sinh lực của võ hồn ra trận
+  benchHp: Map<number, number>; // sinh lực các võ hồn khác (rowId -> sinh lực; không có = đầy). Không lưu DB: vào lại thì hồi đầy
+  down: Map<number, number>;    // võ hồn đã gục: rowId -> số giây ngoài trận còn lại trước khi hồi (REVIVE_SECS)
+  dirty: Set<number>;           // võ hồn không ra trận có tiến độ chưa lưu (kinh nghiệm chia cho đội)
+  squadKey: string; squadT: number; // tin riêng "squad": nội dung lần gửi trước, đếm giờ kiểm tra lại
   fight: number;        // số giây kể từ lần cuối đánh trúng hoặc bị đánh
   teamSaving: Promise<void> | null; teamDirty: boolean; // lưu đội hình: tối đa một lần ghi đang chạy, lần sau ghi bản mới nhất
 }
@@ -82,6 +87,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("vohons", (c) => this.sendVohons(c));
     this.onMessage("team", (c, m: { slots: unknown }) => this.setTeam(c, m?.slots));
     this.onMessage("switch", (c, m: { slot: number }) => this.switchSlot(c, Number(m?.slot)));
+    this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
@@ -101,7 +107,8 @@ export class MapRoom extends Room<MapState> {
     p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol;
     const pos = this.spawnPoint(); p.x = pos.x; p.y = pos.y;
     const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
-      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0, fight: 99, teamSaving: null, teamDirty: false };
+      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0, fight: 99, teamSaving: null, teamDirty: false,
+      benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0 };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.recalc(client.sessionId, true);
@@ -156,11 +163,18 @@ export class MapRoom extends Room<MapState> {
     Object.assign(d.ch, { level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
   }
 
+  /** Lưu võ hồn ra trận và các võ hồn khác vừa nhận kinh nghiệm chia cho đội. */
   async save(id: string) {
     const d = this.pdata.get(id); if (!d) return;
     this.syncCh(id);
-    await store.saveCharacter({ ...d.ch, rings: [...d.ch.rings] });
+    d.dirty.delete(d.ch.rowId);
+    const list = [d.ch, ...d.owned.filter((v) => d.dirty.has(v.rowId))]; d.dirty.clear();
+    await Promise.all(list.map((v) => store.saveCharacter({ ...v, rings: [...v.rings] })
+      .catch((e) => { if (v !== d.ch) d.dirty.add(v.rowId); throw e; })));
   }
+
+  /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không). */
+  maxHpOf(v: Character) { return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears)).maxHp; }
 
   // ---------- Võ hồn sở hữu và đội hình ----------
   /** Danh sách võ hồn và đội hình chỉ gửi riêng cho chính chủ, không nằm trong state đồng bộ (mục 6). */
@@ -168,7 +182,26 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(c.sessionId); if (!d) return;
     this.syncCh(c.sessionId);
     c.send("vohons", { active: d.ch.rowId, team: [...d.team],
-      list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, stars: v.stars, rings: [...v.rings] })) });
+      list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings] })) });
+    this.sendSquad(c.sessionId, true);
+  }
+
+  /**
+   * Tin riêng "squad": sinh lực từng võ hồn trong đội, võ hồn đã gục và số giây còn lại trước khi hồi, có đang giao chiến
+   * không (đồng hồ hồi chỉ chạy ngoài trận). Chỉ gửi khi nội dung đổi (`force` thì gửi luôn); tick kiểm tra định kỳ.
+   */
+  sendSquad(id: string, force = false) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const list = d.team.flatMap((r) => {
+      const v = d.owned.find((o) => o.rowId === r); if (!v) return [];
+      const maxHp = v === d.ch ? p.maxHp : this.maxHpOf(v), down = d.down.get(r);
+      const hp = v === d.ch ? p.hp : down !== undefined ? 0 : Math.ceil(Math.min(maxHp, d.benchHp.get(r) ?? maxHp));
+      return [{ rowId: r, hp, maxHp, down: down !== undefined ? Math.max(1, Math.ceil(down)) : 0 }];
+    });
+    const msg = { combat: d.fight < TEAM_COMBAT_SECS, list }, key = JSON.stringify(msg);
+    if (!force && key === d.squadKey) return;
+    d.squadKey = key;
+    this.clients.getById(id)?.send("squad", msg);
   }
 
   /** Xếp đội hình (thay võ hồn khác vào đội, đổi chỗ, bỏ ra): chỉ khi ngoài giao chiến. Client gửi đủ TEAM_SIZE ô. */
@@ -183,9 +216,11 @@ export class MapRoom extends Room<MapState> {
     if (p.dead) return deny("Đã gục ngã, không thể đổi đội hình.");
     if (d.absorbing) return deny("Đang hấp thụ hồn hoàn, không thể đổi đội hình.");
     if (d.fight < TEAM_COMBAT_SECS) return deny(`Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới đổi đội hình được.`);
+    // Võ hồn ra trận bị bỏ khỏi đội thì võ hồn chưa gục ở ô đầu tiên còn lại ra trận.
+    const nextId = team.includes(d.ch.rowId) ? d.ch.rowId : team.find((r) => r > 0 && !d.down.has(r));
+    if (!nextId) return deny("Đội phải còn ít nhất một võ hồn chưa gục.");
     d.team = team;
-    // Võ hồn ra trận bị bỏ khỏi đội thì võ hồn ở ô đầu tiên còn lại ra trận.
-    if (!team.includes(d.ch.rowId)) this.activate(id, d.owned.find((v) => v.rowId === team.find((r) => r > 0))!);
+    if (nextId !== d.ch.rowId) this.activate(id, d.owned.find((v) => v.rowId === nextId)!);
     this.persistTeam(d);
     this.sendVohons(c);
   }
@@ -199,6 +234,8 @@ export class MapRoom extends Room<MapState> {
     if (next === d.ch) return;
     if (p.dead) return this.log(id, "Đã gục ngã, không thể đổi võ hồn.", "#ffb35c");
     if (d.absorbing) return this.log(id, "Đang hấp thụ hồn hoàn, không thể đổi võ hồn.", "#ffb35c");
+    const down = d.down.get(next.rowId);
+    if (down !== undefined) return this.log(id, `${VOHON[Math.max(0, vohonIndex(next.vohon))].name} đã gục: hồi lại sau ${Math.ceil(down)} giây ngoài trận hoặc khi về doanh trại.`, "#ffb35c");
     if (p.swCd > 0) return; // client hiện hồi chiêu đổi trên thanh đội hình
     this.activate(id, next);
     p.swCd = SWITCH_CD;
@@ -206,17 +243,23 @@ export class MapRoom extends Room<MapState> {
     this.sendVohons(c);
   }
 
-  /** Cho võ hồn `next` (trong đội) ra trận: đổi chỉ số, hồn hoàn, phụ thể hiển thị; lưu tiến độ võ hồn vừa rút về. */
-  activate(id: string, next: Character) {
+  /**
+   * Cho võ hồn `next` (trong đội, chưa gục) ra trận: đổi chỉ số, hồn hoàn, phụ thể hiển thị; lưu tiến độ võ hồn vừa rút về.
+   * Từ 2.3b mỗi võ hồn giữ sinh lực riêng. Hồn lực thuộc về hồn sư (thiết kế chưa tách theo võ hồn) nên vẫn giữ tỉ lệ như bước 2.2.
+   * `text`: thông báo thay câu mặc định.
+   */
+  activate(id: string, next: Character, text?: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     this.syncCh(id);
-    const prev = d.ch, hpR = d.hpF / Math.max(1, p.maxHp), mpR = d.mpF / Math.max(1, p.maxMp);
-    d.ch = next; d.ringYears = [...next.rings];
+    const prev = d.ch, mpR = d.mpF / Math.max(1, p.maxMp);
+    if (d.down.has(prev.rowId)) d.benchHp.delete(prev.rowId); else d.benchHp.set(prev.rowId, d.hpF);
+    d.ch = next; d.ringYears = [...next.rings]; d.dirty.delete(next.rowId);
     this.showVohon(p, next);
-    // Giữ tỉ lệ sinh lực / hồn lực như bước 2.2 để đổi võ hồn không thành cách hồi đầy (luật gục từng võ hồn: bước 2.3b).
-    this.recalc(id, false); d.hpF = Math.max(1, hpR * p.maxHp); d.mpF = mpR * p.maxMp; this.recalc(id, false);
+    this.recalc(id, false);
+    d.hpF = Math.min(p.maxHp, d.benchHp.get(next.rowId) ?? p.maxHp); d.benchHp.delete(next.rowId);
+    d.mpF = mpR * p.maxMp; this.recalc(id, false);
     this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 34, col: VOHON[p.vh].col });
-    this.log(id, `${VOHON[p.vh].name} ra trận (cấp ${p.level}, ${p.rings.length} hồn hoàn).`, VOHON[p.vh].col);
+    this.log(id, text ?? `${VOHON[p.vh].name} ra trận (cấp ${p.level}, ${p.rings.length} hồn hoàn).`, VOHON[p.vh].col);
     store.saveCharacter({ ...prev, rings: [...prev.rings] }).catch((e) => console.error("Lưu võ hồn thất bại", e));
   }
 
@@ -236,9 +279,65 @@ export class MapRoom extends Room<MapState> {
 
   log(id: string, text: string, col?: string) { this.clients.getById(id)?.send("log", { text, col }); }
 
+  /**
+   * Hook kiểm thử cho bot (client/scripts/bot-test.mjs), chỉ chạy khi server bật biến môi trường GAME_TEST=1; mặc định chỉ trả
+   * lời "không bật". Đi qua đúng các hàm luật chơi: `down` (võ hồn ra trận gục), `kill {tier}` (nhận kinh nghiệm như hạ hồn thú),
+   * `rest {s}` (nghỉ ngoài trận s giây), `set {rowId, level, xp, rings}` (đặt tiến độ một võ hồn của mình; có lưu DB).
+   */
+  testHook(c: Client, m: unknown) {
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
+    if (process.env.GAME_TEST !== "1") return c.send("test", { op, enabled: false });
+    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const int = (x: unknown, lo: number, hi: number, def: number) => (Number.isInteger(x) ? Math.max(lo, Math.min(hi, x as number)) : def);
+    if (op === "down" && !p.dead) { d.inv = 0; this.hurtPlayer(id, d.hpF / VOHON[p.vh].def + 1); }
+    else if (op === "kill") this.rewardKill(id, int(o.tier, 0, TIERS.length - 1, 0));
+    else if (op === "rest") { const s = int(o.s, 0, 3600, 0); d.fight = Math.max(d.fight + s, TEAM_COMBAT_SECS); this.tickDowns(id, s); }
+    else if (op === "set") {
+      const v = d.owned.find((x) => x.rowId === o.rowId);
+      if (v) {
+        this.syncCh(id);
+        v.level = int(o.level, 1, 99, v.level); v.xp = int(o.xp, 0, 1e9, v.xp);
+        if (Array.isArray(o.rings)) v.rings = o.rings.filter((y) => Number.isInteger(y) && y > 0).slice(0, MAX_RINGS) as number[];
+        if (v === d.ch) { d.ringYears = [...v.rings]; this.showVohon(p, v); this.recalc(id, true); } else d.dirty.add(v.rowId);
+      }
+    }
+    this.sendVohons(c);
+    c.send("test", { op, enabled: true });
+  }
+
+  /**
+   * Kinh nghiệm hạ hồn thú bậc `tier` (mục 5.1, 5.3): giảm theo chênh cấp với võ hồn ra trận một lần, rồi chia cho đội:
+   * võ hồn ra trận XP_SHARE_ACTIVE, mỗi võ hồn khác trong đội XP_SHARE_BENCH (kể cả võ hồn đã gục). Ô trống và võ hồn
+   * ở bình cảnh không nhận, phần đó không chia lại.
+   */
+  rewardKill(id: string, tier: number) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const base = TIERS[tier].xp * xpLevelScale(p.level, beastLevel(tier));
+    for (const r of d.team) {
+      const v = d.owned.find((o) => o.rowId === r); if (!v) continue;
+      if (v === d.ch) this.addXp(id, Math.round(base * XP_SHARE_ACTIVE));
+      else this.benchXp(id, v, Math.round(base * XP_SHARE_BENCH));
+    }
+  }
+
+  /** Kinh nghiệm cho võ hồn trong đội đang không ra trận (cùng luật lên cấp, bình cảnh như addXp). */
+  benchXp(id: string, v: Character, n: number) {
+    if (n <= 0 || atBottleneck(v.level, v.rings.length)) return;
+    const d = this.pdata.get(id)!, name = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
+    v.xp += n; d.dirty.add(v.rowId);
+    while (!atBottleneck(v.level, v.rings.length) && v.xp >= xpNeed(v.level) && v.level < 99) {
+      v.xp -= xpNeed(v.level); v.level++;
+      if (!d.down.has(v.rowId)) d.benchHp.delete(v.rowId); // lên cấp thì hồi đầy, như võ hồn ra trận
+      if (atBottleneck(v.level, v.rings.length)) {
+        v.xp = 0;
+        this.log(id, `${name} đạt cấp ${v.level}: bình cảnh! Cần hấp thụ hồn hoàn thứ ${v.rings.length + 1}.`, "#ffe08a");
+      } else this.log(id, `${name} lên cấp ${v.level}.`);
+    }
+  }
+
   addXp(id: string, n: number) {
     const p = this.state.players.get(id)!;
-    if (atBottleneck(p.level, p.rings.length)) return;
+    if (n <= 0 || atBottleneck(p.level, p.rings.length)) return;
     p.xp += n;
     while (!atBottleneck(p.level, p.rings.length) && p.xp >= xpNeed(p.level) && p.level < 99) {
       p.xp -= xpNeed(p.level); p.level++;
@@ -259,11 +358,44 @@ export class MapRoom extends Room<MapState> {
     d.hpF -= dmg; d.inv = 0.45; d.lastHit = 0; d.fight = 0;
     this.broadcast("dmg", { x: p.x, y: p.y - 18, v: -dmg, c: "#ff6b6b", id }); // id: client chạy animation hurt cho hồn sư này
     if (d.absorbing) { d.absorbing = null; p.absorb = 0; this.log(id, "Bị tấn công: quá trình hấp thụ bị gián đoạn!", "#ffb35c"); }
-    if (d.hpF <= 0) {
-      d.hpF = 0; p.dead = true; d.deadT = 2.5;
-      const lost = Math.floor(p.xp * 0.3); p.xp -= lost;
-      this.log(id, `Bạn đã gục ngã${lost ? ` và mất ${lost} kinh nghiệm` : ""}. Đang trở về doanh trại…`, "#ff8a8a");
+    if (d.hpF <= 0) { d.hpF = 0; p.hp = 0; this.knockOut(id); }
+  }
+
+  /**
+   * Võ hồn ra trận gục (mục 5.1): tự đổi sang võ hồn chưa gục kế tiếp trong đội (theo thứ tự ô, hết thì vòng lại ô 1), không
+   * tính và không chờ hồi chiêu đổi. Cả đội gục thì sau RESPAWN_SECS giây về doanh trại; không mất kinh nghiệm hay đồ (mục 2).
+   */
+  knockOut(id: string) {
+    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, fallen = d.ch, name = VOHON[p.vh].name;
+    d.down.set(fallen.rowId, REVIVE_SECS);
+    const at = d.team.indexOf(fallen.rowId);
+    let next: Character | undefined;
+    for (let k = 1; k < TEAM_SIZE && !next; k++) {
+      const r = d.team[(at + k) % TEAM_SIZE];
+      if (r && !d.down.has(r)) next = d.owned.find((v) => v.rowId === r);
     }
+    const c = this.clients.getById(id);
+    if (next) {
+      const nextName = VOHON[Math.max(0, vohonIndex(next.vohon))].name;
+      this.activate(id, next, `${name} đã gục! ${nextName} tự động ra trận. ${name} hồi lại sau ${REVIVE_SECS} giây ngoài trận hoặc khi về doanh trại.`);
+      c?.send("ko", { fallen: fallen.vohon, next: next.vohon });
+      this.persistTeam(d);
+      if (c) this.sendVohons(c);
+    } else {
+      p.dead = true; d.deadT = RESPAWN_SECS;
+      this.log(id, `${name} đã gục, cả đội đều đã gục. Đang trở về doanh trại… (không mất kinh nghiệm hay đồ)`, "#ff8a8a");
+      c?.send("ko", { fallen: fallen.vohon, next: null });
+      this.sendSquad(id, true);
+    }
+  }
+
+  /** Hồi các võ hồn đã gục, đầy sinh lực. */
+  revive(id: string, rows: number[], where: string) {
+    const d = this.pdata.get(id)!;
+    for (const r of rows) { d.down.delete(r); d.benchHp.delete(r); }
+    const names = rows.map((r) => VOHON[Math.max(0, vohonIndex(d.owned.find((v) => v.rowId === r)?.vohon ?? ""))].name);
+    this.log(id, `${names.join(", ")} đã hồi phục ${where}, đổi vào trận được rồi.`, "#86e0b0");
+    this.sendSquad(id, true);
   }
 
   // ---------- Chiến đấu ----------
@@ -331,7 +463,7 @@ export class MapRoom extends Room<MapState> {
     const b = this.state.beasts.get(bid)!; const td = TIERS[b.tier], name = BEASTS[b.species]?.name ?? "hồn thú";
     this.state.beasts.delete(bid); this.bdata.delete(bid);
     const p = this.state.players.get(by)!; p.kills++;
-    this.addXp(by, td.xp);
+    this.rewardKill(by, b.tier);
     const drop = new DropState();
     drop.x = b.x; drop.y = b.y; drop.tier = b.tier; drop.owner = by; drop.ownerTtl = 15; drop.ttl = 60;
     this.state.drops.set(uid("d"), drop);
@@ -408,6 +540,17 @@ export class MapRoom extends Room<MapState> {
     return list[list.length - 1].species;
   }
 
+  /** Võ hồn đã gục: hồi ngay khi hồn sư đứng trong doanh trại, hoặc sau REVIVE_SECS giây ngoài trận (giao chiến thì đồng hồ dừng). */
+  tickDowns(id: string, dt: number) {
+    const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
+    if (!d.down.size) return;
+    if (this.map.inSpawn(p.x, p.y)) return this.revive(id, [...d.down.keys()], "ở doanh trại");
+    if (d.fight < TEAM_COMBAT_SECS) return;
+    const done: number[] = [];
+    for (const [r, t] of d.down) { if (t - dt <= 0) done.push(r); else d.down.set(r, t - dt); }
+    if (done.length) this.revive(id, done, "sau khi nghỉ ngoài trận");
+  }
+
   // ---------- Vòng lặp ----------
   tick(dt: number) {
     // người chơi
@@ -418,7 +561,13 @@ export class MapRoom extends Room<MapState> {
       if (p.swCd > 0) p.swCd = Math.max(0, p.swCd - dt);
       if (p.dead) {
         d.deadT -= dt;
-        if (d.deadT <= 0) { const s = this.spawnPoint(); p.x = s.x; p.y = s.y; p.dead = false; d.inv = 1.5; this.recalc(id, true); }
+        if (d.deadT <= 0) {
+          // Cả đội gục: về doanh trại, cả đội hồi đầy.
+          const s = this.spawnPoint(); p.x = s.x; p.y = s.y; p.dead = false; d.inv = 1.5;
+          d.down.clear(); d.benchHp.clear(); this.recalc(id, true);
+          this.log(id, "Đã về doanh trại, cả đội hồi phục.", "#86e0b0");
+          this.sendSquad(id, true);
+        }
         return;
       }
       const { x: ix, y: iy } = d.input; const il = Math.hypot(ix, iy);
@@ -431,8 +580,17 @@ export class MapRoom extends Room<MapState> {
       }
       if (d.absorbing) { d.absorbing.t += dt; p.absorb = Math.min(0.999, d.absorbing.t / d.absorbing.dur); if (d.absorbing.t >= d.absorbing.dur) this.finishAbsorb(id); }
       d.mpF = Math.min(p.maxMp, d.mpF + (4 + p.level * 0.15) * (VOHON[p.vh].mp > 1 ? 1.5 : 1) * dt);
-      d.hpF = Math.min(p.maxHp, d.hpF + (d.lastHit > 5 ? p.maxHp * 0.04 : 1.5) * dt);
+      const regen = (max: number) => (d.lastHit > 5 ? max * 0.04 : 1.5) * dt;
+      d.hpF = Math.min(p.maxHp, d.hpF + regen(p.maxHp));
       p.hp = Math.ceil(d.hpF); p.mp = Math.floor(d.mpF);
+      // Võ hồn khác trong đội (chưa gục) hồi sinh lực cùng nhịp với võ hồn ra trận.
+      for (const [r, hp] of d.benchHp) {
+        const v = d.owned.find((o) => o.rowId === r), max = v ? this.maxHpOf(v) : 0;
+        if (!v || hp + regen(max) >= max) d.benchHp.delete(r); else d.benchHp.set(r, hp + regen(max));
+      }
+      this.tickDowns(id, dt);
+      d.squadT -= dt;
+      if (d.squadT <= 0) { d.squadT = 0.5; this.sendSquad(id); }
     });
 
     // hồn thú

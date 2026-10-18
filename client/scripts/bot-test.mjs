@@ -1,8 +1,10 @@
 // Kiểm thử nhanh: 2 bot đăng nhập, tạo nhân vật, qua lễ thức tỉnh, vào phòng bản đồ, xếp đội hình, đổi võ hồn trong trận,
 // di chuyển, đánh hồn thú, thử hấp thụ, rồi vào lại để kiểm tra đội hình đã lưu.
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
+// Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { TIERS, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -45,6 +47,9 @@ async function enter(b){
   b.room=await new Client(WS).joinOrCreate("map",{token:b.token}); b.owned=null; b.ownedMsgs=0;
   b.room.onMessage("log",m=>b.logs.push(m.text)); for(const t of ["chat","fx","dmg"]) b.room.onMessage(t,()=>{});
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
+  b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
+  b.room.onMessage("ko",m=>{b.ko=m;});
+  b.room.onMessage("test",m=>{b.test=m;});
   b.room.send("vohons");
 }
 const lastLog=(b,re)=>waitFor(()=>re.test(b.logs.at(-1)??""),800);
@@ -138,13 +143,84 @@ if(p.kills){
 }
 let dr=null; st.drops.forEach(d=>dr=d);
 if(dr){ for(let i=0;i<50 && Math.hypot(dr.x-p.x,dr.y-p.y)>10;i++){const dx=dr.x-p.x,dy=dr.y-p.y,d=Math.hypot(dx,dy); A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); await sleep(60);} A.room.send("input",{x:0,y:0}); await sleep(150); A.room.send("absorb"); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
+// ---------- 2.3b: gục từng võ hồn, hồi sinh, chia kinh nghiệm 40/20 cho đội ----------
+// Hàm luật thuần trong shared/data.ts: cấp tương đương theo bậc và giảm kinh nghiệm theo chênh cấp (mục 5.3).
+ok(same(TIERS.map((_,t)=>beastLevel(t)),[10,10,20,40,70]),`cấp tương đương theo bậc: ${TIERS.map((_,t)=>beastLevel(t)).join("/")}`);
+ok(xpLevelScale(19,10)===1&&xpLevelScale(20,10)===0.5&&xpLevelScale(30,10)===0.1&&xpLevelScale(99,70)===0.5&&xpLevelScale(5,70)===1,"giảm kinh nghiệm 100/50/10%, cấp võ hồn tính tối đa 80");
+ok(A.squad&&B.squad&&!B.squad.list.some(s=>A.owned.team.includes(s.rowId)),"tin squad chỉ gửi cho chính chủ");
+async function test(b,op,extra={}){ b.test=null; const n=b.ownedMsgs; b.room.send("test",{op,...extra}); await waitFor(()=>b.test&&b.ownedMsgs>n); return b.test; }
+const vOf=r=>A.owned.list.find(v=>v.rowId===r), sq=r=>A.squad?.list.find(s=>s.rowId===r);
+const spawnObj=JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>(o.type??o.class)==="spawn");
+const inCamp=()=>p.x>=spawnObj.x&&p.x<=spawnObj.x+spawnObj.width&&p.y>=spawnObj.y&&p.y<=spawnObj.y+spawnObj.height;
+if(!(await test(A,"ping"))?.enabled) console.log("  ⚠ bỏ qua kiểm tra 2.3b (gục, hồi sinh, chia kinh nghiệm): bật server bằng GAME_TEST=1");
+else {
+  await waitFor(()=>p.swCd===0&&p.absorb===0,8000); // lần thử hấp thụ ở trên có thể còn đang chạy
+  const a=A.owned.active, bn=A.owned.team.find(r=>r&&r!==a), orig=[a,bn].map(r=>({rowId:r,level:vOf(r).level,xp:vOf(r).xp,rings:[...vOf(r).rings]}));
+  ok(A.owned.team.filter(Boolean).length===2&&TEAM_SIZE===4,"đội 2 võ hồn, 2 ô trống");
+  /** Hạ hồn thú bậc `tier` (qua hook): trả về kinh nghiệm mỗi võ hồn nhận được. */
+  const kill=async tier=>{ const x0=[a,bn].map(r=>vOf(r).xp); await test(A,"kill",{tier}); return [a,bn].map((r,i)=>vOf(r).xp-x0[i]); };
+  const split=(lv,tier)=>{ const base=TIERS[tier].xp*xpLevelScale(lv,beastLevel(tier)); return [Math.round(base*XP_SHARE_ACTIVE),Math.round(base*XP_SHARE_BENCH)]; };
+  // Chia 40/20: hai võ hồn cấp 5 chưa có hồn hoàn (chưa bình cảnh, đủ xa mốc lên cấp).
+  await test(A,"set",{rowId:a,level:5,xp:0,rings:[]}); await test(A,"set",{rowId:bn,level:5,xp:0,rings:[]});
+  let got=await kill(1), want=split(5,1);
+  ok(same(got,want)&&want[0]<xpNeed(5)&&p.xp===want[0],`chia kinh nghiệm hồn thú ${TIERS[1].age}: ra trận +${got[0]}, võ hồn khác +${got[1]} (cần ${want.join("/")}); ô trống bỏ đi`);
+  // Võ hồn ở bình cảnh không nhận, phần đó không dồn cho võ hồn ra trận.
+  await test(A,"set",{rowId:bn,level:10,xp:0,rings:[]});
+  got=await kill(1);
+  ok(got[0]===want[0]&&got[1]===0&&vOf(bn).level===10,`võ hồn ở bình cảnh không nhận: +${got.join("/")}`);
+  // Giảm theo chênh cấp với võ hồn ra trận (một lần, trước khi chia).
+  await test(A,"set",{rowId:bn,level:5,xp:0,rings:[]});
+  for(const [lv,rings] of [[25,[10,100]],[35,[10,100,100]]]){
+    await test(A,"set",{rowId:a,level:lv,xp:0,rings});
+    got=await kill(1); want=split(lv,1);
+    ok(same(got,want),`ra trận cấp ${lv}, hồn thú cấp tương đương ${beastLevel(1)}: x${xpLevelScale(lv,beastLevel(1))} -> +${got.join("/")} (cần ${want.join("/")})`);
+  }
+  await test(A,"set",{rowId:a,level:5,xp:0,rings:[]});
+
+  // Ra khỏi doanh trại (ở doanh trại võ hồn gục hồi ngay).
+  for(let i=0;i<80&&inCamp();i++){ A.room.send("input",{x:1,y:0}); await sleep(100); }
+  A.room.send("input",{x:0,y:0}); await sleep(150);
+  ok(!inCamp(),"đứng ngoài doanh trại");
+  // Võ hồn ra trận gục -> tự đổi sang võ hồn còn sống, không chờ hồi chiêu đổi; võ hồn mới giữ sinh lực riêng (đầy).
+  const s0=A.owned.team.indexOf(bn); A.room.send("switch",{slot:s0});
+  ok(await waitFor(()=>A.owned.active===bn&&p.swCd>2),"đổi tay sang ô 2, đang hồi chiêu đổi");
+  const cd0=p.swCd; A.ko=null; await test(A,"down");
+  ok(await waitFor(()=>A.owned.active===a&&A.ko?.next),`võ hồn gục tự đổi sang ${A.ko?.next} dù đang hồi chiêu`);
+  ok(!p.dead&&p.hp===p.maxHp,`không gục cả người, võ hồn mới đủ sinh lực riêng ${p.hp}/${p.maxHp}`);
+  ok(p.swCd>0&&p.swCd<=cd0,`hồi chiêu đổi không bị tính thêm (${p.swCd.toFixed(2)})`);
+  ok(/gục.*tự động ra trận/.test(A.logs.join("\n")),"thông báo tự đổi võ hồn");
+  ok(await waitFor(()=>sq(bn)?.down>0&&sq(bn).hp===0&&A.squad.combat),`squad: ${vOf(bn).vohon} đã gục, còn ${sq(bn)?.down} giây, đang giao chiến`);
+  await waitFor(()=>p.swCd===0,3500);
+  A.room.send("switch",{slot:s0}); ok(await lastLog(A,/đã gục/)&&A.owned.active===a,"không đổi vào võ hồn đã gục");
+  // Hồi lại sau REVIVE_SECS giây ngoài trận.
+  await test(A,"rest",{s:REVIVE_SECS-1});
+  ok(sq(bn)?.down===1,`nghỉ ${REVIVE_SECS-1} giây: vẫn gục, còn ${sq(bn)?.down} giây`);
+  await test(A,"rest",{s:2});
+  ok(await waitFor(()=>sq(bn)?.down===0&&sq(bn).hp===sq(bn).maxHp)&&await lastLog(A,/hồi phục/),`nghỉ đủ ${REVIVE_SECS} giây ngoài trận: hồi đầy ${sq(bn)?.hp}/${sq(bn)?.maxHp}`);
+  // Cả đội gục: về doanh trại, không mất kinh nghiệm, hồi đầy cả đội.
+  await test(A,"kill",{tier:0});
+  const xpBefore=[a,bn].map(r=>vOf(r).xp);
+  A.ko=null; await test(A,"down"); await waitFor(()=>A.owned.active===bn);
+  A.ko=null; await test(A,"down");
+  ok(await waitFor(()=>p.dead&&A.ko&&A.ko.next===null)&&/cả đội/i.test(A.logs.join("\n")),"cả đội gục: thông báo về doanh trại");
+  ok(same([a,bn].map(r=>vOf(r).xp),xpBefore),`không mất kinh nghiệm (${xpBefore.join("/")})`);
+  ok(await waitFor(()=>!p.dead,RESPAWN_SECS*1000+1500)&&inCamp(),"hồi sinh ở doanh trại");
+  ok(await waitFor(()=>p.hp===p.maxHp&&A.squad.list.every(s=>!s.down&&s.hp===s.maxHp)),"cả đội hồi đầy");
+  // Ở doanh trại: võ hồn gục hồi ngay.
+  const act=A.owned.active; await test(A,"down");
+  ok(await waitFor(()=>A.owned.active!==act&&sq(act)?.down===0)&&/doanh trại/.test(A.logs.slice(-3).join("\n")),"gục trong doanh trại: tự đổi rồi hồi ngay");
+  for(const o of orig) await test(A,"set",o);
+}
+
 B.room.send("chat",{text:"xin chào"}); await sleep(200);
 await A.room.leave(); await B.room.leave();
 
-// Vào lại: đội hình và võ hồn ra trận đã lưu.
-const saved={team:[...A.owned.team],active:A.owned.active}; await sleep(500);
+// Vào lại: đội hình, võ hồn ra trận và tiến độ từng võ hồn (cả võ hồn không ra trận) đã lưu.
+const prog=()=>A.owned.list.map(v=>[v.rowId,v.level,v.xp]);
+const saved={team:[...A.owned.team],active:A.owned.active,prog:prog()}; await sleep(500);
 await enter(A); await waitFor(()=>A.owned);
 ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào lại: đội ${JSON.stringify(A.owned?.team)}, ra trận ${A.owned?.active}`);
+ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm từng võ hồn đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);

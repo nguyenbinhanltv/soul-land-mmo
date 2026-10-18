@@ -169,6 +169,16 @@ export const SWITCH_CD = 3;
 /** Đổi đội hình (thay võ hồn khác vào đội): phải rời giao chiến (không đánh, không bị đánh) ít nhất ngần này giây. */
 export const TEAM_COMBAT_SECS = 5;
 /**
+ * Võ hồn đã gục hồi lại (đầy sinh lực) sau ngần này giây ngoài trận (mục 5.1 "Trong trận"). Đồng hồ chỉ chạy khi
+ * không giao chiến (như TEAM_COMBAT_SECS), giao chiến thì dừng lại chứ không đếm lại từ đầu. Về doanh trại thì hồi ngay.
+ */
+export const REVIVE_SECS = 60;
+/** Cả đội gục: sau ngần này giây hồn sư về doanh trại, cả đội hồi đầy (không mất kinh nghiệm hay đồ, mục 2). */
+export const RESPAWN_SECS = 2.5;
+/** Chia kinh nghiệm hạ hồn thú cho đội (mục 5.1): võ hồn ra trận 40%, mỗi võ hồn khác trong đội 20%. Ô trống, võ hồn ở bình cảnh: phần đó bỏ đi. */
+export const XP_SHARE_ACTIVE = 0.4;
+export const XP_SHARE_BENCH = 0.2;
+/**
  * Kiểm tra hình dạng đội hình: mảng đúng TEAM_SIZE ô, mỗi ô là mã dòng võ hồn (vohons.id, số nguyên dương) hoặc 0 = trống,
  * không trùng nhau, có ít nhất một võ hồn. Sai thì null. Võ hồn có thuộc tài khoản hay không do server kiểm tra riêng.
  */
@@ -240,6 +250,27 @@ export const SKILLS = [
 export const ringLimit = (slot: number) => (slot === 1 ? 1 : slot <= 3 ? 2 : slot <= 6 ? 3 : 4);
 export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2);
 export const atBottleneck = (level: number, rings: number) => level >= 10 * (rings + 1);
+/** Số hồn hoàn tối đa của một võ hồn (mục 3): vòng thứ k hấp thụ ở bình cảnh cấp 10×k. */
+export const MAX_RINGS = 10;
+
+// ---------- Giảm kinh nghiệm khi săn hồn thú quá yếu (mục 5.3) ----------
+/**
+ * Cấp tương đương của hồn thú: cấp nhỏ nhất mà võ hồn hấp thụ được hồn hoàn của nó trong giới hạn (ringLimit).
+ * Đến BĐ3 hồn thú chỉ có bậc nên tính theo bậc (10 / 10 / 20 / 40 / 70); BĐ3 đổi sang bảng giới hạn theo số năm.
+ */
+export function beastLevel(tier: number) {
+  for (let slot = 1; slot <= MAX_RINGS; slot++) if (ringLimit(slot) >= tier) return slot * 10;
+  return MAX_RINGS * 10;
+}
+/** Khi so cấp, cấp võ hồn tính tối đa ngần này (vòng 8–10 cùng giới hạn 100.000 năm). */
+export const XP_LEVEL_CAP = 80;
+/** Hồn thú thấp hơn võ hồn ra trận từ `gap` cấp trở lên thì kinh nghiệm nhân `mult` (xếp từ chênh lớn đến nhỏ). */
+export const XP_LEVEL_STEPS = [{ gap: 20, mult: 0.1 }, { gap: 10, mult: 0.5 }];
+/** Hệ số kinh nghiệm theo chênh cấp giữa võ hồn ra trận và hồn thú bị hạ; áp một lần trước khi chia cho đội. */
+export function xpLevelScale(level: number, beastLv: number) {
+  const gap = Math.min(level, XP_LEVEL_CAP) - beastLv;
+  return XP_LEVEL_STEPS.find((s) => gap >= s.gap)?.mult ?? 1;
+}
 
 /** Danh hiệu theo cấp võ hồn ra trận, mỗi bậc 10 cấp (mục 5.1). */
 export const TITLES = ["Hồn Sĩ", "Hồn Sư", "Đại Hồn Sư", "Hồn Tôn", "Hồn Tông", "Hồn Vương", "Hồn Đế", "Hồn Thánh", "Hồn Đấu La", "Phong Hào Đấu La"];

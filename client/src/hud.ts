@@ -1,6 +1,6 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, SKILLS, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD } from "../../shared/data.ts";
-import type { OwnedVohons } from "./net.ts";
+import type { OwnedVohons, Squad } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -79,20 +79,41 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
     const b = document.createElement("button"); b.className = "tm" + (on ? " on" : "") + (v ? "" : " locked");
     b.dataset.slot = String(i);
     if (def) b.style.setProperty("--c", def.col);
-    b.innerHTML = `<b>${i + 1}</b><i class="dot"></i><span></span><small></small><div class="cd"></div>`;
+    if (v) b.dataset.row = String(rowId);
+    b.innerHTML = `<b>${i + 1}</b><i class="dot"></i><span></span><small></small><i class="hpb"><i></i></i><div class="cd"></div>`;
     b.querySelector("span")!.textContent = def ? def.name : "Trống";
-    b.querySelector("small")!.textContent = v ? (on ? "Ra trận" : `Cấp ${v.level}`) : "";
+    b.dataset.sub = v ? (on ? "Ra trận" : `Cấp ${v.level}`) : "";
+    b.querySelector("small")!.textContent = b.dataset.sub;
     b.setAttribute("aria-label", def ? `Ô ${i + 1}: ${def.name}${on ? ", đang ra trận" : ""}` : `Ô ${i + 1}: trống`);
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); sw(i); });
     el.appendChild(b);
   });
 }
 
-/** Hồi chiêu đổi võ hồn (swCd / SWITCH_CD) phủ lên các ô chưa ra trận. */
-export function updateTeam(swCd: number) {
-  const k = Math.max(0, Math.min(1, swCd / SWITCH_CD));
+let squad: Squad = { combat: false, list: [] };
+/** Nhận tin riêng "squad" (sinh lực, võ hồn đã gục); updateTeam vẽ lại mỗi khung hình. */
+export function setSquad(s: Squad) { squad = s; }
+
+/**
+ * Mỗi khung hình: thanh sinh lực từng võ hồn trong đội (ô ra trận lấy sinh lực trong state), võ hồn đã gục làm mờ kèm thời gian
+ * hồi, và hồi chiêu đổi võ hồn (swCd / SWITCH_CD) phủ lên các ô chưa ra trận.
+ */
+export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
+  const k = Math.max(0, Math.min(1, me.swCd / SWITCH_CD));
   document.querySelectorAll<HTMLElement>(".tm").forEach((b) => {
-    (b.querySelector(".cd") as HTMLElement).style.height = (b.classList.contains("on") || b.classList.contains("locked") ? 0 : k * 100) + "%";
+    const on = b.classList.contains("on"), s = squad.list.find((x) => String(x.rowId) === b.dataset.row);
+    const down = !!s?.down, hp = on ? me.hp : s?.hp ?? 0, max = on ? me.maxHp : s?.maxHp ?? 0;
+    b.classList.toggle("down", down);
+    b.classList.toggle("paused", down && squad.combat);
+    const fill = b.querySelector(".hpb i") as HTMLElement | null;
+    if (fill) fill.style.width = (max ? Math.max(0, Math.min(1, hp / max)) * 100 : 100) + "%";
+    const sub = down ? `Gục · ${s!.down}s` : b.dataset.sub ?? "";
+    const small = b.querySelector("small")!;
+    if (small.textContent !== sub) {
+      small.textContent = sub;
+      b.title = down ? `Đã gục: hồi lại sau ${s!.down} giây ngoài trận (đang giao chiến thì đồng hồ dừng) hoặc khi về doanh trại.` : "";
+    }
+    (b.querySelector(".cd") as HTMLElement).style.height = (on || down || b.classList.contains("locked") ? 0 : k * 100) + "%";
   });
 }
 

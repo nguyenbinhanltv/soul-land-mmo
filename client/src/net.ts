@@ -16,7 +16,12 @@ export interface AccountLooks extends Looks { chosen: boolean; }
 export interface Me { character: Character | null; looks: AccountLooks; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. */
-export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; stars: number; rings: number[] }[]; }
+export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[] }[]; }
+/**
+ * Tin nhắn riêng "squad": sinh lực từng võ hồn trong đội; `down` > 0 là võ hồn đã gục, còn ngần ấy giây ngoài trận nữa thì hồi.
+ * `combat`: đang giao chiến (đồng hồ hồi dừng).
+ */
+export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number }[]; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
