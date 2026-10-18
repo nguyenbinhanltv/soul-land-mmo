@@ -8,8 +8,9 @@ description: Quy tắc khi sửa giao diện và điều khiển phía client (c
 Client **chỉ hiển thị và gửi input**. Không tính máu, sát thương, rơi đồ, kết quả hấp thụ hay vị trí thật ở client; mọi luật nằm ở server (skill `server-feature`).
 
 ## Bản đồ file
-- `client/src/main.ts`: đăng nhập, thức tỉnh (gọi `/api/...` qua `post()` trong `net.ts`), `joinOrCreate("forest", { token })`, rồi mở `GameScene`. Gắn class `touch` lên `body` khi `matchMedia("(pointer: coarse)")`.
+- `client/src/main.ts`: đăng nhập, thức tỉnh (gọi `/api/...` qua `post()` trong `net.ts`), `joinOrCreate("map", { token })`, chờ state đầu tiên để đọc `room.state.mapId` (server chọn bản đồ, client không tự chọn), rồi mở `GameScene` với `{ room, mapId }`. Gắn class `touch` lên `body` khi `matchMedia("(pointer: coarse)")`.
 - `client/src/scenes/GameScene.ts`:
+  - `preload()` tải file Tiled `shared/assets/<mapId>.json` theo `mapId` (vite phục vụ `shared/assets` làm thư mục public). Tên vùng lấy từ layer `zones` của file đó.
   - `update()` đọc `this.room.state` mỗi khung hình (`st.players`, `st.beasts`, `st.drops`) rồi nội suy sprite. Trường mới thêm ở `server/src/rooms/schema.ts` thì đọc ở đây.
   - `setupMessages()` nhận `log`, `chat`, `dmg`, `fx`; `fx(m)` vẽ hiệu ứng theo `m.k`. Message riêng mới từ server cũng đăng ký ở đây.
   - `setupInput()` (bàn phím + joystick), `act()` gửi `attack` / `absorb` / `skill {i}`, `sendInput()` gửi `input {x,y}` chỉ khi hướng đổi.

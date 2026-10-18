@@ -23,7 +23,7 @@ description: Cách thêm bảng, cột hoặc chuyển dữ liệu PostgreSQL/Su
 1. Thêm/đổi kiểu dữ liệu (như `Character`) và chữ ký hàm trong interface `Store`.
 2. Cài trong **`PgStore`** (SQL có tham số `$1, $2…`, không nối chuỗi; nhiều câu lệnh liên quan thì dùng transaction như `awaken()`).
 3. Cài trong **`MemoryStore`** với hành vi giống hệt (dùng khi không có `DATABASE_URL`, bot test hay chạy chế độ này). Trả về bản sao (`{ ...c, rings: [...c.rings] }`) để room không sửa thẳng dữ liệu lưu.
-4. Gọi từ `ForestRoom.ts` / `index.ts` qua `store`, không viết SQL ở nơi khác.
+4. Gọi từ `MapRoom.ts` / `index.ts` qua `store`, không viết SQL ở nơi khác.
 
 ## Kiểm tra
 - `npm run check`.
