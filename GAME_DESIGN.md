@@ -673,13 +673,16 @@ shared/assets/ui/
 - **Thứ tự bắt buộc khi duyệt `travel {portal}`** (tránh đua ghi giữa phòng cũ và phòng mới):
   1. Server kiểm tra như ở 5.3. Không hợp lệ thì báo lỗi, dừng.
   2. Đánh dấu client **đang chuyển bản đồ** (cờ trong dữ liệu riêng của người chơi). Từ lúc này phòng cũ bỏ qua input, đánh, hồn kỹ, hấp thụ, đổi võ hồn và `travel` tiếp theo của client đó; hồn thú bỏ mục tiêu là người này.
-  3. Phòng cũ **lưu đầy đủ** trong một lần ghi: võ hồn ra trận (cấp, kinh nghiệm, hồn hoàn, số hạ), `map_id` = bản đồ đích và tọa độ điểm `arrive`. Chờ ghi DB xong (`await`).
-  4. Lưu xong mới gửi riêng `travel {mapId}`. Lưu lỗi thì bỏ cờ, báo "Không chuyển được bản đồ, thử lại", người chơi ở lại.
+  3. Phòng cũ **lưu đầy đủ trong MỘT transaction**: võ hồn ra trận (cấp, kinh nghiệm, hồn hoàn, số hạ; bảng `vohons`) cùng `map_id` = bản đồ đích và tọa độ điểm `arrive` (bảng `accounts`). Từ bước 3.1 transaction này lưu luôn mọi dữ liệu chưa lưu khác của người chơi (túi đồ…). Chờ ghi DB xong (`await`).
+     - **Hoặc ghi hết, hoặc không ghi gì.** Không được ghi một nửa: nếu `vohons` lỗi mà `accounts.map_id` đã là bản đồ đích, bước 4 bỏ cờ cho người chơi ở lại nhưng lớp chặn `WHERE map_id = <mapId của phòng>` (bên dưới) sẽ chặn mọi lần lưu vị trí sau đó, và lần vào sau người chơi xuất hiện ở bản đồ đích.
+     - `PgStore`: một kết nối lấy từ pool, `BEGIN` → các câu `UPDATE` → `COMMIT`; lỗi ở bất kỳ câu nào thì `ROLLBACK` rồi ném lỗi ra. Cần một hàm store riêng cho việc này (ví dụ `saveTravel`), không gọi lần lượt các hàm lưu sẵn có.
+     - `MemoryStore`: kiểm tra xong mới gán mọi trường cùng lúc trong một hàm đồng bộ, không có `await` xen giữa.
+  4. Lưu xong mới gửi riêng `travel {mapId}`. **Lưu lỗi** (transaction đã rollback, DB vẫn như trước bước 3): không gửi `travel`, bỏ cờ đang chuyển bản đồ, báo người chơi "Không chuyển được bản đồ, thử lại"; người chơi ở lại và phòng cũ tiếp tục lưu bình thường.
   5. Client rời phòng và `joinOrCreate("map", { token, mapId })`. Client không rời trong 10 giây thì server ngắt kết nối.
 - **Client đang chuyển bản đồ thì `onLeave` và lưu định kỳ của phòng cũ không ghi gì nữa**, kể cả nhân vật lẫn `map_id`/vị trí: dữ liệu đã lưu đủ ở bước 3, mọi hành động đã bị chặn nên không còn tiến độ mới (phần thưởng từ đạn hồn kỹ đang bay sau thời điểm lưu bị bỏ). Nhờ vậy phòng mới chỉ nạp nhân vật sau khi phòng cũ lưu xong, và không có bản cũ hơn ghi đè bản mới.
 - Phòng thêm một lớp chặn trong câu lệnh ghi: lưu `map_id`/vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng) chỉ ghi khi `map_id` trong DB vẫn là bản đồ của phòng này (`UPDATE … WHERE map_id = <mapId của phòng>`).
 - `onAuth` đối chiếu `mapId` trong tham số với `map_id` trong DB; sai thì từ chối, client hỏi lại `/api/me` (trả `mapId` từ BĐ2). Client chỉ chuyển `mapId` để Colyseus ghép phòng, không tự chọn bản đồ.
-- Cột `accounts.map_id`, `accounts.pos_x`, `accounts.pos_y` (file `server/sql/00N_….sql` mới ở BĐ2). Vị trí thuộc hồn sư, không thuộc võ hồn. Ghi khi qua cổng (bước 3 ở trên), khi rời phòng và theo chu kỳ lưu định kỳ (trừ client đang chuyển bản đồ). Cập nhật cả `PgStore` lẫn `MemoryStore`.
+- Cột `accounts.map_id`, `accounts.pos_x`, `accounts.pos_y` (file `server/sql/00N_….sql` mới ở BĐ2). Vị trí thuộc hồn sư, không thuộc võ hồn. Ghi khi qua cổng (bước 3 ở trên, chung transaction với võ hồn), khi rời phòng và theo chu kỳ lưu định kỳ (trừ client đang chuyển bản đồ). Cập nhật cả `PgStore` lẫn `MemoryStore`.
 - Vào game: vị trí kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn`; đăng xuất ở `loi_tinh_dau` thì lần sau về điểm `arrive` ở Nội địa. `map_id` không còn trong `MAPS` (ví dụ `tinh_dau` sau BĐ3) được ánh xạ sang bản đồ mới.
 - **Mỗi tài khoản một phiên trên mọi phòng:** hiện chỉ đá phiên cũ trong cùng phòng. Với nhiều phòng, phát `kick` kèm `accountId` qua presence; phòng nào có client trùng thì đá.
 
