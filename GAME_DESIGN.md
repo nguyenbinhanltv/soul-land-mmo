@@ -490,7 +490,9 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] 8.4 Bản đồ mới: Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa, Hải Thần Đảo.
 
 **Mỹ thuật: thay sprite vẽ bằng code** (quy cách ở mục 5.11; làm song song, không chặn các giai đoạn khác)
-- [ ] M1 Nền tảng: `art/palette.gpl`, `art/CREDITS.md`, `sprites/manifest.json`; client tải ảnh theo manifest bằng `load.aseprite`, key còn thiếu thì vẽ bằng code.
+- [x] M1 Nền tảng: `art/palette.gpl`, `art/CREDITS.md`, `sprites/manifest.json`; client tải ảnh theo manifest bằng `load.spritesheet`, tạo animation `{sheet}:{animation}_{hướng}` theo chỉ số khung cố định; key còn thiếu thì vẽ bằng code.
+  *Đã làm:* `client/src/sprites.ts`: `preloadSprites` đọc `manifest.json` (mảng `sprites`, đường dẫn và khung suy ra từ key; `beast_{loài}` ghi kèm `frame`), `createSheetAnims`/`createHonsuAnims`/`createBeastAnims`, `honsuAnimKey` (trái = phải + lật), `vohonFrame` (bảng ánh xạ khung phụ thể), `syncLayers`, `recolor` (key `hs_hair_f_2@3`), `addGridFrames` cho sheet vẽ bằng code.
+  Manifest đang rỗng nên game chạy như cũ. Hiển thị hồn sư ghép lớp để bước 2.2b, hồn thú dạng sheet để M4. Thời gian khung `attack` của hồn thú tạm ghi 800 ms trong client cho đến bước 3.5.
 - [ ] M2 Hồn sư: thân nam và nữ, 4 kiểu tóc mỗi giới, áo hồn sư; đủ 3 hướng và 7 animation.
 - [ ] M3 Lớp phụ thể: Lam Ngân Thảo và 4 võ hồn mẫu (mỗi hệ một: Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
 - [ ] M4 Hồn thú: 5 bậc theo bảng kích thước; sau bước 2.6 vẽ theo từng loài ở mục 5.3.

@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, ringLimit, TILE } from "../../../shared/data.ts";
 import { makeTextures, PLAYER_ORIGIN, BEAST_ORIGIN } from "../textures.ts";
+import { preloadSprites, createSheetAnims } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import type { OwnedVohons } from "../net.ts";
 
@@ -34,6 +35,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON("forest", "forest.json");
     this.load.image("tiles", "tiles.png");
+    preloadSprites(this);
   }
 
   create() {
@@ -50,6 +52,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.buildMinimap(map);
     makeTextures(this);
+    createSheetAnims(this);
 
     this.ov = this.add.graphics().setDepth(99990);
     this.vignette = this.add.image(0, 0, "vignette").setScrollFactor(0).setDepth(99995).setAlpha(0);
