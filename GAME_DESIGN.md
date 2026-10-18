@@ -24,7 +24,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Đội hình 4 võ hồn** (đã chốt). Trên bản đồ chỉ hiện võ hồn đang ra trận; đổi sang võ hồn khác trong đội ngay khi đang đánh.
 - **Mỗi võ hồn có 10 hồn hoàn**, ứng với cấp 1–100: bình cảnh ở cấp 10, 20, …, 100.
 - **Niên hạn tối đa: 10 vạn năm (100.000 năm).**
-- Thế giới mở thời gian thực gồm nhiều bản đồ (làng, thành, bản đồ săn, bản đồ boss). Người chơi cùng bản đồ và cùng kênh thì thấy nhau.
+- Thế giới mở thời gian thực gồm nhiều bản đồ (thành, bản đồ săn, bản đồ boss). Người chơi cùng bản đồ và cùng kênh thì thấy nhau.
 
 ## 4. Luật cốt lõi đã làm (bản cũ, sẽ thay dần)
 Đây là những gì code đang chạy. Mục ghi ➜ sẽ bị thay ở giai đoạn tương ứng.
@@ -163,16 +163,16 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - Vòng 10: tuyệt kỹ cuối của võ hồn (chờ chốt).
 
 ### 5.3 Thế giới nhiều bản đồ và hồn thú
-Thế giới gồm nhiều bản đồ nối với nhau bằng **cổng**. Mỗi bản đồ là một file Tiled riêng và một phòng riêng trên server (mỗi phòng là một kênh, mục 6). Có 3 loại bản đồ:
-- **Làng / thành:** an toàn, không có hồn thú, không giao chiến (mục 5.8).
-- **Bản đồ săn:** 3–4 vùng, càng vào sâu hồn thú càng già và càng mạnh.
-- **Bản đồ boss:** Lõi Tinh Đấu, chỉ có boss thế giới (mục 5.4).
+Thế giới gồm nhiều bản đồ nối với nhau bằng **cổng**. Mỗi bản đồ là một file Tiled riêng và một phòng riêng trên server (mỗi phòng là một kênh, mục 6). Có 3 loại bản đồ (`kind` trong `MAPS`):
+- **Thành (`town`):** cả bản đồ an toàn, không có hồn thú, không giao chiến (mục 5.8). Gồm Nặc Đinh Thành và Thiên Đấu Thành.
+- **Bản đồ săn (`hunt`):** 3–4 vùng, càng vào sâu hồn thú càng già và càng mạnh. Bản đồ săn có thể chứa **vùng an toàn** (object `safe`): trong vùng này không sinh hồn thú, hồn thú không đuổi vào và không giao chiến. **Thánh Hồn Thôn là bản đồ săn (`hunt`)**, khu làng ở giữa là vùng `safe`.
+- **Bản đồ boss (`boss`):** Lõi Tinh Đấu, chỉ có boss thế giới (mục 5.4).
 
 **Danh sách bản đồ**
 
 | Bản đồ (`mapId`) | Loại | Cấp đề xuất | Niên hạn hồn thú | Nối với | Làm ở |
 |---|---|---|---|---|---|
-| Thánh Hồn Thôn (`thanh_hon_thon`) | Làng + bãi tập | 1–10 | 10–450 | Nặc Đinh Thành | BĐ2 |
+| Thánh Hồn Thôn (`thanh_hon_thon`) | Săn (`hunt`): bãi tập quanh làng, khu làng là vùng `safe` | 1–10 | 10–450 | Nặc Đinh Thành | BĐ2 |
 | Nặc Đinh Thành (`nac_dinh_thanh`) | Thành an toàn: Đại Sư, thương nhân, lò rèn | – | – | Thánh Hồn Thôn, Ngoại vi, Thiên Đấu Thành | BĐ2 |
 | Tinh Đấu Đại Sâm Lâm – Ngoại vi (`tinh_dau_ngoai_vi`) | Săn | 10–30 | 300–2.000 | Nặc Đinh Thành, Nội địa | BĐ3 |
 | Tinh Đấu Đại Sâm Lâm – Nội địa (`tinh_dau_noi_dia`) | Săn | 30–60 | 1.500–25.000 | Ngoại vi, Lõi Tinh Đấu | BĐ3 |
@@ -212,7 +212,8 @@ So cấp của võ hồn đang ra trận (tối đa 80) với cấp tương đư
 **Cổng và chặn mềm**
 - Cổng là một vùng chữ nhật trong file Tiled (object `portal`, mục 6) gồm: bản đồ đích, điểm xuất hiện ở bản đồ đích, cấp đề xuất.
 - Bước vào cổng thì client hiện hộp "Đi tới *Nội địa* (đề xuất cấp 30–60)". Nếu cấp võ hồn đang ra trận thấp hơn cấp đề xuất tối thiểu, hộp có thêm **cảnh báo nguy hiểm** màu đỏ. **Chặn mềm:** không đủ cấp vẫn vào được nếu xác nhận.
-- Server vẫn kiểm tra cổng: người chơi đang đứng trong vùng cổng, cổng thuộc bản đồ hiện tại, bản đồ đích có trong `MAPS`, không gục, không đang hấp thụ. Client chỉ gửi tên cổng, **không bao giờ tự chọn bản đồ** hay gửi tọa độ đích.
+- Server vẫn kiểm tra cổng: người chơi đang đứng trong vùng cổng, cổng thuộc bản đồ hiện tại, bản đồ đích có trong `MAPS`, không gục, không đang hấp thụ. Client chỉ gửi tên cổng, **không bao giờ tự chọn bản đồ** hay gửi tọa độ đích. Phòng cũ lưu xong rồi mới cho chuyển (thứ tự ở mục 6).
+- Điểm xuất hiện (`arrive`) ở bản đồ đích phải nằm **ngoài mọi vùng `portal`** của bản đồ đó, để vừa tới nơi không bị hiện lại hộp đi cổng.
 - Đi qua cổng mất 1 giây niệm, bị đánh thì hủy (chờ chốt).
 
 **Vùng và hồn thú của từng bản đồ săn**
@@ -303,6 +304,7 @@ Mỗi bản đồ săn rơi mảnh của 2–3 võ hồn riêng (mục 5.1) và 
 | Boss thế giới | Mảnh UR: Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp | Mọi bộ |
 
 - Trước BĐ6, rương tà hóa thú vương rơi thêm mảnh của võ hồn thuộc bản đồ chưa mở, để không võ hồn nào bị khóa hẳn.
+- **Mảnh UR trước BĐ6:** rương tà hóa thú vương có tỉ lệ thấp rơi 1 mảnh UR (Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; đề xuất 5%, chờ chốt), để hai võ hồn UR không bị khóa hẳn cho tới Giai đoạn 8. Từ BĐ6, mảnh UR **chỉ** rơi từ boss thế giới và rương thú vương thôi rơi mảnh UR.
 
 **Luật chung của hồn thú**
 - Chỉ số hồn thú tăng theo số năm, không chỉ theo màu. Loài (bảng `BEASTS`) quyết định kiểu tấn công, chiêu và hệ số chỉ số.
@@ -348,7 +350,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc. Hệ số nhân vào chỉ số của 
 - **Chia thưởng theo đóng góp.** Đóng góp = sát thương lên thú vương (đề xuất: tính cả hồi máu và khiên cho người tham gia khác, để phụ trợ không bị thiệt).
   - Người đóng góp nhiều nhất được ưu tiên hồn hoàn (15 giây đầu).
   - Mọi người tham gia **đóng góp từ 3%** và còn trong phòng lúc thú vương bị hạ đều nhận **rương** vào túi đồ: hồn cốt, hồn hạch sao cao, mảnh võ hồn (bảng "Rơi đặc trưng" ở 5.3).
-- **Tối đa 3 lần/ngày** mỗi tài khoản, tính chung mọi bản đồ, đặt lại lúc 00:00. Hết lượt vẫn được đánh và nhận kinh nghiệm, nhưng không nhận rương; vào giao chiến thì hiện nhắc "Hôm nay đã hết lượt nhận thưởng thú vương".
+- **Tối đa 3 lần/ngày** mỗi tài khoản, tính chung mọi bản đồ, đặt lại lúc 00:00 giờ Việt Nam (`Asia/Ho_Chi_Minh`, cùng múi giờ với lịch boss). Lượt boss thế giới cũng đặt lại cùng mốc. Hết lượt vẫn được đánh và nhận kinh nghiệm, nhưng không nhận rương; vào giao chiến thì hiện nhắc "Hôm nay đã hết lượt nhận thưởng thú vương".
 
 **Máu tăng theo số người tham gia** (tinh anh, thú vương, boss thế giới)
 
@@ -418,10 +420,10 @@ Mỗi hồn thú thuộc 1 trong 4 bậc. Hệ số nhân vào chỉ số của 
 - Chưa cho giao dịch giữa người chơi (chờ chốt).
 
 ### 5.8 Địa điểm và NPC
-Làng và thành là nơi an toàn: không có hồn thú, không giao chiến, hồi máu và hồn lực nhanh. Mỗi bản đồ săn có **trại nhỏ ở cổng vào** (object `spawn`) làm điểm hồi sinh khi gục trên bản đồ đó (doanh trại hiện tại trở thành trại cổng của Tinh Đấu).
+Thành (bản đồ `town`) và khu làng của Thánh Hồn Thôn (vùng `safe` trong một bản đồ săn) là nơi an toàn: không có hồn thú, không giao chiến, hồi máu và hồn lực nhanh. Mỗi bản đồ săn có **trại nhỏ ở cổng vào** (object `spawn`) làm điểm hồi sinh khi gục trên bản đồ đó (doanh trại hiện tại trở thành trại cổng của Tinh Đấu).
 
-- **Thánh Hồn Thôn** (`thanh_hon_thon`, BĐ2): làng quê của Đường Tam, nơi tài khoản mới bắt đầu.
-  - Phần làng ở giữa là vùng an toàn (object `safe`) và là điểm hồi sinh của bản đồ. Đồng lúa, bãi tập và đồi sau làng là khu săn cấp 1–10 (bảng 5.3).
+- **Thánh Hồn Thôn** (`thanh_hon_thon`, `kind` = `hunt`, BĐ2): làng quê của Đường Tam, nơi tài khoản mới bắt đầu.
+  - Phần làng ở giữa là vùng an toàn (object `safe`) và là điểm hồi sinh của bản đồ (object `spawn` đặt trong vùng `safe`). Đồng lúa, bãi tập và đồi sau làng là khu săn cấp 1–10 (bảng 5.3).
   - **Tố Vân Đào** (chấp sự Vũ Hồn Điện): làm lễ thức tỉnh võ hồn đầu tiên. Lễ vẫn chạy qua `POST /api/awaken` trước khi vào phòng; trong làng ông là NPC chào người mới và giải thích võ hồn.
   - **Lão Kiệt Khắc** (trưởng thôn): chỉ đường ra bãi tập và cổng đi Nặc Đinh Thành.
 - **Nặc Đinh Thành** (`nac_dinh_thanh`, BĐ2): thành an toàn đầu tiên, nối Thánh Hồn Thôn với Tinh Đấu Ngoại vi.
@@ -642,8 +644,8 @@ shared/assets/ui/
 ### Kiến trúc nhiều bản đồ (từ BĐ1)
 **Một loại phòng cho mọi bản đồ**
 - `MapRoom` (`server/src/rooms/MapRoom.ts`) nhận `mapId`: `gameServer.define("map", MapRoom).filterBy(["mapId"])`. Colyseus ghép người cùng `mapId` vào chung phòng; phòng đầy (`maxClients`) thì tự mở phòng mới, tức là kênh mới.
-- `onCreate({ mapId })` kiểm tra `mapId` có trong `MAPS`, rồi nạp `shared/assets/<mapId>.json`. `server/src/map.ts` đổi thành `loadMap(mapId)`, trả về đối tượng bản đồ (ô chặn, vùng, cổng, tinh anh, boss, điểm hồi sinh), cache theo `mapId` để các kênh dùng chung. Client tải tilemap theo `mapId` đang đứng.
-- Khác biệt giữa các loại bản đồ nằm trong dữ liệu (`MAPS[mapId].kind`: `town`, `hunt`, `boss`), không tách lớp phòng con. Bản đồ `town` không sinh hồn thú và không tính giao chiến.
+- `onCreate({ mapId })` kiểm tra `mapId` có trong `MAPS` (thiếu `mapId` thì dùng bản đồ mặc định trong `MAPS`; ở BĐ1 đó là bản đồ duy nhất), rồi nạp `shared/assets/<mapId>.json` và ghi `mapId` vào state của phòng. `server/src/map.ts` đổi thành `loadMap(mapId)`, trả về đối tượng bản đồ (ô chặn, vùng, cổng, tinh anh, boss, điểm hồi sinh), cache theo `mapId` để các kênh dùng chung. Client tải tilemap theo `mapId` đọc từ state của phòng vừa vào.
+- Khác biệt giữa các loại bản đồ nằm trong dữ liệu (`MAPS[mapId].kind`: `town`, `hunt`, `boss`), không tách lớp phòng con. Bản đồ `town` không sinh hồn thú và không tính giao chiến. Bản đồ `hunt` có thể có vùng `safe` (khu làng của Thánh Hồn Thôn): trong vùng đó không sinh hồn thú, hồn thú mất mục tiêu và quay về, người chơi không bị tính giao chiến.
 - **Logic game chỉ nằm trong phòng `MapRoom.ts`** (đã chuyển từ `ForestRoom.ts` ở bước BĐ1, cùng `awakenAccount`; `CLAUDE.md` và các skill trong `.claude/skills/` đã trỏ sang `MapRoom.ts`).
 
 **Dữ liệu trong `shared/data.ts`**
@@ -658,19 +660,36 @@ shared/assets/ui/
 |---|---|---|
 | `zone` | Chữ nhật | `beasts` (mã loài cách nhau dấu phẩy, có thể kèm trọng số: `phong_lang:3,man_da_la_xa:1`), `years` (`300-700`), `count`, `hint` |
 | `portal` | Chữ nhật | `to` (`mapId` đích), `arrive` (tên điểm xuất hiện ở bản đồ đích), `level` (cấp đề xuất, `10-30`) |
-| `arrive` | Điểm | Tên duy nhất trong bản đồ; nơi xuất hiện khi đi cổng tới |
+| `arrive` | Điểm | Tên duy nhất trong bản đồ; nơi xuất hiện khi đi cổng tới. Phải nằm ngoài mọi vùng `portal` |
 | `spawn` | Chữ nhật | Điểm hồi sinh (đã có) |
 | `safe` | Chữ nhật | Vùng an toàn trong bản đồ săn (làng của Thánh Hồn Thôn) |
 | `elite` | Chữ nhật | `boss` (mã trong `BOSSES`); nằm trong một `zone` |
 | `boss` | Chữ nhật | `boss` (mã thú vương hoặc boss thế giới); là hang / sàn đấu và cũng là bán kính giao chiến |
 | `npc` | Điểm | `npc` (mã NPC, mục 5.8) |
 
-- Thuộc tính sai (loài không có trong `BEASTS`, cổng tới bản đồ không có trong `MAPS`, `arrive` không tồn tại ở bản đồ đích) thì server ghi cảnh báo và bỏ object đó. Nên thêm bước kiểm tra file bản đồ vào `npm run check`.
+- Thuộc tính sai (loài không có trong `BEASTS`, cổng tới bản đồ không có trong `MAPS`, `arrive` không tồn tại ở bản đồ đích hoặc nằm trong một vùng `portal`) thì server ghi cảnh báo và bỏ object đó. Nên thêm bước kiểm tra file bản đồ vào `npm run check`.
 
 **Đi qua cổng và lưu vị trí**
-- Client gửi `travel {portal}`. Server kiểm tra như ở 5.3, ghi `map_id` và tọa độ điểm `arrive` vào DB, rồi gửi riêng `travel {mapId}`. Client rời phòng và `joinOrCreate("map", { token, mapId })`.
-- `onAuth` đối chiếu `mapId` trong tham số với `map_id` trong DB; sai thì từ chối, client hỏi lại `/api/me` (trả thêm `mapId`). Client chỉ chuyển `mapId` để Colyseus ghép phòng, không tự chọn bản đồ.
-- Cột `accounts.map_id`, `accounts.pos_x`, `accounts.pos_y` (file `server/sql/00N_….sql` mới ở BĐ2). Vị trí thuộc hồn sư, không thuộc võ hồn. Ghi khi qua cổng, khi rời phòng và theo chu kỳ lưu định kỳ. Cập nhật cả `PgStore` lẫn `MemoryStore`.
+- **Lưu của mỗi người chơi chạy nối tiếp.** Lưu định kỳ chạy kiểu fire-and-forget và `save()` chụp dữ liệu nhân vật rồi mới `await` ghi DB, nên hai lần lưu của cùng một người có thể chồng nhau và lần chụp trước commit sau. Vì vậy dữ liệu riêng của mỗi client giữ một promise `saving` (lần lưu đang chạy hoặc đang chờ). Mọi lần ghi DB về nhân vật của người đó đều nối vào sau promise này: lưu định kỳ 30 giây, `onLeave`, `onDispose`, lưu ngay sau khi hấp thụ hồn hoàn, đổi võ hồn (cả `saveCharacter` võ hồn cũ lẫn `setActive`) và transaction đi cổng (`saving = saving.then(lưu)`, lỗi được bắt và ghi log để không làm gãy chuỗi), không gọi `save()` trực tiếp. Nhờ vậy tại mỗi thời điểm một người chơi chỉ có tối đa một lần ghi DB, và các lần ghi commit đúng thứ tự đã chụp.
+- **Thứ tự bắt buộc khi duyệt `travel {portal}`** (tránh đua ghi giữa phòng cũ và phòng mới):
+  1. Server kiểm tra như ở 5.3. Không hợp lệ thì báo lỗi, dừng.
+  2. Đánh dấu client **đang chuyển bản đồ** (cờ trong dữ liệu riêng của người chơi). Từ lúc này phòng cũ bỏ qua input, đánh, hồn kỹ, hấp thụ, đổi võ hồn và `travel` tiếp theo của client đó; hồn thú bỏ mục tiêu là người này.
+  3. Phòng cũ **lưu đầy đủ trong MỘT transaction**: võ hồn ra trận (cấp, kinh nghiệm, hồn hoàn, số hạ; bảng `vohons`) cùng `map_id` = bản đồ đích và tọa độ điểm `arrive` (bảng `accounts`). Từ bước 3.1 transaction này lưu luôn mọi dữ liệu chưa lưu khác của người chơi (túi đồ…). Chờ ghi DB xong (`await`).
+     - **Trước khi mở transaction phải `await` lần lưu đang chạy của người chơi** (promise `saving` ở trên) cho xong, rồi mới chụp dữ liệu và mở transaction; transaction đi cổng cũng nối vào cùng chuỗi `saving`. Không chờ thì một lần lưu định kỳ đã chụp dữ liệu trước bước 2 vẫn có thể commit **sau** transaction và ghi đè `vohons` (cấp, kinh nghiệm, hồn hoàn) bằng bản cũ; lớp chặn `WHERE map_id` bên dưới chỉ bảo vệ `map_id`/vị trí, không bảo vệ `vohons`. Lần lưu cũ đó lỗi thì vẫn đi tiếp, vì transaction ghi lại đầy đủ.
+     - **Hoặc ghi hết, hoặc không ghi gì.** Không được ghi một nửa: nếu `vohons` lỗi mà `accounts.map_id` đã là bản đồ đích, bước 4 bỏ cờ cho người chơi ở lại nhưng lớp chặn `WHERE map_id = <mapId của phòng>` (bên dưới) sẽ chặn mọi lần lưu vị trí sau đó, và lần vào sau người chơi xuất hiện ở bản đồ đích mà chưa từng đi cổng; ngược lại, `accounts` đã đổi `map_id` mà `vohons` chưa ghi thì mất tiến độ võ hồn.
+     - `PgStore`: một kết nối lấy từ pool, `BEGIN` → các câu `UPDATE` → `COMMIT`; lỗi ở bất kỳ câu nào thì `ROLLBACK` rồi ném lỗi ra. Cần một hàm store riêng cho việc này (ví dụ `saveTravel`), không gọi lần lượt các hàm lưu sẵn có.
+     - `MemoryStore`: kiểm tra xong mới gán mọi trường cùng lúc trong một hàm đồng bộ, không có `await` xen giữa.
+  4. Lưu xong mới gửi riêng `travel {mapId}`. **Lưu lỗi** (transaction đã rollback, DB vẫn như trước bước 3): không gửi `travel`, bỏ cờ đang chuyển bản đồ, báo người chơi "Không chuyển được bản đồ, thử lại"; người chơi ở lại và phòng cũ tiếp tục lưu bình thường.
+     - **Client đã rời phòng trong lúc bước 3 đang chạy** (mất mạng, đóng tab): không gửi gì nữa. Commit thành công thì lần vào sau người chơi xuất hiện ở điểm `arrive` của bản đồ đích như đã đi cổng. Lưu lỗi thì `onLeave` (đang chờ trong chuỗi `saving`, bên dưới) lưu bình thường, vì sau khi client rời không còn lần lưu định kỳ nào.
+  5. Client rời phòng và `joinOrCreate("map", { token, mapId })`. Client không rời trong 10 giây thì server ngắt kết nối.
+- **Client đang chuyển bản đồ thì lưu định kỳ của phòng cũ bỏ qua người đó.** Mọi hành động đã bị chặn từ bước 2 nên không còn tiến độ mới (phần thưởng từ đạn hồn kỹ đang bay sau thời điểm lưu bị bỏ).
+- **`onLeave` của client đang chuyển bản đồ không được bỏ qua mà nối vào chuỗi `saving`**, tức là chờ transaction đi cổng xong rồi xét kết quả. Transaction ghi kết quả vào dữ liệu riêng của người chơi (ví dụ `d.travelled = true` khi commit); `onLeave` đọc trường này chứ không đọc cờ đang chuyển (cờ bị bỏ ở bước 4 khi lưu lỗi).
+  - **Đã commit:** không ghi gì, kể cả nhân vật lẫn `map_id`/vị trí; dữ liệu đã lưu đủ ở bước 3.
+  - **Lưu lỗi:** lưu như `onLeave` thường: nhân vật cùng `map_id`/vị trí của phòng cũ, có lớp chặn `WHERE map_id` (bên dưới).
+- Kết hợp với lưu nối tiếp: mọi lần lưu đã chạy hoặc đã xếp hàng trước bước 2 đều xong trước khi transaction mở, và sau bước 2 không có lần lưu mới nào trước khi transaction xong. Transaction commit thì nó là lần ghi cuối cùng của phòng cũ cho người đó. Phòng mới chỉ nạp nhân vật sau commit (`onAuth` chỉ nhận khi `map_id` trong DB đã là bản đồ đích), nên không có bản cũ hơn ghi đè bản mới.
+- Phòng thêm một lớp chặn trong câu lệnh ghi: lưu `map_id`/vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng) chỉ ghi khi `map_id` trong DB vẫn là bản đồ của phòng này (`UPDATE … WHERE map_id = <mapId của phòng>`).
+- `onAuth` đối chiếu `mapId` trong tham số với `map_id` trong DB; sai thì từ chối, client hỏi lại `/api/me` (trả `mapId` từ BĐ2). Client chỉ chuyển `mapId` để Colyseus ghép phòng, không tự chọn bản đồ.
+- Cột `accounts.map_id`, `accounts.pos_x`, `accounts.pos_y` (file `server/sql/00N_….sql` mới ở BĐ2). Vị trí thuộc hồn sư, không thuộc võ hồn. Ghi khi qua cổng (bước 3 ở trên, chung transaction với võ hồn), khi rời phòng (trừ khi transaction đi cổng đã commit) và theo chu kỳ lưu định kỳ (trừ client đang chuyển bản đồ). Cập nhật cả `PgStore` lẫn `MemoryStore`.
 - Vào game: vị trí kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn`; đăng xuất ở `loi_tinh_dau` thì lần sau về điểm `arrive` ở Nội địa. `map_id` không còn trong `MAPS` (ví dụ `tinh_dau` sau BĐ3) được ánh xạ sang bản đồ mới.
 - **Mỗi tài khoản một phiên trên mọi phòng:** hiện chỉ đá phiên cũ trong cùng phòng. Với nhiều phòng, phát `kick` kèm `accountId` qua presence; phòng nào có client trùng thì đá.
 
@@ -678,10 +697,10 @@ shared/assets/ui/
 - Dùng **presence của Colyseus**: phòng gửi `this.presence.publish("announce", { text, col })`; mỗi `MapRoom` `subscribe("announce", …)` trong `onCreate`, hủy ở `onDispose`, rồi `broadcast("chat")` cho người trong phòng.
 - Lịch thú vương và boss thế giới do `server/src/schedule.ts` (khởi động ở `index.ts`) giữ. File này chỉ đếm giờ (múi giờ `Asia/Ho_Chi_Minh`) và `publish("boss", { mapId, phase: "warn" | "spawn" })`. Sinh boss, máu, chiêu và thưởng vẫn nằm trong `MapRoom`. Phòng đang mở của bản đồ đó sinh boss; phòng mở ra trong 15 phút của khung giờ boss cũng sinh.
 - Chạy một tiến trình thì dùng presence mặc định (trong bộ nhớ). Chạy nhiều tiến trình thì đổi sang `RedisPresence`.
-- Lượt nhận thưởng boss mỗi ngày lưu ở bảng `boss_claims` (tài khoản, ngày, loại boss, số lần), file SQL mới ở BĐ5.
+- Lượt nhận thưởng boss mỗi ngày lưu ở bảng `boss_claims` (tài khoản, ngày, loại boss, số lần), file SQL mới ở BĐ5. "Ngày" là ngày theo `Asia/Ho_Chi_Minh` (đổi lúc 00:00 giờ Việt Nam), server tự tính, không dùng giờ của client hay múi giờ mặc định của máy chủ.
 
 **Schema**
-- `BeastState` thêm `species` (chỉ số trong `BEASTS`, hoặc trong `BOSSES` với tinh anh và boss), `rank` (0 thường, 1 tinh anh, 2 thú vương, 3 boss thế giới) và `years` (từ bước 3.2). State của phòng thêm `mapId`. Thanh máu boss đọc thẳng từ `BeastState`.
+- `BeastState` thêm `species` (chỉ số trong `BEASTS`, hoặc trong `BOSSES` với tinh anh và boss), `rank` (0 thường, 1 tinh anh, 2 thú vương, 3 boss thế giới) và `years` (từ bước 3.2). State của phòng thêm `mapId` (từ BĐ1; client đọc để tải tilemap). Thanh máu boss đọc thẳng từ `BeastState`.
 
 ## 7. Lộ trình
 Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì chạy `npm run check` và bot, rồi đánh dấu [x].
@@ -708,7 +727,8 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Client: màn hình chọn SSR theo 4 hệ (chuột, chạm, bàn phím); trong rừng nút "Võ hồn" / phím V mở danh sách để chọn võ hồn ra trận.
   Đổi võ hồn giữ tỉ lệ sinh lực / hồn lực, hồi 2 giây (`PICK_CD`), cấm khi gục, đang hấp thụ hoặc giao chiến trong 5 giây (`PICK_COMBAT_SECS`).
 - [x] **BĐ1** Tách `MapRoom`, đọc bản đồ theo `mapId` (làm ngay sau 2.2, trước 2.2a, 2.2b, 2.3). **Chưa đổi luật chơi.**
-  - `ForestRoom` thành `MapRoom` nhận `mapId`; `define("map", MapRoom).filterBy(["mapId"])`. Bản đồ hiện tại đổi tên thành `shared/assets/tinh_dau.json`, `mapId` = `tinh_dau` (bản đồ duy nhất cho đến BĐ2). `map.ts` thành `loadMap(mapId)`. Client vào phòng `map` với `mapId` do server trả.
+  - `ForestRoom` thành `MapRoom` nhận `mapId`; `define("map", MapRoom).filterBy(["mapId"])`. Bản đồ hiện tại đổi tên thành `shared/assets/tinh_dau.json`, `mapId` = `tinh_dau` (bản đồ duy nhất cho đến BĐ2). `map.ts` thành `loadMap(mapId)`.
+  - **Nguồn `mapId` ở BĐ1:** chỉ có một bản đồ, nên `MAPS` đánh dấu một bản đồ mặc định (`tinh_dau`). Client gọi `joinOrCreate("map", { token })` **không kèm `mapId`**; phòng thiếu `mapId` thì dùng bản đồ mặc định, `mapId` khác bản đồ mặc định thì từ chối. Client **nhận `mapId` từ phòng khi đã vào** (trường `mapId` trong state của phòng) rồi mới tải tilemap; không đọc từ `/api/me`, không tự đặt tên bản đồ. Từ BĐ2, `/api/me` trả `mapId` đọc từ DB và client truyền nó khi join (mục 6).
   - Bảng `MAPS` và `BEASTS` (theo loài) trong `data.ts`; `BeastState` thêm `species`. Vùng trong Tiled khai báo `beasts`; cho đến 3.2 vẫn giữ `weights` theo bậc, mỗi loài có bậc tạm để lấy chỉ số `TIERS`.
   - **Gộp bước 2.6:** danh hiệu trên đầu hồn sư theo cấp võ hồn ra trận (bảng 5.1); tên hồn thú và tên vùng lấy theo bảng Ngoại vi / Nội địa ở 5.3 (chọn loài khớp bậc).
   - Cập nhật `CLAUDE.md`, skill trong `.claude/skills/`, mục 6 và bot: logic game nằm trong `MapRoom.ts`.
@@ -725,7 +745,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - ~~2.6 Danh hiệu, đổi tên hồn thú và tên vùng theo mục 5.3.~~ ➜ **Đã gộp vào BĐ1.**
 - [ ] **BĐ2** Cổng, lưu bản đồ đang đứng, Thánh Hồn Thôn và Nặc Đinh Thành (thay 6.4; sau BĐ1, phải trước BĐ3).
   - Object `portal`, `arrive`, `safe`, `npc`; tin nhắn `portal` / `travel`; chặn mềm có cảnh báo nguy hiểm; server kiểm tra vị trí và đích.
-  - Cột `accounts.map_id` + vị trí (file SQL mới, `PgStore` + `MemoryStore`), `/api/me` trả `mapId`; đá phiên trùng qua presence.
+  - Cột `accounts.map_id` + vị trí (file SQL mới, `PgStore` + `MemoryStore`), `/api/me` trả `mapId` và client truyền `mapId` khi join (thay cách join không kèm `mapId` của BĐ1); thứ tự lưu khi đi cổng theo mục 6; đá phiên trùng qua presence.
   - Bản đồ mới: Thánh Hồn Thôn (làng + 3 vùng săn cấp 1–10, tinh anh thêm ở BĐ4; tài khoản mới và cũ bắt đầu ở đây) và Nặc Đinh Thành (thành an toàn, chỗ đứng cho NPC của 6.1). Cổng Thánh Hồn Thôn ↔ Nặc Đinh Thành ↔ `tinh_dau`.
 
 **Giai đoạn 3: Túi đồ và hồn hoàn kiểu mới**
@@ -807,6 +827,13 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
    - Hồi máu và khiên cho người tham gia có tính vào đóng góp không? (đề xuất: có, để phụ trợ không bị thiệt.)
    - Thánh Hồn Thôn có tinh anh nhưng không có thú vương; cấp võ hồn tính tối đa 80 khi so với cấp tương đương (vì vòng 8–10 cùng giới hạn 100.000 năm).
    - Thưởng boss thế giới: tỉ lệ hồn hoàn đỏ cho người không đứng đầu (đề xuất 10%) và tỉ lệ hồn cốt.
+   - Tỉ lệ rơi mảnh UR từ rương thú vương trước BĐ6 (đề xuất 5%), hay giữ khóa UR cho tới boss thế giới.
+
+**Đã chốt sau review PR #8** (chi tiết ở mục 5.3, 5.8, 6 và BĐ1)
+- **Thánh Hồn Thôn có `kind` = `hunt`**; khu làng là vùng `safe` (không sinh hồn thú, không giao chiến). Chỉ Nặc Đinh Thành và Thiên Đấu Thành là `town`.
+- **Đi cổng:** lưu của mỗi người chơi chạy nối tiếp (chuỗi `saving`). Phòng cũ đánh dấu client đang chuyển bản đồ, chờ lần lưu đang chạy xong, lưu đầy đủ nhân vật cùng `map_id`/vị trí mới trong một transaction và chờ ghi xong rồi mới gửi `travel`. Client đang chuyển thì lưu định kỳ của phòng cũ bỏ qua người đó; `onLeave` chờ transaction đi cổng: commit rồi thì không ghi, lưu lỗi thì lưu như thường.
+- **BĐ1:** chỉ có một bản đồ; server dùng bản đồ mặc định trong `MAPS`, client join không kèm `mapId` và nhận `mapId` từ state của phòng, không từ `/api/me`. `/api/me` trả `mapId` từ BĐ2.
+- Điểm `arrive` nằm ngoài mọi vùng `portal`. Lượt nhận thưởng boss đặt lại lúc 00:00 giờ `Asia/Ho_Chi_Minh`.
 
 **Đã chốt: mỹ thuật nhân vật** (chi tiết ở mục 3 và 5.11)
 - Người chơi có **nhân vật hồn sư riêng**, chọn **nam hoặc nữ** khi tạo tài khoản. Trên bản đồ là hồn sư; võ hồn đang ra trận hiện dạng **phụ thể khi phóng thích** (vũ khí, thú hồn, cánh, hào quang) cùng vòng hồn hoàn dưới chân. Đổi võ hồn thì đổi lớp phụ thể. Nhân vật truyện chỉ dùng cho chân dung và thẻ võ hồn.
