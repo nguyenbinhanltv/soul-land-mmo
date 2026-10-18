@@ -22,7 +22,7 @@ Mỗi gạch đầu dòng ở `GAME_DESIGN.md` mục 7 là **một** lần giao 
 ## 3. Kiểm tra
 1. `npm run check`: typecheck server và client (hook PostToolUse trong `.claude/settings.json` cũng tự chạy `tools/check.mjs --hook` sau mỗi lần sửa file; lỗi thì sửa ngay).
 2. Bật server: `npm run dev:server` (chạy nền, đợi cổng 2567 sẵn sàng).
-3. `npm run bot --prefix client`: 2 bot đăng nhập, thức tỉnh, di chuyển, đánh hồn thú, thử hấp thụ, chat. Bot không có assert, nên **đọc output**: `players 2`, B thấy A đổi vị trí, có `drops`/`kills`, dòng `absorb:` hợp lý, không có lỗi ở log server.
+3. `npm run bot --prefix client` (bật server bằng `GAME_TEST=1` để bot thử cả các luồng cần hook `test`, ví dụ gục từng võ hồn và chia kinh nghiệm; không bật thì bot báo bỏ qua): 2 bot đăng nhập, thức tỉnh, di chuyển, đánh hồn thú, thử hấp thụ, chat. Bot không có assert, nên **đọc output**: `players 2`, B thấy A đổi vị trí, có `drops`/`kills`, dòng `absorb:` hợp lý, không có lỗi ở log server.
 4. Bước có message hoặc luồng mới: thêm thao tác tương ứng vào `client/scripts/bot-test.mjs` để lần sau bot thử luôn.
 5. Đổi giao diện: mở `http://localhost:5173` (`npm run dev:client`) và thử bằng tay.
 6. Đổi SQL: thử thêm với PostgreSQL như trong skill `db-migration`.
