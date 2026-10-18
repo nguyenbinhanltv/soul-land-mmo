@@ -1,3 +1,5 @@
+import type { Looks } from "../../shared/data.ts";
+
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
 // Có thể ghi đè bằng biến môi trường VITE_SERVER_URL.
@@ -7,6 +9,11 @@ export const WS = API.replace(/^http/, "ws");
 
 /** Võ hồn đang ra trận. `vohon` là mã trong VOHON, `rings` là niên hạn (số năm) từng hồn hoàn. */
 export interface Character { accountId: number; name: string; rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; kills: number; }
+
+/** Ngoại hình hồn sư của tài khoản; `chosen` = đã tạo nhân vật (chỉ chọn một lần). */
+export interface AccountLooks extends Looks { chosen: boolean; }
+/** Trả về từ /api/login và /api/me: võ hồn ra trận (null = chưa thức tỉnh) và ngoại hình. */
+export interface Me { character: Character | null; looks: AccountLooks; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu và võ hồn đang ra trận. */
 export interface OwnedVohons { active: number; list: { rowId: number; vohon: string; level: number; stars: number; rings: number[] }[]; }

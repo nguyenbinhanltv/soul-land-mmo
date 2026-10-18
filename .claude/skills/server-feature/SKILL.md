@@ -11,7 +11,7 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 - Luật chơi trong trận: `server/src/rooms/MapRoom.ts`, lớp `MapRoom`. Vòng lặp chạy `tick(dt)` với `TICK_RATE` lần/giây (`shared/data.ts`).
 - Một loại phòng cho mọi bản đồ: `gameServer.define("map", MapRoom).filterBy(["mapId"])` ở `index.ts`; mỗi phòng là một kênh. `onCreate` kiểm `mapId` có trong `MAPS` (mặc định `DEFAULT_MAP`), nạp bản đồ bằng `loadMap(mapId)` (`server/src/map.ts`, cache theo `mapId`) vào `this.map`, ghi `state.mapId`. Va chạm, vùng, điểm hồi sinh đọc qua `this.map` (`hits`, `moveEnt`, `zones`, `spawn`, `inSpawn`), không đọc file bản đồ cố định.
 - Khác biệt giữa các bản đồ nằm trong dữ liệu (`MAPS`, file Tiled), không tách lớp phòng con. Client không bao giờ tự chọn bản đồ đích.
-- API REST (đăng nhập, thức tỉnh): `server/src/index.ts` (`/api/login`, `/api/me`, `/api/awaken`). Luật thức tỉnh nằm trong `awakenAccount` ở `MapRoom.ts`; server tự roll, client không chọn kết quả.
+- API REST (đăng nhập, tạo nhân vật, thức tỉnh): `server/src/index.ts` (`/api/login`, `/api/me`, `/api/looks`, `/api/awaken`). Luật tạo nhân vật nằm trong `chooseLooks`, luật thức tỉnh trong `awakenAccount`, cả hai ở `MapRoom.ts`; server tự roll, client không chọn kết quả.
 - Dữ liệu riêng của người chơi chỉ server biết: `pdata: Map<sessionId, PData>` (ví dụ `ringYears`, `absorbing`, `atkCd`). Trạng thái hồn thú riêng: `bdata`.
 - Số cân bằng lấy từ `shared/data.ts` (xem skill `balance-data`), không viết số mới trực tiếp vào room.
 

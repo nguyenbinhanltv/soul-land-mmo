@@ -167,6 +167,51 @@ export const PICK_COMBAT_SECS = 5;
 /** Thời gian chờ giữa hai lần đổi võ hồn (giây). */
 export const PICK_CD = 2;
 
+// ---------- Ngoại hình hồn sư khi tạo nhân vật (mục 3, 5.11) ----------
+/** Giới tính, chỉ số là cột `sex` (0 nam, 1 nữ); sprite dùng hậu tố `m` / `f`. */
+export const SEXES = ["Nam", "Nữ"] as const;
+/** Tên 4 kiểu tóc theo giới tính: `HAIR_STYLES[sex][hair]`, sprite `hs_hair_{m/f}_{hair}`. */
+export const HAIR_STYLES = [
+  ["Ngắn rối", "Dài buộc thấp sau gáy", "Dựng nhọn", "Mái dài che một bên mắt"],
+  ["Dài thả thẳng", "Đuôi ngựa cao", "Bím dài một bên", "Ngắn ngang vai, có mái"],
+] as const;
+/** Một màu tóc / áo: dải 4 sắc tối → sáng thay cho dải xám chuẩn khi hoán màu (mục 5.11). */
+export interface SwatchDef { name: string; ramp: readonly [string, string, string, string]; }
+// Mọi sắc độ lấy từ art/palette.gpl, không thêm màu mới vào bảng màu chung.
+/** Màu tóc, chỉ số là cột `hair_col` (texture `hs_hair_…@{chỉ số}`). Chỉ thêm vào cuối mảng. */
+export const HAIR_COLORS: SwatchDef[] = [
+  { name: "Đen",      ramp: ["#1a1020", "#2b2430", "#47435c", "#5a5672"] },
+  { name: "Nâu",      ramp: ["#2a1b14", "#3a2a18", "#5a3b22", "#957d57"] },
+  { name: "Vàng kim", ramp: ["#6a4a12", "#b8862a", "#f2c84b", "#fff2b0"] },
+  { name: "Bạc",      ramp: ["#3c4f70", "#7a8aa8", "#c0cce0", "#f4f8ff"] },
+  { name: "Lam",      ramp: ["#1f4a6b", "#2d6a96", "#5a9cc9", "#c0cce0"] },
+  { name: "Hồng",     ramp: ["#a8303a", "#e08a7a", "#ffd2e6", "#ffffff"] },
+];
+/** Màu áo, chỉ số là cột `outfit_col` (texture `hs_outfit_…@{chỉ số}`). Chỉ thêm vào cuối mảng. */
+export const OUTFIT_COLORS: SwatchDef[] = [
+  { name: "Lam",   ramp: ["#1f4a6b", "#2d6a96", "#5a9cc9", "#c0cce0"] },
+  { name: "Đỏ",    ramp: ["#8f2a14", "#a8303a", "#ff3030", "#e08a7a"] },
+  { name: "Lục",   ramp: ["#163a22", "#2f7a2c", "#467e38", "#5a9440"] },
+  { name: "Tím",   ramp: ["#2b1a40", "#5d4380", "#8a6bff", "#c0cce0"] },
+  { name: "Trắng", ramp: ["#8a87a0", "#c0cce0", "#f4f8ff", "#ffffff"] },
+  { name: "Đen",   ramp: ["#1a1020", "#2b2430", "#47435c", "#5a5672"] },
+];
+/** Ngoại hình hồn sư: 4 số nhỏ lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. */
+export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; }
+/** Ngoại hình của tài khoản chưa tự chọn (tài khoản tạo trước bước 2.2a). */
+export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0 };
+/** Kiểm tra ngoại hình: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng. Sai bất kỳ trường nào thì null. */
+export function parseLooks(x: unknown): Looks | null {
+  const o = (typeof x === "object" && x !== null ? x : {}) as Record<string, unknown>;
+  const pick = (k: keyof Looks, n: number) => {
+    const v = o[k];
+    return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < n ? v : -1;
+  };
+  const sex = pick("sex", SEXES.length);
+  const l: Looks = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length) };
+  return Object.values(l).every((v) => v >= 0) ? l : null;
+}
+
 export const SKILLS = [
   { name: "Hồn Bạo",    cost: 12, cd: 3,   desc: "Nổ hồn lực quanh thân" },
   { name: "Thiểm Kích", cost: 16, cd: 4.5, desc: "Lao về phía trước" },

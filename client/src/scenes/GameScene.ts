@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, ringLimit, TILE, titleOf } from "../../../shared/data.ts";
-import { makeTextures, PLAYER_ORIGIN, BEAST_ORIGIN } from "../textures.ts";
+import { makeTextures, honsuTexture, PLAYER_ORIGIN, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import type { OwnedVohons } from "../net.ts";
@@ -227,7 +227,7 @@ export class GameScene extends Phaser.Scene {
       seenP.add(id);
       let v = this.players.get(id);
       if (!v) {
-        const spr = this.add.sprite(p.x, p.y, `p${p.vh}_0`).setOrigin(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        const spr = this.add.sprite(p.x, p.y, honsuTexture(this, p.vh, 0, p)).setOrigin(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         const label = this.add.text(p.x, p.y - 22, p.name, {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "7px", fontStyle: "600",
           color: id === this.me ? "#ffe9a0" : "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
@@ -242,10 +242,11 @@ export class GameScene extends Phaser.Scene {
       const { spr, label, title } = v;
       if (Math.hypot(p.x - spr.x, p.y - spr.y) > 64) spr.setPosition(p.x, p.y);
       else spr.setPosition(spr.x + (p.x - spr.x) * lerp, spr.y + (p.y - spr.y) * lerp);
-      spr.setTexture(`p${p.vh}_${p.moving ? step : 0}`).setFlipX(p.face < 0).setDepth(spr.y).setVisible(!p.dead);
-      label.setPosition(spr.x, spr.y - 19).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol) đồng bộ từ server, ai cũng thấy.
+      spr.setTexture(honsuTexture(this, p.vh, p.moving ? step : 0, p)).setFlipX(p.face < 0).setDepth(spr.y).setVisible(!p.dead);
+      label.setPosition(spr.x, spr.y - 21).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1).
-      title.setPosition(spr.x, spr.y - 27).setVisible(!p.dead).setText(titleOf(p.level));
+      title.setPosition(spr.x, spr.y - 29).setVisible(!p.dead).setText(titleOf(p.level));
     });
     for (const [id, v] of this.players) if (!seenP.has(id)) { v.spr.destroy(); v.label.destroy(); v.title.destroy(); this.players.delete(id); }
 

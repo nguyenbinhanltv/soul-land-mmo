@@ -4,9 +4,9 @@
 import { Room, Client, ServerError } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex,
-  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD, BEASTS, MAPS, DEFAULT_MAP } from "../../../shared/data.ts";
+  AWAKEN_GIFT, AWAKEN_CHOICES, PICK_COMBAT_SECS, PICK_CD, BEASTS, MAPS, DEFAULT_MAP, parseLooks, type Looks } from "../../../shared/data.ts";
 import { loadMap, type GameMap } from "../map.ts";
-import { store, Character } from "../db.ts";
+import { store, Character, type AccountLooks } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
 
 interface PData {
@@ -21,7 +21,7 @@ interface PData {
   fight: number;        // số giây kể từ lần cuối đánh trúng hoặc bị đánh
   pickCd: number;       // chờ trước khi được đổi võ hồn tiếp
 }
-interface AuthData { accountId: number; ch: Character; owned: Character[]; }
+interface AuthData { accountId: number; ch: Character; owned: Character[]; looks: Looks; }
 interface BData { zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number; }
 interface Proj { x: number; y: number; vx: number; vy: number; life: number; dmg: number; owner: string; col: string; }
 
@@ -41,9 +41,11 @@ export class MapRoom extends Room<MapState> {
   async onAuth(_client: Client, options: { token?: string }) {
     const acc = options?.token ? await store.accountFromToken(options.token) : null;
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
-    const [ch, owned] = await Promise.all([store.getCharacter(acc.accountId), store.listVohons(acc.accountId)]);
+    const [ch, owned, looks] = await Promise.all([store.getCharacter(acc.accountId), store.listVohons(acc.accountId), store.getLooks(acc.accountId)]);
+    // Tạo nhân vật trước (tài khoản cũ cũng phải chọn một lần), rồi mới đến lễ thức tỉnh.
+    if (!looks.chosen) throw new ServerError(403, "Chưa tạo nhân vật.");
     if (!ch) throw new ServerError(403, "Chưa thức tỉnh võ hồn.");
-    const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned };
+    const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, looks };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
     return auth;
   }
@@ -82,11 +84,12 @@ export class MapRoom extends Room<MapState> {
   }
 
   onJoin(client: Client, _o: unknown, auth: AuthData) {
-    const { ch, owned } = auth;
+    const { ch, owned, looks } = auth;
     // Một tài khoản chỉ được vào một lần: đá phiên cũ.
     for (const other of this.clients) if (other !== client && (other.auth as AuthData)?.accountId === auth.accountId) other.leave(4001);
     const p = new PlayerState();
     p.name = ch.name; this.showVohon(p, ch);
+    p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol;
     const pos = this.spawnPoint(); p.x = pos.x; p.y = pos.y;
     const d: PData = { accountId: auth.accountId, owned, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0, fight: 99, pickCd: 0 };
@@ -441,6 +444,8 @@ export async function awakenAccount(accountId: number, name: string, choice: unk
   Promise<{ character: Character } | { status: number; error: string }> {
   const pick = AWAKEN_CHOICES.find((v) => v.id === choice);
   if (!pick) return { status: 400, error: "Hãy chọn một võ hồn SSR trong danh sách." };
+  // Tạo nhân vật diễn ra ngay trước bước chọn SSR của lễ thức tỉnh.
+  if (!(await store.getLooks(accountId)).chosen) return { status: 409, error: "Hãy tạo nhân vật trước lễ thức tỉnh." };
   // Hồn lực bẩm sinh 1–10 thuộc về hồn sư: làm cấp khởi đầu của cả hai võ hồn.
   const level = Math.random() < 0.04 ? 10 : 1 + Math.floor(Math.pow(Math.random(), 1.6) * 9);
   const character = await store.awaken(accountId, name, [AWAKEN_GIFT, pick.id], pick.id, level);
@@ -448,3 +453,11 @@ export async function awakenAccount(accountId: number, name: string, choice: unk
   return { character };
 }
 
+/** Tạo nhân vật (một lần): client gửi giới tính, kiểu tóc, màu tóc, màu áo; mọi giá trị phải nằm trong bảng ở data.ts. */
+export async function chooseLooks(accountId: number, body: unknown):
+  Promise<{ looks: AccountLooks } | { status: number; error: string }> {
+  const looks = parseLooks(body);
+  if (!looks) return { status: 400, error: "Ngoại hình không hợp lệ." };
+  if (!(await store.chooseLooks(accountId, looks))) return { status: 409, error: "Bạn đã chọn ngoại hình rồi, không đổi được nữa." };
+  return { looks: { ...looks, chosen: true } };
+}

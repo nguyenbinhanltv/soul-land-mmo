@@ -499,6 +499,7 @@ Sprite hiện tại được vẽ bằng code trong `client/src/textures.ts`. M�
 
 - Áo bản đầu là **áo hồn sư** đơn giản: áo vải có đai lưng, nam mặc quần, nữ mặc váy ngắn trên quần bó. Kiểu áo khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) để sau.
 - Lưu 4 số nhỏ cho mỗi tài khoản: `sex` (0 nam, 1 nữ), `hair` (0–3), `hairCol` (0–5), `outfitCol` (0–5). Danh sách màu nằm trong `shared/data.ts` để client và server cùng kiểm tra.
+  Từ bước 2.2a: `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS` (mỗi màu là dải 4 sắc tối → sáng thay cho dải xám chuẩn khi hoán màu, mọi sắc lấy từ `art/palette.gpl`), kiểm tra bằng `parseLooks()`. Thêm màu mới vào cuối mảng.
 
 **Animation của hồn sư**
 
@@ -632,7 +633,8 @@ shared/assets/ui/
 ## 6. Kiến trúc (bắt buộc giữ)
 - **Server quyết định mọi thứ.** Client chỉ gửi ý định: `input {x,y}`, `attack`, `skill {i}`, `switch {slot}`, `absorb {itemId, vohonId}`, `chat {text}`…
   Đang có thêm: `vohons` (xin danh sách võ hồn sở hữu, server trả tin nhắn riêng `vohons`), `pick {rowId}` (chọn võ hồn ra trận, đến bước 2.3),
-  và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `MapRoom.ts`).
+  và HTTP `POST /api/awaken {token, vohon}` cho lễ thức tỉnh (luật nằm trong `awakenAccount` ở `MapRoom.ts`),
+  `POST /api/looks {token, sex, hair, hairCol, outfitCol}` cho tạo nhân vật (một lần, luật trong `chooseLooks` ở `MapRoom.ts`; `/api/login` và `/api/me` trả thêm `looks`).
   Từ BĐ2 có thêm `travel {portal}` (xin đi qua cổng); server gửi riêng `portal` (đang đứng ở cổng nào, cấp đề xuất, có cảnh báo không) và `travel {mapId}` (đã được phép chuyển bản đồ).
   Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ hay bản đồ đích.
 - Trạng thái đồng bộ qua Colyseus Schema (`server/src/rooms/schema.ts`). Hiệu ứng hình ảnh gửi qua `broadcast("fx")` và `"dmg"`.
@@ -737,7 +739,12 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   `data.ts`: `MAPS` (chỉ `tinh_dau`; mảnh võ hồn, bộ hồn hạch, thú vương thêm khi làm tới), `DEFAULT_MAP`, `BEASTS` 12 loài với bậc tạm, `TITLES`/`titleOf`. Bỏ tên hồn thú theo bậc trong `TIERS`. `BeastState.species` là chỉ số trong `BEASTS`; sinh hồn thú vẫn tung bậc theo `weights` rồi chọn loài cùng bậc trong `beasts` của vùng (vùng thiếu loài bậc đó thì lấy loài bất kỳ cùng bậc, server cảnh báo lúc nạp).
   Vùng đổi tên: Bìa rừng, Rừng thưa, Rừng cổ thụ (trước là Rừng sâu), Hắc Ám Lâm (trước là Lõi rừng cổ). Vì vùng cũ trộn nhiều bậc nên mỗi vùng mượn thêm loài của vùng kế bên trong bảng 5.3. Bậc 10 vạn năm chưa có loài thường ở Ngoại vi / Nội địa: tạm dùng Xích Lân Mãng đến bước 3.2.
   Client: danh hiệu (bảng 5.1) hiện trên tên hồn sư, tên hồn thú ở khung mục tiêu và thông báo hạ hồn thú lấy theo loài. Sprite hồn thú vẫn theo bậc đến M4. Bot vào phòng `map`, kiểm tra hai bot cùng phòng, `state.mapId`, file Tiled tồn tại và có nhiều loài.
-- [ ] 2.2a Tạo nhân vật: chọn nam/nữ, 4 kiểu tóc, màu tóc, màu áo (mục 5.11). Lưu `sex`, `hair`, `hairCol`, `outfitCol` cho tài khoản (file SQL mới), đồng bộ qua schema để người khác thấy. Làm ngay trước bước chọn SSR của lễ thức tỉnh; tài khoản cũ nhận ngoại hình mặc định và được chọn lại một lần ở lần vào game tới.
+- [x] 2.2a Tạo nhân vật: chọn nam/nữ, 4 kiểu tóc, màu tóc, màu áo (mục 5.11). Lưu `sex`, `hair`, `hairCol`, `outfitCol` cho tài khoản (file SQL mới), đồng bộ qua schema để người khác thấy. Làm ngay trước bước chọn SSR của lễ thức tỉnh; tài khoản cũ nhận ngoại hình mặc định và được chọn lại một lần ở lần vào game tới.
+  *Đã làm:* `005_account_looks.sql` thêm vào `accounts` các cột `sex`, `hair`, `hair_col`, `outfit_col` (mặc định 0) và cờ `looks_chosen` (không tạo bảng mới; `accounts` đã bật RLS). Store có `getLooks` / `chooseLooks` ở cả `PgStore` lẫn `MemoryStore`; `chooseLooks` chỉ ghi khi `looks_chosen` còn false nên chỉ chọn được một lần, kể cả khi gửi nhiều yêu cầu cùng lúc.
+  `data.ts`: `SEXES`, `HAIR_STYLES` (tên theo bảng 5.11), `HAIR_COLORS`, `OUTFIT_COLORS` (6 màu, dải 4 sắc lấy từ `art/palette.gpl`, dùng thẳng cho `recolor` ở 2.2b), `DEFAULT_LOOKS`, `parseLooks()`. Server từ chối (400) mọi giá trị không phải số nguyên trong khoảng; chọn lần hai trả 409.
+  Thứ tự do server giữ: chưa tạo nhân vật thì `/api/awaken` trả 409 và `onAuth` từ chối vào bản đồ (403 "Chưa tạo nhân vật."). Tài khoản cũ có `looks_chosen = false` nên nhận ngoại hình mặc định và phải chọn một lần trước khi vào game.
+  `PlayerState` thêm `sex`, `hair`, `hairCol`, `outfitCol` (`uint8`). Client: màn "Tạo nhân vật" (chuột, chạm, bàn phím) có ô xem trước vẽ bằng code, đứng trước màn chọn SSR; tài khoản cũ thấy màn này ở lần vào tới. Trong game hồn sư vẫn vẽ bằng code (16×24, gốc tại chân) theo giới tính, kiểu tóc, màu tóc, màu áo; đai lưng mang màu võ hồn ra trận. Key tạm `p{vh}_{f}_{sex}{hair}{hairCol}{outfitCol}` tạo khi có người dùng, bỏ ở 2.2b.
+  Bot đi qua bước tạo nhân vật: thử giá trị sai, thức tỉnh và vào bản đồ trước khi chọn, chọn lần hai, và B thấy đúng ngoại hình của A.
 - [ ] 2.2b Hiển thị hồn sư ghép lớp bằng code theo quy cách 5.11: thân, áo, tóc (đổi màu), lớp phụ thể đơn giản cho 20 võ hồn, vòng hồn hoàn dưới chân. Thêm hướng nhìn 4 phía vào schema. Bỏ key cũ `p{i}_{f}`.
 - [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
 - [ ] 2.4 Năng lượng và chiêu tiên cơ.

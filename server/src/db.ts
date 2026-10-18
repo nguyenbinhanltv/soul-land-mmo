@@ -4,6 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
+import { DEFAULT_LOOKS, parseLooks, type Looks } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -14,6 +15,9 @@ export interface Character {
   rings: number[];   // niên hạn (số năm) từng hồn hoàn
   kills: number;
 }
+
+/** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
+export interface AccountLooks extends Looks { chosen: boolean; }
 
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
@@ -33,6 +37,10 @@ export interface Store {
   /** Thức tỉnh lần đầu: tạo các võ hồn khởi đầu và cho `active` ra trận.
    *  null nếu tài khoản đã có võ hồn (thức tỉnh chỉ diễn ra một lần). */
   awaken(accountId: number, name: string, starters: string[], active: string, level: number): Promise<Character | null>;
+  /** Ngoại hình hiện tại; tài khoản chưa chọn nhận DEFAULT_LOOKS với chosen = false. */
+  getLooks(accountId: number): Promise<AccountLooks>;
+  /** Lưu ngoại hình lần đầu (đã kiểm tra bằng parseLooks). false nếu tài khoản đã chọn rồi. */
+  chooseLooks(accountId: number, looks: Looks): Promise<boolean>;
 }
 
 function hashPass(pw: string) {
@@ -53,6 +61,7 @@ export class MemoryStore implements Store {
   sessions = new Map<string, number>();
   rows = new Map<number, Character>();  // vohons.id -> võ hồn
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
+  looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -93,6 +102,14 @@ export class MemoryStore implements Store {
     if (!a) throw new Error(`Võ hồn ra trận ${active} không nằm trong danh sách khởi đầu.`);
     this.active.set(accountId, a.rowId);
     return copy(a);
+  }
+  async getLooks(accountId: number) {
+    const l = this.looks.get(accountId);
+    return { ...(l ?? DEFAULT_LOOKS), chosen: !!l };
+  }
+  async chooseLooks(accountId: number, looks: Looks) {
+    if (this.looks.has(accountId)) return false;
+    this.looks.set(accountId, { ...looks }); return true;
   }
 }
 
@@ -223,6 +240,20 @@ export class PgStore implements Store {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
     } finally { db.release(); }
+  }
+  async getLooks(accountId: number) {
+    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, looks_chosen FROM accounts WHERE id=$1", [accountId]);
+    const x = r.rows[0];
+    // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
+    const l = x ? parseLooks({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col }) : null;
+    return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
+  }
+  async chooseLooks(accountId: number, looks: Looks) {
+    // Một lần duy nhất: điều kiện NOT looks_chosen làm hai yêu cầu cùng lúc chỉ một cái được ghi.
+    const r = await this.pool.query(
+      "UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, looks_chosen=true WHERE id=$1 AND NOT looks_chosen",
+      [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol]);
+    return (r.rowCount ?? 0) > 0;
   }
 }
 

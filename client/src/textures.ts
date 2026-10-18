@@ -1,31 +1,77 @@
 // Sprite pixel tạm thời được vẽ bằng code. Ảnh thật được tải trước theo
 // shared/assets/sprites/manifest.json (sprites.ts); key nào đã có ảnh thì ở đây bỏ qua.
 import Phaser from "phaser";
-import { TIERS, VOHON } from "../../shared/data.ts";
+import { TIERS, VOHON, HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 
-function draw(scene: Phaser.Scene, key: string, w: number, h: number, ox: number, oy: number,
-  fn: (R: (x: number, y: number, w: number, h: number, c: string) => void) => void) {
+/** Tô một hình chữ nhật, tọa độ tính từ gốc (chân). */
+export type Rect = (x: number, y: number, w: number, h: number, c: string) => void;
+
+function draw(scene: Phaser.Scene, key: string, w: number, h: number, ox: number, oy: number, fn: (R: Rect) => void) {
   if (scene.textures.exists(key)) return;
   const g = scene.make.graphics({}, false);
   fn((x, y, ww, hh, c) => { g.fillStyle(hex(c), 1); g.fillRect(ox + x, oy + y, ww, hh); });
   g.generateTexture(key, w, h); g.destroy();
 }
 
-/** Người chơi: 16x20, gốc tại chân (8,18). */
-export const PLAYER_ORIGIN = { x: 0.5, y: 18 / 20 };
+/** Người chơi: 16x24, gốc tại chân (8,22). */
+export const PLAYER_ORIGIN = { x: 0.5, y: 22 / 24 };
 /** Hồn thú: 48x32, gốc tại chân (24,28). */
 export const BEAST_ORIGIN = { x: 0.5, y: 28 / 32 };
 
+const SKIN = "#f1c7a0", SKIN_DARK = "#c98f6c", EYE = "#1a1010", BLUSH = "#e08a7a", TIGHTS = "#2b2430";
+
+/**
+ * Hồn sư tạm vẽ bằng code (đến bước 2.2b ghép lớp theo mục 5.11): nhìn sang phải, gốc tại chân, cao tới y = -20.
+ * Dùng chung cho sprite trong game và ô xem trước ở màn tạo nhân vật. `f` = khung bước chân (0/1), `belt` = màu đai.
+ */
+export function drawHonsu(R: Rect, L: Looks, f: number, belt?: string) {
+  const H = (HAIR_COLORS[L.hairCol] ?? HAIR_COLORS[0]).ramp, O = (OUTFIT_COLORS[L.outfitCol] ?? OUTFIT_COLORS[0]).ramp;
+  const girl = L.sex === 1;
+  // Chân: nam mặc quần cùng màu áo, nữ mặc quần bó sẫm dưới váy ngắn.
+  const leg = girl ? TIGHTS : O[0];
+  R(-3, -3, 2, f ? 3 : 4, leg); R(1, -3, 2, f ? 4 : 3, leg);
+  // Áo hồn sư có đai lưng: sáng ở vai, tối bên phải (ánh sáng từ trên bên trái).
+  R(-4, -11, 8, 9, O[2]); R(3, -11, 1, 9, O[1]); R(-4, -11, 8, 1, O[3]);
+  R(-5, -10, 1, 5, O[1]); R(4, -10, 1, 5, O[1]);
+  R(-4, -6, 8, 1, belt ?? O[0]);
+  if (girl) { R(-5, -5, 10, 2, O[2]); R(-5, -4, 10, 1, O[1]); }
+  R(-5, -5, 1, 1, SKIN); R(4, -5, 1, 1, SKIN);
+  // Đầu.
+  R(-3, -16, 6, 5, SKIN); R(-3, -12, 6, 1, SKIN_DARK); R(1, -14, 1, 1, EYE);
+  if (girl) R(2, -13, 1, 1, BLUSH);
+  // Tóc: phần chung trên đỉnh và sau gáy, rồi kiểu riêng (bảng HAIR_STYLES).
+  R(-3, -17, 6, 2, H[2]); R(-2, -17, 2, 1, H[3]); R(-4, -16, 2, 3, H[1]);
+  switch (L.sex * 4 + L.hair) {
+    case 0: // Nam: ngắn rối
+      R(-3, -18, 1, 1, H[2]); R(0, -18, 1, 1, H[2]); R(2, -18, 1, 1, H[1]); R(2, -16, 1, 1, H[1]); break;
+    case 1: // Nam: dài buộc thấp sau gáy
+      R(-5, -13, 2, 1, H[0]); R(-5, -12, 2, 5, H[1]); R(-5, -12, 1, 4, H[2]); break;
+    case 2: // Nam: dựng nhọn
+      R(-4, -18, 1, 1, H[1]); R(-3, -19, 1, 2, H[2]); R(-1, -20, 1, 3, H[2]); R(1, -19, 1, 2, H[2]); R(3, -18, 1, 1, H[1]); break;
+    case 3: // Nam: mái dài che một bên mắt
+      R(0, -16, 3, 3, H[2]); R(2, -13, 1, 1, H[1]); break;
+    case 4: // Nữ: dài thả thẳng
+      R(-5, -16, 2, 10, H[1]); R(-4, -16, 1, 9, H[2]); R(2, -16, 1, 2, H[1]); break;
+    case 5: // Nữ: đuôi ngựa cao
+      R(-5, -18, 2, 2, H[0]); R(-6, -17, 2, 7, H[1]); R(-6, -17, 1, 5, H[2]); break;
+    case 6: // Nữ: bím dài một bên
+      for (let i = 0; i < 8; i++) R(-5, -14 + i, 2, 1, i % 2 ? H[1] : H[2]);
+      R(-5, -6, 2, 1, H[0]); break;
+    default: // Nữ: ngắn ngang vai, có mái
+      R(-5, -16, 2, 6, H[1]); R(-1, -16, 4, 1, H[2]); R(2, -15, 1, 1, H[1]); break;
+  }
+}
+
+/** Texture hồn sư theo võ hồn ra trận và ngoại hình, chỉ tạo khi có người dùng tổ hợp đó. Key cũ `p{vh}_…` bỏ ở bước 2.2b. */
+export function honsuTexture(scene: Phaser.Scene, vh: number, f: number, L: Looks) {
+  const key = `p${vh}_${f}_${L.sex}${L.hair}${L.hairCol}${L.outfitCol}`;
+  draw(scene, key, 16, 24, 8, 22, (R) => drawHonsu(R, L, f, VOHON[vh]?.col));
+  return key;
+}
+
 export function makeTextures(scene: Phaser.Scene) {
-  VOHON.forEach((v, i) => {
-    for (const f of [0, 1]) draw(scene, `p${i}_${f}`, 16, 20, 8, 18, (R) => {
-      R(-3, -3, 2, f ? 3 : 4, "#2b2430"); R(1, -3, 2, f ? 4 : 3, "#2b2430");
-      R(-4, -11, 8, 9, v.robe); R(-4, -6, 8, 1, v.col); R(-5, -10, 1, 5, v.robe); R(4, -10, 1, 5, v.robe);
-      R(-3, -16, 6, 5, "#f1c7a0"); R(-3, -17, 6, 2, "#2a1b14"); R(-4, -16, 2, 4, "#2a1b14"); R(1, -14, 1, 1, "#1a1010");
-    });
-  });
   TIERS.forEach((t, tier) => {
     for (const f of [0, 1]) for (const ag of [0, 1]) draw(scene, `b${tier}_${f}${ag ? "a" : ""}`, 48, 32, 24, 28, (R) => {
       const C = t.body, eye = ag ? "#ff3030" : "#1a0a0a", bob = f;
