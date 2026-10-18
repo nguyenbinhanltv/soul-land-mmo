@@ -316,7 +316,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] Dự đoán chuyển động phía client (client-side prediction) để đỡ trễ khi ping cao.
 - [ ] Thay sprite vẽ bằng code bằng sprite Aseprite thật.
 - [ ] Nhiều kênh khi một phòng quá 60 người.
-- [ ] Giới hạn số lần đăng nhập sai và tin nhắn chat để chống dò mật khẩu và spam.
+- [x] Giới hạn số lần đăng nhập sai và tin nhắn chat để chống dò mật khẩu và spam. (`server/src/ratelimit.ts`, lưu RAM: sai 5 lần/tên hoặc 20 lần/IP thì khóa 1 phút, gấp đôi mỗi lần tới tối đa 30 phút; chat 5 tin liền rồi 1 tin/2 giây, tối đa 120 ký tự, chặn lặp cùng nội dung trong 30 giây. Deploy sau proxy thì đặt `TRUST_PROXY=1`. Kiểm thử: `npm run test:ratelimit --prefix server`.)
 
 ## 8. Câu hỏi còn mở
 1. **Sưu tầm võ hồn:** mảnh võ hồn, cộng với lễ thức tỉnh tặng Lam Ngân Thảo và cho tự chọn 1 SSR (mục 5.1), có ổn không?

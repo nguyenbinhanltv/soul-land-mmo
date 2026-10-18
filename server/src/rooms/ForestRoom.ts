@@ -5,6 +5,7 @@ import { ForestState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex } from "../../../shared/data.ts";
 import { hits, moveEnt, zones, spawn, inSpawn } from "../map.ts";
 import { store, Character } from "../db.ts";
+import { chatCheck } from "../ratelimit.ts";
 
 interface PData {
   accountId: number;
@@ -52,8 +53,12 @@ export class ForestRoom extends Room<ForestState> {
     this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
     this.onMessage("absorb", (c) => this.tryAbsorb(c));
     this.onMessage("chat", (c, m: { text: string }) => {
-      const p = this.state.players.get(c.sessionId); const text = String(m?.text ?? "").trim().slice(0, 120);
-      if (p && text) this.broadcast("chat", { name: p.name, text });
+      // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
+      const p = this.state.players.get(c.sessionId); if (!p) return;
+      const r = chatCheck((c.auth as Character)?.accountId ?? c.sessionId, m?.text);
+      if (!r) return;
+      if ("error" in r) return this.log(c.sessionId, r.error, "#ffb35c");
+      this.broadcast("chat", { name: p.name, text: r.text });
     });
   }
 
