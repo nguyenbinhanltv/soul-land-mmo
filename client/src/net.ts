@@ -5,7 +5,8 @@ export const API: string = import.meta.env.VITE_SERVER_URL
   ?? (location.port === "5173" ? `${location.protocol}//${location.hostname}:2567` : location.origin);
 export const WS = API.replace(/^http/, "ws");
 
-export interface Character { accountId: number; name: string; vohon: number; innate: number; level: number; xp: number; rings: number[]; kills: number; }
+/** Võ hồn đang ra trận. `vohon` là mã trong VOHON, `rings` là niên hạn (số năm) từng hồn hoàn. */
+export interface Character { accountId: number; name: string; rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; kills: number; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

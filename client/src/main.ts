@@ -2,7 +2,7 @@ import "./style.css";
 import Phaser from "phaser";
 import { Client } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
-import { TIERS, VOHON } from "../../shared/data.ts";
+import { TIERS, VOHON, HE, vohonIndex } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character } from "./net.ts";
 import { ringColor } from "./hud.ts";
 
@@ -10,6 +10,7 @@ const card = document.getElementById("card")!, overlay = document.getElementById
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
 let token = storage.get("shh-token") ?? "";
 
+const vohonOf = (c: Character) => VOHON[Math.max(0, vohonIndex(c.vohon))];
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 const tiersHtml = () => `<div class="tiers">${TIERS.map((t, i) =>
   `<span><i class="ring" style="color:${ringColor(i)};${i === 3 ? `border-color:${t.col}` : ""}"></i>${t.age}</span>`).join("")}</div>`;
@@ -52,10 +53,10 @@ function awakenIntro() {
 async function awaken(reset: boolean) {
   try {
     const r = await post<{ character: Character }>("/api/awaken", { token, reset });
-    const c = r.character, v = VOHON[c.vohon];
+    const c = r.character, v = vohonOf(c);
     card.innerHTML = `<div class="vh" style="color:${v.col}"><div class="orb"></div></div>
-      <div class="vh"><h2>${v.name}</h2><div class="k">${v.kind}</div>
-      <div class="t">${v.trait}<br>Hồn lực bẩm sinh: <b>cấp ${c.innate}</b>${c.innate === 10 ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
+      <div class="vh"><h2>${v.name}</h2><div class="k">${v.rarity} · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}</div>
+      <div class="t">${v.trait}<br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === 10 ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
       <div class="btns"><button class="btn primary" id="go">Bước vào rừng</button><button class="btn" id="re">Thức tỉnh lại</button></div>`;
     document.getElementById("go")!.onclick = () => join();
     document.getElementById("re")!.onclick = () => awaken(true);
@@ -64,7 +65,7 @@ async function awaken(reset: boolean) {
 }
 
 function welcomeScreen(c: Character) {
-  const v = VOHON[c.vohon];
+  const v = vohonOf(c);
   card.innerHTML = `<div class="vh" style="color:${v.col}"><div class="orb"></div></div>
     <div class="vh"><h2>${esc(c.name)}</h2><div class="k">${v.name} – cấp ${c.level}, ${c.rings.length} hồn hoàn</div></div>
     <div class="btns"><button class="btn primary" id="go">Vào rừng</button><button class="btn" id="re">Thức tỉnh lại từ đầu</button><button class="btn" id="out">Đổi tài khoản</button></div>`;

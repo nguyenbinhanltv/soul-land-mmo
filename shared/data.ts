@@ -2,33 +2,114 @@
 // Sửa cân bằng game ở đây – cả hai phía sẽ dùng cùng con số.
 
 export interface TierDef {
+  /** Số năm nhỏ nhất của bậc (hồn hoàn lưu trong DB theo số năm). */
+  years: number;
   age: string; col: string; glow: string;
   hp: number; dmg: number; xp: number; spd: number;
   atkb: number; hpb: number; size: number; beast: string; body: string;
 }
 
 export const TIERS: TierDef[] = [
-  { age: "10 năm",      col: "#f3f3f3", glow: "#ffffff", hp: 30,   dmg: 4,  xp: 12,   spd: 26, atkb: 2,  hpb: 12,  size: 8,  beast: "Thỏ Gai",          body: "#d9cbb3" },
-  { age: "100 năm",     col: "#f2c84b", glow: "#ffe08a", hp: 95,   dmg: 9,  xp: 40,   spd: 32, atkb: 5,  hpb: 30,  size: 11, beast: "Lang Xám",         body: "#8b8f96" },
-  { age: "1.000 năm",   col: "#a253e0", glow: "#c99bff", hp: 300,  dmg: 19, xp: 150,  spd: 36, atkb: 12, hpb: 80,  size: 13, beast: "Báo Vằn Tím",      body: "#5d4380" },
-  { age: "10.000 năm",  col: "#1a1820", glow: "#8a6bff", hp: 950,  dmg: 42, xp: 500,  spd: 33, atkb: 30, hpb: 220, size: 16, beast: "Hùng Hắc Giáp",    body: "#2c2c35" },
-  { age: "100.000 năm", col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, beast: "Huyết Mãng Vương", body: "#8f1f2a" },
+  { years: 10,     age: "10 năm",      col: "#f3f3f3", glow: "#ffffff", hp: 30,   dmg: 4,  xp: 12,   spd: 26, atkb: 2,  hpb: 12,  size: 8,  beast: "Thỏ Gai",          body: "#d9cbb3" },
+  { years: 100,    age: "100 năm",     col: "#f2c84b", glow: "#ffe08a", hp: 95,   dmg: 9,  xp: 40,   spd: 32, atkb: 5,  hpb: 30,  size: 11, beast: "Lang Xám",         body: "#8b8f96" },
+  { years: 1000,   age: "1.000 năm",   col: "#a253e0", glow: "#c99bff", hp: 300,  dmg: 19, xp: 150,  spd: 36, atkb: 12, hpb: 80,  size: 13, beast: "Báo Vằn Tím",      body: "#5d4380" },
+  { years: 10000,  age: "10.000 năm",  col: "#1a1820", glow: "#8a6bff", hp: 950,  dmg: 42, xp: 500,  spd: 33, atkb: 30, hpb: 220, size: 16, beast: "Hùng Hắc Giáp",    body: "#2c2c35" },
+  { years: 100000, age: "100.000 năm", col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, beast: "Huyết Mãng Vương", body: "#8f1f2a" },
 ];
 
 export const TIER_MULT = [1, 1.35, 1.9, 2.8, 4.5];
 
-export interface VoHonDef {
-  name: string; kind: string; col: string; robe: string; trait: string;
-  atk: number; hp: number; mp: number; spd: number; def: number;
+/** Bậc (chỉ số trong TIERS) của một hồn hoàn theo số năm. */
+export function tierOfYears(years: number) {
+  let t = 0;
+  for (let i = 0; i < TIERS.length; i++) if (years >= TIERS[i].years) t = i;
+  return t;
 }
 
+// ---------- Võ hồn ----------
+export type He = "cuong_cong" | "man_cong" | "khong_che" | "phu_tro";
+export type Rarity = "SR" | "SSR" | "UR";
+
+interface Mult { atk: number; hp: number; mp: number; spd: number; def: number; }
+
+/** 4 hệ võ hồn. `def` là hệ số sát thương phải chịu (nhỏ hơn = lì đòn hơn). */
+export const HE: Record<He, { name: string } & Mult> = {
+  cuong_cong: { name: "Cường công", atk: 1.15, hp: 1,    mp: 1,    spd: 1,    def: 1 },
+  man_cong:   { name: "Mẫn công",   atk: 1.05, hp: 0.9,  mp: 1,    spd: 1.15, def: 1 },
+  khong_che:  { name: "Khống chế",  atk: 0.95, hp: 1.05, mp: 1.15, spd: 1,    def: 0.95 },
+  phu_tro:    { name: "Phụ trợ",    atk: 0.85, hp: 1.1,  mp: 1.35, spd: 1,    def: 0.9 },
+};
+export const RARITY_MULT: Record<Rarity, number> = { SR: 0.95, SSR: 1, UR: 1.08 };
+
+export interface VoHonDef extends Mult {
+  /** Mã cố định lưu trong DB. Không bao giờ đổi mã đã dùng. */
+  id: string;
+  name: string; he: He; rarity: Rarity;
+  owner: string;   // chủ nhân trong truyện (nhân vật đại diện)
+  flows: string[]; // lưu phái
+  trait: string;   // mô tả ngắn hiện khi thức tỉnh
+  col: string; robe: string;
+}
+
+function vh(id: string, name: string, he: He, rarity: Rarity, owner: string, flows: string[],
+  col: string, robe: string, trait: string): VoHonDef {
+  const b = HE[he], r = RARITY_MULT[rarity];
+  return { id, name, he, rarity, owner, flows, col, robe, trait,
+    atk: +(b.atk * r).toFixed(3), hp: +(b.hp * r).toFixed(3), mp: b.mp, spd: b.spd, def: b.def };
+}
+
+/** Danh sách võ hồn (GAME_DESIGN.md mục 5.1). Thứ tự trong mảng chỉ dùng để đồng bộ, DB lưu theo `id`. */
 export const VOHON: VoHonDef[] = [
-  { name: "Hỏa Long Thương", kind: "Khí võ hồn", col: "#ff7a3a", robe: "#9c3a22", trait: "Sát thương cao hơn 15%",        atk: 1.15, hp: 0.95, mp: 1,    spd: 1,    def: 1 },
-  { name: "Băng Tuyết Hồ",   kind: "Thú võ hồn", col: "#8fe0ff", robe: "#2f6b8f", trait: "Hồn lực dồi dào, hồi nhanh",    atk: 1,    hp: 1,    mp: 1.35, spd: 1,    def: 1 },
-  { name: "Lôi Ưng",         kind: "Thú võ hồn", col: "#d7b6ff", robe: "#4b3a8f", trait: "Di chuyển nhanh hơn 18%",       atk: 1.05, hp: 0.95, mp: 1,    spd: 1.18, def: 1 },
-  { name: "Thanh Mộc Đằng",  kind: "Khí võ hồn", col: "#7ee07a", robe: "#2f6b3a", trait: "Sinh lực tăng 30%",             atk: 0.95, hp: 1.3,  mp: 1,    spd: 1,    def: 1 },
-  { name: "Kim Cương Thuẫn", kind: "Khí võ hồn", col: "#f2d06b", robe: "#7a5f22", trait: "Giảm 25% sát thương phải chịu", atk: 0.95, hp: 1.1,  mp: 1,    spd: 0.95, def: 0.75 },
+  // SSR cơ bản – cường công
+  vh("cuu_tinh_that_sat_kiem", "Cửu Tinh Thất Sát Kiếm", "cuong_cong", "SSR", "Kiếm Đấu La Trần Tâm", ["Phá giáp"],
+    "#cfe3ff", "#3c4f70", "Vô Ngã Kiếm Trận quét diện rộng, gây Liệt thương giảm thủ."),
+  vh("lam_dien_ba_vuong_long", "Lam Điện Bá Vương Long", "cuong_cong", "SSR", "Ngọc Thiên Hằng", ["Cảm điện"],
+    "#5ab8ff", "#1f3f8f", "Sấm sét gây Cảm điện; đầy Phong Lôi Chi Lực thì tung Lôi Động Minh Thiên."),
+  vh("ky_nhung_thong_thien_cuc", "Kỳ Nhung Thông Thiên Cúc", "cuong_cong", "SSR", "Cúc Đấu La Nguyệt Quan", ["Thiêu đốt", "Phá giáp"],
+    "#ffb347", "#8a4a12", "Cánh hoa sát thương liên tục, hạn chế di chuyển kẻ địch."),
+  vh("ta_hoa_phuong_hoang", "Tà Hỏa Phượng Hoàng", "cuong_cong", "SSR", "Mã Hồng Tuấn", ["Thiêu đốt"],
+    "#ff6a2a", "#8f2a14", "Bay, thiêu đốt diện rộng; trong lãnh vực phượng hoàng địch nhận thêm sát thương."),
+  // SSR cơ bản – mẫn công
+  vh("u_minh_linh_mieu", "U Minh Linh Miêu", "man_cong", "SSR", "Chu Trúc Thanh", ["Chấn đãng"],
+    "#b06bff", "#3e2266", "Tốc độ và chí mạng cao, cào liên hoàn."),
+  vh("nguyet_nhan", "Nguyệt Nhận", "man_cong", "SSR", "Tà Nguyệt", ["Thiêu đốt", "Phá giáp"],
+    "#e6e6f0", "#4a4a5e", "Lướt xuyên hàng trước, hạ nhanh mục tiêu yếu máu."),
+  vh("hoa_long", "Hỏa Long", "man_cong", "SSR", "Hỏa Vô Song", ["Thiêu đốt"],
+    "#ff4a2a", "#7a1c10", "Đánh tầm xa phạm vi rộng; Viêm bạo kích nổ thiêu đốt."),
+  vh("nhu_cot_tho", "Nhu Cốt Thố", "man_cong", "SSR", "Tiểu Vũ", ["Chấn đãng"],
+    "#ffc2e2", "#c86a9a", "Lướt, quật ngã, tăng chí mạng và hút máu."),
+  vh("kim_vu_mieu_ung", "Kim Vũ Miêu Ưng", "man_cong", "SSR", "", ["Cảm điện"],
+    "#ffd54a", "#7a5a12", "Bay, vuốt gây tê liệt và câm lặng; áo nghĩa phủ Cảm điện toàn vùng."),
+  // SSR cơ bản – khống chế
+  vh("tu_vong_chu_hoang", "Tử Vong Chu Hoàng", "khong_che", "SSR", "Bỉ Bỉ Đông", ["Trúng độc", "Cảm điện"],
+    "#9a4aff", "#2a1240", "Giăng tơ gom quái, độc nhện khống chế."),
+  vh("bich_lan_xa_hoang", "Bích Lân Xà Hoàng", "khong_che", "SSR", "Độc Đấu La Độc Cô Bác", ["Trúng độc"],
+    "#3ad98a", "#145a38", "Trúng độc cộng dồn, câm lặng diện rộng; Vạn Xà Phệ Tâm hút máu."),
+  vh("can_khon_hon_nguyen_toa", "Càn Khôn Hỗn Nguyên Tỏa", "khong_che", "SSR", "", ["Cảm điện"],
+    "#e0b04a", "#5e4a18", "Tạo vùng phong tỏa giam kẻ địch, cộng dồn gây Dễ thương."),
+  vh("hoa_anh", "Hỏa Ảnh", "khong_che", "SSR", "", ["Thiêu đốt"],
+    "#ff3a4a", "#701822", "Choáng, thiêu đốt, đẩy lùi; gây Dễ thương cho đồng đội đánh."),
+  vh("yeu_ho", "Yêu Hồ", "khong_che", "SSR", "Hồ Liệt Na", ["Cảm điện"],
+    "#ff9ad5", "#7a2a5a", "Mê hoặc cộng dồn, ảo ảnh tàng hình, lãnh vực làm chậm."),
+  // SSR cơ bản – phụ trợ
+  vh("xuc_xich", "Xúc Xích", "phu_tro", "SSR", "Áo Tư Tạp", ["Cảm điện"],
+    "#e8875a", "#6a3a22", "Hồi hồn lực, giải khống chế; áo nghĩa sao chép kỹ năng đồng đội."),
+  vh("quy_mi", "Quỷ Mị", "phu_tro", "SSR", "Quỷ Đấu La", ["Bùng nổ"],
+    "#8a8aff", "#22224a", "Biến sát thương thành hồi máu; Quỷ Ảnh Trùng Trùng tàng hình cả đội."),
+  vh("thien_can_bach_ngoc_dinh", "Thiên Càn Bạch Ngọc Đỉnh", "phu_tro", "SSR", "", ["Đánh boss"],
+    "#f0e0a0", "#6a5a2a", "Hồi máu và khiên; xóa buff địch, thanh tẩy đồng đội."),
+  // Ngoài danh sách SSR cơ bản
+  vh("lam_ngan_thao", "Lam Ngân Thảo", "khong_che", "SR", "Đường Tam", ["Chấn đãng"],
+    "#4ab0ff", "#1f4a6b", "Gom quái, trói; tuyệt kỹ kéo cả vùng lại và giam."),
+  vh("hao_thien_chuy", "Hạo Thiên Chùy", "cuong_cong", "UR", "Đường Hạo", ["Chấn đãng"],
+    "#9aa0b4", "#22222c", "Sát thương theo % máu; Loạn Phi Phong Chùy Pháp kết thúc bằng hất tung."),
+  vh("cuu_bao_luu_ly_thap", "Cửu Bảo Lưu Ly Tháp", "phu_tro", "UR", "Ninh Vinh Vinh", ["Thiêu đốt"],
+    "#7ef0ff", "#2a6a7a", "Tăng công, thủ, tốc cho đội; Vô Địch Thần Quang miễn sát thương."),
 ];
+
+const VOHON_INDEX = new Map(VOHON.map((v, i) => [v.id, i]));
+/** Chỉ số trong VOHON của một mã võ hồn (-1 nếu không có). */
+export const vohonIndex = (id: string) => VOHON_INDEX.get(id) ?? -1;
 
 export const SKILLS = [
   { name: "Hồn Bạo",    cost: 12, cd: 3,   desc: "Nổ hồn lực quanh thân" },

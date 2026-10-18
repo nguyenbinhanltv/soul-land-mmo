@@ -27,7 +27,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 ## 4. Luật cốt lõi đã làm (bản cũ, sẽ thay dần)
 Đây là những gì code đang chạy. Mục ghi ➜ sẽ bị thay ở giai đoạn tương ứng.
 
-- **Thức tỉnh**: server chọn ngẫu nhiên 1 trong 5 võ hồn tạm và hồn lực bẩm sinh 1–10. ➜ GĐ2: thay bằng sưu tầm võ hồn.
+- **Thức tỉnh**: server chọn ngẫu nhiên 1 võ hồn SSR và hồn lực bẩm sinh 1–10 (= cấp khởi đầu). ➜ GĐ2.2: tặng Lam Ngân Thảo + tự chọn 1 SSR.
 - **Bình cảnh**: cứ đến cấp 10, 20, 30… là kinh nghiệm dừng lại, phải hấp thụ hồn hoàn mới lên tiếp. *Giữ nguyên.*
 - **Niên hạn**: 5 bậc cố định 10 / 100 / 1.000 / 10.000 / 100.000 năm. ➜ GĐ3: thay bằng số năm cụ thể.
 - **Giới hạn hấp thụ**: theo bậc; vượt 1 bậc thì 60% thất bại, mất 70% máu. ➜ GĐ3: thay bằng giới hạn theo truyện, thất bại thì mất hồn hoàn.
@@ -267,7 +267,11 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [x] **Hạ tầng:** Supabase, git, kiểm tra tự động.
 
 **Giai đoạn 2: Mô hình sưu tầm võ hồn** (thay đổi lớn nhất, làm trước)
-- [ ] 2.1 Dữ liệu: danh sách võ hồn ở mục 5.1 trong `data.ts`. Bảng `vohons`; nhân vật cũ được chuyển thành võ hồn đầu tiên của tài khoản.
+- [x] 2.1 Dữ liệu: danh sách võ hồn ở mục 5.1 trong `data.ts`. Bảng `vohons`; nhân vật cũ được chuyển thành võ hồn đầu tiên của tài khoản.
+  *Đã làm:* 20 võ hồn có mã cố định (`id`), hệ, độ hiếm, chủ nhân, lưu phái. Bảng `vohons` lưu hồn hoàn theo số năm.
+  Võ hồn tạm cũ được ánh xạ: Hỏa Long Thương → Hỏa Long, Băng Tuyết Hồ → Yêu Hồ, Lôi Ưng → Kim Vũ Miêu Ưng,
+  Thanh Mộc Đằng → Lam Ngân Thảo, Kim Cương Thuẫn → Thiên Càn Bạch Ngọc Đỉnh. Bảng `characters` giữ lại, không còn ghi.
+  Thức tỉnh tạm thời ngẫu nhiên 1 SSR; mỗi tài khoản vẫn chỉ dùng 1 võ hồn cho đến bước 2.2.
 - [ ] 2.2 Server: tài khoản sở hữu nhiều võ hồn, mỗi võ hồn có cấp, kinh nghiệm và hồn hoàn riêng. Lễ thức tỉnh: chọn 1 trong 3.
 - [ ] 2.3 Đội hình 4 võ hồn, đổi võ hồn trong trận, luật gục và hồi sinh mới.
 - [ ] 2.4 Năng lượng và chiêu tiên cơ.

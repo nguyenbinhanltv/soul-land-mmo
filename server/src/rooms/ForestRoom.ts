@@ -2,12 +2,14 @@
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError } from "colyseus";
 import { ForestState, PlayerState, BeastState, DropState } from "./schema.ts";
-import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE } from "../../../shared/data.ts";
+import { TIERS, TIER_MULT, VOHON, SKILLS, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, tierOfYears, vohonIndex } from "../../../shared/data.ts";
 import { hits, moveEnt, zones, spawn, inSpawn } from "../map.ts";
 import { store, Character } from "../db.ts";
 
 interface PData {
-  accountId: number; innate: number;
+  accountId: number;
+  ch: Character;        // dòng vohons đang ra trận (giữ id, mã, sao)
+  ringYears: number[];  // niên hạn thật của từng hồn hoàn; p.rings chỉ là bậc để hiển thị
   input: { x: number; y: number }; dir: { x: number; y: number };
   atk: number; speed: number; atkCd: number; inv: number; lastHit: number; deadT: number;
   absorbing: { dropId: string; t: number; dur: number; risk: number } | null;
@@ -59,10 +61,10 @@ export class ForestRoom extends Room<ForestState> {
     // Một tài khoản chỉ được vào một lần: đá phiên cũ.
     for (const other of this.clients) if (other !== client && (other.auth as Character)?.accountId === ch.accountId) other.leave(4001);
     const p = new PlayerState();
-    p.name = ch.name; p.vh = ch.vohon; p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
-    ch.rings.forEach((r) => p.rings.push(r));
+    p.name = ch.name; p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
+    ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
     const pos = this.spawnPoint(); p.x = pos.x; p.y = pos.y;
-    const d: PData = { accountId: ch.accountId, innate: ch.innate, input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
+    const d: PData = { accountId: ch.accountId, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0 };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
@@ -105,7 +107,7 @@ export class ForestRoom extends Room<ForestState> {
 
   async save(id: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    await store.saveCharacter({ accountId: d.accountId, name: p.name, vohon: p.vh, innate: d.innate, level: p.level, xp: p.xp, rings: [...p.rings], kills: p.kills });
+    await store.saveCharacter({ ...d.ch, level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
   }
 
   log(id: string, text: string, col?: string) { this.clients.getById(id)?.send("log", { text, col }); }
@@ -245,7 +247,8 @@ export class ForestRoom extends Room<ForestState> {
       d.hpF = Math.max(1, Math.round(d.hpF * 0.3));
       this.log(id, `Thất bại! Hồn hoàn ${td.age} vỡ tan, bạn bị phản phệ nặng.`, "#ff8a8a"); return;
     }
-    p.rings.push(dr.tier); p.level = Math.min(99, p.level + 1); p.xp = 0;
+    // Hồn thú chưa có tuổi theo năm (giai đoạn 3) -> tạm lấy số năm nhỏ nhất của bậc.
+    p.rings.push(dr.tier); d.ringYears.push(td.years); p.level = Math.min(99, p.level + 1); p.xp = 0;
     this.recalc(id, true);
     this.broadcast("fx", { k: "absorbed", id, tier: dr.tier });
     const n = p.rings.length;

@@ -43,11 +43,11 @@ app.post("/api/awaken", async (req, res) => {
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
   const cur = await store.getCharacter(acc.accountId);
   if (cur && !req.body?.reset) { res.json({ character: cur }); return; }
-  const vohon = Math.floor(Math.random() * VOHON.length);
-  const innate = Math.random() < 0.04 ? 10 : 1 + Math.floor(Math.pow(Math.random(), 1.6) * 9);
-  const ch = { accountId: acc.accountId, name: acc.name, vohon, innate, level: innate, xp: 0, rings: [], kills: 0 };
-  await store.saveCharacter(ch);
-  res.json({ character: ch });
+  // Tạm thời (đến bước 2.2): ngẫu nhiên 1 võ hồn SSR. Hồn lực bẩm sinh 1–10 làm cấp khởi đầu.
+  const pool = VOHON.filter((v) => v.rarity === "SSR");
+  const vohon = pool[Math.floor(Math.random() * pool.length)].id;
+  const level = Math.random() < 0.04 ? 10 : 1 + Math.floor(Math.pow(Math.random(), 1.6) * 9);
+  res.json({ character: await store.awaken(acc.accountId, acc.name, vohon, level) });
 });
 
 // Khi deploy: phục vụ luôn bản build của client -> chỉ cần một đường link.
