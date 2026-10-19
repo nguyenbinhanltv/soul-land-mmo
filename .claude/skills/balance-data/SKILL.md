@@ -16,8 +16,8 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `RING_LIMIT` / `ringLimit(slot)` (số năm tối đa theo vòng, bảng 5.2), `xpNeed(level)`, `atBottleneck(level, rings)`, `xpBlocked(level, rings)`, `MAX_RINGS`, `MAX_LEVEL`, `calcStats(vh, level, rings)`.
 - Đội hình và luật gục (mục 5.1): `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`.
 - Năng lượng và chiêu tiên cơ (mục 5.1, bước 2.4): `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO` (tiên cơ chung theo hệ), `TIEN_CO_SET` + `energyGain()` / `tienCoDmgMult()` (hệ số bộ hồn hạch Tiên Cơ).
-- Giảm kinh nghiệm theo chênh cấp (mục 5.3): `beastLevel(tier)` (tạm theo bậc đến BĐ3), `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale(level, beastLv)`.
-- `MAPS` (bản đồ theo `mapId`: tên, loại, cấp đề xuất, niên hạn), `DEFAULT_MAP`, `BEASTS` (hồn thú theo loài: mã cố định, tên; từ 3.2 không còn bậc tạm), `beastIndex(id)`.
+- Giảm kinh nghiệm theo chênh cấp (mục 5.3): `beastLevel(years)` (cấp tương đương tính từ `RING_LIMIT`, từ BĐ3), `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale(level, beastLv)`.
+- `MAPS` (bản đồ theo `mapId`: tên, loại, cấp đề xuất, niên hạn), `DEFAULT_MAP`, `MAP_MOVED` (mã bản đồ cũ đã bỏ -> bản đồ thay thế, ví dụ `tinh_dau` -> `tinh_dau_ngoai_vi` từ BĐ3), `GATE_CLEAR` (không sinh hồn thú quanh cổng / điểm xuất hiện), `BEASTS` (hồn thú theo loài: mã cố định, tên; từ 3.2 không còn bậc tạm), `beastIndex(id)`.
 - `TITLES`, `titleOf(level)` (danh hiệu theo cấp, mục 5.1).
 - `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `DEFAULT_LOOKS`, `parseLooks()` (ngoại hình hồn sư, mục 5.11). Màu chỉ lấy từ `art/palette.gpl`; thêm màu vào cuối mảng vì DB lưu chỉ số.
 - `TILE`, `TICK_RATE`.

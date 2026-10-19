@@ -1,9 +1,11 @@
 // Sinh các bản đồ Tiled khởi đầu: shared/assets/<mapId>.json cho mỗi mapId trong MAPS (shared/data.ts).
-//   tinh_dau        Tinh Đấu Đại Sâm Lâm (BĐ1; BĐ2 thêm cổng về Nặc Đinh Thành)
+//   tinh_dau_ngoai_vi  Tinh Đấu Ngoại vi: 4 vùng 300–2.000 năm, cổng về Nặc Đinh Thành và vào Nội địa (BĐ3, mục 5.3)
+//   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3; Lõi Tinh Đấu để BĐ6)
+//   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
 //   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, chỗ đứng cho NPC của 6.1 (BĐ2)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
-// Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh cả ba)
+// Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
 import { writeFileSync } from "node:fs";
 
 const T = 16;
@@ -89,55 +91,109 @@ function toLayers(MW, MH, g, grassOf) {
   return { ground, trees, canopy };
 }
 
-// ---------- Tinh Đấu Đại Sâm Lâm (giữ nguyên ô của BĐ1; BĐ2 chỉ thêm cổng, điểm xuất hiện và thu hẹp doanh trại) ----------
-function tinhDau() {
-  const MW = 90, MH = 60;
-  const zoneOf = (x) => (x < 22 ? 0 : x < 45 ? 1 : x < 68 ? 2 : 3);
-  const r = rng(20261019);
-  // ô logic: 0 cỏ, 1 cây, 2 nước, 3 đường, 4 hoa, 5 trại
-  const m = new Uint8Array(MW * MH);
-  const set = (x, y, v) => { if (x >= 0 && y >= 0 && x < MW && y < MH) m[y * MW + x] = v; };
-  const dens = [0.05, 0.09, 0.13, 0.17];
+// ---------- Tinh Đấu Đại Sâm Lâm: Ngoại vi và Nội địa (BĐ3, mục 5.3) ----------
+/**
+ * Rừng 90×60 ô chia 4 vùng theo chiều đông (càng sâu càng rậm, càng tối), trại cổng ở mép tây (điểm hồi sinh, cổng về bản đồ
+ * trước), đường mòn đông–tây nối trại với mép đông. `spec`: seed, `shade` (sắc cỏ / cây 0–3 theo vùng), `dens` (mật độ cây theo
+ * vùng), `feature(g, r)` vẽ thêm nét riêng (suối, đầm, thung lũng…) trước khi mở đường mòn và trại, `east(g)` vẽ mép đông sau cùng.
+ */
+const FOREST = { MW: 90, MH: 60, xs: [9, 22, 45, 68, 89], camp: { x: 3, y: 25, w: 6, h: 11 }, pathY: 30 };
+function forest(spec) {
+  const { MW, MH, xs } = FOREST, r = rng(spec.seed), g = grid(MW, MH);
+  const zoneOf = (x) => { const i = xs.findIndex((x1) => x < x1); return i < 0 ? xs.length - 2 : Math.max(0, i - 1); };
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
     const z = zoneOf(x);
-    if (r() < dens[z]) set(x, y, 1); else if (z < 2 && r() < 0.05) set(x, y, 4);
+    if (r() < spec.dens[z]) g.set(x, y, 1); else if (spec.shade[z] < 2 && r() < 0.05) g.set(x, y, 4);
   }
+  // Bụi cây lớn, vùng càng sâu càng to.
   for (let i = 0; i < 70; i++) {
     const cx = (r() * MW) | 0, cy = (r() * MH) | 0, rad = 1 + r() * (1 + zoneOf(cx));
-    for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) if (Math.hypot(x, y) < rad && r() < 0.65) set(cx + x, cy + y, 1);
+    for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) if (Math.hypot(x, y) < rad && r() < 0.65) g.set(cx + x, cy + y, 1);
   }
-  for (let i = 0; i < 13; i++) {
-    const cx = 10 + r() * (MW - 14), cy = 4 + r() * (MH - 8), rad = 1.6 + r() * 2.6;
-    for (let y = -5; y <= 5; y++) for (let x = -5; x <= 5; x++)
-      if (Math.hypot(x, y) < rad * (0.8 + r() * 0.35)) set(Math.round(cx + x), Math.round(cy + y), 2);
+  spec.feature?.(g, r);
+  // Đường mòn đông–tây (uốn lượn, về lại hàng pathY ở hai đầu để nối cổng) và 4 lối bắc–nam; trại cổng ở mép tây.
+  let py = FOREST.pathY;
+  for (let x = 1; x < MW - 1; x++) {
+    g.set(x, py, 3); g.set(x, py + 1, 3);
+    if (x >= MW - 14) py += Math.sign(FOREST.pathY - py);
+    else if (x > 10 && r() < 0.3) py = Math.max(8, Math.min(MH - 10, py + (r() < 0.5 ? -1 : 1)));
   }
-  let py = 30;
-  for (let x = 1; x < MW - 1; x++) { set(x, py, 3); set(x, py + 1, 3); if (r() < 0.3) py = Math.max(6, Math.min(MH - 8, py + (r() < 0.5 ? -1 : 1))); }
-  for (const x0 of [14, 33, 55, 76]) { let x = x0; for (let y = 2; y < MH - 2; y++) { set(x, y, 3); set(x + 1, y, 3); if (r() < 0.25) x += r() < 0.5 ? -1 : 1; } }
-  for (let y = 25; y <= 35; y++) for (let x = 1; x <= 8; x++) set(x, y, 5);
-  for (let x = 0; x < MW; x++) { set(x, 0, 1); set(x, MH - 1, 1); }
-  for (let y = 0; y < MH; y++) { set(0, y, 1); set(MW - 1, y, 1); }
-
-  const ground = new Array(MW * MH).fill(0), trees = new Array(MW * MH).fill(0), canopy = new Array(MW * MH).fill(0);
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
-    const i = y * MW + x, t = m[i], z = zoneOf(x);
-    ground[i] = t === 2 ? GID.water : t === 3 ? (z >= 3 ? GID.pathDark : GID.path) : t === 5 ? GID.camp : t === 4 ? GID.flower[Math.min(z, 1)] : GID.grass[z];
-    if (t === 1) { trees[i] = GID.tree[z]; if (y > 0) canopy[i - MW] = GID.canopy[z]; }
-  }
+  for (const x0 of [14, 33, 55, 76]) { let x = x0; for (let y = 2; y < MH - 2; y++) { g.set(x, y, 3); g.set(x + 1, y, 3); if (r() < 0.25) x += r() < 0.5 ? -1 : 1; } }
+  g.fill(1, FOREST.camp.y, 8, FOREST.camp.h, 5);
+  spec.east?.(g);
+  g.border();
+  const { ground, trees, canopy } = toLayers(MW, MH, g, (x) => spec.shade[zoneOf(x)]);
+  // Đường mòn ở vùng tối nhất dùng ô đường tối.
+  for (let i = 0; i < MW * MH; i++) if (g.m[i] === 3 && spec.shade[zoneOf(i % MW)] >= 3) ground[i] = GID.pathDark;
   trees[27 * MW + 2] = GID.tent;
   trees[30 * MW + 4] = GID.fire;
+  return { MW, MH, ground, trees, canopy, o: objects() };
+}
+/** Vùng thứ i của rừng (cột FOREST.xs[i]..xs[i+1], cả chiều cao). Vùng khai báo `years` nên `weights` không dùng. */
+const forestZone = (o, i, name, hint, count, beasts, years) =>
+  o.zone(name, hint, FOREST.xs[i], 0, FOREST.xs[i + 1] - FOREST.xs[i], FOREST.MH, [1], count, beasts, years);
 
-  const o = objects();
-  o.zone("Bìa rừng", "Hồn thú 300 – 700 năm", 9, 0, 13, MH, [0.85, 0.15, 0, 0, 0], 14, "phong_lang:2,man_da_la_xa:1,tu_van_bao:1", "300-700");
-  o.zone("Rừng thưa", "Hồn thú 600 – 1.200 năm", 22, 0, 23, MH, [0.2, 0.65, 0.15, 0, 0], 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1,quy_ho:1", "600-1200");
-  o.zone("Rừng cổ thụ", "Hồn thú 1.500 – 5.000 năm", 45, 0, 23, MH, [0, 0.25, 0.6, 0.15, 0], 10, "quy_dang:1,nhan_dien_ma_chu:1,u_minh_lang:1,kiem_vi_hat:1", "1500-5000");
-  o.zone("Hắc Ám Lâm", "Cẩn thận: hồn thú 15.000 – 25.000 năm", 68, 0, 21, MH, [0, 0, 0.35, 0.63, 0.02], 9, "u_minh_lang:1,am_kim_khung_trao_hung:1,kiem_vi_hat:1,quy_anh_bao:1,xich_lan_mang:1", "15000-25000");
-  // Doanh trại = trại cổng của Tinh Đấu (mục 5.8). Cổng về Nặc Đinh Thành ở mép tây, trên đường mòn; doanh trại (điểm hồi sinh)
-  // bắt đầu từ cột 3 để không ai hồi sinh ngay trong cổng.
-  o.rect("spawn", "Doanh trại", 3, 25, 6, 11);
-  o.portal("Về Nặc Đinh Thành", 1, 29, 2, 4, "nac_dinh_thanh", "tu_tinh_dau");
+// Ngoại vi (cấp 10–30, 300–2.000 năm): trại cổng phía tây về Nặc Đinh Thành, cổng phía đông vào Nội địa.
+function tinhDauNgoaiVi() {
+  const { MW, MH } = FOREST;
+  const { ground, trees, canopy, o } = forest({
+    seed: 20261019, shade: [0, 1, 1, 2], dens: [0.05, 0.09, 0.11, 0.15],
+    feature(g, r) {
+      // Ao nhỏ rải rác ở Bìa rừng và Rừng thưa, và con suối chảy bắc–nam qua vùng Khe suối.
+      for (let i = 0; i < 8; i++) {
+        const cx = 12 + r() * 30, cy = 4 + r() * (MH - 8), rad = 1.4 + r() * 2;
+        for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) if (Math.hypot(x, y) < rad) g.set(Math.round(cx + x), Math.round(cy + y), 2);
+      }
+      let sx = 56;
+      for (let y = 0; y < MH; y++) { for (let k = 0; k < 3; k++) g.set(sx + k, y, 2); if (r() < 0.35) sx = Math.max(50, Math.min(62, sx + (r() < 0.5 ? -1 : 1))); }
+    },
+    // Khoảng trống quanh cổng phía đông (trạm gác Rìa nội địa) để đứng niệm cổng và xuất hiện.
+    east(g) { g.fill(MW - 10, 26, 9, 10, 0); g.fill(MW - 10, 30, 9, 2, 3); },
+  });
+  forestZone(o, 0, "Bìa rừng", "Hồn thú 300 – 700 năm", 14, "phong_lang:2,man_da_la_xa:1,tu_van_bao:1", "300-700");
+  forestZone(o, 1, "Rừng thưa", "Hồn thú 600 – 1.200 năm", 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1", "600-1200");
+  forestZone(o, 2, "Khe suối", "Hồn thú 1.000 – 1.600 năm", 10, "quy_ho:1,thanh_lan_ngac:1,kim_linh_ung:1", "1000-1600");
+  forestZone(o, 3, "Rìa nội địa", "Cẩn thận: hồn thú 1.400 – 2.000 năm", 9, "nhan_dien_ma_chu_non:1,liet_trao_hung:1,thiet_giap_te_nguu:1", "1400-2000");
+  // Trại cổng (điểm hồi sinh) bắt đầu từ cột 3 để không ai hồi sinh ngay trong cổng ở mép tây.
+  const c = FOREST.camp;
+  o.rect("spawn", "Trại cổng Ngoại vi", c.x, c.y, c.w, c.h);
+  o.portal("Về Nặc Đinh Thành", 1, 29, 2, 4, "nac_dinh_thanh", "tu_tinh_dau_ngoai_vi");
   o.point("arrive", "tu_nac_dinh_thanh", 5.5, 31.5);
-  writeMap("tinh_dau", MW, MH, ground, trees, canopy, o, [prop("vignette", "bool", true)]);
+  o.portal("Vào Tinh Đấu Nội địa", MW - 3, 28, 2, 6, "tinh_dau_noi_dia", "tu_tinh_dau_ngoai_vi", "30-60");
+  o.point("arrive", "tu_tinh_dau_noi_dia", MW - 6.5, 31);
+  writeMap("tinh_dau_ngoai_vi", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0)]);
+}
+
+// Nội địa (cấp 30–60, 1.500–25.000 năm): trại cổng phía tây về Ngoại vi. Cuối Hắc Ám Lâm là bờ hồ trung tâm; cổng đi Lõi
+// Tinh Đấu (`loi_tinh_dau`, BĐ6) chưa đặt vì bản đồ đó chưa có trong MAPS (cổng tới bản đồ chưa có thì không hiện, mục 5.3).
+function tinhDauNoiDia() {
+  const { MW, MH } = FOREST;
+  const { ground, trees, canopy, o } = forest({
+    seed: 30111, shade: [2, 2, 3, 3], dens: [0.09, 0.08, 0.12, 0.17],
+    feature(g, r) {
+      // Đầm sương độc: nhiều vũng nước nối nhau.
+      for (let i = 0; i < 16; i++) {
+        const cx = 24 + r() * 19, cy = 3 + r() * (MH - 6), rad = 1.3 + r() * 2.4;
+        for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) if (Math.hypot(x, y) < rad * (0.8 + r() * 0.35)) g.set(Math.round(cx + x), Math.round(cy + y), 2);
+      }
+      // Lôi Cốc: vách cây dày phía bắc và phía nam, lòng thung lũng ở giữa thưa cây.
+      for (let x = 45; x < 68; x++) for (let y = 0; y < MH; y++) {
+        const wall = y < 14 + Math.round(3 * Math.sin(x / 3)) || y > MH - 15 + Math.round(3 * Math.cos(x / 4));
+        if (wall && r() < 0.6) g.set(x, y, 1);
+      }
+    },
+    // Bờ hồ trung tâm (Lõi Tinh Đấu, BĐ6) ở mép đông, cuối đường mòn.
+    east(g) { for (let y = 18; y < 43; y++) for (let x = MW - 9; x < MW - 1; x++) if (Math.hypot((x - (MW - 1)) * 1.6, y - 30.5) < 12) g.set(x, y, 2); },
+  });
+  forestZone(o, 0, "Rừng cổ thụ", "Hồn thú 1.500 – 5.000 năm", 12, "nhan_dien_ma_chu:1,u_minh_lang:1,quy_dang:1", "1500-5000");
+  forestZone(o, 1, "Đầm sương độc", "Hồn thú 4.000 – 12.000 năm", 10, "that_tinh_doc_thiem:1,xich_lan_mang:1,hac_vu_bien_buc:1", "4000-12000");
+  forestZone(o, 2, "Lôi Cốc", "Hồn thú 10.000 – 18.000 năm", 9, "lam_loi_te_nguu:1,loi_duc_ung:1", "10000-18000");
+  forestZone(o, 3, "Hắc Ám Lâm", "Cẩn thận: hồn thú 15.000 – 25.000 năm", 8, "am_kim_khung_trao_hung:1,kiem_vi_hat:1,quy_anh_bao:1", "15000-25000");
+  const c = FOREST.camp;
+  o.rect("spawn", "Trại cổng Nội địa", c.x, c.y, c.w, c.h);
+  o.portal("Về Tinh Đấu Ngoại vi", 1, 29, 2, 4, "tinh_dau_ngoai_vi", "tu_tinh_dau_noi_dia", "10-30");
+  o.point("arrive", "tu_tinh_dau_ngoai_vi", 5.5, 31.5);
+  writeMap("tinh_dau_noi_dia", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.35)]);
 }
 
 // ---------- Thánh Hồn Thôn (mục 5.3, 5.8) ----------
@@ -222,9 +278,9 @@ function nacDinhThanh() {
   const o = objects();
   o.rect("spawn", "Quảng trường Nặc Đinh", 26, 17, 8, 7);
   o.portal("Về Thánh Hồn Thôn", 0, 18, 3, 5, "thanh_hon_thon", "tu_nac_dinh_thanh", "1-10");
-  o.portal("Đi Tinh Đấu Đại Sâm Lâm", MW - 3, 18, 3, 5, "tinh_dau", "tu_nac_dinh_thanh", "10-60");
+  o.portal("Đi Tinh Đấu Ngoại vi", MW - 3, 18, 3, 5, "tinh_dau_ngoai_vi", "tu_nac_dinh_thanh", "10-30");
   o.point("arrive", "tu_thanh_hon_thon", 5.5, 20.5);
-  o.point("arrive", "tu_tinh_dau", MW - 5.5, 20.5);
+  o.point("arrive", "tu_tinh_dau_ngoai_vi", MW - 5.5, 20.5);
   o.point("npc", "Ngọc Tiểu Cương (Đại Sư)", 11, 13, [prop("npc", "string", "dai_su")]);
   o.point("npc", "Thợ rèn", 43, 13, [prop("npc", "string", "lo_ren")]);
   o.point("npc", "Thương nhân", 9, 24, [prop("npc", "string", "thuong_nhan")]);
@@ -232,7 +288,7 @@ function nacDinhThanh() {
   writeMap("nac_dinh_thanh", MW, MH, ground, trees, canopy, o);
 }
 
-const GEN = { tinh_dau: tinhDau, thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh };
+const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia };
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(GEN)) {
   if (!GEN[id]) { console.error("Không có bản đồ:", id); process.exit(1); }

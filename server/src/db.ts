@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, DEFAULT_MAP, type Looks } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, type Looks } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -22,10 +22,11 @@ export interface AccountLooks extends Looks { chosen: boolean; }
 /** Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí (vào ở `spawn`). */
 export interface Location { mapId: string; x: number | null; y: number | null; }
 /**
- * Ánh xạ `accounts.map_id` sang bản đồ đang có: chưa lưu (null) hoặc mã không còn trong MAPS thì về DEFAULT_MAP (mục 5.3, 6).
- * PgStore dùng cùng luật này trong SQL (`mapExpr`) cho lớp chặn `WHERE map_id`.
+ * Ánh xạ `accounts.map_id` sang bản đồ đang có: mã cũ đã bỏ (MAP_MOVED, ví dụ `tinh_dau` từ BĐ3) thì sang bản đồ thay thế;
+ * chưa lưu (null) hoặc mã lạ thì về DEFAULT_MAP (mục 5.3, 6). PgStore dùng cùng luật này trong SQL (`mapExpr`) cho lớp chặn `WHERE map_id`.
  */
-export const resolveMap = (raw: string | null | undefined) => (raw && Object.hasOwn(MAPS, raw) ? raw : DEFAULT_MAP);
+export const resolveMap = (raw: string | null | undefined) =>
+  (raw && Object.hasOwn(MAPS, raw) ? raw : raw && Object.hasOwn(MAP_MOVED, raw) ? MAP_MOVED[raw] : DEFAULT_MAP);
 const toLocation = (raw: string | null | undefined, x: unknown, y: unknown): Location => {
   const mapId = resolveMap(raw);
   // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới.
@@ -407,16 +408,21 @@ export class PgStore implements Store {
     const l = x ? parseLooks({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col }) : null;
     return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
   }
-  /** Biểu thức SQL của resolveMap(map_id): $known = mọi mã trong MAPS, $def = DEFAULT_MAP. */
-  mapExpr(known: string, def: string) { return `COALESCE(CASE WHEN map_id = ANY(${known}::text[]) THEN map_id END, ${def})`; }
+  /**
+   * Biểu thức SQL của resolveMap(map_id) và các tham số của nó, đánh số từ `$n`: mọi mã trong MAPS, mã cũ / mã thay thế trong
+   * MAP_MOVED (cùng thứ tự), DEFAULT_MAP.
+   */
+  mapExpr(n: number) {
+    const sql = `COALESCE(CASE WHEN map_id = ANY($${n}::text[]) THEN map_id ELSE ($${n + 2}::text[])[array_position($${n + 1}::text[], map_id)] END, $${n + 3})`;
+    return { sql, args: [Object.keys(MAPS), Object.keys(MAP_MOVED), Object.values(MAP_MOVED), DEFAULT_MAP] };
+  }
   async getLocation(accountId: number) {
     const x = (await this.pool.query("SELECT map_id, pos_x, pos_y FROM accounts WHERE id=$1", [accountId])).rows[0];
     return toLocation(x?.map_id, x?.pos_x, x?.pos_y);
   }
   async saveLocation(accountId: number, mapId: string, x: number, y: number) {
-    const r = await this.pool.query(
-      `UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4 WHERE id=$1 AND ${this.mapExpr("$5", "$6")} = $2`,
-      [accountId, mapId, x, y, Object.keys(MAPS), DEFAULT_MAP]);
+    const m = this.mapExpr(5);
+    const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, ...m.args]);
     return (r.rowCount ?? 0) > 0;
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
@@ -429,9 +435,8 @@ export class PgStore implements Store {
           [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
         if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
       }
-      const a = await db.query(
-        `UPDATE accounts SET map_id=$3, pos_x=$4, pos_y=$5 WHERE id=$1 AND ${this.mapExpr("$6", "$7")} = $2`,
-        [accountId, from, to, x, y, Object.keys(MAPS), DEFAULT_MAP]);
+      const m = this.mapExpr(6);
+      const a = await db.query(`UPDATE accounts SET map_id=$3, pos_x=$4, pos_y=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, from, to, x, y, ...m.args]);
       if (a.rowCount !== 1) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
       if (bag) await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");

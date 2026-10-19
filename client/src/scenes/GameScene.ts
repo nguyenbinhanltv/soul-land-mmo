@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R,
-  tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS } from "../../../shared/data.ts";
+  tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -48,7 +48,7 @@ export class GameScene extends Phaser.Scene {
   campRect = { x: 0, y: 0, w: 0, h: 0 };
   campName = "";
   portals: (Rect & { to: string })[] = [];
-  vignetteOn = false;   // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng
+  vignetteBase: number | null = null; // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng, bắt đầu từ mức này (true = 0)
   portal: PortalInfo | null = null;
   onTravel: (mapId: string) => void = () => {};
   /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
@@ -88,11 +88,17 @@ export class GameScene extends Phaser.Scene {
     map.createLayer("trees", ts, 0, 0)!.setDepth(-5);
     map.createLayer("canopy", ts, 0, 0)!.setDepth(100000);
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
-    this.vignetteOn = !!(map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
+    const vg = (map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
+    this.vignetteBase = typeof vg === "number" ? Math.max(0, Math.min(1, vg)) : vg ? 0 : null;
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
-      if (o.type === "zone") this.zones.push({ ...r, name: o.name, hint: prop("hint") ?? "" });
+      if (o.type === "zone") {
+        // Gợi ý vùng kèm cấp tương đương của khoảng niên hạn (mục 5.3, BĐ3), tính bằng hàm dùng chung.
+        const yr = parseLevelRange(prop("years")), lv = yr && [beastLevel(yr[0]), beastLevel(yr[1])];
+        const hint = [prop("hint") ?? "", lv ? `cấp ${lv[0] === lv[1] ? lv[0] : `${lv[0]}–${lv[1]}`}` : ""].filter(Boolean).join(" · ");
+        this.zones.push({ ...r, name: o.name, hint });
+      }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; }
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
@@ -613,7 +619,8 @@ export class GameScene extends Phaser.Scene {
     // độ tối theo độ sâu của rừng
     const me = st.players.get(this.me);
     if (me) {
-      this.vignette.setAlpha(this.vignetteOn ? Math.max(0, Math.min(1, (me.x / TILE - 18) / 60)) * 0.75 : 0);
+      const vb = this.vignetteBase, depth = Math.max(0, Math.min(1, (me.x / TILE - 18) / 60));
+      this.vignette.setAlpha(vb === null ? 0 : (vb + (1 - vb) * depth) * 0.75);
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); }
     }
@@ -713,7 +720,10 @@ export class GameScene extends Phaser.Scene {
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
     const sts = tb ? hud.statusText(tb) : "";
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} · ${formatYears(tb.years)} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+    // Cấp tương đương theo số năm (BĐ3) và mức kinh nghiệm còn nhận khi hồn thú thấp hơn võ hồn ra trận (mục 5.3).
+    const tLv = tb ? beastLevel(tb.years) : 0, xpk = tb ? xpLevelScale(me.level, tLv) : 1;
+    const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
+    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
     let dr: any = null, dd = PICKUP_RANGE;
