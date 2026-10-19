@@ -1,7 +1,7 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
-  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS } from "../../shared/data.ts";
+  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf } from "../../shared/data.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -239,6 +239,14 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
     slots.appendChild(s);
   });
   el.appendChild(slots);
+
+  // Ràng buộc (mục 5.1, từ 2.5d): cặp võ hồn cùng trong đội thì cả đội có thêm hiệu ứng (server tự tính lại).
+  const bonds = bondsOf(data.team.map((r) => ownedById(data, r)?.vohon ?? ""));
+  if (bonds.length) {
+    const bd = document.createElement("small"); bd.className = "rnote rbond";
+    bd.textContent = "Ràng buộc: " + bonds.map((b) => `${b.name} (${b.desc})`).join(" · ");
+    el.appendChild(bd);
+  }
 
   const sub = document.createElement("small"); sub.className = "rnote";
   sub.textContent = rosterHint || (rosterSel === null ? `Bộ sưu tập (${data.list.length}): chọn võ hồn để đưa vào ô trống, hoặc chọn một ô trước.`
