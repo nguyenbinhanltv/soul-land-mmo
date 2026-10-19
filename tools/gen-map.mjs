@@ -3,7 +3,7 @@
 //   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3; Lõi Tinh Đấu để BĐ6)
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
-//   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4).
+//   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4); Ngoại vi và Nội địa có 1 object `boss` (hang thú vương, BĐ5).
 //   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, chỗ đứng cho NPC của 6.1 (BĐ2)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
@@ -40,7 +40,9 @@ function objects() {
     rect("portal", name, x, y, w, h, [prop("to", "string", to), prop("arrive", "string", arrive), ...(level ? [prop("level", "string", level)] : [])]);
   // Tinh anh (BĐ4, mục 5.4): boss = mã trong BOSSES (shared/data.ts); chữ nhật nằm trong vùng, xa trại cổng / cổng (SPAWN_CLEAR).
   const elite = (name, boss, x, y, w, h) => rect("elite", name, x, y, w, h, [prop("boss", "string", boss)]);
-  return { list, rect, point, zone, portal, elite, next: () => oid };
+  // Hang tà hóa thú vương (BĐ5, mục 5.4, 6): boss = mã thú vương trong BOSSES (MAPS.king); chữ nhật là hang, cũng là bán kính giao chiến.
+  const boss = (name, id, x, y, w, h) => rect("boss", name, x, y, w, h, [prop("boss", "string", id)]);
+  return { list, rect, point, zone, portal, elite, boss, next: () => oid };
 }
 
 function writeMap(mapId, MW, MH, ground, trees, canopy, objs, props = []) {
@@ -78,6 +80,18 @@ function grid(MW, MH) {
   /** Nhà: mái `h - 1` hàng, hàng dưới cùng là tường (đều chặn đường). */
   const house = (x0, y0, w, h) => { fill(x0, y0, w, h - 1, 8); fill(x0, y0 + h - 1, w, 1, 9); };
   return { m, set, get, fill, border, house };
+}
+
+/**
+ * Hang thú vương (BĐ5): bãi trống hình bầu dục tâm (cx, cy), bán trục rx × ry ô, vây bằng một vòng cây dày, chừa lối vào rộng 4 ô
+ * ở phía bắc (nối lối mòn bắc–nam). Không dùng số ngẫu nhiên để phần còn lại của bản đồ giữ nguyên khi thêm hang.
+ */
+function lairGround(g, cx, cy, rx, ry) {
+  for (let y = Math.floor(cy - ry - 2); y <= Math.ceil(cy + ry + 2); y++) for (let x = Math.floor(cx - rx - 2); x <= Math.ceil(cx + rx + 2); x++) {
+    const d = Math.hypot((x - cx) / rx, (y - cy) / ry);
+    if (d < 1) g.set(x, y, 0);
+    else if (d < 1.3 && !(y < cy && Math.abs(x - cx) < 2.5)) g.set(x, y, 1);
+  }
 }
 
 /** Đổi ô logic thành 3 lớp Tiled; `grassOf(x, y)` chọn sắc cỏ (0–3) theo vùng. */
@@ -132,6 +146,12 @@ function forest(spec) {
   trees[30 * MW + 4] = GID.fire;
   return { MW, MH, ground, trees, canopy, o: objects() };
 }
+/**
+ * Hang thú vương của Ngoại vi và Nội địa (BĐ5): cùng chỗ ở vùng sâu nhất, phía đông nam, ngoài SPAWN_CLEAR của cổng đông (Ngoại vi) và
+ * xa tinh anh phía bắc. Object `boss` phủ đúng bãi trống bên trong vòng cây.
+ */
+const LAIR = { cx: 77, cy: 51, rx: 7, ry: 5 };
+const lairObj = (o, name, id) => o.boss(name, id, LAIR.cx - LAIR.rx, LAIR.cy - LAIR.ry, LAIR.rx * 2, LAIR.ry * 2);
 /** Vùng thứ i của rừng (cột FOREST.xs[i]..xs[i+1], cả chiều cao). Vùng khai báo `years` nên `weights` không dùng. */
 const forestZone = (o, i, name, hint, count, beasts, years) =>
   o.zone(name, hint, FOREST.xs[i], 0, FOREST.xs[i + 1] - FOREST.xs[i], FOREST.MH, [1], count, beasts, years);
@@ -150,8 +170,8 @@ function tinhDauNgoaiVi() {
       let sx = 56;
       for (let y = 0; y < MH; y++) { for (let k = 0; k < 3; k++) g.set(sx + k, y, 2); if (r() < 0.35) sx = Math.max(50, Math.min(62, sx + (r() < 0.5 ? -1 : 1))); }
     },
-    // Khoảng trống quanh cổng phía đông (trạm gác Rìa nội địa) để đứng niệm cổng và xuất hiện.
-    east(g) { g.fill(MW - 10, 26, 9, 10, 0); g.fill(MW - 10, 30, 9, 2, 3); },
+    // Khoảng trống quanh cổng phía đông (trạm gác Rìa nội địa) để đứng niệm cổng và xuất hiện; hang Huyết Nguyệt Lang Vương phía đông nam.
+    east(g) { g.fill(MW - 10, 26, 9, 10, 0); g.fill(MW - 10, 30, 9, 2, 3); lairGround(g, LAIR.cx, LAIR.cy, LAIR.rx, LAIR.ry); },
   });
   forestZone(o, 0, "Bìa rừng", "Hồn thú 300 – 700 năm", 14, "phong_lang:2,man_da_la_xa:1,tu_van_bao:1", "300-700");
   forestZone(o, 1, "Rừng thưa", "Hồn thú 600 – 1.200 năm", 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1", "600-1200");
@@ -161,6 +181,7 @@ function tinhDauNgoaiVi() {
   o.elite("Huyết Gai Quỷ Đằng", "huyet_gai_quy_dang", 30, 10, 8, 6);
   o.elite("Hắc Sát Quỷ Hổ", "hac_sat_quy_ho", 46, 44, 6, 8);
   o.elite("Ảnh Trảo Linh Miêu", "anh_trao_linh_mieu", 72, 8, 8, 6);
+  lairObj(o, "Hang Huyết Nguyệt", "huyet_nguyet_lang_vuong");
   // Trại cổng (điểm hồi sinh) bắt đầu từ cột 3 để không ai hồi sinh ngay trong cổng ở mép tây.
   const c = FOREST.camp;
   o.rect("spawn", "Trại cổng Ngoại vi", c.x, c.y, c.w, c.h);
@@ -190,7 +211,11 @@ function tinhDauNoiDia() {
       }
     },
     // Bờ hồ trung tâm (Lõi Tinh Đấu, BĐ6) ở mép đông, cuối đường mòn.
-    east(g) { for (let y = 18; y < 43; y++) for (let x = MW - 9; x < MW - 1; x++) if (Math.hypot((x - (MW - 1)) * 1.6, y - 30.5) < 12) g.set(x, y, 2); },
+    // Hang Thiên Độc Chu Hoàng ở phía đông nam Hắc Ám Lâm.
+    east(g) {
+      for (let y = 18; y < 43; y++) for (let x = MW - 9; x < MW - 1; x++) if (Math.hypot((x - (MW - 1)) * 1.6, y - 30.5) < 12) g.set(x, y, 2);
+      lairGround(g, LAIR.cx, LAIR.cy, LAIR.rx, LAIR.ry);
+    },
   });
   forestZone(o, 0, "Rừng cổ thụ", "Hồn thú 1.500 – 5.000 năm", 12, "nhan_dien_ma_chu:1,u_minh_lang:1,quy_dang:1", "1500-5000");
   forestZone(o, 1, "Đầm sương độc", "Hồn thú 4.000 – 12.000 năm", 10, "that_tinh_doc_thiem:1,xich_lan_mang:1,hac_vu_bien_buc:1", "4000-12000");
@@ -200,6 +225,7 @@ function tinhDauNoiDia() {
   o.elite("Kim Bối Thất Tinh Thiềm", "kim_boi_that_tinh_thiem", 30, 10, 8, 6);
   o.elite("Lam Điện Lôi Tích", "lam_dien_loi_tich", 53, 28, 8, 6);
   o.elite("Huyết Văn Khủng Trảo Hùng", "huyet_van_khung_trao_hung", 72, 10, 8, 6);
+  lairObj(o, "Hang Thiên Độc", "thien_doc_chu_hoang");
   const c = FOREST.camp;
   o.rect("spawn", "Trại cổng Nội địa", c.x, c.y, c.w, c.h);
   o.portal("Về Tinh Đấu Ngoại vi", 1, 29, 2, 4, "tinh_dau_ngoai_vi", "tu_tinh_dau_noi_dia", "10-30");

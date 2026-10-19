@@ -18,7 +18,9 @@
 // (BĐ4: đúng vùng, hệ số máu / sát thương, máu tăng theo số người tham gia, 2 chiêu, gọi bầy, Cuồng nộ và xóa buff, hồi sinh),
 // gắn hồn cốt (4.2: đúng / sai vị trí, đổi chỗ, tháo khi túi đầy, chỉ số, giao chiến, đi cổng và vào lại), kỹ năng hồn cốt
 // (4.3: chủ động trúng, tốn hồn lực, hồi chiêu riêng, bị chặn khi Câm lặng / vùng an toàn; bị động áp khi gắn, mất khi tháo), hồn hạch rơi
-// (5.1: sao theo niên hạn, bộ theo bản đồ, số dòng phụ theo sao, tinh anh chắc chắn rơi, túi đầy, đi cổng và vào lại) cần server bật hook kiểm thử:
+// (5.1: sao theo niên hạn, bộ theo bản đồ, số dòng phụ theo sao, tinh anh chắc chắn rơi, túi đầy, đi cổng và vào lại), tà hóa thú vương
+// (BĐ5: lịch giờ Việt Nam, báo toàn server, máu theo số người trong hang, giai đoạn 2, chia thưởng theo ngưỡng 3%, 3 lần/ngày,
+// mở rương, rút đi, phòng hủy rồi mở lại) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
@@ -35,6 +37,7 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   BONE_ITEM, BONE_SLOTS, boneChance, boneStats, boneName, boneBonus, PICKUP_RANGE,
   BEAST_SKILL_YEARS, beastSkillOf, teleHits, TELE_PAD, TELE_WARN, TELE_FIRST,
   BOSSES, bossIndex, beastIndex, ELITE, ELITE_RAGE, bossHpMult, teleZones, beastBuffBit, BEAST_BUFFS, beastName,
+  KING, KING_CHEST, KING_TIMES, kingNext, kingActive, vnDay, vnHHMM, kingShardPool, chestCode,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue } from "../../shared/data.ts";
@@ -83,7 +86,7 @@ async function bot(name,choice,looks){
 async function enter(b){
   // Bản đồ đang đứng lấy từ /api/me (server lưu); client chỉ chuyển mapId để ghép phòng.
   b.room=await new Client(WS).joinOrCreate("map",{token:b.token,mapId:b.mapId}); b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null;
-  b.room.onMessage("log",m=>b.logs.push(m.text)); b.room.onMessage("chat",()=>{});
+  b.room.onMessage("log",m=>b.logs.push(m.text)); b.chats=[]; b.room.onMessage("chat",m=>{b.chats.push(m); if(b.chats.length>200) b.chats.shift();});
   b.fx=[]; b.fxs=[]; b.dmgs=[]; b.hurts=[];
   b.room.onMessage("fx",m=>{b.fxs.push(m); if(m.k==="tienco") b.fx.push(m);});
   b.room.onMessage("dmg",m=>{if(m.bid) b.dmgs.push(m); else if(m.id===b.room.sessionId) b.hurts.push(m);});
@@ -95,6 +98,7 @@ async function enter(b){
   b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
+  b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
   // phần 5.1 tự bật lại. Chờ trả lời (server gửi tin vohons trước tin test) rồi mới đếm lại tin vohons, để không lẫn vào kiểm tra sau.
   b.test=null; b.room.send("test",{op:"core",r:100}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0;
@@ -1552,6 +1556,167 @@ else {
     I=await info(TN); const nb=I.bid&&st.beasts.get(I.bid);
     ok(nb&&I.bid!==oldId&&nb.rank===1&&inR(I.rect,nb.x,nb.y)&&nb.hp===I.base&&!I.engaged,`tinh anh mới ở đúng chỗ (${nb?.x.toFixed(0)},${nb?.y.toFixed(0)}), đầy máu ${nb?.hp}`);
     await G.room.leave();
+  }
+  // ---------- BĐ5: tà hóa thú vương theo lịch, máu theo số người, giai đoạn 2, chia thưởng, 3 lần/ngày, rương ----------
+  {
+    // Lịch thật (20:00 / 22:00 giờ Việt Nam) chen vào các kiểm tra dùng hook `king`: chạy bot trong lúc báo trước hay lúc thú vương
+    // thật đang ở bản đồ thì vài kiểm tra có thể trượt. Báo rõ để không nhầm với lỗi thật.
+    { const now=Date.now(), nx=kingNext(now); if(kingActive(now)!==null||nx-now<(KING.warnSecs+180)*1000)
+      console.log(`  ⚠ Đang gần / trong khung thú vương thật (${vnHHMM(kingActive(now)??nx)} giờ Việt Nam): kiểm tra BĐ5 có thể trượt vì lịch thật, chạy lại sau ${KING.lifeSecs/60} phút.`); }
+    // Dữ liệu: thú vương của Ngoại vi và Nội địa (bảng 5.3), Thánh Hồn Thôn không có; hang (object `boss`) ở vùng sâu nhất.
+    const kings=BOSSES.filter(b=>b.rank===2), objsK=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+    const kbad=[];
+    for(const [m,id,hp] of [["tinh_dau_ngoai_vi","huyet_nguyet_lang_vuong",6],["tinh_dau_noi_dia","thien_doc_chu_hoang",7]]){
+      const d=BOSSES[bossIndex(id)], os=objsK(m), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), deep=zs.reduce((a,z)=>z.x>a.x?z:a);
+      if(MAPS[m].king!==id||d?.rank!==2||d.hp!==hp||beastIndex(d.species)<0) kbad.push(`${m}: ${id}`);
+      if(d&&(d.skills.length<2||d.skills.length>3||!d.phase2?.skills.length||[...d.skills,...d.phase2.skills].some(s=>s.warn<1))) kbad.push(`${id}: chiêu`);
+      if(lr.length!==1||lr[0].properties.find(q=>q.name==="boss")?.value!==id||lr[0].x<deep.x||lr[0].x+lr[0].width>deep.x+deep.width) kbad.push(`${m}: hang`);
+    }
+    if(MAPS.thanh_hon_thon.king||objsK("thanh_hon_thon").some(o=>o.type==="boss")) kbad.push("thanh_hon_thon có thú vương");
+    ok(!kbad.length&&kings.length===2,`2 thú vương (${kings.map(k=>`${k.name} x${k.hp}: ${k.skills.map(s=>s.name).join(", ")} + GĐ2 ${k.phase2.name}`).join("; ")}), hang ở vùng sâu nhất, Thánh Hồn Thôn không có`+(kbad.length?`: ${kbad.join("; ")}`:""));
+    // Lịch theo giờ Việt Nam (UTC+7, Asia/Ho_Chi_Minh): 20:00 và 22:00; ngày nhận thưởng đổi lúc 00:00.
+    const U=(h,mi=0,d=19)=>Date.UTC(2026,9,d,h,mi);
+    ok(vnDay(U(16,59)+59000)==="2026-10-19"&&vnDay(U(17,0))==="2026-10-20"&&kingNext(U(12,0))===U(13,0)&&kingNext(U(13,30))===U(15,0)&&kingNext(U(16,0))===U(13,0,20)
+      &&kingActive(U(13,10))===U(13,0)&&kingActive(U(13,0)+KING.lifeSecs*1000)===null&&kingActive(U(12,59))===null&&vnHHMM(kingNext(U(14,0)))==="22:00",
+      `lịch ${KING_TIMES.join(" / ")} giờ Việt Nam, rút đi sau ${KING.lifeSecs/60} phút, ngày mới lúc 00:00 (23:59 UTC+7 = ${vnDay(U(16,59))}, 00:00 = ${vnDay(U(17,0))})`);
+    ok(KING_CHEST.ur===0.05&&KING.share===0.03&&KING.daily===3&&[1,2,4,10].every(n=>Math.abs(bossHpMult(n)-(1+0.6*(n-1)))<1e-9),"đã chốt: mảnh UR 5%, ngưỡng rương 3%, 3 lần/ngày, máu x(1 + 0,6 × (N − 1))");
+
+    const K=await bot("Tester K","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:3}), L=await bot("Tester L","nhu_cot_tho",{sex:1,hair:0,hairCol:5,outfitCol:2});
+    await waitFor(()=>K.owned&&L.owned&&meOf(K)&&meOf(L));
+    /** Đưa bot sang Tinh Đấu Ngoại vi (tài khoản cũ còn `tinh_dau` vào Ngoại vi ở trại cổng, hook legacy của BĐ3). */
+    async function toNgoaiVi(b){ const lg=await test(b,"legacy",{mapId:"tinh_dau",x:0,y:0}); await b.room.leave(); await sleep(300);
+      b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>b.room.state.players&&meOf(b)&&b.owned); return !!lg?.saved&&b.room.state.mapId==="tinh_dau_ngoai_vi"; }
+    ok(await toNgoaiVi(K),"K tới Tinh Đấu Ngoại vi");
+    // Báo trước toàn server (presence): A ở Thánh Hồn Thôn cũng nhận đếm ngược.
+    A.boss=[]; K.boss=[]; let ki=await test(K,"king",{kop:"warn",s:120});
+    ok(await waitFor(()=>A.boss.some(m=>m.k==="warn")&&K.boss.some(m=>m.k==="warn"),1500),`báo trước toàn server: A (${A.room.state.mapId}) "${A.boss.find(m=>m.k==="warn")?.name} xuất hiện sau ${A.boss.find(m=>m.k==="warn")?.in} giây ở ${A.boss.find(m=>m.k==="warn")?.mapName}"`);
+    const wa=A.boss.find(m=>m.k==="warn"), wk=K.boss.find(m=>m.k==="warn");
+    ok(wa&&!wa.here&&wk?.here&&wk.in===120&&wk.name==="Tà hóa Huyết Nguyệt Lang Vương",`đếm ngược 120 giây; A ở bản đồ khác (here=${wa?.here}), K ở đúng bản đồ (here=${wk?.here})`);
+    ok(await toNgoaiVi(L)&&await waitFor(()=>L.boss.some(m=>m.k==="warn"&&m.in<=120&&m.in>100),1500),`L vào Ngoại vi giữa lúc chờ: nhận đếm ngược còn lại (${L.boss.find(m=>m.k==="warn")?.in} giây)`);
+    ok(K.room.roomId===L.room.roomId,"K và L cùng kênh Ngoại vi");
+    const kings2=()=>[...K.room.state.beasts.entries()].filter(([,b])=>b.rank===2), kingB=()=>kings2()[0]?.[1], kid=()=>kings2()[0]?.[0];
+    A.boss=[]; A.chats=[]; K.boss=[];
+    await test(K,"king",{kop:"spawn"});
+    ok(await waitFor(()=>kingB()&&A.boss.some(m=>m.k==="spawn")&&K.boss.some(m=>m.k==="spawn"),2000),`xuất hiện: báo toàn server (A nhận "${A.boss.find(m=>m.k==="spawn")?.name} … ${A.boss.find(m=>m.k==="spawn")?.mapName}")`);
+    ki=await test(K,"king"); const LR=ki.lair, inLair=(x,y)=>x>=LR.x&&x<=LR.x+LR.w&&y>=LR.y&&y<=LR.y+LR.h, Y=MAPS.tinh_dau_ngoai_vi.years[1];
+    const kbase=Math.round(beastStats(Y).hp*BOSSES[bossIndex("huyet_nguyet_lang_vuong")].hp);
+    ok(ki.bid&&inLair(ki.x,ki.y)&&ki.years===Y&&ki.base===kbase&&ki.maxHp===kbase&&Math.abs(ki.dmg-beastStats(Y).dmg*KING.dmg)<1e-6&&ki.phase===1&&ki.skills.length===2&&ki.life>KING.lifeSecs-5,
+      `thú vương trong hang (${ki.x?.toFixed(0)},${ki.y?.toFixed(0)}), ${ki.years} năm, máu x6 = ${ki.maxHp}, sát thương x${KING.dmg}, giai đoạn 1, 2 chiêu (${ki.skills?.join(", ")}), rút đi sau ${Math.round(ki.life)} giây`);
+    await test(K,"king",{kop:"spawn"}); await sleep(200);
+    ok(kings2().length===1,"đang có thú vương thì khung giờ mới không sinh thêm (mỗi kênh một con)");
+
+    // Vào hang: K và L đứng trong hang lúc thú vương bắt đầu giao chiến thì cả hai là người tham gia, máu tối đa x1,6.
+    async function intoLair(b,dx,dy){ const t=kingB(); for(let k=0;k<24;k++){ const a=k*Math.PI/6, r=k<12?1:1.6, x=Math.round(t.x+dx*r*Math.cos(a)-dy*Math.sin(a)), y=Math.round(t.y+dx*r*Math.sin(a)+dy*Math.cos(a));
+      if(!inLair(x,y)) continue; await test(b,"goto",{x,y}); const q=meOf(b); if(Math.hypot(q.x-x,q.y-y)<1) return true; } return false; }
+    const outLair=async b=>{ await test(b,"goto",{x:LR.x+LR.w/2,y:LR.y-40}); return !inLair(meOf(b).x,meOf(b).y); };
+    ok(await intoLair(K,40,0)&&await intoLair(L,-40,0),`K, L vào hang (${meOf(K).x.toFixed(0)},${meOf(K).y.toFixed(0)}) / (${meOf(L).x.toFixed(0)},${meOf(L).y.toFixed(0)})`);
+    await test(K,"clear",{keep:1}); await test(L,"clear",{keep:1});
+    // Thú vương x2 sát thương hạ nhanh võ hồn cấp thấp: Choáng dài để nó đứng yên trong lúc thử (giai đoạn 2 gầm lên thì mất Choáng).
+    await test(K,"kdmg",{v:1}); await test(K,"status",{s:"stun",secs:60}); ki=await test(K,"king");
+    ok(ki.engaged&&ki.n===2&&ki.parts.length===2&&ki.maxHp===Math.round(kbase*bossHpMult(2))&&kingB().parts===2,`K đánh: L đứng trong hang cũng thành người tham gia, 2 người, máu tối đa ${kbase} -> ${ki.maxHp} (x1,6)`);
+    // Ra khỏi hang 30 giây liên tục thì bị loại; máu giữ tỉ lệ.
+    ok(await outLair(L),"L ra khỏi hang"); const r0=ki.hp/ki.maxHp; await test(K,"etick",{s:KING.outSecs+1}); ki=await test(K,"king");
+    ok(ki.parts.join()===K.room.sessionId&&ki.n===1&&ki.maxHp===kbase&&Math.abs(ki.hp/ki.maxHp-r0)<0.01,`L ngoài hang ${KING.outSecs} giây: bị loại, 1 người, máu ${ki.hp}/${ki.maxHp} (giữ tỉ lệ)`);
+    ok(await intoLair(L,-40,0),"L quay lại hang"); await test(L,"kdmg",{v:1}); ki=await test(K,"king"); ok(ki.n===2,`L đánh: lại ${ki.n} người`);
+    ok(inLair(kingB().x,kingB().y),"thú vương không ra khỏi hang");
+
+    // Giai đoạn 2 ở 50% máu: gầm 2 giây (không nhận khống chế), thêm chiêu, nhanh hơn.
+    K.fxs=[]; K.boss=[];
+    await test(K,"kdmg",{v:Math.ceil(ki.hp-ki.maxHp*KING.phaseHp)+1});
+    ok(await waitFor(()=>kingB()?.phase===2,1500)&&K.fxs.some(f=>f.k==="roar")&&K.boss.some(m=>m.k==="phase"&&m.title==="Huyết Cuồng"),`máu ${kingB()?.hp}/${kingB()?.maxHp}: giai đoạn 2 – ${K.boss.find(m=>m.k==="phase")?.title} (${K.boss.find(m=>m.k==="phase")?.desc})`);
+    await test(K,"status",{s:"stun",secs:5}); ki=await test(K,"king");
+    ok(ki.roar>0&&!ki.st.includes("stun")&&ki.skills.length===3&&ki.skills[2]==="Huyết Cuồng Xung"&&Math.abs(ki.spd-1.4)<1e-9,`đang gầm (${ki.roar.toFixed(1)} giây): không nhận Choáng; chiêu ${ki.skills.join(", ")}; tốc độ x${ki.spd}`);
+    await sleep(KING.roarSecs*1000+300);
+    await test(K,"status",{s:"stun",secs:60}); ki=await test(K,"king"); ok(!ki.roar&&ki.st.includes("stun"),"hết gầm thì khống chế lại có tác dụng");
+    K.fxs=[]; await test(K,"rest",{s:1}); const tl=await test(K,"tele",{i:2}); await waitFor(()=>K.fxs.some(f=>f.k==="tele"),800);
+    const tf=K.fxs.find(f=>f.k==="tele"); ok(tl?.name==="Huyết Cuồng Xung"&&tf?.t>=1.2,`chiêu giai đoạn 2 ${tf?.name}: báo trước ${tf?.t} giây (dài hơn hồn thú thường ${TELE_WARN})`);
+    await waitFor(()=>K.fxs.some(f=>f.k==="teleHit"||f.k==="teleEnd"),2500);
+
+    // Chia thưởng: L đóng góp 2% (dưới 3%) thì không có rương; người nhiều nhất (K) được ưu tiên hồn hoàn.
+    const chestK=b=>qtyOf(b,chestCode("huyet_nguyet_lang_vuong"));
+    async function finish(share){ // L gây `share` phần tổng sát thương cuối cùng, K hạ nốt
+      let I=await test(K,"king"); const lPrev=(I.list.find(x=>x.id===L.room.sessionId)?.pct??0)/100*I.total, want=Math.floor(share*(I.total+I.hp)-lPrev);
+      if(want>0) await test(L,"kdmg",{v:want});
+      const before=new Set(K.room.state.drops.keys()); K.boss=[]; await test(K,"kdmg",{v:1e8});
+      await waitFor(()=>K.boss.some(m=>m.k==="down"),1500); await sleep(300);
+      return { down:K.boss.find(m=>m.k==="down"), drop:[...K.room.state.drops.entries()].find(([k])=>!before.has(k))?.[1] };
+    }
+    await test(L,"set",{rowId:L.owned.active,level:15,xp:0,rings:[10]}); const lxp=meOf(L).xp;
+    K.logs=[]; L.logs=[]; A.chats=[];
+    let f=await finish(0.02);
+    const lp=f.down?.list.find(x=>x.id===L.room.sessionId)?.pct;
+    ok(f.down&&!kingB()&&lp>=1&&lp<3&&f.drop?.owner===K.room.sessionId&&f.drop.years===Y,`hạ thú vương: L đóng góp ${lp}%, K ${f.down?.list[0]?.pct}%; hồn hoàn ${f.drop?.years} năm ưu tiên K (nhiều nhất)`);
+    ok(await waitFor(()=>chestK(K)===1,2000)&&chestK(L)===0&&/cần từ 3% mới nhận rương/.test(L.logs.join("\n"))&&/lượt 1\/3/.test(K.logs.join("\n")),`K (≥3%) nhận rương (lượt 1/3), L (<3%) không nhận: "${L.logs.find(t=>/cần từ/.test(t))}"`);
+    ok(meOf(L).xp>lxp||meOf(L).level>15,`L vẫn nhận kinh nghiệm (${lxp} -> ${meOf(L).xp}, cấp ${meOf(L).level})`);
+    ok(await waitFor(()=>A.chats.some(m=>/Tà hóa Huyết Nguyệt Lang Vương ở Tinh Đấu Ngoại vi đã bị hạ/.test(m.text)),1500),`toàn server được báo: "${A.chats.find(m=>/bị hạ/.test(m.text))?.text}"`);
+
+    // Lần 2: L đóng góp 5% thì có rương. Lần 3: K đủ 3 lượt. Lần 4: hết lượt, vẫn đánh được, nhắc khi vào giao chiến.
+    const fight=async(share)=>{ await test(K,"king",{kop:"spawn"}); await waitFor(()=>kingB(),1500); await intoLair(K,40,0); if(share) await intoLair(L,-40,0); else await outLair(L);
+      await test(K,"clear",{keep:1}); await test(K,"kdmg",{v:1}); await test(K,"status",{s:"stun",secs:60}); return finish(share); };
+    K.logs=[]; L.logs=[]; f=await fight(0.05);
+    ok(await waitFor(()=>chestK(L)===1&&chestK(K)===2,2000)&&/lượt 1\/3/.test(L.logs.join("\n"))&&/lượt 2\/3/.test(K.logs.join("\n")),`lần 2: L đóng góp ${f.down?.list.find(x=>x.id===L.room.sessionId)?.pct}% nhận rương (1/3), K 2/3`);
+    K.logs=[]; await fight(0); ok(await waitFor(()=>chestK(K)===3,2000)&&/lượt 3\/3/.test(K.logs.join("\n")),"lần 3: K nhận rương thứ 3 (3/3)");
+    K.logs=[]; f=await fight(0); await sleep(300);
+    ok(f.down&&chestK(K)===3&&/Hôm nay đã hết lượt nhận thưởng thú vương/.test(K.logs.join("\n")),`lần 4: vẫn hạ được nhưng không nhận rương, có nhắc: "${K.logs.find(t=>/hết lượt/.test(t))}"`);
+    ok(K.logs.findIndex(t=>/hết lượt/.test(t))<K.logs.findIndex(t=>/^Hạ Tà hóa/.test(t)),"nhắc hết lượt ngay khi vào giao chiến (trước lúc hạ)");
+    let cl=await test(K,"claims"); ok(cl.n===3&&cl.db===3,`lượt hôm nay ${cl.day}: ${cl.n} (DB ${cl.db})`);
+
+    // Mở rương: hồn cốt (loài gốc, năm thú vương), mảnh của bản đồ, mảnh UR, 1 hồn hạch sao cao (5.1); cần KING_CHEST.slots ô trống.
+    const pool=kingShardPool("tinh_dau_ngoai_vi"), chestIt=()=>K.bag.items.find(i=>i.code===chestCode("huyet_nguyet_lang_vuong"));
+    async function open(){ const l=K.logs.length, n=K.bagMsgs; K.room.send("open",{id:chestIt().id}); await waitFor(()=>K.logs.length>l&&K.bagMsgs>n,1500); await sleep(100); return K.logs.at(-1)??""; }
+    const s0=qtyOf(K,shardCode(pool[0].vohon)), ur0=KING_CHEST.urShards.reduce((a,v)=>a+qtyOf(K,shardCode(v)),0), b0=bonesOf(K).length;
+    const kCores=()=>(K.bag?.items??[]).filter(i=>i.code===CORE_ITEM), c0=kCores().length, cHi=coreStarBand(Y)[1];
+    await test(K,"chest",{bone:0,ur:0,i:0,n:4,s:1}); let lg=await open();
+    const nb=bonesOf(K).find(i=>i.years===Y&&i.stats?.beast==="phong_lang"&&i.stats?.slot==="than");
+    ok(chestK(K)===2&&bonesOf(K).length===b0+1&&nb&&qtyOf(K,shardCode(pool[0].vohon))===s0+4&&KING_CHEST.urShards.reduce((a,v)=>a+qtyOf(K,shardCode(v)),0)===ur0+1,`mở rương: ${lg}`);
+    const nc=kCores().slice(c0);
+    ok(nc.length===1&&nc[0].stars===cHi&&coreSetIndex(nc[0].stats?.set)>=0&&nc[0].stats?.subs?.length===CORE_SUBS[cHi-1],`rương có 1 hồn hạch sao cao nhất theo ${Y} năm: ${nc[0]?.stars}★ bộ ${nc[0]?.stats?.set}, ${nc[0]?.stats?.subs?.length} dòng phụ`);
+    const s3=qtyOf(K,shardCode(pool[3].vohon)), b1=bonesOf(K).length;
+    await test(K,"chest",{bone:100,ur:100,i:3}); lg=await open(); const got=qtyOf(K,shardCode(pool[3].vohon))-s3;
+    ok(pool[3].vohon===KING_CHEST.fire&&got>=KING_CHEST.shards[0]&&got<=KING_CHEST.shards[1]&&bonesOf(K).length===b1&&chestK(K)===1,`mở rương lần 2 (không hồn cốt, không UR): ${lg}`);
+    ok(pool.some(x=>x.vohon==="bich_lan_xa_hoang")&&pool.filter(x=>MAPS.tinh_dau_ngoai_vi.shards.includes(x.vohon)).length===3,`mảnh trong rương: của bản đồ, Tà Hỏa Phượng Hoàng, võ hồn bản đồ chưa mở (${pool.map(x=>x.vohon).join(", ")})`);
+    // Túi còn dưới KING_CHEST.slots ô trống: không mở được, rương còn nguyên.
+    const free=BAG_SLOTS-K.bag.items.filter(i=>i.vohon===null).length; await test(K,"give",{code:"hon_hoan",qty:free-KING_CHEST.slots+1,years:10}); await sleep(100);
+    lg=await open(); ok(new RegExp(`Cần ${KING_CHEST.slots} ô trống`).test(lg)&&chestK(K)===1,`túi còn ${KING_CHEST.slots-1} ô trống: "${lg}"`);
+    for(const it of K.bag.items.filter(i=>i.code==="hon_hoan"&&i.years===10)){ K.room.send("discard",{id:it.id}); } await waitFor(()=>!K.bag.items.some(i=>i.code==="hon_hoan"&&i.years===10),2000);
+    await test(K,"chest",{off:1});
+
+    // Lưu: thoát rồi vào lại vẫn còn rương, lượt hôm nay vẫn 3.
+    await K.room.leave(); await sleep(400); await enter(K); await waitFor(()=>K.bag&&K.room.state.players&&meOf(K));
+    cl=await test(K,"claims"); ok(chestK(K)===1&&cl.n===3&&cl.db===3,`vào lại: còn ${chestK(K)} rương, lượt hôm nay ${cl.n}/3 (DB ${cl.db})`);
+    // Sang ngày mới (00:00 giờ Việt Nam): lượt đặt lại.
+    const dy=await test(K,"day",{shift:1}); cl=await test(K,"claims"); K.logs=[]; await fight(0);
+    ok(cl.n===0&&await waitFor(()=>chestK(K)===2,2000)&&/lượt 1\/3/.test(K.logs.join("\n")),`ngày ${dy.day}: lượt về 0, hạ thú vương lại nhận rương (1/3)`);
+    await test(K,"day",{shift:0});
+
+    // Rút đi: không ai hạ trong 15 phút thì thú vương rời bản đồ, toàn server được báo; người vào sau thấy thời gian còn lại.
+    await test(K,"king",{kop:"spawn"}); await waitFor(()=>kingB(),1500);
+    await L.room.leave(); await sleep(300); await enter(L); await waitFor(()=>L.room.state.players&&meOf(L));
+    ok(await waitFor(()=>L.boss.some(m=>m.k==="here"&&m.life>KING.lifeSecs-30),1500),`L vào lại khi thú vương đang ở bản đồ: còn ${Math.round(L.boss.find(m=>m.k==="here")?.life)} giây trước khi rút đi`);
+    A.chats=[]; K.boss=[]; await test(K,"etick",{s:KING.lifeSecs});
+    ok(await waitFor(()=>!kingB()&&K.boss.some(m=>m.k==="leave")&&A.chats.some(m=>/đã rút đi/.test(m.text)),1500),`hết ${KING.lifeSecs/60} phút: rút đi ("${A.chats.find(m=>/rút đi/.test(m.text))?.text}")`);
+
+    // Phòng trống bị hủy rồi mở lại trong cùng khung giờ (mục 6, suất thú vương theo bản đồ ở mức tiến trình): còn sống thì về với
+    // thời gian còn lại, đã hạ thì không sinh lại. Phòng mới mở trong lúc chờ vẫn có đếm ngược.
+    const reopen=async(withL)=>{ const old=K.room.roomId; await K.room.leave(); if(withL) await L.room.leave(); await sleep(600);
+      await enter(K); await waitFor(()=>K.room.state.players&&meOf(K)&&K.owned); await sleep(300); return K.room.roomId!==old; };
+    await test(K,"king",{kop:"spawn"}); await waitFor(()=>kingB(),1500); ki=await test(K,"king"); const kslot=ki.slot, klife=ki.life;
+    const okReopen=await reopen(true); ki=await test(K,"king");
+    ok(okReopen&&ki.slot===kslot&&ki.seat==="alive"&&kingB()&&ki.hp===kbase&&ki.phase===1&&ki.life<=klife&&ki.life>klife-15,
+      `phòng hủy rồi mở lại (${ki.roomId}): thú vương còn sống trở lại cùng khung, đầy máu, còn ${Math.round(ki.life)}/${Math.round(klife)} giây`);
+    await test(A,"king",{kop:"warn",s:30,mapId:"tinh_dau_ngoai_vi"}); await sleep(200);
+    K.boss=[]; await reopen();
+    ok(await waitFor(()=>K.boss.some(m=>m.k==="warn"&&m.here&&m.in<=30&&m.in>=20),1500),`phòng mở ra trong lúc chờ: có đếm ngược (${K.boss.find(m=>m.k==="warn")?.in} giây)`);
+    await enter(L); await waitFor(()=>L.room.state.players&&meOf(L)); await waitFor(()=>kingB(),1500);
+    // Bảng xếp hạng sát thương chỉ gửi cho người tham gia: L đứng ngoài hang, chưa đánh thì không nhận.
+    await intoLair(K,40,0); await outLair(L); await test(K,"clear",{keep:1}); K.boss=[]; L.boss=[];
+    await test(K,"kdmg",{v:1}); await test(K,"status",{s:"stun",secs:60});
+    ok(await waitFor(()=>K.boss.some(m=>m.k==="rank"),2500)&&!L.boss.some(m=>m.k==="rank"),"bảng xếp hạng sát thương chỉ gửi cho người tham gia (K trong hang có, L ngoài hang không)");
+    f=await finish(0); ki=await test(K,"king"); const dslot=ki.slot;
+    ok(f.down&&ki.seat==="down","hạ thú vương của phòng mới mở");
+    ok(await reopen(true)&&!(await waitFor(()=>kingB(),800))&&(ki=await test(K,"king")).slot===dslot&&ki.seat==="down"&&!ki.bid,
+      `hạ rồi để phòng hủy, mở lại trong cùng khung giờ: không sinh thú vương mới (suất "${ki.seat}")`);
+    await K.room.leave();
   }
   // ---------- 3.2: hạ hồn thú -> hồn hoàn mang đúng số năm -> nhặt vào túi; ưu tiên người hạ 15 giây; túi đầy; hấp thụ từ túi ----------
   {

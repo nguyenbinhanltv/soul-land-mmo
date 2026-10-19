@@ -66,6 +66,8 @@ export interface MapDef {
   years: [number, number] | null; // niên hạn hồn thú (thành: null)
   /** Mã võ hồn (VOHON) mà hồn thú bản đồ này rơi mảnh (bảng "Rơi đặc trưng" mục 5.3, bước 3.4); mọi vùng của bản đồ dùng chung. */
   shards: string[];
+  /** Tà hóa thú vương của bản đồ (mã trong BOSSES, bậc 2; BĐ5, mục 5.4): hang là object `boss` trong Tiled. Không có = không có thú vương. */
+  king?: string;
   /** Mã bộ hồn hạch (CORE_SETS) đặc trưng của bản đồ (bảng "Rơi đặc trưng" mục 5.3, bước 5.1): hồn hạch rơi ở đây phần lớn thuộc các bộ này. */
   cores: string[];
 }
@@ -77,9 +79,9 @@ export const MAPS: Record<string, MapDef> = {
   nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // BĐ3: tách Tinh Đấu Đại Sâm Lâm (`tinh_dau` của BĐ1–BĐ2) thành Ngoại vi và Nội địa.
   tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000],
-    shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"] },
+    shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
-    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"] },
+    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
 };
 /**
  * Mã bản đồ cũ đã bỏ khỏi MAPS -> bản đồ thay thế (mục 6): `accounts.map_id` còn mã cũ thì vào bản đồ thay thế, ở `spawn`
@@ -437,6 +439,11 @@ export type TeleShape = "line" | "cone" | "circle";
  *   hướng hồn thú → mục tiêu, cách nhau `step`, vòng giữa ở chân mục tiêu (Gai Trồi, Lôi Trụ).
  * - `summon`: tung xong gọi thêm hồn thú loài `species` (mã BEASTS) quanh thân, tối đa `n` con do hồn thú này gọi còn sống (Hú Bầy).
  * - `pull`: người trúng bị kéo về phía hồn thú tối đa ngần ấy pixel (Quấn Kéo, Lưỡi Quất), dừng khi vướng hoặc sát hồn thú.
+ * Từ BĐ5 (thú vương):
+ * - `scatter`: vòng dưới chân mục tiêu rơi ngẫu nhiên trong bán kính này quanh mục tiêu (Độc Châm Vũ) thay vì thành hàng; vị trí do
+ *   server tung (tham số `rnd` của teleZones).
+ * - `mark`: đánh dấu một người tham gia ngẫu nhiên trong tầm (không nhất thiết là mục tiêu đang đuổi) rồi tung vào người đó (Huyết Cuồng).
+ * - `summon.years`: tuổi hồn thú gọi ra (mặc định theo `years` của vùng).
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -444,7 +451,8 @@ export interface BeastSkillDef {
   warn: number; cd: number; dmg: number;
   status?: StatusApply[]; dash?: boolean; years?: number;
   count?: number; spread?: number; step?: number;
-  summon?: { species: string; n: number }; pull?: number;
+  summon?: { species: string; n: number; years?: [number, number] }; pull?: number;
+  scatter?: number; mark?: boolean;
 }
 /** Hồn thú thường từ ngần ấy năm mới có chiêu báo trước (mục 5.3: dưới 1.000 năm chỉ đánh thường). */
 export const BEAST_SKILL_YEARS = 1000;
@@ -515,12 +523,17 @@ export function teleHits(t: Tele, px: number, py: number) {
 /**
  * Các vùng cảnh báo của chiêu `def` do hồn thú đứng ở (bx, by) tung về mục tiêu (tx, ty), khóa lúc bắt đầu báo trước. Chiêu thường
  * có 1 vùng; `count` > 1 (BĐ4) cho nhiều vùng (vệt / nón tỏa quạt, vòng dưới chân thành hàng). Hàm thuần: server khóa vùng, bot đối chiếu.
+ * `scatter` (BĐ5): vòng đầu ở chân mục tiêu, các vòng còn lại rơi trong bán kính `scatter` theo số ngẫu nhiên `rnd` (server truyền
+ * Math.random; không truyền thì rải đều trên vòng tròn, để hàm vẫn thuần).
  */
-export function teleZones(def: BeastSkillDef, bx: number, by: number, tx: number, ty: number): Tele[] {
+export function teleZones(def: BeastSkillDef, bx: number, by: number, tx: number, ty: number, rnd?: () => number): Tele[] {
   const ang = Math.atan2(ty - by, tx - bx), at = def.at === "target", n = Math.max(1, def.count ?? 1), out: Tele[] = [];
   for (let k = 0; k < n; k++) {
     const off = n > 1 ? k / (n - 1) - 0.5 : 0; // -0,5 .. 0,5
-    if (def.shape === "circle" && at) {
+    if (def.shape === "circle" && at && def.scatter) {
+      const a = rnd ? rnd() * Math.PI * 2 : (k / n) * Math.PI * 2, d = k === 0 ? 0 : def.scatter * (rnd ? Math.sqrt(rnd()) : 0.7);
+      out.push({ shape: "circle", x: tx + Math.cos(a) * d, y: ty + Math.sin(a) * d, ang, r: def.r, w: 0, arc: 0 });
+    } else if (def.shape === "circle" && at) {
       const d = off * (n - 1) * (def.step ?? def.r * 2);
       out.push({ shape: "circle", x: tx + Math.cos(ang) * d, y: ty + Math.sin(ang) * d, ang, r: def.r, w: 0, arc: 0 });
     } else {
@@ -537,9 +550,12 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
 /**
  * Một tinh anh / thú vương / boss. `species`: loài gốc (mã BEASTS): dùng lại chỉ số theo năm của loài và sprite (phóng ELITE.scale).
  * `aura`: màu vầng sáng riêng (client vẽ bằng code). `skills`: chiêu báo trước (tinh anh: 2 chiêu, cùng bộ máy với 3.5).
- * Hệ số máu / sát thương theo bậc nằm ở ELITE (thú vương thêm `hp` riêng khi làm BĐ5).
+ * Hệ số máu / sát thương theo bậc nằm ở ELITE (tinh anh) và KING (thú vương, BĐ5).
+ * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x6–8, bảng 5.3), niên hạn bằng mức trên của bản đồ (MAPS.years);
+ * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
-export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; }
+export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; }
+export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; }
 /**
  * Bảng BOSSES (mục 6). Mã cố định, dùng trong thuộc tính `boss` của object `elite` (Tiled); `BeastState.species` của hồn thú bậc > 0
  * là chỉ số trong bảng này, nên chỉ thêm vào cuối. BĐ4: 11 tinh anh của 3 bản đồ săn, tên và chiêu theo cột Tinh anh ở bảng 5.3.
@@ -587,6 +603,21 @@ export const BOSSES: BossDef[] = [
   { id: "huyet_van_khung_trao_hung", name: "Huyết Văn Khủng Trảo Hùng", rank: 1, species: "am_kim_khung_trao_hung", aura: "#e0303a", skills: [
     bs("Ám Kim Liệt Địa", "line", 110, { w: 14, count: 3, spread: 50, dmg: 1.8 }),
     bs("Cuồng Bạo Vỗ", "circle", 56, { dmg: 2.6, status: [{ s: "stun", secs: 0.6 }] })] },
+  // Tà hóa thú vương (BĐ5, bảng 5.3; mọi số chờ chốt). Báo trước 1–2 giây (dài hơn hồn thú thường): vòng quanh thân ≤ 64 để chạy
+  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt; bọc trứng của Vạn Chu
+  // Phệ thay bằng gọi thẳng nhện con; "tơ phủ 1/3 hang luân phiên" thay bằng một dải tơ rộng báo trước 2 giây nhắm người chơi.
+  { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 6, skills: [
+    bs("Huyết Nguyệt Hú", "circle", 60, { warn: 1.2, dmg: 1, cd: 14, summon: { species: "phong_lang", n: 4 } }),
+    bs("Liệt Phong Trảo", "cone", 58, { arc: 60, count: 3, spread: 130, warn: 1, dmg: 1.4, cd: 8 })],
+    phase2: { name: "Huyết Cuồng", desc: "tốc độ +40%, cứ 10 giây đánh dấu một người rồi lao xuyên tới", spd: 1.4, skills: [
+      bs("Huyết Cuồng Xung", "line", 170, { w: 20, range: 160, warn: 1.2, dmg: 1.8, cd: 10, dash: true, mark: true })] } },
+  { id: "thien_doc_chu_hoang", name: "Thiên Độc Chu Hoàng", rank: 2, species: "nhan_dien_ma_chu", aura: "#7bff5a", hp: 7, skills: [
+    bs("Thiên La Võng", "circle", 64, { warn: 1.3, dmg: 0.9, cd: 12, status: [{ s: "root", secs: 2 }] }),
+    bs("Độc Châm Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8,
+      status: [{ s: "poison", n: 2, secs: 5 }] })],
+    phase2: { name: "Vạn Chu Phệ", desc: "gọi nhện con, giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
+      bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16, summon: { species: "nhan_dien_ma_chu_non", n: 4, years: [4000, 8000] } }),
+      bs("Chu Ti Phong Tỏa", "line", 190, { w: 64, range: 180, warn: 2, dmg: 1.2, cd: 12, status: [{ s: "slow", secs: 3 }] })] } },
 ];
 const BOSS_INDEX = new Map(BOSSES.map((b, i) => [b.id, i]));
 /** Chỉ số trong BOSSES của một mã (-1 nếu không có). */
@@ -624,6 +655,68 @@ export const beastBuffBit = (b: BeastBuffId) => 1 << BEAST_BUFF_IDS.indexOf(b);
  * tốc độ +`spd`; hết giờ hoặc bị xóa thì `cd` giây sau mới nổi lại được (nếu máu vẫn dưới mức).
  */
 export const ELITE_RAGE = { hp: 0.5, dmg: 0.3, spd: 0.25, secs: 10, cd: 20 };
+
+// ---------- Tà hóa thú vương (boss bản đồ, mục 5.4, 6; bước BĐ5, mọi số chờ chốt trừ các số đã chốt ở 5.4) ----------
+/**
+ * Thú vương: máu x BossDef.hp (6–8 theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
+ * kinh nghiệm x`xp` cho mọi người đóng góp còn trong phòng; sprite loài gốc phóng `scale` (khoảng 96×96, mục 5.11).
+ * Giai đoạn 2: máu còn `phaseHp` thì gầm lên, đứng yên `roarSecs` giây (không nhận khống chế), rồi thêm chiêu BossDef.phase2 và nhanh hơn.
+ * Người tham gia như tinh anh nhưng bán kính là cả hang (object `boss`): ngoài hang `outSecs` giây liên tục thì bị loại, số người giảm
+ * tối đa 1 mỗi `dropEvery` giây, `idleSecs` giây không còn ai trong hang thì về chỗ, hồi đầy.
+ * Lịch: xuất hiện theo KING_TIMES, báo toàn server trước `warnSecs` giây và lúc xuất hiện; không ai hạ trong `lifeSecs` giây thì rút đi.
+ * Thưởng: đóng góp (sát thương) từ `share` (3%, đã chốt) và còn trong phòng thì nhận rương; tối đa `daily` lần/ngày (đã chốt), tính
+ * chung mọi bản đồ, đặt lại 00:00 giờ Việt Nam (BOSS_TZ). Hồn hoàn ưu tiên người đóng góp nhiều nhất DROP_OWNER_SECS giây.
+ */
+export const KING = { dmg: 2, xp: 3, scale: 3, phaseHp: 0.5, roarSecs: 2, outSecs: 30, dropEvery: 10, idleSecs: 15,
+  warnSecs: 300, lifeSecs: 900, share: 0.03, daily: 3 };
+/** Loại boss trong bảng `boss_claims` (cột `kind`): thú vương BĐ5; boss thế giới BĐ6 thêm loại riêng (giới hạn 1 lần/ngày). */
+export const BOSS_CLAIM_KING = "thu_vuong";
+/** Múi giờ của lịch boss và ngày nhận thưởng (mục 6): đổi ngày lúc 00:00 giờ Việt Nam, không dùng giờ máy chủ hay client. */
+export const BOSS_TZ = "Asia/Ho_Chi_Minh";
+/** Giờ xuất hiện của tà hóa thú vương mỗi ngày (giờ Việt Nam, "HH:MM"; mục 5.4: 20:00 và 22:00). Boss thế giới 21:00 ở BĐ6. */
+export const KING_TIMES = ["20:00", "22:00"];
+const TZ_FMT = new Intl.DateTimeFormat("en-CA", { timeZone: BOSS_TZ, year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+/** Giờ Việt Nam của thời điểm `ms` (UTC): năm, tháng, ngày, giờ, phút, giây. */
+export function vnClock(ms: number) {
+  const p = Object.fromEntries(TZ_FMT.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return { y: +p.year, mo: +p.month, d: +p.day, h: +p.hour, mi: +p.minute, s: +p.second };
+}
+/** Ngày nhận thưởng boss ("2026-10-19") theo giờ Việt Nam: cột `boss_claims.day`. */
+export const vnDay = (ms: number) => { const c = vnClock(ms); return `${c.y}-${String(c.mo).padStart(2, "0")}-${String(c.d).padStart(2, "0")}`; };
+/** Thời điểm (ms UTC) của giờ Việt Nam `hh:mm` trong ngày Việt Nam chứa `ms`, cộng thêm `dayOff` ngày. */
+function vnAt(ms: number, hhmm: string, dayOff = 0) {
+  const c = vnClock(ms), off = Date.UTC(c.y, c.mo - 1, c.d, c.h, c.mi, c.s) - Math.floor(ms / 1000) * 1000; // giờ VN − UTC
+  const [h, m] = hhmm.split(":").map(Number);
+  return Date.UTC(c.y, c.mo - 1, c.d + dayOff, h, m) - off;
+}
+/** Các khung giờ thú vương (ms UTC) của hôm qua, hôm nay, ngày mai theo giờ Việt Nam, tăng dần. */
+export const kingSlots = (ms: number) => [-1, 0, 1].flatMap((k) => KING_TIMES.map((t) => vnAt(ms, t, k))).sort((a, b) => a - b);
+/** Khung giờ thú vương kế tiếp sau `ms` (ms UTC). */
+export const kingNext = (ms: number) => kingSlots(ms).find((s) => s > ms)!;
+/** Khung giờ thú vương đang diễn ra lúc `ms` (đã xuất hiện, chưa quá KING.lifeSecs), không có thì null. */
+export const kingActive = (ms: number) => kingSlots(ms).find((s) => s <= ms && ms < s + KING.lifeSecs * 1000) ?? null;
+/** "20:00" của khung `slot` theo giờ Việt Nam. */
+export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(c.h).padStart(2, "0")}:${String(c.mi).padStart(2, "0")}`; };
+/**
+ * Rương tà hóa thú vương (mục 5.3 "Rơi đặc trưng", 5.4; chờ chốt trừ mảnh UR 5% đã chốt). Mở trong túi đồ (cần `slots` ô trống):
+ * - Hồn cốt: tỉ lệ boneChance(năm thú vương, `bone`) (bảng rơi 4.1 nhân hệ số), loài gốc của thú vương, cùng số năm, vị trí ngẫu nhiên.
+ * - Mảnh võ hồn: `shards` [ít nhất, nhiều nhất] mảnh của một võ hồn trong kingShardPool (mảnh của bản đồ đó, Tà Hỏa Phượng Hoàng,
+ *   và trước BĐ6 cả võ hồn của bản đồ chưa mở để không võ hồn nào bị khóa hẳn).
+ * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 bỏ.
+ * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
+ *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
+ */
+export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0.05, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
+  fire: "ta_hoa_phuong_hoang", later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
+    "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
+/** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa 2, bản đồ chưa mở 1. */
+export const kingShardPool = (mapId: string) => [
+  ...(MAPS[mapId]?.shards ?? []).map((v) => ({ vohon: v, w: 3 })), { vohon: KING_CHEST.fire, w: 2 },
+  ...KING_CHEST.later.filter((v) => !Object.values(MAPS).some((m) => m.shards.includes(v))).map((v) => ({ vohon: v, w: 1 })),
+];
+/** Mã vật phẩm rương của thú vương `bossId` (cột `items.code`; mỗi thú vương một mã, gộp được). Không đổi cách đặt mã. */
+export const chestCode = (bossId: string) => `ruong_${bossId}`;
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -1473,8 +1566,8 @@ export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; re
 }
 
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
-/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1); tiên thảo thêm ITEMS ở BĐ6. */
-export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
+/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5); tiên thảo thêm ITEMS ở BĐ6. */
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
   hon_hoan: { name: "Hồn hoàn" },
@@ -1482,13 +1575,14 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   hon_hach: { name: "Hồn hạch" },
   manh_vo_hon: { name: "Mảnh võ hồn" },
   tien_thao: { name: "Tiên thảo" },
+  ruong: { name: "Rương" }, // BĐ5: rương tà hóa thú vương
 };
 /**
  * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
  * (1 = không gộp, mỗi món một ô như hồn hoàn có số năm riêng). `cd`: nhóm hồi chiêu dùng chung (DAN_CD).
  * `hp` / `mp`: dùng thì hồi ngần ấy phần sinh lực tối đa của võ hồn ra trận / hồn lực tối đa.
  */
-export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; vohon?: string; }
+export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; vohon?: string; boss?: string; }
 export const ITEMS: ItemDef[] = [
   { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
   { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
@@ -1504,6 +1598,9 @@ export const ITEMS: ItemDef[] = [
   // Hồn hạch (bước 5.1): mỗi món một ô; sao ở `items.stars`, bộ / chỉ số ở `items.stats`. Màu theo bộ (CORE_SETS), `col` chỉ là mặc định.
   { id: CORE_ITEM, kind: "hon_hach", name: "Hồn hạch", col: "#d9b8ff", stack: 1,
     desc: "Mỗi võ hồn có 6 ô hồn hạch; gắn 2 hoặc 4 món cùng bộ thì nhận hiệu ứng bộ (gắn và hiệu ứng bộ mở ở bước 5.2)." },
+  // Rương tà hóa thú vương (BĐ5): mỗi thú vương một mã `ruong_<mã thú vương>` (chestCode), `boss` trỏ về BOSSES; mở trong túi đồ (KING_CHEST).
+  ...BOSSES.filter((b) => b.rank === 2).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
+    desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, 1 hồn hạch sao cao, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống).` })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */

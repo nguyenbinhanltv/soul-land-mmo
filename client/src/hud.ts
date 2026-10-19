@@ -5,7 +5,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
   CORE_ITEM, CORE_SETS, CORE_SUBS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
-  BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower } from "../../shared/data.ts";
+  BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower, KING } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
@@ -25,6 +25,62 @@ export function log(text: string, col?: string, who?: string) {
   el.appendChild(d);
   while (el.children.length > 6) el.firstElementChild!.remove();
   setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 700); }, 9000);
+}
+
+// ---------- Tà hóa thú vương (BĐ5, mục 5.4): đếm ngược, thanh máu lớn, bảng xếp hạng sát thương ----------
+/** Số giây -> "4:59". */
+const mmss = (s: number) => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+let bossCd: { name: string; mapName: string; here: boolean; end: number; col: string } | null = null;
+/** Đếm ngược thú vương sắp xuất hiện (tin "boss" k = "warn", mọi bản đồ); null = ẩn. `secs`: còn bao nhiêu giây (server tính). */
+export function setBossCountdown(c: { name: string; mapName: string; here: boolean; secs: number; col?: string } | null) {
+  bossCd = c ? { ...c, end: performance.now() + c.secs * 1000, col: c.col ?? "#ff5a5a" } : null;
+  updateBossCd();
+}
+/** Mỗi lần cập nhật HUD: chữ đếm ngược; hết giờ thì ẩn (tin "spawn" sẽ tới). */
+export function updateBossCd() {
+  const el = $("#bossCd"); if (!el) return;
+  const left = bossCd ? (bossCd.end - performance.now()) / 1000 : 0;
+  if (!bossCd || left <= 0) { el.hidden = true; return; }
+  el.hidden = false; el.style.setProperty("--c", bossCd.col);
+  const txt = `${bossCd.name} xuất hiện sau ${mmss(left)} ở ${bossCd.mapName}${bossCd.here ? " (bản đồ này)" : ""}`;
+  if (el.textContent !== txt) el.textContent = txt;
+}
+let bossLifeEnd = 0;
+/** Thời gian còn lại trước khi thú vương rút đi (tin "boss" spawn / here). */
+export function setBossLife(secs: number) { bossLifeEnd = performance.now() + secs * 1000; }
+/**
+ * Thanh máu thú vương lớn ở đầu màn hình (mục 5.4 "Nhận diện"): đọc thẳng BeastState (máu, số người tham gia, giai đoạn). null = ẩn.
+ * Khung mục tiêu nhỏ (#target) dời xuống dưới khi thanh này hiện.
+ */
+export function showBoss(b: { name: string; hp: number; maxHp: number; parts: number; phase: number; title: string; col: string } | null) {
+  const el = $("#bossbar"); document.body.classList.toggle("boss", !!b);
+  if (!b) { el.hidden = true; $("#bossRank").hidden = true; return; }
+  el.hidden = false; el.style.setProperty("--c", b.col);
+  const life = (bossLifeEnd - performance.now()) / 1000;
+  const key = `${b.name}|${b.hp}|${b.maxHp}|${b.parts}|${b.phase}|${b.title}|${Math.ceil(life)}`;
+  if (el.dataset.key === key) return;
+  el.dataset.key = key;
+  if (!el.firstChild) el.innerHTML = `<div class="bhead"><b></b><span class="ph"></span><span class="bn"></span></div><div class="bar"><i></i><span></span></div>`;
+  el.querySelector("b")!.textContent = b.name;
+  el.querySelector(".ph")!.textContent = b.phase === 2 ? `Giai đoạn 2 – ${b.title}` : "Giai đoạn 1";
+  el.querySelector(".bn")!.textContent = `${b.parts} người tham gia${life > 0 ? ` · rút đi sau ${mmss(life)}` : ""}`;
+  (el.querySelector(".bar i") as HTMLElement).style.width = `${(100 * b.hp) / Math.max(1, b.maxHp)}%`;
+  el.querySelector(".bar span")!.textContent = `${b.hp.toLocaleString("vi-VN")} / ${b.maxHp.toLocaleString("vi-VN")}`;
+  el.classList.toggle("p2", b.phase === 2);
+}
+/** Bảng xếp hạng sát thương khi đánh thú vương (tin "boss" k = "rank" / "down"): tối đa 10 dòng, dòng của mình sáng; từ 3% có rương. */
+export function bossRank(list: { id: string; name: string; pct: number }[] | null, me: string, final = false) {
+  const el = $("#bossRank");
+  if (!list || !list.length) { el.hidden = true; return; }
+  el.hidden = false; el.innerHTML = "";
+  const h = document.createElement("b"); h.textContent = final ? "Kết quả đóng góp" : "Sát thương"; el.appendChild(h);
+  list.forEach((x, i) => {
+    const r = document.createElement("div"); r.className = "rk" + (x.id === me ? " me" : "") + (x.pct / 100 >= KING.share ? "" : " low");
+    r.innerHTML = `<span>${i + 1}.</span><em></em><i>${String(x.pct).replace(".", ",")}%</i>`;
+    r.querySelector("em")!.textContent = x.name;
+    el.appendChild(r);
+  });
+  const n = document.createElement("small"); n.textContent = `Từ ${KING.share * 100}% sát thương nhận rương (tối đa ${KING.daily} lần/ngày).`; el.appendChild(n);
 }
 
 let bannerTO: number | undefined;
@@ -593,7 +649,7 @@ export interface AbsorbOption { rowId: number; name: string; col: string; level:
  * `refresh`: xin lại danh sách võ hồn (cấp võ hồn không ra trận có thể đã đổi).
  */
 export interface BagActions {
-  use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void;
+  use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void; open(id: string): void;
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
 }
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
@@ -740,6 +796,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
+    if (def?.kind === "ruong") btn("Mở rương", "absorb", () => act.open(sel.id)); // rương thú vương (BĐ5): server tung phần thưởng
     if (bone) btn("Gắn…", "use", () => openBones(sel.id, bone.slot)); // hồn cốt (4.2): gắn ở bảng đội hình
     btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
       if (bagConfirm === sel.id) { bagConfirm = null; act.discard(sel.id); } else { bagConfirm = sel.id; again(); }
