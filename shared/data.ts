@@ -96,8 +96,6 @@ export function parseLevelRange(s: unknown): [number, number] | null {
 /** Đi qua cổng: số giây niệm (bị đánh thì hủy, chờ chốt ở 5.3) và số giây server chờ client rời phòng cũ (mục 6). */
 export const TRAVEL_CAST = 1;
 export const TRAVEL_LEAVE_SECS = 10;
-/** Hồn thú thường không sinh trong ngần này pixel quanh cổng và điểm xuất hiện (`arrive`), để vừa tới nơi hay đứng niệm cổng không bị vây. */
-export const GATE_CLEAR = 160;
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
@@ -384,6 +382,13 @@ export const STATUS_TICK = 1;
 export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
 /** Hồn thú không có mục tiêu và không bị đánh `delay` giây thì hồi `pct` sinh lực tối đa mỗi giây (Trúng độc giảm hồi máu). */
 export const BEAST_REGEN = { delay: 6, pct: 0.04 };
+/** Hồn thú từ 100 năm (bậc 1 trở lên) thấy người chơi trong bán kính BEAST_AGGRO_R thì đuổi đánh; không có mục tiêu thì lang thang
+ *  tối đa BEAST_WANDER pixel mỗi trục quanh chỗ sinh. */
+export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
+/** Không sinh hồn thú trong khoảng này (mỗi trục) quanh trại cổng (object `spawn`), mọi cổng và mọi điểm xuất hiện `arrive` (mục 5.3,
+ *  5.8), để vừa tới nơi, vừa hồi sinh hay đang niệm cổng không bị vây. Phải ≥ BEAST_WANDER + BEAST_AGGRO_R (130) thì hồn thú tự lang thang
+ *  mới không tới tầm phát hiện người đứng ở đó; 160 như GATE_CLEAR của BĐ3 (đã gộp vào đây). Người chơi kéo hồn thú về thì vẫn bị đuổi. */
+export const SPAWN_CLEAR = 160;
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
