@@ -5,6 +5,8 @@
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 // Túi đồ (3.1): nhận đan khởi đầu, dùng đan, hồi chiêu chung, Hồn Tệ khi hạ hồn thú, gộp đồ và giới hạn ô, túi đồ giữ nguyên khi
 // đi cổng và khi thoát vào lại.
+// Hồn thú theo số năm (3.2): tuổi nằm trong khoảng niên hạn của vùng, hạ thú thì hồn hoàn rơi mang đúng số năm, nhặt (E) vào túi,
+// người khác không nhặt được trong 15 giây đầu, túi đầy thì báo, bỏ vật phẩm, hấp thụ từ túi (luật bậc cũ đến 3.3).
 // Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b), năng lượng và chiêu tiên cơ theo 4 hệ (2.4), dùng đan khi mất máu (3.1),
 // trạng thái dùng chung và hồn kỹ riêng của 5 võ hồn mẫu (2.5a) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
@@ -15,7 +17,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
   BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, CRIT, PCT_HP_CAP,
-  CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS } from "../../shared/data.ts";
+  CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS,
+  MAPS, MAX_YEARS, beastStats, rollYears, tierBand, parseLevelRange, RING_ITEM, DROP_OWNER_SECS, absorbSecs } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -73,9 +76,9 @@ async function enter(b){
   b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
   b.bag=null; b.room.send("vohons"); b.room.send("bag");
 }
-/** Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng từng ô + Hồn Tệ) để so trước/sau khi lưu. */
+/** Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ) để so trước/sau khi lưu. */
 const qtyOf=(b,code)=>(b.bag?.items??[]).filter(i=>i.code===code).reduce((a,i)=>a+i.qty,0);
-const bagKey=b=>b.bag&&JSON.stringify([b.bag.honTe,b.bag.items.map(i=>[i.id,i.code,i.qty])]);
+const bagKey=b=>b.bag&&JSON.stringify([b.bag.honTe,b.bag.items.map(i=>[i.id,i.code,i.qty,i.years])]);
 /** Gửi `use {id}` rồi chờ server trả túi mới (dùng được) hoặc một dòng log (bị từ chối). */
 async function useItem(b,id){ const n=b.bagMsgs??0, l=b.logs.length; b.room.send("use",{id}); await waitFor(()=>(b.bagMsgs??0)>n||b.logs.length>l,1500); }
 const lastLog=(b,re)=>waitFor(()=>re.test(b.logs.at(-1)??""),800);
@@ -97,6 +100,29 @@ ok(existsSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url)),`
 const species=new Set(); st.beasts.forEach(b=>species.add(b.species));
 console.log("  loài đang có (chỉ số BEASTS):",[...species].sort((a,b)=>a-b).join(", "));
 ok(species.size>1,"hồn thú có nhiều loài");
+
+// ---------- 3.2: hồn thú có tuổi theo số năm ----------
+// Hàm thuần: đúng mốc năm thì bằng chỉ số của bậc, giữa hai mốc tăng liên tục; tuổi tung ra luôn nằm trong khoảng.
+ok(TIERS.every(t=>{ const s=beastStats(t.years); return s.hp===t.hp&&s.dmg===t.dmg&&s.xp===t.xp; }),"beastStats đúng mốc năm = chỉ số bậc");
+ok([10,50,99,100,437,999,1000,5000,25000,99999,100000].every((y,i,a)=>!i||beastStats(y).hp>=beastStats(a[i-1]).hp)&&beastStats(437).hp>TIERS[1].hp&&beastStats(437).hp<TIERS[2].hp,
+  `máu hồn thú tăng theo số năm: 100 năm ${beastStats(100).hp}, 437 năm ${beastStats(437).hp}, 999 năm ${beastStats(999).hp}`);
+ok([[10,100],[80,250],[300,700],[15000,25000],[100000,100000]].every(([lo,hi])=>[0,0.3,0.999999].every(r=>{ const y=rollYears(lo,hi,r); return y>=lo&&y<=hi&&Number.isInteger(y); })),"rollYears nằm trong khoảng");
+ok(same(tierBand(1),[100,999])&&same(tierBand(4),[MAX_YEARS,MAX_YEARS]),"khoảng năm theo màu: vàng 100–999, đỏ 100.000");
+/** Mọi hồn thú trong phòng của bot `b` có tuổi nằm trong khoảng `years` của một vùng gần đó (bảng 5.3), bậc và máu suy từ số năm. */
+function checkBeastYears(b){
+  const s=b.room.state, map=JSON.parse(readFileSync(new URL(`../../shared/assets/${s.mapId}.json`,import.meta.url),"utf8"));
+  const zs=map.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone").map(o=>({...o,yr:parseLevelRange((o.properties??[]).find(q=>q.name==="years")?.value)}));
+  const bad=[], ys=[]; let n=0;
+  s.beasts.forEach(x=>{ n++; ys.push(x.years);
+    // Hồn thú đi lang thang / đuổi người tối đa 220 pixel quanh chỗ sinh: so với các vùng trong phạm vi đó.
+    const near=zs.filter(z=>z.yr&&x.x>=z.x-240&&x.x<=z.x+z.width+240&&x.y>=z.y-240&&x.y<=z.y+z.height+240);
+    if(!near.some(z=>x.years>=z.yr[0]&&x.years<=z.yr[1])||x.tier!==tierOfYears(x.years)||x.maxHp!==beastStats(x.years).hp) bad.push(`${x.years}@${x.x.toFixed(0)},${x.y.toFixed(0)}`); });
+  const [lo,hi]=MAPS[s.mapId].years??[0,0];
+  ok(zs.every(z=>z.yr)&&n>0&&!bad.length&&ys.every(y=>y>=lo&&y<=hi),
+    `${s.mapId}: ${n} hồn thú có số năm đúng khoảng vùng (${Math.min(...ys)}–${Math.max(...ys)} năm, bản đồ ${lo}–${hi})`+(bad.length?` sai: ${bad.join(" ")}`:""));
+}
+checkBeastYears(A);
+ok(B.room.state.beasts.size===st.beasts.size&&[...st.beasts.entries()].every(([k,x])=>B.room.state.beasts.get(k)?.years===x.years),"B thấy cùng số năm của hồn thú");
 
 // Võ hồn sở hữu: chỉ chính chủ nhận danh sách.
 ok(await waitFor(()=>A.owned&&B.owned),"nhận danh sách võ hồn riêng");
@@ -214,8 +240,17 @@ if(p.kills>kills0){
   ok(await waitFor(()=>A.owned.active===want),"đổi võ hồn trong đội khi đang giao chiến");
   ok(same(await sendTeam(A,[t0[1],t0[0],t0[2],t0[3]]),t0)&&await lastLog(A,/giao chiến/),"chặn xếp đội khi đang giao chiến");
 }
-let dr=null; st.drops.forEach(d=>dr=d);
-if(dr){ for(let i=0;i<50 && Math.hypot(dr.x-p.x,dr.y-p.y)>10;i++){const dx=dr.x-p.x,dy=dr.y-p.y,d=Math.hypot(dx,dy); A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); await sleep(60);} A.room.send("input",{x:0,y:0}); await sleep(150); A.room.send("absorb"); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
+let dr=null; st.drops.forEach(d=>{ if(d.owner===A.room.sessionId) dr=d; });
+if(dr){
+  // 3.2: hồn hoàn dưới đất mang số năm của hồn thú; đi tới, nhấn E (pickup) thì vào túi đồ; hấp thụ từ túi (luật bậc cũ).
+  const yrs=dr.years, n0=(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length;
+  ok(yrs>=10&&dr.tier===tierOfYears(yrs)&&A.logs.some(t=>t.startsWith("Hạ ")&&t.includes(`${yrs.toLocaleString("vi-VN")} năm`)),`hồn hoàn rơi mang số năm của hồn thú: ${yrs} năm`);
+  for(let i=0;i<50 && Math.hypot(dr.x-p.x,dr.y-p.y)>10;i++){const dx=dr.x-p.x,dy=dr.y-p.y,d=Math.hypot(dx,dy); A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); await sleep(60);}
+  A.room.send("input",{x:0,y:0}); await sleep(150); A.room.send("pickup");
+  ok(await waitFor(()=>(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length===n0+1),`nhặt hồn hoàn: túi có ${A.bag?.items.filter(i=>i.code===RING_ITEM).map(i=>i.years).join(", ")} năm`);
+  const it=A.bag?.items.find(i=>i.code===RING_ITEM&&i.years===yrs);
+  if(it){ A.room.send("absorb",{itemId:it.id}); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
+}
 // ---------- 2.3b: gục từng võ hồn, hồi sinh, chia kinh nghiệm 40/20 cho đội ----------
 // Hàm luật thuần trong shared/data.ts: cấp tương đương theo bậc và giảm kinh nghiệm theo chênh cấp (mục 5.3).
 ok(same(TIERS.map((_,t)=>beastLevel(t)),[10,10,20,40,70]),`cấp tương đương theo bậc: ${TIERS.map((_,t)=>beastLevel(t)).join("/")}`);
@@ -283,9 +318,10 @@ else {
   const s0=A.owned.team.indexOf(bn); A.room.send("switch",{slot:s0});
   ok(await waitFor(()=>A.owned.active===bn&&p.swCd>2),"đổi tay sang ô 2, đang hồi chiêu đổi");
   await test(A,"clear"); // hồn thú hoang gần đó đánh trúng thì võ hồn mới không còn đầy sinh lực
-  const cd0=p.swCd; A.ko=null; await test(A,"down");
+  const cd0=p.swCd; A.ko=null; A.hurts=[]; await test(A,"down");
   ok(await waitFor(()=>A.owned.active===a&&A.ko?.next),`võ hồn gục tự đổi sang ${A.ko?.next} dù đang hồi chiêu`);
-  ok(!p.dead&&await waitFor(()=>p.hp===p.maxHp,500),`không gục cả người, võ hồn mới đủ sinh lực riêng ${p.hp}/${p.maxHp}`);
+  // Đòn đầu trong A.hurts là đòn "down"; có thêm đòn nữa nghĩa là hồn thú hoang vừa đánh võ hồn mới (từ 3.2 Bãi tập nhiều hồn thú vàng chủ động hơn).
+  ok(!p.dead&&(await waitFor(()=>p.hp===p.maxHp,500)||A.hurts.length>1),`không gục cả người, võ hồn mới đủ sinh lực riêng ${p.hp}/${p.maxHp}`+(A.hurts.length>1?" (vừa bị hồn thú hoang đánh)":""));
   ok(p.swCd>0&&p.swCd<=cd0,`hồi chiêu đổi không bị tính thêm (${p.swCd.toFixed(2)})`);
   ok(/gục.*tự động ra trận/.test(A.logs.join("\n")),"thông báo tự đổi võ hồn");
   ok(await waitFor(()=>sq(bn)?.down>0&&sq(bn).hp===0&&A.squad.combat),`squad: ${vOf(bn).vohon} đã gục, còn ${sq(bn)?.down} giây, đang giao chiến`);
@@ -662,6 +698,80 @@ else {
     await test(E,"clear");
   }
   await E.room.leave();
+  // ---------- 3.2: hạ hồn thú -> hồn hoàn mang đúng số năm -> nhặt vào túi; ưu tiên người hạ 15 giây; túi đầy; hấp thụ từ túi ----------
+  {
+    const zs=tiled.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone"), hz=zs.find(z=>/Bãi tập/.test(z.name))??zs[0];
+    let spot=null; for(let k=0;k<400&&!spot;k++){ const x=Math.round(hz.x+30+Math.random()*(hz.width-60)), y=Math.round(hz.y+40+Math.random()*(hz.height-80)); if(!blocked(x,y)) spot={x,y}; }
+    await test(A,"goto",spot); ok(await waitFor(()=>Math.hypot(p.x-spot.x,p.y-spot.y)<1),`A tới ${hz.name} (${spot.x},${spot.y})`);
+    await test(A,"clear");
+    const ringsOf=b=>(b.bag?.items??[]).filter(i=>i.code===RING_ITEM), bp=()=>meOf(B);
+    /** Đặt hồn thú 1 máu `years` năm ngay chỗ A đứng (hook test), A đánh hạ; trả về hồn hoàn vừa rơi. */
+    async function killFor(years){
+      const before=new Set(st.drops.keys()), fresh=()=>[...st.drops.keys()].find(k=>!before.has(k));
+      await test(A,"beast",{dx:0,dy:0,years});
+      for(let i=0;i<15&&!fresh();i++){ A.room.send("attack"); await waitFor(fresh,450); }
+      const id=fresh(); return id?{id,dr:st.drops.get(id)}:null;
+    }
+    const k1=await killFor(437);
+    ok(k1&&k1.dr.years===437&&k1.dr.tier===tierOfYears(437)&&k1.dr.owner===A.room.sessionId,`hạ hồn thú 437 năm: hồn hoàn rơi ${k1?.dr.years} năm, màu ${TIERS[k1?.dr.tier??0].color}, thuộc A`);
+    ok(A.logs.some(t=>/^Hạ .*437 năm.*Hồn hoàn 437 năm/.test(t)),"thông báo hạ hồn thú kèm số năm");
+    if(k1){
+      await test(B,"goto",{x:k1.dr.x,y:k1.dr.y}); await waitFor(()=>Math.hypot(bp().x-k1.dr.x,bp().y-k1.dr.y)<1);
+      const b0=ringsOf(B).length; B.room.send("pickup");
+      ok(await lastLog(B,/thuộc về người hạ/)&&st.drops.has(k1.id)&&ringsOf(B).length===b0,`B không nhặt được trong ${DROP_OWNER_SECS} giây đầu: ${B.logs.at(-1)}`);
+      const a0=ringsOf(A).length; A.room.send("pickup");
+      ok(await waitFor(()=>ringsOf(A).length===a0+1)&&await waitFor(()=>!st.drops.has(k1.id)),"A nhặt hồn hoàn của mình");
+      ok(ringsOf(A).some(i=>i.years===437&&i.qty===1&&i.kind==="hon_hoan"),"túi A có hồn hoàn đúng 437 năm (mỗi chiếc một ô)");
+      ok(!ringsOf(B).some(i=>i.years===437),"túi B không có hồn hoàn của A");
+    }
+    // Hết thời gian ưu tiên thì ai cũng nhặt được.
+    const k2=await killFor(1234);
+    if(k2){
+      B.room.send("pickup"); ok(await lastLog(B,/thuộc về người hạ/),"B chưa nhặt được hồn hoàn 1.234 năm");
+      await test(A,"drops",{s:DROP_OWNER_SECS});
+      B.room.send("pickup"); ok(await waitFor(()=>ringsOf(B).some(i=>i.years===1234))&&await waitFor(()=>!st.drops.has(k2.id)),`hết ${DROP_OWNER_SECS} giây: B nhặt được hồn hoàn 1.234 năm`);
+    }
+    // Túi đầy: báo, hồn hoàn ở lại dưới đất; bỏ bớt một ô rồi nhặt được.
+    const free=BAG_SLOTS-A.bag.items.filter(i=>i.vohon===null).length;
+    await test(A,"give",{code:RING_ITEM,qty:free,years:50});
+    ok(A.bag.items.length===BAG_SLOTS,`túi A đầy ${A.bag.items.length}/${BAG_SLOTS} ô`);
+    const k3=await killFor(88);
+    if(k3){
+      A.room.send("pickup"); ok(await lastLog(A,/Túi đồ đã đầy/)&&st.drops.has(k3.id),`túi đầy: ${A.logs.at(-1)}`);
+      const junk=ringsOf(A).find(i=>i.years===50);
+      B.room.send("discard",{id:junk.id}); ok(await lastLog(B,/Không có vật phẩm/)&&A.bag.items.some(i=>i.id===junk.id),"B không bỏ được đồ trong túi A");
+      A.room.send("discard",{id:junk.id}); ok(await waitFor(()=>!A.bag.items.some(i=>i.id===junk.id)),"A bỏ một hồn hoàn trong túi");
+      A.room.send("pickup"); ok(await waitFor(()=>ringsOf(A).some(i=>i.years===88)),"bỏ bớt rồi nhặt được hồn hoàn 88 năm");
+    }
+    for(const i of ringsOf(A).filter(i=>i.years===50)) A.room.send("discard",{id:i.id});
+    ok(await waitFor(()=>!ringsOf(A).some(i=>i.years===50),3000),"dọn túi A");
+    // Hấp thụ từ túi (tạm giữ luật bậc cũ đến 3.3).
+    const act=A.owned.active, ring=ringsOf(A).find(i=>i.years===437);
+    if(ring){
+      await test(A,"set",{rowId:act,level:5,xp:0,rings:[]});
+      A.room.send("absorb",{itemId:ring.id}); ok(await lastLog(A,/Cần đạt cấp 10/),"chưa tới bình cảnh: không hấp thụ được");
+      B.room.send("absorb",{itemId:ring.id}); ok(await lastLog(B,/Hãy chọn một hồn hoàn/),"B không hấp thụ được hồn hoàn trong túi A");
+      await test(A,"set",{rowId:act,level:10,xp:0,rings:[]});
+      await test(A,"give",{code:RING_ITEM,qty:1,years:20000}); const huge=ringsOf(A).find(i=>i.years===20000);
+      A.room.send("absorb",{itemId:huge.id}); ok(await lastLog(A,/quá mạnh/),"hồn hoàn 20.000 năm quá mạnh cho vòng 1");
+      const dan=A.bag.items.find(i=>i.code!==RING_ITEM);
+      if(dan){ A.room.send("absorb",{itemId:dan.id}); ok(await lastLog(A,/Hãy chọn một hồn hoàn/),"không hấp thụ được đan dược"); }
+      A.room.send("absorb",{itemId:ring.id}); ok(await waitFor(()=>p.absorb>0,1500),"bắt đầu hấp thụ hồn hoàn 437 năm từ túi");
+      A.room.send("discard",{id:ring.id}); ok(await lastLog(A,/Đang hấp thụ/),"không bỏ được hồn hoàn đang hấp thụ");
+      ok(await waitFor(()=>p.rings.length===1&&p.level===11,(absorbSecs(1)+2)*1000)&&await waitFor(()=>!A.bag.items.some(i=>i.id===ring.id)),
+        `hấp thụ xong: cấp ${p.level}, ${p.rings.length} hồn hoàn, hồn hoàn rời túi`);
+      const n=A.ownedMsgs; A.room.send("vohons"); await waitFor(()=>A.ownedMsgs>n);
+      ok(same(vOf(act)?.rings,[437]),`võ hồn lưu hồn hoàn đúng số năm: ${JSON.stringify(vOf(act)?.rings)}`);
+      // Bị gián đoạn (di chuyển) thì hồn hoàn vẫn còn trong túi.
+      await test(A,"set",{rowId:act,level:20,xp:0,rings:[437]}); await test(A,"give",{code:RING_ITEM,qty:1,years:300});
+      const r300=ringsOf(A).find(i=>i.years===300);
+      A.room.send("absorb",{itemId:r300.id}); await waitFor(()=>p.absorb>0,1500);
+      A.room.send("input",{x:1,y:0}); await sleep(250); A.room.send("input",{x:0,y:0});
+      ok(await lastLog(A,/hủy hấp thụ/)&&p.absorb===0&&p.rings.length===1&&A.bag.items.some(i=>i.id===r300.id),"di chuyển: hủy hấp thụ, hồn hoàn vẫn trong túi");
+      for(const i of [r300,huge]) A.room.send("discard",{id:i.id});
+      await waitFor(()=>!A.bag.items.some(i=>i.id===r300.id||i.id===huge.id));
+    }
+  }
   for(const o of orig) await test(A,"set",o);
 }
 
@@ -748,6 +858,7 @@ const lvC=me().level;
 ok(C.portal?.to==="tinh_dau"&&JSON.stringify(C.portal.level)==="[10,60]"&&C.portal.warn===(lvC<10),`cấp đề xuất 10–60, cấp ${lvC} -> cảnh báo ${C.portal?.warn}`);
 await travelBy("Đi Tinh Đấu Đại Sâm Lâm","tinh_dau");
 ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Tinh Đấu: ${me().x},${me().y}`);
+checkBeastYears(C); // vùng Tinh Đấu theo bảng 5.3: 300–700 … 15.000–25.000 năm
 // Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
 await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
