@@ -6,13 +6,13 @@ import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, MAPS, DEFAULT_MAP, parseLooks, dir4, type Looks,
+  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, dir4, type Looks,
   TRAVEL_CAST, TRAVEL_LEAVE_SECS,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
   itemDef, BAG_SLOTS, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance,
-  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, SPAWN_CLEAR, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
+  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal } from "../map.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -666,6 +666,8 @@ export class MapRoom extends Room<MapState> {
    * coi như vừa bị đánh), `regen {s}` (hồn thú gần nhất hồi máu s giây bằng regenBeast; trả `gain`), `ready {mp}` (hết hồi chiêu
    * hồn kỹ, hồn lực còn mp%), `grant {vohon}` (thêm võ hồn bất kỳ, kể cả UR, vào tài khoản; có lưu DB). `down` / `hurt` bỏ qua cả
    * miễn sát thương.
+   * Từ BĐ3: `legacy {mapId, x, y}` ghi `map_id` cũ đã bỏ khỏi MAPS (mã trong MAP_MOVED, ví dụ `tinh_dau`) và vị trí (x, y) như tài
+   * khoản của bản trước, qua đúng transaction đi cổng (freeze, saveTravel; trả `saved`); client rời phòng rồi hỏi lại /api/me.
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -740,6 +742,20 @@ export class MapRoom extends Room<MapState> {
         return;
       }
     }
+    else if (op === "legacy") {
+      const to = String(o.mapId ?? "");
+      if (Object.hasOwn(MAP_MOVED, to) && !d.travelling) {
+        this.freeze(id);
+        this.chain(d, async () => {
+          await store.saveTravel(d.accountId, this.unsaved(id), this.state.mapId, to, int(o.x, 0, 1e5, 0), int(o.y, 0, 1e5, 0), this.unsavedBag(d));
+          d.travelled = true;
+        }).then(() => {
+          if (!d.travelled) d.travelling = false;
+          this.sendVohons(c); c.send("test", { op, enabled: true, saved: d.travelled });
+        });
+        return;
+      }
+    }
     else if (op === "clear") this.state.beasts.forEach((b, bid) => { if (Math.hypot(b.x - p.x, b.y - p.y) < 160) { this.state.beasts.delete(bid); this.bdata.delete(bid); } });
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);
@@ -755,14 +771,14 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
-   * Kinh nghiệm hạ hồn thú `years` năm (mục 5.1, 5.3; tăng theo số năm, beastStats): giảm theo chênh cấp với võ hồn ra trận một
-   * lần (cấp tương đương vẫn tính theo bậc đến BĐ3), rồi chia cho đội:
+   * Kinh nghiệm hạ hồn thú `years` năm (mục 5.1, 5.3; tăng theo số năm, beastStats): giảm theo chênh cấp giữa võ hồn ra trận và
+   * cấp tương đương của số năm (beastLevel, từ BĐ3) một lần, rồi chia cho đội:
    * võ hồn ra trận XP_SHARE_ACTIVE, mỗi võ hồn khác trong đội XP_SHARE_BENCH (kể cả võ hồn đã gục). Ô trống và võ hồn
    * ở bình cảnh không nhận, phần đó không chia lại.
    */
   rewardKill(id: string, years: number) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    const base = beastStats(years).xp * xpLevelScale(p.level, beastLevel(tierOfYears(years)));
+    const base = beastStats(years).xp * xpLevelScale(p.level, beastLevel(years));
     for (const r of d.team) {
       const v = d.owned.find((o) => o.rowId === r); if (!v) continue;
       if (v === d.ch) this.addXp(id, Math.round(base * XP_SHARE_ACTIVE));
@@ -1337,7 +1353,8 @@ export class MapRoom extends Room<MapState> {
    * Sinh một hồn thú trong vùng `zi`: tuổi ngẫu nhiên trong khoảng `years` của vùng (bảng 5.3; vùng thiếu `years` thì tung bậc
    * theo `weights` rồi tung tuổi trong bậc), loài theo trọng số `beasts` của vùng. Mỗi phòng tối đa 1 hồn thú thường
    * MAX_YEARS năm cùng lúc (mục 5.3): đã có thì tung dưới mức đó. Không sinh trong vùng an toàn, cách người chơi dưới 140 pixel, hay
-   * trong SPAWN_CLEAR quanh trại cổng và các cổng (hồn thú lang thang không tới đánh người vừa hồi sinh, đang niệm cổng).
+   * trong SPAWN_CLEAR quanh trại cổng, cổng và điểm xuất hiện (map.nearGate: hồn thú lang thang không tới đánh người vừa tới nơi,
+   * vừa hồi sinh, đang niệm cổng).
    */
   spawnBeast(zi: number) {
     const z = this.map.zones[zi], hasRed = [...this.state.beasts.values()].some((b) => b.years >= MAX_YEARS);
@@ -1356,7 +1373,7 @@ export class MapRoom extends Room<MapState> {
     const species = this.pickSpecies(zi);
     for (let k = 0; k < 40; k++) {
       const x = z.x0 + 8 + Math.random() * (z.x1 - z.x0 - 16), y = z.y0 + 24 + Math.random() * (z.y1 - z.y0 - 48);
-      if (this.map.hits(x, y, 6, 4) || this.map.nearCamp(x, y, SPAWN_CLEAR) || this.map.inSafe(x, y)) continue;
+      if (this.map.hits(x, y, 6, 4) || this.map.inSafe(x, y) || this.map.nearGate(x, y)) continue;
       if ([...this.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < 140)) continue;
       this.addBeast(zi, years, species, x, y);
       return;

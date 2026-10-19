@@ -66,12 +66,19 @@ export interface MapDef {
   years: [number, number] | null; // niên hạn hồn thú (thành: null)
 }
 
-/** Bản đồ đang có (bảng 5.3). BĐ3 tách `tinh_dau` thành Ngoại vi và Nội địa. Cổng tới bản đồ chưa có thì không đặt trong Tiled. */
+/** Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có (Lõi Tinh Đấu, BĐ6) thì không đặt trong Tiled. */
 export const MAPS: Record<string, MapDef> = {
-  tinh_dau: { id: "tinh_dau", name: "Tinh Đấu Đại Sâm Lâm", kind: "hunt", level: [10, 60], years: [300, 25000] },
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450] },
   nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null },
+  // BĐ3: tách Tinh Đấu Đại Sâm Lâm (`tinh_dau` của BĐ1–BĐ2) thành Ngoại vi và Nội địa.
+  tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000] },
+  tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000] },
 };
+/**
+ * Mã bản đồ cũ đã bỏ khỏi MAPS -> bản đồ thay thế (mục 6): `accounts.map_id` còn mã cũ thì vào bản đồ thay thế, ở `spawn`
+ * (vị trí cũ không còn nghĩa). Mã không có ở đây và không có trong MAPS thì về DEFAULT_MAP.
+ */
+export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi" };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
 export const DEFAULT_MAP = "thanh_hon_thon";
 /** "10-30" -> [10, 30]; "10" -> [10, 10]; sai -> null. Dùng cho thuộc tính `level` của cổng và `years` của vùng trong Tiled. */
@@ -116,6 +123,16 @@ export const BEASTS: BeastDef[] = [
   { id: "hac_boi_da_tru",         name: "Hắc Bối Dã Trư" },
   { id: "thanh_lan_xa",           name: "Thanh Lân Xà" },
   { id: "quy_dang_non",           name: "Quỷ Đằng non" },
+  // BĐ3: loài còn thiếu của Ngoại vi (Khe suối, Rìa nội địa) và Nội địa (Đầm sương độc, Lôi Cốc). Quỷ Đằng ngàn năm dùng lại `quy_dang`.
+  { id: "thanh_lan_ngac",         name: "Thanh Lân Ngạc" },
+  { id: "kim_linh_ung",           name: "Kim Linh Ưng" },
+  { id: "nhan_dien_ma_chu_non",   name: "Nhân Diện Ma Chu non" },
+  { id: "liet_trao_hung",         name: "Liệt Trảo Hùng" },
+  { id: "thiet_giap_te_nguu",     name: "Thiết Giáp Tê Ngưu" },
+  { id: "that_tinh_doc_thiem",    name: "Thất Tinh Độc Thiềm" },
+  { id: "hac_vu_bien_buc",        name: "Hắc Vụ Biên Bức" },
+  { id: "lam_loi_te_nguu",        name: "Lam Lôi Tê Ngưu" },
+  { id: "loi_duc_ung",            name: "Lôi Dực Ưng" },
 ];
 
 const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
@@ -363,9 +380,10 @@ export const BEAST_REGEN = { delay: 6, pct: 0.04 };
 /** Hồn thú từ 100 năm (bậc 1 trở lên) thấy người chơi trong bán kính BEAST_AGGRO_R thì đuổi đánh; không có mục tiêu thì lang thang
  *  tối đa BEAST_WANDER pixel mỗi trục quanh chỗ sinh. */
 export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
-/** Không sinh hồn thú trong khoảng này (mỗi trục) quanh trại cổng (object `spawn`) và mọi cổng (mục 5.3, 5.8): lang thang cộng tầm
- *  phát hiện, để hồn thú tự lang thang không đánh người vừa hồi sinh hay đang niệm cổng. Người chơi kéo hồn thú về thì vẫn bị đuổi theo. */
-export const SPAWN_CLEAR = BEAST_WANDER + BEAST_AGGRO_R;
+/** Không sinh hồn thú trong khoảng này (mỗi trục) quanh trại cổng (object `spawn`), mọi cổng và mọi điểm xuất hiện `arrive` (mục 5.3,
+ *  5.8), để vừa tới nơi, vừa hồi sinh hay đang niệm cổng không bị vây. Phải ≥ BEAST_WANDER + BEAST_AGGRO_R (130) thì hồn thú tự lang thang
+ *  mới không tới tầm phát hiện người đứng ở đó; 160 như GATE_CLEAR của BĐ3 (đã gộp vào đây). Người chơi kéo hồn thú về thì vẫn bị đuổi. */
+export const SPAWN_CLEAR = 160;
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -644,13 +662,16 @@ export function absorbSecs(years: number) {
   return +(ABSORB_SECS[0] + (ABSORB_SECS[1] - ABSORB_SECS[0]) * f).toFixed(1);
 }
 
-// ---------- Giảm kinh nghiệm khi săn hồn thú quá yếu (mục 5.3) ----------
+// ---------- Quy cấp theo niên hạn, giảm kinh nghiệm khi săn hồn thú quá yếu (mục 5.3, bước BĐ3) ----------
 /**
- * Cấp tương đương của hồn thú theo bậc (10 / 10 / 20 / 40 / 70): giữ theo luật giới hạn bậc cũ cho tới BĐ3. Từ 3.3 giới hạn
- * hấp thụ đã theo số năm (RING_LIMIT); BĐ3 đổi hàm này sang số năm (cấp nhỏ nhất mà vòng tương ứng chịu được trong giới hạn).
+ * Cấp tương đương của hồn thú `years` năm: cấp nhỏ nhất mà võ hồn hấp thụ được hồn hoàn của nó trong giới hạn, tức bình cảnh
+ * 10×k của vòng k đầu tiên có RING_LIMIT ≥ số năm (≤ 423 năm: 10, 424–764: 20, … 50.001–100.000: 80). Tính thẳng từ
+ * RING_LIMIT, đổi giới hạn thì cấp tương đương tự đổi theo.
  */
-const BEAST_LEVEL_BY_TIER = [10, 10, 20, 40, 70];
-export const beastLevel = (tier: number) => BEAST_LEVEL_BY_TIER[Math.max(0, Math.min(BEAST_LEVEL_BY_TIER.length - 1, tier))];
+export function beastLevel(years: number) {
+  const k = RING_LIMIT.findIndex((lim) => years <= lim);
+  return 10 * (k < 0 ? MAX_RINGS : k + 1);
+}
 /** Khi so cấp, cấp võ hồn tính tối đa ngần này (vòng 8–10 cùng giới hạn 100.000 năm). */
 export const XP_LEVEL_CAP = 80;
 /** Hồn thú thấp hơn võ hồn ra trận từ `gap` cấp trở lên thì kinh nghiệm nhân `mult` (xếp từ chênh lớn đến nhỏ). */
