@@ -1,7 +1,7 @@
 // Đọc bản đồ Tiled dùng chung với client (shared/assets/<mapId>.json) để server tự kiểm tra va chạm.
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
 import { readFileSync } from "node:fs";
-import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
+import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, npcDef, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
 export interface ZoneBeast { species: number; w: number; }
@@ -18,6 +18,8 @@ export interface Portal extends Rect { name: string; to: string; arrive: string;
 export interface EliteSpot extends Rect { boss: number; zone: number; }
 /** Hang thú vương (object `boss`, từ BĐ5): vùng chữ nhật (cũng là bán kính giao chiến), chỉ số trong BOSSES, chỉ số vùng chứa tâm hang. */
 export interface BossSpot extends Rect { boss: number; zone: number; }
+/** NPC (object `npc`, từ 6.1): mã trong NPCS và chỗ đứng (chân). */
+export interface NpcSpot { id: string; x: number; y: number; }
 
 export interface GameMap {
   mapId: string;
@@ -30,6 +32,7 @@ export interface GameMap {
   portals: Portal[];
   elites: EliteSpot[];  // mỗi vùng tối đa 1 tinh anh (mục 5.4)
   lair: BossSpot | null; // hang tà hóa thú vương (BĐ5): tối đa 1 mỗi bản đồ, đúng thú vương của MAPS[mapId].king
+  npcs: NpcSpot[];       // NPC (6.1): mỗi mã tối đa một chỗ trong bản đồ
   inLair(x: number, y: number): boolean;
   isSolidTile(tx: number, ty: number): boolean;
   hits(x: number, y: number, hw: number, hh: number): boolean;
@@ -79,7 +82,7 @@ export function loadMap(mapId: string): GameMap {
   for (const layer of raw.layers) if (layer.type === "tilelayer")
     layer.data.forEach((gid: number, i: number) => { if (solidGids.has(gid)) solid[i] = 1; });
 
-  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [];
+  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [], npcObjs: any[] = [];
   let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
   for (const layer of raw.layers) if (layer.type === "objectgroup") for (const o of layer.objects) {
     const prop = (n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
@@ -99,6 +102,7 @@ export function loadMap(mapId: string): GameMap {
     if (o.type === "arrive") arrives.push({ x: o.x, y: o.y });
     if (o.type === "elite") eliteObjs.push(o);
     if (o.type === "boss") bossObjs.push(o);
+    if (o.type === "npc") npcObjs.push(o);
     if (o.type === "portal") {
       // Client gửi tên cổng khi xin đi, nên tên phải duy nhất trong bản đồ.
       const p = parsePortal(mapId, o);
@@ -107,7 +111,7 @@ export function loadMap(mapId: string): GameMap {
     }
   }
 
-  const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones);
+  const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones), npcs = parseNpcs(mapId, npcObjs);
 
   const isSolidTile = (tx: number, ty: number) => tx < 0 || ty < 0 || tx >= MW || ty >= MH || solid[ty * MW + tx] === 1;
   const hits = (x: number, y: number, hw: number, hh: number) => {
@@ -118,7 +122,7 @@ export function loadMap(mapId: string): GameMap {
   };
   const kind = MAPS[mapId].kind;
   const map: GameMap = {
-    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, isSolidTile, hits,
+    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, npcs, isSolidTile, hits,
     inLair: (x, y) => !!lair && inRect(lair, x, y),
     moveEnt(e, dx, dy, hw, hh) {
       if (!hits(e.x + dx, e.y, hw, hh)) e.x += dx;
@@ -214,5 +218,23 @@ function parseLair(mapId: string, objs: any[], zones: Zone[]): BossSpot | null {
     out = { ...r, boss, zone };
   }
   if (king && !out) console.warn(`[map ${mapId}] Thiếu object \`boss\` (hang) cho thú vương ${king}: thú vương không xuất hiện.`);
+  return out;
+}
+
+/**
+ * Object `npc` (mục 6, bước 6.1): thuộc tính `npc` phải là mã trong NPCS, mỗi mã tối đa một chỗ trong bản đồ (client gửi mã khi nói
+ * chuyện). Sai thì cảnh báo và bỏ. NPC nên đứng trong vùng an toàn (cảnh báo nếu không).
+ */
+function parseNpcs(mapId: string, objs: any[]): NpcSpot[] {
+  const out: NpcSpot[] = [];
+  const kind = MAPS[mapId].kind, safe = objs.length ? rawObjects(mapId).filter((o) => o.type === "safe").map(rectOf) : [];
+  for (const o of objs) {
+    const id = String(propOf(o, "npc") ?? "");
+    const bad = (why: string) => console.warn(`[map ${mapId}] Bỏ NPC "${o.name ?? id}": ${why}`);
+    if (!npcDef(id)) { bad(`mã không có trong NPCS: ${id}`); continue; }
+    if (out.some((n) => n.id === id)) { bad(`mã ${id} đã đặt ở chỗ khác`); continue; }
+    if (kind !== "town" && !safe.some((r) => inRect(r, o.x, o.y))) console.warn(`[map ${mapId}] NPC "${id}" đứng ngoài vùng an toàn.`);
+    out.push({ id, x: o.x, y: o.y });
+  }
   return out;
 }

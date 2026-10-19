@@ -1805,3 +1805,96 @@ export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.
 
 export const TILE = 16;
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
+
+// ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số chờ chốt) ----------
+/**
+ * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
+ * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
+ */
+export type NpcRole = "talk" | "shop" | "forge";
+/**
+ * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
+ * `looks`: ngoại hình vẽ bằng sprite hồn sư (mục 5.11); không có = biển hiệu đứng yên. `lines`: lời thoại, hiện lần lượt.
+ */
+export interface NpcDef { id: string; name: string; title: string; role: NpcRole; col: string; looks?: Looks; lines: string[]; }
+/** Bản đồ đang có cấp đề xuất, để Đại Sư giới thiệu (lấy từ MAPS, không chép số). */
+const mapLevels = () => Object.values(MAPS).filter((m) => m.level).map((m) => `${m.name} cấp ${m.level![0]}–${m.level![1]}`).join(", ");
+export const NPCS: NpcDef[] = [
+  { id: "to_van_dao", name: "Tố Vân Đào", title: "Chấp sự Vũ Hồn Điện", role: "talk", col: "#f2c84b",
+    looks: { sex: 0, hair: 1, hairCol: 0, outfitCol: 4 },
+    lines: [
+      "Ta là Tố Vân Đào, chấp sự phân điện Vũ Hồn Điện ở Thánh Hồn Thôn. Lễ thức tỉnh võ hồn của ngươi do chính ta chủ trì đấy.",
+      "Võ hồn là bản mệnh của hồn sư: khí võ hồn như Hạo Thiên Chùy, thú võ hồn như Lam Điện Bá Vương Long. Ngoài võ hồn đầu tiên, ngươi còn có thể thu thập thêm nhiều võ hồn khác.",
+      "Hồn lực của mỗi võ hồn cứ mười cấp lại chạm bình cảnh. Khi đó phải săn hồn thú, hấp thụ hồn hoàn thì mới tiến lên được.",
+      "Xếp bốn võ hồn thành một đội ở bảng đội hình (phím V); khi giao chiến đổi tay bằng phím 1–4. Đi đi, đừng phụ thiên phú của mình!",
+    ] },
+  { id: "lao_kiet_khac", name: "Lão Kiệt Khắc", title: "Trưởng thôn Thánh Hồn Thôn", role: "talk", col: "#c0cce0",
+    looks: { sex: 0, hair: 0, hairCol: 3, outfitCol: 2 },
+    lines: [
+      "Ha ha, lại một đứa nhỏ của Thánh Hồn Thôn thức tỉnh võ hồn! Lão Kiệt Khắc ta làm trưởng thôn mấy chục năm, hiếm khi thấy làng vui thế này.",
+      "Muốn luyện tay thì ra Đồng lúa ven làng, toàn hồn thú mười năm. Cứng cáp hơn thì sang Bãi tập hồn sư phía đông; Hậu Sơn phía bắc có hồn thú vài trăm năm, cẩn thận đấy.",
+      "Theo con đường lớn xuống mép nam làng là cổng đi Nặc Đinh Thành. Trong thành có Đại Sư ở Học viện Nặc Đinh, thương nhân bán đan dược và lò rèn.",
+      "Trong làng là vùng an toàn, hồn thú không vào được. Bị thương thì cứ về đây mà nghỉ.",
+    ] },
+  { id: "dai_su", name: "Ngọc Tiểu Cương", title: "Đại Sư · Học viện Nặc Đinh", role: "talk", col: "#86e0b0",
+    looks: { sex: 0, hair: 3, hairCol: 0, outfitCol: 5 },
+    lines: [
+      "Ta là Ngọc Tiểu Cương, người đời gọi là Đại Sư. Võ hồn của ta chỉ là La Tam Pháo, nhưng lý luận mới là sức mạnh thật sự của hồn sư.",
+      `Mỗi vòng hồn hoàn có giới hạn niên hạn: vòng 1 tối đa ${formatYears(RING_LIMIT[0])}, vòng 2 ${formatYears(RING_LIMIT[1])}, vòng 3 ${formatYears(RING_LIMIT[2])}, vòng 4 ${formatYears(RING_LIMIT[3])}, vòng 5 ${formatYears(RING_LIMIT[4])}…`,
+      "Vượt giới hạn thì có thể thất bại và mất hồn hoàn, vượt càng nhiều càng dễ thất bại; vượt quá gấp đôi thì thân thể không chịu nổi, không thể hấp thụ.",
+      `Chọn nơi săn theo cấp võ hồn: ${mapLevels()}. Hồn thú thấp hơn mình quá nhiều thì kinh nghiệm nhận được ít đi.`,
+      "Ta đang soạn bài học cho tân thủ. Khi soạn xong, hãy quay lại tìm ta (nhiệm vụ tân thủ sắp mở).",
+    ] },
+  { id: "thuong_nhan", name: "Thương nhân", title: "Cửa hàng Nặc Đinh", role: "shop", col: "#ffb35c",
+    looks: { sex: 1, hair: 1, hairCol: 1, outfitCol: 1 },
+    lines: [
+      "Khách quan muốn mua gì? Hồi Huyết Đan, Hồi Hồn Đan đều là hàng tốt nhất Nặc Đinh Thành!",
+      "Hồn hoàn, hồn cốt, hồn hạch hay mảnh võ hồn dư thì cứ mang tới, ta trả giá phải chăng. Đồ đang gắn trên võ hồn thì ta không nhận.",
+    ] },
+  { id: "lo_ren", name: "Thợ rèn", title: "Lò rèn Nặc Đinh", role: "forge", col: "#ff7a3c",
+    looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 5 },
+    lines: [
+      "Lò rèn Nặc Đinh, nghề rèn truyền ba đời. Hồn cốt dư mang tới đây, ta dung luyện vào hồn cốt chính của ngươi: không bao giờ thất bại.",
+      "Hồn hạch thì phải đợi ta tìm đủ đồ nghề mới nâng cấp được (sắp mở).",
+    ] },
+  { id: "dau_hon_truong", name: "Đại Đấu Hồn Trường", title: "Sắp mở", role: "talk", col: "#ff6b6b",
+    lines: ["Đại Đấu Hồn Trường: đấu hồn xếp hạng sắp mở. Lối vào tạm đặt ở Nặc Đinh Thành cho đến khi có Thiên Đấu Thành."] },
+];
+const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
+/** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
+export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
+/** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
+export const NPC_RANGE = 40;
+/** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. */
+export const SHOP: { code: string; price: number }[] = [{ code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 }];
+/** Số món tối đa mỗi lần mua. */
+export const SHOP_MAX_QTY = 99;
+/** Giá thương nhân mua lại một hồn hoàn theo số năm (đồng; nội suy theo log số năm giữa các mốc, ngoài khoảng thì kẹp). */
+export const RING_SELL: [number, number][] = [[10, 1], [100, 3], [1000, 15], [10000, 80], [100000, 500]];
+/** Hồn cốt bán được gấp BONE_SELL lần hồn hoàn cùng số năm, mỗi cấp cường hóa thêm BONE_SELL_ENH (10%). */
+export const BONE_SELL = 4;
+export const BONE_SELL_ENH = 0.1;
+/** Giá mua lại hồn hạch theo sao (1★…6★, đồng). */
+export const CORE_SELL = [5, 15, 40, 100, 300, 800];
+/** Giá mua lại một mảnh võ hồn theo độ hiếm của võ hồn (đồng). */
+export const SHARD_SELL: Record<Rarity, number> = { SR: 2, SSR: 4, UR: 20 };
+/** Giá mua lại hồn hoàn `years` năm (đồng). */
+export function ringSellPrice(years: number) {
+  const y = Math.max(RING_SELL[0][0], Math.min(RING_SELL[RING_SELL.length - 1][0], years));
+  let i = 0; while (i < RING_SELL.length - 2 && y > RING_SELL[i + 1][0]) i++;
+  const [y0, p0] = RING_SELL[i], [y1, p1] = RING_SELL[i + 1];
+  const t = y1 > y0 ? Math.log(y / y0) / Math.log(y1 / y0) : 0;
+  return Math.max(1, Math.round(p0 + (p1 - p0) * t));
+}
+/**
+ * Giá thương nhân mua lại MỘT món (đồng), hàm thuần dùng chung cho server và client; null = không mua (đan, rương, đồ lạ, dữ liệu
+ * hỏng). Server còn từ chối đồ đang gắn và hồn hoàn đang hấp thụ.
+ */
+export function sellPrice(it: { code: string; years: number | null; stars: number | null; enhance: number }): number | null {
+  const def = itemDef(it.code); if (!def) return null;
+  if (def.kind === "hon_hoan") return it.years !== null ? ringSellPrice(it.years) : null;
+  if (def.kind === "hon_cot") return it.years !== null ? Math.round(ringSellPrice(it.years) * BONE_SELL * (1 + BONE_SELL_ENH * Math.max(0, it.enhance))) : null;
+  if (def.kind === "hon_hach") return CORE_SELL[Math.max(1, Math.min(CORE_SELL.length, Math.floor(it.stars ?? 1))) - 1];
+  if (def.kind === "manh_vo_hon" && def.vohon) { const v = VOHON[vohonIndex(def.vohon)]; return v ? SHARD_SELL[v.rarity] : null; }
+  return null;
+}
