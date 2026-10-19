@@ -598,22 +598,53 @@ export const tienCoOf = (vohonId: string) => {
   return own ?? TIEN_CO[VOHON[Math.max(0, vohonIndex(vohonId))].he];
 };
 
-/** Niên hạn tối đa (chỉ số tier) mà vòng thứ `slot` chịu được. */
-export const ringLimit = (slot: number) => (slot === 1 ? 1 : slot <= 3 ? 2 : slot <= 6 ? 3 : 4);
-export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2);
-export const atBottleneck = (level: number, rings: number) => level >= 10 * (rings + 1);
 /** Số hồn hoàn tối đa của một võ hồn (mục 3): vòng thứ k hấp thụ ở bình cảnh cấp 10×k. */
 export const MAX_RINGS = 10;
+/** Cấp tối đa của võ hồn (mục 3): hồn hoàn thứ 10 hấp thụ ở bình cảnh cấp 100 và không lên thêm cấp. */
+export const MAX_LEVEL = 100;
+/**
+ * Giới hạn hấp thụ theo truyện (mục 5.2, lý thuyết của Đại Sư; vòng 5+ chờ đối chiếu lại với truyện): số năm tối đa mà vòng
+ * thứ k (chỉ số k − 1) chịu được mà chắc chắn thành công. Vòng 8–10 đều 100.000 năm (= MAX_YEARS) nên không bao giờ vượt.
+ */
+export const RING_LIMIT = [423, 764, 1760, 5000, 12000, 20000, 50000, 100000, 100000, 100000];
+/** Số năm tối đa (trong giới hạn) của vòng thứ `slot` (1..MAX_RINGS). */
+export const ringLimit = (slot: number) => RING_LIMIT[Math.max(1, Math.min(MAX_RINGS, Math.floor(slot) || 1)) - 1];
+export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2);
+export const atBottleneck = (level: number, rings: number) => level >= 10 * (rings + 1);
+/** Kinh nghiệm dừng lại: ở bình cảnh (cần hồn hoàn kế tiếp) hoặc đã đạt cấp tối đa. */
+export const xpBlocked = (level: number, rings: number) => level >= MAX_LEVEL || atBottleneck(level, rings);
+
+// ---------- Hấp thụ hồn hoàn (mục 5.2 "Hấp thụ", bước 3.3; tỉ lệ thất bại chờ chốt) ----------
+/**
+ * Tỉ lệ thất bại theo phần trăm vượt giới hạn (làm tròn lên, ví dụ vượt 25,1% tính là 26%): vượt ≤ `pct`% thì thất bại `fail`
+ * (xếp tăng dần). Vượt hơn mục cuối (> 100%) thì không cho hấp thụ. Thất bại chỉ mất hồn hoàn, không phạt gì thêm.
+ */
+export const ABSORB_FAIL = [{ pct: 25, fail: 0.3 }, { pct: 50, fail: 0.6 }, { pct: 100, fail: 0.9 }];
+/**
+ * Hấp thụ hồn hoàn `years` năm vào vòng thứ `slot`: giới hạn của vòng, phần trăm vượt (số nguyên, làm tròn lên; 0 = trong giới
+ * hạn) và tỉ lệ thất bại (0 = luôn thành công, null = không cho hấp thụ). Hàm thuần: client hiển thị trước khi xác nhận, server
+ * dùng đúng hàm này để quyết định.
+ */
+export function absorbChance(years: number, slot: number) {
+  const limit = ringLimit(slot), over = years <= limit ? 0 : Math.ceil(((years - limit) / limit) * 100 - 1e-9);
+  const fail = over === 0 ? 0 : ABSORB_FAIL.find((s) => over <= s.pct)?.fail ?? null;
+  return { limit, over, fail };
+}
+/** Thời gian hấp thụ (giây): tăng theo log10 số năm, từ ABSORB_SECS[0] (10 năm, trắng) đến ABSORB_SECS[1] (100.000 năm, đỏ). */
+export const ABSORB_SECS: [number, number] = [3, 15];
+export function absorbSecs(years: number) {
+  const lo = Math.log10(TIERS[0].years), hi = Math.log10(MAX_YEARS);
+  const f = Math.max(0, Math.min(1, (Math.log10(Math.max(1, years)) - lo) / (hi - lo)));
+  return +(ABSORB_SECS[0] + (ABSORB_SECS[1] - ABSORB_SECS[0]) * f).toFixed(1);
+}
 
 // ---------- Giảm kinh nghiệm khi săn hồn thú quá yếu (mục 5.3) ----------
 /**
- * Cấp tương đương của hồn thú: cấp nhỏ nhất mà võ hồn hấp thụ được hồn hoàn của nó trong giới hạn (ringLimit).
- * Đến BĐ3 hồn thú chỉ có bậc nên tính theo bậc (10 / 10 / 20 / 40 / 70); BĐ3 đổi sang bảng giới hạn theo số năm.
+ * Cấp tương đương của hồn thú theo bậc (10 / 10 / 20 / 40 / 70): giữ theo luật giới hạn bậc cũ cho tới BĐ3. Từ 3.3 giới hạn
+ * hấp thụ đã theo số năm (RING_LIMIT); BĐ3 đổi hàm này sang số năm (cấp nhỏ nhất mà vòng tương ứng chịu được trong giới hạn).
  */
-export function beastLevel(tier: number) {
-  for (let slot = 1; slot <= MAX_RINGS; slot++) if (ringLimit(slot) >= tier) return slot * 10;
-  return MAX_RINGS * 10;
-}
+const BEAST_LEVEL_BY_TIER = [10, 10, 20, 40, 70];
+export const beastLevel = (tier: number) => BEAST_LEVEL_BY_TIER[Math.max(0, Math.min(BEAST_LEVEL_BY_TIER.length - 1, tier))];
 /** Khi so cấp, cấp võ hồn tính tối đa ngần này (vòng 8–10 cùng giới hạn 100.000 năm). */
 export const XP_LEVEL_CAP = 80;
 /** Hồn thú thấp hơn võ hồn ra trận từ `gap` cấp trở lên thì kinh nghiệm nhân `mult` (xếp từ chênh lớn đến nhỏ). */
@@ -661,7 +692,7 @@ export const ITEMS: ItemDef[] = [
   { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
   { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
   // Hồn hoàn (bước 3.2): mỗi chiếc một ô, số năm lưu ở `items.years`; màu theo số năm (TIERS), `col` chỉ là màu mặc định.
-  { id: "hon_hoan", kind: "hon_hoan", name: "Hồn hoàn", desc: "Hấp thụ vào võ hồn đang ra trận khi võ hồn ở bình cảnh.", col: "#ffe08a", stack: 1 },
+  { id: "hon_hoan", kind: "hon_hoan", name: "Hồn hoàn", desc: "Hấp thụ vào một võ hồn đang ở bình cảnh (ngoài giao chiến).", col: "#ffe08a", stack: 1 },
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
@@ -683,13 +714,6 @@ export const RING_ITEM = "hon_hoan";
 export const DROP_OWNER_SECS = 15;
 export const DROP_TTL_SECS = 60;
 export const PICKUP_RANGE = 22;
-/**
- * Thời gian hấp thụ (giây) một hồn hoàn bậc `tier`: luật cũ 2,5 + 0,8 × bậc, giữ đến bước 3.3 (thiết kế mới: 3 giây trắng đến
- * 15 giây đỏ, mục 5.2). Vượt giới hạn 1 bậc thì ABSORB_RISK thất bại: mất hồn hoàn, sinh lực còn ABSORB_FAIL_HP.
- */
-export const absorbSecs = (tier: number) => 2.5 + 0.8 * tier;
-export const ABSORB_RISK = 0.6;
-export const ABSORB_FAIL_HP = 0.3;
 /** Quy đổi Hồn Tệ khi hiển thị: 1 ngân = 100 đồng, 1 kim = 100 ngân. DB chỉ lưu số đồng. */
 export const HON_TE_NGAN = 100;
 export const HON_TE_KIM = 100 * HON_TE_NGAN;

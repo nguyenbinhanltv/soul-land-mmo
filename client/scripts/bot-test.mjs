@@ -6,7 +6,9 @@
 // Túi đồ (3.1): nhận đan khởi đầu, dùng đan, hồi chiêu chung, Hồn Tệ khi hạ hồn thú, gộp đồ và giới hạn ô, túi đồ giữ nguyên khi
 // đi cổng và khi thoát vào lại.
 // Hồn thú theo số năm (3.2): tuổi nằm trong khoảng niên hạn của vùng, hạ thú thì hồn hoàn rơi mang đúng số năm, nhặt (E) vào túi,
-// người khác không nhặt được trong 15 giây đầu, túi đầy thì báo, bỏ vật phẩm, hấp thụ từ túi (luật bậc cũ đến 3.3).
+// người khác không nhặt được trong 15 giây đầu, túi đầy thì báo, bỏ vật phẩm.
+// Hấp thụ (3.3): giới hạn theo vòng của truyện, vượt >100% bị từ chối, tỉ lệ thất bại (hook roll cố định ngẫu nhiên) thì mất hồn
+// hoàn, di chuyển / bị đánh thì hủy không mất gì, chọn võ hồn không ra trận, lên đủ 10 vòng / cấp 100 (hook set, rush).
 // Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b), năng lượng và chiêu tiên cơ theo 4 hệ (2.4), dùng đan khi mất máu (3.1),
 // trạng thái dùng chung và hồn kỹ riêng của 5 võ hồn mẫu (2.5a), 5 võ hồn lưu phái Thiêu đốt (2.5b) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
@@ -18,7 +20,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, CRIT, PCT_HP_CAP,
   CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS, PHOENIX_FIELD_R,
-  MAPS, MAX_YEARS, beastStats, rollYears, tierBand, parseLevelRange, RING_ITEM, DROP_OWNER_SECS, absorbSecs } from "../../shared/data.ts";
+  MAPS, MAX_YEARS, beastStats, rollYears, tierBand, parseLevelRange, RING_ITEM, DROP_OWNER_SECS, absorbSecs, absorbChance, ringLimit,
+  MAX_RINGS, MAX_LEVEL } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -74,6 +77,7 @@ async function enter(b){
   b.room.onMessage("ko",m=>{b.ko=m;});
   b.room.onMessage("test",m=>{b.test=m;});
   b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
+  b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.bag=null; b.room.send("vohons"); b.room.send("bag");
 }
 /** Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ) để so trước/sau khi lưu. */
@@ -242,7 +246,7 @@ if(p.kills>kills0){
 }
 let dr=null; st.drops.forEach(d=>{ if(d.owner===A.room.sessionId) dr=d; });
 if(dr){
-  // 3.2: hồn hoàn dưới đất mang số năm của hồn thú; đi tới, nhấn E (pickup) thì vào túi đồ; hấp thụ từ túi (luật bậc cũ).
+  // 3.2: hồn hoàn dưới đất mang số năm của hồn thú; đi tới, nhấn E (pickup) thì vào túi đồ.
   const yrs=dr.years, n0=(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length;
   ok(yrs>=10&&dr.tier===tierOfYears(yrs)&&A.logs.some(t=>t.startsWith("Hạ ")&&t.includes(`${yrs.toLocaleString("vi-VN")} năm`)),`hồn hoàn rơi mang số năm của hồn thú: ${yrs} năm`);
   for(let i=0;i<50 && Math.hypot(dr.x-p.x,dr.y-p.y)>10;i++){const dx=dr.x-p.x,dy=dr.y-p.y,d=Math.hypot(dx,dy); A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); await sleep(60);}
@@ -881,32 +885,94 @@ else {
     }
     for(const i of ringsOf(A).filter(i=>i.years===50)) A.room.send("discard",{id:i.id});
     ok(await waitFor(()=>!ringsOf(A).some(i=>i.years===50),3000),"dọn túi A");
-    // Hấp thụ từ túi (tạm giữ luật bậc cũ đến 3.3).
-    const act=A.owned.active, ring=ringsOf(A).find(i=>i.years===437);
-    if(ring){
-      await test(A,"set",{rowId:act,level:5,xp:0,rings:[]});
-      A.room.send("absorb",{itemId:ring.id}); ok(await lastLog(A,/Cần đạt cấp 10/),"chưa tới bình cảnh: không hấp thụ được");
-      B.room.send("absorb",{itemId:ring.id}); ok(await lastLog(B,/Hãy chọn một hồn hoàn/),"B không hấp thụ được hồn hoàn trong túi A");
-      await test(A,"set",{rowId:act,level:10,xp:0,rings:[]});
-      await test(A,"give",{code:RING_ITEM,qty:1,years:20000}); const huge=ringsOf(A).find(i=>i.years===20000);
-      A.room.send("absorb",{itemId:huge.id}); ok(await lastLog(A,/quá mạnh/),"hồn hoàn 20.000 năm quá mạnh cho vòng 1");
-      const dan=A.bag.items.find(i=>i.code!==RING_ITEM);
-      if(dan){ A.room.send("absorb",{itemId:dan.id}); ok(await lastLog(A,/Hãy chọn một hồn hoàn/),"không hấp thụ được đan dược"); }
-      A.room.send("absorb",{itemId:ring.id}); ok(await waitFor(()=>p.absorb>0,1500),"bắt đầu hấp thụ hồn hoàn 437 năm từ túi");
-      A.room.send("discard",{id:ring.id}); ok(await lastLog(A,/Đang hấp thụ/),"không bỏ được hồn hoàn đang hấp thụ");
-      ok(await waitFor(()=>p.rings.length===1&&p.level===11,(absorbSecs(1)+2)*1000)&&await waitFor(()=>!A.bag.items.some(i=>i.id===ring.id)),
-        `hấp thụ xong: cấp ${p.level}, ${p.rings.length} hồn hoàn, hồn hoàn rời túi`);
-      const n=A.ownedMsgs; A.room.send("vohons"); await waitFor(()=>A.ownedMsgs>n);
-      ok(same(vOf(act)?.rings,[437]),`võ hồn lưu hồn hoàn đúng số năm: ${JSON.stringify(vOf(act)?.rings)}`);
-      // Bị gián đoạn (di chuyển) thì hồn hoàn vẫn còn trong túi.
-      await test(A,"set",{rowId:act,level:20,xp:0,rings:[437]}); await test(A,"give",{code:RING_ITEM,qty:1,years:300});
-      const r300=ringsOf(A).find(i=>i.years===300);
-      A.room.send("absorb",{itemId:r300.id}); await waitFor(()=>p.absorb>0,1500);
-      A.room.send("input",{x:1,y:0}); await sleep(250); A.room.send("input",{x:0,y:0});
-      ok(await lastLog(A,/hủy hấp thụ/)&&p.absorb===0&&p.rings.length===1&&A.bag.items.some(i=>i.id===r300.id),"di chuyển: hủy hấp thụ, hồn hoàn vẫn trong túi");
-      for(const i of [r300,huge]) A.room.send("discard",{id:i.id});
-      await waitFor(()=>!A.bag.items.some(i=>i.id===r300.id||i.id===huge.id));
+    // ---------- 3.3: hấp thụ từ túi theo giới hạn của truyện, tỉ lệ thất bại, thất bại thì mất hồn hoàn; đủ 10 vòng, cấp 100 ----------
+    ok(same([1,2,3,4,5,6,7,8,9,10].map(ringLimit),[423,764,1760,5000,12000,20000,50000,100000,100000,100000]),"giới hạn hấp thụ theo vòng = bảng 5.2");
+    const ac=(y,s)=>{ const c=absorbChance(y,s); return [c.over,c.fail]; };
+    ok(same(ac(423,1),[0,0])&&same(ac(528,1),[25,0.3])&&same(ac(529,1),[26,0.6])&&same(ac(634,1),[50,0.6])&&same(ac(846,1),[100,0.9])&&same(ac(847,1),[101,null])&&same(ac(MAX_YEARS,8),[0,0]),
+      "tỉ lệ thất bại theo % vượt: ≤25% 30%, ≤50% 60%, ≤100% 90%, >100% không cho");
+    ok(absorbSecs(10)===3&&absorbSecs(1000)===9&&absorbSecs(MAX_YEARS)===15,`thời gian hấp thụ: 10 năm ${absorbSecs(10)} giây, 1.000 năm ${absorbSecs(1000)} giây, 100.000 năm ${absorbSecs(MAX_YEARS)} giây`);
+    // Làng (vùng an toàn) để hồn thú không đánh gián đoạn.
+    const camp={x:Math.round(spawnObj.x+spawnObj.width/2),y:Math.round(spawnObj.y+spawnObj.height/2)};
+    await test(A,"goto",camp); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+    const act=A.owned.active, bench=A.owned.list.find(v=>v.rowId!==act)?.rowId;
+    /** Thêm một hồn hoàn `years` năm vào túi A (hook give) và trả về ô đó. */
+    const give=async(b,years)=>{ const had=new Set(ringsOf(b).map(i=>i.id)); await test(b,"give",{code:RING_ITEM,qty:1,years}); await waitFor(()=>ringsOf(b).some(i=>!had.has(i.id))); return ringsOf(b).find(i=>!had.has(i.id)); };
+    /** Gửi absorb {itemId, vohonId}; trả về tin "absorbing" bắt đầu, hoặc null nếu bị từ chối (dòng log cuối là lý do). */
+    async function absorb(b,itemId,vohonId){ b.absorbing=null; const l=b.logs.length; b.room.send("absorb",{itemId,vohonId}); await waitFor(()=>b.absorbing?.on||b.logs.length>l,1500); await sleep(80); return b.absorbing?.on?b.absorbing:null; }
+    /** Hook rush: kết thúc hấp thụ ngay (cùng hàm finishAbsorb của server); trả về kết quả ok / fail / cancel. */
+    async function rush(b){ b.absorbing=null; await test(b,"rush"); await waitFor(()=>b.absorbing&&!b.absorbing.on,1500); return b.absorbing?.result; }
+    const has=(b,it)=>b.bag.items.some(i=>i.id===it.id);
+    const r437=ringsOf(A).find(i=>i.years===437)??await give(A,437);
+    await test(A,"set",{rowId:act,level:5,xp:0,rings:[]});
+    ok(!await absorb(A,r437.id,act)&&/cần đạt cấp 10/.test(A.logs.at(-1)),`chưa tới bình cảnh: ${A.logs.at(-1)}`);
+    ok(!await absorb(B,r437.id,act)&&/Hãy chọn một hồn hoàn/.test(B.logs.at(-1)),"B không hấp thụ được hồn hoàn trong túi A");
+    const rB=await give(B,60);
+    ok(!await absorb(B,rB.id,act)&&/không sở hữu/.test(B.logs.at(-1)),"B không hấp thụ vào võ hồn của A");
+    B.room.send("discard",{id:rB.id});
+    const dan=A.bag.items.find(i=>i.code!==RING_ITEM);
+    if(dan) ok(!await absorb(A,dan.id,act)&&/Hãy chọn một hồn hoàn/.test(A.logs.at(-1)),"không hấp thụ được đan dược");
+    await test(A,"set",{rowId:act,level:10,xp:0,rings:[]});
+    await test(A,"hurt",{pct:0});
+    ok(!await absorb(A,r437.id,act)&&/giao chiến/.test(A.logs.at(-1)),`đang giao chiến: ${A.logs.at(-1)}`);
+    await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+    const r847=await give(A,847);
+    ok(!await absorb(A,r847.id,act)&&/101%.*không thể hấp thụ/.test(A.logs.at(-1))&&has(A,r847),`vượt >100% bị từ chối, hồn hoàn còn trong túi: ${A.logs.at(-1)}`);
+    // Trong giới hạn: luôn thành công kể cả khi cố định số ngẫu nhiên xấu nhất (0); chờ đúng thời gian thật (3 giây cho 10 năm).
+    await test(A,"roll",{r:0});
+    const r10=await give(A,10), t0=Date.now(), s1=await absorb(A,r10.id,act);
+    ok(s1&&s1.fail===0&&s1.slot===1&&s1.secs===absorbSecs(10)&&p.absorb>0,`bắt đầu hấp thụ 10 năm vào vòng 1: ${JSON.stringify(s1)}`);
+    A.room.send("discard",{id:r10.id}); ok(await lastLog(A,/Đang hấp thụ/),"không bỏ được hồn hoàn đang hấp thụ");
+    ok(await waitFor(()=>A.absorbing&&!A.absorbing.on,(absorbSecs(10)+2)*1000)&&A.absorbing.result==="ok"&&Date.now()-t0>=absorbSecs(10)*1000-300,
+      `trong giới hạn (số ngẫu nhiên 0): thành công sau ${((Date.now()-t0)/1000).toFixed(1)} giây`);
+    ok(await waitFor(()=>p.rings.length===1&&p.level===11&&!has(A,r10)),`thành công: cấp ${p.level}, ${p.rings.length} hồn hoàn, hồn hoàn rời túi`);
+    ok(same(vOf(act)?.rings,[10]),`võ hồn lưu số năm vào vòng: ${JSON.stringify(vOf(act)?.rings)}`);
+    // Vượt giới hạn có tỉ lệ: cố định số ngẫu nhiên 0,10 < 30% -> thất bại, mất hồn hoàn, không phạt gì thêm.
+    await test(A,"set",{rowId:act,level:20,xp:0,rings:[10]}); await test(A,"roll",{r:10});
+    const r900=await give(A,900), hp0=p.hp, s2=await absorb(A,r900.id,act);
+    ok(s2&&s2.over===18&&s2.fail===0.3,`hồn hoàn 900 năm vào vòng 2 (giới hạn 764): vượt ${s2?.over}%, ${s2?.fail} thất bại`);
+    ok(await rush(A)==="fail"&&await waitFor(()=>!has(A,r900))&&p.rings.length===1&&p.level===20&&p.hp===hp0&&p.xpNeed===0,
+      `thất bại: mất hồn hoàn, vẫn ${p.rings.length} hồn hoàn, cấp ${p.level}, sinh lực ${p.hp}/${hp0}, còn ở bình cảnh`);
+    ok(/Thất bại.*900 năm vỡ tan/.test(A.logs.at(-1)??""),`thông báo thất bại: ${A.logs.at(-1)}`);
+    // Vượt đúng 100% (90% thất bại), số ngẫu nhiên 0,99 -> thành công, lưu đúng số năm.
+    await test(A,"roll",{r:99});
+    const r1528=await give(A,1528), s3=await absorb(A,r1528.id,act);
+    ok(s3&&s3.over===100&&s3.fail===0.9,"hồn hoàn 1.528 năm vào vòng 2: vượt 100%, 90% thất bại");
+    ok(await rush(A)==="ok"&&await waitFor(()=>p.rings.length===2&&p.level===21)&&same(vOf(act)?.rings,[10,1528]),`vượt giới hạn nhưng thành công: ${JSON.stringify(vOf(act)?.rings)}, cấp ${p.level}`);
+    // Di chuyển hoặc bị đánh thì hủy, không mất gì.
+    await test(A,"set",{rowId:act,level:30,xp:0,rings:[10,1528]});
+    const r1700=await give(A,1700);
+    ok(await absorb(A,r1700.id,act),"bắt đầu hấp thụ 1.700 năm vào vòng 3");
+    A.absorbing=null; A.room.send("input",{x:1,y:0}); await sleep(250); A.room.send("input",{x:0,y:0});
+    ok(await waitFor(()=>A.absorbing?.result==="cancel")&&/hủy hấp thụ/.test(A.logs.at(-1))&&p.absorb===0&&p.rings.length===2&&has(A,r1700),"di chuyển: hủy, hồn hoàn vẫn trong túi");
+    await test(A,"goto",camp);
+    ok(await absorb(A,r1700.id,act),"hấp thụ lại");
+    A.absorbing=null; await test(A,"hurt",{pct:1});
+    ok(await waitFor(()=>A.absorbing?.result==="cancel")&&p.rings.length===2&&has(A,r1700),"bị đánh: hủy, hồn hoàn vẫn trong túi");
+    await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+    // Chọn võ hồn khác (không ra trận) đang ở bình cảnh.
+    if(bench){
+      await test(A,"set",{rowId:bench,level:10,xp:0,rings:[]});
+      const r300=await give(A,300), s4=await absorb(A,r300.id,bench);
+      ok(s4&&s4.rowId===bench&&s4.fail===0,`hấp thụ vào ${VOHON[vohonIndex(vOf(bench).vohon)].name} (không ra trận)`);
+      ok(await rush(A)==="ok"&&await waitFor(()=>same(vOf(bench)?.rings,[300])&&vOf(bench).level===11)&&p.rings.length===2&&!has(A,r300),
+        `võ hồn không ra trận: ${JSON.stringify(vOf(bench)?.rings)}, cấp ${vOf(bench)?.level}; võ hồn ra trận không đổi`);
     }
+    // Lên đủ 10 vòng, cấp 100 (hook set đặt 9 vòng ở cấp 100 = bình cảnh cuối).
+    await test(A,"roll",{r:-1});
+    const nine=[400,700,1700,5000,12000,20000,50000,100000,100000];
+    await test(A,"set",{rowId:act,level:MAX_LEVEL,xp:0,rings:nine});
+    ok(p.level===MAX_LEVEL&&p.rings.length===9&&p.xpNeed===0,`cấp ${p.level}, 9 hồn hoàn: bình cảnh cuối`);
+    const rRed=await give(A,MAX_YEARS), s5=await absorb(A,rRed.id,act);
+    ok(s5&&s5.slot===10&&s5.fail===0&&s5.secs===15,`hồn hoàn 100.000 năm vào vòng 10: ${JSON.stringify(s5)}`);
+    ok(await rush(A)==="ok"&&await waitFor(()=>p.rings.length===MAX_RINGS)&&p.level===MAX_LEVEL&&p.xpNeed===0&&p.rings[9]===4,`đủ ${p.rings.length} hồn hoàn, cấp ${p.level} (tối đa)`);
+    ok(p.maxHp===calcStats(p.vh,MAX_LEVEL,[...p.rings]).maxHp,`vòng 5–10 tăng chỉ số: sinh lực tối đa ${p.maxHp}`);
+    await test(A,"kill",{tier:4}); await sleep(100);
+    ok(p.level===MAX_LEVEL&&p.xp===0,"cấp tối đa: không nhận thêm kinh nghiệm");
+    const r50=await give(A,50);
+    ok(!await absorb(A,r50.id,act)&&/đủ 10 hồn hoàn/.test(A.logs.at(-1)),`không hấp thụ vòng 11: ${A.logs.at(-1)}`);
+    ok(same(vOf(act)?.rings,[...nine,MAX_YEARS]),"võ hồn lưu đủ 10 vòng");
+    for(const i of ringsOf(A).filter(i=>[437,847,1700,50].includes(i.years))) A.room.send("discard",{id:i.id});
+    await waitFor(()=>!ringsOf(A).some(i=>[437,847,1700,50].includes(i.years)),3000);
   }
   for(const o of orig) await test(A,"set",o);
 }
