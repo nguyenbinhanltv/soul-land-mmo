@@ -1043,11 +1043,14 @@ else {
       ok(hasSt(beastOf(E,cb),"charm")&&!beastOf(E,cb)?.allure,"đang Mê hoặc: không cộng thêm Mị hoặc");
       // Theo dõi 1,3 giây (Mê hoặc trên hồn thú vạn năm còn 1,875 giây): đi lung tung đổi hướng ngẫu nhiên nên điểm cuối có thể
       // quay về gần chỗ cũ, lấy quãng xa nhất; có lúc nào nhắm hồn sư không. Không theo tới lúc hết Mê hoặc: đòn đánh ngay sau đó
-      // (tin dmg gửi ngay) có thể đến trước bản vá state xóa Mê hoặc.
-      let far=0, agg=false;
-      await waitFor(()=>{ const q=beastOf(E,cb); if(q){ far=Math.max(far,Math.hypot(q.x-p0[0],q.y-p0[1])); agg||=q.aggro; } return false; },1300);
-      ok(beastOf(E,cb)&&!agg&&!E.hurts.length&&far>4,`Mê hoặc: bỏ mục tiêu, không đánh, đi lung tung ${far.toFixed(0)} pixel`+
-        (beastOf(E,cb)&&!agg&&!E.hurts.length?"":` [nhắm hồn sư ${agg}, trúng ${E.hurts.length} đòn, còn Mê hoặc ${hasSt(beastOf(E,cb),"charm")}]`));
+      // (tin dmg gửi ngay) có thể đến trước bản vá state xóa Mê hoặc. Hồn thú hoang lang thang tới sát E (sinh lại ngoài 140 pixel)
+      // thì đòn trúng không quy được cho hồn thú bị Mê hoặc: ghi lại để chẩn đoán.
+      let far=0, agg=false; const wild=new Set();
+      await waitFor(()=>{ const q=beastOf(E,cb); if(q){ far=Math.max(far,Math.hypot(q.x-p0[0],q.y-p0[1])); agg||=q.aggro; }
+        E.room.state.beasts.forEach((o,k)=>{ if(k!==cb&&Math.hypot(o.x-me.x,o.y-me.y)<40) wild.add(k); }); return false; },1300);
+      const calm=!E.hurts.length||wild.size>0;
+      ok(beastOf(E,cb)&&!agg&&calm&&far>4,`Mê hoặc: bỏ mục tiêu, không đánh, đi lung tung ${far.toFixed(0)} pixel`+
+        (E.hurts.length||agg?` [nhắm hồn sư ${agg}, trúng ${E.hurts.map(h=>`${h.v} ${h.c}`).join("/")||"không"}, hồn thú khác sát bên ${wild.size}, còn Mê hoặc ${hasSt(beastOf(E,cb),"charm")}]`:""));
       ok(await waitFor(()=>!hasSt(beastOf(E,cb),"charm"),STATUS.charm.secs*CC_TIER_MULT[3]*1000),`hết Mê hoặc sau ${STATUS.charm.secs*CC_TIER_MULT[3]} giây`);
       // Làm chậm: hồn thú đuổi theo hồn sư đi chậm hơn (đo quãng đi trong 0,6 giây).
       const run=async slow=>{ await test(E,"clear"); await face(); const sb=await spawnAt(1,60); if(slow) await test(E,"status",{s:"slow",secs:5});
