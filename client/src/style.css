@@ -154,6 +154,21 @@ body.touch #prompt{bottom:160px}
 .rcard:hover:not(:disabled){border-color:var(--line2)}
 .rcard.on{border-color:var(--c);cursor:default}
 .rnote{color:var(--muted);font-size:11px}
+.rcard .stars,.srow .stars{font-style:normal;color:var(--muted);font-size:11px;letter-spacing:1px}
+.rcard .stars b,.srow .stars b{color:#e0a020;font-weight:400}
+/* Mảnh võ hồn (bước 3.4): tiến độ mở / lên sao */
+.shead{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.srow{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:6px 8px}
+.srow.ready{border-color:var(--c)}
+.srow .dot{color:var(--c);margin:0}
+.srow>span{display:flex;flex-direction:column;flex:1;gap:2px;min-width:0}
+.srow small{color:var(--muted);font-size:11px}
+.sbar{display:block;height:4px;background:rgba(0,0,0,.35)}
+.sbar i{display:block;height:100%;background:var(--c)}
+.sbtn{font:inherit;font-size:12px;font-weight:700;min-width:64px;min-height:36px;padding:4px 8px;border:1px solid var(--line2);
+  background:rgba(0,0,0,.25);color:var(--text);cursor:pointer}
+.sbtn:disabled{opacity:.45;cursor:default}
+.srow.ready .sbtn{border-color:var(--c);color:var(--c)}
 .tslots{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .tslot{position:relative;display:flex;border:2px solid var(--line);background:rgba(0,0,0,.2)}
 .tslot:not(.empty){border-color:var(--c)}
