@@ -1463,8 +1463,12 @@ export const CORE_MAP_SET = 0.8;
 const clampCoreStars = (stars: number) => Math.max(1, Math.min(MAX_CORE_STARS, Math.floor(stars) || 1));
 /** Làm tròn một chỉ số: % một chữ số thập phân (tối thiểu 0,1), cộng phẳng số nguyên (tối thiểu 1). */
 const coreRound = (k: CoreStat, v: number) => (CORE_STATS[k].pct ? Math.max(0.1, Math.round(v * 10) / 10) : Math.max(1, Math.round(v)));
-/** Chỉ số chính của hồn hạch `stars` sao, tính lại từ sao (không lưu DB; cấp nâng cấp cộng thêm ở 5.3). */
-export const coreMainValue = (main: CoreStat, stars: number) => coreRound(main, CORE_STATS[main].main * CORE_STAR_K[clampCoreStars(stars) - 1]);
+/**
+ * Chỉ số chính của hồn hạch `stars` sao ở cấp nâng cấp `enhance`, tính lại từ sao và cấp (không lưu DB): mỗi cấp thêm
+ * CORE_ENHANCE_MAIN phần chỉ số +0 (bước 5.3).
+ */
+export const coreMainValue = (main: CoreStat, stars: number, enhance = 0) =>
+  coreRound(main, CORE_STATS[main].main * CORE_STAR_K[clampCoreStars(stars) - 1] * (1 + CORE_ENHANCE_MAIN * coreEnhanceClamp(enhance)));
 /** Mức lớn nhất của một dòng phụ `k` ở `stars` sao (giá trị tung trong CORE_SUB_ROLL × mức này, đã làm tròn). */
 export const coreSubMax = (k: CoreStat, stars: number) => CORE_STATS[k].sub * CORE_STAR_K[clampCoreStars(stars) - 1];
 /** Nội dung `items.stats` của một hồn hạch. */
@@ -1515,8 +1519,11 @@ export function parseCore(stats: unknown): CoreData | null {
 }
 /** Tên bộ (mã lạ: "Bộ lạ"). */
 export const coreSetName = (set: string) => CORE_SETS[coreSetIndex(set)]?.name ?? "Bộ lạ";
-/** Tên hồn hạch (mục 5.6): "Hồn hạch Hạo Thiên 4★". */
-export const coreName = (set: string, stars: number) => `Hồn hạch ${coreSetName(set)} ${clampCoreStars(stars)}★`;
+/** Tên hồn hạch (mục 5.6): "Hồn hạch Hạo Thiên 4★"; đã nâng cấp (5.3) thì "+N" đứng trước: "+6 Hồn hạch Hạo Thiên 4★". */
+export const coreName = (set: string, stars: number, enhance = 0) => {
+  const e = coreEnhanceClamp(enhance);
+  return `${e ? `+${e} ` : ""}Hồn hạch ${coreSetName(set)} ${clampCoreStars(stars)}★`;
+};
 /** Một dòng chỉ số: "Công +12%", "Sinh lực +300", "Tỉ lệ chí mạng +2,4%". */
 export function coreStatText(k: CoreStat, v: number) {
   const s = CORE_STATS[k];
@@ -1573,8 +1580,8 @@ export const CORE_SET_FX: Record<CoreSetId, { two: CoreFx; four: CoreFx }> = {
 export const CORE_FX_RULE = { shockMpCd: 1, poisonStacks: 5, comboN: 3, comboGap: 2, hasteSecs: 4, swapSecs: 6 };
 /** Trạng thái tính là khống chế cho bộ Lam Ngân (không đi, không đánh, câm lặng, mê hoặc). */
 export const isCcStatus = (s: StatusId) => { const d = STATUS[s]; return d.noMove || d.noAtk || d.noSkill || d.wander; };
-/** Một hồn hạch đang gắn: sao và dữ liệu (parseCore). */
-export interface WornCore { stars: number; data: CoreData }
+/** Một hồn hạch đang gắn: sao, dữ liệu (parseCore) và cấp nâng cấp (`items.enhance`, từ 5.3; thiếu = +0). */
+export interface WornCore { stars: number; data: CoreData; enhance?: number }
 /** Số món từng bộ (mã bộ -> số món) trong các hồn hạch đang gắn trên một võ hồn. */
 export function coreSetCounts(cores: readonly WornCore[]) {
   const m = new Map<string, number>();
@@ -1600,18 +1607,102 @@ export function coreFx(cores: readonly WornCore[]): CoreFx {
 /**
  * Tổng chỉ số hồn hạch đang gắn trên một võ hồn (chỉ số chính theo sao + dòng phụ), đưa vào calcStats. Kèm phần chỉ số của hiệu
  * ứng bộ: +công của bộ Hạo Thiên 2 món (vào `atk_pct`), +chí mạng của bộ Linh Miêu 2 món (vào `crit`), cùng đơn vị %.
- * Nâng cấp (5.3) cộng thêm sau.
+ * Từ 5.3 chỉ số chính tính theo cấp nâng cấp (coreMainValue), dòng phụ đã lưu sẵn giá trị sau nâng cấp.
  */
 export function coreBonus(cores: readonly WornCore[]): Record<CoreStat, number> {
   const out = Object.fromEntries(CORE_STAT_IDS.map((k) => [k, 0])) as Record<CoreStat, number>;
   for (const c of cores) {
-    out[c.data.main] += coreMainValue(c.data.main, c.stars);
+    out[c.data.main] += coreMainValue(c.data.main, c.stars, c.enhance ?? 0);
     for (const [k, v] of c.data.subs) out[k] += v;
   }
   const fx = coreFx(cores);
   out.atk_pct += (fx.atk ?? 0) * 100; out.crit += (fx.crit ?? 0) * 100;
   for (const k of CORE_STAT_IDS) out[k] = Math.round(out[k] * 10) / 10;
   return out;
+}
+
+// ---------- Nâng cấp hồn hạch (mục 5.6, bước 5.3; mọi số chờ chốt) ----------
+/** Cấp nâng cấp tối đa (+0 đến +15, mục 5.6). */
+export const CORE_MAX_ENHANCE = 15;
+/**
+ * **(chờ chốt)** Điểm để lên từ +n lên +(n + 1): CORE_ENHANCE_COST[n]. Cộng dồn: +3 cần 90 điểm, +6 cần 305, +9 cần 710, +12 cần
+ * 1.380, +15 cần 2.450 (khoảng 5–6 hồn hạch 6★ cùng bộ, 8 hồn hạch 6★ khác bộ, hay 31 hồn hạch 4★ khác bộ). Một bảng cho mọi sao.
+ */
+export const CORE_ENHANCE_COST = [20, 30, 40, 55, 70, 90, 110, 135, 160, 190, 220, 260, 300, 350, 420];
+/** **(chờ chốt)** Điểm gốc một nguyên liệu theo sao 1★..6★ (gấp đôi mỗi sao: sao cao làm nguyên liệu đáng giá hơn nhiều). */
+export const CORE_FEED_STAR = [10, 20, 40, 80, 160, 320];
+/** **(chờ chốt)** Nguyên liệu cùng bộ với hồn hạch được nâng cấp thì điểm gốc ×1,5 (như hồn cốt cùng vị trí ở 4.4). */
+export const CORE_FEED_SAME_SET = 1.5;
+/** **(chờ chốt)** Nguyên liệu đã nâng cấp thì trả lại ngần này phần điểm đã nạp vào nó (cấp của nguyên liệu không mất trắng). */
+export const CORE_FEED_CARRY = 0.8;
+/** Tối đa ngần này nguyên liệu mỗi lần nâng cấp (chặn message quá lớn). */
+export const CORE_FEED_MAX = 20;
+/** **(chờ chốt)** Mỗi cấp cộng thêm ngần này phần chỉ số chính +0 (+15 = ×2,5). */
+export const CORE_ENHANCE_MAIN = 0.1;
+/**
+ * Cứ mỗi ngần này cấp (+3, +6, +9, +12, +15) tăng 1 dòng phụ ngẫu nhiên (mục 5.6): chưa đủ CORE_MAX_SUBS dòng thì thêm một dòng mới
+ * (không trùng chỉ số chính và các dòng có sẵn), đủ rồi thì một dòng có sẵn (chọn đều) cộng thêm một lần tung, cùng khoảng
+ * CORE_SUB_ROLL × coreSubMax như lúc rơi (**chờ chốt**).
+ */
+export const CORE_SUB_EVERY = 3;
+/** Cấp nâng cấp hợp lệ (số nguyên 0..CORE_MAX_ENHANCE). */
+export function coreEnhanceClamp(e: unknown) { return Math.max(0, Math.min(CORE_MAX_ENHANCE, Math.floor(Number(e)) || 0)); }
+/** Tổng điểm nâng cấp để đạt +`level` từ +0. */
+export function coreEnhanceNeed(level: number) { return CORE_ENHANCE_COST.slice(0, coreEnhanceClamp(level)).reduce((a, x) => a + x, 0); }
+/** Cấp nâng cấp ứng với tổng điểm `xp` (cộng dồn từ +0). */
+export function coreEnhanceLevel(xp: number) {
+  let lv = 0, need = 0;
+  while (lv < CORE_MAX_ENHANCE && xp >= need + CORE_ENHANCE_COST[lv]) need += CORE_ENHANCE_COST[lv++];
+  return lv;
+}
+/** Tổng điểm đã nạp vào một hồn hạch (`items.stats.xp`; thiếu / hỏng thì 0, tối đa điểm của +15). */
+export function coreXp(stats: unknown) {
+  const x = Number((stats as { xp?: unknown } | null)?.xp);
+  return Number.isSafeInteger(x) && x > 0 ? Math.min(x, coreEnhanceNeed(CORE_MAX_ENHANCE)) : 0;
+}
+/** Số lần tăng dòng phụ khi lên từ +`from` tới +`to` (số mốc bội CORE_SUB_EVERY vượt qua). */
+export const coreSubRolls = (from: number, to: number) =>
+  Math.max(0, Math.floor(coreEnhanceClamp(to) / CORE_SUB_EVERY) - Math.floor(coreEnhanceClamp(from) / CORE_SUB_EVERY));
+/**
+ * Điểm một nguyên liệu `stars` sao bộ `set` cho hồn hạch bộ `targetSet`: CORE_FEED_STAR theo sao, cùng bộ ×CORE_FEED_SAME_SET, cộng
+ * CORE_FEED_CARRY phần điểm đã nạp vào chính nguyên liệu đó.
+ */
+export function coreFeedXp(mat: { set: unknown; stars: number; xp?: number }, targetSet: unknown) {
+  const base = Math.round(CORE_FEED_STAR[clampCoreStars(mat.stars) - 1] * (mat.set === targetSet ? CORE_FEED_SAME_SET : 1));
+  return base + Math.floor(Math.max(0, mat.xp ?? 0) * CORE_FEED_CARRY);
+}
+/**
+ * Một lần nâng cấp (hàm thuần: client xem trước, server tính thật): hồn hạch đích (bộ, điểm đã có, số dòng phụ) và các nguyên liệu.
+ * `gain` tổng điểm, `from` / `level` cấp trước / sau, `xp` điểm sau khi cộng (kẹp ở +15), `waste` điểm dư bị bỏ ở +15, `rolls` số lần
+ * tăng dòng phụ, `adds` trong đó bao nhiêu lần là dòng mới (còn lại tăng dòng có sẵn).
+ */
+export function coreEnhancePreview(target: { set: unknown; xp: number; subs: number }, mats: { set: unknown; stars: number; xp?: number }[]) {
+  const cap = coreEnhanceNeed(CORE_MAX_ENHANCE), gain = mats.reduce((a, m) => a + coreFeedXp(m, target.set), 0);
+  const raw = Math.max(0, target.xp) + gain, xp = Math.min(cap, raw), from = coreEnhanceLevel(target.xp), level = coreEnhanceLevel(xp);
+  const rolls = coreSubRolls(from, level), adds = Math.min(rolls, Math.max(0, CORE_MAX_SUBS - target.subs));
+  return { gain, xp, from, level, waste: raw - xp, rolls, adds };
+}
+/** Một lần tăng dòng phụ khi nâng cấp: `add` = dòng mới, không thì cộng `v` vào dòng có sẵn (giá trị sau là `to`). */
+export interface CoreSubUp { k: CoreStat; v: number; to: number; add: boolean }
+/**
+ * Tăng dòng phụ `rolls` lần (bước 5.3, CORE_SUB_EVERY): trả dữ liệu mới (không sửa `data`) và từng lần tăng. Số ngẫu nhiên lấy từ
+ * `rnd` (server truyền Math.random), nên hàm vẫn thuần.
+ */
+export function coreUpgradeSubs(data: CoreData, stars: number, rolls: number, rnd: () => number) {
+  const subs = data.subs.map(([k, v]) => [k, v] as [CoreStat, number]), ups: CoreSubUp[] = [];
+  const pick = <T>(list: readonly T[]) => list[Math.min(list.length - 1, Math.floor(rnd() * list.length))];
+  const roll = (k: CoreStat) => coreRound(k, coreSubMax(k, stars) * (CORE_SUB_ROLL[0] + rnd() * (CORE_SUB_ROLL[1] - CORE_SUB_ROLL[0])));
+  for (let n = 0; n < rolls; n++) {
+    const free = CORE_STAT_IDS.filter((x) => x !== data.main && !subs.some(([y]) => y === x));
+    if (subs.length < CORE_MAX_SUBS && free.length) {
+      const k = pick(free), v = roll(k);
+      subs.push([k, v]); ups.push({ k, v, to: v, add: true });
+    } else if (subs.length) {
+      const s = pick(subs), v = roll(s[0]);
+      s[1] = coreRound(s[0], s[1] + v); ups.push({ k: s[0], v, to: s[1], add: false });
+    }
+  }
+  return { data: { ...data, subs }, ups };
 }
 
 // ---------- Kỹ năng hồn cốt (mục 5.5, bước 4.3; mọi số chờ chốt) ----------

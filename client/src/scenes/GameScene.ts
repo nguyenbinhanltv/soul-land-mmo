@@ -4,7 +4,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, KING,
+  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
@@ -371,6 +371,7 @@ export class GameScene extends Phaser.Scene {
         buy: (code, qty) => this.room.send("buy", { code, qty }),
         sell: (id, qty) => this.room.send("sell", { id, qty }),
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
+        enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,
         quest: (op) => this.room.send("quest", { op }),
       });
@@ -422,6 +423,12 @@ export class GameScene extends Phaser.Scene {
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
       if (m.to > m.from) hud.banner(`Cường hóa hồn cốt +${m.to}`, `+${m.from} → +${m.to} · ${pts}`);
       else hud.banner(`Cường hóa hồn cốt +${m.to}`, `${pts}, chưa đủ lên cấp`);
+    });
+    // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
+    this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; subs: CoreSubUp[] }) => {
+      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
+      const subs = m.subs.map((u) => (u.add ? `dòng phụ mới ${coreStatText(u.k, u.v)}` : `${coreStatText(u.k, u.to)} (tăng)`)).join(" · ");
+      hud.banner(`Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}` : `${pts}, chưa đủ lên cấp`);
     });
     // Hấp thụ hồn hoàn (bước 3.3): server báo riêng lúc bắt đầu (thanh tiến độ) và kết quả; thành công / thất bại do server quyết định.
     this.room.onMessage("absorbing", (m: { on: boolean; rowId: number; years: number; slot?: number; secs?: number; fail?: number; result?: string; level?: number }) => {
@@ -1062,6 +1069,7 @@ export class GameScene extends Phaser.Scene {
       equipCore: (itemId, vohonId, slot) => this.room.send("equipcore", { itemId, vohonId, slot }),
       unequipCore: (itemId) => this.room.send("unequipcore", { itemId }),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
+      enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
       portrait: (vohon) => this.portrait(vohon),
       combat: () => this.combat,
     }, shards, this.bag?.items ?? []);
@@ -1106,6 +1114,7 @@ export class GameScene extends Phaser.Scene {
       combat: () => this.combat,
       refresh: () => this.room.send("vohons"),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
+      enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
     });
   }
 
