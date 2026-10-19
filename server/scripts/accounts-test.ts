@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { MemoryStore, PgStore, type Store, type Item } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
-import { DEFAULT_MAP } from "../../shared/data.ts";
+import { DEFAULT_MAP, MAP_MOVED } from "../../shared/data.ts";
 
 // Mật khẩu thử sinh ngẫu nhiên mỗi lần chạy, không ghi cứng trong mã: PW[i] thay cho mật khẩu thứ i, WRONG là mật khẩu sai.
 const PW = Array.from({ length: 7 }, () => randomUUID()), WRONG = randomUUID();
@@ -42,12 +42,12 @@ async function common(label: string, s: Store, u = "") {
     const level = async () => (await s.listVohons(id)).find((v) => v.rowId === ch.rowId)!.level;
     // Chưa lưu: bản đồ khởi đầu, vào ở spawn.
     assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: null, y: null });
-    assert.equal(await s.saveLocation(id, "tinh_dau", 1, 2), false);         // phòng khác bản đồ không ghi được
+    assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 1, 2), false);         // phòng khác bản đồ không ghi được
     assert.equal(await s.saveLocation(id, DEFAULT_MAP, 10, 20), true);
     assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 20 });
     // Transaction lỗi thì không ghi gì: sai bản đồ đi, hoặc võ hồn không thuộc tài khoản.
     const bench = (await s.listVohons(id)).find((v) => v.rowId !== ch.rowId)!;
-    await assert.rejects(s.saveTravel(id, [{ ...ch, level: 9 }], "tinh_dau", "nac_dinh_thanh", 88, 328));
+    await assert.rejects(s.saveTravel(id, [{ ...ch, level: 9 }], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328));
     await assert.rejects(s.saveTravel(id, [{ ...ch, level: 9 }, { ...och, accountId: id, level: 9 }], DEFAULT_MAP, "nac_dinh_thanh", 88, 328));
     assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 20 });
     assert.equal(await level(), 3);
@@ -58,6 +58,21 @@ async function common(label: string, s: Store, u = "") {
     assert.equal(await level(), 7);
     assert.equal((await s.listVohons(id)).find((v) => v.rowId === bench.rowId)!.xp, 5);
     assert.equal(await s.saveLocation(id, DEFAULT_MAP, 1, 1), false);
+    assert.deepEqual(await s.getLocation(id), { mapId: "nac_dinh_thanh", x: 88, y: 328 });
+  });
+  await test(`${label}: map_id cũ \`tinh_dau\` (đã tách ở BĐ3) -> Ngoại vi, vị trí bỏ, lớp chặn theo bản đồ đã ánh xạ`, async () => {
+    const id = ok(await s.login(cleanName(`Tinh Đấu cũ${u}`), PW[5]));
+    const ch = (await s.awaken(id, `Tinh Đấu cũ${u}`, ["lam_ngan_thao", "bich_lan_xa_hoang"], "bich_lan_xa_hoang", 3))!;
+    assert.equal(MAP_MOVED.tinh_dau, "tinh_dau_ngoai_vi");
+    // Ghi mã cũ như tài khoản của bản trước BĐ3 (saveTravel không kiểm tra bản đồ đích).
+    await s.saveTravel(id, [ch], DEFAULT_MAP, "tinh_dau", 700, 480);
+    assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: null, y: null });
+    assert.equal(await s.saveLocation(id, DEFAULT_MAP, 1, 1), false);           // phòng khác bản đồ đã ánh xạ không ghi được
+    assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40), true);  // phòng Ngoại vi ghi được, thay mã cũ
+    assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: 30, y: 40 });
+    // Đi cổng từ bản đồ đã ánh xạ cũng qua được lớp chặn.
+    await s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "tinh_dau", 700, 480);
+    await s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328);
     assert.deepEqual(await s.getLocation(id), { mapId: "nac_dinh_thanh", x: 88, y: 328 });
   });
   await test(`${label}: túi đồ, Hồn Tệ, vật phẩm khởi đầu một lần và túi đồ trong transaction đi cổng (3.1)`, async () => {
@@ -92,7 +107,7 @@ async function common(label: string, s: Store, u = "") {
     assert.deepEqual((await s.loadBag(other, [])).bag, { honTe: 0, items: [] });
     // Đi cổng: túi đồ ghi trong cùng transaction; transaction lỗi (sai bản đồ đi) thì túi giữ nguyên.
     const travelBag = { honTe: 42, items: [item("hoi_hon_dan", 7)] };
-    await assert.rejects(s.saveTravel(id, [ch], "tinh_dau", "nac_dinh_thanh", 88, 328, travelBag));
+    await assert.rejects(s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328, travelBag));
     assert.deepEqual((await s.loadBag(id, [])).bag, bag);
     await s.saveTravel(id, [ch], DEFAULT_MAP, "nac_dinh_thanh", 88, 328, travelBag);
     assert.deepEqual((await s.loadBag(id, [])).bag, travelBag);

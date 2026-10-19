@@ -257,7 +257,7 @@ export function showPortal(info: PortalInfo | null, go: () => void) {
   const el = $("#portal");
   if (!info?.name) { el.hidden = true; el.innerHTML = ""; return; }
   const lv = info.level ? ` (đề xuất cấp ${info.level[0]}–${info.level[1]})` : "";
-  el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp đề xuất!</span>` : ""}
+  el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp ${info.level?.[0] ?? "đề xuất"}!</span>` : ""}
     <button type="button" class="${info.warn ? "danger" : ""}">${info.warn ? "Vẫn đi" : "Đi"}<kbd>F</kbd></button>`;
   el.querySelector("div")!.textContent = `Đi tới ${info.toName ?? info.to}${lv}`;
   el.querySelector("small")!.textContent = info.name;

@@ -1,7 +1,8 @@
 // Kiểm thử nhanh: 2 bot đăng nhập, tạo nhân vật, qua lễ thức tỉnh, vào phòng bản đồ, xếp đội hình, đổi võ hồn trong trận,
 // di chuyển, đánh hồn thú, thử hấp thụ, rồi vào lại để kiểm tra đội hình đã lưu.
-// Bot thứ ba (tài khoản mới mỗi lần chạy) đi cổng Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành,
-// thoát và vào lại để kiểm tra bản đồ và vị trí đã lưu (BĐ2).
+// Bot thứ ba (tài khoản mới mỗi lần chạy) đi cổng Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu Ngoại vi -> Nội địa -> Ngoại vi
+// -> Nặc Đinh Thành, thoát và vào lại để kiểm tra bản đồ và vị trí đã lưu (BĐ2, BĐ3), rồi giả làm tài khoản cũ còn `tinh_dau`.
+// Quy cấp theo niên hạn và giảm kinh nghiệm theo chênh cấp (BĐ3): bảng cấp tương đương, hạ hồn thú nhiều mức năm qua hook.
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 // Túi đồ (3.1): nhận đan khởi đầu, dùng đan, hồi chiêu chung, Hồn Tệ khi hạ hồn thú, gộp đồ và giới hạn ô, túi đồ giữ nguyên khi
 // đi cổng và khi thoát vào lại.
@@ -16,6 +17,7 @@ import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
+  BEASTS, GATE_CLEAR, MAP_MOVED, XP_LEVEL_CAP,
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
   BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, CRIT, PCT_HP_CAP,
@@ -115,15 +117,30 @@ ok(same(tierBand(1),[100,999])&&same(tierBand(4),[MAX_YEARS,MAX_YEARS]),"khoản
 /** Mọi hồn thú trong phòng của bot `b` có tuổi nằm trong khoảng `years` của một vùng gần đó (bảng 5.3), bậc và máu suy từ số năm. */
 function checkBeastYears(b){
   const s=b.room.state, map=JSON.parse(readFileSync(new URL(`../../shared/assets/${s.mapId}.json`,import.meta.url),"utf8"));
-  const zs=map.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone").map(o=>({...o,yr:parseLevelRange((o.properties??[]).find(q=>q.name==="years")?.value)}));
+  const prop=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value;
+  const zs=map.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone").map(o=>({...o,yr:parseLevelRange(prop(o,"years")),
+    sp:String(prop(o,"beasts")??"").split(",").map(x=>x.split(":")[0].trim()).filter(Boolean)}));
   const bad=[], ys=[]; let n=0;
   s.beasts.forEach(x=>{ n++; ys.push(x.years);
     // Hồn thú đi lang thang / đuổi người tối đa 220 pixel quanh chỗ sinh: so với các vùng trong phạm vi đó.
     const near=zs.filter(z=>z.yr&&x.x>=z.x-240&&x.x<=z.x+z.width+240&&x.y>=z.y-240&&x.y<=z.y+z.height+240);
-    if(!near.some(z=>x.years>=z.yr[0]&&x.years<=z.yr[1])||x.tier!==tierOfYears(x.years)||x.maxHp!==beastStats(x.years).hp) bad.push(`${x.years}@${x.x.toFixed(0)},${x.y.toFixed(0)}`); });
+    // Loài và số năm phải khớp cùng một vùng (bảng 5.3): loài khai báo ở `beasts`, tuổi trong `years`.
+    if(!near.some(z=>x.years>=z.yr[0]&&x.years<=z.yr[1]&&z.sp.includes(BEASTS[x.species]?.id))||x.tier!==tierOfYears(x.years)||x.maxHp!==beastStats(x.years).hp)
+      bad.push(`${BEASTS[x.species]?.id} ${x.years}@${x.x.toFixed(0)},${x.y.toFixed(0)}`); });
   const [lo,hi]=MAPS[s.mapId].years??[0,0];
   ok(zs.every(z=>z.yr)&&n>0&&!bad.length&&ys.every(y=>y>=lo&&y<=hi),
-    `${s.mapId}: ${n} hồn thú có số năm đúng khoảng vùng (${Math.min(...ys)}–${Math.max(...ys)} năm, bản đồ ${lo}–${hi})`+(bad.length?` sai: ${bad.join(" ")}`:""));
+    `${s.mapId}: ${n} hồn thú có loài và số năm đúng vùng (${Math.min(...ys)}–${Math.max(...ys)} năm, bản đồ ${lo}–${hi})`+(bad.length?` sai: ${bad.join(" ")}`:""));
+  return map;
+}
+/**
+ * Không hồn thú nào sát cổng / điểm xuất hiện (BĐ3: không sinh trong GATE_CLEAR pixel; hồn thú lang thang tối đa ~85 pixel quanh
+ * chỗ sinh, nên vừa vào bản đồ thì không con nào trong GATE_CLEAR − 90 pixel).
+ */
+function checkGateClear(b,map){
+  const objs=map.layers.flatMap(l=>l.objects??[]), gates=objs.filter(o=>o.type==="portal"||o.type==="arrive"), r=GATE_CLEAR-90;
+  const dist=(g,x,y)=>Math.hypot(Math.max(g.x-x,0,x-g.x-(g.width??0)),Math.max(g.y-y,0,y-g.y-(g.height??0)));
+  const near=[]; b.room.state.beasts.forEach(x=>{ for(const g of gates) if(dist(g,x.x,x.y)<r) near.push(`${g.name}: ${x.years} năm cách ${dist(g,x.x,x.y).toFixed(0)}`); });
+  ok(!near.length,`${b.room.state.mapId}: không hồn thú nào trong ${r} pixel quanh ${gates.length} cổng / điểm xuất hiện`+(near.length?` (${near.join("; ")})`:""));
 }
 checkBeastYears(A);
 ok(B.room.state.beasts.size===st.beasts.size&&[...st.beasts.entries()].every(([k,x])=>B.room.state.beasts.get(k)?.years===x.years),"B thấy cùng số năm của hồn thú");
@@ -256,8 +273,17 @@ if(dr){
   if(it){ A.room.send("absorb",{itemId:it.id}); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
 }
 // ---------- 2.3b: gục từng võ hồn, hồi sinh, chia kinh nghiệm 40/20 cho đội ----------
-// Hàm luật thuần trong shared/data.ts: cấp tương đương theo bậc và giảm kinh nghiệm theo chênh cấp (mục 5.3).
-ok(same(TIERS.map((_,t)=>beastLevel(t)),[10,10,20,40,70]),`cấp tương đương theo bậc: ${TIERS.map((_,t)=>beastLevel(t)).join("/")}`);
+// Hàm luật thuần trong shared/data.ts: cấp tương đương theo số năm (BĐ3, bảng "Quy cấp theo niên hạn" ở 5.3, tính từ giới hạn
+// hồn hoàn) và giảm kinh nghiệm theo chênh cấp.
+{
+  const tbl=[[10,10],[423,10],[424,20],[764,20],[765,30],[1760,30],[1761,40],[5000,40],[5001,50],[12000,50],[12001,60],[20000,60],[20001,70],[50000,70],[50001,80],[100000,80]];
+  const bad=tbl.filter(([y,lv])=>beastLevel(y)!==lv);
+  ok(!bad.length,"cấp tương đương theo niên hạn = bảng 5.3"+(bad.length?`: sai ${bad.map(([y])=>`${y} năm -> ${beastLevel(y)}`).join(", ")}`:""));
+  ok([1,2,3,4,5,6,7,8,9,10].every(k=>beastLevel(ringLimit(k))===10*Math.min(k,8)&&(k>=8||beastLevel(ringLimit(k)+1)===10*(k+1))),"cấp tương đương = bình cảnh nhỏ nhất hấp thụ được trong giới hạn");
+  // Bảng vùng 5.3: cột "Cấp" của Ngoại vi và Nội địa.
+  const zl=[["300-700","10–20"],["600-1200","20–30"],["1000-1600","30"],["1400-2000","30–40"],["1500-5000","30–40"],["4000-12000","40–50"],["10000-18000","50–60"],["15000-25000","60–70"]];
+  ok(zl.every(([r,w])=>{ const [a,b]=parseLevelRange(r).map(beastLevel); return (a===b?`${a}`:`${a}–${b}`)===w; }),"cấp tương đương các vùng Ngoại vi / Nội địa đúng bảng 5.3");
+}
 ok(xpLevelScale(19,10)===1&&xpLevelScale(20,10)===0.5&&xpLevelScale(30,10)===0.1&&xpLevelScale(99,70)===0.5&&xpLevelScale(5,70)===1,"giảm kinh nghiệm 100/50/10%, cấp võ hồn tính tối đa 80");
 ok(A.squad&&B.squad&&!B.squad.list.some(s=>A.owned.team.includes(s.rowId)),"tin squad chỉ gửi cho chính chủ");
 // Tin trả lời của hook đến trước bản vá state kế tiếp: chờ thêm một nhịp đồng bộ (patchRate 50 ms) rồi mới đọc state.
@@ -296,7 +322,7 @@ else {
   ok(A.owned.team.filter(Boolean).length===2&&TEAM_SIZE===4,"đội 2 võ hồn, 2 ô trống");
   /** Hạ hồn thú bậc `tier` (qua hook): trả về kinh nghiệm mỗi võ hồn nhận được. */
   const kill=async tier=>{ const x0=[a,bn].map(r=>vOf(r).xp); await test(A,"kill",{tier}); return [a,bn].map((r,i)=>vOf(r).xp-x0[i]); };
-  const split=(lv,tier)=>{ const base=TIERS[tier].xp*xpLevelScale(lv,beastLevel(tier)); return [Math.round(base*XP_SHARE_ACTIVE),Math.round(base*XP_SHARE_BENCH)]; };
+  const split=(lv,tier,years=TIERS[tier].years)=>{ const base=beastStats(years).xp*xpLevelScale(lv,beastLevel(years)); return [Math.round(base*XP_SHARE_ACTIVE),Math.round(base*XP_SHARE_BENCH)]; };
   // Chia 40/20: hai võ hồn cấp 5 chưa có hồn hoàn (chưa bình cảnh, đủ xa mốc lên cấp).
   await test(A,"set",{rowId:a,level:5,xp:0,rings:[]}); await test(A,"set",{rowId:bn,level:5,xp:0,rings:[]});
   let got=await kill(1), want=split(5,1);
@@ -310,8 +336,19 @@ else {
   for(const [lv,rings] of [[25,[10,100]],[35,[10,100,100]]]){
     await test(A,"set",{rowId:a,level:lv,xp:0,rings});
     got=await kill(1); want=split(lv,1);
-    ok(same(got,want),`ra trận cấp ${lv}, hồn thú cấp tương đương ${beastLevel(1)}: x${xpLevelScale(lv,beastLevel(1))} -> +${got.join("/")} (cần ${want.join("/")})`);
+    ok(same(got,want),`ra trận cấp ${lv}, hồn thú cấp tương đương ${beastLevel(TIERS[1].years)}: x${xpLevelScale(lv,beastLevel(TIERS[1].years))} -> +${got.join("/")} (cần ${want.join("/")})`);
   }
+  // BĐ3: giảm theo cấp tương đương của số năm hồn thú (không theo bậc): võ hồn ra trận cấp 45 hạ hồn thú 1.761 năm (cấp 40) nhận
+  // đủ, 1.760 năm (cấp 30, kém 15) còn 50%, 764 năm (cấp 20, kém 25) còn 10%. Cấp võ hồn tính tối đa XP_LEVEL_CAP (80).
+  const killY=async years=>{ const x0=[a,bn].map(r=>vOf(r).xp); await test(A,"kill",{tier:0,years}); return [a,bn].map((r,i)=>vOf(r).xp-x0[i]); };
+  for(const [lv,rings,years,k] of [[45,[10,100,100,1000],1761,1],[45,[10,100,100,1000],1760,0.5],[45,[10,100,100,1000],764,0.1],
+    [95,[10,100,100,1000,5000,10000,20000,50000,90000],100000,1],[95,[10,100,100,1000,5000,10000,20000,50000,90000],50000,0.5]]){
+    await test(A,"set",{rowId:a,level:lv,xp:0,rings}); await test(A,"set",{rowId:bn,level:45,xp:0,rings:[10,100,100,1000]});
+    got=await killY(years); want=split(lv,0,years);
+    ok(xpLevelScale(lv,beastLevel(years))===k&&same(got,want)&&want[0]>0,
+      `ra trận cấp ${lv}${lv>XP_LEVEL_CAP?` (tính ${XP_LEVEL_CAP})`:""}, hồn thú ${years} năm (cấp ${beastLevel(years)}): ${k*100}% -> +${got.join("/")} (cần ${want.join("/")})`);
+  }
+  await test(A,"set",{rowId:bn,level:5,xp:0,rings:[]});
   await test(A,"set",{rowId:a,level:5,xp:0,rings:[]});
 
   // Ra khỏi doanh trại (ở doanh trại võ hồn gục hồi ngay).
@@ -994,7 +1031,7 @@ ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm từng võ hồn đ
 await A.room.leave();
 
 // ---------- BĐ2: cổng, chặn mềm, lưu bản đồ và vị trí ----------
-console.log("[cổng] tài khoản mới đi Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành");
+console.log("[cổng] tài khoản mới đi Thánh Hồn Thôn -> Nặc Đinh Thành -> Ngoại vi -> Nội địa -> Ngoại vi -> Nặc Đinh Thành");
 let C=await bot("Lữ "+Date.now().toString(36).slice(-6),"bich_lan_xa_hoang",{sex:0,hair:1,hairCol:2,outfitCol:3});
 const me=()=>C.room.state.players?.get(C.room.sessionId);
 let joinErr=""; try{ const r=await new Client(WS).joinOrCreate("map",{token:C.token,mapId:"nac_dinh_thanh"}); await r.leave(); }catch(e){ joinErr=String(e?.message??e); }
@@ -1060,21 +1097,41 @@ ok(Math.hypot(me().x-5.5*16,me().y-20.5*16)<1,`xuất hiện ở điểm tu_than
 ok(!C.portal?.name,"điểm xuất hiện nằm ngoài cổng");
 ok(C.room.state.beasts.size===0,"Nặc Đinh Thành không có hồn thú");
 C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong thành không đánh được");
-// Nặc Đinh Thành: theo đại lộ sang cổng đông đi Tinh Đấu (chặn mềm: cảnh báo khi dưới cấp đề xuất nhưng vẫn đi được).
+// Nặc Đinh Thành: theo đại lộ sang cổng đông đi Tinh Đấu Ngoại vi (chặn mềm: cảnh báo khi dưới cấp đề xuất nhưng vẫn đi được).
+ok(!MAPS.tinh_dau&&MAPS[MAP_MOVED.tinh_dau]&&MAPS.tinh_dau_noi_dia,"MAPS bỏ tinh_dau, có Ngoại vi và Nội địa");
 ok(await walk(1,0,()=>C.portal?.name,15000),`tới cổng đông: ${JSON.stringify(C.portal)}`);
 const lvC=me().level;
-ok(C.portal?.to==="tinh_dau"&&JSON.stringify(C.portal.level)==="[10,60]"&&C.portal.warn===(lvC<10),`cấp đề xuất 10–60, cấp ${lvC} -> cảnh báo ${C.portal?.warn}`);
-await travelBy("Đi Tinh Đấu Đại Sâm Lâm","tinh_dau");
-ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Tinh Đấu: ${me().x},${me().y}`);
-checkBeastYears(C); // vùng Tinh Đấu theo bảng 5.3: 300–700 … 15.000–25.000 năm
+ok(C.portal?.to==="tinh_dau_ngoai_vi"&&JSON.stringify(C.portal.level)==="[10,30]"&&C.portal.warn===(lvC<10),`cổng đi Ngoại vi: cấp đề xuất 10–30, cấp ${lvC} -> cảnh báo ${C.portal?.warn}`);
+await travelBy("Đi Tinh Đấu Ngoại vi","tinh_dau_ngoai_vi");
+ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở trại cổng Ngoại vi: ${me().x},${me().y}`);
+checkGateClear(C,checkBeastYears(C)); // vùng Ngoại vi theo bảng 5.3: 300–700 … 1.400–2.000 năm
+if((await test(C,"ping"))?.enabled){
+  // BĐ3: Ngoại vi -> Nội địa (cổng mép đông, đề xuất 30–60) -> về Ngoại vi. Đi bộ xuyên rừng cấp thấp thì gục: nhảy tới trạm gác
+  // phía đông (hook goto), dọn hồn thú quanh mình rồi mới bước vào cổng.
+  await test(C,"goto",{x:83.5*16,y:31*16}); await test(C,"clear");
+  ok(await walk(1,0,()=>C.portal?.name,4000),`tới cổng đông Ngoại vi: ${JSON.stringify(C.portal)}`);
+  ok(C.portal?.to==="tinh_dau_noi_dia"&&C.portal.toName===MAPS.tinh_dau_noi_dia.name&&JSON.stringify(C.portal.level)==="[30,60]"&&C.portal.warn===(me().level<30),
+    `cổng vào Nội địa: cấp đề xuất 30–60, cấp ${me().level} -> cảnh báo ${C.portal?.warn}`);
+  await travelBy("Vào Tinh Đấu Nội địa","tinh_dau_noi_dia");
+  ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở trại cổng Nội địa: ${me().x},${me().y}`);
+  checkGateClear(C,checkBeastYears(C)); // vùng Nội địa: 1.500–5.000 … 15.000–25.000 năm
+  ok(!JSON.parse(readFileSync(new URL("../../shared/assets/tinh_dau_noi_dia.json",import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]).some(o=>o.type==="portal"&&!MAPS[(o.properties??[]).find(q=>q.name==="to")?.value]),
+    "Nội địa chưa có cổng tới bản đồ chưa mở (Lõi Tinh Đấu để BĐ6)");
+  await test(C,"clear");
+  ok(await walk(-1,0,()=>C.portal?.name,4000),`tới cổng về Ngoại vi: ${JSON.stringify(C.portal)}`);
+  ok(C.portal?.to==="tinh_dau_ngoai_vi"&&JSON.stringify(C.portal.level)==="[10,30]"&&C.portal.warn===(me().level<10),`cổng về Ngoại vi: đề xuất 10–30, cảnh báo ${C.portal?.warn}`);
+  await travelBy("Về Tinh Đấu Ngoại vi","tinh_dau_ngoai_vi");
+  ok(Math.hypot(me().x-83.5*16,me().y-31*16)<1&&!C.portal?.name,`về Ngoại vi: xuất hiện ở trạm gác phía đông ${me().x},${me().y}, ngoài cổng`);
+  await test(C,"goto",{x:5.5*16,y:31.5*16});
+} else console.log("  ⚠ bỏ qua Ngoại vi -> Nội địa (cần hook goto): bật server bằng GAME_TEST=1");
 // Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
 // Hồn thú hoang ở doanh trại đánh bật lùi sau lúc chụp vị trí thì vị trí lưu khác bản chụp: dọn trước (cần hook test).
 await test(C,"clear"); await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
-const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau",`thoát rồi /api/me: ${m2.mapId}`);
+const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau_ngoai_vi",`thoát rồi /api/me: ${m2.mapId}`);
 const bag2=bagKey(C); C.mapId=m2.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
 ok(bagKey(C)===bag2,`thoát rồi vào lại: túi đồ giữ nguyên (${C.bag?.items.length} ô)`);
-ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
+ok(C.room.state.mapId==="tinh_dau_ngoai_vi"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
 // Đăng nhập lần nữa: phiên cũ bị đá (presence), phiên mới vào đúng bản đồ.
 // Tiến độ chưa lưu của phiên cũ (đặt qua hook test) phải còn: phiên mới chỉ nạp DB sau khi phiên cũ lưu xong lần cuối (mục 6).
 const relog=(await test(C,"ping"))?.enabled?C.owned.team.filter(Boolean).map((rowId,i)=>[rowId,1234+i]):null;
@@ -1083,7 +1140,7 @@ if(relog) for(const [rowId,xp] of relog) await test(C,"set",{rowId,xp});
 let relogBag=null;
 if(relog){ await test(C,"coin",{n:(C.bag?.honTe??0)+4321}); await test(C,"give",{code:"hoi_huyet_dan",qty:1}); relogBag=bagKey(C); }
 let kicked=0; C.room.onLeave(code=>{kicked=code;});
-const l2=await post("/api/login",{name:C.name,password:PASS}); ok(l2.mapId==="tinh_dau","đăng nhập lại: /api/login trả tinh_dau");
+const l2=await post("/api/login",{name:C.name,password:PASS}); ok(l2.mapId==="tinh_dau_ngoai_vi","đăng nhập lại: /api/login trả tinh_dau_ngoai_vi");
 const C2={name:C.name,token:l2.token,logs:[],mapId:l2.mapId}; await enter(C2);
 ok(await waitFor(()=>kicked===4001),"phiên cũ bị đá khi tài khoản vào lại");
 if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.list.find(v=>v.rowId===r)?.xp);
@@ -1116,6 +1173,23 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
       "đạn hồn kỹ bắn lúc niệm không hạ hồn thú sau khi đã lưu để đi cổng");
   }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
+// BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
+// qua đúng transaction đi cổng, như tài khoản đăng xuất ở Tinh Đấu trước BĐ3.
+if((await test(C,"ping"))?.enabled){
+  const lg=await test(C,"legacy",{mapId:"tinh_dau",x:700,y:480});
+  ok(lg?.saved,`ghi map_id cũ tinh_dau (vị trí 700,480): ${JSON.stringify(lg)}`);
+  await C.room.leave(); await sleep(300);
+  const ml=await post("/api/me",{token:C.token}), ll=await post("/api/login",{name:C.name,password:PASS});
+  ok(ml.mapId==="tinh_dau_ngoai_vi"&&ll.mapId==="tinh_dau_ngoai_vi",`tài khoản ở tinh_dau: /api/me và /api/login trả ${ml.mapId} / ${ll.mapId}`);
+  C.token=ll.token; C.mapId=ml.mapId; await enter(C); await waitFor(()=>me());
+  const sp=JSON.parse(readFileSync(new URL("../../shared/assets/tinh_dau_ngoai_vi.json",import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="spawn");
+  ok(C.room.state.mapId==="tinh_dau_ngoai_vi"&&me().x>=sp.x&&me().x<=sp.x+sp.width&&me().y>=sp.y&&me().y<=sp.y+sp.height,
+    `vào Ngoại vi ở ${sp.name} (${me().x.toFixed(0)},${me().y.toFixed(0)}), không giữ vị trí cũ 700,480`);
+  // Lớp chặn WHERE map_id theo bản đồ đã ánh xạ: rời phòng Ngoại vi thì ghi được vị trí mới.
+  await test(C,"goto",{x:7.5*16,y:31.5*16}); await C.room.leave(); await sleep(300);
+  C.mapId=(await post("/api/me",{token:C.token})).mapId; await enter(C); await waitFor(()=>me());
+  ok(Math.abs(me().x-7.5*16)<1&&Math.abs(me().y-31.5*16)<1,`rời rồi vào lại: vị trí mới ở Ngoại vi đã lưu (${me().x},${me().y})`);
+}
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);

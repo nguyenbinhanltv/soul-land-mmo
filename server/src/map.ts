@@ -1,7 +1,7 @@
 // Đọc bản đồ Tiled dùng chung với client (shared/assets/<mapId>.json) để server tự kiểm tra va chạm.
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
 import { readFileSync } from "node:fs";
-import { TILE, TIERS, MAPS, MAX_YEARS, beastIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
+import { TILE, TIERS, MAPS, MAX_YEARS, GATE_CLEAR, beastIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
 export interface ZoneBeast { species: number; w: number; }
@@ -31,6 +31,8 @@ export interface GameMap {
   /** Trong vùng an toàn: không sinh hồn thú, hồn thú không đuổi vào, không giao chiến (mục 5.3, 5.8). */
   inSafe(x: number, y: number): boolean;
   portalAt(x: number, y: number): Portal | undefined;
+  /** Cách một cổng hoặc một điểm `arrive` của bản đồ này dưới GATE_CLEAR pixel: không sinh hồn thú ở đây (BĐ3). */
+  nearGate(x: number, y: number): boolean;
   /** Vị trí đứng được: trong bản đồ và không kẹt trong ô chặn (dùng khi nạp vị trí đã lưu). */
   standable(x: number, y: number): boolean;
 }
@@ -69,7 +71,7 @@ export function loadMap(mapId: string): GameMap {
   for (const layer of raw.layers) if (layer.type === "tilelayer")
     layer.data.forEach((gid: number, i: number) => { if (solidGids.has(gid)) solid[i] = 1; });
 
-  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [];
+  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [];
   let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
   for (const layer of raw.layers) if (layer.type === "objectgroup") for (const o of layer.objects) {
     const prop = (n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
@@ -86,6 +88,7 @@ export function loadMap(mapId: string): GameMap {
     }
     if (o.type === "spawn") spawn = rectOf(o);
     if (o.type === "safe") safe.push(rectOf(o));
+    if (o.type === "arrive") arrives.push({ x: o.x, y: o.y });
     if (o.type === "portal") {
       // Client gửi tên cổng khi xin đi, nên tên phải duy nhất trong bản đồ.
       const p = parsePortal(mapId, o);
@@ -111,6 +114,8 @@ export function loadMap(mapId: string): GameMap {
     inSpawn: (x, y) => inRect(spawn, x, y),
     inSafe: (x, y) => kind === "town" || safe.some((r) => inRect(r, x, y)),
     portalAt: (x, y) => portals.find((p) => inRect(p, x, y)),
+    nearGate: (x, y) => arrives.some((a) => Math.hypot(a.x - x, a.y - y) < GATE_CLEAR)
+      || portals.some((p) => Math.hypot(Math.max(p.x - x, 0, x - p.x - p.w), Math.max(p.y - y, 0, y - p.y - p.h)) < GATE_CLEAR),
     standable: (x, y) => Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4),
   };
   cache.set(mapId, map);
