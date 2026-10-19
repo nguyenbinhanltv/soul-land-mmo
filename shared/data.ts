@@ -275,6 +275,7 @@ export const tienCoDmgMult = (set4 = false) => (set4 ? 1 + TIEN_CO_SET.dmg : 1);
  * - `r`: bán kính (pixel) quanh hồn sư; `dash`: quãng lướt tối đa, `range`: tầm tìm mục tiêu (mẫn công);
  * - `stun`: giây choáng (hồn thú không đi, không đánh); `heal`: hồi theo tỉ lệ sinh lực tối đa của mọi võ hồn chưa gục trong đội;
  * - `shield`: khiên theo tỉ lệ sinh lực tối đa của võ hồn ra trận, giữ `shieldSecs` giây (khiên thuộc hồn sư, đổi võ hồn vẫn còn).
+ * Từ 2.5d mọi võ hồn trong VOHON đều có tiên cơ riêng; bảng này giữ làm dự phòng cho võ hồn thêm sau.
  */
 export interface TienCoDef { name: string; desc: string; dmg: number; r: number; dash: number; range: number; stun: number; heal: number; shield: number; shieldSecs: number; }
 export const TIEN_CO: Record<He, TienCoDef> = {
@@ -410,8 +411,10 @@ export const SPAWN_CLEAR = 160;
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
  *  mp: giảm tiêu hao hồn lực của hồn kỹ, inv: miễn mọi sát thương, phoenix: lãnh vực phượng hoàng (từ 2.5b, Tà Hỏa Phượng Hoàng):
  *  hồn thú trong bán kính PHOENIX_FIELD_R quanh hồn sư nhận thêm v sát thương từ mọi nguồn; hide: tàng hình (từ 2.5c, Yêu Hồ):
- *  hồn thú bỏ mục tiêu và không nhắm tới hồn sư, đánh thường, tung hồn kỹ khác hoặc tiên cơ thì hiện hình. Chỉ thêm vào cuối. */
-export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv", "phoenix", "hide"] as const;
+ *  hồn thú bỏ mục tiêu và không nhắm tới hồn sư, đánh thường, tung hồn kỹ khác hoặc tiên cơ thì hiện hình; leech: hút huyết
+ *  (từ 2.5d, Quỷ Mị): v phần mọi sát thương hồn sư gây ra lên hồn thú hồi thành sinh lực của võ hồn ra trận.
+ *  Chỉ thêm vào cuối; `PlayerState.buff` là uint16 (từ 2.5d) nên còn chỗ cho 16 hiệu ứng. */
+export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv", "phoenix", "hide", "leech"] as const;
 export type BuffId = (typeof BUFF_IDS)[number];
 export const BUFFS: Record<BuffId, { name: string; col: string }> = {
   atk:  { name: "Tăng công",       col: "#ff8a5a" },
@@ -422,6 +425,7 @@ export const BUFFS: Record<BuffId, { name: string; col: string }> = {
   inv:  { name: "Miễn sát thương", col: "#fff2b0" },
   phoenix: { name: "Lãnh vực Phượng Hoàng", col: "#ff6a2a" },
   hide: { name: "Tàng hình", col: "#ff9ad5" },
+  leech: { name: "Hút huyết", col: "#d04a6a" },
 };
 /** Bán kính lãnh vực phượng hoàng (pixel), đi theo hồn sư; đổi võ hồn vẫn còn như mọi hiệu ứng có lợi (bước 2.5b, chờ chốt). */
 export const PHOENIX_FIELD_R = 90;
@@ -489,7 +493,10 @@ export interface SkillDef {
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number };
 }
 
-/** 4 hồn kỹ dùng chung (Giai đoạn 1) cho võ hồn chưa có hồn kỹ riêng. Không đổi số khi thêm hồn kỹ riêng. */
+/**
+ * 4 hồn kỹ dùng chung (Giai đoạn 1) cho võ hồn chưa có hồn kỹ riêng. Không đổi số khi thêm hồn kỹ riêng. Từ 2.5d mọi võ hồn trong
+ * VOHON đều có hồn kỹ riêng nên không võ hồn nào dùng bảng này nữa; giữ làm dự phòng cho võ hồn thêm sau (Phá Hồn Thương, A Ngân…).
+ */
 export const SKILLS: SkillDef[] = [
   { name: "Hồn Bạo",    desc: "Nổ hồn lực quanh thân", icon: "✹", cost: 12, cd: 3,   area: "around", r: 50, dmg: 2.2 },
   { name: "Thiểm Kích", desc: "Lao về phía trước",     icon: "➤", cost: 16, cd: 4.5, area: "dash", r: 70, dmg: 2.6, inv: 0.35 },
@@ -499,7 +506,7 @@ export const SKILLS: SkillDef[] = [
 
 /**
  * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; 2.5b: 5 võ hồn lưu phái Thiêu đốt; 2.5c: 5 võ hồn lưu phái Cảm điện;
- * mọi số chờ chốt). Hồn kỹ thứ i mở khi có
+ * 2.5d: 5 võ hồn còn lại, đủ cả 20; mọi số chờ chốt). Hồn kỹ thứ i mở khi có
  * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS: Record<string, SkillDef[]> = {
@@ -673,12 +680,71 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
       area: "self", r: 0, dmg: 0, copy: 0.8 },
   ],
+  // ---- Bước 2.5d: 5 võ hồn còn lại (mọi số chờ chốt). Từ đây cả 20 võ hồn trong VOHON đều có hồn kỹ riêng. ----
+  // Cường công, phá giáp: Vô Ngã Kiếm Trận sát thương diện rộng liên tục, Liệt thương (Phá giáp); tuyệt kỹ Kiếm Trảm Sơn Hà.
+  cuu_tinh_that_sat_kiem: [
+    { name: "Thất Sát Kiếm Khí", desc: "Kiếm khí quét nửa trước mặt: Liệt thương (Phá giáp 1 tầng)", icon: "⚔", cost: 12, cd: 3.5,
+      area: "front", r: 48, dmg: 2.2, status: [{ s: "armor" }] },
+    { name: "Cửu Tinh Kiếm Vũ", desc: "Phóng 9 thanh kiếm hình quạt, mỗi kiếm Phá giáp 1 tầng", icon: "✶", cost: 16, cd: 5.5,
+      area: "proj", r: 130, n: 9, spread: 80, dmg: 0.7, status: [{ s: "armor" }] },
+    { name: "Vô Ngã Kiếm Trận", desc: "Kiếm trận xoay quanh thân 3 giây, 6 nhát, mỗi nhát Phá giáp 1 tầng", icon: "✵", cost: 24, cd: 10,
+      area: "around", r: 72, n: 6, every: 0.5, dmg: 0.6, status: [{ s: "armor" }] },
+    { name: "Kiếm Trảm Sơn Hà", desc: "Một kiếm chém núi sông nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công", icon: "⚡", cost: 40, cd: 14,
+      area: "front", r: 64, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }] },
+  ],
+  // Mẫn công, chấn đãng: lướt, quật ngã, tăng chí mạng, hút máu; ràng buộc chí mạng với Hạo Thiên Chùy (BONDS).
+  nhu_cot_tho: [
+    { name: "Yêu Cung", desc: "Lướt tới quật mục tiêu bằng Yêu Cung: quật ngã (Choáng 0,6 giây), +20% chí mạng, hút 20% sát thương", icon: "➰", cost: 12, cd: 3.5,
+      area: "target", r: 50, dash: 40, dmg: 2, crit: 0.2, lifesteal: 0.2, status: [{ s: "stun", secs: 0.6 }] },
+    { name: "Thuấn Di", desc: "Thuấn di xuyên hàng hồn thú phía trước, +20% chí mạng, bất tử 0,4 giây", icon: "➤", cost: 14, cd: 5,
+      area: "dash", r: 80, dmg: 1.8, crit: 0.2, inv: 0.4 },
+    { name: "Vô Địch Kim Thân", desc: "Kim thân bất tử 1,2 giây, chí mạng +30% trong 6 giây", icon: "✪", cost: 20, cd: 16,
+      area: "self", r: 0, dmg: 0, inv: 1.2, self: { buff: { crit: 0.3 }, secs: 6 } },
+    { name: "Bát Đoạn Suất", desc: "Lướt tới quăng quật mục tiêu 8 đoạn, +25% chí mạng, hút 25% sát thương; đoạn cuối quật ngã (Choáng 1,2 giây)", icon: "✥", cost: 40, cd: 14,
+      area: "target", r: 60, dash: 50, n: 8, every: 0.14, dmg: 0.75, crit: 0.25, lifesteal: 0.25, inv: 0.5, glow: true, finisher: [{ s: "stun", secs: 1.2 }] },
+  ],
+  // Khống chế, trúng độc / cảm điện: giăng tơ gom quái, độc nhện khống chế.
+  tu_vong_chu_hoang: [
+    { name: "Chu Hoàng Độc Nha", desc: "Nanh độc cắn mục tiêu gần nhất: Trúng độc 2 tầng", icon: "☠", cost: 12, cd: 3.5,
+      area: "target", r: 90, dmg: 1.5, status: [{ s: "poison", n: 2 }] },
+    { name: "Chu Ti Triền Phược", desc: "Giăng tơ kéo mọi hồn thú quanh thân lại (gom quái): Trói 2 giây, Trúng độc 1 tầng", icon: "⌘", cost: 18, cd: 9,
+      area: "around", r: 90, dmg: 1, pull: true, status: [{ s: "root" }, { s: "poison" }] },
+    { name: "Tử Vong Độc Võng", desc: "Lưới độc đặt xuống chỗ đứng 3 giây: 6 nhát, mỗi nhát Làm chậm, Trúng độc 1 tầng; nhát cuối Trói", icon: "▦", cost: 22, cd: 11,
+      area: "around", fixed: true, r: 80, n: 6, every: 0.5, dmg: 0.35, status: [{ s: "slow", secs: 1 }, { s: "poison" }], finisher: [{ s: "root", secs: 1 }] },
+    { name: "Tử Vong Thiên La", desc: "Thiên la tơ nhện kéo mọi hồn thú quanh thân lại: mỗi tầng Trúng độc thêm 40% công, Trói 2,5 giây, Trúng độc 2 tầng, Cảm điện", icon: "✳", cost: 40, cd: 15,
+      area: "around", r: 110, dmg: 2.2, pull: true, perStack: { s: "poison", dmg: 0.4 }, glow: true, shake: true,
+      status: [{ s: "root", secs: 2.5 }, { s: "poison", n: 2 }, { s: "shock" }] },
+  ],
+  // Phụ trợ, đội bùng nổ: biến sát thương gây ra thành hồi máu (hiệu ứng có lợi `leech`), tăng sát thương đội;
+  // tuyệt kỹ Quỷ Ảnh Trùng Trùng tàng hình cả đội (hiệu ứng thuộc hồn sư nên đổi võ hồn vẫn còn).
+  quy_mi: [
+    { name: "Quỷ Ảnh Trảo", desc: "Quỷ ảnh lướt tới vồ mục tiêu: hút 30% sát thương thành sinh lực", icon: "≋", cost: 12, cd: 4,
+      area: "target", r: 60, dash: 40, dmg: 1.6, lifesteal: 0.3 },
+    { name: "Quỷ Huyết Ấn", desc: "20% mọi sát thương gây ra hồi thành sinh lực trong 10 giây (cả đội: đổi võ hồn vẫn còn)", icon: "♥", cost: 16, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { leech: 0.2 }, secs: 10 } },
+    { name: "Quỷ Lực Gia Trì", desc: "Công +25%, chí mạng +10% trong 10 giây (cả đội)", icon: "✦", cost: 20, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.25, crit: 0.1 }, secs: 10 } },
+    { name: "Quỷ Ảnh Trùng Trùng", desc: "Tuyệt kỹ: cả đội tàng hình 5 giây (hồn thú mất dấu), công +30%; ra đòn thì hiện hình", icon: "☾", cost: 40, cd: 20,
+      area: "self", r: 0, dmg: 0, self: { buff: { hide: 1, atk: 0.3 }, secs: 5 } },
+  ],
+  // Phụ trợ, đánh boss: hồi máu, khiên, Dễ thương cho đồng đội đánh; kỹ năng Tịnh Thế Lưu Ly. "Xóa buff địch" và "thanh tẩy đội"
+  // chưa làm: hồn thú chưa có hiệu ứng có lợi, hồn sư chưa bị trạng thái xấu (chờ hồn thú có chiêu, bước 3.5 / BĐ4; chờ chốt).
+  thien_can_bach_ngoc_dinh: [
+    { name: "Bạch Ngọc Hồi Xuân", desc: "Hồi 18% sinh lực cả đội", icon: "✚", cost: 12, cd: 9,
+      area: "self", r: 0, dmg: 0, self: { heal: 0.18 } },
+    { name: "Bạch Ngọc Hộ Thuẫn", desc: "Khiên 15% sinh lực tối đa, sát thương nhận giảm 15% trong 6 giây", icon: "◈", cost: 16, cd: 14,
+      area: "self", r: 0, dmg: 0, self: { buff: { def: 0.15 }, secs: 6, shield: 0.15 } },
+    { name: "Thiên Càn Trấn Áp", desc: "Đỉnh ngọc trấn áp quanh thân: Dễ thương 6 giây, Câm lặng 2 giây", icon: "▼", cost: 20, cd: 10,
+      area: "around", r: 80, dmg: 1.2, status: [{ s: "vuln", secs: 6 }, { s: "silence", secs: 2 }] },
+    { name: "Tịnh Thế Lưu Ly", desc: "Hồi 30% sinh lực cả đội, khiên 20% sinh lực tối đa 6 giây", icon: "✷", cost: 40, cd: 18,
+      area: "self", r: 0, dmg: 0, glow: true, self: { secs: 6, heal: 0.3, shield: 0.2 } },
+  ],
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
 export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
 
 /**
- * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; 2.5b thêm 5 võ hồn Thiêu đốt, 2.5c thêm 5 võ hồn Cảm điện; chờ chốt). Chạy bằng cùng bộ máy
+ * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; 2.5b thêm 5 võ hồn Thiêu đốt, 2.5c thêm 5 võ hồn Cảm điện, 2.5d thêm 5 võ hồn còn lại; chờ chốt). Chạy bằng cùng bộ máy
  * hồn kỹ với sức mạnh 1 × tienCoDmgMult, không tốn hồn lực, không tạo năng lượng. Võ hồn chưa có trong bảng dùng TIEN_CO theo hệ.
  */
 export const TIEN_CO_RIENG: Record<string, SkillDef> = {
@@ -714,7 +780,31 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
     area: "around", r: 80, dmg: 1.2, status: [{ s: "allure", n: 3 }, { s: "slow", secs: 3 }] },
   xuc_xich: { name: "Thanh Tâm Hương Tràng", desc: "hồi 20% sinh lực cả đội, 25% hồn lực, khiên 12% sinh lực", icon: "✚", cost: 0, cd: 0,
     area: "self", r: 0, dmg: 0, self: { heal: 0.2, mp: 0.25, shield: 0.12, secs: 5 } },
+  // Bước 2.5d: 5 võ hồn còn lại.
+  cuu_tinh_that_sat_kiem: { name: "Thất Sát Kiếm Vực", desc: "kiếm khí nổ quanh thân, Liệt thương: Phá giáp đủ 3 tầng", icon: "⚔", cost: 0, cd: 0,
+    area: "around", r: 72, dmg: 2.2, shake: true, status: [{ s: "armor", n: 3 }] },
+  nhu_cot_tho: { name: "Nhu Cốt Thuấn Suất", desc: "thuấn di tới hồn thú gần nhất, quật 3 đoạn, +30% chí mạng, hút 30% sát thương, đoạn cuối quật ngã", icon: "➰", cost: 0, cd: 0,
+    area: "target", r: 110, dash: 90, n: 3, every: 0.12, dmg: 1.4, crit: 0.3, lifesteal: 0.3, inv: 0.35, finisher: [{ s: "stun", secs: 0.8 }] },
+  tu_vong_chu_hoang: { name: "Chu Hoàng Thiên Võng", desc: "giăng tơ kéo hồn thú quanh thân lại: Trói 2 giây, Trúng độc 2 tầng, Cảm điện", icon: "✳", cost: 0, cd: 0,
+    area: "around", r: 80, dmg: 1.2, pull: true, status: [{ s: "root" }, { s: "poison", n: 2 }, { s: "shock" }] },
+  quy_mi: { name: "Quỷ Ảnh Mê Tung", desc: "cả đội tàng hình 4 giây, 25% sát thương gây ra hồi thành sinh lực", icon: "☾", cost: 0, cd: 0,
+    area: "self", r: 0, dmg: 0, self: { buff: { hide: 1, leech: 0.25 }, secs: 4 } },
+  thien_can_bach_ngoc_dinh: { name: "Bạch Ngọc Thánh Quang", desc: "hồi 20% sinh lực cả đội, khiên 18% sinh lực tối đa 6 giây", icon: "✚", cost: 0, cd: 0,
+    area: "self", r: 0, dmg: 0, self: { heal: 0.2, shield: 0.18, secs: 6 } },
 };
+
+/**
+ * Ràng buộc (mục 5.1, chờ chốt): hai võ hồn cùng trong đội (ô bất kỳ, kể cả đang gục) thì hồn sư có thêm hiệu ứng, võ hồn nào ra
+ * trận cũng hưởng. Bản tối thiểu ở 2.5d chỉ có hai cặp ví dụ của thiết kế. `crit`: cộng tỉ lệ chí mạng mọi đòn trực tiếp;
+ * `burn`: Thiêu đốt do hồn sư gây mạnh thêm tỉ lệ này (tính lúc gây, như tăng công).
+ */
+export interface BondDef { name: string; pair: [string, string]; desc: string; crit?: number; burn?: number; }
+export const BONDS: BondDef[] = [
+  { name: "Hạo Thiên – Nhu Cốt", pair: ["hao_thien_chuy", "nhu_cot_tho"], desc: "chí mạng +10%", crit: 0.1 },
+  { name: "Tà Hỏa – Hỏa Ảnh", pair: ["ta_hoa_phuong_hoang", "hoa_anh"], desc: "Thiêu đốt mạnh thêm 20%", burn: 0.2 },
+];
+/** Ràng buộc đang có của một đội (danh sách mã võ hồn trong đội). */
+export const bondsOf = (vohonIds: string[]) => BONDS.filter((b) => b.pair.every((v) => vohonIds.includes(v)));
 /**
  * Phong Lôi Chi Lực (bước 2.5c, chờ chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
  * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú

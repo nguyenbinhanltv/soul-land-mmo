@@ -155,6 +155,7 @@ body.touch #prompt{bottom:160px}
 .rcard:hover:not(:disabled){border-color:var(--line2)}
 .rcard.on{border-color:var(--c);cursor:default}
 .rnote{color:var(--muted);font-size:11px}
+.rbond{color:#8a5a00;font-weight:600}
 .rcard .stars,.srow .stars{font-style:normal;color:var(--muted);font-size:11px;letter-spacing:1px}
 .rcard .stars b,.srow .stars b{color:#e0a020;font-weight:400}
 /* Mảnh võ hồn (bước 3.4): tiến độ mở / lên sao */
