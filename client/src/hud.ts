@@ -3,8 +3,10 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat } from "../../shared/data.ts";
+  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
+  CORE_ITEM, CORE_SETS, CORE_SUBS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
+import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -499,10 +501,16 @@ function honTeHtml(dong: number) {
 
 /** Hồn cốt trong túi (bước 4.1): số năm, loài và vị trí; dữ liệu hỏng thì null (hiện như vật phẩm thường). */
 const boneOf = (it: BagItem) => (it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null);
-/** Tên hiển thị một ô (mã không còn trong ITEMS: "Vật phẩm lạ"); hồn hoàn kèm số năm; hồn cốt "Loài – Vị trí, N năm". */
+/** Hồn hạch trong túi (bước 5.1): bộ, chỉ số chính, dòng phụ; dữ liệu hỏng thì null (hiện như vật phẩm thường). */
+const coreOf = (it: BagItem) => (it.code === CORE_ITEM ? parseCore(it.stats) : null);
+/** Bộ hồn hạch theo mã (bộ lạ: undefined). */
+const coreSet = (set: string) => CORE_SETS[coreSetIndex(set)];
+/** Tên hiển thị một ô (mã không còn trong ITEMS: "Vật phẩm lạ"); hồn hoàn kèm số năm; hồn cốt "Loài – Vị trí, N năm"; hồn hạch "Hồn hạch Bộ N★". */
 function itemName(it: BagItem) {
   const bone = boneOf(it);
   if (bone) return boneName(bone.beast, bone.slot, it.years!);
+  const core = coreOf(it);
+  if (core) return coreName(core.set, it.stars ?? 1);
   return (itemDef(it.code)?.name ?? "Vật phẩm lạ") + (it.years !== null ? ` ${formatYears(it.years)}` : "");
 }
 /** Hồn hoàn trong túi: có số năm thì màu theo số năm (bảng 5.2). */
@@ -514,8 +522,11 @@ const boneStatText = (slot: string, years: number) =>
   Object.entries(boneStats(slot, years)).map(([k, v]) => `${BONE_STAT_NAMES[k as BoneStat]} +${v}`).join(", ");
 /** Số năm gọn để ghi ở góc ô: "437", "1.760", "2,5v" (vạn năm). */
 const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
-/** Màu một ô: hồn hoàn theo số năm, vật phẩm khác theo ITEMS. */
-const itemColor = (it: BagItem) => (hasYears(it) ? ringColor(tierOfYears(it.years)) : itemDef(it.code)?.col ?? "#9db3a2");
+/** Màu một ô: hồn hoàn, hồn cốt theo số năm; hồn hạch theo bộ; vật phẩm khác theo ITEMS. */
+const itemColor = (it: BagItem) => {
+  const core = coreOf(it);
+  return hasYears(it) ? ringColor(tierOfYears(it.years)) : (core && coreSet(core.set)?.col) || (itemDef(it.code)?.col ?? "#9db3a2");
+};
 
 /**
  * Một võ hồn trong bộ sưu tập khi chọn nơi hấp thụ hồn hoàn (GameScene tính bằng absorbChance / absorbSecs của shared/data.ts,
@@ -616,10 +627,10 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const def = itemDef(it.code);
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
       b.style.setProperty("--c", itemColor(it));
-      const corner = hasYears(it) ? yearsShort(it.years) : it.qty > 1 ? String(it.qty) : "";
-      const bone = boneOf(it), icon = bone ? boneSvg(bone.slot) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`;
+      const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : it.qty > 1 ? String(it.qty) : "";
+      const bone = boneOf(it), icon = bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`;
       b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}<div class="cd"></div>`;
-      b.setAttribute("aria-label", hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : `${itemName(it)}, ${it.qty} món`);
+      b.setAttribute("aria-label", hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`);
       b.title = itemName(it);
       b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
@@ -634,8 +645,10 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}`;
     info.querySelector("b")!.style.color = def ? itemColor(sel) : "";
     const band = hasYears(sel) ? tierBand(tierOfYears(sel.years)) : null, bone = boneOf(sel), slot = bone ? BONE_SLOTS[boneSlotIndex(bone.slot)] : null;
+    const core = coreOf(sel), cset = core ? coreSet(core.set) : undefined;
     info.querySelector("small")!.textContent = !def ? "Không rõ loại" : ITEM_KINDS[def.kind].name
       + (slot ? ` · ${slot.name} (kỹ năng ${slot.active ? "chủ động" : "bị động"})` : "")
+      + (core ? ` · Bộ ${cset ? `${cset.name} (${cset.tag})` : "lạ"}` : "")
       + (hasYears(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
       + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "");
     // Hồn cốt (4.1): chỉ số gốc theo số năm, cấp cường hóa, đang gắn hay chưa.
@@ -643,6 +656,21 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const st = document.createElement("div"); st.className = "bstat";
       st.innerHTML = `<span>Chỉ số gốc</span><b></b><span>Cường hóa</span><b>+${sel.enhance}</b><span>Đang gắn</span><b>Chưa gắn</b>`;
       st.querySelector("b")!.textContent = boneStatText(bone.slot, sel.years!);
+      info.insertBefore(st, info.querySelector("p"));
+    }
+    // Hồn hạch (5.1): sao, chỉ số chính (theo sao), dòng phụ đã tung, nâng cấp, đang gắn hay chưa, hiệu ứng bộ (có tác dụng từ 5.2).
+    if (core) {
+      const stars = sel.stars ?? 1, st = document.createElement("div"); st.className = "bstat";
+      const rows: [string, string][] = [["Sao", "★".repeat(stars) + ` (${CORE_SUBS[stars - 1]} dòng phụ)`], ["Chỉ số chính", coreStatText(core.main, coreMainValue(core.main, stars))]];
+      core.subs.forEach(([k, v], i) => rows.push([`Dòng phụ ${i + 1}`, coreStatText(k, v)]));
+      if (!core.subs.length) rows.push(["Dòng phụ", "Không có"]);
+      rows.push(["Nâng cấp", `+${sel.enhance}`], ["Đang gắn", "Chưa gắn"]);
+      if (cset) rows.push(["Bộ 2 món", cset.set2], ["Bộ 4 món", cset.set4]);
+      for (const [k, v] of rows) {
+        const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v;
+        if (k === "Chỉ số chính") b.style.color = cset?.col ?? ""; st.append(a, b);
+      }
+      st.classList.add("core");
       info.insertBefore(st, info.querySelector("p"));
     }
     const ready = isRing(sel) ? act.absorbOptions(sel.years).filter((o) => !o.reason).length : 0;
@@ -669,7 +697,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt một ô, số ở góc là số năm. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
+  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
   el.appendChild(note);
   updateBag();
 }
