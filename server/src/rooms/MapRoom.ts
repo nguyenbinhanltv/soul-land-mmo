@@ -343,7 +343,6 @@ export class MapRoom extends Room<MapState> {
     const portal = this.map.portals.find((q) => q.name === name);
     if (!portal) return "Cổng không tồn tại.";
     if (this.map.portalAt(p.x, p.y) !== portal) return "Hãy đứng trong cổng rồi mới đi qua được.";
-    if (!Object.hasOwn(MAPS, portal.to)) return "Bản đồ đích không tồn tại.";
     if (p.dead) return "Đã gục ngã, không thể đi qua cổng.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không thể đi qua cổng.";
     return null;
@@ -368,6 +367,8 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
     d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
     this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
+    // Đạn hồn kỹ còn bay (bắn lúc đang niệm) không được hạ hồn thú sau khi transaction đã chụp dữ liệu: bỏ luôn (mục 6).
+    this.projs = this.projs.filter((pr) => pr.owner !== id);
     this.portalHint(id, p, d);
     this.chain(d, async () => {
       const list = this.unsaved(id);
@@ -392,7 +393,8 @@ export class MapRoom extends Room<MapState> {
   /**
    * Hook kiểm thử cho bot (client/scripts/bot-test.mjs), chỉ chạy khi server bật biến môi trường GAME_TEST=1; mặc định chỉ trả
    * lời "không bật". Đi qua đúng các hàm luật chơi: `down` (võ hồn ra trận gục), `kill {tier}` (nhận kinh nghiệm như hạ hồn thú),
-   * `rest {s}` (nghỉ ngoài trận s giây), `set {rowId, level, xp, rings}` (đặt tiến độ một võ hồn của mình; có lưu DB).
+   * `rest {s}` (nghỉ ngoài trận s giây), `set {rowId, level, xp, rings}` (đặt tiến độ một võ hồn của mình; có lưu DB),
+   * `beast {dx, dy}` (đặt một hồn thú thường 1 máu, đứng yên, lệch (dx, dy) so với mình; chỉ bản đồ có vùng săn).
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -401,6 +403,13 @@ export class MapRoom extends Room<MapState> {
     const int = (x: unknown, lo: number, hi: number, def: number) => (Number.isInteger(x) ? Math.max(lo, Math.min(hi, x as number)) : def);
     if (op === "down" && !p.dead) { d.inv = 0; this.hurtPlayer(id, d.hpF / VOHON[p.vh].def + 1); }
     else if (op === "kill") this.rewardKill(id, int(o.tier, 0, TIERS.length - 1, 0));
+    else if (op === "beast" && this.map.zones.length) {
+      // Hồn thú thường 1 máu đứng yên tại (x+dx, y+dy) so với người gọi, để bot thử đạn hồn kỹ trúng đích đúng lúc.
+      const b = new BeastState(); b.x = p.x + int(o.dx, -200, 200, 0); b.y = p.y + int(o.dy, -200, 200, 0);
+      b.species = Math.max(0, BEASTS.findIndex((s) => s.tier === 0)); b.hp = 1; b.maxHp = TIERS[0].hp;
+      const bid = uid("b"); this.state.beasts.set(bid, b);
+      this.bdata.set(bid, { zone: 0, hx: b.x, hy: b.y, tx: b.x, ty: b.y, wt: 1e9, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0 });
+    }
     else if (op === "rest") { const s = int(o.s, 0, 3600, 0); d.fight = Math.max(d.fight + s, TEAM_COMBAT_SECS); this.tickDowns(id, s); }
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);
@@ -560,12 +569,13 @@ export class MapRoom extends Room<MapState> {
   }
 
   damageBeast(bid: string, dmg: number, by: string, col: string) {
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid), p = this.state.players.get(by);
-    if (!b || !bd || !p || b.hp <= 0) return;
+    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid), p = this.state.players.get(by), pd = this.pdata.get(by);
+    // Người đang chuyển bản đồ không gây sát thương nữa: kills/kinh nghiệm sau lúc chụp dữ liệu đi cổng sẽ mất (mục 6).
+    if (!b || !bd || !p || b.hp <= 0 || pd?.travelling) return;
     const crit = Math.random() < 0.12; if (crit) dmg *= 1.8;
     dmg = Math.max(1, Math.round(dmg));
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by;
-    const pd = this.pdata.get(by); if (pd) pd.fight = 0;
+    if (pd) pd.fight = 0;
     const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1, kb = b.tier >= 3 ? 40 : 110;
     bd.kx = (dx / dd) * kb; bd.ky = (dy / dd) * kb;
     this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size, v: dmg, crit, c: crit ? "#ffe14d" : col, bid });
@@ -595,6 +605,7 @@ export class MapRoom extends Room<MapState> {
   tryAbsorb(c: Client) {
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
     if (!p || !d || p.dead || d.absorbing || d.travelling) return;
+    if (d.travelCast) return this.log(id, "Đang đi qua cổng, không thể hấp thụ.", "#ffb35c");
     let best: string | null = null, bd = 22;
     this.state.drops.forEach((dr, did) => { const dd = Math.hypot(dr.x - p.x, dr.y - p.y); if (dd < bd) { bd = dd; best = did; } });
     if (!best) return;

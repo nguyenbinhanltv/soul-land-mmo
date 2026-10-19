@@ -17,7 +17,7 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 
 ## Checklist cho mỗi message từ client
 Đăng ký trong `onCreate()` bằng `this.onMessage(...)`. Message hiện có: `input`, `attack`, `skill`, `absorb`, `chat`, `vohons`, `team {slots}` (xếp đội, ngoài giao chiến), `switch {slot}` (đổi võ hồn trong đội, cả khi đang đánh; cấm vào võ hồn đã gục), `test {op}` (hook kiểm thử cho bot, chỉ chạy khi server bật `GAME_TEST=1`; luồng mới khó thử bằng bot thì thêm `op` gọi đúng hàm luật chơi, không viết luật riêng), `travel {portal}` (xin đi cổng theo tên; server trả riêng `portal` khi bước vào/ra cổng và `travel {mapId}` khi đã lưu xong, mục 6).
-Hành động mới phải bị chặn khi `d.travelling` (đang chuyển bản đồ) và, nếu là giao chiến, khi đứng trong vùng an toàn (`this.map.inSafe`). Thiết kế dự kiến thêm `absorb {itemId, vohonId}`.
+Hành động mới phải bị chặn khi `d.travelling` (đang chuyển bản đồ; hiệu ứng trễ như đạn `projs` cũng không được cộng tiến độ sau lúc đó: `beginTravel` xóa đạn của người đó, `damageBeast` bỏ qua người đang chuyển) và, nếu là giao chiến, khi đứng trong vùng an toàn (`this.map.inSafe`). Thiết kế dự kiến thêm `absorb {itemId, vohonId}`.
 Message chưa đăng ký thì Colyseus ngắt kết nối client gửi nó (`onMessage for "…" not registered`): bỏ message cũ thì cập nhật client và bot cùng lúc.
 
 1. **Ép kiểu và kẹp giá trị**: `Number(m?.x) || 0`, `String(m?.text ?? "")`. Xem mẫu `input` (chuẩn hóa vector về độ dài ≤ 1) và `chat` (`trim().slice(0, 120)`).

@@ -6,7 +6,7 @@
 // Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
-import { TIERS, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale } from "../../shared/data.ts";
+import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -247,9 +247,11 @@ ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
 async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
 /** Đi tới cột x (pixel) theo phương ngang. */
 const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
-async function travelBy(name,to){
-  C.travel=null; C.room.send("travel",{portal:name});
+/** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
+async function travelBy(name,to,during,after){
+  C.travel=null; C.room.send("travel",{portal:name}); await during?.();
   ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`);
+  await after?.();
   const x0=me().x; C.room.send("input",{x:1,y:0}); await sleep(300);
   ok(me().x===x0,"đang chuyển bản đồ: server bỏ qua input");
   await C.room.leave(); await sleep(300);
@@ -266,6 +268,7 @@ await walkToX(36.5*16);
 ok(await walk(0,1,()=>C.portal?.name),`tới cổng: ${JSON.stringify(C.portal)}`);
 ok(C.portal?.to==="nac_dinh_thanh"&&C.portal.toName==="Nặc Đinh Thành"&&!C.portal.warn,"hộp cổng: đích Nặc Đinh Thành, không cảnh báo");
 C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); await sleep(200);
+C.room.send("absorb"); ok(await lastLog(C,/không thể hấp thụ/),"đang niệm cổng: không hấp thụ được");
 await walk(0,-1,()=>!C.portal?.name,3000);
 ok(await lastLog(C,/rời cổng/),"rời cổng khi đang niệm: hủy");
 ok(!C.travel,"chưa được chuyển bản đồ");
@@ -304,7 +307,26 @@ C=C2;
 await waitFor(()=>me());
 // Đường về: cổng ở mép tây doanh trại -> Nặc Đinh Thành (cổng đông).
 ok(await walk(-1,0,()=>C.portal?.name,6000)&&C.portal.to==="nac_dinh_thanh",`tới cổng về Nặc Đinh Thành: ${C.portal?.name}`);
-await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh");
+// Hồn kỹ 3 bắn lúc đang niệm: đạn bay tới hồn thú sau khi transaction đi cổng đã chụp dữ liệu thì bị bỏ, không hạ được
+// (nếu hạ được thì kills/kinh nghiệm cộng sau lúc lưu và mất hẳn). Cần hook test.
+let shot=null;
+if((await test(C,"ping"))?.enabled){
+  await test(C,"set",{rowId:C.owned.active,level:30,xp:0,rings:[1,1,1]});
+  const ids=new Set(C.room.state.beasts.keys());
+  // Đạn bay 170 px/s từ (x, y-8): hồn thú cách 90 px về phía đông, trúng sau ~0,53 giây.
+  await test(C,"beast",{dx:90,dy:TIERS[0].size/2-8});
+  const fresh=()=>[...C.room.state.beasts.keys()].find(k=>!ids.has(k)); // state đồng bộ sau tin nhắn test
+  ok(await waitFor(fresh),"hook test đặt hồn thú 1 máu cạnh cổng");
+  shot={bid:fresh(),kills:me().kills};
+}
+await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
+  shot&&(async()=>{ await sleep(TRAVEL_CAST*1000-200); C.room.send("skill",{i:2}); await sleep(150); }),
+  shot&&(async()=>{
+    ok(me().cds[2]>0,"hồn kỹ 3 đã bắn trong lúc niệm cổng");
+    await sleep(800);
+    ok(C.room.state.beasts.has(shot.bid)&&me().kills===shot.kills&&!C.logs.some(t=>/^Hạ /.test(t)),
+      "đạn hồn kỹ bắn lúc niệm không hạ hồn thú sau khi đã lưu để đi cổng");
+  }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
