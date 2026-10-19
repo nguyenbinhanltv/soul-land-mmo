@@ -4,7 +4,7 @@
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
 //   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4); Ngoại vi và Nội địa có 1 object `boss` (hang thú vương, BĐ5).
-//   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, chỗ đứng cho NPC của 6.1 (BĐ2)
+//   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, NPC Đại Sư, thương nhân, lò rèn (BĐ2; hoạt động từ 6.1)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
 import { writeFileSync } from "node:fs";
@@ -294,7 +294,7 @@ function thanhHonThon() {
   writeMap("thanh_hon_thon", MW, MH, ground, trees, canopy, o);
 }
 
-// ---------- Nặc Đinh Thành (mục 5.8): thành an toàn, chưa có NPC hoạt động (bước 6.1) ----------
+// ---------- Nặc Đinh Thành (mục 5.8): thành an toàn; NPC (mã trong NPCS của shared/data.ts) hoạt động từ bước 6.1 ----------
 function nacDinhThanh() {
   const MW = 60, MH = 40, r = rng(7707);
   const g = grid(MW, MH);

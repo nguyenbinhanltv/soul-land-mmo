@@ -58,6 +58,14 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #portal button.danger{border-color:#ff6b6b}
 #portal kbd{font:inherit;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
 body.touch #portal{bottom:196px}
+/* NPC (bước 6.1): hộp gợi ý khi đứng gần (cùng chỗ hộp đi cổng, cổng được ưu tiên) */
+#talk{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:13px;font-weight:800;border-color:#f2c84b;pointer-events:auto}
+#talk small{display:block;color:var(--muted);font-size:11.5px;font-weight:500}
+#talk button{margin-top:6px;font:inherit;font-size:12.5px;font-weight:800;padding:5px 14px;min-height:34px;border:1px solid #f2c84b;background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+#talk kbd{font:inherit;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
+body.touch #talk{bottom:196px}
+body.touch #talk kbd{display:none}
+#npc:not([hidden]) ~ #talk{display:none} /* đang mở hộp thoại thì ẩn gợi ý */
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;box-shadow:0 0 6px currentColor;background:currentColor}
 #channel{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);width:min(380px,92vw);text-align:center;display:none;padding:6px 10px;background:var(--panel);border:1px solid var(--line)}
 #channel .label{font-weight:700;font-size:12.5px;margin-bottom:5px;color:var(--text)}
@@ -377,3 +385,21 @@ body.boss #bossCd{top:72px}
 #bossRank .rk.low i{color:var(--muted)}
 #bossRank small{display:block;color:var(--muted);font-size:10.5px;margin-top:3px}
 body.touch #bossRank{top:auto;bottom:200px}
+/* Hộp thoại NPC, cửa hàng, lò rèn (bước 6.1): cùng chỗ với túi đồ */
+#npc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(380px,94vw);max-height:80%;overflow-y:auto;
+  padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:7px;backdrop-filter:blur(6px);
+  border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+#npc button{pointer-events:auto}
+.nname b{display:block;font-size:15px;color:var(--c)}
+.nname small{color:var(--muted);font-size:11.5px}
+.nline{margin:0;padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--c);background:rgba(0,0,0,.25);font-size:13px;line-height:1.5;cursor:default}
+.nline[title]{cursor:pointer}
+.shoprow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 8px;align-items:center;padding:6px 8px;border:1px solid var(--line);
+  border-left:3px solid var(--c);background:rgba(0,0,0,.2)}
+.shoprow>.ico{width:18px;height:18px}
+.shoprow b{font-size:12.5px;color:var(--c)}
+.shoprow small{display:block;color:var(--muted);font-size:11px}
+.shoprow .brow{grid-column:1/3}
+.shoprow .buse{margin-top:0;padding:4px 10px;min-height:30px;font-size:12px}
+.forge{display:flex;flex-direction:column;gap:5px}
+body.touch .shoprow .buse{min-height:38px}

@@ -7,7 +7,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   CORE_ITEM, CORE_SETS, CORE_SUBS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING } from "../../shared/data.ts";
+  BONE_ENHANCE_MILESTONES, KING, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
@@ -307,7 +307,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
 export function toggleRoster(open = $("#roster").hidden) {
   $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
   if (!open) rosterSel = null;
-  else toggleBag(false); // hai bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
+  else { toggleBag(false); closeNpc(); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
@@ -575,8 +575,8 @@ const enhText = (it: BagItem) => (it.enhance >= BONE_MAX_ENHANCE ? `+${BONE_MAX_
 /**
  * Bảng cường hóa hồn cốt `target` (mục 5.5): chọn nhiều hồn cốt trong túi làm nguyên liệu (chạm / bấm để chọn, cùng vị trí được
  * thêm 50%), xem trước điểm, cấp, chỉ số chính và mốc nâng kỹ năng sẽ đạt (boneEnhancePreview của shared/data.ts, chỉ để hiển
- * thị), rồi xác nhận vì nguyên liệu mất hẳn. Server kiểm tra và tính lại. Lò rèn ở Nặc Đinh Thành (6.1) sẽ mở bảng này từ NPC;
- * tạm thời mở bằng nút "Cường hóa…" ở túi đồ và bảng hồn cốt.
+ * thị), rồi xác nhận vì nguyên liệu mất hẳn. Server kiểm tra và tính lại. Mở từ NPC Thợ rèn ở Nặc Đinh Thành (6.1, renderForge),
+ * và vẫn mở được bằng nút "Cường hóa…" ở túi đồ và bảng hồn cốt (chờ chốt: có giới hạn ở lò rèn không, mục 8).
  */
 function enhancePicker(target: BagItem & { years: number }, items: BagItem[], act: { enhance(t: string, m: string[]): void; combat(): boolean }, again: () => void) {
   const tb = boneOf(target)!, xp0 = boneXp(target.stats), lv0 = target.enhance;
@@ -645,7 +645,7 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
   btn("Đóng", "drop", () => { enhClose(); again(); });
   box.appendChild(row);
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt. Tháo ra vẫn giữ cấp. Sau này cường hóa ở lò rèn Nặc Đinh Thành.`;
+  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt. Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành cũng mở bảng này.`;
   box.appendChild(note);
   if (enhJump) { enhJump = false; requestAnimationFrame(() => head.scrollIntoView({ block: "nearest" })); }
   return box;
@@ -705,7 +705,7 @@ export function showPrompt(html: string | null) { const t = $("#prompt"); if (ht
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
-  if (open) toggleRoster(false);
+  if (open) { toggleRoster(false); closeNpc(); }
 }
 
 let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
@@ -935,4 +935,196 @@ export function updateBag() {
     const txt = left > 0 ? `Đang hồi · ${Math.ceil(left)}s` : "Dùng";
     if (btn.textContent !== txt) { btn.textContent = txt; btn.disabled = left > 0; }
   }
+}
+
+// ---------- NPC, thương nhân, lò rèn (mục 5.8, bước 6.1) ----------
+/** Hộp gợi ý khi đứng gần NPC (cổng được ưu tiên): tên, chức danh và nút "Nói chuyện" (phím F, chuột hoặc chạm). */
+export function showTalk(def: NpcDef | null, go: () => void) {
+  const el = $("#talk");
+  if (!def) { el.hidden = true; el.innerHTML = ""; return; }
+  el.innerHTML = `<div></div><small></small><button type="button">Nói chuyện<kbd>F</kbd></button>`;
+  el.querySelector("div")!.textContent = def.name;
+  (el.querySelector("div") as HTMLElement).style.color = def.col;
+  el.querySelector("small")!.textContent = def.title;
+  el.querySelector("button")!.addEventListener("pointerdown", (e) => { e.preventDefault(); go(); });
+  el.hidden = false;
+}
+
+/** Thao tác ở NPC: client chỉ gửi ý định (mã đan và số lượng, id ô muốn bán, hồn cốt muốn cường hóa); server kiểm tra rồi gửi lại túi. */
+export interface NpcActions { buy(code: string, qty: number): void; sell(id: string, qty?: number): void; enhance(targetId: string, materialIds: string[]): void; combat(): boolean; }
+type NpcPage = "talk" | "buy" | "sell" | "forge";
+let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
+let npcPage: NpcPage = "talk";
+let npcLine = 0;                       // câu thoại đang hiện
+let npcBagMsg: BagMsg | null = null;   // tin "bag" gần nhất (Hồn Tệ, đồ bán được, hồn cốt cho lò rèn)
+let npcAct: NpcActions | null = null;
+let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" lần đầu với món giá trị: bấm lần nữa mới bán
+/** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
+const SELL_CONFIRM_DONG = 100;
+const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt; hồn hạch sắp mở." };
+
+/** NPC đang mở hộp thoại (null = đóng). */
+export const npcOpenId = () => npcDefOpen?.id ?? null;
+/** Mở hộp thoại NPC `id` (server đã cho phép): bắt đầu từ câu thoại đầu tiên; đóng túi đồ và bảng đội hình (cùng chỗ giữa màn hình). */
+export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
+  const def = NPCS.find((n) => n.id === id); if (!def) return;
+  if (npcDefOpen?.id !== id) { npcPage = "talk"; npcLine = 0; }
+  npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
+  toggleBag(false); toggleRoster(false);
+  $("#npc").hidden = false;
+  renderNpc();
+}
+export function closeNpc() {
+  if (!npcDefOpen) return;
+  npcDefOpen = null; npcAct = null; sellConfirm = null; enhClose();
+  const el = $("#npc"); el.hidden = true; el.innerHTML = "";
+}
+/** Túi đổi (mua, bán, cường hóa): vẽ lại hộp thoại đang mở với Hồn Tệ và đồ mới. */
+export function npcBag(bag: BagMsg) { npcBagMsg = bag; if (npcDefOpen) renderNpc(); }
+
+function renderNpc() {
+  const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
+  el.innerHTML = "";
+  el.style.setProperty("--c", def.col);
+  const head = document.createElement("div"); head.className = "rhead";
+  head.innerHTML = `<div class="nname"><b></b><small></small></div><button class="x" aria-label="Đóng">×</button>`;
+  head.querySelector("b")!.textContent = def.name;
+  head.querySelector("small")!.textContent = def.title;
+  head.querySelector("button")!.addEventListener("click", () => closeNpc());
+  el.appendChild(head);
+  const row = document.createElement("div"); row.className = "brow";
+  const btn = (text: string, cls: string, fn: () => void, disabled = false) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text; b.disabled = disabled;
+    b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
+  };
+  const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
+  const bag = npcBagMsg;
+  if (npcPage !== "talk" && bag) {
+    const coin = document.createElement("div"); coin.className = "coin";
+    coin.innerHTML = `<i class="coinico"></i><span>Hồn Tệ:</span> ${honTeHtml(bag.honTe)}`;
+    coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
+    el.appendChild(coin);
+  }
+  if (npcPage === "talk" || !bag) {
+    const n = def.lines.length, i = Math.min(npcLine, n - 1);
+    const p = document.createElement("p"); p.className = "nline"; p.textContent = def.lines[i];
+    if (i < n - 1) { p.title = "Bấm để nghe tiếp"; p.addEventListener("click", () => { npcLine = i + 1; renderNpc(); }); }
+    el.appendChild(p);
+    if (n > 1) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `${i + 1}/${n}`; el.appendChild(k); }
+    if (i < n - 1) btn("Tiếp ›", "use", () => { npcLine = i + 1; renderNpc(); });
+    if (def.role === "shop") { btn("Mua đan dược", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag); }
+    if (def.role === "forge") {
+      btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
+      btn("Nâng cấp hồn hạch (sắp mở)", "use", () => {}, true).title = "Nâng cấp hồn hạch mở ở bước 5.3.";
+    }
+    btn("Tạm biệt", "drop", () => closeNpc());
+    el.appendChild(row);
+    if (NPC_ROLE_NOTE[def.role]) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = NPC_ROLE_NOTE[def.role]; el.appendChild(k); }
+    return;
+  }
+  if (npcPage === "buy") renderShopBuy(el, bag, act);
+  else if (npcPage === "sell") renderShopSell(el, bag, act);
+  else { const box = renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
+  btn("‹ Quay lại", "drop", () => go("talk"));
+  el.appendChild(row);
+}
+
+/** Cửa hàng: mỗi món trong SHOP một dòng (giá, đang có), nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). */
+function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const used = bag.items.filter((i) => i.vohon === null).length;
+  for (const r of SHOP) {
+    const def = itemDef(r.code); if (!def) continue;
+    const have = bag.items.filter((i) => i.code === r.code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", def.col);
+    o.innerHTML = `<i class="ico ${def.kind}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.querySelector("b")!.textContent = def.name;
+    o.querySelector("small")!.textContent = `${formatHonTe(r.price)} mỗi viên · đang có ${have} · ${def.desc}`;
+    const row = o.querySelector(".brow")!;
+    for (const q of [1, 5, 10].filter((x) => x <= SHOP_MAX_QTY)) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
+      b.textContent = `Mua ${q}`; b.disabled = bag.honTe < r.price * q;
+      b.title = `${q} ${def.name}: ${formatHonTe(r.price * q)}`;
+      b.setAttribute("aria-label", `Mua ${q} ${def.name}, giá ${formatHonTe(r.price * q)}`);
+      b.addEventListener("click", () => { b.blur(); act.buy(r.code, q); });
+      row.appendChild(b);
+    }
+    el.appendChild(o);
+  }
+  const n = document.createElement("small"); n.className = "rnote";
+  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(SHOP[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`;
+  el.appendChild(n);
+}
+
+/**
+ * Bán đồ dư: mọi ô trong túi mà thương nhân mua (sellPrice khác null: hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn), giá theo niên hạn
+ * / sao / độ hiếm (chỉ để hiển thị, server tính lại). Đồ đang gắn không nằm trong danh sách. Món giá trị phải bấm hai lần.
+ */
+function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const list = bag.items.filter((i) => i.vohon === null && sellPrice(i) !== null);
+  const kindOrder = ["hon_hoan", "hon_cot", "hon_hach", "manh_vo_hon"];
+  list.sort((a, b) => kindOrder.indexOf(itemDef(a.code)?.kind ?? "") - kindOrder.indexOf(itemDef(b.code)?.kind ?? "") || (sellPrice(b) ?? 0) - (sellPrice(a) ?? 0));
+  if (!list.length) {
+    const p = document.createElement("p"); p.className = "nline"; p.textContent = "Túi không có đồ nào ta mua: mang hồn hoàn, hồn cốt, hồn hạch hay mảnh võ hồn dư tới đây.";
+    el.appendChild(p);
+  }
+  for (const it of list) {
+    const price = sellPrice(it)!, def = itemDef(it.code);
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", itemColor(it));
+    o.innerHTML = `<i class="ico ${def?.kind ?? "unknown"}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.querySelector("b")!.textContent = `${itemName(it)}${it.qty > 1 ? ` ×${it.qty}` : ""}`;
+    o.querySelector("small")!.textContent = `${ITEM_KINDS[def!.kind].name} · ${formatHonTe(price)}${it.qty > 1 ? " mỗi món" : ""}${it.enhance && boneOf(it) ? ` · cường hóa +${it.enhance}` : ""}`;
+    const row = o.querySelector(".brow")!;
+    const sell = (qty: number, label: string) => {
+      const key = `${it.id}|${qty}`, gain = price * qty, ask = gain >= SELL_CONFIRM_DONG || it.enhance > 0;
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === key ? "eok" : "use");
+      b.textContent = sellConfirm === key ? `Bán thật? +${formatHonTe(gain)}` : `${label} · +${formatHonTe(gain)}`;
+      b.setAttribute("aria-label", `${label} ${itemName(it)}, nhận ${formatHonTe(gain)}`);
+      b.addEventListener("click", () => {
+        b.blur();
+        if (ask && sellConfirm !== key) { sellConfirm = key; renderNpc(); return; }
+        sellConfirm = null; act.sell(it.id, qty);
+      });
+      row.appendChild(b);
+    };
+    if (it.qty > 1) { sell(1, "Bán 1"); sell(it.qty, "Bán hết"); } else sell(1, "Bán");
+    el.appendChild(o);
+  }
+  const worn = bag.items.filter((i) => i.vohon !== null).length;
+  const n = document.createElement("small"); n.className = "rnote";
+  n.textContent = (worn ? `${worn} món đang gắn trên võ hồn không hiện ở đây (tháo ra trước mới bán được). ` : "")
+    + "Thương nhân không mua đan dược và rương. Bán rồi không mua lại được.";
+  el.appendChild(n);
+}
+
+/**
+ * Lò rèn: chọn một hồn cốt (đang gắn hoặc trong túi) để mở bảng cường hóa của bước 4.4 (enhancePicker, message `enhance` giữ
+ * nguyên); chỗ nâng cấp hồn hạch để dành cho bước 5.3. Bảng cường hóa vẫn mở được từ túi đồ / bảng hồn cốt như trước.
+ */
+function renderForge(bag: BagMsg, act: NpcActions): HTMLElement {
+  const again = () => renderNpc();
+  const target = enhTarget ? bag.items.find((i) => i.id === enhTarget) : undefined;
+  if (target && boneOf(target) && target.years !== null) {
+    return enhancePicker(target as BagItem & { years: number }, bag.items, act, again); // nút "Đóng" của bảng về danh sách hồn cốt
+  }
+  if (enhTarget) enhClose();
+  const box = document.createElement("div"); box.className = "forge";
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Cường hóa hồn cốt"; box.appendChild(h);
+  const bones = bag.items.filter((i) => boneOf(i) && i.years !== null) as (BagItem & { years: number })[];
+  bones.sort((a, b) => Number(b.vohon !== null) - Number(a.vohon !== null) || b.enhance - a.enhance || b.years - a.years);
+  if (!bones.length) { const p = document.createElement("small"); p.textContent = "Chưa có hồn cốt nào. Hồn cốt rơi khi hạ hồn thú; hồn cốt dư dùng làm nguyên liệu."; box.appendChild(p); }
+  for (const it of bones) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", itemColor(it));
+    b.disabled = it.enhance >= BONE_MAX_ENHANCE;
+    b.innerHTML = `<b></b><i></i><span></span>`;
+    b.querySelector("b")!.textContent = itemName(it);
+    b.querySelector("i")!.textContent = it.vohon !== null ? "đang gắn" : "trong túi";
+    b.querySelector("span")!.textContent = enhText(it);
+    b.addEventListener("click", () => { b.blur(); enhOpen(it.id); again(); });
+    box.appendChild(b);
+  }
+  const h2 = document.createElement("b"); h2.className = "shead"; h2.textContent = "Nâng cấp hồn hạch"; box.appendChild(h2);
+  const c = document.createElement("small"); c.className = "rnote";
+  c.textContent = `Sắp mở (bước 5.3). Hồn hạch trong túi: ${bag.items.filter((i) => i.code === CORE_ITEM).length}.`;
+  box.appendChild(c);
+  return box;
 }
