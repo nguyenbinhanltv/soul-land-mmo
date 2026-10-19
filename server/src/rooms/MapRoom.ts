@@ -13,7 +13,7 @@ import { TIERS, VOHON, ringLimit, xpNeed, atBottleneck, calcStats, TICK_RATE, ti
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, ABSORB_RISK, ABSORB_FAIL_HP,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, PHOENIX_FIELD_R, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
+  PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal } from "../map.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
@@ -43,6 +43,8 @@ interface PData {
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
   buffs: Map<BuffId, { t: number; v: number }>; // hiệu ứng có lợi của hồn sư (hồn kỹ phụ trợ): giây còn lại, độ lớn; đổi võ hồn vẫn còn
+  lei: number; leiQueued: boolean; // Phong Lôi Chi Lực (PHONG_LOI, 2.5c) và cờ đã hẹn tung Lôi Động Minh Thiên. Không lưu DB
+  lastSkill: { sk: SkillDef; row: number } | null; // hồn kỹ gần nhất của võ hồn không có Phục Chế (Xúc Xích sao chép, 2.5c)
   // Túi đồ (mục 5.7, bước 3.1): chỉ gửi riêng cho chính chủ qua tin "bag". Lưu cùng lần lưu định kỳ, khi rời phòng và khi đi cổng.
   bag: Item[];          // mọi ô (thứ tự hiển thị); món đang gắn vào võ hồn (vohonId) không chiếm ô túi
   honTe: number;        // Hồn Tệ (đồng)
@@ -189,7 +191,7 @@ export class MapRoom extends Room<MapState> {
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false,
-      energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(),
+      energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
@@ -605,6 +607,7 @@ export class MapRoom extends Room<MapState> {
    * coi như vừa bị đánh), `regen {s}` (hồn thú gần nhất hồi máu s giây bằng regenBeast; trả `gain`), `ready {mp}` (hết hồi chiêu
    * hồn kỹ, hồn lực còn mp%), `grant {vohon}` (thêm võ hồn bất kỳ, kể cả UR, vào tài khoản; có lưu DB). `down` / `hurt` bỏ qua cả
    * miễn sát thương.
+   * Từ 2.5c: `lei {v}` (đặt Phong Lôi Chi Lực, tính như vừa giao chiến; đủ max thì chỉ tung khi đánh trúng lần tới).
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -648,6 +651,7 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; this.sendBag(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
+    else if (op === "lei") { d.lei = int(o.v, 0, PHONG_LOI.max, 0); p.lei = d.lei; d.fight = 0; }
     else if (op === "energy") { const v = int(o.v, 0, TIEN_CO_MAX, 0); d.fight = 0; for (const r of d.team) if (r && !d.down.has(r)) d.energy.set(r, v); }
     else if (op === "spawn") {
       const years = yearsOf(int(o.tier, 0, TIERS.length - 1, 0));
@@ -761,6 +765,7 @@ export class MapRoom extends Room<MapState> {
   knockOut(id: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, fallen = d.ch, name = VOHON[p.vh].name;
     d.down.set(fallen.rowId, REVIVE_SECS); d.energy.delete(fallen.rowId); // gục thì mất hết năng lượng tiên cơ
+    if (fallen.vohon === PHONG_LOI.vohon) { d.lei = 0; p.lei = 0; } // Lam Điện Bá Vương Long gục thì mất Phong Lôi Chi Lực
     const at = d.team.indexOf(fallen.rowId);
     let next: Character | undefined;
     for (let k = 1; k < TEAM_SIZE && !next; k++) {
@@ -797,6 +802,7 @@ export class MapRoom extends Room<MapState> {
     if (!p || !d || p.dead || d.absorbing || d.atkCd > 0 || d.travelling) return;
     d.atkCd = 0.38;
     if (this.map.inSafe(p.x, p.y)) { d.atkCd = 1; return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c"); }
+    this.unhide(p, d);
     const ax = p.x + d.dir.x * 10, ay = p.y - 6 + d.dir.y * 10;
     this.broadcast("fx", { k: "slash", id, dx: d.dir.x, dy: d.dir.y, col: VOHON[p.vh].col });
     const hit: Hit = { kind: "attack", done: false };
@@ -812,6 +818,8 @@ export class MapRoom extends Room<MapState> {
   atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk")); }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
+  /** Đánh thường hoặc tung hồn kỹ thì hết tàng hình (Yêu Hồ, 2.5c). */
+  unhide(p: PlayerState, d: PData) { if (d.buffs.delete("hide")) this.syncBuffs(p, d); }
 
   /** Hồn thú gần hồn sư nhất trong bán kính r. */
   nearestBeast(p: PlayerState, r: number) {
@@ -892,7 +900,7 @@ export class MapRoom extends Room<MapState> {
   selfEffect(id: string, e: NonNullable<SkillDef["self"]>, bpow: number, col: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, secs = e.secs ?? 5;
     for (const [b, v] of Object.entries(e.buff ?? {}) as [BuffId, number][]) {
-      const cur = d.buffs.get(b), val = b === "inv" ? 1 : v * bpow;
+      const cur = d.buffs.get(b), val = b === "inv" || b === "hide" ? 1 : v * bpow;
       d.buffs.set(b, { t: Math.max(cur?.t ?? 0, secs), v: Math.max(cur?.v ?? 0, val) });
     }
     this.syncBuffs(p, d);
@@ -924,16 +932,25 @@ export class MapRoom extends Room<MapState> {
       if (sk.boom) { this.detonateBurn(bid); if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power); }
       for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power);
     };
-    const near = (r: number) => [...this.state.beasts.entries()].filter(([, b]) => Math.hypot(b.x - p.x, b.y - p.y) < r).map(([bid]) => bid);
+    const near = (r: number, x = p.x, y = p.y) => [...this.state.beasts.entries()].filter(([, b]) => Math.hypot(b.x - x, b.y - y) < r).map(([bid]) => bid);
     if (sk.fly) this.broadcast("fx", { k: "fly", id, t: sk.fly, col });
     if (sk.area === "around") {
       // `n` > 1: nhiều nhát quanh vị trí hiện tại của hồn sư cách nhau `every` giây (cánh hoa xoay); nhát cuối mới gây `finisher`.
+      // Từ 2.5c: `at` đặt vùng cố định tại hồn thú gần nhất (bay tới nếu có `dash`), `fixed` cố định ở chỗ hồn sư đứng lúc tung.
       const n = sk.n ?? 1;
+      let at: { x: number; y: number } | null = sk.fixed ? { x: p.x, y: p.y } : null;
+      if (sk.at) {
+        const bid = this.nearestBeast(p, sk.at), b = bid ? this.state.beasts.get(bid) : undefined;
+        if (b && sk.dash) { const x0 = p.x, y0 = p.y; if (this.dashTo(p, d, b, sk.dash) > 0) this.broadcast("fx", { k: "trail", x0, y0, x1: p.x, y1: p.y, col }); }
+        at = b ? { x: b.x, y: b.y } : { x: p.x, y: p.y };
+      }
+      if (at && n > 1) this.broadcast("fx", { k: "zone", x: at.x, y: at.y - 4, r: sk.r, t: n * (sk.every ?? 0.15), col });
       for (let k = 0; k < n; k++) {
         const go = () => {
           const me = this.state.players.get(id); if (me !== p || me.dead) return;
-          this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
-          const ids = near(sk.r);
+          const cx = at?.x ?? p.x, cy = at?.y ?? p.y;
+          this.broadcast("fx", { k: "wave", x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
+          const ids = near(sk.r, cx, cy);
           if (sk.pull) { this.broadcast("fx", { k: "pull", x: p.x, y: p.y - 4, r: sk.r, col }); for (const bid of ids) this.pullBeast(bid, p); }
           for (const bid of ids) strike(bid, k === n - 1);
         };
@@ -992,19 +1009,27 @@ export class MapRoom extends Room<MapState> {
     // Như damageBeast: đang chuyển bản đồ hoặc đứng trong vùng an toàn thì không gây trạng thái.
     if (!b || !bd || b.hp <= 0 || !pd || !p || pd.travelling || this.map.inSafe(p.x, p.y)) return;
     const def = STATUS[a.s];
+    if (a.s === "allure" && bd.st.has("charm")) return; // đang Mê hoặc thì không cộng Mị hoặc (không khống chế nối liền)
     const secs = (a.secs ?? def.secs) * (def.noMove || def.noAtk ? CC_TIER_MULT[b.tier] ?? 1 : 1);
     const v = def.dot ? this.atkOf(pd) * def.dot * power : def.amp;
     const cur = bd.st.get(a.s), n = a.n ?? 1;
     if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); cur.src = by; }
     else bd.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: by });
     if (def.noMove) { bd.kx = 0; bd.ky = 0; }
+    // Đủ tầng thì bùng phát (2.5c): Mị hoặc thành Mê hoặc, Phong ấn thành Dễ thương 6,8 giây; tầng về 0.
+    if (def.burst && bd.st.get(a.s)!.n >= def.max) {
+      bd.st.delete(a.s);
+      this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power);
+      if (def.burst.s === "charm") { bd.target = null; b.aggro = false; }
+    }
     this.syncStatus(b, bd);
   }
 
-  /** Đồng bộ trạng thái hồn thú cho client: bit theo STATUS_IDS và số tầng Thiêu đốt / Trúng độc / Phá giáp. */
+  /** Đồng bộ trạng thái hồn thú cho client: bit theo STATUS_IDS và số tầng Thiêu đốt / Trúng độc / Phá giáp / Mị hoặc / Phong ấn. */
   syncStatus(b: BeastState, bd: BData) {
     let m = 0; for (const s of bd.st.keys()) m |= statusBit(s);
     b.st = m; b.burn = bd.st.get("burn")?.n ?? 0; b.poison = bd.st.get("poison")?.n ?? 0; b.armor = bd.st.get("armor")?.n ?? 0;
+    b.allure = bd.st.get("allure")?.n ?? 0; b.lock = bd.st.get("lock")?.n ?? 0;
   }
 
   /** Viêm bạo: kích nổ mọi tầng Thiêu đốt còn lại cùng lúc (sát thương còn lại × boom), xóa Thiêu đốt. Hỏa Long dùng (SkillDef.boom, 2.5b). */
@@ -1049,13 +1074,21 @@ export class MapRoom extends Room<MapState> {
     if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
     if (i >= p.rings.length) return this.log(id, `Hồn kỹ ${i + 1} cần hồn hoàn thứ ${i + 1}.`);
     if (p.cds[i] > 0) return;
-    const sk = skillsOf(VOHON[p.vh].id)[i], cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
+    const set = skillsOf(VOHON[p.vh].id), sk = set[i], cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
+    // Phục Chế (Xúc Xích, 2.5c): tung lại hồn kỹ gần nhất của võ hồn khác còn trong đội; chưa có thì không tung.
+    const last = d.lastSkill, src = sk.copy && last && last.row !== d.ch.rowId && d.team.includes(last.row) ? last : null;
+    if (sk.copy && !src) return this.log(id, `${sk.name}: chưa có hồn kỹ của võ hồn khác trong đội để sao chép.`);
+    const run = src?.sk ?? sk;
     if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
-    if (sk.area === "target" && !this.nearestBeast(p, sk.r)) return this.log(id, `${sk.name}: không có hồn thú trong tầm.`);
+    const reach = run.area === "target" ? run.r : run.at;
+    if (reach && !this.nearestBeast(p, reach)) return this.log(id, `${run.name}: không có hồn thú trong tầm.`);
     d.mpF -= cost; p.cds[i] = sk.cd;
+    this.unhide(p, d);
     const tier = p.rings[i], years = d.ringYears[i] ?? TIERS[tier].years;
     this.broadcast("fx", { k: "soulring", id, tier, i, vh: p.vh }); // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó và hiện tên hồn kỹ
-    this.runSkill(id, sk, skillPower(years), buffPower(years), sk.glow ? TIERS[tier].glow : VOHON[p.vh].col, { kind: "skill", done: false });
+    if (src) this.log(id, `${sk.name}: sao chép ${run.name}.`, VOHON[p.vh].col);
+    this.runSkill(id, run, skillPower(years) * (sk.copy ?? 1), buffPower(years), run.glow ? TIERS[tier].glow : VOHON[p.vh].col, { kind: "skill", done: false });
+    if (!set.some((x) => x.copy)) d.lastSkill = { sk, row: d.ch.rowId };
   }
 
   /**
@@ -1081,7 +1114,7 @@ export class MapRoom extends Room<MapState> {
       bd.kx = (dx / dd) * kb; bd.ky = (dy / dd) * kb;
     }
     this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size, v: dmg, crit, c: crit ? "#ffe14d" : col, bid });
-    if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); }
+    if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, bd.st.has("shock")); }
     if (o.lifesteal) { pd.hpF = Math.min(p.maxHp, pd.hpF + dmg * o.lifesteal); p.hp = Math.ceil(pd.hpF); }
     // Cảm điện: lan một phần sát thương sang hồn thú Cảm điện khác gần đó (một bước, không lan tiếp).
     if (direct && bd.st.has("shock")) {
@@ -1123,9 +1156,32 @@ export class MapRoom extends Room<MapState> {
     this.sendSquad(id);
   }
 
-  /** Ra khỏi giao chiến quá TIEN_CO_IDLE_SECS giây: năng lượng cả đội giảm dần TIEN_CO_DECAY mỗi giây. */
+  /**
+   * Phong Lôi Chi Lực (PHONG_LOI, 2.5c): Lam Điện Bá Vương Long ra trận đánh trúng thì tích (gấp shockMult nếu hồn thú trúng đầu
+   * tiên đang Cảm điện). Đầy thì hẹn tung Lôi Động Minh Thiên ở tick sau (không tung giữa lúc đang tính một đòn).
+   */
+  gainLei(id: string, kind: Hit["kind"], shocked: boolean) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || VOHON[p.vh].id !== PHONG_LOI.vohon) return;
+    d.lei = Math.min(PHONG_LOI.max, d.lei + PHONG_LOI.gain[kind] * (shocked ? PHONG_LOI.shockMult : 1)); p.lei = Math.floor(d.lei);
+    if (d.lei >= PHONG_LOI.max && !d.leiQueued) { d.leiQueued = true; this.later(0, () => this.leiDong(id)); }
+  }
+
+  /** Lôi Động Minh Thiên: chỉ khi Lam Điện vẫn ra trận, còn sống, không trong vùng an toàn / đang chuyển bản đồ (không thì giữ thanh đầy). */
+  leiDong(id: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    d.leiQueued = false;
+    if (p.dead || d.travelling || VOHON[p.vh].id !== PHONG_LOI.vohon || d.lei < PHONG_LOI.max || this.map.inSafe(p.x, p.y)) return;
+    d.lei = 0; p.lei = 0;
+    const sk = PHONG_LOI.skill, col = VOHON[p.vh].col, years = Math.max(TIERS[0].years, ...d.ringYears);
+    this.broadcast("fx", { k: "bolt", id, x: p.x, y: p.y, r: sk.r, col, name: sk.name });
+    this.runSkill(id, sk, skillPower(years), 1, col);
+    this.log(id, `${PHONG_LOI.name} đầy: ${sk.name}!`, col);
+  }
+
+  /** Ra khỏi giao chiến quá TIEN_CO_IDLE_SECS giây: năng lượng cả đội (và Phong Lôi Chi Lực) giảm dần mỗi giây. */
   tickEnergy(id: string, dt: number) {
     const d = this.pdata.get(id)!, idle = Math.min(dt, d.fight - TIEN_CO_IDLE_SECS);
+    if (idle > 0 && d.lei > 0) { d.lei = Math.max(0, d.lei - idle * PHONG_LOI.decay); this.state.players.get(id)!.lei = Math.floor(d.lei); }
     if (idle <= 0 || !d.energy.size) return;
     for (const [r, e] of d.energy) { if (e - idle * TIEN_CO_DECAY <= 0) d.energy.delete(r); else d.energy.set(r, e - idle * TIEN_CO_DECAY); }
   }
@@ -1371,11 +1427,14 @@ export class MapRoom extends Room<MapState> {
     this.state.beasts.forEach((b, id) => {
       const bd = this.bdata.get(id)!, td = TIERS[b.tier];
       bd.cd -= dt; bd.anim += dt; bd.calm += dt;
+      // Từ 2.5c: hồn thú đang Mê hoặc bỏ mục tiêu, đi lung tung.
+      const charm = bd.st.has("charm");
+      if (charm) bd.target = null;
       let tgt = bd.target ? this.state.players.get(bd.target) : undefined;
-      // Không đuổi theo người đã vào vùng an toàn hoặc đang chuyển bản đồ (mục 5.3, 6).
-      const off = (p: PlayerState, pid: string) => p.dead || this.map.inSafe(p.x, p.y) || !!this.pdata.get(pid)?.travelling;
+      // Không đuổi theo người đã vào vùng an toàn, đang chuyển bản đồ (mục 5.3, 6) hoặc đang tàng hình (Yêu Hồ, 2.5c).
+      const off = (p: PlayerState, pid: string) => { const pd = this.pdata.get(pid); return p.dead || this.map.inSafe(p.x, p.y) || !!pd?.travelling || !!pd?.buffs.has("hide"); };
       if (tgt && (off(tgt, bd.target!) || Math.hypot(b.x - bd.hx, b.y - bd.hy) > 220)) { bd.target = null; tgt = undefined; }
-      if (!tgt && b.tier >= 1) {
+      if (!tgt && b.tier >= 1 && !charm) {
         let best = 70;
         this.state.players.forEach((p, pid) => { if (off(p, pid)) return; const dd = Math.hypot(p.x - b.x, p.y - b.y); if (dd < best) { best = dd; bd.target = pid; tgt = p; } });
       }
@@ -1383,21 +1442,29 @@ export class MapRoom extends Room<MapState> {
       const hw = Math.max(3, td.size / 3);
       // Khống chế (mục 5.1): Choáng đứng yên và không đánh; Trói không đi (vẫn đánh khi kề bên); Câm lặng không đánh.
       // Bị khống chế không di chuyển thì cũng không bị đẩy lùi.
-      const stun = bd.st.has("stun"), noMove = stun || bd.st.has("root"), noAtk = stun || bd.st.has("silence");
+      // Từ 2.5c đọc cờ trong bảng STATUS (Mê hoặc không đánh); Làm chậm / Mị hoặc giảm tốc độ theo tầng (tối đa SLOW_CAP).
+      const stun = bd.st.has("stun");
+      let noMove = false, noAtk = false, slow = 0;
+      for (const [s, x] of bd.st) { const def = STATUS[s]; noMove ||= def.noMove; noAtk ||= def.noAtk; slow += def.slow * x.n; }
       if (!tgt && bd.calm > BEAST_REGEN.delay) this.regenBeast(b, bd, dt);
       if (stun) { bd.kx = 0; bd.ky = 0; b.moving = false; return; }
       if (noMove) { bd.kx = 0; bd.ky = 0; }
       if (bd.kx || bd.ky) { this.moveBeast(b, bd.kx * dt, bd.ky * dt, hw); bd.kx *= 0.85; bd.ky *= 0.85; if (Math.abs(bd.kx) < 2 && Math.abs(bd.ky) < 2) { bd.kx = 0; bd.ky = 0; } }
-      let mx = 0, my = 0, sp = td.spd;
+      let mx = 0, my = 0, sp = td.spd * (1 - Math.min(SLOW_CAP, slow));
       if (tgt) {
         const dx = tgt.x - b.x, dy = tgt.y - b.y, dd = Math.hypot(dx, dy);
         if (dd > td.size / 2 + 6) { if (!noMove) { mx = dx / dd; my = dy / dd; } }
         else if (bd.cd <= 0 && !noAtk) { bd.cd = 1.1; this.hurtPlayer(bd.target!, bd.dmg * (0.85 + Math.random() * 0.3)); }
       } else {
         bd.wt -= dt;
-        if (bd.wt <= 0) { bd.wt = 2 + Math.random() * 3; bd.tx = bd.hx + (Math.random() - 0.5) * 120; bd.ty = bd.hy + (Math.random() - 0.5) * 120; }
+        // Mê hoặc: đổi hướng liên tục quanh chỗ đang đứng, đi nhanh hơn lúc lang thang thường.
+        if (charm && bd.wt > 0.7) bd.wt = 0;
+        if (bd.wt <= 0) {
+          const [ox, oy, w] = charm ? [b.x, b.y, 80] : [bd.hx, bd.hy, 120];
+          bd.wt = charm ? 0.4 + Math.random() * 0.3 : 2 + Math.random() * 3; bd.tx = ox + (Math.random() - 0.5) * w; bd.ty = oy + (Math.random() - 0.5) * w;
+        }
         const ex = bd.tx - b.x, ey = bd.ty - b.y, ed = Math.hypot(ex, ey);
-        if (ed > 4 && !noMove) { mx = ex / ed; my = ey / ed; sp *= 0.4; }
+        if (ed > 4 && !noMove) { mx = ex / ed; my = ey / ed; sp *= charm ? 0.7 : 0.4; }
       }
       b.moving = !!(mx || my);
       if (b.moving) { this.moveBeast(b, mx * sp * dt, my * sp * dt, hw); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
