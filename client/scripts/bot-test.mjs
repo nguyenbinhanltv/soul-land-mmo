@@ -30,9 +30,11 @@
 // đi hết chuỗi của Ngọc Tiểu Cương, mục tiêu đếm theo sự kiện thật, nhận / trả khi đứng xa bị từ chối, thưởng đúng, túi đầy, đi cổng
 // và thoát vào lại giữ tiến độ, mục tiêu đã đạt sẵn), tổ đội người chơi (7.1: mời theo tên / bấm vào hồn sư, từ chối, chống spam
 // lời mời, tối đa 4, chia kinh nghiệm trong / ngoài 300 pixel và khác bản đồ, +5% mỗi người, giảm chênh cấp từng người, 40/20
-// trong đội võ hồn, ưu tiên nhặt cả tổ đội, rời / đuổi / chuyển trưởng nhóm / giải tán, rời game quá lâu), hồn kỹ vòng 5–10 và Võ Hồn Chân Thân (8.1a: hồn kỹ vòng 5, 6, 10 đúng sức mạnh
-// theo năm, chọn 4 ô mang theo và từ chối khi sai / giao chiến, hồi chiêu đi theo khi đổi ô, Chân Thân tăng chỉ số rồi tắt đúng giờ,
-// hồi chiêu riêng, đổi võ hồn thì hết, võ hồn chưa có dữ liệu chỉ tăng chỉ số, ô lưu sau khi thoát vào lại)
+// trong đội võ hồn, ưu tiên nhặt cả tổ đội, rời / đuổi / chuyển trưởng nhóm / giải tán, rời game quá lâu), cộng minh (8.2: từng
+// mốc của 4 trụ cột Võ hồn / Hồn hoàn / Hồn cốt / Hồn hạch, chỉ số mọi võ hồn kể cả võ hồn đổi vào sau, thông báo mốc mới, mất mốc
+// khi tháo đồ, thoát vào lại vẫn giữ), hồn kỹ vòng 5–10 và Võ Hồn Chân Thân (8.1a: hồn kỹ vòng 5, 6, 10 đúng sức mạnh
+// theo năm, chọn 4 ô mang theo và từ chối khi sai / giao chiến, hồi chiêu đi theo hồn kỹ khi đổi ô, Chân Thân tăng chỉ số rồi tắt đúng giờ,
+// hồi chiêu riêng, đổi võ hồn thì hết, võ hồn chưa có dữ liệu chỉ tăng chỉ số, Phục Chế không chép tuyệt kỹ, ô lưu sau khi thoát vào lại)
 // cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
@@ -60,7 +62,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats,
-  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare } from "../../shared/data.ts";
+  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare,
+  RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -122,12 +125,13 @@ async function enter(b){
   b.npc=null; b.room.onMessage("npc",m=>{b.npc=m;}); // server cho mở hộp thoại NPC (6.1)
   b.party=null; b.partyMsgs=0; b.room.onMessage("party",m=>{b.party=m; b.partyMsgs++;}); // khung tổ đội (7.1)
   b.quest=null; b.questMsgs=0; b.room.onMessage("quest",m=>{b.quest=m; b.questMsgs++;}); // tiến độ nhiệm vụ tân thủ (6.2)
+  b.res=null; b.resMsgs=0; b.resEv=[]; b.room.onMessage("resonance",m=>{b.res=m; b.resMsgs++; if(m.ev) b.resEv.push(...m.ev);}); // cộng minh (8.2)
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
   b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
   // phần 5.1 tự bật lại. Chờ trả lời (server gửi tin vohons trước tin test) rồi mới đếm lại tin vohons, để không lẫn vào kiểm tra sau.
   b.test=null; b.room.send("test",{op:"core",r:100}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0;
-  b.bag=null; b.room.send("vohons"); b.room.send("bag"); b.room.send("quest",{op:"get"});
+  b.bag=null; b.room.send("vohons"); b.room.send("bag"); b.room.send("quest",{op:"get"}); b.room.send("resonance");
 }
 /**
  * Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ; từ 4.1 loài / vị trí /
@@ -463,9 +467,10 @@ else {
   // ---------- 2.4: năng lượng và chiêu tiên cơ ----------
   const meOf=b=>b.room.state.players.get(b.room.sessionId), sqOf=(b,r)=>b.squad?.list.find(s=>s.rowId===r);
   const vOfB=(b,r)=>b.owned.list.find(v=>v.rowId===r), heOf=(b,r)=>VOHON[vohonIndex(vOfB(b,r).vohon)].he;
-  const atkOf=v=>calcStats(vohonIndex(v.vohon),v.level,v.rings.map(tierOfYears)).atk;
-  /** Sát thương tiên cơ dự kiến của võ hồn v: [thường, chí mạng]. */
-  const tcDmg=(v,he)=>{const x=atkOf(v)*tienCoOf(v.vohon).dmg; return [Math.max(1,Math.round(x)),Math.max(1,Math.round(x*1.8))];};
+  // Từ 8.2 công của mọi võ hồn có cộng minh của tài khoản `b` (tin "resonance"; bot nhiều võ hồn cấp 30+ / nhiều hồn hoàn là đạt mốc).
+  const atkOf=(v,b=A)=>calcStats(vohonIndex(v.vohon),v.level,v.rings.map(tierOfYears),1,{},{},b.res?.bonus).atk;
+  /** Sát thương tiên cơ dự kiến của võ hồn v của bot `b`: [thường, chí mạng]. */
+  const tcDmg=(v,he,b=A)=>{const x=atkOf(v,b)*tienCoOf(v.vohon).dmg; return [Math.max(1,Math.round(x)),Math.max(1,Math.round(x*1.8))];};
   // Hồn thú mới gần chỗ sinh nhất (bộ sinh hồn thú của bản đồ có thể thêm hồn thú khác cùng lúc ở nơi xa).
   async function spawnNear(b,tier,dx,dy=0,hpx=1){ const before=new Set(b.room.state.beasts.keys()), q=meOf(b), x=q.x+dx, y=q.y+dy;
     await test(b,"spawn",{tier,dx,dy,hpx}); let id=null;
@@ -553,7 +558,7 @@ else {
     const ssr=C.owned.list.find(v=>v.vohon==="nguyet_nhan").rowId, lnt=C.owned.list.find(v=>v.vohon==="lam_ngan_thao").rowId;
     ok(await switchRow(C,lnt),"C: Lam Ngân Thảo ra trận");
     // Hồn thú bậc 0 (không tự lao vào) cách 70 pixel theo hướng không vướng cây.
-    const cp=meOf(C), [ux,uy]=clearDir(cp.x,cp.y,70), want=tcDmg(vOfB(C,ssr),"man_cong"); // tính trước: hạ hồn thú có thể lên cấp
+    const cp=meOf(C), [ux,uy]=clearDir(cp.x,cp.y,70), want=tcDmg(vOfB(C,ssr),"man_cong",C); // tính trước: hạ hồn thú có thể lên cấp
     let x0=cp.x, y0=cp.y; const moved=()=>Math.hypot(cp.x-x0,cp.y-y0);
     const r=await tienCo(C,ssr,{tier:0,dx:Math.round(ux*70),dy:Math.round(uy*70)}); x0=r.x0; y0=r.y0;
     const bt=C.room.state.beasts.get(r.bid);
@@ -569,7 +574,7 @@ else {
     const r=await tienCo(D,ssr,{tier:-1});
     // Từ 2.5d Thiên Càn Bạch Ngọc Đỉnh có tiên cơ riêng (hồi cả đội + khiên) thay cho Hộ Thể chung.
     const v=vOfB(D,ssr), own=TIEN_CO_RIENG[v.vohon], tc={name:own.name,heal:own.self.heal,shield:own.self.shield,shieldSecs:own.self.secs};
-    const shield=Math.round(calcStats(vohonIndex(v.vohon),v.level,v.rings.map(tierOfYears)).maxHp*tc.shield);
+    const shield=Math.round(calcStats(vohonIndex(v.vohon),v.level,v.rings.map(tierOfYears),1,{},{},D.res?.bonus).maxHp*tc.shield);
     ok(r.fx?.he==="phu_tro"&&r.fx.own&&await waitFor(()=>dp.shield===shield,800),`phụ trợ ${tc.name}: khiên ${dp.shield} (cần ${shield})`);
     ok(await waitFor(()=>sqOf(D,lnt)?.hp>=Math.min(max0,h0+Math.floor(max0*tc.heal))),`hồi cả đội: Lam Ngân Thảo ${h0} -> ${sqOf(D,lnt)?.hp}/${max0}`);
     const hp1=dp.hp; D.hurts=[]; const hb=await spawnNear(D,1,10), hbs=D.room.state.beasts.get(hb);
@@ -613,7 +618,7 @@ else {
   for(const vohon of ["hao_thien_chuy","cuu_bao_luu_ly_thap","bich_lan_xa_hoang","tu_vong_chu_hoang"]) await test(E,"grant",{vohon});
   ok(FIVE.every(id=>E.owned.list.some(v=>v.vohon===id)),`E sở hữu 5 võ hồn mẫu (hook grant): ${E.owned.list.map(v=>v.vohon).join(", ")}`);
   const rowE=id=>E.owned.list.find(v=>v.vohon===id).rowId, YRS=[423,764,1760,5000], P=i=>skillPower(YRS[i]), BP=i=>buffPower(YRS[i]);
-  const atkE=id=>calcStats(vohonIndex(id),40,YRS.map(tierOfYears)).atk;
+  const atkE=id=>calcStats(vohonIndex(id),40,YRS.map(tierOfYears),1,{},{},E.res?.bonus).atk; // E đủ mốc cộng minh Võ hồn / Hồn hoàn (8.2)
   for(const id of [...FIVE,"tu_vong_chu_hoang"]) await test(E,"set",{rowId:rowE(id),level:40,xp:0,rings:YRS});
   ok(await leaveSafe(E),"E: ra khỏi làng");
   {
@@ -1382,15 +1387,17 @@ else {
     ok(same(loadoutOf("lam_ngan_thao",[]),[...DEFAULT_LOADOUT])&&same(loadoutOf("lam_ngan_thao",[4,9,-1,0]),[4,9,-1,0])&&same(loadoutOf("hoa_long",[4,1,2,3]),[...DEFAULT_LOADOUT])
       &&!parseLoadout([0,0,1,2])&&!parseLoadout([0,1,2])&&!parseLoadout([0,1,2,10])&&same(parseLoadout([-1,-1,3,2]),[-1,-1,3,2]),
       "4 ô mang theo: mặc định vòng 1–4, ô trống -1, từ chối trùng / thiếu ô / vòng lạ");
-    const K=await bot("Tester K","hoa_long",{sex:1,hair:1,hairCol:4,outfitCol:2});
+    const K=await bot("Tester CT","hoa_long",{sex:1,hair:1,hairCol:4,outfitCol:2});
     await waitFor(()=>K.owned&&K.squad&&meOf(K)); const kp=meOf(K);
     for(const vohon of ["hao_thien_chuy","u_minh_linh_mieu","bich_lan_xa_hoang","cuu_bao_luu_ly_thap"]) await test(K,"grant",{vohon});
     const rowK=id=>K.owned.list.find(v=>v.vohon===id).rowId, vK=id=>K.owned.list.find(v=>v.vohon===id);
     ok(FIVE.every(id=>K.owned.list.some(v=>v.vohon===id))&&K.owned.list.every(v=>same(v.skills,[...DEFAULT_LOADOUT])),"K có 5 võ hồn mẫu + Hỏa Long, 4 ô mặc định vòng 1–4");
     const Y10=[423,764,1760,5000,12000,20000,50000,100000,100000,100000], P10=i=>skillPower(Y10[i]);
-    const atkK=(id,n=10)=>calcStats(vohonIndex(id),n*10,Y10.slice(0,n).map(tierOfYears)).atk;
+    // Từ 8.2 công của mọi võ hồn có cộng minh của tài khoản (K nhiều võ hồn cấp 100, nhiều hồn hoàn là đạt mốc): lấy % từ hook stats.
+    let kres={}; const atkK=(id,n=10)=>calcStats(vohonIndex(id),n*10,Y10.slice(0,n).map(tierOfYears),1,{},{},kres).atk;
     for(const id of [...FIVE,"hoa_long"]) await test(K,"set",{rowId:rowK(id),level:100,xp:0,rings:Y10});
     await test(K,"set",{rowId:rowK("u_minh_linh_mieu"),level:60,xp:0,rings:Y10.slice(0,6)});
+    kres=(await test(K,"stats")).res?.bonus??{}; console.log(`  K cộng minh: ${JSON.stringify(kres)}`);
     async function lineupK(id){ await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(K,[rowK(id),0,0,0]);
       await sendTeam(K,[rowK(id),...FIVE.filter(x=>x!==id).slice(0,3).map(rowK)]); return K.owned.active===rowK(id)&&await waitFor(()=>kp.vh===vohonIndex(id)); }
     async function loadout(id,skills){ const n=K.ownedMsgs, l=K.logs.length; K.room.send("loadout",{rowId:rowK(id),skills}); await waitFor(()=>K.ownedMsgs>n&&K.logs.length>l,1500); await sleep(80); return K.logs.at(-1)??""; }
@@ -1520,7 +1527,7 @@ else {
       await castK(1,600); ok(dmgsOn(K,weak).length>=1&&!dmgsOn(K,full).length,`vòng 6 ${s6.name}: khóa hồn thú yếu máu ở xa (${dmgsOn(K,weak).length} nhát), bỏ qua con gần đủ máu`);
       ok(await lineupK("hoa_long"),"K: Hỏa Long ra trận (10 hồn hoàn, chưa có dữ liệu vòng 5–10)");
       ok(/chưa có Võ Hồn Chân Thân/.test(await chanThan()),"Hỏa Long: chưa có Chân Thân");
-      const s0=await stats(), base=calcStats(vohonIndex("hoa_long"),100,Y10.map(tierOfYears));
+      const s0=await stats(), base=calcStats(vohonIndex("hoa_long"),100,Y10.map(tierOfYears),1,{},{},kres);
       ok(s0.maxHp===base.maxHp&&Math.abs(s0.atk-base.atk)<0.01&&same(vK("hoa_long").skills,[...DEFAULT_LOADOUT]),`Hỏa Long vòng 5–10 chỉ tăng chỉ số: sinh lực ${s0.maxHp}, công ${s0.atk.toFixed(1)}; ô mặc định vòng 1–4`);
       await test(K,"ready"); await faceK(); await spawnNear(K,4,...kat(30)); await castK(1);
       ok(K.dmgs.length>0&&K.fxs.some(f=>f.k==="soulring"&&f.i===1),`Hỏa Long ô I vẫn là ${skillsOf("hoa_long")[1].name}`);
@@ -2077,7 +2084,7 @@ else {
     const rRed=await give(A,MAX_YEARS), s5=await absorb(A,rRed.id,act);
     ok(s5&&s5.slot===10&&s5.fail===0&&s5.secs===15,`hồn hoàn 100.000 năm vào vòng 10: ${JSON.stringify(s5)}`);
     ok(await rush(A)==="ok"&&await waitFor(()=>p.rings.length===MAX_RINGS)&&p.level===MAX_LEVEL&&p.xpNeed===0&&p.rings[9]===4,`đủ ${p.rings.length} hồn hoàn, cấp ${p.level} (tối đa)`);
-    ok(p.maxHp===calcStats(p.vh,MAX_LEVEL,[...p.rings]).maxHp,`vòng 5–10 tăng chỉ số: sinh lực tối đa ${p.maxHp}`);
+    ok(p.maxHp===calcStats(p.vh,MAX_LEVEL,[...p.rings],1,{},{},A.res?.bonus).maxHp,`vòng 5–10 tăng chỉ số: sinh lực tối đa ${p.maxHp}`);
     await test(A,"kill",{tier:4}); await sleep(100);
     ok(p.level===MAX_LEVEL&&p.xp===0,"cấp tối đa: không nhận thêm kinh nghiệm");
     const r50=await give(A,50);
@@ -2170,7 +2177,7 @@ else {
     if(cost){
       await test(A,"give",{code:shardCode(actId),qty:cost});
       await shardOp(A,"starup",actId);
-      ok(vOf(act).stars===actStars+1&&await waitFor(()=>p.maxHp===calcStats(p.vh,p.level,[...p.rings],actStars+1).maxHp)&&p.maxHp>hp0s,
+      ok(vOf(act).stars===actStars+1&&await waitFor(()=>p.maxHp===calcStats(p.vh,p.level,[...p.rings],actStars+1,{},{},A.res?.bonus).maxHp)&&p.maxHp>hp0s,
         `võ hồn ra trận lên ${actStars+1}★: sinh lực tối đa ${hp0s} -> ${p.maxHp}`);
     }
     for(const i of A.bag.items.filter(i=>i.code===nvCode)) A.room.send("discard",{id:i.id});
@@ -2664,7 +2671,7 @@ else {
       t=await coreOp("equipcore",{itemId:HT[1].id,vohonId:act});
       s1=await test(A,"stats");
       const noSet={...s1.cores,atk_pct:s1.cores.atk_pct-15}, vh=vohonIndex(A.owned.list.find(v=>v.rowId===act).vohon), vv=A.owned.list.find(v=>v.rowId===act);
-      const calc=c=>calcStats(vh,vv.level,vv.rings.map(tierOfYears),vv.stars,s1.bones,c).atk;
+      const calc=c=>calcStats(vh,vv.level,vv.rings.map(tierOfYears),vv.stars,s1.bones,c,A.res?.bonus).atk;
       ok(slotAt(HT[1].id)===0&&/Kích hoạt bộ Hạo Thiên 2 món: \+15% công/.test(t)&&s1.sets.hao_thien===2&&same(s1.fx,{atk:0.15}),`không chọn ô: vào ô 1; ${t}`);
       ok(same(s1.cores,coreBonus(worn([0,1].map(k=>itOf(HT[k].id)))))&&Math.abs(s1.live.atk-calc(s1.cores))<1e-6&&calc(s1.cores)>calc(noSet),
         `bộ Hạo Thiên 2 món: công ${calc(noSet).toFixed(1)} -> ${s1.live.atk.toFixed(1)} (+15%)`);
@@ -3129,6 +3136,7 @@ if((await test(C,"ping"))?.enabled){
   ok(Math.abs(me().x-7.5*16)<1&&Math.abs(me().y-31.5*16)<1,`rời rồi vào lại: vị trí mới ở Ngoại vi đã lưu (${me().x},${me().y})`);
 }
 if((await test(C,"ping"))?.enabled) await partyTest(C);
+await resonanceTest();
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);
@@ -3525,4 +3533,135 @@ async function questTest(){
   await D.room.leave();
   /** Đổi sang ô `slot` của đội, chờ server gửi lại đội hình. */
   async function switchSlot(slot){ const n=D.ownedMsgs; D.room.send("switch",{slot}); await waitFor(()=>D.ownedMsgs>n,1500); await sleep(80); }
+}
+
+/**
+ * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 4 trụ cột bằng hook (grant / set
+ * võ hồn, hấp thụ thật, give hồn cốt +10 / hồn hạch 5★ rồi gắn bằng message thật): chỉ số mọi võ hồn (ra trận, trong đội, ngoài
+ * đội, đổi vào sau) tăng đúng %, thông báo mốc mới (log + `ev`), tháo đồ thì mất mốc, thoát vào lại vẫn giữ.
+ */
+async function resonanceTest(){
+  console.log("[8.2] Cộng minh: 4 trụ cột, cộng chỉ số cho mọi võ hồn");
+  const NEED={vohon:[4,6,8],ring:[10,25,50],bone:[6,12,24],core:[8,16,24]};
+  ok(RESONANCE.length===4&&RESONANCE.every(r=>JSON.stringify(r.steps.map(s=>s.need))===JSON.stringify(NEED[r.id])&&r.steps.every(s=>Object.values(s.bonus).every(v=>v>0))),
+    "RESONANCE: Võ hồn 4/6/8, Hồn hoàn 10/25/50, Hồn cốt 6/12/24, Hồn hạch 8/16/24 (mục 5.10)");
+  const pv=resonanceProgress({vohons:[{level:RES_VOHON_LEVEL,rings:3},{level:RES_VOHON_LEVEL-1,rings:7},{level:100,rings:10}],
+    bones:[{enhance:RES_BONE_ENHANCE},{enhance:RES_BONE_ENHANCE-1}],cores:[{stars:RES_CORE_STARS},{stars:RES_CORE_STARS-1},{stars:6}]});
+  ok(JSON.stringify(pv)===JSON.stringify([2,20,1,2])&&JSON.stringify(resonanceLevels([4,24,6,23]))===JSON.stringify([1,1,1,2])
+    &&JSON.stringify(resonanceLevels([99,99,99,99]))===JSON.stringify([3,3,3,3])&&JSON.stringify(resonanceBonus([0,0,0,0]))===JSON.stringify({hp:0,mp:0,atk:0}),
+    `resonanceProgress / resonanceLevels: cấp ${RES_VOHON_LEVEL}+, hồn cốt +${RES_BONE_ENHANCE}, hồn hạch ${RES_CORE_STARS}★ (${JSON.stringify(pv)})`);
+  const R=await bot("Cộng minh","u_minh_linh_mieu",{sex:0,hair:2,hairCol:3,outfitCol:1});
+  const rme=()=>R.room.state.players?.get(R.room.sessionId);
+  await waitFor(()=>R.owned&&R.bag&&R.res&&rme(),3000);
+  ok(R.res&&R.res.lv.every(x=>x===0)&&R.res.bonus.hp===0&&R.res.bonus.atk===0,`tài khoản mới: chưa đạt mốc nào (${JSON.stringify(R.res)})`);
+  if(!(await test(R,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đạt mốc cộng minh (cần hook grant, set, give): bật server bằng GAME_TEST=1"); await R.room.leave(); return; }
+  const lvOf=()=>JSON.stringify(R.res?.lv), sameStats=(a,b)=>a&&b&&a.maxHp===b.maxHp&&a.maxMp===b.maxMp&&Math.abs(a.atk-b.atk)<1e-6;
+  /** Kiểm tra chỉ số của mọi võ hồn sở hữu (hook stats) = calcStats kèm cộng minh `lv`; võ hồn ra trận: chỉ số đang dùng cũng vậy. */
+  async function checkAll(lv,label){
+    const res=resonanceBonus(lv); let good=true, more=true, live=false, n=0;
+    for(const v of R.owned.list){
+      const s=await test(R,"stats",{rowId:v.rowId}), vh=vohonIndex(v.vohon), rings=v.rings.map(tierOfYears);
+      const want=calcStats(vh,v.level,rings,v.stars,s.bones,s.cores,res), bare=calcStats(vh,v.level,rings,v.stars,s.bones,s.cores);
+      if(!sameStats(s.stats,want)||JSON.stringify(s.res?.lv)!==JSON.stringify(lv)) { good=false; console.log("    ",v.vohon,JSON.stringify(s.stats),JSON.stringify(want)); }
+      if(lv.some(x=>x>0)&&!(s.stats.maxHp>=bare.maxHp&&s.stats.atk>=bare.atk&&(s.stats.maxHp>bare.maxHp||s.stats.atk>bare.atk||s.stats.maxMp>bare.maxMp))) more=false;
+      if(v.rowId===R.owned.active){ live=s.live&&s.live.maxHp===want.maxHp&&s.live.maxMp===want.maxMp&&Math.abs(s.live.atk-want.atk)<1e-6&&rme().maxHp===want.maxHp; }
+      n++;
+    }
+    ok(good&&more&&live,`${label}: chỉ số ${n} võ hồn = calcStats kèm cộng minh ${JSON.stringify(res)} (võ hồn ra trận dùng ngay)`);
+  }
+  const L0=R.logs.length;
+  // ---- Võ hồn: sở hữu 4 / 6 / 8 võ hồn cấp 30+ ----
+  for(const vo of ["hao_thien_chuy","ta_hoa_phuong_hoang","hoa_long","nhu_cot_tho","yeu_ho","quy_mi"]) await test(R,"grant",{vohon:vo});
+  ok(R.owned.list.length===8,`có 8 võ hồn (${R.owned.list.map(v=>v.vohon).join(", ")})`);
+  const ids=R.owned.list.map(v=>v.rowId), act=R.owned.active;
+  for(let i=0;i<3;i++) await test(R,"set",{rowId:ids[i],level:RES_VOHON_LEVEL,xp:0});
+  await test(R,"set",{rowId:ids[3],level:RES_VOHON_LEVEL-1,xp:0});
+  ok(R.res.prog[0]===3&&R.res.lv[0]===0,`3 võ hồn cấp ${RES_VOHON_LEVEL} + 1 võ hồn cấp ${RES_VOHON_LEVEL-1}: chưa đạt mốc (${R.res.prog[0]}/4)`);
+  let e0=R.resEv.length;
+  await test(R,"set",{rowId:ids[3],level:RES_VOHON_LEVEL,xp:0});
+  ok(R.res.prog[0]===4&&R.res.lv[0]===1&&R.resEv.slice(e0).some(e=>e.pillar===0&&e.step===0&&e.up)
+    &&R.logs.slice(L0).some(t=>/Cộng minh Võ hồn đạt mốc 1\/3/.test(t)),`võ hồn thứ 4 lên cấp ${RES_VOHON_LEVEL}: đạt mốc 1, có thông báo (${R.logs.slice(L0).find(t=>/Cộng minh/.test(t))})`);
+  await checkAll(R.res.lv,"mốc Võ hồn 1");
+  for(let i=4;i<6;i++) await test(R,"set",{rowId:ids[i],level:RES_VOHON_LEVEL,xp:0});
+  ok(R.res.lv[0]===2,`6 võ hồn cấp ${RES_VOHON_LEVEL}+: mốc 2 (${lvOf()})`);
+  for(let i=6;i<8;i++) await test(R,"set",{rowId:ids[i],level:RES_VOHON_LEVEL,xp:0});
+  ok(R.res.lv[0]===3&&R.res.bonus.hp===10,`8 võ hồn cấp ${RES_VOHON_LEVEL}+: đủ 3 mốc, sinh lực +${R.res.bonus.hp}%`);
+  // ---- Hồn hoàn: tổng 10 / 25 / 50 hồn hoàn trên mọi võ hồn; mốc cuối bằng một lần hấp thụ thật ----
+  const Y=n=>Array.from({length:n},()=>10), setRings=(i,n)=>test(R,"set",{rowId:ids[i],level:Math.max(RES_VOHON_LEVEL,(n+1)*10>100?100:n*10+10),xp:0,rings:Y(n)});
+  await setRings(0,3); await setRings(1,3); await setRings(2,3);
+  ok(R.res.prog[1]===9&&R.res.lv[1]===0,`9 hồn hoàn: chưa đạt mốc (${R.res.prog[1]}/10)`);
+  e0=R.resEv.length; await setRings(3,1);
+  ok(R.res.lv[1]===1&&R.resEv.slice(e0).some(e=>e.pillar===1&&e.step===0&&e.up),`10 hồn hoàn: mốc Hồn hoàn 1 (công +${R.res.bonus.atk}%)`);
+  await checkAll(R.res.lv,"mốc Võ hồn 3 + Hồn hoàn 1");
+  await setRings(0,10); await setRings(1,10); await setRings(2,5);
+  ok(R.res.prog[1]===26&&R.res.lv[1]===2,`26 hồn hoàn: mốc 2 (${lvOf()})`);
+  await setRings(2,10); await setRings(3,10); await setRings(4,9);
+  ok(R.res.prog[1]===49&&R.res.lv[1]===2,`49 hồn hoàn: vẫn mốc 2`);
+  // Võ hồn thứ 5 đang ở bình cảnh cấp 100 với 9 vòng: hấp thụ hồn hoàn thứ 10 thật (cố định số ngẫu nhiên, xong ngay).
+  await test(R,"set",{rowId:ids[4],level:100,xp:0,rings:Y(9)});
+  const nb=R.bagMsgs??0; await test(R,"give",{code:RING_ITEM,qty:1}); await waitFor(()=>(R.bagMsgs??0)>nb);
+  const ring=R.bag.items.find(i=>i.code===RING_ITEM);
+  await test(R,"roll",{r:0}); e0=R.resEv.length;
+  R.absorbing=null; R.room.send("absorb",{itemId:ring?.id,vohonId:ids[4]}); await waitFor(()=>R.absorbing?.on);
+  await test(R,"rush"); await waitFor(()=>R.absorbing?.result==="ok"); await waitFor(()=>R.res.prog[1]===50,1500);
+  ok(R.absorbing?.result==="ok"&&R.res.prog[1]===50&&R.res.lv[1]===3&&R.resEv.slice(e0).some(e=>e.pillar===1&&e.step===2&&e.up)
+    &&R.logs.some(t=>/Cộng minh Hồn hoàn đạt mốc 3\/3/.test(t)),`hấp thụ hồn hoàn thứ 50: mốc Hồn hoàn 3, có thông báo (công +${R.res.bonus.atk}%)`);
+  await test(R,"roll",{r:-1});
+  // ---- Hồn cốt: 6 / 12 / 24 hồn cốt +10 đang gắn (6 vị trí x 4 võ hồn) ----
+  /** Cho hồn cốt / hồn hạch bằng hook rồi gắn từng món bằng message thật vào võ hồn `rowId`. */
+  async function gearUp(rowId,list){
+    for(const g of list){
+      const before=new Set(R.bag.items.map(i=>i.id)), n=R.bagMsgs??0;
+      await test(R,"give",g); await waitFor(()=>(R.bagMsgs??0)>n);
+      const it=R.bag.items.find(i=>!before.has(i.id)&&i.code===g.code);
+      const m=R.bagMsgs??0; R.room.send(g.code===BONE_ITEM?"equip":"equipcore",{itemId:it?.id,vohonId:rowId}); await waitFor(()=>(R.bagMsgs??0)>m);
+    }
+    await sleep(80);
+  }
+  const bones6=e=>BONE_SLOTS.map(s=>({code:BONE_ITEM,qty:1,tier:2,beast:BEASTS[0].id,slot:s.id,enhance:e}));
+  await gearUp(ids[0],bones6(RES_BONE_ENHANCE-1));
+  ok(R.res.prog[2]===0&&R.res.lv[2]===0,`6 hồn cốt +${RES_BONE_ENHANCE-1} đang gắn: không tính`);
+  e0=R.resEv.length; await gearUp(ids[1],bones6(RES_BONE_ENHANCE));
+  ok(R.res.prog[2]===6&&R.res.lv[2]===1&&R.resEv.slice(e0).some(e=>e.pillar===2&&e.step===0&&e.up),`6 hồn cốt +${RES_BONE_ENHANCE} gắn trên ${VOHON[vohonIndex(R.owned.list[1].vohon)].name}: mốc Hồn cốt 1`);
+  await gearUp(ids[2],bones6(RES_BONE_ENHANCE));
+  ok(R.res.prog[2]===12&&R.res.lv[2]===2,`12 hồn cốt +${RES_BONE_ENHANCE}: mốc 2`);
+  await gearUp(ids[3],bones6(RES_BONE_ENHANCE)); await gearUp(ids[4],bones6(RES_BONE_ENHANCE+5));
+  ok(R.res.prog[2]===24&&R.res.lv[2]===3,`24 hồn cốt +${RES_BONE_ENHANCE} trở lên trên 4 võ hồn: mốc 3 (${lvOf()})`);
+  // Tháo một món thì mất mốc 3 (có báo), gắn lại thì có lại.
+  const off=R.bag.items.find(i=>i.code===BONE_ITEM&&i.vohon===ids[4]);
+  let m=R.bagMsgs??0, l=R.logs.length; R.room.send("unequip",{itemId:off.id}); await waitFor(()=>(R.bagMsgs??0)>m); await sleep(80);
+  ok(R.res.prog[2]===23&&R.res.lv[2]===2&&R.logs.slice(l).some(t=>/Cộng minh Hồn cốt còn 2\/3/.test(t)),`tháo 1 hồn cốt: còn 23, mất mốc 3 (${R.logs.slice(l).find(t=>/Cộng minh/.test(t))})`);
+  m=R.bagMsgs??0; R.room.send("equip",{itemId:off.id,vohonId:ids[4]}); await waitFor(()=>(R.bagMsgs??0)>m); await sleep(80);
+  ok(R.res.lv[2]===3,"gắn lại: mốc Hồn cốt 3");
+  // ---- Hồn hạch: 8 / 16 / 24 hồn hạch 5★ trở lên đang gắn ----
+  const cores=(n,stars)=>Array.from({length:n},()=>({code:CORE_ITEM,qty:1,stars}));
+  await gearUp(ids[5],cores(6,RES_CORE_STARS-1));
+  ok(R.res.prog[3]===0,`6 hồn hạch ${RES_CORE_STARS-1}★ đang gắn: không tính`);
+  await gearUp(ids[0],cores(6,RES_CORE_STARS)); await gearUp(ids[1],cores(1,RES_CORE_STARS));
+  ok(R.res.prog[3]===7&&R.res.lv[3]===0,`7 hồn hạch ${RES_CORE_STARS}★: chưa đạt mốc`);
+  e0=R.resEv.length; await gearUp(ids[1],cores(1,RES_CORE_STARS+1));
+  ok(R.res.prog[3]===8&&R.res.lv[3]===1&&R.resEv.slice(e0).some(e=>e.pillar===3&&e.step===0&&e.up),"8 hồn hạch 5★ trở lên: mốc Hồn hạch 1");
+  await gearUp(ids[1],cores(4,RES_CORE_STARS)); await gearUp(ids[2],cores(4,RES_CORE_STARS));
+  ok(R.res.prog[3]===16&&R.res.lv[3]===2,"16 hồn hạch: mốc 2");
+  await gearUp(ids[2],cores(2,RES_CORE_STARS)); await gearUp(ids[3],cores(6,RES_CORE_STARS));
+  ok(R.res.prog[3]===24&&JSON.stringify(R.res.lv)===JSON.stringify([3,3,3,3]),`24 hồn hạch: đủ 12 mốc (${lvOf()}, ${JSON.stringify(R.res.bonus)})`);
+  const all=resonanceBonus([3,3,3,3]);
+  ok(R.res.bonus.hp===all.hp&&R.res.bonus.mp===all.mp&&R.res.bonus.atk===all.atk&&R.resEv.filter(e=>e.up).length>=12,
+    `tổng cộng minh ${JSON.stringify(all)}, đã báo ${R.resEv.filter(e=>e.up).length} mốc`);
+  await checkAll([3,3,3,3],"đủ 12 mốc");
+  // Võ hồn trong đội nhưng không ra trận: sinh lực tối đa trong tin squad cũng có cộng minh; đổi vào sau thì chỉ số đang dùng có ngay.
+  await test(R,"rest"); await sendTeam(R,[act,ids.find(r=>r!==act&&r!==ids[0])??ids[1],0,0]);
+  const bench=R.owned.team[1], bv=R.owned.list.find(v=>v.rowId===bench), bs=await test(R,"stats",{rowId:bench});
+  ok(await waitFor(()=>R.squad?.list.find(x=>x.rowId===bench)?.maxHp===bs.stats.maxHp),`võ hồn ngoài sân ${bv.vohon}: sinh lực tối đa trong đội ${bs.stats.maxHp} có cộng minh`);
+  R.room.send("switch",{slot:1}); await waitFor(()=>R.owned.active===bench||rme()?.vh===vohonIndex(bv.vohon)); await sleep(150);
+  const sw=await test(R,"stats");
+  ok(sw.rowId===bench&&sw.live.maxHp===calcStats(vohonIndex(bv.vohon),bv.level,bv.rings.map(tierOfYears),bv.stars,sw.bones,sw.cores,all).maxHp&&rme().maxHp===sw.live.maxHp,
+    `đổi ${VOHON[vohonIndex(bv.vohon)].name} vào: sinh lực tối đa ${sw.live.maxHp} có cộng minh`);
+  // ---- Thoát vào lại: tiến độ tính lại từ dữ liệu đã lưu, không báo lại mốc ----
+  const keep=JSON.stringify([R.res.prog,R.res.lv,R.res.bonus]);
+  await test(R,"goto",{x:rme().x,y:rme().y}); await R.room.leave(); await sleep(400);
+  R.mapId=(await post("/api/me",{token:R.token})).mapId; await enter(R); await waitFor(()=>R.res&&R.owned&&rme(),3000);
+  ok(JSON.stringify([R.res.prog,R.res.lv,R.res.bonus])===keep&&!R.resEv.length,`thoát vào lại: cộng minh giữ nguyên ${keep}, không báo lại mốc`);
+  await checkAll([3,3,3,3],"vào lại");
+  await R.room.leave();
 }
