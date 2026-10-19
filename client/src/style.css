@@ -502,3 +502,17 @@ body.arena #quest{display:none}
 .arank .ar.ah{color:var(--muted);font-size:11px;border-bottom:1px solid var(--line)}
 .arank .ar.me{background:rgba(233,196,90,.16);color:var(--xp);font-weight:800}
 @media (max-width:640px){#arenaBar{width:94vw;gap:6px}#arenaBar .aside b{font-size:12px}}
+/* Cộng minh (bước 8.2): cùng chỗ giữa màn hình với bảng đội hình / túi đồ; màu trụ cột (--c) chỉ ở viền, thanh, mốc đã đạt */
+#reso{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(380px,94vw);max-height:80%;overflow-y:auto;
+  padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(6px);z-index:3}
+.rhead>span{display:flex;gap:6px;align-items:center}
+.rlink{font:inherit;font-size:12px;font-weight:700;min-height:32px;padding:4px 8px;border:1px solid var(--line2);background:rgba(0,0,0,.12);color:var(--text);cursor:pointer}
+.restotal{font-weight:700;font-size:12.5px;color:var(--accent)}
+.respil{border:1px solid var(--line);border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 7%,transparent);padding:6px 8px;display:flex;flex-direction:column;gap:5px}
+.restop{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.restop b{color:var(--text);font-size:13px}
+.restop span{color:var(--muted);font-size:11.5px}
+.respil .sbar i{background:var(--c)}
+.ressteps{display:flex;flex-wrap:wrap;gap:4px}
+.resstep{font-size:11px;border:1px dashed var(--line);padding:2px 6px;color:var(--muted)}
+.resstep.on{border:1px solid var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--text);font-weight:600}

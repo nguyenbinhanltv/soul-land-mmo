@@ -10,10 +10,10 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, KING, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, questChain, questRewardText, type QuestStep, ARENA, type ArenaRecord } from "../../shared/data.ts";
+  QUESTS, questChain, questRewardText, type QuestStep, RESONANCE, resonanceText, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, ResonanceMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -310,7 +310,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
 export function toggleRoster(open = $("#roster").hidden) {
   $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
   if (!open) rosterSel = null;
-  else { toggleBag(false); closeNpc(); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
+  else { toggleBag(false); closeNpc(); toggleReso(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
@@ -346,8 +346,9 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   const el = $("#roster"); el.innerHTML = "";
   const members = data.team.filter((r) => r > 0).length;
   const head = document.createElement("div"); head.className = "rhead";
-  head.innerHTML = `<b>Đội hình (${members}/${TEAM_SIZE})</b><button class="x" aria-label="Đóng">×</button>`;
-  head.querySelector("button")!.addEventListener("click", () => toggleRoster(false));
+  head.innerHTML = `<b>Đội hình (${members}/${TEAM_SIZE})</b><span><button class="rlink">Cộng minh</button><button class="x" aria-label="Đóng">×</button></span>`;
+  head.querySelector(".x")!.addEventListener("click", () => toggleRoster(false));
+  head.querySelector(".rlink")!.addEventListener("click", () => toggleReso(true)); // cộng minh (8.2): cộng cho mọi võ hồn
   el.appendChild(head);
   const send = (team: number[]) => { rosterSel = null; rosterHint = ""; act.setTeam(team); };
 
@@ -496,11 +497,11 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   // Chỉ số của võ hồn kèm phần hồn cốt cộng thêm (calcStats của shared/data.ts, chỉ để hiển thị; server tự tính).
   const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance })));
   const st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, bonus,
-    coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId)))); // từ 5.2 cả hồn hạch đang gắn
+    coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId))), resMsg?.bonus); // từ 5.2 cả hồn hạch đang gắn, từ 8.2 cộng minh
   const sum = document.createElement("div"); sum.className = "bsum";
   sum.innerHTML = (["hp", "mp", "atk"] as BoneStat[]).map((k) => {
-    const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk);
-    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}</b>`;
+    const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk), rp = resMsg?.bonus[k] ?? 0;
+    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}</b>`;
   }).join("");
   el.appendChild(sum);
 
@@ -1070,7 +1071,7 @@ export function showPlayerMenu(t: { sid: string; name: string; level: number } |
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); closeNpc(); }
+  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); }
 }
 
 let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
@@ -1349,7 +1350,7 @@ export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
   // NPC giao nhiệm vụ (6.2) đang có bài mới / chờ trả thì mở thẳng trang nhiệm vụ.
   if (npcDefOpen?.id !== id) { const qs = questOf(id)?.status; npcPage = qs === "offer" || qs === "ready" ? "quest" : "talk"; npcLine = 0; }
   npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
-  toggleBag(false); toggleRoster(false);
+  toggleBag(false); toggleRoster(false); toggleReso(false);
   $("#npc").hidden = false;
   renderNpc();
 }
@@ -1761,4 +1762,49 @@ export function updateArenaEnd() {
   const m = arenaEndMsg, k = m && $("#arenaEnd .acd"); if (!m || !k) return;
   const txt = `Tự về bản đồ cũ sau ${Math.max(0, Math.ceil((m.end - performance.now()) / 1000))} giây.`;
   if (k.textContent !== txt) k.textContent = txt;
+}
+// ---------- Cộng minh (mục 5.10, bước 8.2): chỉ hiển thị số server gửi (tin riêng "resonance") ----------
+let resMsg: ResonanceMsg | null = null;
+/** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
+export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidden) renderReso(); }
+/** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
+export function toggleReso(open = $("#reso").hidden) {
+  $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
+  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); renderReso(); }
+}
+/**
+ * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 4 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
+ * sáng màu trụ cột, chưa đạt mờ) và phần cộng của từng mốc.
+ */
+function renderReso() {
+  const el = $("#reso"); el.innerHTML = "";
+  const head = document.createElement("div"); head.className = "rhead";
+  head.innerHTML = `<b>Cộng minh</b><button class="x" aria-label="Đóng">×</button>`;
+  head.querySelector("button")!.addEventListener("click", () => toggleReso(false));
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = "Đạt mốc ở từng trụ cột thì mọi võ hồn (kể cả võ hồn mở sau) được cộng chỉ số. Nuôi đều các võ hồn để mở thêm mốc.";
+  const total = document.createElement("div"); total.className = "restotal";
+  const txt = resMsg ? resonanceText(resMsg.bonus) : "";
+  total.textContent = !resMsg ? "Đang tải…" : txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào.";
+  el.append(head, note, total);
+  RESONANCE.forEach((r, i) => {
+    const have = resMsg?.prog[i] ?? 0, lv = resMsg?.lv[i] ?? 0, next = r.steps[lv];
+    const box = document.createElement("section"); box.className = "respil"; box.style.setProperty("--c", r.col);
+    const top = document.createElement("div"); top.className = "restop";
+    const name = document.createElement("b"); name.textContent = `${r.name} · ${lv}/${r.steps.length} mốc`;
+    const prog = document.createElement("span");
+    prog.textContent = next ? `${have}/${next.need} ${r.what}` : `${have} ${r.what} · đã đạt mọi mốc`;
+    top.append(name, prog);
+    const bar = document.createElement("span"); bar.className = "sbar";
+    const fill = document.createElement("i"); fill.style.width = `${next ? Math.min(100, (have / next.need) * 100) : 100}%`; bar.appendChild(fill);
+    const steps = document.createElement("div"); steps.className = "ressteps";
+    r.steps.forEach((s, k) => {
+      const st = document.createElement("span"); st.className = "resstep" + (k < lv ? " on" : "");
+      st.textContent = `${k < lv ? "✓ " : ""}${s.need}: ${resonanceText(s.bonus)}`;
+      st.setAttribute("aria-label", `Mốc ${k + 1}: ${s.need} ${r.what}, ${resonanceText(s.bonus)}${k < lv ? ", đã đạt" : ", chưa đạt"}`);
+      steps.appendChild(st);
+    });
+    box.append(top, bar, steps);
+    el.appendChild(box);
+  });
 }

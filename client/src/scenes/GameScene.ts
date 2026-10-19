@@ -5,11 +5,11 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
-  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText } from "../../../shared/data.ts";
+  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -273,7 +273,8 @@ export class GameScene extends Phaser.Scene {
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
-      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.closeNpc(); hud.showPlayerMenu(null); return; }
+      if (e.code === "KeyK" && !e.repeat) { hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.closeNpc(); hud.showPlayerMenu(null); return; }
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -293,6 +294,7 @@ export class GameScene extends Phaser.Scene {
     chat.addEventListener("focus", () => { this.keys = {}; }, on);
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleBag(); }, on);
+    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleReso(); }, on);
 
     // Bấm / chạm vào hồn sư khác (7.1): mở bảng mời vào tổ đội. Chọn hồn sư gần điểm bấm nhất (thân cao khoảng 30 pixel trên chân).
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
@@ -445,6 +447,15 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.room.onMessage("travel", (m: { mapId: string }) => { if (typeof m?.mapId === "string") this.onTravel(m.mapId); });
+    // Cộng minh (8.2): tiến độ 4 trụ cột và % cộng cho mọi võ hồn do server tính; mốc mới đạt thì báo lớn.
+    this.room.onMessage("resonance", (m: ResonanceMsg) => {
+      if (!m || !Array.isArray(m.prog)) return;
+      hud.setResonance(m); this.renderRoster(); // chỉ số trong mục hồn cốt của bảng đội hình có phần cộng minh
+      for (const e of m.ev ?? []) {
+        const r = RESONANCE[e.pillar], s = r?.steps[e.step];
+        if (r && s && e.up) hud.banner(`Cộng minh ${r.name}: mốc ${e.step + 1}`, `${s.need} ${r.what} · mọi võ hồn ${resonanceText(s.bonus)}`);
+      }
+    });
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("party", (m: PartyView) => { this.party = m; hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
@@ -504,6 +515,7 @@ export class GameScene extends Phaser.Scene {
     this.room.send("bag");
     this.room.send("party", { op: "get" });
     this.room.send("quest", { op: "get" });
+    this.room.send("resonance");
   }
 
   ringFx(x: number, y: number, r0: number, r1: number, col: string, dur: number, delay = 0) {

@@ -16,8 +16,8 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
-  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult,
-  CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhancePreview, coreUpgradeSubs, coreStatText,
+  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
+  CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
@@ -25,7 +25,9 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
   npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
-  PARTY_XP_RANGE, partyXpShare, ARENA } from "../../../shared/data.ts";
+  PARTY_XP_RANGE, partyXpShare,
+  RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
+  ARENA } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -91,6 +93,9 @@ export interface PData {
   quest: QuestProgress;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
   arenaBusy: boolean; arenaTopAt: number;
+  // Cộng minh (8.2, mục 5.10): tiến độ và số mốc đã đạt từng trụ cột (thứ tự RESONANCE), tổng % cộng cho mọi võ hồn. Không lưu DB:
+  // tính lại từ võ hồn và đồ đang gắn (resCheck) khi nạp tài khoản và mỗi khi dữ liệu liên quan đổi. `resKey`: tin "resonance" lần trước.
+  res: { prog: number[]; lv: number[]; bonus: Record<ResStat, number> }; resKey: string;
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
@@ -380,6 +385,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
     this.onMessage("quest", (c, m: { op: unknown }) => this.questAction(c.sessionId, m?.op)); // nhiệm vụ (6.2)
     this.onMessage("arena", (c, m: { op: unknown }) => this.arenaAction(c.sessionId, m?.op)); // Đại Đấu Hồn Trường (7.2)
+    this.onMessage("resonance", (c) => this.sendRes(c.sessionId, [], true)); // cộng minh (8.2): xin bảng tiến độ
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
@@ -411,9 +417,11 @@ export class MapRoom extends Room<MapState> {
       bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
       claims: auth.claims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
-      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), arenaBusy: false, arenaTopAt: 0 };
+      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
+      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", arenaBusy: false, arenaTopAt: 0 };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
+    this.resCheck(client.sessionId, false); // cộng minh (8.2) tính trước chỉ số ban đầu, không báo mốc
     this.recalc(client.sessionId, true);
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
@@ -482,7 +490,7 @@ export class MapRoom extends Room<MapState> {
   recalc(id: string, full: boolean) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     const cores = this.coresOn(d, d.ch.rowId);
-    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), coreBonus(cores));
+    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), coreBonus(cores), d.res.bonus);
     p.maxHp = s.maxHp; p.maxMp = s.maxMp; d.atk = s.atk; d.speed = s.speed; d.crit = s.crit; d.critMult = s.critMult;
     d.passive = bonePassive(this.bonesOn(d, d.ch.rowId)); // bị động hồn cốt (4.3) theo võ hồn ra trận
     d.coreFx = coreFx(cores); // hiệu ứng bộ hồn hạch (5.2) theo võ hồn ra trận
@@ -555,9 +563,54 @@ export class MapRoom extends Room<MapState> {
     } catch (e) { if (bag) d.bagDirty = true; throw e; }
   }
 
-  /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2) và hồn hạch (5.2) đang gắn. */
+  /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn và cộng minh (8.2). */
   maxHpOf(d: PData, v: Character) {
-    return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId)).maxHp;
+    return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId),
+      d.res.bonus).maxHp;
+  }
+
+  /**
+   * Cộng minh (bước 8.2, mục 5.10): tính lại tiến độ 4 trụ cột từ dữ liệu sẵn có của tài khoản (mọi võ hồn sở hữu: cấp, số hồn
+   * hoàn; hồn cốt / hồn hạch đang gắn trên võ hồn của mình). Võ hồn ra trận đọc tiến độ đang chơi (p.level, d.ringYears). Số mốc
+   * đổi thì tính lại chỉ số võ hồn ra trận (võ hồn khác tính khi cần qua maxHpOf / calcStats nên đổi vào sau cũng đúng), gửi lại
+   * sinh lực đội; `announce` thì báo từng mốc mới đạt (log + `ev` trong tin riêng "resonance") và mốc bị mất (tháo đồ). Tiến độ đổi
+   * thì gửi lại tin "resonance". Gọi khi nạp tài khoản và sau mọi thay đổi liên quan: lên cấp (ra trận / trong đội), hấp thụ, mở
+   * võ hồn, gắn / tháo / cường hóa / nâng cấp đồ đang gắn (afterBones), hook test.
+   */
+  resCheck(id: string, announce = true) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const mine = new Set(d.owned.map((v) => v.rowId)), worn = d.bag.filter((i) => i.vohonId !== null && mine.has(i.vohonId));
+    const prog = resonanceProgress({
+      vohons: d.owned.map((v) => (v === d.ch ? { level: p.level, rings: d.ringYears.length } : { level: v.level, rings: v.rings.length })),
+      bones: worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
+      cores: worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })) });
+    const lv = resonanceLevels(prog), old = d.res.lv, changed = lv.some((x, i) => x !== (old[i] ?? 0));
+    d.res = { prog, lv, bonus: resonanceBonus(lv) };
+    const ev: { pillar: number; step: number; up: boolean }[] = [];
+    if (changed) {
+      if (d.hpF > 0) { this.recalc(id, false); this.sendSquad(id, true); } // lúc vào phòng (chưa có sinh lực) onJoin tự recalc
+      if (announce) RESONANCE.forEach((r, i) => {
+        const a = old[i] ?? 0, b = lv[i];
+        for (let s = a; s < b; s++) {
+          ev.push({ pillar: i, step: s, up: true });
+          this.log(id, `Cộng minh ${r.name} đạt mốc ${s + 1}/${r.steps.length} (${r.steps[s].need} ${r.what}): mọi võ hồn ${resonanceText(r.steps[s].bonus)}.`, r.col);
+        }
+        if (b < a) {
+          ev.push({ pillar: i, step: b, up: false });
+          this.log(id, `Cộng minh ${r.name} còn ${b}/${r.steps.length} mốc (${prog[i]} ${r.what}): mất phần cộng của mốc ${b + 1}${a - b > 1 ? `–${a}` : ""}.`, "#ffb35c");
+        }
+      });
+    }
+    this.sendRes(id, ev);
+  }
+
+  /** Tin riêng "resonance" (8.2): tiến độ, số mốc đã đạt từng trụ cột, tổng % đang cộng; chỉ gửi khi đổi, có `ev` hoặc `force`. */
+  sendRes(id: string, ev: { pillar: number; step: number; up: boolean }[] = [], force = false) {
+    const d = this.pdata.get(id); if (!d) return;
+    const msg = { prog: d.res.prog, lv: d.res.lv, bonus: d.res.bonus }, key = JSON.stringify(msg);
+    if (!force && !ev.length && key === d.resKey) return;
+    d.resKey = key;
+    this.clients.getById(id)?.send("resonance", ev.length ? { ...msg, ev } : msg);
   }
 
   // ---------- Võ hồn sở hữu và đội hình ----------
@@ -1292,11 +1345,15 @@ export class MapRoom extends Room<MapState> {
       else if (code === BONE_ITEM) {
         const beast = beastIndex(String(o.beast ?? "")) >= 0 ? String(o.beast) : BEASTS[0].id;
         const slot = BONE_SLOTS.some((s) => s.id === o.slot) ? String(o.slot) : BONE_SLOTS[0].id;
-        while (got < qty && this.addBone(d, yearsOf(0), beast, slot)) got++;
+        // 8.2: `enhance` cho sẵn cấp cường hóa (và đúng số điểm của cấp đó) để thử cộng minh mà không phải cường hóa từng món.
+        const e = int(o.enhance, 0, BONE_MAX_ENHANCE, 0);
+        for (let it; got < qty && (it = this.addBone(d, yearsOf(0), beast, slot)); got++)
+          if (e) { it.enhance = e; it.stats = { ...(it.stats as object), xp: boneEnhanceNeed(e) }; }
       }
       else if (code === CORE_ITEM) {
-        const stars = int(o.stars, 1, MAX_CORE_STARS, 1), si = coreSetIndex(o.set);
-        while (got < qty && this.addCore(d, stars, rollCoreStats(stars, MAPS[this.state.mapId]?.cores ?? [], Math.random, si >= 0 ? si : undefined))) got++;
+        const stars = int(o.stars, 1, MAX_CORE_STARS, 1), si = coreSetIndex(o.set), e = int(o.enhance, 0, CORE_MAX_ENHANCE, 0); // 8.2: như hồn cốt
+        for (let it; got < qty && (it = this.addCore(d, stars, rollCoreStats(stars, MAPS[this.state.mapId]?.cores ?? [], Math.random, si >= 0 ? si : undefined))); got++)
+          if (e) { it.enhance = e; it.stats = { ...(it.stats as object), xp: coreEnhanceNeed(e) }; }
       }
       else got = this.addItem(d, code, qty);
       if (got < qty) this.log(id, itemDef(code) ? `Túi đồ đã đầy (${BAG_SLOTS} ô): ${qty - got} món không nhận được.` : "Vật phẩm không tồn tại.", "#ffb35c");
@@ -1358,7 +1415,7 @@ export class MapRoom extends Room<MapState> {
       const vohon = String(o.vohon ?? "");
       if (vohonIndex(vohon) >= 0) {
         store.addVohon(d.accountId, p.name, vohon, d.ch.level).then((v) => {
-          if (v && this.pdata.get(id) === d) d.owned.push(v);
+          if (v && this.pdata.get(id) === d) { d.owned.push(v); this.resCheck(id); }
           this.sendVohons(c); c.send("test", { op, enabled: true });
         }).catch((e) => { console.error("grant thất bại", e); c.send("test", { op, enabled: true }); });
         return;
@@ -1382,13 +1439,14 @@ export class MapRoom extends Room<MapState> {
       // Chỉ số của một võ hồn của mình (thiếu rowId: võ hồn ra trận): `bones` là phần hồn cốt cộng thêm (4.2), `base` là khi không
       // gắn gì; võ hồn ra trận kèm `live` (chỉ số đang dùng trong trận: maxHp, maxMp, atk). Từ 5.2: `cores` (chỉ số hồn hạch kèm phần
       // của bộ), `sets` (số món từng bộ), `fx` (hiệu ứng bộ), `slots` (id hồn hạch -> ô); `live` thêm chí mạng và hiệu ứng bộ đang dùng.
+      // Từ 8.2: `base` và `stats` kèm cộng minh của tài khoản (không phải đồ gắn), `res` là tiến độ / mốc / % cộng minh hiện tại.
       const v = d.owned.find((x) => x.rowId === o.rowId) ?? d.ch;
       if (v === d.ch) this.syncCh(id);
       const vh = Math.max(0, vohonIndex(v.vohon)), rings = v.rings.map(tierOfYears), bones = this.boneBonusOf(d, v.rowId);
       const worn = this.coresOn(d, v.rowId), cores = coreBonus(worn);
       out = { rowId: v.rowId, bones, cores, sets: Object.fromEntries(coreSetCounts(worn)), fx: coreFx(worn),
         slots: Object.fromEntries(worn.map((w) => [w.it.id, w.slot])),
-        base: calcStats(vh, v.level, rings, v.stars), stats: calcStats(vh, v.level, rings, v.stars, bones, cores),
+        base: calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus), stats: calcStats(vh, v.level, rings, v.stars, bones, cores, d.res.bonus), res: d.res,
         live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive, crit: d.crit, critMult: d.critMult, fx: d.coreFx } : null };
     }
     else if (op === "elite") out = { list: this.elites.map((slot) => {
@@ -1471,6 +1529,7 @@ export class MapRoom extends Room<MapState> {
         v.level = int(o.level, 1, MAX_LEVEL, v.level); v.xp = int(o.xp, 0, 1e9, v.xp);
         if (Array.isArray(o.rings)) v.rings = o.rings.filter((y) => Number.isInteger(y) && y > 0).slice(0, MAX_RINGS) as number[];
         if (v === d.ch) { d.ringYears = [...v.rings]; this.showVohon(p, v); this.recalc(id, true); } else d.dirty.add(v.rowId);
+        this.resCheck(id);
       }
     }
     this.sendVohons(c);
@@ -1496,7 +1555,7 @@ export class MapRoom extends Room<MapState> {
   /** Kinh nghiệm cho võ hồn trong đội đang không ra trận (cùng luật lên cấp, bình cảnh như addXp). */
   benchXp(id: string, v: Character, n: number) {
     if (n <= 0 || xpBlocked(v.level, v.rings.length)) return;
-    const d = this.pdata.get(id)!, name = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
+    const d = this.pdata.get(id)!, name = VOHON[Math.max(0, vohonIndex(v.vohon))].name, lv0 = v.level;
     v.xp += n; d.dirty.add(v.rowId);
     while (!xpBlocked(v.level, v.rings.length) && v.xp >= xpNeed(v.level)) {
       v.xp -= xpNeed(v.level); v.level++;
@@ -1506,10 +1565,11 @@ export class MapRoom extends Room<MapState> {
         this.log(id, `${name} đạt cấp ${v.level}: bình cảnh! Cần hấp thụ hồn hoàn thứ ${v.rings.length + 1}.`, "#ffe08a");
       } else this.log(id, `${name} lên cấp ${v.level}.`);
     }
+    if (v.level !== lv0) this.resCheck(id); // cộng minh (8.2)
   }
 
   addXp(id: string, n: number) {
-    const p = this.state.players.get(id)!;
+    const p = this.state.players.get(id)!, lv0 = p.level;
     if (n <= 0 || xpBlocked(p.level, p.rings.length)) return;
     p.xp += n;
     while (!xpBlocked(p.level, p.rings.length) && p.xp >= xpNeed(p.level)) {
@@ -1522,6 +1582,7 @@ export class MapRoom extends Room<MapState> {
       } else this.log(id, `Lên cấp ${p.level}.`);
     }
     this.recalc(id, false);
+    if (p.level !== lv0) this.resCheck(id); // cộng minh (8.2): võ hồn cấp 30+
   }
 
   /**
@@ -2504,6 +2565,7 @@ export class MapRoom extends Room<MapState> {
       d.shardBusy = false;
       if (this.pdata.get(id) !== d) return;
       if (!d.owned.some((v) => v.vohon === vohon)) warn(`Chưa mở được ${name}, mảnh đã trả lại túi đồ.`);
+      else this.resCheck(id); // cộng minh (8.2): võ hồn mới cũng nhận phần cộng
       const c = this.clients.getById(id); if (c) this.sendVohons(c);
       this.sendBag(id);
     });
@@ -2652,6 +2714,7 @@ export class MapRoom extends Room<MapState> {
   afterBones(id: string, v: Character) {
     const d = this.pdata.get(id)!;
     if (v === d.ch) this.recalc(id, false);
+    this.resCheck(id); // cộng minh (8.2): hồn cốt +10 / hồn hạch 5★ đang gắn
     this.sendBag(id);
     this.sendSquad(id, true);
   }
@@ -2860,6 +2923,7 @@ export class MapRoom extends Room<MapState> {
     this.log(id, `Hấp thụ thành công hồn hoàn ${age} vào ${name} (vòng ${n})!${lv}${sk}`, TIERS[tier].glow);
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã hấp thụ hồn hoàn thứ ${n} (${age}) cho ${name}.` });
     if (c) this.sendVohons(c);
+    this.resCheck(id); // cộng minh (8.2): tổng hồn hoàn, võ hồn cấp 30+
     this.save(id);
   }
 

@@ -1243,16 +1243,17 @@ export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.len
  * thì võ hồn nào cũng +118.
  * `cores` (bước 5.2, **chờ chốt**): tổng chỉ số hồn hạch đang gắn (coreBonus): dòng % nhân phần gốc (sau hệ số hệ và sao, trước
  * hồn cốt), dòng phẳng cộng thẳng như hồn cốt; chí mạng cộng vào `crit` / `critMult`.
+ * `res` (bước 8.2, **chờ chốt**): % cộng minh của tài khoản (resonanceBonus), cộng chung với dòng % của hồn hạch, áp cho mọi võ hồn.
  */
 export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<BoneStat, number>> = {},
-  cores: Partial<Record<CoreStat, number>> = {}) {
-  const v = VOHON[vh], k = starMult(stars), pc = (x: CoreStat) => 1 + (cores[x] ?? 0) / 100;
+  cores: Partial<Record<CoreStat, number>> = {}, res: Partial<Record<ResStat, number>> = {}) {
+  const v = VOHON[vh], k = starMult(stars), pc = (x: CoreStat, r: ResStat) => 1 + ((cores[x] ?? 0) + (res[r] ?? 0)) / 100;
   let hpB = 0, atkB = 0;
   for (const t of rings) { hpB += TIERS[t].hpb; atkB += TIERS[t].atkb; }
   return {
-    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k * pc("hp_pct")) + (bones.hp ?? 0) + (cores.hp ?? 0),
-    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k * pc("mp_pct")) + (bones.mp ?? 0) + (cores.mp ?? 0),
-    atk: (6 + level * 1.6 + atkB) * v.atk * k * pc("atk_pct") + (bones.atk ?? 0) + (cores.atk ?? 0),
+    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k * pc("hp_pct", "hp")) + (bones.hp ?? 0) + (cores.hp ?? 0),
+    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k * pc("mp_pct", "mp")) + (bones.mp ?? 0) + (cores.mp ?? 0),
+    atk: (6 + level * 1.6 + atkB) * v.atk * k * pc("atk_pct", "atk") + (bones.atk ?? 0) + (cores.atk ?? 0),
     speed: 58 * v.spd,
     // Từ 5.2: tỉ lệ và hệ số chí mạng của đòn đánh vào hồn thú (CRIT cộng hồn hạch).
     crit: CRIT.chance + (cores.crit ?? 0) / 100,
@@ -2190,3 +2191,60 @@ export function arenaPairs<T>(list: { id: T; elo: number; wait: number }[]): [T,
 }
 /** Một dòng bảng xếp hạng / thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`). */
 export interface ArenaRecord { elo: number; wins: number; losses: number; draws: number; }
+// ---------- Cộng minh (mục 5.10, bước 8.2; mốc theo thiết kế, giá trị cộng chờ chốt) ----------
+/** Chỉ số cộng minh cộng cho **mọi** võ hồn: % phần gốc (calcStats, cộng chung với dòng % của hồn hạch). */
+export type ResStat = "hp" | "mp" | "atk";
+export const RES_STAT_NAMES: Record<ResStat, string> = { hp: "Sinh lực", mp: "Hồn lực", atk: "Công" };
+export type ResPillar = "vohon" | "ring" | "bone" | "core";
+/** Một mốc của trụ cột: đạt `need` thì cộng thêm `bonus` (% mỗi chỉ số, cộng dồn với các mốc trước). */
+export interface ResonanceStep { need: number; bonus: Partial<Record<ResStat, number>>; }
+/** Trụ cột cộng minh: tên, thứ được đếm (`what`, hiện trong câu "x/mốc …"), màu giao diện, các mốc tăng dần. */
+export interface ResonanceDef { id: ResPillar; name: string; what: string; col: string; steps: ResonanceStep[]; }
+/** Trụ cột Võ hồn đếm võ hồn sở hữu từ cấp này (mục 5.10). */
+export const RES_VOHON_LEVEL = 30;
+/** Trụ cột Hồn cốt đếm hồn cốt **đang gắn** đã cường hóa từ cấp này (chờ chốt: đang gắn, không tính hồn cốt nằm trong túi). */
+export const RES_BONE_ENHANCE = 10;
+/** Trụ cột Hồn hạch đếm hồn hạch **đang gắn** từ ngần này sao (chờ chốt: đang gắn, không tính hồn hạch nằm trong túi). */
+export const RES_CORE_STARS = 5;
+/**
+ * 4 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
+ * mã `id` cố định. Mốc lấy đúng bảng ví dụ 5.10; **giá trị cộng chờ chốt**:
+ * Võ hồn +3 / +3 / +4% sinh lực, Hồn hoàn +3 / +3 / +4% công, Hồn cốt +2% sinh lực và +2% công mỗi mốc, Hồn hạch +4% hồn lực và
+ * +2% công mỗi mốc. Cả 12 mốc: sinh lực +16%, công +22%, hồn lực +12%.
+ * Tính lại từ dữ liệu sẵn có của tài khoản (võ hồn, hồn hoàn, đồ đang gắn), không lưu DB riêng.
+ */
+export const RESONANCE: ResonanceDef[] = [
+  { id: "vohon", name: "Võ hồn", what: `võ hồn cấp ${RES_VOHON_LEVEL}+`, col: "#d09a20",
+    steps: [{ need: 4, bonus: { hp: 3 } }, { need: 6, bonus: { hp: 3 } }, { need: 8, bonus: { hp: 4 } }] },
+  { id: "ring", name: "Hồn hoàn", what: "hồn hoàn đã hấp thụ (mọi võ hồn)", col: "#9a62e0",
+    steps: [{ need: 10, bonus: { atk: 3 } }, { need: 25, bonus: { atk: 3 } }, { need: 50, bonus: { atk: 4 } }] },
+  { id: "bone", name: "Hồn cốt", what: `hồn cốt +${RES_BONE_ENHANCE} trở lên đang gắn`, col: "#b89a60",
+    steps: [{ need: 6, bonus: { hp: 2, atk: 2 } }, { need: 12, bonus: { hp: 2, atk: 2 } }, { need: 24, bonus: { hp: 2, atk: 2 } }] },
+  { id: "core", name: "Hồn hạch", what: `hồn hạch ${RES_CORE_STARS}★ trở lên đang gắn`, col: "#3aa8c0",
+    steps: [{ need: 8, bonus: { mp: 4, atk: 2 } }, { need: 16, bonus: { mp: 4, atk: 2 } }, { need: 24, bonus: { mp: 4, atk: 2 } }] },
+];
+/** Dữ liệu tài khoản dùng để tính cộng minh: mọi võ hồn sở hữu (cấp, số hồn hoàn), hồn cốt / hồn hạch **đang gắn**. */
+export interface ResonanceInput { vohons: { level: number; rings: number }[]; bones: { enhance: number }[]; cores: { stars: number }[]; }
+/** Tiến độ từng trụ cột (theo thứ tự RESONANCE). Hàm thuần: server tính, client chỉ hiển thị số server gửi. */
+export function resonanceProgress(a: ResonanceInput): number[] {
+  const of: Record<ResPillar, number> = {
+    vohon: a.vohons.filter((v) => v.level >= RES_VOHON_LEVEL).length,
+    ring: a.vohons.reduce((s, v) => s + v.rings, 0),
+    bone: a.bones.filter((b) => b.enhance >= RES_BONE_ENHANCE).length,
+    core: a.cores.filter((c) => c.stars >= RES_CORE_STARS).length,
+  };
+  return RESONANCE.map((r) => of[r.id]);
+}
+/** Số mốc đã đạt của từng trụ cột (0..số mốc), theo tiến độ `prog`. */
+export const resonanceLevels = (prog: readonly number[]) => RESONANCE.map((r, i) => r.steps.filter((s) => (prog[i] ?? 0) >= s.need).length);
+/** Tổng % cộng minh (mọi trụ cột, mọi mốc đã đạt) → tham số `res` của calcStats. */
+export function resonanceBonus(levels: readonly number[]): Record<ResStat, number> {
+  const out: Record<ResStat, number> = { hp: 0, mp: 0, atk: 0 };
+  RESONANCE.forEach((r, i) => r.steps.slice(0, Math.max(0, levels[i] ?? 0)).forEach((s) => {
+    for (const [k, v] of Object.entries(s.bonus) as [ResStat, number][]) out[k] += v;
+  }));
+  return out;
+}
+/** "Sinh lực +6%, Công +3%" ("" nếu không cộng gì). */
+export const resonanceText = (b: Partial<Record<ResStat, number>>) =>
+  (Object.keys(RES_STAT_NAMES) as ResStat[]).filter((k) => b[k]).map((k) => `${RES_STAT_NAMES[k]} +${b[k]}%`).join(", ");
