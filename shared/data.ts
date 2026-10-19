@@ -178,6 +178,40 @@ export const RESPAWN_SECS = 2.5;
 /** Chia kinh nghiệm hạ hồn thú cho đội (mục 5.1): võ hồn ra trận 40%, mỗi võ hồn khác trong đội 20%. Ô trống, võ hồn ở bình cảnh: phần đó bỏ đi. */
 export const XP_SHARE_ACTIVE = 0.4;
 export const XP_SHARE_BENCH = 0.2;
+
+// ---------- Năng lượng và chiêu tiên cơ (mục 5.1 "Trong trận"; mọi số dưới đây chờ chốt) ----------
+/** Năng lượng tối đa của mỗi võ hồn trong đội. Đủ mức này thì đổi tay vào sẽ tung chiêu tiên cơ, dùng hết năng lượng. */
+export const TIEN_CO_MAX = 100;
+/**
+ * Năng lượng mỗi võ hồn khác trong đội (không ra trận, chưa gục) nhận khi võ hồn ra trận đánh trúng: tính một lần cho mỗi đòn
+ * đánh thường / mỗi lần tung hồn kỹ trúng ít nhất một hồn thú (10 mũi Hồn Tiễn vẫn là một lần). Võ hồn ra trận không tự tích;
+ * đòn tiên cơ không tạo năng lượng (tránh nối tiên cơ vô hạn).
+ */
+export const TIEN_CO_GAIN = { attack: 10, skill: 20 };
+/** Ra khỏi giao chiến (không đánh trúng, không bị đánh) quá ngần này giây thì năng lượng cả đội giảm dần TIEN_CO_DECAY mỗi giây. */
+export const TIEN_CO_IDLE_SECS = 10;
+export const TIEN_CO_DECAY = 10;
+/** Bộ hồn hạch Tiên Cơ (mục 5.6, làm ở GĐ5): 2 món +20% tốc độ tích năng lượng, 4 món +35% sát thương chiêu tiên cơ. */
+export const TIEN_CO_SET = { gain: 0.2, dmg: 0.35 };
+/** Năng lượng một võ hồn nhận được cho một lần đánh trúng loại `kind`; `set2`: võ hồn đó gắn đủ 2 món bộ Tiên Cơ. */
+export const energyGain = (kind: keyof typeof TIEN_CO_GAIN, set2 = false) => TIEN_CO_GAIN[kind] * (set2 ? 1 + TIEN_CO_SET.gain : 1);
+/** Hệ số sát thương chiêu tiên cơ; `set4`: võ hồn tung chiêu gắn đủ 4 món bộ Tiên Cơ. */
+export const tienCoDmgMult = (set4 = false) => (set4 ? 1 + TIEN_CO_SET.dmg : 1);
+/**
+ * Chiêu tiên cơ chung theo hệ (bước 2.4); tiên cơ riêng từng võ hồn để bước 2.5. Sát thương `dmg` là bội số công của võ hồn
+ * vừa đổi vào (không dao động ngẫu nhiên, vẫn có thể chí mạng). Trường không dùng để 0.
+ * - `r`: bán kính (pixel) quanh hồn sư; `dash`: quãng lướt tối đa, `range`: tầm tìm mục tiêu (mẫn công);
+ * - `stun`: giây choáng (hồn thú không đi, không đánh); `heal`: hồi theo tỉ lệ sinh lực tối đa của mọi võ hồn chưa gục trong đội;
+ * - `shield`: khiên theo tỉ lệ sinh lực tối đa của võ hồn ra trận, giữ `shieldSecs` giây (khiên thuộc hồn sư, đổi võ hồn vẫn còn).
+ */
+export interface TienCoDef { name: string; desc: string; dmg: number; r: number; dash: number; range: number; stun: number; heal: number; shield: number; shieldSecs: number; }
+export const TIEN_CO: Record<He, TienCoDef> = {
+  cuong_cong: { name: "Bạo Liệt", desc: "nổ sát thương diện rộng quanh thân", dmg: 3,   r: 56, dash: 0,  range: 0,   stun: 0,   heal: 0,    shield: 0,   shieldSecs: 0 },
+  man_cong:   { name: "Thiểm Sát", desc: "lướt tới hồn thú gần nhất, chém mạnh một mục tiêu", dmg: 5, r: 0, dash: 90, range: 110, stun: 0, heal: 0, shield: 0, shieldSecs: 0 },
+  khong_che:  { name: "Phong Tỏa", desc: "choáng mọi hồn thú quanh thân", dmg: 1.2, r: 64, dash: 0,  range: 0,   stun: 1.5, heal: 0,    shield: 0,   shieldSecs: 0 },
+  phu_tro:    { name: "Hộ Thể", desc: "hồi sinh lực cả đội, tạo khiên cho hồn sư", dmg: 0,   r: 0,  dash: 0,  range: 0,   stun: 0,   heal: 0.25, shield: 0.2, shieldSecs: 5 },
+};
+
 /**
  * Kiểm tra hình dạng đội hình: mảng đúng TEAM_SIZE ô, mỗi ô là mã dòng võ hồn (vohons.id, số nguyên dương) hoặc 0 = trống,
  * không trùng nhau, có ít nhất một võ hồn. Sai thì null. Võ hồn có thuộc tài khoản hay không do server kiểm tra riêng.

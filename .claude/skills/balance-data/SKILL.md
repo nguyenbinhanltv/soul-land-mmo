@@ -12,6 +12,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `HE` (4 hệ: hệ số `atk/hp/mp/spd/def`), `RARITY_MULT`, `VOHON` (danh sách võ hồn tạo bằng hàm `vh(...)`), `vohonIndex(id)`.
 - `SKILLS` (4 hồn kỹ dùng chung: `cost`, `cd`), `ringLimit(slot)`, `xpNeed(level)`, `atBottleneck(level, rings)`, `MAX_RINGS`, `calcStats(vh, level, rings)`.
 - Đội hình và luật gục (mục 5.1): `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`.
+- Năng lượng và chiêu tiên cơ (mục 5.1, bước 2.4): `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO` (tiên cơ chung theo hệ), `TIEN_CO_SET` + `energyGain()` / `tienCoDmgMult()` (hệ số bộ hồn hạch Tiên Cơ).
 - Giảm kinh nghiệm theo chênh cấp (mục 5.3): `beastLevel(tier)` (tạm theo bậc đến BĐ3), `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale(level, beastLv)`.
 - `MAPS` (bản đồ theo `mapId`: tên, loại, cấp đề xuất, niên hạn), `DEFAULT_MAP`, `BEASTS` (hồn thú theo loài: mã cố định, tên, bậc tạm đến bước 3.2), `beastIndex(id)`.
 - `TITLES`, `titleOf(level)` (danh hiệu theo cấp, mục 5.1).
