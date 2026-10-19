@@ -62,6 +62,9 @@ export class DropState extends Schema {
   // Từ 3.4 đồ rơi khác hồn hoàn (mảnh võ hồn rơi khi túi người hạ đã đầy): mã vật phẩm trong ITEMS và số món; "" = hồn hoàn.
   @type("string") item: string = "";
   @type("uint16") qty: number = 0;
+  // Từ 4.1 hồn cốt (`item` = BONE_ITEM, `years` = tuổi hồn thú): loài (chỉ số trong BEASTS) và vị trí (chỉ số trong BONE_SLOTS).
+  @type("uint8") species: number = 0;
+  @type("uint8") slot: number = 0;
   @type("string") owner: string = "";   // sessionId được ưu tiên nhặt
   @type("float32") ownerTtl: number = 0; // giây còn lại trước khi ai cũng nhặt được
   @type("float32") ttl: number = 0;

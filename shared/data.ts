@@ -1029,8 +1029,60 @@ export const SHARD_STACK = 999;
 /** Mã vật phẩm mảnh của võ hồn `vohonId` (cột `items.code`). Không đổi cách đặt mã: DB lưu mã này. */
 export const shardCode = (vohonId: string) => `manh_${vohonId}`;
 
+// ---------- Hồn cốt (mục 5.5, bảng rơi 5.3, bước 4.1) ----------
+/** Mã vật phẩm của hồn cốt (cột `items.code`, `kind` = `hon_cot`). Mỗi món một ô (không gộp): loài và vị trí lưu ở `items.stats`. */
+export const BONE_ITEM = "hon_cot";
+export type BoneSlot = "dau" | "than" | "tay_trai" | "tay_phai" | "chan_trai" | "chan_phai";
+/** Chỉ số hồn cốt cộng cho võ hồn (gắn ở bước 4.2): sinh lực, hồn lực, công. */
+export type BoneStat = "hp" | "mp" | "atk";
+export const BONE_STAT_NAMES: Record<BoneStat, string> = { hp: "Sinh lực", mp: "Hồn lực", atk: "Công" };
+/**
+ * 6 vị trí hồn cốt (mục 5.5). Mã lưu trong DB (`items.stats.slot`), không đổi mã, thứ tự là chỉ số đồng bộ (`DropState.slot`).
+ * `active`: đầu và hai tay cho kỹ năng chủ động, còn lại bị động (kỹ năng ở bước 4.3).
+ * **(chờ chốt)** Chỉ số chính `stat` = hệ số `k` × mức cộng của hồn hoàn cùng số năm (TIERS `hpb` cho sinh lực / hồn lực,
+ * `atkb` cho công; nội suy theo số năm như beastStats): đầu hồn lực, thân sinh lực, hai tay công, hai chân sinh lực.
+ */
+export const BONE_SLOTS: { id: BoneSlot; name: string; active: boolean; stat: BoneStat; k: number }[] = [
+  { id: "dau",       name: "Đầu",       active: true,  stat: "mp",  k: 0.3 },
+  { id: "than",      name: "Thân",      active: false, stat: "hp",  k: 0.8 },
+  { id: "tay_trai",  name: "Tay trái",  active: true,  stat: "atk", k: 0.6 },
+  { id: "tay_phai",  name: "Tay phải",  active: true,  stat: "atk", k: 0.6 },
+  { id: "chan_trai", name: "Chân trái", active: false, stat: "hp",  k: 0.5 },
+  { id: "chan_phai", name: "Chân phải", active: false, stat: "hp",  k: 0.5 },
+];
+/** Chỉ số trong BONE_SLOTS của một mã vị trí (-1 nếu không có). */
+export const boneSlotIndex = (slot: unknown) => BONE_SLOTS.findIndex((s) => s.id === slot);
+/**
+ * **(chờ chốt)** Tỉ lệ rơi hồn cốt khi hạ hồn thú thường, theo số năm (bảng rơi mục 5.3): dưới 1.000 năm 0%, 1.000–9.999 1%,
+ * 10.000–99.999 4%, 100.000 năm 20%. Vị trí ngẫu nhiên đều trong 6 vị trí (5.3 không ghi theo loài). Tinh anh x3 (BĐ4).
+ */
+export const BONE_DROP = [{ years: 0, p: 0 }, { years: 1000, p: 0.01 }, { years: 10000, p: 0.04 }, { years: 100000, p: 0.2 }];
+export const boneChance = (years: number) => BONE_DROP.reduce((p, x) => (years >= x.years ? x.p : p), 0);
+/**
+ * Chỉ số gốc của hồn cốt vị trí `slot`, `years` năm (mục 5.5 "niên hạn càng cao thì chỉ số gốc càng mạnh"): tăng liên tục theo
+ * số năm, không lưu DB (đổi công thức thì mọi hồn cốt đã có đổi theo). Cường hóa (4.4) cộng thêm sau. Vị trí lạ: {}.
+ */
+export function boneStats(slot: unknown, years: number): Partial<Record<BoneStat, number>> {
+  const s = BONE_SLOTS[boneSlotIndex(slot)]; if (!s) return {};
+  const y = Math.max(TIERS[0].years, Math.min(MAX_YEARS, years)), t = tierOfYears(y), a = TIERS[t], b = TIERS[Math.min(t + 1, TIERS.length - 1)];
+  const f = b === a ? 0 : Math.log(y / a.years) / Math.log(b.years / a.years), mix = (x: number, z: number) => x * Math.pow(z / x, f);
+  const base = s.stat === "atk" ? mix(a.atkb, b.atkb) : mix(a.hpb, b.hpb);
+  return { [s.stat]: Math.max(1, Math.round(base * s.k)) };
+}
+/** Loài và vị trí của một hồn cốt (`items.stats`); dữ liệu hỏng thì null. */
+export function parseBone(stats: unknown): { beast: string; slot: BoneSlot } | null {
+  const o = stats as { beast?: unknown; slot?: unknown } | null;
+  if (!o || typeof o !== "object" || typeof o.beast !== "string" || boneSlotIndex(o.slot) < 0) return null;
+  return { beast: o.beast, slot: o.slot as BoneSlot };
+}
+/** Tên hồn cốt (mục 5.5): "Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". Loài không còn trong BEASTS: "Hồn thú lạ". */
+export function boneName(beast: string, slot: unknown, years: number) {
+  const b = BEASTS[beastIndex(beast)]?.name ?? "Hồn thú lạ", s = BONE_SLOTS[boneSlotIndex(slot)]?.name ?? "Vị trí lạ";
+  return `${b} – ${s}, ${formatYears(years)}`;
+}
+
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
-/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4); các nhóm khác thêm ITEMS khi làm tới (hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
+/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1); các nhóm khác thêm ITEMS khi làm tới (hồn hạch GĐ5, tiên thảo BĐ6). */
 export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
@@ -1054,6 +1106,10 @@ export const ITEMS: ItemDef[] = [
   // Mảnh võ hồn (bước 3.4): mỗi võ hồn một mã `manh_<mã võ hồn>` (shardCode), `vohon` trỏ về VOHON. Mở / lên sao ở bảng đội hình (V).
   ...VOHON.map((v): ItemDef => ({ id: shardCode(v.id), kind: "manh_vo_hon", name: `Mảnh ${v.name}`, col: v.col, stack: SHARD_STACK, vohon: v.id,
     desc: `Đủ ${SHARD_UNLOCK} mảnh thì mở ${v.name}; đã có thì dùng để lên sao (bảng đội hình, phím V).` })),
+  // Hồn cốt (bước 4.1): mỗi món một ô; số năm ở `items.years`, loài và vị trí ở `items.stats`, cấp cường hóa ở `items.enhance`.
+  // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn ở bước 4.2.
+  { id: BONE_ITEM, kind: "hon_cot", name: "Hồn cốt", col: "#e8dcc0", stack: 1,
+    desc: "Gắn vào vị trí cùng tên trong 6 vị trí hồn cốt của một võ hồn để cộng chỉ số (sắp có, bước 4.2). Tháo ra vẫn giữ cấp cường hóa." },
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
