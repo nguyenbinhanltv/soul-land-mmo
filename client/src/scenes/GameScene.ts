@@ -4,7 +4,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, boneName } from "../../../shared/data.ts";
+  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -70,6 +70,7 @@ export class GameScene extends Phaser.Scene {
   lastInput = "";
   lastZone = "";
   skillsKey = "";
+  boneSkKey = "";                   // hồn cốt đang gắn trên võ hồn ra trận lần vẽ thanh kỹ năng hồn cốt gần nhất (4.3)
   hudT = 0;
   mini!: { ctx: CanvasRenderingContext2D; base: HTMLCanvasElement };
   mapW = 0; mapH = 0;
@@ -187,10 +188,12 @@ export class GameScene extends Phaser.Scene {
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
       // Phím số 1–4: đổi sang võ hồn ở ô tương ứng của đội; hồn kỹ dùng U, I, O, P (hud.SKILL_KEYS).
       const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
+      const bk = hud.BONE_SKILL_KEYS.findIndex((k) => e.code === "Key" + k); // kỹ năng hồn cốt Z / X / C (4.3)
       const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
       else if (e.code === "KeyE") this.act("pickup");
       else if (sk >= 0) this.act("skill" + sk);
+      else if (bk >= 0) this.act("bone" + bk);
       else if (slot >= 0 && slot < TEAM_SIZE) this.act("switch" + slot);
     }, on);
     addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
@@ -219,6 +222,7 @@ export class GameScene extends Phaser.Scene {
     if (a === "attack") this.room.send("attack");
     else if (a === "pickup") this.room.send("pickup");
     else if (a.startsWith("skill")) this.room.send("skill", { i: Number(a.slice(5)) });
+    else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
   }
 
@@ -343,6 +347,12 @@ export class GameScene extends Phaser.Scene {
       // Tên hồn kỹ (riêng hoặc dùng chung) bay lên trên đầu, màu hào quang hồn hoàn của vòng đó.
       const sk = v && VOHON[m.vh] ? skillsOf(VOHON[m.vh].id)[m.i] : undefined;
       if (v && sk) this.floatText(v.root.x, v.root.y - 48, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
+    }
+    else if (m.k === "bone") {
+      // Kỹ năng hồn cốt chủ động (4.3): vòng sáng màu niên hạn hồn cốt, tên kỹ năng bay lên (tra theo loài và nút).
+      this.playAct(m.id, "cast");
+      const v = this.players.get(m.id), col = TIERS[m.tier]?.glow ?? "#ffffff", k = boneSkillOf(BEASTS[m.sp]?.id ?? "", BONE_ACTIVE_SLOTS[m.i]);
+      if (v) { this.ringFx(v.root.x, v.root.y - 6, 4, 22, col, 420); if (k?.active) this.floatText(v.root.x, v.root.y - 48, k.sk.name, col); }
     }
     else if (m.k === "pull") {
       // Gom quái: vòng thu từ bán kính r về thân, kèm dây kéo.
@@ -961,6 +971,13 @@ export class GameScene extends Phaser.Scene {
     const own = this.owned?.list.find((v) => v.rowId === this.owned?.active), years = own && VOHON[me.vh]?.id === own.vohon ? own.rings : null;
     const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}`;
     if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, (a) => this.act(a)); }
+    // Kỹ năng hồn cốt (4.3): hồn cốt đang gắn trên võ hồn ra trận, lấy từ tin riêng "bag" (trường `vohon`) khi đúng võ hồn ra trận.
+    const worn: hud.WornBone[] = own && VOHON[me.vh]?.id === own.vohon ? (this.bag?.items ?? []).flatMap((it) => {
+      const b = it.vohon === own.rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
+      return b ? [{ beast: b.beast, slot: b.slot, years: it.years! }] : [];
+    }) : [];
+    const bKey = JSON.stringify(worn);
+    if (bKey !== this.boneSkKey) { this.boneSkKey = bKey; hud.buildBoneSkills(worn, (a) => this.act(a)); }
     hud.updateStats(me);
     hud.updateTeam(me);
     hud.updateBag();
