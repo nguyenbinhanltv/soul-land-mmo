@@ -139,7 +139,7 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - **Đã làm ở bước 3.4** (số trong `shared/data.ts`, **chờ chốt**): mảnh là vật phẩm `manh_<mã võ hồn>` gộp tối đa 999 một ô (`SHARD_STACK`); rơi 1 mảnh mỗi lần (`SHARD_QTY`) theo tỉ lệ niên hạn của bảng rơi 5.3 (`SHARD_DROP`); mở võ hồn 50 mảnh (`SHARD_UNLOCK`), võ hồn mở ra ở cấp 1, 1★; mỗi sao trên 1 cộng 5% sinh lực, hồn lực, công gốc (`STAR_STAT`, không đổi tốc độ). Hiệu ứng hồn kỹ theo sao **chưa làm** (để bước sau).
 
 **Trong trận:**
-- Phím đổi võ hồn (1–4 trên máy tính, chạm ô trên thanh đội hình ở điện thoại) chuyển ngay sang võ hồn khác trong đội, mỗi lần đổi hồi 3 giây (`SWITCH_CD`). Hồn kỹ vì vậy chuyển sang phím U / I / O / P (đã làm ở 2.3a).
+- Phím đổi võ hồn (1–4 trên máy tính, chạm ô trên thanh đội hình ở điện thoại) chuyển ngay sang võ hồn khác trong đội, mỗi lần đổi hồi 3 giây (`SWITCH_CD`). Hồn kỹ vì vậy chuyển sang phím U / I / O / P (đã làm ở 2.3a). **Đã chốt:** hồn kỹ dùng U / I / O / P, phím 1–4 dành cho đổi võ hồn.
 - Xếp đội (thay võ hồn khác vào đội, đổi chỗ, bỏ ra) chỉ khi ngoài giao chiến (`TEAM_COMBAT_SECS`). Đội phải có ít nhất 1 võ hồn; võ hồn đang ra trận luôn nằm trong đội.
 - **Năng lượng tiên cơ:** đánh trúng thì tích năng lượng. Võ hồn đủ năng lượng khi được đổi vào sẽ tung **chiêu tiên cơ** ngay lúc xuất hiện. Đây là kỹ thuật nối combo chính. Chi tiết dưới đây đã làm ở bước 2.4, số liệu trong `shared/data.ts` (`TIEN_CO_*`):
   - **(chờ chốt)** Năng lượng **thuộc từng võ hồn** trong đội, 0–100 (`TIEN_CO_MAX`). Võ hồn ra trận đánh trúng thì **các võ hồn khác trong đội (đang ở ngoài, chưa gục) tích năng lượng**; võ hồn ra trận không tự tích. Nhờ vậy cứ đánh một lúc là võ hồn ngoài sân đầy, khuyến khích đổi liên tục.
@@ -437,7 +437,7 @@ Cấp tương đương của một hồn thú là **cấp nhỏ nhất mà võ h
 | Cấp tương đương | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 |
 
 - Code tính cấp tương đương từ bảng giới hạn theo năm trong `data.ts`, không chép bảng trên. Khi đối chiếu lại giới hạn vòng 5+ với truyện (mục 8), cấp tương đương tự đổi theo.
-- Vòng 8–10 cùng giới hạn 100.000 năm nên không có hồn thú nào có cấp tương đương trên 80. Khi so cấp, **cấp võ hồn được tính tối đa 80**, để võ hồn cấp 90–100 săn ở Hải Thần Đảo không bị giảm kinh nghiệm.
+- Vòng 8–10 cùng giới hạn 100.000 năm nên không có hồn thú nào có cấp tương đương trên 80. Khi so cấp, **cấp võ hồn được tính tối đa 80** (đã chốt; `XP_LEVEL_CAP` trong `data.ts`), để võ hồn cấp 90–100 săn ở Hải Thần Đảo không bị giảm kinh nghiệm.
 - Mỗi bản đồ săn nhắm vào khoảng cấp mà niên hạn hồn thú khớp với giới hạn **vòng kế tiếp** của người chơi. Ví dụ Ngoại vi (cấp 10–30) có hồn thú 300–2.000 năm: đủ cho vòng 2 (≤ 764) và vòng 3 (≤ 1.760); vùng sâu nhất vượt giới hạn một chút cho người muốn liều. Khoảng cấp của các bản đồ kế nhau chồng lên nhau khoảng 10 cấp.
 
 **Giảm kinh nghiệm khi săn hồn thú quá yếu**
@@ -547,7 +547,7 @@ Mỗi bản đồ săn rơi mảnh của 2–3 võ hồn riêng (mục 5.1) và 
 | Boss thế giới | Mảnh UR: Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp | Mọi bộ |
 
 - Trước BĐ6, rương tà hóa thú vương rơi thêm mảnh của võ hồn thuộc bản đồ chưa mở, để không võ hồn nào bị khóa hẳn.
-- **Mảnh UR trước BĐ6:** rương tà hóa thú vương có tỉ lệ thấp rơi 1 mảnh UR (Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; đề xuất 5%, chờ chốt), để hai võ hồn UR không bị khóa hẳn cho tới Giai đoạn 8. Từ BĐ6, mảnh UR **chỉ** rơi từ boss thế giới và rương thú vương thôi rơi mảnh UR.
+- **Mảnh UR trước BĐ6:** rương tà hóa thú vương có tỉ lệ thấp rơi 1 mảnh UR (Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; **5%**, đã chốt), để hai võ hồn UR không bị khóa hẳn cho tới Giai đoạn 8. Từ BĐ6, mảnh UR **chỉ** rơi từ boss thế giới và rương thú vương thôi rơi mảnh UR.
 
 **Luật chung của hồn thú**
 - Chỉ số hồn thú tăng theo số năm, không chỉ theo màu. Loài (bảng `BEASTS`) quyết định kiểu tấn công, chiêu và hệ số chỉ số.
@@ -592,7 +592,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc. Hệ số nhân vào chỉ số của 
 - **2–3 chiêu** có vùng cảnh báo dài hơn hồn thú thường (1–1,5 giây). **Còn 50% máu thì đổi sang giai đoạn 2:** gầm lên, đứng yên 2 giây (không nhận khống chế), rồi dùng chiêu giai đoạn 2 và nhanh hơn.
 - **Chia thưởng theo đóng góp.** Đóng góp = sát thương lên thú vương (đề xuất: tính cả hồi máu và khiên cho người tham gia khác, để phụ trợ không bị thiệt).
   - Người đóng góp nhiều nhất được ưu tiên hồn hoàn (15 giây đầu).
-  - Mọi người tham gia **đóng góp từ 3%** và còn trong phòng lúc thú vương bị hạ đều nhận **rương** vào túi đồ: hồn cốt, hồn hạch sao cao, mảnh võ hồn (bảng "Rơi đặc trưng" ở 5.3).
+  - Mọi người tham gia **đóng góp từ 3%** (đã chốt: ngưỡng cố định 3%, không hạ theo số người) và còn trong phòng lúc thú vương bị hạ đều nhận **rương** vào túi đồ: hồn cốt, hồn hạch sao cao, mảnh võ hồn (bảng "Rơi đặc trưng" ở 5.3).
 - **Tối đa 3 lần/ngày** mỗi tài khoản, tính chung mọi bản đồ, đặt lại lúc 00:00 giờ Việt Nam (`Asia/Ho_Chi_Minh`, cùng múi giờ với lịch boss). Lượt boss thế giới cũng đặt lại cùng mốc. Hết lượt vẫn được đánh và nhận kinh nghiệm, nhưng không nhận rương; vào giao chiến thì hiện nhắc "Hôm nay đã hết lượt nhận thưởng thú vương".
 
 **Máu tăng theo số người tham gia** (tinh anh, thú vương, boss thế giới)
@@ -613,7 +613,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc. Hệ số nhân vào chỉ số của 
 - **Bỏ giao chiến:** 15 giây không còn người tham gia nào trong bán kính thì boss về chỗ, hồi đầy máu, xóa danh sách và đóng góp.
 
 **Boss thế giới 100.000 năm** (BĐ6)
-- Ở **Lõi Tinh Đấu**: **Thái Thản Cự Viên** và **Thiên Thanh Ngưu Mãng**, luân phiên theo ngày. Xuất hiện **1 lần/ngày** (giờ chờ chốt, ví dụ 21:00 để không trùng 20:00 và 22:00), báo toàn server trước 5 phút.
+- Ở **Lõi Tinh Đấu**: **Thái Thản Cự Viên** và **Thiên Thanh Ngưu Mãng**, luân phiên theo ngày. Xuất hiện **1 lần/ngày lúc 21:00** giờ Việt Nam (đã chốt; không trùng lịch thú vương 20:00 và 22:00), báo toàn server trước 5 phút.
 - Máu **x30** (nhân thêm theo số người). Sau **10 phút** thì **nổi giận**: sát thương x3, đánh nhanh hơn, chiêu toàn sàn mỗi 15 giây. Thực tế phải hạ trong 10 phút. Sau 15 phút chưa hạ thì boss lặn xuống hồ, không ai nhận thưởng.
 - **Cơ chế buộc đổi võ hồn đúng lúc** (cần đội 4 võ hồn, bước 2.3):
   - **Điểm yếu hệ:** ở 75%, 50%, 25% máu, boss hiện biểu tượng một hệ trên đầu trong 15 giây. Sát thương từ võ hồn hệ đó x2,5, từ hệ khác x0,5.
@@ -718,17 +718,23 @@ Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textur
 | 1 | Bóng | Code | Elip mờ dưới chân |
 | 2 | Vòng hồn hoàn, nửa sau | Code (hoặc ảnh `halo`) | Phần elip nằm sau thân |
 | 3 | Phụ thể võ hồn, nửa sau | `vh_{id}_b` | Cánh, đuôi, chân nhện, hư ảnh sau lưng, vũ khí khi bị thân che |
-| 4 | Thân | `hs_body_{m/f}` | Da, mặt, quần hoặc váy lót, giày |
-| 5 | Áo | `hs_outfit_{m/f}_0` | Đổi màu bằng hoán màu (xem dưới) |
+| 4 | Thân | `hs_body_{m/f}_{0–3}` | Da, mặt, quần hoặc váy lót, giày |
+| 5 | Áo | `hs_outfit_{m/f}_{0–3}` | Đổi màu bằng hoán màu (xem dưới) |
 | 6 | Tóc | `hs_hair_{m/f}_{0–3}` | Đổi màu bằng hoán màu |
 | 7 | Phụ thể võ hồn, nửa trước | `vh_{id}_f` | Vũ khí trên tay, tai thú, dây leo trước người, hào quang phía trước |
 | 8 | Vòng hồn hoàn, nửa trước | Code (hoặc ảnh `halo`) | Phần elip nằm trước thân |
 | 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
 
+- **Ghép lớp theo bộ giới × kiểu tóc (đã chốt, mục 8 câu 9 phương án (b)).** Mỗi tổ hợp giới × kiểu tóc (2 × 4 = 8 bộ) vẽ **liền** thân + áo + tóc trong cùng một hình, rồi `tools/assets` tách tự động thành 3 lớp thân / áo / tóc từ chính hình đó, nên 3 lớp luôn khớp nét và không lộ lỗ ở chỗ tóc che (đỉnh đầu, trán, gáy). Không dùng chung một lớp thân cho nhiều kiểu tóc.
+  - **Quy ước key:** `hs_{lớp}_{giới}_{kiểu tóc}`, lớp là `body` / `outfit` / `hair`, giới là `m` / `f`, kiểu tóc là chỉ số `hair` (0–3, bảng "Tùy biến" ở dưới). Ví dụ bộ nữ kiểu tóc 2: `hs_body_f_2`, `hs_outfit_f_2`, `hs_hair_f_2`; file `honsu/body_f_2.png`, `honsu/outfit_f_2.png`, `honsu/hair_f_2.png`. Client lấy key bằng `honsuKey(lớp, giới, kiểu tóc)` (`client/src/sprites.ts`).
+  - **Mỗi bộ đủ 3 lớp hoặc không có lớp nào** trong `manifest.json` (`validate.mjs` báo lỗi bộ thiếu lớp). Bộ chưa có ảnh thật thì client vẽ cả 3 lớp bằng code (`honsuArt.ts`, thân và áo vẽ bằng code dùng chung cho mọi kiểu tóc); không trộn lớp ảnh thật với lớp vẽ bằng code trong một bộ.
+  - Tóc và áo vẫn vẽ bằng dải 4 xám để hoán màu (dưới). **Phụ thể võ hồn vẫn là lớp riêng**, không vẽ liền với hồn sư.
+  - Kiểu áo khác về sau (đồng phục Sử Lai Khắc…) sẽ cần thêm chỉ số kiểu áo vào key; chưa làm.
 - **Phụ thể tách hai nửa (sau thân và trước thân) cho từng khung.** Người vẽ tự quyết pixel nào nằm sau, pixel nào nằm trước theo từng hướng: quay lưng (hướng lên) thì cánh nằm ở nửa trước, vũ khí nằm ở nửa sau. Nhờ vậy client không cần đổi thứ tự lớp theo hướng.
 - **Khung phụ thể 48×48**, là khung thân mở rộng 8 pixel mỗi phía, gốc tại (24, 38). Cánh, búa lớn và dây leo dưới đất được phép tràn ra ngoài khung 32×32.
 - **Hoán màu (palette swap):** tóc và áo vẽ bằng **dải 4 xám chuẩn** `#3a3a3a`, `#6a6a6a`, `#9a9a9a`, `#cacaca` (tối → sáng). Lúc tải, client tạo bản đã tô màu cho từng tổ hợp đang dùng bằng cách thay đúng 4 màu này bằng dải màu chọn. Không dùng `setTint` vì phép nhân màu làm mất sắc độ.
-  Key của texture đã hoán màu là **key gốc + `@` + chỉ số màu**: `hs_hair_f_2@3` là kiểu tóc nữ số 2 tô màu tóc số 3, `hs_outfit_m_0@5` là áo nam tô màu áo số 5. Chỉ tạo khi có người chơi đang dùng tổ hợp đó.
+  - **Viền ngoài `#1a1020` giữ nguyên khi hoán màu (đã chốt).** Trong lớp tóc và áo, `#1a1020` là **màu thứ 5 được phép** (ngoài 4 xám) và không bị hoán; chỉ viền trong (xám tối nhất `#3a3a3a`) đổi theo màu chọn. `validate.mjs` chỉ nhận 4 xám + `#1a1020` trong lớp tóc/áo.
+  - Key của texture đã hoán màu là **key gốc + `@` + chỉ số màu**: `hs_hair_f_2@3` là tóc của bộ nữ kiểu tóc 2 tô màu tóc số 3, `hs_outfit_m_2@5` là áo của bộ nam kiểu tóc 2 tô màu áo số 5. Chỉ tạo khi có người chơi đang dùng tổ hợp đó.
 
 **Tùy biến khi tạo nhân vật** (chờ chốt số lượng)
 
@@ -761,7 +767,7 @@ Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textur
   - Hàng 0 hướng xuống, hàng 1 hướng phải, hàng 2 hướng lên. Trong mỗi hàng: cột 0–1 `idle`, 2–5 `walk`, 6–8 `attack`, 9–11 `cast`, 12 `hurt`, 13–15 `die`.
   - Hàng 3: cột 0–1 `absorb` (hướng xuống); các cột còn lại để trống, dành cho animation thêm về sau.
 - **Client tự tạo animation từ chỉ số khung cố định**, không dùng tag Aseprite: tải ảnh bằng `this.load.spritesheet(key, png, { frameWidth, frameHeight })`, rồi tạo animation bằng `this.anims.generateFrameNumbers(key, { start, end })` theo bố cục trên. Thời gian khung lấy từ bảng animation ở trên, ghi một lần thành hằng số trong client.
-  - Key animation có **tiền tố là key của sheet**: `{sheet}:{animation}_{hướng}`, ví dụ `hs_body_f:idle_down`, `hs_body_m:walk_right`, `hs_body_f:absorb_down`. Hướng là `down`, `right`, `up`; hướng trái dùng animation `_right` và lật ngang. Nhờ tiền tố, các sheet không va chạm nhau trong AnimationManager toàn cục của Phaser.
+  - Key animation có **tiền tố là key của sheet**: `{sheet}:{animation}_{hướng}`, ví dụ `hs_body_f_0:idle_down`, `hs_body_m_2:walk_right`, `hs_body_f_1:absorb_down`. Hướng là `down`, `right`, `up`; hướng trái dùng animation `_right` và lật ngang. Nhờ tiền tố, các sheet không va chạm nhau trong AnimationManager toàn cục của Phaser.
   - Chỉ lớp thân có animation. Mỗi khi khung của lớp thân đổi, client tính (hàng, cột) của khung đó rồi đặt khung tương ứng cho áo, tóc và phụ thể.
 - **Lớp áo và tóc** vẽ đủ mọi khung như lớp thân, kể cả `hurt`, `die`, `absorb`.
 - **Lớp phụ thể chỉ vẽ** `idle`, `walk`, `attack`, `cast` (cột 0–11 của hàng 0–2). Cột 12–15 và hàng 3 để trống; client không đọc mà dùng **bảng ánh xạ khung cố định**:
@@ -844,9 +850,9 @@ art/                         file nguồn, không tải trong game
   honsu/ vohon/ beast/ ui/   file .aseprite (khi chỉnh tay)
 shared/assets/sprites/
   manifest.json              danh sách key đã có ảnh thật
-  honsu/body_m.png           hs_body_m
-  honsu/hair_f_2.png         hs_hair_f_2 (bản hoán màu: hs_hair_f_2@{màu})
-  honsu/outfit_m_0.png       hs_outfit_m_0 (bản hoán màu: hs_outfit_m_0@{màu})
+  honsu/body_m_2.png         hs_body_m_2   (bộ nam × kiểu tóc 2: 3 lớp tách từ cùng một hình)
+  honsu/outfit_m_2.png       hs_outfit_m_2 (bản hoán màu: hs_outfit_m_2@{màu})
+  honsu/hair_m_2.png         hs_hair_m_2   (bản hoán màu: hs_hair_m_2@{màu})
   vohon/{id}_b.png, {id}_f.png   vh_{id}_b, vh_{id}_f
   beast/{loài}.png           beast_{loài} (trước bước BĐ1: b{tier})
   ring/ring{tier}.png        ring{tier} (hồn hoàn rơi), halo{tier}
@@ -861,14 +867,15 @@ shared/assets/ui/
 - Key cũ `p{i}_{f}` (một hình mỗi võ hồn) đã bỏ ở bước 2.2b.
 
 **Quy trình PixelLab → `tools/assets` → spritesheet** (chi tiết lệnh và tham số đã thử: skill `.claude/skills/asset-gen`)
+0. **Ngân sách PixelLab (đã chốt 10/2026): không nâng gói.** Gói trial còn khoảng 15 lượt; dùng tiết kiệm cho phần đáng giá nhất (khung gốc hướng xuống và xoay 4 hướng của các bộ hồn sư còn thiếu, rồi phụ thể mẫu), mỗi lần gọi xem kết quả rồi mới gọi tiếp, ghi số lượt đã dùng vào PR. Phần thiếu (animation còn chép tạm, bộ kiểu tóc chưa có ảnh, hồn thú các loài khác) **vẽ bằng code hoặc chỉnh tay** (Aseprite, hoặc `pixelart_workbench` miễn phí của PixelLab) theo đúng quy cách ở mục này.
 1. **Tạo ảnh bằng PixelLab** (MCP `pixellab`, token nằm trong cấu hình user, không ghi vào repo). Khung hướng xuống trước: `create_image_pixflux` 32×32 (phụ thể 48×48), nền trong suốt, góc `low top-down`. Duyệt bằng mắt rồi mới làm tiếp: xoay 4 hướng bằng `create_character mode="v3"` với ảnh tham chiếu là khung đó, animation bằng `animate_character` (ví dụ `walking-4-frames`). Nhân vật sau dùng khung gốc của nhân vật đã duyệt làm `init_image` để giữ phong cách. Prompt theo phong cách ở trên; không ghi tên họa sĩ còn sống hay tên game thương mại.
-2. **Màu khóa để tách lớp hồn sư:** tóc vẽ màu lam sáng, áo/quần/váy vẽ xám. Ảnh thô lưu ở `art/src/pixellab/{bộ}/{hướng}_{animation}_{i}.png`.
-3. **Chuẩn hóa** bằng `tools/assets/normalize.mjs`: xóa nền, đặt chân vào gốc (hồn sư (16, 30), phụ thể (24, 38)) theo từng nhóm animation, thu bằng điểm gần nhất nếu quá khung, đưa màu về `art/palette.gpl` (phụ thể thêm `col`/`robe` của võ hồn đó cùng 1 sắc tối, 1 sắc sáng), viền ngoài `#1a1020`. `--split` tách thân / áo / tóc theo màu khóa và đưa tóc, áo về dải 4 xám; `--vohon <id> --halves <y>` tách phụ thể thành nửa sau / nửa trước.
-4. **Ghép sheet** bằng `tools/assets/pack.mjs` theo bố cục cố định ở trên. `--breathe` tạo khung idle thứ 2 (đầu, vai nhích 1 pixel); `--fill` chép tạm idle vào ô chưa có animation (validate cảnh báo các ô này).
+2. **Màu khóa để tách lớp hồn sư:** mỗi bộ giới × kiểu tóc là một nhân vật PixelLab vẽ liền cả người; tóc vẽ màu lam sáng, áo/quần/váy vẽ xám. Ảnh thô lưu ở `art/src/pixellab/{bộ}/{hướng}_{animation}_{i}.png`.
+3. **Chuẩn hóa** bằng `tools/assets/normalize.mjs`: xóa nền, đặt chân vào gốc (hồn sư (16, 30), phụ thể (24, 38)) theo từng nhóm animation, thu bằng điểm gần nhất nếu quá khung, đưa màu về `art/palette.gpl` (phụ thể thêm `col`/`robe` của võ hồn đó cùng 1 sắc tối, 1 sắc sáng), viền ngoài `#1a1020`. `--split` tách thân / áo / tóc của một bộ theo màu khóa và đưa tóc, áo về dải 4 xám (viền ngoài giữ `#1a1020`); `--vohon <id> --halves <y>` tách phụ thể thành nửa sau / nửa trước.
+4. **Ghép sheet** bằng `tools/assets/pack.mjs` theo bố cục cố định ở trên; hồn sư dùng `--set <giới>_<kiểu tóc>` để ghi cả 3 lớp của bộ (`honsu/{body,outfit,hair}_m_2.png`) một lần. `--breathe` tạo khung idle thứ 2 (đầu, vai nhích 1 pixel); `--fill` chép tạm idle vào ô chưa có animation (validate cảnh báo các ô này).
 5. **Kiểm tra và đăng ký:** `tools/assets/validate.mjs --register <key>` kiểm kích thước, màu ngoài bảng, khung bắt buộc, rồi thêm key vào `manifest.json` và một dòng vào `art/CREDITS.md` (công cụ, prompt, ngày). `npm run check` và git pre-commit chạy lại validate cho mọi key.
 6. **Xem trong game** ở mức phóng 2× và 4×: đủ 4 hướng, ghép thử ít nhất 2 màu tóc và 2 màu áo, đặt cạnh nền rừng sâu.
 7. **Chỉnh tay khi cần:** mở sheet trong Aseprite (bảng màu `art/palette.gpl`) để sửa pixel lỗi, rồi chạy lại bước 5. Xuất từ Aseprite: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16`.
-- **Giới hạn đã biết của ghép lớp từ ảnh PixelLab:** PixelLab vẽ cả người trong một ảnh. Tách lớp theo màu khóa cho thân, áo, tóc khớp nhau đúng với **kiểu tóc đã vẽ cùng**, nhưng lớp thân có lỗ ở chỗ tóc và áo che (đỉnh đầu, trán, gáy). Vì vậy chưa thể dùng một lớp thân chung cho cả 4 kiểu tóc như bảng lớp ở trên. Đề xuất đang chờ chốt: câu hỏi 9 ở mục 8.
+- **Vì sao ghép theo bộ:** PixelLab vẽ cả người trong một ảnh. Tách lớp theo màu khóa cho thân, áo, tóc khớp nhau đúng với **kiểu tóc đã vẽ cùng**, nhưng lớp thân có lỗ ở chỗ tóc và áo che (đỉnh đầu, trán, gáy), nên không dùng một lớp thân chung cho cả 4 kiểu tóc được. Đã chốt ghép theo bộ giới × kiểu tóc (mục 8, câu 9). Mỗi bộ idle + walk 3 hướng tốn khoảng 5 lượt PixelLab.
 
 **Nguồn và giấy phép**
 - Dự án phi thương mại, chơi cùng bạn bè; được dùng tên và hình tượng nhân vật trong truyện (mục 1). Hình do nhóm tạo: **PixelLab qua dây chuyền `tools/assets`** hoặc vẽ tay trong Aseprite.
@@ -997,7 +1004,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   `PlayerState` thêm `sex`, `hair`, `hairCol`, `outfitCol` (`uint8`). Client: màn "Tạo nhân vật" (chuột, chạm, bàn phím) có ô xem trước vẽ bằng code, đứng trước màn chọn SSR; tài khoản cũ thấy màn này ở lần vào tới. Trong game hồn sư vẫn vẽ bằng code (16×24, gốc tại chân) theo giới tính, kiểu tóc, màu tóc, màu áo; đai lưng mang màu võ hồn ra trận. Key tạm `p{vh}_{f}_{sex}{hair}{hairCol}{outfitCol}` tạo khi có người dùng, bỏ ở 2.2b.
   Bot đi qua bước tạo nhân vật: thử giá trị sai, thức tỉnh và vào bản đồ trước khi chọn, chọn lần hai, và B thấy đúng ngoại hình của A.
 - [x] 2.2b Hiển thị hồn sư ghép lớp bằng code theo quy cách 5.11: thân, áo, tóc (đổi màu), lớp phụ thể đơn giản cho 20 võ hồn, vòng hồn hoàn dưới chân. Thêm hướng nhìn 4 phía vào schema. Bỏ key cũ `p{i}_{f}`.
-  *Đã làm:* `client/src/honsuArt.ts` vẽ từng khung vào bộ đệm pixel theo đúng bố cục cố định (16 cột × 4 hàng, đủ 7 animation, 3 hướng): `hs_body_{m,f}`, `hs_outfit_{m,f}_0` và `hs_hair_{m,f}_{0–3}` bằng dải 4 xám, `vh_{id}_b` / `vh_{id}_f` 48×48 cho 20 võ hồn (chỉ cột 0–11 hàng 0–2). `textures.ts` biến chúng thành texture có khung đánh số (bỏ qua key đã có ảnh thật trong manifest), phụ thể chỉ tạo khi có người dùng; áo và tóc hoán màu bằng `recolor` thành `hs_hair_f_2@3`, `hs_outfit_m_0@5`. Viền ngoài `#1a1020` giữ nguyên khi hoán màu, chỉ viền trong (xám tối nhất) đổi theo màu (chờ chốt).
+  *Đã làm:* `client/src/honsuArt.ts` vẽ từng khung vào bộ đệm pixel theo đúng bố cục cố định (16 cột × 4 hàng, đủ 7 animation, 3 hướng): `hs_body_{m,f}`, `hs_outfit_{m,f}_0` và `hs_hair_{m,f}_{0–3}` bằng dải 4 xám, `vh_{id}_b` / `vh_{id}_f` 48×48 cho 20 võ hồn (chỉ cột 0–11 hàng 0–2). `textures.ts` biến chúng thành texture có khung đánh số (bỏ qua key đã có ảnh thật trong manifest), phụ thể chỉ tạo khi có người dùng; áo và tóc hoán màu bằng `recolor` thành `hs_hair_f_2@3`, `hs_outfit_m_0@5`. Viền ngoài `#1a1020` giữ nguyên khi hoán màu, chỉ viền trong (xám tối nhất) đổi theo màu (đã chốt, mục 5.11).
   `GameScene`: mỗi hồn sư là một container theo thứ tự lớp 1–8 (bóng `hs_shadow`, cung trên vòng hồn hoàn, phụ thể sau, thân, áo, tóc, phụ thể trước, cung dưới vòng); chỉ lớp thân chạy animation `hs_body_{m,f}:{anim}_{hướng}`, các lớp khác đặt khung bằng `syncLayers` (bảng ánh xạ phụ thể: hurt → idle cột 0, die ẩn, absorb → idle hướng xuống mờ 60%). Animation chọn theo state: gục → `die`, hấp thụ → `absorb`, fx `slash` → `attack`, fx `soulring` → `cast` (vòng của hồn kỹ sáng và phình trong 300 ms), `dmg` có `id` → `hurt` kèm nháy trắng 2 lần, còn lại `walk` / `idle`. Hướng trái lật ngang mọi lớp. Đai lưng thôi mang màu võ hồn (đai là sắc tối của áo).
   Server: `PlayerState.dir` (uint8) tính bằng `dir4(input)` khi di chuyển, đứng yên giữ hướng cũ; bỏ `PlayerState.face`. Không đổi luật chơi; chỉ thêm `i` vào fx `soulring` và `id` vào `dmg` khi người chơi bị đánh (hiệu ứng hình ảnh). Ô xem trước ở màn tạo nhân vật dùng cùng hình vẽ (khung `idle` hướng xuống, 32×32). Bot kiểm tra 4 hướng nhìn và người khác thấy cùng hướng.
 - [x] 2.3a Đội hình 4 võ hồn và đổi võ hồn trong trận.
@@ -1115,7 +1122,8 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   *Đã làm:* `client/src/sprites.ts`: `preloadSprites` đọc `manifest.json` (mảng `sprites`, đường dẫn và khung suy ra từ key; `beast_{loài}` ghi kèm `frame`), `createSheetAnims`/`createHonsuAnims`/`createBeastAnims`, `honsuAnimKey` (trái = phải + lật), `vohonFrame` (bảng ánh xạ khung phụ thể), `syncLayers`, `recolor` (key `hs_hair_f_2@3`), `addGridFrames` cho sheet vẽ bằng code.
   Manifest đang rỗng nên game chạy như cũ. Hiển thị hồn sư ghép lớp để bước 2.2b, hồn thú dạng sheet để M4. Thời gian khung `attack` của hồn thú tạm ghi 800 ms trong client cho đến bước 3.5.
 - [ ] M2 Hồn sư: thân nam và nữ, 4 kiểu tóc mỗi giới, áo hồn sư; đủ 3 hướng và 7 animation.
-  *Một phần (PR #14):* dây chuyền `tools/assets` (normalize, pack, validate trong `npm run check` và pre-commit, preview) và skill `asset-gen`. Ảnh PixelLab trong manifest: `hs_body_{m,f}`, `hs_outfit_{m,f}_0`, `hs_hair_{m,f}_0` (kiểu tóc 0), 3 hướng, `idle` + `walk`; `attack`/`cast`/`hurt`/`die`/`absorb` đang chép tạm khung idle. Còn: 3 kiểu tóc mỗi giới (đang vẽ bằng code, lệch nét với thân thật), 5 animation còn lại. Cách ghép lớp chờ chốt (mục 8, câu 9).
+  *Một phần (PR #14):* dây chuyền `tools/assets` (normalize, pack, validate trong `npm run check` và pre-commit, preview) và skill `asset-gen`. Ảnh PixelLab trong manifest: `hs_body_{m,f}`, `hs_outfit_{m,f}_0`, `hs_hair_{m,f}_0` (kiểu tóc 0), 3 hướng, `idle` + `walk`; `attack`/`cast`/`hurt`/`die`/`absorb` đang chép tạm khung idle. Còn: 3 kiểu tóc mỗi giới, 5 animation còn lại.
+  *Chốt ghép lớp (mục 8, câu 9 phương án (b)):* key hồn sư đổi sang bộ giới × kiểu tóc `hs_{body,outfit,hair}_{m,f}_{0–3}` (`honsuKey` trong `sprites.ts`; `textures.ts` vẽ bằng code mọi bộ chưa có ảnh, GameScene chạy animation trên `hs_body_{giới}_{kiểu tóc}`). Ảnh PixelLab hiện có là bộ kiểu tóc 0: `body_{m,f}.png` đổi tên thành `body_{m,f}_0.png`, manifest `hs_body_{m,f}_0`. `pack --set <giới>_<kiểu tóc>` ghi cả 3 lớp của bộ; `validate` báo lỗi bộ thiếu lớp và kiểm chân theo từng bộ. Kiểu tóc 1–3 nay vẽ cả thân, áo, tóc bằng code (trước đây thân và áo là ảnh thật kiểu 0, tóc vẽ bằng code nên lệch nét). Còn 6 bộ kiểu tóc 1–3; ngân sách PixelLab chỉ còn khoảng 15 lượt (không nâng gói, mục 5.11) nên phần thiếu vẽ bằng code hoặc chỉnh tay.
 - [ ] M3 Lớp phụ thể: Lam Ngân Thảo và 4 võ hồn mẫu (mỗi hệ một: Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
   *Một phần (PR #14):* `vh_lam_ngan_thao_b` / `_f` bản thử: thảm dây dưới chân, một hình cho mọi hướng và khung; chưa có dây quấn tay.
 - [ ] M4 Hồn thú: 5 bậc theo bảng kích thước; sau bước BĐ1 (đã gộp 2.6) vẽ theo từng loài ở mục 5.3, ưu tiên 4 bản đồ của bản đầu. Tinh anh dùng sprite loài gốc kèm aura; thú vương 96×96.
@@ -1144,16 +1152,21 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
    - **Trả lời (nguồn ảnh):** dùng ảnh PixelLab qua dây chuyền `tools/assets` trực tiếp trong game (mục 5.11, Đã chốt: mỹ thuật nhân vật).
 8. **Bản đồ và boss** (phần đã chốt ở dưới; đây là các điểm người viết thiết kế tự đề xuất, cần xác nhận):
    - Giờ boss thế giới (đề xuất 21:00) và luân phiên Thái Thản Cự Viên / Thiên Thanh Ngưu Mãng theo ngày.
+     - **Đã chốt:** boss thế giới xuất hiện lúc 21:00 giờ Việt Nam (mục 5.4).
    - Hệ số sát thương: thú vương x2, boss thế giới x3. Kinh nghiệm tinh anh x2,5.
    - Có giới hạn số người tham gia tối đa khi tính máu boss không? (đề xuất: không; xem lại nếu boss quá trâu khi phòng đông.)
    - Ngưỡng rương 3% khó đạt khi trên khoảng 30 người cùng đánh: có hạ thành min(3%, 1 / (2 × số người)) không?
+     - **Đã chốt:** giữ ngưỡng cố định 3% sát thương để nhận rương, không hạ theo số người.
    - Hồi máu và khiên cho người tham gia có tính vào đóng góp không? (đề xuất: có, để phụ trợ không bị thiệt.)
    - Thánh Hồn Thôn có tinh anh nhưng không có thú vương; cấp võ hồn tính tối đa 80 khi so với cấp tương đương (vì vòng 8–10 cùng giới hạn 100.000 năm).
+     - **Đã chốt:** cấp võ hồn tính tối đa 80 khi so cấp để giảm kinh nghiệm (mục 5.3; đã có trong code từ BĐ3, `XP_LEVEL_CAP`).
    - Thưởng boss thế giới: tỉ lệ hồn hoàn đỏ cho người không đứng đầu (đề xuất 10%) và tỉ lệ hồn cốt.
    - Tỉ lệ rơi mảnh UR từ rương thú vương trước BĐ6 (đề xuất 5%), hay giữ khóa UR cho tới boss thế giới.
-9. **Ghép lớp hồn sư với ảnh PixelLab** (bản thử PR #14, mục 5.11 "Giới hạn đã biết"): quy cách lớp ở 5.11 **chưa đổi**. Hai hướng:
+     - **Đã chốt:** rương thú vương rơi mảnh UR 5% trước BĐ6 (mục 5.3).
+9. **Ghép lớp hồn sư với ảnh PixelLab** (bản thử PR #14, mục 5.11). Hai hướng đã xét:
    - (a) Giữ như 5.11: một lớp thân chung mỗi giới, tóc 4 kiểu và áo là lớp riêng. Cần thân không có lỗ (đầu trọc, mặc áo lót), PixelLab khó vẽ khớp từng khung animation.
-   - (b) **Đề xuất, chờ người dùng chốt:** vẽ liền thân + áo + tóc cho mỗi tổ hợp giới × kiểu tóc (8 bộ), rồi `normalize --split` tách 3 lớp từ cùng một hình; tóc và áo vẫn ở dải xám để đổi màu, phụ thể vẫn tách lớp. Key thân và áo khi đó cần thêm chỉ số kiểu tóc (ví dụ `hs_body_m_2`). Mỗi bộ idle + walk 3 hướng tốn khoảng 5 lượt PixelLab.
+   - (b) Vẽ liền thân + áo + tóc cho mỗi tổ hợp giới × kiểu tóc (8 bộ), rồi `normalize --split` tách 3 lớp từ cùng một hình; tóc và áo vẫn ở dải xám để đổi màu, phụ thể vẫn tách lớp. Key thân và áo khi đó cần thêm chỉ số kiểu tóc (ví dụ `hs_body_m_2`). Mỗi bộ idle + walk 3 hướng tốn khoảng 5 lượt PixelLab.
+   - **Trả lời (đã chốt):** chọn **(b)**. Key theo bộ `hs_{body,outfit,hair}_{m,f}_{kiểu tóc}` (ví dụ `hs_body_f_2`, `hs_outfit_f_2`, `hs_hair_f_2`), quy cách ở mục 5.11. Viền ngoài `#1a1020` giữ nguyên khi hoán màu tóc/áo. Không nâng gói PixelLab: dùng tiết kiệm khoảng 15 lượt trial còn lại, phần thiếu vẽ bằng code hoặc chỉnh tay.
 10. **Hồn kỹ riêng (bước 2.5a, mục 5.1 / 5.2):** các đề xuất cần xác nhận:
    - Tên, hiệu ứng và con số của 20 hồn kỹ và 5 tiên cơ riêng; có muốn bám sát hồn kỹ trong truyện hơn không (ví dụ Lam Ngân Thảo: Triền Nhiễu, Ký Sinh, Lam Ngân Tù Lung, Chu Võng Thúc Phược).
    - Câm lặng trên hồn thú tạm chặn cả đòn đánh thường cho tới bước 3.5 (hồn thú có chiêu báo trước).
@@ -1188,6 +1201,8 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - Sprite **32×32, 4 hướng, chibi pixel RPG**, cao khoảng 2 ô bản đồ.
 - Nguồn asset: **PixelLab (AI) qua dây chuyền `tools/assets` (normalize, pack, validate), dùng thẳng trong game**; Aseprite chỉ để chỉnh tay khi cần. Ghi nguồn từng key trong `art/CREDITS.md`. (Chốt sau bản thử PR #14; trước đó là "AI chỉ làm concept, vẽ lại bằng Aseprite".)
 - Tùy biến: nam/nữ, 4 kiểu tóc mỗi giới, vài màu tóc và màu áo; asset **ghép theo lớp** (thân, áo, tóc, phụ thể võ hồn).
+- **Ghép lớp theo bộ giới × kiểu tóc** (chốt câu 9, mục 8): mỗi bộ vẽ liền thân + áo + tóc rồi tách tự động thành 3 lớp, key `hs_{body,outfit,hair}_{m,f}_{kiểu tóc}`; tóc và áo dải 4 xám để hoán màu, viền ngoài `#1a1020` không bị hoán; phụ thể võ hồn là lớp riêng.
+- **PixelLab không nâng gói** (trial còn khoảng 15 lượt): dùng tiết kiệm, phần thiếu vẽ bằng code hoặc chỉnh tay.
 
 **Đã chốt: thế giới nhiều bản đồ, quái và boss theo cấp** (chi tiết ở mục 5.3, 5.4, 5.8, 6 và Lộ trình BĐ1–BĐ6)
 - **Quy cấp theo niên hạn:** cấp tương đương của hồn thú là cấp nhỏ nhất mà võ hồn hấp thụ hồn hoàn của nó trong giới hạn (bảng mục 5.2). Mỗi bản đồ săn nhắm khoảng cấp mà niên hạn hồn thú khớp giới hạn vòng kế tiếp; khoảng cấp các bản đồ chồng nhau khoảng 10 cấp.

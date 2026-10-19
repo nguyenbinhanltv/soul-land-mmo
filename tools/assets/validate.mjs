@@ -2,13 +2,14 @@
 //   node tools/assets/validate.mjs                     kiểm mọi key trong shared/assets/sprites/manifest.json
 //   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH]
 //        kiểm file của key, thêm key vào manifest (nếu chưa có) và ghi/cập nhật một dòng trong art/CREDITS.md.
-// Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền),
-//       lớp thân thiếu khung bắt buộc, phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung.
+// Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền #1a1020),
+//       lớp thân thiếu khung bắt buộc, bộ hồn sư giới × kiểu tóc thiếu lớp (phải đủ hs_body/outfit/hair_{giới}_{kiểu}),
+//       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung.
 // Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
-//       chân hồn sư (gộp mọi lớp cùng giới, idle khung đầu mỗi hướng) không chạm dòng gốc y = 30.
+//       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc y = 30.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -18,9 +19,10 @@ const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 manifest.sprites ??= [];
 const entryKey = (e) => (typeof e === "string" ? e : e.key);
 const allowed = allowedColors();
+// Tóc/áo: 4 xám để hoán màu + viền ngoài #1a1020 (màu thứ 5, giữ nguyên khi hoán màu).
 const grayOnly = new Set([...GRAY_RAMP, OUTLINE]);
 let errors = 0, warns = 0;
-const feet = new Map(); // "giới:hàng" → dòng thấp nhất của idle khung đầu (mọi lớp hồn sư cùng giới)
+const feet = new Map(); // "bộ:hàng" → dòng thấp nhất của idle khung đầu (3 lớp của bộ giới × kiểu tóc)
 const err = (k, m) => { errors++; console.error(`[validate] LỖI ${k}: ${m}`); };
 const warn = (k, m) => { warns++; console.warn(`[validate] cảnh báo ${k}: ${m}`); };
 
@@ -75,10 +77,9 @@ function check(key, frame) {
       cellSame(img, at(r, c), r === 3 ? at(0, 0) : at(r, 0), fw, fh) && !cellEmpty(img, ...at(r, c), fw, fh));
     const names = (c) => Object.entries(HS_ANIMS).find(([, [c0, n]]) => c >= c0 && c < c0 + n)?.[0] ?? "absorb";
     if (temp.length) warn(key, `${temp.length} khung trùng idle khung đầu, thường là chép tạm (${[...new Set(temp.map(([r, c]) => (r === 3 ? "absorb" : names(c))))].join(", ")})`);
-    // Dòng thấp nhất của idle khung đầu mỗi hướng; gộp mọi lớp cùng giới rồi kiểm ở cuối (chân có thể thuộc lớp áo).
-    const sex = key.match(/^hs_[a-z]+_([mf])/)[1];
+    // Dòng thấp nhất của idle khung đầu mỗi hướng; gộp 3 lớp cùng bộ rồi kiểm ở cuối (chân có thể thuộc lớp áo).
     for (let r = 0; r < 3; r++) {
-      const [x0, y0] = at(r, 0), k = `${sex}:${r}`;
+      const [x0, y0] = at(r, 0), k = `${spec.set}:${r}`;
       for (let y = 0; y < fh; y++) if (!cellEmpty(img, x0, y0 + y, fw, 1)) feet.set(k, Math.max(feet.get(k) ?? -1, y));
     }
   } else if (spec.kind === "vohon") {
@@ -142,7 +143,14 @@ for (const e of manifest.sprites) {
   const spec = check(key, typeof e === "string" ? undefined : e.frame);
   if (spec) seen.add(spec.file);
 }
-// Chân hồn sư (gộp thân, áo, tóc cùng giới) phải chạm dòng gốc y = 30 ở idle mỗi hướng.
+// Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.
+const sets = new Map();
+for (const e of manifest.sprites) { const k = entryKey(e), set = sheetSpec(k)?.set; if (set) sets.set(set, [...(sets.get(set) ?? []), k]); }
+for (const [set, keys] of sets) {
+  const miss = HS_LAYERS.map((l) => `hs_${l}_${set}`).filter((k) => !keys.includes(k));
+  if (miss.length) err(`hs_*_${set}`, `bộ giới × kiểu tóc thiếu lớp ${miss.join(", ")} (mỗi bộ đủ thân, áo, tóc tách từ cùng một hình)`);
+}
+// Chân hồn sư (gộp thân, áo, tóc cùng bộ) phải chạm dòng gốc y = 30 ở idle mỗi hướng.
 for (const [k, low] of feet) if (low !== HS_ORIGIN[1]) warn(`hs_*_${k.split(":")[0]}`, `hàng ${k.split(":")[1]}: chân ở y = ${low}, gốc là y = ${HS_ORIGIN[1]}`);
 // Ảnh nằm trong thư mục sprites mà manifest không nhắc tới thì client sẽ không tải.
 const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((f) => (f.isDirectory() ? walk(path.join(d, f.name)) : [path.join(d, f.name)]));
