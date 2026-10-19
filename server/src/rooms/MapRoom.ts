@@ -13,7 +13,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId,
+  PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal } from "../map.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -751,6 +751,7 @@ export class MapRoom extends Room<MapState> {
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
     else if (op === "lei") { d.lei = int(o.v, 0, PHONG_LOI.max, 0); p.lei = d.lei; d.fight = 0; }
+    else if (op === "bond") out = { crit: this.bondV(d, "crit"), burn: this.bondV(d, "burn") }; // ràng buộc của đội hiện tại (2.5d)
     else if (op === "energy") { const v = int(o.v, 0, TIEN_CO_MAX, 0); d.fight = 0; for (const r of d.team) if (r && !d.down.has(r)) d.energy.set(r, v); }
     else if (op === "spawn") {
       const years = yearsOf(int(o.tier, 0, TIERS.length - 1, 0));
@@ -955,6 +956,14 @@ export class MapRoom extends Room<MapState> {
   atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk")); }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
+  /**
+   * Ràng buộc (BONDS, 2.5d, chờ chốt): tổng hiệu ứng `k` của các cặp võ hồn cùng trong đội của hồn sư (ô bất kỳ, kể cả đang gục),
+   * võ hồn nào ra trận cũng hưởng.
+   */
+  bondV(d: PData, k: "crit" | "burn") {
+    const ids = d.team.map((r) => d.owned.find((v) => v.rowId === r)?.vohon ?? "");
+    return bondsOf(ids).reduce((a, b: BondDef) => a + (b[k] ?? 0), 0);
+  }
   /** Đánh thường, tung hồn kỹ hoặc tiên cơ thì hết tàng hình (Yêu Hồ, 2.5c). */
   unhide(p: PlayerState, d: PData) { if (d.buffs.delete("hide")) this.syncBuffs(p, d); }
 
@@ -1149,7 +1158,8 @@ export class MapRoom extends Room<MapState> {
     const def = STATUS[a.s];
     if (a.s === "allure" && bd.st.has("charm")) return; // đang Mê hoặc thì không cộng Mị hoặc (không khống chế nối liền)
     const secs = (a.secs ?? def.secs) * (def.noMove || def.noAtk ? CC_TIER_MULT[b.tier] ?? 1 : 1);
-    const v = def.dot ? this.atkOf(pd) * def.dot * power : def.amp;
+    // Ràng buộc Tà Hỏa – Hỏa Ảnh (2.5d): Thiêu đốt của hồn sư mạnh thêm, tính lúc gây như tăng công.
+    const v = def.dot ? this.atkOf(pd) * def.dot * power * (a.s === "burn" ? 1 + this.bondV(pd, "burn") : 1) : def.amp;
     const cur = bd.st.get(a.s), n = a.n ?? 1;
     if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); cur.src = by; }
     else bd.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: by });
@@ -1335,7 +1345,7 @@ export class MapRoom extends Room<MapState> {
     const direct = o.direct !== false && !o.chain;
     const vuln = bd.st.get("vuln"), armor = bd.st.get("armor");
     dmg *= 1 + (vuln ? vuln.v : 0) + (direct && armor ? armor.v * armor.n : 0) + this.phoenixAmp(b);
-    const crit = direct && Math.random() < CRIT.chance + (o.crit ?? 0) + this.buffV(pd, "crit"); if (crit) dmg *= CRIT.mult;
+    const crit = direct && Math.random() < CRIT.chance + (o.crit ?? 0) + this.buffV(pd, "crit") + this.bondV(pd, "crit"); if (crit) dmg *= CRIT.mult;
     dmg = Math.max(1, Math.round(dmg));
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0;
     if (o.direct !== false) pd.fight = 0; // sát thương theo thời gian không giữ hồn sư trong giao chiến
@@ -1345,7 +1355,10 @@ export class MapRoom extends Room<MapState> {
     }
     this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size, v: dmg, crit, c: crit ? "#ffe14d" : col, bid });
     if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, bd.st.has("shock")); }
-    if (o.lifesteal) { pd.hpF = Math.min(p.maxHp, pd.hpF + dmg * o.lifesteal); p.hp = Math.ceil(pd.hpF); }
+    // Hút máu của hồn kỹ (đòn trực tiếp) cộng hút huyết `leech` của hồn sư (Quỷ Mị, 2.5d: mọi sát thương, kể cả theo thời gian và lan
+    // Cảm điện), hồi cho võ hồn ra trận; cả đội đã gục thì không hồi.
+    const steal = (o.lifesteal ?? 0) + this.buffV(pd, "leech");
+    if (steal && !p.dead) { pd.hpF = Math.min(p.maxHp, pd.hpF + dmg * steal); p.hp = Math.ceil(pd.hpF); }
     // Cảm điện: lan một phần sát thương sang hồn thú Cảm điện khác gần đó (một bước, không lan tiếp).
     if (direct && bd.st.has("shock")) {
       const sh = STATUS.shock;

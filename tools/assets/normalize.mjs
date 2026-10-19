@@ -21,7 +21,8 @@
 //   --colors a,b,…         thêm màu được phép (ví dụ col/robe đang dùng cho phụ thể đã có sẵn trong bảng thì không cần).
 //   --split                (hồn sư) tách một hình vẽ liền thành 3 lớp theo MÀU KHÓA: tóc vẽ màu lam (sắc độ trong
 //                          --hair-hue, mặc định 190-260), áo vẽ xám; ghi vào <out>/body, <out>/hair, <out>/outfit.
-//                          Tóc và áo được đưa về dải 4 xám; nét viền thuộc lớp có nhiều điểm kề nhất.
+//                          Tóc và áo được đưa về dải 4 xám (viền ngoài giữ #1a1020); nét viền thuộc lớp có nhiều điểm kề nhất.
+//                          Mỗi hình là một bộ giới × kiểu tóc (mục 5.11); ghép tiếp bằng `pack --set <giới>_<kiểu tóc>`.
 //   --vohon <id>           (phụ thể) chỉ dùng palette.gpl + col/robe của võ hồn <id> (kèm 1 tối, 1 sáng mỗi màu).
 //   --halves <y>           (phụ thể) tách theo dòng y: phần trên → <out>/b (sau thân), từ y trở xuống → <out>/f
 //                          (trước thân). Hợp với phụ thể nằm dưới đất quanh chân (thảm dây leo, vòng); phụ thể

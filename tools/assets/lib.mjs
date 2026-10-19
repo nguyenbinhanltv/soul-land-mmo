@@ -14,6 +14,7 @@ export const SHEET_COLS = 16, SHEET_ROWS = 4;
 export const HS_FRAME = 32, VH_FRAME = 48;
 /** Gốc tại chân: hồn sư (16,30), phụ thể (24,38). */
 export const HS_ORIGIN = [16, 30], VH_ORIGIN = [24, 38];
+/** Viền ngoài; trong lớp tóc/áo là màu thứ 5 được phép, không bị hoán màu. */
 export const OUTLINE = "#1a1020";
 /** Dải 4 xám chuẩn (tối → sáng) của lớp tóc và áo. */
 export const GRAY_RAMP = ["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca"];
@@ -181,10 +182,15 @@ export function encodePng(img) {
 export const readPng = (file) => decodePng(readFileSync(file));
 
 // ---------- Key ↔ đường dẫn, khung (khớp sheetSpec trong client/src/sprites.ts) ----------
-/** Trả về { file, frame:[w,h], kind } cho một key manifest, hoặc null nếu key sai quy ước. */
+/** Ba lớp của một bộ hồn sư giới × kiểu tóc (mục 5.11): `hs_body_m_2`, `hs_outfit_m_2`, `hs_hair_m_2` tách từ cùng một hình. */
+export const HS_LAYERS = ["body", "outfit", "hair"];
+/**
+ * Trả về { file, frame:[w,h], kind } cho một key manifest, hoặc null nếu key sai quy ước.
+ * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
+ */
 export function sheetSpec(key, frame) {
   let m;
-  if ((m = key.match(/^hs_((?:body|hair|outfit)_[mf](?:_\d+)?)$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu" };
+  if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) { const f = frame ?? BEAST_FRAMES[+m[1]]; return { file: `beast/${key}.png`, frame: f, size: [f[0] * BEAST_COLS, f[1]], kind: "beast" }; }
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * BEAST_COLS, frame[1]], kind: "beast" };

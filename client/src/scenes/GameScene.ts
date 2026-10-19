@@ -4,7 +4,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele } from "../../../shared/data.ts";
-import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
+import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg } from "../net.ts";
@@ -660,7 +660,7 @@ export class GameScene extends Phaser.Scene {
       seenP.add(id);
       let v = this.players.get(id);
       if (!v) {
-        const layer = (o: { x: number; y: number }) => this.make.sprite({ key: "hs_body_m" }, false).setOrigin(o.x, o.y);
+        const layer = (o: { x: number; y: number }) => this.make.sprite({ key: "hs_body_m_0" }, false).setOrigin(o.x, o.y);
         const vb = layer(VH_ORIGIN), body = layer(HS_ORIGIN), outfit = layer(HS_ORIGIN), hair = layer(HS_ORIGIN), vf = layer(VH_ORIGIN);
         const ringsB = this.make.container({}, false), ringsF = this.make.container({}, false);
         const root = this.add.container(p.x, p.y, [this.make.image({ key: "hs_shadow" }, false), ringsB, vb, body, outfit, hair, vf, ringsF]);
@@ -781,7 +781,7 @@ export class GameScene extends Phaser.Scene {
   animatePlayer(v: PView, p: any, time: number) {
     if (v.act && time >= v.act.t0 + animMs(v.act.anim)) v.act = null;
     const anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (p.moving ? "walk" : "idle");
-    const { key, flip } = honsuAnimKey(`hs_body_${sexKey(p.sex)}`, anim, DIRS4[p.dir] ?? "down");
+    const { key, flip } = honsuAnimKey(bodyKey(p), anim, DIRS4[p.dir] ?? "down");
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
     if (tag !== v.playing) { v.playing = tag; v.body.play(key); }
     v.body.setFlipX(flip);

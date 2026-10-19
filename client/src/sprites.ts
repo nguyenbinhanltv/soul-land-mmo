@@ -2,7 +2,8 @@
 // - tải ảnh thật theo shared/assets/sprites/manifest.json (chỉ key có trong danh sách, tránh 404);
 // - tạo animation từ chỉ số khung cố định, key `{sheet}:{animation}_{hướng}`;
 // - ánh xạ khung lớp thân sang lớp áo, tóc, phụ thể;
-// - hoán màu dải 4 xám chuẩn, key `{gốc}@{chỉ số màu}`.
+// - hoán màu dải 4 xám chuẩn, key `{gốc}@{chỉ số màu}`;
+// - hồn sư theo bộ giới × kiểu tóc: `hs_{lớp}_{giới}_{kiểu tóc}` (honsuKey).
 // Key nào chưa có ảnh thì makeTextures() trong textures.ts vẽ bằng code như cũ.
 import Phaser from "phaser";
 import { TELE_WARN } from "../../shared/data.ts";
@@ -75,7 +76,14 @@ export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | 
   return true;
 }
 
-/** Dải 4 xám chuẩn (tối → sáng) của lớp tóc và áo, được thay khi hoán màu. */
+export type HsLayer = "body" | "outfit" | "hair";
+/**
+ * Key sheet hồn sư (mục 5.11): mỗi tổ hợp giới × kiểu tóc là một bộ 3 lớp tách từ cùng một hình,
+ * ví dụ `hs_body_f_2`, `hs_outfit_f_2`, `hs_hair_f_2`. Animation chạy trên lớp thân: `hs_body_f_2:walk_down`.
+ */
+export const honsuKey = (layer: HsLayer, sex: "m" | "f", hair: number) => `hs_${layer}_${sex}_${hair}`;
+
+/** Dải 4 xám chuẩn (tối → sáng) của lớp tóc và áo, được thay khi hoán màu. Viền ngoài #1a1020 không thuộc dải nên giữ nguyên. */
 export const GRAY_RAMP = ["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca"] as const;
 
 interface SheetSpec { url: string; frame?: readonly [number, number] }
@@ -84,7 +92,7 @@ type ManifestEntry = string | { key: string; frame?: [number, number] };
 /** Đường dẫn ảnh và kích thước khung suy ra từ key (bảng thư mục ở mục 5.11). */
 function sheetSpec(key: string, frame?: readonly [number, number]): SheetSpec | null {
   let m: RegExpMatchArray | null;
-  if ((m = key.match(/^hs_((?:body|hair|outfit)_[mf](?:_\d+)?)$/))) return { url: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME] };
+  if ((m = key.match(/^hs_((?:body|outfit|hair)_[mf]_\d+)$/))) return { url: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME] };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) return { url: `beast/${key}.png`, frame: frame ?? BEAST_FRAMES[+m[1]] };
   // Khung của từng loài phụ thuộc bậc của loài, nên manifest phải ghi `frame`.
@@ -143,7 +151,7 @@ export function createBeastAnims(scene: Phaser.Scene, sheet: string) {
 /** Tạo animation cho mọi sheet thân hồn sư và hồn thú đang có (ảnh thật hoặc vẽ bằng code). */
 export function createSheetAnims(scene: Phaser.Scene) {
   for (const key of scene.textures.getTextureKeys()) {
-    if (/^hs_body_[mf]$/.test(key)) createHonsuAnims(scene, key);
+    if (/^hs_body_[mf]_\d+$/.test(key)) createHonsuAnims(scene, key);
     else if (/^(b\d|beast_[a-z_]+)$/.test(key)) createBeastAnims(scene, key);
   }
 }
