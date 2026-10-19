@@ -1,7 +1,7 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
-  MAX_RINGS, MAX_LEVEL, atBottleneck } from "../../shared/data.ts";
+  MAX_RINGS, MAX_LEVEL, atBottleneck, MAX_STARS, SHARD_UNLOCK, starCost, MAPS } from "../../shared/data.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -185,18 +185,30 @@ export function toggleRoster(open = $("#roster").hidden) {
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
 let rosterHint = "";
 
+/** Thao tác của bảng đội hình: client chỉ gửi ý định (đội mới, mã võ hồn muốn mở / lên sao), server kiểm tra rồi gửi lại. */
+export interface RosterActions { setTeam(team: number[]): void; unlock(vohon: string): void; starUp(vohon: string): void; }
+/** Sao của võ hồn: sao đã có màu vàng, sao còn thiếu màu nhạt ("★★☆☆☆☆"); đọc màn hình đọc "n sao". */
+function starEl(n: number) {
+  const el = document.createElement("em"), on = document.createElement("b");
+  el.className = "stars"; el.setAttribute("aria-label", `${n} sao`);
+  on.textContent = "★".repeat(n); el.append(on, "☆".repeat(Math.max(0, MAX_STARS - n)));
+  return el;
+}
+
 /**
  * Bảng xếp đội hình: 4 ô ở trên, bộ sưu tập ở dưới. Chọn một ô rồi chọn võ hồn để đặt vào ô đó (võ hồn đã ở ô khác thì
  * đổi chỗ); không chọn ô thì võ hồn vào ô trống đầu tiên. Gửi cả đội lên server, server kiểm tra và gửi lại đội đã lưu.
+ * Cuối bảng là mảnh võ hồn (bước 3.4): `shards` = số mảnh trong túi theo mã võ hồn; tiến độ mở (x/SHARD_UNLOCK) hoặc lên sao
+ * kế tiếp (x/STAR_COST), nút Mở / Lên sao (server kiểm tra lại số mảnh).
  */
-export function renderRoster(data: OwnedVohons, setTeam: (team: number[]) => void) {
+export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<string, number>) {
   const el = $("#roster"); el.innerHTML = "";
   const members = data.team.filter((r) => r > 0).length;
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Đội hình (${members}/${TEAM_SIZE})</b><button class="x" aria-label="Đóng">×</button>`;
   head.querySelector("button")!.addEventListener("click", () => toggleRoster(false));
   el.appendChild(head);
-  const send = (team: number[]) => { rosterSel = null; rosterHint = ""; setTeam(team); };
+  const send = (team: number[]) => { rosterSel = null; rosterHint = ""; act.setTeam(team); };
 
   const slots = document.createElement("div"); slots.className = "tslots";
   data.team.forEach((rowId, i) => {
@@ -208,7 +220,7 @@ export function renderRoster(data: OwnedVohons, setTeam: (team: number[]) => voi
     pick.innerHTML = `<b>${i + 1}</b><i class="dot"></i><span></span><small></small>`;
     pick.querySelector("span")!.textContent = def ? def.name : "Ô trống";
     pick.querySelector("small")!.textContent = v ? `Cấp ${v.level}${on ? " · ra trận" : ""}` : "Chọn để thêm";
-    pick.addEventListener("click", () => { pick.blur(); rosterSel = rosterSel === i ? null : i; rosterHint = ""; renderRoster(data, setTeam); });
+    pick.addEventListener("click", () => { pick.blur(); rosterSel = rosterSel === i ? null : i; rosterHint = ""; renderRoster(data, act, shards); });
     s.appendChild(pick);
     if (v) {
       const rm = document.createElement("button"); rm.className = "trm"; rm.textContent = "Bỏ";
@@ -233,13 +245,14 @@ export function renderRoster(data: OwnedVohons, setTeam: (team: number[]) => voi
     b.innerHTML = `<i class="dot"></i><span><b></b><small></small></span><span class="rr"></span>`;
     b.querySelector("b")!.textContent = def.name;
     b.querySelector("small")!.textContent = `${def.rarity} · ${HE[def.he].name} · cấp ${v.level}` + (at >= 0 ? ` · ô ${at + 1}` : "");
+    b.querySelector("b")!.append(" ", starEl(v.stars));
     const rr = b.querySelector(".rr")!;
     v.rings.forEach((y) => { const t = tierOfYears(y), r = document.createElement("i"); r.className = "ring"; r.style.color = ringColor(t); rr.appendChild(r); });
     b.addEventListener("click", () => {
       b.blur(); // bỏ focus: phím Space là đánh, không bấm lại nút
       const t = [...data.team], to = rosterSel ?? t.indexOf(0);
-      if (to < 0) { rosterHint = `Đội đã đủ ${TEAM_SIZE} võ hồn: chọn một ô để thay.`; return renderRoster(data, setTeam); }
-      if (at === to) { rosterSel = null; return renderRoster(data, setTeam); }
+      if (to < 0) { rosterHint = `Đội đã đủ ${TEAM_SIZE} võ hồn: chọn một ô để thay.`; return renderRoster(data, act, shards); }
+      if (at === to) { rosterSel = null; return renderRoster(data, act, shards); }
       if (at >= 0) t[at] = t[to]; // võ hồn đã trong đội: đổi chỗ hai ô
       t[to] = v.rowId;
       send(t);
@@ -248,6 +261,42 @@ export function renderRoster(data: OwnedVohons, setTeam: (team: number[]) => voi
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
+  el.appendChild(note);
+  renderShards(el, data, act, shards);
+}
+
+/**
+ * Mảnh võ hồn trong bảng đội hình (bước 3.4): mỗi võ hồn đã sở hữu hoặc đang có mảnh một dòng (sao, thanh tiến độ, nút), nút
+ * bấm được khi đủ mảnh; cuối là bản đồ nào rơi mảnh của võ hồn nào (MAPS[].shards). Chỉ hiển thị, server kiểm tra lại.
+ */
+function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, shards: Map<string, number>) {
+  const head = document.createElement("b"); head.className = "shead"; head.textContent = "Mảnh võ hồn";
+  el.appendChild(head);
+  const rows = VOHON.map((def) => {
+    const v = data.list.find((x) => x.vohon === def.id), have = shards.get(def.id) ?? 0;
+    const need = v ? starCost(v.stars) : SHARD_UNLOCK;
+    return { def, v, have, need, ready: need !== null && have >= need };
+  }).filter((r) => r.v || r.have > 0)
+    .sort((a, b) => Number(b.ready) - Number(a.ready) || Number(!b.v) - Number(!a.v) || b.have - a.have);
+  for (const { def, v, have, need, ready } of rows) {
+    const row = document.createElement("div"); row.className = "srow" + (ready ? " ready" : "");
+    row.style.setProperty("--c", def.col);
+    row.innerHTML = `<i class="dot"></i><span><b></b><small></small><i class="sbar"><i></i></i></span><button type="button" class="sbtn"></button>`;
+    row.querySelector("b")!.textContent = def.name;
+    const sm = row.querySelector("small")!, btn = row.querySelector("button")!;
+    if (!v) sm.textContent = `Chưa mở · ${have}/${SHARD_UNLOCK} mảnh`;
+    else sm.append(starEl(v.stars), need === null ? ` · tối đa · ${have} mảnh dư` : ` · ${have}/${need} mảnh lên ${v.stars + 1}★`);
+    (row.querySelector(".sbar i") as HTMLElement).style.width = (need ? Math.min(1, have / need) : 1) * 100 + "%";
+    btn.textContent = !v ? "Mở" : need === null ? "Tối đa" : "Lên sao";
+    btn.disabled = !ready;
+    btn.setAttribute("aria-label", !v ? `Mở ${def.name} bằng ${SHARD_UNLOCK} mảnh` : `Lên sao ${def.name}`);
+    btn.addEventListener("click", () => { btn.blur(); btn.disabled = true; if (!v) act.unlock(def.id); else act.starUp(def.id); });
+    el.appendChild(row);
+  }
+  const where = Object.values(MAPS).filter((m) => m.shards.length)
+    .map((m) => `${m.name}: ${m.shards.map((id) => vohonDef(id).name).join(", ")}`).join("; ");
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = `Hạ hồn thú có thể rơi mảnh vào túi đồ. Đủ ${SHARD_UNLOCK} mảnh thì mở võ hồn; mảnh dư lên sao (tới ${MAX_STARS}★, mỗi sao tăng chỉ số gốc). Nơi rơi: ${where}.`;
   el.appendChild(note);
 }
 
@@ -420,6 +469,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
+    if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
     btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
       if (bagConfirm === sel.id) { bagConfirm = null; act.discard(sel.id); } else { bagConfirm = sel.id; again(); }
     });

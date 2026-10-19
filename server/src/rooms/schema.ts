@@ -54,6 +54,9 @@ export class DropState extends Schema {
   @type("float32") y: number = 0;
   @type("uint8") tier: number = 0;      // bậc suy ra từ số năm: màu hồn hoàn
   @type("uint32") years: number = 0;    // số năm của hồn hoàn (bằng tuổi hồn thú bị hạ)
+  // Từ 3.4 đồ rơi khác hồn hoàn (mảnh võ hồn rơi khi túi người hạ đã đầy): mã vật phẩm trong ITEMS và số món; "" = hồn hoàn.
+  @type("string") item: string = "";
+  @type("uint16") qty: number = 0;
   @type("string") owner: string = "";   // sessionId được ưu tiên nhặt
   @type("float32") ownerTtl: number = 0; // giây còn lại trước khi ai cũng nhặt được
   @type("float32") ttl: number = 0;

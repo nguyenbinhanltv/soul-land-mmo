@@ -11,7 +11,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
   itemDef, BAG_SLOTS, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
-  absorbSecs, absorbChance,
+  absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal } from "../map.ts";
@@ -29,6 +29,8 @@ interface PData {
   // Hấp thụ hồn hoàn trong túi (từ 3.2) vào võ hồn `rowId` (từ 3.3 chọn được võ hồn bất kỳ đang ở bình cảnh), vòng thứ `slot`.
   absorbing: { itemId: string; rowId: number; slot: number; years: number; t: number; dur: number; fail: number } | null;
   testRoll: number | null; // hook test `roll` (chỉ khi GAME_TEST=1): cố định số ngẫu nhiên 0..1 cho lần quyết định hấp thụ
+  testShard: { r: number; i: number } | null; // hook test `shard`: cố định số ngẫu nhiên rơi mảnh (0..1) và võ hồn được chọn (-1 = ngẫu nhiên)
+  shardBusy: boolean;   // đang chờ DB mở võ hồn bằng mảnh (bước 3.4): chặn lần mở thứ hai cho tới khi xong
   mpF: number; hpF: number; // hpF: sinh lực của võ hồn ra trận
   benchHp: Map<number, number>; // sinh lực các võ hồn khác (rowId -> sinh lực; không có = đầy). Không lưu DB: vào lại thì hồi đầy
   down: Map<number, number>;    // võ hồn đã gục: rowId -> số giây ngoài trận còn lại trước khi hồi (REVIVE_SECS)
@@ -204,6 +206,8 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, String(m?.portal ?? "")));
     this.onMessage("bag", (c) => this.sendBag(c.sessionId));
     this.onMessage("use", (c, m: { id: unknown }) => this.useItem(c.sessionId, m?.id));
+    this.onMessage("unlock", (c, m: { vohon: unknown }) => this.unlockVohon(c.sessionId, m?.vohon));
+    this.onMessage("starup", (c, m: { vohon: unknown }) => this.starUp(c.sessionId, m?.vohon));
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
@@ -228,7 +232,7 @@ export class MapRoom extends Room<MapState> {
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
     const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
-      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, mpF: 0, hpF: 0, fight: 99,
+      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(),
@@ -278,7 +282,7 @@ export class MapRoom extends Room<MapState> {
 
   recalc(id: string, full: boolean) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
-    const s = calcStats(p.vh, p.level, [...p.rings]);
+    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars);
     p.maxHp = s.maxHp; p.maxMp = s.maxMp; d.atk = s.atk; d.speed = s.speed;
     p.xpNeed = xpBlocked(p.level, p.rings.length) ? 0 : xpNeed(p.level);
     if (full) { d.hpF = p.maxHp; d.mpF = p.maxMp; }
@@ -325,7 +329,10 @@ export class MapRoom extends Room<MapState> {
 
   /** Ảnh chụp túi đồ và Hồn Tệ chưa lưu (bỏ đánh dấu `bagDirty`); undefined nếu không đổi gì từ lần lưu trước. */
   unsavedBag(d: PData): Bag | undefined {
-    if (!d.bagDirty) return undefined;
+    return d.bagDirty ? this.bagSnapshot(d) : undefined;
+  }
+  /** Ảnh chụp cả túi đồ và Hồn Tệ (bỏ đánh dấu `bagDirty`), dù có đổi hay không. */
+  bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
     return { honTe: d.honTe, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })) };
   }
@@ -346,7 +353,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không). */
-  maxHpOf(v: Character) { return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears)).maxHp; }
+  maxHpOf(v: Character) { return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars).maxHp; }
 
   // ---------- Võ hồn sở hữu và đội hình ----------
   /** Danh sách võ hồn và đội hình chỉ gửi riêng cho chính chủ, không nằm trong state đồng bộ (mục 6). */
@@ -591,8 +598,19 @@ export class MapRoom extends Room<MapState> {
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     let best: [string, DropState] | undefined, bd = PICKUP_RANGE;
     for (const [did, dr] of this.state.drops.entries()) { const dd = Math.hypot(dr.x - p.x, dr.y - p.y); if (dd < bd) { bd = dd; best = [did, dr]; } }
-    if (!best) return warn("Không có hồn hoàn nào ở gần để nhặt.");
+    if (!best) return warn("Không có hồn hoàn hay vật phẩm nào ở gần để nhặt.");
     const [did, dr] = best, label = formatYears(dr.years);
+    // Từ 3.4: mảnh võ hồn rơi xuống đất (túi người hạ đã đầy), cùng luật ưu tiên; túi chỉ nhận một phần thì phần còn lại ở lại.
+    if (dr.item) {
+      const def = itemDef(dr.item), name = def?.name ?? "vật phẩm lạ";
+      if (dr.owner && dr.owner !== id && dr.ownerTtl > 0) return warn(`${name} thuộc về người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`);
+      const got = this.addItem(d, dr.item, dr.qty);
+      if (!got) return warn(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được ${name}.`);
+      if (got < dr.qty) dr.qty -= got; else this.state.drops.delete(did);
+      this.log(id, `Nhặt ${got} ${name} vào túi đồ${this.shardNote(d, dr.item)}.`, def?.col);
+      this.sendBag(id);
+      return;
+    }
     if (dr.owner && dr.owner !== id && dr.ownerTtl > 0) return warn(`Hồn hoàn ${label} thuộc về người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`);
     if (!this.addRing(d, dr.years)) return warn(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được hồn hoàn ${label}.`);
     this.state.drops.delete(did);
@@ -668,6 +686,8 @@ export class MapRoom extends Room<MapState> {
    * miễn sát thương.
    * Từ BĐ3: `legacy {mapId, x, y}` ghi `map_id` cũ đã bỏ khỏi MAPS (mã trong MAP_MOVED, ví dụ `tinh_dau`) và vị trí (x, y) như tài
    * khoản của bản trước, qua đúng transaction đi cổng (freeze, saveTravel; trả `saved`); client rời phòng rồi hỏi lại /api/me.
+   * Từ 3.4: `shard {r, i}` cố định số ngẫu nhiên rơi mảnh võ hồn (r: 0..100, rơi khi r/100 < shardChance; −1 bỏ) và võ hồn
+   * được chọn (chỉ số i trong MAPS[bản đồ].shards, −1 ngẫu nhiên); `give` nhận cả mã mảnh (shardCode).
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -710,6 +730,10 @@ export class MapRoom extends Room<MapState> {
       this.sendBag(id);
     }
     else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; this.sendBag(id); }
+    else if (op === "shard") {
+      const r = int(o.r, -1, 100, -1);
+      d.testShard = r < 0 ? null : { r: Math.min(0.9999, r / 100), i: int(o.i, -1, 99, -1) };
+    }
     else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
@@ -1258,11 +1282,133 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(by)!; p.kills++;
     this.rewardKill(by, b.years);
     const coin = this.rewardCoin(by, b.tier);
-    const drop = new DropState();
-    drop.x = b.x; drop.y = b.y; drop.tier = b.tier; drop.years = b.years; drop.owner = by; drop.ownerTtl = DROP_OWNER_SECS; drop.ttl = DROP_TTL_SECS;
+    const drop = this.newDrop(b.x, b.y, by);
+    drop.tier = b.tier; drop.years = b.years;
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: td.size + 10, col: td.glow });
     this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${DROP_OWNER_SECS} giây đầu chỉ bạn nhặt được (phím E).`, td.glow);
+    this.rollShard(by, b.years, b.x, b.y);
+  }
+
+  /** Đồ rơi tại (x, y): người hạ `owner` được ưu tiên nhặt DROP_OWNER_SECS giây, tồn tại DROP_TTL_SECS giây (mục 4, 5.2). */
+  newDrop(x: number, y: number, owner: string) {
+    const drop = new DropState();
+    drop.x = x; drop.y = y; drop.owner = owner; drop.ownerTtl = DROP_OWNER_SECS; drop.ttl = DROP_TTL_SECS;
+    return drop;
+  }
+
+  // ---------- Mảnh võ hồn, mở võ hồn, lên sao (mục 5.1 "Sưu tầm võ hồn", 5.3 "Rơi đặc trưng", bước 3.4) ----------
+  /**
+   * Hạ hồn thú `years` năm: tung tỉ lệ rơi mảnh (shardChance, bảng rơi 5.3); trúng thì SHARD_QTY mảnh của một võ hồn ngẫu nhiên
+   * trong MAPS[bản đồ].shards vào thẳng túi người hạ. Túi đầy thì phần không nhận rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên
+   * người hạ như hồn hoàn (3.2). Hook test `shard` cố định được số ngẫu nhiên và võ hồn được chọn.
+   */
+  rollShard(id: string, years: number, x: number, y: number) {
+    const d = this.pdata.get(id), list = MAPS[this.state.mapId].shards; if (!d || !list.length) return;
+    const t = d.testShard;
+    if ((t ? t.r : Math.random()) >= shardChance(years)) return;
+    const vohon = list[t && t.i >= 0 ? t.i % list.length : Math.floor(Math.random() * list.length)], code = shardCode(vohon), def = itemDef(code);
+    if (!def) return;
+    const got = this.addItem(d, code, SHARD_QTY);
+    if (got) { this.log(id, `Nhận ${got} ${def.name}${this.shardNote(d, code)}.`, def.col); this.sendBag(id); }
+    if (got < SHARD_QTY) {
+      // Cạnh hồn hoàn nếu chỗ đó đứng được (không thì chồng lên hồn hoàn; nhấn E lần nữa để nhặt nốt).
+      const drop = this.map.standable(x + 8, y) ? this.newDrop(x + 8, y, id) : this.newDrop(x, y, id);
+      drop.item = code; drop.qty = SHARD_QTY - got;
+      this.state.drops.set(uid("d"), drop);
+      this.log(id, `Túi đồ đã đầy (${BAG_SLOTS} ô): ${drop.qty} ${def.name} rơi xuống đất, ${DROP_OWNER_SECS} giây đầu chỉ bạn nhặt được (phím E).`, "#ffb35c");
+    }
+  }
+
+  /** Tổng số mảnh mã `code` trong túi (mọi ô). */
+  shardCount(d: PData, code: string) { return d.bag.reduce((n, i) => n + (i.code === code && i.vohonId === null ? i.qty : 0), 0); }
+
+  /** Bớt `n` mảnh mã `code` khỏi túi, lấy từ các ô ít nhất trước (gọi sau khi đã kiểm tra đủ). */
+  takeShards(d: PData, code: string, n: number) {
+    for (const it of d.bag.filter((i) => i.code === code && i.vohonId === null).sort((a, b) => a.qty - b.qty)) {
+      if (n <= 0) break;
+      const k = Math.min(n, it.qty); this.takeItem(d, it, k); n -= k;
+    }
+  }
+
+  /** Chú thích tiến độ sau khi nhận mảnh: " (12/50)" khi chưa sở hữu, " (8/40 lên 3★)" khi đã sở hữu, "" khi đã tối đa sao. */
+  shardNote(d: PData, code: string) {
+    const vohon = itemDef(code)?.vohon; if (!vohon) return "";
+    const n = this.shardCount(d, code), v = d.owned.find((x) => x.vohon === vohon);
+    if (!v) return ` (${n}/${SHARD_UNLOCK})`;
+    const cost = starCost(v.stars);
+    return cost === null ? "" : ` (${n}/${cost} lên ${v.stars + 1}★)`;
+  }
+
+  /**
+   * Mở võ hồn `raw` (mã trong VOHON) bằng SHARD_UNLOCK mảnh (mục 5.1): chỉ võ hồn chưa sở hữu. Trừ mảnh ngay (bấm hai lần không
+   * tiêu hai lần), rồi trong chuỗi lưu ghi võ hồn mới (cấp 1, 1 sao) và cả túi đồ trong một transaction (store.unlockVohon).
+   * DB lỗi hoặc tài khoản đã có võ hồn này thì trả lại mảnh.
+   */
+  unlockVohon(id: string, raw: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => this.log(id, text, "#ffb35c");
+    const vohon = typeof raw === "string" ? raw : "", vi = vohonIndex(vohon);
+    if (vi < 0) return warn("Võ hồn không tồn tại.");
+    const name = VOHON[vi].name, code = shardCode(vohon);
+    if (d.owned.some((v) => v.vohon === vohon)) return warn(`Đã sở hữu ${name}: dùng mảnh để lên sao.`);
+    if (d.shardBusy) return warn("Đang mở võ hồn, đợi một chút.");
+    const have = this.shardCount(d, code);
+    if (have < SHARD_UNLOCK) return warn(`Cần ${SHARD_UNLOCK} Mảnh ${name} để mở, mới có ${have}.`);
+    this.takeShards(d, code, SHARD_UNLOCK);
+    d.shardBusy = true;
+    this.sendBag(id);
+    // Không mở được thì trả mảnh, kể cả khi túi vừa đầy (không bao giờ mất đồ; ô thêm có thể tạm vượt BAG_SLOTS).
+    const refund = () => {
+      const left = SHARD_UNLOCK - this.addItem(d, code, SHARD_UNLOCK);
+      if (left > 0) d.bag.push(...itemStacks(code, left));
+      d.bagDirty = true;
+    };
+    this.chain(d, async () => {
+      let v: Character | null;
+      try { v = await store.unlockVohon(d.accountId, p.name, vohon, 1, this.bagSnapshot(d)); }
+      catch (e) { refund(); throw e; }
+      if (!v) { refund(); return; }
+      d.owned.push(v);
+      this.log(id, `Mở võ hồn ${name}! Đã vào bộ sưu tập (cấp 1, 1★): xếp vào đội ở bảng đội hình (phím V).`, VOHON[vi].col);
+      this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã mở võ hồn ${name} bằng ${SHARD_UNLOCK} mảnh.` });
+    }).then(() => {
+      d.shardBusy = false;
+      if (this.pdata.get(id) !== d) return;
+      if (!d.owned.some((v) => v.vohon === vohon)) warn(`Chưa mở được ${name}, mảnh đã trả lại túi đồ.`);
+      const c = this.clients.getById(id); if (c) this.sendVohons(c);
+      this.sendBag(id);
+    });
+  }
+
+  /**
+   * Lên sao võ hồn `raw` (mã trong VOHON) đã sở hữu bằng mảnh theo STAR_COST (mục 5.1), tối đa MAX_STARS. Mỗi sao tăng chỉ số
+   * gốc (starMult trong calcStats). Đổi trong bộ nhớ ngay, rồi trong chuỗi lưu ghi võ hồn và cả túi đồ trong một transaction
+   * (store.saveVohonsBag); lỗi thì đánh dấu lại để lần lưu sau ghi tiếp. Hiệu ứng hồn kỹ theo sao để bước sau.
+   */
+  starUp(id: string, raw: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => this.log(id, text, "#ffb35c");
+    const vohon = typeof raw === "string" ? raw : "", vi = vohonIndex(vohon), v = d.owned.find((x) => x.vohon === vohon);
+    if (vi < 0) return warn("Võ hồn không tồn tại.");
+    const name = VOHON[vi].name, code = shardCode(vohon);
+    if (!v) return warn(`Chưa sở hữu ${name}: đủ ${SHARD_UNLOCK} mảnh thì mở trước.`);
+    const cost = starCost(v.stars);
+    if (cost === null) return warn(`${name} đã đạt ${MAX_STARS}★, không lên sao thêm được.`);
+    const have = this.shardCount(d, code);
+    if (have < cost) return warn(`Cần ${cost} Mảnh ${name} để lên ${v.stars + 1}★, mới có ${have}.`);
+    this.takeShards(d, code, cost);
+    v.stars++;
+    if (v === d.ch) this.recalc(id, false); else d.dirty.add(v.rowId);
+    this.log(id, `${name} lên ${v.stars}★! Chỉ số gốc tăng.`, VOHON[vi].col);
+    const c = this.clients.getById(id); if (c) this.sendVohons(c);
+    this.sendBag(id);
+    this.chain(d, async () => {
+      const list = this.unsaved(id), bag = this.bagSnapshot(d);
+      if (!list.some((x) => x.rowId === v.rowId)) list.push({ ...v, rings: [...v.rings] });
+      try { await store.saveVohonsBag(d.accountId, list, bag); }
+      catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
+    });
   }
 
   // ---------- Hồn hoàn ----------
