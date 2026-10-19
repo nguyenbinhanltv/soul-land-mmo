@@ -1,8 +1,8 @@
 // Sprite pixel vẽ bằng code. Ảnh thật được tải trước theo shared/assets/sprites/manifest.json (sprites.ts);
 // key nào đã có ảnh thì ở đây bỏ qua. Hồn sư ghép lớp theo mục 5.11: hình vẽ nằm trong honsuArt.ts.
 import Phaser from "phaser";
-import { TIERS, VOHON, HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
-import { addGridFrames, recolor, HS_FRAME, VH_FRAME } from "./sprites.ts";
+import { TIERS, VOHON, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
+import { addGridFrames, recolor, honsuKey, HS_FRAME, VH_FRAME } from "./sprites.ts";
 import { honsuSheet, vohonSheets, bufCanvas, type Buf, type Sex } from "./honsuArt.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -41,13 +41,22 @@ export function vohonTextures(scene: Phaser.Scene, vh: number): [string, string]
   return [kb, kf];
 }
 
-/** Key texture thân, áo, tóc theo ngoại hình; áo và tóc hoán màu (key `hs_hair_f_2@3`), chỉ tạo khi có người dùng tổ hợp đó. */
+/** Kiểu tóc hợp lệ (0–3) của ngoại hình; ngoài khoảng thì về kiểu 0. */
+const hairOf = (L: Pick<Looks, "sex" | "hair">) => (L.hair >= 0 && L.hair < HAIR_STYLES[L.sex === 1 ? 1 : 0].length ? L.hair : 0);
+
+/** Sheet thân (có animation) của bộ giới × kiểu tóc, ví dụ `hs_body_f_2`. */
+export const bodyKey = (L: Pick<Looks, "sex" | "hair">) => honsuKey("body", sexKey(L.sex), hairOf(L));
+
+/**
+ * Key texture thân, áo, tóc theo ngoại hình: cả 3 lớp cùng bộ giới × kiểu tóc (mục 5.11).
+ * Áo và tóc hoán màu (key `hs_hair_f_2@3`, `hs_outfit_f_2@5`), chỉ tạo khi có người dùng tổ hợp đó.
+ */
 export function looksTextures(scene: Phaser.Scene, L: Looks) {
-  const s = sexKey(L.sex);
+  const s = sexKey(L.sex), h = hairOf(L);
   return {
-    body: `hs_body_${s}`,
-    outfit: recolor(scene, `hs_outfit_${s}_0`, L.outfitCol, (OUTFIT_COLORS[L.outfitCol] ?? OUTFIT_COLORS[0]).ramp),
-    hair: recolor(scene, `hs_hair_${s}_${L.hair}`, L.hairCol, (HAIR_COLORS[L.hairCol] ?? HAIR_COLORS[0]).ramp),
+    body: bodyKey(L),
+    outfit: recolor(scene, honsuKey("outfit", s, h), L.outfitCol, (OUTFIT_COLORS[L.outfitCol] ?? OUTFIT_COLORS[0]).ramp),
+    hair: recolor(scene, honsuKey("hair", s, h), L.hairCol, (HAIR_COLORS[L.hairCol] ?? HAIR_COLORS[0]).ramp),
   };
 }
 
@@ -74,12 +83,13 @@ function haloTexture(scene: Phaser.Scene, key: string, col: string, glow: string
 }
 
 export function makeTextures(scene: Phaser.Scene) {
-  // Hồn sư: thân, áo (dải xám) và 4 kiểu tóc (dải xám) cho mỗi giới; bản hoán màu tạo sau trong looksTextures().
-  for (const s of SEX_KEYS) {
-    addSheet(scene, `hs_body_${s}`, () => honsuSheet(s, "body"), HS_FRAME);
-    addSheet(scene, `hs_outfit_${s}_0`, () => honsuSheet(s, "outfit"), HS_FRAME);
-    for (let h = 0; h < 4; h++) addSheet(scene, `hs_hair_${s}_${h}`, () => honsuSheet(s, "hair", h), HS_FRAME);
-  }
+  // Hồn sư: mỗi bộ giới × kiểu tóc còn thiếu ảnh thật thì vẽ bằng code (thân, áo dải xám, tóc dải xám);
+  // bản hoán màu tạo sau trong looksTextures(). Bản code dùng chung thân và áo cho mọi kiểu tóc.
+  SEX_KEYS.forEach((s, sex) => HAIR_STYLES[sex].forEach((_, h) => {
+    addSheet(scene, honsuKey("body", s, h), () => honsuSheet(s, "body"), HS_FRAME);
+    addSheet(scene, honsuKey("outfit", s, h), () => honsuSheet(s, "outfit"), HS_FRAME);
+    addSheet(scene, honsuKey("hair", s, h), () => honsuSheet(s, "hair", h), HS_FRAME);
+  }));
   // Bóng dưới chân hồn sư: elip mờ 12×4 (mục 5.11, lớp 1).
   if (!scene.textures.exists("hs_shadow")) {
     const g = scene.make.graphics({}, false);

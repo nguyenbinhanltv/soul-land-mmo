@@ -2,11 +2,12 @@
 // Module thuần (không phụ thuộc Phaser): vẽ từng khung vào bộ đệm pixel rồi xếp thành spritesheet
 // đúng bố cục cố định (16 cột × 4 hàng). textures.ts biến các sheet này thành texture Phaser,
 // màn tạo nhân vật (main.ts) dùng lại để vẽ ô xem trước.
-// - Thân `hs_body_{m,f}`: da, mặt, quần, giày.
-// - Áo `hs_outfit_{m,f}_0` và tóc `hs_hair_{m,f}_{0-3}`: vẽ bằng dải 4 xám chuẩn để hoán màu.
+// - Mỗi tổ hợp giới × kiểu tóc là một bộ 3 lớp `hs_{body,outfit,hair}_{m,f}_{0-3}` (honsuKey trong sprites.ts).
+//   Bản vẽ bằng code dùng chung một thân và một áo cho cả 4 kiểu tóc; ảnh thật thì mỗi bộ tách từ một hình riêng.
+// - Thân: da, mặt, quần, giày. Áo và tóc: vẽ bằng dải 4 xám chuẩn để hoán màu.
 // - Phụ thể `vh_{id}_b` / `vh_{id}_f`: khung 48×48, chỉ cột 0–11 của hàng 0–2.
 import { HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
-import { HS_ANIMS, DIRS, SHEET_COLS, HS_FRAME, VH_FRAME, GRAY_RAMP, type HsAnim } from "./sprites.ts";
+import { HS_ANIMS, DIRS, SHEET_COLS, HS_FRAME, VH_FRAME, GRAY_RAMP, type HsAnim, type HsLayer } from "./sprites.ts";
 
 /** Viền ngoài có màu (mục 5.11). Không nằm trong dải xám nên giữ nguyên khi hoán màu. */
 export const OUT = "#1a1020";
@@ -372,7 +373,6 @@ function honsuFrames(sex: Sex) {
     return { P, body, outfit: drawOutfit(sex, P, body) };
   }));
 }
-export type HsLayer = "body" | "outfit" | "hair";
 /** Sheet 512×128 của một lớp hồn sư (đúng bố cục cố định). `style` chỉ dùng cho lớp tóc. */
 export function honsuSheet(sex: Sex, layer: HsLayer, style = 0) {
   const out = new Buf(SHEET_COLS * HS_FRAME, 4 * HS_FRAME);

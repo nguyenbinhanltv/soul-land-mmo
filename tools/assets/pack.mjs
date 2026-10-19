@@ -1,6 +1,11 @@
 // Ghép khung đã chuẩn hóa vào spritesheet bố cục cố định của mục 5.11.
 //   node tools/assets/pack.mjs --kind honsu|vohon --out <sheet.png> <thư mục khung> [--fill]
 //   node tools/assets/pack.mjs --kind beast<bậc> --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]
+//   node tools/assets/pack.mjs --kind honsu --set <giới>_<kiểu tóc> <thư mục normalize --split> [--out <thư mục>] [--fill] [--breathe <y>]
+//
+// --set m_2: ghép một bộ hồn sư giới × kiểu tóc (mục 5.11) từ 3 thư mục con body/outfit/hair mà `normalize --split`
+//         tách ra từ cùng một hình, ghi honsu/{body,outfit,hair}_m_2.png (mặc định vào shared/assets/sprites/honsu,
+//         --out đổi thư mục). Cùng --breathe/--fill cho cả 3 lớp để các lớp khớp khung.
 //
 // Tên file khung quy định ô:
 //   hồn sư / phụ thể: {hướng}_{animation}_{i}.png, hướng = down|right|up, animation = idle|walk|attack|cast|hurt|die
@@ -16,14 +21,15 @@
 //         mới có vài animation). validate.mjs sẽ cảnh báo các ô chép tạm này.
 import { readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { readPng, encodePng, Img, SHEET_COLS, SHEET_ROWS, HS_FRAME, VH_FRAME, HS_ANIMS, DIRS, BEAST_FRAMES, BEAST_COLS } from "./lib.mjs";
+import { readPng, encodePng, Img, SPRITES, SHEET_COLS, SHEET_ROWS, HS_FRAME, VH_FRAME, HS_ANIMS, HS_LAYERS, DIRS, BEAST_FRAMES, BEAST_COLS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
-const kind = opt("--kind", "honsu"), out = opt("--out", ""), fill = flag("--fill"), breathe = opt("--breathe", "");
+const kind = opt("--kind", "honsu"), out = opt("--out", ""), fill = flag("--fill"), breathe = opt("--breathe", ""), set = opt("--set", "");
 const dir = args[0];
-if (!out || !dir) { console.error("Cách dùng: pack.mjs --kind honsu|vohon|beast<bậc> --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]"); process.exit(1); }
+if ((!out && !set) || !dir) { console.error("Cách dùng: pack.mjs --kind honsu|vohon|beast<bậc> --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]\n          pack.mjs --kind honsu --set <giới>_<kiểu tóc> <thư mục normalize --split> [--out <thư mục>]"); process.exit(1); }
+if (set && (kind !== "honsu" || !/^[mf]_\d+$/.test(set))) { console.error(`--set cần --kind honsu và dạng m_0 / f_2 (nhận: ${kind}, ${set})`); process.exit(1); }
 
 const BEAST_ANIMS = { idle: [0, 2], walk: [2, 4], attack: [6, 3], hurt: [9, 1], die: [10, 3] };
 let FW, FH, cols, rows, cellOf, required;
@@ -46,36 +52,42 @@ if (kind === "honsu" || kind === "vohon") {
   required = Object.values(BEAST_ANIMS).flatMap(([c0, n]) => Array.from({ length: n }, (_, i) => [0, c0 + i]));
 } else { console.error(`--kind không hợp lệ: ${kind}`); process.exit(1); }
 
-const sheet = new Img(FW * cols, FH * rows), filled = new Set();
-for (const f of readdirSync(dir).filter((f) => f.endsWith(".png")).sort()) {
-  const cell = cellOf(path.basename(f, ".png"));
-  if (!cell) { console.warn(`[pack] bỏ qua ${f}: tên không đúng quy ước`); continue; }
-  const img = readPng(path.join(dir, f));
-  if (img.w !== FW || img.h !== FH) { console.error(`[pack] ${f}: ${img.w}×${img.h}, cần ${FW}×${FH} (chạy normalize trước)`); process.exit(1); }
-  sheet.blit(img, 0, 0, FW, FH, cell[1] * FW, cell[0] * FH);
-  filled.add(cell.join(","));
+/** Ghép mọi khung trong `dir` thành một sheet và ghi ra `outFile`. */
+function pack(dir, outFile) {
+  const sheet = new Img(FW * cols, FH * rows), filled = new Set();
+  for (const f of readdirSync(dir).filter((f) => f.endsWith(".png")).sort()) {
+    const cell = cellOf(path.basename(f, ".png"));
+    if (!cell) { console.warn(`[pack] bỏ qua ${f}: tên không đúng quy ước`); continue; }
+    const img = readPng(path.join(dir, f));
+    if (img.w !== FW || img.h !== FH) { console.error(`[pack] ${f}: ${img.w}×${img.h}, cần ${FW}×${FH} (chạy normalize trước)`); process.exit(1); }
+    sheet.blit(img, 0, 0, FW, FH, cell[1] * FW, cell[0] * FH);
+    filled.add(cell.join(","));
+  }
+
+  if (breathe) {
+    const cut = +breathe;
+    for (let r = 0; r < (kind === "honsu" ? 3 : kind === "vohon" ? 0 : 1); r++) {
+      if (!filled.has(`${r},0`) || filled.has(`${r},1`)) continue;
+      const y0 = r * FH; // idle khung 1 (cột 0) → khung 2 (cột 1)
+      sheet.blit(sheet, 0, y0 + cut + 1, FW, FH - cut - 1, FW, y0 + cut + 1); // phần dưới giữ nguyên
+      sheet.blit(sheet, 0, y0, FW, cut + 1, FW, y0 + 1);                      // phần trên dời xuống 1
+      filled.add(`${r},1`);
+    }
+  }
+  const missing = required.filter((c) => !filled.has(c.join(",")));
+  if (fill) {
+    for (const [r, c] of missing) {
+      // Hàng 3 (absorb) mượn idle hướng xuống; hồn thú mượn idle khung đầu.
+      const src = r === 3 ? [0, 0] : [r, 0];
+      if (!filled.has(src.join(","))) continue;
+      sheet.blit(sheet, src[1] * FW, src[0] * FH, FW, FH, c * FW, r * FH);
+    }
+  }
+  mkdirSync(path.dirname(outFile), { recursive: true });
+  writeFileSync(outFile, encodePng(sheet));
+  console.log(`[pack] ${outFile}: ${sheet.w}×${sheet.h}, ${filled.size} khung` +
+    (missing.length ? `, thiếu ${missing.length} ô bắt buộc${fill ? " (đã chép tạm idle)" : ""}` : ""));
 }
 
-if (breathe) {
-  const cut = +breathe;
-  for (let r = 0; r < (kind === "honsu" ? 3 : kind === "vohon" ? 0 : 1); r++) {
-    if (!filled.has(`${r},0`) || filled.has(`${r},1`)) continue;
-    const y0 = r * FH; // idle khung 1 (cột 0) → khung 2 (cột 1)
-    sheet.blit(sheet, 0, y0 + cut + 1, FW, FH - cut - 1, FW, y0 + cut + 1); // phần dưới giữ nguyên
-    sheet.blit(sheet, 0, y0, FW, cut + 1, FW, y0 + 1);                      // phần trên dời xuống 1
-    filled.add(`${r},1`);
-  }
-}
-const missing = required.filter((c) => !filled.has(c.join(",")));
-if (fill) {
-  for (const [r, c] of missing) {
-    // Hàng 3 (absorb) mượn idle hướng xuống; hồn thú mượn idle khung đầu.
-    const src = r === 3 ? [0, 0] : [r, 0];
-    if (!filled.has(src.join(","))) continue;
-    sheet.blit(sheet, src[1] * FW, src[0] * FH, FW, FH, c * FW, r * FH);
-  }
-}
-mkdirSync(path.dirname(out), { recursive: true });
-writeFileSync(out, encodePng(sheet));
-console.log(`[pack] ${out}: ${sheet.w}×${sheet.h}, ${filled.size} khung` +
-  (missing.length ? `, thiếu ${missing.length} ô bắt buộc${fill ? " (đã chép tạm idle)" : ""}` : ""));
+if (set) for (const layer of HS_LAYERS) pack(path.join(dir, layer), path.join(out || path.join(SPRITES, "honsu"), `${layer}_${set}.png`));
+else pack(dir, out);

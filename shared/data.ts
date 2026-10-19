@@ -299,7 +299,7 @@ export function parseTeam(x: unknown): number[] | null {
 // ---------- Ngoại hình hồn sư khi tạo nhân vật (mục 3, 5.11) ----------
 /** Giới tính, chỉ số là cột `sex` (0 nam, 1 nữ); sprite dùng hậu tố `m` / `f`. */
 export const SEXES = ["Nam", "Nữ"] as const;
-/** Tên 4 kiểu tóc theo giới tính: `HAIR_STYLES[sex][hair]`, sprite `hs_hair_{m/f}_{hair}`. */
+/** Tên 4 kiểu tóc theo giới tính: `HAIR_STYLES[sex][hair]`; mỗi kiểu là một bộ sprite `hs_{body,outfit,hair}_{m/f}_{hair}` (mục 5.11). */
 export const HAIR_STYLES = [
   ["Ngắn rối", "Dài buộc thấp sau gáy", "Dựng nhọn", "Mái dài che một bên mắt"],
   ["Dài thả thẳng", "Đuôi ngựa cao", "Bím dài một bên", "Ngắn ngang vai, có mái"],
