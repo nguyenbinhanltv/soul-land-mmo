@@ -85,3 +85,27 @@ export class MapState extends Schema {
   @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
   @type({ map: DropState }) drops = new MapSchema<DropState>();
 }
+
+/**
+ * Một bên của trận Đại Đấu Hồn Trường (7.2): ai cũng thấy để vẽ thanh trận đấu. `sid` = sessionId (rỗng khi chưa vào sân), `pct` =
+ * sinh lực cả đội theo % (0..1; võ hồn đã gục tính 0), `alive` / `total` = số võ hồn chưa gục / số võ hồn trong đội.
+ */
+export class ArenaSide extends Schema {
+  @type("string") sid: string = "";
+  @type("string") name: string = "";
+  @type("uint16") elo: number = 0;
+  @type("float32") pct: number = 1;
+  @type("uint8") alive: number = 0;
+  @type("uint8") total: number = 0;
+}
+
+/**
+ * State của phòng ArenaRoom (bước 7.2): như bản đồ (người chơi, sân `mapId` = ARENA_MAP) kèm pha trận đấu, giây còn lại của pha, hai
+ * bên và bên thắng (-1 chưa xong, 0 / 1, 2 = hòa).
+ */
+export class ArenaState extends MapState {
+  @type("string") phase: string = "wait"; // wait (chờ hai bên vào sân) | ready (đếm ngược) | fight (giao đấu) | end (kết quả)
+  @type("float32") time: number = 0;
+  @type([ArenaSide]) sides = new ArraySchema<ArenaSide>();
+  @type("int8") winner: number = -1;
+}

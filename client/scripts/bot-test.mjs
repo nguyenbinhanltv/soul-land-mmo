@@ -53,7 +53,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
-  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD } from "../../shared/data.ts";
+  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -95,10 +96,15 @@ async function bot(name,choice,looks){
   await enter(b);
   return b;
 }
-/** Vào phòng bản đồ và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). */
-async function enter(b){
+/** Vào phòng bản đồ (từ 7.2: hoặc phòng sân đấu `roomId` server gửi khi ghép trận) và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). */
+async function enter(b,roomId){
   // Bản đồ đang đứng lấy từ /api/me (server lưu); client chỉ chuyển mapId để ghép phòng.
-  b.room=await new Client(WS).joinOrCreate("map",{token:b.token,mapId:b.mapId}); b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null;
+  b.room=roomId?await new Client(WS).joinById(roomId,{token:b.token}):await new Client(WS).joinOrCreate("map",{token:b.token,mapId:b.mapId});
+  b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null; b.squad=null;
+  b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
+  // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
+  b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
+  b.top=null; b.topN=0; b.room.onMessage("arenaTop",m=>{b.top=m; b.topN++;});
   b.room.onMessage("log",m=>b.logs.push(m.text)); b.chats=[]; b.room.onMessage("chat",m=>{b.chats.push(m); if(b.chats.length>200) b.chats.shift();});
   b.fx=[]; b.fxs=[]; b.dmgs=[]; b.hurts=[];
   b.room.onMessage("fx",m=>{b.fxs.push(m); if(m.k==="tienco") b.fx.push(m);});
@@ -2916,6 +2922,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await npcTown();
 await questTest();
+await arenaTest();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
 // qua đúng transaction đi cổng, như tài khoản đăng xuất ở Tinh Đấu trước BĐ3.
 if((await test(C,"ping"))?.enabled){
@@ -3190,4 +3197,184 @@ async function questTest(){
   await D.room.leave();
   /** Đổi sang ô `slot` của đội, chờ server gửi lại đội hình. */
   async function switchSlot(slot){ const n=D.ownedMsgs; D.room.send("switch",{slot}); await waitFor(()=>D.ownedMsgs>n,1500); await sleep(80); }
+}
+
+/**
+ * 7.2 Đại Đấu Hồn Trường: hàm thuần (Elo, cửa sổ ghép nới dần, ghép Elo gần nhất); 3 tài khoản mới ở Nặc Đinh Thành: xếp hàng ở NPC
+ * (đứng xa / đang giao chiến bị từ chối, hủy; đang niệm đi cổng thì không bị ghép, đi cổng xong thì ra khỏi hàng chờ), ghép theo Elo gần
+ * nhất, vào sân (cả đội đầy, chưa đánh được lúc đếm ngược, message ngoài trận bị chặn); trận 1 rời sân = thua; trận 2 đạn hồn kỹ và đánh
+ * thường trúng đối thủ (Trúng độc), hạ hết đội (hook down) -> thắng; trận 3 không vào sân = thua; trận 4 hết giờ so % sinh lực. Mỗi trận:
+ * Elo đúng eloAfter, thưởng người thắng vào túi (lưu DB), kinh nghiệm / đồ / đội hình không đổi, hết giờ kết quả thì về đúng bản đồ và vị
+ * trí cũ. Bảng xếp hạng đúng thứ tự (kể cả bằng Elo thì nhiều trận thắng trước), lượt thưởng còn lại.
+ */
+async function arenaTest(){
+  console.log("[7.2] Đại Đấu Hồn Trường: ghép trận, đấu, Elo, thưởng, bảng xếp hạng");
+  const K=ARENA.k, exp=(r,o)=>1/(1+10**((o-r)/400));
+  ok(eloAfter(1000,1000,1)===1000+K/2&&eloAfter(1000,1000,0)===1000-K/2&&eloAfter(1000,1000,0.5)===1000
+    &&eloAfter(1200,1000,1)===Math.round(1200+K*(1-exp(1200,1000)))&&eloAfter(1000,1200,1)===Math.round(1000+K*(1-exp(1000,1200)))&&eloAfter(10,10,0)===0,
+    `Elo: K=${K}, ngang nhau ±${K/2}, thắng người mạnh hơn được nhiều hơn (+${eloAfter(1000,1200,1)-1000} / +${eloAfter(1200,1000,1)-1200}), không dưới 0`);
+  ok(arenaWindow(0)===ARENA.window.base&&arenaWindow(4)===ARENA.window.base+4*ARENA.window.perSec&&arenaWindow(1e6)===ARENA.window.max,
+    `cửa sổ ghép ${ARENA.window.base} + ${ARENA.window.perSec}/giây chờ, tối đa ${ARENA.window.max}`);
+  const P=l=>JSON.stringify(arenaPairs(l.map(([id,elo,wait=0])=>({id,elo,wait}))));
+  ok(P([["a",1000],["b",1500],["c",1040]])==='[["a","c"]]',"ghép người chờ lâu nhất với Elo gần nhất trong cửa sổ, người quá xa chờ tiếp");
+  ok(P([["a",1000],["b",1500]])==="[]"&&P([["a",1000,20],["b",1500]])==='[["a","b"]]',"chênh 500 Elo: chưa ghép; chờ 20 giây thì cửa sổ đủ rộng");
+  ok(P([["a",1000,30],["b",1090],["c",1050],["d",1500]])==='[["a","c"]]',"nhiều người vừa cửa sổ: chọn Elo gần nhất");
+  ok(MAPS[ARENA_MAP]?.kind==="arena"&&npcDef("dau_hon_truong")?.role==="arena"&&!!npcSpot("nac_dinh_thanh","dau_hon_truong"),"sân đấu riêng (kind arena), NPC Đại Đấu Hồn Trường ở Nặc Đinh Thành");
+  let err=""; try{ const r=await new Client(WS).joinOrCreate("map",{mapId:ARENA_MAP}); await r.leave(); }catch(e){ err=String(e?.message??e); }
+  ok(/không tồn tại/.test(err),`không mở được phòng bản đồ trên sân đấu (${err})`);
+  err=""; try{ const r=await new Client(WS).create("arena",{matchId:"khong_co"}); await r.leave(); }catch(e){ err=String(e?.message??e); }
+  ok(/không tồn tại/.test(err),`client không tự mở được trận đấu (${err})`);
+
+  const E=await bot("Đấu sĩ","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
+  const F=await bot("Võ sĩ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:4,outfitCol:5});
+  const G=await bot("Kiếm khách","hoa_long",{sex:0,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
+  const ns=npcSpot("nac_dinh_thanh","dau_hon_truong"), meOf=b=>b.room.state.players?.get(b.room.sessionId);
+  const at=(b,dx=0)=>test(b,"goto",{x:ns.x+dx,y:ns.y+16});
+  /** Hook warp sang Nặc Đinh Thành cạnh NPC (transaction đi cổng), rồi vào phòng mới như đi cổng thật. */
+  async function warpTown(b){
+    b.travel=null; b.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:ns.x,y:ns.y+16});
+    ok(await waitFor(()=>b.travel?.mapId==="nac_dinh_thanh",4000),`${b.name}: tới Nặc Đinh Thành`);
+    await b.room.leave(); await sleep(300); await back(b);
+  }
+  /** Vào lại phòng của bản đồ đang lưu (/api/me), chờ state, đội hình, túi đồ. */
+  async function back(b){ b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
+  /** Gửi `arena {op}`, chờ tin "arena" k = queue (và dòng log mới khi xếp hàng). Trả dòng log mới nhất của lần này. */
+  async function aop(b,op){ const l=b.logs.length, n=b.aqN; b.room.send("arena",{op}); await waitFor(()=>b.aqN>n&&(op!=="queue"||b.logs.length>l),2000); await sleep(60); return b.logs.slice(l).at(-1)??""; }
+  const found=b=>b.arena.filter(m=>m.k==="found").at(-1), endOf=b=>b.arena.filter(m=>m.k==="end").at(-1);
+  /** Đang ở bản đồ, đã được ghép: rời phòng bản đồ, vào phòng sân đấu bằng mã phòng. */
+  async function enterArena(b){ const id=found(b).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
+  /** Hết giờ hiện kết quả (hook afast): server đóng kết nối mã 4005, bot vào lại bản đồ cũ. */
+  async function kickBack(b){
+    await test(b,"afast",{s:0}); ok(await waitFor(()=>b.leftCode===4005,3000),`${b.name}: hết giờ kết quả thì server đưa ra khỏi sân (mã ${b.leftCode})`);
+    await back(b);
+  }
+  const prog=b=>JSON.stringify(b.owned.list.map(v=>[v.rowId,v.level,v.xp,v.stars,v.rings]));
+  const sides=b=>[...b.room.state.sides];
+  /** Kiểm Elo / thành tích của trận vừa xong: `score` của bot `b` gặp Elo `foe`. */
+  function checkEnd(b,score,reason,elo0,foe,label){
+    const m=endOf(b);
+    ok(m&&m.score===score&&m.reason===reason&&m.elo0===elo0&&m.elo1===eloAfter(elo0,foe,score),
+      `${label}: ${b.name} ${score===1?"thắng":score===0?"thua":"hòa"} (${m?.why}), Elo ${m?.elo0} → ${m?.elo1} (= eloAfter(${elo0}, ${foe}, ${score}) = ${eloAfter(elo0,foe,score)})`);
+    return m;
+  }
+  /** Người thắng có thưởng: Hồn Tệ và mảnh vào túi (túi trong sân đã có), còn lại `left` lượt hôm nay. */
+  async function checkReward(b,m,before,left){
+    ok(await waitFor(()=>b.bag.honTe===before.honTe+m.reward?.honTe),`thưởng ${formatHonTe(m.reward?.honTe??0)} vào túi (${formatHonTe(before.honTe)} → ${formatHonTe(b.bag.honTe)})`);
+    ok(m.reward&&ARENA_SHARDS.some(v=>shardCode(v)===m.reward.code)&&qtyOf(b,m.reward.code)===before.q(m.reward.code)+m.reward.qty&&m.reward.qty+(m.reward.coin?1:0)>=1&&m.left===left,
+      `thưởng ${m.reward?.qty} ${itemDef(m.reward?.code)?.name}; còn ${m.left}/${ARENA.dailyWins} trận thắng có thưởng hôm nay`);
+  }
+  const snap=b=>{ const h=b.bag.honTe, items=b.bag.items.map(i=>({...i})); return { honTe:h, q:code=>items.filter(i=>i.code===code).reduce((a,i)=>a+i.qty,0), key:bagKey(b) }; };
+
+  for(const b of [E,F,G]) await warpTown(b);
+  // E có hồn hoàn vòng 1 để thử hồn kỹ (Bích Lân Độc Tiễn: 3 mũi độc) lên đối thủ.
+  await test(E,"set",{rowId:E.owned.active,level:10,rings:[100]});
+
+  // ---- Xếp hàng ở NPC ----
+  await test(E,"goto",{x:30*16,y:20*16}); let t=await aop(E,"queue"); ok(/lại gần/.test(t)&&!E.aq.on,`đứng xa NPC: không xếp hàng được (${t})`);
+  await at(E); await test(E,"hurt",{pct:5}); t=await aop(E,"queue"); ok(/giao chiến/.test(t)&&!E.aq.on,`vừa bị đánh: không xếp hàng được (${t})`);
+  await test(E,"rest"); t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
+  t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
+  t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
+  // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
+  await at(F); await aop(F,"queue"); await test(F,"goto",{x:(60-1.5)*16,y:20.5*16});
+  F.travel=null; F.room.send("travel",{portal:"Đi Tinh Đấu Ngoại vi"}); await sleep(100); await aop(E,"queue");
+  ok(await waitFor(()=>F.travel?.mapId,4000),"F đi qua cổng trong lúc đang xếp hàng");
+  ok(!found(E)&&!found(F),"đang niệm đi cổng: không bị ghép trận");
+  await F.room.leave(); await sleep(300); await back(F);
+  t=await aop(F,"cancel"); ok(F.mapId==="tinh_dau_ngoai_vi"&&!/hủy/.test(t)&&!F.aq.on,`F sang ${MAPS[F.mapId].name}: đã ra khỏi hàng chờ khi đi cổng`);
+  t=await aop(E,"cancel"); ok(/hủy/.test(t),"E vẫn trong hàng chờ một mình, hủy");
+  await warpTown(F);
+
+  // ---- Trận 1: ghép theo Elo gần nhất (E 1000 gặp G 1040, không gặp F 1500); G rời sân lúc đếm ngược = thua ----
+  await test(E,"aelo",{elo:1000}); await test(F,"aelo",{elo:1500}); await test(G,"aelo",{elo:1040});
+  await at(E,-12); await at(F,0); await at(G,12);
+  await aop(E,"queue"); await aop(F,"queue"); ok(E.aq.on&&F.aq.on&&E.aq.elo===1000&&F.aq.elo===1500,"Elo đọc từ DB lúc xếp hàng (hook aelo)");
+  await sleep(1500); ok(!found(E)&&!found(F),"E 1000, F 1500: chưa ghép ngay");
+  await aop(G,"queue");
+  ok(await waitFor(()=>found(E)&&found(G),3000)&&found(E).roomId===found(G).roomId&&!found(F)&&found(E).foe===G.name,`ghép E (1000) với G (1040), không với F (1500): ${found(E)?.foe}`);
+  t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ, hủy");
+  const posE=[meOf(E).x,meOf(E).y], posG=[meOf(G).x,meOf(G).y], progE=prog(E), teamE=JSON.stringify(E.owned.team)+E.owned.active, bagE=snap(E);
+  await enterArena(E); await enterArena(G);
+  ok(E.room.state.mapId===ARENA_MAP&&sides(E).map(s=>s.name).sort().join()===[E.name,G.name].sort().join(),`vào sân ${MAPS[ARENA_MAP].name}: ${sides(E).map(s=>`${s.name} (${s.elo})`).join(" – ")}`);
+  ok(await waitFor(()=>E.room.state.phase==="ready",3000),`cả hai vào sân: đếm ngược ${E.room.state.time.toFixed(1)} giây`);
+  ok([E,G].every(b=>meOf(b).hp===meOf(b).maxHp&&b.squad.list.every(s=>s.hp===s.maxHp&&!s.down))&&Math.abs(meOf(E).x-meOf(G).x)>200,"cả đội đầy sinh lực, hai bên ở hai đầu sân");
+  let l=E.logs.length; E.room.send("team",{slots:[0,0,0,0]}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),`trong sân: xếp đội bị chặn (${E.logs.at(-1)})`);
+  l=E.logs.length; E.room.send("use",{id:E.bag.items[0]?.id}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: dùng đan bị chặn");
+  l=E.logs.length; E.room.send("skill",{i:0}); ok(await waitFor(()=>E.logs.length>l)&&/đếm ngược/.test(E.logs.at(-1)),"đang đếm ngược: chưa dùng hồn kỹ");
+  await G.room.leave();
+  ok(await waitFor(()=>endOf(E),3000),"G rời sân: trận có kết quả ngay");
+  let m=checkEnd(E,1,"leave",1000,1040,"Trận 1");
+  await checkReward(E,m,bagE,ARENA.dailyWins-1);
+  const eloG1=eloAfter(1040,1000,0);
+  await sleep(300); await back(G);
+  ok(G.room.state.mapId==="nac_dinh_thanh"&&Math.hypot(meOf(G).x-posG[0],meOf(G).y-posG[1])<1,"G rời sân: về Nặc Đinh Thành đúng chỗ cũ");
+  const bagE1=bagKey(E);
+  await kickBack(E);
+  ok(E.room.state.mapId==="nac_dinh_thanh"&&Math.hypot(meOf(E).x-posE[0],meOf(E).y-posE[1])<1,`E về Nặc Đinh Thành đúng chỗ cũ (${meOf(E).x.toFixed(0)},${meOf(E).y.toFixed(0)})`);
+  ok(bagKey(E)===bagE1&&prog(E)===progE&&JSON.stringify(E.owned.team)+E.owned.active===teamE,"phần thưởng đã lưu; cấp, kinh nghiệm, hồn hoàn, đội hình không đổi");
+
+  // ---- Trận 2: E gặp F; đạn hồn kỹ và đánh thường trúng đối thủ; F gục cả đội (hook down) -> E thắng ----
+  await test(F,"aelo",{elo:1030});
+  await aop(E,"queue"); await aop(F,"queue");
+  ok(await waitFor(()=>found(E)&&found(F)&&found(E).roomId===found(F).roomId,3000),"ghép E với F");
+  const eloE2=E.aq.elo, posF=[meOf(F).x,meOf(F).y], progF=prog(F), teamF=JSON.stringify(F.owned.team)+F.owned.active, bagF=bagKey(F), bagE2=snap(E);
+  await enterArena(E); await enterArena(F);
+  await waitFor(()=>E.room.state.phase==="ready",3000); await test(E,"afast",{s:0});
+  ok(await waitFor(()=>E.room.state.phase==="fight",2000)&&E.arena.some(m=>m.k==="fight"),`hết đếm ngược: giao đấu ${Math.round(E.room.state.time)} giây`);
+  const sid=b=>b.room.sessionId, fv=()=>E.room.state.players.get(sid(F)), sE=sides(E).findIndex(s=>s.sid===sid(E)), dir=sE===0?1:-1;
+  await test(E,"goto",{x:fv().x-dir*40,y:fv().y});
+  const hp0=fv().hp; E.room.send("skill",{i:0});
+  ok(await waitFor(()=>fv().hp<hp0&&(fv().st&statusBit("poison")),2000),`${skillsOf("bich_lan_xa_hoang")[0].name} trúng đối thủ: ${hp0} → ${fv().hp}, Trúng độc`);
+  await test(E,"goto",{x:fv().x-dir*10,y:fv().y}); const hp1=fv().hp; E.room.send("attack");
+  ok(await waitFor(()=>fv().hp<hp1,1500),`đánh thường trúng đối thủ: ${hp1} → ${fv().hp}`);
+  ok(await waitFor(()=>sides(E).find(s=>s.sid===sid(F)).pct<1,1500),`thanh trận đấu: F còn ${Math.round(sides(E).find(s=>s.sid===sid(F)).pct*100)}% sinh lực cả đội`);
+  for(let k=0;k<TEAM_SIZE&&!meOf(F).dead;k++) await test(F,"down");
+  ok(meOf(F).dead&&await waitFor(()=>endOf(E)&&endOf(F),3000),"F gục cả đội: trận kết thúc");
+  m=checkEnd(E,1,"ko",eloE2,1030,"Trận 2"); checkEnd(F,0,"ko",1030,eloE2,"Trận 2");
+  await checkReward(E,m,bagE2,ARENA.dailyWins-2);
+  ok(!endOf(F).reward&&bagKey(F)===bagF,"thua không mất gì: túi và Hồn Tệ của F giữ nguyên");
+  const eloF2=endOf(F).elo1, eloE3=m.elo1;
+  await kickBack(F);
+  ok(Math.hypot(meOf(F).x-posF[0],meOf(F).y-posF[1])<1&&prog(F)===progF&&JSON.stringify(F.owned.team)+F.owned.active===teamF&&bagKey(F)===bagF&&F.squad.list.every(s=>!s.down),
+    "F về đúng chỗ cũ; cấp, kinh nghiệm, đội hình, võ hồn ra trận, túi không đổi; cả đội hồi đầy");
+  await kickBack(E);
+
+  // ---- Trận 3: F gặp G, G không vào sân (bỏ trận) -> F thắng ----
+  await aop(F,"queue"); await aop(G,"queue");
+  ok(await waitFor(()=>found(F)&&found(G)&&found(F).roomId===found(G).roomId,3000),"ghép F với G");
+  const bagF3=snap(F), eloG3=G.aq.elo; ok(eloG3===eloG1,`G thua trận 1: Elo ${eloG3} (= eloAfter(1040, 1000, 0))`);
+  await enterArena(F); await test(F,"afast",{s:0});
+  ok(await waitFor(()=>endOf(F),3000),"G không vào sân: hết giờ chờ thì trận có kết quả");
+  m=checkEnd(F,1,"noshow",eloF2,eloG3,"Trận 3"); await checkReward(F,m,bagF3,ARENA.dailyWins-1);
+  await G.room.leave(); await sleep(300); await back(G);
+  ok(G.room.state.mapId==="nac_dinh_thanh","G (đã ghép mà không vào sân) vẫn ở Nặc Đinh Thành");
+  await kickBack(F);
+  const eloF3=m.elo1, eloG4=eloAfter(eloG3,eloF2,0);
+
+  // ---- Trận 4: E gặp F, hết giờ: E còn đủ sinh lực, F mất một nửa -> E thắng theo % ----
+  await aop(E,"queue"); await aop(F,"queue");
+  ok(await waitFor(()=>found(E)&&found(F)&&found(E).roomId===found(F).roomId,3000),`ghép E (${E.aq.elo}) với F (${F.aq.elo})`);
+  await enterArena(E); await enterArena(F); await waitFor(()=>E.room.state.phase==="ready",3000);
+  await test(E,"afast",{s:0}); await waitFor(()=>E.room.state.phase==="fight",2000);
+  await test(F,"hurt",{pct:50}); await test(E,"afast",{s:0});
+  ok(await waitFor(()=>endOf(E)&&endOf(F),3000),"hết giờ: trận có kết quả");
+  m=checkEnd(E,1,"time",eloE3,eloF3,"Trận 4"); checkEnd(F,0,"time",eloF3,eloE3,"Trận 4");
+  ok(E.room.state.winner===sides(E).findIndex(s=>s.sid===sid(E))&&sides(E).find(s=>s.sid===sid(E)).pct===1&&sides(E).find(s=>s.sid===sid(F)).pct<1,
+    `so sinh lực cả đội: E ${Math.round(sides(E).find(s=>s.sid===sid(E)).pct*100)}%, F ${Math.round(sides(E).find(s=>s.sid===sid(F)).pct*100)}%`);
+  const eloE4=m.elo1, eloF4=endOf(F)?.elo1;
+  await kickBack(E); await kickBack(F);
+
+  // ---- Bảng xếp hạng ----
+  async function top(b){ await sleep(ARENA.topCd*1000+50); const n=b.topN; b.room.send("arena",{op:"top"}); b.room.send("arena",{op:"top"}); await waitFor(()=>b.topN>n,2000); await sleep(300); return b.topN-n; }
+  ok(await top(E)===1,"xin bảng xếp hạng dồn dập: chỉ trả một lần");
+  let L=E.top.list; const idx=n=>L.findIndex(r=>r.name===n);
+  ok(L.length<=ARENA.topN&&L.every((r,i)=>!i||L[i-1].elo>r.elo||(L[i-1].elo===r.elo&&L[i-1].wins>=r.wins)),`top ${L.length}: Elo giảm dần, bằng Elo thì nhiều trận thắng trước`);
+  ok(E.top.me?.elo===eloE4&&E.top.me.wins===3&&E.top.me.losses===0&&L.find(r=>r.me)?.name===E.name&&E.top.left===ARENA.dailyWins-3,
+    `E: hạng ${E.top.me?.rank}, Elo ${E.top.me?.elo}, 3 thắng 0 thua, còn ${E.top.left} lượt thưởng hôm nay`);
+  ok(L.find(r=>r.name===F.name)?.elo===eloF4&&L.find(r=>r.name===G.name)?.elo===eloG4&&idx(E.name)<idx(F.name)&&idx(F.name)<idx(G.name),
+    `Elo đã lưu: E ${eloE4}, F ${eloF4}, G ${eloG4} (thứ tự E, F, G)`);
+  await test(G,"aelo",{elo:eloF4,wins:9}); await top(E); L=E.top.list;
+  ok(idx(G.name)>=0&&idx(G.name)<idx(F.name),`G bằng Elo F (${eloF4}) nhưng nhiều trận thắng hơn: xếp trên F`);
+  for(const b of [E,F,G]) await b.room.leave();
 }

@@ -1,0 +1,65 @@
+// Hàng chờ Đại Đấu Hồn Trường (mục 5.9, bước 7.2): trạng thái mức tiến trình như suất thú vương (kingSeats) của MapRoom, dùng chung
+// cho mọi kênh bản đồ. MapRoom thêm / bỏ người xếp hàng (arenaAction, freeze); vòng ghép ở đây chỉ chọn cặp bằng hàm thuần arenaPairs
+// (shared/data.ts), mở phòng "arena" (ArenaRoom) rồi báo cho phòng bản đồ của từng người. Luật trận đấu nằm trong ArenaRoom.
+// File riêng (không nằm trong MapRoom.ts / ArenaRoom.ts) để hai phòng cùng import mà không vòng import lẫn nhau.
+// Chạy nhiều tiến trình thì hàng chờ phải chuyển sang presence (Redis), như lịch boss.
+import { matchMaker } from "colyseus";
+import { arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
+
+/** Một người đang xếp hàng. Hàm `ready` / `found` do phòng bản đồ của người đó cung cấp. */
+export interface ArenaEntry {
+  accountId: number; name: string;
+  rec: ArenaRecord;  // Elo và thành tích đọc lúc xếp hàng (mỗi tài khoản chỉ một phiên, không đổi trong lúc chờ)
+  since: number;     // lúc xếp hàng (ms)
+  /** Lúc này ghép được không (không đi cổng, gục, hấp thụ, giao chiến): không thì bỏ qua lượt ghép này nhưng vẫn giữ chỗ. */
+  ready(): boolean;
+  /** Đã ghép: báo người chơi vào phòng `roomId` gặp `foe`. false = người đó đã rời phòng bản đồ. */
+  found(roomId: string, foe: ArenaEntry): boolean;
+}
+/** Một trận đã ghép: hai bên theo thứ tự (bên 0, bên 1). ArenaRoom đọc lúc mở phòng (`matchId`) và xóa khi phòng hủy. */
+export interface ArenaMatch { id: string; sides: { accountId: number; name: string; rec: ArenaRecord }[]; }
+
+const queue = new Map<number, ArenaEntry>();   // accountId -> người đang xếp hàng (theo thứ tự xếp hàng)
+export const arenaMatches = new Map<string, ArenaMatch>();
+/** Nhịp chạy vòng ghép (ms): chỉ chạy khi có người xếp hàng. */
+const TICK_MS = 500;
+let timer: ReturnType<typeof setInterval> | null = null;
+let busy = false;
+let seq = 0;
+
+export const arenaQueued = (accountId: number) => queue.get(accountId);
+export function arenaEnqueue(e: ArenaEntry) {
+  queue.set(e.accountId, e);
+  if (!timer) timer = setInterval(() => { if (!busy) void pass(); }, TICK_MS);
+}
+/** Bỏ người khỏi hàng chờ; true nếu người đó đang xếp hàng. */
+export function arenaDequeue(accountId: number) {
+  const had = queue.delete(accountId);
+  if (!queue.size && timer) { clearInterval(timer); timer = null; }
+  return had;
+}
+
+/** Một lượt ghép: cặp theo arenaPairs (chờ lâu nhất trước, Elo gần nhất trong cửa sổ nới dần), mỗi cặp một phòng ArenaRoom. */
+async function pass() {
+  busy = true;
+  try {
+    const now = Date.now();
+    const list = [...queue.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since).map((e) => ({ id: e.accountId, elo: e.rec.elo, wait: (now - e.since) / 1000 }));
+    for (const [a, b] of arenaPairs(list)) {
+      const ea = queue.get(a), eb = queue.get(b); if (!ea || !eb) continue;
+      arenaDequeue(a); arenaDequeue(b);
+      const m: ArenaMatch = { id: `dau_${now.toString(36)}_${++seq}`, sides: [ea, eb].map((e) => ({ accountId: e.accountId, name: e.name, rec: { ...e.rec } })) };
+      arenaMatches.set(m.id, m);
+      try {
+        const room = await matchMaker.createRoom("arena", { matchId: m.id });
+        // Ai đã rời phòng bản đồ trong lúc mở phòng thì trận xử như bỏ trận (ArenaRoom: không vào sân trong ARENA.joinSecs giây).
+        ea.found(room.roomId, eb); eb.found(room.roomId, ea);
+      } catch (err) {
+        // Không mở được phòng: trả cả hai về hàng chờ, giữ thời gian chờ cũ.
+        console.error("Không mở được phòng Đại Đấu Hồn Trường", err);
+        arenaMatches.delete(m.id);
+        for (const e of [ea, eb]) if (e.ready()) arenaEnqueue(e);
+      }
+    }
+  } finally { busy = false; }
+}
