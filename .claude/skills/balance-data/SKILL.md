@@ -27,7 +27,8 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - Túi đồ, vật phẩm, Hồn Tệ (mục 5.7, bước 3.1): `ITEM_KINDS`, `ITEMS` / `itemDef()` (mã cố định, lưu ở `items.code`; thêm vào cuối, không đổi mã), `BAG_SLOTS`, `DAN_CD`, `STARTER_ITEMS`, `BEAST_COIN`, `HON_TE_NGAN` / `HON_TE_KIM`, `honTeParts()` / `formatHonTe()`.
 - Hồn hoàn rơi và hấp thụ (bước 3.2, 3.3): `RING_ITEM`, `DROP_OWNER_SECS`, `DROP_TTL_SECS`, `PICKUP_RANGE`, `ABSORB_FAIL` + `absorbChance(năm, vòng)` (giới hạn, % vượt, tỉ lệ thất bại; `null` = không cho), `ABSORB_SECS` + `absorbSecs(năm)`. `beastLevel(tier)` còn theo bậc (bảng tạm) đến BĐ3.
 - Mảnh võ hồn và sao (bước 3.4): `MapDef.shards` (võ hồn rơi mảnh theo bản đồ, bảng "Rơi đặc trưng" 5.3), `shardCode(id)` (mã vật phẩm `manh_<id>`, ITEMS sinh từ VOHON, `ItemDef.vohon`), `SHARD_DROP` + `shardChance(năm)`, `SHARD_QTY`, `SHARD_STACK`, `SHARD_UNLOCK`, `MAX_STARS`, `STAR_COST` + `starCost(sao)`, `STAR_STAT` + `starMult(sao)` (`calcStats` nhận `stars`).
-- Thiết kế còn nhắc bảng `DROPS` (tỉ lệ rơi hồn cốt / hồn hạch, mục 5.3): **chưa có**, khi làm thì thêm vào đây (mảnh võ hồn đã có `SHARD_DROP`).
+- Hồn cốt (bước 4.1, mục 5.5): `BONE_ITEM`, `BONE_SLOTS` (6 vị trí: mã cố định lưu ở `items.stats.slot`, chỉ số chính, hệ số) + `boneSlotIndex`, `BONE_DROP` + `boneChance(năm, mult)` (`mult` = hệ số theo bậc, tinh anh `ELITE.bone`), `boneStats(vị trí, năm)` (chỉ số gốc, không lưu DB), `BONE_STAT_NAMES`, `parseBone`, `boneName`.
+- Tỉ lệ rơi mỗi loại đồ một bảng (mục 5.3): `SHARD_DROP`, `BONE_DROP`; hồn hạch thêm bảng riêng ở GĐ5.
 
 ## Quy tắc
 1. **Đối chiếu `GAME_DESIGN.md`** trước khi đặt số: mục 5.1 (võ hồn, kinh nghiệm), 5.2 (khoảng năm, giới hạn hấp thụ theo vòng, tỉ lệ thất bại, thời gian hấp thụ), 5.3 (vùng săn, bảng rơi đồ), 5.5–5.7. Số trong thiết kế là đề xuất, "chốt khi code"; mục ghi **(chờ chốt)** thì dùng phương án mặc định và nói rõ trong báo cáo.
