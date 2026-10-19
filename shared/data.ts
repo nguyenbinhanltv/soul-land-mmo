@@ -335,8 +335,9 @@ export const BEAST_REGEN = { delay: 6, pct: 0.04 };
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
- *  mp: giảm tiêu hao hồn lực của hồn kỹ, inv: miễn mọi sát thương. Chỉ thêm vào cuối. */
-export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv"] as const;
+ *  mp: giảm tiêu hao hồn lực của hồn kỹ, inv: miễn mọi sát thương, phoenix: lãnh vực phượng hoàng (từ 2.5b, Tà Hỏa Phượng Hoàng):
+ *  hồn thú trong bán kính PHOENIX_FIELD_R quanh hồn sư nhận thêm v sát thương từ mọi nguồn. Chỉ thêm vào cuối. */
+export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv", "phoenix"] as const;
 export type BuffId = (typeof BUFF_IDS)[number];
 export const BUFFS: Record<BuffId, { name: string; col: string }> = {
   atk:  { name: "Tăng công",       col: "#ff8a5a" },
@@ -345,7 +346,10 @@ export const BUFFS: Record<BuffId, { name: string; col: string }> = {
   crit: { name: "Tăng chí mạng",   col: "#ffe14d" },
   mp:   { name: "Giảm tiêu hao",   col: "#5a9cc9" },
   inv:  { name: "Miễn sát thương", col: "#fff2b0" },
+  phoenix: { name: "Lãnh vực Phượng Hoàng", col: "#ff6a2a" },
 };
+/** Bán kính lãnh vực phượng hoàng (pixel), đi theo hồn sư; đổi võ hồn vẫn còn như mọi hiệu ứng có lợi (bước 2.5b, chờ chốt). */
+export const PHOENIX_FIELD_R = 90;
 export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 /** Tỉ lệ chí mạng gốc của đòn đánh vào hồn thú và hệ số sát thương chí mạng. */
 export const CRIT = { chance: 0.12, mult: 1.8 };
@@ -385,6 +389,13 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `status`: trạng thái gây cho mỗi hồn thú trúng (mỗi nhát); `finisher`: chỉ nhát cuối (ví dụ hất tung).
  * - `self`: hiệu ứng có lợi `buff` (nhân buffPower) trong `secs` giây; `heal` / `shield` / `mp`: hồi sinh lực cả đội, khiên, hồi
  *   hồn lực theo tỉ lệ tối đa (nhân buffPower).
+ * Từ 2.5b (lưu phái Thiêu đốt):
+ * - `around` có `n` > 1: `n` nhát quanh vị trí hiện tại của hồn sư cách nhau `every` giây (cánh hoa xoay, sát thương liên tục).
+ * - `boom`: Viêm bạo: kích nổ mọi tầng Thiêu đốt trên hồn thú trúng (STATUS.burn.boom), rồi đặt lại `keep` tầng.
+ * - `push`: đẩy lùi hồn thú trúng ra xa hồn sư ngần ấy pixel (nhân CC_TIER_MULT; hồn thú đang Choáng / Trói không bị đẩy).
+ * - `pick: "low"` (target): khóa hồn thú còn ít sinh lực nhất (theo tỉ lệ) trong tầm thay cho hồn thú gần nhất.
+ * - `lowHp`: sát thương nhân thêm tới `lowHp` theo phần sinh lực mục tiêu đã mất (1 − sinh lực / tối đa), để hạ mục tiêu yếu máu.
+ * - `fly`: bay lên trong ngần ấy giây, chỉ là hiệu ứng hình ảnh (bất tử khi bay dùng `inv`).
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -392,6 +403,7 @@ export interface SkillDef {
   n?: number; every?: number; spread?: number; pctHp?: number; perStack?: { s: StatusId; dmg: number };
   crit?: number; lifesteal?: number; pull?: boolean; dash?: number; inv?: number; glow?: boolean; shake?: boolean;
   status?: StatusApply[]; finisher?: StatusApply[];
+  boom?: { keep: number }; push?: number; pick?: "near" | "low"; lowHp?: number; fly?: number;
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number };
 }
 
@@ -404,7 +416,8 @@ export const SKILLS: SkillDef[] = [
 ];
 
 /**
- * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; mọi số chờ chốt). Hồn kỹ thứ i mở khi có
+ * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; 2.5b: 5 võ hồn lưu phái Thiêu đốt;
+ * mọi số chờ chốt). Hồn kỹ thứ i mở khi có
  * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS: Record<string, SkillDef[]> = {
@@ -463,12 +476,69 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Phòng Chi Lưu Ly", desc: "Tứ viết phòng: sát thương nhận giảm 25% trong 12 giây, khiên 12% sinh lực", icon: "◈", cost: 30, cd: 16,
       area: "self", r: 0, dmg: 0, self: { buff: { def: 0.25 }, secs: 12, shield: 0.12 } },
   ],
+  // ---- Bước 2.5b: lưu phái Thiêu đốt (mọi số chờ chốt) ----
+  // Cường công, thiêu đốt (lõi): bay, thiêu đốt diện rộng, lãnh vực phượng hoàng (+30% sát thương nhận).
+  ta_hoa_phuong_hoang: [
+    { name: "Phượng Hoàng Hỏa Tuyến", desc: "Phun lửa phượng hoàng nửa trước mặt: Thiêu đốt 1 tầng", icon: "♨", cost: 12, cd: 3.5,
+      area: "front", r: 44, dmg: 2, status: [{ s: "burn" }] },
+    { name: "Dục Hỏa Phượng Hoàng", desc: "Lửa tà hỏa bùng quanh thân: Thiêu đốt 2 tầng", icon: "✺", cost: 16, cd: 6,
+      area: "around", r: 64, dmg: 1.6, status: [{ s: "burn", n: 2 }] },
+    { name: "Phượng Hoàng Phi Thiên", desc: "Bay vút qua đầu hồn thú phía trước, đốt mọi hồn thú trên đường, bất tử khi bay", icon: "➶", cost: 20, cd: 9,
+      area: "dash", r: 90, dmg: 1.8, inv: 0.6, fly: 0.6, status: [{ s: "burn" }] },
+    { name: "Phượng Hoàng Lãnh Vực", desc: "Mở lãnh vực phượng hoàng 8 giây: hồn thú trong lãnh vực nhận thêm 30% sát thương; Thiêu đốt 2 tầng", icon: "◎", cost: 40, cd: 16,
+      area: "around", r: PHOENIX_FIELD_R, dmg: 3, glow: true, shake: true, status: [{ s: "burn", n: 2 }],
+      self: { buff: { phoenix: 0.3 }, secs: 8 } },
+  ],
+  // Mẫn công, thiêu đốt: đánh tầm xa phạm vi rộng, khó trượt; Viêm bạo kích nổ Thiêu đốt rồi đặt lại 1 tầng.
+  hoa_long: [
+    { name: "Hỏa Long Tức", desc: "Phun 5 mũi lửa hình quạt, mỗi mũi Thiêu đốt 1 tầng", icon: "➹", cost: 12, cd: 3,
+      area: "proj", r: 140, n: 5, spread: 50, dmg: 0.9, status: [{ s: "burn" }] },
+    { name: "Long Viêm Đạn", desc: "Đạn lửa khóa mục tiêu gần nhất trong tầm xa, không trượt: Thiêu đốt 2 tầng", icon: "✦", cost: 14, cd: 4.5,
+      area: "target", r: 150, dmg: 2, status: [{ s: "burn", n: 2 }] },
+    { name: "Hỏa Long Phần Thiên", desc: "Rồng lửa xoay vòng, 12 mũi lửa tỏa mọi hướng, mỗi mũi Thiêu đốt 1 tầng", icon: "✶", cost: 24, cd: 9,
+      area: "proj", r: 130, n: 12, spread: 360, dmg: 1.1, status: [{ s: "burn" }] },
+    { name: "Viêm Bạo", desc: "Kích nổ mọi tầng Thiêu đốt trên hồn thú quanh thân (Viêm bạo), rồi đặt lại 1 tầng", icon: "✹", cost: 40, cd: 13,
+      area: "around", r: 110, dmg: 1.8, glow: true, shake: true, boom: { keep: 1 } },
+  ],
+  // Khống chế, thiêu đốt: choáng, thiêu đốt, đẩy lùi; gây Dễ thương cho đồng đội đánh.
+  hoa_anh: [
+    { name: "Hỏa Ảnh Chưởng", desc: "Chưởng lửa nửa trước mặt, đẩy lùi: Thiêu đốt 1 tầng", icon: "✋", cost: 12, cd: 4,
+      area: "front", r: 40, dmg: 1.5, push: 40, status: [{ s: "burn" }] },
+    { name: "Hỏa Ảnh Phược", desc: "Bóng lửa khóa mục tiêu gần nhất: Choáng 1,5 giây, Thiêu đốt 1 tầng", icon: "⛓", cost: 16, cd: 7,
+      area: "target", r: 90, dmg: 1.4, status: [{ s: "stun" }, { s: "burn" }] },
+    { name: "Liệt Hỏa Ấn", desc: "Ấn lửa quanh thân: Dễ thương 6 giây, Thiêu đốt 1 tầng", icon: "✧", cost: 22, cd: 10,
+      area: "around", r: 80, dmg: 1, status: [{ s: "vuln", secs: 6 }, { s: "burn" }] },
+    { name: "Hỏa Ảnh Bạo Phá", desc: "Bóng lửa nổ tung quanh thân, đẩy lùi: Choáng 1,5 giây, Thiêu đốt 2 tầng", icon: "✸", cost: 40, cd: 14,
+      area: "around", r: 80, dmg: 2.6, push: 50, glow: true, shake: true, status: [{ s: "stun" }, { s: "burn", n: 2 }] },
+  ],
+  // Cường công, thiêu đốt / phá giáp: cánh hoa sát thương liên tục, hạn chế di chuyển; hồi chiêu ngắn lấp khoảng cho võ hồn bùng nổ.
+  ky_nhung_thong_thien_cuc: [
+    { name: "Cúc Hoa Phi Vũ", desc: "Phóng 3 cánh hoa hình quạt, mỗi cánh Phá giáp 1 tầng", icon: "❀", cost: 10, cd: 2.5,
+      area: "proj", r: 120, n: 3, spread: 30, dmg: 1, status: [{ s: "armor" }] },
+    { name: "Cúc Hoa Toàn Vũ", desc: "Cánh hoa xoay quanh thân 2 giây, 5 nhát, mỗi nhát Thiêu đốt 1 tầng", icon: "✿", cost: 18, cd: 7,
+      area: "around", r: 56, n: 5, every: 0.5, dmg: 0.7, status: [{ s: "burn" }] },
+    { name: "Kỳ Nhung Triền", desc: "Dây cánh hoa quấn hồn thú quanh thân: Trói 1,5 giây, Phá giáp 1 tầng", icon: "❦", cost: 18, cd: 8,
+      area: "around", r: 70, dmg: 1.2, status: [{ s: "root", secs: 1.5 }, { s: "armor" }] },
+    { name: "Thông Thiên Cúc Vũ", desc: "Bão cánh hoa quanh thân 2,8 giây, 8 nhát, mỗi nhát Thiêu đốt và Phá giáp 1 tầng, nhát cuối Trói", icon: "✾", cost: 40, cd: 14,
+      area: "around", r: 84, n: 8, every: 0.4, dmg: 0.7, glow: true, status: [{ s: "burn" }, { s: "armor" }], finisher: [{ s: "root", secs: 1.5 }] },
+  ],
+  // Mẫn công, thiêu đốt / phá giáp: lướt xuyên hàng trước, khóa và hạ mục tiêu yếu máu ở hàng sau.
+  nguyet_nhan: [
+    { name: "Nguyệt Ảnh Đột", desc: "Lướt xuyên hàng hồn thú phía trước: Phá giáp 1 tầng", icon: "➤", cost: 12, cd: 3.5,
+      area: "dash", r: 80, dmg: 2, inv: 0.3, status: [{ s: "armor" }] },
+    { name: "Huyết Nguyệt Trảm", desc: "Khóa hồn thú yếu máu nhất, lướt tới chém 2 nhát; mục tiêu càng ít máu càng đau (tới +100%)", icon: "☾", cost: 16, cd: 5,
+      area: "target", r: 110, pick: "low", dash: 90, n: 2, every: 0.15, dmg: 1.2, lowHp: 1, status: [{ s: "burn" }] },
+    { name: "Song Nguyệt Hồi Toàn", desc: "Hai lưỡi trăng quét nửa trước mặt: Phá giáp 2 tầng, Thiêu đốt 1 tầng", icon: "◐", cost: 20, cd: 8,
+      area: "front", r: 50, dmg: 1.8, status: [{ s: "armor", n: 2 }, { s: "burn" }] },
+    { name: "Tà Nguyệt Trảm", desc: "Khóa hồn thú yếu máu nhất trong tầm xa, lướt tới chém 4 nhát (tới +150% khi mục tiêu ít máu), +20% chí mạng", icon: "☽", cost: 40, cd: 14,
+      area: "target", r: 140, pick: "low", dash: 130, n: 4, every: 0.12, dmg: 1.1, lowHp: 1.5, crit: 0.2, inv: 0.5, glow: true },
+  ],
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
 export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
 
 /**
- * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; chờ chốt). Chạy bằng cùng bộ máy
+ * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; 2.5b thêm 5 võ hồn Thiêu đốt; chờ chốt). Chạy bằng cùng bộ máy
  * hồn kỹ với sức mạnh 1 × tienCoDmgMult, không tốn hồn lực, không tạo năng lượng. Võ hồn chưa có trong bảng dùng TIEN_CO theo hệ.
  */
 export const TIEN_CO_RIENG: Record<string, SkillDef> = {
@@ -482,6 +552,17 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
     area: "around", r: 64, dmg: 1, status: [{ s: "poison", n: 3 }, { s: "silence", secs: 2 }] },
   cuu_bao_luu_ly_thap: { name: "Vô Địch Thần Quang", desc: "cả đội miễn sát thương 2,5 giây, hồi 20% sinh lực", icon: "✷", cost: 0, cd: 0,
     area: "self", r: 0, dmg: 0, self: { buff: { inv: 1 }, secs: 2.5, heal: 0.2 } },
+  // Bước 2.5b: lưu phái Thiêu đốt.
+  ta_hoa_phuong_hoang: { name: "Phượng Hoàng Tiếu Thiên Kích", desc: "bay lên rồi lao xuống, Thiêu đốt 3 tầng quanh thân, mở lãnh vực phượng hoàng 5 giây", icon: "♨", cost: 0, cd: 0,
+    area: "around", r: 72, dmg: 2.2, fly: 0.5, shake: true, status: [{ s: "burn", n: 3 }], self: { buff: { phoenix: 0.3 }, secs: 5 } },
+  hoa_long: { name: "Long Viêm Bạo", desc: "kích nổ (Viêm bạo) mọi tầng Thiêu đốt quanh thân, rồi đặt lại 1 tầng", icon: "✹", cost: 0, cd: 0,
+    area: "around", r: 100, dmg: 1.2, shake: true, boom: { keep: 1 } },
+  hoa_anh: { name: "Hỏa Ảnh Trùng Trùng", desc: "bóng lửa vây quanh: Choáng 1,5 giây, Dễ thương 5 giây, Thiêu đốt 1 tầng", icon: "✸", cost: 0, cd: 0,
+    area: "around", r: 72, dmg: 1.2, status: [{ s: "stun" }, { s: "vuln" }, { s: "burn" }] },
+  ky_nhung_thong_thien_cuc: { name: "Cúc Hoa Phong Bạo", desc: "bão cánh hoa 4 nhát quanh thân, mỗi nhát Thiêu đốt 1 tầng, nhát cuối Trói", icon: "✾", cost: 0, cd: 0,
+    area: "around", r: 64, n: 4, every: 0.3, dmg: 0.8, status: [{ s: "burn" }], finisher: [{ s: "root", secs: 1.5 }] },
+  nguyet_nhan: { name: "Nguyệt Nhận Đoạt Mệnh", desc: "khóa hồn thú yếu máu nhất, lướt tới chém 3 nhát (tới +150% khi mục tiêu ít máu)", icon: "☽", cost: 0, cd: 0,
+    area: "target", r: 130, pick: "low", dash: 110, n: 3, every: 0.1, dmg: 1.3, lowHp: 1.5, inv: 0.35 },
 };
 /** Tên và mô tả chiêu tiên cơ của một võ hồn (riêng nếu có, không thì chung theo hệ). */
 export const tienCoOf = (vohonId: string) => {
