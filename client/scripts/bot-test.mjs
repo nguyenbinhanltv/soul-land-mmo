@@ -22,7 +22,8 @@
 // tăng ngay khi đang gắn, giữ cấp khi tháo, qua đi cổng và vào lại), hồn hạch rơi
 // (5.1: sao theo niên hạn, bộ theo bản đồ, số dòng phụ theo sao, tinh anh chắc chắn rơi, túi đầy, đi cổng và vào lại), gắn hồn hạch
 // (5.2: 6 ô, đổi chỗ, tháo khi túi đầy, chỉ số chính và phụ, bộ 2 / 4 món của Hạo Thiên, Tiên Cơ, Phượng Hoàng, Xà Hoàng, Linh Miêu,
-// Lam Ngân, giao chiến, gục, đi cổng và vào lại), tà hóa thú vương
+// Lam Ngân, giao chiến, gục, đi cổng và vào lại), nâng cấp hồn hạch (5.3: điểm theo sao, cùng bộ thêm, +3 thêm dòng phụ, tới +15,
+// nguyên liệu bị xóa, từ chối đang gắn / chính nó / giao chiến, chỉ số tăng ngay khi đang gắn, vào lại), tà hóa thú vương
 // (BĐ5: lịch giờ Việt Nam, báo toàn server, máu theo số người trong hang, giai đoạn 2, chia thưởng theo ngưỡng 3%, 3 lần/ngày,
 // mở rương, rút đi, phòng hủy rồi mở lại) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
@@ -46,7 +47,9 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
   boneEnhancePreview,
   CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore,
-  coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx } from "../../shared/data.ts";
+  coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
+  CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
+  coreEnhancePreview, coreUpgradeSubs, coreSubRolls } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -104,6 +107,7 @@ async function enter(b){
   b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
+  b.room.onMessage("enhancedcore",m=>{b.coreUp=m;}); // kết quả nâng cấp hồn hạch (5.3)
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
   b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
@@ -2568,6 +2572,79 @@ else {
       await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       for(const it of [...PH,...XH].filter(i=>itOf(i.id))) { if(eqOf(it.id)!==null) await coreOp("unequipcore",{itemId:it.id}); A.room.send("discard",{id:it.id}); }
       ok(await waitFor(()=>![...PH,...XH].some(i=>itOf(i.id)),3000),"dọn hồn hạch thử Phượng Hoàng / Xà Hoàng");
+      // ---------- 5.3: nâng cấp hồn hạch bằng hồn hạch dư (+0..+15, điểm theo sao, cùng bộ thêm, mỗi 3 cấp 1 dòng phụ) ----------
+      {
+        const up=(targetId,materialIds)=>{ A.coreUp=null; return coreOp("enhancecore",{targetId,materialIds}); };
+        const fx=(stars,set,tgt,xp)=>coreFeedXp({set,stars,xp},tgt);
+        const tol=k=>CORE_STATS[k].pct?0.11:1.01, inRoll=(k,v,stars)=>v>=coreSubMax(k,stars)*CORE_SUB_ROLL[0]-tol(k)&&v<=coreSubMax(k,stars)*CORE_SUB_ROLL[1]+tol(k);
+        const wornE=()=>coresOf(A).filter(i=>i.vohon===act).map(i=>({stars:i.stars,data:i.stats,enhance:i.enhance}));
+        const liveOk=s=>s.live.maxHp===s.stats.maxHp&&s.live.maxMp===s.stats.maxMp&&Math.abs(s.live.atk-s.stats.atk)<1e-6&&Math.abs(s.live.crit-s.stats.crit)<1e-9&&Math.abs(s.live.critMult-s.stats.critMult)<1e-9;
+        // Công thức (shared/data.ts, chờ chốt).
+        ok(fx(1,"a","b")===CORE_FEED_STAR[0]&&fx(6,"a","b")===CORE_FEED_STAR[5]&&fx(4,"a","a")===Math.round(CORE_FEED_STAR[3]*CORE_FEED_SAME_SET)&&fx(2,"a","b",100)===CORE_FEED_STAR[1]+Math.floor(100*CORE_FEED_CARRY),
+          `điểm nguyên liệu theo sao (${CORE_FEED_STAR.join(" / ")}), cùng bộ ×${CORE_FEED_SAME_SET}, nguyên liệu đã nâng cấp trả lại ${CORE_FEED_CARRY*100}%`);
+        ok(Array.from({length:CORE_MAX_ENHANCE+1},(_,n)=>coreEnhanceLevel(coreEnhanceNeed(n))===n&&(n===0||coreEnhanceLevel(coreEnhanceNeed(n)-1)===n-1)).every(Boolean)&&coreEnhanceLevel(1e9)===CORE_MAX_ENHANCE,
+          `bảng ngưỡng +1..+${CORE_MAX_ENHANCE} (+3 / +6 / +9 / +12 / +15 cần ${[3,6,9,12,15].map(coreEnhanceNeed).join(" / ")} điểm)`);
+        ok(CORE_STAT_IDS.every(k=>Array.from({length:CORE_MAX_ENHANCE},(_,n)=>coreMainValue(k,6,n+1)>coreMainValue(k,6,n)).every(Boolean))&&coreMainValue("atk",6,15)===Math.round(30*(1+15*CORE_ENHANCE_MAIN)),
+          `mỗi cấp tăng chỉ số chính (Công 6★: ${coreMainValue("atk",6)} → +15 ${coreMainValue("atk",6,15)})`);
+        ok(coreName("hao_thien",4,6)==="+6 Hồn hạch Hạo Thiên 4★"&&coreName("hao_thien",4)==="Hồn hạch Hạo Thiên 4★",`tên có +N: ${coreName("hao_thien",4,6)}`);
+        ok(coreSubRolls(0,15)===5&&coreSubRolls(2,3)===1&&coreSubRolls(3,5)===0&&coreSubRolls(5,12)===3,"mốc dòng phụ +3 / +6 / +9 / +12 / +15");
+        { const d0={set:"hao_thien",main:"atk",subs:[["hp",50],["crit",2]]}, r=coreUpgradeSubs(d0,6,5,Math.random), ks=r.data.subs.map(x=>x[0]);
+          ok(r.ups.length===5&&r.ups.filter(u=>u.add).length===2&&r.data.subs.length===CORE_MAX_SUBS&&new Set(ks).size===4&&!ks.includes("atk")&&same(d0.subs,[["hp",50],["crit",2]])
+            &&r.ups.every(u=>inRoll(u.k,u.v,6))&&r.ups.filter(u=>!u.add).every(u=>ks.includes(u.k)),`coreUpgradeSubs: 2 dòng + 5 lần = 4 dòng (2 mới, 3 lần tăng dòng có sẵn) ${JSON.stringify(r.data.subs)}`); }
+        { const pv=coreEnhancePreview({set:"a",xp:coreEnhanceNeed(14),subs:4},[{set:"a",stars:6}]);
+          ok(pv.level===CORE_MAX_ENHANCE&&pv.xp===coreEnhanceNeed(CORE_MAX_ENHANCE)&&pv.waste>0&&pv.rolls===1&&pv.adds===0,`xem trước: kẹp ở +${CORE_MAX_ENHANCE}, dư ${pv.waste} điểm, đủ 4 dòng thì tăng dòng có sẵn`); }
+        // Đích: Linh Miêu 4★ (2 dòng phụ) gắn vào ô của LM[0] trên võ hồn ra trận (vẫn đủ 2 món Linh Miêu), LM[0] về túi.
+        await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+        const [T]=await giveCores("linh_mieu",1,4), lmSlot=slotAt(LM[0].id);
+        await coreOp("equipcore",{itemId:T.id,vohonId:act,slot:lmSlot});
+        ok(eqOf(T.id)===act&&slotAt(T.id)===lmSlot&&eqOf(LM[0].id)===null&&itOf(T.id).stats.subs.length===CORE_SUBS[3]&&itOf(T.id).enhance===0,
+          `đích: ${coreName("linh_mieu",4)} (${CORE_SUBS[3]} dòng phụ) gắn ở ô ${lmSlot+1}, ${coreName("linh_mieu",6)} cũ về túi`);
+        const main=itOf(T.id).stats.main, s0=await test(A,"stats");
+        // Từ chối (không mất gì): chính nó, hồn hạch đang gắn, vật phẩm khác, hồn cốt làm đích, rỗng, không phải mảng, trùng, đích lạ, đang giao chiến.
+        let r=await up(T.id,[T.id]); ok(/chính hồn hạch/.test(r),`chính nó làm nguyên liệu bị từ chối: ${r}`);
+        r=await up(T.id,[LM[1].id]); ok(/đang gắn trên võ hồn/.test(r)&&eqOf(LM[1].id)===act,`hồn hạch đang gắn làm nguyên liệu bị từ chối: ${r}`);
+        r=await up(T.id,[LM[0].id,LM[1].id]); ok(/đang gắn trên võ hồn/.test(r)&&itOf(LM[0].id),"lẫn một món đang gắn: cả lần bị từ chối, món hợp lệ còn nguyên");
+        if(dan){ r=await up(T.id,[dan.id]); ok(/Nguyên liệu phải là hồn hạch/.test(r)&&itOf(dan.id),`vật phẩm không phải hồn hạch bị từ chối: ${r}`); }
+        if(bone){ r=await up(bone.id,[LM[0].id]); ok(/Không có hồn hạch này/.test(r)&&itOf(LM[0].id),"hồn cốt không nâng cấp bằng tin của hồn hạch"); }
+        r=await up(T.id,[]); ok(/ít nhất một/.test(r),"không chọn nguyên liệu bị từ chối");
+        r=await up(T.id,LM[0].id); ok(/ít nhất một/.test(r),"materialIds không phải mảng bị từ chối");
+        r=await up(T.id,[LM[0].id,LM[0].id]); ok(/trùng/.test(r),"nguyên liệu trùng bị từ chối");
+        r=await up("khong-co",[LM[0].id]); ok(/Không có hồn hạch này/.test(r),"đích lạ bị từ chối");
+        await test(A,"energy",{v:0}); // tính như vừa giao chiến
+        r=await up(T.id,[LM[0].id]); ok(/Đang giao chiến: .* nâng cấp hồn hạch/.test(r)&&itOf(LM[0].id),`đang giao chiến: bị từ chối (${r})`);
+        await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+        ok(itOf(T.id).enhance===0&&!itOf(T.id).stats.xp&&itOf(T.id).stats.subs.length===CORE_SUBS[3],"sau các lần bị từ chối: đích vẫn +0, không mất nguyên liệu");
+        // +2: hai hồn hạch Tiên Cơ 3★ khác bộ.
+        const M3=await giveCores("tien_co",3,3), g2=2*fx(3,"tien_co","linh_mieu");
+        r=await up(T.id,[M3[0].id,M3[1].id]); let tw=itOf(T.id); const s1=await test(A,"stats");
+        const dMain=s1.cores[main]-s0.cores[main], wMain=coreMainValue(main,4,2)-coreMainValue(main,4);
+        ok(tw.stats.xp===g2&&tw.enhance===coreEnhanceLevel(g2)&&tw.enhance===2&&tw.stats.subs.length===CORE_SUBS[3]&&!itOf(M3[0].id)&&!itOf(M3[1].id)&&eqOf(T.id)===act&&slotAt(T.id)===lmSlot
+          &&A.coreUp?.from===0&&A.coreUp?.to===2&&A.coreUp?.gain===g2&&A.coreUp?.subs.length===0,`2 hồn hạch 3★ khác bộ = ${g2} điểm: +${tw.enhance}, chưa tới mốc dòng phụ, 2 nguyên liệu đã mất (${r})`);
+        ok(Math.abs(dMain-wMain)<0.11&&dMain>0&&liveOk(s1)&&same(s1.cores,coreBonus(wornE())),`đang gắn: ${CORE_STATS[main].name} chính +${dMain.toFixed(1)} ngay (≈ ${wMain.toFixed(1)}), chỉ số trong trận khớp`);
+        // +3: thêm một 3★ (120 điểm) → thêm 1 dòng phụ mới.
+        const subs2=tw.stats.subs; r=await up(T.id,[M3[2].id]); tw=itOf(T.id); const s2=await test(A,"stats");
+        const nk=tw.stats.subs[2]?.[0], nv=tw.stats.subs[2]?.[1];
+        ok(tw.enhance===3&&tw.stats.xp===3*fx(3,"tien_co","linh_mieu")&&tw.stats.subs.length===3&&same(tw.stats.subs.slice(0,2),subs2)&&nk!==main&&!subs2.some(x=>x[0]===nk)&&inRoll(nk,nv,4)
+          &&A.coreUp?.subs.length===1&&A.coreUp.subs[0].add&&A.coreUp.subs[0].k===nk&&/thêm dòng phụ/.test(r),`+3: thêm dòng phụ ${nk&&coreStatText(nk,nv)} (${r})`);
+        ok(Math.abs(s2.cores[nk]-s1.cores[nk]-nv)<0.11&&liveOk(s2)&&same(s2.cores,coreBonus(wornE())),`dòng phụ mới cộng ngay vào võ hồn đang gắn (${CORE_STATS[nk]?.name} +${(s2.cores[nk]-s1.cores[nk]).toFixed(1)})`);
+        // Tới +15: năm hồn hạch Linh Miêu 6★ cùng bộ (+6 thêm dòng thứ 4, +9 / +12 / +15 tăng dòng có sẵn), điểm dư bị bỏ.
+        const M6=await giveCores("linh_mieu",5,6), before=new Map(tw.stats.subs.map(([k,v])=>[k,v]));
+        r=await up(T.id,M6.map(i=>i.id)); tw=itOf(T.id); const s3=await test(A,"stats"), ups=A.coreUp?.subs??[];
+        const growOk=tw.stats.subs.every(([k,v])=>Math.abs(v-(before.get(k)??0)-ups.filter(u=>u.k===k).reduce((a,u)=>a+u.v,0))<(CORE_STATS[k].pct?0.15:0.5)); // mỗi dòng: tăng đúng tổng các lần tung (dòng mới ở +6 có thể được tăng tiếp)
+        ok(tw.enhance===CORE_MAX_ENHANCE&&tw.stats.xp===coreEnhanceNeed(CORE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(r)&&M6.every(i=>!itOf(i.id))&&tw.stats.subs.length===CORE_MAX_SUBS
+          &&ups.length===4&&ups.filter(u=>u.add).length===1&&ups.every(u=>inRoll(u.k,u.v,4))&&growOk,
+          `5 hồn hạch 6★ cùng bộ: +${tw.enhance} tối đa, ${tw.stats.subs.length} dòng phụ (1 dòng mới, 3 lần tăng: ${ups.filter(u=>!u.add).map(u=>coreStatText(u.k,u.to)).join(", ")})`);
+        ok(liveOk(s3)&&same(s3.cores,coreBonus(wornE()))&&Math.abs(s3.cores[main]-s0.cores[main]-(coreMainValue(main,4,15)-coreMainValue(main,4)))<0.11,
+          `+15 đang gắn: ${coreStatText(main,coreMainValue(main,4,15))} chính (+0: ${coreStatText(main,coreMainValue(main,4))}), chỉ số trong trận khớp`);
+        const [M1]=await giveCores("tien_co",1,1); r=await up(T.id,[M1.id]); ok(/tối đa \+15/.test(r)&&itOf(M1.id),`+15 bị từ chối: ${r}`);
+        // Hồn hạch trong túi: X (Tiên Cơ 2★) nâng bằng Y (cùng bộ), rồi X làm nguyên liệu cho LM[0] trả lại 80% điểm đã nạp.
+        const [X,Y]=await giveCores("tien_co",2,2); r=await up(X.id,[Y.id]); const gx=fx(2,"tien_co","tien_co");
+        ok(itOf(X.id)?.vohon===null&&itOf(X.id).stats.xp===gx&&itOf(X.id).enhance===coreEnhanceLevel(gx)&&!itOf(Y.id),`nâng cấp hồn hạch trong túi: +${itOf(X.id)?.enhance} (${gx} điểm)`);
+        r=await up(LM[0].id,[X.id]); const gl=fx(2,"tien_co","linh_mieu",gx);
+        ok(itOf(LM[0].id).stats.xp===gl&&itOf(LM[0].id).enhance===coreEnhanceLevel(gl)&&!itOf(X.id),`nguyên liệu +${coreEnhanceLevel(gx)}: ${fx(2,"tien_co","linh_mieu")} + ${Math.floor(gx*CORE_FEED_CARRY)} điểm trả lại = ${gl} (${r})`);
+        for(const it of [LM[0],M1]) A.room.send("discard",{id:it.id});
+        ok(await waitFor(()=>!itOf(LM[0].id)&&!itOf(M1.id),2000)&&eqOf(T.id)===act,`dọn hồn hạch thử 5.3, ${coreName("linh_mieu",4,15)} vẫn gắn (kiểm khi vào lại)`);
+      }
       s1=await test(A,"stats");
       A.coreEq={vohon:act,slots:s1.slots,cores:s1.cores,fx:s1.fx}; // Linh Miêu 2 + Lam Ngân 2 vẫn gắn: kiểm khi vào lại
       ok(Object.keys(s1.slots).length===4&&same(s1.fx,{crit:0.12,cc:0.2}),`còn 4 hồn hạch gắn trên võ hồn ra trận (kiểm khi vào lại): ${JSON.stringify(s1.sets)}`);
@@ -2674,7 +2751,17 @@ if((await test(C,"ping"))?.enabled){
     tcs.forEach((it,k)=>C.room.send("equipcore",{itemId:it.id,vohonId:C.owned.active,slot:at[k]}));
     ok(tcs.length===2&&await waitFor(()=>tcs.every((t,k)=>{ const i=C.bag.items.find(x=>x.id===t.id); return i?.vohon===C.owned.active&&i.stats?.slot===at[k]; })),
       "C gắn 2 hồn hạch Tiên Cơ vào ô 6 và ô 3 của võ hồn ra trận (trong làng, ngoài giao chiến)");
-    C.coreEq={vohon:C.owned.active,slots:Object.fromEntries(tcs.map((t,k)=>[t.id,at[k]]))}; }
+    C.coreEq={vohon:C.owned.active,slots:Object.fromEntries(tcs.map((t,k)=>[t.id,at[k]]))};
+    // 5.3: nâng cấp hồn hạch đang gắn ngay trong làng rồi đi cổng: cấp, điểm và dòng phụ mới chưa lưu cũng nằm trong transaction
+    // đi cổng, nguyên liệu không quay lại.
+    const had=new Set(C.bag.items.map(i=>i.id));
+    for(let k=0;k<2;k++) await test(C,"give",{code:CORE_ITEM,stars:3,set:"tien_co"});
+    const cmat=C.bag.items.filter(i=>!had.has(i.id)).map(i=>i.id), cuLv=coreEnhanceLevel(2*coreFeedXp({set:"tien_co",stars:3},"tien_co"));
+    { const n=C.bagMsgs??0; C.room.send("enhancecore",{targetId:tcs[0].id,materialIds:cmat}); await waitFor(()=>(C.bagMsgs??0)>n&&C.bag.items.find(i=>i.id===tcs[0].id)?.enhance===cuLv,2000); }
+    const cu=C.bag.items.find(i=>i.id===tcs[0].id);
+    ok(cmat.length===2&&cu?.enhance===cuLv&&cuLv===3&&cu.stats.subs.length===CORE_SUBS[2]+1&&cu.vohon===C.owned.active&&!C.bag.items.some(i=>cmat.includes(i.id)),
+      `C nâng cấp hồn hạch Tiên Cơ đang gắn lên +${cu?.enhance} trong làng (${cu?.stats.subs.length} dòng phụ), 2 nguyên liệu đã mất`);
+    C.coreUp=cu&&[cu.id,cu.enhance,sj(cu.stats)]; }
   // 4.2: hồn cốt vừa gắn (chưa lưu) cũng nằm trong transaction đi cổng; bagKey so cả võ hồn đang gắn.
   const cb=bonesOf(C).find(i=>i.years===32000&&i.vohon===null);
   C.room.send("equip",{itemId:cb.id,vohonId:C.owned.active});
@@ -2754,6 +2841,8 @@ if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.lis
   ok(bagKey(C2)===relogBag,`đăng nhập lại: phiên mới nạp túi đồ, Hồn Tệ phiên cũ vừa lưu lúc bị đá (${formatHonTe(C2.bag?.honTe??0)}, ${C2.bag?.items.length} ô)`);
   if(C.coreKeep){ const it=C2.bag.items.find(i=>i.id===C.coreKeep[0]);
     ok(it&&same([it.id,it.stars,JSON.stringify(it.stats)],C.coreKeep),`đi cổng, thoát vào lại, đăng nhập lại: ${it&&coreName(it.stats?.set,it.stars)} còn nguyên chỉ số`); }
+  if(C.coreUp){ const it=C2.bag.items.find(i=>i.id===C.coreUp[0]); // 5.3
+    ok(it&&same([it.id,it.enhance,sj(it.stats)],C.coreUp),`đi cổng, thoát vào lại, đăng nhập lại: ${it&&coreName(it.stats?.set,it.stars,it.enhance)} còn nguyên cấp, điểm và ${it?.stats?.subs?.length} dòng phụ`); }
   if(C.coreEq){ // 5.2: qua 5 lần đi cổng, thoát vào lại, đăng nhập lại: hồn hạch vẫn gắn đúng ô, bộ Tiên Cơ 2 món vẫn có
     const sv=await test(C2,"stats",{rowId:C.coreEq.vohon});
     ok(sj(sv.slots)===sj(C.coreEq.slots)&&sv.sets.tien_co===2&&same(sv.fx,{energy:0.2}),`đi cổng, thoát vào lại, đăng nhập lại: 2 hồn hạch Tiên Cơ vẫn gắn ô ${Object.values(sv.slots).map(s=>s+1).join(", ")}`);

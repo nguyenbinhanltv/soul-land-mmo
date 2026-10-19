@@ -17,6 +17,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult,
+  CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
@@ -351,6 +352,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("equipcore", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipCore(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequipcore", (c, m: { itemId: unknown }) => this.unequipCore(c.sessionId, m?.itemId));
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
+    this.onMessage("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
@@ -783,7 +785,7 @@ export class MapRoom extends Room<MapState> {
     const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
     if (bone) return `hồn cốt ${boneName(bone.beast, bone.slot, it.years!, it.enhance)}`;
     const core = it.code === CORE_ITEM ? parseCore(it.stats) : null;
-    if (core) return coreName(core.set, it.stars ?? 1).replace("Hồn hạch", "hồn hạch");
+    if (core) return coreName(core.set, it.stars ?? 1, it.enhance).replace("Hồn hạch", "hồn hạch");
     const name = itemDef(it.code)?.name ?? "vật phẩm lạ";
     return it.years !== null ? `${name} ${formatYears(it.years)}` : it.qty > 1 ? `${it.qty} ${name}` : name;
   }
@@ -2222,7 +2224,7 @@ export class MapRoom extends Room<MapState> {
   coresOn(d: PData, rowId: number) {
     return d.bag.flatMap((it) => {
       const c = it.vohonId === rowId && it.code === CORE_ITEM ? parseCore(it.stats) : null;
-      return c ? [{ it, stars: it.stars ?? 1, data: c, slot: coreSlotOf(it.stats) }] : [];
+      return c ? [{ it, stars: it.stars ?? 1, data: c, enhance: it.enhance, slot: coreSlotOf(it.stats) }] : [];
     });
   }
   /** Tổng chỉ số hồn hạch đang gắn trên võ hồn `rowId` (coreBonus, kèm phần chỉ số của bộ), cộng vào calcStats. */
@@ -2261,7 +2263,7 @@ export class MapRoom extends Room<MapState> {
     else return warn(`Ô hồn hạch không hợp lệ: chỉ có ô 1–${CORE_SLOTS}.`);
     const lock = this.boneLock(p, d, "hồn hạch"); if (lock) return warn(lock);
     const st = (x: Item) => x.stats as Record<string, unknown>, ow = worn.find((w) => w.slot === slot && w.it !== it), old = ow?.it;
-    const oldName = ow ? coreName(ow.data.set, ow.stars) : "";
+    const oldName = ow ? coreName(ow.data.set, ow.stars, ow.it.enhance) : "";
     if (it.vohonId === v.rowId) {
       // Đổi chỗ trong cùng võ hồn: chỉ số và bộ không đổi.
       const from = coreSlotOf(it.stats); if (from === slot) return this.sendBag(id);
@@ -2290,6 +2292,53 @@ export class MapRoom extends Room<MapState> {
     it.vohonId = null; if (it.stats && typeof it.stats === "object") delete (it.stats as Record<string, unknown>).slot; d.bagDirty = true;
     this.log(id, `Tháo ${this.itemLabel(it)}${v ? ` khỏi ${VOHON[Math.max(0, vohonIndex(v.vohon))].name}` : ""} về túi đồ (giữ nâng cấp +${it.enhance}).`);
     if (v) this.afterBones(id, v); else this.sendBag(id);
+  }
+
+  /**
+   * Nâng cấp hồn hạch `rawTarget` (id ô của chính người gửi, trong túi hoặc đang gắn) bằng các hồn hạch nguyên liệu `rawMats` (mục
+   * 5.6, bước 5.3): nguyên liệu phải là hồn hạch nằm trong túi (không đang gắn), không phải chính nó, không trùng, tối đa
+   * CORE_FEED_MAX món; một món sai thì cả lần bị từ chối, không mất gì. Điểm tính bằng coreEnhancePreview (theo sao, cùng bộ thêm,
+   * trả lại phần điểm đã nạp vào nguyên liệu), cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +15, điểm dư bị bỏ). Mỗi mốc
+   * +3 / +6 / +9 / +12 / +15 vượt qua thì tăng 1 dòng phụ ngẫu nhiên (coreUpgradeSubs, ghi vào `stats.subs`). Luôn thành công,
+   * nguyên liệu bị xóa khỏi túi. Cùng luật như gắn / tháo (boneLock), không đang chuyển bản đồ. Đang gắn thì chỉ số đổi ngay
+   * (afterBones). Ghi DB qua chuỗi lưu (save) như cường hóa hồn cốt; transaction đi cổng cũng mang theo nếu lần lưu chưa kịp chạy.
+   */
+  enhanceCore(id: string, rawTarget: unknown, rawMats: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
+    const coreIn = (it: Item | undefined) => (it && it.code === CORE_ITEM ? parseCore(it.stats) : null);
+    const it = typeof rawTarget === "string" ? d.bag.find((i) => i.id === rawTarget) : undefined, core = coreIn(it);
+    if (!it || !core) return warn("Không có hồn hạch này để nâng cấp.");
+    if (it.enhance >= CORE_MAX_ENHANCE) return warn(`${this.itemLabel(it)} đã nâng cấp tối đa +${CORE_MAX_ENHANCE}.`);
+    if (!Array.isArray(rawMats) || !rawMats.length) return warn("Chọn ít nhất một hồn hạch làm nguyên liệu.");
+    if (rawMats.length > CORE_FEED_MAX) return warn(`Mỗi lần nâng cấp tối đa ${CORE_FEED_MAX} nguyên liệu.`);
+    if (new Set(rawMats).size !== rawMats.length) return warn("Nguyên liệu bị chọn trùng.");
+    const mats: Item[] = [];
+    for (const raw of rawMats) {
+      if (raw === it.id) return warn("Không dùng chính hồn hạch đang nâng cấp làm nguyên liệu.");
+      const m = typeof raw === "string" ? d.bag.find((i) => i.id === raw) : undefined;
+      if (!m || !coreIn(m)) return warn("Nguyên liệu phải là hồn hạch trong túi đồ.");
+      if (m.vohonId !== null) return warn(`${this.itemLabel(m)} đang gắn trên võ hồn: tháo ra trước mới dùng làm nguyên liệu được.`);
+      mats.push(m);
+    }
+    const lock = this.boneLock(p, d, "hồn hạch"); if (lock) return warn(lock.replace("gắn / tháo", "nâng cấp"));
+    const stars = it.stars ?? 1, r = coreEnhancePreview({ set: core.set, xp: coreXp(it.stats), subs: core.subs.length },
+      mats.map((m) => ({ set: parseCore(m.stats)!.set, stars: m.stars ?? 1, xp: coreXp(m.stats) })));
+    const up = coreUpgradeSubs(core, stars, r.rolls, Math.random), label = this.itemLabel(it); // tên trước khi lên cấp
+    const drop = new Set(mats);
+    d.bag = d.bag.filter((x) => !drop.has(x));
+    it.stats = { ...(it.stats as object), subs: up.data.subs, xp: r.xp }; it.enhance = r.level; d.bagDirty = true;
+    const lv = r.level > r.from ? ` lên +${r.level}` : ` (vẫn +${r.level})`;
+    // "thêm dòng phụ Công +3,2%" / "dòng phụ Sinh lực +150 (tăng +62)"
+    const subs = up.ups.map((u) => (u.add ? `thêm dòng phụ ${coreStatText(u.k, u.v)}`
+      : `dòng phụ ${coreStatText(u.k, u.to)} (tăng +${coreStatText(u.k, u.v).split(" +").pop()})`));
+    this.log(id, `Nâng cấp ${label}${lv}: ${mats.length} nguyên liệu, +${r.gain.toLocaleString("vi-VN")} điểm`
+      + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "") + (subs.length ? `; ${subs.join("; ")}` : "") + ".",
+      CORE_SETS[coreSetIndex(core.set)]?.col);
+    this.clients.getById(id)?.send("enhancedcore", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length, subs: up.ups });
+    const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
+    if (v) this.afterBones(id, v); else this.sendBag(id);
+    this.save(id); // nguyên liệu đã mất: ghi ngay qua chuỗi lưu
   }
 
   // ---------- Hồn hoàn ----------
