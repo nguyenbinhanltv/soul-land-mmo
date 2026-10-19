@@ -297,6 +297,15 @@ body.touch .bslot small{font-size:11px}
 .bpick .bitem b{font-size:12px;color:var(--c)}
 .warn{color:var(--warn)}
 body.touch .bpick .bitem{cursor:default}
+/* Cường hóa hồn cốt (bước 4.4): cấp +N ở góc ô, bảng chọn nhiều nguyên liệu, xem trước rồi xác nhận */
+.bslot b.enh,.bcell b.enh{position:absolute;left:2px;top:0;font-size:10px;font-weight:800;color:#ffe08a;text-shadow:0 1px 0 #000,0 0 2px #000;font-variant-numeric:tabular-nums}
+.epick>small:first-child b{color:var(--c);font-size:12.5px}
+.epick>small:first-child .sbar{margin-top:3px}
+.aopt.eopt{grid-template-columns:minmax(0,1fr) auto}
+.eopt b{white-space:normal;color:color-mix(in srgb,var(--c) 55%,var(--text));min-width:0;overflow-wrap:anywhere}
+.eopt i{grid-column:2;white-space:nowrap}
+body.touch .eopt{min-height:40px}
+.buse.eok{background:var(--hp);border-color:var(--hp);color:#fff}
 body.touch .minibtn kbd{display:none}
 /* Trong trận: thanh đội hình 4 ô (phím 1–4 hoặc chạm để đổi võ hồn) */
 #team{position:absolute;right:10px;bottom:82px;display:flex;gap:6px}

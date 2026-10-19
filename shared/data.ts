@@ -1282,23 +1282,24 @@ export const BONE_DROP = [{ years: 0, p: 0 }, { years: 1000, p: 0.01 }, { years:
 export const boneChance = (years: number, mult = 1) =>
   Math.min(1, BONE_DROP.reduce((p, x) => (years >= x.years ? x.p : p), 0) * mult);
 /**
- * Chỉ số gốc của hồn cốt vị trí `slot`, `years` năm (mục 5.5 "niên hạn càng cao thì chỉ số gốc càng mạnh"): tăng liên tục theo
- * số năm, không lưu DB (đổi công thức thì mọi hồn cốt đã có đổi theo). Cường hóa (4.4) cộng thêm sau. Vị trí lạ: {}.
+ * Chỉ số chính của hồn cốt vị trí `slot`, `years` năm, cường hóa `+enhance` (mục 5.5 "niên hạn càng cao thì chỉ số gốc càng
+ * mạnh"): chỉ số gốc tăng liên tục theo số năm; từ bước 4.4 mỗi cấp cường hóa cộng thêm BONE_ENHANCE_STAT phần chỉ số gốc (ít
+ * nhất +1 mỗi cấp). Không lưu DB (đổi công thức thì mọi hồn cốt đã có đổi theo). Vị trí lạ: {}.
  */
-export function boneStats(slot: unknown, years: number): Partial<Record<BoneStat, number>> {
+export function boneStats(slot: unknown, years: number, enhance = 0): Partial<Record<BoneStat, number>> {
   const s = BONE_SLOTS[boneSlotIndex(slot)]; if (!s) return {};
   const y = Math.max(TIERS[0].years, Math.min(MAX_YEARS, years)), t = tierOfYears(y), a = TIERS[t], b = TIERS[Math.min(t + 1, TIERS.length - 1)];
   const f = b === a ? 0 : Math.log(y / a.years) / Math.log(b.years / a.years), mix = (x: number, z: number) => x * Math.pow(z / x, f);
-  const base = s.stat === "atk" ? mix(a.atkb, b.atkb) : mix(a.hpb, b.hpb);
-  return { [s.stat]: Math.max(1, Math.round(base * s.k)) };
+  const base = Math.max(1, Math.round((s.stat === "atk" ? mix(a.atkb, b.atkb) : mix(a.hpb, b.hpb)) * s.k)), e = boneEnhanceClamp(enhance);
+  return { [s.stat]: base + Math.max(e, Math.round(base * BONE_ENHANCE_STAT * e)) };
 }
 /**
- * Tổng chỉ số gốc của các hồn cốt đang gắn trên một võ hồn (bước 4.2), đưa vào calcStats. Mỗi vị trí tối đa một hồn cốt (server
- * kiểm tra khi gắn). Cường hóa (4.4) cộng thêm sau.
+ * Tổng chỉ số chính của các hồn cốt đang gắn trên một võ hồn (bước 4.2, kèm cấp cường hóa từ 4.4), đưa vào calcStats. Mỗi vị trí
+ * tối đa một hồn cốt (server kiểm tra khi gắn).
  */
-export function boneBonus(bones: { slot: unknown; years: number }[]): Record<BoneStat, number> {
+export function boneBonus(bones: { slot: unknown; years: number; enhance?: number }[]): Record<BoneStat, number> {
   const out: Record<BoneStat, number> = { hp: 0, mp: 0, atk: 0 };
-  for (const b of bones) for (const [k, v] of Object.entries(boneStats(b.slot, b.years))) out[k as BoneStat] += v;
+  for (const b of bones) for (const [k, v] of Object.entries(boneStats(b.slot, b.years, b.enhance ?? 0))) out[k as BoneStat] += v;
   return out;
 }
 /** Loài và vị trí của một hồn cốt (`items.stats`); dữ liệu hỏng thì null. */
@@ -1307,10 +1308,75 @@ export function parseBone(stats: unknown): { beast: string; slot: BoneSlot } | n
   if (!o || typeof o !== "object" || typeof o.beast !== "string" || boneSlotIndex(o.slot) < 0) return null;
   return { beast: o.beast, slot: o.slot as BoneSlot };
 }
-/** Tên hồn cốt (mục 5.5): "Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". Loài không còn trong BEASTS: "Hồn thú lạ". */
-export function boneName(beast: string, slot: unknown, years: number) {
-  const b = BEASTS[beastIndex(beast)]?.name ?? "Hồn thú lạ", s = BONE_SLOTS[boneSlotIndex(slot)]?.name ?? "Vị trí lạ";
-  return `${b} – ${s}, ${formatYears(years)}`;
+/**
+ * Tên hồn cốt (mục 5.5): "Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm"; đã cường hóa thì "+N" đứng trước (bước 4.4):
+ * "+5 Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". Loài không còn trong BEASTS: "Hồn thú lạ".
+ */
+export function boneName(beast: string, slot: unknown, years: number, enhance = 0) {
+  const b = BEASTS[beastIndex(beast)]?.name ?? "Hồn thú lạ", s = BONE_SLOTS[boneSlotIndex(slot)]?.name ?? "Vị trí lạ", e = boneEnhanceClamp(enhance);
+  return `${e ? `+${e} ` : ""}${b} – ${s}, ${formatYears(years)}`;
+}
+
+// ---------- Cường hóa hồn cốt (mục 5.5, bước 4.4; mọi số chờ chốt) ----------
+/** Cấp cường hóa tối đa (+0 đến +20). */
+export const BONE_MAX_ENHANCE = 20;
+/**
+ * **(chờ chốt)** Điểm cường hóa để lên từ +n lên +(n + 1): BONE_ENHANCE_COST[n]. Cộng dồn: +5 cần 165 điểm, +10 cần 665,
+ * +15 cần 2.180, +20 cần 6.850 (khoảng 5 hồn cốt 100.000 năm cùng vị trí, hay 22 hồn cốt 32.000 năm khác vị trí).
+ */
+export const BONE_ENHANCE_COST = [20, 25, 30, 40, 50, 60, 75, 95, 120, 150, 185, 230, 290, 360, 450, 570, 710, 890, 1100, 1400];
+/** **(chờ chốt)** Nguyên liệu cho ngần này điểm mỗi năm niên hạn (1 điểm / 100 năm: 1.000 năm 10 điểm, 32.000 năm 320). */
+export const BONE_FEED_PER_YEAR = 0.01;
+/** Nguyên liệu cùng vị trí với hồn cốt được cường hóa thì điểm ×1,5 (mục 5.5 "cùng vị trí được thêm 50%"). */
+export const BONE_FEED_SAME_SLOT = 1.5;
+/** **(chờ chốt)** Nguyên liệu đã cường hóa thì trả lại ngần này phần điểm đã nạp vào nó (không mất trắng công cường hóa cũ). */
+export const BONE_FEED_CARRY = 0.8;
+/** Tối đa ngần này nguyên liệu mỗi lần cường hóa (chặn message quá lớn). */
+export const BONE_FEED_MAX = 20;
+/** **(chờ chốt)** Mỗi cấp cường hóa cộng thêm ngần này phần chỉ số chính gốc (+20 = gấp đôi chỉ số gốc), ít nhất +1 mỗi cấp. */
+export const BONE_ENHANCE_STAT = 0.05;
+/**
+ * **(chờ chốt)** Mốc cường hóa (mục 5.5 "mở thêm một dòng chỉ số phụ hoặc nâng kỹ năng"): bước 4.4 chọn **nâng kỹ năng**. Mỗi
+ * mốc đã đạt làm kỹ năng của hồn cốt mạnh thêm BONE_MILESTONE_SKILL (chủ động: sức mạnh và hiệu ứng lên bản thân; bị động: mức
+ * cộng, vẫn kẹp BONE_PASSIVE_CAP). Dòng chỉ số phụ ngẫu nhiên để sau (cần bảng dòng phụ, như hồn hạch GĐ5).
+ */
+export const BONE_ENHANCE_MILESTONES = [5, 10, 15, 20];
+export const BONE_MILESTONE_SKILL = 0.1;
+/** Cấp cường hóa hợp lệ (số nguyên 0..BONE_MAX_ENHANCE). */
+export function boneEnhanceClamp(e: unknown) { return Math.max(0, Math.min(BONE_MAX_ENHANCE, Math.floor(Number(e)) || 0)); }
+/** Tổng điểm cường hóa để đạt +`level` từ +0. */
+export function boneEnhanceNeed(level: number) { return BONE_ENHANCE_COST.slice(0, boneEnhanceClamp(level)).reduce((a, x) => a + x, 0); }
+/** Cấp cường hóa ứng với tổng điểm `xp` (cộng dồn từ +0). */
+export function boneEnhanceLevel(xp: number) {
+  let lv = 0, need = 0;
+  while (lv < BONE_MAX_ENHANCE && xp >= need + BONE_ENHANCE_COST[lv]) need += BONE_ENHANCE_COST[lv++];
+  return lv;
+}
+/** Tổng điểm cường hóa đã nạp vào một hồn cốt (`items.stats.xp`; thiếu / hỏng thì 0, tối đa điểm của +20). */
+export function boneXp(stats: unknown) {
+  const x = Number((stats as { xp?: unknown } | null)?.xp);
+  return Number.isSafeInteger(x) && x > 0 ? Math.min(x, boneEnhanceNeed(BONE_MAX_ENHANCE)) : 0;
+}
+/** Số mốc cường hóa đã đạt ở +`enhance` (0..4). */
+export const boneMilestones = (enhance: number) => BONE_ENHANCE_MILESTONES.filter((m) => boneEnhanceClamp(enhance) >= m).length;
+/** Hệ số kỹ năng hồn cốt theo cấp cường hóa: ×1 dưới +5, ×1,1 từ +5, ×1,2 từ +10, ×1,3 từ +15, ×1,4 ở +20. */
+export const boneSkillMult = (enhance: number) => 1 + BONE_MILESTONE_SKILL * boneMilestones(enhance);
+/**
+ * Điểm một nguyên liệu cho hồn cốt vị trí `targetSlot`: niên hạn × BONE_FEED_PER_YEAR (ít nhất 1), cùng vị trí ×BONE_FEED_SAME_SLOT,
+ * cộng BONE_FEED_CARRY phần điểm đã nạp vào chính nguyên liệu đó.
+ */
+export function boneFeedXp(mat: { slot: unknown; years: number; xp?: number }, targetSlot: unknown) {
+  const base = Math.max(1, Math.round(Math.max(0, mat.years) * BONE_FEED_PER_YEAR * (mat.slot === targetSlot ? BONE_FEED_SAME_SLOT : 1)));
+  return base + Math.floor(Math.max(0, mat.xp ?? 0) * BONE_FEED_CARRY);
+}
+/**
+ * Một lần cường hóa (hàm thuần: client xem trước, server tính thật): hồn cốt đích (vị trí, điểm đã có) và các nguyên liệu. `gain`
+ * tổng điểm nguyên liệu, `from` / `level` cấp trước / sau, `xp` điểm sau khi cộng (kẹp ở +20), `waste` điểm dư bị bỏ ở +20.
+ */
+export function boneEnhancePreview(target: { slot: unknown; xp: number }, mats: { slot: unknown; years: number; xp?: number }[]) {
+  const cap = boneEnhanceNeed(BONE_MAX_ENHANCE), gain = mats.reduce((a, m) => a + boneFeedXp(m, target.slot), 0);
+  const raw = Math.max(0, target.xp) + gain, xp = Math.min(cap, raw);
+  return { gain, xp, from: boneEnhanceLevel(target.xp), level: boneEnhanceLevel(xp), waste: raw - xp };
 }
 
 // ---------- Hồn hạch (mục 5.6, bảng rơi 5.3, bước 5.1) ----------
@@ -1546,12 +1612,15 @@ export function boneSkillOf(beast: string, slot: unknown): { active: true; sk: S
 }
 /** Hiệu ứng bị động đang có (đã nhân buffPower và kẹp BONE_PASSIVE_CAP). */
 export interface BonePassive { buff: Partial<Record<PassiveBuff, number>>; resist: Partial<Record<StatusId, number>>; }
-/** Cộng bị động của các hồn cốt thân / chân đang gắn trên một võ hồn (vị trí chủ động và loài không có kỹ năng thì bỏ qua). */
-export function bonePassive(bones: { beast: string; slot: unknown; years: number }[]): BonePassive {
+/**
+ * Cộng bị động của các hồn cốt thân / chân đang gắn trên một võ hồn (vị trí chủ động và loài không có kỹ năng thì bỏ qua); mức của
+ * mỗi hồn cốt nhân buffPower(số năm) × boneSkillMult(cường hóa, từ 4.4).
+ */
+export function bonePassive(bones: { beast: string; slot: unknown; years: number; enhance?: number }[]): BonePassive {
   const out: BonePassive = { buff: {}, resist: {} };
   for (const b of bones) {
     const k = boneSkillOf(b.beast, b.slot); if (!k || k.active) continue;
-    const pow = buffPower(b.years);
+    const pow = buffPower(b.years) * boneSkillMult(b.enhance ?? 0);
     for (const [x, v] of Object.entries(k.ps.buff ?? {}) as [PassiveBuff, number][]) out.buff[x] = Math.min(BONE_PASSIVE_CAP[x], (out.buff[x] ?? 0) + v * pow);
     for (const [x, v] of Object.entries(k.ps.resist ?? {}) as [StatusId, number][]) out.resist[x] = Math.min(BONE_PASSIVE_CAP.resist, (out.resist[x] ?? 0) + v * pow);
   }
@@ -1594,7 +1663,7 @@ export const ITEMS: ItemDef[] = [
   // Hồn cốt (bước 4.1): mỗi món một ô; số năm ở `items.years`, loài và vị trí ở `items.stats`, cấp cường hóa ở `items.enhance`.
   // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn từ bước 4.2 (`items.vohon_id`, không chiếm ô túi).
   { id: BONE_ITEM, kind: "hon_cot", name: "Hồn cốt", col: "#e8dcc0", stack: 1,
-    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số gốc. Tháo ra vẫn giữ cấp cường hóa." },
+    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số. Cường hóa bằng hồn cốt dư (nút Cường hóa…): mỗi cấp tăng chỉ số chính, mốc +5 / +10 / +15 / +20 nâng kỹ năng. Tháo ra vẫn giữ cấp cường hóa." },
   // Hồn hạch (bước 5.1): mỗi món một ô; sao ở `items.stars`, bộ / chỉ số ở `items.stats`. Màu theo bộ (CORE_SETS), `col` chỉ là mặc định.
   { id: CORE_ITEM, kind: "hon_hach", name: "Hồn hạch", col: "#d9b8ff", stack: 1,
     desc: "Mỗi võ hồn có 6 ô hồn hạch; gắn 2 hoặc 4 món cùng bộ thì nhận hiệu ứng bộ (gắn và hiệu ứng bộ mở ở bước 5.2)." },

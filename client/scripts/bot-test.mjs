@@ -17,7 +17,9 @@
 // thú (3.5: đứng trong vùng thì trúng, ra khỏi vùng trước 0,8 giây thì không, vùng an toàn không trúng, trạng thái trên hồn sư), tinh anh
 // (BĐ4: đúng vùng, hệ số máu / sát thương, máu tăng theo số người tham gia, 2 chiêu, gọi bầy, Cuồng nộ và xóa buff, hồi sinh),
 // gắn hồn cốt (4.2: đúng / sai vị trí, đổi chỗ, tháo khi túi đầy, chỉ số, giao chiến, đi cổng và vào lại), kỹ năng hồn cốt
-// (4.3: chủ động trúng, tốn hồn lực, hồi chiêu riêng, bị chặn khi Câm lặng / vùng an toàn; bị động áp khi gắn, mất khi tháo), hồn hạch rơi
+// (4.3: chủ động trúng, tốn hồn lực, hồi chiêu riêng, bị chặn khi Câm lặng / vùng an toàn; bị động áp khi gắn, mất khi tháo), cường hóa hồn
+// cốt (4.4: điểm theo niên hạn, cùng vị trí +50%, mốc +5 / +20, nguyên liệu bị xóa, từ chối đang gắn / chính nó / giao chiến, chỉ số
+// tăng ngay khi đang gắn, giữ cấp khi tháo, qua đi cổng và vào lại), hồn hạch rơi
 // (5.1: sao theo niên hạn, bộ theo bản đồ, số dòng phụ theo sao, tinh anh chắc chắn rơi, túi đầy, đi cổng và vào lại), tà hóa thú vương
 // (BĐ5: lịch giờ Việt Nam, báo toàn server, máu theo số người trong hang, giai đoạn 2, chia thưởng theo ngưỡng 3%, 3 lần/ngày,
 // mở rương, rút đi, phòng hủy rồi mở lại) cần server bật hook kiểm thử:
@@ -39,6 +41,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   BOSSES, bossIndex, beastIndex, ELITE, ELITE_RAGE, bossHpMult, teleZones, beastBuffBit, BEAST_BUFFS, beastName,
   KING, KING_CHEST, KING_TIMES, kingNext, kingActive, vnDay, vnHHMM, kingShardPool, chestCode,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
+  BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
+  boneEnhancePreview,
   CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
@@ -97,6 +101,7 @@ async function enter(b){
   b.room.onMessage("test",m=>{b.test=m;});
   b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
+  b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
   b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
@@ -2306,6 +2311,86 @@ else {
       ok(await waitFor(()=>!A.bag.items.some(i=>i.id===md.id||i.id===tg.id),2000)&&bonesOf(A).find(i=>i.id===tpw.id)?.vohon===act,"dọn hồn cốt thử 4.3, Tay phải 32.000 năm vẫn gắn");
       await test(A,"clear"); await test(A,"set",keep0); await test(A,"ready");
     }
+    // ---------- 4.4: cường hóa hồn cốt bằng hồn cốt dư (điểm theo niên hạn, cùng vị trí +50%, +0..+20, mốc nâng kỹ năng) ----------
+    {
+      async function boneOp(type,msg){ const n=A.bagMsgs??0, l=A.logs.length; A.room.send(type,msg); await waitFor(()=>(A.bagMsgs??0)>n&&A.logs.length>l,2000); await sleep(80); return A.logs.at(-1)??""; }
+      /** Gửi enhance; server luôn gửi lại túi và một dòng log (kết quả hoặc lý do từ chối). Trả dòng log đó. */
+      const enh=(targetId,materialIds)=>{ A.enh=null; return boneOp("enhance",{targetId,materialIds}); };
+      /** Hook give một hồn cốt; trả về món vừa vào túi. */
+      async function give(years,slot,beast=AK){ const had=new Set(bonesOf(A).map(i=>i.id)); await test(A,"give",{code:BONE_ITEM,years,beast,slot}); return bonesOf(A).find(i=>!had.has(i.id)); }
+      const itemOf=id=>A.bag.items.find(i=>i.id===id), MD="man_da_la_xa", TG="thiet_giap_te_nguu";
+      const fx=(years,slot,tgt,xp)=>boneFeedXp({slot,years,xp},tgt), atkAt=n=>boneStats("tay_phai",32000,n).atk;
+      // Công thức (shared/data.ts, chờ chốt).
+      ok(fx(1000,"tay_phai","tay_phai")===Math.round(1000*BONE_FEED_PER_YEAR*BONE_FEED_SAME_SLOT)&&fx(1000,"dau","tay_phai")===Math.round(1000*BONE_FEED_PER_YEAR)&&fx(32000,"dau","tay_phai")===32*fx(1000,"dau","tay_phai"),
+        `điểm nguyên liệu tỉ lệ niên hạn (1.000 năm ${fx(1000,"dau","tay_phai")}, 32.000 năm ${fx(32000,"dau","tay_phai")}), cùng vị trí ×${BONE_FEED_SAME_SLOT} (${fx(1000,"tay_phai","tay_phai")})`);
+      ok(fx(1000,"dau","tay_phai",100)===fx(1000,"dau","tay_phai")+Math.floor(100*BONE_FEED_CARRY),`nguyên liệu đã cường hóa trả lại ${BONE_FEED_CARRY*100}% điểm đã nạp`);
+      ok(Array.from({length:BONE_MAX_ENHANCE+1},(_,n)=>boneEnhanceLevel(boneEnhanceNeed(n))===n&&(n===0||boneEnhanceLevel(boneEnhanceNeed(n)-1)===n-1)).every(Boolean)&&boneEnhanceLevel(1e9)===BONE_MAX_ENHANCE,
+        `bảng ngưỡng +1..+${BONE_MAX_ENHANCE} (+5 / +10 / +15 / +20 cần ${[5,10,15,20].map(boneEnhanceNeed).join(" / ")} điểm)`);
+      ok(Array.from({length:BONE_MAX_ENHANCE},(_,n)=>atkAt(n+1)>atkAt(n)&&boneStats("tay_trai",1000,n+1).atk>boneStats("tay_trai",1000,n).atk).every(Boolean),
+        `mỗi cấp tăng chỉ số chính (Tay phải 32.000 năm: ${atkAt(0)} -> +5 ${atkAt(5)} -> +20 ${atkAt(20)} công)`);
+      ok([0,4,5,9,10,15,20].map(n=>boneSkillMult(n).toFixed(2)).join(" ")==="1.00 1.00 1.10 1.10 1.20 1.30 1.40","mốc +5 / +10 / +15 / +20: kỹ năng ×1,1 / ×1,2 / ×1,3 / ×1,4");
+      ok(boneName(AK,"tay_phai",32000,5)==="+5 Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm"&&boneName(AK,"tay_phai",32000)===akName,`tên có +N: ${boneName(AK,"tay_phai",32000,5)}`);
+      const pv=boneEnhancePreview({slot:"than",xp:boneEnhanceNeed(19)},[{slot:"than",years:MAX_YEARS}]);
+      ok(pv.level===BONE_MAX_ENHANCE&&pv.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&pv.waste===boneEnhanceNeed(19)+pv.gain-pv.xp&&pv.waste>0,`xem trước: kẹp ở +${BONE_MAX_ENHANCE}, dư ${pv.waste} điểm`);
+      // Hồn cốt đích: Tay phải 32.000 năm đang gắn trên võ hồn ra trận (từ 4.2).
+      const act=A.owned.active, tpw=bonesOf(A).find(i=>i.vohon===act&&i.stats?.slot==="tay_phai"&&i.years===32000);
+      ok(tpw&&tpw.enhance===0,"đích: hồn cốt Tay phải 32.000 năm đang gắn, +0");
+      await test(A,"goto",spot); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+      const m1=await give(1000,"tay_phai"), m2=await give(1000,"dau",MD), s0=await test(A,"stats");
+      let t=await enh(tpw.id,[m1.id,m2.id]), tw=itemOf(tpw.id);
+      const g1=fx(1000,"tay_phai","tay_phai")+fx(1000,"dau","tay_phai"), s1=await test(A,"stats");
+      ok(!itemOf(m1.id)&&!itemOf(m2.id),"nguyên liệu bị xóa khỏi túi");
+      ok(tw.stats.xp===g1&&tw.enhance===1&&tw.vohon===act&&tw.stats.beast===AK&&tw.stats.slot==="tay_phai"&&A.enh?.from===0&&A.enh?.to===1&&A.enh?.gain===g1,
+        `cùng vị trí ${fx(1000,"tay_phai","tay_phai")} + khác vị trí ${fx(1000,"dau","tay_phai")} = ${g1} điểm: +${tw.enhance}, vẫn gắn (${t})`);
+      ok(s1.bones.atk===atkAt(1)&&Math.abs(s1.live.atk-s0.live.atk-(atkAt(1)-atkAt(0)))<1e-6,`đang gắn: công ${s0.live.atk.toFixed(1)} -> ${s1.live.atk.toFixed(1)} ngay (hồn cốt +${atkAt(0)} -> +${atkAt(1)})`);
+      // Từ chối: chính nó, hồn cốt đang gắn, không phải hồn cốt, trùng, rỗng, đích lạ, đang giao chiến. Không mất gì.
+      const hd=await give(1000,"dau"); await boneOp("equip",{itemId:hd.id,vohonId:act});
+      const m3=await give(5000,"tay_phai"), xpNow=()=>itemOf(tpw.id)?.stats?.xp, kept=()=>xpNow()===g1&&!!itemOf(m3.id);
+      t=await enh(tpw.id,[tpw.id]); ok(/chính hồn cốt/.test(t)&&kept(),`dùng chính nó làm nguyên liệu bị từ chối: ${t}`);
+      t=await enh(tpw.id,[hd.id]); ok(/đang gắn trên võ hồn/.test(t)&&itemOf(hd.id)?.vohon===act&&kept(),`hồn cốt đang gắn không làm nguyên liệu được: ${t}`);
+      t=await enh(tpw.id,[m3.id,hd.id]); ok(/đang gắn trên võ hồn/.test(t)&&kept(),"một nguyên liệu sai thì cả lần bị từ chối, nguyên liệu đúng còn nguyên");
+      const dan=A.bag.items.find(i=>i.code!==BONE_ITEM&&i.vohon===null);
+      if(dan){ t=await enh(tpw.id,[dan.id]); ok(/phải là hồn cốt/.test(t)&&itemOf(dan.id)&&kept(),`vật phẩm không phải hồn cốt: ${t}`);
+        t=await enh(dan.id,[m3.id]); ok(/Không có hồn cốt này/.test(t)&&kept(),"đích không phải hồn cốt bị từ chối"); }
+      t=await enh(tpw.id,[m3.id,m3.id]); ok(/trùng/.test(t)&&kept(),`chọn trùng: ${t}`);
+      t=await enh(tpw.id,[]); ok(/ít nhất một/.test(t)&&kept(),"không có nguyên liệu bị từ chối");
+      t=await enh(tpw.id,"x"); ok(/ít nhất một/.test(t)&&kept(),"materialIds không phải mảng bị từ chối");
+      t=await enh("khong-co",[m3.id]); ok(/Không có hồn cốt này/.test(t)&&kept(),"đích lạ bị từ chối");
+      await test(A,"energy",{v:0}); // tính như vừa giao chiến
+      t=await enh(tpw.id,[m3.id]); ok(/Đang giao chiến: .*cường hóa/.test(t)&&kept(),`đang giao chiến: bị từ chối (${t})`);
+      await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+      // Lên mốc +5: Tay phải 5.000 năm (cùng vị trí) + Tay trái 10.000 năm (khác vị trí).
+      const m4=await give(10000,"tay_trai"), g5=g1+fx(5000,"tay_phai","tay_phai")+fx(10000,"tay_trai","tay_phai");
+      t=await enh(tpw.id,[m3.id,m4.id]); tw=itemOf(tpw.id); const s5=await test(A,"stats");
+      ok(!itemOf(m3.id)&&!itemOf(m4.id)&&tw.stats.xp===g5&&tw.enhance===boneEnhanceLevel(g5)&&tw.enhance===5&&s5.bones.atk===atkAt(5)&&Math.abs(s5.live.atk-s5.stats.atk)<1e-6,
+        `lên mốc +5 (${g5} điểm), công hồn cốt +${s5.bones.atk}: ${t}`);
+      ok(A.logs.at(-1)?.includes(boneName(AK,"tay_phai",32000,5)),"log ghi tên hồn cốt kèm +5");
+      // Mốc nâng kỹ năng: bị động Thân Thiết Giáp Tê Ngưu 12.000 năm lên +20 bằng 5 hồn cốt 100.000 năm cùng vị trí (điểm dư bị bỏ).
+      const tg=await give(12000,"than",TG); await boneOp("equip",{itemId:tg.id,vohonId:act});
+      const sp0=await test(A,"stats"), def0=sp0.live.passive.buff.def, hp0=p.maxHp, mats=[];
+      for(let k=0;k<5;k++) mats.push((await give(MAX_YEARS,"than",TG)).id);
+      t=await enh(tg.id,mats); const tgi=itemOf(tg.id), s20=await test(A,"stats");
+      const def20=bonePassive([{beast:TG,slot:"than",years:12000,enhance:20}]).buff.def, dHp=boneStats("than",12000,20).hp-boneStats("than",12000).hp;
+      ok(tgi.enhance===BONE_MAX_ENHANCE&&tgi.stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(t)&&mats.every(id=>!itemOf(id)),`5 nguyên liệu 100.000 năm: +${tgi.enhance} tối đa, điểm dư bị bỏ (${t})`);
+      ok(Math.abs(s20.live.passive.buff.def-def20)<1e-4&&Math.abs(def20-Math.min(BONE_PASSIVE_CAP.def,def0*boneSkillMult(20)))<1e-3&&def20>def0,
+        `mốc +20 nâng bị động ${BONE_SKILLS[TG].passive.name}: giảm sát thương ${def0} -> ${s20.live.passive.buff.def} (×${boneSkillMult(20)})`);
+      ok(s20.bones.hp===boneStats("than",12000,20).hp&&await waitFor(()=>p.maxHp===hp0+dHp),`sinh lực tối đa ${hp0} -> ${p.maxHp} (+${dHp}) ngay khi đang gắn`);
+      const m5=await give(1000,"than",TG); t=await enh(tg.id,[m5.id]); ok(/tối đa \+20/.test(t)&&itemOf(m5.id),`đã +20: từ chối, nguyên liệu còn nguyên (${t})`);
+      // Hồn cốt trong túi (không gắn) cũng cường hóa được; hồn cốt đã cường hóa làm nguyên liệu trả lại 80% điểm.
+      const m6=await give(2000,"than",TG); t=await enh(m5.id,[m6.id]);
+      const m5i=itemOf(m5.id), g6=fx(2000,"than","than");
+      ok(m5i?.vohon===null&&m5i.stats.xp===g6&&m5i.enhance===boneEnhanceLevel(g6)&&!itemOf(m6.id),`cường hóa hồn cốt trong túi: +${m5i?.enhance} (${g6} điểm)`);
+      const g7=g5+fx(1000,"than","tay_phai",g6); t=await enh(tpw.id,[m5.id]); tw=itemOf(tpw.id);
+      ok(tw.stats.xp===g7&&tw.enhance===boneEnhanceLevel(g7)&&!itemOf(m5.id)&&/vẫn \+5|lên \+/.test(t),`nguyên liệu +${m5i?.enhance}: ${fx(1000,"than","tay_phai")} + ${Math.floor(g6*BONE_FEED_CARRY)} điểm trả lại = ${g7-g5} (${t})`);
+      // Tháo về túi vẫn giữ cấp và điểm; võ hồn mất phần chỉ số của hồn cốt đó.
+      t=await boneOp("unequip",{itemId:tg.id});
+      ok(itemOf(tg.id)?.vohon===null&&itemOf(tg.id).enhance===BONE_MAX_ENHANCE&&itemOf(tg.id).stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/giữ cường hóa \+20/.test(t)&&await waitFor(()=>p.maxHp===hp0-boneStats("than",12000).hp),
+        `tháo về túi giữ +20, sinh lực tối đa ${hp0+dHp} -> ${p.maxHp} (không còn hồn cốt Thân; ${t})`);
+      await boneOp("unequip",{itemId:hd.id});
+      for(const it of [tg,hd]) A.room.send("discard",{id:it.id});
+      ok(await waitFor(()=>!itemOf(tg.id)&&!itemOf(hd.id),2000)&&itemOf(tpw.id)?.vohon===act,`dọn hồn cốt thử 4.4, Tay phải +${itemOf(tpw.id)?.enhance} vẫn gắn (kiểm khi vào lại)`);
+      A.boneEq.atk=boneStats("tay_phai",32000,itemOf(tpw.id).enhance).atk;
+    }
     A.boneKeep=bonesOf(A).map(i=>[i.id,i.years,i.stats?.beast,i.stats?.slot]); // vào lại phải còn nguyên (kiểm ở dưới)
   }
   for(const o of orig) await test(A,"set",o);
@@ -2397,7 +2482,13 @@ if((await test(C,"ping"))?.enabled){
   const cb=bonesOf(C).find(i=>i.years===32000&&i.vohon===null);
   C.room.send("equip",{itemId:cb.id,vohonId:C.owned.active});
   ok(await waitFor(()=>bonesOf(C).find(i=>i.id===cb.id)?.vohon===C.owned.active),"C gắn hồn cốt Tay phải vào võ hồn ra trận (trong làng, ngoài giao chiến)");
-  C.boneEq={id:cb.id,vohon:C.owned.active,atk:boneStats("tay_phai",32000).atk};
+  // 4.4: cường hóa ngay trong làng (vùng an toàn, ngoài giao chiến) rồi đi cổng: cấp và điểm cường hóa chưa lưu cũng nằm trong
+  // transaction đi cổng, nguyên liệu không quay lại.
+  for(const y of [10000,10000]) await test(C,"give",{code:BONE_ITEM,years:y,beast:"am_kim_khung_trao_hung",slot:"tay_phai"});
+  const cm=bonesOf(C).filter(i=>i.vohon===null&&i.years===10000).map(i=>i.id), cLv=boneEnhanceLevel(2*boneFeedXp({slot:"tay_phai",years:10000},"tay_phai"));
+  { const n=C.bagMsgs??0; C.room.send("enhance",{targetId:cb.id,materialIds:cm}); await waitFor(()=>(C.bagMsgs??0)>n&&bonesOf(C).find(i=>i.id===cb.id)?.enhance===cLv,2000); }
+  ok(bonesOf(C).find(i=>i.id===cb.id)?.enhance===cLv&&!bonesOf(C).some(i=>cm.includes(i.id)),`C cường hóa hồn cốt đang gắn lên +${cLv} trong làng, 2 nguyên liệu đã mất`);
+  C.boneEq={id:cb.id,vohon:C.owned.active,atk:boneStats("tay_phai",32000,cLv).atk};
   await test(C,"give",{code:"hoi_hon_dan",qty:BAG_SLOTS*st});
   const cLoose=()=>C.bag.items.filter(i=>i.vohon===null).length;
   ok(cLoose()===BAG_SLOTS&&await lastLog(C,/Túi đồ đã đầy/),`túi đầy ${cLoose()}/${BAG_SLOTS} ô (hồn cốt đang gắn không chiếm ô): phần dư không nhận`);
@@ -2469,7 +2560,7 @@ if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.lis
   if(C.boneEq){ // 4.2: qua 5 lần đi cổng, thoát vào lại, đăng nhập lại: hồn cốt vẫn gắn, chỉ số vẫn cộng
     const sv=await test(C2,"stats",{rowId:C.boneEq.vohon});
     ok(C2.bag.items.find(i=>i.id===C.boneEq.id)?.vohon===C.boneEq.vohon&&sv.bones.atk===C.boneEq.atk,
-      `đi cổng, thoát vào lại, đăng nhập lại: hồn cốt vẫn gắn, công +${sv.bones.atk}`);
+      `đi cổng, thoát vào lại, đăng nhập lại: hồn cốt vẫn gắn, cường hóa +${C2.bag.items.find(i=>i.id===C.boneEq.id)?.enhance}, công +${sv.bones.atk}`);
   } }
 C=C2;
 await waitFor(()=>me());
