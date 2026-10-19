@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, VOHON, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex } from "../../../shared/data.ts";
+import { TIERS, BEASTS, VOHON, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -44,6 +44,7 @@ export class GameScene extends Phaser.Scene {
   hudT = 0;
   mini!: { ctx: CanvasRenderingContext2D; base: HTMLCanvasElement };
   mapW = 0; mapH = 0;
+  owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string }) { this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; }
@@ -164,11 +165,20 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("fx", (m: any) => this.fx(m));
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
+      this.owned = m;
       hud.renderRoster(m, (slots) => this.room.send("team", { slots }));
       hud.buildTeam(m, (slot) => this.act("switch" + slot));
     });
     // Sinh lực từng võ hồn trong đội và võ hồn đã gục (luật gục từng võ hồn, bước 2.3b): cũng chỉ gửi riêng cho mình.
-    this.room.onMessage("squad", (m: Squad) => hud.setSquad(m));
+    // Năng lượng tiên cơ cũng đi trong tin này: võ hồn nào vừa đầy thì báo một lần.
+    this.room.onMessage("squad", (m: Squad) => {
+      for (const r of hud.setSquad(m)) {
+        const slot = this.owned?.team.indexOf(r) ?? -1, v = this.owned?.list.find((o) => o.rowId === r);
+        if (!v || slot < 0 || r === this.owned?.active) continue;
+        const def = VOHON[Math.max(0, vohonIndex(v.vohon))];
+        hud.log(`${def.name} đủ năng lượng tiên cơ: nhấn ${slot + 1} để đổi vào và tung ${TIEN_CO[def.he].name}.`, "#e9c45a");
+      }
+    });
     this.room.onMessage("ko", (m: { fallen: string; next: string | null }) => {
       const name = (id: string) => VOHON[Math.max(0, vohonIndex(id))].name;
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
@@ -220,12 +230,72 @@ export class GameScene extends Phaser.Scene {
       const v = this.players.get(m.id); if (v && Number.isInteger(m.i)) v.lit = { i: m.i, t0: this.time.now };
       this.soulRingFx(m.id, m.tier, 700);
     }
+    else if (m.k === "tienco") this.tienCoFx(m);
     else if (m.k === "absorbed") {
       const v = this.players.get(m.id); if (!v) return; const t = TIERS[m.tier];
       for (let k = 0; k < 3; k++) this.ringFx(v.root.x, v.root.y - 6, 4 + k * 6, 60 + k * 20, t.glow, 700, k * 120);
       this.soulRingFx(m.id, m.tier, 1400);
       if (m.id === this.me) { this.cameras.main.shake(400, 0.006); hud.banner(`Hồn hoàn thứ ${this.room.state.players.get(this.me)?.rings.length ?? ""}`, t.age); }
     }
+  }
+
+  /** Chiêu tiên cơ (bước 2.4): hiệu ứng chung theo hệ và chữ "Tiên cơ" bay lên trên đầu hồn sư. */
+  tienCoFx(m: { id: string; he: He; col: string; x: number; y: number; r?: number; x0?: number; y0?: number }) {
+    const c = hex(m.col), gold = 0xffe08a;
+    this.playAct(m.id, "cast");
+    if (m.he === "cuong_cong") {
+      // Nổ diện rộng: hai vòng sóng, chớp sáng, rung màn hình.
+      this.ringFx(m.x, m.y - 4, 6, m.r ?? 56, m.col, 450); this.ringFx(m.x, m.y - 4, 4, (m.r ?? 56) * 0.7, "#ffe08a", 380, 80);
+      const f = this.add.circle(m.x, m.y - 6, m.r ?? 56, c, 0.35).setDepth(99979).setScale(1, 0.6);
+      this.tweens.add({ targets: f, alpha: 0, duration: 320, onComplete: () => f.destroy() });
+      this.cameras.main.shake(260, 0.006);
+    } else if (m.he === "man_cong") {
+      // Lướt: vệt dài từ chỗ cũ, rồi dấu chém chữ X ở chỗ dừng.
+      const g = this.add.graphics().setDepth(99980);
+      g.lineStyle(6, c, 0.45).lineBetween(m.x0 ?? m.x, (m.y0 ?? m.y) - 6, m.x, m.y - 6);
+      g.lineStyle(2, gold, 1).lineBetween(m.x0 ?? m.x, (m.y0 ?? m.y) - 6, m.x, m.y - 6);
+      for (const a of [0.8, -0.8]) g.lineStyle(3, gold, 1).lineBetween(m.x - 14 * Math.cos(a), m.y - 6 - 14 * Math.sin(a), m.x + 14 * Math.cos(a), m.y - 6 + 14 * Math.sin(a));
+      this.tweens.add({ targets: g, alpha: 0, duration: 420, delay: 80, onComplete: () => g.destroy() });
+      this.cameras.main.shake(140, 0.004);
+    } else if (m.he === "khong_che") {
+      // Phong tỏa: vòng thu hẹp lại và các mắt xích quay quanh.
+      const r = m.r ?? 64;
+      this.ringFx(m.x, m.y - 4, r, 6, m.col, 500);
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2, q = this.add.rectangle(m.x + Math.cos(a) * r, m.y - 4 + Math.sin(a) * r * 0.6, 4, 4, c).setDepth(99980);
+        this.tweens.add({ targets: q, x: m.x + Math.cos(a + 1) * 10, y: m.y - 4 + Math.sin(a + 1) * 6, alpha: 0.2, duration: 500, onComplete: () => q.destroy() });
+      }
+    } else {
+      // Hộ thể: vòng xanh lá hồi phục và hạt sáng bay lên.
+      this.ringFx(m.x, m.y - 4, 4, 30, "#86e0b0", 500);
+      for (let k = 0; k < 10; k++) {
+        const q = this.add.rectangle(m.x + (k - 4.5) * 3, m.y - 2, 2, 2, k % 2 ? 0x86e0b0 : gold).setDepth(99980);
+        this.tweens.add({ targets: q, y: m.y - 30 - (k % 3) * 6, alpha: 0, duration: 650, delay: k * 30, onComplete: () => q.destroy() });
+      }
+    }
+    // Trên danh hiệu (y - 38) để không đè tên hồn sư.
+    const t = this.add.text(m.x, m.y - 56, `Tiên cơ · ${TIEN_CO[m.he]?.name ?? ""}`, {
+      fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
+      color: "#ffe08a", stroke: "#000", strokeThickness: 2, resolution: 8,
+    }).setOrigin(0.5).setDepth(99999);
+    this.tweens.add({ targets: t, y: m.y - 70, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
+  }
+
+  /** Trạng thái từ tiên cơ: vòng khiên quanh hồn sư có khiên, sao quay trên đầu hồn thú bị choáng. */
+  drawStatus(g: Phaser.GameObjects.Graphics, st: any, time: number) {
+    st.players.forEach((p: any, id: string) => {
+      const v = this.players.get(id); if (!v || p.shield <= 0 || p.dead) return;
+      g.lineStyle(1, 0x9ad8ff, 0.55 + 0.25 * Math.sin(time / 200)); g.strokeEllipse(v.root.x, v.root.y - 12, 26, 30);
+    });
+    st.beasts.forEach((b: any, id: string) => {
+      const s = this.beasts.get(id); if (!s || !b.stun) return;
+      const y = s.y - TIERS[b.tier].size - 14;
+      g.lineStyle(1, 0xffe08a, 0.7); g.strokeEllipse(s.x, y, 16, 5);
+      for (let k = 0; k < 3; k++) {
+        const a = time / 180 + k * 2.1, x = s.x + Math.cos(a) * 8, sy = y + Math.sin(a) * 2.5;
+        g.fillStyle(0x1a1020, 1).fillRect(x - 2, sy - 2, 4, 4); g.fillStyle(0xffe08a, 1).fillRect(x - 1, sy - 1, 2, 2);
+      }
+    });
   }
 
   // ---------- Bản đồ nhỏ ----------
@@ -339,6 +409,8 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(3, hex(t.col), 0.9); g.strokeEllipse(x, y - 4 - k * 6, 24 - k * 6, 8);
       for (let i = 0; i < 3; i++) { const a = time / 330 + i * 2.1; g.fillStyle(hex(t.glow), 1).fillRect(x + Math.cos(a) * (16 - k * 10) - 1, y - 8 + Math.sin(a) * (8 - k * 5) - 1, 2, 2); }
     });
+
+    this.drawStatus(g, st, time);
 
     // độ tối theo độ sâu của rừng
     const me = st.players.get(this.me);

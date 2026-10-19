@@ -14,8 +14,8 @@ Client **chỉ hiển thị và gửi input**. Không tính máu, sát thương,
   - `update()` đọc `this.room.state` mỗi khung hình (`st.players`, `st.beasts`, `st.drops`) rồi nội suy sprite. Trường mới thêm ở `server/src/rooms/schema.ts` thì đọc ở đây.
   - `setupMessages()` nhận `log`, `chat`, `dmg`, `fx`; `fx(m)` vẽ hiệu ứng theo `m.k`. Message riêng mới từ server cũng đăng ký ở đây.
   - `setupInput()` (bàn phím + joystick), `act()` gửi `attack` / `absorb` / `skill {i}` / `switch {slot}`, `sendInput()` gửi `input {x,y}` chỉ khi hướng đổi.
-  - `setupMessages()` nhận thêm tin riêng `vohons` (bộ sưu tập, đội hình, võ hồn ra trận) để vẽ bảng đội hình và thanh đội hình, `squad` (sinh lực từng võ hồn, võ hồn đã gục) và `ko` (banner khi võ hồn gục / cả đội gục).
-- `client/src/hud.ts`: HUD bằng HTML: `updateStats`, `buildSkills` (phím `SKILL_KEYS`), `buildTeam` / `setSquad` / `updateTeam` (thanh đội hình 4 ô: sinh lực từng ô, ô đã gục kèm giây hồi, hồi chiêu đổi), `renderRoster` / `toggleRoster` (bảng xếp đội), `log`, `banner`, `showTarget`, `showPrompt`, `ringColor`.
+  - `setupMessages()` nhận thêm tin riêng `vohons` (bộ sưu tập, đội hình, võ hồn ra trận) để vẽ bảng đội hình và thanh đội hình, `squad` (sinh lực từng võ hồn, võ hồn đã gục, năng lượng tiên cơ) và `ko` (banner khi võ hồn gục / cả đội gục).
+- `client/src/hud.ts`: HUD bằng HTML: `updateStats`, `buildSkills` (phím `SKILL_KEYS`), `buildTeam` / `setSquad` / `updateTeam` (thanh đội hình 4 ô: sinh lực và năng lượng tiên cơ từng ô, ô đầy năng lượng sáng viền, ô đã gục kèm giây hồi, hồi chiêu đổi), `renderRoster` / `toggleRoster` (bảng xếp đội), `log`, `banner`, `showTarget`, `showPrompt`, `ringColor`.
 - `client/index.html` + `client/src/style.css`: khung HUD (`#hud`, `#skills`, `#chatbox`, `#joy`/`#knob`, `#overlay`). Kiểu riêng cho chạm dùng `body.touch ...`.
 - `client/src/textures.ts`: sprite pixel vẽ bằng code (`makeTextures`, `looksTextures`, `vohonTextures`); hình hồn sư và phụ thể vẽ trong `client/src/honsuArt.ts`, nền tảng sheet/animation/hoán màu ở `client/src/sprites.ts` (mục 5.11).
 

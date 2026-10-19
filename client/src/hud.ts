@@ -1,5 +1,5 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
-import { TIERS, VOHON, SKILLS, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD } from "../../shared/data.ts";
+import { TIERS, VOHON, SKILLS, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO, TIEN_CO_MAX } from "../../shared/data.ts";
 import type { OwnedVohons, Squad } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -80,38 +80,54 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
     b.dataset.slot = String(i);
     if (def) b.style.setProperty("--c", def.col);
     if (v) b.dataset.row = String(rowId);
-    b.innerHTML = `<b>${i + 1}</b><i class="dot"></i><span></span><small></small><i class="hpb"><i></i></i><div class="cd"></div>`;
+    b.innerHTML = `<b>${i + 1}</b><i class="dot"></i><span></span><small></small><i class="hpb"><i></i></i><i class="enb"><i></i></i><div class="cd"></div>`;
     b.querySelector("span")!.textContent = def ? def.name : "Trống";
     b.dataset.sub = v ? (on ? "Ra trận" : `Cấp ${v.level}`) : "";
     b.querySelector("small")!.textContent = b.dataset.sub;
-    b.setAttribute("aria-label", def ? `Ô ${i + 1}: ${def.name}${on ? ", đang ra trận" : ""}` : `Ô ${i + 1}: trống`);
+    b.dataset.label = def ? `Ô ${i + 1}: ${def.name}${on ? ", đang ra trận" : ""}` : `Ô ${i + 1}: trống`;
+    if (def) b.dataset.tc = `${TIEN_CO[def.he].name}: ${TIEN_CO[def.he].desc}`;
+    b.setAttribute("aria-label", b.dataset.label);
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); sw(i); });
     el.appendChild(b);
   });
 }
 
 let squad: Squad = { combat: false, list: [] };
-/** Nhận tin riêng "squad" (sinh lực, võ hồn đã gục); updateTeam vẽ lại mỗi khung hình. */
-export function setSquad(s: Squad) { squad = s; }
+/**
+ * Nhận tin riêng "squad" (sinh lực, võ hồn đã gục, năng lượng tiên cơ); updateTeam vẽ lại mỗi khung hình. Trả về các võ hồn
+ * vừa đầy năng lượng (để báo một lần).
+ */
+export function setSquad(s: Squad) {
+  const filled = s.list.filter((x) => x.en >= TIEN_CO_MAX && (squad.list.find((o) => o.rowId === x.rowId)?.en ?? 0) < TIEN_CO_MAX);
+  squad = s;
+  return filled.map((x) => x.rowId);
+}
 
 /**
  * Mỗi khung hình: thanh sinh lực từng võ hồn trong đội (ô ra trận lấy sinh lực trong state), võ hồn đã gục làm mờ kèm thời gian
- * hồi, và hồi chiêu đổi võ hồn (swCd / SWITCH_CD) phủ lên các ô chưa ra trận.
+ * hồi, thanh năng lượng tiên cơ (ô chưa ra trận đầy năng lượng thì sáng viền, chữ "Tiên cơ!"), và hồi chiêu đổi võ hồn
+ * (swCd / SWITCH_CD) phủ lên các ô chưa ra trận.
  */
 export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
   const k = Math.max(0, Math.min(1, me.swCd / SWITCH_CD));
   document.querySelectorAll<HTMLElement>(".tm").forEach((b) => {
     const on = b.classList.contains("on"), s = squad.list.find((x) => String(x.rowId) === b.dataset.row);
-    const down = !!s?.down, hp = on ? me.hp : s?.hp ?? 0, max = on ? me.maxHp : s?.maxHp ?? 0;
+    const down = !!s?.down, hp = on ? me.hp : s?.hp ?? 0, max = on ? me.maxHp : s?.maxHp ?? 0, en = s?.en ?? 0;
+    const full = !on && !down && en >= TIEN_CO_MAX;
     b.classList.toggle("down", down);
+    b.classList.toggle("full", full);
+    const enFill = b.querySelector(".enb i") as HTMLElement | null;
+    if (enFill) enFill.style.width = Math.max(0, Math.min(1, en / TIEN_CO_MAX)) * 100 + "%";
     b.classList.toggle("paused", down && squad.combat);
     const fill = b.querySelector(".hpb i") as HTMLElement | null;
     if (fill) fill.style.width = (max ? Math.max(0, Math.min(1, hp / max)) * 100 : 100) + "%";
-    const sub = down ? `Gục · ${s!.down}s` : b.dataset.sub ?? "";
+    const sub = down ? `Gục · ${s!.down}s` : full ? "Tiên cơ!" : b.dataset.sub ?? "";
     const small = b.querySelector("small")!;
     if (small.textContent !== sub) {
       small.textContent = sub;
-      b.title = down ? `Đã gục: hồi lại sau ${s!.down} giây ngoài trận (đang giao chiến thì đồng hồ dừng) hoặc khi về doanh trại.` : "";
+      b.title = down ? `Đã gục: hồi lại sau ${s!.down} giây ngoài trận (đang giao chiến thì đồng hồ dừng) hoặc khi về doanh trại.`
+        : b.dataset.tc ? `Thanh vàng là năng lượng tiên cơ: tích khi võ hồn ra trận đánh trúng, đầy thì đổi vào sẽ tung ${b.dataset.tc}.` : "";
+      if (b.dataset.label) b.setAttribute("aria-label", b.dataset.label + (full ? ", đủ năng lượng tiên cơ" : ""));
     }
     (b.querySelector(".cd") as HTMLElement).style.height = (on || down || b.classList.contains("locked") ? 0 : k * 100) + "%";
   });
