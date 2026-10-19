@@ -35,6 +35,11 @@ export interface BagMsg { slots: number; honTe: number; cd: number; items: BagIt
  * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.
  */
 export interface QuestMsg extends QuestProgress { status: QuestStatus; ev?: "accept" | "ready" | "reward" | "finish"; done?: string; }
+/**
+ * Tin nhắn riêng "resonance" (cộng minh, bước 8.2): tiến độ `prog` và số mốc đã đạt `lv` từng trụ cột (thứ tự RESONANCE), tổng %
+ * đang cộng cho mọi võ hồn. `ev`: mốc vừa đạt (`up`) hoặc vừa mất (tháo đồ), chỉ có khi đổi.
+ */
+export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<"hp" | "mp" | "atk", number>; ev?: { pillar: number; step: number; up: boolean }[]; }
 
 /**
  * Tin nhắn riêng "party" (tổ đội người chơi, bước 7.1): `id` tổ đội (0 = chưa có; so với DropState.party để biết đồ rơi của đội),
