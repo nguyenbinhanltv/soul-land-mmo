@@ -3,13 +3,16 @@
 // Bot thứ ba (tài khoản mới mỗi lần chạy) đi cổng Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành,
 // thoát và vào lại để kiểm tra bản đồ và vị trí đã lưu (BĐ2).
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
-// Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b), năng lượng và chiêu tiên cơ theo 4 hệ (2.4) cần server bật hook kiểm thử:
+// Túi đồ (3.1): nhận đan khởi đầu, dùng đan, hồi chiêu chung, Hồn Tệ khi hạ hồn thú, gộp đồ và giới hạn ô, túi đồ giữ nguyên khi
+// đi cổng và khi thoát vào lại.
+// Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b), năng lượng và chiêu tiên cơ theo 4 hệ (2.4), dùng đan khi mất máu (3.1) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
-  VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY } from "../../shared/data.ts";
+  VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
+  BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -64,8 +67,14 @@ async function enter(b){
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
   b.room.onMessage("ko",m=>{b.ko=m;});
   b.room.onMessage("test",m=>{b.test=m;});
-  b.room.send("vohons");
+  b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
+  b.bag=null; b.room.send("vohons"); b.room.send("bag");
 }
+/** Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng từng ô + Hồn Tệ) để so trước/sau khi lưu. */
+const qtyOf=(b,code)=>(b.bag?.items??[]).filter(i=>i.code===code).reduce((a,i)=>a+i.qty,0);
+const bagKey=b=>b.bag&&JSON.stringify([b.bag.honTe,b.bag.items.map(i=>[i.id,i.code,i.qty])]);
+/** Gửi `use {id}` rồi chờ server trả túi mới (dùng được) hoặc một dòng log (bị từ chối). */
+async function useItem(b,id){ const n=b.bagMsgs??0, l=b.logs.length; b.room.send("use",{id}); await waitFor(()=>(b.bagMsgs??0)>n||b.logs.length>l,1500); }
 const lastLog=(b,re)=>waitFor(()=>re.test(b.logs.at(-1)??""),800);
 /** Gửi đội hình rồi chờ server gửi lại đội (đã lưu hoặc bị từ chối). */
 async function sendTeam(b,slots){ const n=b.ownedMsgs; b.room.send("team",{slots}); await waitFor(()=>b.ownedMsgs>n); return b.owned.team; }
@@ -101,6 +110,25 @@ if(A.isNew) ok(T[0]===A.owned.active&&T.filter(Boolean).length===2,"tài khoản
 console.log("  B: tin vohons",B.ownedMsgs,"đội",JSON.stringify(B.owned?.team));
 ok(B.ownedMsgs===1&&!B.owned.team.some(r=>r&&T.includes(r)),"B không nhận đội hình của A");
 ok(!("team" in bView()),"state công khai không có đội hình");
+
+// ---------- 3.1: túi đồ chỉ gửi chính chủ, đan khởi đầu, dùng đan bị từ chối khi không hợp lệ ----------
+ok(await waitFor(()=>A.bag&&B.bag),"nhận tin túi đồ riêng");
+ok(A.bag?.slots===BAG_SLOTS&&A.bag.honTe===0,`túi ${A.bag?.items.length}/${A.bag?.slots} ô, Hồn Tệ ${A.bag?.honTe}`);
+ok(STARTER_ITEMS.every(s=>qtyOf(A,s.code)===s.qty)&&A.bag.items.length===STARTER_ITEMS.length,
+  `tài khoản mới nhận đan khởi đầu: ${A.bag?.items.map(i=>`${i.qty} ${itemDef(i.code)?.name}`).join(", ")}`);
+ok(/Quà khởi đầu/.test(A.logs.join("|")),"báo quà khởi đầu");
+ok(A.bag&&B.bag&&!A.bag.items.some(i=>B.bag.items.some(j=>j.id===i.id)),"túi đồ A và B tách biệt");
+ok(!("bag" in bView())&&!("honTe" in bView()),"state công khai không có túi đồ, Hồn Tệ");
+{
+  const huyet=A.bag.items.find(i=>i.code==="hoi_huyet_dan"), hon=A.bag.items.find(i=>i.code==="hoi_hon_dan"), k0=bagKey(A);
+  await useItem(A,huyet.id); ok(await lastLog(A,/Sinh lực đang đầy/)&&bagKey(A)===k0,"sinh lực đầy: không phí Hồi Huyết Đan");
+  await useItem(A,hon.id); ok(await lastLog(A,/Hồn lực đang đầy/)&&bagKey(A)===k0,"hồn lực đầy: không phí Hồi Hồn Đan");
+  for(const bad of [{id:"khong-co"},{id:123},{id:null},{}]){ await useItem(A,bad.id); }
+  ok(await lastLog(A,/Không có vật phẩm/)&&bagKey(A)===k0,"id sai bị từ chối");
+  const bk=bagKey(B); await useItem(B,huyet.id);
+  ok(await lastLog(B,/Không có vật phẩm/)&&bagKey(A)===k0&&bagKey(B)===bk,"B dùng id món đồ của A: bị từ chối");
+}
+ok(formatHonTe(0)==="0 đồng"&&formatHonTe(1234567)==="123 kim 45 ngân 67 đồng"&&formatHonTe(10005)==="1 kim 5 đồng",`quy đổi Hồn Tệ: ${formatHonTe(1234567)}`);
 
 // Xếp đội (ngoài giao chiến): chặn đội sai, đổi chỗ, bỏ võ hồn ra trận khỏi đội.
 const [x,y]=ids, base=[x,y,0,0];
@@ -173,6 +201,8 @@ if(p.kills){
   ok(en>0&&(en===TIEN_CO_MAX||en%TIEN_CO_GAIN.attack===0),`đánh hồn thú: võ hồn ngoài sân tích ${en}/${TIEN_CO_MAX} năng lượng tiên cơ`);
   ok((A.squad?.list.find(s=>s.rowId===A.owned.active)?.en??0)===0,"võ hồn ra trận không tự tích năng lượng");
 }
+// Hồn Tệ (3.1): hạ hồn thú thì người hạ nhận vài đồng.
+if(p.kills>kills0) ok(await waitFor(()=>A.bag?.honTe>0)&&A.logs.some(t=>/^Hạ .*Hồn Tệ/.test(t)),`hạ ${p.kills-kills0} hồn thú: Hồn Tệ ${A.bag?.honTe} đồng (${formatHonTe(A.bag?.honTe??0)})`);
 // Vừa đánh xong (đang giao chiến): đổi võ hồn trong đội được, xếp đội thì không.
 if(p.kills>kills0){
   await waitFor(()=>p.swCd===0,3500);
@@ -203,6 +233,22 @@ const inCamp=()=>p.x>=spawnObj.x&&p.x<=spawnObj.x+spawnObj.width&&p.y>=spawnObj.
 if(!(await test(A,"ping"))?.enabled) console.log("  ⚠ bỏ qua kiểm tra 2.3b (gục, hồi sinh, chia kinh nghiệm): bật server bằng GAME_TEST=1");
 else {
   await waitFor(()=>p.swCd===0&&p.absorb===0,8000); // lần thử hấp thụ ở trên có thể còn đang chạy
+  {
+    // 3.1: dùng đan khi mất máu / hồn lực, hồi chiêu chung giữa Hồi Huyết Đan và Hồi Hồn Đan.
+    await test(A,"rest",{s:DAN_CD});
+    await test(A,"hurt",{pct:60}); await waitFor(()=>p.hp<p.maxHp*0.6);
+    const huyet=A.bag.items.find(i=>i.code==="hoi_huyet_dan"), q0=qtyOf(A,"hoi_huyet_dan"), hp0=p.hp, gain=Math.floor(p.maxHp*itemDef("hoi_huyet_dan").hp);
+    await useItem(A,huyet.id);
+    ok(qtyOf(A,"hoi_huyet_dan")===q0-1&&await waitFor(()=>p.hp>=Math.min(p.maxHp,hp0-1+gain)),`dùng Hồi Huyết Đan: sinh lực ${hp0} -> ${p.hp}/${p.maxHp}, còn ${qtyOf(A,"hoi_huyet_dan")} viên`);
+    ok(A.bag.cd>DAN_CD-1&&A.bag.cd<=DAN_CD,`hồi chiêu đan ${A.bag.cd.toFixed(2)} giây`);
+    await test(A,"drain",{pct:80}); await waitFor(()=>p.mp<p.maxMp*0.3);
+    const hon=A.bag.items.find(i=>i.code==="hoi_hon_dan"), h0=qtyOf(A,"hoi_hon_dan");
+    await useItem(A,hon.id); ok(await lastLog(A,/Đan dược đang hồi/)&&qtyOf(A,"hoi_hon_dan")===h0,"Hồi Hồn Đan chung hồi chiêu với Hồi Huyết Đan: bị chặn");
+    await test(A,"rest",{s:DAN_CD}); ok(A.bag.cd===0,"nghỉ đủ: hết hồi chiêu đan");
+    const mp0=p.mp; await useItem(A,hon.id);
+    ok(qtyOf(A,"hoi_hon_dan")===h0-1&&await waitFor(()=>p.mp>mp0),`dùng Hồi Hồn Đan: hồn lực ${mp0} -> ${p.mp}/${p.maxMp}`);
+    await test(A,"rest",{s:DAN_CD});
+  }
   const a=A.owned.active, bn=A.owned.team.find(r=>r&&r!==a), orig=[a,bn].map(r=>({rowId:r,level:vOf(r).level,xp:vOf(r).xp,rings:[...vOf(r).rings]}));
   ok(A.owned.team.filter(Boolean).length===2&&TEAM_SIZE===4,"đội 2 võ hồn, 2 ô trống");
   /** Hạ hồn thú bậc `tier` (qua hook): trả về kinh nghiệm mỗi võ hồn nhận được. */
@@ -251,6 +297,7 @@ else {
   A.ko=null; await test(A,"down"); await waitFor(()=>A.owned.active===bn);
   A.ko=null; await test(A,"down");
   ok(await waitFor(()=>p.dead&&A.ko&&A.ko.next===null)&&/cả đội/i.test(A.logs.join("\n")),"cả đội gục: thông báo về doanh trại");
+  { const k=bagKey(A); await useItem(A,A.bag.items.find(i=>i.code==="hoi_huyet_dan").id); ok(await lastLog(A,/Đã gục/)&&bagKey(A)===k,"cả đội gục: không dùng được đan"); }
   ok(same([a,bn].map(r=>vOf(r).xp),xpBefore),`không mất kinh nghiệm (${xpBefore.join("/")})`);
   ok(await waitFor(()=>!p.dead,RESPAWN_SECS*1000+1500)&&inCamp(),"hồi sinh ở doanh trại");
   ok(await waitFor(()=>p.hp===p.maxHp&&A.squad.list.every(s=>!s.down&&s.hp===s.maxHp)),"cả đội hồi đầy");
@@ -379,8 +426,9 @@ await A.room.leave(); await B.room.leave();
 
 // Vào lại: đội hình, võ hồn ra trận và tiến độ từng võ hồn (cả võ hồn không ra trận) đã lưu.
 const prog=()=>A.owned.list.map(v=>[v.rowId,v.level,v.xp]);
-const saved={team:[...A.owned.team],active:A.owned.active,prog:prog()}; await sleep(500);
-await enter(A); await waitFor(()=>A.owned);
+const saved={team:[...A.owned.team],active:A.owned.active,prog:prog(),bag:bagKey(A)}; await sleep(500);
+await enter(A); await waitFor(()=>A.owned&&A.bag);
+ok(bagKey(A)===saved.bag,`vào lại: túi đồ và Hồn Tệ đã lưu (${A.bag?.items.length} ô, ${formatHonTe(A.bag?.honTe??0)})`);
 ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào lại: đội ${JSON.stringify(A.owned?.team)}, ra trận ${A.owned?.active}`);
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm từng võ hồn đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
@@ -401,13 +449,15 @@ async function travelBy(name,to,during,after){
   C.travel=null; C.room.send("travel",{portal:name}); await during?.();
   ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`);
   await after?.();
-  const x0=me().x; C.room.send("input",{x:1,y:0}); await sleep(300);
+  const x0=me().x, bk=bagKey(C); C.room.send("input",{x:1,y:0}); C.room.send("use",{id:C.bag?.items[0]?.id}); await sleep(300);
   ok(me().x===x0,"đang chuyển bản đồ: server bỏ qua input");
+  ok(bagKey(C)===bk,"đang chuyển bản đồ: không dùng được đan");
   await C.room.leave(); await sleep(300);
   const m=await post("/api/me",{token:C.token});
   ok(m.mapId===to,`/api/me sau khi đi cổng: ${m.mapId}`);
-  C.mapId=m.mapId; await enter(C); await waitFor(()=>me());
+  C.mapId=m.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
   ok(C.room.state.mapId===to,`vào phòng ${C.room.state.mapId}`);
+  ok(bagKey(C)===bk,`đi cổng: túi đồ và Hồn Tệ giữ nguyên (${C.bag?.items.length} ô, ${formatHonTe(C.bag?.honTe??0)})`);
 }
 // Thánh Hồn Thôn: từ quảng trường làng (vùng an toàn) theo đường làng xuống cổng ở mép nam.
 C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong làng (vùng an toàn) không đánh được");
@@ -427,6 +477,19 @@ let benchXp=null;
 if((await test(C,"ping"))?.enabled){
   await test(C,"kill",{tier:1}); const bn=C.owned.team.find(r=>r&&r!==C.owned.active);
   benchXp=[bn,C.owned.list.find(v=>v.rowId===bn).xp];
+  // 3.1: gộp đồ cùng loại theo `stack`, giới hạn ô túi; mọi thay đổi chưa lưu này phải nằm trong transaction đi cổng.
+  const st=itemDef("hoi_huyet_dan").stack, h0=qtyOf(C,"hoi_huyet_dan");
+  await test(C,"give",{code:"hoi_huyet_dan",qty:2*st});
+  const stacks=C.bag.items.filter(i=>i.code==="hoi_huyet_dan").map(i=>i.qty);
+  ok(qtyOf(C,"hoi_huyet_dan")===h0+2*st&&stacks.length===3&&stacks[0]===st&&stacks[1]===st,`gộp Hồi Huyết Đan: ${stacks.join(" + ")} (tối đa ${st} mỗi ô)`);
+  await test(C,"give",{code:"hoi_hon_dan",qty:BAG_SLOTS*st});
+  ok(C.bag.items.length===BAG_SLOTS&&await lastLog(C,/Túi đồ đã đầy/),`túi đầy ${C.bag.items.length}/${BAG_SLOTS} ô: phần dư không nhận`);
+  const n1=qtyOf(C,"hoi_huyet_dan"); await test(C,"give",{code:"hoi_huyet_dan",qty:1});
+  ok(qtyOf(C,"hoi_huyet_dan")===n1+1,"túi đầy vẫn gộp vào ô cùng loại chưa đầy");
+  await test(C,"coin",{n:1234567});
+  await test(C,"rest",{s:DAN_CD}); await test(C,"hurt",{pct:50});
+  const q=qtyOf(C,"hoi_huyet_dan"); await useItem(C,C.bag.items.find(i=>i.code==="hoi_huyet_dan").id);
+  ok(qtyOf(C,"hoi_huyet_dan")===q-1,"C dùng một Hồi Huyết Đan ngay trước khi đi cổng");
 }
 await travelBy("Đi Nặc Đinh Thành","nac_dinh_thanh");
 if(benchXp){ await waitFor(()=>C.owned); const v=C.owned?.list.find(v=>v.rowId===benchXp[0]);
@@ -445,7 +508,8 @@ ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Ti
 await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
 const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau",`thoát rồi /api/me: ${m2.mapId}`);
-C.mapId=m2.mapId; await enter(C); await waitFor(()=>me());
+const bag2=bagKey(C); C.mapId=m2.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
+ok(bagKey(C)===bag2,`thoát rồi vào lại: túi đồ giữ nguyên (${C.bag?.items.length} ô)`);
 ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
 // Đăng nhập lần nữa: phiên cũ bị đá (presence), phiên mới vào đúng bản đồ.
 let kicked=0; C.room.onLeave(code=>{kicked=code;});

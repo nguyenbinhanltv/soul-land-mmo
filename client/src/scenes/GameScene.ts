@@ -4,7 +4,7 @@ import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE,
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import type { OwnedVohons, Squad, PortalInfo } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -154,7 +154,8 @@ export class GameScene extends Phaser.Scene {
       }
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
-      if (e.code === "Escape") { hud.toggleRoster(false); return; }
+      if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); return; }
       if (e.code === "KeyF" && !e.repeat) { this.goPortal(); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -171,6 +172,7 @@ export class GameScene extends Phaser.Scene {
     addEventListener("blur", () => { this.keys = {}; }, on);
     chat.addEventListener("focus", () => { this.keys = {}; }, on);
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); }, on);
+    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleBag(); }, on);
 
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
     let jid: number | null = null;
@@ -241,7 +243,10 @@ export class GameScene extends Phaser.Scene {
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
       else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
     });
+    // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng, server kiểm tra.
+    this.room.onMessage("bag", (m: BagMsg) => hud.renderBag(m, (id) => this.room.send("use", { id })));
     this.room.send("vohons");
+    this.room.send("bag");
   }
 
   ringFx(x: number, y: number, r0: number, r1: number, col: string, dur: number, delay = 0) {
@@ -524,6 +529,7 @@ export class GameScene extends Phaser.Scene {
     if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], (a) => this.act(a)); }
     hud.updateStats(me);
     hud.updateTeam(me);
+    hud.updateBag();
     // Tên vùng: vùng an toàn > vùng săn > điểm hồi sinh > tên bản đồ. Vừa vào bản đồ thì hiện tên bản đồ.
     const area = this.safes.find((z) => inRect(z, me.x, me.y)) ?? this.zones.find((z) => inRect(z, me.x, me.y));
     const mapName = MAPS[this.mapId]?.name ?? this.mapId;
