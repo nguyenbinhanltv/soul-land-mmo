@@ -22,9 +22,9 @@ export interface PortalInfo { name: string; to?: string; toName?: string; level?
 export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[] }[]; }
 /**
  * Tin nhắn riêng "squad": sinh lực từng võ hồn trong đội; `down` > 0 là võ hồn đã gục, còn ngần ấy giây ngoài trận nữa thì hồi.
- * `combat`: đang giao chiến (đồng hồ hồi dừng).
+ * `en`: năng lượng tiên cơ (0..TIEN_CO_MAX). `combat`: đang giao chiến (đồng hồ hồi dừng).
  */
-export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number }[]; }
+export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number; en: number }[]; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

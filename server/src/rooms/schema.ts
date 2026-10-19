@@ -23,6 +23,7 @@ export class PlayerState extends Schema {
   @type(["uint8"]) rings = new ArraySchema<number>();
   @type(["float32"]) cds = new ArraySchema<number>(0, 0, 0, 0);
   @type("float32") swCd: number = 0;     // giây còn lại trước khi được đổi võ hồn trong đội lần tiếp (SWITCH_CD)
+  @type("uint32") shield: number = 0;    // khiên còn lại (chiêu tiên cơ phụ trợ, mục 5.1); ai cũng thấy để vẽ vòng khiên
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;
   @type("boolean") dead: boolean = false;
@@ -39,6 +40,7 @@ export class BeastState extends Schema {
   @type("int8") face: number = 1;
   @type("boolean") aggro: boolean = false;
   @type("boolean") moving: boolean = false;
+  @type("boolean") stun: boolean = false; // đang bị choáng (chiêu tiên cơ khống chế): không đi, không đánh
 }
 
 export class DropState extends Schema {
