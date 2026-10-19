@@ -457,6 +457,10 @@ export class GameScene extends Phaser.Scene {
       const v = this.players.get(m.id), col = TIERS[m.tier]?.glow ?? "#ffffff", k = boneSkillOf(BEASTS[m.sp]?.id ?? "", BONE_ACTIVE_SLOTS[m.i]);
       if (v) { this.ringFx(v.root.x, v.root.y - 6, 4, 22, col, 420); if (k?.active) this.floatText(v.root.x, v.root.y - 48, k.sk.name, col); }
     }
+    else if (m.k === "combo") {
+      // Bộ hồn hạch Hạo Thiên 4 món (5.2): đòn thường thứ 3 liên tiếp, chữ bay lên màu bộ.
+      const v = this.players.get(m.id); if (v) this.floatText(v.root.x, v.root.y - 48, "Hạo Thiên liên kích!", m.col ?? "#b9a3ff");
+    }
     else if (m.k === "pull") {
       // Gom quái: vòng thu từ bán kính r về thân, kèm dây kéo.
       this.ringFx(m.x, m.y, m.r, 6, m.col, 380);
@@ -1000,7 +1004,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Bảng đội hình kèm hồn cốt (bước 4.2) và mảnh võ hồn (bước 3.4): số mảnh và hồn cốt (đang gắn / trong túi) từ tin riêng "bag",
+   * Bảng đội hình kèm hồn cốt (bước 4.2), hồn hạch (bước 5.2) và mảnh võ hồn (bước 3.4): số mảnh, hồn cốt và hồn hạch (đang gắn /
+   * trong túi) từ tin riêng "bag",
    * võ hồn từ tin riêng "vohons".
    */
   renderRoster() {
@@ -1016,6 +1021,8 @@ export class GameScene extends Phaser.Scene {
       starUp: (vohon) => this.room.send("starup", { vohon }),
       equip: (itemId, vohonId, slot) => this.room.send("equip", { itemId, vohonId, slot }),
       unequip: (itemId) => this.room.send("unequip", { itemId }),
+      equipCore: (itemId, vohonId, slot) => this.room.send("equipcore", { itemId, vohonId, slot }),
+      unequipCore: (itemId) => this.room.send("unequipcore", { itemId }),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       portrait: (vohon) => this.portrait(vohon),
       combat: () => this.combat,

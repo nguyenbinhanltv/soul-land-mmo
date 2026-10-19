@@ -5,6 +5,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
   CORE_ITEM, CORE_SETS, CORE_SUBS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
+  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, KING, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole } from "../../shared/data.ts";
@@ -321,6 +322,7 @@ let rosterHint = "";
 export interface RosterActions {
   setTeam(team: number[]): void; unlock(vohon: string): void; starUp(vohon: string): void;
   equip(itemId: string, vohonId: number, slot?: string): void; unequip(itemId: string): void;
+  equipCore(itemId: string, vohonId: number, slot?: number): void; unequipCore(itemId: string): void;
   enhance(targetId: string, materialIds: string[]): void;
   portrait(vohon: string): string; combat(): boolean;
 }
@@ -409,6 +411,7 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   el.appendChild(note);
   rosterAgain = () => renderRoster(data, act, shards, items);
   renderBones(el, data, act, items, rosterAgain);
+  renderCores(el, data, act, items, rosterAgain);
   renderShards(el, data, act, shards);
 }
 
@@ -490,7 +493,8 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
 
   // Chỉ số của võ hồn kèm phần hồn cốt cộng thêm (calcStats của shared/data.ts, chỉ để hiển thị; server tự tính).
   const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance })));
-  const st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, bonus);
+  const st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, bonus,
+    coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId)))); // từ 5.2 cả hồn hạch đang gắn
   const sum = document.createElement("div"); sum.className = "bsum";
   sum.innerHTML = (["hp", "mp", "atk"] as BoneStat[]).map((k) => {
     const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk);
@@ -554,6 +558,150 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Mỗi võ hồn ${BONE_SLOTS.length} ô hồn cốt; hồn cốt chỉ gắn vào ô cùng vị trí và cộng chỉ số gốc cho võ hồn đó. Gắn / tháo khi không giao chiến; tháo ra vẫn giữ cường hóa; thua không bao giờ mất hồn cốt.`;
+  el.appendChild(note);
+}
+
+// ---------- Hồn hạch gắn trên võ hồn (mục 5.6, bước 5.2) ----------
+let coreCell: number | null = null;   // ô hồn hạch đang chọn (0..CORE_SLOTS − 1): xem món đang gắn, "Gắn" vào đúng ô này
+let coreFocus: string | null = null;  // hồn hạch trong túi vừa bấm "Gắn…" ở túi đồ: tô sáng
+
+/** Mở bảng đội hình ở mục hồn hạch của võ hồn ra trận, tô sáng hồn hạch `itemId` (nút "Gắn…" trong túi đồ). */
+export function openCores(itemId: string) {
+  coreFocus = itemId; coreCell = null; boneVh = null; // võ hồn đang ra trận (dùng chung lựa chọn với mục hồn cốt)
+  rosterAgain?.();
+  toggleRoster(true);
+  requestAnimationFrame(() => document.querySelector("#roster .cfig")?.scrollIntoView({ block: "start" }));
+}
+/** Hồn hạch (sao, dữ liệu) trong danh sách món, để tính coreBonus / coreSetCounts như server (chỉ hiển thị). */
+const wornCores = (list: BagItem[]) => list.flatMap((it) => { const c = coreOf(it); return c ? [{ stars: it.stars ?? 1, data: c }] : []; });
+/** Dòng chỉ số của một hồn hạch: chỉ số chính (theo sao) rồi các dòng phụ. */
+const coreLines = (it: BagItem) => {
+  const c = coreOf(it); if (!c) return [];
+  return [`Chính: ${coreStatText(c.main, coreMainValue(c.main, it.stars ?? 1))}`, ...c.subs.map(([k, x]) => `Phụ: ${coreStatText(k, x)}`)];
+};
+
+/**
+ * Khung 6 ô hồn hạch của võ hồn đang chọn ở mục hồn cốt (cùng danh sách thả xuống), ô nào cũng nhận mọi hồn hạch. Chọn một ô để
+ * xem món đang gắn (nút Tháo) và gắn món trong túi vào đúng ô đó (nút Gắn; không chọn ô thì vào ô trống đầu tiên); chuột kéo hồn
+ * hạch trong túi thả vào ô cũng gắn, kéo giữa hai ô thì đổi chỗ. Dưới là các bộ đang có (2 / 4 món kích hoạt, mô tả hiệu ứng) và
+ * chỉ số hồn hạch cộng thêm. Chỉ hiển thị; server kiểm tra quyền sở hữu, giao chiến, túi đầy.
+ */
+function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, items: BagItem[], again: () => void) {
+  const v = data.list.find((x) => x.rowId === boneVh) ?? data.list[0]; if (!v) return;
+  const def = vohonDef(v.vohon);
+  const head = document.createElement("b"); head.className = "shead"; head.textContent = `Hồn hạch · ${def.name}`;
+  el.appendChild(head);
+  const mine = items.filter((i) => i.vohon === v.rowId && coreOf(i)), bySlot = new Map<number, BagItem>();
+  for (const it of mine) { const s = coreSlotOf(it.stats); if (s >= 0) bySlot.set(s, it); }
+  if (coreCell !== null && coreCell >= CORE_SLOTS) coreCell = null;
+
+  const fig = document.createElement("div"); fig.className = "cfig"; fig.style.setProperty("--c", def.col);
+  for (let s = 0; s < CORE_SLOTS; s++) {
+    const it = bySlot.get(s), c = it ? coreOf(it) : null, cs = c ? coreSet(c.set) : undefined, b = document.createElement("button");
+    b.type = "button"; b.className = "bcell ccell" + (it ? "" : " empty") + (coreCell === s ? " sel" : "");
+    if (it) b.style.setProperty("--c", itemColor(it));
+    b.innerHTML = `${coreSvg(c?.set ?? "")}<span>Ô ${s + 1}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}`;
+    if (it) b.querySelector("em")!.textContent = cs?.name ?? "Bộ lạ";
+    b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? itemName(it) : "trống"}`);
+    b.setAttribute("aria-pressed", String(coreCell === s));
+    b.title = it ? `${itemName(it)}\n${coreLines(it).join("\n")}` : `Ô ${s + 1} trống: gắn được mọi hồn hạch`;
+    b.addEventListener("click", () => { b.blur(); coreCell = coreCell === s ? null : s; again(); });
+    // Chuột: kéo hồn hạch trong túi (hoặc ô khác của võ hồn này) thả vào ô; server đổi chỗ khi ô đã có.
+    if (it) {
+      b.draggable = true;
+      b.addEventListener("dragstart", (e) => { e.dataTransfer?.setData("text/plain", it.id); if (e.dataTransfer) e.dataTransfer.effectAllowed = "move"; });
+    }
+    b.addEventListener("dragover", (e) => { e.preventDefault(); b.classList.add("over"); });
+    b.addEventListener("dragleave", () => b.classList.remove("over"));
+    b.addEventListener("drop", (e) => {
+      e.preventDefault(); b.classList.remove("over");
+      const id = e.dataTransfer?.getData("text/plain"); if (id) { coreCell = s; coreFocus = null; act.equipCore(id, v.rowId, s); }
+    });
+    fig.appendChild(b);
+  }
+  el.appendChild(fig);
+
+  // Bộ đang có trên võ hồn này: đủ 2 món thì hiệu ứng 2 món sáng, đủ 4 món thêm hiệu ứng 4 món (cùng số với server: coreSetCounts).
+  const counts = coreSetCounts(wornCores(mine)), sets = document.createElement("div"); sets.className = "csets";
+  if (!counts.size) {
+    const s = document.createElement("small");
+    s.textContent = `Chưa gắn hồn hạch. ${CORE_SET_2} món cùng bộ nhận hiệu ứng 2 món, ${CORE_SET_4} món nhận thêm hiệu ứng 4 món.`;
+    sets.appendChild(s);
+  }
+  for (const [set, n] of [...counts].sort((a, b) => b[1] - a[1] || coreSetIndex(a[0]) - coreSetIndex(b[0]))) {
+    const cs = coreSet(set), row = document.createElement("div");
+    row.className = "cset" + (n >= CORE_SET_2 ? " on" : "");
+    if (cs) row.style.setProperty("--c", cs.col);
+    row.innerHTML = `${coreSvg(set)}<span><b></b><small></small><small></small></span>`;
+    row.querySelector("b")!.textContent = `${cs ? `${cs.name} (${cs.tag})` : "Bộ lạ"} · ${n} món`;
+    const [s2, s4] = row.querySelectorAll("small");
+    s2.textContent = `${n >= CORE_SET_2 ? "✓" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
+    s4.textContent = `${n >= CORE_SET_4 ? "✓" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
+    row.setAttribute("aria-label", `Bộ ${cs?.name ?? "lạ"}: ${n} món${n >= CORE_SET_4 ? ", kích hoạt 2 và 4 món" : n >= CORE_SET_2 ? ", kích hoạt 2 món" : ", chưa kích hoạt"}`);
+    sets.appendChild(row);
+  }
+  el.appendChild(sets);
+
+  // Chỉ số hồn hạch cộng thêm (kèm +công / +chí mạng của bộ) và chí mạng sau khi cộng (calcStats, chỉ để hiển thị).
+  const bonus = coreBonus(wornCores(mine)), st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, {}, bonus);
+  const add = CORE_STAT_IDS.filter((k) => bonus[k] > 0).map((k) => coreStatText(k, bonus[k]));
+  const sum = document.createElement("small"); sum.className = "rnote csum";
+  const pctTxt = (x: number) => `${(x * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}%`;
+  sum.textContent = `Hồn hạch cộng: ${add.length ? add.join(", ") : "chưa có"}. ${CORE_STATS.crit.name} ${pctTxt(st.crit)}, ${CORE_STATS.crit_dmg.name.toLowerCase()} ${pctTxt(st.critMult)}.`;
+  el.appendChild(sum);
+
+  const info = document.createElement("div"); info.className = "binfo bpick";
+  const cur = coreCell !== null ? bySlot.get(coreCell) : undefined;
+  if (cur && coreCell !== null) {
+    const c = coreOf(cur)!, cs = coreSet(c.set);
+    const t = document.createElement("b"); t.textContent = itemName(cur); t.style.color = itemColor(cur);
+    const d = document.createElement("small"); d.textContent = `Đang gắn ở ô ${coreCell + 1} · bộ ${cs ? `${cs.name} (${cs.tag})` : "lạ"} · nâng cấp +${cur.enhance}`;
+    const p = document.createElement("p"); p.textContent = coreLines(cur).join(" · ");
+    info.append(t, d, p);
+    const row = document.createElement("div"); row.className = "brow";
+    const off = document.createElement("button"); off.type = "button"; off.className = "buse drop"; off.textContent = "Tháo về túi";
+    off.setAttribute("aria-label", `Tháo ${itemName(cur)} về túi đồ`);
+    off.addEventListener("click", () => { off.blur(); act.unequipCore(cur.id); });
+    row.appendChild(off);
+    info.appendChild(row);
+    if (items.filter((i) => i.vohon === null).length >= BAG_SLOTS) {
+      const w = document.createElement("small"); w.className = "warn"; w.textContent = `Túi đồ đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới tháo được.`;
+      info.appendChild(w);
+    }
+  }
+  // Hồn hạch trong túi: bộ đang có trên võ hồn này trước (để ghép đủ bộ), rồi theo thứ tự bộ, sao cao trước.
+  const list = items.filter((i) => i.vohon === null && coreOf(i)).sort((a, b) => {
+    const ca = coreOf(a)!, cb = coreOf(b)!;
+    return (counts.get(cb.set) ?? 0) - (counts.get(ca.set) ?? 0) || coreSetIndex(ca.set) - coreSetIndex(cb.set) || (b.stars ?? 1) - (a.stars ?? 1);
+  });
+  const where = coreCell !== null ? `ô ${coreCell + 1}` : "ô trống đầu tiên";
+  const lh = document.createElement("small");
+  lh.textContent = list.length
+    ? `Hồn hạch trong túi: bấm "Gắn" (hoặc kéo thả vào ô) để gắn vào ${where} của ${def.name}${cur ? ", món đang gắn về túi" : ""}.`
+    : "Túi không có hồn hạch nào. Hạ hồn thú để có hồn hạch (sao theo niên hạn, bộ theo bản đồ).";
+  info.appendChild(lh);
+  for (const it of list) {
+    const c = coreOf(it)!, row = document.createElement("div");
+    row.className = "bitem" + (it.id === coreFocus ? " sel" : "");
+    row.draggable = true; row.style.setProperty("--c", itemColor(it));
+    row.innerHTML = `${coreSvg(c.set)}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
+    row.querySelector("b")!.textContent = itemName(it);
+    row.querySelector("small")!.textContent = `${coreStatText(c.main, coreMainValue(c.main, it.stars ?? 1))} · ${c.subs.length} dòng phụ${it.enhance ? ` · +${it.enhance}` : ""}`;
+    row.title = coreLines(it).join("\n");
+    const go = row.querySelector("button")!;
+    go.setAttribute("aria-label", `Gắn ${itemName(it)} vào ${where} của ${def.name}`);
+    go.addEventListener("click", () => { go.blur(); coreFocus = null; act.equipCore(it.id, v.rowId, coreCell ?? undefined); });
+    row.addEventListener("dragstart", (e) => { e.dataTransfer?.setData("text/plain", it.id); if (e.dataTransfer) e.dataTransfer.effectAllowed = "move"; });
+    info.appendChild(row);
+  }
+  el.appendChild(info);
+  if (act.combat()) {
+    const w = document.createElement("small"); w.className = "rnote warn";
+    w.textContent = "Đang giao chiến: rời xa hồn thú vài giây rồi mới gắn / tháo hồn hạch được.";
+    el.appendChild(w);
+  }
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = `Mỗi võ hồn ${CORE_SLOTS} ô hồn hạch, ô nào cũng gắn được mọi bộ; ghép 4 + 2 hoặc 2 + 2 + 2. Chỉ số cộng cho võ hồn đó; hiệu ứng bộ có tác dụng khi võ hồn này ra trận (Tiên Cơ 2 món: tích năng lượng khi ở ngoài). Gắn / tháo khi không giao chiến; thua không bao giờ mất hồn hạch.`;
   el.appendChild(note);
 }
 
@@ -878,7 +1026,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       bs[2].textContent = enhText(sel);
       info.insertBefore(st, info.querySelector("p"));
     }
-    // Hồn hạch (5.1): sao, chỉ số chính (theo sao), dòng phụ đã tung, nâng cấp, đang gắn hay chưa, hiệu ứng bộ (có tác dụng từ 5.2).
+    // Hồn hạch (5.1): sao, chỉ số chính (theo sao), dòng phụ đã tung, nâng cấp, đang gắn hay chưa, hiệu ứng bộ (có tác dụng từ 5.2,
+    // gắn bằng nút "Gắn…").
     if (core) {
       const stars = sel.stars ?? 1, st = document.createElement("div"); st.className = "bstat";
       const rows: [string, string][] = [["Sao", "★".repeat(stars) + ` (${CORE_SUBS[stars - 1]} dòng phụ)`], ["Chỉ số chính", coreStatText(core.main, coreMainValue(core.main, stars))]];
@@ -909,6 +1058,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (bone && hasYears(sel) && enhTarget === sel.id) { info.appendChild(enhancePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
     if (bone) btn("Gắn…", "use", () => openBones(sel.id, bone.slot)); // hồn cốt (4.2): gắn ở bảng đội hình
     if (bone && sel.enhance < BONE_MAX_ENHANCE) btn("Cường hóa…", "use", () => { enhOpen(sel.id); again(); }); // 4.4
+    if (core) btn("Gắn…", "use", () => openCores(sel.id)); // hồn hạch (5.2): gắn ở bảng đội hình
     btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
       if (bagConfirm === sel.id) { bagConfirm = null; act.discard(sel.id); } else { bagConfirm = sel.id; again(); }
     });
@@ -1124,7 +1274,8 @@ function renderForge(bag: BagMsg, act: NpcActions): HTMLElement {
   }
   const h2 = document.createElement("b"); h2.className = "shead"; h2.textContent = "Nâng cấp hồn hạch"; box.appendChild(h2);
   const c = document.createElement("small"); c.className = "rnote";
-  c.textContent = `Sắp mở (bước 5.3). Hồn hạch trong túi: ${bag.items.filter((i) => i.code === CORE_ITEM).length}.`;
+  const cores = bag.items.filter((i) => i.code === CORE_ITEM), worn = cores.filter((i) => i.vohon !== null).length;
+  c.textContent = `Sắp mở (bước 5.3). Hồn hạch: ${cores.length - worn} trong túi, ${worn} đang gắn.`;
   box.appendChild(c);
   return box;
 }

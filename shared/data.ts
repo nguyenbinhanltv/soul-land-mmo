@@ -743,6 +743,8 @@ export const PHOENIX_FIELD_R = 90;
 export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 /** Tỉ lệ chí mạng gốc của đòn đánh vào hồn thú và hệ số sát thương chí mạng. */
 export const CRIT = { chance: 0.12, mult: 1.8 };
+/** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
+export const ATTACK_CD = 0.38;
 
 // ---------- Hồn kỹ (mục 5.2 "Hồn kỹ theo vòng") ----------
 /**
@@ -1209,16 +1211,22 @@ export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.len
  * Chỉ số của võ hồn `vh` (chỉ số trong VOHON) ở `level`, hồn hoàn theo bậc `rings`, sao `stars` (1–6, bước 3.4: starMult).
  * `bones` (bước 4.2): tổng chỉ số gốc các hồn cốt đang gắn (boneBonus), cộng thẳng sau hệ số hệ và sao: hồn cốt +118 hồn lực
  * thì võ hồn nào cũng +118.
+ * `cores` (bước 5.2, **chờ chốt**): tổng chỉ số hồn hạch đang gắn (coreBonus): dòng % nhân phần gốc (sau hệ số hệ và sao, trước
+ * hồn cốt), dòng phẳng cộng thẳng như hồn cốt; chí mạng cộng vào `crit` / `critMult`.
  */
-export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<BoneStat, number>> = {}) {
-  const v = VOHON[vh], k = starMult(stars);
+export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<BoneStat, number>> = {},
+  cores: Partial<Record<CoreStat, number>> = {}) {
+  const v = VOHON[vh], k = starMult(stars), pc = (x: CoreStat) => 1 + (cores[x] ?? 0) / 100;
   let hpB = 0, atkB = 0;
   for (const t of rings) { hpB += TIERS[t].hpb; atkB += TIERS[t].atkb; }
   return {
-    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k) + (bones.hp ?? 0),
-    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k) + (bones.mp ?? 0),
-    atk: (6 + level * 1.6 + atkB) * v.atk * k + (bones.atk ?? 0),
+    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k * pc("hp_pct")) + (bones.hp ?? 0) + (cores.hp ?? 0),
+    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k * pc("mp_pct")) + (bones.mp ?? 0) + (cores.mp ?? 0),
+    atk: (6 + level * 1.6 + atkB) * v.atk * k * pc("atk_pct") + (bones.atk ?? 0) + (cores.atk ?? 0),
     speed: 58 * v.spd,
+    // Từ 5.2: tỉ lệ và hệ số chí mạng của đòn đánh vào hồn thú (CRIT cộng hồn hạch).
+    crit: CRIT.chance + (cores.crit ?? 0) / 100,
+    critMult: CRIT.mult + (cores.crit_dmg ?? 0) / 100,
   };
 }
 
@@ -1388,7 +1396,7 @@ export const CORE_ITEM = "hon_hach";
 export type CoreSetId = "phuong_hoang" | "ba_vuong_long" | "xa_hoang" | "hao_thien" | "that_sat" | "linh_mieu" | "lam_ngan" | "luu_ly" | "tien_co";
 /**
  * Các bộ hồn hạch (bảng mục 5.6). Mã lưu trong DB (`items.stats.set`), không đổi mã; thứ tự là chỉ số đồng bộ (`DropState.cset`),
- * chỉ thêm vào cuối. `col`: màu biểu tượng. Hiệu ứng 2 / 4 món ở bước này chỉ để hiển thị, có tác dụng từ 5.2 (gắn hồn hạch).
+ * chỉ thêm vào cuối. `col`: màu biểu tượng. Hiệu ứng 2 / 4 món (`set2` / `set4`) là chữ hiển thị; số và luật ở CORE_SET_FX (từ 5.2).
  */
 export const CORE_SETS: { id: CoreSetId; name: string; tag: string; col: string; set2: string; set4: string }[] = [
   { id: "phuong_hoang",  name: "Phượng Hoàng",  tag: "Thiêu đốt", col: "#ff7a3c", set2: "+12% sát thương thiêu đốt",
@@ -1399,7 +1407,7 @@ export const CORE_SETS: { id: CoreSetId; name: string; tag: string; col: string;
     set4: "Mục tiêu trúng độc từ 5 tầng trở lên bị Dễ thương 10%" },
   { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn đãng", col: "#b9a3ff", set2: "+15% công",
     set4: "Đòn đánh thứ 3 liên tiếp gây thêm 40% sát thương" },
-  { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "+10% xuyên thủ",
+  { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "+10% xuyên thủ (hồn thú chưa có thủ: +10% sát thương đòn trực tiếp)",
     set4: "Mục tiêu bị Liệt thương nhận thêm 15% chí mạng từ võ hồn mang bộ" },
   { id: "linh_mieu",     name: "Linh Miêu",     tag: "Mẫn công",  col: "#c77dff", set2: "+12% chí mạng",
     set4: "Chí mạng tăng 10% tốc độ đánh trong 4 giây" },
@@ -1416,7 +1424,7 @@ export type CoreStat = "hp" | "atk" | "mp" | "hp_pct" | "atk_pct" | "mp_pct" | "
 /**
  * **(chờ chốt)** Chỉ số của hồn hạch. `pct`: tính theo % (hiển thị một chữ số thập phân), không thì cộng phẳng. `main`: chỉ số chính
  * ở 6★ +0; `sub`: mức lớn nhất của một dòng phụ ở 6★; sao thấp hơn nhân CORE_STAR_K. `w`: trọng số khi tung chỉ số chính (dòng phụ
- * tung đều, không trùng nhau và không trùng chỉ số chính). Mã lưu trong DB, không đổi. Cộng vào võ hồn ở 5.2.
+ * tung đều, không trùng nhau và không trùng chỉ số chính). Mã lưu trong DB, không đổi. Cộng vào võ hồn từ 5.2 (coreBonus, calcStats).
  */
 export const CORE_STATS: Record<CoreStat, { name: string; pct: boolean; main: number; sub: number; w: number }> = {
   hp:       { name: "Sinh lực",            pct: false, main: 300, sub: 90, w: 1 },
@@ -1513,6 +1521,97 @@ export const coreName = (set: string, stars: number) => `Hồn hạch ${coreSetN
 export function coreStatText(k: CoreStat, v: number) {
   const s = CORE_STATS[k];
   return `${s.name} +${v.toLocaleString("vi-VN", { maximumFractionDigits: 1 })}${s.pct ? "%" : ""}`;
+}
+
+// ---------- Gắn hồn hạch và hiệu ứng bộ (mục 5.6, bước 5.2; mọi số chờ chốt) ----------
+/** Số ô hồn hạch trên mỗi võ hồn. Ô nào cũng nhận mọi hồn hạch (5.6 không chia ô theo loại); ô đang gắn lưu ở `items.stats.slot`. */
+export const CORE_SLOTS = 6;
+/** Số món cùng bộ để nhận hiệu ứng 2 món / thêm hiệu ứng 4 món (6 ô: ghép 4 + 2 hoặc 2 + 2 + 2). */
+export const CORE_SET_2 = 2, CORE_SET_4 = 4;
+/** Ô (0..CORE_SLOTS − 1) của một hồn hạch đang gắn, đọc từ `items.stats.slot`; không có hoặc sai thì −1. */
+export function coreSlotOf(stats: unknown) {
+  const s = (stats as { slot?: unknown } | null)?.slot;
+  return typeof s === "number" && Number.isInteger(s) && s >= 0 && s < CORE_SLOTS ? s : -1;
+}
+/**
+ * Hiệu ứng bộ hồn hạch (bảng 5.6), mọi tỉ lệ là phần thêm (0,12 = +12%). Chỉ tính bộ trên **võ hồn đang ra trận**, trừ bộ Tiên Cơ
+ * 2 món (tích năng lượng của chính võ hồn mang bộ khi đang ở ngoài, mục 5.1 bước 2.4).
+ * - `burn` / `poison`: sát thương Thiêu đốt / Trúng độc do hồn sư gây (tính lúc gây). `burnMax`: Thiêu đốt thêm tầng tối đa.
+ *   `boom`: Viêm bạo (kích nổ Thiêu đốt) thêm sát thương.
+ * - `chain`: sát thương lan của Cảm điện. `shockMp`: đòn trực tiếp trúng hồn thú Cảm điện hồi tỉ lệ hồn lực tối đa, mỗi
+ *   CORE_FX_RULE.shockMpCd giây một lần.
+ * - `poisonVuln`: hồn thú Trúng độc từ CORE_FX_RULE.poisonStacks tầng (người gây cuối mang bộ) nhận thêm sát thương từ mọi nguồn,
+ *   như Dễ thương (cộng với Dễ thương thật).
+ * - `atk`: công (%; cộng vào chỉ số qua coreBonus). `combo`: đòn đánh thường trúng thứ CORE_FX_RULE.comboN liên tiếp (mỗi đòn cách
+ *   nhau không quá comboGap giây, đòn trượt thì đếm lại) thêm sát thương.
+ * - `pierce`: "xuyên thủ"; hồn thú chưa có chỉ số thủ nên tạm quy thành thêm sát thương đòn trực tiếp (như Phá giáp, đổi khi hồn thú có
+ *   thủ). `armorCrit`: thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp (Liệt thương).
+ * - `crit`: tỉ lệ chí mạng (cộng vào chỉ số qua coreBonus). `haste`: chí mạng thì tốc độ đánh thường tăng trong hasteSecs giây.
+ * - `cc`: thời gian khống chế (trạng thái không đi / không đánh / câm lặng / mê hoặc) hồn sư gây lên hồn thú. `ccMp`: hồn kỹ có gây
+ *   khống chế, trúng ít nhất một hồn thú thì hồi tỉ lệ hồn lực tối đa (một lần mỗi lần tung).
+ * - `heal`: hồi máu và khiên từ hồn kỹ, tiên cơ, kỹ năng hồn cốt. `swapAtk`: đổi tay võ hồn mang bộ vào thì cả đội tăng công
+ *   (hiệu ứng có lợi `atk` của hồn sư, đổi võ hồn vẫn còn) trong swapSecs giây.
+ * - `energy` / `tienCo`: bộ Tiên Cơ, cùng số với TIEN_CO_SET (energyGain, tienCoDmgMult).
+ */
+export interface CoreFx {
+  burn?: number; burnMax?: number; boom?: number; chain?: number; shockMp?: number; poison?: number; poisonVuln?: number;
+  atk?: number; combo?: number; pierce?: number; armorCrit?: number; crit?: number; haste?: number; cc?: number; ccMp?: number;
+  heal?: number; swapAtk?: number; energy?: number; tienCo?: number;
+}
+export const CORE_SET_FX: Record<CoreSetId, { two: CoreFx; four: CoreFx }> = {
+  phuong_hoang:  { two: { burn: 0.12 },   four: { burnMax: 1, boom: 0.3 } },
+  ba_vuong_long: { two: { chain: 0.15 },  four: { shockMp: 0.03 } },
+  xa_hoang:      { two: { poison: 0.15 }, four: { poisonVuln: 0.1 } },
+  hao_thien:     { two: { atk: 0.15 },    four: { combo: 0.4 } },
+  that_sat:      { two: { pierce: 0.1 },  four: { armorCrit: 0.15 } },
+  linh_mieu:     { two: { crit: 0.12 },   four: { haste: 0.1 } },
+  lam_ngan:      { two: { cc: 0.2 },      four: { ccMp: 0.1 } },
+  luu_ly:        { two: { heal: 0.15 },   four: { swapAtk: 0.15 } },
+  tien_co:       { two: { energy: TIEN_CO_SET.gain }, four: { tienCo: TIEN_CO_SET.dmg } },
+};
+/** Luật thời gian / ngưỡng của hiệu ứng bộ (chờ chốt): xem CoreFx. */
+export const CORE_FX_RULE = { shockMpCd: 1, poisonStacks: 5, comboN: 3, comboGap: 2, hasteSecs: 4, swapSecs: 6 };
+/** Trạng thái tính là khống chế cho bộ Lam Ngân (không đi, không đánh, câm lặng, mê hoặc). */
+export const isCcStatus = (s: StatusId) => { const d = STATUS[s]; return d.noMove || d.noAtk || d.noSkill || d.wander; };
+/** Một hồn hạch đang gắn: sao và dữ liệu (parseCore). */
+export interface WornCore { stars: number; data: CoreData }
+/** Số món từng bộ (mã bộ -> số món) trong các hồn hạch đang gắn trên một võ hồn. */
+export function coreSetCounts(cores: readonly WornCore[]) {
+  const m = new Map<string, number>();
+  for (const c of cores) m.set(c.data.set, (m.get(c.data.set) ?? 0) + 1);
+  return m;
+}
+/** Các bộ đã đủ 2 món (bộ lạ bỏ qua), xếp theo thứ tự CORE_SETS; `four`: đủ 4 món. */
+export function activeCoreSets(cores: readonly WornCore[]) {
+  return [...coreSetCounts(cores)].filter(([set, n]) => n >= CORE_SET_2 && coreSetIndex(set) >= 0)
+    .map(([set, n]) => ({ set: set as CoreSetId, n, four: n >= CORE_SET_4 }))
+    .sort((a, b) => coreSetIndex(a.set) - coreSetIndex(b.set));
+}
+/** Tổng hiệu ứng bộ của các hồn hạch đang gắn: bộ đủ 2 món cộng `two`, đủ 4 món cộng thêm `four`. */
+export function coreFx(cores: readonly WornCore[]): CoreFx {
+  const out: Record<string, number> = {};
+  for (const a of activeCoreSets(cores)) {
+    const fx = CORE_SET_FX[a.set];
+    for (const part of a.four ? [fx.two, fx.four] : [fx.two])
+      for (const [k, v] of Object.entries(part)) out[k] = (out[k] ?? 0) + (v as number);
+  }
+  return out as CoreFx;
+}
+/**
+ * Tổng chỉ số hồn hạch đang gắn trên một võ hồn (chỉ số chính theo sao + dòng phụ), đưa vào calcStats. Kèm phần chỉ số của hiệu
+ * ứng bộ: +công của bộ Hạo Thiên 2 món (vào `atk_pct`), +chí mạng của bộ Linh Miêu 2 món (vào `crit`), cùng đơn vị %.
+ * Nâng cấp (5.3) cộng thêm sau.
+ */
+export function coreBonus(cores: readonly WornCore[]): Record<CoreStat, number> {
+  const out = Object.fromEntries(CORE_STAT_IDS.map((k) => [k, 0])) as Record<CoreStat, number>;
+  for (const c of cores) {
+    out[c.data.main] += coreMainValue(c.data.main, c.stars);
+    for (const [k, v] of c.data.subs) out[k] += v;
+  }
+  const fx = coreFx(cores);
+  out.atk_pct += (fx.atk ?? 0) * 100; out.crit += (fx.crit ?? 0) * 100;
+  for (const k of CORE_STAT_IDS) out[k] = Math.round(out[k] * 10) / 10;
+  return out;
 }
 
 // ---------- Kỹ năng hồn cốt (mục 5.5, bước 4.3; mọi số chờ chốt) ----------
@@ -1666,7 +1765,7 @@ export const ITEMS: ItemDef[] = [
     desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số. Cường hóa bằng hồn cốt dư (nút Cường hóa…): mỗi cấp tăng chỉ số chính, mốc +5 / +10 / +15 / +20 nâng kỹ năng. Tháo ra vẫn giữ cấp cường hóa." },
   // Hồn hạch (bước 5.1): mỗi món một ô; sao ở `items.stars`, bộ / chỉ số ở `items.stats`. Màu theo bộ (CORE_SETS), `col` chỉ là mặc định.
   { id: CORE_ITEM, kind: "hon_hach", name: "Hồn hạch", col: "#d9b8ff", stack: 1,
-    desc: "Mỗi võ hồn có 6 ô hồn hạch; gắn 2 hoặc 4 món cùng bộ thì nhận hiệu ứng bộ (gắn và hiệu ứng bộ mở ở bước 5.2)." },
+    desc: "Mỗi võ hồn có 6 ô hồn hạch: bấm \"Gắn…\" để gắn vào võ hồn (bảng đội hình). Gắn 2 hoặc 4 món cùng bộ trên võ hồn ra trận thì nhận hiệu ứng bộ." },
   // Rương tà hóa thú vương (BĐ5): mỗi thú vương một mã `ruong_<mã thú vương>` (chestCode), `boss` trỏ về BOSSES; mở trong túi đồ (KING_CHEST).
   ...BOSSES.filter((b) => b.rank === 2).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
     desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, 1 hồn hạch sao cao, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống).` })),
