@@ -4,6 +4,7 @@ import Phaser from "phaser";
 import { TIERS, VOHON, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
 import { addGridFrames, recolor, honsuKey, HS_FRAME, VH_FRAME } from "./sprites.ts";
 import { honsuSheet, vohonSheets, bufCanvas, type Buf, type Sex } from "./honsuArt.ts";
+import { boneTextures } from "./boneIcons.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 
@@ -132,6 +133,7 @@ export function makeTextures(scene: Phaser.Scene) {
     R(-1, -11, 2, 1, "#ffffff"); R(-2, -10, 4, 2, "#ffffff"); R(-3, -8, 6, 3, "#e8e8e8"); R(-4, -5, 8, 2, "#d0d0d0");
     R(-3, -3, 6, 2, "#b8b8b8"); R(-2, -1, 4, 1, "#a0a0a0"); R(-1, -9, 1, 4, "#ffffff");
   });
+  boneTextures(scene); // hồn cốt rơi dưới đất (bước 4.1): `bone_<vị trí>`, tô màu niên hạn bằng setTint
   if (!scene.textures.exists("vignette")) {
     const c = scene.textures.createCanvas("vignette", 256, 256)!;
     const ctx = c.getContext();

@@ -3,7 +3,7 @@ import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
-  itemDef } from "../../../shared/data.ts";
+  itemDef, BONE_ITEM, BONE_SLOTS, boneName } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -629,10 +629,13 @@ export class GameScene extends Phaser.Scene {
       let v = this.drops.get(id);
       if (!v) {
         // Màu hồn hoàn theo số năm (bậc suy từ số năm), số năm ghi ngay dưới. Mảnh võ hồn (3.4): tinh thể màu võ hồn, tên ghi dưới.
-        const it = d.item ? itemDef(d.item) : undefined, col = it ? it.col : hud.ringColor(d.tier);
-        const img = this.add.image(d.x, d.y - 4, it ? "shard" : `ring${d.tier}`).setDepth(d.y - 1);
+        // Hồn cốt (4.1): biểu tượng vị trí màu theo số năm, ghi "Hồn cốt Tay phải".
+        const bone = d.item === BONE_ITEM ? BONE_SLOTS[d.slot] : undefined;
+        const it = d.item ? itemDef(d.item) : undefined, col = it && !bone ? it.col : hud.ringColor(d.tier);
+        const img = this.add.image(d.x, d.y - 4, bone ? `bone_${bone.id}` : it ? "shard" : `ring${d.tier}`).setDepth(d.y - 1);
         if (it) img.setTint(hex(col));
-        const txt = this.add.text(d.x, d.y + 4, it ? `${d.qty > 1 ? `${d.qty} ` : ""}${it.name}` : d.item ? "Vật phẩm lạ" : formatYears(d.years), {
+        const name = bone ? `Hồn cốt ${bone.name}` : it ? `${d.qty > 1 ? `${d.qty} ` : ""}${it.name}` : d.item ? "Vật phẩm lạ" : formatYears(d.years);
+        const txt = this.add.text(d.x, d.y + 4, name, {
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(d.y - 1);
         v = { img, txt }; this.drops.set(id, v);
@@ -794,7 +797,8 @@ export class GameScene extends Phaser.Scene {
       const mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0;
       const msg = mine ? "nhấn E để nhặt vào túi" : `<em>của người hạ hồn thú, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
       const it = dr.item ? itemDef(dr.item) : undefined;
-      hud.showPrompt(dr.item ? `<span class="dot" style="color:${it?.col ?? "#9db3a2"}"></span>${dr.qty} ${it?.name ?? "vật phẩm lạ"}: ${msg}`
+      if (dr.item === BONE_ITEM) hud.showPrompt(`<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn cốt ${boneName(BEASTS[dr.species]?.id ?? "", BONE_SLOTS[dr.slot]?.id, dr.years)}: ${msg}`);
+      else hud.showPrompt(dr.item ? `<span class="dot" style="color:${it?.col ?? "#9db3a2"}"></span>${dr.qty} ${it?.name ?? "vật phẩm lạ"}: ${msg}`
         : `<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
     } else hud.showPrompt(null);
     this.drawMinimap();
