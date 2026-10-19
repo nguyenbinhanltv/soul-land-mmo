@@ -897,7 +897,7 @@ export class MapRoom extends Room<MapState> {
   atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk")); }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
-  /** Đánh thường hoặc tung hồn kỹ thì hết tàng hình (Yêu Hồ, 2.5c). */
+  /** Đánh thường, tung hồn kỹ hoặc tiên cơ thì hết tàng hình (Yêu Hồ, 2.5c). */
   unhide(p: PlayerState, d: PData) { if (d.buffs.delete("hide")) this.syncBuffs(p, d); }
 
   /** Hồn thú gần hồn sư nhất trong bán kính r. */
@@ -1099,7 +1099,7 @@ export class MapRoom extends Room<MapState> {
     if (def.burst && bd.st.get(a.s)!.n >= def.max) {
       bd.st.delete(a.s);
       this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power);
-      if (def.burst.s === "charm") { bd.target = null; b.aggro = false; }
+      if (STATUS[def.burst.s].wander) { bd.target = null; b.aggro = false; }
     }
     this.syncStatus(b, bd);
   }
@@ -1155,8 +1155,9 @@ export class MapRoom extends Room<MapState> {
     if (p.cds[i] > 0) return;
     const set = skillsOf(VOHON[p.vh].id), sk = set[i], cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
     // Phục Chế (Xúc Xích, 2.5c): tung lại hồn kỹ gần nhất của võ hồn khác còn trong đội; chưa có thì không tung.
-    const last = d.lastSkill, src = sk.copy && last && last.row !== d.ch.rowId && d.team.includes(last.row) ? last : null;
-    if (sk.copy && !src) return this.log(id, `${sk.name}: chưa có hồn kỹ của võ hồn khác trong đội để sao chép.`);
+    // Võ hồn nguồn phải còn trong đội và chưa gục.
+    const last = d.lastSkill, src = sk.copy && last && last.row !== d.ch.rowId && d.team.includes(last.row) && !d.down.has(last.row) ? last : null;
+    if (sk.copy && !src) return this.log(id, `${sk.name}: chưa có hồn kỹ của võ hồn khác trong đội (chưa gục) để sao chép.`);
     const run = src?.sk ?? sk;
     if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
     const reach = run.area === "target" ? run.r : run.at;
@@ -1166,7 +1167,9 @@ export class MapRoom extends Room<MapState> {
     const tier = p.rings[i], years = d.ringYears[i] ?? TIERS[tier].years;
     this.broadcast("fx", { k: "soulring", id, tier, i, vh: p.vh }); // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó và hiện tên hồn kỹ
     if (src) this.log(id, `${sk.name}: sao chép ${run.name}.`, VOHON[p.vh].col);
-    this.runSkill(id, run, skillPower(years) * (sk.copy ?? 1), buffPower(years), run.glow ? TIERS[tier].glow : VOHON[p.vh].col, { kind: "skill", done: false });
+    // Phục Chế nhân `copy` cả sát thương lẫn hiệu ứng lên bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi; inv/hide giữ nguyên).
+    const mult = sk.copy ?? 1;
+    this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, { kind: "skill", done: false });
     if (!set.some((x) => x.copy)) d.lastSkill = { sk, row: d.ch.rowId };
   }
 
@@ -1275,6 +1278,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, def = VOHON[p.vh], he = def.he, tc = TIEN_CO[he];
     const mult = tienCoDmgMult(this.tienCoSet(d.ch).set4), dmg = this.atkOf(d) * tc.dmg * mult, col = def.col, x0 = p.x, y0 = p.y;
     const own = TIEN_CO_RIENG[def.id];
+    this.unhide(p, d); // tung tiên cơ cũng hiện hình như đánh thường / hồn kỹ
     if (own) {
       this.broadcast("fx", { k: "tienco", id, he, col, x: p.x, y: p.y, vh: p.vh, own: true });
       this.runSkill(id, own, mult, 1, col);
@@ -1537,8 +1541,8 @@ export class MapRoom extends Room<MapState> {
     this.state.beasts.forEach((b, id) => {
       const bd = this.bdata.get(id)!, td = TIERS[b.tier];
       bd.cd -= dt; bd.anim += dt; bd.calm += dt;
-      // Từ 2.5c: hồn thú đang Mê hoặc bỏ mục tiêu, đi lung tung.
-      const charm = bd.st.has("charm");
+      // Từ 2.5c: hồn thú đang chịu trạng thái `wander` (Mê hoặc) bỏ mục tiêu, đi lung tung.
+      const charm = [...bd.st.keys()].some((s) => STATUS[s].wander);
       if (charm) bd.target = null;
       let tgt = bd.target ? this.state.players.get(bd.target) : undefined;
       // Không đuổi theo người đã vào vùng an toàn, đang chuyển bản đồ (mục 5.3, 6) hoặc đang tàng hình (Yêu Hồ, 2.5c).

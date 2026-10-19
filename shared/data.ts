@@ -400,7 +400,7 @@ export const BEAST_REGEN = { delay: 6, pct: 0.04 };
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
  *  mp: giảm tiêu hao hồn lực của hồn kỹ, inv: miễn mọi sát thương, phoenix: lãnh vực phượng hoàng (từ 2.5b, Tà Hỏa Phượng Hoàng):
  *  hồn thú trong bán kính PHOENIX_FIELD_R quanh hồn sư nhận thêm v sát thương từ mọi nguồn; hide: tàng hình (từ 2.5c, Yêu Hồ):
- *  hồn thú bỏ mục tiêu và không nhắm tới hồn sư, đánh thường hoặc tung hồn kỹ khác thì hiện hình. Chỉ thêm vào cuối. */
+ *  hồn thú bỏ mục tiêu và không nhắm tới hồn sư, đánh thường, tung hồn kỹ khác hoặc tiên cơ thì hiện hình. Chỉ thêm vào cuối. */
 export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv", "phoenix", "hide"] as const;
 export type BuffId = (typeof BUFF_IDS)[number];
 export const BUFFS: Record<BuffId, { name: string; col: string }> = {
@@ -465,7 +465,8 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `at` (around): đặt vùng tại hồn thú gần nhất trong tầm `at` (không có thì không tung, như vùng "mục tiêu"); có `dash` thì
  *   hồn sư bay tới đó trước (tối đa `dash`). Vùng cố định ở chỗ đặt, không đi theo hồn sư (vùng phong tỏa).
  * - `fixed` (around): vùng cố định ở chỗ hồn sư đứng lúc tung (lãnh vực đặt xuống đất), không đi theo khi hồn sư di chuyển.
- * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội, sức mạnh × `copy` theo hồn hoàn của vòng này.
+ * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục; sát thương và hiệu ứng lên
+ *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -659,7 +660,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, self: { mp: 0.3 } },
     { name: "Phi Hành Hương Tràng", desc: "Xúc xích bay: tốc độ +35% trong 8 giây, bay lên né đòn", icon: "➠", cost: 14, cd: 14,
       area: "self", r: 0, dmg: 0, fly: 0.6, inv: 0.6, self: { buff: { spd: 0.35 }, secs: 8 } },
-    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung của võ hồn khác trong đội, sức mạnh × 0,8", icon: "⧉", cost: 30, cd: 14,
+    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
       area: "self", r: 0, dmg: 0, copy: 0.8 },
   ],
 };
