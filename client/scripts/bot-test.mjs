@@ -805,7 +805,7 @@ const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
 /** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
 async function travelBy(name,to,during,after){
   C.travel=null; C.room.send("travel",{portal:name}); await during?.();
-  ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`);
+  ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`+(C.travel?"":` (log: ${C.logs.slice(-4).join(" | ")})`));
   await after?.();
   const x0=me().x, bk=bagKey(C); C.room.send("input",{x:1,y:0}); C.room.send("use",{id:C.bag?.items[0]?.id}); await sleep(300);
   ok(me().x===x0,"đang chuyển bản đồ: server bỏ qua input");
