@@ -38,7 +38,8 @@ export class BeastState extends Schema {
   @type("float32") y: number = 0;
   @type("uint8") tier: number = 0;     // bậc suy ra từ số năm (tierOfYears): màu, kích thước
   @type("uint32") years: number = 0;   // tuổi hồn thú theo số năm (bước 3.2); hồn hoàn rơi ra mang đúng số năm này
-  @type("uint8") species: number = 0;  // chỉ số loài trong BEASTS (shared/data.ts)
+  @type("uint8") species: number = 0;  // chỉ số loài trong BEASTS (shared/data.ts); hồn thú bậc > 0 (tinh anh…): chỉ số trong BOSSES
+  @type("uint8") rank: number = 0;     // từ BĐ4: 0 thường, 1 tinh anh, 2 thú vương, 3 boss thế giới (mục 5.4)
   @type("uint32") hp: number = 0;
   @type("uint32") maxHp: number = 0;
   @type("int8") face: number = 1;
@@ -52,6 +53,7 @@ export class BeastState extends Schema {
   @type("uint8") allure: number = 0;   // từ 2.5c: số tầng Mị hoặc (đủ tầng thành Mê hoặc) và Phong ấn (đủ tầng thành Dễ thương)
   @type("uint8") lock: number = 0;
   @type("boolean") cast: boolean = false; // từ 3.5: đang báo trước chiêu (đứng yên, client giữ khung đầu animation attack)
+  @type("uint8") buff: number = 0;      // từ BĐ4: hiệu ứng có lợi của hồn thú (bit theo BEAST_BUFF_IDS, ví dụ Cuồng nộ của tinh anh)
 }
 
 export class DropState extends Schema {
@@ -62,6 +64,9 @@ export class DropState extends Schema {
   // Từ 3.4 đồ rơi khác hồn hoàn (mảnh võ hồn rơi khi túi người hạ đã đầy): mã vật phẩm trong ITEMS và số món; "" = hồn hoàn.
   @type("string") item: string = "";
   @type("uint16") qty: number = 0;
+  // Từ 4.1 hồn cốt (`item` = BONE_ITEM, `years` = tuổi hồn thú): loài (chỉ số trong BEASTS) và vị trí (chỉ số trong BONE_SLOTS).
+  @type("uint8") species: number = 0;
+  @type("uint8") slot: number = 0;
   @type("string") owner: string = "";   // sessionId được ưu tiên nhặt
   @type("float32") ownerTtl: number = 0; // giây còn lại trước khi ai cũng nhặt được
   @type("float32") ttl: number = 0;

@@ -1,7 +1,10 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
-  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS } from "../../shared/data.ts";
+  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS,
+  BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
+  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, type BoneStat } from "../../shared/data.ts";
+import { boneSvg } from "./boneIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -52,10 +55,12 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
 }
 
 /** Tên các trạng thái đang có trên hồn thú (khung mục tiêu), kèm số tầng nếu cộng dồn. */
-export function statusText(b: { st: number; burn: number; poison: number; armor: number; allure: number; lock: number }) {
+export function statusText(b: { st: number; burn: number; poison: number; armor: number; allure: number; lock: number; buff?: number }) {
   const n: Record<string, number> = { burn: b.burn, poison: b.poison, armor: b.armor, allure: b.allure, lock: b.lock };
-  return STATUS_IDS.filter((s) => b.st & statusBit(s))
-    .map((s) => `<span style="color:${STATUS[s].col}">${STATUS[s].name}${n[s] > 1 ? ` ×${n[s]}` : ""}</span>`).join(" · ");
+  // Hiệu ứng có lợi của hồn thú (Cuồng nộ của tinh anh, BĐ4) đứng trước, in đậm.
+  const buffs = BEAST_BUFF_IDS.filter((k) => (b.buff ?? 0) & beastBuffBit(k)).map((k) => `<b style="color:${BEAST_BUFFS[k].col}">${BEAST_BUFFS[k].name}</b>`);
+  return [...buffs, ...STATUS_IDS.filter((s) => b.st & statusBit(s))
+    .map((s) => `<span style="color:${STATUS[s].col}">${STATUS[s].name}${n[s] > 1 ? ` ×${n[s]}` : ""}</span>`)].join(" · ");
 }
 
 let ringsKey = "", buffKey = "";
@@ -349,14 +354,25 @@ function honTeHtml(dong: number) {
   return honTeParts(dong).map((p) => `<span class="ht ${p.unit === "kim" ? "kim" : p.unit === "ngân" ? "ngan" : "dong"}">${p.n.toLocaleString("vi-VN")} ${p.unit}</span>`).join(" ");
 }
 
-/** Tên hiển thị một ô (mã không còn trong ITEMS: "Vật phẩm lạ"); hồn hoàn kèm số năm. */
-const itemName = (it: BagItem) => (itemDef(it.code)?.name ?? "Vật phẩm lạ") + (it.years !== null ? ` ${formatYears(it.years)}` : "");
+/** Hồn cốt trong túi (bước 4.1): số năm, loài và vị trí; dữ liệu hỏng thì null (hiện như vật phẩm thường). */
+const boneOf = (it: BagItem) => (it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null);
+/** Tên hiển thị một ô (mã không còn trong ITEMS: "Vật phẩm lạ"); hồn hoàn kèm số năm; hồn cốt "Loài – Vị trí, N năm". */
+function itemName(it: BagItem) {
+  const bone = boneOf(it);
+  if (bone) return boneName(bone.beast, bone.slot, it.years!);
+  return (itemDef(it.code)?.name ?? "Vật phẩm lạ") + (it.years !== null ? ` ${formatYears(it.years)}` : "");
+}
 /** Hồn hoàn trong túi: có số năm thì màu theo số năm (bảng 5.2). */
 const isRing = (it: BagItem): it is BagItem & { years: number } => it.code === RING_ITEM && it.years !== null;
+/** Đồ có màu theo số năm: hồn hoàn và hồn cốt. */
+const hasYears = (it: BagItem): it is BagItem & { years: number } => (it.code === RING_ITEM || it.code === BONE_ITEM) && it.years !== null;
+/** "Công +30", "Sinh lực +316": chỉ số gốc của hồn cốt (boneStats). */
+const boneStatText = (slot: string, years: number) =>
+  Object.entries(boneStats(slot, years)).map(([k, v]) => `${BONE_STAT_NAMES[k as BoneStat]} +${v}`).join(", ");
 /** Số năm gọn để ghi ở góc ô: "437", "1.760", "2,5v" (vạn năm). */
 const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
 /** Màu một ô: hồn hoàn theo số năm, vật phẩm khác theo ITEMS. */
-const itemColor = (it: BagItem) => (isRing(it) ? ringColor(tierOfYears(it.years)) : itemDef(it.code)?.col ?? "#9db3a2");
+const itemColor = (it: BagItem) => (hasYears(it) ? ringColor(tierOfYears(it.years)) : itemDef(it.code)?.col ?? "#9db3a2");
 
 /**
  * Một võ hồn trong bộ sưu tập khi chọn nơi hấp thụ hồn hoàn (GameScene tính bằng absorbChance / absorbSecs của shared/data.ts,
@@ -457,9 +473,10 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const def = itemDef(it.code);
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
       b.style.setProperty("--c", itemColor(it));
-      const corner = isRing(it) ? yearsShort(it.years) : it.qty > 1 ? String(it.qty) : "";
-      b.innerHTML = `<i class="ico ${def?.kind ?? "unknown"}"></i>${corner ? `<small>${corner}</small>` : ""}<div class="cd"></div>`;
-      b.setAttribute("aria-label", isRing(it) ? `${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : `${itemName(it)}, ${it.qty} món`);
+      const corner = hasYears(it) ? yearsShort(it.years) : it.qty > 1 ? String(it.qty) : "";
+      const bone = boneOf(it), icon = bone ? boneSvg(bone.slot) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`;
+      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}<div class="cd"></div>`;
+      b.setAttribute("aria-label", hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : `${itemName(it)}, ${it.qty} món`);
       b.title = itemName(it);
       b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
@@ -473,10 +490,18 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     info.innerHTML = `<b></b><small></small><p></p>`;
     info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}`;
     info.querySelector("b")!.style.color = def ? itemColor(sel) : "";
-    const band = isRing(sel) ? tierBand(tierOfYears(sel.years)) : null;
+    const band = hasYears(sel) ? tierBand(tierOfYears(sel.years)) : null, bone = boneOf(sel), slot = bone ? BONE_SLOTS[boneSlotIndex(bone.slot)] : null;
     info.querySelector("small")!.textContent = !def ? "Không rõ loại" : ITEM_KINDS[def.kind].name
-      + (isRing(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
+      + (slot ? ` · ${slot.name} (kỹ năng ${slot.active ? "chủ động" : "bị động"})` : "")
+      + (hasYears(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
       + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "");
+    // Hồn cốt (4.1): chỉ số gốc theo số năm, cấp cường hóa, đang gắn hay chưa.
+    if (bone && slot) {
+      const st = document.createElement("div"); st.className = "bstat";
+      st.innerHTML = `<span>Chỉ số gốc</span><b></b><span>Cường hóa</span><b>+${sel.enhance}</b><span>Đang gắn</span><b>Chưa gắn</b>`;
+      st.querySelector("b")!.textContent = boneStatText(bone.slot, sel.years!);
+      info.insertBefore(st, info.querySelector("p"));
+    }
     const ready = isRing(sel) ? act.absorbOptions(sel.years).filter((o) => !o.reason).length : 0;
     info.querySelector("p")!.textContent = (def?.desc ?? "Vật phẩm không còn trong trò chơi, vẫn được giữ trong túi.")
       + (isRing(sel) ? (ready ? ` Có ${ready} võ hồn ở bình cảnh hấp thụ được.` : " Chưa có võ hồn nào ở bình cảnh hấp thụ được hồn hoàn này.") : "");
@@ -500,7 +525,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn một ô, số ở góc là số năm. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
+  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt một ô, số ở góc là số năm. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
   el.appendChild(note);
   updateBag();
 }
