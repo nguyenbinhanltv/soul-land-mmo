@@ -42,6 +42,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Bản đồ và vùng** (từ BĐ2, BĐ3): 4 bản đồ nối bằng cổng: Thánh Hồn Thôn (bắt đầu ở đây; làng giữa bản đồ là vùng an toàn, 3 vùng săn 10–450 năm) ↔ Nặc Đinh Thành (thành an toàn, không hồn thú) ↔ Tinh Đấu Ngoại vi (`tinh_dau_ngoai_vi`, cấp 10–30, 4 vùng 300–2.000 năm) ↔ Tinh Đấu Nội địa (`tinh_dau_noi_dia`, cấp 30–60, 4 vùng 1.500–25.000 năm). Vùng đi theo chiều đông, càng sâu càng mạnh; mỗi vùng khai báo loài (`beasts`) và niên hạn (`years`) theo bảng 5.3. Hồn thú không sinh sát cổng và điểm xuất hiện. Bản đồ đang đứng và vị trí được lưu, vào lại thì ở đúng chỗ cũ; tài khoản còn ở `tinh_dau` cũ thì vào Ngoại vi ở trại cổng. Cổng có cấp đề xuất của bản đồ đích, dưới cấp thì cảnh báo đỏ nhưng vẫn đi được (chặn mềm). ➜ BĐ4–BĐ6: tinh anh, thú vương, Lõi Tinh Đấu.
 - **Túi đồ và Hồn Tệ** (từ 3.1, mục 5.7): túi 40 ô chỉ chính chủ thấy (phím B hoặc nút "Túi đồ"), đồ cùng loại gộp tối đa 99 món một ô. Mới có Hồi Huyết Đan / Hồi Hồn Đan (hồi 30% sinh lực võ hồn ra trận / hồn lực, hồi chiêu chung 15 giây, dùng được khi giao chiến); mỗi tài khoản nhận một lần 5 viên mỗi loại. Hạ hồn thú nhận vài đồng Hồn Tệ theo bậc. Từ 3.2 hồn hoàn là vật phẩm trong túi (mỗi chiếc một ô, ghi số năm) và bỏ được vật phẩm để nhường chỗ (nút "Bỏ"). ➜ 6.1: mua bán đan ở thương nhân.
 - **Mảnh võ hồn, mở võ hồn, lên sao** (từ 3.4, mục 5.1, 5.3): mỗi bản đồ săn rơi mảnh của 2–3 võ hồn (bảng "Rơi đặc trưng" 5.3; Thánh Hồn Thôn: Lam Ngân Thảo, Nhu Cốt Thố; Ngoại vi: U Minh Linh Miêu, Kim Vũ Miêu Ưng, Xúc Xích; Nội địa: Tử Vong Chu Hoàng, Lam Điện Bá Vương Long, Cửu Tinh Thất Sát Kiếm). Hạ hồn thú có 10% / 15% / 20% / 100% (dưới 1.000 / dưới 10.000 / dưới 100.000 / 100.000 năm) rơi 1 mảnh của một võ hồn ngẫu nhiên trong danh sách, vào thẳng túi người hạ (gộp 999 mảnh một ô); túi đầy thì mảnh rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên người hạ 15 giây. Bảng đội hình (phím V) có mục "Mảnh võ hồn": đủ 50 mảnh của võ hồn chưa có thì bấm **Mở** (võ hồn mới cấp 1, 1★, vào bộ sưu tập, không tự vào đội); võ hồn đã có dùng 20 / 40 / 80 / 120 / 200 mảnh để **Lên sao** 2★ … 6★, mỗi sao trên 1 cộng 5% sinh lực, hồn lực, công gốc (6★ = +25%). ➜ Sau: hiệu ứng hồn kỹ mở theo sao; mảnh từ rương thú vương (BĐ5), boss thế giới (BĐ6), nhiệm vụ.
+- **Chiêu có báo trước** (từ 3.5, mục 5.3): hồn thú thường **từ 1.000 năm** có 1 chiêu riêng theo loài (vệt / nón / vòng quanh thân / vòng dưới chân mục tiêu). Có mục tiêu 1,5–3 giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu 7–9 giây (± 20%). Hồn thú đứng yên **0,8 giây** hiện vùng đỏ đầy dần, hết giờ mới tính trúng theo **vị trí thật** của người chơi lúc đó: chạy ra khỏi vùng là né được. Không trúng người đứng trong vùng an toàn, đang chuyển bản đồ, đã gục hay đang bất tử. Choáng, Câm lặng, Mê hoặc trên hồn thú **ngắt chiêu** đang báo trước. Chiêu có thể gây trạng thái lên hồn sư (Trúng độc, Trói, Làm chậm, Câm lặng, Cảm điện, Phá giáp, Choáng ngắn); Câm lặng trên hồn thú từ đây chỉ chặn chiêu, không chặn đánh thường. ➜ BĐ4: tinh anh 2 chiêu; BĐ5: thú vương 2–3 chiêu, báo trước dài hơn.
 - **Multiplayer**: thấy nhau, chat, cùng săn, tranh hồn hoàn. *Giữ nguyên.*
 
 Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong file này là đề xuất, chốt khi code.
@@ -78,7 +79,7 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 | Dễ thương | 5 giây | 1 | Nhận thêm 25% mọi sát thương (cả sát thương theo thời gian). |
 | Phá giáp (Liệt thương) | 6 giây | 3 | Mỗi tầng nhận thêm 10% sát thương đòn trực tiếp. Hồn thú chưa có chỉ số thủ nên "giảm thủ" tạm quy thành nhận thêm sát thương; đổi lại khi hồn thú có thủ. |
 | Choáng | 1,5 giây | 1 | Không đi, không đánh, không bị đẩy lùi. |
-| Câm lặng | 3 giây | 1 | Hồn thú chưa có chiêu nên tạm thời **không đánh** (vẫn đi theo). Từ bước 3.5 chỉ chặn và ngắt chiêu báo trước. |
+| Câm lặng | 3 giây | 1 | Từ bước 3.5: hồn thú không tung và bị **ngắt chiêu báo trước**, vẫn đánh thường (2.5a–2.5c tạm chặn cả đánh thường vì hồn thú chưa có chiêu). |
 | Trói | 2 giây | 1 | Không đi, không bị đẩy lùi, vẫn đánh khi kề bên. |
 | Mị hoặc (2.5c) | 5 giây | 3 | Mỗi tầng chậm 15%. Đủ 3 tầng thì bùng phát thành **Mê hoặc**, xóa Mị hoặc. Đang Mê hoặc thì không nhận thêm Mị hoặc. |
 | Mê hoặc (2.5c) | 2,5 giây | 1 | Bỏ mục tiêu, đi lung tung (đổi hướng mỗi 0,4–0,7 giây quanh chỗ đang đứng), không đánh. Là khống chế nên ngắn hơn với hồn thú bậc cao. |
@@ -90,9 +91,10 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - Khống chế (Choáng, Trói, Câm lặng) ngắn hơn với hồn thú bậc cao: × 1 / 1 / 1 / 0,75 / 0,5 theo bậc 10 năm → 10 vạn năm (`CC_TIER_MULT`).
 - **Mới ở 2.5a:** hồn thú không có mục tiêu và không bị đánh 6 giây thì hồi 4% sinh lực tối đa mỗi giây (`BEAST_REGEN`), để Trúng độc có cái mà giảm.
 - Người đang đi cổng hoặc đứng trong vùng an toàn không gây sát thương và trạng thái nào (kể cả nhát hẹn giờ của hồn kỹ liên hoàn, mũi đạn đang bay, độc và lửa đang cháy): kills, kinh nghiệm, năng lượng không tăng.
+- **Trạng thái trên hồn sư** (từ 3.5, `PLAYER_STATUS`, **chờ chốt**): chỉ chiêu báo trước của hồn thú gây, cùng bảng và luật cộng tầng ở trên. Choáng: không đi, không đánh, không dùng hồn kỹ; Trói: không đi; Câm lặng: không dùng hồn kỹ (vẫn đánh thường); Làm chậm: giảm tốc; Trúng độc / Thiêu đốt: mỗi tầng `dot` × sát thương đòn thường của hồn thú mỗi giây (không có khung bất tử sau đòn); Dễ thương / Phá giáp: nhận thêm sát thương; Cảm điện: đòn hồn thú trúng hồn sư Cảm điện lan 40% sang hồn sư Cảm điện khác trong 64 pixel. Thời gian khống chế trên hồn sư không nhân theo bậc. Trạng thái thuộc hồn sư (đổi võ hồn vẫn còn); vào vùng an toàn hoặc cả đội gục thì hết; tiên cơ Xúc Xích giải hết. Ai cũng thấy dây trói, sao choáng và biểu tượng trên đầu; chính mình thấy ô viền đỏ cạnh hiệu ứng có lợi.
 - **Mê hoặc, Làm chậm** làm ở 2.5c (Yêu Hồ). "Tê liệt" của Kim Vũ Miêu Ưng tạm quy thành Trói 3 giây (co giật, không đi) + Câm lặng 5 giây (không đánh), chưa thành trạng thái riêng **(chờ chốt)**.
 - **Tàng hình** (từ 2.5c, Yêu Hồ; hiệu ứng có lợi `hide`): hồn thú bỏ mục tiêu và không nhắm tới hồn sư (kể cả khi bị đánh trúng). Đánh thường, tung hồn kỹ khác hoặc tiên cơ thì hiện hình. Người khác thấy hồn sư mờ hẳn, chính mình thấy nửa trong suốt.
-- **Phong Lôi Chi Lực** (từ 2.5c, Lam Điện Bá Vương Long; `PHONG_LOI`, **chờ chốt**): thanh 0–100 của hồn sư, chỉ tích khi Lam Điện ra trận đánh trúng: đòn thường +4, hồn kỹ +10 (một lần mỗi đòn như năng lượng tiên cơ), gấp đôi nếu hồn thú trúng đầu tiên đang Cảm điện. Đầy thì **tự tung Lôi Động Minh Thiên** ngay nhịp sau (quanh thân 120: 300% công, hồn thú Cảm điện thêm 100%, Cảm điện, Choáng 1 giây; sức mạnh theo hồn hoàn năm cao nhất của võ hồn), thanh về 0. Lôi Động Minh Thiên không tạo năng lượng tiên cơ và không tích lại Phong Lôi Chi Lực. Ngoài giao chiến quá 10 giây thì giảm 10 mỗi giây; Lam Điện gục thì mất hết; không lưu DB. Ai cũng thấy tia sét quanh thân (dày hơn khi gần đầy); chính mình thấy thanh dưới thanh kinh nghiệm. "Ngắt chiêu boss" hiện là Choáng 1 giây; ngắt chiêu báo trước thật sự làm khi hồn thú có chiêu (bước 3.5).
+- **Phong Lôi Chi Lực** (từ 2.5c, Lam Điện Bá Vương Long; `PHONG_LOI`, **chờ chốt**): thanh 0–100 của hồn sư, chỉ tích khi Lam Điện ra trận đánh trúng: đòn thường +4, hồn kỹ +10 (một lần mỗi đòn như năng lượng tiên cơ), gấp đôi nếu hồn thú trúng đầu tiên đang Cảm điện. Đầy thì **tự tung Lôi Động Minh Thiên** ngay nhịp sau (quanh thân 120: 300% công, hồn thú Cảm điện thêm 100%, Cảm điện, Choáng 1 giây; sức mạnh theo hồn hoàn năm cao nhất của võ hồn), thanh về 0. Lôi Động Minh Thiên không tạo năng lượng tiên cơ và không tích lại Phong Lôi Chi Lực. Ngoài giao chiến quá 10 giây thì giảm 10 mỗi giây; Lam Điện gục thì mất hết; không lưu DB. Ai cũng thấy tia sét quanh thân (dày hơn khi gần đầy); chính mình thấy thanh dưới thanh kinh nghiệm. "Ngắt chiêu boss" hiện là Choáng 1 giây; từ 3.5 Choáng ngắt luôn chiêu báo trước đang hiện của hồn thú.
 - **Hiệu ứng có lợi trên hồn sư** (từ hồn kỹ phụ trợ, bảng `BUFFS`): tăng công, tăng tốc, tăng thủ (giảm sát thương nhận), tăng chí mạng, giảm tiêu hao hồn lực, miễn sát thương. Như khiên, hiệu ứng thuộc **hồn sư** nên đổi võ hồn vẫn còn: đổi sang Cửu Bảo Lưu Ly Tháp tung xong rồi đổi về võ hồn đánh chính. Cả đội gục thì mất. **(chờ chốt)** Hiện chỉ có tác dụng lên chính mình; tổ đội người chơi (7.1) sẽ xét cho đồng đội.
 - **Lãnh vực phượng hoàng** (từ 2.5b, Tà Hỏa Phượng Hoàng; hiệu ứng có lợi `phoenix`, **chờ chốt**): vòng lửa bán kính 90 (`PHOENIX_FIELD_R`) đi theo hồn sư; hồn thú trong vòng nhận thêm 30% (× `buffPower`) sát thương từ mọi nguồn, kể cả của người chơi khác và sát thương theo thời gian (nhiều lãnh vực chồng nhau chỉ lấy cái mạnh nhất). Như mọi hiệu ứng có lợi, đổi võ hồn vẫn còn: mở lãnh vực rồi đổi sang Hỏa Long đánh tiếp. Hồn sư đứng trong vùng an toàn hoặc đang đi cổng thì lãnh vực tạm vô hiệu.
 - **Hút huyết** (từ 2.5d, Quỷ Mị; hiệu ứng có lợi `leech`, **chờ chốt**): một phần mọi sát thương hồn sư gây lên hồn thú (đòn trực tiếp, sát thương theo thời gian, lan Cảm điện) hồi thành sinh lực cho võ hồn đang ra trận, cộng với hút máu riêng của hồn kỹ (Bích Lân Xà Hoàng, Nhu Cốt Thố). Như mọi hiệu ứng có lợi, đổi võ hồn vẫn còn: Quỷ Mị bật rồi đổi sang võ hồn đánh chính. "Tàng hình cả đội" của Quỷ Ảnh Trùng Trùng dùng hiệu ứng `hide` có sẵn (thuộc hồn sư nên võ hồn nào ra trận cũng tàng hình).
@@ -174,12 +176,12 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
     | Kim Vũ Miêu Ưng (2.5c) | Kim Ưng Giáng Lôi | Bay lên rồi giáng sét, quanh thân bán kính 100: 140% công, Cảm điện 8 giây, Câm lặng 2 giây |
     | Càn Khôn Hỗn Nguyên Tỏa (2.5c) | Càn Khôn Đại Phong Tỏa | Quanh thân bán kính 72: 120% công, Phong ấn đủ 3 tầng (Dễ thương 6,8 giây ngay), Trói 2 giây, Cảm điện |
     | Yêu Hồ (2.5c) | Hồ Mị Thiên Hạ | Quanh thân bán kính 80: 120% công, Mị hoặc đủ 3 tầng (Mê hoặc ngay), Làm chậm 3 giây |
-    | Xúc Xích (2.5c) | Thanh Tâm Hương Tràng | Hồi 20% sinh lực cả đội, 25% hồn lực, khiên 12% sinh lực tối đa 5 giây. "Giải khống chế" chờ hồn sư có thể bị khống chế (bước 3.5) |
+    | Xúc Xích (2.5c) | Thanh Tâm Hương Tràng | Hồi 20% sinh lực cả đội, 25% hồn lực, khiên 12% sinh lực tối đa 5 giây; từ 3.5 giải mọi trạng thái trên hồn sư (giải khống chế) |
     | Cửu Tinh Thất Sát Kiếm (2.5d) | Thất Sát Kiếm Vực | Quanh thân bán kính 72: 220% công, Phá giáp (Liệt thương) đủ 3 tầng |
     | Nhu Cốt Thố (2.5d) | Nhu Cốt Thuấn Suất | Thuấn di tối đa 90 tới hồn thú gần nhất trong 110, quật 3 đoạn mỗi đoạn 140% công, +30% chí mạng, hút 30% sát thương, đoạn cuối Choáng 0,8 giây, bất tử 0,35 giây |
     | Tử Vong Chu Hoàng (2.5d) | Chu Hoàng Thiên Võng | Quanh thân bán kính 80: kéo hồn thú về sát thân, 120% công, Trói 2 giây, Trúng độc 2 tầng, Cảm điện |
     | Quỷ Mị (2.5d) | Quỷ Ảnh Mê Tung | Cả đội tàng hình 4 giây, hút huyết 25% trong 4 giây |
-    | Thiên Càn Bạch Ngọc Đỉnh (2.5d) | Bạch Ngọc Thánh Quang | Hồi 20% sinh lực cả đội, khiên 18% sinh lực tối đa 6 giây |
+    | Thiên Càn Bạch Ngọc Đỉnh (2.5d) | Bạch Ngọc Thánh Quang | Hồi 20% sinh lực cả đội, khiên 18% sinh lực tối đa 6 giây; từ 3.5 thanh tẩy mọi trạng thái trên hồn sư |
   - Bộ hồn hạch **Tiên Cơ** (5.6) đã có chỗ trong công thức: 2 món nhân tốc độ tích của võ hồn mang bộ thêm 20%, 4 món nhân sát thương tiên cơ thêm 35% (`TIEN_CO_SET`, `energyGain`, `tienCoDmgMult`); bật khi làm hồn hạch ở GĐ5.
   - Người chơi thấy năng lượng từng võ hồn trên thanh đội hình (thanh vàng), ô đầy năng lượng sáng viền kèm chữ "Tiên cơ!" và thông báo một lần. Người khác thấy hiệu ứng tiên cơ, vòng khiên và hồn thú bị choáng, không thấy năng lượng.
 - Võ hồn đang ra trận gục thì tự đổi sang võ hồn còn sống. Võ hồn đã gục chỉ hồi lại ở doanh trại hoặc sau 60 giây ngoài trận.
@@ -361,7 +363,7 @@ Số phần trăm của Cửu Bảo Lưu Ly Tháp là ở sức mạnh ×1; nhâ
 - **Vùng cố định** (`SkillDef.at`, `fixed`): `at` đặt vùng tại hồn thú gần nhất trong tầm (không có thì không tung, như vùng "mục tiêu"), có `dash` thì hồn sư bay tới trước; `fixed` đặt vùng ở chỗ hồn sư đứng lúc tung. Vùng không đi theo hồn sư (khác cánh hoa của Kỳ Nhung Thông Thiên Cúc). Client vẽ vùng trong suốt thời gian (fx `zone`).
 - **Tàng hình** (hiệu ứng có lợi `hide`, mục 5.1) và **Phong Lôi Chi Lực** (`PHONG_LOI`, mục 5.1).
 - **Phục Chế** (`SkillDef.copy`, Xúc Xích): đơn giản hóa "sao chép kỹ năng đồng đội" thành tung lại **hồn kỹ gần nhất của một võ hồn khác còn trong đội** (đồng đội = võ hồn trong đội của chính hồn sư, chưa có tổ đội người chơi 7.1), với công của Xúc Xích và sức mạnh theo hồn hoàn vòng 4 × 0,8 (cả sát thương lẫn hiệu ứng lên bản thân: hồi sinh lực, khiên, hồn lực, hiệu ứng có lợi; miễn sát thương và tàng hình giữ nguyên); tốn hồn lực, hồi chiêu của Phục Chế. Chưa có hồn kỹ để chép (hoặc võ hồn đó đã rời đội hay đang gục) thì không tung, không tốn gì. Chỉ chép hồn kỹ của võ hồn không có Phục Chế.
-- "Giải khống chế" của Xúc Xích **chưa làm**: hồn sư chưa bao giờ bị khống chế (hồn thú chưa có chiêu tới bước 3.5); hiện Xúc Xích chỉ hồi sinh lực / hồn lực / khiên.
+- "Giải khống chế" của Xúc Xích: từ 3.5 tiên cơ Thanh Tâm Hương Tràng giải mọi trạng thái trên hồn sư (do chiêu báo trước của hồn thú gây); hồn kỹ vòng 1 vẫn chỉ hồi sinh lực.
 - "Hạn chế di chuyển" của Kỳ Nhung Thông Thiên Cúc (2.5b) vẫn dùng Trói ngắn; đổi sang Làm chậm thì chờ chốt (đổi số của võ hồn đã làm).
 
 *Lam Điện Bá Vương Long* (cường công, cảm điện lõi: sấm sét diện rộng gây Cảm điện, Phong Lôi Chi Lực, Lôi Động Minh Thiên)
@@ -416,7 +418,7 @@ Số phần trăm hồi của Xúc Xích là ở sức mạnh ×1, nhân thêm `
 - **Hút huyết** (hiệu ứng có lợi `leech`, mục 5.1): "biến sát thương gây ra thành hồi máu" của Quỷ Mị. `PlayerState.buff` đổi từ uint8 sang uint16 vì 8 bit đã dùng hết.
 - **Ràng buộc** bản tối thiểu cho hai cặp ví dụ (`BONDS`, mục 5.1).
 - Không cần cơ chế mới: "tàng hình cả đội" dùng `hide` (hiệu ứng thuộc hồn sư); hút máu của Nhu Cốt Thố dùng `lifesteal`; "tăng sát thương đội" là tăng công `atk`; Vô Ngã Kiếm Trận là nhiều nhát quanh thân (2.5b); lưới độc là vùng cố định (2.5c); gom quái là `pull` (2.5a).
-- **Chưa làm (chờ chốt):** "xóa buff địch" và "thanh tẩy đội" của Thiên Càn Bạch Ngọc Đỉnh: hồn thú chưa có hiệu ứng có lợi nào để xóa và hồn sư chưa bao giờ mang trạng thái xấu (giống "giải khống chế" của Xúc Xích); làm khi hồn thú có chiêu và hiệu ứng (bước 3.5, BĐ4). Hiện Thiên Càn Bạch Ngọc Đỉnh hồi máu, khiên, tăng thủ và gây Dễ thương + Câm lặng để cả đội đánh boss.
+- **Chưa làm (chờ chốt):** "xóa buff địch" của Thiên Càn Bạch Ngọc Đỉnh: hồn thú chưa có hiệu ứng có lợi nào để xóa (BĐ4). "Thanh tẩy đội" làm ở 3.5: tiên cơ Bạch Ngọc Thánh Quang giải mọi trạng thái trên hồn sư, như Xúc Xích. Hiện Thiên Càn Bạch Ngọc Đỉnh hồi máu, khiên, tăng thủ và gây Dễ thương + Câm lặng để cả đội đánh boss.
 - Tên hồn kỹ: Nhu Cốt Thố lấy theo hồn kỹ của Tiểu Vũ (Yêu Cung, Thuấn Di, Vô Địch Kim Thân) và Bát Đoạn Suất; Vô Ngã Kiếm Trận, Kiếm Trảm Sơn Hà, Quỷ Ảnh Trùng Trùng, Tịnh Thế Lưu Ly lấy từ bảng 5.1 làm bản nhỏ ở vòng 3–4 (tuyệt kỹ thật để vòng 10); còn lại đặt tạm.
 
 *Cửu Tinh Thất Sát Kiếm* (cường công, phá giáp: Vô Ngã Kiếm Trận sát thương diện rộng liên tục, Liệt thương, tuyệt kỹ Kiếm Trảm Sơn Hà)
@@ -612,7 +614,36 @@ Mỗi bản đồ săn rơi mảnh của 2–3 võ hồn riêng (mục 5.1) và 
 
 **Luật chung của hồn thú**
 - Chỉ số hồn thú tăng theo số năm, không chỉ theo màu. Loài (bảng `BEASTS`) quyết định kiểu tấn công, chiêu và hệ số chỉ số.
-- **Chiêu có báo trước:** hồn thú từ 1.000 năm trở lên có 1 chiêu đặc biệt, hiện vùng cảnh báo khoảng 0,8 giây (bảng ở trên). Tinh anh và boss: mục 5.4.
+- **Chiêu có báo trước:** hồn thú từ 1.000 năm trở lên có 1 chiêu đặc biệt, hiện vùng cảnh báo khoảng 0,8 giây (bảng ở trên). Tinh anh và boss: mục 5.4. Đã làm ở 3.5 (bảng `BEAST_SKILLS` trong `data.ts`, số liệu dưới đây **chờ chốt**):
+  - Hồn thú có mục tiêu chờ 1,5–3 giây, rồi tung khi chiêu hết hồi và mục tiêu trong tầm (vòng quanh thân, vệt, nón: 80–90% kích thước; vòng dưới chân: tầm ném). Hồi chiêu ± 20% để bầy không tung cùng lúc. Báo trước thì đứng yên, không đánh thường; hướng vệt / nón và tâm vòng dưới chân **khóa lúc bắt đầu**; hết giờ tính trúng theo vị trí thật (người chơi là hình tròn bán kính 4 pixel). Kích thước theo tốc độ hồn sư (58 pixel/giây, khoảng 46 pixel trong 0,8 giây): vòng dưới chân ≤ 34, vòng quanh thân ≤ 56.
+  - Sát thương = bội số × sát thương đòn thường của hồn thú (theo số năm) × (0,9–1,1). Chiêu "lao" thì tung xong hồn thú lao tới cuối vệt / tâm vòng.
+  - Loài có nhiều chiêu chọn theo năm (Quỷ Đằng: Quật Roi từ 1.000 năm, Rễ Trói từ 1.500 năm cho Quỷ Đằng ngàn năm của Nội địa). Hồn thú thường dùng 1 chiêu; tinh anh (BĐ4) dùng 2 chiêu qua cùng bộ máy (`BData.skills`).
+  - Chưa làm: vũng độc của Thất Tinh Độc Thiềm (thay bằng Trúng độc 3 tầng), kéo / đẩy người chơi.
+
+  | Loài | Chiêu | Hình | Kích thước | Bội số | Hồi | Hiệu ứng |
+  |---|---|---|---|---|---|---|
+  | Phong Lang (chỉ hook / tinh anh) | Vồ | vệt, lao | dài 70, rộng 14 | 1,4 | 7 | |
+  | Tử Văn Báo (chỉ hook / tinh anh) | Vồ Nhanh | vệt, lao, báo trước 0,7 | dài 80, rộng 12 | 1,5 | 7 | |
+  | Mạn Đà La Xà | Phun Độc | vệt | dài 100, rộng 14 | 1,2 | 7 | Trúng độc 2 tầng 4 giây |
+  | Quỷ Đằng | Quật Roi | nón | 52, góc 140° | 1,5 | 7 | |
+  | Quỷ Đằng (từ 1.500 năm) | Rễ Trói | vòng dưới chân, tầm 120 | 30 | 1,1 | 7 | Trói 1,5 giây |
+  | Lôi Văn Hầu | Gọi Sét | vòng dưới chân, tầm 130 | 30 | 1,3 | 7 | Cảm điện |
+  | Quỷ Hổ | Vồ Lao | vệt, lao | dài 110, rộng 16 | 1,6 | 7 | |
+  | Thanh Lân Ngạc | Táp Ngang | nón | 46, góc 110° | 1,7 | 7 | |
+  | Kim Linh Ưng | Bổ Nhào | vòng dưới chân, lao, tầm 110 | 28 | 1,6 | 7 | |
+  | Nhân Diện Ma Chu non | Giăng Tơ | vòng dưới chân, tầm 110 | 34 | 0,8 | 7 | Làm chậm 3 giây |
+  | Liệt Trảo Hùng | Vỗ Đất | vòng quanh thân | 48 | 1,8 | 7 | |
+  | Thiết Giáp Tê Ngưu | Xung Phong | vệt, lao | dài 150, rộng 18 | 1,8 | 9 | |
+  | Nhân Diện Ma Chu | Phun Tơ | vệt | dài 110, rộng 14 | 0,9 | 7 | Trói 1,5 giây |
+  | U Minh Lang | Ảnh Vồ | vệt, lao | dài 95, rộng 14 | 1,5 | 7 | |
+  | Thất Tinh Độc Thiềm | Phun Độc | vòng dưới chân, tầm 120 | 34 | 1 | 7 | Trúng độc 3 tầng 5 giây |
+  | Xích Lân Mãng | Quấn Siết | vòng quanh thân | 32 | 1,2 | 7 | Trói 1,5 giây |
+  | Hắc Vụ Biên Bức | Âm Ba | nón | 64, góc 70° | 1 | 7 | Câm lặng 2 giây |
+  | Lam Lôi Tê Ngưu | Lôi Xung | vệt, lao | dài 140, rộng 18 | 1,7 | 9 | Cảm điện |
+  | Lôi Dực Ưng | Lôi Bạo | vòng dưới chân, tầm 130 | 34 | 1,6 | 7 | Cảm điện |
+  | Ám Kim Khủng Trảo Hùng | Vỗ Đất | vòng quanh thân | 56 | 2 | 7 | Choáng 0,6 giây |
+  | Kiếm Vĩ Hạt | Kiếm Vĩ Đâm | vệt | dài 85, rộng 12 | 1,6 | 7 | Phá giáp (Liệt thương) 2 tầng |
+  | Quỷ Ảnh Báo | Ảnh Trảm | nón | 54, góc 90° | 1,8 | 7 | |
 - **Mỗi bản đồ (mỗi kênh) có tối đa 1 hồn thú thường 100.000 năm cùng lúc**; chỉ vùng Hải Thần Uyên sinh được. Thú vương và boss thế giới không tính vào luật này.
 - **Rơi đồ dựa vào farm:** mỗi lần hạ hồn thú, mỗi loại đồ được tung tỉ lệ riêng (bảng `DROPS` trong `data.ts`). Hồn thú năm càng cao thì tỉ lệ rơi đồ tốt càng cao. Tinh anh và boss có thêm hệ số ở mục 5.4.
 
@@ -890,7 +921,7 @@ Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textur
 | Tinh anh | (mục 5.4) | khung của loài gốc, phóng 1,25 lần | thêm aura vẽ bằng code |
 | Tà hóa thú vương | (mục 5.4) | 96×96 | khoảng 5 ô |
 
-- Animation: `idle` 2 khung, `walk` 4, `attack` 3 (khung đầu là tư thế báo trước, giữ lâu để khớp vùng cảnh báo 0,8 giây ở mục 5.3), `hurt` 1, `die` 3. Spritesheet một hàng theo đúng thứ tự đó, 13 khung. Key animation cũng có tiền tố sheet, ví dụ `beast_phong_lang:walk`.
+- Animation: `idle` 2 khung, `walk` 4, `attack` 3 (khung đầu là tư thế báo trước, giữ lâu để khớp vùng cảnh báo 0,8 giây ở mục 5.3; từ 3.5 client giữ khung này khi `BeastState.cast` bật rồi chạy 2 khung ra đòn lúc tung), `hurt` 1, `die` 3. Spritesheet một hàng theo đúng thứ tự đó, 13 khung. Key animation cũng có tiền tố sheet, ví dụ `beast_phong_lang:walk`.
 - Trạng thái hung hăng (`aggro`) không vẽ khung riêng: client thêm mắt đỏ hoặc dấu "!" bằng code.
 - Mỗi loài hồn thú trong mục 5.3 một bộ sprite. Trước khi có loài (bước BĐ1, đã gộp 2.6), giữ key theo bậc `b{tier}_…`.
 
@@ -969,7 +1000,7 @@ shared/assets/ui/
 
 **Dữ liệu trong `shared/data.ts`**
 - `MAPS`: mã, tên, loại, khoảng cấp đề xuất, khoảng niên hạn, mảnh võ hồn, bộ hồn hạch, thú vương, có từ bước nào.
-- `BEASTS`: theo **loài**. Mã cố định (`id`, dùng cho sprite `beast_{id}`), tên, kiểu tấn công (cận chiến, tầm xa, đứng yên, đi bầy), chiêu báo trước (hình vệt/nón/vòng, kích thước, thời gian báo, hiệu ứng), hệ số chỉ số so với chuẩn theo năm.
+- `BEASTS`: theo **loài**. Mã cố định (`id`, dùng cho sprite `beast_{id}`), tên, kiểu tấn công (cận chiến, tầm xa, đứng yên, đi bầy), hệ số chỉ số so với chuẩn theo năm. Chiêu báo trước theo loài nằm ở bảng riêng `BEAST_SKILLS` (từ 3.5: hình vệt/nón/vòng, kích thước, tầm, thời gian báo, hồi chiêu, bội số sát thương, trạng thái, lao), chọn bằng `beastSkillOf(loài, năm)`.
 - `BOSSES`: tinh anh, thú vương, boss thế giới. Mã, tên, bậc, loài gốc (dùng lại chỉ số loài), hệ số máu và sát thương, chiêu, chiêu giai đoạn 2.
 - Hằng số: hệ số 4 bậc, hệ số máu theo người (`0.6`), thời gian hồi sinh tinh anh, lịch thú vương, mức giảm kinh nghiệm, giới hạn nhận thưởng mỗi ngày. Cấp tương đương tính bằng hàm dùng chung từ bảng giới hạn hồn hoàn theo năm, không lưu bảng riêng.
 
@@ -1147,7 +1178,12 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Client: bảng đội hình (V) hiện sao trên thẻ võ hồn (★ vàng, ☆ nhạt) và mục "Mảnh võ hồn": mỗi võ hồn đã có hoặc đang có mảnh một dòng (sao, "x/50 mảnh" hoặc "x/ngưỡng mảnh lên n★", thanh tiến độ, nút Mở / Lên sao sáng khi đủ, "Tối đa" ở 6★), cuối là bản đồ nào rơi mảnh của võ hồn nào. Túi đồ: ô mảnh màu võ hồn, nút "Mở / lên sao…" mở bảng đội hình. Mảnh dưới đất vẽ thành viên tinh thể màu võ hồn kèm tên. Bấm chuột và chạm đều được.
   Bot: bảng giá sao, tỉ lệ rơi, mỗi bản đồ săn có 2–3 võ hồn hợp lệ; số ngẫu nhiên 0,99 không rơi, 0,05 rơi đúng 1 mảnh vào túi người hạ; túi đầy thì mảnh rơi xuống đất, người khác không nhặt được trong 15 giây, bỏ bớt rồi nhặt được; mở võ hồn thiếu mảnh (1, 49), võ hồn không tồn tại / đã có, người khác bị từ chối; đủ 50 thì mở (cấp 1, 1★, trừ đúng 50); lên sao thiếu mảnh bị từ chối, 20 mảnh lên 2★, lên tới 6★ rồi dừng không mất mảnh; võ hồn ra trận lên sao thì sinh lực tối đa tăng; vào lại thì sao từng võ hồn (cả võ hồn mới mở) còn nguyên. Đã thử với PostgreSQL (server chạy hai lần liên tiếp).
   **Để sau:** hiệu ứng hồn kỹ mở theo sao; mảnh từ rương tà hóa thú vương (BĐ5, kể cả mảnh UR), boss thế giới (BĐ6) và nhiệm vụ; mảnh của bản đồ GĐ8 (Lạc Nhật, Cực Bắc, Hải Thần Đảo) khi có bản đồ.
-- [ ] 3.5 Chiêu có báo trước cho hồn thú từ 1.000 năm trở lên (theo loài trong `BEASTS`).
+- [x] 3.5 Chiêu có báo trước cho hồn thú từ 1.000 năm trở lên (theo loài trong `BEASTS`).
+  *Đã làm:* `data.ts`: `BeastSkillDef`, `BEAST_SKILLS` (21 loài: mọi loài của vùng có hồn thú từ 1.000 năm ở Ngoại vi / Nội địa, thêm Phong Lang và Tử Văn Báo để dành cho tinh anh; bảng ở 5.3, **chờ chốt**), `beastSkillOf(loài, năm)`, `BEAST_SKILL_YEARS` (1.000), `TELE_WARN` (0,8), `TELE_FIRST` (1,5–3 giây), `TELE_PAD` (4), `Tele` + `teleHits` (hàm thuần tính trúng vệt / nón / vòng), `PLAYER_STATUS`; `StatusDef.noSkill`: Câm lặng chuyển từ `noAtk` sang `noSkill`; `SkillDef.self.cleanse` (tiên cơ Xúc Xích giải khống chế, tiên cơ Thiên Càn Bạch Ngọc Đỉnh "thanh tẩy đội" của 2.5d).
+  Server: `BData.skills` (danh sách chiêu kèm hồi chiêu, hồn thú thường 0–1 chiêu, chỗ để tinh anh BĐ4 có 2), `skT`, `cast`; `beginCast` / `tickCast` / `cancelCast` / `fireCast`: báo trước thì `BeastState.cast` bật, gửi `fx tele` (hình đã khóa, thời lượng), hết giờ gửi `fx teleHit` (danh sách người trúng, vệt lao) rồi gây sát thương qua `hurtPlayer` và trạng thái qua `applyPStatus`; bị Choáng / Câm lặng / Mê hoặc thì `fx teleEnd`. Trạng thái trên hồn sư: `PData.st`, `PlayerState.st` (uint16, bit theo `STATUS_IDS`), `tickPStatus` (Trúng độc / Thiêu đốt mỗi giây, hết khi vào vùng an toàn), `pctl` chặn đi / đánh / hồn kỹ; `hurtPlayer` trả về đòn có trúng không, tính Dễ thương / Phá giáp, lan Cảm điện giữa hồn sư. Hook `test`: `spawn` nhận `species`, mới `tele {i}`, `pst {s, n, secs}`; hồn thú của `beast` không có chiêu.
+  Client: vùng cảnh báo trên mặt đất (nền đỏ mờ cả vùng, phần đỏ đậm đầy dần từ gốc / từ tâm, viền nhấp nháy nhanh dần), tên chiêu đỏ trên đầu hồn thú; lúc tung vùng chớp sáng, vệt lao, rung màn hình nếu mình trúng. Sheet PixelLab giữ khung đầu `attack` khi `cast` rồi chạy 2 khung ra đòn (`BEAST_ANIMS.attack` đọc `TELE_WARN`); hồn thú vẽ bằng code thì phồng lên co lại. Hồn sư: dây trói dưới chân, sao choáng, biểu tượng trạng thái trên danh hiệu; HUD thêm ô trạng thái viền đỏ.
+  Bot: mọi loài từ 1.000 năm ở Ngoại vi / Nội địa có chiêu, `teleHits`; đứng trong vòng thì trúng sau 0,8 giây với sát thương đúng khoảng; dịch ra (hook `goto`) hoặc chạy bộ ra khỏi vùng trước khi tung thì không trúng; đứng mép trong làng, nằm trong vòng của hồn thú ngoài làng cũng không trúng; vệt Phun Độc gây Trúng độc và mất máu mỗi giây, bước ngang thì né được; Phun Tơ Trói hồn sư không đi được tới khi hết giờ; Câm lặng trên hồn thú ngắt chiêu; 999 năm không có chiêu; hồn thú tự tung chiêu khi có mục tiêu; Câm lặng trên hồn sư chặn hồn kỹ; tiên cơ Xúc Xích giải Trói và Câm lặng, tiên cơ Thiên Càn thanh tẩy Trúng độc và Làm chậm. Kiểm tra 2.5a đổi theo luật Câm lặng mới (hồn thú kề bên vẫn đánh thường); kiểm tra 2.5d giữ hồn thú "đứng yên, không đánh, chưa Choáng" bằng Trói + Mê hoặc thay cho Trói + Câm lặng.
+  **Khác thiết kế / để sau:** vũng độc của Thất Tinh Độc Thiềm thay bằng Trúng độc 3 tầng; chưa kéo / đẩy người chơi; thời gian khống chế trên hồn sư không giảm (chưa có kháng); thú vương báo trước dài hơn làm ở BĐ5.
 - [ ] **BĐ4** Tinh anh (sau 3.5): mỗi vùng 1 con (object `elite`, bảng `BOSSES`), máu x2,5, sát thương x1,5, 2 chiêu báo trước, aura riêng, hiện trên bản đồ nhỏ, hồi sinh ngẫu nhiên 8–12 phút; máu tăng theo số người tham gia (5.4). Thưởng hồn cốt x3 tỉ lệ và chắc chắn rơi hồn hạch: bật khi đã có hồn cốt (GĐ4) và hồn hạch (GĐ5).
 
 **Giai đoạn 4: Hồn cốt**
@@ -1234,7 +1270,8 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
    - **Trả lời (đã chốt):** chọn **(b)**. Key theo bộ `hs_{body,outfit,hair}_{m,f}_{kiểu tóc}` (ví dụ `hs_body_f_2`, `hs_outfit_f_2`, `hs_hair_f_2`), quy cách ở mục 5.11. Viền ngoài `#1a1020` giữ nguyên khi hoán màu tóc/áo. Không nâng gói PixelLab: dùng tiết kiệm khoảng 15 lượt trial còn lại, phần thiếu vẽ bằng code hoặc chỉnh tay.
 10. **Hồn kỹ riêng (bước 2.5a, mục 5.1 / 5.2):** các đề xuất cần xác nhận:
    - Tên, hiệu ứng và con số của 20 hồn kỹ và 5 tiên cơ riêng; có muốn bám sát hồn kỹ trong truyện hơn không (ví dụ Lam Ngân Thảo: Triền Nhiễu, Ký Sinh, Lam Ngân Tù Lung, Chu Võng Thúc Phược).
-   - Câm lặng trên hồn thú tạm chặn cả đòn đánh thường cho tới bước 3.5 (hồn thú có chiêu báo trước).
+   - Câm lặng trên hồn thú: từ 3.5 chỉ chặn và ngắt chiêu báo trước (trước đó chặn cả đánh thường). "Tê liệt" của Kim Vũ Miêu Ưng (Trói + Câm lặng) vì thế không còn chặn đánh thường khi hồn thú kề bên: có đổi thành Choáng không?
+   - Chiêu báo trước của hồn thú (3.5): bảng chiêu, kích thước, bội số, hồi chiêu, thời gian chờ chiêu đầu 1,5–3 giây, trạng thái trên hồn sư (thời gian khống chế không giảm theo gì) đều chờ chốt.
    - Phá giáp tạm là nhận thêm sát thương đòn trực tiếp, chờ hồn thú có chỉ số thủ.
    - Hiệu ứng có lợi của hồn kỹ phụ trợ chỉ cho chính mình hay cả người chơi đứng gần (trước khi có tổ đội 7.1)?
    - Hồn thú hồi 4% sinh lực mỗi giây khi bỏ mục tiêu 6 giây (mới thêm để Trúng độc giảm hồi máu có tác dụng).
@@ -1257,7 +1294,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 13. **Hồn kỹ 5 võ hồn còn lại và ràng buộc (bước 2.5d):** cần xác nhận:
    - Tên và con số 20 hồn kỹ, 5 tiên cơ riêng (mục 5.2); tên hồn kỹ trong truyện của Cửu Tinh Thất Sát Kiếm, Tử Vong Chu Hoàng, Quỷ Mị, Thiên Càn Bạch Ngọc Đỉnh chưa rõ nên đặt tạm.
    - Hút huyết của Quỷ Mị: tính cả sát thương theo thời gian và lan Cảm điện (đang tính), chỉ hồi võ hồn ra trận hay cả đội.
-   - "Xóa buff địch" và "thanh tẩy đội" của Thiên Càn Bạch Ngọc Đỉnh: xóa những gì khi hồn thú có chiêu / cuồng nộ (bước 3.5, BĐ4).
+   - "Xóa buff địch" của Thiên Càn Bạch Ngọc Đỉnh: xóa những gì khi hồn thú có cuồng nộ (BĐ4). "Thanh tẩy đội" (từ 3.5) đang là tiên cơ giải mọi trạng thái của hồn sư; có cần thêm vào hồn kỹ không.
    - Ràng buộc: danh sách cặp đầy đủ và mức hiệu ứng; cần cả hai trong đội (đang làm) hay cả hai chưa gục / một trong hai đang ra trận.
 
 **Đã chốt sau review PR #8** (chi tiết ở mục 5.3, 5.8, 6 và BĐ1)

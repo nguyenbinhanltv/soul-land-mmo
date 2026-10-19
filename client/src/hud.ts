@@ -1,7 +1,7 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
-  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf,
+  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS,
   BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, type BoneStat } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
@@ -91,11 +91,15 @@ export function updateStats(p: any) {
     } else s.textContent = `Đủ ${MAX_RINGS} hồn hoàn`;
     el.appendChild(s);
   }
-  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",");
+  // Hiệu ứng có lợi, rồi trạng thái bất lợi do chiêu báo trước của hồn thú gây (từ 3.5, viền đỏ).
+  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st;
   if (buffs !== buffKey) {
     buffKey = buffs; const el = $("#buffs"); el.innerHTML = "";
     for (const b of BUFF_IDS) if (p.buff & buffBit(b)) {
       const c = document.createElement("span"); c.textContent = BUFFS[b].name; c.style.color = BUFFS[b].col; el.appendChild(c);
+    }
+    for (const s of PLAYER_STATUS) if (p.st & statusBit(s)) {
+      const c = document.createElement("span"); c.textContent = STATUS[s].name; c.style.color = STATUS[s].col; c.className = "debuff"; el.appendChild(c);
     }
   }
   const sks = skillsOf(VOHON[p.vh].id);
