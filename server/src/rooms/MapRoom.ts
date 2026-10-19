@@ -18,7 +18,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
-  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingShardPool, vnDay, chestCode, type BossDef } from "../../../shared/data.ts";
+  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal, type EliteSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -126,6 +126,54 @@ const HOLD = "accountHold";
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
 const HOLD_WAIT_MS = 8000;
 
+// ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
+/**
+ * Một "suất" thú vương của một khung giờ: mỗi kênh đang mở của bản đồ giữ tối đa một suất (`owner` = roomId, null = phòng giữ suất đã
+ * bị hủy). `state`: còn sống / đã bị hạ / đã rút đi; `leaveAt`: lúc rút đi (ms).
+ */
+interface KingSeat { owner: string | null; state: "alive" | "down" | "gone"; leaveAt: number; }
+/**
+ * Thú vương theo bản đồ, sống lâu hơn phòng (Colyseus tự hủy phòng trống): mỗi khung giờ đã sinh (`slot`, hết lúc `until`) và các suất
+ * của khung đó. Phòng mở lại trong cùng khung nhận lại suất không chủ thay vì sinh con mới, nên hạ thú vương rồi rời bản đồ cho phòng
+ * hủy, quay lại cũng không có con mới. Khung hết hạn thì bỏ. Chạy nhiều tiến trình thì phải chuyển sang presence (Redis), như lịch.
+ */
+const kingSeats = new Map<string, Map<number, { slot: number; until: number; seats: KingSeat[] }>>();
+/** Các khung còn hạn của bản đồ `mapId` (bỏ khung đã hết). */
+function kingRecs(mapId: string, now: number) {
+  let recs = kingSeats.get(mapId);
+  if (!recs) { recs = new Map(); kingSeats.set(mapId, recs); }
+  for (const [slot, r] of recs) if (r.until <= now) recs.delete(slot);
+  return recs;
+}
+/**
+ * Khung giờ thú vương đang diễn ra của bản đồ `mapId`: khung muộn nhất trong lịch (kingActive) và các khung đã sinh còn hạn (kể cả do
+ * hook test).
+ */
+function kingSlotNow(mapId: string, now: number): { slot: number; until: number } | null {
+  const active = kingActive(now), recs = kingRecs(mapId, now);
+  let best = active === null ? null : recs.get(active) ?? { slot: active, until: active + KING.lifeSecs * 1000 };
+  for (const r of recs.values()) if (!best || r.slot > best.slot) best = r;
+  return best;
+}
+/**
+ * Lấy suất thú vương cho phòng `roomId` trong khung `slot` của bản đồ `mapId`: suất không chủ trước (phòng cũ đã hủy), không còn thì
+ * thêm suất mới còn sống tới `until`.
+ */
+function takeKingSeat(mapId: string, slot: number, until: number, roomId: string): KingSeat {
+  const recs = kingRecs(mapId, Date.now());
+  let rec = recs.get(slot);
+  if (!rec) { rec = { slot, until, seats: [] }; recs.set(slot, rec); }
+  let seat = rec.seats.find((s) => s.owner === null);
+  if (!seat) { seat = { owner: null, state: "alive", leaveAt: until }; rec.seats.push(seat); }
+  seat.owner = roomId;
+  return seat;
+}
+/**
+ * Báo trước thú vương gần nhất theo bản đồ (kênh "boss", `at` = giờ xuất hiện, ms): phòng mở ra trong lúc chờ (kể cả báo trước của
+ * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
+ */
+const kingWarns = new Map<string, BossEvent & { at: number }>();
+
 // ---------- Vật phẩm (mục 5.7) ----------
 let itemClock = 0;
 /**
@@ -158,8 +206,11 @@ export class MapRoom extends Room<MapState> {
   saveT = 0;
   /** Ô tinh anh (object `elite` của bản đồ, BĐ4): hồn thú đang sống (`bid`), hoặc số giây còn lại trước khi hồi sinh (`t`). */
   elites: { spot: EliteSpot; bid: string | null; t: number }[] = [];
-  /** Thú vương của phòng (BĐ5): khung giờ đã sinh (không sinh lại trong cùng khung) và hồn thú đang sống (null = đã hạ / rút đi). */
-  king: { slot: number; bid: string | null } | null = null;
+  /**
+   * Thú vương của phòng (BĐ5): khung giờ đã lấy suất (không lấy lại trong cùng khung), hồn thú đang sống (null = đã hạ / rút đi) và
+   * suất của bản đồ ở mức tiến trình (kingSeats: còn đúng khi phòng bị hủy rồi mở lại).
+   */
+  king: { slot: number; bid: string | null; seat: KingSeat } | null = null;
   /** Lần báo trước thú vương gần nhất trên kênh "boss" (mọi bản đồ): gửi lại cho người vào phòng trong lúc chờ, `at` = giờ xuất hiện (ms). */
   bossWarn: (BossEvent & { at: number }) | null = null;
   /** Hook test `day {shift}`: lệch ngày nhận thưởng (ngày) để thử đặt lại lượt lúc 00:00; luôn 0 khi không bật GAME_TEST. */
@@ -249,9 +300,18 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe("kick", this.kickSub);
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
     this.presence.subscribe(ANNOUNCE_TOPIC, this.announceSub);
-    // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra cũng có thú vương (mục 6), với thời gian còn lại của khung đó.
-    const active = kingActive(Date.now());
-    if (active !== null) this.spawnKing(active, KING.lifeSecs - (Date.now() - active) / 1000);
+    // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
+    // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
+    const now = Date.now(), active = kingSlotNow(mapId, now);
+    if (active) this.spawnKing(active.slot, (active.until - now) / 1000);
+    // Phòng mở ra trong 5 phút chờ cũng có đếm ngược: báo trước đã phát (kể cả hook test), không có thì tính từ lịch (kingNext).
+    const next = kingNext(now);
+    this.bossWarn = kingWarns.get(mapId) ?? [...kingWarns.values()].at(-1) ?? null;
+    if (this.bossWarn && this.bossWarn.at <= now) this.bossWarn = null;
+    if (!this.bossWarn && next - now <= KING.warnSecs * 1000) {
+      const m = MAPS[mapId].king ? MAPS[mapId] : Object.values(MAPS).filter((x) => x.king).at(-1);
+      if (m?.king) this.bossWarn = { mapId: m.id, king: m.king, phase: "warn", slot: next, in: (next - now) / 1000, life: KING.lifeSecs, at: next };
+    }
 
     this.onMessage("input", (c, m: { x: number; y: number }) => {
       const d = this.pdata.get(c.sessionId); if (!d || d.travelling) return;
@@ -342,6 +402,13 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe("kick", this.kickSub);
     this.presence.unsubscribe(BOSS_TOPIC, this.bossSub);
     this.presence.unsubscribe(ANNOUNCE_TOPIC, this.announceSub);
+    // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
+    const ks = this.king?.seat;
+    if (ks?.owner === this.roomId) {
+      const kd = this.king?.bid ? this.bdata.get(this.king.bid)?.elite?.king : undefined;
+      if (ks.state === "alive" && kd) ks.leaveAt = Date.now() + kd.life * 1000;
+      ks.owner = null;
+    }
     await Promise.all([...this.pdata.entries()].map(async ([id, d]) => {
       await this.chain(d, () => (d.travelled ? undefined : this.write(id)));
       await this.releaseAccount(d.accountId, id);
@@ -958,7 +1025,7 @@ export class MapRoom extends Room<MapState> {
           life: int(o.life, 1, 7200, KING.lifeSecs), test: true });
       }
       const bid = this.king?.bid, b = bid ? this.state.beasts.get(bid) : undefined, bd = bid ? this.bdata.get(bid) : undefined, e = bd?.elite, k = e?.king;
-      out = { lair: this.map.lair, slot: this.king?.slot ?? 0, ...(b && bd && e && k ? { bid, x: b.x, y: b.y, years: b.years, hp: b.hp, maxHp: b.maxHp, base: e.base,
+      out = { lair: this.map.lair, slot: this.king?.slot ?? 0, seat: this.king?.seat.state ?? "", roomId: this.roomId, ...(b && bd && e && k ? { bid, x: b.x, y: b.y, years: b.years, hp: b.hp, maxHp: b.maxHp, base: e.base,
         dmg: bd.dmg, engaged: e.engaged, parts: [...e.parts.keys()], phase: k.phase, roar: k.roar, spd: k.spd, life: k.life,
         skills: bd.skills.map((x) => x.def.name), st: [...bd.st.keys()], ...this.kingRank(e) } : {}) };
     }
@@ -2204,7 +2271,12 @@ export class MapRoom extends Room<MapState> {
     if (near) e.lonely = 0;
     else if ((e.lonely += dt) >= idleSecs) return this.eliteReset(bid, b, bd);
     this.eliteScale(b, e);
-    if (k && (k.rankT -= dt) <= 0) { k.rankT = 1; this.broadcast("boss", { k: "rank", bid, ...this.kingRank(e) }); }
+    // Bảng xếp hạng sát thương chỉ gửi cho người tham gia (đang áp vào máu hoặc đã có đóng góp), không phủ màn hình người đứng xem.
+    if (k && (k.rankT -= dt) <= 0) {
+      k.rankT = 1;
+      const msg = { k: "rank", bid, ...this.kingRank(e) };
+      for (const pid of new Set([...e.parts.keys(), ...e.dmgBy.keys()])) this.clients.getById(pid)?.send("boss", msg);
+    }
   }
 
   /** Bỏ giao chiến (mục 5.4): về chỗ sinh, hồi đầy máu (1 người), xóa người tham gia, đóng góp, trạng thái và hiệu ứng có lợi. */
@@ -2258,9 +2330,11 @@ export class MapRoom extends Room<MapState> {
     if (!ev || !Object.hasOwn(MAPS, ev.mapId) || bossIndex(ev.king) < 0) return;
     if (ev.phase === "warn") {
       this.bossWarn = { ...ev, at: Date.now() + ev.in * 1000 };
+      kingWarns.set(ev.mapId, this.bossWarn);
       this.broadcast("boss", this.bossMsg(ev, "warn", ev.in));
     } else if (ev.phase === "spawn") {
       if (this.bossWarn?.mapId === ev.mapId) this.bossWarn = null;
+      kingWarns.delete(ev.mapId);
       this.broadcast("boss", this.bossMsg(ev, "spawn", 0));
       if (ev.mapId === this.state.mapId) this.spawnKing(ev.slot, ev.life);
     }
@@ -2268,17 +2342,23 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Sinh thú vương của bản đồ trong hang (object `boss`) cho khung giờ `slot`, rút đi sau `life` giây. Niên hạn = mức trên của bản đồ
-   * (mục 5.4). Mỗi khung giờ chỉ sinh một lần; đang có thú vương sống thì bỏ qua. Thú vương không tính vào `count` của vùng.
+   * (mục 5.4). Mỗi phòng lấy một suất mỗi khung giờ (takeKingSeat); suất của phòng cũ đã hủy mà đã hạ / rút đi thì không sinh, còn sống
+   * thì sinh lại đầy máu ở giai đoạn 1 (phòng trống là không ai trong hang: như bỏ giao chiến) với thời gian còn lại của suất. Đang có
+   * thú vương sống thì bỏ qua. Thú vương không tính vào `count` của vùng.
    */
   spawnKing(slot: number, life: number) {
-    const lair = this.map.lair, years = MAPS[this.state.mapId].years?.[1];
+    const lair = this.map.lair, years = MAPS[this.state.mapId].years?.[1], now = Date.now();
     if (!lair || !years || life <= 0 || this.king?.slot === slot) return;
     if (this.king?.bid && this.state.beasts.has(this.king.bid)) return;
+    const seat = takeKingSeat(this.state.mapId, slot, now + life * 1000, this.roomId);
+    this.king = { slot, bid: null, seat };
+    if (seat.state === "alive" && seat.leaveAt <= now) seat.state = "gone";
+    if (seat.state !== "alive") return;
+    life = (seat.leaveAt - now) / 1000;
     const cx = lair.x + lair.w / 2, cy = lair.y + lair.h / 2;
     let x = cx, y = cy;
     for (let k = 0; k < 40 && this.map.hits(x, y, 8, 4); k++) { x = cx + (Math.random() - 0.5) * lair.w * 0.6; y = cy + (Math.random() - 0.5) * lair.h * 0.6; }
-    const bid = this.addBeast(lair.zone, years, lair.boss, x, y, 2, slot, life);
-    this.king = { slot, bid };
+    this.king.bid = this.addBeast(lair.zone, years, lair.boss, x, y, 2, slot, life);
   }
 
   /**
@@ -2324,7 +2404,7 @@ export class MapRoom extends Room<MapState> {
     this.cancelCast(bid, b, bd);
     const name = beastName(2, b.species), map = MAPS[this.state.mapId].name;
     this.state.beasts.delete(bid); this.bdata.delete(bid);
-    if (this.king?.bid === bid) this.king.bid = null;
+    if (this.king?.bid === bid) { this.king.bid = null; this.king.seat.state = "gone"; }
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 60, col: BOSSES[b.species]?.aura });
     this.broadcast("boss", { k: "leave", bid, name, mapName: map });
     this.presence.publish(ANNOUNCE_TOPIC, { text: `${name} ở ${map} đã rút đi: không ai hạ được trong ${KING.lifeSecs / 60} phút.` });
@@ -2347,7 +2427,7 @@ export class MapRoom extends Room<MapState> {
    */
   killKing(bid: string, b: BeastState, e: EliteData, by: string) {
     const k = e.king!, name = beastName(2, b.species), map = MAPS[this.state.mapId].name, rank = this.kingRank(e);
-    if (this.king?.bid === bid) this.king.bid = null;
+    if (this.king?.bid === bid) { this.king.bid = null; this.king.seat.state = "down"; }
     const p = this.state.players.get(by)!; p.kills++;
     const total = rank.total || 1;
     let owner = by;
@@ -2373,24 +2453,28 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Rương thú vương cho người chơi `id` (đóng góp từ KING.share): hôm nay còn lượt (KING.daily, tính chung mọi bản đồ, đặt lại 00:00 giờ
-   * Việt Nam) thì cho rương vào túi ngay, rồi trong chuỗi lưu tăng lượt và ghi cả túi trong một transaction (store.claimBoss). DB báo hết
-   * lượt hoặc lỗi thì lấy lại rương. Túi đầy thì rương vẫn vào (ô tạm vượt BAG_SLOTS, như trả mảnh ở 3.4) để không mất thưởng.
+   * Việt Nam) thì tới lượt trong chuỗi lưu mới cho rương vào túi và ngay đó tăng lượt cùng ghi cả túi trong một transaction
+   * (store.claimBoss). Không lần ghi nào khác chụp được túi có rương trước transaction này (mọi lần ghi nối tiếp trong chuỗi), nên DB
+   * không bao giờ có rương mà chưa trừ lượt. DB báo hết lượt hoặc lỗi thì lấy lại rương. Túi đầy thì rương vẫn vào (ô tạm vượt
+   * BAG_SLOTS, như trả mảnh ở 3.4) để không mất thưởng.
    */
   grantChest(id: string, def: BossDef) {
     const d = this.pdata.get(id), it = itemDef(chestCode(def.id)); if (!d || !it) return;
     const day = this.today(), warn = (text: string) => this.log(id, text, "#ffb35c");
     if (this.claimsToday(d) >= KING.daily) return warn(`Hôm nay đã hết lượt nhận thưởng thú vương (${KING.daily}/${KING.daily}): không nhận rương. Lượt mới lúc 00:00 giờ Việt Nam.`);
-    if (!this.addItem(d, it.id, 1)) { d.bag.push(newItem(it, 1)); d.bagDirty = true; warn(`Túi đồ đã đầy: ${it.name} vẫn vào túi, bỏ bớt đồ để mở được (cần ${KING_CHEST.slots} ô trống).`); }
     const takeBack = () => { const x = d.bag.find((i) => i.code === it.id && i.vohonId === null); if (x) this.takeItem(d, x, 1); };
     d.claimBusy++;
-    this.sendBag(id);
     this.chain(d, async () => {
+      // Rương vào túi ngay trước khi chụp túi cho transaction (không có await xen giữa); chặn mở / bỏ rương tới khi xong (claimBusy).
+      const full = !this.addItem(d, it.id, 1);
+      if (full) { d.bag.push(newItem(it, 1)); d.bagDirty = true; }
       let n: number | null;
       try { n = await store.claimBoss(d.accountId, day, BOSS_CLAIM_KING, KING.daily, this.bagSnapshot(d)); }
       catch (e) { takeBack(); warn(`Không lưu được ${it.name}, thử lại sau.`); throw e; }
       if (n === null) { takeBack(); d.claims = { day, n: KING.daily }; return warn(`Hôm nay đã hết lượt nhận thưởng thú vương (${KING.daily}/${KING.daily}): không nhận rương.`); }
       d.claims = { day, n };
       this.log(id, `Nhận ${it.name} vào túi đồ (lượt ${n}/${KING.daily} hôm nay). Mở trong túi đồ (B).`, it.col);
+      if (full) warn(`Túi đồ đã đầy: ${it.name} vẫn vào túi, bỏ bớt đồ để mở được (cần ${KING_CHEST.slots} ô trống).`);
     }).then(() => { d.claimBusy--; if (this.pdata.get(id) === d) this.sendBag(id); });
   }
 

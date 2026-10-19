@@ -270,7 +270,9 @@ export class GameScene extends Phaser.Scene {
         hud.log(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
       } else if (m.k === "rank") { this.bossList = m.list; hud.bossRank(m.list, this.me); }
       else if (m.k === "down") {
-        this.bossList = null; hud.bossRank(m.list, this.me, true);
+        // Kết quả cuối chỉ hiện cho người tham gia (đang nhận bảng xếp hạng, hoặc có tên trong danh sách).
+        if (this.bossList || m.list?.some((x: { id: string }) => x.id === this.me)) hud.bossRank(m.list, this.me, true);
+        this.bossList = null;
         setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
         hud.banner(`Đã hạ ${m.name}`, `${m.top} đóng góp nhiều nhất`);
       } else if (m.k === "leave") { this.bossList = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã rút đi`, "Không ai hạ được trong 15 phút"); }
