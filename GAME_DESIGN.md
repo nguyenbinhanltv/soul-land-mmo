@@ -43,6 +43,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Túi đồ và Hồn Tệ** (từ 3.1, mục 5.7): túi 40 ô chỉ chính chủ thấy (phím B hoặc nút "Túi đồ"), đồ cùng loại gộp tối đa 99 món một ô. Mới có Hồi Huyết Đan / Hồi Hồn Đan (hồi 30% sinh lực võ hồn ra trận / hồn lực, hồi chiêu chung 15 giây, dùng được khi giao chiến); mỗi tài khoản nhận một lần 5 viên mỗi loại. Hạ hồn thú nhận vài đồng Hồn Tệ theo bậc. Từ 3.2 hồn hoàn là vật phẩm trong túi (mỗi chiếc một ô, ghi số năm) và bỏ được vật phẩm để nhường chỗ (nút "Bỏ"). ➜ 6.1: mua bán đan ở thương nhân.
 - **Mảnh võ hồn, mở võ hồn, lên sao** (từ 3.4, mục 5.1, 5.3): mỗi bản đồ săn rơi mảnh của 2–3 võ hồn (bảng "Rơi đặc trưng" 5.3; Thánh Hồn Thôn: Lam Ngân Thảo, Nhu Cốt Thố; Ngoại vi: U Minh Linh Miêu, Kim Vũ Miêu Ưng, Xúc Xích; Nội địa: Tử Vong Chu Hoàng, Lam Điện Bá Vương Long, Cửu Tinh Thất Sát Kiếm). Hạ hồn thú có 10% / 15% / 20% / 100% (dưới 1.000 / dưới 10.000 / dưới 100.000 / 100.000 năm) rơi 1 mảnh của một võ hồn ngẫu nhiên trong danh sách, vào thẳng túi người hạ (gộp 999 mảnh một ô); túi đầy thì mảnh rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên người hạ 15 giây. Bảng đội hình (phím V) có mục "Mảnh võ hồn": đủ 50 mảnh của võ hồn chưa có thì bấm **Mở** (võ hồn mới cấp 1, 1★, vào bộ sưu tập, không tự vào đội); võ hồn đã có dùng 20 / 40 / 80 / 120 / 200 mảnh để **Lên sao** 2★ … 6★, mỗi sao trên 1 cộng 5% sinh lực, hồn lực, công gốc (6★ = +25%). ➜ Sau: hiệu ứng hồn kỹ mở theo sao; mảnh từ rương thú vương (BĐ5), boss thế giới (BĐ6), nhiệm vụ.
 - **Chiêu có báo trước** (từ 3.5, mục 5.3): hồn thú thường **từ 1.000 năm** có 1 chiêu riêng theo loài (vệt / nón / vòng quanh thân / vòng dưới chân mục tiêu). Có mục tiêu 1,5–3 giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu 7–9 giây (± 20%). Hồn thú đứng yên **0,8 giây** hiện vùng đỏ đầy dần, hết giờ mới tính trúng theo **vị trí thật** của người chơi lúc đó: chạy ra khỏi vùng là né được. Không trúng người đứng trong vùng an toàn, đang chuyển bản đồ, đã gục hay đang bất tử. Choáng, Câm lặng, Mê hoặc trên hồn thú **ngắt chiêu** đang báo trước. Chiêu có thể gây trạng thái lên hồn sư (Trúng độc, Trói, Làm chậm, Câm lặng, Cảm điện, Phá giáp, Choáng ngắn); Câm lặng trên hồn thú từ đây chỉ chặn chiêu, không chặn đánh thường. ➜ BĐ4: tinh anh 2 chiêu; BĐ5: thú vương 2–3 chiêu, báo trước dài hơn.
+- **Hồn cốt rơi** (từ 4.1, mục 5.3, 5.5): hạ hồn thú thường có 0% / 1% / 4% / 20% (dưới 1.000 / dưới 10.000 / dưới 100.000 / 100.000 năm) rơi 1 hồn cốt **cùng loài, cùng số năm** với hồn thú, vị trí ngẫu nhiên trong 6 vị trí (đầu, thân, tay trái, tay phải, chân trái, chân phải). Hồn cốt rơi xuống đất cạnh hồn hoàn, cùng luật như hồn hoàn: 15 giây đầu chỉ người hạ nhặt được, tồn tại 60 giây, nhấn **E** để nhặt vào túi, túi đầy thì báo và hồn cốt ở lại. Trong túi mỗi hồn cốt một ô, tên kiểu *Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm*, màu theo niên hạn; chọn ô thì xem chỉ số gốc, cấp cường hóa (+0), đang gắn hay chưa. Chưa gắn được, bỏ được bằng nút "Bỏ". ➜ 4.2: gắn vào võ hồn; 4.3: kỹ năng; 4.4: cường hóa; BĐ4: tinh anh x3 tỉ lệ.
 - **Multiplayer**: thấy nhau, chat, cùng săn, tranh hồn hoàn. *Giữ nguyên.*
 
 Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong file này là đề xuất, chốt khi code.
@@ -645,7 +646,7 @@ Mỗi bản đồ săn rơi mảnh của 2–3 võ hồn riêng (mục 5.1) và 
   | Kiếm Vĩ Hạt | Kiếm Vĩ Đâm | vệt | dài 85, rộng 12 | 1,6 | 7 | Phá giáp (Liệt thương) 2 tầng |
   | Quỷ Ảnh Báo | Ảnh Trảm | nón | 54, góc 90° | 1,8 | 7 | |
 - **Mỗi bản đồ (mỗi kênh) có tối đa 1 hồn thú thường 100.000 năm cùng lúc**; chỉ vùng Hải Thần Uyên sinh được. Thú vương và boss thế giới không tính vào luật này.
-- **Rơi đồ dựa vào farm:** mỗi lần hạ hồn thú, mỗi loại đồ được tung tỉ lệ riêng (bảng `DROPS` trong `data.ts`). Hồn thú năm càng cao thì tỉ lệ rơi đồ tốt càng cao. Tinh anh và boss có thêm hệ số ở mục 5.4.
+- **Rơi đồ dựa vào farm:** mỗi lần hạ hồn thú, mỗi loại đồ được tung tỉ lệ riêng (mỗi loại một bảng trong `data.ts`: `SHARD_DROP` cho mảnh võ hồn, `BONE_DROP` cho hồn cốt; hồn hạch thêm ở GĐ5). Hồn thú năm càng cao thì tỉ lệ rơi đồ tốt càng cao. Tinh anh và boss có thêm hệ số ở mục 5.4.
 
 | Hồn thú | Hồn hoàn | Hồn cốt | Hồn hạch | Mảnh võ hồn |
 |---|---|---|---|---|
@@ -727,6 +728,15 @@ Mỗi hồn thú thuộc 1 trong 4 bậc. Hệ số nhân vào chỉ số của 
   - Cấp +0 đến +20. Mỗi cấp tăng chỉ số chính; các mốc +5, +10, +15, +20 mở thêm một dòng chỉ số phụ hoặc nâng kỹ năng.
   - Nguyên liệu bị tiêu hao, cường hóa không bao giờ thất bại.
 - Tháo hồn cốt ra thì vẫn giữ cấp cường hóa.
+- **Rơi** (bước 4.1): theo bảng rơi ở 5.3; vị trí ngẫu nhiên đều trong 6 vị trí (5.3 không ghi vị trí theo loài). Mỗi hồn cốt là một món riêng (không gộp), lưu một dòng `items`: `kind` = `code` = `hon_cot`, `years` = số năm, `stats` = `{beast, slot}` (mã loài trong `BEASTS`, mã vị trí), `enhance` = cấp cường hóa, `vohon_id` = võ hồn đang gắn (NULL = trong túi).
+- **Chỉ số gốc (chờ chốt)**, tính lại từ số năm khi cần (không lưu DB, đổi công thức thì mọi hồn cốt đã có đổi theo), bằng hệ số × mức cộng của hồn hoàn cùng số năm (nội suy theo số năm như chỉ số hồn thú):
+
+| Vị trí | Kỹ năng (4.3) | Chỉ số chính | Hệ số | 1.000 năm | 32.000 năm | 100.000 năm |
+|---|---|---|---|---|---|---|
+| Đầu | Chủ động | Hồn lực | 0,3 × mức sinh lực hồn hoàn | +24 | +118 | +210 |
+| Thân | Bị động | Sinh lực | 0,8 × mức sinh lực hồn hoàn | +64 | +316 | +560 |
+| Tay trái, tay phải | Chủ động | Công | 0,6 × mức công hồn hoàn | +7 | +30 | +51 |
+| Chân trái, chân phải | Bị động | Sinh lực | 0,5 × mức sinh lực hồn hoàn | +40 | +197 | +350 |
 
 ### 5.6 Hồn hạch
 - **6 ô trên mỗi võ hồn.** Mỗi hồn hạch có **sao 1–6**, thuộc một **bộ** và có 1 chỉ số chính cùng tối đa 4 chỉ số phụ.
@@ -1187,7 +1197,12 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] **BĐ4** Tinh anh (sau 3.5): mỗi vùng 1 con (object `elite`, bảng `BOSSES`), máu x2,5, sát thương x1,5, 2 chiêu báo trước, aura riêng, hiện trên bản đồ nhỏ, hồi sinh ngẫu nhiên 8–12 phút; máu tăng theo số người tham gia (5.4). Thưởng hồn cốt x3 tỉ lệ và chắc chắn rơi hồn hạch: bật khi đã có hồn cốt (GĐ4) và hồn hạch (GĐ5).
 
 **Giai đoạn 4: Hồn cốt**
-- [ ] 4.1 Hồn cốt rơi theo bảng ở mục 5.3, nằm trong túi đồ.
+- [x] 4.1 Hồn cốt rơi theo bảng ở mục 5.3, nằm trong túi đồ.
+  *Đã làm:* `data.ts`: `BONE_ITEM` (`hon_cot`, một mục trong `ITEMS`, `stack` 1), `BONE_SLOTS` (6 vị trí: mã cố định, tên, chủ động / bị động, chỉ số chính và hệ số), `boneSlotIndex`, `BONE_DROP` + `boneChance(năm)` (0% / 1% / 4% / 20% theo bảng rơi 5.3), `boneStats(vị trí, năm)` (chỉ số gốc, bảng ở 5.5, **chờ chốt**), `BONE_STAT_NAMES`, `parseBone(stats)`, `boneName(loài, vị trí, năm)`. **Không cần SQL mới**: bảng `items` (3.1) đã có `years`, `enhance`, `stats` JSONB (`{beast, slot}`), `vohon_id`; túi đồ đã nằm trong chuỗi lưu và transaction đi cổng.
+  Server: hạ hồn thú thì `rollBone` tung tỉ lệ (sau hồn hoàn và mảnh võ hồn); trúng thì `DropState` có `item` = `hon_cot`, `years`, `tier` và trường mới `species` / `slot`, rơi cạnh hồn hoàn (lệch 8 pixel nếu đứng được), báo "Hồn cốt … rơi xuống đất!" cho người hạ. **Rơi xuống đất chứ không vào thẳng túi** (khác mảnh võ hồn): theo luật đồ rơi hiện có của hồn hoàn (người hạ ưu tiên 15 giây, tồn tại 60 giây). `pickup` nhặt được hồn cốt (`addBone`: một ô mới, cường hóa +0, chưa gắn), túi đầy thì báo và hồn cốt ở lại. Hồn cốt không dùng như đan, không hấp thụ như hồn hoàn; `discard` bỏ được. Hook `test` thêm `bone {r, s}` (cố định số ngẫu nhiên rơi hồn cốt và vị trí); `beast` nhận `species` (mã loài); `give` hồn cốt nhận `years`, `beast`, `slot`.
+  Client: túi đồ hiện hồn cốt bằng biểu tượng 6 vị trí vẽ bằng điểm ảnh (`client/src/boneIcons.ts`: SVG trong ô túi, texture `bone_<vị trí>` dưới đất), màu theo niên hạn, số năm ở góc ô; chi tiết ô: "Loài – Vị trí, N năm", vị trí và kiểu kỹ năng, màu niên hạn, chỉ số gốc, cường hóa, "Chưa gắn". Dưới đất: biểu tượng phóng đôi kèm nhãn "Hồn cốt Tay phải"; đứng gần thì gợi ý nhặt ghi đủ tên.
+  Bot: bảng tỉ lệ, 6 vị trí, chỉ số tăng theo số năm, tên hồn cốt; số ngẫu nhiên 0,99 không rơi; dưới 1.000 năm không rơi; hạ Ám Kim Khủng Trảo Hùng 32.000 năm (số ngẫu nhiên 0, vị trí Tay phải) → hồn cốt dưới đất đúng loài / vị trí / số năm / người hạ, B bị từ chối 15 giây, A nhặt → túi có đúng loài, vị trí, số năm, +0, chưa gắn; không dùng / hấp thụ được; vị trí ngẫu nhiên hợp lệ, mỗi món một ô; túi đầy thì báo và ở lại, bỏ bớt rồi nhặt được; vào lại còn nguyên 3 hồn cốt; C mang hồn cốt đi cổng 5 lần, thoát vào lại, đăng nhập lại vẫn còn (so cả loài / vị trí / cường hóa). Đã thử với PostgreSQL (server chạy hai lần liên tiếp; `items.stats` lưu `{"slot", "beast"}`, JSONB đổi thứ tự khóa nên bot so sau khi sắp khóa).
+  **Để sau:** gắn (4.2), kỹ năng (4.3), cường hóa (4.4); tinh anh x3 tỉ lệ (BĐ4); hồn cốt trong rương thú vương / boss thế giới (BĐ5, BĐ6). Ưu tiên nhặt theo phiên (sessionId) như hồn hoàn: người hạ thoát rồi vào lại thì mất quyền ưu tiên của đồ đang nằm dưới đất.
 - [ ] 4.2 Gắn hồn cốt vào 6 vị trí của võ hồn, cộng chỉ số.
 - [ ] 4.3 Kỹ năng chủ động (đầu, hai tay) và bị động.
 - [ ] 4.4 Cường hóa hồn cốt bằng hồn cốt dư.
