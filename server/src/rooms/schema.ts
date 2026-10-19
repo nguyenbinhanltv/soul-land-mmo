@@ -26,6 +26,7 @@ export class PlayerState extends Schema {
   @type("uint32") shield: number = 0;    // khiên còn lại (chiêu tiên cơ phụ trợ, mục 5.1); ai cũng thấy để vẽ vòng khiên
   @type("uint8") buff: number = 0;      // hiệu ứng có lợi đang có (bit theo BUFF_IDS trong shared/data.ts); ai cũng thấy để vẽ hào quang
   @type("uint8") lei: number = 0;       // Phong Lôi Chi Lực (PHONG_LOI, bước 2.5c) của Lam Điện Bá Vương Long: 0..max; ai cũng thấy tia sét quanh thân
+  @type("uint16") st: number = 0;       // từ 3.5: trạng thái trên hồn sư do chiêu báo trước của hồn thú gây (bit theo STATUS_IDS, PLAYER_STATUS)
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;
   @type("boolean") dead: boolean = false;
@@ -50,6 +51,7 @@ export class BeastState extends Schema {
   @type("uint8") armor: number = 0;
   @type("uint8") allure: number = 0;   // từ 2.5c: số tầng Mị hoặc (đủ tầng thành Mê hoặc) và Phong ấn (đủ tầng thành Dễ thương)
   @type("uint8") lock: number = 0;
+  @type("boolean") cast: boolean = false; // từ 3.5: đang báo trước chiêu (đứng yên, client giữ khung đầu animation attack)
 }
 
 export class DropState extends Schema {

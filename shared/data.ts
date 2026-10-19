@@ -358,7 +358,9 @@ export type StatusId = (typeof STATUS_IDS)[number];
  *   chưa có chỉ số thủ, "giảm thủ" tạm quy thành nhận thêm sát thương đòn trực tiếp; đổi khi hồn thú có thủ).
  * - `healCut`: Trúng độc giảm hồi máu của hồn thú. `chain` / `chainR`: Cảm điện lan `chain` sát thương đòn trực tiếp sang hồn thú
  *   cảm điện khác trong bán kính `chainR` (một bước, không lan tiếp). `boom`: Viêm bạo kích nổ mọi tầng Thiêu đốt còn lại × boom.
- * - `noMove` / `noAtk`: khống chế. Câm lặng tạm chặn đòn đánh của hồn thú vì hồn thú chưa có chiêu (từ 3.5 chỉ chặn chiêu báo trước).
+ * - `noMove` / `noAtk`: khống chế (không đi / không đánh thường và không tung chiêu). `noSkill` (từ 3.5): chỉ chặn chiêu, Câm lặng:
+ *   hồn thú không tung và bị ngắt chiêu báo trước (vẫn đánh thường); hồn sư không dùng hồn kỹ (vẫn đánh thường). Mọi trạng thái
+ *   có `noAtk` hoặc `noSkill` đều ngắt chiêu báo trước đang hiện.
  * Từ 2.5c:
  * - `slow`: giảm tốc độ di chuyển của hồn thú theo tỉ lệ, nhân số tầng (cộng mọi trạng thái, tối đa SLOW_CAP).
  * - `wander`: hồn thú bỏ mục tiêu, đi lung tung (Mê hoặc); đi kèm `noAtk`.
@@ -368,11 +370,11 @@ export type StatusId = (typeof STATUS_IDS)[number];
 export interface StatusDef {
   name: string; col: string; secs: number; max: number;
   dot: number; amp: number; healCut: number; chain: number; chainR: number; boom: number;
-  noMove: boolean; noAtk: boolean;
+  noMove: boolean; noAtk: boolean; noSkill: boolean;
   slow: number; wander: boolean; burst?: { s: StatusId; secs?: number };
 }
 const st = (name: string, col: string, secs: number, max: number, o: Partial<StatusDef> = {}): StatusDef =>
-  ({ name, col, secs, max, dot: 0, amp: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, slow: 0, wander: false, ...o });
+  ({ name, col, secs, max, dot: 0, amp: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, noSkill: false, slow: 0, wander: false, ...o });
 export const STATUS: Record<StatusId, StatusDef> = {
   burn:    st("Thiêu đốt", "#ff7a2a", 4, 5, { dot: 0.25, boom: 1.5 }),
   shock:   st("Cảm điện",  "#7fd0ff", 6, 1, { chain: 0.4, chainR: 64 }),
@@ -380,7 +382,7 @@ export const STATUS: Record<StatusId, StatusDef> = {
   vuln:    st("Dễ thương", "#ff6b9a", 5, 1, { amp: 0.25 }),
   armor:   st("Phá giáp",  "#c0cce0", 6, 3, { amp: 0.1 }),
   stun:    st("Choáng",    "#ffe08a", 1.5, 1, { noMove: true, noAtk: true }),
-  silence: st("Câm lặng",  "#b58cff", 3, 1, { noAtk: true }),
+  silence: st("Câm lặng",  "#b58cff", 3, 1, { noSkill: true }), // từ 3.5 không còn chặn đánh thường của hồn thú
   root:    st("Trói",      "#4ab0ff", 2, 1, { noMove: true }),
   // Từ 2.5c (chờ chốt): Yêu Hồ cộng dồn Mị hoặc (mỗi tầng chậm 15%), đủ 3 tầng thì Mê hoặc 2,5 giây; Càn Khôn Hỗn Nguyên Tỏa
   // cộng dồn Phong ấn, đủ 3 tầng thì Dễ thương 6,8 giây. Đang Mê hoặc thì không nhận thêm Mị hoặc (không khống chế nối liền).
@@ -396,6 +398,14 @@ export const statusBit = (s: StatusId) => 1 << STATUS_IDS.indexOf(s);
 export const STATUS_TICK = 1;
 /** Thời gian khống chế (noMove / noAtk) nhân theo bậc hồn thú: hồn thú vạn năm, 10 vạn năm bị khống chế ngắn hơn. */
 export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
+/**
+ * Trạng thái trên hồn sư (từ 3.5, chờ chốt): chỉ chiêu báo trước của hồn thú gây, cùng bảng STATUS và luật cộng tầng. Choáng: không
+ * đi, không đánh, không dùng hồn kỹ; Trói: không đi; Câm lặng: không dùng hồn kỹ; Làm chậm: giảm tốc (tối đa SLOW_CAP); Trúng độc /
+ * Thiêu đốt: mỗi tầng `dot` × sát thương đòn thường của hồn thú mỗi giây; Dễ thương / Phá giáp: nhận thêm sát thương; Cảm điện: đòn
+ * của hồn thú trúng hồn sư Cảm điện lan `chain` sang hồn sư Cảm điện khác trong `chainR`. Thuộc hồn sư nên đổi võ hồn vẫn còn; vào
+ * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) giải mọi trạng thái này.
+ */
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow"];
 /** Hồn thú không có mục tiêu và không bị đánh `delay` giây thì hồi `pct` sinh lực tối đa mỗi giây (Trúng độc giảm hồi máu). */
 export const BEAST_REGEN = { delay: 6, pct: 0.04 };
 /** Hồn thú từ 100 năm (bậc 1 trở lên) thấy người chơi trong bán kính BEAST_AGGRO_R thì đuổi đánh; không có mục tiêu thì lang thang
@@ -405,6 +415,91 @@ export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
  *  5.8), để vừa tới nơi, vừa hồi sinh hay đang niệm cổng không bị vây. Phải ≥ BEAST_WANDER + BEAST_AGGRO_R (130) thì hồn thú tự lang thang
  *  mới không tới tầm phát hiện người đứng ở đó; 160 như GATE_CLEAR của BĐ3 (đã gộp vào đây). Người chơi kéo hồn thú về thì vẫn bị đuổi. */
 export const SPAWN_CLEAR = 160;
+
+// ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5, mọi số chờ chốt) ----------
+/** Hình vùng: vệt (đường thẳng dài `r`, rộng `w`), nón (quạt bán kính `r`, góc `arc` độ), vòng (tròn bán kính `r`). */
+export type TeleShape = "line" | "cone" | "circle";
+/**
+ * Một chiêu báo trước. Hồn thú hiện vùng cảnh báo `warn` giây (đứng yên, không đánh thường), hết giờ mới tính trúng theo vị trí
+ * THẬT của người chơi lúc đó: chạy ra khỏi vùng là né được.
+ * - Hướng vệt / nón và tâm vòng `at: "target"` khóa lúc bắt đầu báo trước (theo vị trí mục tiêu lúc đó); vòng không có `at` thì quanh thân.
+ * - `range`: mục tiêu trong khoảng này mới tung (vòng dưới chân mục tiêu: tầm ném). `cd`: hồi chiêu sau mỗi lần tung (± 20%).
+ * - `dmg`: bội số sát thương đòn thường của hồn thú (beastStats theo số năm). `status`: trạng thái dùng chung gây cho người trúng.
+ * - `dash`: tung xong hồn thú lao tới cuối vệt / tâm vòng (Vồ Lao, Xung Phong, Bổ Nhào), dừng khi vướng.
+ * - `years`: loài có nhiều chiêu thì chiêu này dùng từ ngần ấy năm (hồn thú thường dùng chiêu cuối cùng đủ năm, mục 5.4: 1 chiêu).
+ */
+export interface BeastSkillDef {
+  name: string; shape: TeleShape; at?: "target";
+  r: number; w?: number; arc?: number; range: number;
+  warn: number; cd: number; dmg: number;
+  status?: StatusApply[]; dash?: boolean; years?: number;
+}
+/** Hồn thú thường từ ngần ấy năm mới có chiêu báo trước (mục 5.3: dưới 1.000 năm chỉ đánh thường). */
+export const BEAST_SKILL_YEARS = 1000;
+/** Thời gian báo trước mặc định (mục 5.3: khoảng 0,8 giây). Thú vương dài hơn (1–1,5 giây, BĐ5). */
+export const TELE_WARN = 0.8;
+/** Hồn thú vừa có mục tiêu chờ ngần này giây (ngẫu nhiên trong khoảng) mới tung chiêu đầu tiên. */
+export const TELE_FIRST: [number, number] = [1.5, 3];
+/** Người chơi là một hình tròn bán kính ngần này khi tính trúng (chạm mép vùng là trúng). */
+export const TELE_PAD = 4;
+const bs = (name: string, shape: TeleShape, r: number, o: Partial<BeastSkillDef> = {}): BeastSkillDef =>
+  ({ name, shape, r, range: shape === "circle" && !o.at ? r * 0.8 : shape === "line" ? r * 0.8 : r * 0.9, warn: TELE_WARN, cd: 7, dmg: 1.5, ...o });
+/**
+ * Chiêu báo trước theo loài (mã trong BEASTS; tên theo bảng Ngoại vi / Nội địa của mục 5.3, loài chưa có chiêu trong bảng thì tự đặt).
+ * Hồn thú dưới BEAST_SKILL_YEARS năm không dùng. Tinh anh (BĐ4) sẽ dùng 2 chiêu: bảng BOSSES riêng, cùng bộ máy.
+ * Kích thước tính theo tốc độ hồn sư (58 pixel/giây ≈ 46 pixel trong 0,8 giây): vòng dưới chân ≤ 34, vòng quanh thân ≤ 56 để
+ * người đứng sát hồn thú vẫn kịp chạy ra.
+ */
+export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
+  // Bìa rừng (300–700 năm) chưa tới 1.000 năm; chiêu để dành cho hồn thú sinh bằng hook và tinh anh.
+  phong_lang:   [bs("Vồ", "line", 70, { w: 14, dmg: 1.4, dash: true })],
+  tu_van_bao:   [bs("Vồ Nhanh", "line", 80, { w: 12, dmg: 1.5, dash: true, warn: 0.7 })],
+  // Ngoại vi: Rừng thưa, Khe suối, Rìa nội địa.
+  man_da_la_xa: [bs("Phun Độc", "line", 100, { w: 14, dmg: 1.2, status: [{ s: "poison", n: 2, secs: 4 }] })],
+  quy_dang:     [bs("Quật Roi", "cone", 52, { arc: 140, dmg: 1.5 }),
+    // Quỷ Đằng ngàn năm ở Rừng cổ thụ (Nội địa) dùng cùng mã loài.
+    bs("Rễ Trói", "circle", 30, { at: "target", range: 120, dmg: 1.1, status: [{ s: "root", secs: 1.5 }], years: 1500 })],
+  loi_van_hau:  [bs("Gọi Sét", "circle", 30, { at: "target", range: 130, dmg: 1.3, status: [{ s: "shock" }] })],
+  quy_ho:       [bs("Vồ Lao", "line", 110, { w: 16, dmg: 1.6, dash: true })],
+  thanh_lan_ngac: [bs("Táp Ngang", "cone", 46, { arc: 110, dmg: 1.7 })],
+  kim_linh_ung: [bs("Bổ Nhào", "circle", 28, { at: "target", range: 110, dmg: 1.6, dash: true })],
+  nhan_dien_ma_chu_non: [bs("Giăng Tơ", "circle", 34, { at: "target", range: 110, dmg: 0.8, status: [{ s: "slow", secs: 3 }] })],
+  liet_trao_hung: [bs("Vỗ Đất", "circle", 48, { dmg: 1.8 })],
+  thiet_giap_te_nguu: [bs("Xung Phong", "line", 150, { w: 18, dmg: 1.8, dash: true, cd: 9 })],
+  // Nội địa: Rừng cổ thụ, Đầm sương độc, Lôi Cốc, Hắc Ám Lâm.
+  nhan_dien_ma_chu: [bs("Phun Tơ", "line", 110, { w: 14, dmg: 0.9, status: [{ s: "root", secs: 1.5 }] })],
+  u_minh_lang:  [bs("Ảnh Vồ", "line", 95, { w: 14, dmg: 1.5, dash: true })],
+  // "Để lại vũng độc" của Thất Tinh Độc Thiềm chưa làm: Trúng độc 3 tầng thay cho vũng.
+  that_tinh_doc_thiem: [bs("Phun Độc", "circle", 34, { at: "target", range: 120, dmg: 1, status: [{ s: "poison", n: 3, secs: 5 }] })],
+  xich_lan_mang: [bs("Quấn Siết", "circle", 32, { dmg: 1.2, status: [{ s: "root", secs: 1.5 }] })],
+  hac_vu_bien_buc: [bs("Âm Ba", "cone", 64, { arc: 70, dmg: 1, status: [{ s: "silence", secs: 2 }] })],
+  lam_loi_te_nguu: [bs("Lôi Xung", "line", 140, { w: 18, dmg: 1.7, dash: true, cd: 9, status: [{ s: "shock" }] })],
+  loi_duc_ung:  [bs("Lôi Bạo", "circle", 34, { at: "target", range: 130, dmg: 1.6, status: [{ s: "shock" }] })],
+  am_kim_khung_trao_hung: [bs("Vỗ Đất", "circle", 56, { dmg: 2, status: [{ s: "stun", secs: 0.6 }] })],
+  kiem_vi_hat:  [bs("Kiếm Vĩ Đâm", "line", 85, { w: 12, dmg: 1.6, status: [{ s: "armor", n: 2 }] })],
+  quy_anh_bao:  [bs("Ảnh Trảm", "cone", 54, { arc: 90, dmg: 1.8 })],
+};
+/** Chiêu báo trước của hồn thú thường loài `species` (mã) `years` năm: chiêu cuối cùng đủ năm, không có thì null. */
+export function beastSkillOf(species: string, years: number): BeastSkillDef | null {
+  if (years < BEAST_SKILL_YEARS) return null;
+  const list = (BEAST_SKILLS[species] ?? []).filter((s) => years >= (s.years ?? BEAST_SKILL_YEARS));
+  return list.length ? list[list.length - 1] : null;
+}
+/** Một vùng cảnh báo đã khóa: gốc (x, y), hướng `ang` (radian, vệt / nón), kích thước theo BeastSkillDef. */
+export interface Tele { shape: TeleShape; x: number; y: number; ang: number; r: number; w: number; arc: number; }
+/** Điểm (px, py) có trúng vùng `t` không (người chơi là hình tròn bán kính TELE_PAD). Hàm thuần: server tính, bot đối chiếu. */
+export function teleHits(t: Tele, px: number, py: number) {
+  const dx = px - t.x, dy = py - t.y, d = Math.hypot(dx, dy);
+  if (t.shape === "circle") return d <= t.r + TELE_PAD;
+  if (t.shape === "line") {
+    const along = dx * Math.cos(t.ang) + dy * Math.sin(t.ang), side = -dx * Math.sin(t.ang) + dy * Math.cos(t.ang);
+    return along >= -TELE_PAD && along <= t.r + TELE_PAD && Math.abs(side) <= t.w / 2 + TELE_PAD;
+  }
+  if (d > t.r + TELE_PAD) return false;
+  if (d <= TELE_PAD * 2) return true; // sát gốc nón
+  let da = Math.atan2(dy, dx) - t.ang; da = Math.atan2(Math.sin(da), Math.cos(da));
+  return Math.abs(da) <= (t.arc * Math.PI) / 360;
+}
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -477,6 +572,7 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `fixed` (around): vùng cố định ở chỗ hồn sư đứng lúc tung (lãnh vực đặt xuống đất), không đi theo khi hồn sư di chuyển.
  * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục; sát thương và hiệu ứng lên
  *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
+ * Từ 3.5: `self.cleanse`: giải mọi trạng thái trên hồn sư (PLAYER_STATUS, do chiêu báo trước của hồn thú gây).
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -486,7 +582,7 @@ export interface SkillDef {
   status?: StatusApply[]; finisher?: StatusApply[];
   boom?: { keep: number }; push?: number; pick?: "near" | "low"; lowHp?: number; fly?: number;
   at?: number; fixed?: boolean; copy?: number;
-  self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number };
+  self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number; cleanse?: boolean };
 }
 
 /** 4 hồn kỹ dùng chung (Giai đoạn 1) cho võ hồn chưa có hồn kỹ riêng. Không đổi số khi thêm hồn kỹ riêng. */
@@ -712,15 +808,15 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
     area: "around", r: 72, dmg: 1.2, status: [{ s: "lock", n: 3 }, { s: "root" }, { s: "shock" }] },
   yeu_ho: { name: "Hồ Mị Thiên Hạ", desc: "mị thuật quanh thân: Mị hoặc đủ 3 tầng (Mê hoặc ngay), Làm chậm 3 giây", icon: "✾", cost: 0, cd: 0,
     area: "around", r: 80, dmg: 1.2, status: [{ s: "allure", n: 3 }, { s: "slow", secs: 3 }] },
-  xuc_xich: { name: "Thanh Tâm Hương Tràng", desc: "hồi 20% sinh lực cả đội, 25% hồn lực, khiên 12% sinh lực", icon: "✚", cost: 0, cd: 0,
-    area: "self", r: 0, dmg: 0, self: { heal: 0.2, mp: 0.25, shield: 0.12, secs: 5 } },
+  xuc_xich: { name: "Thanh Tâm Hương Tràng", desc: "hồi 20% sinh lực cả đội, 25% hồn lực, khiên 12% sinh lực, giải khống chế", icon: "✚", cost: 0, cd: 0,
+    area: "self", r: 0, dmg: 0, self: { heal: 0.2, mp: 0.25, shield: 0.12, secs: 5, cleanse: true } },
 };
 /**
  * Phong Lôi Chi Lực (bước 2.5c, chờ chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
  * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú
  * trúng đầu tiên đang Cảm điện. Đầy thì tự tung Lôi Động Minh Thiên (sức mạnh theo hồn hoàn năm cao nhất của võ hồn; không tạo năng
  * lượng tiên cơ), về 0. Ngoài giao chiến quá TIEN_CO_IDLE_SECS giây thì giảm `decay` mỗi giây; Lam Điện gục thì mất hết.
- * Lôi Động Minh Thiên gây Choáng 1 giây: "ngắt chiêu boss" làm khi hồn thú có chiêu báo trước (bước 3.5).
+ * Lôi Động Minh Thiên gây Choáng 1 giây: từ 3.5 Choáng ngắt chiêu báo trước đang hiện của hồn thú ("ngắt chiêu boss").
  */
 export const PHONG_LOI: {
   vohon: string; name: string; max: number; gain: { attack: number; skill: number }; shockMult: number; decay: number; skill: SkillDef;
