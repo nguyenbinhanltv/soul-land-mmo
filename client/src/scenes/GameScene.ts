@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, VOHON, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
+import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import type { OwnedVohons, Squad } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -24,7 +24,13 @@ interface PView {
 const animMs = (a: HsAnim) => HS_ANIMS[a].ms.reduce((x, y) => x + y, 0);
 /** Vòng thứ i sáng và phình ra trong 300 ms khi tung hồn kỹ của vòng đó (mục 5.11). */
 const RING_LIT_MS = 300;
-interface Zone { name: string; hint: string; x0: number; x1: number; }
+interface Rect { x: number; y: number; w: number; h: number; }
+interface Zone extends Rect { name: string; hint: string; }
+const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
+/** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo khung, sprite vẽ bằng code theo bậc. */
+const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
+  s.texture.key.startsWith("beast_") ? s.y - s.displayHeight * s.originY : s.y - TIERS[tier].size - 8;
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -36,7 +42,15 @@ export class GameScene extends Phaser.Scene {
   ov!: Phaser.GameObjects.Graphics;
   vignette!: Phaser.GameObjects.Image;
   zones: Zone[] = [];
+  safes: Zone[] = [];   // vùng an toàn (object `safe`)
   campRect = { x: 0, y: 0, w: 0, h: 0 };
+  campName = "";
+  portals: (Rect & { to: string })[] = [];
+  vignetteOn = false;   // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng
+  portal: PortalInfo | null = null;
+  onTravel: (mapId: string) => void = () => {};
+  /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
+  ac = new AbortController();
   keys: Record<string, boolean> = {};
   joy = { x: 0, y: 0 };
   lastInput = "";
@@ -48,7 +62,12 @@ export class GameScene extends Phaser.Scene {
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
 
   constructor() { super("game"); }
-  init(data: { room: Room<any>; mapId: string }) { this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; }
+  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void }) {
+    this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
+    const off = () => { this.ac.abort(); hud.showPortal(null, () => {}); };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
+    this.events.once(Phaser.Scenes.Events.DESTROY, off);
+  }
 
   preload() {
     // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
@@ -64,11 +83,17 @@ export class GameScene extends Phaser.Scene {
     map.createLayer("trees", ts, 0, 0)!.setDepth(-5);
     map.createLayer("canopy", ts, 0, 0)!.setDepth(100000);
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
+    this.vignetteOn = !!(map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
-      const hint = (o.properties as any[] | undefined)?.find((p) => p.name === "hint")?.value ?? "";
-      if (o.type === "zone") this.zones.push({ name: o.name, hint, x0: o.x!, x1: o.x! + o.width! });
-      if (o.type === "spawn") this.campRect = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
+      const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
+      const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
+      if (o.type === "zone") this.zones.push({ ...r, name: o.name, hint: prop("hint") ?? "" });
+      if (o.type === "spawn") { this.campRect = r; this.campName = o.name; }
+      if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
+      if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
+      if (o.type === "npc") this.drawNpc(o.x!, o.y!, o.name);
     }
+    this.drawPortals();
     this.buildMinimap(map);
     makeTextures(this);
     createSheetAnims(this);
@@ -86,6 +111,30 @@ export class GameScene extends Phaser.Scene {
     document.body.classList.add("playing");
   }
 
+  /** Cổng: khung sáng nhấp nháy và tên bản đồ đích (server mới quyết định có cho đi hay không). */
+  drawPortals() {
+    for (const r of this.portals) {
+      const g = this.add.graphics().setDepth(r.y + r.h);
+      g.fillStyle(0x86e0b0, 0.22).fillRect(r.x, r.y, r.w, r.h);
+      g.lineStyle(1, 0xc8ffe0, 0.9).strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+      this.tweens.add({ targets: g, alpha: 0.45, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      this.add.text(r.x + r.w / 2, r.y - 2, `➜ ${MAPS[r.to].name}`, {
+        fontFamily: FONT, fontSize: "7px", fontStyle: "700", color: "#c8ffe0", stroke: "#000", strokeThickness: 2, resolution: 8,
+      }).setOrigin(0.5, 1).setDepth(99984);
+    }
+  }
+
+  /** NPC (object `npc`): đến bước 6.1 chỉ là biển tên đứng yên. */
+  drawNpc(x: number, y: number, name: string) {
+    const g = this.add.graphics().setDepth(y);
+    g.fillStyle(0x000000, 0.35).fillEllipse(x, y + 1, 10, 4);
+    g.fillStyle(0xf2c84b, 1).fillTriangle(x - 3, y - 10, x + 3, y - 10, x, y - 4);
+    g.fillStyle(0xfff2b0, 1).fillCircle(x, y - 12, 2.5);
+    this.add.text(x, y - 16, name, {
+      fontFamily: FONT, fontSize: "6.5px", fontStyle: "700", color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
+    }).setOrigin(0.5, 1).setDepth(99984);
+  }
+
   fitZoom() {
     const w = this.scale.width, h = this.scale.height;
     const z = Math.max(2, Math.min(6, Math.floor(Math.min(w / 420, h / 240))));
@@ -97,6 +146,7 @@ export class GameScene extends Phaser.Scene {
   setupInput() {
     const chat = document.getElementById("chat") as HTMLInputElement;
     const typing = () => document.activeElement === chat;
+    const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
         if (e.key === "Enter") { const t = chat.value.trim(); if (t) this.room.send("chat", { text: t }); chat.value = ""; chat.blur(); }
@@ -105,7 +155,9 @@ export class GameScene extends Phaser.Scene {
       }
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
-      if (e.code === "Escape") { hud.toggleRoster(false); return; }
+      if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); return; }
+      if (e.code === "KeyF" && !e.repeat) { this.goPortal(); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
@@ -116,11 +168,12 @@ export class GameScene extends Phaser.Scene {
       else if (e.code === "KeyE") this.act("absorb");
       else if (sk >= 0) this.act("skill" + sk);
       else if (slot >= 0 && slot < TEAM_SIZE) this.act("switch" + slot);
-    });
-    addEventListener("keyup", (e) => { this.keys[e.code] = false; });
-    addEventListener("blur", () => { this.keys = {}; });
-    chat.addEventListener("focus", () => { this.keys = {}; });
-    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); });
+    }, on);
+    addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
+    addEventListener("blur", () => { this.keys = {}; }, on);
+    chat.addEventListener("focus", () => { this.keys = {}; }, on);
+    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); }, on);
+    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleBag(); }, on);
 
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
     let jid: number | null = null;
@@ -129,11 +182,14 @@ export class GameScene extends Phaser.Scene {
       const d = Math.hypot(dx, dy), m = 48; if (d > m) { dx *= m / d; dy *= m / d; }
       this.joy = { x: dx / m, y: dy / m }; knob.style.transform = `translate(${dx}px,${dy}px)`;
     };
-    joyEl.addEventListener("pointerdown", (e) => { jid = e.pointerId; joyEl.setPointerCapture(e.pointerId); mv(e); });
-    joyEl.addEventListener("pointermove", (e) => { if (e.pointerId === jid) mv(e); });
+    joyEl.addEventListener("pointerdown", (e) => { jid = e.pointerId; joyEl.setPointerCapture(e.pointerId); mv(e); }, on);
+    joyEl.addEventListener("pointermove", (e) => { if (e.pointerId === jid) mv(e); }, on);
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
-    joyEl.addEventListener("pointerup", end); joyEl.addEventListener("pointercancel", end);
+    joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
   }
+
+  /** Xin đi qua cổng đang đứng: chỉ gửi tên cổng, server kiểm tra vị trí và chọn bản đồ đích. */
+  goPortal() { if (this.portal?.name) this.room.send("travel", { portal: this.portal.name }); }
 
   act(a: string) {
     if (a === "attack") this.room.send("attack");
@@ -164,6 +220,9 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: t, y: m.y - 16, alpha: 0, delay: 350, duration: 550, onComplete: () => t.destroy() });
     });
     this.room.onMessage("fx", (m: any) => this.fx(m));
+    // Cổng: server báo riêng khi bước vào / ra khỏi cổng, và khi đã lưu xong thì cho chuyển bản đồ (mục 6).
+    this.room.onMessage("portal", (m: PortalInfo) => { this.portal = m?.name ? m : null; hud.showPortal(this.portal, () => this.goPortal()); });
+    this.room.onMessage("travel", (m: { mapId: string }) => { if (typeof m?.mapId === "string") this.onTravel(m.mapId); });
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
@@ -185,7 +244,10 @@ export class GameScene extends Phaser.Scene {
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
       else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
     });
+    // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng, server kiểm tra.
+    this.room.onMessage("bag", (m: BagMsg) => hud.renderBag(m, (id) => this.room.send("use", { id })));
     this.room.send("vohons");
+    this.room.send("bag");
   }
 
   ringFx(x: number, y: number, r0: number, r1: number, col: string, dur: number, delay = 0) {
@@ -346,12 +408,11 @@ export class GameScene extends Phaser.Scene {
     });
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id); if (!s) return;
-      const has = (x: keyof typeof STATUS) => (b.st & statusBit(x)) !== 0, size = TIERS[b.tier].size;
-      // Màu phủ lên hồn thú: Cảm điện nháy lam, Thiêu đốt cam, Trúng độc lục.
-      if (has("shock") && Math.floor(time / 150) % 3 === 0) s.setTint(0x7fd0ff);
-      else if (has("burn")) s.setTint(Math.floor(time / 200) % 2 ? 0xffa060 : 0xff7a2a);
-      else if (has("poison")) s.setTint(0x8ef08a);
-      else s.clearTint();
+      const has = (x: keyof typeof STATUS) => (b.st & statusBit(x)) !== 0, size = TIERS[b.tier].size, top = beastTop(s, b.tier);
+      // Màu phủ lên hồn thú: Cảm điện nháy lam, Thiêu đốt cam, Trúng độc lục. Hết trạng thái thì bỏ màu đã phủ
+      // (sprite theo loài tự đặt lại màu hung hăng mỗi khung trong syncBeastSprite).
+      const tint = has("shock") && Math.floor(time / 150) % 3 === 0 ? 0x7fd0ff : has("burn") ? (Math.floor(time / 200) % 2 ? 0xffa060 : 0xff7a2a) : has("poison") ? 0x8ef08a : 0;
+      if (tint) { s.setTint(tint); s.setData("stTint", true); } else if (s.getData("stTint")) { s.clearTint(); s.setData("stTint", false); }
       if (has("root")) {
         g.lineStyle(1, hex(STATUS.root.col), 0.9).strokeEllipse(s.x, s.y, size + 8, 5);
         for (let k = 0; k < 4; k++) { const x = s.x - size / 2 - 2 + (k * (size + 4)) / 3; g.lineBetween(x, s.y + 1, x + 1, s.y - 4 - (k % 2) * 2); }
@@ -360,7 +421,7 @@ export class GameScene extends Phaser.Scene {
       const icons = (["burn", "shock", "poison", "vuln", "armor", "silence"] as const).filter(has);
       const stacks: Record<string, number> = { burn: b.burn, poison: b.poison, armor: b.armor };
       let x = s.x - (icons.length * 7 - 2) / 2;
-      const y0 = s.y - size - 19;
+      const y0 = top - 13;
       for (const k of icons) {
         const c = hex(STATUS[k].col);
         g.fillStyle(0x1a1020, 0.85).fillRect(x - 1, y0 - 1, 7, 7);
@@ -375,7 +436,7 @@ export class GameScene extends Phaser.Scene {
         x += 7;
       }
       if (!has("stun")) return;
-      const y = s.y - size - 14 - (icons.length ? 9 : 0);
+      const y = top - 6 - (icons.length ? 9 : 0);
       g.lineStyle(1, 0xffe08a, 0.7); g.strokeEllipse(s.x, y, 16, 5);
       for (let k = 0; k < 3; k++) {
         const a = time / 180 + k * 2.1, x = s.x + Math.cos(a) * 8, sy = y + Math.sin(a) * 2.5;
@@ -388,13 +449,16 @@ export class GameScene extends Phaser.Scene {
   buildMinimap(map: Phaser.Tilemaps.Tilemap) {
     const base = document.createElement("canvas"); base.width = map.width; base.height = map.height;
     const b = base.getContext("2d")!;
-    const colorOf: Record<number, string> = { 1: "#5a9440", 2: "#467e38", 3: "#335f35", 4: "#27453a", 5: "#5a9440", 6: "#467e38", 7: "#a08a63", 8: "#7d6b55", 9: "#2d6a96", 10: "#d8b678" };
+    const colorOf: Record<number, string> = { 1: "#5a9440", 2: "#467e38", 3: "#335f35", 4: "#27453a", 5: "#5a9440", 6: "#467e38", 7: "#a08a63", 8: "#7d6b55", 9: "#2d6a96", 10: "#d8b678",
+      13: "#a39f94", 14: "#8f3b2e", 15: "#d8c8a2", 16: "#c9b84a" };
     const ground = map.getLayer("ground")!.data, trees = map.getLayer("trees")!.data;
     for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
       const t = trees[y][x].index, g = ground[y][x].index;
-      b.fillStyle = t >= 17 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? "#d8b678" : colorOf[g] ?? "#335f35";
+      b.fillStyle = t >= 17 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? colorOf[t] ?? "#d8b678" : colorOf[g] ?? "#335f35";
       b.fillRect(x, y, 1, 1);
     }
+    b.fillStyle = "#86e0b0";
+    for (const r of this.portals) b.fillRect(Math.floor(r.x / TILE), Math.floor(r.y / TILE), Math.max(1, Math.round(r.w / TILE)), Math.max(1, Math.round(r.h / TILE)));
     const mc = document.getElementById("mini") as HTMLCanvasElement; mc.width = map.width; mc.height = map.height;
     this.mini = { ctx: mc.getContext("2d")!, base };
   }
@@ -464,7 +528,9 @@ export class GameScene extends Phaser.Scene {
       let s = this.beasts.get(id);
       if (!s) { s = this.add.sprite(b.x, b.y, `b${b.tier}_0`).setOrigin(BEAST_ORIGIN.x, BEAST_ORIGIN.y); this.beasts.set(id, s); }
       s.setPosition(s.x + (b.x - s.x) * lerp, s.y + (b.y - s.y) * lerp);
-      s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`).setFlipX(b.face < 0).setDepth(s.y);
+      // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
+      if (!syncBeastSprite(s, BEASTS[b.species]?.id, b.moving, b.aggro)) s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
+      s.setFlipX(b.face < 0).setDepth(s.y);
     });
     for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); }
 
@@ -486,8 +552,9 @@ export class GameScene extends Phaser.Scene {
       if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, t.size + 6, 6); }
       if (b.hp < b.maxHp) {
         const w = Math.max(14, t.size + 4);
-        g.fillStyle(0x000000, 0.6).fillRect(s.x - w / 2, s.y - t.size - 10, w, 2);
-        g.fillStyle(b.tier === 0 ? 0xe0525a : hex(t.glow), 1).fillRect(s.x - w / 2, s.y - t.size - 10, w * Math.max(0, b.hp / b.maxHp), 2);
+        const y = beastTop(s, b.tier) - 2;
+        g.fillStyle(0x000000, 0.6).fillRect(s.x - w / 2, y, w, 2);
+        g.fillStyle(b.tier === 0 ? 0xe0525a : hex(t.glow), 1).fillRect(s.x - w / 2, y, w * Math.max(0, b.hp / b.maxHp), 2);
       }
     });
     st.players.forEach((p: any, id: string) => {
@@ -501,7 +568,7 @@ export class GameScene extends Phaser.Scene {
     // độ tối theo độ sâu của rừng
     const me = st.players.get(this.me);
     if (me) {
-      this.vignette.setAlpha(Math.max(0, Math.min(1, (me.x / TILE - 18) / 60)) * 0.75);
+      this.vignette.setAlpha(this.vignetteOn ? Math.max(0, Math.min(1, (me.x / TILE - 18) / 60)) * 0.75 : 0);
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); }
     }
@@ -549,12 +616,18 @@ export class GameScene extends Phaser.Scene {
     if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, (a) => this.act(a)); }
     hud.updateStats(me);
     hud.updateTeam(me);
-    const inCamp = me.x >= this.campRect.x && me.x <= this.campRect.x + this.campRect.w && me.y >= this.campRect.y && me.y <= this.campRect.y + this.campRect.h;
-    const zone = this.zones.find((z) => me.x >= z.x0 && me.x < z.x1);
-    const zname = inCamp || !zone ? "Doanh trại" : zone.name;
+    hud.updateBag();
+    // Tên vùng: vùng an toàn > vùng săn > điểm hồi sinh > tên bản đồ. Vừa vào bản đồ thì hiện tên bản đồ.
+    const area = this.safes.find((z) => inRect(z, me.x, me.y)) ?? this.zones.find((z) => inRect(z, me.x, me.y));
+    const mapName = MAPS[this.mapId]?.name ?? this.mapId;
+    const zname = area?.name ?? (this.campName && inRect(this.campRect, me.x, me.y) ? this.campName : mapName);
     document.getElementById("zoneName")!.textContent = zname;
-    if (zname !== this.lastZone) { if (this.lastZone && zone && !inCamp) hud.banner(zone.name, zone.hint); this.lastZone = zname; }
-    document.getElementById("online")!.textContent = `${st.players.size} người đang săn hồn`;
+    if (zname !== this.lastZone) {
+      if (!this.lastZone) hud.banner(mapName, area && area.name !== mapName ? area.name : "");
+      else if (area) hud.banner(area.name, area.hint);
+      this.lastZone = zname;
+    }
+    document.getElementById("online")!.textContent = `${st.players.size} người ở ${mapName}`;
 
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });

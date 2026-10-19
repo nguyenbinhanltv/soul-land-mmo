@@ -1,7 +1,7 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
-  BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit } from "../../shared/data.ts";
-import type { OwnedVohons, Squad } from "./net.ts";
+  BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts } from "../../shared/data.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -159,6 +159,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
 export function toggleRoster(open = $("#roster").hidden) {
   $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
   if (!open) rosterSel = null;
+  else toggleBag(false); // hai bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
@@ -231,4 +232,103 @@ export function renderRoster(data: OwnedVohons, setTeam: (team: number[]) => voi
 }
 
 export function showTarget(html: string | null) { const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }
+/** Hộp đi cổng (mục 5.3): tên bản đồ đích, cấp đề xuất, cảnh báo đỏ khi võ hồn ra trận dưới cấp; nút (hoặc phím F) để đi. */
+export function showPortal(info: PortalInfo | null, go: () => void) {
+  const el = $("#portal");
+  if (!info?.name) { el.hidden = true; el.innerHTML = ""; return; }
+  const lv = info.level ? ` (đề xuất cấp ${info.level[0]}–${info.level[1]})` : "";
+  el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp đề xuất!</span>` : ""}
+    <button type="button" class="${info.warn ? "danger" : ""}">${info.warn ? "Vẫn đi" : "Đi"}<kbd>F</kbd></button>`;
+  el.querySelector("div")!.textContent = `Đi tới ${info.toName ?? info.to}${lv}`;
+  el.querySelector("small")!.textContent = info.name;
+  const b = el.querySelector("button")!;
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); go(); });
+  el.hidden = false;
+}
 export function showPrompt(html: string | null) { const t = $("#prompt"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }
+
+// ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
+export function toggleBag(open = $("#bag").hidden) {
+  $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
+  if (open) toggleRoster(false);
+}
+
+let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
+let bagCdEnd = 0;                  // performance.now() lúc hết hồi chiêu chung đan (server gửi số giây còn lại)
+
+/** Hồn Tệ dạng HTML: mỗi phần kim / ngân / đồng một màu. */
+function honTeHtml(dong: number) {
+  return honTeParts(dong).map((p) => `<span class="ht ${p.unit === "kim" ? "kim" : p.unit === "ngân" ? "ngan" : "dong"}">${p.n.toLocaleString("vi-VN")} ${p.unit}</span>`).join(" ");
+}
+
+/** Tên hiển thị một ô (mã không còn trong ITEMS: "Vật phẩm lạ"). */
+const itemName = (it: BagItem) => itemDef(it.code)?.name ?? "Vật phẩm lạ";
+
+/**
+ * Bảng túi đồ: Hồn Tệ, lưới BAG_SLOTS ô (số lượng ở góc ô, đồ cùng loại đã được server gộp), chi tiết ô đang chọn và nút "Dùng".
+ * Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
+ */
+export function renderBag(bag: BagMsg, use: (id: string) => void) {
+  bagCdEnd = performance.now() + Math.max(0, bag.cd) * 1000;
+  const el = $("#bag"); el.innerHTML = "";
+  const items = bag.items.filter((i) => i.vohon === null);
+  if (bagSel && !items.some((i) => i.id === bagSel)) bagSel = null;
+  const head = document.createElement("div"); head.className = "rhead";
+  head.innerHTML = `<b>Túi đồ (${items.length}/${bag.slots})</b><button class="x" aria-label="Đóng">×</button>`;
+  head.querySelector("button")!.addEventListener("click", () => toggleBag(false));
+  el.appendChild(head);
+  const coin = document.createElement("div"); coin.className = "coin";
+  coin.innerHTML = `<i class="coinico"></i><span>Hồn Tệ:</span> ${honTeHtml(bag.honTe)}`;
+  coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
+  el.appendChild(coin);
+
+  const grid = document.createElement("div"); grid.className = "bgrid";
+  for (let k = 0; k < bag.slots; k++) {
+    const it = items[k], b = document.createElement("button");
+    b.className = "bslot" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
+    if (it) {
+      const def = itemDef(it.code);
+      b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
+      b.style.setProperty("--c", def?.col ?? "#9db3a2");
+      b.innerHTML = `<i class="ico ${def?.kind ?? "unknown"}"></i>${it.qty > 1 ? `<small>${it.qty}</small>` : ""}<div class="cd"></div>`;
+      b.setAttribute("aria-label", `${itemName(it)}, ${it.qty} món`);
+      b.title = itemName(it);
+      b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; renderBag({ ...bag, cd: Math.max(0, (bagCdEnd - performance.now()) / 1000) }, use); });
+    } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
+    grid.appendChild(b);
+  }
+  el.appendChild(grid);
+
+  const info = document.createElement("div"); info.className = "binfo";
+  const sel = items.find((i) => i.id === bagSel), def = sel && itemDef(sel.code);
+  if (sel) {
+    info.innerHTML = `<b></b><small></small><p></p>`;
+    info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}`;
+    info.querySelector("b")!.style.color = def?.col ?? "";
+    info.querySelector("small")!.textContent = def ? ITEM_KINDS[def.kind].name + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "") : "Không rõ loại";
+    info.querySelector("p")!.textContent = def?.desc ?? "Vật phẩm không còn trong trò chơi, vẫn được giữ trong túi.";
+    if (def && (def.hp || def.mp)) {
+      const btn = document.createElement("button"); btn.className = "buse"; btn.dataset.cd = def.cd ?? "";
+      btn.textContent = "Dùng";
+      btn.addEventListener("click", () => { btn.blur(); use(sel.id); });
+      info.appendChild(btn);
+    }
+  } else info.innerHTML = `<small>Chọn một ô để xem và dùng vật phẩm.</small>`;
+  el.appendChild(info);
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = "Đồ cùng loại tự gộp vào một ô. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
+  el.appendChild(note);
+  updateBag();
+}
+
+/** Mỗi lần cập nhật HUD: lớp phủ hồi chiêu chung trên ô đan và chữ trên nút "Dùng". */
+export function updateBag() {
+  if ($("#bag").hidden) return;
+  const left = Math.max(0, (bagCdEnd - performance.now()) / 1000), k = Math.min(1, left / DAN_CD);
+  document.querySelectorAll<HTMLElement>("#bag .bslot[data-cd]").forEach((b) => { (b.querySelector(".cd") as HTMLElement).style.height = k * 100 + "%"; });
+  const btn = document.querySelector<HTMLButtonElement>("#bag .buse");
+  if (btn && btn.dataset.cd) {
+    const txt = left > 0 ? `Đang hồi · ${Math.ceil(left)}s` : "Dùng";
+    if (btn.textContent !== txt) { btn.textContent = txt; btn.disabled = left > 0; }
+  }
+}

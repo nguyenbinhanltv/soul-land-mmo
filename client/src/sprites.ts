@@ -50,6 +50,26 @@ export const BEAST_ANIMS = {
   die:    { col: 10, ms: [120, 120, 120], loop: false },
 } satisfies Record<string, AnimDef>;
 
+/** Gốc hồn thú cách mép dưới khung 4 pixel (cùng gốc với sprite vẽ bằng code; normalize --anchor 16,28 cho khung 32). */
+export const BEAST_FOOT = 4;
+
+/**
+ * Hồn thú theo loài (M4): nếu loài đã có sheet `beast_{loài}` thì đặt sheet đó, gốc giữa đáy và chạy `idle`/`walk`.
+ * Trả false khi loài chưa có ảnh thật để nơi gọi vẽ `b{tier}_…` bằng code như cũ. Lật ngang do nơi gọi đặt.
+ */
+export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean): boolean {
+  const key = `beast_${species}`, anim = `${key}:${moving ? "walk" : "idle"}`;
+  if (!species || !s.scene.anims.exists(anim)) return false;
+  if (s.texture.key !== key) {
+    s.setTexture(key, 0);
+    s.setOrigin(0.5, (s.frame.height - BEAST_FOOT) / s.frame.height);
+  }
+  s.play(anim, true);
+  // Chưa có dấu "!" riêng cho trạng thái hung hăng (5.11): tạm ửng đỏ nhẹ để vẫn nhận ra.
+  if (aggro) s.setTint(0xffb4b4); else s.clearTint();
+  return true;
+}
+
 /** Dải 4 xám chuẩn (tối → sáng) của lớp tóc và áo, được thay khi hoán màu. */
 export const GRAY_RAMP = ["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca"] as const;
 

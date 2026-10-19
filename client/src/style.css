@@ -47,6 +47,13 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #target{top:12px}
 #prompt{bottom:96px;border-color:var(--line2)}
 #prompt em{font-style:normal;color:var(--warn)}
+#portal{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:13px;font-weight:600;border-color:var(--accent)}
+#portal small{display:block;color:var(--muted);font-size:11.5px;font-weight:500}
+#portal .danger{display:block;color:#ff6b6b;font-weight:800;margin-top:3px}
+#portal button{margin-top:6px;font:inherit;font-size:12.5px;font-weight:800;padding:5px 14px;border:1px solid var(--accent);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+#portal button.danger{border-color:#ff6b6b}
+#portal kbd{font:inherit;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
+body.touch #portal{bottom:196px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;box-shadow:0 0 6px currentColor;background:currentColor}
 #channel{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:240px;text-align:center;display:none}
 #channel .label{font-weight:800;margin-bottom:6px;text-shadow:0 1px 3px #000;color:#fff}
@@ -161,6 +168,41 @@ body.touch #prompt{bottom:160px}
 .trm{font:inherit;font-size:11px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;padding:0 8px}
 .trm:disabled{opacity:.35;cursor:default}
 .tpick:focus-visible,.trm:focus-visible{outline:2px solid var(--xp);outline-offset:-2px}
+/* Túi đồ và Hồn Tệ (bước 3.1): mở bằng phím B hoặc nút trong khung chỉ số; cùng chỗ với bảng đội hình */
+.minirow{display:flex;gap:6px}
+.minirow .minibtn{flex:1;padding:5px 4px}
+#bag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,94vw);max-height:80%;overflow-y:auto;
+  padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:7px;
+  backdrop-filter:blur(6px)}
+#bag button{pointer-events:auto}
+.coin{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.coin>span:first-of-type{color:var(--muted);font-weight:600}
+.coinico{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2b0,#f2c84b 45%,#b8862a);box-shadow:0 0 0 1px #6a4a12}
+.ht.kim{color:#f2c84b} .ht.ngan{color:#c0cce0} .ht.dong{color:#e08a5a}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .ht.kim{color:#8a5f0a} :root:not([data-theme="dark"]) .ht.ngan{color:#4d5a73} :root:not([data-theme="dark"]) .ht.dong{color:#9a4a1c}}
+.bgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.bslot{position:relative;aspect-ratio:1;min-width:0;padding:0;border:2px solid var(--line);background:rgba(0,0,0,.28);color:var(--text);
+  font:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.bslot.empty{border-style:dashed;opacity:.45;cursor:default}
+.bslot:not(.empty){border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
+.bslot.sel{box-shadow:0 0 0 2px var(--xp);border-color:var(--xp)}
+.bslot:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bslot small{position:absolute;right:2px;bottom:0;font-size:10px;font-weight:800;text-shadow:0 1px 0 #000,0 0 2px #000;font-variant-numeric:tabular-nums}
+.bslot .cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
+/* Biểu tượng vật phẩm theo nhóm: đan là viên tròn sáng; nhóm chưa có ảnh dùng hình chung */
+.ico{display:block;width:58%;height:58%}
+.ico.dan{border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff 0 12%,var(--c) 38%,color-mix(in srgb,var(--c) 45%,#000) 100%);
+  box-shadow:0 0 6px color-mix(in srgb,var(--c) 60%,transparent)}
+.ico.hon_hoan{border-radius:50%;border:4px solid var(--c);box-shadow:0 0 6px var(--c)}
+.ico.unknown,.ico.hon_cot,.ico.hon_hach,.ico.manh_vo_hon,.ico.tien_thao{transform:rotate(45deg) scale(.8);background:var(--c);opacity:.85}
+.binfo{min-height:64px;border:1px solid var(--line);background:rgba(0,0,0,.2);padding:7px 9px;display:flex;flex-direction:column;gap:2px}
+.binfo b{font-size:13.5px}
+.binfo small{color:var(--muted);font-size:11px}
+.binfo p{margin:2px 0 0;font-size:12px}
+.buse{align-self:flex-start;margin-top:5px;font:inherit;font-size:12.5px;font-weight:800;padding:6px 16px;min-height:34px;border:1px solid var(--accent);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+.buse:disabled{opacity:.55;cursor:default;border-color:var(--line)}
+body.touch .bslot small{font-size:11px}
+body.touch .minibtn kbd{display:none}
 /* Trong trận: thanh đội hình 4 ô (phím 1–4 hoặc chạm để đổi võ hồn) */
 #team{position:absolute;right:10px;bottom:82px;display:flex;gap:6px}
 .tm{position:relative;width:62px;height:54px;padding:3px 4px;border:2px solid var(--line);background:var(--panel);color:var(--text);

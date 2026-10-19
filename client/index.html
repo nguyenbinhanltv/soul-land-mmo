@@ -20,9 +20,13 @@
         <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
         <div class="rings" id="rings"></div>
         <div class="buffs" id="buffs" aria-label="Hiệu ứng có lợi"></div>
-        <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false">Đội hình <kbd>V</kbd></button>
+        <div class="minirow">
+          <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false">Đội hình <kbd>V</kbd></button>
+          <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false">Túi đồ <kbd>B</kbd></button>
+        </div>
       </section>
       <div id="roster" class="panel" hidden></div>
+      <div id="bag" class="panel" hidden></div>
       <section class="panel mapbox">
         <canvas id="mini"></canvas>
         <div id="zoneName"></div>
@@ -30,6 +34,7 @@
       </section>
       <div id="target" class="panel"></div>
       <div id="prompt" class="panel"></div>
+      <div id="portal" class="panel" hidden></div>
       <div id="channel"><div class="label">Đang hấp thụ hồn hoàn…</div><div class="bar"><i id="chFill"></i></div></div>
       <div id="banner"><b></b><span></span></div>
       <div id="chatbox">

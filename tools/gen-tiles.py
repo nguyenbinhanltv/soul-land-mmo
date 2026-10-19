@@ -34,4 +34,17 @@ for z in range(4):
     rect(X+2,Y,12,8,CAN[z]); rect(X+1,Y,14,5,CAN[z]); rect(X+2,Y+7,12,2,CAND[z]); rect(X+9,Y+2,2,2,CANL[z])
     X,Y=pos(20+z)
     rect(X+2,Y+11,12,5,CAN[z]); rect(X+1,Y+13,14,3,CAN[z]); rect(X+4,Y+9,8,2,CAN[z]); rect(X+4,Y+12,4,3,CANL[z])
+# BĐ2: ô cho làng và thành (vẽ sau cùng để các ô cũ giữ nguyên điểm ảnh khi chạy lại)
+# 12 đá lát (đường trong thành)
+X,Y=pos(12); rect(X,Y,T,T,'#8e8a80')
+for j in range(4):
+    for i in range(4): rect(X+i*4+(2 if j%2 else 0),Y+j*4,3,3,random.choice(['#a39f94','#9a968b','#b0ab9f']))
+# 13 mái ngói (chặn đường)
+X,Y=pos(13); rect(X,Y,T,T,'#8f3b2e')
+for j in range(4): rect(X,Y+j*4+3,T,1,'#5e2219'); rect(X+(j%2)*4,Y+j*4,2,3,'#b0574a')
+# 14 tường nhà có cửa sổ (chặn đường)
+X,Y=pos(14); rect(X,Y,T,T,'#d8c8a2'); rect(X,Y,T,2,'#5e2219'); rect(X,Y+14,T,2,'#8a7a5c'); rect(X+5,Y+5,6,6,'#3a2a18'); rect(X+6,Y+6,4,4,'#7fb8d8'); rect(X+7,Y+6,1,4,'#3a2a18'); rect(X+6,Y+8,4,1,'#3a2a18')
+# 15 ruộng lúa
+X,Y=pos(15); rect(X,Y,T,T,'#6b8a3a')
+for i in range(0,T,3): rect(X+i,Y+1,1,13,random.choice(['#c9b84a','#a9a03c','#d8c860'])); rect(X+i,Y+1,2,2,'#e8d878')
 img.save("shared/assets/tiles.png"); print("tiles.png", img.size)

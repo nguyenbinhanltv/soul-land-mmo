@@ -12,8 +12,11 @@ export interface Character { accountId: number; name: string; rowId: number; voh
 
 /** Ngoại hình hồn sư của tài khoản; `chosen` = đã tạo nhân vật (chỉ chọn một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; }
-/** Trả về từ /api/login và /api/me: võ hồn ra trận (null = chưa thức tỉnh) và ngoại hình. */
-export interface Me { character: Character | null; looks: AccountLooks; }
+/** Trả về từ /api/login và /api/me: võ hồn ra trận (null = chưa thức tỉnh), ngoại hình và bản đồ đang đứng (do server lưu). */
+export interface Me { character: Character | null; looks: AccountLooks; mapId: string; }
+
+/** Tin nhắn riêng "portal": cổng đang đứng (name rỗng = không đứng ở cổng nào), cấp đề xuất, cảnh báo dưới cấp (chặn mềm). */
+export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. */
 export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[] }[]; }
@@ -22,6 +25,11 @@ export interface OwnedVohons { active: number; team: number[]; list: { rowId: nu
  * `en`: năng lượng tiên cơ (0..TIEN_CO_MAX). `combat`: đang giao chiến (đồng hồ hồi dừng).
  */
 export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number; en: number }[]; }
+
+/** Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi). */
+export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; }
+/** Tin nhắn riêng "bag": túi đồ, số ô tối đa, Hồn Tệ (đồng) và số giây còn lại của hồi chiêu chung đan. */
+export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

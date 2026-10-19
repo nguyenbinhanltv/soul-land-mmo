@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, type Looks } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, DEFAULT_MAP, type Looks } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -18,6 +18,41 @@ export interface Character {
 
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; }
+
+/** Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí (vào ở `spawn`). */
+export interface Location { mapId: string; x: number | null; y: number | null; }
+/**
+ * Ánh xạ `accounts.map_id` sang bản đồ đang có: chưa lưu (null) hoặc mã không còn trong MAPS thì về DEFAULT_MAP (mục 5.3, 6).
+ * PgStore dùng cùng luật này trong SQL (`mapExpr`) cho lớp chặn `WHERE map_id`.
+ */
+export const resolveMap = (raw: string | null | undefined) => (raw && Object.hasOwn(MAPS, raw) ? raw : DEFAULT_MAP);
+const toLocation = (raw: string | null | undefined, x: unknown, y: unknown): Location => {
+  const mapId = resolveMap(raw);
+  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới.
+  return mapId === raw && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
+};
+
+/** Một ô trong túi đồ (một dòng bảng `items`, mục 5.7). `id` do server sinh (UUID) ngay khi món đồ xuất hiện. */
+export interface Item {
+  id: string;
+  kind: string; code: string;  // nhóm (ITEM_KINDS) và mã vật phẩm (ITEMS)
+  qty: number;                 // số món trong ô (đồ gộp được), ≥ 1
+  years: number | null; stars: number | null; enhance: number;
+  stats: unknown;              // dòng chỉ số (JSON) hoặc null
+  vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
+  created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
+}
+/** Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. */
+export interface Bag { items: Item[]; honTe: number; }
+const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
+const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem) });
+/** Kiểm tra chung cho cả hai store trước khi ghi túi: id không trùng, số lượng và Hồn Tệ là số nguyên hợp lệ. */
+function bagOk(b: Bag) {
+  const ids = new Set(b.items.map((i) => i.id));
+  if (ids.size !== b.items.length) throw new Error("Túi đồ có hai ô trùng id.");
+  if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
+  for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+}
 
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
@@ -48,6 +83,30 @@ export interface Store {
   getLooks(accountId: number): Promise<AccountLooks>;
   /** Lưu ngoại hình lần đầu (đã kiểm tra bằng parseLooks). false nếu tài khoản đã chọn rồi. */
   chooseLooks(accountId: number, looks: Looks): Promise<boolean>;
+  /** Bản đồ đang đứng và vị trí (đã ánh xạ bằng resolveMap). */
+  getLocation(accountId: number): Promise<Location>;
+  /**
+   * Lưu vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng). Chỉ ghi khi bản đồ đang lưu (đã ánh xạ) vẫn là
+   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi.
+   */
+  saveLocation(accountId: number, mapId: string, x: number, y: number): Promise<boolean>;
+  /**
+   * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
+   * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
+   * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
+   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag.
+   */
+  saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag): Promise<void>;
+  /**
+   * Túi đồ và Hồn Tệ. Tài khoản chưa nhận vật phẩm khởi đầu thì thêm `starter` vào túi (một lần, cùng một lần ghi với cờ
+   * `starter_items`) rồi mới trả về; đã nhận thì bỏ qua `starter`. `starter` trong kết quả: lần này vừa nhận.
+   */
+  loadBag(accountId: number, starter: Item[]): Promise<{ bag: Bag; starter: boolean }>;
+  /**
+   * Ghi cả túi (ảnh chụp lúc lưu): thêm/sửa mọi ô trong `bag`, xóa ô của tài khoản không còn trong `bag`, và Hồn Tệ.
+   * Hoặc ghi hết, hoặc không ghi gì; lỗi (id trùng, id thuộc tài khoản khác, đồ gắn vào võ hồn không thuộc tài khoản) thì ném lỗi.
+   */
+  saveBag(accountId: number, bag: Bag): Promise<void>;
 }
 
 function hashPass(pw: string) {
@@ -74,6 +133,9 @@ export class MemoryStore implements Store {
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
+  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null }>(); // accountId -> accounts.map_id, pos_x, pos_y
+  bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
+  starter = new Set<number>();          // accountId đã nhận vật phẩm khởi đầu (accounts.starter_items)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -132,6 +194,46 @@ export class MemoryStore implements Store {
   async chooseLooks(accountId: number, looks: Looks) {
     if (this.looks.has(accountId)) return false;
     this.looks.set(accountId, { ...looks }); return true;
+  }
+  async getLocation(accountId: number) {
+    const l = this.locs.get(accountId);
+    return toLocation(l?.mapId, l?.x, l?.y);
+  }
+  async saveLocation(accountId: number, mapId: string, x: number, y: number) {
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
+    this.locs.set(accountId, { mapId, x, y }); return true;
+  }
+  async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
+    // Kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ (không có await xen giữa): ghi hết hoặc không ghi gì.
+    for (const c of chars)
+      if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== from) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
+    if (bag) this.checkBag(accountId, bag);
+    for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
+    this.locs.set(accountId, { mapId: to, x, y });
+    if (bag) this.bags.set(accountId, copyBag(bag));
+  }
+  /** Như các ràng buộc của bảng `items`: id không thuộc tài khoản khác, đồ chỉ gắn vào võ hồn của chính tài khoản. */
+  checkBag(accountId: number, bag: Bag) {
+    bagOk(bag);
+    for (const [acc, b] of this.bags)
+      if (acc !== accountId && b.items.some((i) => bag.items.some((j) => j.id === i.id))) throw new Error("Id món đồ thuộc tài khoản khác.");
+    for (const i of bag.items)
+      if (i.vohonId !== null && this.rows.get(i.vohonId)?.accountId !== accountId) throw new Error(`Võ hồn #${i.vohonId} không thuộc tài khoản #${accountId}.`);
+  }
+  async loadBag(accountId: number, starter: Item[]) {
+    let b = this.bags.get(accountId) ?? { items: [], honTe: 0 };
+    const fresh = !this.starter.has(accountId);
+    if (fresh) {
+      const next = { honTe: b.honTe, items: [...b.items, ...starter] };
+      this.checkBag(accountId, next);
+      b = copyBag(next); this.bags.set(accountId, b); this.starter.add(accountId);
+    }
+    return { bag: copyBag(b), starter: fresh };
+  }
+  async saveBag(accountId: number, bag: Bag) {
+    this.checkBag(accountId, bag);
+    this.bags.set(accountId, copyBag(bag));
   }
 }
 
@@ -304,6 +406,97 @@ export class PgStore implements Store {
     // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
     const l = x ? parseLooks({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col }) : null;
     return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
+  }
+  /** Biểu thức SQL của resolveMap(map_id): $known = mọi mã trong MAPS, $def = DEFAULT_MAP. */
+  mapExpr(known: string, def: string) { return `COALESCE(CASE WHEN map_id = ANY(${known}::text[]) THEN map_id END, ${def})`; }
+  async getLocation(accountId: number) {
+    const x = (await this.pool.query("SELECT map_id, pos_x, pos_y FROM accounts WHERE id=$1", [accountId])).rows[0];
+    return toLocation(x?.map_id, x?.pos_x, x?.pos_y);
+  }
+  async saveLocation(accountId: number, mapId: string, x: number, y: number) {
+    const r = await this.pool.query(
+      `UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4 WHERE id=$1 AND ${this.mapExpr("$5", "$6")} = $2`,
+      [accountId, mapId, x, y, Object.keys(MAPS), DEFAULT_MAP]);
+    return (r.rowCount ?? 0) > 0;
+  }
+  async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      for (const c of chars) {
+        const v = await db.query(
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+        if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+      }
+      const a = await db.query(
+        `UPDATE accounts SET map_id=$3, pos_x=$4, pos_y=$5 WHERE id=$1 AND ${this.mapExpr("$6", "$7")} = $2`,
+        [accountId, from, to, x, y, Object.keys(MAPS), DEFAULT_MAP]);
+      if (a.rowCount !== 1) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
+      if (bag) await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  itemRow(x: any): Item {
+    return { id: x.id, kind: x.kind, code: x.code, qty: x.qty, years: x.years, stars: x.stars, enhance: x.enhance, stats: x.stats ?? null,
+      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime() };
+  }
+  /** Thêm hoặc sửa các ô `items` (chỉ ô của chính tài khoản; id thuộc tài khoản khác thì ném lỗi). Gọi trong transaction. */
+  async upsertItems(db: pg.PoolClient, accountId: number, items: Item[]) {
+    if (!items.length) return;
+    const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
+      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString() })));
+    const r = await db.query(
+      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at)
+       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created
+       FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,
+         stats jsonb, vohon_id bigint, created timestamptz)
+       ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind, code=EXCLUDED.code, qty=EXCLUDED.qty, years=EXCLUDED.years, stars=EXCLUDED.stars,
+         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id
+       WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
+    if (r.rowCount !== items.length) throw new Error("Id món đồ thuộc tài khoản khác.");
+  }
+  /** Ghi cả túi và Hồn Tệ trong transaction đang mở (saveBag, saveTravel). Câu UPDATE accounts đầu tiên khóa dòng tài khoản. */
+  async writeBag(db: pg.PoolClient, accountId: number, bag: Bag) {
+    bagOk(bag);
+    const a = await db.query("UPDATE accounts SET hon_te=$2 WHERE id=$1", [accountId, bag.honTe]);
+    if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
+    await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
+    await this.upsertItems(db, accountId, bag.items);
+  }
+  async loadBag(accountId: number, starter: Item[]) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Khóa dòng tài khoản: hai phiên vào cùng lúc không thể cùng nhận vật phẩm khởi đầu.
+      const a = await db.query("SELECT hon_te, starter_items FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+      if (!a.rowCount) throw new Error(`Không có tài khoản #${accountId}.`);
+      const fresh = !a.rows[0].starter_items;
+      if (fresh) {
+        await this.upsertItems(db, accountId, starter);
+        await db.query("UPDATE accounts SET starter_items=true WHERE id=$1", [accountId]);
+      }
+      const r = await db.query("SELECT * FROM items WHERE account_id=$1 ORDER BY created_at, id", [accountId]);
+      await db.query("COMMIT");
+      return { bag: { honTe: Number(a.rows[0].hon_te), items: r.rows.map((x) => this.itemRow(x)) }, starter: fresh };
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async saveBag(accountId: number, bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async chooseLooks(accountId: number, looks: Looks) {
     // Một lần duy nhất: điều kiện NOT looks_chosen làm hai yêu cầu cùng lúc chỉ một cái được ghi.

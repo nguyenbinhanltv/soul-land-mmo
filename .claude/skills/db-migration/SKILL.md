@@ -9,7 +9,7 @@ description: Cách thêm bảng, cột hoặc chuyển dữ liệu PostgreSQL/Su
 `PgStore.init()` trong `server/src/db.ts` đọc **mọi** file `.sql` trong `server/sql/`, sắp theo tên và chạy lần lượt **mỗi lần server khởi động**. Không có bảng ghi "đã chạy", nên mỗi file phải chạy lại được vô hạn lần mà không lỗi và không nhân đôi dữ liệu. File mới tự được nạp, không cần đăng ký thêm.
 
 ## Viết file SQL mới
-1. Tạo `server/sql/00N_<ten>.sql` với N là số kế tiếp (`ls server/sql`; hiện có `001_init.sql`, `002_vohons.sql`). Worker khác có thể cũng đang thêm file: kiểm tra nhánh `main` mới nhất để tránh trùng số. Không sửa file cũ đã chạy trên DB thật, trừ khi chỉ thêm câu lệnh an toàn khi chạy lại.
+1. Tạo `server/sql/00N_<ten>.sql` với N là số kế tiếp (`ls server/sql`; hiện có `001_init.sql` … `008_items.sql`). Worker khác có thể cũng đang thêm file: kiểm tra nhánh `main` mới nhất để tránh trùng số. Không sửa file cũ đã chạy trên DB thật, trừ khi chỉ thêm câu lệnh an toàn khi chạy lại.
 2. Đầu file: chú thích tiếng Việt nói file làm gì, trỏ tới mục trong `GAME_DESIGN.md`.
 3. Câu lệnh chạy lại an toàn:
    - `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`

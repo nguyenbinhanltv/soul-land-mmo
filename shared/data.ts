@@ -32,16 +32,28 @@ export interface MapDef {
   /** Mã cố định, cũng là tên file Tiled `shared/assets/<id>.json`. */
   id: string;
   name: string; kind: MapKind;
-  level: [number, number]; // cấp đề xuất
-  years: [number, number]; // niên hạn hồn thú
+  level: [number, number] | null; // cấp đề xuất (thành: null)
+  years: [number, number] | null; // niên hạn hồn thú (thành: null)
 }
 
-/** Bản đồ đang có. Đến BĐ2 chỉ có một bản đồ; BĐ3 tách `tinh_dau` thành Ngoại vi và Nội địa. */
+/** Bản đồ đang có (bảng 5.3). BĐ3 tách `tinh_dau` thành Ngoại vi và Nội địa. Cổng tới bản đồ chưa có thì không đặt trong Tiled. */
 export const MAPS: Record<string, MapDef> = {
-  tinh_dau: { id: "tinh_dau", name: "Tinh Đấu Đại Sâm Lâm", kind: "hunt", level: [1, 100], years: [10, 100000] },
+  tinh_dau: { id: "tinh_dau", name: "Tinh Đấu Đại Sâm Lâm", kind: "hunt", level: [10, 60], years: [10, 100000] },
+  thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450] },
+  nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null },
 };
-/** Bản đồ server tự chọn khi vào game (đến BĐ2 chưa lưu bản đồ đang đứng). */
-export const DEFAULT_MAP = "tinh_dau";
+/** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
+export const DEFAULT_MAP = "thanh_hon_thon";
+/** "10-30" -> [10, 30]; "10" -> [10, 10]; sai -> null. Dùng cho thuộc tính `level` của cổng trong Tiled. */
+export function parseLevelRange(s: unknown): [number, number] | null {
+  const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(String(s ?? ""));
+  if (!m) return null;
+  const a = Number(m[1]), b = m[2] === undefined ? a : Number(m[2]);
+  return a <= b ? [a, b] : null;
+}
+/** Đi qua cổng: số giây niệm (bị đánh thì hủy, chờ chốt ở 5.3) và số giây server chờ client rời phòng cũ (mục 6). */
+export const TRAVEL_CAST = 1;
+export const TRAVEL_LEAVE_SECS = 10;
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
@@ -66,6 +78,16 @@ export const BEASTS: BeastDef[] = [
   { id: "quy_anh_bao",            name: "Quỷ Ảnh Báo",            tier: 3 },
   // Nội địa chưa có hồn thú thường 10 vạn năm; tạm dùng loài mãng xà lớn nhất cho bậc đỏ đến bước 3.2.
   { id: "xich_lan_mang",          name: "Xích Lân Mãng",          tier: 4 },
+  // Thánh Hồn Thôn (BĐ2, bảng 5.3): 10–450 năm. Bậc tạm: dưới 100 năm là bậc 0, từ 100 năm là bậc 1.
+  { id: "nhu_cot_tho_hoang",      name: "Nhu Cốt Thỏ hoang",      tier: 0 },
+  { id: "dien_thu",               name: "Điền Thử",               tier: 0 },
+  { id: "hoi_vu_tuoc",            name: "Hôi Vũ Tước",            tier: 0 },
+  { id: "phong_lang_con",         name: "Phong Lang con",         tier: 0 },
+  { id: "doc_cham_phong",         name: "Độc Châm Phong",         tier: 0 },
+  { id: "thiet_giap_xuyen_son_giap", name: "Thiết Giáp Xuyên Sơn Giáp", tier: 1 },
+  { id: "hac_boi_da_tru",         name: "Hắc Bối Dã Trư",         tier: 1 },
+  { id: "thanh_lan_xa",           name: "Thanh Lân Xà",           tier: 1 },
+  { id: "quy_dang_non",           name: "Quỷ Đằng non",           tier: 1 },
 ];
 
 const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
@@ -508,6 +530,51 @@ export function calcStats(vh: number, level: number, rings: number[]) {
     speed: 58 * v.spd,
   };
 }
+
+// ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
+/** Nhóm vật phẩm (cột `items.kind`). Mới có đan; các nhóm khác thêm ITEMS khi làm tới (hồn hoàn 3.2, mảnh 3.4, hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
+export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
+  dan: { name: "Đan dược" },
+  hon_hoan: { name: "Hồn hoàn" },
+  hon_cot: { name: "Hồn cốt" },
+  hon_hach: { name: "Hồn hạch" },
+  manh_vo_hon: { name: "Mảnh võ hồn" },
+  tien_thao: { name: "Tiên thảo" },
+};
+/**
+ * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
+ * (1 = không gộp, mỗi món một ô như hồn hoàn có số năm riêng). `cd`: nhóm hồi chiêu dùng chung (DAN_CD).
+ * `hp` / `mp`: dùng thì hồi ngần ấy phần sinh lực tối đa của võ hồn ra trận / hồn lực tối đa.
+ */
+export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; }
+export const ITEMS: ItemDef[] = [
+  { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
+  { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
+];
+const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
+/** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
+export const itemDef = (code: string) => ITEM_INDEX.get(code);
+/** Số ô túi đồ (mỗi ô một món hoặc một chồng đồ gộp). Mở rộng túi để sau. */
+export const BAG_SLOTS = 40;
+/** Hồi chiêu chung (giây) của mọi đan có `cd: "dan"`: dùng Hồi Huyết Đan thì Hồi Hồn Đan cũng phải chờ. */
+export const DAN_CD = 15;
+/** Tài khoản nhận một lần ở lần vào game đầu tiên từ bước 3.1 (cả tài khoản cũ); nguồn đan tạm cho tới khi có thương nhân (6.1). */
+export const STARTER_ITEMS = [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }];
+/** Hồn Tệ (đồng) rơi khi hạ hồn thú, theo bậc trong TIERS: ngẫu nhiên trong [min, max], người hạ nhận thẳng. */
+export const BEAST_COIN: [number, number][] = [[1, 3], [4, 10], [15, 40], [60, 150], [300, 800]];
+/** Quy đổi Hồn Tệ khi hiển thị: 1 ngân = 100 đồng, 1 kim = 100 ngân. DB chỉ lưu số đồng. */
+export const HON_TE_NGAN = 100;
+export const HON_TE_KIM = 100 * HON_TE_NGAN;
+/** Hồn Tệ (đồng) -> các phần kim / ngân / đồng, bỏ phần bằng 0 (0 thì còn "0 đồng"). */
+export function honTeParts(dong: number) {
+  const n = Math.max(0, Math.floor(dong));
+  const parts = [{ n: Math.floor(n / HON_TE_KIM), unit: "kim" }, { n: Math.floor((n % HON_TE_KIM) / HON_TE_NGAN), unit: "ngân" }, { n: n % HON_TE_NGAN, unit: "đồng" }]
+    .filter((p) => p.n > 0);
+  return parts.length ? parts : [{ n: 0, unit: "đồng" }];
+}
+/** "1 kim 2 ngân 5 đồng". */
+export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
 
 export const TILE = 16;
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây

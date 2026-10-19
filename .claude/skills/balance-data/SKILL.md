@@ -18,6 +18,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `TITLES`, `titleOf(level)` (danh hiệu theo cấp, mục 5.1).
 - `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `DEFAULT_LOOKS`, `parseLooks()` (ngoại hình hồn sư, mục 5.11). Màu chỉ lấy từ `art/palette.gpl`; thêm màu vào cuối mảng vì DB lưu chỉ số.
 - `TILE`, `TICK_RATE`.
+- Túi đồ, vật phẩm, Hồn Tệ (mục 5.7, bước 3.1): `ITEM_KINDS`, `ITEMS` / `itemDef()` (mã cố định, lưu ở `items.code`; thêm vào cuối, không đổi mã), `BAG_SLOTS`, `DAN_CD`, `STARTER_ITEMS`, `BEAST_COIN`, `HON_TE_NGAN` / `HON_TE_KIM`, `honTeParts()` / `formatHonTe()`.
 - Thiết kế còn nhắc bảng `DROPS` (tỉ lệ rơi, mục 5.3): **chưa có**, khi làm thì thêm vào đây.
 
 ## Quy tắc
