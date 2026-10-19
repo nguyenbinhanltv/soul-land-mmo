@@ -294,7 +294,8 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
   el.appendChild(note);
-  renderBones(el, data, act, items, () => renderRoster(data, act, shards, items));
+  rosterAgain = () => renderRoster(data, act, shards, items);
+  renderBones(el, data, act, items, rosterAgain);
   renderShards(el, data, act, shards);
 }
 
@@ -302,12 +303,14 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
 let boneVh: number | null = null;      // võ hồn đang xem 6 ô hồn cốt (null = võ hồn ra trận)
 let boneCell: string | null = null;    // ô (mã vị trí) đang chọn: xem hồn cốt đang gắn, lọc hồn cốt trong túi
 let boneFocus: string | null = null;   // hồn cốt trong túi vừa bấm "Gắn…" ở túi đồ: tô sáng
+let rosterAgain: (() => void) | null = null; // vẽ lại bảng đội hình bằng dữ liệu lần vẽ gần nhất (null = chưa vẽ lần nào)
 /** Vị trí từng ô quanh hình võ hồn (grid-area trong .bfig: hàng / cột). */
 const BONE_AREA: Record<string, string> = { dau: "1 / 2", tay_trai: "2 / 1", tay_phai: "2 / 3", than: "3 / 2", chan_trai: "3 / 1", chan_phai: "3 / 3" };
 
 /** Mở bảng đội hình ở mục hồn cốt, chọn sẵn ô của hồn cốt `itemId` (nút "Gắn…" trong túi đồ). */
 export function openBones(itemId: string, slot: string) {
-  boneFocus = itemId; boneCell = slot;
+  boneFocus = itemId; boneCell = slot; boneVh = null; // xem võ hồn đang ra trận
+  rosterAgain?.(); // vẽ ngay: ô chọn sẵn, món tô sáng, danh sách lọc theo vị trí (không chờ tin bag/vohons/squad kế tiếp)
   toggleRoster(true);
   requestAnimationFrame(() => document.querySelector("#roster .bfig")?.scrollIntoView({ block: "start" }));
 }

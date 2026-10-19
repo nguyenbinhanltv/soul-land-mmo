@@ -895,14 +895,17 @@ export class GameScene extends Phaser.Scene {
     }, shards, this.bag?.items ?? []);
   }
 
-  portraits = new Map<string, string>(); // ảnh võ hồn trong bảng hồn cốt theo ngoại hình + võ hồn (data URL)
+  portraits = new Map<string, string>(); // ảnh võ hồn trong bảng hồn cốt theo mã võ hồn (data URL), của ngoại hình `portraitLooks`
+  portraitLooks = "";
   /**
    * Ảnh 48×48 hồn sư của mình phóng thích võ hồn `vohon` (khung đứng yên hướng xuống: phụ thể sau, thân, áo, tóc, phụ thể trước),
    * ghép từ đúng các texture trên bản đồ, cho khung hồn cốt (4.2). Chưa có hồn sư trong state thì "".
    */
   portrait(vohon: string) {
     const me = this.room.state.players.get(this.me); if (!me) return "";
-    const key = `${vohon}|${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}`, hit = this.portraits.get(key);
+    const looks = `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}`;
+    if (looks !== this.portraitLooks) { this.portraits.clear(); this.portraitLooks = looks; } // đổi ngoại hình: ảnh cũ bỏ đi
+    const hit = this.portraits.get(vohon);
     if (hit) return hit;
     const t = looksTextures(this, me), [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
     const cv = document.createElement("canvas"); cv.width = 48; cv.height = 48;
@@ -916,7 +919,7 @@ export class GameScene extends Phaser.Scene {
     };
     draw(kb, VH_ORIGIN); draw(t.body, HS_ORIGIN); draw(t.outfit, HS_ORIGIN); draw(t.hair, HS_ORIGIN); draw(kf, VH_ORIGIN);
     const url = cv.toDataURL();
-    this.portraits.set(key, url);
+    this.portraits.set(vohon, url);
     return url;
   }
 
