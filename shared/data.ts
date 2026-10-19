@@ -429,12 +429,20 @@ export type TeleShape = "line" | "cone" | "circle";
  * - `dmg`: bội số sát thương đòn thường của hồn thú (beastStats theo số năm). `status`: trạng thái dùng chung gây cho người trúng.
  * - `dash`: tung xong hồn thú lao tới cuối vệt / tâm vòng (Vồ Lao, Xung Phong, Bổ Nhào), dừng khi vướng.
  * - `years`: loài có nhiều chiêu thì chiêu này dùng từ ngần ấy năm (hồn thú thường dùng chiêu cuối cùng đủ năm, mục 5.4: 1 chiêu).
+ * Từ BĐ4 (chiêu của tinh anh, bảng BOSSES):
+ * - `count` > 1: nhiều vùng trong một lần tung (trúng một vùng là trúng, mỗi người chỉ trúng một lần). Vệt / nón: `count` vùng tỏa
+ *   đều trong góc `spread` độ quanh hướng mục tiêu (3 vết nứt tỏa quạt). Vòng dưới chân mục tiêu: `count` vòng thành hàng theo
+ *   hướng hồn thú → mục tiêu, cách nhau `step`, vòng giữa ở chân mục tiêu (Gai Trồi, Lôi Trụ).
+ * - `summon`: tung xong gọi thêm hồn thú loài `species` (mã BEASTS) quanh thân, tối đa `n` con do hồn thú này gọi còn sống (Hú Bầy).
+ * - `pull`: người trúng bị kéo về phía hồn thú tối đa ngần ấy pixel (Quấn Kéo, Lưỡi Quất), dừng khi vướng hoặc sát hồn thú.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
   r: number; w?: number; arc?: number; range: number;
   warn: number; cd: number; dmg: number;
   status?: StatusApply[]; dash?: boolean; years?: number;
+  count?: number; spread?: number; step?: number;
+  summon?: { species: string; n: number }; pull?: number;
 }
 /** Hồn thú thường từ ngần ấy năm mới có chiêu báo trước (mục 5.3: dưới 1.000 năm chỉ đánh thường). */
 export const BEAST_SKILL_YEARS = 1000;
@@ -502,6 +510,118 @@ export function teleHits(t: Tele, px: number, py: number) {
   let da = Math.atan2(dy, dx) - t.ang; da = Math.atan2(Math.sin(da), Math.cos(da));
   return Math.abs(da) <= (t.arc * Math.PI) / 360;
 }
+/**
+ * Các vùng cảnh báo của chiêu `def` do hồn thú đứng ở (bx, by) tung về mục tiêu (tx, ty), khóa lúc bắt đầu báo trước. Chiêu thường
+ * có 1 vùng; `count` > 1 (BĐ4) cho nhiều vùng (vệt / nón tỏa quạt, vòng dưới chân thành hàng). Hàm thuần: server khóa vùng, bot đối chiếu.
+ */
+export function teleZones(def: BeastSkillDef, bx: number, by: number, tx: number, ty: number): Tele[] {
+  const ang = Math.atan2(ty - by, tx - bx), at = def.at === "target", n = Math.max(1, def.count ?? 1), out: Tele[] = [];
+  for (let k = 0; k < n; k++) {
+    const off = n > 1 ? k / (n - 1) - 0.5 : 0; // -0,5 .. 0,5
+    if (def.shape === "circle" && at) {
+      const d = off * (n - 1) * (def.step ?? def.r * 2);
+      out.push({ shape: "circle", x: tx + Math.cos(ang) * d, y: ty + Math.sin(ang) * d, ang, r: def.r, w: 0, arc: 0 });
+    } else {
+      const a = ang + off * ((def.spread ?? 0) * Math.PI) / 180;
+      out.push({ shape: def.shape, x: at ? tx : bx, y: at ? ty : by, ang: a, r: def.r, w: def.w ?? 0, arc: def.arc ?? 0 });
+    }
+  }
+  return out;
+}
+
+// ---------- Tinh anh, thú vương, boss thế giới (mục 5.4, 6; bước BĐ4, mọi số chờ chốt) ----------
+/** Bậc hồn thú (`BeastState.rank`): 0 thường, 1 tinh anh, 2 tà hóa thú vương (BĐ5), 3 boss thế giới (BĐ6). */
+export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as const;
+/**
+ * Một tinh anh / thú vương / boss. `species`: loài gốc (mã BEASTS): dùng lại chỉ số theo năm của loài và sprite (phóng ELITE.scale).
+ * `aura`: màu vầng sáng riêng (client vẽ bằng code). `skills`: chiêu báo trước (tinh anh: 2 chiêu, cùng bộ máy với 3.5).
+ * Hệ số máu / sát thương theo bậc nằm ở ELITE (thú vương thêm `hp` riêng khi làm BĐ5).
+ */
+export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; }
+/**
+ * Bảng BOSSES (mục 6). Mã cố định, dùng trong thuộc tính `boss` của object `elite` (Tiled); `BeastState.species` của hồn thú bậc > 0
+ * là chỉ số trong bảng này, nên chỉ thêm vào cuối. BĐ4: 11 tinh anh của 3 bản đồ săn, tên và chiêu theo cột Tinh anh ở bảng 5.3.
+ * Chiêu nhiều nhát nối tiếp (Tam Liên Vồ, Liên Hoàn Trảo, Cuồng Bạo Vỗ "2 lần liền", Lôi Trụ "nổ lần lượt") làm bản tối thiểu:
+ * các vùng tung cùng lúc / gộp bội số (chờ chốt). Loài gốc chưa có trong BEASTS thì mượn loài gần nhất (Ảnh Trảo Linh Miêu: Tử Văn
+ * Báo; Lam Điện Lôi Tích: Lam Lôi Tê Ngưu).
+ */
+export const BOSSES: BossDef[] = [
+  // Thánh Hồn Thôn (10–450 năm)
+  { id: "bach_nhung_tho_vuong", name: "Bạch Nhung Thỏ Vương", rank: 1, species: "nhu_cot_tho_hoang", aura: "#e8f0ff", skills: [
+    bs("Đạp Đất", "circle", 36, { dmg: 1.4 }),
+    bs("Phóng Nhảy", "line", 60, { w: 14, dmg: 1.5, dash: true })] },
+  { id: "ngan_boi_phong_lang_dau_linh", name: "Ngân Bối Phong Lang Đầu Lĩnh", rank: 1, species: "phong_lang_con", aura: "#c9d6e8", skills: [
+    bs("Hú Bầy", "circle", 40, { dmg: 0.8, cd: 12, summon: { species: "phong_lang_con", n: 2 } }),
+    bs("Vồ", "line", 70, { w: 14, dmg: 1.5, dash: true })] },
+  { id: "thiet_nha_da_tru_vuong", name: "Thiết Nha Dã Trư Vương", rank: 1, species: "hac_boi_da_tru", aura: "#e0a050", skills: [
+    bs("Húc Lao", "line", 120, { w: 18, dmg: 1.7, dash: true, cd: 9 }),
+    bs("Dậm Đất", "circle", 48, { dmg: 1.6 })] },
+  // Tinh Đấu Ngoại vi (300–2.000 năm)
+  { id: "huyet_nhan_phong_lang", name: "Huyết Nhãn Phong Lang", rank: 1, species: "phong_lang", aura: "#ff4a4a", skills: [
+    bs("Hú Bầy", "circle", 40, { dmg: 0.8, cd: 12, summon: { species: "phong_lang", n: 3 } }),
+    bs("Xé Toạc", "cone", 54, { arc: 110, dmg: 1.7 })] },
+  { id: "huyet_gai_quy_dang", name: "Huyết Gai Quỷ Đằng", rank: 1, species: "quy_dang", aura: "#d04a7a", skills: [
+    bs("Gai Trồi", "circle", 24, { at: "target", range: 130, count: 3, step: 44, dmg: 1.5 }),
+    bs("Quấn Kéo", "line", 110, { w: 14, dmg: 1, pull: 60 })] },
+  { id: "hac_sat_quy_ho", name: "Hắc Sát Quỷ Hổ", rank: 1, species: "quy_ho", aura: "#9a5aff", skills: [
+    bs("Tam Liên Vồ", "line", 100, { w: 14, count: 3, spread: 40, dmg: 1.6, dash: true }),
+    bs("Hổ Khiếu", "circle", 56, { dmg: 1.2, status: [{ s: "stun", secs: 1 }] })] },
+  { id: "anh_trao_linh_mieu", name: "Ảnh Trảo Linh Miêu", rank: 1, species: "tu_van_bao", aura: "#7a6aff", skills: [
+    // Lướt vệt dài xuyên qua mục tiêu ra sau lưng (tầm 90 nên mục tiêu luôn nằm giữa vệt).
+    bs("Ảnh Tập", "line", 130, { w: 14, range: 90, dmg: 1.7, dash: true, warn: 0.7 }),
+    bs("Liên Hoàn Trảo", "cone", 50, { arc: 100, dmg: 2.1 })] },
+  // Tinh Đấu Nội địa (1.500–25.000 năm)
+  { id: "u_minh_lang_vuong", name: "U Minh Lang Vương", rank: 1, species: "u_minh_lang", aura: "#6a8aff", skills: [
+    bs("Hú Bầy", "circle", 44, { dmg: 0.8, cd: 12, summon: { species: "u_minh_lang", n: 3 } }),
+    // Biến mất rồi hiện ra ở chân mục tiêu: vòng nhỏ báo trước, hồn thú lao tới tâm vòng.
+    bs("Ảnh Tập", "circle", 30, { at: "target", range: 130, dmg: 1.8, dash: true })] },
+  { id: "kim_boi_that_tinh_thiem", name: "Kim Bối Thất Tinh Thiềm", rank: 1, species: "that_tinh_doc_thiem", aura: "#f2c84b", skills: [
+    // Vũng độc 6 giây chưa làm (như Phun Độc 3.5): Trúng độc 3 tầng 6 giây thay cho vũng.
+    bs("Nổ Túi Độc", "circle", 56, { dmg: 1.2, status: [{ s: "poison", n: 3, secs: 6 }] }),
+    bs("Lưỡi Quất", "line", 110, { w: 12, dmg: 1.1, pull: 60 })] },
+  { id: "lam_dien_loi_tich", name: "Lam Điện Lôi Tích", rank: 1, species: "lam_loi_te_nguu", aura: "#4ab0ff", skills: [
+    bs("Lôi Trụ", "circle", 26, { at: "target", range: 140, count: 3, step: 46, dmg: 1.6, status: [{ s: "shock" }] }),
+    bs("Lôi Quang Xung", "line", 170, { w: 18, dmg: 1.8, dash: true, cd: 9, status: [{ s: "shock" }] })] },
+  { id: "huyet_van_khung_trao_hung", name: "Huyết Văn Khủng Trảo Hùng", rank: 1, species: "am_kim_khung_trao_hung", aura: "#e0303a", skills: [
+    bs("Ám Kim Liệt Địa", "line", 110, { w: 14, count: 3, spread: 50, dmg: 1.8 }),
+    bs("Cuồng Bạo Vỗ", "circle", 56, { dmg: 2.6, status: [{ s: "stun", secs: 0.6 }] })] },
+];
+const BOSS_INDEX = new Map(BOSSES.map((b, i) => [b.id, i]));
+/** Chỉ số trong BOSSES của một mã (-1 nếu không có). */
+export const bossIndex = (id: string) => BOSS_INDEX.get(id) ?? -1;
+/**
+ * Tinh anh (mục 5.4, chờ chốt trừ các số đã ghi trong bảng 5.4): máu x`hp`, sát thương x`dmg` so với hồn thú thường cùng loài, cùng
+ * năm (niên hạn = mức trên của vùng); kinh nghiệm x`xp`; tỉ lệ hồn cốt x`bone` (nhân vào boneChance, bảng rơi 4.1); hồi sinh
+ * ngẫu nhiên `respawn` giây sau khi bị hạ; sprite loài gốc phóng `scale`.
+ * Người tham gia: đứng trong `radius` pixel lúc tinh anh bắt đầu giao chiến (lần đầu bị đánh), hoặc gây sát thương sau đó; ở ngoài
+ * bán kính `outSecs` giây liên tục hoặc rời phòng thì bị loại; số người giảm tối đa 1 mỗi `dropEvery` giây; `idleSecs` giây không còn
+ * người tham gia nào trong bán kính thì bỏ giao chiến (về chỗ, hồi đầy máu, xóa danh sách và đóng góp).
+ */
+export const ELITE = { hp: 2.5, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
+  radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15 };
+/** Máu tăng theo số người tham gia (mục 5.4, tinh anh trở lên): máu tối đa × (1 + BOSS_HP_PER_PLAYER × (N − 1)). */
+export const BOSS_HP_PER_PLAYER = 0.6;
+export const bossHpMult = (n: number) => 1 + BOSS_HP_PER_PLAYER * (Math.max(1, Math.floor(n)) - 1);
+/** Loài gốc (BeastDef) của hồn thú bậc `rank` có `species` đồng bộ (BEASTS với hồn thú thường, BOSSES với bậc > 0). */
+export const beastBase = (rank: number, species: number): BeastDef | undefined =>
+  rank > 0 ? BEASTS[beastIndex(BOSSES[species]?.species ?? "")] : BEASTS[species];
+/** Tên hiện trên bản đồ / khung mục tiêu: "Phong Lang", "Tinh anh Huyết Nhãn Phong Lang". */
+export const beastName = (rank: number, species: number) =>
+  rank > 0 ? `${RANK_NAMES[rank] ?? ""} ${BOSSES[species]?.name ?? ""}`.trim() : BEASTS[species]?.name ?? "Hồn thú";
+
+// ---------- Hiệu ứng có lợi trên hồn thú (từ BĐ4; "xóa buff địch" của Thiên Càn Bạch Ngọc Đỉnh xóa các hiệu ứng này) ----------
+/** Thứ tự là bit trong `BeastState.buff` (uint8). Chỉ thêm vào cuối. */
+export const BEAST_BUFF_IDS = ["rage"] as const;
+export type BeastBuffId = (typeof BEAST_BUFF_IDS)[number];
+export const BEAST_BUFFS: Record<BeastBuffId, { name: string; col: string }> = {
+  rage: { name: "Cuồng nộ", col: "#ff5a3a" },
+};
+export const beastBuffBit = (b: BeastBuffId) => 1 << BEAST_BUFF_IDS.indexOf(b);
+/**
+ * Cuồng nộ của tinh anh (chờ chốt): máu dưới `hp` phần tối đa thì nổi cuồng nộ `secs` giây, sát thương (đánh thường và chiêu) +`dmg`,
+ * tốc độ +`spd`; hết giờ hoặc bị xóa thì `cd` giây sau mới nổi lại được (nếu máu vẫn dưới mức).
+ */
+export const ELITE_RAGE = { hp: 0.5, dmg: 0.3, spd: 0.25, secs: 10, cd: 20 };
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -578,6 +698,7 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục; sát thương và hiệu ứng lên
  *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
  * Từ 3.5: `self.cleanse`: giải mọi trạng thái trên hồn sư (PLAYER_STATUS, do chiêu báo trước của hồn thú gây).
+ * Từ BĐ4: `dispel`: xóa mọi hiệu ứng có lợi (BEAST_BUFF_IDS, ví dụ Cuồng nộ của tinh anh) trên hồn thú trúng ("xóa buff địch").
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -588,6 +709,7 @@ export interface SkillDef {
   boom?: { keep: number }; push?: number; pick?: "near" | "low"; lowHp?: number; fly?: number;
   at?: number; fixed?: boolean; copy?: number;
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number; cleanse?: boolean };
+  dispel?: boolean;
 }
 
 /**
@@ -831,8 +953,8 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, self: { heal: 0.18 } },
     { name: "Bạch Ngọc Hộ Thuẫn", desc: "Khiên 15% sinh lực tối đa, sát thương nhận giảm 15% trong 6 giây", icon: "◈", cost: 16, cd: 14,
       area: "self", r: 0, dmg: 0, self: { buff: { def: 0.15 }, secs: 6, shield: 0.15 } },
-    { name: "Thiên Càn Trấn Áp", desc: "Đỉnh ngọc trấn áp quanh thân: Dễ thương 6 giây, Câm lặng 2 giây", icon: "▼", cost: 20, cd: 10,
-      area: "around", r: 80, dmg: 1.2, status: [{ s: "vuln", secs: 6 }, { s: "silence", secs: 2 }] },
+    { name: "Thiên Càn Trấn Áp", desc: "Đỉnh ngọc trấn áp quanh thân: Dễ thương 6 giây, Câm lặng 2 giây, xóa hiệu ứng có lợi của hồn thú", icon: "▼", cost: 20, cd: 10,
+      area: "around", r: 80, dmg: 1.2, status: [{ s: "vuln", secs: 6 }, { s: "silence", secs: 2 }], dispel: true },
     { name: "Tịnh Thế Lưu Ly", desc: "Hồi 30% sinh lực cả đội, khiên 20% sinh lực tối đa 6 giây", icon: "✷", cost: 40, cd: 18,
       area: "self", r: 0, dmg: 0, glow: true, self: { secs: 6, heal: 0.3, shield: 0.2 } },
   ],
@@ -1054,10 +1176,12 @@ export const BONE_SLOTS: { id: BoneSlot; name: string; active: boolean; stat: Bo
 export const boneSlotIndex = (slot: unknown) => BONE_SLOTS.findIndex((s) => s.id === slot);
 /**
  * **(chờ chốt)** Tỉ lệ rơi hồn cốt khi hạ hồn thú thường, theo số năm (bảng rơi mục 5.3): dưới 1.000 năm 0%, 1.000–9.999 1%,
- * 10.000–99.999 4%, 100.000 năm 20%. Vị trí ngẫu nhiên đều trong 6 vị trí (5.3 không ghi theo loài). Tinh anh x3 (BĐ4).
+ * 10.000–99.999 4%, 100.000 năm 20%. Vị trí ngẫu nhiên đều trong 6 vị trí (5.3 không ghi theo loài).
+ * `mult`: hệ số theo bậc (mục 5.4: tinh anh x ELITE.bone = 3), tối đa 100%.
  */
 export const BONE_DROP = [{ years: 0, p: 0 }, { years: 1000, p: 0.01 }, { years: 10000, p: 0.04 }, { years: 100000, p: 0.2 }];
-export const boneChance = (years: number) => BONE_DROP.reduce((p, x) => (years >= x.years ? x.p : p), 0);
+export const boneChance = (years: number, mult = 1) =>
+  Math.min(1, BONE_DROP.reduce((p, x) => (years >= x.years ? x.p : p), 0) * mult);
 /**
  * Chỉ số gốc của hồn cốt vị trí `slot`, `years` năm (mục 5.5 "niên hạn càng cao thì chỉ số gốc càng mạnh"): tăng liên tục theo
  * số năm, không lưu DB (đổi công thức thì mọi hồn cốt đã có đổi theo). Cường hóa (4.4) cộng thêm sau. Vị trí lạ: {}.
