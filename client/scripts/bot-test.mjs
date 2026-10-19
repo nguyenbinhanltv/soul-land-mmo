@@ -25,7 +25,8 @@
 // Lam Ngân, giao chiến, gục, đi cổng và vào lại), nâng cấp hồn hạch (5.3: điểm theo sao, cùng bộ thêm, +3 thêm dòng phụ, tới +15,
 // nguyên liệu bị xóa, từ chối đang gắn / chính nó / giao chiến, chỉ số tăng ngay khi đang gắn, vào lại), tà hóa thú vương
 // (BĐ5: lịch giờ Việt Nam, báo toàn server, máu theo số người trong hang, giai đoạn 2, chia thưởng theo ngưỡng 3%, 3 lần/ngày,
-// mở rương, rút đi, phòng hủy rồi mở lại) cần server bật hook kiểm thử:
+// mở rương, rút đi, phòng hủy rồi mở lại), NPC (6.1: nói chuyện khi đứng gần, mua đan đủ / thiếu Hồn Tệ, túi đầy, bán đồ dư theo giá,
+// không bán đồ đang gắn / đan, lò rèn cường hóa hồn cốt và nâng cấp hồn hạch, đứng xa bị từ chối, vào lại còn nguyên) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
@@ -33,7 +34,7 @@ import { randomUUID } from "node:crypto";
 import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
   BEASTS, MAP_MOVED, XP_LEVEL_CAP,
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
-  BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe,
+  BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe, formatYears,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, BUFFS, CRIT, PCT_HP_CAP,
   BONDS, bondsOf,
   CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS, PHOENIX_FIELD_R, PHONG_LOI, BEAST_AGGRO_R, BEAST_WANDER, SPAWN_CLEAR,
@@ -49,7 +50,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
-  coreEnhancePreview, coreUpgradeSubs, coreSubRolls } from "../../shared/data.ts";
+  coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
+  NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -108,6 +110,7 @@ async function enter(b){
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
   b.room.onMessage("enhancedcore",m=>{b.coreUp=m;}); // kết quả nâng cấp hồn hạch (5.3)
+  b.npc=null; b.room.onMessage("npc",m=>{b.npc=m;}); // server cho mở hộp thoại NPC (6.1)
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
   b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
@@ -127,6 +130,15 @@ const sj=o=>JSON.stringify(o&&typeof o==="object"?Object.entries(o).sort():o);
 /** Gửi `use {id}` rồi chờ server trả túi mới (dùng được) hoặc một dòng log (bị từ chối). */
 async function useItem(b,id){ const n=b.bagMsgs??0, l=b.logs.length; b.room.send("use",{id}); await waitFor(()=>(b.bagMsgs??0)>n||b.logs.length>l,1500); }
 const lastLog=(b,re)=>waitFor(()=>re.test(b.logs.at(-1)??""),800);
+// ---------- 6.1: NPC ----------
+/** Chỗ đứng của NPC `id` trong file Tiled của bản đồ (object `npc`, thuộc tính `npc`). */
+const npcSpot=(mapId,id)=>{ const o=JSON.parse(readFileSync(new URL(`../../shared/assets/${mapId}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[])
+  .find(o=>o.type==="npc"&&(o.properties??[]).find(q=>q.name==="npc")?.value===id); return o?{x:o.x,y:o.y}:null; };
+/** Gửi `talk {npc}`; trả mã NPC nếu server cho mở hộp thoại (tin `npc`), null nếu bị từ chối (một dòng log). */
+async function talk(b,npc){ b.npc=null; const l=b.logs.length; b.room.send("talk",{npc}); await waitFor(()=>b.npc||b.logs.length>l,1500); return b.npc?.id??null; }
+/** Gửi `buy` / `sell`; server luôn trả một dòng log (kết quả hoặc lý do) rồi túi mới. Trả dòng log đó. */
+async function trade(b,type,msg){ const n=b.bagMsgs??0, l=b.logs.length; b.room.send(type,msg); await waitFor(()=>(b.bagMsgs??0)>n&&b.logs.length>l,1500); return b.logs.at(-1)??""; }
+const looseOf=b=>(b.bag?.items??[]).filter(i=>i.vohon===null);
 /** Gửi đội hình rồi chờ server gửi lại đội (đã lưu hoặc bị từ chối). */
 async function sendTeam(b,slots){ const n=b.ownedMsgs; b.room.send("team",{slots}); await waitFor(()=>b.ownedMsgs>n); return b.owned.team; }
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -2409,7 +2421,8 @@ else {
       /** Hook give: `n` hồn hạch `stars` sao bộ `set`; trả các món mới. */
       async function giveCores(set,n,stars=6){ const before=new Set(coresOf(A).map(i=>i.id)); for(let k=0;k<n;k++) await test(A,"give",{code:CORE_ITEM,stars,set}); return coresOf(A).filter(i=>!before.has(i.id)); }
       /** Hồn thú `years` năm đứng yên cạnh A (đầy máu), làm mục tiêu cho hook status / bst. */
-      async function dummy(years,dx=12){ await test(A,"clear"); await test(A,"beast",{dx,dy:0,years}); await test(A,"bhp",{pct:100}); return [...st.beasts.entries()].find(([,b])=>Math.hypot(b.x-p.x-dx,b.y-p.y)<2)?.[0]; }
+      async function dummy(years,dx=12){ await test(A,"clear"); await test(A,"beast",{dx,dy:0,years}); await test(A,"bhp",{pct:100}); // hồn thú vừa sinh có thể đã lao về phía A trước bản vá state kế tiếp (dx 20 ngoài tầm đánh): lấy con gần điểm sinh nhất (đã clear)
+        const d=([,b])=>Math.hypot(b.x-p.x-dx,b.y-p.y); return [...st.beasts.entries()].filter(e=>d(e)<16).sort((a,b)=>d(a)-d(b))[0]?.[0]; }
       const act=A.owned.active, bench=A.owned.team.find(r=>r&&r!==act);
       // Hàm thuần: chỉ số chính theo sao + dòng phụ; bộ 2 / 4 món; 4 + 2 và 2 + 2 + 2.
       const mk=(set,main,subs=[],stars=6)=>({stars,data:{set,main,subs}});
@@ -2717,6 +2730,26 @@ async function travelBy(name,to,during,after){
 C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong làng (vùng an toàn) không đánh được");
 C.room.send("travel",{portal:"Cổng không có"}); ok(await lastLog(C,/không tồn tại/),"cổng không tồn tại bị từ chối");
 C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); ok(await lastLog(C,/đứng trong cổng/),"không đứng trong cổng thì không đi được");
+// 6.1: NPC trong làng. Đứng xa thì server từ chối; lại gần (hook goto) thì cho mở hộp thoại; NPC của bản đồ khác không có ở đây.
+{
+  console.log("[6.1] NPC ở Thánh Hồn Thôn");
+  const tv=npcSpot("thanh_hon_thon","to_van_dao"), lk=npcSpot("thanh_hon_thon","lao_kiet_khac");
+  ok(tv&&lk,"Thánh Hồn Thôn có Tố Vân Đào và Lão Kiệt Khắc (object npc)");
+  const far=Math.hypot(tv.x-me().x,tv.y-me().y);
+  if(far>NPC_RANGE) ok(await talk(C,"to_van_dao")===null&&/lại gần Tố Vân Đào/.test(C.logs.at(-1)),`đứng cách ${far.toFixed(0)} px (> ${NPC_RANGE}): Tố Vân Đào chưa nói chuyện (${C.logs.at(-1)})`);
+  ok(await talk(C,"dai_su")===null&&/Không có NPC này/.test(C.logs.at(-1)),"Đại Sư không ở Thánh Hồn Thôn: bị từ chối");
+  ok(await talk(C,"ai_do")===null&&/Không có NPC này/.test(C.logs.at(-1)),"mã NPC lạ bị từ chối");
+  ok(/đứng cạnh thương nhân/.test(await trade(C,"buy",{code:"hoi_huyet_dan",qty:1})),"trong làng không có thương nhân: không mua được đan");
+  if((await test(C,"ping"))?.enabled){
+    const home=[me().x,me().y];
+    for(const [id,sp] of [["to_van_dao",tv],["lao_kiet_khac",lk]]){
+      await test(C,"goto",{x:sp.x,y:sp.y+16});
+      ok(Math.hypot(me().x-sp.x,me().y-sp.y-16)<1,`đứng cạnh ${npcDef(id).name} (cách 16 px)`);
+      ok(await talk(C,id)===id,`nói chuyện với ${npcDef(id).name}, ${npcDef(id).title}: server cho mở hộp thoại (${npcDef(id).lines.length} câu)`);
+    }
+    await test(C,"goto",{x:home[0],y:home[1]});
+  } else console.log("  ⚠ bỏ qua nói chuyện với NPC trong làng (cần hook goto): bật server bằng GAME_TEST=1");
+}
 await walkToX(36.5*16);
 ok(await walk(0,1,()=>C.portal?.name),`tới cổng: ${JSON.stringify(C.portal)}`);
 ok(C.portal?.to==="nac_dinh_thanh"&&C.portal.toName==="Nặc Đinh Thành"&&!C.portal.warn,"hộp cổng: đích Nặc Đinh Thành, không cảnh báo");
@@ -2878,6 +2911,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
       "đạn hồn kỹ bắn lúc niệm không hạ hồn thú sau khi đã lưu để đi cổng");
   }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
+await npcTown();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
 // qua đúng transaction đi cổng, như tài khoản đăng xuất ở Tinh Đấu trước BĐ3.
 if((await test(C,"ping"))?.enabled){
@@ -2898,3 +2932,115 @@ if((await test(C,"ping"))?.enabled){
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);
+
+/**
+ * 6.1 ở Nặc Đinh Thành: bảng giá (hàm thuần), mọi NPC của NPCS đặt đúng một chỗ trong Tiled, đứng xa bị từ chối; với hook: thương
+ * nhân (mua đủ / thiếu Hồn Tệ, số lượng sai, túi đầy kể cả chỉ vừa một phần, bán hồn hoàn / hồn cốt / hồn hạch / mảnh đúng giá, không
+ * bán đan / đồ đang gắn / id lạ, đứng xa), lò rèn (mở hộp thoại, cường hóa hồn cốt), Đại Sư, Đại Đấu Hồn Trường; vào lại còn nguyên.
+ */
+async function npcTown(){
+  console.log("[6.1] NPC ở Nặc Đinh Thành: thương nhân, lò rèn, Đại Sư");
+  const all=["thanh_hon_thon","nac_dinh_thanh"].flatMap(m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8"))
+    .layers.flatMap(l=>l.objects??[]).filter(o=>o.type==="npc").map(o=>(o.properties??[]).find(q=>q.name==="npc")?.value));
+  ok(all.every(id=>npcDef(id))&&NPCS.every(n=>all.filter(x=>x===n.id).length===1),`mỗi NPC trong NPCS đặt đúng một chỗ ở Thánh Hồn Thôn / Nặc Đinh Thành: ${all.join(", ")}`);
+  ok(NPCS.every(n=>n.lines.length&&n.lines.every(t=>t.length>10)),"NPC nào cũng có lời thoại");
+  // Bảng giá mua lại (chờ chốt): đúng mốc, tăng theo niên hạn / sao; hồn cốt gấp BONE_SELL lần, mỗi cấp cường hóa +10%; không mua đan, rương.
+  ok(RING_SELL.every(([y,v])=>ringSellPrice(y)===v)&&[10,50,100,437,1000,5000,10000,50000,100000].every((y,i,a)=>!i||ringSellPrice(y)>=ringSellPrice(a[i-1])),
+    `giá hồn hoàn: ${[10,100,437,1000,10000,100000].map(y=>`${y} năm ${ringSellPrice(y)}`).join(", ")} đồng`);
+  const ring=y=>({code:RING_ITEM,years:y,stars:null,enhance:0});
+  ok(sellPrice({code:BONE_ITEM,years:10000,stars:null,enhance:0})===Math.round(ringSellPrice(10000)*BONE_SELL)
+    &&sellPrice({code:BONE_ITEM,years:10000,stars:null,enhance:5})===Math.round(ringSellPrice(10000)*BONE_SELL*(1+5*BONE_SELL_ENH)),"giá hồn cốt theo niên hạn và cấp cường hóa");
+  ok(CORE_SELL.every((v,i)=>sellPrice({code:CORE_ITEM,years:null,stars:i+1,enhance:0})===v),`giá hồn hạch 1★…6★: ${CORE_SELL.join(" / ")} đồng`);
+  ok(sellPrice({code:shardCode("hao_thien_chuy"),years:null,stars:null,enhance:0})===SHARD_SELL.UR&&sellPrice({code:shardCode("lam_ngan_thao"),years:null,stars:null,enhance:0})===SHARD_SELL[VOHON[vohonIndex("lam_ngan_thao")].rarity],
+    "giá mảnh võ hồn theo độ hiếm");
+  ok(sellPrice({code:"hoi_huyet_dan",years:null,stars:null,enhance:0})===null&&sellPrice({code:chestCode(BOSSES.find(b=>b.rank===2).id),years:null,stars:null,enhance:0})===null&&sellPrice({code:"khong_co",years:null,stars:null,enhance:0})===null&&sellPrice(ring(437))>0,
+    "thương nhân không mua đan, rương, đồ lạ");
+  ok(SHOP.every(r=>itemDef(r.code)?.kind==="dan"&&r.price>0)&&SHOP.some(r=>r.code==="hoi_huyet_dan")&&SHOP.some(r=>r.code==="hoi_hon_dan"),`thương nhân bán ${SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")}`);
+  const tn=npcSpot("nac_dinh_thanh","thuong_nhan"), lr=npcSpot("nac_dinh_thanh","lo_ren"), ds=npcSpot("nac_dinh_thanh","dai_su"), dt=npcSpot("nac_dinh_thanh","dau_hon_truong");
+  ok(Math.hypot(tn.x-me().x,tn.y-me().y)>NPC_RANGE&&await talk(C,"thuong_nhan")===null&&/lại gần Thương nhân/.test(C.logs.at(-1)),"đứng ở cổng đông: thương nhân chưa nói chuyện");
+  const bk0=bagKey(C);
+  ok(/đứng cạnh thương nhân/.test(await trade(C,"buy",{code:"hoi_huyet_dan",qty:1}))&&bagKey(C)===bk0,"đứng xa thương nhân: mua bị từ chối, túi và Hồn Tệ không đổi");
+  ok(/đứng cạnh thương nhân/.test(await trade(C,"sell",{id:looseOf(C)[0]?.id}))&&bagKey(C)===bk0,"đứng xa thương nhân: bán bị từ chối");
+  ok(await talk(C,"to_van_dao")===null&&/Không có NPC này/.test(C.logs.at(-1)),"Tố Vân Đào không ở Nặc Đinh Thành: bị từ chối");
+  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / lò rèn (cần hook goto, give, coin): bật server bằng GAME_TEST=1"); return; }
+  await test(C,"goto",{x:tn.x,y:tn.y+16});
+  ok(await talk(C,"thuong_nhan")==="thuong_nhan","đứng cạnh thương nhân: mở hộp thoại cửa hàng");
+  // Dọn túi về trạng thái biết trước (hồn cốt đang gắn không nằm trong ô túi nên vẫn giữ).
+  for(const it of looseOf(C)) C.room.send("discard",{id:it.id});
+  ok(await waitFor(()=>looseOf(C).length===0,3000),`dọn túi: ${looseOf(C).length} ô`);
+  const [hh,hn]=["hoi_huyet_dan","hoi_hon_dan"].map(c=>SHOP.find(r=>r.code===c)), stack=itemDef(hh.code).stack;
+  await test(C,"coin",{n:0});
+  let t=await trade(C,"buy",{code:hh.code,qty:1});
+  ok(/Không đủ Hồn Tệ/.test(t)&&C.bag.honTe===0&&looseOf(C).length===0,`0 đồng: mua 1 Hồi Huyết Đan bị từ chối (${t})`);
+  await test(C,"coin",{n:hh.price*3+hn.price-1});
+  t=await trade(C,"buy",{code:hh.code,qty:3});
+  ok(qtyOf(C,hh.code)===3&&C.bag.honTe===hn.price-1&&/Mua 3 Hồi Huyết Đan/.test(t),`đủ tiền: mua 3 Hồi Huyết Đan, trừ ${formatHonTe(hh.price*3)}, còn ${formatHonTe(C.bag.honTe)} (${t})`);
+  t=await trade(C,"buy",{code:hn.code,qty:1});
+  ok(/Không đủ Hồn Tệ/.test(t)&&qtyOf(C,hn.code)===0&&C.bag.honTe===hn.price-1,`thiếu đúng 1 đồng: không mua được Hồi Hồn Đan, không mất tiền (${t})`);
+  await test(C,"coin",{n:1e9});
+  for(const [m,why] of [[{code:hh.code,qty:0},"0 món"],[{code:hh.code,qty:SHOP_MAX_QTY+1},`${SHOP_MAX_QTY+1} món`],[{code:hh.code,qty:1.5},"1,5 món"],[{code:hh.code,qty:"2"},"số dạng chữ"],
+    [{code:RING_ITEM,qty:1},"hồn hoàn (không bán)"],[{code:"khong_co",qty:1},"mã lạ"],[{qty:1},"thiếu mã"]]){
+    const bk=bagKey(C); t=await trade(C,"buy",m); ok(bagKey(C)===bk&&/Mỗi lần mua|không bán món này/.test(t),`mua ${why}: bị từ chối (${t})`);
+  }
+  // Túi đầy: 39 ô Hồi Hồn Đan + ô Hồi Huyết Đan còn chỗ cho stack − 3 viên. Mua vừa đúng chỗ còn lại thì được, hơn 1 viên thì từ chối hết.
+  await test(C,"give",{code:hn.code,qty:BAG_SLOTS*stack});
+  ok(looseOf(C).length===BAG_SLOTS,`túi đầy ${looseOf(C).length}/${BAG_SLOTS} ô`);
+  let ht=C.bag.honTe; t=await trade(C,"buy",{code:hh.code,qty:stack-3+1});
+  ok(/không đủ chỗ/.test(t)&&qtyOf(C,hh.code)===3&&C.bag.honTe===ht,`túi đầy, mua ${stack-2} viên (chỉ còn chỗ ${stack-3}): từ chối hết, không mất tiền (${t})`);
+  t=await trade(C,"buy",{code:hh.code,qty:stack-3});
+  ok(qtyOf(C,hh.code)===stack&&C.bag.honTe===ht-hh.price*(stack-3)&&looseOf(C).length===BAG_SLOTS,`túi đầy vẫn mua vừa ô Hồi Huyết Đan chưa đầy: ${stack-3} viên (${t})`);
+  t=await trade(C,"buy",{code:hh.code,qty:1}); ok(/không đủ chỗ/.test(t)&&qtyOf(C,hh.code)===stack,`túi đầy hẳn: không mua được nữa (${t})`);
+  // Bán đồ dư: bỏ 5 ô Hồi Hồn Đan lấy chỗ, nhận hồn hoàn / hồn cốt / hồn hạch / mảnh (hook give), bán từng món đúng giá.
+  for(const it of looseOf(C).filter(i=>i.code===hn.code).slice(0,5)) C.room.send("discard",{id:it.id});
+  ok(await waitFor(()=>looseOf(C).length===BAG_SLOTS-5,2000),"bỏ 5 ô Hồi Hồn Đan để có chỗ");
+  await test(C,"give",{code:RING_ITEM,years:1760}); await test(C,"give",{code:BONE_ITEM,years:12000,beast:"thiet_giap_te_nguu",slot:"than"});
+  await test(C,"give",{code:CORE_ITEM,stars:4,set:"hao_thien"}); await test(C,"give",{code:shardCode("hao_thien_chuy"),qty:5});
+  const rg=looseOf(C).find(i=>i.code===RING_ITEM&&i.years===1760), bn=looseOf(C).find(i=>i.code===BONE_ITEM&&i.years===12000), cr=looseOf(C).find(i=>i.code===CORE_ITEM&&i.stars===4), sh=looseOf(C).find(i=>i.code===shardCode("hao_thien_chuy"));
+  ok(rg&&bn&&cr&&sh?.qty===5,"có hồn hoàn 1.760 năm, hồn cốt Thân 12.000 năm, hồn hạch 4★, 5 mảnh Hạo Thiên Chùy");
+  for(const [it,qty,name] of [[rg,undefined,"hồn hoàn 1.760 năm"],[bn,undefined,"hồn cốt 12.000 năm"],[cr,undefined,"hồn hạch 4★"],[sh,2,"2 mảnh Hạo Thiên Chùy"]]){
+    ht=C.bag.honTe; const price=sellPrice(it)*(qty??1);
+    t=await trade(C,"sell",qty?{id:it.id,qty}:{id:it.id});
+    const left=C.bag.items.find(i=>i.id===it.id);
+    ok(C.bag.honTe===ht+price&&(qty?left?.qty===it.qty-qty:!left)&&/^Bán /.test(t),`bán ${name}: +${formatHonTe(price)}${qty?`, còn ${left?.qty} mảnh`:""} (${t})`);
+  }
+  for(const [m,re,why] of [[{id:sh.id,qty:4},/Số lượng bán/,"4 mảnh khi chỉ còn 3"],[{id:sh.id,qty:0},/Số lượng bán/,"0 món"],[{id:looseOf(C).find(i=>i.code===hh.code).id},/không mua/,"Hồi Huyết Đan"],
+    [{id:"khong-co"},/Không có vật phẩm/,"id lạ"],[{id:7},/Không có vật phẩm/,"id dạng số"]]){
+    const bk=bagKey(C); t=await trade(C,"sell",m); ok(bagKey(C)===bk&&re.test(t),`bán ${why}: bị từ chối (${t})`);
+  }
+  const worn=(C.bag?.items??[]).find(i=>i.vohon!==null);
+  if(worn){ const bk=bagKey(C); t=await trade(C,"sell",{id:worn.id}); ok(bagKey(C)===bk&&/đang gắn trên võ hồn/.test(t),`hồn cốt đang gắn không bán được (${t})`); }
+  else ok(false,"C còn hồn cốt đang gắn để thử bán");
+  // Bấm dồn dập: 3 lần bán liền (mỗi lần 1 mảnh) đều được tính, lưu chỉ xếp một lần trong chuỗi lưu.
+  ht=C.bag.honTe; for(let k=0;k<3;k++) C.room.send("sell",{id:sh.id,qty:1});
+  ok(await waitFor(()=>!C.bag.items.some(i=>i.id===sh.id)&&C.bag.honTe===ht+3*sellPrice(sh),2000),`bán liền 3 lần: hết mảnh, +${formatHonTe(3*sellPrice(sh))}`);
+  // Đứng xa thương nhân (sang quảng trường) thì bán bị từ chối.
+  await test(C,"goto",{x:30*16,y:20*16});
+  { const it=looseOf(C)[0], bk=bagKey(C); t=await trade(C,"sell",{id:it.id}); ok(bagKey(C)===bk&&/đứng cạnh thương nhân/.test(t),`đi ra quảng trường: bán bị từ chối (${t})`); }
+  // Lò rèn: mở hộp thoại, cường hóa hồn cốt trong túi bằng 2 hồn cốt dư (message enhance của 4.4).
+  await test(C,"goto",{x:lr.x,y:lr.y+16});
+  ok(await talk(C,"lo_ren")==="lo_ren","đứng cạnh Thợ rèn: mở hộp thoại lò rèn");
+  for(const it of looseOf(C).filter(i=>i.code===hn.code).slice(0,3)) C.room.send("discard",{id:it.id});
+  await waitFor(()=>looseOf(C).filter(i=>i.code===hn.code).length<=BAG_SLOTS-9,2000);
+  for(let k=0;k<3;k++) await test(C,"give",{code:BONE_ITEM,years:1000,beast:"am_kim_khung_trao_hung",slot:"tay_trai"});
+  const [tg,...mats]=looseOf(C).filter(i=>i.code===BONE_ITEM&&i.years===1000).map(i=>i.id), lv=boneEnhanceLevel(2*boneFeedXp({slot:"tay_trai",years:1000},"tay_trai"));
+  { const n=C.bagMsgs??0; C.enh=null; C.room.send("enhance",{targetId:tg,materialIds:mats}); await waitFor(()=>(C.bagMsgs??0)>n&&C.enh,2000); }
+  ok(C.enh?.to===lv&&C.bag.items.find(i=>i.id===tg)?.enhance===lv&&!mats.some(id=>C.bag.items.some(i=>i.id===id)),`lò rèn: cường hóa hồn cốt Tay trái 1.000 năm lên +${lv}, 2 nguyên liệu đã mất`);
+  // 5.3: lò rèn cũng nâng cấp hồn hạch (message enhancecore): 1 hồn hạch Lam Ngân 2★ + 2 nguyên liệu 3★ cùng bộ.
+  { const had=new Set(C.bag.items.map(i=>i.id));
+    await test(C,"give",{code:CORE_ITEM,stars:2,set:"lam_ngan"}); for(let k=0;k<2;k++) await test(C,"give",{code:CORE_ITEM,stars:3,set:"lam_ngan"});
+    const fresh=C.bag.items.filter(i=>!had.has(i.id)), ct=fresh.find(i=>i.stars===2), cm=fresh.filter(i=>i.stars===3).map(i=>i.id);
+    const cl=coreEnhanceLevel(2*coreFeedXp({set:"lam_ngan",stars:3},"lam_ngan"));
+    const n=C.bagMsgs??0; C.coreUp=null; C.room.send("enhancecore",{targetId:ct?.id,materialIds:cm}); await waitFor(()=>(C.bagMsgs??0)>n&&C.coreUp,2000);
+    const cu=C.bag.items.find(i=>i.id===ct?.id);
+    ok(ct&&cm.length===2&&C.coreUp?.to===cl&&cu?.enhance===cl&&cu.stats.subs.length===CORE_SUBS[1]+1&&!cm.some(id=>C.bag.items.some(i=>i.id===id)),
+      `lò rèn: nâng cấp hồn hạch Lam Ngân 2★ lên +${cu?.enhance} (${cu?.stats.subs.length} dòng phụ), 2 nguyên liệu đã mất`); }
+  // Đại Sư và Đại Đấu Hồn Trường: chỉ có lời thoại (nhiệm vụ ở 6.2); đứng cạnh Thợ rèn thì Đại Sư ở xa.
+  ok(await talk(C,"dai_su")===null&&/lại gần Ngọc Tiểu Cương/.test(C.logs.at(-1)),"đứng ở lò rèn: Đại Sư ở xa, chưa nói chuyện");
+  await test(C,"goto",{x:ds.x,y:ds.y+16}); ok(await talk(C,"dai_su")==="dai_su","đứng cạnh Ngọc Tiểu Cương (Đại Sư): mở hộp thoại");
+  ok(npcDef("dai_su").lines.some(t=>t.includes(formatYears(ringLimit(1)))&&t.includes(formatYears(ringLimit(4)))),"Đại Sư giải thích giới hạn hồn hoàn theo vòng (RING_LIMIT)");
+  await test(C,"goto",{x:dt.x,y:dt.y+16}); ok(await talk(C,"dau_hon_truong")==="dau_hon_truong","Đại Đấu Hồn Trường (sắp mở): có lời giới thiệu");
+  // Vào lại: Hồn Tệ và túi sau mua / bán / cường hóa đã lưu.
+  const bk=bagKey(C); await C.room.leave(); await sleep(400);
+  await enter(C); await waitFor(()=>me()&&C.bag);
+  ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+}

@@ -4,7 +4,8 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING } from "../../../shared/data.ts";
+  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
+  npcDef, NPC_RANGE, type NpcDef } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -68,6 +69,12 @@ export class GameScene extends Phaser.Scene {
   portals: (Rect & { to: string })[] = [];
   vignetteBase: number | null = null; // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng, bắt đầu từ mức này (true = 0)
   portal: PortalInfo | null = null;
+  /**
+   * NPC của bản đồ (object `npc`, bước 6.1): chỗ đứng, định nghĩa trong NPCS (thiếu = mã lạ, chỉ vẽ biển tên), các lớp sprite hồn sư
+   * (thân, áo, tóc; null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
+   */
+  npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null }[] = [];
+  nearNpc: string | null = null;    // NPC trong tầm nói chuyện (NPC_RANGE) lần kiểm tra gần nhất
   onTravel: (mapId: string) => void = () => {};
   /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
   ac = new AbortController();
@@ -109,6 +116,7 @@ export class GameScene extends Phaser.Scene {
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
     const vg = (map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
     this.vignetteBase = typeof vg === "number" ? Math.max(0, Math.min(1, vg)) : vg ? 0 : null;
+    const npcObjs: { x: number; y: number; name: string; id: string }[] = [];
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
@@ -121,13 +129,14 @@ export class GameScene extends Phaser.Scene {
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; }
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
-      if (o.type === "npc") this.drawNpc(o.x!, o.y!, o.name);
+      if (o.type === "npc") npcObjs.push({ x: o.x!, y: o.y!, name: o.name, id: String(prop("npc") ?? "") });
       if (o.type === "boss") this.lair = r;
     }
     this.drawPortals();
     this.buildMinimap(map);
     makeTextures(this);
     createSheetAnims(this);
+    for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // sprite hồn sư của NPC cần texture / animation ở trên
 
     this.ov = this.add.graphics().setDepth(99990);
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
@@ -156,15 +165,58 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** NPC (object `npc`): đến bước 6.1 chỉ là biển tên đứng yên. */
-  drawNpc(x: number, y: number, name: string) {
-    const g = this.add.graphics().setDepth(y);
-    g.fillStyle(0x000000, 0.35).fillEllipse(x, y + 1, 10, 4);
-    g.fillStyle(0xf2c84b, 1).fillTriangle(x - 3, y - 10, x + 3, y - 10, x, y - 4);
-    g.fillStyle(0xfff2b0, 1).fillCircle(x, y - 12, 2.5);
-    this.add.text(x, y - 16, name, {
-      fontFamily: FONT, fontSize: "6.5px", fontStyle: "700", color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
-    }).setOrigin(0.5, 1).setDepth(99984);
+  /**
+   * NPC (object `npc`, bước 6.1): NPC có `looks` trong NPCS vẽ bằng sprite hồn sư đứng yên nhìn xuống; không có (Đại Đấu Hồn Trường)
+   * hoặc mã lạ thì vẽ biển hiệu. Tên (màu NPC) và chức danh trên đầu; bấm / chạm vào NPC để nói chuyện (server kiểm tra khoảng cách).
+   */
+  drawNpc(x: number, y: number, name: string, id: string) {
+    const def = npcDef(id);
+    let body: Sprite | null = null, clothes: Sprite[] = [], top = y - 16;
+    if (def?.looks) {
+      const t = looksTextures(this, def.looks), mk = (k: string) => this.make.sprite({ key: k }, false).setOrigin(HS_ORIGIN.x, HS_ORIGIN.y);
+      body = mk(t.body); clothes = [mk(t.outfit), mk(t.hair)];
+      body.play(honsuAnimKey(bodyKey(def.looks), "idle", "down").key);
+      this.add.container(x, y, [this.make.image({ key: "hs_shadow" }, false), body, ...clothes]).setDepth(y);
+      top = y - 30;
+    } else {
+      const g = this.add.graphics().setDepth(y);
+      g.fillStyle(0x000000, 0.35).fillEllipse(x, y + 1, 10, 4);
+      g.fillStyle(0xf2c84b, 1).fillTriangle(x - 3, y - 10, x + 3, y - 10, x, y - 4);
+      g.fillStyle(0xfff2b0, 1).fillCircle(x, y - 12, 2.5);
+    }
+    const style = { fontFamily: FONT, fontStyle: "700", stroke: "#000", strokeThickness: 2, resolution: 8 };
+    this.add.text(x, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984);
+    if (def) this.add.text(x, top - 8, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984);
+    let mark: Phaser.GameObjects.Text | null = null;
+    if (def) {
+      mark = this.add.text(x, top - 16, document.body.classList.contains("touch") ? "Chạm để nói chuyện" : "Nói chuyện [F]", {
+        ...style, fontSize: "6px", color: "#fff2b0", backgroundColor: "#000000aa", padding: { x: 3, y: 1 },
+      }).setOrigin(0.5, 1).setDepth(99986).setVisible(false);
+      this.tweens.add({ targets: mark, y: mark.y - 2, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
+      this.add.zone(x, (top + y) / 2, 22, y - top + 12).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
+    }
+    this.npcs.push({ id, x, y, def, body, clothes, mark });
+  }
+
+  /** Xin nói chuyện với NPC `id`: server kiểm tra khoảng cách rồi gửi riêng tin `npc` để mở hộp thoại (6.1). */
+  talk(id: string) { this.room.send("talk", { npc: id }); }
+
+  /**
+   * Mỗi lần cập nhật HUD: NPC gần nhất trong NPC_RANGE hiện nhãn "Nói chuyện" và hộp gợi ý (nút bấm / phím F; cổng được ưu tiên),
+   * đi xa NPC đang mở hộp thoại thì đóng (server vẫn kiểm tra lại mỗi lần mua / bán).
+   */
+  updateNpcs(me: any) {
+    let near: (typeof this.npcs)[number] | null = null, nd = NPC_RANGE;
+    for (const n of this.npcs) { const k = Math.hypot(n.x - me.x, n.y - me.y); if (n.def && k <= nd && !me.dead) { nd = k; near = n; } }
+    const id = near && !this.portal ? near.id : null;
+    if (id !== this.nearNpc) {
+      this.nearNpc = id;
+      for (const n of this.npcs) n.mark?.setVisible(n.id === id);
+      hud.showTalk(id ? near!.def! : null, () => id && this.talk(id));
+    }
+    const open = hud.npcOpenId(), on = open && this.npcs.find((n) => n.id === open);
+    if (on && Math.hypot(on.x - me.x, on.y - me.y) > NPC_RANGE + 12) hud.closeNpc();
   }
 
   fitZoom() {
@@ -188,8 +240,8 @@ export class GameScene extends Phaser.Scene {
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
-      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); return; }
-      if (e.code === "KeyF" && !e.repeat) { this.goPortal(); return; }
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.closeNpc(); return; }
+      if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
@@ -290,6 +342,17 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("fx", (m: any) => this.fx(m));
     // Cổng: server báo riêng khi bước vào / ra khỏi cổng, và khi đã lưu xong thì cho chuyển bản đồ (mục 6).
     this.room.onMessage("portal", (m: PortalInfo) => { this.portal = m?.name ? m : null; hud.showPortal(this.portal, () => this.goPortal()); });
+    // NPC (6.1): server đã kiểm tra khoảng cách; lời thoại, cửa hàng và lò rèn lấy từ NPCS. Mua / bán / rèn chỉ gửi ý định.
+    this.room.onMessage("npc", (m: { id: string }) => {
+      if (!npcDef(m?.id)) return;
+      hud.openNpc(m.id, this.bag, {
+        buy: (code, qty) => this.room.send("buy", { code, qty }),
+        sell: (id, qty) => this.room.send("sell", { id, qty }),
+        enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
+        enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
+        combat: () => this.combat,
+      });
+    });
     this.room.onMessage("travel", (m: { mapId: string }) => { if (typeof m?.mapId === "string") this.onTravel(m.mapId); });
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
@@ -317,7 +380,7 @@ export class GameScene extends Phaser.Scene {
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
-    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); });
+    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); });
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number }) => {
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
@@ -895,6 +958,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.drawStatus(g, st, time);
+    for (const n of this.npcs) if (n.body) syncLayers(n.body, n.clothes, []); // NPC (6.1): áo, tóc theo khung thân
     this.drawTeles(time);
     this.drawAuras(g, st, time);
 
@@ -904,7 +968,7 @@ export class GameScene extends Phaser.Scene {
       const vb = this.vignetteBase, depth = Math.max(0, Math.min(1, (me.x / TILE - 18) / 60));
       this.vignette.setAlpha(vb === null ? 0 : (vb + (1 - vb) * depth) * 0.75);
       this.hudT -= dt;
-      if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); }
+      if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
     }
   }
 
