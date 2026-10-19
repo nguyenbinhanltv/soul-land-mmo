@@ -3,6 +3,7 @@
 //   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3; Lõi Tinh Đấu để BĐ6)
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
+//   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4).
 //   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, chỗ đứng cho NPC của 6.1 (BĐ2)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
@@ -37,7 +38,9 @@ function objects() {
   // Cổng: to = mapId đích, arrive = tên điểm xuất hiện ở bản đồ đích (phải nằm ngoài mọi cổng ở đó), level = cấp đề xuất.
   const portal = (name, x, y, w, h, to, arrive, level = "") =>
     rect("portal", name, x, y, w, h, [prop("to", "string", to), prop("arrive", "string", arrive), ...(level ? [prop("level", "string", level)] : [])]);
-  return { list, rect, point, zone, portal, next: () => oid };
+  // Tinh anh (BĐ4, mục 5.4): boss = mã trong BOSSES (shared/data.ts); chữ nhật nằm trong vùng, xa trại cổng / cổng (SPAWN_CLEAR).
+  const elite = (name, boss, x, y, w, h) => rect("elite", name, x, y, w, h, [prop("boss", "string", boss)]);
+  return { list, rect, point, zone, portal, elite, next: () => oid };
 }
 
 function writeMap(mapId, MW, MH, ground, trees, canopy, objs, props = []) {
@@ -154,6 +157,10 @@ function tinhDauNgoaiVi() {
   forestZone(o, 1, "Rừng thưa", "Hồn thú 600 – 1.200 năm", 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1", "600-1200");
   forestZone(o, 2, "Khe suối", "Hồn thú 1.000 – 1.600 năm", 10, "quy_ho:1,thanh_lan_ngac:1,kim_linh_ung:1", "1000-1600");
   forestZone(o, 3, "Rìa nội địa", "Cẩn thận: hồn thú 1.400 – 2.000 năm", 9, "nhan_dien_ma_chu_non:1,liet_trao_hung:1,thiet_giap_te_nguu:1", "1400-2000");
+  o.elite("Huyết Nhãn Phong Lang", "huyet_nhan_phong_lang", 12, 6, 8, 6);
+  o.elite("Huyết Gai Quỷ Đằng", "huyet_gai_quy_dang", 30, 10, 8, 6);
+  o.elite("Hắc Sát Quỷ Hổ", "hac_sat_quy_ho", 46, 44, 6, 8);
+  o.elite("Ảnh Trảo Linh Miêu", "anh_trao_linh_mieu", 72, 8, 8, 6);
   // Trại cổng (điểm hồi sinh) bắt đầu từ cột 3 để không ai hồi sinh ngay trong cổng ở mép tây.
   const c = FOREST.camp;
   o.rect("spawn", "Trại cổng Ngoại vi", c.x, c.y, c.w, c.h);
@@ -189,6 +196,10 @@ function tinhDauNoiDia() {
   forestZone(o, 1, "Đầm sương độc", "Hồn thú 4.000 – 12.000 năm", 10, "that_tinh_doc_thiem:1,xich_lan_mang:1,hac_vu_bien_buc:1", "4000-12000");
   forestZone(o, 2, "Lôi Cốc", "Hồn thú 10.000 – 18.000 năm", 9, "lam_loi_te_nguu:1,loi_duc_ung:1", "10000-18000");
   forestZone(o, 3, "Hắc Ám Lâm", "Cẩn thận: hồn thú 15.000 – 25.000 năm", 8, "am_kim_khung_trao_hung:1,kiem_vi_hat:1,quy_anh_bao:1", "15000-25000");
+  o.elite("U Minh Lang Vương", "u_minh_lang_vuong", 12, 48, 8, 6);
+  o.elite("Kim Bối Thất Tinh Thiềm", "kim_boi_that_tinh_thiem", 30, 10, 8, 6);
+  o.elite("Lam Điện Lôi Tích", "lam_dien_loi_tich", 53, 28, 8, 6);
+  o.elite("Huyết Văn Khủng Trảo Hùng", "huyet_van_khung_trao_hung", 72, 10, 8, 6);
   const c = FOREST.camp;
   o.rect("spawn", "Trại cổng Nội địa", c.x, c.y, c.w, c.h);
   o.portal("Về Tinh Đấu Ngoại vi", 1, 29, 2, 4, "tinh_dau_ngoai_vi", "tu_tinh_dau_noi_dia", "10-30");
@@ -245,6 +256,9 @@ function thanhHonThon() {
   o.zone("Bãi tập hồn sư", "Hồn thú 80 – 250 năm", V.x + V.w + 1, 1, MW - V.x - V.w - 2, MH - 2, [0.6, 0.4, 0, 0, 0], 12,
     "phong_lang_con:2,doc_cham_phong:1,thiet_giap_xuyen_son_giap:2", "80-250");
   o.zone("Hậu Sơn", "Hồn thú 200 – 450 năm", V.x - 1, 1, V.w + 2, V.y - 2, [0, 1, 0, 0, 0], 8, "hac_boi_da_tru:1,thanh_lan_xa:1,quy_dang_non:1", "200-450");
+  o.elite("Bạch Nhung Thỏ Vương", "bach_nhung_tho_vuong", 7, 9, 8, 7);
+  o.elite("Ngân Bối Phong Lang Đầu Lĩnh", "ngan_boi_phong_lang_dau_linh", 60, 41, 7, 7);
+  o.elite("Thiết Nha Dã Trư Vương", "thiet_nha_da_tru_vuong", 31, 3, 9, 6);
   o.rect("safe", "Thánh Hồn Thôn", V.x - 1, V.y - 1, V.w + 2, V.h + 2);
   o.rect("spawn", "Quảng trường làng", V.x + 6, V.y + 5, 6, 4);
   o.portal("Đi Nặc Đinh Thành", 35, MH - 3, 3, 2, "nac_dinh_thanh", "tu_thanh_hon_thon");
