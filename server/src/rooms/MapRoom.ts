@@ -12,7 +12,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   itemDef, BAG_SLOTS, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance,
-  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
+  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal } from "../map.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -1412,7 +1412,9 @@ export class MapRoom extends Room<MapState> {
   /**
    * Sinh một hồn thú trong vùng `zi`: tuổi ngẫu nhiên trong khoảng `years` của vùng (bảng 5.3; vùng thiếu `years` thì tung bậc
    * theo `weights` rồi tung tuổi trong bậc), loài theo trọng số `beasts` của vùng. Mỗi phòng tối đa 1 hồn thú thường
-   * MAX_YEARS năm cùng lúc (mục 5.3): đã có thì tung dưới mức đó.
+   * MAX_YEARS năm cùng lúc (mục 5.3): đã có thì tung dưới mức đó. Không sinh trong vùng an toàn, cách người chơi dưới 140 pixel, hay
+   * trong SPAWN_CLEAR quanh trại cổng, cổng và điểm xuất hiện (map.nearGate: hồn thú lang thang không tới đánh người vừa tới nơi,
+   * vừa hồi sinh, đang niệm cổng).
    */
   spawnBeast(zi: number) {
     const z = this.map.zones[zi], hasRed = [...this.state.beasts.values()].some((b) => b.years >= MAX_YEARS);
@@ -1431,7 +1433,7 @@ export class MapRoom extends Room<MapState> {
     const species = this.pickSpecies(zi);
     for (let k = 0; k < 40; k++) {
       const x = z.x0 + 8 + Math.random() * (z.x1 - z.x0 - 16), y = z.y0 + 24 + Math.random() * (z.y1 - z.y0 - 48);
-      if (this.map.hits(x, y, 6, 4) || this.map.inSpawn(x, y) || this.map.inSafe(x, y) || this.map.nearGate(x, y)) continue;
+      if (this.map.hits(x, y, 6, 4) || this.map.inSafe(x, y) || this.map.nearGate(x, y)) continue;
       if ([...this.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < 140)) continue;
       this.addBeast(zi, years, species, x, y);
       return;
@@ -1549,7 +1551,7 @@ export class MapRoom extends Room<MapState> {
       const off = (p: PlayerState, pid: string) => { const pd = this.pdata.get(pid); return p.dead || this.map.inSafe(p.x, p.y) || !!pd?.travelling || !!pd?.buffs.has("hide"); };
       if (tgt && (off(tgt, bd.target!) || Math.hypot(b.x - bd.hx, b.y - bd.hy) > 220)) { bd.target = null; tgt = undefined; }
       if (!tgt && b.tier >= 1 && !charm) {
-        let best = 70;
+        let best = BEAST_AGGRO_R;
         this.state.players.forEach((p, pid) => { if (off(p, pid)) return; const dd = Math.hypot(p.x - b.x, p.y - b.y); if (dd < best) { best = dd; bd.target = pid; tgt = p; } });
       }
       b.aggro = !!tgt;
@@ -1574,7 +1576,7 @@ export class MapRoom extends Room<MapState> {
         // Mê hoặc: đổi hướng liên tục quanh chỗ đang đứng, đi nhanh hơn lúc lang thang thường.
         if (charm && bd.wt > 0.7) bd.wt = 0;
         if (bd.wt <= 0) {
-          const [ox, oy, w] = charm ? [b.x, b.y, 80] : [bd.hx, bd.hy, 120];
+          const [ox, oy, w] = charm ? [b.x, b.y, 80] : [bd.hx, bd.hy, 2 * BEAST_WANDER];
           bd.wt = charm ? 0.4 + Math.random() * 0.3 : 2 + Math.random() * 3; bd.tx = ox + (Math.random() - 0.5) * w; bd.ty = oy + (Math.random() - 0.5) * w;
         }
         const ex = bd.tx - b.x, ey = bd.ty - b.y, ed = Math.hypot(ex, ey);
