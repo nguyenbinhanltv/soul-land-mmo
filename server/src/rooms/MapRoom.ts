@@ -23,7 +23,9 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
-  npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole, PARTY_XP_RANGE, partyXpShare } from "../../../shared/data.ts";
+  npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
+  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
+  PARTY_XP_RANGE, partyXpShare } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -84,6 +86,8 @@ interface PData {
   // trước lần hồi hồn lực kế tiếp (Bá Vương Long 4 món). Không lưu DB.
   coreFx: CoreFx; crit: number; critMult: number; combo: number; comboT: number; haste: number; shockMpCd: number;
   partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
+  // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
+  quest: QuestProgress;
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
@@ -365,6 +369,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("buy", (c, m: { code: unknown; qty: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty));
     this.onMessage("sell", (c, m: { id: unknown; qty: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty));
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
+    this.onMessage("quest", (c, m: { op: unknown }) => this.questAction(c.sessionId, m?.op)); // nhiệm vụ (6.2)
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
@@ -395,10 +400,12 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
       claims: auth.claims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
-      coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "" };
+      coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
+      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER) };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.recalc(client.sessionId, true);
+    this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
     // Tổ đội (7.1): có mặt trong game (tổ đội giữ nguyên khi đi cổng); đồng đội ở mọi bản đồ thấy đổi bản đồ / vào lại.
     this.partyPublish(party.goOnline({ acc: auth.accountId, name: p.name, sid: client.sessionId, mapId: this.state.mapId, roomId: this.roomId,
@@ -516,10 +523,11 @@ export class MapRoom extends Room<MapState> {
   unsavedBag(d: PData): Bag | undefined {
     return d.bagDirty ? this.bagSnapshot(d) : undefined;
   }
-  /** Ảnh chụp cả túi đồ và Hồn Tệ (bỏ đánh dấu `bagDirty`), dù có đổi hay không. */
+  /** Ảnh chụp cả túi đồ, Hồn Tệ và tiến độ nhiệm vụ (6.2; bỏ đánh dấu `bagDirty`), dù có đổi hay không. */
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
-    return { honTe: d.honTe, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })) };
+    return { honTe: d.honTe, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
+      quests: [{ ...d.quest, prog: [...d.quest.prog] }] };
   }
 
   /**
@@ -606,6 +614,7 @@ export class MapRoom extends Room<MapState> {
     if (p.swCd > 0) return; // client hiện hồi chiêu đổi trên thanh đội hình
     this.activate(id, next);
     p.swCd = SWITCH_CD;
+    if (d.fight < TEAM_COMBAT_SECS) this.questEvent(id, { k: "switch" }); // 6.2: đổi tay khi đang giao chiến
     // Bộ hồn hạch Lưu Ly 4 món (5.2): đổi tay võ hồn mang bộ vào thì cả đội tăng công (hiệu ứng có lợi của hồn sư) một lúc.
     const sa = d.coreFx.swapAtk;
     if (sa) {
@@ -940,7 +949,105 @@ export class MapRoom extends Room<MapState> {
     if (!def || !spot) return this.log(id, "Không có NPC này ở đây.", "#ffb35c");
     if (p.dead) return this.log(id, "Đã gục ngã, không thể nói chuyện.", "#ffb35c");
     if (!this.npcNear(id, { id: def.id })) return this.log(id, `Hãy lại gần ${def.name} hơn để nói chuyện.`, "#ffb35c");
+    this.questEvent(id, { k: "talk", npc: def.id }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
     this.clients.getById(id)?.send("npc", { id: def.id });
+  }
+
+  // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
+  /**
+   * Tin riêng "quest": tiến độ chuỗi tân thủ (bước, đã nhận, số đếm từng mục tiêu) và trạng thái (questStatus). Nội dung bài, mục
+   * tiêu, phần thưởng client đọc từ QUESTS. `ev`: vừa nhận (`accept`), vừa đủ mục tiêu (`ready`), vừa trả (`reward`, kèm `done` = mã
+   * bước vừa trả), vừa xong cả chuỗi (`finish`); client hiện thông báo theo `ev`.
+   */
+  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    this.clients.getById(id)?.send("quest", { ...d.quest, prog: [...d.quest.prog], status: questStatus(d.quest), ev, done });
+  }
+
+  /** Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó. */
+  questHave(d: PData, g: QuestGoal) {
+    if (g.k === "absorb") return d.ringYears.length > 0 || d.owned.some((v) => v !== d.ch && v.rings.length > 0);
+    if (g.k === "equip") return d.bag.some((i) => i.vohonId !== null);
+    if (g.k === "map") return g.map === this.state.mapId;
+    return false;
+  }
+
+  /**
+   * Sự kiện thật cho bộ đếm nhiệm vụ (hạ hồn thú, đổi tay trong trận, tiên cơ, hấp thụ trong giới hạn, gắn đồ, nói chuyện với NPC,
+   * vào bản đồ): chỉ tính khi đã nhận bước đang làm; mỗi mục tiêu khớp `ev` cộng 1 (kẹp ở `n`). Đủ mọi mục tiêu thì báo quay về NPC.
+   * Tiến độ ghi DB cùng túi đồ (bagDirty -> lưu định kỳ, rời phòng, transaction đi cổng).
+   */
+  questEvent(id: string, ev: QuestEvent) {
+    const d = this.pdata.get(id); if (!d || d.travelling || !d.quest.accepted) return;
+    const chain = questChain(d.quest.chain), step = chain?.steps[d.quest.step]; if (!chain || !step) return;
+    const was = questStatus(d.quest);
+    let hit = false;
+    step.goals.forEach((g, i) => {
+      if (questGoalHit(g, ev) && (d.quest.prog[i] ?? 0) < g.n) { d.quest.prog[i] = (d.quest.prog[i] ?? 0) + 1; hit = true; }
+    });
+    if (!hit) return;
+    d.bagDirty = true;
+    const ready = was !== "ready" && questStatus(d.quest) === "ready";
+    if (ready) this.log(id, `Hoàn thành "${step.name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
+    this.sendQuest(id, ready ? "ready" : undefined);
+  }
+
+  /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy trước, rồi mở ô mới như addItem). */
+  bagFits(d: PData, items: { code: string; qty: number }[]) {
+    const need = new Map<string, number>();
+    for (const it of items) need.set(it.code, (need.get(it.code) ?? 0) + it.qty);
+    let slots = 0;
+    for (const [code, qty] of need) {
+      const def = itemDef(code); if (!def) return false;
+      const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null ? Math.max(0, def.stack - it.qty) : 0), 0);
+      slots += Math.ceil(Math.max(0, qty - part) / def.stack);
+    }
+    return bagUsed(d.bag) + slots <= BAG_SLOTS;
+  }
+
+  /**
+   * Nhận (`accept`) / trả (`turnin`) bước đang làm của chuỗi tân thủ, hoặc xin tiến độ (`get`). Nhận và trả chỉ khi NPC giao nhiệm vụ
+   * có ở bản đồ này, người chơi không gục, không đang chuyển bản đồ và đứng trong NPC_RANGE (như 6.1). Nhận: mục tiêu `have` đã đạt
+   * sẵn thì tính xong ngay. Trả: đủ mọi mục tiêu và túi đủ chỗ cho cả phần thưởng (không thì từ chối hết), Hồn Tệ và vật phẩm vào
+   * túi, sang bước kế (chưa nhận); ghi ngay qua chuỗi lưu, cùng một lần ghi với túi đồ.
+   */
+  questAction(id: string, op: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    if (op === "get") return this.sendQuest(id);
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id); };
+    const chain = questChain(d.quest.chain); if (!chain) return;
+    if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
+    const giver = npcDef(chain.giver)!, verb = op === "accept" ? "nhận" : "trả";
+    if (!this.map.npcs.some((n) => n.id === chain.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[chain.map].name} để ${verb} nhiệm vụ.`);
+    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
+    if (!this.npcNear(id, { id: chain.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} nhiệm vụ.`);
+    const st = questStatus(d.quest), step = chain.steps[d.quest.step];
+    if (st === "done") return warn(`Đã học xong cả chuỗi "${chain.name}".`);
+    if (op === "accept") {
+      if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả nhiệm vụ.`);
+      d.quest = { chain: chain.id, step: d.quest.step, accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) };
+      d.bagDirty = true;
+      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${d.quest.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
+      const ready = questStatus(d.quest) === "ready";
+      if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả nhiệm vụ ngay để nhận thưởng.`, "#86e0b0");
+      this.sendQuest(id, ready ? "ready" : "accept");
+      this.saveTrade(id, d);
+      return;
+    }
+    if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
+    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${d.quest.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
+    if (!this.bagFits(d, step.reward.items))
+      return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
+    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + step.reward.honTe);
+    for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
+    d.quest = { chain: chain.id, step: d.quest.step + 1, accepted: false, prog: [] };
+    d.bagDirty = true;
+    this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${questRewardText(step.reward)}.`, "#f2c84b");
+    const finish = questStatus(d.quest) === "done";
+    if (finish) this.log(id, `Hoàn thành chuỗi nhiệm vụ "${chain.name}"!`, giver.col);
+    this.sendBag(id);
+    this.sendQuest(id, finish ? "finish" : "reward", step.id);
+    this.save(id); // phần thưởng và bước mới ghi ngay, cùng một lần ghi túi đồ
   }
 
   /** Lưu túi đồ sau mua / bán qua chuỗi lưu (mục 6); bấm dồn dập thì chỉ một lần chờ trong chuỗi, lần đó chụp túi mới nhất. */
@@ -1232,6 +1339,20 @@ export class MapRoom extends Room<MapState> {
       d.testChest = o.off ? null : { bone: pct(o.bone), ur: pct(o.ur), i: int(o.i, -1, 99, -1), n: int(o.n, -1, 99, -1), s: int(o.s, -1, BONE_SLOTS.length - 1, -1) };
     }
     else if (op === "day") { this.dayShift = int(o.shift, -3650, 3650, 0); out = { day: this.today() }; }
+    else if (op === "quest") {
+      // 6.2: đặt tiến độ chuỗi tân thủ (bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi; trả tiến độ hiện tại.
+      if (Number.isInteger(o.step)) { d.quest = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, QUEST_STARTER); d.bagDirty = true; this.sendQuest(id); }
+      out = { quest: { ...d.quest, status: questStatus(d.quest) } };
+    }
+    else if (op === "warp") {
+      // 6.2: chuyển sang bản đồ `mapId` tại (x, y) qua đúng transaction đi cổng (beginTravel, như một cổng ẩn); client nhận `travel`
+      // rồi vào phòng mới như đi cổng thật. Chỗ không đứng được thì vào ở `spawn`.
+      const to = String(o.mapId ?? "");
+      if (Object.hasOwn(MAPS, to) && to !== this.state.mapId && !d.travelling && !d.travelCast) {
+        this.beginTravel(id, { name: "warp", to, arrive: "", ax: Number(o.x) || 0, ay: Number(o.y) || 0, level: null, x: 0, y: 0, w: 0, h: 0 });
+        out = { warp: to };
+      }
+    }
     else if (op === "claims") {
       // BĐ5: lượt nhận rương thú vương hôm nay trong bộ nhớ và trong DB (đọc sau khi chuỗi lưu xong).
       this.chain(d, async () => {
@@ -1987,6 +2108,7 @@ export class MapRoom extends Room<MapState> {
     const mult = tienCoDmgMult(this.tienCoSet(d, d.ch).set4), dmg = this.atkOf(d) * tc.dmg * mult, col = def.col, x0 = p.x, y0 = p.y;
     const own = TIEN_CO_RIENG[def.id];
     this.unhide(p, d); // tung tiên cơ cũng hiện hình như đánh thường / hồn kỹ
+    this.questEvent(id, { k: "tienco" }); // 6.2
     if (own) {
       this.broadcast("fx", { k: "tienco", id, he, col, x: p.x, y: p.y, vh: p.vh, own: true });
       this.runSkill(id, own, mult, 1, col);
@@ -2032,10 +2154,15 @@ export class MapRoom extends Room<MapState> {
     const b = this.state.beasts.get(bid)!, e = this.bdata.get(bid)?.elite;
     const td = TIERS[b.tier], name = beastName(b.rank, b.species), age = formatYears(b.years);
     this.state.beasts.delete(bid); this.bdata.delete(bid);
+    // 6.2: vùng săn tính theo chỗ hồn thú bị hạ (khung vùng trong Tiled).
+    const zone = this.map.zones.find((z) => b.x >= z.x0 && b.x < z.x1 && b.y >= z.y0 && b.y < z.y1)?.name;
+    this.questEvent(by, { k: "kill", map: this.state.mapId, zone });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
     const team = this.partyNear(by, b.x, b.y), share = partyXpShare(team.length);
     for (const pid of team) this.rewardKill(pid, b.years, (e ? ELITE.xp : 1) * share);
+    // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
+    for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone });
     if (team.length > 1) {
       const names = team.map((pid) => this.state.players.get(pid)?.name ?? "").join(", ");
       for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
@@ -2273,6 +2400,7 @@ export class MapRoom extends Room<MapState> {
     it.vohonId = v.rowId; d.bagDirty = true;
     const vname = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
     this.log(id, `Gắn ${this.itemLabel(it)} vào ô ${slot.name} của ${vname}.${old ? ` ${this.itemLabel(old)} về túi đồ.` : ""}`, TIERS[tierOfYears(it.years!)].glow);
+    this.questEvent(id, { k: "equip" }); // 6.2
     this.afterBones(id, v);
   }
 
@@ -2401,6 +2529,7 @@ export class MapRoom extends Room<MapState> {
     it.vohonId = v.rowId; st(it).slot = slot; d.bagDirty = true;
     this.log(id, `Gắn ${this.itemLabel(it)} vào ô ${slot + 1} của ${vname}.${old ? ` ${oldName} về túi đồ.` : ""}${this.coreSetNote(d, v.rowId, core.set)}`,
       CORE_SETS[coreSetIndex(core.set)]?.col);
+    this.questEvent(id, { k: "equip" }); // 6.2
     this.afterBones(id, v);
   }
 
@@ -2540,6 +2669,7 @@ export class MapRoom extends Room<MapState> {
       if (!d.down.has(v.rowId)) d.benchHp.delete(v.rowId); // lên cấp thì hồi đầy, như benchXp
     }
     c?.send("absorbing", { on: false, result: "ok", rowId: v.rowId, years, slot: n, level: v.level });
+    if (!a.fail) this.questEvent(id, { k: "absorb" }); // 6.2: chỉ hồn hoàn không vượt giới hạn của vòng
     const sk = n <= 4 ? ` Nhận Hồn kỹ ${n}: ${skillsOf(v.vohon)[n - 1].name}.` : " Hồn kỹ vòng 5–10 chưa mở (bản sau); vòng này tăng chỉ số.";
     const lv = n >= MAX_RINGS ? ` Đủ ${MAX_RINGS} hồn hoàn, cấp tối đa ${v.level}.` : ` Lên cấp ${v.level}.`;
     this.log(id, `Hấp thụ thành công hồn hoàn ${age} vào ${name} (vòng ${n})!${lv}${sk}`, TIERS[tier].glow);

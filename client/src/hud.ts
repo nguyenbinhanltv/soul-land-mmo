@@ -9,10 +9,11 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, KING, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole,
-  CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp } from "../../shared/data.ts";
+  CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
+  QUESTS, questChain, questRewardText, type QuestStep } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -1325,8 +1326,9 @@ export function showTalk(def: NpcDef | null, go: () => void) {
 export interface NpcActions {
   buy(code: string, qty: number): void; sell(id: string, qty?: number): void; enhance(targetId: string, materialIds: string[]): void;
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
+  quest(op: "accept" | "turnin"): void; // nhận / trả nhiệm vụ (6.2)
 }
-type NpcPage = "talk" | "buy" | "sell" | "forge" | "forgecore";
+type NpcPage = "talk" | "buy" | "sell" | "forge" | "forgecore" | "quest";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -1342,7 +1344,8 @@ export const npcOpenId = () => npcDefOpen?.id ?? null;
 /** Mở hộp thoại NPC `id` (server đã cho phép): bắt đầu từ câu thoại đầu tiên; đóng túi đồ và bảng đội hình (cùng chỗ giữa màn hình). */
 export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
   const def = NPCS.find((n) => n.id === id); if (!def) return;
-  if (npcDefOpen?.id !== id) { npcPage = "talk"; npcLine = 0; }
+  // NPC giao nhiệm vụ (6.2) đang có bài mới / chờ trả thì mở thẳng trang nhiệm vụ.
+  if (npcDefOpen?.id !== id) { const qs = questOf(id)?.status; npcPage = qs === "offer" || qs === "ready" ? "quest" : "talk"; npcLine = 0; }
   npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
   toggleBag(false); toggleRoster(false);
   $("#npc").hidden = false;
@@ -1373,6 +1376,12 @@ function renderNpc() {
   };
   const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
   const bag = npcBagMsg;
+  if (npcPage === "quest") {
+    renderQuestPage(el, act);
+    btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
+    el.appendChild(row);
+    return;
+  }
   if (npcPage !== "talk" && bag) {
     const coin = document.createElement("div"); coin.className = "coin";
     coin.innerHTML = `<i class="coinico"></i><span>Hồn Tệ:</span> ${honTeHtml(bag.honTe)}`;
@@ -1386,6 +1395,9 @@ function renderNpc() {
     el.appendChild(p);
     if (n > 1) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `${i + 1}/${n}`; el.appendChild(k); }
     if (i < n - 1) btn("Tiếp ›", "use", () => { npcLine = i + 1; renderNpc(); });
+    const q = questOf(def.id), qc = q && questChain(q.chain);
+    if (q && qc) btn(q.status === "done" ? `Nhiệm vụ: ${qc.name} (đã xong)` : `Nhiệm vụ: ${qc.steps[q.step].name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`,
+      "absorb", () => go("quest"));
     if (def.role === "shop") { btn("Mua đan dược", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag); }
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
@@ -1525,3 +1537,75 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
   }
   return box;
 }
+
+// ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
+let questMsg: QuestMsg | null = null; // tin "quest" gần nhất (tiến độ do server giữ)
+let questFold = false;                // khung theo dõi đang thu gọn
+/** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ hoặc chưa nhận tin "quest"). */
+export const questOf = (id: string) => (questMsg && questChain(questMsg.chain)?.giver === id ? questMsg : null);
+/** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
+export function setQuest(q: QuestMsg) {
+  questMsg = q;
+  renderQuestTracker();
+  if (npcDefOpen && questOf(npcDefOpen.id)) renderNpc();
+}
+const giverOf = (chain: string) => { const c = questChain(chain); return { c, npc: NPCS.find((n) => n.id === c?.giver), where: c ? MAPS[c.map]?.name : "" }; };
+/** Các mục tiêu của bước `s` kèm tiến độ x/N (`prog` null = chưa nhận: chỉ ghi số cần). */
+function questGoals(s: QuestStep, prog: number[] | null) {
+  const box = document.createElement("div");
+  s.goals.forEach((g, i) => {
+    const n = prog ? Math.min(g.n, prog[i] ?? 0) : null, row = document.createElement("div");
+    row.className = "qg" + (n !== null && n >= g.n ? " ok" : "");
+    row.innerHTML = "<span></span><em></em>";
+    row.querySelector("span")!.textContent = (n !== null && n >= g.n ? "✓ " : "• ") + g.text;
+    row.querySelector("em")!.textContent = n === null ? `×${g.n}` : `${n}/${g.n}`;
+    box.appendChild(row);
+  });
+  return box;
+}
+/** Khung theo dõi trên màn hình: tên bài, mục tiêu x/N, gợi ý quay về NPC; bấm / chạm tiêu đề để thu gọn. Xong cả chuỗi thì ẩn. */
+function renderQuestTracker() {
+  const el = $("#quest"), q = questMsg, { c, npc, where } = q ? giverOf(q.chain) : { c: undefined, npc: undefined, where: "" };
+  if (!q || !c || q.status === "done") { el.hidden = true; el.innerHTML = ""; return; }
+  const s = c.steps[q.step];
+  el.hidden = false; el.innerHTML = "";
+  const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!questFold));
+  head.innerHTML = "<b></b><i></i>";
+  head.querySelector("b")!.textContent = `${s.name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`;
+  head.querySelector("i")!.textContent = `${q.step + 1}/${c.steps.length} ${questFold ? "▸" : "▾"}`;
+  head.title = questFold ? "Mở khung nhiệm vụ" : "Thu gọn khung nhiệm vụ";
+  head.addEventListener("click", () => { questFold = !questFold; renderQuestTracker(); }); // chuột, chạm và bàn phím
+  el.appendChild(head);
+  const sub = document.createElement("small"); sub.textContent = c.name; el.appendChild(sub);
+  if (questFold) return;
+  const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; el.appendChild(t); };
+  if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return; }
+  el.appendChild(questGoals(s, q.prog));
+  if (q.status === "ready") tip(`Đã xong: quay về gặp ${npc?.name ?? "NPC"} ở ${where} để nhận thưởng.`);
+  else { const d = document.createElement("small"); d.textContent = s.desc; el.appendChild(d); }
+}
+/** Trang nhiệm vụ trong hộp thoại NPC giao nhiệm vụ: lời giao + mục tiêu + thưởng + "Nhận", tiến độ, lời khi trả + "Trả", lời kết. */
+function renderQuestPage(el: HTMLElement, act: NpcActions) {
+  const q = npcDefOpen ? questOf(npcDefOpen.id) : null, c = q && questChain(q.chain);
+  const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
+  if (!q || !c) { say("…"); return; }
+  if (q.status === "done") { say(c.finale); const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Đã học xong cả ${c.steps.length} bài của "${c.name}".`; el.appendChild(k); return; }
+  const s = c.steps[q.step];
+  const box = document.createElement("div"); box.className = "qbox";
+  const h = document.createElement("b"); h.textContent = `Bài ${q.step + 1}/${c.steps.length}: ${s.name}`; box.appendChild(h);
+  const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
+  box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
+  const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}`; box.appendChild(r);
+  const lines = q.status === "ready" ? s.done : q.status === "offer" ? s.offer : [s.desc];
+  if (q.status !== "active") for (const t of lines) say(t);
+  else say("Chưa xong đâu. Làm đủ các mục tiêu rồi quay lại báo ta.");
+  el.appendChild(box);
+  const row = document.createElement("div"); row.className = "brow";
+  const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
+  b.textContent = q.status === "offer" ? "Nhận nhiệm vụ" : q.status === "ready" ? "Trả nhiệm vụ, nhận thưởng" : "Đang làm…";
+  b.disabled = q.status === "active";
+  b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin"); });
+  row.appendChild(b); el.appendChild(row);
+}
+/** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu). */
+export const QUEST_GIVERS = new Set(QUESTS.map((c) => c.giver));

@@ -1,4 +1,4 @@
-import type { Looks } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus } from "../../shared/data.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
@@ -30,6 +30,11 @@ export interface Squad { combat: boolean; list: { rowId: number; hp: number; max
 export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; }
 /** Tin nhắn riêng "bag": túi đồ, số ô tối đa, Hồn Tệ (đồng) và số giây còn lại của hồi chiêu chung đan. */
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; }
+/**
+ * Tin nhắn riêng "quest" (6.2): tiến độ chuỗi tân thủ và trạng thái; `ev` = vừa nhận / vừa đủ mục tiêu / vừa trả (`done` = mã bước
+ * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.
+ */
+export interface QuestMsg extends QuestProgress { status: QuestStatus; ev?: "accept" | "ready" | "reward" | "finish"; done?: string; }
 
 /**
  * Tin nhắn riêng "party" (tổ đội người chơi, bước 7.1): `id` tổ đội (0 = chưa có; so với DropState.party để biết đồ rơi của đội),
