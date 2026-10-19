@@ -68,18 +68,20 @@ export interface MapDef {
   shards: string[];
   /** Tà hóa thú vương của bản đồ (mã trong BOSSES, bậc 2; BĐ5, mục 5.4): hang là object `boss` trong Tiled. Không có = không có thú vương. */
   king?: string;
+  /** Mã bộ hồn hạch (CORE_SETS) đặc trưng của bản đồ (bảng "Rơi đặc trưng" mục 5.3, bước 5.1): hồn hạch rơi ở đây phần lớn thuộc các bộ này. */
+  cores: string[];
 }
 
 /** Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có (Lõi Tinh Đấu, BĐ6) thì không đặt trong Tiled. */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
-    shards: ["lam_ngan_thao", "nhu_cot_tho"] },
-  nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null, shards: [] },
+    shards: ["lam_ngan_thao", "nhu_cot_tho"], cores: ["lam_ngan", "tien_co"] },
+  nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // BĐ3: tách Tinh Đấu Đại Sâm Lâm (`tinh_dau` của BĐ1–BĐ2) thành Ngoại vi và Nội địa.
   tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000],
-    shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], king: "huyet_nguyet_lang_vuong" },
+    shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
-    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], king: "thien_doc_chu_hoang" },
+    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
 };
 /**
  * Mã bản đồ cũ đã bỏ khỏi MAPS -> bản đồ thay thế (mục 6): `accounts.map_id` còn mã cũ thì vào bản đồ thay thế, ở `spawn`
@@ -702,9 +704,10 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  * - Mảnh võ hồn: `shards` [ít nhất, nhiều nhất] mảnh của một võ hồn trong kingShardPool (mảnh của bản đồ đó, Tà Hỏa Phượng Hoàng,
  *   và trước BĐ6 cả võ hồn của bản đồ chưa mở để không võ hồn nào bị khóa hẳn).
  * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 bỏ.
- * - Hồn hạch sao cao: Giai đoạn 5 (chưa có).
+ * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
+ *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
  */
-export const KING_CHEST = { slots: 3, bone: 20, shards: [3, 5] as [number, number], ur: 0.05, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
+export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0.05, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
   fire: "ta_hoa_phuong_hoang", later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
     "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
 /** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa 2, bản đồ chưa mở 1. */
@@ -1310,6 +1313,142 @@ export function boneName(beast: string, slot: unknown, years: number) {
   return `${b} – ${s}, ${formatYears(years)}`;
 }
 
+// ---------- Hồn hạch (mục 5.6, bảng rơi 5.3, bước 5.1) ----------
+/**
+ * Mã vật phẩm của hồn hạch (cột `items.code`, `kind` = `hon_hach`). Mỗi món một ô (không gộp): sao ở `items.stars`, cấp nâng cấp ở
+ * `items.enhance` (+0; nâng cấp ở 5.3), bộ / chỉ số chính / dòng phụ ở `items.stats` = `{set, main, subs: [[mã chỉ số, giá trị], ...]}`.
+ */
+export const CORE_ITEM = "hon_hach";
+export type CoreSetId = "phuong_hoang" | "ba_vuong_long" | "xa_hoang" | "hao_thien" | "that_sat" | "linh_mieu" | "lam_ngan" | "luu_ly" | "tien_co";
+/**
+ * Các bộ hồn hạch (bảng mục 5.6). Mã lưu trong DB (`items.stats.set`), không đổi mã; thứ tự là chỉ số đồng bộ (`DropState.cset`),
+ * chỉ thêm vào cuối. `col`: màu biểu tượng. Hiệu ứng 2 / 4 món ở bước này chỉ để hiển thị, có tác dụng từ 5.2 (gắn hồn hạch).
+ */
+export const CORE_SETS: { id: CoreSetId; name: string; tag: string; col: string; set2: string; set4: string }[] = [
+  { id: "phuong_hoang",  name: "Phượng Hoàng",  tag: "Thiêu đốt", col: "#ff7a3c", set2: "+12% sát thương thiêu đốt",
+    set4: "Thiêu đốt cộng dồn thêm 1 tầng tối đa; Viêm bạo gây thêm 30% sát thương" },
+  { id: "ba_vuong_long", name: "Bá Vương Long", tag: "Cảm điện",  col: "#5cb8ff", set2: "+15% sát thương lan của cảm điện",
+    set4: "Đánh trúng mục tiêu cảm điện hồi 3% hồn lực, mỗi giây 1 lần" },
+  { id: "xa_hoang",      name: "Xà Hoàng",      tag: "Trúng độc", col: "#6fd35a", set2: "+15% sát thương độc",
+    set4: "Mục tiêu trúng độc từ 5 tầng trở lên bị Dễ thương 10%" },
+  { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn đãng", col: "#b9a3ff", set2: "+15% công",
+    set4: "Đòn đánh thứ 3 liên tiếp gây thêm 40% sát thương" },
+  { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "+10% xuyên thủ",
+    set4: "Mục tiêu bị Liệt thương nhận thêm 15% chí mạng từ võ hồn mang bộ" },
+  { id: "linh_mieu",     name: "Linh Miêu",     tag: "Mẫn công",  col: "#c77dff", set2: "+12% chí mạng",
+    set4: "Chí mạng tăng 10% tốc độ đánh trong 4 giây" },
+  { id: "lam_ngan",      name: "Lam Ngân",      tag: "Khống chế", col: "#3fd0c0", set2: "+20% thời gian khống chế",
+    set4: "Hồn kỹ khống chế hồi lại 10% hồn lực" },
+  { id: "luu_ly",        name: "Lưu Ly",        tag: "Phụ trợ",   col: "#ffe08a", set2: "+15% hiệu quả hồi máu và khiên",
+    set4: "Đổi võ hồn vào thì tăng 15% công cho cả đội trong 6 giây" },
+  { id: "tien_co",       name: "Tiên Cơ",       tag: "Tiên cơ",   col: "#ff9ad5", set2: "+20% tốc độ tích năng lượng tiên cơ",
+    set4: "Chiêu tiên cơ gây thêm 35% sát thương" },
+];
+/** Chỉ số trong CORE_SETS của một mã bộ (-1 nếu không có). */
+export const coreSetIndex = (set: unknown) => CORE_SETS.findIndex((s) => s.id === set);
+export type CoreStat = "hp" | "atk" | "mp" | "hp_pct" | "atk_pct" | "mp_pct" | "crit" | "crit_dmg";
+/**
+ * **(chờ chốt)** Chỉ số của hồn hạch. `pct`: tính theo % (hiển thị một chữ số thập phân), không thì cộng phẳng. `main`: chỉ số chính
+ * ở 6★ +0; `sub`: mức lớn nhất của một dòng phụ ở 6★; sao thấp hơn nhân CORE_STAR_K. `w`: trọng số khi tung chỉ số chính (dòng phụ
+ * tung đều, không trùng nhau và không trùng chỉ số chính). Mã lưu trong DB, không đổi. Cộng vào võ hồn ở 5.2.
+ */
+export const CORE_STATS: Record<CoreStat, { name: string; pct: boolean; main: number; sub: number; w: number }> = {
+  hp:       { name: "Sinh lực",            pct: false, main: 300, sub: 90, w: 1 },
+  atk:      { name: "Công",                pct: false, main: 30,  sub: 9,  w: 1 },
+  mp:       { name: "Hồn lực",             pct: false, main: 120, sub: 36, w: 1 },
+  hp_pct:   { name: "Sinh lực",            pct: true,  main: 12,  sub: 4,  w: 1 },
+  atk_pct:  { name: "Công",                pct: true,  main: 12,  sub: 4,  w: 1 },
+  mp_pct:   { name: "Hồn lực",             pct: true,  main: 12,  sub: 4,  w: 1 },
+  crit:     { name: "Tỉ lệ chí mạng",      pct: true,  main: 8,   sub: 3,  w: 0.5 },
+  crit_dmg: { name: "Sát thương chí mạng", pct: true,  main: 16,  sub: 5,  w: 0.5 },
+};
+export const CORE_STAT_IDS = Object.keys(CORE_STATS) as CoreStat[];
+export const MAX_CORE_STARS = 6;
+/** **(chờ chốt)** Hệ số chỉ số theo sao 1★..6★ (chỉ số chính và mức dòng phụ): 6★ = 1. */
+export const CORE_STAR_K = [0.15, 0.25, 0.4, 0.55, 0.75, 1];
+/** Số dòng phụ khi rơi theo sao 1★..6★ (mục 5.6: 1★ 0 dòng … 6★ 4 dòng; các mức giữa **chờ chốt**). Nâng cấp (5.3) thêm dòng sau. */
+export const CORE_SUBS = [0, 1, 1, 2, 3, 4];
+export const CORE_MAX_SUBS = 4;
+/** **(chờ chốt)** Một dòng phụ tung đều trong [lo, hi] × mức dòng phụ của sao đó. */
+export const CORE_SUB_ROLL: [number, number] = [0.7, 1];
+/**
+ * Tỉ lệ rơi hồn hạch khi hạ hồn thú thường, theo số năm (bảng rơi mục 5.3): từ `years` năm trở lên thì `p`, sao trong `stars`.
+ * Tinh anh (mục 5.4) chắc chắn rơi 1 hồn hạch, sao theo cùng bảng.
+ */
+export const CORE_DROP: { years: number; p: number; stars: [number, number] }[] = [
+  { years: 0, p: 0.15, stars: [1, 2] }, { years: 1000, p: 0.25, stars: [2, 4] }, { years: 10000, p: 0.4, stars: [3, 5] }, { years: 100000, p: 1, stars: [5, 6] },
+];
+const coreDropOf = (years: number) => CORE_DROP.reduce((a, x) => (years >= x.years ? x : a), CORE_DROP[0]);
+export const coreChance = (years: number) => coreDropOf(years).p;
+/** Khoảng sao [thấp, cao] của hồn hạch rơi từ hồn thú `years` năm. */
+export const coreStarBand = (years: number): [number, number] => [...coreDropOf(years).stars];
+/** **(chờ chốt)** Trọng số sao trong khoảng, từ sao thấp lên (khoảng 2 sao dùng 2 số đầu): 1–2★ 67% / 33%, 2–4★ 57% / 29% / 14%. */
+export const CORE_STAR_W = [4, 2, 1];
+/** **(chờ chốt)** Tỉ lệ hồn hạch thuộc bộ đặc trưng của bản đồ (MapDef.cores); còn lại là một bộ bất kỳ trong CORE_SETS. */
+export const CORE_MAP_SET = 0.8;
+const clampCoreStars = (stars: number) => Math.max(1, Math.min(MAX_CORE_STARS, Math.floor(stars) || 1));
+/** Làm tròn một chỉ số: % một chữ số thập phân (tối thiểu 0,1), cộng phẳng số nguyên (tối thiểu 1). */
+const coreRound = (k: CoreStat, v: number) => (CORE_STATS[k].pct ? Math.max(0.1, Math.round(v * 10) / 10) : Math.max(1, Math.round(v)));
+/** Chỉ số chính của hồn hạch `stars` sao, tính lại từ sao (không lưu DB; cấp nâng cấp cộng thêm ở 5.3). */
+export const coreMainValue = (main: CoreStat, stars: number) => coreRound(main, CORE_STATS[main].main * CORE_STAR_K[clampCoreStars(stars) - 1]);
+/** Mức lớn nhất của một dòng phụ `k` ở `stars` sao (giá trị tung trong CORE_SUB_ROLL × mức này, đã làm tròn). */
+export const coreSubMax = (k: CoreStat, stars: number) => CORE_STATS[k].sub * CORE_STAR_K[clampCoreStars(stars) - 1];
+/** Nội dung `items.stats` của một hồn hạch. */
+export interface CoreData { set: string; main: CoreStat; subs: [CoreStat, number][] }
+/**
+ * Tung một hồn hạch rơi từ hồn thú `years` năm (bước 5.1). Số ngẫu nhiên lấy từ `rnd` (server truyền Math.random), nên hàm vẫn
+ * thuần. Sao trong coreStarBand theo CORE_STAR_W; `o.high`: sao cao nhất của khoảng (rương tà hóa thú vương, BĐ5); `o.stars`: cố
+ * định nếu nằm trong khoảng. Bộ, chỉ số: rollCoreStats (`o.set`: chỉ số cố định trong CORE_SETS).
+ */
+export function rollCore(years: number, sets: readonly string[], rnd: () => number, o: { stars?: number; set?: number; high?: boolean } = {}) {
+  const [lo, hi] = coreStarBand(years);
+  let stars = lo;
+  if (o.stars && o.stars >= lo && o.stars <= hi) stars = o.stars;
+  else if (o.high) stars = hi;
+  else {
+    const w = CORE_STAR_W.slice(0, hi - lo + 1);
+    let r = rnd() * w.reduce((a, x) => a + x, 0), i = 0;
+    while (i < w.length - 1 && r >= w[i]) { r -= w[i]; i++; }
+    stars = lo + i;
+  }
+  return { stars, data: rollCoreStats(stars, sets, rnd, o.set) };
+}
+/**
+ * Bộ, chỉ số chính và dòng phụ của một hồn hạch `stars` sao. Bộ: CORE_MAP_SET thuộc `sets` (bộ đặc trưng của bản đồ), còn lại một
+ * bộ bất kỳ; `setIdx` cố định chỉ số trong CORE_SETS. Chỉ số chính theo trọng số `w`; đúng CORE_SUBS[sao] dòng phụ, khác nhau và
+ * khác chỉ số chính, giá trị trong CORE_SUB_ROLL × coreSubMax.
+ */
+export function rollCoreStats(stars: number, sets: readonly string[], rnd: () => number, setIdx?: number): CoreData {
+  stars = clampCoreStars(stars);
+  const pick = <T>(list: readonly T[]) => list[Math.min(list.length - 1, Math.floor(rnd() * list.length))];
+  const set = setIdx !== undefined && CORE_SETS[setIdx] ? CORE_SETS[setIdx].id
+    : sets.length && rnd() < CORE_MAP_SET ? pick(sets) : pick(CORE_SETS).id;
+  let r = rnd() * CORE_STAT_IDS.reduce((a, k) => a + CORE_STATS[k].w, 0), main = CORE_STAT_IDS[CORE_STAT_IDS.length - 1];
+  for (const k of CORE_STAT_IDS) { r -= CORE_STATS[k].w; if (r < 0) { main = k; break; } }
+  const subs: [CoreStat, number][] = [];
+  for (let n = 0; n < CORE_SUBS[stars - 1]; n++) {
+    const k = pick(CORE_STAT_IDS.filter((x) => x !== main && !subs.some(([y]) => y === x)));
+    subs.push([k, coreRound(k, coreSubMax(k, stars) * (CORE_SUB_ROLL[0] + rnd() * (CORE_SUB_ROLL[1] - CORE_SUB_ROLL[0])))]);
+  }
+  return { set, main, subs };
+}
+/** Bộ, chỉ số chính và dòng phụ của một hồn hạch (`items.stats`); dữ liệu hỏng thì null. Bộ không còn trong CORE_SETS vẫn giữ. */
+export function parseCore(stats: unknown): CoreData | null {
+  const o = stats as { set?: unknown; main?: unknown; subs?: unknown } | null;
+  if (!o || typeof o !== "object" || typeof o.set !== "string" || !CORE_STAT_IDS.includes(o.main as CoreStat) || !Array.isArray(o.subs)) return null;
+  const subs = o.subs.filter((x): x is [CoreStat, number] => Array.isArray(x) && CORE_STAT_IDS.includes(x[0]) && typeof x[1] === "number");
+  return { set: o.set, main: o.main as CoreStat, subs: subs.slice(0, CORE_MAX_SUBS) };
+}
+/** Tên bộ (mã lạ: "Bộ lạ"). */
+export const coreSetName = (set: string) => CORE_SETS[coreSetIndex(set)]?.name ?? "Bộ lạ";
+/** Tên hồn hạch (mục 5.6): "Hồn hạch Hạo Thiên 4★". */
+export const coreName = (set: string, stars: number) => `Hồn hạch ${coreSetName(set)} ${clampCoreStars(stars)}★`;
+/** Một dòng chỉ số: "Công +12%", "Sinh lực +300", "Tỉ lệ chí mạng +2,4%". */
+export function coreStatText(k: CoreStat, v: number) {
+  const s = CORE_STATS[k];
+  return `${s.name} +${v.toLocaleString("vi-VN", { maximumFractionDigits: 1 })}${s.pct ? "%" : ""}`;
+}
+
 // ---------- Kỹ năng hồn cốt (mục 5.5, bước 4.3; mọi số chờ chốt) ----------
 /** Hiệu ứng có lợi mà kỹ năng bị động cộng thường trực (cùng nghĩa với BUFFS: atk/spd/def/crit/mp/leech). */
 export type PassiveBuff = "atk" | "spd" | "def" | "crit" | "mp" | "leech";
@@ -1427,7 +1566,7 @@ export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; re
 }
 
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
-/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1); các nhóm khác thêm ITEMS khi làm tới (hồn hạch GĐ5, tiên thảo BĐ6). */
+/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5); tiên thảo thêm ITEMS ở BĐ6. */
 export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
@@ -1456,9 +1595,12 @@ export const ITEMS: ItemDef[] = [
   // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn từ bước 4.2 (`items.vohon_id`, không chiếm ô túi).
   { id: BONE_ITEM, kind: "hon_cot", name: "Hồn cốt", col: "#e8dcc0", stack: 1,
     desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số gốc. Tháo ra vẫn giữ cấp cường hóa." },
+  // Hồn hạch (bước 5.1): mỗi món một ô; sao ở `items.stars`, bộ / chỉ số ở `items.stats`. Màu theo bộ (CORE_SETS), `col` chỉ là mặc định.
+  { id: CORE_ITEM, kind: "hon_hach", name: "Hồn hạch", col: "#d9b8ff", stack: 1,
+    desc: "Mỗi võ hồn có 6 ô hồn hạch; gắn 2 hoặc 4 món cùng bộ thì nhận hiệu ứng bộ (gắn và hiệu ứng bộ mở ở bước 5.2)." },
   // Rương tà hóa thú vương (BĐ5): mỗi thú vương một mã `ruong_<mã thú vương>` (chestCode), `boss` trỏ về BOSSES; mở trong túi đồ (KING_CHEST).
   ...BOSSES.filter((b) => b.rank === 2).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
-    desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống). Hồn hạch sao cao có từ Giai đoạn 5.` })),
+    desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, 1 hồn hạch sao cao, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống).` })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
