@@ -220,7 +220,7 @@ export const energyGain = (kind: keyof typeof TIEN_CO_GAIN, set2 = false) => TIE
 /** Hệ số sát thương chiêu tiên cơ; `set4`: võ hồn tung chiêu gắn đủ 4 món bộ Tiên Cơ. */
 export const tienCoDmgMult = (set4 = false) => (set4 ? 1 + TIEN_CO_SET.dmg : 1);
 /**
- * Chiêu tiên cơ chung theo hệ (bước 2.4); tiên cơ riêng từng võ hồn để bước 2.5. Sát thương `dmg` là bội số công của võ hồn
+ * Chiêu tiên cơ chung theo hệ (bước 2.4) cho võ hồn chưa có tiên cơ riêng (TIEN_CO_RIENG, bước 2.5a). Sát thương `dmg` là bội số công của võ hồn
  * vừa đổi vào (không dao động ngẫu nhiên, vẫn có thể chí mạng). Trường không dùng để 0.
  * - `r`: bán kính (pixel) quanh hồn sư; `dash`: quãng lướt tối đa, `range`: tầm tìm mục tiêu (mẫn công);
  * - `stun`: giây choáng (hồn thú không đi, không đánh); `heal`: hồi theo tỉ lệ sinh lực tối đa của mọi võ hồn chưa gục trong đội;
@@ -295,12 +295,199 @@ export const DIRS4 = ["down", "right", "up", "left"] as const;
 /** Hướng nhìn theo vector di chuyển: trục trội quyết định, chéo đúng 45° thì ưu tiên ngang. */
 export const dir4 = (x: number, y: number) => (Math.abs(x) >= Math.abs(y) ? (x >= 0 ? 1 : 3) : y > 0 ? 0 : 2);
 
-export const SKILLS = [
-  { name: "Hồn Bạo",    cost: 12, cd: 3,   desc: "Nổ hồn lực quanh thân" },
-  { name: "Thiểm Kích", cost: 16, cd: 4.5, desc: "Lao về phía trước" },
-  { name: "Hồn Tiễn",   cost: 22, cd: 5,   desc: "Bắn 10 mũi hồn lực" },
-  { name: "Hồn Vực",    cost: 40, cd: 12,  desc: "Lãnh vực hủy diệt" },
+// ---------- Trạng thái dùng chung (mục 5.1 "Trạng thái dùng chung"; bước 2.5a, mọi số chờ chốt) ----------
+/** Thứ tự trong mảng là bit trong `BeastState.st` (bit i = 1 << i). Chỉ thêm vào cuối. */
+export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "silence", "root"] as const;
+export type StatusId = (typeof STATUS_IDS)[number];
+/**
+ * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
+ * - `dot`: sát thương mỗi giây cho mỗi tầng = dot × công người gây × sức mạnh hồn kỹ lúc gây (không chí mạng, không tạo năng lượng tiên cơ).
+ * - `amp`: Dễ thương: hồn thú nhận thêm amp sát thương từ mọi nguồn; Phá giáp: thêm amp mỗi tầng cho đòn trực tiếp (hồn thú
+ *   chưa có chỉ số thủ, "giảm thủ" tạm quy thành nhận thêm sát thương đòn trực tiếp; đổi khi hồn thú có thủ).
+ * - `healCut`: Trúng độc giảm hồi máu của hồn thú. `chain` / `chainR`: Cảm điện lan `chain` sát thương đòn trực tiếp sang hồn thú
+ *   cảm điện khác trong bán kính `chainR` (một bước, không lan tiếp). `boom`: Viêm bạo kích nổ mọi tầng Thiêu đốt còn lại × boom.
+ * - `noMove` / `noAtk`: khống chế. Câm lặng tạm chặn đòn đánh của hồn thú vì hồn thú chưa có chiêu (từ 3.5 chỉ chặn chiêu báo trước).
+ */
+export interface StatusDef {
+  name: string; col: string; secs: number; max: number;
+  dot: number; amp: number; healCut: number; chain: number; chainR: number; boom: number;
+  noMove: boolean; noAtk: boolean;
+}
+const st = (name: string, col: string, secs: number, max: number, o: Partial<StatusDef> = {}): StatusDef =>
+  ({ name, col, secs, max, dot: 0, amp: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, ...o });
+export const STATUS: Record<StatusId, StatusDef> = {
+  burn:    st("Thiêu đốt", "#ff7a2a", 4, 5, { dot: 0.25, boom: 1.5 }),
+  shock:   st("Cảm điện",  "#7fd0ff", 6, 1, { chain: 0.4, chainR: 64 }),
+  poison:  st("Trúng độc", "#6ee06a", 6, 5, { dot: 0.18, healCut: 0.5 }),
+  vuln:    st("Dễ thương", "#ff6b9a", 5, 1, { amp: 0.25 }),
+  armor:   st("Phá giáp",  "#c0cce0", 6, 3, { amp: 0.1 }),
+  stun:    st("Choáng",    "#ffe08a", 1.5, 1, { noMove: true, noAtk: true }),
+  silence: st("Câm lặng",  "#b58cff", 3, 1, { noAtk: true }),
+  root:    st("Trói",      "#4ab0ff", 2, 1, { noMove: true }),
+};
+export const statusBit = (s: StatusId) => 1 << STATUS_IDS.indexOf(s);
+/** Trạng thái sát thương theo thời gian gây sát thương mỗi ngần này giây. */
+export const STATUS_TICK = 1;
+/** Thời gian khống chế (noMove / noAtk) nhân theo bậc hồn thú: hồn thú vạn năm, 10 vạn năm bị khống chế ngắn hơn. */
+export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
+/** Hồn thú không có mục tiêu và không bị đánh `delay` giây thì hồi `pct` sinh lực tối đa mỗi giây (Trúng độc giảm hồi máu). */
+export const BEAST_REGEN = { delay: 6, pct: 0.04 };
+
+// ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
+/** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
+ *  mp: giảm tiêu hao hồn lực của hồn kỹ, inv: miễn mọi sát thương. Chỉ thêm vào cuối. */
+export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv"] as const;
+export type BuffId = (typeof BUFF_IDS)[number];
+export const BUFFS: Record<BuffId, { name: string; col: string }> = {
+  atk:  { name: "Tăng công",       col: "#ff8a5a" },
+  spd:  { name: "Tăng tốc",        col: "#7ef0ff" },
+  def:  { name: "Tăng thủ",        col: "#f2c84b" },
+  crit: { name: "Tăng chí mạng",   col: "#ffe14d" },
+  mp:   { name: "Giảm tiêu hao",   col: "#5a9cc9" },
+  inv:  { name: "Miễn sát thương", col: "#fff2b0" },
+};
+export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
+/** Tỉ lệ chí mạng gốc của đòn đánh vào hồn thú và hệ số sát thương chí mạng. */
+export const CRIT = { chance: 0.12, mult: 1.8 };
+
+// ---------- Hồn kỹ (mục 5.2 "Hồn kỹ theo vòng") ----------
+/**
+ * Sức mạnh hồn kỹ theo số năm của hồn hoàn vòng đó (mục 5.2): nội suy theo log10(số năm) giữa các mốc TIERS[i].years ->
+ * TIER_MULT[i]. Đúng mốc bậc thì bằng TIER_MULT cũ (10 năm 1, 100 năm 1,35, 1.000 năm 1,9, 1 vạn năm 2,8, 10 vạn năm 4,5),
+ * ví dụ 423 năm ≈ 1,69, 5.000 năm ≈ 2,53. Nhân vào sát thương, sát thương theo thời gian.
+ */
+export function skillPower(years: number) {
+  const y = Math.max(TIERS[0].years, Math.min(TIERS[TIERS.length - 1].years, years || TIERS[0].years));
+  let i = 0;
+  while (i < TIERS.length - 2 && y >= TIERS[i + 1].years) i++;
+  const f = (Math.log10(y) - Math.log10(TIERS[i].years)) / (Math.log10(TIERS[i + 1].years) - Math.log10(TIERS[i].years));
+  return +(TIER_MULT[i] + (TIER_MULT[i + 1] - TIER_MULT[i]) * Math.max(0, Math.min(1, f))).toFixed(4);
+}
+/** Hiệu ứng có lợi, hồi máu, khiên, hồi hồn lực tăng chậm hơn sát thương: 1 + (sức mạnh − 1) × BUFF_SCALE. */
+export const BUFF_SCALE = 0.3;
+export const buffPower = (years: number) => +(1 + (skillPower(years) - 1) * BUFF_SCALE).toFixed(4);
+/** Sát thương theo % sinh lực tối đa (pctHp) mỗi nhát không vượt quá PCT_HP_CAP × công × sức mạnh hồn kỹ. */
+export const PCT_HP_CAP = 3;
+/** Tốc độ bay của mũi hồn kỹ (pixel/giây); tầm bay `r` quy ra thời gian sống r / PROJ_SPEED. */
+export const PROJ_SPEED = 170;
+
+/** Vùng tác dụng: quanh thân, nửa trước mặt, lướt thẳng, mục tiêu gần nhất, bắn mũi, chỉ bản thân. */
+export type SkillArea = "around" | "front" | "dash" | "target" | "proj" | "self";
+/** Gây trạng thái: `n` tầng (mặc định 1), `secs` giây (mặc định STATUS[s].secs). */
+export interface StatusApply { s: StatusId; n?: number; secs?: number; }
+/**
+ * Một hồn kỹ (hoặc chiêu tiên cơ riêng, khi đó cost = cd = 0) do server chạy theo dữ liệu, các đợt sau chỉ cần thêm bảng.
+ * - `r`: bán kính (around, front), tầm tìm mục tiêu (target), quãng lướt (dash), tầm bay (proj).
+ * - `dmg`: bội số công × sức mạnh hồn kỹ cho mỗi nhát / mỗi mũi; `n` nhát cách nhau `every` giây (target) hoặc `n` mũi tỏa `spread` độ (proj).
+ * - `pctHp`: cộng tỉ lệ sinh lực tối đa của mục tiêu mỗi nhát; `perStack`: cộng bội số công cho mỗi tầng trạng thái trên mục tiêu.
+ * - `crit`: cộng tỉ lệ chí mạng; `lifesteal`: hồi sinh lực theo tỉ lệ sát thương gây ra; `pull`: kéo hồn thú trúng về sát thân;
+ *   `dash`: lướt tới mục tiêu trước khi đánh (target); `inv`: giây bất tử; `glow`, `shake`: hiệu ứng (màu hào quang hồn hoàn, rung).
+ * - `status`: trạng thái gây cho mỗi hồn thú trúng (mỗi nhát); `finisher`: chỉ nhát cuối (ví dụ hất tung).
+ * - `self`: hiệu ứng có lợi `buff` (nhân buffPower) trong `secs` giây; `heal` / `shield` / `mp`: hồi sinh lực cả đội, khiên, hồi
+ *   hồn lực theo tỉ lệ tối đa (nhân buffPower).
+ */
+export interface SkillDef {
+  name: string; desc: string; icon: string; cost: number; cd: number;
+  area: SkillArea; r: number; dmg: number;
+  n?: number; every?: number; spread?: number; pctHp?: number; perStack?: { s: StatusId; dmg: number };
+  crit?: number; lifesteal?: number; pull?: boolean; dash?: number; inv?: number; glow?: boolean; shake?: boolean;
+  status?: StatusApply[]; finisher?: StatusApply[];
+  self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number };
+}
+
+/** 4 hồn kỹ dùng chung (Giai đoạn 1) cho võ hồn chưa có hồn kỹ riêng. Không đổi số khi thêm hồn kỹ riêng. */
+export const SKILLS: SkillDef[] = [
+  { name: "Hồn Bạo",    desc: "Nổ hồn lực quanh thân", icon: "✹", cost: 12, cd: 3,   area: "around", r: 50, dmg: 2.2 },
+  { name: "Thiểm Kích", desc: "Lao về phía trước",     icon: "➤", cost: 16, cd: 4.5, area: "dash", r: 70, dmg: 2.6, inv: 0.35 },
+  { name: "Hồn Tiễn",   desc: "Bắn 10 mũi hồn lực",    icon: "✶", cost: 22, cd: 5,   area: "proj", r: 110.5, dmg: 1.5, n: 10, spread: 360 },
+  { name: "Hồn Vực",    desc: "Lãnh vực hủy diệt",     icon: "◎", cost: 40, cd: 12,  area: "around", r: 90, dmg: 4, glow: true, shake: true },
 ];
+
+/**
+ * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; mọi số chờ chốt). Hồn kỹ thứ i mở khi có
+ * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
+ */
+export const VOHON_SKILLS: Record<string, SkillDef[]> = {
+  // Khống chế, chấn đãng: trói, gom quái, gây Dễ thương.
+  lam_ngan_thao: [
+    { name: "Triền Nhiễu", desc: "Dây Lam Ngân quấn mục tiêu gần nhất: trói, trúng độc", icon: "❦", cost: 12, cd: 4,
+      area: "target", r: 80, dmg: 1.6, status: [{ s: "root" }, { s: "poison" }] },
+    { name: "Ký Sinh", desc: "Gieo Lam Ngân ký sinh lên mục tiêu: Dễ thương 6 giây", icon: "✿", cost: 14, cd: 6,
+      area: "target", r: 90, dmg: 1.2, status: [{ s: "vuln", secs: 6 }] },
+    { name: "Lam Ngân Tù Lung", desc: "Kéo mọi hồn thú quanh thân lại và giam: trói 2,5 giây", icon: "⌘", cost: 24, cd: 9,
+      area: "around", r: 90, dmg: 1.5, pull: true, status: [{ s: "root", secs: 2.5 }] },
+    { name: "Chu Võng Thúc Phược", desc: "Lưới nhện trói buộc diện rộng: choáng 2 giây", icon: "✳", cost: 40, cd: 13,
+      area: "around", r: 70, dmg: 2.6, glow: true, status: [{ s: "stun", secs: 2 }] },
+  ],
+  // Cường công, chấn đãng: sát thương theo % sinh lực, phá giáp, hất tung.
+  hao_thien_chuy: [
+    { name: "Hạo Thiên Trọng Kích", desc: "Nện chùy nửa trước mặt, thêm 3% sinh lực tối đa mục tiêu", icon: "⚒", cost: 12, cd: 3.5,
+      area: "front", r: 36, dmg: 2.4, pctHp: 0.03 },
+    { name: "Chấn Địa Chùy", desc: "Nện đất quanh thân: Phá giáp 2 tầng", icon: "✺", cost: 16, cd: 6,
+      area: "around", r: 60, dmg: 1.8, status: [{ s: "armor", n: 2 }] },
+    { name: "Loạn Phi Phong Chùy Pháp", desc: "4 nhát chùy liên hoàn vào một mục tiêu, nhát cuối hất tung (choáng 1 giây)", icon: "☄", cost: 24, cd: 8,
+      area: "target", r: 50, dash: 30, n: 4, every: 0.22, dmg: 0.9, pctHp: 0.02, finisher: [{ s: "stun", secs: 1 }] },
+    { name: "Hạo Thiên Phá Sơn", desc: "Đại chùy giáng xuống diện rộng, thêm 6% sinh lực tối đa, hất tung", icon: "▲", cost: 40, cd: 14,
+      area: "around", r: 80, dmg: 4, pctHp: 0.06, glow: true, shake: true, status: [{ s: "stun", secs: 1.2 }] },
+  ],
+  // Mẫn công, chấn đãng: tốc độ, chí mạng cao, cào liên hoàn.
+  u_minh_linh_mieu: [
+    { name: "U Minh Đột Thứ", desc: "Lướt xuyên hàng hồn thú phía trước, +25% chí mạng", icon: "➹", cost: 12, cd: 3.5,
+      area: "dash", r: 70, dmg: 2.2, crit: 0.25, inv: 0.3 },
+    { name: "U Minh Trảo", desc: "Cào 3 nhát liên hoàn, mỗi nhát Phá giáp 1 tầng, +20% chí mạng", icon: "≋", cost: 16, cd: 5,
+      area: "target", r: 40, dash: 20, n: 3, every: 0.15, dmg: 0.9, crit: 0.2, status: [{ s: "armor" }] },
+    { name: "U Minh Ảnh Bộ", desc: "Ẩn vào bóng tối: tốc độ +40%, chí mạng +25% trong 6 giây", icon: "☾", cost: 18, cd: 14,
+      area: "self", r: 0, dmg: 0, self: { buff: { spd: 0.4, crit: 0.25 }, secs: 6 } },
+    { name: "U Minh Bách Trảo", desc: "Lướt tới mục tiêu, cào 8 nhát, +30% chí mạng", icon: "✥", cost: 40, cd: 14,
+      area: "target", r: 70, dash: 60, n: 8, every: 0.12, dmg: 0.8, crit: 0.3, inv: 0.5, glow: true },
+  ],
+  // Khống chế, trúng độc (lõi): độc cộng dồn, câm lặng diện rộng, Vạn Xà Phệ Tâm hút máu.
+  bich_lan_xa_hoang: [
+    { name: "Bích Lân Độc Tiễn", desc: "Phun 3 mũi độc hình quạt, mỗi mũi 1 tầng Trúng độc", icon: "➶", cost: 12, cd: 3,
+      area: "proj", r: 120, n: 3, spread: 40, dmg: 1, status: [{ s: "poison" }] },
+    { name: "Bích Lân Độc Vụ", desc: "Màn độc quanh thân: Trúng độc 2 tầng", icon: "☁", cost: 16, cd: 6,
+      area: "around", r: 60, dmg: 0.6, status: [{ s: "poison", n: 2 }] },
+    { name: "Xà Hoàng Uy Áp", desc: "Uy áp Xà Hoàng diện rộng: Câm lặng 3 giây, Dễ thương 4 giây", icon: "◉", cost: 22, cd: 10,
+      area: "around", r: 80, dmg: 0.8, status: [{ s: "silence" }, { s: "vuln", secs: 4 }] },
+    { name: "Vạn Xà Phệ Tâm", desc: "Vạn xà cắn xé mục tiêu: mỗi tầng Trúng độc thêm 60% công, hút 40% sát thương thành sinh lực", icon: "☠", cost: 40, cd: 14,
+      area: "target", r: 80, dmg: 3, perStack: { s: "poison", dmg: 0.6 }, lifesteal: 0.4, glow: true },
+  ],
+  // Phụ trợ: tăng công, tốc, thủ cho hồn sư (cả đội, vì hiệu ứng thuộc hồn sư), giảm tiêu hao hồn lực.
+  cuu_bao_luu_ly_thap: [
+    { name: "Lực Chi Lưu Ly", desc: "Cửu Bảo Lưu Ly, nhất viết lực: công +20% trong 12 giây", icon: "✦", cost: 12, cd: 14,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.2 }, secs: 12 } },
+    { name: "Tốc Chi Lưu Ly", desc: "Nhị viết tốc: tốc độ +25% trong 12 giây", icon: "➠", cost: 12, cd: 14,
+      area: "self", r: 0, dmg: 0, self: { buff: { spd: 0.25 }, secs: 12 } },
+    { name: "Hồn Chi Lưu Ly", desc: "Tam viết hồn: hồi 25% hồn lực, hồn kỹ tốn ít hơn 30% trong 12 giây", icon: "✧", cost: 0, cd: 20,
+      area: "self", r: 0, dmg: 0, self: { buff: { mp: 0.3 }, secs: 12, mp: 0.25 } },
+    { name: "Phòng Chi Lưu Ly", desc: "Tứ viết phòng: sát thương nhận giảm 25% trong 12 giây, khiên 12% sinh lực", icon: "◈", cost: 30, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { def: 0.25 }, secs: 12, shield: 0.12 } },
+  ],
+};
+/** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
+export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
+
+/**
+ * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; chờ chốt). Chạy bằng cùng bộ máy
+ * hồn kỹ với sức mạnh 1 × tienCoDmgMult, không tốn hồn lực, không tạo năng lượng. Võ hồn chưa có trong bảng dùng TIEN_CO theo hệ.
+ */
+export const TIEN_CO_RIENG: Record<string, SkillDef> = {
+  lam_ngan_thao: { name: "Lam Ngân Phong Tỏa", desc: "kéo hồn thú quanh thân lại, trói và gây Dễ thương", icon: "⌘", cost: 0, cd: 0,
+    area: "around", r: 64, dmg: 1.2, pull: true, status: [{ s: "root" }, { s: "vuln", secs: 4 }] },
+  hao_thien_chuy: { name: "Hạo Thiên Giáng Thế", desc: "nện chùy diện rộng, thêm 4% sinh lực tối đa, hất tung", icon: "⚒", cost: 0, cd: 0,
+    area: "around", r: 60, dmg: 3, pctHp: 0.04, shake: true, status: [{ s: "stun", secs: 0.8 }] },
+  u_minh_linh_mieu: { name: "U Minh Thiểm Trảo", desc: "lướt tới hồn thú gần nhất, cào 5 nhát, +30% chí mạng", icon: "✥", cost: 0, cd: 0,
+    area: "target", r: 110, dash: 90, n: 5, every: 0.1, dmg: 1, crit: 0.3, inv: 0.35 },
+  bich_lan_xa_hoang: { name: "Xà Hoàng Độc Vực", desc: "độc vực quanh thân: Trúng độc 3 tầng, Câm lặng 2 giây", icon: "☠", cost: 0, cd: 0,
+    area: "around", r: 64, dmg: 1, status: [{ s: "poison", n: 3 }, { s: "silence", secs: 2 }] },
+  cuu_bao_luu_ly_thap: { name: "Vô Địch Thần Quang", desc: "cả đội miễn sát thương 2,5 giây, hồi 20% sinh lực", icon: "✷", cost: 0, cd: 0,
+    area: "self", r: 0, dmg: 0, self: { buff: { inv: 1 }, secs: 2.5, heal: 0.2 } },
+};
+/** Tên và mô tả chiêu tiên cơ của một võ hồn (riêng nếu có, không thì chung theo hệ). */
+export const tienCoOf = (vohonId: string) => {
+  const own = TIEN_CO_RIENG[vohonId];
+  return own ?? TIEN_CO[VOHON[Math.max(0, vohonIndex(vohonId))].he];
+};
 
 /** Niên hạn tối đa (chỉ số tier) mà vòng thứ `slot` chịu được. */
 export const ringLimit = (slot: number) => (slot === 1 ? 1 : slot <= 3 ? 2 : slot <= 6 ? 3 : 4);
