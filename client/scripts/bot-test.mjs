@@ -313,7 +313,8 @@ else {
   const tcDmg=(v,he)=>{const x=atkOf(v)*TIEN_CO[he].dmg; return [Math.max(1,Math.round(x)),Math.max(1,Math.round(x*1.8))];};
   async function spawnNear(b,tier,dx,dy=0){ const before=new Set(b.room.state.beasts.keys()); await test(b,"spawn",{tier,dx,dy}); let id=null;
     await waitFor(()=>{ b.room.state.beasts.forEach((_,k)=>{ if(!before.has(k)) id=k; }); return id; }); return id; }
-  async function switchRow(b,row){ await waitFor(()=>meOf(b).swCd===0,3500); b.room.send("switch",{slot:b.owned.team.indexOf(row)}); return waitFor(()=>b.owned.active===row); }
+  // Tin vohons tới trước patch state: chờ cả hồi chiêu đổi (swCd) đồng bộ, không thì lần chờ swCd===0 sau đó đọc giá trị cũ.
+  async function switchRow(b,row){ await waitFor(()=>meOf(b).swCd===0,3500); b.room.send("switch",{slot:b.owned.team.indexOf(row)}); return waitFor(()=>b.owned.active===row&&meOf(b).swCd>0); }
   /** Đặt năng lượng đầy (hook), sinh hồn thú bậc `tier` cách `dx` (tier < 0: không sinh), rồi đổi tay vào võ hồn `row`. */
   async function tienCo(b,row,{tier=1,dx=20,dy=0}={}){
     await waitFor(()=>meOf(b).swCd===0,3500);
@@ -422,6 +423,10 @@ else {
 }
 
 B.room.send("chat",{text:"xin chào"}); await sleep(200);
+// Lần thử hấp thụ ở trên có thể vẫn đang chạy (không có GAME_TEST thì chỉ cách khoảng 2,5 giây): hấp thụ xong thì lên cấp
+// nhưng server không gửi lại tin vohons. Chờ xong rồi xin lại danh sách, để bản so sánh là tiến độ server giữ lúc rời phòng.
+await waitFor(()=>p.absorb===0,8000);
+{ const n=A.ownedMsgs; A.room.send("vohons"); await waitFor(()=>A.ownedMsgs>n); }
 await A.room.leave(); await B.room.leave();
 
 // Vào lại: đội hình, võ hồn ra trận và tiến độ từng võ hồn (cả võ hồn không ra trận) đã lưu.
@@ -512,10 +517,15 @@ const bag2=bagKey(C); C.mapId=m2.mapId; await enter(C); await waitFor(()=>me()&&
 ok(bagKey(C)===bag2,`thoát rồi vào lại: túi đồ giữ nguyên (${C.bag?.items.length} ô)`);
 ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
 // Đăng nhập lần nữa: phiên cũ bị đá (presence), phiên mới vào đúng bản đồ.
+// Tiến độ chưa lưu của phiên cũ (đặt qua hook test) phải còn: phiên mới chỉ nạp DB sau khi phiên cũ lưu xong lần cuối (mục 6).
+const relog=(await test(C,"ping"))?.enabled?C.owned.team.filter(Boolean).map((rowId,i)=>[rowId,1234+i]):null;
+if(relog) for(const [rowId,xp] of relog) await test(C,"set",{rowId,xp});
 let kicked=0; C.room.onLeave(code=>{kicked=code;});
 const l2=await post("/api/login",{name:C.name,password:PASS}); ok(l2.mapId==="tinh_dau","đăng nhập lại: /api/login trả tinh_dau");
 const C2={name:C.name,token:l2.token,logs:[],mapId:l2.mapId}; await enter(C2);
 ok(await waitFor(()=>kicked===4001),"phiên cũ bị đá khi tài khoản vào lại");
+if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.list.find(v=>v.rowId===r)?.xp);
+  ok(same(got,relog.map(([,xp])=>xp)),`đăng nhập lại: phiên mới nạp tiến độ phiên cũ vừa lưu lúc bị đá (kinh nghiệm ${got.join("/")})`); }
 C=C2;
 await waitFor(()=>me());
 // Đường về: cổng ở mép tây doanh trại -> Nặc Đinh Thành (cổng đông).

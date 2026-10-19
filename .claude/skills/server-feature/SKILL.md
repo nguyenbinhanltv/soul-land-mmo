@@ -36,6 +36,7 @@ Message chưa đăng ký thì Colyseus ngắt kết nối client gửi nó (`onM
 - Lưu qua `store` trong `server/src/db.ts`. Cần bảng/cột mới: dùng skill `db-migration`.
 - **Mọi lần ghi DB về một người chơi đi qua chuỗi lưu `this.chain(d, fn)`** (mục 6 "Lưu của mỗi người chơi chạy nối tiếp"): `save(id)` (võ hồn có tiến độ chưa lưu + vị trí có lớp chặn `WHERE map_id`), `persistTeam(d)`, transaction đi cổng. Không gọi `store.save…` trực tiếp ngoài chuỗi, nếu không lần ghi cũ có thể commit sau và đè bản mới.
 - Lưu ở `onLeave`, `onDispose` và sau sự kiện quan trọng (xem `finishAbsorb()`); chuỗi lưu tự bắt lỗi để không sập room. Dữ liệu chưa lưu mới phải nằm trong `save` **và** `saveTravel` (túi đồ từ 3.1: cờ `bagDirty`, ảnh chụp `unsavedBag`, ghi bằng `store.saveBag` / tham số `bag` của `saveTravel`; thêm đồ qua `addItem` để gộp và giới hạn ô đúng luật) (transaction đi cổng là lần ghi cuối của phòng cũ).
+- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên"): `onAuth` gọi `waitOldSession` (đá phiên cũ, chờ nó lưu xong lần cuối) **trước** mọi lần đọc DB nhân vật; `onLeave` gọi `freeze` (dừng tiến độ, hủy hấp thụ dở) trước khi nối lần ghi cuối, và `releaseAccount` sau khi ghi xong. Tiến độ mới chạy theo thời gian (như hấp thụ) phải dừng khi `d.travelling`.
 
 ## Xong thì
 `npm run check`, bật server rồi `npm run bot --prefix client` (skill `roadmap-step`).

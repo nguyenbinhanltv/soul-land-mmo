@@ -34,7 +34,7 @@ interface PData {
   teamQueued: boolean;  // đã có một lần lưu đội hình đang chờ trong chuỗi (lần đó ghi bản mới nhất lúc chạy)
   portalKey: string;    // hộp đi cổng đã gửi cho client ("" = không đứng ở cổng)
   travelCast: { portal: Portal; t: number } | null; // đang niệm đi qua cổng (TRAVEL_CAST giây, bị đánh thì hủy)
-  travelling: boolean;  // cờ đang chuyển bản đồ (bước 2): bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
+  travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
@@ -53,6 +53,12 @@ interface Proj { x: number; y: number; vx: number; vy: number; life: number; dmg
 
 let nextId = 1;
 const uid = (p: string) => p + (nextId++).toString(36);
+
+// ---------- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên") ----------
+/** Hash presence: accountId -> sessionId của phiên đang giữ tài khoản, từ onJoin tới khi lần ghi DB cuối của phiên đó xong. */
+const HOLD = "accountHold";
+/** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
+const HOLD_WAIT_MS = 8000;
 
 // ---------- Vật phẩm (mục 5.7) ----------
 let itemClock = 0;
@@ -85,16 +91,47 @@ export class MapRoom extends Room<MapState> {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
   };
 
-  async onAuth(_client: Client, options: { token?: string }) {
-    const acc = options?.token ? await store.accountFromToken(options.token) : null;
-    if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
-    const [ch, owned, looks, loc] = await Promise.all([store.getCharacter(acc.accountId), store.listVohons(acc.accountId),
-      store.getLooks(acc.accountId), store.getLocation(acc.accountId)]);
+  /**
+   * Đá phiên cũ của tài khoản (ở mọi phòng) và chờ nó nhả tài khoản, tức là lần ghi cuối của nó (onLeave nối vào chuỗi lưu) đã
+   * xong, rồi mới cho onAuth nạp DB. Không chờ thì phiên mới nạp bản cũ, phiên cũ lưu sau, và lần lưu kế tiếp của phiên mới
+   * ghi đè làm mất tiến độ (mục 6).
+   */
+  async waitOldSession(accountId: number, sessionId: string) {
+    const key = String(accountId), old = await this.presence.hget(HOLD, key);
+    if (!old) return;
+    this.presence.publish("kick", { accountId, sessionId });
+    for (let t = 0; t < HOLD_WAIT_MS; t += 50) {
+      await new Promise((r) => setTimeout(r, 50));
+      if ((await this.presence.hget(HOLD, key)) !== old) return;
+    }
+    throw new ServerError(503, "Phiên trước của tài khoản chưa lưu xong, hãy thử lại sau giây lát.");
+  }
+
+  /** Nhả tài khoản sau lần ghi cuối của phiên `sessionId` (chỉ khi phiên đó vẫn đang giữ). */
+  async releaseAccount(accountId: number, sessionId: string) {
+    const key = String(accountId);
+    if ((await this.presence.hget(HOLD, key)) === sessionId) await this.presence.hdel(HOLD, key);
+  }
+
+  /** Đọc võ hồn ra trận, ngoại hình, vị trí; từ chối nếu chưa được vào phòng này. */
+  async checkJoin(accountId: number) {
+    const [ch, looks, loc] = await Promise.all([store.getCharacter(accountId), store.getLooks(accountId), store.getLocation(accountId)]);
     // Tạo nhân vật trước (tài khoản cũ cũng phải chọn một lần), rồi mới đến lễ thức tỉnh.
     if (!looks.chosen) throw new ServerError(403, "Chưa tạo nhân vật.");
     if (!ch) throw new ServerError(403, "Chưa thức tỉnh võ hồn.");
     // Chỉ vào được phòng của bản đồ đang lưu trong DB; sai thì client hỏi lại /api/me (trả mapId) rồi vào đúng phòng.
     if (loc.mapId !== this.state.mapId) throw new ServerError(409, `Sai bản đồ: hồn sư đang ở ${MAPS[loc.mapId].name}.`);
+    return { ch, looks, loc };
+  }
+
+  async onAuth(client: Client, options: { token?: string }) {
+    const acc = options?.token ? await store.accountFromToken(options.token) : null;
+    if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
+    // Kiểm tra trước khi đá phiên cũ: lần vào bị từ chối không được đá phiên đang chơi. Chờ xong thì đọc và kiểm tra lại
+    // (phiên cũ có thể vừa đi cổng xong, đổi map_id).
+    await this.checkJoin(acc.accountId);
+    await this.waitOldSession(acc.accountId, client.sessionId);
+    const [{ ch, looks, loc }, owned] = await Promise.all([this.checkJoin(acc.accountId), store.listVohons(acc.accountId)]);
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
       bag: { items: [], honTe: 0 }, starter: false };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
@@ -153,7 +190,10 @@ export class MapRoom extends Room<MapState> {
 
   onJoin(client: Client, _o: unknown, auth: AuthData) {
     const { ch, owned, team, looks, loc, bag } = auth;
-    // Một tài khoản chỉ được vào một lần: đá phiên cũ ở mọi phòng (kể cả phòng này).
+    // Một tài khoản chỉ được vào một lần: giữ tài khoản cho phiên này, đá phiên cũ ở mọi phòng (kể cả phòng này). onAuth đã
+    // chờ phiên cũ lưu xong; lần đá này chặn hai lần vào gần như cùng lúc.
+    this.presence.hset(HOLD, String(auth.accountId), client.sessionId)
+      .catch((e) => console.error(`Không ghi được phiên giữ tài khoản #${auth.accountId}`, e));
     this.presence.publish("kick", { accountId: auth.accountId, sessionId: client.sessionId });
     const p = new PlayerState();
     p.name = ch.name; this.showVohon(p, ch);
@@ -176,6 +216,10 @@ export class MapRoom extends Room<MapState> {
   async onLeave(client: Client) {
     const id = client.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
     if (p && d) {
+      // Client đã đi: dừng mọi tiến độ ngay (hấp thụ dở bị hủy). Không dừng thì trong lúc chờ ghi DB, tick vẫn có thể hấp thụ
+      // xong hay đạn còn bay hạ hồn thú, cộng vào nhân vật sau khi write() đã chụp dữ liệu, rồi mất khi pdata bị xóa.
+      if (d.absorbing) { d.absorbing = null; p.absorb = 0; }
+      this.freeze(id);
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
       // không ghi gì nữa; transaction lỗi hoặc chưa đi cổng thì lưu như thường (có lớp chặn WHERE map_id).
       await this.chain(d, () => (d.travelled ? undefined : this.write(id)));
@@ -183,11 +227,17 @@ export class MapRoom extends Room<MapState> {
     }
     this.state.players.delete(id);
     this.pdata.delete(id);
+    // Lần ghi cuối đã xong: phiên mới của tài khoản (đang chờ trong onAuth) được nạp DB.
+    const accountId = d?.accountId ?? (client.auth as AuthData | undefined)?.accountId;
+    if (accountId !== undefined) await this.releaseAccount(accountId, id);
   }
 
   async onDispose() {
     this.presence.unsubscribe("kick", this.kickSub);
-    await Promise.all([...this.pdata.entries()].map(([id, d]) => this.chain(d, () => (d.travelled ? undefined : this.write(id)))));
+    await Promise.all([...this.pdata.entries()].map(async ([id, d]) => {
+      await this.chain(d, () => (d.travelled ? undefined : this.write(id)));
+      await this.releaseAccount(d.accountId, id);
+    }));
   }
 
   // ---------- Nhân vật ----------
@@ -415,15 +465,24 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
+   * Bật cờ `travelling` (đi cổng bước 2, hoặc client vừa rời phòng): từ đây người chơi không còn tiến độ mới nào trước lần ghi
+   * cuối. Tick bỏ qua người này (không di chuyển, không hấp thụ tiếp), hồn thú bỏ mục tiêu, và đạn hồn kỹ còn bay bị bỏ để
+   * không hạ được hồn thú sau khi đã chụp dữ liệu (mục 6).
+   */
+  freeze(id: string) {
+    const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
+    d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
+    this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
+    this.projs = this.projs.filter((pr) => pr.owner !== id);
+  }
+
+  /**
    * Bước 2–4 của mục 6: đánh dấu đang chuyển bản đồ, nối transaction đi cổng vào chuỗi lưu (chờ mọi lần ghi trước xong rồi
    * mới chụp dữ liệu), commit xong mới gửi riêng `travel {mapId}`. Lỗi thì bỏ cờ, người chơi ở lại.
    */
   beginTravel(id: string, portal: Portal) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
-    d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
-    this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
-    // Đạn hồn kỹ còn bay (bắn lúc đang niệm) không được hạ hồn thú sau khi transaction đã chụp dữ liệu: bỏ luôn (mục 6).
-    this.projs = this.projs.filter((pr) => pr.owner !== id);
+    this.freeze(id);
     this.portalHint(id, p, d);
     this.chain(d, async () => {
       // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
