@@ -77,6 +77,8 @@ export class DropState extends Schema {
   @type("uint8") stars: number = 0;
   @type("uint8") cset: number = 0;
   @type("string") owner: string = "";   // sessionId được ưu tiên nhặt
+  // Từ 7.1: tổ đội của người được ưu tiên lúc đồ rơi (id trong server/src/party.ts, 0 = không có): cả tổ đội cùng được ưu tiên nhặt.
+  @type("uint32") party: number = 0;
   @type("float32") ownerTtl: number = 0; // giây còn lại trước khi ai cũng nhặt được
   @type("float32") ttl: number = 0;
 }

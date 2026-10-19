@@ -9,7 +9,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, QuestMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -93,11 +93,12 @@ export class GameScene extends Phaser.Scene {
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
   bagKey = "";
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
+  party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void }) {
     this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
-    const off = () => { this.ac.abort(); hud.showPortal(null, () => {}); };
+    const off = () => { this.ac.abort(); hud.showPortal(null, () => {}); hud.showPlayerMenu(null); };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);
   }
@@ -255,14 +256,14 @@ export class GameScene extends Phaser.Scene {
     const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
-        if (e.key === "Enter") { const t = chat.value.trim(); if (t) this.room.send("chat", { text: t }); chat.value = ""; chat.blur(); }
+        if (e.key === "Enter") { const t = chat.value.trim(); if (t && !this.chatCommand(t)) this.room.send("chat", { text: t }); chat.value = ""; chat.blur(); }
         if (e.key === "Escape") chat.blur();
         return;
       }
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
-      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.closeNpc(); return; }
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.closeNpc(); hud.showPlayerMenu(null); return; }
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -284,6 +285,17 @@ export class GameScene extends Phaser.Scene {
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleBag(); }, on);
 
+    // Bấm / chạm vào hồn sư khác (7.1): mở bảng mời vào tổ đội. Chọn hồn sư gần điểm bấm nhất (thân cao khoảng 30 pixel trên chân).
+    this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
+      let best: { sid: string; name: string; level: number } | null = null, bd = 14;
+      this.room.state.players.forEach((p: any, id: string) => {
+        if (id === this.me) return;
+        const v = this.players.get(id), x = v?.root.x ?? p.x, y = (v?.root.y ?? p.y) - 12, k = Math.hypot(ptr.worldX - x, (ptr.worldY - y) * 0.7);
+        if (k < bd) { bd = k; best = { sid: id, name: p.name, level: p.level }; }
+      });
+      hud.showPlayerMenu(best);
+    });
+
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
     let jid: number | null = null;
     const mv = (e: PointerEvent) => {
@@ -296,6 +308,22 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
   }
+
+  /**
+   * Lệnh trong ô chat (7.1): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Trả true nếu là lệnh (không gửi lên kênh chat chung).
+   */
+  chatCommand(t: string) {
+    const m = /^\/(\S+)\s*(.*)$/u.exec(t); if (!m) return false;
+    const cmd = m[1].toLowerCase(), arg = m[2].trim();
+    if (cmd === "moi" || cmd === "mời") {
+      if (arg) this.partySend("invite", arg); else hud.log("Gõ /moi <tên hồn sư> để mời vào tổ đội.", "#ffb35c");
+    } else if (cmd === "roi" || cmd === "rời") this.partySend("leave");
+    else hud.log("Lệnh: /moi <tên> (mời vào tổ đội), /roi (rời tổ đội).", "#ffb35c");
+    return true;
+  }
+
+  /** Thao tác tổ đội: chỉ gửi ý định, server kiểm tra (7.1). */
+  partySend(op: string, name?: string, sid?: string) { this.room.send("party", { op, ...(name ? { name } : {}), ...(sid ? { sid } : {}) }); }
 
   /** Xin đi qua cổng đang đứng: chỉ gửi tên cổng, server kiểm tra vị trí và chọn bản đồ đích. */
   goPortal() { if (this.portal?.name) this.room.send("travel", { portal: this.portal.name }); }
@@ -393,6 +421,8 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.room.onMessage("travel", (m: { mapId: string }) => { if (typeof m?.mapId === "string") this.onTravel(m.mapId); });
+    // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
+    this.room.onMessage("party", (m: PartyView) => { this.party = m; hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
@@ -447,6 +477,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.room.send("vohons");
     this.room.send("bag");
+    this.room.send("party", { op: "get" });
     this.room.send("quest", { op: "get" });
   }
 
@@ -891,8 +922,14 @@ export class GameScene extends Phaser.Scene {
       ctx.fillStyle = "#1a1020"; ctx.fillRect(x - r - 1, y - r - 1, 2 * r + 3, 2 * r + 3);
       ctx.fillStyle = on ? BOSSES[b.species]?.aura ?? "#ffffff" : "#ffffff"; ctx.fillRect(x - r, y - r, 2 * r + 1, 2 * r + 1);
     });
+    // Đồng đội trong tổ đội (7.1): chấm xanh lá 3×3 viền tối, vẽ sau người khác cho nổi lên.
+    const mates = new Set((this.party?.members ?? []).filter((m) => !m.me && m.sid).map((m) => m.sid));
     st.players.forEach((p: any, id: string) => {
-      if (id === this.me) return; ctx.fillStyle = "#7fd0ff"; ctx.fillRect(((p.x / TILE) | 0) - 1, ((p.y / TILE) | 0) - 1, 2, 2);
+      if (id === this.me || mates.has(id)) return; ctx.fillStyle = "#7fd0ff"; ctx.fillRect(((p.x / TILE) | 0) - 1, ((p.y / TILE) | 0) - 1, 2, 2);
+    });
+    st.players.forEach((p: any, id: string) => {
+      if (!mates.has(id)) return; const x = (p.x / TILE) | 0, y = (p.y / TILE) | 0;
+      ctx.fillStyle = "#0c2a12"; ctx.fillRect(x - 2, y - 2, 5, 5); ctx.fillStyle = "#7dff8a"; ctx.fillRect(x - 1, y - 1, 3, 3);
     });
     const me = st.players.get(this.me);
     if (me) { ctx.fillStyle = "#fff"; ctx.fillRect(((me.x / TILE) | 0) - 1, ((me.y / TILE) | 0) - 1, 3, 3); ctx.fillStyle = "#ff4040"; ctx.fillRect((me.x / TILE) | 0, (me.y / TILE) | 0, 1, 1); }
@@ -946,6 +983,9 @@ export class GameScene extends Phaser.Scene {
       if (root.scale !== sc) root.setScale(Math.abs(sc - root.scale) < 0.01 ? sc : root.scale + (sc - root.scale) * lerp);
       const up = (root.scale - 1) * 30;
       label.setPosition(root.x, root.y - 30 - up).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
+      const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
+      if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1).
       title.setPosition(root.x, root.y - 38 - up).setVisible(!p.dead).setText(titleOf(p.level));
     });
@@ -1191,6 +1231,7 @@ export class GameScene extends Phaser.Scene {
     hud.updateStats(me);
     hud.updateTeam(me);
     hud.updateBag();
+    hud.updateParty();
     // Thú vương (BĐ5): thanh máu lớn đọc thẳng BeastState; bảng xếp hạng khi mình đang tham gia (có trong danh sách đóng góp).
     let kb: any = null; st.beasts.forEach((b: any) => { if (b.rank === 2) kb = b; });
     hud.showBoss(kb && { name: beastName(2, kb.species), hp: kb.hp, maxHp: kb.maxHp, parts: kb.parts, phase: kb.phase,
@@ -1221,8 +1262,9 @@ export class GameScene extends Phaser.Scene {
     let dr: any = null, dd = PICKUP_RANGE;
     st.drops.forEach((d: any) => { const k = Math.hypot(d.x - me.x, d.y - me.y); if (k < dd) { dd = k; dr = d; } });
     if (dr && me.absorb <= 0) {
-      const mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0;
-      const msg = mine ? "nhấn E để nhặt vào túi" : `<em>của người hạ hồn thú, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
+      // Từ 7.1 đồ rơi của tổ đội mình (DropState.party) cũng nhặt được ngay.
+      const mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0 || (!!dr.party && dr.party === this.party?.id);
+      const msg = mine ? "nhấn E để nhặt vào túi" : `<em>của ${dr.party ? "tổ đội " : ""}người hạ hồn thú, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
       const it = dr.item ? itemDef(dr.item) : undefined;
       if (dr.item === CORE_ITEM) hud.showPrompt(`<span class="dot" style="color:${CORE_SETS[dr.cset]?.col ?? "#d9b8ff"}"></span>${coreName(CORE_SETS[dr.cset]?.id ?? "", dr.stars)}: ${msg}`);
       else if (dr.item === BONE_ITEM) hud.showPrompt(`<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn cốt ${boneName(BEASTS[dr.species]?.id ?? "", BONE_SLOTS[dr.slot]?.id, dr.years)}: ${msg}`);
