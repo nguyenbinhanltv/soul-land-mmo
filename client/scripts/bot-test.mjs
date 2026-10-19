@@ -874,12 +874,17 @@ ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-p
 // Tiến độ chưa lưu của phiên cũ (đặt qua hook test) phải còn: phiên mới chỉ nạp DB sau khi phiên cũ lưu xong lần cuối (mục 6).
 const relog=(await test(C,"ping"))?.enabled?C.owned.team.filter(Boolean).map((rowId,i)=>[rowId,1234+i]):null;
 if(relog) for(const [rowId,xp] of relog) await test(C,"set",{rowId,xp});
+// Túi đồ và Hồn Tệ chưa lưu của phiên cũ cũng phải còn (loadBag của phiên mới chạy sau lần lưu túi đồ của phiên cũ).
+let relogBag=null;
+if(relog){ await test(C,"coin",{n:(C.bag?.honTe??0)+4321}); await test(C,"give",{code:"hoi_huyet_dan",qty:1}); relogBag=bagKey(C); }
 let kicked=0; C.room.onLeave(code=>{kicked=code;});
 const l2=await post("/api/login",{name:C.name,password:PASS}); ok(l2.mapId==="tinh_dau","đăng nhập lại: /api/login trả tinh_dau");
 const C2={name:C.name,token:l2.token,logs:[],mapId:l2.mapId}; await enter(C2);
 ok(await waitFor(()=>kicked===4001),"phiên cũ bị đá khi tài khoản vào lại");
 if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.list.find(v=>v.rowId===r)?.xp);
-  ok(same(got,relog.map(([,xp])=>xp)),`đăng nhập lại: phiên mới nạp tiến độ phiên cũ vừa lưu lúc bị đá (kinh nghiệm ${got.join("/")})`); }
+  ok(same(got,relog.map(([,xp])=>xp)),`đăng nhập lại: phiên mới nạp tiến độ phiên cũ vừa lưu lúc bị đá (kinh nghiệm ${got.join("/")})`);
+  await waitFor(()=>C2.bag);
+  ok(bagKey(C2)===relogBag,`đăng nhập lại: phiên mới nạp túi đồ, Hồn Tệ phiên cũ vừa lưu lúc bị đá (${formatHonTe(C2.bag?.honTe??0)}, ${C2.bag?.items.length} ô)`); }
 C=C2;
 await waitFor(()=>me());
 // Đường về: cổng ở mép tây doanh trại -> Nặc Đinh Thành (cổng đông).
