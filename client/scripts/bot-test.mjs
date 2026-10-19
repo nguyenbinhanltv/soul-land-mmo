@@ -3470,12 +3470,19 @@ async function arenaTest(){
   ok(E.room.state.mapId==="nac_dinh_thanh"&&Math.hypot(meOf(E).x-posE[0],meOf(E).y-posE[1])<1,`E về Nặc Đinh Thành đúng chỗ cũ (${meOf(E).x.toFixed(0)},${meOf(E).y.toFixed(0)})`);
   ok(bagKey(E)===bagE1&&prog(E)===progE&&JSON.stringify(E.owned.team)+E.owned.active===teamE,"phần thưởng đã lưu; cấp, kinh nghiệm, hồn hoàn, đội hình không đổi");
 
+  // Cộng minh (8.2) áp cả trong sân: E có 4 võ hồn cấp RES_VOHON_LEVEL (mốc Võ hồn 1), sinh lực tối đa trong sân bằng ở thành.
+  for(const vo of ["hao_thien_chuy","hoa_long"]) await test(E,"grant",{vohon:vo});
+  for(const v of E.owned.list) await test(E,"set",{rowId:v.rowId,level:RES_VOHON_LEVEL,xp:0});
+  await test(E,"rest"); await waitFor(()=>E.squad,2000);
+  const ev=E.owned.list.find(v=>v.rowId===E.owned.active), resHp=meOf(E).maxHp, resSquad=JSON.stringify(E.squad.list.map(s=>[s.rowId,s.maxHp]));
+  ok(resHp>calcStats(vohonIndex(ev.vohon),ev.level,ev.rings.map(tierOfYears),ev.stars).maxHp,`cộng minh: E có mốc Võ hồn 1, sinh lực tối đa ${resHp} (cao hơn khi không có cộng minh)`);
   // ---- Trận 2: E gặp F; đạn hồn kỹ và đánh thường trúng đối thủ; F gục cả đội (hook down) -> E thắng ----
   await test(F,"aelo",{elo:1030});
   await aop(E,"queue"); await aop(F,"queue");
   ok(await waitFor(()=>found(E)&&found(F)&&found(E).roomId===found(F).roomId,3000),"ghép E với F");
   const eloE2=E.aq.elo, posF=[meOf(F).x,meOf(F).y], progF=prog(F), teamF=JSON.stringify(F.owned.team)+F.owned.active, bagF=bagKey(F), bagE2=snap(E);
   await enterArena(E); await enterArena(F);
+  ok(meOf(E).maxHp===resHp&&JSON.stringify(E.squad.list.map(s=>[s.rowId,s.maxHp]))===resSquad,`trong sân cộng minh vẫn áp: sinh lực tối đa ${meOf(E).maxHp} = ở thành, cả đội như ở thành`);
   await waitFor(()=>E.room.state.phase==="ready",3000); await test(E,"afast",{s:0});
   ok(await waitFor(()=>E.room.state.phase==="fight",2000)&&E.arena.some(m=>m.k==="fight"),`hết đếm ngược: giao đấu ${Math.round(E.room.state.time)} giây`);
   const sid=b=>b.room.sessionId, fv=()=>E.room.state.players.get(sid(F)), sE=sides(E).findIndex(s=>s.sid===sid(E)), dir=sE===0?1:-1;
