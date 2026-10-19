@@ -296,6 +296,22 @@ body.touch .bslot small{font-size:11px}
 .bpick .bitem>span{display:flex;flex-direction:column;flex:1;min-width:0}
 .bpick .bitem b{font-size:12px;color:var(--c)}
 .warn{color:var(--warn)}
+/* Hồn hạch gắn trên võ hồn (5.2): 6 ô, các bộ đang có, danh sách trong túi */
+.cfig{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-self:center;width:min(300px,100%)}
+.ccell{min-height:62px}
+.ccell svg.ico.core{width:28px;height:28px;transform:none;opacity:.3;filter:none;color:var(--muted)}
+.ccell:not(.empty) svg.ico.core{opacity:1;color:var(--c);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 1px 0 #000)}
+.csets{display:flex;flex-direction:column;gap:3px}
+.cset{display:flex;align-items:flex-start;gap:7px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:4px 6px;opacity:.7}
+.cset.on{opacity:1;border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.cset svg.ico.core{width:22px;height:22px;flex-shrink:0;transform:none;margin-top:1px}
+.cset>span{display:flex;flex-direction:column;min-width:0}
+.cset b{font-size:12px;color:var(--text)}
+.cset.on{border-left:3px solid var(--c)}
+.ccell em{color:var(--text);opacity:.85}
+.cset small{font-size:11px;color:var(--muted)}
+.cset small.on{color:var(--text)}
+.bpick .bitem svg.ico.core{width:24px;height:24px;flex-shrink:0;transform:none}
 body.touch .bpick .bitem{cursor:default}
 /* Cường hóa hồn cốt (bước 4.4): cấp +N ở góc ô, bảng chọn nhiều nguyên liệu, xem trước rồi xác nhận */
 .bslot b.enh,.bcell b.enh{position:absolute;left:2px;top:0;font-size:10px;font-weight:800;color:#ffe08a;text-shadow:0 1px 0 #000,0 0 2px #000;font-variant-numeric:tabular-nums}
