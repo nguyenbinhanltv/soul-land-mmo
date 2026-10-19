@@ -314,6 +314,8 @@ else {
   for(let i=0;i<80&&inCamp();i++){ A.room.send("input",{x:1,y:0}); await sleep(100); }
   A.room.send("input",{x:0,y:0}); await sleep(150);
   ok(!inCamp(),"đứng ngoài doanh trại");
+  // Đi ra có thể bị hồn thú đánh: dọn quanh rồi hồi đầy võ hồn ra trận, để lúc nó tự ra trận lại vẫn đủ sinh lực riêng.
+  await test(A,"clear"); await test(A,"set",{rowId:a,level:5,xp:0,rings:[]});
   // Võ hồn ra trận gục -> tự đổi sang võ hồn còn sống, không chờ hồi chiêu đổi; võ hồn mới giữ sinh lực riêng (đầy).
   const s0=A.owned.team.indexOf(bn); A.room.send("switch",{slot:s0});
   ok(await waitFor(()=>A.owned.active===bn&&p.swCd>2),"đổi tay sang ô 2, đang hồi chiêu đổi");
@@ -939,6 +941,8 @@ const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
 /** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
 async function travelBy(name,to,during,after){
   C.travel=null; C.room.send("travel",{portal:name}); await during?.();
+  // Hồn thú hoang ở doanh trại Tinh Đấu có thể đánh hủy niệm cổng (không có GAME_TEST thì không dọn được): bị đánh thì xin đi lại.
+  for(let k=0;k<3&&!during&&!(await waitFor(()=>C.travel,TRAVEL_CAST*1000+1500))&&/Bị tấn công/.test(C.logs.at(-1)??"");k++) C.room.send("travel",{portal:name});
   ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`+(C.travel?"":` (log: ${C.logs.slice(-4).join(" | ")})`));
   await after?.();
   const x0=me().x, bk=bagKey(C); C.room.send("input",{x:1,y:0}); C.room.send("use",{id:C.bag?.items[0]?.id}); await sleep(300);
@@ -1028,6 +1032,7 @@ ok(await walk(-1,0,()=>C.portal?.name,6000)&&C.portal.to==="nac_dinh_thanh",`t�
 let shot=null;
 if((await test(C,"ping"))?.enabled){
   await test(C,"set",{rowId:C.owned.active,level:30,xp:0,rings:[1,1,1]});
+  await test(C,"clear"); // hồn thú hoang gần cổng đánh trúng thì hủy niệm cổng
   const ids=new Set(C.room.state.beasts.keys());
   // Đạn bay 170 px/s từ (x, y-8): hồn thú cách 90 px về phía đông, trúng sau ~0,53 giây.
   await test(C,"beast",{dx:90,dy:TIERS[0].size/2-8});
