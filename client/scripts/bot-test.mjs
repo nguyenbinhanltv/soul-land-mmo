@@ -1531,6 +1531,14 @@ else {
       const hp0=kp.hp; await castK(0,300);
       ok(K.fxs.some(f=>f.k==="ult")&&hasBuff(kp,"inv")&&hasBuff(kp,"atk")&&kp.hp>hp0,`tuyệt kỹ ${ult.name}: miễn sát thương, tăng công, hồi sinh lực ${hp0} -> ${kp.hp}`);
       await test(K,"rest",{s:ult.self.secs}); ok(!hasBuff(kp,"inv"),`hết ${ult.self.secs} giây: hết miễn sát thương`);
+      // Phục Chế của Xúc Xích không sao chép tuyệt kỹ: hồn kỹ gần nhất trước đó là của Hỏa Long (không còn trong đội) nên không có gì để chép.
+      await test(K,"grant",{vohon:"xuc_xich"}); await test(K,"set",{rowId:rowK("xuc_xich"),level:40,xp:0,rings:Y10.slice(0,4)});
+      await sendTeam(K,[rowK(id),rowK("xuc_xich"),0,0]); await waitFor(()=>kp.swCd===0,3500);
+      K.room.send("switch",{slot:1}); ok(await waitFor(()=>K.owned.active===rowK("xuc_xich"),1500),"đổi sang Xúc Xích");
+      await test(K,"ready"); const pc=skillsOf("xuc_xich")[3], lp=K.logs.length; K.fxs=[]; K.room.send("skill",{i:3});
+      ok(await waitFor(()=>K.logs.length>lp,1500)&&/chưa có hồn kỹ/.test(K.logs.at(-1)??"")&&!K.fxs.some(f=>f.k==="soulring")&&!hasBuff(kp,"inv"),
+        `${pc.name} không sao chép ${ult.name}: ${K.logs.at(-1)}`);
+      await waitFor(()=>kp.swCd===0,3500); K.room.send("switch",{slot:0}); ok(await waitFor(()=>K.owned.active===rowK(id),1500),"đổi về Cửu Bảo Lưu Ly Tháp");
       // Chân Thân giảm tiêu hao: còn ít hồn lực hơn giá gốc của vòng 8 (60) nhưng đủ giá đã giảm thì vẫn tung được.
       const cs=chanThanStats(def,Y10[6]), s8=ringSkill(id,7), cost=s8.cost*(1-Math.min(0.9,cs.mp)); await test(K,"ready"); await chanThan(); const st=await stats();
       const pct=Math.ceil((cost+8)/st.maxMp*100); await test(K,"ready",{mp:pct}); const mp0=kp.mp; await castK(1,250);

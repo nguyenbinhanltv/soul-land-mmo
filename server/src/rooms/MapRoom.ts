@@ -1976,7 +1976,8 @@ export class MapRoom extends Room<MapState> {
       d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * ccMp); p.mp = Math.floor(d.mpF);
     };
     this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, hit);
-    if (!set.some((x) => x.copy)) d.lastSkill = { sk, row: d.ch.rowId };
+    // Tuyệt kỹ vòng 10 (8.1a) không ghi vào hồn kỹ gần nhất: Phục Chế (hồi 14 giây) không được sao chép tuyệt kỹ (hồi 45–50 giây).
+    if (!set.some((x) => x.copy) && !sk.ult) d.lastSkill = { sk, row: d.ch.rowId };
   }
 
   /**
