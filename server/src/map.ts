@@ -1,6 +1,7 @@
 // Đọc bản đồ Tiled dùng chung với client (shared/assets/<mapId>.json) để server tự kiểm tra va chạm.
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
 import { readFileSync } from "node:fs";
+import { solidGrid, hits as gridHits, moveEnt as gridMove, isSolidTile as gridSolid } from "../../shared/move.ts";
 import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, npcDef, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
@@ -72,15 +73,8 @@ export function loadMap(mapId: string): GameMap {
   const hit = cache.get(mapId); if (hit) return hit;
   if (!Object.hasOwn(MAPS, mapId)) throw new Error(`Bản đồ không tồn tại: ${mapId}`);
   const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${mapId}.json`, import.meta.url), "utf8"));
-  const MW: number = raw.width, MH: number = raw.height;
-
-  const solidGids = new Set<number>();
-  for (const ts of raw.tilesets) for (const t of ts.tiles ?? [])
-    if ((t.properties ?? []).some((p: any) => p.name === "collides" && p.value)) solidGids.add(ts.firstgid + t.id);
-
-  const solid = new Uint8Array(MW * MH);
-  for (const layer of raw.layers) if (layer.type === "tilelayer")
-    layer.data.forEach((gid: number, i: number) => { if (solidGids.has(gid)) solid[i] = 1; });
+  // Lưới ô chặn đọc bằng hàm dùng chung với client (shared/move.ts): client dự đoán chuyển động trên đúng lưới này.
+  const grid = solidGrid(raw), { MW, MH, solid } = grid;
 
   const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [], npcObjs: any[] = [];
   let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
@@ -113,21 +107,13 @@ export function loadMap(mapId: string): GameMap {
 
   const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones), npcs = parseNpcs(mapId, npcObjs);
 
-  const isSolidTile = (tx: number, ty: number) => tx < 0 || ty < 0 || tx >= MW || ty >= MH || solid[ty * MW + tx] === 1;
-  const hits = (x: number, y: number, hw: number, hh: number) => {
-    const x0 = Math.floor((x - hw) / TILE), x1 = Math.floor((x + hw) / TILE);
-    const y0 = Math.floor((y - hh) / TILE), y1 = Math.floor((y + hh) / TILE);
-    for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) if (isSolidTile(tx, ty)) return true;
-    return false;
-  };
+  const isSolidTile = (tx: number, ty: number) => gridSolid(grid, tx, ty);
+  const hits = (x: number, y: number, hw: number, hh: number) => gridHits(grid, x, y, hw, hh);
   const kind = MAPS[mapId].kind;
   const map: GameMap = {
     mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, npcs, isSolidTile, hits,
     inLair: (x, y) => !!lair && inRect(lair, x, y),
-    moveEnt(e, dx, dy, hw, hh) {
-      if (!hits(e.x + dx, e.y, hw, hh)) e.x += dx;
-      if (!hits(e.x, e.y + dy, hw, hh)) e.y += dy;
-    },
+    moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),
     inSpawn: (x, y) => inRect(spawn, x, y),
     inSafe: (x, y) => kind === "town" || safe.some((r) => inRect(r, x, y)),
     portalAt: (x, y) => portals.find((p) => inRect(p, x, y)),
