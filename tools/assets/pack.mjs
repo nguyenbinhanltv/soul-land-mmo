@@ -1,6 +1,6 @@
 // Ghép khung đã chuẩn hóa vào spritesheet bố cục cố định của mục 5.11.
 //   node tools/assets/pack.mjs --kind honsu|vohon --out <sheet.png> <thư mục khung> [--fill]
-//   node tools/assets/pack.mjs --kind beast<bậc> --out <sheet.png> <thư mục khung> [--fill]
+//   node tools/assets/pack.mjs --kind beast<bậc> --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]
 //
 // Tên file khung quy định ô:
 //   hồn sư / phụ thể: {hướng}_{animation}_{i}.png, hướng = down|right|up, animation = idle|walk|attack|cast|hurt|die
@@ -9,8 +9,9 @@
 // Bố cục 16 cột × 4 hàng; khung 32×32 (sheet 512×128) cho hồn sư, 48×48 (768×192) cho phụ thể.
 // Phụ thể chỉ nhận idle/walk/attack/cast (cột 0–11, hàng 0–2); hurt/die/absorb do client ánh xạ.
 //
-// --breathe <y>: (hồn sư) idle khung 2 còn trống thì tạo từ idle khung 1: dời mọi điểm có y ≤ <y> xuống 1 pixel
-//         (đầu và vai nhích 1 pixel, đúng mô tả idle của 5.11). Dùng cùng <y> cho mọi lớp để các lớp khớp nhau.
+// --breathe <y>: idle khung 2 còn trống thì tạo từ idle khung 1: dời mọi điểm có y ≤ <y> xuống 1 pixel
+//         (đầu và vai nhích 1 pixel, đúng mô tả idle của 5.11). Hồn sư: dùng cùng <y> cho mọi lớp để các lớp khớp nhau.
+//         Hồn thú: lấy <y> ngang lưng để đầu và lưng nhích, chân đứng yên.
 // --fill: ô bắt buộc còn trống thì chép tạm khung idle đầu cùng hàng (để client không hiện khung rỗng khi
 //         mới có vài animation). validate.mjs sẽ cảnh báo các ô chép tạm này.
 import { readdirSync, writeFileSync, mkdirSync } from "node:fs";
@@ -22,7 +23,7 @@ const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const kind = opt("--kind", "honsu"), out = opt("--out", ""), fill = flag("--fill"), breathe = opt("--breathe", "");
 const dir = args[0];
-if (!out || !dir) { console.error("Cách dùng: pack.mjs --kind honsu|vohon|beast<bậc> --out <sheet.png> <thư mục khung> [--fill]"); process.exit(1); }
+if (!out || !dir) { console.error("Cách dùng: pack.mjs --kind honsu|vohon|beast<bậc> --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]"); process.exit(1); }
 
 const BEAST_ANIMS = { idle: [0, 2], walk: [2, 4], attack: [6, 3], hurt: [9, 1], die: [10, 3] };
 let FW, FH, cols, rows, cellOf, required;
@@ -55,9 +56,9 @@ for (const f of readdirSync(dir).filter((f) => f.endsWith(".png")).sort()) {
   filled.add(cell.join(","));
 }
 
-if (breathe && kind === "honsu") {
+if (breathe) {
   const cut = +breathe;
-  for (let r = 0; r < 3; r++) {
+  for (let r = 0; r < (kind === "honsu" ? 3 : kind === "vohon" ? 0 : 1); r++) {
     if (!filled.has(`${r},0`) || filled.has(`${r},1`)) continue;
     const y0 = r * FH; // idle khung 1 (cột 0) → khung 2 (cột 1)
     sheet.blit(sheet, 0, y0 + cut + 1, FW, FH - cut - 1, FW, y0 + cut + 1); // phần dưới giữ nguyên
