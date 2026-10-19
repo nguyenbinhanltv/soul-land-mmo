@@ -1727,7 +1727,8 @@ export class MapRoom extends Room<MapState> {
     if ((t ? t.r : Math.random()) >= (sure ? 1 : coreChance(years))) return;
     const core = rollCore(years, MAPS[this.state.mapId]?.cores ?? [], Math.random, t ? { stars: t.stars, set: t.set >= 0 ? t.set : undefined } : {});
     // Bên phải hồn hoàn (hồn cốt nằm bên trái, mảnh võ hồn khi túi đầy sát bên phải) để biểu tượng và nhãn không chồng lên nhau.
-    const [cx, cy] = [[x + 16, y], [x, y + 8], [x, y]].find(([a, b]) => this.map.standable(a, b))!;
+    // Không chỗ nào đứng được (hồn thú gục sát vật cản) thì nằm đúng chỗ hồn hoàn, như hồn hoàn.
+    const [cx, cy] = [[x + 16, y], [x, y + 8]].find(([a, b]) => this.map.standable(a, b)) ?? [x, y];
     const drop = this.newDrop(cx, cy, owner);
     const si = Math.max(0, coreSetIndex(core.data.set)), col = CORE_SETS[si].col;
     drop.item = CORE_ITEM; drop.qty = 1; drop.tier = tierOfYears(years); drop.years = years; drop.stars = core.stars; drop.cset = si;
