@@ -129,8 +129,15 @@ for(const [x,y,d] of [[0,1,0],[-1,0,3],[0,-1,2],[0.6,0.4,1]]){
 }
 A.room.send("input",{x:0,y:0}); await sleep(200);
 ok(p.dir===1,"đứng yên giữ hướng nhìn cũ");
-A.room.send("input",{x:1,y:0}); await sleep(1500);
+// Trong làng (vùng safe) không có hồn thú: theo đường làng đông–tây (hàng ô 27–28, tools/gen-map.mjs) ra Bãi tập rồi mới săn.
+const safe=JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe");
+const inSafe=()=>safe&&p.x>=safe.x&&p.x<=safe.x+safe.width&&p.y>=safe.y&&p.y<=safe.y+safe.height;
+if(inSafe()){
+  const ry=27.5*16; A.room.send("input",{x:0,y:Math.sign(ry-p.y)}); await waitFor(()=>Math.abs(p.y-ry)<3,4000);
+  A.room.send("input",{x:1,y:0}); await waitFor(()=>!inSafe()&&p.x>safe.x+safe.width+24,8000);
+} else { A.room.send("input",{x:1,y:0}); await sleep(1500); }
 console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.sessionId).x.toFixed(1));
+const kills0=p.kills;
 for(let i=0;i<300;i++){
   let best=null,bd=1e9; st.beasts.forEach(b=>{const d=Math.hypot(b.x-p.x,b.y-p.y); if(d<bd){bd=d;best=b;}});
   if(best){ const dx=best.x-p.x,dy=best.y-p.y,d=Math.hypot(dx,dy)||1; A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); if(d<22) A.room.send("attack"); }
@@ -140,7 +147,7 @@ for(let i=0;i<300;i++){
 A.room.send("input",{x:0,y:0});
 console.log("drops",st.drops.size,"kills",p.kills,"xp",p.xp,"lvl",p.level,"logs",A.logs.slice(-2));
 // Vừa đánh xong (đang giao chiến): đổi võ hồn trong đội được, xếp đội thì không.
-if(p.kills){
+if(p.kills>kills0){
   await waitFor(()=>p.swCd===0,3500);
   const want=A.owned.team.find(r=>r&&r!==A.owned.active), t0=[...A.owned.team];
   A.room.send("switch",{slot:A.owned.team.indexOf(want)});
@@ -169,7 +176,7 @@ else {
   // Chia 40/20: hai võ hồn cấp 5 chưa có hồn hoàn (chưa bình cảnh, đủ xa mốc lên cấp).
   await test(A,"set",{rowId:a,level:5,xp:0,rings:[]}); await test(A,"set",{rowId:bn,level:5,xp:0,rings:[]});
   let got=await kill(1), want=split(5,1);
-  ok(same(got,want)&&want[0]<xpNeed(5)&&p.xp===want[0],`chia kinh nghiệm hồn thú ${TIERS[1].age}: ra trận +${got[0]}, võ hồn khác +${got[1]} (cần ${want.join("/")}); ô trống bỏ đi`);
+  ok(same(got,want)&&want[0]<xpNeed(5)&&await waitFor(()=>p.xp===want[0],1000),`chia kinh nghiệm hồn thú ${TIERS[1].age}: ra trận +${got[0]}, võ hồn khác +${got[1]} (cần ${want.join("/")}); ô trống bỏ đi`);
   // Võ hồn ở bình cảnh không nhận, phần đó không dồn cho võ hồn ra trận.
   await test(A,"set",{rowId:bn,level:10,xp:0,rings:[]});
   got=await kill(1);
@@ -263,7 +270,15 @@ await walk(0,-1,()=>!C.portal?.name,3000);
 ok(await lastLog(C,/rời cổng/),"rời cổng khi đang niệm: hủy");
 ok(!C.travel,"chưa được chuyển bản đồ");
 ok(await walk(0,1,()=>C.portal?.name),"quay lại cổng");
+// Kinh nghiệm chia cho võ hồn dự bị (chưa lưu) phải nằm trong transaction đi cổng (cần hook test).
+let benchXp=null;
+if((await test(C,"ping"))?.enabled){
+  await test(C,"kill",{tier:1}); const bn=C.owned.team.find(r=>r&&r!==C.owned.active);
+  benchXp=[bn,C.owned.list.find(v=>v.rowId===bn).xp];
+}
 await travelBy("Đi Nặc Đinh Thành","nac_dinh_thanh");
+if(benchXp){ await waitFor(()=>C.owned); const v=C.owned?.list.find(v=>v.rowId===benchXp[0]);
+  ok(v?.xp===benchXp[1],`đi cổng lưu cả kinh nghiệm võ hồn dự bị: ${v?.xp} (trước khi đi ${benchXp[1]})`); }
 ok(Math.hypot(me().x-5.5*16,me().y-20.5*16)<1,`xuất hiện ở điểm tu_thanh_hon_thon: ${me().x},${me().y}`);
 ok(!C.portal?.name,"điểm xuất hiện nằm ngoài cổng");
 ok(C.room.state.beasts.size===0,"Nặc Đinh Thành không có hồn thú");

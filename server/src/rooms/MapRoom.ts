@@ -463,7 +463,7 @@ export class MapRoom extends Room<MapState> {
 
   hurtPlayer(id: string, dmg: number) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
-    if (d.inv > 0 || p.dead || d.travelling || this.map.inSafe(p.x, p.y)) return;
+    if (d.inv > 0 || p.dead || d.travelling) return; // trong vùng an toàn hồn thú đã bỏ mục tiêu (tick) nên không đánh tới
     if (d.travelCast) { d.travelCast = null; this.log(id, "Bị tấn công: đã hủy đi qua cổng.", "#ffb35c"); }
     dmg = Math.round(dmg * VOHON[p.vh].def);
     d.hpF -= dmg; d.inv = 0.45; d.lastHit = 0; d.fight = 0;

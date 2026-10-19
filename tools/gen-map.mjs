@@ -218,11 +218,11 @@ function nacDinhThanh() {
   g.set(0, 19, 6); g.set(0, 20, 6); g.set(0, 21, 6); g.set(MW - 1, 19, 6); g.set(MW - 1, 20, 6); g.set(MW - 1, 21, 6);
 
   const { ground, trees, canopy } = toLayers(MW, MH, g, () => 0);
-  // Cổng ngay ngoài mép bản đồ cũng là ô chặn (rìa bản đồ), nên cổng đặt ở hai cột trong cùng.
+  // Cổng phủ cả cột cổng thành ở mép bản đồ (ô lát đá, đi vào được) để không đứng lọt ra ngoài cổng.
   const o = objects();
   o.rect("spawn", "Quảng trường Nặc Đinh", 26, 17, 8, 7);
-  o.portal("Về Thánh Hồn Thôn", 1, 18, 2, 5, "thanh_hon_thon", "tu_nac_dinh_thanh", "1-10");
-  o.portal("Đi Tinh Đấu Đại Sâm Lâm", MW - 3, 18, 2, 5, "tinh_dau", "tu_nac_dinh_thanh", "10-60");
+  o.portal("Về Thánh Hồn Thôn", 0, 18, 3, 5, "thanh_hon_thon", "tu_nac_dinh_thanh", "1-10");
+  o.portal("Đi Tinh Đấu Đại Sâm Lâm", MW - 3, 18, 3, 5, "tinh_dau", "tu_nac_dinh_thanh", "10-60");
   o.point("arrive", "tu_thanh_hon_thon", 5.5, 20.5);
   o.point("arrive", "tu_tinh_dau", MW - 5.5, 20.5);
   o.point("npc", "Ngọc Tiểu Cương (Đại Sư)", 11, 13, [prop("npc", "string", "dai_su")]);
