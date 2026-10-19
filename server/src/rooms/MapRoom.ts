@@ -14,6 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
+  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
@@ -244,6 +245,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("starup", (c, m: { vohon: unknown }) => this.starUp(c.sessionId, m?.vohon));
     this.onMessage("equip", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipBone(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequip", (c, m: { itemId: unknown }) => this.unequipBone(c.sessionId, m?.itemId));
+    this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("chat", (c, m: { text: string }) => {
       // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
       const p = this.state.players.get(c.sessionId); if (!p) return;
@@ -636,7 +638,7 @@ export class MapRoom extends Room<MapState> {
   /** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
   itemLabel(it: Item) {
     const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
-    if (bone) return `hồn cốt ${boneName(bone.beast, bone.slot, it.years!)}`;
+    if (bone) return `hồn cốt ${boneName(bone.beast, bone.slot, it.years!, it.enhance)}`;
     const name = itemDef(it.code)?.name ?? "vật phẩm lạ";
     return it.years !== null ? `${name} ${formatYears(it.years)}` : it.qty > 1 ? `${it.qty} ${name}` : name;
   }
@@ -1498,7 +1500,9 @@ export class MapRoom extends Room<MapState> {
     const tier = tierOfYears(bone.years), col = TIERS[tier].glow;
     // Client tra tên kỹ năng theo loài (chỉ số BEASTS) và vị trí; `i` là nút, hào quang theo niên hạn hồn cốt.
     this.broadcast("fx", { k: "bone", id, i, sp: beastIndex(bone.beast), tier });
-    this.runSkill(id, sk, skillPower(bone.years), buffPower(bone.years), col, { kind: "skill", done: false });
+    // Mốc cường hóa +5 / +10 / +15 / +20 nâng kỹ năng (4.4): sức mạnh và hiệu ứng lên bản thân nhân boneSkillMult.
+    const em = boneSkillMult(bone.enhance);
+    this.runSkill(id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false });
   }
 
   /**
@@ -1822,7 +1826,7 @@ export class MapRoom extends Room<MapState> {
   bonesOn(d: PData, rowId: number) {
     return d.bag.flatMap((it) => {
       const b = it.vohonId === rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
-      return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years! }] : [];
+      return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years!, enhance: it.enhance }] : [];
     });
   }
   /** Tổng chỉ số gốc hồn cốt đang gắn trên võ hồn `rowId` (boneBonus), cộng vào calcStats. */
@@ -1878,6 +1882,48 @@ export class MapRoom extends Room<MapState> {
     it.vohonId = null; d.bagDirty = true;
     this.log(id, `Tháo ${this.itemLabel(it)}${v ? ` khỏi ${VOHON[Math.max(0, vohonIndex(v.vohon))].name}` : ""} về túi đồ (giữ cường hóa +${it.enhance}).`);
     if (v) this.afterBones(id, v); else this.sendBag(id);
+  }
+
+  /**
+   * Cường hóa hồn cốt `rawTarget` (id ô của chính người gửi, trong túi hoặc đang gắn) bằng các hồn cốt nguyên liệu `rawMats` (mục
+   * 5.5, bước 4.4): nguyên liệu phải là hồn cốt nằm trong túi (không đang gắn), không phải chính nó, không trùng, tối đa
+   * BONE_FEED_MAX món. Điểm tính bằng boneEnhancePreview (niên hạn, cùng vị trí +50%, trả lại phần điểm đã nạp vào nguyên liệu),
+   * cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +20, điểm dư bị bỏ). Luôn thành công, nguyên liệu bị xóa khỏi túi. Cùng
+   * luật như gắn / tháo (boneLock: ngoài giao chiến, không gục, không hấp thụ), không đang chuyển bản đồ. Hồn cốt đang gắn thì chỉ
+   * số / kỹ năng đổi ngay (afterBones). Ghi DB qua chuỗi lưu (save) như các thay đổi túi đồ khác; transaction đi cổng cũng mang
+   * theo nếu lần lưu này chưa kịp chạy. Lò rèn ở Nặc Đinh Thành (6.1) sẽ mở cùng message này.
+   */
+  enhanceBone(id: string, rawTarget: unknown, rawMats: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
+    const boneIn = (it: Item | undefined) => (it && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null);
+    const it = typeof rawTarget === "string" ? d.bag.find((i) => i.id === rawTarget) : undefined, bone = boneIn(it);
+    if (!it || !bone) return warn("Không có hồn cốt này để cường hóa.");
+    if (it.enhance >= BONE_MAX_ENHANCE) return warn(`${this.itemLabel(it)} đã cường hóa tối đa +${BONE_MAX_ENHANCE}.`);
+    if (!Array.isArray(rawMats) || !rawMats.length) return warn("Chọn ít nhất một hồn cốt làm nguyên liệu.");
+    if (rawMats.length > BONE_FEED_MAX) return warn(`Mỗi lần cường hóa tối đa ${BONE_FEED_MAX} nguyên liệu.`);
+    if (new Set(rawMats).size !== rawMats.length) return warn("Nguyên liệu bị chọn trùng.");
+    const mats: Item[] = [];
+    for (const raw of rawMats) {
+      if (raw === it.id) return warn("Không dùng chính hồn cốt đang cường hóa làm nguyên liệu.");
+      const m = typeof raw === "string" ? d.bag.find((i) => i.id === raw) : undefined;
+      if (!m || !boneIn(m)) return warn("Nguyên liệu phải là hồn cốt trong túi đồ.");
+      if (m.vohonId !== null) return warn(`${this.itemLabel(m)} đang gắn trên võ hồn: tháo ra trước mới dùng làm nguyên liệu được.`);
+      mats.push(m);
+    }
+    const lock = this.boneLock(p, d); if (lock) return warn(lock.replace("gắn / tháo", "cường hóa"));
+    const r = boneEnhancePreview({ slot: bone.slot, xp: boneXp(it.stats) },
+      mats.map((m) => ({ slot: parseBone(m.stats)!.slot, years: m.years!, xp: boneXp(m.stats) })));
+    const drop = new Set(mats);
+    d.bag = d.bag.filter((x) => !drop.has(x));
+    it.stats = { ...(it.stats as object), xp: r.xp }; it.enhance = r.level; d.bagDirty = true;
+    const up = r.level > r.from ? ` lên +${r.level}` : ` (vẫn +${r.level})`;
+    this.log(id, `Cường hóa ${this.itemLabel(it)}${up}: ${mats.length} nguyên liệu, +${r.gain.toLocaleString("vi-VN")} điểm`
+      + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "") + ".", TIERS[tierOfYears(it.years!)].glow);
+    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length });
+    const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
+    if (v) this.afterBones(id, v); else this.sendBag(id);
+    this.save(id); // nguyên liệu đã mất: ghi ngay qua chuỗi lưu
   }
 
   /** Sau khi gắn / tháo trên võ hồn `v`: võ hồn ra trận thì tính lại chỉ số ngay; gửi lại túi và sinh lực đội (sinh lực tối đa đổi). */

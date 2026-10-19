@@ -283,6 +283,12 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); });
+    // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag".
+    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number }) => {
+      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
+      if (m.to > m.from) hud.banner(`Cường hóa hồn cốt +${m.to}`, `+${m.from} → +${m.to} · ${pts}`);
+      else hud.banner(`Cường hóa hồn cốt +${m.to}`, `${pts}, chưa đủ lên cấp`);
+    });
     // Hấp thụ hồn hoàn (bước 3.3): server báo riêng lúc bắt đầu (thanh tiến độ) và kết quả; thành công / thất bại do server quyết định.
     this.room.onMessage("absorbing", (m: { on: boolean; rowId: number; years: number; slot?: number; secs?: number; fail?: number; result?: string; level?: number }) => {
       const v = this.owned?.list.find((o) => o.rowId === m.rowId), def = VOHON[Math.max(0, vohonIndex(v?.vohon ?? ""))];
@@ -900,6 +906,7 @@ export class GameScene extends Phaser.Scene {
       starUp: (vohon) => this.room.send("starup", { vohon }),
       equip: (itemId, vohonId, slot) => this.room.send("equip", { itemId, vohonId, slot }),
       unequip: (itemId) => this.room.send("unequip", { itemId }),
+      enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       portrait: (vohon) => this.portrait(vohon),
       combat: () => this.combat,
     }, shards, this.bag?.items ?? []);
@@ -942,6 +949,7 @@ export class GameScene extends Phaser.Scene {
       absorbOptions: (years) => this.absorbOptions(years),
       combat: () => this.combat,
       refresh: () => this.room.send("vohons"),
+      enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
     });
   }
 
@@ -974,7 +982,7 @@ export class GameScene extends Phaser.Scene {
     // Kỹ năng hồn cốt (4.3): hồn cốt đang gắn trên võ hồn ra trận, lấy từ tin riêng "bag" (trường `vohon`) khi đúng võ hồn ra trận.
     const worn: hud.WornBone[] = own && VOHON[me.vh]?.id === own.vohon ? (this.bag?.items ?? []).flatMap((it) => {
       const b = it.vohon === own.rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
-      return b ? [{ beast: b.beast, slot: b.slot, years: it.years! }] : [];
+      return b ? [{ beast: b.beast, slot: b.slot, years: it.years!, enhance: it.enhance }] : [];
     }) : [];
     const bKey = JSON.stringify(worn);
     if (bKey !== this.boneSkKey) { this.boneSkKey = bKey; hud.buildBoneSkills(worn, (a) => this.act(a)); }
