@@ -19,7 +19,8 @@
 // gắn hồn cốt (4.2: đúng / sai vị trí, đổi chỗ, tháo khi túi đầy, chỉ số, giao chiến, đi cổng và vào lại), kỹ năng hồn cốt
 // (4.3: chủ động trúng, tốn hồn lực, hồi chiêu riêng, bị chặn khi Câm lặng / vùng an toàn; bị động áp khi gắn, mất khi tháo), cường hóa hồn
 // cốt (4.4: điểm theo niên hạn, cùng vị trí +50%, mốc +5 / +20, nguyên liệu bị xóa, từ chối đang gắn / chính nó / giao chiến, chỉ số
-// tăng ngay khi đang gắn, giữ cấp khi tháo, qua đi cổng và vào lại) cần server bật hook kiểm thử:
+// tăng ngay khi đang gắn, giữ cấp khi tháo, qua đi cổng và vào lại), hồn hạch rơi (5.1: sao theo niên hạn, bộ theo bản đồ, số dòng
+// phụ theo sao, tinh anh chắc chắn rơi, túi đầy, đi cổng và vào lại) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
@@ -38,7 +39,9 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   BOSSES, bossIndex, beastIndex, ELITE, ELITE_RAGE, bossHpMult, teleZones, beastBuffBit, BEAST_BUFFS, beastName,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
-  boneEnhancePreview } from "../../shared/data.ts";
+  boneEnhancePreview,
+  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore,
+  coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -97,14 +100,17 @@ async function enter(b){
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
+  // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
+  // phần 5.1 tự bật lại. Chờ trả lời (server gửi tin vohons trước tin test) rồi mới đếm lại tin vohons, để không lẫn vào kiểm tra sau.
+  b.test=null; b.room.send("test",{op:"core",r:100}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0;
   b.bag=null; b.room.send("vohons"); b.room.send("bag");
 }
 /**
  * Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ; từ 4.1 loài / vị trí /
- * cường hóa hồn cốt, từ 4.2 võ hồn đang gắn) để so trước/sau khi lưu.
+ * cường hóa hồn cốt, từ 4.2 võ hồn đang gắn, từ 5.1 sao / bộ / chỉ số hồn hạch) để so trước/sau khi lưu.
  */
 const qtyOf=(b,code)=>(b.bag?.items??[]).filter(i=>i.code===code).reduce((a,i)=>a+i.qty,0);
-const bagKey=b=>b.bag&&JSON.stringify([b.bag.honTe,b.bag.items.map(i=>[i.id,i.code,i.qty,i.years,i.enhance,i.stats&&Object.entries(i.stats).sort(),i.vohon])]);
+const bagKey=b=>b.bag&&JSON.stringify([b.bag.honTe,b.bag.items.map(i=>[i.id,i.code,i.qty,i.years,i.stars,i.enhance,i.stats&&Object.entries(i.stats).sort(),i.vohon])]);
 const bonesOf=b=>(b.bag?.items??[]).filter(i=>i.code===BONE_ITEM);
 /** Gửi `use {id}` rồi chờ server trả túi mới (dùng được) hoặc một dòng log (bị từ chối). */
 async function useItem(b,id){ const n=b.bagMsgs??0, l=b.logs.length; b.room.send("use",{id}); await waitFor(()=>(b.bagMsgs??0)>n||b.logs.length>l,1500); }
@@ -1870,6 +1876,126 @@ else {
       await test(A,"bone",{r:4});
       ok(!await killBone(1500,undefined,HN),`số ngẫu nhiên 0,04 (trên ${+(boneChance(1500,x3)*100).toFixed(2)}%): tinh anh không rơi hồn cốt`);
     }
+    // ---------- 5.1: hồn hạch rơi theo bảng 5.3 (15% 1–2★ / 25% 2–4★ / 40% 3–5★ / 100% 5–6★), bộ theo bản đồ, chỉ số chính và phụ; nằm trong túi ----------
+    {
+      const coresOf=b=>(b.bag?.items??[]).filter(i=>i.code===CORE_ITEM), mapSets=MAPS[st.mapId].cores;
+      ok(same([10,999,1000,9999,10000,MAX_YEARS-1,MAX_YEARS].map(coreChance),[0.15,0.15,0.25,0.25,0.4,0.4,1])
+        &&same([10,999,1000,9999,10000,MAX_YEARS-1,MAX_YEARS].map(coreStarBand),[[1,2],[1,2],[2,4],[2,4],[3,5],[3,5],[5,6]]),
+        "bảng rơi hồn hạch theo niên hạn: 15% 1–2★ / 25% 2–4★ / 40% 3–5★ / 100% 5–6★");
+      ok(itemDef(CORE_ITEM)?.kind==="hon_hach"&&itemDef(CORE_ITEM).stack===1&&CORE_SETS.length===9&&same(CORE_SUBS,[0,1,1,2,3,4])&&CORE_SUBS[MAX_CORE_STARS-1]===4,
+        "9 bộ hồn hạch; mỗi món một ô; dòng phụ theo sao 0 / 1 / 1 / 2 / 3 / 4 (1★ 0 dòng … 6★ 4 dòng)");
+      ok(same(mapSets,["lam_ngan","tien_co"])&&same(MAPS.tinh_dau_ngoai_vi.cores,["linh_mieu","hao_thien","xa_hoang"])&&same(MAPS.tinh_dau_noi_dia.cores,["ba_vuong_long","that_sat","luu_ly"]),
+        `bộ đặc trưng theo bản đồ (bảng 5.3): ${MAPS[st.mapId].name} ${mapSets.map(s=>CORE_SETS[coreSetIndex(s)].name).join(", ")}`);
+      ok(CORE_STAT_IDS.every(k=>CORE_STAR_K.every((_,i)=>i===0||coreMainValue(k,i+1)>=coreMainValue(k,i)))&&coreMainValue("hp",6)>coreMainValue("hp",1),
+        `chỉ số chính tăng theo sao (Sinh lực 1★…6★: ${[1,2,3,4,5,6].map(s=>coreMainValue("hp",s)).join(" / ")})`);
+      ok(coreName("hao_thien",4)==="Hồn hạch Hạo Thiên 4★"&&coreStatText("atk_pct",12)==="Công +12%"&&coreStatText("crit",2.4)==="Tỉ lệ chí mạng +2,4%"&&coreStatText("hp",300)==="Sinh lực +300",
+        `tên và dòng chỉ số: ${coreName("hao_thien",4)}, ${coreStatText("crit",2.4)}`);
+      // Tung nhiều lần (hàm thuần, ngẫu nhiên của bot): sao luôn trong khoảng, đủ mọi sao của khoảng, dòng phụ đúng số, khác nhau, khác chỉ số chính, giá trị trong khoảng.
+      const N=5000, YS=[10,437,1500,12000,MAX_YEARS]; let bad=[], own=0; const seen=new Set(), mains=new Set();
+      for(let i=0;i<N;i++){
+        const y=YS[i%YS.length], [lo,hi]=coreStarBand(y), c=rollCore(y,mapSets,Math.random), ks=c.data.subs.map(s=>s[0]);
+        const tol=k=>CORE_STATS[k].pct?0.051:0.51, vOk=c.data.subs.every(([k,v])=>v>=Math.max(CORE_STATS[k].pct?0.1:1,coreSubMax(k,c.stars)*CORE_SUB_ROLL[0]-tol(k))&&v<=coreSubMax(k,c.stars)*CORE_SUB_ROLL[1]+tol(k));
+        if(c.stars<lo||c.stars>hi||ks.length!==CORE_SUBS[c.stars-1]||new Set(ks).size!==ks.length||ks.includes(c.data.main)||coreSetIndex(c.data.set)<0||!vOk) bad.push(JSON.stringify([y,c]));
+        seen.add(`${y}:${c.stars}`); mains.add(c.data.main); if(mapSets.includes(c.data.set)) own++;
+      }
+      const allStars=YS.every(y=>{ const [lo,hi]=coreStarBand(y); for(let s=lo;s<=hi;s++) if(!seen.has(`${y}:${s}`)) return false; return true; });
+      ok(!bad.length&&allStars&&mains.size===CORE_STAT_IDS.length,`tung ${N} hồn hạch: sao đúng khoảng theo niên hạn, đủ mọi sao, số dòng phụ đúng theo sao, không trùng${bad.length?` (sai: ${bad[0]})`:""}`);
+      const share=own/N, want=CORE_MAP_SET+(1-CORE_MAP_SET)*mapSets.length/CORE_SETS.length;
+      ok(Math.abs(share-want)<0.04,`bộ đặc trưng của bản đồ chiếm ${(share*100).toFixed(1)}% (kỳ vọng ${(want*100).toFixed(1)}%)`);
+      ok(rollCore(1500,mapSets,Math.random,{high:true}).stars===4&&rollCore(MAX_YEARS,[],Math.random,{high:true}).stars===6,"tùy chọn sao cao (rương thú vương BĐ5): sao cao nhất của khoảng");
+
+      await test(A,"goto",spot); await test(A,"clear"); await test(A,"drops",{s:3600}); await sleep(150); // dọn đồ rơi cũ: E chỉ nhặt đồ mới
+      /** Hạ hồn thú `years` năm (loài `species`, tinh anh `boss`); trả về hồn hạch vừa rơi xuống đất, hoặc undefined. */
+      async function killCore(years,species,boss){
+        const before=new Set(st.drops.keys()); await killFor(years,species,boss); await sleep(150);
+        const e=[...st.drops.entries()].find(([k,d])=>!before.has(k)&&d.item===CORE_ITEM); return e&&{id:e[0],dr:e[1]};
+      }
+      /** `b` đứng lên hồn hạch rồi nhấn E (có thể chồng lên hồn hoàn: nhấn thêm); true khi hồn hạch đã rời mặt đất. */
+      async function pickCore(kc,b=A){
+        const q=meOf(b); await test(b,"goto",{x:kc.dr.x,y:kc.dr.y}); await waitFor(()=>Math.hypot(q.x-kc.dr.x,q.y-kc.dr.y)<1);
+        for(let k=0;k<3&&st.drops.has(kc.id);k++){ const l=b.logs.length; b.room.send("pickup"); await waitFor(()=>b.logs.length>l,1500); await waitFor(()=>!st.drops.has(kc.id),300); }
+        return !st.drops.has(kc.id);
+      }
+      const checkIt=(it,stars)=>it&&it.kind==="hon_hach"&&it.qty===1&&it.stars===stars&&it.years===null&&it.enhance===0&&it.vohon===null
+        &&coreSetIndex(it.stats?.set)>=0&&CORE_STAT_IDS.includes(it.stats?.main)&&it.stats?.subs?.length===CORE_SUBS[stars-1];
+      await test(A,"core",{r:99});
+      ok(!await killCore(437),"số ngẫu nhiên 0,99: hạ hồn thú 437 năm (15%) không rơi hồn hạch");
+      await test(A,"core",{r:14,stars:6}); // sao 6 nằm ngoài khoảng 1–2★ của 437 năm: bỏ qua, tung trong khoảng
+      const kc=await killCore(437), c0=coresOf(A).length;
+      ok(kc&&kc.dr.years===437&&kc.dr.stars>=1&&kc.dr.stars<=2&&kc.dr.cset<CORE_SETS.length&&kc.dr.owner===A.room.sessionId,
+        `số ngẫu nhiên 0,14: hạ hồn thú 437 năm rơi ${kc?coreName(CORE_SETS[kc.dr.cset].id,kc.dr.stars):"?"} xuống đất (1–2★, sao cố định ngoài khoảng bị bỏ qua), thuộc A`);
+      ok(kc&&A.logs.some(t=>t.startsWith(`${coreName(CORE_SETS[kc.dr.cset].id,kc.dr.stars)} rơi xuống đất`)),"thông báo hồn hạch rơi kèm bộ và sao");
+      if(kc){
+        await test(B,"goto",{x:kc.dr.x,y:kc.dr.y}); await waitFor(()=>Math.hypot(bp().x-kc.dr.x,bp().y-kc.dr.y)<1);
+        const bb=coresOf(B).length, bl=B.logs.length; B.room.send("pickup"); await waitFor(()=>B.logs.length>bl,1500);
+        ok(/^Hồn hạch .* thuộc về người hạ/.test(B.logs.at(-1)??"")&&st.drops.has(kc.id)&&coresOf(B).length===bb,`B không nhặt được hồn hạch của A trong ${DROP_OWNER_SECS} giây đầu: ${B.logs.at(-1)}`);
+        ok(await pickCore(kc)&&await waitFor(()=>coresOf(A).length===c0+1),"A nhặt hồn hạch vào túi");
+        const it=coresOf(A).at(-1);
+        ok(checkIt(it,kc.dr.stars)&&it.stats.set===CORE_SETS[kc.dr.cset].id,
+          `túi A: ${it&&coreName(it.stats?.set,it.stars)}, chính ${it&&coreStatText(it.stats.main,coreMainValue(it.stats.main,it.stars))}, ${it?.stats?.subs?.length} dòng phụ, +${it?.enhance}, chưa gắn`);
+        ok(A.logs.some(t=>t.startsWith(`Nhặt ${coreName(CORE_SETS[kc.dr.cset].id,kc.dr.stars)} vào túi đồ`)),"thông báo nhặt hồn hạch");
+        await useItem(A,it.id); ok(/không dùng trực tiếp/.test(A.logs.at(-1)??"")&&coresOf(A).some(i=>i.id===it.id),"hồn hạch không dùng như đan được");
+        let l=A.logs.length; A.room.send("absorb",{itemId:it.id}); await waitFor(()=>A.logs.length>l);
+        ok(/Hãy chọn một hồn hoàn/.test(A.logs.at(-1)??"")&&coresOf(A).some(i=>i.id===it.id),"hồn hạch không hấp thụ như hồn hoàn được");
+        l=A.logs.length; A.room.send("equip",{itemId:it.id,vohonId:A.owned.active}); await waitFor(()=>A.logs.length>l);
+        ok(/Không có hồn cốt/.test(A.logs.at(-1)??"")&&coresOf(A).find(i=>i.id===it.id)?.vohon===null,"hồn hạch chưa gắn được (bước 5.2), không gắn vào ô hồn cốt");
+      }
+      // Sao theo niên hạn (số ngẫu nhiên rơi 0, sao ngẫu nhiên): mỗi khoảng hạ 3 con, nhặt rồi kiểm số dòng phụ.
+      await test(A,"core",{r:0});
+      for(const [y,label] of [[1500,"2–4★"],[12000,"3–5★"],[MAX_YEARS,"5–6★"]]){
+        const [lo,hi]=coreStarBand(y), got=[];
+        for(let k=0;k<3;k++){
+          await test(A,"goto",spot); await test(A,"drops",{s:3600}); await sleep(120);
+          const n=coresOf(A).length, kk=await killCore(y);
+          if(kk&&await pickCore(kk)&&await waitFor(()=>coresOf(A).length===n+1)){ const it=coresOf(A).at(-1); got.push(checkIt(it,kk.dr.stars)&&it.stars>=lo&&it.stars<=hi?it.stars:`sai ${JSON.stringify(it)}`); }
+          else got.push("không rơi");
+        }
+        ok(got.every(s=>Number.isInteger(s)),`hạ hồn thú ${y.toLocaleString("vi-VN")} năm: hồn hạch ${got.map(s=>Number.isInteger(s)?`${s}★`:s).join(", ")} (khoảng ${label}), dòng phụ đúng số theo sao`);
+      }
+      // Hook give: đủ 6 mức sao, bộ cố định; số dòng phụ đúng CORE_SUBS.
+      const g0=new Set(coresOf(A).map(i=>i.id));
+      for(let s=1;s<=MAX_CORE_STARS;s++) await test(A,"give",{code:CORE_ITEM,stars:s,set:"hao_thien"});
+      const gv=coresOf(A).filter(i=>!g0.has(i.id));
+      ok(gv.length===MAX_CORE_STARS&&gv.every((it,i)=>checkIt(it,i+1)&&it.stats.set==="hao_thien"),`1★…6★: dòng phụ ${gv.map(i=>i.stats?.subs?.length).join(" / ")}`);
+      for(const i of gv) A.room.send("discard",{id:i.id});
+      ok(await waitFor(()=>!coresOf(A).some(i=>g0.has(i.id)===false),3000),"bỏ hồn hạch trong túi được");
+      // Túi đầy: báo, hồn hạch ở lại dưới đất; bỏ bớt một ô rồi nhặt được.
+      {
+        await test(A,"goto",spot); await test(A,"drops",{s:3600}); await sleep(120);
+        const freeA=BAG_SLOTS-A.bag.items.filter(i=>i.vohon===null).length;
+        await test(A,"give",{code:RING_ITEM,qty:freeA,years:50});
+        await test(A,"core",{r:0,set:coreSetIndex("tien_co")});
+        const kf=await killCore(12000);
+        ok(kf&&CORE_SETS[kf.dr.cset].id==="tien_co","hồn hạch Tiên Cơ (bộ cố định bằng hook) rơi khi túi A đầy");
+        if(kf){
+          await pickCore(kf);
+          ok(st.drops.has(kf.id)&&A.logs.some(t=>t.startsWith(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được ${coreName("tien_co",kf.dr.stars)}`)),
+            `túi đầy: báo, hồn hạch ở lại dưới đất [${A.logs.slice(-2).join(" | ")}]`);
+          const junk=ringsOf(A).find(i=>i.years===50); A.room.send("discard",{id:junk.id}); await waitFor(()=>!A.bag.items.some(i=>i.id===junk.id));
+          ok(await pickCore(kf)&&coresOf(A).some(i=>i.stats?.set==="tien_co"&&i.stars===kf.dr.stars),"bỏ bớt rồi nhặt được hồn hạch Tiên Cơ");
+        }
+        for(const i of ringsOf(A).filter(i=>i.years===50)) A.room.send("discard",{id:i.id});
+        ok(await waitFor(()=>!ringsOf(A).some(i=>i.years===50),3000),"dọn túi A");
+      }
+      // Tinh anh (mục 5.4): chắc chắn rơi 1 hồn hạch, sao theo niên hạn, quyền ưu tiên như hồn hoàn.
+      {
+        const HN="huyet_nhan_phong_lang", hb=BOSSES[bossIndex(HN)];
+        await test(A,"goto",spot); await test(A,"drops",{s:3600}); await sleep(120);
+        await test(A,"core",{r:99});
+        ok(!await killCore(1500,hb.species),"số ngẫu nhiên 0,99: hồn thú thường 1.500 năm (25%) không rơi hồn hạch");
+        A.elite=[]; const ke=await killCore(1500,undefined,HN);
+        ok(ke&&ke.dr.stars>=2&&ke.dr.stars<=4&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
+          `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm chắc chắn rơi ${ke?coreName(CORE_SETS[ke.dr.cset].id,ke.dr.stars):"không có hồn hạch"} (2–4★), thuộc A`);
+        await test(A,"core",{r:-1}); // số ngẫu nhiên thật: tinh anh vẫn luôn rơi
+        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
+        ok(all===3,`số ngẫu nhiên thật: hạ tinh anh 3 lần, rơi hồn hạch ${all}/3 lần`);
+        await test(A,"drops",{s:3600});
+      }
+      // Giữ lại hồn hạch trong túi để kiểm khi vào lại (bagKey so cả sao và chỉ số).
+      A.coreKeep=coresOf(A).map(i=>[i.id,i.stars,JSON.stringify(i.stats)]);
+      ok(A.coreKeep.length>=3,`túi A còn ${A.coreKeep.length} hồn hạch (kiểm khi vào lại)`);
+      await test(A,"core",{r:100}); // tắt lại cho các phần sau
+    }
     await test(A,"bone",{r:-1});
     // ---------- 4.2: gắn hồn cốt vào 6 ô của võ hồn (đúng vị trí, đổi chỗ, tháo), cộng chỉ số; chỉ ngoài giao chiến ----------
     {
@@ -2117,6 +2243,8 @@ const prog=()=>A.owned.list.map(v=>[v.rowId,v.level,v.xp,v.stars]);
 const saved={team:[...A.owned.team],active:A.owned.active,prog:prog(),bag:bagKey(A)}; await sleep(500);
 await enter(A); await waitFor(()=>A.owned&&A.bag);
 ok(bagKey(A)===saved.bag,`vào lại: túi đồ và Hồn Tệ đã lưu (${A.bag?.items.length} ô, ${formatHonTe(A.bag?.honTe??0)})`);
+if(A.coreKeep) ok(same((A.bag?.items??[]).filter(i=>i.code===CORE_ITEM).map(i=>[i.id,i.stars,JSON.stringify(i.stats)]),A.coreKeep),
+  `vào lại: ${A.coreKeep.length} hồn hạch còn nguyên bộ, sao, chỉ số chính và phụ`);
 if(A.boneKeep) ok(A.boneKeep.length>=3&&same(bonesOf(A).map(i=>[i.id,i.years,i.stats?.beast,i.stats?.slot]),A.boneKeep),`vào lại: ${A.boneKeep.length} hồn cốt còn nguyên loài, vị trí, số năm`);
 if(A.boneEq){ // 4.2: hồn cốt đang gắn vẫn gắn, chỉ số vẫn cộng
   const sv=await test(A,"stats");
@@ -2180,6 +2308,11 @@ if((await test(C,"ping"))?.enabled){
   // 4.1: hồn cốt chưa lưu cũng nằm trong transaction đi cổng; bagKey so cả loài, vị trí, số năm, cường hóa.
   await test(C,"give",{code:BONE_ITEM,years:32000,beast:"am_kim_khung_trao_hung",slot:"tay_phai"});
   ok(bonesOf(C).some(i=>i.years===32000&&i.stats?.beast==="am_kim_khung_trao_hung"&&i.stats?.slot==="tay_phai"),"C có hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm (hook give)");
+  // 5.1: hồn hạch chưa lưu cũng nằm trong transaction đi cổng; bagKey so cả sao, bộ, chỉ số.
+  await test(C,"give",{code:CORE_ITEM,stars:6,set:"phuong_hoang"});
+  const cc=(C.bag?.items??[]).find(i=>i.code===CORE_ITEM&&i.stars===6);
+  ok(cc&&cc.stats?.set==="phuong_hoang"&&cc.stats?.subs?.length===4,`C có ${cc&&coreName(cc.stats?.set,cc.stars)} 4 dòng phụ (hook give)`);
+  C.coreKeep=cc&&[cc.id,cc.stars,JSON.stringify(cc.stats)];
   // 4.2: hồn cốt vừa gắn (chưa lưu) cũng nằm trong transaction đi cổng; bagKey so cả võ hồn đang gắn.
   const cb=bonesOf(C).find(i=>i.years===32000&&i.vohon===null);
   C.room.send("equip",{itemId:cb.id,vohonId:C.owned.active});
@@ -2257,6 +2390,8 @@ if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.lis
   ok(same(got,relog.map(([,xp])=>xp)),`đăng nhập lại: phiên mới nạp tiến độ phiên cũ vừa lưu lúc bị đá (kinh nghiệm ${got.join("/")})`);
   await waitFor(()=>C2.bag);
   ok(bagKey(C2)===relogBag,`đăng nhập lại: phiên mới nạp túi đồ, Hồn Tệ phiên cũ vừa lưu lúc bị đá (${formatHonTe(C2.bag?.honTe??0)}, ${C2.bag?.items.length} ô)`);
+  if(C.coreKeep){ const it=C2.bag.items.find(i=>i.id===C.coreKeep[0]);
+    ok(it&&same([it.id,it.stars,JSON.stringify(it.stats)],C.coreKeep),`đi cổng, thoát vào lại, đăng nhập lại: ${it&&coreName(it.stats?.set,it.stars)} còn nguyên chỉ số`); }
   if(C.boneEq){ // 4.2: qua 5 lần đi cổng, thoát vào lại, đăng nhập lại: hồn cốt vẫn gắn, chỉ số vẫn cộng
     const sv=await test(C2,"stats",{rowId:C.boneEq.vohon});
     ok(C2.bag.items.find(i=>i.id===C.boneEq.id)?.vohon===C.boneEq.vohon&&sv.bones.atk===C.boneEq.atk,

@@ -229,6 +229,8 @@ body.touch #prompt{bottom:160px}
 .ico.hon_hoan{border-radius:50%;border:4px solid var(--c);box-shadow:0 0 6px var(--c)}
 .ico.unknown,.ico.hon_cot,.ico.hon_hach,.ico.manh_vo_hon,.ico.tien_thao{transform:rotate(45deg) scale(.8);background:var(--c);opacity:.85}
 /* Hồn cốt (bước 4.1): biểu tượng 6 vị trí vẽ bằng điểm ảnh (boneIcons.ts), màu theo niên hạn */
+svg.ico.core{width:60%;height:60%;transform:translateY(-12%);color:var(--c);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 1px 0 #000)}
+.bstat.core b{font-weight:600}
 svg.ico.bone{width:62%;height:62%;transform:translateY(-14%);color:var(--c);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 1px 0 #000)}
 .bstat{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;margin:3px 0 1px;font-size:12px}
 .bstat span{color:var(--muted)}
