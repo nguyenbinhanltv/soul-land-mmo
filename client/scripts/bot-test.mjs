@@ -306,8 +306,8 @@ const solidGid=new Set(tiled.tilesets.flatMap(ts=>(ts.tiles??[]).filter(t=>(t.pr
 const solid=new Set(tiled.layers.filter(l=>l.type==="tilelayer").flatMap(l=>l.data.flatMap((g,i)=>solidGid.has(g)?[i]:[])));
 const TS=tiled.tilewidth, blocked=(x,y)=>{ for(let ty=Math.floor((y-4)/TS);ty<=Math.floor((y+4)/TS);ty++) for(let tx=Math.floor((x-5)/TS);tx<=Math.floor((x+5)/TS);tx++)
   if(tx<0||ty<0||tx>=tiled.width||ty>=tiled.height||solid.has(ty*tiled.width+tx)) return true; return false; };
-/** Hướng (dx, dy) dài `len` pixel từ vị trí (x, y) mà đường đi không vướng ô chặn. */
-const clearDir=(x,y,len)=>[[1,0],[-1,0],[0,1],[0,-1],[0.7,0.7],[-0.7,0.7],[0.7,-0.7],[-0.7,-0.7]].find(([ux,uy])=>{ for(let d=2;d<=len;d+=2) if(blocked(x+ux*d,y+uy*d)) return false; return true; })??[1,0];
+/** Hướng (dx, dy) dài `len` pixel từ vị trí (x, y) mà đường đi không vướng ô chặn (và `back` pixel phía sau lưng, cho hồn thú sinh sau lưng). */
+const clearDir=(x,y,len,back=0)=>[[1,0],[-1,0],[0,1],[0,-1],[0.7,0.7],[-0.7,0.7],[0.7,-0.7],[-0.7,-0.7]].find(([ux,uy])=>{ for(let d=2-back;d<=len;d+=2) if(blocked(x+ux*d,y+uy*d)) return false; return true; })??[1,0];
 const inCamp=()=>p.x>=spawnObj.x&&p.x<=spawnObj.x+spawnObj.width&&p.y>=spawnObj.y&&p.y<=spawnObj.y+spawnObj.height;
 if(!(await test(A,"ping"))?.enabled) console.log("  ⚠ bỏ qua kiểm tra 2.3b (gục, hồi sinh, chia kinh nghiệm): bật server bằng GAME_TEST=1");
 else {
@@ -567,7 +567,7 @@ else {
   }
   // Hướng thử: tính lại ở chỗ đứng hiện tại mỗi lần quay mặt (không vướng cây, không ra ngoài bản đồ trong 100 pixel).
   let [ux,uy]=clearDir(me.x,me.y,100); const at=d=>[Math.round(ux*d),Math.round(uy*d)];
-  async function face(){ [ux,uy]=clearDir(me.x,me.y,100); await step(E,ux,uy); }
+  async function face(back=0){ [ux,uy]=clearDir(me.x,me.y,100,back); await step(E,ux,uy); }
   /** Xếp đội [id, ...rest] ngoài giao chiến để `id` ra trận. */
   async function lineup(id,rest=[]){ await test(E,"clear"); await test(E,"rest",{s:TEAM_COMBAT_SECS+1}); const t=[id,...rest].map(rowE); while(t.length<TEAM_SIZE) t.push(0);
     await sendTeam(E,t); return E.owned.active===rowE(id)&&await waitFor(()=>me.vh===vohonIndex(id)); }
@@ -610,7 +610,7 @@ else {
   {
     const id="hao_thien_chuy", sk=skillsOf(id), atk=atkE(id);
     ok(await lineup(id),`E: ${vname(id)} ra trận`);
-    await face(); const f=await spawnAt(3,22), bk=await spawnAt(3,-26);
+    await face(26); const f=await spawnAt(3,22), bk=await spawnAt(3,-26);
     await test(E,"status",{s:"stun",secs:10,all:true}); await test(E,"ready"); await cast(E,1);
     let want=exp(atk*P(1)*sk[1].dmg);
     ok(want.includes(dmgsOn(E,f)[0]?.v)&&beastOf(E,f)?.armor===2&&beastOf(E,bk)?.armor===2,`${sk[1].name}: sát thương ${dmgsOn(E,f)[0]?.v} (cần ${want.join(" hoặc ")}), Phá giáp ${beastOf(E,f)?.armor} tầng`);
@@ -958,12 +958,15 @@ else {
       // Tê liệt trên hồn thú vạn năm (khống chế × 0,75): không đi, không đánh; hết co giật trước, Câm lặng còn lâu hơn.
       const tb=await basic(id,1,{tier:3,d:40,stun:false}), t0=posOf(tb); E.hurts=[]; await sleep(1500);
       ok(beastOf(E,tb)&&same(posOf(tb),t0)&&!E.hurts.length&&hasSt(beastOf(E,tb),"root")&&hasSt(beastOf(E,tb),"silence"),"tê liệt: hồn thú kề bên đứng yên, không đánh");
-      await sleep(3*CC_TIER_MULT[3]*1000-1500+500);
-      ok(!hasSt(beastOf(E,tb),"root")&&hasSt(beastOf(E,tb),"silence"),`hết co giật sau ${3*CC_TIER_MULT[3]} giây, Câm lặng còn (${5*CC_TIER_MULT[3]} giây)`);
+      // Thời gian trạng thái chạy theo nhịp server (dt mỗi nhịp kẹp 100 ms, server bận thì chậm hơn đồng hồ thật): chờ hết co giật
+      // rồi mới xem Câm lặng (còn thêm 1,5 giây), không đo bằng một khoảng ngủ cố định.
+      const unroot=await waitFor(()=>!hasSt(beastOf(E,tb),"root"),3*CC_TIER_MULT[3]*1000), silent=hasSt(beastOf(E,tb),"silence");
+      ok(unroot&&silent,`hết co giật sau ${3*CC_TIER_MULT[3]} giây, Câm lặng còn (${5*CC_TIER_MULT[3]} giây)`+
+        (unroot&&silent?"":` [hồn thú ${beastOf(E,tb)?"còn":"mất"}, co giật ${hasSt(beastOf(E,tb),"root")}, Câm lặng ${silent}]`));
       const x0=me.x, y0=me.y; await basic(id,2,{d:40});
       ok(Math.hypot(me.x-x0,me.y-y0)>=50&&E.fxs.some(f=>f.k==="fly"&&f.id===E.room.sessionId),`${sk[2].name}: bay ${Math.hypot(me.x-x0,me.y-y0).toFixed(0)} pixel qua hồn thú (fx fly)`);
       // Áo nghĩa: mọi hồn thú trong 160 pixel Cảm điện 8 giây (lâu hơn mặc định 6 giây).
-      await test(E,"clear"); await face(); const a1=await spawnAt(4,24), a2=await spawnAt(4,90), a3=await spawnAt(4,-70);
+      await test(E,"clear"); await face(70); const a1=await spawnAt(4,24), a2=await spawnAt(4,90), a3=await spawnAt(4,-70);
       await test(E,"status",{s:"stun",secs:12,all:true}); await test(E,"ready"); await cast(E,3,300);
       ok([a1,a2,a3].every(a=>hasSt(beastOf(E,a),"shock"))&&exp(atkE(id)*P(3)*sk[3].dmg).includes(hitsOn(a2)[0]?.v),`${sk[3].name}: phủ Cảm điện 3 hồn thú (cách ${[a1,a2,a3].map(a=>dist(a).toFixed(0)).join("/")}), sát thương ${hitsOn(a2)[0]?.v}`);
       await sleep((STATUS.shock.secs+0.6)*1000);
@@ -1051,7 +1054,7 @@ else {
       await sleep(450); E.room.send("attack"); ok(await waitFor(()=>!hasBuff(me,"hide"),600),"đánh thường: hiện hình");
       // Lãnh vực đặt xuống đất: cố định chỗ tung, Làm chậm mỗi nhát, nhát cuối Mị hoặc.
       // Hồn thú đứng sau lưng; hồn sư đi tới trước (đường đã kiểm không vướng cây) ra ngoài bán kính, lãnh vực vẫn ở chỗ cũ.
-      await test(E,"clear"); await face(); const fb=await spawnAt(4,-30); await test(E,"status",{s:"stun",secs:10});
+      await test(E,"clear"); await face(30); const fb=await spawnAt(4,-30); await test(E,"status",{s:"stun",secs:10});
       await test(E,"ready"); await cast(E,2,100);
       ok(E.fxs.some(f=>f.k==="zone"&&Math.abs(f.r-sk[2].r)<1),`${sk[2].name}: đặt lãnh vực`);
       E.room.send("input",{x:ux,y:uy}); await waitFor(()=>dist(fb)>sk[2].r+8,2500); E.room.send("input",{x:0,y:0}); const away=dist(fb);
@@ -1301,15 +1304,16 @@ else {
   // ---------- 3.2: hạ hồn thú -> hồn hoàn mang đúng số năm -> nhặt vào túi; ưu tiên người hạ 15 giây; túi đầy; hấp thụ từ túi ----------
   {
     const zs=tiled.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone"), hz=zs.find(z=>/Bãi tập/.test(z.name))??zs[0];
-    let spot=null; for(let k=0;k<400&&!spot;k++){ const x=Math.round(hz.x+30+Math.random()*(hz.width-60)), y=Math.round(hz.y+40+Math.random()*(hz.height-80)); if(!blocked(x,y)) spot={x,y}; }
+    // Chỗ cạnh bên (x+8) cũng phải đứng được: mảnh võ hồn rơi khi túi đầy (3.4) nằm cạnh hồn hoàn, không chồng lên nó.
+    let spot=null; for(let k=0;k<400&&!spot;k++){ const x=Math.round(hz.x+30+Math.random()*(hz.width-60)), y=Math.round(hz.y+40+Math.random()*(hz.height-80)); if(!blocked(x,y)&&!blocked(x+8,y)) spot={x,y}; }
     await test(A,"goto",spot); ok(await waitFor(()=>Math.hypot(p.x-spot.x,p.y-spot.y)<1),`A tới ${hz.name} (${spot.x},${spot.y})`);
     await test(A,"clear");
     const ringsOf=b=>(b.bag?.items??[]).filter(i=>i.code===RING_ITEM), bp=()=>meOf(B);
-    /** Đặt hồn thú 1 máu `years` năm ngay chỗ A đứng (hook test), A đánh hạ; trả về hồn hoàn vừa rơi. */
-    async function killFor(years){
+    /** Đặt hồn thú 1 máu `years` năm ngay chỗ `b` (mặc định A) đứng (hook test), `b` đánh hạ; trả về hồn hoàn vừa rơi. */
+    async function killFor(years,b=A){
       const before=new Set(st.drops.keys()), fresh=()=>[...st.drops.keys()].find(k=>!before.has(k));
-      await test(A,"beast",{dx:0,dy:0,years});
-      for(let i=0;i<15&&!fresh();i++){ A.room.send("attack"); await waitFor(fresh,450); }
+      await test(b,"beast",{dx:0,dy:0,years});
+      for(let i=0;i<15&&!fresh();i++){ b.room.send("attack"); await waitFor(fresh,450); }
       const id=fresh(); return id?{id,dr:st.drops.get(id)}:null;
     }
     const k1=await killFor(437);
@@ -1319,6 +1323,11 @@ else {
       await test(B,"goto",{x:k1.dr.x,y:k1.dr.y}); await waitFor(()=>Math.hypot(bp().x-k1.dr.x,bp().y-k1.dr.y)<1);
       const b0=ringsOf(B).length; B.room.send("pickup");
       ok(await lastLog(B,/thuộc về người hạ/)&&st.drops.has(k1.id)&&ringsOf(B).length===b0,`B không nhặt được trong ${DROP_OWNER_SECS} giây đầu: ${B.logs.at(-1)}`);
+      // Đồ rơi chồng nhau: hồn hoàn của B rơi đúng chỗ hồn hoàn của A (rơi trước) thì B nhấn E vẫn nhặt được của mình.
+      const kb=await killFor(10,B); B.room.send("pickup");
+      ok(kb&&await waitFor(()=>!st.drops.has(kb.id))&&st.drops.has(k1.id)&&ringsOf(B).some(i=>i.years===10),`đồ rơi chồng nhau: B nhặt hồn hoàn của mình nằm dưới hồn hoàn của A (${B.logs.at(-1)})`);
+      for(const i of ringsOf(B).filter(i=>i.years===10)) B.room.send("discard",{id:i.id});
+      await waitFor(()=>!ringsOf(B).some(i=>i.years===10));
       const a0=ringsOf(A).length; A.room.send("pickup");
       ok(await waitFor(()=>ringsOf(A).length===a0+1)&&await waitFor(()=>!st.drops.has(k1.id)),"A nhặt hồn hoàn của mình");
       ok(ringsOf(A).some(i=>i.years===437&&i.qty===1&&i.kind==="hon_hoan"),"túi A có hồn hoàn đúng 437 năm (mỗi chiếc một ô)");
@@ -1459,6 +1468,8 @@ else {
     ok(await waitFor(()=>qtyOf(A,nvCode)===n0+1)&&A.bag.items.some(i=>i.code===nvCode&&i.kind==="manh_vo_hon"),`số ngẫu nhiên 0,05: rơi 1 Mảnh ${nvName} vào túi`);
     ok(A.logs.some(t=>t===`Nhận 1 Mảnh ${nvName} (${n0+1}/${SHARD_UNLOCK}).`),`thông báo nhận mảnh kèm tiến độ: ${A.logs.filter(t=>/^Nhận/.test(t)).at(-1)}`);
     ok(qtyOf(B,nvCode)===bNv,"mảnh vào túi người hạ, không vào túi người khác");
+    // Hai hồn hoàn 437 năm vừa rơi còn nằm ở chỗ A đứng: cho hết hạn (hook drops) để phần dưới chỉ còn hồn hoàn và mảnh của lần hạ sau.
+    await test(A,"drops",{s:3600}); await waitFor(()=>!st.drops.size);
     // Túi đầy: mảnh rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên người hạ; bỏ bớt rồi nhặt được.
     {
       const freeA=BAG_SLOTS-A.bag.items.filter(i=>i.vohon===null).length;

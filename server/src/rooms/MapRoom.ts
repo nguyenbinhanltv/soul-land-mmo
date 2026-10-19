@@ -594,12 +594,18 @@ export class MapRoom extends Room<MapState> {
   /**
    * Nhặt hồn hoàn gần nhất (cách dưới PICKUP_RANGE) vào túi đồ (mục 5.2 "Hồn hoàn là vật phẩm"): DROP_OWNER_SECS giây đầu chỉ
    * người hạ hồn thú nhặt được; túi đầy thì báo và hồn hoàn ở lại dưới đất. Client chỉ gửi ý định, server chọn theo vị trí.
+   * Đồ rơi chồng nhau thì chọn món gần nhất mà người này được nhặt (của mình hoặc đã hết ưu tiên), để đồ của người khác nằm
+   * trên không chặn đồ của mình; không có món nào được nhặt thì báo theo món gần nhất.
    */
   pickup(id: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
+    const mine = (dr: DropState) => !dr.owner || dr.owner === id || dr.ownerTtl <= 0;
     let best: [string, DropState] | undefined, bd = PICKUP_RANGE;
-    for (const [did, dr] of this.state.drops.entries()) { const dd = Math.hypot(dr.x - p.x, dr.y - p.y); if (dd < bd) { bd = dd; best = [did, dr]; } }
+    for (const [did, dr] of this.state.drops.entries()) {
+      const dd = Math.hypot(dr.x - p.x, dr.y - p.y);
+      if (dd < PICKUP_RANGE && (!best || (mine(dr) && !mine(best[1])) || (mine(dr) === mine(best[1]) && dd < bd))) { bd = dd; best = [did, dr]; }
+    }
     if (!best) return warn("Không có hồn hoàn hay vật phẩm nào ở gần để nhặt.");
     const [did, dr] = best, label = formatYears(dr.years);
     // Từ 3.4: mảnh võ hồn rơi xuống đất (túi người hạ đã đầy), cùng luật ưu tiên; túi chỉ nhận một phần thì phần còn lại ở lại.
