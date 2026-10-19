@@ -14,6 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
+  BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
@@ -64,6 +65,8 @@ interface PData {
   starterNote: boolean; // vừa nhận vật phẩm khởi đầu: báo một lần khi client xin túi đồ
   // Trạng thái trên hồn sư (từ 3.5, PLAYER_STATUS): do chiêu báo trước của hồn thú gây; `src` là mã hồn thú. Không lưu DB.
   st: Map<StatusId, SInst>; dotT: number;
+  // Kỹ năng bị động của hồn cốt thân / chân trên võ hồn ra trận (từ 4.3, bonePassive): tính lại trong recalc. Không lưu DB.
+  passive: BonePassive;
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; }
@@ -231,6 +234,7 @@ export class MapRoom extends Room<MapState> {
     });
     this.onMessage("attack", (c) => this.attack(c.sessionId));
     this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
+    this.onMessage("boneskill", (c, m: { i: number }) => this.boneSkill(c, Number(m?.i)));
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
     this.onMessage("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
@@ -273,7 +277,7 @@ export class MapRoom extends Room<MapState> {
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
-      bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0 };
+      bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, passive: { buff: {}, resist: {} } };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.recalc(client.sessionId, true);
@@ -321,6 +325,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId));
     p.maxHp = s.maxHp; p.maxMp = s.maxMp; d.atk = s.atk; d.speed = s.speed;
+    d.passive = bonePassive(this.bonesOn(d, d.ch.rowId)); // bị động hồn cốt (4.3) theo võ hồn ra trận
     p.xpNeed = xpBlocked(p.level, p.rings.length) ? 0 : xpNeed(p.level);
     if (full) { d.hpF = p.maxHp; d.mpF = p.maxMp; }
     d.hpF = Math.min(d.hpF, p.maxHp); d.mpF = Math.min(d.mpF, p.maxMp);
@@ -893,7 +898,7 @@ export class MapRoom extends Room<MapState> {
     else if (op === "boom") { const x = nearB(); if (x) this.detonateBurn(x.bid); }
     else if (op === "bhp") { const x = nearB(); if (x) { x.b.hp = Math.max(1, Math.round(x.b.maxHp * int(o.pct, 1, 100, 100) / 100)); x.bd.calm = 0; x.bd.regen = 0; } }
     else if (op === "regen") { const x = nearB(); if (x) { const h0 = x.b.hp; this.regenBeast(x.b, x.bd, int(o.s, 0, 60, 0)); out = { gain: x.b.hp - h0 }; } }
-    else if (op === "ready") { for (let i = 0; i < 4; i++) p.cds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
+    else if (op === "ready") { for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
       const vohon = String(o.vohon ?? "");
       if (vohonIndex(vohon) >= 0) {
@@ -925,7 +930,7 @@ export class MapRoom extends Room<MapState> {
       if (v === d.ch) this.syncCh(id);
       const vh = Math.max(0, vohonIndex(v.vohon)), rings = v.rings.map(tierOfYears), bones = this.boneBonusOf(d, v.rowId);
       out = { rowId: v.rowId, bones, base: calcStats(vh, v.level, rings, v.stars), stats: calcStats(vh, v.level, rings, v.stars, bones),
-        live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk } : null };
+        live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive } : null };
     }
     else if (op === "elite") out = { list: this.elites.map((slot) => {
       const b = slot.bid ? this.state.beasts.get(slot.bid) : undefined, bd = slot.bid ? this.bdata.get(slot.bid) : undefined, e = bd?.elite;
@@ -1087,8 +1092,8 @@ export class MapRoom extends Room<MapState> {
     });
   }
 
-  /** Độ lớn hiệu ứng có lợi `b` đang có trên hồn sư (0 = không có). */
-  buffV(d: PData, b: BuffId) { return d.buffs.get(b)?.v ?? 0; }
+  /** Độ lớn hiệu ứng có lợi `b` đang có trên hồn sư (0 = không có), cộng cả bị động hồn cốt cùng tên (4.3) của võ hồn ra trận. */
+  buffV(d: PData, b: BuffId) { return (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0); }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
   atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk")); }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
@@ -1446,7 +1451,8 @@ export class MapRoom extends Room<MapState> {
   applyPStatus(id: string, a: StatusApply, base: number) {
     const p = this.state.players.get(id), d = this.pdata.get(id);
     if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y) || !PLAYER_STATUS.includes(a.s)) return;
-    const def = STATUS[a.s], secs = a.secs ?? def.secs, v = def.dot ? base * def.dot : def.amp, cur = d.st.get(a.s), n = a.n ?? 1;
+    // Kháng trạng thái của bị động hồn cốt (4.3): thời gian ngắn đi theo tỉ lệ.
+    const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - (d.passive.resist[a.s] ?? 0)), v = def.dot ? base * def.dot : def.amp, cur = d.st.get(a.s), n = a.n ?? 1;
     if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); }
     else d.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: "" });
     this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
@@ -1503,6 +1509,36 @@ export class MapRoom extends Room<MapState> {
     const mult = sk.copy ?? 1;
     this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, { kind: "skill", done: false });
     if (!set.some((x) => x.copy)) d.lastSkill = { sk, row: d.ch.rowId };
+  }
+
+  /**
+   * Kỹ năng chủ động của hồn cốt (mục 5.5, bước 4.3) ở nút `i` (BONE_ACTIVE_SLOTS: đầu, tay trái, tay phải) của võ hồn ĐANG RA TRẬN.
+   * Kỹ năng theo loài hồn thú gốc (BONE_SKILLS), mạnh theo số năm hồn cốt (skillPower / buffPower như hồn kỹ), chạy bằng runSkill.
+   * Mỗi nút một hồi chiêu riêng (`PlayerState.bcds`, thuộc hồn sư: đổi võ hồn không làm mới), tốn hồn lực. Cùng luật chặn với hồn kỹ:
+   * gục, hấp thụ, đang chuyển bản đồ / niệm cổng, vùng an toàn, Choáng / Câm lặng; kỹ năng đánh một mục tiêu mà không có hồn thú
+   * trong tầm thì không tung (không tốn hồn lực, không hồi chiêu).
+   */
+  boneSkill(c: Client, i: number) {
+    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
+    if (!p || !d || p.dead || d.absorbing || d.travelling || !(i >= 0 && i < BONE_ACTIVE_SLOTS.length)) return;
+    const slot = BONE_SLOTS[boneSlotIndex(BONE_ACTIVE_SLOTS[i])];
+    const bone = this.bonesOn(d, d.ch.rowId).find((b) => b.slot === slot.id);
+    const k = bone ? boneSkillOf(bone.beast, bone.slot) : null;
+    if (!bone || !k?.active) return this.log(id, `Ô ${slot.name} của ${VOHON[p.vh].name} chưa gắn hồn cốt có kỹ năng chủ động.`, "#ffb35c");
+    if (d.travelCast) return this.log(id, "Đang đi qua cổng: không dùng được kỹ năng hồn cốt.", "#ffb35c");
+    if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
+    if (p.bcds[i] > 0) return;
+    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không dùng được kỹ năng hồn cốt.`, "#ffb35c");
+    const sk = k.sk, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
+    if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
+    const reach = sk.area === "target" ? sk.r : sk.at;
+    if (reach && !this.nearestBeast(p, reach)) return this.log(id, `${sk.name}: không có hồn thú trong tầm.`);
+    d.mpF -= cost; p.mp = Math.floor(d.mpF); p.bcds[i] = sk.cd;
+    this.unhide(p, d);
+    const tier = tierOfYears(bone.years), col = TIERS[tier].glow;
+    // Client tra tên kỹ năng theo loài (chỉ số BEASTS) và vị trí; `i` là nút, hào quang theo niên hạn hồn cốt.
+    this.broadcast("fx", { k: "bone", id, i, sp: beastIndex(bone.beast), tier });
+    this.runSkill(id, sk, skillPower(bone.years), buffPower(bone.years), col, { kind: "skill", done: false });
   }
 
   /**
@@ -1856,7 +1892,7 @@ export class MapRoom extends Room<MapState> {
   bonesOn(d: PData, rowId: number) {
     return d.bag.flatMap((it) => {
       const b = it.vohonId === rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
-      return b ? [{ it, slot: b.slot, years: it.years! }] : [];
+      return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years! }] : [];
     });
   }
   /** Tổng chỉ số gốc hồn cốt đang gắn trên võ hồn `rowId` (boneBonus), cộng vào calcStats. */
@@ -2195,6 +2231,7 @@ export class MapRoom extends Room<MapState> {
       const d = this.pdata.get(id)!;
       d.atkCd -= dt; d.inv -= dt; d.lastHit += dt; d.fight += dt;
       for (let i = 0; i < 4; i++) if (p.cds[i] > 0) p.cds[i] = Math.max(0, p.cds[i] - dt);
+      for (let i = 0; i < p.bcds.length; i++) if (p.bcds[i] > 0) p.bcds[i] = Math.max(0, p.bcds[i] - dt);
       if (p.swCd > 0) p.swCd = Math.max(0, p.swCd - dt);
       if (d.danCd > 0) d.danCd = Math.max(0, d.danCd - dt);
       if (d.shieldT > 0) { d.shieldT -= dt; if (d.shieldT <= 0) d.shield = 0; p.shield = Math.ceil(d.shield); }

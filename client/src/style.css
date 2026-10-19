@@ -40,6 +40,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .buffs:empty{display:none}
 .buffs span{font-size:10.5px;font-weight:700;padding:1px 5px;border:1px solid currentColor;background:rgba(0,0,0,.35)}
 .buffs span.debuff{border-color:#e0525a;background:rgba(90,10,20,.55)}
+.buffs span.passive{border-style:dashed}
 #target small{display:block;font-size:11px;font-weight:700;text-align:center;margin-top:2px}
 #target .xpcut{font-style:normal;color:#ffb35c;font-size:11px}
 .mapbox{position:absolute;right:10px;top:10px;padding:6px}
@@ -67,7 +68,15 @@ body.touch #portal{bottom:196px}
 #log div b{font-weight:800;margin-right:4px}
 #chat{font:inherit;font-size:12.5px;padding:6px 8px;background:var(--panel);color:var(--text);border:2px solid var(--line);margin-top:3px;user-select:text}
 #chat:focus{outline:none;border-color:var(--accent)}
-#skills{position:absolute;right:10px;bottom:12px;display:flex;gap:6px}
+/* Thanh hành động: kỹ năng hồn cốt chủ động (4.3, Z/X/C) bên trái thanh hồn kỹ. */
+#actbar{position:absolute;right:10px;bottom:12px;display:flex;gap:12px;align-items:flex-end}
+#skills{display:flex;gap:6px}
+#bskills{display:flex;gap:6px}
+#bskills:empty{display:none}
+.sk.bsk{border-color:color-mix(in srgb,var(--c,#e9c45a) 55%,var(--line))}
+.sk.bsk .ico{border-radius:3px;border-width:2px;box-shadow:0 0 6px currentColor}
+.sk.bsk .ico svg{width:16px;height:16px}
+.sk.bsk i{position:absolute;right:4px;top:3px;font-style:normal;font-size:11px;color:var(--c,#e9c45a)}
 .sk{position:relative;width:62px;height:62px;padding:4px;border:2px solid var(--line);background:var(--panel);color:var(--text);
   font:inherit;font-size:10.5px;line-height:1.15;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;text-align:center;cursor:pointer;overflow:hidden}
 .sk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -85,6 +94,11 @@ body.touch #portal{bottom:196px}
 #knob{position:absolute;left:43px;top:43px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.35)}
 body.touch.playing #joy{display:block}
 body.touch #skills{flex-wrap:wrap;width:208px;justify-content:flex-end}
+/* Chạm: 3 nút hồn cốt xếp dọc, nhỏ hơn, bên trái hai hàng hồn kỹ (không đẩy thanh đội hình lên). */
+body.touch #actbar{gap:8px}
+body.touch #bskills{flex-direction:column}
+body.touch .sk.bsk{width:44px;height:44px;font-size:9px}
+body.touch .sk.bsk .ico+span{display:none}
 body.touch #chatbox{bottom:160px}
 body.touch #prompt{bottom:160px}
 #overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,12,8,.72);padding:16px}
@@ -265,6 +279,8 @@ body.touch .bslot small{font-size:11px}
 .bcell svg.ico.bone{width:34px;height:34px;transform:none;opacity:.35;filter:none;color:var(--muted)}
 .bcell span{font-size:11px;font-weight:600}
 .bcell small{position:absolute;right:3px;top:1px;font-size:10px;font-weight:800;color:var(--c);text-shadow:0 1px 0 #000;font-variant-numeric:tabular-nums}
+.bcell em{display:block;max-width:100%;padding:0 2px;font-size:9.5px;font-style:normal;font-weight:700;line-height:1.1;color:var(--c);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.binfo p.bskill{color:var(--xp)}
 .bcell:not(.empty){border-style:solid;border-color:color-mix(in srgb,var(--c) 70%,var(--line));color:var(--text)}
 .bcell:not(.empty) svg.ico.bone{opacity:1;color:var(--c);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 1px 0 #000)}
 .bcell.sel{box-shadow:0 0 0 2px var(--xp);border-color:var(--xp)}

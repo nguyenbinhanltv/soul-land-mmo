@@ -4,7 +4,8 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
-  CORE_ITEM, CORE_SETS, CORE_SUBS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText } from "../../shared/data.ts";
+  CORE_ITEM, CORE_SETS, CORE_SUBS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
+  BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
@@ -13,6 +14,8 @@ const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySele
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
 /** Phím hồn kỹ 1–4 (từ bước 2.3a; phím số 1–4 dành cho đổi võ hồn trong đội). Mã phím là `Key` + chữ. */
 export const SKILL_KEYS = ["U", "I", "O", "P"];
+/** Phím kỹ năng hồn cốt chủ động (từ 4.3, chờ chốt) theo BONE_ACTIVE_SLOTS: Z đầu, X tay trái, C tay phải. */
+export const BONE_SKILL_KEYS = ["Z", "X", "C"];
 
 export function log(text: string, col?: string, who?: string) {
   const el = $("#log"), d = document.createElement("div");
@@ -54,6 +57,48 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     mk(SKILL_KEYS[i], `Hồn kỹ ${i + 1}: ${s.name}${has ? "" : " (khóa)"}`, has ? s.name : "Khóa", has ? ringColor(rings[i]) : "#666", `skill${i}`, s.icon, !has, i, tip);
   });
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
+}
+
+/** Hồn cốt đang gắn trên võ hồn ra trận (từ tin riêng "bag"): loài, vị trí, số năm. */
+export interface WornBone { beast: string; slot: string; years: number; }
+const pow2 = (x: number) => x.toFixed(2).replace(".", ",");
+/** Mô tả kỹ năng hồn cốt (tooltip, bảng hồn cốt): chủ động kèm tiêu hao / hồi chiêu / sức mạnh, bị động kèm số thật theo số năm. */
+export function boneSkillText(beast: string, slot: string, years: number) {
+  const k = boneSkillOf(beast, slot); if (!k) return "";
+  if (k.active) return `${k.sk.name} (chủ động): ${k.sk.desc}. Tốn ${k.sk.cost} hồn lực, hồi ${String(k.sk.cd).replace(".", ",")} giây, sức mạnh ×${pow2(skillPower(years))}.`;
+  return `${k.ps.name} (bị động): ${passiveText(k.ps, buffPower(years))}.`;
+}
+let boneCd: number[] = [];
+/**
+ * Kỹ năng hồn cốt của võ hồn ra trận (bước 4.3): 3 nút chủ động (Z / X / C: đầu, tay trái, tay phải; biểu tượng vị trí vẽ bằng
+ * điểm ảnh, màu theo niên hạn) cạnh thanh hồn kỹ, và ô bị động (thân, hai chân) viền nét đứt cạnh hiệu ứng có lợi. Ô chưa gắn
+ * hồn cốt thì mờ. Chỉ hiển thị; server kiểm tra lại mọi thứ.
+ */
+export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
+  const el = $("#bskills"); el.innerHTML = ""; boneCd = [];
+  BONE_ACTIVE_SLOTS.forEach((slot, i) => {
+    const s = BONE_SLOTS[boneSlotIndex(slot)], w = worn.find((x) => x.slot === slot), k = w ? boneSkillOf(w.beast, slot) : null;
+    const sk = k?.active ? k.sk : null, col = w ? ringColor(tierOfYears(w.years)) : "#666";
+    boneCd[i] = sk?.cd ?? 1;
+    const b = document.createElement("button"); b.className = "sk bsk" + (sk ? "" : " locked"); b.dataset.b = String(i);
+    b.style.setProperty("--c", col);
+    b.innerHTML = `<b>${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico" style="color:${col}">${boneSvg(slot, "bico")}</span><span></span><div class="cd"></div>`;
+    b.querySelector("i")!.textContent = sk?.icon ?? "";
+    b.querySelectorAll("span")[1].textContent = sk?.name ?? s.name;
+    b.setAttribute("aria-label", sk ? `Kỹ năng hồn cốt ${s.name}: ${sk.name}` : `Kỹ năng hồn cốt ${s.name}: chưa có`);
+    b.title = w && sk ? `${boneName(w.beast, slot, w.years)}\n${boneSkillText(w.beast, slot, w.years)}`
+      : `Ô ${s.name} chưa gắn hồn cốt: gắn ở bảng đội hình (V) để có kỹ năng chủ động.`;
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); act(`bone${i}`); });
+    el.appendChild(b);
+  });
+  const pas = $("#bpas"); pas.innerHTML = "";
+  for (const w of worn) {
+    const k = boneSkillOf(w.beast, w.slot); if (!k || k.active) continue;
+    const c = document.createElement("span"); c.className = "passive"; c.textContent = k.ps.name;
+    c.style.color = ringColor(tierOfYears(w.years));
+    c.title = `${boneName(w.beast, w.slot, w.years)}\n${boneSkillText(w.beast, w.slot, w.years)}`;
+    pas.appendChild(c);
+  }
 }
 
 /** Tên các trạng thái đang có trên hồn thú (khung mục tiêu), kèm số tầng nếu cộng dồn. */
@@ -111,6 +156,9 @@ export function updateStats(p: any) {
   document.querySelectorAll<HTMLElement>(".sk[data-i]").forEach((b) => {
     const i = Number(b.dataset.i); const cd = i < rings.length ? p.cds[i] / sks[i].cd : 0;
     (b.querySelector(".cd") as HTMLElement).style.height = cd * 100 + "%";
+  });
+  document.querySelectorAll<HTMLElement>(".sk[data-b]").forEach((b) => {
+    const i = Number(b.dataset.b); (b.querySelector(".cd") as HTMLElement).style.height = Math.min(1, (p.bcds?.[i] ?? 0) / (boneCd[i] || 1)) * 100 + "%";
   });
   const ch = $("#channel");
   if (p.absorb > 0) {
@@ -358,10 +406,13 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     b.type = "button"; b.className = "bcell" + (it ? "" : " empty") + (boneCell === s.id ? " sel" : "");
     b.dataset.slot = s.id; b.style.gridArea = BONE_AREA[s.id];
     if (it) b.style.setProperty("--c", itemColor(it));
-    b.innerHTML = `${boneSvg(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}`;
-    b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}`);
+    // Từ 4.3: tên kỹ năng hồn cốt (chủ động / bị động) hiện trong ô.
+    const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
+    b.innerHTML = `${boneSvg(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${kname ? `<em></em>` : ""}`;
+    if (kname) b.querySelector("em")!.textContent = kname;
+    b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}${kname ? `, kỹ năng ${kname}` : ""}`);
     b.setAttribute("aria-pressed", String(boneCell === s.id));
-    b.title = it ? `${itemName(it)} (${boneStatText(s.id, it.years)})` : `Ô ${s.name} trống`;
+    b.title = it && kb ? `${itemName(it)} (${boneStatText(s.id, it.years)})\n${boneSkillText(kb.beast, s.id, it.years)}` : `Ô ${s.name} trống`;
     b.addEventListener("click", () => { b.blur(); boneCell = boneCell === s.id ? null : s.id; again(); });
     // Kéo-thả bằng chuột: thả hồn cốt trong túi vào ô, gửi kèm ô được thả để server kiểm tra đúng vị trí.
     b.addEventListener("dragover", (e) => { e.preventDefault(); b.classList.add("over"); });
@@ -388,9 +439,10 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   const cs = boneCell ? BONE_SLOTS[boneSlotIndex(boneCell)] : null, cur = cs ? worn.get(cs.id) : undefined;
   if (cur && cs) {
     const t = document.createElement("b"); t.textContent = itemName(cur); t.style.color = itemColor(cur);
-    const d = document.createElement("small"); d.textContent = `Đang gắn ở ô ${cs.name} · kỹ năng ${cs.active ? "chủ động" : "bị động"} (sắp có) · cường hóa +${cur.enhance}`;
+    const d = document.createElement("small"); d.textContent = `Đang gắn ở ô ${cs.name} · kỹ năng ${cs.active ? `chủ động (phím ${BONE_SKILL_KEYS[BONE_ACTIVE_SLOTS.indexOf(cs.id)]} khi võ hồn này ra trận)` : "bị động khi võ hồn này ra trận"} · cường hóa +${cur.enhance}`;
     const p = document.createElement("p"); p.textContent = `Cộng: ${boneStatText(cs.id, cur.years)}.`;
-    info.append(t, d, p);
+    const kb = boneOf(cur), ks = document.createElement("p"); ks.className = "bskill"; ks.textContent = kb ? boneSkillText(kb.beast, cs.id, cur.years) : "";
+    info.append(t, d, p, ks);
     const row = document.createElement("div"); row.className = "brow";
     const off = document.createElement("button"); off.type = "button"; off.className = "buse drop"; off.textContent = "Tháo về túi";
     off.setAttribute("aria-label", `Tháo ${itemName(cur)} về túi đồ`);
@@ -416,7 +468,9 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     row.draggable = true; row.style.setProperty("--c", itemColor(it));
     row.innerHTML = `${boneSvg(b.slot)}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
     row.querySelector("b")!.textContent = itemName(it);
-    row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years)}${it.enhance ? ` · +${it.enhance}` : ""}`;
+    const kn = boneSkillOf(b.beast, b.slot);
+    row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years)}${kn ? ` · ${kn.active ? kn.sk.name : kn.ps.name}` : ""}${it.enhance ? ` · +${it.enhance}` : ""}`;
+    row.title = boneSkillText(b.beast, b.slot, it.years);
     const go = row.querySelector("button")!;
     go.setAttribute("aria-label", `Gắn ${itemName(it)} vào ô ${s.name} của ${def.name}`);
     go.addEventListener("click", () => { go.blur(); boneCell = b.slot; boneFocus = null; act.equip(it.id, v.rowId); });
@@ -647,15 +701,16 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     const band = hasYears(sel) ? tierBand(tierOfYears(sel.years)) : null, bone = boneOf(sel), slot = bone ? BONE_SLOTS[boneSlotIndex(bone.slot)] : null;
     const core = coreOf(sel), cset = core ? coreSet(core.set) : undefined;
     info.querySelector("small")!.textContent = !def ? "Không rõ loại" : ITEM_KINDS[def.kind].name
-      + (slot ? ` · ${slot.name} (kỹ năng ${slot.active ? "chủ động" : "bị động"})` : "")
+      + (slot && bone ? ` · ${slot.name} (kỹ năng ${slot.active ? "chủ động" : "bị động"}${(() => { const k = boneSkillOf(bone.beast, bone.slot); return k ? ` ${k.active ? k.sk.name : k.ps.name}` : ""; })()})` : "")
       + (core ? ` · Bộ ${cset ? `${cset.name} (${cset.tag})` : "lạ"}` : "")
       + (hasYears(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
       + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "");
     // Hồn cốt (4.1): chỉ số gốc theo số năm, cấp cường hóa, đang gắn hay chưa.
     if (bone && slot) {
       const st = document.createElement("div"); st.className = "bstat";
-      st.innerHTML = `<span>Chỉ số gốc</span><b></b><span>Cường hóa</span><b>+${sel.enhance}</b><span>Đang gắn</span><b>Chưa gắn</b>`;
-      st.querySelector("b")!.textContent = boneStatText(bone.slot, sel.years!);
+      st.innerHTML = `<span>Chỉ số gốc</span><b></b><span>Kỹ năng</span><b></b><span>Cường hóa</span><b>+${sel.enhance}</b><span>Đang gắn</span><b>Chưa gắn</b>`;
+      const bs = st.querySelectorAll("b"); bs[0].textContent = boneStatText(bone.slot, sel.years!);
+      bs[1].textContent = boneSkillText(bone.beast, bone.slot, sel.years!) || "Không có";
       info.insertBefore(st, info.querySelector("p"));
     }
     // Hồn hạch (5.1): sao, chỉ số chính (theo sao), dòng phụ đã tung, nâng cấp, đang gắn hay chưa, hiệu ứng bộ (có tác dụng từ 5.2).

@@ -1356,6 +1356,122 @@ export function coreStatText(k: CoreStat, v: number) {
   return `${s.name} +${v.toLocaleString("vi-VN", { maximumFractionDigits: 1 })}${s.pct ? "%" : ""}`;
 }
 
+// ---------- Kỹ năng hồn cốt (mục 5.5, bước 4.3; mọi số chờ chốt) ----------
+/** Hiệu ứng có lợi mà kỹ năng bị động cộng thường trực (cùng nghĩa với BUFFS: atk/spd/def/crit/mp/leech). */
+export type PassiveBuff = "atk" | "spd" | "def" | "crit" | "mp" | "leech";
+/**
+ * Kỹ năng bị động của hồn cốt thân / chân: `buff` cộng thường trực như hiệu ứng có lợi cùng tên (công, tốc chạy, giảm sát thương
+ * nhận, chí mạng, giảm tiêu hao hồn lực, hút máu); `resist`: trạng thái trên hồn sư (PLAYER_STATUS) ngắn đi ngần ấy phần thời gian.
+ * Số trong bảng là mức gốc, nhân buffPower(số năm hồn cốt).
+ */
+export interface BonePassiveDef { name: string; desc: string; buff?: Partial<Record<PassiveBuff, number>>; resist?: Partial<Record<StatusId, number>>; }
+/** Kỹ năng của hồn cốt một loài: `active` cho đầu / tay trái / tay phải (SkillDef, chạy bằng cùng bộ máy với hồn kỹ), `passive` cho thân / hai chân. */
+export interface BoneSkillSet { active: SkillDef; passive: BonePassiveDef; }
+/** Kỹ năng chủ động mặc định: tốn 18 hồn lực, hồi 10 giây (chờ chốt); `icon` là chữ trên nút như hồn kỹ. */
+const ba = (name: string, desc: string, icon: string, area: SkillArea, r: number, dmg: number, o: Partial<SkillDef> = {}): SkillDef =>
+  ({ name, desc, icon, cost: 18, cd: 10, area, r, dmg, ...o });
+const bp = (name: string, desc: string, o: Omit<BonePassiveDef, "name" | "desc">): BonePassiveDef => ({ name, desc, ...o });
+/**
+ * **(chờ chốt)** Kỹ năng hồn cốt theo LOÀI hồn thú gốc (mã trong BEASTS), mỗi loài 1 kỹ năng chủ động (cùng một kỹ năng cho đầu,
+ * tay trái, tay phải) và 1 bị động (cùng một kỹ năng cho thân, chân trái, chân phải). Chủ động lấy từ chiêu báo trước của loài đó
+ * (BEAST_SKILLS, ví dụ Mạn Đà La Xà phun độc, Ám Kim Khủng Trảo Hùng vỗ đất); loài dưới 1.000 năm (Thánh Hồn Thôn, chỉ có hồn
+ * cốt qua hook / rương sau này) tự đặt theo con vật. Sức mạnh: chủ động nhân skillPower(số năm hồn cốt) như hồn kỹ, bị động
+ * nhân buffPower(số năm). Gắn nhiều hồn cốt cùng loài thì mỗi ô một nút / cộng dồn bị động (tới BONE_PASSIVE_CAP).
+ * Thêm loài mới vào BEASTS thì thêm một mục ở đây; loài không có mục thì hồn cốt chỉ cộng chỉ số.
+ */
+export const BONE_SKILLS: Record<string, BoneSkillSet> = {
+  phong_lang: { active: ba("Phong Lang Vồ", "Lao tới trước, cắn xé hồn thú trên đường", "➤", "dash", 70, 2, { inv: 0.25 }),
+    passive: bp("Phong Bộ", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+  man_da_la_xa: { active: ba("Mạn Đà La Phun Độc", "Phun độc vào hồn thú gần nhất: Trúng độc 2 tầng", "☣", "target", 100, 1.4, { status: [{ s: "poison", n: 2 }] }),
+    passive: bp("Xà Huyết", "Kháng Trúng độc", { resist: { poison: 0.3 } }) },
+  tu_van_bao: { active: ba("Tử Văn Vồ Nhanh", "Lướt chớp nhoáng, +20% chí mạng", "➹", "dash", 80, 1.8, { crit: 0.2, inv: 0.3, cd: 8 }),
+    passive: bp("Báo Nhãn", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.04 } }) },
+  quy_dang: { active: ba("Quỷ Đằng Rễ Trói", "Rễ cây trồi lên dưới hồn thú gần nhất: Trói 1,5 giây", "❦", "target", 110, 1.2, { status: [{ s: "root", secs: 1.5 }] }),
+    passive: bp("Hút Nhựa", "Hút máu từ mọi sát thương gây ra", { buff: { leech: 0.03 } }) },
+  loi_van_hau: { active: ba("Lôi Văn Gọi Sét", "Gọi sét xuống hồn thú gần nhất: Cảm điện", "ϟ", "around", 30, 1.6, { at: 130, status: [{ s: "shock" }] }),
+    passive: bp("Lôi Văn Bì", "Kháng Cảm điện", { resist: { shock: 0.35 } }) },
+  quy_ho: { active: ba("Quỷ Hổ Vồ Lao", "Vồ lao một đoạn dài, xé toạc hồn thú trên đường", "➤", "dash", 110, 2.2, { inv: 0.3, cd: 11 }),
+    passive: bp("Hổ Uy", "Công tăng", { buff: { atk: 0.05 } }) },
+  nhan_dien_ma_chu: { active: ba("Ma Chu Phun Tơ", "Phun tơ vào hồn thú gần nhất: Trói 1,5 giây, Làm chậm", "✳", "target", 110, 1, { status: [{ s: "root", secs: 1.5 }, { s: "slow", secs: 3 }] }),
+    passive: bp("Ma Chu Túc", "Kháng Trói", { resist: { root: 0.35 } }) },
+  u_minh_lang: { active: ba("U Minh Ảnh Vồ", "Hóa bóng lao tới, +15% chí mạng", "☾", "dash", 95, 2, { crit: 0.15, inv: 0.3 }),
+    passive: bp("Ảnh Bộ", "Tốc chạy tăng", { buff: { spd: 0.05 } }) },
+  am_kim_khung_trao_hung: { active: ba("Ám Kim Vỗ Đất", "Vỗ đất quanh thân: choáng 0,8 giây", "✺", "around", 56, 2.4, { status: [{ s: "stun", secs: 0.8 }], shake: true, cd: 12, cost: 22 }),
+    passive: bp("Ám Kim Bì", "Giảm sát thương nhận", { buff: { def: 0.06 } }) },
+  kiem_vi_hat: { active: ba("Kiếm Vĩ Đâm", "Đuôi kiếm đâm hồn thú gần nhất: Phá giáp 2 tầng", "†", "target", 60, 1.8, { dash: 20, status: [{ s: "armor", n: 2 }] }),
+    passive: bp("Hạt Giáp", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.05 } }) },
+  quy_anh_bao: { active: ba("Quỷ Ảnh Trảm", "Chém nửa trước mặt, +15% chí mạng", "≋", "front", 54, 2.2, { crit: 0.15 }),
+    passive: bp("Quỷ Ảnh", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+  xich_lan_mang: { active: ba("Xích Lân Quấn Siết", "Quấn siết quanh thân: Trói 1,5 giây", "◎", "around", 40, 1.4, { status: [{ s: "root", secs: 1.5 }] }),
+    passive: bp("Xích Lân Giáp", "Kháng Choáng", { resist: { stun: 0.3 } }) },
+  nhu_cot_tho_hoang: { active: ba("Thỏ Nhảy", "Bật nhảy tới trước, bất tử thoáng chốc", "➶", "dash", 60, 1.2, { inv: 0.4, cd: 8, cost: 12 }),
+    passive: bp("Thỏ Túc", "Tốc chạy tăng", { buff: { spd: 0.05 } }) },
+  dien_thu: { active: ba("Điền Thử Gặm", "Gặm hồn thú gần nhất: Phá giáp 1 tầng", "◆", "target", 40, 1.5, { status: [{ s: "armor" }], cost: 12 }),
+    passive: bp("Tích Trữ", "Giảm tiêu hao hồn lực", { buff: { mp: 0.05 } }) },
+  hoi_vu_tuoc: { active: ba("Vũ Tiễn", "Bắn 3 mũi lông vũ tỏa quạt", "✶", "proj", 110, 1, { n: 3, spread: 30, cost: 14 }),
+    passive: bp("Khinh Vũ", "Tốc chạy tăng", { buff: { spd: 0.04 } }) },
+  phong_lang_con: { active: ba("Lang Nha", "Cắn hồn thú gần nhất", "▼", "target", 40, 1.6, { dash: 20, cost: 12 }),
+    passive: bp("Lang Tính", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.03 } }) },
+  doc_cham_phong: { active: ba("Độc Châm", "Bắn kim độc: Trúng độc 2 tầng", "➶", "proj", 120, 1.2, { status: [{ s: "poison", n: 2 }], cost: 14 }),
+    passive: bp("Phong Độc", "Kháng Trúng độc", { resist: { poison: 0.3 } }) },
+  thiet_giap_xuyen_son_giap: { active: ba("Cuộn Giáp", "Cuộn tròn: khiên 15% sinh lực 5 giây, hất văng hồn thú sát thân", "⛨", "around", 30, 1, { push: 24, self: { shield: 0.15, secs: 5 } }),
+    passive: bp("Thiết Giáp", "Giảm sát thương nhận", { buff: { def: 0.05 } }) },
+  hac_boi_da_tru: { active: ba("Dã Trư Húc", "Húc tới trước, đẩy lùi hồn thú", "➤", "dash", 80, 1.6, { push: 30 }),
+    passive: bp("Dã Tính", "Công tăng", { buff: { atk: 0.04 } }) },
+  thanh_lan_xa: { active: ba("Thanh Lân Cắn Độc", "Cắn hồn thú gần nhất: Trúng độc", "☣", "target", 50, 1.2, { status: [{ s: "poison" }], cost: 12 }),
+    passive: bp("Thanh Lân", "Kháng Trúng độc", { resist: { poison: 0.25 } }) },
+  quy_dang_non: { active: ba("Roi Mây", "Quất nửa trước mặt: Làm chậm", "∿", "front", 40, 1.4, { status: [{ s: "slow" }], cost: 12 }),
+    passive: bp("Nhựa Non", "Hút máu từ mọi sát thương gây ra", { buff: { leech: 0.02 } }) },
+  thanh_lan_ngac: { active: ba("Thanh Lân Táp Ngang", "Táp ngang nửa trước mặt", "◣", "front", 46, 2.2),
+    passive: bp("Ngạc Giáp", "Giảm sát thương nhận", { buff: { def: 0.05 } }) },
+  kim_linh_ung: { active: ba("Kim Linh Bổ Nhào", "Bổ nhào xuống hồn thú gần nhất", "▾", "around", 28, 2, { at: 110, dash: 110 }),
+    passive: bp("Ưng Nhãn", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.04 } }) },
+  nhan_dien_ma_chu_non: { active: ba("Giăng Tơ", "Giăng lưới quanh hồn thú gần nhất: Làm chậm 3 giây", "✳", "around", 34, 0.8, { at: 110, status: [{ s: "slow", secs: 3 }], cost: 14 }),
+    passive: bp("Tơ Nhện", "Kháng Làm chậm", { resist: { slow: 0.35 } }) },
+  liet_trao_hung: { active: ba("Liệt Trảo Vỗ Đất", "Vỗ đất quanh thân", "✺", "around", 48, 2, { shake: true }),
+    passive: bp("Hùng Lực", "Công tăng", { buff: { atk: 0.05 } }) },
+  thiet_giap_te_nguu: { active: ba("Tê Ngưu Xung Phong", "Xung phong một đoạn dài, đẩy lùi hồn thú", "➤", "dash", 130, 2, { push: 30, inv: 0.3, cd: 12 }),
+    passive: bp("Tê Giáp", "Giảm sát thương nhận", { buff: { def: 0.07 } }) },
+  that_tinh_doc_thiem: { active: ba("Thất Tinh Phun Độc", "Phun độc trùm hồn thú gần nhất: Trúng độc 3 tầng", "☣", "around", 34, 1.1, { at: 120, status: [{ s: "poison", n: 3 }] }),
+    passive: bp("Độc Thể", "Kháng Trúng độc", { resist: { poison: 0.4 } }) },
+  hac_vu_bien_buc: { active: ba("Âm Ba", "Sóng âm nửa trước mặt: Câm lặng 2 giây", "≈", "front", 64, 1.2, { status: [{ s: "silence", secs: 2 }] }),
+    passive: bp("Hút Huyết", "Hút máu từ mọi sát thương gây ra", { buff: { leech: 0.04 } }) },
+  lam_loi_te_nguu: { active: ba("Lam Lôi Xung", "Mang sét xung phong: Cảm điện", "ϟ", "dash", 130, 1.9, { status: [{ s: "shock" }], inv: 0.3, cd: 12 }),
+    passive: bp("Lam Lôi Giáp", "Kháng Cảm điện", { resist: { shock: 0.4 } }) },
+  loi_duc_ung: { active: ba("Lôi Bạo", "Sét nổ trên hồn thú gần nhất: Cảm điện", "ϟ", "around", 34, 1.8, { at: 130, status: [{ s: "shock" }] }),
+    passive: bp("Lôi Dực", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+};
+/** 3 vị trí có kỹ năng chủ động theo thứ tự nút (đầu, tay trái, tay phải): chỉ số i của message `boneskill {i}` và `PlayerState.bcds`. */
+export const BONE_ACTIVE_SLOTS: BoneSlot[] = BONE_SLOTS.filter((s) => s.active).map((s) => s.id);
+/** Bị động của nhiều hồn cốt cộng dồn, mỗi loại tối đa ngần này (chờ chốt). */
+export const BONE_PASSIVE_CAP: Record<PassiveBuff, number> & { resist: number } = { atk: 0.25, spd: 0.25, def: 0.3, crit: 0.15, mp: 0.3, leech: 0.12, resist: 0.8 };
+export const PASSIVE_NAMES: Record<PassiveBuff, string> = { atk: "Công", spd: "Tốc chạy", def: "Giảm sát thương nhận", crit: "Chí mạng", mp: "Giảm tiêu hao hồn lực", leech: "Hút máu" };
+/** Kỹ năng của hồn cốt loài `beast` ở vị trí `slot`: chủ động (đầu, hai tay) hoặc bị động (thân, hai chân); loài / vị trí lạ: null. */
+export function boneSkillOf(beast: string, slot: unknown): { active: true; sk: SkillDef } | { active: false; ps: BonePassiveDef } | null {
+  const set = BONE_SKILLS[beast], s = BONE_SLOTS[boneSlotIndex(slot)]; if (!set || !s) return null;
+  return s.active ? { active: true, sk: set.active } : { active: false, ps: set.passive };
+}
+/** Hiệu ứng bị động đang có (đã nhân buffPower và kẹp BONE_PASSIVE_CAP). */
+export interface BonePassive { buff: Partial<Record<PassiveBuff, number>>; resist: Partial<Record<StatusId, number>>; }
+/** Cộng bị động của các hồn cốt thân / chân đang gắn trên một võ hồn (vị trí chủ động và loài không có kỹ năng thì bỏ qua). */
+export function bonePassive(bones: { beast: string; slot: unknown; years: number }[]): BonePassive {
+  const out: BonePassive = { buff: {}, resist: {} };
+  for (const b of bones) {
+    const k = boneSkillOf(b.beast, b.slot); if (!k || k.active) continue;
+    const pow = buffPower(b.years);
+    for (const [x, v] of Object.entries(k.ps.buff ?? {}) as [PassiveBuff, number][]) out.buff[x] = Math.min(BONE_PASSIVE_CAP[x], (out.buff[x] ?? 0) + v * pow);
+    for (const [x, v] of Object.entries(k.ps.resist ?? {}) as [StatusId, number][]) out.resist[x] = Math.min(BONE_PASSIVE_CAP.resist, (out.resist[x] ?? 0) + v * pow);
+  }
+  for (const o of [out.buff, out.resist] as Record<string, number>[]) for (const x in o) o[x] = +o[x].toFixed(4);
+  return out;
+}
+const pctTxt = (v: number) => `${(Math.round(v * 1000) / 10).toLocaleString("vi-VN")}%`;
+/** Mô tả hiệu ứng bị động với số thật (tooltip, bảng hồn cốt): "Giảm sát thương nhận 7,6%", "Kháng Trúng độc: thời gian −38%". */
+export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; resist?: Partial<Record<StatusId, number>> }, mult = 1) {
+  return [...Object.entries(p.buff ?? {}).map(([k, v]) => `${PASSIVE_NAMES[k as PassiveBuff]} ${k === "def" || k === "mp" ? "" : "+"}${pctTxt(v * mult)}`),
+    ...Object.entries(p.resist ?? {}).map(([k, v]) => `Kháng ${STATUS[k as StatusId].name}: thời gian −${pctTxt(v * mult)}`)].join(", ");
+}
+
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
 /** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1); tiên thảo thêm ITEMS ở BĐ6. */
 export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
