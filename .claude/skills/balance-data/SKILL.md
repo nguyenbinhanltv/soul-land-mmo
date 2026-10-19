@@ -11,7 +11,9 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `TIERS` (5 bậc niên hạn: `years` là mốc năm, tên màu `color`, máu/sát thương/kinh nghiệm hồn thú ở đúng mốc, `atkb`/`hpb` cộng cho hồn hoàn), `TIER_MULT`, `tierOfYears(years)`.
 - Niên hạn theo số năm (bước 3.2): `MAX_YEARS`, `tierBand(tier)`, `rollYears(lo, hi, r)` (tuổi hồn thú, phân bố log; `r` do server tung), `beastStats(years)` (máu, sát thương, kinh nghiệm nội suy giữa các mốc `TIERS`), `formatYears`. Khoảng năm của từng vùng nằm ở thuộc tính `years` trong file Tiled (`tools/gen-map.mjs`).
 - `HE` (4 hệ: hệ số `atk/hp/mp/spd/def`), `RARITY_MULT`, `VOHON` (danh sách võ hồn tạo bằng hàm `vh(...)`), `vohonIndex(id)`.
-- `SKILLS` (4 hồn kỹ dùng chung: `cost`, `cd`), `ringLimit(slot)`, `xpNeed(level)`, `atBottleneck(level, rings)`, `MAX_RINGS`, `calcStats(vh, level, rings)`.
+- Hồn kỹ (mục 5.2, bước 2.5a): kiểu `SkillDef` (vùng tác dụng, `dmg`, trạng thái, hiệu ứng lên bản thân), `SKILLS` (4 hồn kỹ dùng chung), `VOHON_SKILLS` (hồn kỹ riêng theo mã võ hồn) + `skillsOf(mã)`, `TIEN_CO_RIENG` + `tienCoOf(mã)`, `skillPower(năm)` / `buffPower(năm)` / `BUFF_SCALE`, `PCT_HP_CAP`, `PROJ_SPEED`, `CRIT`. Thêm hồn kỹ riêng cho võ hồn mới: chỉ thêm một mục vào `VOHON_SKILLS` (và `TIEN_CO_RIENG` nếu có), ghi bảng vào GAME_DESIGN.md 5.2.
+- Trạng thái dùng chung (mục 5.1): `STATUS_IDS` / `STATUS` / `statusBit` (thứ tự là bit đồng bộ, chỉ thêm vào cuối), `STATUS_TICK`, `CC_TIER_MULT`, `BEAST_REGEN`; hiệu ứng có lợi `BUFF_IDS` / `BUFFS` / `buffBit`.
+- `ringLimit(slot)`, `xpNeed(level)`, `atBottleneck(level, rings)`, `MAX_RINGS`, `calcStats(vh, level, rings)`.
 - Đội hình và luật gục (mục 5.1): `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`.
 - Năng lượng và chiêu tiên cơ (mục 5.1, bước 2.4): `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO` (tiên cơ chung theo hệ), `TIEN_CO_SET` + `energyGain()` / `tienCoDmgMult()` (hệ số bộ hồn hạch Tiên Cơ).
 - Giảm kinh nghiệm theo chênh cấp (mục 5.3): `beastLevel(tier)` (tạm theo bậc đến BĐ3), `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale(level, beastLv)`.
