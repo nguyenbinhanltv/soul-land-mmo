@@ -634,8 +634,9 @@ export class GameScene extends Phaser.Scene {
         const it = d.item ? itemDef(d.item) : undefined, col = it && !bone ? it.col : hud.ringColor(d.tier);
         const img = this.add.image(d.x, d.y - 4, bone ? `bone_${bone.id}` : it ? "shard" : `ring${d.tier}`).setDepth(d.y - 1);
         if (it) img.setTint(hex(col));
+        if (bone) img.setScale(2); // biểu tượng 9×9 điểm ảnh: phóng đôi cho dễ thấy giữa cỏ
         const name = bone ? `Hồn cốt ${bone.name}` : it ? `${d.qty > 1 ? `${d.qty} ` : ""}${it.name}` : d.item ? "Vật phẩm lạ" : formatYears(d.years);
-        const txt = this.add.text(d.x, d.y + 4, name, {
+        const txt = this.add.text(d.x, d.y + (bone ? 12 : 4), name, { // hồn cốt: dưới nhãn số năm của hồn hoàn nằm cạnh
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(d.y - 1);
         v = { img, txt }; this.drops.set(id, v);
