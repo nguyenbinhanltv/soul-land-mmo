@@ -347,7 +347,9 @@ export const dir4 = (x: number, y: number) => (Math.abs(x) >= Math.abs(y) ? (x >
 
 // ---------- Trạng thái dùng chung (mục 5.1 "Trạng thái dùng chung"; bước 2.5a, mọi số chờ chốt) ----------
 /** Thứ tự trong mảng là bit trong `BeastState.st` (bit i = 1 << i). Chỉ thêm vào cuối. */
-export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "silence", "root"] as const;
+export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "silence", "root",
+  // Từ 2.5c (lưu phái Cảm điện): Mị hoặc (cộng dồn thành Mê hoặc), Mê hoặc, Làm chậm, Phong ấn (cộng dồn thành Dễ thương).
+  "allure", "charm", "slow", "lock"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -357,14 +359,20 @@ export type StatusId = (typeof STATUS_IDS)[number];
  * - `healCut`: Trúng độc giảm hồi máu của hồn thú. `chain` / `chainR`: Cảm điện lan `chain` sát thương đòn trực tiếp sang hồn thú
  *   cảm điện khác trong bán kính `chainR` (một bước, không lan tiếp). `boom`: Viêm bạo kích nổ mọi tầng Thiêu đốt còn lại × boom.
  * - `noMove` / `noAtk`: khống chế. Câm lặng tạm chặn đòn đánh của hồn thú vì hồn thú chưa có chiêu (từ 3.5 chỉ chặn chiêu báo trước).
+ * Từ 2.5c:
+ * - `slow`: giảm tốc độ di chuyển của hồn thú theo tỉ lệ, nhân số tầng (cộng mọi trạng thái, tối đa SLOW_CAP).
+ * - `wander`: hồn thú bỏ mục tiêu, đi lung tung (Mê hoặc); đi kèm `noAtk`.
+ * - `burst`: đủ `max` tầng thì xóa trạng thái này và gây trạng thái `s` (thời gian `secs`, mặc định của `s`): Mị hoặc đủ tầng
+ *   thành Mê hoặc, Phong ấn đủ tầng thành Dễ thương 6,8 giây.
  */
 export interface StatusDef {
   name: string; col: string; secs: number; max: number;
   dot: number; amp: number; healCut: number; chain: number; chainR: number; boom: number;
   noMove: boolean; noAtk: boolean;
+  slow: number; wander: boolean; burst?: { s: StatusId; secs?: number };
 }
 const st = (name: string, col: string, secs: number, max: number, o: Partial<StatusDef> = {}): StatusDef =>
-  ({ name, col, secs, max, dot: 0, amp: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, ...o });
+  ({ name, col, secs, max, dot: 0, amp: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, slow: 0, wander: false, ...o });
 export const STATUS: Record<StatusId, StatusDef> = {
   burn:    st("Thiêu đốt", "#ff7a2a", 4, 5, { dot: 0.25, boom: 1.5 }),
   shock:   st("Cảm điện",  "#7fd0ff", 6, 1, { chain: 0.4, chainR: 64 }),
@@ -374,7 +382,15 @@ export const STATUS: Record<StatusId, StatusDef> = {
   stun:    st("Choáng",    "#ffe08a", 1.5, 1, { noMove: true, noAtk: true }),
   silence: st("Câm lặng",  "#b58cff", 3, 1, { noAtk: true }),
   root:    st("Trói",      "#4ab0ff", 2, 1, { noMove: true }),
+  // Từ 2.5c (chờ chốt): Yêu Hồ cộng dồn Mị hoặc (mỗi tầng chậm 15%), đủ 3 tầng thì Mê hoặc 2,5 giây; Càn Khôn Hỗn Nguyên Tỏa
+  // cộng dồn Phong ấn, đủ 3 tầng thì Dễ thương 6,8 giây. Đang Mê hoặc thì không nhận thêm Mị hoặc (không khống chế nối liền).
+  allure:  st("Mị hoặc",   "#ff9ad5", 5, 3, { slow: 0.15, burst: { s: "charm" } }),
+  charm:   st("Mê hoặc",   "#ff5ab8", 2.5, 1, { noAtk: true, wander: true }),
+  slow:    st("Làm chậm",  "#a0c8ff", 2, 1, { slow: 0.4 }),
+  lock:    st("Phong ấn",  "#e0b04a", 6, 3, { burst: { s: "vuln", secs: 6.8 } }),
 };
+/** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
+export const SLOW_CAP = 0.8;
 export const statusBit = (s: StatusId) => 1 << STATUS_IDS.indexOf(s);
 /** Trạng thái sát thương theo thời gian gây sát thương mỗi ngần này giây. */
 export const STATUS_TICK = 1;
@@ -393,8 +409,9 @@ export const SPAWN_CLEAR = 160;
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
  *  mp: giảm tiêu hao hồn lực của hồn kỹ, inv: miễn mọi sát thương, phoenix: lãnh vực phượng hoàng (từ 2.5b, Tà Hỏa Phượng Hoàng):
- *  hồn thú trong bán kính PHOENIX_FIELD_R quanh hồn sư nhận thêm v sát thương từ mọi nguồn. Chỉ thêm vào cuối. */
-export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv", "phoenix"] as const;
+ *  hồn thú trong bán kính PHOENIX_FIELD_R quanh hồn sư nhận thêm v sát thương từ mọi nguồn; hide: tàng hình (từ 2.5c, Yêu Hồ):
+ *  hồn thú bỏ mục tiêu và không nhắm tới hồn sư, đánh thường, tung hồn kỹ khác hoặc tiên cơ thì hiện hình. Chỉ thêm vào cuối. */
+export const BUFF_IDS = ["atk", "spd", "def", "crit", "mp", "inv", "phoenix", "hide"] as const;
 export type BuffId = (typeof BUFF_IDS)[number];
 export const BUFFS: Record<BuffId, { name: string; col: string }> = {
   atk:  { name: "Tăng công",       col: "#ff8a5a" },
@@ -404,6 +421,7 @@ export const BUFFS: Record<BuffId, { name: string; col: string }> = {
   mp:   { name: "Giảm tiêu hao",   col: "#5a9cc9" },
   inv:  { name: "Miễn sát thương", col: "#fff2b0" },
   phoenix: { name: "Lãnh vực Phượng Hoàng", col: "#ff6a2a" },
+  hide: { name: "Tàng hình", col: "#ff9ad5" },
 };
 /** Bán kính lãnh vực phượng hoàng (pixel), đi theo hồn sư; đổi võ hồn vẫn còn như mọi hiệu ứng có lợi (bước 2.5b, chờ chốt). */
 export const PHOENIX_FIELD_R = 90;
@@ -453,6 +471,12 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `pick: "low"` (target): khóa hồn thú còn ít sinh lực nhất (theo tỉ lệ) trong tầm thay cho hồn thú gần nhất.
  * - `lowHp`: sát thương nhân thêm tới `lowHp` theo phần sinh lực mục tiêu đã mất (1 − sinh lực / tối đa), để hạ mục tiêu yếu máu.
  * - `fly`: bay lên trong ngần ấy giây, chỉ là hiệu ứng hình ảnh (bất tử khi bay dùng `inv`).
+ * Từ 2.5c (lưu phái Cảm điện):
+ * - `at` (around): đặt vùng tại hồn thú gần nhất trong tầm `at` (không có thì không tung, như vùng "mục tiêu"); có `dash` thì
+ *   hồn sư bay tới đó trước (tối đa `dash`). Vùng cố định ở chỗ đặt, không đi theo hồn sư (vùng phong tỏa).
+ * - `fixed` (around): vùng cố định ở chỗ hồn sư đứng lúc tung (lãnh vực đặt xuống đất), không đi theo khi hồn sư di chuyển.
+ * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục; sát thương và hiệu ứng lên
+ *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -461,6 +485,7 @@ export interface SkillDef {
   crit?: number; lifesteal?: number; pull?: boolean; dash?: number; inv?: number; glow?: boolean; shake?: boolean;
   status?: StatusApply[]; finisher?: StatusApply[];
   boom?: { keep: number }; push?: number; pick?: "near" | "low"; lowHp?: number; fly?: number;
+  at?: number; fixed?: boolean; copy?: number;
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number };
 }
 
@@ -473,7 +498,7 @@ export const SKILLS: SkillDef[] = [
 ];
 
 /**
- * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; 2.5b: 5 võ hồn lưu phái Thiêu đốt;
+ * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; 2.5b: 5 võ hồn lưu phái Thiêu đốt; 2.5c: 5 võ hồn lưu phái Cảm điện;
  * mọi số chờ chốt). Hồn kỹ thứ i mở khi có
  * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
@@ -590,12 +615,70 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Tà Nguyệt Trảm", desc: "Khóa hồn thú yếu máu nhất trong tầm xa, lướt tới chém 4 nhát (tới +150% khi mục tiêu ít máu), +20% chí mạng", icon: "☽", cost: 40, cd: 14,
       area: "target", r: 140, pick: "low", dash: 130, n: 4, every: 0.12, dmg: 1.1, lowHp: 1.5, crit: 0.2, inv: 0.5, glow: true },
   ],
+  // ---- Bước 2.5c: lưu phái Cảm điện (mọi số chờ chốt). Combo mẫu: Kim Vũ Miêu Ưng / Càn Khôn Hỗn Nguyên Tỏa phủ Cảm điện,
+  // đổi sang Lam Điện Bá Vương Long đánh vào hồn thú Cảm điện (thêm sát thương theo tầng, lan 40% sang hồn thú Cảm điện gần đó). ----
+  // Cường công, cảm điện (lõi): sấm sét diện rộng gây Cảm điện; đánh trúng tích Phong Lôi Chi Lực (PHONG_LOI), đầy thì tự tung Lôi Động Minh Thiên.
+  lam_dien_ba_vuong_long: [
+    { name: "Lam Điện Kích", desc: "Long trảo mang sấm sét quét nửa trước mặt: Cảm điện", icon: "ϟ", cost: 12, cd: 3.5,
+      area: "front", r: 44, dmg: 2, status: [{ s: "shock" }] },
+    { name: "Lôi Đình Phích Lịch", desc: "Sét đánh quanh thân: Cảm điện", icon: "✺", cost: 16, cd: 6,
+      area: "around", r: 72, dmg: 1.6, status: [{ s: "shock" }] },
+    { name: "Lôi Long Liên Kích", desc: "3 tia sét liên hoàn vào mục tiêu gần nhất trong tầm xa; mỗi tia lan sang hồn thú Cảm điện gần đó", icon: "☇", cost: 22, cd: 8,
+      area: "target", r: 130, n: 3, every: 0.25, dmg: 0.9, status: [{ s: "shock" }] },
+    { name: "Lam Điện Long Hống", desc: "Long hống sấm sét quanh thân: hồn thú đang Cảm điện chịu thêm 120% công", icon: "◎", cost: 40, cd: 14,
+      area: "around", r: 100, dmg: 2.6, perStack: { s: "shock", dmg: 1.2 }, glow: true, shake: true, status: [{ s: "shock" }] },
+  ],
+  // Mẫn công, cảm điện: bay, vuốt gây tê liệt (co giật, câm lặng); áo nghĩa phủ Cảm điện toàn vùng.
+  kim_vu_mieu_ung: [
+    { name: "Kim Vũ Trảo", desc: "Lướt tới mục tiêu, vuốt sét 2 nhát: Cảm điện", icon: "≋", cost: 12, cd: 3.5,
+      area: "target", r: 50, dash: 40, n: 2, every: 0.15, dmg: 1.1, status: [{ s: "shock" }] },
+    { name: "Lôi Trảo Tê Liệt", desc: "Vuốt sét tê liệt mục tiêu: co giật 3 giây (không đi), Câm lặng 5 giây", icon: "✋", cost: 16, cd: 9,
+      area: "target", r: 70, dash: 60, dmg: 1.6, status: [{ s: "root", secs: 3 }, { s: "silence", secs: 5 }] },
+    { name: "Kim Vũ Phi Thiên", desc: "Bay vút qua đầu hồn thú phía trước: Cảm điện mọi hồn thú trên đường, bất tử khi bay", icon: "➶", cost: 20, cd: 8,
+      area: "dash", r: 90, dmg: 1.8, inv: 0.6, fly: 0.6, status: [{ s: "shock" }] },
+    { name: "Kim Ưng Lôi Vực", desc: "Áo nghĩa: sấm sét phủ toàn vùng, Cảm điện 8 giây mọi hồn thú trong 160", icon: "☈", cost: 40, cd: 16,
+      area: "around", r: 160, dmg: 1.2, glow: true, shake: true, status: [{ s: "shock", secs: 8 }] },
+  ],
+  // Khống chế, cảm điện: bay tới tạo vùng phong tỏa giam và gây sát thương liên tục; Phong ấn cộng dồn thành Dễ thương 6,8 giây.
+  can_khon_hon_nguyen_toa: [
+    { name: "Càn Khôn Tỏa Liên", desc: "Xích Càn Khôn khóa mục tiêu gần nhất: Phong ấn 1 tầng, Cảm điện", icon: "⛓", cost: 12, cd: 3.5,
+      area: "target", r: 100, dmg: 1.5, status: [{ s: "lock" }, { s: "shock" }] },
+    { name: "Hỗn Nguyên Phong Tỏa", desc: "Bay tới hồn thú gần nhất, đặt vùng phong tỏa 3 giây: 6 nhát, mỗi nhát giam (Trói ngắn) và Phong ấn 1 tầng", icon: "⌗", cost: 18, cd: 9,
+      area: "around", at: 110, dash: 80, fly: 0.3, r: 56, n: 6, every: 0.5, dmg: 0.45, status: [{ s: "root", secs: 0.6 }, { s: "lock" }] },
+    { name: "Càn Khôn Đảo Chuyển", desc: "Kéo mọi hồn thú quanh thân lại: Phong ấn 1 tầng, Cảm điện", icon: "⌘", cost: 22, cd: 10,
+      area: "around", r: 80, dmg: 1.2, pull: true, status: [{ s: "lock" }, { s: "shock" }] },
+    { name: "Hỗn Nguyên Thiên Tỏa", desc: "Bay tới đặt vùng phong tỏa lớn 3,2 giây: 8 nhát, mỗi nhát giam, Phong ấn 1 tầng, Cảm điện", icon: "▣", cost: 40, cd: 15,
+      area: "around", at: 130, dash: 110, fly: 0.4, r: 84, n: 8, every: 0.4, dmg: 0.6, glow: true, shake: true,
+      status: [{ s: "root", secs: 0.5 }, { s: "lock" }, { s: "shock" }] },
+  ],
+  // Khống chế, cảm điện: Mị hoặc cộng dồn thành Mê hoặc, ảo ảnh tàng hình, lãnh vực làm chậm, ngắt chiêu (Câm lặng).
+  yeu_ho: [
+    { name: "Yêu Hồ Mị Nhãn", desc: "Ánh mắt mị hoặc nửa trước mặt: Mị hoặc 1 tầng (đủ 3 tầng thì Mê hoặc)", icon: "◉", cost: 12, cd: 3,
+      area: "front", r: 50, dmg: 1.4, status: [{ s: "allure" }] },
+    { name: "Hồ Ảnh Ảo Thuật", desc: "Để lại ảo ảnh nổ quanh thân (Mị hoặc 1 tầng) rồi tàng hình 3 giây: hồn thú mất dấu", icon: "☁", cost: 16, cd: 10,
+      area: "around", r: 60, dmg: 1, status: [{ s: "allure" }], self: { buff: { hide: 1 }, secs: 3 } },
+    { name: "Yêu Hồ Lãnh Vực", desc: "Lãnh vực đặt xuống chỗ đứng 3 giây: 6 nhát, mỗi nhát Làm chậm; nhát cuối Mị hoặc 1 tầng", icon: "❂", cost: 22, cd: 12,
+      area: "around", fixed: true, r: 90, n: 6, every: 0.5, dmg: 0.4, status: [{ s: "slow", secs: 1 }], finisher: [{ s: "allure" }] },
+    { name: "Vạn Hồ Mị Ảnh", desc: "Vạn ảo ảnh hồ ly quanh thân: Mị hoặc 2 tầng, Câm lặng 2 giây (ngắt chiêu), Cảm điện", icon: "✾", cost: 40, cd: 14,
+      area: "around", r: 100, dmg: 2.2, glow: true, status: [{ s: "allure", n: 2 }, { s: "silence", secs: 2 }, { s: "shock" }] },
+  ],
+  // Phụ trợ, cảm điện: hồi sinh lực, hồi hồn lực, xúc xích bay; áo nghĩa Phục Chế Hương Tràng sao chép hồn kỹ của võ hồn khác trong đội.
+  xuc_xich: [
+    { name: "Khôi Phục Đại Hương Tràng", desc: "Xúc xích hồi phục: hồi 20% sinh lực cả đội", icon: "✚", cost: 12, cd: 10,
+      area: "self", r: 0, dmg: 0, self: { heal: 0.2 } },
+    { name: "Hồn Lực Hương Tràng", desc: "Xúc xích hồn lực: hồi 30% hồn lực tối đa", icon: "✧", cost: 0, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { mp: 0.3 } },
+    { name: "Phi Hành Hương Tràng", desc: "Xúc xích bay: tốc độ +35% trong 8 giây, bay lên né đòn", icon: "➠", cost: 14, cd: 14,
+      area: "self", r: 0, dmg: 0, fly: 0.6, inv: 0.6, self: { buff: { spd: 0.35 }, secs: 8 } },
+    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
+      area: "self", r: 0, dmg: 0, copy: 0.8 },
+  ],
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
 export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
 
 /**
- * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; 2.5b thêm 5 võ hồn Thiêu đốt; chờ chốt). Chạy bằng cùng bộ máy
+ * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; 2.5b thêm 5 võ hồn Thiêu đốt, 2.5c thêm 5 võ hồn Cảm điện; chờ chốt). Chạy bằng cùng bộ máy
  * hồn kỹ với sức mạnh 1 × tienCoDmgMult, không tốn hồn lực, không tạo năng lượng. Võ hồn chưa có trong bảng dùng TIEN_CO theo hệ.
  */
 export const TIEN_CO_RIENG: Record<string, SkillDef> = {
@@ -620,6 +703,32 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
     area: "around", r: 64, n: 4, every: 0.3, dmg: 0.8, status: [{ s: "burn" }], finisher: [{ s: "root", secs: 1.5 }] },
   nguyet_nhan: { name: "Nguyệt Nhận Đoạt Mệnh", desc: "khóa hồn thú yếu máu nhất, lướt tới chém 3 nhát (tới +150% khi mục tiêu ít máu)", icon: "☽", cost: 0, cd: 0,
     area: "target", r: 130, pick: "low", dash: 110, n: 3, every: 0.1, dmg: 1.3, lowHp: 1.5, inv: 0.35 },
+  // Bước 2.5c: lưu phái Cảm điện.
+  lam_dien_ba_vuong_long: { name: "Lam Điện Lôi Bạo", desc: "sấm sét nổ quanh thân, hồn thú đang Cảm điện chịu thêm 150% công (kích nổ Cảm điện)", icon: "ϟ", cost: 0, cd: 0,
+    area: "around", r: 110, dmg: 1.5, perStack: { s: "shock", dmg: 1.5 }, shake: true, status: [{ s: "shock" }] },
+  kim_vu_mieu_ung: { name: "Kim Ưng Giáng Lôi", desc: "bay lên rồi giáng sét quanh thân: Cảm điện 8 giây, Câm lặng 2 giây", icon: "☈", cost: 0, cd: 0,
+    area: "around", r: 100, dmg: 1.4, fly: 0.5, status: [{ s: "shock", secs: 8 }, { s: "silence", secs: 2 }] },
+  can_khon_hon_nguyen_toa: { name: "Càn Khôn Đại Phong Tỏa", desc: "phong tỏa quanh thân: Phong ấn đủ 3 tầng (Dễ thương 6,8 giây), Trói 2 giây, Cảm điện", icon: "▣", cost: 0, cd: 0,
+    area: "around", r: 72, dmg: 1.2, status: [{ s: "lock", n: 3 }, { s: "root" }, { s: "shock" }] },
+  yeu_ho: { name: "Hồ Mị Thiên Hạ", desc: "mị thuật quanh thân: Mị hoặc đủ 3 tầng (Mê hoặc ngay), Làm chậm 3 giây", icon: "✾", cost: 0, cd: 0,
+    area: "around", r: 80, dmg: 1.2, status: [{ s: "allure", n: 3 }, { s: "slow", secs: 3 }] },
+  xuc_xich: { name: "Thanh Tâm Hương Tràng", desc: "hồi 20% sinh lực cả đội, 25% hồn lực, khiên 12% sinh lực", icon: "✚", cost: 0, cd: 0,
+    area: "self", r: 0, dmg: 0, self: { heal: 0.2, mp: 0.25, shield: 0.12, secs: 5 } },
+};
+/**
+ * Phong Lôi Chi Lực (bước 2.5c, chờ chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
+ * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú
+ * trúng đầu tiên đang Cảm điện. Đầy thì tự tung Lôi Động Minh Thiên (sức mạnh theo hồn hoàn năm cao nhất của võ hồn; không tạo năng
+ * lượng tiên cơ), về 0. Ngoài giao chiến quá TIEN_CO_IDLE_SECS giây thì giảm `decay` mỗi giây; Lam Điện gục thì mất hết.
+ * Lôi Động Minh Thiên gây Choáng 1 giây: "ngắt chiêu boss" làm khi hồn thú có chiêu báo trước (bước 3.5).
+ */
+export const PHONG_LOI: {
+  vohon: string; name: string; max: number; gain: { attack: number; skill: number }; shockMult: number; decay: number; skill: SkillDef;
+} = {
+  vohon: "lam_dien_ba_vuong_long", name: "Phong Lôi Chi Lực", max: 100, gain: { attack: 4, skill: 10 }, shockMult: 2, decay: 10,
+  skill: { name: "Lôi Động Minh Thiên", desc: "Phong Lôi Chi Lực đầy: sấm sét giáng quanh thân, hồn thú Cảm điện chịu thêm 100% công, Choáng 1 giây (ngắt chiêu)",
+    icon: "☇", cost: 0, cd: 0, area: "around", r: 120, dmg: 3, perStack: { s: "shock", dmg: 1 }, glow: true, shake: true,
+    status: [{ s: "shock" }, { s: "stun", secs: 1 }] },
 };
 /** Tên và mô tả chiêu tiên cơ của một võ hồn (riêng nếu có, không thì chung theo hệ). */
 export const tienCoOf = (vohonId: string) => {
