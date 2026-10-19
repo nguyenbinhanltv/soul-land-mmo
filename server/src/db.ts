@@ -118,6 +118,13 @@ export interface Store {
    * Hoặc ghi hết, hoặc không ghi gì; võ hồn không thuộc tài khoản thì rollback rồi ném lỗi.
    */
   saveVohonsBag(accountId: number, chars: Character[], bag: Bag): Promise<void>;
+  /** Số lần tài khoản đã nhận thưởng boss loại `kind` trong ngày `day` (giờ Việt Nam, "YYYY-MM-DD"; bảng `boss_claims`, BĐ5). */
+  bossClaims(accountId: number, day: string, kind: string): Promise<number>;
+  /**
+   * Nhận thưởng boss (BĐ5): trong MỘT transaction tăng lượt của (`day`, `kind`) nếu còn dưới `limit` và ghi cả túi `bag` (đã có rương),
+   * như saveBag. Trả về số lượt sau khi nhận; null (không ghi gì) nếu đã đủ `limit` lượt trong ngày; lỗi khác thì rollback rồi ném lỗi.
+   */
+  claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag): Promise<number | null>;
 }
 
 function hashPass(pw: string) {
@@ -147,6 +154,7 @@ export class MemoryStore implements Store {
   locs = new Map<number, { mapId: string | null; x: number | null; y: number | null }>(); // accountId -> accounts.map_id, pos_x, pos_y
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
   starter = new Set<number>();          // accountId đã nhận vật phẩm khởi đầu (accounts.starter_items)
+  claims = new Map<string, number>();   // "accountId|day|kind" -> số lần nhận thưởng boss (bảng boss_claims, BĐ5)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -259,6 +267,14 @@ export class MemoryStore implements Store {
     this.checkBag(accountId, bag);
     for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
     this.bags.set(accountId, copyBag(bag));
+  }
+  async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
+  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
+    const key = `${accountId}|${day}|${kind}`, n = this.claims.get(key) ?? 0;
+    if (n >= limit) return null;
+    this.checkBag(accountId, bag);
+    this.claims.set(key, n + 1); this.bags.set(accountId, copyBag(bag));
+    return n + 1;
   }
 }
 
@@ -553,6 +569,28 @@ export class PgStore implements Store {
       }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async bossClaims(accountId: number, day: string, kind: string) {
+    const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);
+    return r.rowCount ? Number(r.rows[0].n) : 0;
+  }
+  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Tăng lượt chỉ khi còn dưới giới hạn: hai lần nhận cùng lúc không thể cùng vượt (dòng bị khóa khi cập nhật).
+      const r = await db.query(
+        `INSERT INTO boss_claims(account_id, day, kind, n) VALUES ($1, $2::date, $3, 1)
+         ON CONFLICT (account_id, day, kind) DO UPDATE SET n = boss_claims.n + 1, updated_at = now() WHERE boss_claims.n < $4
+         RETURNING n`, [accountId, day, kind, limit]);
+      if (!r.rowCount || Number(r.rows[0].n) > limit) { await db.query("ROLLBACK"); return null; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return Number(r.rows[0].n);
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
