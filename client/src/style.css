@@ -43,6 +43,13 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #target{top:12px}
 #prompt{bottom:96px;border-color:var(--line2)}
 #prompt em{font-style:normal;color:var(--warn)}
+#portal{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:13px;font-weight:600;border-color:var(--accent)}
+#portal small{display:block;color:var(--muted);font-size:11.5px;font-weight:500}
+#portal .danger{display:block;color:#ff6b6b;font-weight:800;margin-top:3px}
+#portal button{margin-top:6px;font:inherit;font-size:12.5px;font-weight:800;padding:5px 14px;border:1px solid var(--accent);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+#portal button.danger{border-color:#ff6b6b}
+#portal kbd{font:inherit;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
+body.touch #portal{bottom:196px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;box-shadow:0 0 6px currentColor;background:currentColor}
 #channel{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:240px;text-align:center;display:none}
 #channel .label{font-weight:800;margin-bottom:6px;text-shadow:0 1px 3px #000;color:#fff}

@@ -16,7 +16,8 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 - Số cân bằng lấy từ `shared/data.ts` (xem skill `balance-data`), không viết số mới trực tiếp vào room.
 
 ## Checklist cho mỗi message từ client
-Đăng ký trong `onCreate()` bằng `this.onMessage(...)`. Message hiện có: `input`, `attack`, `skill`, `absorb`, `chat`, `vohons`, `team {slots}` (xếp đội, ngoài giao chiến), `switch {slot}` (đổi võ hồn trong đội, cả khi đang đánh; cấm vào võ hồn đã gục), `test {op}` (hook kiểm thử cho bot, chỉ chạy khi server bật `GAME_TEST=1`; op hiện có: `down`, `kill`, `rest`, `set`, `energy`, `spawn`, `hurt`, `clear`; luồng mới khó thử bằng bot thì thêm `op` gọi đúng hàm luật chơi, không viết luật riêng). Thiết kế dự kiến thêm `absorb {itemId, vohonId}`.
+Đăng ký trong `onCreate()` bằng `this.onMessage(...)`. Message hiện có: `input`, `attack`, `skill`, `absorb`, `chat`, `vohons`, `team {slots}` (xếp đội, ngoài giao chiến), `switch {slot}` (đổi võ hồn trong đội, cả khi đang đánh; cấm vào võ hồn đã gục), `test {op}` (hook kiểm thử cho bot, chỉ chạy khi server bật `GAME_TEST=1`; op hiện có: `down`, `kill`, `rest`, `set`, `energy`, `spawn`, `hurt`, `clear`, `beast`; luồng mới khó thử bằng bot thì thêm `op` gọi đúng hàm luật chơi, không viết luật riêng), `travel {portal}` (xin đi cổng theo tên; server trả riêng `portal` khi bước vào/ra cổng và `travel {mapId}` khi đã lưu xong, mục 6).
+Hành động mới phải bị chặn khi `d.travelling` (đang chuyển bản đồ; hiệu ứng trễ như đạn `projs` cũng không được cộng tiến độ sau lúc đó: `beginTravel` xóa đạn của người đó, `damageBeast` bỏ qua người đang chuyển, nên cả năng lượng và sát thương tiên cơ cũng dừng) và, nếu là giao chiến (kể cả chiêu tiên cơ khi `switch`), khi đứng trong vùng an toàn (`this.map.inSafe`). Thiết kế dự kiến thêm `absorb {itemId, vohonId}`.
 Message chưa đăng ký thì Colyseus ngắt kết nối client gửi nó (`onMessage for "…" not registered`): bỏ message cũ thì cập nhật client và bot cùng lúc.
 
 1. **Ép kiểu và kẹp giá trị**: `Number(m?.x) || 0`, `String(m?.text ?? "")`. Xem mẫu `input` (chuẩn hóa vector về độ dài ≤ 1) và `chat` (`trim().slice(0, 120)`).
@@ -32,8 +33,9 @@ Message chưa đăng ký thì Colyseus ngắt kết nối client gửi nó (`onM
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật): `this.broadcast("fx", { k: ... })` và `this.broadcast("dmg", {...})`. Thêm loại `k` mới thì xử lý tương ứng ở `GameScene.fx()`.
 
 ## Lưu dữ liệu
-- Lưu qua `store` trong `server/src/db.ts` (`save(id)` gọi `store.saveCharacter`). Cần bảng/cột mới: dùng skill `db-migration`.
-- Lưu ở `onLeave`, `onDispose` và sau sự kiện quan trọng (xem `finishAbsorb()`); bắt lỗi lưu để không sập room.
+- Lưu qua `store` trong `server/src/db.ts`. Cần bảng/cột mới: dùng skill `db-migration`.
+- **Mọi lần ghi DB về một người chơi đi qua chuỗi lưu `this.chain(d, fn)`** (mục 6 "Lưu của mỗi người chơi chạy nối tiếp"): `save(id)` (võ hồn có tiến độ chưa lưu + vị trí có lớp chặn `WHERE map_id`), `persistTeam(d)`, transaction đi cổng. Không gọi `store.save…` trực tiếp ngoài chuỗi, nếu không lần ghi cũ có thể commit sau và đè bản mới.
+- Lưu ở `onLeave`, `onDispose` và sau sự kiện quan trọng (xem `finishAbsorb()`); chuỗi lưu tự bắt lỗi để không sập room. Dữ liệu chưa lưu mới (túi đồ từ 3.1…) phải nằm trong `save` **và** `saveTravel` (transaction đi cổng là lần ghi cuối của phòng cũ).
 
 ## Xong thì
 `npm run check`, bật server rồi `npm run bot --prefix client` (skill `roadmap-step`).

@@ -1,22 +1,27 @@
 // Kiểm thử nhanh: 2 bot đăng nhập, tạo nhân vật, qua lễ thức tỉnh, vào phòng bản đồ, xếp đội hình, đổi võ hồn trong trận,
 // di chuyển, đánh hồn thú, thử hấp thụ, rồi vào lại để kiểm tra đội hình đã lưu.
+// Bot thứ ba (tài khoản mới mỗi lần chạy) đi cổng Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành,
+// thoát và vào lại để kiểm tra bản đồ và vị trí đã lưu (BĐ2).
 // Chạy khi server đang bật: npm run bot --prefix client   (server khác cổng: SERVER_URL=http://localhost:2600)
 // Phần luật gục từng võ hồn và chia kinh nghiệm (2.3b), năng lượng và chiêu tiên cơ theo 4 hệ (2.4) cần server bật hook kiểm thử:
 // GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
-import { TIERS, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
+import { randomUUID } from "node:crypto";
+import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const waitFor=async(fn,ms=2000)=>{for(let t=0;t<ms;t+=50){if(fn()) return true; await sleep(50);} return false;};
+// Mật khẩu bot sinh ngẫu nhiên mỗi lần chạy (không ghi cứng trong mã); tên bot kèm hậu tố lần chạy nên luôn là tài khoản mới.
+const PASS=randomUUID(), RUN=Date.now().toString(36).slice(-5);
 let fails=0; const ok=(cond,msg)=>{console.log(cond?"  ✓":"  ✗",msg); if(!cond) fails++;};
 
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần), rồi lễ thức tỉnh:
 // tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
 async function bot(name,choice,looks){
-  const l=await post("/api/login",{name,password:"abcd"});
+  name+=" "+RUN; const l=await post("/api/login",{name,password:PASS});
   console.log(`[${name}] ${l.character?"đã thức tỉnh từ trước":"tài khoản mới"}, ${l.looks?.chosen?"đã tạo nhân vật":"chưa tạo nhân vật"}`);
   ok(l.looks&&["sex","hair","hairCol","outfitCol"].every(k=>Number.isInteger(l.looks[k])),"login trả ngoại hình");
   if(!l.looks?.chosen){
@@ -31,6 +36,8 @@ async function bot(name,choice,looks){
   ok((await post("/api/looks",{token:l.token,...looks})).status===409,"tạo nhân vật lần hai -> 409");
   const me=await post("/api/me",{token:l.token});
   ok(me.looks?.chosen,"/api/me: đã tạo nhân vật");
+  ok(typeof me.mapId==="string"&&me.mapId===l.mapId,`/api/login và /api/me trả bản đồ đang đứng: ${me.mapId}`);
+  if(!l.character) ok(me.mapId==="thanh_hon_thon","tài khoản mới bắt đầu ở Thánh Hồn Thôn");
   if(!l.character){
     ok((await post("/api/awaken",{token:l.token})).status===400,"thiếu lựa chọn -> 400");
     ok((await post("/api/awaken",{token:l.token,vohon:"hao_thien_chuy"})).status===400,"chọn UR -> 400");
@@ -40,17 +47,19 @@ async function bot(name,choice,looks){
   }
   ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh lần hai -> 409");
   // Không gửi mapId: server chọn bản đồ mặc định và báo qua state.mapId.
-  const b={token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:!l.character};
+  const b={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:!l.character,mapId:me.mapId};
   await enter(b);
   return b;
 }
 /** Vào phòng bản đồ và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). */
 async function enter(b){
-  b.room=await new Client(WS).joinOrCreate("map",{token:b.token}); b.owned=null; b.ownedMsgs=0;
+  // Bản đồ đang đứng lấy từ /api/me (server lưu); client chỉ chuyển mapId để ghép phòng.
+  b.room=await new Client(WS).joinOrCreate("map",{token:b.token,mapId:b.mapId}); b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null;
   b.room.onMessage("log",m=>b.logs.push(m.text)); b.room.onMessage("chat",()=>{});
   b.fx=[]; b.dmgs=[]; b.hurts=[];
   b.room.onMessage("fx",m=>{if(m.k==="tienco") b.fx.push(m);});
   b.room.onMessage("dmg",m=>{if(m.bid) b.dmgs.push(m); else if(m.id===b.room.sessionId) b.hurts.push(m);});
+  b.room.onMessage("portal",m=>{b.portal=m;}); b.room.onMessage("travel",m=>{b.travel=m;});
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
   b.room.onMessage("ko",m=>{b.ko=m;});
@@ -128,8 +137,28 @@ for(const [x,y,d] of [[0,1,0],[-1,0,3],[0,-1,2],[0.6,0.4,1]]){
 }
 A.room.send("input",{x:0,y:0}); await sleep(200);
 ok(p.dir===1,"đứng yên giữ hướng nhìn cũ");
-A.room.send("input",{x:1,y:0}); await sleep(1500);
+// Trong làng (vùng safe) không có hồn thú: theo đường làng đông–tây (hàng ô 27–28, tools/gen-map.mjs) ra Bãi tập rồi mới săn.
+const safe=JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe");
+const inSafeOf=b=>{ const q=b.room.state.players.get(b.room.sessionId); return !!safe&&q.x>=safe.x&&q.x<=safe.x+safe.width&&q.y>=safe.y&&q.y<=safe.y+safe.height; };
+const inSafe=()=>inSafeOf(A);
+/** Đi thẳng tới (tx, ty), mỗi 50 ms chỉnh lại hướng; trả về true khi tới cách dưới 3 pixel. */
+async function goTo(b,tx,ty,ms=8000){
+  const q=b.room.state.players.get(b.room.sessionId);
+  const ok=await waitFor(()=>{ const dx=tx-q.x, dy=ty-q.y, d=Math.hypot(dx,dy); if(d<3) return true;
+    b.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); return false; },ms);
+  b.room.send("input",{x:0,y:0}); await sleep(150); return ok;
+}
+/** Đi từ làng (vùng an toàn) ra Bãi tập theo đường làng (hàng ô 27–28); ngoài làng thì đi về phía đông một đoạn. */
+async function leaveSafe(b){
+  const q=b.room.state.players.get(b.room.sessionId), ry=27.5*16;
+  if(inSafeOf(b)){ await goTo(b,q.x,ry,4000); await goTo(b,safe.x+safe.width+30,ry); }
+  else { b.room.send("input",{x:1,y:0}); await sleep(1500); b.room.send("input",{x:0,y:0}); await sleep(150); }
+  if(inSafeOf(b)) console.log(`  (${b.name} kẹt ở ${q.x.toFixed(0)},${q.y.toFixed(0)})`);
+  return !inSafeOf(b);
+}
+await leaveSafe(A);
 console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.sessionId).x.toFixed(1));
+const kills0=p.kills;
 for(let i=0;i<300;i++){
   let best=null,bd=1e9; st.beasts.forEach(b=>{const d=Math.hypot(b.x-p.x,b.y-p.y); if(d<bd){bd=d;best=b;}});
   if(best){ const dx=best.x-p.x,dy=best.y-p.y,d=Math.hypot(dx,dy)||1; A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); if(d<22) A.room.send("attack"); }
@@ -145,7 +174,7 @@ if(p.kills){
   ok((A.squad?.list.find(s=>s.rowId===A.owned.active)?.en??0)===0,"võ hồn ra trận không tự tích năng lượng");
 }
 // Vừa đánh xong (đang giao chiến): đổi võ hồn trong đội được, xếp đội thì không.
-if(p.kills){
+if(p.kills>kills0){
   await waitFor(()=>p.swCd===0,3500);
   const want=A.owned.team.find(r=>r&&r!==A.owned.active), t0=[...A.owned.team];
   A.room.send("switch",{slot:A.owned.team.indexOf(want)});
@@ -249,6 +278,15 @@ else {
     await waitFor(()=>b.fx.length&&(!bid||b.dmgs.some(d=>d.bid===bid)),1500);
     return {fx:b.fx[0],dmg:b.dmgs.find(d=>d.bid===bid)?.v,bid,x0,y0};
   }
+  if(inSafe()){
+    // Vùng an toàn không giao chiến: đổi vào võ hồn đầy năng lượng vẫn đổi được nhưng không tung tiên cơ, giữ năng lượng.
+    const row=A.owned.team.find(r=>r&&r!==A.owned.active);
+    await waitFor(()=>p.swCd===0,3500);
+    await test(A,"energy",{v:TIEN_CO_MAX}); await waitFor(()=>sqOf(A,row)?.en===TIEN_CO_MAX);
+    A.fx=[]; await switchRow(A,row); await sleep(300);
+    ok(!A.fx.length&&sqOf(A,row)?.en===TIEN_CO_MAX&&/Vùng an toàn/.test(A.logs.slice(-3).join("|")),"trong làng: đổi vào võ hồn đầy năng lượng không tung tiên cơ, giữ năng lượng");
+  }
+  ok(await leaveSafe(A),"ra khỏi làng để thử tiên cơ");
   {
     // Tích năng lượng: mỗi đòn đánh thường trúng +TIEN_CO_GAIN.attack dù trúng nhiều hồn thú; Hồn Tiễn 10 mũi chỉ tính một lần.
     const act=A.owned.active, bench=A.owned.team.find(r=>r&&r!==act);
@@ -297,9 +335,11 @@ else {
     ok(sqOf(A,fallen)?.en===0&&sqOf(A,next)?.en===TIEN_CO_MAX&&!A.fx.length,`gục: mất năng lượng (${sqOf(A,fallen)?.en}); tự đổi không tung tiên cơ, giữ ${sqOf(A,next)?.en}`);
     await test(A,"rest",{s:REVIVE_SECS+1});
   }
+  // A quay vào làng (hồn thú bỏ qua người trong vùng an toàn) để hồn thú ở ca sau nhắm đúng C, D vừa ra Bãi tập.
+  A.room.send("input",{x:-1,y:0}); ok(await waitFor(()=>inSafe()&&p.x<safe.x+safe.width-24,4000),"A quay vào làng"); A.room.send("input",{x:0,y:0});
   // Mẫn công và phụ trợ: thêm hai tài khoản bot với SSR tương ứng (kèm Lam Ngân Thảo).
   const C=await bot("Tester C","nguyet_nhan",{sex:0,hair:1,hairCol:1,outfitCol:2}), D=await bot("Tester D","thien_can_bach_ngoc_dinh",{sex:1,hair:0,hairCol:4,outfitCol:0});
-  for(const b of [C,D]) await waitFor(()=>b.owned&&b.squad);
+  for(const b of [C,D]){ await waitFor(()=>b.owned&&b.squad); ok(await leaveSafe(b),`${b.name}: ra khỏi làng`); }
   {
     const ssr=C.owned.list.find(v=>v.vohon==="nguyet_nhan").rowId, lnt=C.owned.list.find(v=>v.vohon==="lam_ngan_thao").rowId;
     ok(await switchRow(C,lnt),"C: Lam Ngân Thảo ra trận");
@@ -344,5 +384,99 @@ await enter(A); await waitFor(()=>A.owned);
 ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào lại: đội ${JSON.stringify(A.owned?.team)}, ra trận ${A.owned?.active}`);
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm từng võ hồn đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
+
+// ---------- BĐ2: cổng, chặn mềm, lưu bản đồ và vị trí ----------
+console.log("[cổng] tài khoản mới đi Thánh Hồn Thôn -> Nặc Đinh Thành -> Tinh Đấu -> Nặc Đinh Thành");
+let C=await bot("Lữ "+Date.now().toString(36).slice(-6),"bich_lan_xa_hoang",{sex:0,hair:1,hairCol:2,outfitCol:3});
+const me=()=>C.room.state.players?.get(C.room.sessionId);
+let joinErr=""; try{ const r=await new Client(WS).joinOrCreate("map",{token:C.token,mapId:"nac_dinh_thanh"}); await r.leave(); }catch(e){ joinErr=String(e?.message??e); }
+ok(/Sai bản đồ/.test(joinErr),`vào bản đồ khác bản đồ đã lưu bị từ chối: ${joinErr}`);
+ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
+/** Đi theo vector (x,y) đến khi cond() đúng hoặc hết giờ, rồi dừng. */
+async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
+/** Đi tới cột x (pixel) theo phương ngang. */
+const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
+/** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
+async function travelBy(name,to,during,after){
+  C.travel=null; C.room.send("travel",{portal:name}); await during?.();
+  ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`);
+  await after?.();
+  const x0=me().x; C.room.send("input",{x:1,y:0}); await sleep(300);
+  ok(me().x===x0,"đang chuyển bản đồ: server bỏ qua input");
+  await C.room.leave(); await sleep(300);
+  const m=await post("/api/me",{token:C.token});
+  ok(m.mapId===to,`/api/me sau khi đi cổng: ${m.mapId}`);
+  C.mapId=m.mapId; await enter(C); await waitFor(()=>me());
+  ok(C.room.state.mapId===to,`vào phòng ${C.room.state.mapId}`);
+}
+// Thánh Hồn Thôn: từ quảng trường làng (vùng an toàn) theo đường làng xuống cổng ở mép nam.
+C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong làng (vùng an toàn) không đánh được");
+C.room.send("travel",{portal:"Cổng không có"}); ok(await lastLog(C,/không tồn tại/),"cổng không tồn tại bị từ chối");
+C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); ok(await lastLog(C,/đứng trong cổng/),"không đứng trong cổng thì không đi được");
+await walkToX(36.5*16);
+ok(await walk(0,1,()=>C.portal?.name),`tới cổng: ${JSON.stringify(C.portal)}`);
+ok(C.portal?.to==="nac_dinh_thanh"&&C.portal.toName==="Nặc Đinh Thành"&&!C.portal.warn,"hộp cổng: đích Nặc Đinh Thành, không cảnh báo");
+C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); await sleep(200);
+C.room.send("absorb"); ok(await lastLog(C,/không thể hấp thụ/),"đang niệm cổng: không hấp thụ được");
+await walk(0,-1,()=>!C.portal?.name,3000);
+ok(await lastLog(C,/rời cổng/),"rời cổng khi đang niệm: hủy");
+ok(!C.travel,"chưa được chuyển bản đồ");
+ok(await walk(0,1,()=>C.portal?.name),"quay lại cổng");
+// Kinh nghiệm chia cho võ hồn dự bị (chưa lưu) phải nằm trong transaction đi cổng (cần hook test).
+let benchXp=null;
+if((await test(C,"ping"))?.enabled){
+  await test(C,"kill",{tier:1}); const bn=C.owned.team.find(r=>r&&r!==C.owned.active);
+  benchXp=[bn,C.owned.list.find(v=>v.rowId===bn).xp];
+}
+await travelBy("Đi Nặc Đinh Thành","nac_dinh_thanh");
+if(benchXp){ await waitFor(()=>C.owned); const v=C.owned?.list.find(v=>v.rowId===benchXp[0]);
+  ok(v?.xp===benchXp[1],`đi cổng lưu cả kinh nghiệm võ hồn dự bị: ${v?.xp} (trước khi đi ${benchXp[1]})`); }
+ok(Math.hypot(me().x-5.5*16,me().y-20.5*16)<1,`xuất hiện ở điểm tu_thanh_hon_thon: ${me().x},${me().y}`);
+ok(!C.portal?.name,"điểm xuất hiện nằm ngoài cổng");
+ok(C.room.state.beasts.size===0,"Nặc Đinh Thành không có hồn thú");
+C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"trong thành không đánh được");
+// Nặc Đinh Thành: theo đại lộ sang cổng đông đi Tinh Đấu (chặn mềm: cảnh báo khi dưới cấp đề xuất nhưng vẫn đi được).
+ok(await walk(1,0,()=>C.portal?.name,15000),`tới cổng đông: ${JSON.stringify(C.portal)}`);
+const lvC=me().level;
+ok(C.portal?.to==="tinh_dau"&&JSON.stringify(C.portal.level)==="[10,60]"&&C.portal.warn===(lvC<10),`cấp đề xuất 10–60, cấp ${lvC} -> cảnh báo ${C.portal?.warn}`);
+await travelBy("Đi Tinh Đấu Đại Sâm Lâm","tinh_dau");
+ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Tinh Đấu: ${me().x},${me().y}`);
+// Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
+await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
+await C.room.leave(); await sleep(400);
+const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau",`thoát rồi /api/me: ${m2.mapId}`);
+C.mapId=m2.mapId; await enter(C); await waitFor(()=>me());
+ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
+// Đăng nhập lần nữa: phiên cũ bị đá (presence), phiên mới vào đúng bản đồ.
+let kicked=0; C.room.onLeave(code=>{kicked=code;});
+const l2=await post("/api/login",{name:C.name,password:PASS}); ok(l2.mapId==="tinh_dau","đăng nhập lại: /api/login trả tinh_dau");
+const C2={name:C.name,token:l2.token,logs:[],mapId:l2.mapId}; await enter(C2);
+ok(await waitFor(()=>kicked===4001),"phiên cũ bị đá khi tài khoản vào lại");
+C=C2;
+await waitFor(()=>me());
+// Đường về: cổng ở mép tây doanh trại -> Nặc Đinh Thành (cổng đông).
+ok(await walk(-1,0,()=>C.portal?.name,6000)&&C.portal.to==="nac_dinh_thanh",`tới cổng về Nặc Đinh Thành: ${C.portal?.name}`);
+// Hồn kỹ 3 bắn lúc đang niệm: đạn bay tới hồn thú sau khi transaction đi cổng đã chụp dữ liệu thì bị bỏ, không hạ được
+// (nếu hạ được thì kills/kinh nghiệm cộng sau lúc lưu và mất hẳn). Cần hook test.
+let shot=null;
+if((await test(C,"ping"))?.enabled){
+  await test(C,"set",{rowId:C.owned.active,level:30,xp:0,rings:[1,1,1]});
+  const ids=new Set(C.room.state.beasts.keys());
+  // Đạn bay 170 px/s từ (x, y-8): hồn thú cách 90 px về phía đông, trúng sau ~0,53 giây.
+  await test(C,"beast",{dx:90,dy:TIERS[0].size/2-8});
+  const fresh=()=>[...C.room.state.beasts.keys()].find(k=>!ids.has(k)); // state đồng bộ sau tin nhắn test
+  ok(await waitFor(fresh),"hook test đặt hồn thú 1 máu cạnh cổng");
+  shot={bid:fresh(),kills:me().kills};
+}
+await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
+  shot&&(async()=>{ await sleep(TRAVEL_CAST*1000-200); C.room.send("skill",{i:2}); await sleep(150); }),
+  shot&&(async()=>{
+    ok(me().cds[2]>0,"hồn kỹ 3 đã bắn trong lúc niệm cổng");
+    await sleep(800);
+    ok(C.room.state.beasts.has(shot.bid)&&me().kills===shot.kills&&!C.logs.some(t=>/^Hạ /.test(t)),
+      "đạn hồn kỹ bắn lúc niệm không hạ hồn thú sau khi đã lưu để đi cổng");
+  }));
+ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
+await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);
