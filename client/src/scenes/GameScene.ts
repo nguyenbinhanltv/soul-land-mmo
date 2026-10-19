@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He } from "../../../shared/data.ts";
+import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+  skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -210,9 +211,9 @@ export class GameScene extends Phaser.Scene {
   setupMessages() {
     this.room.onMessage("log", (m: { text: string; col?: string }) => hud.log(m.text, m.col));
     this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
-    this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string }) => {
+    this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean }) => {
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
-      const t = this.add.text(m.x, m.y, String(Math.abs(m.v)), {
+      const t = this.add.text(m.x, m.y, m.immune ? "Miễn" : String(Math.abs(m.v)), {
         fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: m.crit ? "10px" : "8px", fontStyle: "800",
         color: m.c, stroke: "#000", strokeThickness: 2, resolution: 8,
       }).setOrigin(0.5).setDepth(99999);
@@ -283,14 +284,47 @@ export class GameScene extends Phaser.Scene {
       const g = this.add.graphics().setDepth(99980); g.lineStyle(4, hex(m.col), 1); g.lineBetween(m.x0, m.y0 - 6, m.x1, m.y1 - 6);
       this.tweens.add({ targets: g, alpha: 0, duration: 350, onComplete: () => g.destroy() });
     } else if (m.k === "burst") {
-      for (let k = 0; k < 10; k++) {
-        const a = (k / 10) * Math.PI * 2, r = this.add.rectangle(m.x, m.y, 4, 4, hex(m.col)).setDepth(99980);
-        this.tweens.add({ targets: r, x: m.x + Math.cos(a) * 110, y: m.y + Math.sin(a) * 110, duration: 650, onComplete: () => r.destroy() });
+      // Vòng 10 mũi (Hồn Tiễn) hoặc `n` mũi tỏa `spread` độ quanh hướng a0 (hồn kỹ riêng).
+      const n = m.n ?? 10, ring = !m.spread || m.spread >= 360, sp = ((m.spread ?? 0) * Math.PI) / 180, R = m.r ?? 110;
+      for (let k = 0; k < n; k++) {
+        const a = ring ? (k / n) * Math.PI * 2 : m.a0 + (n > 1 ? (k / (n - 1) - 0.5) * sp : 0), r = this.add.rectangle(m.x, m.y, 4, 4, hex(m.col)).setDepth(99980);
+        this.tweens.add({ targets: r, x: m.x + Math.cos(a) * R, y: m.y + Math.sin(a) * R, duration: (R / 170) * 1000, onComplete: () => r.destroy() });
       }
     } else if (m.k === "soulring") {
       this.playAct(m.id, "cast");
       const v = this.players.get(m.id); if (v && Number.isInteger(m.i)) v.lit = { i: m.i, t0: this.time.now };
       this.soulRingFx(m.id, m.tier, 700);
+      // Tên hồn kỹ (riêng hoặc dùng chung) bay lên trên đầu, màu hào quang hồn hoàn của vòng đó.
+      const sk = v && VOHON[m.vh] ? skillsOf(VOHON[m.vh].id)[m.i] : undefined;
+      if (v && sk) this.floatText(v.root.x, v.root.y - 48, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
+    }
+    else if (m.k === "pull") {
+      // Gom quái: vòng thu từ bán kính r về thân, kèm dây kéo.
+      this.ringFx(m.x, m.y, m.r, 6, m.col, 380);
+      const g = this.add.graphics().setDepth(99980);
+      for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; g.lineStyle(1, hex(m.col), 0.8).lineBetween(m.x, m.y, m.x + Math.cos(a) * m.r, m.y + Math.sin(a) * m.r * 0.6); }
+      this.tweens.add({ targets: g, alpha: 0, duration: 380, onComplete: () => g.destroy() });
+    } else if (m.k === "arc") {
+      // Đòn nửa trước mặt: cung rộng dày.
+      if (this.players.has(m.id)) this.playAct(m.id, "attack");
+      const g = this.add.graphics().setDepth(99980), a = Math.atan2(m.dy, m.dx);
+      g.lineStyle(4, hex(m.col), 1); g.beginPath(); g.arc(m.x, m.y, m.r, a - 1.2, a + 1.2); g.strokePath();
+      g.lineStyle(1, 0xffffff, 0.8); g.beginPath(); g.arc(m.x, m.y, m.r - 4, a - 1, a + 1); g.strokePath();
+      this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
+    } else if (m.k === "claw") {
+      // Một nhát vào mục tiêu (cào / nện liên hoàn): 3 vệt chéo, đổi hướng theo nhát.
+      const g = this.add.graphics().setDepth(99981), dir = m.i % 2 ? -1 : 1;
+      for (let j = -1; j <= 1; j++) g.lineStyle(2, hex(m.col), 1).lineBetween(m.x - 6 * dir + j * 3, m.y - 6, m.x + 6 * dir + j * 3, m.y + 6);
+      this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
+    } else if (m.k === "buff") {
+      // Hiệu ứng có lợi lên bản thân: vòng sáng và hạt bay lên.
+      const v = this.players.get(m.id); if (!v) return;
+      this.playAct(m.id, "cast");
+      this.ringFx(v.root.x, v.root.y - 2, 4, 22, m.col, 450);
+      for (let k = 0; k < 8; k++) {
+        const q = this.add.rectangle(v.root.x + (k - 3.5) * 3, v.root.y - 2, 2, 2, hex(m.col)).setDepth(99980);
+        this.tweens.add({ targets: q, y: v.root.y - 26 - (k % 3) * 5, alpha: 0, duration: 600, delay: k * 25, onComplete: () => q.destroy() });
+      }
     }
     else if (m.k === "tienco") this.tienCoFx(m);
     else if (m.k === "absorbed") {
@@ -302,10 +336,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Chiêu tiên cơ (bước 2.4): hiệu ứng chung theo hệ và chữ "Tiên cơ" bay lên trên đầu hồn sư. */
-  tienCoFx(m: { id: string; he: He; col: string; x: number; y: number; r?: number; x0?: number; y0?: number }) {
+  tienCoFx(m: { id: string; he: He; col: string; x: number; y: number; r?: number; x0?: number; y0?: number; vh?: number; own?: boolean }) {
     const c = hex(m.col), gold = 0xffe08a;
     this.playAct(m.id, "cast");
-    if (m.he === "cuong_cong") {
+    if (m.own) {
+      // Tiên cơ riêng (bước 2.5a): hiệu ứng vùng do server gửi riêng (wave, pull, claw, buff…); ở đây thêm vòng vàng và rung nhẹ.
+      this.ringFx(m.x, m.y - 4, 4, 36, "#ffe08a", 420); this.cameras.main.shake(160, 0.004);
+    } else if (m.he === "cuong_cong") {
       // Nổ diện rộng: hai vòng sóng, chớp sáng, rung màn hình.
       this.ringFx(m.x, m.y - 4, 6, m.r ?? 56, m.col, 450); this.ringFx(m.x, m.y - 4, 4, (m.r ?? 56) * 0.7, "#ffe08a", 380, 80);
       const f = this.add.circle(m.x, m.y - 6, m.r ?? 56, c, 0.35).setDepth(99979).setScale(1, 0.6);
@@ -336,22 +373,70 @@ export class GameScene extends Phaser.Scene {
       }
     }
     // Trên danh hiệu (y - 38) để không đè tên hồn sư.
-    const t = this.add.text(m.x, m.y - 56, `Tiên cơ · ${TIEN_CO[m.he]?.name ?? ""}`, {
-      fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
-      color: "#ffe08a", stroke: "#000", strokeThickness: 2, resolution: 8,
-    }).setOrigin(0.5).setDepth(99999);
-    this.tweens.add({ targets: t, y: m.y - 70, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
+    const name = m.vh !== undefined && VOHON[m.vh] ? tienCoOf(VOHON[m.vh].id).name : TIEN_CO[m.he]?.name ?? "";
+    this.floatText(m.x, m.y - 56, `Tiên cơ · ${name}`, "#ffe08a");
   }
 
-  /** Trạng thái từ tiên cơ: vòng khiên quanh hồn sư có khiên, sao quay trên đầu hồn thú bị choáng. */
+  /** Chữ bay lên rồi mờ dần (tên hồn kỹ, tên tiên cơ); đặt trên danh hiệu để không đè tên hồn sư. */
+  floatText(x: number, y: number, text: string, col: string) {
+    const t = this.add.text(x, y, text, {
+      fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
+      color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
+    }).setOrigin(0.5).setDepth(99999);
+    this.tweens.add({ targets: t, y: y - 14, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
+  }
+
+  /**
+   * Trạng thái: vòng khiên và hào quang hiệu ứng có lợi quanh hồn sư (Miễn sát thương là vòm sáng); trên hồn thú: biểu tượng
+   * trạng thái dùng chung (mỗi tầng một chấm), màu phủ khi Thiêu đốt / Trúng độc / Cảm điện, dây trói dưới chân, sao choáng.
+   */
   drawStatus(g: Phaser.GameObjects.Graphics, st: any, time: number) {
     st.players.forEach((p: any, id: string) => {
-      const v = this.players.get(id); if (!v || p.shield <= 0 || p.dead) return;
-      g.lineStyle(1, 0x9ad8ff, 0.55 + 0.25 * Math.sin(time / 200)); g.strokeEllipse(v.root.x, v.root.y - 12, 26, 30);
+      const v = this.players.get(id); if (!v || p.dead) return;
+      if (p.shield > 0) { g.lineStyle(1, 0x9ad8ff, 0.55 + 0.25 * Math.sin(time / 200)); g.strokeEllipse(v.root.x, v.root.y - 12, 26, 30); }
+      if (p.buff & buffBit("inv")) {
+        g.fillStyle(0xfff2b0, 0.18 + 0.08 * Math.sin(time / 120)).fillEllipse(v.root.x, v.root.y - 12, 32, 36);
+        g.lineStyle(2, 0xfff2b0, 0.9).strokeEllipse(v.root.x, v.root.y - 12, 32, 36);
+      }
+      let k = 0;
+      for (const b of BUFF_IDS) {
+        if (b === "inv" || !(p.buff & buffBit(b))) continue;
+        const a = time / 400 + k * 1.6, c = hex(BUFFS[b].col); k++;
+        g.fillStyle(c, 0.9).fillRect(v.root.x + Math.cos(a) * 11 - 1, v.root.y - 8 + Math.sin(a) * 4 - 1, 2, 2);
+        g.lineStyle(1, c, 0.35).strokeEllipse(v.root.x, v.root.y - 1, 18 + k * 3, 6 + k);
+      }
     });
     st.beasts.forEach((b: any, id: string) => {
-      const s = this.beasts.get(id); if (!s || !b.stun) return;
-      const y = beastTop(s, b.tier) - 6;
+      const s = this.beasts.get(id); if (!s) return;
+      const has = (x: keyof typeof STATUS) => (b.st & statusBit(x)) !== 0, size = TIERS[b.tier].size, top = beastTop(s, b.tier);
+      // Màu phủ lên hồn thú: Cảm điện nháy lam, Thiêu đốt cam, Trúng độc lục. Hết trạng thái thì bỏ màu đã phủ
+      // (sprite theo loài tự đặt lại màu hung hăng mỗi khung trong syncBeastSprite).
+      const tint = has("shock") && Math.floor(time / 150) % 3 === 0 ? 0x7fd0ff : has("burn") ? (Math.floor(time / 200) % 2 ? 0xffa060 : 0xff7a2a) : has("poison") ? 0x8ef08a : 0;
+      if (tint) { s.setTint(tint); s.setData("stTint", true); } else if (s.getData("stTint")) { s.clearTint(); s.setData("stTint", false); }
+      if (has("root")) {
+        g.lineStyle(1, hex(STATUS.root.col), 0.9).strokeEllipse(s.x, s.y, size + 8, 5);
+        for (let k = 0; k < 4; k++) { const x = s.x - size / 2 - 2 + (k * (size + 4)) / 3; g.lineBetween(x, s.y + 1, x + 1, s.y - 4 - (k % 2) * 2); }
+      }
+      // Biểu tượng trạng thái hàng ngang trên thanh máu: hình riêng mỗi loại, số tầng là chấm nhỏ bên dưới.
+      const icons = (["burn", "shock", "poison", "vuln", "armor", "silence"] as const).filter(has);
+      const stacks: Record<string, number> = { burn: b.burn, poison: b.poison, armor: b.armor };
+      let x = s.x - (icons.length * 7 - 2) / 2;
+      const y0 = top - 13;
+      for (const k of icons) {
+        const c = hex(STATUS[k].col);
+        g.fillStyle(0x1a1020, 0.85).fillRect(x - 1, y0 - 1, 7, 7);
+        g.fillStyle(c, 1);
+        if (k === "burn") g.fillTriangle(x, y0 + 5, x + 5, y0 + 5, x + 2.5, y0);
+        else if (k === "shock") { g.lineStyle(1, c, 1); g.lineBetween(x + 3, y0, x + 1, y0 + 3); g.lineBetween(x + 1, y0 + 3, x + 4, y0 + 2); g.lineBetween(x + 4, y0 + 2, x + 2, y0 + 5); }
+        else if (k === "poison") { g.fillCircle(x + 2.5, y0 + 3.2, 2); g.fillRect(x + 2, y0, 1, 2); }
+        else if (k === "vuln") g.fillTriangle(x, y0 + 1, x + 5, y0 + 1, x + 2.5, y0 + 5);
+        else if (k === "armor") { g.fillRect(x, y0, 5, 3); g.fillRect(x + 1, y0 + 3, 3, 2); g.fillStyle(0x1a1020, 1).fillRect(x + 2, y0, 1, 4); }
+        else { g.lineStyle(1, c, 1); g.strokeCircle(x + 2.5, y0 + 2.5, 2.2); g.lineBetween(x + 1, y0 + 4, x + 4, y0 + 1); }
+        for (let n = 0; n < (stacks[k] ?? 0) && n < 5; n++) g.fillStyle(c, 1).fillRect(x + n * 1.2, y0 + 6.5, 1, 1);
+        x += 7;
+      }
+      if (!has("stun")) return;
+      const y = top - 6 - (icons.length ? 9 : 0);
       g.lineStyle(1, 0xffe08a, 0.7); g.strokeEllipse(s.x, y, 16, 5);
       for (let k = 0; k < 3; k++) {
         const a = time / 180 + k * 2.1, x = s.x + Math.cos(a) * 8, sy = y + Math.sin(a) * 2.5;
@@ -525,8 +610,10 @@ export class GameScene extends Phaser.Scene {
 
   updateHud(me: any) {
     const st = this.room.state;
-    const skKey = `${me.vh}|${me.rings.length}`;
-    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], (a) => this.act(a)); }
+    // Số năm từng hồn hoàn (chú thích sức mạnh hồn kỹ) lấy từ tin riêng "vohons" khi đúng võ hồn đang ra trận.
+    const own = this.owned?.list.find((v) => v.rowId === this.owned?.active), years = own && VOHON[me.vh]?.id === own.vohon ? own.rings : null;
+    const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}`;
+    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, (a) => this.act(a)); }
     hud.updateStats(me);
     hud.updateTeam(me);
     hud.updateBag();
@@ -544,7 +631,8 @@ export class GameScene extends Phaser.Scene {
 
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} (${TIERS[tb.tier].age}) – ${tb.hp}/${tb.maxHp}` : null);
+    const sts = tb ? hud.statusText(tb) : "";
+    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} (${TIERS[tb.tier].age}) – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
 
     let dr: any = null, dd = 22;
     st.drops.forEach((d: any) => { const k = Math.hypot(d.x - me.x, d.y - me.y); if (k < dd) { dd = k; dr = d; } });
