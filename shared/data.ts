@@ -344,5 +344,50 @@ export function calcStats(vh: number, level: number, rings: number[]) {
   };
 }
 
+// ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
+/** Nhóm vật phẩm (cột `items.kind`). Mới có đan; các nhóm khác thêm ITEMS khi làm tới (hồn hoàn 3.2, mảnh 3.4, hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
+export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
+  dan: { name: "Đan dược" },
+  hon_hoan: { name: "Hồn hoàn" },
+  hon_cot: { name: "Hồn cốt" },
+  hon_hach: { name: "Hồn hạch" },
+  manh_vo_hon: { name: "Mảnh võ hồn" },
+  tien_thao: { name: "Tiên thảo" },
+};
+/**
+ * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
+ * (1 = không gộp, mỗi món một ô như hồn hoàn có số năm riêng). `cd`: nhóm hồi chiêu dùng chung (DAN_CD).
+ * `hp` / `mp`: dùng thì hồi ngần ấy phần sinh lực tối đa của võ hồn ra trận / hồn lực tối đa.
+ */
+export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; }
+export const ITEMS: ItemDef[] = [
+  { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
+  { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
+];
+const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
+/** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
+export const itemDef = (code: string) => ITEM_INDEX.get(code);
+/** Số ô túi đồ (mỗi ô một món hoặc một chồng đồ gộp). Mở rộng túi để sau. */
+export const BAG_SLOTS = 40;
+/** Hồi chiêu chung (giây) của mọi đan có `cd: "dan"`: dùng Hồi Huyết Đan thì Hồi Hồn Đan cũng phải chờ. */
+export const DAN_CD = 15;
+/** Tài khoản nhận một lần ở lần vào game đầu tiên từ bước 3.1 (cả tài khoản cũ); nguồn đan tạm cho tới khi có thương nhân (6.1). */
+export const STARTER_ITEMS = [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }];
+/** Hồn Tệ (đồng) rơi khi hạ hồn thú, theo bậc trong TIERS: ngẫu nhiên trong [min, max], người hạ nhận thẳng. */
+export const BEAST_COIN: [number, number][] = [[1, 3], [4, 10], [15, 40], [60, 150], [300, 800]];
+/** Quy đổi Hồn Tệ khi hiển thị: 1 ngân = 100 đồng, 1 kim = 100 ngân. DB chỉ lưu số đồng. */
+export const HON_TE_NGAN = 100;
+export const HON_TE_KIM = 100 * HON_TE_NGAN;
+/** Hồn Tệ (đồng) -> các phần kim / ngân / đồng, bỏ phần bằng 0 (0 thì còn "0 đồng"). */
+export function honTeParts(dong: number) {
+  const n = Math.max(0, Math.floor(dong));
+  const parts = [{ n: Math.floor(n / HON_TE_KIM), unit: "kim" }, { n: Math.floor((n % HON_TE_KIM) / HON_TE_NGAN), unit: "ngân" }, { n: n % HON_TE_NGAN, unit: "đồng" }]
+    .filter((p) => p.n > 0);
+  return parts.length ? parts : [{ n: 0, unit: "đồng" }];
+}
+/** "1 kim 2 ngân 5 đồng". */
+export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
+
 export const TILE = 16;
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây

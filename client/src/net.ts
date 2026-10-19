@@ -26,6 +26,11 @@ export interface OwnedVohons { active: number; team: number[]; list: { rowId: nu
  */
 export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number; en: number }[]; }
 
+/** Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi). */
+export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; }
+/** Tin nhắn riêng "bag": túi đồ, số ô tối đa, Hồn Tệ (đồng) và số giây còn lại của hồi chiêu chung đan. */
+export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; }
+
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({ error: "Server trả về dữ liệu lỗi." }));
