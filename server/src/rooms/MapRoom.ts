@@ -1982,9 +1982,10 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Xếp 4 ô hồn kỹ mang theo của võ hồn `rowId` (8.1a, mục 5.2): mỗi ô là chỉ số vòng có hồn kỹ đã mở (ringSkill, vòng < số hồn hoàn)
-   * hoặc -1 (trống), không trùng. Cùng luật với gắn hồn cốt (boneLock): ngoài giao chiến, không gục, không hấp thụ. Hồi chiêu đồng bộ
-   * theo ô của hồn sư, nhưng ô nhận ít nhất hồi chiêu còn lại của chính hồn kỹ đó (PData.skCd, carrySkillCds; không bao giờ giảm), nên
-   * đổi chỗ, bỏ ra rồi xếp lại hay sửa ô của võ hồn đang nghỉ đều không làm mới hồi chiêu. Lưu ngay qua chuỗi lưu (store.saveSkills).
+   * hoặc -1 (trống), không trùng. Cùng luật với gắn hồn cốt (boneLock): ngoài giao chiến, không gục, không hấp thụ. Võ hồn đang ra
+   * trận: hồi chiêu đi theo hồn kỹ, không theo ô: mỗi ô mới lấy hồi chiêu của chính hồn kỹ đó (ô cũ của nó trong `prev`, và PData.skCd),
+   * không giữ hồi chiêu của hồn kỹ vừa rời ô; ô trống về 0. Nên đổi chỗ, bỏ ra rồi xếp lại không làm mới hồi chiêu, và hồn kỹ đang sẵn
+   * sàng không bị khóa vì hồn kỹ khác. Sửa ô của võ hồn đang nghỉ: lúc võ hồn đó vào trận, carrySkillCds áp skCd. Lưu ngay qua chuỗi lưu.
    */
   setLoadout(c: Client, rowId: number, raw: unknown) {
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
@@ -2003,7 +2004,11 @@ export class MapRoom extends Room<MapState> {
     if (next.every((r, i) => r === prev[i])) return this.sendVohons(c);
     const lock = this.boneLock(p, d, "hồn kỹ"); if (lock) return deny(lock.replace("gắn / tháo", "xếp ô"));
     v.skills = next;
-    if (v === d.ch) this.carrySkillCds(p, d);
+    if (v === d.ch) {
+      const old = [...p.cds];
+      next.forEach((r, i) => { const from = prev.indexOf(r);
+        p.cds[i] = r < 0 ? 0 : Math.max(from >= 0 ? old[from] : 0, d.skCd.get(`${v.rowId}:${r}`) ?? 0); });
+    }
     this.chain(d, () => store.saveSkills(d.accountId, v.rowId, [...next]));
     const keys = ["U", "I", "O", "P"];
     this.log(id, `${name} mang theo: ${next.map((r, i) => `${keys[i]} ${r < 0 ? "trống" : ringSkill(v.vohon, r)!.name}`).join(", ")}.`, VOHON[vi].col);

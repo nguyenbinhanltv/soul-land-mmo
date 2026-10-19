@@ -1441,10 +1441,12 @@ else {
       const cdU=kp.cds[2]; await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1});
       await loadout(id,[9,5,4,0]);
       ok(same(vK(id).skills,[9,5,4,0])&&kp.cds[0]>=cdU-1&&kp.cds[0]>30,`chuyển tuyệt kỹ từ ô O sang ô U: hồi chiêu đi theo (${kp.cds[0].toFixed(1)} giây)`);
+      ok(kp.cds[2]<=s5.cd+0.1,`ô O nhận ${s5.name}: hồi chiêu của chính nó ${kp.cds[2].toFixed(1)} giây (≤ ${s5.cd}), không giữ hồi chiêu tuyệt kỹ vừa rời ô`);
       K.fxs=[]; K.room.send("skill",{i:0}); await sleep(250); ok(!K.fxs.some(f=>f.k==="ult"),"ô U đang hồi chiêu: không tung lại tuyệt kỹ");
       // Bỏ tuyệt kỹ ra rồi xếp lại vào ô khác (ô đó hết hồi chiêu): vẫn giữ hồi chiêu còn lại của tuyệt kỹ.
       await loadout(id,[-1,5,4,0]); await loadout(id,[5,9,4,0]);
       ok(same(vK(id).skills,[5,9,4,0])&&kp.cds[1]>30,`bỏ tuyệt kỹ ra rồi xếp vào ô I: hồi chiêu còn ${kp.cds[1].toFixed(1)} giây`);
+      ok(kp.cds[0]<=s6.cd+0.1,`ô U (vừa trống) nhận ${s6.name}: hồi chiêu ${kp.cds[0].toFixed(1)} giây (≤ ${s6.cd})`);
       await loadout(id,[9,5,4,0]);
       await test(K,"ready");
     }
