@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
-  tierOfYears, formatYears, PICKUP_RANGE, ABSORB_RISK } from "../../../shared/data.ts";
+  tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -48,7 +48,7 @@ export class GameScene extends Phaser.Scene {
   campRect = { x: 0, y: 0, w: 0, h: 0 };
   campName = "";
   portals: (Rect & { to: string })[] = [];
-  vignetteOn = false;   // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng
+  vignetteBase: number | null = null; // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng, bắt đầu từ mức này (true = 0)
   portal: PortalInfo | null = null;
   onTravel: (mapId: string) => void = () => {};
   /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
@@ -64,6 +64,7 @@ export class GameScene extends Phaser.Scene {
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
   bagKey = "";
+  combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void }) {
@@ -87,11 +88,17 @@ export class GameScene extends Phaser.Scene {
     map.createLayer("trees", ts, 0, 0)!.setDepth(-5);
     map.createLayer("canopy", ts, 0, 0)!.setDepth(100000);
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
-    this.vignetteOn = !!(map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
+    const vg = (map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
+    this.vignetteBase = typeof vg === "number" ? Math.max(0, Math.min(1, vg)) : vg ? 0 : null;
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
-      if (o.type === "zone") this.zones.push({ ...r, name: o.name, hint: prop("hint") ?? "" });
+      if (o.type === "zone") {
+        // Gợi ý vùng kèm cấp tương đương của khoảng niên hạn (mục 5.3, BĐ3), tính bằng hàm dùng chung.
+        const yr = parseLevelRange(prop("years")), lv = yr && [beastLevel(yr[0]), beastLevel(yr[1])];
+        const hint = [prop("hint") ?? "", lv ? `cấp ${lv[0] === lv[1] ? lv[0] : `${lv[0]}–${lv[1]}`}` : ""].filter(Boolean).join(" · ");
+        this.zones.push({ ...r, name: o.name, hint });
+      }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; }
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
@@ -230,12 +237,14 @@ export class GameScene extends Phaser.Scene {
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
+      this.renderBag(); // bảng chọn võ hồn để hấp thụ dùng cấp / số hồn hoàn mới nhất
       hud.renderRoster(m, (slots) => this.room.send("team", { slots }));
       hud.buildTeam(m, (slot) => this.act("switch" + slot));
     });
     // Sinh lực từng võ hồn trong đội và võ hồn đã gục (luật gục từng võ hồn, bước 2.3b): cũng chỉ gửi riêng cho mình.
     // Năng lượng tiên cơ cũng đi trong tin này: võ hồn nào vừa đầy thì báo một lần.
     this.room.onMessage("squad", (m: Squad) => {
+      this.combat = m.combat;
       for (const r of hud.setSquad(m)) {
         const slot = this.owned?.team.indexOf(r) ?? -1, v = this.owned?.list.find((o) => o.rowId === r);
         if (!v || slot < 0 || r === this.owned?.active) continue;
@@ -250,6 +259,19 @@ export class GameScene extends Phaser.Scene {
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); });
+    // Hấp thụ hồn hoàn (bước 3.3): server báo riêng lúc bắt đầu (thanh tiến độ) và kết quả; thành công / thất bại do server quyết định.
+    this.room.onMessage("absorbing", (m: { on: boolean; rowId: number; years: number; slot?: number; secs?: number; fail?: number; result?: string; level?: number }) => {
+      const v = this.owned?.list.find((o) => o.rowId === m.rowId), def = VOHON[Math.max(0, vohonIndex(v?.vohon ?? ""))];
+      const name = v ? def.name : "võ hồn", age = formatYears(m.years), col = TIERS[tierOfYears(m.years)].glow;
+      if (m.on) {
+        const risk = m.fail ? ` (${Math.round(m.fail * 100)}% thất bại)` : "";
+        hud.setAbsorbing({ label: `Hấp thụ hồn hoàn ${age} vào ${name}${risk}`, secs: m.secs ?? 1, risk: !!m.fail, col });
+        return;
+      }
+      hud.setAbsorbing(null);
+      if (m.result === "ok") hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`);
+      else if (m.result === "fail") hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`);
+    });
     this.room.send("vohons");
     this.room.send("bag");
   }
@@ -366,7 +388,7 @@ export class GameScene extends Phaser.Scene {
       const v = this.players.get(m.id); if (!v) return; const t = TIERS[m.tier];
       for (let k = 0; k < 3; k++) this.ringFx(v.root.x, v.root.y - 6, 4 + k * 6, 60 + k * 20, t.glow, 700, k * 120);
       this.soulRingFx(m.id, m.tier, 1400);
-      if (m.id === this.me) { this.cameras.main.shake(400, 0.006); hud.banner(`Hồn hoàn thứ ${this.room.state.players.get(this.me)?.rings.length ?? ""}`, t.age); }
+      if (m.id === this.me) this.cameras.main.shake(400, 0.006); // chữ thông báo đến qua tin riêng "absorbing"
     }
   }
 
@@ -640,7 +662,8 @@ export class GameScene extends Phaser.Scene {
     // độ tối theo độ sâu của rừng
     const me = st.players.get(this.me);
     if (me) {
-      this.vignette.setAlpha(this.vignetteOn ? Math.max(0, Math.min(1, (me.x / TILE - 18) / 60)) * 0.75 : 0);
+      const vb = this.vignetteBase, depth = Math.max(0, Math.min(1, (me.x / TILE - 18) / 60));
+      this.vignette.setAlpha(vb === null ? 0 : (vb + (1 - vb) * depth) * 0.75);
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); }
     }
@@ -688,23 +711,29 @@ export class GameScene extends Phaser.Scene {
     if (!this.bag) return;
     hud.renderBag(this.bag, {
       use: (id) => this.room.send("use", { id }),
-      absorb: (id) => this.room.send("absorb", { itemId: id }),
+      absorb: (id, vohonId) => this.room.send("absorb", { itemId: id, vohonId }),
       discard: (id) => this.room.send("discard", { id }),
-      absorbHint: (years) => this.absorbHint(years),
+      absorbOptions: (years) => this.absorbOptions(years),
+      combat: () => this.combat,
+      refresh: () => this.room.send("vohons"),
     });
   }
 
   /**
-   * Câu gợi ý hấp thụ hồn hoàn `years` năm cho võ hồn đang ra trận (chỉ hiển thị; server kiểm tra lại). Luật bậc cũ giữ đến
-   * bước 3.3 (giới hạn theo truyện).
+   * Các võ hồn sở hữu và rủi ro khi hấp thụ hồn hoàn `years` năm (mục 5.2; chỉ hiển thị, server kiểm tra lại). Võ hồn đang ra
+   * trận lấy cấp / số hồn hoàn từ state (mới nhất), võ hồn khác từ tin riêng "vohons".
    */
-  absorbHint(years: number) {
-    const me = this.room.state.players.get(this.me); if (!me) return "";
-    const slot = me.rings.length + 1, over = tierOfYears(years) - ringLimit(slot);
-    if (me.level < slot * 10) return `Võ hồn đang ra trận cần đạt cấp ${slot * 10} (bình cảnh) mới hấp thụ được hồn hoàn thứ ${slot}.`;
-    if (over >= 2) return `Quá mạnh cho vòng thứ ${slot}: không thể hấp thụ.`;
-    if (over === 1) return `Vượt giới hạn vòng thứ ${slot}: ${Math.round(ABSORB_RISK * 100)}% thất bại, thất bại thì mất hồn hoàn.`;
-    return `Hợp với vòng thứ ${slot} của võ hồn đang ra trận.`;
+  absorbOptions(years: number): hud.AbsorbOption[] {
+    const me = this.room.state.players.get(this.me);
+    return (this.owned?.list ?? []).map((v) => {
+      const active = v.rowId === this.owned?.active, def = VOHON[Math.max(0, vohonIndex(v.vohon))];
+      const level = active && me ? me.level : v.level, rings = active && me ? me.rings.length : v.rings.length, slot = rings + 1;
+      const ch = absorbChance(years, slot);
+      const reason = rings >= MAX_RINGS ? `Đã đủ ${MAX_RINGS} hồn hoàn`
+        : !atBottleneck(level, rings) ? `Chưa tới bình cảnh (cần cấp ${slot * 10})`
+        : ch.fail === null ? `Vượt giới hạn ${ch.over}%: không thể hấp thụ` : "";
+      return { rowId: v.rowId, name: def.name, col: def.col, level, slot, limit: ch.limit, over: ch.over, fail: ch.fail, secs: absorbSecs(years), active, reason };
+    });
   }
 
   updateHud(me: any) {
@@ -734,7 +763,10 @@ export class GameScene extends Phaser.Scene {
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
     const sts = tb ? hud.statusText(tb) : "";
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} · ${formatYears(tb.years)} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+    // Cấp tương đương theo số năm (BĐ3) và mức kinh nghiệm còn nhận khi hồn thú thấp hơn võ hồn ra trận (mục 5.3).
+    const tLv = tb ? beastLevel(tb.years) : 0, xpk = tb ? xpLevelScale(me.level, tLv) : 1;
+    const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
+    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
     let dr: any = null, dd = PICKUP_RANGE;

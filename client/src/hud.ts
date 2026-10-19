@@ -1,6 +1,7 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
-  BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears, PHONG_LOI } from "../../shared/data.ts";
+  BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
+  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI } from "../../shared/data.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -63,7 +64,10 @@ export function updateStats(p: any) {
   $("#lvl").textContent = `Cấp ${p.level}`;
   $("#hpFill").style.width = (p.hp / Math.max(1, p.maxHp)) * 100 + "%"; $("#hpTxt").textContent = `Sinh lực ${p.hp} / ${p.maxHp}`;
   $("#mpFill").style.width = (p.mp / Math.max(1, p.maxMp)) * 100 + "%"; $("#mpTxt").textContent = `Hồn lực ${p.mp} / ${p.maxMp}`;
-  if (!p.xpNeed) { $("#xpFill").style.width = "100%"; $("#xpTxt").textContent = `Bình cảnh: cần hồn hoàn thứ ${p.rings.length + 1}`; }
+  if (!p.xpNeed) {
+    $("#xpFill").style.width = "100%";
+    $("#xpTxt").textContent = atBottleneck(p.level, p.rings.length) ? `Bình cảnh: cần hồn hoàn thứ ${p.rings.length + 1}` : `Cấp tối đa ${MAX_LEVEL}`;
+  }
   else { $("#xpFill").style.width = (p.xp / p.xpNeed) * 100 + "%"; $("#xpTxt").textContent = `Kinh nghiệm ${p.xp} / ${p.xpNeed}`; }
   // Phong Lôi Chi Lực (2.5c): chỉ hiện khi Lam Điện Bá Vương Long ra trận; đầy thì sáng viền (tự tung Lôi Động Minh Thiên khi đánh trúng).
   const lei = VOHON[p.vh].id === PHONG_LOI.vohon, bar = $("#leiBar");
@@ -78,8 +82,12 @@ export function updateStats(p: any) {
     ringsKey = key; const el = $("#rings"); el.innerHTML = "";
     rings.forEach((t) => { const d = document.createElement("div"); d.className = "ring"; d.style.color = ringColor(t);
       if (t === 3) d.style.borderColor = TIERS[3].col; d.title = `Hồn hoàn ${TIERS[t].age}`; el.appendChild(d); });
-    const slot = rings.length + 1, e = document.createElement("div"); e.className = "ring empty"; el.appendChild(e);
-    const s = document.createElement("small"); s.textContent = `Vòng ${slot}: tối đa ${formatYears(tierBand(ringLimit(slot))[1])}, cấp ${slot * 10}`; el.appendChild(s); // luật bậc cũ đến 3.3
+    const slot = rings.length + 1, s = document.createElement("small");
+    if (slot <= MAX_RINGS) {
+      const e = document.createElement("div"); e.className = "ring empty"; el.appendChild(e);
+      s.textContent = `Vòng ${slot}: giới hạn ${formatYears(ringLimit(slot))}, cấp ${slot * 10}`;
+    } else s.textContent = `Đủ ${MAX_RINGS} hồn hoàn`;
+    el.appendChild(s);
   }
   const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",");
   if (buffs !== buffKey) {
@@ -94,8 +102,20 @@ export function updateStats(p: any) {
     (b.querySelector(".cd") as HTMLElement).style.height = cd * 100 + "%";
   });
   const ch = $("#channel");
-  if (p.absorb > 0) { ch.style.display = "block"; $("#chFill").style.width = p.absorb * 100 + "%"; } else ch.style.display = "none";
+  if (p.absorb > 0) {
+    ch.style.display = "block"; $("#chFill").style.width = p.absorb * 100 + "%";
+    const a = absorbing, sec = (x: number) => x.toFixed(1).replace(".", ",");
+    const txt = a ? `${a.label} · ${sec(Math.min(a.secs, p.absorb * a.secs))} / ${sec(a.secs)} giây` : "Đang hấp thụ hồn hoàn…";
+    const lb = ch.querySelector<HTMLElement>(".label")!;
+    if (lb.textContent !== txt) lb.textContent = txt;
+    ch.classList.toggle("risk", !!a?.risk);
+    if (a) ch.style.setProperty("--c", a.col);
+  } else ch.style.display = "none";
 }
+
+/** Hấp thụ đang chạy (tin riêng "absorbing" từ server): chữ trên thanh tiến độ, tổng số giây, có rủi ro thất bại không. */
+let absorbing: { label: string; secs: number; risk: boolean; col: string } | null = null;
+export function setAbsorbing(a: typeof absorbing) { absorbing = a; }
 
 // ---------- Đội hình võ hồn (mục 5.1): thanh 4 ô trong trận và bảng xếp đội ----------
 const vohonDef = (id: string) => VOHON[Math.max(0, vohonIndex(id))];
@@ -244,7 +264,7 @@ export function showPortal(info: PortalInfo | null, go: () => void) {
   const el = $("#portal");
   if (!info?.name) { el.hidden = true; el.innerHTML = ""; return; }
   const lv = info.level ? ` (đề xuất cấp ${info.level[0]}–${info.level[1]})` : "";
-  el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp đề xuất!</span>` : ""}
+  el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp ${info.level?.[0] ?? "đề xuất"}!</span>` : ""}
     <button type="button" class="${info.warn ? "danger" : ""}">${info.warn ? "Vẫn đi" : "Đi"}<kbd>F</kbd></button>`;
   el.querySelector("div")!.textContent = `Đi tới ${info.toName ?? info.to}${lv}`;
   el.querySelector("small")!.textContent = info.name;
@@ -278,11 +298,74 @@ const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y
 const itemColor = (it: BagItem) => (isRing(it) ? ringColor(tierOfYears(it.years)) : itemDef(it.code)?.col ?? "#9db3a2");
 
 /**
- * Thao tác trên túi đồ: client chỉ gửi id ô, server kiểm tra rồi gửi lại túi mới. `absorbHint`: một câu về việc võ hồn đang ra
- * trận hấp thụ được hồn hoàn `years` năm không (chỉ để hiển thị, server quyết định).
+ * Một võ hồn trong bộ sưu tập khi chọn nơi hấp thụ hồn hoàn (GameScene tính bằng absorbChance / absorbSecs của shared/data.ts,
+ * chỉ để hiển thị; server quyết định). `reason` khác rỗng: không chọn được (chưa bình cảnh, đủ 10 vòng, vượt quá 100%).
  */
-export interface BagActions { use(id: string): void; absorb(id: string): void; discard(id: string): void; absorbHint(years: number): string; }
+export interface AbsorbOption { rowId: number; name: string; col: string; level: number; slot: number; limit: number; over: number; fail: number | null; secs: number; active: boolean; reason: string; }
+/**
+ * Thao tác trên túi đồ: client chỉ gửi id ô (và võ hồn được chọn để hấp thụ), server kiểm tra rồi gửi lại túi mới.
+ * `absorbOptions`: các võ hồn và rủi ro khi hấp thụ hồn hoàn `years` năm; `combat`: đang giao chiến (tin "squad");
+ * `refresh`: xin lại danh sách võ hồn (cấp võ hồn không ra trận có thể đã đổi).
+ */
+export interface BagActions {
+  use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void;
+  absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
+}
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
+let pickRing: string | null = null;   // id hồn hoàn đang mở bảng chọn võ hồn để hấp thụ
+let pickVh: number | null = null;     // võ hồn đang chọn trong bảng đó (chờ xác nhận)
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+const secTxt = (x: number) => `${String(x).replace(".", ",")} giây`;
+
+/**
+ * Bảng chọn võ hồn để hấp thụ hồn hoàn `ring` (mục 5.2): mỗi võ hồn một dòng ghi vòng kế tiếp, giới hạn, % vượt và tỉ lệ thất bại;
+ * chọn một dòng thì hiện ô xác nhận, cảnh báo đỏ khi có rủi ro mất hồn hoàn.
+ */
+function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again: () => void) {
+  const box = document.createElement("div"); box.className = "apick";
+  const opts = act.absorbOptions(ring.years).sort((a, b) => Number(!!a.reason) - Number(!!b.reason) || Number(b.active) - Number(a.active));
+  if (pickVh !== null && !opts.some((o) => o.rowId === pickVh && !o.reason)) pickVh = null;
+  if (pickVh === null) pickVh = opts.find((o) => !o.reason)?.rowId ?? null;
+  const head = document.createElement("small");
+  head.textContent = `Chọn võ hồn hấp thụ hồn hoàn ${formatYears(ring.years)} (chỉ võ hồn đang ở bình cảnh):`;
+  box.appendChild(head);
+  for (const o of opts) {
+    const b = document.createElement("button"); b.className = "aopt" + (o.rowId === pickVh ? " sel" : "") + (o.fail ? " risk" : "");
+    b.disabled = !!o.reason;
+    const st = o.reason || (o.fail ? `vượt ${o.over}% · <em>${pct(o.fail)} thất bại</em>` : "trong giới hạn · chắc chắn thành công");
+    b.innerHTML = `<b style="color:${o.col}"></b><span>Cấp ${o.level}${o.active ? " · đang ra trận" : ""}${o.slot <= MAX_RINGS ? ` · vòng ${o.slot}: giới hạn ${formatYears(o.limit)}` : ""}</span><i>${st}</i>`;
+    b.querySelector("b")!.textContent = o.name;
+    b.addEventListener("click", () => { b.blur(); pickVh = o.rowId; again(); });
+    box.appendChild(b);
+  }
+  if (!opts.some((o) => !o.reason)) {
+    const n = document.createElement("p"); n.textContent = "Chưa có võ hồn nào ở bình cảnh hấp thụ được hồn hoàn này. Săn hồn thú để lên cấp 10, 20, 30…";
+    box.appendChild(n);
+  }
+  const o = opts.find((x) => x.rowId === pickVh && !x.reason);
+  const row = document.createElement("div"); row.className = "brow";
+  if (o) {
+    const c = document.createElement("div"); c.className = "aconf" + (o.fail ? " risk" : "");
+    const w = o.fail
+      ? `⚠ Vượt giới hạn vòng ${o.slot} (${formatYears(o.limit)}) ${o.over}%: ${pct(o.fail)} thất bại. Thất bại thì MẤT hồn hoàn này, ngoài ra không bị phạt gì.`
+      : `Trong giới hạn vòng ${o.slot} (tối đa ${formatYears(o.limit)}): chắc chắn thành công, ${o.name} lên cấp ${Math.min(MAX_LEVEL, o.level + 1)}.`;
+    c.innerHTML = `<b></b><small></small>`;
+    c.querySelector("b")!.textContent = w;
+    c.querySelector("small")!.textContent = `Hấp thụ mất ${secTxt(o.secs)}: đứng yên, không giao chiến; di chuyển hoặc bị đánh thì hủy, không mất gì.`
+      + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi hấp thụ." : "");
+    box.appendChild(c);
+    const ok = document.createElement("button"); ok.className = "buse absorb" + (o.fail ? " risk" : "");
+    ok.textContent = o.fail ? `Chấp nhận ${pct(o.fail)} rủi ro, hấp thụ` : "Xác nhận hấp thụ";
+    ok.addEventListener("click", () => { ok.blur(); act.absorb(ring.id, o.rowId); pickRing = null; pickVh = null; toggleBag(false); });
+    row.appendChild(ok);
+  }
+  const no = document.createElement("button"); no.className = "buse drop"; no.textContent = "Thôi";
+  no.addEventListener("click", () => { no.blur(); pickRing = null; pickVh = null; again(); });
+  row.appendChild(no);
+  box.appendChild(row);
+  requestAnimationFrame(() => row.scrollIntoView({ block: "nearest" })); // túi cao: cuộn tới nút xác nhận
+  return box;
+}
 
 /**
  * Bảng túi đồ: Hồn Tệ, lưới BAG_SLOTS ô (số lượng ở góc ô, đồ cùng loại đã được server gộp), chi tiết ô đang chọn và nút "Dùng".
@@ -294,6 +377,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const items = bag.items.filter((i) => i.vohon === null);
   if (bagSel && !items.some((i) => i.id === bagSel)) bagSel = null;
   if (bagConfirm !== bagSel) bagConfirm = null;
+  if (pickRing !== bagSel) { pickRing = null; pickVh = null; }
   const again = () => renderBag({ ...bag, cd: Math.max(0, (bagCdEnd - performance.now()) / 1000) }, act);
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Túi đồ (${items.length}/${bag.slots})</b><button class="x" aria-label="Đóng">×</button>`;
@@ -332,21 +416,27 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     info.querySelector("small")!.textContent = !def ? "Không rõ loại" : ITEM_KINDS[def.kind].name
       + (isRing(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
       + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "");
+    const ready = isRing(sel) ? act.absorbOptions(sel.years).filter((o) => !o.reason).length : 0;
     info.querySelector("p")!.textContent = (def?.desc ?? "Vật phẩm không còn trong trò chơi, vẫn được giữ trong túi.")
-      + (isRing(sel) ? ` ${act.absorbHint(sel.years)}` : "");
+      + (isRing(sel) ? (ready ? ` Có ${ready} võ hồn ở bình cảnh hấp thụ được.` : " Chưa có võ hồn nào ở bình cảnh hấp thụ được hồn hoàn này.") : "");
     const row = document.createElement("div"); row.className = "brow";
     const btn = (text: string, cls: string, fn: () => void) => {
       const b = document.createElement("button"); b.className = "buse " + cls; b.textContent = text;
       b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
     };
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
-    if (isRing(sel)) btn("Hấp thụ", "absorb", () => act.absorb(sel.id));
+    if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
+    if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
       if (bagConfirm === sel.id) { bagConfirm = null; act.discard(sel.id); } else { bagConfirm = sel.id; again(); }
     });
     info.appendChild(row);
   } else info.innerHTML = `<small>Chọn một ô để xem, dùng, hấp thụ hoặc bỏ vật phẩm.</small>`;
   el.appendChild(info);
+  finishBag(el);
+}
+
+function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn một ô, số ở góc là số năm. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
   el.appendChild(note);
