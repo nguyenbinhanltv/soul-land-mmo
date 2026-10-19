@@ -1002,7 +1002,8 @@ await travelBy("Đi Tinh Đấu Đại Sâm Lâm","tinh_dau");
 ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Tinh Đấu: ${me().x},${me().y}`);
 checkBeastYears(C); // vùng Tinh Đấu theo bảng 5.3: 300–700 … 15.000–25.000 năm
 // Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
-await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
+// Hồn thú hoang ở doanh trại đánh bật lùi sau lúc chụp vị trí thì vị trí lưu khác bản chụp: dọn trước (cần hook test).
+await test(C,"clear"); await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
 const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau",`thoát rồi /api/me: ${m2.mapId}`);
 const bag2=bagKey(C); C.mapId=m2.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
