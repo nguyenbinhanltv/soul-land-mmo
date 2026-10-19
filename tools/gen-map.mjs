@@ -26,8 +26,8 @@ function objects() {
     list.push({ id: oid++, name, type, x: x * T, y: y * T, width: w * T, height: h * T, rotation: 0, visible: true, properties: props });
   const point = (type, name, x, y, props = []) =>
     list.push({ id: oid++, name, type, point: true, x: x * T, y: y * T, width: 0, height: 0, rotation: 0, visible: true, properties: props });
-  // beasts: mã loài trong BEASTS (shared/data.ts) kèm trọng số; weights: trọng số theo bậc TIERS (giữ đến bước 3.2);
-  // years: khoảng niên hạn theo bảng 5.3 (ghi sẵn cho bước 3.2, server chưa đọc).
+  // beasts: mã loài trong BEASTS (shared/data.ts) kèm trọng số; years: khoảng niên hạn theo bảng 5.3 (từ 3.2 server tung tuổi
+  // hồn thú trong khoảng này); weights: trọng số theo bậc TIERS, chỉ dùng khi vùng thiếu `years`.
   const zone = (name, hint, x, y, w, h, weights, count, beasts, years = "") => rect("zone", name, x, y, w, h, [
     prop("hint", "string", hint), prop("weights", "string", weights.join(",")), prop("count", "int", count), prop("beasts", "string", beasts),
     ...(years ? [prop("years", "string", years)] : []),
@@ -128,10 +128,10 @@ function tinhDau() {
   trees[30 * MW + 4] = GID.fire;
 
   const o = objects();
-  o.zone("Bìa rừng", "Hồn thú 10 – 100 năm", 9, 0, 13, MH, [0.85, 0.15, 0, 0, 0], 14, "phong_lang:2,man_da_la_xa:1,tu_van_bao:1");
-  o.zone("Rừng thưa", "Hồn thú 100 – 1.000 năm", 22, 0, 23, MH, [0.2, 0.65, 0.15, 0, 0], 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1,quy_ho:1");
-  o.zone("Rừng cổ thụ", "Hồn thú 1.000 – 10.000 năm", 45, 0, 23, MH, [0, 0.25, 0.6, 0.15, 0], 10, "quy_dang:1,nhan_dien_ma_chu:1,u_minh_lang:1,kiem_vi_hat:1");
-  o.zone("Hắc Ám Lâm", "Cẩn thận: hồn thú vạn năm", 68, 0, 21, MH, [0, 0, 0.35, 0.63, 0.02], 9, "u_minh_lang:1,am_kim_khung_trao_hung:1,kiem_vi_hat:1,quy_anh_bao:1,xich_lan_mang:1");
+  o.zone("Bìa rừng", "Hồn thú 300 – 700 năm", 9, 0, 13, MH, [0.85, 0.15, 0, 0, 0], 14, "phong_lang:2,man_da_la_xa:1,tu_van_bao:1", "300-700");
+  o.zone("Rừng thưa", "Hồn thú 600 – 1.200 năm", 22, 0, 23, MH, [0.2, 0.65, 0.15, 0, 0], 12, "man_da_la_xa:1,quy_dang:1,loi_van_hau:1,quy_ho:1", "600-1200");
+  o.zone("Rừng cổ thụ", "Hồn thú 1.500 – 5.000 năm", 45, 0, 23, MH, [0, 0.25, 0.6, 0.15, 0], 10, "quy_dang:1,nhan_dien_ma_chu:1,u_minh_lang:1,kiem_vi_hat:1", "1500-5000");
+  o.zone("Hắc Ám Lâm", "Cẩn thận: hồn thú 15.000 – 25.000 năm", 68, 0, 21, MH, [0, 0, 0.35, 0.63, 0.02], 9, "u_minh_lang:1,am_kim_khung_trao_hung:1,kiem_vi_hat:1,quy_anh_bao:1,xich_lan_mang:1", "15000-25000");
   // Doanh trại = trại cổng của Tinh Đấu (mục 5.8). Cổng về Nặc Đinh Thành ở mép tây, trên đường mòn; doanh trại (điểm hồi sinh)
   // bắt đầu từ cột 3 để không ai hồi sinh ngay trong cổng.
   o.rect("spawn", "Doanh trại", 3, 25, 6, 11);

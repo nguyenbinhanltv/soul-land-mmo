@@ -1,7 +1,8 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R } from "../../../shared/data.ts";
+  skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R,
+  tierOfYears, formatYears, PICKUP_RANGE, ABSORB_RISK } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -39,7 +40,7 @@ export class GameScene extends Phaser.Scene {
   me = "";
   players = new Map<string, PView>();
   beasts = new Map<string, Phaser.GameObjects.Sprite>();
-  drops = new Map<string, Phaser.GameObjects.Image>();
+  drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
   vignette!: Phaser.GameObjects.Image;
   zones: Zone[] = [];
@@ -61,6 +62,8 @@ export class GameScene extends Phaser.Scene {
   mini!: { ctx: CanvasRenderingContext2D; base: HTMLCanvasElement };
   mapW = 0; mapH = 0;
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
+  bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
+  bagKey = "";
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void }) {
@@ -166,7 +169,7 @@ export class GameScene extends Phaser.Scene {
       const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
       const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
-      else if (e.code === "KeyE") this.act("absorb");
+      else if (e.code === "KeyE") this.act("pickup");
       else if (sk >= 0) this.act("skill" + sk);
       else if (slot >= 0 && slot < TEAM_SIZE) this.act("switch" + slot);
     }, on);
@@ -194,7 +197,7 @@ export class GameScene extends Phaser.Scene {
 
   act(a: string) {
     if (a === "attack") this.room.send("attack");
-    else if (a === "absorb") this.room.send("absorb");
+    else if (a === "pickup") this.room.send("pickup");
     else if (a.startsWith("skill")) this.room.send("skill", { i: Number(a.slice(5)) });
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
   }
@@ -245,8 +248,8 @@ export class GameScene extends Phaser.Scene {
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
       else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
     });
-    // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng, server kiểm tra.
-    this.room.onMessage("bag", (m: BagMsg) => hud.renderBag(m, (id) => this.room.send("use", { id })));
+    // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
+    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); });
     this.room.send("vohons");
     this.room.send("bag");
   }
@@ -556,12 +559,20 @@ export class GameScene extends Phaser.Scene {
     const seenD = new Set<string>();
     st.drops.forEach((d: any, id: string) => {
       seenD.add(id);
-      let img = this.drops.get(id);
-      if (!img) { img = this.add.image(d.x, d.y - 4, `ring${d.tier}`).setDepth(d.y - 1); this.drops.set(id, img); }
-      img.y = d.y - 4 - (0.5 + 0.5 * Math.sin(time / 250)) * 2;
-      img.setAlpha(d.ttl < 8 ? (Math.floor(time / 160) % 2 ? 0.4 : 1) : 1);
+      let v = this.drops.get(id);
+      if (!v) {
+        // Màu hồn hoàn theo số năm (bậc suy từ số năm), số năm ghi ngay dưới.
+        const img = this.add.image(d.x, d.y - 4, `ring${d.tier}`).setDepth(d.y - 1);
+        const txt = this.add.text(d.x, d.y + 4, formatYears(d.years), {
+          fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: hud.ringColor(d.tier), stroke: "#000", strokeThickness: 2, resolution: 8,
+        }).setOrigin(0.5, 0).setDepth(d.y - 1);
+        v = { img, txt }; this.drops.set(id, v);
+      }
+      v.img.y = d.y - 4 - (0.5 + 0.5 * Math.sin(time / 250)) * 2;
+      const a = d.ttl < 8 ? (Math.floor(time / 160) % 2 ? 0.4 : 1) : 1;
+      v.img.setAlpha(a); v.txt.setAlpha(a);
     });
-    for (const [id, img] of this.drops) if (!seenD.has(id)) { img.destroy(); this.drops.delete(id); }
+    for (const [id, v] of this.drops) if (!seenD.has(id)) { v.img.destroy(); v.txt.destroy(); this.drops.delete(id); }
 
     // vẽ phủ: thanh máu, vòng uy áp, hiệu ứng hấp thụ
     const g = this.ov; g.clear();
@@ -630,8 +641,34 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  renderBag() {
+    if (!this.bag) return;
+    hud.renderBag(this.bag, {
+      use: (id) => this.room.send("use", { id }),
+      absorb: (id) => this.room.send("absorb", { itemId: id }),
+      discard: (id) => this.room.send("discard", { id }),
+      absorbHint: (years) => this.absorbHint(years),
+    });
+  }
+
+  /**
+   * Câu gợi ý hấp thụ hồn hoàn `years` năm cho võ hồn đang ra trận (chỉ hiển thị; server kiểm tra lại). Luật bậc cũ giữ đến
+   * bước 3.3 (giới hạn theo truyện).
+   */
+  absorbHint(years: number) {
+    const me = this.room.state.players.get(this.me); if (!me) return "";
+    const slot = me.rings.length + 1, over = tierOfYears(years) - ringLimit(slot);
+    if (me.level < slot * 10) return `Võ hồn đang ra trận cần đạt cấp ${slot * 10} (bình cảnh) mới hấp thụ được hồn hoàn thứ ${slot}.`;
+    if (over >= 2) return `Quá mạnh cho vòng thứ ${slot}: không thể hấp thụ.`;
+    if (over === 1) return `Vượt giới hạn vòng thứ ${slot}: ${Math.round(ABSORB_RISK * 100)}% thất bại, thất bại thì mất hồn hoàn.`;
+    return `Hợp với vòng thứ ${slot} của võ hồn đang ra trận.`;
+  }
+
   updateHud(me: any) {
     const st = this.room.state;
+    // Câu gợi ý hấp thụ trong túi phụ thuộc cấp và số hồn hoàn: đổi thì vẽ lại túi.
+    const bagKey = `${me.vh}|${me.level}|${me.rings.length}`;
+    if (bagKey !== this.bagKey) { this.bagKey = bagKey; this.renderBag(); }
     // Số năm từng hồn hoàn (chú thích sức mạnh hồn kỹ) lấy từ tin riêng "vohons" khi đúng võ hồn đang ra trận.
     const own = this.owned?.list.find((v) => v.rowId === this.owned?.active), years = own && VOHON[me.vh]?.id === own.vohon ? own.rings : null;
     const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}`;
@@ -654,18 +691,15 @@ export class GameScene extends Phaser.Scene {
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
     const sts = tb ? hud.statusText(tb) : "";
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} (${TIERS[tb.tier].age}) – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${BEASTS[tb.species]?.name ?? "Hồn thú"} · ${formatYears(tb.years)} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
 
-    let dr: any = null, dd = 22;
+    // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
+    let dr: any = null, dd = PICKUP_RANGE;
     st.drops.forEach((d: any) => { const k = Math.hypot(d.x - me.x, d.y - me.y); if (k < dd) { dd = k; dr = d; } });
     if (dr && me.absorb <= 0) {
-      const t = TIERS[dr.tier], slot = me.rings.length + 1, over = dr.tier - ringLimit(slot);
-      let msg = "nhấn E để hấp thụ";
-      if (dr.owner && dr.owner !== this.me && dr.ownerTtl > 0) msg = `<em>của người khác, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
-      else if (me.level < slot * 10) msg = `<em>cần cấp ${slot * 10} mới hấp thụ được</em>`;
-      else if (over >= 2) msg = "<em>quá mạnh, không thể hấp thụ</em>";
-      else if (over === 1) msg = "nhấn E để hấp thụ <em>(vượt giới hạn, 60% thất bại)</em>";
-      hud.showPrompt(`<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${t.age}: ${msg}`);
+      const mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0;
+      const msg = mine ? "nhấn E để nhặt vào túi" : `<em>của người hạ hồn thú, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
+      hud.showPrompt(`<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
     } else hud.showPrompt(null);
     this.drawMinimap();
   }

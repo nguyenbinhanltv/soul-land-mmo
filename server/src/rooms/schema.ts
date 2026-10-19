@@ -34,7 +34,8 @@ export class PlayerState extends Schema {
 export class BeastState extends Schema {
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
-  @type("uint8") tier: number = 0;
+  @type("uint8") tier: number = 0;     // bậc suy ra từ số năm (tierOfYears): màu, kích thước
+  @type("uint32") years: number = 0;   // tuổi hồn thú theo số năm (bước 3.2); hồn hoàn rơi ra mang đúng số năm này
   @type("uint8") species: number = 0;  // chỉ số loài trong BEASTS (shared/data.ts)
   @type("uint32") hp: number = 0;
   @type("uint32") maxHp: number = 0;
@@ -51,8 +52,9 @@ export class BeastState extends Schema {
 export class DropState extends Schema {
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
-  @type("uint8") tier: number = 0;
-  @type("string") owner: string = "";   // sessionId được ưu tiên hấp thụ
+  @type("uint8") tier: number = 0;      // bậc suy ra từ số năm: màu hồn hoàn
+  @type("uint32") years: number = 0;    // số năm của hồn hoàn (bằng tuổi hồn thú bị hạ)
+  @type("string") owner: string = "";   // sessionId được ưu tiên nhặt
   @type("float32") ownerTtl: number = 0; // giây còn lại trước khi ai cũng nhặt được
   @type("float32") ttl: number = 0;
 }

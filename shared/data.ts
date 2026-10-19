@@ -4,17 +4,20 @@
 export interface TierDef {
   /** Số năm nhỏ nhất của bậc (hồn hoàn lưu trong DB theo số năm). */
   years: number;
-  age: string; col: string; glow: string;
+  age: string;
+  /** Tên màu hồn hoàn của bậc (bảng 5.2). */
+  color: string;
+  col: string; glow: string;
   hp: number; dmg: number; xp: number; spd: number;
   atkb: number; hpb: number; size: number; body: string;
 }
 
 export const TIERS: TierDef[] = [
-  { years: 10,     age: "10 năm",      col: "#f3f3f3", glow: "#ffffff", hp: 30,   dmg: 4,  xp: 12,   spd: 26, atkb: 2,  hpb: 12,  size: 8,  body: "#d9cbb3" },
-  { years: 100,    age: "100 năm",     col: "#f2c84b", glow: "#ffe08a", hp: 95,   dmg: 9,  xp: 40,   spd: 32, atkb: 5,  hpb: 30,  size: 11, body: "#8b8f96" },
-  { years: 1000,   age: "1.000 năm",   col: "#a253e0", glow: "#c99bff", hp: 300,  dmg: 19, xp: 150,  spd: 36, atkb: 12, hpb: 80,  size: 13, body: "#5d4380" },
-  { years: 10000,  age: "10.000 năm",  col: "#1a1820", glow: "#8a6bff", hp: 950,  dmg: 42, xp: 500,  spd: 33, atkb: 30, hpb: 220, size: 16, body: "#2c2c35" },
-  { years: 100000, age: "100.000 năm", col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, body: "#8f1f2a" },
+  { years: 10,     age: "10 năm",     color: "Trắng",  col: "#f3f3f3", glow: "#ffffff", hp: 30,   dmg: 4,  xp: 12,   spd: 26, atkb: 2,  hpb: 12,  size: 8,  body: "#d9cbb3" },
+  { years: 100,    age: "100 năm",    color: "Vàng",   col: "#f2c84b", glow: "#ffe08a", hp: 95,   dmg: 9,  xp: 40,   spd: 32, atkb: 5,  hpb: 30,  size: 11, body: "#8b8f96" },
+  { years: 1000,   age: "1.000 năm",  color: "Tím",    col: "#a253e0", glow: "#c99bff", hp: 300,  dmg: 19, xp: 150,  spd: 36, atkb: 12, hpb: 80,  size: 13, body: "#5d4380" },
+  { years: 10000,  age: "10.000 năm", color: "Đen",    col: "#1a1820", glow: "#8a6bff", hp: 950,  dmg: 42, xp: 500,  spd: 33, atkb: 30, hpb: 220, size: 16, body: "#2c2c35" },
+  { years: 100000, age: "100.000 năm", color: "Đỏ",    col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, body: "#8f1f2a" },
 ];
 
 export const TIER_MULT = [1, 1.35, 1.9, 2.8, 4.5];
@@ -25,6 +28,33 @@ export function tierOfYears(years: number) {
   for (let i = 0; i < TIERS.length; i++) if (years >= TIERS[i].years) t = i;
   return t;
 }
+
+// ---------- Niên hạn theo số năm (mục 5.2, 5.3; bước 3.2) ----------
+/** Niên hạn tối đa (mục 3): hồn thú / hồn hoàn đỏ đúng 100.000 năm. Mỗi phòng (kênh) tối đa 1 hồn thú thường cỡ này cùng lúc. */
+export const MAX_YEARS = TIERS[TIERS.length - 1].years;
+/** Khoảng năm [nhỏ nhất, lớn nhất] của bậc `tier` (bảng màu 5.2): trắng 10–99 … đen 10.000–99.999, đỏ đúng 100.000. */
+export const tierBand = (tier: number): [number, number] =>
+  [TIERS[tier].years, tier + 1 < TIERS.length ? TIERS[tier + 1].years - 1 : MAX_YEARS];
+/**
+ * Tuổi hồn thú trong khoảng [lo, hi] từ một số ngẫu nhiên r ∈ [0, 1) (server tự gọi Math.random()). Phân bố theo log (chờ chốt):
+ * hồn thú càng già càng hiếm, khoảng hẹp như 300–700 thì gần như đều.
+ */
+export function rollYears(lo: number, hi: number, r: number) {
+  const a = Math.max(TIERS[0].years, Math.min(lo, hi)), b = Math.min(MAX_YEARS, Math.max(lo, hi));
+  return Math.max(a, Math.min(b, Math.floor(a * Math.pow((b + 1) / a, r))));
+}
+/**
+ * Chỉ số hồn thú theo số năm (mục 5.3 "Chỉ số hồn thú tăng theo số năm"): nội suy hình học giữa hai mốc TIERS kề nhau, nên tăng
+ * liên tục theo năm chứ không nhảy theo bậc; đúng mốc (10, 100, 1.000…) thì bằng đúng chỉ số của bậc đó. Kích thước, tốc độ,
+ * Hồn Tệ vẫn theo bậc. Hệ số riêng từng loài để sau (bảng BEASTS chưa có).
+ */
+export function beastStats(years: number) {
+  const y = Math.max(TIERS[0].years, Math.min(MAX_YEARS, years)), t = tierOfYears(y), a = TIERS[t], b = TIERS[Math.min(t + 1, TIERS.length - 1)];
+  const f = b === a ? 0 : Math.log(y / a.years) / Math.log(b.years / a.years), mix = (x: number, z: number) => x * Math.pow(z / x, f);
+  return { hp: Math.round(mix(a.hp, b.hp)), dmg: +mix(a.dmg, b.dmg).toFixed(2), xp: Math.round(mix(a.xp, b.xp)) };
+}
+/** "437 năm", "1.760 năm", "100.000 năm". */
+export const formatYears = (years: number) => `${Math.max(0, Math.floor(years)).toLocaleString("vi-VN")} năm`;
 
 // ---------- Bản đồ và hồn thú (GAME_DESIGN.md mục 5.3, 6) ----------
 export type MapKind = "town" | "hunt" | "boss";
@@ -38,13 +68,13 @@ export interface MapDef {
 
 /** Bản đồ đang có (bảng 5.3). BĐ3 tách `tinh_dau` thành Ngoại vi và Nội địa. Cổng tới bản đồ chưa có thì không đặt trong Tiled. */
 export const MAPS: Record<string, MapDef> = {
-  tinh_dau: { id: "tinh_dau", name: "Tinh Đấu Đại Sâm Lâm", kind: "hunt", level: [10, 60], years: [10, 100000] },
+  tinh_dau: { id: "tinh_dau", name: "Tinh Đấu Đại Sâm Lâm", kind: "hunt", level: [10, 60], years: [300, 25000] },
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450] },
   nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null },
 };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
 export const DEFAULT_MAP = "thanh_hon_thon";
-/** "10-30" -> [10, 30]; "10" -> [10, 10]; sai -> null. Dùng cho thuộc tính `level` của cổng trong Tiled. */
+/** "10-30" -> [10, 30]; "10" -> [10, 10]; sai -> null. Dùng cho thuộc tính `level` của cổng và `years` của vùng trong Tiled. */
 export function parseLevelRange(s: unknown): [number, number] | null {
   const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(String(s ?? ""));
   if (!m) return null;
@@ -59,35 +89,33 @@ export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
   id: string;
   name: string;
-  /** Bậc tạm (chỉ số trong TIERS) để lấy chỉ số, cho đến khi hồn thú có tuổi theo số năm (bước 3.2). */
-  tier: number;
 }
 
 /** Hồn thú theo loài, tên theo bảng Ngoại vi / Nội địa ở mục 5.3. Thêm loài mới vào cuối mảng (state đồng bộ theo chỉ số). */
 export const BEASTS: BeastDef[] = [
-  { id: "phong_lang",             name: "Phong Lang",             tier: 0 },
-  { id: "man_da_la_xa",           name: "Mạn Đà La Xà",           tier: 0 },
-  { id: "tu_van_bao",             name: "Tử Văn Báo",             tier: 1 },
-  { id: "quy_dang",               name: "Quỷ Đằng",               tier: 1 },
-  { id: "loi_van_hau",            name: "Lôi Văn Hầu",            tier: 1 },
-  { id: "quy_ho",                 name: "Quỷ Hổ",                 tier: 2 },
-  { id: "nhan_dien_ma_chu",       name: "Nhân Diện Ma Chu",       tier: 2 },
-  { id: "u_minh_lang",            name: "U Minh Lang",            tier: 2 },
-  { id: "am_kim_khung_trao_hung", name: "Ám Kim Khủng Trảo Hùng", tier: 3 },
-  { id: "kiem_vi_hat",            name: "Kiếm Vĩ Hạt",            tier: 3 },
-  { id: "quy_anh_bao",            name: "Quỷ Ảnh Báo",            tier: 3 },
-  // Nội địa chưa có hồn thú thường 10 vạn năm; tạm dùng loài mãng xà lớn nhất cho bậc đỏ đến bước 3.2.
-  { id: "xich_lan_mang",          name: "Xích Lân Mãng",          tier: 4 },
-  // Thánh Hồn Thôn (BĐ2, bảng 5.3): 10–450 năm. Bậc tạm: dưới 100 năm là bậc 0, từ 100 năm là bậc 1.
-  { id: "nhu_cot_tho_hoang",      name: "Nhu Cốt Thỏ hoang",      tier: 0 },
-  { id: "dien_thu",               name: "Điền Thử",               tier: 0 },
-  { id: "hoi_vu_tuoc",            name: "Hôi Vũ Tước",            tier: 0 },
-  { id: "phong_lang_con",         name: "Phong Lang con",         tier: 0 },
-  { id: "doc_cham_phong",         name: "Độc Châm Phong",         tier: 0 },
-  { id: "thiet_giap_xuyen_son_giap", name: "Thiết Giáp Xuyên Sơn Giáp", tier: 1 },
-  { id: "hac_boi_da_tru",         name: "Hắc Bối Dã Trư",         tier: 1 },
-  { id: "thanh_lan_xa",           name: "Thanh Lân Xà",           tier: 1 },
-  { id: "quy_dang_non",           name: "Quỷ Đằng non",           tier: 1 },
+  { id: "phong_lang",             name: "Phong Lang" },
+  { id: "man_da_la_xa",           name: "Mạn Đà La Xà" },
+  { id: "tu_van_bao",             name: "Tử Văn Báo" },
+  { id: "quy_dang",               name: "Quỷ Đằng" },
+  { id: "loi_van_hau",            name: "Lôi Văn Hầu" },
+  { id: "quy_ho",                 name: "Quỷ Hổ" },
+  { id: "nhan_dien_ma_chu",       name: "Nhân Diện Ma Chu" },
+  { id: "u_minh_lang",            name: "U Minh Lang" },
+  { id: "am_kim_khung_trao_hung", name: "Ám Kim Khủng Trảo Hùng" },
+  { id: "kiem_vi_hat",            name: "Kiếm Vĩ Hạt" },
+  { id: "quy_anh_bao",            name: "Quỷ Ảnh Báo" },
+  // Từ 3.2 tuổi hồn thú theo `years` của vùng (bảng 5.3), không theo loài; Xích Lân Mãng là loài thường của Nội địa.
+  { id: "xich_lan_mang",          name: "Xích Lân Mãng" },
+  // Thánh Hồn Thôn (BĐ2, bảng 5.3): 10–450 năm.
+  { id: "nhu_cot_tho_hoang",      name: "Nhu Cốt Thỏ hoang" },
+  { id: "dien_thu",               name: "Điền Thử" },
+  { id: "hoi_vu_tuoc",            name: "Hôi Vũ Tước" },
+  { id: "phong_lang_con",         name: "Phong Lang con" },
+  { id: "doc_cham_phong",         name: "Độc Châm Phong" },
+  { id: "thiet_giap_xuyen_son_giap", name: "Thiết Giáp Xuyên Sơn Giáp" },
+  { id: "hac_boi_da_tru",         name: "Hắc Bối Dã Trư" },
+  { id: "thanh_lan_xa",           name: "Thanh Lân Xà" },
+  { id: "quy_dang_non",           name: "Quỷ Đằng non" },
 ];
 
 const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
@@ -613,7 +641,7 @@ export function calcStats(vh: number, level: number, rings: number[]) {
 }
 
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
-/** Nhóm vật phẩm (cột `items.kind`). Mới có đan; các nhóm khác thêm ITEMS khi làm tới (hồn hoàn 3.2, mảnh 3.4, hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
+/** Nhóm vật phẩm (cột `items.kind`). Mới có đan và hồn hoàn; các nhóm khác thêm ITEMS khi làm tới (mảnh 3.4, hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
 export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
@@ -632,6 +660,8 @@ export interface ItemDef { id: string; kind: ItemKind; name: string; desc: strin
 export const ITEMS: ItemDef[] = [
   { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
   { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
+  // Hồn hoàn (bước 3.2): mỗi chiếc một ô, số năm lưu ở `items.years`; màu theo số năm (TIERS), `col` chỉ là màu mặc định.
+  { id: "hon_hoan", kind: "hon_hoan", name: "Hồn hoàn", desc: "Hấp thụ vào võ hồn đang ra trận khi võ hồn ở bình cảnh.", col: "#ffe08a", stack: 1 },
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
@@ -644,6 +674,22 @@ export const DAN_CD = 15;
 export const STARTER_ITEMS = [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }];
 /** Hồn Tệ (đồng) rơi khi hạ hồn thú, theo bậc trong TIERS: ngẫu nhiên trong [min, max], người hạ nhận thẳng. */
 export const BEAST_COIN: [number, number][] = [[1, 3], [4, 10], [15, 40], [60, 150], [300, 800]];
+/** Mã vật phẩm của hồn hoàn (bước 3.2). */
+export const RING_ITEM = "hon_hoan";
+/**
+ * Hồn hoàn rơi xuống đất khi hạ hồn thú (mục 4, 5.2): DROP_OWNER_SECS giây đầu chỉ người hạ nhặt được, tồn tại DROP_TTL_SECS giây.
+ * Nhặt (phím E) khi đứng cách hồn hoàn dưới PICKUP_RANGE pixel thì hồn hoàn vào túi đồ.
+ */
+export const DROP_OWNER_SECS = 15;
+export const DROP_TTL_SECS = 60;
+export const PICKUP_RANGE = 22;
+/**
+ * Thời gian hấp thụ (giây) một hồn hoàn bậc `tier`: luật cũ 2,5 + 0,8 × bậc, giữ đến bước 3.3 (thiết kế mới: 3 giây trắng đến
+ * 15 giây đỏ, mục 5.2). Vượt giới hạn 1 bậc thì ABSORB_RISK thất bại: mất hồn hoàn, sinh lực còn ABSORB_FAIL_HP.
+ */
+export const absorbSecs = (tier: number) => 2.5 + 0.8 * tier;
+export const ABSORB_RISK = 0.6;
+export const ABSORB_FAIL_HP = 0.3;
 /** Quy đổi Hồn Tệ khi hiển thị: 1 ngân = 100 đồng, 1 kim = 100 ngân. DB chỉ lưu số đồng. */
 export const HON_TE_NGAN = 100;
 export const HON_TE_KIM = 100 * HON_TE_NGAN;

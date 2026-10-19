@@ -1,13 +1,14 @@
 // Đọc bản đồ Tiled dùng chung với client (shared/assets/<mapId>.json) để server tự kiểm tra va chạm.
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
 import { readFileSync } from "node:fs";
-import { TILE, TIERS, BEASTS, MAPS, beastIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
+import { TILE, TIERS, MAPS, MAX_YEARS, beastIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
 export interface ZoneBeast { species: number; w: number; }
 export interface Zone {
   name: string; hint: string; x0: number; x1: number; y0: number; y1: number; count: number;
-  weights: number[];   // trọng số theo bậc TIERS (giữ đến bước 3.2)
+  years: [number, number] | null; // khoảng niên hạn hồn thú (thuộc tính `years`, bảng 5.3); null = vùng chưa khai báo
+  weights: number[];   // trọng số theo bậc TIERS: chỉ dùng khi vùng thiếu `years`
   beasts: ZoneBeast[]; // loài khai báo ở thuộc tính `beasts` của vùng
 }
 export interface Rect { x: number; y: number; w: number; h: number; }
@@ -75,15 +76,12 @@ export function loadMap(mapId: string): GameMap {
     if (o.type === "zone") {
       const z: Zone = {
         name: o.name, hint: prop("hint") ?? "", x0: o.x, x1: o.x + o.width, y0: o.y, y1: o.y + o.height,
+        years: parseZoneYears(mapId, o.name, prop("years")),
         weights: String(prop("weights") ?? "1").split(",").map(Number), count: Number(prop("count") ?? 8),
         beasts: parseBeasts(mapId, o.name, String(prop("beasts") ?? "")),
       };
-      // Thiếu loài thì vẫn giữ vùng (không đổi luật sinh hồn thú): pickSpecies lấy loài bất kỳ cùng bậc.
-      if (!z.beasts.length) console.warn(`[map ${mapId}] Vùng "${o.name}" không khai báo loài hợp lệ; dùng loài bất kỳ cùng bậc.`);
-      else z.weights.forEach((w, t) => {
-        if (w > 0 && !z.beasts.some((b) => BEASTS[b.species].tier === t))
-          console.warn(`[map ${mapId}] Vùng "${o.name}" không có loài bậc ${TIERS[t]?.age ?? t}; dùng loài bất kỳ cùng bậc.`);
-      });
+      // Thiếu loài thì vẫn giữ vùng: hồn thú lấy loài bất kỳ trong BEASTS.
+      if (!z.beasts.length) console.warn(`[map ${mapId}] Vùng "${o.name}" không khai báo loài hợp lệ; dùng loài bất kỳ.`);
       zones.push(z);
     }
     if (o.type === "spawn") spawn = rectOf(o);
@@ -117,6 +115,17 @@ export function loadMap(mapId: string): GameMap {
   };
   cache.set(mapId, map);
   return map;
+}
+
+/**
+ * Thuộc tính `years` của vùng ("300-700"): khoảng niên hạn hồn thú, phải nằm trong 10–100.000 năm. Thiếu hoặc sai thì cảnh báo,
+ * vùng đó tung bậc theo `weights` rồi tung tuổi trong bậc (cách cũ, cho tới khi mọi vùng có `years`).
+ */
+function parseZoneYears(mapId: string, zone: string, v: unknown): [number, number] | null {
+  const r = v === undefined || v === "" ? null : parseLevelRange(v);
+  if (r && r[0] >= TIERS[0].years && r[1] <= MAX_YEARS) return r;
+  console.warn(`[map ${mapId}] Vùng "${zone}": niên hạn ${v === undefined ? "chưa khai báo" : `sai "${v}"`}; tung bậc theo weights.`);
+  return null;
 }
 
 /** `phong_lang:3,man_da_la_xa:1` -> danh sách loài; loài không có trong BEASTS thì cảnh báo và bỏ. */
