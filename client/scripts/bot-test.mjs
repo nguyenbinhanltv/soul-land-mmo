@@ -314,6 +314,8 @@ else {
   for(let i=0;i<80&&inCamp();i++){ A.room.send("input",{x:1,y:0}); await sleep(100); }
   A.room.send("input",{x:0,y:0}); await sleep(150);
   ok(!inCamp(),"đứng ngoài doanh trại");
+  // Đi ra có thể bị hồn thú đánh: dọn quanh rồi hồi đầy võ hồn ra trận, để lúc nó tự ra trận lại vẫn đủ sinh lực riêng.
+  await test(A,"clear"); await test(A,"set",{rowId:a,level:5,xp:0,rings:[]});
   // Võ hồn ra trận gục -> tự đổi sang võ hồn còn sống, không chờ hồi chiêu đổi; võ hồn mới giữ sinh lực riêng (đầy).
   const s0=A.owned.team.indexOf(bn); A.room.send("switch",{slot:s0});
   ok(await waitFor(()=>A.owned.active===bn&&p.swCd>2),"đổi tay sang ô 2, đang hồi chiêu đổi");
@@ -910,6 +912,10 @@ else {
 }
 
 B.room.send("chat",{text:"xin chào"}); await sleep(200);
+// Lần thử hấp thụ ở trên có thể vẫn đang chạy (không có GAME_TEST thì chỉ cách khoảng 2,5 giây): hấp thụ xong thì lên cấp
+// nhưng server không gửi lại tin vohons. Chờ xong rồi xin lại danh sách, để bản so sánh là tiến độ server giữ lúc rời phòng.
+await waitFor(()=>p.absorb===0,8000);
+{ const n=A.ownedMsgs; A.room.send("vohons"); await waitFor(()=>A.ownedMsgs>n); }
 await A.room.leave(); await B.room.leave();
 
 // Vào lại: đội hình, võ hồn ra trận và tiến độ từng võ hồn (cả võ hồn không ra trận) đã lưu.
@@ -935,7 +941,9 @@ const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
 /** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
 async function travelBy(name,to,during,after){
   C.travel=null; C.room.send("travel",{portal:name}); await during?.();
-  ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`);
+  // Hồn thú hoang ở doanh trại Tinh Đấu có thể đánh hủy niệm cổng (không có GAME_TEST thì không dọn được): bị đánh thì xin đi lại.
+  for(let k=0;k<3&&!during&&!(await waitFor(()=>C.travel,TRAVEL_CAST*1000+1500))&&/Bị tấn công/.test(C.logs.at(-1)??"");k++) C.room.send("travel",{portal:name});
+  ok(await waitFor(()=>C.travel,4000)&&C.travel.mapId===to,`đi cổng "${name}" -> travel ${C.travel?.mapId}`+(C.travel?"":` (log: ${C.logs.slice(-4).join(" | ")})`));
   await after?.();
   const x0=me().x, bk=bagKey(C); C.room.send("input",{x:1,y:0}); C.room.send("use",{id:C.bag?.items[0]?.id}); await sleep(300);
   ok(me().x===x0,"đang chuyển bản đồ: server bỏ qua input");
@@ -994,17 +1002,28 @@ await travelBy("Đi Tinh Đấu Đại Sâm Lâm","tinh_dau");
 ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở doanh trại Tinh Đấu: ${me().x},${me().y}`);
 checkBeastYears(C); // vùng Tinh Đấu theo bảng 5.3: 300–700 … 15.000–25.000 năm
 // Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
-await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
+// Hồn thú hoang ở doanh trại đánh bật lùi sau lúc chụp vị trí thì vị trí lưu khác bản chụp: dọn trước (cần hook test).
+await test(C,"clear"); await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
 const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau",`thoát rồi /api/me: ${m2.mapId}`);
 const bag2=bagKey(C); C.mapId=m2.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
 ok(bagKey(C)===bag2,`thoát rồi vào lại: túi đồ giữ nguyên (${C.bag?.items.length} ô)`);
 ok(C.room.state.mapId==="tinh_dau"&&Math.abs(me().x-pos[0])<1&&Math.abs(me().y-pos[1])<1,`vào lại đúng vị trí ${me().x.toFixed(1)},${me().y.toFixed(1)} (đã lưu ${pos.map(v=>v.toFixed(1))})`);
 // Đăng nhập lần nữa: phiên cũ bị đá (presence), phiên mới vào đúng bản đồ.
+// Tiến độ chưa lưu của phiên cũ (đặt qua hook test) phải còn: phiên mới chỉ nạp DB sau khi phiên cũ lưu xong lần cuối (mục 6).
+const relog=(await test(C,"ping"))?.enabled?C.owned.team.filter(Boolean).map((rowId,i)=>[rowId,1234+i]):null;
+if(relog) for(const [rowId,xp] of relog) await test(C,"set",{rowId,xp});
+// Túi đồ và Hồn Tệ chưa lưu của phiên cũ cũng phải còn (loadBag của phiên mới chạy sau lần lưu túi đồ của phiên cũ).
+let relogBag=null;
+if(relog){ await test(C,"coin",{n:(C.bag?.honTe??0)+4321}); await test(C,"give",{code:"hoi_huyet_dan",qty:1}); relogBag=bagKey(C); }
 let kicked=0; C.room.onLeave(code=>{kicked=code;});
 const l2=await post("/api/login",{name:C.name,password:PASS}); ok(l2.mapId==="tinh_dau","đăng nhập lại: /api/login trả tinh_dau");
 const C2={name:C.name,token:l2.token,logs:[],mapId:l2.mapId}; await enter(C2);
 ok(await waitFor(()=>kicked===4001),"phiên cũ bị đá khi tài khoản vào lại");
+if(relog){ await waitFor(()=>C2.owned); const got=relog.map(([r])=>C2.owned?.list.find(v=>v.rowId===r)?.xp);
+  ok(same(got,relog.map(([,xp])=>xp)),`đăng nhập lại: phiên mới nạp tiến độ phiên cũ vừa lưu lúc bị đá (kinh nghiệm ${got.join("/")})`);
+  await waitFor(()=>C2.bag);
+  ok(bagKey(C2)===relogBag,`đăng nhập lại: phiên mới nạp túi đồ, Hồn Tệ phiên cũ vừa lưu lúc bị đá (${formatHonTe(C2.bag?.honTe??0)}, ${C2.bag?.items.length} ô)`); }
 C=C2;
 await waitFor(()=>me());
 // Đường về: cổng ở mép tây doanh trại -> Nặc Đinh Thành (cổng đông).
@@ -1014,6 +1033,7 @@ ok(await walk(-1,0,()=>C.portal?.name,6000)&&C.portal.to==="nac_dinh_thanh",`t�
 let shot=null;
 if((await test(C,"ping"))?.enabled){
   await test(C,"set",{rowId:C.owned.active,level:30,xp:0,rings:[1,1,1]});
+  await test(C,"clear"); // hồn thú hoang gần cổng đánh trúng thì hủy niệm cổng
   const ids=new Set(C.room.state.beasts.keys());
   // Đạn bay 170 px/s từ (x, y-8): hồn thú cách 90 px về phía đông, trúng sau ~0,53 giây.
   await test(C,"beast",{dx:90,dy:TIERS[0].size/2-8});
