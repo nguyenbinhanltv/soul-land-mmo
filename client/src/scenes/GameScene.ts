@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit,
+  skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R,
   tierOfYears, formatYears, PICKUP_RANGE, ABSORB_RISK } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
@@ -20,6 +20,7 @@ interface PView {
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
   lit: { i: number; t0: number } | null;    // vòng hồn hoàn đang sáng khi tung hồn kỹ
+  fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
 }
 /** Tổng thời gian một animation hồn sư (ms). */
 const animMs = (a: HsAnim) => HS_ANIMS[a].ms.reduce((x, y) => x + y, 0);
@@ -329,6 +330,15 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: q, y: v.root.y - 26 - (k % 3) * 5, alpha: 0, duration: 600, delay: k * 25, onComplete: () => q.destroy() });
       }
     }
+    else if (m.k === "fly") {
+      // Bay (chỉ hiệu ứng): nhấc hồn sư lên, đôi cánh lửa và tàn lửa rơi xuống bóng.
+      const v = this.players.get(m.id); if (!v) return;
+      v.fly = { t0: this.time.now, ms: (m.t ?? 0.5) * 1000 };
+      for (let k = 0; k < 10; k++) {
+        const q = this.add.rectangle(v.root.x + (k - 4.5) * 3, v.root.y - 14, 2, 2, hex(k % 2 ? m.col : "#ffe08a")).setDepth(99980);
+        this.tweens.add({ targets: q, y: v.root.y, alpha: 0, duration: v.fly.ms, delay: k * 20, onComplete: () => q.destroy() });
+      }
+    }
     else if (m.k === "tienco") this.tienCoFx(m);
     else if (m.k === "absorbed") {
       const v = this.players.get(m.id); if (!v) return; const t = TIERS[m.tier];
@@ -404,6 +414,14 @@ export class GameScene extends Phaser.Scene {
       let k = 0;
       for (const b of BUFF_IDS) {
         if (b === "inv" || !(p.buff & buffBit(b))) continue;
+        if (b === "phoenix") {
+          // Lãnh vực phượng hoàng: vòng lửa bán kính PHOENIX_FIELD_R đi theo hồn sư, tàn lửa xoay quanh mép.
+          const c = hex(BUFFS.phoenix.col), R = PHOENIX_FIELD_R;
+          g.fillStyle(c, 0.07).fillEllipse(v.root.x, v.root.y - 2, R * 2, R * 1.2);
+          g.lineStyle(1, c, 0.45 + 0.2 * Math.sin(time / 180)).strokeEllipse(v.root.x, v.root.y - 2, R * 2, R * 1.2);
+          for (let j = 0; j < 6; j++) { const a = time / 900 + (j / 6) * Math.PI * 2; g.fillStyle(j % 2 ? 0xffe08a : c, 0.9).fillRect(v.root.x + Math.cos(a) * R - 1, v.root.y - 2 + Math.sin(a) * R * 0.6 - 1, 2, 2); }
+          continue;
+        }
         const a = time / 400 + k * 1.6, c = hex(BUFFS[b].col); k++;
         g.fillStyle(c, 0.9).fillRect(v.root.x + Math.cos(a) * 11 - 1, v.root.y - 8 + Math.sin(a) * 4 - 1, 2, 2);
         g.lineStyle(1, c, 0.35).strokeEllipse(v.root.x, v.root.y - 1, 18 + k * 3, 6 + k);
@@ -503,7 +521,7 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "6px", fontStyle: "700",
           color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { root, body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "", act: null, hurtT: -1e9, lit: null };
+        v = { root, body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "", act: null, hurtT: -1e9, lit: null, fly: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
@@ -606,6 +624,10 @@ export class GameScene extends Phaser.Scene {
     if (tag !== v.playing) { v.playing = tag; v.body.play(key); }
     v.body.setFlipX(flip);
     syncLayers(v.body, [v.outfit, v.hair], [v.vb, v.vf]);
+    // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
+    const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
+    const lift = fe < 1 ? -Math.round(Math.sin(Math.PI * Math.max(0, fe)) * 10) : 0;
+    for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf, v.ringsB, v.ringsF]) s.y = lift;
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
     for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
