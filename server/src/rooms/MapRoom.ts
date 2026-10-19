@@ -13,7 +13,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, statusBit, BUFF_IDS, buffBit, CRIT, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
+  PROJ_SPEED, PHOENIX_FIELD_R, skillsOf, TIEN_CO_RIENG, type SkillDef, type StatusId, type StatusApply, type BuffId } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal } from "../map.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
 import { chatCheck } from "../ratelimit.ts";
@@ -824,6 +824,16 @@ export class MapRoom extends Room<MapState> {
     return best;
   }
 
+  /** Hồn thú còn ít sinh lực nhất (theo tỉ lệ) trong bán kính r; bằng nhau thì con gần hơn (Nguyệt Nhận khóa mục tiêu yếu máu). */
+  weakestBeast(p: PlayerState, r: number) {
+    let best: string | undefined, bf = 2, bd = r;
+    for (const [bid, b] of this.state.beasts.entries()) {
+      const dd = Math.hypot(b.x - p.x, b.y - p.y), f = b.hp / Math.max(1, b.maxHp);
+      if (dd < r && (f < bf - 1e-6 || (Math.abs(f - bf) <= 1e-6 && dd < bd))) { bf = f; bd = dd; best = bid; }
+    }
+    return best;
+  }
+
   /** Lướt theo d.dir tối đa `dist` pixel, dừng khi vướng vật cản. Trả về quãng đã lướt. */
   dashStep(p: PlayerState, d: PData, dist: number) {
     let moved = 0;
@@ -850,6 +860,21 @@ export class MapRoom extends Room<MapState> {
       if (b.x === x0 && b.y === y0) break;
     }
     bd.kx = 0; bd.ky = 0;
+  }
+
+  /**
+   * Đẩy lùi hồn thú ra xa hồn sư `dist` pixel (nhân CC_TIER_MULT theo bậc), từng bước nhỏ để không xuyên vật cản. Hồn thú đang
+   * Choáng / Trói không bị đẩy (mục 5.1), và không bị đẩy vào vùng an toàn (moveBeast).
+   */
+  pushBeast(bid: string, p: PlayerState, dist: number) {
+    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || bd.st.has("stun") || bd.st.has("root")) return;
+    const hw = Math.max(3, TIERS[b.tier].size / 3), dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1;
+    let left = dist * (CC_TIER_MULT[b.tier] ?? 1);
+    while (left > 0) {
+      const s = Math.min(4, left), x0 = b.x, y0 = b.y;
+      this.moveBeast(b, (dx / dd) * s, (dy / dd) * s, hw); left -= s;
+      if (b.x === x0 && b.y === y0) break;
+    }
   }
 
   /** Hẹn chạy `fn` sau `t` giây (trong tick). */
@@ -895,15 +920,29 @@ export class MapRoom extends Room<MapState> {
       let dmg = atk * sk.dmg;
       if (sk.pctHp) dmg += Math.min(b.maxHp * sk.pctHp, atk * PCT_HP_CAP);
       if (sk.perStack) dmg += atk * sk.perStack.dmg * (bd.st.get(sk.perStack.s)?.n ?? 0);
+      if (sk.lowHp) dmg *= 1 + sk.lowHp * (1 - b.hp / Math.max(1, b.maxHp)); // hạ mục tiêu yếu máu (Nguyệt Nhận)
       if (dmg > 0) this.damageBeast(bid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal });
+      if (!this.state.beasts.has(bid)) return;
+      if (sk.push) this.pushBeast(bid, p, sk.push);
+      // Viêm bạo (Hỏa Long): kích nổ mọi tầng Thiêu đốt rồi đặt lại `keep` tầng.
+      if (sk.boom) { this.detonateBurn(bid); if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power); }
       for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power);
     };
     const near = (r: number) => [...this.state.beasts.entries()].filter(([, b]) => Math.hypot(b.x - p.x, b.y - p.y) < r).map(([bid]) => bid);
+    if (sk.fly) this.broadcast("fx", { k: "fly", id, t: sk.fly, col });
     if (sk.area === "around") {
-      this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: sk.r, col, ...(sk.shake ? { shake: 0.5 } : {}) });
-      const ids = near(sk.r);
-      if (sk.pull) { this.broadcast("fx", { k: "pull", x: p.x, y: p.y - 4, r: sk.r, col }); for (const bid of ids) this.pullBeast(bid, p); }
-      for (const bid of ids) strike(bid, true);
+      // `n` > 1: nhiều nhát quanh vị trí hiện tại của hồn sư cách nhau `every` giây (cánh hoa xoay); nhát cuối mới gây `finisher`.
+      const n = sk.n ?? 1;
+      for (let k = 0; k < n; k++) {
+        const go = () => {
+          const me = this.state.players.get(id); if (me !== p || me.dead) return;
+          this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
+          const ids = near(sk.r);
+          if (sk.pull) { this.broadcast("fx", { k: "pull", x: p.x, y: p.y - 4, r: sk.r, col }); for (const bid of ids) this.pullBeast(bid, p); }
+          for (const bid of ids) strike(bid, k === n - 1);
+        };
+        if (k === 0) go(); else this.later(k * (sk.every ?? 0.15), go);
+      }
     } else if (sk.area === "front") {
       this.broadcast("fx", { k: "arc", id, x: p.x, y: p.y - 6, dx: d.dir.x, dy: d.dir.y, r: sk.r, col });
       for (const [bid, b] of this.state.beasts.entries()) {
@@ -926,7 +965,7 @@ export class MapRoom extends Room<MapState> {
       }
       this.broadcast("fx", ring ? { k: "burst", x: p.x, y: p.y - 8, col } : { k: "burst", x: p.x, y: p.y - 8, col, n, a0, spread, r: sk.r });
     } else if (sk.area === "target") {
-      const bid = this.nearestBeast(p, sk.r), b = bid ? this.state.beasts.get(bid) : undefined;
+      const bid = sk.pick === "low" ? this.weakestBeast(p, sk.r) : this.nearestBeast(p, sk.r), b = bid ? this.state.beasts.get(bid) : undefined;
       if (!bid || !b) {
         if (sk.dash) { const x0 = p.x, y0 = p.y; this.dashStep(p, d, sk.dash); this.broadcast("fx", { k: "trail", x0, y0, x1: p.x, y1: p.y, col }); }
       } else {
@@ -972,7 +1011,7 @@ export class MapRoom extends Room<MapState> {
     b.st = m; b.burn = bd.st.get("burn")?.n ?? 0; b.poison = bd.st.get("poison")?.n ?? 0; b.armor = bd.st.get("armor")?.n ?? 0;
   }
 
-  /** Viêm bạo: kích nổ mọi tầng Thiêu đốt còn lại cùng lúc (sát thương còn lại × boom), xóa Thiêu đốt. Chưa võ hồn nào dùng ở 2.5a. */
+  /** Viêm bạo: kích nổ mọi tầng Thiêu đốt còn lại cùng lúc (sát thương còn lại × boom), xóa Thiêu đốt. Hỏa Long dùng (SkillDef.boom, 2.5b). */
   detonateBurn(bid: string) {
     const bd = this.bdata.get(bid), s = bd?.st.get("burn"); if (!bd || !s) return;
     bd.st.delete("burn"); this.syncStatus(this.state.beasts.get(bid)!, bd);
@@ -1036,7 +1075,7 @@ export class MapRoom extends Room<MapState> {
     if (!b || !bd || !p || !pd || b.hp <= 0 || pd.travelling || this.map.inSafe(p.x, p.y)) return 0;
     const direct = o.direct !== false && !o.chain;
     const vuln = bd.st.get("vuln"), armor = bd.st.get("armor");
-    dmg *= 1 + (vuln ? vuln.v : 0) + (direct && armor ? armor.v * armor.n : 0);
+    dmg *= 1 + (vuln ? vuln.v : 0) + (direct && armor ? armor.v * armor.n : 0) + this.phoenixAmp(b);
     const crit = direct && Math.random() < CRIT.chance + (o.crit ?? 0) + this.buffV(pd, "crit"); if (crit) dmg *= CRIT.mult;
     dmg = Math.max(1, Math.round(dmg));
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0;
@@ -1057,6 +1096,21 @@ export class MapRoom extends Room<MapState> {
     }
     if (b.hp <= 0) this.killBeast(bid, by);
     return dmg;
+  }
+
+  /**
+   * Lãnh vực phượng hoàng (Tà Hỏa Phượng Hoàng, 2.5b): hồn thú trong PHOENIX_FIELD_R quanh một hồn sư đang có lãnh vực nhận thêm
+   * sát thương từ mọi nguồn (lấy lãnh vực mạnh nhất, không cộng nhiều lãnh vực). Hồn sư đã gục, đang chuyển bản đồ hoặc đứng
+   * trong vùng an toàn thì lãnh vực không có tác dụng.
+   */
+  phoenixAmp(b: BeastState) {
+    let a = 0;
+    for (const [pid, pd] of this.pdata) {
+      const v = pd.buffs.get("phoenix")?.v ?? 0, pp = this.state.players.get(pid);
+      if (v <= a || !pp || pp.dead || pd.travelling || this.map.inSafe(pp.x, pp.y)) continue;
+      if (Math.hypot(b.x - pp.x, b.y - pp.y) < PHOENIX_FIELD_R) a = v;
+    }
+    return a;
   }
 
   /** Bộ hồn hạch Tiên Cơ (mục 5.6) của một võ hồn: 2 món tích nhanh hơn, 4 món tiên cơ mạnh hơn. Chưa có hồn hạch (GĐ5). */
