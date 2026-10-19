@@ -5,11 +5,11 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
-  npcDef, NPC_RANGE, type NpcDef } from "../../../shared/data.ts";
+  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, QuestMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -73,7 +73,9 @@ export class GameScene extends Phaser.Scene {
    * NPC của bản đồ (object `npc`, bước 6.1): chỗ đứng, định nghĩa trong NPCS (thiếu = mã lạ, chỉ vẽ biển tên), các lớp sprite hồn sư
    * (thân, áo, tóc; null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
    */
-  npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null }[] = [];
+  npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null;
+    qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
+  quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
   nearNpc: string | null = null;    // NPC trong tầm nói chuyện (NPC_RANGE) lần kiểm tra gần nhất
   onTravel: (mapId: string) => void = () => {};
   /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
@@ -196,7 +198,27 @@ export class GameScene extends Phaser.Scene {
       // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
       this.add.zone(x, (top + y) / 2, 22, y - top + 12).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
     }
-    this.npcs.push({ id, x, y, def, body, clothes, mark });
+    // 6.2: NPC giao nhiệm vụ có dấu "!" (bài mới) / "?" (chờ trả, xám khi đang làm) phía trên nhãn "Nói chuyện".
+    let qmark: Phaser.GameObjects.Text | null = null;
+    if (def && hud.QUEST_GIVERS.has(def.id)) {
+      qmark = this.add.text(x, top - 25, "", { ...style, fontSize: "12px", fontStyle: "800", color: "#ffd84a", strokeThickness: 3 })
+        .setOrigin(0.5, 1).setDepth(99987).setVisible(false);
+      this.tweens.add({ targets: qmark, y: qmark.y - 3, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
+    this.npcs.push({ id, x, y, def, body, clothes, mark, qmark });
+    this.updateQuestMarks();
+  }
+
+  /** Dấu nhiệm vụ trên đầu NPC giao nhiệm vụ theo tiến độ (6.2): "!" có bài mới, "?" vàng đủ mục tiêu chờ trả, "?" xám đang làm. */
+  updateQuestMarks() {
+    for (const n of this.npcs) {
+      if (!n.qmark) continue;
+      const q = hud.questOf(n.id), st = q?.status;
+      n.qmark.setVisible(!!st && st !== "done");
+      if (st === "offer") n.qmark.setText("!").setColor("#ffd84a");
+      else if (st === "ready") n.qmark.setText("?").setColor("#ffd84a");
+      else if (st === "active") n.qmark.setText("?").setColor("#a8a8a8");
+    }
   }
 
   /** Xin nói chuyện với NPC `id`: server kiểm tra khoảng cách rồi gửi riêng tin `npc` để mở hộp thoại (6.1). */
@@ -351,7 +373,22 @@ export class GameScene extends Phaser.Scene {
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,
+        quest: (op) => this.room.send("quest", { op }),
       });
+    });
+    // Nhiệm vụ tân thủ (6.2): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu trên đầu NPC và thông báo.
+    this.room.onMessage("quest", (m: QuestMsg) => {
+      if (!m || typeof m.chain !== "string") return;
+      this.quest = m; hud.setQuest(m); this.updateQuestMarks();
+      const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
+      if (!c) return;
+      if (m.ev === "accept" && s) hud.banner(`Nhận nhiệm vụ: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
+      else if (m.ev === "ready" && s) hud.banner(`Hoàn thành: ${s.name}`, `Quay về gặp ${giver?.name} ở ${MAPS[c.map].name} để nhận thưởng`);
+      else if (m.ev === "reward" || m.ev === "finish") {
+        const d = c.steps.find((x) => x.id === m.done);
+        if (m.ev === "finish") hud.banner(`Hoàn thành chuỗi: ${c.name}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
+        else hud.banner(`Trả nhiệm vụ: ${d?.name ?? ""}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
+      }
     });
     this.room.onMessage("travel", (m: { mapId: string }) => { if (typeof m?.mapId === "string") this.onTravel(m.mapId); });
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
@@ -408,6 +445,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.room.send("vohons");
     this.room.send("bag");
+    this.room.send("quest", { op: "get" });
   }
 
   ringFx(x: number, y: number, r0: number, r1: number, col: string, dur: number, delay = 0) {
