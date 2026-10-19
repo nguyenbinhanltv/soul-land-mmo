@@ -2,13 +2,14 @@ import http from "node:http";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import express from "express";
-import { Server } from "colyseus";
+import { Server, LocalPresence } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks } from "./rooms/MapRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
+import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
 
 const PORT = Number(process.env.PORT ?? 2567);
@@ -78,7 +79,9 @@ const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
 if (existsSync(dist)) app.use(express.static(dist));
 
 const server = http.createServer(app);
-const gameServer = new Server({ transport: new WebSocketTransport({ server }) });
+// Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
+const presence = new LocalPresence();
+const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
 
@@ -86,4 +89,6 @@ gameServer.define("map", MapRoom).filterBy(["mapId"]);
 for (const id of Object.keys(MAPS)) loadMap(id);
 await store.init();
 await gameServer.listen(PORT);
+// Lịch tà hóa thú vương 20:00 / 22:00 giờ Việt Nam (BĐ5): báo toàn server trước 5 phút, phòng của bản đồ đó sinh thú vương.
+startSchedule(presence);
 console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT}`);

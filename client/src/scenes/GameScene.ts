@@ -4,7 +4,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, boneName } from "../../../shared/data.ts";
+  BONE_ITEM, BONE_SLOTS, boneName, KING } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -33,9 +33,11 @@ interface Zone extends Rect { name: string; hint: string; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
 /** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo khung, sprite vẽ bằng code theo bậc
- *  (tinh anh phóng ELITE.scale, BĐ4). */
+ *  (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
 const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
-  s.texture.key.startsWith("beast_") ? s.y - s.displayHeight * s.originY : s.y - (TIERS[tier].size + 8) * (s.getData("elite") ? ELITE.scale : 1);
+  s.texture.key.startsWith("beast_") ? s.y - s.displayHeight * s.originY : s.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1);
+/** Hệ số phóng sprite theo bậc hồn thú: tinh anh ELITE.scale (BĐ4), thú vương KING.scale (khoảng 96×96, BĐ5). */
+const rankScale = (rank: number) => (rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
 const TELE_COL = 0xff3b3b;
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
@@ -49,8 +51,12 @@ export class GameScene extends Phaser.Scene {
   beasts = new Map<string, Phaser.GameObjects.Sprite>();
   /** Vùng cảnh báo chiêu báo trước đang hiện (3.5), theo mã hồn thú: hình đã khóa (từ BĐ4 có thể nhiều vùng), lúc bắt đầu, thời lượng (ms). */
   teles = new Map<string, { t: Tele[]; t0: number; ms: number }>();
-  /** Tên trên đầu tinh anh (BĐ4): "Tinh anh …" màu aura. */
+  /** Tên trên đầu tinh anh (BĐ4) và thú vương (BĐ5): "Tinh anh …", "Tà hóa …" màu aura. */
   eliteLabels = new Map<string, Phaser.GameObjects.Text>();
+  /** Hang thú vương của bản đồ (object `boss`, BĐ5): vẽ trên bản đồ nhỏ. */
+  lair: Rect | null = null;
+  /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
+  bossList: { id: string; name: string; pct: number }[] | null = null;
   teleG!: Phaser.GameObjects.Graphics;
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
@@ -115,6 +121,7 @@ export class GameScene extends Phaser.Scene {
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
       if (o.type === "npc") this.drawNpc(o.x!, o.y!, o.name);
+      if (o.type === "boss") this.lair = r;
     }
     this.drawPortals();
     this.buildMinimap(map);
@@ -238,6 +245,32 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
       if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.log(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
       else if (m.k === "down") hud.log(`${m.name} đã bị ${m.by} hạ.`, m.col);
+    });
+    // Tà hóa thú vương (BĐ5): báo toàn server trước 5 phút (đếm ngược) và lúc xuất hiện; trong bản đồ có thú vương thì thêm giai đoạn 2,
+    // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
+    this.room.onMessage("boss", (m: any) => {
+      const col = m.col ?? "#ff5a5a";
+      if (m.k === "warn") {
+        hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
+        hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
+        hud.banner(`${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
+      } else if (m.k === "spawn" || m.k === "here") {
+        hud.setBossCountdown(null);
+        if (m.here) hud.setBossLife(m.life);
+        if (m.k === "spawn") {
+          hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": vào hang ở vùng sâu nhất (chấm đỏ trên bản đồ nhỏ)" : ""}!`, col, "Hệ thống");
+          hud.banner(`${m.name} xuất hiện`, m.here ? `Hang ở vùng sâu nhất · rút đi sau ${Math.round(m.life / 60)} phút` : m.mapName);
+        }
+      } else if (m.k === "phase") {
+        hud.banner(`${m.name}: giai đoạn 2`, `${m.title} – ${m.desc}`);
+        hud.log(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
+      } else if (m.k === "rank") { this.bossList = m.list; hud.bossRank(m.list, this.me); }
+      else if (m.k === "down") {
+        this.bossList = null; hud.bossRank(m.list, this.me, true);
+        setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
+        hud.banner(`Đã hạ ${m.name}`, `${m.top} đóng góp nhiều nhất`);
+      } else if (m.k === "leave") { this.bossList = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã rút đi`, "Không ai hạ được trong 15 phút"); }
+      else if (m.k === "reset") { this.bossList = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
     this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean }) => {
@@ -418,6 +451,13 @@ export class GameScene extends Phaser.Scene {
       this.ringFx(s.x, s.y - 6, 6, rage ? 40 : 30, col, 450);
       if (rage) this.cameras.main.shake(120, 0.003);
     }
+    else if (m.k === "roar") {
+      // Thú vương chuyển giai đoạn 2 (BĐ5): gầm lên, sóng đỏ lan ra, rung màn hình.
+      const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid); if (!s || !b) return;
+      this.floatText(s.x, beastTop(s, b.tier) - 12, `${m.name}!`, m.col ?? "#ff5a5a");
+      for (let k = 0; k < 3; k++) this.ringFx(s.x, s.y - 8, 10, 90 + k * 30, m.col ?? "#ff5a5a", 700, k * 250);
+      this.cameras.main.shake(400, 0.006);
+    }
     else if (m.k === "tienco") this.tienCoFx(m);
     else if (m.k === "absorbed") {
       const v = this.players.get(m.id); if (!v) return; const t = TIERS[m.tier];
@@ -472,8 +512,9 @@ export class GameScene extends Phaser.Scene {
    */
   drawAuras(g: Phaser.GameObjects.Graphics, st: any, time: number) {
     st.beasts.forEach((b: any, id: string) => {
-      if (b.rank !== 1) return; const s = this.beasts.get(id); if (!s) return;
-      const rage = (b.buff & beastBuffBit("rage")) !== 0, c = hex(rage ? BEAST_BUFFS.rage.col : BOSSES[b.species]?.aura ?? "#ffffff");
+      if (!b.rank) return; const s = this.beasts.get(id); if (!s) return;
+      // Thú vương (BĐ5) ở giai đoạn 2 cũng đập nhanh như Cuồng nộ.
+      const rage = (b.buff & beastBuffBit("rage")) !== 0 || b.phase === 2, c = hex(rage && b.rank === 1 ? BEAST_BUFFS.rage.col : BOSSES[b.species]?.aura ?? "#ffffff");
       const w = Math.max(24, s.displayWidth * 0.9), pulse = 0.5 + 0.5 * Math.sin(time / (rage ? 110 : 260));
       this.teleG.fillStyle(c, 0.3 + 0.15 * pulse).fillEllipse(s.x, s.y, w + 12, (w + 12) * 0.4);
       this.teleG.fillStyle(c, 0.35).fillEllipse(s.x, s.y, w * 0.6, w * 0.24);
@@ -681,12 +722,14 @@ export class GameScene extends Phaser.Scene {
     ctx.imageSmoothingEnabled = false; ctx.drawImage(base, 0, 0);
     st.drops.forEach((d: any) => { ctx.fillStyle = TIERS[d.tier].glow; ctx.fillRect((d.x / TILE) | 0, (d.y / TILE) | 0, 1, 1); });
     st.beasts.forEach((b: any) => { if (b.tier >= 3 && !b.rank) { ctx.fillStyle = b.tier === 4 ? "#ff3b3b" : "#8a6bff"; ctx.fillRect((b.x / TILE) | 0, (b.y / TILE) | 0, 1, 1); } });
-    // Tinh anh (BĐ4): chấm sáng 3×3 màu aura, viền tối, nhấp nháy, khi còn sống (mục 5.4).
+    // Hang thú vương (BĐ5): khung đỏ sẫm.
+    if (this.lair) { ctx.strokeStyle = "#7a1f2a"; ctx.lineWidth = 1; ctx.strokeRect((this.lair.x / TILE | 0) + 0.5, (this.lair.y / TILE | 0) + 0.5, this.lair.w / TILE | 0, this.lair.h / TILE | 0); }
+    // Tinh anh (BĐ4): chấm sáng 3×3 màu aura, viền tối, nhấp nháy, khi còn sống (mục 5.4). Thú vương (BĐ5): chấm 5×5.
     const on = Math.floor(this.time.now / 400) % 2 === 0;
     st.beasts.forEach((b: any) => {
-      if (b.rank !== 1) return; const x = (b.x / TILE) | 0, y = (b.y / TILE) | 0;
-      ctx.fillStyle = "#1a1020"; ctx.fillRect(x - 2, y - 2, 5, 5);
-      ctx.fillStyle = on ? BOSSES[b.species]?.aura ?? "#ffffff" : "#ffffff"; ctx.fillRect(x - 1, y - 1, 3, 3);
+      if (!b.rank) return; const x = (b.x / TILE) | 0, y = (b.y / TILE) | 0, r = b.rank === 2 ? 2 : 1;
+      ctx.fillStyle = "#1a1020"; ctx.fillRect(x - r - 1, y - r - 1, 2 * r + 3, 2 * r + 3);
+      ctx.fillStyle = on ? BOSSES[b.species]?.aura ?? "#ffffff" : "#ffffff"; ctx.fillRect(x - r, y - r, 2 * r + 1, 2 * r + 1);
     });
     st.players.forEach((p: any, id: string) => {
       if (id === this.me) return; ctx.fillStyle = "#7fd0ff"; ctx.fillRect(((p.x / TILE) | 0) - 1, ((p.y / TILE) | 0) - 1, 2, 2);
@@ -754,7 +797,7 @@ export class GameScene extends Phaser.Scene {
       // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
       // Báo trước chiêu (3.5): sheet theo loài giữ khung đầu `attack`; sprite vẽ bằng code thì phồng lên co lại.
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale.
-      const k = b.rank === 1 ? ELITE.scale : 1;
+      const k = rankScale(b.rank);
       if (!syncBeastSprite(s, beastBase(b.rank, b.species)?.id, b.moving, b.aggro, b.cast)) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
@@ -762,12 +805,12 @@ export class GameScene extends Phaser.Scene {
       // Cuồng nộ: nháy đỏ (đè màu hung hăng; sprite theo loài tự đặt lại màu hung hăng mỗi khung).
       if (b.buff & beastBuffBit("rage") && Math.floor(time / 160) % 2) { s.setTint(0xff7050); s.setData("rgTint", true); }
       else if (s.getData("rgTint")) { s.clearTint(); s.setData("rgTint", false); }
-      if (b.rank === 1 && !s.getData("elite")) s.setData("elite", true);
+      if (b.rank && s.getData("bscale") !== k) s.setData("bscale", k);
       s.setFlipX(b.face < 0).setDepth(s.y);
-      if (b.rank === 1) {
+      if (b.rank) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
-          lb = this.add.text(s.x, s.y, beastName(b.rank, b.species), { fontFamily: FONT, fontSize: "7px", fontStyle: "800",
+          lb = this.add.text(s.x, s.y, beastName(b.rank, b.species), { fontFamily: FONT, fontSize: b.rank === 2 ? "9px" : "7px", fontStyle: "800",
             color: BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
           this.eliteLabels.set(id, lb);
         }
@@ -893,6 +936,7 @@ export class GameScene extends Phaser.Scene {
       use: (id) => this.room.send("use", { id }),
       absorb: (id, vohonId) => this.room.send("absorb", { itemId: id, vohonId }),
       discard: (id) => this.room.send("discard", { id }),
+      open: (id) => this.room.send("open", { id }), // rương thú vương (BĐ5): server tung phần thưởng
       absorbOptions: (years) => this.absorbOptions(years),
       combat: () => this.combat,
       refresh: () => this.room.send("vohons"),
@@ -928,6 +972,12 @@ export class GameScene extends Phaser.Scene {
     hud.updateStats(me);
     hud.updateTeam(me);
     hud.updateBag();
+    // Thú vương (BĐ5): thanh máu lớn đọc thẳng BeastState; bảng xếp hạng khi mình đang tham gia (có trong danh sách đóng góp).
+    let kb: any = null; st.beasts.forEach((b: any) => { if (b.rank === 2) kb = b; });
+    hud.showBoss(kb && { name: beastName(2, kb.species), hp: kb.hp, maxHp: kb.maxHp, parts: kb.parts, phase: kb.phase,
+      title: BOSSES[kb.species]?.phase2?.name ?? "", col: BOSSES[kb.species]?.aura ?? "#ff5a5a" });
+    if (!kb && this.bossList) { this.bossList = null; hud.bossRank(null, this.me); }
+    hud.updateBossCd();
     // Tên vùng: vùng an toàn > vùng săn > điểm hồi sinh > tên bản đồ. Vừa vào bản đồ thì hiện tên bản đồ.
     const area = this.safes.find((z) => inRect(z, me.x, me.y)) ?? this.zones.find((z) => inRect(z, me.x, me.y));
     const mapName = MAPS[this.mapId]?.name ?? this.mapId;

@@ -291,3 +291,30 @@ body.touch #team{bottom:150px}
   body.touch #team{bottom:128px}
   #chatbox{width:min(300px,52vw)}
 }
+/* Rương tà hóa thú vương (BĐ5): hộp vuông màu aura, nắp sẫm, khóa sáng */
+.ico.ruong{width:62%;height:50%;border-radius:2px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 55%,#000) 0 38%,var(--c) 38%);
+  box-shadow:0 0 7px color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 0 2px rgba(0,0,0,.45);position:relative}
+.ico.ruong::after{content:"";position:absolute;left:42%;top:28%;width:16%;height:26%;background:#ffe08a;box-shadow:0 0 0 1px #000}
+/* Tà hóa thú vương (BĐ5, mục 5.4): thanh máu lớn ở đầu màn hình, đếm ngược, bảng xếp hạng sát thương */
+#bossbar{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:min(560px,70vw);padding:5px 10px 7px;border-color:var(--c,#ff5a5a);
+  box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 14px color-mix(in srgb,var(--c,#ff5a5a) 45%,transparent)}
+#bossbar .bhead{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+#bossbar .bhead b{font-size:15px;font-weight:800;color:var(--c,#ff5a5a);text-shadow:0 1px 0 #000}
+#bossbar .ph{font-size:11.5px;font-weight:700;color:var(--muted)}
+#bossbar.p2 .ph{color:#ff8a6a}
+#bossbar .bn{margin-left:auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+#bossbar .bar{height:16px;margin-top:4px}
+#bossbar .bar i{background:linear-gradient(90deg,color-mix(in srgb,var(--c,#ff5a5a) 60%,#300),var(--c,#ff5a5a))}
+#bossbar .bar span{line-height:14px;font-size:11px}
+body.boss #target{top:72px}
+#bossCd{position:absolute;left:50%;top:10px;transform:translateX(-50%);padding:4px 12px;font-size:12.5px;font-weight:800;white-space:nowrap;
+  background:var(--panel);border:2px solid var(--c,#ff5a5a);color:var(--c,#ff5a5a);text-shadow:0 1px 0 #000;font-variant-numeric:tabular-nums}
+body.boss #bossCd{top:72px}
+#bossRank{position:absolute;right:10px;top:180px;width:190px;padding:6px 8px;font-size:11.5px}
+#bossRank b{display:block;font-size:12px;margin-bottom:3px}
+#bossRank .rk{display:grid;grid-template-columns:18px 1fr auto;gap:4px;font-variant-numeric:tabular-nums}
+#bossRank .rk em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bossRank .rk.me{color:var(--xp);font-weight:800}
+#bossRank .rk.low i{color:var(--muted)}
+#bossRank small{display:block;color:var(--muted);font-size:10.5px;margin-top:3px}
+body.touch #bossRank{top:auto;bottom:200px}
