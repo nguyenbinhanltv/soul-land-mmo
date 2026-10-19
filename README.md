@@ -74,7 +74,7 @@ Gói miễn phí sẽ tạm dừng project sau khoảng 1 tuần không có truy
 
 ## Điều khiển
 
-WASD hoặc phím mũi tên để đi, J hoặc Space để đánh, U / I / O / P để dùng hồn kỹ 1–4, E để hấp thụ hồn hoàn, Enter để chat.
+WASD hoặc phím mũi tên để đi, J hoặc Space để đánh, U / I / O / P để dùng hồn kỹ 1–4, E để nhặt hồn hoàn vào túi đồ (B mở túi, chọn hồn hoàn rồi bấm "Hấp thụ"), Enter để chat.
 Phím 1–4 đổi sang võ hồn ở ô tương ứng của đội (hồi 3 giây), V mở bảng xếp đội hình.
 Trên điện thoại có joystick ảo và nút bấm (chạm ô trên thanh đội hình để đổi võ hồn).
 

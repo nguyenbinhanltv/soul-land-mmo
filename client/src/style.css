@@ -201,6 +201,8 @@ body.touch #prompt{bottom:160px}
 .binfo p{margin:2px 0 0;font-size:12px}
 .buse{align-self:flex-start;margin-top:5px;font:inherit;font-size:12.5px;font-weight:800;padding:6px 16px;min-height:34px;border:1px solid var(--accent);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
 .buse:disabled{opacity:.55;cursor:default;border-color:var(--line)}
+.brow{display:flex;gap:6px;flex-wrap:wrap}
+.buse.drop{border-color:var(--line);color:var(--muted);font-weight:600}
 body.touch .bslot small{font-size:11px}
 body.touch .minibtn kbd{display:none}
 /* Trong trận: thanh đội hình 4 ô (phím 1–4 hoặc chạm để đổi võ hồn) */
