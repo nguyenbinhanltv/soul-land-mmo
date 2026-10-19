@@ -247,6 +247,38 @@ svg.ico.bone{width:62%;height:62%;transform:translateY(-14%);color:var(--c);filt
 #channel.risk{border-color:var(--hp)} #channel.risk .label{color:var(--hp)}
 #channel i{background:linear-gradient(90deg,#fff,var(--c,var(--xp)))}
 body.touch .bslot small{font-size:11px}
+/* Hồn cốt gắn trên võ hồn (bước 4.2): 6 ô quanh hình võ hồn trong bảng đội hình */
+.bvh{display:flex;align-items:center;gap:8px;font-size:12px}
+.bvh span{color:var(--muted)}
+.bvh select{flex:1;min-width:0;min-height:34px;font:inherit;font-size:12.5px;color:var(--text);background:rgba(0,0,0,.3);border:1px solid var(--line2);padding:4px 6px}
+.bvh select option{color:#13231a;background:#fff}
+.bfig{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto);gap:6px;align-self:center;width:min(300px,100%)}
+.bmid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid color-mix(in srgb,var(--c) 60%,var(--line));
+  background:radial-gradient(circle,color-mix(in srgb,var(--c) 28%,transparent),rgba(0,0,0,.25) 70%)}
+.bmid img{width:96px;height:96px;image-rendering:pixelated;margin:-14px 0 -10px}
+.bmid .dot{color:var(--c);width:28px;height:28px;margin:18px 0}
+.bmid small{font-size:11px;font-weight:700;text-align:center;line-height:1.15;padding:0 2px 3px}
+.bcell{position:relative;min-height:74px;font:inherit;color:var(--muted);background:rgba(0,0,0,.25);border:2px dashed var(--line);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px}
+.bcell svg.ico.bone{width:34px;height:34px;transform:none;opacity:.35;filter:none;color:var(--muted)}
+.bcell span{font-size:11px;font-weight:600}
+.bcell small{position:absolute;right:3px;top:1px;font-size:10px;font-weight:800;color:var(--c);text-shadow:0 1px 0 #000;font-variant-numeric:tabular-nums}
+.bcell:not(.empty){border-style:solid;border-color:color-mix(in srgb,var(--c) 70%,var(--line));color:var(--text)}
+.bcell:not(.empty) svg.ico.bone{opacity:1;color:var(--c);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 1px 0 #000)}
+.bcell.sel{box-shadow:0 0 0 2px var(--xp);border-color:var(--xp)}
+.bcell.over{box-shadow:0 0 0 2px var(--accent);border-color:var(--accent);border-style:solid}
+.bcell:focus-visible{outline:2px solid var(--xp);outline-offset:1px}
+.bsum{display:grid;grid-template-columns:repeat(3,auto);justify-content:space-around;gap:0 10px;font-size:12px;text-align:center}
+.bsum span{grid-row:1;color:var(--muted);font-size:11px}
+.bsum b{grid-row:2;font-variant-numeric:tabular-nums}
+.bsum em{display:block;font-style:normal;color:var(--accent);font-weight:600;font-size:11px}
+.bpick .bitem{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:4px 6px;cursor:grab}
+.bpick .bitem.sel{border-color:var(--xp);box-shadow:0 0 0 1px var(--xp)}
+.bpick .bitem svg.ico.bone{width:26px;height:26px;flex-shrink:0;transform:none;color:var(--c)}
+.bpick .bitem>span{display:flex;flex-direction:column;flex:1;min-width:0}
+.bpick .bitem b{font-size:12px;color:var(--c)}
+.warn{color:var(--warn)}
+body.touch .bpick .bitem{cursor:default}
 body.touch .minibtn kbd{display:none}
 /* Trong trận: thanh đội hình 4 ô (phím 1–4 hoặc chạm để đổi võ hồn) */
 #team{position:absolute;right:10px;bottom:82px;display:flex;gap:6px}

@@ -295,7 +295,8 @@ export class GameScene extends Phaser.Scene {
     // Sinh lực từng võ hồn trong đội và võ hồn đã gục (luật gục từng võ hồn, bước 2.3b): cũng chỉ gửi riêng cho mình.
     // Năng lượng tiên cơ cũng đi trong tin này: võ hồn nào vừa đầy thì báo một lần.
     this.room.onMessage("squad", (m: Squad) => {
-      this.combat = m.combat;
+      // Bảng hồn cốt nhắc "đang giao chiến" (4.2): vẽ lại khi trạng thái giao chiến đổi.
+      if (m.combat !== this.combat) { this.combat = m.combat; this.renderRoster(); }
       for (const r of hud.setSquad(m)) {
         const slot = this.owned?.team.indexOf(r) ?? -1, v = this.owned?.list.find((o) => o.rowId === r);
         if (!v || slot < 0 || r === this.owned?.active) continue;
@@ -915,7 +916,10 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Bảng đội hình kèm mảnh võ hồn (bước 3.4): số mảnh đếm từ tin riêng "bag", võ hồn từ tin riêng "vohons". */
+  /**
+   * Bảng đội hình kèm hồn cốt (bước 4.2) và mảnh võ hồn (bước 3.4): số mảnh và hồn cốt (đang gắn / trong túi) từ tin riêng "bag",
+   * võ hồn từ tin riêng "vohons".
+   */
   renderRoster() {
     if (!this.owned) return;
     const shards = new Map<string, number>();
@@ -927,7 +931,39 @@ export class GameScene extends Phaser.Scene {
       setTeam: (slots) => this.room.send("team", { slots }),
       unlock: (vohon) => this.room.send("unlock", { vohon }),
       starUp: (vohon) => this.room.send("starup", { vohon }),
-    }, shards);
+      equip: (itemId, vohonId, slot) => this.room.send("equip", { itemId, vohonId, slot }),
+      unequip: (itemId) => this.room.send("unequip", { itemId }),
+      portrait: (vohon) => this.portrait(vohon),
+      combat: () => this.combat,
+    }, shards, this.bag?.items ?? []);
+  }
+
+  portraits = new Map<string, string>(); // ảnh võ hồn trong bảng hồn cốt theo mã võ hồn (data URL), của ngoại hình `portraitLooks`
+  portraitLooks = "";
+  /**
+   * Ảnh 48×48 hồn sư của mình phóng thích võ hồn `vohon` (khung đứng yên hướng xuống: phụ thể sau, thân, áo, tóc, phụ thể trước),
+   * ghép từ đúng các texture trên bản đồ, cho khung hồn cốt (4.2). Chưa có hồn sư trong state thì "".
+   */
+  portrait(vohon: string) {
+    const me = this.room.state.players.get(this.me); if (!me) return "";
+    const looks = `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}`;
+    if (looks !== this.portraitLooks) { this.portraits.clear(); this.portraitLooks = looks; } // đổi ngoại hình: ảnh cũ bỏ đi
+    const hit = this.portraits.get(vohon);
+    if (hit) return hit;
+    const t = looksTextures(this, me), [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
+    const cv = document.createElement("canvas"); cv.width = 48; cv.height = 48;
+    const ctx = cv.getContext("2d")!;
+    // Chân ở (24, 40): thân 32×32 gốc HS_ORIGIN (16, 30), phụ thể 48×48 gốc VH_ORIGIN (24, 38).
+    const draw = (k: string, o: { x: number; y: number }) => {
+      if (!this.textures.exists(k)) return;
+      const f = this.textures.getFrame(k, 0);
+      ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight,
+        24 - f.cutWidth * o.x, 40 - f.cutHeight * o.y, f.cutWidth, f.cutHeight);
+    };
+    draw(kb, VH_ORIGIN); draw(t.body, HS_ORIGIN); draw(t.outfit, HS_ORIGIN); draw(t.hair, HS_ORIGIN); draw(kf, VH_ORIGIN);
+    const url = cv.toDataURL();
+    this.portraits.set(vohon, url);
+    return url;
   }
 
   renderBag() {

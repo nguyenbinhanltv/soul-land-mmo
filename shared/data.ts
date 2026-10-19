@@ -1202,15 +1202,19 @@ export function xpLevelScale(level: number, beastLv: number) {
 export const TITLES = ["Hồn Sĩ", "Hồn Sư", "Đại Hồn Sư", "Hồn Tôn", "Hồn Tông", "Hồn Vương", "Hồn Đế", "Hồn Thánh", "Hồn Đấu La", "Phong Hào Đấu La"];
 export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.length - 1, Math.floor((level - 1) / 10)))];
 
-/** Chỉ số của võ hồn `vh` (chỉ số trong VOHON) ở `level`, hồn hoàn theo bậc `rings`, sao `stars` (1–6, bước 3.4: starMult). */
-export function calcStats(vh: number, level: number, rings: number[], stars = 1) {
+/**
+ * Chỉ số của võ hồn `vh` (chỉ số trong VOHON) ở `level`, hồn hoàn theo bậc `rings`, sao `stars` (1–6, bước 3.4: starMult).
+ * `bones` (bước 4.2): tổng chỉ số gốc các hồn cốt đang gắn (boneBonus), cộng thẳng sau hệ số hệ và sao: hồn cốt +118 hồn lực
+ * thì võ hồn nào cũng +118.
+ */
+export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<BoneStat, number>> = {}) {
   const v = VOHON[vh], k = starMult(stars);
   let hpB = 0, atkB = 0;
   for (const t of rings) { hpB += TIERS[t].hpb; atkB += TIERS[t].atkb; }
   return {
-    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k),
-    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k),
-    atk: (6 + level * 1.6 + atkB) * v.atk * k,
+    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k) + (bones.hp ?? 0),
+    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k) + (bones.mp ?? 0),
+    atk: (6 + level * 1.6 + atkB) * v.atk * k + (bones.atk ?? 0),
     speed: 58 * v.spd,
   };
 }
@@ -1247,7 +1251,7 @@ export const shardCode = (vohonId: string) => `manh_${vohonId}`;
 /** Mã vật phẩm của hồn cốt (cột `items.code`, `kind` = `hon_cot`). Mỗi món một ô (không gộp): loài và vị trí lưu ở `items.stats`. */
 export const BONE_ITEM = "hon_cot";
 export type BoneSlot = "dau" | "than" | "tay_trai" | "tay_phai" | "chan_trai" | "chan_phai";
-/** Chỉ số hồn cốt cộng cho võ hồn (gắn ở bước 4.2): sinh lực, hồn lực, công. */
+/** Chỉ số hồn cốt cộng cho võ hồn đang gắn (bước 4.2, boneBonus): sinh lực, hồn lực, công. */
 export type BoneStat = "hp" | "mp" | "atk";
 export const BONE_STAT_NAMES: Record<BoneStat, string> = { hp: "Sinh lực", mp: "Hồn lực", atk: "Công" };
 /**
@@ -1284,6 +1288,15 @@ export function boneStats(slot: unknown, years: number): Partial<Record<BoneStat
   const f = b === a ? 0 : Math.log(y / a.years) / Math.log(b.years / a.years), mix = (x: number, z: number) => x * Math.pow(z / x, f);
   const base = s.stat === "atk" ? mix(a.atkb, b.atkb) : mix(a.hpb, b.hpb);
   return { [s.stat]: Math.max(1, Math.round(base * s.k)) };
+}
+/**
+ * Tổng chỉ số gốc của các hồn cốt đang gắn trên một võ hồn (bước 4.2), đưa vào calcStats. Mỗi vị trí tối đa một hồn cốt (server
+ * kiểm tra khi gắn). Cường hóa (4.4) cộng thêm sau.
+ */
+export function boneBonus(bones: { slot: unknown; years: number }[]): Record<BoneStat, number> {
+  const out: Record<BoneStat, number> = { hp: 0, mp: 0, atk: 0 };
+  for (const b of bones) for (const [k, v] of Object.entries(boneStats(b.slot, b.years))) out[k as BoneStat] += v;
+  return out;
 }
 /** Loài và vị trí của một hồn cốt (`items.stats`); dữ liệu hỏng thì null. */
 export function parseBone(stats: unknown): { beast: string; slot: BoneSlot } | null {
@@ -1324,9 +1337,9 @@ export const ITEMS: ItemDef[] = [
   ...VOHON.map((v): ItemDef => ({ id: shardCode(v.id), kind: "manh_vo_hon", name: `Mảnh ${v.name}`, col: v.col, stack: SHARD_STACK, vohon: v.id,
     desc: `Đủ ${SHARD_UNLOCK} mảnh thì mở ${v.name}; đã có thì dùng để lên sao (bảng đội hình, phím V).` })),
   // Hồn cốt (bước 4.1): mỗi món một ô; số năm ở `items.years`, loài và vị trí ở `items.stats`, cấp cường hóa ở `items.enhance`.
-  // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn ở bước 4.2.
+  // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn từ bước 4.2 (`items.vohon_id`, không chiếm ô túi).
   { id: BONE_ITEM, kind: "hon_cot", name: "Hồn cốt", col: "#e8dcc0", stack: 1,
-    desc: "Gắn vào vị trí cùng tên trong 6 vị trí hồn cốt của một võ hồn để cộng chỉ số (sắp có, bước 4.2). Tháo ra vẫn giữ cấp cường hóa." },
+    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số gốc. Tháo ra vẫn giữ cấp cường hóa." },
   // Rương tà hóa thú vương (BĐ5): mỗi thú vương một mã `ruong_<mã thú vương>` (chestCode), `boss` trỏ về BOSSES; mở trong túi đồ (KING_CHEST).
   ...BOSSES.filter((b) => b.rank === 2).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
     desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống). Hồn hạch sao cao có từ Giai đoạn 5.` })),
