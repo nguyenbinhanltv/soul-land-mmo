@@ -27,6 +27,9 @@ interface Rect { x: number; y: number; w: number; h: number; }
 interface Zone extends Rect { name: string; hint: string; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
+/** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo khung, sprite vẽ bằng code theo bậc. */
+const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
+  s.texture.key.startsWith("beast_") ? s.y - s.displayHeight * s.originY : s.y - TIERS[tier].size - 8;
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -343,7 +346,7 @@ export class GameScene extends Phaser.Scene {
     });
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id); if (!s || !b.stun) return;
-      const y = s.y - TIERS[b.tier].size - 14;
+      const y = beastTop(s, b.tier) - 6;
       g.lineStyle(1, 0xffe08a, 0.7); g.strokeEllipse(s.x, y, 16, 5);
       for (let k = 0; k < 3; k++) {
         const a = time / 180 + k * 2.1, x = s.x + Math.cos(a) * 8, sy = y + Math.sin(a) * 2.5;
@@ -459,8 +462,9 @@ export class GameScene extends Phaser.Scene {
       if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, t.size + 6, 6); }
       if (b.hp < b.maxHp) {
         const w = Math.max(14, t.size + 4);
-        g.fillStyle(0x000000, 0.6).fillRect(s.x - w / 2, s.y - t.size - 10, w, 2);
-        g.fillStyle(b.tier === 0 ? 0xe0525a : hex(t.glow), 1).fillRect(s.x - w / 2, s.y - t.size - 10, w * Math.max(0, b.hp / b.maxHp), 2);
+        const y = beastTop(s, b.tier) - 2;
+        g.fillStyle(0x000000, 0.6).fillRect(s.x - w / 2, y, w, 2);
+        g.fillStyle(b.tier === 0 ? 0xe0525a : hex(t.glow), 1).fillRect(s.x - w / 2, y, w * Math.max(0, b.hp / b.maxHp), 2);
       }
     });
     st.players.forEach((p: any, id: string) => {
