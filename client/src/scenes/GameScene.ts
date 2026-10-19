@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, ringLimit, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
+import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import type { OwnedVohons, Squad, PortalInfo } from "../net.ts";
 
@@ -435,7 +435,9 @@ export class GameScene extends Phaser.Scene {
       let s = this.beasts.get(id);
       if (!s) { s = this.add.sprite(b.x, b.y, `b${b.tier}_0`).setOrigin(BEAST_ORIGIN.x, BEAST_ORIGIN.y); this.beasts.set(id, s); }
       s.setPosition(s.x + (b.x - s.x) * lerp, s.y + (b.y - s.y) * lerp);
-      s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`).setFlipX(b.face < 0).setDepth(s.y);
+      // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
+      if (!syncBeastSprite(s, BEASTS[b.species]?.id, b.moving, b.aggro)) s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
+      s.setFlipX(b.face < 0).setDepth(s.y);
     });
     for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); }
 
