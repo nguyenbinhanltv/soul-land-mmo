@@ -22,6 +22,7 @@ export class PlayerState extends Schema {
   @type("uint32") maxMp: number = 0;
   @type(["uint8"]) rings = new ArraySchema<number>();
   @type(["float32"]) cds = new ArraySchema<number>(0, 0, 0, 0);
+  @type(["float32"]) bcds = new ArraySchema<number>(0, 0, 0); // từ 4.3: hồi chiêu kỹ năng hồn cốt chủ động (BONE_ACTIVE_SLOTS: đầu, tay trái, tay phải)
   @type("float32") swCd: number = 0;     // giây còn lại trước khi được đổi võ hồn trong đội lần tiếp (SWITCH_CD)
   @type("uint32") shield: number = 0;    // khiên còn lại (chiêu tiên cơ phụ trợ, mục 5.1); ai cũng thấy để vẽ vòng khiên
   @type("uint16") buff: number = 0;     // hiệu ứng có lợi đang có (bit theo BUFF_IDS trong shared/data.ts; uint16 từ 2.5d); ai cũng thấy để vẽ hào quang
