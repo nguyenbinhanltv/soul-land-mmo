@@ -14,6 +14,7 @@ export interface Character {
   level: number; xp: number; stars: number;
   rings: number[];   // niên hạn (số năm) từng hồn hoàn
   kills: number;
+  skills: number[];  // từ 8.1a: 4 ô hồn kỹ mang theo (chỉ số vòng, -1 = trống); rỗng = mặc định vòng 1–4 (loadoutOf)
 }
 
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
@@ -83,7 +84,10 @@ export interface Store {
   /** Lưu đội hình cùng võ hồn ra trận (một lần ghi). false nếu đội sai (parseTeam), có võ hồn không thuộc tài khoản
    *  hoặc `active` không nằm trong đội. */
   saveTeam(accountId: number, team: number[], active: number): Promise<boolean>;
+  /** Lưu tiến độ võ hồn (cấp, kinh nghiệm, sao, hồn hoàn, số hồn thú đã hạ); không đổi `skills` (chỉ saveSkills ghi). */
   saveCharacter(c: Character): Promise<void>;
+  /** Từ 8.1a: lưu 4 ô hồn kỹ mang theo của võ hồn `rowId` (đã kiểm tra bằng parseLoadout ở room). false nếu võ hồn không thuộc tài khoản. */
+  saveSkills(accountId: number, rowId: number, skills: number[]): Promise<boolean>;
   /** Thức tỉnh lần đầu: tạo các võ hồn khởi đầu và cho `active` ra trận.
    *  null nếu tài khoản đã có võ hồn (thức tỉnh chỉ diễn ra một lần). */
   awaken(accountId: number, name: string, starters: string[], active: string, level: number): Promise<Character | null>;
@@ -146,7 +150,7 @@ function checkPass(pw: string, stored: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 const newToken = () => randomBytes(24).toString("base64url");
-const copy = (c: Character): Character => ({ ...c, rings: [...c.rings] });
+const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills] });
 /** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
 /** Đội hợp lệ và có võ hồn ra trận trong đó (kiểm tra chung cho cả hai store). */
@@ -186,7 +190,7 @@ export class MemoryStore implements Store {
   async listVohons(accountId: number) { return this.owned(accountId).map(copy); }
   async addVohon(accountId: number, name: string, vohon: string, level: number) {
     if (this.owned(accountId).some((c) => c.vohon === vohon)) return null;
-    const c: Character = { accountId, name, rowId: this.rowSeq++, vohon, level, xp: 0, stars: 1, rings: [], kills: 0 };
+    const c: Character = { accountId, name, rowId: this.rowSeq++, vohon, level, xp: 0, stars: 1, rings: [], kills: 0, skills: [] };
     this.rows.set(c.rowId, c);
     return copy(c);
   }
@@ -206,7 +210,12 @@ export class MemoryStore implements Store {
   }
   async saveCharacter(c: Character) {
     const cur = this.rows.get(c.rowId);
-    if (cur?.accountId === c.accountId) this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon });
+    if (cur?.accountId === c.accountId) this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] });
+  }
+  async saveSkills(accountId: number, rowId: number, skills: number[]) {
+    const cur = this.rows.get(rowId);
+    if (cur?.accountId !== accountId) return false;
+    cur.skills = [...skills]; return true;
   }
   async awaken(accountId: number, name: string, starters: string[], active: string, level: number) {
     if (this.owned(accountId).length) return null;
@@ -238,7 +247,7 @@ export class MemoryStore implements Store {
       if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
     if (resolveMap(this.locs.get(accountId)?.mapId) !== from) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
     if (bag) this.checkBag(accountId, bag);
-    for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
+    for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
     this.locs.set(accountId, { mapId: to, x, y });
     if (bag) this.putBag(accountId, bag);
   }
@@ -284,7 +293,7 @@ export class MemoryStore implements Store {
     for (const c of chars)
       if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
     this.checkBag(accountId, bag);
-    for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
+    for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
     this.putBag(accountId, bag);
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
@@ -373,7 +382,7 @@ export class PgStore implements Store {
   }
   row(x: any, accountId: number, name: string): Character {
     return { accountId, name, rowId: Number(x.id), vohon: x.vohon, level: x.level, xp: x.xp, stars: x.stars,
-      rings: (x.rings ?? []).map(Number), kills: x.kills };
+      rings: (x.rings ?? []).map(Number), kills: x.kills, skills: (x.skills ?? []).map(Number) };
   }
   async getCharacter(accountId: number) {
     const r = await this.pool.query(
@@ -437,6 +446,10 @@ export class PgStore implements Store {
     await this.pool.query(
       "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
       [c.rowId, c.accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+  }
+  async saveSkills(accountId: number, rowId: number, skills: number[]) {
+    const r = await this.pool.query("UPDATE vohons SET skills=$3, updated_at=now() WHERE id=$1 AND account_id=$2", [rowId, accountId, skills]);
+    return (r.rowCount ?? 0) > 0;
   }
   async awaken(accountId: number, name: string, starters: string[], active: string, level: number) {
     const db = await this.pool.connect();

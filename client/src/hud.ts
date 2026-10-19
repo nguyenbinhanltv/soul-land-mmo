@@ -10,7 +10,8 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, KING, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, questChain, questRewardText, type QuestStep } from "../../shared/data.ts";
+  QUESTS, questChain, questRewardText, type QuestStep,
+  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, QuestMsg } from "./net.ts";
@@ -94,12 +95,22 @@ export function banner(a: string, b: string) {
   el.style.opacity = "1"; clearTimeout(bannerTO); bannerTO = window.setTimeout(() => (el.style.opacity = "0"), 2400);
 }
 
+/** Chú thích một hồn kỹ của vòng `r` (chỉ số 0..9): tốn / hồi, sức mạnh theo số năm hồn hoàn, hoặc vòng cần để mở. */
+function skillTip(s: SkillDef, r: number, rings: number[], years: number[] | null) {
+  const has = r < rings.length, y = years?.[r] ?? (has ? TIERS[rings[r]].years : 0);
+  const pow = has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn ${y.toLocaleString("vi-VN")} năm).` : ` Mở khi có hồn hoàn thứ ${r + 1}.`;
+  return `${s.ult ? "Tuyệt kỹ " : ""}${s.name} (vòng ${r + 1}): ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${String(s.cd).replace(".", ",")} giây.${pow}`;
+}
+let slotCd: number[] = [];  // hồi chiêu đầy của hồn kỹ ở từng ô (vẽ lớp phủ hồi chiêu trong updateStats)
+let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn ra trận (nút R), null = võ hồn chưa có
 /**
- * Thanh kỹ năng: đánh thường, 4 hồn kỹ của võ hồn ra trận (riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm
- * sức mạnh theo số năm hồn hoàn), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons"); chưa có thì lấy mốc của bậc.
+ * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
+ * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
+ * Hồn Chân Thân (8.1a, chỉ khi võ hồn có dữ liệu; khóa tới vòng 7), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons");
+ * chưa có thì lấy mốc của bậc.
  */
-export function buildSkills(vh: number, rings: number[], years: number[] | null, act: (k: string) => void) {
-  const el = $("#skills"); el.innerHTML = "";
+export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void) {
+  const el = $("#skills"); el.innerHTML = ""; slotCd = [];
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip = "") => {
     const b = document.createElement("button"); b.className = "sk" + (locked ? " locked" : "");
     if (i !== undefined) b.dataset.i = String(i);
@@ -111,14 +122,31 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     el.appendChild(b);
   };
   mk("J", "Đánh thường", "Đánh", VOHON[vh].col, "attack");
-  skillsOf(VOHON[vh].id).forEach((s, i) => {
-    const has = i < rings.length, y = years?.[i] ?? (has ? TIERS[rings[i]].years : 0);
-    const pow = has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn ${y.toLocaleString("vi-VN")} năm).` : ` Mở khi có hồn hoàn thứ ${i + 1}.`;
-    const tip = `${s.name}: ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${String(s.cd).replace(".", ",")} giây.${pow}`;
-    mk(SKILL_KEYS[i], `Hồn kỹ ${i + 1}: ${s.name}${has ? "" : " (khóa)"}`, has ? s.name : "Khóa", has ? ringColor(rings[i]) : "#666", `skill${i}`, s.icon, !has, i, tip);
+  const id = VOHON[vh].id;
+  loadout.forEach((r, i) => {
+    const s = r >= 0 ? ringSkill(id, r) : null; slotCd[i] = s?.cd ?? 1;
+    if (!s) return mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: trống`, "Trống", "#666", `skill${i}`, "", true, i, "Ô trống: chọn hồn kỹ mang theo ở bảng đội hình (V).");
+    const has = r < rings.length;
+    mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: ${s.name} (vòng ${r + 1})${has ? "" : " (khóa)"}`, has ? s.name : "Khóa", has ? ringColor(rings[r]) : "#666",
+      `skill${i}`, s.icon, !has, i, skillTip(s, r, rings, years));
   });
+  avaDef = chanThanOf(id); el.classList.toggle("ava", !!avaDef);
+  if (avaDef) {
+    const ri = CHAN_THAN_RING - 1, has = rings.length > ri, y = years?.[ri] ?? (has ? TIERS[rings[ri]].years : 0);
+    const st = has ? chanThanStats(avaDef, y) : avaDef.stats;
+    const tip = `Võ Hồn Chân Thân (vòng ${CHAN_THAN_RING}) – ${avaDef.name}: ${avaDef.desc}. Biến hình ${avaDef.secs} giây, tốn ${avaDef.cost} hồn lực, hồi ${avaDef.cd} giây.`
+      + (has ? ` Hồn hoàn ${y.toLocaleString("vi-VN")} năm: ${chanThanText(st)}.` : ` Mở khi có hồn hoàn thứ ${CHAN_THAN_RING}.`);
+    mk(AVA_KEY, `Võ Hồn Chân Thân: ${avaDef.name}${has ? "" : " (khóa)"}`, has ? "Chân Thân" : "Khóa", has ? ringColor(rings[ri]) : "#666", "chanthan", avaDef.icon, !has, undefined, tip);
+    el.lastElementChild!.classList.add("ava");
+  }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
 }
+/** Phím Võ Hồn Chân Thân (8.1a, chờ chốt): R, không trùng phím nào đang dùng. */
+export const AVA_KEY = "R";
+const CT_NAMES: Record<ChanThanStat, string> = { atk: "công", def: "giảm sát thương nhận", spd: "tốc độ", crit: "chí mạng", mp: "giảm tiêu hao hồn lực", hp: "sinh lực tối đa" };
+/** "công +47%, sinh lực tối đa +28%…" cho chỉ số Chân Thân. */
+export const chanThanText = (st: Partial<Record<ChanThanStat, number>>) =>
+  (Object.entries(st) as [ChanThanStat, number][]).map(([k, v]) => `${CT_NAMES[k]} +${Math.round(v * 100)}%`).join(", ");
 
 /** Hồn cốt đang gắn trên võ hồn ra trận (từ tin riêng "bag"): loài, vị trí, số năm, cấp cường hóa (4.4). */
 export interface WornBone { beast: string; slot: string; years: number; enhance?: number; }
@@ -217,11 +245,18 @@ export function updateStats(p: any) {
       const c = document.createElement("span"); c.textContent = STATUS[s].name; c.style.color = STATUS[s].col; c.className = "debuff"; el.appendChild(c);
     }
   }
-  const sks = skillsOf(VOHON[p.vh].id);
   document.querySelectorAll<HTMLElement>(".sk[data-i]").forEach((b) => {
-    const i = Number(b.dataset.i); const cd = i < rings.length ? p.cds[i] / sks[i].cd : 0;
+    const i = Number(b.dataset.i); const cd = b.classList.contains("locked") ? 0 : Math.min(1, p.cds[i] / (slotCd[i] || 1));
     (b.querySelector(".cd") as HTMLElement).style.height = cd * 100 + "%";
   });
+  // Võ Hồn Chân Thân (8.1a): đang biến hình thì nút sáng kèm giây còn lại, xong thì hiện hồi chiêu.
+  const av = document.querySelector<HTMLElement>(".sk.ava");
+  if (av && avaDef) {
+    av.classList.toggle("on", p.ava > 0);
+    (av.querySelector(".cd") as HTMLElement).style.height = (p.ava > 0 ? 0 : Math.min(1, (p.avaCd ?? 0) / avaDef.cd) * 100) + "%";
+    const label = av.querySelectorAll("span")[1], txt = av.classList.contains("locked") ? "Khóa" : p.ava > 0 ? `${Math.ceil(p.ava)} giây` : "Chân Thân";
+    if (label.textContent !== txt) label.textContent = txt;
+  }
   document.querySelectorAll<HTMLElement>(".sk[data-b]").forEach((b) => {
     const i = Number(b.dataset.b); (b.querySelector(".cd") as HTMLElement).style.height = Math.min(1, (p.bcds?.[i] ?? 0) / (boneCd[i] || 1)) * 100 + "%";
   });
@@ -327,6 +362,7 @@ export interface RosterActions {
   equipCore(itemId: string, vohonId: number, slot?: number): void; unequipCore(itemId: string): void;
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
   portrait(vohon: string): string; combat(): boolean;
+  loadout(rowId: number, skills: number[]): void; // 8.1a: 4 ô hồn kỹ mang theo
 }
 /** Sao của võ hồn: sao đã có màu vàng, sao còn thiếu màu nhạt ("★★☆☆☆☆"); đọc màn hình đọc "n sao". */
 function starEl(n: number) {
@@ -412,13 +448,101 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
   el.appendChild(note);
   rosterAgain = () => renderRoster(data, act, shards, items);
+  renderLoadout(el, data, act, rosterAgain);
   renderBones(el, data, act, items, rosterAgain);
   renderCores(el, data, act, items, rosterAgain);
   renderShards(el, data, act, shards);
 }
 
+// ---------- 4 ô hồn kỹ mang theo (mục 5.2, bước 8.1a) ----------
+let skVh: number | null = null;        // võ hồn đang xếp ô hồn kỹ (null = võ hồn ra trận)
+let skSlot: number | null = null;      // ô U / I / O / P đang chọn để đặt hồn kỹ vào
+/**
+ * Chọn 4 hồn kỹ mang theo (phím U / I / O / P) từ các hồn kỹ đã mở của một võ hồn: chọn ô rồi chọn hồn kỹ (hồn kỹ đang ở ô khác thì đổi
+ * chỗ); không chọn ô thì hồn kỹ vào ô trống đầu tiên. Nút "Bỏ" để trống ô. Võ Hồn Chân Thân (vòng 7) dùng phím riêng nên chỉ hiện để
+ * xem. Gửi `loadout {rowId, skills}`; server kiểm tra (vòng đã mở, ngoài giao chiến) rồi gửi lại danh sách võ hồn. Chuột và chạm như nhau.
+ */
+function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, again: () => void) {
+  const head = document.createElement("b"); head.className = "shead"; head.textContent = "Hồn kỹ mang theo";
+  el.appendChild(head);
+  if (skVh === null || !data.list.some((v) => v.rowId === skVh)) skVh = data.active;
+  const v = data.list.find((x) => x.rowId === skVh) ?? data.list[0]; if (!v) return;
+  const id = v.vohon, cur = loadoutOf(id, v.skills), choices = skillChoices(id, v.rings.length), tiers = v.rings.map(tierOfYears);
+
+  const pickRow = document.createElement("label"); pickRow.className = "bvh";
+  pickRow.innerHTML = `<span>Võ hồn</span><select></select>`;
+  const sel = pickRow.querySelector("select")!;
+  for (const o of data.list) {
+    const opt = document.createElement("option"); opt.value = String(o.rowId);
+    opt.textContent = `${vohonDef(o.vohon).name} · ${o.rings.length} hồn hoàn${o.rowId === data.active ? " · ra trận" : ""}`;
+    opt.selected = o.rowId === v.rowId; sel.appendChild(opt);
+  }
+  sel.addEventListener("change", () => { skVh = Number(sel.value); skSlot = null; again(); });
+  el.appendChild(pickRow);
+
+  const send = (l: number[]) => { skSlot = null; act.loadout(v.rowId, l); };
+  const slots = document.createElement("div"); slots.className = "tslots kslots";
+  cur.forEach((r, i) => {
+    const s = r >= 0 ? ringSkill(id, r) : null, open = s && r < v.rings.length;
+    const box = document.createElement("div"); box.className = "tslot" + (skSlot === i ? " sel" : "") + (s ? "" : " empty");
+    if (open) box.style.setProperty("--c", ringColor(tiers[r]));
+    const pick = document.createElement("button"); pick.className = "tpick"; pick.setAttribute("aria-pressed", String(skSlot === i));
+    pick.innerHTML = `<b></b><i class="dot"></i><span></span><small></small>`;
+    pick.querySelector("b")!.textContent = SKILL_KEYS[i];
+    pick.querySelector("span")!.textContent = s ? s.name : "Ô trống";
+    pick.querySelector("small")!.textContent = s ? `Vòng ${r + 1}${open ? "" : " · chưa mở"}${s.ult ? " · tuyệt kỹ" : ""}` : "Chọn để thêm";
+    pick.addEventListener("click", () => { pick.blur(); skSlot = skSlot === i ? null : i; again(); });
+    box.appendChild(pick);
+    if (s) {
+      const rm = document.createElement("button"); rm.className = "trm"; rm.textContent = "Bỏ"; rm.setAttribute("aria-label", `Bỏ ${s.name} khỏi ô ${SKILL_KEYS[i]}`);
+      rm.addEventListener("click", () => { rm.blur(); const l = [...cur]; l[i] = -1; send(l); });
+      box.appendChild(rm);
+    }
+    slots.appendChild(box);
+  });
+  el.appendChild(slots);
+
+  const hint = document.createElement("small"); hint.className = "rnote";
+  hint.textContent = skSlot === null ? "Chọn hồn kỹ để đưa vào ô trống, hoặc chọn một ô trước rồi chọn hồn kỹ." : `Chọn hồn kỹ để đặt vào ô ${SKILL_KEYS[skSlot]}.`;
+  el.appendChild(hint);
+  const list = document.createElement("div"); list.className = "klist";
+  for (let r = 0; r < MAX_RINGS; r++) {
+    const s = ringSkill(id, r), ct = r + 1 === CHAN_THAN_RING ? chanThanOf(id) : null;
+    if (!s && !ct) continue;
+    const open = r < v.rings.length, at = cur.indexOf(r);
+    const b = document.createElement("button"); b.type = "button"; b.className = "kcard" + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
+    b.style.setProperty("--c", open ? ringColor(tiers[r]) : "#666");
+    b.innerHTML = `<i class="ico"></i><span><b></b><small></small></span>`;
+    b.querySelector("i")!.textContent = (s ?? ct)!.icon;
+    b.querySelector("b")!.textContent = `${r + 1}. ${(s ?? ct)!.name}`;
+    b.querySelector("small")!.textContent = ct ? `Võ Hồn Chân Thân · phím ${AVA_KEY}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`
+      : `${s!.ult ? "Tuyệt kỹ · " : ""}${s!.cost} hồn lực · hồi ${String(s!.cd).replace(".", ",")} giây${at >= 0 ? ` · ô ${SKILL_KEYS[at]}` : ""}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`;
+    b.title = ct ? `${ct.name}: ${ct.desc}.` : `${s!.name}: ${s!.desc}.`;
+    b.disabled = !open || !!ct || !choices.includes(r);
+    b.addEventListener("click", () => {
+      b.blur();
+      const l = [...cur], to = skSlot ?? l.indexOf(-1);
+      if (to < 0) { hint.textContent = `Đủ ${LOADOUT_SIZE} ô: chọn một ô để thay.`; return; }
+      if (at === to) { skSlot = null; return again(); }
+      if (at >= 0) l[at] = l[to]; // đang ở ô khác: đổi chỗ hai ô
+      l[to] = r;
+      send(l);
+    });
+    list.appendChild(b);
+  }
+  el.appendChild(list);
+  if (v.rings.length > LOADOUT_SIZE && !HIGH_RINGS.some((n) => ringSkill(id, n - 1))) {
+    const n = document.createElement("small"); n.className = "rnote";
+    n.textContent = `${vohonDef(id).name} chưa có hồn kỹ vòng 5–10 (bản sau): các vòng này chỉ tăng chỉ số.`;
+    el.appendChild(n);
+  }
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = "Chỉ xếp ô khi không giao chiến. Hồi chiêu đi theo hồn kỹ khi đổi chỗ.";
+  el.appendChild(note);
+}
+
 // ---------- Hồn cốt gắn trên võ hồn (mục 5.5, bước 4.2) ----------
-let boneVh: number | null = null;      // võ hồn đang xem 6 ô hồn cốt (null = võ hồn ra trận)
+let boneVh: number | null = null;     // võ hồn đang xem 6 ô hồn cốt (null = võ hồn ra trận)
 let boneCell: string | null = null;    // ô (mã vị trí) đang chọn: xem hồn cốt đang gắn, lọc hồn cốt trong túi
 let boneFocus: string | null = null;   // hồn cốt trong túi vừa bấm "Gắn…" ở túi đồ: tô sáng
 let rosterAgain: (() => void) | null = null; // vẽ lại bảng đội hình bằng dữ liệu lần vẽ gần nhất (null = chưa vẽ lần nào)
