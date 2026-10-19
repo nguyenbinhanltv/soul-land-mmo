@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, type Looks } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, type Looks, type QuestProgress } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -43,16 +43,23 @@ export interface Item {
   vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
   created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
 }
-/** Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. */
-export interface Bag { items: Item[]; honTe: number; }
+/**
+ * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
+ * mỗi chuỗi một dòng): ghi trong cùng transaction với túi để phần thưởng và bước mới không bao giờ lệch nhau. Thiếu `quests` khi
+ * ghi thì giữ nguyên tiến độ đang lưu.
+ */
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; }
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
-const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem) });
+const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
+const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}) });
 /** Kiểm tra chung cho cả hai store trước khi ghi túi: id không trùng, số lượng và Hồn Tệ là số nguyên hợp lệ. */
 function bagOk(b: Bag) {
   const ids = new Set(b.items.map((i) => i.id));
   if (ids.size !== b.items.length) throw new Error("Túi đồ có hai ô trùng id.");
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+  const chains = new Set((b.quests ?? []).map((q) => q.chain));
+  if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
 }
 
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
@@ -100,11 +107,13 @@ export interface Store {
   saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag): Promise<void>;
   /**
    * Túi đồ và Hồn Tệ. Tài khoản chưa nhận vật phẩm khởi đầu thì thêm `starter` vào túi (một lần, cùng một lần ghi với cờ
-   * `starter_items`) rồi mới trả về; đã nhận thì bỏ qua `starter`. `starter` trong kết quả: lần này vừa nhận.
+   * `starter_items`) rồi mới trả về; đã nhận thì bỏ qua `starter`. `starter` trong kết quả: lần này vừa nhận. Từ 6.2 `bag.quests`
+   * là các dòng `quests` đã lưu (chưa có dòng = chưa bắt đầu chuỗi đó; nơi gọi dùng questStart).
    */
   loadBag(accountId: number, starter: Item[]): Promise<{ bag: Bag; starter: boolean }>;
   /**
-   * Ghi cả túi (ảnh chụp lúc lưu): thêm/sửa mọi ô trong `bag`, xóa ô của tài khoản không còn trong `bag`, và Hồn Tệ.
+   * Ghi cả túi (ảnh chụp lúc lưu): thêm/sửa mọi ô trong `bag`, xóa ô của tài khoản không còn trong `bag`, Hồn Tệ, và (từ 6.2) tiến
+   * độ nhiệm vụ `bag.quests` nếu có (thêm / sửa từng chuỗi).
    * Hoặc ghi hết, hoặc không ghi gì; lỗi (id trùng, id thuộc tài khoản khác, đồ gắn vào võ hồn không thuộc tài khoản) thì ném lỗi.
    */
   saveBag(accountId: number, bag: Bag): Promise<void>;
@@ -155,6 +164,7 @@ export class MemoryStore implements Store {
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
   starter = new Set<number>();          // accountId đã nhận vật phẩm khởi đầu (accounts.starter_items)
   claims = new Map<string, number>();   // "accountId|day|kind" -> số lần nhận thưởng boss (bảng boss_claims, BĐ5)
+  quests = new Map<number, QuestProgress[]>(); // accountId -> tiến độ nhiệm vụ từng chuỗi (bảng quests, 6.2)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
@@ -230,7 +240,16 @@ export class MemoryStore implements Store {
     if (bag) this.checkBag(accountId, bag);
     for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
     this.locs.set(accountId, { mapId: to, x, y });
-    if (bag) this.bags.set(accountId, copyBag(bag));
+    if (bag) this.putBag(accountId, bag);
+  }
+  /** Ghi túi (đã kiểm tra) cùng tiến độ nhiệm vụ: như writeBag của PgStore, chuỗi có trong `bag.quests` thì thay, chuỗi khác giữ nguyên. */
+  putBag(accountId: number, bag: Bag) {
+    const { quests, ...rest } = copyBag(bag);
+    this.bags.set(accountId, rest);
+    if (quests) {
+      const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain));
+      this.quests.set(accountId, [...keep, ...quests]);
+    }
   }
   /** Như các ràng buộc của bảng `items`: id không thuộc tài khoản khác, đồ chỉ gắn vào võ hồn của chính tài khoản. */
   checkBag(accountId: number, bag: Bag) {
@@ -248,17 +267,17 @@ export class MemoryStore implements Store {
       this.checkBag(accountId, next);
       b = copyBag(next); this.bags.set(accountId, b); this.starter.add(accountId);
     }
-    return { bag: copyBag(b), starter: fresh };
+    return { bag: { ...copyBag(b), quests: (this.quests.get(accountId) ?? []).map(copyQuest) }, starter: fresh };
   }
   async saveBag(accountId: number, bag: Bag) {
     this.checkBag(accountId, bag);
-    this.bags.set(accountId, copyBag(bag));
+    this.putBag(accountId, bag);
   }
   async unlockVohon(accountId: number, name: string, vohon: string, level: number, bag: Bag) {
     if (this.owned(accountId).some((c) => c.vohon === vohon)) return null;
     this.checkBag(accountId, bag);
     const c = await this.addVohon(accountId, name, vohon, level);
-    this.bags.set(accountId, copyBag(bag));
+    this.putBag(accountId, bag);
     return c;
   }
   async saveVohonsBag(accountId: number, chars: Character[], bag: Bag) {
@@ -266,14 +285,14 @@ export class MemoryStore implements Store {
       if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
     this.checkBag(accountId, bag);
     for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
-    this.bags.set(accountId, copyBag(bag));
+    this.putBag(accountId, bag);
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
     const key = `${accountId}|${day}|${kind}`, n = this.claims.get(key) ?? 0;
     if (n >= limit) return null;
     this.checkBag(accountId, bag);
-    this.claims.set(key, n + 1); this.bags.set(accountId, copyBag(bag));
+    this.claims.set(key, n + 1); this.putBag(accountId, bag);
     return n + 1;
   }
 }
@@ -511,6 +530,13 @@ export class PgStore implements Store {
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
     await this.upsertItems(db, accountId, bag.items);
+    if (bag.quests?.length) {
+      await db.query(
+        `INSERT INTO quests(account_id, chain, step, accepted, prog)
+         SELECT $1, x.chain, x.step, x.accepted, x.prog FROM jsonb_to_recordset($2::jsonb) AS x(chain text, step smallint, accepted boolean, prog jsonb)
+         ON CONFLICT (account_id, chain) DO UPDATE SET step=EXCLUDED.step, accepted=EXCLUDED.accepted, prog=EXCLUDED.prog, updated_at=now()`,
+        [accountId, JSON.stringify(bag.quests.map((q) => ({ chain: q.chain, step: q.step, accepted: q.accepted, prog: q.prog })))]);
+    }
   }
   async loadBag(accountId: number, starter: Item[]) {
     const db = await this.pool.connect();
@@ -525,8 +551,10 @@ export class PgStore implements Store {
         await db.query("UPDATE accounts SET starter_items=true WHERE id=$1", [accountId]);
       }
       const r = await db.query("SELECT * FROM items WHERE account_id=$1 ORDER BY created_at, id", [accountId]);
+      const q = await db.query("SELECT chain, step, accepted, prog FROM quests WHERE account_id=$1", [accountId]);
       await db.query("COMMIT");
-      return { bag: { honTe: Number(a.rows[0].hon_te), items: r.rows.map((x) => this.itemRow(x)) }, starter: fresh };
+      return { bag: { honTe: Number(a.rows[0].hon_te), items: r.rows.map((x) => this.itemRow(x)),
+        quests: q.rows.map((x) => parseQuest({ step: Number(x.step), accepted: x.accepted, prog: x.prog }, x.chain)) }, starter: fresh };
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;

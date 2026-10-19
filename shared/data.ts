@@ -1843,7 +1843,7 @@ export const NPCS: NpcDef[] = [
       `Mỗi vòng hồn hoàn có giới hạn niên hạn: vòng 1 tối đa ${formatYears(RING_LIMIT[0])}, vòng 2 ${formatYears(RING_LIMIT[1])}, vòng 3 ${formatYears(RING_LIMIT[2])}, vòng 4 ${formatYears(RING_LIMIT[3])}, vòng 5 ${formatYears(RING_LIMIT[4])}…`,
       "Vượt giới hạn thì có thể thất bại và mất hồn hoàn, vượt càng nhiều càng dễ thất bại; vượt quá gấp đôi thì thân thể không chịu nổi, không thể hấp thụ.",
       `Chọn nơi săn theo cấp võ hồn: ${mapLevels()}. Hồn thú thấp hơn mình quá nhiều thì kinh nghiệm nhận được ít đi.`,
-      "Ta đang soạn bài học cho tân thủ. Khi soạn xong, hãy quay lại tìm ta (nhiệm vụ tân thủ sắp mở).",
+      "Muốn học thì nghe bài giảng của ta: bảy bài cho tân thủ, mỗi bài một việc, làm xong thì quay về đây báo lại (nhiệm vụ tân thủ).",
     ] },
   { id: "thuong_nhan", name: "Thương nhân", title: "Cửa hàng Nặc Đinh", role: "shop", col: "#ffb35c",
     looks: { sex: 1, hair: 1, hairCol: 1, outfitCol: 1 },
@@ -1898,3 +1898,111 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
   if (def.kind === "manh_vo_hon" && def.vohon) { const v = VOHON[vohonIndex(def.vohon)]; return v ? SHARD_SELL[v.rarity] : null; }
   return null;
 }
+
+// ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng chờ chốt) ----------
+/**
+ * Loại mục tiêu, server đếm theo sự kiện thật (MapRoom.questEvent): `talk` nói chuyện với NPC `npc`; `kill` hạ hồn thú (tùy chọn
+ * `map`, `zone` = tên vùng săn nơi hồn thú bị hạ); `switch` đổi võ hồn trong đội khi đang giao chiến; `tienco` tung chiêu tiên cơ;
+ * `absorb` hấp thụ thành công một hồn hoàn không vượt giới hạn của vòng; `equip` gắn một hồn cốt hoặc hồn hạch vào võ hồn; `map`
+ * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
+ * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
+ */
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map";
+export interface QuestGoal { k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; }
+/** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
+export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
+/** Một bước (một bài học): `offer` lời giao, `done` lời khi trả nhiệm vụ, `desc` một câu tóm tắt cho khung theo dõi. */
+export interface QuestStep { id: string; name: string; desc: string; goals: QuestGoal[]; reward: QuestReward; offer: string[]; done: string[]; }
+/**
+ * Chuỗi nhiệm vụ của NPC `giver` (mã trong NPCS) đứng ở bản đồ `map`: nhận và trả từng bước bằng hội thoại, đứng trong NPC_RANGE.
+ * `finale`: lời sau bước cuối.
+ */
+export interface QuestChain { id: string; name: string; giver: string; map: string; steps: QuestStep[]; finale: string; }
+/**
+ * Tiến độ của một tài khoản trong một chuỗi (bảng `quests`, mỗi chuỗi một dòng): `step` là chỉ số bước đang làm (bằng số bước =
+ * đã xong cả chuỗi), `accepted` đã nhận bước đó chưa, `prog` số đếm từng mục tiêu của bước đó (kẹp ở `n`).
+ */
+export interface QuestProgress { chain: string; step: number; accepted: boolean; prog: number[]; }
+/** Sự kiện server báo cho bộ đếm nhiệm vụ (MapRoom.questEvent). */
+export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; }
+/** Mã chuỗi tân thủ (mọi tài khoản, cả tài khoản cũ, bắt đầu ở bước 1 khi chưa có dòng trong bảng `quests`). */
+export const QUEST_STARTER = "tan_thu";
+const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
+export const QUESTS: QuestChain[] = [
+  { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
+    finale: "Bảy bài của ta ngươi đã học xong. Phần còn lại phải tự mình đi, tự mình ngộ. Sau này tới Sử Lai Khắc Học Viện, ở đó có người dạy ngươi những điều ta không dạy được.",
+    steps: [
+      { id: "hau_can", name: "Hậu cần của hồn sư", desc: "Gặp Thương nhân ở tây nam đại lộ Nặc Đinh Thành.",
+        offer: ["Ngươi muốn học lý luận của ta? Tốt. Ta có bảy bài cho tân thủ, mỗi bài một việc. Làm xong thì quay về đây, ta giảng bài kế tiếp.",
+          "Bài thứ nhất: hồn sư vào rừng mà không mang đan dược thì cũng như kiếm khách quên mang kiếm. Thương nhân ở tây nam đại lộ bán Hồi Huyết Đan, Hồi Hồn Đan và mua lại đồ dư. Đi gặp hắn đi."],
+        goals: [{ k: "talk", npc: "thuong_nhan", n: 1, text: "Nói chuyện với Thương nhân" }],
+        done: ["Nhớ kỹ: hồn hoàn, hồn cốt, hồn hạch không dùng tới thì đem bán, đổi lấy đan dược. Hồn sư túi rỗng thì đi không xa."],
+        reward: { honTe: 30, items: [{ code: "hoi_huyet_dan", qty: 2 }] } },
+      { id: "bai_tap", name: "Luyện tay ở Bãi tập", desc: `Về Thánh Hồn Thôn, hạ hồn thú ở ${BAI_TAP} phía đông làng.`,
+        offer: ["Bài thứ hai: thực chiến. Lý luận mà không có thực chiến chỉ là lời nói suông.",
+          `Về Thánh Hồn Thôn, ra ${BAI_TAP} phía đông làng. Hồn thú ở đó tám mươi tới hai trăm năm mươi năm, vừa sức tân thủ. Hạ tám con rồi về đây.`],
+        goals: [{ k: "kill", map: "thanh_hon_thon", zone: BAI_TAP, n: 8, text: `Hạ hồn thú ở ${BAI_TAP}` }],
+        done: ["Không tệ. Hồn thú cũng có trí khôn: con biết né, con biết gọi bầy. Quan sát trước rồi mới ra tay."],
+        reward: { honTe: 40, items: [{ code: "hoi_hon_dan", qty: 3 }] } },
+      { id: "doi_tay", name: "Đổi tay giữa trận", desc: "Đang giao chiến thì đổi võ hồn (phím 1–4), rồi tung một chiêu tiên cơ.",
+        offer: ["Bài thứ ba: đội hình. Một võ hồn mạnh không bằng bốn võ hồn biết phối hợp. Xếp đội ở bảng đội hình (phím V), trong trận đổi tay bằng phím 1–4.",
+          "Võ hồn ngoài sân tích năng lượng mỗi khi võ hồn ra trận đánh trúng. Đầy năng lượng mà đổi vào thì tung chiêu tiên cơ. Đi đi, đổi tay giữa trận và tung một chiêu tiên cơ cho ta xem."],
+        goals: [{ k: "switch", n: 1, text: "Đổi võ hồn khi đang giao chiến" }, { k: "tienco", n: 1, text: "Tung chiêu tiên cơ" }],
+        done: ["Đúng rồi. Đổi tay đúng lúc, ra tiên cơ trước khi hồn thú kịp phản ứng: đó là cốt lõi của đội hình."],
+        reward: { honTe: 50, items: [{ code: shardCode("lam_ngan_thao"), qty: 5 }] } },
+      { id: "hon_hoan", name: "Hồn hoàn đầu tiên", desc: `Võ hồn chạm bình cảnh thì nhặt hồn hoàn (phím E) và hấp thụ một chiếc không vượt giới hạn (vòng 1: ${formatYears(RING_LIMIT[0])}).`,
+        offer: ["Bài thứ tư, quan trọng nhất: hồn hoàn. Cứ mười cấp hồn lực lại chạm bình cảnh, phải hấp thụ hồn hoàn mới tiến lên được.",
+          `Lý luận của ta: vòng thứ nhất chịu được tối đa ${formatYears(RING_LIMIT[0])}, vòng thứ hai ${formatYears(RING_LIMIT[1])}. Vượt giới hạn mà liều thì hồn hoàn có thể vỡ tan, uổng công săn. Chọn hồn hoàn trong giới hạn, hấp thụ thành công rồi về báo ta.`],
+        goals: [{ k: "absorb", n: 1, have: true, text: "Hấp thụ thành công hồn hoàn trong giới hạn" }],
+        done: ["Hồn hoàn đầu tiên quyết định hồn kỹ đầu tiên. Từ nay ngươi là hồn sư thật sự. Nhớ: vòng sau giới hạn lại cao hơn, đừng tham."],
+        reward: { honTe: 80, items: [{ code: "hoi_huyet_dan", qty: 3 }, { code: "hoi_hon_dan", qty: 3 }] } },
+      { id: "ho_than", name: "Hồn cốt, hồn hạch hộ thân", desc: "Gắn một hồn cốt hoặc hồn hạch vào võ hồn (bảng đội hình, phím V).",
+        offer: ["Bài thứ năm: ngoại vật. Hồn thú còn để lại hồn cốt và hồn hạch. Hồn cốt hiếm, hồn thú từ nghìn năm trở lên mới rơi; hồn hạch thì gặp nhiều hơn.",
+          "Mỗi võ hồn có sáu ô hồn cốt và sáu ô hồn hạch. Gắn một món vào võ hồn của ngươi (bảng đội hình, phím V) rồi quay lại."],
+        goals: [{ k: "equip", n: 1, have: true, text: "Gắn hồn cốt hoặc hồn hạch vào võ hồn" }],
+        done: ["Hồn hạch cùng bộ gắn đủ hai hay bốn món thì có hiệu ứng bộ. Đừng chỉ nhìn số sao, hãy nhìn cả bộ."],
+        reward: { honTe: 60, items: [{ code: shardCode("nhu_cot_tho"), qty: 10 }] } },
+      { id: "lo_ren", name: "Lò rèn Nặc Đinh", desc: "Gặp Thợ rèn ở lò rèn phía đông bắc Nặc Đinh Thành.",
+        offer: ["Bài thứ sáu: hồn cốt dư đừng vội bán. Thợ rèn Nặc Đinh dung luyện được hồn cốt dư vào hồn cốt chính, không bao giờ thất bại.",
+          "Lò rèn ở phía đông bắc thành. Ghé qua nói chuyện với hắn."],
+        goals: [{ k: "talk", npc: "lo_ren", n: 1, text: "Nói chuyện với Thợ rèn" }],
+        done: ["Cường hóa tới +5, +10, +15, +20 thì kỹ năng của hồn cốt mạnh thêm một bậc. Tích góp dần."],
+        reward: { honTe: 30, items: [{ code: "hoi_huyet_dan", qty: 2 }] } },
+      { id: "ngoai_vi", name: "Tinh Đấu Đại Sâm Lâm", desc: "Qua cổng đông Nặc Đinh Thành vào Tinh Đấu Ngoại vi, hạ hồn thú ở đó.",
+        offer: ["Bài cuối cùng. Thánh Hồn Thôn đã quá nhỏ với ngươi. Phía đông thành là Tinh Đấu Đại Sâm Lâm, hồn thú vài trăm tới vài nghìn năm.",
+          "Qua cổng đông vào Tinh Đấu Ngoại vi, hạ năm con hồn thú rồi trở về. Cẩn thận: hồn thú ở đó biết dùng chiêu, thấy vùng đỏ dưới đất thì tránh ra ngay."],
+        goals: [{ k: "map", map: "tinh_dau_ngoai_vi", n: 1, have: true, text: "Đặt chân tới Tinh Đấu Ngoại vi" },
+          { k: "kill", map: "tinh_dau_ngoai_vi", n: 5, text: "Hạ hồn thú ở Tinh Đấu Ngoại vi" }],
+        done: ["Tốt lắm. Ngươi đã đứng vững ở Tinh Đấu Đại Sâm Lâm."],
+        reward: { honTe: 150, items: [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }, { code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
+    ] },
+];
+const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
+export const questChain = (id: string) => QUEST_INDEX.get(id);
+/** Tiến độ khi chưa có dòng trong bảng `quests` (tài khoản mới và cũ): bước 1, chưa nhận. */
+export const questStart = (chain: string): QuestProgress => ({ chain, step: 0, accepted: false, prog: [] });
+/** Đọc tiến độ từ DB / client gửi lên: kẹp bước, số đếm theo mục tiêu của bước; dữ liệu hỏng thì về `questStart`. */
+export function parseQuest(raw: unknown, chain: string): QuestProgress {
+  const c = questChain(chain), o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  if (!c || !Number.isInteger(o.step)) return questStart(chain);
+  const step = Math.max(0, Math.min(c.steps.length, o.step as number)), goals = c.steps[step]?.goals ?? [];
+  const accepted = step < c.steps.length && o.accepted === true, prog = Array.isArray(o.prog) ? o.prog : [];
+  return { chain, step, accepted, prog: accepted ? goals.map((g, i) => (Number.isInteger(prog[i]) ? Math.max(0, Math.min(g.n, prog[i] as number)) : 0)) : [] };
+}
+/**
+ * Trạng thái để hiển thị: `offer` có bài mới chưa nhận (dấu "!" trên đầu NPC), `active` đang làm, `ready` đủ mục tiêu chờ trả (dấu
+ * "?"), `done` xong cả chuỗi.
+ */
+export type QuestStatus = "offer" | "active" | "ready" | "done";
+export function questStatus(q: QuestProgress): QuestStatus {
+  const s = questChain(q.chain)?.steps[q.step];
+  if (!s) return "done";
+  if (!q.accepted) return "offer";
+  return s.goals.every((g, i) => (q.prog[i] ?? 0) >= g.n) ? "ready" : "active";
+}
+/** Sự kiện `ev` có tính cho mục tiêu `g` không. */
+export const questGoalHit = (g: QuestGoal, ev: QuestEvent) =>
+  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone);
+/** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
+export const questRewardText = (r: QuestReward) =>
+  [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");
