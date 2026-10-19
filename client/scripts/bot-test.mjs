@@ -1041,12 +1041,13 @@ else {
       await test(E,"status",{s:"allure",n:3}); const p0=posOf(cb); E.hurts=[];
       await test(E,"status",{s:"allure"});
       ok(hasSt(beastOf(E,cb),"charm")&&!beastOf(E,cb)?.allure,"đang Mê hoặc: không cộng thêm Mị hoặc");
-      // Theo dõi suốt lúc còn Mê hoặc (đi lung tung đổi hướng ngẫu nhiên: điểm cuối có thể quay về gần chỗ cũ): xa nhất bao nhiêu,
-      // có lúc nào nhắm hồn sư hay đánh trúng không. Đòn đánh sau khi hết Mê hoặc không tính.
-      let far=0, agg=false, hurt=0;
-      await waitFor(()=>{ const q=beastOf(E,cb); if(!q||!hasSt(q,"charm")) return true;
-        far=Math.max(far,Math.hypot(q.x-p0[0],q.y-p0[1])); agg||=q.aggro; hurt=E.hurts.length; return false; },STATUS.charm.secs*CC_TIER_MULT[3]*1000+1000);
-      ok(beastOf(E,cb)&&!agg&&!hurt&&far>4,`Mê hoặc: bỏ mục tiêu, không đánh, đi lung tung ${far.toFixed(0)} pixel`);
+      // Theo dõi 1,3 giây (Mê hoặc trên hồn thú vạn năm còn 1,875 giây): đi lung tung đổi hướng ngẫu nhiên nên điểm cuối có thể
+      // quay về gần chỗ cũ, lấy quãng xa nhất; có lúc nào nhắm hồn sư không. Không theo tới lúc hết Mê hoặc: đòn đánh ngay sau đó
+      // (tin dmg gửi ngay) có thể đến trước bản vá state xóa Mê hoặc.
+      let far=0, agg=false;
+      await waitFor(()=>{ const q=beastOf(E,cb); if(q){ far=Math.max(far,Math.hypot(q.x-p0[0],q.y-p0[1])); agg||=q.aggro; } return false; },1300);
+      ok(beastOf(E,cb)&&!agg&&!E.hurts.length&&far>4,`Mê hoặc: bỏ mục tiêu, không đánh, đi lung tung ${far.toFixed(0)} pixel`+
+        (beastOf(E,cb)&&!agg&&!E.hurts.length?"":` [nhắm hồn sư ${agg}, trúng ${E.hurts.length} đòn, còn Mê hoặc ${hasSt(beastOf(E,cb),"charm")}]`));
       ok(await waitFor(()=>!hasSt(beastOf(E,cb),"charm"),STATUS.charm.secs*CC_TIER_MULT[3]*1000),`hết Mê hoặc sau ${STATUS.charm.secs*CC_TIER_MULT[3]} giây`);
       // Làm chậm: hồn thú đuổi theo hồn sư đi chậm hơn (đo quãng đi trong 0,6 giây).
       const run=async slow=>{ await test(E,"clear"); await face(); const sb=await spawnAt(1,60); if(slow) await test(E,"status",{s:"slow",secs:5});
