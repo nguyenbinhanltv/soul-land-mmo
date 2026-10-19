@@ -1,5 +1,6 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
-import { TIERS, VOHON, SKILLS, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO, TIEN_CO_MAX } from "../../shared/data.ts";
+import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
+  BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit } from "../../shared/data.ts";
 import type { OwnedVohons, Squad } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -23,26 +24,40 @@ export function banner(a: string, b: string) {
   el.style.opacity = "1"; clearTimeout(bannerTO); bannerTO = window.setTimeout(() => (el.style.opacity = "0"), 2400);
 }
 
-export function buildSkills(vh: number, rings: number[], act: (k: string) => void) {
+/**
+ * Thanh kỹ năng: đánh thường, 4 hồn kỹ của võ hồn ra trận (riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm
+ * sức mạnh theo số năm hồn hoàn), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons"); chưa có thì lấy mốc của bậc.
+ */
+export function buildSkills(vh: number, rings: number[], years: number[] | null, act: (k: string) => void) {
   const el = $("#skills"); el.innerHTML = "";
-  const mk = (key: string, label: string, name: string, col: string, action: string, locked = false, i?: number) => {
+  const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip = "") => {
     const b = document.createElement("button"); b.className = "sk" + (locked ? " locked" : "");
     if (i !== undefined) b.dataset.i = String(i);
     b.innerHTML = `<b>${key}</b><span class="ico" style="color:${col}"></span><span></span><div class="cd"></div>`;
-    b.querySelectorAll("span")[1].textContent = name;
+    const sp = b.querySelectorAll("span"); sp[0].textContent = icon; sp[1].textContent = name;
     b.setAttribute("aria-label", label);
+    if (tip) b.title = tip;
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); act(action); });
     el.appendChild(b);
   };
   mk("J", "Đánh thường", "Đánh", VOHON[vh].col, "attack");
-  SKILLS.forEach((s, i) => {
-    const has = i < rings.length;
-    mk(SKILL_KEYS[i], `Hồn kỹ ${i + 1}: ${s.name}`, has ? s.name : "Khóa", has ? ringColor(rings[i]) : "#666", `skill${i}`, !has, i);
+  skillsOf(VOHON[vh].id).forEach((s, i) => {
+    const has = i < rings.length, y = years?.[i] ?? (has ? TIERS[rings[i]].years : 0);
+    const pow = has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn ${y.toLocaleString("vi-VN")} năm).` : ` Mở khi có hồn hoàn thứ ${i + 1}.`;
+    const tip = `${s.name}: ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${String(s.cd).replace(".", ",")} giây.${pow}`;
+    mk(SKILL_KEYS[i], `Hồn kỹ ${i + 1}: ${s.name}${has ? "" : " (khóa)"}`, has ? s.name : "Khóa", has ? ringColor(rings[i]) : "#666", `skill${i}`, s.icon, !has, i, tip);
   });
   mk("E", "Hấp thụ hồn hoàn", "Hấp thụ", "#ffe08a", "absorb");
 }
 
-let ringsKey = "";
+/** Tên các trạng thái đang có trên hồn thú (khung mục tiêu), kèm số tầng nếu cộng dồn. */
+export function statusText(b: { st: number; burn: number; poison: number; armor: number }) {
+  const n: Record<string, number> = { burn: b.burn, poison: b.poison, armor: b.armor };
+  return STATUS_IDS.filter((s) => b.st & statusBit(s))
+    .map((s) => `<span style="color:${STATUS[s].col}">${STATUS[s].name}${n[s] > 1 ? ` ×${n[s]}` : ""}</span>`).join(" · ");
+}
+
+let ringsKey = "", buffKey = "";
 export function updateStats(p: any) {
   $("#vhName").textContent = VOHON[p.vh].name; $("#vhName").style.color = VOHON[p.vh].col;
   $("#lvl").textContent = `Cấp ${p.level}`;
@@ -59,8 +74,16 @@ export function updateStats(p: any) {
     const slot = rings.length + 1, e = document.createElement("div"); e.className = "ring empty"; el.appendChild(e);
     const s = document.createElement("small"); s.textContent = `Vòng ${slot}: tối đa ${TIERS[ringLimit(slot)].age}, cấp ${slot * 10}`; el.appendChild(s);
   }
+  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",");
+  if (buffs !== buffKey) {
+    buffKey = buffs; const el = $("#buffs"); el.innerHTML = "";
+    for (const b of BUFF_IDS) if (p.buff & buffBit(b)) {
+      const c = document.createElement("span"); c.textContent = BUFFS[b].name; c.style.color = BUFFS[b].col; el.appendChild(c);
+    }
+  }
+  const sks = skillsOf(VOHON[p.vh].id);
   document.querySelectorAll<HTMLElement>(".sk[data-i]").forEach((b) => {
-    const i = Number(b.dataset.i); const cd = i < rings.length ? p.cds[i] / SKILLS[i].cd : 0;
+    const i = Number(b.dataset.i); const cd = i < rings.length ? p.cds[i] / sks[i].cd : 0;
     (b.querySelector(".cd") as HTMLElement).style.height = cd * 100 + "%";
   });
   const ch = $("#channel");
@@ -85,7 +108,7 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
     b.dataset.sub = v ? (on ? "Ra trận" : `Cấp ${v.level}`) : "";
     b.querySelector("small")!.textContent = b.dataset.sub;
     b.dataset.label = def ? `Ô ${i + 1}: ${def.name}${on ? ", đang ra trận" : ""}` : `Ô ${i + 1}: trống`;
-    if (def) b.dataset.tc = `${TIEN_CO[def.he].name}: ${TIEN_CO[def.he].desc}`;
+    if (def) b.dataset.tc = `${tienCoOf(def.id).name}: ${tienCoOf(def.id).desc}`;
     b.setAttribute("aria-label", b.dataset.label);
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); sw(i); });
     el.appendChild(b);
