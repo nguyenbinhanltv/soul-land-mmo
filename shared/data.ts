@@ -255,6 +255,33 @@ export const RESPAWN_SECS = 2.5;
 export const XP_SHARE_ACTIVE = 0.4;
 export const XP_SHARE_BENCH = 0.2;
 
+// ---------- Tổ đội người chơi (mục 5.9, bước 7.1) ----------
+/** Số người tối đa một tổ đội (mục 5.9). */
+export const PARTY_MAX = 4;
+/**
+ * Hạ hồn thú: thành viên tổ đội của người hạ ở cùng phòng (cùng bản đồ, cùng kênh), chưa gục, đứng cách chỗ hồn thú gục dưới ngần
+ * này pixel thì cùng chia kinh nghiệm (mục 5.9 "khoảng 300px").
+ */
+export const PARTY_XP_RANGE = 300;
+/** Mỗi người cùng chia làm tổng kinh nghiệm tăng thêm ngần này (mục 5.9 "mỗi người thêm 5%"; chờ chốt). */
+export const PARTY_XP_BONUS = 0.05;
+/**
+ * Phần kinh nghiệm gốc mỗi người nhận khi `n` người cùng chia: tổng = gốc × (1 + PARTY_XP_BONUS × (n − 1)), chia đều (2 người
+ * 52,5%, 3 người 36,7%, 4 người 28,75%; chờ chốt). Sau đó mỗi người tự giảm theo chênh cấp của võ hồn ra trận của mình
+ * (xpLevelScale) và chia 40/20 cho đội võ hồn (XP_SHARE_ACTIVE / XP_SHARE_BENCH).
+ */
+export function partyXpShare(n: number) {
+  const k = Math.max(1, Math.floor(n));
+  return (1 + PARTY_XP_BONUS * (k - 1)) / k;
+}
+/** Lời mời vào tổ đội hết hạn sau ngần này giây (chờ chốt). */
+export const PARTY_INVITE_SECS = 60;
+/**
+ * Thành viên rời game (đóng tab, mất mạng) quá ngần này giây mà chưa vào lại thì tự rời tổ đội (chờ chốt); đi cổng sang bản đồ
+ * khác vẫn ở trong tổ đội.
+ */
+export const PARTY_OFFLINE_SECS = 60;
+
 // ---------- Năng lượng và chiêu tiên cơ (mục 5.1 "Trong trận"; mọi số dưới đây chờ chốt) ----------
 /** Năng lượng tối đa của mỗi võ hồn trong đội. Đủ mức này thì đổi tay vào sẽ tung chiêu tiên cơ, dùng hết năng lượng. */
 export const TIEN_CO_MAX = 100;

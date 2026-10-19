@@ -28,7 +28,10 @@
 // mở rương, rút đi, phòng hủy rồi mở lại), NPC (6.1: nói chuyện khi đứng gần, mua đan đủ / thiếu Hồn Tệ, túi đầy, bán đồ dư theo giá,
 // không bán đồ đang gắn / đan, lò rèn cường hóa hồn cốt và nâng cấp hồn hạch, đứng xa bị từ chối, vào lại còn nguyên), nhiệm vụ tân thủ (6.2: tài khoản mới
 // đi hết chuỗi của Ngọc Tiểu Cương, mục tiêu đếm theo sự kiện thật, nhận / trả khi đứng xa bị từ chối, thưởng đúng, túi đầy, đi cổng
-// và thoát vào lại giữ tiến độ, mục tiêu đã đạt sẵn) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
+// và thoát vào lại giữ tiến độ, mục tiêu đã đạt sẵn), tổ đội người chơi (7.1: mời theo tên / bấm vào hồn sư, từ chối, chống spam
+// lời mời, tối đa 4, chia kinh nghiệm trong / ngoài 300 pixel và khác bản đồ, +5% mỗi người, giảm chênh cấp từng người, 40/20
+// trong đội võ hồn, ưu tiên nhặt cả tổ đội, rời / đuổi / chuyển trưởng nhóm / giải tán, rời game quá lâu) cần server bật hook
+// kiểm thử: GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
@@ -53,7 +56,8 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
-  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD } from "../../shared/data.ts";
+  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
+  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -113,6 +117,7 @@ async function enter(b){
   b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
   b.room.onMessage("enhancedcore",m=>{b.coreUp=m;}); // kết quả nâng cấp hồn hạch (5.3)
   b.npc=null; b.room.onMessage("npc",m=>{b.npc=m;}); // server cho mở hộp thoại NPC (6.1)
+  b.party=null; b.partyMsgs=0; b.room.onMessage("party",m=>{b.party=m; b.partyMsgs++;}); // khung tổ đội (7.1)
   b.quest=null; b.questMsgs=0; b.room.onMessage("quest",m=>{b.quest=m; b.questMsgs++;}); // tiến độ nhiệm vụ tân thủ (6.2)
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
   b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
@@ -2933,6 +2938,7 @@ if((await test(C,"ping"))?.enabled){
   C.mapId=(await post("/api/me",{token:C.token})).mapId; await enter(C); await waitFor(()=>me());
   ok(Math.abs(me().x-7.5*16)<1&&Math.abs(me().y-31.5*16)<1,`rời rồi vào lại: vị trí mới ở Ngoại vi đã lưu (${me().x},${me().y})`);
 }
+if((await test(C,"ping"))?.enabled) await partyTest(C);
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
 process.exit(fails?1:0);
@@ -3047,6 +3053,145 @@ async function npcTown(){
   const bk=bagKey(C); await C.room.leave(); await sleep(400);
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+}
+
+/**
+ * 7.1: tổ đội người chơi. 5 bot mới ở Thánh Hồn Thôn (P1–P5) và bot C (đang ở bản đồ khác). Hàm thuần partyXpShare; mời theo tên /
+ * theo sid (bấm vào hồn sư), từ chối, mời lại cùng người, mời quá nhanh, đủ 4 người, người đã có đội; chia kinh nghiệm: 2 người trong
+ * 300 pixel (+5%), người ngoài bán kính và người khác bản đồ không nhận, 3 người, giảm chênh cấp theo từng người, 40/20 cho võ hồn
+ * không ra trận, một mình; ưu tiên nhặt hồn hoàn / hồn cốt / hồn hạch cho cả tổ đội, người ngoài đội không nhặt được; trưởng nhóm rời
+ * thì chuyển, đuổi, nhường, còn 1 người thì giải tán; rời game quá PARTY_OFFLINE_SECS giây thì ra khỏi đội.
+ */
+async function partyTest(C){
+  console.log("[7.1] tổ đội người chơi: mời, chia kinh nghiệm, ưu tiên nhặt, rời / đuổi / chuyển trưởng nhóm");
+  ok(partyXpShare(1)===1&&Math.abs(partyXpShare(2)-0.525)<1e-9&&Math.abs(partyXpShare(3)-1.1/3)<1e-9&&Math.abs(partyXpShare(4)-0.2875)<1e-9&&PARTY_MAX===4,
+    "partyXpShare: 1 người 100%, 2 người 52,5%, 3 người 36,7%, 4 người 28,75% (tổng +5% mỗi người thêm)");
+  const P=[];
+  for(let i=1;i<=5;i++) P.push(await bot(`Đội ${i}`,"bich_lan_xa_hoang",{sex:i%2,hair:i%4,hairCol:i,outfitCol:i%6}));
+  const [P1,P2,P3,P4,P5]=P, meP=b=>b.room.state.players.get(b.room.sessionId);
+  await waitFor(()=>P.every(b=>b.party&&meP(b)&&b.owned),3000);
+  ok(P.every(b=>b.party?.id===0&&b.party.members.length===0),"chưa có tổ đội: khung tổ đội trống");
+  /** Gửi `party {op, …}` từ `b`; chờ khung tổ đội của `w` (mặc định chính `b`) đổi hoặc `b` nhận một dòng log. Trả các dòng log mới. */
+  async function pact(b,op,extra={},w=b){ const n=w.partyMsgs, l=b.logs.length; b.room.send("party",{op,...extra}); await waitFor(()=>w.partyMsgs>n||b.logs.length>l,2000); await sleep(120); return b.logs.slice(l).join(" | "); }
+  const names=b=>(b.party?.members??[]).map(m=>m.name);
+  // ---- mời, từ chối, chống spam ----
+  let r=await pact(P1,"invite",{name:P2.name},P2);
+  ok(P2.party?.invites.some(i=>i.name===P1.name&&i.secs>0&&i.secs<=PARTY_INVITE_SECS)&&/mời bạn vào tổ đội/.test(P2.logs.join(" ")),`P2 nhận lời mời của P1 (${r})`);
+  await pact(P2,"accept",{name:P1.name}); await waitFor(()=>P1.party?.members.length===2);
+  ok(P1.party?.id>0&&P1.party.id===P2.party?.id&&same(names(P1),[P1.name,P2.name])&&P1.party.members[0].leader&&P2.party.invites.length===0,
+    `P2 vào đội: ${names(P1).join(", ")}, P1 trưởng nhóm`);
+  ok(P1.party.members.find(m=>m.name===P2.name)?.sid===P2.room.sessionId,"thành viên cùng phòng có sid (đánh dấu trên bản đồ nhỏ)");
+  r=await pact(P1,"invite",{sid:P3.room.sessionId},P3); // bấm vào hồn sư cùng phòng
+  ok(P3.party?.invites.some(i=>i.name===P1.name),`mời bằng cách bấm vào hồn sư (sid): ${r}`);
+  await pact(P1,"invite",{name:P4.name},P4);
+  await pact(P4,"decline",{name:P1.name},P1);
+  ok(P4.party?.invites.length===0&&/từ chối lời mời/.test(P1.logs.join(" ")),"P4 từ chối: P1 được báo");
+  r=await pact(P1,"invite",{name:P4.name}); ok(/Vừa mời người này rồi/.test(r),`mời lại ngay người vừa từ chối: ${r}`);
+  r=await pact(P1,"invite",{name:C.name}); ok(/mời quá nhanh/.test(r),`mời liền 4 lần: bị chặn như chat (${r})`);
+  r=await pact(P1,"invite",{name:"Không Có "+RUN}); ok(/Không có hồn sư nào/.test(r),`mời tên không có trong game: ${r}`);
+  r=await pact(P1,"invite",{name:P1.name}); ok(/tự mời/.test(r),"không tự mời chính mình");
+  await test(P1,"party",{pop:"rlreset"});
+  await pact(P3,"accept",{name:P1.name}); await waitFor(()=>P1.party?.members.length===3);
+  await pact(P1,"invite",{name:C.name},C); await pact(C,"accept",{name:P1.name}); await waitFor(()=>P1.party?.members.length===4);
+  ok(P1.party?.members.length===4&&C.party?.id===P1.party.id,`4 người: ${names(P1).join(", ")}`);
+  const cRow=P1.party.members.find(m=>m.name===C.name);
+  ok(cRow&&!cRow.sid&&cRow.map===C.room.state.mapId&&!cRow.off,`thành viên ở bản đồ khác: không có sid, ghi bản đồ ${cRow?.map}`);
+  await sleep(700); // khung tổ đội cập nhật sinh lực mỗi 0,5 giây
+  ok(P1.party.members.every(m=>m.maxHp>0&&m.level>0),"khung tổ đội có cấp và sinh lực võ hồn ra trận của mọi thành viên");
+  r=await pact(P1,"invite",{name:P5.name}); ok(/đủ 4 người/.test(r)&&!(P5.party?.invites.length),`mời người thứ 5: ${r}`);
+  r=await pact(P5,"invite",{name:P2.name}); ok(/tổ đội khác/.test(r),`mời người đã có đội: ${r}`);
+  r=await pact(P4,"accept",{name:P1.name}); ok(/không còn hiệu lực/.test(r),`chấp nhận lời mời đã từ chối: ${r}`);
+  r=await pact(P2,"kick",{name:P3.name}); ok(/Chỉ trưởng nhóm/.test(r),`thành viên không đuổi được: ${r}`);
+  // ---- chia kinh nghiệm ----
+  const Y=400, X0=beastStats(Y).xp, LV=8;
+  /** Đưa bot tới (x, y) nếu đứng được (hook goto). */
+  const place=async(b,x,y)=>{ await test(b,"goto",{x,y}); return Math.hypot(meP(b).x-x,meP(b).y-y)<1; };
+  /** Tìm chỗ đứng được cách (x0, y0) khoảng `d` pixel và đưa bot tới. */
+  async function near(b,x0,y0,d){
+    for(let a=0;a<16;a++){ const t=a*Math.PI/8; for(const k of [1,1.1,0.9,1.2]){ const x=x0+Math.cos(t)*d*k, y=y0+Math.sin(t)*d*k; if(!blocked(x,y)&&await place(b,x,y)) return true; } }
+    return false;
+  }
+  const bx=meP(P1).x, by=meP(P1).y;
+  ok(await near(P2,bx,by,40)&&await near(P3,bx,by,PARTY_XP_RANGE+80),`P2 cách P1 khoảng 40 pixel, P3 ngoài ${PARTY_XP_RANGE} pixel`);
+  const benchOf=b=>b.owned.list.find(v=>v.rowId!==b.owned.active&&b.owned.team.includes(v.rowId));
+  /** Đặt võ hồn ra trận cấp `lv` (kèm đủ hồn hoàn để không bình cảnh), võ hồn còn lại trong đội cấp LV, kinh nghiệm 0. */
+  async function reset(b,lv=LV){
+    const bn=benchOf(b);
+    await test(b,"set",{rowId:b.owned.active,level:lv,xp:0,rings:Array(Math.floor(lv/10)).fill(Y)});
+    if(bn) await test(b,"set",{rowId:bn.rowId,level:LV,xp:0,rings:[]});
+  }
+  const xpNow=b=>({a:meP(b).xp,b:benchOf(b)?.xp??0});
+  /** P1 hạ một hồn thú Y năm ngay dưới chân (hook beast + slay, qua đúng killBeast); trả kinh nghiệm từng bot sau đó. */
+  async function killY(list){
+    for(const b of list) await reset(b,b.lv??LV);
+    await test(P1,"clear"); await test(P1,"beast",{years:Y}); const k=await test(P1,"slay");
+    await sleep(250); for(const b of list){ const n=b.ownedMsgs; b.room.send("vohons"); await waitFor(()=>b.ownedMsgs>n); }
+    return { k, got:list.map(b=>xpNow(b)) };
+  }
+  const exp=(n,lv,share=XP_SHARE_ACTIVE)=>Math.round(X0*partyXpShare(n)*xpLevelScale(lv,beastLevel(Y))*share);
+  ok(exp(1,LV)<xpNeed(LV)&&beastLevel(Y)>LV-10,`thử với hồn thú ${formatYears(Y)} (${X0} kinh nghiệm gốc), võ hồn cấp ${LV}: không lên cấp, không giảm chênh cấp`);
+  let kk=await killY([P1,P2,P3,C]);
+  const [g1,g2,g3,gc]=kk.got;
+  ok(kk.k?.bid&&g1.a===exp(2,LV)&&g2.a===exp(2,LV),`2 người trong ${PARTY_XP_RANGE} pixel: mỗi người ${g1.a}/${g2.a} = ${X0} × 52,5% × 40% (một mình ${exp(1,LV)})`);
+  ok(g1.b===exp(2,LV,XP_SHARE_BENCH)&&g2.b===exp(2,LV,XP_SHARE_BENCH),`võ hồn không ra trận mỗi người nhận 20%: ${g1.b}/${g2.b}`);
+  ok(g3.a===0&&g3.b===0,`P3 ngoài ${PARTY_XP_RANGE} pixel không nhận (${g3.a})`);
+  ok(gc.a===0&&gc.b===0,`C ở ${MAPS[C.room.state.mapId].name} (khác bản đồ) không nhận (${gc.a})`);
+  ok(/Tổ đội 2 người chia kinh nghiệm/.test(P2.logs.join(" ")),"đồng đội được báo phần chia kinh nghiệm");
+  // 3 người, P2 cao hơn hồn thú 15 cấp: giảm 50% riêng phần của P2.
+  ok(await near(P3,bx,by,60),"P3 vào trong bán kính");
+  P2.lv=25; kk=await killY([P1,P2,P3]); P2.lv=LV;
+  ok(kk.got[0].a===exp(3,LV)&&kk.got[2].a===exp(3,LV)&&kk.got[1].a===exp(3,25),
+    `3 người: ${kk.got.map(x=>x.a).join("/")}; P2 cấp 25 giảm 50% theo chênh cấp của riêng mình (${exp(3,25)})`);
+  // ---- nhiệm vụ 6.2: hạ hồn thú cùng đội tính cho đồng đội được chia kinh nghiệm ----
+  { const zone=tiled.layers.flatMap(l=>l.objects??[]).find(o=>o.type==="zone"&&o.name===questChain(QUEST_STARTER).steps[1].goals[0].zone);
+    const step=questChain(QUEST_STARTER).steps.findIndex(s=>s.goals.some(g=>g.k==="kill"&&g.map===st.mapId));
+    const zx=zone.x+zone.width/2, zy=zone.y+zone.height/2;
+    ok(step>=0&&(await place(P1,zx,zy)||await near(P1,zx,zy,20)),`P1 ở ${zone.name} (bài ${step+1} cần hạ hồn thú ở đây)`);
+    const placed=await near(P2,meP(P1).x,meP(P1).y,30)&&await near(P3,meP(P1).x,meP(P1).y,PARTY_XP_RANGE+80);
+    const far=Math.hypot(meP(P3).x-meP(P1).x,meP(P3).y-meP(P1).y);
+    ok(placed&&far>PARTY_XP_RANGE,`P2 đứng cạnh P1, P3 cách ${Math.round(far)} pixel (ngoài bán kính)`);
+    for(const b of [P1,P2,P3]) await test(b,"quest",{step,accepted:true,prog:[0]});
+    await test(P1,"clear"); await test(P1,"beast",{years:Y}); await test(P1,"slay");
+    const pq=await Promise.all([P1,P2,P3].map(b=>test(b,"quest")));
+    ok(same(pq.map(q=>q.quest.prog[0]),[1,1,0]),`nhiệm vụ "${questChain(QUEST_STARTER).steps[step].name}": người hạ +1, đồng đội trong bán kính +1, đồng đội ngoài bán kính 0 (${pq.map(q=>q.quest.prog[0]).join("/")})`);
+    for(const b of [P1,P2,P3]) await test(b,"quest",{step:0,accepted:false,prog:[]});
+    await place(P1,bx,by); await near(P2,bx,by,40); }
+  // ---- ưu tiên nhặt cho cả tổ đội ----
+  await test(P1,"core",{r:0,stars:2}); await test(P1,"bone",{r:0});
+  await test(P1,"clear"); await test(P1,"beast",{years:1200}); const kd=await test(P1,"slay");
+  await test(P1,"core",{r:100}); await test(P1,"bone",{r:-1});
+  await sleep(200);
+  const drops=[]; P2.room.state.drops.forEach((d,id)=>{ if(Math.hypot(d.x-kd.x,d.y-kd.y)<30&&d.owner===P1.room.sessionId&&d.years===kd.years) drops.push({id,item:d.item,party:d.party}); });
+  ok(drops.length===3&&drops.every(d=>d.party===P1.party.id),`hồn hoàn, hồn cốt, hồn hạch rơi ưu tiên P1 kèm tổ đội ${P1.party.id} (${drops.map(d=>d.item||"hồn hoàn").join(", ")})`);
+  ok(await near(P4,kd.x,kd.y,4),"P4 (ngoài đội) đứng cạnh đồ rơi");
+  { const l=P4.logs.length; P4.room.send("pickup"); await waitFor(()=>P4.logs.length>l); ok(/thuộc về tổ đội của người hạ/.test(P4.logs.at(-1)),`P4 ngoài đội không nhặt được: ${P4.logs.at(-1)}`); }
+  ok(await near(P2,kd.x,kd.y,4),"P2 (đồng đội) đứng cạnh đồ rơi");
+  let picked=0; // hồn hoàn 400 năm của các lần hạ ở trên cũng nằm đây (cùng ưu tiên tổ đội): nhặt hết
+  for(let i=0;i<drops.length+3;i++){ const n=P2.bagMsgs??0; P2.room.send("pickup"); if(await waitFor(()=>(P2.bagMsgs??0)>n,1500)) picked++; await sleep(100); }
+  const has=c=>looseOf(P2).some(i=>i.code===c&&(c===CORE_ITEM||i.years===1200));
+  ok(picked>=drops.length&&has(RING_ITEM)&&has(BONE_ITEM)&&has(CORE_ITEM),`P2 nhặt được cả ${picked} món của P1 trong 15 giây đầu (hồn hoàn, hồn cốt, hồn hạch)`);
+  // ---- trưởng nhóm rời thì chuyển, đuổi, nhường, giải tán ----
+  await pact(P1,"leave",{},P2); await waitFor(()=>P2.party?.members.length===3);
+  ok(P1.party?.id===0&&P2.party?.members.find(m=>m.leader)?.name===P2.name&&/trở thành trưởng nhóm/.test(P2.logs.join(" ")),
+    `trưởng nhóm P1 rời: P2 thành trưởng nhóm (${names(P2).join(", ")})`);
+  { // P1 giờ một mình: so +5% (2 người nhận tổng 105% của một mình).
+    const l=P1.logs.length, solo=await killY([P1]);
+    ok(solo.got[0].a===exp(1,LV)&&Math.abs(2*exp(2,LV)-1.05*exp(1,LV))<=1,`một mình nhận ${solo.got[0].a}; 2 người cùng chia tổng ${2*exp(2,LV)} ≈ 105%`);
+    ok(!/Tổ đội/.test(P1.logs.slice(l).join(" ")),"không còn tổ đội: không chia kinh nghiệm");
+  }
+  await pact(P2,"kick",{name:P3.name},P3); await waitFor(()=>P3.party?.id===0);
+  ok(P3.party?.id===0&&/mời ra khỏi tổ đội/.test(P3.logs.join(" "))&&same(names(P2),[P2.name,C.name]),`trưởng nhóm đuổi P3: còn ${names(P2).join(", ")}`);
+  await pact(P2,"lead",{name:C.name},C); await waitFor(()=>C.party?.members.find(m=>m.leader)?.name===C.name);
+  ok(C.party?.members.find(m=>m.leader)?.name===C.name,"nhường trưởng nhóm cho C (ở bản đồ khác)");
+  await pact(C,"leave",{},P2); await waitFor(()=>P2.party?.id===0);
+  ok(P2.party?.id===0&&C.party?.id===0&&/giải tán/.test(P2.logs.join(" ")),"còn 1 người: tổ đội giải tán");
+  // ---- rời game quá lâu ----
+  await pact(P4,"invite",{name:P5.name},P5); await pact(P5,"accept",{name:P4.name}); await waitFor(()=>P4.party?.members.length===2);
+  await P5.room.leave(); await waitFor(()=>P4.party?.members.find(m=>m.name===P5.name)?.off,2000);
+  ok(P4.party?.members.find(m=>m.name===P5.name)?.off===true,"P5 rời game: vẫn trong đội, khung ghi đã rời");
+  const ag=await test(P4,"party",{pop:"age",name:P5.name,s:PARTY_OFFLINE_SECS}); await waitFor(()=>P4.party?.id===0,2000);
+  ok(ag?.aged&&P4.party?.id===0&&/rời game quá lâu/.test(P4.logs.join(" ")),`quá ${PARTY_OFFLINE_SECS} giây không vào lại: ra khỏi đội, tổ đội giải tán`);
+  for(const b of [P1,P2,P3,P4]) await b.room.leave();
 }
 
 /**
