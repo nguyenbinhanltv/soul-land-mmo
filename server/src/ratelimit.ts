@@ -32,6 +32,14 @@ const CHAT_REPEAT_MS = 30_000;
 /** Người chơi im lặng quá 10 phút thì xóa trạng thái chat của họ khỏi RAM. */
 const CHAT_FORGET_MS = 10 * 60_000;
 
+// ---------- Lời mời tổ đội (bước 7.1) ----------
+/** Token bucket: mời liền tối đa 3 lần… */
+const INVITE_BURST = 3;
+/** …sau đó hồi 1 lượt mỗi 10 giây. */
+const INVITE_REFILL_MS = 10_000;
+/** Không mời lại cùng một người trong 30 giây (kể cả khi người đó vừa từ chối). */
+const INVITE_REPEAT_MS = 30_000;
+
 /** Dọn các mục cũ mỗi 5 phút để bộ nhớ không phình ra. */
 const SWEEP_MS = 5 * 60_000;
 
@@ -149,12 +157,38 @@ export function chatCheck(key: string | number, raw: unknown, now = Date.now()):
   return { text };
 }
 
+// ---------- Lời mời tổ đội ----------
+interface InviteEntry { tokens: number; at: number; last: Map<number, number>; }
+const invites = new Map<number, InviteEntry>();
+
+/**
+ * Kiểm tra một lời mời tổ đội của tài khoản `key` tới tài khoản `target` (bước 7.1): chống spam như chat. Hợp lệ -> null (đã tính
+ * lượt). Bị chặn -> { error } để báo riêng cho người mời. Gọi sau mọi bước kiểm tra luật (lời mời không hợp lệ không tốn lượt).
+ */
+export function inviteCheck(key: number, target: number, now = Date.now()): { error: string } | null {
+  let e = invites.get(key);
+  if (!e) { e = { tokens: INVITE_BURST, at: now, last: new Map() }; invites.set(key, e); }
+  e.tokens = Math.min(INVITE_BURST, e.tokens + (now - e.at) / INVITE_REFILL_MS); e.at = now;
+  const prev = e.last.get(target);
+  if (prev !== undefined && now - prev < INVITE_REPEAT_MS) return { error: `Vừa mời người này rồi: đợi ${Math.ceil((INVITE_REPEAT_MS - (now - prev)) / 1000)} giây rồi mời lại.` };
+  if (e.tokens < 1) return { error: `Bạn mời quá nhanh. Đợi ${Math.ceil(((1 - e.tokens) * INVITE_REFILL_MS) / 1000)} giây rồi mời tiếp.` };
+  e.tokens -= 1; e.last.set(target, now);
+  return null;
+}
+
+/** Hook kiểm thử (`test {op: "party", pop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm lời mời của một tài khoản. */
+export function inviteReset(key: number) { invites.delete(key); }
+
 // ---------- Dọn dẹp ----------
 export function sweep(now = Date.now()) {
   byPair.sweep(now); byName.sweep(now); byIp.sweep(now);
   for (const [k, e] of chat) if (now - Math.max(e.at, e.lastAt) > CHAT_FORGET_MS) chat.delete(k);
+  for (const [k, e] of invites) {
+    for (const [t, at] of e.last) if (now - at >= INVITE_REPEAT_MS) e.last.delete(t);
+    if (!e.last.size && now - e.at > CHAT_FORGET_MS) invites.delete(k);
+  }
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); chat.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); chat.clear(); invites.clear(); }

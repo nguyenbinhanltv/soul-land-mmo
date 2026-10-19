@@ -25,11 +25,12 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
   npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
-  ARENA } from "../../../shared/data.ts";
+  PARTY_XP_RANGE, partyXpShare, ARENA } from "../../../shared/data.ts";
 import { loadMap, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
-import { chatCheck } from "../ratelimit.ts";
+import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
+import * as party from "../party.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
 
 export interface PData {
@@ -85,6 +86,7 @@ export interface PData {
   // thường trúng liên tiếp và số giây từ đòn trước (bộ Hạo Thiên 4 món), giây còn lại của tăng tốc đánh (Linh Miêu 4 món), chờ
   // trước lần hồi hồn lực kế tiếp (Bá Vương Long 4 món). Không lưu DB.
   coreFx: CoreFx; crit: number; critMult: number; combo: number; comboT: number; haste: number; shockMpCd: number;
+  partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
   // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
   quest: QuestProgress;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
@@ -241,6 +243,9 @@ export class MapRoom extends Room<MapState> {
   /** Thông báo toàn server (presence "announce", mục 6): hiện như tin hệ thống trong chat. */
   announceSub = (m: { text: string }) => this.broadcast("chat", { name: "Hệ thống", text: String(m?.text ?? "") });
   /** Đá phiên trùng tài khoản ở mọi phòng (presence, mục 6). */
+  /** Tổ đội người chơi (presence PARTY_TOPIC, 7.1): gửi lại khung tổ đội và thông báo cho người của phòng này có trong `to`. */
+  partySub = (n: party.PartyNote) => this.partyNote(n);
+  partyT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
   };
@@ -327,6 +332,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe("kick", this.kickSub);
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
     this.presence.subscribe(ANNOUNCE_TOPIC, this.announceSub);
+    this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
     // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
     const now = Date.now(), active = kingSlotNow(mapId, now);
@@ -371,6 +377,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
     this.onMessage("buy", (c, m: { code: unknown; qty: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty));
     this.onMessage("sell", (c, m: { id: unknown; qty: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty));
+    this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
     this.onMessage("quest", (c, m: { op: unknown }) => this.questAction(c.sessionId, m?.op)); // nhiệm vụ (6.2)
     this.onMessage("arena", (c, m: { op: unknown }) => this.arenaAction(c.sessionId, m?.op)); // Đại Đấu Hồn Trường (7.2)
     this.onMessage("chat", (c, m: { text: string }) => {
@@ -403,13 +410,17 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
       claims: auth.claims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
-      coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0,
+      coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), arenaBusy: false, arenaTopAt: 0 };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.recalc(client.sessionId, true);
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
+    // Tổ đội (7.1): có mặt trong game (tổ đội giữ nguyên khi đi cổng); đồng đội ở mọi bản đồ thấy đổi bản đồ / vào lại.
+    this.partyPublish(party.goOnline({ acc: auth.accountId, name: p.name, sid: client.sessionId, mapId: this.state.mapId, roomId: this.roomId,
+      level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead }));
+    this.sendParty(client.sessionId, true);
     // Thú vương (BĐ5): người vào giữa lúc chờ thì nhận đếm ngược còn lại; thú vương đang ở bản đồ này thì nhận thời gian trước khi rút đi.
     const w = this.bossWarn;
     if (w && w.at > Date.now()) client.send("boss", this.bossMsg(w, "warn", (w.at - Date.now()) / 1000));
@@ -425,6 +436,8 @@ export class MapRoom extends Room<MapState> {
       // xong hay đạn còn bay hạ hồn thú, cộng vào nhân vật sau khi write() đã chụp dữ liệu, rồi mất khi pdata bị xóa.
       if (d.absorbing) { d.absorbing = null; p.absorb = 0; }
       this.freeze(id);
+      // Tổ đội (7.1): vẫn trong đội PARTY_OFFLINE_SECS giây (đi cổng, vào lại); quá thì party.sweep cho ra khỏi đội.
+      this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
       // không ghi gì nữa; transaction lỗi hoặc chưa đi cổng thì lưu như thường (có lớp chặn WHERE map_id).
       await this.chain(d, () => (d.travelled ? undefined : this.write(id)));
@@ -441,6 +454,8 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe("kick", this.kickSub);
     this.presence.unsubscribe(BOSS_TOPIC, this.bossSub);
     this.presence.unsubscribe(ANNOUNCE_TOPIC, this.announceSub);
+    this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
+    for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
     const ks = this.king?.seat;
     if (ks?.owner === this.roomId) {
@@ -824,7 +839,9 @@ export class MapRoom extends Room<MapState> {
   pickup(id: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
-    const mine = (dr: DropState) => !dr.owner || dr.owner === id || dr.ownerTtl <= 0;
+    const mine = (dr: DropState) => this.canLoot(dr, id);
+    // Chưa được nhặt: còn bao lâu, của ai (người hạ hay tổ đội của người hạ, 7.1).
+    const lock = (dr: DropState, what: string) => `${what} thuộc về ${dr.party ? "tổ đội của " : ""}người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`;
     let best: [string, DropState] | undefined, bd = PICKUP_RANGE;
     for (const [did, dr] of this.state.drops.entries()) {
       const dd = Math.hypot(dr.x - p.x, dr.y - p.y);
@@ -835,7 +852,7 @@ export class MapRoom extends Room<MapState> {
     // Từ 4.1: hồn cốt dưới đất, cùng luật ưu tiên người hạ như hồn hoàn; túi đầy thì báo và hồn cốt ở lại.
     if (dr.item === BONE_ITEM) {
       const beast = BEASTS[dr.species]?.id ?? "", slot = BONE_SLOTS[dr.slot]?.id ?? BONE_SLOTS[0].id, name = `hồn cốt ${boneName(beast, slot, dr.years)}`;
-      if (dr.owner && dr.owner !== id && dr.ownerTtl > 0) return warn(`Hồn cốt thuộc về người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`);
+      if (!mine(dr)) return warn(lock(dr, "Hồn cốt"));
       if (!this.addBone(d, dr.years, beast, slot)) return warn(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được ${name}.`);
       this.state.drops.delete(did);
       this.log(id, `Nhặt ${name} vào túi đồ (B để xem chỉ số).`, TIERS[dr.tier].glow);
@@ -845,7 +862,7 @@ export class MapRoom extends Room<MapState> {
     // Từ 5.1: hồn hạch dưới đất, cùng luật ưu tiên người hạ như hồn hoàn; túi đầy thì báo và hồn hạch ở lại.
     if (dr.item === CORE_ITEM) {
       const core = this.coreDrops.get(did), name = coreName(CORE_SETS[dr.cset]?.id ?? "", dr.stars);
-      if (dr.owner && dr.owner !== id && dr.ownerTtl > 0) return warn(`${name} thuộc về người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`);
+      if (!mine(dr)) return warn(lock(dr, name));
       if (!core) { this.state.drops.delete(did); return warn(`${name} đã tan biến.`); } // không xảy ra: mọi hồn hạch rơi đều có trong coreDrops
       if (!this.addCore(d, core.stars, core.data)) return warn(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được ${name}.`);
       this.state.drops.delete(did); this.coreDrops.delete(did);
@@ -856,7 +873,7 @@ export class MapRoom extends Room<MapState> {
     // Từ 3.4: mảnh võ hồn rơi xuống đất (túi người hạ đã đầy), cùng luật ưu tiên; túi chỉ nhận một phần thì phần còn lại ở lại.
     if (dr.item) {
       const def = itemDef(dr.item), name = def?.name ?? "vật phẩm lạ";
-      if (dr.owner && dr.owner !== id && dr.ownerTtl > 0) return warn(`${name} thuộc về người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`);
+      if (!mine(dr)) return warn(lock(dr, name));
       const got = this.addItem(d, dr.item, dr.qty);
       if (!got) return warn(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được ${name}.`);
       if (got < dr.qty) dr.qty -= got; else this.state.drops.delete(did);
@@ -864,7 +881,7 @@ export class MapRoom extends Room<MapState> {
       this.sendBag(id);
       return;
     }
-    if (dr.owner && dr.owner !== id && dr.ownerTtl > 0) return warn(`Hồn hoàn ${label} thuộc về người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`);
+    if (!mine(dr)) return warn(lock(dr, `Hồn hoàn ${label}`));
     if (!this.addRing(d, dr.years)) return warn(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới nhặt được hồn hoàn ${label}.`);
     this.state.drops.delete(did);
     this.log(id, `Nhặt hồn hoàn ${label} (${TIERS[dr.tier].color}) vào túi đồ. Mở túi (B) để hấp thụ.`, TIERS[dr.tier].glow);
@@ -1046,9 +1063,9 @@ export class MapRoom extends Room<MapState> {
 
   // ---------- Đại Đấu Hồn Trường: xếp hàng ở NPC, bảng xếp hạng (mục 5.9, bước 7.2; trận đấu ở ArenaRoom) ----------
   /**
-   * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến. Người
-   * đang xếp hàng mà rơi vào một trong các trạng thái này thì vòng ghép bỏ qua (vẫn giữ chỗ). Tổ đội người chơi (7.1) chưa có: khi có
-   * thì "đang trong tổ đội" cũng chặn ở đây (chờ chốt).
+   * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến, đang trong
+   * tổ đội người chơi (7.1; đấu hồn là 1v1, rời tổ đội rồi mới xếp hàng). Người đang xếp hàng mà rơi vào một trong các trạng thái này
+   * thì vòng ghép bỏ qua (vẫn giữ chỗ).
    */
   arenaBusy(id: string): string {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return "Không có hồn sư.";
@@ -1057,6 +1074,7 @@ export class MapRoom extends Room<MapState> {
     if (p.dead) return "Đã gục ngã.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn.";
     if (d.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
+    if (party.partyIdOf(d.accountId)) return "Đang trong tổ đội: rời tổ đội rồi mới đấu hồn 1v1.";
     return "";
   }
 
@@ -1239,6 +1257,18 @@ export class MapRoom extends Room<MapState> {
       const boss = typeof o.boss === "string" ? bossIndex(o.boss) : -1; // từ BĐ4: tinh anh theo mã BOSSES (không thuộc ô tinh anh nào)
       const bid = this.addBeast(0, yearsOf(0), boss >= 0 ? boss : sp, p.x + int(o.dx, -200, 200, 0), p.y + int(o.dy, -200, 200, 0), boss >= 0 ? 1 : 0);
       this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; this.bdata.get(bid)!.skills = []; // không tung chiêu báo trước
+    }
+    else if (op === "slay") {
+      // 7.1: hạ hồn thú gần nhất như do người gọi ra đòn cuối (qua killBeast: kinh nghiệm chia tổ đội, đồ rơi, Hồn Tệ).
+      const x = nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
+    }
+    else if (op === "party") {
+      // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
+      // mọi `pop` trả khung tổ đội của người gọi.
+      const pop = String(o.pop ?? "");
+      if (pop === "rlreset") inviteReset(d.accountId);
+      else if (pop === "age") { out = { aged: party._ageOffline(String(o.name ?? ""), int(o.s, 0, 86400, 0)) }; this.partyPublish(party.sweep(Date.now())); }
+      out = { ...out, view: party.partyView(d.accountId, this.roomId, Date.now()).view };
     }
     else if (op === "goto") {
       const x = Number(o.x), y = Number(o.y);
@@ -2301,6 +2331,9 @@ export class MapRoom extends Room<MapState> {
    * Hạ hồn thú: kinh nghiệm, Hồn Tệ, và hồn hoàn rơi xuống đất mang đúng số năm của hồn thú (mục 5.2); người hạ được ưu tiên nhặt.
    * Tinh anh (mục 5.4, BĐ4): kinh nghiệm x ELITE.xp cho người hạ; hồn hoàn và hồn cốt ưu tiên người đóng góp nhiều nhất còn trong
    * phòng; tỉ lệ hồn cốt x ELITE.bone, hồn cốt mang loài gốc; chắc chắn rơi 1 hồn hạch (từ 5.1).
+   * Tổ đội (mục 5.9, bước 7.1): kinh nghiệm (kể cả x ELITE.xp của tinh anh) chia cho người hạ và đồng đội trong PARTY_XP_RANGE
+   * (partyNear), mỗi người partyXpShare(n) phần gốc, rồi từng người tự giảm theo chênh cấp và chia 40/20 (rewardKill). Hồn Tệ, mảnh
+   * vào túi vẫn chỉ của người hạ. Đồ rơi ưu tiên cả tổ đội của người được ưu tiên (newDrop chụp id tổ đội).
    */
   killBeast(bid: string, by: string) {
     const b = this.state.beasts.get(bid)!, e = this.bdata.get(bid)?.elite;
@@ -2311,7 +2344,14 @@ export class MapRoom extends Room<MapState> {
     this.questEvent(by, { k: "kill", map: this.state.mapId, zone });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
-    this.rewardKill(by, b.years, e ? ELITE.xp : 1);
+    const team = this.partyNear(by, b.x, b.y), share = partyXpShare(team.length);
+    for (const pid of team) this.rewardKill(pid, b.years, (e ? ELITE.xp : 1) * share);
+    // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
+    for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone });
+    if (team.length > 1) {
+      const names = team.map((pid) => this.state.players.get(pid)?.name ?? "").join(", ");
+      for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
+    }
     const coin = this.rewardCoin(by, b.tier);
     let owner = by;
     if (e) for (const [pid, v] of e.dmgBy) if (this.state.players.has(pid) && v > (e.dmgBy.get(owner) ?? 0)) owner = pid;
@@ -2319,9 +2359,7 @@ export class MapRoom extends Room<MapState> {
     drop.tier = b.tier; drop.years = b.years;
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: td.size + 10, col: td.glow });
-    const pick = owner === by ? `${DROP_OWNER_SECS} giây đầu chỉ bạn nhặt được (phím E).`
-      : `${DROP_OWNER_SECS} giây đầu thuộc ${this.state.players.get(owner)!.name} (đóng góp nhiều nhất).`;
-    this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${pick}`, td.glow);
+    this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${this.lootNote(owner, by)}`, td.glow);
     if (owner !== by) this.log(owner, `Bạn đóng góp nhiều nhất khi hạ ${name}: hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).`, td.glow);
     if (e) this.broadcast("elite", { k: "down", name, by: p.name, col: BOSSES[b.species]?.aura });
     this.rollShard(by, b.years, b.x, b.y);
@@ -2351,12 +2389,9 @@ export class MapRoom extends Room<MapState> {
     const did = uid("d");
     this.coreDrops.set(did, core); this.state.drops.set(did, drop);
     this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col });
-    const msg = `${coreName(core.data.set, core.stars)} rơi xuống đất!`, mine = `${DROP_OWNER_SECS} giây đầu chỉ bạn nhặt được (phím E).`;
-    if (owner === id) this.log(id, `${msg} ${mine}`, col);
-    else {
-      this.log(id, `${msg} ${DROP_OWNER_SECS} giây đầu thuộc ${this.state.players.get(owner)?.name ?? ""} (đóng góp nhiều nhất).`, col);
-      this.log(owner, `${msg} ${mine}`, col);
-    }
+    const msg = `${coreName(core.data.set, core.stars)} rơi xuống đất!`;
+    this.log(id, `${msg} ${this.lootNote(owner, id)}`, col);
+    if (owner !== id) this.log(owner, `${msg} ${this.lootNote(owner, owner)}`, col);
   }
 
   /**
@@ -2375,18 +2410,18 @@ export class MapRoom extends Room<MapState> {
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col: TIERS[tier].glow });
     const bone = `Hồn cốt ${boneName(BEASTS[species]?.id ?? "", BONE_SLOTS[slot].id, years)} rơi xuống đất!`;
-    const mine = `${DROP_OWNER_SECS} giây đầu chỉ bạn nhặt được (phím E).`;
-    if (owner === id) this.log(id, `${bone} ${mine}`, TIERS[tier].glow);
-    else {
-      this.log(id, `${bone} ${DROP_OWNER_SECS} giây đầu thuộc ${this.state.players.get(owner)?.name ?? ""} (đóng góp nhiều nhất).`, TIERS[tier].glow);
-      this.log(owner, `${bone} ${mine}`, TIERS[tier].glow);
-    }
+    this.log(id, `${bone} ${this.lootNote(owner, id)}`, TIERS[tier].glow);
+    if (owner !== id) this.log(owner, `${bone} ${this.lootNote(owner, owner)}`, TIERS[tier].glow);
   }
 
-  /** Đồ rơi tại (x, y): người hạ `owner` được ưu tiên nhặt DROP_OWNER_SECS giây, tồn tại DROP_TTL_SECS giây (mục 4, 5.2). */
+  /**
+   * Đồ rơi tại (x, y): người hạ `owner` được ưu tiên nhặt DROP_OWNER_SECS giây, tồn tại DROP_TTL_SECS giây (mục 4, 5.2). Từ 7.1 chụp
+   * tổ đội của `owner` lúc rơi: cả tổ đội cùng được ưu tiên (người vào đội sau lúc rơi thì không, người rời đội thì mất quyền).
+   */
   newDrop(x: number, y: number, owner: string) {
-    const drop = new DropState();
+    const drop = new DropState(), od = this.pdata.get(owner);
     drop.x = x; drop.y = y; drop.owner = owner; drop.ownerTtl = DROP_OWNER_SECS; drop.ttl = DROP_TTL_SECS;
+    drop.party = od ? party.partyIdOf(od.accountId) : 0;
     return drop;
   }
 
@@ -2409,7 +2444,7 @@ export class MapRoom extends Room<MapState> {
       const drop = this.map.standable(x + 8, y) ? this.newDrop(x + 8, y, id) : this.newDrop(x, y, id);
       drop.item = code; drop.qty = SHARD_QTY - got;
       this.state.drops.set(uid("d"), drop);
-      this.log(id, `Túi đồ đã đầy (${BAG_SLOTS} ô): ${drop.qty} ${def.name} rơi xuống đất, ${DROP_OWNER_SECS} giây đầu chỉ bạn nhặt được (phím E).`, "#ffb35c");
+      this.log(id, `Túi đồ đã đầy (${BAG_SLOTS} ô): ${drop.qty} ${def.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
     }
   }
 
@@ -3250,8 +3285,109 @@ export class MapRoom extends Room<MapState> {
     if (done.length) this.revive(id, done, "sau khi nghỉ ngoài trận");
   }
 
+  // ---------- Tổ đội người chơi (mục 5.9, bước 7.1; trạng thái và luật ở server/src/party.ts) ----------
+  /** Phát các thông báo tổ đội lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại khung tổ đội và dòng log. */
+  partyPublish(notes: party.PartyNote[]) { for (const n of notes) this.presence.publish(party.PARTY_TOPIC, n); }
+
+  /** Thông báo tổ đội trên presence: người của phòng này có trong `to` nhận dòng log (nếu có) và khung tổ đội mới. */
+  partyNote(n: party.PartyNote) {
+    if (!Array.isArray(n?.to)) return;
+    for (const [id, d] of this.pdata) {
+      if (!n.to.includes(d.accountId)) continue;
+      if (n.text) this.log(id, n.text, n.col);
+      this.sendParty(id, true);
+    }
+  }
+
+  /** Tin riêng "party" (khung tổ đội, party.partyView): chỉ gửi khi nội dung đổi, trừ khi `force`. */
+  sendParty(id: string, force = false) {
+    const d = this.pdata.get(id); if (!d) return;
+    const { view, key } = party.partyView(d.accountId, this.roomId, Date.now());
+    if (!force && key === d.partyKey) return;
+    d.partyKey = key;
+    this.clients.getById(id)?.send("party", view);
+  }
+
+  /**
+   * Thao tác tổ đội từ client `party {op, name?, sid?}` (7.1): `invite` (theo tên, hoặc `sid` của người cùng phòng khi bấm vào hồn sư),
+   * `accept` / `decline` (tên người mời), `leave`, `kick` / `lead` (trưởng nhóm, tên thành viên), `get` (xin khung tổ đội). Server kiểm
+   * tra mọi thứ trong party.ts; lời mời hợp lệ mới tính vào giới hạn tốc độ (ratelimit.inviteCheck, như chat). Lỗi báo riêng.
+   */
+  partyAction(id: string, m: unknown) {
+    const d = this.pdata.get(id); if (!d) return;
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
+    const warn = (text: string) => this.log(id, text, "#ffb35c");
+    let name = String(o.name ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
+    const now = Date.now(), acc = d.accountId;
+    let r: party.PartyResult;
+    if (op === "get") return this.sendParty(id, true);
+    if (op === "invite") {
+      if (typeof o.sid === "string" && o.sid) {
+        const t = this.state.players.get(o.sid);
+        if (!t) return warn("Hồn sư này không còn ở đây.");
+        name = t.name;
+      }
+      if (!name) return warn("Gõ tên hồn sư muốn mời, ví dụ /moi Đường Tam.");
+      const ok = party.inviteDeny(acc, name, now);
+      if ("error" in ok) return warn(ok.error);
+      const rl = inviteCheck(acc, ok.target, now);
+      if (rl) return warn(rl.error);
+      r = { notes: party.addInvite(acc, ok.target, now) };
+    }
+    else if (op === "accept") r = party.accept(acc, name, now);
+    else if (op === "decline") r = party.decline(acc, name, now);
+    else if (op === "leave") r = party.leave(acc);
+    else if (op === "kick") r = party.kick(acc, name);
+    else if (op === "lead") r = party.promote(acc, name);
+    else return;
+    if ("error" in r) { warn(r.error); return this.sendParty(id, true); }
+    this.partyPublish(r.notes);
+  }
+
+  /**
+   * Người cùng chia kinh nghiệm khi `by` hạ hồn thú ở (x, y) (mục 5.9): chính `by`, cùng các thành viên tổ đội của `by` trong phòng này
+   * (cùng bản đồ, cùng kênh), chưa gục, không đang chuyển bản đồ, cách chỗ hồn thú gục dưới PARTY_XP_RANGE pixel. Kênh khác của cùng
+   * bản đồ là phòng khác nên không tính.
+   */
+  partyNear(by: string, x: number, y: number) {
+    const d = this.pdata.get(by), pid = d ? party.partyIdOf(d.accountId) : 0;
+    const out = [by]; if (!pid) return out;
+    for (const [id, o] of this.pdata) {
+      const p = this.state.players.get(id);
+      if (id === by || !p || p.dead || o.travelling || party.partyIdOf(o.accountId) !== pid) continue;
+      if (Math.hypot(p.x - x, p.y - y) < PARTY_XP_RANGE) out.push(id);
+    }
+    return out;
+  }
+
+  /** Được nhặt đồ rơi `dr` lúc này không: không ai được ưu tiên, của mình, của tổ đội mình (7.1), hoặc hết DROP_OWNER_SECS giây. */
+  canLoot(dr: DropState, id: string) {
+    if (!dr.owner || dr.owner === id || dr.ownerTtl <= 0) return true;
+    const d = this.pdata.get(id);
+    return !!dr.party && !!d && party.partyIdOf(d.accountId) === dr.party;
+  }
+
+  /** Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). */
+  lootNote(owner: string, id: string) {
+    const d = this.pdata.get(owner), team = d && party.partyIdOf(d.accountId) ? "tổ đội " : "";
+    if (owner === id) return `${DROP_OWNER_SECS} giây đầu chỉ ${team ? "tổ đội của bạn" : "bạn"} nhặt được (phím E).`;
+    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (đóng góp nhiều nhất).`;
+  }
+
   // ---------- Vòng lặp ----------
   tick(dt: number) {
+    // Tổ đội (7.1): mỗi 0,5 giây ghi cấp / sinh lực vào party.ts (đồng đội ở bản đồ khác cũng thấy), gửi lại khung tổ đội khi đổi,
+    // dọn lời mời hết hạn và người rời game quá lâu.
+    this.partyT -= dt;
+    if (this.partyT <= 0) {
+      this.partyT = 0.5;
+      for (const [id, d] of this.pdata) {
+        const p = this.state.players.get(id);
+        if (p && !d.travelling) party.setLive(d.accountId, id, { level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead });
+      }
+      this.partyPublish(party.sweep(Date.now()));
+      for (const id of this.pdata.keys()) this.sendParty(id);
+    }
     // việc hẹn giờ (các nhát của hồn kỹ liên hoàn)
     if (this.timers.length) {
       const due: (() => void)[] = [];

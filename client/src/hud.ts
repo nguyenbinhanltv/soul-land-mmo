@@ -13,7 +13,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   QUESTS, questChain, questRewardText, type QuestStep, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, QuestMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -949,6 +949,123 @@ export function showPortal(info: PortalInfo | null, go: () => void) {
   el.hidden = false;
 }
 export function showPrompt(html: string | null) { const t = $("#prompt"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }
+
+// ---------- Tổ đội người chơi (mục 5.9, bước 7.1): khung tổ đội, lời mời, bảng thao tác khi bấm vào hồn sư ----------
+/** Thao tác tổ đội: chỉ gửi ý định `party {op, name?, sid?}`, server kiểm tra mọi thứ. */
+export interface PartyActions { send(op: string, name?: string, sid?: string): void; }
+/** Thẻ HTML với nội dung chữ (tên do người chơi đặt: không bao giờ chèn bằng innerHTML). */
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", text = "") {
+  const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e;
+}
+/** Nút bấm được bằng chuột và chạm (pointerdown, như thanh đội hình). */
+function pbtn(text: string, cls: string, fn: () => void, label?: string) {
+  const b = el("button", ("pbtn " + cls).trim(), text); b.type = "button";
+  if (label) { b.title = label; b.setAttribute("aria-label", label); }
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); e.stopPropagation(); fn(); });
+  return b;
+}
+let partyAt = 0;             // performance.now() lúc nhận tin "party" gần nhất (đếm ngược lời mời)
+let partyInviting = false;   // đang mở ô gõ tên để mời
+let partyOpenNow = false;    // vừa bấm "Mời…": lần vẽ này đặt focus vào ô gõ tên
+let partyDraft = "";         // chữ đang gõ trong ô mời: giữ lại khi khung vẽ lại (sinh lực đồng đội đổi)
+let partyLast: { v: PartyView; act: PartyActions } | null = null;
+/** Khung tổ đội gần nhất (null = chưa nhận). */
+export const partyNow = () => partyLast?.v ?? null;
+
+/**
+ * Khung tổ đội (tin riêng "party"), nằm dưới khung chỉ số: mỗi thành viên một dòng (trưởng nhóm ★, tên, cấp và võ hồn ra trận,
+ * thanh sinh lực võ hồn ra trận; ở bản đồ khác thì ghi tên bản đồ, đã rời game thì mờ), trưởng nhóm có nút nhường / mời ra cho
+ * từng thành viên, nút "Rời đội"; lời mời đang chờ có nút "Vào đội" / "Từ chối"; nút "Mời…" mở ô gõ tên (như lệnh chat /moi).
+ */
+export function renderParty(v: PartyView, act: PartyActions) {
+  partyLast = { v, act }; partyAt = performance.now();
+  const box = $("#party"), typing = !!document.activeElement?.closest("#party .pinv"); box.innerHTML = "";
+  const head = el("div", "phead");
+  head.append(el("b", "", v.id ? `Tổ đội ${v.members.length}/${v.max}` : "Tổ đội"));
+  const me = v.members.find((m) => m.me), lead = !!me?.leader;
+  if (!v.id || v.members.length < v.max)
+    head.append(pbtn(partyInviting ? "Đóng" : "Mời…", "", () => { partyInviting = !partyInviting; partyOpenNow = partyInviting; renderParty(v, act); }, "Mời hồn sư vào tổ đội"));
+  if (v.id) head.append(pbtn("Rời đội", "warn", () => act.send("leave"), "Rời tổ đội"));
+  box.append(head);
+  if (partyInviting) {
+    const f = el("form", "pinv"), inp = el("input"), go = el("button", "pbtn", "Mời");
+    inp.placeholder = "Tên hồn sư"; inp.maxLength = 20; inp.autocomplete = "off"; go.type = "submit";
+    f.append(inp, go);
+    inp.value = partyDraft;
+    inp.addEventListener("input", () => { partyDraft = inp.value; });
+    const done = () => { partyInviting = false; partyDraft = ""; inp.blur(); renderParty(v, act); };
+    f.addEventListener("submit", (e) => { e.preventDefault(); const n = inp.value.trim(); if (n) act.send("invite", n); done(); });
+    // Phím khi đang gõ tên không được điều khiển nhân vật (như ô chat).
+    inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Escape") done(); });
+    box.append(f);
+    if (typing || partyOpenNow) setTimeout(() => inp.focus(), 0); // chỉ lấy focus lúc vừa mở hoặc khi đang gõ dở
+    partyOpenNow = false;
+  }
+  for (const m of v.members) {
+    const row = el("div", "pmem" + (m.me ? " me" : "") + (m.off ? " off" : "") + (m.dead ? " dead" : ""));
+    const top = el("div", "ptop"), nm = el("span", "pname", (m.leader ? "★ " : "") + m.name), def = VOHON[m.vh];
+    if (m.leader) nm.title = "Trưởng nhóm";
+    top.append(nm, el("small", "", m.level ? `Cấp ${m.level}${def ? ` · ${def.name}` : ""}` : ""));
+    const bar = el("div", "bar hp"), fill = el("i"), txt = el("span", "", m.off ? "Rời game / đang qua cổng" : m.dead ? "Đã gục" : `${m.hp}/${m.maxHp}`);
+    fill.style.width = (m.maxHp && !m.off ? Math.max(0, Math.min(1, m.hp / m.maxHp)) * 100 : 0) + "%";
+    bar.append(fill, txt);
+    row.append(top, bar);
+    if (!m.me && !m.sid && !m.off && m.map) row.append(el("small", "pmap", `Ở ${MAPS[m.map]?.name ?? m.map}`));
+    if (lead && !m.me) {
+      const btns = el("div", "pbtns");
+      btns.append(pbtn("Nhường trưởng nhóm", "", () => act.send("lead", m.name), `Nhường trưởng nhóm cho ${m.name}`),
+        pbtn("Mời ra", "warn", () => act.send("kick", m.name), `Mời ${m.name} ra khỏi tổ đội`));
+      row.append(btns);
+    }
+    box.append(row);
+  }
+  for (const i of v.invites) {
+    const row = el("div", "pinvite"), t = el("div"), btns = el("div", "pbtns");
+    t.append(el("b", "", i.name), document.createTextNode(" mời bạn vào tổ đội "), el("small", "psecs", `(${i.secs}s)`));
+    row.dataset.secs = String(i.secs);
+    btns.append(pbtn("Vào đội", "ok", () => act.send("accept", i.name), `Vào tổ đội của ${i.name}`),
+      pbtn("Từ chối", "", () => act.send("decline", i.name), `Từ chối lời mời của ${i.name}`));
+    row.append(t, btns); box.append(row);
+  }
+  if (!v.id && !v.invites.length && !partyInviting) box.append(el("small", "phint", "Bấm vào hồn sư khác hoặc gõ /moi <tên> để mời."));
+  placeParty();
+}
+
+/** Đặt khung tổ đội ngay dưới khung chỉ số (khung chỉ số cao thấp theo số hồn hoàn, hiệu ứng). */
+function placeParty() {
+  const st = document.querySelector<HTMLElement>(".stats"), box = $("#party");
+  if (st && box) box.style.top = st.offsetTop + st.offsetHeight + 8 + "px";
+}
+
+/** Mỗi lần cập nhật HUD: đếm ngược lời mời, giữ khung tổ đội dưới khung chỉ số. */
+export function updateParty() {
+  const dt = (performance.now() - partyAt) / 1000;
+  document.querySelectorAll<HTMLElement>("#party .pinvite").forEach((r) => {
+    const s = Math.max(0, Math.ceil(Number(r.dataset.secs) - dt)), t = r.querySelector(".psecs");
+    if (t) t.textContent = `(${s}s)`;
+    r.classList.toggle("gone", s <= 0);
+  });
+  placeParty();
+}
+
+/**
+ * Bảng thao tác khi bấm / chạm vào hồn sư khác (7.1): mời vào tổ đội; nếu người đó trong tổ đội của mình và mình là trưởng nhóm thì
+ * nhường trưởng nhóm / mời ra. `null` đóng bảng.
+ */
+export function showPlayerMenu(t: { sid: string; name: string; level: number } | null) {
+  const box = $("#pmenu"); box.innerHTML = "";
+  if (!t || !partyLast) { box.hidden = true; return; }
+  const { v, act } = partyLast, me = v.members.find((m) => m.me), mem = v.members.find((m) => !m.me && m.name === t.name);
+  const close = () => showPlayerMenu(null);
+  const head = el("div", "phead"); head.append(el("b", "", `${t.name} (cấp ${t.level})`), pbtn("✕", "", close, "Đóng"));
+  const btns = el("div", "pbtns");
+  if (!mem) btns.append(pbtn("Mời vào tổ đội", "ok", () => { act.send("invite", undefined, t.sid); close(); }, `Mời ${t.name} vào tổ đội`));
+  else if (me?.leader) btns.append(pbtn("Nhường trưởng nhóm", "", () => { act.send("lead", t.name); close(); }),
+    pbtn("Mời ra khỏi đội", "warn", () => { act.send("kick", t.name); close(); }));
+  else btns.append(el("small", "phint", "Đồng đội trong tổ đội của bạn."));
+  box.append(head, btns);
+  box.hidden = false;
+}
 
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {

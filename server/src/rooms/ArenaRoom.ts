@@ -123,6 +123,12 @@ export class ArenaRoom extends MapRoom {
     super.boneSkill(c, i);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }
+  /** Trong sân không mời / nhận lời mời tổ đội (đấu hồn là 1v1, 7.1); xem khung tổ đội, từ chối, rời đội vẫn được. */
+  partyAction(id: string, m: unknown) {
+    const op = (m as { op?: unknown } | null)?.op;
+    if (op === "invite" || op === "accept") return this.log(id, "Đang ở Đại Đấu Hồn Trường: mời / nhận tổ đội sau trận.", "#ffb35c");
+    super.partyAction(id, m);
+  }
   /** Võ hồn đã gục không hồi trong trận (không có doanh trại, không đếm giờ ngoài trận). */
   tickDowns(_id: string, _dt: number) {}
   /** Đội hình và võ hồn ra trận đã lưu giữ như trước khi vào sân: đổi tay / gục trong trận không ghi DB. */
