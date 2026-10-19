@@ -527,9 +527,6 @@ else {
   const FIVE=["lam_ngan_thao","hao_thien_chuy","u_minh_linh_mieu","bich_lan_xa_hoang","cuu_bao_luu_ly_thap"];
   const exp=x=>[Math.max(1,Math.round(x)),Math.max(1,Math.round(x*CRIT.mult))];
   const hasSt=(b,s)=>!!b&&(b.st&statusBit(s))!==0, hasBuff=(q,s)=>!!q&&(q.buff&buffBit(s))!==0;
-  /** Ghi vào `seen` các hồn thú (trừ `keep`) đang sát bot `b` (dưới 40 pixel): hồn thú hoang lang thang tới thì đòn trúng bot không
-   *  quy được cho hồn thú đang thử (kiểm "không đánh"). Gọi trong waitFor suốt lúc đo. */
-  const wildNear=(b,keep,seen)=>{ const q=meOf(b); b.room.state.beasts.forEach((o,k)=>{ if(k!==keep&&Math.hypot(o.x-q.x,o.y-q.y)<40) seen.add(k); }); return false; };
   const beastOf=(b,bid)=>b.room.state.beasts.get(bid), dmgsOn=(b,bid)=>b.dmgs.filter(d=>d.bid===bid);
   const vname=id=>VOHON[vohonIndex(id)].name;
   async function cast(b,i,wait=200){ b.dmgs=[]; b.fxs=[]; b.room.send("skill",{i}); await sleep(wait); }
@@ -962,9 +959,8 @@ else {
       ok(await lineup(id),`E: ${vname(id)} ra trận`);
       await basic(id,0,{n:sk[0].n});
       // Tê liệt trên hồn thú vạn năm (khống chế × 0,75): không đi, không đánh; hết co giật trước, Câm lặng còn lâu hơn.
-      const tb=await basic(id,1,{tier:3,d:40,stun:false}), t0=posOf(tb), tw=new Set(); E.hurts=[]; await waitFor(()=>wildNear(E,tb,tw),1500);
-      ok(beastOf(E,tb)&&same(posOf(tb),t0)&&(!E.hurts.length||tw.size>0)&&hasSt(beastOf(E,tb),"root")&&hasSt(beastOf(E,tb),"silence"),"tê liệt: hồn thú kề bên đứng yên, không đánh"+
-        (E.hurts.length?` [trúng ${E.hurts.length} đòn, hồn thú khác sát bên ${tw.size}]`:""));
+      const tb=await basic(id,1,{tier:3,d:40,stun:false}), t0=posOf(tb); E.hurts=[]; await sleep(1500);
+      ok(beastOf(E,tb)&&same(posOf(tb),t0)&&!E.hurts.length&&hasSt(beastOf(E,tb),"root")&&hasSt(beastOf(E,tb),"silence"),"tê liệt: hồn thú kề bên đứng yên, không đánh");
       // Thời gian trạng thái chạy theo nhịp server (dt mỗi nhịp kẹp 100 ms, server bận thì chậm hơn đồng hồ thật): chờ hết co giật
       // rồi mới xem Câm lặng (còn thêm 1,5 giây), không đo bằng một khoảng ngủ cố định.
       const unroot=await waitFor(()=>!hasSt(beastOf(E,tb),"root"),3*CC_TIER_MULT[3]*1000), silent=hasSt(beastOf(E,tb),"silence");
@@ -1042,18 +1038,17 @@ else {
       ok(hasSt(beastOf(E,m3),"charm")&&!hasSt(beastOf(E,m3),"allure"),"Mị hoặc đủ 3 tầng: Mê hoặc, xóa Mị hoặc");
       // Mê hoặc trên hồn thú vạn năm đang đánh hồn sư: bỏ mục tiêu, đi lung tung, không đánh; đang Mê hoặc không cộng thêm Mị hoặc.
       await test(E,"clear"); await face(); const cb=await spawnAt(3,16); await waitFor(()=>beastOf(E,cb)?.aggro,1500);
-      await test(E,"status",{s:"allure",n:3}); const p0=posOf(cb); E.hurts=[];
+      const tC=Date.now(), cMs=STATUS.charm.secs*CC_TIER_MULT[3]*1000; await test(E,"status",{s:"allure",n:3}); const p0=posOf(cb); E.hurts=[];
       await test(E,"status",{s:"allure"});
       ok(hasSt(beastOf(E,cb),"charm")&&!beastOf(E,cb)?.allure,"đang Mê hoặc: không cộng thêm Mị hoặc");
-      // Theo dõi 1,3 giây (Mê hoặc trên hồn thú vạn năm còn 1,875 giây): đi lung tung đổi hướng ngẫu nhiên nên điểm cuối có thể
-      // quay về gần chỗ cũ, lấy quãng xa nhất; có lúc nào nhắm hồn sư không. Không theo tới lúc hết Mê hoặc: đòn đánh ngay sau đó
-      // (tin dmg gửi ngay) có thể đến trước bản vá state xóa Mê hoặc. Hồn thú hoang lang thang tới sát E (sinh lại ngoài 140 pixel)
-      // thì đòn trúng không quy được cho hồn thú bị Mê hoặc: ghi lại để chẩn đoán.
-      let far=0, agg=false; const wild=new Set();
-      await waitFor(()=>{ const q=beastOf(E,cb); if(q){ far=Math.max(far,Math.hypot(q.x-p0[0],q.y-p0[1])); agg||=q.aggro; } return wildNear(E,cb,wild); },1300);
-      const calm=!E.hurts.length||wild.size>0;
-      ok(beastOf(E,cb)&&!agg&&calm&&far>4,`Mê hoặc: bỏ mục tiêu, không đánh, đi lung tung ${far.toFixed(0)} pixel`+
-        (E.hurts.length||agg?` [nhắm hồn sư ${agg}, trúng ${E.hurts.map(h=>`${h.v} ${h.c}`).join("/")||"không"}, hồn thú khác sát bên ${wild.size}, còn Mê hoặc ${hasSt(beastOf(E,cb),"charm")}]`:""));
+      // Theo dõi tới khi hết Mê hoặc (1,875 giây trên hồn thú vạn năm): đi lung tung đổi hướng ngẫu nhiên nên lấy quãng xa nhất, không lấy
+      // điểm cuối. Đòn trúng chỉ đếm tới trước lúc Mê hoặc có thể hết trên server (tính từ lúc gửi hook, trừ 300 ms): hết Mê hoặc thì
+      // hồn thú đánh ngay, tin dmg gửi ngay còn bản vá state xóa Mê hoặc đến sau, và hai lần hỏi hook trước đó dài ra khi server bận.
+      let far=0, agg=false, hurt=0;
+      await waitFor(()=>{ const q=beastOf(E,cb); if(!q||!hasSt(q,"charm")) return true;
+        far=Math.max(far,Math.hypot(q.x-p0[0],q.y-p0[1])); agg||=q.aggro; if(Date.now()<tC+cMs-300) hurt=E.hurts.length; return false; },cMs+1000);
+      ok(beastOf(E,cb)&&!agg&&!hurt&&far>4,`Mê hoặc: bỏ mục tiêu, không đánh, đi lung tung ${far.toFixed(0)} pixel`+
+        (hurt||agg?` [nhắm hồn sư ${agg}, trúng ${E.hurts.slice(0,hurt).map(h=>`${h.v} ${h.c}`).join("/")||"không"}]`:""));
       ok(await waitFor(()=>!hasSt(beastOf(E,cb),"charm"),STATUS.charm.secs*CC_TIER_MULT[3]*1000),`hết Mê hoặc sau ${STATUS.charm.secs*CC_TIER_MULT[3]} giây`);
       // Làm chậm: hồn thú đuổi theo hồn sư đi chậm hơn (đo quãng đi trong 0,6 giây).
       const run=async slow=>{ await test(E,"clear"); await face(); const sb=await spawnAt(1,60); if(slow) await test(E,"status",{s:"slow",secs:5});
