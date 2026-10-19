@@ -31,6 +31,14 @@ export interface BagItem { id: string; kind: string; code: string; qty: number; 
 /** Tin nhắn riêng "bag": túi đồ, số ô tối đa, Hồn Tệ (đồng) và số giây còn lại của hồi chiêu chung đan. */
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; }
 
+/**
+ * Tin nhắn riêng "party" (tổ đội người chơi, bước 7.1): `id` tổ đội (0 = chưa có; so với DropState.party để biết đồ rơi của đội),
+ * thành viên theo thứ tự vào đội (trưởng nhóm, chính mình, `sid` = sessionId khi cùng phòng, bản đồ, cấp / võ hồn / sinh lực võ hồn
+ * ra trận, `off` = đã rời game hoặc đang qua cổng) và lời mời đang chờ (tên người mời, giây còn lại).
+ */
+export interface PartyMember { name: string; leader: boolean; me: boolean; sid: string; map: string; level: number; vh: number; hp: number; maxHp: number; dead: boolean; off: boolean; }
+export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
+
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({ error: "Server trả về dữ liệu lỗi." }));
