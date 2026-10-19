@@ -108,6 +108,16 @@ export interface Store {
    * Hoặc ghi hết, hoặc không ghi gì; lỗi (id trùng, id thuộc tài khoản khác, đồ gắn vào võ hồn không thuộc tài khoản) thì ném lỗi.
    */
   saveBag(accountId: number, bag: Bag): Promise<void>;
+  /**
+   * Mở võ hồn bằng mảnh (bước 3.4): trong MỘT transaction thêm võ hồn `vohon` (cấp `level`, 1 sao) và ghi cả túi `bag` (đã trừ
+   * mảnh), như saveBag. null (không ghi gì) nếu tài khoản đã có võ hồn này; lỗi khác thì rollback rồi ném lỗi.
+   */
+  unlockVohon(accountId: number, name: string, vohon: string, level: number, bag: Bag): Promise<Character | null>;
+  /**
+   * Lên sao bằng mảnh (bước 3.4): trong MỘT transaction lưu các võ hồn `chars` (như saveTravel, kể cả `stars`) và cả túi `bag`.
+   * Hoặc ghi hết, hoặc không ghi gì; võ hồn không thuộc tài khoản thì rollback rồi ném lỗi.
+   */
+  saveVohonsBag(accountId: number, chars: Character[], bag: Bag): Promise<void>;
 }
 
 function hashPass(pw: string) {
@@ -234,6 +244,20 @@ export class MemoryStore implements Store {
   }
   async saveBag(accountId: number, bag: Bag) {
     this.checkBag(accountId, bag);
+    this.bags.set(accountId, copyBag(bag));
+  }
+  async unlockVohon(accountId: number, name: string, vohon: string, level: number, bag: Bag) {
+    if (this.owned(accountId).some((c) => c.vohon === vohon)) return null;
+    this.checkBag(accountId, bag);
+    const c = await this.addVohon(accountId, name, vohon, level);
+    this.bags.set(accountId, copyBag(bag));
+    return c;
+  }
+  async saveVohonsBag(accountId: number, chars: Character[], bag: Bag) {
+    for (const c of chars)
+      if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+    this.checkBag(accountId, bag);
+    for (const c of chars) this.rows.set(c.rowId, { ...copy(c), vohon: this.rows.get(c.rowId)!.vohon });
     this.bags.set(accountId, copyBag(bag));
   }
 }
@@ -496,6 +520,37 @@ export class PgStore implements Store {
     const db = await this.pool.connect();
     try {
       await db.query("BEGIN");
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async unlockVohon(accountId: number, name: string, vohon: string, level: number, bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      const c = await this.addVohon(accountId, name, vohon, level, db);
+      if (!c) { await db.query("ROLLBACK"); return null; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return c;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async saveVohonsBag(accountId: number, chars: Character[], bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      for (const c of chars) {
+        const v = await db.query(
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+        if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+      }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
     } catch (e) {

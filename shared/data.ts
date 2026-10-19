@@ -64,15 +64,20 @@ export interface MapDef {
   name: string; kind: MapKind;
   level: [number, number] | null; // cấp đề xuất (thành: null)
   years: [number, number] | null; // niên hạn hồn thú (thành: null)
+  /** Mã võ hồn (VOHON) mà hồn thú bản đồ này rơi mảnh (bảng "Rơi đặc trưng" mục 5.3, bước 3.4); mọi vùng của bản đồ dùng chung. */
+  shards: string[];
 }
 
 /** Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có (Lõi Tinh Đấu, BĐ6) thì không đặt trong Tiled. */
 export const MAPS: Record<string, MapDef> = {
-  thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450] },
-  nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null },
+  thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
+    shards: ["lam_ngan_thao", "nhu_cot_tho"] },
+  nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null, shards: [] },
   // BĐ3: tách Tinh Đấu Đại Sâm Lâm (`tinh_dau` của BĐ1–BĐ2) thành Ngoại vi và Nội địa.
-  tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000] },
-  tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000] },
+  tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000],
+    shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"] },
+  tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
+    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"] },
 };
 /**
  * Mã bản đồ cũ đã bỏ khỏi MAPS -> bản đồ thay thế (mục 6): `accounts.map_id` còn mã cũ thì vào bản đồ thay thế, ở `spawn`
@@ -795,20 +800,49 @@ export function xpLevelScale(level: number, beastLv: number) {
 export const TITLES = ["Hồn Sĩ", "Hồn Sư", "Đại Hồn Sư", "Hồn Tôn", "Hồn Tông", "Hồn Vương", "Hồn Đế", "Hồn Thánh", "Hồn Đấu La", "Phong Hào Đấu La"];
 export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.length - 1, Math.floor((level - 1) / 10)))];
 
-export function calcStats(vh: number, level: number, rings: number[]) {
-  const v = VOHON[vh];
+/** Chỉ số của võ hồn `vh` (chỉ số trong VOHON) ở `level`, hồn hoàn theo bậc `rings`, sao `stars` (1–6, bước 3.4: starMult). */
+export function calcStats(vh: number, level: number, rings: number[], stars = 1) {
+  const v = VOHON[vh], k = starMult(stars);
   let hpB = 0, atkB = 0;
   for (const t of rings) { hpB += TIERS[t].hpb; atkB += TIERS[t].atkb; }
   return {
-    maxHp: Math.round((80 + level * 14 + hpB) * v.hp),
-    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp),
-    atk: (6 + level * 1.6 + atkB) * v.atk,
+    maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k),
+    maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k),
+    atk: (6 + level * 1.6 + atkB) * v.atk * k,
     speed: 58 * v.spd,
   };
 }
 
+// ---------- Mảnh võ hồn, mở võ hồn và lên sao (mục 5.1 "Sưu tầm võ hồn", 5.3 "Rơi đặc trưng", bước 3.4) ----------
+/** Số mảnh để mở một võ hồn chưa sở hữu (mục 5.1). Võ hồn mới mở ở cấp 1, 1 sao. */
+export const SHARD_UNLOCK = 50;
+/** Sao tối đa. Võ hồn mới (thức tỉnh, mở bằng mảnh) bắt đầu ở 1 sao. */
+export const MAX_STARS = 6;
+/** Số mảnh để lên sao kế tiếp: STAR_COST[s - 1] là giá từ s sao lên s + 1 sao (1★→2★ … 5★→6★, mục 5.1). */
+export const STAR_COST = [20, 40, 80, 120, 200];
+/** Mảnh cần để lên sao kế tiếp từ `stars` sao; null = đã tối đa. */
+export const starCost = (stars: number) => (stars >= 1 && stars < MAX_STARS ? STAR_COST[Math.floor(stars) - 1] : null);
+/**
+ * **(chờ chốt)** Mỗi sao trên 1 cộng STAR_STAT vào chỉ số gốc (sinh lực, hồn lực, công; không đổi tốc độ): 6★ = +25%.
+ * Hiệu ứng hồn kỹ mở theo sao (mục 5.1) để bước sau.
+ */
+export const STAR_STAT = 0.05;
+export const starMult = (stars: number) => 1 + STAR_STAT * (Math.max(1, Math.min(MAX_STARS, Math.floor(stars) || 1)) - 1);
+/**
+ * **(chờ chốt)** Tỉ lệ rơi mảnh võ hồn khi hạ hồn thú, theo số năm (bảng rơi mục 5.3): từ `years` năm trở lên thì `p`.
+ * Rơi SHARD_QTY mảnh của một võ hồn ngẫu nhiên trong MAPS[...].shards, vào thẳng túi người hạ.
+ */
+export const SHARD_DROP = [{ years: 0, p: 0.1 }, { years: 1000, p: 0.15 }, { years: 10000, p: 0.2 }, { years: 100000, p: 1 }];
+export const shardChance = (years: number) => SHARD_DROP.reduce((p, x) => (years >= x.years ? x.p : p), 0);
+/** Số mảnh mỗi lần rơi (chờ chốt). */
+export const SHARD_QTY = 1;
+/** Mảnh gộp tối đa ngần này một ô (chờ chốt; đủ cho 6★ cần 460 mảnh trong một ô). */
+export const SHARD_STACK = 999;
+/** Mã vật phẩm mảnh của võ hồn `vohonId` (cột `items.code`). Không đổi cách đặt mã: DB lưu mã này. */
+export const shardCode = (vohonId: string) => `manh_${vohonId}`;
+
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
-/** Nhóm vật phẩm (cột `items.kind`). Mới có đan và hồn hoàn; các nhóm khác thêm ITEMS khi làm tới (mảnh 3.4, hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
+/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4); các nhóm khác thêm ITEMS khi làm tới (hồn cốt GĐ4, hồn hạch GĐ5, tiên thảo BĐ6). */
 export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
@@ -823,12 +857,15 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
  * (1 = không gộp, mỗi món một ô như hồn hoàn có số năm riêng). `cd`: nhóm hồi chiêu dùng chung (DAN_CD).
  * `hp` / `mp`: dùng thì hồi ngần ấy phần sinh lực tối đa của võ hồn ra trận / hồn lực tối đa.
  */
-export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; }
+export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; vohon?: string; }
 export const ITEMS: ItemDef[] = [
   { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
   { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
   // Hồn hoàn (bước 3.2): mỗi chiếc một ô, số năm lưu ở `items.years`; màu theo số năm (TIERS), `col` chỉ là màu mặc định.
   { id: "hon_hoan", kind: "hon_hoan", name: "Hồn hoàn", desc: "Hấp thụ vào một võ hồn đang ở bình cảnh (ngoài giao chiến).", col: "#ffe08a", stack: 1 },
+  // Mảnh võ hồn (bước 3.4): mỗi võ hồn một mã `manh_<mã võ hồn>` (shardCode), `vohon` trỏ về VOHON. Mở / lên sao ở bảng đội hình (V).
+  ...VOHON.map((v): ItemDef => ({ id: shardCode(v.id), kind: "manh_vo_hon", name: `Mảnh ${v.name}`, col: v.col, stack: SHARD_STACK, vohon: v.id,
+    desc: `Đủ ${SHARD_UNLOCK} mảnh thì mở ${v.name}; đã có thì dùng để lên sao (bảng đội hình, phím V).` })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */

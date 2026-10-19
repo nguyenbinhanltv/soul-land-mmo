@@ -2,7 +2,8 @@ import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
-  tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange } from "../../../shared/data.ts";
+  tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
+  itemDef } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, sexKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -238,7 +239,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
       this.renderBag(); // bảng chọn võ hồn để hấp thụ dùng cấp / số hồn hoàn mới nhất
-      hud.renderRoster(m, (slots) => this.room.send("team", { slots }));
+      this.renderRoster();
       hud.buildTeam(m, (slot) => this.act("switch" + slot));
     });
     // Sinh lực từng võ hồn trong đội và võ hồn đã gục (luật gục từng võ hồn, bước 2.3b): cũng chỉ gửi riêng cho mình.
@@ -258,7 +259,8 @@ export class GameScene extends Phaser.Scene {
       else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
-    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); });
+    // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
+    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); });
     // Hấp thụ hồn hoàn (bước 3.3): server báo riêng lúc bắt đầu (thanh tiến độ) và kết quả; thành công / thất bại do server quyết định.
     this.room.onMessage("absorbing", (m: { on: boolean; rowId: number; years: number; slot?: number; secs?: number; fail?: number; result?: string; level?: number }) => {
       const v = this.owned?.list.find((o) => o.rowId === m.rowId), def = VOHON[Math.max(0, vohonIndex(v?.vohon ?? ""))];
@@ -626,10 +628,12 @@ export class GameScene extends Phaser.Scene {
       seenD.add(id);
       let v = this.drops.get(id);
       if (!v) {
-        // Màu hồn hoàn theo số năm (bậc suy từ số năm), số năm ghi ngay dưới.
-        const img = this.add.image(d.x, d.y - 4, `ring${d.tier}`).setDepth(d.y - 1);
-        const txt = this.add.text(d.x, d.y + 4, formatYears(d.years), {
-          fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: hud.ringColor(d.tier), stroke: "#000", strokeThickness: 2, resolution: 8,
+        // Màu hồn hoàn theo số năm (bậc suy từ số năm), số năm ghi ngay dưới. Mảnh võ hồn (3.4): tinh thể màu võ hồn, tên ghi dưới.
+        const it = d.item ? itemDef(d.item) : undefined, col = it ? it.col : hud.ringColor(d.tier);
+        const img = this.add.image(d.x, d.y - 4, it ? "shard" : `ring${d.tier}`).setDepth(d.y - 1);
+        if (it) img.setTint(hex(col));
+        const txt = this.add.text(d.x, d.y + 4, it ? `${d.qty > 1 ? `${d.qty} ` : ""}${it.name}` : d.item ? "Vật phẩm lạ" : formatYears(d.years), {
+          fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(d.y - 1);
         v = { img, txt }; this.drops.set(id, v);
       }
@@ -707,6 +711,21 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Bảng đội hình kèm mảnh võ hồn (bước 3.4): số mảnh đếm từ tin riêng "bag", võ hồn từ tin riêng "vohons". */
+  renderRoster() {
+    if (!this.owned) return;
+    const shards = new Map<string, number>();
+    for (const it of this.bag?.items ?? []) {
+      const vh = it.vohon === null ? itemDef(it.code)?.vohon : undefined;
+      if (vh) shards.set(vh, (shards.get(vh) ?? 0) + it.qty);
+    }
+    hud.renderRoster(this.owned, {
+      setTeam: (slots) => this.room.send("team", { slots }),
+      unlock: (vohon) => this.room.send("unlock", { vohon }),
+      starUp: (vohon) => this.room.send("starup", { vohon }),
+    }, shards);
+  }
+
   renderBag() {
     if (!this.bag) return;
     hud.renderBag(this.bag, {
@@ -774,7 +793,9 @@ export class GameScene extends Phaser.Scene {
     if (dr && me.absorb <= 0) {
       const mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0;
       const msg = mine ? "nhấn E để nhặt vào túi" : `<em>của người hạ hồn thú, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
-      hud.showPrompt(`<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
+      const it = dr.item ? itemDef(dr.item) : undefined;
+      hud.showPrompt(dr.item ? `<span class="dot" style="color:${it?.col ?? "#9db3a2"}"></span>${dr.qty} ${it?.name ?? "vật phẩm lạ"}: ${msg}`
+        : `<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
     } else hud.showPrompt(null);
     this.drawMinimap();
   }

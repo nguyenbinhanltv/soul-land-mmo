@@ -117,6 +117,11 @@ export function makeTextures(scene: Phaser.Scene) {
       g.generateTexture(`ring${tier}`, 24, 14); g.destroy();
     }
   });
+  // Mảnh võ hồn rơi dưới đất (bước 3.4): viên tinh thể trắng 10×12, tô màu võ hồn bằng setTint khi vẽ.
+  draw(scene, "shard", 10, 12, 5, 11, (R) => {
+    R(-1, -11, 2, 1, "#ffffff"); R(-2, -10, 4, 2, "#ffffff"); R(-3, -8, 6, 3, "#e8e8e8"); R(-4, -5, 8, 2, "#d0d0d0");
+    R(-3, -3, 6, 2, "#b8b8b8"); R(-2, -1, 4, 1, "#a0a0a0"); R(-1, -9, 1, 4, "#ffffff");
+  });
   if (!scene.textures.exists("vignette")) {
     const c = scene.textures.createCanvas("vignette", 256, 256)!;
     const ctx = c.getContext();
