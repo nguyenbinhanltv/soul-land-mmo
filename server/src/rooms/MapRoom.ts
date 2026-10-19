@@ -1416,7 +1416,10 @@ export class MapRoom extends Room<MapState> {
     else if (op === "aelo") {
       // 7.2: ghi Elo / thành tích Đại Đấu Hồn Trường của người gọi (qua chuỗi lưu, không thưởng) để thử ghép theo Elo và bảng xếp hạng.
       const rec = { elo: int(o.elo, 0, 1e6, ARENA.startElo), wins: int(o.wins, 0, 1e6, 0), losses: int(o.losses, 0, 1e6, 0), draws: int(o.draws, 0, 1e6, 0) };
-      this.chain(d, () => store.saveArena(d.accountId, rec)).then(() => { this.sendVohons(c); c.send("test", { op, enabled: true, rec }); });
+      this.chain(d, async () => {
+        const cur = await store.getArena(d.accountId, ARENA.startElo);
+        await store.saveArena(d.accountId, ARENA.startElo, { elo: rec.elo - cur.elo, wins: rec.wins - cur.wins, losses: rec.losses - cur.losses, draws: rec.draws - cur.draws });
+      }).then(() => { this.sendVohons(c); c.send("test", { op, enabled: true, rec }); });
       return;
     }
     else if (op === "claims") {

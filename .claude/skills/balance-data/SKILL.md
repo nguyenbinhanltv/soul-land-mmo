@@ -34,6 +34,8 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - NPC và thương nhân (bước 6.1, mục 5.7, 5.8): `NPCS` (mã khớp thuộc tính `npc` của object Tiled; thêm vào cuối, không đổi mã) + `npcDef`, `NpcRole`, `NPC_RANGE`, `SHOP` + `SHOP_MAX_QTY` (giá bán đan), giá mua lại `RING_SELL` / `ringSellPrice`, `BONE_SELL` / `BONE_SELL_ENH`, `CORE_SELL`, `SHARD_SELL`, `sellPrice` (hàm thuần, null = không mua).
 - Nhiệm vụ (bước 6.2, mục 4, 5.8): `QUESTS` (chuỗi theo mã, NPC giao `giver` ở bản đồ `map`, các bài: mục tiêu `QuestGoal` và phần thưởng `QuestReward`; mã bài và mã chuỗi lưu ở bảng `quests`, không đổi mã đã dùng, thêm bài vào cuối chuỗi), `QUEST_STARTER`, `questChain`, `questStart`, `parseQuest`, `questStatus`, `questGoalHit`, `questRewardText`. Tên vùng trong mục tiêu `kill` phải khớp tên object `zone` trong Tiled.
 
+- Đại Đấu Hồn Trường (bước 7.2, mục 5.9): `MapKind` có `arena`, `MAPS.dai_dau_hon_truong` + `ARENA_MAP` (sân, không cổng), `ARENA` (Elo khởi đầu, K, cửa sổ ghép `window`, thời gian các pha, `dmgMult` sát thương PvP, `drawPct`, `body`, thưởng thắng, `dailyWins`, `claimKind`, `topN`, `topCd`), `ARENA_SHARDS`, hàm thuần `eloExpect` / `eloAfter` / `arenaWindow` / `arenaPairs` (ghép cặp), `ArenaRecord`; NPC `role: "arena"`.
+
 ## Quy tắc
 1. **Đối chiếu `GAME_DESIGN.md`** trước khi đặt số: mục 5.1 (võ hồn, kinh nghiệm), 5.2 (khoảng năm, giới hạn hấp thụ theo vòng, tỉ lệ thất bại, thời gian hấp thụ), 5.3 (vùng săn, bảng rơi đồ), 5.5–5.7. Số trong thiết kế là đề xuất, "chốt khi code"; mục ghi **(chờ chốt)** thì dùng phương án mặc định và nói rõ trong báo cáo.
 2. Nếu số trong code khác thiết kế có chủ đích, ghi lại lý do (chú thích tiếng Việt cạnh hằng số) và cập nhật `GAME_DESIGN.md` trong cùng bước Lộ trình.

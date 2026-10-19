@@ -247,9 +247,10 @@ const ARENA_END_CODE = 4005;
  */
 function play(room: Room, roomMap: string) {
   overlay.hidden = true;
-  let travelling = false;
+  let travelling = false, left = false;
   const isArena = MAPS[roomMap]?.kind === "arena";
   room.onLeave((code) => {
+    left = true;
     if (travelling) return;
     if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
     document.body.classList.remove("playing"); overlay.hidden = false;
@@ -260,7 +261,8 @@ function play(room: Room, roomMap: string) {
   const leaveThen = async (next: () => void) => {
     if (travelling) return;
     travelling = true;
-    await room.leave().catch(() => {});
+    // Kết nối đã đóng (server đưa ra khỏi sân, mã 4005) thì không gửi rời phòng nữa: leave() của colyseus.js sẽ không bao giờ xong.
+    if (!left) await room.leave().catch(() => {});
     game?.destroy(true); game = null;
     document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
     next();

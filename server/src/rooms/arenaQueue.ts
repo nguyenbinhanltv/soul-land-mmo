@@ -4,6 +4,7 @@
 // File riêng (không nằm trong MapRoom.ts / ArenaRoom.ts) để hai phòng cùng import mà không vòng import lẫn nhau.
 // Chạy nhiều tiến trình thì hàng chờ phải chuyển sang presence (Redis), như lịch boss.
 import { matchMaker } from "colyseus";
+import { randomUUID } from "node:crypto";
 import { arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
 
 /** Một người đang xếp hàng. Hàm `ready` / `found` do phòng bản đồ của người đó cung cấp. */
@@ -16,8 +17,11 @@ export interface ArenaEntry {
   /** Đã ghép: báo người chơi vào phòng `roomId` gặp `foe`. false = người đó đã rời phòng bản đồ. */
   found(roomId: string, foe: ArenaEntry): boolean;
 }
-/** Một trận đã ghép: hai bên theo thứ tự (bên 0, bên 1). ArenaRoom đọc lúc mở phòng (`matchId`) và xóa khi phòng hủy. */
-export interface ArenaMatch { id: string; sides: { accountId: number; name: string; rec: ArenaRecord }[]; }
+/**
+ * Một trận đã ghép: mã ngẫu nhiên, hai bên theo thứ tự (bên 0, bên 1). ArenaRoom đọc lúc mở phòng (`matchId`), ghi `roomId` (mỗi trận
+ * đúng một phòng) và xóa khi phòng hủy.
+ */
+export interface ArenaMatch { id: string; roomId?: string; sides: { accountId: number; name: string; rec: ArenaRecord }[]; }
 
 const queue = new Map<number, ArenaEntry>();   // accountId -> người đang xếp hàng (theo thứ tự xếp hàng)
 export const arenaMatches = new Map<string, ArenaMatch>();
@@ -25,7 +29,6 @@ export const arenaMatches = new Map<string, ArenaMatch>();
 const TICK_MS = 500;
 let timer: ReturnType<typeof setInterval> | null = null;
 let busy = false;
-let seq = 0;
 
 export const arenaQueued = (accountId: number) => queue.get(accountId);
 export function arenaEnqueue(e: ArenaEntry) {
@@ -48,7 +51,7 @@ async function pass() {
     for (const [a, b] of arenaPairs(list)) {
       const ea = queue.get(a), eb = queue.get(b); if (!ea || !eb) continue;
       arenaDequeue(a); arenaDequeue(b);
-      const m: ArenaMatch = { id: `dau_${now.toString(36)}_${++seq}`, sides: [ea, eb].map((e) => ({ accountId: e.accountId, name: e.name, rec: { ...e.rec } })) };
+      const m: ArenaMatch = { id: randomUUID(), sides: [ea, eb].map((e) => ({ accountId: e.accountId, name: e.name, rec: { ...e.rec } })) };
       arenaMatches.set(m.id, m);
       try {
         const room = await matchMaker.createRoom("arena", { matchId: m.id });

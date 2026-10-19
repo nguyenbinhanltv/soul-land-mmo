@@ -332,7 +332,7 @@ function nacDinhThanh() {
 // ---------- Đại Đấu Hồn Trường (bước 7.2, mục 5.9): sân đấu 1v1, chỉ phòng ArenaRoom dùng ----------
 // Không cổng, không vùng, không NPC: vào / ra bằng ghép trận. Object `spawn` là mặt sân; hai bên xuất hiện ở hai đầu sân (ArenaRoom).
 function daiDauHonTruong() {
-  const MW = 30, MH = 20;
+  const MW = 40, MH = 24; // rộng hơn khung nhìn nhỏ nhất (zoom 2 ở 1280×720 thấy 632×312 pixel) để không lộ nền tối
   const g = grid(MW, MH);
   // Tường bao quanh, khán đài (mái + tường) phía bắc và phía nam, hàng cây ở hai bên.
   for (let x = 0; x < MW; x++) { g.set(x, 0, 9); g.set(x, MH - 1, 9); }

@@ -137,12 +137,13 @@ export interface Store {
   /** Elo và thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`, 7.2); chưa đấu trận nào thì Elo `start`, 0 trận. */
   getArena(accountId: number, start: number): Promise<ArenaRecord>;
   /**
-   * Ghi kết quả một trận đấu hồn (7.2) trong MỘT transaction: Elo và thành tích `rec` (ghi đè; phòng tính bằng eloAfter). Có `reward`
-   * thì tăng lượt (`day`, `kind`) nếu còn dưới `limit` (như claimBoss) và ghi cả túi `reward.bag` (đã có phần thưởng), như saveBag.
-   * Trả về true nếu đã ghi phần thưởng; false nếu không có phần thưởng hoặc đã đủ lượt trong ngày (vẫn ghi Elo, không ghi túi).
-   * Lỗi thì rollback rồi ném lỗi.
+   * Ghi kết quả một trận đấu hồn (7.2) trong MỘT transaction: CỘNG `delta` (chênh Elo do phòng tính bằng eloAfter, +1 thắng / thua /
+   * hòa) vào dòng đang lưu, chưa có dòng thì tính từ Elo `start`; mọi cột không dưới 0. Cộng (không ghi đè) để một lần ghi đến muộn
+   * không xóa kết quả trận khác. Có `reward` thì tăng lượt (`day`, `kind`) nếu còn dưới `limit` (như claimBoss) và ghi cả túi
+   * `reward.bag` (túi đã có phần thưởng), như saveBag. Trả về thành tích sau khi ghi và `paid` (đã ghi phần thưởng; false nếu không có
+   * hoặc đã đủ lượt trong ngày: vẫn ghi Elo, không ghi túi). Lỗi thì rollback rồi ném lỗi.
    */
-  saveArena(accountId: number, rec: ArenaRecord, reward?: { day: string; kind: string; limit: number; bag: Bag }): Promise<boolean>;
+  saveArena(accountId: number, start: number, delta: ArenaRecord, reward?: { day: string; kind: string; limit: number; bag: Bag }): Promise<{ rec: ArenaRecord; paid: boolean }>;
   /**
    * Bảng xếp hạng (7.2): `n` tài khoản đứng đầu (đã đấu ít nhất một trận) theo Elo, rồi số trận thắng, rồi ai đạt mức đó trước; kèm
    * hạng và thành tích của `accountId` (null = chưa đấu trận nào).
@@ -165,9 +166,9 @@ const copy = (c: Character): Character => ({ ...c, rings: [...c.rings] });
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
 /** Đội hợp lệ và có võ hồn ra trận trong đó (kiểm tra chung cho cả hai store). */
 const teamOk = (team: number[], active: number) => !!parseTeam(team) && active > 0 && team.includes(active);
-/** Elo và số trận là số nguyên không âm (như ràng buộc CHECK của bảng arena_ratings, 7.2). */
+/** Chênh Elo / số trận của một lần ghi kết quả là số nguyên (bảng arena_ratings, 7.2; kết quả cộng vào được kẹp không dưới 0). */
 function arenaOk(r: ArenaRecord) {
-  if (![r.elo, r.wins, r.losses, r.draws].every((x) => Number.isSafeInteger(x) && x >= 0)) throw new Error(`Thành tích đấu hồn không hợp lệ: ${JSON.stringify(r)}.`);
+  if (![r.elo, r.wins, r.losses, r.draws].every((x) => Number.isSafeInteger(x))) throw new Error(`Kết quả đấu hồn không hợp lệ: ${JSON.stringify(r)}.`);
 }
 const arenaRow = (x: any): ArenaRecord => ({ elo: Number(x.elo), wins: Number(x.wins), losses: Number(x.losses), draws: Number(x.draws) });
 
@@ -320,16 +321,18 @@ export class MemoryStore implements Store {
     const r = this.arena.get(accountId);
     return r ? { elo: r.elo, wins: r.wins, losses: r.losses, draws: r.draws } : { elo: start, wins: 0, losses: 0, draws: 0 };
   }
-  async saveArena(accountId: number, rec: ArenaRecord, reward?: { day: string; kind: string; limit: number; bag: Bag }) {
-    arenaOk(rec);
+  async saveArena(accountId: number, start: number, delta: ArenaRecord, reward?: { day: string; kind: string; limit: number; bag: Bag }) {
+    arenaOk(delta);
     if (!this.names.has(accountId)) throw new Error(`Không có tài khoản #${accountId}.`);
     let paid = false;
     if (reward) {
       const key = `${accountId}|${reward.day}|${reward.kind}`, n = this.claims.get(key) ?? 0;
       if (n < reward.limit) { this.checkBag(accountId, reward.bag); this.claims.set(key, n + 1); this.putBag(accountId, reward.bag); paid = true; }
     }
-    this.arena.set(accountId, { elo: rec.elo, wins: rec.wins, losses: rec.losses, draws: rec.draws, t: ++this.arenaT });
-    return paid;
+    const cur = this.arena.get(accountId) ?? { elo: start, wins: 0, losses: 0, draws: 0 }, add = (a: number, b: number) => Math.max(0, a + b);
+    const rec = { elo: add(cur.elo, delta.elo), wins: add(cur.wins, delta.wins), losses: add(cur.losses, delta.losses), draws: add(cur.draws, delta.draws) };
+    this.arena.set(accountId, { ...rec, t: ++this.arenaT });
+    return { rec, paid };
   }
   async arenaTop(n: number, accountId: number) {
     // Cùng thứ tự với chỉ mục arena_ratings_rank: Elo, số trận thắng, ai ghi trước, mã tài khoản.
@@ -671,15 +674,18 @@ export class PgStore implements Store {
     const r = await this.pool.query("SELECT elo, wins, losses, draws FROM arena_ratings WHERE account_id=$1", [accountId]);
     return r.rowCount ? arenaRow(r.rows[0]) : { elo: start, wins: 0, losses: 0, draws: 0 };
   }
-  async saveArena(accountId: number, rec: ArenaRecord, reward?: { day: string; kind: string; limit: number; bag: Bag }) {
-    arenaOk(rec);
+  async saveArena(accountId: number, start: number, delta: ArenaRecord, reward?: { day: string; kind: string; limit: number; bag: Bag }) {
+    arenaOk(delta);
     const db = await this.pool.connect();
     try {
       await db.query("BEGIN");
-      await db.query(
-        `INSERT INTO arena_ratings(account_id, elo, wins, losses, draws) VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (account_id) DO UPDATE SET elo=EXCLUDED.elo, wins=EXCLUDED.wins, losses=EXCLUDED.losses, draws=EXCLUDED.draws, updated_at=now()`,
-        [accountId, rec.elo, rec.wins, rec.losses, rec.draws]);
+      const a = await db.query(
+        `INSERT INTO arena_ratings(account_id, elo, wins, losses, draws)
+         VALUES ($1, GREATEST(0, $2::int + $3::int), GREATEST(0, $4::int), GREATEST(0, $5::int), GREATEST(0, $6::int))
+         ON CONFLICT (account_id) DO UPDATE SET elo = GREATEST(0, arena_ratings.elo + $3::int), wins = GREATEST(0, arena_ratings.wins + $4::int),
+           losses = GREATEST(0, arena_ratings.losses + $5::int), draws = GREATEST(0, arena_ratings.draws + $6::int), updated_at = now()
+         RETURNING elo, wins, losses, draws`,
+        [accountId, start, delta.elo, delta.wins, delta.losses, delta.draws]);
       let paid = false;
       if (reward) {
         // Như claimBoss: tăng lượt chỉ khi còn dưới giới hạn; đủ lượt thì chỉ ghi Elo.
@@ -690,7 +696,7 @@ export class PgStore implements Store {
         if (r.rowCount && Number(r.rows[0].n) <= reward.limit) { await this.writeBag(db, accountId, reward.bag); paid = true; }
       }
       await db.query("COMMIT");
-      return paid;
+      return { rec: arenaRow(a.rows[0]), paid };
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
