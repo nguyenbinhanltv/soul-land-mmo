@@ -28,6 +28,8 @@ export interface GameMap {
   hits(x: number, y: number, hw: number, hh: number): boolean;
   moveEnt(e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number): void;
   inSpawn(x: number, y: number): boolean;
+  /** Cách trại cổng (`spawn`) hoặc một cổng chưa tới `m` pixel theo cả hai trục (vùng không sinh hồn thú, SPAWN_CLEAR). */
+  nearCamp(x: number, y: number, m: number): boolean;
   /** Trong vùng an toàn: không sinh hồn thú, hồn thú không đuổi vào, không giao chiến (mục 5.3, 5.8). */
   inSafe(x: number, y: number): boolean;
   portalAt(x: number, y: number): Portal | undefined;
@@ -109,6 +111,7 @@ export function loadMap(mapId: string): GameMap {
       if (!hits(e.x, e.y + dy, hw, hh)) e.y += dy;
     },
     inSpawn: (x, y) => inRect(spawn, x, y),
+    nearCamp: (x, y, m) => [spawn, ...portals].some((r) => inRect({ x: r.x - m, y: r.y - m, w: r.w + 2 * m, h: r.h + 2 * m }, x, y)),
     inSafe: (x, y) => kind === "town" || safe.some((r) => inRect(r, x, y)),
     portalAt: (x, y) => portals.find((p) => inRect(p, x, y)),
     standable: (x, y) => Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4),

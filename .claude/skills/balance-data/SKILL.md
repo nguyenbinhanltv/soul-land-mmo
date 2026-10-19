@@ -17,6 +17,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - Đội hình và luật gục (mục 5.1): `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`.
 - Năng lượng và chiêu tiên cơ (mục 5.1, bước 2.4): `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO` (tiên cơ chung theo hệ), `TIEN_CO_SET` + `energyGain()` / `tienCoDmgMult()` (hệ số bộ hồn hạch Tiên Cơ).
 - Giảm kinh nghiệm theo chênh cấp (mục 5.3): `beastLevel(tier)` (tạm theo bậc đến BĐ3), `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale(level, beastLv)`.
+- Hành vi hồn thú: `BEAST_AGGRO_R` (tầm phát hiện), `BEAST_WANDER` (lang thang quanh chỗ sinh), `SPAWN_CLEAR` (quanh trại cổng và cổng không sinh hồn thú, mục 5.8).
 - `MAPS` (bản đồ theo `mapId`: tên, loại, cấp đề xuất, niên hạn), `DEFAULT_MAP`, `BEASTS` (hồn thú theo loài: mã cố định, tên; từ 3.2 không còn bậc tạm), `beastIndex(id)`.
 - `TITLES`, `titleOf(level)` (danh hiệu theo cấp, mục 5.1).
 - `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `DEFAULT_LOOKS`, `parseLooks()` (ngoại hình hồn sư, mục 5.11). Màu chỉ lấy từ `art/palette.gpl`; thêm màu vào cuối mảng vì DB lưu chỉ số.

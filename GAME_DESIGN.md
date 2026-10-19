@@ -388,7 +388,7 @@ So cấp của võ hồn đang ra trận (tối đa 80) với cấp tương đư
 - Bước vào cổng thì client hiện hộp "Đi tới *Nội địa* (đề xuất cấp 30–60)". Nếu cấp võ hồn đang ra trận thấp hơn cấp đề xuất tối thiểu, hộp có thêm **cảnh báo nguy hiểm** màu đỏ. **Chặn mềm:** không đủ cấp vẫn vào được nếu xác nhận.
 - Server vẫn kiểm tra cổng: người chơi đang đứng trong vùng cổng, cổng thuộc bản đồ hiện tại, bản đồ đích có trong `MAPS`, không gục, không đang hấp thụ. Client chỉ gửi tên cổng, **không bao giờ tự chọn bản đồ** hay gửi tọa độ đích. Phòng cũ lưu xong rồi mới cho chuyển (thứ tự ở mục 6).
 - Điểm xuất hiện (`arrive`) ở bản đồ đích phải nằm **ngoài mọi vùng `portal`** của bản đồ đó, để vừa tới nơi không bị hiện lại hộp đi cổng.
-- Đi qua cổng mất 1 giây niệm (`TRAVEL_CAST`), bị đánh hoặc bước ra khỏi cổng thì hủy (chờ chốt; đã làm theo phương án này ở BĐ2). Đang niệm vẫn đánh và dùng hồn kỹ được, nhưng không bắt đầu hấp thụ được (hấp thụ dở cũng không đi cổng được).
+- Đi qua cổng mất 1 giây niệm (`TRAVEL_CAST`), bị đánh hoặc bước ra khỏi cổng thì hủy (chờ chốt; đã làm theo phương án này ở BĐ2). Quanh cổng và trại cổng không sinh hồn thú (`SPAWN_CLEAR`, mục 5.8) để niệm cổng không bị hồn thú lang thang phá. Đang niệm vẫn đánh và dùng hồn kỹ được, nhưng không bắt đầu hấp thụ được (hấp thụ dở cũng không đi cổng được).
 
 **Vùng và hồn thú của từng bản đồ săn**
 
@@ -610,7 +610,7 @@ Thành (bản đồ `town`) và khu làng của Thánh Hồn Thôn (vùng `safe`
   - **Đại Đấu Hồn Trường:** PvP xếp hạng (mục 5.9).
   - **Sử Lai Khắc Học Viện:** nhiệm vụ hằng ngày (về sau).
   - Cổng tới Lạc Nhật Sâm Lâm và Cực Bắc Chi Địa, bến thuyền đi Hải Thần Đảo, đường lớn về Nặc Đinh Thành.
-- **Trại cổng của bản đồ săn:** điểm hồi sinh, chưa có NPC (về sau có thể thêm thương nhân lưu động).
+- **Trại cổng của bản đồ săn:** điểm hồi sinh, chưa có NPC (về sau có thể thêm thương nhân lưu động). Trại cổng **không phải vùng an toàn** (vẫn giao chiến được, người chơi kéo hồn thú về thì nó vẫn đuổi theo), nhưng trong khoảng `SPAWN_CLEAR` = 130 pixel mỗi phía quanh trại và quanh mọi cổng **không sinh hồn thú** (= lang thang 60 + tầm phát hiện 70, `BEAST_WANDER` / `BEAST_AGGRO_R`), nên hồn thú tự lang thang không tới đánh người vừa hồi sinh hay đang niệm cổng. Trước đây hồn thú vàng chủ động của Bìa rừng sinh sát mép doanh trại Tinh Đấu, lang thang vào giữa trại và đánh hủy niệm cổng "Về Nặc Đinh Thành".
 
 ### 5.9 Người chơi lập đội và PvP
 - **Tổ đội người chơi:** tối đa 4 người. Kinh nghiệm chia cho thành viên trong bán kính khoảng 300px, mỗi người thêm 5%. Hồn hoàn rơi ưu tiên cho cả đội.

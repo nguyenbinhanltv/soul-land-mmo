@@ -360,6 +360,12 @@ export const STATUS_TICK = 1;
 export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
 /** Hồn thú không có mục tiêu và không bị đánh `delay` giây thì hồi `pct` sinh lực tối đa mỗi giây (Trúng độc giảm hồi máu). */
 export const BEAST_REGEN = { delay: 6, pct: 0.04 };
+/** Hồn thú từ 100 năm (bậc 1 trở lên) thấy người chơi trong bán kính BEAST_AGGRO_R thì đuổi đánh; không có mục tiêu thì lang thang
+ *  tối đa BEAST_WANDER pixel mỗi trục quanh chỗ sinh. */
+export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
+/** Không sinh hồn thú trong khoảng này (mỗi trục) quanh trại cổng (object `spawn`) và mọi cổng (mục 5.3, 5.8): lang thang cộng tầm
+ *  phát hiện, để hồn thú tự lang thang không đánh người vừa hồi sinh hay đang niệm cổng. Người chơi kéo hồn thú về thì vẫn bị đuổi theo. */
+export const SPAWN_CLEAR = BEAST_WANDER + BEAST_AGGRO_R;
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
