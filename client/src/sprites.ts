@@ -6,6 +6,7 @@
 // - hồn sư theo bộ giới × kiểu tóc: `hs_{lớp}_{giới}_{kiểu tóc}` (honsuKey).
 // Key nào chưa có ảnh thì makeTextures() trong textures.ts vẽ bằng code như cũ.
 import Phaser from "phaser";
+import { TELE_WARN } from "../../shared/data.ts";
 
 const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
@@ -44,9 +45,9 @@ export const BEAST_FRAMES: readonly [number, number][] = [[16, 16], [32, 32], [4
 export const BEAST_ANIMS = {
   idle:   { col: 0,  ms: [400, 400], loop: true },
   walk:   { col: 2,  ms: [120, 120, 120, 120], loop: true },
-  // Khung đầu là tư thế báo trước, giữ cho khớp vùng cảnh báo 0,8 giây (mục 5.3).
-  // Khi bước 3.5 đưa thời gian báo trước vào shared/data.ts thì đọc từ đó.
-  attack: { col: 6,  ms: [800, 80, 140], loop: false },
+  // Khung đầu là tư thế báo trước, giữ cho khớp vùng cảnh báo TELE_WARN (mục 5.3, bước 3.5); hồn thú còn giữ khung này tới khi
+  // server tung chiêu (BeastState.cast về false) rồi mới chạy 2 khung ra đòn.
+  attack: { col: 6,  ms: [TELE_WARN * 1000, 80, 140], loop: false },
   hurt:   { col: 9,  ms: [150], loop: false },
   die:    { col: 10, ms: [120, 120, 120], loop: false },
 } satisfies Record<string, AnimDef>;
@@ -58,14 +59,18 @@ export const BEAST_FOOT = 4;
  * Hồn thú theo loài (M4): nếu loài đã có sheet `beast_{loài}` thì đặt sheet đó, gốc giữa đáy và chạy `idle`/`walk`.
  * Trả false khi loài chưa có ảnh thật để nơi gọi vẽ `b{tier}_…` bằng code như cũ. Lật ngang do nơi gọi đặt.
  */
-export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean): boolean {
-  const key = `beast_${species}`, anim = `${key}:${moving ? "walk" : "idle"}`;
+export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean, cast = false): boolean {
+  const key = `beast_${species}`, anim = `${key}:${moving ? "walk" : "idle"}`, atk = `${key}:attack`;
   if (!species || !s.scene.anims.exists(anim)) return false;
   if (s.texture.key !== key) {
     s.setTexture(key, 0);
     s.setOrigin(0.5, (s.frame.height - BEAST_FOOT) / s.frame.height);
   }
-  s.play(anim, true);
+  // Báo trước chiêu (3.5): giữ khung đầu của `attack`; tung xong thì chạy nốt 2 khung ra đòn rồi mới về idle / walk.
+  const cur = s.anims.currentAnim?.key === atk;
+  if (cast) { if (!cur || !(s.anims.isPaused || s.anims.isPlaying)) { s.play(atk); s.anims.pause(); } }
+  else if (cur && s.anims.isPaused) { s.anims.resume(); s.anims.nextFrame(); }
+  else if (!(cur && s.anims.isPlaying)) s.play(anim, true);
   // Chưa có dấu "!" riêng cho trạng thái hung hăng (5.11): tạm ửng đỏ nhẹ để vẫn nhận ra.
   if (aggro) s.setTint(0xffb4b4); else s.clearTint();
   return true;
