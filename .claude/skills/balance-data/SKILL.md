@@ -13,7 +13,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `HE` (4 hệ: hệ số `atk/hp/mp/spd/def`), `RARITY_MULT`, `VOHON` (danh sách võ hồn tạo bằng hàm `vh(...)`), `vohonIndex(id)`.
 - Hồn kỹ (mục 5.2, bước 2.5a): kiểu `SkillDef` (vùng tác dụng, `dmg`, trạng thái, hiệu ứng lên bản thân), `SKILLS` (4 hồn kỹ dùng chung), `VOHON_SKILLS` (hồn kỹ riêng theo mã võ hồn) + `skillsOf(mã)`, `TIEN_CO_RIENG` + `tienCoOf(mã)`, `skillPower(năm)` / `buffPower(năm)` / `BUFF_SCALE`, `PCT_HP_CAP`, `PROJ_SPEED`, `CRIT`. Thêm hồn kỹ riêng cho võ hồn mới: chỉ thêm một mục vào `VOHON_SKILLS` (và `TIEN_CO_RIENG` nếu có), ghi bảng vào GAME_DESIGN.md 5.2.
 - Trạng thái dùng chung (mục 5.1): `STATUS_IDS` / `STATUS` / `statusBit` (thứ tự là bit đồng bộ, chỉ thêm vào cuối), `STATUS_TICK`, `CC_TIER_MULT`, `BEAST_REGEN`; hiệu ứng có lợi `BUFF_IDS` / `BUFFS` / `buffBit`.
-- `ringLimit(slot)`, `xpNeed(level)`, `atBottleneck(level, rings)`, `MAX_RINGS`, `calcStats(vh, level, rings)`.
+- `RING_LIMIT` / `ringLimit(slot)` (số năm tối đa theo vòng, bảng 5.2), `xpNeed(level)`, `atBottleneck(level, rings)`, `xpBlocked(level, rings)`, `MAX_RINGS`, `MAX_LEVEL`, `calcStats(vh, level, rings)`.
 - Đội hình và luật gục (mục 5.1): `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`.
 - Năng lượng và chiêu tiên cơ (mục 5.1, bước 2.4): `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO` (tiên cơ chung theo hệ), `TIEN_CO_SET` + `energyGain()` / `tienCoDmgMult()` (hệ số bộ hồn hạch Tiên Cơ).
 - Giảm kinh nghiệm theo chênh cấp (mục 5.3): `beastLevel(tier)` (tạm theo bậc đến BĐ3), `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale(level, beastLv)`.
@@ -22,7 +22,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 - `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `DEFAULT_LOOKS`, `parseLooks()` (ngoại hình hồn sư, mục 5.11). Màu chỉ lấy từ `art/palette.gpl`; thêm màu vào cuối mảng vì DB lưu chỉ số.
 - `TILE`, `TICK_RATE`.
 - Túi đồ, vật phẩm, Hồn Tệ (mục 5.7, bước 3.1): `ITEM_KINDS`, `ITEMS` / `itemDef()` (mã cố định, lưu ở `items.code`; thêm vào cuối, không đổi mã), `BAG_SLOTS`, `DAN_CD`, `STARTER_ITEMS`, `BEAST_COIN`, `HON_TE_NGAN` / `HON_TE_KIM`, `honTeParts()` / `formatHonTe()`.
-- Hồn hoàn rơi và hấp thụ (bước 3.2): `RING_ITEM`, `DROP_OWNER_SECS`, `DROP_TTL_SECS`, `PICKUP_RANGE`, `absorbSecs(tier)`, `ABSORB_RISK`, `ABSORB_FAIL_HP` (luật bậc cũ, 3.3 thay bằng giới hạn theo năm).
+- Hồn hoàn rơi và hấp thụ (bước 3.2, 3.3): `RING_ITEM`, `DROP_OWNER_SECS`, `DROP_TTL_SECS`, `PICKUP_RANGE`, `ABSORB_FAIL` + `absorbChance(năm, vòng)` (giới hạn, % vượt, tỉ lệ thất bại; `null` = không cho), `ABSORB_SECS` + `absorbSecs(năm)`. `beastLevel(tier)` còn theo bậc (bảng tạm) đến BĐ3.
 - Thiết kế còn nhắc bảng `DROPS` (tỉ lệ rơi, mục 5.3): **chưa có**, khi làm thì thêm vào đây.
 
 ## Quy tắc
