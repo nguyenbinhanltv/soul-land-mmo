@@ -1,7 +1,8 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
-  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS } from "../../shared/data.ts";
+  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS,
+  BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit } from "../../shared/data.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -52,10 +53,12 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
 }
 
 /** Tên các trạng thái đang có trên hồn thú (khung mục tiêu), kèm số tầng nếu cộng dồn. */
-export function statusText(b: { st: number; burn: number; poison: number; armor: number; allure: number; lock: number }) {
+export function statusText(b: { st: number; burn: number; poison: number; armor: number; allure: number; lock: number; buff?: number }) {
   const n: Record<string, number> = { burn: b.burn, poison: b.poison, armor: b.armor, allure: b.allure, lock: b.lock };
-  return STATUS_IDS.filter((s) => b.st & statusBit(s))
-    .map((s) => `<span style="color:${STATUS[s].col}">${STATUS[s].name}${n[s] > 1 ? ` ×${n[s]}` : ""}</span>`).join(" · ");
+  // Hiệu ứng có lợi của hồn thú (Cuồng nộ của tinh anh, BĐ4) đứng trước, in đậm.
+  const buffs = BEAST_BUFF_IDS.filter((k) => (b.buff ?? 0) & beastBuffBit(k)).map((k) => `<b style="color:${BEAST_BUFFS[k].col}">${BEAST_BUFFS[k].name}</b>`);
+  return [...buffs, ...STATUS_IDS.filter((s) => b.st & statusBit(s))
+    .map((s) => `<span style="color:${STATUS[s].col}">${STATUS[s].name}${n[s] > 1 ? ` ×${n[s]}` : ""}</span>`)].join(" · ");
 }
 
 let ringsKey = "", buffKey = "";

@@ -1,7 +1,7 @@
 // Đọc bản đồ Tiled dùng chung với client (shared/assets/<mapId>.json) để server tự kiểm tra va chạm.
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
 import { readFileSync } from "node:fs";
-import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, beastIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
+import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
 export interface ZoneBeast { species: number; w: number; }
@@ -14,6 +14,8 @@ export interface Zone {
 export interface Rect { x: number; y: number; w: number; h: number; }
 /** Cổng (object `portal`): vùng chữ nhật, bản đồ đích, điểm xuất hiện ở bản đồ đích (đã đổi ra tọa độ), cấp đề xuất. */
 export interface Portal extends Rect { name: string; to: string; arrive: string; ax: number; ay: number; level: [number, number] | null; }
+/** Chỗ sinh tinh anh (object `elite`, từ BĐ4): vùng chữ nhật, chỉ số trong BOSSES, chỉ số vùng (`zones`) chứa nó. */
+export interface EliteSpot extends Rect { boss: number; zone: number; }
 
 export interface GameMap {
   mapId: string;
@@ -24,6 +26,7 @@ export interface GameMap {
   spawn: Rect;
   safe: Rect[];        // vùng an toàn (object `safe`); bản đồ `town` thì cả bản đồ an toàn
   portals: Portal[];
+  elites: EliteSpot[];  // mỗi vùng tối đa 1 tinh anh (mục 5.4)
   isSolidTile(tx: number, ty: number): boolean;
   hits(x: number, y: number, hw: number, hh: number): boolean;
   moveEnt(e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number): void;
@@ -72,7 +75,7 @@ export function loadMap(mapId: string): GameMap {
   for (const layer of raw.layers) if (layer.type === "tilelayer")
     layer.data.forEach((gid: number, i: number) => { if (solidGids.has(gid)) solid[i] = 1; });
 
-  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [];
+  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [];
   let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
   for (const layer of raw.layers) if (layer.type === "objectgroup") for (const o of layer.objects) {
     const prop = (n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
@@ -90,6 +93,7 @@ export function loadMap(mapId: string): GameMap {
     if (o.type === "spawn") spawn = rectOf(o);
     if (o.type === "safe") safe.push(rectOf(o));
     if (o.type === "arrive") arrives.push({ x: o.x, y: o.y });
+    if (o.type === "elite") eliteObjs.push(o);
     if (o.type === "portal") {
       // Client gửi tên cổng khi xin đi, nên tên phải duy nhất trong bản đồ.
       const p = parsePortal(mapId, o);
@@ -97,6 +101,8 @@ export function loadMap(mapId: string): GameMap {
       else if (p) portals.push(p);
     }
   }
+
+  const elites = parseElites(mapId, eliteObjs, zones);
 
   const isSolidTile = (tx: number, ty: number) => tx < 0 || ty < 0 || tx >= MW || ty >= MH || solid[ty * MW + tx] === 1;
   const hits = (x: number, y: number, hw: number, hh: number) => {
@@ -107,7 +113,7 @@ export function loadMap(mapId: string): GameMap {
   };
   const kind = MAPS[mapId].kind;
   const map: GameMap = {
-    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, isSolidTile, hits,
+    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, isSolidTile, hits,
     moveEnt(e, dx, dy, hw, hh) {
       if (!hits(e.x + dx, e.y, hw, hh)) e.x += dx;
       if (!hits(e.x, e.y + dy, hw, hh)) e.y += dy;
@@ -163,4 +169,23 @@ function parsePortal(mapId: string, o: any): Portal | null {
   const level = lv === undefined || lv === "" ? MAPS[to].level : parseLevelRange(lv);
   if (lv !== undefined && lv !== "" && !level) console.warn(`[map ${mapId}] Cổng "${name}": cấp đề xuất sai "${lv}", bỏ qua.`);
   return { ...rectOf(o), name, to, arrive, ax: a.x, ay: a.y, level };
+}
+
+/**
+ * Object `elite` (mục 6, BĐ4): `boss` phải là mã tinh anh trong BOSSES, tâm phải nằm trong một `zone`, mỗi vùng (theo tên) tối đa
+ * 1 tinh anh (mục 5.4). Sai thì cảnh báo và bỏ. Bản đồ `town` không có tinh anh.
+ */
+function parseElites(mapId: string, objs: any[], zones: Zone[]): EliteSpot[] {
+  const out: EliteSpot[] = [];
+  for (const o of objs) {
+    const id = String(propOf(o, "boss") ?? ""), boss = bossIndex(id), r = rectOf(o), cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    const bad = (why: string) => console.warn(`[map ${mapId}] Bỏ tinh anh "${o.name ?? id}": ${why}`);
+    if (MAPS[mapId].kind === "town") { bad("bản đồ thành không có hồn thú"); continue; }
+    if (boss < 0 || BOSSES[boss].rank !== 1) { bad(`mã không phải tinh anh trong BOSSES: ${id}`); continue; }
+    const zone = zones.findIndex((z) => cx >= z.x0 && cx < z.x1 && cy >= z.y0 && cy < z.y1);
+    if (zone < 0) { bad("không nằm trong vùng nào"); continue; }
+    if (out.some((e) => zones[e.zone].name === zones[zone].name)) { bad(`vùng "${zones[zone].name}" đã có tinh anh`); continue; }
+    out.push({ ...r, boss, zone });
+  }
+  return out;
 }
