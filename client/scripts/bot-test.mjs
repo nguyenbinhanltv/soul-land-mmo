@@ -1970,7 +1970,8 @@ else {
       await ringQ(id,5,1,{d:120,wait:1300});
       // Tuyệt kỹ: u1 trong vùng (60), u2 Cảm điện ở ~205 (ngoài 160, trong shockR), u3 không Cảm điện ở ~185: sét chỉ tìm u2.
       // Hook status chỉ nhắm hồn thú trong 160: gây trạng thái cho u2 / u3 lúc còn gần (150 / 130) rồi lùi Q ra 55 pixel.
-      await test(Q,"clear"); [qx,qy]=clearDir(qp.x,qp.y,210,60); await step(Q,qx,qy); const atk=(await stats()).atkNow;
+      // Q vừa ra khỏi làng: tới đường làng phía đông trước (như F ở 3.5) để bước lùi không vào vùng an toàn.
+      await test(Q,"goto",{x:safe.x+safe.width+140,y:27.5*16}); await test(Q,"clear"); [qx,qy]=clearDir(qp.x,qp.y,210,60); await step(Q,qx,qy); const atk=(await stats()).atkNow;
       const u2=await spawnNear(Q,4,...qat(150),20); await test(Q,"status",{s:"shock",secs:20}); await test(Q,"status",{s:"stun",secs:10});
       const u3=await spawnNear(Q,4,...qat(130),20); await test(Q,"status",{s:"stun",secs:10});
       const bx=Math.round(qp.x-qx*55), by=Math.round(qp.y-qy*55); await test(Q,"goto",{x:bx,y:by}); await waitFor(()=>Math.hypot(qp.x-bx,qp.y-by)<1,800);
@@ -1978,7 +1979,7 @@ else {
       const far=bid=>{ const q=beastOf(Q,bid); return q?Math.hypot(q.x-qp.x,q.y-qp.y):-1; }, d2=far(u2), d3=far(u3);
       await test(Q,"ready"); await castQ(2,0);
       ok(await waitFor(()=>hitsQ(u1).length>=ult.n&&hitsQ(u2).length>=ult.n&&hasSt(beastOf(Q,u2),"stun"),ult.n*ult.every*1000+1500)&&!dmgsOn(Q,u3).length,
-        `tuyệt kỹ ${ult.name}: u1 (60) ${hitsQ(u1).length} đợt, u2 Cảm điện cách ${d2.toFixed(0)} ${hitsQ(u2).length} đợt + Choáng, u3 không Cảm điện cách ${d3.toFixed(0)} không trúng (${dmgsOn(Q,u3).length})`);
+        `tuyệt kỹ ${ult.name}: u1 (60) ${hitsQ(u1).length} đợt, u2 Cảm điện cách ${d2.toFixed(0)} ${hitsQ(u2).length} đợt + Choáng, u3 không Cảm điện cách ${d3.toFixed(0)} không trúng (${dmgsOn(Q,u3).length}) [trong làng ${inSafeOf(Q)}, hướng ${qx},${qy}, log ${Q.logs.at(-1)}]`);
       ok(exp(atk*P10(9)*(ult.dmg+ult.perStack.dmg)).includes(hitsQ(u2)[0]?.v)&&Q.fxs.some(f=>f.k==="zap"&&f.to?.length>=1)&&Q.fxs.some(f=>f.k==="ult"&&f.name===ult.name),
         `sét tìm u2: ${hitsQ(u2)[0]?.v} (cần ${exp(atk*P10(9)*(ult.dmg+ult.perStack.dmg)).join(" hoặc ")}: +${ult.perStack.dmg*100}% vì Cảm điện), fx zap + ult`);
       await endQ();
