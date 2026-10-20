@@ -485,11 +485,25 @@ export const OUTFIT_COLORS: SwatchDef[] = [
   { name: "Trắng", ramp: ["#8a87a0", "#c0cce0", "#f4f8ff", "#ffffff"] },
   { name: "Đen",   ramp: ["#1a1020", "#2b2430", "#47435c", "#5a5672"] },
 ];
-/** Ngoại hình hồn sư: 4 số nhỏ lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. */
-export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; }
+/** Một tông da: dải 3 sắc tối → gốc → sáng thay cho 3 sắc da của tông 0 khi hoán màu lớp thân (mục 5.11, Lộ trình 9.9). */
+export interface SkinDef { name: string; ramp: readonly [string, string, string]; }
+/**
+ * Tông da, chỉ số là cột `skin` (texture thân `hs_body_…@{chỉ số}`, tông 0 dùng thẳng sheet gốc). Tông 0 là 3 sắc da
+ * sprite đang vẽ (`#f1c7a0`, nhóm "Da " trong art/palette.gpl); 2 tông sau lấy từ cuối palette.gpl. Chỉ thêm vào cuối mảng.
+ */
+export const SKIN_TONES: SkinDef[] = [
+  { name: "Trắng hồng", ramp: ["#c98f6c", "#f1c7a0", "#ffe2c6"] },
+  { name: "Bánh mật",   ramp: ["#9c6447", "#c98f6c", "#e3ae88"] },
+  { name: "Ngăm",       ramp: ["#5a3b22", "#8a5a3c", "#b07d5a"] },
+];
+/** Ngoại hình hồn sư: các số nhỏ lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. `skin` thêm ở 9.9. */
+export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; }
 /** Ngoại hình của tài khoản chưa tự chọn (tài khoản tạo trước bước 2.2a). */
-export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0 };
-/** Kiểm tra ngoại hình: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng. Sai bất kỳ trường nào thì null. */
+export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0 };
+/**
+ * Kiểm tra ngoại hình: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng. Sai bất kỳ trường nào thì null.
+ * Riêng `skin` (thêm sau, 9.9) thiếu hẳn thì là tông 0, như tài khoản cũ và client cũ; có mà sai thì vẫn null.
+ */
 export function parseLooks(x: unknown): Looks | null {
   const o = (typeof x === "object" && x !== null ? x : {}) as Record<string, unknown>;
   const pick = (k: keyof Looks, n: number) => {
@@ -497,7 +511,8 @@ export function parseLooks(x: unknown): Looks | null {
     return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < n ? v : -1;
   };
   const sex = pick("sex", SEXES.length);
-  const l: Looks = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length) };
+  const l: Looks = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length),
+    skin: o.skin === undefined || o.skin === null ? 0 : pick("skin", SKIN_TONES.length) };
   return Object.values(l).every((v) => v >= 0) ? l : null;
 }
 
@@ -3005,7 +3020,7 @@ export interface NpcDef { id: string; name: string; title: string; role: NpcRole
 const mapLevels = () => Object.values(MAPS).filter((m) => m.level).map((m) => `${m.name} cấp ${m.level![0]}–${m.level![1]}`).join(", ");
 export const NPCS: NpcDef[] = [
   { id: "to_van_dao", name: "Tố Vân Đào", title: "Chấp sự Vũ Hồn Điện", role: "talk", col: "#f2c84b",
-    looks: { sex: 0, hair: 1, hairCol: 0, outfitCol: 4 },
+    looks: { sex: 0, hair: 1, hairCol: 0, outfitCol: 4, skin: 0 },
     lines: [
       "Ta là Tố Vân Đào, chấp sự phân điện Vũ Hồn Điện ở Thánh Hồn Thôn. Lễ thức tỉnh võ hồn của ngươi do chính ta chủ trì đấy.",
       "Võ hồn là bản mệnh của hồn sư: khí võ hồn như Hạo Thiên Chùy, thú võ hồn như Lam Điện Bá Vương Long. Ngoài võ hồn đầu tiên, ngươi còn có thể thu thập thêm nhiều võ hồn khác.",
@@ -3013,7 +3028,7 @@ export const NPCS: NpcDef[] = [
       "Xếp bốn võ hồn thành một đội ở bảng đội hình (phím V); khi giao chiến đổi tay bằng phím 1–4. Đi đi, đừng phụ thiên phú của mình!",
     ] },
   { id: "lao_kiet_khac", name: "Lão Kiệt Khắc", title: "Trưởng thôn Thánh Hồn Thôn", role: "talk", col: "#c0cce0",
-    looks: { sex: 0, hair: 0, hairCol: 3, outfitCol: 2 },
+    looks: { sex: 0, hair: 0, hairCol: 3, outfitCol: 2, skin: 0 },
     lines: [
       "Ha ha, lại một đứa nhỏ của Thánh Hồn Thôn thức tỉnh võ hồn! Lão Kiệt Khắc ta làm trưởng thôn mấy chục năm, hiếm khi thấy làng vui thế này.",
       "Muốn luyện tay thì ra Đồng lúa ven làng, toàn hồn thú mười năm. Cứng cáp hơn thì sang Bãi tập hồn sư phía đông; Hậu Sơn phía bắc có hồn thú vài trăm năm, cẩn thận đấy.",
@@ -3021,7 +3036,7 @@ export const NPCS: NpcDef[] = [
       "Trong làng là vùng an toàn, hồn thú không vào được. Bị thương thì cứ về đây mà nghỉ.",
     ] },
   { id: "dai_su", name: "Ngọc Tiểu Cương", title: "Đại Sư · Học viện Nặc Đinh", role: "talk", col: "#86e0b0",
-    looks: { sex: 0, hair: 3, hairCol: 0, outfitCol: 5 },
+    looks: { sex: 0, hair: 3, hairCol: 0, outfitCol: 5, skin: 0 },
     lines: [
       "Ta là Ngọc Tiểu Cương, người đời gọi là Đại Sư. Võ hồn của ta chỉ là La Tam Pháo, nhưng lý luận mới là sức mạnh thật sự của hồn sư.",
       `Mỗi vòng hồn hoàn có giới hạn niên hạn: vòng 1 tối đa ${formatYears(RING_LIMIT[0])}, vòng 2 ${formatYears(RING_LIMIT[1])}, vòng 3 ${formatYears(RING_LIMIT[2])}, vòng 4 ${formatYears(RING_LIMIT[3])}, vòng 5 ${formatYears(RING_LIMIT[4])}…`,
@@ -3030,13 +3045,13 @@ export const NPCS: NpcDef[] = [
       "Muốn học thì nghe bài giảng của ta: bảy bài cho tân thủ, mỗi bài một việc, làm xong thì quay về đây báo lại (nhiệm vụ tân thủ).",
     ] },
   { id: "thuong_nhan", name: "Thương nhân", title: "Cửa hàng Nặc Đinh", role: "shop", col: "#ffb35c",
-    looks: { sex: 1, hair: 1, hairCol: 1, outfitCol: 1 },
+    looks: { sex: 1, hair: 1, hairCol: 1, outfitCol: 1, skin: 0 },
     lines: [
       "Khách quan muốn mua gì? Hồi Huyết Đan, Hồi Hồn Đan đều là hàng tốt nhất Nặc Đinh Thành!",
       "Hồn hoàn, hồn cốt, hồn hạch hay mảnh võ hồn dư thì cứ mang tới, ta trả giá phải chăng. Đồ đang gắn trên võ hồn thì ta không nhận.",
     ] },
   { id: "lo_ren", name: "Thợ rèn", title: "Lò rèn Nặc Đinh", role: "forge", col: "#ff7a3c",
-    looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 5 },
+    looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 5, skin: 0 },
     lines: [
       "Lò rèn Nặc Đinh, nghề rèn truyền ba đời. Hồn cốt dư mang tới đây, ta dung luyện vào hồn cốt chính của ngươi: không bao giờ thất bại.",
       "Hồn hạch thì phải đợi ta tìm đủ đồ nghề mới nâng cấp được (sắp mở).",
@@ -3052,7 +3067,7 @@ export const NPCS: NpcDef[] = [
     ] },
   // BĐ6a: chỗ của lối vào tạm (7.2) ở Nặc Đinh Thành thành sứ giả chỉ đường lên Thiên Đấu Thành.
   { id: "su_gia_dau_hon", name: "Sứ giả Đại Đấu Hồn Trường", title: "Chỉ đường lên Thiên Đấu Thành", role: "talk", col: "#ff6b6b",
-    looks: { sex: 1, hair: 2, hairCol: 4, outfitCol: 2 },
+    looks: { sex: 1, hair: 2, hairCol: 4, outfitCol: 2, skin: 0 },
     lines: [
       "Ngươi tìm Đại Đấu Hồn Trường? Đấu trường đã về lại chỗ của nó: Thiên Đấu Thành, thủ đô của Thiên Đấu Đế Quốc.",
       "Theo đường lớn bắc–nam ra cổng bắc Nặc Đinh Thành là tới Thiên Đấu Thành. Đường đi qua thành nên an toàn, cấp nào cũng đi được.",
@@ -3060,20 +3075,20 @@ export const NPCS: NpcDef[] = [
     ] },
   // BĐ6a: NPC ở Thiên Đấu Thành (mục 5.8). Biển cổng chưa mở không có `looks` (biển hiệu đứng yên), cổng / thuyền chưa đi được.
   { id: "phat_lan_duc", name: "Phất Lan Đức", title: "Viện trưởng Sử Lai Khắc Học Viện", role: "talk", col: "#9ad0ff",
-    looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 0 },
+    looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 0, skin: 0 },
     lines: [
       "Sử Lai Khắc Học Viện chỉ nhận quái vật, không nhận người thường! Ta là Phất Lan Đức, viện trưởng ở đây.",
       "Học viện mới dời về Thiên Đấu Thành, mọi thứ còn đang sắp xếp. Đợi xong, mỗi ngày ta sẽ có bài khảo hạch cho các ngươi (nhiệm vụ hằng ngày, sắp mở).",
       "Muốn mạnh lên thì ra Đại Đấu Hồn Trường mà rèn luyện thực chiến, hoặc quay về Tinh Đấu Đại Sâm Lâm săn hồn hoàn hợp vòng.",
     ] },
   { id: "thuong_nhan_thien_dau", name: "Chưởng quỹ", title: "Thương hội Thiên Đấu", role: "shop", col: "#ffb35c",
-    looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 1 },
+    looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 1, skin: 0 },
     lines: [
       "Thương hội Thiên Đấu, hàng hóa khắp đế quốc đều qua tay ta. Đan dược giá như ở Nặc Đinh Thành, không lấy thêm một đồng.",
       "Đồ dư mang tới đây ta cũng mua lại. Đồ đang gắn trên võ hồn thì ta không nhận.",
     ] },
   { id: "lo_ren_thien_dau", name: "Thợ rèn Thiên Đấu", title: "Lò rèn Thiên Đấu", role: "forge", col: "#ff7a3c",
-    looks: { sex: 1, hair: 3, hairCol: 1, outfitCol: 5 },
+    looks: { sex: 1, hair: 3, hairCol: 1, outfitCol: 5, skin: 0 },
     lines: [
       "Lò rèn lớn nhất thủ đô. Hồn cốt dư dung luyện vào hồn cốt chính, hồn hạch dư nâng cấp hồn hạch chính: không bao giờ thất bại.",
       "Tay nghề ở đây cũng như lò rèn Nặc Đinh, chỉ là lửa to hơn thôi.",

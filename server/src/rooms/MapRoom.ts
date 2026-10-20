@@ -522,7 +522,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.publish("kick", { accountId: auth.accountId, sessionId: client.sessionId });
     const p = new PlayerState();
     p.name = ch.name; this.showVohon(p, ch);
-    p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol;
+    p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol; p.skin = looks.skin;
     // Vị trí đã lưu; chưa có, kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn` (mục 6).
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
@@ -4437,7 +4437,7 @@ export async function awakenAccount(accountId: number, name: string, choice: unk
   return { character };
 }
 
-/** Tạo nhân vật (một lần): client gửi giới tính, kiểu tóc, màu tóc, màu áo; mọi giá trị phải nằm trong bảng ở data.ts. */
+/** Tạo nhân vật (một lần): client gửi giới tính, kiểu tóc, màu tóc, màu áo, tông da (9.9; thiếu = tông 0); mọi giá trị phải nằm trong bảng ở data.ts. */
 export async function chooseLooks(accountId: number, body: unknown):
   Promise<{ looks: AccountLooks } | { status: number; error: string }> {
   const looks = parseLooks(body);

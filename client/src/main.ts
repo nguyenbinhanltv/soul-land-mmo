@@ -3,7 +3,7 @@ import Phaser from "phaser";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { addLag } from "./predict.ts";
-import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS,
+import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, SKIN_TONES,
   type He, type Looks } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
@@ -66,10 +66,10 @@ function paintPreview(cv: HTMLCanvasElement, L: Looks) {
   paintHonsuPreview(ctx, L, 16, 30);
 }
 
-// Tạo nhân vật (mục 3, 5.11): chọn giới tính, kiểu tóc, màu tóc, màu áo. Chạy ngay trước bước chọn SSR của lễ thức tỉnh;
+// Tạo nhân vật (mục 3, 5.11): chọn giới tính, tông da (9.9), kiểu tóc, màu tóc, màu áo. Chạy ngay trước bước chọn SSR của lễ thức tỉnh;
 // tài khoản cũ đang mang ngoại hình mặc định thì được chọn lại một lần. Server kiểm tra mọi giá trị.
 function createScreen(me: Me) {
-  const L: Looks = { sex: me.looks.sex, hair: me.looks.hair, hairCol: me.looks.hairCol, outfitCol: me.looks.outfitCol };
+  const L: Looks = { sex: me.looks.sex, hair: me.looks.hair, hairCol: me.looks.hairCol, outfitCol: me.looks.outfitCol, skin: me.looks.skin };
   card.classList.add("wide");
   card.innerHTML = `<h1>Tạo nhân vật</h1>
     <p>${me.character
@@ -84,11 +84,15 @@ function createScreen(me: Me) {
   const opts = document.getElementById("opts")!, cv = document.getElementById("pv") as HTMLCanvasElement;
   const seg = (k: keyof Looks, names: readonly string[]) => names.map((n, i) =>
     `<button type="button" class="opt" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}">${n}</button>`).join("");
-  const sw = (k: keyof Looks, list: typeof HAIR_COLORS) => list.map((c, i) =>
-    `<button type="button" class="sw" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}" title="${c.name}" aria-label="${c.name}"
-      style="--a:${c.ramp[1]};--b:${c.ramp[2]};--c:${c.ramp[3]}"></button>`).join("");
+  // Ô màu vẽ 3 sắc sáng nhất của dải (tóc / áo 4 sắc, da 3 sắc).
+  const sw = (k: keyof Looks, list: readonly { name: string; ramp: readonly string[] }[]) => list.map((c, i) => {
+    const [a, b, d] = c.ramp.slice(-3);
+    return `<button type="button" class="sw" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}" title="${c.name}" aria-label="${c.name}"
+      style="--a:${a};--b:${b};--c:${d}"></button>`;
+  }).join("");
   const render = () => {
     opts.innerHTML = `<h3>Giới tính</h3><div class="seg">${seg("sex", SEXES)}</div>
+      <h3>Tông da · ${SKIN_TONES[L.skin].name}</h3><div class="sws">${sw("skin", SKIN_TONES)}</div>
       <h3>Kiểu tóc</h3><div class="seg">${seg("hair", HAIR_STYLES[L.sex])}</div>
       <h3>Màu tóc · ${HAIR_COLORS[L.hairCol].name}</h3><div class="sws">${sw("hairCol", HAIR_COLORS)}</div>
       <h3>Màu áo · ${OUTFIT_COLORS[L.outfitCol].name}</h3><div class="sws">${sw("outfitCol", OUTFIT_COLORS)}</div>`;

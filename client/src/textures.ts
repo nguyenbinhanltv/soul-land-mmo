@@ -1,8 +1,8 @@
 // Sprite pixel vẽ bằng code. Ảnh thật được tải trước theo shared/assets/sprites/manifest.json (sprites.ts);
 // key nào đã có ảnh thì ở đây bỏ qua. Hồn sư ghép lớp theo mục 5.11: hình vẽ nằm trong honsuArt.ts.
 import Phaser from "phaser";
-import { TIERS, VOHON, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
-import { addGridFrames, recolor, honsuKey, HS_FRAME, VH_FRAME } from "./sprites.ts";
+import { TIERS, VOHON, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, SKIN_TONES, type Looks } from "../../shared/data.ts";
+import { addGridFrames, recolor, createHonsuAnims, honsuKey, HS_FRAME, VH_FRAME } from "./sprites.ts";
 import { honsuSheet, vohonSheets, bufCanvas, type Buf, type Sex } from "./honsuArt.ts";
 import { boneTextures } from "./boneIcons.ts";
 import { coreTextures } from "./coreIcons.ts";
@@ -46,15 +46,23 @@ export function vohonTextures(scene: Phaser.Scene, vh: number): [string, string]
 /** Kiểu tóc hợp lệ (0–3) của ngoại hình; ngoài khoảng thì về kiểu 0. */
 const hairOf = (L: Pick<Looks, "sex" | "hair">) => (L.hair >= 0 && L.hair < HAIR_STYLES[L.sex === 1 ? 1 : 0].length ? L.hair : 0);
 
-/** Sheet thân (có animation) của bộ giới × kiểu tóc, ví dụ `hs_body_f_2`. */
-export const bodyKey = (L: Pick<Looks, "sex" | "hair">) => honsuKey("body", sexKey(L.sex), hairOf(L));
+/** Tông da hợp lệ của ngoại hình; ngoài khoảng thì về tông 0. */
+const skinOf = (L: Pick<Looks, "skin">) => (L.skin > 0 && L.skin < SKIN_TONES.length ? L.skin : 0);
+
+/** Sheet thân (có animation) của bộ giới × kiểu tóc, ví dụ `hs_body_f_2`; tông da khác 0 là bản hoán màu `hs_body_f_2@2` (9.9). */
+export const bodyKey = (L: Pick<Looks, "sex" | "hair" | "skin">) => {
+  const base = honsuKey("body", sexKey(L.sex), hairOf(L)), skin = skinOf(L);
+  return skin ? `${base}@${skin}` : base;
+};
 
 /**
  * Key texture thân, áo, tóc theo ngoại hình: cả 3 lớp cùng bộ giới × kiểu tóc (mục 5.11).
- * Áo và tóc hoán màu (key `hs_hair_f_2@3`, `hs_outfit_f_2@5`), chỉ tạo khi có người dùng tổ hợp đó.
+ * Áo và tóc hoán màu (key `hs_hair_f_2@3`, `hs_outfit_f_2@5`), thân hoán 3 sắc da theo tông da (`hs_body_f_2@2`, kèm animation
+ * riêng của sheet đó); chỉ tạo khi có người dùng tổ hợp đó.
  */
 export function looksTextures(scene: Phaser.Scene, L: Looks) {
-  const s = sexKey(L.sex), h = hairOf(L);
+  const s = sexKey(L.sex), h = hairOf(L), skin = skinOf(L);
+  if (skin) createHonsuAnims(scene, recolor(scene, honsuKey("body", s, h), skin, SKIN_TONES[skin].ramp, SKIN_TONES[0].ramp));
   return {
     body: bodyKey(L),
     outfit: recolor(scene, honsuKey("outfit", s, h), L.outfitCol, (OUTFIT_COLORS[L.outfitCol] ?? OUTFIT_COLORS[0]).ramp),
