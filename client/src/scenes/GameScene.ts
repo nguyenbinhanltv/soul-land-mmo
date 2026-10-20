@@ -996,7 +996,8 @@ export class GameScene extends Phaser.Scene {
     const colorOf: Record<number, string> = { 1: "#5a9440", 2: "#467e38", 3: "#335f35", 4: "#27453a", 5: "#5a9440", 6: "#467e38", 7: "#a08a63", 8: "#7d6b55", 9: "#2d6a96", 10: "#d8b678",
       13: "#a39f94", 14: "#8f3b2e", 15: "#d8c8a2", 16: "#c9b84a",
       // BĐ6c (Cực Bắc): tuyết, tuyết sâu, mặt băng, khe băng, lối tuyết, thông tuyết, băng tinh
-      25: "#f4f8ff", 26: "#c0cce0", 27: "#5a9cc9", 28: "#1f4a6b", 29: "#8a87a0", 30: "#1e4a2a", 32: "#7fd0ff" };
+      25: "#f4f8ff", 26: "#c0cce0", 27: "#5a9cc9", 28: "#1f4a6b", 29: "#8a87a0", 30: "#1e4a2a", 32: "#7fd0ff",
+      33: "#e8d49a", 34: "#4fa8b8", 35: "#173f63", 36: "#6a6258" }; // BĐ6d: cát, rạn nông, biển sâu, đá ngầm
     const ground = map.getLayer("ground")!.data, trees = map.getLayer("trees")!.data;
     for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
       const t = trees[y][x].index, g = ground[y][x].index;
