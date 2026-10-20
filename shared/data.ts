@@ -1043,7 +1043,8 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, copy: 0.8 },
   ],
   // ---- Bước 2.5d: 5 võ hồn còn lại (mọi số chờ chốt). Từ đây cả 20 võ hồn trong VOHON đều có hồn kỹ riêng. ----
-  // Cường công, phá giáp: Vô Ngã Kiếm Trận sát thương diện rộng liên tục, Liệt thương (Phá giáp); tuyệt kỹ Kiếm Trảm Sơn Hà.
+  // Cường công, phá giáp: Vô Ngã Kiếm Trận sát thương diện rộng liên tục, Liệt thương (Phá giáp); vòng 4 Thất Sát Trảm là bản nhỏ của
+  // tuyệt kỹ Kiếm Trảm Sơn Hà (vòng 10, 8.1d; trước 8.1d vòng 4 mang tên này).
   cuu_tinh_that_sat_kiem: [
     { name: "Thất Sát Kiếm Khí", desc: "Kiếm khí quét nửa trước mặt: Liệt thương (Phá giáp 1 tầng)", icon: "⚔", cost: 12, cd: 3.5,
       area: "front", r: 48, dmg: 2.2, status: [{ s: "armor" }] },
@@ -1051,7 +1052,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "proj", r: 130, n: 9, spread: 80, dmg: 0.7, status: [{ s: "armor" }] },
     { name: "Vô Ngã Kiếm Trận", desc: "Kiếm trận xoay quanh thân 3 giây, 6 nhát, mỗi nhát Phá giáp 1 tầng", icon: "✵", cost: 24, cd: 10,
       area: "around", r: 72, n: 6, every: 0.5, dmg: 0.6, status: [{ s: "armor" }] },
-    { name: "Kiếm Trảm Sơn Hà", desc: "Một kiếm chém núi sông nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công", icon: "⚡", cost: 40, cd: 14,
+    { name: "Thất Sát Trảm", desc: "Một kiếm Thất Sát chém nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công", icon: "⚡", cost: 40, cd: 14,
       area: "front", r: 64, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }] },
   ],
   // Mẫn công, chấn đãng: lướt, quật ngã, tăng chí mạng, hút máu; ràng buộc chí mạng với Hạo Thiên Chùy (BONDS).
@@ -1078,7 +1079,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       status: [{ s: "root", secs: 2.5 }, { s: "poison", n: 2 }, { s: "shock" }] },
   ],
   // Phụ trợ, đội bùng nổ: biến sát thương gây ra thành hồi máu (hiệu ứng có lợi `leech`), tăng sát thương đội;
-  // tuyệt kỹ Quỷ Ảnh Trùng Trùng tàng hình cả đội (hiệu ứng thuộc hồn sư nên đổi võ hồn vẫn còn).
+  // vòng 4 Quỷ Ảnh Tiềm Hành tàng hình cả đội (hiệu ứng thuộc hồn sư nên đổi võ hồn vẫn còn), bản nhỏ của tuyệt kỹ Quỷ Ảnh Trùng Trùng (vòng 10, 8.1d).
   quy_mi: [
     { name: "Quỷ Ảnh Trảo", desc: "Quỷ ảnh lướt tới vồ mục tiêu: hút 30% sát thương thành sinh lực", icon: "≋", cost: 12, cd: 4,
       area: "target", r: 60, dash: 40, dmg: 1.6, lifesteal: 0.3 },
@@ -1086,11 +1087,11 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, self: { buff: { leech: 0.2 }, secs: 10 } },
     { name: "Quỷ Lực Gia Trì", desc: "Công +25%, chí mạng +10% trong 10 giây (cả đội)", icon: "✦", cost: 20, cd: 16,
       area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.25, crit: 0.1 }, secs: 10 } },
-    { name: "Quỷ Ảnh Trùng Trùng", desc: "Tuyệt kỹ: cả đội tàng hình 5 giây (hồn thú mất dấu), công +30%; ra đòn thì hiện hình", icon: "☾", cost: 40, cd: 20,
+    { name: "Quỷ Ảnh Tiềm Hành", desc: "Cả đội tàng hình 5 giây (hồn thú mất dấu), công +30%; ra đòn thì hiện hình", icon: "☾", cost: 40, cd: 20,
       area: "self", r: 0, dmg: 0, self: { buff: { hide: 1, atk: 0.3 }, secs: 5 } },
   ],
-  // Phụ trợ, đánh boss: hồi máu, khiên, Dễ thương cho đồng đội đánh; kỹ năng Tịnh Thế Lưu Ly. "Xóa buff địch" và "thanh tẩy đội"
-  // chưa làm: hồn thú chưa có hiệu ứng có lợi, hồn sư chưa bị trạng thái xấu (chờ hồn thú có chiêu, bước 3.5 / BĐ4; chờ chốt).
+  // Phụ trợ, đánh boss: hồi máu, khiên, Dễ thương cho đồng đội đánh; vòng 4 Lưu Ly Hộ Thế là bản nhỏ của Tịnh Thế Lưu Ly (vòng 10, 8.1d).
+  // "Xóa buff địch" ở Thiên Càn Trấn Áp (BĐ4), "thanh tẩy đội" ở tiên cơ (3.5).
   thien_can_bach_ngoc_dinh: [
     { name: "Bạch Ngọc Hồi Xuân", desc: "Hồi 18% sinh lực cả đội", icon: "✚", cost: 12, cd: 9,
       area: "self", r: 0, dmg: 0, self: { heal: 0.18 } },
@@ -1098,7 +1099,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, self: { buff: { def: 0.15 }, secs: 6, shield: 0.15 } },
     { name: "Thiên Càn Trấn Áp", desc: "Đỉnh ngọc trấn áp quanh thân: Dễ thương 6 giây, Câm lặng 2 giây, xóa hiệu ứng có lợi của hồn thú", icon: "▼", cost: 20, cd: 10,
       area: "around", r: 80, dmg: 1.2, status: [{ s: "vuln", secs: 6 }, { s: "silence", secs: 2 }], dispel: true },
-    { name: "Tịnh Thế Lưu Ly", desc: "Hồi 30% sinh lực cả đội, khiên 20% sinh lực tối đa 6 giây", icon: "✷", cost: 40, cd: 18,
+    { name: "Lưu Ly Hộ Thế", desc: "Hồi 30% sinh lực cả đội, khiên 20% sinh lực tối đa 6 giây", icon: "✷", cost: 40, cd: 18,
       area: "self", r: 0, dmg: 0, glow: true, self: { secs: 6, heal: 0.3, shield: 0.2 } },
   ],
 };
@@ -1116,7 +1117,7 @@ export const CHAN_THAN_RING = 7;
 export const LOADOUT_SIZE = 4;
 export const DEFAULT_LOADOUT: readonly number[] = [0, 1, 2, 3];
 /**
- * Hồn kỹ vòng 5, 6, 8, 9, 10 (theo HIGH_RINGS) của võ hồn đã có dữ liệu (8.1a: 5 võ hồn mẫu; 8.1b… các lưu phái còn lại). Mạnh theo số năm
+ * Hồn kỹ vòng 5, 6, 8, 9, 10 (theo HIGH_RINGS) của võ hồn đã có dữ liệu (8.1a: 5 võ hồn mẫu; 8.1b–8.1d các lưu phái còn lại). Mạnh theo số năm
  * hồn hoàn của đúng vòng đó (skillPower / buffPower như vòng 1–4). Võ hồn chưa có trong bảng: vòng 5+ chỉ tăng chỉ số (calcStats).
  * Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
@@ -1257,6 +1258,77 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Tà Nguyệt Đoạt Mệnh · Huyết Nguyệt", desc: "Tuyệt kỹ: khóa hồn thú yếu máu nhất cả vùng, lướt tới chém 8 nhát (tới +200% khi mục tiêu ít máu), +40% chí mạng, mỗi nhát Phá giáp 1 tầng", icon: "☽", cost: 100, cd: 45,
       area: "target", r: 200, pick: "low", dash: 190, n: 8, every: 0.1, dmg: 1.2, lowHp: 2, crit: 0.4, inv: 1.2, glow: true, ult: true, status: [{ s: "armor" }] },
   ],
+  // ---- Bước 8.1d: 5 võ hồn còn lại (mọi số chờ chốt). Từ đây cả 20 võ hồn trong VOHON đều có vòng 5–10 và Chân Thân. ----
+  // Cường công, phá giáp: kiếm trận diện rộng liên tục, Liệt thương; tuyệt kỹ Kiếm Trảm Sơn Hà thật (vòng 4 là bản nhỏ Thất Sát Trảm).
+  cuu_tinh_that_sat_kiem: [
+    { name: "Thất Sát Kiếm Mang", desc: "Kiếm mang Thất Sát quét nửa trước mặt: Liệt thương (Phá giáp 2 tầng)", icon: "⚔", cost: 45, cd: 9,
+      area: "front", r: 70, dmg: 3, status: [{ s: "armor", n: 2 }] },
+    { name: "Thất Tinh Kiếm Trận", desc: "Kiếm trận bảy sao xoay quanh thân 3,2 giây (đi theo hồn sư), 8 nhát, mỗi nhát Phá giáp 1 tầng", icon: "✵", cost: 50, cd: 14,
+      area: "around", r: 100, n: 8, every: 0.4, dmg: 0.7, status: [{ s: "armor" }] },
+    { name: "Cửu Tinh Kiếm Lưu", desc: "16 thanh kiếm bắn ra bốn phía, mỗi kiếm Phá giáp 1 tầng", icon: "✶", cost: 60, cd: 16,
+      area: "proj", r: 170, n: 16, spread: 360, dmg: 1.4, glow: true, status: [{ s: "armor" }] },
+    { name: "Nhân Kiếm Hợp Nhất", desc: "Người kiếm hợp nhất lao tới một mục tiêu: mỗi tầng Phá giáp trên mục tiêu thêm 60% công, Phá giáp 2 tầng", icon: "➹", cost: 70, cd: 20,
+      area: "target", r: 110, dash: 90, dmg: 6, perStack: { s: "armor", dmg: 0.6 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }] },
+    { name: "Kiếm Trảm Sơn Hà", desc: "Tuyệt kỹ: dồn cả kiếm ý chém một kiếm núi sông nửa trước mặt cả vùng: mỗi tầng Phá giáp trên mục tiêu thêm 80% công, Phá giáp đủ 3 tầng", icon: "⚡", cost: 100, cd: 45,
+      area: "front", r: 150, dmg: 7, perStack: { s: "armor", dmg: 0.8 }, inv: 0.5, glow: true, shake: true, ult: true, status: [{ s: "armor", n: 3 }] },
+  ],
+  // Mẫn công, chấn đãng: lướt, quật ngã, chí mạng, hút máu; hồn kỹ của Tiểu Vũ (Mị Hoặc, Thuấn Di, Vô Địch Kim Thân, Bát Đoạn Suất).
+  nhu_cot_tho: [
+    { name: "Mị Hoặc", desc: "Ánh mắt mị hoặc quét nửa trước mặt, +20% chí mạng: Mị hoặc 2 tầng", icon: "✾", cost: 45, cd: 9,
+      area: "front", r: 60, dmg: 2.4, crit: 0.2, status: [{ s: "allure", n: 2 }] },
+    { name: "Thuấn Di · Liên Hoàn", desc: "Thuấn di xa xuyên hàng hồn thú, +30% chí mạng, hút 20% sát thương, bất tử 0,5 giây", icon: "➤", cost: 50, cd: 12,
+      area: "dash", r: 120, dmg: 3, crit: 0.3, lifesteal: 0.2, inv: 0.5 },
+    { name: "Nhu Cốt Liên Suất", desc: "Lướt tới quật mục tiêu 5 đoạn, +30% chí mạng, hút 25% sát thương; đoạn cuối quật ngã (Choáng 1,5 giây)", icon: "➰", cost: 60, cd: 16,
+      area: "target", r: 100, dash: 80, n: 5, every: 0.14, dmg: 1.3, crit: 0.3, lifesteal: 0.25, inv: 0.5, finisher: [{ s: "stun", secs: 1.5 }] },
+    { name: "Vô Địch Kim Thân · Bất Hoại", desc: "Kim thân bất hoại: bất tử 2 giây; chí mạng +40%, công +25% trong 8 giây", icon: "✪", cost: 55, cd: 22,
+      area: "self", r: 0, dmg: 0, inv: 2, glow: true, self: { buff: { crit: 0.4, atk: 0.25 }, secs: 8 } },
+    { name: "Bát Đoạn Suất · Thập Vạn Niên", desc: "Tuyệt kỹ: sức mạnh thỏ mười vạn năm, lướt tới quật mục tiêu 8 đoạn, +40% chí mạng, hút 30% sát thương; đoạn cuối quật ngã (Choáng 2,5 giây)", icon: "✥", cost: 100, cd: 45,
+      area: "target", r: 120, dash: 110, n: 8, every: 0.14, dmg: 1.5, crit: 0.4, lifesteal: 0.3, inv: 1.2, glow: true, shake: true, ult: true, finisher: [{ s: "stun", secs: 2.5 }] },
+  ],
+  // Khống chế, trúng độc / cảm điện: tơ độc, lưới giam đặt vào hồn thú, gom quái; tuyệt kỹ thiên võng kéo cả vùng lại.
+  tu_vong_chu_hoang: [
+    { name: "Chu Hoàng Độc Ti", desc: "Phun 5 sợi tơ độc hình quạt, mỗi sợi Trúng độc 1 tầng, Làm chậm 1 giây", icon: "➶", cost: 45, cd: 9,
+      area: "proj", r: 160, n: 5, spread: 60, dmg: 1.2, status: [{ s: "poison" }, { s: "slow", secs: 1 }] },
+    { name: "Tử Vong Chu Võng", desc: "Quăng lưới tơ chụp lên hồn thú gần nhất 3 giây: 6 nhát, mỗi nhát Trói 0,6 giây (giam), Trúng độc 1 tầng, Cảm điện", icon: "▦", cost: 50, cd: 14,
+      area: "around", at: 140, r: 90, n: 6, every: 0.5, dmg: 0.5, status: [{ s: "root", secs: 0.6 }, { s: "poison" }, { s: "shock" }] },
+    { name: "Vạn Chu Phệ Thể", desc: "Vạn nhện cắn xé quanh thân: mỗi tầng Trúng độc thêm 50% công, Trúng độc 2 tầng, Dễ thương 6 giây, Cảm điện", icon: "☠", cost: 60, cd: 18,
+      area: "around", r: 120, dmg: 2.8, perStack: { s: "poison", dmg: 0.5 }, glow: true, status: [{ s: "poison", n: 2 }, { s: "vuln", secs: 6 }, { s: "shock" }] },
+    { name: "Tử Vong Chu Hoàng Lãnh Vực", desc: "Lãnh vực Chu Hoàng đặt ở chỗ đứng 3,2 giây: 8 nhát, Trúng độc, Làm chậm, Cảm điện; nhát cuối Trói 2 giây", icon: "✳", cost: 70, cd: 20,
+      area: "around", r: 130, fixed: true, n: 8, every: 0.4, dmg: 0.6, glow: true, status: [{ s: "poison" }, { s: "slow", secs: 1 }, { s: "shock" }], finisher: [{ s: "root", secs: 2 }] },
+    { name: "Tử Vong Thiên Võng", desc: "Tuyệt kỹ: thiên võng tơ chết phủ cả vùng, kéo mọi hồn thú lại: mỗi tầng Trúng độc thêm 80% công, Trói 3,5 giây, Trúng độc đủ 5 tầng, Câm lặng 3 giây, Cảm điện", icon: "✳", cost: 100, cd: 45,
+      area: "around", r: 160, dmg: 5.5, pull: true, perStack: { s: "poison", dmg: 0.8 }, glow: true, shake: true, ult: true,
+      status: [{ s: "root", secs: 3.5 }, { s: "poison", n: 5 }, { s: "silence", secs: 3 }, { s: "shock" }] },
+  ],
+  // Phụ trợ, đội bùng nổ: hút máu, hút huyết cả đội, tăng công, Dễ thương; tuyệt kỹ Quỷ Ảnh Trùng Trùng thật (vòng 4 là bản nhỏ Quỷ Ảnh Tiềm Hành).
+  quy_mi: [
+    { name: "Quỷ Ảnh Phệ Huyết", desc: "Quỷ ảnh cắn xé quanh thân: hút 40% sát thương thành sinh lực, Dễ thương 4 giây", icon: "≋", cost: 45, cd: 10,
+      area: "around", r: 90, dmg: 2, lifesteal: 0.4, status: [{ s: "vuln", secs: 4 }] },
+    { name: "Quỷ Vương Gia Trì", desc: "Công +30%, chí mạng +15%, hút huyết 15% trong 12 giây (cả đội)", icon: "✦", cost: 50, cd: 18,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.3, crit: 0.15, leech: 0.15 }, secs: 12 } },
+    { name: "Quỷ Huyết Tế", desc: "Huyết tế: hồi 20% sinh lực cả đội, 35% mọi sát thương gây ra hồi thành sinh lực trong 12 giây", icon: "♥", cost: 55, cd: 20,
+      area: "self", r: 0, dmg: 0, glow: true, self: { buff: { leech: 0.35 }, secs: 12, heal: 0.2 } },
+    { name: "Bách Quỷ Dạ Hành", desc: "Trăm quỷ tràn quanh thân: hút 30% sát thương, Dễ thương 8 giây; công +35% trong 10 giây (cả đội)", icon: "☾", cost: 70, cd: 22,
+      area: "around", r: 120, dmg: 3, lifesteal: 0.3, glow: true, status: [{ s: "vuln", secs: 8 }], self: { buff: { atk: 0.35 }, secs: 10 } },
+    { name: "Quỷ Ảnh Trùng Trùng", desc: "Tuyệt kỹ: trùng trùng quỷ ảnh nổ quanh thân (hút 40%, Dễ thương 8 giây), rồi cả đội tàng hình 8 giây (hồn thú mất dấu), công +50%, hút huyết 30%, bất tử 2 giây; ra đòn thì hiện hình", icon: "☾", cost: 100, cd: 50,
+      area: "around", r: 140, dmg: 3.5, lifesteal: 0.4, inv: 2, glow: true, shake: true, ult: true, status: [{ s: "vuln", secs: 8 }],
+      self: { buff: { hide: 1, atk: 0.5, leech: 0.3 }, secs: 8 } },
+  ],
+  // Phụ trợ, đánh boss: hồi máu, khiên, giảm sát thương, thanh tẩy đội; Dễ thương, Phá giáp, xóa buff địch; tuyệt kỹ Tịnh Thế Lưu Ly thật
+  // (vòng 4 là bản nhỏ Lưu Ly Hộ Thế).
+  thien_can_bach_ngoc_dinh: [
+    { name: "Bạch Ngọc Trấn Hồn", desc: "Đỉnh ngọc trấn hồn quanh thân: Dễ thương 6 giây, Phá giáp 2 tầng, xóa hiệu ứng có lợi của hồn thú", icon: "▼", cost: 45, cd: 10,
+      area: "around", r: 100, dmg: 1.6, dispel: true, status: [{ s: "vuln", secs: 6 }, { s: "armor", n: 2 }] },
+    { name: "Thiên Càn Hộ Thể", desc: "Hồi 22% sinh lực cả đội, khiên 18% sinh lực tối đa, sát thương nhận giảm 20% trong 8 giây, thanh tẩy", icon: "◈", cost: 50, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { def: 0.2 }, secs: 8, heal: 0.22, shield: 0.18, cleanse: true } },
+    { name: "Thiên Càn Phong Ma", desc: "Đỉnh ngọc giáng xuống phong ma quanh thân: Dễ thương 8 giây, Câm lặng 2,5 giây, xóa hiệu ứng có lợi của hồn thú", icon: "▼", cost: 60, cd: 18,
+      area: "around", r: 130, dmg: 2.5, dispel: true, glow: true, status: [{ s: "vuln", secs: 8 }, { s: "silence", secs: 2.5 }] },
+    { name: "Bạch Ngọc Thánh Đỉnh", desc: "Thánh đỉnh bạch ngọc: hồi 35% sinh lực cả đội, khiên 25% sinh lực tối đa, sát thương nhận giảm 25% trong 8 giây, thanh tẩy", icon: "✚", cost: 65, cd: 24,
+      area: "self", r: 0, dmg: 0, glow: true, self: { buff: { def: 0.25 }, secs: 8, heal: 0.35, shield: 0.25, cleanse: true } },
+    { name: "Tịnh Thế Lưu Ly", desc: "Tuyệt kỹ: lưu ly tịnh thế phủ cả vùng: Dễ thương 10 giây, Phá giáp 3 tầng, Câm lặng 3 giây, xóa hiệu ứng có lợi của hồn thú; hồi 50% sinh lực cả đội, khiên 30%, sát thương nhận giảm 30% trong 10 giây, thanh tẩy", icon: "✷", cost: 100, cd: 50,
+      area: "around", r: 160, dmg: 3, dispel: true, glow: true, shake: true, ult: true,
+      status: [{ s: "vuln", secs: 10 }, { s: "armor", n: 3 }, { s: "silence", secs: 3 }],
+      self: { buff: { def: 0.3 }, secs: 10, heal: 0.5, shield: 0.3, cleanse: true } },
+  ],
 };
 /**
  * Hồn kỹ của vòng có chỉ số `ring` (0..MAX_RINGS − 1) của võ hồn: vòng 1–4 từ skillsOf, vòng 5, 6, 8, 9, 10 từ VOHON_SKILLS_HIGH; null nếu
@@ -1332,6 +1404,22 @@ export const CHAN_THAN: Record<string, ChanThanDef> = {
   nguyet_nhan: { name: "Nguyệt Nhận Chân Thân", desc: "Hóa thân Nguyệt Nhận: trăng máu quét quanh thân (Phá giáp 2 tầng, Thiêu đốt 1 tầng); công +25%, tốc độ +30%, chí mạng +25%",
     icon: "☽", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.3, crit: 0.25 },
     burst: ctBurst("Nguyệt Nhận Chân Thân", { r: 80, dmg: 2, crit: 0.3, status: [{ s: "armor", n: 2 }, { s: "burn" }] }) },
+  // ---- Bước 8.1d: 5 võ hồn còn lại (mọi số chờ chốt) ----
+  cuu_tinh_that_sat_kiem: { name: "Cửu Tinh Thất Sát Kiếm Chân Thân", desc: "Hóa thân kiếm: kiếm khí nổ quanh thân (Phá giáp đủ 3 tầng); công +35%, chí mạng +15%, tốc độ +10%",
+    icon: "⚔", cost: 80, cd: 90, secs: 15, stats: { atk: 0.35, crit: 0.15, spd: 0.1 },
+    burst: ctBurst("Cửu Tinh Thất Sát Kiếm Chân Thân", { r: 100, dmg: 2.2, shake: true, status: [{ s: "armor", n: 3 }] }) },
+  nhu_cot_tho: { name: "Nhu Cốt Thố Chân Thân", desc: "Hóa thân thỏ mười vạn năm: quật quanh thân (+30% chí mạng, hút 20%, Choáng 1 giây); công +25%, tốc độ +30%, chí mạng +25%",
+    icon: "➰", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.3, crit: 0.25 },
+    burst: ctBurst("Nhu Cốt Thố Chân Thân", { r: 80, dmg: 2, crit: 0.3, lifesteal: 0.2, status: [{ s: "stun", secs: 1 }] }) },
+  tu_vong_chu_hoang: { name: "Tử Vong Chu Hoàng Chân Thân", desc: "Hóa thân Chu Hoàng: tơ kéo hồn thú quanh thân lại (Trói 2 giây, Trúng độc 2 tầng, Cảm điện); công +25%, sát thương nhận giảm 25%, sinh lực tối đa +20%",
+    icon: "✳", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, def: 0.25, hp: 0.2 },
+    burst: ctBurst("Tử Vong Chu Hoàng Chân Thân", { r: 110, dmg: 1.8, pull: true, status: [{ s: "root", secs: 2 }, { s: "poison", n: 2 }, { s: "shock" }] }) },
+  quy_mi: { name: "Quỷ Mị Chân Thân", desc: "Hóa thân quỷ: quỷ khí quanh thân (hút 30%), hút huyết 30% trong 15 giây (cả đội); công +30%, chí mạng +15%, tốc độ +15%",
+    icon: "☾", cost: 80, cd: 90, secs: 15, stats: { atk: 0.3, crit: 0.15, spd: 0.15 },
+    burst: ctBurst("Quỷ Mị Chân Thân", { r: 90, dmg: 1.5, lifesteal: 0.3, self: { buff: { leech: 0.3 }, secs: 15 } }) },
+  thien_can_bach_ngoc_dinh: { name: "Thiên Càn Bạch Ngọc Đỉnh Chân Thân", desc: "Hóa thân đỉnh ngọc: trấn áp quanh thân (Dễ thương 6 giây, xóa hiệu ứng có lợi của hồn thú), hồi 25% sinh lực cả đội, khiên 20%, thanh tẩy; công +15%, sát thương nhận giảm 35%, hồn kỹ tốn ít hơn 20%, sinh lực tối đa +25%",
+    icon: "✚", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.35, mp: 0.2, hp: 0.25 },
+    burst: ctBurst("Thiên Càn Bạch Ngọc Đỉnh Chân Thân", { r: 100, dmg: 1.2, dispel: true, status: [{ s: "vuln", secs: 6 }], self: { heal: 0.25, shield: 0.2, secs: 15, cleanse: true } }) },
 };
 export const chanThanOf = (vohonId: string): ChanThanDef | null => CHAN_THAN[vohonId] ?? null;
 /** Bán kính lãnh vực phượng hoàng của hồn sư có võ hồn ra trận `vohonId`, `ava` = đang Chân Thân (8.1b; server tính trúng, client vẽ). */
