@@ -19,7 +19,8 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
+  PROJ_SPEED, PHOENIX_FIELD_R, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf,
+  ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, type ChanThanStat, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
@@ -89,6 +90,13 @@ interface PData {
   partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
   // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
   quest: QuestProgress;
+  // Võ Hồn Chân Thân (vòng 7, từ 8.1a): võ hồn đang biến hình (`row`), giây còn lại, chỉ số đang cộng (chanThanStats, đọc trong buffV
+  // và recalc); `avaCd`: hồi chiêu Chân Thân còn lại của từng võ hồn (rowId -> giây). Không lưu DB.
+  ava: { row: number; t: number; stats: Partial<Record<ChanThanStat, number>> } | null;
+  avaCd: Map<number, number>;
+  // Hồi chiêu còn lại theo hồn kỹ (`rowId:vòng`, từ 8.1a): hồi chiêu đồng bộ vẫn theo ô (`p.cds`), nhưng khi xếp lại ô hay đổi võ hồn
+  // thì ô mang hồn kỹ đó nhận ít nhất phần còn lại này, để bỏ ra rồi xếp lại (hoặc sửa ô của võ hồn đang nghỉ) không làm mới hồi chiêu.
+  skCd: Map<string, number>;
   // Cộng minh (8.2, mục 5.10): tiến độ và số mốc đã đạt từng trụ cột (thứ tự RESONANCE), tổng % cộng cho mọi võ hồn. Không lưu DB:
   // tính lại từ võ hồn và đồ đang gắn (resCheck) khi nạp tài khoản và mỗi khi dữ liệu liên quan đổi. `resKey`: tin "resonance" lần trước.
   res: { prog: number[]; lv: number[]; bonus: Record<ResStat, number> }; resKey: string;
@@ -349,6 +357,8 @@ export class MapRoom extends Room<MapState> {
     });
     this.onMessage("attack", (c) => this.attack(c.sessionId));
     this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
+    this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, Number(m?.rowId), m?.skills)); // 8.1a
+    this.onMessage("chanthan", (c) => this.chanThan(c)); // 8.1a: Võ Hồn Chân Thân (phím R)
     this.onMessage("boneskill", (c, m: { i: number }) => this.boneSkill(c, Number(m?.i)));
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
@@ -407,7 +417,7 @@ export class MapRoom extends Room<MapState> {
       claims: auth.claims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
-      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "" };
+      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map() };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.resCheck(client.sessionId, false); // cộng minh (8.2) tính trước chỉ số ban đầu, không báo mốc
@@ -481,6 +491,7 @@ export class MapRoom extends Room<MapState> {
     const cores = this.coresOn(d, d.ch.rowId);
     const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), coreBonus(cores), d.res.bonus);
     p.maxHp = s.maxHp; p.maxMp = s.maxMp; d.atk = s.atk; d.speed = s.speed; d.crit = s.crit; d.critMult = s.critMult;
+    if (d.ava?.row === d.ch.rowId) p.maxHp = Math.round(s.maxHp * (1 + (d.ava.stats.hp ?? 0))); // Võ Hồn Chân Thân (8.1a)
     d.passive = bonePassive(this.bonesOn(d, d.ch.rowId)); // bị động hồn cốt (4.3) theo võ hồn ra trận
     d.coreFx = coreFx(cores); // hiệu ứng bộ hồn hạch (5.2) theo võ hồn ra trận
     p.xpNeed = xpBlocked(p.level, p.rings.length) ? 0 : xpNeed(p.level);
@@ -608,7 +619,8 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(c.sessionId); if (!d) return;
     this.syncCh(c.sessionId);
     c.send("vohons", { active: d.ch.rowId, team: [...d.team],
-      list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings] })) });
+      list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings],
+        skills: loadoutOf(v.vohon, v.skills) })) });
     this.sendSquad(c.sessionId, true);
   }
 
@@ -693,10 +705,12 @@ export class MapRoom extends Room<MapState> {
   activate(id: string, next: Character, text?: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     this.syncCh(id);
+    this.endAva(id, ""); // đổi võ hồn (cả khi tự đổi lúc gục) thì Võ Hồn Chân Thân của võ hồn cũ hết (8.1a)
     const prev = d.ch, mpR = d.mpF / Math.max(1, p.maxMp);
     if (d.down.has(prev.rowId)) d.benchHp.delete(prev.rowId); else d.benchHp.set(prev.rowId, d.hpF);
     d.ch = next; d.ringYears = [...next.rings]; d.dirty.delete(next.rowId);
     this.showVohon(p, next);
+    this.carrySkillCds(p, d); // 8.1a: hồn kỹ của võ hồn vào trận vẫn giữ hồi chiêu còn lại của nó
     this.recalc(id, false);
     d.hpF = Math.min(p.maxHp, d.benchHp.get(next.rowId) ?? p.maxHp); d.benchHp.delete(next.rowId);
     d.mpF = mpR * p.maxMp; this.recalc(id, false);
@@ -771,6 +785,7 @@ export class MapRoom extends Room<MapState> {
    */
   beginTravel(id: string, portal: Portal) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
+    this.endAva(id, "");
     this.freeze(id);
     this.portalHint(id, p, d);
     this.chain(d, async () => {
@@ -1245,6 +1260,7 @@ export class MapRoom extends Room<MapState> {
       this.tickDowns(id, s); this.tickEnergy(id, s); this.sendSquad(id);
       for (const [b, x] of d.buffs) { x.t -= s; if (x.t <= 0) d.buffs.delete(b); } // hiệu ứng có lợi cũng hết giờ
       this.syncBuffs(p, d);
+      this.tickAva(id, s); // Võ Hồn Chân Thân và hồi chiêu của nó (8.1a)
       d.danCd = Math.max(0, d.danCd - s); this.sendBag(id);
     }
     else if (op === "give") {
@@ -1292,7 +1308,9 @@ export class MapRoom extends Room<MapState> {
       const x = Math.max(8, Math.min(this.map.MW * TILE - 8, p.x + int(o.dx, -200, 200, 20)));
       const y = Math.max(8, Math.min(this.map.MH * TILE - 8, p.y + int(o.dy, -200, 200, 0)));
       const zi = Math.max(0, this.map.zones.findIndex((z) => x >= z.x0 && x < z.x1)), sp = beastIndex(String(o.species ?? ""));
-      this.addBeast(zi, years, sp >= 0 ? sp : this.map.zones[zi]?.beasts[0]?.species ?? 0, x, y);
+      const bid = this.addBeast(zi, years, sp >= 0 ? sp : this.map.zones[zi]?.beasts[0]?.species ?? 0, x, y);
+      // `hpx` (8.1a): nhân sinh lực hồn thú vừa sinh để bot đếm đủ các nhát của tuyệt kỹ nhiều nhát (không ảnh hưởng luật chơi thật).
+      const hb = this.state.beasts.get(bid), hpx = int(o.hpx, 1, 1000, 1); if (hb && hpx > 1) hb.hp = hb.maxHp = hb.maxHp * hpx;
     }
     else if (op === "tele") {
       // Hồn thú gần nhất báo trước chiêu thứ `i` nhắm người gọi ngay lúc này (bỏ qua tầm, hồi chiêu và thời gian chờ).
@@ -1319,7 +1337,7 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "bhp") { const x = nearB(); if (x) { x.b.hp = Math.max(1, Math.round(x.b.maxHp * int(o.pct, 1, 100, 100) / 100)); x.bd.calm = 0; x.bd.regen = 0; } }
     else if (op === "regen") { const x = nearB(); if (x) { const h0 = x.b.hp; this.regenBeast(x.b, x.bd, int(o.s, 0, 60, 0)); out = { gain: x.b.hp - h0 }; } }
-    else if (op === "ready") { for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
+    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
       const vohon = String(o.vohon ?? "");
       if (vohonIndex(vohon) >= 0) {
@@ -1356,7 +1374,10 @@ export class MapRoom extends Room<MapState> {
       out = { rowId: v.rowId, bones, cores, sets: Object.fromEntries(coreSetCounts(worn)), fx: coreFx(worn),
         slots: Object.fromEntries(worn.map((w) => [w.it.id, w.slot])),
         base: calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus), stats: calcStats(vh, v.level, rings, v.stars, bones, cores, d.res.bonus), res: d.res,
-        live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive, crit: d.crit, critMult: d.critMult, fx: d.coreFx } : null };
+        live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive, crit: d.crit, critMult: d.critMult, fx: d.coreFx,
+          atkNow: this.atkOf(d), spd: d.speed * (1 + this.buffV(d, "spd")), def: this.buffV(d, "def"), critB: this.buffV(d, "crit"),
+          ava: d.ava && { row: d.ava.row, t: d.ava.t, stats: d.ava.stats }, avaCd: d.avaCd.get(v.rowId) ?? 0 } : null,
+        skills: loadoutOf(v.vohon, v.skills), saved: [...v.skills] };
     }
     else if (op === "elite") out = { list: this.elites.map((slot) => {
       const b = slot.bid ? this.state.beasts.get(slot.bid) : undefined, bd = slot.bid ? this.bdata.get(slot.bid) : undefined, e = bd?.elite;
@@ -1537,7 +1558,7 @@ export class MapRoom extends Room<MapState> {
       this.persistTeam(d);
       if (c) this.sendVohons(c);
     } else {
-      p.dead = true; d.deadT = RESPAWN_SECS; this.clearPStatus(p, d);
+      p.dead = true; d.deadT = RESPAWN_SECS; this.clearPStatus(p, d); this.endAva(id, "");
       this.log(id, `${name} đã gục, cả đội đều đã gục. Đang trở về doanh trại… (không mất kinh nghiệm hay đồ)`, "#ff8a8a");
       c?.send("ko", { fallen: fallen.vohon, next: null });
       this.sendSquad(id, true);
@@ -1575,7 +1596,9 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Độ lớn hiệu ứng có lợi `b` đang có trên hồn sư (0 = không có), cộng cả bị động hồn cốt cùng tên (4.3) của võ hồn ra trận. */
-  buffV(d: PData, b: BuffId) { return (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0); }
+  buffV(d: PData, b: BuffId) {
+    return (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0) + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + Chân Thân (8.1a)
+  }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
   atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk")); }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
@@ -1975,18 +1998,21 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
-   * Hồn kỹ ở ô `i` (U/I/O/P): hồn kỹ riêng của võ hồn ra trận nếu có (VOHON_SKILLS), không thì 4 hồn kỹ dùng chung. Hồn kỹ thứ i
-   * mở khi có hồn hoàn thứ i, mạnh theo số năm của hồn hoàn đó (skillPower, mục 5.2). Hồn kỹ đánh một mục tiêu mà không có
-   * hồn thú trong tầm thì không tung (không tốn hồn lực, không hồi chiêu).
+   * Hồn kỹ ở ô `i` (U/I/O/P). Từ 8.1a mỗi ô mang hồn kỹ của một vòng do người chơi chọn (loadoutOf; mặc định vòng 1–4): vòng 1–4
+   * là hồn kỹ riêng của võ hồn ra trận nếu có (VOHON_SKILLS), không thì 4 hồn kỹ dùng chung; vòng 5, 6, 8, 9, 10 từ VOHON_SKILLS_HIGH.
+   * Hồn kỹ vòng r mở khi có hồn hoàn thứ r, mạnh theo số năm của hồn hoàn đó (skillPower, mục 5.2). Hồi chiêu theo ô (`p.cds[i]`).
+   * Hồn kỹ đánh một mục tiêu mà không có hồn thú trong tầm thì không tung (không tốn hồn lực, không hồi chiêu).
    */
   skill(c: Client, i: number) {
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || p.dead || d.absorbing || d.travelling || !(i >= 0 && i < 4)) return;
+    if (!p || !d || p.dead || d.absorbing || d.travelling || !(Number.isInteger(i) && i >= 0 && i < LOADOUT_SIZE)) return;
     if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
-    if (i >= p.rings.length) return this.log(id, `Hồn kỹ ${i + 1} cần hồn hoàn thứ ${i + 1}.`);
+    const r = loadoutOf(d.ch.vohon, d.ch.skills)[i];
+    if (r < 0) return this.log(id, `Ô ${i + 1} chưa mang hồn kỹ: chọn ở bảng đội hình (V).`);
+    if (r >= p.rings.length) return this.log(id, `Hồn kỹ vòng ${r + 1} cần hồn hoàn thứ ${r + 1}.`);
     if (p.cds[i] > 0) return;
     if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không dùng được hồn kỹ.`, "#ffb35c");
-    const set = skillsOf(VOHON[p.vh].id), sk = set[i], cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
+    const set = skillsOf(VOHON[p.vh].id), sk = ringSkill(d.ch.vohon, r)!, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
     // Phục Chế (Xúc Xích, 2.5c): tung lại hồn kỹ gần nhất của võ hồn khác còn trong đội; chưa có thì không tung.
     // Võ hồn nguồn phải còn trong đội và chưa gục.
     const last = d.lastSkill, src = sk.copy && last && last.row !== d.ch.rowId && d.team.includes(last.row) && !d.down.has(last.row) ? last : null;
@@ -1995,10 +2021,11 @@ export class MapRoom extends Room<MapState> {
     if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
     const reach = run.area === "target" ? run.r : run.at;
     if (reach && !this.nearestBeast(p, reach)) return this.log(id, `${run.name}: không có hồn thú trong tầm.`);
-    d.mpF -= cost; p.cds[i] = sk.cd;
+    d.mpF -= cost; p.cds[i] = sk.cd; d.skCd.set(`${d.ch.rowId}:${r}`, sk.cd);
     this.unhide(p, d);
-    const tier = p.rings[i], years = d.ringYears[i] ?? TIERS[tier].years;
-    this.broadcast("fx", { k: "soulring", id, tier, i, vh: p.vh }); // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó và hiện tên hồn kỹ
+    const tier = p.rings[r], years = d.ringYears[r] ?? TIERS[tier].years;
+    this.broadcast("fx", { k: "soulring", id, tier, i: r, vh: p.vh }); // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó và hiện tên hồn kỹ
+    if (sk.ult) this.broadcast("fx", { k: "ult", id, name: sk.name, col: TIERS[tier].glow }); // tuyệt kỹ vòng 10 (8.1a): ai cũng thấy
     if (src) this.log(id, `${sk.name}: sao chép ${run.name}.`, VOHON[p.vh].col);
     // Phục Chế nhân `copy` cả sát thương lẫn hiệu ứng lên bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi; inv/hide giữ nguyên).
     const mult = sk.copy ?? 1, hit: Hit = { kind: "skill", done: false };
@@ -2009,7 +2036,97 @@ export class MapRoom extends Room<MapState> {
       d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * ccMp); p.mp = Math.floor(d.mpF);
     };
     this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, hit);
-    if (!set.some((x) => x.copy)) d.lastSkill = { sk, row: d.ch.rowId };
+    // Tuyệt kỹ vòng 10 (8.1a) không ghi vào hồn kỹ gần nhất: Phục Chế (hồi 14 giây) không được sao chép tuyệt kỹ (hồi 45–50 giây).
+    if (!set.some((x) => x.copy) && !sk.ult) d.lastSkill = { sk, row: d.ch.rowId };
+  }
+
+  /**
+   * Xếp 4 ô hồn kỹ mang theo của võ hồn `rowId` (8.1a, mục 5.2): mỗi ô là chỉ số vòng có hồn kỹ đã mở (ringSkill, vòng < số hồn hoàn)
+   * hoặc -1 (trống), không trùng. Cùng luật với gắn hồn cốt (boneLock): ngoài giao chiến, không gục, không hấp thụ. Võ hồn đang ra
+   * trận: hồi chiêu đi theo hồn kỹ, không theo ô: mỗi ô mới lấy hồi chiêu của chính hồn kỹ đó (ô cũ của nó trong `prev`, và PData.skCd),
+   * không giữ hồi chiêu của hồn kỹ vừa rời ô; ô trống về 0. Nên đổi chỗ, bỏ ra rồi xếp lại không làm mới hồi chiêu, và hồn kỹ đang sẵn
+   * sàng không bị khóa vì hồn kỹ khác. Sửa ô của võ hồn đang nghỉ: lúc võ hồn đó vào trận, carrySkillCds áp skCd. Lưu ngay qua chuỗi lưu.
+   */
+  setLoadout(c: Client, rowId: number, raw: unknown) {
+    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const deny = (text: string) => { this.log(id, text, "#ffb35c"); this.sendVohons(c); };
+    const v = d.owned.find((x) => x.rowId === rowId);
+    if (!v) return deny("Bạn không sở hữu võ hồn này.");
+    const next = parseLoadout(raw);
+    if (!next) return deny("Ô hồn kỹ không hợp lệ.");
+    const vi = Math.max(0, vohonIndex(v.vohon)), name = VOHON[vi].name;
+    for (const r of next) {
+      if (r < 0) continue;
+      if (!ringSkill(v.vohon, r)) return deny(r + 1 === CHAN_THAN_RING ? "Võ Hồn Chân Thân dùng phím riêng (R), không xếp vào ô hồn kỹ." : `${name} chưa có hồn kỹ vòng ${r + 1}.`);
+      if (r >= v.rings.length) return deny(`${name} chưa có hồn hoàn thứ ${r + 1}.`);
+    }
+    const prev = loadoutOf(v.vohon, v.skills);
+    if (next.every((r, i) => r === prev[i])) return this.sendVohons(c);
+    const lock = this.boneLock(p, d, "hồn kỹ"); if (lock) return deny(lock.replace("gắn / tháo", "xếp ô"));
+    v.skills = next;
+    if (v === d.ch) {
+      const old = [...p.cds];
+      next.forEach((r, i) => { const from = prev.indexOf(r);
+        p.cds[i] = r < 0 ? 0 : Math.max(from >= 0 ? old[from] : 0, d.skCd.get(`${v.rowId}:${r}`) ?? 0); });
+    }
+    this.chain(d, () => store.saveSkills(d.accountId, v.rowId, [...next]));
+    const keys = ["U", "I", "O", "P"];
+    this.log(id, `${name} mang theo: ${next.map((r, i) => `${keys[i]} ${r < 0 ? "trống" : ringSkill(v.vohon, r)!.name}`).join(", ")}.`, VOHON[vi].col);
+    this.sendVohons(c);
+  }
+
+  /**
+   * Võ Hồn Chân Thân (vòng 7, 8.1a, mục 5.2): võ hồn ra trận có hồn hoàn thứ CHAN_THAN_RING và dữ liệu CHAN_THAN thì biến hình `secs`
+   * giây: chỉ số cộng thêm (chanThanStats theo số năm vòng 7; atk / def / spd / crit / mp qua buffV, sinh lực tối đa trong recalc,
+   * phần sinh lực tối đa tăng thêm được hồi luôn), tung `burst` ngay lúc biến hình. Tốn hồn lực, hồi chiêu riêng từng võ hồn.
+   * Cùng luật chặn với hồn kỹ (gục, hấp thụ, đi cổng, vùng an toàn, Choáng / Câm lặng).
+   */
+  chanThan(c: Client) {
+    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
+    if (!p || !d || p.dead || d.absorbing || d.travelling) return;
+    const def = chanThanOf(d.ch.vohon), name = VOHON[p.vh].name;
+    if (!def) return this.log(id, `${name} chưa có Võ Hồn Chân Thân (bản sau).`);
+    if (p.rings.length < CHAN_THAN_RING) return this.log(id, `Võ Hồn Chân Thân cần hồn hoàn thứ ${CHAN_THAN_RING}.`);
+    if (d.ava) return this.log(id, `${def.name} còn ${Math.ceil(d.ava.t)} giây.`);
+    if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
+    if ((d.avaCd.get(d.ch.rowId) ?? 0) > 0) return;
+    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không biến hình được.`, "#ffb35c");
+    const cost = def.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
+    if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
+    d.mpF -= cost; p.mp = Math.floor(d.mpF);
+    const ri = CHAN_THAN_RING - 1, tier = p.rings[ri], years = d.ringYears[ri] ?? TIERS[tier].years, col = VOHON[p.vh].col;
+    d.avaCd.set(d.ch.rowId, def.cd); p.avaCd = def.cd;
+    const hp0 = p.maxHp;
+    d.ava = { row: d.ch.rowId, t: def.secs, stats: chanThanStats(def, years) }; p.ava = def.secs;
+    this.unhide(p, d);
+    this.recalc(id, false);
+    d.hpF = Math.min(p.maxHp, d.hpF + Math.max(0, p.maxHp - hp0)); p.hp = Math.ceil(d.hpF);
+    this.broadcast("fx", { k: "soulring", id, tier, i: ri, vh: p.vh });
+    this.broadcast("fx", { k: "avatar", id, name: def.name, col, on: true });
+    if (def.burst) this.runSkill(id, def.burst, skillPower(years), buffPower(years), TIERS[tier].glow, { kind: "skill", done: false });
+    this.log(id, `${def.name}: ${def.secs} giây.`, col);
+  }
+  /** Ô hồn kỹ của võ hồn ra trận nhận ít nhất hồi chiêu còn lại của hồn kỹ đang ở ô đó (PData.skCd; xếp lại ô, đổi võ hồn). */
+  carrySkillCds(p: PlayerState, d: PData) {
+    loadoutOf(d.ch.vohon, d.ch.skills).forEach((r, i) => { if (r >= 0) p.cds[i] = Math.max(p.cds[i], d.skCd.get(`${d.ch.rowId}:${r}`) ?? 0); });
+  }
+  /** Hết Võ Hồn Chân Thân (hết giờ, đổi võ hồn, cả đội gục, đi cổng): bỏ chỉ số cộng thêm; `why` = "" thì không báo. */
+  endAva(id: string, why: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d?.ava) return;
+    d.ava = null; p.ava = 0;
+    this.recalc(id, false);
+    this.broadcast("fx", { k: "avatar", id, on: false });
+    if (why) this.log(id, why, VOHON[p.vh].col);
+  }
+  /** Trôi `dt` giây cho Võ Hồn Chân Thân và hồi chiêu Chân Thân của từng võ hồn (tick, hook `rest`). */
+  tickAva(id: string, dt: number) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    for (const [r, t] of d.avaCd) if (t - dt <= 0) d.avaCd.delete(r); else d.avaCd.set(r, t - dt);
+    p.avaCd = d.avaCd.get(d.ch.rowId) ?? 0;
+    if (d.ava) {
+      d.ava.t -= dt; p.ava = Math.max(0, d.ava.t);
+      if (d.ava.t <= 0) this.endAva(id, `${chanThanOf(d.ch.vohon)?.name ?? "Võ Hồn Chân Thân"} đã hết.`);
+    }
   }
 
   /**
@@ -2732,7 +2849,10 @@ export class MapRoom extends Room<MapState> {
     }
     c?.send("absorbing", { on: false, result: "ok", rowId: v.rowId, years, slot: n, level: v.level });
     if (!a.fail) this.questEvent(id, { k: "absorb" }); // 6.2: chỉ hồn hoàn không vượt giới hạn của vòng
-    const sk = n <= 4 ? ` Nhận Hồn kỹ ${n}: ${skillsOf(v.vohon)[n - 1].name}.` : " Hồn kỹ vòng 5–10 chưa mở (bản sau); vòng này tăng chỉ số.";
+    // Từ 8.1a: vòng 5–10 mở hồn kỹ / Chân Thân nếu võ hồn đã có dữ liệu; chưa có thì vòng này chỉ tăng chỉ số.
+    const nk = ringSkill(v.vohon, n - 1), ct = n === CHAN_THAN_RING ? chanThanOf(v.vohon) : null;
+    const sk = nk ? ` Nhận Hồn kỹ vòng ${n}: ${nk.name}${n > LOADOUT_SIZE ? " (xếp vào 4 ô mang theo ở bảng đội hình, phím V)" : ""}.`
+      : ct ? ` Mở Võ Hồn Chân Thân: ${ct.name} (phím R).` : " Võ hồn này chưa có hồn kỹ vòng này (bản sau); vòng này tăng chỉ số.";
     const lv = n >= MAX_RINGS ? ` Đủ ${MAX_RINGS} hồn hoàn, cấp tối đa ${v.level}.` : ` Lên cấp ${v.level}.`;
     this.log(id, `Hấp thụ thành công hồn hoàn ${age} vào ${name} (vòng ${n})!${lv}${sk}`, TIERS[tier].glow);
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã hấp thụ hồn hoàn thứ ${n} (${age}) cho ${name}.` });
@@ -3279,6 +3399,8 @@ export class MapRoom extends Room<MapState> {
       d.atkCd -= dt; d.inv -= dt; d.lastHit += dt; d.fight += dt;
       d.haste -= dt; d.shockMpCd -= dt; d.comboT += dt; // hiệu ứng bộ hồn hạch (5.2)
       for (let i = 0; i < 4; i++) if (p.cds[i] > 0) p.cds[i] = Math.max(0, p.cds[i] - dt);
+      if (d.ava || d.avaCd.size) this.tickAva(id, dt);
+      for (const [k, t] of d.skCd) if (t - dt <= 0) d.skCd.delete(k); else d.skCd.set(k, t - dt);
       for (let i = 0; i < p.bcds.length; i++) if (p.bcds[i] > 0) p.bcds[i] = Math.max(0, p.bcds[i] - dt);
       if (p.swCd > 0) p.swCd = Math.max(0, p.swCd - dt);
       if (d.danCd > 0) d.danCd = Math.max(0, d.danCd - dt);
