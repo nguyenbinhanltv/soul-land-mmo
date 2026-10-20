@@ -1073,8 +1073,8 @@ export class GameScene extends Phaser.Scene {
       else if (Math.hypot(p.x - root.x, p.y - root.y) > 64) root.setPosition(p.x, p.y);
       else root.setPosition(root.x + (p.x - root.x) * lerp, root.y + (p.y - root.y) * lerp);
       root.setDepth(root.y);
-      // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol) và võ hồn ra trận đồng bộ từ server, ai cũng thấy.
-      const looks = `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}`;
+      // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol, skin) và võ hồn ra trận đồng bộ từ server, ai cũng thấy.
+      const looks = `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}|${p.skin}`;
       if (looks !== v.looks) { v.looks = looks; v.playing = ""; const t = looksTextures(this, p); v.outfit.setTexture(t.outfit); v.hair.setTexture(t.hair); }
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); v.vb.setTexture(kb); v.vf.setTexture(kf); }
       const rings = [...p.rings].join(",");
@@ -1281,7 +1281,7 @@ export class GameScene extends Phaser.Scene {
    */
   portrait(vohon: string) {
     const me = this.room.state.players.get(this.me); if (!me) return "";
-    const looks = `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}`;
+    const looks = `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}|${me.skin}`;
     if (looks !== this.portraitLooks) { this.portraits.clear(); this.portraitLooks = looks; } // đổi ngoại hình: ảnh cũ bỏ đi
     const hit = this.portraits.get(vohon);
     if (hit) return hit;

@@ -188,11 +188,11 @@ export function syncLayers(body: Phaser.GameObjects.Sprite, clothes: Phaser.Game
 const rgb = (c: string) => parseInt(c.slice(1), 16);
 
 /**
- * Hoán màu: tạo texture `{base}@{index}` bằng cách thay đúng 4 màu của GRAY_RAMP bằng `ramp`
- * (tối → sáng), giữ nguyên các khung. Không dùng setTint vì phép nhân màu làm mất sắc độ.
- * Chỉ gọi khi có người chơi dùng tổ hợp đó; gọi lại thì dùng texture đã tạo.
+ * Hoán màu: tạo texture `{base}@{index}` bằng cách thay đúng các màu của dải `from` (mặc định 4 xám GRAY_RAMP của tóc / áo;
+ * lớp thân thì 3 sắc da tông 0, từ 9.9) bằng `ramp` (tối → sáng), giữ nguyên các khung. Không dùng setTint vì phép nhân màu
+ * làm mất sắc độ. Chỉ gọi khi có người chơi dùng tổ hợp đó; gọi lại thì dùng texture đã tạo.
  */
-export function recolor(scene: Phaser.Scene, base: string, index: number, ramp: readonly string[]): string {
+export function recolor(scene: Phaser.Scene, base: string, index: number, ramp: readonly string[], from: readonly string[] = GRAY_RAMP): string {
   const key = `${base}@${index}`;
   if (scene.textures.exists(key) || !scene.textures.exists(base)) return key;
   const src = scene.textures.get(base);
@@ -200,7 +200,7 @@ export function recolor(scene: Phaser.Scene, base: string, index: number, ramp: 
   const tex = scene.textures.createCanvas(key, img.width, img.height)!;
   const ctx = tex.getContext();
   ctx.drawImage(img, 0, 0);
-  const swap = new Map(GRAY_RAMP.map((g, i) => [rgb(g), rgb(ramp[i])]));
+  const swap = new Map(from.map((g, i) => [rgb(g), rgb(ramp[i])]));
   const px = ctx.getImageData(0, 0, img.width, img.height), d = px.data;
   for (let i = 0; i < d.length; i += 4) {
     if (!d[i + 3]) continue;

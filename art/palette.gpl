@@ -2,7 +2,7 @@ GIMP Palette
 Name: Rung San Hon
 Columns: 8
 #
-# Bảng màu chung của game (GAME_DESIGN.md mục 5.11), 48 màu.
+# Bảng màu chung của game (GAME_DESIGN.md mục 5.11), 52 màu (48 màu gốc + 4 sắc tông da thêm ở Lộ trình 9.9).
 # Ngoài bảng này chỉ thêm: col/robe của VOHON (shared/data.ts) cùng tối đa 1 sắc tối và 1 sắc sáng
 # suy ra từ mỗi màu đó, và màu hồn hoàn (col/glow) của TIERS.
 #
@@ -69,3 +69,8 @@ Columns: 8
 122 138 168	Bạc 2 #7a8aa8
 192 204 224	Bạc 3 #c0cce0
 244 248 255	Bạc 4 sáng #f4f8ff
+# Tông da thêm (Lộ trình 9.9, SKIN_TONES trong shared/data.ts; tên không bắt đầu bằng "Da " để normalize.mjs vẫn chỉ điểm da về tông 0)
+156 100  71	Tông da bánh mật tối #9c6447
+227 174 136	Tông da bánh mật sáng #e3ae88
+138  90  60	Tông da ngăm gốc #8a5a3c
+176 125  90	Tông da ngăm sáng #b07d5a
