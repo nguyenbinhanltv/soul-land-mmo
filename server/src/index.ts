@@ -93,8 +93,8 @@ const server = http.createServer(app);
 const presence = new LocalPresence();
 const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
-// vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate dự phòng thì chọn kênh ít người nhất còn chỗ.
-gameServer.define("map", MapRoom).filterBy(["mapId"]).sortBy({ clients: 1 });
+// vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
+gameServer.define("map", MapRoom).filterBy(["mapId"]);
 
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
 for (const id of Object.keys(MAPS)) loadMap(id);

@@ -229,6 +229,20 @@ function takeChannel(mapId: string) {
 }
 /** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
 const channelSwitchAt = new Map<number, number>();
+/**
+ * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; đi cổng / đổi kênh đã commit thì không ghi): trong
+ * CHANNEL_CD giây tài khoản chỉ được vào lại đúng kênh đó của bản đồ (onAuth từ chối kênh khác khi kênh cũ còn mở và còn chỗ;
+ * pickChannel đưa về kênh cũ). Không có lớp này thì client tự rời rồi joinById kênh khác là né được luật đổi kênh (giao chiến, chờ).
+ */
+const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number }>();
+/** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
+const testNoLeaveLock = new Set<number>();
+/** Kênh vừa rời của tài khoản ở bản đồ `mapId` nếu còn khóa và kênh đó còn mở, còn chỗ (trong `list`). */
+function leftLock(accountId: number, mapId: string, list: ChannelInfo[]) {
+  const l = leftRoom.get(accountId);
+  if (!l || l.until <= Date.now()) { leftRoom.delete(accountId); return null; }
+  return l.mapId === mapId ? list.find((c) => c.roomId === l.roomId && !c.full) ?? null : null;
+}
 /** Một kênh đang mở: phòng, số kênh, số người (gồm chỗ đã giữ cho người đang vào), tối đa, đầy chưa. */
 export interface ChannelInfo { roomId: string; ch: number; n: number; max: number; full: boolean; }
 /** Các kênh đang mở của bản đồ `mapId` (danh sách phòng của matchMaker), theo số kênh. */
@@ -238,11 +252,14 @@ export async function listChannels(mapId: string): Promise<ChannelInfo[]> {
     .filter((c) => c.ch > 0).sort((a, b) => a.ch - b.ch);
 }
 /**
- * Kênh để vào bản đồ `mapId` (vào game, đi cổng): kênh còn chỗ có nhiều đồng đội tổ đội nhất, không có thì kênh còn chỗ ít người
- * nhất (bằng nhau thì số kênh nhỏ hơn). Mọi kênh đều đầy thì null: client joinOrCreate và Colyseus mở kênh mới.
+ * Kênh để vào bản đồ `mapId` (vào game, đi cổng): vừa rời một kênh của bản đồ này chưa quá CHANNEL_CD giây thì về đúng kênh đó
+ * (leftLock); không thì kênh còn chỗ có nhiều đồng đội tổ đội nhất, rồi kênh còn chỗ ít người nhất (bằng nhau thì số kênh nhỏ hơn).
+ * Mọi kênh đều đầy thì null: client joinOrCreate và Colyseus mở kênh mới.
  */
 export async function pickChannel(accountId: number, mapId: string): Promise<ChannelInfo | null> {
-  const open = (await listChannels(mapId)).filter((c) => !c.full), mates = party.mateRooms(accountId, mapId);
+  const list = await listChannels(mapId), back = leftLock(accountId, mapId, list);
+  if (back) return back;
+  const open = list.filter((c) => !c.full), mates = party.mateRooms(accountId, mapId);
   open.sort((a, b) => (mates.get(b.roomId) ?? 0) - (mates.get(a.roomId) ?? 0) || a.n - b.n || a.ch - b.ch);
   return open[0] ?? null;
 }
@@ -343,6 +360,10 @@ export class MapRoom extends Room<MapState> {
     await this.checkJoin(acc.accountId);
     await this.waitOldSession(acc.accountId, client.sessionId);
     const [{ ch, looks, loc }, owned] = await Promise.all([this.checkJoin(acc.accountId), store.listVohons(acc.accountId)]);
+    // Vừa tự rời một kênh khác của bản đồ này (không qua đổi kênh): chỉ được vào lại kênh đó tới hết CHANNEL_CD giây (leftRoom).
+    const back = leftLock(acc.accountId, this.state.mapId, await listChannels(this.state.mapId));
+    if (back && back.roomId !== this.roomId)
+      throw new ServerError(409, `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${Math.ceil((leftRoom.get(acc.accountId)!.until - Date.now()) / 1000)} giây.`);
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
       bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 } };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
@@ -449,6 +470,7 @@ export class MapRoom extends Room<MapState> {
     const { ch, owned, team, looks, loc, bag } = auth;
     // Một tài khoản chỉ được vào một lần: giữ tài khoản cho phiên này, đá phiên cũ ở mọi phòng (kể cả phòng này). onAuth đã
     // chờ phiên cũ lưu xong; lần đá này chặn hai lần vào gần như cùng lúc.
+    leftRoom.delete(auth.accountId); // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
     this.presence.hset(HOLD, String(auth.accountId), client.sessionId)
       .catch((e) => console.error(`Không ghi được phiên giữ tài khoản #${auth.accountId}`, e));
     this.presence.publish("kick", { accountId: auth.accountId, sessionId: client.sessionId });
@@ -499,6 +521,9 @@ export class MapRoom extends Room<MapState> {
       // không ghi gì nữa; transaction lỗi hoặc chưa đi cổng thì lưu như thường (có lớp chặn WHERE map_id).
       await this.chain(d, () => (d.travelled ? undefined : this.write(id)));
       if (!d.travelled) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã rời ${MAPS[this.state.mapId].name}.` });
+      // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
+      if (!d.travelled && !testNoLeaveLock.delete(d.accountId))
+        leftRoom.set(d.accountId, { mapId: this.state.mapId, roomId: this.roomId, ch: this.state.channel, until: Date.now() + CHANNEL_CD * 1000 });
     }
     this.state.players.delete(id);
     this.pdata.delete(id);
@@ -1316,8 +1341,8 @@ export class MapRoom extends Room<MapState> {
    * đồ); `give` hồn hạch (CORE_ITEM) nhận `stars`, `set` (mã bộ) và tung chỉ số như khi rơi.
    * Từ 4.2: `stats {rowId}` trả chỉ số một võ hồn của mình (`base` không hồn cốt, `stats` có hồn cốt, `bones` phần cộng thêm,
    * `live` chỉ số đang dùng nếu là võ hồn ra trận).
-   * Nhiều kênh: `chan {reset}` trả `chMax` (người tối đa mỗi kênh: CHANNEL_MAX, hoặc biến môi trường CHANNEL_MAX khi GAME_TEST=1),
-   * `channel`, `roomId`; `reset` bỏ thời gian chờ đổi kênh.
+   * Nhiều kênh: `chan {reset, nolock}` trả `chMax` (người tối đa mỗi kênh: CHANNEL_MAX, hoặc biến môi trường CHANNEL_MAX khi
+   * GAME_TEST=1), `channel`, `roomId`; `reset` bỏ thời gian chờ đổi kênh; `nolock` lần rời phòng kế tiếp không khóa kênh.
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -1339,8 +1364,10 @@ export class MapRoom extends Room<MapState> {
       this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; this.bdata.get(bid)!.skills = []; // không tung chiêu báo trước
     }
     else if (op === "chan") {
-      // Nhiều kênh (mục 6): `reset` xóa thời gian chờ đổi kênh (CHANNEL_CD) của tài khoản; trả số người tối đa mỗi kênh, số kênh, phòng.
-      if (o.reset) channelSwitchAt.delete(d.accountId);
+      // Nhiều kênh (mục 6): `reset` xóa thời gian chờ đổi kênh (CHANNEL_CD) của tài khoản; `nolock`: lần rời phòng kế tiếp không khóa
+      // vào lại kênh này (leftRoom); trả số người tối đa mỗi kênh, số kênh, phòng.
+      if (o.reset) { channelSwitchAt.delete(d.accountId); leftRoom.delete(d.accountId); }
+      if (o.nolock) testNoLeaveLock.add(d.accountId);
       out = { chMax: CHANNEL_CAP, channel: this.state.channel, roomId: this.roomId };
     }
     else if (op === "slay") {

@@ -1298,7 +1298,7 @@ export class GameScene extends Phaser.Scene {
     const zname = area?.name ?? (this.campName && inRect(this.campRect, me.x, me.y) ? this.campName : mapName);
     document.getElementById("zoneName")!.textContent = zname;
     if (zname !== this.lastZone) {
-      if (!this.lastZone) hud.banner(mapName, area && area.name !== mapName ? area.name : "");
+      if (!this.lastZone) hud.banner(st.channel ? `${mapName} · Kênh ${st.channel}` : mapName, area && area.name !== mapName ? area.name : "");
       else if (area) hud.banner(area.name, area.hint);
       this.lastZone = zname;
     }

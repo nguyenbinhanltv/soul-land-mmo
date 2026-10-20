@@ -1784,10 +1784,10 @@ function renderReso() {
 
 // ---------- Kênh (mục 6 "Nhiều kênh"): chỉ hiển thị số server gửi (PlayerState của phòng: MapState.channel; tin riêng "channels") ----------
 let chanNow = 0, chanMsg: ChannelsMsg | null = null, chanPick: (ch: number) => void = () => {};
-/** Số kênh của phòng đang ở (MapState.channel): ghi lên nút "Kênh N" dưới bản đồ nhỏ. */
+/** Số kênh của phòng đang ở (MapState.channel): ghi lên nhãn "Kênh N" ở góc bản đồ nhỏ. */
 export function setChannel(ch: number) {
   if (ch === chanNow) return;
-  chanNow = ch; $("#chanBtn").textContent = ch ? `Kênh ${ch}` : "Kênh";
+  chanNow = ch; $("#chanBtn").textContent = ch ? `Kênh ${ch} ▾` : "Kênh ▾";
   if (!$("#chans").hidden) renderChannels();
 }
 /** Bấm một kênh trong danh sách: GameScene gửi `channel {ch}` (server kiểm tra rồi mới cho đổi). */

@@ -203,7 +203,7 @@ let mapId = "";
 /**
  * Vào phòng của bản đồ đang lưu. `roomId`: phòng (kênh) server đã chọn trong tin `travel` (đi cổng, đổi kênh; null = mọi kênh đầy);
  * không có thì hỏi /api/channel (kênh có đồng đội tổ đội, không thì kênh ít người nhất còn chỗ). Kênh vừa đầy hoặc vừa đóng thì
- * joinOrCreate: Colyseus chọn kênh ít người nhất còn chỗ, hết chỗ thì mở kênh mới.
+ * joinOrCreate: Colyseus chọn kênh còn chỗ, hết chỗ thì mở kênh mới.
  */
 async function join(retry = true, roomId?: string | null) {
   overlay.hidden = false; card.classList.remove("wide");

@@ -214,18 +214,25 @@ async function channelTest(){
   ok(/Vừa đổi kênh/.test(await say(P2,"channel",{ch:1})),`đổi lại ngay: phải chờ ${CHANNEL_CD} giây`);
   cl=await chans(P1); ok(JSON.stringify(cl?.list.map(c=>[c.ch,c.n]))==="[[1,1],[2,2]]",`sau khi đổi: kênh 1 có 1 người, kênh 2 có 2 người (${JSON.stringify(cl?.list)})`);
   // Thoát vào lại: tiến độ đã nằm trong DB (transaction đổi kênh), không phải chỉ trong bộ nhớ phòng.
+  // Tự rời rồi joinById kênh khác không né được luật đổi kênh: CHANNEL_CD giây chỉ vào lại được kênh vừa rời; /api/channel đưa về đó.
   await P2.room.leave(); await sleep(400);
   let pick=await post("/api/channel",{token:P2.token});
-  ok(pick.mapId===P2.mapId&&pick.roomId===P1.room.roomId,"không tổ đội: vào game ở kênh ít người nhất còn chỗ (bằng nhau thì kênh số nhỏ hơn): kênh 1");
+  ok(pick.mapId===P2.mapId&&pick.roomId===P3.room.roomId,"vừa tự rời kênh 2: /api/channel đưa về đúng kênh 2");
+  let dodge=""; try{ const r=await new Client(WS).joinById(P1.room.roomId,{token:P2.token,mapId:P2.mapId}); await r.leave(); dodge="vào được"; }catch(e){ dodge=String(e?.message??e); }
+  ok(/Vừa rời kênh 2/.test(dodge),`tự rời rồi joinById kênh 1 ngay: bị từ chối ("${dodge}")`);
   await enter(P2,pick.roomId); await fresh(P2);
-  ok(chOf(P2)===1&&prog(P2)===before.prog&&bagKey(P2)===before.bag,"thoát vào lại: tiến độ trước khi đổi kênh vẫn còn (đã lưu)");
+  ok(chOf(P2)===2&&prog(P2)===before.prog&&bagKey(P2)===before.bag,"thoát vào lại kênh 2: tiến độ trước khi đổi kênh vẫn còn (đã lưu)");
+  await T(P2,"chan",{nolock:1}); await P2.room.leave(); await sleep(400); // hook: lần rời này không khóa kênh
+  pick=await post("/api/channel",{token:P2.token});
+  ok(pick.roomId===P1.room.roomId,"không tổ đội, không vừa rời kênh nào: vào game ở kênh ít người nhất còn chỗ (bằng nhau thì kênh số nhỏ hơn): kênh 1");
+  await enter(P2,pick.roomId); await fresh(P2); ok(chOf(P2)===1,"P2 vào kênh 1");
 
   // ---- Tổ đội: vào game / đi cổng ưu tiên kênh của đồng đội ----
   await T(P3,"party",{pop:"rlreset"});
   await pact(P3,"invite",{name:P2.name},P2); await pact(P2,"accept",{name:P3.name},P3); await waitFor(()=>P3.party?.members?.length===2,2000);
   const m2=P3.party?.members.find(m=>m.name===P2.name);
   ok(m2&&!m2.sid&&m2.map===P2.mapId&&m2.ch===1,`khung tổ đội của P3 (kênh 2) ghi P2 ở ${m2?.map} · Kênh ${m2?.ch}`);
-  await P2.room.leave(); await sleep(400);
+  await T(P2,"chan",{nolock:1}); await P2.room.leave(); await sleep(400);
   pick=await post("/api/channel",{token:P2.token});
   ok(pick.roomId===P3.room.roomId,"có tổ đội: vào game ở kênh của đồng đội (kênh 2) dù kênh 1 cũng còn chỗ");
   await enter(P2,pick.roomId); await fresh(P2); ok(P2.room.roomId===P3.room.roomId&&chOf(P2)===2,"P2 vào kênh 2 cùng đồng đội P3");
