@@ -13,7 +13,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   QUESTS, questChain, questRewardText, type QuestStep, RESONANCE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
 
-  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
+  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
@@ -151,6 +151,20 @@ function skillTip(s: SkillDef, r: number, rings: number[], years: number[] | nul
 }
 let slotCd: number[] = [];  // hồi chiêu đầy của hồn kỹ ở từng ô (vẽ lớp phủ hồi chiêu trong updateStats)
 let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn ra trận (nút R), null = võ hồn chưa có
+/** Hồn kỹ Chân Thân (9.6) hiện ở nút P khi đang biến hình; null = võ hồn chưa có Chân Thân. */
+interface SlotView { name: string; icon: string; col: string; label: string; tip: string; locked?: boolean }
+let ctSlot: SlotView | null = null;
+let pSlot: SlotView | null = null; // nội dung gốc của nút P (để trả lại khi hết Chân Thân)
+/** Tráo nút P giữa hồn kỹ đang mang và hồn kỹ Chân Thân (class `ct`: viền vàng). Chỉ hiển thị; server quyết định ô P tung gì. */
+function setCtSlot(b: HTMLElement, on: boolean) {
+  const sp = b.querySelectorAll<HTMLElement>("span");
+  if (on) pSlot = { name: sp[1].textContent ?? "", icon: sp[0].textContent ?? "", col: sp[0].style.color, label: b.getAttribute("aria-label") ?? "",
+    tip: b.title, locked: b.classList.contains("locked") };
+  const v = on ? ctSlot : pSlot; if (!v) return;
+  b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked);
+  sp[0].textContent = v.icon; sp[0].style.color = v.col; sp[1].textContent = v.name;
+  b.setAttribute("aria-label", v.label); b.title = v.tip;
+}
 /**
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
@@ -183,10 +197,16 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     const ri = CHAN_THAN_RING - 1, has = rings.length > ri, y = years?.[ri] ?? (has ? TIERS[rings[ri]].years : 0);
     const st = has ? chanThanStats(avaDef, y) : avaDef.stats;
     const tip = `Võ Hồn Chân Thân (vòng ${CHAN_THAN_RING}) – ${avaDef.name}: ${avaDef.desc}. Biến hình ${avaDef.secs} giây, tốn ${avaDef.cost} hồn lực, hồi ${avaDef.cd} giây.`
+      + ` Khi biến hình, ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} thành ${avaDef.skill.name}.`
       + (has ? ` Hồn hoàn ${y.toLocaleString("vi-VN")} năm: ${chanThanText(st)}.` : ` Mở khi có hồn hoàn thứ ${CHAN_THAN_RING}.`);
     mk(AVA_KEY, `Võ Hồn Chân Thân: ${avaDef.name}${has ? "" : " (khóa)"}`, has ? "Chân Thân" : "Khóa", has ? ringColor(rings[ri]) : "#666", "chanthan", avaDef.icon, !has, undefined, tip);
     el.lastElementChild!.classList.add("ava");
-  }
+    // Hồn kỹ Chân Thân (9.6): nút P đổi sang hồn kỹ này khi đang biến hình (updateStats tráo nội dung, viền vàng).
+    const s = avaDef.skill;
+    ctSlot = { name: s.name, icon: s.icon, col: has ? TIERS[rings[ri]].glow : "#666", label: `Hồn kỹ Chân Thân: ${s.name}`,
+      tip: `Hồn kỹ Chân Thân (thay ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} khi biến hình) – ${s.name}: ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${cdText(s.cd)} giây.`
+        + (has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn vòng ${CHAN_THAN_RING} ${y.toLocaleString("vi-VN")} năm).` : "") };
+  } else ctSlot = null;
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
 }
 /** Phím Võ Hồn Chân Thân (8.1a, chờ chốt): R, không trùng phím nào đang dùng. */
@@ -293,8 +313,12 @@ export function updateStats(p: any) {
       const c = document.createElement("span"); c.textContent = STATUS[s].name; c.style.color = STATUS[s].col; c.className = "debuff"; el.appendChild(c);
     }
   }
+  // Hồn kỹ Chân Thân (9.6): đang biến hình thì nút P mang hồn kỹ Chân Thân, hồi chiêu riêng `ctCd`; hết thì trả nút P cũ.
+  const pb = document.querySelector<HTMLElement>(`.sk[data-i="${CHAN_THAN_SKILL_SLOT}"]`), ctOn = !!ctSlot && p.ava > 0;
+  if (pb && pb.classList.contains("ct") !== ctOn) setCtSlot(pb, ctOn);
   document.querySelectorAll<HTMLElement>(".sk[data-i]").forEach((b) => {
-    const i = Number(b.dataset.i); const cd = b.classList.contains("locked") ? 0 : Math.min(1, p.cds[i] / (slotCd[i] || 1));
+    const i = Number(b.dataset.i), ct = b.classList.contains("ct");
+    const cd = b.classList.contains("locked") ? 0 : Math.min(1, ct ? (p.ctCd ?? 0) / CHAN_THAN_SKILL_CD : p.cds[i] / (slotCd[i] || 1));
     (b.querySelector(".cd") as HTMLElement).style.height = cd * 100 + "%";
   });
   // Võ Hồn Chân Thân (8.1a): đang biến hình thì nút sáng kèm giây còn lại, xong thì hiện hồi chiêu.

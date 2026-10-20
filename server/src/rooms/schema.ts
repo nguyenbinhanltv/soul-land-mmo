@@ -35,6 +35,7 @@ export class PlayerState extends Schema {
   @type("uint8") lei: number = 0;       // Phong Lôi Chi Lực (PHONG_LOI, bước 2.5c) của Lam Điện Bá Vương Long: 0..max; ai cũng thấy tia sét quanh thân
   @type("float32") ava: number = 0;     // từ 8.1a: giây còn lại của Võ Hồn Chân Thân (0 = không); ai cũng thấy hình biến thân
   @type("float32") avaCd: number = 0;   // từ 8.1a: hồi chiêu Chân Thân còn lại của võ hồn ra trận (nút R của chính mình)
+  @type("float32") ctCd: number = 0;    // từ 9.6: hồi chiêu hồn kỹ Chân Thân (ô P khi đang Chân Thân, CHAN_THAN_SKILL_CD); hồi chiêu ô P cũ vẫn ở cds
   @type("uint16") st: number = 0;       // từ 3.5: trạng thái trên hồn sư do chiêu báo trước của hồn thú gây (bit theo STATUS_IDS, PLAYER_STATUS)
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;

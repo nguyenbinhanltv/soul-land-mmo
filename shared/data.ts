@@ -1909,88 +1909,146 @@ export type ChanThanStat = "atk" | "def" | "spd" | "crit" | "mp" | "hp";
  * PHOENIX_FIELD_R (Tà Hỏa Phượng Hoàng: "lãnh vực phượng hoàng mạnh hơn"; độ mạnh % lấy từ `burst.self`).
  * Từ 8.1c `lei`: Phong Lôi Chi Lực (PHONG_LOI) tích gấp ngần ấy lần khi võ hồn này đang Chân Thân (Lam Điện Bá Vương Long: Lôi Động
  * Minh Thiên tự tung thường hơn trong lúc biến hình).
+ * Từ 9.6 `skill`: hồn kỹ Chân Thân: trong lúc biến hình ô P (CHAN_THAN_SKILL_SLOT) tung hồn kỹ này thay hồn kỹ đang mang ở ô đó, hồi
+ * chiêu riêng (PlayerState.ctCd, không đụng hồi chiêu ô P cũ); hết Chân Thân / đổi võ hồn thì ô P trở lại. Mạnh theo số năm hồn hoàn
+ * vòng 7 như đòn biến hình; hệ số đặt mạnh hơn hồn kỹ vòng 9 của chính võ hồn đó khoảng 20%, cùng lối đánh (phụ trợ: hồi máu / khiên /
+ * hiệu ứng có lợi; khống chế: khống chế diện rộng). Không phải hồn kỹ mang theo, không nhận sao (chỉ vòng 1–4), Phục Chế không chép.
  */
 export interface ChanThanDef { name: string; desc: string; icon: string; cost: number; cd: number; secs: number;
-  stats: Partial<Record<ChanThanStat, number>>; burst?: SkillDef; field?: number; lei?: number; }
+  stats: Partial<Record<ChanThanStat, number>>; skill: SkillDef; burst?: SkillDef; field?: number; lei?: number; }
 /** Client phóng hình hồn sư ngần ấy lần khi đang Chân Thân (chỉ hình ảnh). */
 export const CHAN_THAN_SCALE = 1.35;
 const ctBurst = (name: string, o: Partial<SkillDef>): SkillDef => ({ name, desc: "", icon: "", cost: 0, cd: 0, area: "around", r: 90, dmg: 0, ...o });
+/** Hồn kỹ Chân Thân (9.6, đã chốt): ô P (chỉ số trong 4 ô mang theo), hồn lực và hồi chiêu chung của mọi võ hồn. */
+export const CHAN_THAN_SKILL_SLOT = LOADOUT_SIZE - 1;
+export const CHAN_THAN_SKILL_COST = 40;
+export const CHAN_THAN_SKILL_CD = 8;
+const ctSkill = (name: string, desc: string, icon: string, o: Omit<SkillDef, "name" | "desc" | "icon" | "cost" | "cd">): SkillDef =>
+  ({ name, desc, icon, cost: CHAN_THAN_SKILL_COST, cd: CHAN_THAN_SKILL_CD, ...o });
 export const CHAN_THAN: Record<string, ChanThanDef> = {
   lam_ngan_thao: { name: "Lam Ngân Hoàng Chân Thân", desc: "Hóa thân Lam Ngân Hoàng: kéo hồn thú quanh thân lại, Trói 2 giây; công +25%, sát thương nhận giảm 30%, tốc độ +10%, sinh lực tối đa +20%",
     icon: "❦", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, def: 0.3, spd: 0.1, hp: 0.2 },
+    skill: ctSkill("Lam Ngân Hoàng Triền Thiên", "12 sợi Lam Ngân Hoàng bắn ra bốn phía, mỗi sợi Trói 2 giây, Trúng độc 1 tầng, Dễ thương 4 giây", "❦",
+      { area: "proj", r: 160, n: 12, spread: 360, dmg: 1.9, status: [{ s: "root", secs: 2 }, { s: "poison" }, { s: "vuln", secs: 4 }] }),
     burst: ctBurst("Lam Ngân Hoàng Chân Thân", { r: 100, dmg: 2, pull: true, status: [{ s: "root", secs: 2 }] }) },
   hao_thien_chuy: { name: "Hạo Thiên Chùy Chân Thân", desc: "Hóa thân Hạo Thiên Chùy: nện đất quanh thân (thêm 5% sinh lực tối đa, Choáng 1 giây); công +40%, sát thương nhận giảm 20%, sinh lực tối đa +15%",
     icon: "⚒", cost: 80, cd: 90, secs: 15, stats: { atk: 0.4, def: 0.2, hp: 0.15 },
+    skill: ctSkill("Hạo Thiên Diệt Thế Chùy", "Lao tới một mục tiêu, chùy Hạo Thiên giáng xuống: thêm 12% sinh lực tối đa, Phá giáp 3 tầng, Choáng 1 giây", "▲",
+      { area: "target", r: 90, dash: 70, dmg: 7.8, pctHp: 0.12, glow: true, shake: true, status: [{ s: "armor", n: 3 }, { s: "stun", secs: 1 }] }),
     burst: ctBurst("Hạo Thiên Chùy Chân Thân", { r: 90, dmg: 3, pctHp: 0.05, shake: true, status: [{ s: "stun", secs: 1 }] }) },
   u_minh_linh_mieu: { name: "U Minh Linh Miêu Chân Thân", desc: "Hóa thân U Minh Linh Miêu: cào quanh thân (Phá giáp 2 tầng); công +25%, tốc độ +35%, chí mạng +20%",
     icon: "☾", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.35, crit: 0.2 },
+    skill: ctSkill("U Minh Thần Trảo", "Lướt tới mục tiêu, cào 5 nhát, +45% chí mạng, mỗi nhát Phá giáp 1 tầng", "✥",
+      { area: "target", r: 110, dash: 100, n: 5, every: 0.1, dmg: 1.7, crit: 0.45, inv: 0.5, status: [{ s: "armor" }] }),
     burst: ctBurst("U Minh Linh Miêu Chân Thân", { r: 70, dmg: 2, crit: 0.3, status: [{ s: "armor", n: 2 }] }) },
   bich_lan_xa_hoang: { name: "Bích Lân Xà Hoàng Chân Thân", desc: "Hóa thân Bích Lân Xà Hoàng: độc khí quanh thân (Trúng độc 3 tầng, Câm lặng 2 giây); công +25%, sát thương nhận giảm 25%, sinh lực tối đa +20%",
     icon: "☠", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, def: 0.25, hp: 0.2 },
+    skill: ctSkill("Xà Hoàng Vạn Độc Phệ", "Xà Hoàng cắn xé quanh thân: mỗi tầng Trúng độc thêm 95% công, hút 50% sát thương, Câm lặng 2 giây", "☠",
+      { area: "around", r: 110, dmg: 6, perStack: { s: "poison", dmg: 0.95 }, lifesteal: 0.5, glow: true, status: [{ s: "silence", secs: 2 }, { s: "poison", n: 2 }] }),
     burst: ctBurst("Bích Lân Xà Hoàng Chân Thân", { r: 90, dmg: 1.5, status: [{ s: "poison", n: 3 }, { s: "silence", secs: 2 }] }) },
   cuu_bao_luu_ly_thap: { name: "Cửu Bảo Lưu Ly Tháp Chân Thân", desc: "Hóa thân Cửu Bảo Lưu Ly Tháp: hồi 25% sinh lực cả đội, khiên 15%; công +15%, sát thương nhận giảm 35%, hồn kỹ tốn ít hơn 30%, sinh lực tối đa +15%",
     icon: "✷", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.35, mp: 0.3, hp: 0.15 },
+    skill: ctSkill("Thất Bảo Tề Quang", "Bảo quang Cửu Bảo Lưu Ly: công +42%, tốc độ +30%, sát thương nhận giảm 24% trong 10 giây", "✦",
+      { area: "self", r: 0, dmg: 0, glow: true, self: { buff: { atk: 0.42, spd: 0.3, def: 0.24 }, secs: 10 } }),
     burst: ctBurst("Cửu Bảo Lưu Ly Tháp Chân Thân", { area: "self", r: 0, self: { heal: 0.25, shield: 0.15, secs: 15 } }) },
   // ---- Bước 8.1b: lưu phái Thiêu đốt (mọi số đã chốt) ----
   ta_hoa_phuong_hoang: { name: "Tà Hỏa Phượng Hoàng Chân Thân", desc: "Hóa thân Tà Hỏa Phượng Hoàng: bay lên rồi lao xuống quanh thân (Thiêu đốt 3 tầng), mở lãnh vực phượng hoàng 15 giây (+30%, rộng hơn: bán kính 130 khi đang Chân Thân); công +30%, tốc độ +15%, sinh lực tối đa +15%",
     icon: "♨", cost: 80, cd: 90, secs: 15, stats: { atk: 0.3, spd: 0.15, hp: 0.15 }, field: 130,
+    skill: ctSkill("Phượng Hoàng Hỏa Vũ", "Mưa lửa phượng hoàng quanh thân: Thiêu đốt 3 tầng", "♨",
+      { area: "around", r: 130, dmg: 5.4, glow: true, shake: true, status: [{ s: "burn", n: 3 }] }),
     burst: ctBurst("Tà Hỏa Phượng Hoàng Chân Thân", { r: 130, dmg: 2.5, fly: 0.5, shake: true, status: [{ s: "burn", n: 3 }], self: { buff: { phoenix: 0.3 }, secs: 15 } }) }, // Chân Thân chỉ rộng hơn, không mạnh hơn (đã chốt 2026-10-20; trước đó 0,35)
   hoa_long: { name: "Hỏa Long Chân Thân", desc: "Hóa thân Hỏa Long: Viêm bạo quanh thân (kích nổ Thiêu đốt rồi đặt lại 1 tầng); công +25%, tốc độ +20%, chí mạng +15%",
     icon: "✹", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.2, crit: 0.15 },
+    skill: ctSkill("Hỏa Long Thôn Thiên", "Hỏa Long nuốt trời: Viêm bạo quanh thân (kích nổ Thiêu đốt rồi đặt lại 2 tầng)", "✹",
+      { area: "around", r: 130, dmg: 4.2, glow: true, shake: true, boom: { keep: 2 } }),
     burst: ctBurst("Hỏa Long Chân Thân", { r: 120, dmg: 2, shake: true, boom: { keep: 1 } }) },
   hoa_anh: { name: "Hỏa Ảnh Chân Thân", desc: "Hóa thân Hỏa Ảnh: bóng lửa nổ quanh thân, đẩy lùi (Choáng 1,5 giây, Dễ thương 6 giây, Thiêu đốt 1 tầng); công +20%, sát thương nhận giảm 30%, sinh lực tối đa +20%",
     icon: "✸", cost: 80, cd: 90, secs: 15, stats: { atk: 0.2, def: 0.3, hp: 0.2 },
+    skill: ctSkill("Hỏa Ảnh Thiên Phạt", "Bóng lửa nổ quanh thân, đẩy lùi: Choáng 2 giây, Thiêu đốt 3 tầng", "✸",
+      { area: "around", r: 120, dmg: 6.6, push: 60, shake: true, status: [{ s: "stun", secs: 2 }, { s: "burn", n: 3 }] }),
     burst: ctBurst("Hỏa Ảnh Chân Thân", { r: 100, dmg: 1.8, push: 50, status: [{ s: "stun", secs: 1.5 }, { s: "vuln", secs: 6 }, { s: "burn" }] }) },
   ky_nhung_thong_thien_cuc: { name: "Kỳ Nhung Thông Thiên Cúc Chân Thân", desc: "Hóa thân Kỳ Nhung Thông Thiên Cúc: bão cánh hoa 4 nhát quanh thân (Thiêu đốt và Phá giáp); công +30%, tốc độ +15%, hồn kỹ tốn ít hơn 20%",
     icon: "✾", cost: 80, cd: 90, secs: 15, stats: { atk: 0.3, spd: 0.15, mp: 0.2 },
+    skill: ctSkill("Thông Thiên Cúc Vũ", "Lướt tới mục tiêu, 4 nhát cánh hoa: mỗi tầng Phá giáp thêm 35% công, mỗi nhát Phá giáp 1 tầng", "✾",
+      { area: "target", r: 130, dash: 100, n: 4, every: 0.15, dmg: 1.55, perStack: { s: "armor", dmg: 0.35 }, glow: true, status: [{ s: "armor" }] }),
     burst: ctBurst("Kỳ Nhung Thông Thiên Cúc Chân Thân", { r: 90, n: 4, every: 0.3, dmg: 0.8, status: [{ s: "burn" }, { s: "armor" }] }) },
   nguyet_nhan: { name: "Nguyệt Nhận Chân Thân", desc: "Hóa thân Nguyệt Nhận: trăng máu quét quanh thân (Phá giáp 2 tầng, Thiêu đốt 1 tầng); công +25%, tốc độ +30%, chí mạng +25%",
     icon: "☽", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.3, crit: 0.25 },
+    skill: ctSkill("Huyết Nguyệt Đoạt Hồn", "Khóa hồn thú yếu máu nhất, lướt tới chém 4 nhát (tới +150% khi mục tiêu ít máu), +35% chí mạng, Thiêu đốt", "☽",
+      { area: "target", r: 170, pick: "low", dash: 160, n: 4, every: 0.1, dmg: 2.15, lowHp: 1.5, crit: 0.35, inv: 0.5, status: [{ s: "burn" }] }),
     burst: ctBurst("Nguyệt Nhận Chân Thân", { r: 80, dmg: 2, crit: 0.3, status: [{ s: "armor", n: 2 }, { s: "burn" }] }) },
   // ---- Bước 8.1c: lưu phái Cảm điện (mọi số đã chốt) ----
   lam_dien_ba_vuong_long: { name: "Lam Điện Bá Vương Long Chân Thân", desc: "Hóa thân Lam Điện Bá Vương Long: sấm sét nổ quanh thân (hồn thú Cảm điện thêm 100% công, Cảm điện); Phong Lôi Chi Lực tích gấp đôi; công +35%, sát thương nhận giảm 15%, sinh lực tối đa +15%",
     icon: "ϟ", cost: 80, cd: 90, secs: 15, stats: { atk: 0.35, def: 0.15, hp: 0.15 }, lei: 2,
+    skill: ctSkill("Bá Vương Lôi Thần Nộ", "Sấm sét Bá Vương Long nổ quanh thân: hồn thú Cảm điện thêm 240% công, Cảm điện", "ϟ",
+      { area: "around", r: 140, dmg: 5.4, perStack: { s: "shock", dmg: 2.4 }, glow: true, shake: true, status: [{ s: "shock" }] }),
     burst: ctBurst("Lam Điện Bá Vương Long Chân Thân", { r: 110, dmg: 2.2, perStack: { s: "shock", dmg: 1 }, shake: true, status: [{ s: "shock" }] }) },
   kim_vu_mieu_ung: { name: "Kim Vũ Miêu Ưng Chân Thân", desc: "Hóa thân Kim Vũ Miêu Ưng: bay lên giáng sét quanh thân (Cảm điện 8 giây); công +25%, tốc độ +35%, chí mạng +20%",
     icon: "☈", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.35, crit: 0.2 },
+    skill: ctSkill("Kim Vũ Thiên Lôi", "12 lông vũ sét bắn ra bốn phía, mỗi chiếc Cảm điện 8 giây", "☈",
+      { area: "proj", r: 180, n: 12, spread: 360, dmg: 1.8, glow: true, status: [{ s: "shock", secs: 8 }] }),
     burst: ctBurst("Kim Vũ Miêu Ưng Chân Thân", { r: 120, dmg: 2, fly: 0.5, status: [{ s: "shock", secs: 8 }] }) },
   can_khon_hon_nguyen_toa: { name: "Càn Khôn Hỗn Nguyên Tỏa Chân Thân", desc: "Hóa thân Càn Khôn Hỗn Nguyên Tỏa: kéo hồn thú quanh thân lại và phong tỏa (Phong ấn đủ 3 tầng: Dễ thương 6,8 giây, Trói 2 giây, Cảm điện); công +20%, sát thương nhận giảm 30%, sinh lực tối đa +20%",
     icon: "▣", cost: 80, cd: 90, secs: 15, stats: { atk: 0.2, def: 0.3, hp: 0.2 },
+    skill: ctSkill("Càn Khôn Phong Thiên", "Kéo hồn thú quanh thân lại và phong tỏa: Phong ấn 2 tầng, Choáng 1,5 giây, Cảm điện", "▣",
+      { area: "around", r: 120, dmg: 6, pull: true, shake: true, status: [{ s: "lock", n: 2 }, { s: "stun", secs: 1.5 }, { s: "shock" }] }),
     burst: ctBurst("Càn Khôn Hỗn Nguyên Tỏa Chân Thân", { r: 100, dmg: 1.8, pull: true, status: [{ s: "lock", n: 3 }, { s: "root", secs: 2 }, { s: "shock" }] }) },
   yeu_ho: { name: "Yêu Hồ Chân Thân", desc: "Hóa thân Yêu Hồ: mị thuật quanh thân (Mị hoặc 2 tầng, Làm chậm 3 giây, Cảm điện); công +25%, tốc độ +25%, sát thương nhận giảm 20%",
     icon: "✾", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.25, def: 0.2 },
+    skill: ctSkill("Thiên Hồ Mị Thế", "Mị thuật Thiên Hồ quanh thân: Câm lặng 3 giây, Mị hoặc 2 tầng, Cảm điện", "✾",
+      { area: "around", r: 120, dmg: 6.6, glow: true, status: [{ s: "silence", secs: 3 }, { s: "allure", n: 2 }, { s: "shock" }] }),
     burst: ctBurst("Yêu Hồ Chân Thân", { r: 110, dmg: 1.8, status: [{ s: "allure", n: 2 }, { s: "slow", secs: 3 }, { s: "shock" }] }) },
   xuc_xich: { name: "Xúc Xích Chân Thân", desc: "Hóa thân Xúc Xích: hồi 25% sinh lực cả đội, 30% hồn lực, thanh tẩy; sát thương nhận giảm 25%, hồn kỹ tốn ít hơn 30%, tốc độ +20%, sinh lực tối đa +15%",
     icon: "✚", cost: 80, cd: 90, secs: 15, stats: { def: 0.25, mp: 0.3, spd: 0.2, hp: 0.15 },
+    skill: ctSkill("Thánh Quang Đại Hương Tràng", "Đại hương tràng thánh quang: hồi 30% sinh lực cả đội, 15% hồn lực, thanh tẩy", "✚",
+      { area: "self", r: 0, dmg: 0, glow: true, self: { heal: 0.3, mp: 0.15, cleanse: true } }),
     burst: ctBurst("Xúc Xích Chân Thân", { area: "self", r: 0, self: { heal: 0.25, mp: 0.3, cleanse: true } }) },
   // ---- Bước 8.1d: 5 võ hồn còn lại (mọi số đã chốt) ----
   cuu_tinh_that_sat_kiem: { name: "Cửu Tinh Thất Sát Kiếm Chân Thân", desc: "Hóa thân kiếm: kiếm khí nổ quanh thân (Phá giáp đủ 3 tầng); công +35%, chí mạng +15%, tốc độ +10%",
     icon: "⚔", cost: 80, cd: 90, secs: 15, stats: { atk: 0.35, crit: 0.15, spd: 0.1 },
+    skill: ctSkill("Thất Sát Phá Thiên Kiếm", "Lao tới một mục tiêu, nhân kiếm hợp nhất: mỗi tầng Phá giáp thêm 70% công, Phá giáp 2 tầng", "⚔",
+      { area: "target", r: 120, dash: 100, dmg: 7.2, perStack: { s: "armor", dmg: 0.7 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }] }),
     burst: ctBurst("Cửu Tinh Thất Sát Kiếm Chân Thân", { r: 100, dmg: 2.2, shake: true, status: [{ s: "armor", n: 3 }] }) },
   nhu_cot_tho: { name: "Nhu Cốt Thố Chân Thân", desc: "Hóa thân thỏ mười vạn năm: quật quanh thân (+30% chí mạng, hút 20%, Choáng 1 giây); công +25%, tốc độ +30%, chí mạng +25%",
     icon: "➰", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.3, crit: 0.25 },
+    skill: ctSkill("Thỏ Hoàng Bạo Sát", "Lướt tới mục tiêu, quật 6 nhát, +45% chí mạng, nhát cuối Choáng 1,5 giây", "➰",
+      { area: "target", r: 110, dash: 100, n: 6, every: 0.1, dmg: 1.2, crit: 0.45, inv: 0.7, finisher: [{ s: "stun", secs: 1.5 }] }),
     burst: ctBurst("Nhu Cốt Thố Chân Thân", { r: 80, dmg: 2, crit: 0.3, lifesteal: 0.2, status: [{ s: "stun", secs: 1 }] }) },
   tu_vong_chu_hoang: { name: "Tử Vong Chu Hoàng Chân Thân", desc: "Hóa thân Chu Hoàng: tơ kéo hồn thú quanh thân lại (Trói 2 giây, Trúng độc 2 tầng, Cảm điện); công +25%, sát thương nhận giảm 25%, sinh lực tối đa +20%",
     icon: "✳", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, def: 0.25, hp: 0.2 },
+    skill: ctSkill("Chu Hoàng Thiên La Võng", "Lưới tơ Chu Hoàng kéo hồn thú quanh thân lại: Trói 2,5 giây, Trúng độc 2 tầng, Cảm điện", "✳",
+      { area: "around", r: 130, dmg: 5.8, pull: true, glow: true, status: [{ s: "root", secs: 2.5 }, { s: "poison", n: 2 }, { s: "shock" }] }),
     burst: ctBurst("Tử Vong Chu Hoàng Chân Thân", { r: 110, dmg: 1.8, pull: true, status: [{ s: "root", secs: 2 }, { s: "poison", n: 2 }, { s: "shock" }] }) },
   quy_mi: { name: "Quỷ Mị Chân Thân", desc: "Hóa thân quỷ: quỷ khí quanh thân (hút 30%), hút huyết 30% trong 15 giây (cả đội); công +30%, chí mạng +15%, tốc độ +15%",
     icon: "☾", cost: 80, cd: 90, secs: 15, stats: { atk: 0.3, crit: 0.15, spd: 0.15 },
+    skill: ctSkill("Bách Quỷ Phệ Hồn", "Bách quỷ cắn xé quanh thân: hút 35% sát thương, Dễ thương 8 giây; công +42% trong 10 giây (cả đội)", "☾",
+      { area: "around", r: 120, dmg: 3.6, lifesteal: 0.35, glow: true, status: [{ s: "vuln", secs: 8 }], self: { buff: { atk: 0.42 }, secs: 10 } }),
     burst: ctBurst("Quỷ Mị Chân Thân", { r: 90, dmg: 1.5, lifesteal: 0.3, self: { buff: { leech: 0.3 }, secs: 15 } }) },
   thien_can_bach_ngoc_dinh: { name: "Thiên Càn Bạch Ngọc Đỉnh Chân Thân", desc: "Hóa thân đỉnh ngọc: trấn áp quanh thân (Dễ thương 6 giây, xóa hiệu ứng có lợi của hồn thú), hồi 25% sinh lực cả đội, khiên 20%, thanh tẩy; công +15%, sát thương nhận giảm 35%, hồn kỹ tốn ít hơn 20%, sinh lực tối đa +25%",
     icon: "✚", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.35, mp: 0.2, hp: 0.25 },
+    skill: ctSkill("Càn Khôn Ngọc Đỉnh Hộ Thế", "Đỉnh ngọc hộ thế: hồi 40% sinh lực cả đội, khiên 30% sinh lực tối đa, sát thương nhận giảm 30% trong 8 giây, thanh tẩy", "✚",
+      { area: "self", r: 0, dmg: 0, glow: true, self: { buff: { def: 0.3 }, secs: 8, heal: 0.4, shield: 0.3, cleanse: true } }),
     burst: ctBurst("Thiên Càn Bạch Ngọc Đỉnh Chân Thân", { r: 100, dmg: 1.2, dispel: true, status: [{ s: "vuln", secs: 6 }], self: { heal: 0.25, shield: 0.2, secs: 15, cleanse: true } }) },
   // ---- Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (mọi số đã chốt) ----
   pha_hon_thuong: { name: "Phá Hồn Thương Chân Thân", desc: "Hóa thân thần thương: thương mang nổ quanh thân (Phá giáp đủ 3 tầng, Câm lặng 2 giây); công +35%, chí mạng +15%, tốc độ +15%",
     icon: "⚔", cost: 80, cd: 90, secs: 15, stats: { atk: 0.35, crit: 0.15, spd: 0.15 },
+    skill: ctSkill("Phá Hồn Xuyên Thiên", "Thương mang lướt xuyên hàng hồn thú: mỗi tầng Phá giáp thêm 60% công, Phá giáp 3 tầng", "➹",
+      { area: "dash", r: 150, dmg: 6, perStack: { s: "armor", dmg: 0.6 }, inv: 0.6, shake: true, status: [{ s: "armor", n: 3 }] }),
     burst: ctBurst("Phá Hồn Thương Chân Thân", { r: 100, dmg: 2.2, shake: true, status: [{ s: "armor", n: 3 }, { s: "silence", secs: 2 }] }) },
   a_ngan: { name: "A Ngân Chân Thân", desc: "Hóa thân Lam Ngân Hoàng mười vạn năm: kéo hồn thú quanh thân lại (Trói 2 giây), hồi 25% sinh lực cả đội, khiên 15%; công +15%, sát thương nhận giảm 30%, hồn kỹ tốn ít hơn 20%, sinh lực tối đa +25%",
     icon: "✿", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.3, mp: 0.2, hp: 0.25 },
+    skill: ctSkill("Lam Ngân Hoàng Thánh Quang", "Thánh quang Lam Ngân Hoàng: hồi 25% sinh lực cả đội, khiên 18%, công +36%, sát thương nhận giảm 24% trong 10 giây", "✿",
+      { area: "self", r: 0, dmg: 0, glow: true, self: { buff: { atk: 0.36, def: 0.24 }, secs: 10, heal: 0.25, shield: 0.18 } }),
     burst: ctBurst("A Ngân Chân Thân", { r: 100, dmg: 1.5, pull: true, status: [{ s: "root", secs: 2 }], self: { heal: 0.25, shield: 0.15, secs: 15 } }) },
   liet_hoa_thuong_lang: { name: "Liệt Hỏa Thương Lang Chân Thân", desc: "Hóa thân sói lửa: cào lửa quanh thân (+30% chí mạng, Thiêu đốt 3 tầng); công +25%, tốc độ +35%, chí mạng +20%",
     icon: "✥", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.35, crit: 0.2 },
+    skill: ctSkill("Thương Lang Liệt Hỏa Phệ", "Khóa hồn thú yếu máu nhất, lướt tới cào lửa 4 nhát (tới +100% khi mục tiêu ít máu, mỗi tầng Thiêu đốt thêm 35% công), +35% chí mạng", "✥",
+      { area: "target", r: 140, pick: "low", dash: 120, n: 4, every: 0.1, dmg: 1.7, lowHp: 1, perStack: { s: "burn", dmg: 0.35 }, crit: 0.35, inv: 0.5, status: [{ s: "burn" }] }),
     burst: ctBurst("Liệt Hỏa Thương Lang Chân Thân", { r: 80, dmg: 2, crit: 0.3, status: [{ s: "burn", n: 3 }] }) },
   bang_phuong_hoang: { name: "Băng Phượng Hoàng Chân Thân", desc: "Hóa thân Băng Phượng Hoàng: bay lên giáng băng quanh thân (đóng băng: Choáng 1,5 giây, Làm chậm 3 giây); công +20%, sát thương nhận giảm 25%, tốc độ +15%, sinh lực tối đa +20%",
     icon: "❄", cost: 80, cd: 90, secs: 15, stats: { atk: 0.2, def: 0.25, spd: 0.15, hp: 0.2 },
+    skill: ctSkill("Băng Phượng Cực Hàn Vực", "Băng vực phượng hoàng quanh thân: đóng băng (Choáng 2,5 giây), Làm chậm 3 giây, Dễ thương 6 giây", "❄",
+      { area: "around", r: 140, dmg: 4.3, glow: true, status: [{ s: "stun", secs: 2.5 }, { s: "slow", secs: 3 }, { s: "vuln", secs: 6 }] }),
     burst: ctBurst("Băng Phượng Hoàng Chân Thân", { r: 110, dmg: 1.8, fly: 0.5, status: [{ s: "stun", secs: 1.5 }, { s: "slow", secs: 3 }] }) },
 };
 export const chanThanOf = (vohonId: string): ChanThanDef | null => CHAN_THAN[vohonId] ?? null;

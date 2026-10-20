@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
+  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
@@ -612,7 +612,8 @@ export class GameScene extends Phaser.Scene {
       const v = this.players.get(m.id); if (v && Number.isInteger(m.i)) v.lit = { i: m.i, t0: this.time.now };
       this.soulRingFx(m.id, m.tier, 700);
       // Tên hồn kỹ (riêng hoặc dùng chung) bay lên trên đầu, màu hào quang hồn hoàn của vòng đó.
-      const sk = v && VOHON[m.vh] ? ringSkill(VOHON[m.vh].id, m.i) : undefined; // m.i: chỉ số vòng (từ 8.1a có vòng 5–10)
+      // m.i: chỉ số vòng (từ 8.1a có vòng 5–10); m.ct: hồn kỹ Chân Thân (9.6, vòng 7)
+      const sk = v && VOHON[m.vh] ? (m.ct ? chanThanOf(VOHON[m.vh].id)?.skill : ringSkill(VOHON[m.vh].id, m.i)) : undefined;
       if (v && sk) this.floatText(v.root.x, v.root.y - 48, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
     }
     else if (m.k === "ult" || m.k === "avatar") {
