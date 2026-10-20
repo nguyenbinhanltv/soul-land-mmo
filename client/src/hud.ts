@@ -116,7 +116,7 @@ export function bossRank(list: { id: string; name: string; pct: number; sup?: nu
   head.innerHTML = "<span></span><em>Tên</em><s>Hỗ trợ</s><i>Tổng</i>"; el.appendChild(head);
   list.forEach((x, i) => {
     const r = document.createElement("div"); r.className = "rk" + (x.id === me ? " me" : "") + (x.pct / 100 >= KING.share ? "" : " low");
-    r.innerHTML = `<span>${i + 1}.</span><em></em><s>${x.sup ? pc(x.sup) : "–"}</s><i>${pc(x.pct)}</i>`;
+    r.innerHTML = `<span>${i + 1}.</span><em></em><s${x.sup ? "" : ' class="z"'}>${x.sup ? pc(x.sup) : "–"}</s><i>${pc(x.pct)}</i>`;
     r.querySelector("em")!.textContent = x.name;
     el.appendChild(r);
   });
