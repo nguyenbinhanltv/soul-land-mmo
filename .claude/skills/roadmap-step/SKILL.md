@@ -1,34 +1,35 @@
 ---
 name: roadmap-step
-description: Quy trình làm trọn một bước trong mục Lộ trình của GAME_DESIGN.md (ví dụ "2.2", "3.1"): đọc thiết kế, code, typecheck, chạy bot test với server, rồi đánh dấu xong. Dùng khi được giao một bước Lộ trình hoặc một tính năng gameplay hoàn chỉnh.
+description: Quy trình làm trọn một bước trong mục Lộ trình của GAME_DESIGN.md hoặc một tính năng gameplay hoàn chỉnh: đọc thiết kế, code, typecheck, chạy bot test với server, cập nhật thiết kế rồi đánh dấu xong. Dùng khi được giao một bước Lộ trình hoặc một việc trong "Việc để sau".
 ---
 
 # Làm một bước Lộ trình
 
-Mỗi gạch đầu dòng ở `GAME_DESIGN.md` mục 7 là **một** lần giao việc. Làm nhỏ, xong hẳn rồi mới sang bước tiếp.
+Mỗi gạch đầu dòng ở `GAME_DESIGN.md` mục 7 là **một** lần giao việc. Làm nhỏ, xong hẳn rồi mới sang việc tiếp; việc lớn trong "Việc để sau" thì tách thành bước nhỏ trước.
 
 ## 1. Đọc thiết kế
-- Đọc `CLAUDE.md`, rồi `GAME_DESIGN.md`: mục 6 (Kiến trúc), mục 7 (bước đang làm và ghi chú *Đã làm* của bước trước), cùng các mục 5.x mà bước đó nhắc tới. Mục 4 cho biết luật cũ nào sẽ bị thay (dấu ➜).
-- Đọc code liên quan trước khi sửa. Ghi ra kế hoạch ngắn: file nào đổi, message/trường đồng bộ/bảng mới nào.
-- Điểm **(chờ chốt)** hay câu hỏi ở mục 8 mà bước này phụ thuộc: dùng phương án mặc định trong thiết kế và nêu rõ trong báo cáo; chỉ hỏi lại khi không có phương án mặc định.
+- Đọc `CLAUDE.md`, rồi `GAME_DESIGN.md`: mục 4 (luật chung), mục 6 (Kiến trúc, bắt buộc giữ), mục 7 (việc đang làm), cùng các mục 5.x liên quan.
+- Đọc code liên quan trước khi sửa. Viết kế hoạch ngắn: file nào đổi, message / trường đồng bộ / bảng mới nào.
+- Thiết kế chưa nói rõ: chọn phương án đơn giản nhất khớp mục 2 (thua không mất đồ, đội hình quan trọng, chơi cùng bạn bè, không nạp tiền) và nêu rõ trong báo cáo / PR; chỉ hỏi lại khi quyết định đó thật sự thuộc về người dùng. Câu hỏi còn mở ở mục 8.
 
 ## 2. Code (dùng skill tương ứng)
-- Luật chơi, message, đồng bộ: `server-feature`.
+- Luật chơi, message, đồng bộ, lưu: `server-feature`.
 - Hiển thị, phím, chạm: `client-ui`.
-- Bảng/cột mới: `db-migration`.
+- Bảng / cột mới: `db-migration`.
 - Con số: `balance-data`.
+- Sprite: `asset-gen`.
 - Chỉ sửa trong phạm vi bước; không refactor lan ra ngoài.
 
 ## 3. Kiểm tra
-1. `npm run check`: typecheck server và client (hook PostToolUse trong `.claude/settings.json` cũng tự chạy `tools/check.mjs --hook` sau mỗi lần sửa file; lỗi thì sửa ngay).
-2. Bật server: `npm run dev:server` (chạy nền, đợi cổng 2567 sẵn sàng).
-3. `npm run bot --prefix client` (bật server bằng `GAME_TEST=1` để bot thử cả các luồng cần hook `test`, ví dụ gục từng võ hồn và chia kinh nghiệm; không bật thì bot báo bỏ qua): 2 bot đăng nhập, thức tỉnh, di chuyển, đánh hồn thú, thử hấp thụ, chat. Bot không có assert, nên **đọc output**: `players 2`, B thấy A đổi vị trí, có `drops`/`kills`, dòng `absorb:` hợp lý, không có lỗi ở log server.
-4. Bước có message hoặc luồng mới: thêm thao tác tương ứng vào `client/scripts/bot-test.mjs` để lần sau bot thử luôn.
-5. Đổi giao diện: mở `http://localhost:5173` (`npm run dev:client`) và thử bằng tay.
-6. Đổi SQL: thử thêm với PostgreSQL như trong skill `db-migration`.
-7. Tắt server sau khi thử xong.
+1. `npm run check` (hook PostToolUse cũng tự chạy `tools/check.mjs --hook` sau mỗi lần sửa; lỗi thì sửa ngay).
+2. Bật server với hook kiểm thử: `GAME_TEST=1 npm run dev:server` (chạy nền, đợi cổng sẵn sàng; phiên song song thì dùng `PORT` riêng và `SERVER_URL` cho bot).
+3. `npm run bot --prefix client`. Đọc output: dòng ✗ là lỗi thật, ⚠ là phần bị bỏ qua; xem log server không có lỗi. Đổi luật kênh thì chạy thêm với server `CHANNEL_MAX=2 GAME_TEST=1`.
+4. Luồng / message mới: thêm kiểm tra vào `client/scripts/bot-test.mjs`; luồng khó dựng bằng bot thì thêm `op` cho hook `test` gọi đúng hàm luật chơi (chỉ chạy khi `GAME_TEST=1`), không viết luật riêng cho bot.
+5. Đổi giao diện: `npm run dev:client`, mở `http://localhost:5173` thử bằng tay (chuột, phím, chạm).
+6. Đổi SQL / `db.ts`: thử với PostgreSQL như skill `db-migration`.
+7. Tắt đúng các tiến trình mình đã bật.
 
-## 4. Cập nhật Lộ trình
-- Trong `GAME_DESIGN.md` mục 7: đổi `- [ ]` thành `- [x]` cho bước vừa xong, thêm dòng *Đã làm:* ngắn (đã làm gì, quyết định nào khác thiết kế, phần nào để bước sau), như ghi chú của bước 2.1.
-- Luật chơi thay đổi thì sửa luôn mục 4/5 tương ứng để thiết kế khớp code.
-- Commit nhỏ, thông điệp tiếng Việt kiểu `Bước 2.2: ...` như lịch sử git. Pre-commit hook (`.githooks/`, bật bằng `npm run hooks`) sẽ typecheck lại.
+## 4. Cập nhật thiết kế và mở PR
+- Sửa mục 4 / 5 / 6 của `GAME_DESIGN.md` để mô tả **luật hiện hành** sau thay đổi (cơ chế + tên hằng, không chép bảng số, không viết nhật ký "đã làm ở bước…"). Giữ nguyên số mục và tên mục mà code đang trích dẫn.
+- Mục 7: đánh dấu `[x]` hoặc bỏ dòng đã xong khỏi "Việc để sau"; nếu còn phần dở thì ghi ngắn "Còn: …". Câu hỏi đã chốt thì bỏ khỏi mục 8.
+- Commit nhỏ, thông điệp tiếng Việt kiểu `Bước 9.6: …`; pre-commit hook typecheck lại. Một PR vào `main` cho mỗi bước, mô tả gồm tóm tắt, cách kiểm thử, quyết định khác thiết kế, phần để sau.
