@@ -403,6 +403,13 @@ export const PARTY_BUFF_MULT = 0.7;
  * hồn kỹ gốc là của võ hồn Phụ trợ ("cả đội tàng hình" của Quỷ Mị; tàng hình của Yêu Hồ chép bằng Phục Chế thì không).
  */
 export const PARTY_BUFF_SKIP: readonly BuffId[] = ["phoenix"];
+/**
+ * Phục Chế chép hồn kỹ của đồng đội tổ đội (bước 9.3, đã chốt 2026-10-20): Phục Chế Hương Tràng (`SkillDef.copy`) chép hồn kỹ gần
+ * nhất về thời gian do võ hồn khác trong đội của mình hoặc đồng đội tổ đội cùng phòng đứng trong COPY_R pixel tung trong COPY_WINDOW
+ * giây (cả hai nguồn cùng cửa sổ). Không chép tuyệt kỹ, Chân Thân, tiên cơ, kỹ năng hồn cốt, hồn kỹ của võ hồn có Phục Chế.
+ */
+export const COPY_R = 200;
+export const COPY_WINDOW = 8;
 /** Lời mời vào tổ đội hết hạn sau ngần này giây (đã chốt). */
 export const PARTY_INVITE_SECS = 60;
 /**
@@ -1197,7 +1204,8 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `at` (around): đặt vùng tại hồn thú gần nhất trong tầm `at` (không có thì không tung, như vùng "mục tiêu"); có `dash` thì
  *   hồn sư bay tới đó trước (tối đa `dash`). Vùng cố định ở chỗ đặt, không đi theo hồn sư (vùng phong tỏa).
  * - `fixed` (around): vùng cố định ở chỗ hồn sư đứng lúc tung (lãnh vực đặt xuống đất), không đi theo khi hồn sư di chuyển.
- * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục; sát thương và hiệu ứng lên
+ * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục (từ 9.3 cả đồng đội tổ đội đứng
+ *   trong COPY_R, cùng cửa sổ COPY_WINDOW giây); sát thương và hiệu ứng lên
  *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
  * Từ 3.5: `self.cleanse`: giải mọi trạng thái trên hồn sư (PLAYER_STATUS, do chiêu báo trước của hồn thú gây).
  * Từ BĐ4: `dispel`: xóa mọi hiệu ứng có lợi (BEAST_BUFF_IDS, ví dụ Cuồng nộ của tinh anh) trên hồn thú trúng ("xóa buff địch").
@@ -1404,7 +1412,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, self: { mp: 0.3 } },
     { name: "Phi Hành Hương Tràng", desc: "Xúc xích bay: tốc độ +35% trong 8 giây, bay lên né đòn", icon: "➠", cost: 14, cd: 14,
       area: "self", r: 0, dmg: 0, fly: 0.6, inv: 0.6, self: { buff: { spd: 0.35 }, secs: 8 } },
-    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
+    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung (8 giây) của võ hồn khác trong đội (chưa gục) hoặc đồng đội tổ đội đứng gần, sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
       area: "self", r: 0, dmg: 0, copy: 0.8 },
   ],
   // ---- Bước 2.5d: 5 võ hồn còn lại (mọi số đã chốt). Từ đây cả 20 võ hồn trong VOHON đều có hồn kỹ riêng. ----
@@ -1737,7 +1745,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       area: "proj", r: 150, n: 8, spread: 360, dmg: 1, status: [{ s: "shock" }] },
     { name: "Thanh Tâm Đại Hương Tràng", desc: "Hồi 30% sinh lực cả đội, 30% hồn lực, khiên 15% sinh lực tối đa 8 giây, thanh tẩy (giải khống chế)", icon: "✧", cost: 60, cd: 20,
       area: "self", r: 0, dmg: 0, glow: true, self: { heal: 0.3, mp: 0.3, shield: 0.15, secs: 8, cleanse: true } },
-    { name: "Phục Chế Hương Tràng · Đại Thành", desc: "Áo nghĩa đại thành: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng không giảm; không chép tuyệt kỹ", icon: "⧉", cost: 60, cd: 18,
+    { name: "Phục Chế Hương Tràng · Đại Thành", desc: "Áo nghĩa đại thành: sao chép hồn kỹ vừa tung (8 giây) của võ hồn khác trong đội (chưa gục) hoặc đồng đội tổ đội đứng gần, sát thương và hiệu ứng không giảm; không chép tuyệt kỹ", icon: "⧉", cost: 60, cd: 18,
       area: "self", r: 0, dmg: 0, glow: true, copy: 1 },
     { name: "Hương Tràng Thịnh Yến", desc: "Tuyệt kỹ: hồi 40% sinh lực cả đội, 30% hồn lực, khiên 20% sinh lực tối đa, công +20%, tốc độ +30% trong 10 giây, thanh tẩy", icon: "✚", cost: 100, cd: 50,
       area: "self", r: 0, dmg: 0, glow: true, ult: true, self: { buff: { atk: 0.2, spd: 0.3 }, secs: 10, heal: 0.4, mp: 0.3, shield: 0.2, cleanse: true } },
@@ -2064,17 +2072,31 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
 };
 
 /**
- * Ràng buộc (mục 5.1, đã chốt): hai võ hồn cùng trong đội (ô bất kỳ, kể cả đang gục) thì hồn sư có thêm hiệu ứng, võ hồn nào ra
- * trận cũng hưởng. Bản tối thiểu ở 2.5d chỉ có hai cặp ví dụ của thiết kế. `crit`: cộng tỉ lệ chí mạng mọi đòn trực tiếp;
- * `burn`: Thiêu đốt do hồn sư gây mạnh thêm tỉ lệ này (tính lúc gây, như tăng công).
+ * Ràng buộc (mục 5.1, đã chốt; 2.5d hai cặp ví dụ, 9.4 đủ bảng): hai võ hồn cùng trong đội (ô bất kỳ, kể cả đang gục) thì hồn sư có
+ * thêm hiệu ứng, võ hồn nào ra trận cũng hưởng; cùng loại hiệu ứng từ nhiều cặp thì cộng (`bondSum`). Loại hiệu ứng (`BondKey`):
+ * - `crit`: cộng tỉ lệ chí mạng mọi đòn trực tiếp.
+ * - `burn`: Thiêu đốt do hồn sư gây mạnh thêm tỉ lệ này (tính lúc gây, như tăng công).
+ * - `skill` (9.4): sức mạnh hồn kỹ ô U / I / O / P (mọi vòng) nhân thêm (1 + tỉ lệ), cả sát thương lẫn mức hiệu ứng (như sao 9.5).
+ * - `heal` (9.4): hồi máu và khiên do hồn sư tạo (hồn kỹ, tiên cơ, Chân Thân; cả phần lan cho tổ đội) mạnh thêm, cộng với bộ hồn hạch
+ *   Lưu Ly; không tính hút máu / hút huyết và đan.
+ * - `stunBurn` (9.4): mọi sát thương hồn sư gây lên hồn thú đang Choáng hoặc Thiêu đốt (do bất kỳ ai gây) mạnh thêm (cộng như Dễ thương).
+ * - `atk` (9.4): công +tỉ lệ (cộng với hiệu ứng tăng công, như bị động hồn cốt).
  */
-export interface BondDef { name: string; pair: [string, string]; desc: string; crit?: number; burn?: number; }
+export type BondKey = "crit" | "burn" | "skill" | "heal" | "stunBurn" | "atk";
+export const BOND_KEYS: BondKey[] = ["crit", "burn", "skill", "heal", "stunBurn", "atk"];
+export interface BondDef { name: string; pair: [string, string]; desc: string; crit?: number; burn?: number; skill?: number; heal?: number; stunBurn?: number; atk?: number; }
 export const BONDS: BondDef[] = [
   { name: "Hạo Thiên – Nhu Cốt", pair: ["hao_thien_chuy", "nhu_cot_tho"], desc: "chí mạng +10%", crit: 0.1 },
   { name: "Tà Hỏa – Hỏa Ảnh", pair: ["ta_hoa_phuong_hoang", "hoa_anh"], desc: "Thiêu đốt mạnh thêm 20%", burn: 0.2 },
+  { name: "Song Sinh Võ Hồn", pair: ["lam_ngan_thao", "hao_thien_chuy"], desc: "sức mạnh hồn kỹ +8%", skill: 0.08 },
+  { name: "Lam Ngân Hoàng", pair: ["a_ngan", "lam_ngan_thao"], desc: "hồi máu và khiên +15%", heal: 0.15 },
+  { name: "Băng Hỏa Lưỡng Nghi", pair: ["bang_phuong_hoang", "hoa_long"], desc: "sát thương lên hồn thú đang Choáng hoặc Thiêu đốt +12%", stunBurn: 0.12 },
+  { name: "Thất Bảo Lưu Ly Tông", pair: ["cuu_bao_luu_ly_thap", "cuu_tinh_that_sat_kiem"], desc: "công +8%", atk: 0.08 },
 ];
 /** Ràng buộc đang có của một đội (danh sách mã võ hồn trong đội). */
 export const bondsOf = (vohonIds: string[]) => BONDS.filter((b) => b.pair.every((v) => vohonIds.includes(v)));
+/** Tổng hiệu ứng loại `k` của mọi ràng buộc đang có trong đội (9.4: cùng loại từ nhiều cặp thì cộng). */
+export const bondSum = (vohonIds: string[], k: BondKey) => bondsOf(vohonIds).reduce((a, b) => a + (b[k] ?? 0), 0);
 /**
  * Phong Lôi Chi Lực (bước 2.5c, đã chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
  * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú
@@ -2968,12 +2990,29 @@ export const ITEMS: ItemDef[] = [
   // Tiên thảo (BĐ6b): mỗi loại một mã (HERBS), gộp 99; dùng cho một võ hồn từ túi đồ.
   ...HERBS.map((h): ItemDef => ({ id: h.id, kind: "tien_thao", name: h.name, col: h.col, stack: 99,
     desc: `Tiên thảo của Lạc Nhật Sâm Lâm. Dùng cho một võ hồn: +${HERB_PCT}% ${HERB_STAT_NAMES[h.stat]} vĩnh viễn, tối đa ${HERB_MAX} cây mỗi võ hồn.` })),
+  // Đan lớn (bước 9.8): bán ở thương nhân để tiêu Hồn Tệ cấp cao, chung hồi chiêu đan (DAN_CD) với đan thường; thương nhân không mua lại.
+  { id: "dai_hoi_huyet_dan", kind: "dan", name: "Đại Hồi Huyết Đan", desc: "Hồi 60% sinh lực của võ hồn đang ra trận.", col: "#ff3b4e", stack: 99, cd: "dan", hp: 0.6 },
+  { id: "dai_hoi_hon_dan",   kind: "dan", name: "Đại Hồi Hồn Đan",   desc: "Hồi 60% hồn lực.",                         col: "#2f7dff", stack: 99, cd: "dan", mp: 0.6 },
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
 export const itemDef = (code: string) => ITEM_INDEX.get(code);
-/** Số ô túi đồ (mỗi ô một món hoặc một chồng đồ gộp). Mở rộng túi để sau. */
+/**
+ * Số ô túi đồ khởi đầu (mỗi ô một món hoặc một chồng đồ gộp). Từ 9.8 mua "Mở rộng túi" ở thương nhân: +BAG_EXPAND ô mỗi lần, tối đa
+ * BAG_MAX_SLOTS; giá lần thứ i là BAG_EXPAND_COST[i] (đồng). Số ô của tài khoản lưu ở `accounts.bag_slots` (NULL = BAG_SLOTS).
+ */
 export const BAG_SLOTS = 40;
+export const BAG_EXPAND = 10;
+export const BAG_MAX_SLOTS = 80;
+export const BAG_EXPAND_COST = [2000, 5000, 10000, 20000];
+/** Số ô hợp lệ từ dữ liệu lưu (null / hỏng = BAG_SLOTS; kẹp BAG_SLOTS..BAG_MAX_SLOTS). */
+export const bagSlotsOf = (x: unknown) => {
+  const n = Math.floor(Number(x));
+  return x === null || x === undefined || !Number.isFinite(n) ? BAG_SLOTS : Math.max(BAG_SLOTS, Math.min(BAG_MAX_SLOTS, n));
+};
+/** Giá (đồng) lần mở rộng kế tiếp khi túi đang có `slots` ô; null = đã tối đa. */
+export const bagExpandCost = (slots: number) =>
+  slots >= BAG_MAX_SLOTS ? null : BAG_EXPAND_COST[Math.max(0, Math.floor((slots - BAG_SLOTS) / BAG_EXPAND))] ?? null;
 /** Hồi chiêu chung (giây) của mọi đan có `cd: "dan"`: dùng Hồi Huyết Đan thì Hồi Hồn Đan cũng phải chờ. */
 export const DAN_CD = 15;
 /** Tài khoản nhận một lần ở lần vào game đầu tiên từ bước 3.1 (cả tài khoản cũ); nguồn đan tạm cho tới khi có thương nhân (6.1). */
@@ -3101,8 +3140,16 @@ const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
 /** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
 export const NPC_RANGE = 40;
-/** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. */
-export const SHOP: { code: string; price: number }[] = [{ code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 }];
+/** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. Đan lớn từ 9.8 (120 đồng, hồi 60%). */
+export const SHOP: { code: string; price: number }[] = [
+  { code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 },
+  { code: "dai_hoi_huyet_dan", price: 120 }, { code: "dai_hoi_hon_dan", price: 120 },
+];
+/**
+ * Mua lại đồ bán nhầm (bước 9.8): thương nhân giữ BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (RAM, mất khi rời game), mua lại
+ * đúng món (cùng chỉ số, cấp cường hóa) với đúng giá đã bán. Thương nhân nào cũng giữ chung danh sách này.
+ */
+export const BUYBACK_MAX = 5;
 /** Số món tối đa mỗi lần mua. */
 export const SHOP_MAX_QTY = 99;
 /** Giá thương nhân mua lại một hồn hoàn theo số năm (đồng; nội suy theo log số năm giữa các mốc, ngoài khoảng thì kẹp). */

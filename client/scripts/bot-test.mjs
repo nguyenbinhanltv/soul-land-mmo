@@ -55,7 +55,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
   BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe, formatYears,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, BUFFS, CRIT, PCT_HP_CAP,
-  BONDS, bondsOf,
+  BONDS, bondsOf, BOND_KEYS, bondSum,
   CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS, PHOENIX_FIELD_R, PHONG_LOI, BEAST_AGGRO_R, BEAST_WANDER, SPAWN_CLEAR,
   MAPS, MAX_YEARS, beastStats, rollYears, tierBand, parseLevelRange, RING_ITEM, DROP_OWNER_SECS, absorbSecs, absorbChance, ringLimit,
   MAX_RINGS, MAX_LEVEL, SHARD_UNLOCK, STAR_COST, MAX_STARS, starCost, shardChance, shardCode, starMult,
@@ -74,9 +74,10 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
+  BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
-  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB,
+  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
@@ -1558,6 +1559,52 @@ else {
       ok(t0===w0&&t1===w1&&bo.burn===BONDS[1].burn,`ràng buộc ${BONDS[1].name}: Thiêu đốt ${n} tầng ${t0} -> ${t1} mỗi giây (cần ${w0} -> ${w1})`);
       await test(E,"clear");
     }
+    // 9.4: ràng buộc đầy đủ. Hook `bond` trả tổng mỗi loại; sát thương / hồi máu / khiên đổi đúng tỉ lệ khi đội có cặp; võ hồn trong cặp
+    // đang gục vẫn tính; bỏ khỏi đội thì hết.
+    {
+      for(const vohon of ["a_ngan","bang_phuong_hoang","hoa_long"]) if(!E.owned.list.some(v=>v.vohon===vohon)) await test(E,"grant",{vohon});
+      await test(E,"rest",{s:15}); await reset();
+      const CT="cuu_tinh_that_sat_kiem", HT="hao_thien_chuy", LN="lam_ngan_thao", CB="cuu_bao_luu_ly_thap", TC="thien_can_bach_ngoc_dinh";
+      const bk=name=>BONDS.find(b=>b.name===name), SS=bk("Song Sinh Võ Hồn"), LH=bk("Lam Ngân Hoàng"), BH=bk("Băng Hỏa Lưỡng Nghi"), TB=bk("Thất Bảo Lưu Ly Tông");
+      const all=VOHON.map(v=>v.id), same=(a,b)=>Math.abs(a-b)<1e-9;
+      ok(BONDS.length===6&&SS?.skill===0.08&&LH?.heal===0.15&&BH?.stunBurn===0.12&&TB?.atk===0.08&&bondSum([LN,HT],"skill")===0.08&&bondSum([HT],"skill")===0
+        &&BOND_KEYS.every(k=>same(bondSum(all,k),BONDS.reduce((a,b)=>a+(b[k]??0),0))),
+        `9.4: ${BONDS.length} ràng buộc (${BONDS.map(b=>b.name).join(", ")}); bondSum cộng mọi cặp cùng loại`);
+      await lineup(HT,["nhu_cot_tho",LN,"a_ngan"]); let bo=await test(E,"bond");
+      const want={crit:0.1,burn:0,skill:SS.skill,heal:LH.heal,stunBurn:0,atk:0};
+      ok(BOND_KEYS.every(k=>same(bo[k],want[k])),`hook bond đội Hạo Thiên Chùy + Nhu Cốt Thố + Lam Ngân Thảo + A Ngân: ${JSON.stringify(bo)}`);
+      // Nhát đầu Thất Sát Kiếm Khí của Cửu Tinh Thất Sát Kiếm (ra trận) lên hồn thú mới, theo đội.
+      const sk=skillsOf(CT)[0], base=atkE(CT)*P(0)*sk.dmg;
+      const hit0=async(team,pre=["stun"])=>{ await lineup(CT,team); const bid=await target(4,28,pre); await test(E,"ready"); await cast(E,0);
+        await waitFor(()=>hitsOn(bid).length>0,1200); return hitsOn(bid)[0]?.v; };
+      const chk=async(team,mult,what,pre)=>{ const got=await hit0(team,pre), w=exp(base*mult);
+        ok(w.includes(got),`${what}: ${sk.name} ${got} (cần ${w.join(" hoặc ")}, × ${+mult.toFixed(4)})`); };
+      await chk([],1,"không ràng buộc");
+      await chk([HT,LN],1+SS.skill,`ràng buộc ${SS.name} (sức mạnh hồn kỹ +${SS.skill*100}%)`);
+      await chk([CB],1+TB.atk,`ràng buộc ${TB.name} (công +${TB.atk*100}%)`);
+      await chk([HT,LN,CB],(1+SS.skill)*(1+TB.atk),`${SS.name} + ${TB.name} cùng lúc`);
+      await chk(["bang_phuong_hoang","hoa_long"],1+BH.stunBurn,`ràng buộc ${BH.name}, hồn thú Choáng`);
+      await chk(["bang_phuong_hoang","hoa_long"],1,`ràng buộc ${BH.name}, hồn thú chỉ bị Trói`,["root"]);
+      await chk(["bang_phuong_hoang","hoa_long"],1+BH.stunBurn,`ràng buộc ${BH.name}, hồn thú Trói + Thiêu đốt`,["root",{s:"burn",n:1}]);
+      // Lam Ngân Hoàng: hồi máu và khiên của Thiên Càn Bạch Ngọc Đỉnh (ra trận) mạnh thêm 15%.
+      const tsk=skillsOf(TC), heal=async team=>{ await lineup(TC,team); await test(E,"rest",{s:15}); const h0=await hurtTo(60);
+        await test(E,"ready"); await cast(E,0,300); return {h0,gain:me.hp-h0,max:me.maxHp}; };
+      for(const [team,m] of [[[],1],[["a_ngan",LN],1+LH.heal]]){
+        const r=await heal(team), w=r.max*tsk[0].self.heal*BP(0)*m;
+        ok(r.h0+w<r.max&&Math.abs(r.gain-w)<=2,`${tsk[0].name}${m>1?` + ${LH.name}`:""}: hồi ${r.gain} (cần ~${w.toFixed(1)})`);
+        await test(E,"ready"); await cast(E,1,0); const sw=()=>Math.round(me.maxHp*tsk[1].self.shield*BP(1)*m);
+        ok(await waitFor(()=>me.shield===sw(),800),`${tsk[1].name}${m>1?` + ${LH.name}`:""}: khiên ${me.shield} (cần ${sw()})`);
+      }
+      // Võ hồn trong cặp đang gục vẫn tính; bỏ khỏi đội thì hết.
+      await lineup(CB,[CT]); await test(E,"down"); await waitFor(()=>E.owned.active===rowE(CT)&&me.vh===vohonIndex(CT),2000);
+      bo=await test(E,"bond"); const st=(await test(E,"stats")).live;
+      ok(E.owned.active===rowE(CT)&&same(bo.atk,TB.atk)&&Math.abs(st.atkNow-st.atk*(1+TB.atk))<1e-6,
+        `${vname(CB)} gục, ${vname(CT)} ra trận: vẫn ${TB.name}, công ${st.atkNow.toFixed(1)} = ${st.atk.toFixed(1)} × ${1+TB.atk}`);
+      // Kết thúc với Thiên Càn Bạch Ngọc Đỉnh ra trận: bài tiên cơ riêng kế tiếp cần đổi tay vào Cửu Tinh Thất Sát Kiếm.
+      await test(E,"rest",{s:REVIVE_SECS+1}); await lineup(TC); bo=await test(E,"bond");
+      ok(BOND_KEYS.every(k=>bo[k]===0),`đội chỉ còn ${vname(TC)}: hết ràng buộc`);
+      await test(E,"clear");
+    }
     // Tiên cơ riêng của 5 võ hồn (đổi tay vào với năng lượng đầy).
     await test(E,"rest",{s:15}); await reset();
     for(const [k,id] of REST.entries()){
@@ -1610,7 +1657,9 @@ else {
     await test(K,"set",{rowId:rowK("u_minh_linh_mieu"),level:60,xp:0,rings:Y10.slice(0,6)});
     kres=(await test(K,"stats")).res?.bonus??{}; console.log(`  K cộng minh: ${JSON.stringify(kres)}`);
     async function lineupK(id){ await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(K,[rowK(id),0,0,0]);
-      await sendTeam(K,[rowK(id),...FIVE.filter(x=>x!==id).slice(0,3).map(rowK)]); return K.owned.active===rowK(id)&&await waitFor(()=>kp.vh===vohonIndex(id)); }
+      // Lấp đội bằng võ hồn mẫu không tạo ràng buộc (9.4: Lam Ngân Thảo + Hạo Thiên Chùy là Song Sinh Võ Hồn, đổi sát thương hồn kỹ).
+      const fill=[]; for(const x of FIVE) if(x!==id&&fill.length<3&&!bondsOf([id,...fill,x]).length) fill.push(x);
+      await sendTeam(K,[rowK(id),...fill.map(rowK)]); return K.owned.active===rowK(id)&&await waitFor(()=>kp.vh===vohonIndex(id)); }
     async function loadout(id,skills){ const n=K.ownedMsgs, l=K.logs.length; K.room.send("loadout",{rowId:rowK(id),skills}); await waitFor(()=>K.ownedMsgs>n&&K.logs.length>l,1500); await sleep(80); return K.logs.at(-1)??""; }
     const castK=(i,wait=200)=>skillCast(K,i,wait);
     async function chanThan(){ const l=K.logs.length; K.fxs=[]; K.dmgs=[]; K.room.send("chanthan"); await waitFor(()=>K.logs.length>l,1500); await sleep(80); return K.logs.at(-1)??""; }
@@ -1700,14 +1749,16 @@ else {
       await test(K,"clear"); await chanThan(); ok(kp.ava>0,"biến hình lại");
       // Đổi võ hồn thì hết Chân Thân; hồi chiêu riêng từng võ hồn.
       await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await waitFor(()=>kp.swCd===0,3500);
-      K.room.send("switch",{slot:K.owned.team.indexOf(rowK("lam_ngan_thao"))});
-      ok(await waitFor(()=>K.owned.active===rowK("lam_ngan_thao")&&kp.ava===0&&kp.avaCd===0,1500),`đổi sang Lam Ngân Thảo: Chân Thân của Hạo Thiên hết, Lam Ngân chưa hồi chiêu [ra trận ${K.owned.active===rowK("lam_ngan_thao")}, ava ${kp.ava}, hồi ${kp.avaCd}]`);
-      const s4=await stats(); ok(Math.abs(s4.atkNow-atkK("lam_ngan_thao"))<0.01,`Lam Ngân Thảo không mang chỉ số Chân Thân của Hạo Thiên: công ${s4.atkNow.toFixed(1)}`);
+      // Từ 9.4 đội lấp của Hạo Thiên Chùy không có Lam Ngân Thảo (Song Sinh Võ Hồn): đổi sang Bích Lân Xà Hoàng.
+      const SW="bich_lan_xa_hoang";
+      K.room.send("switch",{slot:K.owned.team.indexOf(rowK(SW))});
+      ok(await waitFor(()=>K.owned.active===rowK(SW)&&kp.ava===0&&kp.avaCd===0,1500),`đổi sang ${VOHON[vohonIndex(SW)].name}: Chân Thân của Hạo Thiên hết, ${VOHON[vohonIndex(SW)].name} chưa hồi chiêu [ra trận ${K.owned.active===rowK(SW)}, ava ${kp.ava}, hồi ${kp.avaCd}]`);
+      const s4=await stats(); ok(Math.abs(s4.atkNow-atkK(SW))<0.01,`${VOHON[vohonIndex(SW)].name} không mang chỉ số Chân Thân của Hạo Thiên: công ${s4.atkNow.toFixed(1)}`);
     }
     // Lam Ngân Thảo: vòng 5 lướt Trói, vòng 6 lãnh vực 6 nhát, tuyệt kỹ kéo cả vùng lại và giam; Chân Thân Lam Ngân Hoàng.
     {
       const id="lam_ngan_thao", atk=atkK(id), s5=ringSkill(id,4), s6=ringSkill(id,5), ult=ringSkill(id,9);
-      await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await loadout(id,[4,5,9,-1]);
+      ok(await lineupK(id),"K: Lam Ngân Thảo ra trận"); await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await loadout(id,[4,5,9,-1]);
       ok(same(vK(id).skills,[4,5,9,-1]),"Lam Ngân Thảo mang vòng 5, 6, 10, ô P trống");
       K.room.send("skill",{i:3}); ok(await lastLog(K,/chưa mang hồn kỹ/),"ô trống: báo chọn ở bảng đội hình");
       await test(K,"ready"); await faceK(); const b5=await spawnNear(K,4,...kat(50),20); await hush(); await castK(0);
@@ -4065,6 +4116,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
   }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await npcTown();
+await shopBuybackTest();
 await thienDauTest();
 await lacNhatTest();
 await haiThanTest();
@@ -4091,6 +4143,7 @@ if((await test(C,"ping"))?.enabled){
 if((await test(C,"ping"))?.enabled) await partyTest(C);
 if((await test(C,"ping"))?.enabled) await partyBuffTest();
 if((await test(C,"ping"))?.enabled) await supportContribTest();
+if((await test(C,"ping"))?.enabled) await copyPartyTest();
 await resonanceTest();
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
@@ -4209,6 +4262,128 @@ async function npcTown(){
   const bk=bagKey(C); await C.room.leave(); await sleep(400);
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+}
+
+/**
+ * 9.8 thương nhân (bot riêng E, tài khoản mới nên túi khởi đầu BAG_SLOTS ô): hàm thuần (đan lớn, giá mở rộng túi, bagSlotsOf); với
+ * hook: mở rộng túi (đứng xa / thiếu Hồn Tệ bị từ chối, 40 → 50 ô nhận thêm đúng 10 ô, vào lại vẫn 50 ô, giá lần sau, tới 80 ô thì
+ * hết), đan lớn (mua 120 đồng, hồi đúng 60% sinh lực / hồn lực, chung hồi chiêu đan, thương nhân không mua lại), mua lại (hồn cốt cường
+ * hóa về đúng chỉ số và cấp, Hồn Tệ trả đúng; thiếu tiền / túi đầy / mã lạ / đứng xa bị từ chối; chỉ giữ BUYBACK_MAX món; mảnh bán
+ * một phần mua lại gộp ô; đi cổng sang Thiên Đấu Thành vẫn còn và mua lại được ở thương nhân Thiên Đấu; rời game thì mất).
+ */
+async function shopBuybackTest(){
+  console.log("[9.8] Thương nhân: đan lớn, mở rộng túi, mua lại đồ bán nhầm");
+  const big=["dai_hoi_huyet_dan","dai_hoi_hon_dan"].map(c=>itemDef(c)), small=itemDef("hoi_huyet_dan");
+  ok(big.every(d=>d?.kind==="dan"&&d.cd==="dan"&&d.stack===small.stack)&&big[0].hp===0.6&&big[1].mp===0.6,"Đại Hồi Huyết Đan / Đại Hồi Hồn Đan: đan hồi 60%, chung hồi chiêu đan");
+  ok(big.every(d=>SHOP.find(r=>r.code===d.id)?.price===120)&&big.every(d=>sellPrice({code:d.id,years:null,stars:null,enhance:0})===null),
+    `thương nhân bán đan lớn ${formatHonTe(120)}, không mua lại đan`);
+  ok(BAG_SLOTS===40&&BAG_EXPAND===10&&BAG_MAX_SLOTS===80&&same([40,50,60,70,80].map(bagExpandCost),[2000,5000,10000,20000,null]),
+    `mở rộng túi: ${[40,50,60,70].map(n=>`${n}→${n+BAG_EXPAND} ô ${formatHonTe(bagExpandCost(n))}`).join(", ")}, tối đa ${BAG_MAX_SLOTS} ô`);
+  ok(bagSlotsOf(null)===BAG_SLOTS&&bagSlotsOf(undefined)===BAG_SLOTS&&bagSlotsOf("x")===BAG_SLOTS&&bagSlotsOf(55)===55&&bagSlotsOf(999)===BAG_MAX_SLOTS&&bagSlotsOf(3)===BAG_SLOTS,
+    "bagSlotsOf: dữ liệu trống / hỏng là mức khởi đầu, kẹp trong khoảng");
+  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / mở rộng (cần hook warp, goto, coin, give…): bật server bằng GAME_TEST=1"); return; }
+  const E=await bot("Lái buôn","u_minh_linh_mieu",{sex:0,hair:2,hairCol:0,outfitCol:1});
+  const eme=()=>E.room.state.players?.get(E.room.sessionId), loose=()=>looseOf(E);
+  /** Hook warp: sang `mapId` tại (x, y) qua transaction đi cổng rồi vào phòng mới như đi cổng thật. */
+  async function warp(mapId,x,y){
+    E.travel=null; E.room.send("test",{op:"warp",mapId,x,y});
+    ok(await waitFor(()=>E.travel?.mapId===mapId,4000),`warp -> ${MAPS[mapId].name}`);
+    await E.room.leave(); await sleep(300); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E);
+    await waitFor(()=>eme()&&E.bag,3000);
+  }
+  /** Rời game rồi vào lại (không qua đi cổng). */
+  async function relog(){ await E.room.leave(); await sleep(400); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E); await waitFor(()=>eme()&&E.bag,3000); }
+  const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
+  await warp("nac_dinh_thanh",tn.x+60,tn.y+16);
+  ok(E.bag?.slots===BAG_SLOTS&&E.bag.buyback?.length===0,`tài khoản mới: túi ${E.bag?.slots} ô, chưa có đồ mua lại`);
+  await test(E,"coin",{n:1e6});
+  let t=await trade(E,"expand",{}); ok(/đứng cạnh thương nhân/.test(t)&&E.bag.slots===BAG_SLOTS&&E.bag.honTe===1e6,`đứng xa thương nhân: mở rộng túi bị từ chối (${t})`);
+  await test(E,"goto",{x:tn.x,y:tn.y+16});
+  // ---- Mở rộng túi ----
+  const c0=bagExpandCost(BAG_SLOTS);
+  await test(E,"coin",{n:c0-1});
+  t=await trade(E,"expand",{}); ok(/Không đủ Hồn Tệ/.test(t)&&E.bag.slots===BAG_SLOTS&&E.bag.honTe===c0-1,`thiếu 1 đồng: không mở rộng được, không mất tiền (${t})`);
+  await test(E,"coin",{n:c0});
+  t=await trade(E,"expand",{}); ok(E.bag.slots===BAG_SLOTS+BAG_EXPAND&&E.bag.honTe===0&&/40 → 50 ô/.test(t),`mở rộng túi: ${BAG_SLOTS} → ${E.bag.slots} ô, −${formatHonTe(c0)} (${t})`);
+  // Túi 50 ô nhận đúng 50 ô (hồn hoàn mỗi chiếc một ô), chiếc thứ 51 không nhận.
+  await test(E,"give",{code:RING_ITEM,qty:E.bag.slots-loose().length+1,years:10});
+  ok(loose().length===BAG_SLOTS+BAG_EXPAND&&/Túi đồ đã đầy \(50 ô\)/.test(E.logs.at(-1)),`túi đầy ở ${loose().length}/${E.bag.slots} ô: chiếc thứ 51 không nhận (${E.logs.at(-1)})`);
+  for(const it of loose().filter(i=>i.code===RING_ITEM)) E.room.send("discard",{id:it.id});
+  ok(await waitFor(()=>!loose().some(i=>i.code===RING_ITEM),3000),"bỏ hết hồn hoàn thử");
+  await relog();
+  ok(E.bag.slots===BAG_SLOTS+BAG_EXPAND&&E.bag.honTe===0,`thoát vào lại: túi vẫn ${E.bag.slots} ô (đã lưu)`);
+  // Giá lần sau tăng dần; tới BAG_MAX_SLOTS thì hết.
+  await test(E,"coin",{n:BAG_EXPAND_COST.slice(1).reduce((a,v)=>a+v,0)});
+  for(let k=1;k<BAG_EXPAND_COST.length;k++){
+    const s0=E.bag.slots, h0=E.bag.honTe; t=await trade(E,"expand",{});
+    ok(E.bag.slots===s0+BAG_EXPAND&&E.bag.honTe===h0-BAG_EXPAND_COST[k],`mở rộng lần ${k+1}: ${s0} → ${E.bag.slots} ô, −${formatHonTe(BAG_EXPAND_COST[k])}`);
+  }
+  await test(E,"coin",{n:1e6});
+  t=await trade(E,"expand",{}); ok(E.bag.slots===BAG_MAX_SLOTS&&E.bag.honTe===1e6&&/tối đa/.test(t),`đã ${BAG_MAX_SLOTS} ô: không mở rộng thêm, không mất tiền (${t})`);
+  // ---- Đan lớn ----
+  const [dh,dn]=big.map(d=>SHOP.find(r=>r.code===d.id));
+  t=await trade(E,"buy",{code:dh.code,qty:2}); ok(qtyOf(E,dh.code)===2&&E.bag.honTe===1e6-2*dh.price,`mua 2 Đại Hồi Huyết Đan: −${formatHonTe(2*dh.price)} (${t})`);
+  t=await trade(E,"buy",{code:dn.code,qty:1}); ok(qtyOf(E,dn.code)===1&&E.bag.honTe===1e6-2*dh.price-dn.price,`mua 1 Đại Hồi Hồn Đan (${t})`);
+  // Tin trả lời hook / dòng log đến trước bản vá state và tin "bag": chờ sinh lực đã giảm, chờ túi đã bớt đan rồi mới đo.
+  await test(E,"rest",{s:DAN_CD}); await test(E,"hurt",{pct:90}); await waitFor(()=>eme().hp<=eme().maxHp*0.2);
+  const p=eme(), hp0=p.hp;
+  await useItem(E,E.bag.items.find(i=>i.code===dh.code).id);
+  const hg=Number(/Dùng Đại Hồi Huyết Đan: \+(\d+) sinh lực/.exec(E.logs.at(-1))?.[1]);
+  ok(await waitFor(()=>qtyOf(E,dh.code)===1)&&Math.abs(hg-p.maxHp*0.6)<=1&&await waitFor(()=>eme().hp>=hp0+hg-1),`Đại Hồi Huyết Đan hồi đúng 60%: +${hg}/${p.maxHp} sinh lực, ${hp0} -> ${eme().hp} (${E.logs.at(-1)})`);
+  { const q=qtyOf(E,"hoi_hon_dan"); await useItem(E,E.bag.items.find(i=>i.code==="hoi_hon_dan").id);
+    ok(qtyOf(E,"hoi_hon_dan")===q&&/Đan dược đang hồi/.test(E.logs.at(-1))&&E.bag.cd>DAN_CD-2,`chung hồi chiêu đan: ngay sau đan lớn không dùng được Hồi Hồn Đan (${E.logs.at(-1)})`); }
+  await test(E,"rest",{s:DAN_CD}); await test(E,"drain",{pct:90});
+  await useItem(E,E.bag.items.find(i=>i.code===dn.code).id);
+  const mg=Number(/Dùng Đại Hồi Hồn Đan: \+(\d+) hồn lực/.exec(E.logs.at(-1))?.[1]);
+  ok(await waitFor(()=>qtyOf(E,dn.code)===0)&&Math.abs(mg-eme().maxMp*0.6)<=1,`Đại Hồi Hồn Đan hồi đúng 60%: +${mg}/${eme().maxMp} hồn lực (${E.logs.at(-1)})`);
+  { const bk=bagKey(E); t=await trade(E,"sell",{id:E.bag.items.find(i=>i.code===dh.code).id}); ok(bagKey(E)===bk&&/không mua/.test(t),`thương nhân không mua Đại Hồi Huyết Đan (${t})`); }
+  // ---- Mua lại ----
+  await test(E,"give",{code:BONE_ITEM,years:12000,beast:"thiet_giap_te_nguu",slot:"than",enhance:5});
+  const bn=loose().find(i=>i.code===BONE_ITEM&&i.enhance===5), bp=sellPrice(bn);
+  let ht=E.bag.honTe; t=await trade(E,"sell",{id:bn.id});
+  const bb=E.bag.buyback?.[0];
+  ok(!E.bag.items.some(i=>i.id===bn.id)&&E.bag.honTe===ht+bp&&bb?.code===BONE_ITEM&&bb.years===12000&&bb.enhance===5&&sj(bb.stats)===sj(bn.stats)&&bb.price===bp,
+    `bán hồn cốt Thân 12.000 năm +5: +${formatHonTe(bp)}, thương nhân giữ để mua lại (${t})`);
+  await test(E,"coin",{n:bp-1});
+  t=await trade(E,"buyback",{key:bb.key}); ok(/Không đủ Hồn Tệ/.test(t)&&E.bag.honTe===bp-1&&E.bag.buyback.length===1,`thiếu 1 đồng: không mua lại được (${t})`);
+  await test(E,"coin",{n:bp+500});
+  // Túi đầy (BAG_MAX_SLOTS ô): mua lại hồn cốt bị từ chối, không mất tiền.
+  await test(E,"give",{code:RING_ITEM,qty:E.bag.slots-loose().length,years:10});
+  t=await trade(E,"buyback",{key:bb.key}); ok(loose().length===E.bag.slots&&/không đủ chỗ/.test(t)&&E.bag.honTe===bp+500&&E.bag.buyback.length===1,`túi đầy ${loose().length}/${E.bag.slots} ô: mua lại bị từ chối (${t})`);
+  E.room.send("discard",{id:loose().find(i=>i.code===RING_ITEM).id}); await waitFor(()=>loose().length===E.bag.slots-1,2000);
+  for(const [m,why] of [[{key:"khong-co"},"mã lạ"],[{key:7},"mã dạng số"],[{},"thiếu mã"]]){
+    const bk=bagKey(E); t=await trade(E,"buyback",m); ok(bagKey(E)===bk&&/không còn giữ/.test(t),`mua lại ${why}: bị từ chối (${t})`);
+  }
+  t=await trade(E,"buyback",{key:bb.key});
+  const back=loose().find(i=>i.code===BONE_ITEM&&i.years===12000);
+  ok(back&&back.id!==bn.id&&back.enhance===5&&sj(back.stats)===sj(bn.stats)&&E.bag.honTe===500&&E.bag.buyback.length===0,
+    `mua lại đúng món: hồn cốt ${back?.years} năm +${back?.enhance}, cùng chỉ số, −${formatHonTe(bp)} (${t})`);
+  t=await trade(E,"buyback",{key:bb.key}); ok(/không còn giữ/.test(t)&&E.bag.honTe===500,`mua lại lần hai cùng món: bị từ chối (${t})`);
+  // Mảnh bán một phần: mua lại đúng số đã bán, gộp về ô cũ.
+  for(const it of loose().filter(i=>i.code===RING_ITEM).slice(0,10)) E.room.send("discard",{id:it.id});
+  await waitFor(()=>loose().length<=E.bag.slots-10,2000);
+  const sc=shardCode("hao_thien_chuy"); await test(E,"give",{code:sc,qty:5});
+  ht=E.bag.honTe; t=await trade(E,"sell",{id:loose().find(i=>i.code===sc).id,qty:2});
+  ok(qtyOf(E,sc)===3&&E.bag.buyback[0]?.qty===2&&E.bag.honTe===ht+2*SHARD_SELL.UR,`bán 2 / 5 mảnh Hạo Thiên Chùy (${t})`);
+  t=await trade(E,"buyback",{key:E.bag.buyback[0].key});
+  ok(qtyOf(E,sc)===5&&loose().filter(i=>i.code===sc).length===1&&E.bag.honTe===ht,`mua lại 2 mảnh: gộp về 5 mảnh một ô, Hồn Tệ về như cũ (${t})`);
+  // Chỉ giữ BUYBACK_MAX lần bán gần nhất (mới nhất trước).
+  const ys=[110,120,130,140,150,160];
+  for(const y of ys) await test(E,"give",{code:RING_ITEM,years:y});
+  for(const y of ys) await trade(E,"sell",{id:loose().find(i=>i.code===RING_ITEM&&i.years===y).id});
+  ok(same(E.bag.buyback.map(b=>b.years),ys.slice(-BUYBACK_MAX).reverse()),`bán ${ys.length} hồn hoàn: thương nhân chỉ giữ ${BUYBACK_MAX} chiếc gần nhất (${E.bag.buyback.map(b=>b.years).join(", ")} năm)`);
+  // Đứng xa thì không mua lại được; đi cổng sang Thiên Đấu Thành danh sách vẫn còn, mua lại ở thương nhân Thiên Đấu.
+  await test(E,"goto",{x:30*16,y:20*16});
+  { const bk=bagKey(E); t=await trade(E,"buyback",{key:E.bag.buyback[0].key}); ok(bagKey(E)===bk&&/đứng cạnh thương nhân/.test(t),`đứng xa thương nhân: mua lại bị từ chối (${t})`); }
+  const tt=npcSpot(AT,"thuong_nhan_thien_dau"); await warp(AT,tt.x,tt.y+16);
+  ok(same(E.bag.buyback.map(b=>b.years),ys.slice(-BUYBACK_MAX).reverse())&&E.bag.slots===BAG_MAX_SLOTS,"đi cổng sang Thiên Đấu Thành: danh sách mua lại và số ô túi còn nguyên");
+  ht=E.bag.honTe; t=await trade(E,"buyback",{key:E.bag.buyback[0].key});
+  ok(loose().some(i=>i.code===RING_ITEM&&i.years===160)&&E.bag.honTe===ht-ringSellPrice(160)&&E.bag.buyback.length===BUYBACK_MAX-1,`thương nhân Thiên Đấu mua lại hồn hoàn 160 năm (${t})`);
+  t=await trade(E,"buy",{code:dh.code,qty:1}); ok(/Mua 1 Đại Hồi Huyết Đan/.test(t),`thương nhân Thiên Đấu bán đan lớn cùng giá (${t})`);
+  // Rời game: thương nhân quên đồ đã bán; túi, số ô, Hồn Tệ vẫn lưu.
+  const bk=bagKey(E); await relog();
+  ok(E.bag.buyback?.length===0&&bagKey(E)===bk&&E.bag.slots===BAG_MAX_SLOTS,`rời game rồi vào lại: danh sách mua lại trống, túi ${E.bag.slots} ô và Hồn Tệ còn nguyên`);
+  await E.room.leave();
 }
 
 /**
@@ -5837,4 +6012,81 @@ async function supportContribTest(){
     ok(await waitFor(()=>qtyOf(H,chestCode(KB))===cH+1,2500)&&H.logs.some(t=>/lượt 1\/3/.test(t)),`H nhận rương ${chestCode(KB)}: ${H.logs.filter(t=>/Đóng góp|lượt/.test(t)).join(" | ")}`);
     ok(JSON.stringify([mo(H).level,mo(H).xp])!==xp0,`H nhận kinh nghiệm thú vương x${KING.xp}: [cấp, kinh nghiệm] ${xp0} -> ${JSON.stringify([mo(H).level,mo(H).xp])}`);
   } finally { for(const b of [H,A]) await b.room.leave().catch(()=>{}); }
+}
+
+/**
+ * 9.3: Phục Chế Hương Tràng chép hồn kỹ của đồng đội tổ đội. A (Cửu Bảo Lưu Ly Tháp) và B (Xúc Xích ra trận, Cửu Bảo Lưu Ly Tháp
+ * trong đội) cùng tổ đội, O (Cửu Bảo Lưu Ly Tháp) ngoài đội. A tung Phòng Chi Lưu Ly, B đứng 180 pixel (ngoài PARTY_BUFF_R nên
+ * không nhận khiên lan) chép đúng hồn kỹ đó: khiên = sinh lực tối đa của B × tỉ lệ × buffPower vòng 4 của B × 0,8. Quá COPY_WINDOW
+ * giây thì không còn gì để chép. A đứng xa (300 pixel) hoặc O (khác tổ đội, đứng 60 pixel) tung sau cùng thì B chép hồn kỹ của
+ * đội mình (Lực Chi Lưu Ly do Cửu Bảo Lưu Ly Tháp của B tung).
+ */
+async function copyPartyTest(){
+  console.log("[9.3] Phục Chế chép hồn kỹ của đồng đội tổ đội đứng gần");
+  ok(COPY_R===200&&COPY_WINDOW===8&&COPY_R>PARTY_BUFF_R,`COPY_R ${COPY_R} pixel, COPY_WINDOW ${COPY_WINDOW} giây`);
+  const A=await bot("Phục Chế A","bich_lan_xa_hoang",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  const B=await bot("Phục Chế B","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:3,outfitCol:4});
+  const O=await bot("Phục Chế O","bich_lan_xa_hoang",{sex:1,hair:2,hairCol:5,outfitCol:0});
+  const meP=b=>b.room.state.players.get(b.room.sessionId), live=async b=>(await test(b,"stats")).live;
+  await waitFor(()=>[A,B,O].every(b=>b.owned&&b.party&&meP(b)),3000);
+  try{
+    const CB="cuu_bao_luu_ly_thap", XX="xuc_xich", sk=skillsOf(CB), pc=skillsOf(XX)[3], Y=[423,764,1760,5000];
+    const rowOf=(b,id)=>b.owned.list.find(v=>v.vohon===id)?.rowId;
+    for(const [b,ids] of [[A,[CB]],[B,[XX,CB]],[O,[CB]]]){
+      for(const id of ids){ await test(b,"grant",{vohon:id}); await test(b,"set",{rowId:rowOf(b,id),level:40,xp:0,rings:Y}); }
+      await sendTeam(b,[rowOf(b,ids[0]),0,0,0]); await sendTeam(b,[rowOf(b,ids[0]),rowOf(b,ids[1]??"bich_lan_xa_hoang"),0,0]);
+    }
+    ok(meP(A).vh===vohonIndex(CB)&&meP(B).vh===vohonIndex(XX)&&meP(O).vh===vohonIndex(CB),"A, O: Cửu Bảo Lưu Ly Tháp ra trận; B: Xúc Xích ra trận, Cửu Bảo Lưu Ly Tháp chờ");
+    await test(A,"party",{pop:"rlreset"});
+    const n=B.partyMsgs; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>B.partyMsgs>n);
+    B.room.send("party",{op:"accept",name:A.name}); await waitFor(()=>A.party?.members?.length===2&&B.party?.id===A.party.id,2000);
+    ok(A.party?.members.length===2&&B.party?.id===A.party.id&&!O.party?.id,"A và B cùng tổ đội, O không trong đội");
+    await leaveSafe(A);
+    // Đặt `b` cách `ref` đúng `dist` pixel ngoài làng (thử từng hướng tới khi đứng được).
+    async function place(b,ref,dist){
+      const cx=meP(ref).x, cy=meP(ref).y;
+      for(const [ux,uy] of [[1,0],[0,1],[0,-1],[-1,0],[0.7071,0.7071],[0.7071,-0.7071],[-0.7071,0.7071],[-0.7071,-0.7071]]){
+        const x=+(cx+ux*dist).toFixed(1), y=+(cy+uy*dist).toFixed(1); await test(b,"goto",{x,y});
+        if(await waitFor(()=>Math.hypot(meP(b).x-x,meP(b).y-y)<0.5,600)&&!inSafeOf(b)) return true;
+      }
+      console.log(`  ⚠ không đặt được ${b.name} cách ${ref.name} ${dist} pixel`); return false;
+    }
+    const dist=(a,b)=>Math.round(Math.hypot(meP(a).x-meP(b).x,meP(a).y-meP(b).y));
+    const clean=async()=>{ for(const b of [A,B,O]) await test(b,"clear"); };
+    // B tung Phục Chế (ô P), trả các dòng log mới (đợi tới khi có dòng của Phục Chế).
+    async function copy(){
+      await test(B,"ready"); const l=B.logs.length; B.room.send("skill",{i:3});
+      await waitFor(()=>B.logs.slice(l).some(t=>t.startsWith(`${pc.name}:`)),1500); return B.logs.slice(l).filter(t=>t.startsWith(`${pc.name}:`));
+    }
+    async function cast(b,i){ await test(b,"ready"); b.room.send("skill",{i}); await sleep(300); }
+    async function switchTo(b,row){ await sleep(150); await waitFor(()=>meP(b).swCd===0,3500); b.room.send("switch",{slot:b.owned.team.indexOf(row)}); return waitFor(()=>b.owned.active===row,1500); }
+    ok(await place(B,A,180),`B cách A ${dist(A,B)} pixel (trong ${COPY_R}, ngoài ${PARTY_BUFF_R}), ngoài làng`);
+    await clean();
+    let lg=await copy();
+    ok(/chưa có hồn kỹ/.test(lg.join(" "))&&meP(B).cds[3]===0,`chưa ai tung hồn kỹ: ${lg.join(" | ")}, không hồi chiêu`);
+    // ---- A tung Phòng Chi Lưu Ly, B chép đúng hồn kỹ đó × 0,8 ----
+    await cast(A,3); await test(B,"hurt",{pct:5}); await waitFor(()=>meP(B).shield===0);
+    const s0=meP(B).shield; lg=await copy();
+    const want=Math.round(meP(B).maxHp*sk[3].self.shield*buffPower(Y[3])*pc.copy);
+    ok(s0===0&&lg.some(t=>t===`${pc.name}: sao chép ${sk[3].name} của ${A.name}.`)&&await waitFor(()=>meP(B).shield===want,800),
+      `B chép ${sk[3].name} của A: khiên ${meP(B).shield} (cần ${want} = sinh lực B × ${sk[3].self.shield} × buffPower × ${pc.copy}); ${lg.join(" | ")}`);
+    const lB=await live(B);
+    ok(Math.abs((lB.buffs.def?.v??0)-sk[3].self.buff.def*buffPower(Y[3])*pc.copy)<1e-9&&meP(B).vh===vohonIndex(XX)&&meP(B).cds[3]>0,
+      `B tăng thủ +${((lB.buffs.def?.v??0)*100).toFixed(1)}% (× ${pc.copy}), Xúc Xích vẫn ra trận, ô P hồi chiêu`);
+    // ---- Quá COPY_WINDOW giây: không còn gì để chép ----
+    await cast(A,0); await test(A,"rest",{s:COPY_WINDOW+1}); lg=await copy();
+    ok(/chưa có hồn kỹ/.test(lg.join(" "))&&meP(B).cds[3]===0,`A tung ${sk[0].name} quá ${COPY_WINDOW} giây trước: ${lg.join(" | ")}`);
+    // ---- Đứng xa / khác tổ đội: chép hồn kỹ của đội mình ----
+    ok(await place(B,A,300)&&await place(O,B,60),`B cách A ${dist(A,B)} pixel, O (ngoài đội) cách B ${dist(O,B)} pixel`);
+    await clean();
+    ok(await switchTo(B,rowOf(B,CB)),"B đổi sang Cửu Bảo Lưu Ly Tháp"); await cast(B,0);
+    ok(await switchTo(B,rowOf(B,XX)),`B tung ${sk[0].name} rồi đổi về Xúc Xích`);
+    await cast(A,3); lg=await copy();
+    ok(lg.some(t=>t===`${pc.name}: sao chép ${sk[0].name}.`),`A (${dist(A,B)} pixel) tung ${sk[3].name} sau cùng nhưng đứng xa: B chép hồn kỹ đội mình (${lg.join(" | ")})`);
+    await cast(O,3); lg=await copy();
+    ok(lg.some(t=>t===`${pc.name}: sao chép ${sk[0].name}.`),`O (khác tổ đội, ${dist(O,B)} pixel) tung ${sk[3].name} sau cùng: B chép hồn kỹ đội mình (${lg.join(" | ")})`);
+    // ---- Đồng đội lại gần, tung sau hồn kỹ của đội mình: chép của đồng đội ----
+    ok(await place(B,A,120),`B lại gần A (${dist(A,B)} pixel)`); await cast(A,2); lg=await copy();
+    ok(lg.some(t=>t===`${pc.name}: sao chép ${sk[2].name} của ${A.name}.`),`A tung ${sk[2].name} gần nhất: B chép của A (${lg.join(" | ")})`);
+  } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }
