@@ -2160,10 +2160,32 @@ export const STAR_COST = [20, 40, 80, 120, 200];
 export const starCost = (stars: number) => (stars >= 1 && stars < MAX_STARS ? STAR_COST[Math.floor(stars) - 1] : null);
 /**
  * **(đã chốt)** Mỗi sao trên 1 cộng STAR_STAT vào chỉ số gốc (sinh lực, hồn lực, công; không đổi tốc độ): 6★ = +25%.
- * Hiệu ứng hồn kỹ mở theo sao (mục 5.1) để bước sau.
+ * Hiệu ứng hồn kỹ theo sao: STAR_SKILL bên dưới (bước 9.5).
  */
 export const STAR_STAT = 0.05;
-export const starMult = (stars: number) => 1 + STAR_STAT * (Math.max(1, Math.min(MAX_STARS, Math.floor(stars) || 1)) - 1);
+/** Sao kẹp vào 1..MAX_STARS (số lạ / thiếu = 1★). */
+const starOf = (stars: number) => Math.max(1, Math.min(MAX_STARS, Math.floor(stars) || 1));
+export const starMult = (stars: number) => 1 + STAR_STAT * (starOf(stars) - 1);
+/**
+ * **(đã chốt 2026-10-20, bước 9.5)** Hiệu ứng hồn kỹ theo sao võ hồn (mục 5.1 "Sao"), ngoài STAR_STAT: mỗi sao trên 1 cộng
+ * STAR_SKILL sức mạnh (sát thương và mức hiệu ứng) hồn kỹ vòng 1..STAR_SKILL_RINGS và tiên cơ riêng (6★ = +15%).
+ * Từ STAR_CD_STARS sao: hồi chiêu hồn kỹ vòng 1..STAR_SKILL_RINGS × STAR_CD (−10%). Từ STAR_TIEN_CO_STARS sao: tiên cơ riêng thêm
+ * STAR_TIEN_CO (cộng thẳng vào hệ số sao: 6★ = 1 + 0,15 + 0,2 = ×1,35).
+ */
+export const STAR_SKILL = 0.03;
+export const STAR_SKILL_RINGS = 4;
+export const STAR_CD_STARS = 4;
+export const STAR_CD = 0.9;
+export const STAR_TIEN_CO_STARS = 6;
+export const STAR_TIEN_CO = 0.2;
+/** Hệ số sức mạnh hồn kỹ vòng 1–4 theo sao (1★ = 1, 6★ = 1,15). */
+export const starSkillMult = (stars: number) => 1 + STAR_SKILL * (starOf(stars) - 1);
+/** Hệ số hồi chiêu hồn kỹ vòng 1–4 theo sao (dưới 4★ = 1, từ 4★ = 0,9). */
+export const starCdMult = (stars: number) => (starOf(stars) >= STAR_CD_STARS ? STAR_CD : 1);
+/** Hệ số sức mạnh tiên cơ riêng theo sao: starSkillMult, từ 6★ cộng thêm STAR_TIEN_CO. */
+export const starTienCoMult = (stars: number) => starSkillMult(stars) + (starOf(stars) >= STAR_TIEN_CO_STARS ? STAR_TIEN_CO : 0);
+/** Vòng `r` (chỉ số 0..9) có nhận hiệu ứng sao không (vòng 1..STAR_SKILL_RINGS). */
+export const starRing = (r: number) => r >= 0 && r < STAR_SKILL_RINGS;
 /**
  * **(đã chốt)** Tỉ lệ rơi mảnh võ hồn khi hạ hồn thú, theo số năm (bảng rơi mục 5.3): từ `years` năm trở lên thì `p`.
  * Rơi SHARD_QTY mảnh của một võ hồn ngẫu nhiên trong MAPS[...].shards, vào thẳng túi người hạ.

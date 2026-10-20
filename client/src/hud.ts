@@ -1,7 +1,7 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TIEN_CO_MAX, skillsOf, tienCoOf, skillPower,
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
-  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, MAPS, bondsOf, PLAYER_STATUS,
+  MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, starSkillMult, starCdMult, starTienCoMult, starRing, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
   CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
@@ -127,11 +127,21 @@ export function banner(a: string, b: string) {
   el.style.opacity = "1"; clearTimeout(bannerTO); bannerTO = window.setTimeout(() => (el.style.opacity = "0"), 2400);
 }
 
-/** Chú thích một hồn kỹ của vòng `r` (chỉ số 0..9): tốn / hồi, sức mạnh theo số năm hồn hoàn, hoặc vòng cần để mở. */
-function skillTip(s: SkillDef, r: number, rings: number[], years: number[] | null) {
-  const has = r < rings.length, y = years?.[r] ?? (has ? TIERS[rings[r]].years : 0);
-  const pow = has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn ${y.toLocaleString("vi-VN")} năm).` : ` Mở khi có hồn hoàn thứ ${r + 1}.`;
-  return `${s.ult ? "Tuyệt kỹ " : ""}${s.name} (vòng ${r + 1}): ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${String(s.cd).replace(".", ",")} giây.${pow}`;
+/** Hồi chiêu của hồn kỹ vòng `r` của võ hồn `stars` sao (9.5: vòng 1–4 từ 4★ ngắn hơn; server tính như nhau). */
+export const skillCd = (s: SkillDef, r: number, stars: number) => s.cd * (starRing(r) ? starCdMult(stars) : 1);
+const cdText = (x: number) => String(Math.round(x * 100) / 100).replace(".", ",");
+/** Dòng "Sao: hồn kỹ +x%…" của võ hồn `stars` sao (9.5, mục 5.1); 1★ thì "". */
+export function starSkillText(stars: number) {
+  if (starSkillMult(stars) <= 1) return "";
+  const pct = (m: number) => `+${Math.round((m - 1) * 100)}%`;
+  return `Sao: hồn kỹ ${pct(starSkillMult(stars))}` + (starCdMult(stars) < 1 ? `, hồi chiêu −${Math.round((1 - starCdMult(stars)) * 100)}%` : "")
+    + `, tiên cơ riêng ${pct(starTienCoMult(stars))}`;
+}
+/** Chú thích một hồn kỹ của vòng `r` (chỉ số 0..9): tốn / hồi, sức mạnh theo số năm hồn hoàn (kèm sao võ hồn, 9.5), hoặc vòng cần để mở. */
+function skillTip(s: SkillDef, r: number, rings: number[], years: number[] | null, stars: number) {
+  const has = r < rings.length, y = years?.[r] ?? (has ? TIERS[rings[r]].years : 0), sm = starRing(r) ? starSkillMult(stars) : 1;
+  const pow = has ? ` Sức mạnh ×${(skillPower(y) * sm).toFixed(2).replace(".", ",")} (hồn hoàn ${y.toLocaleString("vi-VN")} năm${sm > 1 ? `, sao +${Math.round((sm - 1) * 100)}%` : ""}).` : ` Mở khi có hồn hoàn thứ ${r + 1}.`;
+  return `${s.ult ? "Tuyệt kỹ " : ""}${s.name} (vòng ${r + 1}): ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${cdText(skillCd(s, r, stars))} giây.${pow}`;
 }
 let slotCd: number[] = [];  // hồi chiêu đầy của hồn kỹ ở từng ô (vẽ lớp phủ hồi chiêu trong updateStats)
 let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn ra trận (nút R), null = võ hồn chưa có
@@ -139,9 +149,9 @@ let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn 
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
  * Hồn Chân Thân (8.1a, chỉ khi võ hồn có dữ liệu; khóa tới vòng 7), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons");
- * chưa có thì lấy mốc của bậc.
+ * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4).
  */
-export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void) {
+export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1) {
   const el = $("#skills"); el.innerHTML = ""; slotCd = [];
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip = "") => {
     const b = document.createElement("button"); b.className = "sk" + (locked ? " locked" : "");
@@ -156,11 +166,11 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
   mk("J", "Đánh thường", "Đánh", VOHON[vh].col, "attack");
   const id = VOHON[vh].id;
   loadout.forEach((r, i) => {
-    const s = r >= 0 ? ringSkill(id, r) : null; slotCd[i] = s?.cd ?? 1;
+    const s = r >= 0 ? ringSkill(id, r) : null; slotCd[i] = s ? skillCd(s, r, stars) : 1;
     if (!s) return mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: trống`, "Trống", "#666", `skill${i}`, "", true, i, "Ô trống: chọn hồn kỹ mang theo ở bảng đội hình (V).");
     const has = r < rings.length;
     mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: ${s.name} (vòng ${r + 1})${has ? "" : " (khóa)"}`, has ? s.name : "Khóa", has ? ringColor(rings[r]) : "#666",
-      `skill${i}`, s.icon, !has, i, skillTip(s, r, rings, years));
+      `skill${i}`, s.icon, !has, i, skillTip(s, r, rings, years, stars));
   });
   avaDef = chanThanOf(id); el.classList.toggle("ava", !!avaDef);
   if (avaDef) {
@@ -464,6 +474,9 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
     b.querySelector("b")!.textContent = def.name;
     b.querySelector("small")!.textContent = `${def.rarity} · ${HE[def.he].name} · cấp ${v.level}` + (at >= 0 ? ` · ô ${at + 1}` : "");
     b.querySelector("b")!.append(" ", starEl(v.stars));
+    // 9.5: hiệu ứng hồn kỹ theo sao (từ 2★).
+    const stx = starSkillText(v.stars);
+    if (stx) { const t = document.createElement("small"); t.className = "rstar"; t.textContent = stx; b.querySelector("span")!.appendChild(t); }
     const rr = b.querySelector(".rr")!;
     v.rings.forEach((y) => { const t = tierOfYears(y), r = document.createElement("i"); r.className = "ring"; r.style.color = ringColor(t); rr.appendChild(r); });
     b.addEventListener("click", () => {
@@ -549,7 +562,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     b.querySelector("i")!.textContent = (s ?? ct)!.icon;
     b.querySelector("b")!.textContent = `${r + 1}. ${(s ?? ct)!.name}`;
     b.querySelector("small")!.textContent = ct ? `Võ Hồn Chân Thân · phím ${AVA_KEY}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`
-      : `${s!.ult ? "Tuyệt kỹ · " : ""}${s!.cost} hồn lực · hồi ${String(s!.cd).replace(".", ",")} giây${at >= 0 ? ` · ô ${SKILL_KEYS[at]}` : ""}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`;
+      : `${s!.ult ? "Tuyệt kỹ · " : ""}${s!.cost} hồn lực · hồi ${cdText(skillCd(s!, r, v.stars))} giây${at >= 0 ? ` · ô ${SKILL_KEYS[at]}` : ""}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`;
     b.title = ct ? `${ct.name}: ${ct.desc}.` : `${s!.name}: ${s!.desc}.`;
     b.disabled = !open || !!ct || !choices.includes(r);
     b.addEventListener("click", () => {
