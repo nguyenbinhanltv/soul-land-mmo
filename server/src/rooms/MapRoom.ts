@@ -27,7 +27,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
-  PARTY_XP_RANGE, partyXpShare,
+  PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA } from "../../../shared/data.ts";
@@ -1680,6 +1680,7 @@ export class MapRoom extends Room<MapState> {
       // gắn gì; võ hồn ra trận kèm `live` (chỉ số đang dùng trong trận: maxHp, maxMp, atk). Từ 5.2: `cores` (chỉ số hồn hạch kèm phần
       // của bộ), `sets` (số món từng bộ), `fx` (hiệu ứng bộ), `slots` (id hồn hạch -> ô); `live` thêm chí mạng và hiệu ứng bộ đang dùng.
       // Từ 8.2: `base` và `stats` kèm cộng minh của tài khoản (không phải đồ gắn), `res` là tiến độ / mốc / % cộng minh hiện tại.
+      // Từ 9.1: `live.buffs` (hiệu ứng có lợi: giây còn lại, độ lớn), `live.shield` / `shieldT` để thử hiệu ứng lan từ đồng đội tổ đội.
       const v = d.owned.find((x) => x.rowId === o.rowId) ?? d.ch;
       if (v === d.ch) this.syncCh(id);
       const vh = Math.max(0, vohonIndex(v.vohon)), rings = v.rings.map(tierOfYears), bones = this.boneBonusOf(d, v.rowId);
@@ -1690,7 +1691,8 @@ export class MapRoom extends Room<MapState> {
         stats: calcStats(vh, v.level, rings, v.stars, bones, cores, d.res.bonus, herbBonus(v.herbs)), res: d.res, herbs: { ...v.herbs },
         live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive, crit: d.crit, critMult: d.critMult, fx: d.coreFx,
           atkNow: this.atkOf(d), spd: d.speed * (1 + this.buffV(d, "spd")), def: this.buffV(d, "def"), critB: this.buffV(d, "crit"),
-          ava: d.ava && { row: d.ava.row, t: d.ava.t, stats: d.ava.stats }, avaCd: d.avaCd.get(v.rowId) ?? 0 } : null,
+          ava: d.ava && { row: d.ava.row, t: d.ava.t, stats: d.ava.stats }, avaCd: d.avaCd.get(v.rowId) ?? 0,
+          buffs: Object.fromEntries([...d.buffs].map(([k, x]) => [k, { t: x.t, v: x.v }])), shield: d.shield, shieldT: d.shieldT } : null,
         skills: loadoutOf(v.vohon, v.skills), saved: [...v.skills] };
     }
     else if (op === "elite") out = { list: this.elites.map((slot) => {
@@ -2048,8 +2050,11 @@ export class MapRoom extends Room<MapState> {
     }
   }
 
-  /** Hiệu ứng lên bản thân của hồn kỹ (SkillDef.self): hiệu ứng có lợi, hồi sinh lực cả đội, khiên, hồi hồn lực; nhân `bpow`. */
-  selfEffect(id: string, e: NonNullable<SkillDef["self"]>, bpow: number, col: string) {
+  /**
+   * Hiệu ứng lên bản thân của hồn kỹ (SkillDef.self): hiệu ứng có lợi, hồi sinh lực cả đội, khiên, hồi hồn lực; nhân `bpow`.
+   * `share` (9.1): mã võ hồn gốc của hồn kỹ khi được lan cho đồng đội tổ đội đứng gần (partyShare); bỏ trống thì chỉ lên chính mình.
+   */
+  selfEffect(id: string, e: NonNullable<SkillDef["self"]>, bpow: number, col: string, share?: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, secs = e.secs ?? 5;
     for (const [b, v] of Object.entries(e.buff ?? {}) as [BuffId, number][]) {
       const cur = d.buffs.get(b), val = b === "inv" || b === "hide" ? 1 : v * bpow;
@@ -2062,15 +2067,76 @@ export class MapRoom extends Room<MapState> {
     if (e.mp) { d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * e.mp * bpow); p.mp = Math.floor(d.mpF); }
     if (e.cleanse) this.clearPStatus(p, d); // giải khống chế (Xúc Xích, từ 3.5)
     this.broadcast("fx", { k: "buff", id, col });
+    if (share) this.partyShare(id, e, bpow, hm, col, share);
+  }
+
+  /**
+   * Mã võ hồn gốc `src` để lan hiệu ứng lên bản thân cho tổ đội (9.1) nếu võ hồn đang ra trận của người tung thuộc hệ Phụ trợ,
+   * không thì undefined (không lan). `src` khác võ hồn ra trận khi Phục Chế chép hồn kỹ của võ hồn khác.
+   */
+  shareOf(p: PlayerState, src: string) { return VOHON[p.vh].he === "phu_tro" ? src : undefined; }
+
+  /**
+   * Đồng đội nhận hiệu ứng phụ trợ của `id` (9.1): thành viên tổ đội cùng phòng (cùng bản đồ, cùng kênh), chưa gục cả đội, không đang
+   * đi cổng / chuyển bản đồ, không đứng trong vùng an toàn, cách người tung dưới PARTY_BUFF_R pixel. Không gồm chính người tung.
+   */
+  partyBuffNear(id: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id), pid = d ? party.partyIdOf(d.accountId) : 0, out: string[] = [];
+    if (!p || !pid) return out;
+    for (const [qid, o] of this.pdata) {
+      const q = this.state.players.get(qid);
+      if (qid === id || !q || q.dead || o.travelling || o.travelCast || party.partyIdOf(o.accountId) !== pid) continue;
+      if (Math.hypot(q.x - p.x, q.y - p.y) < PARTY_BUFF_R && !this.map.inSafe(q.x, q.y)) out.push(qid);
+    }
+    return out;
+  }
+
+  /**
+   * Lan hiệu ứng lên bản thân `e` của người tung `id` cho đồng đội đứng gần (9.1), mức × PARTY_BUFF_MULT: hiệu ứng có lợi (trừ
+   * PARTY_BUFF_SKIP; tàng hình chỉ khi võ hồn gốc `src` là Phụ trợ), hồi sinh lực và khiên theo sinh lực tối đa của võ hồn đang ra trận
+   * của đồng đội (`hm`: hệ số hồi máu / khiên của người tung), hồn lực. Cùng hiệu ứng thì lấy mức mạnh hơn và thời gian dài hơn.
+   * Thanh tẩy không lan. Đồng đội thấy số hồi / khiên trên đầu và một dòng "<tên> … cho bạn".
+   */
+  partyShare(id: string, e: NonNullable<SkillDef["self"]>, bpow: number, hm: number, col: string, src: string) {
+    const p = this.state.players.get(id); if (!p) return;
+    const secs = e.secs ?? 5, m = PARTY_BUFF_MULT, hideOk = VOHON[Math.max(0, vohonIndex(src))].he === "phu_tro";
+    const buffs = (Object.entries(e.buff ?? {}) as [BuffId, number][]).filter(([b]) => !PARTY_BUFF_SKIP.includes(b) && (b !== "hide" || hideOk));
+    for (const qid of this.partyBuffNear(id)) {
+      const q = this.state.players.get(qid)!, o = this.pdata.get(qid)!, said: string[] = [];
+      for (const [b, v] of buffs) {
+        const cur = o.buffs.get(b), val = b === "inv" || b === "hide" ? 1 : v * bpow * m;
+        o.buffs.set(b, { t: Math.max(cur?.t ?? 0, secs), v: Math.max(cur?.v ?? 0, val) });
+        said.push(BUFFS[b].name.toLowerCase());
+      }
+      if (buffs.length) { this.syncBuffs(q, o); this.broadcast("fx", { k: "buff", id: qid, col, ally: true }); }
+      if (e.heal) {
+        const add = Math.min(q.maxHp - o.hpF, q.maxHp * e.heal * bpow * hm * m);
+        if (add > 0) {
+          o.hpF += add; q.hp = Math.ceil(o.hpF); said.push(`hồi ${Math.round(add)} sinh lực`);
+          this.broadcast("dmg", { x: q.x, y: q.y - 18, v: Math.round(add), c: "#7dff8a", heal: true, to: qid });
+        }
+      }
+      if (e.shield) {
+        const sh = Math.round(q.maxHp * e.shield * bpow * hm * m), gain = sh - o.shield;
+        o.shield = Math.max(o.shield, sh); o.shieldT = Math.max(o.shieldT, secs); q.shield = o.shield;
+        if (gain > 0) { said.push(`tạo khiên ${gain}`); this.broadcast("dmg", { x: q.x, y: q.y - 26, v: gain, c: "#9ad8ff", shield: true, to: qid }); }
+      }
+      if (e.mp) {
+        const add = Math.min(q.maxMp - o.mpF, q.maxMp * e.mp * bpow * m);
+        if (add > 0) { o.mpF += add; q.mp = Math.floor(o.mpF); said.push(`hồi ${Math.round(add)} hồn lực`); }
+      }
+      if (said.length) this.log(qid, `${p.name} ${said.join(", ")} cho bạn.`, col);
+    }
   }
 
   /**
    * Bộ máy hồn kỹ theo dữ liệu (SkillDef trong shared/data.ts) cho hồn kỹ chung, hồn kỹ riêng và chiêu tiên cơ riêng.
    * `power`: sức mạnh (skillPower theo số năm hồn hoàn của vòng, hoặc tienCoDmgMult cho tiên cơ); `bpow`: hệ số hiệu ứng lên
    * bản thân (buffPower). `hit`: đòn tạo năng lượng tiên cơ (bỏ trống với tiên cơ). Vùng "target" không có mục tiêu thì
-   * lướt theo hướng nhìn nếu có `dash` (người gọi đã kiểm tra trước với hồn kỹ thường).
+   * lướt theo hướng nhìn nếu có `dash` (người gọi đã kiểm tra trước với hồn kỹ thường). `share` (9.1): mã võ hồn gốc khi hiệu ứng lên
+   * bản thân lan cho tổ đội (shareOf), bỏ trống thì không lan.
    */
-  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit) {
+  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, atk = this.atkOf(d) * power;
     /** Một nhát trúng hồn thú `bid`: sát thương (kèm % sinh lực, theo tầng trạng thái) rồi gây trạng thái. */
     const strike = (bid: string, last: boolean) => {
@@ -2198,7 +2264,7 @@ export class MapRoom extends Room<MapState> {
         }
       }
     }
-    if (sk.self) this.selfEffect(id, sk.self, bpow, col);
+    if (sk.self) this.selfEffect(id, sk.self, bpow, col, share);
     if (sk.inv) d.inv = Math.max(d.inv, sk.inv);
   }
 
@@ -2465,7 +2531,9 @@ export class MapRoom extends Room<MapState> {
       const q = this.state.players.get(id); if (q !== p || p.dead) return;
       d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * ccMp); p.mp = Math.floor(d.mpF);
     };
-    this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, hit);
+    // 9.1: võ hồn Phụ trợ ra trận thì hiệu ứng lên bản thân lan cho tổ đội; Phục Chế lấy võ hồn gốc của hồn kỹ đã chép.
+    const share = this.shareOf(p, src ? d.owned.find((v) => v.rowId === src.row)?.vohon ?? "" : d.ch.vohon);
+    this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, hit, share);
     // Tuyệt kỹ vòng 10 (8.1a) không ghi vào hồn kỹ gần nhất: Phục Chế (hồi 14 giây) không được sao chép tuyệt kỹ (hồi 45–50 giây).
     if (!set.some((x) => x.copy) && !sk.ult) d.lastSkill = { sk, row: d.ch.rowId };
   }
@@ -2533,7 +2601,7 @@ export class MapRoom extends Room<MapState> {
     d.hpF = Math.min(p.maxHp, d.hpF + Math.max(0, p.maxHp - hp0)); p.hp = Math.ceil(d.hpF);
     this.broadcast("fx", { k: "soulring", id, tier, i: ri, vh: p.vh });
     this.broadcast("fx", { k: "avatar", id, name: def.name, col, on: true });
-    if (def.burst) this.runSkill(id, def.burst, skillPower(years), buffPower(years), TIERS[tier].glow, { kind: "skill", done: false });
+    if (def.burst) this.runSkill(id, def.burst, skillPower(years), buffPower(years), TIERS[tier].glow, { kind: "skill", done: false }, this.shareOf(p, d.ch.vohon));
     this.log(id, `${def.name}: ${def.secs} giây.`, col);
   }
   /** Ô hồn kỹ của võ hồn ra trận nhận ít nhất hồi chiêu còn lại của hồn kỹ đang ở ô đó (PData.skCd; xếp lại ô, đổi võ hồn). */
@@ -2782,7 +2850,7 @@ export class MapRoom extends Room<MapState> {
       this.broadcast("fx", { k: "tienco", id, he, col, x: p.x, y: p.y, vh: p.vh, own: true });
       // Sao võ hồn (9.5): sát thương và mức hiệu ứng tiên cơ riêng × starTienCoMult (6★ thêm STAR_TIEN_CO).
       const sm = starTienCoMult(d.ch.stars);
-      this.runSkill(id, own, mult * sm, sm, col);
+      this.runSkill(id, own, mult * sm, sm, col, undefined, this.shareOf(p, def.id)); // 9.1: tiên cơ của võ hồn Phụ trợ lan cho tổ đội
       this.log(id, `Tiên cơ – ${def.name}: ${own.name}, ${own.desc}!`, col);
       this.sendSquad(id);
       return;
@@ -2803,6 +2871,7 @@ export class MapRoom extends Room<MapState> {
       const hm = 1 + (d.coreFx.heal ?? 0); // bộ hồn hạch Lưu Ly 2 món (5.2)
       this.healTeam(id, tc.heal * hm);
       d.shield = Math.max(d.shield, Math.round(p.maxHp * tc.shield * hm)); d.shieldT = tc.shieldSecs; p.shield = d.shield;
+      this.partyShare(id, { heal: tc.heal, shield: tc.shield, secs: tc.shieldSecs }, 1, hm, col, def.id); // 9.1: lan cho tổ đội
       this.broadcast("fx", { k: "tienco", id, he, col, x: p.x, y: p.y });
     } else {
       this.broadcast("fx", { k: "tienco", id, he, col, x: p.x, y: p.y, r: tc.r });

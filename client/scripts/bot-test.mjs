@@ -75,7 +75,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
-  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare,
+  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
@@ -135,9 +135,10 @@ async function enter(b,roomId){
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
   b.top=null; b.topN=0; b.room.onMessage("arenaTop",m=>{b.top=m; b.topN++;});
   b.room.onMessage("log",m=>b.logs.push(m.text)); b.chats=[]; b.room.onMessage("chat",m=>{b.chats.push(m); if(b.chats.length>200) b.chats.shift();});
-  b.fx=[]; b.fxs=[]; b.dmgs=[]; b.hurts=[];
+  b.fx=[]; b.fxs=[]; b.dmgs=[]; b.hurts=[]; b.gifts=[];
   b.room.onMessage("fx",m=>{b.fxs.push(m); if(m.k==="tienco") b.fx.push(m);});
-  b.room.onMessage("dmg",m=>{if(m.bid) b.dmgs.push(m); else if(m.id===b.room.sessionId) b.hurts.push(m);});
+  // `to` (9.1): số hồi sinh lực / khiên một đồng đội tổ đội nhận từ hiệu ứng phụ trợ; bot giữ những số mình nhận.
+  b.room.onMessage("dmg",m=>{if(m.bid) b.dmgs.push(m); else if(m.to){ if(m.to===b.room.sessionId) b.gifts.push(m); } else if(m.id===b.room.sessionId) b.hurts.push(m);});
   b.room.onMessage("portal",m=>{b.portal=m;}); b.room.onMessage("travel",m=>{b.travel=m;});
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
@@ -4042,6 +4043,7 @@ if((await test(C,"ping"))?.enabled){
   ok(Math.abs(me().x-7.5*16)<1&&Math.abs(me().y-31.5*16)<1,`rời rồi vào lại: vị trí mới ở Ngoại vi đã lưu (${me().x},${me().y})`);
 }
 if((await test(C,"ping"))?.enabled) await partyTest(C);
+if((await test(C,"ping"))?.enabled) await partyBuffTest();
 await resonanceTest();
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
@@ -5611,4 +5613,93 @@ async function resonanceTest(){
   ok(JSON.stringify([R.res.prog,R.res.lv,R.res.bonus])===keep&&!R.resEv.length,`thoát vào lại: cộng minh giữ nguyên ${keep}, không báo lại mốc`);
   await checkAll([3,3,3,3],"vào lại");
   await R.room.leave();
+}
+
+/**
+ * 9.1: hiệu ứng phụ trợ lan cho đồng đội tổ đội. 3 bot mới ở Thánh Hồn Thôn: A (Cửu Bảo Lưu Ly Tháp ra trận) và B cùng tổ đội, O ở
+ * ngoài. Lực Chi Lưu Ly: B đứng 100 pixel nhận tăng công × PARTY_BUFF_MULT (A vẫn ×1), O đứng gần không nhận; B đứng 300 pixel, B
+ * trong vùng an toàn không nhận. Hồn Chi Lưu Ly hồi hồn lực, Phòng Chi Lưu Ly tạo khiên + tăng thủ cho B đúng tỉ lệ; tiên cơ Lưu Ly
+ * Hộ Thể hồi sinh lực B đúng tỉ lệ (theo sinh lực tối đa của võ hồn ra trận của B), miễn sát thương; có số "+" và dòng "<tên> … cho bạn".
+ */
+async function partyBuffTest(){
+  console.log("[9.1] hiệu ứng phụ trợ lan cho đồng đội tổ đội đứng gần");
+  ok(PARTY_BUFF_R===160&&PARTY_BUFF_MULT===0.7&&PARTY_BUFF_SKIP.includes("phoenix"),`PARTY_BUFF_R ${PARTY_BUFF_R}, PARTY_BUFF_MULT ${PARTY_BUFF_MULT}, không lan: ${PARTY_BUFF_SKIP.join(", ")}`);
+  const A=await bot("Lưu Ly A","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:3});
+  const B=await bot("Lưu Ly B","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:4,outfitCol:1});
+  const O=await bot("Lưu Ly O","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:1,outfitCol:5});
+  const meP=b=>b.room.state.players.get(b.room.sessionId), live=async b=>(await test(b,"stats")).live;
+  await waitFor(()=>[A,B,O].every(b=>b.owned&&b.party&&meP(b)),3000);
+  try{
+    // A: Cửu Bảo Lưu Ly Tháp 4 hồn hoàn ra trận, võ hồn khởi đầu ở ô 2 (để đổi tay tung tiên cơ).
+    const CB="cuu_bao_luu_ly_thap", sk=skillsOf(CB), tc=TIEN_CO_RIENG[CB], Y=[423,764,1760,5000], BP=i=>buffPower(Y[i]);
+    await test(A,"grant",{vohon:CB}); const rowOf=id=>A.owned.list.find(v=>v.vohon===id)?.rowId, cb=rowOf(CB), st=rowOf("bich_lan_xa_hoang");
+    await test(A,"set",{rowId:cb,level:40,xp:0,rings:Y});
+    await sendTeam(A,[cb,0,0,0]); await sendTeam(A,[cb,st,0,0]);
+    ok(A.owned.active===cb&&await waitFor(()=>meP(A).vh===vohonIndex(CB)),"A: Cửu Bảo Lưu Ly Tháp ra trận (4 hồn hoàn)");
+    // Tổ đội A + B.
+    await test(A,"party",{pop:"rlreset"});
+    const n=B.partyMsgs; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>B.partyMsgs>n);
+    B.room.send("party",{op:"accept",name:A.name}); await waitFor(()=>A.party?.members?.length===2&&B.party?.id===A.party.id,2000);
+    ok(A.party?.members.length===2&&B.party?.id===A.party.id&&!O.party?.id,"A và B cùng tổ đội, O không trong đội");
+    // Ra khỏi làng; mọi người đặt quanh A bằng hook goto (thử từng hướng tới khi đứng được, đúng trong / ngoài làng).
+    await leaveSafe(A); const pa=meP(A), ax=pa.x, ay=pa.y;
+    async function place(b,dist,{inside=false}={}){
+      for(const [ux,uy] of [[1,0],[0,1],[0,-1],[-1,0],[0.7071,0.7071],[0.7071,-0.7071],[-0.7071,0.7071],[-0.7071,-0.7071]]){
+        const x=+(ax+ux*dist).toFixed(1), y=+(ay+uy*dist).toFixed(1); await test(b,"goto",{x,y});
+        if(await waitFor(()=>Math.hypot(meP(b).x-x,meP(b).y-y)<0.5,600)&&inSafeOf(b)===inside) return true;
+      }
+      console.log(`  ⚠ không đặt được ${b.name} cách A ${dist} pixel${inside?" trong làng":""}`); return false;
+    }
+    const clean=async()=>{ await test(A,"clear"); await test(B,"clear"); }; // hồn thú quanh đó không xen vào
+    const dist=b=>Math.round(Math.hypot(meP(b).x-meP(A).x,meP(b).y-meP(A).y));
+    ok(await place(B,100)&&await place(O,90),`B cách A ${dist(B)} pixel, O (ngoài đội) cách ${dist(O)} pixel, ngoài làng`);
+    // ---- Lực Chi Lưu Ly: B nhận công × 0,7, A ×1, O không ----
+    await clean(); await test(A,"ready"); let lb=B.logs.length; A.room.send("skill",{i:0});
+    await waitFor(()=>B.logs.length>lb,1500);
+    let la=await live(A), lB=await live(B), want=sk[0].self.buff.atk*BP(0);
+    const lO=await live(O);
+    ok(Math.abs((la.buffs.atk?.v??0)-want)<1e-9&&Math.abs((lB.buffs.atk?.v??0)-want*PARTY_BUFF_MULT)<1e-9&&Math.abs((lB.buffs.atk?.t??0)-sk[0].self.secs)<1,
+      `${sk[0].name}: A công +${(want*100).toFixed(1)}%, B (100 pixel) +${((lB.buffs.atk?.v??0)*100).toFixed(1)}% (cần ×${PARTY_BUFF_MULT}), ${lB.buffs.atk?.t?.toFixed(1)} giây`);
+    ok(Math.abs(lB.atkNow-lB.atk*(1+want*PARTY_BUFF_MULT))<1e-6&&(meP(B).buff&buffBit("atk"))!==0,`B: công đang dùng ${lB.atkNow.toFixed(1)} (gốc ${lB.atk.toFixed(1)}), mọi người thấy hào quang`);
+    ok(B.logs.slice(lb).some(t=>t.includes(`${A.name} tăng công cho bạn`)),`B nhận dòng: ${B.logs.slice(lb).join(" | ")}`);
+    ok(!lO.buffs.atk&&!O.logs.some(t=>t.includes(A.name)),"O (ngoài tổ đội, đứng gần) không nhận");
+    // ---- Đứng 300 pixel / trong vùng an toàn: không nhận ----
+    await test(B,"rest",{s:30}); await place(B,300);
+    await clean(); await test(A,"ready"); lb=B.logs.length; A.room.send("skill",{i:0}); await sleep(400);
+    lB=await live(B); ok(dist(B)>PARTY_BUFF_R&&!lB.buffs.atk&&B.logs.length===lb,`B đứng ${dist(B)} pixel: không nhận`);
+    if(await place(B,60,{inside:true})){
+      await test(A,"ready"); lb=B.logs.length; A.room.send("skill",{i:0}); await sleep(400);
+      lB=await live(B); ok(inSafeOf(B)&&!lB.buffs.atk&&B.logs.length===lb,`B đứng ${dist(B)} pixel nhưng trong làng (vùng an toàn): không nhận`);
+    }
+    await place(B,100);
+    // ---- Hồn Chi Lưu Ly: hồi hồn lực × 0,7, giảm tiêu hao ----
+    await test(B,"ready",{mp:20}); await waitFor(()=>Math.abs(meP(B).mp-meP(B).maxMp*0.2)<=2); const m0=meP(B).mp;
+    await clean(); await test(A,"ready"); lb=B.logs.length; A.room.send("skill",{i:2}); await waitFor(()=>B.logs.length>lb,1500);
+    // Hồn lực tự hồi vài điểm mỗi giây nên đo phần hồi qua dòng log, sinh lực / hồn lực trong state chỉ cần không ít hơn.
+    want=Math.round(meP(B).maxMp*sk[2].self.mp*BP(2)*PARTY_BUFF_MULT); lB=await live(B);
+    const gotMp=+(B.logs.slice(lb).join(" ").match(/hồi (\d+) hồn lực cho bạn/)?.[1]??-1);
+    ok(Math.abs(gotMp-want)<=1&&meP(B).mp>=m0+want-1&&Math.abs((lB.buffs.mp?.v??0)-sk[2].self.buff.mp*BP(2)*PARTY_BUFF_MULT)<1e-9,
+      `${sk[2].name}: B hồi ${gotMp} hồn lực (cần ${want} = ${sk[2].self.mp*100}% × buffPower × ${PARTY_BUFF_MULT}), ${m0} -> ${meP(B).mp}, giảm tiêu hao ${((lB.buffs.mp?.v??0)*100).toFixed(1)}%`);
+    // ---- Phòng Chi Lưu Ly: khiên theo sinh lực tối đa của B × 0,7, tăng thủ ----
+    await clean(); await test(A,"ready"); B.gifts=[]; lb=B.logs.length; A.room.send("skill",{i:3}); await waitFor(()=>B.logs.length>lb,1500);
+    lB=await live(B); la=await live(A); want=Math.round(lB.maxHp*sk[3].self.shield*BP(3)*PARTY_BUFF_MULT);
+    ok(lB.shield===want&&meP(B).shield===want&&la.shield===Math.round(la.maxHp*sk[3].self.shield*BP(3))&&Math.abs((lB.buffs.def?.v??0)-sk[3].self.buff.def*BP(3)*PARTY_BUFF_MULT)<1e-9,
+      `${sk[3].name}: khiên B ${lB.shield} (cần ${want}), A ${la.shield}; thủ B +${((lB.buffs.def?.v??0)*100).toFixed(1)}%`);
+    ok(B.gifts.some(g=>g.shield&&g.v===want)&&/tăng thủ, tạo khiên \d+ cho bạn/.test(B.logs.slice(lb).join(" | ")),`B thấy số khiên +${B.gifts.find(g=>g.shield)?.v}: ${B.logs.slice(lb).join(" | ")}`);
+    // ---- Tiên cơ Lưu Ly Hộ Thể: hồi sinh lực B × 0,7 (võ hồn ra trận của B), miễn sát thương; O bị thương không được hồi ----
+    await test(B,"rest",{s:30}); await test(O,"rest",{s:30});
+    await sleep(150); await waitFor(()=>meP(A).swCd===0,3500); A.room.send("switch",{slot:1}); await waitFor(()=>A.owned.active===st);
+    await sleep(150); await waitFor(()=>meP(A).swCd===0,3500);
+    await test(B,"hurt",{pct:50}); await test(O,"hurt",{pct:50}); await sleep(150);
+    const h0=meP(B).hp, o0=meP(O).hp, mB=meP(B).maxHp, heal=Math.round(mB*tc.self.heal*PARTY_BUFF_MULT);
+    await test(A,"energy",{v:TIEN_CO_MAX}); await clean(); B.gifts=[]; lb=B.logs.length;
+    A.room.send("switch",{slot:0}); await waitFor(()=>B.logs.length>lb,1500);
+    want=Math.min(mB,h0+heal);
+    ok(A.owned.active===cb&&Math.abs(meP(B).hp-want)<=1&&B.gifts.some(g=>g.heal&&Math.abs(g.v-heal)<=1),
+      `tiên cơ ${tc.name}: sinh lực B ${h0} -> ${meP(B).hp}/${mB} (cần ~${want}, ${tc.self.heal*100}% × ${PARTY_BUFF_MULT}), số +${B.gifts.find(g=>g.heal)?.v}`);
+    ok((meP(B).buff&buffBit("inv"))!==0&&B.logs.slice(lb).some(t=>t.startsWith(`${A.name} miễn sát thương, hồi `)&&t.endsWith(" sinh lực cho bạn.")),
+      `B miễn sát thương: ${B.logs.slice(lb).join(" | ")}`);
+    // O vẫn tự hồi sinh lực chậm theo thời gian: chỉ cần không nhận phần hồi của tiên cơ, không miễn sát thương, không có dòng của A.
+    ok(meP(O).hp<o0+heal/2&&!(meP(O).buff&buffBit("inv"))&&!O.logs.some(t=>t.includes(A.name)),`O (ngoài đội) không được hồi: ${o0} -> ${meP(O).hp}`);
+  } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }
