@@ -27,7 +27,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
-  PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, BUFFS,
+  PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA } from "../../../shared/data.ts";
@@ -76,7 +76,9 @@ export interface PData {
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
   buffs: Map<BuffId, { t: number; v: number }>; // hiệu ứng có lợi của hồn sư (hồn kỹ phụ trợ): giây còn lại, độ lớn; đổi võ hồn vẫn còn
   lei: number; leiQueued: boolean; // Phong Lôi Chi Lực (PHONG_LOI, 2.5c) và cờ đã hẹn tung Lôi Động Minh Thiên. Không lưu DB
-  lastSkill: { sk: SkillDef; row: number } | null; // hồn kỹ gần nhất của võ hồn không có Phục Chế (Xúc Xích sao chép, 2.5c)
+  // Hồn kỹ gần nhất của võ hồn không có Phục Chế (Xúc Xích sao chép, 2.5c; từ 9.3 đồng đội tổ đội cũng chép được): định nghĩa, võ hồn
+  // tung (rowId, mã võ hồn), thời điểm (ms, Date.now; hook `rest` lùi lại). Không lưu DB.
+  lastSkill: { sk: SkillDef; row: number; vh: string; t: number } | null;
   // Túi đồ (mục 5.7, bước 3.1): chỉ gửi riêng cho chính chủ qua tin "bag". Lưu cùng lần lưu định kỳ, khi rời phòng và khi đi cổng.
   bag: Item[];          // mọi ô (thứ tự hiển thị); món đang gắn vào võ hồn (vohonId) không chiếm ô túi
   honTe: number;        // Hồn Tệ (đồng)
@@ -1623,6 +1625,7 @@ export class MapRoom extends Room<MapState> {
       const s = int(o.s, 0, 3600, 0); d.fight = Math.max(d.fight + s, TEAM_COMBAT_SECS);
       this.tickDowns(id, s); this.tickEnergy(id, s); this.sendSquad(id);
       for (const [b, x] of d.buffs) { x.t -= s; if (x.t <= 0) d.buffs.delete(b); } // hiệu ứng có lợi cũng hết giờ
+      if (d.lastSkill) d.lastSkill.t -= s * 1000; // hồn kỹ gần nhất cũng cũ đi (cửa sổ Phục Chế COPY_WINDOW, 9.3)
       this.syncBuffs(p, d);
       this.tickAva(id, s); // Võ Hồn Chân Thân và hồi chiêu của nó (8.1a)
       d.danCd = Math.max(0, d.danCd - s); this.sendBag(id);
@@ -2613,10 +2616,9 @@ export class MapRoom extends Room<MapState> {
     if (p.cds[i] > 0) return;
     if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không dùng được hồn kỹ.`, "#ffb35c");
     const set = skillsOf(VOHON[p.vh].id), sk = ringSkill(d.ch.vohon, r)!, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
-    // Phục Chế (Xúc Xích, 2.5c): tung lại hồn kỹ gần nhất của võ hồn khác còn trong đội; chưa có thì không tung.
-    // Võ hồn nguồn phải còn trong đội và chưa gục.
-    const last = d.lastSkill, src = sk.copy && last && last.row !== d.ch.rowId && d.team.includes(last.row) && !d.down.has(last.row) ? last : null;
-    if (sk.copy && !src) return this.log(id, `${sk.name}: chưa có hồn kỹ của võ hồn khác trong đội (chưa gục) để sao chép.`);
+    // Phục Chế (Xúc Xích, 2.5c; 9.3): tung lại hồn kỹ gần nhất của võ hồn khác trong đội hoặc đồng đội tổ đội đứng gần; chưa có thì không tung.
+    const src = sk.copy ? this.copySource(id) : null;
+    if (sk.copy && !src) return this.log(id, `${sk.name}: chưa có hồn kỹ của võ hồn khác trong đội (chưa gục) hay đồng đội tổ đội đứng gần tung trong ${COPY_WINDOW} giây để sao chép.`);
     const run = src?.sk ?? sk;
     if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
     const reach = run.area === "target" ? run.r : run.at;
@@ -2628,7 +2630,7 @@ export class MapRoom extends Room<MapState> {
     const tier = p.rings[r], years = d.ringYears[r] ?? TIERS[tier].years;
     this.broadcast("fx", { k: "soulring", id, tier, i: r, vh: p.vh }); // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó và hiện tên hồn kỹ
     if (sk.ult) this.broadcast("fx", { k: "ult", id, name: sk.name, col: TIERS[tier].glow }); // tuyệt kỹ vòng 10 (8.1a): ai cũng thấy
-    if (src) this.log(id, `${sk.name}: sao chép ${run.name}.`, VOHON[p.vh].col);
+    if (src) this.log(id, `${sk.name}: sao chép ${run.name}${src.by ? ` của ${src.by}` : ""}.`, VOHON[p.vh].col);
     // Phục Chế nhân `copy` cả sát thương lẫn hiệu ứng lên bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi; inv/hide giữ nguyên);
     // hệ số sao (9.5) cũng nhân cả hai, theo sao của võ hồn tung và vòng của ô (không theo hồn kỹ được sao chép).
     // Ràng buộc Song Sinh Võ Hồn (9.4): sức mạnh hồn kỹ ô U / I / O / P (mọi vòng) × (1 + bondV skill), như hệ số sao.
@@ -2640,10 +2642,33 @@ export class MapRoom extends Room<MapState> {
       d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * ccMp); p.mp = Math.floor(d.mpF);
     };
     // 9.1: võ hồn Phụ trợ ra trận thì hiệu ứng lên bản thân lan cho tổ đội; Phục Chế lấy võ hồn gốc của hồn kỹ đã chép.
-    const share = this.shareOf(p, src ? d.owned.find((v) => v.rowId === src.row)?.vohon ?? "" : d.ch.vohon);
+    const share = this.shareOf(p, src ? src.vh : d.ch.vohon);
     this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, hit, share);
     // Tuyệt kỹ vòng 10 (8.1a) không ghi vào hồn kỹ gần nhất: Phục Chế (hồi 14 giây) không được sao chép tuyệt kỹ (hồi 45–50 giây).
-    if (!set.some((x) => x.copy) && !sk.ult) d.lastSkill = { sk, row: d.ch.rowId };
+    if (!set.some((x) => x.copy) && !sk.ult) d.lastSkill = { sk, row: d.ch.rowId, vh: d.ch.vohon, t: Date.now() };
+  }
+
+  /**
+   * Hồn kỹ Phục Chế của `id` chép (2.5c, 9.3): hồn kỹ gần nhất về thời gian, tung trong COPY_WINDOW giây, của võ hồn khác còn trong
+   * đội của mình (chưa gục) hoặc của đồng đội tổ đội cùng phòng (chưa gục cả đội, không đi cổng, không phải đối thủ, võ hồn đã tung
+   * còn trong đội và chưa gục) đứng cách dưới COPY_R pixel. `by`: tên đồng đội khi chép của tổ đội. Không có thì null.
+   */
+  copySource(id: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return null;
+    const now = Date.now(), pid = party.partyIdOf(d.accountId), foes = this.foesOf(id);
+    let best: { sk: SkillDef; vh: string; t: number; by?: string } | null = null;
+    const pick = (o: PData, by?: string) => {
+      const l = o.lastSkill;
+      if (!l || now - l.t > COPY_WINDOW * 1000 || !o.team.includes(l.row) || o.down.has(l.row) || (!by && l.row === d.ch.rowId)) return;
+      if (!best || l.t > best.t) best = { sk: l.sk, vh: l.vh, t: l.t, by };
+    };
+    pick(d);
+    if (pid) for (const [qid, o] of this.pdata) {
+      const q = this.state.players.get(qid);
+      if (qid === id || !q || q.dead || o.travelling || o.travelCast || foes.includes(qid) || party.partyIdOf(o.accountId) !== pid) continue;
+      if (Math.hypot(q.x - p.x, q.y - p.y) < COPY_R) pick(o, q.name);
+    }
+    return best as { sk: SkillDef; vh: string; t: number; by?: string } | null;
   }
 
   /**

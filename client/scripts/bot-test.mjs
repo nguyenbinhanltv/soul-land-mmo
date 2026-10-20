@@ -77,7 +77,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
-  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB,
+  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
@@ -4112,6 +4112,7 @@ if((await test(C,"ping"))?.enabled){
 if((await test(C,"ping"))?.enabled) await partyTest(C);
 if((await test(C,"ping"))?.enabled) await partyBuffTest();
 if((await test(C,"ping"))?.enabled) await supportContribTest();
+if((await test(C,"ping"))?.enabled) await copyPartyTest();
 await resonanceTest();
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
@@ -5962,4 +5963,81 @@ async function supportContribTest(){
     ok(await waitFor(()=>qtyOf(H,chestCode(KB))===cH+1,2500)&&H.logs.some(t=>/lượt 1\/3/.test(t)),`H nhận rương ${chestCode(KB)}: ${H.logs.filter(t=>/Đóng góp|lượt/.test(t)).join(" | ")}`);
     ok(JSON.stringify([mo(H).level,mo(H).xp])!==xp0,`H nhận kinh nghiệm thú vương x${KING.xp}: [cấp, kinh nghiệm] ${xp0} -> ${JSON.stringify([mo(H).level,mo(H).xp])}`);
   } finally { for(const b of [H,A]) await b.room.leave().catch(()=>{}); }
+}
+
+/**
+ * 9.3: Phục Chế Hương Tràng chép hồn kỹ của đồng đội tổ đội. A (Cửu Bảo Lưu Ly Tháp) và B (Xúc Xích ra trận, Cửu Bảo Lưu Ly Tháp
+ * trong đội) cùng tổ đội, O (Cửu Bảo Lưu Ly Tháp) ngoài đội. A tung Phòng Chi Lưu Ly, B đứng 180 pixel (ngoài PARTY_BUFF_R nên
+ * không nhận khiên lan) chép đúng hồn kỹ đó: khiên = sinh lực tối đa của B × tỉ lệ × buffPower vòng 4 của B × 0,8. Quá COPY_WINDOW
+ * giây thì không còn gì để chép. A đứng xa (300 pixel) hoặc O (khác tổ đội, đứng 60 pixel) tung sau cùng thì B chép hồn kỹ của
+ * đội mình (Lực Chi Lưu Ly do Cửu Bảo Lưu Ly Tháp của B tung).
+ */
+async function copyPartyTest(){
+  console.log("[9.3] Phục Chế chép hồn kỹ của đồng đội tổ đội đứng gần");
+  ok(COPY_R===200&&COPY_WINDOW===8&&COPY_R>PARTY_BUFF_R,`COPY_R ${COPY_R} pixel, COPY_WINDOW ${COPY_WINDOW} giây`);
+  const A=await bot("Phục Chế A","bich_lan_xa_hoang",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  const B=await bot("Phục Chế B","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:3,outfitCol:4});
+  const O=await bot("Phục Chế O","bich_lan_xa_hoang",{sex:1,hair:2,hairCol:5,outfitCol:0});
+  const meP=b=>b.room.state.players.get(b.room.sessionId), live=async b=>(await test(b,"stats")).live;
+  await waitFor(()=>[A,B,O].every(b=>b.owned&&b.party&&meP(b)),3000);
+  try{
+    const CB="cuu_bao_luu_ly_thap", XX="xuc_xich", sk=skillsOf(CB), pc=skillsOf(XX)[3], Y=[423,764,1760,5000];
+    const rowOf=(b,id)=>b.owned.list.find(v=>v.vohon===id)?.rowId;
+    for(const [b,ids] of [[A,[CB]],[B,[XX,CB]],[O,[CB]]]){
+      for(const id of ids){ await test(b,"grant",{vohon:id}); await test(b,"set",{rowId:rowOf(b,id),level:40,xp:0,rings:Y}); }
+      await sendTeam(b,[rowOf(b,ids[0]),0,0,0]); await sendTeam(b,[rowOf(b,ids[0]),rowOf(b,ids[1]??"bich_lan_xa_hoang"),0,0]);
+    }
+    ok(meP(A).vh===vohonIndex(CB)&&meP(B).vh===vohonIndex(XX)&&meP(O).vh===vohonIndex(CB),"A, O: Cửu Bảo Lưu Ly Tháp ra trận; B: Xúc Xích ra trận, Cửu Bảo Lưu Ly Tháp chờ");
+    await test(A,"party",{pop:"rlreset"});
+    const n=B.partyMsgs; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>B.partyMsgs>n);
+    B.room.send("party",{op:"accept",name:A.name}); await waitFor(()=>A.party?.members?.length===2&&B.party?.id===A.party.id,2000);
+    ok(A.party?.members.length===2&&B.party?.id===A.party.id&&!O.party?.id,"A và B cùng tổ đội, O không trong đội");
+    await leaveSafe(A);
+    // Đặt `b` cách `ref` đúng `dist` pixel ngoài làng (thử từng hướng tới khi đứng được).
+    async function place(b,ref,dist){
+      const cx=meP(ref).x, cy=meP(ref).y;
+      for(const [ux,uy] of [[1,0],[0,1],[0,-1],[-1,0],[0.7071,0.7071],[0.7071,-0.7071],[-0.7071,0.7071],[-0.7071,-0.7071]]){
+        const x=+(cx+ux*dist).toFixed(1), y=+(cy+uy*dist).toFixed(1); await test(b,"goto",{x,y});
+        if(await waitFor(()=>Math.hypot(meP(b).x-x,meP(b).y-y)<0.5,600)&&!inSafeOf(b)) return true;
+      }
+      console.log(`  ⚠ không đặt được ${b.name} cách ${ref.name} ${dist} pixel`); return false;
+    }
+    const dist=(a,b)=>Math.round(Math.hypot(meP(a).x-meP(b).x,meP(a).y-meP(b).y));
+    const clean=async()=>{ for(const b of [A,B,O]) await test(b,"clear"); };
+    // B tung Phục Chế (ô P), trả các dòng log mới (đợi tới khi có dòng của Phục Chế).
+    async function copy(){
+      await test(B,"ready"); const l=B.logs.length; B.room.send("skill",{i:3});
+      await waitFor(()=>B.logs.slice(l).some(t=>t.startsWith(`${pc.name}:`)),1500); return B.logs.slice(l).filter(t=>t.startsWith(`${pc.name}:`));
+    }
+    async function cast(b,i){ await test(b,"ready"); b.room.send("skill",{i}); await sleep(300); }
+    async function switchTo(b,row){ await sleep(150); await waitFor(()=>meP(b).swCd===0,3500); b.room.send("switch",{slot:b.owned.team.indexOf(row)}); return waitFor(()=>b.owned.active===row,1500); }
+    ok(await place(B,A,180),`B cách A ${dist(A,B)} pixel (trong ${COPY_R}, ngoài ${PARTY_BUFF_R}), ngoài làng`);
+    await clean();
+    let lg=await copy();
+    ok(/chưa có hồn kỹ/.test(lg.join(" "))&&meP(B).cds[3]===0,`chưa ai tung hồn kỹ: ${lg.join(" | ")}, không hồi chiêu`);
+    // ---- A tung Phòng Chi Lưu Ly, B chép đúng hồn kỹ đó × 0,8 ----
+    await cast(A,3); await test(B,"hurt",{pct:5}); await waitFor(()=>meP(B).shield===0);
+    const s0=meP(B).shield; lg=await copy();
+    const want=Math.round(meP(B).maxHp*sk[3].self.shield*buffPower(Y[3])*pc.copy);
+    ok(s0===0&&lg.some(t=>t===`${pc.name}: sao chép ${sk[3].name} của ${A.name}.`)&&await waitFor(()=>meP(B).shield===want,800),
+      `B chép ${sk[3].name} của A: khiên ${meP(B).shield} (cần ${want} = sinh lực B × ${sk[3].self.shield} × buffPower × ${pc.copy}); ${lg.join(" | ")}`);
+    const lB=await live(B);
+    ok(Math.abs((lB.buffs.def?.v??0)-sk[3].self.buff.def*buffPower(Y[3])*pc.copy)<1e-9&&meP(B).vh===vohonIndex(XX)&&meP(B).cds[3]>0,
+      `B tăng thủ +${((lB.buffs.def?.v??0)*100).toFixed(1)}% (× ${pc.copy}), Xúc Xích vẫn ra trận, ô P hồi chiêu`);
+    // ---- Quá COPY_WINDOW giây: không còn gì để chép ----
+    await cast(A,0); await test(A,"rest",{s:COPY_WINDOW+1}); lg=await copy();
+    ok(/chưa có hồn kỹ/.test(lg.join(" "))&&meP(B).cds[3]===0,`A tung ${sk[0].name} quá ${COPY_WINDOW} giây trước: ${lg.join(" | ")}`);
+    // ---- Đứng xa / khác tổ đội: chép hồn kỹ của đội mình ----
+    ok(await place(B,A,300)&&await place(O,B,60),`B cách A ${dist(A,B)} pixel, O (ngoài đội) cách B ${dist(O,B)} pixel`);
+    await clean();
+    ok(await switchTo(B,rowOf(B,CB)),"B đổi sang Cửu Bảo Lưu Ly Tháp"); await cast(B,0);
+    ok(await switchTo(B,rowOf(B,XX)),`B tung ${sk[0].name} rồi đổi về Xúc Xích`);
+    await cast(A,3); lg=await copy();
+    ok(lg.some(t=>t===`${pc.name}: sao chép ${sk[0].name}.`),`A (${dist(A,B)} pixel) tung ${sk[3].name} sau cùng nhưng đứng xa: B chép hồn kỹ đội mình (${lg.join(" | ")})`);
+    await cast(O,3); lg=await copy();
+    ok(lg.some(t=>t===`${pc.name}: sao chép ${sk[0].name}.`),`O (khác tổ đội, ${dist(O,B)} pixel) tung ${sk[3].name} sau cùng: B chép hồn kỹ đội mình (${lg.join(" | ")})`);
+    // ---- Đồng đội lại gần, tung sau hồn kỹ của đội mình: chép của đồng đội ----
+    ok(await place(B,A,120),`B lại gần A (${dist(A,B)} pixel)`); await cast(A,2); lg=await copy();
+    ok(lg.some(t=>t===`${pc.name}: sao chép ${sk[2].name} của ${A.name}.`),`A tung ${sk[2].name} gần nhất: B chép của A (${lg.join(" | ")})`);
+  } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }
