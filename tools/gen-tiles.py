@@ -3,7 +3,7 @@ miễn giữ nguyên vị trí ô (xem tools/gen-map.mjs)."""
 from PIL import Image, ImageDraw
 import random
 random.seed(7)
-T=16; COLS=8; ROWS=3
+T=16; COLS=8; ROWS=4
 img=Image.new("RGBA",(COLS*T,ROWS*T),(0,0,0,0)); d=ImageDraw.Draw(img)
 def H(h): h=h.lstrip('#'); return tuple(int(h[i:i+2],16) for i in (0,2,4))+(255,)
 def rect(x,y,w,h,c): d.rectangle([x,y,x+w-1,y+h-1],fill=H(c) if isinstance(c,str) else c)
@@ -47,4 +47,16 @@ X,Y=pos(14); rect(X,Y,T,T,'#d8c8a2'); rect(X,Y,T,2,'#5e2219'); rect(X,Y+14,T,2,'
 # 15 ruộng lúa
 X,Y=pos(15); rect(X,Y,T,T,'#6b8a3a')
 for i in range(0,T,3): rect(X+i,Y+1,1,13,random.choice(['#c9b84a','#a9a03c','#d8c860'])); rect(X+i,Y+1,2,2,'#e8d878')
+# BĐ6d (Hải Thần Đảo): hàng 4, ô 24–27. Bản đồ khác thêm ô mới thì dùng ô 28 trở đi.
+# 24 cát (đi được)
+X,Y=pos(24); rect(X,Y,T,T,'#d9c48a')
+for _ in range(7): rect(X+random.randrange(15),Y+random.randrange(15),1,1,random.choice(['#c4ad72','#ead9a6','#bfa468']))
+# 25 rạn nông: nước cạn trên cát, có san hô (đi được)
+X,Y=pos(25); rect(X,Y,T,T,'#4fa8b8'); rect(X+1,Y+3,5,1,'#7fd0d8'); rect(X+9,Y+11,5,1,'#7fd0d8')
+for _ in range(3): rect(X+1+random.randrange(13),Y+1+random.randrange(13),2,2,random.choice(['#ff7a8a','#ffb07a','#e86ad0']))
+# 26 biển sâu (chặn đường)
+X,Y=pos(26); rect(X,Y,T,T,'#173f63'); rect(X+2,Y+5,6,1,'#2c5f8a'); rect(X+8,Y+11,6,1,'#2c5f8a')
+# 27 đá ngầm trên cát (chặn đường)
+X,Y=pos(27); rect(X,Y,T,T,'#d9c48a'); rect(X+2,Y+12,12,3,(0,0,0,70)); rect(X+2,Y+4,12,9,'#6a6258'); rect(X+4,Y+2,8,3,'#6a6258')
+rect(X+4,Y+3,4,2,'#8f877a'); rect(X+3,Y+10,10,2,'#4f4840')
 img.save("shared/assets/tiles.png"); print("tiles.png", img.size)

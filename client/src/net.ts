@@ -16,7 +16,8 @@ export interface AccountLooks extends Looks { chosen: boolean; }
 export interface Me { character: Character | null; looks: AccountLooks; mapId: string; }
 
 /** Tin nhắn riêng "portal": cổng đang đứng (name rỗng = không đứng ở cổng nào), cấp đề xuất, cảnh báo dưới cấp (chặn mềm). */
-export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; }
+/** Hộp đi cổng (tin riêng `portal`); `boat` (BĐ6d): bến thuyền, số giây đi thuyền. */
+export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô
  *  hồn kỹ mang theo (chỉ số vòng theo ô U / I / O / P, -1 = trống; server đã áp mặc định loadoutOf). */

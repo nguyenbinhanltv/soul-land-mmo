@@ -1068,10 +1068,12 @@ export function showPortal(info: PortalInfo | null, go: () => void) {
   const el = $("#portal");
   if (!info?.name) { el.hidden = true; el.innerHTML = ""; return; }
   const lv = info.level ? ` (đề xuất cấp ${info.level[0]}–${info.level[1]})` : "";
+  const goText = info.boat ? (info.warn ? "Vẫn lên thuyền" : "Lên thuyền") : info.warn ? "Vẫn đi" : "Đi";
   el.innerHTML = `<div></div><small></small>${info.warn ? `<span class="danger">Nguy hiểm: võ hồn ra trận dưới cấp ${info.level?.[0] ?? "đề xuất"}!</span>` : ""}
-    <button type="button" class="${info.warn ? "danger" : ""}">${info.warn ? "Vẫn đi" : "Đi"}<kbd>F</kbd></button>`;
-  el.querySelector("div")!.textContent = `Đi tới ${info.toName ?? info.to}${lv}`;
-  el.querySelector("small")!.textContent = info.name;
+    <button type="button" class="${info.warn ? "danger" : ""}">${goText}<kbd>F</kbd></button>`;
+  el.querySelector("div")!.textContent = `${info.boat ? "Đi thuyền tới" : "Đi tới"} ${info.toName ?? info.to}${lv}`;
+  // Bến thuyền (BĐ6d): đi thuyền mất vài giây, bị đánh hoặc rời bến thì hủy như niệm cổng.
+  el.querySelector("small")!.textContent = info.boat ? `${info.name} · đi thuyền ${info.boat} giây` : info.name;
   const b = el.querySelector("button")!;
   b.addEventListener("pointerdown", (e) => { e.preventDefault(); go(); });
   el.hidden = false;

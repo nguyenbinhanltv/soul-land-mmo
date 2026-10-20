@@ -985,11 +985,12 @@ export class GameScene extends Phaser.Scene {
     const base = document.createElement("canvas"); base.width = map.width; base.height = map.height;
     const b = base.getContext("2d")!;
     const colorOf: Record<number, string> = { 1: "#5a9440", 2: "#467e38", 3: "#335f35", 4: "#27453a", 5: "#5a9440", 6: "#467e38", 7: "#a08a63", 8: "#7d6b55", 9: "#2d6a96", 10: "#d8b678",
-      13: "#a39f94", 14: "#8f3b2e", 15: "#d8c8a2", 16: "#c9b84a" };
+      13: "#a39f94", 14: "#8f3b2e", 15: "#d8c8a2", 16: "#c9b84a",
+      25: "#e8d49a", 26: "#4fa8b8", 27: "#173f63", 28: "#6a6258" }; // BĐ6d: cát, rạn nông, biển sâu, đá ngầm
     const ground = map.getLayer("ground")!.data, trees = map.getLayer("trees")!.data;
     for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
       const t = trees[y][x].index, g = ground[y][x].index;
-      b.fillStyle = t >= 17 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? colorOf[t] ?? "#d8b678" : colorOf[g] ?? "#335f35";
+      b.fillStyle = t >= 17 && t <= 20 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? colorOf[t] ?? "#d8b678" : colorOf[g] ?? "#335f35";
       b.fillRect(x, y, 1, 1);
     }
     b.fillStyle = "#86e0b0";
