@@ -1,38 +1,12 @@
 # Rừng Săn Hồn Online
 
-MMO săn hồn thế giới mở, pixel 2D, chơi trên trình duyệt.
-Phaser 3 + Tiled (client), Node.js + Colyseus (server), PostgreSQL hoặc Supabase (dữ liệu).
+MMO săn hồn thế giới mở, pixel 2D, chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
+săn hồn thú lấy hồn hoàn, hồn cốt, hồn hạch, đánh boss cùng bạn bè và đấu xếp hạng ở Đại Đấu Hồn Trường.
+Dự án phi thương mại, chơi cùng bạn bè. Luật chơi và kiến trúc: [`GAME_DESIGN.md`](GAME_DESIGN.md).
 
-```
-rung-san-hon-online/
-├─ shared/
-│  ├─ data.ts              # số liệu cân bằng dùng chung (niên hạn, võ hồn, hồn kỹ, công thức)
-│  └─ assets/
-│     ├─ tinh_dau_ngoai_vi.json # bản đồ Tiled (mỗi bản đồ một file <mapId>.json, sinh bằng tools/gen-map.mjs) – mở bằng Tiled để vẽ
-│     └─ tiles.png         # tileset 16×16 tạm thời
-├─ server/
-│  ├─ src/index.ts         # Express API (đăng nhập, thức tỉnh) + Colyseus
-│  ├─ src/rooms/MapRoom.ts # toàn bộ luật chơi (một phòng mỗi bản đồ/kênh), chạy 20 lần/giây
-│  ├─ src/rooms/schema.ts  # trạng thái đồng bộ xuống client
-│  ├─ src/map.ts           # loadMap(mapId): đọc va chạm và vùng từ file Tiled
-│  ├─ src/db.ts            # PostgreSQL / bộ nhớ RAM
-│  └─ sql/001_init.sql     # bảng accounts, sessions, characters, inventory
-├─ client/
-│  ├─ src/main.ts          # đăng nhập, thức tỉnh, vào phòng
-│  ├─ src/scenes/GameScene.ts  # vẽ bản đồ, nhân vật, hồn thú, hiệu ứng
-│  ├─ src/hud.ts           # giao diện HTML (máu, hồn hoàn, kỹ năng, chat)
-│  ├─ src/textures.ts      # sprite pixel vẽ bằng code (thay được bằng ảnh)
-│  └─ scripts/bot-test.mjs # 2 bot tự kiểm thử server
-├─ tools/gen-map.mjs       # sinh bản đồ khởi đầu
-├─ tools/gen-tiles.py      # sinh tileset tạm
-├─ GAME_DESIGN.md          # luật chơi + lộ trình (cho người và AI đọc)
-├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
-├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
-├─ Dockerfile              # deploy một container = một link
-└─ docker-compose.yml      # PostgreSQL local
-```
+Công nghệ: Phaser 3 + Tiled (client), Node.js + Colyseus (server), PostgreSQL hoặc Supabase (dữ liệu), TypeScript ở cả hai phía.
 
-## Chạy trên máy (5 phút)
+## Cài đặt và chạy trên máy
 
 Cần Node.js 22 trở lên.
 
@@ -42,13 +16,17 @@ npm run dev:server        # terminal 1 – server ở http://localhost:2567
 npm run dev:client        # terminal 2 – game ở http://localhost:5173
 ```
 
-Mở `http://localhost:5173`, nhập tên và mật khẩu bất kỳ (tên mới sẽ tự tạo tài khoản).
-Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc.
-Điện thoại cùng mạng Wi-Fi: mở `http://<IP-máy-tính>:5173`.
+Mở `http://localhost:5173`, nhập tên và mật khẩu bất kỳ (tên mới tự tạo tài khoản), tạo nhân vật rồi qua lễ thức tỉnh.
+Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc. Điện thoại cùng Wi-Fi: mở `http://<IP-máy-tính>:5173`.
 
-Chưa cấu hình database thì dữ liệu chỉ lưu trong RAM, tắt server là mất. Để lưu thật, chọn một trong hai cách dưới.
+Điều khiển chính: WASD / mũi tên đi, J / Space đánh, U / I / O / P hồn kỹ, 1–4 đổi võ hồn, V đội hình, B túi đồ, E nhặt, F đi cổng / nói chuyện, Enter chat.
+Bảng phím đầy đủ ở `GAME_DESIGN.md` mục 4. Điện thoại có joystick ảo và nút chạm.
 
-### Cách 1: PostgreSQL bằng Docker
+### Lưu dữ liệu
+
+Không cấu hình database thì dữ liệu chỉ lưu trong RAM, tắt server là mất. Biến môi trường mẫu ở [`.env.example`](.env.example) (chép thành `server/.env`).
+
+**PostgreSQL bằng Docker**
 
 ```bash
 docker compose up -d
@@ -56,92 +34,109 @@ cp .env.example server/.env      # đã có sẵn DATABASE_URL cho Postgres loca
 npm run dev:server
 ```
 
-Server tự tạo bảng khi khởi động.
+**Supabase**
 
-### Cách 2: Supabase
-
-1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database. Chọn region gần người chơi (vd Singapore).
-2. Trong dashboard bấm **Connect** → **Connection String** → Type `URI` → Method **Session pooler**, sao chép chuỗi.
-   - Đừng dùng "Direct connection" (`db.<ref>.supabase.co`): chỉ chạy qua IPv6, nhiều mạng và nền tảng hosting không có.
-   - Không cần "Transaction pooler" (cổng 6543): server giữ kết nối lâu dài nên Session pooler hợp hơn.
+1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database, chọn region gần người chơi.
+2. Dashboard → **Connect** → **Connection String** → Type `URI` → Method **Session pooler**, sao chép chuỗi.
+   Đừng dùng "Direct connection" (chỉ chạy qua IPv6) hay "Transaction pooler" (server giữ kết nối lâu dài).
 3. Ghi vào `server/.env`: `DATABASE_URL=postgresql://postgres.<ref>:<mật-khẩu>@aws-0-<region>.pooler.supabase.com:5432/postgres`.
-   Mật khẩu có ký tự đặc biệt thì mã hóa URL (`@` → `%40`, `#` → `%23`, `/` → `%2F`). SSL tự bật khi URL chứa "supabase".
-4. Chạy lại `npm run dev:server`. Thấy `✓ Đã kết nối PostgreSQL` là xong. Bảng tự tạo, xem ở mục **Table Editor**.
+   Mật khẩu có ký tự đặc biệt thì mã hóa URL (`@` → `%40`, `#` → `%23`, `/` → `%2F`). SSL tự bật khi URL chứa "supabase" (hoặc đặt `PGSSL=true`).
+4. Chạy lại `npm run dev:server`, thấy `✓ Đã kết nối PostgreSQL và cập nhật bảng.` là xong.
 
-Server tự bật Row Level Security cho các bảng, nên Data API công khai của Supabase không đọc được mật khẩu băm hay token.
-Server vẫn đọc/ghi bình thường vì kết nối bằng user `postgres`. Không cần dùng khóa `anon` / `service_role`.
-Gói miễn phí sẽ tạm dừng project sau khoảng 1 tuần không có truy cập; vào dashboard bấm Restore để chạy lại.
+Server tự tạo / cập nhật bảng mỗi lần khởi động (chạy mọi file `server/sql/*.sql` theo tên) và bật Row Level Security cho mọi bảng,
+nên Data API công khai của Supabase không đọc được dữ liệu; server kết nối bằng user `postgres` nên vẫn đọc ghi bình thường.
+Gói miễn phí của Supabase tạm dừng project sau khoảng 1 tuần không truy cập; vào dashboard bấm Restore để chạy lại.
 
-## Điều khiển
+## Kiểm thử
 
-WASD hoặc phím mũi tên để đi, J hoặc Space để đánh, U / I / O / P để dùng hồn kỹ 1–4, E để nhặt hồn hoàn vào túi đồ (B mở túi, chọn hồn hoàn rồi bấm "Hấp thụ"), Enter để chat.
-Phím 1–4 đổi sang võ hồn ở ô tương ứng của đội (hồi 3 giây), V mở bảng xếp đội hình.
-Trên điện thoại có joystick ảo và nút bấm (chạm ô trên thanh đội hình để đổi võ hồn).
+```bash
+npm run check                         # typecheck server + client, kiểm tra sprite (bắt buộc trước khi commit)
+GAME_TEST=1 npm run dev:server        # server bật hook kiểm thử (Git Bash / Linux / macOS)
+npm run bot --prefix client           # terminal khác: bot tự chơi và kiểm tra hầu hết luật chơi
+npm run test:predict --prefix client  # dự đoán chuyển động, không cần server
+npm run test:ratelimit --prefix server
+npm run test:accounts --prefix server
+```
+
+- Bot cần server bật `GAME_TEST=1`; thiếu thì nhiều phần bị bỏ qua (có dòng ⚠). Server ở cổng khác thì đặt `SERVER_URL=http://localhost:<cổng>` cho bot.
+- Phần nhiều kênh chạy riêng: server `CHANNEL_MAX=2 GAME_TEST=1 npm run dev:server`, rồi chạy bot lần nữa.
+- Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam; `BOSS_CLOCK=HH:MM` chạy từ giờ đó, `BOSS_CLOCK=real` dùng giờ thật.
+- Bật git pre-commit hook một lần sau khi clone: `npm run hooks` (typecheck các file đã stage).
+
+## Cấu trúc thư mục
+
+```
+├─ shared/
+│  ├─ data.ts              # mọi số liệu cân bằng và bảng dữ liệu dùng chung (bản đồ, võ hồn, hồn kỹ, hồn thú, vật phẩm…)
+│  ├─ move.ts              # va chạm ô và bước đi dùng chung cho server và dự đoán chuyển động
+│  └─ assets/              # publicDir của Vite: bản đồ Tiled <mapId>.json, tiles.png, sprites/ (manifest.json)
+├─ server/
+│  ├─ src/index.ts         # Express API (đăng nhập, tạo nhân vật, thức tỉnh, chọn kênh) + Colyseus, phục vụ bản build client
+│  ├─ src/rooms/MapRoom.ts # toàn bộ luật chơi: một phòng mỗi bản đồ / kênh, chạy TICK_RATE lần mỗi giây
+│  ├─ src/rooms/ArenaRoom.ts, arenaQueue.ts  # trận Đại Đấu Hồn Trường và hàng chờ ghép trận
+│  ├─ src/rooms/schema.ts  # trạng thái đồng bộ xuống client (Colyseus Schema)
+│  ├─ src/map.ts           # loadMap(mapId): đọc ô chặn, vùng, cổng, NPC, tinh anh, boss từ file Tiled
+│  ├─ src/db.ts            # lưu trữ: PgStore (PostgreSQL) và MemoryStore (RAM)
+│  ├─ src/party.ts, schedule.ts, ratelimit.ts, names.ts  # tổ đội, lịch boss, chống spam, chuẩn hóa tên
+│  └─ sql/                 # 001_init.sql … : migration chạy lại an toàn, đánh số tăng dần
+├─ client/
+│  ├─ src/main.ts          # đăng nhập, tạo nhân vật, thức tỉnh, vào phòng / đổi bản đồ / vào sân đấu
+│  ├─ src/scenes/GameScene.ts  # vẽ bản đồ, hồn sư, hồn thú, hiệu ứng; nhận state và message
+│  ├─ src/hud.ts           # giao diện HTML (chỉ số, hồn kỹ, đội hình, túi đồ, NPC, tổ đội, đấu trường…)
+│  ├─ src/predict.ts, net.ts   # dự đoán chuyển động, kiểu message
+│  ├─ src/sprites.ts, textures.ts, honsuArt.ts  # nạp sprite theo manifest, vẽ bằng code phần chưa có ảnh
+│  └─ scripts/             # bot-test.mjs, predict-test.mjs
+├─ tools/
+│  ├─ check.mjs            # typecheck theo phần bị ảnh hưởng (npm run check, pre-commit, hook Claude Code)
+│  ├─ gen-map.mjs          # sinh các bản đồ Tiled (npm run map – GHI ĐÈ bản đã sửa tay)
+│  ├─ gen-tiles.py         # sinh tileset
+│  └─ assets/              # dây chuyền sprite: normalize, pack, validate, preview
+├─ art/                    # palette.gpl, CREDITS.md, ảnh nguồn
+├─ GAME_DESIGN.md          # thiết kế luật chơi, kiến trúc, lộ trình (cho người và AI đọc)
+├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
+├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
+├─ .githooks/              # pre-commit
+├─ Dockerfile              # deploy một container = một link
+└─ docker-compose.yml      # PostgreSQL local
+```
 
 ## Sửa bản đồ bằng Tiled
 
-1. Cài [Tiled](https://www.mapeditor.org), mở `shared/assets/<mapId>.json` (hiện có `thanh_hon_thon`, `nac_dinh_thanh`, `tinh_dau_ngoai_vi`, `tinh_dau_noi_dia`; mã bản đồ khai báo trong `MAPS` ở `shared/data.ts`).
-2. Layer `ground` là nền, `trees` là vật cản (cây, lều, lửa trại), `canopy` là tán cây phủ lên nhân vật.
-3. Layer đối tượng `zones` chứa các vùng săn (class `zone`) với thuộc tính `hint`, `years` (khoảng niên hạn, ví dụ `300-700`; thiếu thì dùng `weights` = tỉ lệ 5 bậc), `beasts` (mã loài trong `BEASTS` kèm trọng số, ví dụ `phong_lang:2,man_da_la_xa:1`) và `count` (số hồn thú). Đối tượng class `spawn` là doanh trại.
-4. Muốn ô nào chặn đường: chọn ô đó trong tileset và thêm thuộc tính bool `collides = true`.
-5. Lưu lại (giữ định dạng JSON). Khởi động lại server để nó đọc va chạm mới.
+1. Cài [Tiled](https://www.mapeditor.org), mở `shared/assets/<mapId>.json` (mã bản đồ khai báo trong `MAPS` ở `shared/data.ts`).
+2. Layer `ground` là nền, `trees` là vật cản, `canopy` là tán cây phủ lên nhân vật. Ô chặn đường có thuộc tính bool `collides = true` trong tileset.
+3. Layer đối tượng chứa `zone` (vùng săn), `portal`, `arrive`, `spawn`, `safe`, `elite`, `boss`, `npc`; thuộc tính từng loại ở `GAME_DESIGN.md` mục 6.
+4. Lưu lại (giữ định dạng JSON), khởi động lại server. Object sai thuộc tính thì server ghi cảnh báo và bỏ qua.
 
-`npm run map` sẽ sinh lại bản đồ ngẫu nhiên và **ghi đè** bản bạn đã vẽ, chỉ chạy khi muốn bắt đầu lại.
+Các bản đồ hiện được sinh bằng `tools/gen-map.mjs`; `npm run map` sinh lại và **ghi đè** bản đã vẽ tay.
 
-## Đưa lên mạng, gửi link cho bạn bè
+## Đưa lên mạng
 
-Server đã được viết để phục vụ luôn bản build của client, nên chỉ cần **một dịch vụ, một link**.
+Server phục vụ luôn bản build của client, nên chỉ cần **một dịch vụ, một link**. Với nền tảng chạy được Docker (Render, Railway, Fly.io, VPS…):
 
-Với bất kỳ nền tảng nào chạy được Docker (Render, Railway, Fly.io, VPS…):
+1. Tạo dịch vụ từ repo, build bằng `Dockerfile`.
+2. Thêm biến môi trường `DATABASE_URL` (Supabase hoặc Postgres của nền tảng) và `TRUST_PROXY=1` (chạy sau proxy, để giới hạn đăng nhập sai theo đúng IP).
+3. Deploy xong, gửi link cho bạn bè.
 
-1. Đẩy code lên GitHub.
-2. Tạo dịch vụ mới từ repo, chọn build bằng `Dockerfile`.
-3. Thêm biến môi trường `DATABASE_URL` (chuỗi Supabase hoặc Postgres của nền tảng).
-4. Deploy xong, gửi link cho bạn bè.
-
-Nền tảng cần hỗ trợ WebSocket và nên giữ server chạy liên tục (gói miễn phí thường "ngủ" khi không có người, lần vào đầu sẽ chậm). Hãy kiểm tra giá và giới hạn hiện tại của từng nơi.
-
+Nền tảng cần hỗ trợ WebSocket và nên giữ server chạy liên tục (gói miễn phí thường "ngủ", lần vào đầu chậm).
 Muốn để client ở chỗ khác (Vercel, Netlify…): build client với `VITE_SERVER_URL=https://server-cua-ban` và đặt `CLIENT_ORIGIN` trên server bằng domain của client.
 
-## Kiểm thử nhanh
+## Phát triển cùng Claude Code
 
-```bash
-npm run typecheck --prefix server
-npx tsc --noEmit -p client
-npm run bot --prefix client     # khi server đang chạy: 2 bot vào phòng, đi săn, thử hấp thụ
-```
+Repo có cấu hình chung trong `.claude/settings.json`: plugin từ marketplace `claude-plugins-official` (`typescript-lsp`, `context7`,
+`security-guidance`, `feature-dev`, `pr-review-toolkit`, `code-simplifier`), hook tự typecheck sau mỗi lần AI sửa file (`node tools/check.mjs --hook`)
+và skill dự án trong `.claude/skills/` (`roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`, `asset-gen`).
+AI đọc `CLAUDE.md` và `GAME_DESIGN.md`; giao từng việc nhỏ theo mục Lộ trình.
 
-## Vibe code tiếp
-
-Mở thư mục này bằng Claude Code hoặc Cursor. AI sẽ đọc `CLAUDE.md` và `GAME_DESIGN.md`.
-Giao từng việc nhỏ, ví dụ:
-
-> Thêm túi đồ: hồn thú có 20% rơi "Hồn Thú Hạch" (item). Lưu vào bảng inventory, đồng bộ số lượng
-> qua schema, hiện một ô túi đồ nhỏ trên HUD. Server quyết định rơi đồ, client chỉ hiển thị.
-
-Sau mỗi bước, chạy kiểm thử ở trên rồi mới làm bước tiếp theo.
-
-### Cài đặt cho dev dùng Claude Code
-
-Repo có sẵn cấu hình chung trong `.claude/settings.json` (cùng áp dụng cho mọi người clone repo và mọi worktree):
-
-- **Plugin** từ marketplace `claude-plugins-official`: `typescript-lsp`, `context7`, `security-guidance`, `feature-dev`,
-  `pr-review-toolkit`, `code-simplifier`.
-  Lần đầu mở repo, Claude Code hỏi có tin thư mục này và cài marketplace/plugin không: chọn đồng ý.
-- **Hook**: sau mỗi lần AI sửa file, `node tools/check.mjs --hook` tự typecheck phần bị ảnh hưởng (server, client hoặc cả hai) và báo lỗi cho AI tự sửa.
-- **Skill dự án** trong `.claude/skills/`: `roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`.
-
-Việc mỗi người cần làm một lần trên máy mình:
+Mỗi máy làm một lần:
 
 ```bash
 npm i -g typescript-language-server typescript   # để plugin typescript-lsp chạy được
 npm run hooks                                    # bật git pre-commit hook
 ```
 
-- `context7` (tra tài liệu thư viện mới nhất) cần đăng nhập Context7 khi Claude Code hỏi lần đầu; làm theo hướng dẫn hiện ra (hoặc dùng `/mcp`).
-- Cài đặt riêng của từng máy để ở `.claude/settings.local.json` (không commit).
+`context7` cần đăng nhập Context7 khi Claude Code hỏi lần đầu (hoặc dùng `/mcp`). Cài đặt riêng từng máy để ở `.claude/settings.local.json` (không commit).
 
 ## Phiên bản thư viện
 
 Đã ghim: Phaser 3.90.0, Colyseus 0.16.5 (+ colyseus.js 0.16.22, @colyseus/schema 3.0.76), Vite 6.4.3, TypeScript 5.9.3.
-Colyseus 0.18 và Phaser 4 đã ra nhưng có thay đổi API; nên nâng cấp sau khi game ổn định.
+Colyseus 0.18 và Phaser 4 đã ra nhưng có thay đổi API; nâng cấp khi cần.
