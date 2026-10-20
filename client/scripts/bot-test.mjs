@@ -5537,9 +5537,11 @@ async function partyBuffTest(){
     // ---- Hồn Chi Lưu Ly: hồi hồn lực × 0,7, giảm tiêu hao ----
     await test(B,"ready",{mp:20}); await waitFor(()=>Math.abs(meP(B).mp-meP(B).maxMp*0.2)<=2); const m0=meP(B).mp;
     await clean(); await test(A,"ready"); lb=B.logs.length; A.room.send("skill",{i:2}); await waitFor(()=>B.logs.length>lb,1500);
-    want=Math.floor(meP(B).maxMp*0.2+meP(B).maxMp*sk[2].self.mp*BP(2)*PARTY_BUFF_MULT); lB=await live(B);
-    ok(meP(B).mp>=want-1&&meP(B).mp<=want+3&&Math.abs((lB.buffs.mp?.v??0)-sk[2].self.buff.mp*BP(2)*PARTY_BUFF_MULT)<1e-9,
-      `${sk[2].name}: hồn lực B ${m0} -> ${meP(B).mp} (cần ~${want}), giảm tiêu hao ${((lB.buffs.mp?.v??0)*100).toFixed(1)}%`);
+    // Hồn lực tự hồi vài điểm mỗi giây nên đo phần hồi qua dòng log, sinh lực / hồn lực trong state chỉ cần không ít hơn.
+    want=Math.round(meP(B).maxMp*sk[2].self.mp*BP(2)*PARTY_BUFF_MULT); lB=await live(B);
+    const gotMp=+(B.logs.slice(lb).join(" ").match(/hồi (\d+) hồn lực cho bạn/)?.[1]??-1);
+    ok(Math.abs(gotMp-want)<=1&&meP(B).mp>=m0+want-1&&Math.abs((lB.buffs.mp?.v??0)-sk[2].self.buff.mp*BP(2)*PARTY_BUFF_MULT)<1e-9,
+      `${sk[2].name}: B hồi ${gotMp} hồn lực (cần ${want} = ${sk[2].self.mp*100}% × buffPower × ${PARTY_BUFF_MULT}), ${m0} -> ${meP(B).mp}, giảm tiêu hao ${((lB.buffs.mp?.v??0)*100).toFixed(1)}%`);
     // ---- Phòng Chi Lưu Ly: khiên theo sinh lực tối đa của B × 0,7, tăng thủ ----
     await clean(); await test(A,"ready"); B.gifts=[]; lb=B.logs.length; A.room.send("skill",{i:3}); await waitFor(()=>B.logs.length>lb,1500);
     lB=await live(B); la=await live(A); want=Math.round(lB.maxHp*sk[3].self.shield*BP(3)*PARTY_BUFF_MULT);
@@ -5559,6 +5561,7 @@ async function partyBuffTest(){
       `tiên cơ ${tc.name}: sinh lực B ${h0} -> ${meP(B).hp}/${mB} (cần ~${want}, ${tc.self.heal*100}% × ${PARTY_BUFF_MULT}), số +${B.gifts.find(g=>g.heal)?.v}`);
     ok((meP(B).buff&buffBit("inv"))!==0&&B.logs.slice(lb).some(t=>t.startsWith(`${A.name} miễn sát thương, hồi `)&&t.endsWith(" sinh lực cho bạn.")),
       `B miễn sát thương: ${B.logs.slice(lb).join(" | ")}`);
-    ok(meP(O).hp===o0&&!(meP(O).buff&buffBit("inv")),`O (ngoài đội) không được hồi: ${o0} -> ${meP(O).hp}`);
+    // O vẫn tự hồi sinh lực chậm theo thời gian: chỉ cần không nhận phần hồi của tiên cơ, không miễn sát thương, không có dòng của A.
+    ok(meP(O).hp<o0+heal/2&&!(meP(O).buff&buffBit("inv"))&&!O.logs.some(t=>t.includes(A.name)),`O (ngoài đội) không được hồi: ${o0} -> ${meP(O).hp}`);
   } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }
