@@ -6,7 +6,7 @@
 //   Bản vẽ bằng code dùng chung một thân và một áo cho cả 4 kiểu tóc; ảnh thật thì mỗi bộ tách từ một hình riêng.
 // - Thân: da, mặt, quần, giày. Áo và tóc: vẽ bằng dải 4 xám chuẩn để hoán màu.
 // - Phụ thể `vh_{id}_b` / `vh_{id}_f`: khung 48×48, chỉ cột 0–11 của hàng 0–2.
-import { HAIR_COLORS, OUTFIT_COLORS, type Looks } from "../../shared/data.ts";
+import { HAIR_COLORS, OUTFIT_COLORS, SKIN_TONES, type Looks } from "../../shared/data.ts";
 import { HS_ANIMS, DIRS, SHEET_COLS, HS_FRAME, VH_FRAME, GRAY_RAMP, type HsAnim, type HsLayer } from "./sprites.ts";
 
 /** Viền ngoài có màu (mục 5.11). Không nằm trong dải xám nên giữ nguyên khi hoán màu. */
@@ -97,11 +97,11 @@ interface Shade { d: string; b: string; l: string }
 /** 3 sắc độ suy ra từ một màu võ hồn (mục 5.11 cho phép 1 sắc tối + 1 sắc sáng): tối, gốc, sáng. */
 const shade = (c: string): Shade => ({ d: mix(c, OUT, 0.4), b: c, l: mix(c, "#ffffff", 0.45) });
 
-/** Vẽ bộ đệm ra canvas; `swap` là dải 4 màu thay cho dải xám chuẩn (hoán màu). */
-export function bufCanvas(buf: Buf, swap?: readonly string[]) {
+/** Vẽ bộ đệm ra canvas; `swap` là dải màu thay cho dải `from` (mặc định dải xám chuẩn của tóc / áo; thân thì dải da tông 0). */
+export function bufCanvas(buf: Buf, swap?: readonly string[], from: readonly string[] = GRAY_RAMP) {
   const cv = document.createElement("canvas"); cv.width = buf.w; cv.height = buf.h;
   const ctx = cv.getContext("2d")!, img = ctx.createImageData(buf.w, buf.h);
-  const map = swap ? new Map(GRAY_RAMP.map((g, i) => [g as string, swap[i]])) : null;
+  const map = swap ? new Map(from.map((g, i) => [g, swap[i]])) : null;
   for (let i = 0; i < buf.d.length; i++) {
     let c = buf.d[i]; if (!c) continue;
     if (map?.has(c)) c = map.get(c)!;
@@ -183,7 +183,9 @@ function pose(dir: Dir3, anim: HsAnim, i: number): Pose {
   return P;
 }
 
-const SK = { d: "#c98f6c", b: "#f1c7a0", l: "#ffe2c6" }, EYE = "#1a1010", BLUSH = "#e08a7a";
+// Da vẽ bằng tông 0; tông khác hoán màu cả lớp thân (SKIN_TONES, Lộ trình 9.9).
+const [SKd, SKb, SKl] = SKIN_TONES[0].ramp;
+const SK = { d: SKd, b: SKb, l: SKl }, EYE = "#1a1010", BLUSH = "#e08a7a";
 const PANTS: Record<Sex, [string, string, string]> = { m: ["#2b2430", "#47435c", "#5a5672"], f: ["#2b2430", "#2b2430", "#47435c"] };
 const SHOE = ["#3a2a18", "#5a3b22"];
 
@@ -748,8 +750,9 @@ const sheetCanvas = (key: string, make: () => HTMLCanvasElement) => PREVIEW.get(
 export function paintHonsuPreview(ctx: CanvasRenderingContext2D, L: Looks, ox: number, oy: number) {
   const sex: Sex = L.sex === 1 ? "f" : "m";
   const hair = (HAIR_COLORS[L.hairCol] ?? HAIR_COLORS[0]).ramp, outfit = (OUTFIT_COLORS[L.outfitCol] ?? OUTFIT_COLORS[0]).ramp;
+  const skin = SKIN_TONES[L.skin] ? L.skin : 0;
   const layers = [
-    sheetCanvas(`hs_body_${sex}`, () => bufCanvas(honsuSheet(sex, "body"))),
+    sheetCanvas(`hs_body_${sex}@${skin}`, () => bufCanvas(honsuSheet(sex, "body"), SKIN_TONES[skin].ramp, SKIN_TONES[0].ramp)),
     sheetCanvas(`hs_outfit_${sex}_0@${L.outfitCol}`, () => bufCanvas(honsuSheet(sex, "outfit"), outfit)),
     sheetCanvas(`hs_hair_${sex}_${L.hair}@${L.hairCol}`, () => bufCanvas(honsuSheet(sex, "hair", L.hair), hair)),
   ];
