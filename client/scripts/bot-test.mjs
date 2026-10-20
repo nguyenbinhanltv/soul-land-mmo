@@ -4227,17 +4227,18 @@ async function shopBuybackTest(){
   const [dh,dn]=big.map(d=>SHOP.find(r=>r.code===d.id));
   t=await trade(E,"buy",{code:dh.code,qty:2}); ok(qtyOf(E,dh.code)===2&&E.bag.honTe===1e6-2*dh.price,`mua 2 Đại Hồi Huyết Đan: −${formatHonTe(2*dh.price)} (${t})`);
   t=await trade(E,"buy",{code:dn.code,qty:1}); ok(qtyOf(E,dn.code)===1&&E.bag.honTe===1e6-2*dh.price-dn.price,`mua 1 Đại Hồi Hồn Đan (${t})`);
-  await test(E,"rest",{s:DAN_CD}); await test(E,"hurt",{pct:90});
+  // Tin trả lời hook / dòng log đến trước bản vá state và tin "bag": chờ sinh lực đã giảm, chờ túi đã bớt đan rồi mới đo.
+  await test(E,"rest",{s:DAN_CD}); await test(E,"hurt",{pct:90}); await waitFor(()=>eme().hp<=eme().maxHp*0.2);
   const p=eme(), hp0=p.hp;
   await useItem(E,E.bag.items.find(i=>i.code===dh.code).id);
   const hg=Number(/Dùng Đại Hồi Huyết Đan: \+(\d+) sinh lực/.exec(E.logs.at(-1))?.[1]);
-  ok(qtyOf(E,dh.code)===1&&Math.abs(hg-p.maxHp*0.6)<=1&&await waitFor(()=>eme().hp>=hp0+hg-1),`Đại Hồi Huyết Đan hồi đúng 60%: +${hg}/${p.maxHp} sinh lực (${E.logs.at(-1)})`);
+  ok(await waitFor(()=>qtyOf(E,dh.code)===1)&&Math.abs(hg-p.maxHp*0.6)<=1&&await waitFor(()=>eme().hp>=hp0+hg-1),`Đại Hồi Huyết Đan hồi đúng 60%: +${hg}/${p.maxHp} sinh lực, ${hp0} -> ${eme().hp} (${E.logs.at(-1)})`);
   { const q=qtyOf(E,"hoi_hon_dan"); await useItem(E,E.bag.items.find(i=>i.code==="hoi_hon_dan").id);
     ok(qtyOf(E,"hoi_hon_dan")===q&&/Đan dược đang hồi/.test(E.logs.at(-1))&&E.bag.cd>DAN_CD-2,`chung hồi chiêu đan: ngay sau đan lớn không dùng được Hồi Hồn Đan (${E.logs.at(-1)})`); }
   await test(E,"rest",{s:DAN_CD}); await test(E,"drain",{pct:90});
   await useItem(E,E.bag.items.find(i=>i.code===dn.code).id);
   const mg=Number(/Dùng Đại Hồi Hồn Đan: \+(\d+) hồn lực/.exec(E.logs.at(-1))?.[1]);
-  ok(qtyOf(E,dn.code)===0&&Math.abs(mg-eme().maxMp*0.6)<=1,`Đại Hồi Hồn Đan hồi đúng 60%: +${mg}/${eme().maxMp} hồn lực (${E.logs.at(-1)})`);
+  ok(await waitFor(()=>qtyOf(E,dn.code)===0)&&Math.abs(mg-eme().maxMp*0.6)<=1,`Đại Hồi Hồn Đan hồi đúng 60%: +${mg}/${eme().maxMp} hồn lực (${E.logs.at(-1)})`);
   { const bk=bagKey(E); t=await trade(E,"sell",{id:E.bag.items.find(i=>i.code===dh.code).id}); ok(bagKey(E)===bk&&/không mua/.test(t),`thương nhân không mua Đại Hồi Huyết Đan (${t})`); }
   // ---- Mua lại ----
   await test(E,"give",{code:BONE_ITEM,years:12000,beast:"thiet_giap_te_nguu",slot:"than",enhance:5});
