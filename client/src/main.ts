@@ -2,6 +2,7 @@ import "./style.css";
 import Phaser from "phaser";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
+import { addLag } from "./predict.ts";
 import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS,
   type He, type Looks } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
@@ -223,6 +224,7 @@ async function join(retry = true) {
 /** Mở Phaser cho phòng vừa vào. Server cho đi cổng (`travel {mapId}`) thì rời phòng cũ, hủy scene và vào phòng của bản đồ đích. */
 function play(room: Room, roomMap: string) {
   overlay.hidden = true;
+  addLag(room); // ?lag=<ms>: giả lập ping cao để thử dự đoán chuyển động
   let travelling = false;
   room.onLeave((code) => {
     if (travelling) return;

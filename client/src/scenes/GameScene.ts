@@ -9,6 +9,8 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
+import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
+import { solidGrid, clampDir } from "../../../shared/move.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -83,6 +85,9 @@ export class GameScene extends Phaser.Scene {
   keys: Record<string, boolean> = {};
   joy = { x: 0, y: 0 };
   lastInput = "";
+  dir = { x: 0, y: 0 };             // hướng đi đã gửi gần nhất (đã làm tròn và chuẩn hóa như server đọc)
+  pred: Predictor | null = null;    // dự đoán chuyển động của chính mình (mục 6); null khi tắt bằng ?nopredict
+  ghost: Phaser.GameObjects.Graphics | null = null; // ?lag: khung đỏ ở vị trí server của chính mình (so với hình vẽ)
   lastZone = "";
   skillsKey = "";
   boneSkKey = "";                   // hồn cốt đang gắn trên võ hồn ra trận lần vẽ thanh kỹ năng hồn cốt gần nhất (4.3)
@@ -137,6 +142,19 @@ export class GameScene extends Phaser.Scene {
     }
     this.drawPortals();
     this.buildMinimap(map);
+    // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts).
+    const raw = this.cache.tilemap.get(this.mapId)?.data;
+    if (PREDICT && raw) this.pred = new Predictor(solidGrid(raw));
+    if (LAG_MS || !PREDICT) {
+      // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); gỡ khi scene tắt (đổi bản đồ).
+      const tag = document.body.appendChild(document.createElement("div"));
+      tag.textContent = `Trễ giả lập ${LAG_MS} ms mỗi chiều · dự đoán chuyển động: ${this.pred ? "bật" : "tắt"}`;
+      tag.style.cssText = "position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;font:600 12px 'Be Vietnam Pro',system-ui,sans-serif;color:#ffe9a0;background:#000a;padding:2px 8px;border-radius:4px";
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => tag.remove());
+      this.events.once(Phaser.Scenes.Events.DESTROY, () => tag.remove());
+      this.ghost = this.add.graphics().setDepth(99989);
+      (window as any).__scene = this; // chỉ khi thử trễ: script đo (Chrome headless) đọc vị trí vẽ / vị trí server
+    }
     makeTextures(this);
     createSheetAnims(this);
     for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // sprite hồn sư của NPC cần texture / animation ở trên
@@ -345,7 +363,13 @@ export class GameScene extends Phaser.Scene {
     let y = (k.ArrowDown || k.KeyS ? 1 : 0) - (k.ArrowUp || k.KeyW ? 1 : 0) + this.joy.y;
     const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; }
     const key = `${x.toFixed(2)},${y.toFixed(2)}`;
-    if (key !== this.lastInput) { this.lastInput = key; this.room.send("input", { x: +x.toFixed(2), y: +y.toFixed(2) }); }
+    if (this.pred?.resend) this.lastInput = ""; // server đã tự dừng hướng đi (hook thử goto): gửi lại hướng đang giữ với số mới
+    if (key !== this.lastInput) {
+      this.lastInput = key; x = +x.toFixed(2); y = +y.toFixed(2);
+      this.dir = clampDir(x, y);
+      // Có dự đoán thì đánh số input để server trả lại số cuối đã nhận (PlayerState.seq / seqT) cho bước đối chiếu.
+      this.room.send("input", this.pred ? { x, y, s: this.pred.next() } : { x, y });
+    }
   }
 
   // ---------- Tin nhắn từ server ----------
@@ -977,7 +1001,9 @@ export class GameScene extends Phaser.Scene {
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
       const { root, label, title } = v;
-      if (Math.hypot(p.x - root.x, p.y - root.y) > 64) root.setPosition(p.x, p.y);
+      const mine = id === this.me && this.pred;
+      if (mine) { const at = this.pred!.update(p, this.dir, dt); root.setPosition(at.x, at.y); }
+      else if (Math.hypot(p.x - root.x, p.y - root.y) > 64) root.setPosition(p.x, p.y);
       else root.setPosition(root.x + (p.x - root.x) * lerp, root.y + (p.y - root.y) * lerp);
       root.setDepth(root.y);
       // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol) và võ hồn ra trận đồng bộ từ server, ai cũng thấy.
@@ -986,7 +1012,9 @@ export class GameScene extends Phaser.Scene {
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); v.vb.setTexture(kb); v.vf.setTexture(kf); }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
-      this.animatePlayer(v, p, time);
+      // Chính mình khi dự đoán: chạy animation đi và quay hướng ngay theo phím, không chờ cờ `moving` của server.
+      const own = mine ? { walk: this.pred!.walking(p, this.dir), dir: this.pred!.look(p, this.dir) } : undefined;
+      this.animatePlayer(v, p, time, own);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); }
@@ -1002,6 +1030,8 @@ export class GameScene extends Phaser.Scene {
       title.setPosition(root.x, root.y - 38 - up).setVisible(!p.dead).setText(titleOf(p.level));
     });
     for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); this.players.delete(id); }
+    const meS = this.ghost && st.players.get(this.me);
+    if (meS) this.ghost!.clear().lineStyle(1, 0xff4040, 1).strokeRect(meS.x - 6, meS.y - 22, 12, 24);
 
     // hồn thú
     const seenB = new Set<string>();
@@ -1108,11 +1138,13 @@ export class GameScene extends Phaser.Scene {
   /**
    * Chọn animation lớp thân theo state (gục > hấp thụ > đánh / tung hồn kỹ / bị đánh > đi / đứng) và hướng nhìn 4 phía,
    * rồi đặt khung tương ứng cho áo, tóc, phụ thể (bảng ánh xạ 5.11) và vị trí các vòng hồn hoàn.
+   * `own` (chính mình khi dự đoán chuyển động): đang tự đi không và hướng nhìn theo phím; thiếu thì đọc `moving` / `dir` của server.
    */
-  animatePlayer(v: PView, p: any, time: number) {
+  animatePlayer(v: PView, p: any, time: number, own?: { walk: boolean; dir: number }) {
     if (v.act && time >= v.act.t0 + animMs(v.act.anim)) v.act = null;
-    const anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (p.moving ? "walk" : "idle");
-    const { key, flip } = honsuAnimKey(bodyKey(p), anim, DIRS4[p.dir] ?? "down");
+    const moving = own ? own.walk : p.moving;
+    const anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
+    const { key, flip } = honsuAnimKey(bodyKey(p), anim, DIRS4[own ? own.dir : p.dir] ?? "down");
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
     if (tag !== v.playing) { v.playing = tag; v.body.play(key); }
     v.body.setFlipX(flip);
