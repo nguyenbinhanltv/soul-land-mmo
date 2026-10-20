@@ -74,6 +74,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
+  BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB,
@@ -4034,6 +4035,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
   }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await npcTown();
+await shopBuybackTest();
 await thienDauTest();
 await lacNhatTest();
 await haiThanTest();
@@ -4178,6 +4180,128 @@ async function npcTown(){
   const bk=bagKey(C); await C.room.leave(); await sleep(400);
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+}
+
+/**
+ * 9.8 thương nhân (bot riêng E, tài khoản mới nên túi khởi đầu BAG_SLOTS ô): hàm thuần (đan lớn, giá mở rộng túi, bagSlotsOf); với
+ * hook: mở rộng túi (đứng xa / thiếu Hồn Tệ bị từ chối, 40 → 50 ô nhận thêm đúng 10 ô, vào lại vẫn 50 ô, giá lần sau, tới 80 ô thì
+ * hết), đan lớn (mua 120 đồng, hồi đúng 60% sinh lực / hồn lực, chung hồi chiêu đan, thương nhân không mua lại), mua lại (hồn cốt cường
+ * hóa về đúng chỉ số và cấp, Hồn Tệ trả đúng; thiếu tiền / túi đầy / mã lạ / đứng xa bị từ chối; chỉ giữ BUYBACK_MAX món; mảnh bán
+ * một phần mua lại gộp ô; đi cổng sang Thiên Đấu Thành vẫn còn và mua lại được ở thương nhân Thiên Đấu; rời game thì mất).
+ */
+async function shopBuybackTest(){
+  console.log("[9.8] Thương nhân: đan lớn, mở rộng túi, mua lại đồ bán nhầm");
+  const big=["dai_hoi_huyet_dan","dai_hoi_hon_dan"].map(c=>itemDef(c)), small=itemDef("hoi_huyet_dan");
+  ok(big.every(d=>d?.kind==="dan"&&d.cd==="dan"&&d.stack===small.stack)&&big[0].hp===0.6&&big[1].mp===0.6,"Đại Hồi Huyết Đan / Đại Hồi Hồn Đan: đan hồi 60%, chung hồi chiêu đan");
+  ok(big.every(d=>SHOP.find(r=>r.code===d.id)?.price===120)&&big.every(d=>sellPrice({code:d.id,years:null,stars:null,enhance:0})===null),
+    `thương nhân bán đan lớn ${formatHonTe(120)}, không mua lại đan`);
+  ok(BAG_SLOTS===40&&BAG_EXPAND===10&&BAG_MAX_SLOTS===80&&same([40,50,60,70,80].map(bagExpandCost),[2000,5000,10000,20000,null]),
+    `mở rộng túi: ${[40,50,60,70].map(n=>`${n}→${n+BAG_EXPAND} ô ${formatHonTe(bagExpandCost(n))}`).join(", ")}, tối đa ${BAG_MAX_SLOTS} ô`);
+  ok(bagSlotsOf(null)===BAG_SLOTS&&bagSlotsOf(undefined)===BAG_SLOTS&&bagSlotsOf("x")===BAG_SLOTS&&bagSlotsOf(55)===55&&bagSlotsOf(999)===BAG_MAX_SLOTS&&bagSlotsOf(3)===BAG_SLOTS,
+    "bagSlotsOf: dữ liệu trống / hỏng là mức khởi đầu, kẹp trong khoảng");
+  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / mở rộng (cần hook warp, goto, coin, give…): bật server bằng GAME_TEST=1"); return; }
+  const E=await bot("Lái buôn","u_minh_linh_mieu",{sex:0,hair:2,hairCol:0,outfitCol:1});
+  const eme=()=>E.room.state.players?.get(E.room.sessionId), loose=()=>looseOf(E);
+  /** Hook warp: sang `mapId` tại (x, y) qua transaction đi cổng rồi vào phòng mới như đi cổng thật. */
+  async function warp(mapId,x,y){
+    E.travel=null; E.room.send("test",{op:"warp",mapId,x,y});
+    ok(await waitFor(()=>E.travel?.mapId===mapId,4000),`warp -> ${MAPS[mapId].name}`);
+    await E.room.leave(); await sleep(300); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E);
+    await waitFor(()=>eme()&&E.bag,3000);
+  }
+  /** Rời game rồi vào lại (không qua đi cổng). */
+  async function relog(){ await E.room.leave(); await sleep(400); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E); await waitFor(()=>eme()&&E.bag,3000); }
+  const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
+  await warp("nac_dinh_thanh",tn.x+60,tn.y+16);
+  ok(E.bag?.slots===BAG_SLOTS&&E.bag.buyback?.length===0,`tài khoản mới: túi ${E.bag?.slots} ô, chưa có đồ mua lại`);
+  await test(E,"coin",{n:1e6});
+  let t=await trade(E,"expand",{}); ok(/đứng cạnh thương nhân/.test(t)&&E.bag.slots===BAG_SLOTS&&E.bag.honTe===1e6,`đứng xa thương nhân: mở rộng túi bị từ chối (${t})`);
+  await test(E,"goto",{x:tn.x,y:tn.y+16});
+  // ---- Mở rộng túi ----
+  const c0=bagExpandCost(BAG_SLOTS);
+  await test(E,"coin",{n:c0-1});
+  t=await trade(E,"expand",{}); ok(/Không đủ Hồn Tệ/.test(t)&&E.bag.slots===BAG_SLOTS&&E.bag.honTe===c0-1,`thiếu 1 đồng: không mở rộng được, không mất tiền (${t})`);
+  await test(E,"coin",{n:c0});
+  t=await trade(E,"expand",{}); ok(E.bag.slots===BAG_SLOTS+BAG_EXPAND&&E.bag.honTe===0&&/40 → 50 ô/.test(t),`mở rộng túi: ${BAG_SLOTS} → ${E.bag.slots} ô, −${formatHonTe(c0)} (${t})`);
+  // Túi 50 ô nhận đúng 50 ô (hồn hoàn mỗi chiếc một ô), chiếc thứ 51 không nhận.
+  await test(E,"give",{code:RING_ITEM,qty:E.bag.slots-loose().length+1,years:10});
+  ok(loose().length===BAG_SLOTS+BAG_EXPAND&&/Túi đồ đã đầy \(50 ô\)/.test(E.logs.at(-1)),`túi đầy ở ${loose().length}/${E.bag.slots} ô: chiếc thứ 51 không nhận (${E.logs.at(-1)})`);
+  for(const it of loose().filter(i=>i.code===RING_ITEM)) E.room.send("discard",{id:it.id});
+  ok(await waitFor(()=>!loose().some(i=>i.code===RING_ITEM),3000),"bỏ hết hồn hoàn thử");
+  await relog();
+  ok(E.bag.slots===BAG_SLOTS+BAG_EXPAND&&E.bag.honTe===0,`thoát vào lại: túi vẫn ${E.bag.slots} ô (đã lưu)`);
+  // Giá lần sau tăng dần; tới BAG_MAX_SLOTS thì hết.
+  await test(E,"coin",{n:BAG_EXPAND_COST.slice(1).reduce((a,v)=>a+v,0)});
+  for(let k=1;k<BAG_EXPAND_COST.length;k++){
+    const s0=E.bag.slots, h0=E.bag.honTe; t=await trade(E,"expand",{});
+    ok(E.bag.slots===s0+BAG_EXPAND&&E.bag.honTe===h0-BAG_EXPAND_COST[k],`mở rộng lần ${k+1}: ${s0} → ${E.bag.slots} ô, −${formatHonTe(BAG_EXPAND_COST[k])}`);
+  }
+  await test(E,"coin",{n:1e6});
+  t=await trade(E,"expand",{}); ok(E.bag.slots===BAG_MAX_SLOTS&&E.bag.honTe===1e6&&/tối đa/.test(t),`đã ${BAG_MAX_SLOTS} ô: không mở rộng thêm, không mất tiền (${t})`);
+  // ---- Đan lớn ----
+  const [dh,dn]=big.map(d=>SHOP.find(r=>r.code===d.id));
+  t=await trade(E,"buy",{code:dh.code,qty:2}); ok(qtyOf(E,dh.code)===2&&E.bag.honTe===1e6-2*dh.price,`mua 2 Đại Hồi Huyết Đan: −${formatHonTe(2*dh.price)} (${t})`);
+  t=await trade(E,"buy",{code:dn.code,qty:1}); ok(qtyOf(E,dn.code)===1&&E.bag.honTe===1e6-2*dh.price-dn.price,`mua 1 Đại Hồi Hồn Đan (${t})`);
+  // Tin trả lời hook / dòng log đến trước bản vá state và tin "bag": chờ sinh lực đã giảm, chờ túi đã bớt đan rồi mới đo.
+  await test(E,"rest",{s:DAN_CD}); await test(E,"hurt",{pct:90}); await waitFor(()=>eme().hp<=eme().maxHp*0.2);
+  const p=eme(), hp0=p.hp;
+  await useItem(E,E.bag.items.find(i=>i.code===dh.code).id);
+  const hg=Number(/Dùng Đại Hồi Huyết Đan: \+(\d+) sinh lực/.exec(E.logs.at(-1))?.[1]);
+  ok(await waitFor(()=>qtyOf(E,dh.code)===1)&&Math.abs(hg-p.maxHp*0.6)<=1&&await waitFor(()=>eme().hp>=hp0+hg-1),`Đại Hồi Huyết Đan hồi đúng 60%: +${hg}/${p.maxHp} sinh lực, ${hp0} -> ${eme().hp} (${E.logs.at(-1)})`);
+  { const q=qtyOf(E,"hoi_hon_dan"); await useItem(E,E.bag.items.find(i=>i.code==="hoi_hon_dan").id);
+    ok(qtyOf(E,"hoi_hon_dan")===q&&/Đan dược đang hồi/.test(E.logs.at(-1))&&E.bag.cd>DAN_CD-2,`chung hồi chiêu đan: ngay sau đan lớn không dùng được Hồi Hồn Đan (${E.logs.at(-1)})`); }
+  await test(E,"rest",{s:DAN_CD}); await test(E,"drain",{pct:90});
+  await useItem(E,E.bag.items.find(i=>i.code===dn.code).id);
+  const mg=Number(/Dùng Đại Hồi Hồn Đan: \+(\d+) hồn lực/.exec(E.logs.at(-1))?.[1]);
+  ok(await waitFor(()=>qtyOf(E,dn.code)===0)&&Math.abs(mg-eme().maxMp*0.6)<=1,`Đại Hồi Hồn Đan hồi đúng 60%: +${mg}/${eme().maxMp} hồn lực (${E.logs.at(-1)})`);
+  { const bk=bagKey(E); t=await trade(E,"sell",{id:E.bag.items.find(i=>i.code===dh.code).id}); ok(bagKey(E)===bk&&/không mua/.test(t),`thương nhân không mua Đại Hồi Huyết Đan (${t})`); }
+  // ---- Mua lại ----
+  await test(E,"give",{code:BONE_ITEM,years:12000,beast:"thiet_giap_te_nguu",slot:"than",enhance:5});
+  const bn=loose().find(i=>i.code===BONE_ITEM&&i.enhance===5), bp=sellPrice(bn);
+  let ht=E.bag.honTe; t=await trade(E,"sell",{id:bn.id});
+  const bb=E.bag.buyback?.[0];
+  ok(!E.bag.items.some(i=>i.id===bn.id)&&E.bag.honTe===ht+bp&&bb?.code===BONE_ITEM&&bb.years===12000&&bb.enhance===5&&sj(bb.stats)===sj(bn.stats)&&bb.price===bp,
+    `bán hồn cốt Thân 12.000 năm +5: +${formatHonTe(bp)}, thương nhân giữ để mua lại (${t})`);
+  await test(E,"coin",{n:bp-1});
+  t=await trade(E,"buyback",{key:bb.key}); ok(/Không đủ Hồn Tệ/.test(t)&&E.bag.honTe===bp-1&&E.bag.buyback.length===1,`thiếu 1 đồng: không mua lại được (${t})`);
+  await test(E,"coin",{n:bp+500});
+  // Túi đầy (BAG_MAX_SLOTS ô): mua lại hồn cốt bị từ chối, không mất tiền.
+  await test(E,"give",{code:RING_ITEM,qty:E.bag.slots-loose().length,years:10});
+  t=await trade(E,"buyback",{key:bb.key}); ok(loose().length===E.bag.slots&&/không đủ chỗ/.test(t)&&E.bag.honTe===bp+500&&E.bag.buyback.length===1,`túi đầy ${loose().length}/${E.bag.slots} ô: mua lại bị từ chối (${t})`);
+  E.room.send("discard",{id:loose().find(i=>i.code===RING_ITEM).id}); await waitFor(()=>loose().length===E.bag.slots-1,2000);
+  for(const [m,why] of [[{key:"khong-co"},"mã lạ"],[{key:7},"mã dạng số"],[{},"thiếu mã"]]){
+    const bk=bagKey(E); t=await trade(E,"buyback",m); ok(bagKey(E)===bk&&/không còn giữ/.test(t),`mua lại ${why}: bị từ chối (${t})`);
+  }
+  t=await trade(E,"buyback",{key:bb.key});
+  const back=loose().find(i=>i.code===BONE_ITEM&&i.years===12000);
+  ok(back&&back.id!==bn.id&&back.enhance===5&&sj(back.stats)===sj(bn.stats)&&E.bag.honTe===500&&E.bag.buyback.length===0,
+    `mua lại đúng món: hồn cốt ${back?.years} năm +${back?.enhance}, cùng chỉ số, −${formatHonTe(bp)} (${t})`);
+  t=await trade(E,"buyback",{key:bb.key}); ok(/không còn giữ/.test(t)&&E.bag.honTe===500,`mua lại lần hai cùng món: bị từ chối (${t})`);
+  // Mảnh bán một phần: mua lại đúng số đã bán, gộp về ô cũ.
+  for(const it of loose().filter(i=>i.code===RING_ITEM).slice(0,10)) E.room.send("discard",{id:it.id});
+  await waitFor(()=>loose().length<=E.bag.slots-10,2000);
+  const sc=shardCode("hao_thien_chuy"); await test(E,"give",{code:sc,qty:5});
+  ht=E.bag.honTe; t=await trade(E,"sell",{id:loose().find(i=>i.code===sc).id,qty:2});
+  ok(qtyOf(E,sc)===3&&E.bag.buyback[0]?.qty===2&&E.bag.honTe===ht+2*SHARD_SELL.UR,`bán 2 / 5 mảnh Hạo Thiên Chùy (${t})`);
+  t=await trade(E,"buyback",{key:E.bag.buyback[0].key});
+  ok(qtyOf(E,sc)===5&&loose().filter(i=>i.code===sc).length===1&&E.bag.honTe===ht,`mua lại 2 mảnh: gộp về 5 mảnh một ô, Hồn Tệ về như cũ (${t})`);
+  // Chỉ giữ BUYBACK_MAX lần bán gần nhất (mới nhất trước).
+  const ys=[110,120,130,140,150,160];
+  for(const y of ys) await test(E,"give",{code:RING_ITEM,years:y});
+  for(const y of ys) await trade(E,"sell",{id:loose().find(i=>i.code===RING_ITEM&&i.years===y).id});
+  ok(same(E.bag.buyback.map(b=>b.years),ys.slice(-BUYBACK_MAX).reverse()),`bán ${ys.length} hồn hoàn: thương nhân chỉ giữ ${BUYBACK_MAX} chiếc gần nhất (${E.bag.buyback.map(b=>b.years).join(", ")} năm)`);
+  // Đứng xa thì không mua lại được; đi cổng sang Thiên Đấu Thành danh sách vẫn còn, mua lại ở thương nhân Thiên Đấu.
+  await test(E,"goto",{x:30*16,y:20*16});
+  { const bk=bagKey(E); t=await trade(E,"buyback",{key:E.bag.buyback[0].key}); ok(bagKey(E)===bk&&/đứng cạnh thương nhân/.test(t),`đứng xa thương nhân: mua lại bị từ chối (${t})`); }
+  const tt=npcSpot(AT,"thuong_nhan_thien_dau"); await warp(AT,tt.x,tt.y+16);
+  ok(same(E.bag.buyback.map(b=>b.years),ys.slice(-BUYBACK_MAX).reverse())&&E.bag.slots===BAG_MAX_SLOTS,"đi cổng sang Thiên Đấu Thành: danh sách mua lại và số ô túi còn nguyên");
+  ht=E.bag.honTe; t=await trade(E,"buyback",{key:E.bag.buyback[0].key});
+  ok(loose().some(i=>i.code===RING_ITEM&&i.years===160)&&E.bag.honTe===ht-ringSellPrice(160)&&E.bag.buyback.length===BUYBACK_MAX-1,`thương nhân Thiên Đấu mua lại hồn hoàn 160 năm (${t})`);
+  t=await trade(E,"buy",{code:dh.code,qty:1}); ok(/Mua 1 Đại Hồi Huyết Đan/.test(t),`thương nhân Thiên Đấu bán đan lớn cùng giá (${t})`);
+  // Rời game: thương nhân quên đồ đã bán; túi, số ô, Hồn Tệ vẫn lưu.
+  const bk=bagKey(E); await relog();
+  ok(E.bag.buyback?.length===0&&bagKey(E)===bk&&E.bag.slots===BAG_MAX_SLOTS,`rời game rồi vào lại: danh sách mua lại trống, túi ${E.bag.slots} ô và Hồn Tệ còn nguyên`);
+  await E.room.leave();
 }
 
 /**

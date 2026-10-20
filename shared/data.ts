@@ -2968,12 +2968,29 @@ export const ITEMS: ItemDef[] = [
   // Tiên thảo (BĐ6b): mỗi loại một mã (HERBS), gộp 99; dùng cho một võ hồn từ túi đồ.
   ...HERBS.map((h): ItemDef => ({ id: h.id, kind: "tien_thao", name: h.name, col: h.col, stack: 99,
     desc: `Tiên thảo của Lạc Nhật Sâm Lâm. Dùng cho một võ hồn: +${HERB_PCT}% ${HERB_STAT_NAMES[h.stat]} vĩnh viễn, tối đa ${HERB_MAX} cây mỗi võ hồn.` })),
+  // Đan lớn (bước 9.8): bán ở thương nhân để tiêu Hồn Tệ cấp cao, chung hồi chiêu đan (DAN_CD) với đan thường; thương nhân không mua lại.
+  { id: "dai_hoi_huyet_dan", kind: "dan", name: "Đại Hồi Huyết Đan", desc: "Hồi 60% sinh lực của võ hồn đang ra trận.", col: "#ff3b4e", stack: 99, cd: "dan", hp: 0.6 },
+  { id: "dai_hoi_hon_dan",   kind: "dan", name: "Đại Hồi Hồn Đan",   desc: "Hồi 60% hồn lực.",                         col: "#2f7dff", stack: 99, cd: "dan", mp: 0.6 },
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
 export const itemDef = (code: string) => ITEM_INDEX.get(code);
-/** Số ô túi đồ (mỗi ô một món hoặc một chồng đồ gộp). Mở rộng túi để sau. */
+/**
+ * Số ô túi đồ khởi đầu (mỗi ô một món hoặc một chồng đồ gộp). Từ 9.8 mua "Mở rộng túi" ở thương nhân: +BAG_EXPAND ô mỗi lần, tối đa
+ * BAG_MAX_SLOTS; giá lần thứ i là BAG_EXPAND_COST[i] (đồng). Số ô của tài khoản lưu ở `accounts.bag_slots` (NULL = BAG_SLOTS).
+ */
 export const BAG_SLOTS = 40;
+export const BAG_EXPAND = 10;
+export const BAG_MAX_SLOTS = 80;
+export const BAG_EXPAND_COST = [2000, 5000, 10000, 20000];
+/** Số ô hợp lệ từ dữ liệu lưu (null / hỏng = BAG_SLOTS; kẹp BAG_SLOTS..BAG_MAX_SLOTS). */
+export const bagSlotsOf = (x: unknown) => {
+  const n = Math.floor(Number(x));
+  return x === null || x === undefined || !Number.isFinite(n) ? BAG_SLOTS : Math.max(BAG_SLOTS, Math.min(BAG_MAX_SLOTS, n));
+};
+/** Giá (đồng) lần mở rộng kế tiếp khi túi đang có `slots` ô; null = đã tối đa. */
+export const bagExpandCost = (slots: number) =>
+  slots >= BAG_MAX_SLOTS ? null : BAG_EXPAND_COST[Math.max(0, Math.floor((slots - BAG_SLOTS) / BAG_EXPAND))] ?? null;
 /** Hồi chiêu chung (giây) của mọi đan có `cd: "dan"`: dùng Hồi Huyết Đan thì Hồi Hồn Đan cũng phải chờ. */
 export const DAN_CD = 15;
 /** Tài khoản nhận một lần ở lần vào game đầu tiên từ bước 3.1 (cả tài khoản cũ); nguồn đan tạm cho tới khi có thương nhân (6.1). */
@@ -3101,8 +3118,16 @@ const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
 /** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
 export const NPC_RANGE = 40;
-/** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. */
-export const SHOP: { code: string; price: number }[] = [{ code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 }];
+/** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. Đan lớn từ 9.8 (120 đồng, hồi 60%). */
+export const SHOP: { code: string; price: number }[] = [
+  { code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 },
+  { code: "dai_hoi_huyet_dan", price: 120 }, { code: "dai_hoi_hon_dan", price: 120 },
+];
+/**
+ * Mua lại đồ bán nhầm (bước 9.8): thương nhân giữ BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (RAM, mất khi rời game), mua lại
+ * đúng món (cùng chỉ số, cấp cường hóa) với đúng giá đã bán. Thương nhân nào cũng giữ chung danh sách này.
+ */
+export const BUYBACK_MAX = 5;
 /** Số món tối đa mỗi lần mua. */
 export const SHOP_MAX_QTY = 99;
 /** Giá thương nhân mua lại một hồn hoàn theo số năm (đồng; nội suy theo log số năm giữa các mốc, ngoài khoảng thì kẹp). */

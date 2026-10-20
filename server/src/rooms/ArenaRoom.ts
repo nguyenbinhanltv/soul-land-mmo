@@ -27,7 +27,7 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
  * ký làm Colyseus ngắt kết nối client, nên không bỏ hẳn).
  */
 const BLOCKED = ["absorb", "pickup", "discard", "team", "travel", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
-  "unequipcore", "enhance", "enhancecore", "talk", "buy", "sell", "loadout"];
+  "unequipcore", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "loadout"];
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };
 /** Mã đóng kết nối khi trận đã xong và hết ARENA.endSecs: client tự quay về bản đồ cũ. */
 export const ARENA_END_CODE = 4005;
@@ -109,6 +109,9 @@ export class ArenaRoom extends MapRoom {
     if (i >= 0 && !this.done) { this.sides[i].left = true; this.finish(1 - i, "leave"); }
     await super.onLeave(client);
   }
+
+  /** Rời sân là về bản đồ cũ, không phải rời game: giữ danh sách mua lại của thương nhân (9.8). */
+  override forgetBuyback() {}
 
   async onDispose() {
     await super.onDispose();
