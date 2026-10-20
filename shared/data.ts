@@ -65,7 +65,10 @@ export interface MapDef {
   name: string; kind: MapKind;
   level: [number, number] | null; // cấp đề xuất (thành: null)
   years: [number, number] | null; // niên hạn hồn thú (thành: null)
-  /** Mã võ hồn (VOHON) mà hồn thú bản đồ này rơi mảnh (bảng "Rơi đặc trưng" mục 5.3, bước 3.4); mọi vùng của bản đồ dùng chung. */
+  /**
+   * Mã võ hồn (VOHON) mà hồn thú bản đồ này rơi mảnh (bảng "Rơi đặc trưng" mục 5.3, bước 3.4); mọi vùng của bản đồ dùng chung. Bản đồ săn
+   * rơi 2–4 võ hồn (từ 8.3: A Ngân ở Thánh Hồn Thôn, Liệt Hỏa Thương Lang ở Lạc Nhật, Băng Phượng Hoàng ở Cực Bắc; chờ chốt).
+   */
   shards: string[];
   /** Tà hóa thú vương của bản đồ (mã trong BOSSES, bậc 2; BĐ5, mục 5.4): hang là object `boss` trong Tiled. Không có = không có thú vương. */
   king?: string;
@@ -84,7 +87,7 @@ export interface MapDef {
  */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
-    shards: ["lam_ngan_thao", "nhu_cot_tho"], cores: ["lam_ngan", "tien_co"] },
+    shards: ["lam_ngan_thao", "nhu_cot_tho", "a_ngan"], cores: ["lam_ngan", "tien_co"] },
   nac_dinh_thanh: { id: "nac_dinh_thanh", name: "Nặc Đinh Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // BĐ3: tách Tinh Đấu Đại Sâm Lâm (`tinh_dau` của BĐ1–BĐ2) thành Ngoại vi và Nội địa.
   tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000],
@@ -96,12 +99,12 @@ export const MAPS: Record<string, MapDef> = {
   thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // BĐ6b: rừng thực vật / độc quanh suối Băng Hỏa Lưỡng Nghi Nhãn, cổng tây Thiên Đấu Thành. Tiên thảo chỉ rơi ở đây (chờ chốt).
   lac_nhat_sam_lam: { id: "lac_nhat_sam_lam", name: "Lạc Nhật Sâm Lâm", kind: "hunt", level: [40, 70], years: [5000, 30000],
-    shards: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long"], cores: ["xa_hoang", "phuong_hoang"], king: "luong_nghi_thu_ho_xa",
+    shards: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "liet_hoa_thuong_lang"], cores: ["xa_hoang", "phuong_hoang"], king: "luong_nghi_thu_ho_xa",
     herbs: { "Rừng hoa độc": 0.01, "Đầm Bích Lân": 0.02, "Băng Hỏa Tuyền": 0.03, "Lưỡng Nghi Nhãn": 0.05 } },
   // BĐ6c: băng nguyên phía bắc Thiên Đấu Thành, 4 vùng 20.000–80.000 năm (từ vòng 7, giới hạn 50.000 năm, tới vòng 8), thú vương
   // Huyền Minh Băng Giao 80.000 năm.
   cuc_bac_chi_dia: { id: "cuc_bac_chi_dia", name: "Cực Bắc Chi Địa", kind: "hunt", level: [60, 85], years: [20000, 80000],
-    shards: ["yeu_ho", "can_khon_hon_nguyen_toa", "nguyet_nhan"], cores: ["lam_ngan", "that_sat"], king: "huyen_minh_bang_giao" },
+    shards: ["yeu_ho", "can_khon_hon_nguyen_toa", "nguyet_nhan", "bang_phuong_hoang"], cores: ["lam_ngan", "that_sat"], king: "huyen_minh_bang_giao" },
   // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
   dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
@@ -281,6 +284,15 @@ export const VOHON: VoHonDef[] = [
     "#9aa0b4", "#22222c", "Sát thương theo % máu; Loạn Phi Phong Chùy Pháp kết thúc bằng hất tung."),
   vh("cuu_bao_luu_ly_thap", "Cửu Bảo Lưu Ly Tháp", "phu_tro", "UR", "Ninh Vinh Vinh", ["Thiêu đốt"],
     "#7ef0ff", "#2a6a7a", "Tăng công, thủ, tốc cho đội; Vô Địch Thần Quang miễn sát thương."),
+  // Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (EXTRA_VOHON; hệ, độ hiếm, chủ nhân, lưu phái chờ chốt). Chỉ mở bằng mảnh.
+  vh("pha_hon_thuong", "Phá Hồn Thương", "cuong_cong", "SSR", "", ["Phá giáp"],
+    "#7fe0d0", "#1f4a48", "Trường thương lướt đâm xuyên hàng, Phá giáp; phá hồn gây Câm lặng ngắt chiêu."),
+  vh("a_ngan", "A Ngân", "phu_tro", "SSR", "A Ngân (Lam Ngân Hoàng, mẫu thân Đường Tam)", ["Chấn đãng"],
+    "#7fd8ff", "#24527a", "Lam Ngân Hoàng mười vạn năm: hồi máu, khiên cho đội; dây Lam Ngân trói và gây Dễ thương."),
+  vh("liet_hoa_thuong_lang", "Liệt Hỏa Thương Lang", "man_cong", "SR", "", ["Thiêu đốt"],
+    "#ff7a3a", "#4a3a3a", "Sói lửa lao vồ, cắn xé liên hoàn chồng Thiêu đốt; tiếng tru tăng tốc."),
+  vh("bang_phuong_hoang", "Băng Phượng Hoàng", "khong_che", "SSR", "Thủy Băng Nhi", ["Băng phong"],
+    "#a8e8ff", "#2a5a8a", "Bay, băng phong diện rộng: đóng băng (Choáng), Làm chậm, gây Dễ thương."),
 ];
 
 const VOHON_INDEX = new Map(VOHON.map((v, i) => [v.id, i]));
@@ -290,8 +302,13 @@ export const vohonIndex = (id: string) => VOHON_INDEX.get(id) ?? -1;
 // ---------- Lễ thức tỉnh, đội hình và đổi võ hồn ----------
 /** Võ hồn tặng cho mọi tài khoản khi thức tỉnh. */
 export const AWAKEN_GIFT = "lam_ngan_thao";
-/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản. */
-export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR");
+/**
+ * Võ hồn thêm ở bước 8.3 (mục 5.1 "Võ hồn ngoài danh sách SSR cơ bản"): chỉ mở bằng mảnh (MapDef.shards, KING_CHEST.every, ARENA_SHARDS),
+ * không vào lựa chọn thức tỉnh dù có độ hiếm SSR.
+ */
+export const EXTRA_VOHON = ["pha_hon_thuong", "a_ngan", "liet_hoa_thuong_lang", "bang_phuong_hoang"];
+/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản (17 võ hồn, không gồm EXTRA_VOHON). */
+export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR" && !EXTRA_VOHON.includes(v.id));
 /** Số ô của đội hình võ hồn (mục 3, 5.1). Bảng `teams` lưu ô 0..TEAM_SIZE-1. */
 export const TEAM_SIZE = 4;
 /** Hồi chiêu sau mỗi lần đổi võ hồn trong đội khi đang đánh (giây, mục 5.1 "Trong trận"). */
@@ -870,17 +887,19 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  * Rương tà hóa thú vương (mục 5.3 "Rơi đặc trưng", 5.4; chờ chốt trừ mảnh UR 5% đã chốt). Mở trong túi đồ (cần `slots` ô trống):
  * - Hồn cốt: tỉ lệ boneChance(năm thú vương, `bone`) (bảng rơi 4.1 nhân hệ số), loài gốc của thú vương, cùng số năm, vị trí ngẫu nhiên.
  * - Mảnh võ hồn: `shards` [ít nhất, nhiều nhất] mảnh của một võ hồn trong kingShardPool (mảnh của bản đồ đó, Tà Hỏa Phượng Hoàng,
+ *   từ 8.3 cả `every` (Phá Hồn Thương: không bản đồ nào rơi, chỉ có ở rương mọi thú vương và thưởng Đại Đấu Hồn Trường; chờ chốt),
  *   và trước BĐ6 cả võ hồn của bản đồ chưa mở để không võ hồn nào bị khóa hẳn).
  * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 bỏ.
  * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
  *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
  */
 export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0.05, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
-  fire: "ta_hoa_phuong_hoang", later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
+  fire: "ta_hoa_phuong_hoang", every: ["pha_hon_thuong"], later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
     "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
-/** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa 2, bản đồ chưa mở 1. */
+/** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa và `every` (8.3) 2, bản đồ chưa mở 1. */
 export const kingShardPool = (mapId: string) => [
   ...(MAPS[mapId]?.shards ?? []).map((v) => ({ vohon: v, w: 3 })), { vohon: KING_CHEST.fire, w: 2 },
+  ...KING_CHEST.every.map((v) => ({ vohon: v, w: 2 })),
   ...KING_CHEST.later.filter((v) => !Object.values(MAPS).some((m) => m.shards.includes(v))).map((v) => ({ vohon: v, w: 1 })),
 ];
 /** Mã vật phẩm rương của thú vương `bossId` (cột `items.code`; mỗi thú vương một mã, gộp được). Không đổi cách đặt mã. */
@@ -985,7 +1004,7 @@ export interface SkillDef {
 
 /**
  * 4 hồn kỹ dùng chung (Giai đoạn 1) cho võ hồn chưa có hồn kỹ riêng. Không đổi số khi thêm hồn kỹ riêng. Từ 2.5d mọi võ hồn trong
- * VOHON đều có hồn kỹ riêng nên không võ hồn nào dùng bảng này nữa; giữ làm dự phòng cho võ hồn thêm sau (Phá Hồn Thương, A Ngân…).
+ * VOHON đều có hồn kỹ riêng nên không võ hồn nào dùng bảng này nữa (8.3: cả 4 võ hồn thêm sau cũng có); giữ làm dự phòng.
  */
 export const SKILLS: SkillDef[] = [
   { name: "Hồn Bạo",    desc: "Nổ hồn lực quanh thân", icon: "✹", cost: 12, cd: 3,   area: "around", r: 50, dmg: 2.2 },
@@ -996,7 +1015,7 @@ export const SKILLS: SkillDef[] = [
 
 /**
  * Hồn kỹ riêng vòng 1–4 theo mã võ hồn (bước 2.5a: 5 võ hồn mẫu, mỗi hệ ít nhất một; 2.5b: 5 võ hồn lưu phái Thiêu đốt; 2.5c: 5 võ hồn lưu phái Cảm điện;
- * 2.5d: 5 võ hồn còn lại, đủ cả 20; mọi số chờ chốt). Hồn kỹ thứ i mở khi có
+ * 2.5d: 5 võ hồn còn lại, đủ cả 20; 8.3: 4 võ hồn ngoài danh sách SSR cơ bản; mọi số chờ chốt). Hồn kỹ thứ i mở khi có
  * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS: Record<string, SkillDef[]> = {
@@ -1229,6 +1248,52 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "around", r: 80, dmg: 1.2, status: [{ s: "vuln", secs: 6 }, { s: "silence", secs: 2 }], dispel: true },
     { name: "Lưu Ly Hộ Thế", desc: "Hồi 30% sinh lực cả đội, khiên 20% sinh lực tối đa 6 giây", icon: "✷", cost: 40, cd: 18,
       area: "self", r: 0, dmg: 0, glow: true, self: { secs: 6, heal: 0.3, shield: 0.2 } },
+  ],
+  // ---- Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (mọi số và tên hồn kỹ chờ chốt). ----
+  // Cường công, phá giáp: trường thương lướt đâm xuyên hàng, Phá giáp; "phá hồn" gây Câm lặng (ngắt chiêu báo trước của hồn thú).
+  pha_hon_thuong: [
+    { name: "Phá Hồn Thứ", desc: "Đâm thương nửa trước mặt: Phá giáp 1 tầng", icon: "➹", cost: 12, cd: 3.5,
+      area: "front", r: 56, dmg: 2.2, status: [{ s: "armor" }] },
+    { name: "Thương Ảnh Đột Kích", desc: "Lướt đâm xuyên hàng hồn thú phía trước: Phá giáp 1 tầng, bất tử 0,3 giây", icon: "➤", cost: 16, cd: 5,
+      area: "dash", r: 80, dmg: 2, inv: 0.3, status: [{ s: "armor" }] },
+    { name: "Phá Hồn Tỏa Phách", desc: "Lướt tới đâm mục tiêu 3 nhát, mỗi nhát Phá giáp 1 tầng; nhát cuối phá hồn (Câm lặng 2 giây)", icon: "⚔", cost: 22, cd: 9,
+      area: "target", r: 90, dash: 60, n: 3, every: 0.18, dmg: 0.9, status: [{ s: "armor" }], finisher: [{ s: "silence", secs: 2 }] },
+    { name: "Phá Hồn Nhất Thương", desc: "Một thương phá hồn quét nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công, Phá giáp 2 tầng, Câm lặng 1,5 giây", icon: "⚡", cost: 40, cd: 14,
+      area: "front", r: 70, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }, { s: "silence", secs: 1.5 }] },
+  ],
+  // Phụ trợ, chấn đãng: Lam Ngân Hoàng mười vạn năm (mẫu thân Đường Tam): dây Lam Ngân trói, Dễ thương; hồi máu, khiên, tăng công cho đội
+  // (hiệu ứng thuộc hồn sư nên đổi võ hồn vẫn còn).
+  a_ngan: [
+    { name: "Lam Ngân Triền Phược", desc: "Dây Lam Ngân quấn mục tiêu gần nhất: Trói 2 giây", icon: "❦", cost: 12, cd: 4,
+      area: "target", r: 90, dmg: 1.4, status: [{ s: "root" }] },
+    { name: "Lam Ngân Hồi Xuân", desc: "Hồi 18% sinh lực cả đội", icon: "✚", cost: 14, cd: 9,
+      area: "self", r: 0, dmg: 0, self: { heal: 0.18 } },
+    { name: "Hoàng Giả Hộ Thể", desc: "Lam Ngân Hoàng che chở: công +20%, khiên 12% sinh lực tối đa trong 8 giây (cả đội)", icon: "◈", cost: 20, cd: 14,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.2 }, secs: 8, shield: 0.12 } },
+    { name: "Lam Ngân Tế Thế", desc: "Lam Ngân kéo mọi hồn thú quanh thân lại: Trói 2 giây, Dễ thương 5 giây; hồi 20% sinh lực cả đội", icon: "✿", cost: 40, cd: 16,
+      area: "around", r: 90, dmg: 1.6, pull: true, glow: true, status: [{ s: "root" }, { s: "vuln" }], self: { heal: 0.2 } },
+  ],
+  // Mẫn công, thiêu đốt: sói lửa lao vồ, cắn xé liên hoàn chồng Thiêu đốt, tiếng tru tăng tốc.
+  liet_hoa_thuong_lang: [
+    { name: "Liệt Hỏa Phệ Giảo", desc: "Lao tới cắn mục tiêu 2 nhát, mỗi nhát Thiêu đốt 1 tầng", icon: "≋", cost: 12, cd: 3,
+      area: "target", r: 50, dash: 40, n: 2, every: 0.15, dmg: 1, status: [{ s: "burn" }] },
+    { name: "Thương Lang Đột Tập", desc: "Lao xuyên hàng hồn thú phía trước: Thiêu đốt 1 tầng, bất tử 0,3 giây", icon: "➤", cost: 14, cd: 4.5,
+      area: "dash", r: 80, dmg: 1.8, inv: 0.3, status: [{ s: "burn" }] },
+    { name: "Thương Lang Hống", desc: "Tru vang quanh thân (Làm chậm 2 giây); tốc độ +30%, công +15% trong 8 giây", icon: "◉", cost: 20, cd: 14,
+      area: "around", r: 80, dmg: 1, status: [{ s: "slow" }], self: { buff: { spd: 0.3, atk: 0.15 }, secs: 8 } },
+    { name: "Liệt Hỏa Cuồng Trảo", desc: "Lướt tới cào xé mục tiêu 6 nhát, +20% chí mạng, mỗi nhát Thiêu đốt 1 tầng", icon: "✥", cost: 40, cd: 14,
+      area: "target", r: 70, dash: 60, n: 6, every: 0.12, dmg: 0.8, crit: 0.2, inv: 0.4, glow: true, status: [{ s: "burn" }] },
+  ],
+  // Khống chế, băng phong: bay, đóng băng (tạm dùng Choáng sẵn có, như hồn thú băng ở BĐ6c), Làm chậm, Dễ thương.
+  bang_phuong_hoang: [
+    { name: "Băng Phượng Vũ", desc: "Phóng 3 lông vũ băng hình quạt, mỗi lông Làm chậm 2 giây", icon: "➶", cost: 12, cd: 3,
+      area: "proj", r: 120, n: 3, spread: 40, dmg: 1, status: [{ s: "slow" }] },
+    { name: "Hàn Băng Tức", desc: "Hơi thở băng nửa trước mặt: Làm chậm 2 giây, Dễ thương 4 giây", icon: "❄", cost: 16, cd: 6,
+      area: "front", r: 60, dmg: 1.6, status: [{ s: "slow" }, { s: "vuln", secs: 4 }] },
+    { name: "Băng Phong Lĩnh Vực", desc: "Băng vực đặt xuống chỗ đứng 3 giây: 6 nhát, mỗi nhát Làm chậm; nhát cuối đóng băng (Choáng 1,2 giây)", icon: "❂", cost: 22, cd: 11,
+      area: "around", fixed: true, r: 90, n: 6, every: 0.5, dmg: 0.4, status: [{ s: "slow", secs: 1 }], finisher: [{ s: "stun", secs: 1.2 }] },
+    { name: "Băng Phượng Phong Ấn", desc: "Bay lên rồi giáng băng quanh thân: đóng băng (Choáng 2 giây), Dễ thương 5 giây", icon: "✾", cost: 40, cd: 14,
+      area: "around", r: 100, dmg: 2.4, fly: 0.5, glow: true, shake: true, status: [{ s: "stun", secs: 2 }, { s: "vuln" }] },
   ],
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
@@ -1529,6 +1594,63 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       status: [{ s: "vuln", secs: 10 }, { s: "armor", n: 3 }, { s: "silence", secs: 3 }],
       self: { buff: { def: 0.3 }, secs: 10, heal: 0.5, shield: 0.3, cleanse: true } },
   ],
+  // ---- Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (mọi số và tên hồn kỹ chờ chốt). ----
+  // Cường công, phá giáp: thương liên hoàn, mũi thương mang, chém phá hồn theo tầng Phá giáp; tuyệt kỹ đâm liên hoàn ngắt chiêu.
+  pha_hon_thuong: [
+    { name: "Phá Hồn Liên Thương", desc: "Lướt tới đâm mục tiêu 4 nhát, mỗi nhát Phá giáp 1 tầng", icon: "⚔", cost: 45, cd: 9,
+      area: "target", r: 100, dash: 80, n: 4, every: 0.15, dmg: 1.1, status: [{ s: "armor" }] },
+    { name: "Thương Mang Phá Không", desc: "Phóng 5 mũi thương mang hình quạt, mỗi mũi Phá giáp 1 tầng", icon: "✶", cost: 50, cd: 12,
+      area: "proj", r: 160, n: 5, spread: 30, dmg: 1.4, status: [{ s: "armor" }] },
+    { name: "Phá Hồn Trảm Phách", desc: "Thương quét nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 50% công, Phá giáp 2 tầng, Câm lặng 2,5 giây", icon: "⚡", cost: 60, cd: 18,
+      area: "front", r: 90, dmg: 4.2, perStack: { s: "armor", dmg: 0.5 }, glow: true, status: [{ s: "armor", n: 2 }, { s: "silence", secs: 2.5 }] },
+    { name: "Xuyên Vân Phá Nhật", desc: "Lướt xa xuyên hàng hồn thú: mỗi tầng Phá giáp thêm 50% công, Phá giáp đủ 3 tầng, bất tử 0,6 giây", icon: "➹", cost: 70, cd: 20,
+      area: "dash", r: 140, dmg: 5, perStack: { s: "armor", dmg: 0.5 }, inv: 0.6, shake: true, status: [{ s: "armor", n: 3 }] },
+    { name: "Phá Hồn Diệt Phách · Thiên Thương", desc: "Tuyệt kỹ: lướt tới đâm mục tiêu 6 nhát, mỗi nhát Phá giáp và thêm 30% công mỗi tầng Phá giáp, Câm lặng 3 giây; nhát cuối Choáng 1,5 giây", icon: "⚡", cost: 100, cd: 45,
+      area: "target", r: 130, dash: 110, n: 6, every: 0.12, dmg: 1.4, perStack: { s: "armor", dmg: 0.3 }, inv: 1, glow: true, shake: true, ult: true,
+      status: [{ s: "armor" }, { s: "silence", secs: 3 }], finisher: [{ s: "stun", secs: 1.5 }] },
+  ],
+  // Phụ trợ, chấn đãng: Lam Ngân Hoàng giam cả vùng, hồi máu, thanh tẩy, tăng chỉ số cho đội; tuyệt kỹ Lam Ngân Hoàng · Sinh Sinh Bất Tức.
+  a_ngan: [
+    { name: "Lam Ngân Tù Thiên", desc: "Lam Ngân kéo mọi hồn thú quanh thân lại và giam: Trói 2,5 giây, Dễ thương 6 giây", icon: "⌘", cost: 45, cd: 14,
+      area: "around", r: 110, dmg: 2.2, pull: true, status: [{ s: "root", secs: 2.5 }, { s: "vuln", secs: 6 }] },
+    { name: "Lam Ngân Thánh Dũ", desc: "Hồi 25% sinh lực cả đội, khiên 15% sinh lực tối đa 6 giây, thanh tẩy", icon: "✚", cost: 50, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { secs: 6, heal: 0.25, shield: 0.15, cleanse: true } },
+    { name: "Vạn Lý Lam Ngân", desc: "10 sợi Lam Ngân bắn vòng tròn, mỗi sợi Trói 1,5 giây, Dễ thương 4 giây", icon: "❀", cost: 60, cd: 18,
+      area: "proj", r: 170, n: 10, spread: 360, dmg: 1.3, status: [{ s: "root", secs: 1.5 }, { s: "vuln", secs: 4 }] },
+    { name: "Hoàng Giả Chúc Phúc", desc: "Công +30%, sát thương nhận giảm 20%, tốc độ +15% trong 12 giây, khiên 15% (cả đội)", icon: "✦", cost: 60, cd: 22,
+      area: "self", r: 0, dmg: 0, glow: true, self: { buff: { atk: 0.3, def: 0.2, spd: 0.15 }, secs: 12, shield: 0.15 } },
+    { name: "Lam Ngân Hoàng · Sinh Sinh Bất Tức", desc: "Tuyệt kỹ: Lam Ngân Hoàng phủ cả vùng, kéo mọi hồn thú lại và giam (Trói 3,5 giây, Dễ thương 8 giây); hồi 50% sinh lực cả đội, khiên 25%, sát thương nhận giảm 25% trong 10 giây, thanh tẩy", icon: "✿", cost: 100, cd: 50,
+      area: "around", r: 160, dmg: 3, pull: true, glow: true, shake: true, ult: true, status: [{ s: "root", secs: 3.5 }, { s: "vuln", secs: 8 }],
+      self: { buff: { def: 0.25 }, secs: 10, heal: 0.5, shield: 0.25, cleanse: true } },
+  ],
+  // Mẫn công, thiêu đốt: cắn xé chồng Thiêu đốt, lao xa, bầy sói lửa, khóa mục tiêu yếu máu; tuyệt kỹ cào xé liên hoàn.
+  liet_hoa_thuong_lang: [
+    { name: "Lang Nha Liệt Diễm", desc: "Nanh lửa cắn nửa trước mặt, +20% chí mạng: Thiêu đốt 2 tầng", icon: "≋", cost: 45, cd: 9,
+      area: "front", r: 60, dmg: 2.4, crit: 0.2, status: [{ s: "burn", n: 2 }] },
+    { name: "Hỏa Lang Bôn Tập", desc: "Lao xa xuyên hàng hồn thú: Thiêu đốt 2 tầng, bất tử 0,5 giây", icon: "➤", cost: 50, cd: 12,
+      area: "dash", r: 120, dmg: 2.8, inv: 0.5, status: [{ s: "burn", n: 2 }] },
+    { name: "Liệt Hỏa Lang Quần", desc: "Gọi 5 sói lửa lao ra hình quạt, mỗi con Thiêu đốt 2 tầng", icon: "✶", cost: 60, cd: 16,
+      area: "proj", r: 150, n: 5, spread: 70, dmg: 1.5, status: [{ s: "burn", n: 2 }] },
+    { name: "Thương Lang Diệt Ảnh", desc: "Khóa hồn thú yếu máu nhất, lướt tới cắn 4 nhát (tới +100% khi mục tiêu ít máu, mỗi tầng Thiêu đốt thêm 30% công), +30% chí mạng", icon: "☽", cost: 70, cd: 20,
+      area: "target", r: 130, pick: "low", dash: 110, n: 4, every: 0.1, dmg: 1.4, lowHp: 1, perStack: { s: "burn", dmg: 0.3 }, crit: 0.3, inv: 0.5 },
+    { name: "Liệt Hỏa Thương Lang · Phần Thiên Phệ", desc: "Tuyệt kỹ: hóa sói lửa lướt tới cào xé mục tiêu 10 nhát, +30% chí mạng, mỗi nhát Thiêu đốt 1 tầng; nhát cuối Choáng 1,5 giây", icon: "✥", cost: 100, cd: 45,
+      area: "target", r: 140, dash: 120, n: 10, every: 0.1, dmg: 0.9, crit: 0.3, inv: 1.2, glow: true, shake: true, ult: true,
+      status: [{ s: "burn" }], finisher: [{ s: "stun", secs: 1.5 }] },
+  ],
+  // Khống chế, băng phong: bay lướt, băng vực đặt vào hồn thú, mưa lông vũ băng, đóng băng (Choáng) diện rộng; tuyệt kỹ đóng băng cả vùng.
+  bang_phuong_hoang: [
+    { name: "Băng Phượng Xuyên Vân", desc: "Bay lướt xuyên hàng hồn thú: Làm chậm 2 giây, bất tử 0,4 giây", icon: "➠", cost: 45, cd: 10,
+      area: "dash", r: 110, dmg: 2.4, fly: 0.4, inv: 0.4, status: [{ s: "slow" }] },
+    { name: "Huyền Băng Lãnh Vực", desc: "Băng vực đặt lên hồn thú gần nhất 3 giây: 6 nhát, Làm chậm, Dễ thương 4 giây; nhát cuối đóng băng (Choáng 1,5 giây)", icon: "❂", cost: 50, cd: 14,
+      area: "around", at: 140, r: 90, n: 6, every: 0.5, dmg: 0.5, status: [{ s: "slow", secs: 1 }, { s: "vuln", secs: 4 }], finisher: [{ s: "stun", secs: 1.5 }] },
+    { name: "Vạn Băng Phượng Vũ", desc: "12 lông vũ băng bắn vòng tròn, mỗi lông Làm chậm 2 giây", icon: "✶", cost: 60, cd: 16,
+      area: "proj", r: 170, n: 12, spread: 360, dmg: 1.4, status: [{ s: "slow" }] },
+    { name: "Cực Hàn Băng Phong", desc: "Hàn khí cực độ quanh thân: đóng băng (Choáng 2,5 giây), Dễ thương 6 giây", icon: "❄", cost: 70, cd: 20,
+      area: "around", r: 130, dmg: 3.6, glow: true, status: [{ s: "stun", secs: 2.5 }, { s: "vuln", secs: 6 }] },
+    { name: "Băng Phượng Hoàng · Băng Phong Thiên Địa", desc: "Tuyệt kỹ: bay lên rồi đóng băng cả vùng: Choáng 3,5 giây, Dễ thương 8 giây, Làm chậm 4 giây, bất tử 1 giây", icon: "❄", cost: 100, cd: 45,
+      area: "around", r: 170, dmg: 5.5, fly: 0.6, inv: 1, glow: true, shake: true, ult: true,
+      status: [{ s: "stun", secs: 3.5 }, { s: "vuln", secs: 8 }, { s: "slow", secs: 4 }] },
+  ],
 };
 /**
  * Hồn kỹ của vòng có chỉ số `ring` (0..MAX_RINGS − 1) của võ hồn: vòng 1–4 từ skillsOf, vòng 5, 6, 8, 9, 10 từ VOHON_SKILLS_HIGH; null nếu
@@ -1638,6 +1760,19 @@ export const CHAN_THAN: Record<string, ChanThanDef> = {
   thien_can_bach_ngoc_dinh: { name: "Thiên Càn Bạch Ngọc Đỉnh Chân Thân", desc: "Hóa thân đỉnh ngọc: trấn áp quanh thân (Dễ thương 6 giây, xóa hiệu ứng có lợi của hồn thú), hồi 25% sinh lực cả đội, khiên 20%, thanh tẩy; công +15%, sát thương nhận giảm 35%, hồn kỹ tốn ít hơn 20%, sinh lực tối đa +25%",
     icon: "✚", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.35, mp: 0.2, hp: 0.25 },
     burst: ctBurst("Thiên Càn Bạch Ngọc Đỉnh Chân Thân", { r: 100, dmg: 1.2, dispel: true, status: [{ s: "vuln", secs: 6 }], self: { heal: 0.25, shield: 0.2, secs: 15, cleanse: true } }) },
+  // ---- Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (mọi số chờ chốt) ----
+  pha_hon_thuong: { name: "Phá Hồn Thương Chân Thân", desc: "Hóa thân thần thương: thương mang nổ quanh thân (Phá giáp đủ 3 tầng, Câm lặng 2 giây); công +35%, chí mạng +15%, tốc độ +15%",
+    icon: "⚔", cost: 80, cd: 90, secs: 15, stats: { atk: 0.35, crit: 0.15, spd: 0.15 },
+    burst: ctBurst("Phá Hồn Thương Chân Thân", { r: 100, dmg: 2.2, shake: true, status: [{ s: "armor", n: 3 }, { s: "silence", secs: 2 }] }) },
+  a_ngan: { name: "A Ngân Chân Thân", desc: "Hóa thân Lam Ngân Hoàng mười vạn năm: kéo hồn thú quanh thân lại (Trói 2 giây), hồi 25% sinh lực cả đội, khiên 15%; công +15%, sát thương nhận giảm 30%, hồn kỹ tốn ít hơn 20%, sinh lực tối đa +25%",
+    icon: "✿", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.3, mp: 0.2, hp: 0.25 },
+    burst: ctBurst("A Ngân Chân Thân", { r: 100, dmg: 1.5, pull: true, status: [{ s: "root", secs: 2 }], self: { heal: 0.25, shield: 0.15, secs: 15 } }) },
+  liet_hoa_thuong_lang: { name: "Liệt Hỏa Thương Lang Chân Thân", desc: "Hóa thân sói lửa: cào lửa quanh thân (+30% chí mạng, Thiêu đốt 3 tầng); công +25%, tốc độ +35%, chí mạng +20%",
+    icon: "✥", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.35, crit: 0.2 },
+    burst: ctBurst("Liệt Hỏa Thương Lang Chân Thân", { r: 80, dmg: 2, crit: 0.3, status: [{ s: "burn", n: 3 }] }) },
+  bang_phuong_hoang: { name: "Băng Phượng Hoàng Chân Thân", desc: "Hóa thân Băng Phượng Hoàng: bay lên giáng băng quanh thân (đóng băng: Choáng 1,5 giây, Làm chậm 3 giây); công +20%, sát thương nhận giảm 25%, tốc độ +15%, sinh lực tối đa +20%",
+    icon: "❄", cost: 80, cd: 90, secs: 15, stats: { atk: 0.2, def: 0.25, spd: 0.15, hp: 0.2 },
+    burst: ctBurst("Băng Phượng Hoàng Chân Thân", { r: 110, dmg: 1.8, fly: 0.5, status: [{ s: "stun", secs: 1.5 }, { s: "slow", secs: 3 }] }) },
 };
 export const chanThanOf = (vohonId: string): ChanThanDef | null => CHAN_THAN[vohonId] ?? null;
 /** Bán kính lãnh vực phượng hoàng của hồn sư có võ hồn ra trận `vohonId`, `ava` = đang Chân Thân (8.1b; server tính trúng, client vẽ). */
@@ -1697,6 +1832,15 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
   // Từ 3.5 thanh tẩy đội: giải mọi trạng thái trên hồn sư (do chiêu báo trước của hồn thú gây), như Xúc Xích.
   thien_can_bach_ngoc_dinh: { name: "Bạch Ngọc Thánh Quang", desc: "hồi 20% sinh lực cả đội, khiên 18% sinh lực tối đa 6 giây, thanh tẩy", icon: "✚", cost: 0, cd: 0,
     area: "self", r: 0, dmg: 0, self: { heal: 0.2, shield: 0.18, secs: 6, cleanse: true } },
+  // Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản.
+  pha_hon_thuong: { name: "Phá Hồn Xuyên Tâm", desc: "lướt đâm xuyên hàng hồn thú: Phá giáp 2 tầng, phá hồn (Câm lặng 1,5 giây)", icon: "➹", cost: 0, cd: 0,
+    area: "dash", r: 100, dmg: 2.4, inv: 0.35, shake: true, status: [{ s: "armor", n: 2 }, { s: "silence", secs: 1.5 }] },
+  a_ngan: { name: "Lam Ngân Hoàng Ân", desc: "Lam Ngân kéo hồn thú quanh thân lại (Trói 2 giây), hồi 20% sinh lực cả đội", icon: "✿", cost: 0, cd: 0,
+    area: "around", r: 72, dmg: 1, pull: true, status: [{ s: "root" }], self: { heal: 0.2 } },
+  liet_hoa_thuong_lang: { name: "Liệt Hỏa Lang Tập", desc: "lao tới hồn thú gần nhất cắn 3 nhát, mỗi nhát Thiêu đốt 1 tầng", icon: "≋", cost: 0, cd: 0,
+    area: "target", r: 110, dash: 90, n: 3, every: 0.1, dmg: 1.2, inv: 0.35, status: [{ s: "burn" }] },
+  bang_phuong_hoang: { name: "Băng Phượng Lâm Thế", desc: "bay lên rồi giáng băng quanh thân: đóng băng (Choáng 1,5 giây), Làm chậm 3 giây", icon: "❄", cost: 0, cd: 0,
+    area: "around", r: 90, dmg: 1.2, fly: 0.5, status: [{ s: "stun" }, { s: "slow", secs: 3 }] },
 };
 
 /**

@@ -398,6 +398,12 @@ const HAMMER: Record<Dir3, AnimAngles> = {
   right: { idle: [-70, -70], walk: [-68, -70, -72, -70], attack: [-150, 30, 70], cast: [-70, -70, -70] },
   up: { idle: [-70, -70], walk: [-70, -70, -70, -70], attack: [-90, -90, 60], cast: [-70, -70, -70] },
 };
+/** Góc trường thương của Phá Hồn Thương (8.3): dựng đứng khi đứng / đi (mũi vượt quá đầu), đâm thẳng ra trước khi đánh. */
+const SPEAR: Record<Dir3, AnimAngles> = {
+  down: { idle: [-100, -100], walk: [-100, -97, -100, -103], attack: [-100, 75, 90], cast: [-95, -95, -100] },
+  right: { idle: [-80, -80], walk: [-80, -77, -80, -83], attack: [-110, 0, 5], cast: [-85, -85, -90] },
+  up: { idle: [-80, -80], walk: [-80, -77, -80, -83], attack: [-80, -90, -90], cast: [-85, -85, -90] },
+};
 /** Nhịp vỗ cánh / vẫy đuôi. */
 const FLAP: Partial<Record<HsAnim, number[]>> = { idle: [0, 1], walk: [0, 1, 2, 1], attack: [2, 0, 1], cast: [2, 2, 0] };
 const dither = (c: string) => (x: number, y: number) => ((x + y) & 1 ? null : c);
@@ -659,6 +665,63 @@ function drawVohon(v: { id: string; col: string; robe: string }, P: Pose, L: VhL
       HM.set(cx, by - 9, "#ffffff"); HM.set(cx, by - 10, C.l);
       const rainbow = ["#ff3030", "#ff6a2a", "#ffe066", "#5a9440", "#5a9cc9", "#2d6a96", "#8a6bff"];
       for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2 + ph * 0.3; HMfx.set(cx + Math.cos(a) * 7, by - 4 + Math.sin(a) * 6, rainbow[k % 7]); }
+      break;
+    }
+    // ---- Bước 8.3 ----
+    case "pha_hon_thuong": {
+      // Trường thương: cán dài sáng màu robe, mũi thương hình thoi màu col, tua đỏ dưới mũi; hồn quang mờ bám mũi thương.
+      const a = (SPEAR[P.dir][P.anim]?.[P.i] ?? -90) * Math.PI / 180, uu: Pt = [Math.cos(a), Math.sin(a)], nn: Pt = [-uu[1], uu[0]], tip = 20;
+      for (let t = -7; t <= tip - 4; t += 0.5) HM.set(hm.x + uu[0] * t, hm.y + uu[1] * t, Math.round(t) % 5 === 0 ? R.b : R.l);
+      for (let t = tip - 4; t <= tip + 2; t += 0.5) {
+        const w = t < tip - 1 ? (t - tip + 4) * 0.6 : (tip + 2 - t) * 0.6;
+        for (let s = -w; s <= w; s += 0.5) HM.set(hm.x + uu[0] * t + nn[0] * s, hm.y + uu[1] * t + nn[1] * s, s < 0 ? C.l : C.b);
+      }
+      for (const k of [-1, 1]) HM.set(hm.x + uu[0] * (tip - 5) + nn[0] * k, hm.y + uu[1] * (tip - 5) + nn[1] * k, "#a8303a");
+      HM.set(hm.x + uu[0] * (tip - 6) + nn[0] * 1.5, hm.y + uu[1] * (tip - 6) + nn[1] * 1.5, "#a8303a");
+      for (let k = 0; k < 3; k++) HMfx.set(hm.x + uu[0] * (tip + 3 + k) + nn[0] * ((ph + k) % 3 - 1), hm.y + uu[1] * (tip + 3 + k) + nn[1] * ((ph + k) % 3 - 1), k % 2 ? "#ffffff" : C.l);
+      if (P.anim === "attack" && P.i === 1) line(HMfx, hm.x + uu[0] * 4, hm.y + uu[1] * 4, hm.x + uu[0] * (tip + 8), hm.y + uu[1] * (tip + 8), C.l);
+      break;
+    }
+    case "a_ngan": {
+      // Lam Ngân Hoàng: dây lam ngân có vân vàng quấn hai tay, vương miện cỏ trên đầu, đóa hoa lam ngân nở sau lưng.
+      for (const [S, h, b] of [[P.sm, P.main, HMfx], [P.so, P.off, HOfx]] as [Pt, Hand, Buf][]) {
+        const nn = Math.max(Math.abs(h.x - S[0]), Math.abs(h.y - S[1]), 1);
+        for (let k = 0; k <= nn; k++) {
+          const x = S[0] + (h.x - S[0]) * k / nn, y = S[1] + (h.y - S[1]) * k / nn;
+          b.set(x + ((k + ph) % 2), y, k % 3 === 2 ? "#f2c84b" : k % 2 ? R.b : C.b);
+        }
+      }
+      const Y = 3 + bob;
+      if (!up) for (let k = -2; k <= 2; k++) { L.front.set(16 + k * 2 - (side ? 2 : 0), Y - (k & 1 ? 1 : 2), C.l); L.front.set(16 + k * 2 - (side ? 2 : 0), Y, "#f2c84b"); }
+      const fx = side ? 10 : 16, fy = 12 + bob;
+      for (let k = 0; k < 6; k++) {
+        const a = k / 6 * Math.PI * 2 + 0.5, ex = fx + Math.cos(a) * 7, ey = fy + Math.sin(a) * 6;
+        tube(BK, [[fx, fy], [ex, ey]], 1.2, 2, (t) => (t > 0.7 ? C.l : C.b));
+      }
+      disc(BK, fx, fy, 1.6, "#f2c84b");
+      for (let k = 0; k < 3; k++) L.frontFx.set(5 + ((k * 9 + ph * 3) % 22), 20 + ((k * 5 + ph) % 9), k % 2 ? "#f2c84b" : C.l);
+      break;
+    }
+    case "liet_hoa_thuong_lang": {
+      // Sói lửa: tai sói xám, đuôi sói to chóp lửa, vuốt lửa hai tay, tàn lửa bay quanh.
+      ears(L.front, R, C.b, 6);
+      const ty = 23 + bob;
+      if (side) tail(BK, [[12, ty], [7, ty + 1], [3, ty - 2], [1, ty - 6 + flap]], 2, 1.4, R, C.b);
+      else tail(BK, [[up ? 16 : 18, ty], [23, ty + 1], [27, ty - 3], [28, ty - 7 + flap]], 2, 1.4, R, C.b);
+      for (let k = 0; k < 3; k++) BKfx.set((side ? 1 : 27) + ((ph + k) % 3) - 1, ty - 9 + flap - k * 2, k % 2 ? "#ffe066" : C.l);
+      claws(HM, P.main, C, handDir(P.sm, P.main)); claws(HO, P.off, C, handDir(P.so, P.off));
+      for (const [h, b] of [[P.main, HMfx], [P.off, HOfx]] as [Hand, Buf][]) { b.set(h.x + (ph % 2), h.y - 2, C.l); b.set(h.x + 1 - (ph % 2), h.y - 3, "#ffe066"); }
+      if (P.anim === "attack" && P.i === 1) for (let k = 0; k < 3; k++) line(HMfx, hm.x - 3 + k * 2, hm.y - 4, hm.x + k * 2, hm.y + 2, k === 1 ? "#ffe066" : C.l);
+      break;
+    }
+    case "bang_phuong_hoang": {
+      // Đôi cánh băng phượng hoàng, mào băng trên đầu, tinh thể băng rơi quanh người.
+      wings(BK, C, R, true);
+      if (!up) { const Y = 2 + bob, cx = side ? 15 : 16; L.front.set(cx, Y, C.l); L.front.set(cx - 1, Y - 1, C.b); L.front.set(cx + 1, Y - 2, C.l); L.front.set(cx, Y - 3, "#ffffff"); }
+      for (let k = 0; k < 4; k++) {
+        const x = 4 + ((k * 7 + ph * 3) % 24), y = 6 + bob + ((k * 9 + ph * 2) % 20), b = k % 2 ? BKfx : L.frontFx;
+        b.set(x, y, "#ffffff"); b.set(x - 1, y, C.l); b.set(x + 1, y, C.l); b.set(x, y - 1, C.l); b.set(x, y + 1, C.l);
+      }
       break;
     }
   }
