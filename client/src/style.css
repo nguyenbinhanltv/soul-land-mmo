@@ -437,9 +437,13 @@ body.boss #target{top:calc(var(--bossh,62px) + 10px)}
 #bossCd{position:absolute;left:50%;top:10px;transform:translateX(-50%);padding:4px 12px;font-size:12.5px;font-weight:800;white-space:nowrap;
   background:var(--panel);border:2px solid var(--c,#ff5a5a);color:var(--c,#ff5a5a);text-shadow:0 1px 0 #000;font-variant-numeric:tabular-nums}
 body.boss #bossCd{top:calc(var(--bossh,62px) + 10px)}
-#bossRank{position:absolute;right:10px;top:180px;width:190px;padding:6px 8px;font-size:11.5px}
+#bossRank{position:absolute;right:10px;top:180px;width:210px;padding:6px 8px;font-size:11.5px}
 #bossRank b{display:block;font-size:12px;margin-bottom:3px}
-#bossRank .rk{display:grid;grid-template-columns:18px 1fr auto;gap:4px;font-variant-numeric:tabular-nums}
+#bossRank .rk{display:grid;grid-template-columns:18px 1fr 44px 44px;gap:4px;font-variant-numeric:tabular-nums}
+#bossRank .rk s,#bossRank .rk i{text-decoration:none;font-style:normal;text-align:right}
+#bossRank .rk s{color:#7dff8a}
+#bossRank .rk.hd{color:var(--muted);font-size:10px}
+#bossRank .rk.hd s{color:var(--muted)}
 #bossRank .rk em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #bossRank .rk.me{color:var(--xp);font-weight:800}
 #bossRank .rk.low i{color:var(--muted)}

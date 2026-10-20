@@ -999,6 +999,14 @@ export const ELITE_RAGE = { hp: 0.5, dmg: 0.3, spd: 0.25, secs: 10, cd: 20 };
  */
 export const KING = { dmg: 2, xp: 3, scale: 3, phaseHp: 0.5, roarSecs: 2, outSecs: 30, dropEvery: 10, idleSecs: 15,
   warnSecs: 300, lifeSecs: 900, share: 0.03, daily: 3 };
+/**
+ * Đóng góp hỗ trợ (bước 9.2, đã chốt 2026-10-20): mỗi điểm sinh lực hồi thực (bỏ phần tràn) hoặc khiên tạo thêm cho **người khác**
+ * đang là người tham gia của tinh anh / thú vương / boss thế giới tính bằng ngần này điểm sát thương vào đóng góp của người hồi
+ * (hồi / khiên cho chính mình không tính). Đóng góp tổng = sát thương + hỗ trợ × SUPPORT_CONTRIB, dùng cho ngưỡng rương (`share`),
+ * kinh nghiệm chia cho người đóng góp, bảng xếp hạng và ưu tiên hồn hoàn của tinh anh / thú vương; hồn hoàn đỏ của người đứng đầu
+ * boss thế giới vẫn xếp theo sát thương.
+ */
+export const SUPPORT_CONTRIB = 1;
 /** Loại boss trong bảng `boss_claims` (cột `kind`): thú vương BĐ5; boss thế giới BĐ6 thêm loại riêng (giới hạn 1 lần/ngày). */
 export const BOSS_CLAIM_KING = "thu_vuong";
 /** Múi giờ của lịch boss và ngày nhận thưởng (mục 6): đổi ngày lúc 00:00 giờ Việt Nam, không dùng giờ máy chủ hay client. */

@@ -430,7 +430,7 @@ export class GameScene extends Phaser.Scene {
         if (this.bossList || m.list?.some((x: { id: string }) => x.id === this.me)) hud.bossRank(m.list, this.me, true, !!MAPS[this.room.state.mapId]?.world?.length);
         this.bossList = null;
         setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
-        hud.banner(`Đã hạ ${m.name}`, `${m.top} đóng góp nhiều nhất`);
+        hud.banner(`Đã hạ ${m.name}`, `${m.top} ${m.topDmg ? "gây sát thương" : "đóng góp"} nhiều nhất`); // 9.2: boss thế giới xếp hồn hoàn đỏ theo sát thương
       } else if (m.k === "leave") { this.bossList = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
       else if (m.k === "reset") { this.bossList = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
