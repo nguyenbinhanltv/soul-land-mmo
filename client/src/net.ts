@@ -47,7 +47,9 @@ export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<"hp"
  * thành viên theo thứ tự vào đội (trưởng nhóm, chính mình, `sid` = sessionId khi cùng phòng, bản đồ, cấp / võ hồn / sinh lực võ hồn
  * ra trận, `off` = đã rời game hoặc đang qua cổng) và lời mời đang chờ (tên người mời, giây còn lại).
  */
-export interface PartyMember { name: string; leader: boolean; me: boolean; sid: string; map: string; level: number; vh: number; hp: number; maxHp: number; dead: boolean; off: boolean; }
+export interface PartyMember { name: string; leader: boolean; me: boolean; sid: string; map: string; ch: number; level: number; vh: number; hp: number; maxHp: number; dead: boolean; off: boolean; }
+/** Tin riêng "channels" (mục 6 "Nhiều kênh"): kênh hiện tại và các kênh đang mở của bản đồ (số người, tối đa, đầy chưa). */
+export interface ChannelsMsg { cur: number; list: { ch: number; n: number; max: number; full: boolean }[]; }
 export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {

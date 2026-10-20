@@ -15,7 +15,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, ResonanceMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -1136,7 +1136,7 @@ export function renderParty(v: PartyView, act: PartyActions) {
     fill.style.width = (m.maxHp && !m.off ? Math.max(0, Math.min(1, m.hp / m.maxHp)) * 100 : 0) + "%";
     bar.append(fill, txt);
     row.append(top, bar);
-    if (!m.me && !m.sid && !m.off && m.map) row.append(el("small", "pmap", `Ở ${MAPS[m.map]?.name ?? m.map}`));
+    if (!m.me && !m.sid && !m.off && m.map) row.append(el("small", "pmap", `Ở ${MAPS[m.map]?.name ?? m.map}${m.ch ? ` · Kênh ${m.ch}` : ""}`));
     if (lead && !m.me) {
       const btns = el("div", "pbtns");
       btns.append(pbtn("Nhường trưởng nhóm", "", () => act.send("lead", m.name), `Nhường trưởng nhóm cho ${m.name}`),
@@ -1932,4 +1932,40 @@ function renderReso() {
     box.append(top, bar, steps);
     el.appendChild(box);
   });
+}
+
+// ---------- Kênh (mục 6 "Nhiều kênh"): chỉ hiển thị số server gửi (PlayerState của phòng: MapState.channel; tin riêng "channels") ----------
+let chanNow = 0, chanMsg: ChannelsMsg | null = null, chanPick: (ch: number) => void = () => {};
+/** Số kênh của phòng đang ở (MapState.channel): ghi lên nhãn "Kênh N" ở góc bản đồ nhỏ; 0 (sân đấu) thì ẩn nhãn. */
+export function setChannel(ch: number) {
+  if (ch === chanNow) return;
+  chanNow = ch; $("#chanBtn").textContent = `Kênh ${ch} ▾`;
+  $("#chanBtn").hidden = !ch; // 0: phòng không chia kênh (sân Đại Đấu Hồn Trường)
+  if (!ch) toggleChannels(false);
+  if (!$("#chans").hidden) renderChannels();
+}
+/** Bấm một kênh trong danh sách: GameScene gửi `channel {ch}` (server kiểm tra rồi mới cho đổi). */
+export function onChannelPick(fn: (ch: number) => void) { chanPick = fn; }
+/** Mở / đóng danh sách kênh; trả true nếu vừa mở (GameScene xin server danh sách mới, trong lúc chờ vẫn hiện danh sách cũ nếu có). */
+export function toggleChannels(open = $("#chans").hidden) {
+  $("#chans").hidden = !open; $("#chanBtn").setAttribute("aria-expanded", String(open));
+  if (open) renderChannels();
+  return open;
+}
+/** Vào phòng mới (đi cổng, đổi kênh): bỏ danh sách kênh của phòng cũ và đóng bảng. */
+export function resetChannels() { chanMsg = null; chanNow = -1; toggleChannels(false); }
+/** Tin "channels": vẽ lại danh sách nếu đang mở. */
+export function setChannels(m: ChannelsMsg) { chanMsg = m; if (!$("#chans").hidden) renderChannels(); }
+function renderChannels() {
+  const box = $("#chans"); box.innerHTML = "";
+  if (!chanMsg) { box.appendChild(el("small", "", "Đang tải…")); return; } // chỉ khi chưa từng có danh sách
+  for (const c of chanMsg.list) {
+    const cur = c.ch === chanNow, b = el("button", cur ? "cur" : "") as HTMLButtonElement;
+    b.append(el("span", "", `Kênh ${c.ch}${cur ? " (đang ở)" : ""}`), el("span", "", `${c.n}/${c.max}`));
+    b.disabled = cur || c.full;
+    b.title = cur ? "Bạn đang ở kênh này" : c.full ? "Kênh đã đầy" : `Chuyển sang kênh ${c.ch}`;
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); if (!b.disabled) chanPick(c.ch); });
+    box.appendChild(b);
+  }
+  box.appendChild(el("small", "", "Đổi kênh khi ngoài giao chiến."));
 }

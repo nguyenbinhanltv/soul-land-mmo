@@ -11,7 +11,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSp
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
 import { solidGrid, clampDir } from "../../../shared/move.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -79,7 +79,7 @@ export class GameScene extends Phaser.Scene {
     qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
   nearNpc: string | null = null;    // NPC trong tầm nói chuyện (NPC_RANGE) lần kiểm tra gần nhất
-  onTravel: (mapId: string) => void = () => {};
+  onTravel: (mapId: string, roomId: string | null) => void = () => {};
   /** Đại Đấu Hồn Trường (7.2): server đã ghép trận thì vào phòng `roomId`; `onBack` rời sân về bản đồ cũ (đang giao đấu = bỏ trận, thua). */
   onArena: (roomId: string) => void = () => {};
   onBack: () => void = () => {};
@@ -106,9 +106,10 @@ export class GameScene extends Phaser.Scene {
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
 
   constructor() { super("game"); }
-  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void; onArena: (roomId: string) => void; onBack: () => void }) {
+  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string) => void; onBack: () => void }) {
     this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
     this.onArena = data.onArena; this.onBack = data.onBack; this.isArena = MAPS[data.mapId]?.kind === "arena";
+    hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
       this.ac.abort(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
@@ -292,7 +293,7 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { hud.toggleReso(); return; } // cộng minh (8.2)
-      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.closeNpc(); hud.showPlayerMenu(null); return; }
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); return; }
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -314,6 +315,12 @@ export class GameScene extends Phaser.Scene {
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleReso(); }, on);
+    // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
+    document.getElementById("chanBtn")!.addEventListener("click", (e) => {
+      (e.currentTarget as HTMLElement).blur();
+      if (hud.toggleChannels()) this.room.send("channels");
+    }, on);
+    hud.onChannelPick((ch) => { this.room.send("channel", { ch }); hud.toggleChannels(false); });
 
     // Bấm / chạm vào hồn sư khác (7.1): mở bảng mời vào tổ đội. Chọn hồn sư gần điểm bấm nhất (thân cao khoảng 30 pixel trên chân).
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
@@ -472,7 +479,11 @@ export class GameScene extends Phaser.Scene {
         else hud.banner(`Trả nhiệm vụ: ${d?.name ?? ""}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
       }
     });
-    this.room.onMessage("travel", (m: { mapId: string }) => { if (typeof m?.mapId === "string") this.onTravel(m.mapId); });
+    // Đi cổng / đổi kênh: server đã lưu xong và chọn phòng (kênh) đích (`roomId`, null = để Colyseus chọn / mở kênh mới).
+    this.room.onMessage("travel", (m: { mapId: string; roomId?: string | null }) => {
+      if (typeof m?.mapId === "string") this.onTravel(m.mapId, typeof m.roomId === "string" ? m.roomId : null);
+    });
+    this.room.onMessage("channels", (m: ChannelsMsg) => hud.setChannels(m)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
     // Cộng minh (8.2): tiến độ 4 trụ cột và % cộng cho mọi võ hồn do server tính; mốc mới đạt thì báo lớn.
     this.room.onMessage("resonance", (m: ResonanceMsg) => {
       if (!m || !Array.isArray(m.prog)) return;
@@ -1330,11 +1341,12 @@ export class GameScene extends Phaser.Scene {
     const zname = area?.name ?? (this.campName && inRect(this.campRect, me.x, me.y) ? this.campName : mapName);
     document.getElementById("zoneName")!.textContent = zname;
     if (zname !== this.lastZone) {
-      if (!this.lastZone) hud.banner(mapName, area && area.name !== mapName ? area.name : "");
+      if (!this.lastZone) hud.banner(st.channel ? `${mapName} · Kênh ${st.channel}` : mapName, area && area.name !== mapName ? area.name : "");
       else if (area) hud.banner(area.name, area.hint);
       this.lastZone = zname;
     }
     document.getElementById("online")!.textContent = `${st.players.size} người ở ${mapName}`;
+    hud.setChannel(st.channel ?? 0);
 
     let tb: any = null, td = 90;
     st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
