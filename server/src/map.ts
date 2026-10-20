@@ -13,8 +13,11 @@ export interface Zone {
   beasts: ZoneBeast[]; // loài khai báo ở thuộc tính `beasts` của vùng
 }
 export interface Rect { x: number; y: number; w: number; h: number; }
-/** Cổng (object `portal`): vùng chữ nhật, bản đồ đích, điểm xuất hiện ở bản đồ đích (đã đổi ra tọa độ), cấp đề xuất. */
-export interface Portal extends Rect { name: string; to: string; arrive: string; ax: number; ay: number; level: [number, number] | null; }
+/**
+ * Cổng (object `portal`): vùng chữ nhật, bản đồ đích, điểm xuất hiện ở bản đồ đích (đã đổi ra tọa độ), cấp đề xuất. `boat` (BĐ6d,
+ * thuộc tính bool `boat`): bến thuyền, "đi thuyền" BOAT_CAST giây thay cho TRAVEL_CAST.
+ */
+export interface Portal extends Rect { name: string; to: string; arrive: string; ax: number; ay: number; level: [number, number] | null; boat: boolean; }
 /** Chỗ sinh tinh anh (object `elite`, từ BĐ4): vùng chữ nhật, chỉ số trong BOSSES, chỉ số vùng (`zones`) chứa nó. */
 export interface EliteSpot extends Rect { boss: number; zone: number; }
 /** Hang thú vương (object `boss`, từ BĐ5): vùng chữ nhật (cũng là bán kính giao chiến), chỉ số trong BOSSES, chỉ số vùng chứa tâm hang. */
@@ -164,7 +167,7 @@ function parsePortal(mapId: string, o: any): Portal | null {
   const lv = propOf(o, "level");
   const level = lv === undefined || lv === "" ? MAPS[to].level : parseLevelRange(lv);
   if (lv !== undefined && lv !== "" && !level) console.warn(`[map ${mapId}] Cổng "${name}": cấp đề xuất sai "${lv}", bỏ qua.`);
-  return { ...rectOf(o), name, to, arrive, ax: a.x, ay: a.y, level };
+  return { ...rectOf(o), name, to, arrive, ax: a.x, ay: a.y, level, boat: propOf(o, "boat") === true };
 }
 
 /**

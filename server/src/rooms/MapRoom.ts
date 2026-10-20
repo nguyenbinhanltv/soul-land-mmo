@@ -7,7 +7,7 @@ import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
   beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, dir4, type Looks,
-  TRAVEL_CAST, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
+  TRAVEL_CAST, BOAT_CAST, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
   itemDef, BAG_SLOTS, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
@@ -66,7 +66,7 @@ export interface PData {
   teamQueued: boolean;  // đã có một lần lưu đội hình đang chờ trong chuỗi (lần đó ghi bản mới nhất lúc chạy)
   tradeQueued: boolean; // đã có một lần lưu sau mua / bán ở thương nhân đang chờ trong chuỗi (6.1; lần đó chụp túi mới nhất lúc chạy)
   portalKey: string;    // hộp đi cổng đã gửi cho client ("" = không đứng ở cổng)
-  travelCast: { portal: Portal; t: number } | null; // đang niệm đi qua cổng (TRAVEL_CAST giây, bị đánh thì hủy)
+  travelCast: { portal: Portal; t: number } | null; // đang niệm đi qua cổng (TRAVEL_CAST giây, bến thuyền BOAT_CAST; bị đánh thì hủy)
   travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
@@ -302,6 +302,7 @@ export class MapRoom extends Room<MapState> {
   projs: Proj[] = [];
   timers: { t: number; fn: () => void }[] = []; // việc hẹn giờ (các nhát của hồn kỹ liên hoàn), chạy trong tick
   spawnT = 0;
+  testRed: number | null = null; // hook test `red` (BĐ6d): cố định số ngẫu nhiên ra hồn thú MAX_YEARS năm ở vùng có mức trên MAX_YEARS
   saveT = 0;
   /** Ô tinh anh (object `elite` của bản đồ, BĐ4): hồn thú đang sống (`bid`), hoặc số giây còn lại trước khi hồi sinh (`t`). */
   elites: { spot: EliteSpot; bid: string | null; t: number }[] = [];
@@ -823,7 +824,10 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
-  /** Hộp đi cổng gửi riêng: tên cổng, bản đồ đích, cấp đề xuất và cảnh báo khi võ hồn ra trận dưới cấp tối thiểu (chặn mềm). */
+  /**
+   * Hộp đi cổng gửi riêng: tên cổng, bản đồ đích, cấp đề xuất và cảnh báo khi võ hồn ra trận dưới cấp tối thiểu (chặn mềm). Bến thuyền
+   * (BĐ6d) kèm `boat` = số giây đi thuyền.
+   */
   portalHint(id: string, p: PlayerState, d: PData) {
     const portal = d.travelling || p.dead ? undefined : this.map.portalAt(p.x, p.y);
     const warn = !!portal?.level && p.level < portal.level[0];
@@ -831,7 +835,7 @@ export class MapRoom extends Room<MapState> {
     if (key === d.portalKey) return;
     d.portalKey = key;
     this.clients.getById(id)?.send("portal", portal
-      ? { name: portal.name, to: portal.to, toName: MAPS[portal.to].name, level: portal.level, warn }
+      ? { name: portal.name, to: portal.to, toName: MAPS[portal.to].name, level: portal.level, warn, ...(portal.boat ? { boat: BOAT_CAST } : {}) }
       : { name: "" });
   }
 
@@ -847,15 +851,15 @@ export class MapRoom extends Room<MapState> {
     return null;
   }
 
-  /** Xin đi qua cổng: kiểm tra rồi niệm TRAVEL_CAST giây (bị đánh hoặc rời cổng thì hủy), xong thì beginTravel. */
+  /** Xin đi qua cổng: kiểm tra rồi niệm TRAVEL_CAST giây (bến thuyền BĐ6d: BOAT_CAST; bị đánh hoặc rời cổng thì hủy), xong thì beginTravel. */
   travel(c: Client, name: string) {
     const id = c.sessionId, d = this.pdata.get(id);
     if (!d || d.travelling || d.travelCast) return;
     const why = this.travelDeny(id, name);
     if (why !== null) { if (why) this.log(id, why, "#ffb35c"); return; }
     const portal = this.map.portals.find((q) => q.name === name)!;
-    d.travelCast = { portal, t: TRAVEL_CAST };
-    this.log(id, `Đang đi tới ${MAPS[portal.to].name}…`);
+    d.travelCast = { portal, t: portal.boat ? BOAT_CAST : TRAVEL_CAST };
+    this.log(id, portal.boat ? `Lên thuyền đi ${MAPS[portal.to].name} (${BOAT_CAST} giây)…` : `Đang đi tới ${MAPS[portal.to].name}…`);
   }
 
   /**
@@ -959,7 +963,7 @@ export class MapRoom extends Room<MapState> {
     channelSwitchAt.set(d.accountId, Date.now());
     const p = this.state.players.get(id)!;
     this.log(id, `Đang chuyển sang kênh ${ch}…`);
-    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, x: 0, y: 0, w: 0, h: 0 }, to.roomId);
+    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to.roomId);
   }
 
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
@@ -1480,8 +1484,10 @@ export class MapRoom extends Room<MapState> {
       out = { chMax: CHANNEL_CAP, channel: this.state.channel, roomId: this.roomId };
     }
     else if (op === "slay") {
-      // 7.1: hạ hồn thú gần nhất như do người gọi ra đòn cuối (qua killBeast: kinh nghiệm chia tổ đội, đồ rơi, Hồn Tệ).
-      const x = nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
+      // 7.1: hạ hồn thú gần nhất như do người gọi ra đòn cuối (qua killBeast: kinh nghiệm chia tổ đội, đồ rơi, Hồn Tệ). Từ BĐ6d `bid`:
+      // hạ đúng hồn thú đó (dù ở xa).
+      const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
+      const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
     else if (op === "party") {
       // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
@@ -1533,6 +1539,18 @@ export class MapRoom extends Room<MapState> {
     else if (op === "shard") {
       const r = int(o.r, -1, 100, -1);
       d.testShard = r < 0 ? null : { r: Math.min(0.9999, r / 100), i: int(o.i, -1, 99, -1) };
+    }
+    else if (op === "red") {
+      // BĐ6d: cố định số ngẫu nhiên ra hồn thú thường MAX_YEARS năm (r: 0..100, ra khi r/100 < RED_BEAST_CHANCE; −1 bỏ) cho cả phòng;
+      // `zone` (tên vùng) thì gọi spawnBeast vùng đó `n` lần ngay (bỏ qua `count`). Trả số hồn thú thường MAX_YEARS năm của kênh.
+      const r = int(o.r, -1, 100, -1); this.testRed = r < 0 ? null : r / 100;
+      const zi = this.map.zones.findIndex((z) => z.name === o.zone), years: number[] = [];
+      if (zi >= 0) for (let k = int(o.n, 0, 50, 1); k > 0; k--) {
+        const before = new Set(this.state.beasts.keys()); this.spawnBeast(zi);
+        for (const [bid, b] of this.state.beasts) if (!before.has(bid)) years.push(b.years);
+      }
+      out = { years, reds: [...this.state.beasts.values()].filter((b) => !b.rank && b.years >= MAX_YEARS).length,
+        elites: [...this.state.beasts.values()].filter((b) => b.rank && b.years >= MAX_YEARS).length };
     }
     else if (op === "herb") {
       // BĐ6b: cố định số ngẫu nhiên rơi tiên thảo (r: 0..100, rơi khi r/100 < herbChance; −1 bỏ) và loại (chỉ số i trong HERBS).
@@ -1680,7 +1698,7 @@ export class MapRoom extends Room<MapState> {
       // rồi vào phòng mới như đi cổng thật. Chỗ không đứng được thì vào ở `spawn`.
       const to = String(o.mapId ?? "");
       if (Object.hasOwn(MAPS, to) && MAPS[to].kind !== "arena" && to !== this.state.mapId && !d.travelling && !d.travelCast) {
-        this.beginTravel(id, { name: "warp", to, arrive: "", ax: Number(o.x) || 0, ay: Number(o.y) || 0, level: null, x: 0, y: 0, w: 0, h: 0 });
+        this.beginTravel(id, { name: "warp", to, arrive: "", ax: Number(o.x) || 0, ay: Number(o.y) || 0, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 });
         out = { warp: to };
       }
     }
@@ -1702,8 +1720,8 @@ export class MapRoom extends Room<MapState> {
       return;
     }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
-    else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4)
-      if (Math.hypot(b.x - p.x, b.y - p.y) < 160 && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
+    else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)
+      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
     });
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);
@@ -2268,7 +2286,8 @@ export class MapRoom extends Room<MapState> {
     for (let tries = 0; bd.minions.size < s.n && tries < 20; tries++) {
       const a = Math.random() * Math.PI * 2, x = b.x + Math.cos(a) * 28, y = b.y + Math.sin(a) * 20;
       if (this.map.hits(x, y, 6, 4) || this.map.inSafe(x, y)) continue;
-      const yr = s.years ?? z.years, years = yr ? rollYears(yr[0], yr[1], Math.random()) : b.years; // thú vương gọi nhện con trẻ hơn (summon.years)
+      // Thú vương gọi nhện con trẻ hơn (summon.years); hồn thú gọi ra là hồn thú thường nên không bao giờ đúng MAX_YEARS (mục 5.3).
+      const yr = s.years ?? z.years, years = Math.min(MAX_YEARS - 1, yr ? rollYears(yr[0], yr[1], Math.random()) : b.years);
       const mid = this.addBeast(bd.zone, years, sp, x, y), mb = this.bdata.get(mid)!;
       if (this.state.players.has(target)) { mb.target = target; this.state.beasts.get(mid)!.aggro = true; mb.skT = TELE_FIRST[1]; }
       bd.minions.add(mid);
@@ -3281,17 +3300,19 @@ export class MapRoom extends Room<MapState> {
   /**
    * Sinh một hồn thú trong vùng `zi`: tuổi ngẫu nhiên trong khoảng `years` của vùng (bảng 5.3; vùng thiếu `years` thì tung bậc
    * theo `weights` rồi tung tuổi trong bậc), loài theo trọng số `beasts` của vùng. Mỗi phòng tối đa 1 hồn thú thường
-   * MAX_YEARS năm cùng lúc (mục 5.3): đã có thì tung dưới mức đó. Không sinh trong vùng an toàn, cách người chơi dưới 140 pixel, hay
-   * trong SPAWN_CLEAR quanh trại cổng, cổng và điểm xuất hiện (map.nearGate: hồn thú lang thang không tới đánh người vừa tới nơi,
-   * vừa hồi sinh, đang niệm cổng).
+   * MAX_YEARS năm cùng lúc (mục 5.3, `redFree`): đã có thì tung dưới mức đó. Từ BĐ6d vùng có mức trên MAX_YEARS (Hải Thần Uyên) ra
+   * đúng MAX_YEARS với tỉ lệ RED_BEAST_CHANCE (hook test `red` cố định được), còn lại dưới MAX_YEARS. Không sinh trong vùng an toàn,
+   * cách người chơi dưới 140 pixel, hay trong SPAWN_CLEAR quanh trại cổng, cổng và điểm xuất hiện (map.nearGate: hồn thú lang thang
+   * không tới đánh người vừa tới nơi, vừa hồi sinh, đang niệm cổng).
    */
   spawnBeast(zi: number) {
-    const z = this.map.zones[zi], hasRed = [...this.state.beasts.values()].some((b) => b.years >= MAX_YEARS);
+    const z = this.map.zones[zi], hasRed = !this.redFree();
     let years: number;
     if (z.years) {
-      const hi = hasRed ? Math.min(z.years[1], MAX_YEARS - 1) : z.years[1];
-      if (hi < z.years[0]) return;
-      years = rollYears(z.years[0], hi, Math.random());
+      const hi = Math.min(z.years[1], MAX_YEARS - 1);
+      const red = z.years[1] >= MAX_YEARS && !hasRed && (this.testRed ?? Math.random()) < RED_BEAST_CHANCE;
+      if (!red && hi < z.years[0]) return;
+      years = red ? MAX_YEARS : rollYears(z.years[0], hi, Math.random());
     } else {
       let r = Math.random(), tier = 0;
       for (let i = 0; i < z.weights.length; i++) { r -= z.weights[i]; if (r <= 0) { tier = i; break; } }
@@ -3308,6 +3329,9 @@ export class MapRoom extends Room<MapState> {
       return;
     }
   }
+
+  /** Kênh này chưa có hồn thú THƯỜNG nào MAX_YEARS năm (mục 5.3: tối đa 1 con; tinh anh, thú vương, boss không tính). */
+  redFree() { for (const b of this.state.beasts.values()) if (!b.rank && b.years >= MAX_YEARS) return false; return true; }
 
   /**
    * Thêm hồn thú `years` năm: bậc (màu, kích thước) suy từ số năm, máu và sát thương tăng liên tục theo số năm (beastStats).
@@ -3505,7 +3529,7 @@ export class MapRoom extends Room<MapState> {
    * thú vương sống thì bỏ qua. Thú vương không tính vào `count` của vùng.
    */
   spawnKing(slot: number, life: number) {
-    const lair = this.map.lair, years = MAPS[this.state.mapId].years?.[1], now = Date.now();
+    const lair = this.map.lair, years = kingYears(this.state.mapId), now = Date.now();
     if (!lair || !years || life <= 0 || this.king?.slot === slot) return;
     if (this.king?.bid && this.state.beasts.has(this.king.bid)) return;
     const { seat, claimed } = takeKingSeat(this.state.mapId, slot, now + life * 1000, this.roomId);
@@ -3568,13 +3592,17 @@ export class MapRoom extends Room<MapState> {
     this.presence.publish(ANNOUNCE_TOPIC, { text: `${name} ở ${map} đã rút đi: không ai hạ được trong ${KING.lifeSecs / 60} phút.` });
   }
 
-  /** Người tham gia ngẫu nhiên trong tầm `range` của thú vương để đánh dấu (BeastSkillDef.mark, Huyết Cuồng); không có thì null. */
-  markTarget(b: BeastState, bd: BData, range: number): [string, PlayerState] | null {
+  /**
+   * Người tham gia ngẫu nhiên trong tầm `range` của thú vương để đánh dấu (BeastSkillDef.mark, Huyết Cuồng); `weak` (BĐ6d, Huyết Khí):
+   * người có tỉ lệ sinh lực thấp nhất thay vì ngẫu nhiên. Không có thì null.
+   */
+  markTarget(b: BeastState, bd: BData, range: number, weak = false): [string, PlayerState] | null {
     const list: [string, PlayerState][] = [];
     for (const pid of bd.elite?.parts.keys() ?? []) {
       const p = this.state.players.get(pid), pd = this.pdata.get(pid);
       if (p && pd && !p.dead && !pd.travelling && !pd.buffs.has("hide") && !this.map.inSafe(p.x, p.y) && Math.hypot(p.x - b.x, p.y - b.y) <= range) list.push([pid, p]);
     }
+    if (weak) return list.reduce<[string, PlayerState] | null>((a, x) => (!a || x[1].hp / x[1].maxHp < a[1].hp / a[1].maxHp ? x : a), null);
     return list.length ? list[Math.floor(Math.random() * list.length)] : null;
   }
 
@@ -3657,7 +3685,7 @@ export class MapRoom extends Room<MapState> {
     if (def.kind !== "ruong" || !boss) return warn(`${def.name} không mở được.`);
     if (d.claimBusy) return warn("Đang nhận rương thú vương, đợi một chút.");
     if (BAG_SLOTS - bagUsed(d.bag) < KING_CHEST.slots) return warn(`Cần ${KING_CHEST.slots} ô trống trong túi đồ để mở ${def.name}.`);
-    const mapId = Object.values(MAPS).find((m) => m.king === boss.id)?.id ?? this.state.mapId, years = MAPS[mapId].years?.[1] ?? TIERS[0].years;
+    const mapId = Object.values(MAPS).find((m) => m.king === boss.id)?.id ?? this.state.mapId, years = kingYears(mapId) ?? TIERS[0].years;
     const t = d.testChest, r = (v: number | undefined) => (v !== undefined && v >= 0 ? v : Math.random());
     this.takeItem(d, it, 1);
     const got: string[] = [];
@@ -3931,10 +3959,12 @@ export class MapRoom extends Room<MapState> {
       if (tgt) {
         const dx = tgt.x - b.x, dy = tgt.y - b.y, dd = Math.hypot(dx, dy);
         // Chiêu báo trước: hết chờ, chiêu hết hồi và mục tiêu trong tầm (không nhắm người trong vùng an toàn: đã bỏ mục tiêu ở trên).
-        // Chiêu đánh dấu (BĐ5, `mark`): nhắm một người tham gia ngẫu nhiên trong tầm thay cho mục tiêu đang đuổi.
+        // Chiêu đánh dấu (BĐ5, `mark`): nhắm một người tham gia ngẫu nhiên trong tầm thay cho mục tiêu đang đuổi; `weak` (BĐ6d):
+        // người tham gia ít máu nhất (chưa có ai thì mục tiêu đang đuổi).
         if (!(noAtk || noSkill || bd.skT > 0)) for (const s of bd.skills) {
           if (s.cd > 0) continue;
-          const m = s.def.mark ? this.markTarget(b, bd, s.def.range) : dd <= s.def.range ? [bd.target!, tgt] as [string, PlayerState] : null;
+          const near = dd <= s.def.range ? [bd.target!, tgt] as [string, PlayerState] : null;
+          const m = s.def.mark ? this.markTarget(b, bd, s.def.range) : s.def.weak ? this.markTarget(b, bd, s.def.range, true) ?? near : near;
           if (m) { this.beginCast(id, b, bd, s, m[0], m[1]); return; }
         }
         if (dd > td.size / 2 + 6) { if (!noMove) { mx = dx / dd; my = dy / dd; } }

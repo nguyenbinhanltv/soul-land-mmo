@@ -3,7 +3,7 @@ miễn giữ nguyên vị trí ô (xem tools/gen-map.mjs)."""
 from PIL import Image, ImageDraw
 import random
 random.seed(7)
-T=16; COLS=8; ROWS=4 # BĐ6c: hàng 4 (ô 24–31) là băng tuyết của Cực Bắc Chi Địa
+T=16; COLS=8; ROWS=5 # BĐ6c: hàng 4 (ô 24–31) là băng tuyết của Cực Bắc Chi Địa; BĐ6d: hàng 5 (ô 32–35) là biển của Hải Thần Đảo
 img=Image.new("RGBA",(COLS*T,ROWS*T),(0,0,0,0)); d=ImageDraw.Draw(img)
 def H(h): h=h.lstrip('#'); return tuple(int(h[i:i+2],16) for i in (0,2,4))+(255,)
 def rect(x,y,w,h,c): d.rectangle([x,y,x+w-1,y+h-1],fill=H(c) if isinstance(c,str) else c)
@@ -71,4 +71,16 @@ X,Y=pos(31)
 rect(X+2,Y+13,12,3,(26,16,32,60))
 for (x0,w,h) in ((3,4,8),(7,4,13),(11,3,6)):
     rect(X+x0,Y+15-h,w,h,'#5a9cc9'); rect(X+x0,Y+15-h,1,h,'#c0cce0'); rect(X+x0+w-1,Y+15-h,1,h,'#2d6a96'); rect(X+x0,Y+15-h,w,1,'#f4f8ff')
+# BĐ6d (Hải Thần Đảo): hàng 5, ô 32–35. Bản đồ khác thêm ô mới thì dùng ô 36 trở đi.
+# 32 cát (đi được)
+X,Y=pos(32); rect(X,Y,T,T,'#d9c48a')
+for _ in range(7): rect(X+random.randrange(15),Y+random.randrange(15),1,1,random.choice(['#c4ad72','#ead9a6','#bfa468']))
+# 33 rạn nông: nước cạn trên cát, có san hô (đi được)
+X,Y=pos(33); rect(X,Y,T,T,'#4fa8b8'); rect(X+1,Y+3,5,1,'#7fd0d8'); rect(X+9,Y+11,5,1,'#7fd0d8')
+for _ in range(3): rect(X+1+random.randrange(13),Y+1+random.randrange(13),2,2,random.choice(['#ff7a8a','#ffb07a','#e86ad0']))
+# 34 biển sâu (chặn đường)
+X,Y=pos(34); rect(X,Y,T,T,'#173f63'); rect(X+2,Y+5,6,1,'#2c5f8a'); rect(X+8,Y+11,6,1,'#2c5f8a')
+# 35 đá ngầm trên cát (chặn đường)
+X,Y=pos(35); rect(X,Y,T,T,'#d9c48a'); rect(X+2,Y+12,12,3,(0,0,0,70)); rect(X+2,Y+4,12,9,'#6a6258'); rect(X+4,Y+2,8,3,'#6a6258')
+rect(X+4,Y+3,4,2,'#8f877a'); rect(X+3,Y+10,10,2,'#4f4840')
 img.save("shared/assets/tiles.png"); print("tiles.png", img.size)
