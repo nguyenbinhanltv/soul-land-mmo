@@ -187,10 +187,11 @@ body.touch #prompt{bottom:160px}
 .rhead{display:flex;justify-content:space-between;align-items:center}
 .rhead .x{font:inherit;font-size:20px;line-height:1;width:32px;height:32px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer}
 .rcard{font:inherit;color:var(--text);background:rgba(0,0,0,.2);border:2px solid var(--line);padding:8px 10px;cursor:pointer;
-  display:flex;align-items:center;gap:8px;text-align:left;min-height:48px}
+  display:flex;align-items:center;gap:8px;text-align:left;min-height:48px;flex-shrink:0}
 .rcard .dot{color:var(--c);margin:0}
 .rcard span:nth-of-type(1){display:flex;flex-direction:column;flex:1}
 .rcard small{color:var(--muted);font-size:11px}
+.rcard small.rstar{color:#e0a020}
 .rcard .rr{display:flex;gap:3px}
 .rcard .rr .ring{width:12px;height:12px;border-width:3px}
 .rcard:hover:not(:disabled){border-color:var(--line2)}
