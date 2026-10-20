@@ -2642,7 +2642,7 @@ else {
     await tranAp(); let I=await info(TN);
     ok(I.engaged&&I.n===1&&I.parts.join()===gid&&I.maxHp===I.base&&I.hp<I.maxHp,`G đánh trúng: bắt đầu giao chiến, 1 người tham gia, máu ${I.hp}/${I.maxHp}`);
     // Cuồng nộ khi máu dưới 50%.
-    G.fxs=[]; await test(G,"bhp",{pct:40});
+    G.fxs=[]; await test(G,"bhp",{pct:40,bid:tnid()}); // theo bid: bầy tinh anh gọi ra có thể đứng gần hơn
     ok(await waitFor(()=>(tn()?.buff&beastBuffBit("rage"))!==0,1500)&&G.fxs.some(f=>f.k==="rage"&&f.bid===tnid()),`máu ${tn()?.hp}/${tn()?.maxHp} (dưới ${ELITE_RAGE.hp*100}%): nổi ${BEAST_BUFFS.rage.name}`);
     // Người vào giữa trận: H tới gần và gây sát thương thì thành người tham gia, máu tối đa x1,6, máu hiện tại giữ tỉ lệ.
     ok(await near(H,TN,40),"H tới gần tinh anh");
@@ -2663,7 +2663,7 @@ else {
     await away(G); await waitFor(()=>!((tn()?.st??0)&statusBit("poison")),(STATUS.poison.secs+2)*1000);
     const r1=tn().hp/tn().maxHp; await test(G,"etick",{s:ELITE.outSecs+1}); I=await info(TN);
     ok(I.engaged&&I.parts.join()===hid&&I.n===1&&I.maxHp===I.base&&Math.abs(I.hp/I.maxHp-r1)<0.02,`G ở ngoài ${ELITE.radius} pixel ${ELITE.outSecs} giây: bị loại, 1 người, máu ${I.hp}/${I.maxHp} (giữ tỉ lệ)`);
-    await near(G,TN,30); await test(G,"bhp",{pct:100}); await tranAp(); I=await info(TN); ok(I.n===2&&I.parts.length===2,`G quay lại đánh: lại 2 người, máu ${I.hp}/${I.maxHp}`);
+    await near(G,TN,30); await test(G,"bhp",{pct:100,bid:tnid()}); await tranAp(); I=await info(TN); ok(I.n===2&&I.parts.length===2,`G quay lại đánh: lại 2 người, máu ${I.hp}/${I.maxHp}`);
     // Rời phòng thì bị loại ngay, nhưng số người giảm tối đa 1 mỗi 10 giây.
     await H.room.leave(); await sleep(300); I=await info(TN);
     ok(I.parts.join()===gid&&I.n===2,`H rời phòng: bị loại, nhưng số người áp vào máu vẫn ${I.n} (vừa giảm chưa đủ ${ELITE.dropEvery} giây)`);
@@ -2697,7 +2697,7 @@ else {
 
     // Hạ tinh anh: hồn hoàn mang đúng số năm, báo cả phòng; hồi sinh sau 8–12 phút (hook rút ngắn) ở đúng chỗ.
     await near(G,TN,20); await test(G,"clear",{keep:1}); const tx=tn().x, ty=tn().y, oldId=tnid();
-    await test(G,"bhp",{pct:1}); G.elite=[]; const before=new Set(st.drops.keys());
+    await test(G,"bhp",{pct:1,bid:oldId}); G.elite=[]; const before=new Set(st.drops.keys());
     for(let k=0;k<4&&st.beasts.has(oldId);k++) await tranAp();
     const dr=[...st.drops.entries()].find(([k])=>!before.has(k))?.[1];
     ok(!st.beasts.has(oldId)&&dr?.years===yrs&&dr.owner===gid&&await waitFor(()=>G.elite.some(m=>m.k==="down"),1000)&&/Hạ Tinh anh Thiết Nha Dã Trư Vương/.test(G.logs.join("\n")),
@@ -5812,7 +5812,8 @@ async function supportContribTest(){
       `hồi A ${a0} -> ${mo(A).hp}/${mA} (+${got}, cần ${heal}): hỗ trợ H ${sup.toFixed(1)} = ${me?.pct}% đóng góp (cột hỗ trợ ${me?.sup}%), sát thương 0`);
     ok(await waitFor(()=>H.boss.some(m=>m.k==="rank"&&m.list.some(x=>x.id===sid(H)&&x.sup>0)),2500),"H nhận bảng xếp hạng có dòng của mình và cột hỗ trợ");
     // ---- Hạ thú vương: máu còn 1% (hook bhp) để phần hỗ trợ của H trên 3%; H nhận rương và kinh nghiệm ----
-    await test(A,"bhp",{pct:1}); ki=await test(A,"king");
+    // bhp theo bid: không có bid thì hook nhắm hồn thú gần nhất (sói thú vương gọi ra / hồn thú hoang) và thú vương còn nguyên máu.
+    await test(A,"bhp",{pct:1,bid:ki.bid}); ki=await test(A,"king");
     const want=sup/(ki.total+ki.hp), cH=qtyOf(H,chestCode(KB)), xp0=JSON.stringify([mo(H).level,mo(H).xp]);
     H.logs=[]; A.boss=[]; await test(A,"kdmg",{v:1e8});
     ok(await waitFor(()=>A.boss.some(m=>m.k==="down"),2000),"hạ thú vương");
