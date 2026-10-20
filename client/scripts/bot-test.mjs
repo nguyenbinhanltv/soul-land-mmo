@@ -4154,11 +4154,24 @@ async function lacNhatTest(){
     { const e=el.list.find(x=>x.boss==="kho_dang_thu_vuong");
       await test(L,"set",{rowId:act,level:100,xp:0,rings:[]}); await test(L,"rest",{s:TEAM_COMBAT_SECS+1});
       await test(L,"erespawn",{s:0}); await sleep(300);
-      const cur=(await test(L,"elite")).list.find(x=>x.boss==="kho_dang_thu_vuong")??e;
-      await test(L,"goto",{x:cur.x+20,y:cur.y}); if(Math.hypot(me().x-cur.x-20,me().y-cur.y)>1) await test(L,"goto",{x:cur.x,y:cur.y+20});
-      await test(L,"bhp",{pct:50}); await test(L,"pst",{s:"root",secs:5});
-      const t=await test(L,"tele",{i:1}), b=L.room.state.beasts.get(t.bid), hp1=b?.hp;
+      // Tinh anh sinh ở điểm ngẫu nhiên: thử vài chỗ đứng quanh nó (chỗ bị chặn thì goto không đi); tinh anh đang tự báo trước chiêu
+      // khác thì `tele` không có mục tiêu, chờ rồi thử lại. Vẫn trượt thì in chẩn đoán (vị trí, hồn thú gần nhất).
+      let t={}, cur=e;
+      for(let k=0;k<8&&!t.bid;k++){
+        cur=(await test(L,"elite")).list.find(x=>x.boss==="kho_dang_thu_vuong")??e;
+        const a=k*Math.PI/4, gx=cur.x+20*Math.cos(a), gy=cur.y+20*Math.sin(a);
+        await test(L,"goto",{x:gx,y:gy}); if(Math.hypot(me().x-gx,me().y-gy)>1) continue;
+        await test(L,"bhp",{pct:50}); await test(L,"pst",{s:"root",secs:5});
+        t=await test(L,"tele",{i:1}); if(!t.bid) await sleep(800);
+      }
+      if(!t.bid) console.log(`    (chẩn đoán Hút Sinh: L ${me().x.toFixed(0)},${me().y.toFixed(0)}; tinh anh ${JSON.stringify({bid:cur.bid,x:cur.x,y:cur.y})}; gần nhất ${JSON.stringify([...L.room.state.beasts.entries()].map(([id,b])=>[id,b.rank,Math.round(Math.hypot(b.x-me().x,b.y-me().y)),b.cast]).sort((a,b)=>a[2]-b[2]).slice(0,3))})`);
+      let b=L.room.state.beasts.get(t.bid), hp1=b?.hp;
       await waitFor(()=>!b||b.hp>hp1,2500);
+      // Đòn không tính trúng khi hồn sư còn khung bất tử (vừa vào lại phòng 1,5 giây, vừa bị đánh 0,45 giây): tung lại tối đa 2 lần.
+      for(let k=0;k<2&&b&&!(b.hp>hp1);k++){
+        await sleep(1600); await test(L,"bhp",{pct:50}); await test(L,"pst",{s:"root",secs:5});
+        t=await test(L,"tele",{i:1}); b=L.room.state.beasts.get(t.bid); hp1=b?.hp; await waitFor(()=>!b||b.hp>hp1,2500);
+      }
       ok(t.name==="Hút Sinh"&&b&&b.hp>hp1,`Hút Sinh trúng người đang bị Trói: ${b?beastName(b.rank,b.species):"?"} hồi ${b?b.hp-hp1:0} máu (${hp1} -> ${b?.hp})`);
     }
     // Thú vương theo lịch (hook king): xuất hiện trong hang, đúng niên hạn mức trên của bản đồ.
