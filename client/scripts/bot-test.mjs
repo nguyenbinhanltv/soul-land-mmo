@@ -2586,8 +2586,9 @@ else {
     const s3=qtyOf(K,shardCode(pool[3].vohon)), b1=bonesOf(K).length;
     await test(K,"chest",{bone:100,ur:100,i:3}); lg=await open(); const got=qtyOf(K,shardCode(pool[3].vohon))-s3;
     ok(pool[3].vohon===KING_CHEST.fire&&got>=KING_CHEST.shards[0]&&got<=KING_CHEST.shards[1]&&bonesOf(K).length===b1&&chestK(K)===1,`mở rương lần 2 (không hồn cốt, không UR): ${lg}`);
-    // Từ BĐ6b mảnh Bích Lân Xà Hoàng rơi ở Lạc Nhật nên không còn trong nhóm "bản đồ chưa mở"; Yêu Hồ (Cực Bắc, BĐ6c) thì còn.
-    ok(pool.some(x=>x.vohon==="quy_mi")&&!pool.some(x=>x.vohon==="yeu_ho")&&!pool.some(x=>x.vohon==="bich_lan_xa_hoang")&&pool.filter(x=>MAPS.tinh_dau_ngoai_vi.shards.includes(x.vohon)).length===3,`mảnh trong rương: của bản đồ, Tà Hỏa Phượng Hoàng, võ hồn bản đồ chưa mở (${pool.map(x=>x.vohon).join(", ")})`);
+    // Nhóm "bản đồ chưa mở" rỗng dần: BĐ6b bỏ Bích Lân Xà Hoàng (Lạc Nhật), BĐ6c Yêu Hồ (Cực Bắc), BĐ6d Quỷ Mị (Hải Thần Đảo); từ BĐ6d
+    // mọi võ hồn trong KING_CHEST.later đều đã có bản đồ rơi mảnh nên nhóm này không còn ai (trọng số 1).
+    ok(!pool.some(x=>x.w===1)&&KING_CHEST.later.every(v=>Object.values(MAPS).some(m=>m.shards.includes(v)))&&!pool.some(x=>x.vohon==="quy_mi")&&!pool.some(x=>x.vohon==="yeu_ho")&&!pool.some(x=>x.vohon==="bich_lan_xa_hoang")&&pool.filter(x=>MAPS.tinh_dau_ngoai_vi.shards.includes(x.vohon)).length===3,`mảnh trong rương: của bản đồ, Tà Hỏa Phượng Hoàng, võ hồn bản đồ chưa mở (${pool.map(x=>x.vohon).join(", ")})`);
     // Túi còn dưới KING_CHEST.slots ô trống: không mở được, rương còn nguyên.
     const free=BAG_SLOTS-K.bag.items.filter(i=>i.vohon===null).length; await test(K,"give",{code:"hon_hoan",qty:free-KING_CHEST.slots+1,years:10}); await sleep(100);
     lg=await open(); ok(new RegExp(`Cần ${KING_CHEST.slots} ô trống`).test(lg)&&chestK(K)===1,`túi còn ${KING_CHEST.slots-1} ô trống: "${lg}"`);
