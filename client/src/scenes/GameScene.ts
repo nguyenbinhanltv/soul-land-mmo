@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
-import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, dir4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
@@ -361,6 +361,7 @@ export class GameScene extends Phaser.Scene {
     let y = (k.ArrowDown || k.KeyS ? 1 : 0) - (k.ArrowUp || k.KeyW ? 1 : 0) + this.joy.y;
     const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; }
     const key = `${x.toFixed(2)},${y.toFixed(2)}`;
+    if (this.pred?.resend) this.lastInput = ""; // server đã tự dừng hướng đi (hook thử goto): gửi lại hướng đang giữ với số mới
     if (key !== this.lastInput) {
       this.lastInput = key; x = +x.toFixed(2); y = +y.toFixed(2);
       this.dir = clampDir(x, y);
@@ -982,8 +983,8 @@ export class GameScene extends Phaser.Scene {
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
       // Chính mình khi dự đoán: chạy animation đi và quay hướng ngay theo phím, không chờ cờ `moving` của server.
-      const walk = mine ? (this.pred!.walking(p, this.dir) ? dir4(this.dir.x, this.dir.y) : null) : undefined;
-      this.animatePlayer(v, p, time, walk);
+      const own = mine ? { walk: this.pred!.walking(p, this.dir), dir: this.pred!.look(p, this.dir) } : undefined;
+      this.animatePlayer(v, p, time, own);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); }
@@ -1103,13 +1104,13 @@ export class GameScene extends Phaser.Scene {
   /**
    * Chọn animation lớp thân theo state (gục > hấp thụ > đánh / tung hồn kỹ / bị đánh > đi / đứng) và hướng nhìn 4 phía,
    * rồi đặt khung tương ứng cho áo, tóc, phụ thể (bảng ánh xạ 5.11) và vị trí các vòng hồn hoàn.
-   * `walkDir` (chính mình khi dự đoán chuyển động): hướng đang tự đi, null = đang đứng; undefined = đọc `moving` / `dir` của server.
+   * `own` (chính mình khi dự đoán chuyển động): đang tự đi không và hướng nhìn theo phím; thiếu thì đọc `moving` / `dir` của server.
    */
-  animatePlayer(v: PView, p: any, time: number, walkDir?: number | null) {
+  animatePlayer(v: PView, p: any, time: number, own?: { walk: boolean; dir: number }) {
     if (v.act && time >= v.act.t0 + animMs(v.act.anim)) v.act = null;
-    const moving = walkDir === undefined ? p.moving : walkDir !== null;
+    const moving = own ? own.walk : p.moving;
     const anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
-    const { key, flip } = honsuAnimKey(bodyKey(p), anim, DIRS4[walkDir ?? p.dir] ?? "down");
+    const { key, flip } = honsuAnimKey(bodyKey(p), anim, DIRS4[own ? own.dir : p.dir] ?? "down");
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
     if (tag !== v.playing) { v.playing = tag; v.body.play(key); }
     v.body.setFlipX(flip);

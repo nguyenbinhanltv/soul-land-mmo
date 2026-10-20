@@ -1237,7 +1237,8 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "goto") {
       const x = Number(o.x), y = Number(o.y);
-      if (this.map.standable(x, y)) { p.x = x; p.y = y; d.input = { x: 0, y: 0 }; }
+      // Dừng luôn hướng đi đang giữ; tăng `seq` để client đang dự đoán chuyển động biết input cuối của nó đã bị bỏ và gửi lại (mục 6).
+      if (this.map.standable(x, y)) { p.x = x; p.y = y; d.input = { x: 0, y: 0 }; p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
     }
     else if (op === "drops") {
       const s = int(o.s, 0, 3600, 0);

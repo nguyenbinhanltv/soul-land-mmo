@@ -6,7 +6,8 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "bot": "node scripts/bot-test.mjs"
+    "bot": "node scripts/bot-test.mjs",
+    "test:predict": "node scripts/predict-test.mjs"
   },
   "dependencies": {
     "colyseus.js": "0.16.22",
