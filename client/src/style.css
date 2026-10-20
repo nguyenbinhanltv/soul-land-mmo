@@ -214,6 +214,7 @@ body.touch #prompt{bottom:160px}
 .kcard:focus-visible{outline:2px solid var(--xp);outline-offset:-2px}
 .rnote{color:var(--muted);font-size:11px}
 .rbond{color:#8a5a00;font-weight:600}
+.rbonds{display:flex;flex-direction:column;gap:1px}
 .rcard .stars,.srow .stars{font-style:normal;color:var(--muted);font-size:11px;letter-spacing:1px}
 .rcard .stars b,.srow .stars b{color:#e0a020;font-weight:400}
 /* Mảnh võ hồn (bước 3.4): tiến độ mở / lên sao */

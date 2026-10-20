@@ -459,12 +459,17 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   });
   el.appendChild(slots);
 
-  // Ràng buộc (mục 5.1, từ 2.5d): cặp võ hồn cùng trong đội thì cả đội có thêm hiệu ứng (server tự tính lại).
+  // Ràng buộc (mục 5.1, từ 2.5d; 9.4 mỗi cặp một dòng): cặp võ hồn cùng trong đội thì cả đội có thêm hiệu ứng (server tự tính lại).
   const bonds = bondsOf(data.team.map((r) => ownedById(data, r)?.vohon ?? ""));
   if (bonds.length) {
-    const bd = document.createElement("small"); bd.className = "rnote rbond";
-    bd.textContent = "Ràng buộc: " + bonds.map((b) => `${b.name} (${b.desc})`).join(" · ");
-    el.appendChild(bd);
+    const box = document.createElement("div"); box.className = "rbonds";
+    for (const b of bonds) {
+      const bd = document.createElement("small"); bd.className = "rnote rbond";
+      const pair = b.pair.map((v) => VOHON[Math.max(0, vohonIndex(v))].name).join(" + ");
+      bd.textContent = `Ràng buộc ${b.name} (${pair}): ${b.desc}`;
+      box.appendChild(bd);
+    }
+    el.appendChild(box);
   }
 
   const sub = document.createElement("small"); sub.className = "rnote";

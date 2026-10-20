@@ -19,8 +19,8 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondsOf,
-  ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, type ChanThanStat, type BondDef, type SkillDef, type StatusId, type StatusApply, type BuffId,
+  PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS,
+  ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
@@ -1682,7 +1682,7 @@ export class MapRoom extends Room<MapState> {
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
     else if (op === "lei") { d.lei = int(o.v, 0, PHONG_LOI.max, 0); p.lei = d.lei; d.fight = 0; }
-    else if (op === "bond") out = { crit: this.bondV(d, "crit"), burn: this.bondV(d, "burn") }; // ràng buộc của đội hiện tại (2.5d)
+    else if (op === "bond") out = Object.fromEntries(BOND_KEYS.map((k) => [k, this.bondV(d, k)])); // tổng mỗi loại ràng buộc của đội hiện tại (2.5d, 9.4)
     else if (op === "energy") { const v = int(o.v, 0, TIEN_CO_MAX, 0); d.fight = 0; for (const r of d.team) if (r && !d.down.has(r)) d.energy.set(r, v); }
     else if (op === "spawn") {
       const years = yearsOf(int(o.tier, 0, TIERS.length - 1, 0));
@@ -2034,17 +2034,18 @@ export class MapRoom extends Room<MapState> {
     return (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0) + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + Chân Thân (8.1a)
   }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
-  atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk")); }
+  atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk") + this.bondV(d, "atk")); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4)
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
   /**
-   * Ràng buộc (BONDS, 2.5d, chờ chốt): tổng hiệu ứng `k` của các cặp võ hồn cùng trong đội của hồn sư (ô bất kỳ, kể cả đang gục),
-   * võ hồn nào ra trận cũng hưởng.
+   * Ràng buộc (BONDS, 2.5d, đủ bảng ở 9.4): tổng hiệu ứng `k` của các cặp võ hồn cùng trong đội của hồn sư (ô bất kỳ, kể cả đang
+   * gục), võ hồn nào ra trận cũng hưởng; cùng loại từ nhiều cặp thì cộng.
    */
-  bondV(d: PData, k: "crit" | "burn") {
-    const ids = d.team.map((r) => d.owned.find((v) => v.rowId === r)?.vohon ?? "");
-    return bondsOf(ids).reduce((a, b: BondDef) => a + (b[k] ?? 0), 0);
+  bondV(d: PData, k: BondKey) {
+    return bondSum(d.team.map((r) => d.owned.find((v) => v.rowId === r)?.vohon ?? ""), k);
   }
+  /** Hệ số hồi máu và khiên do hồn sư tạo: bộ hồn hạch Lưu Ly 2 món (5.2) + ràng buộc Lam Ngân Hoàng (9.4), cộng nhau. */
+  healMult(d: PData) { return 1 + (d.coreFx.heal ?? 0) + this.bondV(d, "heal"); }
   /** Đánh thường, tung hồn kỹ hoặc tiên cơ thì hết tàng hình (Yêu Hồ, 2.5c); từ 2026-10-20 bị đòn trực tiếp đánh trúng cũng hết (hurtPlayer). */
   unhide(p: PlayerState, d: PData) { if (d.buffs.delete("hide")) this.syncBuffs(p, d); }
 
@@ -2134,7 +2135,7 @@ export class MapRoom extends Room<MapState> {
       d.buffs.set(b, { t: Math.max(cur?.t ?? 0, secs), v: Math.max(cur?.v ?? 0, val) });
     }
     this.syncBuffs(p, d);
-    const hm = 1 + (d.coreFx.heal ?? 0); // bộ hồn hạch Lưu Ly 2 món (5.2): hồi máu và khiên mạnh thêm
+    const hm = this.healMult(d); // bộ hồn hạch Lưu Ly 2 món (5.2), ràng buộc Lam Ngân Hoàng (9.4): hồi máu và khiên mạnh thêm
     if (e.heal) this.healTeam(id, e.heal * bpow * hm);
     if (e.shield) { d.shield = Math.max(d.shield, Math.round(p.maxHp * e.shield * bpow * hm)); d.shieldT = Math.max(d.shieldT, secs); p.shield = d.shield; }
     if (e.mp) { d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * e.mp * bpow); p.mp = Math.floor(d.mpF); }
@@ -2630,7 +2631,8 @@ export class MapRoom extends Room<MapState> {
     if (src) this.log(id, `${sk.name}: sao chép ${run.name}.`, VOHON[p.vh].col);
     // Phục Chế nhân `copy` cả sát thương lẫn hiệu ứng lên bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi; inv/hide giữ nguyên);
     // hệ số sao (9.5) cũng nhân cả hai, theo sao của võ hồn tung và vòng của ô (không theo hồn kỹ được sao chép).
-    const mult = (sk.copy ?? 1) * starSkillMult(star), hit: Hit = { kind: "skill", done: false };
+    // Ràng buộc Song Sinh Võ Hồn (9.4): sức mạnh hồn kỹ ô U / I / O / P (mọi vòng) × (1 + bondV skill), như hệ số sao.
+    const mult = (sk.copy ?? 1) * starSkillMult(star) * (1 + this.bondV(d, "skill")), hit: Hit = { kind: "skill", done: false };
     // Bộ hồn hạch Lam Ngân 4 món (5.2): hồn kỹ có gây khống chế, trúng ít nhất một hồn thú thì hồi hồn lực (một lần mỗi lần tung).
     const ccMp = d.coreFx.ccMp ?? 0;
     if (ccMp && [...(run.status ?? []), ...(run.finisher ?? [])].some((a) => isCcStatus(a.s))) hit.onHit = () => {
@@ -2783,7 +2785,9 @@ export class MapRoom extends Room<MapState> {
     // Bộ hồn hạch Xà Hoàng 4 món (5.2): Trúng độc đủ tầng do người mang bộ gây thì như Dễ thương thêm (mọi nguồn). Thất Sát 2 món:
     // "xuyên thủ" tạm quy thành thêm sát thương đòn trực tiếp (hồn thú chưa có thủ).
     const pv = poison && poison.n >= CORE_FX_RULE.poisonStacks ? this.pdata.get(poison.src)?.coreFx.poisonVuln ?? 0 : 0;
-    dmg *= 1 + (vuln ? vuln.v : 0) + pv + (direct ? (armor ? armor.v * armor.n : 0) + (fx.pierce ?? 0) : 0) + this.phoenixAmp(b);
+    // Ràng buộc Băng Hỏa Lưỡng Nghi (9.4): hồn thú đang Choáng hoặc Thiêu đốt nhận thêm sát thương của hồn sư (mọi nguồn, như Dễ thương).
+    const sb = bd.st.has("stun") || bd.st.has("burn") ? this.bondV(pd, "stunBurn") : 0;
+    dmg *= 1 + (vuln ? vuln.v : 0) + pv + sb + (direct ? (armor ? armor.v * armor.n : 0) + (fx.pierce ?? 0) : 0) + this.phoenixAmp(b);
     // Chí mạng theo võ hồn ra trận (CRIT cộng hồn hạch, 5.2); bộ Thất Sát 4 món thêm tỉ lệ lên hồn thú Phá giáp.
     const crit = direct && Math.random() < pd.crit + (o.crit ?? 0) + this.buffV(pd, "crit") + this.bondV(pd, "crit") + (armor ? fx.armorCrit ?? 0 : 0);
     if (crit) dmg *= pd.critMult;
@@ -2974,7 +2978,7 @@ export class MapRoom extends Room<MapState> {
       if (tgt && b && !this.map.inSafe(p.x, p.y) && Math.hypot(b.x - p.x, b.y - p.y) < 18 + TIERS[b.tier].size) this.damageBeast(tgt, dmg, id, col);
       if (fid && f && Math.hypot(f.x - p.x, f.y - p.y) < 18 + ARENA.body * 2) this.damageFoe(fid, dmg, id, col);
     } else if (he === "phu_tro") {
-      const hm = 1 + (d.coreFx.heal ?? 0); // bộ hồn hạch Lưu Ly 2 món (5.2)
+      const hm = this.healMult(d); // bộ hồn hạch Lưu Ly 2 món (5.2), ràng buộc Lam Ngân Hoàng (9.4)
       this.healTeam(id, tc.heal * hm);
       d.shield = Math.max(d.shield, Math.round(p.maxHp * tc.shield * hm)); d.shieldT = tc.shieldSecs; p.shield = d.shield;
       this.partyShare(id, { heal: tc.heal, shield: tc.shield, secs: tc.shieldSecs }, 1, hm, col, def.id); // 9.1: lan cho tổ đội
