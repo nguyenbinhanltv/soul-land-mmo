@@ -73,7 +73,7 @@ export interface BossWorldView { rage: boolean; weak: He | null; myHe: He; shiel
  */
 export function showBoss(b: { name: string; hp: number; maxHp: number; parts: number; phase: number; title: string; col: string; world?: BossWorldView } | null) {
   const el = $("#bossbar"); document.body.classList.toggle("boss", !!b);
-  if (!b) { el.hidden = true; $("#bossRank").hidden = true; document.body.classList.remove("bossw"); return; }
+  if (!b) { el.hidden = true; $("#bossRank").hidden = true; return; }
   el.hidden = false; el.style.setProperty("--c", b.col);
   const now = performance.now(), life = (bossLifeEnd - now) / 1000, w = b.world, rageIn = (bossRageEnd - now) / 1000, weakT = (bossWeakEnd - now) / 1000;
   const key = `${b.name}|${b.hp}|${b.maxHp}|${b.parts}|${b.phase}|${b.title}|${Math.ceil(life)}|${w ? `${JSON.stringify(w)}|${Math.ceil(rageIn)}|${Math.ceil(weakT)}` : ""}`;
@@ -99,7 +99,8 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
     if (w.dive) chip("Đang lặn xuống hồ: không nhận sát thương, chờ nổi lên (mẫn công lướt tới đánh điểm yếu)");
     if (!wl.childElementCount) wl.hidden = true;
   }
-  document.body.classList.toggle("bossw", !wl.hidden);
+  // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
+  document.body.style.setProperty("--bossh", `${el.offsetTop + el.offsetHeight}px`);
 }
 /** Bảng xếp hạng sát thương khi đánh thú vương (tin "boss" k = "rank" / "down"): tối đa 10 dòng, dòng của mình sáng; từ 3% có rương. */
 export function bossRank(list: { id: string; name: string; pct: number }[] | null, me: string, final = false, world = false) {

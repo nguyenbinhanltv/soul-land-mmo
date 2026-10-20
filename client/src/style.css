@@ -432,11 +432,10 @@ body.touch #team{bottom:150px}
 #bossbar .wl span.ok{border-color:#5ad07a;color:#9dffb0}
 #bossbar .wl span.bad{border-color:#ff6a5a;color:#ffb0a0;animation:wlblink .8s steps(2) infinite}
 @keyframes wlblink{50%{border-color:transparent}}
-body.bossw #target,body.bossw #bossCd{top:98px}
-body.boss #target{top:72px}
+body.boss #target{top:calc(var(--bossh,62px) + 10px)}
 #bossCd{position:absolute;left:50%;top:10px;transform:translateX(-50%);padding:4px 12px;font-size:12.5px;font-weight:800;white-space:nowrap;
   background:var(--panel);border:2px solid var(--c,#ff5a5a);color:var(--c,#ff5a5a);text-shadow:0 1px 0 #000;font-variant-numeric:tabular-nums}
-body.boss #bossCd{top:72px}
+body.boss #bossCd{top:calc(var(--bossh,62px) + 10px)}
 #bossRank{position:absolute;right:10px;top:180px;width:190px;padding:6px 8px;font-size:11.5px}
 #bossRank b{display:block;font-size:12px;margin-bottom:3px}
 #bossRank .rk{display:grid;grid-template-columns:18px 1fr auto;gap:4px;font-variant-numeric:tabular-nums}

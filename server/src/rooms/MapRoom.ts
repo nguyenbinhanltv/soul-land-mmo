@@ -3703,7 +3703,7 @@ export class MapRoom extends Room<MapState> {
     this.cancelCast(bid, b, bd); bd.kx = 0; bd.ky = 0;
     const name = beastName(b.rank, b.species);
     this.broadcast("fx", { k: "roar", bid, name: "Nổi giận", col: k.def.aura, secs: KING.roarSecs });
-    this.broadcast("boss", { k: "rage", bid, name, dmg: WORLD.rageDmg, every: WORLD.slamEvery, col: k.def.aura });
+    this.broadcast("boss", { k: "rage", bid, name, dmg: WORLD.rageDmg, every: WORLD.slamEvery, col: k.def.aura, life: k.life });
   }
 
   /** Bá Thể (Thái Thản Cự Viên): khiên `pct` máu tối đa trong `secs` giây; võ hồn hệ `he` phá nhanh gấp `mult`. */
