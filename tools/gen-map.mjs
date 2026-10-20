@@ -5,6 +5,7 @@
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
 //   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4); Ngoại vi và Nội địa có 1 object `boss` (hang thú vương, BĐ5).
 //   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, NPC Đại Sư, thương nhân, lò rèn (BĐ2; hoạt động từ 6.1)
+//   dai_dau_hon_truong  sân Đại Đấu Hồn Trường: sân lát đá vây tường và khán đài, không cổng, không hồn thú (bước 7.2, mục 5.9)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
 import { writeFileSync } from "node:fs";
@@ -324,11 +325,32 @@ function nacDinhThanh() {
   o.point("npc", "Ngọc Tiểu Cương (Đại Sư)", 11, 13, [prop("npc", "string", "dai_su")]);
   o.point("npc", "Thợ rèn", 43, 13, [prop("npc", "string", "lo_ren")]);
   o.point("npc", "Thương nhân", 9, 24, [prop("npc", "string", "thuong_nhan")]);
-  o.point("npc", "Đại Đấu Hồn Trường (sắp mở)", 46, 24, [prop("npc", "string", "dau_hon_truong")]);
+  o.point("npc", "Đại Đấu Hồn Trường", 46, 24, [prop("npc", "string", "dau_hon_truong")]);
   writeMap("nac_dinh_thanh", MW, MH, ground, trees, canopy, o);
 }
 
-const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia };
+// ---------- Đại Đấu Hồn Trường (bước 7.2, mục 5.9): sân đấu 1v1, chỉ phòng ArenaRoom dùng ----------
+// Không cổng, không vùng, không NPC: vào / ra bằng ghép trận. Object `spawn` là mặt sân; hai bên xuất hiện ở hai đầu sân (ArenaRoom).
+function daiDauHonTruong() {
+  const MW = 40, MH = 24; // rộng hơn khung nhìn nhỏ nhất (zoom 2 ở 1280×720 thấy 632×312 pixel) để không lộ nền tối
+  const g = grid(MW, MH);
+  // Tường bao quanh, khán đài (mái + tường) phía bắc và phía nam, hàng cây ở hai bên.
+  for (let x = 0; x < MW; x++) { g.set(x, 0, 9); g.set(x, MH - 1, 9); }
+  for (let y = 0; y < MH; y++) { g.set(0, y, 9); g.set(MW - 1, y, 9); }
+  g.house(1, 1, MW - 2, 4);
+  g.fill(1, MH - 3, MW - 2, 1, 8); g.fill(1, MH - 2, MW - 2, 1, 9);
+  for (let y = 6; y < MH - 4; y += 2) { g.set(1, y, 1); g.set(MW - 2, y, 1); }
+  // Mặt sân: viền đường đất, giữa lát đá.
+  g.fill(3, 5, MW - 6, MH - 8, 3);
+  g.fill(4, 6, MW - 8, MH - 10, 6);
+  const { ground, trees, canopy } = toLayers(MW, MH, g, () => 0);
+  const o = objects();
+  o.rect("spawn", "Sân đấu", 4, 6, MW - 8, MH - 10);
+  writeMap("dai_dau_hon_truong", MW, MH, ground, trees, canopy, o);
+}
+
+const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia,
+  dai_dau_hon_truong: daiDauHonTruong };
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(GEN)) {
   if (!GEN[id]) { console.error("Không có bản đồ:", id); process.exit(1); }

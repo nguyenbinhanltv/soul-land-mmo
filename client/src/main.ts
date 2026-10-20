@@ -237,32 +237,63 @@ async function join(retry = true, roomId?: string | null) {
 }
 
 /**
+ * Vào phòng sân đấu Đại Đấu Hồn Trường bằng mã phòng server gửi khi ghép trận (7.2; phòng riêng, không ghép theo mapId). Không vào
+ * được (trận đã hủy, quá giờ) thì quay về bản đồ đang đứng.
+ */
+async function joinArena(roomId: string) {
+  overlay.hidden = false; card.classList.remove("wide");
+  card.innerHTML = `<h1>Đang vào Đại Đấu Hồn Trường…</h1>`;
+  try {
+    const room = await new Client(WS).joinById(roomId, { token });
+    const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
+    play(room, roomMap);
+  } catch (e) {
+    card.innerHTML = `<h1>Không vào được trận đấu</h1><p>${esc((e as Error).message ?? "")}</p>`;
+    setTimeout(() => join(), 1500);
+  }
+}
+
+/** Mã đóng kết nối của ArenaRoom khi trận đã xong (ARENA_END_CODE ở server): tự về bản đồ cũ. */
+const ARENA_END_CODE = 4005;
+
+/**
  * Mở Phaser cho phòng vừa vào. Server cho đi cổng hoặc đổi kênh (`travel {mapId, roomId}`) thì rời phòng cũ, hủy scene và vào phòng
  * (kênh) server đã chọn ở bản đồ đích.
+ * Từ 7.2: ghép được trận thì rời bản đồ, vào phòng sân đấu; xong trận (hoặc bấm rời sân) thì về lại bản đồ đang đứng (`mapId` không đổi
+ * khi vào sân, server giữ vị trí cũ; kênh chọn lại qua /api/channel).
  */
 function play(room: Room, roomMap: string) {
   overlay.hidden = true;
   addLag(room); // ?lag=<ms>: giả lập ping cao để thử dự đoán chuyển động
-  let travelling = false;
+  let travelling = false, left = false;
+  const isArena = MAPS[roomMap]?.kind === "arena";
   room.onLeave((code) => {
+    left = true;
     if (travelling) return;
+    if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
     document.body.classList.remove("playing"); overlay.hidden = false;
     const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
     card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
   });
-  const onTravel = async (to: string, roomId: string | null) => {
+  /** Rời phòng hiện tại, hủy scene rồi `next()` (vào phòng mới). */
+  const leaveThen = async (next: () => void) => {
     if (travelling) return;
-    travelling = true; mapId = to;
-    await room.leave().catch(() => {});
+    travelling = true;
+    // Kết nối đã đóng (server đưa ra khỏi sân, mã 4005) thì không gửi rời phòng nữa: leave() của colyseus.js sẽ không bao giờ xong.
+    if (!left) await room.leave().catch(() => {});
     game?.destroy(true); game = null;
     document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
-    join(true, roomId);
+    next();
   };
+  // `roomId`: kênh server đã chọn (tin `travel`); không có (về từ sân đấu) thì join hỏi /api/channel.
+  const onTravel = (to: string, roomId?: string | null) => leaveThen(() => { mapId = to; join(true, roomId); });
+  const onArena = (roomId: string) => leaveThen(() => joinArena(roomId));
+  const onBack = () => onTravel(mapId);
   game = new Phaser.Game({
     type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true,
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
   });
-  game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel });
+  game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack });
 }
 
 // Có phiên cũ -> thử tải nhân vật luôn.

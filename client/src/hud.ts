@@ -12,7 +12,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, RESONANCE, resonanceText,
 
-  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
+  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
@@ -1453,8 +1453,9 @@ export interface NpcActions {
   buy(code: string, qty: number): void; sell(id: string, qty?: number): void; enhance(targetId: string, materialIds: string[]): void;
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin"): void; // nhận / trả nhiệm vụ (6.2)
+  arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
 }
-type NpcPage = "talk" | "buy" | "sell" | "forge" | "forgecore" | "quest";
+type NpcPage = "talk" | "buy" | "sell" | "forge" | "forgecore" | "quest" | "rank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -1463,7 +1464,8 @@ let npcAct: NpcActions | null = null;
 let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" lần đầu với món giá trị: bấm lần nữa mới bán
 /** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
 const SELL_CONFIRM_DONG = 100;
-const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch." };
+const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
+  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì." };
 
 /** NPC đang mở hộp thoại (null = đóng). */
 export const npcOpenId = () => npcDefOpen?.id ?? null;
@@ -1508,6 +1510,13 @@ function renderNpc() {
     el.appendChild(row);
     return;
   }
+  if (npcPage === "rank") { // bảng xếp hạng Đại Đấu Hồn Trường (7.2)
+    el.appendChild(arenaRankEl(arenaTopMsg));
+    btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
+    btn("‹ Quay lại", "drop", () => go("talk"));
+    el.appendChild(row);
+    return;
+  }
   if (npcPage !== "talk" && bag) {
     const coin = document.createElement("div"); coin.className = "coin";
     coin.innerHTML = `<i class="coinico"></i><span>Hồn Tệ:</span> ${honTeHtml(bag.honTe)}`;
@@ -1528,6 +1537,10 @@ function renderNpc() {
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
       btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
+    }
+    if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
+      btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
+      btn("Bảng xếp hạng", "absorb", () => { act.arena("top"); go("rank"); });
     }
     btn("Tạm biệt", "drop", () => closeNpc());
     el.appendChild(row);
@@ -1736,6 +1749,145 @@ function renderQuestPage(el: HTMLElement, act: NpcActions) {
 /** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu). */
 export const QUEST_GIVERS = new Set(QUESTS.map((c) => c.giver));
 
+// ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng ----------
+/** Tin riêng "arenaTop": ARENA.topN dòng đầu (dòng của mình có `me`), hạng của mình, lượt thắng có thưởng còn lại hôm nay. */
+export interface ArenaTopMsg {
+  list: { name: string; elo: number; wins: number; losses: number; draws: number; me: boolean }[];
+  me: (ArenaRecord & { rank: number }) | null; start: number; left: number; queued: boolean;
+}
+/** Tin "arena" k = "end": kết quả trận của mình (score 1 thắng, 0,5 hòa, 0 thua), Elo trước / sau, phần thưởng (null = không có). */
+export interface ArenaEndMsg {
+  score: number; reason: string; why: string; foe: string; elo0: number; elo1: number; rec: ArenaRecord;
+  reward: { honTe: number; code: string; qty: number; coin: number } | null; left: number; secs: number;
+}
+let arenaQ: { elo: number; t0: number } | null = null;   // đang xếp hàng: Elo, lúc bắt đầu chờ (performance.now)
+let arenaTopMsg: ArenaTopMsg | null = null;
+let arenaEndMsg: (ArenaEndMsg & { end: number; act: { back(): void; top(): void } }) | null = null;
+let arenaLeaveAt = 0;                                    // bấm "Rời sân" lần đầu (giữa trận phải bấm hai lần: rời = thua)
+const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "±0");
+
+/** Ô "Đang tìm đối thủ…" (tin "arena" k = "queue"): Elo, thời gian chờ, nút Hủy (chuột / chạm). null = ẩn. */
+export function setArenaQueue(q: { elo: number; secs: number } | null, cancel: () => void) {
+  arenaQ = q ? { elo: q.elo, t0: performance.now() - q.secs * 1000 } : null;
+  const el = $("#arenaQ");
+  if (!arenaQ) { el.hidden = true; el.innerHTML = ""; }
+  else {
+    el.innerHTML = `<span class="spin"></span><div><b>Đang tìm đối thủ…</b><small></small></div><button type="button">Hủy</button>`;
+    el.querySelector("button")!.addEventListener("pointerdown", (e) => { e.preventDefault(); cancel(); });
+    el.hidden = false; updateArenaQueue();
+  }
+  if (npcDefOpen?.role === "arena") renderNpc();
+}
+/** Mỗi lần cập nhật HUD: thời gian đã chờ. */
+export function updateArenaQueue() {
+  const s = arenaQ && $("#arenaQ small"); if (!s || !arenaQ) return;
+  const txt = `Elo ${arenaQ.elo} · đã chờ ${mmss((performance.now() - arenaQ.t0) / 1000)}`;
+  if (s.textContent !== txt) s.textContent = txt;
+}
+
+/** Bảng xếp hạng (top ARENA.topN, dòng của mình sáng) kèm hạng / thành tích của mình và lượt thắng có thưởng còn lại. */
+function arenaRankEl(m: ArenaTopMsg | null) {
+  const box = document.createElement("div"); box.className = "arank";
+  if (!m) { box.textContent = "Đang tải bảng xếp hạng…"; return box; }
+  const me = document.createElement("div"); me.className = "ame";
+  me.textContent = m.me ? `Hạng ${m.me.rank} · Elo ${m.me.elo} · ${m.me.wins} thắng, ${m.me.losses} thua, ${m.me.draws} hòa`
+    : `Chưa đấu trận nào (Elo khởi đầu ${m.start}).`;
+  box.appendChild(me);
+  const note = document.createElement("small");
+  note.textContent = `Còn ${m.left}/${ARENA.dailyWins} trận thắng có thưởng hôm nay: ${formatHonTe(ARENA.winHonTe)} + ${ARENA.winShards} mảnh võ hồn mỗi trận.`;
+  box.appendChild(note);
+  const t = document.createElement("div"); t.className = "atable";
+  t.innerHTML = `<div class="ar ah"><span>#</span><em>Hồn sư</em><i>Elo</i><i>T – B – H</i></div>`;
+  m.list.forEach((r, i) => {
+    const row = document.createElement("div"); row.className = "ar" + (r.me ? " me" : "");
+    row.innerHTML = `<span>${i + 1}</span><em></em><i>${r.elo}</i><i>${r.wins} – ${r.losses} – ${r.draws}</i>`;
+    row.querySelector("em")!.textContent = r.name;
+    t.appendChild(row);
+  });
+  if (!m.list.length) { const e = document.createElement("small"); e.textContent = "Chưa ai đấu trận nào."; t.appendChild(e); }
+  box.appendChild(t);
+  return box;
+}
+/** Tin "arenaTop": vẽ lại trang xếp hạng trong hộp thoại NPC và bảng kết quả trận nếu đang mở. */
+export function setArenaTop(m: ArenaTopMsg) {
+  arenaTopMsg = m;
+  if (npcDefOpen?.role === "arena") renderNpc();
+  if (arenaEndMsg) renderArenaEnd();
+}
+
+/**
+ * Thanh trận đấu ở đầu màn hình (phòng ArenaRoom): hai bên (tên, Elo, sinh lực cả đội theo %, số võ hồn còn đứng), đồng hồ của pha
+ * (chờ vào sân, chuẩn bị, giao đấu), nút "Rời sân" (giữa trận bấm hai lần: rời = thua). null = ẩn.
+ */
+export function showArena(a: { phase: string; time: number; me: string; sides: { sid: string; name: string; elo: number; pct: number; alive: number; total: number }[] } | null,
+  leave: () => void) {
+  const el = $("#arenaBar"); document.body.classList.toggle("arena", !!a);
+  if (!a) { el.hidden = true; el.innerHTML = ""; return; }
+  if (!el.firstChild) {
+    el.innerHTML = `<div class="aside a0"><b></b><small></small><div class="bar"><i></i><span></span></div></div>
+      <div class="aclock"><b></b><small></small><button type="button" class="aleave">Rời sân</button></div>
+      <div class="aside a1"><b></b><small></small><div class="bar"><i></i><span></span></div></div>`;
+    el.querySelector(".aleave")!.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      const fight = el.dataset.phase === "fight" || el.dataset.phase === "ready";
+      if (fight && performance.now() - arenaLeaveAt > 3000) { arenaLeaveAt = performance.now(); el.querySelector(".aleave")!.textContent = "Rời = thua?"; return; }
+      leave();
+    });
+  }
+  el.hidden = false; el.dataset.phase = a.phase;
+  a.sides.forEach((s, i) => {
+    const box = el.querySelector(`.a${i}`) as HTMLElement; if (!box) return;
+    box.classList.toggle("me", s.sid === a.me);
+    const name = `${s.name || "…"}${s.sid === a.me ? " (bạn)" : ""}`;
+    if (box.querySelector("b")!.textContent !== name) box.querySelector("b")!.textContent = name;
+    box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}`;
+    (box.querySelector(".bar i") as HTMLElement).style.width = `${Math.round(s.pct * 1000) / 10}%`;
+    box.querySelector(".bar span")!.textContent = `${Math.round(s.pct * 100)}% · ${s.alive}/${s.total} võ hồn`;
+  });
+  const ph = a.phase === "wait" ? "Chờ đối thủ vào sân" : a.phase === "ready" ? "Chuẩn bị" : a.phase === "fight" ? "Giao đấu" : "Kết thúc";
+  el.querySelector(".aclock b")!.textContent = a.phase === "end" ? "–" : mmss(a.time);
+  el.querySelector(".aclock small")!.textContent = ph;
+  const lb = el.querySelector(".aleave")!;
+  if (performance.now() - arenaLeaveAt > 3000 && lb.textContent !== "Rời sân") lb.textContent = "Rời sân";
+}
+
+/** Bảng kết quả trận (tin "arena" k = "end"): thắng / thua / hòa, lý do, Elo trước → sau, phần thưởng, bảng xếp hạng, nút về bản đồ. */
+export function arenaEnd(m: ArenaEndMsg | null, act: { back(): void; top(): void }) {
+  arenaEndMsg = m ? { ...m, end: performance.now() + m.secs * 1000, act } : null;
+  if (!m) { const el = $("#arenaEnd"); el.hidden = true; el.innerHTML = ""; return; }
+  renderArenaEnd();
+}
+function renderArenaEnd() {
+  const m = arenaEndMsg, el = $("#arenaEnd"); if (!m) return;
+  el.hidden = false; el.innerHTML = "";
+  el.className = "panel " + (m.score === 1 ? "win" : m.score === 0 ? "lose" : "draw");
+  const h = document.createElement("h2"); h.textContent = m.score === 1 ? "Thắng!" : m.score === 0 ? "Thua" : "Hòa"; el.appendChild(h);
+  const line = (text: string, cls = "") => { const p = document.createElement("div"); p.className = "aline " + cls; p.textContent = text; el.appendChild(p); };
+  line(`Đối thủ ${m.foe}: ${m.why}.`);
+  line(`Elo ${m.elo0} → ${m.elo1} (${signed(m.elo1 - m.elo0)})`, "aelo");
+  line(`Thành tích: ${m.rec.wins} thắng · ${m.rec.losses} thua · ${m.rec.draws} hòa`);
+  if (m.reward) {
+    const shard = m.reward.qty ? ` + ${m.reward.qty} ${itemDef(m.reward.code)?.name ?? m.reward.code}` : "";
+    line(`Thưởng: ${formatHonTe(m.reward.honTe)}${shard}${m.reward.coin ? " (túi đầy: mảnh đổi ra Hồn Tệ)" : ""}`, "arew");
+  } else if (m.score === 1) line("Hết lượt thắng có thưởng hôm nay (Elo vẫn tính).");
+  else line("Thua không mất gì: không mất kinh nghiệm hay đồ.");
+  line(`Còn ${m.left}/${ARENA.dailyWins} trận thắng có thưởng hôm nay.`);
+  el.appendChild(arenaRankEl(arenaTopMsg));
+  const row = document.createElement("div"); row.className = "brow";
+  const b = document.createElement("button"); b.type = "button"; b.className = "buse absorb"; b.textContent = "Về bản đồ cũ";
+  b.addEventListener("click", () => { b.blur(); m.act.back(); }); row.appendChild(b);
+  const t = document.createElement("button"); t.type = "button"; t.className = "buse use"; t.textContent = "Xem lại bảng xếp hạng";
+  t.addEventListener("click", () => { t.blur(); m.act.top(); }); row.appendChild(t);
+  el.appendChild(row);
+  const k = document.createElement("small"); k.className = "rnote acd"; el.appendChild(k);
+  updateArenaEnd();
+}
+/** Mỗi lần cập nhật HUD: số giây trước khi tự về bản đồ cũ. */
+export function updateArenaEnd() {
+  const m = arenaEndMsg, k = m && $("#arenaEnd .acd"); if (!m || !k) return;
+  const txt = `Tự về bản đồ cũ sau ${Math.max(0, Math.ceil((m.end - performance.now()) / 1000))} giây.`;
+  if (k.textContent !== txt) k.textContent = txt;
+}
 // ---------- Cộng minh (mục 5.10, bước 8.2): chỉ hiển thị số server gửi (tin riêng "resonance") ----------
 let resMsg: ResonanceMsg | null = null;
 /** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
@@ -1784,10 +1936,12 @@ function renderReso() {
 
 // ---------- Kênh (mục 6 "Nhiều kênh"): chỉ hiển thị số server gửi (PlayerState của phòng: MapState.channel; tin riêng "channels") ----------
 let chanNow = 0, chanMsg: ChannelsMsg | null = null, chanPick: (ch: number) => void = () => {};
-/** Số kênh của phòng đang ở (MapState.channel): ghi lên nhãn "Kênh N" ở góc bản đồ nhỏ. */
+/** Số kênh của phòng đang ở (MapState.channel): ghi lên nhãn "Kênh N" ở góc bản đồ nhỏ; 0 (sân đấu) thì ẩn nhãn. */
 export function setChannel(ch: number) {
   if (ch === chanNow) return;
-  chanNow = ch; $("#chanBtn").textContent = ch ? `Kênh ${ch} ▾` : "Kênh ▾";
+  chanNow = ch; $("#chanBtn").textContent = `Kênh ${ch} ▾`;
+  $("#chanBtn").hidden = !ch; // 0: phòng không chia kênh (sân Đại Đấu Hồn Trường)
+  if (!ch) toggleChannels(false);
   if (!$("#chans").hidden) renderChannels();
 }
 /** Bấm một kênh trong danh sách: GameScene gửi `channel {ch}` (server kiểm tra rồi mới cho đổi). */
@@ -1799,7 +1953,7 @@ export function toggleChannels(open = $("#chans").hidden) {
   return open;
 }
 /** Vào phòng mới (đi cổng, đổi kênh): bỏ danh sách kênh của phòng cũ và đóng bảng. */
-export function resetChannels() { chanMsg = null; toggleChannels(false); }
+export function resetChannels() { chanMsg = null; chanNow = -1; toggleChannels(false); }
 /** Tin "channels": vẽ lại danh sách nếu đang mở. */
 export function setChannels(m: ChannelsMsg) { chanMsg = m; if (!$("#chans").hidden) renderChannels(); }
 function renderChannels() {

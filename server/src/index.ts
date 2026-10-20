@@ -5,6 +5,7 @@ import express from "express";
 import { Server, LocalPresence } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
+import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
@@ -95,6 +96,8 @@ const gameServer = new Server({ transport: new WebSocketTransport({ server }), p
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
+// Đại Đấu Hồn Trường (7.2): mỗi trận một phòng riêng, server mở khi ghép trận (arenaQueue.ts); client vào bằng mã phòng (joinById).
+gameServer.define("arena", ArenaRoom);
 
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
 for (const id of Object.keys(MAPS)) loadMap(id);

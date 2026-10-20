@@ -17,7 +17,7 @@ description: Cách thêm bảng, cột hoặc chuyển dữ liệu PostgreSQL/Su
    - Chuyển dữ liệu: `INSERT ... SELECT ... WHERE NOT EXISTS (...)` (mẫu ở cuối `002_vohons.sql`) hoặc `ON CONFLICT DO NOTHING`.
 4. **Bật RLS cho mọi bảng mới**: `ALTER TABLE <bang> ENABLE ROW LEVEL SECURITY;` và **không** tạo policy. Data API công khai của Supabase vì vậy không đọc được; server kết nối bằng user `postgres` nên không bị chặn (giải thích ở cuối `001_init.sql`).
 5. Khóa ngoại tới `accounts(id)` dùng `ON DELETE CASCADE`. Mã võ hồn lưu dạng `TEXT` theo `VOHON[].id` trong `shared/data.ts` (mã không bao giờ đổi). Niên hạn lưu theo số năm. Tiền (Hồn Tệ) lưu một số nguyên (đồng).
-6. Dự kiến theo `GAME_DESIGN.md` mục 6: `vohons` (đã có; từ 8.1a cột `skills` chỉ ghi qua `saveSkills`, các lần lưu tiến độ không đụng tới), `teams` (đã có, `006_teams.sql`), `items` (mỗi món có id riêng), `quests` (đã có từ 6.2, `010_quests.sql`: tiến độ nhiệm vụ đi cùng `Bag.quests`, ghi trong `writeBag`).
+6. Dự kiến theo `GAME_DESIGN.md` mục 6: `vohons` (đã có; từ 8.1a cột `skills` chỉ ghi qua `saveSkills`, các lần lưu tiến độ không đụng tới), `teams` (đã có, `006_teams.sql`), `items` (mỗi món có id riêng), `quests` (đã có từ 6.2, `010_quests.sql`: tiến độ nhiệm vụ đi cùng `Bag.quests`, ghi trong `writeBag`), `arena_ratings` (đã có từ 7.2, `011_arena.sql`: Elo và thắng / thua / hòa; `saveArena` ghi cùng transaction với lượt `boss_claims` loại `dau_hon_truong` và túi có phần thưởng).
 7. Số cân bằng (như `TEAM_SIZE`) không chép vào SQL. Chuyển dữ liệu cần số đó thì làm trong JS ở store (ví dụ `getTeam` tự xếp đội cho tài khoản cũ) như `backfillNameKeys`.
 
 ## Cập nhật `server/src/db.ts`, luôn song song hai nơi
