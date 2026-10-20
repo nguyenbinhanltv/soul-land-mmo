@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server, LocalPresence } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { MapRoom, awakenAccount, chooseLooks } from "./rooms/MapRoom.ts";
+import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
@@ -25,7 +25,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/health", (_q, r) => { r.json({ ok: true }); });
+// chMax: số người tối đa mỗi kênh (bot đọc để biết server đang hạ CHANNEL_MAX cho phần thử nhiều kênh).
+app.get("/health", (_q, r) => { r.json({ ok: true, chMax: CHANNEL_CAP }); });
 
 // Đăng nhập (tự tạo tài khoản nếu tên chưa tồn tại).
 app.post("/api/login", async (req, res) => {
@@ -57,6 +58,15 @@ app.post("/api/me", async (req, res) => {
   res.json({ character, looks, mapId: loc.mapId });
 });
 
+// Kênh để vào game (mục 6 "Nhiều kênh"): bản đồ đang lưu và phòng (kênh) nên vào: kênh còn chỗ có đồng đội tổ đội, không thì kênh
+// ít người nhất còn chỗ. roomId null = mọi kênh đầy hoặc chưa có kênh: client joinOrCreate (Colyseus mở kênh mới).
+app.post("/api/channel", async (req, res) => {
+  const acc = await store.accountFromToken(String(req.body?.token ?? ""));
+  if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
+  const { mapId } = await store.getLocation(acc.accountId);
+  res.json({ mapId, roomId: (await pickChannel(acc.accountId, mapId))?.roomId ?? null });
+});
+
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần): luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/looks", async (req, res) => {
   const acc = await store.accountFromToken(String(req.body?.token ?? ""));
@@ -83,7 +93,8 @@ const server = http.createServer(app);
 // Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
 const presence = new LocalPresence();
 const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
-// Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới.
+// Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
+// vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
 // Đại Đấu Hồn Trường (7.2): mỗi trận một phòng riêng, server mở khi ghép trận (arenaQueue.ts); client vào bằng mã phòng (joinById).
 gameServer.define("arena", ArenaRoom);

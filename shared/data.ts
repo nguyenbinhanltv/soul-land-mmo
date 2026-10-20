@@ -73,7 +73,10 @@ export interface MapDef {
   cores: string[];
 }
 
-/** Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có (Lõi Tinh Đấu, BĐ6) thì không đặt trong Tiled. */
+/**
+ * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối; cổng Lạc
+ * Nhật, Cực Bắc và bến thuyền Hải Thần Đảo ở Thiên Đấu Thành là biển "sắp mở" (NPC) cho tới BĐ6b–d.
+ */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
     shards: ["lam_ngan_thao", "nhu_cot_tho"], cores: ["lam_ngan", "tien_co"] },
@@ -83,6 +86,9 @@ export const MAPS: Record<string, MapDef> = {
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
     shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
+  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng Lạc Nhật / Cực Bắc và bến thuyền Hải Thần Đảo là biển
+  // "sắp mở" (NPC vai trò talk) cho tới BĐ6b–d.
+  thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
   dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
@@ -103,6 +109,12 @@ export function parseLevelRange(s: unknown): [number, number] | null {
 /** Đi qua cổng: số giây niệm (bị đánh thì hủy, chờ chốt ở 5.3) và số giây server chờ client rời phòng cũ (mục 6). */
 export const TRAVEL_CAST = 1;
 export const TRAVEL_LEAVE_SECS = 10;
+/**
+ * Kênh (mục 6 "Nhiều kênh"): mỗi phòng của một bản đồ là một kênh, tối đa CHANNEL_MAX người; phòng đầy thì mở kênh mới.
+ * Đổi kênh trong cùng bản đồ: ngoài giao chiến, mỗi tài khoản cách nhau ít nhất CHANNEL_CD giây (mỗi lần là một transaction lưu).
+ */
+export const CHANNEL_MAX = 60;
+export const CHANNEL_CD = 10;
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
@@ -2312,13 +2324,54 @@ export const NPCS: NpcDef[] = [
       "Lò rèn Nặc Đinh, nghề rèn truyền ba đời. Hồn cốt dư mang tới đây, ta dung luyện vào hồn cốt chính của ngươi: không bao giờ thất bại.",
       "Hồn hạch thì phải đợi ta tìm đủ đồ nghề mới nâng cấp được (sắp mở).",
     ] },
-  // 7.2: lối vào tạm của Đại Đấu Hồn Trường (Thiên Đấu Thành thuộc BĐ6); mở trang xếp hàng / bảng xếp hạng (role "arena").
+  // 7.2: Đại Đấu Hồn Trường, mở trang xếp hàng / bảng xếp hạng (role "arena"). Lối vào tạm ở Nặc Đinh Thành (7.2), từ BĐ6a đặt ở
+  // Thiên Đấu Thành (Nặc Đinh Thành còn sứ giả chỉ đường `su_gia_dau_hon`).
   { id: "dau_hon_truong", name: "Đại Đấu Hồn Trường", title: "Đấu hồn xếp hạng", role: "arena", col: "#ff6b6b",
     lines: [
       "Đại Đấu Hồn Trường: hai hồn sư đưa đội võ hồn của mình vào sân, đấu một chọi một. Thắng thua tính điểm Elo, có bảng xếp hạng.",
       "Đội nào gục hết trước thì thua; hết giờ thì bên còn nhiều sinh lực (theo % cả đội) thắng. Rời sân giữa trận là thua.",
       "Vào sân cả đội hồi đầy; thua không mất gì. Thắng nhận Hồn Tệ và mảnh võ hồn, mỗi ngày có giới hạn số trận được thưởng.",
-      "Lối vào tạm đặt ở Nặc Đinh Thành cho đến khi có Thiên Đấu Thành.",
+      "Trận xong, ngươi trở về đúng chỗ đứng trước khi vào sân.",
+    ] },
+  // BĐ6a: chỗ của lối vào tạm (7.2) ở Nặc Đinh Thành thành sứ giả chỉ đường lên Thiên Đấu Thành.
+  { id: "su_gia_dau_hon", name: "Sứ giả Đại Đấu Hồn Trường", title: "Chỉ đường lên Thiên Đấu Thành", role: "talk", col: "#ff6b6b",
+    looks: { sex: 1, hair: 2, hairCol: 4, outfitCol: 2 },
+    lines: [
+      "Ngươi tìm Đại Đấu Hồn Trường? Đấu trường đã về lại chỗ của nó: Thiên Đấu Thành, thủ đô của Thiên Đấu Đế Quốc.",
+      "Theo đường lớn bắc–nam ra cổng bắc Nặc Đinh Thành là tới Thiên Đấu Thành. Đường đi qua thành nên an toàn, cấp nào cũng đi được.",
+      "Vào thành rồi thì xuống góc đông nam, biển Đại Đấu Hồn Trường đặt ngay trước cửa đấu trường. Trận xong, ngươi trở về đúng chỗ đứng trước khi vào sân.",
+    ] },
+  // BĐ6a: NPC ở Thiên Đấu Thành (mục 5.8). Biển cổng chưa mở không có `looks` (biển hiệu đứng yên), cổng / thuyền chưa đi được.
+  { id: "phat_lan_duc", name: "Phất Lan Đức", title: "Viện trưởng Sử Lai Khắc Học Viện", role: "talk", col: "#9ad0ff",
+    looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 0 },
+    lines: [
+      "Sử Lai Khắc Học Viện chỉ nhận quái vật, không nhận người thường! Ta là Phất Lan Đức, viện trưởng ở đây.",
+      "Học viện mới dời về Thiên Đấu Thành, mọi thứ còn đang sắp xếp. Đợi xong, mỗi ngày ta sẽ có bài khảo hạch cho các ngươi (nhiệm vụ hằng ngày, sắp mở).",
+      "Muốn mạnh lên thì ra Đại Đấu Hồn Trường mà rèn luyện thực chiến, hoặc quay về Tinh Đấu Đại Sâm Lâm săn hồn hoàn hợp vòng.",
+    ] },
+  { id: "thuong_nhan_thien_dau", name: "Chưởng quỹ", title: "Thương hội Thiên Đấu", role: "shop", col: "#ffb35c",
+    looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 1 },
+    lines: [
+      "Thương hội Thiên Đấu, hàng hóa khắp đế quốc đều qua tay ta. Đan dược giá như ở Nặc Đinh Thành, không lấy thêm một đồng.",
+      "Đồ dư mang tới đây ta cũng mua lại. Đồ đang gắn trên võ hồn thì ta không nhận.",
+    ] },
+  { id: "lo_ren_thien_dau", name: "Thợ rèn Thiên Đấu", title: "Lò rèn Thiên Đấu", role: "forge", col: "#ff7a3c",
+    looks: { sex: 1, hair: 3, hairCol: 1, outfitCol: 5 },
+    lines: [
+      "Lò rèn lớn nhất thủ đô. Hồn cốt dư dung luyện vào hồn cốt chính, hồn hạch dư nâng cấp hồn hạch chính: không bao giờ thất bại.",
+      "Tay nghề ở đây cũng như lò rèn Nặc Đinh, chỉ là lửa to hơn thôi.",
+    ] },
+  { id: "cong_lac_nhat", name: "Cổng Lạc Nhật Sâm Lâm", title: "Sắp mở", role: "talk", col: "#8a9bb0",
+    lines: [
+      "Cổng tây Thiên Đấu Thành, đường đi Lạc Nhật Sâm Lâm: rừng thực vật và độc vật, nơi mọc tiên thảo. Cổng đang đóng, sắp mở.",
+    ] },
+  { id: "cong_cuc_bac", name: "Cổng Cực Bắc Chi Địa", title: "Sắp mở", role: "talk", col: "#8a9bb0",
+    lines: [
+      "Cổng bắc Thiên Đấu Thành, đường lên Cực Bắc Chi Địa: băng nguyên quanh năm tuyết phủ, hồn thú băng hệ vạn năm. Cổng đang đóng, sắp mở.",
+    ] },
+  { id: "ben_thuyen_hai_than", name: "Bến thuyền Hải Thần Đảo", title: "Sắp mở", role: "talk", col: "#8a9bb0",
+    lines: [
+      "Bến thuyền đi Hải Thần Đảo, băng qua Ma Quỷ Hải Vực đầy hồn thú biển. Thuyền chưa nhổ neo, sắp mở.",
     ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));

@@ -90,6 +90,7 @@ export class DropState extends Schema {
 
 export class MapState extends Schema {
   @type("string") mapId: string = "";  // mã bản đồ trong MAPS; client tải shared/assets/<mapId>.json
+  @type("uint16") channel = 0;          // số kênh của phòng trong bản đồ (1, 2, 3…; mục 6 "Nhiều kênh")
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
   @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
   @type({ map: DropState }) drops = new MapSchema<DropState>();
