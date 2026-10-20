@@ -4153,11 +4153,13 @@ async function lacNhatTest(){
       await test(L,"set",{rowId:act,level:100,xp:0,rings:[]}); await test(L,"rest",{s:TEAM_COMBAT_SECS+1});
       await test(L,"erespawn",{s:0}); await sleep(300);
       const cur=(await test(L,"elite")).list.find(x=>x.boss==="kho_dang_thu_vuong")??e;
-      await test(L,"goto",{x:cur.x+20,y:cur.y}); if(Math.hypot(me().x-cur.x-20,me().y-cur.y)>1) await test(L,"goto",{x:cur.x,y:cur.y+20});
+      // Tinh anh sinh ở điểm ngẫu nhiên trong ô của nó: thử vài chỗ đứng quanh (chỗ bị cây / nước chặn thì goto không đổi vị trí).
+      let at=null; for(const [dx,dy] of [[20,0],[0,20],[-20,0],[0,-20],[28,10],[-28,10],[10,28],[10,-28]]){
+        await test(L,"goto",{x:cur.x+dx,y:cur.y+dy}); if(Math.hypot(me().x-cur.x-dx,me().y-cur.y-dy)<1){ at=[dx,dy]; break; } }
       await test(L,"bhp",{pct:50}); await test(L,"pst",{s:"root",secs:5});
       const t=await test(L,"tele",{i:1}), b=L.room.state.beasts.get(t.bid), hp1=b?.hp;
       await waitFor(()=>!b||b.hp>hp1,2500);
-      ok(t.name==="Hút Sinh"&&b&&b.hp>hp1,`Hút Sinh trúng người đang bị Trói: ${b?beastName(b.rank,b.species):"?"} hồi ${b?b.hp-hp1:0} máu (${hp1} -> ${b?.hp})`);
+      ok(t.name==="Hút Sinh"&&b&&b.hp>hp1,`Hút Sinh trúng người đang bị Trói: ${b?beastName(b.rank,b.species):"?"} hồi ${b?b.hp-hp1:0} máu (${hp1} -> ${b?.hp}; đứng cạnh ${JSON.stringify(at)}, tinh anh ở ${cur.x?.toFixed(0)},${cur.y?.toFixed(0)}, tele ${JSON.stringify(t)})`);
     }
     // Thú vương theo lịch (hook king): xuất hiện trong hang, đúng niên hạn mức trên của bản đồ.
     { await test(L,"goto",{x:arr.x,y:arr.y}); await test(L,"king",{kop:"spawn",mapId:LN}); let ki=null;
