@@ -85,8 +85,8 @@ export interface MapDef {
 }
 
 /**
- * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối; cổng
- * Cực Bắc ở Thiên Đấu Thành là biển "sắp mở" (NPC) cho tới BĐ6c (cổng tây Lạc Nhật mở từ BĐ6b, bến thuyền Hải Thần Đảo từ BĐ6d).
+ * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối. Mọi cổng
+ * của Thiên Đấu Thành đã mở (cổng tây Lạc Nhật từ BĐ6b, cổng bắc Cực Bắc từ BĐ6c, bến thuyền Hải Thần Đảo từ BĐ6d).
  */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
@@ -97,13 +97,17 @@ export const MAPS: Record<string, MapDef> = {
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
     shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
-  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng Cực Bắc là biển "sắp mở" (NPC vai trò talk) cho tới BĐ6c;
-  // cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b, bến thuyền đi Hải Thần Đảo mở từ BĐ6d.
+  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b, cổng bắc đi Cực Bắc Chi Địa
+  // từ BĐ6c, bến thuyền đi Hải Thần Đảo từ BĐ6d.
   thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // BĐ6b: rừng thực vật / độc quanh suối Băng Hỏa Lưỡng Nghi Nhãn, cổng tây Thiên Đấu Thành. Tiên thảo chỉ rơi ở đây (chờ chốt).
   lac_nhat_sam_lam: { id: "lac_nhat_sam_lam", name: "Lạc Nhật Sâm Lâm", kind: "hunt", level: [40, 70], years: [5000, 30000],
     shards: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long"], cores: ["xa_hoang", "phuong_hoang"], king: "luong_nghi_thu_ho_xa",
     herbs: { "Rừng hoa độc": 0.01, "Đầm Bích Lân": 0.02, "Băng Hỏa Tuyền": 0.03, "Lưỡng Nghi Nhãn": 0.05 } },
+  // BĐ6c: băng nguyên phía bắc Thiên Đấu Thành, 4 vùng 20.000–80.000 năm (từ vòng 7, giới hạn 50.000 năm, tới vòng 8), thú vương
+  // Huyền Minh Băng Giao 80.000 năm.
+  cuc_bac_chi_dia: { id: "cuc_bac_chi_dia", name: "Cực Bắc Chi Địa", kind: "hunt", level: [60, 85], years: [20000, 80000],
+    shards: ["yeu_ho", "can_khon_hon_nguyen_toa", "nguyet_nhan"], cores: ["lam_ngan", "that_sat"], king: "huyen_minh_bang_giao" },
   // BĐ6d: đảo và rạn biển, đi bằng bến thuyền Thiên Đấu Thành (cổng `boat`, BOAT_CAST). Chỉ vùng Hải Thần Uyên (85.000–100.000 năm)
   // sinh được hồn thú thường 100.000 năm, tối đa 1 con mỗi kênh (RED_BEAST).
   hai_than_dao: { id: "hai_than_dao", name: "Hải Thần Đảo", kind: "hunt", level: [80, 100], years: [50000, 100000],
@@ -194,6 +198,19 @@ export const BEASTS: BeastDef[] = [
   { id: "co_moc_thu_nhan",        name: "Cổ Mộc Thụ Nhân" },
   { id: "y_la_hoa_yeu",           name: "Ỷ La Hoa Yêu" },
   { id: "thanh_lan_doc_co",       name: "Thanh Lân Độc Cổ" },
+  // BĐ6c: hồn thú băng của Cực Bắc Chi Địa (20.000–80.000 năm), theo vùng từ nam lên bắc.
+  { id: "tuyet_lang",             name: "Tuyết Lang" },
+  { id: "bang_nguyen_cu_tuong",   name: "Băng Nguyên Cự Tượng" },
+  { id: "bang_vu_ung",            name: "Băng Vũ Ưng" },
+  { id: "bang_giap_cu_quy",       name: "Băng Giáp Cự Quy" },
+  { id: "tuyet_vi_yeu_ho",        name: "Tuyết Vĩ Yêu Hồ" },
+  { id: "bang_tinh_hat",          name: "Băng Tinh Hạt" },
+  { id: "han_bang_dia_long",      name: "Hàn Băng Địa Long" },
+  { id: "bang_phong_bach_hung",   name: "Băng Phong Bạch Hùng" },
+  { id: "han_nguyet_ung",         name: "Hàn Nguyệt Ưng" },
+  { id: "bang_bich_hat",          name: "Băng Bích Hạt" },
+  { id: "huyen_minh_bang_tam",    name: "Huyền Minh Băng Tằm" },
+  { id: "tuyet_ma_vien",          name: "Tuyết Ma Viên" },
   // BĐ6d: Hải Thần Đảo / Ma Quỷ Hải Vực (50.000–100.000 năm, biển), theo vùng: Bãi san hô, Ma Quỷ Hải Vực, Vách Hải Thần, Hải Thần Uyên.
   { id: "thiet_giap_cu_giai",     name: "Thiết Giáp Cự Giải" },
   { id: "lam_lan_hai_xa",         name: "Lam Lân Hải Xà" },
@@ -553,6 +570,13 @@ export interface BeastSkillDef {
   drain?: number;
   weak?: boolean;
 }
+/**
+ * "Đóng băng" của hồn thú băng (BĐ6c, chờ chốt): dùng trạng thái Choáng sẵn có (không đi, không đánh, không dùng hồn kỹ), không thêm
+ * trạng thái mới; thời gian ghi ở từng chiêu. Tương tự "Mê hoặc" lên hồn sư (Tuyết Vĩ Yêu Hồ, Lục Vĩ Băng Hồ) là Choáng `CHARM_P`
+ * vì Mê hoặc (đi lung tung) chỉ có trên hồn thú.
+ */
+const FREEZE: StatusApply = { s: "stun" };
+const CHARM_P: StatusApply = { s: "stun", secs: 0.8 };
 /** Hồn thú thường từ ngần ấy năm mới có chiêu báo trước (mục 5.3: dưới 1.000 năm chỉ đánh thường). */
 export const BEAST_SKILL_YEARS = 1000;
 /** Thời gian báo trước mặc định (mục 5.3: khoảng 0,8 giây). Thú vương dài hơn (1–1,5 giây, BĐ5). */
@@ -612,6 +636,20 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   co_moc_thu_nhan: [bs("Dậm Rễ", "circle", 56, { dmg: 2, status: [{ s: "root", secs: 1 }] })],
   y_la_hoa_yeu: [bs("Hương Mê", "cone", 60, { arc: 80, dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
   thanh_lan_doc_co: [bs("Độc Châm", "line", 100, { w: 10, dmg: 1.7, status: [{ s: "poison", n: 2, secs: 5 }] })],
+  // Cực Bắc Chi Địa (BĐ6c, chờ chốt). Không thêm trạng thái mới cho băng: "đóng băng" = Choáng (không đi, không đánh, không dùng hồn
+  // kỹ; FREEZE), "Mê hoặc" trên hồn sư = Choáng ngắn (Mê hoặc chỉ có trên hồn thú), băng giá làm chậm = Làm chậm.
+  tuyet_lang:   [bs("Băng Nha", "line", 90, { w: 14, dmg: 1.5, dash: true })],
+  bang_nguyen_cu_tuong: [bs("Dậm Băng", "circle", 52, { dmg: 1.6, status: [{ s: "slow", secs: 3 }] })],
+  bang_vu_ung:  [bs("Bổ Nhào", "circle", 30, { at: "target", range: 120, dmg: 1.6, dash: true })],
+  bang_giap_cu_quy: [bs("Xoay Vỏ", "line", 140, { w: 20, dmg: 1.7, dash: true, cd: 9 })],
+  tuyet_vi_yeu_ho: [bs("Mị Ảnh", "circle", 32, { at: "target", range: 120, dmg: 1, status: [CHARM_P] })],
+  bang_tinh_hat: [bs("Băng Châm", "line", 100, { w: 12, dmg: 1.6 })],
+  han_bang_dia_long: [bs("Phun Băng", "cone", 54, { arc: 90, dmg: 1.5, cd: 8, status: [{ ...FREEZE, secs: 1 }] })],
+  bang_phong_bach_hung: [bs("Vỗ Đất", "circle", 56, { dmg: 2 })],
+  han_nguyet_ung: [bs("Nguyệt Phong", "line", 120, { w: 14, dmg: 1.7 })],
+  bang_bich_hat: [bs("Băng Bích Châm", "line", 100, { w: 12, dmg: 1.6, cd: 8, status: [{ ...FREEZE, secs: 1 }] })],
+  huyen_minh_bang_tam: [bs("Nhả Tơ Băng", "line", 110, { w: 14, dmg: 1, status: [{ s: "root", secs: 1.5 }] })],
+  tuyet_ma_vien: [bs("Ném Băng Khối", "circle", 32, { at: "target", range: 150, dmg: 1.8 })],
   // Hải Thần Đảo (BĐ6d). "Mê hoặc" của Mê Ca tạm là Choáng ngắn như Lạc Nhật (hồn sư chưa có Mê hoặc, chờ chốt); "nhiều vệt" của
   // Xúc Tu Quật là 3 vệt tỏa 60° tung cùng lúc; "vệt rộng" của Sóng Cuộn rộng 30.
   thiet_giap_cu_giai: [bs("Kìm Kẹp", "cone", 50, { arc: 100, dmg: 1.8 })],
@@ -769,6 +807,30 @@ export const BOSSES: BossDef[] = [
     phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "nửa hang hóa băng, nửa hang hóa lửa luân phiên (báo trước 2 giây), tốc độ +20%", spd: 1.2, skills: [
       bs("Lưỡng Nghi Băng", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.5, cd: 12, status: [{ s: "stun", secs: 1.5 }] }),
       bs("Lưỡng Nghi Hỏa", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.6, cd: 12, status: [{ s: "burn", n: 4, secs: 6 }] })] } },
+  // Cực Bắc Chi Địa (BĐ6c, bảng 5.3; mọi số chờ chốt). Đóng băng / giam = Choáng hoặc Trói, "làm chậm tăng dần" = Làm chậm (không thêm
+  // trạng thái mới); "3 ảo ảnh nổ vòng" của Phân Thân là 3 vòng rơi quanh mục tiêu; Huyền Băng Tỏa Liên Mãng mượn Hàn Băng Địa Long
+  // (Cực Bắc không có loài rắn thường).
+  { id: "ngan_nguyet_tuyet_lang_vuong", name: "Ngân Nguyệt Tuyết Lang Vương", rank: 1, species: "tuyet_lang", aura: "#c0cce0", skills: [
+    bs("Bão Tuyết", "circle", 56, { dmg: 1.2, status: [{ s: "slow", secs: 3 }] }),
+    bs("Hú Bầy", "circle", 40, { dmg: 0.8, cd: 12, summon: { species: "tuyet_lang", n: 3 } })] },
+  { id: "luc_vi_bang_ho", name: "Lục Vĩ Băng Hồ", rank: 1, species: "tuyet_vi_yeu_ho", aura: "#ff9ad5", skills: [
+    bs("Phân Thân", "circle", 26, { at: "target", range: 130, count: 3, scatter: 60, dmg: 1.5 }),
+    bs("Mị Nhãn", "cone", 60, { arc: 80, dmg: 1.3, status: [{ ...CHARM_P, secs: 1 }] })] },
+  { id: "huyen_bang_toa_lien_mang", name: "Huyền Băng Tỏa Liên Mãng", rank: 1, species: "han_bang_dia_long", aura: "#5a9cc9", skills: [
+    bs("Băng Liên Phong Tỏa", "circle", 44, { dmg: 1.2, status: [{ s: "root", secs: 2 }] }),
+    bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 140, count: 5, scatter: 60, dmg: 1.4 })] },
+  { id: "bang_bich_hat_vuong", name: "Băng Bích Hạt Vương", rank: 1, species: "bang_bich_hat", aura: "#7fd0ff", skills: [
+    bs("Tam Liên Châm", "line", 110, { w: 12, count: 3, spread: 45, dmg: 1.7 }),
+    bs("Cực Hàn Lĩnh Vực", "circle", 60, { dmg: 1, status: [{ s: "slow", secs: 4 }] })] },
+  // Thú vương Cực Bắc (BĐ5 + BĐ6c, chờ chốt). Giai đoạn 2 "Cực Hàn" bản tối thiểu: tầng Hàn tích theo thời gian và Hỏa Đàn chưa làm;
+  // thay bằng gió cực hàn phủ cả hang (Làm chậm) và băng phong dưới chân một người bị đánh dấu (đóng băng 3 giây, như đủ 4 tầng Hàn),
+  // chạy khỏi vòng là né được.
+  { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
+    bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
+    bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
+    phase2: { name: "Cực Hàn", desc: "gió cực hàn phủ cả hang, đóng băng người bị đánh dấu, tốc độ +20%", spd: 1.2, skills: [
+      bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] }),
+      bs("Huyền Minh Băng Phong", "circle", 30, { at: "target", range: 160, warn: 1.5, dmg: 1.2, cd: 12, mark: true, status: [{ ...FREEZE, secs: 3 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số chờ chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
   // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
   // Câm lặng + Làm chậm (client chưa có hiệu ứng che màn hình); Huyết Khí nhắm người tham gia ít máu nhất (`weak`).
@@ -2417,6 +2479,31 @@ export const BONE_SKILLS: Record<string, BoneSkillSet> = {
     passive: bp("Ỷ La Hương", "Giảm tiêu hao hồn lực", { buff: { mp: 0.06 } }) },
   thanh_lan_doc_co: { active: ba("Thanh Lân Độc Châm", "Bắn kim độc: Trúng độc 2 tầng", "➶", "proj", 120, 1.6, { status: [{ s: "poison", n: 2 }] }),
     passive: bp("Độc Cổ", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.05 } }) },
+  // Cực Bắc Chi Địa (BĐ6c): "đóng băng" lên hồn thú là Choáng như chiêu báo trước của loài.
+  tuyet_lang: { active: ba("Tuyết Lang Băng Nha", "Lao tới trước, răng băng cắn hồn thú trên đường: Làm chậm", "➤", "dash", 90, 2, { inv: 0.25, status: [{ s: "slow" }] }),
+    passive: bp("Tuyết Bộ", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+  bang_nguyen_cu_tuong: { active: ba("Cự Tượng Dậm Băng", "Dậm băng quanh thân: Làm chậm 3 giây", "✺", "around", 52, 2, { status: [{ s: "slow", secs: 3 }], shake: true, cd: 12, cost: 22 }),
+    passive: bp("Cự Tượng Bì", "Giảm sát thương nhận", { buff: { def: 0.07 } }) },
+  bang_vu_ung: { active: ba("Băng Vũ Bổ Nhào", "Bổ nhào xuống hồn thú gần nhất", "▾", "around", 30, 2.1, { at: 120, dash: 120 }),
+    passive: bp("Băng Vũ", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.05 } }) },
+  bang_giap_cu_quy: { active: ba("Cự Quy Xoay Vỏ", "Xoay vỏ lao tới trước: khiên 15% sinh lực 5 giây", "⛨", "dash", 110, 1.8, { inv: 0.3, self: { shield: 0.15, secs: 5 }, cd: 12 }),
+    passive: bp("Băng Giáp", "Giảm sát thương nhận", { buff: { def: 0.08 } }) },
+  tuyet_vi_yeu_ho: { active: ba("Yêu Hồ Mị Ảnh", "Ảo ảnh mê hoặc quanh hồn thú gần nhất: Mị hoặc 2 tầng", "✿", "around", 34, 1.5, { at: 120, status: [{ s: "allure", n: 2 }] }),
+    passive: bp("Hồ Mị", "Kháng Choáng", { resist: { stun: 0.3 } }) },
+  bang_tinh_hat: { active: ba("Băng Tinh Châm", "Bắn kim băng: Phá giáp 1 tầng", "➶", "proj", 120, 1.6, { status: [{ s: "armor" }] }),
+    passive: bp("Băng Tinh Giáp", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.05 } }) },
+  han_bang_dia_long: { active: ba("Địa Long Phun Băng", "Phun băng nửa trước mặt: Choáng 0,8 giây (đóng băng)", "❄", "front", 54, 2, { status: [{ s: "stun", secs: 0.8 }], cd: 12, cost: 22 }),
+    passive: bp("Hàn Long Lân", "Kháng Làm chậm", { resist: { slow: 0.4 } }) },
+  bang_phong_bach_hung: { active: ba("Bạch Hùng Vỗ Đất", "Vỗ đất quanh thân", "✺", "around", 56, 2.4, { shake: true, cd: 11 }),
+    passive: bp("Bạch Hùng Lực", "Công tăng", { buff: { atk: 0.06 } }) },
+  han_nguyet_ung: { active: ba("Hàn Nguyệt Phong", "Lưỡi gió trăng lạnh bay thẳng", "☾", "proj", 140, 1.9, { crit: 0.15 }),
+    passive: bp("Nguyệt Dực", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+  bang_bich_hat: { active: ba("Băng Bích Châm", "Đuôi băng đâm hồn thú gần nhất: Choáng 1 giây (đóng băng)", "†", "target", 70, 2, { dash: 20, status: [{ s: "stun", secs: 1 }], cd: 12 }),
+    passive: bp("Băng Bích Giáp", "Kháng Choáng", { resist: { stun: 0.35 } }) },
+  huyen_minh_bang_tam: { active: ba("Nhả Tơ Băng", "Phun tơ băng vào hồn thú gần nhất: Trói 1,5 giây", "✳", "target", 110, 1.2, { status: [{ s: "root", secs: 1.5 }] }),
+    passive: bp("Huyền Minh Tơ", "Giảm tiêu hao hồn lực", { buff: { mp: 0.06 } }) },
+  tuyet_ma_vien: { active: ba("Ném Băng Khối", "Ném khối băng xuống hồn thú gần nhất", "◆", "around", 32, 2.2, { at: 150, shake: true }),
+    passive: bp("Ma Viên Lực", "Công tăng", { buff: { atk: 0.05 } }) },
   // Hải Thần Đảo (BĐ6d): chủ động theo chiêu báo trước của loài (hồn hoàn / hồn cốt 50.000 năm trở lên nên bội số cao hơn rừng);
   // trên hồn thú Mê hoặc có thật nên Mê Ca gây Mê hoặc.
   thiet_giap_cu_giai: { active: ba("Cự Giải Kìm Kẹp", "Kẹp nửa trước mặt: Phá giáp 1 tầng", "✂", "front", 50, 2.2, { status: [{ s: "armor" }] }),
@@ -2686,12 +2773,8 @@ export const NPCS: NpcDef[] = [
       "Lò rèn lớn nhất thủ đô. Hồn cốt dư dung luyện vào hồn cốt chính, hồn hạch dư nâng cấp hồn hạch chính: không bao giờ thất bại.",
       "Tay nghề ở đây cũng như lò rèn Nặc Đinh, chỉ là lửa to hơn thôi.",
     ] },
-  // `cong_lac_nhat` (biển cổng tây "sắp mở" của BĐ6a) bỏ ở BĐ6b: cổng tây là object `portal` đi Lạc Nhật Sâm Lâm. Mã NPC không lưu DB.
-  { id: "cong_cuc_bac", name: "Cổng Cực Bắc Chi Địa", title: "Sắp mở", role: "talk", col: "#8a9bb0",
-    lines: [
-      "Cổng bắc Thiên Đấu Thành, đường lên Cực Bắc Chi Địa: băng nguyên quanh năm tuyết phủ, hồn thú băng hệ vạn năm. Cổng đang đóng, sắp mở.",
-    ] },
-  // `ben_thuyen_hai_than` (biển bến thuyền "sắp mở" của BĐ6a) bỏ ở BĐ6d: bến thuyền là object `portal` (`boat`) đi Hải Thần Đảo.
+  // Biển "sắp mở" của BĐ6a đã bỏ: `cong_lac_nhat` (BĐ6b), `cong_cuc_bac` (BĐ6c), `ben_thuyen_hai_than` (BĐ6d); các cổng đó là object
+  // `portal` (bến thuyền có `boat`). Mã NPC không lưu DB.
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
