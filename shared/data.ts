@@ -2072,17 +2072,31 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
 };
 
 /**
- * Ràng buộc (mục 5.1, đã chốt): hai võ hồn cùng trong đội (ô bất kỳ, kể cả đang gục) thì hồn sư có thêm hiệu ứng, võ hồn nào ra
- * trận cũng hưởng. Bản tối thiểu ở 2.5d chỉ có hai cặp ví dụ của thiết kế. `crit`: cộng tỉ lệ chí mạng mọi đòn trực tiếp;
- * `burn`: Thiêu đốt do hồn sư gây mạnh thêm tỉ lệ này (tính lúc gây, như tăng công).
+ * Ràng buộc (mục 5.1, đã chốt; 2.5d hai cặp ví dụ, 9.4 đủ bảng): hai võ hồn cùng trong đội (ô bất kỳ, kể cả đang gục) thì hồn sư có
+ * thêm hiệu ứng, võ hồn nào ra trận cũng hưởng; cùng loại hiệu ứng từ nhiều cặp thì cộng (`bondSum`). Loại hiệu ứng (`BondKey`):
+ * - `crit`: cộng tỉ lệ chí mạng mọi đòn trực tiếp.
+ * - `burn`: Thiêu đốt do hồn sư gây mạnh thêm tỉ lệ này (tính lúc gây, như tăng công).
+ * - `skill` (9.4): sức mạnh hồn kỹ ô U / I / O / P (mọi vòng) nhân thêm (1 + tỉ lệ), cả sát thương lẫn mức hiệu ứng (như sao 9.5).
+ * - `heal` (9.4): hồi máu và khiên do hồn sư tạo (hồn kỹ, tiên cơ, Chân Thân; cả phần lan cho tổ đội) mạnh thêm, cộng với bộ hồn hạch
+ *   Lưu Ly; không tính hút máu / hút huyết và đan.
+ * - `stunBurn` (9.4): mọi sát thương hồn sư gây lên hồn thú đang Choáng hoặc Thiêu đốt (do bất kỳ ai gây) mạnh thêm (cộng như Dễ thương).
+ * - `atk` (9.4): công +tỉ lệ (cộng với hiệu ứng tăng công, như bị động hồn cốt).
  */
-export interface BondDef { name: string; pair: [string, string]; desc: string; crit?: number; burn?: number; }
+export type BondKey = "crit" | "burn" | "skill" | "heal" | "stunBurn" | "atk";
+export const BOND_KEYS: BondKey[] = ["crit", "burn", "skill", "heal", "stunBurn", "atk"];
+export interface BondDef { name: string; pair: [string, string]; desc: string; crit?: number; burn?: number; skill?: number; heal?: number; stunBurn?: number; atk?: number; }
 export const BONDS: BondDef[] = [
   { name: "Hạo Thiên – Nhu Cốt", pair: ["hao_thien_chuy", "nhu_cot_tho"], desc: "chí mạng +10%", crit: 0.1 },
   { name: "Tà Hỏa – Hỏa Ảnh", pair: ["ta_hoa_phuong_hoang", "hoa_anh"], desc: "Thiêu đốt mạnh thêm 20%", burn: 0.2 },
+  { name: "Song Sinh Võ Hồn", pair: ["lam_ngan_thao", "hao_thien_chuy"], desc: "sức mạnh hồn kỹ +8%", skill: 0.08 },
+  { name: "Lam Ngân Hoàng", pair: ["a_ngan", "lam_ngan_thao"], desc: "hồi máu và khiên +15%", heal: 0.15 },
+  { name: "Băng Hỏa Lưỡng Nghi", pair: ["bang_phuong_hoang", "hoa_long"], desc: "sát thương lên hồn thú đang Choáng hoặc Thiêu đốt +12%", stunBurn: 0.12 },
+  { name: "Thất Bảo Lưu Ly Tông", pair: ["cuu_bao_luu_ly_thap", "cuu_tinh_that_sat_kiem"], desc: "công +8%", atk: 0.08 },
 ];
 /** Ràng buộc đang có của một đội (danh sách mã võ hồn trong đội). */
 export const bondsOf = (vohonIds: string[]) => BONDS.filter((b) => b.pair.every((v) => vohonIds.includes(v)));
+/** Tổng hiệu ứng loại `k` của mọi ràng buộc đang có trong đội (9.4: cùng loại từ nhiều cặp thì cộng). */
+export const bondSum = (vohonIds: string[], k: BondKey) => bondsOf(vohonIds).reduce((a, b) => a + (b[k] ?? 0), 0);
 /**
  * Phong Lôi Chi Lực (bước 2.5c, đã chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
  * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú

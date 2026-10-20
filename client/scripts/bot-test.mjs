@@ -55,7 +55,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
   BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe, formatYears,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, BUFFS, CRIT, PCT_HP_CAP,
-  BONDS, bondsOf,
+  BONDS, bondsOf, BOND_KEYS, bondSum,
   CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS, PHOENIX_FIELD_R, PHONG_LOI, BEAST_AGGRO_R, BEAST_WANDER, SPAWN_CLEAR,
   MAPS, MAX_YEARS, beastStats, rollYears, tierBand, parseLevelRange, RING_ITEM, DROP_OWNER_SECS, absorbSecs, absorbChance, ringLimit,
   MAX_RINGS, MAX_LEVEL, SHARD_UNLOCK, STAR_COST, MAX_STARS, starCost, shardChance, shardCode, starMult,
@@ -1540,6 +1540,52 @@ else {
       ok(t0===w0&&t1===w1&&bo.burn===BONDS[1].burn,`ràng buộc ${BONDS[1].name}: Thiêu đốt ${n} tầng ${t0} -> ${t1} mỗi giây (cần ${w0} -> ${w1})`);
       await test(E,"clear");
     }
+    // 9.4: ràng buộc đầy đủ. Hook `bond` trả tổng mỗi loại; sát thương / hồi máu / khiên đổi đúng tỉ lệ khi đội có cặp; võ hồn trong cặp
+    // đang gục vẫn tính; bỏ khỏi đội thì hết.
+    {
+      for(const vohon of ["a_ngan","bang_phuong_hoang","hoa_long"]) if(!E.owned.list.some(v=>v.vohon===vohon)) await test(E,"grant",{vohon});
+      await test(E,"rest",{s:15}); await reset();
+      const CT="cuu_tinh_that_sat_kiem", HT="hao_thien_chuy", LN="lam_ngan_thao", CB="cuu_bao_luu_ly_thap", TC="thien_can_bach_ngoc_dinh";
+      const bk=name=>BONDS.find(b=>b.name===name), SS=bk("Song Sinh Võ Hồn"), LH=bk("Lam Ngân Hoàng"), BH=bk("Băng Hỏa Lưỡng Nghi"), TB=bk("Thất Bảo Lưu Ly Tông");
+      const all=VOHON.map(v=>v.id), same=(a,b)=>Math.abs(a-b)<1e-9;
+      ok(BONDS.length===6&&SS?.skill===0.08&&LH?.heal===0.15&&BH?.stunBurn===0.12&&TB?.atk===0.08&&bondSum([LN,HT],"skill")===0.08&&bondSum([HT],"skill")===0
+        &&BOND_KEYS.every(k=>same(bondSum(all,k),BONDS.reduce((a,b)=>a+(b[k]??0),0))),
+        `9.4: ${BONDS.length} ràng buộc (${BONDS.map(b=>b.name).join(", ")}); bondSum cộng mọi cặp cùng loại`);
+      await lineup(HT,["nhu_cot_tho",LN,"a_ngan"]); let bo=await test(E,"bond");
+      const want={crit:0.1,burn:0,skill:SS.skill,heal:LH.heal,stunBurn:0,atk:0};
+      ok(BOND_KEYS.every(k=>same(bo[k],want[k])),`hook bond đội Hạo Thiên Chùy + Nhu Cốt Thố + Lam Ngân Thảo + A Ngân: ${JSON.stringify(bo)}`);
+      // Nhát đầu Thất Sát Kiếm Khí của Cửu Tinh Thất Sát Kiếm (ra trận) lên hồn thú mới, theo đội.
+      const sk=skillsOf(CT)[0], base=atkE(CT)*P(0)*sk.dmg;
+      const hit0=async(team,pre=["stun"])=>{ await lineup(CT,team); const bid=await target(4,28,pre); await test(E,"ready"); await cast(E,0);
+        await waitFor(()=>hitsOn(bid).length>0,1200); return hitsOn(bid)[0]?.v; };
+      const chk=async(team,mult,what,pre)=>{ const got=await hit0(team,pre), w=exp(base*mult);
+        ok(w.includes(got),`${what}: ${sk.name} ${got} (cần ${w.join(" hoặc ")}, × ${+mult.toFixed(4)})`); };
+      await chk([],1,"không ràng buộc");
+      await chk([HT,LN],1+SS.skill,`ràng buộc ${SS.name} (sức mạnh hồn kỹ +${SS.skill*100}%)`);
+      await chk([CB],1+TB.atk,`ràng buộc ${TB.name} (công +${TB.atk*100}%)`);
+      await chk([HT,LN,CB],(1+SS.skill)*(1+TB.atk),`${SS.name} + ${TB.name} cùng lúc`);
+      await chk(["bang_phuong_hoang","hoa_long"],1+BH.stunBurn,`ràng buộc ${BH.name}, hồn thú Choáng`);
+      await chk(["bang_phuong_hoang","hoa_long"],1,`ràng buộc ${BH.name}, hồn thú chỉ bị Trói`,["root"]);
+      await chk(["bang_phuong_hoang","hoa_long"],1+BH.stunBurn,`ràng buộc ${BH.name}, hồn thú Trói + Thiêu đốt`,["root",{s:"burn",n:1}]);
+      // Lam Ngân Hoàng: hồi máu và khiên của Thiên Càn Bạch Ngọc Đỉnh (ra trận) mạnh thêm 15%.
+      const tsk=skillsOf(TC), heal=async team=>{ await lineup(TC,team); await test(E,"rest",{s:15}); const h0=await hurtTo(60);
+        await test(E,"ready"); await cast(E,0,300); return {h0,gain:me.hp-h0,max:me.maxHp}; };
+      for(const [team,m] of [[[],1],[["a_ngan",LN],1+LH.heal]]){
+        const r=await heal(team), w=r.max*tsk[0].self.heal*BP(0)*m;
+        ok(r.h0+w<r.max&&Math.abs(r.gain-w)<=2,`${tsk[0].name}${m>1?` + ${LH.name}`:""}: hồi ${r.gain} (cần ~${w.toFixed(1)})`);
+        await test(E,"ready"); await cast(E,1,0); const sw=()=>Math.round(me.maxHp*tsk[1].self.shield*BP(1)*m);
+        ok(await waitFor(()=>me.shield===sw(),800),`${tsk[1].name}${m>1?` + ${LH.name}`:""}: khiên ${me.shield} (cần ${sw()})`);
+      }
+      // Võ hồn trong cặp đang gục vẫn tính; bỏ khỏi đội thì hết.
+      await lineup(CB,[CT]); await test(E,"down"); await waitFor(()=>E.owned.active===rowE(CT)&&me.vh===vohonIndex(CT),2000);
+      bo=await test(E,"bond"); const st=(await test(E,"stats")).live;
+      ok(E.owned.active===rowE(CT)&&same(bo.atk,TB.atk)&&Math.abs(st.atkNow-st.atk*(1+TB.atk))<1e-6,
+        `${vname(CB)} gục, ${vname(CT)} ra trận: vẫn ${TB.name}, công ${st.atkNow.toFixed(1)} = ${st.atk.toFixed(1)} × ${1+TB.atk}`);
+      // Kết thúc với Thiên Càn Bạch Ngọc Đỉnh ra trận: bài tiên cơ riêng kế tiếp cần đổi tay vào Cửu Tinh Thất Sát Kiếm.
+      await test(E,"rest",{s:REVIVE_SECS+1}); await lineup(TC); bo=await test(E,"bond");
+      ok(BOND_KEYS.every(k=>bo[k]===0),`đội chỉ còn ${vname(TC)}: hết ràng buộc`);
+      await test(E,"clear");
+    }
     // Tiên cơ riêng của 5 võ hồn (đổi tay vào với năng lượng đầy).
     await test(E,"rest",{s:15}); await reset();
     for(const [k,id] of REST.entries()){
@@ -1592,7 +1638,9 @@ else {
     await test(K,"set",{rowId:rowK("u_minh_linh_mieu"),level:60,xp:0,rings:Y10.slice(0,6)});
     kres=(await test(K,"stats")).res?.bonus??{}; console.log(`  K cộng minh: ${JSON.stringify(kres)}`);
     async function lineupK(id){ await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(K,[rowK(id),0,0,0]);
-      await sendTeam(K,[rowK(id),...FIVE.filter(x=>x!==id).slice(0,3).map(rowK)]); return K.owned.active===rowK(id)&&await waitFor(()=>kp.vh===vohonIndex(id)); }
+      // Lấp đội bằng võ hồn mẫu không tạo ràng buộc (9.4: Lam Ngân Thảo + Hạo Thiên Chùy là Song Sinh Võ Hồn, đổi sát thương hồn kỹ).
+      const fill=[]; for(const x of FIVE) if(x!==id&&fill.length<3&&!bondsOf([id,...fill,x]).length) fill.push(x);
+      await sendTeam(K,[rowK(id),...fill.map(rowK)]); return K.owned.active===rowK(id)&&await waitFor(()=>kp.vh===vohonIndex(id)); }
     async function loadout(id,skills){ const n=K.ownedMsgs, l=K.logs.length; K.room.send("loadout",{rowId:rowK(id),skills}); await waitFor(()=>K.ownedMsgs>n&&K.logs.length>l,1500); await sleep(80); return K.logs.at(-1)??""; }
     async function castK(i,wait=200){ K.dmgs=[]; K.fxs=[]; K.room.send("skill",{i}); await sleep(wait); }
     async function chanThan(){ const l=K.logs.length; K.fxs=[]; K.dmgs=[]; K.room.send("chanthan"); await waitFor(()=>K.logs.length>l,1500); await sleep(80); return K.logs.at(-1)??""; }
@@ -1682,14 +1730,16 @@ else {
       await test(K,"clear"); await chanThan(); ok(kp.ava>0,"biến hình lại");
       // Đổi võ hồn thì hết Chân Thân; hồi chiêu riêng từng võ hồn.
       await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await waitFor(()=>kp.swCd===0,3500);
-      K.room.send("switch",{slot:K.owned.team.indexOf(rowK("lam_ngan_thao"))});
-      ok(await waitFor(()=>K.owned.active===rowK("lam_ngan_thao")&&kp.ava===0&&kp.avaCd===0,1500),`đổi sang Lam Ngân Thảo: Chân Thân của Hạo Thiên hết, Lam Ngân chưa hồi chiêu [ra trận ${K.owned.active===rowK("lam_ngan_thao")}, ava ${kp.ava}, hồi ${kp.avaCd}]`);
-      const s4=await stats(); ok(Math.abs(s4.atkNow-atkK("lam_ngan_thao"))<0.01,`Lam Ngân Thảo không mang chỉ số Chân Thân của Hạo Thiên: công ${s4.atkNow.toFixed(1)}`);
+      // Từ 9.4 đội lấp của Hạo Thiên Chùy không có Lam Ngân Thảo (Song Sinh Võ Hồn): đổi sang Bích Lân Xà Hoàng.
+      const SW="bich_lan_xa_hoang";
+      K.room.send("switch",{slot:K.owned.team.indexOf(rowK(SW))});
+      ok(await waitFor(()=>K.owned.active===rowK(SW)&&kp.ava===0&&kp.avaCd===0,1500),`đổi sang ${VOHON[vohonIndex(SW)].name}: Chân Thân của Hạo Thiên hết, ${VOHON[vohonIndex(SW)].name} chưa hồi chiêu [ra trận ${K.owned.active===rowK(SW)}, ava ${kp.ava}, hồi ${kp.avaCd}]`);
+      const s4=await stats(); ok(Math.abs(s4.atkNow-atkK(SW))<0.01,`${VOHON[vohonIndex(SW)].name} không mang chỉ số Chân Thân của Hạo Thiên: công ${s4.atkNow.toFixed(1)}`);
     }
     // Lam Ngân Thảo: vòng 5 lướt Trói, vòng 6 lãnh vực 6 nhát, tuyệt kỹ kéo cả vùng lại và giam; Chân Thân Lam Ngân Hoàng.
     {
       const id="lam_ngan_thao", atk=atkK(id), s5=ringSkill(id,4), s6=ringSkill(id,5), ult=ringSkill(id,9);
-      await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await loadout(id,[4,5,9,-1]);
+      ok(await lineupK(id),"K: Lam Ngân Thảo ra trận"); await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await loadout(id,[4,5,9,-1]);
       ok(same(vK(id).skills,[4,5,9,-1]),"Lam Ngân Thảo mang vòng 5, 6, 10, ô P trống");
       K.room.send("skill",{i:3}); ok(await lastLog(K,/chưa mang hồn kỹ/),"ô trống: báo chọn ở bảng đội hình");
       await test(K,"ready"); await faceK(); const b5=await spawnNear(K,4,...kat(50),20); await hush(); await castK(0);
