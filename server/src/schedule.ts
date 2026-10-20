@@ -1,9 +1,9 @@
-// Lịch tà hóa thú vương (mục 5.4, 6; bước BĐ5): chỉ đếm giờ theo giờ Việt Nam (BOSS_TZ) và phát qua presence của Colyseus.
+// Lịch tà hóa thú vương (mục 5.4, 6; bước BĐ5) và boss thế giới (BĐ6e): chỉ đếm giờ theo giờ Việt Nam (BOSS_TZ) và phát qua presence của Colyseus.
 // Sinh boss, máu, chiêu và thưởng vẫn nằm trong MapRoom: mọi phòng nghe kênh "boss"; phòng của đúng bản đồ sinh thú vương,
 // mọi phòng (mọi bản đồ) báo cho người chơi của mình. Chạy nhiều tiến trình thì presence phải là RedisPresence và chỉ một tiến
 // trình chạy lịch này (chưa làm: hiện chạy một tiến trình).
 import type { Presence } from "colyseus";
-import { MAPS, KING, kingNext, vnHHMM } from "../../shared/data.ts";
+import { MAPS, KING, kingNext, vnHHMM, WORLD, worldNext, worldBossOn, worldMaps } from "../../shared/data.ts";
 
 /** Kênh presence của lịch boss và kênh thông báo toàn server (mục 6). */
 export const BOSS_TOPIC = "boss";
@@ -11,6 +11,7 @@ export const ANNOUNCE_TOPIC = "announce";
 /**
  * Tin trên kênh "boss": `warn` báo trước (còn `in` giây nữa thì xuất hiện), `spawn` xuất hiện (`life` giây trước khi rút đi).
  * `slot`: thời điểm (ms UTC) của khung giờ, để một phòng không sinh hai lần cho cùng khung. `test`: do hook kiểm thử gọi.
+ * Boss thế giới (BĐ6e) đi cùng kênh: `mapId` là bản đồ có MapDef.world (Lõi Tinh Đấu), `king` là boss của ngày (worldBossOn).
  */
 export interface BossEvent { mapId: string; king: string; phase: "warn" | "spawn"; slot: number; in: number; life: number; test?: boolean; }
 
@@ -40,7 +41,23 @@ export function startSchedule(presence: Presence) {
       console.log(`⏰ Tà hóa thú vương xuất hiện (${vnHHMM(warned)} giờ Việt Nam).`);
     }
   };
-  const timer = setInterval(tick, 1000);
+  // Boss thế giới (BĐ6e): 1 khung mỗi ngày (worldNext, WORLD_TIME), cùng cách báo trước / xuất hiện, boss luân phiên theo ngày.
+  let wWarned = 0, wSpawned = 0;
+  const worldTick = () => {
+    const now = Date.now(), slot = worldNext(now), left = (slot - now) / 1000;
+    if (left <= WORLD.warnSecs && wWarned !== slot) {
+      wWarned = slot;
+      for (const m of worldMaps()) publishBoss(presence, { mapId: m.id, king: worldBossOn(m.id, slot)!, phase: "warn", slot, in: Math.round(left), life: WORLD.lifeSecs });
+      console.log(`⏰ Báo trước boss thế giới lúc ${vnHHMM(slot)} (giờ Việt Nam).`);
+    }
+    if (wWarned && wWarned !== slot && wSpawned !== wWarned && now >= wWarned) {
+      wSpawned = wWarned;
+      for (const m of worldMaps()) publishBoss(presence, { mapId: m.id, king: worldBossOn(m.id, wWarned)!, phase: "spawn", slot: wWarned, in: 0, life: WORLD.lifeSecs });
+      console.log(`⏰ Boss thế giới xuất hiện (${vnHHMM(wWarned)} giờ Việt Nam).`);
+    }
+  };
+  const timer = setInterval(() => { tick(); worldTick(); }, 1000);
+  worldTick();
   tick();
   return () => clearInterval(timer);
 }

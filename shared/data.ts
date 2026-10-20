@@ -85,11 +85,18 @@ export interface MapDef {
    * Không có = bản đồ không rơi tiên thảo (chỉ Lạc Nhật Sâm Lâm có). Xem HERB_ELITE, herbChance.
    */
   herbs?: Record<string, number>;
+  /**
+   * Boss thế giới của bản đồ `boss` (BĐ6e, mục 5.4): mã trong BOSSES (bậc 3), luân phiên theo ngày (worldBossOn). Sàn đấu là object
+   * `boss` trong Tiled (thuộc tính `boss` là một mã trong danh sách này).
+   */
+  world?: string[];
+  /** Đăng xuất (rời phòng không qua cổng / đổi kênh) ở bản đồ này thì lần sau về điểm `arrive` của cổng tới bản đồ `exit` (mục 6, BĐ6e). */
+  exit?: string;
 }
 
 /**
- * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối. Mọi cổng
- * của Thiên Đấu Thành đã mở (cổng tây Lạc Nhật từ BĐ6b, cổng bắc Cực Bắc từ BĐ6c, bến thuyền Hải Thần Đảo từ BĐ6d).
+ * Bản đồ đang có (bảng 5.3). Mọi cổng của Thiên Đấu Thành đã mở (cổng tây Lạc Nhật từ BĐ6b, cổng bắc Cực Bắc từ BĐ6c, bến thuyền
+ * Hải Thần Đảo từ BĐ6d); bờ hồ Nội địa đi Lõi Tinh Đấu từ BĐ6e.
  */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
@@ -115,6 +122,10 @@ export const MAPS: Record<string, MapDef> = {
   // sinh được hồn thú thường 100.000 năm, tối đa 1 con mỗi kênh (RED_BEAST).
   hai_than_dao: { id: "hai_than_dao", name: "Hải Thần Đảo", kind: "hunt", level: [80, 100], years: [50000, 100000],
     shards: ["quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"], cores: ["ba_vuong_long", "tien_co"], king: "tham_hai_ma_kinh_vuong" },
+  // BĐ6e: hồ trung tâm Tinh Đấu Đại Sâm Lâm, chỉ có boss thế giới (không hồn thú thường, không tinh anh); cổng ở bờ hồ cuối Hắc Ám Lâm
+  // của Nội địa (chặn mềm cấp 90). Đăng xuất ở đây thì lần sau về bờ hồ Nội địa (`exit`). Mảnh / hồn hạch chỉ có trong rương boss.
+  loi_tinh_dau: { id: "loi_tinh_dau", name: "Lõi Tinh Đấu", kind: "boss", level: [90, 100], years: [100000, 100000], shards: [], cores: [],
+    world: ["thai_than_cu_vien", "thien_thanh_nguu_mang"], exit: "tinh_dau_noi_dia" },
   // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
   dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
@@ -226,6 +237,9 @@ export const BEASTS: BeastDef[] = [
   { id: "loi_van_hai_ung",        name: "Lôi Vân Hải Ưng" },
   { id: "tham_hai_ma_kinh",       name: "Thâm Hải Ma Kình" },
   { id: "u_linh_hai_mau",         name: "U Linh Hải Mẫu" },
+  // BĐ6e: loài gốc của 2 boss thế giới 100.000 năm ở Lõi Tinh Đấu (không vùng nào sinh; dùng cho chỉ số, sprite, hồn cốt).
+  { id: "thai_than_cu_vien",      name: "Thái Thản Cự Viên" },
+  { id: "thien_thanh_nguu_mang",  name: "Thiên Thanh Ngưu Mãng" },
 ];
 
 const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
@@ -245,6 +259,8 @@ export const HE: Record<He, { name: string } & Mult> = {
   khong_che:  { name: "Khống chế",  atk: 0.95, hp: 1.05, mp: 1.15, spd: 1,    def: 0.95 },
   phu_tro:    { name: "Phụ trợ",    atk: 0.85, hp: 1.1,  mp: 1.35, spd: 1,    def: 0.9 },
 };
+/** Thứ tự cố định của 4 hệ khi đồng bộ (BeastState.weak = 1 + chỉ số, BĐ6e). Chỉ thêm vào cuối. */
+export const HE_IDS: readonly He[] = ["cuong_cong", "man_cong", "khong_che", "phu_tro"];
 export const RARITY_MULT: Record<Rarity, number> = { SR: 0.95, SSR: 1, UR: 1.08 };
 
 export interface VoHonDef extends Mult {
@@ -575,6 +591,8 @@ export type TeleShape = "line" | "cone" | "circle";
  * Từ BĐ6d:
  * - `weak`: nhắm người tham gia trong tầm có tỉ lệ sinh lực thấp nhất (Huyết Khí của Huyết Sa Bạo Quân: "vòng dưới chân người ít máu
  *   nhất") thay cho mục tiêu đang đuổi; chưa có người tham gia thì nhắm mục tiêu đang đuổi.
+ * Từ BĐ6e (boss thế giới):
+ * - `floor`: chiêu toàn sàn: vùng là cả sàn đấu (object `boss`), chỉ trúng người đứng trong sàn; client vẽ thành một dải phủ sàn.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -586,6 +604,7 @@ export interface BeastSkillDef {
   scatter?: number; mark?: boolean;
   drain?: number;
   weak?: boolean;
+  floor?: boolean;
 }
 /**
  * "Đóng băng" của hồn thú băng (BĐ6c, chờ chốt): dùng trạng thái Choáng sẵn có (không đi, không đánh, không dùng hồn kỹ), không thêm
@@ -738,7 +757,26 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
 export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; }
-export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number; }
+export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
+  world?: WorldMech; }
+/**
+ * Cơ chế riêng của boss thế giới (BĐ6e, mục 5.4 "buộc đổi võ hồn đúng lúc"; mọi số chờ chốt). Mỗi cơ chế có chu kỳ `every` giây
+ * (lần đầu sau `every` × WORLD.firstMech), không chạy khi đang báo trước chiêu khác, đang lặn hay đứng Choáng sau khi bị ngắt.
+ * - `charge` (Đại Địa Chấn): tích lực toàn sàn `skill` (báo trước dài); chỉ khống chế (Choáng, Trói, Câm lặng, Mê hoặc…) của võ hồn
+ *   hệ Khống chế đang ra trận mới tính, đủ `need` lần trúng thì ngắt, boss Choáng `stun` giây. Không ngắt thì cả sàn trúng `skill`
+ *   (Vết thương sâu: trạng thái nặng mà chỉ thanh tẩy của võ hồn phụ trợ giải được).
+ * - `armor` (Bá Thể): khoác khiên `pct` máu tối đa trong `secs` giây; sát thương của võ hồn hệ `he` lên khiên x`mult`. Hết giờ mà
+ *   khiên chưa vỡ thì boss hồi máu bằng phần khiên còn lại.
+ * - `miasma` (Thanh Lân Độc Vụ): chiêu toàn sàn `skill` gây Vết thương sâu (độc cộng dồn lâu), chỉ thanh tẩy giải được.
+ * - `dive` (Du Thủy): lặn xuống hồ `secs` giây (không nhận sát thương, không đánh), nổi lên chỗ khác trong sàn và lộ điểm yếu hệ `he`
+ *   trong `weakSecs` giây (mẫn công lướt tới kịp thì đánh trúng điểm yếu).
+ */
+export interface WorldMech {
+  charge?: { every: number; need: number; stun: number; skill: BeastSkillDef };
+  armor?: { name: string; every: number; pct: number; secs: number; he: He; mult: number };
+  miasma?: { every: number; skill: BeastSkillDef };
+  dive?: { name: string; every: number; secs: number; he: He; weakSecs: number };
+}
 /**
  * Bảng BOSSES (mục 6). Mã cố định, dùng trong thuộc tính `boss` của object `elite` (Tiled); `BeastState.species` của hồn thú bậc > 0
  * là chỉ số trong bảng này, nên chỉ thêm vào cuối. BĐ4: 11 tinh anh của 3 bản đồ săn, tên và chiêu theo cột Tinh anh ở bảng 5.3.
@@ -872,6 +910,24 @@ export const BOSSES: BossDef[] = [
     phase2: { name: "Thủy Triều Dâng", desc: "nước dâng thành dải làm chậm (báo trước 2 giây), xoáy nước kéo người vào, tốc độ +20%", spd: 1.2, skills: [
       bs("Thủy Triều", "line", 140, { w: 150, range: 160, warn: 2, dmg: 1.2, cd: 10, status: [{ s: "slow", secs: 4 }] }),
       bs("Xoáy Nước", "circle", 30, { at: "target", range: 160, count: 4, scatter: 80, warn: 1.5, dmg: 1.2, cd: 9, pull: 40 })] } },
+  // Boss thế giới 100.000 năm ở Lõi Tinh Đấu (BĐ6e, mục 5.4; mọi số chờ chốt). Máu / sát thương theo WORLD; chiêu thường ở `skills`,
+  // cơ chế buộc đổi võ hồn ở `world`. "Vết thương sâu" là trạng thái thường nhưng nặng và lâu (Phá giáp 3 tầng / Trúng độc 3 tầng
+  // 30 giây), chỉ thanh tẩy (tiên cơ / hồn kỹ phụ trợ) giải được vì Lõi Tinh Đấu không có vùng an toàn.
+  { id: "thai_than_cu_vien", name: "Thái Thản Cự Viên", rank: 3, species: "thai_than_cu_vien", aura: "#ff9a3a", skills: [
+    bs("Cự Thạch", "circle", 36, { at: "target", range: 260, count: 3, scatter: 70, warn: 1.4, dmg: 1.4, cd: 8 }),
+    bs("Địa Liệt Quyền", "circle", 64, { warn: 1.2, dmg: 1.8, cd: 7, status: [{ s: "stun", secs: 0.8 }] })],
+    world: {
+      charge: { every: 40, need: 3, stun: 3,
+        skill: bs("Đại Địa Chấn", "circle", 0, { floor: true, warn: 4, dmg: 3, cd: 999, status: [{ s: "armor", n: 3, secs: 30 }, { s: "stun", secs: 1 }] }) },
+      armor: { name: "Bá Thể", every: 35, pct: 0.06, secs: 12, he: "cuong_cong", mult: 3 },
+    } },
+  { id: "thien_thanh_nguu_mang", name: "Thiên Thanh Ngưu Mãng", rank: 3, species: "thien_thanh_nguu_mang", aura: "#3ad0a0", skills: [
+    bs("Ngưu Giác Xung", "line", 300, { w: 24, range: 260, warn: 1.4, dmg: 2.2, cd: 10, dash: true }),
+    bs("Mãng Vĩ Tảo", "cone", 80, { arc: 160, warn: 1.2, dmg: 1.6, cd: 7 })],
+    world: {
+      miasma: { every: 30, skill: bs("Thanh Lân Độc Vụ", "circle", 0, { floor: true, warn: 2, dmg: 0.5, cd: 999, status: [{ s: "poison", n: 3, secs: 30 }] }) },
+      dive: { name: "Du Thủy", every: 40, secs: 3, he: "man_cong", weakSecs: 6 },
+    } },
 ];
 const BOSS_INDEX = new Map(BOSSES.map((b, i) => [b.id, i]));
 /** Chỉ số trong BOSSES của một mã (-1 nếu không có). */
@@ -963,11 +1019,12 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  * - Mảnh võ hồn: `shards` [ít nhất, nhiều nhất] mảnh của một võ hồn trong kingShardPool (mảnh của bản đồ đó, Tà Hỏa Phượng Hoàng,
  *   từ 8.3 cả `every` (Phá Hồn Thương: không bản đồ nào rơi, chỉ có ở rương mọi thú vương và thưởng Đại Đấu Hồn Trường; chờ chốt),
  *   và trước BĐ6 cả võ hồn của bản đồ chưa mở để không võ hồn nào bị khóa hẳn).
- * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 bỏ.
+ * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 (có boss thế giới, BĐ6e) bỏ: `ur` = 0,
+ *   mảnh UR chỉ còn trong rương boss thế giới (WORLD_CHEST, mục 5.3 "Mảnh UR trước BĐ6").
  * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
  *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
  */
-export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0.05, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
+export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
   fire: "ta_hoa_phuong_hoang", every: ["pha_hon_thuong"], later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
     "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
 /** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa và `every` (8.3) 2, bản đồ chưa mở 1. */
@@ -978,6 +1035,55 @@ export const kingShardPool = (mapId: string) => [
 ];
 /** Mã vật phẩm rương của thú vương `bossId` (cột `items.code`; mỗi thú vương một mã, gộp được). Không đổi cách đặt mã. */
 export const chestCode = (bossId: string) => `ruong_${bossId}`;
+
+// ---------- Boss thế giới 100.000 năm (Lõi Tinh Đấu, mục 5.4, 6; bước BĐ6e, mọi số chờ chốt trừ các số đã chốt ở 5.4) ----------
+/**
+ * Boss thế giới: máu x`hp` (30, mục 5.4), sát thương x`dmg` so với loài gốc cùng năm (100.000 năm); kinh nghiệm x`xp` cho mọi người
+ * đóng góp còn trong phòng; sprite loài gốc phóng `scale`. Người tham gia / máu theo số người / bỏ giao chiến như thú vương (sàn đấu
+ * là object `boss` của Lõi Tinh Đấu): ngoài sàn `outSecs` giây thì bị loại, số người giảm tối đa 1 mỗi `dropEvery` giây, `idleSecs`
+ * giây không còn ai trong sàn thì về chỗ, hồi đầy.
+ * Lịch: 1 lần/ngày lúc WORLD_TIME (21:00 giờ Việt Nam, đã chốt), báo toàn server trước `warnSecs` giây và lúc xuất hiện; hai boss
+ * luân phiên theo ngày (worldBossOn). Sau `enrageSecs` giây thì nổi giận (BeastState.phase = 2): sát thương x`rageDmg`, tốc độ x`rageSpd`,
+ * hồi chiêu x`rageCd`, thêm WORLD_SLAM mỗi `slamEvery` giây. Không ai hạ trong `lifeSecs` giây thì lặn xuống hồ, không ai nhận thưởng.
+ * Điểm yếu hệ: máu xuống mỗi mốc `weakAt` thì hiện một hệ `weakSecs` giây: võ hồn hệ đó gây x`weakMult`, hệ khác x`offMult`.
+ * Cơ chế riêng mỗi boss (BossDef.world) bắt đầu sau `every` × `firstMech` giây.
+ * Thưởng: đóng góp (sát thương) từ `share` (3%, đã chốt) và còn trong phòng thì nhận hồn hoàn (WORLD_RING) và rương (WORLD_CHEST);
+ * tối đa `daily` lần/ngày (1, đã chốt), loại BOSS_CLAIM_WORLD trong `boss_claims`, đặt lại 00:00 giờ Việt Nam.
+ */
+export const WORLD = { hp: 30, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
+  enrageSecs: 600, rageDmg: 3, rageSpd: 1.4, rageCd: 0.6, slamEvery: 15, weakAt: [0.75, 0.5, 0.25], weakSecs: 15, weakMult: 2.5, offMult: 0.5,
+  firstMech: 0.5, share: 0.03, daily: 1 };
+/** Chiêu toàn sàn khi nổi giận (mục 5.4 "chiêu toàn sàn mỗi 15 giây"): không né được, chỉ hạ boss trước 10 phút mới tránh. */
+export const WORLD_SLAM = bs("Bạo Nộ", "circle", 0, { floor: true, warn: 1.5, dmg: 1, cd: WORLD.slamEvery });
+/** Giờ xuất hiện của boss thế giới mỗi ngày (giờ Việt Nam; đã chốt 21:00, không trùng lịch thú vương 20:00 / 22:00). */
+export const WORLD_TIME = "21:00";
+/** Loại boss trong bảng `boss_claims` (cột `kind`) của boss thế giới: giới hạn WORLD.daily lần/ngày, riêng với lượt thú vương. */
+export const BOSS_CLAIM_WORLD = "boss_the_gioi";
+/** Khung giờ boss thế giới (ms UTC) của hôm qua, hôm nay, ngày mai theo giờ Việt Nam, tăng dần. */
+export const worldSlots = (ms: number) => [-1, 0, 1].map((k) => vnAt(ms, WORLD_TIME, k));
+/** Khung giờ boss thế giới kế tiếp sau `ms`. */
+export const worldNext = (ms: number) => worldSlots(ms).find((s) => s > ms)!;
+/** Khung giờ boss thế giới đang diễn ra lúc `ms` (đã xuất hiện, chưa quá WORLD.lifeSecs), không có thì null. */
+export const worldActive = (ms: number) => worldSlots(ms).find((s) => s <= ms && ms < s + WORLD.lifeSecs * 1000) ?? null;
+/** Số ngày (giờ Việt Nam) kể từ 1970-01-01 của thời điểm `ms`: hai boss thế giới luân phiên theo số này. */
+const vnDayNum = (ms: number) => { const c = vnClock(ms); return Math.floor(Date.UTC(c.y, c.mo - 1, c.d) / 86400000); };
+/**
+ * Boss thế giới của ngày chứa khung `ms` ở bản đồ `mapId` (MapDef.world): luân phiên theo ngày Việt Nam (quyết định BĐ6e: luân
+ * phiên, không bốc ngẫu nhiên, để người chơi biết trước hôm nay đánh con nào). Bản đồ không có boss thế giới thì null.
+ */
+export const worldBossOn = (mapId: string, ms: number) => { const l = MAPS[mapId]?.world; return l?.length ? l[vnDayNum(ms) % l.length] : null; };
+/** Bản đồ có boss thế giới (MapDef.world): Lõi Tinh Đấu. */
+export const worldMaps = () => Object.values(MAPS).filter((m) => m.world?.length);
+/**
+ * Hồn hoàn thưởng (mục 5.4): người đóng góp nhiều nhất nhận hồn hoàn đỏ `top` năm; những người khác (từ WORLD.share) có `red` cơ hội
+ * nhận hồn hoàn đỏ, còn lại hồn hoàn đen trong `black` năm (rollYears). Vào thẳng túi đồ cùng rương (không rơi xuống đất).
+ */
+export const WORLD_RING = { top: 100000, red: 0.1, black: [80000, 99999] as [number, number] };
+/**
+ * Rương boss thế giới (mục 5.3 "Rơi đặc trưng", 5.4): cần `slots` ô trống. Hồn cốt boneChance(100.000 năm, `bone`), loài gốc của boss;
+ * `ur` [ít nhất, nhiều nhất] mảnh UR (một võ hồn trong KING_CHEST.urShards); luôn 1 hồn hạch sao trong `stars` của bộ bất kỳ (CORE_SETS).
+ */
+export const WORLD_CHEST = { slots: 4, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -2672,6 +2778,11 @@ export const BONE_SKILLS: Record<string, BoneSkillSet> = {
     passive: bp("Ma Kình Thể", "Công tăng", { buff: { atk: 0.08 } }) },
   u_linh_hai_mau: { active: ba("U Linh Độc Điện", "Xúc tu độc điện quanh thân: Trúng độc 2 tầng, Cảm điện", "☣", "around", 48, 1.8, { status: [{ s: "poison", n: 2 }, { s: "shock" }] }),
     passive: bp("U Linh", "Kháng Trúng độc", { resist: { poison: 0.45 } }) },
+  // BĐ6e: hồn cốt boss thế giới (chỉ có trong rương boss thế giới).
+  thai_than_cu_vien: { active: ba("Thái Thản Chấn Địa", "Đấm xuống đất quanh thân: Choáng 1 giây", "✊", "around", 70, 2.8, { status: [{ s: "stun", secs: 1 }], shake: true, cd: 14, cost: 26 }),
+    passive: bp("Thái Thản Lực", "Công tăng", { buff: { atk: 0.08 } }) },
+  thien_thanh_nguu_mang: { active: ba("Thanh Mãng Giác Xung", "Lao sừng một đoạn dài: Trúng độc 3 tầng", "➤", "dash", 120, 2.6, { status: [{ s: "poison", n: 3 }], inv: 0.3, cd: 12, cost: 24 }),
+    passive: bp("Thanh Lân Giáp", "Giảm sát thương nhận", { buff: { def: 0.08 } }) },
 };
 /** 3 vị trí có kỹ năng chủ động theo thứ tự nút (đầu, tay trái, tay phải): chỉ số i của message `boneskill {i}` và `PlayerState.bcds`. */
 export const BONE_ACTIVE_SLOTS: BoneSlot[] = BONE_SLOTS.filter((s) => s.active).map((s) => s.id);
@@ -2788,7 +2899,10 @@ export const ITEMS: ItemDef[] = [
     desc: "Mỗi võ hồn có 6 ô hồn hạch: bấm \"Gắn…\" để gắn vào võ hồn (bảng đội hình). Gắn 2 hoặc 4 món cùng bộ trên võ hồn ra trận thì nhận hiệu ứng bộ." },
   // Rương tà hóa thú vương (BĐ5): mỗi thú vương một mã `ruong_<mã thú vương>` (chestCode), `boss` trỏ về BOSSES; mở trong túi đồ (KING_CHEST).
   ...BOSSES.filter((b) => b.rank === 2).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
-    desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, 1 hồn hạch sao cao, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống).` })),
+    desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, 1 hồn hạch sao cao, có thể có hồn cốt (cần ${KING_CHEST.slots} ô trống).` })),
+  // Rương boss thế giới (BĐ6e): cùng cách đặt mã, mở bằng WORLD_CHEST.
+  ...BOSSES.filter((b) => b.rank === 3).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
+    desc: `Phần thưởng hạ boss thế giới ${b.name}. Mở ra: mảnh võ hồn UR, 1 hồn hạch ${WORLD_CHEST.stars.join("–")}★ bộ bất kỳ, có thể có hồn cốt 100.000 năm (cần ${WORLD_CHEST.slots} ô trống).` })),
   // Tiên thảo (BĐ6b): mỗi loại một mã (HERBS), gộp 99; dùng cho một võ hồn từ túi đồ.
   ...HERBS.map((h): ItemDef => ({ id: h.id, kind: "tien_thao", name: h.name, col: h.col, stack: 99,
     desc: `Tiên thảo của Lạc Nhật Sâm Lâm. Dùng cho một võ hồn: +${HERB_PCT}% ${HERB_STAT_NAMES[h.stat]} vĩnh viễn, tối đa ${HERB_MAX} cây mỗi võ hồn.` })),

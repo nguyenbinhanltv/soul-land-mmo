@@ -1,6 +1,7 @@
 // Sinh các bản đồ Tiled khởi đầu: shared/assets/<mapId>.json cho mỗi mapId trong MAPS (shared/data.ts).
 //   tinh_dau_ngoai_vi  Tinh Đấu Ngoại vi: 4 vùng 300–2.000 năm, cổng về Nặc Đinh Thành và vào Nội địa (BĐ3, mục 5.3)
-//   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3; Lõi Tinh Đấu để BĐ6)
+//   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3); bờ hồ cuối Hắc Ám Lâm đi Lõi Tinh Đấu (BĐ6e)
+//   loi_tinh_dau       Lõi Tinh Đấu: hồ trung tâm, sàn đấu boss thế giới bên bờ hồ, trại cổng về Nội địa (BĐ6e, mục 5.3, 5.4)
 //   lac_nhat_sam_lam   Lạc Nhật Sâm Lâm: 4 vùng 5.000–30.000 năm (thực vật / độc), suối Băng Hỏa Lưỡng Nghi Nhãn, cổng về Thiên Đấu Thành (BĐ6b)
 //   hai_than_dao       Hải Thần Đảo / Ma Quỷ Hải Vực: đảo và rạn biển, 4 vùng 50.000–100.000 năm, bến thuyền về Thiên Đấu Thành (BĐ6d)
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
@@ -213,8 +214,8 @@ function tinhDauNgoaiVi() {
   writeMap("tinh_dau_ngoai_vi", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0)]);
 }
 
-// Nội địa (cấp 30–60, 1.500–25.000 năm): trại cổng phía tây về Ngoại vi. Cuối Hắc Ám Lâm là bờ hồ trung tâm; cổng đi Lõi
-// Tinh Đấu (`loi_tinh_dau`, BĐ6) chưa đặt vì bản đồ đó chưa có trong MAPS (cổng tới bản đồ chưa có thì không hiện, mục 5.3).
+// Nội địa (cấp 30–60, 1.500–25.000 năm): trại cổng phía tây về Ngoại vi. Cuối Hắc Ám Lâm là bờ hồ trung tâm; từ BĐ6e có bến bờ hồ
+// (bãi trống cuối đường mòn) với cổng đi Lõi Tinh Đấu (`loi_tinh_dau`, chặn mềm cấp 90).
 function tinhDauNoiDia() {
   const { MW, MH } = FOREST;
   const { ground, trees, canopy, o } = forest({
@@ -231,9 +232,10 @@ function tinhDauNoiDia() {
         if (wall && r() < 0.6) g.set(x, y, 1);
       }
     },
-    // Bờ hồ trung tâm (Lõi Tinh Đấu, BĐ6) ở mép đông, cuối đường mòn.
+    // Bờ hồ trung tâm (Lõi Tinh Đấu) ở mép đông, cuối đường mòn; BĐ6e dọn bãi trống trước bờ hồ để đứng niệm cổng và xuất hiện.
     // Hang Thiên Độc Chu Hoàng ở phía đông nam Hắc Ám Lâm.
     east(g) {
+      g.fill(MW - 17, 26, 9, 10, 0); g.fill(MW - 17, 30, 9, 2, 3);
       for (let y = 18; y < 43; y++) for (let x = MW - 9; x < MW - 1; x++) if (Math.hypot((x - (MW - 1)) * 1.6, y - 30.5) < 12) g.set(x, y, 2);
       lairGround(g, LAIR.cx, LAIR.cy, LAIR.rx, LAIR.ry);
     },
@@ -251,6 +253,9 @@ function tinhDauNoiDia() {
   o.rect("spawn", "Trại cổng Nội địa", c.x, c.y, c.w, c.h);
   o.portal("Về Tinh Đấu Ngoại vi", 1, 29, 2, 4, "tinh_dau_ngoai_vi", "tu_tinh_dau_noi_dia", "10-30");
   o.point("arrive", "tu_tinh_dau_ngoai_vi", 5.5, 31.5);
+  // BĐ6e: bến bờ hồ đi Lõi Tinh Đấu (cấp đề xuất 90–100 lấy từ MAPS.loi_tinh_dau.level); về từ Lõi (hoặc đăng xuất ở Lõi) thì xuất hiện ở đây.
+  o.portal("Đi Lõi Tinh Đấu", MW - 10, 28, 2, 6, "loi_tinh_dau", "tu_tinh_dau_noi_dia");
+  o.point("arrive", "tu_loi_tinh_dau", MW - 14.5, 31);
   writeMap("tinh_dau_noi_dia", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.35)]);
 }
 
@@ -401,6 +406,48 @@ function haiThanDao() {
   o.portal("Thuyền về Thiên Đấu Thành", 0, 29, 2, 3, "thien_dau_thanh", "tu_hai_than_dao", "", true);
   o.point("arrive", "tu_thien_dau_thanh", 7.5, 30.5);
   writeMap("hai_than_dao", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.25)]);
+}
+
+// ---------- Lõi Tinh Đấu (BĐ6e, mục 5.3, 5.4): hồ trung tâm Tinh Đấu Đại Sâm Lâm, chỉ có boss thế giới ----------
+/**
+ * 64×44 ô, rừng già tối bao quanh. Hồ trung tâm (nước) ở phía đông; sàn đấu boss thế giới là bãi trống hình bầu dục bên bờ tây của
+ * hồ (vây vòng cây, chừa lối vào phía tây; phía đông là bờ nước, boss Du Thủy lặn xuống hồ ở đây). Trại cổng ở mép tây (điểm hồi sinh,
+ * cổng về bờ hồ Nội địa), đường mòn nối trại với lối vào sàn. Object `boss` phủ sàn đấu (bán kính giao chiến, chiêu toàn sàn); một
+ * vùng `zone` phủ cả bản đồ, `count` 0 (không sinh hồn thú thường; tên vùng hiện trên HUD).
+ */
+const LOI = { MW: 64, MH: 44, arena: { cx: 28, cy: 22, rx: 13, ry: 10 }, lake: { cx: 50, cy: 22, rx: 11, ry: 15 }, lair: { x: 16, y: 13, w: 24, h: 18 } };
+function loiTinhDau() {
+  const { MW, MH, arena: A, lake: L } = LOI, r = rng(90001), g = grid(MW, MH);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (r() < 0.24) g.set(x, y, 1);
+  for (let i = 0; i < 40; i++) {
+    const cx = (r() * MW) | 0, cy = (r() * MH) | 0, rad = 1.5 + r() * 2.5;
+    for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) if (Math.hypot(x, y) < rad && r() < 0.7) g.set(cx + x, cy + y, 1);
+  }
+  // Sàn đấu: bãi trống bầu dục, vòng cây dày quanh mép, chừa lối vào phía tây (nối đường mòn) và để trống phía bờ hồ.
+  for (let y = A.cy - A.ry - 3; y <= A.cy + A.ry + 3; y++) for (let x = A.cx - A.rx - 3; x <= A.cx + A.rx + 3; x++) {
+    const d = Math.hypot((x - A.cx) / A.rx, (y - A.cy) / A.ry);
+    if (d < 1) g.set(x, y, 0);
+    else if (d < 1.25 && x < A.cx + A.rx * 0.6 && !(x < A.cx && Math.abs(y - A.cy - 0.5) < 2.5)) g.set(x, y, 1);
+  }
+  // Hoa ven sàn (bãi cỏ già quanh hồ).
+  for (let i = 0; i < 26; i++) { const x = A.cx - A.rx + ((r() * A.rx * 2) | 0), y = A.cy - A.ry + ((r() * A.ry * 2) | 0); if (g.get(x, y) === 0 && r() < 0.6) g.set(x, y, 4); }
+  // Hồ trung tâm phía đông (đè lên mép đông của sàn: bờ nước trong sàn).
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (Math.hypot((x - L.cx) / L.rx, (y - L.cy) / L.ry) < 1) g.set(x, y, 2);
+  // Đường mòn từ trại cổng tới lối vào sàn; trại cổng ở mép tây.
+  for (let x = 1; x < A.cx - A.rx + 2; x++) { g.set(x, A.cy, 3); g.set(x, A.cy + 1, 3); }
+  g.fill(1, 17, 8, 11, 5);
+  g.border();
+  const { ground, trees, canopy } = toLayers(MW, MH, g, (x, y) => (Math.hypot((x - A.cx) / A.rx, (y - A.cy) / A.ry) < 1.1 ? 2 : 3));
+  for (let i = 0; i < MW * MH; i++) if (g.m[i] === 3) ground[i] = GID.pathDark;
+  trees[19 * MW + 2] = GID.tent;
+  trees[22 * MW + 4] = GID.fire;
+  const o = objects();
+  o.zone("Hồ trung tâm", "Boss thế giới 100.000 năm – 21:00 mỗi ngày", 0, 0, MW, MH, [1], 0, "thai_than_cu_vien:1,thien_thanh_nguu_mang:1", "100000-100000");
+  o.boss("Sàn đấu hồ trung tâm", "thai_than_cu_vien", LOI.lair.x, LOI.lair.y, LOI.lair.w, LOI.lair.h);
+  o.rect("spawn", "Trại cổng Lõi Tinh Đấu", 3, 17, 6, 11);
+  o.portal("Về Tinh Đấu Nội địa", 1, 20, 2, 4, "tinh_dau_noi_dia", "tu_loi_tinh_dau");
+  o.point("arrive", "tu_tinh_dau_noi_dia", 5.5, 22.5);
+  writeMap("loi_tinh_dau", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.3)]);
 }
 
 // ---------- Thánh Hồn Thôn (mục 5.3, 5.8) ----------
@@ -673,7 +720,7 @@ function daiDauHonTruong() {
 
 const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia,
   dai_dau_hon_truong: daiDauHonTruong, thien_dau_thanh: thienDauThanh, lac_nhat_sam_lam: lacNhatSamLam, cuc_bac_chi_dia: cucBacChiDia,
-  hai_than_dao: haiThanDao };
+  hai_than_dao: haiThanDao, loi_tinh_dau: loiTinhDau };
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(GEN)) {
   if (!GEN[id]) { console.error("Không có bản đồ:", id); process.exit(1); }
