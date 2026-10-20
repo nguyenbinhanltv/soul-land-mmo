@@ -95,6 +95,10 @@ body.touch #talk kbd{display:none}
 .sk .ico+span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:9.5px;line-height:1.1;max-width:100%}
 .sk.locked{opacity:.4}
 .sk .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);height:0}
+/* Võ Hồn Chân Thân (8.1a, phím R): viền màu võ hồn; đang biến hình thì sáng nhấp nháy và ghi giây còn lại. */
+.sk.ava{border-style:double;border-width:3px}
+.sk.ava.on{border-color:#ffe08a;box-shadow:0 0 10px #ffe08a;animation:avaPulse .8s ease-in-out infinite alternate}
+@keyframes avaPulse{from{box-shadow:0 0 4px #ffe08a}to{box-shadow:0 0 14px #ffe08a}}
 #banner{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity .5s;text-shadow:0 2px 6px #000;color:#fff}
 #banner b{display:block;font-size:30px;font-weight:800}
 #banner span{font-size:14px;color:#dfe9dc}
@@ -102,6 +106,7 @@ body.touch #talk kbd{display:none}
 #knob{position:absolute;left:43px;top:43px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.35)}
 body.touch.playing #joy{display:block}
 body.touch #skills{flex-wrap:wrap;width:208px;justify-content:flex-end}
+body.touch #skills.ava{width:272px} /* có nút Chân Thân (8.1a): 2 hàng 4 nút */
 /* Chạm: 3 nút hồn cốt xếp dọc, nhỏ hơn, bên trái hai hàng hồn kỹ (không đẩy thanh đội hình lên). */
 body.touch #actbar{gap:8px}
 body.touch #bskills{flex-direction:column}
@@ -177,6 +182,22 @@ body.touch #prompt{bottom:160px}
 .rcard .rr .ring{width:12px;height:12px;border-width:3px}
 .rcard:hover:not(:disabled){border-color:var(--line2)}
 .rcard.on{border-color:var(--c);cursor:default}
+/* 4 ô hồn kỹ mang theo (8.1a): ô dùng lại kiểu ô đội hình, danh sách hồn kỹ đã mở bên dưới. */
+.kslots .tpick>b{font-size:12px;color:var(--xp)}
+.klist{display:grid;grid-template-columns:1fr;gap:4px}
+.kcard{font:inherit;color:var(--text);background:rgba(0,0,0,.2);border:2px solid var(--line);padding:5px 8px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;text-align:left;min-height:40px}
+.kcard .ico{font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid var(--c);color:var(--c);display:flex;align-items:center;
+  justify-content:center;font-size:12px;flex-shrink:0;font-variant-emoji:text}
+.kcard span{display:flex;flex-direction:column;flex:1}
+.kcard b{font-size:12.5px}
+.kcard small{color:var(--muted);font-size:11px}
+.kcard.on{border-color:var(--c)}
+.kcard:hover:not(:disabled){border-color:var(--line2)}
+.kcard:disabled{cursor:default}
+.kcard.locked{opacity:.45}
+.kcard.ava{border-style:dashed}
+.kcard:focus-visible{outline:2px solid var(--xp);outline-offset:-2px}
 .rnote{color:var(--muted);font-size:11px}
 .rbond{color:#8a5a00;font-weight:600}
 .rcard .stars,.srow .stars{font-style:normal;color:var(--muted);font-size:11px;letter-spacing:1px}

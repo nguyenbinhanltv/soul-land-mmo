@@ -826,6 +826,7 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
  * Từ 3.5: `self.cleanse`: giải mọi trạng thái trên hồn sư (PLAYER_STATUS, do chiêu báo trước của hồn thú gây).
  * Từ BĐ4: `dispel`: xóa mọi hiệu ứng có lợi (BEAST_BUFF_IDS, ví dụ Cuồng nộ của tinh anh) trên hồn thú trúng ("xóa buff địch").
+ * Từ 8.1a: `ult`: tuyệt kỹ vòng 10 (chỉ là hiệu ứng: mọi người thấy tên tuyệt kỹ lớn và màn hình rung, fx `ult`).
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -837,6 +838,7 @@ export interface SkillDef {
   at?: number; fixed?: boolean; copy?: number;
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number; cleanse?: boolean };
   dispel?: boolean;
+  ult?: boolean;
 }
 
 /**
@@ -1088,6 +1090,153 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
 export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
+
+// ---------- Hồn kỹ vòng 5–10 và Võ Hồn Chân Thân (mục 5.2 "Hồn kỹ theo vòng", bước 8.1a; mọi số chờ chốt) ----------
+/**
+ * Vòng (1..10) của các hồn kỹ trong VOHON_SKILLS_HIGH, theo đúng thứ tự: vòng 5–6 hồn kỹ thường, vòng 8–9 hồn kỹ mạnh, vòng 10 tuyệt
+ * kỹ cuối. Vòng 7 (CHAN_THAN_RING) là Võ Hồn Chân Thân, không phải hồn kỹ mang theo (phím riêng, bảng CHAN_THAN).
+ */
+export const HIGH_RINGS = [5, 6, 8, 9, 10] as const;
+export const CHAN_THAN_RING = 7;
+/** Số ô hồn kỹ mang theo (phím U / I / O / P); mặc định vòng 1–4 theo thứ tự (như trước 8.1a). Ô = -1 là để trống. */
+export const LOADOUT_SIZE = 4;
+export const DEFAULT_LOADOUT: readonly number[] = [0, 1, 2, 3];
+/**
+ * Hồn kỹ vòng 5, 6, 8, 9, 10 (theo HIGH_RINGS) của võ hồn đã có dữ liệu (8.1a: 5 võ hồn mẫu; 8.1b… các lưu phái còn lại). Mạnh theo số năm
+ * hồn hoàn của đúng vòng đó (skillPower / buffPower như vòng 1–4). Võ hồn chưa có trong bảng: vòng 5+ chỉ tăng chỉ số (calcStats).
+ * Bảng chi tiết ở GAME_DESIGN.md 5.2.
+ */
+export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
+  // Khống chế, chấn đãng: trói, gom quái, Dễ thương; tuyệt kỹ kéo cả vùng lại và giam (5.1).
+  lam_ngan_thao: [
+    { name: "Lam Ngân Bá Vương Thương", desc: "Lam Ngân ngưng thành trường thương, lướt xuyên hàng hồn thú: Trói 1,5 giây", icon: "➶", cost: 45, cd: 10,
+      area: "dash", r: 100, dmg: 2.6, inv: 0.4, status: [{ s: "root", secs: 1.5 }] },
+    { name: "Lam Ngân Hoàng Lãnh Vực", desc: "Lãnh vực Lam Ngân Hoàng đặt ở chỗ đứng 3 giây: 6 nhát, Làm chậm, Dễ thương; nhát cuối Trói 2 giây", icon: "❀", cost: 50, cd: 14,
+      area: "around", r: 100, fixed: true, n: 6, every: 0.5, dmg: 0.6, status: [{ s: "slow", secs: 1 }, { s: "vuln", secs: 4 }], finisher: [{ s: "root", secs: 2 }] },
+    { name: "Lam Ngân Thiên Lao", desc: "Lam Ngân dựng lồng trời: kéo mọi hồn thú quanh thân lại, Trói 3 giây, Dễ thương 6 giây", icon: "⌘", cost: 60, cd: 18,
+      area: "around", r: 120, dmg: 3.8, pull: true, glow: true, status: [{ s: "root", secs: 3 }, { s: "vuln", secs: 6 }] },
+    { name: "Lam Ngân Triền Thần", desc: "12 sợi Lam Ngân bắn ra bốn phía, mỗi sợi Trói 1,5 giây và Trúng độc 1 tầng", icon: "✺", cost: 70, cd: 20,
+      area: "proj", r: 150, n: 12, spread: 360, dmg: 1.6, status: [{ s: "root", secs: 1.5 }, { s: "poison" }] },
+    { name: "Lam Ngân Thiên Hạ", desc: "Tuyệt kỹ: Lam Ngân phủ kín cả vùng, kéo mọi hồn thú lại và giam: Trói 4 giây, Dễ thương 8 giây, Trúng độc 3 tầng", icon: "❦", cost: 100, cd: 45,
+      area: "around", r: 160, dmg: 6, pull: true, glow: true, shake: true, ult: true, status: [{ s: "root", secs: 4 }, { s: "vuln", secs: 8 }, { s: "poison", n: 3 }] },
+  ],
+  // Cường công, chấn đãng: % sinh lực, phá giáp, hất tung; tuyệt kỹ là Loạn Phi Phong Chùy Pháp đủ thức (vòng 3 là bản 4 nhát).
+  hao_thien_chuy: [
+    { name: "Đại Tu Di Chùy", desc: "Dồn lực Đại Tu Di nện quanh thân, thêm 5% sinh lực tối đa, Phá giáp 2 tầng", icon: "✺", cost: 45, cd: 10,
+      area: "around", r: 80, dmg: 3, pctHp: 0.05, shake: true, status: [{ s: "armor", n: 2 }] },
+    { name: "Hạo Thiên Chấn", desc: "Chùy chấn nửa trước mặt, thêm 6% sinh lực tối đa, hất tung (Choáng 1,2 giây)", icon: "⚒", cost: 50, cd: 12,
+      area: "front", r: 70, dmg: 3.8, pctHp: 0.06, status: [{ s: "stun", secs: 1.2 }] },
+    { name: "Hạo Thiên Cửu Tuyệt", desc: "3 đợt chùy chấn quanh thân, mỗi đợt thêm 4% sinh lực tối đa và Phá giáp 1 tầng; đợt cuối Choáng 1,5 giây", icon: "☄", cost: 60, cd: 18,
+      area: "around", r: 100, n: 3, every: 0.4, dmg: 2, pctHp: 0.04, glow: true, status: [{ s: "armor" }], finisher: [{ s: "stun", secs: 1.5 }] },
+    { name: "Phá Thiên Chùy", desc: "Lao tới một mục tiêu, một chùy phá trời: thêm 10% sinh lực tối đa, Phá giáp 3 tầng", icon: "▲", cost: 70, cd: 22,
+      area: "target", r: 80, dash: 60, dmg: 6.5, pctHp: 0.1, glow: true, shake: true, status: [{ s: "armor", n: 3 }] },
+    { name: "Loạn Phi Phong Chùy Pháp · Đại Thành", desc: "Tuyệt kỹ: 12 nhát chùy liên hoàn vào một mục tiêu, mỗi nhát thêm 3% sinh lực tối đa, nhát cuối hất tung (Choáng 2 giây)", icon: "☄", cost: 100, cd: 45,
+      area: "target", r: 90, dash: 70, n: 12, every: 0.15, dmg: 0.75, pctHp: 0.03, inv: 0.5, glow: true, shake: true, ult: true, finisher: [{ s: "stun", secs: 2 }] },
+  ],
+  // Mẫn công, chấn đãng: tốc độ, chí mạng cao, cào liên hoàn; tuyệt kỹ U Minh Bách Trảo đủ thức (vòng 4 là bản 8 nhát).
+  u_minh_linh_mieu: [
+    { name: "U Minh Trảm", desc: "Lướt xuyên hàng hồn thú, +30% chí mạng, Phá giáp 1 tầng", icon: "➹", cost: 45, cd: 9,
+      area: "dash", r: 100, dmg: 3, crit: 0.3, inv: 0.4, status: [{ s: "armor" }] },
+    { name: "U Minh Ảnh Sát", desc: "Khóa hồn thú yếu máu nhất, lướt tới cào 3 nhát (tới +100% khi mục tiêu ít máu), +30% chí mạng", icon: "☾", cost: 50, cd: 12,
+      area: "target", r: 130, pick: "low", dash: 110, n: 3, every: 0.12, dmg: 1.5, lowHp: 1, crit: 0.3, inv: 0.35 },
+    { name: "U Minh Phân Thân", desc: "Phân thân bóng tối cào quanh thân 6 nhát, +30% chí mạng, mỗi nhát Phá giáp 1 tầng", icon: "≋", cost: 60, cd: 16,
+      area: "around", r: 90, n: 6, every: 0.2, dmg: 0.9, crit: 0.3, status: [{ s: "armor" }] },
+    { name: "U Minh Đoạt Phách", desc: "Lướt tới mục tiêu, cào 5 nhát, +40% chí mạng", icon: "✥", cost: 70, cd: 20,
+      area: "target", r: 100, dash: 90, n: 5, every: 0.1, dmg: 1.4, crit: 0.4, inv: 0.5 },
+    { name: "U Minh Bách Trảo · Vô Ảnh", desc: "Tuyệt kỹ: lướt tới mục tiêu, cào 16 nhát không thấy bóng, +40% chí mạng, mỗi nhát Phá giáp 1 tầng", icon: "✥", cost: 100, cd: 45,
+      area: "target", r: 120, dash: 110, n: 16, every: 0.08, dmg: 0.75, crit: 0.4, inv: 1.3, glow: true, ult: true, status: [{ s: "armor" }] },
+  ],
+  // Khống chế, trúng độc (lõi): độc cộng dồn, câm lặng diện rộng, hút máu; tuyệt kỹ độc vực.
+  bich_lan_xa_hoang: [
+    { name: "Bích Lân Tử Độc", desc: "Phun 5 mũi tử độc hình quạt, mỗi mũi Trúng độc 2 tầng", icon: "➶", cost: 45, cd: 9,
+      area: "proj", r: 150, n: 5, spread: 60, dmg: 1.2, status: [{ s: "poison", n: 2 }] },
+    { name: "Xà Hoàng Độc Trận", desc: "Độc trận đặt ở chỗ đứng 3 giây: 6 nhát, Trúng độc, Làm chậm; nhát cuối Câm lặng 2 giây", icon: "☁", cost: 50, cd: 14,
+      area: "around", r: 100, fixed: true, n: 6, every: 0.5, dmg: 0.4, status: [{ s: "poison" }, { s: "slow", secs: 1 }], finisher: [{ s: "silence", secs: 2 }] },
+    { name: "Vạn Xà Triều", desc: "Triều rắn tràn quanh thân: mỗi tầng Trúng độc thêm 50% công, Trúng độc 2 tầng, Dễ thương 6 giây", icon: "◉", cost: 60, cd: 18,
+      area: "around", r: 120, dmg: 2.5, perStack: { s: "poison", dmg: 0.5 }, glow: true, status: [{ s: "poison", n: 2 }, { s: "vuln", secs: 6 }] },
+    { name: "Xà Hoàng Thôn Phệ", desc: "Xà Hoàng nuốt mục tiêu: mỗi tầng Trúng độc thêm 80% công, hút 50% sát thương thành sinh lực", icon: "☠", cost: 70, cd: 20,
+      area: "target", r: 100, dmg: 5, perStack: { s: "poison", dmg: 0.8 }, lifesteal: 0.5, glow: true },
+    { name: "Vạn Độc Bích Lân Vực", desc: "Tuyệt kỹ: độc vực Bích Lân phủ cả vùng: mỗi tầng Trúng độc thêm 100% công, hút 30%, Trúng độc đủ 5 tầng, Câm lặng 3 giây", icon: "☠", cost: 100, cd: 45,
+      area: "around", r: 160, dmg: 5, perStack: { s: "poison", dmg: 1 }, lifesteal: 0.3, glow: true, shake: true, ult: true,
+      status: [{ s: "poison", n: 5 }, { s: "silence", secs: 3 }] },
+  ],
+  // Phụ trợ: hiệu ứng thuộc hồn sư nên cả đội hưởng; tuyệt kỹ thật là Vô Địch Thần Quang (tiên cơ riêng là bản nhỏ 2,5 giây).
+  cuu_bao_luu_ly_thap: [
+    { name: "Phá Chi Lưu Ly", desc: "Ngũ viết phá: hào quang lưu ly quanh thân làm hồn thú yếu đi: Phá giáp 3 tầng, Dễ thương 6 giây", icon: "◇", cost: 40, cd: 12,
+      area: "around", r: 100, dmg: 1.5, status: [{ s: "armor", n: 3 }, { s: "vuln", secs: 6 }] },
+    { name: "Thần Chi Lưu Ly", desc: "Lục viết thần: chí mạng +20%, công +15% trong 12 giây, hồi 20% hồn lực", icon: "✧", cost: 0, cd: 20,
+      area: "self", r: 0, dmg: 0, self: { buff: { crit: 0.2, atk: 0.15 }, secs: 12, mp: 0.2 } },
+    { name: "Lưu Ly Thánh Quang", desc: "Thánh quang lưu ly: hồi 30% sinh lực cả đội, khiên 20% sinh lực tối đa 8 giây, thanh tẩy", icon: "✚", cost: 60, cd: 22,
+      area: "self", r: 0, dmg: 0, self: { heal: 0.3, shield: 0.2, secs: 8, cleanse: true } },
+    { name: "Cửu Bảo Tề Minh", desc: "Chín báu cùng vang: công +35%, tốc độ +25%, sát thương nhận giảm 20% trong 15 giây", icon: "✦", cost: 60, cd: 24,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.35, spd: 0.25, def: 0.2 }, secs: 15 } },
+    { name: "Vô Địch Thần Quang", desc: "Tuyệt kỹ: cả đội miễn mọi sát thương 6 giây, công +30%, hồi 40% sinh lực, thanh tẩy", icon: "✷", cost: 100, cd: 50,
+      area: "self", r: 0, dmg: 0, glow: true, ult: true, self: { buff: { inv: 1, atk: 0.3 }, secs: 6, heal: 0.4, cleanse: true } },
+  ],
+};
+/**
+ * Hồn kỹ của vòng có chỉ số `ring` (0..MAX_RINGS − 1) của võ hồn: vòng 1–4 từ skillsOf, vòng 5, 6, 8, 9, 10 từ VOHON_SKILLS_HIGH; null nếu
+ * vòng đó không có hồn kỹ (vòng 7 là Chân Thân, hoặc võ hồn chưa có dữ liệu vòng 5–10).
+ */
+export function ringSkill(vohonId: string, ring: number): SkillDef | null {
+  if (!Number.isInteger(ring) || ring < 0) return null;
+  if (ring < 4) return skillsOf(vohonId)[ring] ?? null;
+  const k = (HIGH_RINGS as readonly number[]).indexOf(ring + 1);
+  return k >= 0 ? VOHON_SKILLS_HIGH[vohonId]?.[k] ?? null : null;
+}
+/** Chỉ số vòng có hồn kỹ đã mở (võ hồn có `rings` hồn hoàn): các lựa chọn khi xếp 4 ô mang theo. */
+export const skillChoices = (vohonId: string, rings: number) =>
+  Array.from({ length: Math.max(0, Math.min(rings, 10)) }, (_, i) => i).filter((i) => ringSkill(vohonId, i));
+/** Kiểm tra dạng 4 ô mang theo client gửi: LOADOUT_SIZE số nguyên -1..9, không trùng (trừ ô trống -1). Không kiểm vòng đã mở. */
+export function parseLoadout(x: unknown): number[] | null {
+  if (!Array.isArray(x) || x.length !== LOADOUT_SIZE || !x.every((v) => Number.isInteger(v) && v >= -1 && v < 10)) return null;
+  const used = x.filter((v) => v >= 0);
+  return new Set(used).size === used.length ? [...x] : null;
+}
+/**
+ * 4 ô mang theo của võ hồn (chỉ số vòng theo ô U / I / O / P, -1 = trống) từ dữ liệu đã lưu (`vohons.skills`); chưa lưu hoặc không hợp lệ
+ * (ví dụ vòng không còn hồn kỹ) thì dùng DEFAULT_LOADOUT (vòng 1–4). Ô trỏ tới vòng chưa mở hiện "Khóa" như trước 8.1a.
+ */
+export function loadoutOf(vohonId: string, saved: readonly number[] | null | undefined): number[] {
+  const l = parseLoadout(saved);
+  return l && l.every((r) => r < 0 || ringSkill(vohonId, r)) ? l : [...DEFAULT_LOADOUT];
+}
+
+/** Chỉ số tăng khi Chân Thân: atk / def / spd / crit / mp như hiệu ứng có lợi cùng tên (BUFFS), `hp`: sinh lực tối đa (tỉ lệ). */
+export type ChanThanStat = "atk" | "def" | "spd" | "crit" | "mp" | "hp";
+/**
+ * Võ Hồn Chân Thân (vòng 7). Biến hình `secs` giây: chỉ số `stats` (ở sức mạnh ×1, nhân buffPower theo số năm hồn hoàn vòng 7), tung `burst`
+ * ngay lúc biến hình (sức mạnh skillPower / buffPower của vòng 7). Tốn `cost` hồn lực, hồi `cd` giây (riêng từng võ hồn, tính từ lúc biến
+ * hình). Thuộc võ hồn: đổi võ hồn, võ hồn gục, đi cổng thì hết. Hình Chân Thân là bộ sprite riêng sau này (mục 5.11); hiện vẽ bằng code.
+ */
+export interface ChanThanDef { name: string; desc: string; icon: string; cost: number; cd: number; secs: number;
+  stats: Partial<Record<ChanThanStat, number>>; burst?: SkillDef; }
+/** Client phóng hình hồn sư ngần ấy lần khi đang Chân Thân (chỉ hình ảnh). */
+export const CHAN_THAN_SCALE = 1.35;
+const ctBurst = (name: string, o: Partial<SkillDef>): SkillDef => ({ name, desc: "", icon: "", cost: 0, cd: 0, area: "around", r: 90, dmg: 0, ...o });
+export const CHAN_THAN: Record<string, ChanThanDef> = {
+  lam_ngan_thao: { name: "Lam Ngân Hoàng Chân Thân", desc: "Hóa thân Lam Ngân Hoàng: kéo hồn thú quanh thân lại, Trói 2 giây; công +25%, sát thương nhận giảm 30%, tốc độ +10%, sinh lực tối đa +20%",
+    icon: "❦", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, def: 0.3, spd: 0.1, hp: 0.2 },
+    burst: ctBurst("Lam Ngân Hoàng Chân Thân", { r: 100, dmg: 2, pull: true, status: [{ s: "root", secs: 2 }] }) },
+  hao_thien_chuy: { name: "Hạo Thiên Chùy Chân Thân", desc: "Hóa thân Hạo Thiên Chùy: nện đất quanh thân (thêm 5% sinh lực tối đa, Choáng 1 giây); công +40%, sát thương nhận giảm 20%, sinh lực tối đa +15%",
+    icon: "⚒", cost: 80, cd: 90, secs: 15, stats: { atk: 0.4, def: 0.2, hp: 0.15 },
+    burst: ctBurst("Hạo Thiên Chùy Chân Thân", { r: 90, dmg: 3, pctHp: 0.05, shake: true, status: [{ s: "stun", secs: 1 }] }) },
+  u_minh_linh_mieu: { name: "U Minh Linh Miêu Chân Thân", desc: "Hóa thân U Minh Linh Miêu: cào quanh thân (Phá giáp 2 tầng); công +25%, tốc độ +35%, chí mạng +20%",
+    icon: "☾", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, spd: 0.35, crit: 0.2 },
+    burst: ctBurst("U Minh Linh Miêu Chân Thân", { r: 70, dmg: 2, crit: 0.3, status: [{ s: "armor", n: 2 }] }) },
+  bich_lan_xa_hoang: { name: "Bích Lân Xà Hoàng Chân Thân", desc: "Hóa thân Bích Lân Xà Hoàng: độc khí quanh thân (Trúng độc 3 tầng, Câm lặng 2 giây); công +25%, sát thương nhận giảm 25%, sinh lực tối đa +20%",
+    icon: "☠", cost: 80, cd: 90, secs: 15, stats: { atk: 0.25, def: 0.25, hp: 0.2 },
+    burst: ctBurst("Bích Lân Xà Hoàng Chân Thân", { r: 90, dmg: 1.5, status: [{ s: "poison", n: 3 }, { s: "silence", secs: 2 }] }) },
+  cuu_bao_luu_ly_thap: { name: "Cửu Bảo Lưu Ly Tháp Chân Thân", desc: "Hóa thân Cửu Bảo Lưu Ly Tháp: hồi 25% sinh lực cả đội, khiên 15%; công +15%, sát thương nhận giảm 35%, hồn kỹ tốn ít hơn 30%, sinh lực tối đa +15%",
+    icon: "✷", cost: 80, cd: 90, secs: 15, stats: { atk: 0.15, def: 0.35, mp: 0.3, hp: 0.15 },
+    burst: ctBurst("Cửu Bảo Lưu Ly Tháp Chân Thân", { area: "self", r: 0, self: { heal: 0.25, shield: 0.15, secs: 15 } }) },
+};
+export const chanThanOf = (vohonId: string): ChanThanDef | null => CHAN_THAN[vohonId] ?? null;
+/** Chỉ số tăng thật khi Chân Thân với hồn hoàn vòng 7 `years` năm (× buffPower, như hiệu ứng có lợi của hồn kỹ phụ trợ). */
+export function chanThanStats(def: ChanThanDef, years: number): Partial<Record<ChanThanStat, number>> {
+  const k = buffPower(years);
+  return Object.fromEntries(Object.entries(def.stats).map(([s, v]) => [s, +(v * k).toFixed(4)]));
+}
 
 /**
  * Chiêu tiên cơ riêng (bước 2.5a, nâng từ tiên cơ chung theo hệ của 2.4 cho 5 võ hồn mẫu; 2.5b thêm 5 võ hồn Thiêu đốt, 2.5c thêm 5 võ hồn Cảm điện, 2.5d thêm 5 võ hồn còn lại; chờ chốt). Chạy bằng cùng bộ máy

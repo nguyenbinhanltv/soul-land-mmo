@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  skillsOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
+  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
@@ -282,6 +282,7 @@ export class GameScene extends Phaser.Scene {
       // Phím số 1–4: đổi sang võ hồn ở ô tương ứng của đội; hồn kỹ dùng U, I, O, P (hud.SKILL_KEYS).
       const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
       const bk = hud.BONE_SKILL_KEYS.findIndex((k) => e.code === "Key" + k); // kỹ năng hồn cốt Z / X / C (4.3)
+      if (e.code === "Key" + hud.AVA_KEY) return this.act("chanthan"); // Võ Hồn Chân Thân (8.1a)
       const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
       else if (e.code === "KeyE") this.act("pickup");
@@ -345,6 +346,7 @@ export class GameScene extends Phaser.Scene {
     else if (a.startsWith("skill")) this.room.send("skill", { i: Number(a.slice(5)) });
     else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
+    else if (a === "chanthan") this.room.send("chanthan");
   }
 
   sendInput() {
@@ -563,8 +565,26 @@ export class GameScene extends Phaser.Scene {
       const v = this.players.get(m.id); if (v && Number.isInteger(m.i)) v.lit = { i: m.i, t0: this.time.now };
       this.soulRingFx(m.id, m.tier, 700);
       // Tên hồn kỹ (riêng hoặc dùng chung) bay lên trên đầu, màu hào quang hồn hoàn của vòng đó.
-      const sk = v && VOHON[m.vh] ? skillsOf(VOHON[m.vh].id)[m.i] : undefined;
+      const sk = v && VOHON[m.vh] ? ringSkill(VOHON[m.vh].id, m.i) : undefined; // m.i: chỉ số vòng (từ 8.1a có vòng 5–10)
       if (v && sk) this.floatText(v.root.x, v.root.y - 48, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
+    }
+    else if (m.k === "ult" || m.k === "avatar") {
+      // Tuyệt kỹ vòng 10 / Võ Hồn Chân Thân (8.1a): hai vòng sáng, chớp màn hình khi ở gần; chính mình thấy banner, người khác thấy tên lớn bay lên.
+      const v = this.players.get(m.id); if (!v || (m.k === "avatar" && !m.on)) return;
+      const { x, y } = v.root, col = m.col ?? "#ffffff";
+      if (m.id !== this.me) {
+        const t = this.add.text(x, y - 62, m.name, { fontFamily: FONT, fontSize: "11px", fontStyle: "800", color: col, stroke: "#000", strokeThickness: 3, resolution: 8 })
+          .setOrigin(0.5).setDepth(99990).setScale(0.5);
+        this.tweens.add({ targets: t, scale: 1.15, y: y - 74, duration: 450, ease: "Back.out" });
+        this.tweens.add({ targets: t, alpha: 0, delay: 1300, duration: 500, onComplete: () => t.destroy() });
+      }
+      this.ringFx(x, y - 6, 6, m.k === "ult" ? 150 : 90, col, 650); this.ringFx(x, y - 6, 4, m.k === "ult" ? 110 : 60, "#ffffff", 550, 150);
+      const me = this.players.get(this.me);
+      if (me && Math.hypot(me.root.x - x, me.root.y - y) < 220) {
+        const c = Phaser.Display.Color.HexStringToColor(col);
+        this.cameras.main.flash(m.k === "ult" ? 260 : 180, c.red, c.green, c.blue); this.cameras.main.shake(300, m.k === "ult" ? 0.006 : 0.003);
+      }
+      if (m.id === this.me) hud.banner(m.name, m.k === "ult" ? "Tuyệt kỹ" : "Võ Hồn Chân Thân");
     }
     else if (m.k === "bone") {
       // Kỹ năng hồn cốt chủ động (4.3): vòng sáng màu niên hạn hồn cốt, tên kỹ năng bay lên (tra theo loài và nút).
@@ -804,6 +824,16 @@ export class GameScene extends Phaser.Scene {
   drawStatus(g: Phaser.GameObjects.Graphics, st: any, time: number) {
     st.players.forEach((p: any, id: string) => {
       const v = this.players.get(id); if (!v || p.dead) return;
+      if (p.ava > 0) {
+        // Võ Hồn Chân Thân (8.1a): quầng sáng màu võ hồn, vòng dưới chân và hạt sáng bay lên (ai cũng thấy).
+        const c = hex(VOHON[p.vh]?.col ?? "#ffffff"), k = 0.5 + 0.5 * Math.sin(time / 150), { x, y } = v.root;
+        g.fillStyle(c, 0.1 + 0.08 * k).fillEllipse(x, y - 16, 42, 54);
+        g.lineStyle(2, c, 0.55 + 0.35 * k).strokeEllipse(x, y, 38 + 4 * k, 11);
+        for (let j = 0; j < 8; j++) {
+          const a = time / 380 + j * 0.79, h = (time / 22 + j * 13) % 44;
+          g.fillStyle(j % 2 ? 0xffffff : c, 1 - h / 44).fillRect(x + Math.cos(a) * 15 - 1, y - h, 2, 2);
+        }
+      }
       if (p.shield > 0) { g.lineStyle(1, 0x9ad8ff, 0.55 + 0.25 * Math.sin(time / 200)); g.strokeEllipse(v.root.x, v.root.y - 12, 26, 30); }
       if (p.lei > 0) {
         const k = p.lei / PHONG_LOI.max, n = 1 + Math.floor(k * 4);
@@ -987,12 +1017,16 @@ export class GameScene extends Phaser.Scene {
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); }
-      label.setPosition(root.x, root.y - (this.isArena ? 31 : 30)).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      // Võ Hồn Chân Thân (8.1a): phóng to dần (bộ sprite riêng làm sau, mục 5.11); hào quang vẽ trong drawStatus.
+      const sc = p.ava > 0 && !p.dead ? CHAN_THAN_SCALE : 1;
+      if (root.scale !== sc) root.setScale(Math.abs(sc - root.scale) < 0.01 ? sc : root.scale + (sc - root.scale) * lerp);
+      const up = (root.scale - 1) * 30;
+      label.setPosition(root.x, root.y - (this.isArena ? 31 : 30) - up).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
       // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
       const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1).
-      title.setPosition(root.x, root.y - 38).setVisible(!p.dead).setText(titleOf(p.level));
+      title.setPosition(root.x, root.y - 38 - up).setVisible(!p.dead).setText(titleOf(p.level));
     });
     for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); this.players.delete(id); }
 
@@ -1158,6 +1192,7 @@ export class GameScene extends Phaser.Scene {
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
       portrait: (vohon) => this.portrait(vohon),
       combat: () => this.combat,
+      loadout: (rowId, skills) => this.room.send("loadout", { rowId, skills }), // 4 ô hồn kỹ mang theo (8.1a)
     }, shards, this.bag?.items ?? []);
   }
 
@@ -1228,8 +1263,10 @@ export class GameScene extends Phaser.Scene {
     if (bagKey !== this.bagKey) { this.bagKey = bagKey; this.renderBag(); }
     // Số năm từng hồn hoàn (chú thích sức mạnh hồn kỹ) lấy từ tin riêng "vohons" khi đúng võ hồn đang ra trận.
     const own = this.owned?.list.find((v) => v.rowId === this.owned?.active), years = own && VOHON[me.vh]?.id === own.vohon ? own.rings : null;
-    const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}`;
-    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, (a) => this.act(a)); }
+    // Từ 8.1a: 4 ô hồn kỹ mang theo của võ hồn ra trận (tin riêng "vohons"; chưa có thì mặc định vòng 1–4).
+    const loadout = own && VOHON[me.vh]?.id === own.vohon ? own.skills : DEFAULT_LOADOUT;
+    const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}|${loadout.join(",")}`;
+    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a)); }
     // Kỹ năng hồn cốt (4.3): hồn cốt đang gắn trên võ hồn ra trận, lấy từ tin riêng "bag" (trường `vohon`) khi đúng võ hồn ra trận.
     const worn: hud.WornBone[] = own && VOHON[me.vh]?.id === own.vohon ? (this.bag?.items ?? []).flatMap((it) => {
       const b = it.vohon === own.rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
