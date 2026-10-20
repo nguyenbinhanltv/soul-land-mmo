@@ -452,6 +452,8 @@ export class GameScene extends Phaser.Scene {
       hud.openNpc(m.id, this.bag, {
         buy: (code, qty) => this.room.send("buy", { code, qty }),
         sell: (id, qty) => this.room.send("sell", { id, qty }),
+        buyback: (key) => this.room.send("buyback", { key }), // 9.8: mua lại đồ vừa bán
+        expand: () => this.room.send("expand"),            // 9.8: mở rộng túi
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,

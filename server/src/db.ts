@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, parseHerbs, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -48,17 +48,20 @@ export interface Item {
 /**
  * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
  * mỗi chuỗi một dòng): ghi trong cùng transaction với túi để phần thưởng và bước mới không bao giờ lệch nhau. Thiếu `quests` khi
- * ghi thì giữ nguyên tiến độ đang lưu.
+ * ghi thì giữ nguyên tiến độ đang lưu. Từ 9.8 `slots`: số ô túi (cột `accounts.bag_slots`, mở rộng ở thương nhân); thiếu khi ghi thì
+ * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua).
  */
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; }
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
-const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}) });
+const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}),
+  ...(b.slots !== undefined ? { slots: b.slots } : {}) });
 /** Kiểm tra chung cho cả hai store trước khi ghi túi: id không trùng, số lượng và Hồn Tệ là số nguyên hợp lệ. */
 function bagOk(b: Bag) {
   const ids = new Set(b.items.map((i) => i.id));
   if (ids.size !== b.items.length) throw new Error("Túi đồ có hai ô trùng id.");
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
+  if (b.slots !== undefined && (!Number.isInteger(b.slots) || b.slots < BAG_SLOTS || b.slots > BAG_MAX_SLOTS)) throw new Error(`Số ô túi không hợp lệ: ${b.slots}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
   const chains = new Set((b.quests ?? []).map((q) => q.chain));
   if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
@@ -277,8 +280,9 @@ export class MemoryStore implements Store {
   }
   /** Ghi túi (đã kiểm tra) cùng tiến độ nhiệm vụ: như writeBag của PgStore, chuỗi có trong `bag.quests` thì thay, chuỗi khác giữ nguyên. */
   putBag(accountId: number, bag: Bag) {
-    const { quests, ...rest } = copyBag(bag);
-    this.bags.set(accountId, rest);
+    const { quests, slots, ...rest } = copyBag(bag);
+    const old = this.bags.get(accountId)?.slots;
+    this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}) });
     if (quests) {
       const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain));
       this.quests.set(accountId, [...keep, ...quests]);
@@ -296,11 +300,11 @@ export class MemoryStore implements Store {
     let b = this.bags.get(accountId) ?? { items: [], honTe: 0 };
     const fresh = !this.starter.has(accountId);
     if (fresh) {
-      const next = { honTe: b.honTe, items: [...b.items, ...starter] };
+      const next = { ...b, items: [...b.items, ...starter] };
       this.checkBag(accountId, next);
       b = copyBag(next); this.bags.set(accountId, b); this.starter.add(accountId);
     }
-    return { bag: { ...copyBag(b), quests: (this.quests.get(accountId) ?? []).map(copyQuest) }, starter: fresh };
+    return { bag: { ...copyBag(b), slots: bagSlotsOf(b.slots), quests: (this.quests.get(accountId) ?? []).map(copyQuest) }, starter: fresh };
   }
   async saveBag(accountId: number, bag: Bag) {
     this.checkBag(accountId, bag);
@@ -587,7 +591,9 @@ export class PgStore implements Store {
   /** Ghi cả túi và Hồn Tệ trong transaction đang mở (saveBag, saveTravel). Câu UPDATE accounts đầu tiên khóa dòng tài khoản. */
   async writeBag(db: pg.PoolClient, accountId: number, bag: Bag) {
     bagOk(bag);
-    const a = await db.query("UPDATE accounts SET hon_te=$2 WHERE id=$1", [accountId, bag.honTe]);
+    // Số ô túi (9.8) chỉ tăng: lần ghi nào cũng không làm mất ô đã mua.
+    const a = await db.query("UPDATE accounts SET hon_te=$2, bag_slots=CASE WHEN $3::int IS NULL THEN bag_slots ELSE GREATEST(COALESCE(bag_slots, 0), $3::int) END WHERE id=$1",
+      [accountId, bag.honTe, bag.slots ?? null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
     await this.upsertItems(db, accountId, bag.items);
@@ -604,7 +610,7 @@ export class PgStore implements Store {
     try {
       await db.query("BEGIN");
       // Khóa dòng tài khoản: hai phiên vào cùng lúc không thể cùng nhận vật phẩm khởi đầu.
-      const a = await db.query("SELECT hon_te, starter_items FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+      const a = await db.query("SELECT hon_te, starter_items, bag_slots FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
       if (!a.rowCount) throw new Error(`Không có tài khoản #${accountId}.`);
       const fresh = !a.rows[0].starter_items;
       if (fresh) {
@@ -614,7 +620,7 @@ export class PgStore implements Store {
       const r = await db.query("SELECT * FROM items WHERE account_id=$1 ORDER BY created_at, id", [accountId]);
       const q = await db.query("SELECT chain, step, accepted, prog FROM quests WHERE account_id=$1", [accountId]);
       await db.query("COMMIT");
-      return { bag: { honTe: Number(a.rows[0].hon_te), items: r.rows.map((x) => this.itemRow(x)),
+      return { bag: { honTe: Number(a.rows[0].hon_te), slots: bagSlotsOf(a.rows[0].bag_slots), items: r.rows.map((x) => this.itemRow(x)),
         quests: q.rows.map((x) => parseQuest({ step: Number(x.step), accepted: x.accepted, prog: x.prog }, x.chain)) }, starter: fresh };
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
