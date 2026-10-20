@@ -6,7 +6,7 @@
 import { Client, ServerError } from "colyseus";
 import { MapRoom, type AuthData, type PData } from "./MapRoom.ts";
 import { ArenaState, ArenaSide } from "./schema.ts";
-import { ARENA, ARENA_MAP, ARENA_SHARDS, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
+import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
 import { arenaMatches, type ArenaMatch } from "./arenaQueue.ts";
 import { store, type Item, type Bag } from "../db.ts";
 
@@ -58,6 +58,11 @@ export class ArenaRoom extends MapRoom {
     void this.setPrivate(true);
     this.setup(ARENA_MAP);
     for (const s of this.sides) { const a = new ArenaSide(); a.name = s.name; a.elo = s.rec.elo; this.state.sides.push(a); }
+    // Chống dàn xếp (9.7): báo trước cho hai bên nếu cặp đã đủ ARENA.pairDaily trận tính Elo hôm nay. Chỉ để hiển thị; trận có tính
+    // Elo không là do lần đếm lúc hết trận (finish) quyết định.
+    const [a, b] = this.sides.map((x) => x.accountId);
+    store.arenaPairCount(this.today(), a, b).then((n) => { if (!this.done) this.state.friendly = !arenaRanked(n + 1); },
+      (e) => console.error("Không đọc được số trận của cặp đấu hồn", e));
     this.setPhase("wait", ARENA.joinSecs);
     for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
     this.onMessage("quest", (c, msg: { op: unknown }) => {
@@ -209,8 +214,10 @@ export class ArenaRoom extends MapRoom {
   }
 
   /**
-   * Kết quả trận (một lần): bên `winner` thắng (null = hòa). Mỗi bên Elo mới theo eloAfter (K = ARENA.k), thêm thắng / thua / hòa;
-   * người thắng còn ở sân và còn lượt hôm nay (ARENA.dailyWins) nhận Hồn Tệ và mảnh võ hồn. Ghi DB qua chuỗi lưu của người đó (một
+   * Kết quả trận (một lần): bên `winner` thắng (null = hòa). Trước hết đếm trận này vào cặp hai tài khoản hôm nay (bảng arena_pairs,
+   * 9.7): quá ARENA.pairDaily trận thì là **giao hữu**: không đổi Elo / thành tích, không thưởng, không đếm lượt ARENA.dailyWins.
+   * Trận tính Elo: mỗi bên Elo mới theo eloAfter (K = ARENA.k), thêm thắng / thua / hòa; người thắng còn ở sân và còn lượt hôm nay
+   * (ARENA.dailyWins) nhận Hồn Tệ và mảnh võ hồn. Ghi DB qua chuỗi lưu của người đó (một
    * transaction: cộng Elo / thành tích, lượt, túi có phần thưởng); phần thưởng chỉ vào túi đang chơi khi DB xác nhận còn lượt. Người
    * không có trong phòng (bỏ trận trước khi vào sân) ghi thẳng. Tin "end" gửi sau khi ghi xong. Thua không mất gì (mục 2).
    */
@@ -221,6 +228,9 @@ export class ArenaRoom extends MapRoom {
     this.setPhase("end", ARENA.endSecs);
     this.state.winner = winner ?? 2;
     const day = this.today();
+    // Một lần đếm cho cả hai bên, trước lần ghi kết quả của từng bên; lỗi DB thì lần ghi của cả hai bên cùng báo lỗi.
+    const ranked = store.arenaPairAdd(day, this.sides[0].accountId, this.sides[1].accountId).then(arenaRanked);
+    ranked.then((r) => { this.state.friendly = !r; }, (e) => console.error("Không đếm được trận của cặp đấu hồn", e));
     this.sides.forEach((s, i) => {
       const o = this.sides[1 - i], score = winner === null ? 0.5 : winner === i ? 1 : 0;
       const delta: ArenaRecord = { elo: eloAfter(s.rec.elo, o.rec.elo, score) - s.rec.elo, wins: score === 1 ? 1 : 0, losses: score === 0 ? 1 : 0, draws: score === 0.5 ? 1 : 0 };
@@ -228,23 +238,28 @@ export class ArenaRoom extends MapRoom {
       // Gục thì nằm lại tới khi rời sân. Không tự dừng hướng đi đang giữ: sau trận vẫn đi lại được trong sân, và dự đoán chuyển động phía
       // client (mục 6) chỉ đúng khi server áp đúng input client đã gửi (muốn dừng thì phải tăng `PlayerState.seq` như hook `goto`).
       if (p && d && p.dead) d.deadT = Infinity;
+      // Phần thưởng chuẩn bị trên bản sao túi: trận giao hữu chỉ việc bỏ đi.
       const reward = score === 1 && p && d && !s.left && s.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
-      const report = (rec: ArenaRecord, paid: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.name,
+      const report = (rec: ArenaRecord, paid: boolean, friendly: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.name,
         elo0: s.rec.elo, elo1: rec.elo, rec, reward: paid && reward ? { honTe: reward.honTe, code: reward.code, qty: reward.qty, coin: reward.coin } : null,
-        capped: !!reward && !paid, left: Math.max(0, ARENA.dailyWins - s.claims - (paid ? 1 : 0)), secs: this.state.time });
-      const save = () => store.saveArena(s.accountId, ARENA.startElo, delta, reward ? { day, kind: ARENA.claimKind, limit: ARENA.dailyWins, bag: reward.bag } : undefined)
-        .then(({ rec, paid }) => {
+        capped: !friendly && !!reward && !paid, friendly, left: Math.max(0, ARENA.dailyWins - s.claims - (paid ? 1 : 0)), secs: this.state.time });
+      const save = () => ranked.then((r) => r
+        ? store.saveArena(s.accountId, ARENA.startElo, delta, reward ? { day, kind: ARENA.claimKind, limit: ARENA.dailyWins, bag: reward.bag } : undefined)
+          .then(({ rec, paid }) => ({ rec, paid, friendly: false }))
+        : store.getArena(s.accountId, ARENA.startElo).then((rec) => ({ rec, paid: false, friendly: true })))
+        .then(({ rec, paid, friendly }) => {
           if (paid && reward && d && this.pdata.get(sid) === d) { d.bag = reward.items; d.honTe = reward.honTeAfter; this.sendBag(sid); }
-          report(rec, paid);
+          report(rec, paid, friendly);
         }, (e) => {
           this.log(sid, "Không lưu được kết quả trận đấu: Elo và phần thưởng chưa được ghi.", "#ff8a8a");
-          report({ elo: s.rec.elo, wins: s.rec.wins, losses: s.rec.losses, draws: s.rec.draws }, false);
+          report({ elo: s.rec.elo, wins: s.rec.wins, losses: s.rec.losses, draws: s.rec.draws }, false, false);
           throw e;
         });
       if (d) this.chain(d, save); else save().catch((e) => console.error(`Lưu kết quả đấu hồn của tài khoản #${s.accountId} thất bại`, e));
     });
     const [a, b] = this.sides, w = winner === null ? null : this.sides[winner];
-    this.broadcast("chat", { name: "Hệ thống", text: w ? `${w.name} thắng ${this.sides[1 - winner!].name} (${REASON_TEXT[reason]}).` : `${a.name} và ${b.name} hòa (${REASON_TEXT[reason]}).` });
+    const text = w ? `${w.name} thắng ${this.sides[1 - winner!].name} (${REASON_TEXT[reason]})` : `${a.name} và ${b.name} hòa (${REASON_TEXT[reason]})`;
+    ranked.catch(() => true).then((r) => this.broadcast("chat", { name: "Hệ thống", text: r ? `${text}.` : `${text}; trận giao hữu, không tính Elo.` }));
   }
 
   /**

@@ -76,9 +76,9 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
-  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP,
+  PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, EXTRA_VOHON, AWAKEN_CHOICES } from "../../shared/data.ts";
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -4046,6 +4046,7 @@ if((await test(C,"ping"))?.enabled){
 }
 if((await test(C,"ping"))?.enabled) await partyTest(C);
 if((await test(C,"ping"))?.enabled) await partyBuffTest();
+if((await test(C,"ping"))?.enabled) await supportContribTest();
 await resonanceTest();
 await C.room.leave();
 console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua");
@@ -5279,6 +5280,10 @@ async function questTest(){
  * thường trúng đối thủ (Trúng độc), hạ hết đội (hook down) -> thắng; trận 3 không vào sân = thua; trận 4 hết giờ so % sinh lực. Mỗi trận:
  * Elo đúng eloAfter, thưởng người thắng vào túi (lưu DB), kinh nghiệm / đồ / đội hình không đổi, hết giờ kết quả thì về đúng bản đồ và vị
  * trí cũ. Bảng xếp hạng đúng thứ tự (kể cả bằng Elo thì nhiều trận thắng trước), lượt thưởng còn lại.
+ * 9.7 chống dàn xếp: hàm thuần (tránh ghép lại đối thủ vừa đấu); hai tài khoản mới đấu nhau 4 trận liền (không còn ai khác nên vẫn
+ * ghép lại): 3 trận đầu tính Elo và thưởng, trận 4 giao hữu (báo trước ở ArenaState.friendly; không đổi Elo / thành tích, không
+ * thưởng, không mất lượt thắng có thưởng); sang ngày mới (hook day trong sân) lại tính Elo; có người thứ ba trong cửa sổ thì không ghép
+ * lại đối thủ vừa đấu.
  */
 async function arenaTest(){
   console.log("[7.2] Đại Đấu Hồn Trường: ghép trận, đấu, Elo, thưởng, bảng xếp hạng");
@@ -5529,6 +5534,79 @@ async function arenaTest(){
   await test(G,"aelo",{elo:eloF4,wins:9}); await top(E); L=E.top.list;
   ok(idx(G.name)>=0&&idx(G.name)<idx(F.name),`G bằng Elo F (${eloF4}) nhưng nhiều trận thắng hơn: xếp trên F`);
   for(const b of [E,F,G]) await b.room.leave();
+
+  // ---- 9.7 Chống dàn xếp ----
+  console.log("[9.7] Chống dàn xếp Đại Đấu Hồn Trường: trận tính Elo theo cặp mỗi ngày, tránh ghép lại đối thủ vừa đấu");
+  const R=ARENA.rematchSecs, Q=l=>JSON.stringify(arenaPairs(l.map(([id,elo,wait=0,last])=>({id,elo,wait,last}))));
+  ok(ARENA.pairDaily===3&&R===60&&arenaRanked(ARENA.pairDaily)&&!arenaRanked(ARENA.pairDaily+1),
+    `ARENA.pairDaily = ${ARENA.pairDaily} trận tính Elo mỗi cặp mỗi ngày, trận thứ ${ARENA.pairDaily+1} giao hữu; tránh ghép lại trong ${R} giây chờ đầu`);
+  ok(Q([["a",1000,0,"b"],["b",1000,0,"a"],["c",1050]])==='[["a","c"]]',"a, b vừa đấu nhau: a gặp c (Elo xa hơn nhưng trong cửa sổ) thay vì b");
+  ok(Q([["a",1000,0],["b",1000,0,"a"],["c",1050]])==='[["a","c"]]',"chỉ một bên ghi đối thủ trước cũng tránh");
+  ok(Q([["a",1000,0,"b"],["b",1000,0,"a"]])==='[["a","b"]]'&&Q([["a",1000,0,"b"],["b",1000,0,"a"],["c",1500]])==='[["a","b"]]',
+    "không còn ai khác trong cửa sổ: ghép lại");
+  ok(Q([["a",1000,R,"b"],["b",1000,R,"a"],["c",1050]])==='[["a","b"]]'&&Q([["a",1000,R,"b"],["b",1000,R-1,"a"],["c",1050]])==='[["a","c"]]',
+    `cả hai đã chờ đủ ${R} giây: ghép lại được; một bên chưa đủ thì vẫn tránh`);
+  ok(Q([["a",1000,0,"b"],["b",1000,0,"a"],["c",1050,0,"d"],["d",1050,0,"c"]])==='[["a","c"],["b","d"]]',"hai cặp vừa đấu: đổi chéo đối thủ");
+
+  const H=await bot("Song đấu A","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:3,outfitCol:1});
+  const I=await bot("Song đấu B","hoa_anh",{sex:1,hair:2,hairCol:1,outfitCol:3});
+  for(const b of [H,I]) await warpTown(b);
+  const fresh=(b,n,k)=>b.arena.slice(n).filter(m=>m.k===k).at(-1);
+  /** H và I xếp hàng (không còn ai khác), vào sân, I gục cả đội: H thắng. Trả tin "end" mới của H và I. `day` = hook day trong sân. */
+  async function duel(k,day=0){
+    const nH=H.arena.length, nI=I.arena.length;
+    await at(H,-12); await at(I,12); await aop(H,"queue"); await aop(I,"queue");
+    ok(await waitFor(()=>fresh(H,nH,"found")&&fresh(I,nI,"found")&&fresh(H,nH,"found").roomId===fresh(I,nI,"found").roomId,3000)&&fresh(H,nH,"found").foe===I.name,
+      `trận ${k}: vừa đấu nhau mà không còn ai khác xếp hàng thì vẫn ghép H với I`);
+    await enterArena(H); await enterArena(I); await waitFor(()=>H.room.state.phase==="ready",3000); await sleep(200);
+    const pre=H.room.state.friendly;
+    if(day) await test(H,"day",{shift:day});
+    await test(H,"afast",{s:0}); await waitFor(()=>H.room.state.phase==="fight",2000);
+    for(let j=0;j<TEAM_SIZE&&!meOf(I).dead;j++) await test(I,"down");
+    ok(await waitFor(()=>fresh(H,nH,"end")&&fresh(I,nI,"end"),3000),`trận ${k}: I gục cả đội, trận kết thúc`);
+    return { h:fresh(H,nH,"end"), i:fresh(I,nI,"end"), pre };
+  }
+  let eH=ARENA.startElo, eI=ARENA.startElo;
+  for(let k=1;k<=ARENA.pairDaily;k++){
+    const bag0=snap(H), r=await duel(k);
+    ok(!r.pre&&!r.h.friendly&&!r.i.friendly&&r.h.elo0===eH&&r.h.elo1===eloAfter(eH,eI,1)&&r.i.elo1===eloAfter(eI,eH,0)&&r.h.rec.wins===k,
+      `trận ${k}/${ARENA.pairDaily}: tính Elo, H ${r.h.elo0} → ${r.h.elo1}, I ${r.i.elo0} → ${r.i.elo1}, H ${r.h.rec.wins} thắng`);
+    await checkReward(H,r.h,bag0,ARENA.dailyWins-k);
+    eH=r.h.elo1; eI=r.i.elo1;
+    await kickBack(H); await kickBack(I);
+  }
+  {
+    const bag0=bagKey(H), bagI=bagKey(I), k=ARENA.pairDaily+1, r=await duel(k);
+    ok(r.pre&&H.room.state.friendly,`trận ${k}: sân báo trước giao hữu (ArenaState.friendly) từ lúc đếm ngược`);
+    ok(r.h.score===1&&r.h.friendly&&r.i.friendly&&r.h.elo0===eH&&r.h.elo1===eH&&r.i.elo1===eI&&!r.h.reward&&!r.h.capped,
+      `trận ${k} giao hữu: H vẫn thắng nhưng Elo giữ nguyên (H ${r.h.elo1}, I ${r.i.elo1}), không thưởng`);
+    ok(r.h.rec.wins===ARENA.pairDaily&&r.i.rec.losses===ARENA.pairDaily&&r.h.left===ARENA.dailyWins-ARENA.pairDaily,
+      `trận ${k}: không tính thành tích (H ${r.h.rec.wins} thắng, I ${r.i.rec.losses} thua), không mất lượt thắng có thưởng (còn ${r.h.left}/${ARENA.dailyWins})`);
+    await sleep(300); ok(bagKey(H)===bag0&&bagKey(I)===bagI,"trận giao hữu: túi và Hồn Tệ hai bên không đổi");
+    await kickBack(H); await kickBack(I);
+  }
+  {
+    // Sang ngày mới (hook day trong sân: phòng sân đấu tính ngày theo giờ Việt Nam lúc hết trận): cặp lại có ARENA.pairDaily trận tính Elo.
+    const k=ARENA.pairDaily+2, r=await duel(k,1);
+    ok(!r.h.friendly&&r.h.elo1===eloAfter(eH,eI,1)&&r.i.elo1===eloAfter(eI,eH,0)&&!!r.h.reward,
+      `trận ${k} sang ngày hôm sau: tính Elo lại (H ${r.h.elo0} → ${r.h.elo1}), có thưởng`);
+    await kickBack(H); await kickBack(I);
+  }
+  {
+    // Có người thứ ba trong cửa sổ: H (xếp hàng trước) không gặp lại I dù Elo gần hơn, gặp J.
+    const J=await bot("Song đấu C","u_minh_linh_mieu",{sex:0,hair:0,hairCol:2,outfitCol:4}); await warpTown(J);
+    await test(H,"aelo",{elo:1000}); await test(I,"aelo",{elo:1000}); await test(J,"aelo",{elo:1060});
+    const nH=H.arena.length, nI=I.arena.length;
+    await at(H,-12); await at(I,12); await at(J,0);
+    await aop(H,"queue"); await aop(I,"queue"); await aop(J,"queue");
+    ok(await waitFor(()=>fresh(H,nH,"found"),3000)&&fresh(H,nH,"found").foe===J.name&&!fresh(I,nI,"found"),
+      `H (1000) vừa đấu I (1000), J (1060) trong cửa sổ: H gặp ${fresh(H,nH,"found")?.foe}, I chờ tiếp`);
+    t=await aop(I,"cancel"); ok(/hủy/.test(t),"I vẫn chờ, hủy");
+    await enterArena(H); await test(H,"afast",{s:0}); await waitFor(()=>fresh(H,nH,"end"),3000);
+    await J.room.leave(); await sleep(300); await back(J);
+    await kickBack(H);
+    for(const b of [H,I,J]) await b.room.leave();
+  }
 }
 /**
  * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 4 trụ cột bằng hook (grant / set
@@ -5748,4 +5826,74 @@ async function partyBuffTest(){
     // O vẫn tự hồi sinh lực chậm theo thời gian: chỉ cần không nhận phần hồi của tiên cơ, không miễn sát thương, không có dòng của A.
     ok(meP(O).hp<o0+heal/2&&!(meP(O).buff&buffBit("inv"))&&!O.logs.some(t=>t.includes(A.name)),`O (ngoài đội) không được hồi: ${o0} -> ${meP(O).hp}`);
   } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
+}
+
+/**
+ * 9.2: hồi máu / khiên cho người khác tính vào đóng góp boss. 2 bot mới cùng tổ đội ở Tinh Đấu Ngoại vi: H (Cửu Bảo Lưu Ly Tháp, chỉ
+ * hồi máu, không gây sát thương) và A (đánh thú vương). H tự hồi cho mình (A đầy máu): đóng góp không đổi. A mất máu, tiên cơ Lưu Ly
+ * Hộ Thể của H hồi A: phần hồi thực (× PARTY_BUFF_MULT) vào `supBy` của H, bảng xếp hạng có cột hỗ trợ; hạ thú vương thì H đủ 3% nhận
+ * rương và kinh nghiệm x KING.xp.
+ */
+async function supportContribTest(){
+  console.log("[9.2] hồi máu / khiên cho người tham gia khác tính đóng góp thú vương");
+  ok(SUPPORT_CONTRIB===1&&KING.share===0.03,`SUPPORT_CONTRIB ${SUPPORT_CONTRIB} (1 sinh lực = 1 sát thương), ngưỡng rương ${KING.share*100}%`);
+  const NV="tinh_dau_ngoai_vi", CB="cuu_bao_luu_ly_thap", tc=TIEN_CO_RIENG[CB], Y=[423,764,1760,5000], KB=MAPS[NV].king;
+  const H=await bot("Hỗ Trợ H","bich_lan_xa_hoang",{sex:1,hair:2,hairCol:3,outfitCol:4});
+  const A=await bot("Công Kích A","u_minh_linh_mieu",{sex:0,hair:1,hairCol:5,outfitCol:2});
+  const mo=b=>b.room.state.players?.get(b.room.sessionId), sid=b=>b.room.sessionId;
+  await waitFor(()=>[H,A].every(b=>b.owned&&b.party&&mo(b)),3000);
+  try{
+    // H: Cửu Bảo Lưu Ly Tháp ô 1 (cấp 35, 4 hồn hoàn: chưa bình cảnh nên còn nhận kinh nghiệm), võ hồn khởi đầu ô 2 để đổi tay tung tiên cơ.
+    await test(H,"grant",{vohon:CB}); const rowOf=id=>H.owned.list.find(v=>v.vohon===id)?.rowId, cb=rowOf(CB), st=rowOf("bich_lan_xa_hoang");
+    await test(H,"set",{rowId:cb,level:35,xp:0,rings:Y}); await sendTeam(H,[cb,0,0,0]); await sendTeam(H,[cb,st,0,0]);
+    const ra=A.owned.active; await test(A,"set",{rowId:ra,level:35,xp:0,rings:Y});
+    ok(H.owned.active===cb&&await waitFor(()=>mo(H).vh===vohonIndex(CB)),"H: Cửu Bảo Lưu Ly Tháp ra trận");
+    await test(H,"party",{pop:"rlreset"});
+    const n=A.partyMsgs; H.room.send("party",{op:"invite",name:A.name}); await waitFor(()=>A.partyMsgs>n);
+    A.room.send("party",{op:"accept",name:H.name}); await waitFor(()=>H.party?.members?.length===2&&A.party?.id===H.party.id,2000);
+    ok(A.party?.id&&A.party.id===H.party?.id,"H và A cùng tổ đội");
+    // Sang Ngoại vi bằng hook warp (đi cổng ẩn); đồng đội được xếp cùng kênh.
+    async function warpNV(b){ b.travel=null; await test(b,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>b.travel,3000); const t=b.travel;
+      await b.room.leave(); await sleep(300); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await waitFor(()=>mo(b)&&b.owned&&b.bag,3000); return b.room.state.mapId===NV; }
+    ok(await warpNV(A)&&await warpNV(H)&&A.room.roomId===H.room.roomId,"A, H cùng kênh Tinh Đấu Ngoại vi");
+    const kingB=()=>[...A.room.state.beasts.values()].find(b=>b.rank===2);
+    await test(A,"king",{kop:"spawn"}); ok(await waitFor(()=>kingB(),2000),"thú vương xuất hiện");
+    let ki=await test(A,"king"); const LR=ki.lair, inL=(x,y)=>x>=LR.x&&x<=LR.x+LR.w&&y>=LR.y&&y<=LR.y+LR.h;
+    async function intoLair(b,dx,dy){ const t=kingB(); for(let k=0;k<24;k++){ const a=k*Math.PI/6, r=k<12?1:1.6, x=Math.round(t.x+dx*r*Math.cos(a)-dy*Math.sin(a)), y=Math.round(t.y+dx*r*Math.sin(a)+dy*Math.cos(a));
+      if(!inL(x,y)) continue; await test(b,"goto",{x,y}); const q=mo(b); if(Math.hypot(q.x-x,q.y-y)<1) return true; } return false; }
+    const dAH=()=>Math.round(Math.hypot(mo(A).x-mo(H).x,mo(A).y-mo(H).y));
+    ok(await intoLair(A,40,0)&&await intoLair(H,-40,0)&&dAH()<PARTY_BUFF_R,`A, H vào hang, cách nhau ${dAH()} pixel (< ${PARTY_BUFF_R})`);
+    await test(A,"clear",{keep:1}); await test(A,"kdmg",{v:1}); await test(A,"status",{s:"stun",secs:60}); ki=await test(A,"king");
+    ok(ki.engaged&&ki.parts.includes(sid(A))&&ki.parts.includes(sid(H))&&!ki.list.some(x=>x.id===sid(H)),`A đánh: A, H là người tham gia; H chưa có đóng góp (${JSON.stringify(ki.list)})`);
+    /**
+     * H đổi sang võ hồn khởi đầu rồi đổi về Cửu Bảo Lưu Ly Tháp với năng lượng đầy: tung tiên cơ Lưu Ly Hộ Thể. Năng lượng về 0 trước
+     * khi đổi sang võ hồn khởi đầu, để tiên cơ của nó (gây sát thương) không tung: H chỉ hồi máu.
+     */
+    async function huThe(){ await waitFor(()=>mo(H).swCd===0,SWITCH_CD*1000+1000); await test(H,"energy",{v:0}); H.room.send("switch",{slot:1}); await waitFor(()=>H.owned.active===st);
+      await sleep(150); await waitFor(()=>mo(H).swCd===0,SWITCH_CD*1000+1000); await test(H,"energy",{v:TIEN_CO_MAX});
+      const f=H.fxs.length; H.room.send("switch",{slot:0}); return await waitFor(()=>H.owned.active===cb&&H.fxs.slice(f).some(x=>x.k==="tienco"&&x.id===sid(H)),2000); }
+    // ---- Tự hồi cho mình: A đầy máu (hook set hồi đầy), H mất máu; tiên cơ chỉ hồi H, đóng góp của H không đổi ----
+    await test(A,"set",{rowId:ra}); await test(H,"hurt",{pct:50}); await sleep(150);
+    const h0=mo(H).hp; A.gifts=[];
+    ok(await huThe(),`H tung tiên cơ ${tc.name}`); await sleep(200); ki=await test(A,"king");
+    ok(mo(H).hp>h0&&mo(A).hp===mo(A).maxHp&&!A.gifts.some(g=>g.heal)&&!ki.supBy[sid(H)]&&!ki.list.some(x=>x.id===sid(H)),
+      `tự hồi: H ${h0} -> ${mo(H).hp}, A đầy máu không nhận phần hồi; đóng góp H vẫn 0 (supBy ${JSON.stringify(ki.supBy)})`);
+    // ---- Hồi cho A (người tham gia): phần hồi thực vào đóng góp của H ----
+    await test(A,"rest",{s:30}); await test(A,"hurt",{pct:50}); await sleep(150);
+    const a0=mo(A).hp, mA=mo(A).maxHp, heal=Math.min(mA-a0,Math.round(mA*tc.self.heal*PARTY_BUFF_MULT)); A.gifts=[]; H.boss=[];
+    ok(await huThe(),`H tung tiên cơ ${tc.name} lần 2`); await waitFor(()=>A.gifts.some(g=>g.heal),1500); ki=await test(A,"king");
+    const got=A.gifts.find(g=>g.heal)?.v??0, sup=ki.supBy[sid(H)]??0, me=ki.list.find(x=>x.id===sid(H));
+    ok(Math.abs(got-heal)<=1&&Math.abs(sup-got)<=1&&!ki.dmgBy[sid(H)]&&me&&me.sup===me.pct&&Math.abs(me.pct-+(sup*SUPPORT_CONTRIB/ki.total*100).toFixed(1))<0.15,
+      `hồi A ${a0} -> ${mo(A).hp}/${mA} (+${got}, cần ${heal}): hỗ trợ H ${sup.toFixed(1)} = ${me?.pct}% đóng góp (cột hỗ trợ ${me?.sup}%), sát thương 0`);
+    ok(await waitFor(()=>H.boss.some(m=>m.k==="rank"&&m.list.some(x=>x.id===sid(H)&&x.sup>0)),2500),"H nhận bảng xếp hạng có dòng của mình và cột hỗ trợ");
+    // ---- Hạ thú vương: máu còn 1% (hook bhp) để phần hỗ trợ của H trên 3%; H nhận rương và kinh nghiệm ----
+    await test(A,"bhp",{pct:1}); ki=await test(A,"king");
+    const want=sup/(ki.total+ki.hp), cH=qtyOf(H,chestCode(KB)), xp0=JSON.stringify([mo(H).level,mo(H).xp]);
+    H.logs=[]; A.boss=[]; await test(A,"kdmg",{v:1e8});
+    ok(await waitFor(()=>A.boss.some(m=>m.k==="down"),2000),"hạ thú vương");
+    const dn=A.boss.find(m=>m.k==="down"), hp=dn?.list.find(x=>x.id===sid(H))?.pct??0;
+    ok(hp>=KING.share*100&&Math.abs(hp-want*100)<0.2,`kết quả: H đóng góp ${hp}% (chỉ hồi máu, cần ~${(want*100).toFixed(1)}%, từ ${KING.share*100}%)`);
+    ok(await waitFor(()=>qtyOf(H,chestCode(KB))===cH+1,2500)&&H.logs.some(t=>/lượt 1\/3/.test(t)),`H nhận rương ${chestCode(KB)}: ${H.logs.filter(t=>/Đóng góp|lượt/.test(t)).join(" | ")}`);
+    ok(JSON.stringify([mo(H).level,mo(H).xp])!==xp0,`H nhận kinh nghiệm thú vương x${KING.xp}: [cấp, kinh nghiệm] ${xp0} -> ${JSON.stringify([mo(H).level,mo(H).xp])}`);
+  } finally { for(const b of [H,A]) await b.room.leave().catch(()=>{}); }
 }

@@ -25,6 +25,11 @@ export interface ArenaMatch { id: string; roomId?: string; sides: { accountId: n
 
 const queue = new Map<number, ArenaEntry>();   // accountId -> người đang xếp hàng (theo thứ tự xếp hàng)
 export const arenaMatches = new Map<string, ArenaMatch>();
+/**
+ * Đối thủ của trận ngay trước của mỗi tài khoản (chống dàn xếp, 9.7): ghi lúc ghép, arenaPairs tránh ghép lại trong ARENA.rematchSecs
+ * giây chờ đầu nếu còn người khác. Chỉ ở RAM: khởi động lại server thì quên (số trận tính Elo của cặp vẫn ở bảng arena_pairs).
+ */
+const lastFoe = new Map<number, number>();
 /** Nhịp chạy vòng ghép (ms): chỉ chạy khi có người xếp hàng. */
 const TICK_MS = 500;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -42,15 +47,19 @@ export function arenaDequeue(accountId: number) {
   return had;
 }
 
-/** Một lượt ghép: cặp theo arenaPairs (chờ lâu nhất trước, Elo gần nhất trong cửa sổ nới dần), mỗi cặp một phòng ArenaRoom. */
+/**
+ * Một lượt ghép: cặp theo arenaPairs (chờ lâu nhất trước, Elo gần nhất trong cửa sổ nới dần, 9.7: tránh ghép lại đối thủ vừa đấu),
+ * mỗi cặp một phòng ArenaRoom.
+ */
 async function pass() {
   busy = true;
   try {
     const now = Date.now();
-    const list = [...queue.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since).map((e) => ({ id: e.accountId, elo: e.rec.elo, wait: (now - e.since) / 1000 }));
+    const list = [...queue.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since).map((e) => ({ id: e.accountId, elo: e.rec.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.accountId) }));
     for (const [a, b] of arenaPairs(list)) {
       const ea = queue.get(a), eb = queue.get(b); if (!ea || !eb) continue;
       arenaDequeue(a); arenaDequeue(b);
+      lastFoe.set(a, b); lastFoe.set(b, a);
       const m: ArenaMatch = { id: randomUUID(), sides: [ea, eb].map((e) => ({ accountId: e.accountId, name: e.name, rec: { ...e.rec } })) };
       arenaMatches.set(m.id, m);
       try {
