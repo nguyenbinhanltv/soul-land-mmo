@@ -1500,7 +1500,11 @@ export class MapRoom extends Room<MapState> {
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
     const int = (x: unknown, lo: number, hi: number, def: number) => (Number.isInteger(x) ? Math.max(lo, Math.min(hi, x as number)) : def);
     if ((op === "down" || op === "hurt") && d.buffs.delete("inv")) this.syncBuffs(p, d);
-    const nearB = () => { const bid = this.nearestBeast(p, 160); return bid ? { bid, b: this.state.beasts.get(bid)!, bd: this.bdata.get(bid)! } : null; };
+    // Hồn thú các hook nhắm: đúng `bid` nếu có (BĐ6e: tinh anh có tùy tùng / hồn thú khác đứng gần hơn), không thì gần nhất trong 160 pixel.
+    const nearB = () => {
+      const bid = typeof o.bid === "string" && this.state.beasts.has(o.bid) ? o.bid : this.nearestBeast(p, 160);
+      return bid ? { bid, b: this.state.beasts.get(bid)!, bd: this.bdata.get(bid)! } : null;
+    };
     let out: Record<string, unknown> = {};
     const yearsOf = (tier: number) => int(o.years, TIERS[0].years, MAX_YEARS, TIERS[tier].years);
     if (op === "down" && !p.dead) { d.inv = 0; d.shield = 0; this.hurtPlayer(id, d.hpF / VOHON[p.vh].def + 1); }
@@ -1620,8 +1624,10 @@ export class MapRoom extends Room<MapState> {
       const hb = this.state.beasts.get(bid), hpx = int(o.hpx, 1, 1000, 1); if (hb && hpx > 1) hb.hp = hb.maxHp = hb.maxHp * hpx;
     }
     else if (op === "tele") {
-      // Hồn thú gần nhất báo trước chiêu thứ `i` nhắm người gọi ngay lúc này (bỏ qua tầm, hồi chiêu và thời gian chờ).
+      // Hồn thú gần nhất báo trước chiêu thứ `i` nhắm người gọi ngay lúc này (bỏ qua tầm, hồi chiêu và thời gian chờ). `cancel`: bỏ chiêu
+      // nó đang tự báo trước để tung chiêu này.
       const x = nearB(), s = x?.bd.skills[int(o.i, 0, 9, 0)];
+      if (x && s && o.cancel) this.cancelCast(x.bid, x.b, x.bd);
       if (x && s && !x.bd.cast) { x.bd.target = id; x.b.aggro = true; this.beginCast(x.bid, x.b, x.bd, s, id, p); out = { bid: x.bid, name: s.def.name }; }
     }
     else if (op === "pst") {

@@ -4301,14 +4301,16 @@ async function lacNhatTest(){
       // Tinh anh sinh ở điểm ngẫu nhiên trong ô của nó: thử vài chỗ đứng quanh (chỗ bị cây / nước chặn thì goto không đổi vị trí).
       let at=null; for(const [dx,dy] of [[20,0],[0,20],[-20,0],[0,-20],[28,10],[-28,10],[10,28],[10,-28]]){
         await test(L,"goto",{x:cur.x+dx,y:cur.y+dy}); if(Math.hypot(me().x-cur.x-dx,me().y-cur.y-dy)<1){ at=[dx,dy]; break; } }
-      await test(L,"bhp",{pct:50}); await test(L,"pst",{s:"root",secs:5});
-      let t=await test(L,"tele",{i:1}), b=L.room.state.beasts.get(t.bid), hp1=b?.hp;
+      // Nhắm đúng tinh anh theo bid (tùy tùng / hồn thú khác có thể đứng gần hơn), bỏ chiêu nó đang tự báo trước.
+      const eb={bid:cur.bid};
+      await test(L,"bhp",{pct:50,...eb}); await test(L,"pst",{s:"root",secs:5});
+      let t=await test(L,"tele",{i:1,cancel:1,...eb}), b=L.room.state.beasts.get(t.bid), hp1=b?.hp;
       await waitFor(()=>!b||b.hp>hp1,2500);
       // Đòn không tính trúng khi hồn sư còn khung bất tử (vừa vào lại phòng 1,5 giây, vừa bị đánh 0,45 giây) hoặc tinh anh đang tự
       // báo trước chiêu khác (`tele` rỗng): tung lại tối đa 2 lần (BĐ6e).
       for(let k=0;k<2&&!(b&&b.hp>hp1);k++){
-        await sleep(1600); await test(L,"bhp",{pct:50}); await test(L,"pst",{s:"root",secs:5});
-        t=await test(L,"tele",{i:1}); b=L.room.state.beasts.get(t.bid); hp1=b?.hp; await waitFor(()=>!b||b.hp>hp1,2500);
+        await sleep(1600); await test(L,"bhp",{pct:50,...eb}); await test(L,"pst",{s:"root",secs:5});
+        t=await test(L,"tele",{i:1,cancel:1,...eb}); b=L.room.state.beasts.get(t.bid); hp1=b?.hp; await waitFor(()=>!b||b.hp>hp1,2500);
       }
       ok(t.name==="Hút Sinh"&&b&&b.hp>hp1,`Hút Sinh trúng người đang bị Trói: ${b?beastName(b.rank,b.species):"?"} hồi ${b?b.hp-hp1:0} máu (${hp1} -> ${b?.hp}; đứng cạnh ${JSON.stringify(at)}, tinh anh ở ${cur.x?.toFixed(0)},${cur.y?.toFixed(0)}, tele ${JSON.stringify(t)})`);
     }
