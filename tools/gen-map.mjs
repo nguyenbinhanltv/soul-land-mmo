@@ -2,12 +2,13 @@
 //   tinh_dau_ngoai_vi  Tinh Đấu Ngoại vi: 4 vùng 300–2.000 năm, cổng về Nặc Đinh Thành và vào Nội địa (BĐ3, mục 5.3)
 //   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3; Lõi Tinh Đấu để BĐ6)
 //   lac_nhat_sam_lam   Lạc Nhật Sâm Lâm: 4 vùng 5.000–30.000 năm (thực vật / độc), suối Băng Hỏa Lưỡng Nghi Nhãn, cổng về Thiên Đấu Thành (BĐ6b)
+//   hai_than_dao       Hải Thần Đảo / Ma Quỷ Hải Vực: đảo và rạn biển, 4 vùng 50.000–100.000 năm, bến thuyền về Thiên Đấu Thành (BĐ6d)
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
 //   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4); Ngoại vi và Nội địa có 1 object `boss` (hang thú vương, BĐ5).
 //   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, NPC Đại Sư, thương nhân, lò rèn (BĐ2; hoạt động từ 6.1); cổng bắc đi Thiên Đấu Thành (BĐ6a)
 //   thien_dau_thanh  Thiên Đấu Thành: thủ đô, thành an toàn lớn; Đại Đấu Hồn Trường, Sử Lai Khắc Học Viện, thương nhân, lò rèn;
-//                    cổng tây đi Lạc Nhật (mở từ BĐ6b), cổng bắc đi Cực Bắc (mở từ BĐ6c); bến thuyền (Hải Thần Đảo) chưa mở
+//                    cổng tây đi Lạc Nhật (mở từ BĐ6b), cổng bắc đi Cực Bắc (mở từ BĐ6c), bến thuyền đi Hải Thần Đảo (mở từ BĐ6d)
 //                    (BĐ6a, mục 5.3, 5.8)
 //   cuc_bac_chi_dia  Cực Bắc Chi Địa: băng nguyên cấp 60–85, 4 vùng 20.000–80.000 năm từ nam lên bắc, hang Huyền Minh Băng Giao (BĐ6c)
 //   dai_dau_hon_truong  sân Đại Đấu Hồn Trường: sân lát đá vây tường và khán đài, không cổng, không hồn thú (bước 7.2, mục 5.9)
@@ -22,11 +23,14 @@ const GID = {
   pave: 13, roof: 14, wall: 15, rice: 16, tree: [17, 18, 19, 20], canopy: [21, 22, 23, 24],
   // BĐ6c (Cực Bắc Chi Địa): tuyết, tuyết sâu, mặt băng, khe băng, lối tuyết, thông tuyết (thân / tán), băng tinh
   snow: [25, 26, 27], crevasse: 28, snowPath: 29, pine: 30, pineCanopy: 31, crystal: 32,
+  // BĐ6d (hàng 5 của tileset): cát, rạn nông (nước cạn có san hô, đi được), biển sâu, đá ngầm. Ô mới của bản đồ khác dùng gid 37 trở đi.
+  sand: 33, shallow: 34, deep: 35, reef: 36,
 };
-// id ô (không phải gid) chặn đường: nước, lều, lửa trại, mái, tường, cây; BĐ6c: khe băng, thông tuyết, băng tinh
-const COLLIDES = [8, 10, 11, 13, 14, 16, 17, 18, 19, 27, 29, 31];
-// Ảnh tileset (tools/gen-tiles.py) 8 cột; BĐ6c thêm hàng thứ 4. File sinh trước BĐ6c còn ghi 3 hàng: Phaser đọc kích thước thật của ảnh.
-const TILE_ROWS = 4;
+// id ô (không phải gid) chặn đường: nước, lều, lửa trại, mái, tường, cây; BĐ6c: khe băng, thông tuyết, băng tinh; BĐ6d: biển sâu, đá ngầm
+const COLLIDES = [8, 10, 11, 13, 14, 16, 17, 18, 19, 27, 29, 31, 34, 35];
+// Ảnh tileset (tools/gen-tiles.py) 8 cột; BĐ6c thêm hàng thứ 4, BĐ6d hàng thứ 5. File sinh trước đó còn ghi ít hàng hơn: Phaser đọc kích
+// thước thật của ảnh.
+const TILE_ROWS = 5;
 
 const prop = (name, type, value) => ({ name, type, value });
 const rng = (seed) => { let s = seed; return () => ((s = (s * 1664525 + 1013904223) >>> 0), s / 4294967296); };
@@ -45,9 +49,11 @@ function objects() {
     prop("hint", "string", hint), prop("weights", "string", weights.join(",")), prop("count", "int", count), prop("beasts", "string", beasts),
     ...(years ? [prop("years", "string", years)] : []),
   ]);
-  // Cổng: to = mapId đích, arrive = tên điểm xuất hiện ở bản đồ đích (phải nằm ngoài mọi cổng ở đó), level = cấp đề xuất.
-  const portal = (name, x, y, w, h, to, arrive, level = "") =>
-    rect("portal", name, x, y, w, h, [prop("to", "string", to), prop("arrive", "string", arrive), ...(level ? [prop("level", "string", level)] : [])]);
+  // Cổng: to = mapId đích, arrive = tên điểm xuất hiện ở bản đồ đích (phải nằm ngoài mọi cổng ở đó), level = cấp đề xuất;
+  // boat (BĐ6d) = bến thuyền (đi thuyền BOAT_CAST giây thay cho TRAVEL_CAST).
+  const portal = (name, x, y, w, h, to, arrive, level = "", boat = false) =>
+    rect("portal", name, x, y, w, h, [prop("to", "string", to), prop("arrive", "string", arrive), ...(level ? [prop("level", "string", level)] : []),
+      ...(boat ? [prop("boat", "bool", true)] : [])]);
   // Tinh anh (BĐ4, mục 5.4): boss = mã trong BOSSES (shared/data.ts); chữ nhật nằm trong vùng, xa trại cổng / cổng (SPAWN_CLEAR).
   const elite = (name, boss, x, y, w, h) => rect("elite", name, x, y, w, h, [prop("boss", "string", boss)]);
   // Hang tà hóa thú vương (BĐ5, mục 5.4, 6): boss = mã thú vương trong BOSSES (MAPS.king); chữ nhật là hang, cũng là bán kính giao chiến.
@@ -79,7 +85,10 @@ function writeMap(mapId, MW, MH, ground, trees, canopy, objs, props = []) {
   console.log(`Đã sinh shared/assets/${mapId}.json`, MW, "x", MH);
 }
 
-/** Lưới ô logic và các hàm vẽ dùng chung. Ô logic: 0 cỏ, 1 cây, 2 nước, 3 đường, 4 hoa, 5 trại, 6 đá lát, 7 ruộng, 8 mái, 9 tường. */
+/**
+ * Lưới ô logic và các hàm vẽ dùng chung. Ô logic: 0 cỏ, 1 cây, 2 nước, 3 đường, 4 hoa, 5 trại, 6 đá lát, 7 ruộng, 8 mái, 9 tường;
+ * BĐ6d: 10 cát, 11 rạn nông (đi được), 12 biển sâu (chặn), 13 đá ngầm trên cát (chặn).
+ */
 function grid(MW, MH) {
   const m = new Uint8Array(MW * MH);
   const inside = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
@@ -111,7 +120,8 @@ function toLayers(MW, MH, g, grassOf) {
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
     const i = y * MW + x, t = g.m[i], z = grassOf(x, y);
     ground[i] = t === 2 ? GID.water : t === 3 ? GID.path : t === 5 ? GID.camp : t === 4 ? GID.flower[Math.min(z, 1)]
-      : t === 6 ? GID.pave : t === 7 ? GID.rice : GID.grass[z];
+      : t === 6 ? GID.pave : t === 7 ? GID.rice : t === 10 || t === 13 ? GID.sand : t === 11 ? GID.shallow : t === 12 ? GID.deep : GID.grass[z];
+    if (t === 13) trees[i] = GID.reef;
     if (t === 1) { trees[i] = GID.tree[z]; if (y > 0) canopy[i - MW] = GID.canopy[z]; }
     if (t === 8) trees[i] = GID.roof;
     if (t === 9) trees[i] = GID.wall;
@@ -291,6 +301,108 @@ function lacNhatSamLam() {
   writeMap("lac_nhat_sam_lam", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.2)]);
 }
 
+// ---------- Hải Thần Đảo / Ma Quỷ Hải Vực (BĐ6d, mục 5.3): đảo và rạn biển, cấp 80–100, 50.000–100.000 năm ----------
+/**
+ * 90×60 ô, cùng khung vùng với rừng (FOREST.xs, LAIR) nhưng nền là biển sâu bao quanh đảo. Mép tây là bến thuyền: cầu tàu (đường đất)
+ * ra biển, thuyền neo cạnh cầu, cổng `boat` ở đầu cầu về Thiên Đấu Thành; trại "Bến Hải Thần" trên bãi cát. 4 vùng theo chiều đông:
+ * Bãi san hô (cát, vũng rạn nông, đá, dừa), Ma Quỷ Hải Vực (rạn nông đi được, rãnh biển sâu và đá ngầm), Vách Hải Thần (vách đá
+ * trên cỏ), Hải Thần Uyên (cỏ tối, hố biển sâu). Đường cát đông–tây và 4 lối bắc–nam vẽ sau cùng để mọi chỗ nối được với nhau qua
+ * rãnh biển. Hang Tà hóa Thâm Hải Ma Kình Vương ở đông nam (LAIR), vây đá ngầm, lối vào phía bắc. Chữ nhật `elite` được dọn trống.
+ */
+const HAI_THAN_ELITES = [
+  ["Hắc Giáp Cự Giải Vương", "hac_giap_cu_giai_vuong", 13, 7, 8, 6],
+  ["Ma Chương Vương", "ma_chuong_vuong", 30, 44, 8, 6],
+  ["Huyết Sa Bạo Quân", "huyet_sa_bao_quan", 53, 10, 8, 6],
+  ["Hắc Uyên Ma Kình", "hac_uyen_ma_kinh", 70, 9, 8, 6],
+];
+function haiThanDao() {
+  const { MW, MH, xs } = FOREST, r = rng(51991), g = grid(MW, MH);
+  const zoneOf = (x) => { const i = xs.findIndex((x1) => x < x1); return i < 0 ? xs.length - 2 : Math.max(0, i - 1); };
+  const blob = (cx, cy, rad, v, keep) => {
+    for (let y = -7; y <= 7; y++) for (let x = -7; x <= 7; x++) {
+      const tx = Math.round(cx + x), ty = Math.round(cy + y);
+      if (Math.hypot(x, y) < rad && keep(tx, ty)) g.set(tx, ty, v);
+    }
+  };
+  // Biển sâu bao quanh; đảo có bờ lượn sóng (bắc, nam, đông), bờ tây thẳng ở cột 5 cho bến thuyền.
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const top = 2 + Math.round(1.2 * Math.sin(x / 4) + 0.8 * Math.sin(x / 9 + 1)), bot = MH - 3 - Math.round(1.2 * Math.sin(x / 5 + 2));
+    const east = MW - 3 - Math.round(1.2 * Math.sin(y / 4));
+    if (!(x >= 5 && x <= east && y >= top && y <= bot)) { g.set(x, y, 12); continue; }
+    const z = zoneOf(x);
+    g.set(x, y, z === 0 ? 10 : z === 1 ? 11 : 0);
+  }
+  // Bãi san hô: vũng rạn nông, đá, dừa thưa.
+  for (let i = 0; i < 14; i++) blob(10 + r() * 13, 4 + r() * (MH - 8), 1.2 + r() * 1.8, 11, (x, y) => g.get(x, y) === 10);
+  for (let y = 0; y < MH; y++) for (let x = 9; x < 24; x++) if (g.get(x, y) === 10) { const q = r(); if (q < 0.035) g.set(x, y, 13); else if (q < 0.07) g.set(x, y, 1); }
+  // Ma Quỷ Hải Vực: rạn nông, rãnh biển sâu và đá ngầm.
+  for (let i = 0; i < 16; i++) blob(25 + r() * 20, 3 + r() * (MH - 6), 1.4 + r() * 2.4, 12, (x, y) => x >= 24 && x < 46 && g.get(x, y) === 11);
+  for (let y = 0; y < MH; y++) for (let x = 24; x < 46; x++) if (g.get(x, y) === 11 && r() < 0.05) g.set(x, y, 13);
+  // Vách Hải Thần: vách đá thành cụm lớn trên cỏ, vài cây.
+  for (let i = 0; i < 22; i++) blob(47 + r() * 20, 3 + r() * (MH - 6), 1.3 + r() * 2.6, 13, (x, y) => x >= 46 && x < 68 && g.get(x, y) === 0);
+  for (let y = 0; y < MH; y++) for (let x = 46; x < 68; x++) if (g.get(x, y) === 0 && r() < 0.05) g.set(x, y, 1);
+  // Hải Thần Uyên: hố biển sâu và đá ngầm trên cỏ tối.
+  for (let i = 0; i < 10; i++) blob(69 + r() * 16, 3 + r() * (MH - 6), 1.5 + r() * 2.5, 12, (x, y) => x >= 68 && g.get(x, y) === 0);
+  for (let y = 0; y < MH; y++) for (let x = 68; x < MW; x++) if (g.get(x, y) === 0) { const q = r(); if (q < 0.05) g.set(x, y, 13); else if (q < 0.09) g.set(x, y, 1); }
+  // Đường cát đông–tây (uốn lượn, về hàng pathY ở hai đầu) và 4 lối bắc–nam: nối mọi vùng qua rãnh biển.
+  let py = FOREST.pathY;
+  for (let x = 5; x < MW - 4; x++) {
+    g.set(x, py, 10); g.set(x, py + 1, 10);
+    if (x >= MW - 14) py += Math.sign(FOREST.pathY - py);
+    else if (x > 12 && r() < 0.3) py = Math.max(8, Math.min(MH - 10, py + (r() < 0.5 ? -1 : 1)));
+  }
+  for (const x0 of [14, 33, 55, 76]) {
+    let x = x0;
+    for (let y = 5; y < MH - 5; y++) { g.set(x, y, 10); g.set(x + 1, y, 10); if (r() < 0.25) x += r() < 0.5 ? -1 : 1; }
+  }
+  // Hang Thâm Hải Ma Kình Vương: bãi cát bầu dục vây đá ngầm, chừa lối vào phía bắc (như lairGround).
+  {
+    const { cx, cy, rx, ry } = LAIR;
+    for (let y = Math.floor(cy - ry - 2); y <= Math.ceil(cy + ry + 2); y++) for (let x = Math.floor(cx - rx - 2); x <= Math.ceil(cx + rx + 2); x++) {
+      const d = Math.hypot((x - cx) / rx, (y - cy) / ry);
+      if (d < 1) g.set(x, y, 10); else if (d < 1.3 && !(y < cy && Math.abs(x - cx) < 2.5)) g.set(x, y, 13);
+    }
+  }
+  for (const [, , x, y, w, h] of HAI_THAN_ELITES) for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) g.set(xx, yy, [10, 11, 0, 0][zoneOf(xx)]);
+  // Bến thuyền: bãi cát trại ở bờ tây, cầu tàu (đường đất) ra biển tới mép bản đồ, thuyền neo phía bắc cầu (mái + tường, chặn đường).
+  g.fill(5, 24, 7, 13, 10);
+  g.fill(0, 29, 6, 3, 3);
+  g.house(1, 25, 4, 3);
+  // Lấp mọi túi đất / nước nông mà hồn sư (khoảng 2×2 ô) không đi tới được từ bến bằng biển sâu: hồn thú sinh trong túi kín thì không
+  // ai đánh được (nhất là hồn thú 100.000 năm duy nhất của kênh).
+  {
+    const solid = (x, y) => [1, 8, 9, 12, 13].includes(g.get(x, y)) || (x === 7 && y === 26) || (x === 8 && y === 34);
+    const fits = (x, y) => !solid(x, y) && !solid(x + 1, y) && !solid(x, y + 1) && !solid(x + 1, y + 1);
+    const seen = new Set([7 * 1000 + 30]), q = [[7, 30]], reach = new Uint8Array(MW * MH);
+    while (q.length) {
+      const [x, y] = q.pop();
+      reach[y * MW + x] = reach[y * MW + x + 1] = reach[(y + 1) * MW + x] = reach[(y + 1) * MW + x + 1] = 1;
+      for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+        if (nx < 0 || ny < 0 || nx >= MW - 1 || ny >= MH - 1 || seen.has(nx * 1000 + ny) || !fits(nx, ny)) continue;
+        seen.add(nx * 1000 + ny); q.push([nx, ny]);
+      }
+    }
+    for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (!solid(x, y) && !reach[y * MW + x]) g.set(x, y, 12);
+  }
+  const shade = [0, 0, 1, 3];
+  const { ground, trees, canopy } = toLayers(MW, MH, g, (x) => shade[zoneOf(x)]);
+  trees[26 * MW + 7] = GID.tent;
+  trees[34 * MW + 8] = GID.fire;
+  const o = objects();
+  const zoneH = (i, name, hint, count, beasts, years) => o.zone(name, hint, xs[i], 0, xs[i + 1] - xs[i], MH, [1], count, beasts, years);
+  zoneH(0, "Bãi san hô", "Hồn thú 50.000 – 65.000 năm", 12, "thiet_giap_cu_giai:1,lam_lan_hai_xa:1,kiem_ngu:1", "50000-65000");
+  zoneH(1, "Ma Quỷ Hải Vực", "Rạn nông: hồn thú 60.000 – 80.000 năm", 10, "quy_dien_hai_yeu:1,tham_hai_ma_chuong:1,loi_quang_hai_dieu:1", "60000-80000");
+  zoneH(2, "Vách Hải Thần", "Hồn thú 75.000 – 90.000 năm", 9, "kim_lan_long_quy:1,huyet_nha_cu_sa:1,loi_van_hai_ung:1", "75000-90000");
+  zoneH(3, "Hải Thần Uyên", "Cẩn thận: hồn thú 85.000 – 100.000 năm", 8, "tham_hai_ma_kinh:1,u_linh_hai_mau:1", "85000-100000");
+  for (const [name, id, x, y, w, h] of HAI_THAN_ELITES) o.elite(name, id, x, y, w, h);
+  o.boss("Vực Ma Kình", "tham_hai_ma_kinh_vuong", LAIR.cx - LAIR.rx, LAIR.cy - LAIR.ry, LAIR.rx * 2, LAIR.ry * 2);
+  o.rect("spawn", "Bến Hải Thần", 6, 25, 5, 11);
+  // Bến thuyền về Thiên Đấu Thành ở đầu cầu tàu (thành: không cấp đề xuất), đi thuyền BOAT_CAST giây.
+  o.portal("Thuyền về Thiên Đấu Thành", 0, 29, 2, 3, "thien_dau_thanh", "tu_hai_than_dao", "", true);
+  o.point("arrive", "tu_thien_dau_thanh", 7.5, 30.5);
+  writeMap("hai_than_dao", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.25)]);
+}
+
 // ---------- Thánh Hồn Thôn (mục 5.3, 5.8) ----------
 function thanhHonThon() {
   const MW = 72, MH = 54, r = rng(5031);
@@ -396,9 +508,10 @@ function nacDinhThanh() {
 /**
  * 80×56 ô, tường thành bao quanh, phía đông là sông có bến thuyền. Đại lộ bắc–nam (cột 38–41) từ cổng nam (về Nặc Đinh Thành) lên
  * cổng bắc (Cực Bắc Chi Địa, mở từ BĐ6c), đại lộ đông–tây (hàng 26–29) từ cổng tây (Lạc Nhật Sâm Lâm, mở từ BĐ6b) ra bến thuyền
- * (Hải Thần Đảo, chưa mở); quảng trường có đài phun nước ở giữa. Hoàng cung Thiên Đấu (tây bắc), thương nhân và lò rèn (đông bắc), Sử Lai Khắc
+ * (Hải Thần Đảo, mở từ BĐ6d); quảng trường có đài phun nước ở giữa. Hoàng cung Thiên Đấu (tây bắc), thương nhân và lò rèn (đông bắc), Sử Lai Khắc
  * Học Viện (tây nam), Đại Đấu Hồn Trường (đông nam). Cổng chưa mở là tường thành đóng kín kèm biển "sắp mở" (NPC vai trò `talk`);
- * khi làm bản đồ đích (BĐ6b–d) thì mở tường, đặt object `portal` thay biển (BĐ6b: cổng tây, 4 ô tường cuối đại lộ đông–tây).
+ * khi làm bản đồ đích (BĐ6b–d) thì mở tường, đặt object `portal` thay biển (BĐ6b: cổng tây, 4 ô tường cuối đại lộ đông–tây; BĐ6d:
+ * bến thuyền, thuyền dời lên phía bắc đầu cầu tàu, cầu tàu nối tới mép bản đồ, cổng `boat` ở đầu cầu).
  */
 function thienDauThanh() {
   const MW = 80, MH = 56, r = rng(9161);
@@ -430,13 +543,14 @@ function thienDauThanh() {
   g.house(46, 34, 22, 12);
   g.fill(46, 46, 22, 4, 6); g.fill(42, 47, 4, 2, 6);
   // Cổng nam mở (về Nặc Đinh Thành); cổng tây mở từ BĐ6b (đi Lạc Nhật Sâm Lâm); BĐ6c mở 4 ô tường ở cuối đại lộ bắc–nam (cổng bắc
-  // đi Cực Bắc Chi Địa). Bến thuyền: cửa tường đông + cầu tàu đường đất ra sông, thuyền neo ở đầu cầu (mái + tường, chặn đường).
+  // đi Cực Bắc Chi Địa). Bến thuyền: cửa tường đông + cầu tàu đường đất ra sông; từ BĐ6d cầu tàu nối tới mép bản đồ (đầu cầu là cổng
+  // `boat` đi Hải Thần Đảo), thuyền neo phía bắc đầu cầu (mái + tường, chặn đường; BĐ6a thuyền chặn ngang đầu cầu).
   g.fill(38, MH - 1, 4, 1, 6);
   g.fill(0, 26, 1, 4, 6);
   g.fill(38, 0, 4, 1, 6);
   g.fill(RIVER - 1, 27, 1, 2, 6);
-  g.fill(RIVER, 27, 5, 2, 3);
-  g.house(RIVER + 5, 24, 3, 8);
+  g.fill(RIVER, 27, MW - RIVER, 2, 3);
+  g.house(RIVER + 3, 23, 4, 3);
   const { ground, trees, canopy } = toLayers(MW, MH, g, () => 0);
   const o = objects();
   o.rect("spawn", "Quảng trường Thiên Đấu", 31, 22, 18, 12);
@@ -452,7 +566,9 @@ function thienDauThanh() {
   // BĐ6c: biển "sắp mở" `cong_cuc_bac` thay bằng cổng; cấp đề xuất của Cực Bắc (bảng 5.3), dưới cấp thì cảnh báo (chặn mềm).
   o.portal("Đi Cực Bắc Chi Địa", 38, 0, 4, 3, "cuc_bac_chi_dia", "tu_thien_dau_thanh", "60-85");
   o.point("arrive", "tu_cuc_bac_chi_dia", 40, 5.5);
-  o.point("npc", "Bến thuyền Hải Thần Đảo", RIVER + 3, 27, [prop("npc", "string", "ben_thuyen_hai_than")]);
+  // BĐ6d: bến thuyền (thay biển "sắp mở" `ben_thuyen_hai_than`); chặn mềm theo cấp đề xuất của Hải Thần Đảo, đi thuyền BOAT_CAST giây.
+  o.portal("Thuyền đi Hải Thần Đảo", MW - 2, 27, 2, 2, "hai_than_dao", "tu_thien_dau_thanh", "80-100", true);
+  o.point("arrive", "tu_hai_than_dao", RIVER + 1, 28);
   writeMap("thien_dau_thanh", MW, MH, ground, trees, canopy, o);
 }
 
@@ -556,7 +672,8 @@ function daiDauHonTruong() {
 }
 
 const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia,
-  dai_dau_hon_truong: daiDauHonTruong, thien_dau_thanh: thienDauThanh, lac_nhat_sam_lam: lacNhatSamLam, cuc_bac_chi_dia: cucBacChiDia };
+  dai_dau_hon_truong: daiDauHonTruong, thien_dau_thanh: thienDauThanh, lac_nhat_sam_lam: lacNhatSamLam, cuc_bac_chi_dia: cucBacChiDia,
+  hai_than_dao: haiThanDao };
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(GEN)) {
   if (!GEN[id]) { console.error("Không có bản đồ:", id); process.exit(1); }

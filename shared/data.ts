@@ -32,6 +32,12 @@ export function tierOfYears(years: number) {
 // ---------- Niên hạn theo số năm (mục 5.2, 5.3; bước 3.2) ----------
 /** Niên hạn tối đa (mục 3): hồn thú / hồn hoàn đỏ đúng 100.000 năm. Mỗi phòng (kênh) tối đa 1 hồn thú thường cỡ này cùng lúc. */
 export const MAX_YEARS = TIERS[TIERS.length - 1].years;
+/**
+ * Hồn thú thường đúng MAX_YEARS năm (BĐ6d, mục 5.3): chỉ vùng có mức trên `years` bằng MAX_YEARS (Hải Thần Uyên) sinh được. Mỗi lần
+ * sinh ở vùng đó có tỉ lệ `RED_BEAST_CHANCE` ra đúng MAX_YEARS nếu kênh chưa có con nào (tinh anh, thú vương không tính), còn lại tung
+ * dưới MAX_YEARS (phân bố log của rollYears gần như không bao giờ ra đúng mức trên). Chờ chốt.
+ */
+export const RED_BEAST_CHANCE = 0.03;
 /** Khoảng năm [nhỏ nhất, lớn nhất] của bậc `tier` (bảng màu 5.2): trắng 10–99 … đen 10.000–99.999, đỏ đúng 100.000. */
 export const tierBand = (tier: number): [number, number] =>
   [TIERS[tier].years, tier + 1 < TIERS.length ? TIERS[tier + 1].years - 1 : MAX_YEARS];
@@ -79,8 +85,8 @@ export interface MapDef {
 }
 
 /**
- * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối; bến
- * thuyền Hải Thần Đảo ở Thiên Đấu Thành là biển "sắp mở" (NPC) cho tới BĐ6d (cổng tây Lạc Nhật mở từ BĐ6b, cổng bắc Cực Bắc từ BĐ6c).
+ * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối. Mọi cổng
+ * của Thiên Đấu Thành đã mở (cổng tây Lạc Nhật từ BĐ6b, cổng bắc Cực Bắc từ BĐ6c, bến thuyền Hải Thần Đảo từ BĐ6d).
  */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
@@ -91,8 +97,8 @@ export const MAPS: Record<string, MapDef> = {
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
     shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
-  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Bến thuyền Hải Thần Đảo là biển "sắp mở" (NPC vai trò talk) cho
-  // tới BĐ6d; cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b, cổng bắc đi Cực Bắc Chi Địa mở từ BĐ6c.
+  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b, cổng bắc đi Cực Bắc Chi Địa
+  // từ BĐ6c, bến thuyền đi Hải Thần Đảo từ BĐ6d.
   thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
   // BĐ6b: rừng thực vật / độc quanh suối Băng Hỏa Lưỡng Nghi Nhãn, cổng tây Thiên Đấu Thành. Tiên thảo chỉ rơi ở đây (chờ chốt).
   lac_nhat_sam_lam: { id: "lac_nhat_sam_lam", name: "Lạc Nhật Sâm Lâm", kind: "hunt", level: [40, 70], years: [5000, 30000],
@@ -102,6 +108,10 @@ export const MAPS: Record<string, MapDef> = {
   // Huyền Minh Băng Giao 80.000 năm.
   cuc_bac_chi_dia: { id: "cuc_bac_chi_dia", name: "Cực Bắc Chi Địa", kind: "hunt", level: [60, 85], years: [20000, 80000],
     shards: ["yeu_ho", "can_khon_hon_nguyen_toa", "nguyet_nhan"], cores: ["lam_ngan", "that_sat"], king: "huyen_minh_bang_giao" },
+  // BĐ6d: đảo và rạn biển, đi bằng bến thuyền Thiên Đấu Thành (cổng `boat`, BOAT_CAST). Chỉ vùng Hải Thần Uyên (85.000–100.000 năm)
+  // sinh được hồn thú thường 100.000 năm, tối đa 1 con mỗi kênh (RED_BEAST).
+  hai_than_dao: { id: "hai_than_dao", name: "Hải Thần Đảo", kind: "hunt", level: [80, 100], years: [50000, 100000],
+    shards: ["quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"], cores: ["ba_vuong_long", "tien_co"], king: "tham_hai_ma_kinh_vuong" },
   // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
   dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
@@ -121,6 +131,11 @@ export function parseLevelRange(s: unknown): [number, number] | null {
 }
 /** Đi qua cổng: số giây niệm (bị đánh thì hủy, chờ chốt ở 5.3) và số giây server chờ client rời phòng cũ (mục 6). */
 export const TRAVEL_CAST = 1;
+/**
+ * Bến thuyền (BĐ6d, mục 5.3): cổng có thuộc tính `boat` trong Tiled (Thiên Đấu Thành ↔ Hải Thần Đảo) "đi thuyền" ngần ấy giây thay cho
+ * TRAVEL_CAST, cùng luật hủy (bị đánh, bước ra khỏi bến). Chờ chốt.
+ */
+export const BOAT_CAST = 3;
 export const TRAVEL_LEAVE_SECS = 10;
 /**
  * Kênh (mục 6 "Nhiều kênh"): mỗi phòng của một bản đồ là một kênh, tối đa CHANNEL_MAX người; phòng đầy thì mở kênh mới.
@@ -196,6 +211,18 @@ export const BEASTS: BeastDef[] = [
   { id: "bang_bich_hat",          name: "Băng Bích Hạt" },
   { id: "huyen_minh_bang_tam",    name: "Huyền Minh Băng Tằm" },
   { id: "tuyet_ma_vien",          name: "Tuyết Ma Viên" },
+  // BĐ6d: Hải Thần Đảo / Ma Quỷ Hải Vực (50.000–100.000 năm, biển), theo vùng: Bãi san hô, Ma Quỷ Hải Vực, Vách Hải Thần, Hải Thần Uyên.
+  { id: "thiet_giap_cu_giai",     name: "Thiết Giáp Cự Giải" },
+  { id: "lam_lan_hai_xa",         name: "Lam Lân Hải Xà" },
+  { id: "kiem_ngu",               name: "Kiếm Ngư" },
+  { id: "quy_dien_hai_yeu",       name: "Quỷ Diện Hải Yêu" },
+  { id: "tham_hai_ma_chuong",     name: "Thâm Hải Ma Chương" },
+  { id: "loi_quang_hai_dieu",     name: "Lôi Quang Hải Diêu" },
+  { id: "kim_lan_long_quy",       name: "Kim Lân Long Quy" },
+  { id: "huyet_nha_cu_sa",        name: "Huyết Nha Cự Sa" },
+  { id: "loi_van_hai_ung",        name: "Lôi Vân Hải Ưng" },
+  { id: "tham_hai_ma_kinh",       name: "Thâm Hải Ma Kình" },
+  { id: "u_linh_hai_mau",         name: "U Linh Hải Mẫu" },
 ];
 
 const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
@@ -528,6 +555,9 @@ export type TeleShape = "line" | "cone" | "circle";
  * Từ BĐ6b:
  * - `drain`: mỗi người trúng chiêu mà đang bị Trói (trước khi chiêu gây trạng thái mới) thì hồn thú hồi ngần ấy phần máu tối đa (Hút
  *   Sinh của Khô Đằng Thụ Vương: "hồi máu từ người đang bị trói").
+ * Từ BĐ6d:
+ * - `weak`: nhắm người tham gia trong tầm có tỉ lệ sinh lực thấp nhất (Huyết Khí của Huyết Sa Bạo Quân: "vòng dưới chân người ít máu
+ *   nhất") thay cho mục tiêu đang đuổi; chưa có người tham gia thì nhắm mục tiêu đang đuổi.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -538,6 +568,7 @@ export interface BeastSkillDef {
   summon?: { species: string; n: number; years?: [number, number] }; pull?: number;
   scatter?: number; mark?: boolean;
   drain?: number;
+  weak?: boolean;
 }
 /**
  * "Đóng băng" của hồn thú băng (BĐ6c, chờ chốt): dùng trạng thái Choáng sẵn có (không đi, không đánh, không dùng hồn kỹ), không thêm
@@ -619,6 +650,19 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   bang_bich_hat: [bs("Băng Bích Châm", "line", 100, { w: 12, dmg: 1.6, cd: 8, status: [{ ...FREEZE, secs: 1 }] })],
   huyen_minh_bang_tam: [bs("Nhả Tơ Băng", "line", 110, { w: 14, dmg: 1, status: [{ s: "root", secs: 1.5 }] })],
   tuyet_ma_vien: [bs("Ném Băng Khối", "circle", 32, { at: "target", range: 150, dmg: 1.8 })],
+  // Hải Thần Đảo (BĐ6d). "Mê hoặc" của Mê Ca tạm là Choáng ngắn như Lạc Nhật (hồn sư chưa có Mê hoặc, chờ chốt); "nhiều vệt" của
+  // Xúc Tu Quật là 3 vệt tỏa 60° tung cùng lúc; "vệt rộng" của Sóng Cuộn rộng 30.
+  thiet_giap_cu_giai: [bs("Kìm Kẹp", "cone", 50, { arc: 100, dmg: 1.8 })],
+  lam_lan_hai_xa: [bs("Thủy Tiễn", "line", 110, { w: 12, dmg: 1.6 })],
+  kiem_ngu:     [bs("Xuyên Kích", "line", 160, { w: 12, dmg: 1.9, dash: true, cd: 9 })],
+  quy_dien_hai_yeu: [bs("Mê Ca", "cone", 62, { arc: 80, dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
+  tham_hai_ma_chuong: [bs("Xúc Tu Quật", "line", 90, { w: 12, count: 3, spread: 60, dmg: 1.6 })],
+  loi_quang_hai_dieu: [bs("Điện Lưu", "circle", 50, { dmg: 1.5, status: [{ s: "shock" }] })],
+  kim_lan_long_quy: [bs("Sóng Cuộn", "line", 120, { w: 30, dmg: 1.7 })],
+  huyet_nha_cu_sa: [bs("Lao Cắn", "line", 120, { w: 16, dmg: 2, dash: true })],
+  loi_van_hai_ung: [bs("Lôi Bổ", "circle", 32, { at: "target", range: 130, dmg: 1.7, status: [{ s: "shock" }] })],
+  tham_hai_ma_kinh: [bs("Quật Đuôi", "cone", 64, { arc: 160, dmg: 2.1 })],
+  u_linh_hai_mau: [bs("Độc Điện", "circle", 48, { dmg: 1.4, status: [{ s: "poison", n: 2, secs: 5 }, { s: "shock" }] })],
 };
 /** Chiêu báo trước của hồn thú thường loài `species` (mã) `years` năm: chiêu cuối cùng đủ năm, không có thì null. */
 export function beastSkillOf(species: string, years: number): BeastSkillDef | null {
@@ -672,11 +716,12 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * Một tinh anh / thú vương / boss. `species`: loài gốc (mã BEASTS): dùng lại chỉ số theo năm của loài và sprite (phóng ELITE.scale).
  * `aura`: màu vầng sáng riêng (client vẽ bằng code). `skills`: chiêu báo trước (tinh anh: 2 chiêu, cùng bộ máy với 3.5).
  * Hệ số máu / sát thương theo bậc nằm ở ELITE (tinh anh) và KING (thú vương, BĐ5).
- * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x6–8, bảng 5.3), niên hạn bằng mức trên của bản đồ (MAPS.years);
+ * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x6–8, bảng 5.3), niên hạn bằng mức trên của bản đồ (MAPS.years) trừ khi
+ * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
 export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; }
-export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; }
+export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number; }
 /**
  * Bảng BOSSES (mục 6). Mã cố định, dùng trong thuộc tính `boss` của object `elite` (Tiled); `BeastState.species` của hồn thú bậc > 0
  * là chỉ số trong bảng này, nên chỉ thêm vào cuối. BĐ4: 11 tinh anh của 3 bản đồ săn, tên và chiêu theo cột Tinh anh ở bảng 5.3.
@@ -786,10 +831,39 @@ export const BOSSES: BossDef[] = [
     phase2: { name: "Cực Hàn", desc: "gió cực hàn phủ cả hang, đóng băng người bị đánh dấu, tốc độ +20%", spd: 1.2, skills: [
       bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] }),
       bs("Huyền Minh Băng Phong", "circle", 30, { at: "target", range: 160, warn: 1.5, dmg: 1.2, cd: 12, mark: true, status: [{ ...FREEZE, secs: 3 }] })] } },
+  // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số chờ chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
+  // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
+  // Câm lặng + Làm chậm (client chưa có hiệu ứng che màn hình); Huyết Khí nhắm người tham gia ít máu nhất (`weak`).
+  { id: "hac_giap_cu_giai_vuong", name: "Hắc Giáp Cự Giải Vương", rank: 1, species: "thiet_giap_cu_giai", aura: "#4a5a7a", skills: [
+    bs("Song Kìm", "cone", 54, { arc: 80, count: 2, spread: 70, dmg: 1.7 }),
+    bs("Phun Bọt", "circle", 56, { dmg: 1, status: [{ s: "slow", secs: 3 }] })] },
+  { id: "ma_chuong_vuong", name: "Ma Chương Vương", rank: 1, species: "tham_hai_ma_chuong", aura: "#8a3aff", skills: [
+    bs("Bát Xúc Đập", "line", 100, { w: 12, count: 8, spread: 315, range: 80, dmg: 1.6, cd: 9 }),
+    bs("Phun Mực", "circle", 40, { at: "target", range: 130, dmg: 1, status: [{ s: "silence", secs: 2 }, { s: "slow", secs: 2 }] })] },
+  { id: "huyet_sa_bao_quan", name: "Huyết Sa Bạo Quân", rank: 1, species: "huyet_nha_cu_sa", aura: "#ff2a3a", skills: [
+    bs("Tam Liên Xé", "line", 110, { w: 14, count: 3, spread: 40, dmg: 1.7 }),
+    bs("Huyết Khí", "circle", 34, { at: "target", range: 160, warn: 1, dmg: 1.8, weak: true })] },
+  { id: "hac_uyen_ma_kinh", name: "Hắc Uyên Ma Kình", rank: 1, species: "tham_hai_ma_kinh", aura: "#1a3aa0", skills: [
+    bs("Hấp Thủy", "circle", 90, { range: 80, warn: 1, dmg: 0.8, cd: 10, pull: 70 }),
+    bs("Thủy Trụ", "circle", 26, { at: "target", range: 150, count: 5, scatter: 70, dmg: 1.5 })] },
+  // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x8. Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
+  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một); GĐ2 "vùng ngập luân phiên làm chậm 50%" là dải nước rộng báo trước 2
+  // giây gây Làm chậm (40%, STATUS.slow), "xoáy nước kéo người vào" là các vòng rơi ngẫu nhiên kéo người trúng về phía thú vương.
+  { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 8, years: 95000, skills: [
+    bs("Ma Kình Hống", "circle", 70, { warn: 1.3, dmg: 1.4, cd: 10, status: [{ s: "stun", secs: 1.5 }] }),
+    bs("Thôn Hải", "circle", 110, { range: 100, warn: 1.4, dmg: 1.2, cd: 12, pull: 80 })],
+    phase2: { name: "Thủy Triều Dâng", desc: "nước dâng thành dải làm chậm (báo trước 2 giây), xoáy nước kéo người vào, tốc độ +20%", spd: 1.2, skills: [
+      bs("Thủy Triều", "line", 140, { w: 150, range: 160, warn: 2, dmg: 1.2, cd: 10, status: [{ s: "slow", secs: 4 }] }),
+      bs("Xoáy Nước", "circle", 30, { at: "target", range: 160, count: 4, scatter: 80, warn: 1.5, dmg: 1.2, cd: 9, pull: 40 })] } },
 ];
 const BOSS_INDEX = new Map(BOSSES.map((b, i) => [b.id, i]));
 /** Chỉ số trong BOSSES của một mã (-1 nếu không có). */
 export const bossIndex = (id: string) => BOSS_INDEX.get(id) ?? -1;
+/** Niên hạn tà hóa thú vương của bản đồ `mapId` (sinh ra và rương): BossDef.years nếu có, không thì mức trên MAPS.years; null nếu không có. */
+export const kingYears = (mapId: string): number | null => {
+  const m = MAPS[mapId], b = m?.king ? BOSSES[bossIndex(m.king)] : undefined;
+  return b?.years ?? m?.years?.[1] ?? null;
+};
 /**
  * Tinh anh (mục 5.4, chờ chốt trừ các số đã ghi trong bảng 5.4): máu x`hp`, sát thương x`dmg` so với hồn thú thường cùng loài, cùng
  * năm (niên hạn = mức trên của vùng); kinh nghiệm x`xp`; tỉ lệ hồn cốt x`bone` (nhân vào boneChance, bảng rơi 4.1); hồi sinh
@@ -2430,6 +2504,30 @@ export const BONE_SKILLS: Record<string, BoneSkillSet> = {
     passive: bp("Huyền Minh Tơ", "Giảm tiêu hao hồn lực", { buff: { mp: 0.06 } }) },
   tuyet_ma_vien: { active: ba("Ném Băng Khối", "Ném khối băng xuống hồn thú gần nhất", "◆", "around", 32, 2.2, { at: 150, shake: true }),
     passive: bp("Ma Viên Lực", "Công tăng", { buff: { atk: 0.05 } }) },
+  // Hải Thần Đảo (BĐ6d): chủ động theo chiêu báo trước của loài (hồn hoàn / hồn cốt 50.000 năm trở lên nên bội số cao hơn rừng);
+  // trên hồn thú Mê hoặc có thật nên Mê Ca gây Mê hoặc.
+  thiet_giap_cu_giai: { active: ba("Cự Giải Kìm Kẹp", "Kẹp nửa trước mặt: Phá giáp 1 tầng", "✂", "front", 50, 2.2, { status: [{ s: "armor" }] }),
+    passive: bp("Thiết Giáp", "Giảm sát thương nhận", { buff: { def: 0.08 } }) },
+  lam_lan_hai_xa: { active: ba("Thủy Tiễn", "Bắn tên nước xuyên thẳng", "➵", "proj", 130, 2),
+    passive: bp("Lam Lân", "Tốc chạy tăng", { buff: { spd: 0.07 } }) },
+  kiem_ngu: { active: ba("Kiếm Ngư Xuyên Kích", "Lao xuyên về phía trước, đâm mọi hồn thú trên đường", "➳", "dash", 90, 2.3, { inv: 0.3 }),
+    passive: bp("Kiếm Vây", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.06 } }) },
+  quy_dien_hai_yeu: { active: ba("Mê Ca", "Tiếng hát nửa trước mặt: Mê hoặc 2 giây", "♫", "front", 62, 1.4, { status: [{ s: "charm", secs: 2 }] }),
+    passive: bp("Hải Yêu Ca", "Giảm tiêu hao hồn lực", { buff: { mp: 0.08 } }) },
+  tham_hai_ma_chuong: { active: ba("Xúc Tu Quật", "Xúc tu quật quanh thân: Làm chậm 2 giây", "✴", "around", 50, 2.2, { status: [{ s: "slow", secs: 2 }] }),
+    passive: bp("Ma Chương Hấp", "Hút máu từ mọi sát thương gây ra", { buff: { leech: 0.04 } }) },
+  loi_quang_hai_dieu: { active: ba("Điện Lưu", "Phóng điện quanh thân: Cảm điện", "ϟ", "around", 50, 2, { status: [{ s: "shock" }] }),
+    passive: bp("Lôi Quang", "Kháng Cảm điện", { resist: { shock: 0.45 } }) },
+  kim_lan_long_quy: { active: ba("Sóng Cuộn", "Sóng lớn nửa trước mặt, hất lùi hồn thú", "≋", "front", 64, 2.2, { push: 40 }),
+    passive: bp("Long Quy Giáp", "Giảm sát thương nhận", { buff: { def: 0.1 } }) },
+  huyet_nha_cu_sa: { active: ba("Huyết Nha Lao Cắn", "Lao tới hồn thú gần nhất mà cắn: Phá giáp 2 tầng", "⚔", "target", 100, 2.5, { dash: 80, status: [{ s: "armor", n: 2 }] }),
+    passive: bp("Huyết Nha", "Công tăng", { buff: { atk: 0.07 } }) },
+  loi_van_hai_ung: { active: ba("Lôi Bổ", "Sét bổ xuống hồn thú gần nhất: Cảm điện", "☇", "around", 34, 2.2, { at: 130, status: [{ s: "shock" }] }),
+    passive: bp("Lôi Vân Dực", "Tốc chạy tăng", { buff: { spd: 0.08 } }) },
+  tham_hai_ma_kinh: { active: ba("Ma Kình Quật Đuôi", "Quật đuôi nửa trước mặt, rung đất", "∿", "front", 64, 2.8, { shake: true, cd: 12, cost: 24 }),
+    passive: bp("Ma Kình Thể", "Công tăng", { buff: { atk: 0.08 } }) },
+  u_linh_hai_mau: { active: ba("U Linh Độc Điện", "Xúc tu độc điện quanh thân: Trúng độc 2 tầng, Cảm điện", "☣", "around", 48, 1.8, { status: [{ s: "poison", n: 2 }, { s: "shock" }] }),
+    passive: bp("U Linh", "Kháng Trúng độc", { resist: { poison: 0.45 } }) },
 };
 /** 3 vị trí có kỹ năng chủ động theo thứ tự nút (đầu, tay trái, tay phải): chỉ số i của message `boneskill {i}` và `PlayerState.bcds`. */
 export const BONE_ACTIVE_SLOTS: BoneSlot[] = BONE_SLOTS.filter((s) => s.active).map((s) => s.id);
@@ -2675,12 +2773,8 @@ export const NPCS: NpcDef[] = [
       "Lò rèn lớn nhất thủ đô. Hồn cốt dư dung luyện vào hồn cốt chính, hồn hạch dư nâng cấp hồn hạch chính: không bao giờ thất bại.",
       "Tay nghề ở đây cũng như lò rèn Nặc Đinh, chỉ là lửa to hơn thôi.",
     ] },
-  // `cong_lac_nhat` (biển cổng tây "sắp mở" của BĐ6a) bỏ ở BĐ6b, `cong_cuc_bac` (cổng bắc) bỏ ở BĐ6c: hai cổng là object `portal` đi
-  // Lạc Nhật Sâm Lâm / Cực Bắc Chi Địa. Mã NPC không lưu DB.
-  { id: "ben_thuyen_hai_than", name: "Bến thuyền Hải Thần Đảo", title: "Sắp mở", role: "talk", col: "#8a9bb0",
-    lines: [
-      "Bến thuyền đi Hải Thần Đảo, băng qua Ma Quỷ Hải Vực đầy hồn thú biển. Thuyền chưa nhổ neo, sắp mở.",
-    ] },
+  // Biển "sắp mở" của BĐ6a đã bỏ: `cong_lac_nhat` (BĐ6b), `cong_cuc_bac` (BĐ6c), `ben_thuyen_hai_than` (BĐ6d); các cổng đó là object
+  // `portal` (bến thuyền có `boat`). Mã NPC không lưu DB.
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
