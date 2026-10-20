@@ -1718,8 +1718,8 @@ export class MapRoom extends Room<MapState> {
       return;
     }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
-    else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4)
-      if (Math.hypot(b.x - p.x, b.y - p.y) < 160 && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
+    else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)
+      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
     });
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);

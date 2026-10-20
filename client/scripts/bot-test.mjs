@@ -334,7 +334,8 @@ function checkBeastYears(b){
   const zs=map.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone").map(o=>({...o,yr:parseLevelRange(prop(o,"years")),
     sp:String(prop(o,"beasts")??"").split(",").map(x=>x.split(":")[0].trim()).filter(Boolean)}));
   const bad=[], ys=[]; let n=0;
-  s.beasts.forEach(x=>{ n++; ys.push(x.years);
+  s.beasts.forEach(x=>{ if(x.rank===2) return; // thú vương (BĐ5) kiểm riêng: niên hạn kingYears, có thể khác mức trên của vùng (BĐ6d)
+    n++; ys.push(x.years);
     // Hồn thú đi lang thang / đuổi người tối đa 220 pixel quanh chỗ sinh: so với các vùng trong phạm vi đó.
     const near=zs.filter(z=>z.yr&&x.x>=z.x-240&&x.x<=z.x+z.width+240&&x.y>=z.y-240&&x.y<=z.y+z.height+240);
     // Loài và số năm phải khớp cùng một vùng (bảng 5.3): loài khai báo ở `beasts`, tuổi trong `years`.
@@ -4277,8 +4278,9 @@ async function haiThanTest(){
       ok(ki?.bid&&inL&&ki.years===kingYears(HT)&&ki.base===Math.round(beastStats(ki.years).hp*K.hp)&&same(ki.skills,K.skills.map(s=>s.name))&&H.boss.some(m=>m.k==="spawn"),
         `Tà hóa ${K.name} xuất hiện trong hang (${ki?.years} năm, máu gốc ${ki?.base}, chiêu ${ki?.skills?.join(", ")})`); }
 
-    // Đi thuyền về Thiên Đấu Thành: không cấp đề xuất, không cảnh báo.
-    await test(H,"goto",{x:arr.x,y:arr.y}); H.portal=null;
+    // Đi thuyền về Thiên Đấu Thành: không cấp đề xuất, không cảnh báo. Hồn thú bị kéo theo ở các bước trên (đang đuổi H) thì dọn cả
+    // bản đồ trước, để không con nào đuổi tới bến đánh hủy đi thuyền.
+    await test(H,"goto",{x:arr.x,y:arr.y}); await test(H,"clear",{keep:1,all:1}); await test(H,"rest",{s:TEAM_COMBAT_SECS+1}); H.portal=null;
     ok(await walk(-1,0,()=>H.portal?.name,4000)&&H.portal.name==="Thuyền về Thiên Đấu Thành"&&H.portal.boat===BOAT_CAST&&!H.portal.warn&&!H.portal.level,
       `bến Hải Thần: ${JSON.stringify(H.portal)}`);
     await travelBy("Thuyền về Thiên Đấu Thành",AT);

@@ -361,6 +361,22 @@ function haiThanDao() {
   g.fill(5, 24, 7, 13, 10);
   g.fill(0, 29, 6, 3, 3);
   g.house(1, 25, 4, 3);
+  // Lấp mọi túi đất / nước nông mà hồn sư (khoảng 2×2 ô) không đi tới được từ bến bằng biển sâu: hồn thú sinh trong túi kín thì không
+  // ai đánh được (nhất là hồn thú 100.000 năm duy nhất của kênh).
+  {
+    const solid = (x, y) => [1, 8, 9, 12, 13].includes(g.get(x, y)) || (x === 7 && y === 26) || (x === 8 && y === 34);
+    const fits = (x, y) => !solid(x, y) && !solid(x + 1, y) && !solid(x, y + 1) && !solid(x + 1, y + 1);
+    const seen = new Set([7 * 1000 + 30]), q = [[7, 30]], reach = new Uint8Array(MW * MH);
+    while (q.length) {
+      const [x, y] = q.pop();
+      reach[y * MW + x] = reach[y * MW + x + 1] = reach[(y + 1) * MW + x] = reach[(y + 1) * MW + x + 1] = 1;
+      for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+        if (nx < 0 || ny < 0 || nx >= MW - 1 || ny >= MH - 1 || seen.has(nx * 1000 + ny) || !fits(nx, ny)) continue;
+        seen.add(nx * 1000 + ny); q.push([nx, ny]);
+      }
+    }
+    for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (!solid(x, y) && !reach[y * MW + x]) g.set(x, y, 12);
+  }
   const shade = [0, 0, 1, 3];
   const { ground, trees, canopy } = toLayers(MW, MH, g, (x) => shade[zoneOf(x)]);
   trees[26 * MW + 7] = GID.tent;
