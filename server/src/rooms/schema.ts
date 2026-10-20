@@ -13,6 +13,11 @@ export class PlayerState extends Schema {
   @type("float32") y: number = 0;
   @type("uint8") dir: number = 0;      // hướng nhìn 4 phía, chỉ số trong DIRS4 (shared/data.ts): 0 xuống, 1 phải, 2 lên, 3 trái (thay `face` = ±1)
   @type("boolean") moving: boolean = false;
+  // Dự đoán chuyển động phía client (mục 6): số thứ tự `input` cuối server đã nhận, số giây hướng đi đó đã được áp (chỉ đếm khi
+  // hướng khác 0) và tốc độ thật lúc này (pixel/giây, 0 khi choáng / trói / gục). Client đối chiếu với các input chưa được xác nhận.
+  @type("uint32") seq: number = 0;
+  @type("float32") seqT: number = 0;
+  @type("float32") spd: number = 0;
   @type("uint8") level: number = 1;
   @type("uint32") xp: number = 0;
   @type("uint32") xpNeed: number = 0;

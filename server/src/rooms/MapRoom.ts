@@ -29,6 +29,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   ARENA } from "../../../shared/data.ts";
+import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
@@ -359,11 +360,13 @@ export class MapRoom extends Room<MapState> {
       if (m?.king) this.bossWarn = { mapId: m.id, king: m.king, phase: "warn", slot: next, in: (next - now) / 1000, life: KING.lifeSecs, at: next };
     }
 
-    this.onMessage("input", (c, m: { x: number; y: number }) => {
+    this.onMessage("input", (c, m: { x: number; y: number; s?: number }) => {
       const d = this.pdata.get(c.sessionId); if (!d || d.travelling) return;
-      let x = Number(m?.x) || 0, y = Number(m?.y) || 0; const l = Math.hypot(x, y);
-      if (l > 1) { x /= l; y /= l; }
-      d.input = { x, y };
+      const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+      d.input = clampDir(num(m?.x), num(m?.y));
+      // Số thứ tự input của client đang dự đoán chuyển động (mục 6): chỉ để client đối chiếu, vị trí vẫn do tick() tính.
+      const p = this.state.players.get(c.sessionId), s = Math.floor(num(m?.s));
+      if (p) { if (s > 0 && s <= 0xffffffff) p.seq = s; p.seqT = 0; }
     });
     this.onMessage("attack", (c) => this.attack(c.sessionId));
     this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
@@ -1340,7 +1343,8 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "goto") {
       const x = Number(o.x), y = Number(o.y);
-      if (this.map.standable(x, y)) { p.x = x; p.y = y; d.input = { x: 0, y: 0 }; }
+      // Dừng luôn hướng đi đang giữ; tăng `seq` để client đang dự đoán chuyển động biết input cuối của nó đã bị bỏ và gửi lại (mục 6).
+      if (this.map.standable(x, y)) { p.x = x; p.y = y; d.input = { x: 0, y: 0 }; p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
     }
     else if (op === "drops") {
       const s = int(o.s, 0, 3600, 0);
@@ -3589,6 +3593,7 @@ export class MapRoom extends Room<MapState> {
       for (const [k, t] of d.skCd) if (t - dt <= 0) d.skCd.delete(k); else d.skCd.set(k, t - dt);
       for (let i = 0; i < p.bcds.length; i++) if (p.bcds[i] > 0) p.bcds[i] = Math.max(0, p.bcds[i] - dt);
       if (p.swCd > 0) p.swCd = Math.max(0, p.swCd - dt);
+      if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) p.seqT += dt; // thời gian input cuối đã áp, kể cả lúc choáng / gục (mục 6)
       if (d.danCd > 0) d.danCd = Math.max(0, d.danCd - dt);
       if (d.shieldT > 0) { d.shieldT -= dt; if (d.shieldT <= 0) d.shield = 0; p.shield = Math.ceil(d.shield); }
       if (d.buffs.size) {
@@ -3610,11 +3615,12 @@ export class MapRoom extends Room<MapState> {
       }
       // Choáng / Trói (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc.
       const ctl = this.pctl(d), { x: ix, y: iy } = ctl.noMove ? { x: 0, y: 0 } : d.input; const il = Math.hypot(ix, iy);
-      p.moving = il > 0.15;
+      const sp = ctl.noMove ? 0 : d.speed * (1 + this.buffV(d, "spd")) * (1 - ctl.slow);
+      p.spd = sp; // client dự đoán chuyển động bằng đúng tốc độ này
+      p.moving = il > MOVE_DEAD;
       if (p.moving) {
         if (d.absorbing) this.cancelAbsorb(id, "Di chuyển: đã hủy hấp thụ, hồn hoàn vẫn còn trong túi.");
-        const sp = d.speed * (1 + this.buffV(d, "spd")) * (1 - ctl.slow);
-        this.map.moveEnt(p, ix * sp * dt, iy * sp * dt, 5, 4);
+        this.map.moveEnt(p, ix * sp * dt, iy * sp * dt, PLAYER_HW, PLAYER_HH);
         d.dir = { x: ix / il, y: iy / il };
         p.dir = dir4(ix, iy);
       }

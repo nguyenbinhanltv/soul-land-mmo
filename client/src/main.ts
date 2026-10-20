@@ -2,6 +2,7 @@ import "./style.css";
 import Phaser from "phaser";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
+import { addLag } from "./predict.ts";
 import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS,
   type He, type Looks } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
@@ -247,6 +248,7 @@ const ARENA_END_CODE = 4005;
  */
 function play(room: Room, roomMap: string) {
   overlay.hidden = true;
+  addLag(room); // ?lag=<ms>: giả lập ping cao để thử dự đoán chuyển động
   let travelling = false, left = false;
   const isArena = MAPS[roomMap]?.kind === "arena";
   room.onLeave((code) => {
