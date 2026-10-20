@@ -39,10 +39,12 @@
 // Đại Đấu Hồn Trường (7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng / trong tổ đội, đấu đội võ hồn trong
 // phòng riêng, đánh trúng đối thủ, hạ hết đội / rời sân / không vào sân / hết giờ, Elo, thưởng, về đúng bản đồ và vị trí cũ, bảng xếp
 // hạng, cộng minh, Chân Thân (cả lưu phái Thiêu đốt) và dự đoán chuyển động trong sân) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
+// Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
+// danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
+import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
   BEASTS, MAP_MOVED, XP_LEVEL_CAP,
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
   BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe, formatYears,
@@ -109,11 +111,16 @@ async function bot(name,choice,looks){
   await enter(b);
   return b;
 }
-/** Vào phòng bản đồ (từ 7.2: hoặc phòng sân đấu `roomId` server gửi khi ghép trận) và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). */
+/**
+ * Vào phòng bản đồ và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). `roomId`: vào thẳng phòng đó: kênh server chọn (như
+ * client sau `travel`, mục 6 "Nhiều kênh") hoặc phòng sân đấu server gửi khi ghép trận (7.2).
+ */
 async function enter(b,roomId){
   // Bản đồ đang đứng lấy từ /api/me (server lưu); client chỉ chuyển mapId để ghép phòng.
-  b.room=roomId?await new Client(WS).joinById(roomId,{token:b.token}):await new Client(WS).joinOrCreate("map",{token:b.token,mapId:b.mapId});
+  const opts={token:b.token,mapId:b.mapId};
+  b.room=roomId?await new Client(WS).joinById(roomId,opts):await new Client(WS).joinOrCreate("map",opts);
   b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null; b.squad=null;
+  b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
@@ -168,6 +175,117 @@ const looseOf=b=>(b.bag?.items??[]).filter(i=>i.vohon===null);
 /** Gửi đội hình rồi chờ server gửi lại đội (đã lưu hoặc bị từ chối). */
 async function sendTeam(b,slots){ const n=b.ownedMsgs; b.room.send("team",{slots}); await waitFor(()=>b.ownedMsgs>n); return b.owned.team; }
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+
+// ---- Nhiều kênh (mục 6): cần server hạ số người mỗi kênh, CHANNEL_MAX=2 GAME_TEST=1 npm run dev:server. Khi đó bot chỉ chạy phần
+// này rồi thoát (các phần khác cần nhiều bot chung một phòng); server bình thường (60 người / kênh) thì bỏ qua phần này. ----
+const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
+if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
+/**
+ * Bot thứ 3 vào kênh 2; danh sách kênh; đổi kênh (từ chối khi đầy / chưa mở / đang ở / giao chiến / vừa đổi) giữ tiến độ chưa lưu và
+ * vị trí; vào game và đi cổng ưu tiên kênh của đồng đội tổ đội, không thì kênh ít người nhất còn chỗ; thú vương mỗi kênh một con,
+ * báo toàn server qua mọi kênh, đổi kênh rồi hạ thú vương kênh khác trong cùng khung giờ không nhận thêm rương.
+ */
+async function channelTest(){
+  console.log(`\n== Nhiều kênh: server ${health.chMax} người / kênh ==`);
+  const chOf=b=>b.room.state.channel, meC=b=>b.room.state.players?.get(b.room.sessionId);
+  const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
+  const say=async(b,type,msg)=>{ const l=b.logs.length; b.room.send(type,msg); await waitFor(()=>b.logs.length>l,2000); await sleep(50); return b.logs.slice(l).join(" | "); };
+  const chans=async b=>{ await sleep(1050); b.chans=null; b.room.send("channels"); await waitFor(()=>b.chans,1500); return b.chans; };
+  const fresh=async b=>{ b.owned=null; b.bag=null; b.room.send("vohons"); b.room.send("bag"); await waitFor(()=>b.owned&&b.bag&&meC(b),2000); };
+  /** Đi theo tin `travel` như client: rời phòng cũ, vào đúng phòng server chọn (roomId null thì joinOrCreate). */
+  const follow=async b=>{ const t=b.travel; await b.room.leave(); await sleep(200); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await fresh(b); };
+  const prog=b=>JSON.stringify(b.owned.list.map(v=>[v.rowId,v.level,v.xp,v.stars,v.rings]));
+  const pact=async(b,op,extra,w)=>{ const n=w.partyMsgs; b.room.send("party",{op,...extra}); await waitFor(()=>w.partyMsgs>n,2000); await sleep(120); };
+
+  // ---- Phòng đầy thì mở kênh mới; số kênh đồng bộ cho client ----
+  const P1=await bot("Kenh P1","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:1,outfitCol:1}), P2=await bot("Kenh P2","nhu_cot_tho",{sex:1,hair:1,hairCol:2,outfitCol:2});
+  await waitFor(()=>chOf(P1)&&chOf(P2));
+  ok(P1.room.roomId===P2.room.roomId&&chOf(P1)===1&&chOf(P2)===1,`P1, P2 cùng kênh ${chOf(P1)} của ${P1.room.state.mapId}`);
+  const P3=await bot("Kenh P3","u_minh_linh_mieu",{sex:0,hair:2,hairCol:3,outfitCol:3}); await waitFor(()=>chOf(P3));
+  ok(P3.room.roomId!==P1.room.roomId&&chOf(P3)===2&&P3.room.state.mapId===P1.room.state.mapId,`bot thứ 3 vào kênh ${chOf(P3)} (kênh 1 đã đủ 2 người)`);
+  ok((await T(P3,"chan")).chMax===2,"hook chan: 2 người / kênh");
+  let cl=await chans(P3);
+  ok(cl?.cur===2&&JSON.stringify(cl.list)===JSON.stringify([{ch:1,n:2,max:2,full:true},{ch:2,n:1,max:2,full:false}]),`danh sách kênh: ${JSON.stringify(cl)}`);
+  // Xin dồn trong 1 giây (mở, đóng, mở lại bảng): không bị bỏ, server gửi lại khi hết giây đó.
+  await sleep(1050); let nCh=0; P3.room.onMessage("channels",m=>{P3.chans=m; nCh++;}); P3.room.send("channels"); await sleep(100); P3.room.send("channels");
+  ok(await waitFor(()=>nCh>=2,2500),`xin danh sách 2 lần trong 1 giây: nhận đủ ${nCh} lần (lần sau được hẹn gửi lại)`);
+  ok(/đã đầy/.test(await say(P3,"channel",{ch:1})),"đổi sang kênh 1 (đã đầy) bị từ chối");
+  ok(/không còn mở/.test(await say(P3,"channel",{ch:3})),"kênh 3 (chưa mở) bị từ chối");
+  ok(/Đang ở kênh 2/.test(await say(P3,"channel",{ch:2})),"chọn kênh đang ở bị từ chối");
+  ok(/không hợp lệ/.test(await say(P3,"channel",{ch:"x"})),"số kênh sai kiểu bị từ chối");
+
+  // ---- Đổi kênh giữ tiến độ chưa lưu (kinh nghiệm, túi đồ) và vị trí: lưu như đi cổng ----
+  await fresh(P2); await T(P2,"kill",{tier:1}); await T(P2,"give",{code:"hoi_huyet_dan",qty:3}); await fresh(P2);
+  await T(P2,"lei",{v:0}); // vừa giao chiến
+  ok(/giao chiến/.test(await say(P2,"channel",{ch:2})),"đang giao chiến thì không đổi kênh được");
+  await T(P2,"rest",{s:TEAM_COMBAT_SECS+1}); await fresh(P2);
+  const before={prog:prog(P2),bag:bagKey(P2),x:meC(P2).x,y:meC(P2).y};
+  P2.travel=null; const l2=await say(P2,"channel",{ch:2});
+  ok(/Đang chuyển sang kênh 2/.test(l2)&&await waitFor(()=>P2.travel,3000)&&P2.travel.mapId===P2.mapId&&P2.travel.roomId===P3.room.roomId,
+    `đổi sang kênh 2: "${l2}", travel ${JSON.stringify(P2.travel)}`);
+  await follow(P2);
+  ok(P2.room.roomId===P3.room.roomId&&chOf(P2)===2,`P2 vào kênh ${chOf(P2)} cùng P3`);
+  ok(prog(P2)===before.prog&&bagKey(P2)===before.bag,`đổi kênh giữ tiến độ: võ hồn ${before.prog}, túi đồ giữ nguyên`);
+  ok(Math.hypot(meC(P2).x-before.x,meC(P2).y-before.y)<1,`giữ vị trí (${before.x.toFixed(0)},${before.y.toFixed(0)}) -> (${meC(P2).x.toFixed(0)},${meC(P2).y.toFixed(0)})`);
+  ok(/Vừa đổi kênh/.test(await say(P2,"channel",{ch:1})),`đổi lại ngay: phải chờ ${CHANNEL_CD} giây`);
+  cl=await chans(P1); ok(JSON.stringify(cl?.list.map(c=>[c.ch,c.n]))==="[[1,1],[2,2]]",`sau khi đổi: kênh 1 có 1 người, kênh 2 có 2 người (${JSON.stringify(cl?.list)})`);
+  // Thoát vào lại: tiến độ đã nằm trong DB (transaction đổi kênh), không phải chỉ trong bộ nhớ phòng.
+  // Tự rời rồi joinById kênh khác không né được luật đổi kênh: CHANNEL_CD giây chỉ vào lại được kênh vừa rời; /api/channel đưa về đó.
+  await P2.room.leave(); await sleep(400);
+  let pick=await post("/api/channel",{token:P2.token});
+  ok(pick.mapId===P2.mapId&&pick.roomId===P3.room.roomId,"vừa tự rời kênh 2: /api/channel đưa về đúng kênh 2");
+  let dodge=""; try{ const r=await new Client(WS).joinById(P1.room.roomId,{token:P2.token,mapId:P2.mapId}); await r.leave(); dodge="vào được"; }catch(e){ dodge=String(e?.message??e); }
+  ok(/Vừa rời kênh 2/.test(dodge),`tự rời rồi joinById kênh 1 ngay: bị từ chối ("${dodge}")`);
+  await enter(P2,pick.roomId); await fresh(P2);
+  ok(chOf(P2)===2&&prog(P2)===before.prog&&bagKey(P2)===before.bag,"thoát vào lại kênh 2: tiến độ trước khi đổi kênh vẫn còn (đã lưu)");
+  await T(P2,"chan",{nolock:1}); await P2.room.leave(); await sleep(400); // hook: lần rời này không khóa kênh
+  pick=await post("/api/channel",{token:P2.token});
+  ok(pick.roomId===P1.room.roomId,"không tổ đội, không vừa rời kênh nào: vào game ở kênh ít người nhất còn chỗ (bằng nhau thì kênh số nhỏ hơn): kênh 1");
+  await enter(P2,pick.roomId); await fresh(P2); ok(chOf(P2)===1,"P2 vào kênh 1");
+
+  // ---- Tổ đội: vào game / đi cổng ưu tiên kênh của đồng đội ----
+  await T(P3,"party",{pop:"rlreset"});
+  await pact(P3,"invite",{name:P2.name},P2); await pact(P2,"accept",{name:P3.name},P3); await waitFor(()=>P3.party?.members?.length===2,2000);
+  const m2=P3.party?.members.find(m=>m.name===P2.name);
+  ok(m2&&!m2.sid&&m2.map===P2.mapId&&m2.ch===1,`khung tổ đội của P3 (kênh 2) ghi P2 ở ${m2?.map} · Kênh ${m2?.ch}`);
+  await T(P2,"chan",{nolock:1}); await P2.room.leave(); await sleep(400);
+  pick=await post("/api/channel",{token:P2.token});
+  ok(pick.roomId===P3.room.roomId,"có tổ đội: vào game ở kênh của đồng đội (kênh 2) dù kênh 1 cũng còn chỗ");
+  await enter(P2,pick.roomId); await fresh(P2); ok(P2.room.roomId===P3.room.roomId&&chOf(P2)===2,"P2 vào kênh 2 cùng đồng đội P3");
+  // Đi cổng (hook warp, cùng transaction đi cổng): P3 mở kênh ở Ngoại vi, đồng đội P2 được xếp vào đó, P1 (không tổ đội) sang kênh 2.
+  const NV="tinh_dau_ngoai_vi";
+  P3.travel=null; await T(P3,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P3.travel,3000);
+  ok(P3.travel?.mapId===NV&&P3.travel.roomId===null,`P3 đi cổng tới ${NV}: chưa có kênh nào (roomId null, client mở kênh mới)`);
+  await follow(P3);
+  P2.travel=null; await T(P2,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P2.travel,3000);
+  ok(P2.travel?.roomId===P3.room.roomId,"đồng đội P2 đi cổng: server chọn đúng kênh của P3");
+  await follow(P2);
+  P1.travel=null; await T(P1,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P1.travel,3000); await follow(P1);
+  ok(chOf(P3)===1&&chOf(P2)===1&&chOf(P1)===2,`Ngoại vi: P3, P2 kênh ${chOf(P3)}; P1 kênh ${chOf(P1)} (kênh 1 đầy)`);
+
+  // ---- Thú vương: mỗi kênh một con (suất theo bản đồ), báo toàn server mọi kênh, mỗi khung giờ một rương dù đổi kênh ----
+  const king=b=>[...b.room.state.beasts.values()].find(x=>x.rank===2), chestN=b=>qtyOf(b,chestCode("huyet_nguyet_lang_vuong"));
+  await T(P1,"king",{kop:"spawn"});
+  ok(await waitFor(()=>king(P1)&&king(P3),2000),"thú vương xuất hiện ở cả hai kênh của Ngoại vi (mỗi kênh một con)");
+  /** Đứng cạnh thú vương trong hang rồi hạ ngay (hook kdmg). */
+  async function slayKing(b){ const ki=await T(b,"king"), L=ki.lair; const inL=(x,y)=>x>=L.x&&x<=L.x+L.w&&y>=L.y&&y<=L.y+L.h;
+    for(const [dx,dy] of [[30,0],[-30,0],[0,30],[0,-30],[40,40],[-40,-40]]){ const x=Math.round(ki.x+dx), y=Math.round(ki.y+dy); if(!inL(x,y)) continue;
+      await T(b,"goto",{x,y}); if(Math.hypot(meC(b).x-x,meC(b).y-y)<1) break; }
+    await T(b,"kdmg",{v:1e8}); }
+  P3.chats=[]; P1.logs=[]; await slayKing(P1);
+  ok(await waitFor(()=>!king(P1)&&chestN(P1)===1,3000),`P1 hạ thú vương kênh 2: nhận rương (${P1.logs.find(t=>/lượt/.test(t))??P1.logs.slice(-2).join(" | ")})`);
+  ok(await waitFor(()=>P3.chats.some(m=>/đã bị hạ/.test(m.text)),1500)&&king(P3),`kênh 1 nhận thông báo toàn server ("${P3.chats.find(m=>/bị hạ/.test(m.text))?.text}"), thú vương kênh 1 vẫn còn`);
+  await P2.room.leave(); await sleep(300); // kênh 1 còn chỗ
+  await T(P1,"rest",{s:TEAM_COMBAT_SECS+1}); await T(P1,"chan",{reset:1});
+  P1.travel=null; await say(P1,"channel",{ch:1}); await waitFor(()=>P1.travel,3000); await follow(P1);
+  ok(chOf(P1)===1&&king(P1),"P1 đổi sang kênh 1 (vẫn trong khung giờ đó, thú vương kênh 1 còn sống)");
+  P1.logs=[]; await slayKing(P1); await waitFor(()=>!king(P1),3000); await sleep(400);
+  ok(!king(P1)&&chestN(P1)===1&&/đã nhận rương của khung giờ này ở kênh khác/.test(P1.logs.join("\n")),
+    `hạ thú vương kênh 1 trong cùng khung giờ: không nhận thêm rương ("${P1.logs.find(t=>/kênh khác/.test(t))??P1.logs.slice(-3).join(" | ")}")`);
+  for(const b of [P1,P3]) await b.room.leave();
+}
+
 const A=await bot("Tester A","lam_dien_ba_vuong_long",{sex:1,hair:2,hairCol:3,outfitCol:4}), B=await bot("Tester B","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:5,outfitCol:1});
 await sleep(800);
 const st=A.room.state, p=st.players.get(A.room.sessionId);

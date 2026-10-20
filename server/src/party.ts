@@ -15,7 +15,7 @@ export const PARTY_TOPIC = "party";
  * lúc rời phòng (ms).
  */
 export interface Live {
-  acc: number; name: string; sid: string; mapId: string; roomId: string;
+  acc: number; name: string; sid: string; mapId: string; roomId: string; ch: number;
   level: number; vh: number; hp: number; maxHp: number; dead: boolean; off: number;
 }
 export interface Party { id: number; leader: number; members: number[]; }
@@ -40,6 +40,19 @@ const all = (p: Party, text?: string, col = COL): PartyNote => ({ to: [...p.memb
 export function partyIdOf(acc: number) { return partyOfAcc.get(acc) ?? 0; }
 /** Mọi thành viên (accountId) của tổ đội có `acc`, kể cả chính nó; không có tổ đội thì []. */
 export function partyMembers(acc: number) { return partyOf(acc)?.members ?? []; }
+
+/**
+ * Phòng (kênh) của đồng đội đang trong game ở bản đồ `mapId` (không tính chính `acc`), kèm số đồng đội ở mỗi phòng: vào game, đi
+ * cổng ưu tiên kênh có đồng đội (mục 6 "Nhiều kênh").
+ */
+export function mateRooms(acc: number, mapId: string) {
+  const out = new Map<string, number>();
+  for (const m of partyOf(acc)?.members ?? []) {
+    const l = live.get(m);
+    if (m !== acc && l && !l.off && l.mapId === mapId) out.set(l.roomId, (out.get(l.roomId) ?? 0) + 1);
+  }
+  return out;
+}
 
 /** Phòng `roomId` nhận người chơi (vào game, vào lại, sang bản đồ mới qua cổng). */
 export function goOnline(l: Omit<Live, "off">): PartyNote[] {
@@ -200,7 +213,7 @@ export function partyView(acc: number, roomId: string, now: number) {
   const members = (p?.members ?? []).map((m) => {
     const l = live.get(m);
     return { name: l?.name ?? "?", leader: m === p!.leader, me: m === acc, sid: l && !l.off && l.roomId === roomId ? l.sid : "",
-      map: l?.mapId ?? "", level: l?.level ?? 0, vh: l?.vh ?? 0, hp: l?.hp ?? 0, maxHp: l?.maxHp ?? 0, dead: !!l?.dead, off: !l || l.off > 0 };
+      map: l?.mapId ?? "", ch: l?.ch ?? 0, level: l?.level ?? 0, vh: l?.vh ?? 0, hp: l?.hp ?? 0, maxHp: l?.maxHp ?? 0, dead: !!l?.dead, off: !l || l.off > 0 };
   });
   const inv = [...(invites.get(acc) ?? [])].filter(([, exp]) => exp > now).map(([from, exp]) => ({ name: nameOf(from), secs: Math.ceil((exp - now) / 1000) }));
   const view = { id: p?.id ?? 0, max: PARTY_MAX, members, invites: inv };

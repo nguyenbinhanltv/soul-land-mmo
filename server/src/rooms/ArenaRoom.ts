@@ -33,6 +33,9 @@ const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn",
 export const ARENA_END_CODE = 4005;
 
 export class ArenaRoom extends MapRoom {
+  // Không chia kênh (mục 6 "Nhiều kênh"): mỗi trận một phòng riêng 2 người, không theo CHANNEL_MAX; `state.channel` = 0 nên MapRoom
+  // không cấp số kênh, không khóa kênh khi rời sân, tin `channel` bị từ chối;
+  // rời sân thì vào bản đồ cũ theo pickChannel (kênh đồng đội, không thì ít người nhất).
   maxClients = 2;
   state = new ArenaState();
   match!: ArenaMatch;

@@ -200,12 +200,27 @@ function waitMapId(room: Room, ms = 8000) {
 let game: Phaser.Game | null = null;
 /** Bản đồ đang đứng do server lưu (/api/login, /api/me trả `mapId`); client chỉ chuyển nó để Colyseus ghép đúng phòng. */
 let mapId = "";
-async function join(retry = true) {
+/**
+ * Vào phòng của bản đồ đang lưu. `roomId`: phòng (kênh) server đã chọn trong tin `travel` (đi cổng, đổi kênh; null = mọi kênh đầy);
+ * không có thì hỏi /api/channel (kênh có đồng đội tổ đội, không thì kênh ít người nhất còn chỗ). Kênh vừa đầy hoặc vừa đóng thì
+ * joinOrCreate: Colyseus chọn kênh còn chỗ, hết chỗ thì mở kênh mới.
+ */
+async function join(retry = true, roomId?: string | null) {
   overlay.hidden = false; card.classList.remove("wide");
   card.innerHTML = `<h1>Đang tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}…</h1>`;
   try {
     const client = new Client(WS);
-    const room = await client.joinOrCreate("map", { token, mapId });
+    if (roomId === undefined) {
+      const r = await post<{ mapId: string; roomId: string | null }>("/api/channel", { token }).catch(() => null);
+      if (r) { mapId = r.mapId; roomId = r.roomId; }
+    }
+    const opts = { token, mapId };
+    const room = roomId
+      ? await client.joinById(roomId, opts).catch((e) => {
+        if (/not found|locked|full/i.test((e as Error)?.message ?? "")) return client.joinOrCreate("map", opts);
+        throw e;
+      })
+      : await client.joinOrCreate("map", opts);
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap);
   } catch (e) {
@@ -242,9 +257,10 @@ async function joinArena(roomId: string) {
 const ARENA_END_CODE = 4005;
 
 /**
- * Mở Phaser cho phòng vừa vào. Server cho đi cổng (`travel {mapId}`) thì rời phòng cũ, hủy scene và vào phòng của bản đồ đích.
+ * Mở Phaser cho phòng vừa vào. Server cho đi cổng hoặc đổi kênh (`travel {mapId, roomId}`) thì rời phòng cũ, hủy scene và vào phòng
+ * (kênh) server đã chọn ở bản đồ đích.
  * Từ 7.2: ghép được trận thì rời bản đồ, vào phòng sân đấu; xong trận (hoặc bấm rời sân) thì về lại bản đồ đang đứng (`mapId` không đổi
- * khi vào sân, server giữ vị trí cũ).
+ * khi vào sân, server giữ vị trí cũ; kênh chọn lại qua /api/channel).
  */
 function play(room: Room, roomMap: string) {
   overlay.hidden = true;
@@ -269,7 +285,8 @@ function play(room: Room, roomMap: string) {
     document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
     next();
   };
-  const onTravel = (to: string) => leaveThen(() => { mapId = to; join(); });
+  // `roomId`: kênh server đã chọn (tin `travel`); không có (về từ sân đấu) thì join hỏi /api/channel.
+  const onTravel = (to: string, roomId?: string | null) => leaveThen(() => { mapId = to; join(true, roomId); });
   const onArena = (roomId: string) => leaveThen(() => joinArena(roomId));
   const onBack = () => onTravel(mapId);
   game = new Phaser.Game({
