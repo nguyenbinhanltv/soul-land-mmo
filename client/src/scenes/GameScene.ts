@@ -190,9 +190,11 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(0x86e0b0, 0.22).fillRect(r.x, r.y, r.w, r.h);
       g.lineStyle(1, 0xc8ffe0, 0.9).strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
       this.tweens.add({ targets: g, alpha: 0.45, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-      this.add.text(r.x + r.w / 2, r.y - 2, `➜ ${MAPS[r.to].name}`, {
+      // Cổng sát mép trên bản đồ (cổng bắc Nặc Đinh Thành, BĐ6a): tên ghi dưới cổng, không thì khuất ngoài bản đồ.
+      const top = r.y < TILE;
+      this.add.text(r.x + r.w / 2, top ? r.y + r.h + 2 : r.y - 2, `➜ ${MAPS[r.to].name}`, {
         fontFamily: FONT, fontSize: "7px", fontStyle: "700", color: "#c8ffe0", stroke: "#000", strokeThickness: 2, resolution: 8,
-      }).setOrigin(0.5, 1).setDepth(99984);
+      }).setOrigin(0.5, top ? 0 : 1).setDepth(99984);
     }
   }
 

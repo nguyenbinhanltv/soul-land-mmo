@@ -155,6 +155,8 @@ const sj=o=>JSON.stringify(o&&typeof o==="object"?Object.entries(o).sort():o);
 async function useItem(b,id){ const n=b.bagMsgs??0, l=b.logs.length; b.room.send("use",{id}); await waitFor(()=>(b.bagMsgs??0)>n||b.logs.length>l,1500); }
 const lastLog=(b,re)=>waitFor(()=>re.test(b.logs.at(-1)??""),800);
 // ---------- 6.1: NPC ----------
+/** Thành đặt Đại Đấu Hồn Trường (từ BĐ6a; 7.2 là lối vào tạm ở Nặc Đinh Thành). */
+const AT="thien_dau_thanh";
 /** Chỗ đứng của NPC `id` trong file Tiled của bản đồ (object `npc`, thuộc tính `npc`). */
 const npcSpot=(mapId,id)=>{ const o=JSON.parse(readFileSync(new URL(`../../shared/assets/${mapId}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[])
   .find(o=>o.type==="npc"&&(o.properties??[]).find(q=>q.name==="npc")?.value===id); return o?{x:o.x,y:o.y}:null; };
@@ -3311,6 +3313,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
   }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await npcTown();
+await thienDauTest();
 await questTest();
 await arenaTest();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
@@ -3343,9 +3346,9 @@ process.exit(fails?1:0);
  */
 async function npcTown(){
   console.log("[6.1] NPC ở Nặc Đinh Thành: thương nhân, lò rèn, Đại Sư");
-  const all=["thanh_hon_thon","nac_dinh_thanh"].flatMap(m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8"))
+  const all=["thanh_hon_thon","nac_dinh_thanh",AT].flatMap(m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8"))
     .layers.flatMap(l=>l.objects??[]).filter(o=>o.type==="npc").map(o=>(o.properties??[]).find(q=>q.name==="npc")?.value));
-  ok(all.every(id=>npcDef(id))&&NPCS.every(n=>all.filter(x=>x===n.id).length===1),`mỗi NPC trong NPCS đặt đúng một chỗ ở Thánh Hồn Thôn / Nặc Đinh Thành: ${all.join(", ")}`);
+  ok(all.every(id=>npcDef(id))&&NPCS.every(n=>all.filter(x=>x===n.id).length===1),`mỗi NPC trong NPCS đặt đúng một chỗ ở Thánh Hồn Thôn / Nặc Đinh Thành / Thiên Đấu Thành: ${all.join(", ")}`);
   ok(NPCS.every(n=>n.lines.length&&n.lines.every(t=>t.length>10)),"NPC nào cũng có lời thoại");
   // Bảng giá mua lại (chờ chốt): đúng mốc, tăng theo niên hạn / sao; hồn cốt gấp BONE_SELL lần, mỗi cấp cường hóa +10%; không mua đan, rương.
   ok(RING_SELL.every(([y,v])=>ringSellPrice(y)===v)&&[10,50,100,437,1000,5000,10000,50000,100000].every((y,i,a)=>!i||ringSellPrice(y)>=ringSellPrice(a[i-1])),
@@ -3359,7 +3362,7 @@ async function npcTown(){
   ok(sellPrice({code:"hoi_huyet_dan",years:null,stars:null,enhance:0})===null&&sellPrice({code:chestCode(BOSSES.find(b=>b.rank===2).id),years:null,stars:null,enhance:0})===null&&sellPrice({code:"khong_co",years:null,stars:null,enhance:0})===null&&sellPrice(ring(437))>0,
     "thương nhân không mua đan, rương, đồ lạ");
   ok(SHOP.every(r=>itemDef(r.code)?.kind==="dan"&&r.price>0)&&SHOP.some(r=>r.code==="hoi_huyet_dan")&&SHOP.some(r=>r.code==="hoi_hon_dan"),`thương nhân bán ${SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")}`);
-  const tn=npcSpot("nac_dinh_thanh","thuong_nhan"), lr=npcSpot("nac_dinh_thanh","lo_ren"), ds=npcSpot("nac_dinh_thanh","dai_su"), dt=npcSpot("nac_dinh_thanh","dau_hon_truong");
+  const tn=npcSpot("nac_dinh_thanh","thuong_nhan"), lr=npcSpot("nac_dinh_thanh","lo_ren"), ds=npcSpot("nac_dinh_thanh","dai_su"), sg=npcSpot("nac_dinh_thanh","su_gia_dau_hon");
   ok(Math.hypot(tn.x-me().x,tn.y-me().y)>NPC_RANGE&&await talk(C,"thuong_nhan")===null&&/lại gần Thương nhân/.test(C.logs.at(-1)),"đứng ở cổng đông: thương nhân chưa nói chuyện");
   const bk0=bagKey(C);
   ok(/đứng cạnh thương nhân/.test(await trade(C,"buy",{code:"hoi_huyet_dan",qty:1}))&&bagKey(C)===bk0,"đứng xa thương nhân: mua bị từ chối, túi và Hồn Tệ không đổi");
@@ -3437,15 +3440,76 @@ async function npcTown(){
     const cu=C.bag.items.find(i=>i.id===ct?.id);
     ok(ct&&cm.length===2&&C.coreUp?.to===cl&&cu?.enhance===cl&&cu.stats.subs.length===CORE_SUBS[1]+1&&!cm.some(id=>C.bag.items.some(i=>i.id===id)),
       `lò rèn: nâng cấp hồn hạch Lam Ngân 2★ lên +${cu?.enhance} (${cu?.stats.subs.length} dòng phụ), 2 nguyên liệu đã mất`); }
-  // Đại Sư và Đại Đấu Hồn Trường: chỉ có lời thoại (nhiệm vụ ở 6.2); đứng cạnh Thợ rèn thì Đại Sư ở xa.
+  // Đại Sư và sứ giả Đại Đấu Hồn Trường (BĐ6a, chỗ của lối vào tạm 7.2): chỉ có lời thoại (nhiệm vụ ở 6.2); đứng cạnh Thợ rèn thì Đại Sư ở xa.
   ok(await talk(C,"dai_su")===null&&/lại gần Ngọc Tiểu Cương/.test(C.logs.at(-1)),"đứng ở lò rèn: Đại Sư ở xa, chưa nói chuyện");
   await test(C,"goto",{x:ds.x,y:ds.y+16}); ok(await talk(C,"dai_su")==="dai_su","đứng cạnh Ngọc Tiểu Cương (Đại Sư): mở hộp thoại");
   ok(npcDef("dai_su").lines.some(t=>t.includes(formatYears(ringLimit(1)))&&t.includes(formatYears(ringLimit(4)))),"Đại Sư giải thích giới hạn hồn hoàn theo vòng (RING_LIMIT)");
-  await test(C,"goto",{x:dt.x,y:dt.y+16}); ok(await talk(C,"dau_hon_truong")==="dau_hon_truong","Đại Đấu Hồn Trường (sắp mở): có lời giới thiệu");
+  await test(C,"goto",{x:sg.x,y:sg.y+16}); ok(await talk(C,"su_gia_dau_hon")==="su_gia_dau_hon"&&npcDef("su_gia_dau_hon").role==="talk","sứ giả Đại Đấu Hồn Trường: chỉ đường lên Thiên Đấu Thành");
+  ok(await talk(C,"dau_hon_truong")===null&&/Không có NPC này/.test(C.logs.at(-1)),"Đại Đấu Hồn Trường không còn ở Nặc Đinh Thành (BĐ6a)");
+  { const l=C.logs.length; C.room.send("arena",{op:"queue"}); await waitFor(()=>C.logs.length>l,1500);
+    ok(/lại gần Đại Đấu Hồn Trường/.test(C.logs.at(-1)),`đứng cạnh sứ giả: không xếp hàng đấu hồn được (${C.logs.at(-1)})`); }
   // Vào lại: Hồn Tệ và túi sau mua / bán / cường hóa đã lưu.
   const bk=bagKey(C); await C.room.leave(); await sleep(400);
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+}
+
+/**
+ * BĐ6a Thiên Đấu Thành: bot C đi bộ qua cổng bắc Nặc Đinh Thành (thành an toàn, không cảnh báo cấp), xuất hiện đúng điểm `arrive`; thành
+ * không có hồn thú, không giao chiến; NPC thành (Phất Lan Đức, thương nhân mua được đan, lò rèn, Đại Đấu Hồn Trường) nói chuyện được;
+ * cổng Lạc Nhật / Cực Bắc / bến thuyền Hải Thần Đảo chỉ là biển "sắp mở": không có cổng, tường / sông chặn; thoát vào lại đúng bản đồ
+ * và vị trí; đi bộ về Nặc Đinh Thành, xuất hiện ở cổng bắc.
+ */
+async function thienDauTest(){
+  console.log("[BĐ6a] Thiên Đấu Thành: cổng Nặc Đinh Thành <-> Thiên Đấu Thành, NPC thành, cổng chưa mở");
+  const raw=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const objs=raw(AT), portals=objs.filter(o=>o.type==="portal").map(o=>o.name);
+  ok(MAPS[AT]?.kind==="town"&&MAPS[AT].level===null&&MAPS[AT].name==="Thiên Đấu Thành","MAPS: Thiên Đấu Thành là thành an toàn (town), không cấp đề xuất");
+  ok(same(portals,["Về Nặc Đinh Thành"]),`Thiên Đấu Thành chỉ có cổng về Nặc Đinh Thành (cổng chưa mở không đặt portal): ${portals.join(", ")}`);
+  const signs=["cong_lac_nhat","cong_cuc_bac","ben_thuyen_hai_than"];
+  ok(signs.every(id=>npcDef(id)?.role==="talk"&&!npcDef(id).looks&&/sắp mở/i.test(npcDef(id).title+npcDef(id).lines.join(" "))&&npcSpot(AT,id)),
+    `biển "sắp mở": ${signs.map(id=>npcDef(id)?.name).join(", ")}`);
+  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Thiên Đấu Thành (cần hook goto, coin): bật server bằng GAME_TEST=1"); return; }
+  C.room.send("travel",{portal:"Đi Thiên Đấu Thành"}); ok(await lastLog(C,/đứng trong cổng/),"Nặc Đinh Thành: chưa đứng trong cổng bắc thì không đi được");
+  // Đi bộ thật từ điểm xuất hiện của cổng bắc lên cổng.
+  const back=raw("nac_dinh_thanh").find(o=>o.type==="arrive"&&o.name==="tu_thien_dau_thanh");
+  await test(C,"goto",{x:back.x,y:back.y});
+  ok(await walk(0,-1,()=>C.portal?.name,4000)&&C.portal.name==="Đi Thiên Đấu Thành",`tới cổng bắc: ${JSON.stringify(C.portal)}`);
+  ok(C.portal?.to===AT&&C.portal.toName==="Thiên Đấu Thành"&&!C.portal.warn&&!C.portal.level,"hộp cổng: đích Thiên Đấu Thành, không cấp đề xuất, không cảnh báo");
+  await travelBy("Đi Thiên Đấu Thành",AT);
+  const ar=objs.find(o=>o.type==="arrive"&&o.name==="tu_nac_dinh_thanh");
+  ok(Math.hypot(me().x-ar.x,me().y-ar.y)<1,`xuất hiện ở cổng nam Thiên Đấu Thành: ${me().x},${me().y}`);
+  ok(C.room.state.beasts.size===0,"Thiên Đấu Thành không có hồn thú");
+  C.room.send("attack"); ok(await lastLog(C,/Vùng an toàn/),"thành an toàn: không đánh được");
+  C.room.send("skill",{i:0}); ok(await lastLog(C,/Vùng an toàn/),"thành an toàn: không dùng hồn kỹ được");
+  await sleep(1500); ok(C.room.state.beasts.size===0,"vẫn không sinh hồn thú sau một lúc");
+  // NPC thành.
+  for(const id of ["phat_lan_duc","thuong_nhan_thien_dau","lo_ren_thien_dau","dau_hon_truong",...signs]){
+    const sp=npcSpot(AT,id); await test(C,"goto",{x:sp.x,y:sp.y+16});
+    ok(await talk(C,id)===id,`${npcDef(id).name} (${npcDef(id).title}): mở hộp thoại`);
+  }
+  ok(await talk(C,"thuong_nhan")===null&&/Không có NPC này/.test(C.logs.at(-1)),"Thương nhân Nặc Đinh không ở Thiên Đấu Thành");
+  { const sp=npcSpot(AT,"thuong_nhan_thien_dau"); await test(C,"goto",{x:sp.x,y:sp.y+16}); await test(C,"coin",{n:1000});
+    const hh=SHOP.find(r=>r.code==="hoi_huyet_dan"), q0=qtyOf(C,hh.code), h0=C.bag.honTe, t=await trade(C,"buy",{code:hh.code,qty:1});
+    ok(qtyOf(C,hh.code)===q0+1&&C.bag.honTe===h0-hh.price,`thương nhân Thiên Đấu bán đan cùng giá (${t})`); }
+  // Cổng chưa mở: xin đi bị từ chối, đi tiếp ra ngoài bị tường / sông chặn, không hiện hộp cổng.
+  for(const [id,dx,dy] of [["cong_lac_nhat",-1,0],["cong_cuc_bac",0,-1],["ben_thuyen_hai_than",1,0]]){
+    C.room.send("travel",{portal:npcDef(id).name}); ok(await lastLog(C,/không tồn tại/),`${npcDef(id).name}: không phải cổng`);
+    const sp=npcSpot(AT,id); await test(C,"goto",{x:sp.x,y:sp.y+16}); C.portal=null;
+    await walk(dx,dy,()=>false,1500); const q=me();
+    // tường thành ở cột / hàng 0, thuyền neo từ cột 77 (tools/gen-map.mjs)
+    ok(q.x>16&&q.y>16&&q.x<77*16&&!C.portal?.name&&C.room.state.mapId===AT,`${npcDef(id).name}: đi tiếp bị chặn ở (${q.x.toFixed(0)},${q.y.toFixed(0)}), vẫn ở Thiên Đấu Thành`);
+  }
+  // Thoát vào lại: đúng bản đồ, đúng chỗ.
+  { const sp=npcSpot(AT,"phat_lan_duc"); await test(C,"goto",{x:sp.x,y:sp.y+16}); await C.room.leave(); await sleep(400);
+    const m=await post("/api/me",{token:C.token}); ok(m.mapId===AT,`thoát rồi /api/me: ${m.mapId}`);
+    C.mapId=m.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
+    ok(C.room.state.mapId===AT&&Math.hypot(me().x-sp.x,me().y-sp.y-16)<1,`vào lại: Thiên Đấu Thành đúng chỗ cũ (${me().x},${me().y})`); }
+  // Đi bộ về Nặc Đinh Thành theo đại lộ xuống cổng nam.
+  await test(C,"goto",{x:ar.x,y:ar.y});
+  ok(await walk(0,1,()=>C.portal?.name,4000)&&C.portal.to==="nac_dinh_thanh"&&!C.portal.warn,`tới cổng nam: ${C.portal?.name}`);
+  await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh");
+  ok(Math.hypot(me().x-back.x,me().y-back.y)<1,`về Nặc Đinh Thành ở cổng bắc: ${me().x},${me().y}`);
 }
 
 /**
@@ -3731,7 +3795,8 @@ async function questTest(){
 }
 
 /**
- * 7.2 Đại Đấu Hồn Trường: hàm thuần (Elo, cửa sổ ghép nới dần, ghép Elo gần nhất); 3 tài khoản mới ở Nặc Đinh Thành: xếp hàng ở NPC
+ * 7.2 Đại Đấu Hồn Trường: hàm thuần (Elo, cửa sổ ghép nới dần, ghép Elo gần nhất); 3 tài khoản mới ở Thiên Đấu Thành (từ BĐ6a; 7.2 là
+ * Nặc Đinh Thành): xếp hàng ở NPC
  * (đứng xa / đang giao chiến bị từ chối, hủy; đang niệm đi cổng thì không bị ghép, đi cổng xong thì ra khỏi hàng chờ), ghép theo Elo gần
  * nhất, vào sân (cả đội đầy, chưa đánh được lúc đếm ngược, message ngoài trận bị chặn); trận 1 rời sân = thua; trận 2 đạn hồn kỹ và đánh
  * thường trúng đối thủ (Trúng độc), hạ hết đội (hook down) -> thắng; trận 3 không vào sân = thua; trận 4 hết giờ so % sinh lực. Mỗi trận:
@@ -3750,7 +3815,8 @@ async function arenaTest(){
   ok(P([["a",1000],["b",1500],["c",1040]])==='[["a","c"]]',"ghép người chờ lâu nhất với Elo gần nhất trong cửa sổ, người quá xa chờ tiếp");
   ok(P([["a",1000],["b",1500]])==="[]"&&P([["a",1000,20],["b",1500]])==='[["a","b"]]',"chênh 500 Elo: chưa ghép; chờ 20 giây thì cửa sổ đủ rộng");
   ok(P([["a",1000,30],["b",1090],["c",1050],["d",1500]])==='[["a","c"]]',"nhiều người vừa cửa sổ: chọn Elo gần nhất");
-  ok(MAPS[ARENA_MAP]?.kind==="arena"&&npcDef("dau_hon_truong")?.role==="arena"&&!!npcSpot("nac_dinh_thanh","dau_hon_truong"),"sân đấu riêng (kind arena), NPC Đại Đấu Hồn Trường ở Nặc Đinh Thành");
+  ok(MAPS[ARENA_MAP]?.kind==="arena"&&npcDef("dau_hon_truong")?.role==="arena"&&!!npcSpot(AT,"dau_hon_truong")&&!npcSpot("nac_dinh_thanh","dau_hon_truong"),
+    `sân đấu riêng (kind arena), NPC Đại Đấu Hồn Trường ở ${MAPS[AT].name} (BĐ6a), không còn ở Nặc Đinh Thành`);
   let err=""; try{ const r=await new Client(WS).joinOrCreate("map",{mapId:ARENA_MAP}); await r.leave(); }catch(e){ err=String(e?.message??e); }
   ok(/không tồn tại/.test(err),`không mở được phòng bản đồ trên sân đấu (${err})`);
   err=""; try{ const r=await new Client(WS).create("arena",{matchId:"khong_co"}); await r.leave(); }catch(e){ err=String(e?.message??e); }
@@ -3760,12 +3826,12 @@ async function arenaTest(){
   const F=await bot("Võ sĩ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:4,outfitCol:5});
   const G=await bot("Kiếm khách","hoa_anh",{sex:0,hair:0,hairCol:1,outfitCol:2});
   if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
-  const ns=npcSpot("nac_dinh_thanh","dau_hon_truong"), meOf=b=>b.room.state.players?.get(b.room.sessionId);
+  const ns=npcSpot(AT,"dau_hon_truong"), meOf=b=>b.room.state.players?.get(b.room.sessionId);
   const at=(b,dx=0)=>test(b,"goto",{x:ns.x+dx,y:ns.y+16});
-  /** Hook warp sang Nặc Đinh Thành cạnh NPC (transaction đi cổng), rồi vào phòng mới như đi cổng thật. */
+  /** Hook warp sang Thiên Đấu Thành cạnh NPC (transaction đi cổng), rồi vào phòng mới như đi cổng thật. */
   async function warpTown(b){
-    b.travel=null; b.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:ns.x,y:ns.y+16});
-    ok(await waitFor(()=>b.travel?.mapId==="nac_dinh_thanh",4000),`${b.name}: tới Nặc Đinh Thành`);
+    b.travel=null; b.room.send("test",{op:"warp",mapId:AT,x:ns.x,y:ns.y+16});
+    ok(await waitFor(()=>b.travel?.mapId===AT,4000),`${b.name}: tới ${MAPS[AT].name}`);
     await b.room.leave(); await sleep(300); await back(b);
   }
   /** Vào lại phòng của bản đồ đang lưu (/api/me), chờ state, đội hình, túi đồ. */
@@ -3802,7 +3868,7 @@ async function arenaTest(){
   await test(E,"set",{rowId:E.owned.active,level:10,rings:[100]});
 
   // ---- Xếp hàng ở NPC ----
-  await test(E,"goto",{x:30*16,y:20*16}); let t=await aop(E,"queue"); ok(/lại gần/.test(t)&&!E.aq.on,`đứng xa NPC: không xếp hàng được (${t})`);
+  await test(E,"goto",{x:34*16,y:24*16}); let t=await aop(E,"queue"); ok(/lại gần/.test(t)&&!E.aq.on,`đứng xa NPC: không xếp hàng được (${t})`);
   await at(E); await test(E,"hurt",{pct:5}); t=await aop(E,"queue"); ok(/giao chiến/.test(t)&&!E.aq.on,`vừa bị đánh: không xếp hàng được (${t})`);
   // Đang trong tổ đội (7.1): không xếp hàng được; rời tổ đội thì được.
   E.room.send("party",{op:"invite",name:F.name}); await sleep(300); F.room.send("party",{op:"accept",name:E.name}); await sleep(400);
@@ -3812,12 +3878,12 @@ async function arenaTest(){
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
-  await at(F); await aop(F,"queue"); await test(F,"goto",{x:(60-1.5)*16,y:20.5*16});
-  F.travel=null; F.room.send("travel",{portal:"Đi Tinh Đấu Ngoại vi"}); await sleep(100); await aop(E,"queue");
+  await at(F); await aop(F,"queue"); await test(F,"goto",{x:40*16,y:54.5*16});
+  F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
   ok(await waitFor(()=>F.travel?.mapId,4000),"F đi qua cổng trong lúc đang xếp hàng");
   ok(!found(E)&&!found(F),"đang niệm đi cổng: không bị ghép trận");
   await F.room.leave(); await sleep(300); await back(F);
-  t=await aop(F,"cancel"); ok(F.mapId==="tinh_dau_ngoai_vi"&&!/hủy/.test(t)&&!F.aq.on,`F sang ${MAPS[F.mapId].name}: đã ra khỏi hàng chờ khi đi cổng`);
+  t=await aop(F,"cancel"); ok(F.mapId==="nac_dinh_thanh"&&!/hủy/.test(t)&&!F.aq.on,`F sang ${MAPS[F.mapId].name}: đã ra khỏi hàng chờ khi đi cổng`);
   t=await aop(E,"cancel"); ok(/hủy/.test(t),"E vẫn trong hàng chờ một mình, hủy");
   await warpTown(F);
 
@@ -3851,10 +3917,10 @@ async function arenaTest(){
   await checkReward(E,m,bagE,ARENA.dailyWins-1);
   const eloG1=eloAfter(1040,1000,0);
   await sleep(300); await back(G);
-  ok(G.room.state.mapId==="nac_dinh_thanh"&&Math.hypot(meOf(G).x-posG[0],meOf(G).y-posG[1])<1,"G rời sân: về Nặc Đinh Thành đúng chỗ cũ");
+  ok(G.room.state.mapId===AT&&Math.hypot(meOf(G).x-posG[0],meOf(G).y-posG[1])<1,`G rời sân: về ${MAPS[AT].name} đúng chỗ cũ`);
   const bagE1=bagKey(E);
   await kickBack(E);
-  ok(E.room.state.mapId==="nac_dinh_thanh"&&Math.hypot(meOf(E).x-posE[0],meOf(E).y-posE[1])<1,`E về Nặc Đinh Thành đúng chỗ cũ (${meOf(E).x.toFixed(0)},${meOf(E).y.toFixed(0)})`);
+  ok(E.room.state.mapId===AT&&Math.hypot(meOf(E).x-posE[0],meOf(E).y-posE[1])<1,`E về ${MAPS[AT].name} đúng chỗ cũ (${meOf(E).x.toFixed(0)},${meOf(E).y.toFixed(0)})`);
   ok(bagKey(E)===bagE1&&prog(E)===progE&&JSON.stringify(E.owned.team)+E.owned.active===teamE,"phần thưởng đã lưu; cấp, kinh nghiệm, hồn hoàn, đội hình không đổi");
 
   // 8.1a trong sân: võ hồn ra trận của E có đủ 7 hồn hoàn (Võ Hồn Chân Thân) và mang hồn kỹ vòng 5 ở ô U; F lên cấp 70 để chịu các đòn thử.
@@ -3915,7 +3981,7 @@ async function arenaTest(){
   ok(await waitFor(()=>endOf(F),3000),"G không vào sân: hết giờ chờ thì trận có kết quả");
   m=checkEnd(F,1,"noshow",eloF2,eloG3,"Trận 3"); await checkReward(F,m,bagF3,ARENA.dailyWins-1);
   await G.room.leave(); await sleep(300); await back(G);
-  ok(G.room.state.mapId==="nac_dinh_thanh","G (đã ghép mà không vào sân) vẫn ở Nặc Đinh Thành");
+  ok(G.room.state.mapId===AT,`G (đã ghép mà không vào sân) vẫn ở ${MAPS[AT].name}`);
   await kickBack(F);
   const eloF3=m.elo1, eloG4=eloAfter(eloG3,eloF2,0);
 
