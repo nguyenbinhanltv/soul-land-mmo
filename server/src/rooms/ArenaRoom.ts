@@ -219,7 +219,9 @@ export class ArenaRoom extends MapRoom {
       const o = this.sides[1 - i], score = winner === null ? 0.5 : winner === i ? 1 : 0;
       const delta: ArenaRecord = { elo: eloAfter(s.rec.elo, o.rec.elo, score) - s.rec.elo, wins: score === 1 ? 1 : 0, losses: score === 0 ? 1 : 0, draws: score === 0.5 ? 1 : 0 };
       const sid = s.sid, p = sid ? this.state.players.get(sid) : undefined, d = sid ? this.pdata.get(sid) : undefined;
-      if (p && d) { d.input = { x: 0, y: 0 }; if (p.dead) d.deadT = Infinity; } // gục thì nằm lại tới khi rời sân
+      // Gục thì nằm lại tới khi rời sân. Không tự dừng hướng đi đang giữ: sau trận vẫn đi lại được trong sân, và dự đoán chuyển động phía
+      // client (mục 6) chỉ đúng khi server áp đúng input client đã gửi (muốn dừng thì phải tăng `PlayerState.seq` như hook `goto`).
+      if (p && d && p.dead) d.deadT = Infinity;
       const reward = score === 1 && p && d && !s.left && s.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
       const report = (rec: ArenaRecord, paid: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.name,
         elo0: s.rec.elo, elo1: rec.elo, rec, reward: paid && reward ? { honTe: reward.honTe, code: reward.code, qty: reward.qty, coin: reward.coin } : null,

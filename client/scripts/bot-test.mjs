@@ -3698,6 +3698,11 @@ async function arenaTest(){
   await test(E,"afast",{s:0});
   ok(await waitFor(()=>E.room.state.phase==="fight",2000)&&E.arena.some(m=>m.k==="fight"),`hết đếm ngược: giao đấu ${Math.round(E.room.state.time)} giây`);
   const sid=b=>b.room.sessionId, fv=()=>E.room.state.players.get(sid(F)), sE=sides(E).findIndex(s=>s.sid===sid(E)), dir=sE===0?1:-1;
+  // Dự đoán chuyển động (#50) trong sân: phòng mới nên số thứ tự input bắt đầu lại từ 0 (ở bản đồ E đã bị hook goto tăng); input kèm `s` được áp.
+  ok(meOf(E).seq===0,`vào sân: số thứ tự input đặt lại (seq ${meOf(E).seq})`);
+  const x0=meOf(E).x; E.room.send("input",{x:dir,y:0,s:1});
+  ok(await waitFor(()=>meOf(E).seq===1&&meOf(E).seqT>0&&Math.abs(meOf(E).x-x0)>2,1500),`input {s:1} trong sân: server ghi seq 1, seqT ${meOf(E).seqT.toFixed(2)} giây, đi ${Math.abs(meOf(E).x-x0).toFixed(0)} pixel`);
+  E.room.send("input",{x:0,y:0,s:2}); await waitFor(()=>meOf(E).seq===2,1500);
   await test(E,"goto",{x:fv().x-dir*40,y:fv().y});
   const hp0=fv().hp; E.room.send("skill",{i:0});
   ok(await waitFor(()=>fv().hp<hp0&&(fv().st&statusBit("poison")),2000),`${ringSkill("bich_lan_xa_hoang",4).name} (hồn kỹ vòng 5 ở ô U) trúng đối thủ: ${hp0} → ${fv().hp}, Trúng độc`);
