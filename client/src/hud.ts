@@ -927,7 +927,7 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
   btn("Đóng", "drop", () => { enhClose(); again(); });
   box.appendChild(row);
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt. Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành cũng mở bảng này.`;
+  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt. Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành và Thiên Đấu Thành cũng mở bảng này.`;
   box.appendChild(note);
   if (enhJump) { enhJump = false; requestAnimationFrame(() => head.scrollIntoView({ block: "nearest" })); }
   return box;
@@ -1019,7 +1019,7 @@ function corePicker(target: BagItem, items: BagItem[], act: { enhanceCore(t: str
   btn("Đóng", "drop", () => { enhClose(); again(); });
   box.appendChild(row);
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = `Cấp +0 đến +${CORE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${CORE_SUB_MARKS.map((x) => `+${x}`).join(", ")} tăng 1 dòng phụ ngẫu nhiên (chưa đủ ${CORE_MAX_SUBS} dòng thì thêm dòng mới). Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành cũng mở bảng này.`;
+  note.textContent = `Cấp +0 đến +${CORE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${CORE_SUB_MARKS.map((x) => `+${x}`).join(", ")} tăng 1 dòng phụ ngẫu nhiên (chưa đủ ${CORE_MAX_SUBS} dòng thì thêm dòng mới). Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành và Thiên Đấu Thành cũng mở bảng này.`;
   box.appendChild(note);
   if (enhJump) { enhJump = false; requestAnimationFrame(() => head.scrollIntoView({ block: "nearest" })); }
   return box;

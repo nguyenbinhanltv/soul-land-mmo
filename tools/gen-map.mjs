@@ -4,7 +4,9 @@
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
 //   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4); Ngoại vi và Nội địa có 1 object `boss` (hang thú vương, BĐ5).
-//   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, NPC Đại Sư, thương nhân, lò rèn (BĐ2; hoạt động từ 6.1)
+//   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, NPC Đại Sư, thương nhân, lò rèn (BĐ2; hoạt động từ 6.1); cổng bắc đi Thiên Đấu Thành (BĐ6a)
+//   thien_dau_thanh  Thiên Đấu Thành: thủ đô, thành an toàn lớn; Đại Đấu Hồn Trường, Sử Lai Khắc Học Viện, thương nhân, lò rèn;
+//                    cổng tây (Lạc Nhật), cổng bắc (Cực Bắc) và bến thuyền (Hải Thần Đảo) chưa mở (BĐ6a, mục 5.3, 5.8)
 //   dai_dau_hon_truong  sân Đại Đấu Hồn Trường: sân lát đá vây tường và khán đài, không cổng, không hồn thú (bước 7.2, mục 5.9)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
@@ -307,12 +309,14 @@ function nacDinhThanh() {
   g.fill(1, 18, MW - 2, 5, 6);
   g.fill(28, 1, 4, MH - 2, 6);
   g.fill(24, 15, 12, 11, 6); // quảng trường
-  // Nhà: Học viện Nặc Đinh (tây bắc), lò rèn (đông bắc), cửa hàng (tây nam), lối vào tạm Đại Đấu Hồn Trường (đông nam).
+  // Nhà: Học viện Nặc Đinh (tây bắc), lò rèn (đông bắc), cửa hàng (tây nam), trạm sứ giả Đại Đấu Hồn Trường (đông nam; 7.2 là lối
+  // vào tạm, từ BĐ6a Đại Đấu Hồn Trường dời về Thiên Đấu Thành).
   g.house(4, 4, 14, 8); g.house(38, 5, 10, 7); g.house(5, 27, 9, 6); g.house(40, 27, 12, 7);
   // Hàng cây trang trí ven đường, rồi lối đi lát đá từ cửa mỗi nhà ra đại lộ.
   for (let x = 3; x < MW - 3; x += 4) if (x < 23 || x > 36) { g.set(x, 16, 1); g.set(x, 24, 1); }
   g.fill(10, 12, 2, 6, 6); g.fill(42, 12, 2, 6, 6); g.fill(8, 23, 2, 4, 6); g.fill(45, 23, 2, 4, 6);
   g.set(0, 19, 6); g.set(0, 20, 6); g.set(0, 21, 6); g.set(MW - 1, 19, 6); g.set(MW - 1, 20, 6); g.set(MW - 1, 21, 6);
+  g.fill(28, 0, 4, 1, 6); // BĐ6a: cổng bắc trên đường bắc–nam, đi Thiên Đấu Thành
 
   const { ground, trees, canopy } = toLayers(MW, MH, g, () => 0);
   // Cổng phủ cả cột cổng thành ở mép bản đồ (ô lát đá, đi vào được) để không đứng lọt ra ngoài cổng.
@@ -322,11 +326,73 @@ function nacDinhThanh() {
   o.portal("Đi Tinh Đấu Ngoại vi", MW - 3, 18, 3, 5, "tinh_dau_ngoai_vi", "tu_nac_dinh_thanh", "10-30");
   o.point("arrive", "tu_thanh_hon_thon", 5.5, 20.5);
   o.point("arrive", "tu_tinh_dau_ngoai_vi", MW - 5.5, 20.5);
+  // BĐ6a: thành an toàn nên cổng đi Thiên Đấu Thành không có cấp đề xuất (bảng 5.3: "–"), không cảnh báo.
+  o.portal("Đi Thiên Đấu Thành", 28, 0, 4, 3, "thien_dau_thanh", "tu_nac_dinh_thanh");
+  o.point("arrive", "tu_thien_dau_thanh", 30, 5.5);
   o.point("npc", "Ngọc Tiểu Cương (Đại Sư)", 11, 13, [prop("npc", "string", "dai_su")]);
   o.point("npc", "Thợ rèn", 43, 13, [prop("npc", "string", "lo_ren")]);
   o.point("npc", "Thương nhân", 9, 24, [prop("npc", "string", "thuong_nhan")]);
-  o.point("npc", "Đại Đấu Hồn Trường", 46, 24, [prop("npc", "string", "dau_hon_truong")]);
+  // Chỗ của lối vào tạm Đại Đấu Hồn Trường (7.2): từ BĐ6a là sứ giả chỉ đường lên Thiên Đấu Thành.
+  o.point("npc", "Sứ giả Đại Đấu Hồn Trường", 46, 24, [prop("npc", "string", "su_gia_dau_hon")]);
   writeMap("nac_dinh_thanh", MW, MH, ground, trees, canopy, o);
+}
+
+// ---------- Thiên Đấu Thành (BĐ6a, mục 5.3, 5.8): thủ đô, thành an toàn lớn hơn Nặc Đinh Thành ----------
+/**
+ * 80×56 ô, tường thành bao quanh, phía đông là sông có bến thuyền. Đại lộ bắc–nam (cột 38–41) từ cổng nam (về Nặc Đinh Thành) lên
+ * cổng bắc (Cực Bắc Chi Địa, chưa mở), đại lộ đông–tây (hàng 26–29) từ cổng tây (Lạc Nhật Sâm Lâm, chưa mở) ra bến thuyền (Hải Thần
+ * Đảo, chưa mở); quảng trường có đài phun nước ở giữa. Hoàng cung Thiên Đấu (tây bắc), thương nhân và lò rèn (đông bắc), Sử Lai Khắc
+ * Học Viện (tây nam), Đại Đấu Hồn Trường (đông nam). Cổng chưa mở là tường thành đóng kín kèm biển "sắp mở" (NPC vai trò `talk`);
+ * khi làm bản đồ đích (BĐ6b–d) thì mở tường, đặt object `portal` thay biển.
+ */
+function thienDauThanh() {
+  const MW = 80, MH = 56, r = rng(9161);
+  const g = grid(MW, MH);
+  const RIVER = 72; // cột đầu tiên của sông phía đông
+  for (let y = 0; y < MH; y++) for (let x = 0; x < RIVER; x++) if (r() < 0.03) g.set(x, y, 4);
+  // Sông phía đông và tường thành (bờ tây sông là tường đông).
+  g.fill(RIVER, 0, MW - RIVER, MH, 2);
+  for (let x = 0; x < RIVER; x++) { g.set(x, 0, 9); g.set(x, MH - 1, 9); }
+  for (let y = 0; y < MH; y++) { g.set(0, y, 9); g.set(RIVER - 1, y, 9); }
+  // Hàng cây ven đại lộ (vẽ trước; đường, nhà, lối vào vẽ sau đè lên).
+  for (let x = 3; x < RIVER - 2; x += 4) if (x < 29 || x > 50) { g.set(x, 24, 1); g.set(x, 31, 1); }
+  for (let y = 3; y < MH - 3; y += 4) if (y < 20 || y > 35) { g.set(36, y, 1); g.set(43, y, 1); }
+  // Đại lộ lát đá và quảng trường trung tâm (đài phun nước 4×4 ở giữa, chặn đường; đi vòng qua quảng trường).
+  g.fill(38, 1, 4, MH - 2, 6);
+  g.fill(1, 26, RIVER - 2, 4, 6);
+  g.fill(30, 21, 20, 14, 6);
+  g.fill(38, 26, 4, 4, 2);
+  // Hoàng cung Thiên Đấu (tây bắc) có vườn cây bao quanh; thương nhân và lò rèn (đông bắc).
+  g.house(7, 4, 24, 13);
+  for (let x = 4; x < 35; x += 3) { g.set(x, 2, 1); g.set(x, 20, 1); }
+  for (let y = 5; y < 20; y += 3) { g.set(4, y, 1); g.set(34, y, 1); }
+  g.fill(18, 17, 3, 9, 6); // lối từ cửa hoàng cung xuống đại lộ
+  g.house(46, 6, 10, 7); g.house(59, 6, 10, 7);
+  g.fill(50, 13, 2, 13, 6); g.fill(63, 13, 2, 13, 6);
+  // Sử Lai Khắc Học Viện (tây nam) và sân tập (đất); Đại Đấu Hồn Trường (đông nam) với sân đá trước cửa.
+  g.house(5, 34, 20, 10);
+  g.fill(5, 46, 20, 6, 3);
+  g.house(46, 34, 22, 12);
+  g.fill(46, 46, 22, 4, 6); g.fill(42, 47, 4, 2, 6);
+  // Cổng nam mở (về Nặc Đinh Thành); cổng tây và cổng bắc là tường đóng (chưa mở). Bến thuyền: cửa tường đông + cầu tàu đường đất
+  // ra sông, thuyền neo ở đầu cầu (mái + tường, chặn đường).
+  g.fill(38, MH - 1, 4, 1, 6);
+  g.fill(RIVER - 1, 27, 1, 2, 6);
+  g.fill(RIVER, 27, 5, 2, 3);
+  g.house(RIVER + 5, 24, 3, 8);
+  const { ground, trees, canopy } = toLayers(MW, MH, g, () => 0);
+  const o = objects();
+  o.rect("spawn", "Quảng trường Thiên Đấu", 31, 22, 18, 12);
+  o.portal("Về Nặc Đinh Thành", 38, MH - 3, 4, 3, "nac_dinh_thanh", "tu_thien_dau_thanh");
+  o.point("arrive", "tu_nac_dinh_thanh", 40, MH - 6.5);
+  o.point("npc", "Đại Đấu Hồn Trường", 57, 48, [prop("npc", "string", "dau_hon_truong")]);
+  o.point("npc", "Phất Lan Đức", 15, 47, [prop("npc", "string", "phat_lan_duc")]);
+  o.point("npc", "Thương nhân Thiên Đấu", 51, 15, [prop("npc", "string", "thuong_nhan_thien_dau")]);
+  o.point("npc", "Thợ rèn Thiên Đấu", 64, 15, [prop("npc", "string", "lo_ren_thien_dau")]);
+  o.point("npc", "Cổng Lạc Nhật Sâm Lâm", 3, 26, [prop("npc", "string", "cong_lac_nhat")]);
+  o.point("npc", "Cổng Cực Bắc Chi Địa", 40, 3, [prop("npc", "string", "cong_cuc_bac")]);
+  o.point("npc", "Bến thuyền Hải Thần Đảo", RIVER + 3, 27, [prop("npc", "string", "ben_thuyen_hai_than")]);
+  writeMap("thien_dau_thanh", MW, MH, ground, trees, canopy, o);
 }
 
 // ---------- Đại Đấu Hồn Trường (bước 7.2, mục 5.9): sân đấu 1v1, chỉ phòng ArenaRoom dùng ----------
@@ -350,7 +416,7 @@ function daiDauHonTruong() {
 }
 
 const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia,
-  dai_dau_hon_truong: daiDauHonTruong };
+  dai_dau_hon_truong: daiDauHonTruong, thien_dau_thanh: thienDauThanh };
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(GEN)) {
   if (!GEN[id]) { console.error("Không có bản đồ:", id); process.exit(1); }
