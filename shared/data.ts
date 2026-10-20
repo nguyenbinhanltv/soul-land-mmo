@@ -3236,6 +3236,10 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   Tệ theo giá thương nhân mua lại (sellPrice). Mỗi ngày (giờ Việt Nam) tối đa `dailyWins` trận thắng có thưởng (chống cày bằng tài
  *   khoản phụ); hết lượt vẫn đấu và tính Elo. Lượt đếm ở bảng `boss_claims` với loại `claimKind`.
  * - `topN`: số dòng bảng xếp hạng; `topCd`: giây tối thiểu giữa hai lần xin bảng xếp hạng của một người.
+ * - Chống dàn xếp (bước 9.7): cùng một cặp tài khoản chỉ `pairDaily` trận mỗi ngày (giờ Việt Nam, như lượt thưởng) tính Elo và
+ *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
+ *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
+ *   trong cửa sổ (arenaPairs).
  */
 export const ARENA = {
   startElo: 1000, k: 32,
@@ -3244,6 +3248,7 @@ export const ARENA = {
   dmgMult: 0.35, drawPct: 0.005, body: 8,
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1,
+  pairDaily: 3, rematchSecs: 60,
 };
 /** Mảnh thưởng thắng trận: võ hồn SR / SSR (không có UR, không có Lam Ngân Thảo ai cũng sẵn). */
 export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AWAKEN_GIFT).map((v) => v.id);
@@ -3257,16 +3262,22 @@ export const arenaWindow = (waitSecs: number) => Math.min(ARENA.window.max, AREN
  * Ghép trận (hàm thuần, server gọi định kỳ): `list` theo thứ tự xếp hàng (chờ lâu nhất trước), `wait` = số giây đã chờ. Người chờ lâu
  * nhất được ghép với người có Elo gần nhất trong cửa sổ của một trong hai (arenaWindow; bằng nhau thì người xếp hàng trước); không
  * ai vừa thì xét người kế tiếp. Trả các cặp mã.
+ * Từ 9.7: `last` = đối thủ của trận ngay trước. Hai người vừa đấu nhau mà một trong hai còn chờ dưới ARENA.rematchSecs giây thì chỉ
+ * được ghép lại khi không còn ai khác trong cửa sổ.
  */
-export function arenaPairs<T>(list: { id: T; elo: number; wait: number }[]): [T, T][] {
+export function arenaPairs<T>(list: { id: T; elo: number; wait: number; last?: T }[]): [T, T][] {
   const left = [...list], out: [T, T][] = [];
   for (let i = 0; i < left.length; ) {
-    const a = left[i]; let best = -1, bd = Infinity;
+    const a = left[i]; let best = -1, bd = Infinity, alt = -1, ad = Infinity;
     for (let j = 0; j < left.length; j++) {
       if (j === i) continue;
       const b = left[j], diff = Math.abs(a.elo - b.elo);
-      if (diff <= Math.max(arenaWindow(a.wait), arenaWindow(b.wait)) && diff < bd) { bd = diff; best = j; }
+      if (diff > Math.max(arenaWindow(a.wait), arenaWindow(b.wait))) continue;
+      if (diff < bd) { bd = diff; best = j; }
+      const again = (a.last === b.id || b.last === a.id) && Math.min(a.wait, b.wait) < ARENA.rematchSecs;
+      if (!again && diff < ad) { ad = diff; alt = j; }
     }
+    if (alt >= 0) best = alt;
     if (best < 0) { i++; continue; }
     out.push([a.id, left[best].id]);
     left.splice(Math.max(i, best), 1); left.splice(Math.min(i, best), 1);
@@ -3274,6 +3285,8 @@ export function arenaPairs<T>(list: { id: T; elo: number; wait: number }[]): [T,
   }
   return out;
 }
+/** Trận thứ `n` trong ngày của một cặp tài khoản (đếm cả trận này) có tính Elo và thưởng không; quá ARENA.pairDaily là giao hữu (9.7). */
+export const arenaRanked = (n: number) => n <= ARENA.pairDaily;
 /** Một dòng bảng xếp hạng / thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`). */
 export interface ArenaRecord { elo: number; wins: number; losses: number; draws: number; }
 // ---------- Cộng minh (mục 5.10, bước 8.2; mốc theo thiết kế, giá trị cộng đã chốt) ----------

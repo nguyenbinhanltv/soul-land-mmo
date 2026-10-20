@@ -155,6 +155,13 @@ export interface Store {
    * hạng và thành tích của `accountId` (null = chưa đấu trận nào).
    */
   arenaTop(n: number, accountId: number): Promise<{ list: (ArenaRecord & { accountId: number; name: string })[]; me: (ArenaRecord & { rank: number }) | null }>;
+  /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
+  arenaPairCount(day: string, a: number, b: number): Promise<number>;
+  /**
+   * Đếm thêm một trận có kết quả của cặp (`a`, `b`) trong ngày `day` (9.7), một câu lệnh nên hai lần ghi cùng lúc không đếm trùng.
+   * Trả về số trận sau khi đếm (trận này là trận thứ mấy; arenaRanked quyết định có tính Elo không).
+   */
+  arenaPairAdd(day: string, a: number, b: number): Promise<number>;
 }
 
 function hashPass(pw: string) {
@@ -176,6 +183,8 @@ const teamOk = (team: number[], active: number) => !!parseTeam(team) && active >
 function arenaOk(r: ArenaRecord) {
   if (![r.elo, r.wins, r.losses, r.draws].every((x) => Number.isSafeInteger(x))) throw new Error(`Kết quả đấu hồn không hợp lệ: ${JSON.stringify(r)}.`);
 }
+/** Khóa cặp của bảng arena_pairs (9.7): mã nhỏ trước. */
+const pairKey = (day: string, a: number, b: number) => `${day}|${Math.min(a, b)}|${Math.max(a, b)}`;
 const arenaRow = (x: any): ArenaRecord => ({ elo: Number(x.elo), wins: Number(x.wins), losses: Number(x.losses), draws: Number(x.draws) });
 
 export class MemoryStore implements Store {
@@ -192,6 +201,7 @@ export class MemoryStore implements Store {
   claims = new Map<string, number>();   // "accountId|day|kind" -> số lần nhận thưởng boss (bảng boss_claims, BĐ5)
   quests = new Map<number, QuestProgress[]>(); // accountId -> tiến độ nhiệm vụ từng chuỗi (bảng quests, 6.2)
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
+  pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
@@ -351,6 +361,13 @@ export class MemoryStore implements Store {
     const rec = ([id, r]: [number, ArenaRecord & { t: number }]) => ({ accountId: id, name: this.names.get(id) ?? "?", elo: r.elo, wins: r.wins, losses: r.losses, draws: r.draws });
     const at = all.findIndex(([id]) => id === accountId), mine = at >= 0 ? all[at][1] : null;
     return { list: all.slice(0, n).map(rec), me: mine ? { elo: mine.elo, wins: mine.wins, losses: mine.losses, draws: mine.draws, rank: at + 1 } : null };
+  }
+  async arenaPairCount(day: string, a: number, b: number) { return this.pairs.get(pairKey(day, a, b)) ?? 0; }
+  async arenaPairAdd(day: string, a: number, b: number) {
+    if (a === b || !this.names.has(a) || !this.names.has(b)) throw new Error(`Cặp tài khoản #${a}, #${b} không hợp lệ.`);
+    const k = pairKey(day, a, b), n = (this.pairs.get(k) ?? 0) + 1;
+    this.pairs.set(k, n);
+    return n;
   }
 }
 
@@ -726,6 +743,16 @@ export class PgStore implements Store {
     ]);
     return { list: top.rows.map((x) => ({ accountId: Number(x.account_id), name: x.name as string, ...arenaRow(x) })),
       me: me.rowCount ? { ...arenaRow(me.rows[0]), rank: Number(me.rows[0].rank) } : null };
+  }
+  async arenaPairCount(day: string, a: number, b: number) {
+    const r = await this.pool.query("SELECT n FROM arena_pairs WHERE day=$1::date AND a=$2 AND b=$3", [day, Math.min(a, b), Math.max(a, b)]);
+    return r.rowCount ? Number(r.rows[0].n) : 0;
+  }
+  async arenaPairAdd(day: string, a: number, b: number) {
+    const r = await this.pool.query(
+      `INSERT INTO arena_pairs(day, a, b, n) VALUES ($1::date, $2, $3, 1)
+       ON CONFLICT (day, a, b) DO UPDATE SET n = arena_pairs.n + 1, updated_at = now() RETURNING n`, [day, Math.min(a, b), Math.max(a, b)]);
+    return Number(r.rows[0].n);
   }
   async chooseLooks(accountId: number, looks: Looks) {
     // Một lần duy nhất: điều kiện NOT looks_chosen làm hai yêu cầu cùng lúc chỉ một cái được ghi.

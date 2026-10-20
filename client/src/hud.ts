@@ -1842,10 +1842,13 @@ export interface ArenaTopMsg {
   list: { name: string; elo: number; wins: number; losses: number; draws: number; me: boolean }[];
   me: (ArenaRecord & { rank: number }) | null; start: number; left: number; queued: boolean;
 }
-/** Tin "arena" k = "end": kết quả trận của mình (score 1 thắng, 0,5 hòa, 0 thua), Elo trước / sau, phần thưởng (null = không có). */
+/**
+ * Tin "arena" k = "end": kết quả trận của mình (score 1 thắng, 0,5 hòa, 0 thua), Elo trước / sau, phần thưởng (null = không có).
+ * `friendly` (9.7): cặp đã đấu đủ ARENA.pairDaily trận tính Elo hôm nay, trận này giao hữu (không đổi Elo, không thưởng, không mất lượt).
+ */
 export interface ArenaEndMsg {
   score: number; reason: string; why: string; foe: string; elo0: number; elo1: number; rec: ArenaRecord;
-  reward: { honTe: number; code: string; qty: number; coin: number } | null; left: number; secs: number;
+  reward: { honTe: number; code: string; qty: number; coin: number } | null; left: number; secs: number; friendly?: boolean;
 }
 let arenaQ: { elo: number; t0: number } | null = null;   // đang xếp hàng: Elo, lúc bắt đầu chờ (performance.now)
 let arenaTopMsg: ArenaTopMsg | null = null;
@@ -1906,7 +1909,7 @@ export function setArenaTop(m: ArenaTopMsg) {
  * Thanh trận đấu ở đầu màn hình (phòng ArenaRoom): hai bên (tên, Elo, sinh lực cả đội theo %, số võ hồn còn đứng), đồng hồ của pha
  * (chờ vào sân, chuẩn bị, giao đấu), nút "Rời sân" (giữa trận bấm hai lần: rời = thua). null = ẩn.
  */
-export function showArena(a: { phase: string; time: number; me: string; sides: { sid: string; name: string; elo: number; pct: number; alive: number; total: number }[] } | null,
+export function showArena(a: { phase: string; time: number; me: string; friendly: boolean; sides: { sid: string; name: string; elo: number; pct: number; alive: number; total: number }[] } | null,
   leave: () => void) {
   const el = $("#arenaBar"); document.body.classList.toggle("arena", !!a);
   if (!a) { el.hidden = true; el.innerHTML = ""; return; }
@@ -1933,7 +1936,9 @@ export function showArena(a: { phase: string; time: number; me: string; sides: {
   });
   const ph = a.phase === "wait" ? "Chờ đối thủ vào sân" : a.phase === "ready" ? "Chuẩn bị" : a.phase === "fight" ? "Giao đấu" : "Kết thúc";
   el.querySelector(".aclock b")!.textContent = a.phase === "end" ? "–" : mmss(a.time);
-  el.querySelector(".aclock small")!.textContent = ph;
+  el.querySelector(".aclock small")!.textContent = a.friendly ? `${ph} · giao hữu` : ph;
+  el.classList.toggle("friendly", a.friendly);
+  el.title = a.friendly ? `Giao hữu: hai bạn đã đấu đủ ${ARENA.pairDaily} trận tính Elo hôm nay, trận này không đổi Elo, không thưởng.` : "";
   const lb = el.querySelector(".aleave")!;
   if (performance.now() - arenaLeaveAt > 3000 && lb.textContent !== "Rời sân") lb.textContent = "Rời sân";
 }
@@ -1950,10 +1955,12 @@ function renderArenaEnd() {
   el.className = "panel " + (m.score === 1 ? "win" : m.score === 0 ? "lose" : "draw");
   const h = document.createElement("h2"); h.textContent = m.score === 1 ? "Thắng!" : m.score === 0 ? "Thua" : "Hòa"; el.appendChild(h);
   const line = (text: string, cls = "") => { const p = document.createElement("div"); p.className = "aline " + cls; p.textContent = text; el.appendChild(p); };
+  if (m.friendly) line(`Trận giao hữu: hai bạn đã đấu đủ ${ARENA.pairDaily} trận tính Elo hôm nay (đặt lại 00:00 giờ Việt Nam).`, "afriend");
   line(`Đối thủ ${m.foe}: ${m.why}.`);
-  line(`Elo ${m.elo0} → ${m.elo1} (${signed(m.elo1 - m.elo0)})`, "aelo");
+  line(m.friendly ? `Elo giữ nguyên: ${m.elo1}` : `Elo ${m.elo0} → ${m.elo1} (${signed(m.elo1 - m.elo0)})`, "aelo");
   line(`Thành tích: ${m.rec.wins} thắng · ${m.rec.losses} thua · ${m.rec.draws} hòa`);
-  if (m.reward) {
+  if (m.friendly) line("Giao hữu không thưởng, không tính thành tích, không mất lượt thắng có thưởng.");
+  else if (m.reward) {
     const shard = m.reward.qty ? ` + ${m.reward.qty} ${itemDef(m.reward.code)?.name ?? m.reward.code}` : "";
     line(`Thưởng: ${formatHonTe(m.reward.honTe)}${shard}${m.reward.coin ? " (túi đầy: mảnh đổi ra Hồn Tệ)" : ""}`, "arew");
   } else if (m.score === 1) line("Hết lượt thắng có thưởng hôm nay (Elo vẫn tính).");
