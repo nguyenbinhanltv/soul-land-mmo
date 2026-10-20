@@ -189,21 +189,24 @@ function parseElites(mapId: string, objs: any[], zones: Zone[]): EliteSpot[] {
 /**
  * Object `boss` (mục 6, BĐ5): hang tà hóa thú vương. `boss` phải là mã thú vương (bậc 2) trong BOSSES và đúng MAPS[mapId].king, tâm
  * nằm trong một `zone` và đứng được, mỗi bản đồ tối đa 1 hang. Sai thì cảnh báo và bỏ; bản đồ có `king` mà thiếu hang cũng cảnh báo.
+ * Từ BĐ6e: sàn đấu boss thế giới của bản đồ có MAPS[mapId].world (Lõi Tinh Đấu): `boss` là một mã boss thế giới (bậc 3) trong danh
+ * sách đó; boss của ngày (luân phiên) do lịch quyết định, không theo thuộc tính này.
  */
 function parseLair(mapId: string, objs: any[], zones: Zone[]): BossSpot | null {
   let out: BossSpot | null = null;
-  const king = MAPS[mapId].king;
+  const king = MAPS[mapId].king, world = MAPS[mapId].world ?? [];
   for (const o of objs) {
     const id = String(propOf(o, "boss") ?? ""), boss = bossIndex(id), r = rectOf(o), cx = r.x + r.w / 2, cy = r.y + r.h / 2;
     const bad = (why: string) => console.warn(`[map ${mapId}] Bỏ hang thú vương "${o.name ?? id}": ${why}`);
-    if (boss < 0 || BOSSES[boss].rank !== 2) { bad(`mã không phải thú vương trong BOSSES: ${id}`); continue; }
-    if (id !== king) { bad(`MAPS.${mapId}.king là ${king ?? "(không có)"}`); continue; }
+    if (world.length) { if (boss < 0 || BOSSES[boss].rank !== 3 || !world.includes(id)) { bad(`mã không phải boss thế giới của MAPS.${mapId}.world: ${id}`); continue; } }
+    else if (boss < 0 || BOSSES[boss].rank !== 2) { bad(`mã không phải thú vương trong BOSSES: ${id}`); continue; }
+    else if (id !== king) { bad(`MAPS.${mapId}.king là ${king ?? "(không có)"}`); continue; }
     const zone = zones.findIndex((z) => cx >= z.x0 && cx < z.x1 && cy >= z.y0 && cy < z.y1);
     if (zone < 0) { bad("không nằm trong vùng nào"); continue; }
     if (out) { bad("bản đồ đã có hang thú vương"); continue; }
     out = { ...r, boss, zone };
   }
-  if (king && !out) console.warn(`[map ${mapId}] Thiếu object \`boss\` (hang) cho thú vương ${king}: thú vương không xuất hiện.`);
+  if ((king || world.length) && !out) console.warn(`[map ${mapId}] Thiếu object \`boss\` (hang) cho thú vương ${king}: thú vương không xuất hiện.`);
   return out;
 }
 

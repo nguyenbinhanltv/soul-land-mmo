@@ -25,7 +25,9 @@
 // Lam Ngân, giao chiến, gục, đi cổng và vào lại), nâng cấp hồn hạch (5.3: điểm theo sao, cùng bộ thêm, +3 thêm dòng phụ, tới +15,
 // nguyên liệu bị xóa, từ chối đang gắn / chính nó / giao chiến, chỉ số tăng ngay khi đang gắn, vào lại), tà hóa thú vương
 // (BĐ5: lịch giờ Việt Nam, báo toàn server, máu theo số người trong hang, giai đoạn 2, chia thưởng theo ngưỡng 3%, 3 lần/ngày,
-// mở rương, rút đi, phòng hủy rồi mở lại), NPC (6.1: nói chuyện khi đứng gần, mua đan đủ / thiếu Hồn Tệ, túi đầy, bán đồ dư theo giá,
+// mở rương, rút đi, phòng hủy rồi mở lại), boss thế giới ở Lõi Tinh Đấu (BĐ6e: cổng bờ hồ Nội địa, 3 bot cùng đánh, máu theo
+// số người, điểm yếu hệ và đổi võ hồn, Bá Thể, ngắt tích lực bằng võ hồn khống chế, thanh tẩy bằng võ hồn phụ trợ, nổi giận, Du Thủy,
+// chia thưởng hồn hoàn đỏ / rương, 1 lần/ngày, lặn xuống hồ, đăng xuất ở Lõi về Nội địa), NPC (6.1: nói chuyện khi đứng gần, mua đan đủ / thiếu Hồn Tệ, túi đầy, bán đồ dư theo giá,
 // không bán đồ đang gắn / đan, lò rèn cường hóa hồn cốt và nâng cấp hồn hạch, đứng xa bị từ chối, vào lại còn nguyên), nhiệm vụ tân thủ (6.2: tài khoản mới
 // đi hết chuỗi của Ngọc Tiểu Cương, mục tiêu đếm theo sự kiện thật, nhận / trả khi đứng xa bị từ chối, thưởng đúng, túi đầy, đi cổng
 // và thoát vào lại giữ tiến độ, mục tiêu đã đạt sẵn), tổ đội người chơi (7.1: mời theo tên / bấm vào hồn sư, từ chối, chống spam
@@ -60,6 +62,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BEAST_SKILL_YEARS, beastSkillOf, teleHits, TELE_PAD, TELE_WARN, TELE_FIRST,
   BOSSES, bossIndex, beastIndex, ELITE, ELITE_RAGE, bossHpMult, teleZones, beastBuffBit, BEAST_BUFFS, beastName,
   KING, KING_CHEST, KING_TIMES, kingNext, kingActive, vnDay, vnHHMM, kingShardPool, chestCode,
+  WORLD, WORLD_TIME, WORLD_SLAM, WORLD_RING, WORLD_CHEST, worldNext, worldActive, worldBossOn, HE_IDS,
   HERBS, HERB_MAX, HERB_PCT, HERB_ELITE, herbChance, herbBonus, parseHerbs,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
@@ -2487,7 +2490,7 @@ else {
     ok(vnDay(U(16,59)+59000)==="2026-10-19"&&vnDay(U(17,0))==="2026-10-20"&&kingNext(U(12,0))===U(13,0)&&kingNext(U(13,30))===U(15,0)&&kingNext(U(16,0))===U(13,0,20)
       &&kingActive(U(13,10))===U(13,0)&&kingActive(U(13,0)+KING.lifeSecs*1000)===null&&kingActive(U(12,59))===null&&vnHHMM(kingNext(U(14,0)))==="22:00",
       `lịch ${KING_TIMES.join(" / ")} giờ Việt Nam, rút đi sau ${KING.lifeSecs/60} phút, ngày mới lúc 00:00 (23:59 UTC+7 = ${vnDay(U(16,59))}, 00:00 = ${vnDay(U(17,0))})`);
-    ok(KING_CHEST.ur===0.05&&KING.share===0.03&&KING.daily===3&&[1,2,4,10].every(n=>Math.abs(bossHpMult(n)-(1+0.6*(n-1)))<1e-9),"đã chốt: mảnh UR 5%, ngưỡng rương 3%, 3 lần/ngày, máu x(1 + 0,6 × (N − 1))");
+    ok(KING_CHEST.ur===0&&KING.share===0.03&&KING.daily===3&&[1,2,4,10].every(n=>Math.abs(bossHpMult(n)-(1+0.6*(n-1)))<1e-9),"đã chốt: ngưỡng rương 3%, 3 lần/ngày, máu x(1 + 0,6 × (N − 1)); từ BĐ6 (BĐ6e) rương thú vương không còn mảnh UR (5% trước BĐ6)");
 
     const K=await bot("Tester K","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:3}), L=await bot("Tester L","nhu_cot_tho",{sex:1,hair:0,hairCol:5,outfitCol:2});
     await waitFor(()=>K.owned&&L.owned&&meOf(K)&&meOf(L));
@@ -2576,7 +2579,7 @@ else {
     const kCores=()=>(K.bag?.items??[]).filter(i=>i.code===CORE_ITEM), c0=kCores().length, cHi=coreStarBand(Y)[1];
     await test(K,"chest",{bone:0,ur:0,i:0,n:4,s:1}); let lg=await open();
     const nb=bonesOf(K).find(i=>i.years===Y&&i.stats?.beast==="phong_lang"&&i.stats?.slot==="than");
-    ok(chestK(K)===2&&bonesOf(K).length===b0+1&&nb&&qtyOf(K,shardCode(pool[0].vohon))===s0+4&&KING_CHEST.urShards.reduce((a,v)=>a+qtyOf(K,shardCode(v)),0)===ur0+1,`mở rương: ${lg}`);
+    ok(chestK(K)===2&&bonesOf(K).length===b0+1&&nb&&qtyOf(K,shardCode(pool[0].vohon))===s0+4&&KING_CHEST.urShards.reduce((a,v)=>a+qtyOf(K,shardCode(v)),0)===ur0,`mở rương (từ BĐ6 không còn mảnh UR dù số ngẫu nhiên 0): ${lg}`);
     const nc=kCores().slice(c0);
     ok(nc.length===1&&nc[0].stars===cHi&&coreSetIndex(nc[0].stats?.set)>=0&&nc[0].stats?.subs?.length===CORE_SUBS[cHi-1],`rương có 1 hồn hạch sao cao nhất theo ${Y} năm: ${nc[0]?.stars}★ bộ ${nc[0]?.stats?.set}, ${nc[0]?.stats?.subs?.length} dòng phụ`);
     const s3=qtyOf(K,shardCode(pool[3].vohon)), b1=bonesOf(K).length;
@@ -3798,6 +3801,7 @@ ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông 
 await npcTown();
 await thienDauTest();
 await lacNhatTest();
+await loiTinhDauTest();
 await questTest();
 await arenaTest();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
@@ -4159,6 +4163,228 @@ async function lacNhatTest(){
       ok(ki?.bid&&inL&&ki.years===M.years[1]&&same(ki.skills,K.skills.map(s=>s.name))&&L.boss.some(m=>m.k==="spawn"),
         `Tà hóa ${K.name} xuất hiện trong hang (${ki?.years} năm, ${ki?.hp}/${ki?.maxHp} máu, chiêu ${ki?.skills?.join(", ")})`); }
   } finally { C=C0; await L.room.leave().catch(()=>{}); }
+}
+
+/**
+ * BĐ6e: Lõi Tinh Đấu và boss thế giới 100.000 năm (mục 5.3, 5.4). Hàm thuần (lịch 21:00 giờ Việt Nam, luân phiên theo ngày), dữ liệu
+ * (MAPS, BOSSES, Tiled: sàn đấu, cổng bờ hồ Nội địa); với hook: bot W1 cấp thấp đi bộ vào cổng bờ hồ (đề xuất 90–100, cảnh báo đỏ,
+ * vẫn đi được), báo trước / xuất hiện toàn server, 3 bot cùng đánh (máu x(1 + 0,6 × (N − 1)), bị loại khi ra khỏi sàn), điểm yếu hệ
+ * (đổi võ hồn đúng hệ thì x2,5), Bá Thể (cường công phá nhanh gấp 3, không phá kịp thì boss hồi máu), tích lực Đại Địa Chấn (chỉ khống
+ * chế của võ hồn Khống chế mới ngắt, đủ 3 lần thì ngắt; không ngắt thì cả sàn dính Vết thương sâu, đổi sang võ hồn phụ trợ thanh tẩy
+ * được), nổi giận (x3, chiêu toàn sàn), Du Thủy (lặn không nhận sát thương, nổi lên lộ điểm yếu mẫn công), Thanh Lân Độc Vụ, chia
+ * thưởng (hồn hoàn đỏ cho người nhiều nhất, rương từ 3%), 1 lần/ngày (sang ngày mới đặt lại), mở rương (hồn cốt, mảnh UR, hồn hạch
+ * 5–6★), lặn xuống hồ sau 15 phút, đăng xuất ở Lõi thì lần sau về bờ hồ Nội địa.
+ */
+async function loiTinhDauTest(){
+  console.log("[BĐ6e] Lõi Tinh Đấu: boss thế giới, cơ chế đổi võ hồn, chia thưởng, 1 lần/ngày, đăng xuất về Nội địa");
+  const LT="loi_tinh_dau", ND="tinh_dau_noi_dia", M=MAPS[LT], VIEN="thai_than_cu_vien", MANG="thien_thanh_nguu_mang";
+  const objs=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const prop=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value;
+  const DV=BOSSES[bossIndex(VIEN)], DM=BOSSES[bossIndex(MANG)];
+  ok(M?.kind==="boss"&&M.name==="Lõi Tinh Đấu"&&same(M.level,[90,100])&&same(M.years,[100000,100000])&&same(M.world,[VIEN,MANG])&&M.exit===ND&&!M.king,
+    "MAPS: Lõi Tinh Đấu là bản đồ boss, cấp 90–100, boss thế giới 100.000 năm luân phiên, đăng xuất về Nội địa");
+  ok([DV,DM].every(d=>d?.rank===3&&beastIndex(d.species)>=0&&BONE_SKILLS[d.species]&&d.skills.length&&d.skills.every(s=>s.warn>=1))
+    &&DV.world?.charge?.need===3&&DV.world.charge.skill.floor&&DV.world.armor?.he==="cuong_cong"&&DM.world?.miasma?.skill.floor&&DM.world.dive?.he==="man_cong"
+    &&WORLD_SLAM.floor&&beastName(3,bossIndex(VIEN))==="Boss thế giới Thái Thản Cự Viên",
+    `2 boss thế giới: ${DV?.name} (${DV?.skills.map(s=>s.name).join(", ")}; Bá Thể, Đại Địa Chấn) và ${DM?.name} (${DM?.skills.map(s=>s.name).join(", ")}; Thanh Lân Độc Vụ, Du Thủy)`);
+  ok(WORLD.hp===30&&WORLD.daily===1&&WORLD.share===0.03&&WORLD_TIME==="21:00"&&WORLD.enrageSecs===600&&WORLD.lifeSecs===900&&WORLD.warnSecs===300&&KING_CHEST.ur===0
+    &&[1,3,10].every(n=>Math.abs(bossHpMult(n)-(1+0.6*(n-1)))<1e-9),
+    "đã chốt: máu x30, 21:00 mỗi ngày, báo trước 5 phút, nổi giận sau 10 phút, 1 lần/ngày, từ 3% có thưởng; từ BĐ6 rương thú vương không còn mảnh UR");
+  const U=(h,mi=0,d=19)=>Date.UTC(2026,9,d,h,mi);
+  ok(worldNext(U(13,0))===U(14,0)&&worldNext(U(14,0))===U(14,0,20)&&worldActive(U(14,5))===U(14,0)&&worldActive(U(14,0)+WORLD.lifeSecs*1000)===null
+    &&worldActive(U(13,59))===null&&vnHHMM(worldNext(U(1,0)))==="21:00"&&!KING_TIMES.includes(WORLD_TIME)
+    &&worldBossOn(LT,U(14,0))!==worldBossOn(LT,U(14,0,20))&&worldBossOn(LT,U(14,0))===worldBossOn(LT,U(14,0,21))&&worldBossOn("tinh_dau_noi_dia",U(14,0))===null,
+    `lịch boss thế giới ${WORLD_TIME} giờ Việt Nam (không trùng ${KING_TIMES.join(" / ")}), luân phiên theo ngày: 19/10 ${worldBossOn(LT,U(14,0))}, 20/10 ${worldBossOn(LT,U(14,0,20))}`);
+  const os=objs(LT), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), back=os.filter(o=>o.type==="portal");
+  const nd=objs(ND), gate=nd.find(o=>o.type==="portal"&&prop(o,"to")===LT), arrND=nd.find(o=>o.type==="arrive"&&o.name==="tu_loi_tinh_dau"), arrLT=os.find(o=>o.type==="arrive"&&o.name==="tu_tinh_dau_noi_dia");
+  const hac=nd.filter(o=>o.type==="zone").reduce((a,z)=>z.x>a.x?z:a);
+  ok(lr.length===1&&M.world.includes(prop(lr[0],"boss"))&&zs.length===1&&prop(zs[0],"count")===0&&back.length===1&&prop(back[0],"to")===ND&&prop(back[0],"arrive")==="tu_loi_tinh_dau"
+    &&gate&&!prop(gate,"level")&&prop(gate,"arrive")==="tu_tinh_dau_noi_dia"&&arrND&&arrLT&&gate.x>=hac.x,
+    `Tiled: sàn đấu "${lr[0]?.name}" ${lr[0]?.width/16}×${lr[0]?.height/16} ô, không hồn thú thường, cổng về Nội địa; Nội địa có cổng "${gate?.name}" ở ${hac.name} (cấp đề xuất lấy MAPS: 90–100)`);
+  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua boss thế giới (cần hook warp, king, wmech, kdmg): bật server bằng GAME_TEST=1"); return; }
+  { const now=Date.now(), nx=worldNext(now); if(worldActive(now)!==null||nx-now<(WORLD.warnSecs+300)*1000)
+    console.log(`  ⚠ Đang gần / trong khung boss thế giới thật (${WORLD_TIME} giờ Việt Nam): kiểm tra BĐ6e có thể trượt vì lịch thật, chạy lại sau ${WORLD.lifeSecs/60} phút.`); }
+
+  const C0=C, W1=await bot("Thái Thản","cuu_tinh_that_sat_kiem",{sex:0,hair:2,hairCol:1,outfitCol:0}),
+    W2=await bot("Ngưu Mãng","u_minh_linh_mieu",{sex:1,hair:1,hairCol:4,outfitCol:2}), W3=await bot("Thanh Tẩy","xuc_xich",{sex:0,hair:3,hairCol:0,outfitCol:5});
+  const W=[W1,W2,W3], mo=b=>b.room.state.players?.get(b.room.sessionId), sid=b=>b.room.sessionId;
+  const rowOf=(b,v)=>b.owned.list.find(x=>x.vohon===v)?.rowId;
+  /** Đổi võ hồn ra trận của `b` sang võ hồn mã `v` (switch theo ô đội hình). */
+  async function swTo(b,v){ const r=rowOf(b,v), slot=b.owned.team.indexOf(r); if(b.owned.active===r) return true; await waitFor(()=>!(mo(b)?.swCd>0),SWITCH_CD*1000+500);
+    b.room.send("switch",{slot}); return await waitFor(()=>b.owned.active===r&&VOHON[mo(b).vh]?.id===v,2000); }
+  /** Vào Lõi Tinh Đấu bằng hook warp (đi cổng ẩn), đứng ở trại cổng. */
+  async function warpIn(b){ b.travel=null; await test(b,"warp",{mapId:LT,x:arrLT.x,y:arrLT.y}); await waitFor(()=>b.travel,3000);
+    await b.room.leave(); await sleep(300); b.mapId=LT; await enter(b); await waitFor(()=>mo(b)&&b.owned&&b.bag); return b.room.state.mapId===LT; }
+  C=W1;
+  try{
+    await waitFor(()=>W.every(b=>mo(b)&&b.owned&&b.bag));
+    // W1 (cấp thấp) đi bộ vào cổng bờ hồ ở Nội địa.
+    W1.travel=null; await test(W1,"warp",{mapId:ND,x:arrND.x,y:arrND.y}); await waitFor(()=>W1.travel,3000);
+    await W1.room.leave(); await sleep(300); W1.mapId=ND; await enter(W1); await waitFor(()=>mo(W1)&&W1.owned&&W1.bag);
+    ok(W1.room.state.mapId===ND&&Math.hypot(me().x-arrND.x,me().y-arrND.y)<1,`Nội địa: đứng ở bến bờ hồ (${me().x},${me().y})`);
+    ok(await walk(1,0,()=>W1.portal?.name,5000)&&W1.portal.name==="Đi Lõi Tinh Đấu",`đi bộ tới cổng bờ hồ: ${JSON.stringify(W1.portal)}`);
+    ok(W1.portal?.to===LT&&W1.portal.toName==="Lõi Tinh Đấu"&&same(W1.portal.level,[90,100])&&W1.portal.warn&&me().level<90,
+      `hộp cổng: đề xuất cấp 90–100, cấp ${me().level} có cảnh báo đỏ (chặn mềm)`);
+    await travelBy("Đi Lõi Tinh Đấu",LT);
+    ok(Math.hypot(me().x-arrLT.x,me().y-arrLT.y)<1,`dưới cấp vẫn vào được, xuất hiện ở trại cổng Lõi Tinh Đấu: ${me().x},${me().y}`);
+    await sleep(1500); ok(W1.room.state.beasts.size===0,"Lõi Tinh Đấu không có hồn thú thường");
+
+    // Báo trước toàn server: C0 ở bản đồ khác nhận đếm ngược "Boss thế giới …".
+    C0.boss=[]; W1.boss=[];
+    await test(W1,"king",{kop:"warn",s:120,mapId:LT,boss:VIEN});
+    ok(await waitFor(()=>C0.boss.some(m=>m.k==="warn"&&m.world)&&W1.boss.some(m=>m.k==="warn"),1500),
+      `báo trước toàn server: C (${C0.room.state.mapId}) nhận "${C0.boss.find(m=>m.k==="warn")?.name} sau ${C0.boss.find(m=>m.k==="warn")?.in} giây ở ${C0.boss.find(m=>m.k==="warn")?.mapName}"`);
+    ok(C0.boss.find(m=>m.k==="warn")?.here===false&&W1.boss.find(m=>m.k==="warn")?.here===true&&W1.boss.find(m=>m.k==="warn")?.name==="Boss thế giới Thái Thản Cự Viên","đếm ngược: C ở bản đồ khác, W1 ở đúng bản đồ");
+    ok(await warpIn(W2)&&await waitFor(()=>W2.boss.some(m=>m.k==="warn"&&m.in<=120&&m.in>90),1500),`W2 vào Lõi giữa lúc chờ: nhận đếm ngược còn lại (${W2.boss.find(m=>m.k==="warn")?.in} giây)`);
+    const bossB=()=>[...W1.room.state.beasts.values()].find(b=>b.rank===3);
+    C0.boss=[];
+    await test(W1,"king",{kop:"spawn",mapId:LT,boss:VIEN});
+    ok(await waitFor(()=>bossB()&&C0.boss.some(m=>m.k==="spawn"&&m.world),2000),`xuất hiện: báo toàn server (C nhận "${C0.boss.find(m=>m.k==="spawn")?.name} … ${C0.boss.find(m=>m.k==="spawn")?.mapName}")`);
+    let ki=await test(W1,"king"); const LR=ki.lair, inL=(x,y)=>x>=LR.x&&x<=LR.x+LR.w&&y>=LR.y&&y<=LR.y+LR.h, Y=100000;
+    const base=Math.round(beastStats(Y).hp*WORLD.hp);
+    ok(ki.bid&&ki.rank===3&&ki.boss===VIEN&&inL(ki.x,ki.y)&&ki.years===Y&&ki.base===base&&ki.maxHp===base&&Math.abs(ki.dmg-beastStats(Y).dmg*WORLD.dmg)<1e-6&&ki.phase===1&&ki.life>WORLD.lifeSecs-5,
+      `${beastName(3,bossIndex(VIEN))} trên sàn đấu, ${ki.years} năm, máu x30 = ${ki.maxHp}, sát thương x${WORLD.dmg}, lặn xuống hồ sau ${Math.round(ki.life)} giây`);
+    ok(await warpIn(W3)&&await waitFor(()=>W3.boss.some(m=>m.k==="here"&&m.world&&m.rageIn>WORLD.enrageSecs-60),1500),`W3 vào khi boss đang ở: nhận thời gian còn lại và đồng hồ nổi giận (${Math.round(W3.boss.find(m=>m.k==="here")?.rageIn??0)} giây)`);
+    // Cấp 100 cho mọi võ hồn của 3 bot (chịu được sát thương boss 100.000 năm), giữ boss đứng yên, hoãn mọi cơ chế để thử từng cái.
+    const R9=[400,700,1700,5000,12000,20000,50000,100000,100000];
+    for(const b of W) for(const v of b.owned.list) await test(b,"set",{rowId:v.rowId,level:100,xp:0,rings:R9});
+    await test(W1,"wmech",{m:"hold",secs:300}); await test(W1,"wmech",{m:"timers"});
+    /** Đưa `b` vào sàn cạnh boss (thử nhiều chỗ quanh boss). */
+    async function intoLair(b,dx,dy){ const t=bossB(); for(let k=0;k<24;k++){ const a=k*Math.PI/6, r=k<12?1:1.6, x=Math.round(t.x+dx*r*Math.cos(a)-dy*Math.sin(a)), y=Math.round(t.y+dx*r*Math.sin(a)+dy*Math.cos(a));
+      if(!inL(x,y)) continue; await test(b,"goto",{x,y}); const q=mo(b); if(Math.hypot(q.x-x,q.y-y)<1) return true; } return false; }
+    const outLair=async b=>{ await test(b,"goto",{x:arrLT.x,y:arrLT.y}); return !inL(mo(b).x,mo(b).y); };
+    ok(await intoLair(W1,40,0)&&await intoLair(W2,-40,0)&&await intoLair(W3,0,30),"3 bot vào sàn đấu cạnh boss");
+    await test(W1,"kdmg",{v:1}); ki=await test(W1,"king");
+    ok(ki.engaged&&ki.n===3&&ki.parts.length===3&&ki.maxHp===Math.round(base*bossHpMult(3))&&bossB().parts===3,`W1 đánh: cả 3 người trong sàn thành người tham gia, máu tối đa ${base} -> ${ki.maxHp} (x${bossHpMult(3)})`);
+    ok(await outLair(W3),"W3 ra khỏi sàn"); const r0=ki.hp/ki.maxHp; await test(W1,"etick",{s:WORLD.outSecs+1}); ki=await test(W1,"king");
+    ok(ki.n===2&&!ki.parts.includes(sid(W3))&&ki.maxHp===Math.round(base*bossHpMult(2))&&Math.abs(ki.hp/ki.maxHp-r0)<0.01,`W3 ngoài sàn ${WORLD.outSecs} giây: bị loại, còn 2 người, máu ${ki.hp}/${ki.maxHp} (giữ tỉ lệ)`);
+    ok(await intoLair(W3,0,30),"W3 quay lại sàn"); await test(W3,"kdmg",{v:1}); ki=await test(W1,"king"); ok(ki.n===3,`W3 đánh: lại ${ki.n} người`);
+
+    // Điểm yếu hệ: võ hồn đúng hệ x2,5, hệ khác x0,5; W2 đổi sang võ hồn đúng hệ thì gây x2,5.
+    const dealt=async(b,v)=>(await test(b,"kdmg",{v}))?.dealt;
+    W1.boss=[]; await test(W1,"wmech",{m:"weak",he:"cuong_cong",secs:30});
+    ok(await waitFor(()=>bossB().weak===1+HE_IDS.indexOf("cuong_cong")&&W1.boss.some(m=>m.k==="weak"&&m.he==="cuong_cong"),1000),"điểm yếu hệ Cường công hiện trên boss (BeastState.weak) và báo cả sàn");
+    let d1=await dealt(W1,1000), d2=await dealt(W2,1000);
+    ok(d1===1000*WORLD.weakMult&&d2===1000*WORLD.offMult,`điểm yếu Cường công: W1 (${VOHON[mo(W1).vh].name}, cường công) gây ${d1}, W2 (${VOHON[mo(W2).vh].name}, mẫn công) gây ${d2}`);
+    await test(W1,"wmech",{m:"weak",he:"khong_che",secs:30}); d2=await dealt(W2,1000);
+    ok(await swTo(W2,"lam_ngan_thao"),"W2 đổi sang Lam Ngân Thảo (khống chế)"); const d3=await dealt(W2,1000);
+    ok(d2===1000*WORLD.offMult&&d3===1000*WORLD.weakMult,`điểm yếu Khống chế: W2 trước khi đổi gây ${d2}, sau khi đổi sang võ hồn đúng hệ gây ${d3}`);
+    W1.boss=[]; await test(W1,"wmech",{m:"weak",he:"khong_che",secs:1});
+    ok(await waitFor(()=>bossB().weak===0&&W1.boss.some(m=>m.k==="weakEnd"),2500)&&await dealt(W2,1000)===1000,"hết giờ điểm yếu: sát thương về bình thường");
+    // Mốc máu 75%: tự hiện điểm yếu một hệ ngẫu nhiên.
+    ki=await test(W1,"king"); W1.boss=[]; await test(W1,"wmech",{m:"timers",weakNext:0});
+    await test(W1,"kdmg",{v:Math.ceil(ki.hp-ki.maxHp*WORLD.weakAt[0])+10}); await test(W1,"etick",{s:0.05});
+    ok(await waitFor(()=>bossB().weak>0&&W1.boss.some(m=>m.k==="weak"),1500),`máu xuống dưới ${WORLD.weakAt[0]*100}%: lộ điểm yếu hệ ${W1.boss.find(m=>m.k==="weak")?.he} ${WORLD.weakSecs} giây`);
+    await test(W1,"wmech",{m:"weak",secs:1}); await test(W1,"wmech",{m:"timers"}); ok(await waitFor(()=>bossB().weak===0,2500),"điểm yếu hết giờ trước khi thử Bá Thể");
+
+    // Bá Thể: khiên 6% máu tối đa; cường công phá nhanh gấp 3; vỡ khiên thì phần dư vào máu; hết giờ chưa vỡ thì boss hồi máu.
+    ki=await test(W1,"king"); W1.boss=[]; await test(W1,"wmech",{m:"armor"}); let ka=await test(W1,"king"); const sh0=ka.world.shield;
+    ok(sh0===Math.round(ka.maxHp*DV.world.armor.pct)&&bossB().shield===sh0&&W1.boss.some(m=>m.k==="armor"),`Bá Thể: khiên ${sh0} (${DV.world.armor.pct*100}% máu tối đa ${ka.maxHp})`);
+    await test(W2,"kdmg",{v:100}); let kb=await test(W1,"king"); await test(W1,"kdmg",{v:100}); let kc=await test(W1,"king");
+    ok(kb.world.shield===sh0-100&&kc.world.shield===sh0-100-100*DV.world.armor.mult&&kc.hp===ka.hp,`W2 (khống chế) đánh 100 -> khiên −100; W1 (cường công) đánh 100 -> khiên −${100*DV.world.armor.mult}; máu không đổi (${kc.hp})`);
+    const rest=kc.world.shield; W1.boss=[]; await test(W1,"kdmg",{v:Math.ceil(rest/DV.world.armor.mult)+500}); kc=await test(W1,"king");
+    ok(kc.world.shield===0&&bossB().shield===0&&W1.boss.some(m=>m.k==="armorBreak")&&kc.hp<ka.hp&&ka.hp-kc.hp<=500+1,`W1 phá vỡ Bá Thể: phần dư vào máu (${ka.hp} -> ${kc.hp})`);
+    await test(W1,"wmech",{m:"armor"}); ka=await test(W1,"king"); W1.boss=[]; await test(W1,"etick",{s:DV.world.armor.secs+0.5}); kc=await test(W1,"king");
+    ok(kc.world.shield===0&&kc.hp===Math.min(kc.maxHp,ka.hp+ka.world.shield)&&W1.boss.some(m=>m.k==="armorEnd"),`Bá Thể hết ${DV.world.armor.secs} giây chưa vỡ: boss hồi ${kc.hp-ka.hp} máu`);
+
+    // Tích lực Đại Địa Chấn: boss miễn khống chế; chỉ khống chế của võ hồn Khống chế mới tính, đủ 3 lần thì ngắt, boss Choáng.
+    await test(W3,"status",{s:"root",secs:3}); ki=await test(W1,"king");
+    ok(VOHON[mo(W3).vh].id==="xuc_xich"&&!ki.st.includes("root"),"boss thế giới không nhận khống chế (W3 Xúc Xích gây Trói: bị bỏ)");
+    ok(await swTo(W1,"lam_ngan_thao"),"W1 đổi sang Lam Ngân Thảo (khống chế)");
+    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; await test(W1,"wmech",{m:"charge"}); ki=await test(W1,"king");
+    ok(ki.charge&&ki.cast==="Đại Địa Chấn"&&W1.boss.some(m=>m.k==="charge"&&m.need===3),`boss tích lực ${ki.cast} (${DV.world.charge.skill.warn} giây, cần ${DV.world.charge.need} lần khống chế)`);
+    await test(W3,"status",{s:"stun"}); ki=await test(W1,"king"); const b0=ki.world.brk;
+    await test(W1,"status",{s:"stun"}); await sleep(350); await test(W1,"status",{s:"root"}); await sleep(350); await test(W2,"status",{s:"silence"});
+    ki=await test(W1,"king");
+    ok(b0===0&&!ki.charge&&ki.st.includes("stun")&&W1.boss.some(m=>m.k==="broken")&&W1.boss.filter(m=>m.k==="brk").length===3,
+      `W3 (phụ trợ) khống chế không tính (${b0}/3); W1, W1, W2 (khống chế) 3 lần: ngắt, boss Choáng ${DV.world.charge.stun} giây`);
+    // Không ngắt: cả sàn trúng Vết thương sâu (Phá giáp 3 tầng 30 giây); W3 đổi sang võ hồn phụ trợ đầy năng lượng tiên cơ thì thanh tẩy.
+    await swTo(W3,"lam_ngan_thao");
+    for(const b of W) await test(b,"set",{rowId:b.owned.active,level:100,xp:0,rings:R9});
+    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; W1.hurts=[]; await test(W1,"wmech",{m:"charge"});
+    ok(await waitFor(()=>W1.boss.some(m=>m.k==="chargeHit"),DV.world.charge.skill.warn*1000+1500),"không ngắt kịp: Đại Địa Chấn trúng cả sàn");
+    await test(W1,"wmech",{m:"hold",secs:300}); await sleep(200);
+    const armorBit=statusBit("armor");
+    ok(W.every(b=>mo(b).st&armorBit)&&W1.hurts.length>0,`3 người trong sàn dính Vết thương sâu (${STATUS.armor.name} 3 tầng), W1 mất máu`);
+    await sleep(1100); await test(W3,"energy",{v:TIEN_CO_MAX}); const sl=W3.owned.team.indexOf(rowOf(W3,"xuc_xich")); await waitFor(()=>!(mo(W3)?.swCd>0),SWITCH_CD*1000+500);
+    W3.room.send("switch",{slot:sl}); await waitFor(()=>!(mo(W3).st&armorBit),2000);
+    ok(!(mo(W3).st&armorBit)&&mo(W1).st&armorBit,`W3 đổi sang Xúc Xích (phụ trợ) đầy năng lượng: tiên cơ thanh tẩy Vết thương sâu; W1 chưa thanh tẩy vẫn còn`);
+
+    // Nổi giận sau 10 phút: sát thương x3, nhanh hơn, chiêu toàn sàn Bạo Nộ.
+    W1.boss=[]; W1.fxs=[]; await test(W1,"wmech",{m:"rage"}); await waitFor(()=>bossB().phase===2,1500); ki=await test(W1,"king");
+    ok(ki.phase===2&&ki.world.rage&&Math.abs(ki.now-ki.dmg*WORLD.rageDmg)<1e-6&&Math.abs(ki.spd-WORLD.rageSpd)<1e-9&&W1.boss.some(m=>m.k==="rage")&&W1.fxs.some(f=>f.k==="roar"),
+      `nổi giận (${Math.round(ki.life)} giây còn lại): sát thương ${ki.dmg.toFixed(0)} -> ${ki.now.toFixed(0)} (x${WORLD.rageDmg}), tốc độ x${ki.spd}`);
+    await test(W1,"wmech",{m:"hold",secs:0}); W1.fxs=[]; await test(W1,"wmech",{m:"slam"});
+    ok(await waitFor(()=>W1.fxs.some(f=>f.k==="teleHit"&&f.name==="Bạo Nộ"),(KING.roarSecs+WORLD_SLAM.warn)*1000+1500),"Bạo Nộ tung (sau tiếng gầm nổi giận)");
+    await test(W1,"wmech",{m:"hold",secs:300});
+    const tf=W1.fxs.find(f=>f.k==="tele"&&f.name==="Bạo Nộ"), th=W1.fxs.find(f=>f.k==="teleHit"&&f.name==="Bạo Nộ");
+    ok(tf&&tf.shape==="line"&&tf.r===LR.w&&tf.w===LR.h&&tf.x===LR.x&&W.every(b=>th.hit.includes(sid(b))),`chiêu toàn sàn: vùng phủ đúng sàn đấu ${LR.w}×${LR.h}, cả 3 người trúng`);
+
+    // Chia thưởng: W1 nhiều nhất (hồn hoàn đỏ 100.000 năm + rương), W2 từ 3% (hồn hoàn + rương), W3 dưới 3% (không thưởng).
+    const chestOf=(b,id)=>qtyOf(b,chestCode(id)), ringsY=b=>(b.bag?.items??[]).filter(i=>i.code===RING_ITEM).map(i=>i.years);
+    for(const b of W) await test(b,"set",{rowId:b.owned.active,level:100,xp:0,rings:R9});
+    ki=await test(W1,"king"); const prev2=(ki.list.find(x=>x.id===sid(W2))?.pct??0)/100*ki.total, want2=Math.floor(0.1*(ki.total+ki.hp)-prev2);
+    if(want2>0) await test(W2,"kdmg",{v:want2});
+    const drops0=W1.room.state.drops.size; W1.boss=[]; C0.chats=[]; for(const b of W) b.logs=[];
+    await test(W1,"kdmg",{v:1e9});
+    ok(await waitFor(()=>!bossB()&&W1.boss.some(m=>m.k==="down"),2000),"hạ boss thế giới");
+    const dn=W1.boss.find(m=>m.k==="down"), p1=dn?.list.find(x=>x.id===sid(W1))?.pct, p2=dn?.list.find(x=>x.id===sid(W2))?.pct, p3=dn?.list.find(x=>x.id===sid(W3))?.pct;
+    ok(dn?.top===mo(W1).name&&p1>p2&&p2>=3&&p3<3,`đóng góp: W1 ${p1}%, W2 ${p2}%, W3 ${p3}%`);
+    ok(await waitFor(()=>chestOf(W1,VIEN)===1&&chestOf(W2,VIEN)===1,2500)&&ringsY(W1).includes(WORLD_RING.top)
+      &&ringsY(W2).some(y=>y===WORLD_RING.top||(y>=WORLD_RING.black[0]&&y<=WORLD_RING.black[1])),
+      `W1 nhận hồn hoàn đỏ ${formatYears(WORLD_RING.top)} và rương; W2 nhận hồn hoàn ${formatYears(ringsY(W2).at(-1)??0)} và rương (${W1.logs.find(t=>/Nhận hồn hoàn/.test(t))})`);
+    ok(chestOf(W3,VIEN)===0&&!ringsY(W3).length&&/cần từ 3% mới nhận thưởng/.test(W3.logs.join("\n")),`W3 dưới 3%: không nhận hồn hoàn, rương ("${W3.logs.find(t=>/cần từ/.test(t))}")`);
+    ok(W1.room.state.drops.size===drops0,"boss thế giới không rơi hồn hoàn xuống đất (vào thẳng túi)");
+    ok(await waitFor(()=>C0.chats.some(m=>/Boss thế giới Thái Thản Cự Viên ở Lõi Tinh Đấu đã bị hạ/.test(m.text)),1500),`toàn server được báo: "${C0.chats.find(m=>/bị hạ/.test(m.text))?.text}"`);
+    let cl=await test(W1,"claims"); ok(cl.w===1&&cl.wdb===1&&cl.n===0&&cl.db===0,`lượt boss thế giới hôm nay ${cl.w}/${WORLD.daily} (DB ${cl.wdb}), lượt thú vương không đổi (${cl.n})`);
+
+    // Mở rương: hồn cốt 100.000 năm loài gốc, mảnh UR, hồn hạch 5–6★ bộ bất kỳ.
+    { const it=()=>W1.bag.items.find(i=>i.code===chestCode(VIEN)), bn=bonesOf(W1).length, ur0=qtyOf(W1,shardCode("hao_thien_chuy")), cc0=(W1.bag.items.filter(i=>i.code===CORE_ITEM)).length;
+      await test(W1,"chest",{bone:0,i:0,n:2,s:1}); const l=W1.logs.length; W1.room.send("open",{id:it().id}); await waitFor(()=>W1.logs.length>l&&chestOf(W1,VIEN)===0,1500); await sleep(150);
+      const nb=bonesOf(W1).find(i=>i.years===Y&&i.stats?.beast===VIEN&&i.stats?.slot===BONE_SLOTS[1].id), nc=W1.bag.items.filter(i=>i.code===CORE_ITEM).slice(cc0);
+      ok(chestOf(W1,VIEN)===0&&bonesOf(W1).length===bn+1&&nb&&qtyOf(W1,shardCode("hao_thien_chuy"))===ur0+2&&nc.length===1&&nc[0].stars>=WORLD_CHEST.stars[0]&&nc[0].stars<=WORLD_CHEST.stars[1],
+        `mở rương boss thế giới: ${W1.logs.at(-1)}`);
+      await test(W1,"chest",{off:1}); }
+
+    // Boss của ngày hôm sau (luân phiên): Thiên Thanh Ngưu Mãng; hôm nay đã nhận thưởng thì W1 vẫn đánh được nhưng không nhận gì.
+    W1.logs=[]; await test(W1,"king",{kop:"spawn",mapId:LT,boss:MANG}); await waitFor(()=>bossB(),1500); ki=await test(W1,"king");
+    ok(ki.boss===MANG&&ki.rank===3&&ki.maxHp===base,`boss thế giới thứ hai: ${beastName(3,bossIndex(MANG))} (${ki.skills?.join(", ")})`);
+    await test(W1,"wmech",{m:"hold",secs:300}); await test(W1,"wmech",{m:"timers"});
+    await intoLair(W1,40,0); await intoLair(W2,-40,0); await test(W1,"kdmg",{v:1});
+    ok(/Hôm nay đã hết lượt nhận thưởng boss thế giới/.test(W1.logs.join("\n")),`vào giao chiến khi đã nhận thưởng hôm nay: nhắc "${W1.logs.find(t=>/hết lượt/.test(t))}"`);
+    // Du Thủy: lặn không nhận sát thương; nổi lên chỗ khác, lộ điểm yếu Mẫn công.
+    const pos0=[bossB().x,bossB().y]; W1.boss=[]; await test(W1,"wmech",{m:"dive"});
+    ok(await waitFor(()=>bossB().dive,1000)&&await dealt(W1,1000)===0&&W1.boss.some(m=>m.k==="dive"),"Du Thủy: boss lặn xuống hồ, đánh không mất máu");
+    await test(W1,"wmech",{m:"surface"});
+    ok(await waitFor(()=>!bossB().dive&&bossB().weak===1+HE_IDS.indexOf("man_cong"),1000)&&Math.hypot(bossB().x-pos0[0],bossB().y-pos0[1])>=40&&inL(bossB().x,bossB().y),
+      `nổi lên chỗ khác trong sàn (${pos0.map(Math.round)} -> ${Math.round(bossB().x)},${Math.round(bossB().y)}), lộ điểm yếu Mẫn công ${DM.world.dive.weakSecs} giây`);
+    ok(await swTo(W2,"u_minh_linh_mieu")&&await dealt(W2,1000)===1000*WORLD.weakMult,"W2 đổi lại U Minh Linh Miêu (mẫn công): gây x2,5 lúc boss vừa nổi lên");
+    // Thanh Lân Độc Vụ: độc toàn sàn (Trúng độc nhiều tầng 30 giây).
+    for(const b of [W1,W2]) await intoLair(b,b===W1?40:-40,0);
+    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; await test(W1,"wmech",{m:"miasma"});
+    ok(await waitFor(()=>W1.fxs.some(f=>f.k==="teleHit"&&f.name==="Thanh Lân Độc Vụ"),DM.world.miasma.skill.warn*1000+1500),"Thanh Lân Độc Vụ tung");
+    await test(W1,"wmech",{m:"hold",secs:300}); await sleep(150);
+    ok([W1,W2].every(b=>mo(b).st&statusBit("poison")),"người trong sàn trúng độc toàn sàn (Vết thương sâu)");
+    W1.logs=[]; const c1=chestOf(W1,MANG); await test(W1,"kdmg",{v:1e9}); await waitFor(()=>!bossB(),1500); await sleep(500);
+    ok(chestOf(W1,MANG)===c1&&!W1.logs.some(t=>/Nhận hồn hoàn/.test(t))&&/hết lượt nhận thưởng boss thế giới/.test(W1.logs.join("\n")),`đã nhận thưởng hôm nay: hạ boss thứ hai không nhận thêm (${WORLD.daily} lần/ngày)`);
+    // Sang ngày mới (00:00 giờ Việt Nam): lượt đặt lại.
+    const dy=await test(W1,"day",{shift:1}); cl=await test(W1,"claims"); W1.logs=[];
+    await test(W1,"king",{kop:"spawn",mapId:LT,boss:VIEN}); await waitFor(()=>bossB(),1500); await test(W1,"wmech",{m:"hold",secs:300}); await test(W1,"wmech",{m:"timers"});
+    await intoLair(W1,40,0); await test(W1,"kdmg",{v:1}); await test(W1,"kdmg",{v:1e9});
+    ok(cl.w===0&&await waitFor(()=>chestOf(W1,VIEN)===1,2500)&&/lượt 1\/1/.test(W1.logs.join("\n")),`ngày ${dy.day}: lượt về 0, hạ boss lại nhận thưởng (1/1)`);
+    await test(W1,"day",{shift:0});
+
+    // 15 phút không ai hạ: lặn xuống hồ, toàn server được báo.
+    await test(W1,"king",{kop:"spawn",mapId:LT,boss:VIEN}); await waitFor(()=>bossB(),1500);
+    C0.chats=[]; W1.boss=[]; await test(W1,"etick",{s:WORLD.lifeSecs});
+    ok(await waitFor(()=>!bossB()&&W1.boss.some(m=>m.k==="leave"&&m.world)&&C0.chats.some(m=>/lặn xuống hồ/.test(m.text)),1500),`hết ${WORLD.lifeSecs/60} phút: boss lặn xuống hồ ("${C0.chats.find(m=>/lặn xuống hồ/.test(m.text))?.text}")`);
+
+    // Đăng xuất ở Lõi Tinh Đấu: lần sau vào ở bờ hồ Nội địa (điểm arrive của cổng về), túi đồ còn nguyên.
+    const bk=bagKey(W2); await W2.room.leave(); await sleep(500);
+    const m2=await post("/api/me",{token:W2.token}); W2.mapId=m2.mapId; await enter(W2); await waitFor(()=>mo(W2)&&W2.bag);
+    ok(m2.mapId===ND&&W2.room.state.mapId===ND&&Math.hypot(mo(W2).x-arrND.x,mo(W2).y-arrND.y)<1&&bagKey(W2)===bk,
+      `đăng xuất ở Lõi Tinh Đấu: vào lại ở bờ hồ Nội địa (${mo(W2).x},${mo(W2).y}), túi còn nguyên (rương ${chestOf(W2,VIEN)}, hồn hoàn ${ringsY(W2).join(", ")} năm)`);
+  } finally { C=C0; for(const b of W) await b.room.leave().catch(()=>{}); }
 }
 
 /**

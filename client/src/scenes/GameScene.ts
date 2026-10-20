@@ -5,6 +5,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SE
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
+  WORLD, HE, HE_IDS,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
@@ -39,8 +40,8 @@ const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
  *  (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
 const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
   s.texture.key.startsWith("beast_") ? s.y - s.displayHeight * s.originY : s.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1);
-/** Hệ số phóng sprite theo bậc hồn thú: tinh anh ELITE.scale (BĐ4), thú vương KING.scale (khoảng 96×96, BĐ5). */
-const rankScale = (rank: number) => (rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
+/** Hệ số phóng sprite theo bậc hồn thú: tinh anh ELITE.scale (BĐ4), thú vương KING.scale (khoảng 96×96, BĐ5), boss thế giới WORLD.scale (BĐ6e). */
+const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
 const TELE_COL = 0xff3b3b;
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
@@ -60,6 +61,8 @@ export class GameScene extends Phaser.Scene {
   lair: Rect | null = null;
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
   bossList: { id: string; name: string; pct: number }[] | null = null;
+  /** Boss thế giới đang tích lực phải ngắt (Đại Địa Chấn, BĐ6e): từ tin "boss" k = "charge" tới khi bị ngắt / tung. */
+  charging = false;
   teleG!: Phaser.GameObjects.Graphics;
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
@@ -403,6 +406,7 @@ export class GameScene extends Phaser.Scene {
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
     this.room.onMessage("boss", (m: any) => {
       const col = m.col ?? "#ff5a5a";
+      if (this.worldBossMsg(m, col)) return; // boss thế giới (BĐ6e): cơ chế riêng
       if (m.k === "warn") {
         hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
         hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
@@ -410,21 +414,26 @@ export class GameScene extends Phaser.Scene {
       } else if (m.k === "spawn" || m.k === "here") {
         hud.setBossCountdown(null);
         if (m.here) hud.setBossLife(m.life);
-        if (m.k === "spawn") {
+        // Boss thế giới (BĐ6e): đồng hồ nổi giận, điểm yếu đang hiện (người vào giữa trận).
+        if (m.here && m.world) { hud.setBossRage(m.k === "spawn" ? WORLD.enrageSecs : m.rageIn ?? 0); if (m.weak) hud.setBossWeak(m.weakT ?? 0); }
+        if (m.k === "spawn" && m.world) {
+          hud.log(`Boss thế giới ${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
+          hud.banner(`${m.name} xuất hiện`, m.here ? `Sàn đấu bên hồ · nổi giận sau ${Math.round(WORLD.enrageSecs / 60)} phút` : m.mapName);
+        } else if (m.k === "spawn") {
           hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": vào hang ở vùng sâu nhất (chấm đỏ trên bản đồ nhỏ)" : ""}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Hang ở vùng sâu nhất · rút đi sau ${Math.round(m.life / 60)} phút` : m.mapName);
         }
       } else if (m.k === "phase") {
         hud.banner(`${m.name}: giai đoạn 2`, `${m.title} – ${m.desc}`);
         hud.log(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
-      } else if (m.k === "rank") { this.bossList = m.list; hud.bossRank(m.list, this.me); }
+      } else if (m.k === "rank") { this.bossList = m.list; hud.bossRank(m.list, this.me, false, this.worldBossHere()); }
       else if (m.k === "down") {
         // Kết quả cuối chỉ hiện cho người tham gia (đang nhận bảng xếp hạng, hoặc có tên trong danh sách).
-        if (this.bossList || m.list?.some((x: { id: string }) => x.id === this.me)) hud.bossRank(m.list, this.me, true);
+        if (this.bossList || m.list?.some((x: { id: string }) => x.id === this.me)) hud.bossRank(m.list, this.me, true, !!MAPS[this.room.state.mapId]?.world?.length);
         this.bossList = null;
         setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
         hud.banner(`Đã hạ ${m.name}`, `${m.top} đóng góp nhiều nhất`);
-      } else if (m.k === "leave") { this.bossList = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã rút đi`, "Không ai hạ được trong 15 phút"); }
+      } else if (m.k === "leave") { this.bossList = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
       else if (m.k === "reset") { this.bossList = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
     this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
@@ -1008,7 +1017,7 @@ export class GameScene extends Phaser.Scene {
     // Tinh anh (BĐ4): chấm sáng 3×3 màu aura, viền tối, nhấp nháy, khi còn sống (mục 5.4). Thú vương (BĐ5): chấm 5×5.
     const on = Math.floor(this.time.now / 400) % 2 === 0;
     st.beasts.forEach((b: any) => {
-      if (!b.rank) return; const x = (b.x / TILE) | 0, y = (b.y / TILE) | 0, r = b.rank === 2 ? 2 : 1;
+      if (!b.rank) return; const x = (b.x / TILE) | 0, y = (b.y / TILE) | 0, r = b.rank >= 2 ? 2 : 1;
       ctx.fillStyle = "#1a1020"; ctx.fillRect(x - r - 1, y - r - 1, 2 * r + 3, 2 * r + 3);
       ctx.fillStyle = on ? BOSSES[b.species]?.aura ?? "#ffffff" : "#ffffff"; ctx.fillRect(x - r, y - r, 2 * r + 1, 2 * r + 1);
     });
@@ -1106,14 +1115,19 @@ export class GameScene extends Phaser.Scene {
       if (b.buff & beastBuffBit("rage") && Math.floor(time / 160) % 2) { s.setTint(0xff7050); s.setData("rgTint", true); }
       else if (s.getData("rgTint")) { s.clearTint(); s.setData("rgTint", false); }
       if (b.rank && s.getData("bscale") !== k) s.setData("bscale", k);
+      // Boss thế giới đang lặn (Du Thủy, BĐ6e): chỉ còn bóng mờ dưới nước.
+      s.setAlpha(b.dive ? 0.2 : 1);
       s.setFlipX(b.face < 0).setDepth(s.y);
       if (b.rank) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
-          lb = this.add.text(s.x, s.y, beastName(b.rank, b.species), { fontFamily: FONT, fontSize: b.rank === 2 ? "9px" : "7px", fontStyle: "800",
+          lb = this.add.text(s.x, s.y, beastName(b.rank, b.species), { fontFamily: FONT, fontSize: b.rank >= 2 ? "9px" : "7px", fontStyle: "800",
             color: BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
           this.eliteLabels.set(id, lb);
         }
+        // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
+        const txt = beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        if (lb.text !== txt) lb.setText(txt);
         lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984);
       }
     });
@@ -1320,6 +1334,62 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Bản đồ đang đứng có boss thế giới (Lõi Tinh Đấu, BĐ6e). */
+  worldBossHere() { return !!MAPS[this.room.state.mapId]?.world?.length; }
+
+  /**
+   * Tin "boss" riêng của boss thế giới (BĐ6e): báo trước / bị hạ toàn server có chữ "Boss thế giới"; trong Lõi Tinh Đấu thêm các cơ chế
+   * buộc đổi võ hồn (điểm yếu hệ, Bá Thể, tích lực phải ngắt, Du Thủy, độc toàn sàn, nổi giận). Trả true nếu đã xử lý xong tin này.
+   */
+  worldBossMsg(m: any, col: string) {
+    if (m.k === "warn" && m.world) {
+      hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
+      hud.log(`Boss thế giới ${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
+      hud.banner(`Boss thế giới ${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
+      return true;
+    }
+    const he = (id: string) => HE[id as keyof typeof HE]?.name ?? id;
+    switch (m.k) {
+      case "weak":
+        hud.setBossWeak(m.secs);
+        hud.banner(`Điểm yếu: ${he(m.he)}`, `Võ hồn ${he(m.he)} gây x${String(m.mult).replace(".", ",")}, hệ khác x${String(m.off).replace(".", ",")} trong ${m.secs} giây: đổi võ hồn (phím 1–4)!`);
+        hud.log(`Boss lộ điểm yếu hệ ${he(m.he)} trong ${m.secs} giây.`, "#ffe08a");
+        return true;
+      case "weakEnd": return true;
+      case "charge":
+        this.charging = true;
+        hud.banner(`${m.name}: tích lực ${m.secs} giây!`, `Cần ${m.need} lần khống chế của võ hồn Khống chế để ngắt`);
+        hud.log(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
+        return true;
+      case "brk": hud.log(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
+      case "broken":
+        this.charging = false;
+        hud.banner(`Đã ngắt ${m.name}!`, `${m.by} ngắt chiêu · boss Choáng ${m.secs} giây`);
+        return true;
+      case "chargeHit":
+        this.charging = false;
+        hud.log(`${m.name} không bị ngắt: cả sàn trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
+        return true;
+      case "floor":
+        hud.banner(m.name, m.name === "Bạo Nộ" ? "Chiêu toàn sàn: không né được!" : "Độc toàn sàn: Vết thương sâu, nhờ võ hồn phụ trợ thanh tẩy");
+        return true;
+      case "armor":
+        hud.banner(`${m.name}!`, `Khiên ${m.secs} giây: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}`);
+        hud.log(`Boss khoác ${m.name}: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}; không phá kịp thì boss hồi máu.`, "#9ad8ff");
+        return true;
+      case "armorBreak": hud.log(`${m.by} phá vỡ ${m.name}!`, "#9ad8ff"); return true;
+      case "armorEnd": if (m.heal > 0) hud.log(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
+      case "dive": hud.banner(`${m.name}!`, `Boss lặn xuống hồ ${m.secs} giây: chờ nổi lên, mẫn công lướt tới trước`); return true;
+      case "surface": return true;
+      case "rage":
+        hud.banner("NỔI GIẬN!", `Sát thương x${m.dmg}, chiêu toàn sàn mỗi ${m.every} giây`);
+        hud.log(`${m.name} nổi giận: sát thương x${m.dmg}, đánh nhanh hơn, chiêu toàn sàn mỗi ${m.every} giây.`, col);
+        return true;
+    }
+    if (m.k === "reset" || m.k === "down" || m.k === "leave") this.charging = false;
+    return false;
+  }
+
   updateHud(me: any) {
     const st = this.room.state;
     // Câu gợi ý hấp thụ trong túi phụ thuộc cấp và số hồn hoàn: đổi thì vẽ lại túi.
@@ -1343,9 +1413,13 @@ export class GameScene extends Phaser.Scene {
     hud.updateBag();
     hud.updateParty();
     // Thú vương (BĐ5): thanh máu lớn đọc thẳng BeastState; bảng xếp hạng khi mình đang tham gia (có trong danh sách đóng góp).
-    let kb: any = null; st.beasts.forEach((b: any) => { if (b.rank === 2) kb = b; });
-    hud.showBoss(kb && { name: beastName(2, kb.species), hp: kb.hp, maxHp: kb.maxHp, parts: kb.parts, phase: kb.phase,
-      title: BOSSES[kb.species]?.phase2?.name ?? "", col: BOSSES[kb.species]?.aura ?? "#ff5a5a" });
+    let kb: any = null; st.beasts.forEach((b: any) => { if (b.rank >= 2) kb = b; });
+    // Boss thế giới (BĐ6e): thêm điểm yếu hệ, khiên, ngắt tích lực, lặn; so với hệ võ hồn mình đang ra trận.
+    const wdef = kb?.rank === 3 ? BOSSES[kb.species]?.world : undefined, myHe = VOHON[me?.vh ?? 0]?.he ?? "cuong_cong";
+    hud.showBoss(kb && { name: beastName(kb.rank, kb.species), hp: kb.hp, maxHp: kb.maxHp, parts: kb.parts, phase: kb.phase,
+      title: BOSSES[kb.species]?.phase2?.name ?? "", col: BOSSES[kb.species]?.aura ?? "#ff5a5a",
+      world: kb.rank === 3 ? { rage: kb.phase === 2, weak: kb.weak ? HE_IDS[kb.weak - 1] : null, myHe, shield: kb.shield, brk: kb.brk,
+        need: wdef?.charge?.need ?? 0, charging: !!this.charging, dive: kb.dive, armorHe: wdef?.armor?.he ?? null } : undefined });
     if (!kb && this.bossList) { this.bossList = null; hud.bossRank(null, this.me); }
     hud.updateBossCd();
     hud.updateArenaQueue();
