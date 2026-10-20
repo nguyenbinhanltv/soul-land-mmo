@@ -80,6 +80,11 @@ export class GameScene extends Phaser.Scene {
   quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
   nearNpc: string | null = null;    // NPC trong tầm nói chuyện (NPC_RANGE) lần kiểm tra gần nhất
   onTravel: (mapId: string) => void = () => {};
+  /** Đại Đấu Hồn Trường (7.2): server đã ghép trận thì vào phòng `roomId`; `onBack` rời sân về bản đồ cũ (đang giao đấu = bỏ trận, thua). */
+  onArena: (roomId: string) => void = () => {};
+  onBack: () => void = () => {};
+  /** Đang ở sân Đại Đấu Hồn Trường (MAPS kind `arena`): vẽ thanh trận đấu, thanh máu trên đầu hai hồn sư. */
+  isArena = false;
   /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
   ac = new AbortController();
   keys: Record<string, boolean> = {};
@@ -101,9 +106,14 @@ export class GameScene extends Phaser.Scene {
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
 
   constructor() { super("game"); }
-  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void }) {
+  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string) => void; onArena: (roomId: string) => void; onBack: () => void }) {
     this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
-    const off = () => { this.ac.abort(); hud.showPortal(null, () => {}); hud.showPlayerMenu(null); };
+    this.onArena = data.onArena; this.onBack = data.onBack; this.isArena = MAPS[data.mapId]?.kind === "arena";
+    // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
+    const off = () => {
+      this.ac.abort(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
+      hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
+    };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);
   }
@@ -430,8 +440,24 @@ export class GameScene extends Phaser.Scene {
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,
         quest: (op) => this.room.send("quest", { op }),
+        arena: (op) => this.room.send("arena", { op }), // 7.2: xếp hàng / hủy / bảng xếp hạng
       });
     });
+    // Đại Đấu Hồn Trường (7.2): server báo đang xếp hàng, đã ghép trận (vào phòng sân đấu), các pha của trận và kết quả.
+    this.room.onMessage("arena", (m: any) => {
+      if (m?.k === "queue") hud.setArenaQueue(m.on ? { elo: m.elo, secs: m.secs } : null, () => this.room.send("arena", { op: "cancel" }));
+      else if (m?.k === "found" && typeof m.roomId === "string") {
+        hud.setArenaQueue(null, () => {}); hud.closeNpc();
+        hud.log(`Đã tìm thấy đối thủ: ${m.foe} (Elo ${m.elo}). Vào Đại Đấu Hồn Trường…`, "#ff9a8a");
+        this.onArena(m.roomId);
+      } else if (m?.k === "ready") hud.banner("Đại Đấu Hồn Trường", `Trận đấu bắt đầu sau ${m.secs} giây`);
+      else if (m?.k === "fight") hud.banner("Giao đấu!", `Hạ hết đội võ hồn đối thủ trong ${Math.round(m.secs / 60)} phút; hết giờ thì so sinh lực cả đội`);
+      else if (m?.k === "end") {
+        hud.arenaEnd(m, { back: () => this.onBack(), top: () => this.room.send("arena", { op: "top" }) });
+        this.room.send("arena", { op: "top" });
+      }
+    });
+    this.room.onMessage("arenaTop", (m: hud.ArenaTopMsg) => { if (m && Array.isArray(m.list)) hud.setArenaTop(m); });
     // Nhiệm vụ tân thủ (6.2): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu trên đầu NPC và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
@@ -480,6 +506,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("ko", (m: { fallen: string; next: string | null }) => {
       const name = (id: string) => VOHON[Math.max(0, vohonIndex(id))].name;
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
+      else if (this.isArena) hud.banner("Cả đội đã gục", "Thua trận đấu hồn, không mất kinh nghiệm hay đồ");
       else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
@@ -1023,7 +1050,7 @@ export class GameScene extends Phaser.Scene {
       const sc = p.ava > 0 && !p.dead ? CHAN_THAN_SCALE : 1;
       if (root.scale !== sc) root.setScale(Math.abs(sc - root.scale) < 0.01 ? sc : root.scale + (sc - root.scale) * lerp);
       const up = (root.scale - 1) * 30;
-      label.setPosition(root.x, root.y - 30 - up).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      label.setPosition(root.x, root.y - (this.isArena ? 31 : 30) - up).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
       // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
       const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
       if (label.style.color !== col) label.setColor(col);
@@ -1105,6 +1132,13 @@ export class GameScene extends Phaser.Scene {
         g.fillStyle(0x000000, 0.6).fillRect(s.x - w / 2, y, w, 2);
         g.fillStyle(b.tier === 0 ? 0xe0525a : hex(t.glow), 1).fillRect(s.x - w / 2, y, w * Math.max(0, b.hp / b.maxHp), 2);
       }
+    });
+    // Sân đấu (7.2): thanh sinh lực võ hồn ra trận trên đầu cả hai hồn sư (mình xanh, đối thủ đỏ).
+    if (this.isArena) st.players.forEach((p: any, id: string) => {
+      const v = this.players.get(id); if (!v || p.dead) return;
+      const w = 22, x = v.root.x - w / 2, y = v.root.y - 29;
+      g.fillStyle(0x000000, 0.65).fillRect(x - 1, y - 1, w + 2, 4);
+      g.fillStyle(id === this.me ? 0x5fd08a : 0xe0525a, 1).fillRect(x, y, w * Math.max(0, Math.min(1, p.hp / Math.max(1, p.maxHp))), 2);
     });
     st.players.forEach((p: any, id: string) => {
       if (p.absorb <= 0) return; const v = this.players.get(id)!, t = TIERS[p.absorbTier], k = p.absorb, { x, y } = v.root;
@@ -1283,6 +1317,13 @@ export class GameScene extends Phaser.Scene {
       title: BOSSES[kb.species]?.phase2?.name ?? "", col: BOSSES[kb.species]?.aura ?? "#ff5a5a" });
     if (!kb && this.bossList) { this.bossList = null; hud.bossRank(null, this.me); }
     hud.updateBossCd();
+    hud.updateArenaQueue();
+    // Sân đấu (7.2): thanh trận đấu đọc thẳng ArenaState (pha, giây còn lại, hai bên).
+    if (this.isArena && st.sides) {
+      hud.showArena({ phase: st.phase, time: st.time, me: this.me, sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
+        () => this.onBack());
+      hud.updateArenaEnd();
+    }
     // Tên vùng: vùng an toàn > vùng săn > điểm hồi sinh > tên bản đồ. Vừa vào bản đồ thì hiện tên bản đồ.
     const area = this.safes.find((z) => inRect(z, me.x, me.y)) ?? this.zones.find((z) => inRect(z, me.x, me.y));
     const mapName = MAPS[this.mapId]?.name ?? this.mapId;

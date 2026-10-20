@@ -57,7 +57,8 @@ export function beastStats(years: number) {
 export const formatYears = (years: number) => `${Math.max(0, Math.floor(years)).toLocaleString("vi-VN")} năm`;
 
 // ---------- Bản đồ và hồn thú (GAME_DESIGN.md mục 5.3, 6) ----------
-export type MapKind = "town" | "hunt" | "boss";
+/** `arena` (bước 7.2): sân của Đại Đấu Hồn Trường, chỉ phòng ArenaRoom mở; không có hồn thú, không vùng an toàn, không vào bằng cổng. */
+export type MapKind = "town" | "hunt" | "boss" | "arena";
 export interface MapDef {
   /** Mã cố định, cũng là tên file Tiled `shared/assets/<id>.json`. */
   id: string;
@@ -82,6 +83,8 @@ export const MAPS: Record<string, MapDef> = {
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
     shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
+  // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
+  dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
 /**
  * Mã bản đồ cũ đã bỏ khỏi MAPS -> bản đồ thay thế (mục 6): `accounts.map_id` còn mã cũ thì vào bản đồ thay thế, ở `spawn`
@@ -2171,7 +2174,7 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
  * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
  * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
  */
-export type NpcRole = "talk" | "shop" | "forge";
+export type NpcRole = "talk" | "shop" | "forge" | "arena"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng
 /**
  * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
  * `looks`: ngoại hình vẽ bằng sprite hồn sư (mục 5.11); không có = biển hiệu đứng yên. `lines`: lời thoại, hiện lần lượt.
@@ -2217,8 +2220,14 @@ export const NPCS: NpcDef[] = [
       "Lò rèn Nặc Đinh, nghề rèn truyền ba đời. Hồn cốt dư mang tới đây, ta dung luyện vào hồn cốt chính của ngươi: không bao giờ thất bại.",
       "Hồn hạch thì phải đợi ta tìm đủ đồ nghề mới nâng cấp được (sắp mở).",
     ] },
-  { id: "dau_hon_truong", name: "Đại Đấu Hồn Trường", title: "Sắp mở", role: "talk", col: "#ff6b6b",
-    lines: ["Đại Đấu Hồn Trường: đấu hồn xếp hạng sắp mở. Lối vào tạm đặt ở Nặc Đinh Thành cho đến khi có Thiên Đấu Thành."] },
+  // 7.2: lối vào tạm của Đại Đấu Hồn Trường (Thiên Đấu Thành thuộc BĐ6); mở trang xếp hàng / bảng xếp hạng (role "arena").
+  { id: "dau_hon_truong", name: "Đại Đấu Hồn Trường", title: "Đấu hồn xếp hạng", role: "arena", col: "#ff6b6b",
+    lines: [
+      "Đại Đấu Hồn Trường: hai hồn sư đưa đội võ hồn của mình vào sân, đấu một chọi một. Thắng thua tính điểm Elo, có bảng xếp hạng.",
+      "Đội nào gục hết trước thì thua; hết giờ thì bên còn nhiều sinh lực (theo % cả đội) thắng. Rời sân giữa trận là thua.",
+      "Vào sân cả đội hồi đầy; thua không mất gì. Thắng nhận Hồn Tệ và mảnh võ hồn, mỗi ngày có giới hạn số trận được thưởng.",
+      "Lối vào tạm đặt ở Nặc Đinh Thành cho đến khi có Thiên Đấu Thành.",
+    ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
@@ -2367,6 +2376,62 @@ export const questGoalHit = (g: QuestGoal, ev: QuestEvent) =>
 export const questRewardText = (r: QuestReward) =>
   [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");
 
+// ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2; mọi số chờ chốt) ----------
+/** Mã bản đồ sân đấu (MAPS, kind `arena`): shared/assets/dai_dau_hon_truong.json, chỉ phòng ArenaRoom dùng. */
+export const ARENA_MAP = "dai_dau_hon_truong";
+/**
+ * **(chờ chốt)** Số liệu Đại Đấu Hồn Trường (mục 5.9, bước 7.2).
+ * - `startElo`: Elo khởi đầu (chưa đấu trận nào); `k`: hệ số K của Elo (mọi trận như nhau); Elo không xuống dưới 0.
+ * - `window`: ghép trận theo Elo gần nhất, chênh tối đa `base` + `perSec` × số giây chờ (nới dần), tối đa `max`.
+ * - `joinSecs`: chờ cả hai vào sân (ai không vào là bỏ trận = thua); `readySecs`: đếm ngược trước khi giao đấu (chưa đánh được);
+ *   `fightSecs`: thời gian một trận, hết giờ thì so % sinh lực cả đội; `endSecs`: hiện kết quả rồi đưa cả hai về bản đồ cũ.
+ * - `dmgMult`: sát thương hồn sư lên hồn sư bằng ngần ấy lần sát thương lên hồn thú (sinh lực võ hồn thấp hơn hồn thú cùng cấp,
+ *   không giảm thì trận kết thúc trong vài giây); `drawPct`: hết giờ mà % sinh lực chênh không quá mức này thì hòa.
+ * - `body`: bán kính thân hồn sư (pixel) khi tính trúng đòn của đối thủ.
+ * - Thưởng thắng `winHonTe` đồng + `winShards` mảnh của một võ hồn ngẫu nhiên trong ARENA_SHARDS; túi đầy thì mảnh đổi thành Hồn
+ *   Tệ theo giá thương nhân mua lại (sellPrice). Mỗi ngày (giờ Việt Nam) tối đa `dailyWins` trận thắng có thưởng (chống cày bằng tài
+ *   khoản phụ); hết lượt vẫn đấu và tính Elo. Lượt đếm ở bảng `boss_claims` với loại `claimKind`.
+ * - `topN`: số dòng bảng xếp hạng; `topCd`: giây tối thiểu giữa hai lần xin bảng xếp hạng của một người.
+ */
+export const ARENA = {
+  startElo: 1000, k: 32,
+  window: { base: 100, perSec: 25, max: 2000 },
+  joinSecs: 20, readySecs: 5, fightSecs: 180, endSecs: 20,
+  dmgMult: 0.35, drawPct: 0.005, body: 8,
+  winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
+  topN: 20, topCd: 1,
+};
+/** Mảnh thưởng thắng trận: võ hồn SR / SSR (không có UR, không có Lam Ngân Thảo ai cũng sẵn). */
+export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AWAKEN_GIFT).map((v) => v.id);
+/** Xác suất thắng kỳ vọng của Elo `r` trước Elo `ro`. */
+export const eloExpect = (r: number, ro: number) => 1 / (1 + Math.pow(10, (ro - r) / 400));
+/** Elo mới sau một trận: `score` 1 thắng, 0,5 hòa, 0 thua; làm tròn, không dưới 0. */
+export const eloAfter = (r: number, ro: number, score: number, k = ARENA.k) => Math.max(0, Math.round(r + k * (score - eloExpect(r, ro))));
+/** Chênh Elo tối đa được ghép sau `waitSecs` giây chờ (nới dần). */
+export const arenaWindow = (waitSecs: number) => Math.min(ARENA.window.max, ARENA.window.base + ARENA.window.perSec * Math.max(0, waitSecs));
+/**
+ * Ghép trận (hàm thuần, server gọi định kỳ): `list` theo thứ tự xếp hàng (chờ lâu nhất trước), `wait` = số giây đã chờ. Người chờ lâu
+ * nhất được ghép với người có Elo gần nhất trong cửa sổ của một trong hai (arenaWindow; bằng nhau thì người xếp hàng trước); không
+ * ai vừa thì xét người kế tiếp. Trả các cặp mã.
+ */
+export function arenaPairs<T>(list: { id: T; elo: number; wait: number }[]): [T, T][] {
+  const left = [...list], out: [T, T][] = [];
+  for (let i = 0; i < left.length; ) {
+    const a = left[i]; let best = -1, bd = Infinity;
+    for (let j = 0; j < left.length; j++) {
+      if (j === i) continue;
+      const b = left[j], diff = Math.abs(a.elo - b.elo);
+      if (diff <= Math.max(arenaWindow(a.wait), arenaWindow(b.wait)) && diff < bd) { bd = diff; best = j; }
+    }
+    if (best < 0) { i++; continue; }
+    out.push([a.id, left[best].id]);
+    left.splice(Math.max(i, best), 1); left.splice(Math.min(i, best), 1);
+    i = 0;
+  }
+  return out;
+}
+/** Một dòng bảng xếp hạng / thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`). */
+export interface ArenaRecord { elo: number; wins: number; losses: number; draws: number; }
 // ---------- Cộng minh (mục 5.10, bước 8.2; mốc theo thiết kế, giá trị cộng chờ chốt) ----------
 /** Chỉ số cộng minh cộng cho **mọi** võ hồn: % phần gốc (calcStats, cộng chung với dòng % của hồn hạch). */
 export type ResStat = "hp" | "mp" | "atk";

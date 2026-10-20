@@ -3,7 +3,7 @@
 Đọc `GAME_DESIGN.md` trước khi sửa bất cứ thứ gì.
 
 - Ngôn ngữ giao diện và chú thích: tiếng Việt.
-- Server-authoritative: logic game chỉ nằm trong `server/src/rooms/MapRoom.ts` (một loại phòng cho mọi bản đồ, nhận `mapId`). Client (`client/src`) chỉ hiển thị và gửi input.
+- Server-authoritative: logic game chỉ nằm trong các phòng ở `server/src/rooms/`: `MapRoom.ts` (một loại phòng cho mọi bản đồ, nhận `mapId`) và `ArenaRoom.ts` (trận Đại Đấu Hồn Trường, lớp con của `MapRoom`, từ 7.2; hàng chờ ghép trận ở `arenaQueue.ts`). Client (`client/src`) chỉ hiển thị và gửi input.
 - Số liệu cân bằng dùng chung ở `shared/data.ts`; không chép số ra chỗ khác.
 - Thêm trường đồng bộ: khai báo trong `server/src/rooms/schema.ts`, rồi đọc ở `client/src/scenes/GameScene.ts`.
 - Thêm bảng dữ liệu: tạo file `server/sql/00N_….sql` mới với `CREATE TABLE IF NOT EXISTS` và bật RLS; `PgStore.init()` trong `db.ts` tự nạp mọi file `.sql` theo tên. Cập nhật cả `PgStore` lẫn `MemoryStore`.
