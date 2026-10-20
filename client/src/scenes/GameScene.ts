@@ -435,9 +435,10 @@ export class GameScene extends Phaser.Scene {
       else if (m.k === "reset") { this.bossList = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
     this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
-    this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean }) => {
+    // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
+    this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean; heal?: boolean; shield?: boolean }) => {
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
-      const t = this.add.text(m.x, m.y, m.immune ? "Miễn" : String(Math.abs(m.v)), {
+      const t = this.add.text(m.x, m.y, m.immune ? "Miễn" : `${m.heal || m.shield ? "+" : ""}${Math.abs(m.v)}`, {
         fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: m.crit ? "10px" : "8px", fontStyle: "800",
         color: m.c, stroke: "#000", strokeThickness: 2, resolution: 8,
       }).setOrigin(0.5).setDepth(99999);
@@ -661,9 +662,9 @@ export class GameScene extends Phaser.Scene {
       for (let j = -1; j <= 1; j++) g.lineStyle(2, hex(m.col), 1).lineBetween(m.x - 6 * dir + j * 3, m.y - 6, m.x + 6 * dir + j * 3, m.y + 6);
       this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
     } else if (m.k === "buff") {
-      // Hiệu ứng có lợi lên bản thân: vòng sáng và hạt bay lên.
+      // Hiệu ứng có lợi lên bản thân: vòng sáng và hạt bay lên. `ally` (9.1): nhận từ đồng đội tổ đội, không múa tung chiêu.
       const v = this.players.get(m.id); if (!v) return;
-      this.playAct(m.id, "cast");
+      if (!m.ally) this.playAct(m.id, "cast");
       this.ringFx(v.root.x, v.root.y - 2, 4, 22, m.col, 450);
       for (let k = 0; k < 8; k++) {
         const q = this.add.rectangle(v.root.x + (k - 3.5) * 3, v.root.y - 2, 2, 2, hex(m.col)).setDepth(99980);
