@@ -269,7 +269,9 @@ body.touch #prompt{bottom:160px}
 .ico.dan{border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff 0 12%,var(--c) 38%,color-mix(in srgb,var(--c) 45%,#000) 100%);
   box-shadow:0 0 6px color-mix(in srgb,var(--c) 60%,transparent)}
 .ico.hon_hoan{border-radius:50%;border:4px solid var(--c);box-shadow:0 0 6px var(--c)}
-.ico.unknown,.ico.hon_cot,.ico.hon_hach,.ico.manh_vo_hon,.ico.tien_thao{transform:rotate(45deg) scale(.8);background:var(--c);opacity:.85}
+.ico.unknown,.ico.hon_cot,.ico.hon_hach,.ico.manh_vo_hon{transform:rotate(45deg) scale(.8);background:var(--c);opacity:.85}
+/* Tiên thảo (BĐ6b): hình lá, gân sáng ở giữa */
+.ico.tien_thao{width:56%;height:56%;border-radius:0 80% 0 80%;transform:rotate(-12deg);background:linear-gradient(135deg,color-mix(in srgb,var(--c) 55%,#fff) 0 46%,#fff8 48% 52%,var(--c) 54%);box-shadow:0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
 /* Hồn cốt (bước 4.1): biểu tượng 6 vị trí vẽ bằng điểm ảnh (boneIcons.ts), màu theo niên hạn */
 svg.ico.core{width:60%;height:60%;transform:translateY(-12%);color:var(--c);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 1px 0 #000)}
 .bstat.core b{font-weight:600}

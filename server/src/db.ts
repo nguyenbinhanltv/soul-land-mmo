@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, parseHerbs, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -15,6 +15,7 @@ export interface Character {
   rings: number[];   // niên hạn (số năm) từng hồn hoàn
   kills: number;
   skills: number[];  // từ 8.1a: 4 ô hồn kỹ mang theo (chỉ số vòng, -1 = trống); rỗng = mặc định vòng 1–4 (loadoutOf)
+  herbs: Record<string, number>; // từ BĐ6b: số cây tiên thảo đã dùng theo mã (HERBS), cột `vohons.herbs`; lưu cùng tiến độ như `stars`
 }
 
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
@@ -84,7 +85,7 @@ export interface Store {
   /** Lưu đội hình cùng võ hồn ra trận (một lần ghi). false nếu đội sai (parseTeam), có võ hồn không thuộc tài khoản
    *  hoặc `active` không nằm trong đội. */
   saveTeam(accountId: number, team: number[], active: number): Promise<boolean>;
-  /** Lưu tiến độ võ hồn (cấp, kinh nghiệm, sao, hồn hoàn, số hồn thú đã hạ); không đổi `skills` (chỉ saveSkills ghi). */
+  /** Lưu tiến độ võ hồn (cấp, kinh nghiệm, sao, hồn hoàn, số hồn thú đã hạ, tiên thảo từ BĐ6b); không đổi `skills` (chỉ saveSkills ghi). */
   saveCharacter(c: Character): Promise<void>;
   /** Từ 8.1a: lưu 4 ô hồn kỹ mang theo của võ hồn `rowId` (đã kiểm tra bằng parseLoadout ở room). false nếu võ hồn không thuộc tài khoản. */
   saveSkills(accountId: number, rowId: number, skills: number[]): Promise<boolean>;
@@ -128,6 +129,7 @@ export interface Store {
   unlockVohon(accountId: number, name: string, vohon: string, level: number, bag: Bag): Promise<Character | null>;
   /**
    * Lên sao bằng mảnh (bước 3.4): trong MỘT transaction lưu các võ hồn `chars` (như saveTravel, kể cả `stars`) và cả túi `bag`.
+   * Từ BĐ6b cũng dùng khi dùng tiên thảo (võ hồn có `herbs` mới, túi đã bớt tiên thảo).
    * Hoặc ghi hết, hoặc không ghi gì; võ hồn không thuộc tài khoản thì rollback rồi ném lỗi.
    */
   saveVohonsBag(accountId: number, chars: Character[], bag: Bag): Promise<void>;
@@ -165,7 +167,7 @@ function checkPass(pw: string, stored: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 const newToken = () => randomBytes(24).toString("base64url");
-const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills] });
+const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills], herbs: { ...c.herbs } });
 /** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
 /** Đội hợp lệ và có võ hồn ra trận trong đó (kiểm tra chung cho cả hai store). */
@@ -212,7 +214,7 @@ export class MemoryStore implements Store {
   async listVohons(accountId: number) { return this.owned(accountId).map(copy); }
   async addVohon(accountId: number, name: string, vohon: string, level: number) {
     if (this.owned(accountId).some((c) => c.vohon === vohon)) return null;
-    const c: Character = { accountId, name, rowId: this.rowSeq++, vohon, level, xp: 0, stars: 1, rings: [], kills: 0, skills: [] };
+    const c: Character = { accountId, name, rowId: this.rowSeq++, vohon, level, xp: 0, stars: 1, rings: [], kills: 0, skills: [], herbs: {} };
     this.rows.set(c.rowId, c);
     return copy(c);
   }
@@ -428,7 +430,7 @@ export class PgStore implements Store {
   }
   row(x: any, accountId: number, name: string): Character {
     return { accountId, name, rowId: Number(x.id), vohon: x.vohon, level: x.level, xp: x.xp, stars: x.stars,
-      rings: (x.rings ?? []).map(Number), kills: x.kills, skills: (x.skills ?? []).map(Number) };
+      rings: (x.rings ?? []).map(Number), kills: x.kills, skills: (x.skills ?? []).map(Number), herbs: parseHerbs(x.herbs) };
   }
   async getCharacter(accountId: number) {
     const r = await this.pool.query(
@@ -490,8 +492,8 @@ export class PgStore implements Store {
   }
   async saveCharacter(c: Character) {
     await this.pool.query(
-      "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
-      [c.rowId, c.accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+      "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, herbs=$8::jsonb, updated_at=now() WHERE id=$1 AND account_id=$2",
+      [c.rowId, c.accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
   }
   async saveSkills(accountId: number, rowId: number, skills: number[]) {
     const r = await this.pool.query("UPDATE vohons SET skills=$3, updated_at=now() WHERE id=$1 AND account_id=$2", [rowId, accountId, skills]);
@@ -549,8 +551,8 @@ export class PgStore implements Store {
       await db.query("BEGIN");
       for (const c of chars) {
         const v = await db.query(
-          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
-          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, herbs=$8::jsonb, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
         if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
       }
       const m = this.mapExpr(6);
@@ -650,8 +652,8 @@ export class PgStore implements Store {
       await db.query("BEGIN");
       for (const c of chars) {
         const v = await db.query(
-          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, updated_at=now() WHERE id=$1 AND account_id=$2",
-          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills]);
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, herbs=$8::jsonb, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
         if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
       }
       await this.writeBag(db, accountId, bag);

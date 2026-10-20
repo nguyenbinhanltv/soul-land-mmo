@@ -691,6 +691,19 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: g, alpha: 0, duration: 450, onComplete: () => g.destroy() });
       this.ringFx(m.x, m.y - 4, 6, m.r, m.col, 450); this.cameras.main.flash(120, 200, 230, 255);
       const v = this.players.get(m.id); if (v) this.floatText(v.root.x, v.root.y - 48, m.name ?? PHONG_LOI.skill.name, "#e8f6ff");
+    } else if (m.k === "zap") {
+      // Sét tìm mục tiêu Cảm điện ở xa (SkillDef.shockR, tuyệt kỹ Lam Điện Bá Vương Long, 8.1c): tia sét gấp khúc từ tâm vùng tới từng mục tiêu.
+      const g = this.add.graphics().setDepth(99981), c = hex(m.col);
+      for (const t of (m.to ?? []) as { x: number; y: number }[]) {
+        const dx = t.x - m.x, dy = t.y - 6 - m.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, seg = Math.max(3, Math.round(L / 18));
+        let px = m.x, py = m.y;
+        for (let s = 1; s <= seg; s++) {
+          const j = s === seg ? 0 : (s % 2 ? 6 : -6), x = m.x + (dx * s) / seg + nx * j, y = m.y + (dy * s) / seg + ny * j;
+          g.lineStyle(3, c, 0.9).lineBetween(px, py, x, y); g.lineStyle(1, 0xffffff, 1).lineBetween(px, py, x, y); px = x; py = y;
+        }
+        this.ringFx(t.x, t.y - 6, 3, 16, m.col, 300);
+      }
+      this.tweens.add({ targets: g, alpha: 0, duration: 380, onComplete: () => g.destroy() });
     }
     else if (m.k === "tele") {
       // Chiêu báo trước của hồn thú (3.5): vùng đỏ hiện `t` giây, đầy dần; tên chiêu đỏ trên đầu hồn thú.
@@ -1280,6 +1293,11 @@ export class GameScene extends Phaser.Scene {
       discard: (id) => this.room.send("discard", { id }),
       open: (id) => this.room.send("open", { id }), // rương thú vương (BĐ5): server tung phần thưởng
       absorbOptions: (years) => this.absorbOptions(years),
+      herb: (id, vohonId) => this.room.send("use", { id, vohonId }), // tiên thảo (BĐ6b): dùng cho võ hồn đã chọn
+      herbOptions: (code) => (this.owned?.list ?? []).map((v) => {
+        const def = VOHON[Math.max(0, vohonIndex(v.vohon))];
+        return { rowId: v.rowId, name: def.name, col: def.col, level: v.level, active: v.rowId === this.owned?.active, n: v.herbs?.[code] ?? 0 };
+      }),
       combat: () => this.combat,
       refresh: () => this.room.send("vohons"),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
