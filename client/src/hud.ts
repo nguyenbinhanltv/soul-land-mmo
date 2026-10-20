@@ -102,22 +102,28 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
   // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
   document.body.style.setProperty("--bossh", `${el.offsetTop + el.offsetHeight}px`);
 }
-/** Bảng xếp hạng sát thương khi đánh thú vương (tin "boss" k = "rank" / "down"): tối đa 10 dòng, dòng của mình sáng; từ 3% có rương. */
-export function bossRank(list: { id: string; name: string; pct: number }[] | null, me: string, final = false, world = false) {
+/**
+ * Bảng xếp hạng đóng góp khi đánh thú vương / boss thế giới (tin "boss" k = "rank" / "down"): tối đa 10 dòng, dòng của mình sáng; từ 3%
+ * có rương. Từ 9.2 đóng góp = sát thương + hồi máu / khiên cho người tham gia khác; cột "Hỗ trợ" là phần hồi / khiên trong tổng (server tính).
+ */
+export function bossRank(list: { id: string; name: string; pct: number; sup?: number }[] | null, me: string, final = false, world = false) {
   const el = $("#bossRank");
   if (!list || !list.length) { el.hidden = true; return; }
   el.hidden = false; el.innerHTML = "";
-  const h = document.createElement("b"); h.textContent = final ? "Kết quả đóng góp" : "Sát thương"; el.appendChild(h);
+  const h = document.createElement("b"); h.textContent = final ? "Kết quả đóng góp" : "Đóng góp"; el.appendChild(h);
+  const pc = (v: number) => `${String(v).replace(".", ",")}%`;
+  const head = document.createElement("div"); head.className = "rk hd";
+  head.innerHTML = "<span></span><em>Tên</em><s>Hỗ trợ</s><i>Tổng</i>"; el.appendChild(head);
   list.forEach((x, i) => {
     const r = document.createElement("div"); r.className = "rk" + (x.id === me ? " me" : "") + (x.pct / 100 >= KING.share ? "" : " low");
-    r.innerHTML = `<span>${i + 1}.</span><em></em><i>${String(x.pct).replace(".", ",")}%</i>`;
+    r.innerHTML = `<span>${i + 1}.</span><em></em><s${x.sup ? "" : ' class="z"'}>${x.sup ? pc(x.sup) : "–"}</s><i>${pc(x.pct)}</i>`;
     r.querySelector("em")!.textContent = x.name;
     el.appendChild(r);
   });
   const K = world ? WORLD : KING;
   const n = document.createElement("small");
-  n.textContent = world ? `Từ ${K.share * 100}% sát thương nhận hồn hoàn và rương (tối đa ${K.daily} lần/ngày); nhiều nhất nhận hồn hoàn đỏ 100.000 năm.`
-    : `Từ ${K.share * 100}% sát thương nhận rương (tối đa ${K.daily} lần/ngày).`;
+  n.textContent = world ? `Đóng góp = sát thương + hồi máu / khiên cho người khác. Từ ${K.share * 100}% nhận hồn hoàn và rương (tối đa ${K.daily} lần/ngày); gây sát thương nhiều nhất nhận hồn hoàn đỏ 100.000 năm.`
+    : `Đóng góp = sát thương + hồi máu / khiên cho người khác. Từ ${K.share * 100}% nhận rương (tối đa ${K.daily} lần/ngày).`;
   el.appendChild(n);
 }
 
