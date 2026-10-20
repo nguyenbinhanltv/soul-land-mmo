@@ -466,7 +466,7 @@ export class GameScene extends Phaser.Scene {
         hud.setArenaQueue(null, () => {}); hud.closeNpc();
         hud.log(`Đã tìm thấy đối thủ: ${m.foe} (Elo ${m.elo}). Vào Đại Đấu Hồn Trường…`, "#ff9a8a");
         this.onArena(m.roomId);
-      } else if (m?.k === "ready") hud.banner("Đại Đấu Hồn Trường", `Trận đấu bắt đầu sau ${m.secs} giây`);
+      } else if (m?.k === "ready") hud.banner("Đại Đấu Hồn Trường", `Trận đấu bắt đầu sau ${m.secs} giây${this.room.state.friendly ? " · giao hữu, không tính Elo" : ""}`);
       else if (m?.k === "fight") hud.banner("Giao đấu!", `Hạ hết đội võ hồn đối thủ trong ${Math.round(m.secs / 60)} phút; hết giờ thì so sinh lực cả đội`);
       else if (m?.k === "end") {
         hud.arenaEnd(m, { back: () => this.onBack(), top: () => this.room.send("arena", { op: "top" }) });
@@ -1425,7 +1425,7 @@ export class GameScene extends Phaser.Scene {
     hud.updateArenaQueue();
     // Sân đấu (7.2): thanh trận đấu đọc thẳng ArenaState (pha, giây còn lại, hai bên).
     if (this.isArena && st.sides) {
-      hud.showArena({ phase: st.phase, time: st.time, me: this.me, sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
+      hud.showArena({ phase: st.phase, time: st.time, me: this.me, friendly: !!st.friendly, sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
         () => this.onBack());
       hud.updateArenaEnd();
     }

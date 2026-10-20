@@ -77,7 +77,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, EXTRA_VOHON, AWAKEN_CHOICES } from "../../shared/data.ts";
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -5154,6 +5154,10 @@ async function questTest(){
  * thường trúng đối thủ (Trúng độc), hạ hết đội (hook down) -> thắng; trận 3 không vào sân = thua; trận 4 hết giờ so % sinh lực. Mỗi trận:
  * Elo đúng eloAfter, thưởng người thắng vào túi (lưu DB), kinh nghiệm / đồ / đội hình không đổi, hết giờ kết quả thì về đúng bản đồ và vị
  * trí cũ. Bảng xếp hạng đúng thứ tự (kể cả bằng Elo thì nhiều trận thắng trước), lượt thưởng còn lại.
+ * 9.7 chống dàn xếp: hàm thuần (tránh ghép lại đối thủ vừa đấu); hai tài khoản mới đấu nhau 4 trận liền (không còn ai khác nên vẫn
+ * ghép lại): 3 trận đầu tính Elo và thưởng, trận 4 giao hữu (báo trước ở ArenaState.friendly; không đổi Elo / thành tích, không
+ * thưởng, không mất lượt thắng có thưởng); sang ngày mới (hook day trong sân) lại tính Elo; có người thứ ba trong cửa sổ thì không ghép
+ * lại đối thủ vừa đấu.
  */
 async function arenaTest(){
   console.log("[7.2] Đại Đấu Hồn Trường: ghép trận, đấu, Elo, thưởng, bảng xếp hạng");
@@ -5404,6 +5408,79 @@ async function arenaTest(){
   await test(G,"aelo",{elo:eloF4,wins:9}); await top(E); L=E.top.list;
   ok(idx(G.name)>=0&&idx(G.name)<idx(F.name),`G bằng Elo F (${eloF4}) nhưng nhiều trận thắng hơn: xếp trên F`);
   for(const b of [E,F,G]) await b.room.leave();
+
+  // ---- 9.7 Chống dàn xếp ----
+  console.log("[9.7] Chống dàn xếp Đại Đấu Hồn Trường: trận tính Elo theo cặp mỗi ngày, tránh ghép lại đối thủ vừa đấu");
+  const R=ARENA.rematchSecs, Q=l=>JSON.stringify(arenaPairs(l.map(([id,elo,wait=0,last])=>({id,elo,wait,last}))));
+  ok(ARENA.pairDaily===3&&R===60&&arenaRanked(ARENA.pairDaily)&&!arenaRanked(ARENA.pairDaily+1),
+    `ARENA.pairDaily = ${ARENA.pairDaily} trận tính Elo mỗi cặp mỗi ngày, trận thứ ${ARENA.pairDaily+1} giao hữu; tránh ghép lại trong ${R} giây chờ đầu`);
+  ok(Q([["a",1000,0,"b"],["b",1000,0,"a"],["c",1050]])==='[["a","c"]]',"a, b vừa đấu nhau: a gặp c (Elo xa hơn nhưng trong cửa sổ) thay vì b");
+  ok(Q([["a",1000,0],["b",1000,0,"a"],["c",1050]])==='[["a","c"]]',"chỉ một bên ghi đối thủ trước cũng tránh");
+  ok(Q([["a",1000,0,"b"],["b",1000,0,"a"]])==='[["a","b"]]'&&Q([["a",1000,0,"b"],["b",1000,0,"a"],["c",1500]])==='[["a","b"]]',
+    "không còn ai khác trong cửa sổ: ghép lại");
+  ok(Q([["a",1000,R,"b"],["b",1000,R,"a"],["c",1050]])==='[["a","b"]]'&&Q([["a",1000,R,"b"],["b",1000,R-1,"a"],["c",1050]])==='[["a","c"]]',
+    `cả hai đã chờ đủ ${R} giây: ghép lại được; một bên chưa đủ thì vẫn tránh`);
+  ok(Q([["a",1000,0,"b"],["b",1000,0,"a"],["c",1050,0,"d"],["d",1050,0,"c"]])==='[["a","c"],["b","d"]]',"hai cặp vừa đấu: đổi chéo đối thủ");
+
+  const H=await bot("Song đấu A","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:3,outfitCol:1});
+  const I=await bot("Song đấu B","hoa_anh",{sex:1,hair:2,hairCol:1,outfitCol:3});
+  for(const b of [H,I]) await warpTown(b);
+  const fresh=(b,n,k)=>b.arena.slice(n).filter(m=>m.k===k).at(-1);
+  /** H và I xếp hàng (không còn ai khác), vào sân, I gục cả đội: H thắng. Trả tin "end" mới của H và I. `day` = hook day trong sân. */
+  async function duel(k,day=0){
+    const nH=H.arena.length, nI=I.arena.length;
+    await at(H,-12); await at(I,12); await aop(H,"queue"); await aop(I,"queue");
+    ok(await waitFor(()=>fresh(H,nH,"found")&&fresh(I,nI,"found")&&fresh(H,nH,"found").roomId===fresh(I,nI,"found").roomId,3000)&&fresh(H,nH,"found").foe===I.name,
+      `trận ${k}: vừa đấu nhau mà không còn ai khác xếp hàng thì vẫn ghép H với I`);
+    await enterArena(H); await enterArena(I); await waitFor(()=>H.room.state.phase==="ready",3000); await sleep(200);
+    const pre=H.room.state.friendly;
+    if(day) await test(H,"day",{shift:day});
+    await test(H,"afast",{s:0}); await waitFor(()=>H.room.state.phase==="fight",2000);
+    for(let j=0;j<TEAM_SIZE&&!meOf(I).dead;j++) await test(I,"down");
+    ok(await waitFor(()=>fresh(H,nH,"end")&&fresh(I,nI,"end"),3000),`trận ${k}: I gục cả đội, trận kết thúc`);
+    return { h:fresh(H,nH,"end"), i:fresh(I,nI,"end"), pre };
+  }
+  let eH=ARENA.startElo, eI=ARENA.startElo;
+  for(let k=1;k<=ARENA.pairDaily;k++){
+    const bag0=snap(H), r=await duel(k);
+    ok(!r.pre&&!r.h.friendly&&!r.i.friendly&&r.h.elo0===eH&&r.h.elo1===eloAfter(eH,eI,1)&&r.i.elo1===eloAfter(eI,eH,0)&&r.h.rec.wins===k,
+      `trận ${k}/${ARENA.pairDaily}: tính Elo, H ${r.h.elo0} → ${r.h.elo1}, I ${r.i.elo0} → ${r.i.elo1}, H ${r.h.rec.wins} thắng`);
+    await checkReward(H,r.h,bag0,ARENA.dailyWins-k);
+    eH=r.h.elo1; eI=r.i.elo1;
+    await kickBack(H); await kickBack(I);
+  }
+  {
+    const bag0=bagKey(H), bagI=bagKey(I), k=ARENA.pairDaily+1, r=await duel(k);
+    ok(r.pre&&H.room.state.friendly,`trận ${k}: sân báo trước giao hữu (ArenaState.friendly) từ lúc đếm ngược`);
+    ok(r.h.score===1&&r.h.friendly&&r.i.friendly&&r.h.elo0===eH&&r.h.elo1===eH&&r.i.elo1===eI&&!r.h.reward&&!r.h.capped,
+      `trận ${k} giao hữu: H vẫn thắng nhưng Elo giữ nguyên (H ${r.h.elo1}, I ${r.i.elo1}), không thưởng`);
+    ok(r.h.rec.wins===ARENA.pairDaily&&r.i.rec.losses===ARENA.pairDaily&&r.h.left===ARENA.dailyWins-ARENA.pairDaily,
+      `trận ${k}: không tính thành tích (H ${r.h.rec.wins} thắng, I ${r.i.rec.losses} thua), không mất lượt thắng có thưởng (còn ${r.h.left}/${ARENA.dailyWins})`);
+    await sleep(300); ok(bagKey(H)===bag0&&bagKey(I)===bagI,"trận giao hữu: túi và Hồn Tệ hai bên không đổi");
+    await kickBack(H); await kickBack(I);
+  }
+  {
+    // Sang ngày mới (hook day trong sân: phòng sân đấu tính ngày theo giờ Việt Nam lúc hết trận): cặp lại có ARENA.pairDaily trận tính Elo.
+    const k=ARENA.pairDaily+2, r=await duel(k,1);
+    ok(!r.h.friendly&&r.h.elo1===eloAfter(eH,eI,1)&&r.i.elo1===eloAfter(eI,eH,0)&&!!r.h.reward,
+      `trận ${k} sang ngày hôm sau: tính Elo lại (H ${r.h.elo0} → ${r.h.elo1}), có thưởng`);
+    await kickBack(H); await kickBack(I);
+  }
+  {
+    // Có người thứ ba trong cửa sổ: H (xếp hàng trước) không gặp lại I dù Elo gần hơn, gặp J.
+    const J=await bot("Song đấu C","u_minh_linh_mieu",{sex:0,hair:0,hairCol:2,outfitCol:4}); await warpTown(J);
+    await test(H,"aelo",{elo:1000}); await test(I,"aelo",{elo:1000}); await test(J,"aelo",{elo:1060});
+    const nH=H.arena.length, nI=I.arena.length;
+    await at(H,-12); await at(I,12); await at(J,0);
+    await aop(H,"queue"); await aop(I,"queue"); await aop(J,"queue");
+    ok(await waitFor(()=>fresh(H,nH,"found"),3000)&&fresh(H,nH,"found").foe===J.name&&!fresh(I,nI,"found"),
+      `H (1000) vừa đấu I (1000), J (1060) trong cửa sổ: H gặp ${fresh(H,nH,"found")?.foe}, I chờ tiếp`);
+    t=await aop(I,"cancel"); ok(/hủy/.test(t),"I vẫn chờ, hủy");
+    await enterArena(H); await test(H,"afast",{s:0}); await waitFor(()=>fresh(H,nH,"end"),3000);
+    await J.room.leave(); await sleep(300); await back(J);
+    await kickBack(H);
+    for(const b of [H,I,J]) await b.room.leave();
+  }
 }
 /**
  * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 4 trụ cột bằng hook (grant / set

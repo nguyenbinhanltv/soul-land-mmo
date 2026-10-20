@@ -536,6 +536,9 @@ body.arena #quest{display:none}
 #arenaEnd .aline{font-size:12.5px;margin:3px 0}
 #arenaEnd .aelo{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
 #arenaEnd .arew{color:var(--accent);font-weight:700}
+#arenaEnd .afriend{color:#8ec5ff;font-weight:700;text-align:center}
+#arenaBar.friendly{border-color:#8ec5ff}
+#arenaBar.friendly .aclock small{color:#8ec5ff}
 .arank{margin-top:8px;font-size:12px}
 .arank .ame{font-weight:800;color:var(--xp)}
 .arank > small{display:block;color:var(--muted);font-size:11px;margin:2px 0 4px}

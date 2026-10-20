@@ -126,4 +126,5 @@ export class ArenaState extends MapState {
   @type("float32") time: number = 0;
   @type([ArenaSide]) sides = new ArraySchema<ArenaSide>();
   @type("int8") winner: number = -1;
+  @type("boolean") friendly = false; // 9.7: cặp này đã đấu đủ ARENA.pairDaily trận tính Elo hôm nay, trận này là giao hữu (đọc lúc mở phòng; kết quả do lúc hết trận quyết định)
 }
