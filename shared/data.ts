@@ -1023,7 +1023,7 @@ export function vnClock(ms: number) {
 /** Ngày nhận thưởng boss ("2026-10-19") theo giờ Việt Nam: cột `boss_claims.day`. */
 export const vnDay = (ms: number) => { const c = vnClock(ms); return `${c.y}-${String(c.mo).padStart(2, "0")}-${String(c.d).padStart(2, "0")}`; };
 /** Thời điểm (ms UTC) của giờ Việt Nam `hh:mm` trong ngày Việt Nam chứa `ms`, cộng thêm `dayOff` ngày. */
-function vnAt(ms: number, hhmm: string, dayOff = 0) {
+export function vnAt(ms: number, hhmm: string, dayOff = 0) {
   const c = vnClock(ms), off = Date.UTC(c.y, c.mo - 1, c.d, c.h, c.mi, c.s) - Math.floor(ms / 1000) * 1000; // giờ VN − UTC
   const [h, m] = hhmm.split(":").map(Number);
   return Date.UTC(c.y, c.mo - 1, c.d + dayOff, h, m) - off;
