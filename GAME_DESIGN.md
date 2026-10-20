@@ -41,7 +41,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Gục** (từ 2.3b, mục 5.1): võ hồn ra trận gục thì tự đổi sang võ hồn chưa gục kế tiếp trong đội (không tính hồi chiêu đổi). Võ hồn đã gục không đổi vào được, hồi đầy khi về doanh trại hoặc sau 60 giây ngoài trận (đồng hồ dừng khi giao chiến). Cả đội gục thì sau 2,5 giây về doanh trại, cả đội hồi đầy, **không mất kinh nghiệm hay đồ** (bỏ luật cũ mất 30% kinh nghiệm). Sinh lực từng võ hồn không lưu DB: vào lại game thì cả đội đầy.
 - **Bản đồ và vùng** (từ BĐ2, BĐ3, BĐ6a, BĐ6b, BĐ6c, BĐ6d): 8 bản đồ nối bằng cổng: Thánh Hồn Thôn (bắt đầu ở đây; làng giữa bản đồ là vùng an toàn, 3 vùng săn 10–450 năm) ↔ Nặc Đinh Thành (thành an toàn, không hồn thú; từ BĐ6a cổng bắc ↔ **Thiên Đấu Thành** `thien_dau_thanh`, thủ đô, thành an toàn lớn, nơi đặt Đại Đấu Hồn Trường; cổng không có cấp đề xuất, không cảnh báo; từ BĐ6b cổng tây Thiên Đấu Thành ↔ **Lạc Nhật Sâm Lâm** `lac_nhat_sam_lam`, cấp 40–70, 4 vùng 5.000–30.000 năm, thực vật / độc, rơi tiên thảo; từ BĐ6c cổng bắc Thiên Đấu Thành ↔ **Cực Bắc Chi Địa** `cuc_bac_chi_dia`, cấp 60–85, 4 vùng 20.000–80.000 năm, băng, vùng đi từ nam lên bắc; từ BĐ6d bến thuyền Thiên Đấu Thành ↔ **Hải Thần Đảo** `hai_than_dao`, cấp 80–100, 4 vùng 50.000–100.000 năm, hồn thú biển, đi thuyền 3 giây thay cho niệm cổng 1 giây) ↔ Tinh Đấu Ngoại vi (`tinh_dau_ngoai_vi`, cấp 10–30, 4 vùng 300–2.000 năm) ↔ Tinh Đấu Nội địa (`tinh_dau_noi_dia`, cấp 30–60, 4 vùng 1.500–25.000 năm). Vùng đi theo chiều đông, càng sâu càng mạnh; mỗi vùng khai báo loài (`beasts`) và niên hạn (`years`) theo bảng 5.3. Hồn thú không sinh sát cổng và điểm xuất hiện. Bản đồ đang đứng và vị trí được lưu, vào lại thì ở đúng chỗ cũ; tài khoản còn ở `tinh_dau` cũ thì vào Ngoại vi ở trại cổng. Cổng có cấp đề xuất của bản đồ đích, dưới cấp thì cảnh báo đỏ nhưng vẫn đi được (chặn mềm). Từ BĐ4 mỗi vùng săn có 1 tinh anh, từ BĐ5 Ngoại vi và Nội địa (từ BĐ6b cả Lạc Nhật, từ BĐ6c cả Cực Bắc, từ BĐ6d cả Hải Thần Đảo) có hang tà hóa thú vương ở vùng sâu nhất (mục dưới). Mỗi kênh có tối đa 1 hồn thú thường 100.000 năm, chỉ vùng Hải Thần Uyên sinh được (từ BĐ6d). Mọi cổng của Thiên Đấu Thành đã mở (cổng tây ở BĐ6b, cổng bắc ở BĐ6c, bến thuyền ở BĐ6d). ➜ BĐ6e: Lõi Tinh Đấu.
 - **Túi đồ và Hồn Tệ** (từ 3.1, mục 5.7): túi 40 ô chỉ chính chủ thấy (phím B hoặc nút "Túi đồ"), đồ cùng loại gộp tối đa 99 món một ô. Mới có Hồi Huyết Đan / Hồi Hồn Đan (hồi 30% sinh lực võ hồn ra trận / hồn lực, hồi chiêu chung 15 giây, dùng được khi giao chiến); mỗi tài khoản nhận một lần 5 viên mỗi loại. Hạ hồn thú nhận vài đồng Hồn Tệ theo bậc. Từ 3.2 hồn hoàn là vật phẩm trong túi (mỗi chiếc một ô, ghi số năm) và bỏ được vật phẩm để nhường chỗ (nút "Bỏ"). Từ 6.1 mua đan và bán đồ dư ở thương nhân Nặc Đinh Thành (dòng "NPC" bên dưới). Từ BĐ6b **tiên thảo** (Ỷ La Uất Kim Hương, Bát Giác Huyền Băng Thảo, Liệt Hỏa Hạnh Kiều Sơ) chỉ rơi ở Lạc Nhật Sâm Lâm (vào thẳng túi người hạ, vùng càng sâu tỉ lệ càng cao, tinh anh x3); trong túi bấm **"Dùng cho…"** rồi chọn một võ hồn sở hữu: võ hồn đó +1% sinh lực / hồn lực / công gốc vĩnh viễn, mỗi loại tối đa 10 cây mỗi võ hồn (mục 5.7).
-- **Mảnh võ hồn, mở võ hồn, lên sao** (từ 3.4, mục 5.1, 5.3): mỗi bản đồ săn rơi mảnh của 2–3 võ hồn (bảng "Rơi đặc trưng" 5.3; Thánh Hồn Thôn: Lam Ngân Thảo, Nhu Cốt Thố; Ngoại vi: U Minh Linh Miêu, Kim Vũ Miêu Ưng, Xúc Xích; Nội địa: Tử Vong Chu Hoàng, Lam Điện Bá Vương Long, Cửu Tinh Thất Sát Kiếm; từ BĐ6c Cực Bắc: Yêu Hồ, Càn Khôn Hỗn Nguyên Tỏa, Nguyệt Nhận). Hạ hồn thú có 10% / 15% / 20% / 100% (dưới 1.000 / dưới 10.000 / dưới 100.000 / 100.000 năm) rơi 1 mảnh của một võ hồn ngẫu nhiên trong danh sách, vào thẳng túi người hạ (gộp 999 mảnh một ô); túi đầy thì mảnh rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên người hạ 15 giây. Bảng đội hình (phím V) có mục "Mảnh võ hồn": đủ 50 mảnh của võ hồn chưa có thì bấm **Mở** (võ hồn mới cấp 1, 1★, vào bộ sưu tập, không tự vào đội); võ hồn đã có dùng 20 / 40 / 80 / 120 / 200 mảnh để **Lên sao** 2★ … 6★, mỗi sao trên 1 cộng 5% sinh lực, hồn lực, công gốc (6★ = +25%). Từ BĐ5 rương tà hóa thú vương cũng có mảnh (mục dưới); từ 6.2 nhiệm vụ tân thủ thưởng mảnh Lam Ngân Thảo, Nhu Cốt Thố, U Minh Linh Miêu. ➜ Sau: hiệu ứng hồn kỹ mở theo sao; mảnh từ boss thế giới (BĐ6), nhiệm vụ hằng ngày.
+- **Mảnh võ hồn, mở võ hồn, lên sao** (từ 3.4, mục 5.1, 5.3): mỗi bản đồ săn rơi mảnh của 2–3 võ hồn (bảng "Rơi đặc trưng" 5.3; Thánh Hồn Thôn: Lam Ngân Thảo, Nhu Cốt Thố; Ngoại vi: U Minh Linh Miêu, Kim Vũ Miêu Ưng, Xúc Xích; Nội địa: Tử Vong Chu Hoàng, Lam Điện Bá Vương Long, Cửu Tinh Thất Sát Kiếm; từ BĐ6c Cực Bắc: Yêu Hồ, Càn Khôn Hỗn Nguyên Tỏa, Nguyệt Nhận; từ 8.3 thêm A Ngân ở Thánh Hồn Thôn, Liệt Hỏa Thương Lang ở Lạc Nhật, Băng Phượng Hoàng ở Cực Bắc, Phá Hồn Thương chỉ ở rương thú vương và Đại Đấu Hồn Trường; 4 võ hồn này không chọn được khi thức tỉnh). Hạ hồn thú có 10% / 15% / 20% / 100% (dưới 1.000 / dưới 10.000 / dưới 100.000 / 100.000 năm) rơi 1 mảnh của một võ hồn ngẫu nhiên trong danh sách, vào thẳng túi người hạ (gộp 999 mảnh một ô); túi đầy thì mảnh rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên người hạ 15 giây. Bảng đội hình (phím V) có mục "Mảnh võ hồn": đủ 50 mảnh của võ hồn chưa có thì bấm **Mở** (võ hồn mới cấp 1, 1★, vào bộ sưu tập, không tự vào đội); võ hồn đã có dùng 20 / 40 / 80 / 120 / 200 mảnh để **Lên sao** 2★ … 6★, mỗi sao trên 1 cộng 5% sinh lực, hồn lực, công gốc (6★ = +25%). Từ BĐ5 rương tà hóa thú vương cũng có mảnh (mục dưới); từ 6.2 nhiệm vụ tân thủ thưởng mảnh Lam Ngân Thảo, Nhu Cốt Thố, U Minh Linh Miêu. ➜ Sau: hiệu ứng hồn kỹ mở theo sao; mảnh từ boss thế giới (BĐ6), nhiệm vụ hằng ngày.
 - **Chiêu có báo trước** (từ 3.5, mục 5.3): hồn thú thường **từ 1.000 năm** có 1 chiêu riêng theo loài (vệt / nón / vòng quanh thân / vòng dưới chân mục tiêu). Có mục tiêu 1,5–3 giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu 7–9 giây (± 20%). Hồn thú đứng yên **0,8 giây** hiện vùng đỏ đầy dần, hết giờ mới tính trúng theo **vị trí thật** của người chơi lúc đó: chạy ra khỏi vùng là né được. Không trúng người đứng trong vùng an toàn, đang chuyển bản đồ, đã gục hay đang bất tử. Choáng, Câm lặng, Mê hoặc trên hồn thú **ngắt chiêu** đang báo trước. Chiêu có thể gây trạng thái lên hồn sư (Trúng độc, Trói, Làm chậm, Câm lặng, Cảm điện, Phá giáp, Choáng ngắn); Câm lặng trên hồn thú từ đây chỉ chặn chiêu, không chặn đánh thường. Từ BĐ4 tinh anh có 2 chiêu, từ BĐ5 thú vương 2 chiêu + chiêu giai đoạn 2, báo trước 1–2 giây (mục dưới).
 - **Hồn cốt rơi** (từ 4.1, mục 5.3, 5.5): hạ hồn thú thường có 0% / 1% / 4% / 20% (dưới 1.000 / dưới 10.000 / dưới 100.000 / 100.000 năm) rơi 1 hồn cốt **cùng loài, cùng số năm** với hồn thú, vị trí ngẫu nhiên trong 6 vị trí (đầu, thân, tay trái, tay phải, chân trái, chân phải). Hồn cốt rơi xuống đất cạnh hồn hoàn, cùng luật như hồn hoàn: 15 giây đầu chỉ người hạ nhặt được, tồn tại 60 giây, nhấn **E** để nhặt vào túi, túi đầy thì báo và hồn cốt ở lại. Trong túi mỗi hồn cốt một ô, tên kiểu *Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm*, màu theo niên hạn; chọn ô thì xem chỉ số gốc, cấp cường hóa (+0), đang gắn hay chưa; bỏ được bằng nút "Bỏ". Tinh anh (BĐ4) rơi hồn cốt với tỉ lệ x3, mang loài gốc. Từ 4.3 chi tiết ô ghi cả kỹ năng của hồn cốt; từ 4.4 tên có cấp cường hóa "+N" đứng trước.
 - **Gắn hồn cốt** (từ 4.2, mục 5.1, 5.5): mỗi võ hồn sở hữu có **6 ô hồn cốt** (đầu, thân, tay trái, tay phải, chân trái, chân phải); hồn cốt chỉ gắn vào ô cùng vị trí. Gắn ở mục "Hồn cốt" trong bảng đội hình (phím V; hoặc nút "Gắn…" ở túi đồ): chọn võ hồn, chọn ô hoặc bấm "Gắn" cạnh hồn cốt trong túi, chuột kéo thả vào ô cũng được. Ô đã có thì đổi chỗ, món cũ về túi; tháo về túi khi túi đầy thì bị từ chối. Chỉ gắn / tháo khi **không giao chiến** (5 giây không đánh / bị đánh), không gục, không hấp thụ (cùng luật xếp đội). Hồn cốt đang gắn không chiếm ô túi, không bỏ được, **không bao giờ mất** khi gục hay thua; tháo ra vẫn giữ cấp cường hóa. Chỉ số gốc của các hồn cốt đang gắn cộng thẳng vào chỉ số của võ hồn đó (sau hệ số hệ và sao), áp ngay cả khi võ hồn đang ra trận; đổi võ hồn thì chỉ số theo hồn cốt của võ hồn mới. Từ 4.3 hồn cốt còn mang kỹ năng (mục dưới); từ 4.4 cường hóa cộng thêm chỉ số chính (mục dưới).
@@ -142,7 +142,21 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - **Lam Ngân Thảo** (Đường Tam, khống chế): gom quái, tuyệt kỹ kéo cả vùng lại và giam. Tặng từ đầu game.
 - **Hạo Thiên Chùy** (Đường Hạo, cường công): sát thương theo % máu, Loạn Phi Phong Chùy Pháp kết thúc bằng hất tung.
 - **Cửu Bảo Lưu Ly Tháp** (Ninh Vinh Vinh, phụ trợ): tăng công, thủ, tốc; giảm tiêu hao hồn lực; tuyệt kỹ Vô Địch Thần Quang cho cả đội miễn sát thương.
-- Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng.
+- Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng: **đã thêm ở bước 8.3** (bảng dưới).
+
+**Đã làm ở bước 8.3** (4 võ hồn ngoài danh sách SSR cơ bản; mã cố định ở `VOHON`, thêm vào cuối mảng nên chỉ số 20 võ hồn cũ không đổi; danh sách `EXTRA_VOHON` trong `data.ts`). Hệ, độ hiếm, chủ nhân, lưu phái, màu **(chờ chốt)**:
+
+| Võ hồn (`id`) | Hệ | Độ hiếm | Chủ nhân trong truyện | Lối đánh và cơ chế chính | Lưu phái | Có được ở |
+|---|---|---|---|---|---|---|
+| Phá Hồn Thương (`pha_hon_thuong`) | Cường công | SSR | *(chưa xác định)* | Trường thương lướt đâm xuyên hàng, chồng Phá giáp rồi đâm theo tầng; "phá hồn" gây Câm lặng (ngắt chiêu báo trước) | Phá giáp | Rương tà hóa thú vương mọi bản đồ (trọng số 2 như Tà Hỏa Phượng Hoàng), thưởng Đại Đấu Hồn Trường |
+| A Ngân (`a_ngan`) | Phụ trợ | SSR (có thể nâng UR) | A Ngân, Lam Ngân Hoàng mười vạn năm, mẫu thân Đường Tam | Hồi máu, khiên, tăng công / thủ / tốc cho đội, thanh tẩy; dây Lam Ngân trói, gom quái, gây Dễ thương | Chấn đãng | Thánh Hồn Thôn (quê Đường Tam; bản đồ không có thú vương), Đại Đấu Hồn Trường |
+| Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Mẫn công | SR | *(chưa xác định)* | Sói lửa lao vồ, cắn xé liên hoàn chồng Thiêu đốt, tiếng tru tăng tốc, khóa mục tiêu yếu máu | Thiêu đốt | Lạc Nhật Sâm Lâm (có suối Băng Hỏa, Liệt Hỏa Tích Dịch), rương thú vương Lạc Nhật, Đại Đấu Hồn Trường |
+| Băng Phượng Hoàng (`bang_phuong_hoang`) | Khống chế | SSR | Thủy Băng Nhi (Thiên Thủy Học Viện) | Bay, băng phong diện rộng: **đóng băng = Choáng** (dùng trạng thái sẵn có như hồn thú băng ở BĐ6c), Làm chậm, gây Dễ thương | Băng phong | Cực Bắc Chi Địa, rương thú vương Cực Bắc, Đại Đấu Hồn Trường |
+
+- **Không vào lựa chọn thức tỉnh** (dù có độ hiếm SSR): `AWAKEN_CHOICES` vẫn đúng 17 SSR cơ bản; chỉ mở bằng 50 mảnh như mọi võ hồn khác (3.4). Mảnh của 4 võ hồn tự có trong thưởng thắng Đại Đấu Hồn Trường (`ARENA_SHARDS` gồm mọi SR / SSR trừ Lam Ngân Thảo).
+- Hồn kỹ vòng 1–10, tiên cơ riêng, Chân Thân: mục 5.2 "Đã làm ở bước 8.3". **Không thêm trạng thái hay cơ chế mới**: đóng băng dùng Choáng, giam dùng Trói.
+- Phụ thể vẽ bằng code: mục 5.11. Chưa có chân dung / thẻ riêng ngoài thẻ chung của bộ sưu tập.
+- **(chờ chốt):** hệ, độ hiếm (A Ngân có nên là UR, Liệt Hỏa Thương Lang SR), chủ nhân Phá Hồn Thương và Liệt Hỏa Thương Lang, tên lưu phái "Băng phong"; ràng buộc mới (ví dụ A Ngân + Lam Ngân Thảo, Băng Phượng Hoàng + Hỏa Long "băng hỏa") chưa làm.
 
 **Ràng buộc** (chờ chốt): một số cặp võ hồn trong cùng đội có thêm hiệu ứng. Ví dụ Hạo Thiên Chùy + Nhu Cốt Thố tăng chí mạng; Tà Hỏa Phượng Hoàng + Hỏa Ảnh tăng thiêu đốt.
 - **Đã làm bản tối thiểu ở 2.5d** (bảng `BONDS` + `bondsOf` trong `data.ts`, **chờ chốt**): chỉ hai cặp ví dụ trên. Hai võ hồn cùng trong đội (ô bất kỳ, kể cả đang gục) thì võ hồn nào ra trận cũng hưởng: *Hạo Thiên – Nhu Cốt* chí mạng +10% mọi đòn trực tiếp; *Tà Hỏa – Hỏa Ảnh* Thiêu đốt do hồn sư gây mạnh thêm 20% (tính lúc gây). Bảng đội hình (phím V) hiện dòng "Ràng buộc" khi đội có cặp đó. Các cặp khác, mức hiệu ứng, có cần cả hai chưa gục hay đang ra trận không: chờ chốt.
@@ -271,7 +285,7 @@ Mọi con số cân bằng nằm trong `shared/data.ts`. Các con số trong fil
 - Vùng tác dụng: **quanh thân** (bán kính), **nửa trước mặt**, **lướt** thẳng (trúng mọi hồn thú trên đường), **mục tiêu** gần nhất (có thể lướt tới, nhiều nhát cách nhau vài phần giây), **bắn mũi** (tỏa hình quạt hoặc vòng tròn), **bản thân**.
 - Mỗi lần tung hồn kỹ chỉ tạo năng lượng tiên cơ một lần dù nhiều nhát, nhiều mũi.
 
-*Hồn kỹ chung* (võ hồn chưa có hồn kỹ riêng, như cũ): Hồn Bạo (12 hồn lực, hồi 3 giây, quanh thân 50: 220%), Thiểm Kích (16, 4,5 giây, lướt 70: 260%), Hồn Tiễn (22, 5 giây, 10 mũi vòng tròn: mỗi mũi 150%), Hồn Vực (40, 12 giây, quanh thân 90: 400%). Từ 2.5d không võ hồn nào dùng nữa; giữ làm dự phòng cho võ hồn thêm sau (Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng).
+*Hồn kỹ chung* (võ hồn chưa có hồn kỹ riêng, như cũ): Hồn Bạo (12 hồn lực, hồi 3 giây, quanh thân 50: 220%), Thiểm Kích (16, 4,5 giây, lướt 70: 260%), Hồn Tiễn (22, 5 giây, 10 mũi vòng tròn: mỗi mũi 150%), Hồn Vực (40, 12 giây, quanh thân 90: 400%). Từ 2.5d không võ hồn nào dùng nữa; giữ làm dự phòng cho võ hồn thêm sau (từ 8.3 cả Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng đều có hồn kỹ riêng).
 
 *Lam Ngân Thảo* (khống chế, chấn đãng: trói, gom quái, gây Dễ thương)
 
@@ -740,6 +754,74 @@ Chỉ số Chân Thân ở 50.000 năm (× `buffPower` 1,9): Lam Điện Bá Vư
 
 Chỉ số Chân Thân ở 50.000 năm (× `buffPower` 1,9): Cửu Tinh Thất Sát Kiếm công +66%; Nhu Cốt Thố tốc độ +57%, chí mạng +47%; Quỷ Mị công +57%, hút huyết +57%; Thiên Càn Bạch Ngọc Đỉnh giảm sát thương 66%, sinh lực tối đa +47% **(chờ chốt)**. Tuyệt kỹ Kiếm Trảm Sơn Hà lên mục tiêu đủ 3 tầng Phá giáp: (700% + 240%) × 1,3 ≈ 12,2 lần công × 4,5 (10 vạn năm), mạnh nhất trong các tuyệt kỹ một đòn nhưng phải chồng tầng trước (tiên cơ Thất Sát Kiếm Vực, kiếm trận vòng 3 / 6) **(chờ chốt)**.
 
+**Đã làm ở bước 8.3 – 4 võ hồn mới** (Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng; mục 5.1). Mọi con số và tên hồn kỹ **(chờ chốt)**; chỉ thêm mục vào `VOHON_SKILLS` (vòng 1–4), `TIEN_CO_RIENG`, `VOHON_SKILLS_HIGH` (vòng 5, 6, 8, 9, 10), `CHAN_THAN`, **không cần cơ chế, SQL, message hay trường đồng bộ mới**. Đóng băng của Băng Phượng Hoàng là Choáng (như hồn thú băng ở BĐ6c), giam của A Ngân là Trói. Tên tuyệt kỹ, Chân Thân không trùng với võ hồn khác (A Ngân Chân Thân, không lấy "Lam Ngân Hoàng Chân Thân" của Lam Ngân Thảo).
+
+*Phá Hồn Thương* (cường công, phá giáp: lướt đâm xuyên hàng, Phá giáp, "phá hồn" Câm lặng ngắt chiêu)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| Tiên cơ | Phá Hồn Xuyên Tâm | – | Lướt 100 xuyên hàng hồn thú: 240%, Phá giáp 2 tầng, Câm lặng 1,5 giây, bất tử 0,35 giây |
+| 1 | Phá Hồn Thứ | 12 / 3,5 giây | Nửa trước mặt 56: 220%, Phá giáp 1 tầng |
+| 2 | Thương Ảnh Đột Kích | 16 / 5 giây | Lướt 80 xuyên hàng: 200%, Phá giáp 1 tầng, bất tử 0,3 giây |
+| 3 | Phá Hồn Tỏa Phách | 22 / 9 giây | Lướt tới mục tiêu trong 90 (tối đa 60), 3 nhát cách 0,18 giây, mỗi nhát 90%, Phá giáp 1 tầng; nhát cuối Câm lặng 2 giây |
+| 4 | Phá Hồn Nhất Thương | 40 / 14 giây | Nửa trước mặt 70: 360% + 40% mỗi tầng Phá giáp, Phá giáp 2 tầng, Câm lặng 1,5 giây |
+| 5 | Phá Hồn Liên Thương | 45 / 9 giây | Lướt tới mục tiêu trong 100 (tối đa 80), 4 nhát cách 0,15 giây, mỗi nhát 110%, Phá giáp 1 tầng |
+| 6 | Thương Mang Phá Không | 50 / 12 giây | 5 mũi tỏa 30° (tầm 160): mỗi mũi 140%, Phá giáp 1 tầng |
+| 7 | **Chân Thân:** Phá Hồn Thương Chân Thân | 80 / 90 giây | 15 giây: công +35%, chí mạng +15%, tốc độ +15%. Biến hình: quanh thân 100: 220%, Phá giáp 3 tầng, Câm lặng 2 giây |
+| 8 | Phá Hồn Trảm Phách | 60 / 18 giây | Nửa trước mặt 90: 420% + 50% mỗi tầng Phá giáp, Phá giáp 2 tầng, Câm lặng 2,5 giây |
+| 9 | Xuyên Vân Phá Nhật | 70 / 20 giây | Lướt 140 xuyên hàng: 500% + 50% mỗi tầng Phá giáp, Phá giáp 3 tầng, bất tử 0,6 giây |
+| 10 | **Tuyệt kỹ:** Phá Hồn Diệt Phách · Thiên Thương | 100 / 45 giây | Lướt tới mục tiêu trong 130 (tối đa 110), 6 nhát cách 0,12 giây, mỗi nhát 140% + 30% mỗi tầng Phá giáp, Phá giáp 1 tầng, Câm lặng 3 giây, bất tử 1 giây; nhát cuối Choáng 1,5 giây |
+
+*A Ngân* (phụ trợ, chấn đãng: Lam Ngân Hoàng hồi máu, khiên, tăng chỉ số cho đội, dây Lam Ngân trói và gây Dễ thương; hiệu ứng thuộc hồn sư nên cả đội hưởng; số phần trăm ở sức mạnh ×1, nhân `buffPower`)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| Tiên cơ | Lam Ngân Hoàng Ân | – | Quanh thân 72: kéo hồn thú về sát thân, 100%, Trói 2 giây; hồi 20% sinh lực cả đội |
+| 1 | Lam Ngân Triền Phược | 12 / 4 giây | Mục tiêu gần nhất trong 90: 140%, Trói 2 giây |
+| 2 | Lam Ngân Hồi Xuân | 14 / 9 giây | Hồi 18% sinh lực cả đội |
+| 3 | Hoàng Giả Hộ Thể | 20 / 14 giây | Công +20%, khiên 12% sinh lực tối đa trong 8 giây |
+| 4 | Lam Ngân Tế Thế | 40 / 16 giây | Quanh thân 90: kéo về sát thân, 160%, Trói 2 giây, Dễ thương 5 giây; hồi 20% sinh lực cả đội |
+| 5 | Lam Ngân Tù Thiên | 45 / 14 giây | Quanh thân 110: kéo về sát thân, 220%, Trói 2,5 giây, Dễ thương 6 giây |
+| 6 | Lam Ngân Thánh Dũ | 50 / 16 giây | Hồi 25% sinh lực cả đội, khiên 15% sinh lực tối đa 6 giây, thanh tẩy |
+| 7 | **Chân Thân:** A Ngân Chân Thân | 80 / 90 giây | 15 giây: công +15%, giảm sát thương nhận 30%, hồn kỹ tốn ít hơn 20%, sinh lực tối đa +25%. Biến hình: quanh thân 100 kéo hồn thú về, 150%, Trói 2 giây; hồi 25% sinh lực cả đội, khiên 15% |
+| 8 | Vạn Lý Lam Ngân | 60 / 18 giây | 10 sợi bắn vòng tròn (tầm 170): mỗi sợi 130%, Trói 1,5 giây, Dễ thương 4 giây |
+| 9 | Hoàng Giả Chúc Phúc | 60 / 22 giây | Công +30%, giảm sát thương nhận 20%, tốc độ +15% trong 12 giây, khiên 15% |
+| 10 | **Tuyệt kỹ:** Lam Ngân Hoàng · Sinh Sinh Bất Tức | 100 / 50 giây | Quanh thân 160: kéo về và giam, 300%, Trói 3,5 giây, Dễ thương 8 giây; hồi 50% sinh lực cả đội, khiên 25%, giảm sát thương nhận 25% trong 10 giây, thanh tẩy |
+
+*Liệt Hỏa Thương Lang* (mẫn công, thiêu đốt: lao vồ, cắn xé liên hoàn chồng Thiêu đốt, tiếng tru tăng tốc)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| Tiên cơ | Liệt Hỏa Lang Tập | – | Lao tới hồn thú gần nhất trong 110 (tối đa 90), 3 nhát cách 0,1 giây, mỗi nhát 120%, Thiêu đốt 1 tầng, bất tử 0,35 giây |
+| 1 | Liệt Hỏa Phệ Giảo | 12 / 3 giây | Lao tới mục tiêu trong 50 (tối đa 40), 2 nhát mỗi nhát 100%, Thiêu đốt 1 tầng |
+| 2 | Thương Lang Đột Tập | 14 / 4,5 giây | Lướt 80 xuyên hàng: 180%, Thiêu đốt 1 tầng, bất tử 0,3 giây |
+| 3 | Thương Lang Hống | 20 / 14 giây | Quanh thân 80: 100%, Làm chậm 2 giây; tốc độ +30%, công +15% trong 8 giây |
+| 4 | Liệt Hỏa Cuồng Trảo | 40 / 14 giây | Lướt tới mục tiêu trong 70 (tối đa 60), 6 nhát cách 0,12 giây, mỗi nhát 80%, +20% chí mạng, Thiêu đốt 1 tầng, bất tử 0,4 giây |
+| 5 | Lang Nha Liệt Diễm | 45 / 9 giây | Nửa trước mặt 60: 240%, +20% chí mạng, Thiêu đốt 2 tầng |
+| 6 | Hỏa Lang Bôn Tập | 50 / 12 giây | Lướt 120 xuyên hàng: 280%, Thiêu đốt 2 tầng, bất tử 0,5 giây |
+| 7 | **Chân Thân:** Liệt Hỏa Thương Lang Chân Thân | 80 / 90 giây | 15 giây: công +25%, tốc độ +35%, chí mạng +20%. Biến hình: quanh thân 80: 200%, +30% chí mạng, Thiêu đốt 3 tầng |
+| 8 | Liệt Hỏa Lang Quần | 60 / 16 giây | 5 sói lửa tỏa 70° (tầm 150): mỗi con 150%, Thiêu đốt 2 tầng |
+| 9 | Thương Lang Diệt Ảnh | 70 / 20 giây | Khóa hồn thú yếu máu nhất trong 130, lướt tới (tối đa 110), 4 nhát mỗi nhát 140% + tới 100% theo sinh lực đã mất + 30% mỗi tầng Thiêu đốt, +30% chí mạng |
+| 10 | **Tuyệt kỹ:** Liệt Hỏa Thương Lang · Phần Thiên Phệ | 100 / 45 giây | Lướt tới mục tiêu trong 140 (tối đa 120), 10 nhát cách 0,1 giây, mỗi nhát 90%, +30% chí mạng, Thiêu đốt 1 tầng, bất tử 1,2 giây; nhát cuối Choáng 1,5 giây |
+
+*Băng Phượng Hoàng* (khống chế, băng phong: bay, đóng băng = Choáng, Làm chậm, Dễ thương)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| Tiên cơ | Băng Phượng Lâm Thế | – | Bay lên rồi giáng băng quanh thân 90: 120%, đóng băng (Choáng 1,5 giây), Làm chậm 3 giây |
+| 1 | Băng Phượng Vũ | 12 / 3 giây | 3 lông vũ tỏa 40° (tầm 120): mỗi lông 100%, Làm chậm 2 giây |
+| 2 | Hàn Băng Tức | 16 / 6 giây | Nửa trước mặt 60: 160%, Làm chậm 2 giây, Dễ thương 4 giây |
+| 3 | Băng Phong Lĩnh Vực | 22 / 11 giây | Băng vực cố định bán kính 90 ở chỗ đứng trong 3 giây: 6 nhát mỗi nhát 40%, Làm chậm 1 giây; nhát cuối Choáng 1,2 giây |
+| 4 | Băng Phượng Phong Ấn | 40 / 14 giây | Bay lên rồi giáng băng quanh thân 100: 240%, Choáng 2 giây, Dễ thương 5 giây |
+| 5 | Băng Phượng Xuyên Vân | 45 / 10 giây | Bay lướt 110 xuyên hàng: 240%, Làm chậm 2 giây, bất tử 0,4 giây |
+| 6 | Huyền Băng Lãnh Vực | 50 / 14 giây | Băng vực đặt lên hồn thú gần nhất trong 140 (bán kính 90, 3 giây): 6 nhát mỗi nhát 50%, Làm chậm 1 giây, Dễ thương 4 giây; nhát cuối Choáng 1,5 giây |
+| 7 | **Chân Thân:** Băng Phượng Hoàng Chân Thân | 80 / 90 giây | 15 giây: công +20%, giảm sát thương nhận 25%, tốc độ +15%, sinh lực tối đa +20%. Biến hình: bay lên giáng băng quanh thân 110: 180%, Choáng 1,5 giây, Làm chậm 3 giây |
+| 8 | Vạn Băng Phượng Vũ | 60 / 16 giây | 12 lông vũ bắn vòng tròn (tầm 170): mỗi lông 140%, Làm chậm 2 giây |
+| 9 | Cực Hàn Băng Phong | 70 / 20 giây | Quanh thân 130: 360%, Choáng 2,5 giây, Dễ thương 6 giây |
+| 10 | **Tuyệt kỹ:** Băng Phượng Hoàng · Băng Phong Thiên Địa | 100 / 45 giây | Bay lên, quanh thân 170 ("cả vùng"): 550%, Choáng 3,5 giây, Dễ thương 8 giây, Làm chậm 4 giây, bất tử 1 giây |
+
+Chỉ số Chân Thân ở 50.000 năm (× `buffPower` 1,9): Phá Hồn Thương công +66%; A Ngân giảm sát thương 57%, sinh lực tối đa +47%; Liệt Hỏa Thương Lang tốc độ +66%, chí mạng +38%; Băng Phượng Hoàng giảm sát thương 47% **(chờ chốt)**. Choáng của Băng Phượng Hoàng vẫn ngắn lại với hồn thú bậc cao (`CC_TIER_MULT`).
+
 ### 5.3 Thế giới nhiều bản đồ và hồn thú
 Thế giới gồm nhiều bản đồ nối với nhau bằng **cổng**. Mỗi bản đồ là một file Tiled riêng và một phòng riêng trên server (mỗi phòng là một kênh, mục 6). Có 3 loại bản đồ (`kind` trong `MAPS`):
 - **Thành (`town`):** cả bản đồ an toàn, không có hồn thú, không giao chiến (mục 5.8). Gồm Nặc Đinh Thành và Thiên Đấu Thành.
@@ -883,20 +965,21 @@ Thú vương: **Tà hóa Thâm Hải Ma Kình Vương** (95.000 năm, máu x8). 
 
 **Rơi đặc trưng theo bản đồ**
 
-Mỗi bản đồ săn rơi mảnh của 2–3 võ hồn riêng (mục 5.1) và hồn hạch thuộc bộ đặc trưng (bảng bộ ở mục 5.6). Sao hồn hạch vẫn theo niên hạn (bảng rơi bên dưới).
+Mỗi bản đồ săn rơi mảnh của 2–3 võ hồn riêng (từ 8.3 tối đa 4, mục 5.1) và hồn hạch thuộc bộ đặc trưng (bảng bộ ở mục 5.6). Sao hồn hạch vẫn theo niên hạn (bảng rơi bên dưới).
 
 | Bản đồ | Mảnh võ hồn | Bộ hồn hạch |
 |---|---|---|
-| Thánh Hồn Thôn | Lam Ngân Thảo (để lên sao), Nhu Cốt Thố | Lam Ngân, Tiên Cơ |
+| Thánh Hồn Thôn | Lam Ngân Thảo (để lên sao), Nhu Cốt Thố, A Ngân (8.3) | Lam Ngân, Tiên Cơ |
 | Ngoại vi | U Minh Linh Miêu, Kim Vũ Miêu Ưng, Xúc Xích | Linh Miêu, Hạo Thiên, Xà Hoàng |
 | Nội địa | Tử Vong Chu Hoàng, Lam Điện Bá Vương Long, Cửu Tinh Thất Sát Kiếm | Bá Vương Long, Thất Sát, Lưu Ly |
-| Lạc Nhật Sâm Lâm | Bích Lân Xà Hoàng, Kỳ Nhung Thông Thiên Cúc, Hỏa Long | Xà Hoàng, Phượng Hoàng |
-| Cực Bắc Chi Địa | Yêu Hồ, Càn Khôn Hỗn Nguyên Tỏa, Nguyệt Nhận | Lam Ngân, Thất Sát |
+| Lạc Nhật Sâm Lâm | Bích Lân Xà Hoàng, Kỳ Nhung Thông Thiên Cúc, Hỏa Long, Liệt Hỏa Thương Lang (8.3) | Xà Hoàng, Phượng Hoàng |
+| Cực Bắc Chi Địa | Yêu Hồ, Càn Khôn Hỗn Nguyên Tỏa, Nguyệt Nhận, Băng Phượng Hoàng (8.3) | Lam Ngân, Thất Sát |
 | Hải Thần Đảo | Quỷ Mị, Thiên Càn Bạch Ngọc Đỉnh, Hỏa Ảnh | Bá Vương Long, Tiên Cơ |
-| Rương tà hóa thú vương (mọi bản đồ) | Mảnh của bản đồ đó, hoặc Tà Hỏa Phượng Hoàng | Bộ của bản đồ đó, hoặc Phượng Hoàng |
+| Rương tà hóa thú vương (mọi bản đồ) | Mảnh của bản đồ đó, hoặc Tà Hỏa Phượng Hoàng, hoặc Phá Hồn Thương (8.3; không bản đồ nào rơi) | Bộ của bản đồ đó, hoặc Phượng Hoàng |
 | Boss thế giới | Mảnh UR: Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp | Mọi bộ |
 
 - Trước BĐ6, rương tà hóa thú vương rơi thêm mảnh của võ hồn thuộc bản đồ chưa mở, để không võ hồn nào bị khóa hẳn.
+- **Từ 8.3 (chờ chốt):** mảnh 4 võ hồn mới: A Ngân ở Thánh Hồn Thôn (quê Đường Tam), Liệt Hỏa Thương Lang ở Lạc Nhật Sâm Lâm, Băng Phượng Hoàng ở Cực Bắc Chi Địa (bản đồ có 4 võ hồn thì mỗi võ hồn được chọn 1/4 thay 1/3); Phá Hồn Thương chỉ có ở rương mọi tà hóa thú vương (`KING_CHEST.every`, trọng số 2 như Tà Hỏa Phượng Hoàng: rương Ngoại vi 3 + 3 + 3 + 2 + 2 + bản đồ chưa mở). Cả 4 cũng có trong thưởng thắng Đại Đấu Hồn Trường. Hải Thần Đảo (BĐ6d, làm song song) giữ 3 võ hồn của mình, chưa thêm võ hồn 8.3 nào; có nên chuyển Phá Hồn Thương về rơi ở Hải Thần Đảo không thì **chờ chốt**.
 - **Mảnh UR trước BĐ6:** rương tà hóa thú vương có tỉ lệ thấp rơi 1 mảnh UR (Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; **5%**, đã chốt), để hai võ hồn UR không bị khóa hẳn cho tới Giai đoạn 8. Từ BĐ6, mảnh UR **chỉ** rơi từ boss thế giới và rương thú vương thôi rơi mảnh UR.
 
 **Luật chung của hồn thú**
@@ -1385,7 +1468,7 @@ Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textur
 | `die` (cột 13–15) | Không vẽ | Ẩn phụ thể |
 | `absorb` (hàng 3, cột 0–1) | Hàng 0, cột 0–1 (`idle` hướng xuống) | Mờ 60% |
 
-**Phụ thể của 20 võ hồn** (theo `VOHON`; màu chủ đạo là `col` / `robe` trong `data.ts`)
+**Phụ thể của 24 võ hồn** (theo `VOHON`; màu chủ đạo là `col` / `robe` trong `data.ts`; 4 võ hồn cuối thêm ở 8.3, vẽ bằng code, **chờ chốt**)
 
 | Võ hồn (`id`) | Dạng phụ thể khi phóng thích | Vị trí lớp | Màu chủ đạo | Hiệu ứng đặc trưng |
 |---|---|---|---|---|
@@ -1409,6 +1492,10 @@ Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textur
 | Lam Ngân Thảo (`lam_ngan_thao`) | Dây cỏ lam ngân quấn hai tay, lan thành thảm dưới chân | Tay + dưới chân | Lam ngân `#4ab0ff`, `#1f4a6b` | Dây leo bò trên đất, đốm sáng xanh li ti |
 | Hạo Thiên Chùy (`hao_thien_chuy`) | Búa đen khổng lồ (đầu búa to gần bằng người) | Tay | Ánh bạc `#9aa0b4`, đen `#22222c` | Vân đen chạy trên búa; bụi và vết nứt đất khi nện |
 | Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | Tháp lưu ly 9 tầng nhỏ lơ lửng trên tay | Tay (lơ lửng) | Lưu ly `#7ef0ff`, `#2a6a7a` | Hào quang 7 màu xoay quanh tháp, chiếu tia sáng lên đồng đội |
+| Phá Hồn Thương (`pha_hon_thuong`) | Trường thương cán dài, mũi thương hình thoi, tua đỏ dưới mũi | Tay phải | Lục lam hồn quang `#7fe0d0`, cán `#1f4a48` | Hồn quang lấp lánh ở mũi thương; vệt đâm thẳng khi đánh |
+| A Ngân (`a_ngan`) | Dây Lam Ngân vân vàng quấn hai tay, vương miện cỏ trên đầu, đóa hoa Lam Ngân Hoàng nở sau lưng | Tay + đầu + lưng | Lam ngân `#7fd8ff`, `#24527a`, vân vàng | Đốm sáng xanh và vàng li ti |
+| Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Tai sói xám, đuôi sói to chóp lửa, vuốt lửa hai tay | Đầu + lưng + tay | Lửa cam `#ff7a3a`, lông xám `#4a3a3a` | Tàn lửa bay từ chóp đuôi; vệt cào lửa khi đánh |
+| Băng Phượng Hoàng (`bang_phuong_hoang`) | Đôi cánh băng phượng hoàng, mào băng trên đầu | Lưng + đầu | Băng lam `#a8e8ff`, `#2a5a8a` | Tinh thể băng hình chữ thập lấp lánh quanh người |
 
 - Hiệu ứng lớn (kiếm trận, lãnh vực, sóng sét) vẽ bằng code hoặc sprite hiệu ứng riêng, **không** nhét vào lớp phụ thể.
 - **Võ Hồn Chân Thân** (vòng 7, mục 5.2) là bộ sprite riêng sau này; chưa vẽ ở giai đoạn này. Từ 8.1a tạm vẽ bằng code: hồn sư phóng to 1,35 lần, quầng sáng màu võ hồn, vòng sáng dưới chân, hạt sáng bay lên.
@@ -1441,7 +1528,7 @@ Sprite chưa có ảnh thật được vẽ bằng code trong `client/src/textur
 
 **Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
 - **Chân dung 64×64**, nhân vật truyện đại diện là trường `owner` trong `VOHON` (Đường Tam cho Lam Ngân Thảo, Tiểu Vũ cho Nhu Cốt Thố, Đường Hạo cho Hạo Thiên Chùy…). Hiển thị phóng 2 hoặc 3 lần với `image-rendering: pixelated`.
-- Võ hồn chưa rõ chủ nhân (Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, mục 8) thì chân dung vẽ chính võ hồn thay vì người.
+- Võ hồn chưa rõ chủ nhân (Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, từ 8.3 cả Phá Hồn Thương, Liệt Hỏa Thương Lang; mục 8) thì chân dung vẽ chính võ hồn thay vì người.
 - **Thẻ võ hồn 96×128**: chân dung ở trên, tên võ hồn, khung viền theo độ hiếm (SR bạc, SSR vàng, UR đỏ tím), biểu tượng hệ 12×12 ở góc trên trái, sao ở dưới, hồn hoàn là các chấm màu theo bậc.
 - Biểu tượng 4 hệ: 12×12, một màu trên nền trong suốt, để CSS tô màu.
 
@@ -1832,7 +1919,10 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Client: bảng `#reso` (`hud.toggleReso` / `renderReso` / `setResonance`; phím K, nút "Cộng minh" ở khung chỉ số và ở đầu bảng đội hình, cùng chỗ giữa màn hình với bảng đội hình / túi đồ / hộp thoại NPC, Esc đóng): tổng % đang cộng, 4 trụ cột với tiến độ x / mốc kế tiếp, thanh, các mốc (đã đạt có ✓ và viền màu trụ cột) kèm phần cộng; banner khi đạt mốc; chỉ số trong mục hồn cốt của bảng đội hình ghi thêm "+N% cộng minh".
   Bot: bảng mốc đúng 5.10, hàm thuần đếm đúng (cấp 29 / +9 / 4★ không tính); tài khoản mới chưa có mốc; 8 võ hồn (hook grant / set) đạt Võ hồn 1 / 2 / 3 có thông báo; tổng hồn hoàn 9 → 10 → 26 → 49, mốc 3 bằng một lần hấp thụ thật; hồn cốt +10 gắn bằng message thật 6 / 12 / 24 (+9 không tính), tháo một món thì mất mốc 3 có báo, gắn lại có lại; hồn hạch 5★ / 6★ 8 / 16 / 24 (4★ không tính); mọi võ hồn sở hữu có chỉ số đúng `calcStats` kèm cộng minh ở mỗi chặng, võ hồn ngoài sân (sinh lực trong `squad`) và võ hồn đổi vào sau có cộng minh; thoát vào lại giữ nguyên, không báo lại mốc.
   **(chờ chốt):** mọi giá trị cộng; chỉ đếm hồn cốt / hồn hạch đang gắn; chỉ cộng sinh lực / hồn lực / công. **Để sau:** mục "Để sau" ở 5.10.
-- [ ] 8.3 Thêm võ hồn mới.
+- [x] 8.3 Thêm võ hồn mới.
+  *Đã làm:* 4 võ hồn ngoài danh sách SSR cơ bản: **Phá Hồn Thương** (`pha_hon_thuong`, cường công, SSR, phá giáp), **A Ngân** (`a_ngan`, phụ trợ, SSR, chấn đãng, Lam Ngân Hoàng mẫu thân Đường Tam), **Liệt Hỏa Thương Lang** (`liet_hoa_thuong_lang`, mẫn công, SR, thiêu đốt), **Băng Phượng Hoàng** (`bang_phuong_hoang`, khống chế, SSR, "băng phong", Thủy Băng Nhi). Bảng ở 5.1 ("Đã làm ở bước 8.3"), hồn kỹ ở 5.2, rơi đặc trưng ở 5.3, phụ thể ở 5.11. `data.ts`: 4 mục cuối `VOHON` (chỉ số 20 võ hồn cũ không đổi), `EXTRA_VOHON` + `AWAKEN_CHOICES` bỏ 4 võ hồn này (vẫn 17 SSR cơ bản; `/api/awaken` từ chối), `VOHON_SKILLS` / `TIEN_CO_RIENG` / `VOHON_SKILLS_HIGH` / `CHAN_THAN` mỗi bảng 4 mục, `MAPS.thanh_hon_thon.shards` + A Ngân, `lac_nhat_sam_lam` + Liệt Hỏa Thương Lang, `cuc_bac_chi_dia` + Băng Phượng Hoàng (bản đồ săn 2–4 võ hồn), `KING_CHEST.every` (Phá Hồn Thương trong rương mọi thú vương, trọng số 2; `kingShardPool`). Mảnh (`manh_<id>`) và thưởng Đại Đấu Hồn Trường (`ARENA_SHARDS`) tự sinh từ `VOHON`. **Không cần SQL, message, trường đồng bộ hay cơ chế hồn kỹ mới**: đóng băng = Choáng, giam = Trói. Client: phụ thể vẽ bằng code (`honsuArt.ts`: trường thương, dây Lam Ngân + vương miện + hoa, tai / đuôi / vuốt sói lửa, cánh băng + mào); thẻ bộ sưu tập, bảng đội hình, mảnh, thức tỉnh dùng chung theo `VOHON`.
+  **(chờ chốt):** hệ, độ hiếm, chủ nhân (Phá Hồn Thương, Liệt Hỏa Thương Lang chưa xác định), lưu phái, màu; mọi số và tên hồn kỹ / tiên cơ / Chân Thân / tuyệt kỹ; nơi rơi mảnh (bản đồ có 4 võ hồn làm loãng tỉ lệ từng võ hồn cũ còn 1/4); Phá Hồn Thương không rơi theo bản đồ. **Để sau:** ràng buộc mới cho 4 võ hồn, sprite / chân dung thật (mục 5.11), trạng thái đóng băng riêng.
+  Bot (`GAME_TEST=1`): dữ liệu (4 võ hồn cuối `VOHON`, đủ vòng 1–10 / tiên cơ / Chân Thân, tên Chân Thân không trùng, 17 lựa chọn thức tỉnh, thức tỉnh Băng Phượng Hoàng bị từ chối, nơi rơi mảnh, rương thú vương, thưởng đấu trường); bot "Tester VH" mở từng võ hồn bằng mảnh (49 mảnh bị từ chối, 50 thì mở cấp 1, 1★, chưa vào đội), xếp đội 4 võ hồn mới, cấp 100 / 10 hồn hoàn: mỗi võ hồn dùng hồn kỹ vòng 1–4 (sát thương nhát đầu đúng theo năm, số nhát, trạng thái, hồi máu / khiên / hiệu ứng có lợi), tiên cơ riêng khi đổi tay, vòng 5, 6 và tuyệt kỹ vòng 10 (fx `ult`, người cùng phòng thấy), Chân Thân (chỉ số × `buffPower` 50.000 năm, đòn biến hình); hạ hồn thú ở Thánh Hồn Thôn rơi Mảnh A Ngân; thoát vào lại giữ võ hồn / đội / ô. Phần BĐ6b / BĐ6c hạ hồn thú cho từng võ hồn của bản đồ (gồm Liệt Hỏa Thương Lang, Băng Phượng Hoàng).
 - ~~8.4 Bản đồ mới: Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa, Hải Thần Đảo.~~ ➜ **Đã gộp vào BĐ6.**
 - [ ] **BĐ6** Bản đồ Giai đoạn 8 và boss thế giới (thay 8.4): Thiên Đấu Thành, Lạc Nhật Sâm Lâm (tiên thảo), Cực Bắc Chi Địa, Hải Thần Đảo / Ma Quỷ Hải Vực, mỗi bản đồ có tinh anh và thú vương theo 5.3; Lõi Tinh Đấu với boss thế giới Thái Thản Cự Viên và Thiên Thanh Ngưu Mãng (5.4, cần đội 4 võ hồn của 2.3). Chia mỗi bản đồ một lần giao việc, BĐ6a–BĐ6e (xong khi xong BĐ6e).
 - [x] **BĐ6a** Thiên Đấu Thành (`thien_dau_thanh`, thành an toàn) và chuyển Đại Đấu Hồn Trường về đây.
@@ -1881,7 +1971,8 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 1. **Sưu tầm võ hồn:** mảnh võ hồn, cộng với lễ thức tỉnh tặng Lam Ngân Thảo và cho tự chọn 1 SSR (mục 5.1), có ổn không?
    - **Trả lời:** thức tỉnh tự do: tặng Lam Ngân Thảo và tự chọn 1 võ hồn SSR bất kỳ trong danh sách SSR (không phải "chọn 1 trong 3"). Đã làm ở bước 2.2.
    - Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp… xếp độ hiếm gì (UR?) và lấy bằng cách nào?
-   - Chủ nhân của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh là ai? (Ảnh hưởng chân dung thẻ võ hồn, mục 5.11.)
+   - Chủ nhân của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh là ai? Từ 8.3 thêm Phá Hồn Thương, Liệt Hỏa Thương Lang. (Ảnh hưởng chân dung thẻ võ hồn, mục 5.11.)
+   - 4 võ hồn thêm ở 8.3: hệ, độ hiếm (A Ngân SSR hay UR, Liệt Hỏa Thương Lang SR), nguồn mảnh (Phá Hồn Thương chỉ ở rương thú vương và Đại Đấu Hồn Trường) có ổn không? (mục 5.1)
 2. **Đội hình:** 4 võ hồn và cách chia kinh nghiệm 40/20/20/20 có ổn không?
    - **Trả lời:** đồng ý: đội 4 võ hồn, chia kinh nghiệm 40/20/20/20. Đội hình làm ở bước 2.3a, chia kinh nghiệm ở 2.3b.
 3. **Hồn kỹ vòng 8–10:** muốn thiết kế thế nào?
