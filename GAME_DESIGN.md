@@ -37,7 +37,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 - **Giới hạn hấp thụ** (từ 3.3, mục 5.2): theo số năm của truyện, mỗi vòng một mức (423 / 764 / 1.760 / 5.000 / 12.000 / 20.000 / 50.000 / 100.000 / 100.000 / 100.000 năm). Trong giới hạn luôn thành công; vượt ≤ 25% thì 30% thất bại, ≤ 50% thì 60%, ≤ 100% thì 90%, vượt hơn 100% thì không cho hấp thụ. Thất bại thì **chỉ mất hồn hoàn đó**, không phạt gì thêm (bỏ luật cũ còn 30% sinh lực).
 - **Hấp thụ** (từ 3.2, 3.3): chọn hồn hoàn **trong túi đồ** (nút "Hấp thụ…"), rồi chọn **võ hồn bất kỳ trong bộ sưu tập** đang ở bình cảnh; chỉ khi không giao chiến (5 giây không đánh / bị đánh). Bảng chọn hiện giới hạn của vòng kế tiếp, % vượt và tỉ lệ thất bại trước khi xác nhận. Thời gian tăng theo niên hạn: 3 giây (10 năm) đến 15 giây (100.000 năm). Di chuyển hoặc bị đánh là hủy, hồn hoàn vẫn còn trong túi. Thành công: võ hồn lên 1 cấp, vòng lưu đúng số năm. *Giữ cơ chế bị gián đoạn.*
 - **Hồn hoàn rơi** (từ 3.2): hạ hồn thú thì hồn hoàn rơi xuống đất mang số năm của hồn thú; 15 giây đầu chỉ người hạ (từ 7.1: và cả tổ đội của người đó) nhặt được, tồn tại 60 giây. Đứng gần rồi nhấn **E** (hoặc nút "Nhặt") để cho vào túi; túi đầy thì báo và hồn hoàn ở lại dưới đất. *Giữ luật ưu tiên.*
-- **Hồn kỹ** (từ 2.5a, mục 5.2): vòng 1–4 mở 4 hồn kỹ, mạnh theo số năm hồn hoàn của vòng đó. 5 võ hồn mẫu (Lam Ngân Thảo, Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp) có hồn kỹ riêng gây trạng thái dùng chung (mục 5.1); từ 2.5b thêm 5 võ hồn lưu phái Thiêu đốt (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Kỳ Nhung Thông Thiên Cúc, Nguyệt Nhận); từ 2.5c thêm 5 võ hồn lưu phái Cảm điện (Lam Điện Bá Vương Long, Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Yêu Hồ, Xúc Xích); từ 2.5d thêm 5 võ hồn còn lại (Cửu Tinh Thất Sát Kiếm, Nhu Cốt Thố, Tử Vong Chu Hoàng, Quỷ Mị, Thiên Càn Bạch Ngọc Đỉnh; hiệu ứng có lợi mới Hút huyết): **cả 20 võ hồn đều có hồn kỹ riêng**, 4 hồn kỹ chung (Hồn Bạo, Thiểm Kích, Hồn Tiễn, Hồn Vực) không còn võ hồn nào dùng, giữ trong `data.ts` làm dự phòng cho võ hồn thêm sau. Ràng buộc bản tối thiểu (2.5d, chờ chốt): Hạo Thiên Chùy + Nhu Cốt Thố chí mạng +10%, Tà Hỏa Phượng Hoàng + Hỏa Ảnh Thiêu đốt mạnh thêm 20%. Vòng 5–10 (từ 8.1a, mục 5.2): 5 võ hồn mẫu có hồn kỹ vòng 5, 6, hồn kỹ mạnh vòng 8, 9, tuyệt kỹ vòng 10 và **Võ Hồn Chân Thân** vòng 7 (phím R, biến hình 15 giây tăng mạnh chỉ số); người chơi **chọn 4 hồn kỹ mang theo** (phím U / I / O / P) từ các hồn kỹ đã mở ở bảng đội hình. Võ hồn khác vòng 5–10 vẫn chỉ tăng chỉ số. ➜ 8.1b–8.1d: các võ hồn còn lại.
+- **Hồn kỹ** (từ 2.5a, mục 5.2): vòng 1–4 mở 4 hồn kỹ, mạnh theo số năm hồn hoàn của vòng đó. 5 võ hồn mẫu (Lam Ngân Thảo, Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp) có hồn kỹ riêng gây trạng thái dùng chung (mục 5.1); từ 2.5b thêm 5 võ hồn lưu phái Thiêu đốt (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Kỳ Nhung Thông Thiên Cúc, Nguyệt Nhận); từ 2.5c thêm 5 võ hồn lưu phái Cảm điện (Lam Điện Bá Vương Long, Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Yêu Hồ, Xúc Xích); từ 2.5d thêm 5 võ hồn còn lại (Cửu Tinh Thất Sát Kiếm, Nhu Cốt Thố, Tử Vong Chu Hoàng, Quỷ Mị, Thiên Càn Bạch Ngọc Đỉnh; hiệu ứng có lợi mới Hút huyết): **cả 20 võ hồn đều có hồn kỹ riêng**, 4 hồn kỹ chung (Hồn Bạo, Thiểm Kích, Hồn Tiễn, Hồn Vực) không còn võ hồn nào dùng, giữ trong `data.ts` làm dự phòng cho võ hồn thêm sau. Ràng buộc bản tối thiểu (2.5d, chờ chốt): Hạo Thiên Chùy + Nhu Cốt Thố chí mạng +10%, Tà Hỏa Phượng Hoàng + Hỏa Ảnh Thiêu đốt mạnh thêm 20%. Vòng 5–10 (từ 8.1a, mục 5.2): 5 võ hồn mẫu có hồn kỹ vòng 5, 6, hồn kỹ mạnh vòng 8, 9, tuyệt kỹ vòng 10 và **Võ Hồn Chân Thân** vòng 7 (phím R, biến hình 15 giây tăng mạnh chỉ số); người chơi **chọn 4 hồn kỹ mang theo** (phím U / I / O / P) từ các hồn kỹ đã mở ở bảng đội hình. Từ 8.1b thêm 5 võ hồn lưu phái Thiêu đốt (Tà Hỏa Phượng Hoàng Chân Thân mở lãnh vực phượng hoàng rộng hơn, tuyệt kỹ Hỏa Long Viêm bạo toàn vùng). Võ hồn khác vòng 5–10 vẫn chỉ tăng chỉ số. ➜ 8.1c–8.1d: các võ hồn còn lại.
 - **Gục** (từ 2.3b, mục 5.1): võ hồn ra trận gục thì tự đổi sang võ hồn chưa gục kế tiếp trong đội (không tính hồi chiêu đổi). Võ hồn đã gục không đổi vào được, hồi đầy khi về doanh trại hoặc sau 60 giây ngoài trận (đồng hồ dừng khi giao chiến). Cả đội gục thì sau 2,5 giây về doanh trại, cả đội hồi đầy, **không mất kinh nghiệm hay đồ** (bỏ luật cũ mất 30% kinh nghiệm). Sinh lực từng võ hồn không lưu DB: vào lại game thì cả đội đầy.
 - **Bản đồ và vùng** (từ BĐ2, BĐ3): 4 bản đồ nối bằng cổng: Thánh Hồn Thôn (bắt đầu ở đây; làng giữa bản đồ là vùng an toàn, 3 vùng săn 10–450 năm) ↔ Nặc Đinh Thành (thành an toàn, không hồn thú) ↔ Tinh Đấu Ngoại vi (`tinh_dau_ngoai_vi`, cấp 10–30, 4 vùng 300–2.000 năm) ↔ Tinh Đấu Nội địa (`tinh_dau_noi_dia`, cấp 30–60, 4 vùng 1.500–25.000 năm). Vùng đi theo chiều đông, càng sâu càng mạnh; mỗi vùng khai báo loài (`beasts`) và niên hạn (`years`) theo bảng 5.3. Hồn thú không sinh sát cổng và điểm xuất hiện. Bản đồ đang đứng và vị trí được lưu, vào lại thì ở đúng chỗ cũ; tài khoản còn ở `tinh_dau` cũ thì vào Ngoại vi ở trại cổng. Cổng có cấp đề xuất của bản đồ đích, dưới cấp thì cảnh báo đỏ nhưng vẫn đi được (chặn mềm). Từ BĐ4 mỗi vùng săn có 1 tinh anh, từ BĐ5 Ngoại vi và Nội địa có hang tà hóa thú vương ở vùng sâu nhất (mục dưới). ➜ BĐ6: Lõi Tinh Đấu.
 - **Túi đồ và Hồn Tệ** (từ 3.1, mục 5.7): túi 40 ô chỉ chính chủ thấy (phím B hoặc nút "Túi đồ"), đồ cùng loại gộp tối đa 99 món một ô. Mới có Hồi Huyết Đan / Hồi Hồn Đan (hồi 30% sinh lực võ hồn ra trận / hồn lực, hồi chiêu chung 15 giây, dùng được khi giao chiến); mỗi tài khoản nhận một lần 5 viên mỗi loại. Hạ hồn thú nhận vài đồng Hồn Tệ theo bậc. Từ 3.2 hồn hoàn là vật phẩm trong túi (mỗi chiếc một ô, ghi số năm) và bỏ được vật phẩm để nhường chỗ (nút "Bỏ"). Từ 6.1 mua đan và bán đồ dư ở thương nhân Nặc Đinh Thành (dòng "NPC" bên dưới).
@@ -549,6 +549,69 @@ Số phần trăm hồi, khiên và hiệu ứng có lợi (Quỷ Mị, Thiên C
 | 10 | **Tuyệt kỹ:** Vô Địch Thần Quang | 100 / 50 giây | Cả đội miễn mọi sát thương 6 giây, công +30%, hồi 40% sinh lực, thanh tẩy |
 
 Cân bằng tham khảo (cấp 100, hồn hoàn 423 / 764 / 1.760 / 5.000 / 12.000 / 20.000 / 50.000 / 10 vạn ×3 năm): công khoảng 490–680, hồn thú thường 10 vạn năm 4.200 sinh lực; hồn kỹ vòng 5 một mục tiêu khoảng 3.700–6.000, tuyệt kỹ khoảng 13.000–31.000 nếu trúng đủ nhát. Chỉ số Chân Thân ở 50.000 năm: Hạo Thiên Chùy công +76%, U Minh Linh Miêu tốc độ +66%, Cửu Bảo Lưu Ly Tháp giảm sát thương 66%, tiêu hao −57% **(chờ chốt)**.
+
+**Đã làm ở bước 8.1b – vòng 5–10 lưu phái Thiêu đốt** (mọi con số **(chờ chốt)**; thêm mục vào `VOHON_SKILLS_HIGH` / `CHAN_THAN`). Lối đánh theo 5.1: Tà Hỏa Phượng Hoàng chồng tầng diện rộng và mở lãnh vực, Hỏa Long đánh xa và kích nổ, Hỏa Ảnh khống chế + Dễ thương, Kỳ Nhung Thông Thiên Cúc cánh hoa liên tục hồi chiêu ngắn hơn (lấp khoảng), Nguyệt Nhận lướt và hạ mục tiêu yếu máu. Cơ chế mới (chỉ hai chỗ lối đánh bắt buộc):
+- **Lãnh vực phượng hoàng rộng hơn khi Chân Thân** (`ChanThanDef.field`, hàm thuần `phoenixFieldR(võ hồn, đang Chân Thân)`): khi Tà Hỏa Phượng Hoàng đang Chân Thân, lãnh vực của hồn sư có bán kính 130 thay 90 (server tính trúng trong `phoenixAmp`, client vẽ vòng lửa theo cùng hàm). Đòn biến hình mở lãnh vực 15 giây +35% (× `buffPower` vòng 7: 50.000 năm +66%, so với vòng 4 +30% × `buffPower` vòng 4). Lãnh vực vẫn là hiệu ứng có lợi thuộc hồn sư: đổi võ hồn thì Chân Thân hết, bán kính về 90 nhưng lãnh vực còn tới hết giờ.
+- **Viêm bạo toàn vùng** (`boom.last`, `boom.mult`): tuyệt kỹ Hỏa Long 3 đợt quanh thân bán kính 180, 2 đợt đầu chồng Thiêu đốt, chỉ đợt cuối kích nổ mọi tầng với sát thương kích nổ +50% (cộng với bộ hồn hạch Phượng Hoàng 4 món), rồi đốt lại 2 tầng. `detonateBurn` nhận thêm hệ số.
+- Còn lại chỉ thêm dữ liệu (mũi quạt, bay lướt, vùng cố định, nhiều nhát, đẩy lùi, khóa yếu máu, theo tầng Phá giáp có sẵn). Kỳ Nhung Thông Thiên Cúc vòng 5–10 vẫn hạn chế di chuyển bằng Trói như vòng 1–4.
+- Tên hồn kỹ: Phượng Hoàng Hỏa Tuyến / Dục Hỏa Phượng Hoàng / Phượng Hoàng Tiếu Thiên Kích đã dùng ở vòng 1–4 và tiên cơ; tên vòng 5–10 của cả 5 võ hồn đặt tạm theo lối đánh **(chờ chốt)**.
+
+*Tà Hỏa Phượng Hoàng* (vòng 5–10)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| 5 | Phượng Hoàng Lưu Tinh | 45 / 9 giây | 7 mũi lửa tỏa 70° (tầm 160): mỗi mũi 120%, Thiêu đốt 1 tầng |
+| 6 | Phượng Dực Thiên Tường | 50 / 12 giây | Bay lướt 120 qua đầu hồn thú: 300% mọi hồn thú trên đường, Thiêu đốt 2 tầng, bất tử 0,7 giây |
+| 7 | **Chân Thân:** Tà Hỏa Phượng Hoàng Chân Thân | 80 / 90 giây | 15 giây: công +30%, tốc độ +15%, sinh lực tối đa +15%; **lãnh vực phượng hoàng bán kính 130**. Biến hình: bay lên rồi lao xuống quanh thân 130: 250%, Thiêu đốt 3 tầng; lãnh vực 15 giây +35% |
+| 8 | Tà Hỏa Phần Thiên | 60 / 18 giây | Biển lửa cố định bán kính 110 ở chỗ đứng trong 3 giây: 6 nhát cách 0,5 giây, mỗi nhát 80%, Thiêu đốt 1 tầng |
+| 9 | Phượng Hoàng Liệt Không | 70 / 22 giây | Quanh thân 120: 450%, Thiêu đốt 3 tầng; lãnh vực phượng hoàng 8 giây (+30%) |
+| 10 | **Tuyệt kỹ:** Phượng Hoàng Niết Bàn | 100 / 45 giây | Bay lên rồi lao xuống quanh thân 160: 600%, Thiêu đốt đủ 5 tầng, bất tử 0,8 giây; lãnh vực 10 giây (+40%) |
+
+*Hỏa Long* (vòng 5–10)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| 5 | Hỏa Long Liệt Diễm | 45 / 9 giây | 7 mũi lửa tỏa 70° (tầm 170): mỗi mũi 130%, Thiêu đốt 1 tầng |
+| 6 | Long Viêm Liên Đạn | 50 / 12 giây | Mục tiêu gần nhất trong 180 (không trượt), 3 đạn cách 0,25 giây: mỗi đạn 140%, Thiêu đốt 1 tầng |
+| 7 | **Chân Thân:** Hỏa Long Chân Thân | 80 / 90 giây | 15 giây: công +25%, tốc độ +20%, chí mạng +15%. Biến hình: quanh thân 120: 200%, Viêm bạo kích nổ rồi đặt lại 1 tầng |
+| 8 | Hỏa Long Phệ Thiên | 60 / 16 giây | 16 mũi lửa vòng tròn (tầm 170): mỗi mũi 150%, Thiêu đốt 1 tầng |
+| 9 | Long Viêm Bạo Liệt | 70 / 20 giây | Quanh thân 130: 350%, Viêm bạo kích nổ mọi tầng rồi đặt lại 2 tầng |
+| 10 | **Tuyệt kỹ:** Hỏa Long Diệt Thế | 100 / 45 giây | Quanh thân 180 ("cả vùng"), 3 đợt cách 0,5 giây: mỗi đợt 160%, Thiêu đốt 2 tầng; **đợt cuối Viêm bạo toàn vùng** (kích nổ +50%) trước khi đốt lại |
+
+*Hỏa Ảnh* (vòng 5–10)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| 5 | Hỏa Ảnh Liên Chưởng | 45 / 9 giây | Nửa trước mặt 64: 240%, đẩy lùi 50, Dễ thương 4 giây, Thiêu đốt 1 tầng |
+| 6 | Hỏa Ảnh Lao Lung | 50 / 14 giây | Lồng lửa cố định bán kính 90 ở chỗ đứng trong 3 giây: 6 nhát mỗi nhát 50%, Làm chậm 1 giây, Thiêu đốt 1 tầng; nhát cuối Choáng 1,5 giây |
+| 7 | **Chân Thân:** Hỏa Ảnh Chân Thân | 80 / 90 giây | 15 giây: công +20%, giảm sát thương nhận 30%, sinh lực tối đa +20%. Biến hình: quanh thân 100: 180%, đẩy lùi 50, Choáng 1,5 giây, Dễ thương 6 giây, Thiêu đốt 1 tầng |
+| 8 | Liệt Hỏa Phong Ấn | 60 / 18 giây | Quanh thân 110: 300%, Choáng 2 giây, Dễ thương 8 giây, Thiêu đốt 2 tầng |
+| 9 | Hỏa Ảnh Bạo Kích | 70 / 20 giây | Lướt tới mục tiêu trong 120 (tối đa 90): 550%, đẩy lùi 70, Choáng 2 giây, Thiêu đốt 3 tầng |
+| 10 | **Tuyệt kỹ:** Hỏa Ảnh Thiên Trọng | 100 / 45 giây | Quanh thân 160: 500%, đẩy lùi 60, Choáng 2,5 giây, Dễ thương 8 giây, Thiêu đốt 3 tầng |
+
+*Kỳ Nhung Thông Thiên Cúc* (vòng 5–10; hồi chiêu ngắn hơn các võ hồn bùng nổ)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| 5 | Cúc Hoa Tán Vũ | 40 / 7 giây | 7 cánh hoa tỏa 80° (tầm 150): mỗi cánh 130%, Thiêu đốt và Phá giáp 1 tầng |
+| 6 | Kỳ Nhung Phược Hoa | 45 / 10 giây | Quanh thân 90: 220%, Trói 2 giây, Phá giáp 2 tầng |
+| 7 | **Chân Thân:** Kỳ Nhung Thông Thiên Cúc Chân Thân | 80 / 90 giây | 15 giây: công +30%, tốc độ +15%, hồn kỹ tốn ít hơn 20%. Biến hình: quanh thân 90, 4 nhát cách 0,3 giây: mỗi nhát 80%, Thiêu đốt và Phá giáp 1 tầng |
+| 8 | Cúc Hoa Phong Bạo · Liên Hoàn | 55 / 15 giây | Quanh thân 100, 8 nhát cách 0,3 giây: mỗi nhát 90%, Thiêu đốt và Phá giáp 1 tầng; nhát cuối Trói 2 giây |
+| 9 | Thông Thiên Cúc Trảm | 65 / 18 giây | Lướt tới mục tiêu trong 120 (tối đa 90), 4 nhát: mỗi nhát 130% + 30% mỗi tầng Phá giáp trên mục tiêu |
+| 10 | **Tuyệt kỹ:** Vạn Cúc Thông Thiên | 100 / 45 giây | Quanh thân 160, 12 nhát cách 0,3 giây: mỗi nhát 90%, Thiêu đốt và Phá giáp 1 tầng; nhát cuối Trói 3 giây |
+
+*Nguyệt Nhận* (vòng 5–10)
+
+| Vòng | Hồn kỹ | Hồn lực / hồi | Hiệu ứng |
+|---|---|---|---|
+| 5 | Nguyệt Ảnh Liên Đột | 45 / 9 giây | Lướt 110 xuyên hàng hồn thú: 300%, Phá giáp 2 tầng, bất tử 0,4 giây |
+| 6 | Huyết Nguyệt Đoạt Hồn | 50 / 12 giây | Khóa hồn thú yếu máu nhất trong 150, lướt tới (tối đa 130), 3 nhát mỗi nhát 150% + tới 120% theo sinh lực đã mất, +20% chí mạng, Thiêu đốt 1 tầng |
+| 7 | **Chân Thân:** Nguyệt Nhận Chân Thân | 80 / 90 giây | 15 giây: công +25%, tốc độ +30%, chí mạng +25%. Biến hình: quanh thân 80: 200%, +30% chí mạng, Phá giáp 2 tầng, Thiêu đốt 1 tầng |
+| 8 | Song Nguyệt Giao Huy | 60 / 16 giây | Nửa trước mặt 72: 360%, +20% chí mạng, Phá giáp 2 tầng, Thiêu đốt 2 tầng |
+| 9 | Tà Nguyệt Phá Không | 70 / 20 giây | Khóa hồn thú yếu máu nhất trong 170, lướt tới (tối đa 160), 4 nhát mỗi nhát 180% + tới 150% theo sinh lực đã mất, +30% chí mạng, bất tử 0,5 giây |
+| 10 | **Tuyệt kỹ:** Tà Nguyệt Đoạt Mệnh · Huyết Nguyệt | 100 / 45 giây | Khóa hồn thú yếu máu nhất trong 200, lướt tới (tối đa 190), 8 nhát mỗi nhát 120% + tới 200% theo sinh lực đã mất, +40% chí mạng, mỗi nhát Phá giáp 1 tầng, bất tử 1,2 giây |
+
+Chỉ số Chân Thân ở 50.000 năm (× `buffPower` 1,9): Tà Hỏa Phượng Hoàng công +57%, lãnh vực +66% bán kính 130; Hỏa Ảnh giảm sát thương 57%; Nguyệt Nhận tốc độ +57%, chí mạng +47% **(chờ chốt)**.
 
 ### 5.3 Thế giới nhiều bản đồ và hồn thú
 Thế giới gồm nhiều bản đồ nối với nhau bằng **cổng**. Mỗi bản đồ là một file Tiled riêng và một phòng riêng trên server (mỗi phòng là một kênh, mục 6). Có 3 loại bản đồ (`kind` trong `MAPS`):
@@ -1491,7 +1554,9 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   Client: thanh U / I / O / P theo ô đã chọn (ô trống, ô khóa ghi vòng cần mở), nút R Chân Thân (giây còn lại / hồi chiêu; điện thoại 2 hàng 4 nút), mục "Hồn kỹ mang theo" trong bảng đội hình (V); hình Chân Thân vẽ bằng code (phóng to, quầng sáng, hạt), tên tuyệt kỹ / Chân Thân lớn, chớp màn hình.
   **Đề xuất / chờ chốt:** phím R cho Chân Thân; tuyệt kỹ vòng 10 nằm trong 4 ô (không phím riêng); Chân Thân 15 giây, hồi 90 giây, 80 hồn lực, hết khi đổi võ hồn; đang Chân Thân chưa đổi bộ hồn kỹ (hướng sau ở mục 5.2); tên hồn kỹ chưa rõ trong truyện đặt tạm.
   Bot (`GAME_TEST=1`, hook `spawn {hpx}`): bot "Tester CT" (Hỏa Long + 5 võ hồn mẫu): hàm thuần (vòng 7 không phải hồn kỹ, võ hồn chưa có dữ liệu chỉ có vòng 1–4, dạng ô); xếp ô bị từ chối khi xếp Chân Thân / vòng chưa có dữ liệu / chưa mở / trùng / võ hồn người khác / đang giao chiến; Hạo Thiên Chùy vòng 5, 6 đúng sát thương theo năm, hồi chiêu theo ô, tuyệt kỹ 12 nhát + Choáng, người cùng phòng thấy fx; đổi ô thì hồi chiêu đi theo, bỏ tuyệt kỹ ra rồi xếp lại vẫn còn hồi chiêu, Phục Chế của Xúc Xích không sao chép tuyệt kỹ; Chân Thân tăng công / giảm sát thương / sinh lực tối đa đúng `buffPower` 50.000 năm, đòn biến hình, hồn kỹ dùng công đã tăng, tắt đúng giờ và về chỉ số cũ, hồi chiêu, đổi võ hồn thì hết; Lam Ngân Thảo vòng 5 lướt Trói, lãnh vực 6 nhát, tuyệt kỹ kéo 2 hồn thú về + Trói + độc 3 tầng, Chân Thân tăng tốc; U Minh Linh Miêu 6 hồn hoàn chưa có Chân Thân, vòng 6 khóa hồn thú yếu máu; Hỏa Long vòng 5–10 chỉ tăng chỉ số, chưa có Chân Thân; Cửu Bảo Lưu Ly Tháp Vô Địch Thần Quang, Chân Thân giảm tiêu hao; thoát vào lại giữ ô đã chọn.
-- [ ] 8.1b Hồn kỹ vòng 5–10 và Võ Hồn Chân Thân lưu phái **Thiêu đốt**: Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Kỳ Nhung Thông Thiên Cúc, Nguyệt Nhận.
+- [x] 8.1b Hồn kỹ vòng 5–10 và Võ Hồn Chân Thân lưu phái **Thiêu đốt**: Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Kỳ Nhung Thông Thiên Cúc, Nguyệt Nhận.
+  *Đã làm:* bảng ở mục 5.2 ("Đã làm ở bước 8.1b"), mọi con số và tên hồn kỹ **(chờ chốt)**. `data.ts`: 25 hồn kỹ vòng 5, 6, 8, 9, 10 vào `VOHON_SKILLS_HIGH`, 5 Chân Thân vào `CHAN_THAN`; cơ chế mới chỉ hai chỗ: `ChanThanDef.field` + hàm thuần `phoenixFieldR` (lãnh vực phượng hoàng bán kính 130 khi Tà Hỏa Phượng Hoàng đang Chân Thân, server `phoenixAmp` và client vẽ vòng lửa cùng dùng), `SkillDef.boom.last` / `boom.mult` (tuyệt kỹ Hỏa Long: các đợt đầu chồng Thiêu đốt, đợt cuối Viêm bạo toàn vùng +50%; `detonateBurn` nhận hệ số). Không cần SQL, message hay trường đồng bộ mới.
+  Bot (`GAME_TEST=1`): bot "Tester TD" (5 võ hồn Thiêu đốt cấp 100, 10 hồn hoàn, mang vòng 5, 6, 10): từng võ hồn vòng 5 và 6 đúng sát thương nhát đầu theo năm và trạng thái (mũi quạt, bay lướt kèm fx, chưởng đẩy lùi + Dễ thương, lồng lửa 6 nhát nhát cuối Choáng, Trói + Phá giáp, lướt xuyên, khóa hồn thú yếu máu ở xa bỏ qua con đủ máu); tuyệt kỹ của cả 5 (Niết Bàn Thiêu đốt 5 tầng cả hồn thú cách 140 và mở lãnh vực, người cùng phòng thấy fx; Viêm bạo toàn vùng ở hồn thú cách 150: chồng lên 5 tầng, kích nổ ≈ v × n × giây còn lại × 1,5 × 1,5 rồi còn 2 tầng; Choáng / Dễ thương / Thiêu đốt cả vùng; 12 nhát cánh hoa nhát cuối Trói; 8 nhát vào hồn thú yếu máu nhất); Chân Thân của cả 5 (chỉ số × `buffPower` 50.000 năm, đòn biến hình theo công đã tăng; Tà Hỏa Phượng Hoàng: hồn thú cách 110 nhận thêm sát thương lãnh vực khi đang Chân Thân, đổi sang Hỏa Long thì hết Chân Thân và hồn thú đó ra ngoài lãnh vực; Hỏa Long biến hình Viêm bạo); thoát vào lại giữ ô. Bot 8.1a đổi "võ hồn chưa có dữ liệu" từ Hỏa Long sang võ hồn đầu tiên còn thiếu dữ liệu (hiện là Cửu Tinh Thất Sát Kiếm).
 - [ ] 8.1c Lưu phái **Cảm điện**: Lam Điện Bá Vương Long, Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Yêu Hồ, Xúc Xích.
 - [ ] 8.1d Còn lại: Cửu Tinh Thất Sát Kiếm (tuyệt kỹ Kiếm Trảm Sơn Hà thật), Nhu Cốt Thố, Tử Vong Chu Hoàng, Quỷ Mị (Quỷ Ảnh Trùng Trùng thật), Thiên Càn Bạch Ngọc Đỉnh (Tịnh Thế Lưu Ly thật). Bộ sprite Chân Thân riêng (mục 5.11) làm cùng mỹ thuật.
 - [x] 8.2 Cộng minh.
@@ -1575,6 +1640,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
    - Bay chỉ là hiệu ứng (kèm bất tử ngắn). Có cần "đang bay thì hồn thú cận chiến không đánh tới" không?
    - Có thêm trạng thái Làm chậm (Kỳ Nhung Thông Thiên Cúc, Yêu Hồ, Huyền Băng Thiềm) thay cho Trói ngắn không.
      - **Đã làm ở 2.5c:** có trạng thái Làm chậm (Yêu Hồ, 40%); Kỳ Nhung Thông Thiên Cúc vẫn dùng Trói ngắn cho tới khi chốt.
+   - **Vòng 5–10 (bước 8.1b):** tên và con số 25 hồn kỹ, 5 Chân Thân (mục 5.2, đặt tạm); lãnh vực khi Chân Thân +35% × `buffPower` (50.000 năm +66%) và bán kính 130 có quá mạnh không, có nên chỉ rộng hơn mà không mạnh hơn; tuyệt kỹ Hỏa Long kích nổ +50% chỉ ở đợt cuối; Hỏa Ảnh Lao Lung dùng Làm chậm, Kỳ Nhung vòng 5–10 vẫn Trói.
 12. **Hồn kỹ lưu phái Cảm điện (bước 2.5c):** cần xác nhận:
    - Tên và con số 20 hồn kỹ, 5 tiên cơ riêng (mục 5.2); chủ nhân và hồn kỹ trong truyện của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa chưa rõ nên đặt tạm; hồn kỹ Xúc Xích lấy theo xúc xích của Áo Tư Tạp (Khôi Phục Đại Hương Tràng, Phi Hành Hương Tràng, Phục Chế Hương Tràng), thứ tự vòng chưa khớp truyện.
    - Phong Lôi Chi Lực: tự tung khi đầy (đang làm) hay để người chơi bấm; mức tích +4 / +10, ×2 khi trúng hồn thú Cảm điện; Lôi Động Minh Thiên 300% + 100% lên hồn thú Cảm điện.

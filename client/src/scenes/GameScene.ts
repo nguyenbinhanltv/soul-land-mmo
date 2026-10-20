@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, DIRS4, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, PHOENIX_FIELD_R, PHONG_LOI,
+  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
@@ -858,8 +858,9 @@ export class GameScene extends Phaser.Scene {
       for (const b of BUFF_IDS) {
         if (b === "inv" || !(p.buff & buffBit(b))) continue;
         if (b === "phoenix") {
-          // Lãnh vực phượng hoàng: vòng lửa bán kính PHOENIX_FIELD_R đi theo hồn sư, tàn lửa xoay quanh mép.
-          const c = hex(BUFFS.phoenix.col), R = PHOENIX_FIELD_R;
+          // Lãnh vực phượng hoàng: vòng lửa bán kính phoenixFieldR đi theo hồn sư (rộng hơn khi Tà Hỏa Phượng Hoàng Chân Thân, 8.1b),
+          // tàn lửa xoay quanh mép.
+          const c = hex(BUFFS.phoenix.col), R = phoenixFieldR(VOHON[p.vh]?.id ?? "", p.ava > 0);
           g.fillStyle(c, 0.07).fillEllipse(v.root.x, v.root.y - 2, R * 2, R * 1.2);
           g.lineStyle(1, c, 0.45 + 0.2 * Math.sin(time / 180)).strokeEllipse(v.root.x, v.root.y - 2, R * 2, R * 1.2);
           for (let j = 0; j < 6; j++) { const a = time / 900 + (j / 6) * Math.PI * 2; g.fillStyle(j % 2 ? 0xffe08a : c, 0.9).fillRect(v.root.x + Math.cos(a) * R - 1, v.root.y - 2 + Math.sin(a) * R * 0.6 - 1, 2, 2); }
