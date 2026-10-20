@@ -76,7 +76,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs } from "../../shared/data.ts";
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, EXTRA_VOHON, AWAKEN_CHOICES } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -109,6 +109,7 @@ async function bot(name,choice,looks){
     ok((await post("/api/awaken",{token:l.token})).status===400,"thiếu lựa chọn -> 400");
     ok((await post("/api/awaken",{token:l.token,vohon:"hao_thien_chuy"})).status===400,"chọn UR -> 400");
     ok((await post("/api/awaken",{token:l.token,vohon:"lam_ngan_thao"})).status===400,"chọn Lam Ngân Thảo -> 400");
+    ok((await post("/api/awaken",{token:l.token,vohon:"bang_phuong_hoang"})).status===400,"chọn võ hồn SSR ngoài danh sách cơ bản (8.3, Băng Phượng Hoàng) -> 400");
     const a=await post("/api/awaken",{token:l.token,vohon:choice});
     ok(a.status===200 && a.character?.vohon===choice,`thức tỉnh ${choice}, cấp ${a.character?.level}`);
   }
@@ -2248,6 +2249,146 @@ else {
       await U.room.leave();
     }
   }
+  // ---------- 8.3: 4 võ hồn mới (Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng) ----------
+  {
+    const NEW=EXTRA_VOHON, n0=VOHON.length-NEW.length;
+    ok(NEW.length===4&&NEW.every((id,k)=>vohonIndex(id)===n0+k)&&vohonIndex("cuu_bao_luu_ly_thap")===n0-1,
+      `8.3: 4 võ hồn mới ở cuối VOHON (chỉ số ${n0}–${VOHON.length-1}), võ hồn cũ giữ chỉ số: ${NEW.map(id=>`${vname(id)} (${VOHON[vohonIndex(id)].rarity}, ${HE[VOHON[vohonIndex(id)].he].name})`).join(", ")}`);
+    ok(AWAKEN_CHOICES.length===17&&AWAKEN_CHOICES.every(v=>v.rarity==="SSR"&&!NEW.includes(v.id)),"lựa chọn thức tỉnh vẫn là 17 SSR cơ bản, không có võ hồn mới");
+    ok(NEW.every(id=>skillsOf(id)!==SKILLS&&skillsOf(id).length===4&&TIEN_CO_RIENG[id]&&HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)
+      &&ringSkill(id,9).ult&&/^Tuyệt kỹ:/.test(ringSkill(id,9).desc)&&chanThanOf(id)?.burst&&new Set(skillChoices(id,10).map(r=>ringSkill(id,r).name)).size===9),
+      "4 võ hồn mới có hồn kỹ vòng 1–4, 5, 6, 8, 9, tuyệt kỹ vòng 10 (tên không trùng), tiên cơ riêng và Chân Thân vòng 7");
+    const ctNames=Object.values(VOHON).map(v=>chanThanOf(v.id)?.name).filter(Boolean);
+    ok(new Set(ctNames).size===ctNames.length&&ctNames.length===VOHON.length,`cả ${VOHON.length} võ hồn có Chân Thân, không trùng tên`);
+    // Nguồn: mảnh rơi theo bản đồ, rương thú vương, Đại Đấu Hồn Trường.
+    const where=id=>Object.values(MAPS).filter(m=>m.shards.includes(id)).map(m=>m.id);
+    ok(same(where("a_ngan"),["thanh_hon_thon"])&&same(where("liet_hoa_thuong_lang"),["lac_nhat_sam_lam"])&&same(where("bang_phuong_hoang"),["cuc_bac_chi_dia"])&&!where("pha_hon_thuong").length,
+      "mảnh: A Ngân ở Thánh Hồn Thôn, Liệt Hỏa Thương Lang ở Lạc Nhật Sâm Lâm, Băng Phượng Hoàng ở Cực Bắc Chi Địa; Phá Hồn Thương không rơi theo bản đồ");
+    const kings=Object.values(MAPS).filter(m=>m.king).map(m=>m.id);
+    ok(kings.length>=4&&kings.every(m=>kingShardPool(m).some(x=>x.vohon==="pha_hon_thuong"&&x.w===2))&&kingShardPool("lac_nhat_sam_lam").some(x=>x.vohon==="liet_hoa_thuong_lang"&&x.w===3)
+      &&kingShardPool("cuc_bac_chi_dia").some(x=>x.vohon==="bang_phuong_hoang"&&x.w===3)&&kingShardPool("tinh_dau_ngoai_vi")[3].vohon===KING_CHEST.fire,
+      `rương thú vương (${kings.length} bản đồ): Phá Hồn Thương trọng số 2 ở mọi rương; mảnh bản đồ trọng số 3`);
+    ok(NEW.every(id=>ARENA_SHARDS.includes(id)&&itemDef(shardCode(id))?.kind==="manh_vo_hon"),"mảnh 4 võ hồn mới là vật phẩm và nằm trong thưởng Đại Đấu Hồn Trường");
+
+    const N=await bot("Tester VH","yeu_ho",{sex:0,hair:2,hairCol:4,outfitCol:2});
+    await waitFor(()=>N.owned&&N.squad&&N.bag&&meOf(N)); const np=meOf(N);
+    // Mở bằng 50 mảnh (hook give): 49 mảnh bị từ chối, đủ 50 thì mở ở cấp 1, 1★, không tự vào đội, hết mảnh.
+    async function shardN(type,vohon){ const l=N.logs.length; N.room.send(type,{vohon}); await waitFor(()=>N.logs.length>l,2000); await sleep(150); return N.logs.at(-1)??""; }
+    for(const id of NEW){
+      const code=shardCode(id); await test(N,"give",{code,qty:SHARD_UNLOCK-1});
+      const t1=await shardN("unlock",id);
+      ok(!N.owned.list.some(v=>v.vohon===id)&&qtyOf(N,code)===SHARD_UNLOCK-1,`${vname(id)}: ${SHARD_UNLOCK-1} mảnh chưa mở được (${t1})`);
+      await test(N,"give",{code,qty:1}); const t2=await shardN("unlock",id), v=N.owned.list.find(v=>v.vohon===id);
+      ok(v&&v.level===1&&v.stars===1&&!N.owned.team.includes(v.rowId)&&qtyOf(N,code)===0,`${vname(id)}: đủ ${SHARD_UNLOCK} mảnh thì mở, cấp 1, 1★, chưa vào đội (${t2})`);
+    }
+    const rowN=id=>N.owned.list.find(v=>v.vohon===id).rowId, vN=id=>N.owned.list.find(v=>v.vohon===id);
+    // Xếp đội 4 võ hồn mới (ngoài giao chiến).
+    await test(N,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(N,NEW.map(rowN));
+    ok(same(N.owned.team,NEW.map(rowN))&&await waitFor(()=>np.vh===vohonIndex(NEW[0])),`xếp đội 4 võ hồn mới: ${NEW.map(vname).join(", ")}`);
+    const Y10=[423,764,1760,5000,12000,20000,50000,100000,100000,100000], P10=i=>skillPower(Y10[i]);
+    for(const id of NEW) await test(N,"set",{rowId:rowN(id),level:100,xp:0,rings:Y10});
+    const stats=async()=>(await test(N,"stats")).live, hush=()=>test(N,"status",{s:"silence",secs:20,all:true});
+    // Đội mới vẫn chứa võ hồn đang ra trận thì võ hồn đó giữ nguyên: gửi [id,0,0,0] trước rồi mới đội đủ 4.
+    async function lineupN(id){ await test(N,"clear"); await test(N,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(N,[rowN(id),0,0,0]);
+      await sendTeam(N,[rowN(id),...NEW.filter(x=>x!==id).map(rowN)]); return N.owned.active===rowN(id)&&await waitFor(()=>np.vh===vohonIndex(id)); }
+    async function loadoutN(id,skills){ const n=N.ownedMsgs, l=N.logs.length; N.room.send("loadout",{rowId:rowN(id),skills}); await waitFor(()=>N.ownedMsgs>n&&N.logs.length>l,1500); await sleep(80); }
+    async function castN(i,wait=250){ N.dmgs=[]; N.fxs=[]; N.room.send("skill",{i}); await sleep(wait); }
+    const pc=STATUS.poison.col, hitsN=bid=>dmgsOn(N,bid).filter(x=>x.c!==pc&&x.c!==STATUS.burn.col);
+    const stHas=(b,list)=>!!b&&(list??[]).every(a=>a.s==="armor"?b.armor>=Math.min(a.n??1,3):a.s==="burn"?b.burn>=1:hasSt(b,a.s));
+    const stTxt=list=>(list??[]).map(a=>`${STATUS[a.s].name}${a.n?` ${a.n} tầng`:""}`).join(", ");
+    const buffTxt=e=>Object.keys(e?.buff??{}).map(k=>BUFFS[k].name).join(", ");
+    ok(await leaveSafe(N),"N: ra khỏi làng");
+    let [nx,ny]=clearDir(np.x,np.y,170); const nat=d=>[Math.round(nx*d),Math.round(ny*d)];
+    async function faceN(){ [nx,ny]=clearDir(np.x,np.y,170); await step(N,nx,ny); }
+    /** Hồn kỹ đánh vòng `ring` ở ô `i`: hồn thú bậc 4 cách `d` theo hướng nhìn, đứng yên bằng Choáng; nhát đầu theo năm và trạng thái. */
+    async function ringN(id,ring,i,{d=30,wait=450}={}){
+      const sk=ringSkill(id,ring), atk=(await stats()).atkNow;
+      await test(N,"clear"); await faceN(); const bid=await spawnNear(N,4,...nat(d),20); await hush(); await test(N,"status",{s:"stun",secs:10});
+      await test(N,"ready"); await castN(i,wait);
+      const n=(sk.area==="around"||sk.area==="target")&&sk.n>1?sk.n:1, sts=[...(sk.status??[]),...(sk.finisher??[])].filter(a=>a.s!=="stun");
+      await waitFor(()=>hitsN(bid).length>=n&&stHas(beastOf(N,bid),sts),n>1?n*(sk.every??0.15)*1000+1500:1500);
+      const want=exp(atk*P10(ring)*sk.dmg), got=hitsN(bid).map(x=>x.v), b=beastOf(N,bid);
+      ok(want.includes(got[0])&&got.length>=n&&N.fxs.some(f=>f.k==="soulring"&&f.i===ring),`${vname(id)} vòng ${ring+1} ${sk.name}: ${got.length}/${n} nhát, nhát đầu ${got[0]} (cần ${want.join(" hoặc ")})`);
+      if(sts.length) ok(stHas(b,sts),`${sk.name}: ${stTxt(sts)} [Phá giáp ${b?.armor}, Thiêu đốt ${b?.burn}]`);
+      return bid;
+    }
+    /** Hồn kỹ lên bản thân vòng `ring` ở ô `i`: hiệu ứng có lợi, hồi sinh lực cả đội, khiên (đang mất nửa sinh lực). */
+    async function selfN(id,ring,i){
+      const sk=ringSkill(id,ring), e=sk.self;
+      await test(N,"clear"); await test(N,"rest",{s:30}); await test(N,"ready"); await test(N,"hurt",{pct:50}); const hp0=np.hp; await castN(i,300);
+      ok(Object.keys(e.buff??{}).every(k=>hasBuff(np,k))&&(!e.heal||np.hp>hp0)&&(!e.shield||np.shield>0)&&N.fxs.some(f=>f.k==="soulring"&&f.i===ring),
+        `${vname(id)} vòng ${ring+1} ${sk.name}: ${buffTxt(e)||"không hiệu ứng có lợi"}${e.heal?`, hồi ${hp0} -> ${np.hp}`:""}${e.shield?`, khiên ${np.shield}`:""}`);
+    }
+    const endN=async()=>{ await test(N,"clear"); await test(N,"rest",{s:30}); await waitFor(()=>np.ava===0,1500); };
+    for(const id of NEW){
+      ok(await lineupN(id),`N: ${vname(id)} ra trận (cấp 100, 10 hồn hoàn)`);
+      ok(same(vN(id).skills??[...DEFAULT_LOADOUT],[...DEFAULT_LOADOUT])||same(loadoutOf(id,vN(id).skills),[...DEFAULT_LOADOUT]),`${vname(id)}: 4 ô mặc định vòng 1–4`);
+      // Vòng 1–4 (U / I / O / P).
+      for(let r=0;r<4;r++){
+        const sk=ringSkill(id,r);
+        if(sk.area==="self") await selfN(id,r,r);
+        else {
+          if(sk.self) { await test(N,"hurt",{pct:50}); }
+          const hp0=np.hp; await ringN(id,r,r,{wait:sk.n>1?0:450});
+          if(sk.self) ok(Object.keys(sk.self.buff??{}).every(k=>hasBuff(np,k))&&(!sk.self.heal||np.hp>hp0),`${sk.name}: lên bản thân ${buffTxt(sk.self)}${sk.self.heal?` hồi ${hp0} -> ${np.hp}`:""}`);
+        }
+        await test(N,"rest",{s:30});
+      }
+      // Tiên cơ riêng: đổi tay vào với năng lượng đầy.
+      {
+        const own=TIEN_CO_RIENG[id], atk=(await stats()).atkNow, other=NEW[(NEW.indexOf(id)+1)%NEW.length];
+        ok(await lineupN(other),`N: ${vname(other)} ra trận, ${vname(id)} chờ`); await faceN(); await test(N,"clear");
+        if(own.self?.heal){ await test(N,"hurt",{pct:50}); await sleep(150); }
+        const r=await tienCo(N,rowN(id),{tier:4,dx:nat(own.area==="dash"?40:20)[0],dy:nat(own.area==="dash"?40:20)[1]});
+        const w=exp(atk*own.dmg), first=hitsN(r.bid)[0]?.v, list=[...(own.status??[]),...(own.finisher??[])].filter(a=>a.s!=="stun");
+        ok(r.fx?.own&&r.fx.vh===vohonIndex(id)&&w.includes(first),`tiên cơ riêng ${vname(id)} ${own.name}: sát thương ${first} (cần ${w.join(" hoặc ")})`);
+        if(list.length) ok(await waitFor(()=>stHas(beastOf(N,r.bid),list),1500),`${own.name}: gây ${stTxt(list)}`);
+        await test(N,"rest",{s:30});
+      }
+      // Vòng 5, 6, tuyệt kỹ vòng 10; Chân Thân vòng 7 (phím R).
+      ok(await lineupN(id),`N: ${vname(id)} ra trận lại`); await loadoutN(id,[4,5,9,-1]); ok(same(vN(id).skills,[4,5,9,-1]),`${vname(id)} mang vòng 5, 6, 10`);
+      for(const [r,i] of [[4,0],[5,1],[9,2]]){
+        const sk=ringSkill(id,r);
+        if(sk.area==="self") await selfN(id,r,i);
+        else {
+          const bf=B.fxs.length; if(sk.self) await test(N,"hurt",{pct:50}); const hp0=np.hp;
+          await ringN(id,r,i,{d:sk.at?110:30,wait:sk.n>1?0:450});
+          if(sk.self) ok(Object.keys(sk.self.buff??{}).every(k=>hasBuff(np,k))&&(!sk.self.heal||np.hp>hp0)&&(!sk.self.shield||np.shield>0),
+            `${sk.name}: lên bản thân ${buffTxt(sk.self)}${sk.self.heal?` hồi ${hp0} -> ${np.hp}`:""}${sk.self.shield?`, khiên ${np.shield}`:""}`);
+          if(sk.ult) ok(N.fxs.some(f=>f.k==="ult"&&f.name===sk.name)&&(B.room.roomId!==N.room.roomId||await waitFor(()=>B.fxs.slice(bf).some(f=>f.k==="ult"&&f.id===N.room.sessionId),800)),
+            `tuyệt kỹ ${sk.name}: fx ult (người cùng phòng cũng thấy)`);
+        }
+        await test(N,"rest",{s:60});
+      }
+      {
+        await endN(); const def=chanThanOf(id), cs=chanThanStats(def,Y10[6]);
+        await test(N,"ready"); await faceN(); const s0=await stats();
+        const bid=await spawnNear(N,4,...nat(30),20); await hush(); await test(N,"status",{s:"stun",secs:10});
+        const l=N.logs.length; N.fxs=[]; N.dmgs=[]; N.room.send("chanthan"); await waitFor(()=>N.logs.length>l,1500); await sleep(120);
+        const msg=N.logs.at(-1)??"", s1=await stats();
+        ok(np.ava>def.secs-1&&msg.includes(def.name)&&N.fxs.some(f=>f.k==="avatar"&&f.on),`${def.name}: ${np.ava.toFixed(1)} giây`);
+        const okStat=(!cs.atk||Math.abs(s1.atkNow-s0.atkNow*(1+cs.atk))<0.02)&&(!cs.spd||Math.abs(s1.spd-s0.spd*(1+cs.spd))<0.02)
+          &&(!cs.def||Math.abs(s1.def-s0.def-cs.def)<1e-3)&&(!cs.crit||Math.abs(s1.critB-s0.critB-cs.crit)<1e-3)&&(!cs.hp||s1.maxHp===Math.round(s0.maxHp*(1+cs.hp)));
+        ok(okStat,`${def.name} × buffPower(50.000 năm): ${Object.entries(cs).map(([k,v])=>`${k} +${Math.round(v*100)}%`).join(", ")} [công ${s0.atkNow.toFixed(1)} -> ${s1.atkNow.toFixed(1)}]`);
+        const bst=def.burst, sts=(bst.status??[]).filter(a=>a.s!=="stun"), want=exp(s1.atkNow*P10(6)*bst.dmg);
+        await waitFor(()=>hitsN(bid).length&&stHas(beastOf(N,bid),sts),1000);
+        ok(want.includes(hitsN(bid)[0]?.v)&&stHas(beastOf(N,bid),sts),`biến hình: ${hitsN(bid)[0]?.v} (cần ${want.join(" hoặc ")}), ${stTxt(bst.status)||"không trạng thái"}`);
+        await endN();
+      }
+    }
+    // Mảnh rơi đúng bản đồ: hạ hồn thú ở Thánh Hồn Thôn (hook shard cố định võ hồn A Ngân) thì +1 mảnh A Ngân vào túi người hạ.
+    // Lạc Nhật / Cực Bắc: phần BĐ6b / BĐ6c hạ hồn thú với từng võ hồn của bản đồ (gồm Liệt Hỏa Thương Lang, Băng Phượng Hoàng).
+    {
+      const list=MAPS[N.room.state.mapId].shards, i=list.indexOf("a_ngan"), code=shardCode("a_ngan"), q0=qtyOf(N,code);
+      await test(N,"clear"); await test(N,"shard",{r:0,i}); await test(N,"beast",{dx:14,dy:0,years:200}); await test(N,"slay");
+      ok(N.room.state.mapId==="thanh_hon_thon"&&i>=0&&await waitFor(()=>qtyOf(N,code)===q0+1,1500),`Thánh Hồn Thôn: hạ hồn thú 200 năm rơi 1 Mảnh A Ngân (${q0} -> ${qtyOf(N,code)})`);
+      await test(N,"shard",{r:-1}); await test(N,"clear");
+    }
+    // Thoát vào lại: 4 võ hồn mới vẫn sở hữu, đội và ô mang theo giữ nguyên.
+    await N.room.leave(); await sleep(500); await enter(N); await waitFor(()=>N.owned);
+    ok(NEW.every(id=>vN(id)?.level===100&&same(vN(id).skills,[4,5,9,-1]))&&N.owned.team.every(r=>NEW.some(id=>rowN(id)===r)),"thoát vào lại: 4 võ hồn mới, đội và ô mang theo còn nguyên");
+    await N.room.leave();
+  }
   // ---------- 3.5: chiêu có báo trước của hồn thú từ 1.000 năm ----------
   {
     // Hàm thuần: mọi loài của vùng có hồn thú từ 1.000 năm ở Ngoại vi / Nội địa đều có chiêu; hình vùng tính trúng đúng.
@@ -2782,8 +2923,8 @@ else {
     // ---------- 3.4: mảnh võ hồn rơi theo bản đồ, mở võ hồn bằng 50 mảnh, lên sao 20/40/80/120/200 ----------
     ok(same([1,2,3,4,5,6].map(starCost),[...STAR_COST,null])&&same(STAR_COST,[20,40,80,120,200])&&MAX_STARS===6&&SHARD_UNLOCK===50,"giá lên sao 20/40/80/120/200, mở võ hồn 50 mảnh");
     ok(shardChance(437)===0.1&&shardChance(1000)===0.15&&shardChance(25000)===0.2&&shardChance(MAX_YEARS)===1,"tỉ lệ rơi mảnh theo niên hạn: 10% / 15% / 20% / 100%");
-    ok(Object.values(MAPS).every(m=>m.kind!=="hunt"||(m.shards.length>=2&&m.shards.length<=3))&&Object.values(MAPS).every(m=>m.shards.every(id=>vohonIndex(id)>=0&&itemDef(shardCode(id))?.kind==="manh_vo_hon")),
-      "mỗi bản đồ săn rơi mảnh của 2–3 võ hồn có thật");
+    ok(Object.values(MAPS).every(m=>m.kind!=="hunt"||(m.shards.length>=2&&m.shards.length<=4))&&Object.values(MAPS).every(m=>m.shards.every(id=>vohonIndex(id)>=0&&itemDef(shardCode(id))?.kind==="manh_vo_hon")),
+      "mỗi bản đồ săn rơi mảnh của 2–4 võ hồn có thật (từ 8.3)");
     ok(calcStats(0,30,[1,1],6).maxHp>calcStats(0,30,[1,1],1).maxHp&&starMult(1)===1&&starMult(MAX_STARS)>starMult(2),"mỗi sao tăng chỉ số gốc");
     const list=MAPS[st.mapId].shards, gift=list.indexOf("lam_ngan_thao"), ui=list.findIndex(id=>!A.owned.list.some(v=>v.vohon===id));
     const nv=list[ui], nvName=VOHON[vohonIndex(nv)].name, nvCode=shardCode(nv), giftCode=shardCode("lam_ngan_thao");
@@ -4023,7 +4164,7 @@ async function lacNhatTest(){
   const objs=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
   const prop=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value;
   ok(M?.kind==="hunt"&&M.name==="Lạc Nhật Sâm Lâm"&&same(M.level,[40,70])&&same(M.years,[5000,30000]),"MAPS: Lạc Nhật Sâm Lâm là bản đồ săn cấp 40–70, 5.000–30.000 năm");
-  ok(same(M.shards,["bich_lan_xa_hoang","ky_nhung_thong_thien_cuc","hoa_long"])&&same(M.cores,["xa_hoang","phuong_hoang"])&&M.king==="luong_nghi_thu_ho_xa",
+  ok(same(M.shards,["bich_lan_xa_hoang","ky_nhung_thong_thien_cuc","hoa_long","liet_hoa_thuong_lang"])&&same(M.cores,["xa_hoang","phuong_hoang"])&&M.king==="luong_nghi_thu_ho_xa",
     `rơi đặc trưng: mảnh ${M.shards.map(v=>VOHON[vohonIndex(v)]?.name).join(", ")}; bộ hồn hạch ${M.cores.join(", ")}`);
   // Vùng (bảng 5.3): tên, niên hạn, loài, tinh anh; theo chiều đông.
   const ZT=[["Rừng hoa độc","5000-10000",["thuc_nhan_hoa","cuc_yeu_hoa_linh","doc_cuc_dang"],"huyet_man_thuc_nhan_hoa"],
@@ -4110,7 +4251,7 @@ async function lacNhatTest(){
     await test(L,"herb",{r:6,i:2}); n0=h(); lg=await slay({boss:"kho_dang_thu_vuong",years:30000});
     ok(qtyOf(L,HERBS[2].id)===1&&h()===n0+1,`tinh anh (x${HERB_ELITE} = ${pc(herbChance(LN,ZT[3][0],true))}) rơi ${HERBS[2].name}`);
     await test(L,"herb",{r:-1}); await test(L,"clear",{keep:1});
-    // Rơi đặc trưng: mảnh 3 võ hồn của bản đồ; hồn hạch rơi xuống đất.
+    // Rơi đặc trưng: mảnh 4 võ hồn của bản đồ (từ 8.3 có Liệt Hỏa Thương Lang); hồn hạch rơi xuống đất.
     for(let i=0;i<M.shards.length;i++){
       const code=shardCode(M.shards[i]), q0=qtyOf(L,code); await test(L,"shard",{r:0,i}); lg=await slay({species:"y_la_hoa_yeu",years:24000});
       ok(qtyOf(L,code)===q0+1,`mảnh rơi đặc trưng: ${itemDef(code).name} (${lg.split(" | ").find(t=>/Mảnh/.test(t))??lg})`);
@@ -4317,7 +4458,7 @@ async function cucBacTest(){
   const CBM="cuc_bac_chi_dia", M=MAPS[CBM];
   const objs=JSON.parse(readFileSync(new URL(`../../shared/assets/${CBM}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
   const pr=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value, inR=(r,x,y)=>x>=r.x&&x<=r.x+(r.width??r.w)&&y>=r.y&&y<=r.y+(r.height??r.h);
-  ok(M?.kind==="hunt"&&same(M.level,[60,85])&&same(M.years,[20000,80000])&&same(M.shards,["yeu_ho","can_khon_hon_nguyen_toa","nguyet_nhan"])
+  ok(M?.kind==="hunt"&&same(M.level,[60,85])&&same(M.years,[20000,80000])&&same(M.shards,["yeu_ho","can_khon_hon_nguyen_toa","nguyet_nhan","bang_phuong_hoang"])
     &&same(M.cores,["lam_ngan","that_sat"])&&M.king==="huyen_minh_bang_giao","MAPS: Cực Bắc Chi Địa săn cấp 60–85, 20.000–80.000 năm, mảnh Yêu Hồ / Càn Khôn Hỗn Nguyên Tỏa / Nguyệt Nhận, bộ Lam Ngân / Thất Sát");
   // Bảng 5.3: tên vùng, niên hạn, loài thường, tinh anh (từ nam lên bắc).
   const TB=[["Tuyết nguyên","20000-35000",["tuyet_lang","bang_nguyen_cu_tuong","bang_vu_ung"],"ngan_nguyet_tuyet_lang_vuong"],
@@ -4400,7 +4541,7 @@ async function cucBacTest(){
     `hạ thú vương: nhận ${itemDef(chestCode(M.king))?.name} (${C.logs.slice(-2).join(" | ")})`);
   await test(C,"goto",{x:ar.x,y:ar.y});
 
-  // Rơi đặc trưng: mảnh của 3 võ hồn Cực Bắc vào túi người hạ (hook shard cố định võ hồn), hồn hạch sao theo niên hạn.
+  // Rơi đặc trưng: mảnh của 4 võ hồn Cực Bắc (từ 8.3 có Băng Phượng Hoàng) vào túi người hạ (hook shard cố định võ hồn), hồn hạch sao theo niên hạn.
   await test(C,"core",{r:0});
   for(let i=0;i<M.shards.length;i++){
     const [n,yr,sp]=TB[i], y=parseLevelRange(yr)[0], code=shardCode(M.shards[i]), q0=qtyOf(C,code);
