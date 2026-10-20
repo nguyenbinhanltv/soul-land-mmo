@@ -20,7 +20,7 @@ export interface PortalInfo { name: string; to?: string; toName?: string; level?
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô
  *  hồn kỹ mang theo (chỉ số vòng theo ô U / I / O / P, -1 = trống; server đã áp mặc định loadoutOf). */
-export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; skills: number[] }[]; }
+export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; skills: number[]; herbs?: Record<string, number> }[]; }
 /**
  * Tin nhắn riêng "squad": sinh lực từng võ hồn trong đội; `down` > 0 là võ hồn đã gục, còn ngần ấy giây ngoài trận nữa thì hồi.
  * `en`: năng lượng tiên cơ (0..TIEN_CO_MAX). `combat`: đang giao chiến (đồng hồ hồi dừng).

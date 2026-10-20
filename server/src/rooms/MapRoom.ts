@@ -28,6 +28,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
   PARTY_XP_RANGE, partyXpShare,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
+  HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA } from "../../../shared/data.ts";
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
@@ -52,6 +53,7 @@ export interface PData {
   testBone: { r: number; s: number } | null;   // hook test `bone` (4.1): cố định số ngẫu nhiên rơi hồn cốt (0..1) và vị trí (-1 = ngẫu nhiên)
   // hook test `core` (5.1): cố định số ngẫu nhiên rơi hồn hạch (0..1), sao (0 = ngẫu nhiên trong khoảng) và bộ (-1 = ngẫu nhiên)
   testCore: { r: number; stars: number; set: number } | null;
+  testHerb: { r: number; i: number } | null; // hook test `herb` (BĐ6b): cố định số ngẫu nhiên rơi tiên thảo (0..1) và loại (-1 = ngẫu nhiên)
   shardBusy: boolean;   // đang chờ DB mở võ hồn bằng mảnh (bước 3.4): chặn lần mở thứ hai cho tới khi xong
   mpF: number; hpF: number; // hpF: sinh lực của võ hồn ra trận
   benchHp: Map<number, number>; // sinh lực các võ hồn khác (rowId -> sinh lực; không có = đầy). Không lưu DB: vào lại thì hồi đầy
@@ -452,7 +454,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
     this.onMessage("channel", (c, m: { ch: unknown }) => this.switchChannel(c, m?.ch)); // đổi kênh trong cùng bản đồ
     this.onMessage("bag", (c) => this.sendBag(c.sessionId));
-    this.onMessage("use", (c, m: { id: unknown }) => this.useItem(c.sessionId, m?.id));
+    this.onMessage("use", (c, m: { id: unknown; vohonId?: unknown }) => this.useItem(c.sessionId, m?.id, m?.vohonId));
     this.onMessage("open", (c, m: { id: unknown }) => this.openChest(c.sessionId, m?.id)); // mở rương thú vương (BĐ5)
     this.onMessage("unlock", (c, m: { vohon: unknown }) => this.unlockVohon(c.sessionId, m?.vohon));
     this.onMessage("starup", (c, m: { vohon: unknown }) => this.starUp(c.sessionId, m?.vohon));
@@ -494,7 +496,7 @@ export class MapRoom extends Room<MapState> {
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
     const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
-      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
+      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
@@ -578,7 +580,7 @@ export class MapRoom extends Room<MapState> {
   recalc(id: string, full: boolean) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     const cores = this.coresOn(d, d.ch.rowId);
-    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), coreBonus(cores), d.res.bonus);
+    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), coreBonus(cores), d.res.bonus, herbBonus(d.ch.herbs));
     p.maxHp = s.maxHp; p.maxMp = s.maxMp; d.atk = s.atk; d.speed = s.speed; d.crit = s.crit; d.critMult = s.critMult;
     if (d.ava?.row === d.ch.rowId) p.maxHp = Math.round(s.maxHp * (1 + (d.ava.stats.hp ?? 0))); // Võ Hồn Chân Thân (8.1a)
     d.passive = bonePassive(this.bonesOn(d, d.ch.rowId)); // bị động hồn cốt (4.3) theo võ hồn ra trận
@@ -652,10 +654,10 @@ export class MapRoom extends Room<MapState> {
     } catch (e) { if (bag) d.bagDirty = true; throw e; }
   }
 
-  /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn và cộng minh (8.2). */
+  /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
   maxHpOf(d: PData, v: Character) {
     return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId),
-      d.res.bonus).maxHp;
+      d.res.bonus, herbBonus(v.herbs)).maxHp;
   }
 
   /**
@@ -709,7 +711,7 @@ export class MapRoom extends Room<MapState> {
     this.syncCh(c.sessionId);
     c.send("vohons", { active: d.ch.rowId, team: [...d.team],
       list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings],
-        skills: loadoutOf(v.vohon, v.skills) })) });
+        skills: loadoutOf(v.vohon, v.skills), herbs: { ...v.herbs } })) });
     this.sendSquad(c.sessionId, true);
   }
 
@@ -1121,14 +1123,15 @@ export class MapRoom extends Room<MapState> {
   /**
    * Dùng một món trong túi theo id (client chỉ gửi id ô). Server kiểm tra món đó nằm trong túi của chính người gửi, dùng được,
    * người chơi không gục / không hấp thụ / không đang chuyển bản đồ, hết hồi chiêu chung đan, và không phí đan khi đã đầy.
-   * Đan dùng được cả khi giao chiến và trong vùng an toàn.
+   * Đan dùng được cả khi giao chiến và trong vùng an toàn. Từ BĐ6b tiên thảo cũng qua đây, kèm `vohonId` (useHerb).
    */
-  useItem(id: string, raw: unknown) {
+  useItem(id: string, raw: unknown, vohonId?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw && i.vohonId === null) : undefined;
     if (!it) return warn("Không có vật phẩm này trong túi đồ.");
     const def = itemDef(it.code);
+    if (def?.kind === "tien_thao") return this.useHerb(id, d, it, vohonId);
     if (!def || !(def.hp || def.mp)) return warn(`${def?.name ?? "Vật phẩm này"} không dùng trực tiếp được.`);
     if (p.dead) return warn("Đã gục ngã, không thể dùng đan dược.");
     if (d.absorbing) return warn("Đang hấp thụ hồn hoàn, không thể dùng đan dược.");
@@ -1531,6 +1534,11 @@ export class MapRoom extends Room<MapState> {
       const r = int(o.r, -1, 100, -1);
       d.testShard = r < 0 ? null : { r: Math.min(0.9999, r / 100), i: int(o.i, -1, 99, -1) };
     }
+    else if (op === "herb") {
+      // BĐ6b: cố định số ngẫu nhiên rơi tiên thảo (r: 0..100, rơi khi r/100 < herbChance; −1 bỏ) và loại (chỉ số i trong HERBS).
+      const r = int(o.r, -1, 100, -1);
+      d.testHerb = r < 0 ? null : { r: Math.min(0.9999, r / 100), i: int(o.i, -1, 99, -1) };
+    }
     else if (op === "bone") {
       const r = int(o.r, -1, 100, -1);
       d.testBone = r < 0 ? null : { r: Math.min(0.9999, r / 100), s: int(o.s, -1, BONE_SLOTS.length - 1, -1) };
@@ -1615,7 +1623,8 @@ export class MapRoom extends Room<MapState> {
       const worn = this.coresOn(d, v.rowId), cores = coreBonus(worn);
       out = { rowId: v.rowId, bones, cores, sets: Object.fromEntries(coreSetCounts(worn)), fx: coreFx(worn),
         slots: Object.fromEntries(worn.map((w) => [w.it.id, w.slot])),
-        base: calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus), stats: calcStats(vh, v.level, rings, v.stars, bones, cores, d.res.bonus), res: d.res,
+        base: calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus, herbBonus(v.herbs)),
+        stats: calcStats(vh, v.level, rings, v.stars, bones, cores, d.res.bonus, herbBonus(v.herbs)), res: d.res, herbs: { ...v.herbs },
         live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive, crit: d.crit, critMult: d.critMult, fx: d.coreFx,
           atkNow: this.atkOf(d), spd: d.speed * (1 + this.buffV(d, "spd")), def: this.buffV(d, "def"), critB: this.buffV(d, "crit"),
           ava: d.ava && { row: d.ava.row, t: d.ava.t, stats: d.ava.stats }, avaCd: d.avaCd.get(v.rowId) ?? 0 } : null,
@@ -2213,9 +2222,14 @@ export class MapRoom extends Room<MapState> {
     }
     this.broadcast("fx", { k: "teleHit", bid, name: def.name, ...c.teles[0], parts: c.teles.slice(1), hit, x0, y0, x1: b.x, y1: b.y });
     for (const pid of hit) {
+      const rooted = !!def.drain && !!this.pdata.get(pid)?.st.has("root"); // BĐ6b Hút Sinh: xét Trói trước khi chiêu gây trạng thái mới
       if (!this.hurtPlayer(pid, base * def.dmg * (0.9 + Math.random() * 0.2))) continue;
       for (const a of def.status ?? []) this.applyPStatus(pid, a, base);
       if (def.pull) this.pullPlayer(pid, b, def.pull);
+      if (rooted && b.hp > 0) {
+        const add = Math.min(b.maxHp - b.hp, Math.ceil(b.maxHp * def.drain!));
+        if (add > 0) { b.hp += add; this.broadcast("dmg", { x: b.x, y: b.y - 10, v: add, c: "#7dff8a" }); } // số xanh: hồi máu
+      }
     }
     if (def.summon) this.summonPack(b, bd, def.summon, c.target);
   }
@@ -2697,6 +2711,7 @@ export class MapRoom extends Room<MapState> {
     if (owner !== by) this.log(owner, `Bạn đóng góp nhiều nhất khi hạ ${name}: hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).`, td.glow);
     if (e) this.broadcast("elite", { k: "down", name, by: p.name, col: BOSSES[b.species]?.aura });
     this.rollShard(by, b.years, b.x, b.y);
+    this.rollHerb(by, zone, b.x, b.y, !!e);
     const base = e ? Math.max(0, beastIndex(BOSSES[b.species]?.species ?? "")) : b.species;
     this.rollBone(by, owner, base, b.years, b.tier, b.x, b.y, e ? ELITE.bone : 1);
     this.rollCoreDrop(by, owner, b.years, b.x, b.y, !!e);
@@ -2780,6 +2795,53 @@ export class MapRoom extends Room<MapState> {
       this.state.drops.set(uid("d"), drop);
       this.log(id, `Túi đồ đã đầy (${BAG_SLOTS} ô): ${drop.qty} ${def.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
     }
+  }
+
+  // ---------- Tiên thảo (mục 5.3 "Lạc Nhật Sâm Lâm", 5.7; bước BĐ6b) ----------
+  /**
+   * Hạ hồn thú ở vùng `zone` (tên vùng nơi hồn thú bị hạ): bản đồ có MapDef.herbs thì tung herbChance (tinh anh x HERB_ELITE); trúng
+   * thì 1 tiên thảo ngẫu nhiên trong HERBS vào thẳng túi người hạ như mảnh võ hồn; túi đầy thì rơi xuống đất cạnh hồn hoàn, người hạ ưu
+   * tiên nhặt. Hook test `herb` của người hạ cố định được số ngẫu nhiên và loại.
+   */
+  rollHerb(id: string, zone: string | undefined, x: number, y: number, elite: boolean) {
+    const d = this.pdata.get(id), chance = herbChance(this.state.mapId, zone, elite); if (!d || chance <= 0) return;
+    const t = d.testHerb;
+    if ((t ? t.r : Math.random()) >= chance) return;
+    const h = HERBS[t && t.i >= 0 ? t.i % HERBS.length : Math.floor(Math.random() * HERBS.length)], def = itemDef(h.id); if (!def) return;
+    this.broadcast("fx", { k: "wave", x, y: y - 6, r: 26, col: h.col });
+    if (this.addItem(d, h.id, 1)) { this.log(id, `Tìm được tiên thảo ${h.name}! (túi đồ: dùng cho một võ hồn)`, h.col); this.sendBag(id); return; }
+    const drop = this.map.standable(x, y + 8) ? this.newDrop(x, y + 8, id) : this.newDrop(x, y, id);
+    drop.item = h.id; drop.qty = 1;
+    this.state.drops.set(uid("d"), drop);
+    this.log(id, `Túi đồ đã đầy (${BAG_SLOTS} ô): tiên thảo ${h.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
+  }
+
+  /**
+   * Dùng tiên thảo `it` cho võ hồn `raw` (vohons.id, phải là võ hồn của chính người gửi): võ hồn đó +HERB_PCT % chỉ số của loại tiên
+   * thảo, vĩnh viễn, mỗi loại tối đa HERB_MAX cây mỗi võ hồn. Dùng được cả khi giao chiến (như lên sao); trong sân đấu thì `use` bị chặn.
+   * Bớt 1 cây và ghi số cây trên võ hồn ngay, rồi trong chuỗi lưu ghi võ hồn và túi trong MỘT transaction (store.saveVohonsBag, như
+   * lên sao); lỗi thì đánh dấu để lần lưu sau ghi tiếp.
+   */
+  useHerb(id: string, d: PData, it: Item, raw: unknown) {
+    const warn = (text: string) => this.log(id, text, "#ffb35c");
+    const h = herbDef(it.code), v = d.owned.find((x) => x.rowId === raw); if (!h) return warn("Vật phẩm này không dùng trực tiếp được.");
+    if (!v) return warn(`Chọn võ hồn để dùng ${h.name}.`);
+    const name = VOHON[Math.max(0, vohonIndex(v.vohon))].name, n = v.herbs[h.id] ?? 0;
+    if (n >= HERB_MAX) return warn(`${name} đã dùng đủ ${HERB_MAX} cây ${h.name}.`);
+    this.takeItem(d, it, 1);
+    v.herbs = { ...v.herbs, [h.id]: n + 1 };
+    if (v === d.ch) this.recalc(id, false); else d.dirty.add(v.rowId);
+    const p = this.state.players.get(id);
+    if (p) this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 24, col: h.col });
+    this.log(id, `${name} dùng ${h.name} (${n + 1}/${HERB_MAX}): tiên thảo đã dùng ${herbText(v.herbs)}.`, h.col);
+    const c = this.clients.getById(id); if (c) this.sendVohons(c);
+    this.sendBag(id);
+    this.chain(d, async () => {
+      const list = this.unsaved(id), bag = this.bagSnapshot(d);
+      if (!list.some((x) => x.rowId === v.rowId)) list.push({ ...v, rings: [...v.rings], skills: [...v.skills], herbs: { ...v.herbs } });
+      try { await store.saveVohonsBag(d.accountId, list, bag); }
+      catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
+    });
   }
 
   /** Tổng số mảnh mã `code` trong túi (mọi ô). */

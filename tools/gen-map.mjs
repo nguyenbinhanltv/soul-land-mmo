@@ -1,12 +1,13 @@
 // Sinh các bản đồ Tiled khởi đầu: shared/assets/<mapId>.json cho mỗi mapId trong MAPS (shared/data.ts).
 //   tinh_dau_ngoai_vi  Tinh Đấu Ngoại vi: 4 vùng 300–2.000 năm, cổng về Nặc Đinh Thành và vào Nội địa (BĐ3, mục 5.3)
 //   tinh_dau_noi_dia   Tinh Đấu Nội địa: 4 vùng 1.500–25.000 năm, cổng về Ngoại vi (BĐ3; Lõi Tinh Đấu để BĐ6)
+//   lac_nhat_sam_lam   Lạc Nhật Sâm Lâm: 4 vùng 5.000–30.000 năm (thực vật / độc), suối Băng Hỏa Lưỡng Nghi Nhãn, cổng về Thiên Đấu Thành (BĐ6b)
 //   (bản đồ `tinh_dau` của BĐ1–BĐ2 đã tách thành hai bản đồ trên ở BĐ3)
 //   thanh_hon_thon  Thánh Hồn Thôn: làng an toàn ở giữa, 3 vùng săn cấp 1–10 (BĐ2, mục 5.3, 5.8)
 //   Mỗi vùng săn có 1 object `elite` (tinh anh, BĐ4, mục 5.4); Ngoại vi và Nội địa có 1 object `boss` (hang thú vương, BĐ5).
 //   nac_dinh_thanh  Nặc Đinh Thành: thành an toàn, NPC Đại Sư, thương nhân, lò rèn (BĐ2; hoạt động từ 6.1); cổng bắc đi Thiên Đấu Thành (BĐ6a)
 //   thien_dau_thanh  Thiên Đấu Thành: thủ đô, thành an toàn lớn; Đại Đấu Hồn Trường, Sử Lai Khắc Học Viện, thương nhân, lò rèn;
-//                    cổng tây (Lạc Nhật), cổng bắc (Cực Bắc) và bến thuyền (Hải Thần Đảo) chưa mở (BĐ6a, mục 5.3, 5.8)
+//                    cổng tây đi Lạc Nhật (mở từ BĐ6b); cổng bắc (Cực Bắc) và bến thuyền (Hải Thần Đảo) chưa mở (BĐ6a, mục 5.3, 5.8)
 //   dai_dau_hon_truong  sân Đại Đấu Hồn Trường: sân lát đá vây tường và khán đài, không cổng, không hồn thú (bước 7.2, mục 5.9)
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
@@ -236,6 +237,53 @@ function tinhDauNoiDia() {
   writeMap("tinh_dau_noi_dia", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.35)]);
 }
 
+// ---------- Lạc Nhật Sâm Lâm (BĐ6b, mục 5.3): rừng thực vật / độc, cấp 40–70, 5.000–30.000 năm ----------
+/**
+ * Cùng khuôn rừng 90×60 của Tinh Đấu (hàm `forest`): trại cổng ở mép tây về Thiên Đấu Thành (cổng tây của thành), 4 vùng theo chiều
+ * đông. Rừng hoa độc nhiều hoa; Đầm Bích Lân nhiều đầm nước nối nhau; Băng Hỏa Tuyền rải suối nhỏ; Lưỡng Nghi Nhãn là rừng già, cuối
+ * đường mòn là suối đôi Băng Hỏa Lưỡng Nghi Nhãn (hai vũng tròn sát nhau ở mép đông). Hang Tà hóa Lưỡng Nghi Thủ Hộ Xà ở đông nam
+ * (LAIR, như Ngoại vi / Nội địa). Mỗi chữ nhật `elite` được dọn trống (bãi cỏ) để tinh anh luôn có chỗ sinh.
+ */
+const LAC_NHAT_ELITES = [
+  ["Huyết Mạn Thực Nhân Hoa", "huyet_man_thuc_nhan_hoa", 12, 8, 8, 6],
+  ["Song Đầu Bích Lân Xà", "song_dau_bich_lan_xa", 30, 44, 8, 6],
+  ["Băng Hỏa Song Sắc Mãng", "bang_hoa_song_sac_mang", 53, 10, 8, 6],
+  ["Khô Đằng Thụ Vương", "kho_dang_thu_vuong", 70, 9, 8, 6],
+];
+function lacNhatSamLam() {
+  const { MW, MH } = FOREST;
+  const pool = (g, cx, cy, rad) => { for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (Math.hypot(x, y) < rad) g.set(Math.round(cx + x), Math.round(cy + y), 2); };
+  const { ground, trees, canopy, o } = forest({
+    seed: 40630, shade: [0, 1, 2, 3], dens: [0.06, 0.08, 0.1, 0.16],
+    feature(g, r) {
+      // Rừng hoa độc: thảm hoa dày.
+      for (let y = 1; y < MH - 1; y++) for (let x = 9; x < 22; x++) if (g.get(x, y) === 0 && r() < 0.18) g.set(x, y, 4);
+      // Đầm Bích Lân: nhiều vũng nước nối nhau (như Đầm sương độc của Nội địa).
+      for (let i = 0; i < 18; i++) pool(g, 24 + r() * 19, 3 + r() * (MH - 6), 1.3 + r() * 2.2);
+      // Băng Hỏa Tuyền: vài suối nhỏ rải rác.
+      for (let i = 0; i < 7; i++) pool(g, 47 + r() * 19, 4 + r() * (MH - 8), 1 + r() * 1.3);
+    },
+    east(g) {
+      // Suối Băng Hỏa Lưỡng Nghi Nhãn: hai vũng tròn sát nhau ở mép đông, cuối đường mòn (vây bằng bãi cỏ trống).
+      for (let y = 17; y < 44; y++) for (let x = MW - 14; x < MW - 1; x++) if (Math.hypot(x - (MW - 6), (y - 30.5) * 0.8) < 11) g.set(x, y, 0);
+      pool(g, MW - 6, 26, 4.2); pool(g, MW - 6, 35, 4.2);
+      lairGround(g, LAIR.cx, LAIR.cy, LAIR.rx, LAIR.ry);
+      for (const [, , x, y, w, h] of LAC_NHAT_ELITES) g.fill(x, y, w, h, 0);
+    },
+  });
+  forestZone(o, 0, "Rừng hoa độc", "Hồn thú 5.000 – 10.000 năm", 12, "thuc_nhan_hoa:1,cuc_yeu_hoa_linh:1,doc_cuc_dang:1", "5000-10000");
+  forestZone(o, 1, "Đầm Bích Lân", "Hồn thú 10.000 – 18.000 năm", 10, "bich_lan_xa:1,doc_vu_thiem:1,hac_thuy_mang:1", "10000-18000");
+  forestZone(o, 2, "Băng Hỏa Tuyền", "Hồn thú 16.000 – 25.000 năm", 9, "liet_hoa_tich_dich:1,huyen_bang_thiem:1,hoa_linh_diep:1", "16000-25000");
+  forestZone(o, 3, "Lưỡng Nghi Nhãn", "Cẩn thận: hồn thú 22.000 – 30.000 năm", 8, "co_moc_thu_nhan:1,y_la_hoa_yeu:1,thanh_lan_doc_co:1", "22000-30000");
+  for (const [name, id, x, y, w, h] of LAC_NHAT_ELITES) o.elite(name, id, x, y, w, h);
+  lairObj(o, "Hang Lưỡng Nghi", "luong_nghi_thu_ho_xa");
+  const c = FOREST.camp;
+  o.rect("spawn", "Trại cổng Lạc Nhật", c.x, c.y, c.w, c.h);
+  o.portal("Về Thiên Đấu Thành", 1, 29, 2, 4, "thien_dau_thanh", "tu_lac_nhat_sam_lam");
+  o.point("arrive", "tu_thien_dau_thanh", 5.5, 31.5);
+  writeMap("lac_nhat_sam_lam", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.2)]);
+}
+
 // ---------- Thánh Hồn Thôn (mục 5.3, 5.8) ----------
 function thanhHonThon() {
   const MW = 72, MH = 54, r = rng(5031);
@@ -340,10 +388,10 @@ function nacDinhThanh() {
 // ---------- Thiên Đấu Thành (BĐ6a, mục 5.3, 5.8): thủ đô, thành an toàn lớn hơn Nặc Đinh Thành ----------
 /**
  * 80×56 ô, tường thành bao quanh, phía đông là sông có bến thuyền. Đại lộ bắc–nam (cột 38–41) từ cổng nam (về Nặc Đinh Thành) lên
- * cổng bắc (Cực Bắc Chi Địa, chưa mở), đại lộ đông–tây (hàng 26–29) từ cổng tây (Lạc Nhật Sâm Lâm, chưa mở) ra bến thuyền (Hải Thần
- * Đảo, chưa mở); quảng trường có đài phun nước ở giữa. Hoàng cung Thiên Đấu (tây bắc), thương nhân và lò rèn (đông bắc), Sử Lai Khắc
+ * cổng bắc (Cực Bắc Chi Địa, chưa mở), đại lộ đông–tây (hàng 26–29) từ cổng tây (Lạc Nhật Sâm Lâm, mở từ BĐ6b) ra bến thuyền (Hải
+ * Thần Đảo, chưa mở); quảng trường có đài phun nước ở giữa. Hoàng cung Thiên Đấu (tây bắc), thương nhân và lò rèn (đông bắc), Sử Lai Khắc
  * Học Viện (tây nam), Đại Đấu Hồn Trường (đông nam). Cổng chưa mở là tường thành đóng kín kèm biển "sắp mở" (NPC vai trò `talk`);
- * khi làm bản đồ đích (BĐ6b–d) thì mở tường, đặt object `portal` thay biển.
+ * khi làm bản đồ đích (BĐ6b–d) thì mở tường, đặt object `portal` thay biển (BĐ6b: cổng tây, 4 ô tường cuối đại lộ đông–tây).
  */
 function thienDauThanh() {
   const MW = 80, MH = 56, r = rng(9161);
@@ -374,9 +422,10 @@ function thienDauThanh() {
   g.fill(5, 46, 20, 6, 3);
   g.house(46, 34, 22, 12);
   g.fill(46, 46, 22, 4, 6); g.fill(42, 47, 4, 2, 6);
-  // Cổng nam mở (về Nặc Đinh Thành); cổng tây và cổng bắc là tường đóng (chưa mở). Bến thuyền: cửa tường đông + cầu tàu đường đất
-  // ra sông, thuyền neo ở đầu cầu (mái + tường, chặn đường).
+  // Cổng nam mở (về Nặc Đinh Thành); cổng tây mở từ BĐ6b (đi Lạc Nhật Sâm Lâm); cổng bắc là tường đóng (chưa mở). Bến thuyền: cửa
+  // tường đông + cầu tàu đường đất ra sông, thuyền neo ở đầu cầu (mái + tường, chặn đường).
   g.fill(38, MH - 1, 4, 1, 6);
+  g.fill(0, 26, 1, 4, 6);
   g.fill(RIVER - 1, 27, 1, 2, 6);
   g.fill(RIVER, 27, 5, 2, 3);
   g.house(RIVER + 5, 24, 3, 8);
@@ -389,7 +438,9 @@ function thienDauThanh() {
   o.point("npc", "Phất Lan Đức", 15, 47, [prop("npc", "string", "phat_lan_duc")]);
   o.point("npc", "Thương nhân Thiên Đấu", 51, 15, [prop("npc", "string", "thuong_nhan_thien_dau")]);
   o.point("npc", "Thợ rèn Thiên Đấu", 64, 15, [prop("npc", "string", "lo_ren_thien_dau")]);
-  o.point("npc", "Cổng Lạc Nhật Sâm Lâm", 3, 26, [prop("npc", "string", "cong_lac_nhat")]);
+  // BĐ6b: cổng tây (thay biển "sắp mở" `cong_lac_nhat`); chặn mềm theo cấp đề xuất của Lạc Nhật.
+  o.portal("Đi Lạc Nhật Sâm Lâm", 0, 26, 2, 4, "lac_nhat_sam_lam", "tu_thien_dau_thanh", "40-70");
+  o.point("arrive", "tu_lac_nhat_sam_lam", 5, 28);
   o.point("npc", "Cổng Cực Bắc Chi Địa", 40, 3, [prop("npc", "string", "cong_cuc_bac")]);
   o.point("npc", "Bến thuyền Hải Thần Đảo", RIVER + 3, 27, [prop("npc", "string", "ben_thuyen_hai_than")]);
   writeMap("thien_dau_thanh", MW, MH, ground, trees, canopy, o);
@@ -416,7 +467,7 @@ function daiDauHonTruong() {
 }
 
 const GEN = { thanh_hon_thon: thanhHonThon, nac_dinh_thanh: nacDinhThanh, tinh_dau_ngoai_vi: tinhDauNgoaiVi, tinh_dau_noi_dia: tinhDauNoiDia,
-  dai_dau_hon_truong: daiDauHonTruong, thien_dau_thanh: thienDauThanh };
+  dai_dau_hon_truong: daiDauHonTruong, thien_dau_thanh: thienDauThanh, lac_nhat_sam_lam: lacNhatSamLam };
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(GEN)) {
   if (!GEN[id]) { console.error("Không có bản đồ:", id); process.exit(1); }
