@@ -390,6 +390,19 @@ export function partyXpShare(n: number) {
   const k = Math.max(1, Math.floor(n));
   return (1 + PARTY_XP_BONUS * (k - 1)) / k;
 }
+/**
+ * Hiệu ứng phụ trợ lan cho đồng đội (bước 9.1, đã chốt 2026-10-20): hồn kỹ, tiên cơ, Chân Thân tung khi võ hồn hệ Phụ trợ ra trận có
+ * hiệu ứng lên bản thân (`SkillDef.self`: hiệu ứng có lợi, hồi sinh lực, khiên, hồn lực) thì thành viên tổ đội cùng phòng, chưa gục,
+ * không đang đi cổng, ngoài vùng an toàn, đứng trong PARTY_BUFF_R pixel quanh người tung cũng nhận, mức × PARTY_BUFF_MULT
+ * (người tung vẫn ×1). Thanh tẩy không lan.
+ */
+export const PARTY_BUFF_R = 160;
+export const PARTY_BUFF_MULT = 0.7;
+/**
+ * Hiệu ứng có lợi không bao giờ lan cho đồng đội: lãnh vực phượng hoàng (đã tác dụng lên hồn thú cho cả phòng). Tàng hình chỉ lan khi
+ * hồn kỹ gốc là của võ hồn Phụ trợ ("cả đội tàng hình" của Quỷ Mị; tàng hình của Yêu Hồ chép bằng Phục Chế thì không).
+ */
+export const PARTY_BUFF_SKIP: readonly BuffId[] = ["phoenix"];
 /** Lời mời vào tổ đội hết hạn sau ngần này giây (đã chốt). */
 export const PARTY_INVITE_SECS = 60;
 /**
