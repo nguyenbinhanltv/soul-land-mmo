@@ -32,6 +32,8 @@ export class PlayerState extends Schema {
   @type("uint32") shield: number = 0;    // khiên còn lại (chiêu tiên cơ phụ trợ, mục 5.1); ai cũng thấy để vẽ vòng khiên
   @type("uint16") buff: number = 0;     // hiệu ứng có lợi đang có (bit theo BUFF_IDS trong shared/data.ts; uint16 từ 2.5d); ai cũng thấy để vẽ hào quang
   @type("uint8") lei: number = 0;       // Phong Lôi Chi Lực (PHONG_LOI, bước 2.5c) của Lam Điện Bá Vương Long: 0..max; ai cũng thấy tia sét quanh thân
+  @type("float32") ava: number = 0;     // từ 8.1a: giây còn lại của Võ Hồn Chân Thân (0 = không); ai cũng thấy hình biến thân
+  @type("float32") avaCd: number = 0;   // từ 8.1a: hồi chiêu Chân Thân còn lại của võ hồn ra trận (nút R của chính mình)
   @type("uint16") st: number = 0;       // từ 3.5: trạng thái trên hồn sư do chiêu báo trước của hồn thú gây (bit theo STATUS_IDS, PLAYER_STATUS)
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;
