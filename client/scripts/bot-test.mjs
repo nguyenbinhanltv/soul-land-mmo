@@ -283,7 +283,21 @@ async function channelTest(){
   P1.logs=[]; await slayKing(P1); await waitFor(()=>!king(P1),3000); await sleep(400);
   ok(!king(P1)&&chestN(P1)===1&&/đã nhận rương của khung giờ này ở kênh khác/.test(P1.logs.join("\n")),
     `hạ thú vương kênh 1 trong cùng khung giờ: không nhận thêm rương ("${P1.logs.find(t=>/kênh khác/.test(t))??P1.logs.slice(-3).join(" | ")}")`);
-  for(const b of [P1,P3]) await b.room.leave();
+
+  // ---- BĐ6a: Thiên Đấu Thành chia kênh như mọi bản đồ (P3 mở kênh 1, P1 vào cùng, P2 vào kênh 2 khi kênh 1 đầy) ----
+  const TD=AT;
+  for(const b of [P1,P3]) await T(b,"rest",{s:TEAM_COMBAT_SECS+1});
+  P3.travel=null; await T(P3,"warp",{mapId:TD,x:40*16,y:49.5*16}); await waitFor(()=>P3.travel,3000);
+  ok(P3.travel?.mapId===TD&&P3.travel.roomId===null,`P3 tới ${MAPS[TD].name}: chưa có kênh nào (roomId null)`);
+  await follow(P3);
+  P1.travel=null; await T(P1,"warp",{mapId:TD,x:41*16,y:49.5*16}); await waitFor(()=>P1.travel,3000);
+  ok(P1.travel?.roomId===P3.room.roomId,"P1 tới Thiên Đấu Thành: vào kênh 1 còn chỗ của P3"); await follow(P1);
+  { const pick=await post("/api/channel",{token:P2.token}); await enter(P2,pick.roomId??undefined); await fresh(P2); }
+  P2.travel=null; await T(P2,"warp",{mapId:TD,x:39*16,y:49.5*16}); await waitFor(()=>P2.travel,3000); await follow(P2);
+  ok(P2.room.state.mapId===TD&&chOf(P3)===1&&chOf(P1)===1&&chOf(P2)===2&&P2.room.roomId!==P3.room.roomId,
+    `Thiên Đấu Thành: P3, P1 kênh ${chOf(P3)}; P2 kênh ${chOf(P2)} (kênh 1 đầy, đồng đội P3 không còn chỗ)`);
+  cl=await chans(P2); ok(JSON.stringify(cl?.list.map(c=>[c.ch,c.n]))==="[[1,2],[2,1]]",`danh sách kênh Thiên Đấu Thành: ${JSON.stringify(cl?.list)}`);
+  for(const b of [P1,P2,P3]) await b.room.leave();
 }
 
 const A=await bot("Tester A","lam_dien_ba_vuong_long",{sex:1,hair:2,hairCol:3,outfitCol:4}), B=await bot("Tester B","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:5,outfitCol:1});
