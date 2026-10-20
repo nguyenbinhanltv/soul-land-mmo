@@ -34,9 +34,11 @@
 // mốc của 4 trụ cột Võ hồn / Hồn hoàn / Hồn cốt / Hồn hạch, chỉ số mọi võ hồn kể cả võ hồn đổi vào sau, thông báo mốc mới, mất mốc
 // khi tháo đồ, thoát vào lại vẫn giữ), hồn kỹ vòng 5–10 và Võ Hồn Chân Thân (8.1a: hồn kỹ vòng 5, 6, 10 đúng sức mạnh
 // theo năm, chọn 4 ô mang theo và từ chối khi sai / giao chiến, hồi chiêu đi theo hồn kỹ khi đổi ô, Chân Thân tăng chỉ số rồi tắt đúng giờ,
-// hồi chiêu riêng, đổi võ hồn thì hết, võ hồn chưa có dữ liệu chỉ tăng chỉ số, Phục Chế không chép tuyệt kỹ, ô lưu sau khi thoát vào lại), Đại Đấu Hồn Trường (7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng /
-// trong tổ đội, đấu đội võ hồn trong phòng riêng, đánh trúng đối thủ, hạ hết đội / rời sân / không vào sân / hết giờ, Elo, thưởng,
-// về đúng bản đồ và vị trí cũ, bảng xếp hạng, cộng minh và Chân Thân trong sân) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
+// hồi chiêu riêng, đổi võ hồn thì hết, võ hồn chưa có dữ liệu chỉ tăng chỉ số, Phục Chế không chép tuyệt kỹ, ô lưu sau khi thoát vào lại;
+// 8.1b lưu phái Thiêu đốt: vòng 5–6, tuyệt kỹ và Chân Thân của 5 võ hồn, lãnh vực phượng hoàng rộng hơn khi Chân Thân, Viêm bạo toàn vùng),
+// Đại Đấu Hồn Trường (7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng / trong tổ đội, đấu đội võ hồn trong
+// phòng riêng, đánh trúng đối thủ, hạ hết đội / rời sân / không vào sân / hết giờ, Elo, thưởng, về đúng bản đồ và vị trí cũ, bảng xếp
+// hạng, cộng minh, Chân Thân (cả lưu phái Thiêu đốt) và dự đoán chuyển động trong sân) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
@@ -62,7 +64,7 @@ import { TIERS, TRAVEL_CAST, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
-  HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats,
+  HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs } from "../../shared/data.ts";
@@ -1401,20 +1403,22 @@ else {
     // Hàm thuần: vòng 7 không phải hồn kỹ, 5 võ hồn mẫu có đủ vòng 5, 6, 8, 9, 10, võ hồn khác vòng 5+ không có hồn kỹ; kiểm dạng ô.
     ok(FIVE.every(id=>HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)&&chanThanOf(id)&&ringSkill(id,9).ult),
       "5 võ hồn mẫu có hồn kỹ vòng 5, 6, 8, 9, 10 (vòng 10 là tuyệt kỹ) và Võ Hồn Chân Thân vòng 7");
-    ok(!ringSkill("hoa_long",4)&&!chanThanOf("hoa_long")&&same(skillChoices("hoa_long",10),[0,1,2,3])&&same(skillChoices("hao_thien_chuy",10),[0,1,2,3,4,5,7,8,9]),
-      "võ hồn chưa có dữ liệu: vòng 5–10 không có hồn kỹ (chỉ tăng chỉ số)");
-    ok(same(loadoutOf("lam_ngan_thao",[]),[...DEFAULT_LOADOUT])&&same(loadoutOf("lam_ngan_thao",[4,9,-1,0]),[4,9,-1,0])&&same(loadoutOf("hoa_long",[4,1,2,3]),[...DEFAULT_LOADOUT])
+    // Võ hồn chưa có dữ liệu vòng 5–10 (từ 8.1b Hỏa Long đã có; lấy võ hồn đầu tiên còn thiếu, trừ Xúc Xích dùng ở dưới).
+    const ND=VOHON.map(v=>v.id).find(id=>!chanThanOf(id)&&!ringSkill(id,4)&&id!=="xuc_xich"), ndName=ND?vname(ND):"";
+    ok(ND&&!ringSkill(ND,4)&&!chanThanOf(ND)&&same(skillChoices(ND,10),[0,1,2,3])&&same(skillChoices("hao_thien_chuy",10),[0,1,2,3,4,5,7,8,9]),
+      `võ hồn chưa có dữ liệu (${ndName}): vòng 5–10 không có hồn kỹ (chỉ tăng chỉ số)`);
+    ok(same(loadoutOf("lam_ngan_thao",[]),[...DEFAULT_LOADOUT])&&same(loadoutOf("lam_ngan_thao",[4,9,-1,0]),[4,9,-1,0])&&same(loadoutOf(ND,[4,1,2,3]),[...DEFAULT_LOADOUT])
       &&!parseLoadout([0,0,1,2])&&!parseLoadout([0,1,2])&&!parseLoadout([0,1,2,10])&&same(parseLoadout([-1,-1,3,2]),[-1,-1,3,2]),
       "4 ô mang theo: mặc định vòng 1–4, ô trống -1, từ chối trùng / thiếu ô / vòng lạ");
     const K=await bot("Tester CT","hoa_long",{sex:1,hair:1,hairCol:4,outfitCol:2});
     await waitFor(()=>K.owned&&K.squad&&meOf(K)); const kp=meOf(K);
-    for(const vohon of ["hao_thien_chuy","u_minh_linh_mieu","bich_lan_xa_hoang","cuu_bao_luu_ly_thap"]) await test(K,"grant",{vohon});
+    for(const vohon of ["hao_thien_chuy","u_minh_linh_mieu","bich_lan_xa_hoang","cuu_bao_luu_ly_thap",ND]) await test(K,"grant",{vohon});
     const rowK=id=>K.owned.list.find(v=>v.vohon===id).rowId, vK=id=>K.owned.list.find(v=>v.vohon===id);
     ok(FIVE.every(id=>K.owned.list.some(v=>v.vohon===id))&&K.owned.list.every(v=>same(v.skills,[...DEFAULT_LOADOUT])),"K có 5 võ hồn mẫu + Hỏa Long, 4 ô mặc định vòng 1–4");
     const Y10=[423,764,1760,5000,12000,20000,50000,100000,100000,100000], P10=i=>skillPower(Y10[i]);
     // Từ 8.2 công của mọi võ hồn có cộng minh của tài khoản (K nhiều võ hồn cấp 100, nhiều hồn hoàn là đạt mốc): lấy % từ hook stats.
     let kres={}; const atkK=(id,n=10)=>calcStats(vohonIndex(id),n*10,Y10.slice(0,n).map(tierOfYears),1,{},{},kres).atk;
-    for(const id of [...FIVE,"hoa_long"]) await test(K,"set",{rowId:rowK(id),level:100,xp:0,rings:Y10});
+    for(const id of [...FIVE,ND]) await test(K,"set",{rowId:rowK(id),level:100,xp:0,rings:Y10});
     await test(K,"set",{rowId:rowK("u_minh_linh_mieu"),level:60,xp:0,rings:Y10.slice(0,6)});
     kres=(await test(K,"stats")).res?.bonus??{}; console.log(`  K cộng minh: ${JSON.stringify(kres)}`);
     async function lineupK(id){ await test(K,"clear"); await test(K,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(K,[rowK(id),0,0,0]);
@@ -1430,7 +1434,7 @@ else {
     ok(inSafeOf(K)&&/Vùng an toàn/.test(await chanThan())&&kp.ava===0,"trong làng: không biến Chân Thân");
     // Xếp ô: sai thì bị từ chối, server gửi lại ô đang lưu.
     ok(/phím riêng/.test(await loadout("hao_thien_chuy",[6,1,2,3]))&&same(vK("hao_thien_chuy").skills,[...DEFAULT_LOADOUT]),"xếp vòng 7 (Chân Thân) vào ô: từ chối");
-    ok(/chưa có hồn kỹ vòng 5/.test(await loadout("hoa_long",[4,1,2,3])),"Hỏa Long (chưa có dữ liệu) xếp vòng 5: từ chối");
+    ok(/chưa có hồn kỹ vòng 5/.test(await loadout(ND,[4,1,2,3])),`${ndName} (chưa có dữ liệu) xếp vòng 5: từ chối`);
     ok(/chưa có hồn hoàn thứ 8/.test(await loadout("u_minh_linh_mieu",[7,1,2,3]))&&same(vK("u_minh_linh_mieu").skills,[...DEFAULT_LOADOUT]),"U Minh Linh Miêu 6 hồn hoàn xếp vòng 8: từ chối");
     ok(/không hợp lệ/.test(await loadout("hao_thien_chuy",[4,4,2,3])),"ô trùng: từ chối");
     { const n=K.ownedMsgs, l=K.logs.length; K.room.send("loadout",{rowId:999999,skills:[4,1,2,3]}); await waitFor(()=>K.logs.length>l&&K.ownedMsgs>n,1500);
@@ -1536,7 +1540,7 @@ else {
       await test(K,"rest",{s:def.secs});
       ok(await waitFor(()=>kp.ava===0,1500),"Lam Ngân Hoàng Chân Thân hết sau "+def.secs+" giây");
     }
-    // U Minh Linh Miêu 6 hồn hoàn: vòng 5–6 dùng được, Chân Thân cần vòng 7. Hỏa Long (chưa có dữ liệu): vòng 5+ chỉ tăng chỉ số.
+    // U Minh Linh Miêu 6 hồn hoàn: vòng 5–6 dùng được, Chân Thân cần vòng 7. Võ hồn chưa có dữ liệu (ND): vòng 5+ chỉ tăng chỉ số.
     {
       ok(await lineupK("u_minh_linh_mieu"),"K: U Minh Linh Miêu ra trận (6 hồn hoàn)");
       await loadout("u_minh_linh_mieu",[4,5,0,1]); const id="u_minh_linh_mieu", s6=ringSkill(id,5);
@@ -1544,12 +1548,12 @@ else {
       ok(/cần hồn hoàn thứ 7/.test(await chanThan())&&kp.ava===0,"6 hồn hoàn: chưa biến Chân Thân");
       await test(K,"ready"); const weak=await spawnNear(K,4,...kat(100),20); await test(K,"bhp",{pct:20}); const full=await spawnNear(K,4,...kat(30),20); await hush();
       await castK(1,600); ok(dmgsOn(K,weak).length>=1&&!dmgsOn(K,full).length,`vòng 6 ${s6.name}: khóa hồn thú yếu máu ở xa (${dmgsOn(K,weak).length} nhát), bỏ qua con gần đủ máu`);
-      ok(await lineupK("hoa_long"),"K: Hỏa Long ra trận (10 hồn hoàn, chưa có dữ liệu vòng 5–10)");
-      ok(/chưa có Võ Hồn Chân Thân/.test(await chanThan()),"Hỏa Long: chưa có Chân Thân");
-      const s0=await stats(), base=calcStats(vohonIndex("hoa_long"),100,Y10.map(tierOfYears),1,{},{},kres);
-      ok(s0.maxHp===base.maxHp&&Math.abs(s0.atk-base.atk)<0.01&&same(vK("hoa_long").skills,[...DEFAULT_LOADOUT]),`Hỏa Long vòng 5–10 chỉ tăng chỉ số: sinh lực ${s0.maxHp}, công ${s0.atk.toFixed(1)}; ô mặc định vòng 1–4`);
+      ok(await lineupK(ND),`K: ${ndName} ra trận (10 hồn hoàn, chưa có dữ liệu vòng 5–10)`);
+      ok(/chưa có Võ Hồn Chân Thân/.test(await chanThan()),`${ndName}: chưa có Chân Thân`);
+      const s0=await stats(), base=calcStats(vohonIndex(ND),100,Y10.map(tierOfYears),1,{},{},kres);
+      ok(s0.maxHp===base.maxHp&&Math.abs(s0.atk-base.atk)<0.01&&same(vK(ND).skills,[...DEFAULT_LOADOUT]),`${ndName} vòng 5–10 chỉ tăng chỉ số: sinh lực ${s0.maxHp}, công ${s0.atk.toFixed(1)}; ô mặc định vòng 1–4`);
       await test(K,"ready"); await faceK(); await spawnNear(K,4,...kat(30)); await castK(1);
-      ok(K.dmgs.length>0&&K.fxs.some(f=>f.k==="soulring"&&f.i===1),`Hỏa Long ô I vẫn là ${skillsOf("hoa_long")[1].name}`);
+      ok(K.dmgs.length>0&&K.fxs.some(f=>f.k==="soulring"&&f.i===1),`${ndName} ô I vẫn là ${skillsOf(ND)[1].name}`);
     }
     // Cửu Bảo Lưu Ly Tháp: tuyệt kỹ thật Vô Địch Thần Quang (miễn sát thương cả đội), Chân Thân giảm tiêu hao.
     {
@@ -1559,7 +1563,7 @@ else {
       const hp0=kp.hp; await castK(0,300);
       ok(K.fxs.some(f=>f.k==="ult")&&hasBuff(kp,"inv")&&hasBuff(kp,"atk")&&kp.hp>hp0,`tuyệt kỹ ${ult.name}: miễn sát thương, tăng công, hồi sinh lực ${hp0} -> ${kp.hp}`);
       await test(K,"rest",{s:ult.self.secs}); ok(!hasBuff(kp,"inv"),`hết ${ult.self.secs} giây: hết miễn sát thương`);
-      // Phục Chế của Xúc Xích không sao chép tuyệt kỹ: hồn kỹ gần nhất trước đó là của Hỏa Long (không còn trong đội) nên không có gì để chép.
+      // Phục Chế của Xúc Xích không sao chép tuyệt kỹ: hồn kỹ gần nhất trước đó là của võ hồn ND (không còn trong đội) nên không có gì để chép.
       await test(K,"grant",{vohon:"xuc_xich"}); await test(K,"set",{rowId:rowK("xuc_xich"),level:40,xp:0,rings:Y10.slice(0,4)});
       await sendTeam(K,[rowK(id),rowK("xuc_xich"),0,0]); await waitFor(()=>kp.swCd===0,3500);
       K.room.send("switch",{slot:1}); ok(await waitFor(()=>K.owned.active===rowK("xuc_xich"),1500),"đổi sang Xúc Xích");
@@ -1583,6 +1587,177 @@ else {
       ok(same(got,want)&&same(got.hao_thien_chuy,[9,5,4,0])&&same(got.lam_ngan_thao,[4,5,9,-1]),`thoát vào lại: ô mang theo giữ nguyên (${Object.entries(got).map(([k,v])=>`${k} ${v.join("/")}`).join("; ")})`);
       ok(meOf(K)?.ava===0,"vào lại: không còn Chân Thân");
       await K.room.leave();
+    }
+  }
+  // ---------- 8.1b: hồn kỹ vòng 5–10 và Võ Hồn Chân Thân lưu phái Thiêu đốt ----------
+  {
+    const FIRE=["ta_hoa_phuong_hoang","hoa_long","hoa_anh","ky_nhung_thong_thien_cuc","nguyet_nhan"];
+    ok(FIRE.every(id=>HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)&&chanThanOf(id)?.burst&&ringSkill(id,9).ult&&/^Tuyệt kỹ:/.test(ringSkill(id,9).desc)),
+      "5 võ hồn Thiêu đốt có hồn kỹ vòng 5, 6, 8, 9, 10 (vòng 10 là tuyệt kỹ) và Võ Hồn Chân Thân vòng 7");
+    ok(phoenixFieldR("ta_hoa_phuong_hoang",false)===PHOENIX_FIELD_R&&phoenixFieldR("ta_hoa_phuong_hoang",true)===chanThanOf("ta_hoa_phuong_hoang").field
+      &&chanThanOf("ta_hoa_phuong_hoang").field>PHOENIX_FIELD_R&&phoenixFieldR("hoa_long",true)===PHOENIX_FIELD_R,
+      `lãnh vực phượng hoàng: bán kính ${PHOENIX_FIELD_R}, Tà Hỏa Phượng Hoàng Chân Thân ${chanThanOf("ta_hoa_phuong_hoang").field}`);
+    const T=await bot("Tester TD","hoa_long",{sex:0,hair:2,hairCol:3,outfitCol:1});
+    await waitFor(()=>T.owned&&T.squad&&meOf(T)); const tp=meOf(T);
+    for(const vohon of FIRE.filter(x=>x!=="hoa_long")) await test(T,"grant",{vohon});
+    const rowT=id=>T.owned.list.find(v=>v.vohon===id).rowId, vT=id=>T.owned.list.find(v=>v.vohon===id);
+    const Y10=[423,764,1760,5000,12000,20000,50000,100000,100000,100000], P10=i=>skillPower(Y10[i]), bc=STATUS.burn.col;
+    for(const id of FIRE) await test(T,"set",{rowId:rowT(id),level:100,xp:0,rings:Y10});
+    const tres=(await test(T,"stats")).res?.bonus??{};
+    const stats=async()=>(await test(T,"stats")).live;
+    const hush=()=>test(T,"status",{s:"silence",secs:20,all:true});
+    // Đội: võ hồn thử ra trận + 3 võ hồn Thiêu đốt khác (có ràng buộc Tà Hỏa – Hỏa Ảnh nếu đủ cặp, nên công lấy từ hook stats).
+    async function lineupT(id){ await test(T,"clear"); await test(T,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(T,[rowT(id),0,0,0]);
+      await sendTeam(T,[rowT(id),...FIRE.filter(x=>x!==id).slice(0,3).map(rowT)]); return T.owned.active===rowT(id)&&await waitFor(()=>tp.vh===vohonIndex(id)); }
+    async function loadoutT(id,skills){ const n=T.ownedMsgs, l=T.logs.length; T.room.send("loadout",{rowId:rowT(id),skills}); await waitFor(()=>T.ownedMsgs>n&&T.logs.length>l,1500); await sleep(80); }
+    async function castT(i,wait=250){ T.dmgs=[]; T.fxs=[]; T.room.send("skill",{i}); await sleep(wait); }
+    async function chanThanT(){ const l=T.logs.length; T.fxs=[]; T.dmgs=[]; T.room.send("chanthan"); await waitFor(()=>T.logs.length>l,1500); await sleep(120); return T.logs.at(-1)??""; }
+    const hitsT=bid=>dmgsOn(T,bid).filter(x=>x.c!==bc); // bỏ sát thương Thiêu đốt mỗi giây / kích nổ
+    // Trạng thái của hồn kỹ có trên hồn thú (tầng Thiêu đốt / Phá giáp đếm từ đồng bộ, trạng thái khác theo bit).
+    const stHas=(b,list)=>!!b&&(list??[]).every(a=>a.s==="burn"?b.burn>=Math.min(a.n??1,5):a.s==="armor"?b.armor>=(a.n??1):hasSt(b,a.s));
+    const stTxt=list=>(list??[]).map(a=>`${STATUS[a.s].name}${a.n?` ${a.n} tầng`:""}`).join(", ");
+    ok(await leaveSafe(T),"T: ra khỏi làng");
+    let [tx,ty]=clearDir(tp.x,tp.y,150); const tat=d=>[Math.round(tx*d),Math.round(ty*d)];
+    async function faceT(){ [tx,ty]=clearDir(tp.x,tp.y,150); await step(T,tx,ty); }
+    /**
+     * Hồn kỹ vòng `ring` (chỉ số) ở ô `i`: hồn thú bậc 4 cách `d` theo hướng nhìn, kiểm nhát đầu và trạng thái. `hold`: giữ hồn thú đứng yên
+     * bằng Choáng (true) hoặc Trói ("root"; vẫn bị Choáng được), false = không giữ (để đẩy lùi); trạng thái dùng để giữ thì không kiểm.
+     */
+    async function ringT(id,ring,i,{d=30,hold=true,wait=450,mult=1}={}){
+      const sk=ringSkill(id,ring), atk=(await stats()).atkNow;
+      await test(T,"clear"); await faceT(); const bid=await spawnNear(T,4,...tat(d),20); await hush();
+      const hs=hold===true?"stun":hold||""; if(hs) await test(T,"status",{s:hs,secs:10});
+      await test(T,"ready"); await castT(i,wait);
+      const n=sk.area==="around"&&sk.n>1?sk.n:1;
+      const sts=[...(sk.status??[]),...(sk.finisher??[])].filter(a=>a.s!==hs);
+      await waitFor(()=>hitsT(bid).length>=n&&stHas(beastOf(T,bid),sts),n>1?n*(sk.every??0.15)*1000+1500:1500);
+      const want=exp(atk*P10(ring)*sk.dmg*mult), got=hitsT(bid).map(x=>x.v), b=beastOf(T,bid);
+      ok(want.includes(got[0])&&T.fxs.some(f=>f.k==="soulring"&&f.i===ring),`${vname(id)} vòng ${ring+1} ${sk.name}: ${got.length} nhát, nhát đầu ${got[0]} (cần ${want.join(" hoặc ")})`);
+      if(sts.length) ok(stHas(b,sts),`${sk.name}: ${stTxt(sts)} [Thiêu đốt ${b?.burn}, Phá giáp ${b?.armor}]`);
+      return bid;
+    }
+    /** Chân Thân: chỉ số theo hồn hoàn vòng 7, đòn biến hình đúng công đã tăng (hồn thú cách `d`). */
+    async function chanT(id,{d=30}={}){
+      const def=chanThanOf(id), cs=chanThanStats(def,Y10[6]);
+      await test(T,"clear"); await test(T,"ready"); await faceT(); const s0=await stats();
+      const bid=await spawnNear(T,4,...tat(d),20); await hush(); await test(T,"status",{s:"stun",secs:10});
+      const msg=await chanThanT(), s1=await stats();
+      ok(tp.ava>def.secs-1&&msg.includes(def.name)&&T.fxs.some(f=>f.k==="avatar"&&f.on),`${def.name}: ${tp.ava.toFixed(1)} giây`);
+      const okStat=(!cs.atk||Math.abs(s1.atkNow-s0.atkNow*(1+cs.atk))<0.02)&&(!cs.spd||Math.abs(s1.spd-s0.spd*(1+cs.spd))<0.02)
+        &&(!cs.def||Math.abs(s1.def-s0.def-cs.def)<1e-3)&&(!cs.crit||Math.abs(s1.critB-s0.critB-cs.crit)<1e-3)&&(!cs.hp||s1.maxHp===Math.round(s0.maxHp*(1+cs.hp)));
+      ok(okStat,`${def.name} × buffPower(50.000 năm): ${Object.entries(cs).map(([k,v])=>`${k} +${Math.round(v*100)}%`).join(", ")} [công ${s0.atkNow.toFixed(1)} -> ${s1.atkNow.toFixed(1)}, tốc ${s0.spd.toFixed(1)} -> ${s1.spd.toFixed(1)}]`);
+      const bst=def.burst, want=exp(s1.atkNow*P10(6)*bst.dmg), got=hitsT(bid)[0]?.v;
+      await waitFor(()=>stHas(beastOf(T,bid),(bst.status??[]).filter(a=>a.s!=="stun")),1000);
+      ok(want.includes(got)&&stHas(beastOf(T,bid),(bst.status??[]).filter(a=>a.s!=="stun")),`biến hình: ${got} (cần ${want.join(" hoặc ")}), ${stTxt(bst.status)||"không trạng thái"}`);
+      return {def,cs,bid,s0,s1};
+    }
+    const endT=async()=>{ await test(T,"clear"); await test(T,"rest",{s:30}); await waitFor(()=>tp.ava===0&&!hasBuff(tp,"phoenix"),1500); };
+
+    // Tà Hỏa Phượng Hoàng: vòng 5 mũi quạt, vòng 6 bay lướt; tuyệt kỹ đốt đủ 5 tầng cả vùng; Chân Thân lãnh vực mạnh và rộng hơn.
+    {
+      const id="ta_hoa_phuong_hoang", ult=ringSkill(id,9);
+      ok(await lineupT(id),`T: ${vname(id)} ra trận (cấp 100, 10 hồn hoàn)`);
+      await loadoutT(id,[4,5,9,-1]); ok(same(vT(id).skills,[4,5,9,-1]),"Tà Hỏa Phượng Hoàng mang vòng 5, 6, 10");
+      await ringT(id,4,0);
+      const x0=tp.x, y0=tp.y; await ringT(id,5,1,{d:50});
+      ok(Math.hypot(tp.x-x0,tp.y-y0)>=60&&T.fxs.some(f=>f.k==="fly"),`${ringSkill(id,5).name}: bay ${Math.hypot(tp.x-x0,tp.y-y0).toFixed(0)} pixel (fx fly)`);
+      await test(T,"clear"); await faceT(); const atk=(await stats()).atkNow;
+      const u1=await spawnNear(T,4,...tat(40),20), u2=await spawnNear(T,4,...tat(140),20); await hush(); await test(T,"status",{s:"stun",secs:10,all:true});
+      const bf=B.fxs.length; await test(T,"ready"); await castT(2,400);
+      ok(await waitFor(()=>[u1,u2].every(u=>beastOf(T,u)?.burn===5),800)&&exp(atk*P10(9)*ult.dmg).includes(hitsT(u1)[0]?.v)&&hasBuff(tp,"phoenix"),
+        `tuyệt kỹ ${ult.name}: ${hitsT(u1)[0]?.v} (cần ${exp(atk*P10(9)*ult.dmg).join(" hoặc ")}), Thiêu đốt 5 tầng cả hồn thú cách 140, mở lãnh vực`);
+      ok(T.fxs.some(f=>f.k==="ult"&&f.name===ult.name)&&(B.room.roomId!==T.room.roomId||await waitFor(()=>B.fxs.slice(bf).some(f=>f.k==="ult"&&f.id===T.room.sessionId),800)),"fx tuyệt kỹ: người cùng phòng cũng thấy");
+      await endT();
+      // Chân Thân: lãnh vực phượng hoàng (buff 15 giây) bán kính `field` khi đang Chân Thân, đổi võ hồn thì về PHOENIX_FIELD_R.
+      const {def}=await chanT(id), amp=def.burst.self.buff.phoenix*buffPower(Y10[6]), R=def.field;
+      ok(await waitFor(()=>hasBuff(tp,"phoenix"),500),`${def.name}: mở lãnh vực phượng hoàng +${Math.round(amp*100)}%`);
+      await test(T,"clear"); const mid=Math.round((PHOENIX_FIELD_R+R)/2), s1=await stats();
+      const fb=await spawnNear(T,4,...tat(mid),20); await hush(); await test(T,"status",{s:"stun",secs:10}); await test(T,"ready"); await castT(0,900);
+      let want=exp(s1.atkNow*P10(4)*ringSkill(id,4).dmg*(1+amp));
+      ok(want.includes(hitsT(fb)[0]?.v),`đang Chân Thân, hồn thú cách ${mid} (> ${PHOENIX_FIELD_R}, < ${R}): ${hitsT(fb)[0]?.v} (cần ${want.join(" hoặc ")}, +${Math.round(amp*100)}%)`);
+      await waitFor(()=>tp.swCd===0,3500); T.room.send("switch",{slot:T.owned.team.indexOf(rowT("hoa_long"))});
+      ok(await waitFor(()=>T.owned.active===rowT("hoa_long")&&tp.ava===0,1500)&&hasBuff(tp,"phoenix"),"đổi sang Hỏa Long: hết Chân Thân, lãnh vực (thuộc hồn sư) vẫn còn");
+      const hl=ringSkill("hoa_long",1), ah=(await stats()).atkNow; await test(T,"ready"); await castT(1,350);
+      want=exp(ah*skillPower(Y10[1])*hl.dmg);
+      ok(want.includes(hitsT(fb)[0]?.v),`hết Chân Thân: hồn thú cách ${mid} ngoài lãnh vực, ${hl.name} ${hitsT(fb)[0]?.v} (cần ${want.join(" hoặc ")})`);
+      await endT();
+    }
+    // Hỏa Long: vòng 5 mũi quạt tầm xa, vòng 6 3 đạn không trượt; tuyệt kỹ Viêm bạo toàn vùng; Chân Thân Viêm bạo.
+    {
+      const id="hoa_long", ult=ringSkill(id,9);
+      ok(await lineupT(id),`T: ${vname(id)} ra trận`); await loadoutT(id,[4,5,9,-1]);
+      await ringT(id,4,0); const b6=await ringT(id,5,1,{d:120,wait:900});
+      ok(hitsT(b6).length>=ringSkill(id,5).n,`${ringSkill(id,5).name}: ${hitsT(b6).length}/${ringSkill(id,5).n} đạn trúng hồn thú cách 120`);
+      // Tuyệt kỹ: hồn thú cách 150 (ngoài Viêm Bạo vòng 4 bán kính 110) có sẵn 2 tầng; 2 đợt đầu chồng lên 5 tầng, đợt cuối kích nổ × (1 + mult).
+      await test(T,"clear"); await faceT(); const atk=(await stats()).atkNow;
+      const fb=await spawnNear(T,4,...tat(150),20); await hush(); await test(T,"status",{s:"stun",secs:10}); await test(T,"status",{s:"burn",n:2});
+      await test(T,"ready"); await castT(2,0);
+      ok(await waitFor(()=>beastOf(T,fb)?.burn===5,900),`tuyệt kỹ ${ult.name}: 2 đợt đầu chồng Thiêu đốt ${beastOf(T,fb)?.burn} tầng (hồn thú cách 150)`);
+      // Đọc Thiêu đốt trước đợt cuối; mỗi giây Thiêu đốt chỉ gây v × n, kích nổ gây v × n × giây còn lại × 1,5 × (1 + mult).
+      const bs=(await test(T,"bst")).st?.burn, big=x=>x.c===bc&&bs&&x.v>bs.v*bs.n*2;
+      await waitFor(()=>dmgsOn(T,fb).some(big),1500); await sleep(150);
+      const boom=Math.max(0,...dmgsOn(T,fb).filter(big).map(x=>x.v));
+      const wantB=bs?bs.v*bs.n*Math.max(0.5,bs.t-0.3)*STATUS.burn.boom*(1+ult.boom.mult):0;
+      ok(bs&&boom>0&&Math.abs(boom/wantB-1)<0.15&&beastOf(T,fb)?.burn===ult.status[0].n,
+        `đợt cuối Viêm bạo toàn vùng: kích nổ ${boom} ≈ ${wantB.toFixed(0)} (× ${1+ult.boom.mult}), còn ${beastOf(T,fb)?.burn} tầng [bst ${JSON.stringify(bs)}]`);
+      ok(exp(atk*P10(9)*ult.dmg).includes(hitsT(fb)[0]?.v)&&hitsT(fb).length>=ult.n,`tuyệt kỹ: ${hitsT(fb).length}/${ult.n} đợt, đợt đầu ${hitsT(fb)[0]?.v} (cần ${exp(atk*P10(9)*ult.dmg).join(" hoặc ")})`);
+      await endT();
+      // Chân Thân: đòn biến hình là Viêm bạo (kích nổ 4 tầng có sẵn rồi đặt lại 1 tầng).
+      const def=chanThanOf(id), cs=chanThanStats(def,Y10[6]);
+      await test(T,"clear"); await test(T,"ready"); await faceT(); const s0=await stats();
+      const cb=await spawnNear(T,4,...tat(30),20); await hush(); await test(T,"status",{s:"stun",secs:10}); await test(T,"status",{s:"burn",n:4});
+      await chanThanT(); const s1=await stats();
+      ok(tp.ava>0&&Math.abs(s1.atkNow-s0.atkNow*(1+cs.atk))<0.02&&Math.abs(s1.critB-s0.critB-cs.crit)<1e-3,`${def.name}: công +${Math.round(cs.atk*100)}%, chí mạng +${Math.round(cs.crit*100)}%`);
+      ok(await waitFor(()=>dmgsOn(T,cb).some(x=>x.c===bc&&x.v>s0.atkNow)&&beastOf(T,cb)?.burn===def.burst.boom.keep,800),`biến hình Viêm bạo: kích nổ ${Math.max(0,...dmgsOn(T,cb).filter(x=>x.c===bc).map(x=>x.v))}, còn ${beastOf(T,cb)?.burn} tầng`);
+      await endT();
+    }
+    // Hỏa Ảnh: vòng 5 chưởng đẩy lùi + Dễ thương, vòng 6 lồng lửa nhát cuối Choáng; tuyệt kỹ Choáng cả vùng; Chân Thân giảm sát thương.
+    {
+      const id="hoa_anh", ult=ringSkill(id,9);
+      ok(await lineupT(id),`T: ${vname(id)} ra trận`); await loadoutT(id,[4,5,9,-1]);
+      await ringT(id,4,0,{hold:false});
+      await ringT(id,5,1,{d:60,hold:"root",wait:0});
+      await test(T,"clear"); await faceT(); const atk=(await stats()).atkNow;
+      const u1=await spawnNear(T,4,...tat(40),20), u2=await spawnNear(T,4,...tat(140),20); await hush(); await test(T,"ready"); await castT(2,400);
+      ok(await waitFor(()=>[u1,u2].every(u=>stHas(beastOf(T,u),ult.status)),800)&&exp(atk*P10(9)*ult.dmg).includes(hitsT(u1)[0]?.v)&&T.fxs.some(f=>f.k==="ult"),
+        `tuyệt kỹ ${ult.name}: ${hitsT(u1)[0]?.v} (cần ${exp(atk*P10(9)*ult.dmg).join(" hoặc ")}), ${stTxt(ult.status)} cả hồn thú cách 140`);
+      await endT(); await chanT(id); await endT();
+    }
+    // Kỳ Nhung Thông Thiên Cúc: vòng 5 cánh hoa quạt, vòng 6 Trói + Phá giáp; tuyệt kỹ 12 nhát, nhát cuối Trói; Chân Thân bão cánh hoa.
+    {
+      const id="ky_nhung_thong_thien_cuc", ult=ringSkill(id,9);
+      ok(await lineupT(id),`T: ${vname(id)} ra trận`); await loadoutT(id,[4,5,9,-1]);
+      await ringT(id,4,0); await ringT(id,5,1);
+      ok(ringSkill(id,4).cd<ringSkill("ta_hoa_phuong_hoang",4).cd&&ringSkill(id,7).cd<ringSkill("ta_hoa_phuong_hoang",7).cd,"Kỳ Nhung hồi chiêu ngắn hơn võ hồn bùng nổ (lấp khoảng)");
+      await test(T,"clear"); await faceT(); const atk=(await stats()).atkNow;
+      const u=await spawnNear(T,4,...tat(60),40); await hush(); await test(T,"status",{s:"stun",secs:10}); await test(T,"ready"); await castT(2,0);
+      ok(await waitFor(()=>hitsT(u).length>=ult.n&&hasSt(beastOf(T,u),"root"),ult.n*ult.every*1000+1500)&&beastOf(T,u)?.burn===5&&exp(atk*P10(9)*ult.dmg).includes(hitsT(u)[0]?.v),
+        `tuyệt kỹ ${ult.name}: ${hitsT(u).length}/${ult.n} nhát, nhát đầu ${hitsT(u)[0]?.v}, Thiêu đốt ${beastOf(T,u)?.burn} tầng, Phá giáp ${beastOf(T,u)?.armor}, nhát cuối Trói`);
+      await endT(); await chanT(id); await endT();
+    }
+    // Nguyệt Nhận: vòng 5 lướt xuyên, vòng 6 khóa hồn thú yếu máu; tuyệt kỹ 8 nhát vào hồn thú yếu máu nhất cả vùng; Chân Thân.
+    {
+      const id="nguyet_nhan", ult=ringSkill(id,9);
+      ok(await lineupT(id),`T: ${vname(id)} ra trận`); await loadoutT(id,[4,5,9,-1]);
+      await ringT(id,4,0,{d:50});
+      await test(T,"clear"); await faceT(); await test(T,"ready");
+      const weak=await spawnNear(T,4,...tat(140),20); await test(T,"bhp",{pct:20}); const full=await spawnNear(T,4,...tat(30),20); await hush();
+      await castT(1,700); const s6=ringSkill(id,5);
+      ok(hitsT(weak).length>=1&&!hitsT(full).length,`vòng 6 ${s6.name}: khóa hồn thú yếu máu cách 140 (${hitsT(weak).length} nhát), bỏ qua con đủ máu cách 30`);
+      await test(T,"clear"); await faceT(); await test(T,"ready");
+      const w2=await spawnNear(T,4,...tat(150),200); await test(T,"bhp",{pct:30}); const f2=await spawnNear(T,4,...tat(30),20); await hush();
+      await castT(2,0);
+      ok(await waitFor(()=>hitsT(w2).length>=ult.n,ult.n*ult.every*1000+1500)&&!hitsT(f2).length&&T.fxs.some(f=>f.k==="ult"),
+        `tuyệt kỹ ${ult.name}: ${hitsT(w2).length}/${ult.n} nhát vào hồn thú yếu máu cách 150, không đánh con đủ máu`);
+      await endT(); await chanT(id); await endT();
+    }
+    // Ô đã chọn lưu DB: thoát rồi vào lại.
+    {
+      const want=Object.fromEntries(T.owned.list.map(v=>[v.vohon,v.skills]));
+      await T.room.leave(); await sleep(500); await enter(T); await waitFor(()=>T.owned);
+      const got=Object.fromEntries(T.owned.list.map(v=>[v.vohon,v.skills]));
+      ok(same(got,want)&&FIRE.every(id=>same(got[id],[4,5,9,-1])),"thoát vào lại: 5 võ hồn Thiêu đốt vẫn mang vòng 5, 6, 10");
+      await T.room.leave();
     }
   }
   // ---------- 3.5: chiêu có báo trước của hồn thú từ 1.000 năm ----------
@@ -3583,7 +3758,7 @@ async function arenaTest(){
 
   const E=await bot("Đấu sĩ","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
   const F=await bot("Võ sĩ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:4,outfitCol:5});
-  const G=await bot("Kiếm khách","hoa_long",{sex:0,hair:0,hairCol:1,outfitCol:2});
+  const G=await bot("Kiếm khách","hoa_anh",{sex:0,hair:0,hairCol:1,outfitCol:2});
   if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
   const ns=npcSpot("nac_dinh_thanh","dau_hon_truong"), meOf=b=>b.room.state.players?.get(b.room.sessionId);
   const at=(b,dx=0)=>test(b,"goto",{x:ns.x+dx,y:ns.y+16});
@@ -3647,6 +3822,8 @@ async function arenaTest(){
   await warpTown(F);
 
   // ---- Trận 1: ghép theo Elo gần nhất (E 1000 gặp G 1040, không gặp F 1500); G rời sân lúc đếm ngược = thua ----
+  // G (Hỏa Ảnh, lưu phái Thiêu đốt 8.1b) có đủ 7 hồn hoàn để thử Võ Hồn Chân Thân trong sân.
+  await test(G,"set",{rowId:G.owned.active,level:70,xp:0,rings:Array(CHAN_THAN_RING).fill(100)});
   await test(E,"aelo",{elo:1000}); await test(F,"aelo",{elo:1500}); await test(G,"aelo",{elo:1040});
   await at(E,-12); await at(F,0); await at(G,12);
   await aop(E,"queue"); await aop(F,"queue"); ok(E.aq.on&&F.aq.on&&E.aq.elo===1000&&F.aq.elo===1500,"Elo đọc từ DB lúc xếp hàng (hook aelo)");
@@ -3662,8 +3839,14 @@ async function arenaTest(){
   let l=E.logs.length; E.room.send("team",{slots:[0,0,0,0]}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),`trong sân: xếp đội bị chặn (${E.logs.at(-1)})`);
   l=E.logs.length; E.room.send("use",{id:E.bag.items[0]?.id}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: dùng đan bị chặn");
   l=E.logs.length; E.room.send("skill",{i:0}); ok(await waitFor(()=>E.logs.length>l)&&/đếm ngược/.test(E.logs.at(-1)),"đang đếm ngược: chưa dùng hồn kỹ");
+  // Chân Thân lưu phái Thiêu đốt (8.1b) khi giao đấu: Hỏa Ảnh Chân Thân nổ quanh thân trúng E (Thiêu đốt, Choáng, Dễ thương).
+  await test(E,"afast",{s:0}); await waitFor(()=>E.room.state.phase==="fight",2000);
+  const eP=()=>G.room.state.players.get(E.room.sessionId); await test(G,"goto",{x:eP().x+30,y:eP().y}); const hpE=eP().hp;
+  G.room.send("chanthan");
+  ok(await waitFor(()=>meOf(G).ava>0&&eP().hp<hpE&&(eP().st&statusBit("burn"))&&(eP().st&statusBit("stun")),2000),
+    `${chanThanOf("hoa_anh").name} trong sân: biến hình, trúng E ${hpE} → ${eP().hp}, Thiêu đốt + Choáng`);
   await G.room.leave();
-  ok(await waitFor(()=>endOf(E),3000),"G rời sân: trận có kết quả ngay");
+  ok(await waitFor(()=>endOf(E),3000),"G rời sân giữa trận: trận có kết quả ngay");
   let m=checkEnd(E,1,"leave",1000,1040,"Trận 1");
   await checkReward(E,m,bagE,ARENA.dailyWins-1);
   const eloG1=eloAfter(1040,1000,0);
