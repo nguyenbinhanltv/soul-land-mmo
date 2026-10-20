@@ -71,11 +71,16 @@ export interface MapDef {
   king?: string;
   /** Mã bộ hồn hạch (CORE_SETS) đặc trưng của bản đồ (bảng "Rơi đặc trưng" mục 5.3, bước 5.1): hồn hạch rơi ở đây phần lớn thuộc các bộ này. */
   cores: string[];
+  /**
+   * Tiên thảo (BĐ6b, mục 5.3, 5.7): tỉ lệ rơi theo TÊN vùng (object `zone` trong Tiled, phải khớp tên), vùng càng sâu càng cao.
+   * Không có = bản đồ không rơi tiên thảo (chỉ Lạc Nhật Sâm Lâm có). Xem HERB_ELITE, herbChance.
+   */
+  herbs?: Record<string, number>;
 }
 
 /**
- * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối; cổng Lạc
- * Nhật, Cực Bắc và bến thuyền Hải Thần Đảo ở Thiên Đấu Thành là biển "sắp mở" (NPC) cho tới BĐ6b–d.
+ * Bản đồ đang có (bảng 5.3). Cổng tới bản đồ chưa có thì không đặt `portal` trong Tiled: Lõi Tinh Đấu (BĐ6e) chưa có lối; cổng
+ * Cực Bắc và bến thuyền Hải Thần Đảo ở Thiên Đấu Thành là biển "sắp mở" (NPC) cho tới BĐ6c–d (cổng tây Lạc Nhật mở từ BĐ6b).
  */
 export const MAPS: Record<string, MapDef> = {
   thanh_hon_thon: { id: "thanh_hon_thon", name: "Thánh Hồn Thôn", kind: "hunt", level: [1, 10], years: [10, 450],
@@ -86,9 +91,13 @@ export const MAPS: Record<string, MapDef> = {
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
     shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
-  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng Lạc Nhật / Cực Bắc và bến thuyền Hải Thần Đảo là biển
-  // "sắp mở" (NPC vai trò talk) cho tới BĐ6b–d.
+  // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng Cực Bắc và bến thuyền Hải Thần Đảo là biển "sắp mở" (NPC vai
+  // trò talk) cho tới BĐ6c–d; cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b.
   thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
+  // BĐ6b: rừng thực vật / độc quanh suối Băng Hỏa Lưỡng Nghi Nhãn, cổng tây Thiên Đấu Thành. Tiên thảo chỉ rơi ở đây (chờ chốt).
+  lac_nhat_sam_lam: { id: "lac_nhat_sam_lam", name: "Lạc Nhật Sâm Lâm", kind: "hunt", level: [40, 70], years: [5000, 30000],
+    shards: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long"], cores: ["xa_hoang", "phuong_hoang"], king: "luong_nghi_thu_ho_xa",
+    herbs: { "Rừng hoa độc": 0.01, "Đầm Bích Lân": 0.02, "Băng Hỏa Tuyền": 0.03, "Lưỡng Nghi Nhãn": 0.05 } },
   // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
   dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
@@ -157,6 +166,19 @@ export const BEASTS: BeastDef[] = [
   { id: "hac_vu_bien_buc",        name: "Hắc Vụ Biên Bức" },
   { id: "lam_loi_te_nguu",        name: "Lam Lôi Tê Ngưu" },
   { id: "loi_duc_ung",            name: "Lôi Dực Ưng" },
+  // BĐ6b: Lạc Nhật Sâm Lâm (5.000–30.000 năm, thực vật / độc), theo vùng: Rừng hoa độc, Đầm Bích Lân, Băng Hỏa Tuyền, Lưỡng Nghi Nhãn.
+  { id: "thuc_nhan_hoa",          name: "Thực Nhân Hoa" },
+  { id: "cuc_yeu_hoa_linh",       name: "Cúc Yêu Hoa Linh" },
+  { id: "doc_cuc_dang",           name: "Độc Cức Đằng" },
+  { id: "bich_lan_xa",            name: "Bích Lân Xà" },
+  { id: "doc_vu_thiem",           name: "Độc Vụ Thiềm" },
+  { id: "hac_thuy_mang",          name: "Hắc Thủy Mãng" },
+  { id: "liet_hoa_tich_dich",     name: "Liệt Hỏa Tích Dịch" },
+  { id: "huyen_bang_thiem",       name: "Huyền Băng Thiềm" },
+  { id: "hoa_linh_diep",          name: "Hỏa Linh Điệp" },
+  { id: "co_moc_thu_nhan",        name: "Cổ Mộc Thụ Nhân" },
+  { id: "y_la_hoa_yeu",           name: "Ỷ La Hoa Yêu" },
+  { id: "thanh_lan_doc_co",       name: "Thanh Lân Độc Cổ" },
 ];
 
 const BEAST_INDEX = new Map(BEASTS.map((b, i) => [b.id, i]));
@@ -486,6 +508,9 @@ export type TeleShape = "line" | "cone" | "circle";
  *   server tung (tham số `rnd` của teleZones).
  * - `mark`: đánh dấu một người tham gia ngẫu nhiên trong tầm (không nhất thiết là mục tiêu đang đuổi) rồi tung vào người đó (Huyết Cuồng).
  * - `summon.years`: tuổi hồn thú gọi ra (mặc định theo `years` của vùng).
+ * Từ BĐ6b:
+ * - `drain`: mỗi người trúng chiêu mà đang bị Trói (trước khi chiêu gây trạng thái mới) thì hồn thú hồi ngần ấy phần máu tối đa (Hút
+ *   Sinh của Khô Đằng Thụ Vương: "hồi máu từ người đang bị trói").
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -495,6 +520,7 @@ export interface BeastSkillDef {
   count?: number; spread?: number; step?: number;
   summon?: { species: string; n: number; years?: [number, number] }; pull?: number;
   scatter?: number; mark?: boolean;
+  drain?: number;
 }
 /** Hồn thú thường từ ngần ấy năm mới có chiêu báo trước (mục 5.3: dưới 1.000 năm chỉ đánh thường). */
 export const BEAST_SKILL_YEARS = 1000;
@@ -540,6 +566,21 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   am_kim_khung_trao_hung: [bs("Vỗ Đất", "circle", 56, { dmg: 2, status: [{ s: "stun", secs: 0.6 }] })],
   kiem_vi_hat:  [bs("Kiếm Vĩ Đâm", "line", 85, { w: 12, dmg: 1.6, status: [{ s: "armor", n: 2 }] })],
   quy_anh_bao:  [bs("Ảnh Trảm", "cone", 54, { arc: 90, dmg: 1.8 })],
+  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu: hồn sư chưa có Mê hoặc (đi lung tung) nên tạm là Choáng
+  // ngắn (chờ chốt); "để lại sương" của Độc Vụ Thiềm thay bằng Trúng độc 3 tầng (như Thất Tinh Độc Thiềm); Tự Bạo của Hỏa Linh Điệp
+  // chỉ nổ, bướm không chết theo.
+  thuc_nhan_hoa: [bs("Phấn Mê", "circle", 44, { dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
+  cuc_yeu_hoa_linh: [bs("Phi Hoa", "cone", 60, { arc: 80, dmg: 1.6 })],
+  doc_cuc_dang: [bs("Gai Trồi", "line", 100, { w: 14, dmg: 1.7 })],
+  bich_lan_xa:  [bs("Phun Độc", "line", 110, { w: 14, dmg: 1.3, status: [{ s: "poison", n: 2, secs: 5 }] })],
+  doc_vu_thiem: [bs("Sương Độc", "circle", 34, { at: "target", range: 120, dmg: 1, status: [{ s: "poison", n: 3, secs: 6 }] })],
+  hac_thuy_mang: [bs("Quật Đuôi", "cone", 56, { arc: 150, dmg: 1.8 })],
+  liet_hoa_tich_dich: [bs("Phun Lửa", "cone", 58, { arc: 70, dmg: 1.4, status: [{ s: "burn", n: 2, secs: 4 }] })],
+  huyen_bang_thiem: [bs("Băng Khí", "circle", 34, { at: "target", range: 120, dmg: 1.1, status: [{ s: "slow", secs: 3 }] })],
+  hoa_linh_diep: [bs("Tự Bạo", "circle", 36, { dmg: 2.4, cd: 9 })],
+  co_moc_thu_nhan: [bs("Dậm Rễ", "circle", 56, { dmg: 2, status: [{ s: "root", secs: 1 }] })],
+  y_la_hoa_yeu: [bs("Hương Mê", "cone", 60, { arc: 80, dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
+  thanh_lan_doc_co: [bs("Độc Châm", "line", 100, { w: 10, dmg: 1.7, status: [{ s: "poison", n: 2, secs: 5 }] })],
 };
 /** Chiêu báo trước của hồn thú thường loài `species` (mã) `years` năm: chiêu cuối cùng đủ năm, không có thì null. */
 export function beastSkillOf(species: string, years: number): BeastSkillDef | null {
@@ -660,6 +701,29 @@ export const BOSSES: BossDef[] = [
     phase2: { name: "Vạn Chu Phệ", desc: "gọi nhện con, giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
       bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16, summon: { species: "nhan_dien_ma_chu_non", n: 4, years: [4000, 8000] } }),
       bs("Chu Ti Phong Tỏa", "line", 190, { w: 64, range: 180, warn: 2, dmg: 1.2, cd: 12, status: [{ s: "slow", secs: 3 }] })] } },
+  // Lạc Nhật Sâm Lâm (BĐ6b, 5.000–30.000 năm; bảng 5.3, mọi số chờ chốt). Bản tối thiểu: "giữ 2 giây" của Nuốt Chửng là Trói 2 giây
+  // sau khi kéo; Mê hoặc trên hồn sư tạm là Choáng ngắn (như loài thường); Song Sắc Mãng không đổi băng / hỏa theo 10 giây, mỗi chiêu
+  // gây cả Làm chậm lẫn Thiêu đốt; "chữ X" của Băng Hỏa Giao Thoa là 2 vệt tỏa 90°. Song Sắc Mãng mượn loài Hắc Thủy Mãng.
+  { id: "huyet_man_thuc_nhan_hoa", name: "Huyết Mạn Thực Nhân Hoa", rank: 1, species: "thuc_nhan_hoa", aura: "#ff3a7a", skills: [
+    bs("Nuốt Chửng", "circle", 50, { dmg: 1.3, cd: 9, pull: 50, status: [{ s: "root", secs: 2 }] }),
+    bs("Đại Phấn Mê", "circle", 56, { dmg: 1.2, status: [{ s: "stun", secs: 1 }] })] },
+  { id: "song_dau_bich_lan_xa", name: "Song Đầu Bích Lân Xà", rank: 1, species: "bich_lan_xa", aura: "#3affa0", skills: [
+    bs("Song Xà Phun", "line", 110, { w: 14, count: 2, spread: 40, dmg: 1.4, status: [{ s: "poison", n: 2, secs: 5 }] }),
+    bs("Lân Độc Vụ", "circle", 56, { dmg: 1, status: [{ s: "poison", n: 3, secs: 8 }] })] },
+  { id: "bang_hoa_song_sac_mang", name: "Băng Hỏa Song Sắc Mãng", rank: 1, species: "hac_thuy_mang", aura: "#b07aff", skills: [
+    bs("Băng Hỏa Giao Thoa", "line", 120, { w: 14, count: 2, spread: 90, dmg: 1.6, status: [{ s: "slow", secs: 2 }, { s: "burn", n: 2, secs: 4 }] }),
+    bs("Song Sắc Tức", "cone", 58, { arc: 100, dmg: 1.6, status: [{ s: "slow", secs: 3 }, { s: "burn", n: 2, secs: 4 }] })] },
+  { id: "kho_dang_thu_vuong", name: "Khô Đằng Thụ Vương", rank: 1, species: "co_moc_thu_nhan", aura: "#a0b040", skills: [
+    bs("Rễ Trói", "circle", 32, { at: "target", range: 130, dmg: 1.2, status: [{ s: "root", secs: 2 }] }),
+    bs("Hút Sinh", "circle", 56, { dmg: 1.4, drain: 0.05 })] },
+  // Thú vương Lạc Nhật (BĐ6b): mượn loài Hắc Thủy Mãng. GĐ2 bản tối thiểu: thay "hang chia nửa băng / nửa lửa đổi chỗ mỗi 12 giây" bằng
+  // hai dải rộng phủ nửa hang phía mục tiêu, báo trước 2 giây, luân phiên băng (đóng băng = Choáng 1,5 giây) và lửa (Thiêu đốt nặng).
+  { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 7, skills: [
+    bs("Băng Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.4, cd: 8, status: [{ s: "slow", secs: 3 }] }),
+    bs("Hỏa Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.5, cd: 8, status: [{ s: "burn", n: 3, secs: 5 }] })],
+    phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "nửa hang hóa băng, nửa hang hóa lửa luân phiên (báo trước 2 giây), tốc độ +20%", spd: 1.2, skills: [
+      bs("Lưỡng Nghi Băng", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.5, cd: 12, status: [{ s: "stun", secs: 1.5 }] }),
+      bs("Lưỡng Nghi Hỏa", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.6, cd: 12, status: [{ s: "burn", n: 4, secs: 6 }] })] } },
 ];
 const BOSS_INDEX = new Map(BOSSES.map((b, i) => [b.id, i]));
 /** Chỉ số trong BOSSES của một mã (-1 nếu không có). */
@@ -1677,10 +1741,11 @@ export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.len
  * `cores` (bước 5.2, **chờ chốt**): tổng chỉ số hồn hạch đang gắn (coreBonus): dòng % nhân phần gốc (sau hệ số hệ và sao, trước
  * hồn cốt), dòng phẳng cộng thẳng như hồn cốt; chí mạng cộng vào `crit` / `critMult`.
  * `res` (bước 8.2, **chờ chốt**): % cộng minh của tài khoản (resonanceBonus), cộng chung với dòng % của hồn hạch, áp cho mọi võ hồn.
+ * `herbs` (bước BĐ6b, **chờ chốt**): % tiên thảo đã dùng trên chính võ hồn này (herbBonus), cộng chung như `res`.
  */
 export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<BoneStat, number>> = {},
-  cores: Partial<Record<CoreStat, number>> = {}, res: Partial<Record<ResStat, number>> = {}) {
-  const v = VOHON[vh], k = starMult(stars), pc = (x: CoreStat, r: ResStat) => 1 + ((cores[x] ?? 0) + (res[r] ?? 0)) / 100;
+  cores: Partial<Record<CoreStat, number>> = {}, res: Partial<Record<ResStat, number>> = {}, herbs: Partial<Record<ResStat, number>> = {}) {
+  const v = VOHON[vh], k = starMult(stars), pc = (x: CoreStat, r: ResStat) => 1 + ((cores[x] ?? 0) + (res[r] ?? 0) + (herbs[r] ?? 0)) / 100;
   let hpB = 0, atkB = 0;
   for (const t of rings) { hpB += TIERS[t].hpb; atkB += TIERS[t].atkb; }
   return {
@@ -2253,6 +2318,31 @@ export const BONE_SKILLS: Record<string, BoneSkillSet> = {
     passive: bp("Lam Lôi Giáp", "Kháng Cảm điện", { resist: { shock: 0.4 } }) },
   loi_duc_ung: { active: ba("Lôi Bạo", "Sét nổ trên hồn thú gần nhất: Cảm điện", "ϟ", "around", 34, 1.8, { at: 130, status: [{ s: "shock" }] }),
     passive: bp("Lôi Dực", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+  // Lạc Nhật Sâm Lâm (BĐ6b): chủ động theo chiêu báo trước của loài; trên hồn thú Mê hoặc có thật nên Phấn Mê / Hương Mê gây Mê hoặc.
+  thuc_nhan_hoa: { active: ba("Thực Nhân Phấn Mê", "Rắc phấn quanh thân: Mê hoặc 1,5 giây", "✿", "around", 44, 1.2, { status: [{ s: "charm", secs: 1.5 }] }),
+    passive: bp("Hoa Căn", "Hút máu từ mọi sát thương gây ra", { buff: { leech: 0.03 } }) },
+  cuc_yeu_hoa_linh: { active: ba("Phi Hoa", "Cánh hoa quét nửa trước mặt", "❀", "front", 60, 2),
+    passive: bp("Hoa Linh", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.04 } }) },
+  doc_cuc_dang: { active: ba("Độc Cức Gai Trồi", "Gai trồi dưới hồn thú gần nhất: Phá giáp 1 tầng", "⋔", "target", 100, 1.8, { status: [{ s: "armor" }] }),
+    passive: bp("Gai Độc", "Kháng Trúng độc", { resist: { poison: 0.3 } }) },
+  bich_lan_xa: { active: ba("Bích Lân Phun Độc", "Phun độc vào hồn thú gần nhất: Trúng độc 2 tầng", "☣", "target", 110, 1.5, { status: [{ s: "poison", n: 2 }] }),
+    passive: bp("Bích Lân Huyết", "Kháng Trúng độc", { resist: { poison: 0.4 } }) },
+  doc_vu_thiem: { active: ba("Độc Vụ", "Sương độc trùm hồn thú gần nhất: Trúng độc 3 tầng", "☁", "around", 34, 1.1, { at: 120, status: [{ s: "poison", n: 3 }] }),
+    passive: bp("Thiềm Bì", "Giảm sát thương nhận", { buff: { def: 0.05 } }) },
+  hac_thuy_mang: { active: ba("Hắc Thủy Quật Đuôi", "Quật đuôi nửa trước mặt", "∿", "front", 56, 2.3),
+    passive: bp("Mãng Lực", "Công tăng", { buff: { atk: 0.05 } }) },
+  liet_hoa_tich_dich: { active: ba("Liệt Hỏa Phun", "Phun lửa nửa trước mặt: Thiêu đốt 2 tầng", "♨", "front", 58, 1.6, { status: [{ s: "burn", n: 2 }] }),
+    passive: bp("Hỏa Lân", "Kháng Thiêu đốt", { resist: { burn: 0.35 } }) },
+  huyen_bang_thiem: { active: ba("Huyền Băng Khí", "Hàn khí trùm hồn thú gần nhất: Làm chậm 3 giây", "❄", "around", 34, 1.2, { at: 120, status: [{ s: "slow", secs: 3 }] }),
+    passive: bp("Hàn Thể", "Kháng Làm chậm", { resist: { slow: 0.35 } }) },
+  hoa_linh_diep: { active: ba("Hỏa Điệp Bạo", "Nổ lửa quanh thân: Thiêu đốt", "✹", "around", 40, 2.4, { status: [{ s: "burn" }], shake: true }),
+    passive: bp("Điệp Vũ", "Tốc chạy tăng", { buff: { spd: 0.06 } }) },
+  co_moc_thu_nhan: { active: ba("Cổ Mộc Dậm Rễ", "Dậm rễ quanh thân: Trói 1 giây", "✺", "around", 56, 2.2, { status: [{ s: "root", secs: 1 }], shake: true, cd: 12, cost: 22 }),
+    passive: bp("Mộc Giáp", "Giảm sát thương nhận", { buff: { def: 0.07 } }) },
+  y_la_hoa_yeu: { active: ba("Ỷ La Hương Mê", "Hương hoa nửa trước mặt: Mê hoặc 2 giây", "❁", "front", 60, 1.2, { status: [{ s: "charm", secs: 2 }] }),
+    passive: bp("Ỷ La Hương", "Giảm tiêu hao hồn lực", { buff: { mp: 0.06 } }) },
+  thanh_lan_doc_co: { active: ba("Thanh Lân Độc Châm", "Bắn kim độc: Trúng độc 2 tầng", "➶", "proj", 120, 1.6, { status: [{ s: "poison", n: 2 }] }),
+    passive: bp("Độc Cổ", "Tỉ lệ chí mạng tăng", { buff: { crit: 0.05 } }) },
 };
 /** 3 vị trí có kỹ năng chủ động theo thứ tự nút (đầu, tay trái, tay phải): chỉ số i của message `boneskill {i}` và `PlayerState.bcds`. */
 export const BONE_ACTIVE_SLOTS: BoneSlot[] = BONE_SLOTS.filter((s) => s.active).map((s) => s.id);
@@ -2289,7 +2379,7 @@ export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; re
 }
 
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây chờ chốt) ----------
-/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5); tiên thảo thêm ITEMS ở BĐ6. */
+/** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5), tiên thảo (BĐ6b, HERBS). */
 export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
@@ -2306,6 +2396,52 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
  * `hp` / `mp`: dùng thì hồi ngần ấy phần sinh lực tối đa của võ hồn ra trận / hồn lực tối đa.
  */
 export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; vohon?: string; boss?: string; }
+
+// ---------- Tiên thảo (mục 5.3 "Lạc Nhật Sâm Lâm", 5.7; bước BĐ6b, mọi số chờ chốt) ----------
+/**
+ * Tiên thảo: chỉ rơi ở bản đồ có MapDef.herbs (Lạc Nhật Sâm Lâm). Dùng cho MỘT võ hồn (nút "Dùng cho…" trong túi đồ) thì võ hồn đó
+ * tăng vĩnh viễn HERB_PCT % chỉ số `stat` (sinh lực / hồn lực / công gốc, cộng chung với % cộng minh và dòng % hồn hạch trong
+ * calcStats), mỗi loại tối đa HERB_MAX cây mỗi võ hồn (+10%). Số cây đã dùng lưu ở `vohons.herbs` (013_tien_thao.sql) theo mã.
+ * Mã cố định (cột `items.code` và khóa trong `vohons.herbs`), chỉ thêm vào cuối.
+ */
+export interface HerbDef { id: string; name: string; stat: ResStat; col: string; }
+export const HERBS: HerbDef[] = [
+  { id: "y_la_uat_kim_huong",       name: "Ỷ La Uất Kim Hương",       stat: "hp",  col: "#ffd45a" },
+  { id: "bat_giac_huyen_bang_thao", name: "Bát Giác Huyền Băng Thảo", stat: "mp",  col: "#8fe0ff" },
+  { id: "liet_hoa_hanh_kieu_so",    name: "Liệt Hỏa Hạnh Kiều Sơ",    stat: "atk", col: "#ff7a3a" },
+];
+/** % chỉ số mỗi cây và số cây tối đa mỗi loại trên một võ hồn (chờ chốt: +1% mỗi cây, tối đa 10 cây = +10%). */
+export const HERB_PCT = 1;
+export const HERB_MAX = 10;
+/** Tinh anh rơi tiên thảo với tỉ lệ x HERB_ELITE (tối đa 100%), như hồn cốt x ELITE.bone. Thú vương không rơi tiên thảo (chỉ rương). */
+export const HERB_ELITE = 3;
+// RES_STAT_NAMES khai báo sau ITEMS (mục Cộng minh), nên mô tả vật phẩm dùng bảng tên riêng này lúc nạp module.
+const HERB_STAT_NAMES: Record<ResStat, string> = { hp: "sinh lực", mp: "hồn lực", atk: "công" };
+export const herbDef = (code: unknown) => HERBS.find((h) => h.id === code);
+/** Tỉ lệ rơi tiên thảo khi hạ hồn thú ở vùng tên `zone` của bản đồ `mapId` (0 nếu bản đồ / vùng không rơi). */
+export const herbChance = (mapId: string, zone: string | undefined, elite = false) =>
+  Math.min(1, (zone ? MAPS[mapId]?.herbs?.[zone] ?? 0 : 0) * (elite ? HERB_ELITE : 1));
+/** Đọc `vohons.herbs` (JSON mã -> số cây) an toàn: bỏ mã lạ, kẹp 0..HERB_MAX. */
+export function parseHerbs(x: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (x && typeof x === "object") for (const h of HERBS) {
+    const n = Math.max(0, Math.min(HERB_MAX, Math.floor(Number((x as Record<string, unknown>)[h.id])) || 0));
+    if (n) out[h.id] = n;
+  }
+  return out;
+}
+/** % cộng của tiên thảo đã dùng trên một võ hồn (tham số `herbs` của calcStats). */
+export function herbBonus(herbs: Record<string, number> | undefined): Record<ResStat, number> {
+  const out: Record<ResStat, number> = { hp: 0, mp: 0, atk: 0 };
+  for (const h of HERBS) out[h.stat] += Math.min(HERB_MAX, herbs?.[h.id] ?? 0) * HERB_PCT;
+  return out;
+}
+/** "+3% Sinh lực, +1% Công" (bỏ chỉ số 0); rỗng nếu chưa dùng cây nào. */
+export const herbText = (herbs: Record<string, number> | undefined) => {
+  const b = herbBonus(herbs);
+  return (Object.keys(b) as ResStat[]).filter((k) => b[k]).map((k) => `+${b[k]}% ${RES_STAT_NAMES[k]}`).join(", ");
+};
+
 export const ITEMS: ItemDef[] = [
   { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
   { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
@@ -2324,6 +2460,9 @@ export const ITEMS: ItemDef[] = [
   // Rương tà hóa thú vương (BĐ5): mỗi thú vương một mã `ruong_<mã thú vương>` (chestCode), `boss` trỏ về BOSSES; mở trong túi đồ (KING_CHEST).
   ...BOSSES.filter((b) => b.rank === 2).map((b): ItemDef => ({ id: chestCode(b.id), kind: "ruong", name: `Rương ${b.name}`, col: b.aura, stack: 99, boss: b.id,
     desc: `Phần thưởng hạ Tà hóa ${b.name}. Mở ra: mảnh võ hồn, 1 hồn hạch sao cao, có thể có hồn cốt và mảnh võ hồn UR (cần ${KING_CHEST.slots} ô trống).` })),
+  // Tiên thảo (BĐ6b): mỗi loại một mã (HERBS), gộp 99; dùng cho một võ hồn từ túi đồ.
+  ...HERBS.map((h): ItemDef => ({ id: h.id, kind: "tien_thao", name: h.name, col: h.col, stack: 99,
+    desc: `Tiên thảo của Lạc Nhật Sâm Lâm. Dùng cho một võ hồn: +${HERB_PCT}% ${HERB_STAT_NAMES[h.stat]} vĩnh viễn, tối đa ${HERB_MAX} cây mỗi võ hồn.` })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
@@ -2449,10 +2588,7 @@ export const NPCS: NpcDef[] = [
       "Lò rèn lớn nhất thủ đô. Hồn cốt dư dung luyện vào hồn cốt chính, hồn hạch dư nâng cấp hồn hạch chính: không bao giờ thất bại.",
       "Tay nghề ở đây cũng như lò rèn Nặc Đinh, chỉ là lửa to hơn thôi.",
     ] },
-  { id: "cong_lac_nhat", name: "Cổng Lạc Nhật Sâm Lâm", title: "Sắp mở", role: "talk", col: "#8a9bb0",
-    lines: [
-      "Cổng tây Thiên Đấu Thành, đường đi Lạc Nhật Sâm Lâm: rừng thực vật và độc vật, nơi mọc tiên thảo. Cổng đang đóng, sắp mở.",
-    ] },
+  // `cong_lac_nhat` (biển cổng tây "sắp mở" của BĐ6a) bỏ ở BĐ6b: cổng tây là object `portal` đi Lạc Nhật Sâm Lâm. Mã NPC không lưu DB.
   { id: "cong_cuc_bac", name: "Cổng Cực Bắc Chi Địa", title: "Sắp mở", role: "talk", col: "#8a9bb0",
     lines: [
       "Cổng bắc Thiên Đấu Thành, đường lên Cực Bắc Chi Địa: băng nguyên quanh năm tuyết phủ, hồn thú băng hệ vạn năm. Cổng đang đóng, sắp mở.",

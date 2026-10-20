@@ -1291,6 +1291,11 @@ export class GameScene extends Phaser.Scene {
       discard: (id) => this.room.send("discard", { id }),
       open: (id) => this.room.send("open", { id }), // rương thú vương (BĐ5): server tung phần thưởng
       absorbOptions: (years) => this.absorbOptions(years),
+      herb: (id, vohonId) => this.room.send("use", { id, vohonId }), // tiên thảo (BĐ6b): dùng cho võ hồn đã chọn
+      herbOptions: (code) => (this.owned?.list ?? []).map((v) => {
+        const def = VOHON[Math.max(0, vohonIndex(v.vohon))];
+        return { rowId: v.rowId, name: def.name, col: def.col, level: v.level, active: v.rowId === this.owned?.active, n: v.herbs?.[code] ?? 0 };
+      }),
       combat: () => this.combat,
       refresh: () => this.room.send("vohons"),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),

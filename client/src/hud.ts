@@ -11,6 +11,7 @@ import { TIERS, VOHON, HE, ringLimit, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH
   BONE_ENHANCE_MILESTONES, KING, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, RESONANCE, resonanceText,
+  herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
 
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
@@ -622,11 +623,12 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   // Chỉ số của võ hồn kèm phần hồn cốt cộng thêm (calcStats của shared/data.ts, chỉ để hiển thị; server tự tính).
   const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance })));
   const st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, bonus,
-    coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId))), resMsg?.bonus); // từ 5.2 cả hồn hạch đang gắn, từ 8.2 cộng minh
+    coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId))), resMsg?.bonus, herbBonus(v.herbs)); // từ 5.2 cả hồn hạch đang gắn, từ 8.2 cộng minh, BĐ6b tiên thảo
+  const hb = herbBonus(v.herbs);
   const sum = document.createElement("div"); sum.className = "bsum";
   sum.innerHTML = (["hp", "mp", "atk"] as BoneStat[]).map((k) => {
     const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk), rp = resMsg?.bonus[k] ?? 0;
-    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}</b>`;
+    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}${hb[k] ? `<em>+${hb[k]}% tiên thảo</em>` : ""}</b>`;
   }).join("");
   el.appendChild(sum);
 
@@ -1241,6 +1243,8 @@ const itemColor = (it: BagItem) => {
  * chỉ để hiển thị; server quyết định). `reason` khác rỗng: không chọn được (chưa bình cảnh, đủ 10 vòng, vượt quá 100%).
  */
 export interface AbsorbOption { rowId: number; name: string; col: string; level: number; slot: number; limit: number; over: number; fail: number | null; secs: number; active: boolean; reason: string; }
+/** Một võ hồn sở hữu trong bảng chọn dùng tiên thảo (BĐ6b): số cây loại này đã dùng `n` (tối đa HERB_MAX). */
+export interface HerbOption { rowId: number; name: string; col: string; level: number; active: boolean; n: number; }
 /**
  * Thao tác trên túi đồ: client chỉ gửi id ô (và võ hồn được chọn để hấp thụ), server kiểm tra rồi gửi lại túi mới.
  * `absorbOptions`: các võ hồn và rủi ro khi hấp thụ hồn hoàn `years` năm; `combat`: đang giao chiến (tin "squad");
@@ -1249,13 +1253,49 @@ export interface AbsorbOption { rowId: number; name: string; col: string; level:
 export interface BagActions {
   use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void; open(id: string): void;
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
+  herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
 }
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
 let pickRing: string | null = null;   // id hồn hoàn đang mở bảng chọn võ hồn để hấp thụ
 let pickVh: number | null = null;     // võ hồn đang chọn trong bảng đó (chờ xác nhận)
+let pickHerb: string | null = null;   // id ô tiên thảo đang mở bảng chọn võ hồn (BĐ6b); võ hồn đang chọn dùng chung pickVh
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const secTxt = (x: number) => `${String(x).replace(".", ",")} giây`;
+
+/**
+ * Bảng chọn võ hồn để dùng tiên thảo `it` (BĐ6b, mục 5.7): mỗi võ hồn sở hữu một dòng ghi số cây loại này đã dùng; đủ HERB_MAX thì
+ * không chọn được. Chọn một dòng rồi bấm xác nhận (tiên thảo mất khi dùng, chỉ số tăng vĩnh viễn); server kiểm tra lại.
+ */
+function herbPicker(it: BagItem, act: BagActions, again: () => void) {
+  const box = document.createElement("div"); box.className = "apick";
+  const h = herbDef(it.code), opts = act.herbOptions(it.code).sort((a, b) => Number(a.n >= HERB_MAX) - Number(b.n >= HERB_MAX) || Number(b.active) - Number(a.active));
+  if (pickVh !== null && !opts.some((o) => o.rowId === pickVh && o.n < HERB_MAX)) pickVh = null;
+  if (pickVh === null) pickVh = opts.find((o) => o.n < HERB_MAX)?.rowId ?? null;
+  const head = document.createElement("small");
+  head.textContent = `Chọn võ hồn dùng ${h?.name ?? "tiên thảo"} (+${HERB_PCT}% ${h ? RES_STAT_NAMES[h.stat].toLowerCase() : "chỉ số"} vĩnh viễn, tối đa ${HERB_MAX} cây mỗi võ hồn):`;
+  box.appendChild(head);
+  for (const o of opts) {
+    const b = document.createElement("button"); b.className = "aopt" + (o.rowId === pickVh ? " sel" : "");
+    b.disabled = o.n >= HERB_MAX;
+    b.innerHTML = `<b style="color:${o.col}"></b><span>Cấp ${o.level}${o.active ? " · đang ra trận" : ""}</span><i>${o.n >= HERB_MAX ? "đã đủ" : "đã dùng"} ${o.n}/${HERB_MAX} cây</i>`;
+    b.querySelector("b")!.textContent = o.name;
+    b.addEventListener("click", () => { b.blur(); pickVh = o.rowId; again(); });
+    box.appendChild(b);
+  }
+  const o = opts.find((x) => x.rowId === pickVh && x.n < HERB_MAX);
+  const row = document.createElement("div"); row.className = "brow";
+  if (o && h) {
+    const ok = document.createElement("button"); ok.className = "buse absorb"; ok.textContent = `Dùng cho ${o.name}`;
+    ok.addEventListener("click", () => { ok.blur(); act.herb(it.id, o.rowId); if (it.qty <= 1) { pickHerb = null; pickVh = null; } });
+    row.appendChild(ok);
+  }
+  const no = document.createElement("button"); no.className = "buse drop"; no.textContent = "Thôi";
+  no.addEventListener("click", () => { no.blur(); pickHerb = null; pickVh = null; again(); });
+  row.appendChild(no);
+  box.appendChild(row);
+  return box;
+}
 
 /**
  * Bảng chọn võ hồn để hấp thụ hồn hoàn `ring` (mục 5.2): mỗi võ hồn một dòng ghi vòng kế tiếp, giới hạn, % vượt và tỉ lệ thất bại;
@@ -1398,6 +1438,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
     if (def?.kind === "ruong") btn("Mở rương", "absorb", () => act.open(sel.id)); // rương thú vương (BĐ5): server tung phần thưởng
+    if (def?.kind === "tien_thao" && pickHerb === sel.id) { info.appendChild(herbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
+    if (def?.kind === "tien_thao") btn("Dùng cho…", "absorb", () => { pickHerb = sel.id; pickVh = null; act.refresh(); again(); }); // BĐ6b
     if (bone && hasYears(sel) && enhTarget === sel.id) { info.appendChild(enhancePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
     if (bone) btn("Gắn…", "use", () => openBones(sel.id, bone.slot)); // hồn cốt (4.2): gắn ở bảng đội hình
     if (bone && sel.enhance < BONE_MAX_ENHANCE) btn("Cường hóa…", "use", () => { enhOpen(sel.id); again(); }); // 4.4
