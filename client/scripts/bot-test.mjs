@@ -4218,6 +4218,7 @@ async function cucBacTest(){
   // Võ hồn ra trận cấp 80, 8 vòng (đủ sinh lực chịu chiêu hồn thú vạn năm); trả lại như cũ ở cuối.
   const act=C.owned.active, v0=C.owned.list.find(v=>v.rowId===act);
   await test(C,"set",{rowId:act,level:80,xp:0,rings:[423,764,1760,5000,12000,20000,50000,90000]});
+  await sleep(1600); // vừa vào bản đồ thì bất tử 1,5 giây (chiêu trúng nhưng không mất máu, không gây trạng thái)
   // Chiêu báo trước thật: đóng băng (Choáng), Mê hoặc lên hồn sư (Choáng ngắn), Làm chậm; đứng trong vùng thì trúng.
   for(const [sp,years,dx,dy,s] of [["han_bang_dia_long",50000,26,0,"stun"],["tuyet_vi_yeu_ho",40000,60,0,"stun"],["bang_nguyen_cu_tuong",25000,24,0,"slow"]]){
     await test(C,"clear"); await test(C,"ready"); const before=new Set(C.room.state.beasts.keys());
@@ -4226,7 +4227,8 @@ async function cucBacTest(){
     await test(C,"status",{s:"root",secs:30}); C.fxs=[];
     const r=await test(C,"tele",{i:0}), def=beastSkillOf(sp,years), tl=C.fxs.find(f=>f.k==="tele"&&f.bid===bid)??(await waitFor(()=>C.fxs.some(f=>f.k==="tele"&&f.bid===bid),800),C.fxs.find(f=>f.k==="tele"&&f.bid===bid));
     await waitFor(()=>C.fxs.some(f=>(f.k==="teleHit"||f.k==="teleEnd")&&f.bid===bid),2500);
-    const hit=C.fxs.find(f=>f.k==="teleHit"&&f.bid===bid), got=(me().st&statusBit(s))!==0;
+    // Tin fx đến trước bản vá state: chờ trạng thái hiện trên PlayerState.st.
+    const hit=C.fxs.find(f=>f.k==="teleHit"&&f.bid===bid), got=await waitFor(()=>(me().st&statusBit(s))!==0,800);
     ok(r?.name===def.name&&tl?.shape===def.shape&&hit?.hit.includes(C.room.sessionId)&&got,
       `${BEASTS[beastIndex(sp)].name} ${formatYears(years)}: ${def.name} (${def.shape} ${def.r}) trúng, gây ${STATUS[s].name}${def.status?.[0]?.secs?` ${def.status[0].secs} giây`:""}`
       +(got&&hit?.hit.includes(C.room.sessionId)?"":` [bid ${bid}, tele ${JSON.stringify(r)}, fx ${C.fxs.filter(f=>/^tele/.test(f.k)).map(f=>`${f.k}:${f.bid}:${f.hit??""}`).join(" ")}, st ${me().st}, sinh lực ${me().hp}/${me().maxHp}, chết ${me().dead}]`));
