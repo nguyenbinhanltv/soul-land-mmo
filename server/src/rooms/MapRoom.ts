@@ -1876,10 +1876,18 @@ export class MapRoom extends Room<MapState> {
           const me = this.state.players.get(id); if (me !== p || me.dead) return;
           const cx = at?.x ?? p.x, cy = at?.y ?? p.y;
           this.broadcast("fx", { k: "wave", x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
-          const ids = near(sk.r, cx, cy);
+          const ids = near(sk.r, cx, cy), fids = this.foesNear(id, sk.r, cx, cy);
+          // Từ 8.1c `shockR`: sét tìm mục tiêu Cảm điện ở xa hơn `r` (cả đối thủ đang Cảm điện); tia sét từ tâm vùng tới từng mục tiêu (fx zap).
+          if (sk.shockR) {
+            const far = near(sk.shockR, cx, cy).filter((bid) => !ids.includes(bid) && this.bdata.get(bid)?.st.has("shock"));
+            const ffar = this.foesNear(id, sk.shockR, cx, cy).filter((fid) => !fids.includes(fid) && this.pdata.get(fid)?.st.has("shock"));
+            const to = [...far.map((bid) => this.state.beasts.get(bid)!), ...ffar.map((fid) => this.state.players.get(fid)!)].map((t) => ({ x: Math.round(t.x), y: Math.round(t.y) }));
+            if (to.length) this.broadcast("fx", { k: "zap", x: cx, y: cy - 6, to, col });
+            ids.push(...far); fids.push(...ffar);
+          }
           if (sk.pull) { this.broadcast("fx", { k: "pull", x: p.x, y: p.y - 4, r: sk.r, col }); for (const bid of ids) this.pullBeast(bid, p); }
           for (const bid of ids) strike(bid, k === n - 1);
-          for (const fid of this.foesNear(id, sk.r, cx, cy)) strikeFoe(fid, k === n - 1);
+          for (const fid of fids) strikeFoe(fid, k === n - 1);
         };
         if (k === 0) go(); else this.later(k * (sk.every ?? 0.15), go);
       }
@@ -2436,10 +2444,12 @@ export class MapRoom extends Room<MapState> {
   /**
    * Phong Lôi Chi Lực (PHONG_LOI, 2.5c): Lam Điện Bá Vương Long ra trận đánh trúng thì tích (gấp shockMult nếu hồn thú trúng đầu
    * tiên đang Cảm điện). Đầy thì hẹn tung Lôi Động Minh Thiên ở tick sau (không tung giữa lúc đang tính một đòn).
+   * Từ 8.1c: đang Võ Hồn Chân Thân thì tích gấp `ChanThanDef.lei` (Chân Thân thuộc võ hồn ra trận nên chỉ khi Lam Điện đang biến hình).
    */
   gainLei(id: string, kind: Hit["kind"], shocked: boolean) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || VOHON[p.vh].id !== PHONG_LOI.vohon) return;
-    d.lei = Math.min(PHONG_LOI.max, d.lei + PHONG_LOI.gain[kind] * (shocked ? PHONG_LOI.shockMult : 1)); p.lei = Math.floor(d.lei);
+    const ava = d.ava ? chanThanOf(PHONG_LOI.vohon)?.lei ?? 1 : 1;
+    d.lei = Math.min(PHONG_LOI.max, d.lei + PHONG_LOI.gain[kind] * (shocked ? PHONG_LOI.shockMult : 1) * ava); p.lei = Math.floor(d.lei);
     if (d.lei >= PHONG_LOI.max && !d.leiQueued) { d.leiQueued = true; this.later(0, () => this.leiDong(id)); }
   }
 
