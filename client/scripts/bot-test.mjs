@@ -76,7 +76,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
-  HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR,
+  HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks } from "../../shared/data.ts";
@@ -2550,6 +2550,56 @@ else {
     await S.room.leave(); await sleep(500); await enter(S); await waitFor(()=>S.owned);
     ok(vS(V)?.stars===6,`thoát vào lại: ${vname(V)} vẫn ${vS(V)?.stars}★`);
     await S.room.leave();
+  }
+  // ---------- 9.6: hồn kỹ Chân Thân (ChanThanDef.skill: ô P đổi thành hồn kỹ này trong lúc biến hình, hồi chiêu riêng) ----------
+  {
+    // Hàm thuần: đủ 24 võ hồn, 40 hồn lực, hồi 8 giây; mạnh hơn vòng 9 khoảng 20% (tổng hệ số sát thương), cùng lối đánh.
+    const tot=s=>s.dmg*(s.n??1);
+    const bad=VOHON.filter(v=>{ const ct=chanThanOf(v.id)?.skill, r9=ringSkill(v.id,8); if(!ct||ct.cost!==CHAN_THAN_SKILL_COST||ct.cd!==CHAN_THAN_SKILL_CD||!r9) return true;
+      if(tot(r9)>0&&Math.abs(tot(ct)/tot(r9)-1.2)>0.05) return true;
+      if(v.he==="phu_tro"&&!(ct.self&&(ct.self.heal||ct.self.shield||ct.self.buff))) return true;
+      if(v.he==="khong_che"&&!((ct.area==="around"||(ct.area==="proj"&&ct.spread>=360))&&[...(ct.status??[]),...(ct.finisher??[])].some(a=>["stun","root","silence","lock","allure","slow"].includes(a.s)))) return true;
+      return false; });
+    ok(VOHON.length===24&&!bad.length&&CHAN_THAN_SKILL_SLOT===3,
+      `cả ${VOHON.length} võ hồn có hồn kỹ Chân Thân (${CHAN_THAN_SKILL_COST} hồn lực, hồi ${CHAN_THAN_SKILL_CD} giây, ×1,2 vòng 9, đúng lối đánh)${bad.length?` – lỗi: ${bad.map(v=>v.id).join(", ")}`:""}`);
+    const C=await bot("Tester CTS","yeu_ho",{sex:0,hair:3,hairCol:2,outfitCol:4});
+    await waitFor(()=>C.owned&&C.squad&&meOf(C)); const cp=meOf(C), V="bang_phuong_hoang", def=chanThanOf(V), ct=def.skill, sP=skillsOf(V)[3];
+    await test(C,"grant",{vohon:V});
+    const rowC=id=>C.owned.list.find(v=>v.vohon===id).rowId;
+    const Y=[423,764,1760,5000,12000,20000,50000,100000,100000,100000];
+    await test(C,"set",{rowId:rowC(V),level:100,xp:0,rings:Y});
+    await sendTeam(C,[rowC(V),0,0,0]); await sendTeam(C,[rowC(V),rowC("yeu_ho"),0,0]);
+    ok(C.owned.active===rowC(V)&&await waitFor(()=>cp.vh===vohonIndex(V))&&!bondsOf([V,"yeu_ho"]).length,`C: ${vname(V)} ra trận (cấp 100, 10 hồn hoàn), ô P mặc định ${sP.name}`);
+    ok(await leaveSafe(C),"C: ra khỏi làng");
+    const stats=async()=>(await test(C,"stats")).live, hush=()=>test(C,"status",{s:"silence",secs:20,all:true});
+    // Chờ fx soulring (hồn kỹ đã tung) rồi chờ nhát đầu lên hồn thú `bid` và bản vá state (tin tới trước bản vá state).
+    async function castP(bid){ C.dmgs=[]; C.fxs=[]; C.room.send("skill",{i:CHAN_THAN_SKILL_SLOT});
+      if(!bid){ await sleep(300); return; }
+      await waitFor(()=>C.fxs.some(f=>f.k==="soulring"),1500); await waitFor(()=>dmgsOn(C,bid).length,1000); await sleep(150); }
+    async function arena(){ await test(C,"clear"); const [dx,dy]=clearDir(cp.x,cp.y,110); await step(C,dx,dy);
+      const bid=await spawnNear(C,4,Math.round(dx*30),Math.round(dy*30),20); await hush(); return bid; }
+    // Chưa Chân Thân: ô P là hồn kỹ vòng 4 đang mang.
+    await test(C,"ready"); let bid=await arena(); let atk=(await stats()).atkNow; await castP(bid);
+    let want=exp(atk*skillPower(Y[3])*sP.dmg);
+    ok(want.includes(dmgsOn(C,bid)[0]?.v)&&C.fxs.some(f=>f.k==="soulring"&&f.i===3&&!f.ct)&&Math.abs(cp.cds[3]-sP.cd)<0.5&&cp.ctCd===0,
+      `chưa Chân Thân: ô P tung ${sP.name} ${dmgsOn(C,bid)[0]?.v} (cần ${want.join(" hoặc ")}), hồi ô P ${cp.cds[3].toFixed(1)} giây`);
+    // Chân Thân: ô P thành hồn kỹ Chân Thân, dù hồn kỹ ô P cũ đang hồi chiêu; hồi chiêu riêng, không đụng hồi chiêu ô P cũ.
+    bid=await arena(); const l=C.logs.length; C.room.send("chanthan"); await waitFor(()=>C.logs.length>l&&cp.ava>0,1500); await sleep(600);
+    atk=(await stats()).atkNow; const mp0=cp.mp, cd0=cp.cds[3]; await castP(bid); await waitFor(()=>cp.ctCd>0,800);
+    want=exp(atk*skillPower(Y[CHAN_THAN_RING-1])*ct.dmg);
+    ok(cp.ava>0&&want.includes(dmgsOn(C,bid)[0]?.v)&&C.fxs.some(f=>f.k==="soulring"&&f.ct&&f.i===CHAN_THAN_RING-1),
+      `đang Chân Thân: ô P tung ${ct.name} ${dmgsOn(C,bid)[0]?.v} (cần ${want.join(" hoặc ")}: công đã tăng × sức mạnh hồn hoàn vòng 7 ×${skillPower(Y[6])})`);
+    ok(Math.abs(cp.ctCd-ct.cd)<0.5&&cp.cds[3]>0&&cp.cds[3]<=cd0&&mp0-cp.mp>ct.cost-30&&mp0-cp.mp<=ct.cost+1, // hồn lực tự hồi tới ~28/giây ở cấp 100 trong lúc chờ
+      `hồi chiêu riêng ${cp.ctCd.toFixed(1)} giây (cần ${ct.cd}), ô P cũ vẫn ${cp.cds[3].toFixed(1)} giây (trước ${cd0.toFixed(1)}), hồn lực ${mp0} -> ${cp.mp} (tốn ${ct.cost}, trừ phần tự hồi)`);
+    ok(await waitFor(()=>hasSt(beastOf(C,bid),"vuln")&&hasSt(beastOf(C,bid),"slow"),800),`${ct.name}: khống chế diện rộng (Choáng, Làm chậm, Dễ thương)`);
+    await castP(); ok(!C.fxs.some(f=>f.k==="soulring")&&cp.ava>0,"hồn kỹ Chân Thân đang hồi chiêu: ô P không tung");
+    // Hết Chân Thân: ô P trở lại hồn kỹ vòng 4.
+    await test(C,"rest",{s:Math.ceil(cp.ava)+1}); ok(await waitFor(()=>cp.ava===0,3000),"hết Chân Thân");
+    await test(C,"ready"); bid=await arena(); atk=(await stats()).atkNow; await castP(bid);
+    want=exp(atk*skillPower(Y[3])*sP.dmg);
+    ok(want.includes(dmgsOn(C,bid)[0]?.v)&&C.fxs.some(f=>f.k==="soulring"&&f.i===3&&!f.ct)&&cp.ctCd===0,
+      `hết Chân Thân: ô P về ${sP.name} ${dmgsOn(C,bid)[0]?.v} (cần ${want.join(" hoặc ")})`);
+    await C.room.leave();
   }
   // ---------- 3.5: chiêu có báo trước của hồn thú từ 1.000 năm ----------
   {
