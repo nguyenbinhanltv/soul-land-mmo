@@ -3662,9 +3662,14 @@ async function arenaTest(){
   ok(E.room.state.mapId==="nac_dinh_thanh"&&Math.hypot(meOf(E).x-posE[0],meOf(E).y-posE[1])<1,`E về Nặc Đinh Thành đúng chỗ cũ (${meOf(E).x.toFixed(0)},${meOf(E).y.toFixed(0)})`);
   ok(bagKey(E)===bagE1&&prog(E)===progE&&JSON.stringify(E.owned.team)+E.owned.active===teamE,"phần thưởng đã lưu; cấp, kinh nghiệm, hồn hoàn, đội hình không đổi");
 
+  // 8.1a trong sân: võ hồn ra trận của E có đủ 7 hồn hoàn (Võ Hồn Chân Thân) và mang hồn kỹ vòng 5 ở ô U; F lên cấp 70 để chịu các đòn thử.
+  const rowE=E.owned.active; await test(E,"set",{rowId:rowE,level:70,xp:0,rings:Array(CHAN_THAN_RING).fill(100)});
+  await test(E,"rest"); let n0=E.ownedMsgs; E.room.send("loadout",{rowId:rowE,skills:[4,1,2,3]}); await waitFor(()=>E.ownedMsgs>n0,1500); await sleep(80);
+  ok(same(E.owned.list.find(v=>v.rowId===rowE)?.skills,[4,1,2,3]),`ở thành: xếp ${ringSkill("bich_lan_xa_hoang",4).name} (vòng 5) vào ô U`);
+  for(const v of F.owned.list) await test(F,"set",{rowId:v.rowId,level:70,xp:0});
   // Cộng minh (8.2) áp cả trong sân: E có 4 võ hồn cấp RES_VOHON_LEVEL (mốc Võ hồn 1), sinh lực tối đa trong sân bằng ở thành.
   for(const vo of ["hao_thien_chuy","hoa_long"]) await test(E,"grant",{vohon:vo});
-  for(const v of E.owned.list) await test(E,"set",{rowId:v.rowId,level:RES_VOHON_LEVEL,xp:0});
+  for(const v of E.owned.list) if(v.rowId!==rowE) await test(E,"set",{rowId:v.rowId,level:RES_VOHON_LEVEL,xp:0});
   await test(E,"rest"); await waitFor(()=>E.squad,2000);
   const ev=E.owned.list.find(v=>v.rowId===E.owned.active), resHp=meOf(E).maxHp, resSquad=JSON.stringify(E.squad.list.map(s=>[s.rowId,s.maxHp]));
   ok(resHp>calcStats(vohonIndex(ev.vohon),ev.level,ev.rings.map(tierOfYears),ev.stars).maxHp,`cộng minh: E có mốc Võ hồn 1, sinh lực tối đa ${resHp} (cao hơn khi không có cộng minh)`);
@@ -3675,14 +3680,19 @@ async function arenaTest(){
   const eloE2=E.aq.elo, posF=[meOf(F).x,meOf(F).y], progF=prog(F), teamF=JSON.stringify(F.owned.team)+F.owned.active, bagF=bagKey(F), bagE2=snap(E);
   await enterArena(E); await enterArena(F);
   ok(meOf(E).maxHp===resHp&&JSON.stringify(E.squad.list.map(s=>[s.rowId,s.maxHp]))===resSquad,`trong sân cộng minh vẫn áp: sinh lực tối đa ${meOf(E).maxHp} = ở thành, cả đội như ở thành`);
-  await waitFor(()=>E.room.state.phase==="ready",3000); await test(E,"afast",{s:0});
+  await waitFor(()=>E.room.state.phase==="ready",3000);
+  l=E.logs.length; E.room.send("chanthan"); ok(await waitFor(()=>E.logs.length>l)&&/đếm ngược/.test(E.logs.at(-1))&&!meOf(E).ava,"đang đếm ngược: chưa biến Võ Hồn Chân Thân");
+  l=E.logs.length; E.room.send("loadout",{rowId:rowE,skills:[0,1,2,3]}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: xếp ô hồn kỹ mang theo bị chặn");
+  await test(E,"afast",{s:0});
   ok(await waitFor(()=>E.room.state.phase==="fight",2000)&&E.arena.some(m=>m.k==="fight"),`hết đếm ngược: giao đấu ${Math.round(E.room.state.time)} giây`);
   const sid=b=>b.room.sessionId, fv=()=>E.room.state.players.get(sid(F)), sE=sides(E).findIndex(s=>s.sid===sid(E)), dir=sE===0?1:-1;
   await test(E,"goto",{x:fv().x-dir*40,y:fv().y});
   const hp0=fv().hp; E.room.send("skill",{i:0});
-  ok(await waitFor(()=>fv().hp<hp0&&(fv().st&statusBit("poison")),2000),`${skillsOf("bich_lan_xa_hoang")[0].name} trúng đối thủ: ${hp0} → ${fv().hp}, Trúng độc`);
+  ok(await waitFor(()=>fv().hp<hp0&&(fv().st&statusBit("poison")),2000),`${ringSkill("bich_lan_xa_hoang",4).name} (hồn kỹ vòng 5 ở ô U) trúng đối thủ: ${hp0} → ${fv().hp}, Trúng độc`);
   await test(E,"goto",{x:fv().x-dir*10,y:fv().y}); const hp1=fv().hp; E.room.send("attack");
   ok(await waitFor(()=>fv().hp<hp1,1500),`đánh thường trúng đối thủ: ${hp1} → ${fv().hp}`);
+  const hp2=fv().hp; E.room.send("chanthan");
+  ok(await waitFor(()=>meOf(E).ava>0&&meOf(E).avaCd>0&&fv().hp<hp2,2000),`${chanThanOf("bich_lan_xa_hoang").name} khi giao đấu: biến hình ${meOf(E).ava.toFixed(1)} giây, độc khí trúng đối thủ ${hp2} → ${fv().hp}`);
   ok(await waitFor(()=>sides(E).find(s=>s.sid===sid(F)).pct<1,1500),`thanh trận đấu: F còn ${Math.round(sides(E).find(s=>s.sid===sid(F)).pct*100)}% sinh lực cả đội`);
   for(let k=0;k<TEAM_SIZE&&!meOf(F).dead;k++) await test(F,"down");
   ok(meOf(F).dead&&await waitFor(()=>endOf(E)&&endOf(F),3000),"F gục cả đội: trận kết thúc");
@@ -3694,6 +3704,8 @@ async function arenaTest(){
   ok(Math.hypot(meOf(F).x-posF[0],meOf(F).y-posF[1])<1&&prog(F)===progF&&JSON.stringify(F.owned.team)+F.owned.active===teamF&&bagKey(F)===bagF&&F.squad.list.every(s=>!s.down),
     "F về đúng chỗ cũ; cấp, kinh nghiệm, đội hình, võ hồn ra trận, túi không đổi; cả đội hồi đầy");
   await kickBack(E);
+  ok(!meOf(E).ava&&!meOf(E).avaCd&&[...meOf(E).cds].every(c=>c===0)&&same(E.owned.list.find(v=>v.rowId===rowE)?.skills,[4,1,2,3]),
+    "về bản đồ: không mang Chân Thân / hồi chiêu ra khỏi trận; ô hồn kỹ mang theo giữ như trước trận");
 
   // ---- Trận 3: F gặp G, G không vào sân (bỏ trận) -> F thắng ----
   await aop(F,"queue"); await aop(G,"queue");

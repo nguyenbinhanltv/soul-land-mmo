@@ -21,12 +21,13 @@ interface Side { accountId: number; name: string; rec: ArenaRecord; sid: string;
 interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; code: string; qty: number; coin: number; }
 
 /**
- * Message chỉ dùng ngoài trận: chặn trong sân (xếp đội, hấp thụ, gắn / tháo / cường hóa đồ, dùng đan, mua bán, đi cổng, NPC…), để
+ * Message chỉ dùng ngoài trận: chặn trong sân (xếp đội, xếp ô hồn kỹ mang theo (8.1a), hấp thụ, gắn / tháo / cường hóa đồ, dùng đan,
+ * mua bán, đi cổng, NPC…), để
  * chỉ số hai bên cố định suốt trận và trận không làm đổi đồ ngoài phần thưởng. Đăng ký lại đè handler của MapRoom (message chưa đăng
  * ký làm Colyseus ngắt kết nối client, nên không bỏ hẳn).
  */
 const BLOCKED = ["absorb", "pickup", "discard", "team", "travel", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
-  "unequipcore", "enhance", "enhancecore", "talk", "buy", "sell"];
+  "unequipcore", "enhance", "enhancecore", "talk", "buy", "sell", "loadout"];
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };
 /** Mã đóng kết nối khi trận đã xong và hết ARENA.endSecs: client tự quay về bản đồ cũ. */
 export const ARENA_END_CODE = 4005;
@@ -121,6 +122,14 @@ export class ArenaRoom extends MapRoom {
   boneSkill(c: Client, i: number) {
     if (this.phase !== "fight") return this.log(c.sessionId, this.phase === "end" ? "Trận đấu đã kết thúc." : "Chưa vào trận: đợi đếm ngược xong.", "#ffb35c");
     super.boneSkill(c, i);
+  }
+  /**
+   * Võ Hồn Chân Thân (8.1a) chỉ khi đang giao đấu, như hồn kỹ. Biến hình, hồi chiêu Chân Thân và hồi chiêu hồn kỹ (`ava`, `avaCd`, `skCd`)
+   * nằm trong dữ liệu riêng của phòng, không lưu DB: vào sân thì như mới, rời sân về bản đồ cũng không mang theo.
+   */
+  chanThan(c: Client) {
+    if (this.phase !== "fight") return this.log(c.sessionId, this.phase === "end" ? "Trận đấu đã kết thúc." : "Chưa vào trận: đợi đếm ngược xong.", "#ffb35c");
+    super.chanThan(c);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }
   /** Trong sân không mời / nhận lời mời tổ đội (đấu hồn là 1v1, 7.1); xem khung tổ đội, từ chối, rời đội vẫn được. */
