@@ -100,6 +100,12 @@ export function parseLevelRange(s: unknown): [number, number] | null {
 /** Đi qua cổng: số giây niệm (bị đánh thì hủy, chờ chốt ở 5.3) và số giây server chờ client rời phòng cũ (mục 6). */
 export const TRAVEL_CAST = 1;
 export const TRAVEL_LEAVE_SECS = 10;
+/**
+ * Kênh (mục 6 "Nhiều kênh"): mỗi phòng của một bản đồ là một kênh, tối đa CHANNEL_MAX người; phòng đầy thì mở kênh mới.
+ * Đổi kênh trong cùng bản đồ: ngoài giao chiến, mỗi tài khoản cách nhau ít nhất CHANNEL_CD giây (mỗi lần là một transaction lưu).
+ */
+export const CHANNEL_MAX = 60;
+export const CHANNEL_CD = 10;
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */

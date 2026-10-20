@@ -200,12 +200,27 @@ function waitMapId(room: Room, ms = 8000) {
 let game: Phaser.Game | null = null;
 /** Bản đồ đang đứng do server lưu (/api/login, /api/me trả `mapId`); client chỉ chuyển nó để Colyseus ghép đúng phòng. */
 let mapId = "";
-async function join(retry = true) {
+/**
+ * Vào phòng của bản đồ đang lưu. `roomId`: phòng (kênh) server đã chọn trong tin `travel` (đi cổng, đổi kênh; null = mọi kênh đầy);
+ * không có thì hỏi /api/channel (kênh có đồng đội tổ đội, không thì kênh ít người nhất còn chỗ). Kênh vừa đầy hoặc vừa đóng thì
+ * joinOrCreate: Colyseus chọn kênh ít người nhất còn chỗ, hết chỗ thì mở kênh mới.
+ */
+async function join(retry = true, roomId?: string | null) {
   overlay.hidden = false; card.classList.remove("wide");
   card.innerHTML = `<h1>Đang tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}…</h1>`;
   try {
     const client = new Client(WS);
-    const room = await client.joinOrCreate("map", { token, mapId });
+    if (roomId === undefined) {
+      const r = await post<{ mapId: string; roomId: string | null }>("/api/channel", { token }).catch(() => null);
+      if (r) { mapId = r.mapId; roomId = r.roomId; }
+    }
+    const opts = { token, mapId };
+    const room = roomId
+      ? await client.joinById(roomId, opts).catch((e) => {
+        if (/not found|locked|full/i.test((e as Error)?.message ?? "")) return client.joinOrCreate("map", opts);
+        throw e;
+      })
+      : await client.joinOrCreate("map", opts);
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap);
   } catch (e) {
@@ -221,7 +236,10 @@ async function join(retry = true) {
   }
 }
 
-/** Mở Phaser cho phòng vừa vào. Server cho đi cổng (`travel {mapId}`) thì rời phòng cũ, hủy scene và vào phòng của bản đồ đích. */
+/**
+ * Mở Phaser cho phòng vừa vào. Server cho đi cổng hoặc đổi kênh (`travel {mapId, roomId}`) thì rời phòng cũ, hủy scene và vào phòng
+ * (kênh) server đã chọn ở bản đồ đích.
+ */
 function play(room: Room, roomMap: string) {
   overlay.hidden = true;
   addLag(room); // ?lag=<ms>: giả lập ping cao để thử dự đoán chuyển động
@@ -232,13 +250,13 @@ function play(room: Room, roomMap: string) {
     const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
     card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
   });
-  const onTravel = async (to: string) => {
+  const onTravel = async (to: string, roomId: string | null) => {
     if (travelling) return;
     travelling = true; mapId = to;
     await room.leave().catch(() => {});
     game?.destroy(true); game = null;
     document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
-    join();
+    join(true, roomId);
   };
   game = new Phaser.Game({
     type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true,

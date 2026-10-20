@@ -47,6 +47,15 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #mini{display:block;width:150px;height:100px;image-rendering:pixelated}
 #zoneName{font-size:12px;font-weight:600;text-align:center;margin-top:4px}
 #online{font-size:11px;color:var(--muted);text-align:center}
+/* Kênh (mục 6 "Nhiều kênh"): nút "Kênh N" dưới bản đồ nhỏ, bấm mở danh sách kênh ngay trong khung */
+#chanBtn{margin-top:4px;padding:3px 6px}
+#chans{display:flex;flex-direction:column;gap:3px;margin-top:4px;width:150px}
+#chans[hidden]{display:none}
+#chans button{font:inherit;font-size:11.5px;font-weight:600;padding:4px 6px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--text);cursor:pointer;
+  display:flex;justify-content:space-between;gap:6px}
+#chans button.cur{border-color:var(--accent);color:var(--accent)}
+#chans button:disabled{opacity:.5;cursor:default}
+#chans small{font-size:11px;color:var(--muted);text-align:center}
 #target,#prompt{position:absolute;left:50%;transform:translateX(-50%);padding:5px 12px;font-size:12.5px;font-weight:600;white-space:nowrap;display:none}
 #target{top:12px}
 #prompt{bottom:96px;border-color:var(--line2)}

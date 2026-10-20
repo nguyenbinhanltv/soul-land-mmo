@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server, LocalPresence } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { MapRoom, awakenAccount, chooseLooks } from "./rooms/MapRoom.ts";
+import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
@@ -24,7 +24,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/health", (_q, r) => { r.json({ ok: true }); });
+// chMax: số người tối đa mỗi kênh (bot đọc để biết server đang hạ CHANNEL_MAX cho phần thử nhiều kênh).
+app.get("/health", (_q, r) => { r.json({ ok: true, chMax: CHANNEL_CAP }); });
 
 // Đăng nhập (tự tạo tài khoản nếu tên chưa tồn tại).
 app.post("/api/login", async (req, res) => {
@@ -56,6 +57,15 @@ app.post("/api/me", async (req, res) => {
   res.json({ character, looks, mapId: loc.mapId });
 });
 
+// Kênh để vào game (mục 6 "Nhiều kênh"): bản đồ đang lưu và phòng (kênh) nên vào: kênh còn chỗ có đồng đội tổ đội, không thì kênh
+// ít người nhất còn chỗ. roomId null = mọi kênh đầy hoặc chưa có kênh: client joinOrCreate (Colyseus mở kênh mới).
+app.post("/api/channel", async (req, res) => {
+  const acc = await store.accountFromToken(String(req.body?.token ?? ""));
+  if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
+  const { mapId } = await store.getLocation(acc.accountId);
+  res.json({ mapId, roomId: (await pickChannel(acc.accountId, mapId))?.roomId ?? null });
+});
+
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần): luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/looks", async (req, res) => {
   const acc = await store.accountFromToken(String(req.body?.token ?? ""));
@@ -82,8 +92,9 @@ const server = http.createServer(app);
 // Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
 const presence = new LocalPresence();
 const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
-// Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới.
-gameServer.define("map", MapRoom).filterBy(["mapId"]);
+// Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
+// vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate dự phòng thì chọn kênh ít người nhất còn chỗ.
+gameServer.define("map", MapRoom).filterBy(["mapId"]).sortBy({ clients: 1 });
 
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
 for (const id of Object.keys(MAPS)) loadMap(id);

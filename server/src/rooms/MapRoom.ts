@@ -1,13 +1,13 @@
 // Phòng của một bản đồ (mapId): toàn bộ logic game chạy ở đây (server-authoritative).
 // Mỗi bản đồ có thể có nhiều phòng (kênh); mọi phòng dùng chung một lớp, khác nhau ở dữ liệu bản đồ.
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
-import { Room, Client, ServerError } from "colyseus";
+import { Room, Client, ServerError, matchMaker } from "colyseus";
 import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
   beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, dir4, type Looks,
-  TRAVEL_CAST, TRAVEL_LEAVE_SECS,
+  TRAVEL_CAST, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
   itemDef, BAG_SLOTS, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
@@ -65,6 +65,7 @@ interface PData {
   travelCast: { portal: Portal; t: number } | null; // đang niệm đi qua cổng (TRAVEL_CAST giây, bị đánh thì hủy)
   travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
+  chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
   buffs: Map<BuffId, { t: number; v: number }>; // hiệu ứng có lợi của hồn sư (hồn kỹ phụ trợ): giây còn lại, độ lớn; đổi võ hồn vẫn còn
@@ -168,7 +169,12 @@ interface KingSeat { owner: string | null; state: "alive" | "down" | "gone"; lea
  * của khung đó. Phòng mở lại trong cùng khung nhận lại suất không chủ thay vì sinh con mới, nên hạ thú vương rồi rời bản đồ cho phòng
  * hủy, quay lại cũng không có con mới. Khung hết hạn thì bỏ. Chạy nhiều tiến trình thì phải chuyển sang presence (Redis), như lịch.
  */
-const kingSeats = new Map<string, Map<number, { slot: number; until: number; seats: KingSeat[] }>>();
+const kingSeats = new Map<string, Map<number, KingSlot>>();
+/**
+ * Một khung giờ đã sinh của bản đồ: các suất (mỗi kênh tối đa một) và các tài khoản đã nhận rương của khung này ở bất kỳ kênh nào
+ * (`claimed`): đổi kênh rồi hạ thú vương của kênh khác trong cùng khung thì không nhận thêm rương (mục 6 "Nhiều kênh").
+ */
+interface KingSlot { slot: number; until: number; seats: KingSeat[]; claimed: Set<number>; }
 /** Các khung còn hạn của bản đồ `mapId` (bỏ khung đã hết). */
 function kingRecs(mapId: string, now: number) {
   let recs = kingSeats.get(mapId);
@@ -190,20 +196,56 @@ function kingSlotNow(mapId: string, now: number): { slot: number; until: number 
  * Lấy suất thú vương cho phòng `roomId` trong khung `slot` của bản đồ `mapId`: suất không chủ trước (phòng cũ đã hủy), không còn thì
  * thêm suất mới còn sống tới `until`.
  */
-function takeKingSeat(mapId: string, slot: number, until: number, roomId: string): KingSeat {
+function takeKingSeat(mapId: string, slot: number, until: number, roomId: string): { seat: KingSeat; claimed: Set<number> } {
   const recs = kingRecs(mapId, Date.now());
   let rec = recs.get(slot);
-  if (!rec) { rec = { slot, until, seats: [] }; recs.set(slot, rec); }
+  if (!rec) { rec = { slot, until, seats: [], claimed: new Set() }; recs.set(slot, rec); }
   let seat = rec.seats.find((s) => s.owner === null);
   if (!seat) { seat = { owner: null, state: "alive", leaveAt: until }; rec.seats.push(seat); }
   seat.owner = roomId;
-  return seat;
+  return { seat, claimed: rec.claimed };
 }
 /**
  * Báo trước thú vương gần nhất theo bản đồ (kênh "boss", `at` = giờ xuất hiện, ms): phòng mở ra trong lúc chờ (kể cả báo trước của
  * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
  */
 const kingWarns = new Map<string, BossEvent & { at: number }>();
+
+// ---------- Kênh (mục 6 "Nhiều kênh") ----------
+/** Số người tối đa mỗi kênh: CHANNEL_MAX; chỉ khi bật GAME_TEST=1 mới hạ được bằng biến môi trường CHANNEL_MAX (bot thử kênh 2). */
+export const CHANNEL_CAP = (() => {
+  const n = Math.floor(Number(process.env.CHANNEL_MAX));
+  return process.env.GAME_TEST === "1" && n >= 1 ? Math.min(n, CHANNEL_MAX) : CHANNEL_MAX;
+})();
+/** Số kênh đang dùng của mỗi bản đồ (mức tiến trình): phòng mới lấy số nhỏ nhất còn trống, phòng bị hủy thì trả lại. */
+const channelsInUse = new Map<string, Set<number>>();
+function takeChannel(mapId: string) {
+  let used = channelsInUse.get(mapId);
+  if (!used) { used = new Set(); channelsInUse.set(mapId, used); }
+  let ch = 1;
+  while (used.has(ch)) ch++;
+  used.add(ch);
+  return ch;
+}
+/** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
+const channelSwitchAt = new Map<number, number>();
+/** Một kênh đang mở: phòng, số kênh, số người (gồm chỗ đã giữ cho người đang vào), tối đa, đầy chưa. */
+export interface ChannelInfo { roomId: string; ch: number; n: number; max: number; full: boolean; }
+/** Các kênh đang mở của bản đồ `mapId` (danh sách phòng của matchMaker), theo số kênh. */
+export async function listChannels(mapId: string): Promise<ChannelInfo[]> {
+  const rooms = await matchMaker.query({ name: "map", mapId } as Parameters<typeof matchMaker.query>[0]);
+  return rooms.map((r) => ({ roomId: r.roomId, ch: Number(r.metadata?.channel) || 0, n: r.clients, max: r.maxClients, full: r.locked || r.clients >= r.maxClients }))
+    .filter((c) => c.ch > 0).sort((a, b) => a.ch - b.ch);
+}
+/**
+ * Kênh để vào bản đồ `mapId` (vào game, đi cổng): kênh còn chỗ có nhiều đồng đội tổ đội nhất, không có thì kênh còn chỗ ít người
+ * nhất (bằng nhau thì số kênh nhỏ hơn). Mọi kênh đều đầy thì null: client joinOrCreate và Colyseus mở kênh mới.
+ */
+export async function pickChannel(accountId: number, mapId: string): Promise<ChannelInfo | null> {
+  const open = (await listChannels(mapId)).filter((c) => !c.full), mates = party.mateRooms(accountId, mapId);
+  open.sort((a, b) => (mates.get(b.roomId) ?? 0) - (mates.get(a.roomId) ?? 0) || a.n - b.n || a.ch - b.ch);
+  return open[0] ?? null;
+}
 
 // ---------- Vật phẩm (mục 5.7) ----------
 let itemClock = 0;
@@ -226,7 +268,7 @@ function itemStacks(code: string, qty: number): Item[] {
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
 
 export class MapRoom extends Room<MapState> {
-  maxClients = 60;
+  maxClients = CHANNEL_CAP;
   state = new MapState();
   map!: GameMap;
   pdata = new Map<string, PData>();
@@ -243,7 +285,7 @@ export class MapRoom extends Room<MapState> {
    * Thú vương của phòng (BĐ5): khung giờ đã lấy suất (không lấy lại trong cùng khung), hồn thú đang sống (null = đã hạ / rút đi) và
    * suất của bản đồ ở mức tiến trình (kingSeats: còn đúng khi phòng bị hủy rồi mở lại).
    */
-  king: { slot: number; bid: string | null; seat: KingSeat } | null = null;
+  king: { slot: number; bid: string | null; seat: KingSeat; claimed: Set<number> } | null = null;
   /** Lần báo trước thú vương gần nhất trên kênh "boss" (mọi bản đồ): gửi lại cho người vào phòng trong lúc chờ, `at` = giờ xuất hiện (ms). */
   bossWarn: (BossEvent & { at: number }) | null = null;
   /** Hook test `day {shift}`: lệch ngày nhận thưởng (ngày) để thử đặt lại lượt lúc 00:00; luôn 0 khi không bật GAME_TEST. */
@@ -327,6 +369,9 @@ export class MapRoom extends Room<MapState> {
     this.state.mapId = mapId;
     // Ghi mapId vào listing để filterBy(["mapId"]) ghép đúng phòng cả khi phòng được mở mà không có mapId trong tham số.
     this.listing.mapId = mapId;
+    // Số kênh (1, 2, 3…) của phòng trong bản đồ: đồng bộ cho client ("Kênh N") và ghi vào listing để liệt kê / chọn kênh.
+    this.state.channel = takeChannel(mapId);
+    this.setMetadata({ channel: this.state.channel });
     const { zones } = this.map;
     // Thành không có hồn thú (mục 5.3).
     if (this.map.kind !== "town") for (let z = 0; z < zones.length; z++) for (let i = 0; i < zones[z].count; i++) this.spawnBeast(z);
@@ -371,6 +416,8 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("switch", (c, m: { slot: number }) => this.switchSlot(c, Number(m?.slot)));
     this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
     this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, String(m?.portal ?? "")));
+    this.onMessage("channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
+    this.onMessage("channel", (c, m: { ch: unknown }) => this.switchChannel(c, m?.ch)); // đổi kênh trong cùng bản đồ
     this.onMessage("bag", (c) => this.sendBag(c.sessionId));
     this.onMessage("use", (c, m: { id: unknown }) => this.useItem(c.sessionId, m?.id));
     this.onMessage("open", (c, m: { id: unknown }) => this.openChest(c.sessionId, m?.id)); // mở rương thú vương (BĐ5)
@@ -414,7 +461,7 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false,
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
       claims: auth.claims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
@@ -429,7 +476,7 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
     // Tổ đội (7.1): có mặt trong game (tổ đội giữ nguyên khi đi cổng); đồng đội ở mọi bản đồ thấy đổi bản đồ / vào lại.
     this.partyPublish(party.goOnline({ acc: auth.accountId, name: p.name, sid: client.sessionId, mapId: this.state.mapId, roomId: this.roomId,
-      level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead }));
+      ch: this.state.channel, level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead }));
     this.sendParty(client.sessionId, true);
     // Thú vương (BĐ5): người vào giữa lúc chờ thì nhận đếm ngược còn lại; thú vương đang ở bản đồ này thì nhận thời gian trước khi rút đi.
     const w = this.bossWarn;
@@ -465,6 +512,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(BOSS_TOPIC, this.bossSub);
     this.presence.unsubscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
+    channelsInUse.get(this.state.mapId)?.delete(this.state.channel);
     for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
     const ks = this.king?.seat;
@@ -784,9 +832,11 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Bước 2–4 của mục 6: đánh dấu đang chuyển bản đồ, nối transaction đi cổng vào chuỗi lưu (chờ mọi lần ghi trước xong rồi
-   * mới chụp dữ liệu), commit xong mới gửi riêng `travel {mapId}`. Lỗi thì bỏ cờ, người chơi ở lại.
+   * mới chụp dữ liệu), commit xong mới gửi riêng `travel {mapId, roomId}`. Lỗi thì bỏ cờ, người chơi ở lại.
+   * `roomId`: phòng (kênh) đích khi đổi kênh; đi cổng thì chọn lúc commit (pickChannel: kênh có đồng đội, không thì ít người nhất
+   * còn chỗ; null = mọi kênh đầy, client joinOrCreate để mở kênh mới).
    */
-  beginTravel(id: string, portal: Portal) {
+  beginTravel(id: string, portal: Portal, roomId?: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
     this.endAva(id, "");
     this.freeze(id);
@@ -797,17 +847,65 @@ export class MapRoom extends Room<MapState> {
       try { await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag); }
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
       d.travelled = true;
-    }).then(() => {
-      const c = this.clients.getById(id);
-      if (!c) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
+    }).then(async () => {
+      if (!this.clients.getById(id)) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
       if (!d.travelled) {
         d.travelling = false;
         return this.log(id, "Không chuyển được bản đồ, thử lại.", "#ff8a8a");
       }
-      c.send("travel", { mapId: portal.to });
+      const room = roomId ?? (await pickChannel(d.accountId, portal.to).catch(() => null))?.roomId ?? null;
+      const c = this.clients.getById(id); if (!c) return;
+      c.send("travel", { mapId: portal.to, roomId: room });
       // Client phải tự rời phòng cũ và vào phòng mới; quá TRAVEL_LEAVE_SECS giây thì server ngắt kết nối.
       this.clock.setTimeout(() => { if (this.clients.getById(id)) c.leave(4003); }, TRAVEL_LEAVE_SECS * 1000);
     });
+  }
+
+  // ---------- Kênh (mục 6 "Nhiều kênh") ----------
+  /** Tin riêng "channels": các kênh đang mở của bản đồ (số kênh, số người, tối đa, đầy) và kênh hiện tại; tối đa 1 lần / giây. */
+  async sendChannels(c: Client) {
+    const d = this.pdata.get(c.sessionId), now = Date.now();
+    if (!d || now - d.chListAt < 1000) return;
+    d.chListAt = now;
+    const list = await listChannels(this.state.mapId);
+    if (!this.clients.getById(c.sessionId)) return;
+    c.send("channels", { cur: this.state.channel, list: list.map(({ ch, n, max, full }) => ({ ch, n, max, full })) });
+  }
+
+  /**
+   * Đổi sang kênh `raw` của cùng bản đồ: kênh phải đang mở và còn chỗ; người chơi ngoài giao chiến, chưa gục, không hấp thụ, không
+   * đang đi cổng, cách lần đổi trước CHANNEL_CD giây. Lưu đúng như đi cổng (beginTravel: một transaction nối vào chuỗi lưu, đích là
+   * chính bản đồ này tại vị trí đang đứng); commit xong mới gửi `travel {mapId, roomId}` để client vào đúng phòng của kênh đó.
+   * Đóng góp lên tinh anh / thú vương tính theo phiên nên không theo sang kênh mới.
+   */
+  async switchChannel(c: Client, raw: unknown) {
+    const id = c.sessionId, warn = (t: string) => this.log(id, t, "#ffb35c");
+    const deny = () => {
+      const p = this.state.players.get(id), d = this.pdata.get(id);
+      if (!p || !d || d.travelling || d.travelCast) return "";
+      if (p.dead) return "Đã gục ngã, không đổi kênh được.";
+      if (d.absorbing) return "Đang hấp thụ hồn hoàn, không đổi kênh được.";
+      if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới đổi kênh được.`;
+      return null;
+    };
+    let why = deny();
+    if (why !== null) { if (why) warn(why); return; }
+    const d = this.pdata.get(id)!, ch = Number(raw);
+    if (!Number.isInteger(ch) || ch < 1) return warn("Kênh không hợp lệ.");
+    if (ch === this.state.channel) return warn(`Đang ở kênh ${ch}.`);
+    const left = (channelSwitchAt.get(d.accountId) ?? 0) + CHANNEL_CD * 1000 - Date.now();
+    if (left > 0) return warn(`Vừa đổi kênh: chờ ${Math.ceil(left / 1000)} giây nữa.`);
+    const to = (await listChannels(this.state.mapId)).find((x) => x.ch === ch);
+    // Trong lúc chờ danh sách, người chơi có thể đã rời, gục hay đã xin đổi kênh lần nữa: kiểm tra lại.
+    if (this.pdata.get(id) !== d) return;
+    why = deny();
+    if (why !== null) { if (why) warn(why); return; }
+    if (!to) return warn(`Kênh ${ch} không còn mở.`);
+    if (to.full) return warn(`Kênh ${ch} đã đầy (${to.n}/${to.max}).`);
+    channelSwitchAt.set(d.accountId, Date.now());
+    const p = this.state.players.get(id)!;
+    this.log(id, `Đang chuyển sang kênh ${ch}…`);
+    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, x: 0, y: 0, w: 0, h: 0 }, to.roomId);
   }
 
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
@@ -1218,6 +1316,8 @@ export class MapRoom extends Room<MapState> {
    * đồ); `give` hồn hạch (CORE_ITEM) nhận `stars`, `set` (mã bộ) và tung chỉ số như khi rơi.
    * Từ 4.2: `stats {rowId}` trả chỉ số một võ hồn của mình (`base` không hồn cốt, `stats` có hồn cốt, `bones` phần cộng thêm,
    * `live` chỉ số đang dùng nếu là võ hồn ra trận).
+   * Nhiều kênh: `chan {reset}` trả `chMax` (người tối đa mỗi kênh: CHANNEL_MAX, hoặc biến môi trường CHANNEL_MAX khi GAME_TEST=1),
+   * `channel`, `roomId`; `reset` bỏ thời gian chờ đổi kênh.
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -1237,6 +1337,11 @@ export class MapRoom extends Room<MapState> {
       const boss = typeof o.boss === "string" ? bossIndex(o.boss) : -1; // từ BĐ4: tinh anh theo mã BOSSES (không thuộc ô tinh anh nào)
       const bid = this.addBeast(0, yearsOf(0), boss >= 0 ? boss : sp, p.x + int(o.dx, -200, 200, 0), p.y + int(o.dy, -200, 200, 0), boss >= 0 ? 1 : 0);
       this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; this.bdata.get(bid)!.skills = []; // không tung chiêu báo trước
+    }
+    else if (op === "chan") {
+      // Nhiều kênh (mục 6): `reset` xóa thời gian chờ đổi kênh (CHANNEL_CD) của tài khoản; trả số người tối đa mỗi kênh, số kênh, phòng.
+      if (o.reset) channelSwitchAt.delete(d.accountId);
+      out = { chMax: CHANNEL_CAP, channel: this.state.channel, roomId: this.roomId };
     }
     else if (op === "slay") {
       // 7.1: hạ hồn thú gần nhất như do người gọi ra đòn cuối (qua killBeast: kinh nghiệm chia tổ đội, đồ rơi, Hồn Tệ).
@@ -3096,8 +3201,8 @@ export class MapRoom extends Room<MapState> {
     const lair = this.map.lair, years = MAPS[this.state.mapId].years?.[1], now = Date.now();
     if (!lair || !years || life <= 0 || this.king?.slot === slot) return;
     if (this.king?.bid && this.state.beasts.has(this.king.bid)) return;
-    const seat = takeKingSeat(this.state.mapId, slot, now + life * 1000, this.roomId);
-    this.king = { slot, bid: null, seat };
+    const { seat, claimed } = takeKingSeat(this.state.mapId, slot, now + life * 1000, this.roomId);
+    this.king = { slot, bid: null, seat, claimed };
     if (seat.state === "alive" && seat.leaveAt <= now) seat.state = "gone";
     if (seat.state !== "alive") return;
     life = (seat.leaveAt - now) / 1000;
@@ -3173,6 +3278,8 @@ export class MapRoom extends Room<MapState> {
    */
   killKing(bid: string, b: BeastState, e: EliteData, by: string) {
     const k = e.king!, name = beastName(2, b.species), map = MAPS[this.state.mapId].name, rank = this.kingRank(e);
+    // Tài khoản đã nhận rương của khung giờ này (ở kênh nào cũng vậy): mỗi khung một rương, đổi kênh không nhân thưởng (mục 6).
+    const claimed = this.king?.bid === bid ? this.king.claimed : undefined;
     if (this.king?.bid === bid) { this.king.bid = null; this.king.seat.state = "down"; }
     const p = this.state.players.get(by)!; p.kills++;
     const total = rank.total || 1;
@@ -3189,7 +3296,9 @@ export class MapRoom extends Room<MapState> {
       this.rewardKill(pid, b.years, KING.xp);
       const ring = pid === owner ? ` Hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).` : "";
       const coinTxt = pid === by ? ` Nhận ${formatHonTe(coin)} Hồn Tệ.` : "";
-      if (pct >= KING.share) { this.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}.${coinTxt}${ring}`, k.def.aura); this.grantChest(pid, k.def); }
+      if (pct >= KING.share && claimed?.has(d.accountId))
+        this.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}: đã nhận rương của khung giờ này ở kênh khác, không nhận thêm.${coinTxt}${ring}`, "#ffb35c");
+      else if (pct >= KING.share) { this.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}.${coinTxt}${ring}`, k.def.aura); this.grantChest(pid, k.def, claimed); }
       else this.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}: cần từ ${KING.share * 100}% mới nhận rương.${coinTxt}${ring}`, "#ffb35c");
     }
     if (!e.dmgBy.has(by)) this.log(by, `Hạ ${name}, nhận ${formatHonTe(coin)} Hồn Tệ.`, k.def.aura);
@@ -3202,13 +3311,15 @@ export class MapRoom extends Room<MapState> {
    * Việt Nam) thì tới lượt trong chuỗi lưu mới cho rương vào túi và ngay đó tăng lượt cùng ghi cả túi trong một transaction
    * (store.claimBoss). Không lần ghi nào khác chụp được túi có rương trước transaction này (mọi lần ghi nối tiếp trong chuỗi), nên DB
    * không bao giờ có rương mà chưa trừ lượt. DB báo hết lượt hoặc lỗi thì lấy lại rương. Túi đầy thì rương vẫn vào (ô tạm vượt
-   * BAG_SLOTS, như trả mảnh ở 3.4) để không mất thưởng.
+   * BAG_SLOTS, như trả mảnh ở 3.4) để không mất thưởng. `claimed`: tài khoản đã nhận rương của khung giờ (mọi kênh); ghi ngay khi
+   * cho rương, bỏ ra nếu không nhận được.
    */
-  grantChest(id: string, def: BossDef) {
+  grantChest(id: string, def: BossDef, claimed?: Set<number>) {
     const d = this.pdata.get(id), it = itemDef(chestCode(def.id)); if (!d || !it) return;
     const day = this.today(), warn = (text: string) => this.log(id, text, "#ffb35c");
     if (this.claimsToday(d) >= KING.daily) return warn(`Hôm nay đã hết lượt nhận thưởng thú vương (${KING.daily}/${KING.daily}): không nhận rương. Lượt mới lúc 00:00 giờ Việt Nam.`);
-    const takeBack = () => { const x = d.bag.find((i) => i.code === it.id && i.vohonId === null); if (x) this.takeItem(d, x, 1); };
+    const takeBack = () => { const x = d.bag.find((i) => i.code === it.id && i.vohonId === null); if (x) this.takeItem(d, x, 1); claimed?.delete(d.accountId); };
+    claimed?.add(d.accountId);
     d.claimBusy++;
     this.chain(d, async () => {
       // Rương vào túi ngay trước khi chụp túi cho transaction (không có await xen giữa); chặn mở / bỏ rương tới khi xong (claimBusy).
