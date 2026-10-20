@@ -193,6 +193,9 @@ async function channelTest(){
   ok((await T(P3,"chan")).chMax===2,"hook chan: 2 người / kênh");
   let cl=await chans(P3);
   ok(cl?.cur===2&&JSON.stringify(cl.list)===JSON.stringify([{ch:1,n:2,max:2,full:true},{ch:2,n:1,max:2,full:false}]),`danh sách kênh: ${JSON.stringify(cl)}`);
+  // Xin dồn trong 1 giây (mở, đóng, mở lại bảng): không bị bỏ, server gửi lại khi hết giây đó.
+  await sleep(1050); let nCh=0; P3.room.onMessage("channels",m=>{P3.chans=m; nCh++;}); P3.room.send("channels"); await sleep(100); P3.room.send("channels");
+  ok(await waitFor(()=>nCh>=2,2500),`xin danh sách 2 lần trong 1 giây: nhận đủ ${nCh} lần (lần sau được hẹn gửi lại)`);
   ok(/đã đầy/.test(await say(P3,"channel",{ch:1})),"đổi sang kênh 1 (đã đầy) bị từ chối");
   ok(/không còn mở/.test(await say(P3,"channel",{ch:3})),"kênh 3 (chưa mở) bị từ chối");
   ok(/Đang ở kênh 2/.test(await say(P3,"channel",{ch:2})),"chọn kênh đang ở bị từ chối");

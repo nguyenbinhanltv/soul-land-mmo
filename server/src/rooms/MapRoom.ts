@@ -66,6 +66,7 @@ interface PData {
   travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
+  chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
   buffs: Map<BuffId, { t: number; v: number }>; // hiệu ứng có lợi của hồn sư (hồn kỹ phụ trợ): giây còn lại, độ lớn; đổi võ hồn vẫn còn
@@ -483,7 +484,7 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0,
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
       claims: auth.claims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
@@ -887,10 +888,21 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Kênh (mục 6 "Nhiều kênh") ----------
-  /** Tin riêng "channels": các kênh đang mở của bản đồ (số kênh, số người, tối đa, đầy) và kênh hiện tại; tối đa 1 lần / giây. */
+  /**
+   * Tin riêng "channels": các kênh đang mở của bản đồ (số kênh, số người, tối đa, đầy) và kênh hiện tại; tối đa 1 lần / giây. Xin
+   * dồn trong 1 giây thì không bỏ mà hẹn gửi một lần khi hết giây đó (client đang chờ danh sách mới).
+   */
   async sendChannels(c: Client) {
     const d = this.pdata.get(c.sessionId), now = Date.now();
-    if (!d || now - d.chListAt < 1000) return;
+    if (!d) return;
+    const wait = d.chListAt + 1000 - now;
+    if (wait > 0) {
+      if (!d.chListQueued) {
+        d.chListQueued = true;
+        this.clock.setTimeout(() => { d.chListQueued = false; if (this.pdata.get(c.sessionId) === d) this.sendChannels(c); }, wait);
+      }
+      return;
+    }
     d.chListAt = now;
     const list = await listChannels(this.state.mapId);
     if (!this.clients.getById(c.sessionId)) return;

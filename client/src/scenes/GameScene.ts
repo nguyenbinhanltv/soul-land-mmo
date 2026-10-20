@@ -103,6 +103,7 @@ export class GameScene extends Phaser.Scene {
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void }) {
     this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
+    hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     const off = () => { this.ac.abort(); hud.showPortal(null, () => {}); hud.showPlayerMenu(null); };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);

@@ -1792,17 +1792,19 @@ export function setChannel(ch: number) {
 }
 /** Bấm một kênh trong danh sách: GameScene gửi `channel {ch}` (server kiểm tra rồi mới cho đổi). */
 export function onChannelPick(fn: (ch: number) => void) { chanPick = fn; }
-/** Mở / đóng danh sách kênh; trả true nếu vừa mở (GameScene xin server danh sách mới). */
+/** Mở / đóng danh sách kênh; trả true nếu vừa mở (GameScene xin server danh sách mới, trong lúc chờ vẫn hiện danh sách cũ nếu có). */
 export function toggleChannels(open = $("#chans").hidden) {
   $("#chans").hidden = !open; $("#chanBtn").setAttribute("aria-expanded", String(open));
-  if (open) { chanMsg = null; renderChannels(); }
+  if (open) renderChannels();
   return open;
 }
+/** Vào phòng mới (đi cổng, đổi kênh): bỏ danh sách kênh của phòng cũ và đóng bảng. */
+export function resetChannels() { chanMsg = null; toggleChannels(false); }
 /** Tin "channels": vẽ lại danh sách nếu đang mở. */
 export function setChannels(m: ChannelsMsg) { chanMsg = m; if (!$("#chans").hidden) renderChannels(); }
 function renderChannels() {
   const box = $("#chans"); box.innerHTML = "";
-  if (!chanMsg) { box.appendChild(el("small", "", "Đang tải…")); return; }
+  if (!chanMsg) { box.appendChild(el("small", "", "Đang tải…")); return; } // chỉ khi chưa từng có danh sách
   for (const c of chanMsg.list) {
     const cur = c.ch === chanNow, b = el("button", cur ? "cur" : "") as HTMLButtonElement;
     b.append(el("span", "", `Kênh ${c.ch}${cur ? " (đang ở)" : ""}`), el("span", "", `${c.n}/${c.max}`));
