@@ -2659,7 +2659,9 @@ else {
       `${skillsOf("thien_can_bach_ngoc_dinh")[2].name} xóa ${BEAST_BUFFS.rage.name} (log: ${G.logs.at(-1)})`);
     await sleep(700); I=await info(TN); ok(!I.rage&&I.rageCd>ELITE_RAGE.cd-3,`chưa nổi lại ngay (chờ ${I.rageCd.toFixed(1)} giây)`);
     // Ra khỏi bán kính 30 giây liên tục thì bị loại; số người giảm thì máu tối đa giảm, giữ tỉ lệ.
-    await away(G); const r1=tn().hp/tn().maxHp; await test(G,"etick",{s:ELITE.outSecs+1}); I=await info(TN);
+    // Trúng độc của H còn trên tinh anh thì máu tụt giữa lúc đọc tỉ lệ và lúc hook etick (mỗi nhát ~2% máu tối đa): chờ hết độc trước.
+    await away(G); await waitFor(()=>!((tn()?.st??0)&statusBit("poison")),(STATUS.poison.secs+2)*1000);
+    const r1=tn().hp/tn().maxHp; await test(G,"etick",{s:ELITE.outSecs+1}); I=await info(TN);
     ok(I.engaged&&I.parts.join()===hid&&I.n===1&&I.maxHp===I.base&&Math.abs(I.hp/I.maxHp-r1)<0.02,`G ở ngoài ${ELITE.radius} pixel ${ELITE.outSecs} giây: bị loại, 1 người, máu ${I.hp}/${I.maxHp} (giữ tỉ lệ)`);
     await near(G,TN,30); await test(G,"bhp",{pct:100}); await tranAp(); I=await info(TN); ok(I.n===2&&I.parts.length===2,`G quay lại đánh: lại 2 người, máu ${I.hp}/${I.maxHp}`);
     // Rời phòng thì bị loại ngay, nhưng số người giảm tối đa 1 mỗi 10 giây.
@@ -4033,8 +4035,8 @@ if((await test(C,"ping"))?.enabled){
   await test(C,"clear"); // đạn chỉ có thể trúng hồn thú thử bên dưới
   const ids=new Set(C.room.state.beasts.keys());
   // Đạn bay 170 px/s từ (x, y-8): hồn thú cách 90 px về phía đông, trúng sau ~0,53 giây.
-  await test(C,"beast",{dx:90,dy:TIERS[0].size/2-8});
-  const fresh=()=>[...C.room.state.beasts.keys()].find(k=>!ids.has(k)); // state đồng bộ sau tin nhắn test
+  const nb=await test(C,"beast",{dx:90,dy:TIERS[0].size/2-8}); // hook trả id; server cũ: con mới đầu tiên
+  const fresh=()=>nb?.bid?(C.room.state.beasts.has(nb.bid)&&nb.bid):[...C.room.state.beasts.keys()].find(k=>!ids.has(k));
   ok(await waitFor(fresh),"hook test đặt hồn thú 1 máu cạnh cổng");
   shot={bid:fresh(),kills:me().kills};
 }
@@ -4413,16 +4415,18 @@ async function lacNhatTest(){
       const eb={bid:cur.bid};
       // Máu đặt bằng hook bhp đọc từ state: chờ bản vá tới (đọc sớm thì hp1 còn máu cũ, cao hơn máu sau khi hồi).
       const half=async()=>{ await test(L,"bhp",{pct:50,...eb}); await waitFor(()=>{ const q=L.room.state.beasts.get(cur.bid); return !q||q.hp<=Math.round(q.maxHp*0.5); },1500); };
-      await half(); await test(L,"pst",{s:"root",secs:5});
-      let t=await test(L,"tele",{i:1,cancel:1,...eb}), b=L.room.state.beasts.get(t.bid), hp1=b?.hp;
-      await waitFor(()=>!b||b.hp>hp1,2500);
-      // Đòn không tính trúng khi hồn sư còn khung bất tử (vừa vào lại phòng 1,5 giây, vừa bị đánh 0,45 giây) hoặc tinh anh đang tự
-      // báo trước chiêu khác (`tele` rỗng): tung lại tối đa 2 lần (BĐ6e).
-      for(let k=0;k<2&&!(b&&b.hp>hp1);k++){
-        await sleep(1600); await half(); await test(L,"pst",{s:"root",secs:5});
+      // Đòn không tính trúng khi hồn sư còn khung bất tử (vừa vào lại phòng 1,5 giây, vừa bị hồn thú khác / tùy tùng đánh 0,45 giây):
+      // dọn hồn thú thường quanh L (giữ tinh anh) trước mỗi lần, tung lại tối đa 3 lần cách 1,6 giây (BĐ6e). Tinh anh đang báo trước thì
+      // không đánh thường.
+      let t={}, b=null, hp1=0, why="";
+      for(let k=0;k<3&&!(b&&b.hp>hp1);k++){
+        if(k) await sleep(1600);
+        await test(L,"clear",{keep:1}); await half(); await test(L,"pst",{s:"root",secs:5}); L.fxs=[];
         t=await test(L,"tele",{i:1,cancel:1,...eb}); b=L.room.state.beasts.get(t.bid); hp1=b?.hp; await waitFor(()=>!b||b.hp>hp1,2500);
+        const th=L.fxs.find(f=>f.k==="teleHit"&&f.bid===t.bid);
+        why+=` [lần ${k+1}: teleHit ${th?(th.hit.includes(L.room.sessionId)?"trúng L":"không trúng L"):"chưa có"}, Trói ${(me().st&statusBit("root"))!==0}]`;
       }
-      ok(t.name==="Hút Sinh"&&b&&b.hp>hp1,`Hút Sinh trúng người đang bị Trói: ${b?beastName(b.rank,b.species):"?"} hồi ${b?b.hp-hp1:0} máu (${hp1} -> ${b?.hp}; đứng cạnh ${JSON.stringify(at)}, tinh anh ở ${cur.x?.toFixed(0)},${cur.y?.toFixed(0)}, tele ${JSON.stringify(t)})`);
+      ok(t.name==="Hút Sinh"&&b&&b.hp>hp1,`Hút Sinh trúng người đang bị Trói: ${b?beastName(b.rank,b.species):"?"} hồi ${b?b.hp-hp1:0} máu (${hp1} -> ${b?.hp}; đứng cạnh ${JSON.stringify(at)}, tinh anh ở ${cur.x?.toFixed(0)},${cur.y?.toFixed(0)}, tele ${JSON.stringify(t)})`+(b&&b.hp>hp1?"":why));
     }
     // Thú vương theo lịch (hook king): xuất hiện trong hang, đúng niên hạn mức trên của bản đồ.
     { await test(L,"goto",{x:arr.x,y:arr.y}); await test(L,"king",{kop:"spawn",mapId:LN}); let ki=null;
@@ -4614,8 +4618,9 @@ async function cucBacTest(){
   // Chiêu báo trước thật: đóng băng (Choáng), Mê hoặc lên hồn sư (Choáng ngắn), Làm chậm; đứng trong vùng thì trúng.
   for(const [sp,years,dx,dy,s] of [["han_bang_dia_long",50000,26,0,"stun"],["tuyet_vi_yeu_ho",40000,60,0,"stun"],["bang_nguyen_cu_tuong",25000,24,0,"slow"]]){
     await test(C,"clear"); await test(C,"ready"); const before=new Set(C.room.state.beasts.keys());
-    await test(C,"spawn",{tier:tierOfYears(years),years,species:sp,dx,dy});
-    let bid=null; await waitFor(()=>{ C.room.state.beasts.forEach((o,k)=>{ if(!before.has(k)&&BEASTS[o.species]?.id===sp) bid=k; }); return bid; });
+    const sr=await test(C,"spawn",{tier:tierOfYears(years),years,species:sp,dx,dy});
+    let bid=null; await waitFor(()=>{ if(sr?.bid) return C.room.state.beasts.has(sr.bid)&&(bid=sr.bid);
+      C.room.state.beasts.forEach((o,k)=>{ if(!before.has(k)&&BEASTS[o.species]?.id===sp) bid=k; }); return bid; });
     await test(C,"status",{s:"root",secs:30}); C.fxs=[];
     const r=await test(C,"tele",{i:0}), def=beastSkillOf(sp,years), tl=C.fxs.find(f=>f.k==="tele"&&f.bid===bid)??(await waitFor(()=>C.fxs.some(f=>f.k==="tele"&&f.bid===bid),800),C.fxs.find(f=>f.k==="tele"&&f.bid===bid));
     await waitFor(()=>C.fxs.some(f=>(f.k==="teleHit"||f.k==="teleEnd")&&f.bid===bid),2500);
@@ -5088,7 +5093,8 @@ async function questTest(){
   /** Đặt hồn thú 1 máu ngay chỗ D đứng rồi đánh hạ. */
   async function killOne(){
     const st=D.room.state; await test(D,"clear"); const ids=new Set(st.beasts.keys());
-    await test(D,"beast",{dx:0,dy:0}); const fresh=()=>[...st.beasts.keys()].find(k=>!ids.has(k)); await waitFor(fresh,1000); const bid=fresh();
+    // Hook beast trả id (con mới đầu tiên chưa chắc là nó: hồn thú hoang ở Bãi tập sinh lại cùng lúc thì vòng đánh chờ nhầm con).
+    const r=await test(D,"beast",{dx:0,dy:0}); const fresh=()=>r?.bid&&st.beasts.has(r.bid)?r.bid:[...st.beasts.keys()].find(k=>!ids.has(k)); await waitFor(fresh,1000); const bid=fresh();
     for(let i=0;i<15&&bid&&st.beasts.has(bid);i++){ D.room.send("attack"); await waitFor(()=>!st.beasts.has(bid),450); }
     return !!bid&&!st.beasts.has(bid);
   }
