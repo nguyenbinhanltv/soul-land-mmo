@@ -403,6 +403,13 @@ export const PARTY_BUFF_MULT = 0.7;
  * hồn kỹ gốc là của võ hồn Phụ trợ ("cả đội tàng hình" của Quỷ Mị; tàng hình của Yêu Hồ chép bằng Phục Chế thì không).
  */
 export const PARTY_BUFF_SKIP: readonly BuffId[] = ["phoenix"];
+/**
+ * Phục Chế chép hồn kỹ của đồng đội tổ đội (bước 9.3, đã chốt 2026-10-20): Phục Chế Hương Tràng (`SkillDef.copy`) chép hồn kỹ gần
+ * nhất về thời gian do võ hồn khác trong đội của mình hoặc đồng đội tổ đội cùng phòng đứng trong COPY_R pixel tung trong COPY_WINDOW
+ * giây (cả hai nguồn cùng cửa sổ). Không chép tuyệt kỹ, Chân Thân, tiên cơ, kỹ năng hồn cốt, hồn kỹ của võ hồn có Phục Chế.
+ */
+export const COPY_R = 200;
+export const COPY_WINDOW = 8;
 /** Lời mời vào tổ đội hết hạn sau ngần này giây (đã chốt). */
 export const PARTY_INVITE_SECS = 60;
 /**
@@ -1197,7 +1204,8 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  * - `at` (around): đặt vùng tại hồn thú gần nhất trong tầm `at` (không có thì không tung, như vùng "mục tiêu"); có `dash` thì
  *   hồn sư bay tới đó trước (tối đa `dash`). Vùng cố định ở chỗ đặt, không đi theo hồn sư (vùng phong tỏa).
  * - `fixed` (around): vùng cố định ở chỗ hồn sư đứng lúc tung (lãnh vực đặt xuống đất), không đi theo khi hồn sư di chuyển.
- * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục; sát thương và hiệu ứng lên
+ * - `copy` (self): Phục Chế: tung lại hồn kỹ gần nhất của một võ hồn khác còn trong đội và chưa gục (từ 9.3 cả đồng đội tổ đội đứng
+ *   trong COPY_R, cùng cửa sổ COPY_WINDOW giây); sát thương và hiệu ứng lên
  *   bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi trừ inv/hide) × `copy`, theo hồn hoàn của vòng này.
  * Từ 3.5: `self.cleanse`: giải mọi trạng thái trên hồn sư (PLAYER_STATUS, do chiêu báo trước của hồn thú gây).
  * Từ BĐ4: `dispel`: xóa mọi hiệu ứng có lợi (BEAST_BUFF_IDS, ví dụ Cuồng nộ của tinh anh) trên hồn thú trúng ("xóa buff địch").
@@ -1404,7 +1412,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
       area: "self", r: 0, dmg: 0, self: { mp: 0.3 } },
     { name: "Phi Hành Hương Tràng", desc: "Xúc xích bay: tốc độ +35% trong 8 giây, bay lên né đòn", icon: "➠", cost: 14, cd: 14,
       area: "self", r: 0, dmg: 0, fly: 0.6, inv: 0.6, self: { buff: { spd: 0.35 }, secs: 8 } },
-    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
+    { name: "Phục Chế Hương Tràng", desc: "Áo nghĩa: sao chép hồn kỹ vừa tung (8 giây) của võ hồn khác trong đội (chưa gục) hoặc đồng đội tổ đội đứng gần, sát thương và hiệu ứng × 0,8", icon: "⧉", cost: 30, cd: 14,
       area: "self", r: 0, dmg: 0, copy: 0.8 },
   ],
   // ---- Bước 2.5d: 5 võ hồn còn lại (mọi số đã chốt). Từ đây cả 20 võ hồn trong VOHON đều có hồn kỹ riêng. ----
@@ -1737,7 +1745,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       area: "proj", r: 150, n: 8, spread: 360, dmg: 1, status: [{ s: "shock" }] },
     { name: "Thanh Tâm Đại Hương Tràng", desc: "Hồi 30% sinh lực cả đội, 30% hồn lực, khiên 15% sinh lực tối đa 8 giây, thanh tẩy (giải khống chế)", icon: "✧", cost: 60, cd: 20,
       area: "self", r: 0, dmg: 0, glow: true, self: { heal: 0.3, mp: 0.3, shield: 0.15, secs: 8, cleanse: true } },
-    { name: "Phục Chế Hương Tràng · Đại Thành", desc: "Áo nghĩa đại thành: sao chép hồn kỹ vừa tung của võ hồn khác trong đội (chưa gục), sát thương và hiệu ứng không giảm; không chép tuyệt kỹ", icon: "⧉", cost: 60, cd: 18,
+    { name: "Phục Chế Hương Tràng · Đại Thành", desc: "Áo nghĩa đại thành: sao chép hồn kỹ vừa tung (8 giây) của võ hồn khác trong đội (chưa gục) hoặc đồng đội tổ đội đứng gần, sát thương và hiệu ứng không giảm; không chép tuyệt kỹ", icon: "⧉", cost: 60, cd: 18,
       area: "self", r: 0, dmg: 0, glow: true, copy: 1 },
     { name: "Hương Tràng Thịnh Yến", desc: "Tuyệt kỹ: hồi 40% sinh lực cả đội, 30% hồn lực, khiên 20% sinh lực tối đa, công +20%, tốc độ +30% trong 10 giây, thanh tẩy", icon: "✚", cost: 100, cd: 50,
       area: "self", r: 0, dmg: 0, glow: true, ult: true, self: { buff: { atk: 0.2, spd: 0.3 }, secs: 10, heal: 0.4, mp: 0.3, shield: 0.2, cleanse: true } },
