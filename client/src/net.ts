@@ -30,8 +30,13 @@ export interface Squad { combat: boolean; list: { rowId: number; hp: number; max
 
 /** Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi). */
 export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; }
-/** Tin nhắn riêng "bag": túi đồ, số ô tối đa, Hồn Tệ (đồng) và số giây còn lại của hồi chiêu chung đan. */
-export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; }
+/** Một món thương nhân còn giữ để mua lại (9.8): `key` gửi lại trong `buyback {key}`, `price` là giá mỗi món đã nhận lúc bán. */
+export interface BuybackItem { key: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; price: number; }
+/**
+ * Tin nhắn riêng "bag": túi đồ, số ô tối đa (từ 9.8 theo tài khoản, mở rộng ở thương nhân), Hồn Tệ (đồng), số giây còn lại của hồi
+ * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước).
+ */
+export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; }
 /**
  * Tin nhắn riêng "quest" (6.2): tiến độ chuỗi tân thủ và trạng thái; `ev` = vừa nhận / vừa đủ mục tiêu / vừa trả (`done` = mã bước
  * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.

@@ -8,7 +8,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, formatHonTe, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, RESONANCE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
@@ -706,8 +706,8 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     up.addEventListener("click", () => { up.blur(); enhOpen(cur.id); again(); });
     row.append(up, off);
     info.appendChild(row);
-    if (items.filter((i) => i.vohon === null).length >= BAG_SLOTS) {
-      const w = document.createElement("small"); w.className = "warn"; w.textContent = `Túi đồ đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới tháo được.`;
+    if (items.filter((i) => i.vohon === null).length >= bagCap) {
+      const w = document.createElement("small"); w.className = "warn"; w.textContent = `Túi đồ đầy (${bagCap} ô): bỏ bớt vật phẩm rồi mới tháo được.`;
       info.appendChild(w);
     }
   }
@@ -854,8 +854,8 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     up.addEventListener("click", () => { up.blur(); enhOpen(cur.id); again(); });
     row.append(up, off);
     info.appendChild(row);
-    if (items.filter((i) => i.vohon === null).length >= BAG_SLOTS) {
-      const w = document.createElement("small"); w.className = "warn"; w.textContent = `Túi đồ đầy (${BAG_SLOTS} ô): bỏ bớt vật phẩm rồi mới tháo được.`;
+    if (items.filter((i) => i.vohon === null).length >= bagCap) {
+      const w = document.createElement("small"); w.className = "warn"; w.textContent = `Túi đồ đầy (${bagCap} ô): bỏ bớt vật phẩm rồi mới tháo được.`;
       info.appendChild(w);
     }
   }
@@ -1407,7 +1407,10 @@ function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again:
  * Bảng túi đồ: Hồn Tệ, lưới BAG_SLOTS ô (số lượng ở góc ô, đồ cùng loại đã được server gộp), chi tiết ô đang chọn và nút "Dùng".
  * Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
  */
+/** Số ô túi của tài khoản theo tin "bag" gần nhất (từ 9.8 mở rộng được; trước tin đầu tiên là mức khởi đầu). */
+let bagCap = BAG_SLOTS;
 export function renderBag(bag: BagMsg, act: BagActions) {
+  bagCap = bag.slots;
   bagCdEnd = performance.now() + Math.max(0, bag.cd) * 1000;
   const el = $("#bag"); el.innerHTML = "";
   const items = bag.items.filter((i) => i.vohon === null);
@@ -1548,18 +1551,20 @@ export function showTalk(def: NpcDef | null, go: () => void) {
  * server kiểm tra rồi gửi lại túi.
  */
 export interface NpcActions {
-  buy(code: string, qty: number): void; sell(id: string, qty?: number): void; enhance(targetId: string, materialIds: string[]): void;
+  buy(code: string, qty: number): void; sell(id: string, qty?: number): void;
+  buyback(key: string): void; expand(): void; // mua lại đồ vừa bán, mở rộng túi (9.8)
+  enhance(targetId: string, materialIds: string[]): void;
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin"): void; // nhận / trả nhiệm vụ (6.2)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
 }
-type NpcPage = "talk" | "buy" | "sell" | "forge" | "forgecore" | "quest" | "rank";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "rank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
 let npcBagMsg: BagMsg | null = null;   // tin "bag" gần nhất (Hồn Tệ, đồ bán được, hồn cốt cho lò rèn)
 let npcAct: NpcActions | null = null;
-let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" lần đầu với món giá trị: bấm lần nữa mới bán
+let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" lần đầu với món giá trị (từ 9.8 cả "expand" mở rộng túi): bấm lần nữa mới làm
 /** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
 const SELL_CONFIRM_DONG = 100;
 const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
@@ -1583,7 +1588,7 @@ export function closeNpc() {
   const el = $("#npc"); el.hidden = true; el.innerHTML = "";
 }
 /** Túi đổi (mua, bán, cường hóa): vẽ lại hộp thoại đang mở với Hồn Tệ và đồ mới. */
-export function npcBag(bag: BagMsg) { npcBagMsg = bag; if (npcDefOpen) renderNpc(); }
+export function npcBag(bag: BagMsg) { npcBagMsg = bag; bagCap = bag.slots; if (npcDefOpen) renderNpc(); }
 
 function renderNpc() {
   const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
@@ -1631,7 +1636,10 @@ function renderNpc() {
     const q = questOf(def.id), qc = q && questChain(q.chain);
     if (q && qc) btn(q.status === "done" ? `Nhiệm vụ: ${qc.name} (đã xong)` : `Nhiệm vụ: ${qc.steps[q.step].name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`,
       "absorb", () => go("quest"));
-    if (def.role === "shop") { btn("Mua đan dược", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag); }
+    if (def.role === "shop") {
+      btn("Mua đan dược, mở rộng túi", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
+      btn(`Mua lại đồ đã bán (${bag?.buyback?.length ?? 0})`, "absorb", () => go("buyback"), !bag); // 9.8
+    }
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
       btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
@@ -1647,6 +1655,7 @@ function renderNpc() {
   }
   if (npcPage === "buy") renderShopBuy(el, bag, act);
   else if (npcPage === "sell") renderShopSell(el, bag, act);
+  else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
   btn("‹ Quay lại", "drop", () => go("talk"));
   el.appendChild(row);
@@ -1673,8 +1682,55 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     }
     el.appendChild(o);
   }
+  // Mở rộng túi (9.8): +BAG_EXPAND ô mỗi lần tới BAG_MAX_SLOTS, giá tăng dần (bagExpandCost); bấm hai lần. Server kiểm tra lại.
+  const cost = bagExpandCost(bag.slots);
+  const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
+  o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
+  o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
+    : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
+  if (cost !== null) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
+    b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
+    b.disabled = bag.honTe < cost;
+    b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
+    b.addEventListener("click", () => {
+      b.blur();
+      if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
+      sellConfirm = null; act.expand();
+    });
+    o.querySelector(".brow")!.appendChild(b);
+  }
+  el.appendChild(o);
   const n = document.createElement("small"); n.className = "rnote";
   n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(SHOP[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`;
+  el.appendChild(n);
+}
+
+/**
+ * Mua lại (9.8): BUYBACK_MAX món bán gần nhất (mới nhất trước) với đúng giá đã bán; món về túi đúng như lúc bán (chỉ số, cấp cường
+ * hóa). Thiếu Hồn Tệ thì mờ nút; server kiểm tra lại tiền và chỗ trống.
+ */
+function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const list = bag.buyback ?? [];
+  if (!list.length) {
+    const p = document.createElement("p"); p.className = "nline"; p.textContent = "Ngươi chưa bán gì cho ta từ lúc tới đây. Bán nhầm thì quay lại, ta trả lại đúng món, đúng giá.";
+    el.appendChild(p);
+  }
+  for (const e of list) {
+    const it: BagItem = { ...e, id: e.key, vohon: null }, def = itemDef(e.code), cost = e.price * e.qty;
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", itemColor(it));
+    o.innerHTML = `<i class="ico ${def?.kind ?? "unknown"}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.querySelector("b")!.textContent = `${itemName(it)}${e.qty > 1 ? ` ×${e.qty}` : ""}`;
+    o.querySelector("small")!.textContent = `${def ? ITEM_KINDS[def.kind].name : "Vật phẩm lạ"} · đã bán ${formatHonTe(cost)}${e.enhance && boneOf(it) ? ` · cường hóa +${e.enhance}` : ""}`;
+    const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
+    b.textContent = `Mua lại · −${formatHonTe(cost)}`; b.disabled = bag.honTe < cost;
+    b.setAttribute("aria-label", `Mua lại ${itemName(it)}, giá ${formatHonTe(cost)}`);
+    b.addEventListener("click", () => { b.blur(); act.buyback(e.key); });
+    o.querySelector(".brow")!.appendChild(b);
+    el.appendChild(o);
+  }
+  const n = document.createElement("small"); n.className = "rnote";
+  n.textContent = `Thương nhân giữ ${BUYBACK_MAX} món bán gần nhất (cả hai thành), mua lại đúng giá đã bán; rời game thì mất. Cần ô trống trong túi.`;
   el.appendChild(n);
 }
 
@@ -1715,7 +1771,7 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const worn = bag.items.filter((i) => i.vohon !== null).length;
   const n = document.createElement("small"); n.className = "rnote";
   n.textContent = (worn ? `${worn} món đang gắn trên võ hồn không hiện ở đây (tháo ra trước mới bán được). ` : "")
-    + "Thương nhân không mua đan dược và rương. Bán rồi không mua lại được.";
+    + `Thương nhân không mua đan dược và rương. Bán nhầm thì mua lại được đúng giá (${BUYBACK_MAX} món gần nhất, mất khi rời game).`;
   el.appendChild(n);
 }
 
