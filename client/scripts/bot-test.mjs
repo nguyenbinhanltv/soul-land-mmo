@@ -4227,7 +4227,7 @@ async function loiTinhDauTest(){
       `hộp cổng: đề xuất cấp 90–100, cấp ${me().level} có cảnh báo đỏ (chặn mềm)`);
     await travelBy("Đi Lõi Tinh Đấu",LT);
     ok(Math.hypot(me().x-arrLT.x,me().y-arrLT.y)<1,`dưới cấp vẫn vào được, xuất hiện ở trại cổng Lõi Tinh Đấu: ${me().x},${me().y}`);
-    await sleep(1500); ok(W1.room.state.beasts.size===0,"Lõi Tinh Đấu không có hồn thú thường");
+    await sleep(1500); ok([...W1.room.state.beasts.values()].every(b=>b.rank===3),"Lõi Tinh Đấu không có hồn thú thường (chỉ boss thế giới)");
 
     // Báo trước toàn server: C0 ở bản đồ khác nhận đếm ngược "Boss thế giới …".
     C0.boss=[]; W1.boss=[];
