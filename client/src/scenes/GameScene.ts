@@ -1398,8 +1398,10 @@ export class GameScene extends Phaser.Scene {
     const own = this.owned?.list.find((v) => v.rowId === this.owned?.active), years = own && VOHON[me.vh]?.id === own.vohon ? own.rings : null;
     // Từ 8.1a: 4 ô hồn kỹ mang theo của võ hồn ra trận (tin riêng "vohons"; chưa có thì mặc định vòng 1–4).
     const loadout = own && VOHON[me.vh]?.id === own.vohon ? own.skills : DEFAULT_LOADOUT;
-    const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}|${loadout.join(",")}`;
-    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a)); }
+    // 9.5: sao võ hồn ra trận đổi sức mạnh / hồi chiêu hồn kỹ vòng 1–4 trong chú thích.
+    const stars = own && VOHON[me.vh]?.id === own.vohon ? own.stars : 1;
+    const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}|${loadout.join(",")}|${stars}`;
+    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a), stars); }
     // Kỹ năng hồn cốt (4.3): hồn cốt đang gắn trên võ hồn ra trận, lấy từ tin riêng "bag" (trường `vohon`) khi đúng võ hồn ra trận.
     const worn: hud.WornBone[] = own && VOHON[me.vh]?.id === own.vohon ? (this.bag?.items ?? []).flatMap((it) => {
       const b = it.vohon === own.rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;

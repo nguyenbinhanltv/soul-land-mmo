@@ -58,6 +58,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS, PHOENIX_FIELD_R, PHONG_LOI, BEAST_AGGRO_R, BEAST_WANDER, SPAWN_CLEAR,
   MAPS, MAX_YEARS, beastStats, rollYears, tierBand, parseLevelRange, RING_ITEM, DROP_OWNER_SECS, absorbSecs, absorbChance, ringLimit,
   MAX_RINGS, MAX_LEVEL, SHARD_UNLOCK, STAR_COST, MAX_STARS, starCost, shardChance, shardCode, starMult,
+  STAR_SKILL, STAR_SKILL_RINGS, STAR_CD_STARS, STAR_CD, STAR_TIEN_CO_STARS, STAR_TIEN_CO, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneStats, boneName, boneBonus, PICKUP_RANGE,
   BEAST_SKILL_YEARS, beastSkillOf, teleHits, TELE_PAD, TELE_WARN, TELE_FIRST,
   BOSSES, bossIndex, beastIndex, ELITE, ELITE_RAGE, bossHpMult, teleZones, beastBuffBit, BEAST_BUFFS, beastName,
@@ -2401,6 +2402,66 @@ else {
     await N.room.leave(); await sleep(500); await enter(N); await waitFor(()=>N.owned);
     ok(NEW.every(id=>vN(id)?.level===100&&same(vN(id).skills,[4,5,9,-1]))&&N.owned.team.every(r=>NEW.some(id=>rowN(id)===r)),"thoát vào lại: 4 võ hồn mới, đội và ô mang theo còn nguyên");
     await N.room.leave();
+  }
+  // ---------- 9.5: hiệu ứng hồn kỹ theo sao võ hồn (STAR_SKILL, 4★ hồi chiêu, 6★ tiên cơ riêng) ----------
+  {
+    const near=(a,b)=>Math.abs(a-b)<1e-9;
+    ok(near(starSkillMult(1),1)&&near(starSkillMult(2),1+STAR_SKILL)&&near(starSkillMult(MAX_STARS),1.15)&&near(starSkillMult(0),1)&&near(starSkillMult(99),1.15)
+      &&starCdMult(STAR_CD_STARS-1)===1&&starCdMult(STAR_CD_STARS)===STAR_CD&&starCdMult(MAX_STARS)===STAR_CD
+      &&near(starTienCoMult(STAR_TIEN_CO_STARS-1),starSkillMult(STAR_TIEN_CO_STARS-1))&&near(starTienCoMult(MAX_STARS),1.15+STAR_TIEN_CO)
+      &&starRing(0)&&starRing(STAR_SKILL_RINGS-1)&&!starRing(STAR_SKILL_RINGS),
+      `hàm thuần: hồn kỹ vòng 1–${STAR_SKILL_RINGS} +${Math.round(STAR_SKILL*100)}%/sao (6★ ×${starSkillMult(6)}), từ ${STAR_CD_STARS}★ hồi chiêu ×${STAR_CD}, tiên cơ riêng 6★ ×${starTienCoMult(6).toFixed(2)}`);
+    const S=await bot("Tester Sao","yeu_ho",{sex:1,hair:2,hairCol:3,outfitCol:1});
+    await waitFor(()=>S.owned&&S.squad&&meOf(S)); const sp=meOf(S), V="cuu_tinh_that_sat_kiem";
+    await test(S,"grant",{vohon:V});
+    const rowS=id=>S.owned.list.find(v=>v.vohon===id).rowId, vS=id=>S.owned.list.find(v=>v.vohon===id);
+    const Y=[423,764,1760], sk=skillsOf(V)[0], own=TIEN_CO_RIENG[V], P=skillPower(Y[0]);
+    await test(S,"set",{rowId:rowS(V),level:30,xp:0,rings:Y,stars:1});
+    await sendTeam(S,[rowS(V),0,0,0]); await sendTeam(S,[rowS(V),rowS("yeu_ho"),0,0]);
+    ok(S.owned.active===rowS(V)&&await waitFor(()=>sp.vh===vohonIndex(V))&&vS(V).stars===1,`S: ${vname(V)} ra trận (cấp 30, 3 hồn hoàn, 1★), ${vname("yeu_ho")} dự bị`);
+    ok(await leaveSafe(S),"S: ra khỏi làng");
+    const stats=async()=>(await test(S,"stats")).live;
+    const hits=bid=>dmgsOn(S,bid);
+    async function setStars(stars){ await test(S,"set",{rowId:rowS(V),stars}); return waitFor(()=>vS(V)?.stars===stars,1500); }
+    // Cùng hồn kỹ vòng 1 (Thất Sát Kiếm Khí, nửa trước mặt) ở mỗi mức sao: nhát đầu lên hồn thú đứng yên, hồi chiêu ngay sau khi tung.
+    async function cast(stars){
+      await setStars(stars); await test(S,"clear"); await test(S,"ready");
+      const [dx,dy]=clearDir(sp.x,sp.y,110); await step(S,dx,dy);
+      const bid=await spawnNear(S,1,Math.round(dx*30),Math.round(dy*30),20); await test(S,"status",{s:"stun",secs:10,all:true});
+      const atk=(await stats()).atkNow; S.dmgs=[]; S.room.send("skill",{i:0});
+      await waitFor(()=>hits(bid).length,1500); await sleep(80);
+      return {v:hits(bid)[0]?.v,atk,cd:sp.cds[0],want:exp(atk*P*starSkillMult(stars)*sk.dmg)};
+    }
+    const r1=await cast(1), r4=await cast(4), r6=await cast(6);
+    ok(r1.want.includes(r1.v)&&Math.abs(r1.cd-sk.cd)<0.25,`1★ ${sk.name}: ${r1.v} (cần ${r1.want.join(" hoặc ")}), hồi ${r1.cd.toFixed(2)} giây (cần ${sk.cd})`);
+    ok(r4.want.includes(r4.v)&&Math.abs(r4.cd-sk.cd*STAR_CD)<0.25&&r4.cd<r1.cd-0.2,
+      `4★: ${r4.v} (cần ${r4.want.join(" hoặc ")}, hồn kỹ ×${starSkillMult(4)}), hồi chiêu ngắn hơn ${r4.cd.toFixed(2)} giây (cần ${(sk.cd*STAR_CD).toFixed(2)})`);
+    ok(r6.want.includes(r6.v)&&Math.abs(r6.cd-sk.cd*STAR_CD)<0.25,`6★: ${r6.v} (cần ${r6.want.join(" hoặc ")}, hồn kỹ ×${starSkillMult(6)} và công ×${starMult(6)} của STAR_STAT)`);
+    // Tỉ lệ nhát đầu 6★ / 1★ = công (STAR_STAT, cộng minh) × starSkillMult(6); cả hai không chí mạng thì so thẳng.
+    if(r1.v===r1.want[0]&&r6.v===r6.want[0]){ const k=(r6.atk/r1.atk)*starSkillMult(6);
+      ok(Math.abs(r6.v/r1.v-k)<2/r1.v+0.01,`tỉ lệ 6★ / 1★: ${(r6.v/r1.v).toFixed(3)} (cần ${k.toFixed(3)} = công ${(r6.atk/r1.atk).toFixed(3)} × ${starSkillMult(6)})`); }
+    // Mọi hồn kỹ vòng 1–4 đều nhận: ô I (vòng 2) cũng hồi chiêu ngắn hơn ở 6★.
+    { await test(S,"ready"); const s2=skillsOf(V)[1]; const bid=await spawnNear(S,1,20,0,20); await test(S,"status",{s:"stun",secs:10,all:true});
+      S.room.send("skill",{i:1}); await waitFor(()=>sp.cds[1]>0,1500);
+      ok(Math.abs(sp.cds[1]-s2.cd*STAR_CD)<0.25,`6★ ${s2.name} (vòng 2): hồi ${sp.cds[1].toFixed(2)} giây (cần ${(s2.cd*STAR_CD).toFixed(2)})`); if(bid) await test(S,"clear"); }
+    // Tiên cơ riêng (Thất Sát Kiếm Vực, quanh thân): 1★ ×1, 6★ ×starTienCoMult(6) = 1,15 + 0,2.
+    async function tc(stars){
+      await setStars(stars); await test(S,"clear"); await test(S,"energy",{v:0});
+      await waitFor(()=>sp.swCd===0,4000); S.room.send("switch",{slot:1}); await waitFor(()=>S.owned.active===rowS("yeu_ho"),2000);
+      await test(S,"rest",{s:1}); await waitFor(()=>sp.swCd===0,4000);
+      await test(S,"energy",{v:TIEN_CO_MAX}); await waitFor(()=>sqOf(S,rowS(V))?.en===TIEN_CO_MAX,1500);
+      await test(S,"clear"); const bid=await spawnNear(S,1,20,0,20); S.dmgs=[];
+      S.room.send("switch",{slot:0}); await waitFor(()=>S.owned.active===rowS(V)&&hits(bid).length,2000); await sleep(80);
+      const atk=(await stats()).atkNow;
+      return {v:hits(bid)[0]?.v,want:exp(atk*own.dmg*starTienCoMult(stars))};
+    }
+    const t1=await tc(1), t6=await tc(6);
+    ok(t1.want.includes(t1.v),`tiên cơ riêng 1★ ${own.name}: ${t1.v} (cần ${t1.want.join(" hoặc ")})`);
+    ok(t6.want.includes(t6.v),`tiên cơ riêng 6★: ${t6.v} (cần ${t6.want.join(" hoặc ")}, ×${starTienCoMult(6).toFixed(2)} = hồn kỹ +15% và 6★ +${Math.round(STAR_TIEN_CO*100)}%)`);
+    // Sao lưu DB (vohons.stars, có từ 3.4): thoát vào lại vẫn 6★.
+    await S.room.leave(); await sleep(500); await enter(S); await waitFor(()=>S.owned);
+    ok(vS(V)?.stars===6,`thoát vào lại: ${vname(V)} vẫn ${vS(V)?.stars}★`);
+    await S.room.leave();
   }
   // ---------- 3.5: chiêu có báo trước của hồn thú từ 1.000 năm ----------
   {
