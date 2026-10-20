@@ -65,9 +65,11 @@ export class BeastState extends Schema {
   @type("uint8") phase: number = 0;     // từ BĐ5: giai đoạn của tà hóa thú vương (1, 2); hồn thú khác 0
   @type("uint8") parts: number = 0;     // từ BĐ5: số người tham gia đang áp vào máu (tinh anh, thú vương); thanh máu boss hiện số này
   // Từ BĐ6e (boss thế giới, mục 5.4): `phase` 2 = nổi giận; điểm yếu hệ đang hiện (1 + chỉ số trong HE_IDS, 0 = không có), khiên Bá
-  // Thể còn lại, số lần khống chế đã trúng khi đang tích lực (Đại Địa Chấn), đang lặn (Du Thủy: không nhận sát thương).
+  // Thể còn lại, đang tích lực (Đại Địa Chấn, phải ngắt), số lần khống chế đã trúng khi đang tích lực, đang lặn (Du Thủy: không nhận
+  // sát thương).
   @type("uint8") weak: number = 0;
   @type("uint32") shield: number = 0;
+  @type("boolean") chg: boolean = false;
   @type("uint8") brk: number = 0;
   @type("boolean") dive: boolean = false;
 }

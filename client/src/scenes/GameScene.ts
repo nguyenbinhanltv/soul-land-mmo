@@ -61,8 +61,6 @@ export class GameScene extends Phaser.Scene {
   lair: Rect | null = null;
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
   bossList: { id: string; name: string; pct: number }[] | null = null;
-  /** Boss thế giới đang tích lực phải ngắt (Đại Địa Chấn, BĐ6e): từ tin "boss" k = "charge" tới khi bị ngắt / tung. */
-  charging = false;
   teleG!: Phaser.GameObjects.Graphics;
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
@@ -1360,17 +1358,14 @@ export class GameScene extends Phaser.Scene {
         return true;
       case "weakEnd": return true;
       case "charge":
-        this.charging = true;
         hud.banner(`${m.name}: tích lực ${m.secs} giây!`, `Cần ${m.need} lần khống chế của võ hồn Khống chế để ngắt`);
         hud.log(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
         return true;
       case "brk": hud.log(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
       case "broken":
-        this.charging = false;
         hud.banner(`Đã ngắt ${m.name}!`, `${m.by} ngắt chiêu · boss Choáng ${m.secs} giây`);
         return true;
       case "chargeHit":
-        this.charging = false;
         hud.log(`${m.name} không bị ngắt: cả sàn trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
         return true;
       case "floor":
@@ -1390,7 +1385,6 @@ export class GameScene extends Phaser.Scene {
         hud.log(`${m.name} nổi giận: sát thương x${m.dmg}, đánh nhanh hơn, chiêu toàn sàn mỗi ${m.every} giây.`, col);
         return true;
     }
-    if (m.k === "reset" || m.k === "down" || m.k === "leave") this.charging = false;
     return false;
   }
 
@@ -1423,7 +1417,7 @@ export class GameScene extends Phaser.Scene {
     hud.showBoss(kb && { name: beastName(kb.rank, kb.species), hp: kb.hp, maxHp: kb.maxHp, parts: kb.parts, phase: kb.phase,
       title: BOSSES[kb.species]?.phase2?.name ?? "", col: BOSSES[kb.species]?.aura ?? "#ff5a5a",
       world: kb.rank === 3 ? { rage: kb.phase === 2, weak: kb.weak ? HE_IDS[kb.weak - 1] : null, myHe, shield: kb.shield, brk: kb.brk,
-        need: wdef?.charge?.need ?? 0, charging: !!this.charging, dive: kb.dive, armorHe: wdef?.armor?.he ?? null } : undefined });
+        need: wdef?.charge?.need ?? 0, charging: !!kb.chg, dive: kb.dive, armorHe: wdef?.armor?.he ?? null } : undefined });
     if (!kb && this.bossList) { this.bossList = null; hud.bossRank(null, this.me); }
     hud.updateBossCd();
     hud.updateArenaQueue();

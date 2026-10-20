@@ -4690,17 +4690,18 @@ async function loiTinhDauTest(){
     ok(VOHON[mo(W3).vh].id==="xuc_xich"&&!ki.st.includes("root"),"boss thế giới không nhận khống chế (W3 Xúc Xích gây Trói: bị bỏ)");
     ok(await swTo(W1,"lam_ngan_thao"),"W1 đổi sang Lam Ngân Thảo (khống chế)");
     await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; await test(W1,"wmech",{m:"charge"}); ki=await test(W1,"king");
-    ok(ki.charge&&ki.cast==="Đại Địa Chấn"&&W1.boss.some(m=>m.k==="charge"&&m.need===3),`boss tích lực ${ki.cast} (${DV.world.charge.skill.warn} giây, cần ${DV.world.charge.need} lần khống chế)`);
+    ok(ki.charge&&ki.cast==="Đại Địa Chấn"&&W1.boss.some(m=>m.k==="charge"&&m.need===3)&&await waitFor(()=>bossB().chg,1000),
+      `boss tích lực ${ki.cast} (${DV.world.charge.skill.warn} giây, cần ${DV.world.charge.need} lần khống chế; BeastState.chg bật)`);
     await test(W3,"status",{s:"stun"}); ki=await test(W1,"king"); const b0=ki.world.brk;
     await test(W1,"status",{s:"stun"}); await sleep(350); await test(W1,"status",{s:"root"}); await sleep(350); await test(W2,"status",{s:"silence"});
     ki=await test(W1,"king");
-    ok(b0===0&&!ki.charge&&ki.st.includes("stun")&&W1.boss.some(m=>m.k==="broken")&&W1.boss.filter(m=>m.k==="brk").length===3,
+    ok(b0===0&&!ki.charge&&ki.st.includes("stun")&&W1.boss.some(m=>m.k==="broken")&&W1.boss.filter(m=>m.k==="brk").length===3&&await waitFor(()=>!bossB().chg,1000),
       `W3 (phụ trợ) khống chế không tính (${b0}/3); W1, W1, W2 (khống chế) 3 lần: ngắt, boss Choáng ${DV.world.charge.stun} giây`);
     // Không ngắt: cả sàn trúng Vết thương sâu (Phá giáp 3 tầng 30 giây); W3 đổi sang võ hồn phụ trợ đầy năng lượng tiên cơ thì thanh tẩy.
     await swTo(W3,"lam_ngan_thao");
     for(const b of W) await test(b,"set",{rowId:b.owned.active,level:100,xp:0,rings:R9});
     await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; W1.hurts=[]; await test(W1,"wmech",{m:"charge"});
-    ok(await waitFor(()=>W1.boss.some(m=>m.k==="chargeHit"),DV.world.charge.skill.warn*1000+1500),"không ngắt kịp: Đại Địa Chấn trúng cả sàn");
+    ok(await waitFor(()=>W1.boss.some(m=>m.k==="chargeHit"),DV.world.charge.skill.warn*1000+1500)&&await waitFor(()=>!bossB().chg,1000),"không ngắt kịp: Đại Địa Chấn trúng cả sàn (hết cờ tích lực)");
     await test(W1,"wmech",{m:"hold",secs:300}); await sleep(200);
     const armorBit=statusBit("armor");
     ok(W.every(b=>mo(b).st&armorBit)&&W1.hurts.length>0,`3 người trong sàn dính Vết thương sâu (${STATUS.armor.name} 3 tầng), W1 mất máu`);
@@ -4708,8 +4709,11 @@ async function loiTinhDauTest(){
     W3.room.send("switch",{slot:sl}); await waitFor(()=>!(mo(W3).st&armorBit),2000);
     ok(!(mo(W3).st&armorBit)&&mo(W1).st&armorBit,`W3 đổi sang Xúc Xích (phụ trợ) đầy năng lượng: tiên cơ thanh tẩy Vết thương sâu; W1 chưa thanh tẩy vẫn còn`);
 
-    // Nổi giận sau 10 phút: sát thương x3, nhanh hơn, chiêu toàn sàn Bạo Nộ.
+    // Nổi giận sau 10 phút: sát thương x3, nhanh hơn, chiêu toàn sàn Bạo Nộ. Nổi giận đúng lúc đang tích lực thì hủy tích lực (hết cờ chg,
+    // client thôi nhắc ngắt).
+    await test(W1,"wmech",{m:"hold",secs:0}); await test(W1,"wmech",{m:"charge"}); const chg0=await waitFor(()=>bossB().chg,1000);
     W1.boss=[]; W1.fxs=[]; await test(W1,"wmech",{m:"rage"}); await waitFor(()=>bossB().phase===2,1500); ki=await test(W1,"king");
+    ok(chg0&&!ki.charge&&!bossB().chg,"nổi giận giữa lúc tích lực: hủy tích lực, BeastState.chg tắt");
     ok(ki.phase===2&&ki.world.rage&&Math.abs(ki.now-ki.dmg*WORLD.rageDmg)<1e-6&&Math.abs(ki.spd-WORLD.rageSpd)<1e-9&&W1.boss.some(m=>m.k==="rage")&&W1.fxs.some(f=>f.k==="roar"),
       `nổi giận (${Math.round(ki.life)} giây còn lại): sát thương ${ki.dmg.toFixed(0)} -> ${ki.now.toFixed(0)} (x${WORLD.rageDmg}), tốc độ x${ki.spd}`);
     await test(W1,"wmech",{m:"hold",secs:0}); W1.fxs=[]; await test(W1,"wmech",{m:"slam"});

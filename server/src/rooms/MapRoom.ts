@@ -2301,7 +2301,7 @@ export class MapRoom extends Room<MapState> {
   /** Bỏ chiêu đang báo trước (hồn thú bị Choáng / Câm lặng / Mê hoặc: "ngắt chiêu"); client xóa vùng cảnh báo. */
   cancelCast(bid: string, b: BeastState, bd: BData) {
     if (!bd.cast) return;
-    bd.cast = null; b.cast = false; bd.skT = Math.max(bd.skT, 1); b.brk = 0;
+    bd.cast = null; b.cast = false; bd.skT = Math.max(bd.skT, 1); b.brk = 0; b.chg = false;
     this.broadcast("fx", { k: "teleEnd", bid });
   }
 
@@ -2312,7 +2312,7 @@ export class MapRoom extends Room<MapState> {
    */
   fireCast(bid: string, b: BeastState, bd: BData) {
     const c = bd.cast!, def = c.def, x0 = b.x, y0 = b.y, main = c.teles[Math.floor(c.teles.length / 2)], base = this.beastDmg(bd);
-    bd.cast = null; b.cast = false; bd.skT = Math.max(bd.skT, 1.2); b.brk = 0;
+    bd.cast = null; b.cast = false; bd.skT = Math.max(bd.skT, 1.2); b.brk = 0; b.chg = false;
     // Tích lực không bị ngắt (BĐ6e): cả sàn trúng, báo cho cả phòng.
     if (c.charge) this.broadcast("boss", { k: "chargeHit", bid, name: def.name });
     const hit: string[] = [];
@@ -2619,7 +2619,12 @@ export class MapRoom extends Room<MapState> {
       this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size - 8, v: Math.round(used), c: "#9ad8ff", bid });
     }
     if (bd.elite) bd.elite.dmgBy.set(by, (bd.elite.dmgBy.get(by) ?? 0) + credit);
-    if (hpDmg <= 0) { b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0; if (o.direct !== false) pd.fight = 0; if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); } return dmg; }
+    // Khiên đỡ hết đòn: vẫn là một đòn trúng (năng lượng tiên cơ, tích Lôi, onHit như đòn trúng máu), chỉ không trừ máu.
+    if (hpDmg <= 0) {
+      b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0; if (o.direct !== false) pd.fight = 0;
+      if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, bd.st.has("shock")); hit.onHit?.(); }
+      return dmg;
+    }
     dmg = hpDmg;
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0;
     if (o.direct !== false) pd.fight = 0; // sát thương theo thời gian không giữ hồn sư trong giao chiến
@@ -3695,7 +3700,7 @@ export class MapRoom extends Room<MapState> {
     const pid = bd.target ?? [...(bd.elite?.parts.keys() ?? [])][0]; const tgt = pid ? this.state.players.get(pid) : undefined;
     this.beginCast(bid, b, bd, { def, cd: 0 }, pid ?? "", tgt ?? b);
     const w = bd.elite!.king!.world!, need = bd.elite!.king!.def.world?.charge?.need ?? 0;
-    if (charge) { bd.cast!.charge = true; w.brk = 0; w.brkAt.clear(); b.brk = 0; }
+    if (charge) { bd.cast!.charge = true; w.brk = 0; w.brkAt.clear(); b.brk = 0; b.chg = true; }
     this.broadcast("boss", { k: charge ? "charge" : "floor", bid, name: def.name, secs: def.warn, need });
   }
 
