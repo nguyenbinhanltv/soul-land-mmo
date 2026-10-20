@@ -1594,7 +1594,9 @@ export class MapRoom extends Room<MapState> {
       const years = yearsOf(int(o.tier, 0, TIERS.length - 1, 0));
       const x = Math.max(8, Math.min(this.map.MW * TILE - 8, p.x + int(o.dx, -200, 200, 20)));
       const y = Math.max(8, Math.min(this.map.MH * TILE - 8, p.y + int(o.dy, -200, 200, 0)));
-      const zi = Math.max(0, this.map.zones.findIndex((z) => x >= z.x0 && x < z.x1)), sp = beastIndex(String(o.species ?? ""));
+      // Vùng chứa điểm sinh theo cả hai trục (Cực Bắc BĐ6c chia vùng theo hàng); không có thì vùng đầu tiên cùng cột như trước.
+      const inZ = this.map.zones.findIndex((z) => x >= z.x0 && x < z.x1 && y >= z.y0 && y < z.y1);
+      const zi = Math.max(0, inZ >= 0 ? inZ : this.map.zones.findIndex((z) => x >= z.x0 && x < z.x1)), sp = beastIndex(String(o.species ?? ""));
       const bid = this.addBeast(zi, years, sp >= 0 ? sp : this.map.zones[zi]?.beasts[0]?.species ?? 0, x, y);
       // `hpx` (8.1a): nhân sinh lực hồn thú vừa sinh để bot đếm đủ các nhát của tuyệt kỹ nhiều nhát (không ảnh hưởng luật chơi thật).
       const hb = this.state.beasts.get(bid), hpx = int(o.hpx, 1, 1000, 1); if (hb && hpx > 1) hb.hp = hb.maxHp = hb.maxHp * hpx;

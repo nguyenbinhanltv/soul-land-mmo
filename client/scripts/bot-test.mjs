@@ -67,7 +67,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
   boneEnhancePreview,
-  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore,
+  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore, rollCoreStats,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
@@ -2254,9 +2254,9 @@ else {
       .filter(o=>(o.type??o.class)==="zone").map(o=>{ const pr=n=>(o.properties??[]).find(q=>q.name===n)?.value;
         return {yr:parseLevelRange(pr("years")),sp:String(pr("beasts")??"").split(",").map(x=>x.split(":")[0].trim()).filter(Boolean)}; });
     const need=new Set(), miss=[];
-    for(const m of ["tinh_dau_ngoai_vi","tinh_dau_noi_dia"]) for(const z of zonesOf(m)) if(z.yr[1]>=BEAST_SKILL_YEARS)
+    for(const m of ["tinh_dau_ngoai_vi","tinh_dau_noi_dia","cuc_bac_chi_dia"]) for(const z of zonesOf(m)) if(z.yr[1]>=BEAST_SKILL_YEARS)
       for(const sp of z.sp){ need.add(sp); if(!beastSkillOf(sp,Math.max(BEAST_SKILL_YEARS,z.yr[0]))) miss.push(sp); }
-    ok(need.size>=15&&!miss.length,`mọi loài từ 1.000 năm ở Ngoại vi / Nội địa có chiêu báo trước (${need.size} loài)`+(miss.length?`: thiếu ${miss.join(", ")}`:""));
+    ok(need.size>=27&&!miss.length,`mọi loài từ 1.000 năm ở Ngoại vi / Nội địa / Cực Bắc có chiêu báo trước (${need.size} loài)`+(miss.length?`: thiếu ${miss.join(", ")}`:""));
     ok(!beastSkillOf("liet_trao_hung",999)&&beastSkillOf("quy_dang",1200)?.name==="Quật Roi"&&beastSkillOf("quy_dang",3000)?.name==="Rễ Trói",
       "dưới 1.000 năm chỉ đánh thường; Quỷ Đằng ngàn năm (từ 1.500 năm) dùng Rễ Trói thay Quật Roi");
     const L={shape:"line",x:0,y:0,ang:0,r:100,w:14,arc:0}, C={...L,shape:"cone",r:50,arc:90}, R={...L,shape:"circle",r:30};
@@ -2357,12 +2357,12 @@ else {
     const objsOf=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
     const inR=(r,x,y)=>x>=r.x&&x<=r.x+(r.width??r.w)&&y>=r.y&&y<=r.y+(r.height??r.h);
     const bad=[];
-    for(const m of ["thanh_hon_thon","tinh_dau_ngoai_vi","tinh_dau_noi_dia","lac_nhat_sam_lam"]){ // BĐ6b thêm Lạc Nhật
+    for(const m of ["thanh_hon_thon","tinh_dau_ngoai_vi","tinh_dau_noi_dia","lac_nhat_sam_lam","cuc_bac_chi_dia"]){ // BĐ6b thêm Lạc Nhật, BĐ6c Cực Bắc
       const os=objsOf(m), zs=os.filter(o=>o.type==="zone"), es=os.filter(o=>o.type==="elite");
       for(const n of new Set(zs.map(z=>z.name))){ const k=es.filter(e=>zs.some(z=>z.name===n&&inR(z,e.x+e.width/2,e.y+e.height/2))).length; if(k!==1) bad.push(`${m}/${n}: ${k}`); }
       for(const e of es){ const id=e.properties.find(q=>q.name==="boss")?.value, d=BOSSES[bossIndex(id)]; if(!d||d.rank!==1||d.skills.length!==2||beastIndex(d.species)<0) bad.push(`${m}/${id}`); }
     }
-    ok(!bad.length,`mỗi vùng của 4 bản đồ săn có đúng 1 tinh anh (BOSSES, 2 chiêu, loài gốc có thật)`+(bad.length?`: ${bad.join("; ")}`:""));
+    ok(!bad.length,`mỗi vùng của 5 bản đồ săn có đúng 1 tinh anh (BOSSES, 2 chiêu, loài gốc có thật)`+(bad.length?`: ${bad.join("; ")}`:""));
     ok([[1,1],[2,1.6],[4,2.8],[10,6.4],[20,12.4]].every(([n,v])=>Math.abs(bossHpMult(n)-v)<1e-9),"hệ số máu theo số người đúng bảng 5.4 (x1 / x1,6 / x2,8 / x6,4 / x12,4)");
     const GT=BOSSES[bossIndex("huyet_gai_quy_dang")].skills[0], gz=teleZones(GT,0,0,100,0), TL=BOSSES[bossIndex("hac_sat_quy_ho")].skills[0], tz=teleZones(TL,0,0,100,0);
     ok(gz.length===3&&gz.map(z=>Math.round(z.x)).join()===`${100-GT.step},100,${100+GT.step}`&&tz.length===3&&Math.abs(tz[2].ang-tz[0].ang-TL.spread*Math.PI/180)<1e-9,
@@ -2477,14 +2477,17 @@ else {
     // Dữ liệu: thú vương của Ngoại vi và Nội địa (bảng 5.3), Thánh Hồn Thôn không có; hang (object `boss`) ở vùng sâu nhất.
     const kings=BOSSES.filter(b=>b.rank===2), objsK=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
     const kbad=[];
-    for(const [m,id,hp] of [["tinh_dau_ngoai_vi","huyet_nguyet_lang_vuong",6],["tinh_dau_noi_dia","thien_doc_chu_hoang",7],["lac_nhat_sam_lam","luong_nghi_thu_ho_xa",7]]){
-      const d=BOSSES[bossIndex(id)], os=objsK(m), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), deep=zs.reduce((a,z)=>z.x>a.x?z:a);
+    for(const [m,id,hp] of [["tinh_dau_ngoai_vi","huyet_nguyet_lang_vuong",6],["tinh_dau_noi_dia","thien_doc_chu_hoang",7],["lac_nhat_sam_lam","luong_nghi_thu_ho_xa",7],["cuc_bac_chi_dia","huyen_minh_bang_giao",8]]){
+      // Vùng sâu nhất = vùng có niên hạn cao nhất (Cực Bắc BĐ6c chia vùng theo hàng, càng lên bắc càng sâu).
+      const zy=z=>parseLevelRange(z.properties.find(q=>q.name==="years")?.value)?.[1]??0;
+      const d=BOSSES[bossIndex(id)], os=objsK(m), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), deep=zs.reduce((a,z)=>zy(z)>zy(a)?z:a);
       if(MAPS[m].king!==id||d?.rank!==2||d.hp!==hp||beastIndex(d.species)<0) kbad.push(`${m}: ${id}`);
       if(d&&(d.skills.length<2||d.skills.length>3||!d.phase2?.skills.length||[...d.skills,...d.phase2.skills].some(s=>s.warn<1))) kbad.push(`${id}: chiêu`);
-      if(lr.length!==1||lr[0].properties.find(q=>q.name==="boss")?.value!==id||lr[0].x<deep.x||lr[0].x+lr[0].width>deep.x+deep.width) kbad.push(`${m}: hang`);
+      if(lr.length!==1||lr[0].properties.find(q=>q.name==="boss")?.value!==id||lr[0].x<deep.x||lr[0].x+lr[0].width>deep.x+deep.width
+        ||lr[0].y<deep.y||lr[0].y+lr[0].height>deep.y+deep.height) kbad.push(`${m}: hang`);
     }
     if(MAPS.thanh_hon_thon.king||objsK("thanh_hon_thon").some(o=>o.type==="boss")) kbad.push("thanh_hon_thon có thú vương");
-    ok(!kbad.length&&kings.length===3,`3 thú vương (BĐ6b thêm Lạc Nhật; ${kings.map(k=>`${k.name} x${k.hp}: ${k.skills.map(s=>s.name).join(", ")} + GĐ2 ${k.phase2.name}`).join("; ")}), hang ở vùng sâu nhất, Thánh Hồn Thôn không có`+(kbad.length?`: ${kbad.join("; ")}`:""));
+    ok(!kbad.length&&kings.length===4,`4 thú vương (BĐ6b thêm Lạc Nhật, BĐ6c Cực Bắc; ${kings.map(k=>`${k.name} x${k.hp}: ${k.skills.map(s=>s.name).join(", ")} + GĐ2 ${k.phase2.name}`).join("; ")}), hang ở vùng sâu nhất, Thánh Hồn Thôn không có`+(kbad.length?`: ${kbad.join("; ")}`:""));
     // Lịch theo giờ Việt Nam (UTC+7, Asia/Ho_Chi_Minh): 20:00 và 22:00; ngày nhận thưởng đổi lúc 00:00.
     const U=(h,mi=0,d=19)=>Date.UTC(2026,9,d,h,mi);
     ok(vnDay(U(16,59)+59000)==="2026-10-19"&&vnDay(U(17,0))==="2026-10-20"&&kingNext(U(12,0))===U(13,0)&&kingNext(U(13,30))===U(15,0)&&kingNext(U(16,0))===U(13,0,20)
@@ -2586,7 +2589,7 @@ else {
     await test(K,"chest",{bone:100,ur:100,i:3}); lg=await open(); const got=qtyOf(K,shardCode(pool[3].vohon))-s3;
     ok(pool[3].vohon===KING_CHEST.fire&&got>=KING_CHEST.shards[0]&&got<=KING_CHEST.shards[1]&&bonesOf(K).length===b1&&chestK(K)===1,`mở rương lần 2 (không hồn cốt, không UR): ${lg}`);
     // Từ BĐ6b mảnh Bích Lân Xà Hoàng rơi ở Lạc Nhật nên không còn trong nhóm "bản đồ chưa mở"; Yêu Hồ (Cực Bắc, BĐ6c) thì còn.
-    ok(pool.some(x=>x.vohon==="yeu_ho")&&!pool.some(x=>x.vohon==="bich_lan_xa_hoang")&&pool.filter(x=>MAPS.tinh_dau_ngoai_vi.shards.includes(x.vohon)).length===3,`mảnh trong rương: của bản đồ, Tà Hỏa Phượng Hoàng, võ hồn bản đồ chưa mở (${pool.map(x=>x.vohon).join(", ")})`);
+    ok(pool.some(x=>x.vohon==="quy_mi")&&!pool.some(x=>x.vohon==="yeu_ho")&&!pool.some(x=>x.vohon==="bich_lan_xa_hoang")&&pool.filter(x=>MAPS.tinh_dau_ngoai_vi.shards.includes(x.vohon)).length===3,`mảnh trong rương: của bản đồ, Tà Hỏa Phượng Hoàng, võ hồn bản đồ chưa mở (${pool.map(x=>x.vohon).join(", ")})`);
     // Túi còn dưới KING_CHEST.slots ô trống: không mở được, rương còn nguyên.
     const free=BAG_SLOTS-K.bag.items.filter(i=>i.vohon===null).length; await test(K,"give",{code:"hon_hoan",qty:free-KING_CHEST.slots+1,years:10}); await sleep(100);
     lg=await open(); ok(new RegExp(`Cần ${KING_CHEST.slots} ô trống`).test(lg)&&chestK(K)===1,`túi còn ${KING_CHEST.slots-1} ô trống: "${lg}"`);
@@ -3945,7 +3948,7 @@ async function npcTown(){
 /**
  * BĐ6a Thiên Đấu Thành: bot C đi bộ qua cổng bắc Nặc Đinh Thành (thành an toàn, không cảnh báo cấp), xuất hiện đúng điểm `arrive`; thành
  * không có hồn thú, không giao chiến; NPC thành (Phất Lan Đức, thương nhân mua được đan, lò rèn, Đại Đấu Hồn Trường) nói chuyện được;
- * cổng Cực Bắc / bến thuyền Hải Thần Đảo chỉ là biển "sắp mở" (cổng tây Lạc Nhật mở từ BĐ6b, lacNhatTest): không có cổng, tường / sông chặn; thoát vào lại đúng bản đồ
+ * bến thuyền Hải Thần Đảo chỉ là biển "sắp mở" (cổng tây Lạc Nhật mở từ BĐ6b, lacNhatTest; cổng bắc Cực Bắc từ BĐ6c, cucBacTest): không có cổng, tường / sông chặn; thoát vào lại đúng bản đồ
  * và vị trí; đi bộ về Nặc Đinh Thành, xuất hiện ở cổng bắc.
  */
 async function thienDauTest(){
@@ -3953,9 +3956,10 @@ async function thienDauTest(){
   const raw=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
   const objs=raw(AT), portals=objs.filter(o=>o.type==="portal").map(o=>o.name);
   ok(MAPS[AT]?.kind==="town"&&MAPS[AT].level===null&&MAPS[AT].name==="Thiên Đấu Thành","MAPS: Thiên Đấu Thành là thành an toàn (town), không cấp đề xuất");
-  // BĐ6b mở cổng tây (Lạc Nhật Sâm Lâm): thêm portal thay biển `cong_lac_nhat`.
-  ok(same([...portals].sort(),["Về Nặc Đinh Thành","Đi Lạc Nhật Sâm Lâm"].sort()),`Thiên Đấu Thành có cổng về Nặc Đinh Thành và cổng tây đi Lạc Nhật (cổng chưa mở không đặt portal): ${portals.join(", ")}`);
-  const signs=["cong_cuc_bac","ben_thuyen_hai_than"];
+  // BĐ6b mở cổng tây (Lạc Nhật Sâm Lâm), BĐ6c cổng bắc (Cực Bắc Chi Địa): portal thay biển `cong_lac_nhat` / `cong_cuc_bac`.
+  ok(same([...portals].sort(),["Về Nặc Đinh Thành","Đi Lạc Nhật Sâm Lâm","Đi Cực Bắc Chi Địa"].sort()),`Thiên Đấu Thành có cổng về Nặc Đinh Thành, cổng tây đi Lạc Nhật và cổng bắc đi Cực Bắc (cổng chưa mở không đặt portal): ${portals.join(", ")}`);
+  ok(!npcDef("cong_cuc_bac")&&!npcSpot(AT,"cong_cuc_bac"),"cổng bắc không còn biển \"sắp mở\" (BĐ6c)");
+  const signs=["ben_thuyen_hai_than"];
   ok(signs.every(id=>npcDef(id)?.role==="talk"&&!npcDef(id).looks&&/sắp mở/i.test(npcDef(id).title+npcDef(id).lines.join(" "))&&npcSpot(AT,id)),
     `biển "sắp mở": ${signs.map(id=>npcDef(id)?.name).join(", ")}`);
   if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Thiên Đấu Thành (cần hook goto, coin): bật server bằng GAME_TEST=1"); return; }
@@ -3982,13 +3986,14 @@ async function thienDauTest(){
     const hh=SHOP.find(r=>r.code==="hoi_huyet_dan"), q0=qtyOf(C,hh.code), h0=C.bag.honTe, t=await trade(C,"buy",{code:hh.code,qty:1});
     ok(qtyOf(C,hh.code)===q0+1&&C.bag.honTe===h0-hh.price,`thương nhân Thiên Đấu bán đan cùng giá (${t})`); }
   // Cổng chưa mở: xin đi bị từ chối, đi tiếp ra ngoài bị tường / sông chặn, không hiện hộp cổng.
-  for(const [id,dx,dy] of [["cong_cuc_bac",0,-1],["ben_thuyen_hai_than",1,0]]){
+  for(const [id,dx,dy] of [["ben_thuyen_hai_than",1,0]]){
     C.room.send("travel",{portal:npcDef(id).name}); ok(await lastLog(C,/không tồn tại/),`${npcDef(id).name}: không phải cổng`);
     const sp=npcSpot(AT,id); await test(C,"goto",{x:sp.x,y:sp.y+16}); C.portal=null;
     await walk(dx,dy,()=>false,1500); const q=me();
     // tường thành ở cột / hàng 0, thuyền neo từ cột 77 (tools/gen-map.mjs)
     ok(q.x>16&&q.y>16&&q.x<77*16&&!C.portal?.name&&C.room.state.mapId===AT,`${npcDef(id).name}: đi tiếp bị chặn ở (${q.x.toFixed(0)},${q.y.toFixed(0)}), vẫn ở Thiên Đấu Thành`);
   }
+  await cucBacTest();
   // Thoát vào lại: đúng bản đồ, đúng chỗ.
   { const sp=npcSpot(AT,"phat_lan_duc"); await test(C,"goto",{x:sp.x,y:sp.y+16}); await C.room.leave(); await sleep(400);
     const m=await post("/api/me",{token:C.token}); ok(m.mapId===AT,`thoát rồi /api/me: ${m.mapId}`);
@@ -4163,6 +4168,123 @@ async function lacNhatTest(){
       ok(ki?.bid&&inL&&ki.years===M.years[1]&&same(ki.skills,K.skills.map(s=>s.name))&&L.boss.some(m=>m.k==="spawn"),
         `Tà hóa ${K.name} xuất hiện trong hang (${ki?.years} năm, ${ki?.hp}/${ki?.maxHp} máu, chiêu ${ki?.skills?.join(", ")})`); }
   } finally { C=C0; await L.room.leave().catch(()=>{}); }
+}
+
+/**
+ * BĐ6c Cực Bắc Chi Địa (gọi trong thienDauTest, bot C đang ở Thiên Đấu Thành): dữ liệu bảng 5.3 (4 vùng, loài, niên hạn, chiêu từ
+ * 1.000 năm, tinh anh, thú vương, hồn cốt theo loài, rơi đặc trưng); đi bộ lên cổng bắc Thiên Đấu Thành (cấp đề xuất 60–85, chặn mềm),
+ * xuất hiện ở trại cổng; hồn thú đúng khoảng năm theo vùng, không sát cổng; chiêu báo trước thật của hồn thú băng (đóng băng = Choáng,
+ * Mê hoặc lên hồn sư = Choáng ngắn, Làm chậm); 4 tinh anh có mặt (hook `elite`); thú vương theo lịch (hook `king`), giai đoạn 2 Cực
+ * Hàn, hạ thì có rương; mảnh võ hồn và hồn hạch rơi theo bảng "Rơi đặc trưng"; đi cổng về Thiên Đấu Thành.
+ */
+async function cucBacTest(){
+  console.log("[BĐ6c] Cực Bắc Chi Địa: cổng bắc Thiên Đấu Thành, vùng, hồn thú băng, tinh anh, thú vương, rơi đặc trưng");
+  const CBM="cuc_bac_chi_dia", M=MAPS[CBM];
+  const objs=JSON.parse(readFileSync(new URL(`../../shared/assets/${CBM}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const pr=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value, inR=(r,x,y)=>x>=r.x&&x<=r.x+(r.width??r.w)&&y>=r.y&&y<=r.y+(r.height??r.h);
+  ok(M?.kind==="hunt"&&same(M.level,[60,85])&&same(M.years,[20000,80000])&&same(M.shards,["yeu_ho","can_khon_hon_nguyen_toa","nguyet_nhan"])
+    &&same(M.cores,["lam_ngan","that_sat"])&&M.king==="huyen_minh_bang_giao","MAPS: Cực Bắc Chi Địa săn cấp 60–85, 20.000–80.000 năm, mảnh Yêu Hồ / Càn Khôn Hỗn Nguyên Tỏa / Nguyệt Nhận, bộ Lam Ngân / Thất Sát");
+  // Bảng 5.3: tên vùng, niên hạn, loài thường, tinh anh (từ nam lên bắc).
+  const TB=[["Tuyết nguyên","20000-35000",["tuyet_lang","bang_nguyen_cu_tuong","bang_vu_ung"],"ngan_nguyet_tuyet_lang_vuong"],
+    ["Băng hà nứt","30000-50000",["bang_giap_cu_quy","tuyet_vi_yeu_ho","bang_tinh_hat"],"luc_vi_bang_ho"],
+    ["Băng Phong Cốc","45000-65000",["han_bang_dia_long","bang_phong_bach_hung","han_nguyet_ung"],"huyen_bang_toa_lien_mang"],
+    ["Cực Bắc Băng Uyên","60000-80000",["bang_bich_hat","huyen_minh_bang_tam","tuyet_ma_vien"],"bang_bich_hat_vuong"]];
+  const zs=objs.filter(o=>o.type==="zone"), es=objs.filter(o=>o.type==="elite"), zbad=[];
+  for(const [n,yr,sp,el] of TB){ const z=zs.find(o=>o.name===n), y=parseLevelRange(yr), e=es.find(o=>pr(o,"boss")===el);
+    const zsp=String(pr(z??{},"beasts")??"").split(",").map(x=>x.split(":")[0]);
+    if(!z||!same(parseLevelRange(pr(z,"years")),y)||!same([...zsp].sort(),[...sp].sort())) zbad.push(`${n}: vùng`);
+    if(sp.some(s=>beastIndex(s)<0||!beastSkillOf(s,y[0])||!BONE_SKILLS[s])) zbad.push(`${n}: loài / chiêu / hồn cốt`);
+    if(!e||!z||!inR(z,e.x+e.width/2,e.y+e.height/2)||BOSSES[bossIndex(el)]?.skills.length!==2) zbad.push(`${n}: tinh anh`); }
+  // Vùng chồng nhau 10 cấp theo chiều sâu: càng lên bắc (y nhỏ) càng già.
+  const order=TB.map(([n])=>zs.find(o=>o.name===n)?.y??-1);
+  ok(!zbad.length&&zs.length===4&&order.every((y,i)=>!i||y<order[i-1]),`4 vùng đúng bảng 5.3, từ nam lên bắc: ${TB.map(([n,yr])=>`${n} ${yr}`).join(" → ")}`+(zbad.length?`: ${zbad.join("; ")}`:""));
+  const kd=BOSSES[bossIndex(M.king)], lair=objs.find(o=>o.type==="boss"), deep=zs.find(o=>o.name===TB[3][0]);
+  ok(kd?.rank===2&&kd.hp===8&&kd.skills.length===2&&kd.phase2?.name==="Cực Hàn"&&kd.phase2.skills.length===2&&lair&&pr(lair,"boss")===M.king&&inR(deep,lair.x,lair.y)&&inR(deep,lair.x+lair.width,lair.y+lair.height)
+    &&itemDef(chestCode(M.king))?.kind==="ruong",`thú vương ${kd?.name} x${kd?.hp}: ${kd?.skills.map(s=>s.name).join(", ")} + GĐ2 ${kd?.phase2?.name} (${kd?.phase2?.skills.map(s=>s.name).join(", ")}), hang trong ${deep?.name}`);
+  // Rơi đặc trưng: mảnh của Cực Bắc vào rương các bản đồ khác không còn là "bản đồ chưa mở"; hồn hạch phần lớn thuộc bộ của bản đồ.
+  const pool=kingShardPool(CBM), poolNV=kingShardPool("tinh_dau_ngoai_vi").map(x=>x.vohon);
+  ok(M.shards.every(v=>pool.find(x=>x.vohon===v)?.w===3&&!poolNV.includes(v)),`rương thú vương: mảnh Cực Bắc trọng số 3 ở Cực Bắc, không còn trong nhóm "bản đồ chưa mở" (${poolNV.join(", ")})`);
+  ok(rollCoreStats(5,M.cores,()=>0).set==="lam_ngan"&&rollCoreStats(5,M.cores,()=>0.5).set==="that_sat"&&CORE_MAP_SET>=0.5,`hồn hạch rơi ở Cực Bắc: ${CORE_MAP_SET*100}% thuộc bộ ${M.cores.map(s=>CORE_SETS[coreSetIndex(s)].name).join(" / ")}`);
+  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Cực Bắc (cần hook goto, warp, spawn, tele, elite, king): bật server bằng GAME_TEST=1"); return; }
+
+  // Đi bộ lên cổng bắc Thiên Đấu Thành.
+  const tdObjs=JSON.parse(readFileSync(new URL(`../../shared/assets/${AT}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const back=tdObjs.find(o=>o.type==="arrive"&&o.name==="tu_cuc_bac_chi_dia");
+  await test(C,"goto",{x:back.x,y:back.y}); C.portal=null;
+  ok(await walk(0,-1,()=>C.portal?.name,4000)&&C.portal.name==="Đi Cực Bắc Chi Địa",`tới cổng bắc Thiên Đấu Thành: ${JSON.stringify(C.portal)}`);
+  ok(C.portal?.to===CBM&&C.portal.toName===M.name&&same(C.portal.level,[60,85])&&C.portal.warn===(me().level<60),`hộp cổng: đề xuất cấp 60–85, cấp ${me().level} -> cảnh báo ${C.portal?.warn} (chặn mềm: vẫn đi được)`);
+  await travelBy("Đi Cực Bắc Chi Địa",CBM);
+  const ar=objs.find(o=>o.type==="arrive"&&o.name==="tu_thien_dau_thanh"), camp=objs.find(o=>o.type==="spawn");
+  ok(Math.hypot(me().x-ar.x,me().y-ar.y)<1&&inR(camp,me().x,me().y),`xuất hiện ở trại cổng Cực Bắc: ${me().x},${me().y}`);
+  await waitFor(()=>C.room.state.beasts.size>=10,3000);
+  checkGateClear(C,checkBeastYears(C)); // vùng Cực Bắc: 20.000–35.000 … 60.000–80.000 năm
+
+  // Võ hồn ra trận cấp 80, 8 vòng (đủ sinh lực chịu chiêu hồn thú vạn năm); trả lại như cũ ở cuối.
+  const act=C.owned.active, v0=C.owned.list.find(v=>v.rowId===act);
+  await test(C,"set",{rowId:act,level:80,xp:0,rings:[423,764,1760,5000,12000,20000,50000,90000]});
+  await sleep(1600); // vừa vào bản đồ thì bất tử 1,5 giây (chiêu trúng nhưng không mất máu, không gây trạng thái)
+  // Chiêu báo trước thật: đóng băng (Choáng), Mê hoặc lên hồn sư (Choáng ngắn), Làm chậm; đứng trong vùng thì trúng.
+  for(const [sp,years,dx,dy,s] of [["han_bang_dia_long",50000,26,0,"stun"],["tuyet_vi_yeu_ho",40000,60,0,"stun"],["bang_nguyen_cu_tuong",25000,24,0,"slow"]]){
+    await test(C,"clear"); await test(C,"ready"); const before=new Set(C.room.state.beasts.keys());
+    await test(C,"spawn",{tier:tierOfYears(years),years,species:sp,dx,dy});
+    let bid=null; await waitFor(()=>{ C.room.state.beasts.forEach((o,k)=>{ if(!before.has(k)&&BEASTS[o.species]?.id===sp) bid=k; }); return bid; });
+    await test(C,"status",{s:"root",secs:30}); C.fxs=[];
+    const r=await test(C,"tele",{i:0}), def=beastSkillOf(sp,years), tl=C.fxs.find(f=>f.k==="tele"&&f.bid===bid)??(await waitFor(()=>C.fxs.some(f=>f.k==="tele"&&f.bid===bid),800),C.fxs.find(f=>f.k==="tele"&&f.bid===bid));
+    await waitFor(()=>C.fxs.some(f=>(f.k==="teleHit"||f.k==="teleEnd")&&f.bid===bid),2500);
+    // Tin fx đến trước bản vá state: chờ trạng thái hiện trên PlayerState.st.
+    const hit=C.fxs.find(f=>f.k==="teleHit"&&f.bid===bid), got=await waitFor(()=>(me().st&statusBit(s))!==0,800);
+    ok(r?.name===def.name&&tl?.shape===def.shape&&hit?.hit.includes(C.room.sessionId)&&got,
+      `${BEASTS[beastIndex(sp)].name} ${formatYears(years)}: ${def.name} (${def.shape} ${def.r}) trúng, gây ${STATUS[s].name}${def.status?.[0]?.secs?` ${def.status[0].secs} giây`:""}`
+      +(got&&hit?.hit.includes(C.room.sessionId)?"":` [bid ${bid}, tele ${JSON.stringify(r)}, fx ${C.fxs.filter(f=>/^tele/.test(f.k)).map(f=>`${f.k}:${f.bid}:${f.hit??""}`).join(" ")}, st ${me().st}, sinh lực ${me().hp}/${me().maxHp}, chết ${me().dead}]`));
+    await sleep(1300);
+  }
+  await test(C,"clear");
+
+  // Tinh anh: mỗi vùng 1 con, niên hạn bằng mức trên của vùng (hook elite; vừa bị xóa thì rút giờ chờ hồi sinh).
+  await test(C,"erespawn",{s:0});
+  let L=(await test(C,"elite")).list; for(let k=0;k<20&&L.some(e=>!e.bid);k++){ await sleep(400); L=(await test(C,"elite")).list; }
+  const ebad=L.filter(e=>{ const t=TB.find(x=>x[3]===e.boss), b=e.bid&&C.room.state.beasts.get(e.bid);
+    return !t||e.zone!==t[0]||e.years!==parseLevelRange(t[1])[1]||!b||b.rank!==1||e.skills.join()!==BOSSES[bossIndex(e.boss)].skills.map(x=>x.name).join(); });
+  ok(L.length===4&&!ebad.length,`4 tinh anh có mặt: ${L.map(e=>`${e.name} (${e.zone}, ${e.years} năm: ${e.skills?.join(" / ")})`).join("; ")}`+(ebad.length?` ✗ ${ebad.map(e=>e.boss).join(",")}`:""));
+
+  // Thú vương theo lịch (hook king phát sự kiện như schedule.ts): trong hang, 80.000 năm, máu x8; giai đoạn 2 Cực Hàn; hạ thì có rương.
+  C.boss=[]; await test(C,"king",{kop:"spawn"});
+  const kingB=()=>[...C.room.state.beasts.values()].find(b=>b.rank===2);
+  ok(await waitFor(()=>kingB()&&C.boss.some(m=>m.k==="spawn"),2500),`xuất hiện: "${C.boss.find(m=>m.k==="spawn")?.name}" ở ${C.boss.find(m=>m.k==="spawn")?.mapName}`);
+  let ki=await test(C,"king"); const Y=M.years[1], kbase=Math.round(beastStats(Y).hp*kd.hp);
+  ok(ki.bid&&inR(ki.lair,ki.x,ki.y)&&ki.years===Y&&ki.base===kbase&&ki.phase===1&&same(ki.skills,kd.skills.map(s=>s.name)),
+    `thú vương trong hang (${ki.x?.toFixed(0)},${ki.y?.toFixed(0)}), ${ki.years} năm, máu ${ki.maxHp} (x${kd.hp}), chiêu ${ki.skills?.join(", ")}`);
+  // Gây sát thương là thành người tham gia (mục 5.4), nên C đứng ở trại cổng, ngoài tầm thú vương.
+  await test(C,"kdmg",{v:1}); ki=await test(C,"king"); C.boss=[];
+  await test(C,"kdmg",{v:Math.ceil(ki.hp-ki.maxHp*KING.phaseHp)+1});
+  ok(await waitFor(()=>kingB()?.phase===2,1500)&&C.boss.some(m=>m.k==="phase"&&m.title==="Cực Hàn"),`giai đoạn 2 – ${C.boss.find(m=>m.k==="phase")?.title} (${C.boss.find(m=>m.k==="phase")?.desc})`);
+  ki=await test(C,"king");
+  ok(same(ki.skills,[...kd.skills,...kd.phase2.skills].map(s=>s.name))&&Math.abs(ki.spd-kd.phase2.spd)<1e-9,`chiêu giai đoạn 2: ${ki.skills.join(", ")}; tốc độ x${ki.spd}`);
+  const ch0=qtyOf(C,chestCode(M.king)); C.boss=[]; await test(C,"kdmg",{v:1e8});
+  ok(await waitFor(()=>!kingB()&&C.boss.some(m=>m.k==="down"),2500)&&await waitFor(()=>qtyOf(C,chestCode(M.king))===ch0+1,2000),
+    `hạ thú vương: nhận ${itemDef(chestCode(M.king))?.name} (${C.logs.slice(-2).join(" | ")})`);
+  await test(C,"goto",{x:ar.x,y:ar.y});
+
+  // Rơi đặc trưng: mảnh của 3 võ hồn Cực Bắc vào túi người hạ (hook shard cố định võ hồn), hồn hạch sao theo niên hạn.
+  await test(C,"core",{r:0});
+  for(let i=0;i<M.shards.length;i++){
+    const [n,yr,sp]=TB[i], y=parseLevelRange(yr)[0], code=shardCode(M.shards[i]), q0=qtyOf(C,code);
+    await test(C,"clear"); await test(C,"shard",{r:0,i}); const before=new Set(C.room.state.drops.keys());
+    await test(C,"spawn",{tier:tierOfYears(y),years:y,species:sp[0],dx:20}); await sleep(150);
+    const sl=await test(C,"slay"); await waitFor(()=>qtyOf(C,code)>q0,1500);
+    const nd=[...C.room.state.drops.entries()].filter(([k])=>!before.has(k)).map(([,d])=>d), core=nd.find(d=>d.item===CORE_ITEM), ring=nd.find(d=>!d.item);
+    const [lo,hi]=coreStarBand(y);
+    ok(sl?.years===y&&qtyOf(C,code)===q0+1&&ring?.years===y&&core&&core.stars>=lo&&core.stars<=hi,
+      `hạ ${BEASTS[beastIndex(sp[0])].name} ${formatYears(y)} (${n}): +1 mảnh ${VOHON[vohonIndex(M.shards[i])].name}, hồn hoàn ${formatYears(ring?.years??0)}, hồn hạch ${core?.stars}★ ${CORE_SETS[core?.cset]?.name}`);
+  }
+  await test(C,"shard",{r:-1}); await test(C,"core",{r:100}); await test(C,"clear");
+  await test(C,"set",{rowId:act,level:v0.level,xp:v0.xp,rings:v0.rings});
+
+  // Về Thiên Đấu Thành bằng cổng ở mép nam, xuất hiện ở cổng bắc.
+  await test(C,"goto",{x:ar.x,y:ar.y}); C.portal=null;
+  ok(await walk(0,1,()=>C.portal?.name,4000)&&C.portal.to===AT&&!C.portal.warn&&!C.portal.level,`tới cổng về Thiên Đấu Thành: ${C.portal?.name}`);
+  await travelBy("Về Thiên Đấu Thành",AT);
+  ok(Math.hypot(me().x-back.x,me().y-back.y)<1,`về Thiên Đấu Thành ở cổng bắc: ${me().x},${me().y}`);
 }
 
 /**
