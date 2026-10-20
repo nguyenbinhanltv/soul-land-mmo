@@ -4470,7 +4470,8 @@ async function arenaTest(){
   const LD="lam_dien_ba_vuong_long", YH="yeu_ho";
   for(const vo of [LD,YH]) await test(E,"grant",{vohon:vo});
   const rowOf=vo=>E.owned.list.find(v=>v.vohon===vo).rowId, rowLD=rowOf(LD), rowYH=rowOf(YH);
-  for(const r of [rowLD,rowYH]) await test(E,"set",{rowId:r,level:100,xp:0,rings:Array(MAX_RINGS).fill(100)});
+  // Cấp thấp, hồn hoàn 10 năm: chỉ cần tuyệt kỹ trúng; sau tuyệt kỹ Chu Hoàng (8.1d) đội F không được gục hết (trận 4 thắng theo %).
+  for(const r of [rowLD,rowYH]) await test(E,"set",{rowId:r,level:40,xp:0,rings:Array(MAX_RINGS).fill(10)});
   await test(E,"rest",{s:TEAM_COMBAT_SECS+1});
   for(const r of [rowLD,rowYH]){ n0=E.ownedMsgs; E.room.send("loadout",{rowId:r,skills:[9,4,5,-1]}); await waitFor(()=>E.ownedMsgs>n0,1500); await sleep(80); }
   ok([rowLD,rowYH].every(r=>same(E.owned.list.find(v=>v.rowId===r)?.skills,[9,4,5,-1])),"ở thành: Lam Điện Bá Vương Long, Yêu Hồ mang tuyệt kỹ ở ô U");
