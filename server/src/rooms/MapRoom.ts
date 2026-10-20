@@ -1871,6 +1871,8 @@ export class MapRoom extends Room<MapState> {
     // Đòn của đối thủ (Đại Đấu Hồn Trường, `pvp`, 7.2) không đặt khung bất tử 0,45 giây (hồn kỹ nhiều nhát vẫn trúng đủ) và không lan Cảm điện;
     // bất tử do hồn kỹ / lúc vào sân vẫn chặn.
     if (this.buffV(d, "inv")) { d.fight = 0; if (direct && !o.pvp) d.inv = 0.45; this.broadcast("dmg", { x: p.x, y: p.y - 18, v: 0, c: "#fff2b0", id, immune: true }); return false; }
+    // Tàng hình (đã chốt 2026-10-20): bị đòn trực tiếp đánh trúng thì hiện hình, kể cả khi khiên đỡ hết; đòn bị miễn ở trên thì không.
+    if (direct) this.unhide(p, d);
     const raw = dmg, armor = d.st.get("armor");
     dmg *= 1 + (d.st.has("vuln") ? STATUS.vuln.amp : 0) + (direct && armor ? STATUS.armor.amp * armor.n : 0);
     dmg = Math.round(dmg * VOHON[p.vh].def * (1 - Math.min(0.9, this.buffV(d, "def"))));
@@ -1968,7 +1970,7 @@ export class MapRoom extends Room<MapState> {
     const ids = d.team.map((r) => d.owned.find((v) => v.rowId === r)?.vohon ?? "");
     return bondsOf(ids).reduce((a, b: BondDef) => a + (b[k] ?? 0), 0);
   }
-  /** Đánh thường, tung hồn kỹ hoặc tiên cơ thì hết tàng hình (Yêu Hồ, 2.5c). */
+  /** Đánh thường, tung hồn kỹ hoặc tiên cơ thì hết tàng hình (Yêu Hồ, 2.5c); từ 2026-10-20 bị đòn trực tiếp đánh trúng cũng hết (hurtPlayer). */
   unhide(p: PlayerState, d: PData) { if (d.buffs.delete("hide")) this.syncBuffs(p, d); }
 
   /** Hồn thú gần hồn sư nhất trong bán kính r. */

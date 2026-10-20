@@ -1187,14 +1187,17 @@ else {
       const id="kim_vu_mieu_ung", sk=skillsOf(id);
       ok(await lineup(id),`E: ${vname(id)} ra trận`);
       await basic(id,0,{n:sk[0].n});
-      // Tê liệt trên hồn thú vạn năm (khống chế × 0,75): không đi, không đánh; hết co giật trước, Câm lặng còn lâu hơn.
-      const tb=await basic(id,1,{tier:3,d:40,stun:false}), t0=posOf(tb); E.hurts=[]; await sleep(1500);
-      ok(beastOf(E,tb)&&same(posOf(tb),t0)&&!E.hurts.length&&hasSt(beastOf(E,tb),"root")&&hasSt(beastOf(E,tb),"silence"),"tê liệt: hồn thú kề bên đứng yên, không đánh");
-      // Thời gian trạng thái chạy theo nhịp server (dt mỗi nhịp kẹp 100 ms, server bận thì chậm hơn đồng hồ thật): chờ hết co giật
-      // rồi mới xem Câm lặng (còn thêm 1,5 giây), không đo bằng một khoảng ngủ cố định.
-      const unroot=await waitFor(()=>!hasSt(beastOf(E,tb),"root"),3*CC_TIER_MULT[3]*1000), silent=hasSt(beastOf(E,tb),"silence");
-      ok(unroot&&silent,`hết co giật sau ${3*CC_TIER_MULT[3]} giây, Câm lặng còn (${5*CC_TIER_MULT[3]} giây)`+
-        (unroot&&silent?"":` [hồn thú ${beastOf(E,tb)?"còn":"mất"}, co giật ${hasSt(beastOf(E,tb),"root")}, Câm lặng ${silent}]`));
+      // Tê liệt trên hồn thú vạn năm (khống chế × 0,75): Choáng (đã chốt 2026-10-20, thay Trói) nên không đi, không đánh; hết Choáng
+      // trước, Câm lặng còn lâu hơn.
+      const tl=sk[1].status, tS=tl.find(a=>a.s==="stun")?.secs, tQ=tl.find(a=>a.s==="silence")?.secs;
+      ok(tS>0&&tQ>tS&&!tl.some(a=>a.s==="root"),`${sk[1].name}: tê liệt = Choáng ${tS} giây + Câm lặng ${tQ} giây (không còn Trói)`);
+      const tb=await basic(id,1,{tier:3,d:40,stun:false}), t0=posOf(tb); E.hurts=[]; await sleep(tS*CC_TIER_MULT[3]*1000-500);
+      ok(beastOf(E,tb)&&same(posOf(tb),t0)&&!E.hurts.length&&hasSt(beastOf(E,tb),"stun")&&hasSt(beastOf(E,tb),"silence"),"tê liệt: hồn thú kề bên đứng yên, không đánh (Choáng + Câm lặng)");
+      // Thời gian trạng thái chạy theo nhịp server (dt mỗi nhịp kẹp 100 ms, server bận thì chậm hơn đồng hồ thật): chờ hết Choáng
+      // rồi mới xem Câm lặng (còn thêm 2,25 giây), không đo bằng một khoảng ngủ cố định.
+      const unstun=await waitFor(()=>!hasSt(beastOf(E,tb),"stun"),tS*CC_TIER_MULT[3]*1000), silent=hasSt(beastOf(E,tb),"silence");
+      ok(unstun&&silent,`hết Choáng sau ${tS*CC_TIER_MULT[3]} giây, Câm lặng còn (${tQ*CC_TIER_MULT[3]} giây)`+
+        (unstun&&silent?"":` [hồn thú ${beastOf(E,tb)?"còn":"mất"}, Choáng ${hasSt(beastOf(E,tb),"stun")}, Câm lặng ${silent}]`));
       const x0=me.x, y0=me.y; await basic(id,2,{d:40});
       ok(Math.hypot(me.x-x0,me.y-y0)>=50&&E.fxs.some(f=>f.k==="fly"&&f.id===E.room.sessionId),`${sk[2].name}: bay ${Math.hypot(me.x-x0,me.y-y0).toFixed(0)} pixel qua hồn thú (fx fly)`);
       // Áo nghĩa: mọi hồn thú trong 160 pixel Cảm điện 8 giây (lâu hơn mặc định 6 giây).
@@ -1292,6 +1295,9 @@ else {
         (hasBuff(me,"hide")&&beastOf(E,hb)?"":` (tàng hình ${hasBuff(me,"hide")}, võ hồn ${VOHON[me.vh].id}, sinh lực ${me.hp}/${me.maxHp}, hồn thú ${beastOf(E,hb)?`cách ${dist(hb).toFixed(0)}, Mị hoặc ${beastOf(E,hb).allure}`:"không còn"}, log ${E.logs.slice(-2).join(" | ")})`));
       ok(await waitFor(()=>beastOf(E,hb)&&!beastOf(E,hb).aggro,800),"tàng hình: hồn thú bỏ mục tiêu"+(beastOf(E,hb)?.aggro?` (vẫn đuổi, cách ${dist(hb).toFixed(0)})`:""));
       await sleep(450); E.room.send("attack"); ok(await waitFor(()=>!hasBuff(me,"hide"),600),"đánh thường: hiện hình");
+      // Đã chốt 2026-10-20: bị đòn trực tiếp đánh trúng (hook `hurt` đi qua hurtPlayer như đòn của hồn thú) cũng hiện hình.
+      await test(E,"ready"); await cast(E,1,0); ok(await waitFor(()=>hasBuff(me,"hide"),800),`${sk[1].name}: tàng hình lại`);
+      await test(E,"hurt",{pct:5}); ok(await waitFor(()=>!hasBuff(me,"hide"),600)&&!hasBuff(B.room.state.players.get(E.room.sessionId),"hide"),"bị đánh trúng: hiện hình (người khác cũng thấy)");
       // Lãnh vực đặt xuống đất: cố định chỗ tung, Làm chậm mỗi nhát, nhát cuối Mị hoặc.
       // Hồn thú đứng sau lưng; hồn sư đi tới trước (đường đã kiểm không vướng cây) ra ngoài bán kính, lãnh vực vẫn ở chỗ cũ.
       await test(E,"clear"); await face(30); const fb=await spawnAt(4,-30); await test(E,"status",{s:"stun",secs:10});
@@ -1706,6 +1712,10 @@ else {
     // Cửu Bảo Lưu Ly Tháp: tuyệt kỹ thật Vô Địch Thần Quang (miễn sát thương cả đội), Chân Thân giảm tiêu hao.
     {
       const id="cuu_bao_luu_ly_thap", ult=ringSkill(id,9), def=chanThanOf(id);
+      // Đã chốt 2026-10-20: tiên cơ riêng (bản nhỏ) đổi tên Lưu Ly Hộ Thể; vòng 4 Thiên Càn Bạch Ngọc Đỉnh đổi tên để không gần trùng.
+      const TC="thien_can_bach_ngoc_dinh";
+      ok(ult.name==="Vô Địch Thần Quang"&&TIEN_CO_RIENG[id].name==="Lưu Ly Hộ Thể"&&skillsOf(TC)[3].name==="Ngọc Đỉnh Hộ Thế",
+        `tên: tuyệt kỹ ${ult.name}, tiên cơ ${TIEN_CO_RIENG[id].name}, vòng 4 ${VOHON[vohonIndex(TC)].name} ${skillsOf(TC)[3].name}`);
       ok(await lineupK(id),"K: Cửu Bảo Lưu Ly Tháp ra trận");
       await loadout(id,[9,7,8,4]); await test(K,"ready"); await test(K,"hurt",{pct:50});
       const hp0=kp.hp; await castK(0,300);
@@ -2262,12 +2272,14 @@ else {
     ok(new Set(ctNames).size===ctNames.length&&ctNames.length===VOHON.length,`cả ${VOHON.length} võ hồn có Chân Thân, không trùng tên`);
     // Nguồn: mảnh rơi theo bản đồ, rương thú vương, Đại Đấu Hồn Trường.
     const where=id=>Object.values(MAPS).filter(m=>m.shards.includes(id)).map(m=>m.id);
-    ok(same(where("a_ngan"),["thanh_hon_thon"])&&same(where("liet_hoa_thuong_lang"),["lac_nhat_sam_lam"])&&same(where("bang_phuong_hoang"),["cuc_bac_chi_dia"])&&!where("pha_hon_thuong").length,
-      "mảnh: A Ngân ở Thánh Hồn Thôn, Liệt Hỏa Thương Lang ở Lạc Nhật Sâm Lâm, Băng Phượng Hoàng ở Cực Bắc Chi Địa; Phá Hồn Thương không rơi theo bản đồ");
+    // Đã chốt 2026-10-20: Phá Hồn Thương chuyển về rơi ở Hải Thần Đảo (trước đó chỉ ở rương mọi thú vương, KING_CHEST.every).
+    ok(same(where("a_ngan"),["thanh_hon_thon"])&&same(where("liet_hoa_thuong_lang"),["lac_nhat_sam_lam"])&&same(where("bang_phuong_hoang"),["cuc_bac_chi_dia"])&&same(where("pha_hon_thuong"),["hai_than_dao"]),
+      "mảnh: A Ngân ở Thánh Hồn Thôn, Liệt Hỏa Thương Lang ở Lạc Nhật Sâm Lâm, Băng Phượng Hoàng ở Cực Bắc Chi Địa, Phá Hồn Thương ở Hải Thần Đảo");
     const kings=Object.values(MAPS).filter(m=>m.king).map(m=>m.id);
-    ok(kings.length>=4&&kings.every(m=>kingShardPool(m).some(x=>x.vohon==="pha_hon_thuong"&&x.w===2))&&kingShardPool("lac_nhat_sam_lam").some(x=>x.vohon==="liet_hoa_thuong_lang"&&x.w===3)
+    ok(kings.length>=4&&!KING_CHEST.every.length&&kings.every(m=>kingShardPool(m).filter(x=>x.vohon==="pha_hon_thuong").length===(m==="hai_than_dao"?1:0))
+      &&kingShardPool("hai_than_dao").some(x=>x.vohon==="pha_hon_thuong"&&x.w===3)&&kingShardPool("lac_nhat_sam_lam").some(x=>x.vohon==="liet_hoa_thuong_lang"&&x.w===3)
       &&kingShardPool("cuc_bac_chi_dia").some(x=>x.vohon==="bang_phuong_hoang"&&x.w===3)&&kingShardPool("tinh_dau_ngoai_vi")[3].vohon===KING_CHEST.fire,
-      `rương thú vương (${kings.length} bản đồ): Phá Hồn Thương trọng số 2 ở mọi rương; mảnh bản đồ trọng số 3`);
+      `rương thú vương (${kings.length} bản đồ): mảnh bản đồ trọng số 3; Phá Hồn Thương chỉ ở rương Hải Thần Đảo (trọng số 3), không còn ở rương khác`);
     ok(NEW.every(id=>ARENA_SHARDS.includes(id)&&itemDef(shardCode(id))?.kind==="manh_vo_hon"),"mảnh 4 võ hồn mới là vật phẩm và nằm trong thưởng Đại Đấu Hồn Trường");
 
     const N=await bot("Tester VH","yeu_ho",{sex:0,hair:2,hairCol:4,outfitCol:2});
@@ -4337,7 +4349,7 @@ async function haiThanTest(){
   const objs=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
   const prop=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value;
   ok(M?.kind==="hunt"&&M.name==="Hải Thần Đảo"&&same(M.level,[80,100])&&same(M.years,[50000,MAX_YEARS]),"MAPS: Hải Thần Đảo là bản đồ săn cấp 80–100, 50.000–100.000 năm");
-  ok(same(M.shards,["quy_mi","thien_can_bach_ngoc_dinh","hoa_anh"])&&same(M.cores,["ba_vuong_long","tien_co"])&&M.king==="tham_hai_ma_kinh_vuong",
+  ok(same(M.shards,["quy_mi","thien_can_bach_ngoc_dinh","hoa_anh","pha_hon_thuong"])&&same(M.cores,["ba_vuong_long","tien_co"])&&M.king==="tham_hai_ma_kinh_vuong", // Phá Hồn Thương từ 2026-10-20
     `rơi đặc trưng: mảnh ${M.shards.map(v=>VOHON[vohonIndex(v)]?.name).join(", ")}; bộ hồn hạch ${M.cores.join(", ")}`);
   const ZT=[["Bãi san hô","50000-65000",["thiet_giap_cu_giai","lam_lan_hai_xa","kiem_ngu"],"hac_giap_cu_giai_vuong"],
     ["Ma Quỷ Hải Vực","60000-80000",["quy_dien_hai_yeu","tham_hai_ma_chuong","loi_quang_hai_dieu"],"ma_chuong_vuong"],
@@ -4365,7 +4377,7 @@ async function haiThanTest(){
     `bến thuyền Thiên Đấu Thành -> Hải Thần Đảo (đề xuất 80–100, đi thuyền ${BOAT_CAST} giây, thay biển "sắp mở"); Hải Thần Đảo chỉ có thuyền về Thiên Đấu Thành (không cấp đề xuất)`);
   const pool=kingShardPool(HT), rc=rollCore(90000,M.cores,()=>0);
   ok(M.shards.every(v=>pool.some(x=>x.vohon===v&&x.w===3))&&!kingShardPool("tinh_dau_ngoai_vi").some(x=>M.shards.includes(x.vohon))&&M.cores.includes(rc.data.set),
-    `rương thú vương Hải Thần Đảo: mảnh của bản đồ trọng số 3, ba võ hồn này thôi nằm trong nhóm "bản đồ chưa mở"; hồn hạch bộ đặc trưng (${rc.data.set})`);
+    `rương thú vương Hải Thần Đảo: mảnh của bản đồ trọng số 3 (${M.shards.length} võ hồn, có Phá Hồn Thương), các võ hồn này thôi nằm trong nhóm "bản đồ chưa mở"; hồn hạch bộ đặc trưng (${rc.data.set})`);
   if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Hải Thần Đảo (cần hook warp, red, king): bật server bằng GAME_TEST=1"); return; }
 
   const H=await bot("Hải Thần","quy_mi",{sex:0,hair:1,hairCol:2,outfitCol:3}), C0=C;
