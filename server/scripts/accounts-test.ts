@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { MemoryStore, PgStore, type Store, type Item } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
+import { mapFile } from "../src/map.ts";
 import { DEFAULT_MAP, MAP_MOVED } from "../../shared/data.ts";
 
 // Mật khẩu thử sinh ngẫu nhiên mỗi lần chạy, không ghi cứng trong mã: PW[i] thay cho mật khẩu thứ i, WRONG là mật khẩu sai.
@@ -70,10 +71,32 @@ async function common(label: string, s: Store, u = "") {
     assert.equal(await s.saveLocation(id, DEFAULT_MAP, 1, 1), false);           // phòng khác bản đồ đã ánh xạ không ghi được
     assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40), true);  // phòng Ngoại vi ghi được, thay mã cũ
     assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: 30, y: 40 });
+    // 11.5: vị trí lưu trên file Tiled khác file đang dùng (bản cũ trước khi bản ×8 thành mặc định, đường lùi MAP_V1) thì vào ở `spawn`.
+    assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40, "tinh_dau_ngoai_vi.cu"), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: null, y: null });
+    assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: 30, y: 40 });
     // Đi cổng từ bản đồ đã ánh xạ cũng qua được lớp chặn.
     await s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "tinh_dau", 700, 480);
     await s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328);
     assert.deepEqual(await s.getLocation(id), { mapId: "nac_dinh_thanh", x: 88, y: 328 });
+  });
+  await test(`${label}: vị trí ghi trên file Tiled khác file đang dùng (bản cũ / bản ×8, 11.5) thì bỏ, vào ở spawn`, async () => {
+    const id = ok(await s.login(cleanName(`Bản đồ cũ${u}`), PW[5]));
+    const ch = (await s.awaken(id, `Bản đồ cũ${u}`, ["lam_ngan_thao", "bich_lan_xa_hoang"], "bich_lan_xa_hoang", 3))!;
+    const nv = "tinh_dau_ngoai_vi", cur = mapFile(nv), other = cur === nv ? `${nv}.v2` : nv;
+    await s.saveTravel(id, [ch], DEFAULT_MAP, nv, 50, 60);                      // đi cổng: ghi kèm file đang dùng
+    assert.deepEqual(await s.getLocation(id), { mapId: nv, x: 50, y: 60 });
+    assert.equal(await s.saveLocation(id, nv, 30, 40, other), true);            // tọa độ của phiên bản khác
+    assert.deepEqual(await s.getLocation(id), { mapId: nv, x: null, y: null });
+    assert.equal(await s.saveLocation(id, nv, 30, 40, null), true);             // dòng trước 11.5 (NULL) = bản cũ `<mapId>`
+    assert.deepEqual(await s.getLocation(id), cur === nv ? { mapId: nv, x: 30, y: 40 } : { mapId: nv, x: null, y: null });
+    assert.equal(await s.saveLocation(id, nv, 30, 40), true);                   // ghi lại theo file đang dùng
+    assert.deepEqual(await s.getLocation(id), { mapId: nv, x: 30, y: 40 });
+    await s.saveTravel(id, [ch], nv, DEFAULT_MAP, 10, 10);
+    assert.equal(mapFile(DEFAULT_MAP), DEFAULT_MAP);                            // Thánh Hồn Thôn chưa có bản ×8: NULL vẫn giữ vị trí
+    assert.equal(await s.saveLocation(id, DEFAULT_MAP, 12, 14, null), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 12, y: 14 });
   });
   await test(`${label}: túi đồ, Hồn Tệ, vật phẩm khởi đầu một lần và túi đồ trong transaction đi cổng (3.1)`, async () => {
     const id = ok(await s.login(cleanName(`Túi${u}`), PW[5]));

@@ -1,8 +1,8 @@
 // Đo tải tự săn (Auto 1, mục 5.13): N bot rải đều trên một bản đồ săn, bật tự săn (MODE=auto, mặc định) hoặc đi lang thang bằng input
 // như 11.4 (MODE=walk, để so), giữ SECS giây rồi thoát. Server bật `GAME_TEST=1 PERF_LOG=1` (hook warp / goto / set, log [perf] tick /
-// bản vá mỗi 10 giây); bản ×8 thì cả server và script cùng `MAP_V2=tinh_dau_ngoai_vi`.
-//   GAME_TEST=1 PERF_LOG=1 MAP_V2=tinh_dau_ngoai_vi PORT=2600 npm run dev:server
-//   N=40 SECS=90 MAP_V2=tinh_dau_ngoai_vi SERVER_URL=http://localhost:2600 node scripts/auto-soak.mjs
+// bản vá mỗi 10 giây). Bản đồ mặc định là bản ×8 (11.5); bật đường lùi `MAP_V1` ở server thì chạy script với cùng `MAP_V1`.
+//   GAME_TEST=1 PERF_LOG=1 PORT=2600 npm run dev:server
+//   N=40 SECS=90 SERVER_URL=http://localhost:2600 node scripts/auto-soak.mjs
 // In: số bot đang tự săn, số hồn thú hạ, số lần tự săn dừng theo lý do, số KB bản vá / tin mỗi client mỗi giây.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
@@ -13,8 +13,8 @@ import { AUTO_RADIUS, AWAKEN_CHOICES, SYNC_VIEW, TILE } from "../../shared/data.
 const API = process.env.SERVER_URL ?? "http://localhost:2567", WS = API.replace(/^http/, "ws");
 const N = Math.max(1, Number(process.env.N) || 20), SECS = Math.max(10, Number(process.env.SECS) || 60), MODE = process.env.MODE === "walk" ? "walk" : "auto";
 const MAP = process.env.MAP ?? "tinh_dau_ngoai_vi";
-const V2 = new Set((process.env.MAP_V2 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
-const file = (V2.has(MAP) || V2.has("all")) && existsSync(new URL(`../../shared/assets/${MAP}.v2.json`, import.meta.url)) ? `${MAP}.v2` : MAP;
+const V1 = new Set((process.env.MAP_V1 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+const file = !(V1.has(MAP) || V1.has("all")) && existsSync(new URL(`../../shared/assets/${MAP}.v2.json`, import.meta.url)) ? `${MAP}.v2` : MAP;
 const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${file}.json`, import.meta.url), "utf8")), grid = solidGrid(raw);
 const objs = raw.layers.flatMap((l) => l.objects ?? []);
 const keepOut = objs.filter((o) => ["spawn", "portal", "safe", "boss", "waypoint"].includes(o.type));
