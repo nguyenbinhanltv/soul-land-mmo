@@ -6876,11 +6876,11 @@ async function partyEffectExpansionTest(){
       await waitFor(()=>A.bagMsgs>equipCoreN&&A.bag.items.find(v=>v.id===c?.id)?.vohon===xrow,1500);
     }
     ok(cores.every(c=>A.bag.items.find(v=>v.id===c?.id)?.vohon===xrow),"gắn đủ 4 hồn hạch Lưu Ly");
-    // Đổi tay theo state (#185). Tin "vohons" (A.owned) tới trước bản vá có swCd = SWITCH_CD: chờ thấy cả hai, đọc swCd ngay sau tin
-    // thì còn số 0 cũ, lần đổi sau gửi khi server còn hồi chiêu nên bị bỏ qua im lặng. swCd giảm theo nhịp server (dt kẹp 100 ms),
-    // máy tải thì lâu hơn SWITCH_CD giây thật: giới hạn chờ rộng, waitFor trả ngay khi swCd về 0.
-    const swapA=async(slot,row)=>{ const free=await waitFor(()=>meP(A).swCd===0,SWITCH_CD*3000); A.room.send("switch",{slot});
-      return free&&await waitFor(()=>A.owned.active===row&&meP(A).swCd>0,3000); };
+    // Đổi tay theo state (#185). Tin "vohons" (A.owned) tới trước bản vá có swCd = SWITCH_CD: đọc swCd ngay sau tin thì còn số 0 cũ,
+    // lần đổi sau gửi khi server còn hồi chiêu nên bị bỏ qua im lặng. Chờ cả tin lẫn võ hồn mới trong state (vh đổi cùng bản vá với
+    // swCd). swCd giảm theo nhịp server (dt kẹp 100 ms), máy tải thì lâu hơn SWITCH_CD giây thật: giới hạn chờ rộng, trả ngay khi về 0.
+    const swapA=async(slot,row)=>{ const free=await waitFor(()=>meP(A).swCd===0,SWITCH_CD*3000), vh=vohonIndex(A.owned.list.find(v=>v.rowId===row)?.vohon);
+      A.room.send("switch",{slot}); return free&&await waitFor(()=>A.owned.active===row&&meP(A).vh===vh,3000); };
     await test(A,"rest",{s:30}); const sw1=await swapA(1,stRow);
     const lb=B.logs.length, sw2=await swapA(0,xrow);
     await waitFor(()=>B.logs.length>lb&&(meP(B).buff&buffBit("atk"))!==0,3000); // dòng log và hào quang trong state của B
