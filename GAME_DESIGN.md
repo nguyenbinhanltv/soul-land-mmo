@@ -24,7 +24,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 ## 3. Mô hình chơi
 - **Người chơi là một hồn sư có nhân vật riêng.** Khi tạo tài khoản chọn giới tính, kiểu tóc, màu tóc, màu áo, tông da (mục 5.11). Hồn sư chỉ là hình ảnh đại diện: cấp, chỉ số và hồn hoàn đều thuộc về từng võ hồn.
 - **Võ hồn là đơn vị nuôi riêng, sưu tầm được.** Trên bản đồ, người khác thấy hồn sư cùng **võ hồn đang ra trận ở dạng phóng thích** (vũ khí, thú hồn phụ thể, hư ảnh, hào quang) và **các vòng hồn hoàn của võ hồn đó** dưới chân. Đổi võ hồn thì đổi lớp phụ thể và bộ vòng; thân hồn sư giữ nguyên.
-- **Nhân vật truyện chỉ dùng cho chân dung và thẻ võ hồn** trong giao diện (thẻ Lam Ngân Thảo vẽ Đường Tam…), không dùng làm nhân vật trên bản đồ.
+- **Không vẽ nhân vật truyện:** chân dung và thẻ võ hồn vẽ chính võ hồn (mục 5.11); chủ nhân trong truyện chỉ là dữ liệu `owner` của `VOHON`, không dùng làm nhân vật trên bản đồ.
 - **Đội hình 4 võ hồn** (`TEAM_SIZE`). Trên bản đồ chỉ hiện võ hồn đang ra trận; đổi sang võ hồn khác trong đội ngay khi đang đánh.
 - **Mỗi võ hồn có 10 hồn hoàn** (`MAX_RINGS`), cấp 1–100 (`MAX_LEVEL`): bình cảnh ở cấp 10, 20, …, 100.
 - **Niên hạn tối đa 10 vạn năm** (`MAX_YEARS`).
@@ -638,7 +638,12 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - File Tiled `shared/assets/<mapId>.json` **không đổi định dạng** (orthogonal, ô 16): server và `shared/move.ts` đọc như cũ. Client đọc lớp `ground`, `trees`, `canopy` rồi vẽ lại theo isometric bằng **bảng ánh xạ gid → asset isometric** (`shared/assets/iso/tiles.json`): gid nền → ô thoi (kèm biến thể chọn theo băm vị trí để bớt lặp), gid vật cản cao (cây, thông tuyết, lều, lửa trại, tường, mái, băng tinh, đá ngầm) → **vật đứng** đặt ở tâm ô, sắp theo độ sâu. Ô `canopy` không vẽ riêng nữa: tán cây là một phần sprite cây; nhà nhiều ô (`roof` / `wall` liền nhau) gom thành một khối nhà theo hình chữ nhật bao.
 - **Chuyển 10 bản đồ tự động**: không sửa từng file; chỉ cần đủ asset cho mọi gid đang dùng (khoảng 36 gid, `tools/gen-map.mjs` bảng `GID`). `npm run map` vẫn sinh file Tiled như cũ.
 - **Nền vẽ một lần mỗi bản đồ**: lớp `TilemapLayer` isometric của Phaser (`MapData.orientation` isometric, ô 32×16, ảnh ô 32×32; ô lớn 2×2 vẽ chồng thành vật nền riêng) hoặc ghép sẵn thành các khối `RenderTexture`; chọn ở bước 10.1 sau khi đo khung hình trên điện thoại. Mép giữa hai loại địa hình (cỏ → đường, cát → nước) dùng **lớp phủ mép** vẽ chồng lên ô (PixelLab `create_path_tiles` dạng isometric hoặc vẽ tay), chưa cần bộ ô chuyển tiếp đầy đủ.
-- **Ô PixelLab:** `create_isometric_tile`, `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát). Size 32: mặt trên là thoi 32×16, tâm (16, 19) trong ảnh 32×32, đáy dày khoảng 5 pixel (bị ô phía trước che khi lát). Size 64 (ô lớn 2×2): thoi 64×32, tâm khoảng (32, 37) trong ảnh 64×64, đáy dày khoảng 12 pixel. Đo lại tâm cho từng ô khi đưa vào `tiles.json`. **Ô Gemini** (người dùng tạo bằng Gemini, nhập qua `tools/assets/gemini-import.mjs`) cho mặt trên thoi 64×32 trầm, liền mép: hợp làm **ô lớn 64×32** cho nền chính; lấy chính ô đó thu về 32×16 làm nền chính thì mất chi tiết và lộ mẫu lặp. **Mỗi bản đồ chỉ dùng một nguồn ô nền** (không trộn Gemini với PixelLab: độ bão hòa và kiểu nhiễu khác hẳn); vật đứng, nhân vật, hồn thú vẫn từ PixelLab. Bản đồ dùng ô Gemini vẫn dùng ô thường 32×16 cho chỗ 2×2 không cùng loại địa hình và mép địa hình: ô 32×16 do `gemini-import` xuất (thư mục `<out>/32`), tạo từ ảnh Gemini riêng với prompt vân to, thưa cho ô nhỏ (skill `asset-gen`). Vật đứng: `create_map_object` (1 lượt, nền trong suốt, `view: "high top-down"`).
+- **Ô PixelLab:** `create_isometric_tile`, `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát). Size 32: mặt trên là thoi 32×16, tâm (16, 19) trong ảnh 32×32, đáy dày khoảng 5 pixel (bị ô phía trước che khi lát). Size 64 (ô lớn 2×2): thoi 64×32, tâm khoảng (32, 37) trong ảnh 64×64, đáy dày khoảng 12 pixel. Đo lại tâm cho từng ô khi đưa vào `tiles.json`. **Ô Gemini** (người dùng tạo bằng Gemini, nhập qua `tools/assets/gemini-import.mjs`) cho mặt trên thoi 64×32 trầm, liền mép: hợp làm **ô lớn 64×32** cho nền chính; lấy chính ô đó thu về 32×16 làm nền chính thì mất chi tiết và lộ mẫu lặp. **Mỗi bản đồ chỉ dùng một nguồn ô nền** (không trộn Gemini với PixelLab: độ bão hòa và kiểu nhiễu khác hẳn); nhân vật, hồn thú vẫn từ PixelLab, vật đứng lấy từ PixelLab hoặc Gemini (dưới). Bản đồ dùng ô Gemini vẫn dùng ô thường 32×16 cho chỗ 2×2 không cùng loại địa hình và mép địa hình: ô 32×16 do `gemini-import` xuất (thư mục `<out>/32`), tạo từ ảnh Gemini riêng với prompt vân to, thưa cho ô nhỏ (skill `asset-gen`). Vật đứng: `create_map_object` (1 lượt, nền trong suốt, `view: "high top-down"`).
+- **Vật đứng Gemini** (người dùng tạo theo lưới nhiều vật, nhập bằng `gemini-import --kind object`):
+  - Mọi vật của một vùng dùng **chung hệ số thu** (`--scale`) để cỡ điểm ảnh đều nhau. Khung là bội của `ISO_PROP_STEP` vừa vật; chân ở giữa đáy, cách mép dưới `ISO_PROP_FOOT`.
+  - Màu: `art/palette.gpl` cộng bảng nhấn của vùng (`art/palettes/<mapId>.gpl`).
+  - Gemini hay vẽ vật đứng trên **đế đất thoi dày**, trên nền phẳng trông như bục nổi. `--cut-base` cắt đế: bỏ mặt bên và phần cỏ đất của mặt trên, giữ vật. Vật lẫn vào đế (bụi cỏ, lau sậy trên mặt nước) cắt xấu thì vẽ lại, xin Gemini không vẽ đế.
+  - Quầng sáng vẽ đè lên nền tím để lại viền tím: `--fringe`.
 - **Vùng zone / portal / safe / spawn / boss** (chữ nhật thế giới) hiển thị thành hình bình hành chiếu; NPC, cổng, bảng tên giữ ở điểm chân.
 - Bản đồ nhỏ (minimap, nếu có) vẽ theo lưới thế giới, không chiếu.
 
@@ -651,7 +656,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
   - Chọn đối tượng dưới con trỏ theo thứ tự độ sâu (vật trước nhất thắng), hộp chọn là khung sprite thu nhỏ, không phải ô dưới chân.
 
 **Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
-- **Chân dung 64×64**, vẽ nhân vật truyện là chủ nhân (`owner` trong `VOHON`); võ hồn chưa rõ chủ nhân thì vẽ chính võ hồn. Hiển thị phóng 2–3 lần với `image-rendering: pixelated`.
+- **Chân dung 64×64** (`ISO_PORTRAIT`) vẽ **chính võ hồn** (vũ khí, thú, cây…) trên nền tối có quầng màu riêng của võ hồn, không vẽ chủ nhân. Nguồn: ảnh Gemini, nhập bằng `gemini-import --kind portrait` (cắt 1:1 từ pixel thật, không viền ngoài). Chân dung là giao diện HTML nên không theo bảng chung: tối đa `PORTRAIT_MAX_COLORS` màu mỗi ảnh. Hiển thị phóng 2–3 lần với `image-rendering: pixelated`.
 - **Thẻ võ hồn 96×128**: chân dung ở trên, tên, khung viền theo độ hiếm (SR: khung giấy thủy mặc viền bạc; SSR và UR: **lưu ly**, SSR viền vàng kim, UR viền vàng kim với kính màu dày hơn và chữ UR đỏ san hô), biểu tượng hệ 12×12 ở góc trên trái, sao ở dưới, hồn hoàn là các chấm màu theo bậc.
 - Biểu tượng 4 hệ: 12×12, một màu trên nền trong suốt, để CSS tô màu.
 
@@ -670,17 +675,17 @@ shared/assets/sprites/
   vohon/{id}_b.png, {id}_f.png               vh_{id}_b, vh_{id}_f
   beast/{loài}.png                           beast_{loài}
   ring/ring{tier}.png                        ring{tier}, halo{tier}
+  iso/portrait/{id}.png                      portrait_{id}: chân dung 64×64 ("iso": true)
+  iso/props/{vật}.png                        prop_{vật}: vật đứng, đã cắt đế đất ("iso": true; vật nhiều ô cắt lát 16 pixel ở 10.2)
 shared/assets/iso/
   tiles.json                 ánh xạ gid Tiled → ô thoi / vật đứng, chân vật, điểm sáng
   ground/{loại}_{i}.png      ô nền 32×32 (thoi 32×16) và ô lớn 64×64 (thoi 64×32, phủ 2×2 ô)
-  props/{vật}.png            cây, nhà, lều, đá… (đã cắt lát 16 pixel nếu nhiều ô)
 shared/assets/ui/
-  portrait/{id}.png          chân dung 64×64
   card/frame_{sr,ssr,ur}.png khung thẻ 96×128
   icon/he_{he}.png           biểu tượng hệ 12×12
 ```
 
-- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest.
+- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, vật đứng) client chưa tải, cho tới bước dùng chúng (10.2, 10.8).
 
 **Dây chuyền `tools/assets` → spritesheet** (lệnh chi tiết: skill `asset-gen`)
 1. **Tạo ảnh bằng PixelLab:** hồn sư `create_character` (`mode: "standard"`, `size: 52` → khung thô 76×76, `view: "high top-down"`, 8 hướng, 1 lượt); khung hướng `s` duyệt bằng mắt trước rồi mới làm animation (`animate_character` mẫu có sẵn, 1 lượt mỗi hướng, chỉ xin 5 hướng `s`, `se`, `e`, `ne`, `n`). Hồn thú bốn chân: `body_type: "quadruped"` với mẫu gần nhất (`dog`, `cat`, `lion`, `bear`, `horse`). Nhân vật sau lấy nhân vật đã duyệt làm mẫu phong cách. Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
@@ -693,7 +698,7 @@ shared/assets/ui/
 8. **Chỉnh tay khi cần** trong Aseprite (bảng màu `art/palette.gpl`), rồi chạy lại bước 6. Xuất: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 24`.
 
 **Nguồn và giấy phép**
-- Hình do nhóm tạo bằng công cụ AI qua dây chuyền `tools/assets` hoặc vẽ tay. Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice); mỗi key ghi một dòng trong `art/CREDITS.md`: file, key, công cụ, prompt, ngày.
+- Hình do nhóm tạo bằng công cụ AI qua dây chuyền `tools/assets` hoặc vẽ tay. Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google); mỗi key ghi một dòng trong `art/CREDITS.md`: file, key, công cụ, prompt, ngày.
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ xem để tham khảo ý tưởng, không đưa làm ảnh tham chiếu.
 - **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận CC0, CC-BY hoặc OFL; mỗi asset một dòng trong `art/CREDITS.md` (tên file, tác giả, link gốc, giấy phép, đã chỉnh gì). CC-BY phải hiện tên tác giả trong màn hình giới thiệu.
 
