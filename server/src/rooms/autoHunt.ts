@@ -4,7 +4,7 @@
 // Quyết định chạy AUTO_HZ lần mỗi giây; giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm.
 import type { Client } from "colyseus";
 import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TEAM_SIZE, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
-  AUTO_HZ, AUTO_RADIUS, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, loadoutOf, ringSkill, chanThanOf,
+  AUTO_HZ, AUTO_RADIUS, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, loadoutOf, ringSkill, chanThanOf, autoTimeText,
   type AutoSettings, type SkillDef, type ItemDef } from "../../../shared/data.ts";
 import { MOVE_DEAD } from "../../../shared/move.ts";
 import { findPath, clearLine, type Pt } from "../../../shared/path.ts";
@@ -14,6 +14,8 @@ import type { PlayerState, BeastState, DropState } from "./schema.ts";
 
 /** Đan theo thứ tự ITEMS (đan thường trước đan lớn): uống loại có trong túi đầu tiên. */
 const HP_POTS = ITEMS.filter((d) => d.hp), MP_POTS = ITEMS.filter((d) => d.mp);
+/** Nửa cỡ hồn thú lớn nhất: cộng vào bán kính khi lấy ứng viên từ lưới không gian (như BEAST_HALF của MapRoom). */
+const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
 export class AutoHunter {
@@ -33,6 +35,10 @@ export class AutoHunter {
   clock = 0; decT = 0;
   /** Kẹt: chỗ đứng lần kiểm tra trước và số giây đã định đi mà không nhích. */
   last = { x: 0, y: 0 }; stuckT = 0;
+  /** Số giây mục tiêu trong tầm mà không đánh được vì đòn sẽ trúng hồn thú người khác đang giao chiến. */
+  blockT = 0;
+  /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
+  los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
 
   constructor(private room: MapRoom, readonly id: string, readonly anchor: Pt, public cfg: AutoSettings) {}
 
@@ -47,12 +53,32 @@ export class AutoHunter {
     d.autoUsed += dt; d.autoDirty = true;
     const why = this.stopReason(p, d);
     if (why) return room.autoStop(this.id, why);
-    if ((this.decT -= dt) <= 0) { this.decT = 1 / AUTO_HZ; this.decide(p, d, c, dt); }
+    if ((this.decT -= dt) <= 0) { this.decT = 1 / AUTO_HZ; this.decide(p, d, c, 1 / AUTO_HZ); }
     if (d.auto !== this) return; // vừa dừng trong lúc quyết định
     this.steer(p, d, dt);
     // Đánh thường mỗi nhịp khi mục tiêu đã trong tầm (như giữ phím J); attack tự kiểm hồi chiêu, Choáng, vùng an toàn.
+    // Đòn thường trúng mọi hồn thú quanh điểm trước mặt: vướng hồn thú người khác đang giao chiến thì không đánh (trừ khi mục tiêu đang
+    // đánh mình), quá AUTO_MOVE.stuck giây vẫn vướng thì bỏ mục tiêu này.
     const b = this.target ? room.state.beasts.get(this.target) : undefined;
-    if (b && d.atkCd <= 0 && this.inReach(p, d, b)) room.attack(this.id);
+    if (b && d.atkCd <= 0 && this.inReach(p, d, b)) {
+      const ax = p.x + d.dir.x * 10, ay = p.y - 6 + d.dir.y * 10;
+      if (!this.fighting() && this.splash(ax, ay, 18)) { if ((this.blockT += dt) >= AUTO_MOVE.stuck) this.unreachable(); }
+      else { this.blockT = 0; room.attack(this.id); }
+    }
+  }
+
+  /** Mục tiêu đang đánh chính mình (đánh trả thì không né hồn thú người khác đứng cạnh). */
+  fighting() { return !!this.target && this.room.bdata.get(this.target)?.target === this.id; }
+  /**
+   * Đòn / vùng tâm (x, y) bán kính r (tính tới thân hồn thú như attack(): tâm thân cao nửa cỡ) trúng hồn thú khác mục tiêu mà người
+   * khác đang giao chiến (taken) không: tự săn không đánh lan sang hồn thú của người khác.
+   */
+  splash(x: number, y: number, r: number) {
+    for (const [bid, b] of this.room.beastsNear(x, y, r + BEAST_HALF)) {
+      const s = TIERS[b.tier].size;
+      if (bid !== this.target && Math.hypot(b.x - x, b.y - s / 2 - y) < r + s / 2 && this.taken(bid)) return true;
+    }
+    return false;
   }
 
   /** Điều kiện dừng kiểm mỗi nhịp (mục 5.13): gục, vùng an toàn, đi cổng / truyền tống, hấp thụ, hết giờ trong ngày, túi đầy. */
@@ -62,7 +88,7 @@ export class AutoHunter {
     if (d.travelCast) return "đang đi cổng / truyền tống.";
     if (this.room.map.inSafe(p.x, p.y)) return "vào vùng an toàn.";
     if (d.absorbing) return "đang hấp thụ hồn hoàn.";
-    if (d.autoUsed >= AUTO_DAILY_SECS) return `đã treo đủ ${AUTO_DAILY_SECS / 3600} giờ hôm nay.`;
+    if (d.autoUsed >= AUTO_DAILY_SECS) return `đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)} hôm nay.`;
     if (d.bag.filter((i) => i.vohonId === null).length >= d.bagSlots) return `túi đồ đã đầy (${d.bagSlots} ô).`;
     return null;
   }
@@ -109,7 +135,7 @@ export class AutoHunter {
     this.go(this.patrol);
   }
 
-  setTarget(bid: string) { this.target = bid; this.hit = false; this.go(null); }
+  setTarget(bid: string) { this.target = bid; this.hit = false; this.blockT = 0; this.go(null); }
   drop() { this.target = null; this.hit = false; this.go(null); }
 
   /** Đặt đích đi tới (null = đứng yên); đích đổi thì bỏ đường cũ để lần lái sau tìm lại. */
@@ -213,7 +239,7 @@ export class AutoHunter {
         if (!r || r === d.ch.rowId || d.down.has(r) || (d.energy.get(r) ?? 0) < TIEN_CO_MAX) continue;
         const from = d.ch.rowId;
         this.room.switchSlot(c, s);
-        if (d.ch.rowId === r) { this.home ??= from; return true; }
+        if (d.ch.rowId === r) { this.home ??= from; if (this.home === r) this.home = null; return true; }
       }
     }
     if (this.home !== null && this.home !== d.ch.rowId) {
@@ -252,6 +278,8 @@ export class AutoHunter {
       const reach = run.area === "target" ? run.r : run.at ?? (run.area === "self" ? BEAST_AGGRO_R : run.r);
       if (dist > reach) continue;
       if (run.area === "target" || run.at) { const near = room.nearestBeast(p, reach); if (!near || (near !== this.target && this.taken(near))) continue; }
+      // Hồn kỹ diện rộng (quanh thân, trước mặt, lướt, bắn mũi) không tung khi vùng của nó có hồn thú người khác đang giao chiến.
+      else if (run.area !== "self" && !this.fighting() && this.splash(p.x, p.y - 6, run.r)) continue;
       room.skill(c, i);
       return;
     }
@@ -275,7 +303,9 @@ export class AutoHunter {
     if (b) {
       if (this.inReach(p, d, b)) return room.applyInput(d, 0, 0, false);
       // Không vướng thì đi thẳng tới hồn thú (đứng sát mà lệch hướng thì bước này quay mặt, như người chơi nhích phím).
-      if (clearLine(map, p, b)) { this.path = []; this.goal = null; to = { x: b.x, y: b.y }; }
+      const l = this.los;
+      if (Math.hypot(l.px - p.x, l.py - p.y) > 6 || Math.hypot(l.bx - b.x, l.by - b.y) > 6) Object.assign(l, { px: p.x, py: p.y, bx: b.x, by: b.y, ok: clearLine(map, p, b) });
+      if (l.ok) { this.path = []; this.goal = null; to = { x: b.x, y: b.y }; }
       else {
         this.pathT += dt;
         if (!this.goal || Math.hypot(this.goal.x - b.x, this.goal.y - b.y) > 2 * TILE) { this.goal = { x: b.x, y: b.y }; this.path = []; }

@@ -976,6 +976,9 @@ export class MapRoom extends Room<MapState> {
     let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
     if (n >= AUTO_MAX_PER_CELL) return deny(`chỗ này đã có ${n} người treo, hãy sang chỗ khác.`);
     d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true;
+    // Đang giữ phím đi thì bỏ hướng đó và tăng `seq` (như hook goto) để client đang dự đoán biết input của nó đã bị bỏ và gửi lại;
+    // gửi lại hướng khác 0 là tự di chuyển nên tự săn tắt ngay (tay ưu tiên).
+    if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) { p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
     this.applyInput(d, 0, 0, false);
     this.log(id, `Bật tự động: săn quanh đây (${AUTO_RADIUS / TILE} ô), còn ${autoTimeText(autoLeft(d.autoUsed))} hôm nay. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
     this.sendAuto(id);
@@ -2309,7 +2312,9 @@ export class MapRoom extends Room<MapState> {
       if (typeof o.used === "number" && Number.isFinite(o.used)) { d.autoUsed = Math.max(0, Math.min(AUTO_DAILY_SECS, o.used)); d.autoDay = this.today(); d.autoDirty = true; this.sendAuto(id); }
       if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
       const a = d.auto;
-      out = { on: !!a, used: d.autoUsed, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg };
+      const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
+      out = { on: !!a, used: d.autoUsed, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
+        ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
     }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
     else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)

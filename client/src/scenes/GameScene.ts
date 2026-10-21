@@ -1459,10 +1459,12 @@ export class GameScene extends Phaser.Scene {
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng (honsuAnimKey).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
-      const walk = mine ? this.pred!.walking(p, this.dir) : p.moving;
-      let d8 = mine ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
-      if (!d8 && !walk) { const f = DIR4_VEC[mine ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
-      else if (mine && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
+      // Đang tự săn (Auto 1): server lái hồn sư, không có phím đang giữ, nên chính mình cũng đi / quay mặt theo chuyển động như người khác.
+      const steered = mine && !p.auto;
+      const walk = steered ? this.pred!.walking(p, this.dir) : p.moving;
+      let d8 = steered ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
+      if (!d8 && !walk) { const f = DIR4_VEC[steered ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
+      else if (steered && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
       if (v.lock && time < v.lock.until) v.face = v.lock.face; // đang đánh: quay về phía đòn đánh
       else if (d8) { v.lock = null; v.face = d8; }
       if (mine) { const at = this.pred!.update(p, this.dir, dt, this.walk); v.wx = at.x; v.wy = at.y; }
@@ -1480,7 +1482,7 @@ export class GameScene extends Phaser.Scene {
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
       // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác theo `spd` của server.
-      const spd = mine ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
+      const spd = steered ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
       this.animatePlayer(v, p, time, walk, spd);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
