@@ -4,7 +4,7 @@
 //   node tools/assets/pack.mjs --kind vohon --id <võ hồn> --part <thư mục phụ thể> --body m:<thân>,<áo>,<tóc> --body f:<…>
 //        --attach hand|head|back|feet [--swing | --angles a,b,c,d] [--out <thư mục>]
 //
-// Bố cục: hồn sư 24 cột × 6 hàng khung 64×64 (1536×384), phụ thể cùng bố cục khung 96×96 (2304×576), hồn thú 20 × 5 khung
+// Bố cục: hồn sư 24 cột × 6 hàng khung 64×64 (1536×384), phụ thể cùng bố cục cột khung 96×96, hai nửa theo giới 24 × 12 (2304×1152), hồn thú 20 × 5 khung
 // theo bậc. Hàng 0–4 là hướng s, se, e, ne, n (3 hướng còn lại client lật ngang); hồn sư hàng 5 cột 0–1 là `absorb`.
 // Tên file khung: {hướng}_{animation}_{i}.png (hồn sư: idle 4, walk 6, attack 4, cast 3, hurt 2, die 4; hồn thú: idle 4,
 // walk 6, attack 4, hurt 2, die 4), absorb_{i}.png. PixelLab trả số khung khác (cross-punch 6 khung cho attack 4) thì chọn

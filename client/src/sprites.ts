@@ -28,7 +28,8 @@ export type Dir = (typeof DIRS)[number] | "left";
 
 interface AnimDef { col: number; ms: readonly number[]; loop: boolean; row?: number }
 
-/** Hồn sư isometric (mục 5.11, từ 10.4): khung 64×64 gốc (32,58); phụ thể 96×96 gốc (48,74). Cùng bố cục sheet 24 cột × 6 hàng. */
+/** Hồn sư isometric (mục 5.11, từ 10.4): khung 64×64 gốc (32,58); phụ thể 96×96 gốc (48,74). Sheet hồn sư 24 cột × 6 hàng;
+ *  phụ thể cùng bố cục cột, hai nửa theo giới (24 × 12, vohonHalf). */
 export const ISO_HS_FRAME = 64, ISO_VH_FRAME = 96, ISO_SHEET_COLS = 24;
 export const ISO_HS_ORIGIN = { x: 0.5, y: 58 / 64 };
 export const ISO_VH_ORIGIN = { x: 0.5, y: 74 / 96 };

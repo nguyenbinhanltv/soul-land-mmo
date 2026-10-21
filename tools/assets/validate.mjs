@@ -3,7 +3,7 @@
 //   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH] [--iso] [--map <mapId>] [--nine N]
 //        kiểm file của key, thêm key vào manifest (nếu chưa có; --iso ghi "iso": true, --map ghi "map") và ghi/cập nhật
 //        một dòng trong art/CREDITS.md.
-// Key "iso": true theo bố cục isometric (isoLayout trong lib.mjs: hồn sư / phụ thể 24 × 6, hồn thú 20 × 5); key chưa có cờ
+// Key "iso": true theo bố cục isometric (isoLayout trong lib.mjs: hồn sư 24 × 6, phụ thể 24 × 12 hai nửa theo giới, hồn thú 20 × 5); key chưa có cờ
 // là bộ 32×32 cũ của client hiện nay. Key có "map": "<mapId>" được dùng thêm bảng nhấn art/palettes/<mapId>.gpl.
 // Normal map `<file>_n.png` (normal.mjs) nằm cạnh ảnh của key: phải cùng kích thước ảnh gốc.
 // Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền #1a1020),

@@ -4,7 +4,7 @@
 // Nhiều lớp thì chồng theo thứ tự (phụ thể sau, thân, áo, tóc, phụ thể trước…) để xem hồn sư ghép lớp.
 // --grid vẽ đường kẻ khung (ví dụ 64x64 cho sheet hồn sư) để soát bố cục 24×6; --crop chỉ lấy một vùng.
 //
-// --dirs8: đọc sheet isometric (hồn sư 1536×384, phụ thể 2304×576, hồn thú 20 × 5 khung theo bậc; nhận ra theo kích thước)
+// --dirs8: đọc sheet isometric (hồn sư 1536×384, phụ thể 2304×1152 hai nửa theo giới, hồn thú 20 × 5 khung theo bậc; nhận ra theo kích thước)
 //   và xếp lại thành 8 hàng hướng theo vòng kim đồng hồ s, sw, w, nw, n, ne, e, se. Ba hướng sw, w, nw lật ngang hàng
 //   se, e, ne như client (nền ô cờ ánh lam để nhận ra). Các lớp khác khung (thân 64, phụ thể 96) được đặt khớp gốc chân.
 //   --anim: chỉ lấy các animation này (mặc định mọi animation, mỗi khung một cột; absorb xem bằng --crop trên sheet).

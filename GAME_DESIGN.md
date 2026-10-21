@@ -559,7 +559,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 | `absorb` (hấp thụ) | 2 | 500 ms | Có | Ngồi xếp bằng thiền, **chỉ hướng `s`**. Phụ thể mờ 60%. Tạm vẽ bằng code (`pack --code`: hạ thân) |
 
 - Tên mẫu là mẫu `animate_character` của PixelLab cho nhân vật người (tra lại bằng `get_character`, mục `available_animations`). PixelLab trả số khung khác thì `pack.mjs` chọn đều khung cho đủ số trên; thiếu animation thì `--fill` chép tạm `idle` (validate cảnh báo). Khi chưa có ảnh thật, `pack --code hurt,die,absorb` vẽ các ô đó từ khung đứng cùng hàng bằng một phép biến đổi chung cho cả 3 lớp: `hurt` phần trên vai rồi hông lệch 1–2 pixel về sau, `die` = ngửa, khuỵu (thân trên hạ `ISO_KNEEL`), nằm (xoay 90°, đầu sang trái, lưng chạm dòng gốc), `absorb` thân trên hạ `ISO_SIT` (hằng trong `tools/assets/lib.mjs`).
-- **Bố cục spritesheet cố định, mọi lớp giống nhau**: 24 cột × 6 hàng, khung 64×64 (sheet 1536×384; lớp phụ thể khung 96×96, hai nửa theo giới nên sheet 2304×1152):
+- **Bố cục spritesheet cố định, mọi lớp cùng bố cục cột**: 24 cột × 6 hàng, khung 64×64 (sheet 1536×384); lớp phụ thể khung 96×96, hai nửa theo giới nên 24 × 12 (sheet 2304×1152, mỗi nửa như dưới đây):
   - Hàng 0–4 là hướng `s`, `se`, `e`, `ne`, `n`. Trong mỗi hàng: cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–16 `cast`, 17–18 `hurt`, 19–22 `die`, cột 23 để trống.
   - Hàng 5: cột 0–1 `absorb` (hướng `s`); còn lại trống.
 - **Client tạo animation từ chỉ số khung cố định**, không dùng tag Aseprite: `load.spritesheet(key, png, { frameWidth, frameHeight })` rồi `anims.generateFrameNumbers`. Key animation có tiền tố sheet: `{sheet}:{animation}_{hướng}` (`hs_body_f_0:walk_se`; hướng vẽ `s`, `se`, `e`, `ne`, `n`, ba hướng còn lại dùng hướng lật và `flipX`).
