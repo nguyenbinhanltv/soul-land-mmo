@@ -16,7 +16,7 @@ npm run map:preview -- shared/assets/tinh_dau_ngoai_vi.v2.json toan-canh.png --s
                                                            # ảnh toàn cảnh isometric bằng ảnh ô / vật thật (không có mép, nhà, ánh sáng)
 ```
 
-Bản dựng lại của một bản đồ đang có ghi ra `<mapId>.v2.json` và chỉ được dùng khi server bật `MAP_V2=<mapId>` (danh sách cách nhau dấu phẩy, `all` = mọi bản có `.v2`); server báo tên file cho client qua `MapState.mapFile`. Bot chạy cùng `MAP_V2` để đọc đúng file (`BOT_ONLY=bigmap` chỉ chạy phần bản đồ lớn).
+Bản dựng lại của một bản đồ đang có ghi ra `<mapId>.v2.json` và là bản **mặc định** khi có file (11.5); đường lùi: server bật `MAP_V1=<mapId>` (danh sách cách nhau dấu phẩy, `all` = mọi bản đồ) thì dùng lại bản cũ `<mapId>.json`. Server báo tên file cho client qua `MapState.mapFile`. Bot chạy cùng `MAP_V1` với server để đọc đúng file (`BOT_ONLY=bigmap` chỉ chạy phần bản đồ lớn: mọi bản ×8).
 
 ## Chỉnh tay
 
@@ -28,19 +28,21 @@ Object (vùng, cổng, trận, tinh anh, hang) sửa trong bố cục JSON.
 
 ## Bố cục (`layouts/<mapId>.json`)
 
-Tọa độ theo **ô logic** (16 pixel). Mẫu đầy đủ: `layouts/tinh_dau_ngoai_vi.json`.
+Tọa độ theo **ô logic** (16 pixel). Mẫu đầy đủ: `layouts/tinh_dau_ngoai_vi.json` (rừng, suối, vách, tàn tích); đầm và hồ: `tinh_dau_noi_dia.json`, `lac_nhat_sam_lam.json` (hồ băng / hồ lửa bằng `area` có `gid`); băng tuyết, bản đồ dọc: `cuc_bac_chi_dia.json`; đảo giữa biển, cầu tàu, đền: `hai_than_dao.json`.
 
 | Khóa | Nghĩa |
 |---|---|
 | `map`, `out`, `size`, `seed` | `mapId` (phải có trong `MAPS`), tên file ra trong `shared/assets`, `[rộng, cao]`, hạt giống |
+| `blend` | Mép tầng loang: rừng, nền, loài cây theo tầng của ô lệch tối đa `blend` ô theo nhiễu (vùng hồn thú vẫn đúng hình); mặc định 0 |
+| `border` | Viền bản đồ là loại nền ướt này (ví dụ `"deep"` cho đảo giữa biển) thay vì cây |
 | `zoneCell` | Cỡ lưới thô (ô) khi tách hình vùng thành chữ nhật (server chỉ đọc vùng chữ nhật); mặc định 10 |
 | `gids.ground` | Loại nền → gid: `grass` ([sắc 1, sắc 2]), `leaf` (thảm lá), `moss` (rêu), `path`, `pathDark`, `camp`, `pave` / `crack` (sân đá tàn tích), `water` (suối, chặn), `ford` (chỗ lội, đi được), `bank` (bờ), `deep` (lòng ao, chặn), `stony` (nền đá mặt vách), `glow` (rêu quanh điểm nhấn), `bridge` |
-| `gids.objects` | Loại vật → gid (hoặc danh sách / `{gid: trọng số}`): `rock`, `cliff`, `ruin`, `stele`, `arch`, `log`, `ancient`, `tent`, `fire`, `plant` (đi xuyên được), `sign`, `skull`; mọi vật trừ `plant` là ô chặn |
+| `gids.objects` | Loại vật → gid (hoặc danh sách / `{gid: trọng số}`): `rock`, `cliff`, `ruin`, `stele`, `arch`, `log`, `ancient`, `tent`, `fire`, `plant` (đi xuyên được), `sign`, `skull`, `roof` / `wall` (nhà, gid 14 / 15); mọi vật trừ `plant` là ô chặn; chỉ cần khai loại bố cục có dùng. Nghĩa ảnh của gid theo bộ của `mapId` trong `tiles.json` (ví dụ `stele` là bia đá ở Ngoại vi, tinh thể tím ở Nội địa, tượng đinh ba ở Hải Thần Đảo) |
 | `gids.canopy` | Gid cây → gid tán (lớp `canopy`, chỉ dùng ở `?view=topdown`) |
-| `tiers` | Tầng niên hạn, nông → sâu: `years`, `hint`, `beasts` mặc định của vùng; rừng `trees` / `denseTrees` (`{gid: trọng số}`), `density` (xác suất cây nền), `cluster` (ngưỡng nhiễu cụm rậm), `clusterDensity`, `clusterScale`; biến thể nền `leaf`, `moss` (ngưỡng nhiễu); rải `rock`, `log`, `plant` (xác suất mỗi ô); `path` (khóa `gids.ground` cho đường ở tầng này) |
+| `tiers` | Tầng niên hạn, nông → sâu: `years`, `hint`, `beasts` mặc định của vùng; rừng `trees` / `denseTrees` (`{gid: trọng số}`), `density` (xác suất cây nền), `cluster` (ngưỡng nhiễu cụm rậm), `clusterDensity`, `clusterScale`; biến thể nền `leaf`, `moss` (ngưỡng nhiễu); rải `rock`, `log`, `plant` (xác suất mỗi ô); `path` (khóa `gids.ground` cho đường ở tầng này); `ground` (đè `gids.ground` của tầng, ví dụ `{"grass": [33, 7]}` bãi cát; không đè `water` / `deep`) |
 | `zones` | Vùng hồn thú có tên: `name`, `tier`, hình `poly` [[x, y]…] / `rect` [x, y, w, h] / `circle` [cx, cy, r]; tùy chọn `hint`, `beasts`, `years` (mặc định của tầng). Ô thuộc vùng đầu tiên chứa nó. Số con mỗi mảnh = `BEAST_DENSITY[mapId][tier]` (shared/data.ts) × ô đi được / 1.000 |
 | `points` | Điểm có tên cho đường nối |
-| `features` | Chạy theo thứ tự, sau rừng nền: `river` (`pts` spline, `width`, `wobble`, `bank`, `fords` [[x, y, r]]), `pond` (`at`, `r`), `cliff` (`pts`, `rows` tầng, `spacing`, `gap` / `gapLen` lối lên, `side`), `clearing` (`at`, `r`, `ground`, `lock`), `camp` (`rect`, `tents`, `fires`, `logs`, `signs`), `ruins` (`rect`, `gates`, `steles`, `arches`, `walls`, `broken`, `rubble`), `ancient` (`at`, `r`, `roots`, `plants`), `lair` (`at`, `rx`, `ry`, `entrance` n/s/e/w, `door`, `wall`, `skulls`), `objects` (`kind`, `at`) |
+| `features` | Chạy theo thứ tự, sau rừng nền: `river` (`pts` spline, `width`, `wobble`, `bank`, `fords` [[x, y, r]]), `pond` (`at`, `r`), `cliff` (`pts`, `rows` tầng, `spacing`, `gap` / `gapLen` lối lên, `side`), `clearing` (`at`, `r`, `ground`, `lock`), `camp` (`rect`, `tents`, `fires`, `logs`, `signs`), `ruins` (`rect`, `gates`, `steles`, `arches`, `walls`, `broken`, `rubble`), `ancient` (`at`, `r`, `roots`, `plants`), `lair` (`at`, `rx`, `ry`, `entrance` n/s/e/w, `door`, `wall`, `skulls`), `objects` (`kind`, `at`), `area` (vùng nền: `ground` phủ lên hình `rect` / `poly` / `circle`, `invert` phần ngoài hình, `edge` mép loang, `on` chỉ phủ lên các loại nền này, `clear` bỏ vật, `lock`, `gid` gid nền riêng, nền ướt thì gid đó chặn như nước), `house` (nhà / đền `rect`, hàng dưới là tường, `margin`, `ground`; công trình ảnh theo `build.compounds` của tiles.json khóa "x,y" góc trên trái), `scatter` (rải `kind` trong hình với xác suất `p`, `on`) |
 | `roads` | Đường A* qua các điểm `via` (tên trong `points` hoặc [x, y]), `width`, `wiggle`, `waterCost`: qua nước thành cầu, qua vách thì mở lối, tránh vật của tàn tích / trại |
 | `spawn`, `portals`, `arrives`, `waypoints`, `safe`, `elites`, `lair`, `npcs` | Object Tiled như mục 6; chỗ quanh cổng / điểm đến / trận được dọn trống. Công cụ kiểm loài, mã tinh anh, thú vương (`MAPS.king`) như server |
 

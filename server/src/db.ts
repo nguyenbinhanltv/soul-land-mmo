@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
+import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
@@ -22,7 +23,10 @@ export interface Character {
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; }
 
-/** Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí (vào ở `spawn`). */
+/**
+ * Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí hoặc vị trí ghi trên file Tiled khác file server
+ * đang dùng cho bản đồ đó (vào ở `spawn`).
+ */
 export interface Location { mapId: string; x: number | null; y: number | null; }
 /**
  * Ánh xạ `accounts.map_id` sang bản đồ đang có: mã cũ đã bỏ (MAP_MOVED, ví dụ `tinh_dau` từ BĐ3) thì sang bản đồ thay thế;
@@ -30,10 +34,12 @@ export interface Location { mapId: string; x: number | null; y: number | null; }
  */
 export const resolveMap = (raw: string | null | undefined) =>
   (raw && Object.hasOwn(MAPS, raw) ? raw : raw && Object.hasOwn(MAP_MOVED, raw) ? MAP_MOVED[raw] : DEFAULT_MAP);
-const toLocation = (raw: string | null | undefined, x: unknown, y: unknown): Location => {
+const toLocation = (raw: string | null | undefined, x: unknown, y: unknown, file: string | null | undefined): Location => {
   const mapId = resolveMap(raw);
-  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới.
-  return mapId === raw && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
+  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới. Tọa độ chỉ có nghĩa trên đúng file Tiled lúc ghi
+  // (`accounts.map_file`, 11.5; NULL = ghi trước 11.5, bản cũ `<mapId>`): bản ×8 thành mặc định hoặc đổi qua lại bằng MAP_V1 thì về `spawn`.
+  const same = mapId === raw && (file ?? raw) === mapFile(mapId);
+  return same && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
 };
 
 /** Một ô trong túi đồ (một dòng bảng `items`, mục 5.7). `id` do server sinh (UUID) ngay khi món đồ xuất hiện. */
@@ -105,14 +111,16 @@ export interface Store {
   getLocation(accountId: number): Promise<Location>;
   /**
    * Lưu vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng). Chỉ ghi khi bản đồ đang lưu (đã ánh xạ) vẫn là
-   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi.
+   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi. Ghi kèm `file`: file Tiled của tọa độ, mặc định
+   * file server đang dùng (`mapFile`, 11.5); null = như dòng ghi trước 11.5 (chỉ hook test truyền khác mặc định).
    */
-  saveLocation(accountId: number, mapId: string, x: number, y: number): Promise<boolean>;
+  saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string | null): Promise<boolean>;
   /**
    * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
    * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
    * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
-   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag.
+   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag. (x, y) ghi kèm file Tiled
+   * server đang dùng cho `to` (`mapFile`, 11.5) như saveLocation.
    */
   saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag): Promise<void>;
   /**
@@ -208,7 +216,7 @@ export class MemoryStore implements Store {
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
-  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null }>(); // accountId -> accounts.map_id, pos_x, pos_y
+  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
   starter = new Set<number>();          // accountId đã nhận vật phẩm khởi đầu (accounts.starter_items)
   claims = new Map<string, number>();   // "accountId|day|kind" -> số lần nhận thưởng boss (bảng boss_claims, BĐ5)
@@ -288,11 +296,11 @@ export class MemoryStore implements Store {
   }
   async getLocation(accountId: number) {
     const l = this.locs.get(accountId);
-    return toLocation(l?.mapId, l?.x, l?.y);
+    return toLocation(l?.mapId, l?.x, l?.y, l?.file);
   }
-  async saveLocation(accountId: number, mapId: string, x: number, y: number) {
+  async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
-    this.locs.set(accountId, { mapId, x, y }); return true;
+    this.locs.set(accountId, { mapId, x, y, file }); return true;
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     // Kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ (không có await xen giữa): ghi hết hoặc không ghi gì.
@@ -301,7 +309,7 @@ export class MemoryStore implements Store {
     if (resolveMap(this.locs.get(accountId)?.mapId) !== from) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
     if (bag) this.checkBag(accountId, bag);
     for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
-    this.locs.set(accountId, { mapId: to, x, y });
+    this.locs.set(accountId, { mapId: to, x, y, file: mapFile(to) });
     if (bag) this.putBag(accountId, bag);
   }
   /**
@@ -586,12 +594,12 @@ export class PgStore implements Store {
     return { sql, args: [Object.keys(MAPS), Object.keys(MAP_MOVED), Object.values(MAP_MOVED), DEFAULT_MAP] };
   }
   async getLocation(accountId: number) {
-    const x = (await this.pool.query("SELECT map_id, pos_x, pos_y FROM accounts WHERE id=$1", [accountId])).rows[0];
-    return toLocation(x?.map_id, x?.pos_x, x?.pos_y);
+    const x = (await this.pool.query("SELECT map_id, pos_x, pos_y, map_file FROM accounts WHERE id=$1", [accountId])).rows[0];
+    return toLocation(x?.map_id, x?.pos_x, x?.pos_y, x?.map_file);
   }
-  async saveLocation(accountId: number, mapId: string, x: number, y: number) {
-    const m = this.mapExpr(5);
-    const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, ...m.args]);
+  async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
+    const m = this.mapExpr(6);
+    const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
     return (r.rowCount ?? 0) > 0;
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
@@ -604,8 +612,8 @@ export class PgStore implements Store {
           [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
         if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
       }
-      const m = this.mapExpr(6);
-      const a = await db.query(`UPDATE accounts SET map_id=$3, pos_x=$4, pos_y=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, from, to, x, y, ...m.args]);
+      const m = this.mapExpr(7);
+      const a = await db.query(`UPDATE accounts SET map_id=$3, pos_x=$4, pos_y=$5, map_file=$6 WHERE id=$1 AND ${m.sql} = $2`, [accountId, from, to, x, y, mapFile(to), ...m.args]);
       if (a.rowCount !== 1) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
       if (bag) await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
