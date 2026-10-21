@@ -1,4 +1,4 @@
-// Tinh Đấu Sâm Lâm: rừng sâu huyền bí, căng thẳng nhẹ. 72 BPM, 32 ô (A A' B A''), ~107 giây.
+// Tinh Đấu Ngoại vi (bản mẫu "Tinh Đấu Sâm Lâm"): rừng huyền bí, căng thẳng nhẹ. 70 BPM, 32 ô (A A' B A''), ~110 giây.
 // Đoạn A dùng điệu Vũ trên La (A C D E G); đoạn B chuyển sang thang In của Nhật (A Bb D E F) cho cảm giác bất an
 // (quãng nửa cung La - Si giáng), rồi trở về. Shakuhachi dẫn, koto rải ostinato, dây ngân nền trầm,
 // taiko như nhịp tim (dày dần ở đoạn B), shamisen gảy ngắn ở đoạn B.
@@ -89,18 +89,20 @@ function build() {
 }
 
 export default {
-  id: "tinh-dau-sam-lam",
-  title: "Tinh Đấu Sâm Lâm",
-  bpm: 72,
+  id: "tinh_dau_ngoai_vi",
+  title: "Tinh Đấu Ngoại vi",
+  kind: "map",
+  maps: ["tinh_dau_ngoai_vi"],
+  bpm: 70,
   beatsPerBar: BPB,
   bars: 32,
   channels: [
-    { key: "shaku", name: "Shakuhachi", channel: 1, program: 77, volume: 100, pan: 58, reverb: 90, chorus: 0, humanTicks: 4 },
-    { key: "koto", name: "Đàn tranh (koto)", channel: 2, program: 107, volume: 96, pan: 78, reverb: 70, humanVel: 7 },
+    { key: "shaku", name: "Shakuhachi", channel: 1, program: 77, volume: 100, pan: 58, reverb: 90, chorus: 0, humanTicks: 4, expr: true, vibrato: 48, bend: 0.4, bendDepth: 0.8, phrase: 4 },
+    { key: "koto", name: "Đàn tranh (koto)", channel: 2, program: 107, volume: 96, pan: 78, reverb: 70, humanVel: 7, groove: true, phrase: 4, phraseAmt: 8 },
     { key: "bass", name: "Koto trầm", channel: 3, program: 107, volume: 90, pan: 54, reverb: 50 },
-    { key: "shami", name: "Shamisen", channel: 4, program: 106, volume: 100, pan: 36, reverb: 55, humanTicks: 2 },
-    { key: "flute", name: "Sáo Pan vọng", channel: 5, program: 75, volume: 100, pan: 96, reverb: 110 },
-    { key: "pad", name: "Dây ngân nền", channel: 6, program: 49, volume: 56, pan: 64, reverb: 90, chorus: 40, humanVel: 2 },
+    { key: "shami", name: "Shamisen", channel: 4, program: 106, volume: 100, pan: 36, reverb: 55, humanTicks: 2, groove: true },
+    { key: "flute", name: "Sáo Pan vọng", channel: 5, program: 75, volume: 100, pan: 96, reverb: 110, expr: true, vibrato: 30 },
+    { key: "pad", name: "Dây ngân nền", channel: 6, program: 49, volume: 56, pan: 64, reverb: 90, chorus: 40, humanVel: 2, expr: true },
     { key: "taiko", name: "Taiko", channel: 7, program: 116, volume: 84, pan: 64, reverb: 70, humanTicks: 0 },
     { key: "perc", name: "Lắc / tam giác", channel: 10, program: 0, volume: 120, pan: 30, reverb: 70, humanTicks: 1 },
   ],

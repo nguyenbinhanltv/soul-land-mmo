@@ -1,75 +1,110 @@
-// Sáng tác nhạc nền ngũ cung bằng code (#134): bài trong songs/ -> MIDI -> SpessaSynth -> wav -> ogg lặp liền mạch.
-//   node compose.mjs --soundfont <file .sf2/.sf3> --out <thư mục ngoài repo> [--song <id>] [--bitrate 96k] [--keep-wav]
-// Mỗi bài ghi ra <id>.mid (một vòng), <id>.ogg và <id>.json (thông số, điểm lặp); --keep-wav giữ cả <id>.wav.
-import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+// Sáng tác nhạc nền và khúc ngắn bằng code (#134): bài trong songs/ -> MIDI -> SpessaSynth -> wav -> ogg + m4a.
+//   node compose.mjs --soundfont <file .sf2/.sf3> [--out <thư mục>] [--song <id>[,<id>…]] [--midi <thư mục>] [--bitrate 96k]
+// --out mặc định shared/assets/audio/music: ghi <id>.ogg, <id>.m4a và manifest.json (đường dẫn tính từ shared/assets).
+// --midi (ngoài repo) ghi thêm <id>.mid (một vòng) và <id>.json (thông số) để xem lại / nghe bằng phần mềm khác.
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { buildMidi, loopSeconds, PPQ } from "./lib/midi.mjs";
-import { decodedSamples, normalize, renderLoop, wavToOgg, writeWav } from "./lib/render.mjs";
-import thanhHonThon from "./songs/thanh-hon-thon.mjs";
-import tinhDauSamLam from "./songs/tinh-dau-sam-lam.mjs";
+import { decodedSamples, encode, renderLoop, renderOnce, writeWav } from "./lib/render.mjs";
+import SONGS from "./songs/index.mjs";
 
-const SONGS = [thanhHonThon, tinhDauSamLam];
+const here = path.dirname(fileURLToPath(import.meta.url));
+const ASSETS = path.resolve(here, "../../../shared/assets");
 const SAMPLE_RATE = 44100;
 const PRE_BEATS = 1;
+const MAX_BYTES = 1.5 * 1024 * 1024;
 
 const { values: args } = parseArgs({
   options: {
     soundfont: { type: "string" },
-    out: { type: "string" },
+    out: { type: "string", default: path.join(ASSETS, "audio/music") },
     song: { type: "string" },
+    midi: { type: "string" },
     bitrate: { type: "string", default: "96k" },
-    "keep-wav": { type: "boolean", default: false },
   },
 });
-if (!args.soundfont || !args.out) {
-  console.error("Cần --soundfont <file> và --out <thư mục>. Xem tools/audio/compose/README.md.");
+if (!args.soundfont) {
+  console.error("Cần --soundfont <file .sf2>. Xem tools/audio/compose/README.md.");
   process.exit(1);
 }
 if (!existsSync(args.soundfont)) throw new Error(`Không thấy soundfont: ${args.soundfont}`);
-mkdirSync(args.out, { recursive: true });
+const out = path.resolve(args.out);
+mkdirSync(out, { recursive: true });
+if (args.midi) mkdirSync(args.midi, { recursive: true });
 
-const list = args.song ? SONGS.filter((s) => s.id === args.song) : SONGS;
-if (!list.length) throw new Error(`Không có bài "${args.song}". Có: ${SONGS.map((s) => s.id).join(", ")}`);
+const wanted = args.song?.split(",");
+const list = wanted ? SONGS.filter((s) => wanted.includes(s.id)) : SONGS;
+if (wanted && list.length !== wanted.length) throw new Error(`Không có bài: ${wanted.filter((w) => !SONGS.some((s) => s.id === w)).join(", ")}. Có: ${SONGS.map((s) => s.id).join(", ")}`);
 
-for (const song of list) {
-  const L = loopSeconds(song);
-  const samples = L * SAMPLE_RATE;
-  if (!Number.isInteger(samples) || samples % 128 !== 0) {
-    console.warn(`[${song.id}] Vòng ${samples} mẫu không là bội của 128, chỗ nối có thể lệch < 3 ms.`);
+// Đường dẫn trong manifest tính từ shared/assets nếu --out nằm trong đó (như manifest của tools/audio, #133).
+const rel = (file) => {
+  const r = path.relative(ASSETS, file).split(path.sep).join("/");
+  return r.startsWith("..") ? path.basename(file) : r;
+};
+const manifestPath = path.join(out, "manifest.json");
+const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")).tracks : [];
+const tracks = new Map(previous.filter((t) => SONGS.some((s) => s.id === t.id)).map((t) => [t.id, t]));
+const tmp = mkdtempSync(path.join(os.tmpdir(), "soul-land-compose-"));
+let failed = false;
+
+try {
+  for (const song of list) {
+    const t0 = Date.now();
+    const loop = song.kind !== "jingle";
+    const L = loopSeconds(song);
+    // Bội của 1024 mẫu: khung AAC (m4a) khớp đúng độ dài, không thêm mẫu đệm cuối làm hở chỗ nối; cũng là bội của khối render 128.
+    if (loop && (!Number.isInteger(L * SAMPLE_RATE) || (L * SAMPLE_RATE) % 1024 !== 0)) {
+      console.error(`[${song.id}] Vòng ${L * SAMPLE_RATE} mẫu không là bội của 1024: đổi bpm / số ô (xem README).`);
+      failed = true;
+    }
+    const render = { soundfont: args.soundfont, sampleRate: SAMPLE_RATE, preSeconds: (PRE_BEATS * 60) / song.bpm, mix: song.mix };
+    const audio = loop
+      ? await renderLoop({ ...render, midiBytes: buildMidi(song, { repeats: 3, preBeats: PRE_BEATS }), loopSeconds: L })
+      : await renderOnce({ ...render, midiBytes: buildMidi(song, { repeats: 1, preBeats: PRE_BEATS }), seconds: L });
+    const wav = path.join(tmp, `${song.id}.wav`);
+    writeWav(wav, audio, SAMPLE_RATE);
+    const files = {};
+    for (const format of ["ogg", "m4a"]) {
+      const file = path.join(out, `${song.id}.${format}`);
+      encode(wav, file, format, args.bitrate);
+      files[format] = { path: rel(file), bytes: statSync(file).size };
+    }
+    const samples = audio.left.length;
+    for (const format of loop ? ["ogg", "m4a"] : []) {
+      const got = decodedSamples(path.join(out, `${song.id}.${format}`));
+      if (got !== samples) { console.error(`[${song.id}] ${format} giải mã ra ${got} mẫu, cần ${samples}: điểm lặp sẽ lệch.`); failed = true; }
+    }
+    if (files.ogg.bytes > MAX_BYTES || files.m4a.bytes > MAX_BYTES) { console.error(`[${song.id}] vượt 1,5 MB.`); failed = true; }
+
+    const entry = {
+      id: song.id,
+      title: song.title,
+      kind: song.kind,
+      ...(song.maps ? { maps: song.maps } : {}),
+      ...(song.event ? { event: song.event } : {}),
+      loop,
+      seconds: Number((samples / SAMPLE_RATE).toFixed(3)),
+      files,
+    };
+    tracks.set(song.id, entry);
+    if (args.midi) {
+      writeFileSync(path.join(args.midi, `${song.id}.mid`), buildMidi(song, { repeats: 1, preBeats: 1 / PPQ }));
+      writeFileSync(path.join(args.midi, `${song.id}.json`), JSON.stringify({
+        ...entry, bpm: song.bpm, bars: song.bars, samples, gainDb: Number(audio.gainDb.toFixed(2)),
+        instruments: song.channels.map((c) => `${c.name} (GM ${c.channel === 10 ? "trống kênh 10" : c.program})`),
+      }, null, 2) + "\n");
+    }
+    console.log(`[${song.id}] ${entry.seconds} s${loop ? " lặp" : ""}, ogg ${(files.ogg.bytes / 1024).toFixed(0)} KB, m4a ${(files.m4a.bytes / 1024).toFixed(0)} KB, ` +
+      `tăng ${audio.gainDb.toFixed(1)} dB, render ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
-  const base = path.join(args.out, song.id);
-  writeFileSync(`${base}.mid`, buildMidi(song, { repeats: 1, preBeats: 1 / PPQ }));
-
-  const t0 = Date.now();
-  const audio = await renderLoop({
-    midiBytes: buildMidi(song, { repeats: 3, preBeats: PRE_BEATS }),
-    soundfont: args.soundfont,
-    sampleRate: SAMPLE_RATE,
-    preSeconds: (PRE_BEATS * 60) / song.bpm,
-    loopSeconds: L,
-  });
-  const level = normalize(audio);
-  writeWav(`${base}.wav`, audio, SAMPLE_RATE);
-  wavToOgg(`${base}.wav`, `${base}.ogg`, args.bitrate);
-  if (!args["keep-wav"]) rmSync(`${base}.wav`);
-  const oggSamples = decodedSamples(`${base}.ogg`);
-  const info = {
-    id: song.id,
-    title: song.title,
-    bpm: song.bpm,
-    bars: song.bars,
-    seconds: Number(L.toFixed(3)),
-    loopSamples: audio.left.length,
-    oggSamples,
-    loop: "toàn bộ file (0 -> hết)",
-    gainDb: Number(level.gainDb.toFixed(2)),
-    peakDb: Number(level.peakDb.toFixed(2)),
-    rmsDb: Number(level.rmsDb.toFixed(2)),
-    oggBytes: statSync(`${base}.ogg`).size,
-    instruments: song.channels.map((c) => `${c.name} (GM ${c.channel === 10 ? "trống kênh 10" : c.program})`),
-  };
-  writeFileSync(`${base}.json`, JSON.stringify(info, null, 2) + "\n");
-  console.log(`[${song.id}] ${L.toFixed(1)} s, ogg ${(info.oggBytes / 1024).toFixed(0)} KB, đỉnh ${info.peakDb} dB, RMS ${info.rmsDb} dB, ` +
-    `mẫu ${info.loopSamples} -> ogg ${oggSamples}${oggSamples === info.loopSamples ? "" : " (LỆCH)"}, render ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+} finally {
+  rmSync(tmp, { recursive: true, force: true });
 }
+
+const sorted = [...tracks.values()].sort((a, b) => a.id.localeCompare(b.id));
+writeFileSync(manifestPath, JSON.stringify({ generatedBy: "tools/audio/compose/compose.mjs", soundfont: path.basename(args.soundfont), tracks: sorted }, null, 2) + "\n");
+console.log(`manifest: ${sorted.length} bài -> ${manifestPath}`);
+if (failed) process.exit(1);

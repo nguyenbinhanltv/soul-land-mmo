@@ -52,3 +52,27 @@ export function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/**
+ * Lưới trống một ô: mỗi ký tự một bước đều nhau trong ô. `X` nhấn, `x` thường, `o` nhẹ, `.` nghỉ.
+ * Nhiều ô liền nhau ngăn bằng "|" (ô bắt đầu từ `bar`). `pitch` là số nốt (trống kênh 10 hoặc nốt của taiko).
+ */
+export function grid(str, { bar = 0, beatsPerBar = 4, pitch, vel = 80, d = 0.25 }) {
+  return str.split("|").map((s) => s.trim()).filter(Boolean).flatMap((cells, i) => {
+    const step = beatsPerBar / cells.length;
+    return [...cells].flatMap((c, k) => c === "." ? [] : [{
+      t: (bar + i) * beatsPerBar + k * step, d, p: typeof pitch === "string" ? midi(pitch) : pitch,
+      v: vel + (c === "X" ? 20 : c === "o" ? -25 : 0),
+    }]);
+  });
+}
+
+/** Các nốt giữ cùng lúc (hợp âm đệm / pad) từ phách `t`, dài `d` phách. */
+export function chord(names, { t, d, vel = 60 }) {
+  return names.map((n) => ({ t, d, p: midi(n), v: vel }));
+}
+
+/** Dịch cao độ danh sách nốt `semi` nửa cung (dùng để nhắc lại câu ở quãng tám khác). */
+export function shift(notes, semi) {
+  return notes.map((n) => ({ ...n, p: n.p + semi }));
+}

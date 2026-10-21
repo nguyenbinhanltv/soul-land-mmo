@@ -1,4 +1,4 @@
-// Thánh Hồn Thôn: làng quê yên bình. Ngũ cung Rê (cung Rê: D E F# A B), 84 BPM, 32 ô (A A' B A''), ~91 giây.
+// Thánh Hồn Thôn: làng quê yên bình. Ngũ cung Rê (cung Rê: D E F# A B), 90 BPM, 32 ô (A A' B A''), ~85 giây.
 // Sáo Pan dẫn giai điệu, đàn tranh (koto) rải hợp âm, koto trầm giữ bè, shamisen đối đáp, shakuhachi hát đoạn B,
 // dây (strings) đệm rất nhỏ, trống taiko nhẹ và mõ gỗ giữ nhịp.
 import { bars, midi, pattern } from "../lib/theory.mjs";
@@ -93,20 +93,22 @@ function build() {
 }
 
 export default {
-  id: "thanh-hon-thon",
+  id: "thanh_hon_thon",
   title: "Thánh Hồn Thôn",
-  bpm: 84,
+  kind: "map",
+  maps: ["thanh_hon_thon"],
+  bpm: 90,
   beatsPerBar: BPB,
   bars: 32,
   channels: [
-    { key: "flute", name: "Sáo Pan", channel: 1, program: 75, volume: 100, pan: 60, reverb: 70, chorus: 10, humanTicks: 3 },
-    { key: "koto", name: "Đàn tranh (koto)", channel: 2, program: 107, volume: 100, pan: 80, reverb: 55, humanVel: 8 },
-    { key: "bass", name: "Koto trầm", channel: 3, program: 107, volume: 84, pan: 58, reverb: 40 },
-    { key: "shami", name: "Shamisen", channel: 4, program: 106, volume: 100, pan: 40, reverb: 50, humanTicks: 3 },
-    { key: "shaku", name: "Shakuhachi", channel: 5, program: 77, volume: 90, pan: 70, reverb: 75 },
-    { key: "pad", name: "Dây đệm", channel: 6, program: 49, volume: 58, pan: 64, reverb: 80, chorus: 30, humanVel: 2 },
+    { key: "flute", name: "Sáo Pan", channel: 1, program: 75, volume: 100, pan: 60, reverb: 70, chorus: 10, humanTicks: 3, expr: true, vibrato: 36, bend: 0.12, phrase: 4 },
+    { key: "koto", name: "Đàn tranh (koto)", channel: 2, program: 107, volume: 100, pan: 80, reverb: 55, humanVel: 8, groove: true, phrase: 4, phraseAmt: 8 },
+    { key: "bass", name: "Koto trầm", channel: 3, program: 107, volume: 84, pan: 58, reverb: 40, groove: true },
+    { key: "shami", name: "Shamisen", channel: 4, program: 106, volume: 100, pan: 40, reverb: 50, humanTicks: 3, groove: true },
+    { key: "shaku", name: "Shakuhachi", channel: 5, program: 77, volume: 90, pan: 70, reverb: 75, expr: true, vibrato: 44, bend: 0.35, bendDepth: 0.7, phrase: 4 },
+    { key: "pad", name: "Dây đệm", channel: 6, program: 49, volume: 58, pan: 64, reverb: 80, chorus: 30, humanVel: 2, expr: true },
     { key: "taiko", name: "Taiko", channel: 7, program: 116, volume: 80, pan: 64, reverb: 60, humanTicks: 0 },
-    { key: "perc", name: "Mõ gỗ / lắc", channel: 10, program: 0, volume: 100, pan: 72, reverb: 45, humanTicks: 1 },
+    { key: "perc", name: "Mõ gỗ / lắc", channel: 10, program: 0, volume: 100, pan: 72, reverb: 45, humanTicks: 1, groove: true },
   ],
   notes: build(),
 };
