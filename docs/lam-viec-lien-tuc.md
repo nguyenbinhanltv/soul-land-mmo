@@ -60,6 +60,23 @@ while ($true) {
 #### Codex CLI (`codex exec`)
 `codex exec` mặc định chạy sandbox **chỉ đọc, không mạng**, nên không sửa file, không `git push` / `gh` được. Cần quyền ghi trong thư mục repo **và** quyền mạng. Với bản Codex hiện hành, thường là `--full-auto` (sandbox `workspace-write`) cộng `-c sandbox_workspace_write.network_access=true` (bật mạng). Tên cờ có thể đổi giữa các phiên bản: kiểm bằng `codex exec --help` và tài liệu Codex trước khi chạy qua đêm.
 
+Thay cho cờ dòng lệnh, có thể cấu hình tương đương trong `~/.codex/config.toml` của máy đó (không commit vào repo):
+```toml
+sandbox_mode = "workspace-write"
+approval_policy = "never"          # chạy đêm không ai bấm duyệt
+
+[sandbox_workspace_write]
+network_access = true
+```
+
+**Rủi ro của chế độ này:** agent tự ghi mọi file trong thư mục repo và tự chạy lệnh có mạng mà không hỏi ai, kể cả lệnh sai (xoá file, `npm install` gói lạ, gửi dữ liệu ra ngoài). Để giảm rủi ro:
+- chạy trong một bản clone / worktree riêng chỉ dành cho agent, không phải thư mục đang làm tay;
+- không để key, token, `.env` có bí mật trong thư mục đó; `gh` đăng nhập bằng token chỉ có quyền repo này nếu được;
+- không dùng `--dangerously-bypass-approvals-and-sandbox` (tắt hẳn sandbox);
+- buổi sáng xem lại commit / PR / comment agent đã tạo (mục 3).
+
+Rủi ro tương tự với `claude -p --allowedTools` ở trên: chỉ cho phép đúng các lệnh cần dùng, áp dụng cùng các biện pháp này.
+
 PowerShell (Windows):
 ```powershell
 while ($true) {
