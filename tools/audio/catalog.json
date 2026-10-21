@@ -53,6 +53,42 @@
       "license": "CC0-1.0",
       "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
       "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-crowd-shouting",
+      "title": "Crowd Shouting/Speaking Ambience",
+      "author": "StarNinjas",
+      "url": "https://opengameart.org/content/crowd-shoutingspeaking-ambience",
+      "license": "CC0-1.0",
+      "archiveSha256": "a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-snake-sfx",
+      "title": "Snake sprites & sound",
+      "author": "eugeneloza",
+      "url": "https://opengameart.org/content/snake-sprites-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-bell",
+      "title": "Correct Bell",
+      "author": "Fupi",
+      "url": "https://opengameart.org/content/correct-bell",
+      "license": "CC0-1.0",
+      "archiveSha256": "7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-birds-wind",
+      "title": "Birds and Wind - Ambient, Birds, Wind and Synth",
+      "author": "Spring Spring",
+      "url": "https://opengameart.org/content/birds-and-wind-ambient-birds-wind-and-synth",
+      "license": "CC0-1.0",
+      "archiveSha256": "28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01",
+      "retrievedAt": "2026-10-21"
     }
   ],
   "tracks": [
@@ -73,6 +109,11 @@
     { "id": "spirit-wolf-howls", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/howl.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
     { "id": "spirit-wolf-bark", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/barking_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
     { "id": "spirit-bear-roar", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/roar_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
-    { "id": "spirit-insect-buzz", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/bug_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" }
+    { "id": "spirit-insect-buzz", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/bug_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "town-crowd-ambience", "sourceId": "oga-crowd-shouting", "input": "opengameart/crowd_shouting.ogg", "inputSha256": "a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca", "group": "environment", "mapId": "tinh-dau-thanh-tran", "preload": false, "sprite": "town-crowd" },
+    { "id": "forest-bird-ambience", "sourceId": "oga-birds-wind", "input": "opengameart/birds-wind.ogg", "inputSha256": "28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01", "group": "environment", "mapId": "tinh-dau-rung-chim", "preload": false, "sprite": "forest-birds" },
+    { "id": "spirit-snake-die", "sourceId": "oga-snake-sfx", "input": "opengameart/snake_die.ogg", "inputSha256": "b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23", "group": "creatures", "mapId": null, "preload": false, "sprite": "creature-snake" },
+    { "id": "spirit-snake-eat", "sourceId": "oga-snake-sfx", "input": "opengameart/snake_eat.ogg", "inputSha256": "d1982fb17c17fa358e2491e970ffe01aab7bad34baa6f459ea51fa9a8666c228", "group": "creatures", "mapId": null, "preload": false, "sprite": "creature-snake" },
+    { "id": "spirit-bell", "sourceId": "oga-bell", "input": "opengameart/bell.wav", "inputSha256": "7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9", "group": "events", "mapId": null, "preload": false, "sprite": "bell" }
   ]
 }

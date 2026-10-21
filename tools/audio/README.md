@@ -17,6 +17,8 @@ node tools/audio/preview.mjs \
 
 Pipeline tạo `.ogg` và `.m4a` AAC, chuẩn hóa bằng `loudnorm`, cắt khoảng lặng ở cuối, nhóm tiếng ngắn thành audio sprite và ghi manifest. Chỉ sprite bước chân được preload; ambient và tiếng hồn thú được đánh dấu lazy theo map/sự kiện. Manifest chặn tổng tải ban đầu vượt 2 MiB cho từng format.
 
+Catalog hiện bao phủ rừng, suối, gió núi, thành trấn/đám đông, chim, sói, rắn, gấu, côn trùng và chuông. Các nhóm bổ sung dùng OGA CC0 đã ghi provenance từng file trong catalog và `art/CREDITS.md`.
+
 ## License và provenance
 
 - Audio đầu vào của #133 chỉ dùng CC0 hoặc CC-BY. Kenney được ưu tiên; OGA chỉ gap-fill sau khi kiểm tra trang nguồn từng gói.

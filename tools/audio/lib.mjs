@@ -56,6 +56,9 @@ function validateTrack(track, sourceIds) {
   validateId(track.id, "track.id");
   if (!sourceIds.has(track.sourceId)) throw new Error(`track ${track.id} references an unknown source`);
   validateRelativePath(track.input, `track ${track.id}.input`);
+  if (track.inputSha256 !== undefined && !/^[a-f0-9]{64}$/.test(track.inputSha256)) {
+    throw new Error(`track ${track.id} must have a valid input SHA-256`);
+  }
   validateId(track.group, `track ${track.id}.group`);
   if (track.mapId !== null) validateId(track.mapId, `track ${track.id}.mapId`);
   if (typeof track.preload !== "boolean") throw new Error(`track ${track.id}.preload must be boolean`);

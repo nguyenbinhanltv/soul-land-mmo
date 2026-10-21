@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -51,6 +51,12 @@ test("validateCatalog rejects forbidden licenses and unsafe input paths", () => 
     }),
     /path/i,
   );
+});
+test("issue catalog covers town, bird, snake and bell gaps", async () => {
+  const catalog = JSON.parse(await readFile(new URL("./catalog.json", import.meta.url), "utf8"));
+  const required = ["town-crowd-ambience", "forest-bird-ambience", "spirit-snake-die", "spirit-bell"];
+  for (const id of required) assert.ok(catalog.tracks.some((track) => track.id === id), `missing ${id}`);
+  assert.ok(catalog.sources.every((source) => source.license === "CC0-1.0" || source.license.startsWith("CC-BY-")));
 });
 
 test("buildManifest records both runtime formats and preload byte budgets", () => {

@@ -396,6 +396,116 @@
         "name": "creatures",
         "start": 1.46
       }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 335438,
+          "path": "audio/ambient/tinh-dau-thanh-tran.m4a"
+        },
+        "ogg": {
+          "bytes": 362565,
+          "path": "audio/ambient/tinh-dau-thanh-tran.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "town-crowd-ambience",
+      "mapId": "tinh-dau-thanh-tran",
+      "preload": false,
+      "sourceId": "oga-crowd-shouting",
+      "sprite": {
+        "duration": 27.38,
+        "name": "town-crowd",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 1030214,
+          "path": "audio/ambient/tinh-dau-rung-chim.m4a"
+        },
+        "ogg": {
+          "bytes": 1004031,
+          "path": "audio/ambient/tinh-dau-rung-chim.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "forest-bird-ambience",
+      "mapId": "tinh-dau-rung-chim",
+      "preload": false,
+      "sourceId": "oga-birds-wind",
+      "sprite": {
+        "duration": 83.78,
+        "name": "forest-birds",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 56393,
+          "path": "audio/sprites/creature-snake.m4a"
+        },
+        "ogg": {
+          "bytes": 61123,
+          "path": "audio/sprites/creature-snake.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-snake-die",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-snake-sfx",
+      "sprite": {
+        "duration": 4.12,
+        "name": "creature-snake",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 56393,
+          "path": "audio/sprites/creature-snake.m4a"
+        },
+        "ogg": {
+          "bytes": 61123,
+          "path": "audio/sprites/creature-snake.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-snake-eat",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-snake-sfx",
+      "sprite": {
+        "duration": 0.36,
+        "name": "creature-snake",
+        "start": 4.17
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 20586,
+          "path": "audio/sprites/bell.m4a"
+        },
+        "ogg": {
+          "bytes": 16342,
+          "path": "audio/sprites/bell.ogg"
+        }
+      },
+      "group": "events",
+      "id": "spirit-bell",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-bell",
+      "sprite": {
+        "duration": 1.6,
+        "name": "bell",
+        "start": 0
+      }
     }
   ],
   "pipeline": "tools/audio/process.mjs@1",
@@ -460,6 +570,42 @@
       "retrievedAt": "2026-10-21",
       "title": "80 CC0 creature SFX",
       "url": "https://opengameart.org/content/80-cc0-creature-sfx"
+    },
+    {
+      "archiveSha256": "a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca",
+      "author": "StarNinjas",
+      "id": "oga-crowd-shouting",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Crowd Shouting/Speaking Ambience",
+      "url": "https://opengameart.org/content/crowd-shoutingspeaking-ambience"
+    },
+    {
+      "archiveSha256": "b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23",
+      "author": "eugeneloza",
+      "id": "oga-snake-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Snake sprites & sound",
+      "url": "https://opengameart.org/content/snake-sprites-sound"
+    },
+    {
+      "archiveSha256": "7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9",
+      "author": "Fupi",
+      "id": "oga-bell",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Correct Bell",
+      "url": "https://opengameart.org/content/correct-bell"
+    },
+    {
+      "archiveSha256": "28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01",
+      "author": "Spring Spring",
+      "id": "oga-birds-wind",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Birds and Wind - Ambient, Birds, Wind and Synth",
+      "url": "https://opengameart.org/content/birds-and-wind-ambient-birds-wind-and-synth"
     }
   ]
 }
