@@ -28,6 +28,12 @@ npm run bot --prefix client    # bot kiểm thử, chạy khi server đang bật
 - **Đổi SQL / `db.ts` thì thử thêm với PostgreSQL**, sau lượt bot ở chế độ RAM: có Docker thì `docker compose up -d` và `cp .env.example server/.env`. Không có Docker thì dùng gói `embedded-postgres` cài trong thư mục tạm **ngoài repo**, cổng riêng, tạo DB `CREATE DATABASE … ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'` (cluster mặc định trên Windows không phải UTF8), rồi `DATABASE_URL=postgres://…@localhost:<cổng>/<db> PGSSL=false GAME_TEST=1 npm run dev:server`. Chạy server **hai lần liên tiếp** (migration phải chạy lại an toàn) rồi chạy bot.
 - Chạy song song nhiều phiên: dùng cổng server / PostgreSQL riêng và chỉ tắt đúng tiến trình mình bật.
 
+## Quy trình nhận việc (nhiều người)
+Repo có nhiều người và agent cùng làm; mọi việc đi qua issue GitHub, chi tiết ở `CONTRIBUTING.md`.
+- Chỉ nhận issue có `san-sang`, chưa giao, không có `dang-lam` / `chan`; kiểm lại ngay trước khi làm, đã có người nhận thì không làm.
+- Nhận: tự gán + `dang-lam` + `agent:<tên>`, mở PR nháp ngay với `Closes #N`; cần file SQL mới thì ghi số vào issue. Bỏ dở thì trả nhãn và bỏ giao.
+- Dòng chưa làm ở `GAME_DESIGN.md` mục 7 trỏ tới số issue.
+
 ## Nhánh và PR
 - Mỗi việc một nhánh mới từ `origin/main`, một PR vào `main`. Không commit thẳng lên `main`, **không force push**; cập nhật nhánh bằng merge `origin/main` (không rebase nhánh đã push).
 - Commit nhỏ, thông điệp tiếng Việt (ví dụ `Bước 9.6: …`). Pre-commit hook typecheck lại; không bỏ qua bằng `--no-verify`.
