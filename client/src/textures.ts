@@ -100,11 +100,11 @@ export function makeTextures(scene: Phaser.Scene) {
     addSheet(scene, honsuKey("outfit", s, h), () => honsuSheet(s, "outfit"), HS_FRAME);
     addSheet(scene, honsuKey("hair", s, h), () => honsuSheet(s, "hair", h), HS_FRAME);
   }));
-  // Bóng dưới chân hồn sư: elip mờ 12×4 (mục 5.11, lớp 1).
+  // Bóng dưới chân hồn sư: elip 2:1 màu viền tối, mờ 35% (mục 5.11, lớp 1); client phóng SPR thành 24×12.
   if (!scene.textures.exists("hs_shadow")) {
     const g = scene.make.graphics({}, false);
-    g.fillStyle(0x000000, 0.35); g.fillEllipse(6, 2, 12, 4);
-    g.generateTexture("hs_shadow", 12, 4); g.destroy();
+    g.fillStyle(0x1a1020, 0.35); g.fillEllipse(6, 3, 12, 6);
+    g.generateTexture("hs_shadow", 12, 6); g.destroy();
   }
   TIERS.forEach((t, tier) => {
     haloTexture(scene, `halo${tier}`, t.col, t.glow, false);
