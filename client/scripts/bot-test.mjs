@@ -7424,9 +7424,9 @@ async function groundTest(){
   /** Đặt bot `b` ở chỗ đứng được đầu tiên trong `pts` (thỏa `cond`); trả điểm đã đứng hoặc null. */
   const place=async(b,pts,cond=()=>true)=>{ for(const [x,y] of pts){ if(!cond(x,y)) continue; await test(b,"goto",{x,y}); if(Math.hypot(me(b).x-x,me(b).y-y)<1) return {x,y}; } return null; };
   const edge=[]; for(let dy=0;dy<=sv.height/2;dy+=8) for(const sg of [1,-1]) edge.push([sv.x+sv.width+10,Math.round(sv.y+sv.height/2+sg*dy)]);
-  // Chỗ đứng ngay ngoài mép đông làng mà điểm 22 pixel về tây đứng được và ở trong làng (vẫn trong vòng 34 pixel của vũng).
-  let spot=null;
-  for(const [x,y] of edge) if(!inSv(x,y)&&inSv(x-22,y)&&await place(G,[[x-22,y]])&&(spot=await place(G,[[x,y]]))) break;
+  // Chỗ đứng ngay ngoài mép đông làng (10 pixel) mà điểm `inX` pixel về tây đứng được và ở trong làng, vẫn trong vũng (bán kính Phun Độc).
+  const inX=Math.round((10+tt.r)/2); let spot=null;
+  for(const [x,y] of edge) if(!inSv(x,y)&&inSv(x-inX,y)&&await place(G,[[x-inX,y]])&&(spot=await place(G,[[x,y]]))) break;
   ok(!!spot,`G đứng ngay ngoài mép đông làng (${spot?.x},${spot?.y})`);
   if(!spot) return;
   const ground=async(more={})=>(await test(G,"ground",more))??{grounds:[],st:{}};
@@ -7456,12 +7456,14 @@ async function groundTest(){
   await sleep(GROUND_TICK*2000+200); g=await ground();
   const n2=g.st.poison?.n??0;
   ok(n2>=n1+2&&dist(me(G),spot)<1,`đứng yên trong sương ${GROUND_TICK*2} nhịp: Trúng độc ${n1} -> ${n2} tầng`);
-  await test(V,"goto",{x:spot.x+60,y:spot.y});
-  ok(await waitFor(()=>V.room.state.grounds.size>=1,1500)&&[...V.room.state.grounds.values()].some(q=>GROUND_KINDS[q.kind]?.id==="mist"&&q.ttl>0),
+  const nearV=await place(V,[[spot.x+60,spot.y],[spot.x+60,spot.y+30],[spot.x+60,spot.y-30],[spot.x,spot.y+60],[spot.x,spot.y-60],[spot.x+100,spot.y]]);
+  ok(nearV&&await waitFor(()=>V.room.state.grounds.size>=1,1500)&&[...V.room.state.grounds.values()].some(q=>GROUND_KINDS[q.kind]?.id==="mist"&&q.ttl>0),
     "V vào tầm sau khi sương đã có: thấy sương trong state (không chỉ tin fx lúc tung)");
-  await test(G,"goto",{x:spot.x+dv.r+30,y:spot.y}); g=await ground(); const n3=g.st.poison?.n??0;
-  await sleep(GROUND_TICK*1000+400); g=await ground(); const n4=g.st.poison?.n??0, live=g.grounds.some(x=>x.src===c?.bid);
-  ok(live&&n4<=n3&&!inSv(me(G).x,me(G).y),`ra khỏi sương (sương còn): không nhận thêm tầng (${n3} -> ${n4})`);
+  await test(G,"goto",{x:spot.x+dv.r+30,y:spot.y}); g=await ground(); const n3=g.st.poison?.n??0, t3=g.st.poison?.t??0;
+  await sleep(GROUND_TICK*1000+400); g=await ground(); const n4=g.st.poison?.n??0, t4=g.st.poison?.t??0, live=g.grounds.some(x=>x.src===c?.bid);
+  // Đủ tầng tối đa thì số tầng không tăng được nữa: xét cả thời gian còn lại không được làm mới (vẫn giảm dần).
+  ok(live&&n4<=n3&&t4<t3-GROUND_TICK*0.5&&!inSv(me(G).x,me(G).y)&&Math.hypot(me(G).x-spot.x,me(G).y-spot.y)>dv.r+TELE_PAD,
+    `ra khỏi sương (sương còn): không nhận thêm tầng (${n3} -> ${n4}), Trúng độc không được làm mới (${t3.toFixed(1)} -> ${t4.toFixed(1)} giây)`);
   await ground({ttl:0.5});
   ok(await waitFor(()=>G.room.state.grounds.size===0,2000)&&!(await ground()).grounds.some(x=>x.src===c?.bid),"sương hết giờ thì mất khỏi state");
   ok(await waitFor(()=>!(me(G).st&statusBit("poison")),4000),"rời sương một lúc: hết Trúng độc");
@@ -7470,7 +7472,7 @@ async function groundTest(){
   await test(G,"goto",spot); await test(G,"ready");
   c=await castAt("that_tinh_doc_thiem",5000); g=await ground({ttl:30}); z=g.grounds.find(x=>x.src===c?.bid);
   ok(c&&z?.kind==="pool"&&(g.st.poison?.n??0)>=1,`${c?.name} tung: vũng độc dưới chân G, Trúng độc ${g.st.poison?.n??0} tầng`);
-  await test(G,"goto",{x:spot.x-22,y:spot.y});
+  await test(G,"goto",{x:spot.x-inX,y:spot.y});
   const inPool=z&&Math.hypot(me(G).x-z.x,me(G).y-z.y)<z.r;
   await sleep(GROUND_TICK*2000+200); g=await ground();
   ok(inPool&&inSv(me(G).x,me(G).y)&&g.grounds.some(x=>x.src===c?.bid)&&!g.st.poison&&!(me(G).st&statusBit("poison")),

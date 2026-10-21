@@ -33,7 +33,9 @@ export class Grounds {
 
   /**
    * Mỗi nhịp: vùng hết giờ hoặc hồn thú gây ra không còn (bị hạ, rút đi, bị xóa) thì mất; tới nhịp thì gây trạng thái cho hồn sư đứng
-   * trong vùng. Không gây cho người đã gục, đang đi cổng, trong vùng an toàn (applyPStatus cũng chặn, xét ở đây cho rõ luật).
+   * trong vùng (ứng viên lấy từ lưới hồn sư của interest.ts). Người đã gục, đang đi cổng, trong vùng an toàn: applyPStatus không gây;
+   * người đang miễn sát thương (Vô Địch Thần Quang) cũng không dính, như khi chiêu báo trước trúng (hurtPlayer trả false).
+   * `ttl` đồng bộ theo bậc 0,25 giây (client chỉ dùng để mờ dần), không ghi mỗi nhịp.
    */
   tick(dt: number) {
     if (!this.list.size) return;
@@ -42,20 +44,21 @@ export class Grounds {
       const g = grounds.get(id), b = beasts.get(z.src);
       z.t -= dt;
       if (!g || z.t <= 0 || !b || b.hp <= 0) { this.list.delete(id); grounds.delete(id); continue; }
-      g.ttl = z.t;
+      const ttl = Math.ceil(z.t * 4) / 4; if (g.ttl !== ttl) g.ttl = ttl;
       if ((z.next -= dt) > 0) continue;
       z.next += z.def.every ?? GROUND_TICK;
-      players.forEach((p, pid) => {
-        const d = room.pdata.get(pid);
-        if (!d || p.dead || d.travelling || room.map.inSafe(p.x, p.y) || !teleHits(z.tele, p.x, p.y)) return;
+      // Vệt / nón tính từ gốc: tầm với là chiều dài cộng bề rộng (Grid.near đã cộng lề).
+      for (const pid of room.interest.players.near(z.tele.x, z.tele.y, z.tele.r + z.tele.w)) {
+        const p = players.get(pid), d = room.pdata.get(pid);
+        if (!p || !d || room.buffV(d, "inv") || !teleHits(z.tele, p.x, p.y)) continue;
         for (const a of z.def.status) room.applyPStatus(pid, a, z.base);
-      });
+      }
     }
   }
 
   /** Hook kiểm thử `ground {ttl}`: mọi vùng còn đúng `s` giây. */
   setTtl(s: number) {
-    for (const [id, z] of this.list) { z.t = s; const g = this.room.state.grounds.get(id); if (g) g.secs = Math.max(g.secs, s); }
+    for (const [id, z] of this.list) { z.t = s; const g = this.room.state.grounds.get(id); if (g) { g.secs = Math.max(g.secs, s); g.ttl = s; } }
   }
 
   /** Các vùng đang có (hook kiểm thử `ground`). */
