@@ -147,6 +147,8 @@ export class GameScene extends Phaser.Scene {
   boneSkKey = "";                   // hồn cốt đang gắn trên võ hồn ra trận lần vẽ thanh kỹ năng hồn cốt gần nhất (4.3)
   hudT = 0;
   mini!: { ctx: CanvasRenderingContext2D; base: HTMLCanvasElement };
+  /** Tin `mini` gần nhất (11.4): vị trí theo ô của mọi hồn sư [sid, x, y], hồn thú từ nghìn năm và đồ rơi [x, y, bậc] cả bản đồ. */
+  far: { p: (string | number)[]; b: number[]; d: number[] } = { p: [], b: [], d: [] };
   mapW = 0; mapH = 0;
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
@@ -718,6 +720,8 @@ export class GameScene extends Phaser.Scene {
       if (typeof m?.mapId === "string") this.onTravel(m.mapId, typeof m.roomId === "string" ? m.roomId : null);
     });
     this.room.onMessage("channels", (m: ChannelsMsg) => hud.setChannels(m)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
+    // Bản đồ nhỏ (11.4): state chỉ còn thực thể ở gần, vị trí cả bản đồ đến mỗi giây qua tin này.
+    this.room.onMessage("mini", (m: GameScene["far"]) => { if (m && Array.isArray(m.p) && Array.isArray(m.b) && Array.isArray(m.d)) this.far = m; });
     // Cộng minh (8.2): tiến độ 4 trụ cột và % cộng cho mọi võ hồn do server tính; mốc mới đạt thì báo lớn.
     this.room.onMessage("resonance", (m: ResonanceMsg) => {
       if (!m || !Array.isArray(m.prog)) return;
@@ -1285,6 +1289,10 @@ export class GameScene extends Phaser.Scene {
   drawMinimap() {
     const { ctx, base } = this.mini; const st = this.room.state, me = st.players.get(this.me);
     ctx.imageSmoothingEnabled = false; ctx.drawImage(base, 0, 0);
+    // Thực thể ở xa (11.4) theo tin `mini` (chậm tới 1 giây), thực thể ở gần theo state.
+    const far = this.far;
+    for (let i = 0; i + 2 < far.d.length; i += 3) { ctx.fillStyle = TIERS[far.d[i + 2]]?.glow ?? "#ffffff"; ctx.fillRect(far.d[i], far.d[i + 1], 1, 1); }
+    for (let i = 0; i + 2 < far.b.length; i += 3) { ctx.fillStyle = far.b[i + 2] === 4 ? "#ff3b3b" : "#8a6bff"; ctx.fillRect(far.b[i], far.b[i + 1], 1, 1); }
     st.drops.forEach((d: any) => { ctx.fillStyle = TIERS[d.tier].glow; ctx.fillRect((d.x / TILE) | 0, (d.y / TILE) | 0, 1, 1); });
     st.beasts.forEach((b: any) => { if (b.tier >= 3 && !b.rank) { ctx.fillStyle = b.tier === 4 ? "#ff3b3b" : "#8a6bff"; ctx.fillRect((b.x / TILE) | 0, (b.y / TILE) | 0, 1, 1); } });
     // Hang thú vương (BĐ5): khung đỏ sẫm.
@@ -1313,13 +1321,15 @@ export class GameScene extends Phaser.Scene {
     }
     // Đồng đội trong tổ đội (7.1): chấm xanh lá 3×3 viền tối, vẽ sau người khác cho nổi lên.
     const mates = new Set((this.party?.members ?? []).filter((m) => !m.me && m.sid).map((m) => m.sid));
-    st.players.forEach((p: any, id: string) => {
-      if (id === this.me || mates.has(id)) return; ctx.fillStyle = "#7fd0ff"; ctx.fillRect(((p.x / TILE) | 0) - 1, ((p.y / TILE) | 0) - 1, 2, 2);
-    });
-    st.players.forEach((p: any, id: string) => {
-      if (!mates.has(id)) return; const x = (p.x / TILE) | 0, y = (p.y / TILE) | 0;
+    // Hồn sư ở gần theo state, ở xa theo tin `mini` (11.4).
+    const others: [string, number, number][] = [];
+    st.players.forEach((p: any, id: string) => { if (id !== this.me) others.push([id, (p.x / TILE) | 0, (p.y / TILE) | 0]); });
+    for (let i = 0; i + 2 < far.p.length; i += 3) { const id = String(far.p[i]); if (id !== this.me && !st.players.has(id)) others.push([id, Number(far.p[i + 1]), Number(far.p[i + 2])]); }
+    for (const [id, x, y] of others) { if (mates.has(id)) continue; ctx.fillStyle = "#7fd0ff"; ctx.fillRect(x - 1, y - 1, 2, 2); }
+    for (const [id, x, y] of others) {
+      if (!mates.has(id)) continue;
       ctx.fillStyle = "#0c2a12"; ctx.fillRect(x - 2, y - 2, 5, 5); ctx.fillStyle = "#7dff8a"; ctx.fillRect(x - 1, y - 1, 3, 3);
-    });
+    }
     if (me) { ctx.fillStyle = "#fff"; ctx.fillRect(((me.x / TILE) | 0) - 1, ((me.y / TILE) | 0) - 1, 3, 3); ctx.fillStyle = "#ff4040"; ctx.fillRect((me.x / TILE) | 0, (me.y / TILE) | 0, 1, 1); }
   }
 
@@ -1867,7 +1877,7 @@ export class GameScene extends Phaser.Scene {
       else if (area) hud.banner(area.name, area.hint);
       this.lastZone = zname;
     }
-    document.getElementById("online")!.textContent = `${st.players.size} người ở ${mapName}`;
+    document.getElementById("online")!.textContent = `${st.online || st.players.size} người ở ${mapName}`; // 11.4: players chỉ còn người ở gần
     hud.setChannel(st.channel ?? 0);
 
     let tb: any = null, td = 90;
