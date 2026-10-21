@@ -32,14 +32,16 @@ const ROOF = 14, WALL = 15;
 // ---------- shared/assets/iso/tiles.json ----------
 /** Ô nền: các biến thể ảnh 32×32 (thoi 32×16), ô lớn 64×64 (thoi 64×32, phủ 2×2 ô), tâm mặt trên trong ảnh, thứ bậc lấn mép. */
 interface GroundDef { img: string[]; big?: string[]; c: [number, number]; cBig?: [number, number]; edge: number; flip?: boolean }
-/** Vật đứng: ảnh và điểm chân (chạm tâm ô) trong ảnh. */
-interface PropDef { img: string; foot: [number, number]; flip?: boolean }
+/** Vật đứng: key manifest `prop_{vật}` (ảnh sprites/iso/props/{vật}.png) và điểm chân (chạm tâm ô) trong ảnh. */
+interface PropDef { key: string; foot: [number, number]; flip?: boolean }
 /** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu), kiểu nhà. Bộ "*" là mặc định. */
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
 interface IsoTiles { ground: Record<string, GroundDef>; props: Record<string, PropDef>; maps: Record<string, MapSet> }
 
 const TILES_KEY = "iso-tiles", BASE = "iso/";
+/** Texture của ảnh ô nền (đường dẫn trong shared/assets/iso). Vật đứng dùng thẳng key manifest. */
 const texKey = (file: string) => `iso:${file}`;
+const propFile = (key: string) => `sprites/iso/props/${key.replace(/^prop_/, "")}.png`;
 /** "tên~#rrggbb" → tên và màu nhân. */
 const parseRef = (ref: string) => { const [name, tint] = ref.split("~"); return { name, tint: tint ?? "" }; };
 
@@ -56,8 +58,11 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
   scene.load.once(`filecomplete-json-${TILES_KEY}`, (_k: string, _t: string, data: IsoTiles) => {
     const set = mapSet(data, mapId), files = new Set<string>();
     for (const ref of Object.values(set.ground)) { const g = data.ground[parseRef(ref).name]; for (const f of [...(g?.img ?? []), ...(g?.big ?? [])]) files.add(f); }
-    for (const v of Object.values(set.props)) for (const ref of ([] as string[]).concat(v)) { const p = data.props[parseRef(ref).name]; if (p) files.add(p.img); }
     for (const f of files) if (!scene.textures.exists(texKey(f))) scene.load.image(texKey(f), BASE + f);
+    for (const v of Object.values(set.props)) for (const ref of ([] as string[]).concat(v)) {
+      const p = data.props[parseRef(ref).name];
+      if (p && !scene.textures.exists(p.key)) scene.load.image(p.key, propFile(p.key));
+    }
   });
 }
 
@@ -145,9 +150,9 @@ export class IsoMap {
     for (const [gid, v] of Object.entries(set.props)) {
       const list = ([] as string[]).concat(v).flatMap((ref) => {
         const { name, tint } = parseRef(ref), def = data.props[name];
-        if (!def || !has(def.img)) { console.warn(`[isoMap] thiếu ảnh vật ${name}`); return []; }
+        if (!def || !this.scene.textures.exists(def.key)) { console.warn(`[isoMap] thiếu ảnh vật ${name}`); return []; }
         this.rise = Math.max(this.rise, def.foot[1]);
-        return [{ key: this.tinted(texKey(def.img), tint), def }];
+        return [{ key: this.tinted(def.key, tint), def }];
       });
       if (list.length) this.propDefs.set(+gid, list);
     }

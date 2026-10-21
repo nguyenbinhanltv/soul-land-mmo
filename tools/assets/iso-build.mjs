@@ -1,19 +1,21 @@
-// Đưa ô nền và vật đứng isometric vào shared/assets/iso (bước 10.2, GAME_DESIGN.md mục 5.11), và kiểm tra tiles.json.
+// Đưa ô nền (shared/assets/iso) và vật đứng (shared/assets/sprites/iso/props) isometric vào game (bước 10.2, GAME_DESIGN.md mục 5.11), và kiểm tra tiles.json.
 //   node tools/assets/iso-build.mjs ground <tên> <ô 32.png> [<ô lớn 64.png>]
 //        chép ô (ảnh isoTileImage: 32×32 thoi 32×16 tâm (16,19); 64×64 thoi 64×32 tâm (32,37)) thành ground/<tên>_0.png
 //        (+ ground/<tên>_0_lon.png) và sinh biến thể ground/<tên>_1… : mặt trên dời nửa chu kỳ theo trục thoi (ô Gemini / PixelLab đã
 //        liền mép nên bản dời vẫn lát kín với chính nó, đáy giữ nguyên). --variants N (mặc định 2).
-//   node tools/assets/iso-build.mjs prop <tên> <ảnh.png> [--drop "#rrggbb,…"|--drop-water|--drop-base N] [--pad 1]
-//        vật đứng: cắt khung trong suốt thừa (chừa --pad), màu gần đen (độ sáng < 12%) → viền #1a1020, thêm viền ngoài nếu thiếu;
+//   node tools/assets/iso-build.mjs prop <tên> <ảnh.png> [--map a,b] [--drop "#rrggbb,…"|--drop-water|--drop-base N] [--lift 3] [--foot-x X]
+//        vật đứng (ảnh PixelLab create_map_object) → shared/assets/sprites/iso/props/<tên>.png (key prop_<tên>, mục 5.11): màu gần đen
+//        (độ sáng < 12%) → viền #1a1020, thêm viền ngoài nếu thiếu, màu về art/palette.gpl + bảng nhấn art/palettes/<mapId>.gpl của
+//        các vùng dùng vật (--map), khung bội ISO_PROP_STEP với chân ở giữa ngang;
 //        --drop-base N xóa đế cỏ dưới gốc cây ở N hàng cuối (đế tròn lộ thành đĩa khi cây đứng thành hàng);
-//        --drop-water xóa đế nước / bọt lam nhạt PixelLab hay vẽ dưới vật (đá ngầm). In điểm chân ước lượng (giữa đáy, cao − 3)
-//        để ghi vào tiles.json (`foot`); soát bằng mắt rồi sửa.
+//        --drop-water xóa đế nước / bọt lam nhạt PixelLab hay vẽ dưới vật (đá ngầm). Chân: giữa đáy (hoặc --foot-x trong ảnh nguồn),
+//        cao hơn đáy --lift điểm; in ra để ghi vào tiles.json (`foot`), soát bằng mắt. Rồi validate.mjs --register prop_<tên> --iso.
 //   node tools/assets/iso-build.mjs check
 //        tiles.json phủ mọi gid đang dùng ở lớp `ground` / `trees` của 10 bản đồ (bộ "*" + bộ riêng), ảnh tồn tại và đúng cỡ.
 //        validate.mjs (npm run check) gọi phần này.
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { ROOT, readPng, encodePng, Img, hex, isoTileImage } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, encodePng, Img, hex, isoTileImage, readGpl, ISO_PROP_STEP, ISO_PROP_FOOT } from "./lib.mjs";
 
 export const ISO = path.join(ROOT, "shared", "assets", "iso");
 const OUT_RGB = hex("#1a1020");
@@ -56,7 +58,7 @@ function ground(name, small, big, n) {
   }
 }
 
-function prop(name, file, drop, dropWater, pad, dropBase) {
+function prop(name, file, { drop, dropWater, dropBase, maps, lift, footX }) {
   const src = readPng(file), img = new Img(src.w, src.h, Uint8Array.from(src.data));
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
@@ -86,21 +88,30 @@ function prop(name, file, drop, dropWater, pad, dropBase) {
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++)
     if (!a(x, y) && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => a(x + dx, y + dy) && lum(img.get(x + dx, y + dy)) > 0.12 * 255)) add.push([x, y]);
   for (const [x, y] of add) img.set(x, y, [...OUT_RGB, 255]);
-  // Khung bao rồi cắt (chừa lề).
+  // Màu về bảng chung + bảng nhấn các vùng dùng vật (--map), gần nhất theo khoảng cách "redmean"; viền giữ #1a1020.
+  const pal = [...new Set([...readGpl(), ...maps.flatMap((m) => readGpl(path.join(ROOT, "art", "palettes", `${m}.gpl`)))])].map(hex);
+  const near = (p) => {
+    let best = pal[0], bd = Infinity;
+    for (const q of pal) { const r = (p[0] + q[0]) / 2, d = (2 + r / 256) * (p[0] - q[0]) ** 2 + 4 * (p[1] - q[1]) ** 2 + (2 + (255 - r) / 256) * (p[2] - q[2]) ** 2; if (d < bd) { bd = d; best = q; } }
+    return best;
+  };
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const p = img.get(x, y); if (p[3]) img.set(x, y, [...near(p), 255]); }
+  // Khung bao phần đặc; chân: giữa các điểm đặc ở 4 hàng cuối, cao hơn đáy --lift điểm (mặc định 3).
   let x0 = img.w, y0 = img.h, x1 = -1, y1 = -1;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) if (img.alpha(x, y)) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
   if (x1 < 0) throw new Error(`${file}: ảnh trống`);
-  x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(img.w - 1, x1 + pad); y1 = Math.min(img.h - 1, y1 + pad);
-  const out = new Img(x1 - x0 + 1, y1 - y0 + 1);
-  out.blit(img, x0, y0, out.w, out.h, 0, 0);
-  // Chân ước lượng: giữa các điểm đặc ở 4 hàng cuối, cách đáy 3.
   const xs = [];
-  for (let y = Math.max(0, out.h - 4); y < out.h; y++) for (let x = 0; x < out.w; x++) if (out.alpha(x, y)) xs.push(x);
-  const fx = xs.length ? Math.round((Math.min(...xs) + Math.max(...xs) + 1) / 2) : out.w >> 1;
-  const dir = path.join(ISO, "props"); mkdirSync(dir, { recursive: true });
+  for (let y = y1 - 3; y <= y1; y++) for (let x = x0; x <= x1; x++) if (img.alpha(x, y)) xs.push(x);
+  const fx = footX ?? Math.floor((Math.min(...xs) + Math.max(...xs) + 1) / 2), fy = y1 - lift;
+  // Khung bội ISO_PROP_STEP, chân ở giữa ngang (lật ngang không xê dịch) và cách mép dưới ít nhất ISO_PROP_FOOT.
+  const half = Math.max(fx - x0, x1 + 1 - fx), below = Math.max(ISO_PROP_FOOT, y1 + 1 - fy);
+  const W = Math.ceil((2 * half) / ISO_PROP_STEP) * ISO_PROP_STEP, H = Math.ceil((fy - y0 + below) / ISO_PROP_STEP) * ISO_PROP_STEP;
+  const out = new Img(W, H), ox = W / 2 - fx, oy = H - below - fy;
+  out.blit(img, 0, 0, img.w, img.h, ox, oy);
+  const dir = path.join(SPRITES, "iso", "props"); mkdirSync(dir, { recursive: true });
   const dst = path.join(dir, `${name}.png`);
   writeFileSync(dst, encodePng(out));
-  console.log(`[iso-build] ${path.relative(ROOT, dst)} ${out.w}×${out.h}, chân ước lượng [${fx}, ${out.h - 3}]`);
+  console.log(`[iso-build] ${path.relative(ROOT, dst)} ${W}×${H}, chân [${W / 2}, ${H - below}] (prop_${name}, ghi vào tiles.json)`);
 }
 
 /** Kiểm tra tiles.json; trả số lỗi (in ra từng lỗi). */
@@ -116,8 +127,12 @@ export function checkIsoTiles(log = console.error) {
     for (const f of g.big ?? []) { const s = size(f); if (s && (s[0] !== 64 || s[1] !== 64)) err(`ô ${name}: ${f} ${s.join("×")}, cần 64×64`); }
     if (typeof g.edge !== "number") err(`ô ${name} thiếu edge`);
   }
+  // Vật đứng: key prop_{vật} phải có trong manifest ("iso": true), ảnh ở sprites/iso/props.
+  const keys = new Set(JSON.parse(readFileSync(MANIFEST, "utf8")).sprites.map((e) => (typeof e === "string" ? e : e.key)));
   for (const [name, p] of Object.entries(data.props ?? {})) {
-    const s = size(p.img);
+    if (!/^prop_[a-z_]+$/.test(p.key ?? "")) { err(`vật ${name}: key "${p.key}" sai quy ước prop_{vật}`); continue; }
+    if (!keys.has(p.key)) err(`vật ${name}: ${p.key} chưa đăng ký trong manifest (validate.mjs --register ${p.key} --iso)`);
+    const s = size(path.join("..", "sprites", "iso", "props", `${p.key.slice(5)}.png`));
     if (s && (!Array.isArray(p.foot) || p.foot[0] < 0 || p.foot[1] < 0 || p.foot[0] > s[0] || p.foot[1] > s[1])) err(`vật ${name}: chân ${JSON.stringify(p.foot)} ngoài ảnh ${s.join("×")}`);
   }
   const ref = (r) => r.split("~")[0];
@@ -148,7 +163,7 @@ if (process.argv[1]?.endsWith("iso-build.mjs")) {
   const flag = (n) => { const i = args.indexOf(n); if (i >= 0) args.splice(i, 1); return i >= 0; };
   const cmd = args[0];
   if (cmd === "ground" && args[2]) ground(args[1], args[2], args[3], +opt("--variants", "2"));
-  else if (cmd === "prop" && args[2]) { const drop = opt("--drop", "").split(",").filter(Boolean).map((c) => c.toLowerCase()), pad = +opt("--pad", "1"); prop(args[1], args[2], drop, flag("--drop-water"), pad, +opt("--drop-base", "0")); }
+  else if (cmd === "prop" && args[2]) { const drop = opt("--drop", "").split(",").filter(Boolean).map((c) => c.toLowerCase()); const maps = opt("--map", "").split(",").filter(Boolean), fx = opt("--foot-x", ""); prop(args[1], args[2], { drop, dropWater: flag("--drop-water"), dropBase: +opt("--drop-base", "0"), maps, lift: +opt("--lift", "3"), footX: fx === "" ? undefined : +fx }); }
   else if (cmd === "check") { const n = checkIsoTiles(); console.log(n ? `[iso] ${n} lỗi` : "[iso] tiles.json: OK"); process.exit(n ? 1 : 0); }
   else { console.error("Cách dùng: iso-build.mjs ground <tên> <32.png> [<64.png>] | prop <tên> <ảnh.png> [--drop-water] | check"); process.exit(1); }
 }

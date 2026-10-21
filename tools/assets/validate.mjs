@@ -15,6 +15,7 @@
 //       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc (y = 30; isometric y = 58);
 //       isometric: idle cả 4 khung giống nhau (chưa --breathe), chân hồn thú không chạm dòng gốc.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
 import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 

@@ -139,6 +139,10 @@
       "iso": true
     },
     {
+      "key": "prop_bang_tinh",
+      "iso": true
+    },
+    {
       "key": "prop_bia_da_co",
       "iso": true
     },
@@ -151,11 +155,43 @@
       "iso": true
     },
     {
+      "key": "prop_cay_dua",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_la_rong",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_la_tron",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_rung_dem",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_thu_cam",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_thu_do",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_u_minh",
+      "iso": true
+    },
+    {
       "key": "prop_co_thu_lon",
       "iso": true
     },
     {
       "key": "prop_cum_da",
+      "iso": true
+    },
+    {
+      "key": "prop_da_ngam",
       "iso": true
     },
     {
@@ -200,6 +236,10 @@
     },
     {
       "key": "prop_thong_cao",
+      "iso": true
+    },
+    {
+      "key": "prop_thong_tuyet",
       "iso": true
     },
     {

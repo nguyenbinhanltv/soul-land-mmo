@@ -1,5 +1,5 @@
 {
- "_": "Ánh xạ gid Tiled → ảnh isometric (GAME_DESIGN.md mục 5.11, bước 10.2). ground/props: tên → ảnh (đường dẫn trong shared/assets/iso), c / cBig: tâm mặt trên của ô 32×32 / ô lớn 64×64, edge: thứ bậc lớp phủ mép (cao lấn sang thấp), foot: điểm chân vật trong ảnh. maps: bộ \"*\" mặc định rồi bộ riêng từng mapId đè lên; gid → \"tên\" hoặc \"tên~#rrggbb\" (nhân màu), vật có thể là danh sách (chọn theo băm vị trí); build: kiểu nhà / tường thành (client/src/isoBuild.ts). Nguồn ảnh: art/CREDITS.md. Kiểm tra: node tools/assets/iso-build.mjs check.",
+ "_": "Ánh xạ gid Tiled → ảnh isometric (GAME_DESIGN.md mục 5.11, bước 10.2). ground: tên → ảnh ô (đường dẫn trong shared/assets/iso: img 32×32 thoi 32×16, big 64×64 ô lớn phủ 2×2), c / cBig: tâm mặt trên trong ảnh, edge: thứ bậc lớp phủ mép (cao lấn sang thấp). props: tên → key manifest prop_{vật} (ảnh shared/assets/sprites/iso/props/{vật}.png), foot: điểm chân trong ảnh. maps: bộ \"*\" mặc định rồi bộ riêng từng mapId đè lên; gid → \"tên\" hoặc \"tên~#rrggbb\" (nhân màu), vật có thể là danh sách (chọn theo băm vị trí); build: kiểu nhà / tường thành (client/src/isoBuild.ts). Nguồn ảnh: art/CREDITS.md. Kiểm tra: node tools/assets/iso-build.mjs check (npm run check).",
  "ground": {
   "nuoc_sau": {
    "img": ["ground/nuoc_sau_0.png", "ground/nuoc_sau_1.png"],
@@ -50,13 +50,6 @@
    "cBig": [32, 37],
    "edge": 2
   },
-  "bang_tinh_nen": {
-   "img": ["ground/bang_tinh_nen_0.png", "ground/bang_tinh_nen_1.png"],
-   "big": ["ground/bang_tinh_nen_0_lon.png", "ground/bang_tinh_nen_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 3
-  },
   "dat": {
    "img": ["ground/dat_0.png", "ground/dat_1.png"],
    "big": ["ground/dat_0_lon.png", "ground/dat_1_lon.png"],
@@ -85,13 +78,6 @@
    "cBig": [32, 37],
    "edge": 3
   },
-  "san_go": {
-   "img": ["ground/san_go_0.png", "ground/san_go_1.png"],
-   "big": ["ground/san_go_0_lon.png", "ground/san_go_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 3
-  },
   "da_cuoi": {
    "img": ["ground/da_cuoi_0.png", "ground/da_cuoi_1.png"],
    "big": ["ground/da_cuoi_0_lon.png", "ground/da_cuoi_1_lon.png"],
@@ -106,44 +92,9 @@
    "cBig": [32, 37],
    "edge": 4
   },
-  "quang_truong": {
-   "img": ["ground/quang_truong_0.png", "ground/quang_truong_1.png"],
-   "big": ["ground/quang_truong_0_lon.png", "ground/quang_truong_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
-  "gach_do": {
-   "img": ["ground/gach_do_0.png", "ground/gach_do_1.png"],
-   "big": ["ground/gach_do_0_lon.png", "ground/gach_do_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
   "pho_da": {
    "img": ["ground/pho_da_0.png", "ground/pho_da_1.png"],
    "big": ["ground/pho_da_0_lon.png", "ground/pho_da_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
-  "da_phien_pho": {
-   "img": ["ground/da_phien_pho_0.png", "ground/da_phien_pho_1.png"],
-   "big": ["ground/da_phien_pho_0_lon.png", "ground/da_phien_pho_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
-  "cam_thach": {
-   "img": ["ground/cam_thach_0.png", "ground/cam_thach_1.png"],
-   "big": ["ground/cam_thach_0_lon.png", "ground/cam_thach_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
-  "cam_thach_vang": {
-   "img": ["ground/cam_thach_vang_0.png", "ground/cam_thach_vang_1.png"],
-   "big": ["ground/cam_thach_vang_0_lon.png", "ground/cam_thach_vang_1_lon.png"],
    "c": [16, 19],
    "cBig": [32, 37],
    "edge": 4
@@ -176,30 +127,9 @@
    "cBig": [32, 37],
    "edge": 4
   },
-  "da_reu": {
-   "img": ["ground/da_reu_0.png", "ground/da_reu_1.png"],
-   "big": ["ground/da_reu_0_lon.png", "ground/da_reu_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
-  "da_reu_co": {
-   "img": ["ground/da_reu_co_0.png", "ground/da_reu_co_1.png"],
-   "big": ["ground/da_reu_co_0_lon.png", "ground/da_reu_co_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
   "co_hoa": {
    "img": ["ground/co_hoa_0.png", "ground/co_hoa_1.png"],
    "big": ["ground/co_hoa_0_lon.png", "ground/co_hoa_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 4
-  },
-  "co_hoa_lang": {
-   "img": ["ground/co_hoa_lang_0.png", "ground/co_hoa_lang_1.png"],
-   "big": ["ground/co_hoa_lang_0_lon.png", "ground/co_hoa_lang_1_lon.png"],
    "c": [16, 19],
    "cBig": [32, 37],
    "edge": 4
@@ -225,13 +155,6 @@
    "cBig": [32, 37],
    "edge": 5
   },
-  "co_lang": {
-   "img": ["ground/co_lang_0.png", "ground/co_lang_1.png"],
-   "big": ["ground/co_lang_0_lon.png", "ground/co_lang_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 5
-  },
   "co_pho": {
    "img": ["ground/co_pho_0.png", "ground/co_pho_1.png"],
    "big": ["ground/co_pho_0_lon.png", "ground/co_pho_1_lon.png"],
@@ -242,13 +165,6 @@
   "co_cung": {
    "img": ["ground/co_cung_0.png", "ground/co_cung_1.png"],
    "big": ["ground/co_cung_0_lon.png", "ground/co_cung_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 5
-  },
-  "co_ven_ho": {
-   "img": ["ground/co_ven_ho_0.png", "ground/co_ven_ho_1.png"],
-   "big": ["ground/co_ven_ho_0_lon.png", "ground/co_ven_ho_1_lon.png"],
    "c": [16, 19],
    "cBig": [32, 37],
    "edge": 5
@@ -277,52 +193,56 @@
  },
  "props": {
   "cay_la_rong": {
-   "img": "props/cay_la_rong.png",
-   "foot": [38, 106]
+   "key": "prop_cay_la_rong",
+   "foot": [48, 108]
   },
   "cay_la_tron": {
-   "img": "props/cay_la_tron.png",
-   "foot": [36, 97]
+   "key": "prop_cay_la_tron",
+   "foot": [40, 108]
   },
   "cay_rung_dem": {
-   "img": "props/cay_rung_dem.png",
-   "foot": [40, 112]
+   "key": "prop_cay_rung_dem",
+   "foot": [40, 124]
   },
   "cay_u_minh": {
-   "img": "props/cay_u_minh.png",
-   "foot": [48, 113]
+   "key": "prop_cay_u_minh",
+   "foot": [48, 124]
   },
   "cay_dua": {
-   "img": "props/cay_dua.png",
-   "foot": [30, 91]
-  },
-  "leu": {
-   "img": "props/leu.png",
-   "foot": [30, 48]
-  },
-  "lua_trai": {
-   "img": "props/lua_trai.png",
-   "foot": [23, 32]
+   "key": "prop_cay_dua",
+   "foot": [32, 92]
   },
   "cay_thu_do": {
-   "img": "props/cay_thu_do.png",
-   "foot": [38, 115]
+   "key": "prop_cay_thu_do",
+   "foot": [56, 124]
   },
   "cay_thu_cam": {
-   "img": "props/cay_thu_cam.png",
-   "foot": [29, 102]
+   "key": "prop_cay_thu_cam",
+   "foot": [32, 108]
   },
   "thong_tuyet": {
-   "img": "props/thong_tuyet.png",
-   "foot": [32, 112]
+   "key": "prop_thong_tuyet",
+   "foot": [32, 124]
   },
   "bang_tinh": {
-   "img": "props/bang_tinh.png",
-   "foot": [22, 50]
+   "key": "prop_bang_tinh",
+   "foot": [24, 60]
   },
   "da_ngam": {
-   "img": "props/da_ngam.png",
-   "foot": [16, 40]
+   "key": "prop_da_ngam",
+   "foot": [16, 45]
+  },
+  "leu_tho_san": {
+   "key": "prop_leu_tho_san",
+   "foot": [48, 78]
+  },
+  "lua_trai": {
+   "key": "prop_lua_trai",
+   "foot": [40, 46]
+  },
+  "thong_cao": {
+   "key": "prop_thong_cao",
+   "foot": [24, 94]
   }
  },
  "maps": {
@@ -350,7 +270,7 @@
     "35": "nuoc_sau"
    },
    "props": {
-    "11": "leu",
+    "11": "leu_tho_san",
     "12": "lua_trai",
     "17": ["cay_la_rong", "cay_la_tron"],
     "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0"],
@@ -405,8 +325,8 @@
   "nac_dinh_thanh": {
    "ground": {
     "1": "co_pho",
-    "13": "pho_da",
-    "5": "co_pho"
+    "5": "co_pho",
+    "13": "pho_da"
    },
    "build": {
     "wallKind": "brick",
@@ -429,9 +349,9 @@
   "thien_dau_thanh": {
    "ground": {
     "1": "co_cung",
+    "5": "co_cung",
     "7": "duong_luu_ly",
-    "13": "da_cuoi_cung",
-    "5": "co_cung"
+    "13": "da_cuoi_cung"
    },
    "build": {
     "wallKind": "stone",
@@ -527,7 +447,7 @@
     "3": "dat_la~#c8d0c0"
    },
    "props": {
-    "19": ["cay_la_rong~#98a8a0", "cay_rung_dem"]
+    "19": ["cay_la_rong~#98a8a0", "cay_rung_dem", "thong_cao"]
    }
   },
   "tinh_dau_noi_dia": {
