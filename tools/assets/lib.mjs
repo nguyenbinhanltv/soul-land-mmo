@@ -25,6 +25,15 @@ export const BEAST_COLS = 13;
 export const HS_ANIMS = { idle: [0, 2], walk: [2, 4], attack: [6, 3], cast: [9, 3], hurt: [12, 1], die: [13, 3] };
 export const DIRS = ["down", "right", "up"];
 
+// ---------- Isometric (Giai đoạn 10, quy cách người dùng duyệt 2026-10-21; mục 5.11 viết lại ở bước 10.0) ----------
+// Hằng cho công cụ nhập ảnh isometric (gemini-import.mjs); bộ 32×32 / 48×48 ở trên vẫn là của client hiện nay.
+/** Ô thoi 2:1: ô logic 32×16 và ô lớn 64×32 (phủ 2×2 ô logic). */
+export const ISO_TILE = [32, 16], ISO_TILE_BIG = [64, 32];
+/** Hồn sư 64×64 gốc tại chân (32,58); phụ thể 96×96 gốc (48,74). */
+export const ISO_HS_FRAME = 64, ISO_HS_ORIGIN = [32, 58], ISO_VH_FRAME = 96, ISO_VH_ORIGIN = [48, 74];
+/** Cỡ khung vuông của hồn thú isometric (boss 160–192 truyền --size riêng). */
+export const ISO_BEAST_SIZES = [64, 96, 128];
+
 // ---------- Màu ----------
 export const hex = (c) => { const n = parseInt(c.replace("#", ""), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
 export const toHex = ([r, g, b]) => "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);

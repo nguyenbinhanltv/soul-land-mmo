@@ -46,12 +46,12 @@ Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗ
 |---|---|
 | `gemini-import.mjs --kind tile --out <dir> --names a,b,… <ảnh>` | Ô nền phẳng: lấy mặt trên thoi (bỏ bề dày khối; `--inset auto` tự bỏ dải mép khác màu như viền đen, thành "hộp kính" của nước), ép về `--size` (mặc định 64x32, tỉ lệ 2:1 dù ảnh gốc không đúng 2:1), làm liền mép (`--seamless on`). |
 | `gemini-import.mjs --kind tile-block …` | Giữ cả bề dày khối (mép vách, bờ nước), viền tối về `#1a1020`. |
-| `gemini-import.mjs --kind honsu\|vohon\|beast\|object\|portrait …` | Sprite: khung 64×64 gốc (32,58) / 96×96 gốc (48,74) / 96×96 / 64×64 (đổi bằng `--size`, `--anchor`); cùng hệ số thu cho cả lô, chân cùng đường đáy, thêm viền `#1a1020` nếu thiếu. |
+| `gemini-import.mjs --kind honsu\|vohon\|beast\|object\|portrait …` | Sprite theo hằng isometric trong `lib.mjs`: hồn sư `ISO_HS_FRAME` / `ISO_HS_ORIGIN` (64×64, gốc (32,58)), phụ thể `ISO_VH_FRAME` / `ISO_VH_ORIGIN` (96×96, gốc (48,74)); hồn thú bắt buộc `--size` một cỡ trong `ISO_BEAST_SIZES` (boss 160–192), vật / chân dung bắt buộc `--size`. Cùng hệ số thu cho cả lô, chân cùng đường đáy, thêm viền `#1a1020` nếu thiếu; mặc định `--palette gpl`. |
 | `iso-preview.mjs <ra.png> --tiles grass=a.png,grass=b.png,path=c.png,water=d.png,deep=e.png,stone=f.png --scale 2` | Mảnh bản đồ 12×12 (cỏ nhiều biến thể, đường, ao, sân đá) để soát mép ghép, màu, độ lặp. |
 
-- Tách vật theo thành phần liên thông (thứ tự hàng trên → dưới, trái → phải, khớp `--names`), hoặc `--grid CxR` khi các vật dính nhau.
+- Tách vật theo thành phần liên thông (thứ tự hàng trên → dưới, trái → phải, khớp `--names`), hoặc `--grid CxR` khi các vật dính nhau. Số tên khác số vật thì công cụ dừng và in hộp bao từng vật.
 - Cỡ ô giả dò tự động chung cho cả ảnh (in ra `ô giả … px → gốc W×H`); sai thì ghi đè `--cell N` (`--cell 1` cho ảnh đã là pixel thật, ví dụ ô PixelLab).
-- Bảng màu: dùng `--palette auto-item` (mỗi vật một bảng `--colors` 10 màu; ghi `_palette.gpl` gộp) cho tới khi `art/palette.gpl` có dải đất / đá / rêu / tuyết / cát / nước. `--palette auto --colors 32` (một bảng chung cả lô) để vật nhiều màu chiếm hết bảng, ô đều màu chỉ còn 1–3 màu; `--palette gpl` với bảng hiện nay làm ô ngả tím / lam / đỏ; `--palette none` để xem màu gốc.
+- Bảng màu: ô (`tile`, `tile-block`) mặc định `--palette auto-item` (mỗi vật một bảng `--colors` 10 màu; ghi `_palette.gpl` gộp), giữ như vậy cho tới khi `art/palette.gpl` có dải đất / đá / rêu / tuyết / cát / nước. `--palette auto --colors 32` (một bảng chung cả lô) để vật nhiều màu chiếm hết bảng, ô đều màu chỉ còn 1–3 màu; `--palette gpl` với bảng hiện nay làm ô ngả tím / lam / đỏ; `--palette none` để xem màu gốc.
 - Logo: `--logo auto` (mặc định) dựng lại ngôi sao và gỡ lớp trắng mờ kể cả phần đè lên vật; vị trí khác thường thì `--logo x,y,w,h` (vá bằng màu lân cận) hoặc `--logo off`.
 - Mỗi lần chạy ghi `_preview.png` (×4), `_report.json` (cỡ ô giả, độ phân giải gốc, tỉ lệ mặt trên, bề dày, điểm lệch mép ghép trước / sau khi làm liền: khoảng 1 là liền như bên trong ô); `--debug` ghi thêm ảnh pixel thật trước khi ép khung vào `_native/`.
 
