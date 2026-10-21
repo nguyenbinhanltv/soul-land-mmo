@@ -214,9 +214,10 @@ export class GameScene extends Phaser.Scene {
       // Nhìn thẳng: cổng sát mép trên bản đồ (cổng bắc Nặc Đinh Thành, BĐ6a) ghi tên dưới cổng, không thì khuất ngoài bản đồ.
       // Isometric: camera chừa lề trên bản đồ nên tên luôn ghi trên đỉnh cao nhất của cổng.
       const top = TOPDOWN && r.y < TILE, ys = pts.map((p) => p.y), cx = pts.reduce((a, p) => a + p.x, 0) / 4;
-      this.add.text(cx, top ? Math.max(...ys) + 2 : Math.min(...ys) - 2, `➜ ${MAPS[r.to].name}`, {
+      const t = this.add.text(cx, 0, `➜ ${MAPS[r.to].name}`, {
         fontFamily: FONT, fontSize: "7px", fontStyle: "700", color: "#c8ffe0", stroke: "#000", strokeThickness: 2, resolution: 8,
-      }).setOrigin(0.5, top ? 0 : 1).setDepth(99984).setScale(this.txtK);
+      }).setOrigin(0.5, top ? 0 : 1).setDepth(99984);
+      this.wtext(t, top ? Math.max(...ys) + 2 : Math.min(...ys) - 2, 0);
     }
   }
 
@@ -239,24 +240,25 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(0xf2c84b, 1).fillTriangle(sx - 3 * k, sy - 10 * k, sx + 3 * k, sy - 10 * k, sx, sy - 4 * k);
       g.fillStyle(0xfff2b0, 1).fillCircle(sx, sy - 12 * k, 2.5 * k);
     }
-    const style = { fontFamily: FONT, fontStyle: "700", stroke: "#000", strokeThickness: 2, resolution: 8 }, K = this.txtK;
-    this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984).setScale(K);
-    if (def) this.add.text(sx, top - 8 * K, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984).setScale(K);
+    // Chữ trên đầu NPC: độ lệch so với `top` tính bằng pixel chữ chưa phóng, wtext nhân txtK (và đặt lại khi txtK đổi).
+    const style = { fontFamily: FONT, fontStyle: "700", stroke: "#000", strokeThickness: 2, resolution: 8 };
+    this.wtext(this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984), top, 0);
+    if (def) this.wtext(this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984), top, 8);
     let mark: Phaser.GameObjects.Text | null = null;
     if (def) {
-      mark = this.add.text(sx, top - 16 * K, document.body.classList.contains("touch") ? "Chạm để nói chuyện" : "Nói chuyện [F]", {
+      mark = this.add.text(sx, top, document.body.classList.contains("touch") ? "Chạm để nói chuyện" : "Nói chuyện [F]", {
         ...style, fontSize: "6px", color: "#fff2b0", backgroundColor: "#000000aa", padding: { x: 3, y: 1 },
-      }).setOrigin(0.5, 1).setDepth(99986).setVisible(false).setScale(K);
-      this.tweens.add({ targets: mark, y: mark.y - 2, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      }).setOrigin(0.5, 1).setDepth(99986).setVisible(false);
+      this.wtext(mark, top, 16, { dy: 2, ms: 600 });
       // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
       this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
     }
     // 6.2: NPC giao nhiệm vụ có dấu "!" (bài mới) / "?" (chờ trả, xám khi đang làm) phía trên nhãn "Nói chuyện".
     let qmark: Phaser.GameObjects.Text | null = null;
     if (def && hud.QUEST_GIVERS.has(def.id)) {
-      qmark = this.add.text(sx, top - 25 * K, "", { ...style, fontSize: "12px", fontStyle: "800", color: "#ffd84a", strokeThickness: 3 })
-        .setOrigin(0.5, 1).setDepth(99987).setVisible(false).setScale(K);
-      this.tweens.add({ targets: qmark, y: qmark.y - 3, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      qmark = this.add.text(sx, top, "", { ...style, fontSize: "12px", fontStyle: "800", color: "#ffd84a", strokeThickness: 3 })
+        .setOrigin(0.5, 1).setDepth(99987).setVisible(false);
+      this.wtext(qmark, top, 25, { dy: 3, ms: 700 });
     }
     this.npcs.push({ id, x, y, def, body, clothes, mark, qmark });
     this.updateQuestMarks();
@@ -301,10 +303,25 @@ export class GameScene extends Phaser.Scene {
   zoomFor() { return Math.max(1, Math.floor(Math.min(this.scale.width / VIEW_W, this.scale.height / VIEW_H))); }
   /** Chữ trong thế giới (tên, số sát thương…) phóng thêm khi camera phóng 1 (cửa sổ nhỏ, điện thoại) để vẫn đọc được như khi phóng 2. */
   txtK = 1;
+  /**
+   * Chữ tĩnh trong thế giới (tên / chức danh / nhãn NPC, tên cổng): mốc `y0` (pixel màn hình), độ lệch lên `off` tính bằng pixel chữ
+   * chưa phóng, nhấp nhô `bob` nếu có. Đổi txtK (đổi cỡ cửa sổ) thì `layoutTexts` đặt lại tỉ lệ, vị trí và tween nhấp nhô.
+   */
+  wtexts: { t: Phaser.GameObjects.Text; y0: number; off: number; bob?: { dy: number; ms: number } }[] = [];
+  wtext(t: Phaser.GameObjects.Text, y0: number, off: number, bob?: { dy: number; ms: number }) {
+    const e = { t, y0, off, bob }; this.wtexts.push(e); this.placeText(e); return t;
+  }
+  placeText(e: GameScene["wtexts"][number]) {
+    const K = this.txtK, y = e.y0 - e.off * K;
+    this.tweens.killTweensOf(e.t);
+    e.t.setScale(K).setY(y);
+    if (e.bob) this.tweens.add({ targets: e.t, y: y - e.bob.dy * K, duration: e.bob.ms, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+  }
 
   fitZoom() {
     const w = this.scale.width, h = this.scale.height, z = this.zoomFor();
-    this.txtK = z < 2 ? 2 / z : 1;
+    const k = z < 2 ? 2 / z : 1;
+    if (k !== this.txtK) { this.txtK = k; for (const e of this.wtexts) this.placeText(e); }
     this.cameras.main.setZoom(z);
     this.vignette.setPosition(w / 2, h / 2).setDisplaySize(w / z + 40, h / z + 40);
   }
@@ -1258,6 +1275,7 @@ export class GameScene extends Phaser.Scene {
         v = { img, txt }; this.drops.set(id, v);
       }
       v.img.y = at.y - (4 + (0.5 + 0.5 * Math.sin(time / 250)) * 2) * SPR;
+      if (v.txt.scale !== this.txtK) v.txt.setScale(this.txtK); // đổi cỡ cửa sổ
       const a = d.ttl < 8 ? (Math.floor(time / 160) % 2 ? 0.4 : 1) : 1;
       v.img.setAlpha(a); v.txt.setAlpha(a);
     });
