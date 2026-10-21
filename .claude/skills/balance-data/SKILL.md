@@ -35,7 +35,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 ## Quy tắc
 1. **Đối chiếu `GAME_DESIGN.md`** mục tương ứng trước khi đặt số. Số khác thiết kế có chủ đích thì ghi lý do (chú thích tiếng Việt cạnh hằng số) và sửa luôn mô tả cơ chế trong `GAME_DESIGN.md` nếu cơ chế đổi.
 2. **Mã cố định:** `VOHON[].id` (lưu ở `vohons`), `BEASTS[].id`, `BOSSES[].id`, `MAPS`, `NPCS`, `ITEMS` (`items.code`), `HERBS`, `CORE_SETS`, mã nhiệm vụ… dùng trong DB và file Tiled; không bao giờ đổi hoặc xóa mã đã dùng. Thứ tự mảng dùng để đồng bộ (`p.vh`, `b.species`, bit trạng thái), nên **thêm phần tử mới vào cuối**.
-3. Thêm võ hồn: một mục `VOHON` (cuối mảng), `VOHON_SKILLS` (vòng 1–4), `TIEN_CO_RIENG`, `VOHON_SKILLS_HIGH` (vòng 5, 6, 8, 9, 10), `CHAN_THAN` (kèm `skill`); cập nhật bảng võ hồn ở mục 5.1 và bảng phụ thể ở 5.11. Thêm loài hồn thú: `BEASTS` (cuối), `BEAST_SKILLS` nếu có từ `BEAST_SKILL_YEARS` năm, `BONE_SKILLS`.
+3. Thêm võ hồn: một mục `VOHON` (cuối mảng), `VOHON_SKILLS` (vòng 1–4), `TIEN_CO_RIENG`, `VOHON_SKILLS_HIGH` (vòng 5, 6, 8, 9, 10), `CHAN_THAN` (kèm `skill`); cập nhật bảng võ hồn ở mục 5.1 và bảng dạng phụ thể ở `tools/assets/README.md`. Thêm loài hồn thú: `BEASTS` (cuối), `BEAST_SKILLS` nếu có từ `BEAST_SKILL_YEARS` năm, `BONE_SKILLS`.
 4. Dùng đúng tên gốc Đấu La (võ hồn, chủ nhân, hồn thú, lưu phái).
 5. `MapRoom.ts` còn vài số viết thẳng (tốc độ hồi sinh lực / hồn lực…). Việc đang làm chạm tới số nào thì chuyển số đó vào `shared/data.ts` trong cùng thay đổi; không gom hết ngoài phạm vi việc được giao.
 6. Hàm trong `data.ts` là hàm thuần (không trạng thái, không `Math.random()`; hàm cần ngẫu nhiên nhận số / hàm ngẫu nhiên do server truyền) để client dùng khi hiển thị. Quyết định kết quả chỉ ở server.

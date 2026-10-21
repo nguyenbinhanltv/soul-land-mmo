@@ -9,7 +9,7 @@
 - **Trường đồng bộ mới:** khai báo trong `server/src/rooms/schema.ts`, đọc ở `client/src/scenes/GameScene.ts`. Dữ liệu riêng của chính chủ gửi bằng tin riêng, không đưa vào state công khai.
 - **Bảng / cột mới:** file `server/sql/00N_<tên>.sql` với N là số kế tiếp (xem `ls server/sql` trên `origin/main` mới nhất để không trùng số với nhánh khác), câu lệnh chạy lại an toàn (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) và bật RLS (không tạo policy). `PgStore.init()` (`server/src/db.ts`) chạy mọi file `.sql` theo tên mỗi lần khởi động. Luôn cập nhật cả `PgStore` lẫn `MemoryStore`. Không sửa file SQL cũ đã chạy.
 - **Ghi DB về một người chơi** luôn qua chuỗi lưu `this.chain(d, fn)` (mục 6 "Lưu của mỗi người chơi chạy nối tiếp").
-- **Ảnh / sprite:** quy cách ở `GAME_DESIGN.md` mục 5.11, thao tác ở skill `asset-gen`. Không ghi key PixelLab hay bí mật nào vào repo, log, PR.
+- **Ảnh / sprite:** quy tắc ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết ở `tools/assets/README.md`, thao tác ở skill `asset-gen`. Không ghi key PixelLab hay bí mật nào vào repo, log, PR.
 - Làm từng việc nhỏ một. Luật chơi đổi thì sửa đúng mục trong `GAME_DESIGN.md` (mô tả luật hiện hành, không viết nhật ký tiến độ); xong bước Lộ trình thì đánh dấu ở mục 7.
 
 ## Lệnh
