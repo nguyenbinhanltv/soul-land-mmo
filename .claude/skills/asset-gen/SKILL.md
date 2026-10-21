@@ -57,10 +57,10 @@ Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗ
 
 | Lệnh | Việc |
 |---|---|
-| `gemini-import.mjs --kind tile --out <dir> --names a,b,… <ảnh>` | Ô nền phẳng: lấy mặt trên thoi (bỏ bề dày khối; `--inset auto` tự bỏ dải mép khác màu như viền đen, thành "hộp kính" của nước), ép về `--size` (mặc định 64x32, tỉ lệ 2:1 dù ảnh gốc không đúng 2:1), làm liền mép (`--seamless on`). |
-| `gemini-import.mjs --kind tile-block …` | Giữ cả bề dày khối (mép vách, bờ nước), viền tối về `#1a1020`. |
+| `gemini-import.mjs --kind tile --out <dir> --names a,b,… <ảnh>` | Ô nền: lấy mặt trên thoi (`--inset auto` tự bỏ dải mép khác màu như viền đen, thành "hộp kính" của nước), ép về đúng 2:1, làm liền mép (`--seamless on`), đặt vào ảnh ô theo `ISO_TILE_IMAGES`: mặc định ghi cả `<dir>/32/` (ảnh 32×32, thoi 32×16 tâm (16,19), đáy 5) và `<dir>/64/` (ảnh 64×64, ô lớn thoi 64×32 tâm (32,37), đáy 11), giống ô PixelLab size 32 / 64. Đáy lấy từ mặt bên khối gốc; `--size 32` chỉ một cỡ; `--face-only` chỉ ghi mặt trên. |
+| `gemini-import.mjs --kind tile-block …` | Như trên nhưng giữ viền (tối về `#1a1020`), không làm liền mép (mép vách, bờ nước). |
 | `gemini-import.mjs --kind honsu\|vohon\|beast\|object\|portrait …` | Sprite theo hằng isometric trong `lib.mjs`: hồn sư `ISO_HS_FRAME` / `ISO_HS_ORIGIN` (64×64, gốc (32,58)), phụ thể `ISO_VH_FRAME` / `ISO_VH_ORIGIN` (96×96, gốc (48,74)); hồn thú bắt buộc `--size` một cỡ trong `ISO_BEAST_SIZES` (boss 160–192), vật / chân dung bắt buộc `--size`. Cùng hệ số thu cho cả lô, chân cùng đường đáy, thêm viền `#1a1020` nếu thiếu; mặc định `--palette gpl`. |
-| `iso-preview.mjs <ra.png> --tiles grass=a.png,grass=b.png,path=c.png,water=d.png,deep=e.png,stone=f.png --scale 2` | Mảnh bản đồ 12×12 (cỏ nhiều biến thể, đường, ao, sân đá) để soát mép ghép, màu, độ lặp. |
+| `iso-preview.mjs <ra.png> --tiles grass=a.png,grass=b.png,path=c.png,water=d.png,deep=e.png,stone=f.png [--big grass=A.png,…] --size 16 --scale 3` | Mảnh bản đồ N×N ô logic (cỏ nhiều biến thể, đường, ao, sân đá) để soát mép ghép, màu, độ lặp; `--big` đặt ô lớn ở mọi khối 2×2 cùng địa hình. Đọc được cả ô PixelLab. |
 
 - Tách vật theo thành phần liên thông (thứ tự hàng trên → dưới, trái → phải, khớp `--names`), hoặc `--grid CxR` khi các vật dính nhau. Số tên khác số vật thì công cụ dừng và in hộp bao từng vật.
 - Cỡ ô giả dò tự động chung cho cả ảnh (in ra `ô giả … px → gốc W×H`); sai thì ghi đè `--cell N` (`--cell 1` cho ảnh đã là pixel thật, ví dụ ô PixelLab).
@@ -72,12 +72,12 @@ Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗ
 - Nền một màu phẳng `#FF00FF` (không bóng đổ, không chuyển màu, không viền trắng quanh vật); vật không được dùng màu hồng / tím gần màu nền ở mép.
 - Lưới đều C cột × R hàng, mỗi ô một vật, các vật cách nhau rõ (không chạm nhau, không tràn sang ô khác); cùng cỡ, cùng góc nhìn.
 - Không chữ, không số, không nhãn, không khung; logo Gemini để công cụ gỡ.
-- Ô nền: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, seamless texture that tiles with itself"; khối pixel lớn (khoảng 64 pixel nghệ thuật trên bề ngang ô) để thu về 64×32 không mất nét. Sprite: một hướng mỗi ô, chân chạm cùng đường đáy, viền ngoài tối.
+- Ô nền: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, seamless texture that tiles with itself"; khối pixel lớn (khoảng 64 pixel nghệ thuật trên bề ngang ô) để thu về ô lớn 64×32 không mất nét; ô logic 32×16 thì xin vân thưa, ít chi tiết nhỏ. Sprite: một hướng mỗi ô, chân chạm cùng đường đáy, viền ngoài tối.
 
 Ví dụ:
 ```bash
-node tools/assets/gemini-import.mjs --kind tile --palette auto-item --names grass,dirt,water --out <tmp>/flat <inbox>/tiles/gemini-tiles-01.png
-node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/grass.png,path=<tmp>/flat/dirt.png,water=<tmp>/flat/water.png --scale 3
+node tools/assets/gemini-import.mjs --kind tile --names grass,dirt,water --out <tmp>/flat <inbox>/tiles/gemini-tiles-02.png
+node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/grass.png,path=<tmp>/flat/32/dirt.png,water=<tmp>/flat/32/water.png --big grass=<tmp>/flat/64/grass.png --scale 3
 ```
 
 ## Quy trình "tạo <asset>"

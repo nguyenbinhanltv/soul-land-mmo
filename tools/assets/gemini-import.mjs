@@ -12,23 +12,29 @@
 //   5. Lượng tử màu: auto-item (mỗi vật một bảng riêng; mặc định cho tile / tile-block vì art/palette.gpl hiện nay
 //      thiếu dải đất / đá / nước trầm), art/palette.gpl (mặc định cho sprite), auto (một bảng chung cả lô) hoặc none.
 //   6. Đưa về khung đích bằng lấy mẫu 4×4 điểm mỗi pixel đích rồi chọn màu nhiều phiếu nhất (không nội suy):
-//      - tile:       mặt trên hình thoi (bỏ bề dày khối) về đúng --size (mặc định ISO_TILE_BIG 64x32, tỉ lệ 2:1). Đỉnh thoi dò bằng
-//                    cách khớp đường thẳng vào mép trên (bỏ ngọn cỏ nhô lên); thu vào --inset điểm để bỏ viền đen;
-//                    --seamless trộn (dither có thứ tự) vùng mép với bản dời nửa chu kỳ để ô ghép liền với chính nó.
-//      - tile-block: giữ cả bề dày khối (mép vách, bờ nước), cùng phép chiếu với tile, viền tối về #1a1020.
+//      - tile:       mặt trên hình thoi ép về đúng 2:1 rồi đặt vào ảnh ô theo ISO_TILE_IMAGES (mục 5.11): mặc định
+//                    xuất cả ô logic (thoi 32×16 trong ảnh 32×32, tâm (16,19)) và ô lớn 2×2 (thoi 64×32 trong ảnh
+//                    64×64, tâm (32,37)), mỗi cỡ một thư mục con <out>/32, <out>/64. Đỉnh thoi dò bằng cách khớp đường
+//                    thẳng vào mép trên (bỏ ngọn cỏ nhô lên); thu vào --inset điểm để bỏ viền / dải mép; --seamless trộn
+//                    (dither có thứ tự) vùng mép với bản dời nửa chu kỳ để ô ghép liền với chính nó. Đáy ô (bị ô phía
+//                    trước che khi lát) lấy từ mặt bên của khối gốc, giãn về bề dày quy cách; khối gốc không có mặt bên
+//                    thì kéo mép dưới mặt trên xuống, tô tối dần. Ô nền không viền (điểm gần đen ở đáy bị thay).
+//      - tile-block: như tile nhưng giữ viền (tối về #1a1020), không làm liền mép, không thu mép (mép vách, bờ nước).
 //      - sprite (khung và gốc lấy từ hằng ISO_* trong lib.mjs: honsu ISO_HS_FRAME / ISO_HS_ORIGIN, vohon ISO_VH_FRAME /
-//        ISO_VH_ORIGIN; beast cần --size một cỡ trong ISO_BEAST_SIZES, object / portrait cần --size; chân chạm đáy,
-//        portrait căn giữa): mọi vật trong một lần chạy dùng CHUNG hệ số thu, chân (đáy hộp bao) đặt vào gốc,
+//        ISO_VH_ORIGIN; beast cần --size một cỡ trong ISO_BEAST_SIZES, chân cách đáy ISO_BEAST_FOOT; object / portrait
+//        cần --size, object chân cách đáy 2, portrait căn giữa): mọi vật trong một lần chạy dùng CHUNG hệ số thu, chân (đáy hộp bao) đặt vào gốc,
 //        viền ngoài tối về #1a1020 và thêm viền nơi còn thiếu.
-//   7. Ghi <out>/<tên>.png, <out>/_preview.png (phóng --preview, mặc định ×4) và <out>/_report.json (cỡ ô giả,
-//      độ phân giải gốc, tỉ lệ thoi, điểm lệch mép ghép); bảng auto / auto-item ghi thêm <out>/_palette.gpl.
+//   7. Ghi <out>/<tên>.png (ô: <out>/<cỡ>/<tên>.png), _preview.png (phóng --preview, mặc định ×4) và <out>/_report.json
+//      (cỡ ô giả, độ phân giải gốc, tỉ lệ thoi, dải mép đã bỏ, điểm lệch mép ghép); bảng auto / auto-item ghi thêm
+//      <out>/_palette.gpl.
 //
 // Tùy chọn:
 //   --names a,b,…          tên file theo thứ tự đọc (hàng trên → dưới, trái → phải); thiếu thì <kind>_<i>.
 //                          Số tên khác số vật tách được thì dừng (in hộp bao từng vật) để không gán nhầm tên.
 //   --grid CxR             tách theo lưới đều C cột × R hàng thay vì thành phần liên thông.
 //   --cell auto|<số>       cỡ điểm ảnh giả; số thì dùng lưới đều cỡ đó (1 = ảnh đã là pixel thật).
-//   --size WxH|N           khung đích (N = N×N); tile / tile-block chỉ dùng W, mặt trên luôn W×W/2.
+//   --size WxH|N           khung sprite (N = N×N). Ô: danh sách bề ngang thoi, mặc định 32,64 (các cỡ trong ISO_TILE_IMAGES);
+//                          --face-only thì chỉ ghi mặt trên W×W/2 (W bất kỳ chia hết cho 4), không đặt vào ảnh ô.
 //   --anchor x,y           gốc chân trong khung sprite.
 //   --palette auto-item|gpl|auto|none|<file.gpl>   --colors: số màu mỗi vật với auto-item (mặc định 10) hoặc của
 //                          bảng auto chung cả lô (mặc định 32; tấm nhiều chất liệu thì ô đều màu chỉ còn 1–3 màu).
@@ -40,7 +46,7 @@
 //   --debug                ghi thêm <out>/_native/<tên>.png (ảnh pixel thật trước khi đưa về khung).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, hex, toHex, readGpl, OUTLINE, ISO_TILE_BIG, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_VH_ORIGIN, ISO_BEAST_SIZES } from "./lib.mjs";
+import { decodePng, encodePng, Img, hex, toHex, readGpl, OUTLINE, ISO_TILE_IMAGES, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_VH_ORIGIN, ISO_BEAST_SIZES, ISO_BEAST_FOOT } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -50,7 +56,7 @@ const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = op
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" ? "10" : "32"), logoOpt = opt("--logo", "auto");
 const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
-const debug = flag("--debug");
+const debug = flag("--debug"), faceOnly = flag("--face-only");
 const file = args[0];
 const KINDS = ["tile", "tile-block", "honsu", "vohon", "beast", "object", "portrait"];
 if (!outDir || !file || !KINDS.includes(kind)) {
@@ -58,21 +64,24 @@ if (!outDir || !file || !KINDS.includes(kind)) {
   process.exit(1);
 }
 const isTile = kind === "tile" || kind === "tile-block";
-// Khung mặc định theo quy cách isometric (hằng ở lib.mjs); hồn thú, vật, chân dung phải chọn cỡ.
-const DEFAULT_SIZE = { tile: ISO_TILE_BIG, "tile-block": ISO_TILE_BIG, honsu: [ISO_HS_FRAME, ISO_HS_FRAME], vohon: [ISO_VH_FRAME, ISO_VH_FRAME] };
-const sizeArg = sizeOpt ? sizeOpt.split("x").map(Number) : null;
-if (!sizeArg && !DEFAULT_SIZE[kind]) {
-  console.error(`--kind ${kind} cần --size${kind === "beast" ? ` (hồn thú: ${ISO_BEAST_SIZES.join(" / ")}, boss 160–192)` : ""}`);
+// Ô: các bề ngang thoi cần xuất (mặc định mọi cỡ ảnh ô của mục 5.11).
+const TILE_WIDTHS = isTile ? (sizeOpt ? sizeOpt.split(",").map((v) => +v.split("x")[0]) : Object.keys(ISO_TILE_IMAGES).map(Number)) : [];
+for (const w of TILE_WIDTHS) {
+  if (faceOnly ? w % 4 : !ISO_TILE_IMAGES[w]) {
+    console.error(`--size ${w}: ${faceOnly ? "bề ngang thoi phải chia hết cho 4" : `ảnh ô chỉ có cỡ ${Object.keys(ISO_TILE_IMAGES).join(" / ")} (mục 5.11); cỡ khác dùng --face-only`}`);
+    process.exit(1);
+  }
+}
+// Sprite: khung mặc định theo quy cách isometric (hằng ở lib.mjs); hồn thú, vật, chân dung phải chọn cỡ.
+const DEFAULT_SIZE = { honsu: [ISO_HS_FRAME, ISO_HS_FRAME], vohon: [ISO_VH_FRAME, ISO_VH_FRAME] };
+const sizeArg = !isTile && sizeOpt ? sizeOpt.split("x").map(Number) : null;
+if (!isTile && !sizeArg && !DEFAULT_SIZE[kind]) {
+  console.error(`--kind ${kind} cần --size${kind === "beast" ? ` (hồn thú: ${ISO_BEAST_SIZES.join(" / ")})` : ""}`);
   process.exit(1);
 }
-let [FW, FH] = sizeArg ? (sizeArg.length === 1 ? [sizeArg[0], sizeArg[0]] : sizeArg) : DEFAULT_SIZE[kind];
-if (kind === "beast" && FW === FH && !ISO_BEAST_SIZES.includes(FW) && FW < 160) console.warn(`[gemini] cảnh báo: hồn thú ${FW}×${FH} không thuộc cỡ ${ISO_BEAST_SIZES.join(" / ")}`);
-if (kind === "tile" || kind === "tile-block") {
-  if (FW % 4) { console.error(`--size: bề ngang ô thoi phải chia hết cho 4 (${FW})`); process.exit(1); }
-  if (FH !== FW / 2) console.warn(`[gemini] cảnh báo: ô thoi luôn có mặt trên ${FW}×${FW / 2} (2:1), bỏ qua chiều cao ${FH}`);
-  FH = FW / 2;
-}
-const DEFAULT_ANCHOR = { honsu: ISO_HS_ORIGIN, vohon: ISO_VH_ORIGIN };
+const [FW, FH] = isTile ? [0, 0] : sizeArg ? (sizeArg.length === 1 ? [sizeArg[0], sizeArg[0]] : sizeArg) : DEFAULT_SIZE[kind];
+if (kind === "beast" && !(FW === FH && ISO_BEAST_SIZES.includes(FW))) console.warn(`[gemini] cảnh báo: hồn thú ${FW}×${FH} không thuộc cỡ ${ISO_BEAST_SIZES.join(" / ")}`);
+const DEFAULT_ANCHOR = { honsu: ISO_HS_ORIGIN, vohon: ISO_VH_ORIGIN, beast: [FW >> 1, FH - ISO_BEAST_FOOT] };
 const [AX, AY] = anchorOpt ? anchorOpt.split(",").map(Number) : DEFAULT_ANCHOR[kind] ?? [FW >> 1, FH - 2];
 
 // ---------- Màu ----------
@@ -553,34 +562,61 @@ function autoInset(nat, g) {
   return Math.min(12, Math.max(1.5, k + 0.5));
 }
 
-function renderTile(nat, g) {
+/**
+ * Ô bề ngang W: mặt trên thoi W×W/2 (ép affine từ L, T, R của khối gốc) rồi, trừ khi --face-only, đặt vào ảnh ô
+ * ISO_TILE_IMAGES[W] và thêm đáy dày `thick` điểm bên dưới hai cạnh dưới của thoi.
+ */
+function renderTile(nat, g, W, pal) {
   const C = [(g.L[0] + g.R[0]) / 2, (g.L[1] + g.R[1]) / 2];
   // Thu vào `inset` điểm theo khoảng cách vuông góc từ tâm tới cạnh thoi.
   const hw = (g.R[0] - g.L[0]) / 2, hh = (g.B[1] - g.T[1]) / 2, edge = (hw * hh) / Math.hypot(hw, hh);
   const inset = kind !== "tile" ? 0 : insetOpt === "auto" ? autoInset(nat, g) : +insetOpt;
-  const s = 1 - inset / edge;
-  const [L, T, R] = [g.L, g.T, g.R].map((v) => [C[0] + (v[0] - C[0]) * s, C[1] + (v[1] - C[1]) * s]);
-  const W = FW, H = FW / 2;
+  const H = W / 2;
   // Điểm đích (u, v) = L + α(T − L) + β(R − T), với α = u/W − (v − H/2)/H, β = u/W + (v − H/2)/H.
-  const map = (u, v) => { const al = u / W - (v - H / 2) / H, be = u / W + (v - H / 2) / H; return [L[0] + al * (T[0] - L[0]) + be * (R[0] - T[0]), L[1] + al * (T[1] - L[1]) + be * (R[1] - T[1])]; };
+  const affine = (k) => {
+    const [L, T, R] = [g.L, g.T, g.R].map((v) => [C[0] + (v[0] - C[0]) * k, C[1] + (v[1] - C[1]) * k]);
+    return (u, v) => { const al = u / W - (v - H / 2) / H, be = u / W + (v - H / 2) / H; return [L[0] + al * (T[0] - L[0]) + be * (R[0] - T[0]), L[1] + al * (T[1] - L[1]) + be * (R[1] - T[1])]; };
+  };
+  const map = affine(1 - inset / edge), full = affine(1);
+  const face = new Img(W, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (inDiamond(x, y, W, H)) { const c = voteSample(nat, x, y, map, true); if (c) face.set(x, y, c); }
+  fillHoles(face);
+  let seam;
   if (kind === "tile") {
-    const t = new Img(W, H);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (inDiamond(x, y, W, H)) { const c = voteSample(nat, x, y, map, true); if (c) t.set(x, y, c); }
-    fillHoles(t);
-    scrubOutline(t);
-    const before = seamScore(t);
-    if (seamless) makeSeamless(t);
-    return { out: t, inset, seam: { before, after: seamless ? seamScore(t) : before } };
+    scrubOutline(face);
+    const before = seamScore(face);
+    if (seamless) makeSeamless(face);
+    seam = { before, after: seamless ? seamScore(face) : before };
+  } else {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (face.alpha(x, y) && lum(face.get(x, y)) < 40) face.set(x, y, [...OUT_RGB, 255]);
   }
-  // Khối: thoi trên + hai mặt bên cao `th` pixel đích (cùng hệ số dọc với mặt trên).
-  const th = Math.round((g.thick * H) / (g.B[1] - g.T[1])), t = new Img(W, H + th);
-  for (let y = 0; y < H + th; y++) for (let x = 0; x < W; x++) {
-    const dy = y + 0.5 - H / 2, down = Math.max(0, Math.min(th, dy));
-    if (Math.abs(x + 0.5 - W / 2) / (W / 2) + Math.abs(dy - down) / (H / 2) >= 1) continue;
-    const c = voteSample(nat, x, y, map, true);
-    if (c) t.set(x, y, lum(c) < 40 ? [...OUT_RGB, 255] : c);
+  if (faceOnly) return { out: face, inset, seam };
+  // Ảnh ô: mặt trên đặt tại tâm quy cách; đáy dưới mỗi cột lấy từ mặt bên khối gốc (giãn `g.thick` điểm gốc về `thick`).
+  const spec = ISO_TILE_IMAGES[W], out = new Img(...spec.size), oy = spec.center[1] - H / 2, ox = spec.center[0] - W / 2;
+  out.blit(face, 0, 0, W, H, ox, oy, true);
+  const darken = (c, k) => { const d = [0, 1, 2].map((i) => Math.round(c[i] * k)); return [...(pal ? pal[nearestIdx(d, pal)] : d), 255]; };
+  for (let x = 0; x < W; x++) {
+    let yb = -1;
+    for (let y = 0; y < H; y++) if (inDiamond(x, y, W, H)) yb = y;
+    if (yb < 0) continue;
+    const top = face.get(x, yb), left = x < W / 2;
+    let prev = darken(top, left ? 0.72 : 0.56);
+    for (let t = 1; t <= spec.thick; t++) {
+      const Y = oy + yb + t;
+      if (Y >= out.h) break;
+      let c = null;
+      if (g.thick >= 1.5) {
+        // Điểm mép dưới thoi (chưa thu mép) trên khối gốc, đi xuống theo chiều dọc của ảnh gốc.
+        const [sx, sy] = full(x + 0.5, yb + 1), X = Math.floor(sx), Yn = Math.floor(sy + ((t - 0.5) * g.thick) / spec.thick);
+        if (X >= 0 && Yn >= 0 && X < nat.w && Yn < nat.h && nat.alpha(X, Yn)) c = nat.get(X, Yn);
+      }
+      if (!c) c = prev;
+      else if (lum(c) < 40) c = kind === "tile" ? prev : [...OUT_RGB, 255]; // ô nền không viền
+      out.set(ox + x, Y, c);
+      prev = c;
+    }
   }
-  return { out: t, thickPx: th };
+  return { out, inset, seam, thickPx: spec.thick };
 }
 /** Điểm trống trong thoi (lấy mẫu rơi vào lỗ) lấy màu nhiều nhất của điểm kề. */
 function fillHoles(t) {
@@ -668,37 +704,41 @@ if (!isTile) {
 }
 
 mkdirSync(outDir, { recursive: true });
-const report = { source: path.resolve(file), kind, size: [FW, FH], key: toHex(K), logo, period: +P.toFixed(2), palette: paletteOpt.startsWith("auto") ? `${paletteOpt} ${pal.length} màu` : paletteOpt, items: [] };
-const outs = [];
+const report = { source: path.resolve(file), kind, size: isTile ? TILE_WIDTHS : [FW, FH], key: toHex(K), logo, period: +P.toFixed(2), palette: paletteOpt.startsWith("auto") ? `${paletteOpt} ${pal.length} màu` : paletteOpt, items: [] };
+const outs = new Map(); // thư mục ra → ảnh (cho _preview.png)
+const save = (dir, name, img) => { mkdirSync(dir, { recursive: true }); writeFileSync(path.join(dir, `${name}.png`), encodePng(img)); outs.set(dir, [...(outs.get(dir) ?? []), img]); };
+const colorCount = (img) => { const c = new Set(); for (let i = 0; i < img.data.length; i += 4) if (img.data[i + 3]) c.add((img.data[i] << 16) | (img.data[i + 1] << 8) | img.data[i + 2]); return c.size; };
 q.forEach((img, n) => {
   const name = names[n] ?? `${kind}_${n}`, it = nat[n];
   const info = { name, box: [it.x0, it.y0, it.x1 - it.x0 + 1, it.y1 - it.y0 + 1], cell: it.cell, native: [img.w, img.h] };
-  let res;
+  if (debug) { mkdirSync(path.join(outDir, "_native"), { recursive: true }); writeFileSync(path.join(outDir, "_native", `${name}.png`), encodePng(img)); }
+  let line = "";
   if (isTile) {
     let g;
     try { g = tileGeometry(img); } catch (e) { console.warn(`[gemini] bỏ qua ${name} (hộp ${info.box.join(",")}): ${e.message}`); return; }
     info.face = { width: +(g.R[0] - g.L[0]).toFixed(1), height: +(g.B[1] - g.T[1]).toFixed(1), ratio: +((g.R[0] - g.L[0]) / (g.B[1] - g.T[1])).toFixed(2), thick: +g.thick.toFixed(1) };
-    res = renderTile(img, g);
-    if (res.seam) { info.inset = res.inset; info.seam = res.seam; }
-    if (res.thickPx !== undefined) info.thickPx = res.thickPx;
+    info.sizes = {};
+    for (const W of TILE_WIDTHS) {
+      const res = renderTile(img, g, W, pals[n]);
+      save(TILE_WIDTHS.length > 1 || !faceOnly ? path.join(outDir, String(W)) : outDir, name, res.out);
+      info.inset = res.inset;
+      info.sizes[W] = { colors: colorCount(res.out), ...(res.seam ? { seam: res.seam } : {}) };
+      line += `  [${W}: ${res.seam ? `mép ghép ${res.seam.before}→${res.seam.after}, ` : ""}${info.sizes[W].colors} màu]`;
+    }
+    line = `  mặt trên ${info.face.width}×${info.face.height} (tỉ lệ ${info.face.ratio}:1), dày ${info.face.thick}${kind === "tile" ? `, bỏ mép ${info.inset}` : ""}` + line;
   } else {
-    res = renderSprite(img, s);
+    const res = renderSprite(img, s);
     if (res.lost) info.warning = "hình tràn khung, bị cắt";
+    save(outDir, name, res.out);
+    info.colors = colorCount(res.out);
+    line = `, ${info.colors} màu${info.warning ? `  (CẢNH BÁO: ${info.warning})` : ""}`;
   }
-  const colors = new Set();
-  for (let i = 0; i < res.out.data.length; i += 4) if (res.out.data[i + 3]) colors.add((res.out.data[i] << 16) | (res.out.data[i + 1] << 8) | res.out.data[i + 2]);
-  info.colors = colors.size;
-  writeFileSync(path.join(outDir, `${name}.png`), encodePng(res.out));
-  if (debug) { mkdirSync(path.join(outDir, "_native"), { recursive: true }); writeFileSync(path.join(outDir, "_native", `${name}.png`), encodePng(img)); }
-  outs.push(res.out);
   report.items.push(info);
-  const face = info.face ? `  mặt trên ${info.face.width}×${info.face.height} (tỉ lệ ${info.face.ratio}:1), dày ${info.face.thick}` : "";
-  const seam = info.seam ? `  bỏ mép ${info.inset}, mép ghép ${info.seam.before}→${info.seam.after}` : "";
-  console.log(`[gemini] ${name}: ô giả ${it.cell.join("×")} px → gốc ${img.w}×${img.h}${face}${seam}, ${info.colors} màu${info.warning ? `  (CẢNH BÁO: ${info.warning})` : ""}`);
+  console.log(`[gemini] ${name}: ô giả ${it.cell.join("×")} px → gốc ${img.w}×${img.h}${line}`);
 });
 if (!isTile) report.scale = +s.toFixed(3);
 writeFileSync(path.join(outDir, "_report.json"), JSON.stringify(report, null, 2) + "\n");
 // Bảng auto ghi ra .gpl để duyệt và chọn màu bổ sung cho art/palette.gpl.
 if (paletteOpt.startsWith("auto")) writeFileSync(path.join(outDir, "_palette.gpl"), `GIMP Palette\nName: ${path.basename(file)} auto\nColumns: 8\n#\n` + pal.map((c) => `${c.map((v) => String(v).padStart(3)).join(" ")}\t${toHex(c)}`).join("\n") + "\n");
-if (previewScale > 0) writeFileSync(path.join(outDir, "_preview.png"), encodePng(contactSheet(outs, previewScale)));
-console.log(`[gemini] ${outs.length} vật → ${outDir}${logo ? `; logo đã gỡ (${logo.mode}, ${logo.pixels} điểm)` : ""}${isTile ? "" : `; hệ số thu ${s.toFixed(3)}`}`);
+if (previewScale > 0) for (const [dir, imgs] of outs) writeFileSync(path.join(dir, "_preview.png"), encodePng(contactSheet(imgs, previewScale)));
+console.log(`[gemini] ${report.items.length} vật → ${[...outs.keys()].join(", ")}${logo ? `; logo đã gỡ (${logo.mode}, ${logo.pixels} điểm)` : ""}${isTile ? "" : `; hệ số thu ${s.toFixed(3)}`}`);
