@@ -1,0 +1,57 @@
+# Chế độ làm việc liên tục 24/7 cho agent của collaborator
+
+Mục tiêu: agent tự làm hết issue này tới issue khác, cả ban đêm. Khi hết quota thì tự chờ reset rồi làm tiếp, không trùng việc với người khác, không phá `main`.
+
+## 1. Luật khi làm liên tục
+
+Đây là luật chính. Dán khối dưới vào agent, hoặc cho agent đọc file này (`docs/lam-viec-lien-tuc.md`). Quy trình nhận việc, nhãn và nhánh chi tiết ở `CONTRIBUTING.md`.
+
+```
+CHẾ ĐỘ LÀM VIỆC LIÊN TỤC — soul-land-mmo. Tôi là <tên> (nhãn agent:<tên>).
+Mỗi NHỊP (~30 phút) làm đúng thứ tự, dừng ở bước đầu tiên có việc:
+1. PR của tôi có góp ý review / CONFLICTING / CI đỏ → sửa (merge origin/main, không rebase, không force push), push, trả lời thread.
+2. Đang có issue dang-lam của tôi chưa xong → đọc comment "Tiến độ" mới nhất trong issue rồi làm tiếp từ đó.
+3. Issue của tôi đã xong (check + build + bot RAM và PostgreSQL qua) → gh pr ready, đổi nhãn sang cho-review, Project Status = Đang review.
+4. Chưa có việc → nhận issue mới theo CONTRIBUTING.md: san-sang, chưa ai nhận, không dang-lam/chan/can-pixellab; mỗi lúc TỐI ĐA 1 issue đang làm + 2 PR chờ review; khai số SQL trong issue nếu cần; PR nháp ngay "Closes #N".
+5. Không còn issue phù hợp → ghi "hết việc" và nghỉ tới nhịp sau.
+Sau MỖI nhịp có thay đổi: cập nhật một comment "Tiến độ" trong issue (đã làm gì, đang ở bước nào, lệnh tiếp theo, PR/nhánh). Đây là bộ nhớ để làm tiếp sau khi hết quota hoặc mất ngữ cảnh — KHÔNG dựa vào trí nhớ hội thoại.
+GIỚI HẠN: không push vào main, không force push, không xoá nhánh/issue của người khác, không tự merge PR (chủ repo duyệt), không sửa PR/issue có nhãn agent:<người khác>, không ghi token/key/mật khẩu, không dùng dịch vụ tốn phí (PixelLab…), không tắt tiến trình theo tên (chỉ đúng PID mình mở), server/bot dùng cổng riêng.
+Bị chặn (thiếu quyết định thiết kế, lỗi môi trường, cần chủ repo) → gắn nhãn chan, comment câu hỏi cụ thể vào issue, chuyển sang việc khác.
+Hết quota / bị giới hạn tốc độ → không làm gì thêm, chờ nhịp sau (sau khi reset) rồi đọc lại comment "Tiến độ" để làm tiếp.
+```
+
+## 2. Cách chạy liên tục theo từng loại agent
+
+### Claude Code (khuyến nghị)
+Mở một phiên Claude Code trong thư mục repo, giữ máy và phiên luôn mở (tắt chế độ ngủ của máy), rồi gõ:
+```
+/loop 30m Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>.
+```
+- `/loop` chạy lại lời nhắc mỗi 30 phút. Khi hết quota, các nhịp trong lúc đó bị bỏ qua. Sau khi quota reset, nhịp kế tiếp tự chạy, và agent đọc comment "Tiến độ" để làm tiếp.
+- Nên bật chế độ tự chấp nhận lệnh an toàn (auto-accept / allowlist cho `gh`, `git`, `npm`), để ban đêm không bị kẹt ở bước hỏi quyền.
+- Lịch `/loop` tự hết sau 7 ngày. Sau đó gõ lại.
+
+### Codex CLI / agent không có lịch sẵn: vòng lặp script
+PowerShell (Windows):
+```powershell
+while ($true) {
+  codex exec "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng."
+  if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }
+}
+```
+Bash (macOS/Linux):
+```bash
+while true; do
+  claude -p "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng." \
+    --permission-mode acceptEdits || sleep 900   # lỗi (hết quota) thì chờ 15 phút rồi thử lại
+  sleep 1800
+done
+```
+Mỗi lần gọi là một phiên mới. Vì vậy comment "Tiến độ" trong issue chính là bộ nhớ chung giữa các lần chạy.
+
+### Cursor / Copilot agent
+Hai loại này không chạy nền được. Hãy dùng script ở trên với CLI tương ứng, hoặc chỉ làm ban ngày.
+
+## 3. Buổi sáng (chủ repo hoặc collaborator)
+- Xem bảng Project, cột **Đang review**. Duyệt và merge PR, hoặc để orchestrator chạy reviewer AO nếu chủ repo muốn.
+- Issue có nhãn `chan`: trả lời câu hỏi trong comment, gỡ nhãn `chan`.

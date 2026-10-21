@@ -46,6 +46,8 @@ Orchestrator / agent tự động đọc hàng chờ bằng đúng lệnh này, 
    ```
 6. Việc to (ví dụ "nhận theo từng bản đồ") thì ghi phần mình nhận vào bình luận issue, hoặc tách issue con rồi nhận issue con.
 
+Agent chạy liên tục (cả ban đêm, tự làm tiếp sau khi hết quota): theo luật và cách chạy ở `docs/lam-viec-lien-tuc.md`.
+
 ## Bỏ dở
 
 Không làm tiếp được thì trả việc ngay, đừng giữ chỗ:
