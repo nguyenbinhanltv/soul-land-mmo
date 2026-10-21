@@ -41,6 +41,7 @@ export interface GameMap {
   portals: Portal[];
   elites: EliteSpot[];  // mỗi vùng tối đa 1 tinh anh (mục 5.4)
   lair: BossSpot | null; // hang tà hóa thú vương (BĐ5): tối đa 1 mỗi bản đồ, đúng thú vương của MAPS[mapId].king
+  lake: { x: number; y: number } | null; // giữa hồ (object `lake`, điểm; #118): boss thế giới lặn ra đây khi Du Thủy
   npcs: NpcSpot[];       // NPC (6.1): mỗi mã tối đa một chỗ trong bản đồ
   waypoints: Waypoint[]; // truyền tống trận (11.2)
   waypointAt(x: number, y: number): Waypoint | undefined;
@@ -162,7 +163,7 @@ export function loadMap(mapId: string): GameMap {
   const grid = solidGrid(raw), { MW, MH, solid } = grid;
 
   const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [], npcObjs: any[] = [], wpObjs: any[] = [];
-  let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
+  let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE }, lake: { x: number; y: number } | null = null;
   for (const layer of raw.layers) if (layer.type === "objectgroup") for (const o of layer.objects) {
     const prop = (n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
     if (o.type === "zone") {
@@ -179,6 +180,7 @@ export function loadMap(mapId: string): GameMap {
     if (o.type === "spawn") spawn = rectOf(o);
     if (o.type === "safe") safe.push(rectOf(o));
     if (o.type === "arrive") arrives.push({ x: o.x, y: o.y });
+    if (o.type === "lake") lake = { x: o.x, y: o.y };
     if (o.type === "elite") eliteObjs.push(o);
     if (o.type === "boss") bossObjs.push(o);
     if (o.type === "npc") npcObjs.push(o);
@@ -198,7 +200,7 @@ export function loadMap(mapId: string): GameMap {
   const waypoints = parseWaypoints(mapId, wpObjs, portals, (x, y) => x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4));
   const kind = MAPS[mapId].kind;
   const map: GameMap = {
-    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, npcs, waypoints, isSolidTile, hits,
+    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits,
     waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),
     inLair: (x, y) => !!lair && inRect(lair, x, y),
     moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),

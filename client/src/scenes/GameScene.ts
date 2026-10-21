@@ -65,6 +65,8 @@ const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
 const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
 const TELE_COL = 0xff3b3b;
+/** Vòng an toàn của chiêu toàn sàn boss thế giới (#118) và vòng sóng chỗ Du Thủy sắp nổi lên. */
+const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
 const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow"] as const;
 
@@ -81,7 +83,9 @@ export class GameScene extends Phaser.Scene {
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
   isoMap!: IsoMap;
   /** Vùng cảnh báo chiêu báo trước đang hiện (3.5), theo mã hồn thú: hình đã khóa (từ BĐ4 có thể nhiều vùng), lúc bắt đầu, thời lượng (ms). */
-  teles = new Map<string, { t: Tele[]; t0: number; ms: number }>();
+  teles = new Map<string, { t: Tele[]; t0: number; ms: number; safe?: Tele[] }>(); // safe: vòng an toàn của chiêu toàn sàn (#118)
+  /** Chỗ boss thế giới sắp nổi lên sau Du Thủy (tin "boss" k = "dive", #118): vòng sóng báo trước tới khi nổi lên. */
+  diveMark: { bid: string; x: number; y: number; t0: number; ms: number } | null = null;
   /** Tên trên đầu tinh anh (BĐ4) và thú vương (BĐ5): "Tinh anh …", "Tà hóa …" màu aura. */
   eliteLabels = new Map<string, Phaser.GameObjects.Text>();
   /** Hang thú vương của bản đồ (object `boss`, BĐ5): vẽ trên bản đồ nhỏ. */
@@ -608,6 +612,7 @@ export class GameScene extends Phaser.Scene {
         if (m.here) hud.setBossLife(m.life);
         // Boss thế giới (BĐ6e): đồng hồ nổi giận, điểm yếu đang hiện (người vào giữa trận).
         if (m.here && m.world) { hud.setBossRage(m.k === "spawn" ? WORLD.enrageSecs : m.rageIn ?? 0); if (m.weak) hud.setBossWeak(m.weakT ?? 0); }
+        if (m.here && m.world && m.dive && m.sx !== undefined) this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.dive * 1000 }; // đang lặn (#118)
         if (m.k === "spawn" && m.world) {
           hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Sàn đấu bên hồ · nổi giận sau ${Math.round(WORLD.enrageSecs / 60)} phút` : m.mapName);
@@ -980,7 +985,7 @@ export class GameScene extends Phaser.Scene {
     }
     else if (m.k === "tele") {
       // Chiêu báo trước của hồn thú (3.5): vùng đỏ hiện `t` giây, đầy dần; tên chiêu đỏ trên đầu hồn thú.
-      this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now, ms: (m.t ?? 0.8) * 1000 });
+      this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now, ms: (m.t ?? 0.8) * 1000, safe: m.safe });
       const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid);
       if (s && b) this.floatText(s.x, beastTop(s, b.tier) - 10, m.name, "#ff6b6b");
       // Quay về vùng báo trước (mục 5.11): vệt / nón theo hướng chiêu, vòng dưới chân mục tiêu theo hướng tới tâm vòng.
@@ -1046,7 +1051,27 @@ export class GameScene extends Phaser.Scene {
         g.fillStyle(TELE_COL, 0.2 + 0.25 * k); this.teleShape(g, t, k);
         g.lineStyle(1, k > 0.6 ? 0xffd0d0 : TELE_COL, blink); this.teleOutline(g, t);
       }
+      // Chiêu toàn sàn (#118): vòng an toàn xanh ngọc phủ lên vùng đỏ, viền sáng dần khi sắp nổ.
+      for (const t of x.safe ?? []) {
+        g.fillStyle(SAFE_COL, 0.3 + 0.15 * k); fillGround(g, t.x, t.y, t.r);
+        g.lineStyle(2, k > 0.6 ? 0xffffff : SAFE_COL, 0.6 + 0.4 * blink); strokeGround(g, t.x, t.y, t.r);
+      }
     }
+    this.drawDiveMark(time);
+  }
+  /**
+   * Du Thủy (#118): chỗ boss sắp nổi lên là vòng sóng xanh đầy dần tới lúc nổi (cùng lớp mặt đất với vùng cảnh báo); boss đang lặn ở
+   * giữa hồ có gợn sóng quanh thân.
+   */
+  drawDiveMark(time: number) {
+    const dm = this.diveMark, g = this.teleG; if (!dm) return;
+    const b = this.room.state.beasts.get(dm.bid);
+    if (!b || !b.dive || time - dm.t0 > dm.ms + 1500) { this.diveMark = null; return; }
+    const k = Math.min(1, (time - dm.t0) / dm.ms), R = 40, pulse = 0.5 + 0.5 * Math.sin(time / 120);
+    g.fillStyle(DIVE_COL, 0.15 + 0.2 * k); fillGround(g, dm.x, dm.y, R * k);
+    g.lineStyle(2, DIVE_COL, 0.6 + 0.4 * pulse); strokeGround(g, dm.x, dm.y, R);
+    for (let j = 0; j < 2; j++) { const f = (time / 900 + j / 2) % 1; g.lineStyle(1, 0xd8f0ff, 1 - f); strokeGround(g, dm.x, dm.y, R * (0.3 + 0.7 * f)); }
+    for (let j = 0; j < 3; j++) { const f = (time / 1100 + j / 3) % 1; g.lineStyle(1, 0xd8f0ff, 0.8 * (1 - f)); strokeGround(g, b.x, b.y, 12 + 40 * f); }
   }
   /**
    * Aura tinh anh (BĐ4, mục 5.4 / 5.11, vẽ bằng code): vầng sáng màu riêng dưới chân (lớp mặt đất `teleG`, vẽ sau vùng cảnh báo) và
@@ -1070,7 +1095,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Chiêu báo trước tung ra: vùng chớp sáng rồi tắt, vệt lao của hồn thú (Vồ Lao, Xung Phong…), rung nếu mình trúng. */
-  teleHitFx(m: Tele & { bid: string; hit: string[]; x0: number; y0: number; x1: number; y1: number; parts?: Tele[] }) {
+  teleHitFx(m: Tele & { bid: string; hit: string[]; x0: number; y0: number; x1: number; y1: number; parts?: Tele[]; safe?: Tele[] }) {
     this.teles.delete(m.bid);
     const g = this.add.graphics().setDepth(3);
     for (const t of [m, ...(m.parts ?? [])]) {
@@ -1078,6 +1103,7 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(2, TELE_COL, 1); this.teleOutline(g, t);
       if (t.shape === "circle") this.ringFx(W2S(t.x, t.y), t.r * 0.6, t.r * 1.15, "#ff6b6b", 300);
     }
+    for (const t of m.safe ?? []) { g.fillStyle(SAFE_COL, 0.5); fillGround(g, t.x, t.y, t.r); g.lineStyle(2, 0xffffff, 1); strokeGround(g, t.x, t.y, t.r); } // vòng an toàn (#118)
     this.tweens.add({ targets: g, alpha: 0, duration: 280, onComplete: () => g.destroy() });
     if (Math.hypot(m.x1 - m.x0, m.y1 - m.y0) > 4) {
       const tr = this.add.graphics().setDepth(99980), [a, b] = ptsToScreen([{ x: m.x0, y: m.y0 }, { x: m.x1, y: m.y1 }], 4 * SPR);
@@ -1786,7 +1812,7 @@ export class GameScene extends Phaser.Scene {
         return true;
       case "weakEnd": return true;
       case "charge":
-        hud.banner(`${m.name}: tích lực ${m.secs} giây!`, `Cần ${m.need} lần khống chế của võ hồn Khống chế để ngắt`);
+        hud.banner(`${m.name}: tích lực ${m.secs} giây!`, `Cần ${m.need} lần khống chế của võ hồn Khống chế để ngắt, không thì đứng vào vòng xanh ngọc`);
         hud.log(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
         return true;
       case "brk": hud.log(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
@@ -1797,7 +1823,8 @@ export class GameScene extends Phaser.Scene {
         hud.log(`${m.name} không bị ngắt: cả sàn trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
         return true;
       case "floor":
-        hud.banner(m.name, m.name === "Bạo Nộ" ? "Chiêu toàn sàn: không né được!" : "Độc toàn sàn: Vết thương sâu, nhờ võ hồn phụ trợ thanh tẩy");
+        hud.banner(m.name, m.name === "Bạo Nộ" ? "Chiêu toàn sàn: đứng vào vòng xanh ngọc hoặc ra khỏi sàn!"
+          : "Độc toàn sàn (Vết thương sâu): đứng vào vòng xanh ngọc, trúng thì nhờ võ hồn phụ trợ thanh tẩy");
         return true;
       case "armor":
         hud.banner(`${m.name}!`, `Khiên ${m.secs} giây: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}`);
@@ -1805,8 +1832,11 @@ export class GameScene extends Phaser.Scene {
         return true;
       case "armorBreak": hud.log(`${m.by} phá vỡ ${m.name}!`, "#9ad8ff"); return true;
       case "armorEnd": if (m.heal > 0) hud.log(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
-      case "dive": hud.banner(`${m.name}!`, `Boss lặn xuống hồ ${m.secs} giây: chờ nổi lên, mẫn công lướt tới trước`); return true;
-      case "surface": return true;
+      case "dive":
+        // #118: lặn ra giữa hồ, chỗ nổi lên báo trước bằng vòng sóng xanh.
+        if (m.sx !== undefined) this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.secs * 1000 };
+        hud.banner(`${m.name}!`, `Boss lặn ra giữa hồ ${m.secs} giây, sẽ nổi lên ở vòng sóng xanh: mẫn công đứng chờ sẵn`); return true;
+      case "surface": this.diveMark = null; return true;
       case "rage":
         hud.setBossLife(m.life); hud.setBossRage(0);
         hud.banner("NỔI GIẬN!", `Sát thương x${m.dmg}, chiêu toàn sàn mỗi ${m.every} giây`);
