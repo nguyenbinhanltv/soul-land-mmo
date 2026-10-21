@@ -787,8 +787,8 @@ export interface BeastSkillDef {
 export type GroundKind = "pool" | "mist";
 /** Kiểu vùng lưu lại; chỉ số trong mảng đồng bộ ở `GroundState.kind`, thêm kiểu mới vào cuối. */
 export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
-  { id: "pool", name: "Vũng độc", col: "#4fb83a" },
-  { id: "mist", name: "Sương độc", col: "#9ee0a0" },
+  { id: "pool", name: "Vũng độc", col: "#9be23a" },
+  { id: "mist", name: "Sương độc", col: "#c8f5b4" },
 ];
 export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; }
 /** Nhịp gây trạng thái mặc định của vùng lưu lại (giây). */

@@ -1152,22 +1152,22 @@ export class GameScene extends Phaser.Scene {
       const circle = t.shape === "circle";
       if (kind.id === "mist") {
         // Sương: nền mờ cả vùng và 4 làn sương lệch tâm xoay chậm (vòng tròn); hình khác chỉ tô nền nhạt hơn.
-        g.fillStyle(c, 0.16 * fade); this.teleShape(g, t, 1);
+        g.fillStyle(c, 0.22 * fade); this.teleShape(g, t, 1);
         if (circle) for (let k = 0; k < 4; k++) {
           const a = time / 2600 + seed + (k * Math.PI) / 2, d = t.r * 0.35;
-          g.fillStyle(c, (0.12 + 0.06 * Math.sin(time / 700 + k)) * fade);
+          g.fillStyle(c, (0.16 + 0.07 * Math.sin(time / 700 + k)) * fade);
           fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, t.r * 0.55, 3 + 2 * Math.sin(time / 900 + k));
         }
-        g.lineStyle(1, c, (0.25 + 0.2 * pulse) * fade); this.teleOutline(g, t);
+        g.lineStyle(1, c, (0.4 + 0.25 * pulse) * fade); this.teleOutline(g, t);
         return;
       }
       // Vũng: nền sẫm, lõi đậm hơn, viền sáng đập nhẹ, bọt nổi (vị trí theo id vùng để mỗi vũng một kiểu).
-      g.fillStyle(0x1e4a1a, 0.4 * fade); this.teleShape(g, t, 1);
-      g.fillStyle(c, (0.22 + 0.08 * pulse) * fade); this.teleShape(g, t, circle ? 0.75 : 1);
-      g.lineStyle(1, c, (0.55 + 0.3 * pulse) * fade); this.teleOutline(g, t);
+      g.fillStyle(0x10260c, 0.55 * fade); this.teleShape(g, t, 1);
+      g.fillStyle(c, (0.3 + 0.1 * pulse) * fade); this.teleShape(g, t, circle ? 0.72 : 1);
+      g.lineStyle(2, c, (0.6 + 0.3 * pulse) * fade); this.teleOutline(g, t);
       if (circle) for (let k = 0; k < 5; k++) {
         const ph = ((time / 1100 + k * 0.37 + seed * 0.13) % 1), a = seed * 1.7 + k * 2.4, d = t.r * (0.2 + 0.55 * ((k * 0.61 + seed * 0.29) % 1));
-        g.fillStyle(0xd8ffb0, (1 - ph) * 0.7 * fade); fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, 1 + ph * 2.2);
+        g.fillStyle(0xe8ffb8, (1 - ph) * 0.9 * fade); fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, 1 + ph * 2.2);
       }
     });
   }
