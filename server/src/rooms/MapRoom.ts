@@ -1377,15 +1377,19 @@ export class MapRoom extends Room<MapState> {
    * người hạ hồn thú nhặt được; túi đầy thì báo và hồn hoàn ở lại dưới đất. Client chỉ gửi ý định, server chọn theo vị trí.
    * Đồ rơi chồng nhau thì chọn món gần nhất mà người này được nhặt (của mình hoặc đã hết ưu tiên), để đồ của người khác nằm
    * trên không chặn đồ của mình; không có món nào được nhặt thì báo theo món gần nhất.
+   * `only` (tự săn, mục 5.13): chỉ xét đúng món đó (vẫn kiểm PICKUP_RANGE, quyền nhặt, túi đầy như trên), để món bị bộ lọc nhặt bỏ qua
+   * nằm gần hơn không bị nhặt thay. Tin `pickup` của người chơi không có `did`.
    */
-  pickup(id: string) {
+  pickup(id: string, only?: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     const mine = (dr: DropState) => this.canLoot(dr, id);
     // Chưa được nhặt: còn bao lâu, của ai (người hạ hay tổ đội của người hạ, 7.1).
     const lock = (dr: DropState, what: string) => `${what} thuộc về ${dr.party ? "tổ đội của " : ""}người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`;
     let best: [string, DropState] | undefined, bd = PICKUP_RANGE;
-    for (const [did, dr] of this.state.drops.entries()) {
+    const pool: Iterable<[string, DropState]> = only === undefined ? this.state.drops.entries()
+      : this.state.drops.has(only) ? [[only, this.state.drops.get(only)!]] : [];
+    for (const [did, dr] of pool) {
       const dd = Math.hypot(dr.x - p.x, dr.y - p.y);
       if (dd < PICKUP_RANGE && (!best || (mine(dr) && !mine(best[1])) || (mine(dr) === mine(best[1]) && dd < bd))) { bd = dd; best = [did, dr]; }
     }

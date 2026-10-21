@@ -119,7 +119,7 @@ export class AutoHunter {
     if (this.loot) {
       const dr = room.state.drops.get(this.loot)!;
       if (Math.hypot(dr.x - p.x, dr.y - p.y) < PICKUP_RANGE - 4) {
-        room.pickup(this.id);
+        room.pickup(this.id, this.loot); // đúng món đã chọn theo bộ lọc, không phải món gần nhất (có thể bị lọc bỏ)
         if (room.state.drops.has(this.loot)) this.skip.set(this.loot, this.clock + AUTO_MOVE.skip); // không nhặt được (ví dụ chưa tới lượt)
         this.loot = null; this.go(null);
       } else this.go({ x: dr.x, y: dr.y });

@@ -4541,9 +4541,9 @@ async function autoTest(){
   const ar=objsOf(NV).find(o=>o.type==="arrive"&&o.name==="tu_nac_dinh_thanh");
   await warp(A,NV,ar.x,ar.y);
   ok(A.room.state.mapId===NV,`tới ${MAPS[NV].name} (${A.room.state.mapFile||NV})`);
-  // Điểm neo ngoài trại cổng (trong trại võ hồn gục hồi ngay nên cả đội không gục được), chỗ đứng được gần điểm đến nhất.
-  const camp=objsOf(NV).find(o=>o.type==="spawn"), inCamp=(x,y)=>x>=camp.x-24&&x<=camp.x+camp.width+24&&y>=camp.y-24&&y<=camp.y+camp.height+24;
-  for(let r=48;r<=480&&inCamp(me(A).x,me(A).y);r+=32) for(const [ux,uy] of [[1,0],[0,1],[0,-1],[-1,0],[0.7,0.7],[0.7,-0.7]]){
+  // Điểm neo cách trại cổng quá bán kính tự săn (đi dạo vào trại thì võ hồn gục hồi ngay, cả đội không gục được), chỗ đứng được gần nhất.
+  const camp=objsOf(NV).find(o=>o.type==="spawn"), M=AUTO_RADIUS+48, inCamp=(x,y)=>x>=camp.x-M&&x<=camp.x+camp.width+M&&y>=camp.y-M&&y<=camp.y+camp.height+M;
+  for(let r=48;r<=960&&inCamp(me(A).x,me(A).y);r+=32) for(const [ux,uy] of [[1,0],[0,1],[0,-1],[-1,0],[0.7,0.7],[0.7,-0.7]]){
     const x=Math.round(ar.x+ux*r), y=Math.round(ar.y+uy*r); if(inCamp(x,y)) continue;
     await test(A,"goto",{x,y}); if(Math.hypot(me(A).x-x,me(A).y-y)<1) break;
   }
@@ -4576,6 +4576,7 @@ async function autoTest(){
   if(B.room.roomId!==A.room.roomId) console.log("  ⚠ bỏ qua phần không cướp quái: hai bot khác kênh");
   else{
     await test(A,"goto",home); await test(B,"goto",{x:home.x+70,y:home.y}); await test(A,"clear"); await test(B,"clear");
+    await test(B,"set",{rowId:B.owned.active,level:60}); // B trụ được suốt bài (X đánh B; B gục thì X thôi giao chiến với B)
     sp=await test(B,"spawn",{tier:0,dx:16,dy:0,years:150,hpx:60}); const X=sp?.bid, xb=()=>A.room.state.beasts.get(X);
     for(let k=0;k<6&&X&&xb()&&xb().hp>=xb().maxHp;k++){ await step(B,1,0); B.room.send("attack"); await sleep(250); }
     const hx=xb()?.hp;
@@ -4652,6 +4653,23 @@ async function autoTest(){
   await test(A,"auto",{used:3600}); await autoOp(A,"on");
   await rejoin(A); m=await autoOp(A,"get");
   ok(m&&!m.on&&!me(A).auto&&same(m.cfg,cfg)&&Math.abs(m.left-(AUTO_DAILY_SECS-3600))<=5,`vào lại: không tự bật, giữ cài đặt và giờ treo (còn ${autoTimeText(m?.left??0)})`);
+
+  // ---- Bộ lọc nhặt: hồn hoàn (bị lọc) nằm gần hơn hồn cốt (được nhặt) thì vẫn chỉ nhặt hồn cốt ----
+  await test(A,"goto",home); await test(A,"clear");
+  await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:true}});
+  await test(A,"bone",{r:0,s:0}); // r/100 dưới tỉ lệ rơi: chắc chắn rơi hồn cốt
+  sp=await test(A,"spawn",{tier:0,dx:30,dy:0,years:1500}); const sb=await test(A,"slay",{bid:sp?.bid}); await test(A,"bone",{r:-1});
+  const dropsAt=()=>[...A.room.state.drops.entries()].filter(([,d])=>Math.hypot(d.x-sb.x,d.y-sb.y)<12);
+  await waitFor(()=>dropsAt().length>=2,1500);
+  const ringD=dropsAt().find(([,d])=>d.item==="")?.[0], boneD=dropsAt().find(([,d])=>d.item===BONE_ITEM)?.[0];
+  const rd=A.room.state.drops.get(ringD); if(rd) await test(A,"goto",{x:rd.x,y:rd.y}); // đứng đúng chỗ hồn hoàn: hồn hoàn là món gần nhất
+  const bn0=bonesOf(A).length, rn0=qtyOf(A,RING_ITEM);
+  m=await autoOp(A,"on");
+  const gotBone=await waitFor(()=>bonesOf(A).length>bn0,4000);
+  ok(ringD&&boneD&&m?.on&&gotBone&&qtyOf(A,RING_ITEM)===rn0&&A.room.state.drops.has(ringD),
+    `bộ lọc không nhặt hồn hoàn: đứng trên hồn hoàn, chỉ nhặt hồn cốt cạnh đó (hồn cốt ${bn0} → ${bonesOf(A).length}, hồn hoàn ${rn0} → ${qtyOf(A,RING_ITEM)}, hồn hoàn còn dưới đất: ${A.room.state.drops.has(ringD)})`);
+  if(!gotBone) console.log(`  (giết ${JSON.stringify(sb)}; đồ gần: ${JSON.stringify(dropsAt().map(([k,d])=>[k,d.item,d.x,d.y,d.owner===A.room.sessionId]))}; bật ${JSON.stringify(m)}; tự săn ${JSON.stringify(await test(A,"auto"))}; log ${A.logs.slice(-4).join(" | ")})`);
+  await autoOp(A,"off"); await autoOp(A,"set",{cfg});
 
   // ---- Túi đầy ----
   await test(A,"goto",home); await test(A,"clear");
