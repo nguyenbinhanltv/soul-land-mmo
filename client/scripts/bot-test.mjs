@@ -4528,6 +4528,10 @@ async function syncViewTest(){
   V.mini=null; ok(await waitFor(()=>V.mini?.p?.includes(sid),2500),"tin mini (bản đồ nhỏ) có hồn sư ở xa");
   const k=V.mini?.p?.indexOf(sid)??-1;
   ok(k>=0&&Math.abs(V.mini.p[k+1]-Math.floor(me(W).x/16))<=2&&Math.abs(V.mini.p[k+2]-Math.floor(me(W).y/16))<=2,`tin mini: vị trí theo ô ${V.mini?.p?.slice(k+1,k+3)}`);
+  // Chống gian lận (#166): sid ở xa (lấy từ tin mini) không đổi được ra tên qua lời mời tổ đội.
+  { const l=V.logs.length; V.room.send("party",{op:"invite",sid}); await waitFor(()=>V.logs.length>l,2000); await sleep(150);
+    const t=V.logs.slice(l).join(" | ");
+    ok(/không còn ở đây/.test(t)&&!t.includes(W.name)&&!W.party?.invites?.length,`mời tổ đội bằng sid của hồn sư ở xa: bị từ chối, không lộ tên (${t})`); }
   // Lại gần dưới SYNC_VIEW.r: thấy nhau.
   await place(W,{x:west.x+48,y:west.y+16});
   ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
