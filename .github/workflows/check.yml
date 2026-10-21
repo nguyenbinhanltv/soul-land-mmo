@@ -1,4 +1,4 @@
-# CI: typecheck server + client, validate sprite / tiles.json, build client cho mọi PR vào main.
+# CI: typecheck server + client, validate sprite / tiles.json, build client cho mọi PR vào main và mỗi push vào main.
 # Status check cần bật trong "Require status checks to pass" của main: check-build (xem CONTRIBUTING.md).
 name: CI
 
@@ -13,7 +13,7 @@ permissions:
 
 # Push mới lên cùng PR thì hủy lượt cũ. Trên main mỗi commit một nhóm riêng (theo SHA), nên không lượt nào bị hủy hay bị bỏ.
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
