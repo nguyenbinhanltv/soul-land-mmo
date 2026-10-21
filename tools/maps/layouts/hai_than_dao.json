@@ -1,0 +1,115 @@
+{
+  "_": "Hải Thần Đảo / Ma Quỷ Hải Vực ×8 diện tích (11.5). Đảo giữa biển sâu, tây → đông: bến thuyền về Thiên Đấu Thành (cầu tàu ra mép tây), Bãi san hô (Ghềnh Cự Giải), Ma Quỷ Hải Vực (rạn nông, rãnh biển sâu, đường đá nối các bãi), Vách Hải Thần (cao nguyên vách đá, đền Hải Thần với tượng đinh ba ở Hải Thần Điện), Hải Thần Uyên (hố biển sâu, Vực Ma Kình). Định dạng: tools/maps/README.md.",
+  "map": "hai_than_dao",
+  "out": "hai_than_dao.v2.json",
+  "size": [255, 170],
+  "seed": 20261104,
+  "zoneCell": 8,
+  "blend": 5,
+  "border": "deep",
+  "gids": {
+    "ground": {
+      "grass": [1, 2], "leaf": 3, "moss": 5, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
+      "bank": 33, "deep": 35, "stony": 26, "glow": 6, "bridge": 25
+    },
+    "objects": {
+      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "tent": 11, "fire": 12, "plant": 28, "sign": 29, "skull": 27,
+      "roof": 14, "wall": 15
+    },
+    "canopy": { "17": 21, "18": 22, "20": 24 }
+  },
+  "tiers": [
+    { "name": "Bãi san hô", "years": "50000-65000", "hint": "Hồn thú 50.000 – 65.000 năm", "beasts": "thiet_giap_cu_giai:1,lam_lan_hai_xa:1,kiem_ngu:1",
+      "trees": { "17": 2, "18": 1 }, "denseTrees": { "17": 1, "20": 1 }, "density": 0.025, "cluster": 0.66, "clusterDensity": 0.6,
+      "ground": { "grass": [33, 33], "leaf": 7, "moss": 34 }, "leaf": 0.66, "moss": 0.74, "rock": 0.012, "plant": 0.008 },
+    { "name": "Ma Quỷ Hải Vực", "years": "60000-80000", "hint": "Rạn nông: hồn thú 60.000 – 80.000 năm", "beasts": "quy_dien_hai_yeu:1,tham_hai_ma_chuong:1,loi_quang_hai_dieu:1",
+      "trees": { "18": 1, "17": 1 }, "denseTrees": { "18": 1 }, "density": 0.02, "cluster": 0.68, "clusterDensity": 0.5,
+      "ground": { "grass": [33, 7], "leaf": 7, "moss": 34 }, "leaf": 0.64, "moss": 0.7, "rock": 0.02 },
+    { "name": "Vách Hải Thần", "years": "75000-90000", "hint": "Hồn thú 75.000 – 90.000 năm", "beasts": "kim_lan_long_quy:1,huyet_nha_cu_sa:1,loi_van_hai_ung:1",
+      "trees": { "18": 2, "20": 1, "19": 1 }, "denseTrees": { "20": 2, "18": 1 }, "density": 0.06, "cluster": 0.58, "clusterDensity": 0.8,
+      "leaf": 0.68, "moss": 0.7, "rock": 0.012, "log": 0.002, "plant": 0.01 },
+    { "name": "Hải Thần Uyên", "years": "85000-100000", "hint": "Cẩn thận: hồn thú 85.000 – 100.000 năm", "beasts": "tham_hai_ma_kinh:1,u_linh_hai_mau:1",
+      "trees": { "20": 2, "19": 1 }, "denseTrees": { "20": 1 }, "density": 0.05, "cluster": 0.6, "clusterDensity": 0.8,
+      "ground": { "grass": [4, 2], "moss": 3 }, "leaf": 0.66, "moss": 0.62, "rock": 0.02, "plant": 0.004, "path": "pathDark" }
+  ],
+  "zones": [
+    { "name": "Ghềnh Cự Giải", "tier": 0, "hint": "Ghềnh đá của Thiết Giáp Cự Giải · hồn thú 50.000 – 65.000 năm", "beasts": "thiet_giap_cu_giai:3,lam_lan_hai_xa:1,kiem_ngu:1",
+      "poly": [[0, 0], [62, 0], [60, 60], [0, 62]] },
+    { "name": "Bãi san hô", "tier": 0, "poly": [[0, 62], [60, 60], [58, 170], [0, 170]] },
+    { "name": "Ma Quỷ Hải Vực", "tier": 1, "poly": [[62, 0], [126, 0], [124, 104], [60, 108], [60, 60]] },
+    { "name": "Rạn Lôi Quang", "tier": 1, "hint": "Rạn san hô sấm sét · hồn thú 60.000 – 80.000 năm", "beasts": "loi_quang_hai_dieu:3,quy_dien_hai_yeu:1,tham_hai_ma_chuong:1",
+      "poly": [[60, 108], [124, 104], [128, 170], [58, 170]] },
+    { "name": "Hải Thần Điện", "tier": 2, "hint": "Đền Hải Thần · hồn thú 75.000 – 90.000 năm", "beasts": "kim_lan_long_quy:2,loi_van_hai_ung:1,huyet_nha_cu_sa:1",
+      "poly": [[126, 0], [192, 0], [190, 56], [127, 58]] },
+    { "name": "Vách Hải Thần", "tier": 2, "poly": [[127, 58], [190, 56], [188, 170], [128, 170], [124, 104]] },
+    { "name": "Hải Thần Uyên", "tier": 3, "poly": [[192, 0], [255, 0], [255, 170], [188, 170], [190, 56]] }
+  ],
+  "points": {
+    "ben": [22, 85], "san_ho": [44, 88], "mqh": [92, 84], "vach_chan": [132, 88], "vach": [164, 92], "uyen": [206, 86],
+    "san_ho_n": [30, 30], "mqh_n": [92, 30], "den": [153, 72], "uyen_n": [214, 30],
+    "san_ho_s": [34, 136], "loi_quang": [92, 138], "vach_s": [160, 136], "uyen_s": [212, 122]
+  },
+  "features": [
+    { "type": "area", "name": "Rạn quanh đảo", "ground": "ford", "invert": true, "edge": 3, "clear": true,
+      "poly": [[14, 12], [60, 8], [120, 13], [180, 8], [240, 14], [244, 80], [240, 158], [180, 162], [120, 157], [60, 162], [14, 158]] },
+    { "type": "area", "name": "Biển sâu", "ground": "deep", "invert": true, "edge": 4,
+      "poly": [[9, 6], [60, 3], [120, 7], [180, 3], [246, 8], [250, 80], [246, 164], [180, 167], [120, 163], [60, 167], [9, 164]] },
+    { "type": "area", "name": "Rạn nông Ma Quỷ", "ground": "ford", "poly": [[64, 14], [124, 14], [122, 156], [64, 156]], "edge": 5, "on": ["grass"], "clear": true },
+    { "type": "area", "name": "Bãi đá giữa rạn", "ground": "bank", "circle": [92, 84, 9], "edge": 4, "on": ["ford"] },
+    { "type": "area", "name": "Bãi đá bắc", "ground": "bank", "circle": [92, 30, 7], "edge": 3, "on": ["ford"] },
+    { "type": "area", "name": "Bãi đá nam", "ground": "bank", "circle": [92, 138, 8], "edge": 3, "on": ["ford"] },
+    { "type": "area", "name": "Rãnh sâu bắc", "ground": "deep", "poly": [[70, 48], [86, 54], [104, 50], [118, 60], [114, 64], [100, 56], [86, 60], [70, 54]], "edge": 2, "on": ["ford"] },
+    { "type": "area", "name": "Rãnh sâu nam", "ground": "deep", "poly": [[68, 112], [84, 106], [100, 114], [118, 108], [118, 114], [100, 120], [84, 112], [68, 118]], "edge": 2, "on": ["ford"] },
+    { "type": "pond", "at": [110, 30], "r": 3 },
+    { "type": "pond", "at": [76, 140], "r": 3.5 },
+    { "type": "area", "name": "Vũng rạn 1", "ground": "ford", "circle": [30, 112, 5], "edge": 2, "on": ["grass"], "clear": true },
+    { "type": "area", "name": "Vũng rạn 2", "ground": "ford", "circle": [44, 50, 4], "edge": 2, "on": ["grass"], "clear": true },
+    { "type": "area", "name": "Vũng rạn 3", "ground": "ford", "circle": [26, 146, 4], "edge": 2, "on": ["grass"], "clear": true },
+    { "type": "scatter", "kind": "rock", "poly": [[64, 14], [124, 14], [122, 156], [64, 156]], "p": 0.025, "on": ["ford"] },
+    { "type": "cliff", "pts": [[132, 18], [134, 44], [130, 66]], "rows": 2, "spacing": 3, "gap": 16, "gapLen": 3, "side": -1 },
+    { "type": "cliff", "pts": [[132, 110], [134, 130], [130, 152]], "rows": 2, "spacing": 3, "gap": 16, "gapLen": 3, "side": -1 },
+    { "type": "cliff", "pts": [[138, 52], [146, 50], [166, 52], [176, 50]], "rows": 2, "spacing": 3, "gap": 18, "gapLen": 3, "side": -1 },
+    { "type": "clearing", "at": [153, 66], "r": 13, "ground": "pave" },
+    { "type": "house", "rect": [146, 60, 14, 9], "margin": 1, "ground": "pave" },
+    { "type": "objects", "kind": "stele", "at": [[148, 74], [158, 74], [148, 78], [158, 78]] },
+    { "type": "area", "name": "Hố Uyên 1", "ground": "deep", "circle": [204, 40, 6], "edge": 3 },
+    { "type": "area", "name": "Hố Uyên 2", "ground": "deep", "circle": [232, 70, 7], "edge": 3 },
+    { "type": "area", "name": "Hố Uyên 3", "ground": "deep", "circle": [200, 150, 5], "edge": 3 },
+    { "type": "area", "name": "Hố Uyên 4", "ground": "deep", "circle": [236, 108, 5], "edge": 3 },
+    { "type": "scatter", "kind": "skull", "poly": [[192, 10], [244, 10], [244, 160], [190, 160]], "p": 0.003 },
+    { "type": "clearing", "at": [30, 30], "r": 6 },
+    { "type": "clearing", "at": [34, 136], "r": 6 },
+    { "type": "clearing", "at": [164, 120], "r": 6 },
+    { "type": "clearing", "at": [214, 30], "r": 6 },
+    { "type": "area", "name": "Cầu tàu", "ground": "bridge", "rect": [0, 83, 14, 4], "lock": true, "clear": true },
+    { "type": "camp", "rect": [12, 75, 16, 20], "tents": [[14, 77], [26, 77], [25, 93]], "fires": [[20, 91]], "logs": [[22, 92]], "signs": [[28, 82]] },
+    { "type": "lair", "at": [222, 140], "rx": 8, "ry": 6, "entrance": "n", "wall": "rock", "door": 4, "skulls": [[216, 137], [228, 143]] }
+  ],
+  "roads": [
+    { "via": ["ben", "san_ho", "mqh", "vach_chan", "vach", "uyen"], "width": 3, "waterCost": 6 },
+    { "via": ["san_ho", "san_ho_n", "mqh_n", "den"], "width": 2, "waterCost": 6 },
+    { "via": ["vach", "den"], "width": 3 },
+    { "via": ["den", "uyen_n"], "width": 2 },
+    { "via": ["san_ho", "san_ho_s", "loi_quang", "vach_s", "uyen_s"], "width": 2, "waterCost": 6 },
+    { "via": ["uyen", "uyen_s"], "width": 2 }
+  ],
+  "spawn": { "name": "Bến Hải Thần", "rect": [13, 77, 13, 16] },
+  "portals": [
+    { "name": "Thuyền về Thiên Đấu Thành", "rect": [0, 83, 2, 4], "to": "thien_dau_thanh", "arrive": "tu_hai_than_dao", "boat": true }
+  ],
+  "arrives": [
+    { "name": "tu_thien_dau_thanh", "at": [14.5, 85] }
+  ],
+  "waypoints": [
+    { "name": "ben", "label": "Bến Hải Thần", "at": [22, 79] },
+    { "name": "ma_quy", "label": "Ma Quỷ Hải Vực", "at": [93, 80], "ground": "bank" },
+    { "name": "vach", "label": "Vách Hải Thần", "at": [166, 95], "ground": "path" }
+  ],
+  "elites": [
+    { "name": "Hắc Giáp Cự Giải Vương", "boss": "hac_giap_cu_giai_vuong", "rect": [30, 133, 8, 6] },
+    { "name": "Ma Chương Vương", "boss": "ma_chuong_vuong", "rect": [88, 26, 8, 6] },
+    { "name": "Huyết Sa Bạo Quân", "boss": "huyet_sa_bao_quan", "rect": [160, 117, 8, 6] },
+    { "name": "Hắc Uyên Ma Kình", "boss": "hac_uyen_ma_kinh", "rect": [210, 27, 8, 6] }
+  ],
+  "lair": { "name": "Vực Ma Kình", "boss": "tham_hai_ma_kinh_vuong", "at": [222, 140], "rx": 8, "ry": 6 }
+}

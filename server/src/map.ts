@@ -64,18 +64,19 @@ export interface GameMap {
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 
 /**
- * Tên file Tiled (không đuôi) của bản đồ: `<mapId>`, hoặc bản dựng lại `<mapId>.v2` (tools/maps, 11.3) khi biến môi trường
- * `MAP_V2` liệt kê mapId đó (cách nhau bằng dấu phẩy, `all` = mọi bản đồ có bản v2) và file có thật. Client đọc tên này ở
- * `MapState.mapFile` để tải đúng file (va chạm, dự đoán chuyển động dùng chung lưới).
+ * Tên file Tiled (không đuôi) của bản đồ: bản dựng bằng `tools/maps` (`<mapId>.v2`, 11.3 / 11.5) nếu có file, trừ khi biến môi
+ * trường `MAP_V1` liệt kê mapId đó (cách nhau bằng dấu phẩy, `all` = mọi bản đồ) thì dùng bản cũ `<mapId>` (đường lùi). Client đọc
+ * tên này ở `MapState.mapFile` để tải đúng file (va chạm, dự đoán chuyển động dùng chung lưới).
  */
-const V2 = new Set((process.env.MAP_V2 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+const V1 = new Set((process.env.MAP_V1 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 const fileCache = new Map<string, string>();
 export function mapFile(mapId: string): string {
   let f = fileCache.get(mapId);
   if (f === undefined) {
-    const v2 = (V2.has(mapId) || V2.has("all")) && existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
-    fileCache.set(mapId, (f = v2 ? `${mapId}.v2` : mapId));
-    if (v2) console.log(`[map] ${mapId}: dùng bản dựng lại shared/assets/${f}.json (MAP_V2)`);
+    const has = existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
+    const v1 = has && (V1.has(mapId) || V1.has("all")); // chỉ báo đường lùi ở bản đồ có bản ×8
+    fileCache.set(mapId, (f = has && !v1 ? `${mapId}.v2` : mapId));
+    if (v1) console.log(`[map] ${mapId}: dùng bản cũ shared/assets/${f}.json (MAP_V1)`);
   }
   return f;
 }
