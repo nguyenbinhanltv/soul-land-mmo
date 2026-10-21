@@ -99,7 +99,10 @@ test("validateManifestMatchesCatalog rejects missing, extra and stale tracks", (
 
   assert.doesNotThrow(() => validateManifestMatchesCatalog({ catalog, manifest }));
   assert.throws(
-    () => validateManifestMatchesCatalog({ catalog, manifest: { ...manifest, items: [] } }),
+    () => validateManifestMatchesCatalog({
+      catalog,
+      manifest: { ...manifest, items: [], preload: { bytes: { ogg: 0, m4a: 0 } } },
+    }),
     /missing catalog track/i,
   );
   assert.throws(
@@ -135,6 +138,27 @@ test("validateManifest rejects an initial download over 2 MiB", () => {
   });
 
   assert.throws(() => validateManifest(manifest), /2 MiB|preload|budget/i);
+});
+
+test("validateManifest recomputes unique preload files before applying the budget", () => {
+  const manifest = buildManifest({
+    catalog: { sources: [validSource], tracks: [validTrack] },
+    outputs: [{
+      id: validTrack.id,
+      files: {
+        ogg: { path: "audio/sprites/footsteps.ogg", bytes: 120 },
+        m4a: { path: "audio/sprites/footsteps.m4a", bytes: 180 },
+      },
+    }],
+  });
+
+  const staleManifest = JSON.parse(JSON.stringify(manifest));
+  staleManifest.preload.bytes.ogg = 0;
+  assert.throws(() => validateManifest(staleManifest), /do not match item files/i);
+
+  const sharedFileManifest = JSON.parse(JSON.stringify(manifest));
+  sharedFileManifest.items.push({ ...sharedFileManifest.items[0], id: "footstep-co-02" });
+  assert.doesNotThrow(() => validateManifest(sharedFileManifest));
 });
 
 test("safeResolve keeps source files inside the selected source root", async () => {

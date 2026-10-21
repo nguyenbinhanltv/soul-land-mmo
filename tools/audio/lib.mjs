@@ -95,7 +95,6 @@ export function validateManifest(manifest) {
   for (const format of AUDIO_FORMATS) {
     const bytes = manifest.preload.bytes[format];
     if (!Number.isInteger(bytes) || bytes < 0) throw new Error(`preload.${format} bytes are invalid`);
-    if (bytes > MAX_INITIAL_BYTES) throw new Error(`preload exceeds 2 MiB for ${format}`);
   }
   const ids = new Set();
   for (const item of manifest.items) {
@@ -107,6 +106,27 @@ export function validateManifest(manifest) {
       if (!Number.isFinite(item.sprite.start) || item.sprite.start < 0) throw new Error("sprite.start is invalid");
       if (!Number.isFinite(item.sprite.duration) || item.sprite.duration <= 0) throw new Error("sprite.duration is invalid");
     }
+  }
+
+  const preloadFiles = Object.fromEntries(AUDIO_FORMATS.map((format) => [format, new Map()]));
+  for (const item of manifest.items) {
+    if (!item.preload) continue;
+    for (const format of AUDIO_FORMATS) {
+      const file = item.files[format];
+      const previousBytes = preloadFiles[format].get(file.path);
+      if (previousBytes !== undefined && previousBytes !== file.bytes) {
+        throw new Error(`preload file byte mismatch for ${file.path}`);
+      }
+      preloadFiles[format].set(file.path, file.bytes);
+    }
+  }
+  for (const format of AUDIO_FORMATS) {
+    const actualBytes = [...preloadFiles[format].values()].reduce((total, bytes) => total + bytes, 0);
+    const declaredBytes = manifest.preload.bytes[format];
+    if (declaredBytes !== actualBytes) {
+      throw new Error(`preload.${format} bytes do not match item files: declared ${declaredBytes}, actual ${actualBytes}`);
+    }
+    if (actualBytes > MAX_INITIAL_BYTES) throw new Error(`preload exceeds 2 MiB for ${format}`);
   }
   return true;
 }
