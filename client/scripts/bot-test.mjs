@@ -2728,16 +2728,18 @@ else {
   }
   // ---------- BĐ4: tinh anh (biến dị) ----------
   {
-    // Dữ liệu: mỗi vùng (theo tên) của 3 bản đồ săn có đúng 1 object `elite`; mã trong BOSSES, 2 chiêu, loài gốc có trong BEASTS.
+    // Dữ liệu: mỗi tầng niên hạn (các vùng cùng `years`; bản đồ cũ mỗi vùng một tầng, bản đồ lớn tools/maps chia tầng thành vài vùng có
+    // tên, 11.3) của các bản đồ săn có đúng 1 object `elite`; mã trong BOSSES, 2 chiêu, loài gốc có trong BEASTS.
     const objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
     const inR=(r,x,y)=>x>=r.x&&x<=r.x+(r.width??r.w)&&y>=r.y&&y<=r.y+(r.height??r.h);
     const bad=[];
     for(const m of ["thanh_hon_thon","tinh_dau_ngoai_vi","tinh_dau_noi_dia","lac_nhat_sam_lam","cuc_bac_chi_dia","hai_than_dao"]){ // BĐ6b thêm Lạc Nhật, BĐ6c Cực Bắc, BĐ6d Hải Thần Đảo
       const os=objsOf(m), zs=os.filter(o=>o.type==="zone"), es=os.filter(o=>o.type==="elite");
-      for(const n of new Set(zs.map(z=>z.name))){ const k=es.filter(e=>zs.some(z=>z.name===n&&inR(z,e.x+e.width/2,e.y+e.height/2))).length; if(k!==1) bad.push(`${m}/${n}: ${k}`); }
+      const yr=z=>z.properties.find(q=>q.name==="years")?.value;
+      for(const y of new Set(zs.map(yr))){ const k=es.filter(e=>zs.some(z=>yr(z)===y&&inR(z,e.x+e.width/2,e.y+e.height/2))).length; if(k!==1) bad.push(`${m}/${y} năm: ${k}`); }
       for(const e of es){ const id=e.properties.find(q=>q.name==="boss")?.value, d=BOSSES[bossIndex(id)]; if(!d||d.rank!==1||d.skills.length!==2||beastIndex(d.species)<0) bad.push(`${m}/${id}`); }
     }
-    ok(!bad.length,`mỗi vùng của 5 bản đồ săn có đúng 1 tinh anh (BOSSES, 2 chiêu, loài gốc có thật)`+(bad.length?`: ${bad.join("; ")}`:""));
+    ok(!bad.length,`mỗi tầng niên hạn của 6 bản đồ săn có đúng 1 tinh anh (BOSSES, 2 chiêu, loài gốc có thật)`+(bad.length?`: ${bad.join("; ")}`:""));
     ok([[1,1],[2,1.6],[4,2.8],[10,6.4],[20,12.4]].every(([n,v])=>Math.abs(bossHpMult(n)-v)<1e-9),"hệ số máu theo số người đúng bảng 5.4 (x1 / x1,6 / x2,8 / x6,4 / x12,4)");
     const GT=BOSSES[bossIndex("huyet_gai_quy_dang")].skills[0], gz=teleZones(GT,0,0,100,0), TL=BOSSES[bossIndex("hac_sat_quy_ho")].skills[0], tz=teleZones(TL,0,0,100,0);
     ok(gz.length===3&&gz.map(z=>Math.round(z.x)).join()===`${100-GT.step},100,${100+GT.step}`&&tz.length===3&&Math.abs(tz[2].ang-tz[0].ang-TL.spread*Math.PI/180)<1e-9,
@@ -2860,11 +2862,12 @@ else {
     for(const [m,id,hp] of [["tinh_dau_ngoai_vi","huyet_nguyet_lang_vuong",6],["tinh_dau_noi_dia","thien_doc_chu_hoang",7],["lac_nhat_sam_lam","luong_nghi_thu_ho_xa",7],["cuc_bac_chi_dia","huyen_minh_bang_giao",8],["hai_than_dao","tham_hai_ma_kinh_vuong",8]]){
       // Vùng sâu nhất = vùng có niên hạn cao nhất (Cực Bắc BĐ6c chia vùng theo hàng, càng lên bắc càng sâu).
       const zy=z=>parseLevelRange(z.properties.find(q=>q.name==="years")?.value)?.[1]??0;
-      const d=BOSSES[bossIndex(id)], os=objsK(m), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), deep=zs.reduce((a,z)=>zy(z)>zy(a)?z:a);
+      // Bản đồ lớn (11.3): vùng sâu nhất có thể là nhiều chữ nhật; hang phải nằm trong các mảnh cùng niên hạn cao nhất.
+      const d=BOSSES[bossIndex(id)], os=objsK(m), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), top=Math.max(...zs.map(zy));
+      const inDeep=(x,y)=>zs.some(z=>zy(z)===top&&x>=z.x&&x<=z.x+z.width&&y>=z.y&&y<=z.y+z.height);
       if(MAPS[m].king!==id||d?.rank!==2||d.hp!==hp||beastIndex(d.species)<0) kbad.push(`${m}: ${id}`);
       if(d&&(d.skills.length<2||d.skills.length>3||!d.phase2?.skills.length||[...d.skills,...d.phase2.skills].some(s=>s.warn<1))) kbad.push(`${id}: chiêu`);
-      if(lr.length!==1||lr[0].properties.find(q=>q.name==="boss")?.value!==id||lr[0].x<deep.x||lr[0].x+lr[0].width>deep.x+deep.width
-        ||lr[0].y<deep.y||lr[0].y+lr[0].height>deep.y+deep.height) kbad.push(`${m}: hang`);
+      if(lr.length!==1||lr[0].properties.find(q=>q.name==="boss")?.value!==id||![[0,0],[1,0],[0,1],[1,1]].every(([a,b])=>inDeep(lr[0].x+a*lr[0].width,lr[0].y+b*lr[0].height))) kbad.push(`${m}: hang`);
     }
     if(MAPS.thanh_hon_thon.king||objsK("thanh_hon_thon").some(o=>o.type==="boss")) kbad.push("thanh_hon_thon có thú vương");
     ok(!kbad.length&&kings.length===5,`5 thú vương (BĐ6b thêm Lạc Nhật, BĐ6c Cực Bắc, BĐ6d Hải Thần Đảo; ${kings.map(k=>`${k.name} x${k.hp}: ${k.skills.map(s=>s.name).join(", ")} + GĐ2 ${k.phase2.name}`).join("; ")}), hang ở vùng sâu nhất, Thánh Hồn Thôn không có`+(kbad.length?`: ${kbad.join("; ")}`:""));
@@ -4103,17 +4106,20 @@ ok(await walk(1,0,()=>C.portal?.name,15000),`tới cổng đông: ${JSON.stringi
 const lvC=me().level;
 ok(C.portal?.to==="tinh_dau_ngoai_vi"&&JSON.stringify(C.portal.level)==="[10,30]"&&C.portal.warn===(lvC<10),`cổng đi Ngoại vi: cấp đề xuất 10–30, cấp ${lvC} -> cảnh báo ${C.portal?.warn}`);
 await travelBy("Đi Tinh Đấu Ngoại vi","tinh_dau_ngoai_vi");
-ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở trại cổng Ngoại vi: ${me().x},${me().y}`);
+// Điểm xuất hiện đọc từ file Tiled đang dùng (bản cũ hoặc bản ×8 khi MAP_V2, 11.3).
+const arriveOf=(m,n)=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="arrive"&&o.name===n);
+const nvW=arriveOf("tinh_dau_ngoai_vi","tu_nac_dinh_thanh"), nvE=arriveOf("tinh_dau_ngoai_vi","tu_tinh_dau_noi_dia"), ndW=arriveOf("tinh_dau_noi_dia","tu_tinh_dau_ngoai_vi");
+ok(Math.hypot(me().x-nvW.x,me().y-nvW.y)<1,`xuất hiện ở trại cổng Ngoại vi: ${me().x},${me().y}`);
 checkGateClear(C,checkBeastYears(C)); // vùng Ngoại vi theo bảng 5.3: 300–700 … 1.400–2.000 năm
 if((await test(C,"ping"))?.enabled){
   // BĐ3: Ngoại vi -> Nội địa (cổng mép đông, đề xuất 30–60) -> về Ngoại vi. Đi bộ xuyên rừng cấp thấp thì gục: nhảy tới trạm gác
   // phía đông (hook goto), dọn hồn thú quanh mình rồi mới bước vào cổng.
-  await test(C,"goto",{x:83.5*16,y:31*16}); await test(C,"clear");
+  await test(C,"goto",{x:nvE.x,y:nvE.y}); await test(C,"clear");
   ok(await walk(1,0,()=>C.portal?.name,4000),`tới cổng đông Ngoại vi: ${JSON.stringify(C.portal)}`);
   ok(C.portal?.to==="tinh_dau_noi_dia"&&C.portal.toName===MAPS.tinh_dau_noi_dia.name&&JSON.stringify(C.portal.level)==="[30,60]"&&C.portal.warn===(me().level<30),
     `cổng vào Nội địa: cấp đề xuất 30–60, cấp ${me().level} -> cảnh báo ${C.portal?.warn}`);
   await travelBy("Vào Tinh Đấu Nội địa","tinh_dau_noi_dia");
-  ok(Math.hypot(me().x-5.5*16,me().y-31.5*16)<1,`xuất hiện ở trại cổng Nội địa: ${me().x},${me().y}`);
+  ok(Math.hypot(me().x-ndW.x,me().y-ndW.y)<1,`xuất hiện ở trại cổng Nội địa: ${me().x},${me().y}`);
   checkGateClear(C,checkBeastYears(C)); // vùng Nội địa: 1.500–5.000 … 15.000–25.000 năm
   ok(!JSON.parse(readFileSync(mapUrl("tinh_dau_noi_dia"),"utf8")).layers.flatMap(l=>l.objects??[]).some(o=>o.type==="portal"&&!MAPS[(o.properties??[]).find(q=>q.name==="to")?.value]),
     "Nội địa chưa có cổng tới bản đồ chưa mở (Lõi Tinh Đấu để BĐ6)");
@@ -4121,11 +4127,11 @@ if((await test(C,"ping"))?.enabled){
   ok(await walk(-1,0,()=>C.portal?.name,4000),`tới cổng về Ngoại vi: ${JSON.stringify(C.portal)}`);
   ok(C.portal?.to==="tinh_dau_ngoai_vi"&&JSON.stringify(C.portal.level)==="[10,30]"&&C.portal.warn===(me().level<10),`cổng về Ngoại vi: đề xuất 10–30, cảnh báo ${C.portal?.warn}`);
   await travelBy("Về Tinh Đấu Ngoại vi","tinh_dau_ngoai_vi");
-  ok(Math.hypot(me().x-83.5*16,me().y-31*16)<1&&!C.portal?.name,`về Ngoại vi: xuất hiện ở trạm gác phía đông ${me().x},${me().y}, ngoài cổng`);
-  await test(C,"goto",{x:5.5*16,y:31.5*16});
+  ok(Math.hypot(me().x-nvE.x,me().y-nvE.y)<1&&!C.portal?.name,`về Ngoại vi: xuất hiện ở trạm gác phía đông ${me().x},${me().y}, ngoài cổng`);
+  await test(C,"goto",{x:nvW.x,y:nvW.y});
 } else console.log("  ⚠ bỏ qua Ngoại vi -> Nội địa (cần hook goto): bật server bằng GAME_TEST=1");
 // Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
-await walk(1,0,()=>me().x>8*16,3000); const pos=[me().x,me().y];
+await walk(1,0,()=>me().x>nvW.x+40,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
 const m2=await post("/api/me",{token:C.token}); ok(m2.mapId==="tinh_dau_ngoai_vi",`thoát rồi /api/me: ${m2.mapId}`);
 const bag2=bagKey(C); C.mapId=m2.mapId; await enter(C); await waitFor(()=>me()&&C.bag);
@@ -4209,9 +4215,10 @@ if((await test(C,"ping"))?.enabled){
   ok(C.room.state.mapId==="tinh_dau_ngoai_vi"&&me().x>=sp.x&&me().x<=sp.x+sp.width&&me().y>=sp.y&&me().y<=sp.y+sp.height,
     `vào Ngoại vi ở ${sp.name} (${me().x.toFixed(0)},${me().y.toFixed(0)}), không giữ vị trí cũ 700,480`);
   // Lớp chặn WHERE map_id theo bản đồ đã ánh xạ: rời phòng Ngoại vi thì ghi được vị trí mới.
-  await test(C,"goto",{x:7.5*16,y:31.5*16}); await C.room.leave(); await sleep(300);
+  const np=[nvW.x+32,nvW.y]; // bản cũ: ô (7,31) cạnh điểm xuất hiện
+  await test(C,"goto",{x:np[0],y:np[1]}); await C.room.leave(); await sleep(300);
   C.mapId=(await post("/api/me",{token:C.token})).mapId; await enter(C); await waitFor(()=>me());
-  ok(Math.abs(me().x-7.5*16)<1&&Math.abs(me().y-31.5*16)<1,`rời rồi vào lại: vị trí mới ở Ngoại vi đã lưu (${me().x},${me().y})`);
+  ok(Math.abs(me().x-np[0])<1&&Math.abs(me().y-np[1])<1,`rời rồi vào lại: vị trí mới ở Ngoại vi đã lưu (${me().x},${me().y})`);
 }
 if((await test(C,"ping"))?.enabled) await partyTest(C);
 if((await test(C,"ping"))?.enabled) await partyBuffTest();
@@ -5740,7 +5747,8 @@ async function dailyTest(){
 
   // Bài săn: hồn thú không hợp cấp không tính, hợp cấp thì tính (cả lúc cấp thấp hơn bãi săn).
   const gh=tpl(iH).goals[0], row=D.owned.active;
-  await warp(D,"tinh_dau_ngoai_vi",88,504);
+  const arD=JSON.parse(readFileSync(mapUrl("tinh_dau_ngoai_vi"),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="arrive"&&o.name==="tu_nac_dinh_thanh");
+  await warp(D,"tinh_dau_ngoai_vi",arD.x,arD.y);
   async function killOne(){
     const st=D.room.state; await test(D,"clear"); const ids0=new Set(st.beasts.keys());
     const r=await test(D,"beast",{dx:0,dy:0}); const fresh=()=>r?.bid&&st.beasts.has(r.bid)?r.bid:[...st.beasts.keys()].find(k=>!ids0.has(k)); await waitFor(fresh,1000); const bid=fresh();

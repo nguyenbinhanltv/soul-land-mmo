@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { rng, hashF, hashStr, fbm } from "./lib/rand.mjs";
+import { hashF, hashStr, fbm } from "./lib/rand.mjs";
 import { shapeTest, rectsOf, spline, astar } from "./lib/geom.mjs";
 import { topdownPreview } from "./lib/preview.mjs";
 import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
@@ -51,7 +51,6 @@ export function build(L, hand = null, seedOverride = null) {
   const gnd = new Uint8Array(N), obj = new Uint8Array(N), lock = new Uint8Array(N);
   const inside = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
   const at = (x, y) => y * MW + x;
-  const setG = (x, y, v) => { if (inside(x, y)) gnd[at(x, y)] = v; };
   const setO = (x, y, v, force = false) => { if (inside(x, y) && (force || !lock[at(x, y)])) obj[at(x, y)] = v; };
   const disc = (cx, cy, r, fn) => {
     for (let y = Math.floor(cy - r - 1); y <= Math.ceil(cy + r + 1); y++) for (let x = Math.floor(cx - r - 1); x <= Math.ceil(cx + r + 1); x++)
@@ -317,7 +316,9 @@ export function build(L, hand = null, seedOverride = null) {
   // ---------- 8. Ô chặn, nối thông: ô đi được không tới được từ trại thì trồng cây (không sinh hồn thú ở chỗ kẹt) ----------
   const collides = new Set([GG.water, GG.deep, ...Object.entries(GO).filter(([k]) => k !== "plant").flatMap(([, v]) => gidsOf(v)),
     ...L.tiers.flatMap((t) => [...gidsOf(t.trees), ...gidsOf(t.denseTrees ?? [])])]);
-  for (const g of gidsOf(GO.plant ?? [])) collides.delete(g);
+  // Ô chặn tính theo gid ở mọi lớp (shared/move.ts): một gid không được vừa là nền vừa là vật.
+  for (const g of collides) if (groundGids.has(g) && g !== GG.water && g !== GG.deep) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`);
+  for (const g of gidsOf(GO.plant ?? [])) { if (groundGids.has(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`); collides.delete(g); }
   for (const g of groundGids) if (g !== GG.water && g !== GG.deep) collides.delete(g);
   const solid = (i) => collides.has(ground[i]) || collides.has(trees[i]);
   const start = L.spawn ? [Math.floor(L.spawn.rect[0] + L.spawn.rect[2] / 2), Math.floor(L.spawn.rect[1] + L.spawn.rect[3] / 2)] : pt(Object.keys(P)[0]);
