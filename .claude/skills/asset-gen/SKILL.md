@@ -1,6 +1,6 @@
 ---
 name: asset-gen
-description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (thoi 32×16 mỗi ô logic, ô lớn 64×32 phủ 2×2, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab và dây chuyền tools/assets. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
+description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (thoi 32×16 mỗi ô logic, ô lớn 64×32 phủ 2×2, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab và dây chuyền tools/assets, kể cả nhập ảnh Gemini (ô isometric, sprite) bằng gemini-import.mjs. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
 ---
 
 # Đưa asset vào game
@@ -51,6 +51,34 @@ Bước 10.3 chuyển các lệnh dưới sang quy cách isometric; tới lúc �
 | `preview.mjs <ra.png> <lớp…> --scale 3 --grid 64x64 [--crop x,y,w,h]` | Phóng to, chồng lớp để xem bằng mắt (kể cả 3 hướng lật). |
 
 **Màu khóa khi tách lớp hồn sư:** tóc lam, áo / quần / váy xám, giày nâu, da bình thường. `normalize --split`: lam → tóc, xám → áo, còn lại → thân; tóc và áo đưa về dải 4 xám theo độ sáng của từng lớp. **Lỗi màu PixelLab đã gặp, sửa trước khi tách:** mắt lam (điểm lam cạnh tròng trắng → nâu tối; tròng trắng giữ ở lớp thân dù cùng màu với xám sáng của áo), 1–3 điểm lạc màu khóa mỗi hướng (gán theo lớp chiếm đa số quanh điểm), áo ánh tím, đai màu, tóc xám. Các màu gần đen (độ sáng < 12%) đưa về `#1a1020`. Gặp lỗi màu mới thì đếm màu nguồn rồi chỉnh `layerOf` / `mapColor` trong `normalize.mjs`.
+
+## Nhập ảnh Gemini (isometric)
+Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗi pixel nghệ thuật là khối ~5–7 px không đều, có logo sao ở góc dưới phải). `gemini-import.mjs` đưa ảnh đó về pixel thật đúng khung isometric; `iso-preview.mjs` dựng mảnh bản đồ để soát mép ghép. Ảnh thô để ở thư mục artifact (inbox), kết quả ra thư mục tạm ngoài repo; chỉ đưa vào `shared/assets` sau khi người dùng duyệt.
+
+| Lệnh | Việc |
+|---|---|
+| `gemini-import.mjs --kind tile --out <dir> --names a,b,… <ảnh>` | Ô nền: lấy mặt trên thoi (`--inset auto` tự bỏ dải mép khác màu như viền đen, thành "hộp kính" của nước), ép về đúng 2:1, làm liền mép (`--seamless on`), đặt vào ảnh ô theo `ISO_TILE_IMAGES`: mặc định ghi cả `<dir>/32/` (ảnh 32×32, thoi 32×16 tâm (16,19), đáy 5) và `<dir>/64/` (ảnh 64×64, ô lớn thoi 64×32 tâm (32,37), đáy 11), giống ô PixelLab size 32 / 64. Đáy lấy từ mặt bên khối gốc; `--size 32` chỉ một cỡ; `--face-only` chỉ ghi mặt trên. |
+| `gemini-import.mjs --kind tile-block …` | Như trên nhưng giữ viền (tối về `#1a1020`), không làm liền mép (mép vách, bờ nước). |
+| `gemini-import.mjs --kind honsu\|vohon\|beast\|object\|portrait …` | Sprite theo hằng isometric trong `lib.mjs`: hồn sư `ISO_HS_FRAME` / `ISO_HS_ORIGIN` (64×64, gốc (32,58)), phụ thể `ISO_VH_FRAME` / `ISO_VH_ORIGIN` (96×96, gốc (48,74)); hồn thú bắt buộc `--size` một cỡ trong `ISO_BEAST_SIZES` (boss 160–192), vật / chân dung bắt buộc `--size`. Cùng hệ số thu cho cả lô, chân cùng đường đáy, thêm viền `#1a1020` nếu thiếu; mặc định `--palette gpl`. |
+| `iso-preview.mjs <ra.png> --tiles grass=a.png,grass=b.png,path=c.png,water=d.png,deep=e.png,stone=f.png [--big grass=A.png,…] --size 16 --scale 3` | Mảnh bản đồ N×N ô logic (cỏ nhiều biến thể, đường, ao, sân đá) để soát mép ghép, màu, độ lặp; `--big` đặt ô lớn ở mọi khối 2×2 cùng địa hình. Đọc được cả ô PixelLab. |
+
+- Tách vật theo thành phần liên thông (thứ tự hàng trên → dưới, trái → phải, khớp `--names`), hoặc `--grid CxR` khi các vật dính nhau. Số tên khác số vật thì công cụ dừng và in hộp bao từng vật.
+- Cỡ ô giả dò tự động chung cho cả ảnh (in ra `ô giả … px → gốc W×H`); sai thì ghi đè `--cell N` (`--cell 1` cho ảnh đã là pixel thật, ví dụ ô PixelLab).
+- Bảng màu: ô (`tile`, `tile-block`) mặc định `--palette auto-item` (mỗi vật một bảng `--colors` 10 màu; ghi `_palette.gpl` gộp), giữ như vậy cho tới khi `art/palette.gpl` có dải đất / đá / rêu / tuyết / cát / nước. `--palette auto --colors 32` (một bảng chung cả lô) để vật nhiều màu chiếm hết bảng, ô đều màu chỉ còn 1–3 màu; `--palette gpl` với bảng hiện nay làm ô ngả tím / lam / đỏ; `--palette none` để xem màu gốc.
+- Logo: `--logo auto` (mặc định) dựng lại ngôi sao và gỡ lớp trắng mờ kể cả phần đè lên vật; vị trí khác thường thì `--logo x,y,w,h` (vá bằng màu lân cận) hoặc `--logo off`.
+- Mỗi lần chạy ghi `_preview.png` (×4), `_report.json` (cỡ ô giả, độ phân giải gốc, tỉ lệ mặt trên, bề dày, điểm lệch mép ghép trước / sau khi làm liền: khoảng 1 là liền như bên trong ô); `--debug` ghi thêm ảnh pixel thật trước khi ép khung vào `_native/`.
+
+**Quy tắc prompt Gemini:**
+- Nền một màu phẳng `#FF00FF` (không bóng đổ, không chuyển màu, không viền trắng quanh vật); vật không được dùng màu hồng / tím gần màu nền ở mép.
+- Lưới đều C cột × R hàng, mỗi ô một vật, các vật cách nhau rõ (không chạm nhau, không tràn sang ô khác); cùng cỡ, cùng góc nhìn.
+- Không chữ, không số, không nhãn, không khung; logo Gemini để công cụ gỡ.
+- Ô nền: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, seamless texture that tiles with itself"; khối pixel lớn (khoảng 64 pixel nghệ thuật trên bề ngang ô) để thu về ô lớn 64×32 không mất nét; ô logic 32×16 thì xin vân thưa, ít chi tiết nhỏ. Sprite: một hướng mỗi ô, chân chạm cùng đường đáy, viền ngoài tối.
+
+Ví dụ:
+```bash
+node tools/assets/gemini-import.mjs --kind tile --names grass,dirt,water --out <tmp>/flat <inbox>/tiles/gemini-tiles-02.png
+node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/grass.png,path=<tmp>/flat/32/dirt.png,water=<tmp>/flat/32/water.png --big grass=<tmp>/flat/64/grass.png --scale 3
+```
 
 ## Quy trình "tạo <asset>"
 1. Đọc mục 5.11 và xác định key: `hs_{body,outfit,hair}_{m/f}_{0–3}`, `vh_{id}_b` / `_f`, `beast_{loài}`, ô / vật trong `shared/assets/iso/tiles.json`.
