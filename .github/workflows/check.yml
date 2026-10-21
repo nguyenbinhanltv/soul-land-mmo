@@ -1,5 +1,5 @@
 # CI: typecheck server + client, validate sprite / tiles.json, build client cho mọi PR vào main và mỗi push vào main.
-# Status check cần bật trong "Require status checks to pass" của main: check-build (xem CONTRIBUTING.md).
+# Status check: check-build, chỉ để tham khảo, chưa bắt buộc (xem CONTRIBUTING.md).
 name: CI
 
 on:
