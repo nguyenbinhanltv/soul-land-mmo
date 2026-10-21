@@ -45,6 +45,8 @@
 // Đại Đấu Hồn Trường (7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng / trong tổ đội, đấu đội võ hồn trong
 // phòng riêng, đánh trúng đối thủ, hạ hết đội / rời sân / không vào sân / hết giờ, Elo, thưởng, về đúng bản đồ và vị trí cũ, bảng xếp
 // hạng, cộng minh, Chân Thân (cả lưu phái Thiêu đốt), tuyệt kỹ Tử Vong Chu Hoàng (8.1d), tuyệt kỹ Cảm điện (8.1c: sét tìm đối thủ Cảm điện, Mê hoặc chỉ lên hồn thú) và dự đoán chuyển động trong sân) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
+// Truyền tống trận (11.2, waypointTest; BOT_ONLY=waypoint chỉ chạy phần này): mở khóa khi bước lên, bản đồ thế giới, phí theo số lần đi cổng,
+// niệm rồi dịch chuyển cùng / khác bản đồ, cấm khi giao chiến, hủy khi bị đánh / di chuyển, thiếu Hồn Tệ, Hồi Thành Phù, vào lại vẫn nhớ.
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con.
 import { Client } from "colyseus.js";
@@ -80,7 +82,8 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks } from "../../shared/data.ts";
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
+  WAYPOINT_CAST, WAYPOINT_FEE, waypointFee } from "../../shared/data.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -146,6 +149,9 @@ async function enter(b,roomId){
   // `to` (9.1): số hồi sinh lực / khiên một đồng đội tổ đội nhận từ hiệu ứng phụ trợ; bot giữ những số mình nhận.
   b.room.onMessage("dmg",m=>{if(m.bid) b.dmgs.push(m); else if(m.to){ if(m.to===b.room.sessionId) b.gifts.push(m); } else if(m.id===b.room.sessionId) b.hurts.push(m);});
   b.room.onMessage("portal",m=>{b.portal=m;}); b.room.onMessage("travel",m=>{b.travel=m;});
+  // Truyền tống trận (11.2): đứng trên trận, trận vừa mở khóa (giữ qua các lần vào phòng), bản đồ thế giới, thanh niệm.
+  b.wpHere=null; b.wpUnlock??=[]; b.room.onMessage("wp",m=>{ if(m.k==="here") b.wpHere=m.key?m:null; if(m.k==="unlock") b.wpUnlock.push(m.key); });
+  b.world=null; b.room.onMessage("world",m=>{b.world=m;}); b.recall=null; b.room.onMessage("recall",m=>{b.recall=m;});
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
   b.room.onMessage("ko",m=>{b.ko=m;});
@@ -200,6 +206,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
 if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
+if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
 /**
@@ -4173,6 +4180,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await npcTown();
 await shopBuybackTest();
+await waypointTest();
 await thienDauTest();
 await lacNhatTest();
 await haiThanTest();
@@ -4228,7 +4236,7 @@ async function npcTown(){
     "giá mảnh võ hồn theo độ hiếm");
   ok(sellPrice({code:"hoi_huyet_dan",years:null,stars:null,enhance:0})===null&&sellPrice({code:chestCode(BOSSES.find(b=>b.rank===2).id),years:null,stars:null,enhance:0})===null&&sellPrice({code:"khong_co",years:null,stars:null,enhance:0})===null&&sellPrice(ring(437))>0,
     "thương nhân không mua đan, rương, đồ lạ");
-  ok(SHOP.every(r=>itemDef(r.code)?.kind==="dan"&&r.price>0)&&SHOP.some(r=>r.code==="hoi_huyet_dan")&&SHOP.some(r=>r.code==="hoi_hon_dan"),`thương nhân bán ${SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")}`);
+  ok(SHOP.every(r=>["dan","phu"].includes(itemDef(r.code)?.kind)&&r.price>0)&&SHOP.some(r=>r.code==="hoi_huyet_dan")&&SHOP.some(r=>r.code==="hoi_hon_dan"),`thương nhân bán ${SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")}`);
   const tn=npcSpot("nac_dinh_thanh","thuong_nhan"), lr=npcSpot("nac_dinh_thanh","lo_ren"), ds=npcSpot("nac_dinh_thanh","dai_su"), sg=npcSpot("nac_dinh_thanh","su_gia_dau_hon");
   ok(Math.hypot(tn.x-me().x,tn.y-me().y)>NPC_RANGE&&await talk(C,"thuong_nhan")===null&&/lại gần Thương nhân/.test(C.logs.at(-1)),"đứng ở cổng đông: thương nhân chưa nói chuyện");
   const bk0=bagKey(C);
@@ -4328,6 +4336,118 @@ async function npcTown(){
  * hóa về đúng chỉ số và cấp, Hồn Tệ trả đúng; thiếu tiền / túi đầy / mã lạ / đứng xa bị từ chối; chỉ giữ BUYBACK_MAX món; mảnh bán
  * một phần mua lại gộp ô; đi cổng sang Thiên Đấu Thành vẫn còn và mua lại được ở thương nhân Thiên Đấu; rời game thì mất).
  */
+/**
+ * 11.2 Truyền tống trận và bản đồ thế giới: dữ liệu (mọi bản đồ trừ sân đấu có 1–3 object `waypoint`, tâm đứng được, phí theo số lần
+ * đi cổng, Hồi Thành Phù bán ở thương nhân, không mua lại). Với hook: bot T (tài khoản mới) mở khóa trận khi bước lên (tin `wp`, bản
+ * đồ thế giới ghi đã mở), không đứng trên trận thì chỉ xem, trận chưa mở / thiếu Hồn Tệ / đang giao chiến bị từ chối; niệm WAYPOINT_CAST
+ * giây rồi dịch chuyển trong cùng bản đồ (trừ phí) và sang bản đồ khác (transaction đi cổng, phí lưu qua đi cổng); bị đánh hoặc di
+ * chuyển thì hủy, không mất gì; Hồi Thành Phù về thành gần nhất, mất một phù, bị đánh thì hủy và giữ phù; thoát vào lại vẫn nhớ trận đã mở.
+ */
+async function waypointTest(){
+  console.log("[11.2] Truyền tống trận, bản đồ thế giới, Hồi Thành Phù");
+  const objsOf=m=>JSON.parse(readFileSync(new URL(`../../shared/assets/${m}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const wps={};
+  for(const id of Object.keys(MAPS)){
+    const list=objsOf(id).filter(o=>o.type==="waypoint").map(o=>({key:`${id}:${o.name}`,map:id,label:(o.properties??[]).find(q=>q.name==="label")?.value,x:o.x+o.width/2,y:o.y+o.height/2}));
+    if(MAPS[id].kind==="arena") ok(!list.length,`${MAPS[id].name}: sân đấu không có truyền tống trận`);
+    else ok(list.length>=1&&list.length<=3&&list.every(w=>w.label),`${MAPS[id].name}: ${list.length} truyền tống trận (${list.map(w=>w.label).join(", ")})`);
+    for(const w of list) wps[w.key]=w;
+  }
+  ok(WAYPOINT_CAST===3&&waypointFee(0)===WAYPOINT_FEE.base&&waypointFee(2)===WAYPOINT_FEE.base+2*WAYPOINT_FEE.perHop,`phí truyền tống: ${[0,1,2,3].map(h=>formatHonTe(waypointFee(h))).join(" / ")} theo số lần đi cổng, niệm ${WAYPOINT_CAST} giây`);
+  const phu=itemDef("hoi_thanh_phu"), phuPrice=SHOP.find(r=>r.code==="hoi_thanh_phu")?.price;
+  ok(phu?.recall&&phu.kind==="phu"&&phuPrice>0&&sellPrice({code:"hoi_thanh_phu",years:null,stars:null,enhance:0})===null,`Hồi Thành Phù: thương nhân bán ${formatHonTe(phuPrice??0)}, không mua lại`);
+  const T=await bot("Du hành","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:3,outfitCol:2});
+  if(!(await test(T,"ping"))?.enabled){ console.log("  ⚠ bỏ qua truyền tống (cần hook warp, goto, coin, hurt): bật server bằng GAME_TEST=1"); await T.room.leave(); return; }
+  const tme=()=>T.room.state.players?.get(T.room.sessionId);
+  await waitFor(()=>tme()&&T.bag,3000);
+  const world=async()=>{ T.world=null; T.room.send("wp",{op:"list"}); await waitFor(()=>T.world,1500); return T.world; };
+  const at=(w)=>Math.hypot(tme().x-w.x,tme().y-w.y)<1;
+  async function rejoin(){ await T.room.leave(); await sleep(300); T.mapId=(await post("/api/me",{token:T.token})).mapId; await enter(T); await waitFor(()=>tme()&&T.bag,3000); }
+  async function warp(mapId,x,y){
+    T.travel=null; T.room.send("test",{op:"warp",mapId,x,y});
+    ok(await waitFor(()=>T.travel?.mapId===mapId,4000),`warp -> ${MAPS[mapId].name}`);
+    await rejoin();
+  }
+  /** Đứng lên trận `key` (hook goto) và chờ tin `wp {k: "here"}`. */
+  async function stand(key){ const w=wps[key]; T.wpHere=null; await test(T,"goto",{x:w.x,y:w.y}); await waitFor(()=>T.wpHere?.key===key,1500); return w; }
+  /** Xin truyền tống tới `key`, chờ log trả lời (bắt đầu niệm hoặc từ chối). */
+  async function go(key){ const l=T.logs.length; T.recall=null; T.room.send("wp",{op:"go",key}); await waitFor(()=>T.logs.length>l,1500); return T.logs.at(-1)??""; }
+  const coin=async n=>{ await test(T,"coin",{n}); await waitFor(()=>T.bag?.honTe===n,1500); };
+
+  // Thánh Hồn Thôn: bản đồ thế giới khi không đứng trên trận chỉ để xem.
+  const lang="thanh_hon_thon:lang", nd="nac_dinh_thanh:quang_truong", tc="tinh_dau_ngoai_vi:trai_cong", rt="tinh_dau_ngoai_vi:rung_thua";
+  const tv=npcSpot("thanh_hon_thon","to_van_dao"); await test(T,"goto",{x:tv.x,y:tv.y+16});
+  let w=await world();
+  ok(w&&w.cur===""&&w.list.length===Object.keys(wps).length&&w.list.every(x=>wps[x.key]),`bản đồ thế giới: ${w?.list.length} trận, không đứng trên trận nào`);
+  ok(w&&w.links.some(([a,b])=>[a,b].sort().join()==="nac_dinh_thanh,thanh_hon_thon"),"bản đồ thế giới có nét nối Thánh Hồn Thôn – Nặc Đinh Thành");
+  ok(w?.list.find(x=>x.key===nd)?.fee===waypointFee(1)&&w.list.find(x=>x.key===lang)?.fee===waypointFee(0),"phí theo số lần đi cổng từ bản đồ đang ở");
+  ok(/đứng trên một truyền tống trận/.test(await go(lang)),"không đứng trên trận: chỉ xem, không dịch chuyển được");
+  // Bước lên trận làng: mở khóa.
+  T.wpUnlock=[]; await stand(lang);
+  ok(await waitFor(()=>T.wpUnlock.includes(lang)||T.world?.list.find(x=>x.key===lang)?.open,1500),"bước lên trận Quảng trường làng: mở khóa (tin wp unlock)");
+  w=await world(); ok(w?.cur===lang&&w.list.find(x=>x.key===lang)?.open&&!w.list.find(x=>x.key===nd)?.open,"bản đồ thế giới: đang đứng trên trận làng, trận làng đã mở, Nặc Đinh chưa mở");
+  ok(/Chưa mở khóa/.test(await go(nd)),"trận chưa mở: từ chối");
+  ok(/chính trận này/.test(await go(lang)),"chọn chính trận đang đứng: từ chối");
+  // Mở thêm trận ở Nặc Đinh Thành và Tinh Đấu Ngoại vi.
+  await warp("nac_dinh_thanh",wps[nd].x,wps[nd].y);
+  ok(await waitFor(()=>T.wpUnlock.includes(nd),2000),"xuất hiện ngay trên trận Nặc Đinh: mở khóa");
+  await warp("tinh_dau_ngoai_vi",wps[tc].x,wps[tc].y);
+  ok(await waitFor(()=>T.wpUnlock.includes(tc),2000),"trận Trại cổng Ngoại vi: mở khóa");
+  await test(T,"clear",{all:true});
+  await stand(rt); ok(await waitFor(()=>T.wpUnlock.includes(rt),2000),"trận Rừng thưa (giữa bản đồ săn): mở khóa");
+  // Thiếu Hồn Tệ.
+  await coin(0); ok(/Không đủ Hồn Tệ/.test(await go(tc)),"không đủ Hồn Tệ: từ chối");
+  // Cùng bản đồ: niệm rồi dịch chuyển, trừ phí.
+  await coin(100); const fee0=waypointFee(0);
+  ok(/Đang niệm truyền tống/.test(await go(tc))&&await waitFor(()=>T.recall?.on,800)&&T.recall.secs===WAYPOINT_CAST,`niệm truyền tống ${WAYPOINT_CAST} giây (thanh niệm)`);
+  await sleep(1500); ok(at(wps[rt])&&T.bag.honTe===100,"đang niệm: chưa dịch chuyển, chưa trừ phí");
+  ok(await waitFor(()=>at(wps[tc]),3000)&&await waitFor(()=>T.bag.honTe===100-fee0,1500),`niệm xong: tới Trại cổng Ngoại vi, trừ ${formatHonTe(fee0)} (còn ${formatHonTe(T.bag.honTe)})`);
+  ok(T.room.state.mapId==="tinh_dau_ngoai_vi"&&T.recall?.on===false,"cùng bản đồ: không đổi phòng, tắt thanh niệm");
+  // Đang giao chiến: từ chối.
+  await test(T,"hurt",{pct:1}); ok(/Đang giao chiến/.test(await go(rt)),"đang giao chiến (vừa bị đánh): từ chối truyền tống");
+  await sleep(TEAM_COMBAT_SECS*1000+300);
+  // Bị đánh khi đang niệm: hủy, không mất gì.
+  { const h=T.bag.honTe; ok(/Đang niệm/.test(await go(rt)),"hết giao chiến: niệm được");
+    await sleep(600); const l=T.logs.length; await test(T,"hurt",{pct:1});
+    ok(await waitFor(()=>T.logs.slice(l).some(t=>/Bị tấn công: đã hủy truyền tống/.test(t)),1500)&&T.recall?.on===false,"bị đánh khi đang niệm: hủy truyền tống");
+    await sleep(WAYPOINT_CAST*1000); ok(at(wps[tc])&&T.bag.honTe===h,"đã hủy: không dịch chuyển, không trừ phí"); }
+  await sleep(TEAM_COMBAT_SECS*1000+300);
+  // Di chuyển khi đang niệm: hủy.
+  { const h=T.bag.honTe; ok(/Đang niệm/.test(await go(rt)),"niệm lần nữa"); await sleep(500);
+    const l=T.logs.length; T.room.send("input",{x:1,y:0}); await sleep(250); T.room.send("input",{x:0,y:0});
+    ok(await waitFor(()=>T.logs.slice(l).some(t=>/Di chuyển: đã hủy truyền tống/.test(t)),1500),"di chuyển khi đang niệm: hủy");
+    await sleep(WAYPOINT_CAST*1000); ok(!at(wps[rt])&&T.bag.honTe===h,"đã hủy: không tới Rừng thưa, không trừ phí"); }
+  // Sang bản đồ khác: transaction đi cổng, phí theo số lần đi cổng, lưu qua đi cổng.
+  { await stand(tc); const h=T.bag.honTe, fee=waypointFee(1); T.travel=null;
+    ok(/Đang niệm/.test(await go(nd)),`niệm truyền tống tới Nặc Đinh Thành (${formatHonTe(fee)})`);
+    ok(await waitFor(()=>T.travel?.mapId==="nac_dinh_thanh",WAYPOINT_CAST*1000+2500),"niệm xong: server cho chuyển bản đồ (travel)");
+    await rejoin();
+    ok(T.room.state.mapId==="nac_dinh_thanh"&&at(wps[nd]),`tới trận Quảng trường Nặc Đinh (${tme().x},${tme().y})`);
+    ok(T.bag.honTe===h-fee,`phí đã trừ và lưu qua đi cổng: ${formatHonTe(h)} → ${formatHonTe(T.bag.honTe)}`); }
+  // Hồi Thành Phù: mua ở thương nhân, dùng ở Tinh Đấu Nội địa (bản đồ săn) thì về thành gần nhất (Nặc Đinh Thành).
+  { const sp=npcSpot("nac_dinh_thanh","thuong_nhan"); await test(T,"goto",{x:sp.x,y:sp.y+16}); await coin(500);
+    const t=await trade(T,"buy",{code:"hoi_thanh_phu",qty:3}); ok(qtyOf(T,"hoi_thanh_phu")===3&&T.bag.honTe===500-3*phuPrice,`mua 3 Hồi Thành Phù (${t})`); }
+  const ndi=objsOf("tinh_dau_noi_dia").find(o=>o.type==="spawn");
+  await warp("tinh_dau_noi_dia",ndi.x+ndi.width/2,ndi.y+ndi.height-20); await test(T,"clear",{all:true});
+  const phuId=()=>T.bag.items.find(i=>i.code==="hoi_thanh_phu")?.id;
+  await test(T,"hurt",{pct:1}); { const l=T.logs.length; T.room.send("use",{id:phuId()}); await waitFor(()=>T.logs.length>l,1500); }
+  ok(/Đang giao chiến/.test(T.logs.at(-1))&&qtyOf(T,"hoi_thanh_phu")===3,"Hồi Thành Phù khi đang giao chiến: từ chối, không mất phù");
+  await sleep(TEAM_COMBAT_SECS*1000+300);
+  { const l=T.logs.length; T.recall=null; T.room.send("use",{id:phuId()}); await waitFor(()=>T.recall?.on,1500);
+    ok(/Hồi Thành Phù về Nặc Đinh Thành/.test(T.logs.slice(l).join("|")),`dùng Hồi Thành Phù: niệm về thành gần nhất (${T.logs.at(-1)})`);
+    await sleep(500); await test(T,"hurt",{pct:1});
+    ok(await waitFor(()=>T.recall?.on===false,1500)&&qtyOf(T,"hoi_thanh_phu")===3&&T.room.state.mapId==="tinh_dau_noi_dia","bị đánh khi niệm Hồi Thành Phù: hủy, giữ phù"); }
+  await sleep(TEAM_COMBAT_SECS*1000+300);
+  { T.travel=null; T.recall=null; T.room.send("use",{id:phuId()}); await waitFor(()=>T.recall?.on,1500);
+    ok(await waitFor(()=>T.travel?.mapId==="nac_dinh_thanh",WAYPOINT_CAST*1000+2500),"niệm xong: về Nặc Đinh Thành");
+    await rejoin();
+    ok(T.room.state.mapId==="nac_dinh_thanh"&&at(wps[nd])&&qtyOf(T,"hoi_thanh_phu")===2,`về trận Quảng trường Nặc Đinh, còn ${qtyOf(T,"hoi_thanh_phu")} phù`); }
+  // Thoát vào lại: vẫn nhớ trận đã mở.
+  await rejoin(); w=await world();
+  ok([lang,nd,tc,rt].every(k=>w?.list.find(x=>x.key===k)?.open)&&w.list.filter(x=>x.open).length===4,`thoát vào lại: còn ${w?.list.filter(x=>x.open).length} trận đã mở`);
+  await T.room.leave();
+}
+
 async function shopBuybackTest(){
   console.log("[9.8] Thương nhân: đan lớn, mở rộng túi, mua lại đồ bán nhầm");
   const big=["dai_hoi_huyet_dan","dai_hoi_hon_dan"].map(c=>itemDef(c)), small=itemDef("hoi_huyet_dan");
