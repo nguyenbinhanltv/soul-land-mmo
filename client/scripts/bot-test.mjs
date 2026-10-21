@@ -58,7 +58,8 @@
 // Boss thế giới ở Lõi Tinh Đấu (BĐ6e, #118, loiTinhDauTest; BOT_ONLY=world): chạy sau phần tạo bot C (vài phút đầu vẫn chạy) rồi
 // chỉ chạy phần boss thế giới: vòng an toàn của chiêu toàn sàn, Du Thủy lặn ra giữa hồ và nổi lên đúng chỗ đã báo.
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
-// danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con.
+// danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
+// anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
 import { Client } from "colyseus.js";
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
 import { findPath, clearLine, pathLength } from "../src/path.ts";
@@ -99,6 +100,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands } from "../../shared/data.ts";
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
+import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -228,6 +230,12 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // này rồi thoát (các phần khác cần nhiều bot chung một phòng); server bình thường (60 người / kênh) thì bỏ qua phần này. ----
 const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
 if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+// BOT_PART=1|2|3: chia bot thành 3 nhóm chạy song song (job bot-ram của CI, .github/workflows/check.yml). Mọi nhóm chạy phần chung (A, B,
+// 2.3b, 2.4, vào lại của A); nhóm 1: 2.5a–2.5d, BĐ5, 3.2; nhóm 2: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4, Đại Đấu Hồn Trường; nhóm 3: từ bot C
+// (cổng BĐ2) tới hết, trừ Đại Đấu Hồn Trường. Đoạn mới không gắn inPart thì chạy ở mọi nhóm. Không đặt BOT_PART thì chạy hết như cũ.
+const PART=process.env.BOT_PART??"", inPart=n=>!PART||PART===String(n);
+if(PART&&!["1","2","3"].includes(PART)){ console.log(`✗ BOT_PART=${PART}: chỉ nhận 1, 2 hoặc 3`); process.exit(1); }
+if(PART) console.log(`BOT_PART=${PART}: chỉ chạy phần chung và nhóm ${PART}`);
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -337,6 +345,46 @@ async function channelTest(){
   P1.logs=[]; await slayKing(P1); await waitFor(()=>!king(P1),3000); await sleep(400);
   ok(!king(P1)&&chestN(P1)===1&&/đã nhận rương của khung giờ này ở kênh khác/.test(P1.logs.join("\n")),
     `hạ thú vương kênh 1 trong cùng khung giờ: không nhận thêm rương ("${P1.logs.find(t=>/kênh khác/.test(t))??P1.logs.slice(-3).join(" | ")}")`);
+
+  // ---- #119: tinh anh mỗi kênh hồi sinh riêng, nhưng thưởng tinh anh khóa theo tài khoản ELITE.lock giây ở mọi kênh; đổi kênh rồi
+  // quay về thì đóng góp lên tinh anh còn giao chiến vẫn còn (gắn theo tài khoản) ----
+  {
+    const EB=(await T(P1,"elite")).list[0]?.boss, ek=`${NV}|${EB}`, newDrops=(b,bf)=>[...b.room.state.drops.entries()].filter(([k])=>!bf.has(k)).map(([,x])=>x);
+    const one=async(b,bid)=>(await T(b,"elite",{bid})).one;
+    /** `b` hạ ngay tinh anh `bid` (hook slay, như ra đòn cuối); trả đồ rơi mới và các dòng log. */
+    const slayE=async(b,bid)=>{ const bf=new Set(b.room.state.drops.keys()), l=b.logs.length; await T(b,"slay",{bid}); await sleep(250); return {nd:newDrops(b,bf),log:b.logs.slice(l).join(" | ")}; };
+    /** Đổi kênh như người chơi (rời giao chiến, bỏ chờ CHANNEL_CD bằng hook); hồn thú hoang có thể vừa đánh: thử lại tối đa 3 lần. */
+    const swap=async(b,ch)=>{ for(let k=0;k<3;k++){ await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
+      b.travel=null; const w=await say(b,"channel",{ch}); if(await waitFor(()=>b.travel,3000)) return follow(b);
+      console.log(`    ${b.name} chưa đổi được sang kênh ${ch} (đang ở kênh ${chOf(b)}): "${w}"`); } };
+    ok(!!EB,`tinh anh của ${MAPS[NV].name}: ${EB}`);
+    // Kênh 1: P1 hạ tinh anh (hook sinh 1 máu, cùng mã): chắc chắn rơi hồn hạch (số ngẫu nhiên 0,5), bị khóa ELITE.lock giây.
+    await T(P1,"elock",{s:0}); await T(P1,"core",{r:50});
+    let r=await slayE(P1,(await T(P1,"beast",{boss:EB,dx:14,dy:0})).bid), lc=(await T(P1,"elock")).locks;
+    ok(chOf(P1)===1&&r.nd.some(x=>x.item===CORE_ITEM&&x.owner===P1.room.sessionId)&&lc[ek]>ELITE.lock-60,`kênh 1: P1 hạ ${beastName(1,bossIndex(EB))}: hồn hạch chắc chắn, khóa ${lc[ek]?.toFixed(0)} giây`);
+    // Tinh anh còn giao chiến ở kênh 1: P3 đứng cạnh (giữ giao chiến), P1 ở xa gây 7, P3 gây 5 sát thương.
+    const E1=(await T(P3,"beast",{boss:EB,dx:14,dy:0})).bid; await T(P3,"bhp",{pct:100,bid:E1});
+    await T(P3,"kdmg",{v:5,bid:E1}); await T(P1,"kdmg",{v:7,bid:E1});
+    let o=await one(P3,E1); const s1=P1.room.sessionId;
+    ok(o?.engaged&&o.dmgBy[s1]===7&&o.dmgBy[P3.room.sessionId]===5,`kênh 1: P1, P3 cùng đánh tinh anh (đóng góp ${JSON.stringify(o?.dmgBy)})`);
+    // P1 sang kênh 2 (P2 vào game mở kênh 2): hạ tinh anh cùng mã ở kênh 2 trong lúc còn khóa thì chỉ như hồn thú thường.
+    { const pick=await post("/api/channel",{token:P2.token}); await enter(P2,pick.roomId??undefined); await fresh(P2); }
+    await swap(P1,2);
+    ok(chOf(P2)===2&&chOf(P1)===2,`P2 vào kênh ${chOf(P2)}, P1 đổi sang kênh ${chOf(P1)}`);
+    await T(P1,"core",{r:50}); r=await slayE(P1,(await T(P1,"beast",{boss:EB,dx:14,dy:0})).bid);
+    ok(r.nd.length&&!r.nd.some(x=>x.item===CORE_ITEM)&&/chưa lâu \(kênh nào cũng tính\)/.test(r.log),`kênh 2 trong lúc còn khóa: không hồn hạch chắc chắn ("${r.log}")`);
+    // P1 quay về kênh 1: đóng góp 7 chuyển sang phiên mới; hạ tinh anh khi còn khóa thì quyền ưu tiên sang P3 (chưa khóa) dù P1 đóng góp nhiều hơn.
+    await swap(P1,1);
+    o=await one(P3,E1); const s2=P1.room.sessionId;
+    ok(chOf(P1)===1&&s2!==s1&&o?.engaged&&o.dmgBy[s2]===7&&!(s1 in o.dmgBy),`đổi kênh rồi quay về kênh 1: đóng góp của P1 vẫn ${o?.dmgBy[s2]} (phiên mới), phiên cũ không còn`);
+    await T(P3,"elock",{s:0}); await T(P1,"core",{r:50}); r=await slayE(P1,E1); const sid3=P3.room.sessionId;
+    // Chỉ xét đồ rơi tinh anh (hồn hoàn, hồn cốt, hồn hạch): mảnh / tiên thảo của người hạ rơi xuống đất khi túi P1 đầy thì vẫn thuộc P1.
+    const eliteDr=r.nd.filter(x=>x.item===""||x.item===BONE_ITEM||x.item===CORE_ITEM);
+    ok(eliteDr.some(x=>x.item===CORE_ITEM&&x.owner===sid3)&&eliteDr.every(x=>x.owner===sid3)&&/chưa bị khóa thưởng tinh anh/.test(r.log)&&(await T(P3,"elock")).locks[ek]>0,
+      `P1 (còn khóa, đóng góp 7) hạ tinh anh: đồ rơi tinh anh ưu tiên P3 (đóng góp 5, chưa khóa), P3 bị khóa`);
+    for(const b of [P1,P3]){ await T(b,"core",{r:100}); await T(b,"elock",{s:0}); }
+    await P2.room.leave(); await sleep(300);
+  }
 
   // ---- BĐ6a: Thiên Đấu Thành chia kênh như mọi bản đồ (P3 mở kênh 1, P1 vào cùng, P2 vào kênh 2 khi kênh 1 đầy) ----
   const TD=AT;
@@ -593,6 +641,28 @@ if((await test(A,"ping"))?.enabled){
     ok(bOf()&&bOf().hp===bOf().maxHp,`hồi máu trên đường về: ${bOf()?.hp}/${bOf()?.maxHp}`);
   }
   await test(A,"clear");
+
+  // Thú thực vật đứng yên (#116, BEAST_ROOTED): Quỷ Đằng 1.000 năm thấy A trong tầm với (tầm Quật Roi + margin) nhưng không đuổi; bị
+  // đánh không bị đẩy lùi; A ra ngoài tầm với thì bỏ mục tiêu, vẫn ở chỗ sinh.
+  {
+    const rs=BEAST_ROOTED.ids[1], ry0=TIERS[2].years, reach=Math.max(beastMelee(2,true),beastSkillOf(rs,ry0)?.range??0)+BEAST_ROOTED.margin; await step(A,1,0);
+    const r0=(await test(A,"spawn",{tier:2,years:ry0,dx:40,species:rs}))?.bid, rOf=()=>st.beasts.get(r0);
+    await waitFor(()=>rOf(),1000); const rx=rOf()?.x??0, ry=rOf()?.y??0; // chỗ sinh theo state (A có thể còn trôi sau bước vừa đi)
+    ok(BEAST_ROOTED.ids.includes(BEASTS[rOf()?.species]?.id)&&await waitFor(()=>rOf()?.aggro,2000),`${BEASTS[rOf()?.species]?.name}: phát hiện A`);
+    await sleep(1000);
+    ok(rOf()&&Math.hypot(rOf().x-rx,rOf().y-ry)<0.5&&!rOf().moving,`đứng yên, không đuổi (lệch ${rOf()&&Math.hypot(rOf().x-rx,rOf().y-ry).toFixed(1)} pixel)`);
+    await test(A,"goto",{x:rx-14,y:ry}); await step(A,1,0); await test(A,"goto",{x:rx-14,y:ry});
+    const h0=rOf()?.hp; A.room.send("attack");
+    ok(await waitFor(()=>rOf()&&rOf().hp<h0,1500)&&(await sleep(300),Math.hypot(rOf().x-rx,rOf().y-ry)<0.5),`bị đánh thường không bị đẩy lùi (lệch ${rOf()&&Math.hypot(rOf().x-rx,rOf().y-ry).toFixed(1)} pixel)`);
+    let far=false;
+    const fd=Math.round(reach+30);
+    for(const [dx,dy] of [[-fd,0],[0,fd],[0,-fd],[fd,0]]){
+      await test(A,"goto",{x:rx+dx,y:ry+dy}); if(Math.hypot(p.x-rx-dx,p.y-ry-dy)<1){ far=true; break; } }
+    if(!far) console.log("  ⚠ bỏ qua kiểm tra bỏ mục tiêu của thú đứng yên: không có chỗ đứng cách", fd, "pixel");
+    else ok(await waitFor(()=>rOf()&&!rOf().aggro,1500)&&Math.hypot(rOf().x-rx,rOf().y-ry)<0.5,`A ra ngoài tầm với ${reach.toFixed(0)} pixel: bỏ mục tiêu, vẫn ở chỗ sinh`+
+      ` (cách A ${rOf()&&Math.hypot(rOf().x-p.x,rOf().y-p.y).toFixed(0)}, aggro ${rOf()?.aggro}, lệch ${rOf()&&Math.hypot(rOf().x-rx,rOf().y-ry).toFixed(1)})`);
+    await test(A,"clear");
+  }
 
   // Bấm chuột tìm đường: điểm quanh A mà đường thẳng vướng ô chặn nhưng A* đi vòng được; đi theo đường như GameScene.sendInput.
   let goal=null, route=null;
@@ -943,6 +1013,8 @@ else {
     await test(A,"clear");
     A.room.send("input",{x:-1,y:0}); ok(await waitFor(()=>inSafe()&&p.x<safe.x+safe.width-24,4000),"A quay vào làng"); A.room.send("input",{x:0,y:0});
   }
+  // 2.5a–2.5d dùng bot E (nhóm 1 của BOT_PART; khối không thụt lề lại để diff gọn). Các hàm phụ ở trên dùng chung cho đoạn sau.
+  if(inPart(1)){
   const E=await bot("Tester E","u_minh_linh_mieu",{sex:0,hair:2,hairCol:2,outfitCol:3});
   await waitFor(()=>E.owned&&E.squad&&meOf(E)); const me=meOf(E);
   for(const vohon of ["hao_thien_chuy","cuu_bao_luu_ly_thap","bich_lan_xa_hoang","tu_vong_chu_hoang"]) await test(E,"grant",{vohon});
@@ -1129,6 +1201,28 @@ else {
     await test(E,"bhp",{pct:50}); await test(E,"status",{s:"poison",secs:30}); const g2=(await test(E,"regen",{s:5})).gain;
     const w1=Math.floor(TIERS[2].hp*BEAST_REGEN.pct*5);
     ok(g1===w1&&g2===Math.floor(w1*(1-STATUS.poison.healCut)),`hồn thú hồi ${g1} sinh lực trong 5 giây ngoài giao chiến (cần ${w1}); Trúng độc chỉ hồi ${g2}`);
+    await test(E,"clear");
+  }
+  // Chỉ số thủ của hồn thú (#116, BEAST_DEF): theo loài (BEAST_DEF_MULT) và niên hạn; đòn trực tiếp nhân defMult, Phá giáp giảm thủ thật
+  // (STATUS.armor.shred mỗi tầng, đủ tầng thì hết thủ). Hồn thú bị Trói sẵn để đứng yên (Choáng thì ràng buộc Băng Hỏa có thể cộng thêm).
+  {
+    const hard=Object.keys(BEAST_DEF_MULT).find(k=>BEAST_DEF_MULT[k]>1), soft=Object.keys(BEAST_DEF_MULT).find(k=>BEAST_DEF_MULT[k]<1);
+    const thu=async(species,tier,real=true)=>{ await test(E,"clear"); await face();
+      const bid=(await test(E,"spawn",{tier,dx:at(60)[0],dy:at(60)[1],species,...(real?{realDef:1}:{})}))?.bid; await waitFor(()=>beastOf(E,bid),1000);
+      await test(E,"status",{bid,s:"root",secs:30}); return {bid,def:(await test(E,"bst",{bid}))?.def}; };
+    const deal=async bid=>(await test(E,"bdmg",{bid,v:1000}))?.dealt;
+    const h4=await thu(hard,4), s4=await thu(soft,4), h0=await thu(hard,0);
+    ok(Math.abs(h4.def-beastDef(hard,TIERS[4].years))<1e-9&&h4.def>BEAST_DEF.ref&&s4.def<BEAST_DEF.ref&&h0.def<h4.def,
+      `thủ theo loài / niên hạn: ${BEASTS[beastIndex(hard)].name} ${TIERS[4].age} ${h4.def?.toFixed(3)}, cùng loài ${TIERS[0].age} ${h0.def?.toFixed(3)}, `+
+      `${BEASTS[beastIndex(soft)].name} ${TIERS[4].age} ${s4.def?.toFixed(3)} (thủ chuẩn ${BEAST_DEF.ref.toFixed(3)})`);
+    const h=await thu(hard,4), d0=await deal(h.bid), want=n=>Math.max(1,Math.round(1000*defMult(h.def,n*STATUS.armor.shred)));
+    await test(E,"status",{bid:h.bid,s:"armor",n:1,secs:30}); const d1=await deal(h.bid);
+    await test(E,"status",{bid:h.bid,s:"armor",n:2,secs:30}); const d3=await deal(h.bid);
+    ok(d0===want(0)&&d0<1000&&d1===want(1)&&d3===want(STATUS.armor.max)&&d3===Math.round(1000/(1-BEAST_DEF.ref)),
+      `đòn trực tiếp 1000 lên hồn thú thủ cao: ${d0} (cần ${want(0)}), Phá giáp 1 tầng ${d1} (cần ${want(1)}), ${STATUS.armor.max} tầng hết thủ ${d3} (cần ${want(STATUS.armor.max)})`);
+    const r=await thu(hard,4,false), r0=await deal(r.bid); await test(E,"status",{bid:r.bid,s:"armor",n:STATUS.armor.max,secs:30}); const r3=await deal(r.bid);
+    const r3w=Math.round(1000*defMult(BEAST_DEF.ref,1));
+    ok(r.def===BEAST_DEF.ref&&r0===1000&&r3===r3w,`hồn thú thủ chuẩn nhận đúng như trước khi có thủ: ${r0}, Phá giáp ${STATUS.armor.max} tầng ${r3} (cần ${r3w})`);
     await test(E,"clear");
   }
   // Tiên cơ riêng của 5 võ hồn (đổi tay vào với năng lượng đầy), và tiên cơ chung khống chế (Tử Vong Chu Hoàng chưa có tiên cơ riêng, tới 2.5d).
@@ -1776,8 +1870,9 @@ else {
     }
   }
   await E.room.leave();
+  } // hết nhóm 1: 2.5a–2.5d
   // ---------- 8.1a: hồn kỹ vòng 5–10, chọn 4 ô mang theo, Võ Hồn Chân Thân (5 võ hồn mẫu) ----------
-  {
+  if(inPart(2)){
     // Hàm thuần: vòng 7 không phải hồn kỹ, 5 võ hồn mẫu có đủ vòng 5, 6, 8, 9, 10, võ hồn khác vòng 5+ không có hồn kỹ; kiểm dạng ô.
     ok(FIVE.every(id=>HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)&&chanThanOf(id)&&ringSkill(id,9).ult),
       "5 võ hồn mẫu có hồn kỹ vòng 5, 6, 8, 9, 10 (vòng 10 là tuyệt kỹ) và Võ Hồn Chân Thân vòng 7");
@@ -1984,7 +2079,7 @@ else {
     }
   }
   // ---------- 8.1b: hồn kỹ vòng 5–10 và Võ Hồn Chân Thân lưu phái Thiêu đốt ----------
-  {
+  if(inPart(2)){
     const FIRE=["ta_hoa_phuong_hoang","hoa_long","hoa_anh","ky_nhung_thong_thien_cuc","nguyet_nhan"];
     ok(FIRE.every(id=>HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)&&chanThanOf(id)?.burst&&ringSkill(id,9).ult&&/^Tuyệt kỹ:/.test(ringSkill(id,9).desc)),
       "5 võ hồn Thiêu đốt có hồn kỹ vòng 5, 6, 8, 9, 10 (vòng 10 là tuyệt kỹ) và Võ Hồn Chân Thân vòng 7");
@@ -2157,7 +2252,7 @@ else {
     }
   }
   // ---------- 8.1c: hồn kỹ vòng 5–10 và Võ Hồn Chân Thân lưu phái Cảm điện ----------
-  {
+  if(inPart(2)){
     const LD="lam_dien_ba_vuong_long", KV="kim_vu_mieu_ung", CK="can_khon_hon_nguyen_toa", YH="yeu_ho", XX="xuc_xich", SHOCK=[LD,KV,CK,YH,XX];
     ok(SHOCK.every(id=>HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)&&chanThanOf(id)?.burst&&ringSkill(id,9).ult&&/^Tuyệt kỹ:/.test(ringSkill(id,9).desc)),
       "5 võ hồn Cảm điện có hồn kỹ vòng 5, 6, 8, 9, 10 (vòng 10 là tuyệt kỹ) và Võ Hồn Chân Thân vòng 7");
@@ -2341,7 +2436,7 @@ else {
     }
   }
   // ---------- 8.1d: hồn kỹ vòng 5–10 và Võ Hồn Chân Thân 5 võ hồn còn lại ----------
-  {
+  if(inPart(2)){
     const REST=["cuu_tinh_that_sat_kiem","nhu_cot_tho","tu_vong_chu_hoang","quy_mi","thien_can_bach_ngoc_dinh"];
     ok(REST.every(id=>HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)&&chanThanOf(id)?.burst&&ringSkill(id,9).ult&&/^Tuyệt kỹ:/.test(ringSkill(id,9).desc)),
       "5 võ hồn còn lại có hồn kỹ vòng 5, 6, 8, 9, 10 (vòng 10 là tuyệt kỹ) và Võ Hồn Chân Thân vòng 7");
@@ -2497,7 +2592,7 @@ else {
     }
   }
   // ---------- 8.3: 4 võ hồn mới (Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng) ----------
-  {
+  if(inPart(2)){
     const NEW=EXTRA_VOHON, n0=VOHON.length-NEW.length;
     ok(NEW.length===4&&NEW.every((id,k)=>vohonIndex(id)===n0+k)&&vohonIndex("cuu_bao_luu_ly_thap")===n0-1,
       `8.3: 4 võ hồn mới ở cuối VOHON (chỉ số ${n0}–${VOHON.length-1}), võ hồn cũ giữ chỉ số: ${NEW.map(id=>`${vname(id)} (${VOHON[vohonIndex(id)].rarity}, ${HE[VOHON[vohonIndex(id)].he].name})`).join(", ")}`);
@@ -2639,7 +2734,7 @@ else {
     await N.room.leave();
   }
   // ---------- 9.5: hiệu ứng hồn kỹ theo sao võ hồn (STAR_SKILL, 4★ hồi chiêu, 6★ tiên cơ riêng) ----------
-  {
+  if(inPart(2)){
     const near=(a,b)=>Math.abs(a-b)<1e-9;
     ok(near(starSkillMult(1),1)&&near(starSkillMult(2),1+STAR_SKILL)&&near(starSkillMult(MAX_STARS),1.15)&&near(starSkillMult(0),1)&&near(starSkillMult(99),1.15)
       &&starCdMult(STAR_CD_STARS-1)===1&&starCdMult(STAR_CD_STARS)===STAR_CD&&starCdMult(MAX_STARS)===STAR_CD
@@ -2700,7 +2795,7 @@ else {
     await S.room.leave();
   }
   // ---------- 9.6: hồn kỹ Chân Thân (ChanThanDef.skill: ô P đổi thành hồn kỹ này trong lúc biến hình, hồi chiêu riêng) ----------
-  {
+  if(inPart(2)){
     // Hàm thuần: đủ 24 võ hồn, 40 hồn lực, hồi 8 giây; mạnh hơn vòng 9 khoảng 20% (tổng hệ số sát thương), cùng lối đánh.
     const tot=s=>s.dmg*(s.n??1);
     const bad=VOHON.filter(v=>{ const ct=chanThanOf(v.id)?.skill, r9=ringSkill(v.id,8); if(!ct||ct.cost!==CHAN_THAN_SKILL_COST||ct.cd!==CHAN_THAN_SKILL_CD||!r9) return true;
@@ -2750,7 +2845,7 @@ else {
     await C.room.leave();
   }
   // ---------- 3.5: chiêu có báo trước của hồn thú từ 1.000 năm ----------
-  {
+  if(inPart(2)){
     // Hàm thuần: mọi loài của vùng có hồn thú từ 1.000 năm ở Ngoại vi / Nội địa đều có chiêu; hình vùng tính trúng đúng.
     const zonesOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[])
       .filter(o=>(o.type??o.class)==="zone").map(o=>{ const pr=n=>(o.properties??[]).find(q=>q.name===n)?.value;
@@ -2829,6 +2924,28 @@ else {
     ok(x.hit?.hit.includes(fid)&&hasP("root")&&moved<1,`${PT.name}: hồn sư bị Trói, đi không được (dịch ${moved.toFixed(1)} pixel)`);
     ok(await waitFor(()=>!hasP("root")&&Math.abs(fm.x-x1)>4,2000),`hết Trói ${PT.status[0].secs} giây thì đi được`); F.room.send("input",{x:0,y:0});
     await goTo(F,X0,ry);
+    // Mê hoặc / Đóng băng riêng trên hồn sư (#116). Thực Nhân Hoa (đứng yên) · Phấn Mê trúng thì Mê hoặc, không còn là Choáng.
+    const PM=beastSkillOf("thuc_nhan_hoa",10000);
+    bid=await spawnSp("thuc_nhan_hoa",10000,30); await test(F,"status",{s:"root",secs:30});
+    x=await teleRun(bid);
+    ok(PM.status[0].s==="charm"&&x.hit?.hit.includes(fid)&&hasP("charm")&&!hasP("stun"),`${PM.name}: trúng thì Mê hoặc trên hồn sư (st ${fm.st})`);
+    await test(F,"clear"); await goTo(F,X0,ry); await waitFor(()=>!hasP("charm"),1500);
+    // Mê hoặc: phím bị bỏ qua, server tự đi lung tung quanh chỗ bị Mê hoặc (PLAYER_CHARM), PlayerState.spd = 0 (client không dự đoán);
+    // không dùng được hồn kỹ. Hết Mê hoặc thì đi theo phím lại.
+    { await test(F,"pst",{s:"charm",secs:3}); const c0={x:fm.x,y:fm.y}; let far=0, spd0=true;
+      F.room.send("input",{x:-1,y:0}); await test(F,"ready"); F.room.send("skill",{i:0});
+      ok(await lastLog(F,/Mê hoặc: không dùng được hồn kỹ/)&&fm.cds[0]===0,"Mê hoặc trên hồn sư: không dùng được hồn kỹ");
+      await waitFor(()=>{ far=Math.max(far,Math.hypot(fm.x-c0.x,fm.y-c0.y)); spd0&&=!hasP("charm")||fm.spd===0; return !hasP("charm"); },4000);
+      const x2=fm.x; ok(await waitFor(()=>fm.x<x2-4,1500),"hết Mê hoặc: đi theo phím lại"); F.room.send("input",{x:0,y:0});
+      ok(far>2&&far<=PLAYER_CHARM.r*Math.SQRT2+3&&spd0,`Mê hoặc: tự đi lung tung quanh chỗ đứng (xa nhất ${far.toFixed(1)} pixel, tối đa ${(PLAYER_CHARM.r*Math.SQRT2).toFixed(0)}), bỏ qua phím, spd đồng bộ 0`); }
+    await goTo(F,X0,ry);
+    // Đóng băng (Hàn Băng Địa Long · Phun Băng là Đóng băng): không đi, không dùng hồn kỹ; hết giờ thì đi được.
+    { const FB=beastSkillOf("han_bang_dia_long",30000); await test(F,"pst",{s:"freeze",secs:1.5}); const z0=fm.x;
+      F.room.send("input",{x:-1,y:0}); await sleep(500); await test(F,"ready"); F.room.send("skill",{i:0});
+      ok(FB.status[0].s==="freeze"&&hasP("freeze")&&!hasP("stun")&&Math.abs(fm.x-z0)<1&&fm.spd===0&&await lastLog(F,/Đóng băng: không dùng được hồn kỹ/)&&fm.cds[0]===0,
+        `Đóng băng (${FB.name}): đứng yên (dịch ${Math.abs(fm.x-z0).toFixed(1)} pixel), không dùng được hồn kỹ`);
+      ok(await waitFor(()=>!hasP("freeze")&&Math.abs(fm.x-z0)>4,2500),"hết Đóng băng thì đi được"); F.room.send("input",{x:0,y:0}); }
+    await goTo(F,X0,ry);
     // Câm lặng trên hồn thú ngắt chiêu đang báo trước; hồn thú dưới 1.000 năm không có chiêu.
     bid=await spawnSp("liet_trao_hung",1500,30); await test(F,"status",{s:"root",secs:30});
     x=await teleRun(bid,()=>test(F,"status",{s:"silence",secs:3}));
@@ -2844,18 +2961,19 @@ else {
     await test(F,"set",{rowId:xr,level:40,xp:0,rings:[423]}); await test(F,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(F,[act,xr,0,0]);
     await test(F,"pst",{s:"silence",secs:20}); await test(F,"pst",{s:"root",secs:20}); await test(F,"ready");
     F.room.send("skill",{i:0}); ok(hasP("silence")&&hasP("root")&&await lastLog(F,/Câm lặng: không dùng được hồn kỹ/)&&fm.cds[0]===0,"Câm lặng trên hồn sư: không dùng được hồn kỹ");
+    await test(F,"pst",{s:"freeze",secs:20}); // #116: thanh tẩy giải cả Đóng băng
     const tc=await tienCo(F,xr,{tier:-1});
-    ok(tc.fx&&await waitFor(()=>fm.st===0,800),`tiên cơ ${TIEN_CO_RIENG.xuc_xich.name}: giải Trói và Câm lặng (st ${fm.st})`);
+    ok(tc.fx&&await waitFor(()=>fm.st===0,800),`tiên cơ ${TIEN_CO_RIENG.xuc_xich.name}: giải Trói, Câm lặng và Đóng băng (st ${fm.st})`);
     // Thiên Càn Bạch Ngọc Đỉnh (2.5d): tiên cơ thanh tẩy đội.
     await test(F,"grant",{vohon:"thien_can_bach_ngoc_dinh"}); const tr=F.owned.list.find(v=>v.vohon==="thien_can_bach_ngoc_dinh")?.rowId;
     await test(F,"set",{rowId:tr,level:40,xp:0,rings:[423]}); await test(F,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(F,[xr,tr,0,0]);
-    await test(F,"pst",{s:"poison",n:2,secs:20}); await test(F,"pst",{s:"slow",secs:20});
+    await test(F,"pst",{s:"poison",n:2,secs:20}); await test(F,"pst",{s:"slow",secs:20}); await test(F,"pst",{s:"charm",secs:20}); // #116: cả Mê hoặc
     const tt=await tienCo(F,tr,{tier:-1});
-    ok(tt.fx&&await waitFor(()=>fm.st===0,800),`tiên cơ ${TIEN_CO_RIENG.thien_can_bach_ngoc_dinh.name}: thanh tẩy Trúng độc và Làm chậm (st ${fm.st})`);
+    ok(tt.fx&&await waitFor(()=>fm.st===0,800),`tiên cơ ${TIEN_CO_RIENG.thien_can_bach_ngoc_dinh.name}: thanh tẩy Trúng độc, Làm chậm và Mê hoặc (st ${fm.st})`);
     await F.room.leave();
   }
   // ---------- BĐ4: tinh anh (biến dị) ----------
-  {
+  if(inPart(2)){
     // Dữ liệu: mỗi tầng niên hạn (các vùng cùng `years`; bản đồ cũ mỗi vùng một tầng, bản đồ lớn tools/maps chia tầng thành vài vùng có
     // tên, 11.3) của các bản đồ săn có đúng 1 object `elite`; mã trong BOSSES, 2 chiêu, loài gốc có trong BEASTS.
     const objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
@@ -2973,10 +3091,33 @@ else {
     ok(await waitFor(()=>G.elite.some(m=>m.k==="spawn"&&/Thiết Nha/.test(m.name)),4000),`hồi sinh: cả phòng nhận thông báo "${G.elite.find(m=>m.k==="spawn")?.name} xuất hiện" ở ${G.elite.find(m=>m.k==="spawn")?.zone}`);
     I=await info(TN); const nb=I.bid&&st.beasts.get(I.bid);
     ok(nb&&I.bid!==oldId&&nb.rank===1&&inR(I.rect,nb.x,nb.y)&&nb.hp===I.base&&!I.engaged,`tinh anh mới ở đúng chỗ (${nb?.x.toFixed(0)},${nb?.y.toFixed(0)}), đầy máu ${nb?.hp}`);
+
+    // ---------- #119: đóng góp theo tài khoản (thoát vào lại không mất); thưởng tinh anh khóa ELITE.lock giây theo tài khoản ----------
+    const lk=`${st.mapId}|${TN}`, TNn=eOf(TN).name; let lc=(await test(G,"elock")).locks;
+    ok(lc[lk]>ELITE.lock-60&&lc[lk]<=ELITE.lock,`#119: G vừa nhận thưởng ${TNn}: khóa ${lk} còn ${lc[lk]?.toFixed(0)} giây (ELITE.lock ${ELITE.lock})`);
+    L=await els();
+    await near(G,TN,24); await test(G,"clear",{keep:1}); await tranAp(); await sleep(150);
+    I=await info(TN); const g0=G.room.sessionId, v0=I.dmgBy?.[g0]??0;
+    ok(I.engaged&&v0>0,`#119: G đánh ${TNn} mới: đóng góp ${v0}`);
+    const rid=G.room.roomId; await G.room.leave(); await sleep(300); await enter(G,rid); await waitFor(()=>meOf(G)&&G.owned,3000);
+    I=await info(TN); const g1=G.room.sessionId;
+    ok(g1!==g0&&I.engaged&&(I.dmgBy[g1]??0)>=v0&&!(g0 in I.dmgBy)&&!I.parts.includes(g1),
+      `#119: G thoát rồi vào lại (phiên mới): đóng góp ${I.dmgBy[g1]} chuyển sang phiên mới, phiên cũ không còn; chưa là người tham gia tới khi đánh lại`);
+    // Còn khóa: hạ tinh anh chỉ thưởng như hồn thú thường (hồn hạch theo coreChance, không chắc chắn), có nhắc.
+    await test(G,"core",{r:50}); let ln=G.logs.length, bf=new Set(st.drops.keys());
+    await test(G,"slay",{bid:I.bid}); await sleep(250);
+    let nd=[...st.drops.entries()].filter(([k])=>!bf.has(k)).map(([,x])=>x);
+    ok(nd.length&&!nd.some(x=>x.item===CORE_ITEM)&&nd.every(x=>x.owner===g1)&&/Đã nhận thưởng .* chưa lâu/.test(G.logs.slice(ln).join("\n")),
+      `#119: G còn khóa hạ ${TNn}: như hồn thú thường (số ngẫu nhiên 0,5: không hồn hạch), "${G.logs.slice(ln).find(t=>/chưa lâu/.test(t))}"`);
+    lc=(await test(G,"elock",{s:0})).locks; ok(!(lk in lc),"#119: hook elock s=0 bỏ khóa");
+    const tb=(await test(G,"beast",{boss:TN,dx:14,dy:0})).bid; bf=new Set(st.drops.keys());
+    await test(G,"slay",{bid:tb}); await sleep(250); nd=[...st.drops.entries()].filter(([k])=>!bf.has(k)).map(([,x])=>x); lc=(await test(G,"elock")).locks;
+    ok(nd.some(x=>x.item===CORE_ITEM&&x.owner===g1)&&lc[lk]>ELITE.lock-60,`#119: hết khóa: hạ ${TNn} lại chắc chắn rơi hồn hạch, khóa lại ${lc[lk]?.toFixed(0)} giây`);
+    await test(G,"core",{r:100});
     await G.room.leave();
   }
   // ---------- BĐ5: tà hóa thú vương theo lịch, máu theo số người, giai đoạn 2, chia thưởng, 3 lần/ngày, rương ----------
-  {
+  if(inPart(1)){
     // Lịch boss của server (20:00 / 22:00 giờ Việt Nam) chen vào các kiểm tra dùng hook `king` nếu đồng hồ lịch đang trong lúc báo trước
     // hay lúc thú vương ở bản đồ. GAME_TEST mặc định cho lịch đứng yên ngoài mọi khung; server chạy đồng hồ thật (BOSS_CLOCK=real) thì báo.
     { const {now,mode}=await bossClock(A), nx=kingNext(now);
@@ -3146,7 +3287,7 @@ else {
     await K.room.leave();
   }
   // ---------- 3.2: hạ hồn thú -> hồn hoàn mang đúng số năm -> nhặt vào túi; ưu tiên người hạ 15 giây; túi đầy; hấp thụ từ túi ----------
-  {
+  if(inPart(1)){
     const zs=tiled.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone"), hz=zs.find(z=>/Bãi tập/.test(z.name))??zs[0];
     // Hai chỗ cạnh bên (x±8) cũng phải đứng được: mảnh võ hồn rơi khi túi đầy (3.4, x+8) và hồn cốt (4.1, x−8) nằm cạnh hồn hoàn,
     // không chồng lên nó (chồng thì nhấn E chọn hồn hoàn trước).
@@ -3463,7 +3604,7 @@ else {
       A.elite=[]; const ke=await killBone(1500,undefined,HN);
       ok(ke&&ke.dr.years===1500&&ke.dr.species===base&&ke.dr.slot===slotOf("than")&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
         `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm (${+(boneChance(1500,x3)*100).toFixed(2)}%) rơi hồn cốt ${ke?boneName(BEASTS[ke.dr.species]?.id,BONE_SLOTS[ke.dr.slot]?.id,ke.dr.years):"?"} (loài gốc), thuộc A`);
-      await test(A,"bone",{r:4});
+      await test(A,"bone",{r:4}); await test(A,"elock",{s:0}); // #119: bỏ khóa thưởng tinh anh để thử đúng tỉ lệ x ELITE.bone
       ok(!await killBone(1500,undefined,HN),`số ngẫu nhiên 0,04 (trên ${+(boneChance(1500,x3)*100).toFixed(2)}%): tinh anh không rơi hồn cốt`);
     }
     // ---------- 5.1: hồn hạch rơi theo bảng 5.3 (15% 1–2★ / 25% 2–4★ / 40% 3–5★ / 100% 5–6★), bộ theo bản đồ, chỉ số chính và phụ; nằm trong túi ----------
@@ -3573,11 +3714,12 @@ else {
         await test(A,"goto",spot); await test(A,"drops",{s:3600}); await sleep(120);
         await test(A,"core",{r:99});
         ok(!await killCore(1500,hb.species),"số ngẫu nhiên 0,99: hồn thú thường 1.500 năm (25%) không rơi hồn hạch");
-        A.elite=[]; const ke=await killCore(1500,undefined,HN);
+        // #119: hạ cùng loài tinh anh liên tiếp thì bị khóa thưởng ELITE.lock giây; bài này thử luật rơi của từng lần hạ nên bỏ khóa trước.
+        await test(A,"elock",{s:0}); A.elite=[]; const ke=await killCore(1500,undefined,HN);
         ok(ke&&ke.dr.stars>=2&&ke.dr.stars<=4&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
           `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm chắc chắn rơi ${ke?coreName(CORE_SETS[ke.dr.cset].id,ke.dr.stars):"không có hồn hạch"} (2–4★), thuộc A`);
         await test(A,"core",{r:-1}); // số ngẫu nhiên thật: tinh anh vẫn luôn rơi
-        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
+        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await test(A,"elock",{s:0}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
         ok(all===3,`số ngẫu nhiên thật: hạ tinh anh 3 lần, rơi hồn hạch ${all}/3 lần`);
         await test(A,"drops",{s:3600});
       }
@@ -4104,6 +4246,9 @@ ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào l
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm, sao từng võ hồn (cả võ hồn mở bằng mảnh) đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
 
+// BOT_PART=1 dừng ở đây; BOT_PART=2 chạy thêm Đại Đấu Hồn Trường (bài độc lập, tự tạo bot) rồi dừng. Phần từ bot C trở xuống thuộc nhóm 3.
+if(PART==="1"||PART==="2"){ if(PART==="2") await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+
 // ---------- BĐ2: cổng, chặn mềm, lưu bản đồ và vị trí ----------
 console.log("[cổng] tài khoản mới đi Thánh Hồn Thôn -> Nặc Đinh Thành -> Ngoại vi -> Nội địa -> Ngoại vi -> Nặc Đinh Thành");
 let C=await bot("Lữ "+Date.now().toString(36).slice(-6),"bich_lan_xa_hoang",{sex:0,hair:1,hairCol:2,outfitCol:3});
@@ -4335,7 +4480,7 @@ await lacNhatTest();
 await haiThanTest();
 await loiTinhDauTest();
 await questTest();
-await arenaTest();
+if(inPart(2)) await arenaTest(); // BOT_PART=3 bỏ, nhóm 2 đã chạy (xem dưới phần vào lại của A)
 await dailyTest();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
 // qua đúng transaction đi cổng, như tài khoản đăng xuất ở Tinh Đấu trước BĐ3.
@@ -5385,8 +5530,8 @@ async function cucBacTest(){
   const act=C.owned.active, v0=C.owned.list.find(v=>v.rowId===act);
   await test(C,"set",{rowId:act,level:80,xp:0,rings:[423,764,1760,5000,12000,20000,50000,90000]});
   await sleep(1600); // vừa vào bản đồ thì bất tử 1,5 giây (chiêu trúng nhưng không mất máu, không gây trạng thái)
-  // Chiêu báo trước thật: đóng băng (Choáng), Mê hoặc lên hồn sư (Choáng ngắn), Làm chậm; đứng trong vùng thì trúng.
-  for(const [sp,years,dx,dy,s] of [["han_bang_dia_long",50000,26,0,"stun"],["tuyet_vi_yeu_ho",40000,60,0,"stun"],["bang_nguyen_cu_tuong",25000,24,0,"slow"]]){
+  // Chiêu báo trước thật: Đóng băng, Mê hoặc lên hồn sư (từ #116 là trạng thái riêng, trước đó là Choáng), Làm chậm; đứng trong vùng thì trúng.
+  for(const [sp,years,dx,dy,s] of [["han_bang_dia_long",50000,26,0,"freeze"],["tuyet_vi_yeu_ho",40000,60,0,"charm"],["bang_nguyen_cu_tuong",25000,24,0,"slow"]]){
     await test(C,"clear"); await test(C,"ready"); const before=new Set(C.room.state.beasts.keys());
     const sr=await test(C,"spawn",{tier:tierOfYears(years),years,species:sp,dx,dy});
     let bid=null; await waitFor(()=>{ if(sr?.bid) return C.room.state.beasts.has(sr.bid)&&(bid=sr.bid);

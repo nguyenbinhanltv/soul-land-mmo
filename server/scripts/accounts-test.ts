@@ -4,10 +4,10 @@
 // để thử cả PgStore: test tạo tài khoản rác và chèn thẳng tài khoản trùng tên, KHÔNG trỏ vào DB thật.
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
-import { MemoryStore, PgStore, type Store, type Item } from "../src/db.ts";
+import { MemoryStore, PgStore, type Store, type Item, type Bag } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
 import { mapFile } from "../src/map.ts";
-import { DEFAULT_MAP, MAP_MOVED } from "../../shared/data.ts";
+import { DEFAULT_MAP, MAP_MOVED, BAG_SLOTS } from "../../shared/data.ts";
 
 // Mật khẩu thử sinh ngẫu nhiên mỗi lần chạy, không ghi cứng trong mã: PW[i] thay cho mật khẩu thứ i, WRONG là mật khẩu sai.
 const PW = Array.from({ length: 7 }, () => randomUUID()), WRONG = randomUUID();
@@ -107,18 +107,21 @@ async function common(label: string, s: Store, u = "") {
     const item = (code: string, qty: number, extra: Partial<Item> = {}): Item =>
       ({ id: randomUUID(), kind: "dan", code, qty, years: null, stars: null, enhance: 0, stats: null, vohonId: null, created: t++, ...extra });
     const starter = [item("hoi_huyet_dan", 5), item("hoi_hon_dan", 5)];
+    // loadBag trả kèm số ô túi (9.8) và tiến độ nhiệm vụ (6.2): tài khoản thử chưa mở rộng túi, chưa nhận nhiệm vụ; so phần còn lại.
+    const items = (b: Bag) => { const { slots, quests, ...rest } = b; assert.equal(slots, BAG_SLOTS); assert.deepEqual(quests, []); return rest; };
+    const loadItems = async (acc: number) => items((await s.loadBag(acc, [])).bag);
     // Lần nạp đầu: nhận vật phẩm khởi đầu đúng thứ tự; lần sau không nhận nữa (kể cả khi gửi danh sách khác).
     const first = await s.loadBag(id, starter);
     assert.equal(first.starter, true);
-    assert.deepEqual(first.bag, { honTe: 0, items: starter });
+    assert.deepEqual(items(first.bag), { honTe: 0, items: starter });
     const again = await s.loadBag(id, [item("hoi_huyet_dan", 99)]);
     assert.equal(again.starter, false);
-    assert.deepEqual(again.bag, first.bag);
+    assert.deepEqual(items(again.bag), items(first.bag));
     // Lưu cả túi: sửa ô (số lượng), xóa ô hết, thêm ô mới có số năm/sao/dòng chỉ số/gắn vào võ hồn; Hồn Tệ là số nguyên.
     const ring = item("hon_hoan", 1, { kind: "hon_hoan", years: 437, stars: 2, enhance: 3, stats: { main: ["atk", 12], sub: [["hp", 5]] }, vohonId: ch.rowId });
     const bag = { honTe: 1_234_567, items: [{ ...starter[0], qty: 3 }, ring] };
     await s.saveBag(id, bag);
-    assert.deepEqual((await s.loadBag(id, [])).bag, bag);
+    assert.deepEqual(await loadItems(id), bag);
     // Ghi lỗi thì không ghi gì: id trùng, số lượng sai, Hồn Tệ âm, đồ gắn vào võ hồn người khác, id thuộc tài khoản khác.
     await assert.rejects(s.saveBag(id, { honTe: 1, items: [bag.items[0], bag.items[0]] }));
     await assert.rejects(s.saveBag(id, { honTe: 1, items: [{ ...bag.items[0], qty: 0 }] }));
@@ -126,18 +129,18 @@ async function common(label: string, s: Store, u = "") {
     await assert.rejects(s.saveBag(id, { honTe: 1, items: [{ ...ring, vohonId: och.rowId }] }));
     await s.loadBag(other, []);
     await assert.rejects(s.saveBag(other, { honTe: 9, items: [{ ...bag.items[0], qty: 50 }] }));
-    assert.deepEqual((await s.loadBag(id, [])).bag, bag);
-    assert.deepEqual((await s.loadBag(other, [])).bag, { honTe: 0, items: [] });
+    assert.deepEqual(await loadItems(id), bag);
+    assert.deepEqual(await loadItems(other), { honTe: 0, items: [] });
     // Đi cổng: túi đồ ghi trong cùng transaction; transaction lỗi (sai bản đồ đi) thì túi giữ nguyên.
     const travelBag = { honTe: 42, items: [item("hoi_hon_dan", 7)] };
     await assert.rejects(s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328, travelBag));
-    assert.deepEqual((await s.loadBag(id, [])).bag, bag);
+    assert.deepEqual(await loadItems(id), bag);
     await s.saveTravel(id, [ch], DEFAULT_MAP, "nac_dinh_thanh", 88, 328, travelBag);
-    assert.deepEqual((await s.loadBag(id, [])).bag, travelBag);
+    assert.deepEqual(await loadItems(id), travelBag);
     assert.equal((await s.getLocation(id)).mapId, "nac_dinh_thanh");
     // Không có túi trong transaction (không đổi gì) thì túi giữ nguyên.
     await s.saveTravel(id, [ch], "nac_dinh_thanh", DEFAULT_MAP, 10, 10);
-    assert.deepEqual((await s.loadBag(id, [])).bag, travelBag);
+    assert.deepEqual(await loadItems(id), travelBag);
   });
 }
 

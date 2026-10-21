@@ -285,7 +285,8 @@ function parsePortal(mapId: string, o: any): Portal | null {
 
 /**
  * Object `elite` (mục 6, BĐ4): `boss` phải là mã tinh anh trong BOSSES, tâm phải nằm trong một `zone`, mỗi vùng (theo tên) tối đa
- * 1 tinh anh (mục 5.4). Sai thì cảnh báo và bỏ. Bản đồ `town` không có tinh anh.
+ * 1 tinh anh (mục 5.4), mỗi loài tinh anh tối đa 1 vùng (khóa thưởng tinh anh nhiều kênh theo loài, #119). Sai thì cảnh báo và bỏ. Bản đồ
+ * `town` không có tinh anh.
  */
 function parseElites(mapId: string, objs: any[], zones: Zone[]): EliteSpot[] {
   const out: EliteSpot[] = [];
@@ -297,6 +298,7 @@ function parseElites(mapId: string, objs: any[], zones: Zone[]): EliteSpot[] {
     const zone = zones.findIndex((z) => cx >= z.x0 && cx < z.x1 && cy >= z.y0 && cy < z.y1);
     if (zone < 0) { bad("không nằm trong vùng nào"); continue; }
     if (out.some((e) => zones[e.zone].name === zones[zone].name)) { bad(`vùng "${zones[zone].name}" đã có tinh anh`); continue; }
+    if (out.some((e) => e.boss === boss)) { bad(`loài ${id} đã có ở vùng khác (khóa thưởng tinh anh theo loài)`); continue; }
     out.push({ ...r, boss, zone });
   }
   return out;

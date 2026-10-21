@@ -5,7 +5,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
-  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED,
+  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
@@ -1295,7 +1295,8 @@ export class GameScene extends Phaser.Scene {
         g.fillStyle(0xfff2b0, 0.18 + 0.08 * Math.sin(time / 120)).fillEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
         g.lineStyle(2, 0xfff2b0, 0.9).strokeEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
       }
-      // Trạng thái do chiêu báo trước của hồn thú gây (3.5): dây trói dưới chân, sao choáng và biểu tượng trên danh hiệu.
+      // Trạng thái do chiêu báo trước của hồn thú gây (3.5): dây trói dưới chân, sao choáng, khối băng (Đóng băng) và tim hồng (Mê hoặc)
+      // (#116), biểu tượng trên danh hiệu.
       if (p.st) {
         const ph = (x: (typeof PLAYER_STATUS)[number]) => (p.st & statusBit(x)) !== 0;
         if (ph("root")) {
@@ -1304,7 +1305,9 @@ export class GameScene extends Phaser.Scene {
         }
         const icons = STATUS_ICONS.filter((x) => PLAYER_STATUS.includes(x) && ph(x));
         this.statusIcons(g, rx, ry - HEAD - 24 * this.txtK, icons, {});
+        if (ph("freeze")) this.iceBlock(g, rx, ry, time);
         if (ph("stun")) this.stunStars(g, rx, ry - 26 * q, time);
+        if (ph("charm")) this.charmHearts(g, rx, ry - 26 * q, time);
       }
       let k = 0;
       for (const b of BUFF_IDS) {
@@ -1339,15 +1342,30 @@ export class GameScene extends Phaser.Scene {
       this.statusIcons(g, s.x, top - 13, icons, { burn: b.burn, poison: b.poison, armor: b.armor, allure: b.allure, lock: b.lock });
       // Mê hoặc (2.5c): tim hồng xoay trên đầu, hồn thú đi lung tung. Tim và sao choáng gắn với thân nên phóng SPR như sprite.
       const headY = top - 6 * q - (icons.length ? 9 : 0);
-      if (has("charm")) {
-        for (let k = 0; k < 3; k++) {
-          const a = time / 220 + k * 2.1, x = s.x + Math.cos(a) * 8 * q, sy = headY + Math.sin(a) * 2.5 * q;
-          g.fillStyle(hex(STATUS.charm.col), 1).fillCircle(x - q, sy - q, 1.3 * q).fillCircle(x + q, sy - q, 1.3 * q)
-            .fillTriangle(x - 2.3 * q, sy - 0.6 * q, x + 2.3 * q, sy - 0.6 * q, x, sy + 2 * q);
-        }
-      }
+      if (has("charm")) this.charmHearts(g, s.x, headY, time);
       if (has("stun")) this.stunStars(g, s.x, headY, time);
     });
+  }
+
+  /** Tim hồng xoay quanh đầu: Mê hoặc (hồn thú 2.5c, hồn sư #116). */
+  charmHearts(g: Phaser.GameObjects.Graphics, cx: number, y: number, time: number) {
+    const q = SPR;
+    for (let k = 0; k < 3; k++) {
+      const a = time / 220 + k * 2.1, x = cx + Math.cos(a) * 8 * q, sy = y + Math.sin(a) * 2.5 * q;
+      g.fillStyle(hex(STATUS.charm.col), 1).fillCircle(x - q, sy - q, 1.3 * q).fillCircle(x + q, sy - q, 1.3 * q)
+        .fillTriangle(x - 2.3 * q, sy - 0.6 * q, x + 2.3 * q, sy - 0.6 * q, x, sy + 2 * q);
+    }
+  }
+
+  /** Khối băng trong suốt bọc hồn sư bị Đóng băng (#116): mặt băng nhạt, viền sáng, vệt phản quang và tinh thể băng dưới chân. */
+  iceBlock(g: Phaser.GameObjects.Graphics, cx: number, feet: number, time: number) {
+    const q = SPR, c = hex(STATUS.freeze.col), w = 18 * q, h = 30 * q, x0 = cx - w / 2, y0 = feet - h + q;
+    g.fillStyle(c, 0.32).fillRect(x0, y0, w, h);
+    g.lineStyle(1, 0xe8f8ff, 0.85).strokeRect(x0, y0, w, h);
+    const k = (Math.sin(time / 500) + 1) / 2; // vệt phản quang trượt chậm
+    g.lineStyle(1, 0xffffff, 0.55 + 0.3 * k).lineBetween(x0 + 3 * q, y0 + 4 * q, x0 + 7 * q, y0 + 1.5 * q);
+    g.lineBetween(x0 + 3 * q, y0 + 9 * q, x0 + 11 * q, y0 + 3 * q);
+    for (let j = 0; j < 3; j++) { const x = x0 + (3 + j * 6) * q; g.fillStyle(j % 2 ? 0xe8f8ff : c, 0.9).fillTriangle(x - 2 * q, feet + q, x + 2 * q, feet + q, x, feet - (3 + (j % 2) * 2) * q); }
   }
 
   /** Sao choáng xoay quanh đầu (hồn thú, và hồn sư từ 3.5). */
@@ -1529,10 +1547,12 @@ export class GameScene extends Phaser.Scene {
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng (honsuAnimKey).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
-      const walk = mine ? this.pred!.walking(p, this.dir) : p.moving;
-      let d8 = mine ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
-      if (!d8 && !walk) { const f = DIR4_VEC[mine ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
-      else if (mine && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
+      // Mê hoặc (#116): server tự đi (spd đồng bộ 0 để không dự đoán theo phím) nên chính mình cũng đi / quay mặt theo vị trí server.
+      const charmed = (p.st & statusBit("charm")) !== 0, self = mine && !charmed;
+      const walk = self ? this.pred!.walking(p, this.dir) : p.moving;
+      let d8 = self ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
+      if (!d8 && !walk) { const f = DIR4_VEC[self ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
+      else if (self && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
       if (v.lock && time < v.lock.until) v.face = v.lock.face; // đang đánh: quay về phía đòn đánh
       else if (d8) { v.lock = null; v.face = d8; }
       if (mine) { const at = this.pred!.update(p, this.dir, dt, this.walk); v.wx = at.x; v.wy = at.y; }
@@ -1549,8 +1569,9 @@ export class GameScene extends Phaser.Scene {
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
-      // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác theo `spd` của server.
-      const spd = mine ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
+      // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác theo `spd` của server; đang Mê
+      // hoặc theo tốc độ đi bộ gốc × PLAYER_CHARM.spd × Làm chậm (server không gửi tốc độ lúc này).
+      const spd = charmed ? PLAYER_SPEED * (VOHON[p.vh]?.spd ?? 1) * PLAYER_CHARM.spd * (p.st & statusBit("slow") ? 1 - STATUS.slow.slow : 1) : mine ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
       this.animatePlayer(v, p, time, walk, spd);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
