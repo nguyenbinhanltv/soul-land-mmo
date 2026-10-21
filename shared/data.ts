@@ -849,9 +849,9 @@ export const FLOOR_SAFE = { floor: { n: 3, r: 40 }, charge: { n: 2, r: 36 } };
 /**
  * Chọn chỗ trên sàn đấu boss thế giới (#118: vòng an toàn, chỗ Du Thủy nổi lên): dọc trong dải `band` (phần bề cao sàn, để vòng không
  * nằm sát mép cây và đi bộ tới kịp trong thời gian báo trước), cách mép sàn `pad` pixel (chỗ nổi lên; vòng an toàn cách mép bằng bán
- * kính), thử tối đa `tries` lần mỗi chỗ.
+ * kính), thử tối đa `tries` lần mỗi chỗ. Vòng an toàn phải đứng được ở 8 hướng cách tâm `open` × bán kính.
  */
-export const LAIR_SPOT = { band: [0.2, 0.8] as [number, number], pad: 16, tries: 30 };
+export const LAIR_SPOT = { band: [0.2, 0.8] as [number, number], pad: 16, tries: 30, open: 0.6 };
 /** Bậc hồn thú (`BeastState.rank`): 0 thường, 1 tinh anh, 2 tà hóa thú vương (BĐ5), 3 boss thế giới (BĐ6). */
 export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as const;
 /**

@@ -622,6 +622,7 @@ export class GameScene extends Phaser.Scene {
       if (this.worldBossMsg(m, col)) return; // boss thế giới (BĐ6e): cơ chế riêng
       if (m.k === "warn") {
         hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
+        if (m.join) return; // tin xin lại lúc vào phòng (#118): chỉ đặt đếm ngược, không lặp log / banner
         hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
         hud.banner(`${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       } else if (m.k === "spawn" || m.k === "here") {
@@ -1007,7 +1008,9 @@ export class GameScene extends Phaser.Scene {
     }
     else if (m.k === "tele") {
       // Chiêu báo trước của hồn thú (3.5): vùng đỏ hiện `t` giây, đầy dần; tên chiêu đỏ trên đầu hồn thú.
-      this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now, ms: (m.t ?? 0.8) * 1000, safe: m.safe });
+      // Người vừa vào (#118) nhận `t` giây còn lại kèm `warn` cả chiêu: vùng đầy dần khớp với người đã ở trong phòng.
+      const ms = (m.warn ?? m.t ?? 0.8) * 1000;
+      this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now - (m.warn ? (m.warn - m.t) * 1000 : 0), ms, safe: m.safe });
       const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid);
       if (s && b) this.floatText(s.x, beastTop(s, b.tier) - 10, m.name, "#ff6b6b");
       // Quay về vùng báo trước (mục 5.11): vệt / nón theo hướng chiêu, vòng dưới chân mục tiêu theo hướng tới tâm vòng.
@@ -1834,6 +1837,7 @@ export class GameScene extends Phaser.Scene {
   worldBossMsg(m: any, col: string) {
     if (m.k === "warn" && m.world) {
       hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
+      if (m.join) return true; // tin xin lại lúc vào phòng (#118): chỉ đặt đếm ngược, không lặp log / banner
       hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
       hud.banner(`${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       return true;

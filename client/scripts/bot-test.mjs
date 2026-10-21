@@ -189,7 +189,7 @@ async function enter(b,roomId){
   b.test=null; b.room.send("test",{op:"core",r:100}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0;
   // 11.4: state chỉ có thực thể ở gần (lọc đồng bộ theo vùng); bot đọc hồn thú / hồn sư ở xa nên tắt lọc, trừ bot thử lọc (`b.near`).
   if(!b.near){ b.room.send("test",{op:"view",all:true}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0; }
-  b.bag=null; b.room.send("vohons"); b.room.send("bag"); b.room.send("quest",{op:"get"}); b.room.send("resonance");
+  b.bag=null; b.room.send("vohons"); b.room.send("boss"); b.room.send("bag"); b.room.send("quest",{op:"get"}); b.room.send("resonance");
 }
 /**
  * Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ; từ 4.1 loài / vị trí /
@@ -5439,7 +5439,7 @@ async function loiTinhDauTest(){
       ok(safeOk(sf,DV.world.charge.skill)&&pl,`Đại Địa Chấn có ${sf.length} vòng an toàn trong sàn (${sf.map(q=>`${q.x},${q.y}`).join("; ")}); 3 bot đứng ngoài vòng`);
       // Tin `boss` (client xin lại lúc vào phòng): nhận lại `here` và vùng chiêu toàn sàn đang báo trước (thời gian còn lại).
       W3.boss=[]; W3.fxs=[]; W3.room.send("boss");
-      ok(await waitFor(()=>W3.boss.some(m=>m.k==="here"&&m.here&&m.world)&&W3.fxs.some(f=>f.k==="tele"&&f.name==="Đại Địa Chấn"&&same(f.safe,sf)&&f.t<DV.world.charge.skill.warn),1500),
+      ok(await waitFor(()=>W3.boss.some(m=>m.k==="here"&&m.here&&m.world)&&W3.fxs.some(f=>f.k==="tele"&&f.name==="Đại Địa Chấn"&&same(f.safe,sf)&&f.t<DV.world.charge.skill.warn&&f.warn===DV.world.charge.skill.warn),1500),
         `xin lại tin boss (người vừa vào): nhận "here" và vùng ${DV.world.charge.skill.name} đang báo trước kèm vòng an toàn (còn ${W3.fxs.find(f=>f.k==="tele")?.t?.toFixed(1)} giây)`); }
     ok(await waitFor(()=>W1.boss.some(m=>m.k==="chargeHit"),DV.world.charge.skill.warn*1000+1500)&&await waitFor(()=>!bossB().chg,1000),"không ngắt kịp: Đại Địa Chấn trúng cả sàn (hết cờ tích lực)");
     await test(W1,"wmech",{m:"hold",secs:300}); await sleep(200);
