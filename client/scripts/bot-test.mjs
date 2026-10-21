@@ -59,6 +59,8 @@
 // chỉ chạy phần boss thế giới: vòng an toàn của chiêu toàn sàn, Du Thủy lặn ra giữa hồ và nổi lên đúng chỗ đã báo.
 // Tự săn online phía server (Auto 1, mục 5.13; autoTest, BOT_ONLY=auto): bật / tắt, hạ hồn thú, nhặt, tay ưu tiên, không cướp quái,
 // đan, tiên cơ, dừng khi PvP / gục / hết giờ / túi đầy, giới hạn mỗi ô lưới, lưu cài đặt và giờ treo.
+// Ủy thác offline (Auto 3, mục 5.13; offlineTest, BOT_ONLY=offline): thoát trong vùng săn, giả lập thời gian trôi (hook offline), vào lại
+// nhận thưởng đúng số giây / Hồn Tệ / hồn hoàn tối đa, quỹ giờ treo chung với tự săn, chia theo ngày, quá sức, túi đầy, vùng an toàn.
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
@@ -103,6 +105,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
 import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1)
+import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
@@ -179,6 +182,7 @@ async function enter(b,roomId){
   b.wpHere=null; b.wpUnlock??=[]; b.room.onMessage("wp",m=>{ if(m.k==="here") b.wpHere=m.key?m:null; if(m.k==="unlock") b.wpUnlock.push(m.key); });
   b.world=null; b.room.onMessage("world",m=>{b.world=m;}); b.recall=null; b.room.onMessage("recall",m=>{b.recall=m;});
   b.autoMsg=null; b.room.onMessage("auto",m=>{b.autoMsg=m;}); // tự săn (Auto 1): bật / tắt, giờ còn lại, lý do dừng
+  b.offMsg=null; b.room.onMessage("offline",m=>{b.offMsg=m;}); b.room.send("offline"); // ủy thác offline (Auto 3): xin bảng nhận thưởng
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
   b.room.onMessage("ko",m=>{b.ko=m;});
@@ -246,6 +250,7 @@ if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
 /**
@@ -4493,6 +4498,7 @@ await questTest();
 if(inPart(2)) await arenaTest(); // BOT_PART=3 bỏ, nhóm 2 đã chạy (xem dưới phần vào lại của A)
 await dailyTest();
 await autoTest();
+await offlineTest();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
 // qua đúng transaction đi cổng, như tài khoản đăng xuất ở Tinh Đấu trước BĐ3.
 if((await test(C,"ping"))?.enabled){
@@ -4835,6 +4841,111 @@ async function autoTest(){
   m=await autoOp(A,"on");
   ok(m&&!m.on&&/túi đồ đã đầy/.test(m.why??""),`túi đầy: không bật được (${m?.why})`);
   } finally { for(const b of [A,...extra]) await b.room.leave().catch(()=>{}); }
+}
+
+/**
+ * Ủy thác offline (Auto 3, mục 5.13; BOT_ONLY=offline chỉ chạy phần này): hàm thuần offlineSplit / offlineFight; thoát trong vùng săn rồi
+ * giả lập thời gian trôi bằng hook `offline {ago}`, vào lại nhận thưởng đúng số giây, Hồn Tệ, hồn hoàn tối đa OFFLINE.rings; quỹ giờ treo
+ * chung với tự săn (còn 10 phút / hết giờ); chia quỹ theo ngày (đồng hồ lịch đứng yên của GAME_TEST); vùng quá sức; túi đầy thì dừng;
+ * vắng quá ngắn và thoát trong vùng an toàn thì không có thưởng.
+ */
+async function offlineTest(){
+  console.log("[Auto 3] Ủy thác offline");
+  const D=AUTO_DAILY_SECS, H=3600, noon=Date.UTC(2026,9,22,5,0), tot=a=>a.reduce((s,x)=>s+x.secs,0); // noon: 12:00 giờ Việt Nam
+  let sp=offlineSplit(noon,1800,"2026-10-22",D-600);
+  ok(sp.length===1&&sp[0].secs===600,`offlineSplit: còn 10 phút quỹ hôm nay thì vắng 30 phút chỉ tính 600 giây (${JSON.stringify(sp)})`);
+  sp=offlineSplit(noon,13*H,"2026-10-22",0);
+  ok(same(sp,[{day:"2026-10-21",secs:H},{day:"2026-10-22",secs:12*H}]),`offlineSplit: vắng 13 giờ qua 00:00 thì chia hai ngày, mỗi ngày một quỹ (${JSON.stringify(sp)})`);
+  sp=offlineSplit(noon,40*H,"2026-10-20",D);
+  ok(tot(sp)===OFFLINE.maxSecs&&sp[0].day==="2026-10-21",`offlineSplit: vắng 40 giờ, ngày đầu đã hết quỹ, tối đa ${OFFLINE.maxSecs/H} giờ một lần (${JSON.stringify(sp)})`);
+  const f1=offlineFight({atk:200,crit:0.12,critMult:1.8,maxHp:2000,def:1},100,"phong_lang"), f2=offlineFight({atk:5,crit:0.12,critMult:1.8,maxHp:60,def:1},50000,"phong_lang");
+  ok(f1.ok&&f1.secs>OFFLINE.seek&&!f2.ok&&f2.secs===OFFLINE.seek,`offlineFight: mạnh hạ được (${f1.secs.toFixed(1)} giây/con), yếu thì quá sức (${f2.secs} giây bỏ qua)`);
+
+  const A=await bot("Ủy thác","u_minh_linh_mieu",{sex:1,hair:0,hairCol:3,outfitCol:2});
+  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua ủy thác offline (cần hook offline, goto, set, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
+  try{
+  const NV="tinh_dau_ngoai_vi", me=b=>b.room.state.players?.get(b.room.sessionId);
+  const objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const autoOp=async(b,op,more={})=>{ b.autoMsg=null; b.room.send("auto",{op,...more}); await waitFor(()=>b.autoMsg,1500); return b.autoMsg; };
+  async function rejoin(b){ await b.room.leave(); await sleep(300); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag&&b.owned,3000); }
+  async function warp(b,mapId,x,y){ b.travel=null; b.room.send("test",{op:"warp",mapId,x,y}); await waitFor(()=>b.travel?.mapId===mapId,4000); await rejoin(b); }
+  /** Thoát (hồn thú quanh đó đã dọn để không bị hạ lúc chờ) với lần ủy thác lùi `ago` giây, vào lại, chờ tin `offline` (null nếu không có). */
+  async function away(ago,ms=4000){ await test(A,"clear"); await test(A,"offline",{ago}); await rejoin(A); return await waitFor(()=>A.offMsg,ms)?A.offMsg:null; }
+  await waitFor(()=>me(A)&&A.bag&&A.owned,3000);
+
+  // ---- Thoát trong làng Thánh Hồn Thôn (vùng an toàn): không ủy thác ----
+  const tv=npcSpot("thanh_hon_thon","to_van_dao"); await test(A,"goto",{x:tv.x,y:tv.y+16});
+  let h=await test(A,"offline");
+  let m=await away(H,1500);
+  ok(h&&h.zone===null&&!m,`thoát trong làng (vùng an toàn): không ủy thác (vùng ${h?.zone}, tin ${JSON.stringify(m)})`);
+
+  // ---- Tinh Đấu Ngoại vi: vùng nông nhất, võ hồn cấp 21, 2 hồn hoàn ----
+  const ar=objsOf(NV).find(o=>o.type==="arrive"&&o.name==="tu_nac_dinh_thanh");
+  await warp(A,NV,ar.x,ar.y);
+  const zy=z=>parseLevelRange(z.properties?.find(q=>q.name==="years")?.value)??[0,0];
+  const zs=objsOf(NV).filter(o=>o.type==="zone").sort((a,b)=>zy(a)[1]-zy(b)[1]), shallow=zs[0], deep=zs.at(-1);
+  /** Đứng ở một điểm đi được trong vùng `z` mà hook xác nhận là vùng ủy thác (trả kết quả hook, null nếu không tìm được). */
+  async function stand(z){
+    for(const fy of [0.5,0.35,0.65,0.2,0.8]) for(const fx of [0.5,0.35,0.65,0.2,0.8]){
+      const x=Math.round(z.x+z.width*fx), y=Math.round(z.y+z.height*fy); await test(A,"goto",{x,y});
+      if(Math.hypot(me(A).x-x,me(A).y-y)<1){ const o=await test(A,"offline"); if(o?.zone===z.name) return o; }
+    }
+    return null;
+  }
+  const act=A.owned.active; await test(A,"set",{rowId:act,level:21,rings:[423,812]});
+  h=await stand(shallow);
+  ok(h,`đứng trong vùng ${shallow.name} (${zy(shallow).join("–")} năm): thoát ở đây được ủy thác (đồng hồ lịch ${h?.clock})`);
+  const frozen=/^frozen/.test(h?.clock??"");
+  // Không nhặt hồn cốt / hồn hạch (mỗi món một ô) để một giờ không đầy túi; hồn hoàn vẫn nhặt (tối đa OFFLINE.rings).
+  await autoOp(A,"set",{cfg:{bone:false,core:false}});
+  await test(A,"auto",{used:0});
+  const coin0=A.bag.honTe, ring0=qtyOf(A,RING_ITEM);
+  m=await away(H);
+  ok(m&&m.secs===H&&m.away>=H&&m.zone===shallow.name&&m.used<=m.secs&&m.used>m.secs-120,`vắng 1 giờ: tính ${m?.secs} giây, đã săn ${m?.used} giây ở ${m?.zone}`);
+  ok(m&&m.kills>0&&m.xp>0&&!m.stop,`hạ ${m?.kills} hồn thú (${m?.weak} con quá sức), ${m?.xp} kinh nghiệm gốc${m?.stop?`, dừng: ${m.stop}, ${JSON.stringify(m.items)}`:""}`);
+  await waitFor(()=>A.bag.honTe===coin0+(m?.coins??0),2000);
+  ok(m&&m.coins>0&&A.bag.honTe-coin0===m.coins,`Hồn Tệ vào túi đúng bảng thưởng (${formatHonTe(m?.coins??0)})`);
+  const rq=m?.items.find(i=>/^Hồn hoàn/.test(i.name))?.qty??0;
+  ok(rq>0&&rq<=OFFLINE.rings&&qtyOf(A,RING_ITEM)-ring0===rq,`hồn hoàn vào túi: ${rq} chiếc (tối đa ${OFFLINE.rings}), túi ${ring0} → ${qtyOf(A,RING_ITEM)}`);
+  ok(m&&Math.abs(m.left-(D-m.used))<=1&&Math.abs((A.autoMsg?.left??-9)-m.left)<1,`quỹ giờ treo hôm nay trừ đúng phần đã săn (còn ${autoTimeText(m?.left??0)})`);
+
+  // ---- Vắng quá ngắn: không tính ----
+  m=await away(OFFLINE.minSecs-60,1500);
+  ok(!m,`vắng dưới ${OFFLINE.minSecs} giây: không có bảng thưởng`);
+
+  // ---- Quỹ chung với tự săn: còn 10 phút / hết giờ ----
+  await test(A,"auto",{used:D-600});
+  m=await away(1800);
+  ok(m&&(frozen?m.secs===600:m.secs<=600)&&m.used<=m.secs&&m.left<=600-m.used+1,`còn 10 phút giờ treo hôm nay, vắng 30 phút: chỉ tính ${m?.secs} giây, còn ${m?.left?.toFixed(0)} giây`);
+  await test(A,"auto",{used:D});
+  m=await away(1800);
+  ok(m&&m.secs===0&&m.kills===0&&m.stop==="hết giờ treo",`hết giờ treo hôm nay: không tính giây nào (${m?.stop})`);
+
+  // ---- Qua 00:00 (đồng hồ lịch đứng yên 12:00 của GAME_TEST): mỗi ngày một quỹ; không nhặt hồn hoàn / hồn cốt / hồn hạch ----
+  if(frozen){
+    await autoOp(A,"set",{cfg:{ring:-1,bone:false,core:false}});
+    await test(A,"auto",{used:0});
+    const r1=qtyOf(A,RING_ITEM);
+    m=await away(13*H);
+    ok(m&&m.secs===13*H&&Math.abs(m.left-(D-Math.max(0,m.used-H)))<=1,`vắng 13 giờ qua 00:00: tính ${m?.secs/H} giờ (1 giờ hôm qua + 12 giờ hôm nay), hôm nay còn ${autoTimeText(m?.left??0)}`);
+    ok(m&&qtyOf(A,RING_ITEM)===r1&&!m.items.some(i=>/^Hồn hoàn/.test(i.name)),"bộ lọc nhặt của tự săn (ring = −1): không nhận hồn hoàn");
+    await autoOp(A,"set",{cfg:{}});
+  } else console.log(`  ⚠ bỏ qua phần chia quỹ qua 00:00: đồng hồ lịch ${h?.clock} (cần GAME_TEST không đặt BOSS_CLOCK)`);
+
+  // ---- Vùng quá sức: võ hồn cấp 1 ở vùng sâu nhất ----
+  h=await stand(deep); await test(A,"set",{rowId:act,level:1,rings:[]});
+  await test(A,"auto",{used:0});
+  m=await away(H);
+  ok(h&&m&&m.kills===0&&m.weak>0&&m.stop==="vùng quá sức",`cấp 1 ở ${deep.name} (${zy(deep).join("–")} năm): không hạ được con nào (${m?.weak} con quá sức, ${m?.stop})`);
+
+  // ---- Túi đầy: dừng sớm, chỉ trừ quỹ phần đã săn ----
+  await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
+  const free=()=>A.bag.slots-looseOf(A).length;
+  await test(A,"give",{code:RING_ITEM,qty:Math.max(0,free()-1),years:20}); await waitFor(()=>free()===1,2000);
+  await test(A,"auto",{used:0});
+  m=await away(H);
+  ok(m&&m.stop==="túi đầy"&&m.used<m.secs&&free()===0&&Math.abs(m.left-(D-m.used))<=1,`túi đầy: dừng sau ${m?.used}/${m?.secs} giây, quỹ chỉ trừ phần đã săn`);
+  } finally { await A.room.leave().catch(()=>{}); }
 }
 
 async function syncViewTest(){
