@@ -1,4 +1,4 @@
-import type { Looks, QuestProgress, QuestStatus, AutoSettings } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus, AutoSettings, AutoSummary } from "../../shared/data.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
@@ -26,10 +26,10 @@ export interface WorldMsg {
   list: { key: string; map: string; label: string; open: boolean; fee: number | null }[];
 }
 /**
- * Tin riêng "auto" (Auto 1, mục 5.13): đang tự săn không, giây treo còn lại hôm nay / tối đa mỗi ngày, cài đặt (AutoSettings), lý do
- * vừa dừng hoặc từ chối bật.
+ * Tin riêng "auto" (mục 5.13): đang tự săn không, giây treo còn lại (phần còn của hôm nay cộng quỹ Ủy Thác Lệnh `bonus`), giây miễn
+ * phí mỗi ngày, cài đặt (AutoSettings), lý do vừa dừng hoặc từ chối bật, tổng kết lượt vừa dừng (Auto 2).
  */
-export interface AutoMsg { on: boolean; left: number; max: number; cfg: AutoSettings; why?: string; }
+export interface AutoMsg { on: boolean; left: number; max: number; bonus: number; cfg: AutoSettings; why?: string; sum?: AutoSummary; }
 export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô

@@ -101,6 +101,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
 import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1)
+import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
@@ -4645,6 +4646,8 @@ async function npcTown(){
  * tự đánh thì tắt (tay ưu tiên); không đánh hồn thú người khác đang giao chiến; uống đan khi ít máu; đổi tay tung tiên cơ rồi về;
  * dừng khi bị PvP (hook), khi cả đội gục, khi hết giờ trong ngày (sang ngày mới bật lại được), khi túi đầy; giới hạn người treo mỗi
  * ô lưới; cài đặt và giờ treo lưu qua lần vào lại.
+ * Auto 2: cài đặt mở rộng (bán kính, thứ tự ô đội tiên cơ, sao hồn hạch, loại vật phẩm), tổng kết khi dừng, Ủy Thác Lệnh (mua ở
+ * thương nhân, cộng quỹ giờ treo, chỉ tiêu sau giờ miễn phí, trần AUTO_BONUS_MAX, lưu qua lần vào lại).
  */
 async function autoTest(){
   console.log("[Auto 1] Tự săn online phía server");
@@ -4652,6 +4655,10 @@ async function autoTest(){
   const pa=parseAuto({years:[900,10],hp:5,mp:-1,skills:[3,3,9,0,"1",1.5],ring:-5,bone:"x"});
   ok(same(pa.years,[10,900])&&pa.hp===0.95&&pa.mp===0&&same(pa.skills,[3,0])&&pa.ring===-1&&pa.bone===AUTO_DEFAULTS.bone&&same(parseAuto(null),AUTO_DEFAULTS),
     `parseAuto kẹp cài đặt: ${JSON.stringify(pa)}`);
+  const pb=parseAuto({radius:99,slots:[3,3,0,7,-1],coreStar:9,kinds:["tien_thao","dan","x"]}), pc=parseAuto({radius:1,coreStar:0,item:false});
+  ok(pb.radius===AUTO_RADIUS/16&&pc.radius===AUTO_RADIUS_MIN/16&&same(pb.slots,[3,0])&&pb.coreStar===MAX_CORE_STARS&&pc.coreStar===1&&same(pb.kinds,["tien_thao"])
+    &&same(pc.kinds,[])&&same(parseAuto({}).kinds,AUTO_LOOT_KINDS)&&AUTO_DEFAULTS.radius===AUTO_RADIUS/16,
+    `Auto 2: kẹp bán kính ${AUTO_RADIUS_MIN/16}–${AUTO_RADIUS/16} ô, thứ tự ô đội, sao hồn hạch, loại vật phẩm; bản lưu cũ item:false thì không nhặt loại nào`);
   const A=await bot("Treo máy","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1});
   if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự săn (cần hook warp, goto, spawn, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
   const extra=[];
@@ -4709,6 +4716,10 @@ async function autoTest(){
   // ---- Tay ưu tiên ----
   A.room.send("input",{x:1,y:0});
   ok(await stopped(A,/tự di chuyển/),`tự bấm đi: tắt (${A.autoMsg?.why})`);
+  // Auto 2: tin `auto` lúc dừng có tổng kết lượt vừa rồi (thời gian, hồn thú đã hạ, kinh nghiệm, Hồn Tệ, đồ nhặt).
+  const sum=A.autoMsg?.sum;
+  ok(sum&&sum.secs>0&&sum.kills>=1&&sum.xp>0&&sum.coins>0&&sum.loot.some(([n,q])=>/^Hồn hoàn/.test(n)&&q>=1)&&A.autoMsg.left>0,
+    `tổng kết khi dừng: ${JSON.stringify(sum)}, còn ${autoTimeText(A.autoMsg?.left??0)}`);
   A.room.send("input",{x:0,y:0}); await sleep(100);
   m=await autoOp(A,"on"); A.room.send("attack");
   ok(m?.on&&await stopped(A,/tự ra đòn/),`tự bấm đánh: tắt (${A.autoMsg?.why})`);
@@ -4764,6 +4775,34 @@ async function autoTest(){
   if(!wiped) console.log(`  (bật: ${JSON.stringify(m)}; log: ${A.logs.slice(l0).join(" | ")})`);
   await waitFor(()=>!me(A).dead,(RESPAWN_SECS+2)*1000);
 
+  // ---- Auto 2: bán kính vùng neo theo cài đặt; thứ tự ô đội rỗng thì không đổi tay tiên cơ ----
+  await test(A,"goto",home); await test(A,"clear");
+  await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,radius:AUTO_RADIUS_MIN/16,slots:[]}});
+  sp=await test(A,"spawn",{tier:0,dx:180,dy:0,years:15}); const far=sp?.bid; // 10 năm không hung hăng; lang thang tối đa 60 pixel
+  m=await autoOp(A,"on"); await sleep(2500);
+  let info=await test(A,"auto");
+  ok(m?.on&&far&&A.room.state.beasts.has(far)&&info?.target!==far,`bán kính ${AUTO_RADIUS_MIN/16} ô: không nhắm hồn thú cách điểm neo 180 pixel (mục tiêu ${info?.target})`);
+  const act1=A.owned.active; await test(A,"energy",{v:TIEN_CO_MAX});
+  sp=await test(A,"spawn",{tier:0,dx:36,dy:0,years:15,hpx:20}); const near=sp?.bid;
+  ok(near&&await waitFor(()=>(A.room.state.beasts.get(near)?.hp??0)<(A.room.state.beasts.get(near)?.maxHp??1),8000),"hồn thú trong bán kính: tự đi tới đánh");
+  await sleep(1500);
+  ok(A.owned.active===act1,"thứ tự ô đội rỗng: đầy năng lượng tiên cơ cũng không đổi tay");
+  await autoOp(A,"off"); await test(A,"slay",{bid:near}); await test(A,"slay",{bid:far}); await test(A,"energy",{v:0});
+  await autoOp(A,"set",{cfg:AUTO_DEFAULTS});
+
+  // ---- Auto 2: lọc hồn hạch theo sao ----
+  await test(A,"goto",home); await test(A,"clear");
+  await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:false,coreStar:3}});
+  await test(A,"core",{r:0,stars:2}); // chắc chắn rơi hồn hạch 2 sao
+  sp=await test(A,"spawn",{tier:0,dx:30,dy:0,years:1500}); const sc=await test(A,"slay",{bid:sp?.bid}); await test(A,"core",{r:-1});
+  const coreAt=()=>[...A.room.state.drops.entries()].find(([,d])=>d.item===CORE_ITEM&&Math.hypot(d.x-sc.x,d.y-sc.y)<24)?.[0];
+  await waitFor(()=>coreAt(),1500); const cd=coreAt(), c0=qtyOf(A,CORE_ITEM);
+  m=await autoOp(A,"on"); await sleep(2500);
+  ok(cd&&m?.on&&A.room.state.drops.has(cd)&&qtyOf(A,CORE_ITEM)===c0,`chỉ nhặt hồn hạch từ 3★: hồn hạch 2★ vẫn nằm dưới đất`);
+  await autoOp(A,"off"); await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:false,coreStar:2}}); await autoOp(A,"on");
+  ok(cd&&await waitFor(()=>qtyOf(A,CORE_ITEM)>c0,5000),`hạ ngưỡng còn 2★: nhặt hồn hạch (${c0} → ${qtyOf(A,CORE_ITEM)})`);
+  await autoOp(A,"off"); await autoOp(A,"set",{cfg:AUTO_DEFAULTS});
+
   // ---- Giới hạn giờ treo mỗi ngày ----
   await test(A,"goto",home); await test(A,"clear");
   await test(A,"auto",{used:AUTO_DAILY_SECS-1.5});
@@ -4775,6 +4814,31 @@ async function autoTest(){
   m=await autoOp(A,"on");
   ok(m?.on&&m.left>=AUTO_DAILY_SECS-5,`sang ngày mới (giờ Việt Nam): bật lại được, còn ${autoTimeText(m?.left??0)}`);
   await autoOp(A,"off"); await test(A,"day",{shift:0});
+
+  // ---- Auto 2: Ủy Thác Lệnh (mua ở thương nhân trong thành, cộng quỹ giờ treo ngoài giờ miễn phí) ----
+  ok(SHOP.some(r=>r.code===AUTO_TOKEN&&r.price===AUTO_TOKEN_PRICE)&&!CAMP_SHOP.some(r=>r.code===AUTO_TOKEN)&&itemDef(AUTO_TOKEN)?.auto===AUTO_TOKEN_SECS,
+    `Ủy Thác Lệnh: thương nhân trong thành bán ${formatHonTe(AUTO_TOKEN_PRICE)}, +${autoTimeText(AUTO_TOKEN_SECS)} mỗi lệnh`);
+  const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
+  await warp(A,"nac_dinh_thanh",tn.x,tn.y+16);
+  await test(A,"coin",{n:AUTO_TOKEN_PRICE+5}); await waitFor(()=>A.bag.honTe===AUTO_TOKEN_PRICE+5,1500);
+  const tk0=qtyOf(A,AUTO_TOKEN), tbuy=await trade(A,"buy",{code:AUTO_TOKEN,qty:1});
+  ok(await waitFor(()=>qtyOf(A,AUTO_TOKEN)===tk0+1&&A.bag.honTe===5,1500),`mua 1 Ủy Thác Lệnh, còn ${formatHonTe(A.bag.honTe)} (${tbuy})`);
+  await test(A,"auto",{used:AUTO_DAILY_SECS,bonus:0});
+  const useTok=async()=>{ A.autoMsg=null; A.room.send("use",{id:A.bag.items.find(i=>i.code===AUTO_TOKEN)?.id}); await waitFor(()=>A.autoMsg,1500); return A.autoMsg; };
+  m=await useTok();
+  ok(m&&m.bonus===AUTO_TOKEN_SECS&&m.left===AUTO_TOKEN_SECS&&await waitFor(()=>qtyOf(A,AUTO_TOKEN)===tk0,1500),
+    `hết giờ miễn phí, dùng lệnh: còn ${autoTimeText(m?.left??0)} (cộng thêm ${autoTimeText(m?.bonus??0)}), lệnh trong túi ${qtyOf(A,AUTO_TOKEN)}`);
+  await warp(A,NV,home.x,home.y); m=await autoOp(A,"get");
+  ok(m&&Math.abs(m.bonus-AUTO_TOKEN_SECS)<=2&&m.left<=AUTO_TOKEN_SECS,`vào lại: quỹ giờ cộng thêm còn ${autoTimeText(m?.bonus??0)} (lưu cùng túi đồ)`);
+  await test(A,"clear"); m=await autoOp(A,"on"); await sleep(1500); await autoOp(A,"off");
+  info=await test(A,"auto");
+  ok(m?.on&&info?.used>=AUTO_DAILY_SECS&&info.bonus<AUTO_TOKEN_SECS&&info.bonus>AUTO_TOKEN_SECS-30,`đã hết giờ miễn phí: bật được, tiêu quỹ cộng thêm (${info?.bonus?.toFixed(1)} giây còn)`);
+  await test(A,"auto",{bonus:1.5}); m=await autoOp(A,"on");
+  ok(m?.on&&await stopped(A,/đủ 12 giờ/,5000)&&A.autoMsg.bonus===0,`quỹ còn 1,5 giây: treo hết rồi dừng (${A.autoMsg?.why})`);
+  await test(A,"auto",{bonus:AUTO_BONUS_MAX-60}); await test(A,"give",{code:AUTO_TOKEN,qty:1}); await waitFor(()=>qtyOf(A,AUTO_TOKEN)===tk0+1,1500);
+  const tl=A.logs.length; A.room.send("use",{id:A.bag.items.find(i=>i.code===AUTO_TOKEN)?.id});
+  ok(await waitFor(()=>A.logs.slice(tl).some(t=>/tối đa/.test(t)),1500)&&qtyOf(A,AUTO_TOKEN)===tk0+1,`quỹ gần đầy (${autoTimeText(AUTO_BONUS_MAX)}): không dùng được, lệnh còn trong túi`);
+  await test(A,"auto",{used:0,bonus:0});
 
   // ---- Giới hạn người treo mỗi ô lưới ----
   const C=await bot("Treo ba","hoa_long",{sex:0,hair:3,hairCol:4,outfitCol:0}); extra.push(C);

@@ -1537,6 +1537,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     };
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
     if (def?.recall) btn("Dùng", "absorb", () => { act.use(sel.id); toggleBag(false); }); // Hồi Thành Phù (11.2): niệm rồi về thành
+    if (def?.auto) btn("Dùng", "absorb", () => act.use(sel.id)); // Ủy Thác Lệnh (Auto 2): cộng giờ treo tự săn
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
@@ -2412,14 +2413,14 @@ export function showWaypoint(label: string | null, open: () => void) {
 /** Niệm truyền tống / Hồi Thành Phù đang chạy (tin riêng `recall`): chữ trên thanh niệm (dùng chung chỗ thanh hấp thụ), tổng giây, lúc bắt đầu. */
 let recall: { label: string; secs: number; t0: number } | null = null;
 /**
- * Nút "Tự động" (Auto 1, mục 5.13): bật / tắt theo tin riêng `auto` của server, chú thích giờ treo còn lại hôm nay. Lý do dừng server
- * báo bằng dòng log.
+ * Nút "Tự động" (mục 5.13): sáng khi đang tự săn theo tin riêng `auto` của server, chú thích giờ treo còn lại. Bấm thì mở bảng Tự
+ * động (client/src/autoPanel.ts, Auto 2); lý do dừng server báo bằng dòng log và bảng tổng kết.
  */
 export function setAuto(m: AutoMsg) {
   const b = $("#autoBtn"); if (!b) return;
   b.setAttribute("aria-pressed", String(m.on));
   b.firstChild!.textContent = m.on ? "Đang tự động " : "Tự động ";
-  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc bấm lại để tắt" : "Tự săn quanh chỗ đang đứng (tự đi / đánh thì tắt)"}. Còn ${autoTimeText(m.left)} hôm nay (tối đa ${autoTimeText(m.max)}).`;
+  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
 }
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
 /** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */
