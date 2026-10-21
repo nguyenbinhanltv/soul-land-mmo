@@ -245,6 +245,7 @@ body.touch #prompt{bottom:160px}
 /* Túi đồ và Hồn Tệ (bước 3.1): mở bằng phím B hoặc nút trong khung chỉ số; cùng chỗ với bảng đội hình */
 .minirow{display:flex;gap:6px}
 .minirow .minibtn{flex:1;padding:5px 4px}
+#autoBtn[aria-pressed="true"]{color:#2f7a4a;border-color:#2f7a4a}
 #bag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,94vw);max-height:80%;overflow-y:auto;
   padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:7px;
   backdrop-filter:blur(6px)}
