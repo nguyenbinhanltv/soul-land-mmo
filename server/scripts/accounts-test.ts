@@ -4,7 +4,7 @@
 // để thử cả PgStore: test tạo tài khoản rác và chèn thẳng tài khoản trùng tên, KHÔNG trỏ vào DB thật.
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
-import { MemoryStore, PgStore, type Store, type Item } from "../src/db.ts";
+import { MemoryStore, PgStore, type Store, type Item, type Bag } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
 import { DEFAULT_MAP, MAP_MOVED } from "../../shared/data.ts";
 
@@ -12,6 +12,8 @@ import { DEFAULT_MAP, MAP_MOVED } from "../../shared/data.ts";
 const PW = Array.from({ length: 7 }, () => randomUUID()), WRONG = randomUUID();
 
 async function test(title: string, fn: () => Promise<void>) { await fn(); console.log(`✓ ${title}`); }
+/** Phần túi đồ và Hồn Tệ của Bag (loadBag còn trả nhiệm vụ, số ô: kiểm ở chỗ khác). */
+const core = (b: Bag) => ({ honTe: b.honTe, items: b.items });
 const ok = (r: Awaited<ReturnType<Store["login"]>>) => { assert.ok(!("error" in r), JSON.stringify(r)); return r.accountId; };
 
 await test("cleanName giữ hoa/thường, chỉ chuẩn hóa NFKC và cắt khoảng trắng", async () => {
@@ -33,6 +35,15 @@ async function common(label: string, s: Store, u = "") {
   await test(`${label}: dấu dựng sẵn và dấu tổ hợp là cùng một tài khoản`, async () => {
     const id = ok(await s.login(cleanName(`Đường Tam${u}`), PW[2]));
     assert.equal(ok(await s.login(cleanName(`ĐƯỜNG TAM${u}`.normalize("NFD")), PW[2])), id);
+  });
+  await test(`${label}: token sai định dạng (NUL, object, số, quá dài) -> null, không ném lỗi`, async () => {
+    for (const t of ["\u0000", `${"a".repeat(31)}\u0000`, "", "a".repeat(33), "a".repeat(10_000), { $ne: 1 }, ["x"], 42, null, undefined])
+      assert.equal(await s.accountFromToken(t), null, JSON.stringify(t));
+  });
+  await test(`${label}: hai lần tạo cùng tên cùng lúc, khác mật khẩu -> một tài khoản, lần kia sai mật khẩu`, async () => {
+    const [a, b] = await Promise.all([s.login(cleanName(`Đua${u}`), PW[6]), s.login(cleanName(`ĐUA${u}`), WRONG)]);
+    assert.ok(!("error" in a) && "error" in b, JSON.stringify([a, b]));
+    assert.equal(ok(await s.login(cleanName(`đua${u}`), PW[6])), a.accountId);
   });
   await test(`${label}: bản đồ đang đứng, lớp chặn WHERE map_id và transaction đi cổng (BĐ2)`, async () => {
     const id = ok(await s.login(cleanName(`Cổng${u}`), PW[5]));
@@ -87,15 +98,15 @@ async function common(label: string, s: Store, u = "") {
     // Lần nạp đầu: nhận vật phẩm khởi đầu đúng thứ tự; lần sau không nhận nữa (kể cả khi gửi danh sách khác).
     const first = await s.loadBag(id, starter);
     assert.equal(first.starter, true);
-    assert.deepEqual(first.bag, { honTe: 0, items: starter });
+    assert.deepEqual(core(first.bag), { honTe: 0, items: starter });
     const again = await s.loadBag(id, [item("hoi_huyet_dan", 99)]);
     assert.equal(again.starter, false);
-    assert.deepEqual(again.bag, first.bag);
+    assert.deepEqual(core(again.bag), core(first.bag));
     // Lưu cả túi: sửa ô (số lượng), xóa ô hết, thêm ô mới có số năm/sao/dòng chỉ số/gắn vào võ hồn; Hồn Tệ là số nguyên.
     const ring = item("hon_hoan", 1, { kind: "hon_hoan", years: 437, stars: 2, enhance: 3, stats: { main: ["atk", 12], sub: [["hp", 5]] }, vohonId: ch.rowId });
     const bag = { honTe: 1_234_567, items: [{ ...starter[0], qty: 3 }, ring] };
     await s.saveBag(id, bag);
-    assert.deepEqual((await s.loadBag(id, [])).bag, bag);
+    assert.deepEqual(core((await s.loadBag(id, [])).bag), bag);
     // Ghi lỗi thì không ghi gì: id trùng, số lượng sai, Hồn Tệ âm, đồ gắn vào võ hồn người khác, id thuộc tài khoản khác.
     await assert.rejects(s.saveBag(id, { honTe: 1, items: [bag.items[0], bag.items[0]] }));
     await assert.rejects(s.saveBag(id, { honTe: 1, items: [{ ...bag.items[0], qty: 0 }] }));
@@ -103,18 +114,18 @@ async function common(label: string, s: Store, u = "") {
     await assert.rejects(s.saveBag(id, { honTe: 1, items: [{ ...ring, vohonId: och.rowId }] }));
     await s.loadBag(other, []);
     await assert.rejects(s.saveBag(other, { honTe: 9, items: [{ ...bag.items[0], qty: 50 }] }));
-    assert.deepEqual((await s.loadBag(id, [])).bag, bag);
-    assert.deepEqual((await s.loadBag(other, [])).bag, { honTe: 0, items: [] });
+    assert.deepEqual(core((await s.loadBag(id, [])).bag), bag);
+    assert.deepEqual(core((await s.loadBag(other, [])).bag), { honTe: 0, items: [] });
     // Đi cổng: túi đồ ghi trong cùng transaction; transaction lỗi (sai bản đồ đi) thì túi giữ nguyên.
     const travelBag = { honTe: 42, items: [item("hoi_hon_dan", 7)] };
     await assert.rejects(s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328, travelBag));
-    assert.deepEqual((await s.loadBag(id, [])).bag, bag);
+    assert.deepEqual(core((await s.loadBag(id, [])).bag), bag);
     await s.saveTravel(id, [ch], DEFAULT_MAP, "nac_dinh_thanh", 88, 328, travelBag);
-    assert.deepEqual((await s.loadBag(id, [])).bag, travelBag);
+    assert.deepEqual(core((await s.loadBag(id, [])).bag), travelBag);
     assert.equal((await s.getLocation(id)).mapId, "nac_dinh_thanh");
     // Không có túi trong transaction (không đổi gì) thì túi giữ nguyên.
     await s.saveTravel(id, [ch], "nac_dinh_thanh", DEFAULT_MAP, 10, 10);
-    assert.deepEqual((await s.loadBag(id, [])).bag, travelBag);
+    assert.deepEqual(core((await s.loadBag(id, [])).bag), travelBag);
   });
 }
 

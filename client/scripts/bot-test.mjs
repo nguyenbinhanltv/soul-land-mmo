@@ -350,6 +350,27 @@ async function channelTest(){
   for(const b of [P1,P2,P3]) await b.room.leave();
 }
 
+// Chống gian lận (#166): API REST gặp dữ liệu lạ trả lỗi JSON ngay (không treo request, không lộ stack / đường dẫn server).
+{
+  console.log("\n== Chống gian lận: API REST ==");
+  const raw=async(p,body)=>{ try{ const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body,signal:AbortSignal.timeout(3000)});
+    const t=await r.text(); let j=null; try{ j=JSON.parse(t); }catch{} return {status:r.status,j,t}; }catch(e){ return {status:0,j:null,t:String(e)}; } };
+  const leak=t=>/node_modules|\/src\/|\bat [\w.<]+ \(/.test(t);
+  for(const p of ["/api/me","/api/channel","/api/looks","/api/awaken"]){
+    const bad=[];
+    for(const token of ["\u0000",`${"a".repeat(31)}\u0000`,{x:1},["t"],12,"x".repeat(5000)]){
+      const r=await raw(p,JSON.stringify({token})); if(!(r.status===401&&typeof r.j?.error==="string")) bad.push(`${JSON.stringify(token).slice(0,12)}:${r.status}`);
+    }
+    ok(!bad.length,`${p}: token lạ (NUL, object, mảng, số, quá dài) -> 401 JSON ${bad.join(" ")}`);
+  }
+  for(const [p,body] of [["/api/login",'{"name":'],["/api/me","not json"]]){
+    const r=await raw(p,body); ok(r.status===400&&typeof r.j?.error==="string"&&!leak(r.t),`${p} JSON hỏng -> 400 JSON, không lộ stack (${r.status})`);
+  }
+  const big=await raw("/api/login",JSON.stringify({name:"x",password:"p".repeat(20000)}));
+  ok(big.status===413&&typeof big.j?.error==="string"&&!leak(big.t),`/api/login body > 10kb -> 413 JSON (${big.status})`);
+  ok((await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok,"server vẫn trả /health sau các request lạ");
+}
+
 // 9.9: A tạo nhân vật tông da 2; B không gửi tông da (như client / tài khoản cũ có từ trước 9.9) nên giữ tông 0.
 const A=await bot("Tester A","lam_dien_ba_vuong_long",{sex:1,hair:2,hairCol:3,outfitCol:4,skin:2}), B=await bot("Tester B","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:5,outfitCol:1});
 await sleep(800);

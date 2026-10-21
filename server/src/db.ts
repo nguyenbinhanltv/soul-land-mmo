@@ -2,7 +2,8 @@
 // Có DATABASE_URL -> dùng PostgreSQL/Supabase. Không có -> lưu trong RAM (mất khi tắt server, chỉ để thử nhanh).
 import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
 
@@ -72,7 +73,8 @@ export interface Store {
   init(): Promise<void>;
   /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. */
   login(name: string, password: string): Promise<{ token: string; accountId: number } | { error: string }>;
-  accountFromToken(token: string): Promise<{ accountId: number; name: string } | null>;
+  /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
+  accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
   getCharacter(accountId: number): Promise<Character | null>;
   /** Mọi võ hồn tài khoản sở hữu, theo thứ tự nhận được. */
@@ -171,16 +173,20 @@ export interface Store {
   arenaPairAdd(day: string, a: number, b: number): Promise<number>;
 }
 
-function hashPass(pw: string) {
+// scrypt bất đồng bộ (threadpool của libuv): bản Sync mất vài chục ms mỗi lần trên luồng chính, đăng nhập dồn dập làm đứng tick mọi phòng.
+const scryptAsync = promisify(scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
+async function hashPass(pw: string) {
   const salt = randomBytes(16).toString("hex");
-  return `${salt}:${scryptSync(pw, salt, 32).toString("hex")}`;
+  return `${salt}:${(await scryptAsync(pw, salt, 32)).toString("hex")}`;
 }
-function checkPass(pw: string, stored: string) {
+async function checkPass(pw: string, stored: string) {
   const [salt, hex] = stored.split(":");
-  const a = Buffer.from(hex, "hex"), b = scryptSync(pw, salt, 32);
+  const a = Buffer.from(hex, "hex"), b = await scryptAsync(pw, salt, 32);
   return a.length === b.length && timingSafeEqual(a, b);
 }
 const newToken = () => randomBytes(24).toString("base64url");
+/** Token đúng dạng newToken (base64url). Chặn trước khi hỏi DB: chuỗi lạ (ký tự NUL…) làm PostgreSQL báo lỗi mã hóa. */
+const tokenOk = (t: unknown): t is string => typeof t === "string" && /^[A-Za-z0-9_-]{32}$/.test(t);
 const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills], herbs: { ...c.herbs } });
 /** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
@@ -216,13 +222,18 @@ export class MemoryStore implements Store {
   async login(name: string, password: string) {
     const key = nameKey(name);
     let acc = this.accounts.get(key);
-    if (!acc) { acc = { id: this.seq++, pass: hashPass(password) }; this.accounts.set(key, acc); this.names.set(acc.id, name); }
-    else if (!checkPass(password, acc.pass)) return { error: "Sai mật khẩu." };
+    if (!acc) {
+      const pass = await hashPass(password);
+      // Trong lúc băm có yêu cầu khác cùng tên vừa tạo tài khoản: kiểm mật khẩu như tài khoản có sẵn.
+      acc = this.accounts.get(key);
+      if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); }
+      else if (!(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
+    } else if (!(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
     const token = newToken(); this.sessions.set(token, acc.id);
     return { token, accountId: acc.id };
   }
-  async accountFromToken(token: string) {
-    const id = this.sessions.get(token); return id ? { accountId: id, name: this.names.get(id)! } : null;
+  async accountFromToken(token: unknown) {
+    const id = tokenOk(token) ? this.sessions.get(token) : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
   }
   owned(accountId: number) { return [...this.rows.values()].filter((c) => c.accountId === accountId).sort((a, b) => a.rowId - b.rowId); }
   async getCharacter(accountId: number) {
@@ -440,17 +451,18 @@ export class PgStore implements Store {
     let acc = await find(), created = false;
     if (!acc) {
       const ins = await this.pool.query(
-        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, hashPass(password)]);
+        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, await hashPass(password)]);
       created = !!ins.rowCount;
       // Hai yêu cầu tạo cùng tên một lúc: yêu cầu thua bị chỉ mục duy nhất chặn, lấy tài khoản vừa tạo và kiểm tra mật khẩu như thường.
       acc = created ? ins.rows[0] : await find();
       // Không tìm thấy dù chèn bị chặn: tên trùng y hệt một tài khoản cũ bị loại khi điền name_key (xem backfillNameKeys).
       if (!acc) return { error: "Tên này đã có người dùng." };
     }
-    if (!created && !checkPass(password, acc.pass_hash)) {
+    if (!created && !(await checkPass(password, acc.pass_hash))) {
       // Tài khoản cũ trùng tên bị loại khi điền name_key (backfillNameKeys) vẫn đăng nhập được bằng mật khẩu của chính nó.
-      const legacy = (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows
-        .find((r) => nameKey(r.name) === key && checkPass(password, r.pass_hash));
+      let legacy = null;
+      for (const r of (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows)
+        if (nameKey(r.name) === key && await checkPass(password, r.pass_hash)) { legacy = r; break; }
       if (!legacy) return { error: "Sai mật khẩu." };
       acc = legacy;
     }
@@ -459,7 +471,8 @@ export class PgStore implements Store {
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
     return { token, accountId: id };
   }
-  async accountFromToken(token: string) {
+  async accountFromToken(token: unknown) {
+    if (!tokenOk(token)) return null;
     const r = await this.pool.query(
       "SELECT a.id, a.name FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token=$1 AND s.created_at > now() - interval '30 days'", [token]);
     return r.rowCount ? { accountId: Number(r.rows[0].id), name: r.rows[0].name as string } : null;
