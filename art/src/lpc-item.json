@@ -1,0 +1,24 @@
+{
+  "packs": {
+    "reemax": {
+      "title": "LPC Items and game effects",
+      "url": "https://opengameart.org/content/lpc-items-and-game-effects",
+      "dir": "items_effects/ItemsAndEffects",
+      "licenses": ["CC-BY-SA 3.0", "GPL 3.0", "GPL 2.0"]
+    },
+    "explosions": {
+      "title": "LPC Explosions",
+      "url": "https://opengameart.org/content/lpc-explosions",
+      "dir": "explosions",
+      "licenses": ["CC0"]
+    }
+  },
+  "items": [
+    { "key": "item_hoi_thanh_phu", "pack": "reemax", "file": "items1.png", "cell": [15, 6], "by": "Gwes (gốc), Tuomo Untinen (Reemax, sửa)", "part": "Scrolls and books: cuộn giấy có dấu son" },
+    { "key": "item_ruong", "pack": "reemax", "file": "items1.png", "cell": [14, 1], "gray": true, "by": "Tuomo Untinen (Reemax)", "part": "hộp có nắp (Toolbox / Medikit)" },
+    { "key": "item_tien_thao", "pack": "reemax", "file": "items1.png", "cell": [5, 8], "gray": true, "by": "Tuomo Untinen (Reemax)", "part": "Blue plant and seeds" }
+  ],
+  "fx": [
+    { "key": "fx_no", "pack": "explosions", "file": "bang2d-1.png", "frame": 32, "by": "theidiotmachine", "part": "bang2d-1 trong Pix.zip" }
+  ]
+}
