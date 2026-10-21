@@ -45,6 +45,9 @@
 // Đại Đấu Hồn Trường (7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng / trong tổ đội, đấu đội võ hồn trong
 // phòng riêng, đánh trúng đối thủ, hạ hết đội / rời sân / không vào sân / hết giờ, Elo, thưởng, về đúng bản đồ và vị trí cũ, bảng xếp
 // hạng, cộng minh, Chân Thân (cả lưu phái Thiêu đốt), tuyệt kỹ Tử Vong Chu Hoàng (8.1d), tuyệt kỹ Cảm điện (8.1c: sét tìm đối thủ Cảm điện, Mê hoặc chỉ lên hồn thú) và dự đoán chuyển động trong sân) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
+// Đồng bộ theo vùng gần (11.4, syncViewTest; BOT_ONLY=view chỉ chạy phần này): hồn sư / hồn thú / đồ rơi ở xa không có trong state,
+// tinh anh luôn có, lại gần thì có, tin fx ở xa không gửi, bản đồ nhỏ (tin mini), hồn thú xa mọi hồn sư thì ngủ, hook view tắt lọc.
+// Các bot khác tắt lọc (hook view all) vì đọc thực thể ở xa.
 // Truyền tống trận (11.2, waypointTest; BOT_ONLY=waypoint chỉ chạy phần này): mở khóa khi bước lên, bản đồ thế giới, phí theo số lần đi cổng,
 // niệm rồi dịch chuyển cùng / khác bản đồ, cấm khi giao chiến, hủy khi bị đánh / di chuyển, thiếu Hồn Tệ, Hồi Thành Phù, vào lại vẫn nhớ.
 // Thương nhân lưu động ở trại cổng bản đồ săn (#111, campTest; BOT_ONLY=camp chỉ chạy phần này): chỗ đứng ở mọi bản đồ săn, mua theo
@@ -88,7 +91,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
-  WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, CAMP_MERCHANT, CAMP_SHOP, shopOf, shopExpands } from "../../shared/data.ts";
+  WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, shopOf, shopExpands } from "../../shared/data.ts";
 import { campMerchantSpot } from "../../shared/camp.ts";
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
@@ -100,7 +103,7 @@ let fails=0; const ok=(cond,msg)=>{console.log(cond?"  ✓":"  ✗",msg); if(!co
 
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần), rồi lễ thức tỉnh:
 // tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
-async function bot(name,choice,looks){
+async function bot(name,choice,looks,near=false){
   name+=" "+RUN; const l=await post("/api/login",{name,password:PASS});
   console.log(`[${name}] ${l.character?"đã thức tỉnh từ trước":"tài khoản mới"}, ${l.looks?.chosen?"đã tạo nhân vật":"chưa tạo nhân vật"}`);
   ok(l.looks&&["sex","hair","hairCol","outfitCol","skin"].every(k=>Number.isInteger(l.looks[k])),"login trả ngoại hình (kể cả tông da, 9.9)");
@@ -131,7 +134,7 @@ async function bot(name,choice,looks){
   }
   ok((await post("/api/awaken",{token:l.token,vohon:choice})).status===409,"thức tỉnh lần hai -> 409");
   // Không gửi mapId: server chọn bản đồ mặc định và báo qua state.mapId.
-  const b={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:!l.character,mapId:me.mapId};
+  const b={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:!l.character,mapId:me.mapId,near};
   await enter(b);
   return b;
 }
@@ -145,6 +148,7 @@ async function enter(b,roomId){
   b.room=roomId?await new Client(WS).joinById(roomId,opts):await new Client(WS).joinOrCreate("map",opts);
   b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null; b.squad=null;
   b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
+  b.mini=null; b.room.onMessage("mini",m=>{b.mini=m;}); // bản đồ nhỏ: vị trí cả bản đồ (11.4)
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
@@ -178,6 +182,8 @@ async function enter(b,roomId){
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
   // phần 5.1 tự bật lại. Chờ trả lời (server gửi tin vohons trước tin test) rồi mới đếm lại tin vohons, để không lẫn vào kiểm tra sau.
   b.test=null; b.room.send("test",{op:"core",r:100}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0;
+  // 11.4: state chỉ có thực thể ở gần (lọc đồng bộ theo vùng); bot đọc hồn thú / hồn sư ở xa nên tắt lọc, trừ bot thử lọc (`b.near`).
+  if(!b.near){ b.room.send("test",{op:"view",all:true}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0; }
   b.bag=null; b.room.send("vohons"); b.room.send("bag"); b.room.send("quest",{op:"get"}); b.room.send("resonance");
 }
 /**
@@ -214,6 +220,7 @@ if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiể
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
 /**
@@ -4254,6 +4261,7 @@ await npcTown();
 await shopBuybackTest();
 await waypointTest();
 await campTest();
+await syncViewTest();
 await thienDauTest();
 await lacNhatTest();
 await haiThanTest();
@@ -4409,6 +4417,84 @@ async function npcTown(){
  * hóa về đúng chỉ số và cấp, Hồn Tệ trả đúng; thiếu tiền / túi đầy / mã lạ / đứng xa bị từ chối; chỉ giữ BUYBACK_MAX món; mảnh bán
  * một phần mua lại gộp ô; đi cổng sang Thiên Đấu Thành vẫn còn và mua lại được ở thương nhân Thiên Đấu; rời game thì mất).
  */
+/**
+ * 11.4: hai bot bật lọc đồng bộ ở hai đầu Tinh Đấu Ngoại vi (trận Trại cổng / Trạm gác). State chỉ có hồn sư, hồn thú, đồ rơi trong
+ * SYNC_VIEW.r (tinh anh luôn có), `online` đếm cả phòng; lại gần thì thấy nhau; tin fx của người ở xa không gửi; tin mini có hồn sư và
+ * đồ rơi ở xa; hồn thú cách mọi hồn sư quá SYNC_VIEW.wake ngủ (đứng yên) rồi thức khi có người lại gần; hook view tắt / bật lọc.
+ */
+async function syncViewTest(){
+  console.log("[11.4] Đồng bộ theo vùng gần, hồn thú ngủ, bản đồ nhỏ");
+  ok(SYNC_VIEW.r<SYNC_VIEW.out&&SYNC_VIEW.out<SYNC_VIEW.fx&&SYNC_VIEW.wake>=SYNC_VIEW.out,`SYNC_VIEW: vào ${SYNC_VIEW.r} < ra ${SYNC_VIEW.out} < fx ${SYNC_VIEW.fx}, ngủ ngoài ${SYNC_VIEW.wake} pixel`);
+  const V=await bot("Gần","lam_dien_ba_vuong_long",{sex:0,hair:1,hairCol:2,outfitCol:1},true);
+  const W=await bot("Xa","lam_dien_ba_vuong_long",{sex:1,hair:1,hairCol:1,outfitCol:3},true);
+  if(!(await test(V,"ping"))?.enabled){ console.log("  ⚠ bỏ qua 11.4 (cần hook view, warp, goto): bật server bằng GAME_TEST=1"); await V.room.leave(); await W.room.leave(); return; }
+  const MAP="tinh_dau_ngoai_vi", objs=JSON.parse(readFileSync(new URL(`../../shared/assets/${MAP}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const wpAt=n=>{ const o=objs.find(o=>o.type==="waypoint"&&o.name===n); return {x:o.x+o.width/2,y:o.y+o.height/2}; };
+  const west=wpAt("trai_cong"), east=wpAt("tram_gac");
+  const me=b=>b.room.state.players.get(b.room.sessionId), dist=(a,c)=>Math.hypot(a.x-c.x,a.y-c.y);
+  async function warp(b,p){
+    b.travel=null; b.room.send("test",{op:"warp",mapId:MAP,x:p.x,y:p.y});
+    ok(await waitFor(()=>b.travel?.mapId===MAP,4000),`${b.name}: warp -> ${MAPS[MAP].name}`);
+    const roomId=b.travel?.roomId??undefined; await b.room.leave(); await sleep(300); b.mapId=MAP; await enter(b,roomId); await waitFor(()=>me(b),3000);
+  }
+  /** Đứng ở (x, y) hoặc chỗ đứng được gần đó (hook goto chỉ nhận ô đứng được). */
+  async function place(b,p){
+    for(const [dx,dy] of [[0,0],[16,0],[0,16],[-16,0],[0,-16],[32,32],[-32,32],[32,-32],[-32,-32],[48,0],[0,48]]){
+      const q={x:p.x+dx,y:p.y+dy}; await test(b,"goto",q); if(me(b)&&dist(me(b),q)<2) return true;
+    }
+    return false;
+  }
+  await warp(V,west); await warp(W,east);
+  await place(V,west); await place(W,east);
+  const sid=W.room.sessionId, vsid=V.room.sessionId;
+  await waitFor(()=>!V.room.state.players.has(sid),1500);
+  let v=await test(V,"view");
+  ok(me(V)&&!V.room.state.players.has(sid)&&!W.room.state.players.has(vsid)&&V.room.state.online===v?.total?.players&&v.total.players>=2,
+    `hồn sư cách ${Math.round(dist(me(V),me(W)))} pixel không có trong state của nhau; state.online = ${V.room.state.online} (cả phòng ${v?.total?.players})`);
+  const bs=[...V.room.state.beasts.values()], farB=bs.filter(b=>!b.rank&&dist(b,me(V))>SYNC_VIEW.out+40), ranked=bs.filter(b=>b.rank).length;
+  ok(!farB.length&&V.room.state.beasts.size<=v.total.beasts&&ranked===v.total.ranked,
+    `state có ${V.room.state.beasts.size}/${v.total.beasts} hồn thú, không con thường nào xa quá ${SYNC_VIEW.out} pixel (${farB.length}), đủ ${ranked}/${v.total.ranked} tinh anh / thú vương`);
+  V.mini=null; ok(await waitFor(()=>V.mini?.p?.includes(sid),2500),"tin mini (bản đồ nhỏ) có hồn sư ở xa");
+  const k=V.mini?.p?.indexOf(sid)??-1;
+  ok(k>=0&&Math.abs(V.mini.p[k+1]-Math.floor(me(W).x/16))<=2&&Math.abs(V.mini.p[k+2]-Math.floor(me(W).y/16))<=2,`tin mini: vị trí theo ô ${V.mini?.p?.slice(k+1,k+3)}`);
+  // Lại gần dưới SYNC_VIEW.r: thấy nhau.
+  await place(W,{x:west.x+48,y:west.y+16});
+  ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
+  // Tin fx: người ở xa đánh thường thì không gửi tới; ở gần thì có.
+  await place(W,east); ok(await waitFor(()=>!V.room.state.players.has(sid),1500),"đi xa quá out: hồn sư rời state");
+  V.fxs=[]; W.fxs=[]; W.room.send("attack"); await waitFor(()=>W.fxs.some(f=>f.k==="slash"&&f.id===sid),1500); await sleep(300);
+  ok(W.fxs.some(f=>f.k==="slash"&&f.id===sid)&&!V.fxs.some(f=>f.id===sid),"tin fx (đánh thường) của hồn sư ở xa không gửi tới");
+  await place(W,{x:west.x+48,y:west.y+16}); await waitFor(()=>V.room.state.players.has(sid),1500); await sleep(1200);
+  V.fxs=[]; W.room.send("attack"); ok(await waitFor(()=>V.fxs.some(f=>f.k==="slash"&&f.id===sid),1500),"ở gần thì nhận tin fx của nhau");
+  // Hồn thú: rời state khi mình đi xa, ngủ khi không ai trong SYNC_VIEW.wake, có lại và thức khi quay về.
+  await place(W,east); await test(V,"clear");
+  const bid=(await test(V,"spawn",{tier:0,dx:60,dy:0}))?.bid;
+  ok(!!bid&&await waitFor(()=>V.room.state.beasts.has(bid),1500),"hồn thú vừa sinh cạnh mình có trong state");
+  await place(V,{x:east.x,y:east.y+48});
+  ok(await waitFor(()=>!V.room.state.beasts.has(bid),1500),"đi xa quá out: hồn thú rời state");
+  let x=await test(V,"view",{bid});
+  ok(!!x?.beast&&!x.beast.seen,`server vẫn còn hồn thú đó (${Math.round(x?.beast?.x)},${Math.round(x?.beast?.y)}), chỉ không đồng bộ`);
+  if(x?.total?.players===2){
+    ok(x.beast&&!x.beast.awake,"không hồn sư nào trong tầm thức: hồn thú ngủ");
+    const p0=x.beast&&{x:x.beast.x,y:x.beast.y}; await sleep(2500); x=await test(V,"view",{bid});
+    ok(x?.beast&&p0&&x.beast.x===p0.x&&x.beast.y===p0.y&&!x.beast.moving,"hồn thú ngủ không lang thang (2,5 giây)");
+  } else console.log(`  ⚠ bỏ qua kiểm tra hồn thú ngủ: phòng có ${x?.total?.players} hồn sư`);
+  await place(V,west);
+  ok(await waitFor(()=>V.room.state.beasts.has(bid),1500),"quay lại: hồn thú vào lại state");
+  x=await test(V,"view",{bid}); ok(x?.beast?.awake&&x.beast.seen,"hồn thú thức lại");
+  // Đồ rơi: hạ hồn thú cạnh V thì V thấy đồ rơi, W ở xa không thấy nhưng bản đồ nhỏ của W có.
+  const d0=(await test(V,"beast",{dx:30,dy:0}))?.bid; const drops0=V.room.state.drops.size;
+  await test(V,"slay",{bid:d0});
+  ok(await waitFor(()=>V.room.state.drops.size>drops0,1500),"đồ rơi cạnh mình có trong state");
+  const near=d=>dist(d,me(V))<80; await sleep(300);
+  ok(![...W.room.state.drops.values()].some(near),"hồn sư ở xa không nhận đồ rơi đó");
+  W.mini=null; ok(await waitFor(()=>(W.mini?.d?.length??0)>=3,2500)&&W.mini.d.some((t,i)=>i%3===0&&Math.abs(t*16-me(V).x)<96),"bản đồ nhỏ của người ở xa vẫn có đồ rơi");
+  // Hook view: tắt lọc thì thấy cả hồn sư ở xa, bật lại thì mất.
+  ok((await test(V,"view",{all:true}))?.all===true,"hook view all: tắt lọc");
+  ok(await waitFor(()=>V.room.state.players.has(sid),1500),"tắt lọc: thấy cả hồn sư ở xa");
+  await test(V,"view",{all:false}); ok(await waitFor(()=>!V.room.state.players.has(sid),1500),"bật lại lọc: hồn sư ở xa rời state");
+  await V.room.leave(); await W.room.leave();
+}
 /**
  * 11.2 Truyền tống trận và bản đồ thế giới: dữ liệu (mọi bản đồ trừ sân đấu có 1–3 object `waypoint`, tâm đứng được, phí theo số lần
  * đi cổng, Hồi Thành Phù bán ở thương nhân, không mua lại). Với hook: bot T (tài khoản mới) mở khóa trận khi bước lên (tin `wp`, bản
