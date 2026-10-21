@@ -3282,9 +3282,12 @@ export const SHOP: { code: string; price: number }[] = [
 ];
 /** Thương nhân lưu động ở trại cổng bản đồ săn (#111): mã NPC trong NPCS. */
 export const CAMP_MERCHANT = "thuong_nhan_luu_dong";
-/** Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, đắt hơn SHOP (giá đồng mỗi món). Mua lại đồ dư như trong thành. */
+/**
+ * Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, mọi món cùng một giá (#160), không rẻ hơn SHOP (giá đồng mỗi món).
+ * Mua lại đồ dư như trong thành.
+ */
 export const CAMP_SHOP: { code: string; price: number }[] = [
-  { code: "hoi_huyet_dan", price: 30 }, { code: "hoi_hon_dan", price: 30 }, { code: "hoi_thanh_phu", price: 45 },
+  { code: "hoi_huyet_dan", price: 30 }, { code: "hoi_hon_dan", price: 30 }, { code: "hoi_thanh_phu", price: 30 },
 ];
 /** Bảng hàng của thương nhân `npcId` (thương nhân trong thành dùng chung SHOP). */
 export const shopOf = (npcId: string) => (npcId === CAMP_MERCHANT ? CAMP_SHOP : SHOP);
