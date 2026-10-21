@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { promisify } from "node:util";
 
 import {
   buildManifest,
@@ -12,6 +14,8 @@ import {
   validateManifestMatchesCatalog,
 } from "./lib.mjs";
 import { assertDockerRuntimeBoundary } from "./runtime-check.mjs";
+
+const execFileAsync = promisify(execFile);
 
 const validSource = {
   id: "kenney-rpg-audio",
@@ -173,4 +177,33 @@ test("Docker runtime boundary keeps ffmpeg out of the runtime image", async () =
     dockerfilePath: path.resolve("Dockerfile"),
     dockerignorePath: path.resolve(".dockerignore"),
   });
+});
+
+test("audio preview rejects manifest paths outside the asset root", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "audio-preview-"));
+  const assetRoot = path.join(root, "assets");
+  const manifestPath = path.join(root, "manifest.json");
+  const outputPath = path.join(root, "preview", "index.html");
+  await writeFile(manifestPath, JSON.stringify({
+    schemaVersion: 1,
+    preload: { bytes: { ogg: 0, m4a: 0 } },
+    items: [{
+      id: "unsafe-track",
+      preload: false,
+      files: {
+        ogg: { path: "../../outside.ogg", bytes: 0 },
+        m4a: { path: "../../outside.m4a", bytes: 0 },
+      },
+    }],
+  }));
+
+  await assert.rejects(
+    () => execFileAsync(process.execPath, [
+      path.resolve("tools/audio/preview.mjs"),
+      "--asset-root", assetRoot,
+      "--manifest", manifestPath,
+      "--out", outputPath,
+    ]),
+    /safe relative path|escapes its root/i,
+  );
 });
