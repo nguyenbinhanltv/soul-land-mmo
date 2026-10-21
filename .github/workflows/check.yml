@@ -47,10 +47,16 @@ jobs:
       - run: npm run build
 
   # Bot RAM và các bài thử nhanh (#171), chỉ ubuntu. Chỉ để tham khảo như check-build (không bắt buộc trong bảo vệ nhánh).
-  bot-ram:
-    name: bot-ram
+  # Bot đầy đủ chạy ~17,5 phút trên runner nên chia 3 nhóm song song (BOT_PART, client/scripts/bot-test.mjs), mỗi nhóm một server mới bật;
+  # nhóm 1 chạy thêm các bài nhanh và lượt nhiều kênh. Job bot-ram (cuối file) gộp kết quả thành một status check.
+  bot-ram-part:
+    name: bot-ram (nhóm ${{ matrix.part }})
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,22 +72,38 @@ jobs:
       - id: deps
         run: npm ci --prefix server && npm ci --prefix client
       # Các bài sau chạy độc lập (một bài đỏ vẫn chạy bài khác) miễn là đã cài xong thư viện.
-      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:predict --prefix client
-      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:ratelimit --prefix server
-      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:accounts --prefix server
-      # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server.
-      - name: bot (server GAME_TEST=1, RAM)
+      # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server. Tóm tắt ✓ / ✗ / ⚠ ở trang lượt chạy.
+      - name: bot nhóm ${{ matrix.part }} (server GAME_TEST=1, RAM)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
-        run: bash tools/ci/bot-run.sh bot
+        env:
+          BOT_PART: ${{ matrix.part }}
+        run: bash tools/ci/bot-run.sh "nhom-$BOT_PART"
       - name: bot nhiều kênh (CHANNEL_MAX=2)
-        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: bash tools/ci/bot-run.sh channel CHANNEL_MAX=2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}
         with:
-          name: bot-logs
+          name: bot-logs-${{ matrix.part }}
           path: ci-logs/
           retention-days: 7
+
+  # Một status check bot-ram cho cả 3 nhóm: đỏ khi có nhóm trượt / bị hủy / hết giờ.
+  bot-ram:
+    name: bot-ram
+    needs: bot-ram-part
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULT: ${{ needs.bot-ram-part.result }}
+        run: |
+          echo "bot-ram (3 nhóm): $RESULT"
+          [ "$RESULT" = success ]
