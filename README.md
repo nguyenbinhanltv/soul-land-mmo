@@ -1,7 +1,8 @@
 # Rừng Săn Hồn Online
 
-MMO săn hồn thế giới mở, pixel 2D, chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
+MMO săn hồn thế giới mở chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
 săn hồn thú lấy hồn hoàn, hồn cốt, hồn hạch, đánh boss cùng bạn bè và đấu xếp hạng ở Đại Đấu Hồn Trường.
+Đồ họa pixel art **isometric** kiểu Ultima Online (ô thoi 2:1, nhân vật 8 hướng), giao diện thủy mặc.
 Dự án phi thương mại, chơi cùng bạn bè. Luật chơi và kiến trúc: [`GAME_DESIGN.md`](GAME_DESIGN.md).
 
 Công nghệ: Phaser 3 + Tiled (client), Node.js + Colyseus (server), PostgreSQL hoặc Supabase (dữ liệu), TypeScript ở cả hai phía.
@@ -62,6 +63,7 @@ npm run test:accounts --prefix server
 - Phần nhiều kênh chạy riêng: server `CHANNEL_MAX=2 GAME_TEST=1 npm run dev:server`, rồi chạy bot lần nữa.
 - Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam; `BOSS_CLOCK=HH:MM` chạy từ giờ đó, `BOSS_CLOCK=real` dùng giờ thật.
 - Bật git pre-commit hook một lần sau khi clone: `npm run hooks` (typecheck các file đã stage).
+- Bot chạy trên server mới bật (state sạch). Đổi SQL / `server/src/db.ts` thì chạy thêm bot với PostgreSQL, server bật hai lần liên tiếp để chắc migration chạy lại an toàn (cách dựng PostgreSQL không cần Docker ở `CLAUDE.md`).
 
 ## Cấu trúc thư mục
 
@@ -69,7 +71,9 @@ npm run test:accounts --prefix server
 ├─ shared/
 │  ├─ data.ts              # mọi số liệu cân bằng và bảng dữ liệu dùng chung (bản đồ, võ hồn, hồn kỹ, hồn thú, vật phẩm…)
 │  ├─ move.ts              # va chạm ô và bước đi dùng chung cho server và dự đoán chuyển động
-│  └─ assets/              # publicDir của Vite: bản đồ Tiled <mapId>.json, tiles.png, sprites/ (manifest.json)
+│  └─ assets/              # publicDir của Vite: bản đồ Tiled <mapId>.json, tiles.png
+│     ├─ sprites/          # ảnh sprite / giao diện, manifest.json (key đã có ảnh thật)
+│     └─ iso/              # tiles.json (gid Tiled → ô thoi / vật đứng) và ô nền isometric ground/
 ├─ server/
 │  ├─ src/index.ts         # Express API (đăng nhập, tạo nhân vật, thức tỉnh, chọn kênh) + Colyseus, phục vụ bản build client
 │  ├─ src/rooms/MapRoom.ts # toàn bộ luật chơi: một phòng mỗi bản đồ / kênh, chạy TICK_RATE lần mỗi giây
@@ -81,8 +85,11 @@ npm run test:accounts --prefix server
 │  └─ sql/                 # 001_init.sql … : migration chạy lại an toàn, đánh số tăng dần
 ├─ client/
 │  ├─ src/main.ts          # đăng nhập, tạo nhân vật, thức tỉnh, vào phòng / đổi bản đồ / vào sân đấu
-│  ├─ src/scenes/GameScene.ts  # vẽ bản đồ, hồn sư, hồn thú, hiệu ứng; nhận state và message
+│  ├─ src/scenes/GameScene.ts  # vẽ hồn sư, hồn thú, hiệu ứng; nhận state và message
+│  ├─ src/iso.ts, isoMap.ts, isoBuild.ts  # phép chiếu isometric, vẽ bản đồ thành ô thoi, nhà / tường thành dựng bằng code
 │  ├─ src/hud.ts           # giao diện HTML (chỉ số, hồn kỹ, đội hình, túi đồ, NPC, tổ đội, đấu trường…)
+│  ├─ src/uiArt.ts, cards.ts, fonts/  # ảnh giao diện thủy mặc, thẻ võ hồn, font Ark Pixel
+│  ├─ src/crowd.ts         # dân thường, lính gác trang trí (chỉ phía client)
 │  ├─ src/predict.ts, net.ts   # dự đoán chuyển động, kiểu message
 │  ├─ src/sprites.ts, textures.ts, honsuArt.ts  # nạp sprite theo manifest, vẽ bằng code phần chưa có ảnh
 │  └─ scripts/             # bot-test.mjs, predict-test.mjs
@@ -90,15 +97,24 @@ npm run test:accounts --prefix server
 │  ├─ check.mjs            # typecheck theo phần bị ảnh hưởng (npm run check, pre-commit, hook Claude Code)
 │  ├─ gen-map.mjs          # sinh các bản đồ Tiled (npm run map – GHI ĐÈ bản đã sửa tay)
 │  ├─ gen-tiles.py         # sinh tileset
-│  └─ assets/              # dây chuyền sprite: normalize, pack, validate, preview
-├─ art/                    # palette.gpl, CREDITS.md, ảnh nguồn
-├─ GAME_DESIGN.md          # thiết kế luật chơi, kiến trúc, lộ trình (cho người và AI đọc)
+│  └─ assets/              # dây chuyền ảnh: normalize, pack, normal, preview, validate, iso-build,
+│                          #   gemini-import (nhập ảnh Gemini), lpc-compose (NPC phụ LPC), he-icons
+├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
+│                          #   src/ (ảnh thô PixelLab / Gemini, công thức LPC), CREDITS.md
+├─ GAME_DESIGN.md          # thiết kế luật chơi, mỹ thuật, kiến trúc, lộ trình (cho người và AI đọc)
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
 ├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
 ├─ .githooks/              # pre-commit
 ├─ Dockerfile              # deploy một container = một link
 └─ docker-compose.yml      # PostgreSQL local
 ```
+
+## Mỹ thuật và giấy phép
+
+Quy cách hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11; cách làm ảnh ở skill `.claude/skills/asset-gen`.
+Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
+chỉ lớp CC0 / CC-BY / OGA-BY, chỉ cho NPC phụ và dân thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
+Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled
 

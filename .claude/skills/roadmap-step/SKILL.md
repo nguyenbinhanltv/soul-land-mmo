@@ -22,7 +22,7 @@ Mỗi gạch đầu dòng ở `GAME_DESIGN.md` mục 7 là **một** lần giao 
 
 ## 3. Kiểm tra
 1. `npm run check` (hook PostToolUse cũng tự chạy `tools/check.mjs --hook` sau mỗi lần sửa; lỗi thì sửa ngay).
-2. Bật server với hook kiểm thử: `GAME_TEST=1 npm run dev:server` (chạy nền, đợi cổng sẵn sàng; phiên song song thì dùng `PORT` riêng và `SERVER_URL` cho bot).
+2. Bật server mới (state sạch) với hook kiểm thử: `GAME_TEST=1 npm run dev:server` (chạy nền, đợi cổng sẵn sàng; phiên song song thì dùng `PORT` riêng và `SERVER_URL` cho bot).
 3. `npm run bot --prefix client`. Đọc output: dòng ✗ là lỗi thật, ⚠ là phần bị bỏ qua; xem log server không có lỗi. Đổi luật kênh thì chạy thêm với server `CHANNEL_MAX=2 GAME_TEST=1`.
 4. Luồng / message mới: thêm kiểm tra vào `client/scripts/bot-test.mjs`; luồng khó dựng bằng bot thì thêm `op` cho hook `test` gọi đúng hàm luật chơi (chỉ chạy khi `GAME_TEST=1`), không viết luật riêng cho bot.
 5. Đổi giao diện: `npm run dev:client`, mở `http://localhost:5173` thử bằng tay (chuột, phím, chạm).
@@ -30,6 +30,7 @@ Mỗi gạch đầu dòng ở `GAME_DESIGN.md` mục 7 là **một** lần giao 
 7. Tắt đúng các tiến trình mình đã bật.
 
 ## 4. Cập nhật thiết kế và mở PR
-- Sửa mục 4 / 5 / 6 của `GAME_DESIGN.md` để mô tả **luật hiện hành** sau thay đổi (cơ chế + tên hằng, không chép bảng số, không viết nhật ký "đã làm ở bước…"). Giữ nguyên số mục và tên mục mà code đang trích dẫn.
-- Mục 7: đánh dấu `[x]` hoặc bỏ dòng đã xong khỏi "Việc để sau"; nếu còn phần dở thì ghi ngắn "Còn: …". Câu hỏi đã chốt thì bỏ khỏi mục 8.
+- Sửa mục 4 / 5 / 6 của `GAME_DESIGN.md` để mô tả **luật hiện hành** sau thay đổi (cơ chế + tên hằng, không chép bảng số, không viết nhật ký "đã làm ở bước…"). Giữ nguyên số mục và mọi câu mà code đang trích dẫn (`grep -rn "mục [0-9]" server/src shared client/src tools`).
+- Mục 7: bước xong thì bỏ dòng `[ ]` và thêm vài chữ vào đoạn "Đã có" của giai đoạn đó (kèm số bước); còn phần dở thì giữ dòng, ghi ngắn "Còn: …". Câu hỏi đã chốt thì bỏ khỏi mục 8.
 - Commit nhỏ, thông điệp tiếng Việt kiểu `Bước 9.6: …`; pre-commit hook typecheck lại. Một PR vào `main` cho mỗi bước, mô tả gồm tóm tắt, cách kiểm thử, quyết định khác thiết kế, phần để sau.
+- Trước khi push: `git fetch` rồi merge `origin/main` (không rebase, không force push), chạy lại `npm run check`. PR đang review thì không push thêm trừ khi sửa theo lỗi review.
