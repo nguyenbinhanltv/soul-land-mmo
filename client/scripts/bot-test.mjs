@@ -6825,9 +6825,11 @@ async function partyEffectExpansionTest(){
     }
     ok(cores.every(c=>A.bag.items.find(v=>v.id===c?.id)?.vohon===xrow),"gắn đủ 4 hồn hạch Lưu Ly");
     await test(A,"rest",{s:30}); await waitFor(()=>meP(A).swCd===0,3500); A.room.send("switch",{slot:1}); await waitFor(()=>A.owned.active===stRow,1500);
-    await waitFor(()=>meP(A).swCd===0,3500); const lb=B.logs.length; A.room.send("switch",{slot:0}); await waitFor(()=>B.logs.length>lb,1500);
+    // Chờ hết SWITCH_CD có dư (server CI bận thì swCd về 0 trễ; đổi khi còn hồi chiêu bị bỏ qua không báo), rồi chờ B nhận buff.
+    await waitFor(()=>meP(A).swCd===0,SWITCH_CD*1000+3000); const lb=B.logs.length; A.room.send("switch",{slot:0});
+    await waitFor(()=>A.owned.active===xrow&&B.logs.length>lb,3000);
     const coreB=await live(B), coreO=await live(O), coreWant=CORE_SET_FX.luu_ly.four.swapAtk*PARTY_BUFF_MULT;
-    ok(Math.abs((coreB.buffs.atk?.v??0)-coreWant)<1e-9&&!coreO.buffs.atk,`Lưu Ly 4 món: B nhận công ${(coreB.buffs.atk?.v??0)*100}% (cần ${coreWant*100}%), O không nhận`);
+    ok(Math.abs((coreB.buffs.atk?.v??0)-coreWant)<1e-9&&!coreO.buffs.atk,`Lưu Ly 4 món: B nhận công ${(coreB.buffs.atk?.v??0)*100}% (cần ${coreWant*100}%), O không nhận (A ra trận ${A.owned.active===xrow?"Xúc Xích":A.owned.active}, B cách ${Math.hypot(meP(B).x-meP(A).x,meP(B).y-meP(A).y).toFixed(0)} px${meP(B).dead?", B gục":""})`);
   } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }
 
