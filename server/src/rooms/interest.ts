@@ -1,9 +1,16 @@
 // Hiệu năng bản đồ lớn (bước 11.4, GAME_DESIGN.md mục 6 "Đồng bộ xuống client"): lưới không gian cho truy vấn hồn thú / đồ rơi / hồn sư
 // theo vị trí, và lọc đồng bộ theo vùng gần cho từng client bằng StateView của Colyseus (trường `@view()` trong schema.ts).
-import { StateView, type Schema } from "@colyseus/schema";
+import { Encoder, StateView, type Schema } from "@colyseus/schema";
 import type { Client } from "colyseus";
 import { SYNC_VIEW } from "../../../shared/data.ts";
 import type { MapState, PlayerState } from "./schema.ts";
+
+/**
+ * Bộ đệm mã hóa state của mỗi phòng (byte). Có view, Colyseus ghi bản vá chung rồi phần riêng của từng client nối tiếp nhau trong cùng
+ * bộ đệm; tràn thì phần riêng bị cắt hỏng (client báo `"refId" not found`, state lệch). Mặc định 8 KB không đủ cho bản đồ lớn nhiều
+ * người: 1 MB (mỗi phòng một bộ đệm). Đặt khi nạp module, trước khi phòng nào tạo state.
+ */
+Encoder.BUFFER_SIZE = 1024 * 1024;
 
 type Pos = { x: number; y: number };
 
@@ -64,6 +71,8 @@ export class Interest {
   private seen = new Map<string, Seen>();
   /** Hồn thú ngủ: ô lưới hồn thú có hồn sư trong SYNC_VIEW.wake được đánh dấu bằng số nhịp hiện tại. */
   private wakeAt: Uint32Array; private tickNo = 1;
+  /** Hồn thú có `rank` (luôn đồng bộ cho mọi client), lập lại mỗi nhịp ở `syncEntities`. */
+  private ranked: string[] = [];
   constructor(private state: MapState, w: number, h: number, public all = false) {
     this.beasts = new Grid(w, h); this.drops = new Grid(w, h); this.players = new Grid(w, h);
     this.wakeAt = new Uint32Array(this.beasts.cellCount);
@@ -90,7 +99,10 @@ export class Interest {
   /** Hồn thú ở (x, y) đang thức (có hồn sư trong khoảng SYNC_VIEW.wake, theo ô lưới). */
   awake(x: number, y: number) { return this.wakeAt[this.beasts.cellOf(x, y)] === this.tickNo; }
   /** Sau khi hồn thú di chuyển / đồ rơi đổi: đặt lại hai lưới. */
-  syncEntities() { this.beasts.sync(this.state.beasts); this.drops.sync(this.state.drops); }
+  syncEntities() {
+    this.beasts.sync(this.state.beasts); this.drops.sync(this.state.drops);
+    this.ranked.length = 0; this.state.beasts.forEach((b, id) => { if (b.rank > 0) this.ranked.push(id); });
+  }
 
   /** Cuối nhịp, trước bản vá: cập nhật view của mọi client. */
   update(clients: Iterable<Client>) { for (const c of clients) this.refresh(c); }
@@ -113,13 +125,13 @@ export class Interest {
     drop(s.d, this.state.drops, () => false);
     // Thêm thực thể mới vào tầm (tắt lọc: thêm tất cả).
     const add = <T extends Schema & Pos>(set: Set<string>, all: { get(k: string): T | undefined; forEach(fn: (v: T, k: string) => void): void }, grid: Grid,
-      always?: (e: T) => boolean) => {
-      const take = (e: T | undefined, id: string) => { if (e && !set.has(id) && (s.all || always?.(e) || d2(e) <= R2)) { v.add(e); set.add(id); } };
-      if (s.all || always) all.forEach((e, id) => { if (!set.has(id) && (s.all || always!(e))) take(e, id); });
-      if (!s.all) for (const id of grid.near(me.x, me.y, r)) take(all.get(id), id);
+      always: Iterable<string> = []) => {
+      if (s.all) { all.forEach((e, id) => { if (!set.has(id)) { v.add(e); set.add(id); } }); return; }
+      for (const id of grid.near(me.x, me.y, r)) if (!set.has(id)) { const e = all.get(id); if (e && d2(e) <= R2) { v.add(e); set.add(id); } }
+      for (const id of always) if (!set.has(id)) { const e = all.get(id); if (e) { v.add(e); set.add(id); } }
     };
     add(s.p, this.state.players, this.players);
-    add(s.b, this.state.beasts, this.beasts, (b) => b.rank > 0);
+    add(s.b, this.state.beasts, this.beasts, this.ranked);
     add(s.d, this.state.drops, this.drops);
   }
 

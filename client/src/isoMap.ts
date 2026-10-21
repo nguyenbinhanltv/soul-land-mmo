@@ -6,8 +6,10 @@
 //   `wall` phía trước gom thành một ngôi nhà (isoBuild.ts, cắt lát 16 pixel), ô `wall` đứng riêng là tường thành;
 // - lớp `canopy` (tán cây) không vẽ: tán là một phần ảnh cây (chỉ dùng ở chế độ nhìn thẳng).
 // Ô / vật chưa có trong tiles.json (hoặc ảnh chưa tải được) vẽ tạm bằng code từ chính tiles.png như bước 10.1.
-// Ảnh dựng theo khối CHUNK × CHUNK ô (11.4): chỉ khối trong tầm camera (cộng lề) có ảnh, khối ra khỏi tầm thì cất ảnh để dùng lại;
-// nhà dựng một lần khi vào bản đồ. Làm mờ vật che chính mình chỉ xét vật của các khối quanh thực thể cần thấy.
+// Vẽ theo khối CHUNK × CHUNK ô (11.4): chỉ khối trong tầm camera (cộng lề) có ảnh, khối ra khỏi tầm thì cất ảnh để dùng lại. Mặt
+// đất và lớp phủ mép của cả khối nung thành MỘT ảnh (canvas, kèm normal map khi có ánh sáng), giữ lại vài chục khối gần nhất; vật đứng
+// vẫn là ảnh riêng để sắp lớp với hồn sư. Nhà dựng một lần khi vào bản đồ. Làm mờ vật che chính mình chỉ xét vật của các khối quanh
+// thực thể cần thấy.
 import Phaser from "phaser";
 import { TILE } from "../../shared/data.ts";
 import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "./iso.ts";
@@ -38,6 +40,13 @@ const CHUNK = 8;
  * xuống chiều cao ảnh vật cao nhất (chân vật nằm dưới chân thực thể).
  */
 const COVER_X = 256, COVER_Y = 512;
+/** Số ảnh khối đã nung giữ thêm ngoài các khối đang hiện (đi qua lại không phải nung lại; mỗi khối khoảng 300 × 200 pixel). */
+const BAKE_KEEP = 24;
+/** Màu pháp tuyến phẳng (hướng ra màn hình) cho chỗ ảnh nền không có normal map. */
+const FLAT_NORMAL = "rgb(128,128,255)";
+/** Một ảnh mặt đất của ô (điểm neo, gốc tính bằng pixel ảnh, lật ngang, thứ tự vẽ: y neo trên màn hình; lớp phủ mép vẽ sau cùng). */
+interface Flat { key: string; x: number; y: number; ox: number; oy: number; flip: boolean; z: number }
+const EDGE_Z = Infinity;
 
 // ---------- shared/assets/iso/tiles.json ----------
 /** Ô nền: các biến thể ảnh 32×32 (thoi 32×16), ô lớn 64×64 (thoi 64×32, phủ 2×2 ô), tâm mặt trên trong ảnh, thứ bậc lấn mép. */
@@ -144,6 +153,8 @@ export class IsoMap {
   private faded = new Set<Tall>();
   /** Điểm phát sáng gộp của các khối đang hiện (tính lại khi khối đổi). */
   private glowList: Glow[] | null = null;
+  /** Ảnh mặt đất đã nung theo khối: texture, góc trên trái, độ sâu (thứ tự Map = dùng gần nhất sau cùng). */
+  private baked = new Map<number, { key: string; x: number; y: number; z: number }>();
   private viewKey = "";
   private hole: Phaser.GameObjects.Graphics | null = null;
   private holeMask: Phaser.Display.Masks.GeometryMask | null = null;
@@ -162,6 +173,7 @@ export class IsoMap {
     const layer = (n: string): number[] => raw.layers.find((l: any) => l.type === "tilelayer" && l.name === n)?.data ?? [];
     this.ground = layer("ground"); this.trees = layer("trees"); this.canopy = layer("canopy");
     this.chunkBoxes();
+    for (const k of scene.textures.getTextureKeys()) if (k.startsWith("isoChunk|")) scene.textures.remove(k); // khối nung của lần vào trước
     const img = scene.textures.get("tiles").getSourceImage() as HTMLImageElement;
     if (img?.width) {
       const cv = document.createElement("canvas"); cv.width = img.width; cv.height = img.height;
@@ -186,12 +198,7 @@ export class IsoMap {
    */
   private warmAtlas() {
     const a = this.atlas; if (!a) return;
-    const grounds = [...this.groundDefs.values(), ...[...this.comp.values()].map((c) => c.floor)].filter((g): g is Ground => !!g);
-    const minEdge = Math.min(...grounds.map((g) => g.def.edge));
-    for (const g of grounds) {
-      for (const k of [...g.small, ...g.big]) a.frame(k);
-      if (g.def.edge > minEdge) for (let side = 0; side < 4; side++) for (let seed = 0; seed < 3; seed++) a.frame(this.edgeKey(g.small[0], g.def.c, side, seed));
-    }
+    // Từ 11.4 mặt đất isometric nung theo khối (bake), không lấy từ atlas: atlas chỉ còn vật đứng.
     for (const list of this.propDefs.values()) for (const p of list ?? []) a.frame(p.key);
     for (const c of this.comp.values()) if (c.obj && c.obj !== "wall") a.frame(c.obj.key);
     if (this.tower) a.frame(this.tower.key);
@@ -615,40 +622,83 @@ export class IsoMap {
     }
     for (const k of want) if (!this.live.has(k)) {
       const cx = k % this.CW, cy = Math.floor(k / this.CW), tiles: number[] = [], tall: Tall[] = [], ims: Phaser.GameObjects.Image[] = [];
+      // Isometric: mặt đất cả khối nung thành một ảnh (lần đầu gom lệnh vẽ, các lần sau dùng lại ảnh đã nung). Nhìn thẳng: ảnh từng ô.
+      const flats: Flat[] | undefined = TOPDOWN ? undefined : [], cached = this.baked.get(k);
       for (let ty = cy * CHUNK; ty < Math.min(this.MH, (cy + 1) * CHUNK); ty++) for (let tx = cx * CHUNK; tx < Math.min(this.MW, (cx + 1) * CHUNK); tx++) {
-        const i = ty * this.MW + tx; tiles.push(i); ims.push(...this.place(i, tall));
+        const i = ty * this.MW + tx; tiles.push(i); ims.push(...this.place(i, tall, cached ? null : flats ?? null));
+      }
+      const b = flats && (cached ?? this.bake(k, flats));
+      if (b) {
+        this.baked.delete(k); this.baked.set(k, b); // dùng gần nhất
+        ims.push(this.img(b.x, b.y, b.key, false).setOrigin(0, 0).setDepth(GROUND_DEPTH + b.z * 0.01));
       }
       this.live.set(k, { ims, tall, tiles }); changed = true;
+    }
+    // Bỏ ảnh nung cũ nhất của các khối không hiện khi giữ quá BAKE_KEEP.
+    for (const [k, b] of this.baked) {
+      if (this.baked.size <= this.live.size + BAKE_KEEP) break;
+      if (!this.live.has(k)) { this.scene.textures.remove(b.key); this.baked.delete(k); }
     }
     if (changed) this.glowList = null;
   }
 
-  private img(x: number, y: number, key: string) {
+  /**
+   * Nung các ảnh mặt đất `flats` của khối `k` thành một texture canvas (vẽ theo thứ tự độ sâu như từng ảnh: ô sau trước, lớp phủ mép
+   * sau cùng); có ánh sáng thì nung cả normal map (ảnh không có normal map: mặt phẳng). Trả null nếu khối không có mặt đất.
+   */
+  private bake(k: number, flats: Flat[]) {
+    if (!flats.length) return null;
+    const src = (key: string) => this.scene.textures.get(key);
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, z = Infinity;
+    for (const f of flats) {
+      const im = src(f.key).getSourceImage(), l = f.x - f.ox, t = f.y - f.oy;
+      x0 = Math.min(x0, l); y0 = Math.min(y0, t); x1 = Math.max(x1, l + im.width); y1 = Math.max(y1, t + im.height);
+      if (f.z !== EDGE_Z) z = Math.min(z, f.z);
+    }
+    x0 = Math.floor(x0); y0 = Math.floor(y0);
+    const W = Math.ceil(x1) - x0, H = Math.ceil(y1) - y0, sorted = flats.slice().sort((a, b) => a.z - b.z);
+    const paint = (normal: boolean) => {
+      const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+      const ctx = cv.getContext("2d")!; ctx.imageSmoothingEnabled = false;
+      if (normal) { ctx.fillStyle = FLAT_NORMAL; ctx.fillRect(0, 0, W, H); }
+      for (const f of sorted) {
+        const t = src(f.key), im = (normal ? t.dataSource[0]?.image : t.getSourceImage()) as CanvasImageSource | undefined;
+        if (!im) continue;
+        const dx = f.x - f.ox - x0, dy = f.y - f.oy - y0;
+        if (f.flip) { const w = t.getSourceImage().width; ctx.save(); ctx.translate(dx + w, dy); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0); ctx.restore(); }
+        else ctx.drawImage(im, dx, dy);
+      }
+      return cv;
+    };
+    const key = `isoChunk|${this.mapId}|${k}`;
+    if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
+    const tex = this.scene.textures.addCanvas(key, paint(false))!;
+    if (this.atlas) tex.setDataSource(paint(true)); // ánh sáng bật (atlas chỉ có khi lightingOn): normal map cho Light2D
+    return { key, x: x0, y: y0, z };
+  }
+
+  private img(x: number, y: number, key: string, atlas = true) {
     let im = this.free.pop();
     if (!im) { im = this.scene.add.image(0, 0, key); this.opts.lit?.(im); }
     if (im.mask) im.clearMask();
-    const af = this.atlas?.frame(key);
+    const af = atlas ? this.atlas?.frame(key) : null;
     return (af ? im.setTexture(this.atlas!.key, af) : im.setTexture(key)).setPosition(x, y).setVisible(true).setAlpha(1).setScale(1).setFlipX(false);
   }
 
-  /** Tạo các ảnh của ô `i`: mặt đất (ô thường / ô lớn / vẽ code), lớp phủ mép, rồi vật trên lớp `trees`. */
-  private place(i: number, tall: Tall[]): Phaser.GameObjects.Image[] {
-    const tx = i % this.MW, ty = Math.floor(i / this.MW), cx = (tx + 0.5) * TILE, cy = (ty + 0.5) * TILE, s = worldToScreen(cx, cy);
-    const out: Phaser.GameObjects.Image[] = [];
-    const gid = this.ground[i], g = TOPDOWN ? null : this.groundOf(i), cp = this.comp.get(i);
+  /**
+   * Mặt đất của ô `i` (ô thường / ô lớn / vẽ code, lớp phủ mép) thành lệnh vẽ `out`; ghi điểm mặt nước phát sáng. Ô lớn gắn với ô góc
+   * trên của khối 2×2, ô khác trong khối không vẽ gì.
+   */
+  private flats(i: number, out: Flat[]) {
+    const tx = i % this.MW, ty = Math.floor(i / this.MW), s = worldToScreen((tx + 0.5) * TILE, (ty + 0.5) * TILE);
+    const gid = this.ground[i], g = TOPDOWN ? null : this.groundOf(i);
     if (g) {
-      const root = this.bigAt.get(i), h = hash(tx, ty);
+      const root = this.bigAt.get(i), h = hash(tx, ty), flip = g.def.flip !== false && !!(h & 0x100);
       if (root === i) {
         // Ô lớn: tâm khối 2×2 là góc chung của bốn ô.
-        const c = worldToScreen((tx + 1) * TILE, (ty + 1) * TILE), key = g.big[h % g.big.length], cb = g.def.cBig ?? [32, 37];
-        const tex = this.scene.textures.get(key).getSourceImage();
-        out.push(this.img(c.x, c.y, key).setOrigin(cb[0] / tex.width, cb[1] / tex.height).setFlipX(g.def.flip !== false && !!(h & 0x100))
-          .setDepth(GROUND_DEPTH + c.y * 0.01));
-      } else if (root === undefined) {
-        const key = g.small[h % g.small.length], tex = this.scene.textures.get(key).getSourceImage();
-        out.push(this.img(s.x, s.y, key).setOrigin(g.def.c[0] / tex.width, g.def.c[1] / tex.height).setFlipX(g.def.flip !== false && !!(h & 0x100))
-          .setDepth(GROUND_DEPTH + s.y * 0.01));
-      }
+        const c = worldToScreen((tx + 1) * TILE, (ty + 1) * TILE), cb = g.def.cBig ?? [32, 37];
+        out.push({ key: g.big[h % g.big.length], x: c.x, y: c.y, ox: cb[0], oy: cb[1], flip, z: c.y });
+      } else if (root === undefined) out.push({ key: g.small[h % g.small.length], x: s.x, y: s.y, ox: g.def.c[0], oy: g.def.c[1], flip, z: s.y });
       // Lớp phủ mép: ô bên có thứ bậc cao hơn lấn sang ô này.
       const nb: [number, number, number][] = [[1, 0, 0], [-1, 0, 1], [0, 1, 2], [0, -1, 3]];
       for (const [dx, dy, side] of nb) {
@@ -656,12 +706,32 @@ export class IsoMap {
         if (X < 0 || Y < 0 || X >= this.MW || Y >= this.MH) continue;
         const o = this.groundOf(Y * this.MW + X);
         if (!o || o.def.edge <= g.def.edge) continue;
-        const key = this.edgeKey(o.small[0], o.def.c, side, hash(X, Y, side) % 3), tex = this.scene.textures.get(key).getSourceImage();
-        out.push(this.img(s.x, s.y, key).setOrigin(o.def.c[0] / tex.width, o.def.c[1] / tex.height).setDepth(EDGE_DEPTH));
+        out.push({ key: this.edgeKey(o.small[0], o.def.c, side, hash(X, Y, side) % 3), x: s.x, y: s.y, ox: o.def.c[0], oy: o.def.c[1], flip: false, z: EDGE_Z });
       }
       // Mặt nước phát sáng của vùng (hồ thần Lõi Tinh Đấu, sóng Hải Thần ban đêm): vài ô rải theo băm vị trí.
       if (this.opts.water && g.name.startsWith("nuoc_") && hash(tx, ty, 5) % 19 === 0) this.glowAt.set(i, [{ x: s.x, y: s.y, kind: "water" }]);
-    } else if (gid > 0) out.push(this.img(s.x, s.y, this.groundKey(gid)).setOrigin(0.5, 0.5).setDepth(GROUND_DEPTH + (TOPDOWN ? 0 : s.y * 0.01)));
+    } else if (gid > 0) {
+      const key = this.groundKey(gid), im = this.scene.textures.get(key).getSourceImage();
+      out.push({ key, x: s.x, y: s.y, ox: im.width / 2, oy: im.height / 2, flip: false, z: TOPDOWN ? 0 : s.y });
+    }
+  }
+
+  /**
+   * Tạo các ảnh của ô `i`: mặt đất (isometric: lệnh vẽ vào `bake` để nung cả khối; nhìn thẳng: ảnh riêng), rồi vật trên lớp
+   * `trees` (nhóm vật cao thêm vào `tall`).
+   */
+  private place(i: number, tall: Tall[], bake: Flat[] | null): Phaser.GameObjects.Image[] {
+    const tx = i % this.MW, ty = Math.floor(i / this.MW), cx = (tx + 0.5) * TILE, cy = (ty + 0.5) * TILE, s = worldToScreen(cx, cy);
+    const out: Phaser.GameObjects.Image[] = [];
+    const cp = this.comp.get(i);
+    if (TOPDOWN) {
+      const fl: Flat[] = []; this.flats(i, fl);
+      for (const f of fl) {
+        const im = this.scene.textures.get(f.key).getSourceImage();
+        out.push(this.img(f.x, f.y, f.key).setOrigin(f.ox / im.width, f.oy / im.height).setFlipX(f.flip)
+          .setDepth(f.z === EDGE_Z ? EDGE_DEPTH : GROUND_DEPTH + f.z * 0.01));
+      }
+    } else this.flats(i, bake ?? []); // khối đã nung (bake = null): chỉ ghi lại điểm mặt nước phát sáng
     if (cp?.obj && !TOPDOWN) {
       let im: Phaser.GameObjects.Image;
       if (cp.obj === "wall") { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
