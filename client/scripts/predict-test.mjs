@@ -4,7 +4,7 @@
 import { Predictor } from "../src/predict.ts";
 import { moveEnt, clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
 import { TICK_RATE, TILE, dir4, RUN_MULT } from "../../shared/data.ts";
-import { findPath, clearLine, pathLength } from "../src/path.ts";
+import { findPath, clearLine, pathLength } from "../../shared/path.ts";
 
 let fails = 0;
 const ok = (c, msg) => { console.log(`${c ? "✓" : "✗"} ${msg}`); if (!c) fails++; };
@@ -136,7 +136,7 @@ for (const lag of [0.05, 0.15]) {
   }
 }
 
-// 8. Tìm đường khi bấm chuột (11.1, client/src/path.ts): bức tường chắn giữa, phải đi vòng qua khe; đi theo đường bằng đúng moveEnt
+// 8. Tìm đường khi bấm chuột (11.1, shared/path.ts): bức tường chắn giữa, phải đi vòng qua khe; đi theo đường bằng đúng moveEnt
 // của server thì tới nơi; điểm bấm trong ô chặn / bị vây thì tới ô gần nhất; xa quá khung thì đi dần về phía đó.
 {
   const MW = 60, MH = 40, solid = new Uint8Array(MW * MH), g = { MW, MH, solid };

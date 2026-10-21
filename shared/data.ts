@@ -3333,7 +3333,7 @@ export const NPCS: NpcDef[] = [
   { id: "thuong_nhan_luu_dong", name: "Thương nhân lưu động", title: "Trại cổng", role: "shop", col: "#ffb35c",
     looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
     lines: [
-      "Đường xa gánh nặng, giá có cao hơn trong thành một chút, khách quan thông cảm. Đan dược, Hồi Thành Phù ta đều mang theo.",
+      "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Hồi Thành Phù ta cũng mang theo.",
       "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
     ] },
 ];
@@ -3350,10 +3350,10 @@ export const SHOP: { code: string; price: number }[] = [
 ];
 /** Thương nhân lưu động ở trại cổng bản đồ săn (#111): mã NPC trong NPCS. */
 export const CAMP_MERCHANT = "thuong_nhan_luu_dong";
-/** Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, đắt hơn SHOP (giá đồng mỗi món). Mua lại đồ dư như trong thành. */
-export const CAMP_SHOP: { code: string; price: number }[] = [
-  { code: "hoi_huyet_dan", price: 30 }, { code: "hoi_hon_dan", price: 30 }, { code: "hoi_thanh_phu", price: 45 },
-];
+/** Giá mọi món của thương nhân lưu động (#160, đồng mỗi món), không rẻ hơn SHOP. */
+export const CAMP_PRICE = 30;
+/** Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, mọi món giá CAMP_PRICE. Mua lại đồ dư như trong thành. */
+export const CAMP_SHOP: { code: string; price: number }[] = ["hoi_huyet_dan", "hoi_hon_dan", "hoi_thanh_phu"].map((code) => ({ code, price: CAMP_PRICE }));
 /** Bảng hàng của thương nhân `npcId` (thương nhân trong thành dùng chung SHOP). */
 export const shopOf = (npcId: string) => (npcId === CAMP_MERCHANT ? CAMP_SHOP : SHOP);
 /** Thương nhân `npcId` có mở rộng túi không (thương nhân lưu động thì không). */
@@ -3732,3 +3732,65 @@ export function resonanceBonus(levels: readonly number[]): Record<ResStat, numbe
 /** "Sinh lực +6%, Công +3%" ("" nếu không cộng gì). */
 export const resonanceText = (b: Partial<Record<ResStat, number>>) =>
   (Object.keys(RES_STAT_NAMES) as ResStat[]).filter((k) => b[k]).map((k) => `${RES_STAT_NAMES[k]} +${b[k]}%`).join(", ");
+
+// ---------- Tự săn (mục 5.13, Auto 1; chủ repo chốt 2026-10-22) ----------
+/**
+ * Tự săn khi online: server lái hồn sư bằng đúng các lệnh của người chơi (đi, đánh, hồn kỹ, đổi võ hồn, đan, nhặt), nên hiệu suất bằng
+ * tự đánh (không giảm kinh nghiệm hay đồ rơi). Mỗi tài khoản treo tối đa AUTO_DAILY_SECS giây mỗi ngày (đặt lại 00:00 giờ Việt Nam).
+ */
+export const AUTO_DAILY_SECS = 12 * 3600;
+/** Bán kính (pixel) quanh điểm neo (chỗ bật tự săn): chỉ nhắm hồn thú, nhặt đồ trong vùng này; ra ngoài thì quay về. */
+export const AUTO_RADIUS = 15 * TILE;
+/**
+ * Nhịp quyết định (lần mỗi giây): giữ / đổi mục tiêu, tìm đường A*, hồn kỹ, đan, đổi tay tiên cơ, nhặt. Giữa hai nhịp server chỉ lái
+ * hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm (như người giữ phím đánh).
+ */
+export const AUTO_HZ = 4;
+/** Tối đa bấy nhiêu người treo có điểm neo trong cùng một ô lưới SYNC_VIEW.cell của một kênh (chống dồn một chỗ). */
+export const AUTO_MAX_PER_CELL = 3;
+/**
+ * Không cướp quái: hồn thú đang nhắm người khác, hoặc bị người khác đánh trong AUTO_CLAIM_SECS giây gần nhất (ngoài tổ đội của mình),
+ * thì không nhắm; hồn thú đang đánh chính mình thì luôn được đánh trả (kể cả ngoài khoảng niên hạn đã chọn).
+ */
+export const AUTO_CLAIM_SECS = 8;
+/**
+ * Di chuyển của tự săn: không có việc thì đi tới một điểm ngẫu nhiên trong vùng neo, đổi điểm sau `patrol` giây; mục tiêu / đồ không tới
+ * được hoặc kẹt `stuck` giây thì bỏ qua `skip` giây; mục tiêu đi xa đường đã tìm thì tìm lại sau ít nhất `repath` giây. Tìm đường A*
+ * (shared/path.ts) trong khung `path` (nhỏ hơn CLICK_PATH vì chỉ đi trong vùng neo).
+ */
+export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath: 1, path: { maxTiles: 24, maxNodes: 2500 } };
+/** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; Auto 1 chỉ có nút bật / tắt, bảng cài đặt đầy đủ ở Auto 2). */
+export interface AutoSettings {
+  years: [number, number]; // khoảng niên hạn hồn thú thường được nhắm (số năm)
+  hp: number; mp: number;  // uống đan khi sinh lực võ hồn ra trận / hồn lực dưới tỉ lệ này (0 = không uống)
+  mpKeep: number;          // chừa tỉ lệ hồn lực này: không tung hồn kỹ làm hồn lực còn dưới mức đó
+  skills: number[];        // thứ tự ưu tiên các ô hồn kỹ (0–3 = U / I / O / P); ô không có trong danh sách thì không tung
+  ring: number;            // nhặt hồn hoàn từ bấy nhiêu năm (−1 = không nhặt hồn hoàn)
+  bone: boolean; core: boolean; item: boolean; // nhặt hồn cốt, hồn hạch, vật phẩm khác dưới đất (mảnh, tiên thảo khi túi người hạ đầy)
+  stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
+  tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
+}
+/** Mặc định: mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn lực, hồn kỹ ô P → U, nhặt mọi thứ. */
+export const AUTO_DEFAULTS: AutoSettings = { years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15, skills: [3, 2, 1, 0], ring: 0,
+  bone: true, core: true, item: true, stopNoPot: false, tienCo: true };
+/** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
+export function parseAuto(raw: unknown): AutoSettings {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = AUTO_DEFAULTS;
+  const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : def);
+  const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
+  const y = Array.isArray(o.years) ? o.years : [];
+  const y0 = Math.round(num(y[0], 0, MAX_YEARS, D.years[0])), y1 = Math.round(num(y[1], 0, MAX_YEARS, D.years[1]));
+  const skills = Array.isArray(o.skills)
+    ? [...new Set(o.skills.filter((i): i is number => Number.isInteger(i) && (i as number) >= 0 && (i as number) < LOADOUT_SIZE))]
+    : [...D.skills];
+  return { years: [Math.min(y0, y1), Math.max(y0, y1)], hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
+    skills, ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core), item: bool(o.item, D.item),
+    stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo) };
+}
+/** Giây tự săn còn lại hôm nay khi đã dùng `used` giây. */
+export const autoLeft = (used: number) => Math.max(0, AUTO_DAILY_SECS - used);
+/** "11 giờ 30 phút" / "45 phút" (làm tròn xuống theo phút): giờ treo còn lại để hiển thị. */
+export const autoTimeText = (secs: number) => {
+  const m = Math.floor(Math.max(0, secs) / 60), h = Math.floor(m / 60);
+  return h ? `${h} giờ${m % 60 ? ` ${m % 60} phút` : ""}` : `${m} phút`;
+};
