@@ -65,7 +65,7 @@ export function lpcPreloader(scene: Phaser.Scene, mapId: string) {
     npcs = [];
     for (const l of data?.layers ?? []) if (l.type === "objectgroup") for (const o of l.objects ?? [])
       if (o.type === "npc") { const v = o.properties?.find((p: any) => p.name === "npc")?.value; if (typeof v === "string") npcs.push(v); }
-    if (campMerchantSpot(data, mapId)) npcs.push(CAMP_MERCHANT); // #111: thương nhân lưu động không có object `npc`
+    if (data && campMerchantSpot(data, mapId)) npcs.push(CAMP_MERCHANT); // #111: thương nhân lưu động không có object `npc`
     go();
   });
   return (names: Set<string>) => { have = names; go(); };

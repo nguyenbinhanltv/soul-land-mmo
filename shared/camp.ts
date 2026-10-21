@@ -9,8 +9,8 @@ const inR = (r: R, x: number, y: number, m = 0) => x >= r.x - m && x < r.x + r.w
 /**
  * Chỗ đứng (chân) của thương nhân lưu động ở bản đồ `mapId` (file Tiled thô `raw`), hoặc null nếu không có: chỉ bản đồ săn, và trại
  * (object `spawn`) không nằm trong vùng an toàn `safe` (quảng trường làng Thánh Hồn Thôn không phải trại cổng). Xét các điểm lưới trong
- * trại đứng được (ô chặn và ngoài bản đồ đều bị `hits` loại), ngoài mọi cổng / truyền tống trận (nới CAMP_GAP), cách mọi `arrive` / NPC
- * khác ít nhất CAMP_PT_GAP. Ưu tiên điểm trong NPC_RANGE của một điểm `arrive` (người vừa tới nói chuyện được ngay), rồi điểm gần tâm
+ * trại đứng được (ô chặn và ngoài bản đồ đều bị `hits` loại), ngoài vùng an toàn (luật giao chiến ở thương nhân khớp chỗ đứng), ngoài
+ * mọi cổng / truyền tống trận (nới CAMP_GAP), cách mọi `arrive` / NPC khác ít nhất CAMP_PT_GAP. Ưu tiên điểm trong NPC_RANGE của một điểm `arrive` (người vừa tới nói chuyện được ngay), rồi điểm gần tâm
  * trại nhất (giữa trại, không bị cây mép trại che); bằng nhau thì điểm quét trước (trên, trái).
  */
 export function campMerchantSpot(raw: any, mapId: string): { id: string; x: number; y: number } | null {
@@ -27,7 +27,7 @@ export function campMerchantSpot(raw: any, mapId: string): { id: string; x: numb
   let best: { id: string; x: number; y: number } | null = null, bd = Infinity;
   for (let y = spawn.y + CAMP_STEP; y < spawn.y + spawn.h; y += CAMP_STEP)
     for (let x = spawn.x + CAMP_STEP; x < spawn.x + spawn.w; x += CAMP_STEP) {
-      if (hits(g, x, y, PLAYER_HW, PLAYER_HH)) continue;
+      if (hits(g, x, y, PLAYER_HW, PLAYER_HH) || safe.some((r) => inR(r, x, y))) continue;
       if (avoid.some((r) => inR(r, x, y, CAMP_GAP)) || pts.some((p) => Math.hypot(p.x - x, p.y - y) < CAMP_PT_GAP)) continue;
       const talk = arrives.some((a) => Math.hypot(a.x - x, a.y - y) <= NPC_RANGE);
       const d = Math.hypot(x - cx, y - cy) + (talk ? 0 : far); // `far` lớn hơn mọi khoảng cách trong trại: điểm trong tầm luôn thắng
