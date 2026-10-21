@@ -3,7 +3,7 @@ import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
-  itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
+  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
@@ -1126,6 +1126,7 @@ export class GameScene extends Phaser.Scene {
   /** Mọi vùng cảnh báo đang hiện: nền đỏ mờ cả vùng, phần đỏ đậm đầy dần theo thời gian, viền nhấp nháy nhanh dần lúc sắp tung. */
   drawTeles(time: number) {
     const g = this.teleG; g.clear();
+    this.drawGrounds(g, time); // vùng lưu lại nằm dưới vùng cảnh báo
     for (const [bid, x] of this.teles) {
       const k = Math.min(1, (time - x.t0) / x.ms);
       // Hồn thú đã bị hạ hoặc server không gửi kết quả (mất gói): bỏ vùng.
@@ -1137,6 +1138,38 @@ export class GameScene extends Phaser.Scene {
         g.lineStyle(1, k > 0.6 ? 0xffd0d0 : TELE_COL, blink); this.teleOutline(g, t);
       }
     }
+  }
+  /**
+   * Vùng lưu lại trên mặt đất (#161, `state.grounds`, server chỉ đồng bộ vùng ở gần nên người mới vào tầm vẫn thấy): vẽ bằng code theo
+   * phép chiếu (elip isometric, cả `?view=topdown`), màu theo GROUND_KINDS (độc: lục, không dùng đỏ của vùng cảnh báo). Vũng độc: mặt
+   * nước sẫm, viền sáng, bọt nổi lên rồi vỡ; sương độc: các làn sương mờ trôi chậm quanh tâm. Hiện dần lúc mới có, mờ dần giây cuối.
+   */
+  drawGrounds(g: Phaser.GameObjects.Graphics, time: number) {
+    this.room.state.grounds?.forEach((z: any, id: string) => {
+      const kind = GROUND_KINDS[z.kind] ?? GROUND_KINDS[0], c = hex(kind.col), seed = parseInt(id.slice(1), 10) || 0;
+      const t: Tele = { shape: TELE_SHAPES[z.shape] ?? "circle", x: z.x, y: z.y, ang: z.ang, r: z.r, w: z.w, arc: z.arc };
+      const fade = Math.max(0, Math.min(1, z.ttl, (z.secs - z.ttl) / 0.3 + 0.2)), pulse = 0.5 + 0.5 * Math.sin(time / 420 + seed);
+      const circle = t.shape === "circle";
+      if (kind.id === "mist") {
+        // Sương: nền mờ cả vùng và 4 làn sương lệch tâm xoay chậm (vòng tròn); hình khác chỉ tô nền nhạt hơn.
+        g.fillStyle(c, 0.16 * fade); this.teleShape(g, t, 1);
+        if (circle) for (let k = 0; k < 4; k++) {
+          const a = time / 2600 + seed + (k * Math.PI) / 2, d = t.r * 0.35;
+          g.fillStyle(c, (0.12 + 0.06 * Math.sin(time / 700 + k)) * fade);
+          fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, t.r * 0.55, 3 + 2 * Math.sin(time / 900 + k));
+        }
+        g.lineStyle(1, c, (0.25 + 0.2 * pulse) * fade); this.teleOutline(g, t);
+        return;
+      }
+      // Vũng: nền sẫm, lõi đậm hơn, viền sáng đập nhẹ, bọt nổi (vị trí theo id vùng để mỗi vũng một kiểu).
+      g.fillStyle(0x1e4a1a, 0.4 * fade); this.teleShape(g, t, 1);
+      g.fillStyle(c, (0.22 + 0.08 * pulse) * fade); this.teleShape(g, t, circle ? 0.75 : 1);
+      g.lineStyle(1, c, (0.55 + 0.3 * pulse) * fade); this.teleOutline(g, t);
+      if (circle) for (let k = 0; k < 5; k++) {
+        const ph = ((time / 1100 + k * 0.37 + seed * 0.13) % 1), a = seed * 1.7 + k * 2.4, d = t.r * (0.2 + 0.55 * ((k * 0.61 + seed * 0.29) % 1));
+        g.fillStyle(0xd8ffb0, (1 - ph) * 0.7 * fade); fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, 1 + ph * 2.2);
+      }
+    });
   }
   /**
    * Aura tinh anh (BĐ4, mục 5.4 / 5.11, vẽ bằng code): vầng sáng màu riêng dưới chân (lớp mặt đất `teleG`, vẽ sau vùng cảnh báo) và
