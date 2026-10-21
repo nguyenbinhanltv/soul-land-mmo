@@ -56,9 +56,17 @@ test("validateCatalog rejects forbidden licenses and unsafe input paths", () => 
     }),
     /path/i,
   );
+  assert.throws(
+    () => validateCatalog({
+      sources: [validSource],
+      tracks: [{ ...validTrack, mapId: "tinh-dau-rung" }],
+    }),
+    /unknown game map/i,
+  );
 });
 test("issue catalog covers town, bird, snake and bell gaps", async () => {
   const catalog = JSON.parse(await readFile(new URL("./catalog.json", import.meta.url), "utf8"));
+  assert.doesNotThrow(() => validateCatalog(catalog));
   const required = ["town-crowd-ambience", "forest-bird-ambience", "spirit-snake-die", "spirit-bell"];
   for (const id of required) assert.ok(catalog.tracks.some((track) => track.id === id), `missing ${id}`);
   assert.ok(catalog.sources.every((source) => source.license === "CC0-1.0" || source.license.startsWith("CC-BY-")));

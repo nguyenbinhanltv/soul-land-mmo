@@ -9,6 +9,18 @@ export const ALLOWED_LICENSES = new Set([
   "CC-BY-3.0",
   "CC-BY-4.0",
 ]);
+export const GAME_MAP_IDS = new Set([
+  "thanh_hon_thon",
+  "nac_dinh_thanh",
+  "tinh_dau_ngoai_vi",
+  "tinh_dau_noi_dia",
+  "thien_dau_thanh",
+  "lac_nhat_sam_lam",
+  "cuc_bac_chi_dia",
+  "hai_than_dao",
+  "loi_tinh_dau",
+  "dai_dau_hon_truong",
+]);
 
 const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -60,7 +72,10 @@ function validateTrack(track, sourceIds) {
     throw new Error(`track ${track.id} must have a valid input SHA-256`);
   }
   validateId(track.group, `track ${track.id}.group`);
-  if (track.mapId !== null) validateId(track.mapId, `track ${track.id}.mapId`);
+  if (track.mapId !== null) {
+    requiredString(track.mapId, `track ${track.id}.mapId`);
+    if (!GAME_MAP_IDS.has(track.mapId)) throw new Error(`track ${track.id} references unknown game map ${track.mapId}`);
+  }
   if (typeof track.preload !== "boolean") throw new Error(`track ${track.id}.preload must be boolean`);
   validateId(track.sprite, `track ${track.id}.sprite`);
 }

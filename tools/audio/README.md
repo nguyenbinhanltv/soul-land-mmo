@@ -4,6 +4,8 @@
 
 Nguồn tải xuống phải nằm ngoài repo. Catalog là `catalog.json` và lưu URL, tác giả, license, ngày tải và SHA-256 của từng gói/tệp.
 
+`track.mapId` phải là mã thật trong `shared/data.ts:MAPS`; validator có allowlist để chặn mã giả hoặc mã đã bị đổi.
+
 ```sh
 npm install
 node tools/audio/process.mjs \

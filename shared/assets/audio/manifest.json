@@ -247,16 +247,16 @@
       "files": {
         "m4a": {
           "bytes": 15376,
-          "path": "audio/ambient/tinh-dau-rung.m4a"
+          "path": "audio/ambient/tinh_dau_ngoai_vi.m4a"
         },
         "ogg": {
           "bytes": 24898,
-          "path": "audio/ambient/tinh-dau-rung.ogg"
+          "path": "audio/ambient/tinh_dau_ngoai_vi.ogg"
         }
       },
       "group": "environment",
       "id": "forest-ambience",
-      "mapId": "tinh-dau-rung",
+      "mapId": "tinh_dau_ngoai_vi",
       "preload": false,
       "sourceId": "oga-forest-ambience",
       "sprite": {
@@ -269,16 +269,16 @@
       "files": {
         "m4a": {
           "bytes": 15499,
-          "path": "audio/ambient/tinh-dau-suoi.m4a"
+          "path": "audio/ambient/lac_nhat_sam_lam.m4a"
         },
         "ogg": {
           "bytes": 18981,
-          "path": "audio/ambient/tinh-dau-suoi.ogg"
+          "path": "audio/ambient/lac_nhat_sam_lam.ogg"
         }
       },
       "group": "environment",
       "id": "waterflow-ambience",
-      "mapId": "tinh-dau-suoi",
+      "mapId": "lac_nhat_sam_lam",
       "preload": false,
       "sourceId": "oga-waterflow",
       "sprite": {
@@ -291,16 +291,16 @@
       "files": {
         "m4a": {
           "bytes": 15386,
-          "path": "audio/ambient/tinh-dau-gio.m4a"
+          "path": "audio/ambient/cuc_bac_chi_dia.m4a"
         },
         "ogg": {
           "bytes": 16847,
-          "path": "audio/ambient/tinh-dau-gio.ogg"
+          "path": "audio/ambient/cuc_bac_chi_dia.ogg"
         }
       },
       "group": "environment",
       "id": "mountain-wind",
-      "mapId": "tinh-dau-gio",
+      "mapId": "cuc_bac_chi_dia",
       "preload": false,
       "sourceId": "oga-short-wind",
       "sprite": {
@@ -401,16 +401,16 @@
       "files": {
         "m4a": {
           "bytes": 335438,
-          "path": "audio/ambient/tinh-dau-thanh-tran.m4a"
+          "path": "audio/ambient/thien_dau_thanh.m4a"
         },
         "ogg": {
           "bytes": 362565,
-          "path": "audio/ambient/tinh-dau-thanh-tran.ogg"
+          "path": "audio/ambient/thien_dau_thanh.ogg"
         }
       },
       "group": "environment",
       "id": "town-crowd-ambience",
-      "mapId": "tinh-dau-thanh-tran",
+      "mapId": "thien_dau_thanh",
       "preload": false,
       "sourceId": "oga-crowd-shouting",
       "sprite": {
@@ -423,16 +423,16 @@
       "files": {
         "m4a": {
           "bytes": 1030214,
-          "path": "audio/ambient/tinh-dau-rung-chim.m4a"
+          "path": "audio/ambient/tinh_dau_noi_dia.m4a"
         },
         "ogg": {
           "bytes": 1004031,
-          "path": "audio/ambient/tinh-dau-rung-chim.ogg"
+          "path": "audio/ambient/tinh_dau_noi_dia.ogg"
         }
       },
       "group": "environment",
       "id": "forest-bird-ambience",
-      "mapId": "tinh-dau-rung-chim",
+      "mapId": "tinh_dau_noi_dia",
       "preload": false,
       "sourceId": "oga-birds-wind",
       "sprite": {
