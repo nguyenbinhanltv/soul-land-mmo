@@ -206,7 +206,7 @@ function creditOf(rel, dir, anim) {
   const plain = `${dir}${anim}.png`, c = credits.get(rel) ?? credits.get(plain);
   if (!c) fail(`[lpc] ${rel}: CREDITS.csv không có mục ${rel === plain ? rel : `${rel} hay ${plain}`}, không rõ tác giả / giấy phép nên không dùng được`);
   const bad = c.licenses.filter((l) => !LICENSE_KNOWN.test(l));
-  if (!c.licenses.length || bad.length) fail(`[lpc] ${rel}: không đọc được giấy phép ${c.licenses.join(", ") || "(trống)"} (ngoài CC0 / CC-BY / CC-BY-SA / CC-BY-NC / OGA-BY / GPL), chọn lớp khác`);
+  if (!c.licenses.length || bad.length) fail(`[lpc] ${rel}: không đọc được giấy phép ${c.licenses.join(", ") || "(trống)"} (ngoài CC0 / CC-BY / CC-BY-SA / CC-BY-NC / OGA-BY / OGA-SA / GPL), chọn lớp khác`);
   return c;
 }
 const cache = new Map();
