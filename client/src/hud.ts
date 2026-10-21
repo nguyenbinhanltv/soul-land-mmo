@@ -16,6 +16,8 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
+import { vohonCard } from "./cards.ts";
+import { artImg, tintedUrl } from "./uiArt.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -272,6 +274,13 @@ export function statusText(b: { st: number; burn: number; poison: number; armor:
 }
 
 let ringsKey = "", buffKey = "";
+/** Một ô trên thanh hiệu ứng: biểu tượng status_<mã> 24×24 (10.8) kèm tên khi rê chuột / đọc màn hình; mã chưa có ảnh thì ghi tên. */
+function statusChip(id: string, name: string, col: string, cls = "") {
+  const c = document.createElement("span"); c.className = cls; c.style.color = col;
+  const img = artImg(`status_${id}`, "sti");
+  if (img) { c.classList.add("art"); c.innerHTML = img; c.title = name; c.setAttribute("aria-label", name); } else c.textContent = name;
+  return c;
+}
 export function updateStats(p: any) {
   $("#vhName").textContent = VOHON[p.vh].name; $("#vhName").style.color = VOHON[p.vh].col;
   $("#lvl").textContent = `Cấp ${p.level}`;
@@ -306,12 +315,8 @@ export function updateStats(p: any) {
   const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st;
   if (buffs !== buffKey) {
     buffKey = buffs; const el = $("#buffs"); el.innerHTML = "";
-    for (const b of BUFF_IDS) if (p.buff & buffBit(b)) {
-      const c = document.createElement("span"); c.textContent = BUFFS[b].name; c.style.color = BUFFS[b].col; el.appendChild(c);
-    }
-    for (const s of PLAYER_STATUS) if (p.st & statusBit(s)) {
-      const c = document.createElement("span"); c.textContent = STATUS[s].name; c.style.color = STATUS[s].col; c.className = "debuff"; el.appendChild(c);
-    }
+    for (const b of BUFF_IDS) if (p.buff & buffBit(b)) el.appendChild(statusChip(b, BUFFS[b].name, BUFFS[b].col));
+    for (const s of PLAYER_STATUS) if (p.st & statusBit(s)) el.appendChild(statusChip(s, STATUS[s].name, STATUS[s].col, "debuff"));
   }
   // Hồn kỹ Chân Thân (9.6): đang biến hình thì nút P mang hồn kỹ Chân Thân, hồi chiêu riêng `ctCd`; hết thì trả nút P cũ.
   const pb = document.querySelector<HTMLElement>(`.sk[data-i="${CHAN_THAN_SKILL_SLOT}"]`), ctOn = !!ctSlot && p.ava > 0;
@@ -436,13 +441,6 @@ export interface RosterActions {
   portrait(vohon: string): string; combat(): boolean;
   loadout(rowId: number, skills: number[]): void; // 8.1a: 4 ô hồn kỹ mang theo
 }
-/** Sao của võ hồn: sao đã có màu vàng, sao còn thiếu màu nhạt ("★★☆☆☆☆"); đọc màn hình đọc "n sao". */
-function starEl(n: number) {
-  const el = document.createElement("em"), on = document.createElement("b");
-  el.className = "stars"; el.setAttribute("aria-label", `${n} sao`);
-  on.textContent = "★".repeat(n); el.append(on, "☆".repeat(Math.max(0, MAX_STARS - n)));
-  return el;
-}
 
 /**
  * Bảng xếp đội hình: 4 ô ở trên, bộ sưu tập ở dưới. Chọn một ô rồi chọn võ hồn để đặt vào ô đó (võ hồn đã ở ô khác thì
@@ -460,16 +458,20 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   el.appendChild(head);
   const send = (team: number[]) => { rosterSel = null; rosterHint = ""; act.setTeam(team); };
 
-  const slots = document.createElement("div"); slots.className = "tslots";
+  // 4 ô đội hình là 4 thẻ võ hồn (10.8): chọn thẻ để đặt võ hồn khác vào ô đó; ô trống là thẻ giấy để trống.
+  const slots = document.createElement("div"); slots.className = "tslots cgrid";
   data.team.forEach((rowId, i) => {
     const v = ownedById(data, rowId), def = v && vohonDef(v.vohon), on = rowId === data.active;
     const s = document.createElement("div"); s.className = "tslot" + (rosterSel === i ? " sel" : "") + (v ? "" : " empty");
     if (def) s.style.setProperty("--c", def.col);
-    const pick = document.createElement("button"); pick.className = "tpick";
+    let pick: HTMLButtonElement;
+    if (v && def) pick = vohonCard(def, { level: v.level, stars: v.stars, rings: v.rings, slot: i + 1, active: on }, "button") as HTMLButtonElement;
+    else {
+      pick = document.createElement("button"); pick.className = "vcardx cempty";
+      pick.innerHTML = `<i class="csl">${i + 1}</i><span>Ô trống</span><small>Chọn để thêm</small>`;
+      pick.setAttribute("aria-label", `Ô ${i + 1}: trống`);
+    }
     pick.setAttribute("aria-pressed", String(rosterSel === i));
-    pick.innerHTML = `<b>${i + 1}</b><i class="dot"></i><span></span><small></small>`;
-    pick.querySelector("span")!.textContent = def ? def.name : "Ô trống";
-    pick.querySelector("small")!.textContent = v ? `Cấp ${v.level}${on ? " · ra trận" : ""}` : "Chọn để thêm";
     pick.addEventListener("click", () => { pick.blur(); rosterSel = rosterSel === i ? null : i; rosterHint = ""; renderRoster(data, act, shards, items); });
     s.appendChild(pick);
     if (v) {
@@ -501,19 +503,15 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
     : `Chọn võ hồn để đặt vào ô ${rosterSel + 1}.`);
   el.appendChild(sub);
 
+  // Bộ sưu tập (10.8): lưới thẻ võ hồn; võ hồn đã trong đội mang ấn son số ô. Hiệu ứng hồn kỹ theo sao (9.5) ghi thành dòng chữ nhỏ
+  // dưới thẻ (đọc được trên màn chạm) và nối vào nhãn đọc màn hình của thẻ.
+  const grid = document.createElement("div"); grid.className = "cgrid rgrid"; el.appendChild(grid);
   for (const v of data.list) {
     const def = vohonDef(v.vohon), at = data.team.indexOf(v.rowId);
-    const b = document.createElement("button"); b.className = "rcard" + (at >= 0 ? " on" : "");
-    b.style.setProperty("--c", def.col);
-    b.innerHTML = `<i class="dot"></i><span><b></b><small></small></span><span class="rr"></span>`;
-    b.querySelector("b")!.textContent = def.name;
-    b.querySelector("small")!.textContent = `${def.rarity} · ${HE[def.he].name} · cấp ${v.level}` + (at >= 0 ? ` · ô ${at + 1}` : "");
-    b.querySelector("b")!.append(" ", starEl(v.stars));
-    // 9.5: hiệu ứng hồn kỹ theo sao (từ 2★).
+    const b = vohonCard(def, { level: v.level, stars: v.stars, rings: v.rings, slot: at >= 0 ? at + 1 : undefined, active: v.rowId === data.active }, "button");
     const stx = starSkillText(v.stars);
-    if (stx) { const t = document.createElement("small"); t.className = "rstar"; t.textContent = stx; b.querySelector("span")!.appendChild(t); }
-    const rr = b.querySelector(".rr")!;
-    v.rings.forEach((y) => { const t = tierOfYears(y), r = document.createElement("i"); r.className = "ring"; r.style.color = ringColor(t); rr.appendChild(r); });
+    b.title = `${def.name} · ${def.rarity} · ${HE[def.he].name} · cấp ${v.level}` + (at >= 0 ? ` · ô ${at + 1}` : "") + (stx ? `\n${stx}` : "");
+    if (stx) b.setAttribute("aria-label", `${b.getAttribute("aria-label")}. ${stx}`);
     b.addEventListener("click", () => {
       b.blur(); // bỏ focus: phím Space là đánh, không bấm lại nút
       const t = [...data.team], to = rosterSel ?? t.indexOf(0);
@@ -523,7 +521,9 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
       t[to] = v.rowId;
       send(t);
     });
-    el.appendChild(b);
+    const cell = document.createElement("div"); cell.className = "ccol"; cell.appendChild(b);
+    if (stx) { const t = document.createElement("small"); t.className = "rstar"; t.textContent = stx; t.setAttribute("aria-hidden", "true"); cell.appendChild(t); }
+    grid.appendChild(cell);
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
@@ -681,7 +681,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     if (it) b.style.setProperty("--c", itemColor(it));
     // Từ 4.3: tên kỹ năng hồn cốt (chủ động / bị động) hiện trong ô.
     const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
-    b.innerHTML = `${boneSvg(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? `<em></em>` : ""}`;
+    b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneSvg(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? `<em></em>` : ""}`;
     if (kname) b.querySelector("em")!.textContent = kname;
     b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}${kname ? `, kỹ năng ${kname}` : ""}`);
     b.setAttribute("aria-pressed", String(boneCell === s.id));
@@ -747,7 +747,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     const b = boneOf(it)!, s = BONE_SLOTS[boneSlotIndex(b.slot)];
     const row = document.createElement("div"); row.className = "bitem" + (it.id === boneFocus ? " sel" : "");
     row.draggable = true; row.style.setProperty("--c", itemColor(it));
-    row.innerHTML = `${boneSvg(b.slot)}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
+    row.innerHTML = `${boneIcon(b.slot, itemColor(it))}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
     row.querySelector("b")!.textContent = itemName(it);
     const kn = boneSkillOf(b.beast, b.slot);
     row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years, it.enhance)}${kn ? ` · ${kn.active ? kn.sk.name : kn.ps.name}` : ""}`;
@@ -1118,20 +1118,20 @@ function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, sh
     return { def, v, have, need, ready: need !== null && have >= need };
   }).filter((r) => r.v || r.have > 0)
     .sort((a, b) => Number(b.ready) - Number(a.ready) || Number(!b.v) - Number(!a.v) || b.have - a.have);
+  const grid = document.createElement("div"); grid.className = "cgrid sgrid"; el.appendChild(grid);
   for (const { def, v, have, need, ready } of rows) {
     const row = document.createElement("div"); row.className = "srow" + (ready ? " ready" : "");
     row.style.setProperty("--c", def.col);
-    row.innerHTML = `<i class="dot"></i><span><b></b><small></small><i class="sbar"><i></i></i></span><button type="button" class="sbtn"></button>`;
-    row.querySelector("b")!.textContent = def.name;
+    row.append(vohonCard(def, v ? { level: v.level, stars: v.stars, rings: v.rings } : { locked: true, plate: "Chưa mở" }));
+    row.insertAdjacentHTML("beforeend", `<small></small><i class="sbar"><i></i></i><button type="button" class="sbtn"></button>`);
     const sm = row.querySelector("small")!, btn = row.querySelector("button")!;
-    if (!v) sm.textContent = `Chưa mở · ${have}/${SHARD_UNLOCK} mảnh`;
-    else sm.append(starEl(v.stars), need === null ? ` · tối đa · ${have} mảnh dư` : ` · ${have}/${need} mảnh lên ${v.stars + 1}★`);
+    sm.textContent = !v ? `${have}/${SHARD_UNLOCK} mảnh` : need === null ? `Tối đa · dư ${have}` : `${have}/${need} lên ${v.stars + 1}★`;
     (row.querySelector(".sbar i") as HTMLElement).style.width = (need ? Math.min(1, have / need) : 1) * 100 + "%";
     btn.textContent = !v ? "Mở" : need === null ? "Tối đa" : "Lên sao";
     btn.disabled = !ready;
     btn.setAttribute("aria-label", !v ? `Mở ${def.name} bằng ${SHARD_UNLOCK} mảnh` : `Lên sao ${def.name}`);
     btn.addEventListener("click", () => { btn.blur(); btn.disabled = true; if (!v) act.unlock(def.id); else act.starUp(def.id); });
-    el.appendChild(row);
+    grid.appendChild(row);
   }
   const where = Object.values(MAPS).filter((m) => m.shards.length)
     .map((m) => `${m.name}: ${m.shards.map((id) => vohonDef(id).name).join(", ")}`).join("; ");
@@ -1317,6 +1317,24 @@ const itemColor = (it: BagItem) => {
   const core = coreOf(it);
   return hasYears(it) ? ringColor(tierOfYears(it.years)) : (core && coreSet(core.set)?.col) || (itemDef(it.code)?.col ?? "#9db3a2");
 };
+/**
+ * Biểu tượng ảnh 32×32 của một món (10.8, key item_*): hồn cốt là bản xám tô màu niên hạn theo vị trí (item_hon_cot_<vị trí>); món khác
+ * theo mã trong ITEMS rồi theo nhóm ITEM_KINDS. Chưa có ảnh thì "" (nơi gọi vẽ biểu tượng CSS / SVG cũ).
+ */
+function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
+  const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
+  if (bone) { const u = tintedUrl(`item_hon_cot_${bone.slot}`, ringColor(tierOfYears(it.years!))); return u ? `<img class="ico art" src="${u}" alt="" draggable="false">` : ""; }
+  const def = itemDef(it.code), kind = def?.kind;
+  // Hồn hoàn tô theo màu niên hạn, mảnh võ hồn theo màu võ hồn (ảnh màu chung của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu).
+  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years)) : kind === "manh_vo_hon" ? def!.col : null;
+  if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }
+  return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
+}
+/** Biểu tượng hồn cốt ở vị trí `slot` tô màu `col` (ảnh xám item_hon_cot_*), không có ảnh thì SVG điểm ảnh cũ. */
+const boneIcon = (slot: string, col: string) => {
+  const u = tintedUrl(`item_hon_cot_${slot}`, col);
+  return u ? `<img class="ico art bone" src="${u}" alt="" draggable="false">` : boneSvg(slot);
+};
 
 /**
  * Một võ hồn trong bộ sưu tập khi chọn nơi hấp thụ hồn hoàn (GameScene tính bằng absorbChance / absorbSecs của shared/data.ts,
@@ -1460,7 +1478,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
       b.style.setProperty("--c", itemColor(it));
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : it.qty > 1 ? String(it.qty) : "";
-      const bone = boneOf(it), icon = bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`;
+      const bone = boneOf(it), icon = itemArt(it) || (bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
       b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}<div class="cd"></div>`;
       b.setAttribute("aria-label", hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`);
       b.title = itemName(it);
@@ -1621,8 +1639,9 @@ function renderNpc() {
   const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
   el.innerHTML = "";
   el.style.setProperty("--c", def.col);
-  const head = document.createElement("div"); head.className = "rhead";
-  head.innerHTML = `<div class="nname"><b></b><small></small></div><button class="x" aria-label="Đóng">×</button>`;
+  // 10.8: chân dung NPC 112×112 (npc_<mã>) bên trái tên, chức danh (chưa có ảnh thì chỉ có tên).
+  const head = document.createElement("div"); head.className = "rhead nhead";
+  head.innerHTML = `${artImg(`npc_${def.id}`, "nface")}<div class="nname"><b></b><small></small></div><button class="x" aria-label="Đóng">×</button>`;
   head.querySelector("b")!.textContent = def.name;
   head.querySelector("small")!.textContent = def.title;
   head.querySelector("button")!.addEventListener("click", () => closeNpc());
@@ -1699,7 +1718,7 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     const def = itemDef(r.code); if (!def) continue;
     const have = bag.items.filter((i) => i.code === r.code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", def.col);
-    o.innerHTML = `<i class="ico ${def.kind}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.innerHTML = `${artImg(`item_${def.id}`, "ico art") || `<i class="ico ${def.kind}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
     o.querySelector("b")!.textContent = def.name;
     o.querySelector("small")!.textContent = `${formatHonTe(r.price)} mỗi viên · đang có ${have} · ${def.desc}`;
     const row = o.querySelector(".brow")!;
@@ -1750,7 +1769,7 @@ function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   for (const e of list) {
     const it: BagItem = { ...e, id: e.key, vohon: null }, def = itemDef(e.code), cost = e.price * e.qty;
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", itemColor(it));
-    o.innerHTML = `<i class="ico ${def?.kind ?? "unknown"}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.innerHTML = `${itemArt(it) || `<i class="ico ${def?.kind ?? "unknown"}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
     o.querySelector("b")!.textContent = `${itemName(it)}${e.qty > 1 ? ` ×${e.qty}` : ""}`;
     o.querySelector("small")!.textContent = `${def ? ITEM_KINDS[def.kind].name : "Vật phẩm lạ"} · đã bán ${formatHonTe(cost)}${e.enhance && boneOf(it) ? ` · cường hóa +${e.enhance}` : ""}`;
     const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
@@ -1780,7 +1799,7 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   for (const it of list) {
     const price = sellPrice(it)!, def = itemDef(it.code);
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", itemColor(it));
-    o.innerHTML = `<i class="ico ${def?.kind ?? "unknown"}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.innerHTML = `${itemArt(it) || `<i class="ico ${def?.kind ?? "unknown"}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
     o.querySelector("b")!.textContent = `${itemName(it)}${it.qty > 1 ? ` ×${it.qty}` : ""}`;
     o.querySelector("small")!.textContent = `${ITEM_KINDS[def!.kind].name} · ${formatHonTe(price)}${it.qty > 1 ? " mỗi món" : ""}${it.enhance && boneOf(it) ? ` · cường hóa +${it.enhance}` : ""}`;
     const row = o.querySelector(".brow")!;

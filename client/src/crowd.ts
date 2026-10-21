@@ -84,7 +84,7 @@ interface Person {
 
 /** Dân thường của một bản đồ: tạo trong GameScene.create (sau createSheetAnims), gọi update(dt) mỗi khung. */
 export class Crowd {
-  private people: Person[] = [];
+  readonly people: Person[] = []; // GameScene đặt pipeline ánh sáng thực thể cho `spr` (10.7)
 
   constructor(private scene: Phaser.Scene, mapId: string, private grid: SolidGrid, m: CrowdMap) {
     const def = CROWD[mapId];

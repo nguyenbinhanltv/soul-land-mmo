@@ -1,176 +1,181 @@
 ---
 name: asset-gen
-description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (phong cách A hồn hoàn chiếu sáng / B mỗi vùng một sắc / C thủy mặc / D lưu ly; thoi 32×16 mỗi ô logic, ô lớn 64×32 phủ 2×2, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab (ô nền PixelLab hoặc Gemini) và dây chuyền tools/assets, kể cả nhập ảnh Gemini (ô isometric, sprite) bằng gemini-import.mjs, và ghép NPC phụ từ lớp LPC (CC0 / CC-BY / OGA-BY, không dùng cho hồn sư người chơi) bằng lpc-compose.mjs. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
+description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy cách isometric ở GAME_DESIGN.md mục 5.11 (hồn sư 64×64 ghép lớp, phụ thể võ hồn 96×96, hồn thú theo bậc 64–192, ô nền thoi 32×16 / ô lớn 64×32, vật đứng, chân dung, thẻ, biểu tượng, mảnh giao diện thủy mặc, NPC phụ LPC): gọi PixelLab (tham số đã thử, lượt, lỗi), nhập ảnh Gemini bằng gemini-import.mjs, ghép NPC phụ từ LPC bằng lpc-compose.mjs, vẽ tay (he-icons.mjs, pixelart_workbench) và dây chuyền tools/assets normalize → pack → normal → preview → validate. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà, biểu tượng…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
 ---
 
-# Đưa asset vào game
+# Làm ảnh và đưa vào game
 
-## Nguồn ảnh
-- **PixelLab MCP**, 5 key trial × 40 lượt + lượt thưởng ngày (+5 mỗi đêm, tối đa 20, chỉ tiêu khi hết lượt chính). Key chỉ nằm trong cấu hình MCP: **không** ghi key vào repo, log, PR hay tin nhắn. **Hết lượt thì dừng và báo** (orchestrator đổi key), không tự đổi key.
-- **Gọi `get_balance` trước mỗi lần tạo**; báo số lượt đã dùng trong PR. Ước tính lượt mỗi bước ở Lộ trình Giai đoạn 10 (mục 7).
-- **Dùng lại nhân vật đã có ảnh 8 hướng** (bản thử cũ, key khác) mà không tốn lượt tạo: `create_character` `mode: "v3"` với `reference_image_base64` (hướng `south`) và `direction_images` đủ 7 hướng còn lại = nhập ảnh, 0,25 lượt; sau đó `animate_character` như nhân vật mới.
-- Gói trial chỉ chạy **1 việc một lúc** (`animate_character` chỉ nhận 1 hướng mỗi lần gọi) và đôi khi từ chối vì quá tải ("high demand" / lỗi 429): lần từ chối lúc gọi `create_character` không trừ lượt, nhưng job `animate_character` đã nhận rồi mới hỏng 429 (2026-10-21) **vẫn bị trừ 1 lượt**. Chờ việc trước xong rồi mới gửi việc sau, `get_balance` sau mỗi việc hỏng để biết đã mất lượt chưa.
-- Công cụ miễn phí: `search_help`, `search_knowledge`, `get_pro_flash_capabilities`, `get_balance`, `get_*` / `list_*`.
-- Key chưa có ảnh vẽ bằng code (`client/src/honsuArt.ts`, `textures.ts`); sửa pixel bằng tay (Aseprite, `pixelart_workbench`) khi cần.
-- **Ô Gemini** (người dùng tạo bằng Gemini, nhập bằng `gemini-import.mjs --kind tile`, mục "Nhập ảnh Gemini" bên dưới): mặt trên thoi 64×32 trầm, liền mép, **hợp làm ô lớn 64×32** (nền chính). **Mỗi bản đồ chỉ dùng một nguồn ô nền**, không trộn Gemini với PixelLab; nhân vật / hồn thú vẫn từ PixelLab. **Vật đứng** lấy từ PixelLab hoặc Gemini; **chân dung võ hồn** lấy từ Gemini và vẽ chính võ hồn, không vẽ chủ nhân (mục 5.11). Bản đồ dùng Gemini vẫn cần ô thường 32×16 (chỗ 2×2 không cùng loại địa hình, mép địa hình): lấy ô 32×16 do `gemini-import` xuất (`<out>/32`), từ ảnh Gemini riêng với prompt vân to, thưa cho ô nhỏ (mục "Prompt theo phong cách"). Câu "thu về 32×16 thì mất nét và lộ mẫu lặp" chỉ nói việc lấy ô thu nhỏ đó làm **nền chính** cho vùng rộng.
+Quy cách (cỡ khung, bố cục sheet, phong cách, bảng màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; skill này chỉ hướng dẫn thao tác. Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
+
+## 1. Quy cách tóm tắt (đầy đủ ở mục 5.11)
+| Asset | Khung, sheet | Gốc | Key |
+|---|---|---|---|
+| Hồn sư | 64×64, sheet 24 cột × 6 hàng | (32, 58) | `hs_{body,outfit,hair}_{m,f}_{0–3}`: một bộ giới × kiểu tóc đủ 3 lớp hoặc không lớp nào |
+| Phụ thể võ hồn | 96×96, sheet 24 × 12 (nam hàng 0–4, nữ hàng 6–10) | (48, 74) | `vh_{id}_b` / `vh_{id}_f` |
+| Hồn thú | 64 (Trắng, Vàng) / 96 (Tím, Đen) / 128 (Đỏ) / 160 (thú vương) / 192 (boss thế giới), sheet 20 × 5 | giữa đáy, cách mép dưới khoảng 8 | `beast_{loài}` |
+| NPC phụ, dân thường | 64×64, sheet 24 × 6, một lớp đã tô màu | (32, 58) | `lpc_{tên}` |
+| Ô nền | ảnh 32×32 (thoi 32×16, tâm (16, 19), đáy khoảng 5); ô lớn 64×64 (thoi 64×32, tâm khoảng (32, 37), đáy khoảng 11–12) | | tên ô trong `shared/assets/iso/tiles.json` |
+| Vật đứng | cạnh bội `ISO_PROP_STEP` | giữa đáy, cách mép dưới `ISO_PROP_FOOT` | `prop_{vật}` |
+| Chân dung võ hồn / NPC | 64×64 / 112×112, tối đa `PORTRAIT_MAX_COLORS` màu | | `portrait_{id}` / `npc_{mã NPCS}` |
+| Thẻ võ hồn | 96×152, cửa sổ chân dung trong suốt | | `card_{sr,ssr,ur}` |
+| Huy hiệu hệ / trạng thái | 24×24 | | `he_{mã HE_IDS}` / `status_{mã STATUS_IDS, BUFF_IDS}` |
+| Vật phẩm | 32×32 (hồn cốt bản xám) | | `item_{mã ITEMS, nhóm ITEM_KINDS, hon_cot_<vị trí>}` |
+| Mảnh giao diện | điểm ảnh thật, không thu | | `ui_{tên}` (`"nine": N` nếu kéo giãn 9 lát) |
+
+- 8 hướng: vẽ `s`, `se`, `e`, `ne`, `n`; `sw` / `w` / `nw` là lật ngang `se` / `e` / `ne` cho mọi lớp cùng lúc.
+- Viền ngoài `#1a1020` (không đen tuyền) cho nhân vật, hồn thú, vật đứng; ô nền không viền. Lớp tóc / áo chỉ gồm dải 4 xám chuẩn + `#1a1020`.
+- Màu: `art/palette.gpl` + bảng nhấn vùng `art/palettes/<mapId>.gpl` (giao diện `_thuy_mac.gpl`, chỗ sang trọng `_luu_ly.gpl`) + `col` / `robe` của võ hồn (1 sắc tối, 1 sắc sáng suy ra) + màu `TIERS`.
+- Bóng, vòng hồn hoàn, aura, mắt phát sáng của hồn thú do client vẽ: không vẽ vào sprite.
+- Phong cách: A nền trầm, sáng từ hồn lực; B mỗi vùng một sắc; C thủy mặc cho giao diện; D lưu ly cho chỗ sang trọng.
+
+## 2. Chọn nguồn
+| Asset | Nguồn |
+|---|---|
+| Hồn sư người chơi và animation | PixelLab (không dùng LPC) |
+| Phụ thể võ hồn | Ảnh Gemini hướng nam (`art/src/gemini/phuthe_s/<mã>_s.png`) vẽ lại đúng cỡ bằng PixelLab `edit_image_pixen`; vũ khí phẳng, vật đối xứng dùng chung một ảnh cho 5 hướng |
+| Hồn thú | PixelLab; ảnh Gemini nghiêng 3/4 (`art/src/gemini/beast_se/<loài>_se_<cỡ>.png`) chỉ làm tham chiếu hướng `se` / `e` |
+| Ô nền | Gemini (10 bản đồ hiện dùng) hoặc PixelLab; **một bản đồ một nguồn ô nền** |
+| Vật đứng, công trình | PixelLab `create_map_object` hoặc Gemini |
+| Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | Gemini |
+| Huy hiệu hệ, chỉnh pixel | Vẽ tay (mục 6) |
+| NPC phụ, dân thường, lính gác | LPC (mục 5) |
+
 - Không dùng hay tham chiếu ảnh từ game thương mại, phim, truyện tranh chính thức; không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
+- Ảnh thô và thư mục làm việc để ngoài repo (thư mục artifact của phiên hoặc thư mục tạm); chỉ chép vào `shared/assets` sau khi người dùng duyệt.
 
-## Gọi PixelLab (đã thử ở bước 10.0, 10.0b)
+## 3. PixelLab (MCP)
+**Lượt và key**
+- 5 key trial × 40 lượt, cộng lượt thưởng ngày (+5 mỗi đêm, tối đa 20; bị trừ song song khi còn lượt chính). Key chỉ nằm trong cấu hình MCP: **không** ghi key vào repo, log, PR hay tin nhắn. **Hết lượt thì dừng và báo orchestrator**: orchestrator đổi key (phiên mới mới nhận key mới); không tự đổi key, không nâng gói.
+- `get_balance` trước và sau mỗi job; ghi số lượt đã dùng trong PR. Ước tính lượt từng bước ở Lộ trình Giai đoạn 10 (`GAME_DESIGN.md` mục 7).
+- Miễn phí: `search_help`, `search_knowledge`, `get_pro_flash_capabilities`, `get_balance`, `get_*` / `list_*`, `pixelart_workbench`.
+- **Không để phát sinh USD:** ảnh ra lớn hơn 64×64 ở một số công cụ (đã gặp: `edit_image_pixen` ra 68×68) bị tính vào credit USD thay vì trừ lượt, dù còn lượt. Giữ cỡ ra ≤ 64×64 với các công cụ chỉnh / vẽ ảnh; xem `charged_generations` / `charged_usd` trong kết quả từng job, credit giảm thì dừng và báo.
+- **Quá tải và lỗi:** gói trial chỉ chạy 1 job một lúc, `animate_character` chỉ nhận 1 hướng mỗi lần gọi: chờ job trước xong mới gửi job sau. Bị từ chối ngay lúc gọi ("high demand", "free generations are temporarily unavailable") thì không trừ lượt, chờ rồi thử lại thưa. Job đã nhận rồi mới hỏng 429 **vẫn trừ 1 lượt**; job hỏng vì máy chủ PixelLab sập ("GPU worker dropped") không trừ. Job v3 trừ lượt lúc xong. Sau mỗi job hỏng gọi `get_balance` để biết đã mất lượt chưa.
+
+**Tham số đã thử**
 | Asset | Lệnh | Tham số | Lượt |
 |---|---|---|---|
 | Hồn sư 8 hướng | `create_character` | `mode: "standard"`, `size: 52` (khung thô 76×76, người cao 52–55), `view: "high top-down"`, `n_directions: 8`, `outline: "single color outline"`, `detail: "high detail"`, `proportions` preset `stylized` | 1 |
-| Animation hồn sư | `animate_character` mẫu | `breathing-idle`, `walking-6-frames`, `cross-punch` / `lead-jab`, `fireball`, `taking-punch`, `falling-back-death`; **chỉ xin 5 hướng** `south`, `south-east`, `east`, `north-east`, `north` | 1 mỗi hướng |
+| Nhập lại nhân vật đã có ảnh 8 hướng | `create_character` | `mode: "v3"`, `reference_image_base64` (hướng `south`), `direction_images` đủ 7 hướng còn lại; sau đó `animate_character` như nhân vật mới | 0,25 |
+| Animation hồn sư | `animate_character` mẫu | `breathing-idle`, `walking-6-frames`, `cross-punch` / `lead-jab`, `fireball`, `taking-punch`, `falling-back-death` (tra lại bằng `get_character`, `available_animations`); **chỉ xin 5 hướng** `south`, `south-east`, `east`, `north-east`, `north` | 1 mỗi hướng |
 | Hồn thú bốn chân | `create_character` | `body_type: "quadruped"`, `template` gần nhất (`dog`, `cat`, `lion`, `bear`, `horse`), `size` 48 / 64 / 92 cho khung 64 / 96 / 128 (khung thô lớn hơn khoảng 40%) | 1 |
-| Animation hồn thú | `animate_character` mẫu | chỉ có `idle`, `walk-*`, `running-*`, `sneaking`, `fast-walk`, `bark` (không có đánh / bị đánh / gục: làm bằng code hoặc animation tự mô tả v3, tốn hơn) | 1 mỗi hướng |
-| Ô nền | `create_isometric_tile` | `size: 32` (ô lớn 2×2: 64), `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát) | 1 |
+| Animation hồn thú | `animate_character` mẫu | chỉ có `idle`, `walk-*`, `running-*`, `sneaking`, `fast-walk`, `bark` (không có đánh / bị đánh / gục: `attack` dùng animation tự mô tả v3, tốn hơn, chỉ cho tinh anh / thú vương / boss) | 1 mỗi hướng |
+| Ô nền | `create_isometric_tile` | `size: 32` (ô lớn: 64), `tile_shape: "thin tile"`, `outline: "lineless"`, `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát) | 1 |
 | Vật đứng | `create_map_object` | `width` / `height` theo vật (cây 96×128, lửa trại 48×48), `view: "high top-down"`, nền trong suốt | 1 |
-| Vật / hồn thú thực vật (Thực Nhân Hoa, Cổ Mộc Thụ Nhân…) | `create_map_object` | 96×96, `view: "high top-down"`; không có mẫu animation, động tác làm bằng code | 1 |
+| Hồn thú thực vật (Thực Nhân Hoa, Cổ Mộc Thụ Nhân…) | `create_map_object` | 96×96, `view: "high top-down"`; động tác làm bằng code | 1 |
+| Vẽ lại phụ thể Gemini đúng cỡ | `edit_image_pixen` | ảnh vào gửi bằng `get_upload_url` + curl rồi `image_url: "upload:<id>"`; `width` / `height` là cỡ ra (≤ 64 để không tính USD) | 1 |
 | Normal map | `create_normal_map` | chỉ khi bản tự sinh (`normal.mjs`) không đạt | 0,5 |
 
-- Ô size 32: mặt trên là **thoi 32×16, tâm (16, 19)** trong ảnh 32×32, đáy dày khoảng 5 pixel. Ô lớn size 64: **thoi 64×32, tâm khoảng (32, 37)** trong ảnh 64×64, đáy dày khoảng 12 pixel. Lật ngang được để có thêm biến thể.
-## Prompt theo phong cách (mục 5.11)
-- **Thế giới (A + B):** mô tả vật bằng màu **trầm, hơi khử màu** của vùng ("muted", "desaturated earthy", "dark teal night forest", "sunset crimson and burnt orange", "icy blue and white"…) và chỉ để **phần phát sáng thật** sáng (nấm phát quang, băng tinh, lửa). Bản thử 10.0b dùng:
-  - nấm: `cluster of bioluminescent forest mushrooms, tall thin stems, caps glowing soft teal and pale cyan…, on a small dark mossy ground patch, night fantasy forest, isometric view` (48×48);
-  - cây Lạc Nhật: `single autumn forest tree at sunset, twisted dark trunk, dense canopy of crimson red and burnt orange leaves…, muted shadows with warm rim light…` (96×128);
-  - thông tuyết: `tall snow-covered pine tree…, dark blue-green needles heavily laden with white snow, icy blue shadows, small snow mound at the base…` (64×128);
-  - băng tinh: `cluster of jagged ice crystals…, translucent pale cyan and deep blue facets…, faint inner glow…` (48×64).
-- **Không vẽ mắt phát sáng hay hào quang vào hồn thú**: client tô mắt theo màu niên hạn (`TIERS[bậc].glow`) và thêm viền sáng; PixelLab tự vẽ mắt sáng thì tô lại về màu mắt thường. Hồn sư cũng không vẽ vòng hồn hoàn.
-- Ô nền vẽ theo bảng chung (trầm), không theo màu vùng: client nhân màu môi trường của vùng lúc vẽ, nên một bộ ô dùng cho nhiều vùng.
-- **Gemini (ô nền):** "flat isometric floor tile, top face only, no side walls, no outline, no vignette; exact 2:1 dimetric diamond, width exactly twice the height; muted desaturated earthy colors; seamless texture that tiles with itself in both diagonal directions, no feature touching the edges; about 64 art pixels across; plain #FF00FF background, even grid, no text". Mỗi ảnh một chất liệu × 4 biến thể cùng bảng màu. Ô 32×16 (ô đơn ở chỗ 2×2 không cùng địa hình, mép): ảnh riêng, thay "about 64 art pixels across" bằng "about 32 art pixels across; large sparse texture features, few small details" để thu về 32×16 không thành nhiễu.
-- **Giao diện (C, D)** vẽ bằng code hoặc `pixelart_workbench` (không tốn lượt) theo bảng `art/palettes/_thuy_mac.gpl`, `_luu_ly.gpl`; font phải đủ dấu tiếng Việt.
+- Tải ảnh: `get_character` (URL `rotations/<hướng>.png`), `get_isometric_tile` / `get_map_object` (URL `download`). Ảnh thô làm việc để ngoài repo; ảnh nguồn cần giữ để chạy lại thì vào `art/src/pixellab/` (vật đứng `iso/`, phụ thể `vh_iso/` kèm file mô tả).
+- Khung tĩnh 8 hướng làm trước, duyệt bằng mắt (phóng ×3, đặt trên nền isometric) rồi mới làm animation. Nhân vật mới lấy nhân vật đã duyệt làm mẫu phong cách.
+- **Đã hỏng, đừng lặp lại:** `animate_image` trên ảnh ghép nhiều nhân vật (nhân vật tự xoay hướng giữa các khung). Thu nhỏ ảnh Gemini 96×96 bằng code làm đầu rắn, tầng tháp nhòe (chỉ bụi cỏ thu 2:1 theo màu đa số còn đọc được): vẽ lại bằng `edit_image_pixen`.
 
-- Tải ảnh: `get_character` (URL `rotations/<hướng>.png`), `get_isometric_tile` / `get_map_object` (URL `download`). Ảnh thô lưu ở `art/src/pixellab/<bộ>/`; thư mục tạm để ngoài repo.
+**Prompt và lỗi màu**
+- Thế giới (A + B): vật mô tả bằng màu **trầm, hơi khử màu** của vùng ("muted", "desaturated earthy", "dark teal night forest", "sunset crimson and burnt orange", "icy blue and white"…), chỉ phần phát sáng thật (nấm, băng tinh, lửa) mới sáng. Ví dụ đã dùng: `single autumn forest tree at sunset, twisted dark trunk, dense canopy of crimson red and burnt orange leaves…, muted shadows with warm rim light…` (96×128); `cluster of jagged ice crystals…, translucent pale cyan and deep blue facets…, faint inner glow…` (48×64). Ô nền theo bảng chung (trầm), không theo màu vùng: client nhân màu môi trường.
+- Hồn thú không vẽ mắt phát sáng hay hào quang (client tô mắt theo `TIERS[bậc].glow`); PixelLab tự vẽ mắt sáng thì tô lại về màu mắt thường. Hồn sư không vẽ vòng hồn hoàn.
+- **Lỗi màu hay gặp ở hồn sư:** mắt lam + lòng trắng, áo ánh tím lam, đai đỏ / vàng: `normalize --split` tự sửa mắt lam và 1–3 điểm lạc màu khóa, còn lại tô tay trước khi tách. Mẫu `fireball` vẽ cả quả lửa vào khung: `normalize --strip-fx cast`.
 
-## Quy cách bắt buộc (chi tiết ở mục 5.11)
-- Một ô logic 16 px thế giới = **thoi 32×16**; client chiếu `sx = x − y`, `sy = (x + y) / 2`. Vùng rộng cùng địa hình dùng ô lớn 64×32 phủ 2×2 ô. Server không đổi. Vật nhiều ô cắt lát dọc rộng 16 pixel.
-- **8 hướng, vẽ 5 (`s`, `se`, `e`, `ne`, `n`), lật 3** (`sw` = lật `se`, `w` = lật `e`, `nw` = lật `ne`) cho mọi lớp cùng lúc.
-- Hồn sư khung **64×64, gốc (32, 58)**; phụ thể **96×96, gốc (48, 74)**; hồn thú 64 (Trắng, Vàng) / 96 (Tím, Đen) / 128 (Đỏ) / 160 (thú vương) / 192 (boss thế giới), gốc giữa đáy cách mép dưới khoảng 8 pixel.
-- Sheet hồn sư 24 cột × 6 hàng (hàng 0–4 là 5 hướng vẽ, hàng 5 `absorb`; cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–16 `cast`, 17–18 `hurt`, 19–22 `die`). Sheet hồn thú 20 cột × 5 hàng (cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–15 `hurt`, 16–19 `die`).
-- **Ghép lớp theo bộ giới × kiểu tóc (phương án (b)):** mỗi bộ vẽ liền thân + áo + tóc rồi tách tự động thành 3 lớp trên từng khung, từng hướng; key `hs_{body,outfit,hair}_{m,f}_{0–3}`; một bộ đủ 3 lớp trong manifest hoặc không có lớp nào. Phụ thể võ hồn là lớp riêng `vh_{id}_b` / `vh_{id}_f`, vẽ tĩnh 5 hướng rồi ghép theo điểm neo của từng khung thân.
-- **Viền ngoài `#1a1020`** cho nhân vật / hồn thú / vật đứng (không đen tuyền), giữ nguyên khi hoán màu: lớp tóc / áo chỉ gồm dải 4 xám chuẩn + `#1a1020`. Ô nền không viền.
-- Màu lấy từ `art/palette.gpl` (bảng chung) cộng bảng nhấn của vùng `art/palettes/<mapId>.gpl` (giao diện: `_thuy_mac.gpl`, chỗ sang trọng: `_luu_ly.gpl`), `col` / `robe` của võ hồn (`VOHON`) và 1 sắc tối, 1 sắc sáng suy ra, màu hồn hoàn của `TIERS`.
-- Bóng, vòng hồn hoàn, aura do client vẽ, không vẽ trong sprite.
+## 4. Gemini
+Người dùng tạo ảnh ở gemini.google.com; mình viết prompt, nhập và soát. Gemini vẽ nhiều vật trên một ảnh lớn dạng "giả pixel" (mỗi pixel nghệ thuật là khối ~5–7 px không đều, logo sao ở góc dưới phải); `gemini-import.mjs` đưa về pixel thật đúng khung isometric. Ảnh thô ở thư mục artifact (inbox), kết quả ra thư mục tạm ngoài repo.
 
-## Dây chuyền `tools/assets/` (Node thuần)
-**ảnh thô → `normalize` → `pack` → `normal` → `validate --register` → xem thử → PR**
+**Cách tạo ảnh và prompt**
+- **Mỗi ảnh một cuộc trò chuyện Gemini mới**: cùng cuộc trò chuyện thì Gemini hay vẽ lại nội dung lượt trước (đã gặp 5/10 ảnh sai bản đồ). Kiểm nội dung từng ảnh trước khi nhập.
+- Nền một màu phẳng **`#FF00FF`** (không bóng đổ, không chuyển màu, không viền trắng quanh vật); vật không dùng hồng / tím gần màu nền ở mép. Lưới đều C cột × R hàng, mỗi ô một vật, các vật cách nhau rõ, cùng cỡ, cùng góc nhìn. Không chữ, số, nhãn, khung; logo để công cụ gỡ.
+- **Ô nền:** đính kèm **khuôn 2:1 `khuon-o-2x1.png`** (6 thoi xám 800×400 trên nền `#FF00FF`; orchestrator giữ ở thư mục artifact, ngoài repo); không có khuôn thì thoi chỉ ra 1,2–1,6:1. Prompt: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, muted desaturated colors, seamless texture that tiles with itself". Lưới 3×3 hoặc 2×2 và "empty magenta above and below each diamond, diamonds never touch" (lưới 3×2 trên ảnh 16:9 cho thoi 1,2:1, ép về 2:1 mất khoảng 40% chi tiết dọc). Không ghi số pixel nghệ thuật (Gemini vẽ ô giả khoảng 11 px, thô gấp đôi). Ô 32×16 (chỗ 2×2 không cùng loại, mép) là ảnh riêng: "large sparse texture features, few small details".
+- **Vật đứng:** thêm "**NO ground base**, no soil slab under the prop" (khỏi phải cắt đế) và "no glow halo bleeding onto the background"; chân chạm cùng đường đáy, viền ngoài tối.
+- **Chân dung:** vẽ chính võ hồn trên nền tối có quầng màu của võ hồn, không vẽ chủ nhân; giữ nguyên prompt lô 1 (`gemini-prompts-vohon-tinhdau.md` của orchestrator).
+- Hồn thú Gemini ra nghiêng 3/4 sang phải, không đúng hướng nam: chỉ làm tham chiếu.
+- Gemini hay kẻ lưới tối giữa các ô (giao diện, thẻ, trạng thái): xóa lưới (thay bằng màu nền) trước khi nhập, không thì cả lưới thành một vật.
 
-Mọi lệnh theo khung isometric (hằng `ISO_*`, `isoLayout` trong `lib.mjs`); bộ 32×32 cũ chỉ còn để `validate` kiểm các key chưa có `"iso": true`.
+**`gemini-import.mjs`**
+| Lệnh | Việc |
+|---|---|
+| `--kind tile --out <dir> --names a,b,… <ảnh>` | Ô nền: lấy mặt trên thoi (`--inset auto` bỏ dải mép khác màu), ép đúng 2:1, làm liền mép (`--seamless on`), ghi `<dir>/32/` (ảnh 32×32) và `<dir>/64/` (ô lớn), suy từ một hằng `ISO_TILE_W` trong `lib.mjs` (khớp `client/src/iso.ts`). `--size 32,64` chọn cỡ, `--face-only` chỉ mặt trên. |
+| `--kind tile-block …` | Như trên nhưng giữ viền (tối về `#1a1020`), không làm liền mép (mép vách, bờ nước). |
+| `--kind honsu\|vohon\|beast\|object …` | Sprite theo hằng `ISO_*` trong `lib.mjs`; hồn thú bắt buộc `--size` trong `ISO_BEAST_SIZES`, vật bắt buộc `--size`. Một vùng / một lô dùng **chung `--scale`** (Tinh Đấu: 0,6) để cỡ điểm ảnh đều; viền `#1a1020` nếu thiếu; mặc định `--palette gpl`. |
+| `--kind item --names … [--gray a,b] <ảnh>` | Vật phẩm 32×32: bỏ khung nền tối, nền trong suốt (`--bg-tol`), `--gray` ghi bản xám (hồn cốt). |
+| `--kind portrait [--size 64\|112\|24] …` | Chân dung võ hồn 64, NPC 112, trạng thái 24: cắt giữa 1:1 từ pixel thật, không viền ngoài, `--palette auto-item --colors 32`; ô nền trong suốt (biểu tượng tròn) thì căn giữa như sprite, thêm viền. |
+| `iso-preview.mjs <ra.png> --tiles grass=a.png,… [--big grass=A.png] --size 16 --scale 3` | Dựng mảnh bản đồ để soát mép ghép, màu, độ lặp (đọc được cả ô PixelLab). |
+
+- Tách vật theo thành phần liên thông (trên → dưới, trái → phải, khớp `--names`) hoặc `--grid CxR` khi vật dính nhau; số tên khác số vật thì dừng và in hộp bao. Cỡ ô giả dò tự động; sai thì `--cell N` (`--cell 1` cho ảnh đã là pixel thật).
+- Bảng màu: ô mặc định `--palette auto-item` (mỗi vật 10 màu); `--palette <file>` với `art/palette.gpl` gộp bảng nhấn vùng cho vật đứng; `--palette none` để xem màu gốc.
+- Logo: `--logo auto` (mặc định); vị trí lạ thì `--logo star:cx,cy,R[,alpha]`, `--logo x,y,w,h` hoặc `--logo off`.
+- Ô vẽ trên tấm nền riêng khác `#FF00FF`: `--key #rrggbb`. Viền tím nhạt quanh quầng sáng: `--fringe 12`.
+- **Đế đất:** `--cut-base a,b|all` bỏ mặt bên và cỏ đất mặt trên (`--base-tol`); báo `cắt đế rộng W dày t` hoặc `KHÔNG dò được đế`. Vật cùng màu với đế (bụi cỏ, lau sậy) cắt xấu thì không đưa vào game, xin vẽ lại không đế.
+- Khung vật đứng: chạy một lần với khung lớn và `--debug`, đo hộp bao trong `_native/`, rồi chạy lại với khung bội `ISO_PROP_STEP`. Mỗi lần chạy ghi `_preview.png` (×4) và `_report.json` (cỡ ô giả, tỉ lệ mặt trên, độ lệch mép ghép).
+
+```bash
+node tools/assets/gemini-import.mjs --kind tile --names grass,dirt,water --out <tmp>/flat <inbox>/tiles/gemini-tiles-02.png
+node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/grass.png,path=<tmp>/flat/32/dirt.png,water=<tmp>/flat/32/water.png --big grass=<tmp>/flat/64/grass.png --scale 3
+```
+
+**Đưa vào game (sau khi người dùng duyệt)**
+- Ô nền: `iso-build.mjs ground <tên> <32.png> [<64.png>]` rồi thêm vào `tiles.json` (mục 7). Vật đứng: `iso-build.mjs prop`.
+- Chân dung / NPC / vật phẩm / trạng thái / giao diện / thẻ: chép vào `shared/assets/sprites/iso/{portrait,npc,item,status,ui}/…`, rồi `validate.mjs --register <key> --iso --tool "Gemini (gemini.google.com) + tools/assets/gemini-import.mjs" --prompt "<ảnh, ô, prompt>" --note "<lệnh nhập>"` (mảnh giao diện kéo giãn thêm `--nine N`). CREDITS vào mục "Asset tạo bằng AI (Gemini)"; validate kiểm mã có trong `NPCS` / `ITEMS` / `STATUS_IDS`…
+
+## 5. LPC (chỉ NPC phụ)
+Universal LPC Spritesheet Character Generator (<https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>, 0 lượt PixelLab). `tools/assets/lpc-compose.mjs` đọc PNG lớp của repo đó, xuất theo bố cục sheet hồn sư 24 × 6.
+- **Phạm vi (người dùng đã quyết):** chỉ **NPC phụ** (10 NPC trong `NPCS`: `lpc_<mã NPC>`), dân thường `lpc_dan_*`, lính gác `lpc_linh_gac`. **Không** dùng cho hồn sư người chơi (LPC chibi kiểu tây, chỉ 4 hướng).
+- **Giấy phép:** chỉ lớp có ít nhất một giấy phép **CC0 / CC-BY / OGA-BY**. Lớp chỉ có CC-BY-SA / GPL (ví dụ `hair/messy1`, `hair/swoop`, `hair/ponytail`, nhiều `bangs*` / `spiked*`, `weapon/polearm/*`, kính `nerd` / `round`, đầu `male_plump`, râu `basic`) hoặc giấy phép lạ thì công cụ dừng: chọn lớp khác.
+- **Ghi công:** công cụ tra **đúng mục** của từng file đã đọc trong `CREDITS.csv` (không có thì dừng, không đoán theo thư mục) và ghi vào mục LPC của `art/CREDITS.md` giữa `<!-- lpc:start -->` / `<!-- lpc:end -->` (mỗi NPC một mục, chạy lại thì thay). Không sửa tay vùng này.
+- **Tải repo LPC ngoài repo game** (`git clone --depth 1`, khoảng 450 MB, vào thư mục artifact); chỉ đọc `spritesheets/`, `sheet_definitions/`, `CREDITS.csv`, không chạy code của repo đó.
+- **Công thức** `art/src/lpc/<tên>.json` (`--recipe`, cú pháp ở đầu file công cụ; `"base": true` thêm sẵn thân, đầu, giày); thử nhanh `--npc truong_thon | thuong_nhan | tho_ren | linh_gac`. Trang phục phương Đông gần nhất: nam `longsleeve2_vneck` + `legs/skirts/plain` + `torso/waist/obi`, búi tóc `parted_side_bangs` + `extensions/ponytails/topknot_short`; nữ `dress/kimono` + `kimono/sleeves` + obi (kimono / robe / tunic chỉ có cho thân nữ).
+- **Màu:** NPC phụ không nổi hơn hồn sư. `--game` dùng `hairRamp` / `outfitRamp` của công thức (4 màu trầm của `art/palette.gpl`), không có thì `HAIR_COLORS` / `OUTFIT_COLORS` giảm bão hòa; lớp `keep` (giáp, tạp dề) giảm bão hòa theo `--desat` (mặc định `DESAT_DEFAULT`). `--hair-col`, `--outfit-col`, `--skin` là chỉ số trong `shared/data.ts`.
+- Công cụ tự lo: ánh xạ 4 hướng LPC → 5 hướng vẽ (mục 5.11), chọn khung (walk 6, attack từ slash, cast từ spellcast, `idle` bằng `pack --breathe`, `hurt` / `die` hướng `s` từ hurt LPC, phần còn lại `pack --code`), dời chân về gốc (32, 58), đưa màu về bảng, mép và màu gần đen thành `#1a1020`.
+
+```bash
+node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <tmp>/lpc --npc linh_gac --outfit-col 0      # thử, ra <tmp>/lpc/<tên>_mau.png
+node tools/assets/preview.mjs <tmp>/xem.png <tmp>/lpc/linh_gac_mau.png --dirs8 --ground
+for f in art/src/lpc/*.json; do node tools/assets/lpc-compose.mjs --lpc <repo LPC> --game --recipe $f; done   # đưa vào game
+```
+`--game` ghi `shared/assets/sprites/iso/lpc/<tên>.png` + `_n.png`, thêm key `lpc_<tên>` (`"iso": true`) vào manifest và ghi công. Client tự dùng `lpc_<mã NPC>`; dân thường mới thì thêm tên vào `CROWD` (`client/src/crowd.ts`). Soát bằng mắt (khung đứng 5 hướng, so với chân dung `npc_<mã>`) rồi `npm run check`.
+
+## 6. Vẽ tay
+- **Huy hiệu hệ** `he_<mã HE_IDS>` 24×24: `node tools/assets/he-icons.mjs [--out <dir>]` vẽ từng điểm từ mảng ký tự trong file (tròn màu hệ, viền vàng kim, biểu tượng trắng) vào `shared/assets/sprites/iso/he/`; sửa hình thì sửa mảng rồi chạy lại; dừng nếu `HE_IDS` đổi. CREDITS ghi ở mục "Asset tự vẽ" bằng tay (`--register` chỉ ghi mục PixelLab / Gemini).
+- **Chỉnh pixel:** `pixelart_workbench` (PixelLab MCP, miễn phí: `pixelart_workbench(argv=['describe', 'start'])`) hoặc Aseprite với bảng sinh bằng `node tools/assets/palette.mjs <ra.gpl> [--map <mapId>]` (không đưa vào repo). Xuất sheet từ Aseprite: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 24`. Sửa xong chạy lại `validate`.
+- Giao diện (C, D) vẽ bằng code hoặc `pixelart_workbench` theo `art/palettes/_thuy_mac.gpl`, `_luu_ly.gpl`.
+
+## 7. Dây chuyền `tools/assets` (Node thuần)
+**ảnh thô → `normalize` → `pack` → `normal` → `preview` → `validate --register` → xem trong game → PR**. Mọi lệnh theo hằng `ISO_*`, `isoLayout` trong `lib.mjs`.
 
 | Lệnh | Việc |
 |---|---|
-| `normalize.mjs --kind honsu\|vohon\|beast<bậc> --out <dir> <ảnh…>` | Xóa nền, cắt khung thô PixelLab (76×76, 92×92…) về khung chuẩn **không phóng**: giữa khung thô → x của gốc (PixelLab đặt nhân vật cố định trong khung thô, nên đổi hướng / animation / lật không xê dịch), dòng chân theo hướng lấy từ khung đứng. Hồn thú (`beast0`–`4` = 64, 64, 96, 96, 128; `--kind beast --size 160\|192`) dùng một dòng chân chung cho mọi hướng. Tên PixelLab đổi sang hướng ngắn (`south-east_walk_0.png` → `se_walk_0`, `south.png` → `s_idle_0`). Dòng cuối in `--foot s=62,se=65,…`: chạy animation riêng (không kèm khung đứng) thì truyền lại giá trị đó. `--place bbox` cho ảnh không phải khung thô PixelLab. Đưa màu về bảng, viền ngoài `#1a1020`. `--split` tách thân / tóc / áo theo màu khóa, tự sửa mắt lam và điểm lạc; `--vohon <id>` chỉ dùng màu võ hồn đó; `--halves <y>` tách phụ thể sau / trước. |
-| `pack.mjs --kind honsu\|beast<bậc> --out <sheet.png> <dir>` | Ghép khung `{hướng}_{anim}_{i}.png` (hướng `s`, `se`, `e`, `ne`, `n`; `absorb_{i}.png`) vào sheet 24 × 6 (hồn sư) / 20 × 5 (hồn thú); số khung PixelLab khác bố cục thì chọn đều (giữ khung đầu, cuối). `--breathe <y>` tạo 4 khung `idle` từ khung đứng (khung 64: y khoảng 30, ngay dưới vai); `--code hurt,die,absorb` vẽ tạm các ô đó từ khung đứng (cùng phép biến đổi cho 3 lớp: ngửa, khuỵu, nằm xoay 90°, ngồi hạ thân; dòng hông `--hip`, mặc định `ISO_HIP`) khi chưa có animation thật; `--fill` chép tạm `idle` vào ô còn thiếu. Hồn sư: `--set <giới>_<kiểu tóc>` ghi cả 3 lớp vào `shared/assets/sprites/honsu/`. |
-| `vohon-part.mjs <mô tả.json> --body m:<thân>,<áo>,<tóc> --body f:<…> --out <dir>` | Dựng phụ thể tĩnh 5 hướng từ ảnh vũ khí / vật / hư ảnh theo file mô tả (`art/src/pixellab/vh_iso/<id>.json`: mỗi hướng một danh sách mảnh `img`, `pivot` = điểm cầm trong ảnh, `hand` left / right, `off`, `flip`, `rot` bội 90, `rim` viền sáng trên / trái cho võ hồn tối, `layer` b / f / `{"split": y}`, ghi đè riêng một giới bằng `"f": {…}`): đặt pivot vào điểm neo ở khung đứng của thân mẫu từng giới, ghi `<dir>/<giới>/{hướng}_{b,f}.png` + `grip.json` (tay đã cầm). Sau đó `normalize --kind vohon --vohon <id> --gray none --foot 74` từng thư mục giới (đưa màu về bảng, không dời hình; chép kèm `grip.json`). |
-| `pack.mjs --kind vohon --id <id> --part <dir> --body m:<thân>,<áo>,<tóc> --body f:<…> --attach hand\|head\|back\|feet [--swing \| --angles a,b,c,d]` | Ghép phụ thể tĩnh 5 hướng (`<dir>/<giới>/{hướng}_{b,f}.png`, khung 96×96 khớp khung đứng của thân mẫu giới đó) vào **nửa sheet của giới** (`ISO_VH_SEXES`: nam hàng 0–4, nữ hàng 6–10; sheet 2304×1152), dời theo **điểm neo** trên từng khung thân (`frameAnchors`: tay = đầu mút mảng da xa giữa lưng nhất, cùng phía với tay trong `grip.json`; đầu; giữa lưng; `feet` đứng yên theo gốc chân). `--swing` xoay vũ khí theo `ISO_ATTACK_SWING` ở 4 khung `attack`, `--angles` góc riêng (vũ khí dài vung ít hơn); xoay kiểu RotSprite (Scale2x ×4). Ghi `vohon/<id>_b.png`, `<id>_f.png`. |
-| `normal.mjs <ảnh…> [--union] [--edge 0]` | Tự sinh normal map `_n.png` (mép tròn từ alpha + độ sáng, quy ước OpenGL như Phaser), tính riêng từng khung của sheet. `--union` cho 3 lớp một bộ hồn sư (mép theo hình gộp, không nếp giả ở chỗ giáp lớp); `--edge 0` cho ô nền. Chỉ dùng `create_normal_map` khi bản tự sinh không đạt. |
-| `validate.mjs` | Kiểm mọi key trong manifest (chạy trong `npm run check`, pre-commit); key `"iso": true` theo bố cục isometric (ô bắt buộc, ô ngoài bố cục, khung chép tạm, `idle` đứng yên, chân chạm gốc, normal map cùng cỡ). `--register <key> [--iso] [--frame 96x96] [--map <mapId>] --prompt "…" --tool "…" --note "…"` thêm / ghi đè key trong `manifest.json` và một dòng `art/CREDITS.md`; `--map` cho phép thêm bảng nhấn `art/palettes/<mapId>.gpl`. Một bộ hồn sư không được trộn lớp `iso` với lớp 32×32. |
-| `preview.mjs <ra.png> <sheet…> --dirs8 [--anim idle,walk] [--raw <dir normalize>] [--ground]` | Xếp sheet thành 8 hàng hướng (s, sw, w, nw, n, ne, e, se; 3 hướng lật nền ánh lam), chồng lớp khớp gốc chân (phụ thể 96 với thân 64); `--raw` thêm cột ảnh PixelLab thật của cả 8 hướng để so với hướng lật; `--ground` vẽ thoi dưới chân. Không `--dirs8`: phóng to, chồng lớp, `--grid 64x64`, `--crop`. |
-| `iso-build.mjs ground <tên> <32.png> [<64.png>]` / `prop <tên> <ảnh.png> --map a,b [--drop-base N\|--drop-water] [--lift 3]` / `check` | Bản đồ isometric (10.2). `ground`: chép ô (đã qua `gemini-import --kind tile` hoặc PixelLab) vào `shared/assets/iso/ground/<tên>_{0,1}[_lon].png`, biến thể `_1` dời mặt trên nửa chu kỳ. `prop`: ảnh `create_map_object` → `sprites/iso/props/<tên>.png` (viền `#1a1020`, màu về `palette.gpl` + bảng nhấn các vùng `--map`, khung bội 16, chân giữa đáy; `--drop-base` bỏ đế cỏ dưới gốc cây, `--drop-water` bỏ đế nước), rồi `validate --register prop_<tên> --iso`. Ghi ô / vật / chân vào `shared/assets/iso/tiles.json` (bộ `"*"` và bộ riêng từng bản đồ, `tên~#rrggbb` để nhân màu). `check`: mọi gid của 10 bản đồ có ô / vật / kiểu nhà (validate gọi). Nhà và tường thành không cần ảnh: `client/src/isoBuild.ts` dựng theo `build` của vùng. |
-| `he-icons.mjs [--out <dir>]` | Vẽ 4 huy hiệu hệ `he_<mã HE_IDS>` 24×24 bằng code (tròn màu hệ, viền vàng kim, biểu tượng trắng từ mảng ký tự) vào `iso/he/`; dừng nếu `HE_IDS` khác danh sách hình. |
-| `palette.mjs <ra.gpl> [--map <mapId>]` | Bảng Aseprite / GIMP gồm mọi màu được phép (bảng chung, màu `TIERS`, `VOHON` kèm sắc suy ra, bảng nhấn vùng); bản sinh, không đưa vào repo. |
+| `normalize.mjs --kind honsu\|vohon\|beast<bậc> --out <dir> <ảnh…>` | Xóa nền, cắt khung thô PixelLab (76×76, 92×92…) về khung chuẩn **không phóng**: giữa khung thô → x của gốc, dòng chân theo hướng lấy từ khung đứng (hồn thú: một dòng chân chung; `beast0`–`4` = 64, 64, 96, 96, 128; `--kind beast --size 160\|192`). Đổi tên PixelLab sang hướng ngắn (`south-east_walk_0.png` → `se_walk_0`). Dòng cuối in `--foot s=62,se=65,…`: chạy animation riêng thì truyền lại. `--place bbox` cho ảnh không phải khung thô PixelLab. Màu về bảng, viền `#1a1020`. `--split` tách thân / tóc / áo theo màu khóa; `--vohon <id>` chỉ dùng màu võ hồn đó; `--halves <y>` tách phụ thể sau / trước; `--strip-fx <anim>` gỡ hiệu ứng mẫu vẽ vào khung. |
+| `pack.mjs --kind honsu\|beast<bậc> --out <sheet.png> <dir>` | Ghép `{hướng}_{anim}_{i}.png` vào sheet 24 × 6 / 20 × 5; số khung khác bố cục thì chọn đều. `--breathe <y>` tạo 4 khung `idle` từ khung đứng (khung 64: y khoảng 30, dưới vai); `--code hurt,die,absorb` vẽ tạm các ô đó (dòng hông `--hip`, mặc định `ISO_HIP`); `--fill` chép tạm `idle`. Hồn sư: `--set <giới>_<kiểu tóc>` ghi cả 3 lớp vào `shared/assets/sprites/honsu/`. |
+| `vohon-part.mjs <mô tả.json> --body m:<thân>,<áo>,<tóc> --body f:<…> --out <dir>` | Dựng phụ thể tĩnh 5 hướng theo file mô tả `art/src/pixellab/vh_iso/<id>.json` (mỗi hướng danh sách mảnh `img`, `pivot` điểm cầm, `hand`, `off`, `flip`, `rot`, `rim` viền sáng, `layer` b / f / `{"split": y}`, ghi đè theo giới `"f": {…}`); ghi `<dir>/<giới>/{hướng}_{b,f}.png` + `grip.json`. |
+| `pack.mjs --kind vohon --id <id> --part <dir> --body … --attach hand\|head\|back\|feet [--swing \| --angles a,b,c,d]` | Ghép phụ thể vào nửa sheet theo giới (`ISO_VH_SEXES`), dời theo điểm neo từng khung thân (`frameAnchors`); `--swing` xoay vũ khí theo `ISO_ATTACK_SWING`, `--angles` góc riêng (vũ khí dài vung ít hơn); xoay kiểu RotSprite. Ghi `vohon/<id>_b.png`, `<id>_f.png`. |
+| `normal.mjs <ảnh…> [--union] [--edge 0]` | Tự sinh normal map `_n.png` từng khung. `--union` cho 3 lớp một bộ hồn sư; `--edge 0` cho ô nền. **Mọi ô nền và vật đứng mới đều phải có `_n.png`**: client tải chúng khi bật ánh sáng (10.7), thiếu thì 404 và vật coi như phẳng. |
+| `preview.mjs <ra.png> <sheet…> --dirs8 [--anim idle,walk] [--raw <dir normalize>] [--ground]` | Xếp 8 hàng hướng (3 hướng lật nền ánh lam), chồng lớp khớp gốc chân; `--raw` thêm ảnh PixelLab thật để so với hướng lật; `--ground` vẽ thoi dưới chân. Không `--dirs8`: phóng to, `--grid`, `--crop`. |
+| `validate.mjs [--register <key> [--iso] [--frame 96x96] [--map <mapId>] [--nine N] --prompt … --tool … --note …]` | Kiểm mọi key trong manifest (chạy trong `npm run check`, pre-commit): kích thước, màu ngoài bảng, ô bắt buộc, khung chép tạm, chân chạm gốc, normal map, bộ hồn sư không trộn lớp `iso` với lớp 32×32. `--register` thêm / ghi đè key trong `manifest.json` và một dòng `art/CREDITS.md`; `--map` cho phép bảng nhấn của vùng. |
+| `iso-build.mjs ground <tên> <32.png> [<64.png>]` / `prop <tên> <ảnh.png> --map a,b [--drop-base N\|--drop-water] [--lift 3]` / `check` | `ground`: chép ô vào `shared/assets/iso/ground/<tên>_{0,1}[_lon].png` (biến thể `_1` dời nửa chu kỳ). `prop`: vật → `sprites/iso/props/<tên>.png` (viền, màu về bảng chung + bảng vùng, khung bội 16, chân giữa đáy; `--drop-base` bỏ đế cỏ, `--drop-water` bỏ đế nước), rồi `validate --register prop_<tên> --iso`. Ghi ô / vật vào `tiles.json` (bộ `"*"` hoặc bộ bản đồ, `tên~#rrggbb` để nhân màu). `check`: mọi gid của 10 bản đồ có ô / vật / kiểu nhà. Nhà và tường thành không cần ảnh. |
 
-Ví dụ một phụ thể (ảnh PixelLab và file mô tả trong `art/src/pixellab/vh_iso/`; `B=shared/assets/sprites/honsu`):
-```bash
-BM=m:$B/body_m_0.png,$B/outfit_m_0.png,$B/hair_m_0.png; BF=f:$B/body_f_0.png,$B/outfit_f_0.png,$B/hair_f_0.png
-node tools/assets/vohon-part.mjs art/src/pixellab/vh_iso/hao_thien_chuy.json --body $BM --body $BF --out <tmp>/raw
-for s in m f; do node tools/assets/normalize.mjs --kind vohon --vohon hao_thien_chuy --gray none --foot 74 --out <tmp>/part/$s <tmp>/raw/$s/*.png; cp <tmp>/raw/$s/grip.json <tmp>/part/$s/; done
-node tools/assets/pack.mjs --kind vohon --id hao_thien_chuy --part <tmp>/part --body $BM --body $BF --attach hand --angles -20,-40,30,10
-node tools/assets/preview.mjs <tmp>/xem.png shared/assets/sprites/vohon/hao_thien_chuy_b.png $B/{body,outfit,hair}_f_0.png shared/assets/sprites/vohon/hao_thien_chuy_f.png --dirs8   # nửa sheet theo tên thân (hoặc --sex)
-```
-- Ảnh Gemini hướng nam (`art/src/gemini/phuthe_s/`) vẽ võ hồn kín khung 96: vẽ lại đúng cỡ bằng `edit_image_pixen` (1 lượt; ảnh vào gửi bằng `get_upload_url` + curl rồi `image_url: "upload:<id>"`, `width` / `height` là cỡ ra). Thu nhỏ bằng code thì đầu rắn, tầng tháp nhòe; chỉ cỏ thu 2:1 theo màu đa số còn đọc được.
-- PixelLab quá tải (2026-10-21): một job bị tính vào credit USD dù còn lượt, sau đó lượt miễn phí bị từ chối "free generations are temporarily unavailable" (không trừ lượt); chờ rồi thử lại thưa. Kiểm `charged_generations` / `charged_usd` trong kết quả từng job; bị tính USD thì dừng và báo.
-- Vũ khí phẳng (chùy, kiếm) và vật đối xứng (tháp, cỏ) dùng chung một ảnh cho 5 hướng, chỉ đổi nửa sau / trước; vũ khí cầm tay để đầu chĩa lên phải, tay `right`. Hư ảnh thú sau lưng neo `back`.
+**Màu khóa khi tách lớp hồn sư:** tóc lam, áo / quần / váy xám, giày nâu, da bình thường. `--split`: lam → tóc, xám → áo, còn lại → thân; tóc và áo về dải 4 xám theo độ sáng từng lớp. Tự sửa mắt lam (điểm lam vùng đầu có tròng trắng bên cạnh → màu "Mắt"; log báo số điểm) và điểm lạc màu khóa (theo lớp đa số quanh nó); màu gần đen (độ sáng < 12%) → `#1a1020`. Còn phải tự soát: áo ánh tím, đai màu, tóc xám. Lỗi màu mới thì đếm màu nguồn rồi chỉnh `layerOf` / `mapColor` trong `normalize.mjs`.
 
-Ví dụ một bộ hồn sư (ảnh thô `south.png`… và `south_walk_0..5.png` trong `art/src/pixellab/m_0/`):
+Một bộ hồn sư (ảnh thô `south.png`… và `south_walk_0..5.png` trong `<ảnh thô>/m_0/`):
 ```bash
-node tools/assets/normalize.mjs --kind honsu --split --out <tmp>/m_0 art/src/pixellab/m_0/*.png
+node tools/assets/normalize.mjs --kind honsu --split --out <tmp>/m_0 <ảnh thô>/m_0/*.png
 node tools/assets/pack.mjs --kind honsu --set m_0 --breathe 30 --code hurt,die,absorb <tmp>/m_0
 node tools/assets/normal.mjs --union shared/assets/sprites/honsu/{body,outfit,hair}_m_0.png
 node tools/assets/preview.mjs <tmp>/m_0_8.png shared/assets/sprites/honsu/{body,outfit,hair}_m_0.png --dirs8 --anim idle,walk --raw <tmp>/m_0 --ground
 for l in body outfit hair; do node tools/assets/validate.mjs --register hs_${l}_m_0 --iso --prompt "…"; done
 ```
 
-**Màu khóa khi tách lớp hồn sư:** tóc lam, áo / quần / váy xám, giày nâu, da bình thường. `normalize --split`: lam → tóc, xám → áo, còn lại → thân; tóc và áo đưa về dải 4 xám theo độ sáng của từng lớp. **Lỗi màu PixelLab đã gặp:** `--split` tự sửa mắt lam (điểm lam trong vùng đầu có tròng trắng ngay bên trái / phải và không quá 2 điểm tóc quanh nó → màu "Mắt" của bảng; tròng trắng giữ ở lớp thân dù cùng màu với xám sáng của áo; dòng log báo số điểm đã sửa, hướng `n` / `ne` không có mắt) và 1–3 điểm lạc màu khóa mỗi hướng (dưới 2 điểm cùng lớp quanh nó mà lớp khác có từ 3 điểm → theo lớp đó). Còn phải tự soát: áo ánh tím, đai màu, tóc xám. Các màu gần đen (độ sáng < 12%) đưa về `#1a1020`. Gặp lỗi màu mới thì đếm màu nguồn rồi chỉnh `layerOf` / `mapColor` trong `normalize.mjs`.
-
-## Nhập ảnh Gemini (isometric)
-Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗi pixel nghệ thuật là khối ~5–7 px không đều, có logo sao ở góc dưới phải). `gemini-import.mjs` đưa ảnh đó về pixel thật đúng khung isometric; `iso-preview.mjs` dựng mảnh bản đồ để soát mép ghép. Ảnh thô để ở thư mục artifact (inbox), kết quả ra thư mục tạm ngoài repo; chỉ đưa vào `shared/assets` sau khi người dùng duyệt.
-
-| Lệnh | Việc |
-|---|---|
-| `gemini-import.mjs --kind tile --out <dir> --names a,b,… <ảnh>` | Ô nền: lấy mặt trên thoi (`--inset auto` tự bỏ dải mép khác màu như viền đen, thành "hộp kính" của nước), ép về đúng 2:1, làm liền mép (`--seamless on`), đặt vào ảnh ô `isoTileImage(W)`: mặc định ghi cả ô logic và ô lớn 2×2, suy từ **một hằng `ISO_TILE_W`** trong `lib.mjs` (bề ngang thoi một ô logic, khớp `client/src/iso.ts`; hiện 32 → `<dir>/32/` ảnh 32×32 thoi 32×16 tâm (16,19) đáy 5, và `<dir>/64/` ảnh 64×64 thoi 64×32 tâm (32,37) đáy 11, giống ô PixelLab size 32 / 64). Đổi cỡ thoi thì chỉ đổi hằng đó. Đáy lấy từ mặt bên khối gốc; `--size 32,64` chọn cỡ; `--face-only` chỉ ghi mặt trên. |
-| `gemini-import.mjs --kind tile-block …` | Như trên nhưng giữ viền (tối về `#1a1020`), không làm liền mép (mép vách, bờ nước). |
-| `gemini-import.mjs --kind honsu\|vohon\|beast\|object …` | Sprite theo hằng isometric trong `lib.mjs`: hồn sư `ISO_HS_FRAME` / `ISO_HS_ORIGIN` (64×64, gốc (32,58)), phụ thể `ISO_VH_FRAME` / `ISO_VH_ORIGIN` (96×96, gốc (48,74)); hồn thú bắt buộc `--size` một cỡ trong `ISO_BEAST_SIZES` (boss 160–192), vật bắt buộc `--size`. Cùng hệ số thu cho cả lô (`--scale S` đặt hẳn, để các lần chạy khác khung vẫn cùng cỡ điểm ảnh), chân cùng đường đáy, thêm viền `#1a1020` nếu thiếu; mặc định `--palette gpl`. |
-| `gemini-import.mjs --kind item --names a,b,… [--gray a,b] <ảnh>` | Biểu tượng vật phẩm 32×32 (`ISO_ITEM_ICON`): ô là khung nền tối, công cụ bỏ viền khung, làm nền trong suốt (`--bg-tol`), mỗi món vừa khung riêng (không phóng to), viền `#1a1020`; `--gray` ghi bản xám để client tô màu (hồn cốt theo niên hạn). |
-| `gemini-import.mjs --kind portrait …` | Chân dung 64×64 (mặc định `--size 64`). Ô là khung nền tối có ánh màu: lấy phần đặc của khung (bỏ tia sét / lửa nhô ra nền) từ ảnh gốc nên ánh hồng tím trong khung không bị xóa; pixel thật đủ cỡ thì cắt giữa 1:1 (không nội suy), không viền ngoài; mặc định `--palette auto-item --colors 32`. Ô nền trong suốt hoặc góc khung trong suốt (biểu tượng tròn, ví dụ biểu tượng hệ) thì căn giữa như sprite, thêm viền `#1a1020`. |
-| `iso-preview.mjs <ra.png> --tiles grass=a.png,grass=b.png,path=c.png,water=d.png,deep=e.png,stone=f.png [--big grass=A.png,…] --size 16 --scale 3` | Mảnh bản đồ N×N ô logic (cỏ nhiều biến thể, đường, ao, sân đá) để soát mép ghép, màu, độ lặp; `--big` đặt ô lớn ở mọi khối 2×2 cùng địa hình. Đọc được cả ô PixelLab. |
-
-- Tách vật theo thành phần liên thông (thứ tự hàng trên → dưới, trái → phải, khớp `--names`), hoặc `--grid CxR` khi các vật dính nhau. Số tên khác số vật thì công cụ dừng và in hộp bao từng vật.
-- Cỡ ô giả dò tự động chung cho cả ảnh (in ra `ô giả … px → gốc W×H`); sai thì ghi đè `--cell N` (`--cell 1` cho ảnh đã là pixel thật, ví dụ ô PixelLab).
-- Bảng màu: ô (`tile`, `tile-block`) mặc định `--palette auto-item` (mỗi vật một bảng `--colors` 10 màu; ghi `_palette.gpl` gộp), giữ như vậy cho tới khi `art/palette.gpl` có dải đất / đá / rêu / tuyết / cát / nước. `--palette auto --colors 32` (một bảng chung cả lô) để vật nhiều màu chiếm hết bảng, ô đều màu chỉ còn 1–3 màu; `--palette gpl` với bảng hiện nay làm ô ngả tím / lam / đỏ; `--palette none` để xem màu gốc.
-- Logo: `--logo auto` (mặc định) dựng lại ngôi sao và gỡ lớp trắng mờ kể cả phần đè lên vật; sao nằm trọn trên vật / khung tối (chân dung) thì dùng vị trí chuẩn của Gemini (ảnh 2752×1536: tâm cách góc dưới phải (112, 112), bán kính 48, alpha 0,51) khi khớp lớp trắng mờ. Vị trí khác thường thì `--logo star:cx,cy,R[,alpha]`, `--logo x,y,w,h` (vá bằng màu lân cận) hoặc `--logo off`.
-- Gemini hay vẽ mỗi ô thành **tấm nền riêng** khác `#FF00FF` (ví dụ `#b424a8` ở ảnh vật Tinh Đấu): đọc màu tấm rồi `--key #rrggbb`; cả tấm lẫn nền ngoài đều bị xóa. Vật có quầng sáng vẽ đè lên nền (nấm, cây phát quang) để lại viền tím nhạt: thêm `--fringe 12` (số lượt gỡ viền nhiễm màu nền, mặc định 2; lượt gỡ dừng ở viền tối của vật).
-- **Đế đất:** vật Gemini hay đứng trên khối đất thoi dày. `--cut-base a,b|all` cắt đế của các vật có tên này:
-  - dò đế từ đáy hình bóng (hai cạnh dốc 1:2) và bậc sáng giữa mặt bên với mặt trên;
-  - bỏ mặt bên, loang bỏ cỏ đất mặt trên trong ngưỡng `--base-tol` (mặc định 1500), dừng ở nét viền tối.
-  - Báo cáo in `cắt đế rộng W dày t`, hoặc `KHÔNG dò được đế` (vật để nguyên).
-  - Xem lại bằng mắt: vật cùng màu với đế (bụi cỏ, lau sậy trên mặt nước) cắt xấu thì không đưa vào game, ghi vào danh sách vẽ lại.
-- Một vùng dùng **chung `--scale`** cho mọi vật (Tinh Đấu: 0,6). Khung mỗi vật là bội `ISO_PROP_STEP` vừa hình: chạy một lần với khung lớn và `--debug`, đo hộp bao trong `_native/`, rồi chạy lại với khung đã tính. Bảng màu: `art/palette.gpl` gộp `art/palettes/<vùng>.gpl` thành một file, truyền bằng `--palette <file>`.
-- Giao diện / thẻ / trạng thái: mảnh thủy mặc `ui_<tên>` (`--kind object --scale 1`, cắt sát, `--nine N` khi đăng ký nếu kéo giãn 9 lát), khung thẻ `card_{sr,ssr,ur}` 96×152 (`ISO_CARD`, cửa sổ chân dung trong suốt), trạng thái `status_<mã STATUS_IDS / BUFF_IDS>` 24×24 (`--kind portrait --size 24`; validate kiểm mã). Gemini hay kẻ lưới tối giữa các ô: xóa lưới (thay bằng màu nền) trước khi nhập, không thì cả lưới thành một vật.
-- Ảnh tham chiếu cho PixelLab (không vào manifest): `art/src/gemini/phuthe_s/<mã>_s.png` (phụ thể 96×96 hướng nam, 10.5), `art/src/gemini/beast_se/<loài>_se_<cỡ>.png` (hồn thú Gemini vẽ nghiêng 3/4 sang phải: dùng cho hướng `se` / `e`, 10.6).
-- Chân dung NPC: `--kind portrait --size 112` (`ISO_NPC_PORTRAIT`), key `npc_<mã NPCS>` (validate kiểm mã có trong `NPCS`). Biểu tượng vật phẩm: key `item_<mã>` (id `ITEMS`, nhóm `ITEM_KINDS` hoặc `hon_cot_<vị trí>`; validate kiểm mã). Huy hiệu hệ: key `he_<mã HE_IDS>` 24×24 (`ISO_HE_ICON`, `iso/he/`), vẽ tay từng điểm bằng `tools/assets/he-icons.mjs` (mảng ký tự; sửa hình thì sửa mảng rồi chạy lại; validate kiểm mã); CREDITS ghi ở mục "Asset tự vẽ" (không dùng `--register`: nó chỉ ghi mục PixelLab / Gemini).
-- **Đăng ký vào game** (sau khi người dùng duyệt):
-  - Chép vào `shared/assets/sprites/iso/portrait/<mã võ hồn>.png`, `iso/props/<vật>.png`, `iso/npc/<mã>.png` hoặc `iso/item/<mã>.png`.
-  - Chạy `validate.mjs --register portrait_<mã>|prop_<vật>|npc_<mã>|item_<mã> --tool "Gemini (gemini.google.com) + tools/assets/gemini-import.mjs" --prompt "<ảnh, ô, prompt ô>" --note "<lệnh nhập>"`.
-  - Manifest ghi `"iso": true` (client chưa tải). CREDITS ghi vào mục "Asset tạo bằng AI (Gemini)".
-  - Validate kiểm: chân dung 64×64, tối đa `PORTRAIT_MAX_COLORS` màu; vật đứng cạnh chia hết cho `ISO_PROP_STEP`, màu thuộc bảng chung + `art/palettes/*.gpl`.
-- Mỗi lần chạy ghi `_preview.png` (×4), `_report.json` (cỡ ô giả, độ phân giải gốc, tỉ lệ mặt trên, bề dày, điểm lệch mép ghép trước / sau khi làm liền: khoảng 1 là liền như bên trong ô); `--debug` ghi thêm ảnh pixel thật trước khi ép khung vào `_native/`.
-
-**Quy tắc prompt Gemini:**
-- Nền một màu phẳng `#FF00FF` (không bóng đổ, không chuyển màu, không viền trắng quanh vật); vật không được dùng màu hồng / tím gần màu nền ở mép.
-- Lưới đều C cột × R hàng, mỗi ô một vật, các vật cách nhau rõ (không chạm nhau, không tràn sang ô khác); cùng cỡ, cùng góc nhìn.
-- Không chữ, không số, không nhãn, không khung; logo Gemini để công cụ gỡ.
-- Ô nền: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, seamless texture that tiles with itself"; ô logic 32×16 thì xin vân thưa, ít chi tiết nhỏ.
-  - **Bố cục lưới quyết định tỉ lệ thoi:** Gemini vẽ thoi kín ô lưới. Ảnh 16:9 chia 3×2 thì ô lưới 1,19:1, thoi chỉ 1,2:1 (lô 2), bị ép về 2:1 thì mất khoảng 40% chi tiết dọc. Dùng 3×3 hoặc 2×2 (ô lưới 1,79:1) và xin "empty magenta above and below each diamond, diamonds never touch".
-  - Đừng ghi số pixel nghệ thuật ("about 64 art pixels across"): Gemini vẽ ô giả khoảng 11 px, thô gấp đôi.
-- Sprite / vật: một hướng mỗi ô, chân chạm cùng đường đáy, viền ngoài tối. Vật đứng thêm "no ground base, no soil slab under the prop" để khỏi phải cắt đế, và "no glow halo bleeding onto the background".
-- Chân dung: vẽ chính võ hồn trên nền tối có quầng màu của võ hồn; giữ nguyên prompt lô 1 (`gemini-prompts-vohon-tinhdau.md` của orchestrator).
-- Mỗi ảnh vẽ trong **một cuộc trò chuyện Gemini mới**: trong cùng cuộc trò chuyện, Gemini hay vẽ lại ảnh lượt trước (lô 2: 5/10 ảnh sai bản đồ). Kiểm nội dung từng ảnh trước khi nhập.
-
-Ví dụ:
+Một phụ thể (`B=shared/assets/sprites/honsu`):
 ```bash
-node tools/assets/gemini-import.mjs --kind tile --names grass,dirt,water --out <tmp>/flat <inbox>/tiles/gemini-tiles-02.png
-node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/grass.png,path=<tmp>/flat/32/dirt.png,water=<tmp>/flat/32/water.png --big grass=<tmp>/flat/64/grass.png --scale 3
+BM=m:$B/body_m_0.png,$B/outfit_m_0.png,$B/hair_m_0.png; BF=f:$B/body_f_0.png,$B/outfit_f_0.png,$B/hair_f_0.png
+node tools/assets/vohon-part.mjs art/src/pixellab/vh_iso/hao_thien_chuy.json --body $BM --body $BF --out <tmp>/raw
+for s in m f; do node tools/assets/normalize.mjs --kind vohon --vohon hao_thien_chuy --gray none --foot 74 --out <tmp>/part/$s <tmp>/raw/$s/*.png; cp <tmp>/raw/$s/grip.json <tmp>/part/$s/; done
+node tools/assets/pack.mjs --kind vohon --id hao_thien_chuy --part <tmp>/part --body $BM --body $BF --attach hand --angles -20,-40,30,10
+node tools/assets/preview.mjs <tmp>/xem.png shared/assets/sprites/vohon/hao_thien_chuy_b.png $B/{body,outfit,hair}_f_0.png shared/assets/sprites/vohon/hao_thien_chuy_f.png --dirs8
 ```
+Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú sau lưng neo `back`; bụi dưới chân neo `feet`.
 
-## Nguồn LPC (NPC phụ, dân thường, lính gác)
-Universal LPC Spritesheet Character Generator (<https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>, miễn phí, 0 lượt PixelLab) ghép nhân vật từ lớp có sẵn. `tools/assets/lpc-compose.mjs` đọc PNG lớp của repo đó và xuất theo bố cục sheet hồn sư 24 × 6; `--game` đưa thẳng vào game thành sheet `lpc_<tên>` (GAME_DESIGN.md mục 5.11 "NPC phụ và dân thường").
-- **Phạm vi (người dùng đã quyết, 2026-10-21):** chỉ dùng cho **NPC phụ**: 10 NPC đứng yên trong `NPCS` (sheet `lpc_<mã NPC>`, khớp chân dung `npc_<mã>`), dân thường `lpc_dan_*`, lính gác `lpc_linh_gac`. **Không** dùng cho hồn sư người chơi (bộ `hs_*_{m/f}_{0–3}` vẽ bằng PixelLab: LPC hơi chibi kiểu tây, chỉ 4 hướng, lệch phong cách). Công cụ không còn công thức bộ hồn sư.
-- **Giấy phép:** chỉ lớp có ít nhất một giấy phép **CC0 / CC-BY / OGA-BY** (game dùng theo giấy phép đó). Lớp chỉ có CC-BY-SA / GPL (ví dụ `hair/messy1`, `hair/swoop`, `hair/ponytail`, nhiều kiểu `bangs*` / `spiked*`) hoặc giấy phép lạ thì công cụ dừng: chọn lớp khác.
-- **Màu:** NPC phụ không được nổi hơn hồn sư. Lớp `keep` (giáp, mũ, tạp dề) giảm bão hòa theo `--desat` (mặc định 0,5) trước khi đưa về `art/palette.gpl`; tóc / áo chọn `hairCol` / `outfitCol` trầm (nâu, xám, chàm nhạt), tránh màu tươi.
-- **Tải repo về ngoài repo game** (khoảng 450 MB, `git clone --depth 1`, ví dụ vào thư mục artifact của phiên). Chỉ đọc `spritesheets/`, `sheet_definitions/`, `CREDITS.csv`; không chạy code của repo đó.
-- **Quy cách LPC:** khung 64×64; mỗi lớp một thư mục, mỗi animation một PNG, hàng 0–3 = lên / trái / xuống / phải (`hurt` 1 hàng nhìn xuống, là cảnh ngã nằm). Số khung: walk 9 (khung 0 đứng), slash 6, spellcast 7, hurt 6, thrust 8, shoot 13, idle 2. Lớp có màu sẵn ở `<thư mục>/<animation>/<màu>.png`, lớp màu gốc ở `<thư mục>/<animation>.png`. Đường dẫn và zPos của từng lớp theo thể hình (`male`, `female`…) lấy ở `layer_N` trong `sheet_definitions/**/*.json`. Áo kimono / robe / tunic chỉ có cho thân nữ.
-- **Ánh xạ hướng (gần nhất trên màn hình):** `s` = xuống, `n` = lên, `e` / `se` / `ne` = phải (chéo nông lệch 26,6° so với phương ngang, như `legacyDir` ở `client/src/iso.ts`); `sw` / `w` / `nw` client lật như mọi bộ. Hàng "trái" của LPC bỏ. Hệ quả: đi chéo lên (`ne`, `nw`) vẫn thấy mặt nghiêng, không thấy lưng. Chân mỗi hướng dời về gốc riêng (LPC nhìn lên chân cao hơn 1 điểm).
-- **Chọn khung:** idle = khung đứng của walk + `pack --breathe` (dòng vai tự tính từ sheet thân); walk 6 / 8 khung chu kỳ; attack khung 1, 2, 3, 5 của slash (khung 0 trùng khung đứng); cast 3 / 7 khung spellcast; hurt 2 và die 4 lấy từ hurt LPC cho hướng `s`, các hướng khác và absorb do `pack --code` vẽ. Chân dời về gốc (32, 58).
-- **Tách lớp, hoán màu:** tách điểm nhìn thấy cuối cùng theo nhóm lớp (body / outfit / hair) nên 3 lớp chồng lại đúng ảnh gộp; tóc / áo về dải 4 xám theo hạng độ sáng (mỗi lớp có thể giới hạn `ramp`, ví dụ quần `[0,1,2]` tối hơn áo `[1,2,3]`), da về `SKIN_TONES[0]`, mắt lam về màu "Mắt", giày về 3 sắc gỗ / đất. Điểm gần trắng của lớp đầu chỉ giữ trắng khi nằm cạnh tròng mắt (lòng trắng); còn lại (vai, tay trần, đầu hói) theo dải da. Màu giữ nguyên (lớp `keep`, lòng trắng mắt) đưa về `art/palette.gpl` **trừ** dải xám và dải da tông 0 (client hoán các màu đó); mã màu `ramp` của lớp thân trùng da tông 0 thì công cụ dừng. Mép hình và màu gần đen thành `#1a1020`.
-- **Ghi công:** mỗi file đã đọc tra **đúng mục** của nó trong `CREDITS.csv` (file màu `<thư mục>/<animation>/<màu>.png` tra `<thư mục>/<animation>.png`); không có mục thì công cụ dừng, không đoán theo thư mục (các animation của một lớp thường do người khác vẽ thêm). Ghi bảng (lớp, tác giả, giấy phép, giấy phép game dùng theo, URL) vào `<out>/CREDITS-LPC.md`, hoặc `--credits art/CREDITS.md` (mục LPC giữa `<!-- lpc:start -->` / `<!-- lpc:end -->`, mỗi NPC một mục, chạy lại thì thay; thiếu hay thừa dấu thì dừng trước khi ghi).
-- Công thức dựng sẵn (thử nhanh): `--npc truong_thon | thuong_nhan | tho_ren | linh_gac`; công thức của game ở `art/src/lpc/<tên>.json` (`--recipe`, mô tả trong đầu file công cụ; `"base": true` thêm sẵn thân, đầu, giày). Trang phục phương Đông gần nhất: nam `longsleeve2_vneck` (cổ chéo) + `legs/skirts/plain` (vạt dài) + `torso/waist/obi`, búi tóc `parted_side_bangs` + `extensions/ponytails/topknot_short`; nữ `dress/kimono` + `kimono/sleeves` + obi. Lớp hay dùng mà **không** được: `weapon/polearm/*` (giáo, kích), mũ / kính `nerd` / `round`, đầu `male_plump`, râu `basic` (chỉ CC-BY-SA / GPL). Tùy chọn `--hair-col`, `--outfit-col`, `--skin` (chỉ số `HAIR_COLORS` / `OUTFIT_COLORS` / `SKIN_TONES`, ngoài phạm vi thì dừng), `--desat 0…1`.
-
-```bash
-node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <tmp>/lpc --npc linh_gac --outfit-col 0
-node tools/assets/preview.mjs <tmp>/m_0_8.png <tmp>/lpc/linh_gac_mau.png --dirs8 --ground
-# đưa vào game: mọi công thức của art/src/lpc
-for f in art/src/lpc/*.json; do node tools/assets/lpc-compose.mjs --lpc <repo LPC> --game --recipe $f; done
-```
-Ra `<out>/{body,outfit,hair}_<tên>.png` (lớp xám để client hoán màu) và `<out>/<tên>_mau.png` (đã tô màu, xem thử). **`--game`**: bản tô màu thành `shared/assets/sprites/iso/lpc/<tên>.png` (key `lpc_<tên>`, một lớp, không hoán màu), sinh `_n.png` (`normal.mjs`), thêm key vào `manifest.json` (`"iso": true`), ghi công vào mục LPC của `art/CREDITS.md`; thư mục làm việc để ở thư mục tạm. Màu tóc / áo khi `--game`: `hairRamp` / `outfitRamp` của công thức (4 màu trầm của `art/palette.gpl`), không có thì dải `HAIR_COLORS` / `OUTFIT_COLORS` giảm bão hòa theo `--desat`. Client tự dùng `lpc_<mã NPC>` cho NPC đó; dân thường thêm tên vào `CROWD` (`client/src/crowd.ts`). Soát bằng mắt (khung đứng 5 hướng + chân dung) rồi `npm run check` (validate kiểm bố cục, màu, chân chạm gốc).
-
-## Quy trình "tạo <asset>"
-1. Đọc mục 5.11 và xác định key: `hs_{body,outfit,hair}_{m/f}_{0–3}`, `vh_{id}_b` / `_f`, `beast_{loài}`, `portrait_{id}`, `prop_{vật}`, ô / vật trong `shared/assets/iso/tiles.json`.
-2. `get_balance`; tạo khung tĩnh 8 hướng trước, duyệt bằng mắt (phóng ×3, đặt trên nền isometric), rồi mới làm animation cho 5 hướng vẽ. Nhân vật mới lấy nhân vật đã duyệt làm mẫu phong cách.
+## 8. Quy trình "tạo <asset>"
+1. Đọc mục 5.11, xác định key (bảng mục 1) và nguồn (mục 2).
+2. PixelLab: `get_balance`; khung tĩnh 8 hướng trước, duyệt bằng mắt, rồi animation 5 hướng vẽ. Gemini: viết prompt, người dùng tạo, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
 3. normalize → pack → normal → `preview.mjs` soát lệch chân, màu lạ, điểm vụn, hướng lật → `validate.mjs --register` → `npm run check`.
-4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ghép thử ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, cạnh lửa trại và nền rừng sâu.
-5. `npm run build --prefix client`, bot khi server bật; mở PR kèm ảnh chụp, nguồn ảnh và số lượt PixelLab đã dùng. Đánh dấu bước Giai đoạn 10 ở mục 7.
+4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, nền rừng sâu.
+5. `npm run build --prefix client`, bot khi server bật; PR kèm ảnh chụp, nguồn ảnh và số lượt PixelLab đã dùng; đánh dấu bước Giai đoạn 10 ở mục 7.
 
-## Client
-- `client/src/sprites.ts` (`preloadSprites`) tải mọi key trong manifest (key `"iso": true` chỉ tải bộ hồn sư, từ 10.4; bố cục nhận theo bề ngang sheet nên bộ isometric và bộ 32×32 cũ chạy chung code, `fitHonsuLayer` đặt gốc / cỡ theo texture); `textures.ts` chỉ vẽ bằng code những key **chưa có** ảnh, nên thêm key vào manifest là đủ, không cần sửa code client.
-- Key hồn sư lấy bằng `honsuKey(lớp, giới, kiểu tóc)`; hoán màu bằng `recolor` (key `hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`); ánh xạ khung phụ thể `vohonFrame`. Không trộn lớp ảnh thật với lớp vẽ code trong một bộ.
-- Không sửa luật chơi khi thêm asset. Màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
+## 9. Phía client
+- `client/src/sprites.ts` (`preloadSprites`) tải key trong manifest (bố cục nhận theo bề ngang sheet, `fitHonsuLayer` đặt gốc / cỡ theo texture; `lpc_*` chỉ tải của bản đồ đang vào qua `lpcPreloader`); `textures.ts` / `honsuArt.ts` chỉ vẽ bằng code key **chưa có** ảnh, nên thêm key vào manifest là đủ. Giao diện HTML đọc ảnh qua `client/src/uiArt.ts`; ô và vật đứng qua `isoMap.ts` theo `tiles.json`.
+- Key hồn sư lấy bằng `honsuKey(lớp, giới, kiểu tóc)`; hoán màu bằng `recolor` (key `hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`); ánh xạ khung phụ thể `vohonFrame`, nửa sheet theo giới `vohonHalf`.

@@ -8,7 +8,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   WORLD, HE, HE_IDS, RING_ITEM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
-import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
+import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -17,7 +17,9 @@ import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
 import { solidGrid, clampDir } from "../../../shared/move.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
-import { IsoMap, preloadIso } from "../isoMap.ts";
+import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
+import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
+import { Weather } from "../weather.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -34,6 +36,7 @@ interface PView {
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
   lit: { i: number; t0: number } | null;    // vòng hồn hoàn đang sáng khi tung hồn kỹ
+  ringY: number[];                          // độ cao hiện tại từng vòng hồn hoàn trên chân (pixel nội bộ), trượt dần tới chỗ đích
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
   lock: { face: Dir8; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
 }
@@ -41,8 +44,10 @@ interface PView {
 const GOAL_NEAR = 3;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
 const HEAD = 30 * SPR;
-/** Vòng thứ i sáng và phình ra trong 300 ms khi tung hồn kỹ của vòng đó (mục 5.11). */
-const RING_LIT_MS = 300;
+/** Vòng thứ i bay lên ngang ngực, sáng rồi hạ về trong chừng này mili giây khi tung hồn kỹ của vòng đó (mục 5.11 "Vòng hồn hoàn"). */
+const RING_LIT_MS = 450;
+/** Vòng hồn hoàn khi bay lên: độ cao ngang ngực khi tung hồn kỹ; Chân Thân xếp đều các vòng từ RING_UP_LOW tới RING_UP_TOP (pixel nội bộ). */
+const RING_CHEST = 28, RING_UP_LOW = 6, RING_UP_TOP = 52;
 interface Rect { x: number; y: number; w: number; h: number; }
 interface Zone extends Rect { name: string; hint: string; years?: [number, number] | null; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
@@ -79,13 +84,14 @@ export class GameScene extends Phaser.Scene {
   teleG!: Phaser.GameObjects.Graphics;
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
-  vignette!: Phaser.GameObjects.Image;
+  /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
+  light!: Lighting;
+  weather!: Weather;
   zones: Zone[] = [];
   safes: Zone[] = [];   // vùng an toàn (object `safe`)
   campRect = { x: 0, y: 0, w: 0, h: 0 };
   campName = "";
   portals: (Rect & { to: string })[] = [];
-  vignetteBase: number | null = null; // thuộc tính `vignette` của bản đồ: tối dần theo độ sâu của rừng, bắt đầu từ mức này (true = 0)
   portal: PortalInfo | null = null;
   /**
    * NPC của bản đồ (object `npc`, bước 6.1): chỗ đứng, định nghĩa trong NPCS (thiếu = mã lạ, chỉ vẽ biển tên), các lớp sprite hồn sư
@@ -153,11 +159,12 @@ export class GameScene extends Phaser.Scene {
     // Lớp ô vẽ theo phép chiếu (isoMap.ts: ảnh isometric theo shared/assets/iso/tiles.json, 10.2); tilemap của Phaser chỉ còn dùng để đọc object và vẽ bản đồ nhỏ (nhìn thẳng).
     const map = this.make.tilemap({ key: this.mapId });
     const raw = this.cache.tilemap.get(this.mapId)?.data;
-    this.isoMap = new IsoMap(this, raw, this.mapId);
+    // Ánh sáng (10.7): nền, vật đứng, nhà dùng pipeline Light2D của Lighting; vùng có mặt nước phát sáng thì IsoMap báo các điểm sáng.
+    this.light = new Lighting(this, this.mapId);
+    this.light.onAutoOff = () => hud.log("Máy vẽ chậm nên đã tắt ánh sáng (thêm ?light=1 vào địa chỉ trang để luôn bật).", "#ffb35c");
+    this.isoMap = new IsoMap(this, raw, this.mapId, { lit: (im) => this.light.world(im), water: !!this.light.region.water });
     this.txtK = this.zoomFor() < 2 ? 2 / this.zoomFor() : 1; // chữ của cổng, NPC vẽ ngay dưới đây (fitZoom chạy sau)
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
-    const vg = (map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
-    this.vignetteBase = typeof vg === "number" ? Math.max(0, Math.min(1, vg)) : vg ? 0 : null;
     const npcObjs: { x: number; y: number; name: string; id: string }[] = [];
     const crowdMap: CrowdMap = { safes: this.safes, portals: [], spawn: null, npcs: npcObjs, arrives: [], mapW: map.widthInPixels, mapH: map.heightInPixels };
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
@@ -194,18 +201,20 @@ export class GameScene extends Phaser.Scene {
     }
     makeTextures(this);
     createSheetAnims(this);
+    for (const k of this.textures.getTextureKeys()) if (/^(hs_(body|outfit|hair)_[mf]_\d+|vh_[a-z_]+_[bf])$/.test(k)) attachNormal(this, k); // normal map hồn sư, phụ thể (10.7)
     for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // sprite hồn sư của NPC cần texture / animation ở trên
     if (raw) this.crowd = new Crowd(this, this.mapId, solidGrid(raw), crowdMap);
+    for (const p of this.crowd?.people ?? []) this.light.entity(p.spr); // dân thường cũng chịu ánh sáng thực thể (10.7)
 
     this.ov = this.add.graphics().setDepth(99990);
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
-    this.vignette = this.add.image(0, 0, "vignette").setScrollFactor(0).setDepth(99995).setAlpha(0);
     const cam = this.cameras.main;
     const bb = this.isoMap.bounds();
     cam.setBounds(bb.x, bb.y, bb.w, bb.h).setRoundPixels(true);
     this.fitZoom();
     this.scale.on("resize", () => this.fitZoom());
 
+    this.weather = new Weather(this, this.mapId, this.isoMap, this.light, this.mapH);
     this.setupInput();
     this.setupMessages();
     document.getElementById("hud")!.hidden = false;
@@ -245,6 +254,7 @@ export class GameScene extends Phaser.Scene {
       if (lpc) body = mk(lpc);
       else { const t = looksTextures(this, def!.looks!); body = mk(t.body); clothes = [mk(t.outfit), mk(t.hair)]; }
       body.play(honsuAnimKey(this, lpc ?? bodyKey(def!.looks!), "idle", "s").key);
+      for (const s of [body, ...clothes]) this.light.entity(s); // Light2D thực thể (10.7)
       this.add.container(sx, sy, [this.make.image({ key: "hs_shadow" }, false), body, ...clothes]).setDepth(sy).setScale(SPR);
       top = sy - HEAD;
     } else {
@@ -335,11 +345,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   fitZoom() {
-    const w = this.scale.width, h = this.scale.height, z = this.zoomFor();
+    const z = this.zoomFor();
     const k = z < 2 ? 2 / z : 1;
     if (k !== this.txtK) { this.txtK = k; for (const e of this.wtexts) this.placeText(e); }
     this.cameras.main.setZoom(z);
-    this.vignette.setPosition(w / 2, h / 2).setDisplaySize(w / z + 40, h / z + 40);
   }
 
   // ---------- Điều khiển ----------
@@ -423,7 +432,8 @@ export class GameScene extends Phaser.Scene {
     if (cmd === "moi" || cmd === "mời") {
       if (arg) this.partySend("invite", arg); else hud.log("Gõ /moi <tên hồn sư> để mời vào tổ đội.", "#ffb35c");
     } else if (cmd === "roi" || cmd === "rời") this.partySend("leave");
-    else hud.log("Lệnh: /moi <tên> (mời vào tổ đội), /roi (rời tổ đội).", "#ffb35c");
+    else if (cmd === "hat" || cmd === "hạt") hud.log(`Hạt bay và thời tiết: ${this.weather.toggle() ? "bật" : "tắt"}.`, "#ffb35c");
+    else hud.log("Lệnh: /moi <tên> (mời vào tổ đội), /roi (rời tổ đội), /hat (bật / tắt hạt bay, thời tiết).", "#ffb35c");
     return true;
   }
 
@@ -551,6 +561,7 @@ export class GameScene extends Phaser.Scene {
       else if (m?.k === "fight") hud.banner("Giao đấu!", `Hạ hết đội võ hồn đối thủ trong ${Math.round(m.secs / 60)} phút; hết giờ thì so sinh lực cả đội`);
       else if (m?.k === "end") {
         hud.arenaEnd(m, { back: () => this.onBack(), top: () => this.room.send("arena", { op: "top" }) });
+        if (m.score !== 0.5) this.weather.confetti(); // có người thắng: giấy hoa (mục 5.11, bảng các vùng)
         this.room.send("arena", { op: "top" });
       }
     });
@@ -678,6 +689,8 @@ export class GameScene extends Phaser.Scene {
   /** Vòng sáng lan trên mặt đất quanh điểm màn hình `c`: bán kính r0 → r1 tính theo thế giới, chiếu thành elip. */
   ringFx(c: Pt, r0: number, r1: number, col: string, dur: number, delay = 0) {
     const g = this.add.graphics().setDepth(99980); const o = { k: 0 };
+    // Hồn kỹ soi mặt đất theo màu chiêu (phong cách A, 10.7); vòng trắng phụ không thêm đèn.
+    if (col !== "#ffffff") this.time.delayedCall(delay, () => this.light.flash(c.x, c.y, col, Math.max(r0, r1) * RX + 16, dur + 250));
     this.tweens.add({ targets: o, k: 1, duration: dur, delay, onUpdate: () => {
       const r = r0 + (r1 - r0) * o.k; g.clear(); g.lineStyle(2, hex(col), 1 - o.k); g.strokeEllipse(c.x, c.y, 2 * RX * r, 2 * RY * r);
     }, onComplete: () => g.destroy() });
@@ -698,6 +711,7 @@ export class GameScene extends Phaser.Scene {
   soulRingFx(id: string, tier: number, dur: number) {
     const v = this.players.get(id); if (!v) return;
     const g = this.add.graphics().setDepth(99981); const o = { k: 0 }, t = TIERS[tier];
+    this.light.flash(v.root.x, v.root.y - 6, t.glow, 70, dur, 1.2);
     this.tweens.add({ targets: o, k: 1, duration: dur, onUpdate: () => {
       const x = v.root.x, y = v.root.y - o.k * 20 * SPR; g.clear();
       g.lineStyle(3, hex(t.col), 1 - o.k * 0.8); g.strokeEllipse(x, y, 22 * SPR, 8 * SPR);
@@ -805,6 +819,7 @@ export class GameScene extends Phaser.Scene {
     else if (m.k === "zone") {
       // Vùng cố định (2.5c): vùng phong tỏa của Càn Khôn Hỗn Nguyên Tỏa, lãnh vực Yêu Hồ; giữ `t` giây ở chỗ đặt, mờ dần lúc cuối.
       const g = this.add.graphics().setDepth(5), c = hex(m.col), t0 = this.time.now, ms = (m.t ?? 1) * 1000, at = this.lifted(m.x, m.y);
+      this.light.flash(at.x, at.y, m.col, m.r * RX + 12, ms, 0.7);
       const ev = this.time.addEvent({ delay: 50, loop: true, callback: () => {
         const k = (this.time.now - t0) / ms, al = k > 0.8 ? (1 - k) * 5 : 1; g.clear();
         if (k >= 1) { ev.remove(); g.destroy(); return; }
@@ -1233,6 +1248,7 @@ export class GameScene extends Phaser.Scene {
         // Gốc và hệ số phóng từng lớp đặt theo texture (fitHonsuLayer) mỗi khi đổi texture: bộ isometric 64×64 và bộ 32×32 cũ dùng chung khung chứa.
         const layer = () => this.make.sprite({ key: "hs_body_m_0" }, false);
         const vb = layer(), body = layer(), outfit = layer(), hair = layer(), vf = layer();
+        for (const s of [vb, body, outfit, hair, vf]) this.light.entity(s);
         const ringsB = this.make.container({}, false), ringsF = this.make.container({}, false), at = W2S(p.x, p.y);
         const root = this.add.container(at.x, at.y, [this.make.image({ key: "hs_shadow" }, false), ringsB, vb, body, outfit, hair, vf, ringsF]).setScale(SPR);
         const label = this.add.text(at.x, at.y - HEAD, p.name, {
@@ -1244,7 +1260,7 @@ export class GameScene extends Phaser.Scene {
           color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
         v = { root, wx: p.x, wy: p.y, face: "s", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "",
-          act: null, hurtT: -1e9, lit: null, fly: null, lock: null };
+          act: null, hurtT: -1e9, lit: null, ringY: [], fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
@@ -1300,7 +1316,7 @@ export class GameScene extends Phaser.Scene {
       if (!s || !w) {
         w = { x: b.x, y: b.y }; this.bpos.set(id, w);
         const at = W2S(b.x, b.y);
-        s = this.add.sprite(at.x, at.y, `b${b.tier}_0`).setOrigin(BEAST_ORIGIN.x, BEAST_ORIGIN.y); this.beasts.set(id, s);
+        s = this.light.entity(this.add.sprite(at.x, at.y, `b${b.tier}_0`).setOrigin(BEAST_ORIGIN.x, BEAST_ORIGIN.y)); this.beasts.set(id, s);
       }
       const ox = s.x;
       w.x += (b.x - w.x) * lerp; w.y += (b.y - w.y) * lerp;
@@ -1403,27 +1419,63 @@ export class GameScene extends Phaser.Scene {
     // Điểm đang đi tới (bấm để đi): vòng nhỏ nhấp nháy trên mặt đất.
     if (this.goal) { this.teleG.lineStyle(1, 0xfff2b0, 0.6 + 0.3 * Math.sin(time / 120)); strokeGround(this.teleG, this.goal.x, this.goal.y, 5); }
     this.drawAuras(g, st, time);
-    // Ô bản đồ trong tầm camera; khối cao đang che chính mình thì mờ đi.
-    const mv = this.players.get(this.me);
-    this.isoMap.update(this.cameras.main, mv ? { x: mv.root.x, y: mv.root.y } : null);
+    // Ô bản đồ trong tầm camera; khối cao đang che chính mình hoặc hồn thú trong tầm thì khoét lỗ, mờ đi (10.7: cả hồn thú).
+    const mv = this.players.get(this.me), view = this.cameras.main.worldView, focus: Focus[] = mv ? [{ x: mv.root.x, y: mv.root.y }] : [];
+    // Chỉ hồn thú gần (trong tầm giao chiến trên màn hình), tối đa 6 con: mỗi vật bị khoét lỗ tốn thêm lần vẽ mặt nạ.
+    for (const [id, s] of this.beasts) if (view.contains(s.x, s.y) && mv && Math.hypot(s.x - mv.root.x, s.y - mv.root.y) < 260 && !st.beasts.get(id)?.dive && focus.length < 7)
+      focus.push({ x: s.x, y: s.y, w: Math.max(28, s.displayWidth + 12), h: Math.max(28, s.displayHeight + 12) });
+    this.isoMap.update(this.cameras.main, focus);
 
-    // độ tối theo độ sâu của rừng
-    const me = st.players.get(this.me);
+    // Ánh sáng (10.7): nguồn sáng hồn lực trong khung này, cộng vật phát sáng IsoMap báo; rồi thời tiết, hạt bay.
+    const me = st.players.get(this.me), cam = this.cameras.main;
+    this.light.update(time, cam, this.lightSources(st, time), this.isoMap.glows());
+    const zone = me ? this.zones.find((z) => inRect(z, me.x, me.y))?.name ?? "" : "";
+    let boss = false;
+    if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
+    this.weather.update(time, cam, zone, boss);
     if (me) {
-      const vb = this.vignetteBase, depth = Math.max(0, Math.min(1, (me.x / TILE - 18) / 60));
-      this.vignette.setAlpha(vb === null ? 0 : (vb + (1 - vb) * depth) * 0.75);
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
     }
   }
 
-  /** Một cặp ảnh cho mỗi hồn hoàn của võ hồn ra trận: cung trên (sau thân) và cung dưới (trước thân). */
+  /**
+   * Một cặp ảnh cho mỗi hồn hoàn của võ hồn ra trận: cung trên (sau thân) và cung dưới (trước thân), vẽ ở pixel nội bộ (phóng 1 / SPR
+   * trong khung chứa); texture đặt mỗi khung theo cách hiện (animatePlayer).
+   */
   buildRings(v: PView, tiers: number[]) {
-    v.ringsB.removeAll(true); v.ringsF.removeAll(true);
-    for (const t of tiers) {
-      v.ringsB.add(this.make.image({ key: `halo${t}`, frame: 0 }, false));
-      v.ringsF.add(this.make.image({ key: `halo${t}`, frame: 1 }, false));
-    }
+    v.ringsB.removeAll(true); v.ringsF.removeAll(true); v.ringY = tiers.map(() => 0);
+    tiers.forEach((t, k) => {
+      const key = soulRingKey(this, t, k);
+      v.ringsB.add(this.make.image({ key, frame: 0 }, false).setScale(1 / SPR));
+      v.ringsF.add(this.make.image({ key, frame: 1 }, false).setScale(1 / SPR));
+    });
+  }
+
+  /**
+   * Nguồn sáng hồn lực trong khung này (phong cách A, 10.7): vòng hồn hoàn của mỗi hồn sư (màu `glow` của vòng cao nhất, rộng theo số
+   * vòng, Chân Thân rộng hơn), mắt hồn thú (màu niên hạn, ở đầu), hồn hoàn / hồn cốt rơi trên đất. Lighting chọn theo độ ưu tiên.
+   */
+  lightSources(st: any, time: number): LightSrc[] {
+    const out: LightSrc[] = [];
+    if (!this.light.on) return out;
+    st.players.forEach((p: any, id: string) => {
+      const v = this.players.get(id), n = p.rings?.length ?? 0;
+      if (!v || p.dead || !n || ((p.buff & buffBit("hide")) && id !== this.me)) return;
+      const top = Math.max(...p.rings), ct = p.ava > 0 ? 1.5 : 1;
+      out.push({ x: v.root.x, y: v.root.y - 4, col: hex(TIERS[top].glow), r: (34 + 5 * n) * ct, i: (0.55 + 0.05 * n) * (0.92 + 0.08 * Math.sin(time / 500)),
+        p: id === this.me ? PRIO.me : PRIO.player });
+    });
+    st.beasts.forEach((b: any, id: string) => {
+      const s = this.beasts.get(id); if (!s || b.dive) return;
+      const top = beastTop(s, b.tier), dir = s.flipX ? -1 : 1, k = rankScale(b.rank);
+      out.push({ x: s.x + dir * s.displayWidth * 0.22, y: top + (s.y - top) * 0.3, col: hex(TIERS[b.tier].glow), r: (18 + 5 * b.tier) * Math.sqrt(k), i: 0.55 + 0.05 * b.tier, p: PRIO.beast });
+    });
+    st.drops.forEach((d: any, id: string) => {
+      const v = this.drops.get(id); if (!v || d.item) return;
+      out.push({ x: v.img.x, y: v.img.y + 4, col: hex(TIERS[d.tier]?.glow ?? "#ffffff"), r: 30, i: 0.6, p: PRIO.drop });
+    });
+    return out;
   }
 
   /**
@@ -1447,13 +1499,19 @@ export class GameScene extends Phaser.Scene {
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
     for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
-    // Vòng hồn hoàn: vòng 1 sát chân, mỗi vòng sau cao hơn 2 pixel, nhấp nhô chậm lệch pha; ẩn khi gục.
+    // Vòng hồn hoàn (mục 5.11 "Vòng hồn hoàn"): bình thường nằm đồng tâm trên mặt đất dưới chân (vòng 1 trong cùng), sáng lan dần từ
+    // trong ra; tung hồn kỹ thì vòng đó bay lên ngang ngực, sáng rồi hạ về; Chân Thân thì mọi vòng bay lên xếp đều quanh thân. Ẩn khi gục.
     v.ringsB.setVisible(!p.dead); v.ringsF.setVisible(!p.dead);
-    const lit = v.lit && time < v.lit.t0 + RING_LIT_MS ? v.lit.i : -1;
-    for (let k = 0; k < v.ringsB.length; k++) {
-      const y = -2 * k + Math.round(Math.sin(time / 700 + k * 1.1) * 0.6), tex = k === lit ? `halo${p.rings[k]}_lit` : `halo${p.rings[k]}`;
-      (v.ringsB.list[k] as Phaser.GameObjects.Image).setTexture(tex, 0).setY(y);
-      (v.ringsF.list[k] as Phaser.GameObjects.Image).setTexture(tex, 1).setY(y);
+    const n = v.ringsB.length, up = p.ava > 0 && !p.dead, lit = v.lit && time < v.lit.t0 + RING_LIT_MS ? v.lit.i : -1;
+    const ease = Math.min(1, this.game.loop.delta / 90);
+    for (let k = 0; k < n; k++) {
+      const t = p.rings[k], self = k === lit && !up, f = self ? (time - v.lit!.t0) / RING_LIT_MS : 0;
+      const want = up ? RING_UP_LOW + ((k + 0.5) * (RING_UP_TOP - RING_UP_LOW)) / n + Math.sin(time / 600 + k * 1.3) * 1.5 : self ? Math.sin(Math.PI * f) * RING_CHEST : 0;
+      v.ringY[k] = self ? want : v.ringY[k] + (want - v.ringY[k]) * ease;
+      const flying = up || self || v.ringY[k] > 2, key = soulRingKey(this, t, flying ? "up" : k, self || (up && k === lit));
+      const a = flying ? 1 : 0.7 + 0.3 * Math.sin(time / 380 - k * 0.7), y = -Math.round(v.ringY[k]) / SPR;
+      (v.ringsB.list[k] as Phaser.GameObjects.Image).setTexture(key, 0).setY(y).setAlpha(a);
+      (v.ringsF.list[k] as Phaser.GameObjects.Image).setTexture(key, 1).setY(y).setAlpha(a);
     }
   }
 

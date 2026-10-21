@@ -71,25 +71,38 @@ export function looksTextures(scene: Phaser.Scene, L: Looks) {
 }
 
 /**
- * Vòng hồn hoàn dưới chân (mục 5.11): elip 20×6, thân 2 pixel màu `col` cộng 1 pixel `glow`.
- * `halo{tier}` khung 24×10, khung 0 cung trên (vẽ sau thân), khung 1 cung dưới (vẽ trước thân), đúng key ảnh vẽ tay.
- * `halo{tier}_lit` khung 28×12 là vòng đang tung hồn kỹ: phình 2 pixel, sáng hơn một bậc (col → glow, glow → trắng).
+ * Vòng hồn hoàn (mục 5.11 "Vòng hồn hoàn", 10.7), vẽ ở pixel nội bộ (lớp hồn sư phóng 1 / SPR trong khung chứa): khung 0 cung trên
+ * (sau thân), khung 1 cung dưới (trước thân), gốc ở tâm elip.
+ * - `size` 0–9: vòng thứ size + 1 lúc bình thường, nằm trên mặt đất đồng tâm dưới chân (elip 2:1, bán trục ngang
+ *   RING_RX0 + RING_STEP · size): nét 1 pixel màu `col`, phía trong 1 pixel `glow` mờ (vòng đen vẫn nổi trên nền tối nhờ nét tím).
+ * - `"up"`: vòng nổi quanh thân (Chân Thân, vòng đang tung hồn kỹ), elip dẹt 34×10, thân 2 pixel `col` viền 1 pixel `glow`.
+ * - `lit`: sáng hơn một bậc (col → glow, glow → trắng).
  */
-function haloTexture(scene: Phaser.Scene, key: string, col: string, glow: string, big: boolean) {
-  if (scene.textures.exists(key)) return;
-  const rx = big ? 12 : 10, ry = big ? 4 : 3, fw = big ? 28 : 24, fh = big ? 12 : 10;
+export const RING_RX0 = 15, RING_STEP = 3;
+export function soulRingKey(scene: Phaser.Scene, tier: number, size: number | "up", lit = false) {
+  const key = `sring${tier}_${size}${lit ? "L" : ""}`;
+  if (scene.textures.exists(key)) return key;
+  const t = TIERS[tier] ?? TIERS[0], col = lit ? t.glow : t.col, glow = lit ? "#ffffff" : t.glow, up = size === "up";
+  const rx = up ? 17 : RING_RX0 + RING_STEP * size, ry = up ? 5 : rx / 2;
+  const fw = 2 * Math.ceil(rx) + 2, fh = 2 * Math.ceil(ry) + 2;
   const tex = scene.textures.createCanvas(key, fw * 2, fh)!, ctx = tex.getContext();
   const inE = (px: number, py: number, a: number, b: number) => (px / a) ** 2 + (py / b) ** 2 <= 1;
-  for (let y = -ry - 1; y <= ry; y++) for (let x = -rx - 1; x <= rx; x++) {
+  for (let y = -fh / 2; y < fh / 2; y++) for (let x = -fw / 2; x < fw / 2; x++) {
     const px = x + 0.5, py = y + 0.5;
     if (!inE(px, py, rx, ry)) continue;
-    const edge = !inE(px, py, rx - 1, ry - 0.8);
-    if (!edge && inE(px, py, rx - 3, ry - 2)) continue;
-    ctx.fillStyle = edge ? glow : col;
+    let c: string, a = 1;
+    if (up) {
+      if (inE(px, py, rx - 3, ry - 2)) continue;
+      c = inE(px, py, rx - 1, ry - 0.8) ? col : glow;
+    } else if (!inE(px, py, rx - 1, ry - 1)) c = col;
+    else if (!inE(px, py, rx - 2, ry - 2)) { c = glow; a = 0.5; }
+    else continue;
+    ctx.globalAlpha = a; ctx.fillStyle = c;
     ctx.fillRect((py < 0 ? 0 : fw) + fw / 2 + x, fh / 2 + y, 1, 1);
   }
   tex.refresh();
   addGridFrames(scene, key, fw, fh);
+  return key;
 }
 
 export function makeTextures(scene: Phaser.Scene) {
@@ -107,8 +120,6 @@ export function makeTextures(scene: Phaser.Scene) {
     g.generateTexture("hs_shadow", 12, 6); g.destroy();
   }
   TIERS.forEach((t, tier) => {
-    haloTexture(scene, `halo${tier}`, t.col, t.glow, false);
-    haloTexture(scene, `halo${tier}_lit`, t.glow, "#ffffff", true);
     for (const f of [0, 1]) for (const ag of [0, 1]) draw(scene, `b${tier}_${f}${ag ? "a" : ""}`, 48, 32, 24, 28, (R) => {
       const C = t.body, eye = ag ? "#ff3030" : "#1a0a0a", bob = f;
       if (tier === 0) {
@@ -144,11 +155,4 @@ export function makeTextures(scene: Phaser.Scene) {
   });
   boneTextures(scene); // hồn cốt rơi dưới đất (bước 4.1): `bone_<vị trí>`, tô màu niên hạn bằng setTint
   coreTextures(scene); // hồn hạch rơi dưới đất (bước 5.1): `core_<bộ>`, màu bộ vẽ sẵn
-  if (!scene.textures.exists("vignette")) {
-    const c = scene.textures.createCanvas("vignette", 256, 256)!;
-    const ctx = c.getContext();
-    const grd = ctx.createRadialGradient(128, 128, 40, 128, 128, 180);
-    grd.addColorStop(0, "rgba(5,8,20,0)"); grd.addColorStop(1, "rgba(5,8,20,1)");
-    ctx.fillStyle = grd; ctx.fillRect(0, 0, 256, 256); c.refresh();
-  }
 }

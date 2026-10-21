@@ -120,11 +120,18 @@ export function checkIsoTiles(log = console.error) {
   if (!existsSync(file)) { log(`[iso] thiếu ${path.relative(ROOT, file)}`); return 1; }
   let errors = 0; const err = (m) => { errors++; log(`[iso] LỖI ${m}`); };
   const data = JSON.parse(readFileSync(file, "utf8"));
-  const size = (f) => { const p = path.join(ISO, f); if (!existsSync(p)) { err(`thiếu ảnh ${f}`); return null; } const i = readPng(p); return [i.w, i.h]; };
+  // Từ 10.7 client tải normal map `<ảnh>_n.png` của mọi ô nền và vật đứng khi ánh sáng bật: phải có, cùng cỡ.
+  const size = (f, edge = "") => {
+    const p = path.join(ISO, f); if (!existsSync(p)) { err(`thiếu ảnh ${f}`); return null; }
+    const i = readPng(p), n = p.replace(/\.png$/, "_n.png");
+    if (!existsSync(n)) err(`thiếu normal map ${path.relative(ROOT, n)} (node tools/assets/normal.mjs ${path.relative(ROOT, p)}${edge})`);
+    else { const k = readPng(n); if (k.w !== i.w || k.h !== i.h) err(`normal map ${path.relative(ROOT, n)} ${k.w}×${k.h}, cần ${i.w}×${i.h}`); }
+    return [i.w, i.h];
+  };
   for (const [name, g] of Object.entries(data.ground ?? {})) {
     if (!g.img?.length) err(`ô ${name} không có ảnh`);
-    for (const f of g.img ?? []) { const s = size(f); if (s && (s[0] !== 32 || s[1] !== 32)) err(`ô ${name}: ${f} ${s.join("×")}, cần 32×32`); }
-    for (const f of g.big ?? []) { const s = size(f); if (s && (s[0] !== 64 || s[1] !== 64)) err(`ô ${name}: ${f} ${s.join("×")}, cần 64×64`); }
+    for (const f of g.img ?? []) { const s = size(f, " --edge 0"); if (s && (s[0] !== 32 || s[1] !== 32)) err(`ô ${name}: ${f} ${s.join("×")}, cần 32×32`); }
+    for (const f of g.big ?? []) { const s = size(f, " --edge 0"); if (s && (s[0] !== 64 || s[1] !== 64)) err(`ô ${name}: ${f} ${s.join("×")}, cần 64×64`); }
     if (typeof g.edge !== "number") err(`ô ${name} thiếu edge`);
   }
   // Vật đứng: key prop_{vật} phải có trong manifest ("iso": true), ảnh ở sprites/iso/props.
