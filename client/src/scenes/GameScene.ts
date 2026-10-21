@@ -104,6 +104,12 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
     ground: { 4: "#6a9a48", 7: "#8aa0b8", 8: "#7a88a0", 10: "#c8c0b0", 16: "#c8c0b0", 25: "#a8a090", 26: "#8a8478", 33: "#b8b0a0" },
     obj: { 12: "#ff9a3c", 19: "#e8a0b8", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#d8b040" },
   },
+  // Lõi Tinh Đấu, Đại Đấu Hồn Trường (11.5, giữ cỡ): rêu phát quang, sàn đá, rìa nước nông, lòng Hồ Sinh Mệnh; cột tinh thể, cổ thụ.
+  loi_tinh_dau: {
+    ground: { 5: "#4ab8b0", 7: "#7a7a90", 13: "#9aa2c0", 16: "#8a92b0", 25: "#8a98b8", 26: "#8a90a8", 33: "#9aa2c0", 34: "#6ab8d8", 35: "#2a5a8a" },
+    obj: { 27: "#c8d0e0", 28: "#4a9a8a", 30: "#4ab8b0", 36: "#6a7088", 38: "#a8d0ff", 39: "#8a90a8", 40: "#4a3a3a" },
+  },
+  dai_dau_hon_truong: { ground: { 16: "#c8a868" }, obj: { 12: "#ff9a3c", 37: "#c8a040", 38: "#d8b040" } },
   hai_than_dao: {
     // cỏ đảo, hoa, cát ướt tối, nước biển, bãi trại, sân đá đền, cầu tàu / đường đá, đá cuội
     ground: { 3: "#5a7a4a", 5: "#8a9a5a", 6: "#6a9a50", 8: "#a08a63", 9: "#3a6a90", 10: "#e8dcc0", 13: "#d8d0c0", 16: "#b8b0a0", 25: "#8a7a60", 26: "#9a9280" },
