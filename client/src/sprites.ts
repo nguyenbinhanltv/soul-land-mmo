@@ -298,7 +298,7 @@ export function createBeastAnims(scene: Phaser.Scene, sheet: string) {
 export function createSheetAnims(scene: Phaser.Scene) {
   for (const key of scene.textures.getTextureKeys()) {
     if (/^(hs_body_[mf]_\d+|lpc_[a-z0-9_]+)$/.test(key)) createHonsuAnims(scene, key);
-    else if (/^(b\d|beast_[a-z_]+)$/.test(key)) createBeastAnims(scene, key);
+    else if (/^(b\d|beast_[a-z_]+)$/.test(key) && !key.endsWith("_n")) createBeastAnims(scene, key); // `_n`: normal map, không phải sheet
   }
 }
 
