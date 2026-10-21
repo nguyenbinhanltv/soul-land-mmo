@@ -77,6 +77,8 @@ export function build(L, hand = null, seedOverride = null) {
     tierVis[at(x, y)] = tierOf(at(jx, jy));
   }
   const tier = (i) => L.tiers[tierVis[i]];
+  // Sắc nền riêng của tầng (`tiers[].ground`) không được đè nước / lòng sâu: ô chặn tính theo `gids.ground.water` / `deep`.
+  for (const t of L.tiers) if (t.ground?.water !== undefined || t.ground?.deep !== undefined) throw new Error(`${mapId}: tầng "${t.name}": ground không được đè water / deep`);
 
   // ---------- 1. Rừng nền: mật độ theo tầng, cụm rậm theo nhiễu ----------
   const sF = sub("forest"), sC = sub("cluster");
