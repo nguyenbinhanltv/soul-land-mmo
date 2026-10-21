@@ -373,7 +373,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 
 - **Thánh Hồn Thôn:** **Tố Vân Đào** (chấp sự Vũ Hồn Điện; lễ thức tỉnh chạy qua `POST /api/awaken` trước khi vào phòng, trong làng là NPC giải thích võ hồn, bình cảnh, đội hình), **Lão Kiệt Khắc** (trưởng thôn, chỉ đường bãi săn và cổng đi Nặc Đinh Thành).
 - **Nặc Đinh Thành:** **Ngọc Tiểu Cương (Đại Sư)** ở Học viện Nặc Đinh (giải thích giới hạn hồn hoàn theo vòng, cấp đề xuất từng bản đồ; giao nhiệm vụ tân thủ), **Thương nhân**, **Thợ rèn** (bảng cường hóa hồn cốt và nâng cấp hồn hạch), **Sứ giả Đại Đấu Hồn Trường** (chỉ đường lên Thiên Đấu Thành), cổng bắc đi Thiên Đấu Thành.
-- **Thiên Đấu Thành** (thủ đô, tường thành, sông phía đông, quảng trường đài phun nước là điểm hồi sinh): biển **Đại Đấu Hồn Trường** trước cửa đấu trường ở góc đông nam (vai trò `arena`, mục 5.9), **Phất Lan Đức** (viện trưởng Sử Lai Khắc Học Viện; hiện chỉ có lời thoại), **Chưởng quỹ · Thương hội Thiên Đấu** và **Thợ rèn Thiên Đấu** (cùng cửa hàng / lò rèn như Nặc Đinh), Hoàng cung (trang trí). Cổng nam về Nặc Đinh Thành, cổng tây đi Lạc Nhật Sâm Lâm, cổng bắc đi Cực Bắc Chi Địa, bến thuyền đi Hải Thần Đảo.
+- **Thiên Đấu Thành** (thủ đô, tường thành, sông phía đông, quảng trường đài phun nước là điểm hồi sinh): biển **Đại Đấu Hồn Trường** trước cửa đấu trường ở góc đông nam (vai trò `arena`, mục 5.9), **Phất Lan Đức** (viện trưởng Sử Lai Khắc Học Viện; ra khảo hạch hằng ngày), **Chưởng quỹ · Thương hội Thiên Đấu** và **Thợ rèn Thiên Đấu** (cùng cửa hàng / lò rèn như Nặc Đinh), Hoàng cung (trang trí). Cổng nam về Nặc Đinh Thành, cổng tây đi Lạc Nhật Sâm Lâm, cổng bắc đi Cực Bắc Chi Địa, bến thuyền đi Hải Thần Đảo.
 - **Luật NPC:** NPC là object `npc` trong Tiled, thuộc tính `npc` là mã trong `NPCS` (tên, chức danh, vai trò `talk` / `shop` / `forge` / `arena`, ngoại hình, lời thoại; mã lạ hoặc trùng thì server cảnh báo và bỏ). Vẽ bằng sheet NPC LPC `lpc_<mã>` (mục 5.11 "NPC phụ và dân thường"), chưa có thì bằng sprite hồn sư theo `looks`; đứng yên nhìn xuống, tên và chức danh trên đầu. Đứng trong `NPC_RANGE` thì hiện "Nói chuyện [F]"; bấm F, bấm / chạm NPC hoặc nút để mở hộp thoại (lời thoại từng câu "Tiếp ›", đi xa thì tự đóng, Esc đóng). Server kiểm tra khoảng cách mỗi lần (`talk`, `buy`, `sell`, `quest`, `arena`…).
 
 **Nhiệm vụ tân thủ** (`QUESTS`, chuỗi "Bài học của Đại Sư"; mục tiêu, số lượng, phần thưởng ở dữ liệu): 7 bài nhận và trả từng bài với Ngọc Tiểu Cương ở Nặc Đinh Thành, mỗi bài dạy một hệ thống:
@@ -392,6 +392,15 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - Mục tiêu **chỉ đếm sau khi nhận**, theo sự kiện thật server ghi nhận (`questEvent`); đồng đội tổ đội được chia kinh nghiệm cũng được tính hạ hồn thú. Mục tiêu dạng "đang có / đang gắn / đang ở" mà đạt sẵn lúc nhận thì xong ngay. Hấp thụ vượt giới hạn mà vẫn thành công thì không tính.
 - Trả bài cần đủ mục tiêu và túi đủ chỗ cho **cả** phần thưởng (thiếu thì từ chối, giữ tiến độ). Khung theo dõi dưới bản đồ nhỏ (thu gọn được), thông báo lớn khi nhận / đủ / trả.
 - Tiến độ lưu ở bảng `quests`, ghi cùng transaction với túi đồ. Mọi tài khoản bắt đầu ở bài 1.
+
+**Nhiệm vụ hằng ngày** ("Khảo hạch Sử Lai Khắc", `DAILY`, `DAILY_POOL`; số bài, mục tiêu, phần thưởng ở dữ liệu): mỗi ngày `DAILY.count` bài, nhận và trả từng bài với Phất Lan Đức ở Thiên Đấu Thành (cùng luật đứng gần, gục, túi đủ chỗ như nhiệm vụ tân thủ), không cần xong chuỗi tân thủ.
+- **Đặt lại lúc 00:00 giờ Việt Nam** (như lượt thưởng boss, `vnDay`): bộ bài mới chưa nhận, bài hôm qua dở dang bỏ luôn, không trả được. Người đang chơi được báo ngay lúc qua ngày.
+- **Bộ bài chọn ổn định theo ngày** (mọi người cùng bộ, `dailyPicks`): bài 1 luôn là bài săn (nhóm `hunt`), các bài sau lấy không trùng trong nhóm `misc`; mỗi bài thưởng Hồn Tệ của mẫu và mảnh một võ hồn SR / SSR (`ARENA_SHARDS`) bốc theo ngày.
+- **Mẫu bài:** hạ N hồn thú **hợp cấp** (`fitBeast`: không bị giảm kinh nghiệm theo chênh cấp với võ hồn ra trận, mục 5.3; đồng đội tổ đội chia kinh nghiệm cũng được tính theo cấp của mình); đánh xong một trận Đại Đấu Hồn Trường (thắng / thua / hòa; bỏ trận hoặc đối thủ không vào sân thì không tính); đổi tay trong trận và tung tiên cơ; nộp vật phẩm (hồn hạch, hồn hoàn, Hồi Huyết Đan). Không có bài "hấp thụ hồn hoàn": chỉ làm được khi võ hồn chạm bình cảnh, nên thay bằng nộp hồn hoàn.
+- **Nộp vật phẩm:** số đếm là số món đang có trong túi (không tính đồ đang gắn, đồ đã cường hóa / nâng cấp), tính lại mỗi khi túi đổi; trả bài thì bớt đồ (rẻ nhất trước) rồi mới kiểm tra túi đủ chỗ cho phần thưởng.
+- **Lưu:** mỗi bài một dòng bảng `quests` với mã chuỗi `daily:<yyyymmdd>:<i>`; nội dung bài suy ra từ mã nên không cần bảng hay cột mới. Lần ghi túi nào có bài khảo hạch cũng xóa dòng khảo hạch của các ngày khác.
+- **Giao diện:** khung theo dõi có mục **"Hằng ngày"** (bài đã nhận với mục tiêu x/N, số bài chưa nhận / chờ trả, thu gọn được) hiện khi đã xong chuỗi tân thủ, đã nhận bài hôm nay hoặc đang ở Thiên Đấu Thành; hộp thoại Phất Lan Đức có trang khảo hạch (mỗi bài một khung, nút nhận / trả riêng); dấu "!" / "?" trên đầu như NPC giao nhiệm vụ.
+- **Chỉ đường trên bản đồ nhỏ** (cả nhiệm vụ tân thủ): mục tiêu ở bản đồ đang đứng thì chấm vàng nhấp nháy ở NPC cần gặp / khung vùng săn (bài săn hợp cấp: vùng có hồn thú hợp cấp); ở bản đồ khác thì tô vàng cổng đi tới bản đồ kề trên đường ngắn nhất (server tính theo cổng của các file Tiled, gửi kèm tin `daily`). Bài săn và nộp hồn hạch / hồn hoàn chỉ về bãi săn có cấp đề xuất chứa cấp võ hồn ra trận (`fitMaps`); bài chờ trả hoặc chưa nhận chỉ về NPC giao bài.
 
 ### 5.9 Người chơi lập đội và PvP
 **Tổ đội người chơi** (tối đa `PARTY_MAX` người; luật ở `server/src/party.ts`, mức tiến trình, không lưu DB):
@@ -743,7 +752,7 @@ shared/assets/iso/
 | Võ hồn | `vohons`, `team {slots}`, `loadout {rowId, skills}`, `unlock {vohon}`, `starup {vohon}` |
 | Túi đồ | `bag`, `use {id, vohonId?}`, `pickup`, `discard {id}`, `open {id}`, `absorb {itemId, vohonId}` |
 | Hồn cốt, hồn hạch | `equip` / `unequip`, `equipcore` / `unequipcore`, `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}` |
-| NPC | `talk {npc}`, `buy {code, qty}`, `sell {id, qty?}`, `expand`, `buyback {key}`, `quest {op}` |
+| NPC | `talk {npc}`, `buy {code, qty}`, `sell {id, qty?}`, `expand`, `buyback {key}`, `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
 | Bản đồ, kênh | `travel {portal}`, `channels`, `channel {ch}` |
 | Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
 | Kiểm thử | `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
@@ -752,7 +761,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 **Đồng bộ xuống client**
 - **Trạng thái công khai** qua Colyseus Schema (`server/src/rooms/schema.ts`: `MapState`, `PlayerState`, `BeastState`, `DropState`; phòng sân `ArenaState` / `ArenaSide`). Chọn kiểu nhỏ nhất đủ dùng; trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối. Client đọc ở `client/src/scenes/GameScene.ts`.
-- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật) qua `broadcast("fx", {k, …})` và `"dmg"`; tin công khai `elite`, `boss`.
 
 **Một loại phòng cho mọi bản đồ**
@@ -835,13 +844,13 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - **Đồng hồ khi kiểm thử:** mọi chỗ đọc lịch và ngày nhận thưởng đi qua `bossNow` / `bossOffset`. Không bật `GAME_TEST` thì là đồng hồ thật; bật `GAME_TEST=1` thì theo `BOSS_CLOCK`: chưa đặt = đứng yên ở 12:00 giờ Việt Nam của ngày bật server (lịch thật không chen vào bài thử của bot), `HH:MM` = chạy từ giờ đó, `real` = đồng hồ thật.
 - Lượt nhận thưởng mỗi ngày lưu ở `boss_claims` (tài khoản, ngày Việt Nam, loại: thú vương, boss thế giới, thắng đấu trường; số lần).
 
-**Dữ liệu trong `shared/data.ts`** (server và client cùng import; mã cố định không bao giờ đổi, thêm phần tử mới vào cuối mảng vì chỉ số dùng để đồng bộ): `MAPS`, `BEASTS`, `BEAST_SKILLS`, `BOSSES`, `VOHON`, `VOHON_SKILLS`, `VOHON_SKILLS_HIGH`, `TIEN_CO_RIENG`, `CHAN_THAN`, `BONDS`, `STATUS`, `BUFFS`, `ITEMS`, `HERBS`, `CORE_SETS`, `BONE_SKILLS`, `NPCS`, `QUESTS`, `RESONANCE`, `ARENA` và mọi hằng số cân bằng. Cấp tương đương tính bằng hàm từ `RING_LIMIT`, không lưu bảng riêng.
+**Dữ liệu trong `shared/data.ts`** (server và client cùng import; mã cố định không bao giờ đổi, thêm phần tử mới vào cuối mảng vì chỉ số dùng để đồng bộ): `MAPS`, `BEASTS`, `BEAST_SKILLS`, `BOSSES`, `VOHON`, `VOHON_SKILLS`, `VOHON_SKILLS_HIGH`, `TIEN_CO_RIENG`, `CHAN_THAN`, `BONDS`, `STATUS`, `BUFFS`, `ITEMS`, `HERBS`, `CORE_SETS`, `BONE_SKILLS`, `NPCS`, `QUESTS`, `DAILY`, `DAILY_POOL`, `RESONANCE`, `ARENA` và mọi hằng số cân bằng. Cấp tương đương tính bằng hàm từ `RING_LIMIT`, không lưu bảng riêng.
 
 **Dữ liệu lâu dài** trong PostgreSQL / Supabase (`server/sql/`, mỗi file `00N_….sql` với `CREATE TABLE IF NOT EXISTS` và bật RLS; `PgStore.init()` chạy mọi file theo tên mỗi lần khởi động). Không có `DATABASE_URL` thì dùng `MemoryStore` (RAM). Bảng chính:
 - `accounts` (tài khoản, ngoại hình, võ hồn ra trận, `map_id` + `pos_x` / `pos_y`, `bag_slots`, Hồn Tệ), `sessions`.
 - `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn theo số năm, `skills` 4 ô mang theo, `herbs`), `teams` (mỗi ô đội hình một dòng).
 - `items` (mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn).
-- `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
+- `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`) là bảng cũ, giữ lại để chuyển dữ liệu, không còn ghi.
 
 **Bảo mật:** giới hạn đăng nhập sai, chat và lời mời tổ đội ở `server/src/ratelimit.ts` (RAM). Deploy sau proxy thì đặt `TRUST_PROXY=1`. Kiểm thử: `npm run test:ratelimit --prefix server`.
@@ -871,7 +880,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), tạo bằng PixelLab sau 10.4.
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
-- [ ] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ.
+- [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
 - [ ] Thương nhân lưu động ở trại cổng bản đồ săn.
 - [ ] Vùng an toàn hồi sinh lực / hồn lực nhanh hơn ngoài rừng; chuyển các số hồi sinh lực đang viết thẳng trong `MapRoom.tick` vào `shared/data.ts`.
 - [ ] Xếp hàng Đại Đấu Hồn Trường cả tổ đội (2v2…); cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); xem trận.

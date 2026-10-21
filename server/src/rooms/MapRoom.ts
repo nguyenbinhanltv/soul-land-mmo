@@ -27,12 +27,13 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
+  DAILY, dailyIds, isDaily, fitBeast,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA } from "../../../shared/data.ts";
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
-import { loadMap, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
+import { loadMap, mapRoute, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
@@ -102,6 +103,8 @@ export interface PData {
   partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
   // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
   quest: QuestProgress;
+  // Khảo hạch hằng ngày của Phất Lan Đức (DAILY): DAILY.count bài của ngày `dailyDay` (vnDay), tin riêng "daily"; lưu cùng túi đồ như `quest`.
+  daily: QuestProgress[]; dailyDay: string;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
   arenaBusy: boolean; arenaTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
@@ -328,6 +331,9 @@ function itemStacks(code: string, qty: number): Item[] {
 /** Số ô túi đang dùng: món đang gắn vào võ hồn không tính. */
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
 
+/** Hook test `daily {shift}`: lệch ngày của khảo hạch hằng ngày cho cả tiến trình (MapRoom.dailyDay); chỉ đổi khi GAME_TEST=1. */
+let dailyShift = 0;
+
 export class MapRoom extends Room<MapState> {
   maxClients = CHANNEL_CAP;
   state = new MapState();
@@ -352,6 +358,8 @@ export class MapRoom extends Room<MapState> {
   bossWarn: (BossEvent & { at: number }) | null = null;
   /** Hook test `day {shift}`: lệch ngày nhận thưởng (ngày) để thử đặt lại lượt lúc 00:00; luôn 0 khi không bật GAME_TEST. */
   dayShift = 0;
+  /** Giây tới lần kiểm tra sang ngày mới kế tiếp (đặt lại khảo hạch hằng ngày, tick). */
+  dayT = 0;
   /** Lịch boss trên presence (schedule.ts, mục 6): mọi phòng báo cho người chơi của mình; phòng của đúng bản đồ sinh thú vương. */
   bossSub = (ev: BossEvent) => this.onBossEvent(ev);
   /** Thông báo toàn server (presence "announce", mục 6): hiện như tin hệ thống trong chat. */
@@ -513,7 +521,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("buyback", (c, m: { key: unknown }) => this.buybackItem(c.sessionId, m?.key)); // mua lại đồ vừa bán (9.8)
     this.onMessage("expand", (c) => this.expandBag(c.sessionId)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
-    this.onMessage("quest", (c, m: { op: unknown }) => this.questAction(c.sessionId, m?.op)); // nhiệm vụ (6.2)
+    this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
     this.onMessage("arena", (c, m: { op: unknown }) => this.arenaAction(c.sessionId, m?.op)); // Đại Đấu Hồn Trường (7.2)
     this.onMessage("resonance", (c) => this.sendRes(c.sessionId, [], true)); // cộng minh (8.2): xin bảng tiến độ
     this.onMessage("chat", (c, m: { text: string }) => {
@@ -548,7 +556,7 @@ export class MapRoom extends Room<MapState> {
       bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
       claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
-      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
+      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
@@ -682,7 +690,7 @@ export class MapRoom extends Room<MapState> {
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
     return { honTe: d.honTe, slots: d.bagSlots, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
-      quests: [{ ...d.quest, prog: [...d.quest.prog] }] };
+      quests: [d.quest, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })) };
   }
 
   /**
@@ -1037,6 +1045,7 @@ export class MapRoom extends Room<MapState> {
       const gift = STARTER_ITEMS.map((s) => `${s.qty} ${itemDef(s.code)?.name ?? s.code}`).join(", ");
       this.log(id, `Quà khởi đầu đã vào túi đồ: ${gift}. Nhấn B để mở túi.`, "#86e0b0");
     }
+    this.dailyBag(id); // khảo hạch hằng ngày: mục tiêu nộp vật phẩm đếm theo túi
   }
 
   /**
@@ -1258,22 +1267,37 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Sự kiện thật cho bộ đếm nhiệm vụ (hạ hồn thú, đổi tay trong trận, tiên cơ, hấp thụ trong giới hạn, gắn đồ, nói chuyện với NPC,
-   * vào bản đồ): chỉ tính khi đã nhận bước đang làm; mỗi mục tiêu khớp `ev` cộng 1 (kẹp ở `n`). Đủ mọi mục tiêu thì báo quay về NPC.
+   * vào bản đồ; từ khảo hạch hằng ngày thêm hồn thú hợp cấp `fit`, trận đấu hồn `arena`): chỉ tính khi đã nhận bước đang làm; mỗi
+   * mục tiêu khớp `ev` cộng 1 (kẹp ở `n`), cho chuỗi tân thủ và từng bài khảo hạch. Đủ mọi mục tiêu thì báo quay về NPC.
    * Tiến độ ghi DB cùng túi đồ (bagDirty -> lưu định kỳ, rời phòng, transaction đi cổng).
    */
   questEvent(id: string, ev: QuestEvent) {
-    const d = this.pdata.get(id); if (!d || d.travelling || !d.quest.accepted) return;
-    const chain = questChain(d.quest.chain), step = chain?.steps[d.quest.step]; if (!chain || !step) return;
-    const was = questStatus(d.quest);
+    const d = this.pdata.get(id); if (!d || d.travelling) return;
+    const r = this.questBump(d.quest, ev), chain = questChain(d.quest.chain);
+    if (r && chain) {
+      d.bagDirty = true;
+      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[d.quest.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
+      this.sendQuest(id, r === "ready" ? "ready" : undefined);
+    }
+    // Khảo hạch hằng ngày: cùng sự kiện, từng bài đã nhận (sang ngày mới thì bộ bài cũ bỏ trước).
+    if (this.dailyFresh(d)) this.sendDaily(id, "reset");
+    let hit = false, ready = -1;
+    d.daily.forEach((q, i) => {
+      const x = this.questBump(q, ev); if (!x) return;
+      hit = true;
+      if (x === "ready") { ready = i; this.log(id, `Hoàn thành khảo hạch "${questChain(q.chain)?.steps[0].name}": quay về gặp ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name} để nhận thưởng.`, "#86e0b0"); }
+    });
+    if (hit) { d.bagDirty = true; this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready); }
+  }
+  /** Cộng sự kiện `ev` vào bước đang làm (đã nhận) của tiến độ `q`: null = không mục tiêu nào khớp, "ready" = vừa đủ mọi mục tiêu. */
+  questBump(q: QuestProgress, ev: QuestEvent): "hit" | "ready" | null {
+    const step = q.accepted ? questChain(q.chain)?.steps[q.step] : undefined; if (!step) return null;
+    const was = questStatus(q);
     let hit = false;
     step.goals.forEach((g, i) => {
-      if (questGoalHit(g, ev) && (d.quest.prog[i] ?? 0) < g.n) { d.quest.prog[i] = (d.quest.prog[i] ?? 0) + 1; hit = true; }
+      if (questGoalHit(g, ev) && (q.prog[i] ?? 0) < g.n) { q.prog[i] = (q.prog[i] ?? 0) + 1; hit = true; }
     });
-    if (!hit) return;
-    d.bagDirty = true;
-    const ready = was !== "ready" && questStatus(d.quest) === "ready";
-    if (ready) this.log(id, `Hoàn thành "${step.name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
-    this.sendQuest(id, ready ? "ready" : undefined);
+    return !hit ? null : was !== "ready" && questStatus(q) === "ready" ? "ready" : "hit";
   }
 
   /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy trước, rồi mở ô mới như addItem). */
@@ -1295,9 +1319,10 @@ export class MapRoom extends Room<MapState> {
    * sẵn thì tính xong ngay. Trả: đủ mọi mục tiêu và túi đủ chỗ cho cả phần thưởng (không thì từ chối hết), Hồn Tệ và vật phẩm vào
    * túi, sang bước kế (chưa nhận); ghi ngay qua chuỗi lưu, cùng một lần ghi với túi đồ.
    */
-  questAction(id: string, op: unknown) {
+  questAction(id: string, op: unknown, chainId?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    if (op === "get") return this.sendQuest(id);
+    if (op === "get") { this.sendQuest(id); this.sendDaily(id); return; }
+    if (typeof chainId === "string" && isDaily(chainId)) return this.dailyAction(id, op, chainId);
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id); };
     const chain = questChain(d.quest.chain); if (!chain) return;
     if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
@@ -1332,6 +1357,124 @@ export class MapRoom extends Room<MapState> {
     this.sendBag(id);
     this.sendQuest(id, finish ? "finish" : "reward", step.id);
     this.save(id); // phần thưởng và bước mới ghi ngay, cùng một lần ghi túi đồ
+  }
+
+  // ---------- Khảo hạch hằng ngày của Phất Lan Đức (mục 5.8 "Nhiệm vụ hằng ngày") ----------
+  /**
+   * Ngày của bộ khảo hạch (vnDay, đổi lúc 00:00 giờ Việt Nam): như `today` (hook `day` của phòng lệch được), cộng độ lệch toàn tiến
+   * trình `dailyShift` của hook `daily {shift}` (để bot chọn ngày có bộ bài cần thử và mang cùng ngày đó sang phòng sân đấu).
+   */
+  dailyDay() { return vnDay(bossNow() + (this.dayShift + dailyShift) * 86400000); }
+  /** Bộ khảo hạch hôm nay (dailyIds) từ các dòng `quests` đã lưu; bài chưa có dòng thì chưa nhận. Dòng của ngày khác bỏ qua. */
+  dailyOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) {
+    return { dailyDay: day, daily: dailyIds(day).map((id) => saved?.find((q) => q.chain === id) ?? questStart(id)) };
+  }
+  /**
+   * Sang ngày mới (00:00 giờ Việt Nam, dailyDay) thì thay bằng bộ bài mới chưa nhận; bài cũ dở dang bỏ luôn (dòng cũ trong bảng `quests`
+   * bị xóa ở lần ghi túi kế tiếp, writeBag). Trả true khi vừa đặt lại (nơi gọi gửi tin "daily").
+   */
+  dailyFresh(d: PData, day = this.dailyDay()) {
+    if (d.dailyDay === day) return false;
+    Object.assign(d, this.dailyOf(undefined, day));
+    d.bagDirty = true;
+    return true;
+  }
+  /** Các món mã `code` nộp được cho mục tiêu `give`: nằm trong túi (không gắn), chưa cường hóa / nâng cấp; rẻ nhất trước. */
+  giveItems(d: PData, code: string) {
+    return d.bag.filter((it) => it.code === code && it.vohonId === null && !(it.enhance > 0))
+      .sort((a, b) => (sellPrice(a) ?? 0) - (sellPrice(b) ?? 0));
+  }
+  /**
+   * Số đếm của mục tiêu `give` = số món đang có trong túi (kẹp ở `n`), tính lại mỗi khi túi đổi. Trả chỉ số bài vừa đủ mục tiêu
+   * (-1 = không có) và có đổi số đếm nào không.
+   */
+  dailyGive(d: PData) {
+    let changed = false, ready = -1;
+    d.daily.forEach((q, i) => {
+      const step = q.accepted ? questChain(q.chain)?.steps[q.step] : undefined; if (!step) return;
+      const was = questStatus(q);
+      step.goals.forEach((g, k) => {
+        if (g.k !== "give" || !g.item) return;
+        const n = Math.min(g.n, this.giveItems(d, g.item).reduce((a, it) => a + it.qty, 0));
+        if (q.prog[k] !== n) { q.prog[k] = n; changed = true; }
+      });
+      if (was !== "ready" && questStatus(q) === "ready") ready = i;
+    });
+    return { changed, ready };
+  }
+  /**
+   * Tin riêng "daily": ngày (vnDay), DAILY.count bài (tiến độ như tin "quest" và trạng thái), `ev` vừa nhận / vừa đủ / vừa trả /
+   * vừa đặt lại sang ngày mới (`reset`) kèm `i` = bài đó, và `route` chỉ đường từ bản đồ này (mapRoute) để client chấm mục tiêu
+   * ở bản đồ khác lên cổng đúng hướng. Nội dung bài client tự suy từ mã (questChain).
+   */
+  sendDaily(id: string, ev?: "accept" | "ready" | "reward" | "reset", i = -1) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    if (this.dailyFresh(d)) ev = "reset";
+    this.dailyGive(d);
+    c.send("daily", { day: d.dailyDay, list: d.daily.map((q) => ({ ...q, prog: [...q.prog], status: questStatus(q) })), ev, i, route: mapRoute(this.state.mapId) });
+  }
+  /** Túi vừa đổi: mục tiêu nộp vật phẩm có thể vừa đủ / vừa thiếu, gửi lại tin "daily" khi đổi số đếm. */
+  dailyBag(id: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    const { changed, ready } = this.dailyGive(d); if (!changed) return;
+    if (ready >= 0) this.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
+    this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready);
+  }
+  /**
+   * Nhận / trả bài khảo hạch `chainId` của hôm nay: như questAction (NPC DAILY.giver có ở bản đồ này, không gục, đứng trong NPC_RANGE).
+   * Trả bài: đủ mục tiêu; mục tiêu `give` bớt đồ khỏi túi trước (rẻ nhất trước) rồi mới kiểm tra túi đủ chỗ cho phần thưởng (thiếu thì
+   * trả lại túi như cũ, giữ tiến độ). Bài của ngày đã qua thì từ chối. Ghi ngay qua chuỗi lưu như questAction.
+   */
+  dailyAction(id: string, op: unknown, chainId: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendDaily(id); };
+    if (this.dailyFresh(d)) this.sendDaily(id, "reset");
+    const i = d.daily.findIndex((q) => q.chain === chainId);
+    if (i < 0) return warn(`Bài khảo hạch đó đã hết hạn: hôm nay ${npcDef(DAILY.giver)?.name} ra bài mới.`);
+    if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
+    const giver = npcDef(DAILY.giver)!, verb = op === "accept" ? "nhận" : "trả";
+    if (!this.map.npcs.some((n) => n.id === DAILY.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[DAILY.map].name} để ${verb} khảo hạch.`);
+    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
+    if (!this.npcNear(id, { id: DAILY.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} khảo hạch.`);
+    const step = questChain(chainId)!.steps[0];
+    this.dailyGive(d);
+    const st = questStatus(d.daily[i]);
+    if (st === "done") return warn(`Đã xong "${step.name}" hôm nay: mai có bài mới.`);
+    if (op === "accept") {
+      if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả bài.`);
+      d.daily[i] = { chain: chainId, step: 0, accepted: true, prog: step.goals.map(() => 0) };
+      d.bagDirty = true;
+      this.dailyGive(d);
+      this.log(id, `Nhận khảo hạch "${step.name}": ${step.desc}`, giver.col);
+      const ready = questStatus(d.daily[i]) === "ready";
+      if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả bài ngay để nhận thưởng.`, "#86e0b0");
+      this.sendDaily(id, ready ? "ready" : "accept", i);
+      this.saveTrade(id, d);
+      return;
+    }
+    if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
+    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, k) => `${g.text} ${d.daily[i].prog[k] ?? 0}/${g.n}`).join(", ")}.`);
+    // Nộp vật phẩm trên bản sao túi: túi không đủ chỗ cho phần thưởng thì trả lại túi cũ.
+    const keep = d.bag, dirty = d.bagDirty;
+    d.bag = d.bag.map((it) => ({ ...it }));
+    for (const g of step.goals) {
+      if (g.k !== "give" || !g.item) continue;
+      let left = g.n;
+      for (const it of this.giveItems(d, g.item)) { if (left <= 0) break; const n = Math.min(left, it.qty); this.takeItem(d, it, n); left -= n; }
+    }
+    if (!this.bagFits(d, step.reward.items)) {
+      d.bag = keep; d.bagDirty = dirty;
+      return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
+    }
+    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + step.reward.honTe);
+    for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
+    d.daily[i] = { chain: chainId, step: 1, accepted: false, prog: [] };
+    d.bagDirty = true;
+    const given = step.goals.filter((g) => g.k === "give").map((g) => `${g.n} ${itemDef(g.item ?? "")?.name ?? g.item}`).join(", ");
+    this.log(id, `Trả khảo hạch "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${questRewardText(step.reward)}.`, "#f2c84b");
+    this.sendBag(id);
+    this.sendDaily(id, "reward", i);
+    this.save(id); // phần thưởng, đồ đã nộp và bài đã xong ghi ngay, cùng một lần ghi túi đồ
   }
 
   // ---------- Đại Đấu Hồn Trường: xếp hàng ở NPC, bảng xếp hạng (mục 5.9, bước 7.2; trận đấu ở ArenaRoom) ----------
@@ -1841,7 +1984,22 @@ export class MapRoom extends Room<MapState> {
       const pct = (x: unknown) => { const v = int(x, -1, 100, -1); return v < 0 ? -1 : Math.min(0.9999, v / 100); };
       d.testChest = o.off ? null : { bone: pct(o.bone), ur: pct(o.ur), i: int(o.i, -1, 99, -1), n: int(o.n, -1, 99, -1), s: int(o.s, -1, BONE_SLOTS.length - 1, -1) };
     }
-    else if (op === "day") { this.dayShift = int(o.shift, -3650, 3650, 0); out = { day: this.today() }; }
+    else if (op === "day") {
+      this.dayShift = int(o.shift, -3650, 3650, 0); out = { day: this.today() };
+      for (const [pid, pd] of this.pdata) if (this.dailyFresh(pd)) this.sendDaily(pid, "reset"); // khảo hạch hằng ngày đặt lại ngay
+    }
+    else if (op === "daily") {
+      // Khảo hạch hằng ngày: `shift` lệch ngày của bộ bài cho cả tiến trình (mọi phòng, kể cả phòng sân đấu mở sau; phòng khác đặt lại
+      // ở lần kiểm tra ngày kế tiếp trong tick); đặt tiến độ bài `i` của hôm nay (bước, đã nhận, số đếm; kẹp như khi nạp DB); trả ngày
+      // và tiến độ cả bộ.
+      if (o.shift !== undefined) {
+        dailyShift = int(o.shift, -3650, 3650, 0);
+        for (const [pid, pd] of this.pdata) if (this.dailyFresh(pd)) this.sendDaily(pid, "reset");
+      }
+      const i = int(o.i, -1, DAILY.count - 1, -1), q = d.daily[i];
+      if (q && Number.isInteger(o.step)) { d.daily[i] = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, q.chain); d.bagDirty = true; this.sendDaily(id); }
+      out = { day: d.dailyDay, daily: d.daily.map((x) => ({ ...x, status: questStatus(x) })) };
+    }
     else if (op === "quest") {
       // 6.2: đặt tiến độ chuỗi tân thủ (bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi; trả tiến độ hiện tại.
       if (Number.isInteger(o.step)) { d.quest = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, QUEST_STARTER); d.bagDirty = true; this.sendQuest(id); }
@@ -3051,13 +3209,14 @@ export class MapRoom extends Room<MapState> {
     this.state.beasts.delete(bid); this.bdata.delete(bid);
     // 6.2: vùng săn tính theo chỗ hồn thú bị hạ (khung vùng trong Tiled).
     const zone = this.map.zones.find((z) => b.x >= z.x0 && b.x < z.x1 && b.y >= z.y0 && b.y < z.y1)?.name;
-    this.questEvent(by, { k: "kill", map: this.state.mapId, zone });
+    const fit = (pid: string) => fitBeast(this.state.players.get(pid)?.level ?? 1, b.years); // khảo hạch hằng ngày: hồn thú hợp cấp của từng người
+    this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by) });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
     const team = this.partyNear(by, b.x, b.y), share = partyXpShare(team.length);
     for (const pid of team) this.rewardKill(pid, b.years, (e ? ELITE.xp : 1) * share);
     // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
-    for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone });
+    for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone, fit: fit(pid) });
     if (team.length > 1) {
       const names = team.map((pid) => this.state.players.get(pid)?.name ?? "").join(", ");
       for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
@@ -4320,6 +4479,12 @@ export class MapRoom extends Room<MapState> {
 
   // ---------- Vòng lặp ----------
   tick(dt: number) {
+    // Khảo hạch hằng ngày: qua 00:00 giờ Việt Nam thì mỗi giây kiểm tra một lần, đặt lại bộ bài và báo người đang chơi.
+    if ((this.dayT -= dt) <= 0) {
+      this.dayT = 1;
+      const day = this.dailyDay();
+      for (const [id, d] of this.pdata) if (!d.travelling && this.dailyFresh(d, day)) this.sendDaily(id, "reset");
+    }
     // Tổ đội (7.1): mỗi 0,5 giây ghi cấp / sinh lực vào party.ts (đồng đội ở bản đồ khác cũng thấy), gửi lại khung tổ đội khi đổi,
     // dọn lời mời hết hạn và người rời game quá lâu.
     this.partyT -= dt;

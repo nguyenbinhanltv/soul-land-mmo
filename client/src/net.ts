@@ -43,6 +43,14 @@ export interface BagMsg { slots: number; honTe: number; cd: number; items: BagIt
  */
 export interface QuestMsg extends QuestProgress { status: QuestStatus; ev?: "accept" | "ready" | "reward" | "finish"; done?: string; }
 /**
+ * Tin nhắn riêng "daily": khảo hạch hằng ngày của Phất Lan Đức ngày `day` (vnDay), mỗi bài một chuỗi `daily:<yyyymmdd>:<i>` (nội dung
+ * suy từ mã bằng questChain); `ev` + `i` = bài vừa nhận / vừa đủ / vừa trả, hoặc vừa sang ngày mới (`reset`); `route`: bản đồ đích ->
+ * bản đồ kề nên đi tới trước từ bản đồ đang đứng (chỉ đường trên bản đồ nhỏ).
+ */
+export interface DailyMsg {
+  day: string; list: (QuestProgress & { status: QuestStatus })[]; ev?: "accept" | "ready" | "reward" | "reset"; i: number; route: Record<string, string>;
+}
+/**
  * Tin nhắn riêng "resonance" (cộng minh, bước 8.2): tiến độ `prog` và số mốc đã đạt `lv` từng trụ cột (thứ tự RESONANCE), tổng %
  * đang cộng cho mọi võ hồn. `ev`: mốc vừa đạt (`up`) hoặc vừa mất (tháo đồ), chỉ có khi đổi.
  */

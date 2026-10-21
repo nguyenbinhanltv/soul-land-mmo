@@ -3176,7 +3176,7 @@ export const NPCS: NpcDef[] = [
     looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 0, skin: 0 },
     lines: [
       "Sử Lai Khắc Học Viện chỉ nhận quái vật, không nhận người thường! Ta là Phất Lan Đức, viện trưởng ở đây.",
-      "Học viện mới dời về Thiên Đấu Thành, mọi thứ còn đang sắp xếp. Đợi xong, mỗi ngày ta sẽ có bài khảo hạch cho các ngươi (nhiệm vụ hằng ngày, sắp mở).",
+      "Học viện mới dời về Thiên Đấu Thành, nhưng khảo hạch thì không nghỉ ngày nào: mỗi ngày ta ra vài bài, nửa đêm đổi bài mới (nhiệm vụ hằng ngày).",
       "Muốn mạnh lên thì ra Đại Đấu Hồn Trường mà rèn luyện thực chiến, hoặc quay về Tinh Đấu Đại Sâm Lâm săn hồn hoàn hợp vòng.",
     ] },
   { id: "thuong_nhan_thien_dau", name: "Chưởng quỹ", title: "Thương hội Thiên Đấu", role: "shop", col: "#ffb35c",
@@ -3249,8 +3249,15 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
  * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
  * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
  */
-export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map";
-export interface QuestGoal { k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; }
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give";
+/**
+ * Từ nhiệm vụ hằng ngày (DAILY_POOL): `kill` thêm `fit` (chỉ hồn thú hợp cấp, fitBeast); `arena` đánh xong một trận Đại Đấu Hồn
+ * Trường (thắng / thua / hòa, không tính bỏ trận hay đối thủ không vào sân); `give` nộp `n` món mã `item` lúc trả bài (số đếm là số
+ * món đang có trong túi, server tính lại mỗi khi túi đổi); `near`: NPC chỉ đường trên bản đồ nhỏ.
+ */
+export interface QuestGoal {
+  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; item?: string; near?: string;
+}
 /** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
 export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
 /** Một bước (một bài học): `offer` lời giao, `done` lời khi trả nhiệm vụ, `desc` một câu tóm tắt cho khung theo dõi. */
@@ -3266,7 +3273,7 @@ export interface QuestChain { id: string; name: string; giver: string; map: stri
  */
 export interface QuestProgress { chain: string; step: number; accepted: boolean; prog: number[]; }
 /** Sự kiện server báo cho bộ đếm nhiệm vụ (MapRoom.questEvent). */
-export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; }
+export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; }
 /** Mã chuỗi tân thủ (mọi tài khoản, cả tài khoản cũ, bắt đầu ở bước 1 khi chưa có dòng trong bảng `quests`). */
 export const QUEST_STARTER = "tan_thu";
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
@@ -3320,7 +3327,8 @@ export const QUESTS: QuestChain[] = [
     ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
-export const questChain = (id: string) => QUEST_INDEX.get(id);
+/** Chuỗi theo mã: chuỗi cố định trong QUESTS, hoặc bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain). */
+export const questChain = (id: string) => QUEST_INDEX.get(id) ?? dailyChain(id);
 /** Tiến độ khi chưa có dòng trong bảng `quests` (tài khoản mới và cũ): bước 1, chưa nhận. */
 export const questStart = (chain: string): QuestProgress => ({ chain, step: 0, accepted: false, prog: [] });
 /** Đọc tiến độ từ DB / client gửi lên: kẹp bước, số đếm theo mục tiêu của bước; dữ liệu hỏng thì về `questStart`. */
@@ -3343,8 +3351,8 @@ export function questStatus(q: QuestProgress): QuestStatus {
   return s.goals.every((g, i) => (q.prog[i] ?? 0) >= g.n) ? "ready" : "active";
 }
 /** Sự kiện `ev` có tính cho mục tiêu `g` không. */
-export const questGoalHit = (g: QuestGoal, ev: QuestEvent) =>
-  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone);
+export const questGoalHit = (g: QuestGoal, ev: QuestEvent) => g.k !== "give" &&
+  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true);
 /** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
 export const questRewardText = (r: QuestReward) =>
   [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");
@@ -3418,6 +3426,96 @@ export function arenaPairs<T>(list: { id: T; elo: number; wait: number; last?: T
 export const arenaRanked = (n: number) => n <= ARENA.pairDaily;
 /** Một dòng bảng xếp hạng / thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`). */
 export interface ArenaRecord { elo: number; wins: number; losses: number; draws: number; }
+
+// ---------- Nhiệm vụ hằng ngày: khảo hạch Sử Lai Khắc của Phất Lan Đức (mục 5.8 "Nhiệm vụ hằng ngày") ----------
+/**
+ * Khảo hạch hằng ngày: `count` bài mỗi ngày (giờ Việt Nam, đặt lại lúc 00:00 như lượt thưởng boss: vnDay), nhận và trả với NPC
+ * `giver` ở bản đồ `map`. Mỗi bài là một chuỗi một bước trong bảng `quests`, mã `daily:<yyyymmdd>:<i>` (dailyIds); nội dung bài suy
+ * ra từ mã (dailyChain) nên không lưu gì thêm. Bài 0 lấy trong nhóm `hunt`, các bài sau lấy không trùng trong nhóm `misc` của
+ * DAILY_POOL, bốc ổn định theo ngày (mọi người cùng một bộ bài trong ngày). Thưởng mỗi bài: `honTe` đồng của mẫu + `shards` mảnh của
+ * một võ hồn trong ARENA_SHARDS (bốc theo ngày và số thứ tự bài).
+ */
+export const DAILY = { giver: "phat_lan_duc", map: "thien_dau_thanh", count: 3, name: "Khảo hạch Sử Lai Khắc" };
+/** Một mẫu bài khảo hạch: `group` nhóm bốc (`hunt` bài 0, `misc` các bài sau); mục tiêu, lời giao / trả như QuestStep. */
+export interface DailyTemplate {
+  id: string; group: "hunt" | "misc"; name: string; desc: string; goals: QuestGoal[]; honTe: number; shards: number; offer: string[]; done: string[];
+}
+/**
+ * Bảng mẫu khảo hạch (đã chốt; thêm mẫu mới thì thêm vào cuối nhóm: bộ bài của những ngày đã qua đổi theo, không sao vì bài ngày cũ
+ * không còn trả được). Mục tiêu `fit`: hạ hồn thú hợp cấp (fitBeast, không bị giảm kinh nghiệm theo chênh cấp); `give`: nộp vật phẩm
+ * đang có trong túi lúc trả bài (đồ đang gắn hoặc đã cường hóa / nâng cấp không tính); `near`: NPC chỉ đường trên bản đồ nhỏ.
+ * Không có mẫu "hấp thụ hồn hoàn": chỉ làm được khi võ hồn chạm bình cảnh (mỗi 10 cấp), nên thay bằng nộp hồn hoàn.
+ */
+export const DAILY_POOL: DailyTemplate[] = [
+  { id: "san_thu", group: "hunt", name: "Săn hồn thú hợp cấp", desc: "Hạ hồn thú hợp cấp (không bị giảm kinh nghiệm) ở bãi săn hợp cấp của võ hồn ra trận.",
+    goals: [{ k: "kill", fit: true, n: 15, text: "Hạ hồn thú hợp cấp" }], honTe: 80, shards: 3,
+    offer: ["Học viên Sử Lai Khắc mà không ra rừng mỗi ngày thì chỉ là người thường mặc đồng phục.", "Ra bãi săn hợp cấp, hạ mười lăm con hồn thú. Hồn thú yếu hơn mình quá nhiều thì không tính!"],
+    done: ["Được, hôm nay ngươi chưa phụ cái danh quái vật."] },
+  { id: "don_bay", group: "hunt", name: "Dọn bầy hồn thú", desc: "Hạ thật nhiều hồn thú hợp cấp ở bãi săn hợp cấp của võ hồn ra trận.",
+    goals: [{ k: "kill", fit: true, n: 25, text: "Hạ hồn thú hợp cấp" }], honTe: 120, shards: 4,
+    offer: ["Dân quanh thành than hồn thú sinh sôi quá nhanh. Sử Lai Khắc nhận việc này, mà học viện thì cần tiền.", "Hạ hai mươi lăm con hồn thú hợp cấp. Làm xong ta chia cho ngươi một phần, đừng mặc cả."],
+    done: ["Hai mươi lăm con, không thiếu con nào. Phần của ngươi đây, cầm lấy trước khi ta đổi ý."] },
+  { id: "dau_hon", group: "misc", name: "Thực chiến ở Đấu Hồn Trường", desc: "Đánh một trận ở Đại Đấu Hồn Trường (góc đông nam Thiên Đấu Thành), thắng thua đều được.",
+    goals: [{ k: "arena", n: 1, near: "dau_hon_truong", text: "Đánh một trận đấu hồn" }], honTe: 80, shards: 3,
+    offer: ["Năm xưa học viên của ta lăn lộn ở đấu hồn trường mà trưởng thành. Đánh với hồn thú khác hẳn đánh với hồn sư.", "Vào Đại Đấu Hồn Trường đánh một trận. Thắng hay thua không quan trọng, quan trọng là ngươi dám bước lên sân."],
+    done: ["Thế nào, đối thủ biết suy nghĩ thì khó chơi hơn hồn thú nhiều phải không?"] },
+  { id: "phoi_hop", group: "misc", name: "Phối hợp đội hình", desc: "Đang giao chiến thì đổi võ hồn (phím 1–4) nhiều lần và tung chiêu tiên cơ.",
+    goals: [{ k: "switch", n: 5, text: "Đổi võ hồn khi đang giao chiến" }, { k: "tienco", n: 2, text: "Tung chiêu tiên cơ" }], honTe: 70, shards: 3,
+    offer: ["Bảy quái vật Sử Lai Khắc mạnh vì biết phối hợp, không phải vì từng đứa mạnh.", "Ra trận đổi tay năm lần, tung tiên cơ hai lần. Để ta xem đội võ hồn của ngươi ăn ý tới đâu."],
+    done: ["Không tệ. Đổi tay mà không lúng túng, đó mới là đội hình."] },
+  { id: "nop_hon_hach", group: "misc", name: "Hồn hạch cho học viện", desc: "Mang hai hồn hạch chưa nâng cấp (đang để trong túi) tới nộp cho Phất Lan Đức.",
+    goals: [{ k: "give", item: CORE_ITEM, n: 2, text: "Nộp hồn hạch" }], honTe: 90, shards: 3,
+    offer: ["Phòng thí nghiệm của học viện thiếu hồn hạch. Đừng nhìn ta như thế, đây là việc nghiêm túc!", "Mang cho ta hai hồn hạch, sao nào cũng được, miễn chưa nâng cấp và không đang gắn trên võ hồn."],
+    done: ["Hai hồn hạch, tốt. Phần thưởng của ngươi đây, học viện không để học viên chịu thiệt đâu… lần này."] },
+  { id: "nop_hon_hoan", group: "misc", name: "Hồn hoàn cho học viện", desc: "Mang một hồn hoàn (đang để trong túi) tới nộp cho Phất Lan Đức.",
+    goals: [{ k: "give", item: RING_ITEM, n: 1, text: "Nộp hồn hoàn" }], honTe: 70, shards: 3,
+    offer: ["Đại Sư cần hồn hoàn để nghiên cứu. Hồn hoàn không hấp thụ được thì cũng đừng để mục trong túi.", "Mang cho ta một hồn hoàn, niên hạn bao nhiêu cũng được."],
+    done: ["Hồn hoàn này Đại Sư sẽ dùng tới. Cầm lấy phần thưởng."] },
+  { id: "tiep_te", group: "misc", name: "Tiếp tế đan dược", desc: "Mua Hồi Huyết Đan ở Thương hội Thiên Đấu rồi nộp cho Phất Lan Đức.",
+    goals: [{ k: "give", item: "hoi_huyet_dan", n: 5, near: "thuong_nhan_thien_dau", text: "Nộp Hồi Huyết Đan" }], honTe: 120, shards: 2,
+    offer: ["Kho đan dược của học viện lại cạn. Thương hội Thiên Đấu ngay trong thành, ngươi chạy một chuyến.", "Mang cho ta năm viên Hồi Huyết Đan. Tiền mua ta trả lại, còn dư một chút coi như công chạy việc."],
+    done: ["Đủ năm viên. Đây, tiền của ngươi, thêm chút công. Ta đâu có keo kiệt như người ta đồn."] },
+];
+const DAILY_RE = /^daily:(\d{8}):(\d+)$/;
+/** "2026-10-21" (vnDay) -> "20261021": phần ngày trong mã chuỗi khảo hạch. */
+export const dailyKey = (day: string) => day.replace(/-/g, "");
+/** Mã chuỗi của DAILY.count bài khảo hạch ngày `day` (vnDay): "daily:20261021:0"… */
+export const dailyIds = (day: string) => Array.from({ length: DAILY.count }, (_, i) => `daily:${dailyKey(day)}:${i}`);
+/** Mã chuỗi là bài khảo hạch hằng ngày (của ngày nào cũng được). */
+export const isDaily = (chain: string) => DAILY_RE.test(chain);
+/** Số ngẫu nhiên ổn định (mulberry32) theo `seed`: cùng ngày thì cùng bộ bài. */
+function seeded(seed: number) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+/** Bộ bài khảo hạch của ngày `key` (yyyymmdd): mẫu và võ hồn của mảnh thưởng từng bài. */
+export function dailyPicks(key: string): { tpl: DailyTemplate; shard: string }[] {
+  const rnd = seeded(Number(key) * 2654435761), pick = <T,>(l: T[]) => l[Math.floor(rnd() * l.length)];
+  const hunt = DAILY_POOL.filter((t) => t.group === "hunt"), misc = DAILY_POOL.filter((t) => t.group === "misc");
+  const out = [pick(hunt)];
+  while (out.length < DAILY.count && misc.length) out.push(misc.splice(Math.floor(rnd() * misc.length), 1)[0]);
+  return out.map((tpl) => ({ tpl, shard: pick(ARENA_SHARDS) }));
+}
+const dailyCache = new Map<string, QuestChain>();
+/** Chuỗi một bước của bài khảo hạch mã `id` (dailyIds); mã sai thì undefined. */
+function dailyChain(id: string): QuestChain | undefined {
+  const hit = dailyCache.get(id); if (hit) return hit;
+  const m = DAILY_RE.exec(id), i = m ? Number(m[2]) : -1, p = m && i < DAILY.count ? dailyPicks(m[1])[i] : undefined;
+  if (!m || !p) return undefined;
+  const t = p.tpl, c: QuestChain = { id, name: DAILY.name, giver: DAILY.giver, map: DAILY.map, finale: "Bài hôm nay xong rồi. Mai quay lại, ta có bài mới.",
+    steps: [{ id: t.id, name: t.name, desc: t.desc, goals: t.goals, offer: t.offer, done: t.done,
+      reward: { honTe: t.honTe, items: [{ code: shardCode(p.shard), qty: t.shards }] } }] };
+  if (dailyCache.size > 64) dailyCache.clear();
+  dailyCache.set(id, c);
+  return c;
+}
+/** Hồn thú `years` năm hợp cấp với võ hồn cấp `level`: hạ nó không bị giảm kinh nghiệm theo chênh cấp (xpLevelScale = 1). */
+export const fitBeast = (level: number, years: number) => xpLevelScale(level, beastLevel(years)) >= 1;
+/** Bản đồ săn hợp cấp với cấp `level` (cấp đề xuất của bản đồ chứa nó): chỉ đường cho mục tiêu `fit`. */
+export const fitMaps = (level: number) => {
+  const lv = Math.max(1, Math.min(MAX_LEVEL, level));
+  return Object.values(MAPS).filter((m) => m.kind === "hunt" && m.level && lv >= m.level[0] && lv <= m.level[1]).map((m) => m.id);
+};
 // ---------- Cộng minh (mục 5.10, bước 8.2; mốc theo thiết kế, giá trị cộng đã chốt) ----------
 /** Chỉ số cộng minh cộng cho **mọi** võ hồn: % phần gốc (calcStats, cộng chung với dòng % của hồn hạch). */
 export type ResStat = "hp" | "mp" | "atk";
