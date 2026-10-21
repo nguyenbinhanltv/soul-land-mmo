@@ -331,6 +331,8 @@ for (const id of ids) {
   execFileSync(process.execPath, [PACK_MJS, "--kind", "beast", "--size", String(size), "--out", path.join(out, `${id}.png`), work], { stdio: "inherit" });
   const meta = JSON.stringify({ id, size, scale: s.scale, hover: s.hover ?? 0, map: s.map, desat, source: s.file, pack: s.pack }, null, 1);
   writeFileSync(path.join(out, `${id}.json`), `${meta.slice(0, -2)},\n "eyes": ${JSON.stringify(eyePts)}\n}\n`);
+  // Số điểm mắt mỗi hướng để soát (loài không khai `eyes` phải là 0).
+  console.log(`[lpc-beast] ${id}: điểm mắt ${ISO_DIRS.map((d) => `${d} ${eyePts[d].length}`).join(", ")}`);
   used.push({ id, pack: s.pack, file: s.file });
 }
 

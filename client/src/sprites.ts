@@ -4,7 +4,8 @@
 // - ánh xạ khung lớp thân sang lớp áo, tóc, phụ thể;
 // - hoán màu dải 4 xám chuẩn, key `{gốc}@{chỉ số màu}`;
 // - hồn sư theo bộ giới × kiểu tóc: `hs_{lớp}_{giới}_{kiểu tóc}` (honsuKey). Từ 10.4 bộ có `"iso": true` trong manifest
-//   là sheet isometric 64×64, 24 × 6, 8 hướng (vẽ 5, lật 3); bộ chưa có vẫn là sheet 32×32 cũ (4 hướng) hoặc vẽ bằng code.
+//   là sheet isometric 64×64, 24 × 6, 8 hướng (vẽ 5, lật 3); bộ chưa có vẫn là sheet 32×32 cũ (4 hướng) hoặc vẽ bằng code;
+// - hồn thú `beast_{loài}` có `"iso": true` là sheet isometric khung vuông theo bậc, 20 × 5, 8 hướng (vẽ 5, lật 3).
 // Key nào chưa có ảnh thì makeTextures() trong textures.ts vẽ bằng code như cũ.
 import Phaser from "phaser";
 import { TELE_WARN } from "../../shared/data.ts";
@@ -103,17 +104,74 @@ export const BEAST_ANIMS = {
 /** Gốc hồn thú cách mép dưới khung 4 pixel (cùng gốc với sprite vẽ bằng code; normalize --anchor 16,28 cho khung 32). */
 export const BEAST_FOOT = 4;
 
+/** Hồn thú isometric (mục 5.11): khung vuông theo bậc, sheet 20 cột × 5 hàng (ISO_DIRS), gốc giữa đáy cách mép dưới ISO_BEAST_FOOT. */
+export const ISO_BEAST_COLS = 20, ISO_BEAST_FOOT = 8;
+export const ISO_BEAST_ANIMS = {
+  idle:   { col: 0,  ms: [220, 220, 220, 220], loop: true },
+  walk:   { col: 4,  ms: [100, 100, 100, 100, 100, 100], loop: true },
+  // Khung đầu là tư thế báo trước như BEAST_ANIMS: giữ khi `BeastState.cast` bật rồi chạy 3 khung ra đòn.
+  attack: { col: 10, ms: [TELE_WARN * 1000, 70, 90, 120], loop: false },
+  hurt:   { col: 14, ms: [80, 120], loop: false },
+  die:    { col: 16, ms: [120, 120, 120, 120], loop: false },
+} satisfies Record<string, AnimDef>;
+
+/** Sheet hồn thú theo bố cục isometric (20 × 5 khung vuông, rộng gấp 4 cao) hay sheet một hàng cũ. */
+export function isIsoBeast(scene: Phaser.Scene, key: string) {
+  if (!scene.textures.exists(key)) return false;
+  const src = scene.textures.get(key).source[0];
+  return src.width * ISO_DIRS.length === ISO_BEAST_COLS * src.height;
+}
+
+/** Sheet hồn thú là hình tạm ghép từ thú LPC (manifest `"lpc": true`): không dùng cho thú vương / boss (mục 5.11). */
+const LPC_BEASTS = new Set<string>();
+/** Loài dùng để chọn sheet `beast_{loài}` cho hồn thú bậc `rank`: thú vương / boss bỏ hình tạm LPC, vẽ bằng code theo bậc. */
+export const beastSheetSpecies = (rank: number, species: string | undefined) =>
+  species && rank >= 2 && LPC_BEASTS.has(`beast_${species}`) ? undefined : species;
+
+/**
+ * Đo thân thật trong khung idle đầu của sheet hồn thú isometric (pixel ảnh): mép trên cách đỉnh khung `top`, bề ngang `w` (lớn nhất
+ * qua 5 hướng). Khung vuông theo bậc rộng hơn thân nhiều (thỏ trong khung 64 cao khoảng 20) nên thanh máu, bóng, lỗ khoét theo thân.
+ */
+function measureIsoBeast(scene: Phaser.Scene, key: string) {
+  const tex = scene.textures.get(key), img = tex.getSourceImage() as HTMLImageElement, f = img.height / ISO_DIRS.length;
+  const c = document.createElement("canvas"); c.width = f; c.height = img.height;
+  const ctx = c.getContext("2d", { willReadFrequently: true }); if (!ctx) return;
+  ctx.drawImage(img, 0, 0, f, img.height, 0, 0, f, img.height); // cột 0: khung idle đầu của 5 hướng
+  const a = ctx.getImageData(0, 0, f, img.height).data;
+  let top = f, w = 0;
+  for (let r = 0; r < ISO_DIRS.length; r++) {
+    let x0 = f, x1 = -1;
+    for (let y = 0; y < f; y++) for (let x = 0; x < f; x++) if (a[((r * f + y) * f + x) * 4 + 3]) { top = Math.min(top, y); x0 = Math.min(x0, x); x1 = Math.max(x1, x); }
+    w = Math.max(w, x1 - x0 + 1);
+  }
+  (tex.customData as { body?: BeastBodyPx }).body = { top: top < f ? top : 0, w: w || f };
+}
+
+interface BeastBodyPx { top: number; w: number }
+/** Thân của sprite hồn thú trên màn hình (sheet isometric đã đo; sheet khác lấy cả khung): mép trên (y), bề ngang, chiều cao. */
+export function beastBody(s: Phaser.GameObjects.Sprite): BeastBodyPx & { h: number } {
+  const b = (s.texture.customData as { body?: BeastBodyPx }).body;
+  if (!b) return { top: s.y - s.displayHeight * s.originY, w: s.displayWidth, h: s.displayHeight };
+  const h = (s.frame.height * s.originY - b.top) * s.scaleY;
+  return { top: s.y - h, w: b.w * s.scaleX, h };
+}
+
 /**
  * Hồn thú theo loài (M4): nếu loài đã có sheet `beast_{loài}` thì đặt sheet đó, gốc giữa đáy và chạy `idle`/`walk`.
- * Trả false khi loài chưa có ảnh thật để nơi gọi vẽ `b{tier}_…` bằng code như cũ. Lật ngang do nơi gọi đặt.
+ * Trả false khi loài chưa có ảnh thật để nơi gọi vẽ `b{tier}_…` bằng code như cũ. Sheet isometric (trả "iso") chọn hàng theo hướng
+ * `face` và tự lật sw / w / nw; sheet một hàng cũ (trả "flat") để nơi gọi lật ngang.
  */
-export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean, cast = false): boolean {
-  const key = `beast_${species}`, anim = `${key}:${moving ? "walk" : "idle"}`, atk = `${key}:attack`;
+export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean, cast = false,
+  face: Dir8 = "se"): false | "iso" | "flat" {
+  const key = `beast_${species}`, iso = !!species && isIsoBeast(s.scene, key), f = iso ? ISO_FLIP[face] : undefined;
+  const dir = iso ? `_${f ?? face}` : "", anim = `${key}:${moving ? "walk" : "idle"}${dir}`, atk = `${key}:attack${dir}`;
   if (!species || !s.scene.anims.exists(anim)) return false;
   if (s.texture.key !== key) {
     s.setTexture(key, 0);
-    s.setOrigin(0.5, (s.frame.height - BEAST_FOOT) / s.frame.height);
+    const foot = iso ? ISO_BEAST_FOOT : BEAST_FOOT;
+    s.setOrigin(0.5, (s.frame.height - foot) / s.frame.height);
   }
+  if (iso && s.flipX !== !!f) s.setFlipX(!!f);
   // Báo trước chiêu (3.5): giữ khung đầu của `attack`; tung xong thì chạy nốt 2 khung ra đòn rồi mới về idle / walk.
   const cur = s.anims.currentAnim?.key === atk;
   if (cast) { if (!cur || !(s.anims.isPaused || s.anims.isPlaying)) { s.play(atk); s.anims.pause(); } }
@@ -121,7 +179,7 @@ export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | 
   else if (!(cur && s.anims.isPlaying)) s.play(anim, true);
   // Chưa có dấu "!" riêng cho trạng thái hung hăng (5.11): tạm ửng đỏ nhẹ để vẫn nhận ra.
   if (aggro) s.setTint(0xffb4b4); else s.clearTint();
-  return true;
+  return iso ? "iso" : "flat";
 }
 
 export type HsLayer = "body" | "outfit" | "hair";
@@ -135,7 +193,7 @@ export const honsuKey = (layer: HsLayer, sex: "m" | "f", hair: number) => `hs_${
 export const GRAY_RAMP = ["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca"] as const;
 
 interface SheetSpec { url: string; frame?: readonly [number, number] }
-type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boolean };
+type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boolean; lpc?: boolean };
 
 /** Đường dẫn ảnh và kích thước khung suy ra từ key (bảng thư mục ở mục 5.11). */
 function sheetSpec(key: string, frame?: readonly [number, number], iso = false): SheetSpec | null {
@@ -171,10 +229,13 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
     for (const e of data?.sprites ?? []) {
       // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm), từ 10.5 phụ thể 96×96 (võ hồn
       // chưa có ảnh mới vẫn dùng bộ 48×48 cũ hoặc vẽ bằng code; vohonFrame ánh xạ khung giữa hai bố cục); vật đứng do isoMap.ts tải
-      // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); chân dung, NPC, vật phẩm, hồn thú chờ bước dùng chúng (10.6, 10.8).
+      // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); hồn thú `beast_{loài}` khung vuông theo bậc, sheet 20 × 5
+      // (loài chưa có vẫn sheet một hàng cũ hoặc vẽ bằng code; `"lpc": true` là hình tạm từ thú LPC, beastSheetSpecies); chân dung,
+      // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts).
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
-      if (iso && !/^(hs|vh)_/.test(key)) continue;
+      if (iso && !/^(hs|vh|beast)_/.test(key)) continue;
+      if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
@@ -222,9 +283,14 @@ export function createHonsuAnims(scene: Phaser.Scene, sheet: string) {
   }
 }
 
-/** Tạo animation `{sheet}:{animation}` cho sheet hồn thú (một hàng, hướng phải). */
+/** Tạo animation cho sheet hồn thú: isometric `{sheet}:{animation}_{hướng}` (5 hàng s, se, e, ne, n), sheet một hàng cũ `{sheet}:{animation}`. */
 export function createBeastAnims(scene: Phaser.Scene, sheet: string) {
   if (!scene.textures.exists(sheet)) return;
+  if (sheet.startsWith("beast_") && isIsoBeast(scene, sheet)) {
+    for (const [name, a] of Object.entries(ISO_BEAST_ANIMS)) ISO_DIRS.forEach((d, row) => makeAnim(scene, sheet, `${sheet}:${name}_${d}`, row * ISO_BEAST_COLS + a.col, a));
+    measureIsoBeast(scene, sheet);
+    return;
+  }
   for (const [name, a] of Object.entries(BEAST_ANIMS)) makeAnim(scene, sheet, `${sheet}:${name}`, a.col, a);
 }
 
@@ -232,7 +298,7 @@ export function createBeastAnims(scene: Phaser.Scene, sheet: string) {
 export function createSheetAnims(scene: Phaser.Scene) {
   for (const key of scene.textures.getTextureKeys()) {
     if (/^(hs_body_[mf]_\d+|lpc_[a-z0-9_]+)$/.test(key)) createHonsuAnims(scene, key);
-    else if (/^(b\d|beast_[a-z_]+)$/.test(key)) createBeastAnims(scene, key);
+    else if (/^(b\d|beast_[a-z_]+)$/.test(key) && !key.endsWith("_n")) createBeastAnims(scene, key); // `_n`: normal map, không phải sheet
   }
 }
 

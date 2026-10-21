@@ -12,5 +12,6 @@ Repo có nhiều người và nhiều agent cùng làm. Trước khi làm gì:
    - bỏ dở thì gỡ nhãn, bỏ giao, ghi bình luận.
 3. Chỉ làm đúng issue đã nhận. Không đụng nhánh / PR của người khác. Không rebase nhánh đã push, không force push, không commit thẳng lên `main`.
 4. Trước khi xin review: `npm run check`, `npm run build`, bot (RAM; thêm PostgreSQL khi đổi server / SQL), ghi kết quả vào mô tả PR theo mẫu.
+5. Làm liên tục 24/7 (tự nhận việc theo nhịp, làm tiếp sau khi hết quota): theo `docs/lam-viec-lien-tuc.md`.
 
 Giao diện, chú thích, commit, PR viết tiếng Việt, dùng tên gốc Đấu La.

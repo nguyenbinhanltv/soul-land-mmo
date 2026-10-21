@@ -10,7 +10,7 @@ Repo có nhiều người cùng làm, mỗi người có thể có agent AI riê
 | --- | --- |
 | `san-sang` | Sẵn sàng nhận: chưa ai làm, không bị chặn. |
 | `dang-lam` | Đang có người làm (xem assignee và nhãn chủ). |
-| `cho-review` | PR đã mở và đã xin review. |
+| `cho-review` | PR đã tự review đạt (comment `Review: đạt`), chờ orchestrator AO của chủ repo kiểm tra lại và merge. |
 | `chan` | Bị chặn: chờ việc khác, quyết định của chủ repo hoặc tài nguyên. Mô tả issue ghi chờ gì. |
 | `can-pixellab` | Cần lượt PixelLab (thường đi cùng `chan` khi hết lượt). |
 | `giai-doan-10`, `giai-doan-11` | Thuộc giai đoạn Lộ trình. |
@@ -45,6 +45,8 @@ Orchestrator / agent tự động đọc hàng chờ bằng đúng lệnh này, 
    gh pr create --draft --base main --title "<tên việc>" --body "Closes #<N>"
    ```
 6. Việc to (ví dụ "nhận theo từng bản đồ") thì ghi phần mình nhận vào bình luận issue, hoặc tách issue con rồi nhận issue con.
+
+Agent chạy liên tục (cả ban đêm, tự làm tiếp sau khi hết quota): theo luật và cách chạy ở `docs/lam-viec-lien-tuc.md`.
 
 ## Bỏ dở
 
@@ -87,13 +89,15 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
    - PR đổi `server/` hoặc `shared/`: thêm lượt bot với **PostgreSQL** (bắt buộc khi đổi SQL / `db.ts`; server chạy hai lần liên tiếp);
    - đổi giao diện / ảnh: ảnh chụp trong game.
 2. `git merge origin/main` lần cuối, chạy lại `npm run check`.
-3. `gh pr ready <PR>`; trên issue thay `dang-lam` bằng `cho-review`.
-4. **Đóng băng khi đang review:** không push thêm (kể cả merge `main`) trừ khi sửa theo review hoặc được yêu cầu.
+3. **Tự review PR của mình:** chạy reviewer (AO review nếu có, hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận.
+4. `gh pr ready <PR>`; trên issue thay `dang-lam` bằng `cho-review`.
+5. **Đóng băng khi đang review:** không push thêm (kể cả merge `main`) trừ khi sửa theo review hoặc được yêu cầu. Sửa xong thì review lại và cập nhật comment `Review: đạt` với SHA head mới.
 
 ## Merge
 
-- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (và CI đạt, khi đã có CI ở #122).
-- PR của người cộng tác: người đó hoặc chủ repo merge sau khi review đạt.
+- **CI** (`.github/workflows/check.yml`) chạy `npm ci` (server + client, cài đúng lockfile), `npm run check`, `npm run build` trên mọi PR vào `main` và mỗi push vào `main`. CI **chỉ để tham khảo**, chưa là status check bắt buộc trong bảo vệ nhánh `main`. Tên job / status check: `check-build`. CI đỏ thì đọc log: lỗi do PR thì sửa, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
+- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
+- PR của người cộng tác: orchestrator AO của chủ repo kiểm tra lại PR có `cho-review` và comment `Review: đạt` (review độc lập, chạy check / bot nếu cần). Đạt thì orchestrator merge vào `main`; chưa đạt thì comment góp ý trên PR. Người cộng tác **không tự merge**.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
 - Sau khi merge: đánh dấu bước ở `GAME_DESIGN.md` mục 7 (nếu PR chưa làm), xóa nhánh.
 

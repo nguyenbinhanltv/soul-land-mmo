@@ -9,7 +9,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
@@ -57,10 +57,10 @@ interface Rect { x: number; y: number; w: number; h: number; }
 interface Zone extends Rect { name: string; hint: string; years?: [number, number] | null; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
-/** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo khung, sprite vẽ bằng code theo bậc
- *  (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
+/** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo thân (beastBody: sheet isometric
+ *  theo thân đã đo, sheet một hàng theo khung), sprite vẽ bằng code theo bậc (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
 const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
-  s.texture.key.startsWith("beast_") ? s.y - s.displayHeight * s.originY : s.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1) * SPR;
+  s.texture.key.startsWith("beast_") ? beastBody(s).top : s.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1) * SPR;
 /** Hệ số phóng sprite theo bậc hồn thú: tinh anh ELITE.scale (BĐ4), thú vương KING.scale (khoảng 96×96, BĐ5), boss thế giới WORLD.scale (BĐ6e). */
 const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
@@ -76,6 +76,8 @@ export class GameScene extends Phaser.Scene {
   beasts = new Map<string, Phaser.GameObjects.Sprite>();
   /** Vị trí vẽ (thế giới, nội suy) của từng hồn thú; sprite đặt ở hình chiếu (10.1). */
   bpos = new Map<string, Pt>();
+  /** Hướng nhìn 8 phía của hồn thú (sheet isometric): theo hướng trượt khi đi, theo vùng báo trước khi tung chiêu, đứng yên thì giữ. */
+  bface = new Map<string, Dir8>();
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
   isoMap!: IsoMap;
   /** Vùng cảnh báo chiêu báo trước đang hiện (3.5), theo mã hồn thú: hình đã khóa (từ BĐ4 có thể nhiều vùng), lúc bắt đầu, thời lượng (ms). */
@@ -225,7 +227,8 @@ export class GameScene extends Phaser.Scene {
     }
     makeTextures(this);
     createSheetAnims(this);
-    for (const k of this.textures.getTextureKeys()) if (/^(hs_(body|outfit|hair)_[mf]_\d+|vh_[a-z_]+_[bf])$/.test(k)) attachNormal(this, k); // normal map hồn sư, phụ thể (10.7)
+    // Normal map hồn sư, phụ thể (10.7) và sheet hồn thú isometric.
+    for (const k of this.textures.getTextureKeys()) if (/^(hs_(body|outfit|hair)_[mf]_\d+|vh_[a-z_]+_[bf]|beast_[a-z_]+)$/.test(k) && !k.endsWith("_n")) attachNormal(this, k);
     for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // sprite hồn sư của NPC cần texture / animation ở trên
     if (raw) this.crowd = new Crowd(this, this.mapId, solidGrid(raw), crowdMap);
     for (const p of this.crowd?.people ?? []) this.light.entity(p.spr); // dân thường cũng chịu ánh sáng thực thể (10.7)
@@ -984,6 +987,9 @@ export class GameScene extends Phaser.Scene {
       this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now, ms: (m.t ?? 0.8) * 1000 });
       const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid);
       if (s && b) this.floatText(s.x, beastTop(s, b.tier) - 10, m.name, "#ff6b6b");
+      // Quay về vùng báo trước (mục 5.11): vệt / nón theo hướng chiêu, vòng dưới chân mục tiêu theo hướng tới tâm vòng.
+      const d = b && (m.shape !== "circle" ? dir8(Math.cos(m.ang), Math.sin(m.ang)) : Math.hypot(m.x - b.x, m.y - b.y) > 2 ? dir8(m.x - b.x, m.y - b.y) : null);
+      if (d) this.bface.set(m.bid, d);
     }
     else if (m.k === "teleEnd") this.teles.delete(m.bid); // bị ngắt chiêu (Choáng, Câm lặng, Mê hoặc)
     else if (m.k === "teleHit") this.teleHitFx(m);
@@ -1455,18 +1461,22 @@ export class GameScene extends Phaser.Scene {
         const at = W2S(b.x, b.y);
         s = this.light.entity(this.add.sprite(at.x, at.y, `b${b.tier}_0`).setOrigin(BEAST_ORIGIN.x, BEAST_ORIGIN.y)); this.beasts.set(id, s);
       }
-      const ox = s.x;
+      const ox = s.x, mv8 = b.moving && Math.hypot(b.x - w.x, b.y - w.y) > 0.3 ? dir8(b.x - w.x, b.y - w.y) : null;
+      const face = mv8 ?? this.bface.get(id) ?? dir8(b.face || 1, 0) ?? "se";
+      this.bface.set(id, face);
       w.x += (b.x - w.x) * lerp; w.y += (b.y - w.y) * lerp;
       const at = W2S(w.x, w.y); s.setPosition(at.x, at.y);
       // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
       // Báo trước chiêu (3.5): sheet theo loài giữ khung đầu `attack`; sprite vẽ bằng code thì phồng lên co lại.
-      // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1).
-      const k = rankScale(b.rank);
-      if (!syncBeastSprite(s, beastBase(b.rank, b.species)?.id, b.moving, b.aggro, b.cast)) {
+      // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
+      // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
+      const k = rankScale(b.rank), spr = syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
+      if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
       } else {
-        if (s.scale !== k * SPR) s.setScale(k * SPR);
+        const ks = k * (spr === "iso" ? 1 : SPR);
+        if (s.scale !== ks) s.setScale(ks);
         // 11.1: đuổi nhanh hơn lang thang nhiều lần nên bước chân cũng nhanh theo (khung báo trước / ra đòn giữ nhịp vẽ).
         s.anims.timeScale = b.moving && !b.cast ? (b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander) : 1;
       }
@@ -1476,9 +1486,11 @@ export class GameScene extends Phaser.Scene {
       if (b.rank && s.getData("bscale") !== k) s.setData("bscale", k);
       // Boss thế giới đang lặn (Du Thủy, BĐ6e): chỉ còn bóng mờ dưới nước.
       s.setAlpha(b.dive ? 0.2 : 1);
-      // Sprite hồn thú chỉ vẽ hướng phải: đang đi thì lật theo hướng trượt trên màn hình, đứng yên thì theo `face` của server.
+      // Sprite một hàng chỉ vẽ hướng phải: đang đi thì lật theo hướng trượt trên màn hình, đứng yên thì theo `face` của server
+      // (sheet isometric tự chọn hướng và lật trong syncBeastSprite).
       const dsx = s.x - ox;
-      s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0).setDepth(s.y);
+      if (spr !== "iso") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
+      s.setDepth(s.y);
       if (b.rank) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
@@ -1492,7 +1504,7 @@ export class GameScene extends Phaser.Scene {
         lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984).setScale(this.txtK);
       }
     });
-    for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); this.bpos.delete(id); }
+    for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); this.bpos.delete(id); this.bface.delete(id); }
     for (const [id, lb] of this.eliteLabels) if (!seenB.has(id)) { lb.destroy(); this.eliteLabels.delete(id); }
 
     // hồn hoàn rơi
@@ -1556,7 +1568,7 @@ export class GameScene extends Phaser.Scene {
     this.paintWpCasts(g, time);
     // Bóng đổ elip dưới chân hồn thú (hồn sư có sẵn bóng trong container), nằm trên mặt đất cùng lớp vùng cảnh báo.
     for (const [id, s] of this.beasts) if (st.beasts.get(id) && !st.beasts.get(id).dive) {
-      const w = Math.max(12 * SPR, s.displayWidth * 0.6);
+      const w = Math.max(12 * SPR, beastBody(s).w * 0.6);
       this.teleG.fillStyle(0x1a1020, 0.35).fillEllipse(s.x, s.y, w, w / 2);
     }
     // Điểm đang đi tới (bấm để đi): vòng nhỏ nhấp nháy trên mặt đất.
@@ -1566,7 +1578,7 @@ export class GameScene extends Phaser.Scene {
     const mv = this.players.get(this.me), view = this.cameras.main.worldView, focus: Focus[] = mv ? [{ x: mv.root.x, y: mv.root.y }] : [];
     // Chỉ hồn thú gần (trong tầm giao chiến trên màn hình), tối đa 6 con: mỗi vật bị khoét lỗ tốn thêm lần vẽ mặt nạ.
     for (const [id, s] of this.beasts) if (view.contains(s.x, s.y) && mv && Math.hypot(s.x - mv.root.x, s.y - mv.root.y) < 260 && !st.beasts.get(id)?.dive && focus.length < 7)
-      focus.push({ x: s.x, y: s.y, w: Math.max(28, s.displayWidth + 12), h: Math.max(28, s.displayHeight + 12) });
+      { const bb = beastBody(s); focus.push({ x: s.x, y: s.y, w: Math.max(28, bb.w + 12), h: Math.max(28, bb.h + 12) }); }
     this.isoMap.update(this.cameras.main, focus);
 
     // Ánh sáng (10.7): nguồn sáng hồn lực trong khung này, cộng vật phát sáng IsoMap báo; rồi thời tiết, hạt bay.
@@ -1612,7 +1624,7 @@ export class GameScene extends Phaser.Scene {
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id); if (!s || b.dive) return;
       const top = beastTop(s, b.tier), dir = s.flipX ? -1 : 1, k = rankScale(b.rank);
-      out.push({ x: s.x + dir * s.displayWidth * 0.22, y: top + (s.y - top) * 0.3, col: hex(TIERS[b.tier].glow), r: (18 + 5 * b.tier) * Math.sqrt(k), i: 0.55 + 0.05 * b.tier, p: PRIO.beast });
+      out.push({ x: s.x + dir * beastBody(s).w * 0.22, y: top + (s.y - top) * 0.3, col: hex(TIERS[b.tier].glow), r: (18 + 5 * b.tier) * Math.sqrt(k), i: 0.55 + 0.05 * b.tier, p: PRIO.beast });
     });
     // Truyền tống trận đã mở (11.2): ánh lam ngọc yếu, nhịp chậm, như vật phát sáng.
     for (const w of this.waypoints) if (this.wpOpen.has(w.key)) {
