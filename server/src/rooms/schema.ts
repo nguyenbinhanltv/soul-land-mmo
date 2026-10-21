@@ -103,6 +103,24 @@ export class DropState extends Schema {
   @type("float32") ttl: number = 0;
 }
 
+/**
+ * Vùng lưu lại trên mặt đất (#161, mục 5.3: vũng độc, sương độc) do chiêu hồn thú có `ground` để lại. Hình như vùng báo trước (`Tele`):
+ * `shape` là chỉ số trong TELE_SHAPES, `kind` chỉ số trong GROUND_KINDS (shared/data.ts). `ttl` giây còn lại, `secs` tổng thời gian
+ * (client mờ dần lúc sắp hết). Luật (nhịp gây trạng thái, hồn thú gây ra) chỉ server biết (`ground.ts`).
+ */
+export class GroundState extends Schema {
+  @type("uint8") kind: number = 0;
+  @type("uint8") shape: number = 0;
+  @type("float32") x: number = 0;
+  @type("float32") y: number = 0;
+  @type("float32") ang: number = 0;
+  @type("uint16") r: number = 0;
+  @type("uint16") w: number = 0;
+  @type("uint16") arc: number = 0;
+  @type("float32") ttl: number = 0;
+  @type("float32") secs: number = 0;
+}
+
 export class MapState extends Schema {
   @type("string") mapId: string = "";  // mã bản đồ trong MAPS; client tải shared/assets/<mapId>.json
   @type("uint16") channel = 0;          // số kênh của phòng trong bản đồ (1, 2, 3…; mục 6 "Nhiều kênh")
@@ -113,6 +131,8 @@ export class MapState extends Schema {
   @view() @type({ map: DropState }) drops = new MapSchema<DropState>();
   @type("uint16") online = 0;
   @type("string") mapFile: string = ""; // 11.3: tên file Tiled khác `<mapId>` (bản dựng bằng tools/maps `<mapId>.v2`, mặc định trừ khi MAP_V1); rỗng = `<mapId>`
+  // Từ #161: vùng lưu lại trên mặt đất, cũng chỉ đồng bộ cho client ở gần (interest.ts, theo khoảng cách tới gốc vùng trừ `r`).
+  @view() @type({ map: GroundState }) grounds = new MapSchema<GroundState>();
 }
 
 /**

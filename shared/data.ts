@@ -732,6 +732,8 @@ export const CLICK_PATH = { maxTiles: 40, maxNodes: 8000 };
 // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5, mọi số đã chốt) ----------
 /** Hình vùng: vệt (đường thẳng dài `r`, rộng `w`), nón (quạt bán kính `r`, góc `arc` độ), vòng (tròn bán kính `r`). */
 export type TeleShape = "line" | "cone" | "circle";
+/** Hình vùng theo chỉ số (đồng bộ ở `GroundState.shape`, #161); thêm hình mới vào cuối. */
+export const TELE_SHAPES: readonly TeleShape[] = ["line", "cone", "circle"];
 /**
  * Một chiêu báo trước. Hồn thú hiện vùng cảnh báo `warn` giây (đứng yên, không đánh thường), hết giờ mới tính trúng theo vị trí
  * THẬT của người chơi lúc đó: chạy ra khỏi vùng là né được.
@@ -759,6 +761,8 @@ export type TeleShape = "line" | "cone" | "circle";
  *   nhất") thay cho mục tiêu đang đuổi; chưa có người tham gia thì nhắm mục tiêu đang đuổi.
  * Từ BĐ6e (boss thế giới):
  * - `floor`: chiêu toàn sàn: vùng là cả sàn đấu (object `boss`), chỉ trúng người đứng trong sàn; client vẽ thành một dải phủ sàn.
+ * Từ #161:
+ * - `ground`: tung xong (tính trúng như mọi chiêu) để lại vùng lưu lại trên mặt đất đúng hình các vùng báo trước (GroundDef).
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -771,7 +775,28 @@ export interface BeastSkillDef {
   drain?: number;
   weak?: boolean;
   floor?: boolean;
+  ground?: GroundDef;
 }
+/**
+ * Vùng lưu lại trên mặt đất (#161, mục 5.3; vũng độc, sương độc; #173, #174 dùng lại): chiêu có `ground` tung xong thì để lại vùng đúng
+ * hình các vùng báo trước của lần tung đó, tồn tại `secs` giây. Mỗi `every` giây (mặc định GROUND_TICK; nhịp đầu ngay lúc tung) hồn sư
+ * đứng trong vùng (teleHits) bị gây `status`; ra khỏi vùng thì thôi nhận. Không gây cho người đã gục, đang đi cổng, đứng trong vùng an
+ * toàn. Vùng mất khi hết giờ hoặc khi hồn thú gây ra bị hạ / rời bản đồ. `kind`: kiểu vùng (GROUND_KINDS: tên, màu client vẽ; không
+ * dùng đỏ vì đỏ dành cho vùng báo trước).
+ */
+export type GroundKind = "pool" | "mist";
+/** Kiểu vùng lưu lại; chỉ số trong mảng đồng bộ ở `GroundState.kind`, thêm kiểu mới vào cuối. */
+export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
+  { id: "pool", name: "Vũng độc", col: "#4fb83a" },
+  { id: "mist", name: "Sương độc", col: "#9ee0a0" },
+];
+export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; }
+/** Nhịp gây trạng thái mặc định của vùng lưu lại (giây). */
+export const GROUND_TICK = 1;
+/** Tối đa vùng lưu lại cùng lúc trong một phòng (chống phình state); vượt thì bỏ vùng cũ nhất. */
+export const GROUND_MAX = 48;
+/** Mỗi nhịp vũng / sương độc gây Trúng độc 1 tầng, giữ ngần này giây (đứng lâu thì cộng tầng tới STATUS.poison.max). */
+const POISON_GROUND: StatusApply[] = [{ s: "poison", n: 1, secs: 3 }];
 /**
  * "Đóng băng" của hồn thú băng lên hồn sư: trạng thái Đóng băng (#116; trước đó là Choáng), thời gian ghi ở từng chiêu. "Mê hoặc" lên
  * hồn sư (Thực Nhân Hoa, Ỷ La Hoa Yêu, Tuyết Vĩ Yêu Hồ, Lục Vĩ Băng Hồ, Quỷ Diện Hải Yêu…): Mê hoặc `CHARM_P` (#116; trước đó là Choáng
@@ -814,8 +839,8 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   // Nội địa: Rừng cổ thụ, Đầm sương độc, Lôi Cốc, Hắc Ám Lâm.
   nhan_dien_ma_chu: [bs("Phun Tơ", "line", 110, { w: 14, dmg: 0.9, status: [{ s: "root", secs: 1.5 }] })],
   u_minh_lang:  [bs("Ảnh Vồ", "line", 95, { w: 14, dmg: 1.5, dash: true })],
-  // "Để lại vũng độc" của Thất Tinh Độc Thiềm chưa làm: Trúng độc 3 tầng thay cho vũng.
-  that_tinh_doc_thiem: [bs("Phun Độc", "circle", 34, { at: "target", range: 120, dmg: 1, status: [{ s: "poison", n: 3, secs: 5 }] })],
+  // Phun Độc để lại vũng độc (#161): Trúng độc theo nhịp khi đứng trong vũng.
+  that_tinh_doc_thiem: [bs("Phun Độc", "circle", 34, { at: "target", range: 120, dmg: 1, ground: { kind: "pool", secs: 4, status: POISON_GROUND } })],
   xich_lan_mang: [bs("Quấn Siết", "circle", 32, { dmg: 1.2, status: [{ s: "root", secs: 1.5 }] })],
   hac_vu_bien_buc: [bs("Âm Ba", "cone", 64, { arc: 70, dmg: 1, status: [{ s: "silence", secs: 2 }] })],
   lam_loi_te_nguu: [bs("Lôi Xung", "line", 140, { w: 18, dmg: 1.7, dash: true, cd: 9, status: [{ s: "shock" }] })],
@@ -823,13 +848,13 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   am_kim_khung_trao_hung: [bs("Vỗ Đất", "circle", 56, { dmg: 2, status: [{ s: "stun", secs: 0.6 }] })],
   kiem_vi_hat:  [bs("Kiếm Vĩ Đâm", "line", 85, { w: 12, dmg: 1.6, status: [{ s: "armor", n: 2 }] })],
   quy_anh_bao:  [bs("Ảnh Trảm", "cone", 54, { arc: 90, dmg: 1.8 })],
-  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu là Mê hoặc trên hồn sư (CHARM_P, #116); "để lại sương" của
-  // Độc Vụ Thiềm thay bằng Trúng độc 3 tầng (như Thất Tinh Độc Thiềm); Tự Bạo của Hỏa Linh Điệp chỉ nổ, bướm không chết theo.
+  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu là Mê hoặc trên hồn sư (CHARM_P, #116); Sương Độc của
+  // Độc Vụ Thiềm để lại sương độc (#161); Tự Bạo của Hỏa Linh Điệp chỉ nổ, bướm không chết theo.
   thuc_nhan_hoa: [bs("Phấn Mê", "circle", 44, { dmg: 1.2, status: [CHARM_P] })],
   cuc_yeu_hoa_linh: [bs("Phi Hoa", "cone", 60, { arc: 80, dmg: 1.6 })],
   doc_cuc_dang: [bs("Gai Trồi", "line", 100, { w: 14, dmg: 1.7 })],
   bich_lan_xa:  [bs("Phun Độc", "line", 110, { w: 14, dmg: 1.3, status: [{ s: "poison", n: 2, secs: 5 }] })],
-  doc_vu_thiem: [bs("Sương Độc", "circle", 34, { at: "target", range: 120, dmg: 1, status: [{ s: "poison", n: 3, secs: 6 }] })],
+  doc_vu_thiem: [bs("Sương Độc", "circle", 34, { at: "target", range: 120, dmg: 1, ground: { kind: "mist", secs: 5, status: POISON_GROUND } })],
   hac_thuy_mang: [bs("Quật Đuôi", "cone", 56, { arc: 150, dmg: 1.8 })],
   liet_hoa_tich_dich: [bs("Phun Lửa", "cone", 58, { arc: 70, dmg: 1.4, status: [{ s: "burn", n: 2, secs: 4 }] })],
   huyen_bang_thiem: [bs("Băng Khí", "circle", 34, { at: "target", range: 120, dmg: 1.1, status: [{ s: "slow", secs: 3 }] })],
@@ -980,8 +1005,8 @@ export const BOSSES: BossDef[] = [
     // Biến mất rồi hiện ra ở chân mục tiêu: vòng nhỏ báo trước, hồn thú lao tới tâm vòng.
     bs("Ảnh Tập", "circle", 30, { at: "target", range: 130, dmg: 1.8, dash: true })] },
   { id: "kim_boi_that_tinh_thiem", name: "Kim Bối Thất Tinh Thiềm", rank: 1, species: "that_tinh_doc_thiem", aura: "#f2c84b", skills: [
-    // Vũng độc 6 giây chưa làm (như Phun Độc 3.5): Trúng độc 3 tầng 6 giây thay cho vũng.
-    bs("Nổ Túi Độc", "circle", 56, { dmg: 1.2, status: [{ s: "poison", n: 3, secs: 6 }] }),
+    // Vũng độc 6 giây (bảng gốc, #161).
+    bs("Nổ Túi Độc", "circle", 56, { dmg: 1.2, ground: { kind: "pool", secs: 6, status: POISON_GROUND } }),
     bs("Lưỡi Quất", "line", 110, { w: 12, dmg: 1.1, pull: 60 })] },
   { id: "lam_dien_loi_tich", name: "Lam Điện Lôi Tích", rank: 1, species: "lam_loi_te_nguu", aura: "#4ab0ff", skills: [
     bs("Lôi Trụ", "circle", 26, { at: "target", range: 140, count: 3, step: 46, dmg: 1.6, status: [{ s: "shock" }] }),
@@ -1012,7 +1037,8 @@ export const BOSSES: BossDef[] = [
     bs("Đại Phấn Mê", "circle", 56, { dmg: 1.2, status: [{ ...CHARM_P, secs: 1 }] })] },
   { id: "song_dau_bich_lan_xa", name: "Song Đầu Bích Lân Xà", rank: 1, species: "bich_lan_xa", aura: "#3affa0", skills: [
     bs("Song Xà Phun", "line", 110, { w: 14, count: 2, spread: 40, dmg: 1.4, status: [{ s: "poison", n: 2, secs: 5 }] }),
-    bs("Lân Độc Vụ", "circle", 56, { dmg: 1, status: [{ s: "poison", n: 3, secs: 8 }] })] },
+    // Sương độc 8 giây (bảng gốc, #161).
+    bs("Lân Độc Vụ", "circle", 56, { dmg: 1, ground: { kind: "mist", secs: 8, status: POISON_GROUND } })] },
   { id: "bang_hoa_song_sac_mang", name: "Băng Hỏa Song Sắc Mãng", rank: 1, species: "hac_thuy_mang", aura: "#b07aff", skills: [
     bs("Băng Hỏa Giao Thoa", "line", 120, { w: 14, count: 2, spread: 90, dmg: 1.6, status: [{ s: "slow", secs: 2 }, { s: "burn", n: 2, secs: 4 }] }),
     bs("Song Sắc Tức", "cone", 58, { arc: 100, dmg: 1.6, status: [{ s: "slow", secs: 3 }, { s: "burn", n: 2, secs: 4 }] })] },
