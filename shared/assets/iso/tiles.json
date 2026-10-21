@@ -189,6 +189,90 @@
    "c": [16, 19],
    "cBig": [32, 37],
    "edge": 6
+  },
+  "co_rung": {
+   "img": ["ground/co_rung_0.png", "ground/co_rung_1.png"],
+   "big": ["ground/co_rung_0_lon.png", "ground/co_rung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "co_reu": {
+   "img": ["ground/co_reu_0.png", "ground/co_reu_1.png"],
+   "big": ["ground/co_reu_0_lon.png", "ground/co_reu_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "la_rung": {
+   "img": ["ground/la_rung_0.png", "ground/la_rung_1.png"],
+   "big": ["ground/la_rung_0_lon.png", "ground/la_rung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "duong_san": {
+   "img": ["ground/duong_san_0.png", "ground/duong_san_1.png"],
+   "big": ["ground/duong_san_0_lon.png", "ground/duong_san_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "suoi_nong": {
+   "img": ["ground/suoi_nong_0.png", "ground/suoi_nong_1.png"],
+   "big": ["ground/suoi_nong_0_lon.png", "ground/suoi_nong_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 1
+  },
+  "dat_re": {
+   "img": ["ground/dat_re_0.png", "ground/dat_re_1.png"],
+   "big": ["ground/dat_re_0_lon.png", "ground/dat_re_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "reu_toi": {
+   "img": ["ground/reu_toi_0.png", "ground/reu_toi_1.png"],
+   "big": ["ground/reu_toi_0_lon.png", "ground/reu_toi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "reu_dom_sang": {
+   "img": ["ground/reu_dom_sang_0.png", "ground/reu_dom_sang_1.png"],
+   "big": ["ground/reu_dom_sang_0_lon.png", "ground/reu_dom_sang_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "dat_da_rung": {
+   "img": ["ground/dat_da_rung_0.png", "ground/dat_da_rung_1.png"],
+   "big": ["ground/dat_da_rung_0_lon.png", "ground/dat_da_rung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "bun_toi": {
+   "img": ["ground/bun_toi_0.png", "ground/bun_toi_1.png"],
+   "big": ["ground/bun_toi_0_lon.png", "ground/bun_toi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "nuoc_sau_toi": {
+   "img": ["ground/nuoc_sau_toi_0.png", "ground/nuoc_sau_toi_1.png"],
+   "big": ["ground/nuoc_sau_toi_0_lon.png", "ground/nuoc_sau_toi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 1
+  },
+  "dat_duong_xi": {
+   "img": ["ground/dat_duong_xi_0.png", "ground/dat_duong_xi_1.png"],
+   "big": ["ground/dat_duong_xi_0_lon.png", "ground/dat_duong_xi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
   }
  },
  "props": {
@@ -444,7 +528,14 @@
   },
   "tinh_dau_ngoai_vi": {
    "ground": {
-    "3": "dat_la~#c8d0c0"
+    "1": "co_rung",
+    "2": "co_reu",
+    "3": "la_rung",
+    "5": "co_reu",
+    "6": "la_rung",
+    "7": "duong_san",
+    "9": "suoi_nong",
+    "10": "dat_re"
    },
    "props": {
     "19": ["cay_la_rong~#98a8a0", "cay_rung_dem", "thong_cao"]
@@ -452,10 +543,12 @@
   },
   "tinh_dau_noi_dia": {
    "ground": {
-    "3": "dat_la~#9aa8b0",
-    "4": "co~#6a7a88",
-    "7": "dat~#a0a0a8",
-    "9": "nuoc_nong~#90a8c0"
+    "3": "reu_toi",
+    "4": "reu_dom_sang",
+    "7": "dat_da_rung",
+    "8": "bun_toi",
+    "9": "nuoc_sau_toi",
+    "10": "dat_duong_xi"
    },
    "props": {
     "19": ["cay_rung_dem", "cay_la_rong~#7888a0"],
