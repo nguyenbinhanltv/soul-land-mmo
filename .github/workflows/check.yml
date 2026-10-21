@@ -19,7 +19,11 @@ concurrency:
 jobs:
   check-build:
     name: check-build
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -30,9 +34,13 @@ jobs:
           node-version: 22 # khớp Dockerfile (node:22-slim)
           cache: npm
           cache-dependency-path: |
+            package-lock.json
             server/package-lock.json
             client/package-lock.json
-      # Như npm run install:all nhưng cài đúng package-lock.json: lockfile lệch package.json thì báo lỗi.
+      # Cài root trước để các công cụ audio (ffmpeg-static) sẵn sàng cho test/validate.
+      - run: npm ci
       - run: npm ci --prefix server && npm ci --prefix client
+      - run: npm run test:audio
+      - run: npm run audio:validate
       - run: npm run check
       - run: npm run build
