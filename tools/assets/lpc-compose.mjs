@@ -2,6 +2,7 @@
 // Không dùng cho hồn sư người chơi (bộ giới × kiểu tóc vẽ bằng PixelLab, phong cách LPC lệch).
 //   node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <thư mục> --npc truong_thon|thuong_nhan|tho_ren|linh_gac
 //   node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <thư mục> --recipe <công thức.json>
+//   node tools/assets/lpc-compose.mjs --lpc <repo LPC> --game --recipe art/src/lpc/<tên>.json   (đưa vào game, xem bước 7)
 //   tùy chọn: [--hair-col N] [--outfit-col N] [--skin N] [--desat 0…1] [--credits <file.md>]
 //
 // Repo LPC (https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator) tải về NGOÀI repo game;
@@ -35,25 +36,36 @@
 //      giấy phép CC0 / CC-BY / OGA-BY (lớp chỉ có CC-BY-SA / GPL, giấy phép lạ thì dừng). Ghi bảng vào
 //      <out>/CREDITS-LPC.md, hoặc vào mục LPC giữa hai dấu `<!-- lpc:start -->` / `<!-- lpc:end -->` của file `--credits`
 //      (ví dụ art/CREDITS.md khi đưa ảnh vào game; thiếu / thừa dấu thì dừng trước khi ghi).
+//   7. --game (NPC phụ / dân thường vào game, mục 5.11 "NPC phụ và dân thường"): NPC phụ không đổi màu theo người chơi nên
+//      chỉ cần bản đã tô màu. Ghi bản tô màu thành sheet `lpc_<tên>` (shared/assets/sprites/iso/lpc/<tên>.png), sinh normal
+//      map (normal.mjs), thêm key vào manifest.json ("iso": true) và ghi công vào art/CREDITS.md; lớp xám và thư mục làm việc
+//      để ở thư mục tạm (hoặc --out). Màu tóc / áo khi --game: `hairRamp` / `outfitRamp` của công thức (4 màu của
+//      art/palette.gpl, chọn dải trầm như "Đất trầm", "Đá trầm"), không có thì dải HAIR_COLORS / OUTFIT_COLORS giảm bão hòa
+//      theo --desat rồi đưa về màu gần nhất của bảng chung.
 //
 // Công thức (--recipe, tên = tên file; hoặc RECIPES dựng sẵn bên dưới): { "sex": "male"|"female", "hairCol", "outfitCol",
-//   "skin", "layers": [{ "dir": "hair/spiked/adult/", "z": 120, "group": "hair", "variant"?: "white", "keep"?: true,
-//   "ramp"?: [0, 1, 2] | ["#3a2a18", …] }] }. `dir` lấy đúng cột layer_N của sheet_definitions theo thể hình; `z` là zPos
-//   của lớp đó; `ramp` là chỉ số GRAY_RAMP (tóc / áo) hoặc mã màu (lớp thân không phải da, ví dụ giày).
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+//   "skin", "base"?: true, "hairRamp"?: [4 màu], "outfitRamp"?: [4 màu], "layers": [{ "dir": "hair/spiked/adult/", "z": 120,
+//   "group": "hair", "variant"?: "white", "keep"?: true, "ramp"?: [0, 1, 2] | ["#3a2a18", …] }] }. `dir` lấy đúng cột
+//   layer_N của sheet_definitions theo thể hình; `z` là zPos của lớp đó; `ramp` là chỉ số GRAY_RAMP (tóc / áo) hoặc mã màu
+//   (lớp thân không phải da như giày; lớp áo / tóc khi --game: màu cuối cùng, không qua hoán màu). `base`: thêm sẵn thân,
+//   đầu, giày của thể hình (như công thức dựng sẵn).
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, mkdtempSync } from "node:fs";
 import { execFileSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, readPng, encodePng, Img, hex, toHex, readGplNamed, GRAY_RAMP, OUTLINE, HS_LAYERS, ISO_DIRS, ISO_HS_FRAME, ISO_HS_ORIGIN } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, encodePng, Img, hex, toHex, readGplNamed, GRAY_RAMP, OUTLINE, HS_LAYERS, ISO_DIRS, ISO_HS_FRAME, ISO_HS_ORIGIN } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-const lpc = opt("--lpc", process.env.LPC_DIR ?? ""), out = opt("--out", ""), npc = opt("--npc", ""), recipeFile = opt("--recipe", "");
+const flag = (n) => { const i = args.indexOf(n); return i >= 0 && !!args.splice(i, 1); };
+const lpc = opt("--lpc", process.env.LPC_DIR ?? ""), npc = opt("--npc", ""), recipeFile = opt("--recipe", ""), game = flag("--game");
+const outOpt = opt("--out", ""), out = outOpt || (game ? mkdtempSync(path.join(os.tmpdir(), "lpc-")) : "");
 const hairColOpt = opt("--hair-col", ""), outfitColOpt = opt("--outfit-col", ""), skinOpt = opt("--skin", ""), desatOpt = opt("--desat", "");
-const creditsFile = opt("--credits", "");
+const creditsFile = opt("--credits", "") || (game ? path.join(ROOT, "art", "CREDITS.md") : "");
 const fail = (m) => { console.error(m); process.exit(1); };
 if (!lpc || !out || [npc, recipeFile].filter(Boolean).length !== 1)
-  fail("Cách dùng: lpc-compose.mjs --lpc <repo LPC> --out <thư mục> (--npc <tên> | --recipe <file.json>) [--hair-col N] [--outfit-col N] [--skin N] [--desat 0…1] [--credits <file.md>]");
+  fail("Cách dùng: lpc-compose.mjs --lpc <repo LPC> (--out <thư mục> | --game) (--npc <tên> | --recipe <file.json>) [--hair-col N] [--outfit-col N] [--skin N] [--desat 0…1] [--credits <file.md>]");
 if (args.length) fail(`tham số lạ: ${args.join(" ")}`);
 const SHEETS = path.join(lpc, "spritesheets");
 if (!existsSync(SHEETS) || !existsSync(path.join(lpc, "CREDITS.csv"))) fail(`--lpc ${lpc}: không thấy spritesheets/ và CREDITS.csv`);
@@ -68,7 +80,7 @@ const LPC_DIR_ROW = { s: LPC_ROW.down, se: LPC_ROW.right, e: LPC_ROW.right, ne: 
 const LPC_FRAMES = {
   idle: { file: "walk", frames: [0] }, // 3 khung thở còn lại do pack --breathe
   walk: { file: "walk", frames: [1, 2, 4, 5, 7, 8] },
-  attack: { file: "slash", frames: [0, 2, 3, 5] },
+  attack: { file: "slash", frames: [1, 2, 3, 5] }, // khung 0 của slash trùng khung đứng ở vài hướng
   cast: { file: "spellcast", frames: [1, 3, 5] },
   hurt: { file: "hurt", frames: [1, 2], only: "s", row: 0 },
   die: { file: "hurt", frames: [2, 3, 4, 5], only: "s", row: 0 },
@@ -138,10 +150,24 @@ const RECIPES = {
     { dir: "feet/boots/basic/male/", z: 25, group: "body" }] },
 };
 const name = npc || path.basename(recipeFile, ".json");
+if (!/^[a-z][a-z0-9_]*$/.test(name)) fail(`tên ${name}: chỉ chữ thường, số, "_" (key lpc_<tên>)`);
 let R;
 if (npc) R = RECIPES[npc] ?? fail(`--npc: ${Object.keys(RECIPES).join(", ")} (nhận ${npc})`);
 else R = JSON.parse(readFileSync(recipeFile, "utf8"));
 R = { hairCol: 0, outfitCol: 0, skin: 0, ...R };
+if (!["male", "female"].includes(R.sex)) fail(`sex: "male" hoặc "female" (nhận ${R.sex})`);
+if (R.base) R.layers = [...base(R.sex), ...R.layers];
+// Dải màu riêng của công thức: đúng 4 màu, màu nào cũng phải có trong art/palette.gpl.
+const PAL_HEX = new Set(PAL.map((c) => c.hex));
+for (const k of ["hairRamp", "outfitRamp"]) if (R[k]) {
+  R[k] = R[k].map((c) => String(c).toLowerCase());
+  if (R[k].length !== 4 || R[k].some((c) => !PAL_HEX.has(c))) fail(`${k}: cần 4 màu của art/palette.gpl (nhận ${R[k].join(", ")})`);
+}
+for (const l of R.layers) for (const c of l.ramp ?? []) {
+  if (typeof c === "string" && !PAL_HEX.has(c.toLowerCase())) fail(`${l.dir}: ramp ${c} không có trong art/palette.gpl`);
+  // Lớp áo / tóc ghi mã màu thẳng: màu đó không được là dải xám, kẻo bước tô màu đổi nó thành màu áo / tóc.
+  if (typeof c === "string" && l.group !== "body" && GRAY_RAMP.includes(c.toLowerCase())) fail(`${l.dir}: ramp ${c} trùng dải xám hoán màu`);
+}
 if (hairColOpt) R.hairCol = +hairColOpt;
 if (outfitColOpt) R.outfitCol = +outfitColOpt;
 if (skinOpt) R.skin = +skinOpt;
@@ -163,9 +189,6 @@ if (nStart > 1 || nStart !== nEnd || (nStart && creditsDoc.indexOf(END) < credit
 // Mã màu trong `ramp` của lớp thân (giày) không được trùng dải da tông 0, kẻo client hoán thành da.
 for (const l of R.layers) if (l.group === "body") for (const c of l.ramp ?? [])
   if (typeof c === "string" && SKIN_RAMPS[0].includes(c.toLowerCase())) fail(`${l.dir}: ramp ${c} trùng SKIN_TONES[0], client sẽ hoán thành da`);
-// Mã màu trong `ramp` của lớp thân (giày) không được trùng dải da tông 0, kẻo client tô thành da.
-for (const l of R.layers) for (const c of l.ramp ?? []) if (typeof c === "string" && l.group === "body" && SKIN_RAMPS[0].includes(c.toLowerCase()))
-  fail(`${l.dir}: ramp ${c} trùng SKIN_TONES[0], client sẽ hoán thành da`);
 
 // ---------- Đọc lớp LPC, ghi công ----------
 const used = new Map(); // file tương đối → { dir, variant, c: mục CREDITS }
@@ -229,6 +252,10 @@ for (const [anim, spec] of Object.entries(LPC_FRAMES)) for (const d of ISO_DIRS)
 const isEye = ([r, g, b]) => b > r + 25 && b > g;
 const isSkinSrc = (li) => /^(body\/bodies|head\/heads)\//.test(layers[li].dir);
 const isWhite = ([r, g, b]) => Math.min(r, g, b) > 200 && Math.max(r, g, b) - Math.min(r, g, b) < 30;
+// Lòng trắng mắt: điểm gần trắng của lớp đầu nằm cạnh tròng mắt (cùng hàng, cách tối đa 2 điểm). Điểm gần trắng khác của lớp
+// thân / đầu là chỗ sáng nhất của da (vai, cánh tay trần, đỉnh đầu hói) nên theo dải da, không giữ màu trắng.
+const isHeadSrc = (li) => /^head\/heads\//.test(layers[li].dir);
+const nearEye = (f, x, y) => [-2, -1, 1, 2].some((u) => { const a = x + u; return a >= 0 && a < LPC_FRAME && f.own[y * LPC_FRAME + a] >= 0 && isEye(f.px.get(a, y)); });
 /** Bảng đổi màu: các màu nguồn xếp theo độ sáng, chia đều vào `ramp`. */
 function rankMap(colors, ramp) {
   const list = [...colors].sort((a, b) => lum(hex(a)) - lum(hex(b)));
@@ -237,27 +264,33 @@ function rankMap(colors, ramp) {
 /** Dải đích của lớp: `ramp` của công thức (mã màu hoặc chỉ số GRAY_RAMP), mặc định cả dải xám cho tóc / áo. */
 const rampOf = (l) => (l.ramp ? l.ramp.map((c) => (typeof c === "number" ? GRAY_RAMP[c] : c)) : l.group === "body" ? null : GRAY_RAMP);
 const NEAR_BLACK = 0.12 * 255;
-const kindOf = (li, p) => {
+/** Loại điểm (x, y) của khung `f`, lớp `li`, màu `p`: outline / keep / eye / skin / ramp. */
+const kindOf = (li, p, f, x, y) => {
   const l = layers[li];
   if (lum(p) < NEAR_BLACK) return "outline";
   if (l.keep) return "keep";
-  if (l.group === "body" && isSkinSrc(li)) return isEye(p) ? "eye" : isWhite(p) ? "keep" : "skin";
+  if (l.group === "body" && isSkinSrc(li)) return isEye(p) ? "eye" : isWhite(p) && isHeadSrc(li) && nearEye(f, x, y) ? "keep" : "skin";
   return rampOf(l) ? "ramp" : "keep";
 };
 // Da gộp mọi lớp thân / đầu; lớp có dải riêng (tóc, áo, giày) xếp hạng riêng từng lớp trên cả bộ.
 const skinPool = new Set(), pools = layers.map(() => new Set());
 for (const f of frames) for (let k = 0; k < f.own.length; k++) {
   if (f.own[k] < 0) continue;
-  const p = toHex(f.px.get(k % LPC_FRAME, (k / LPC_FRAME) | 0)), kind = kindOf(f.own[k], hex(p));
+  const x = k % LPC_FRAME, y = (k / LPC_FRAME) | 0, p = toHex(f.px.get(x, y)), kind = kindOf(f.own[k], hex(p), f, x, y);
   if (kind === "skin") skinPool.add(p); else if (kind === "ramp") pools[f.own[k]].add(p);
 }
 const skinMap = rankMap(skinPool, SKIN_RAMPS[0]), layerMaps = layers.map((l, li) => rampOf(l) && rankMap(pools[li], rampOf(l)));
 
-// Dời để chân chạm gốc: đáy nhóm body ở khung đứng nhìn xuống.
-const stand = frames.find((f) => f.dir === "s" && f.anim === "idle");
-let foot = 0;
-for (let k = 0; k < stand.own.length; k++) if (stand.own[k] >= 0 && layers[stand.own[k]].group === "body") foot = Math.max(foot, (k / LPC_FRAME) | 0);
-const dy = ISO_HS_ORIGIN[1] - foot, dx = ISO_HS_ORIGIN[0] - LPC_FRAME / 2;
+// Dời để chân chạm gốc: đáy nhóm body ở khung đứng của từng hướng (LPC nhìn lên thì chân cao hơn nhìn xuống 1 điểm). Hurt / die
+// lấy từ hàng nhìn xuống nên theo hướng s.
+const footOf = (d) => {
+  const stand = frames.find((f) => f.dir === d && f.anim === "idle");
+  let foot = 0;
+  for (let k = 0; k < stand.own.length; k++) if (stand.own[k] >= 0 && layers[stand.own[k]].group === "body") foot = Math.max(foot, (k / LPC_FRAME) | 0);
+  return foot;
+};
+const dyDir = Object.fromEntries(ISO_DIRS.map((d) => [d, ISO_HS_ORIGIN[1] - footOf(d)]));
+const foot = footOf("s"), dy = dyDir.s, dx = ISO_HS_ORIGIN[0] - LPC_FRAME / 2;
 // Dòng --breathe (ngay dưới vai): sheet thân LPC không có đầu, hàng trên cùng của nó là cổ; vai thấp hơn LPC_SHOULDER.
 const LPC_SHOULDER = 4;
 // Đọc thẳng sheet thân (điểm thân ở cổ đã bị đầu / áo che trong ảnh gộp).
@@ -277,9 +310,9 @@ for (const f of frames) {
   for (let y = 0; y < LPC_FRAME; y++) for (let x = 0; x < LPC_FRAME; x++) {
     const li = f.own[y * LPC_FRAME + x];
     if (li < 0) continue;
-    const X = x + dx, Y = y + dy;
+    const X = x + dx, Y = y + dyDir[f.dir];
     if (X < 0 || Y < 0 || X >= ISO_HS_FRAME || Y >= ISO_HS_FRAME) continue;
-    const p = f.px.get(x, y), kind = kindOf(li, p);
+    const p = f.px.get(x, y), kind = kindOf(li, p, f, x, y);
     const edge = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([u, v]) => { const a = x + u, b = y + v; return a < 0 || b < 0 || a >= LPC_FRAME || b >= LPC_FRAME || f.own[b * LPC_FRAME + a] < 0; });
     const c = edge || kind === "outline" ? OUTLINE : kind === "eye" ? EYE : kind === "keep" ? nearest(desaturate(p)) : (kind === "skin" ? skinMap : layerMaps[li]).get(toHex(p));
     // Lớp `keep` (giáp, mũ) nằm ở lớp áo / tóc nhưng màu ngoài dải xám: client hoán màu sẽ bỏ qua các màu đó.
@@ -297,10 +330,20 @@ const sheets = HS_LAYERS.map((l) => readPng(path.join(packOut, `${l}_${tag}.png`
 HS_LAYERS.forEach((l, i) => writeFileSync(path.join(out, `${l}_${name}.png`), encodePng(sheets[i])));
 rmSync(packOut, { recursive: true, force: true });
 
-// Bản tô màu để xem thử: dải xám → màu tóc / áo đã chọn, da tông R.skin.
+// Bản tô màu (xem thử; --game: chính là sheet đưa vào game): dải xám → màu tóc / áo, da tông R.skin. Dải riêng của công thức
+// (hairRamp / outfitRamp) dùng nguyên; dải HAIR_COLORS / OUTFIT_COLORS là màu người chơi (tươi), khi --game thì giảm bão hòa
+// theo --desat rồi đưa về màu gần nhất của bảng chung (NPC phụ không được nổi hơn hồn sư).
+const ALL_RGB = PAL.map((c) => hex(c.hex));
+const nearestAll = (p) => {
+  let best = 0, bd = Infinity;
+  ALL_RGB.forEach((c, i) => { const d = (c[0] - p[0]) ** 2 * 0.3 + (c[1] - p[1]) ** 2 * 0.59 + (c[2] - p[2]) ** 2 * 0.11; if (d < bd) { bd = d; best = i; } });
+  return PAL[best].hex;
+};
+const finalRamp = (own, swatch) => own ?? (game ? swatch.map((c) => nearestAll(desaturate(hex(c)))) : swatch);
+const outfitFinal = finalRamp(R.outfitRamp, OUTFIT_RAMPS[R.outfitCol]), hairFinal = finalRamp(R.hairRamp, HAIR_RAMPS[R.hairCol]);
 const swap = new Map([
-  ...GRAY_RAMP.map((g, i) => [`1:${g}`, OUTFIT_RAMPS[R.outfitCol][i]]),
-  ...GRAY_RAMP.map((g, i) => [`2:${g}`, HAIR_RAMPS[R.hairCol][i]]),
+  ...GRAY_RAMP.map((g, i) => [`1:${g}`, outfitFinal[i]]),
+  ...GRAY_RAMP.map((g, i) => [`2:${g}`, hairFinal[i]]),
   ...SKIN_RAMPS[0].map((s, i) => [`0:${s}`, SKIN_RAMPS[R.skin][i]]),
 ]);
 const col = new Img(sheets[0].w, sheets[0].h);
@@ -313,6 +356,21 @@ sheets.forEach((s, li) => {
   }
 });
 writeFileSync(path.join(out, `${name}_mau.png`), encodePng(col));
+
+// ---------- --game: sheet lpc_<tên> vào game ----------
+if (game) {
+  const rel = `iso/lpc/${name}.png`, file = path.join(SPRITES, rel);
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, encodePng(col));
+  execFileSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), "normal.mjs"), file], { stdio: "inherit" });
+  const manifest = JSON.parse(readFileSync(MANIFEST, "utf8")), key = `lpc_${name}`, keyOf = (e) => (typeof e === "string" ? e : e.key);
+  if (!manifest.sprites.some((e) => keyOf(e) === key)) {
+    manifest.sprites.push({ key, iso: true });
+    manifest.sprites.sort((a, b) => keyOf(a).localeCompare(keyOf(b)));
+    writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
+  }
+  console.log(`[lpc] --game: ${path.relative(ROOT, file).split(path.sep).join("/")} (+ _n.png), key ${key}`);
+}
 
 // ---------- Ghi công ----------
 const groups = new Map(); // gộp các animation của cùng một lớp có cùng ghi công
@@ -333,5 +391,6 @@ const [pre, rest] = doc.split(START), [mid, post] = rest.split(END);
 const others = mid.split(/(?=^### )/m).filter((s) => s.trim() && !s.startsWith(`### ${name} (`));
 writeFileSync(creditsTarget, `${pre}${START}\n${[...others.map((s) => s.trimEnd() + "\n"), block].join("\n")}${END}${post}`);
 
+if (game && !outOpt) rmSync(out, { recursive: true, force: true }); // thư mục làm việc tạm của --game
 console.log(`[lpc] ${name}: ${frames.length} khung LPC, ${used.size} file, chân y=${foot} → dời ${dy}, --breathe ${breathe}, --desat ${desat}`);
-console.log(`[lpc] ghi ${HS_LAYERS.map((l) => `${l}_${name}.png`).join(", ")}, ${name}_mau.png; ghi công → ${creditsTarget}`);
+if (!game || outOpt) console.log(`[lpc] ghi ${HS_LAYERS.map((l) => `${l}_${name}.png`).join(", ")}, ${name}_mau.png; ghi công → ${creditsTarget}`);

@@ -1,0 +1,72 @@
+{
+ "sex": "male",
+ "base": true,
+ "hairRamp": [
+  "#6a7688",
+  "#8e9aac",
+  "#b4bfcc",
+  "#d6dde5"
+ ],
+ "outfitRamp": [
+  "#2e2419",
+  "#4a3a28",
+  "#6b5a42",
+  "#8c7a5c"
+ ],
+ "layers": [
+  {
+   "dir": "legs/pants/male/",
+   "z": 20,
+   "group": "outfit",
+   "ramp": [
+    0,
+    1
+   ]
+  },
+  {
+   "dir": "legs/skirts/plain/male/",
+   "z": 21,
+   "group": "outfit",
+   "ramp": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "dir": "torso/clothes/longsleeve/longsleeve2_vneck/male/",
+   "z": 35,
+   "group": "outfit",
+   "ramp": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "dir": "torso/waist/obi/male/",
+   "z": 65,
+   "group": "outfit",
+   "variant": "charcoal",
+   "ramp": [
+    "#3a2a18",
+    "#5a3b22"
+   ]
+  },
+  {
+   "dir": "head/heads/human/male_elderly/",
+   "z": 101,
+   "group": "body"
+  },
+  {
+   "dir": "hair/balding/adult/",
+   "z": 120,
+   "group": "hair"
+  },
+  {
+   "dir": "beards/beard/winter/male/",
+   "z": 110,
+   "group": "hair"
+  }
+ ]
+}

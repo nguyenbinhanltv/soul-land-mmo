@@ -12,6 +12,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
+import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
 import { solidGrid, clampDir } from "../../../shared/move.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
@@ -99,6 +100,7 @@ export class GameScene extends Phaser.Scene {
     qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
   nearNpc: string | null = null;    // NPC trong tầm nói chuyện (NPC_RANGE) lần kiểm tra gần nhất
+  crowd: Crowd | null = null;       // dân thường, lính gác trang trí (crowd.ts, chỉ client)
   onTravel: (mapId: string, roomId: string | null) => void = () => {};
   /** Đại Đấu Hồn Trường (7.2): server đã ghép trận thì vào phòng `roomId`; `onBack` rời sân về bản đồ cũ (đang giao đấu = bỏ trận, thua). */
   onArena: (roomId: string) => void = () => {};
@@ -146,7 +148,7 @@ export class GameScene extends Phaser.Scene {
     this.load.tilemapTiledJSON(this.mapId, `${this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
-    preloadSprites(this);
+    preloadSprites(this, lpcPreloader(this, this.mapId)); // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts)
   }
 
   create() {
@@ -160,6 +162,7 @@ export class GameScene extends Phaser.Scene {
     this.txtK = this.zoomFor() < 2 ? 2 / this.zoomFor() : 1; // chữ của cổng, NPC vẽ ngay dưới đây (fitZoom chạy sau)
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
     const npcObjs: { x: number; y: number; name: string; id: string }[] = [];
+    const crowdMap: CrowdMap = { safes: this.safes, portals: [], spawn: null, npcs: npcObjs, arrives: [], mapW: map.widthInPixels, mapH: map.heightInPixels };
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
@@ -169,9 +172,11 @@ export class GameScene extends Phaser.Scene {
         const hint = [prop("hint") ?? "", lv ? `cấp ${lv[0] === lv[1] ? lv[0] : `${lv[0]}–${lv[1]}`}` : ""].filter(Boolean).join(" · ");
         this.zones.push({ ...r, name: o.name, hint });
       }
-      if (o.type === "spawn") { this.campRect = r; this.campName = o.name; }
+      if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
+      if (o.type === "portal") crowdMap.portals.push({ ...r, boat: !!prop("boat") });
+      if (o.type === "arrive") crowdMap.arrives.push({ x: o.x!, y: o.y! });
       if (o.type === "npc") npcObjs.push({ x: o.x!, y: o.y!, name: o.name, id: String(prop("npc") ?? "") });
       if (o.type === "boss") this.lair = r;
     }
@@ -193,6 +198,8 @@ export class GameScene extends Phaser.Scene {
     createSheetAnims(this);
     for (const k of this.textures.getTextureKeys()) if (/^(hs_(body|outfit|hair)_[mf]_\d+|vh_[a-z_]+_[bf])$/.test(k)) attachNormal(this, k); // normal map hồn sư, phụ thể (10.7)
     for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // sprite hồn sư của NPC cần texture / animation ở trên
+    if (raw) this.crowd = new Crowd(this, this.mapId, solidGrid(raw), crowdMap);
+    for (const p of this.crowd?.people ?? []) this.light.entity(p.spr); // dân thường cũng chịu ánh sáng thực thể (10.7)
 
     this.ov = this.add.graphics().setDepth(99990);
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
@@ -229,16 +236,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * NPC (object `npc`, bước 6.1): NPC có `looks` trong NPCS vẽ bằng sprite hồn sư đứng yên nhìn xuống; không có (Đại Đấu Hồn Trường)
-   * hoặc mã lạ thì vẽ biển hiệu. Tên (màu NPC) và chức danh trên đầu; bấm / chạm vào NPC để nói chuyện (server kiểm tra khoảng cách).
+   * NPC (object `npc`, bước 6.1): NPC có sheet LPC `lpc_<mã>` (mục 5.11 "NPC phụ và dân thường") vẽ bằng sheet đó, không thì NPC có
+   * `looks` trong NPCS vẽ bằng sprite hồn sư; cả hai đứng yên nhìn xuống. Không có cả hai hoặc mã lạ thì vẽ biển hiệu. Tên (màu NPC)
+   * và chức danh trên đầu; bấm / chạm vào NPC để nói chuyện (server kiểm tra khoảng cách).
    */
   drawNpc(x: number, y: number, name: string, id: string) {
     const def = npcDef(id), w = W2S(x, y), sx = w.x, sy = w.y; // vị trí thế giới (x, y) chiếu ra màn hình (sx, sy)
     let body: Sprite | null = null, clothes: Sprite[] = [], top = sy - 16 * SPR;
-    if (def?.looks) {
-      const t = looksTextures(this, def.looks), mk = (k: string) => fitHonsuLayer(this.make.sprite({ key: k }, false));
-      body = this.light.entity(mk(t.body)); clothes = [mk(t.outfit), mk(t.hair)].map((s) => this.light.entity(s));
-      body.play(honsuAnimKey(this, bodyKey(def.looks), "idle", "s").key);
+    const lpc = def && this.textures.exists(`lpc_${def.id}`) ? `lpc_${def.id}` : null;
+    if (lpc || def?.looks) {
+      const mk = (k: string) => fitHonsuLayer(this.make.sprite({ key: k }, false));
+      if (lpc) body = mk(lpc);
+      else { const t = looksTextures(this, def!.looks!); body = mk(t.body); clothes = [mk(t.outfit), mk(t.hair)]; }
+      body.play(honsuAnimKey(this, lpc ?? bodyKey(def!.looks!), "idle", "s").key);
+      for (const s of [body, ...clothes]) this.light.entity(s); // Light2D thực thể (10.7)
       this.add.container(sx, sy, [this.make.image({ key: "hs_shadow" }, false), body, ...clothes]).setDepth(sy).setScale(SPR);
       top = sy - HEAD;
     } else {
@@ -1152,6 +1163,7 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     const dt = delta / 1000, st = this.room.state; if (!st?.players) return;
     this.sendInput();
+    this.crowd?.update(dt);
     const lerp = Math.min(1, dt * 14);
     const step = Math.floor(time / 125) % 2;
 

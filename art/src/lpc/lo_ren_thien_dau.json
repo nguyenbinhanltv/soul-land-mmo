@@ -1,0 +1,60 @@
+{
+ "sex": "male",
+ "base": true,
+ "skin": 1,
+ "hairRamp": [
+  "#6a7688",
+  "#8e9aac",
+  "#b4bfcc",
+  "#d6dde5"
+ ],
+ "outfitRamp": [
+  "#2a2a30",
+  "#44434c",
+  "#646370",
+  "#8a8894"
+ ],
+ "layers": [
+  {
+   "dir": "head/heads/human/male_elderly/",
+   "z": 101,
+   "group": "body"
+  },
+  {
+   "dir": "legs/pants/male/",
+   "z": 20,
+   "group": "outfit",
+   "ramp": [
+    0,
+    1
+   ]
+  },
+  {
+   "dir": "torso/clothes/sleeveless/sleeveless2/male/",
+   "z": 35,
+   "group": "outfit",
+   "ramp": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "dir": "torso/aprons/apron/male/",
+   "z": 40,
+   "group": "outfit",
+   "variant": "charcoal",
+   "keep": true
+  },
+  {
+   "dir": "hair/relm_ponytail/adult/mg/",
+   "z": 120,
+   "group": "hair"
+  },
+  {
+   "dir": "hair/relm_ponytail/adult/bg/",
+   "z": 9,
+   "group": "hair"
+  }
+ ]
+}
