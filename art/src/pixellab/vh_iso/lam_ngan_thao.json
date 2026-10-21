@@ -1,0 +1,275 @@
+{
+ "attach": "feet",
+ "dirs": {
+  "s": [
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -10,
+     -1
+    ],
+    "flip": false,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     10,
+     -1
+    ],
+    "flip": true,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -13,
+     3
+    ],
+    "flip": true,
+    "layer": "f"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     13,
+     3
+    ],
+    "flip": false,
+    "layer": "f"
+   }
+  ],
+  "se": [
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -10,
+     -1
+    ],
+    "flip": false,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     10,
+     -1
+    ],
+    "flip": true,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -13,
+     3
+    ],
+    "flip": true,
+    "layer": "f"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     13,
+     3
+    ],
+    "flip": false,
+    "layer": "f"
+   }
+  ],
+  "e": [
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -10,
+     -1
+    ],
+    "flip": false,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     10,
+     -1
+    ],
+    "flip": true,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -13,
+     3
+    ],
+    "flip": true,
+    "layer": "f"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     13,
+     3
+    ],
+    "flip": false,
+    "layer": "f"
+   }
+  ],
+  "ne": [
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -10,
+     -1
+    ],
+    "flip": false,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     10,
+     -1
+    ],
+    "flip": true,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -13,
+     3
+    ],
+    "flip": true,
+    "layer": "f"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     13,
+     3
+    ],
+    "flip": false,
+    "layer": "f"
+   }
+  ],
+  "n": [
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -10,
+     -1
+    ],
+    "flip": false,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     10,
+     -1
+    ],
+    "flip": true,
+    "layer": "b"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     -13,
+     3
+    ],
+    "flip": true,
+    "layer": "f"
+   },
+   {
+    "img": "lam_ngan_thao_s.png",
+    "pivot": [
+     23,
+     37
+    ],
+    "off": [
+     13,
+     3
+    ],
+    "flip": false,
+    "layer": "f"
+   }
+  ]
+ }
+}

@@ -8,7 +8,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   WORLD, HE, HE_IDS,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, HS_ORIGIN, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
@@ -1416,13 +1416,14 @@ export class GameScene extends Phaser.Scene {
     const hit = this.portraits.get(vohon);
     if (hit) return hit;
     const t = looksTextures(this, me), [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
-    // Bộ 32×32 cũ: ảnh 48×48, chân ở (24, 40). Bộ isometric (10.4): ảnh 96×96 chân ở (48, 80), lớp 64×64 vẽ 1:1, lớp cũ (phụ thể
-    // 48×48 tới 10.5) phóng ×2; khung hồn cốt hiện ảnh ở 96 pixel nên hai cỡ trông như nhau.
+    // Bộ 32×32 cũ: ảnh 48×48, chân ở (24, 40). Bộ isometric (10.4): ảnh 96×96 chân ở (48, 80), lớp 64×64 / 96×96 vẽ 1:1, lớp cũ
+    // (bộ 32×32, phụ thể 48×48 của võ hồn chưa có ảnh 10.5) phóng ×2; khung hồn cốt hiện ảnh ở 96 pixel nên hai cỡ trông như nhau.
+    // Phụ thể isometric lấy nửa sheet theo giới của thân (vohonHalf).
     const k = isIsoSheet(this, t.body) ? 2 : 1, cv = document.createElement("canvas"); cv.width = cv.height = 48 * k;
     const ctx = cv.getContext("2d")!; ctx.imageSmoothingEnabled = false;
     const draw = (key: string, vohon = false) => {
       if (!this.textures.exists(key)) return;
-      const f = this.textures.getFrame(key, 0), iso = isIsoSheet(this, key), s = iso ? 1 : k;
+      const f = this.textures.getFrame(key, vohon ? vohonHalf(this, key, t.body) : 0), iso = isIsoSheet(this, key), s = iso ? 1 : k;
       const o = iso ? (vohon ? ISO_VH_ORIGIN : ISO_HS_ORIGIN) : vohon ? VH_ORIGIN : HS_ORIGIN;
       ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight,
         24 * k - f.cutWidth * s * o.x, 40 * k - f.cutHeight * s * o.y, f.cutWidth * s, f.cutHeight * s);

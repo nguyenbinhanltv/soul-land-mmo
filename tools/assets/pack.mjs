@@ -1,8 +1,8 @@
 // Ghép khung đã chuẩn hóa vào spritesheet isometric bố cục cố định của mục 5.11 (isoLayout trong lib.mjs).
 //   node tools/assets/pack.mjs --kind honsu|beast<bậc>|beast --size N --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]
 //   node tools/assets/pack.mjs --kind honsu --set <giới>_<kiểu tóc> <thư mục normalize --split> [--out <thư mục>] [--fill] [--breathe <y>]
-//   node tools/assets/pack.mjs --kind vohon --id <võ hồn> --part <thư mục phụ thể> --body <sheet thân>[,<sheet áo>,<sheet tóc>]
-//        --attach hand|head|back|feet [--swing] [--out <thư mục>]
+//   node tools/assets/pack.mjs --kind vohon --id <võ hồn> --part <thư mục phụ thể> --body m:<thân>,<áo>,<tóc> --body f:<…>
+//        --attach hand|head|back|feet [--swing | --angles a,b,c,d] [--out <thư mục>]
 //
 // Bố cục: hồn sư 24 cột × 6 hàng khung 64×64 (1536×384), phụ thể cùng bố cục khung 96×96 (2304×576), hồn thú 20 × 5 khung
 // theo bậc. Hàng 0–4 là hướng s, se, e, ne, n (3 hướng còn lại client lật ngang); hồn sư hàng 5 cột 0–1 là `absorb`.
@@ -26,30 +26,35 @@
 //
 // Phụ thể (--kind vohon): mỗi võ hồn vẽ TĨNH 5 hướng trong khung 96×96, đặt khớp khung đứng (idle khung 0) của lớp thân
 // hướng đó (khung thân 64×64 nằm giữa, lệch 16 pixel mỗi phía), tên {hướng}_b.png (sau thân) và {hướng}_f.png (trước thân)
-// trong --part. Với mỗi ô idle / walk / attack / cast của sheet thân, công cụ tìm điểm neo --attach (frameAnchors trong
+// trong --part/<giới> (vohon-part.mjs dựng; kèm grip.json là tay đã đặt phụ thể ở khung đứng). Mỗi giới một thân mẫu
+// (--body m:… --body f:…, bộ m_0 / f_0) ghép vào nửa sheet của giới đó (ISO_VH_SEXES: nam hàng 0–4, nữ hàng 6–10). Với mỗi ô idle / walk / attack / cast của sheet thân, công cụ tìm điểm neo --attach (frameAnchors trong
 // lib.mjs) trên khung đó và trên khung đứng cùng hướng rồi dời phụ thể theo độ lệch:
 //   hand: mảng da của bàn tay nằm cùng phía (so với giữa người) với mảng tay gần phụ thể nhất ở khung đứng; khung không
 //         thấy tay (bị thân che) thì giữ độ lệch của khung trước. --swing: thêm xoay vũ khí quanh tay theo ISO_ATTACK_SWING
-//         ở 4 khung attack.
-//   head: giữa hàng trên cùng; back: trọng tâm phần thân trên; feet: giữa hàng dưới cùng.
+//         ở 4 khung attack; --angles a,b,c,d: góc riêng của võ hồn (vũ khí dài vung ít hơn để khỏi ra ngoài khung 96).
+//         Xoay kiểu RotSprite (Scale2x ×4 rồi lấy mẫu) nên nét chéo không răng cưa, màu giữ nguyên.
+//   head: giữa hàng trên cùng; back: trọng tâm phần thân trên; feet: phụ thể mọc trên đất (thảm cỏ, vòng) đứng yên theo gốc chân.
 // Ghi <out>/<id>_b.png và <out>/<id>_f.png (mặc định shared/assets/sprites/vohon). Phụ thể không có ảnh hướng nào thì ô
 // hướng đó để trống.
-import { readdirSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
-import { readPng, encodePng, Img, SPRITES, HS_LAYERS, ISO_DIRS, ISO_FLIP, ISO_BEAST_TIER, ISO_BEAST_SIZES, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_ATTACK_SWING, ISO_HIP, ISO_KNEEL, ISO_SIT, ISO_LIE_HALF, ANCHORS, isoLayout, frameAnchors } from "./lib.mjs";
+import { readPng, encodePng, Img, SPRITES, HS_LAYERS, ISO_DIRS, ISO_FLIP, ISO_BEAST_TIER, ISO_BEAST_SIZES, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_HS_ROWS, ISO_VH_FRAME, ISO_VH_SEXES, vohonBodies, ISO_ATTACK_SWING, ISO_HIP, ISO_KNEEL, ISO_SIT, ISO_LIE_HALF, ANCHORS, isoLayout, frameAnchors } from "./lib.mjs";
 
 const args = process.argv.slice(2);
+const bodies = vohonBodies(args); // --kind vohon: --body <giới>:<thân>,<áo>,<tóc> (gỡ khỏi args trước khi đọc tham số khác)
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const kind = opt("--kind", "honsu"), out = opt("--out", ""), fill = flag("--fill"), breathe = opt("--breathe", ""), set = opt("--set", "");
 const code = opt("--code", ""), hip = +opt("--hip", ISO_HIP);
-const size = opt("--size", ""), id = opt("--id", ""), partDir = opt("--part", ""), bodyOpt = opt("--body", ""), attach = opt("--attach", "hand"), swing = flag("--swing");
+const size = opt("--size", ""), id = opt("--id", ""), partDir = opt("--part", ""), attach = opt("--attach", "hand"), anglesOpt = opt("--angles", ""), swing = flag("--swing") || !!anglesOpt;
+const swingAngles = anglesOpt ? anglesOpt.split(",").map(Number) : ISO_ATTACK_SWING;
 const dir = args[0];
 const usage = "Cách dùng: pack.mjs --kind honsu|beast<bậc>|beast --size N --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]\n" +
   "          pack.mjs --kind honsu --set <giới>_<kiểu tóc> <thư mục normalize --split> [--out <thư mục>]\n" +
-  "          pack.mjs --kind vohon --id <võ hồn> --part <thư mục> --body <sheet thân>[,áo,tóc] --attach hand|head|back|feet [--swing]";
+  "          pack.mjs --kind vohon --id <võ hồn> --part <thư mục> --body m:<thân>,<áo>,<tóc> [--body f:…] --attach hand|head|back|feet [--swing | --angles a,b,c,d]";
 const fail = (m) => { console.error(m); process.exit(1); };
-if (kind === "vohon" ? !(id && partDir && bodyOpt) : (!out && !set) || !dir) fail(usage);
+const ISO_ZERO = { x: 0, y: 0 };
+if (kind === "vohon" ? !(id && partDir && bodies.size) : (!out && !set) || !dir) fail(usage);
 if (set && (kind !== "honsu" || !/^[mf]_\d+$/.test(set))) fail(`--set cần --kind honsu và dạng m_0 / f_2 (nhận: ${kind}, ${set})`);
 const CODE_ANIMS = ["hurt", "die", "absorb"], codeList = code ? code.split(",") : [];
 if (codeList.some((a) => !CODE_ANIMS.includes(a)) || (code && (kind !== "honsu" || !breathe))) fail(`--code chỉ cho --kind honsu kèm --breathe, gồm ${CODE_ANIMS.join(",")} (nhận ${code})`);
@@ -168,43 +173,64 @@ function codeAnims(sheet, filled) {
   }
 }
 
-/** Xoay ảnh `src` quanh (cx, cy) góc `deg` (nearest-neighbor ngược, giữ pixel nguyên màu). */
+/** Scale2x (EPX): phóng đôi ảnh pixel, nét chéo được làm mượt mà không thêm màu mới. */
+function scale2x(src) {
+  const dst = new Img(src.w * 2, src.h * 2), at = (x, y) => (x < 0 || y < 0 || x >= src.w || y >= src.h ? null : src.get(x, y));
+  const eq = (p, q) => (p === null || q === null ? p === q : p[3] === 0 && q[3] === 0 ? true : p[0] === q[0] && p[1] === q[1] && p[2] === q[2] && p[3] === q[3]);
+  const T = [0, 0, 0, 0];
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    const P = src.get(x, y), A = at(x, y - 1) ?? T, B = at(x + 1, y) ?? T, C = at(x - 1, y) ?? T, D = at(x, y + 1) ?? T;
+    dst.set(2 * x, 2 * y, eq(C, A) && !eq(C, D) && !eq(A, B) ? A : P);
+    dst.set(2 * x + 1, 2 * y, eq(A, B) && !eq(A, C) && !eq(B, D) ? B : P);
+    dst.set(2 * x, 2 * y + 1, eq(D, C) && !eq(D, B) && !eq(C, A) ? C : P);
+    dst.set(2 * x + 1, 2 * y + 1, eq(B, D) && !eq(B, A) && !eq(D, C) ? D : P);
+  }
+  return dst;
+}
+
+/**
+ * Xoay ảnh `src` quanh (cx, cy) góc `deg` theo cách RotSprite: phóng Scale2x hai lần (×4) rồi lấy mẫu nearest-neighbor ngược ở
+ * độ phân giải ×4, nên nét chéo không răng cưa như xoay thẳng mà vẫn giữ pixel nguyên màu (không nội suy).
+ */
 function rotate(src, cx, cy, deg) {
   if (!deg) return src;
+  const big = scale2x(scale2x(src)), K = 4;
   const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a), dst = new Img(src.w, src.h);
   for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
     const dx = x + 0.5 - cx, dy = y + 0.5 - cy;
-    const u = Math.floor(cx + c * dx + s * dy), v = Math.floor(cy - s * dx + c * dy);
-    if (u >= 0 && v >= 0 && u < src.w && v < src.h && src.alpha(u, v)) dst.set(x, y, src.get(u, v));
+    const u = Math.floor((cx + c * dx + s * dy) * K), v = Math.floor((cy - s * dx + c * dy) * K);
+    if (u >= 0 && v >= 0 && u < big.w && v < big.h && big.alpha(u, v)) dst.set(x, y, big.get(u, v));
   }
   return dst;
 }
 
 /** Phụ thể: ghép phụ thể tĩnh 5 hướng vào sheet theo điểm neo của từng khung thân. */
 function packVohon() {
-  const sheets = bodyOpt.split(",").map((f) => readPng(f));
   const HL = isoLayout("honsu"), [BW, BH] = HL.frame;
-  if (sheets.some((s) => s.w !== BW * HL.cols || s.h !== BH * HL.rows)) fail(`[pack] --body cần sheet hồn sư isometric ${BW * HL.cols}×${BH * HL.rows}`);
-  const fig = new Img(sheets[0].w, sheets[0].h);
-  for (const s of sheets) fig.blit(s, 0, 0, s.w, s.h, 0, 0, true);
+  for (const { w, h } of bodies.values()) if (w !== BW * HL.cols || h !== BH * HL.rows) fail(`[pack] --body cần sheet hồn sư isometric ${BW * HL.cols}×${BH * HL.rows}`);
   const off = (ISO_VH_FRAME - ISO_HS_FRAME) / 2; // khung thân nằm giữa khung phụ thể
   const outB = new Img(FW * L.cols, FH * L.rows), outF = new Img(FW * L.cols, FH * L.rows);
   let placed = 0;
+  for (const [sex, { fig, skin }] of bodies) {
+  // Một giới duy nhất và --part không có thư mục con theo giới thì đọc thẳng --part.
+  const dir = existsSync(path.join(partDir, sex)) ? path.join(partDir, sex) : partDir, r0 = ISO_VH_SEXES.indexOf(sex) * ISO_HS_ROWS;
+  const grips = existsSync(path.join(dir, "grip.json")) ? JSON.parse(readFileSync(path.join(dir, "grip.json"), "utf8")) : {};
   for (const [r, d] of ISO_DIRS.entries()) {
-    const parts = ["b", "f"].map((h) => path.join(partDir, `${d}_${h}.png`)).map((f) => (existsSync(f) ? readPng(f) : null));
-    if (!parts[0] && !parts[1]) { console.warn(`[pack] ${d}: không có ${d}_b.png / ${d}_f.png trong --part, để trống`); continue; }
-    for (const p of parts) if (p && (p.w !== FW || p.h !== FH)) fail(`[pack] phụ thể ${d}: ${p.w}×${p.h}, cần ${FW}×${FH}`);
-    const at = (c) => frameAnchors(fig, c * BW, r * BH, BW, BH, sheets[0]);
+    const parts = ["b", "f"].map((h) => path.join(dir, `${d}_${h}.png`)).map((f) => (existsSync(f) ? readPng(f) : null));
+    if (!parts[0] && !parts[1]) { console.warn(`[pack] ${sex} ${d}: không có ${d}_b.png / ${d}_f.png trong ${dir}, để trống`); continue; }
+    for (const p of parts) if (p && (p.w !== FW || p.h !== FH)) fail(`[pack] phụ thể ${sex} ${d}: ${p.w}×${p.h}, cần ${FW}×${FH}`);
+    const at = (c) => frameAnchors(fig, c * BW, r * BH, BW, BH, skin);
     const ref = at(HL.anims.idle[0]);
-    if (!ref) { console.warn(`[pack] ${d}: lớp thân trống ở khung đứng, bỏ qua hướng này`); continue; }
-    // Tay cầm phụ thể ở khung đứng: mảng da gần điểm phụ thể nhất (tọa độ khung thân).
+    if (!ref) { console.warn(`[pack] ${sex} ${d}: lớp thân trống ở khung đứng, bỏ qua hướng này`); continue; }
+    // Tay cầm phụ thể ở khung đứng: mảng da gần tay vohon-part đã đặt (grip.json), không có thì gần điểm phụ thể nhất (tọa độ khung thân).
     let grip = null;
     if (attach === "hand") {
       const pts = [];
-      for (const p of parts) if (p) for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) if (p.alpha(x, y)) pts.push([x - off + 0.5, y - off + 0.5]);
+      if (grips[d]) pts.push([grips[d].x, grips[d].y]);
+      else for (const p of parts) if (p) for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) if (p.alpha(x, y)) pts.push([x - off + 0.5, y - off + 0.5]);
       const dist = (h) => Math.min(...pts.map(([x, y]) => Math.hypot(x - h.x, y - h.y)));
       grip = ref.hands.length ? ref.hands.reduce((a, b) => (dist(b) < dist(a) ? b : a)) : null;
-      if (!grip) console.warn(`[pack] ${d}: khung đứng không thấy tay, phụ thể đứng yên theo thân`);
+      if (!grip) console.warn(`[pack] ${sex} ${d}: khung đứng không thấy tay, phụ thể đứng yên theo thân`);
     }
     const side = grip ? Math.sign(grip.x - ref.mid) : 0;
     for (const a of ["idle", "walk", "attack", "cast"]) {
@@ -220,19 +246,21 @@ function packVohon() {
           const same = cur.hands.filter((h) => !side || Math.sign(h.x - cur.mid) === side || Math.abs(h.x - cur.mid) < 1);
           pt = same.length ? same.reduce((p, q) => (Math.hypot(q.x - prev.x, q.y - prev.y) < Math.hypot(p.x - prev.x, p.y - prev.y) ? q : p)) : null;
           base = grip;
+        } else if (attach === "feet") { pt = base = ISO_ZERO; // mọc trên đất: đứng yên theo gốc chân, không rung theo bước
         } else if (attach !== "hand") { pt = cur[attach]; base = ref[attach]; }
         const dxy = pt && base ? { dx: Math.round(pt.x - base.x), dy: Math.round(pt.y - base.y) } : last;
         last = dxy;
-        const deg = swing && a === "attack" && attach === "hand" ? ISO_ATTACK_SWING[i] ?? 0 : 0;
+        const deg = swing && a === "attack" && attach === "hand" ? swingAngles[i] ?? 0 : 0;
         for (const [h, p] of parts.entries()) {
           if (!p) continue;
           const src = grip ? rotate(p, grip.x + off, grip.y + off, deg) : p, cell = new Img(FW, FH);
           cell.blit(src, 0, 0, FW, FH, dxy.dx, dxy.dy, true); // dời trong ô, phần ra ngoài ô bị cắt
-          (h ? outF : outB).blit(cell, 0, 0, FW, FH, c * FW, r * FH, true);
+          (h ? outF : outB).blit(cell, 0, 0, FW, FH, c * FW, (r0 + r) * FH, true);
         }
         placed++;
       }
     }
+  }
   }
   const dst = out || path.join(SPRITES, "vohon");
   mkdirSync(dst, { recursive: true });

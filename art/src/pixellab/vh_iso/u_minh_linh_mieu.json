@@ -1,0 +1,10 @@
+{
+  "attach": "back",
+  "dirs": {
+    "s":  [{ "img": "u_minh_linh_mieu_s.png", "pivot": [33, 33], "off": [0, -2], "rim": "#b06bff", "layer": "b" }],
+    "se": [{ "img": "u_minh_linh_mieu_s.png", "pivot": [33, 33], "off": [-4, -2], "rim": "#b06bff", "layer": "b" }],
+    "e":  [{ "img": "u_minh_linh_mieu_s.png", "pivot": [33, 33], "off": [-6, -2], "rim": "#b06bff", "layer": "b" }],
+    "ne": [{ "img": "u_minh_linh_mieu_s.png", "pivot": [33, 33], "off": [-4, -4], "rim": "#b06bff", "layer": "b" }],
+    "n":  [{ "img": "u_minh_linh_mieu_s.png", "pivot": [33, 33], "off": [0, -4], "rim": "#b06bff", "layer": "b" }]
+  }
+}

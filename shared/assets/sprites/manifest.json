@@ -791,9 +791,37 @@
     },
     "vh_cuu_bao_luu_ly_thap_b",
     "vh_cuu_bao_luu_ly_thap_f",
-    "vh_hao_thien_chuy_b",
-    "vh_hao_thien_chuy_f",
-    "vh_lam_ngan_thao_b",
-    "vh_lam_ngan_thao_f"
+    {
+      "key": "vh_cuu_tinh_that_sat_kiem_b",
+      "iso": true
+    },
+    {
+      "key": "vh_cuu_tinh_that_sat_kiem_f",
+      "iso": true
+    },
+    {
+      "key": "vh_hao_thien_chuy_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hao_thien_chuy_f",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_ngan_thao_b",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_ngan_thao_f",
+      "iso": true
+    },
+    {
+      "key": "vh_u_minh_linh_mieu_b",
+      "iso": true
+    },
+    {
+      "key": "vh_u_minh_linh_mieu_f",
+      "iso": true
+    }
   ]
 }
