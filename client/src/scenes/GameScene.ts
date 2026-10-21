@@ -5,15 +5,16 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
-  WORLD, HE, HE_IDS,
+  WORLD, HE, HE_IDS, PLAYER_SPEED,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
+import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
+import { findPath } from "../path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
-import { solidGrid, clampDir } from "../../../shared/move.ts";
+import { solidGrid, clampDir, type SolidGrid } from "../../../shared/move.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
@@ -41,6 +42,10 @@ interface PView {
 }
 /** Bấm để đi tới (10.1): còn cách điểm bấm chừng này pixel thế giới thì coi là tới nơi. */
 const GOAL_NEAR = 3;
+/** Nhịp animation đi theo vận tốc (11.1): đi ở tốc độ này thì chạy đúng nhịp vẽ, nhanh / chậm hơn thì nhân theo, kẹp trong khoảng. */
+const WALK_ANIM_SPEED = PLAYER_SPEED, WALK_ANIM_SCALE: [number, number] = [0.5, 1.8];
+/** Hồn thú có sheet theo loài: nhịp animation đi khi lang thang / khi đuổi (đuổi nhanh gấp BEAST_GAIT.chase / wander lần). */
+const BEAST_ANIM_SCALE = { wander: 0.7, chase: 1.4 };
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
 const HEAD = 30 * SPR;
 /** Vòng thứ i bay lên ngang ngực, sáng rồi hạ về trong chừng này mili giây khi tung hồn kỹ của vòng đó (mục 5.11 "Vòng hồn hoàn"). */
@@ -112,9 +117,14 @@ export class GameScene extends Phaser.Scene {
   keys: Record<string, boolean> = {};
   joy = { x: 0, y: 0 };
   lastInput = "";
-  /** Điểm bấm chuột / chạm trên nền để đi tới (thế giới), kèm khoảng cách và lúc kiểm tra gần nhất để dừng khi bị chặn. */
-  goal: { x: number; y: number; d: number; t: number } | null = null;
+  /**
+   * Điểm bấm chuột / chạm trên nền để đi tới (thế giới) và đường A* tới đó (`path`, điểm thứ `i` là điểm đang đi tới; 11.1), kèm khoảng
+   * cách tới điểm đang đi và lúc kiểm tra gần nhất để dừng khi bị chặn.
+   */
+  goal: { x: number; y: number; path: Pt[]; i: number; d: number; t: number } | null = null;
+  grid: SolidGrid | null = null;    // lưới ô chặn của bản đồ (shared/move.ts): dự đoán chuyển động, tìm đường khi bấm chuột
   dir = { x: 0, y: 0 };             // hướng đi đã gửi gần nhất (đã làm tròn và chuẩn hóa như server đọc)
+  walk = false;                     // input gửi gần nhất có giữ Shift (đi bộ, 11.1)
   pred: Predictor | null = null;    // dự đoán chuyển động của chính mình (mục 6); null khi tắt bằng ?nopredict
   ghost: Phaser.GameObjects.Graphics | null = null; // ?lag: khung đỏ ở vị trí server của chính mình (so với hình vẽ)
   lastZone = "";
@@ -183,7 +193,8 @@ export class GameScene extends Phaser.Scene {
     this.drawPortals();
     this.buildMinimap(map);
     // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts).
-    if (PREDICT && raw) this.pred = new Predictor(solidGrid(raw));
+    if (raw) this.grid = solidGrid(raw);
+    if (PREDICT && this.grid) this.pred = new Predictor(this.grid);
     if (LAG_MS || !PREDICT) {
       // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); gỡ khi scene tắt (đổi bản đồ).
       const tag = document.body.appendChild(document.createElement("div"));
@@ -399,7 +410,7 @@ export class GameScene extends Phaser.Scene {
         if (k < bd) { bd = k; best = { sid: id, name: p.name, level: p.level }; }
       });
       hud.showPlayerMenu(best);
-      if (!best && !over.length && ptr.button === 0) { const w = screenToWorld(ptr.worldX, ptr.worldY); this.goal = { x: w.x, y: w.y, d: Infinity, t: this.time.now }; }
+      if (!best && !over.length && ptr.button === 0) this.walkTo(screenToWorld(ptr.worldX, ptr.worldY));
     });
 
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
@@ -444,8 +455,22 @@ export class GameScene extends Phaser.Scene {
     else if (a === "chanthan") this.room.send("chanthan");
   }
 
+  /**
+   * Bấm nền đất: tìm đường A* (path.ts) từ vị trí dự đoán (tắt dự đoán thì vị trí server) tới điểm bấm, đi vòng vật cản (11.1).
+   * Không tới được thì đi tới chỗ tới được gần điểm bấm nhất; không đi được chút nào thì thôi.
+   */
+  walkTo(w: Pt) {
+    const at = this.pred?.pos ?? this.room.state.players.get(this.me);
+    if (!at) return;
+    const path = this.grid ? findPath(this.grid, at, w) : [w];
+    if (!path.length) { this.goal = null; return; }
+    const end = path[path.length - 1];
+    this.goal = { x: end.x, y: end.y, path, i: 0, d: Infinity, t: this.time.now };
+  }
+
   sendInput() {
     const k = this.keys;
+    const walk = !!(k.ShiftLeft || k.ShiftRight); // 11.1: ngoài giao chiến tự chạy, giữ Shift thì đi bộ
     // Phím và cần điều khiển theo hướng màn hình (lên = lên trên màn hình). Server nhận hướng thế giới tự do (clampDir) nên chỉ cần
     // chiếu ngược hướng đó, giữ độ dài ≤ 1 (10.1). Isometric: "lên" là chéo (-1, -1) thế giới, "phải" là (1, -1).
     const sx = (k.ArrowRight || k.KeyD ? 1 : 0) - (k.ArrowLeft || k.KeyA ? 1 : 0) + this.joy.x;
@@ -453,21 +478,29 @@ export class GameScene extends Phaser.Scene {
     let { x, y } = screenDirToWorld(sx, sy);
     if (sx || sy) this.goal = null; // phím / cần điều khiển thắng điểm bấm
     else if (this.goal) {
-      // Bấm để đi tới: lái thẳng về điểm bấm; tới nơi, hoặc nửa giây không gần thêm (vướng tường, bị chặn) thì dừng.
-      // Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo vị trí server, không theo hình đang nội suy.
-      const at = this.pred?.pos ?? this.room.state.players.get(this.me), g = this.goal;
-      const dx = g.x - (at?.x ?? g.x), dy = g.y - (at?.y ?? g.y), L = Math.hypot(dx, dy);
-      if (L < GOAL_NEAR) this.goal = null;
+      // Bấm để đi tới: lái về từng điểm của đường A*; tới điểm cuối, hoặc nửa giây không gần thêm điểm đang đi tới (bị chặn: hồn thú,
+      // người khác không có trong lưới ô chặn) thì dừng. Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo
+      // vị trí server, không theo hình đang nội suy.
+      // Coi là tới điểm khi còn cách dưới quãng đi một khung (chạy nhanh, khung thưa thì một bước dài hơn GOAL_NEAR: không lắc qua lại).
+      const at = this.pred?.pos ?? this.room.state.players.get(this.me), g = this.goal, me = this.room.state.players.get(this.me);
+      const near = Math.max(GOAL_NEAR, (me ? (this.pred ? stepSpeed(me, walk) : me.spd) : 0) * this.game.loop.delta / 1000);
+      let wp = g.path[g.i], dx = wp.x - (at?.x ?? wp.x), dy = wp.y - (at?.y ?? wp.y), L = Math.hypot(dx, dy);
+      while (L < near && g.i < g.path.length - 1) {
+        wp = g.path[++g.i]; dx = wp.x - (at?.x ?? wp.x); dy = wp.y - (at?.y ?? wp.y); L = Math.hypot(dx, dy); g.d = Infinity; g.t = this.time.now;
+      }
+      if (L < near) this.goal = null;
       else if (this.time.now - g.t > 500) { if (L > g.d - 2) this.goal = null; else { g.d = L; g.t = this.time.now; } }
       if (this.goal) { x = dx / L; y = dy / L; }
     }
-    const key = `${x.toFixed(2)},${y.toFixed(2)}`;
+    const key = `${x.toFixed(2)},${y.toFixed(2)},${walk}`;
     if (this.pred?.resend) this.lastInput = ""; // server đã tự dừng hướng đi (hook thử goto): gửi lại hướng đang giữ với số mới
     if (key !== this.lastInput) {
       this.lastInput = key; x = +x.toFixed(2); y = +y.toFixed(2);
       this.dir = clampDir(x, y);
       // Có dự đoán thì đánh số input để server trả lại số cuối đã nhận (PlayerState.seq / seqT) cho bước đối chiếu.
-      this.room.send("input", this.pred ? { x, y, s: this.pred.next() } : { x, y });
+      this.walk = walk;
+      const w = walk ? { w: 1 } : {};
+      this.room.send("input", this.pred ? { x, y, s: this.pred.next(), ...w } : { x, y, ...w });
     }
   }
 
@@ -1202,7 +1235,7 @@ export class GameScene extends Phaser.Scene {
       else if (mine && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
       if (v.lock && time < v.lock.until) v.face = v.lock.face; // đang đánh: quay về phía đòn đánh
       else if (d8) { v.lock = null; v.face = d8; }
-      if (mine) { const at = this.pred!.update(p, this.dir, dt); v.wx = at.x; v.wy = at.y; }
+      if (mine) { const at = this.pred!.update(p, this.dir, dt, this.walk); v.wx = at.x; v.wy = at.y; }
       else if (Math.hypot(p.x - v.wx, p.y - v.wy) > 64) { v.wx = p.x; v.wy = p.y; }
       else { v.wx += (p.x - v.wx) * lerp; v.wy += (p.y - v.wy) * lerp; }
       const at = W2S(v.wx, v.wy);
@@ -1216,7 +1249,9 @@ export class GameScene extends Phaser.Scene {
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
-      this.animatePlayer(v, p, time, walk);
+      // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác theo `spd` của server.
+      const spd = mine ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
+      this.animatePlayer(v, p, time, walk, spd);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); }
@@ -1256,7 +1291,11 @@ export class GameScene extends Phaser.Scene {
       if (!syncBeastSprite(s, beastBase(b.rank, b.species)?.id, b.moving, b.aggro, b.cast)) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
-      } else if (s.scale !== k * SPR) s.setScale(k * SPR);
+      } else {
+        if (s.scale !== k * SPR) s.setScale(k * SPR);
+        // 11.1: đuổi nhanh hơn lang thang nhiều lần nên bước chân cũng nhanh theo (khung báo trước / ra đòn giữ nhịp vẽ).
+        s.anims.timeScale = b.moving && !b.cast ? (b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander) : 1;
+      }
       // Cuồng nộ: nháy đỏ (đè màu hung hăng; sprite theo loài tự đặt lại màu hung hăng mỗi khung).
       if (b.buff & beastBuffBit("rage") && Math.floor(time / 160) % 2) { s.setTint(0xff7050); s.setData("rgTint", true); }
       else if (s.getData("rgTint")) { s.clearTint(); s.setData("rgTint", false); }
@@ -1409,15 +1448,17 @@ export class GameScene extends Phaser.Scene {
   /**
    * Chọn animation lớp thân theo state (gục > hấp thụ > đánh / tung hồn kỹ / bị đánh > đi / đứng) và hướng nhìn `v.face`,
    * rồi đặt khung tương ứng cho áo, tóc, phụ thể (bảng ánh xạ 5.11) và vị trí các vòng hồn hoàn.
-   * `moving`: đang đi (chính mình khi dự đoán: theo phím, không chờ cờ `moving` của server).
+   * `moving`: đang đi (chính mình khi dự đoán: theo phím, không chờ cờ `moving` của server); `spd`: tốc độ đi (pixel/giây) để chọn nhịp
+   * animation `walk` (11.1; các animation khác giữ nhịp vẽ vì thời lượng đòn đánh / hồn kỹ tính theo honsuAnimMs).
    */
-  animatePlayer(v: PView, p: any, time: number, moving: boolean) {
+  animatePlayer(v: PView, p: any, time: number, moving: boolean, spd = WALK_ANIM_SPEED) {
     const sheet = bodyKey(p);
     if (v.act && time >= v.act.t0 + honsuAnimMs(this, sheet, v.act.anim)) v.act = null;
     const anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
     const { key, flip } = honsuAnimKey(this, sheet, anim, v.face);
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
     if (tag !== v.playing) { v.playing = tag; fitHonsuLayer(v.body.play(key)); }
+    v.body.anims.timeScale = anim === "walk" ? Phaser.Math.Clamp(spd / WALK_ANIM_SPEED, WALK_ANIM_SCALE[0], WALK_ANIM_SCALE[1]) : 1;
     v.body.setFlipX(flip);
     syncLayers(v.body, [v.outfit, v.hair], [v.vb, v.vf]);
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.

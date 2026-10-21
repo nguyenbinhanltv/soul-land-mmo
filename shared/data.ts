@@ -600,6 +600,28 @@ export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
  *  mới không tới tầm phát hiện người đứng ở đó; 160 như GATE_CLEAR của BĐ3 (đã gộp vào đây). Người chơi kéo hồn thú về thì vẫn bị đuổi. */
 export const SPAWN_CLEAR = 160;
 
+// ---------- Di chuyển (mục 4 "Di chuyển", bước 11.1) ----------
+/** Tốc độ đi bộ gốc của hồn sư (pixel thế giới mỗi giây; ô TILE 16 pixel nên khoảng 6 ô/giây), nhân hệ số `spd` theo hệ (HE). */
+export const PLAYER_SPEED = 95;
+/** Ngoài giao chiến (TEAM_COMBAT_SECS) hồn sư tự chạy, nhanh gấp RUN_MULT; giữ Shift thì đi bộ. Đang giao chiến luôn đi bộ. */
+export const RUN_MULT = 1.6;
+/**
+ * Tốc độ hồn thú: `spd` theo bậc (TIERS) nhân hệ số theo dáng đi: lang thang `wander`, bị Mê hoặc `charm`, đuổi mục tiêu `chase`, bỏ
+ * về chỗ sinh `ret`. Cuồng nộ (ELITE_RAGE), giai đoạn 2 của thú vương (BossPhase.spd), nổi giận của boss thế giới và Làm chậm nhân thêm.
+ */
+export const BEAST_GAIT = { wander: 0.4, charm: 0.7, chase: 1.4, ret: 1.4 };
+/**
+ * Giới hạn đuổi: hồn thú thường và tinh anh cách chỗ sinh quá `r` pixel thì bỏ mục tiêu, chạy về chỗ sinh; trên đường về không nhận
+ * mục tiêu mới (bị đánh cũng không quay lại), hồn thú thường hồi `heal` sinh lực tối đa mỗi giây (tinh anh hồi đầy khi bỏ giao chiến,
+ * mục 5.4). Tới cách chỗ sinh dưới `near` pixel, hoặc sau `secs` giây (vướng vật cản), thì thôi về. Thú vương, boss thế giới ở trong hang.
+ */
+export const BEAST_LEASH = { r: 240, heal: 0.25, near: 8, secs: 8 };
+/**
+ * Bấm chuột trên nền (client, mục 5.11 "Điều khiển"): tìm đường A* trên lưới ô chặn, chỉ trong `maxTiles` ô mỗi trục quanh chỗ đứng và
+ * xét tối đa `maxNodes` ô; không tới được thì đi tới ô tới được gần điểm bấm nhất.
+ */
+export const CLICK_PATH = { maxTiles: 40, maxNodes: 8000 };
+
 // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5, mọi số đã chốt) ----------
 /** Hình vùng: vệt (đường thẳng dài `r`, rộng `w`), nón (quạt bán kính `r`, góc `arc` độ), vòng (tròn bán kính `r`). */
 export type TeleShape = "line" | "cone" | "circle";
@@ -2258,7 +2280,7 @@ export function calcStats(vh: number, level: number, rings: number[], stars = 1,
     maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k * pc("hp_pct", "hp")) + (bones.hp ?? 0) + (cores.hp ?? 0),
     maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k * pc("mp_pct", "mp")) + (bones.mp ?? 0) + (cores.mp ?? 0),
     atk: (6 + level * 1.6 + atkB) * v.atk * k * pc("atk_pct", "atk") + (bones.atk ?? 0) + (cores.atk ?? 0),
-    speed: 58 * v.spd,
+    speed: PLAYER_SPEED * v.spd, // tốc độ đi bộ; ngoài giao chiến chạy × RUN_MULT (MapRoom.tick)
     // Từ 5.2: tỉ lệ và hệ số chí mạng của đòn đánh vào hồn thú (CRIT cộng hồn hạch).
     crit: CRIT.chance + (cores.crit ?? 0) / 100,
     critMult: CRIT.mult + (cores.crit_dmg ?? 0) / 100,

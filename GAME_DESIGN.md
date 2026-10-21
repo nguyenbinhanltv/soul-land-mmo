@@ -35,7 +35,8 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 
 | Phím | Việc |
 |---|---|
-| WASD / mũi tên | Đi |
+| WASD / mũi tên | Đi (ngoài giao chiến tự chạy) |
+| Shift (giữ) | Đi bộ thay vì chạy |
 | J / Space | Đánh thường |
 | U / I / O / P | 4 ô hồn kỹ mang theo (mục 5.2) |
 | R | Võ Hồn Chân Thân (vòng 7) |
@@ -47,6 +48,11 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | Enter / Esc | Chat / đóng bảng, hộp thoại |
 
 Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Bấm / chạm vào hồn sư khác mở menu người chơi.
+
+**Di chuyển** (số ở `shared/data.ts`, mục "Di chuyển"):
+- Hồn sư đi bộ `PLAYER_SPEED` pixel/giây (khoảng 6 ô/giây) nhân hệ số `spd` theo hệ (`HE`, Mẫn công nhanh hơn).
+- **Ngoài giao chiến tự chạy**, nhanh gấp `RUN_MULT`; giữ Shift thì đi bộ. **Đang giao chiến luôn đi bộ** (đánh trúng hoặc bị đánh là về đi bộ ngay, hết giao chiến thì chạy lại). Tăng tốc, Làm chậm (`SLOW_CAP`), Choáng / Trói áp lên tốc độ đang dùng như cũ. Điện thoại không có Shift: kéo cần điều khiển một phần thì đi chậm theo độ lệch.
+- Hồn thú lang thang chậm và đuổi nhanh (mục 5.3 "Luật chung của hồn thú").
 
 **Giao chiến:** hồn sư "đang giao chiến" khi đánh trúng hoặc bị đánh trong `TEAM_COMBAT_SECS` giây gần nhất. Các việc sắp xếp (xếp đội, chọn hồn kỹ mang theo, gắn / tháo / cường hóa / nâng cấp đồ, hấp thụ, đổi kênh, xếp hàng đấu trường) chỉ làm được khi **không giao chiến, không gục, không đang hấp thụ, không đang đi cổng**. Dùng đan, tiên thảo, mở võ hồn, lên sao thì làm được cả khi giao chiến.
 
@@ -262,7 +268,9 @@ Vùng là object `zone` trong Tiled: loài (`beasts`, kèm trọng số), niên 
 
 **Luật chung của hồn thú**
 - **Chỉ số hồn thú tăng theo số năm** (`beastStats`), không nhảy theo màu. Loài (`BEASTS`, mã cố định dùng cho sprite `beast_{id}`) quyết định kiểu tấn công, chiêu và hệ số chỉ số; kích thước, tốc độ và Hồn Tệ rơi (`BEAST_COIN`) theo bậc màu.
-- Phát hiện người trong `BEAST_AGGRO_R`, lang thang quanh chỗ sinh (`BEAST_WANDER`). Quanh trại cổng, mọi cổng và điểm `arrive` không sinh hồn thú (`SPAWN_CLEAR`, mục 5.8).
+- Phát hiện người trong `BEAST_AGGRO_R`, lang thang quanh chỗ sinh (`BEAST_WANDER`).
+- **Tốc độ theo dáng đi** (`BEAST_GAIT`, nhân `spd` theo bậc ở `TIERS`): lang thang chậm, đuổi mục tiêu nhanh hơn (`chase`), bị Mê hoặc đi lung tung (`charm`). Cuồng nộ, giai đoạn 2 của thú vương, nổi giận của boss thế giới và Làm chậm nhân thêm. Đòn đánh, tầm, chiêu báo trước không đổi theo tốc độ.
+- **Giới hạn đuổi** (`BEAST_LEASH`): hồn thú thường và tinh anh đuổi xa chỗ sinh quá `r` pixel thì bỏ mục tiêu, chạy về chỗ sinh; trên đường về không nhận mục tiêu mới (bị đánh cũng không quay lại), hồn thú thường hồi nhanh sinh lực (tinh anh hồi đầy khi bỏ giao chiến, mục 5.4). Về tới nơi (hoặc hết `secs` giây vì vướng) thì lang thang như cũ. Thú vương và boss thế giới không ra khỏi hang nên không có giới hạn này. Quanh trại cổng, mọi cổng và điểm `arrive` không sinh hồn thú (`SPAWN_CLEAR`, mục 5.8).
 - **Chiêu có báo trước** (`BEAST_SKILLS`, chọn theo loài và năm bằng `beastSkillOf`): hồn thú thường **từ `BEAST_SKILL_YEARS` năm** có 1 chiêu theo loài; dưới mức đó chỉ đánh thường. Có mục tiêu `TELE_FIRST` giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu (dao động để bầy không tung cùng lúc). Hồn thú đứng yên `TELE_WARN` giây, hiện vùng đỏ đầy dần (hình **vệt**, **nón** hoặc **vòng** quanh thân / dưới chân mục tiêu; hướng và tâm khóa lúc bắt đầu); hết giờ mới tính trúng theo **vị trí thật** lúc đó: chạy ra khỏi vùng là né được. Không trúng người trong vùng an toàn, đang đi cổng, đã gục. Chiêu "lao" thì hồn thú lao tới cuối vệt / tâm vòng. Sát thương là bội số đòn thường của hồn thú; chiêu có thể gây trạng thái lên hồn sư.
 - Chiêu tinh anh / thú vương dùng cùng bộ máy, thêm: nhiều vùng một lần tung (`count` / `spread` / `step`), vòng rơi ngẫu nhiên quanh mục tiêu (`scatter`), gọi bầy (`summon`), kéo người (`pull`), đánh dấu một người tham gia (`mark`), nhắm người ít máu nhất (`weak`), hút máu từ người đang bị Trói (`drain`), chiêu toàn sàn (`floor`). Chiêu "nhiều nhát nối tiếp" tung các vùng cùng lúc hoặc gộp bội số.
 - **Rơi đồ dựa vào farm:** mỗi lần hạ hồn thú, mỗi loại đồ tung tỉ lệ riêng theo niên hạn: hồn hoàn luôn rơi; mảnh võ hồn `SHARD_DROP`; hồn cốt `BONE_DROP`; hồn hạch `CORE_DROP` (kèm khoảng sao). Hồn thú càng già tỉ lệ càng cao; tinh anh và boss có hệ số riêng (mục 5.4).
@@ -667,7 +675,7 @@ Game vẽ theo **isometric thật** (ô hình thoi 2:1, 8 hướng, nhìn chéo 
 **Điều khiển**
 - **Phím WASD / mũi tên theo màn hình:** W lên, S xuống, A trái, D phải, kết hợp được 8 hướng màn hình. Client đổi vector màn hình (mx, my) sang hướng thế giới bằng phép chiếu ngược, `x = my + mx / 2`, `y = my − mx / 2`, rồi chuẩn hóa độ dài 1 và gửi `input {x, y, s}` (server không đổi). Ví dụ W → (−1, −1)/√2, D → (1, −1)/√2. Cần điều khiển chạm làm y như vậy với vector cần.
 - **Chuột:** chiếu ngược điểm bấm (`pointer.worldX/Y` của camera rồi `iso → thế giới`).
-  - Bấm hoặc giữ chuột trái trên mặt đất: **đi tới điểm đó** (client gửi hướng tới điểm, dừng khi còn cách dưới 4 pixel, bị chặn quá 0,5 giây, hoặc khi bấm phím đi). Chưa tìm đường; tìm đường A* trên `solidGrid` phía client là việc sau, vẫn chỉ gửi hướng.
+  - Bấm hoặc giữ chuột trái trên mặt đất: **đi tới điểm đó theo đường tìm được**: client tìm đường A* 8 hướng trên lưới ô chặn `solidGrid` (`client/src/path.ts`, không cắt góc ô chặn, rút gọn thành các đoạn đi thẳng được), chỉ trong `CLICK_PATH.maxTiles` ô quanh chỗ đứng và tối đa `CLICK_PATH.maxNodes` ô xét; điểm bấm trong ô chặn / không tới được thì đi tới ô tới được gần nhất. Client vẫn chỉ gửi hướng tới điểm kế tiếp của đường (server tính va chạm như khi giữ phím); dừng khi tới điểm cuối, nửa giây không gần thêm điểm đang đi tới (hồn thú, người khác chắn), hoặc khi bấm phím đi. Chạy / đi bộ như khi giữ phím.
   - Bấm vào hồn thú: **chọn mục tiêu** (vòng chọn dưới chân); hồn sư tự đi tới trong tầm đánh thường rồi đánh, hướng đi cuối cùng hướng vào mục tiêu nên server đánh đúng hướng (`d.dir`). Phím đánh / hồn kỹ dùng mục tiêu đang chọn tương tự.
   - Bấm vào hồn sư khác: mở bảng mời tổ đội. Bấm vào NPC / cổng: đi tới rồi nói chuyện / đi cổng.
   - Chọn đối tượng dưới con trỏ theo thứ tự độ sâu (vật trước nhất thắng), hộp chọn là khung sprite thu nhỏ, không phải ô dưới chân.
@@ -782,9 +790,12 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 
 **Dự đoán chuyển động phía client**
 - Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
-- Client đánh số input `input {x, y, s}`; server ghi `PlayerState.seq` (số cuối đã nhận), `seqT` (số giây hướng đó đã được áp) và `spd` (tốc độ thật lúc này). Server tự dừng hướng đi thì tăng `seq`.
+- Client đánh số input `input {x, y, s, w}` (`w`: giữ Shift, đi bộ); server ghi `PlayerState.seq` (số cuối đã nhận), `seqT` (số giây hướng đó đã được áp), `spd` (tốc độ thật lúc này, đã nhân `RUN_MULT` khi đang chạy), `calm` (ngoài giao chiến) và `walk` (cờ `w` của input cuối). Server tự dừng hướng đi thì tăng `seq`.
+- Mỗi bước dự đoán nhớ cờ đi bộ của nó; tốc độ bước tính lại từ `spd`, `calm`, `walk` (`stepSpeed`), nên giữ / nhả Shift không làm hình giật. Vào giao chiến khi đang chạy (server quyết định) thì đang đi chỉ thu độ lệch chậm (`SMOOTH_MOVING`), hình chậm lại cho server đuổi kịp, không giật lùi.
+- **Bản vá state gửi ngay sau mỗi nhịp `tick()`** (`patchRate = 0`, `broadcastPatch()` cuối mỗi nhịp `TICK_RATE`), không theo hẹn giờ riêng: input tới client chậm nhất một nhịp và mỗi bản vá mang đúng một bước mô phỏng.
+- Animation đi của hồn sư chạy nhanh / chậm theo tốc độ (chính mình theo tốc độ dự đoán, người khác theo `spd`); hồn thú có sheet đi nhanh hơn khi đuổi. Animation đánh / hồn kỹ giữ nhịp vẽ.
 - `client/src/predict.ts` (`Predictor`): mỗi khung tự đi trước, mỗi lần state về thì lấy vị trí server, bỏ phần input server đã áp rồi phát lại phần còn lại; lệch nhỏ thì trượt dần, lệch lớn (bị kéo, đi cổng, hồi sinh) thì đặt thẳng. Người chơi khác và hồn thú nội suy về vị trí server.
-- `?nopredict` tắt dự đoán; `?lag=<ms>` giả trễ mỗi chiều (góc màn hình ghi chế độ, khung đỏ là vị trí server). Kiểm thử không cần server: `npm run test:predict --prefix client`.
+- `?nopredict` tắt dự đoán; `?lag=<ms>` giả trễ mỗi chiều (góc màn hình ghi chế độ, khung đỏ là vị trí server). Kiểm thử không cần server (dự đoán, chạy / đi bộ, tìm đường A*): `npm run test:predict --prefix client`.
 
 **Nhiều kênh**
 - Mỗi phòng của một bản đồ là một kênh, tối đa `CHANNEL_MAX` người (`maxClients`; biến môi trường `CHANNEL_MAX` chỉ có tác dụng khi `GAME_TEST=1`, để thử). `onCreate` lấy số kênh nhỏ nhất còn trống của bản đồ (`onDispose` trả lại), ghi `MapState.channel` và metadata `channel`. Danh sách kênh đọc qua `matchMaker.query({ name: "map", mapId })` (`listChannels`).
@@ -854,6 +865,21 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   - [ ] 10.5b Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp (cần vẽ lại đúng cỡ: thu nhỏ bằng code bị nhòe); dây Lam Ngân quấn tay; hướng riêng cho hư ảnh thú (Linh Miêu nhìn nghiêng / quay lưng) khi còn lượt.
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192.
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b.
+
+**Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (người dùng chốt 2026-10-21; mỗi bước một PR)
+
+Quyết định đã chốt:
+- **Tốc độ:** hồn sư đi khoảng 6 ô/giây; ngoài giao chiến tự chạy nhanh hơn (Shift để đi bộ), giao chiến thì đi bộ. Hồn thú đuổi nhanh hơn trước, lang thang chậm, đuổi xa quá thì bỏ về.
+- **Bản đồ:** mở rộng gấp 8 lần diện tích (khoảng ×2,8 mỗi cạnh): bản đồ săn 90×60 ô thành khoảng 255×170 ô, thành trấn thành khoảng 170–225 × 110–160 ô. Đại Đấu Hồn Trường và Lõi Tinh Đấu giữ cỡ hợp lối chơi. Làm mẫu Tinh Đấu Ngoại vi trước để duyệt.
+- **Truyền tống trận:** mỗi bản đồ 1–3 trận, bước lên lần đầu thì mở khóa (lưu DB); ở trận bất kỳ mở bản đồ thế giới để dịch chuyển tới trận đã mở; tốn ít Hồn Tệ (số ở `data.ts`), cấm khi giao chiến, niệm 3 giây, bị đánh thì ngắt. Vật phẩm **Hồi Thành Phù** về thành gần nhất. Cổng nối bản đồ kề nhau vẫn giữ.
+
+**Đã có:** chạy / đi bộ theo giao chiến, hồn thú đuổi nhanh và bỏ về, bấm chuột tìm đường A*, bản vá state ngay sau mỗi nhịp, animation đi theo vận tốc (11.1).
+
+- [x] 11.1 Di chuyển: đo độ trễ phím → server → màn hình, tốc độ đi / chạy mới, hồn thú tốc độ lang thang / đuổi và giới hạn đuổi, bấm chuột tìm đường A*, animation đi theo vận tốc; bài thử bot.
+- [ ] 11.2 Truyền tống trận và bản đồ thế giới: lớp object `waypoint` trong file Tiled, bảng DB mở khóa (file SQL số kế tiếp), bảng bản đồ thế giới thủy mặc, phí, niệm 3 giây, cấm khi giao chiến; Hồi Thành Phù bán ở thương nhân; bài thử bot.
+- [ ] 11.3 Công cụ dựng bản đồ lớn (`tools/maps`) và bản mẫu Tinh Đấu Ngoại vi ×8: sinh file Tiled từ bố cục vùng (vùng niên hạn, điểm chính, đường nối, sông, vách) và quy tắc địa hình; ô nền có biến thể chống lặp mẫu; cụm rừng, đá, sông, bờ nước, cầu, vách nhiều tầng, tàn tích, điểm nhấn; chỉnh tay được, ổn định theo hạt giống; giữ quy tắc vùng hồn thú và cổng; ảnh xem trước để duyệt.
+- [ ] 11.4 Hiệu năng bản đồ lớn: server chỉ gửi thực thể ở gần cho từng client, lưới không gian cho hồn thú và va chạm, số hồn thú tăng theo diện tích; client vẽ theo khối và chỉ trong tầm camera; đo FPS và băng thông.
+- [ ] 11.5 Mở rộng và làm đẹp các bản đồ còn lại bằng công cụ 11.3 theo mẫu đã duyệt, mỗi bản đồ một điểm nhấn riêng (hồ Sinh Mệnh ở Lõi Tinh Đấu, hoàng cung Thiên Đấu, đền Hải Thần…).
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [ ] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ.
