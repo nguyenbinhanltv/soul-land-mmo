@@ -6542,15 +6542,15 @@ async function arenaTest(){
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
-  // Nhịp xếp hàng (#208): queue / cancel xen kẽ dồn trong một giây chỉ đọc Elo từ DB một lần (một dòng "Đang tìm đối thủ (Elo"),
-  // các lần queue sau bị từ chối bằng tin log (thao tác quá nhanh; PostgreSQL chậm thì có thể là "đang tìm rồi"); hết nhịp thì xếp lại được.
-  { const n=5; await sleep(ARENA.queueCd*1000+50); const l=E.logs.length;
-    for(let i=0;i<n;i++){ E.room.send("arena",{op:"queue"}); E.room.send("arena",{op:"cancel"}); } E.aqAt=Date.now();
-    const got=()=>E.logs.slice(l), reads=()=>got().filter(x=>/Đang tìm đối thủ \(Elo/.test(x)).length, nope=()=>got().filter(x=>/quá nhanh|Đang tìm đối thủ rồi/.test(x)).length;
-    await waitFor(()=>reads()+nope()>=n,2000); await sleep(300);
-    ok(reads()===1&&nope()===n-1&&got().some(x=>/quá nhanh/.test(x)),
-      `queue / cancel dồn ${n} lần: đọc DB ${reads()} lần, từ chối ${nope()} lần (${got().find(x=>/quá nhanh/.test(x))})`);
-    if(E.aq.on) await aop(E,"cancel");
+  // Nhịp xếp hàng (#208): xếp hàng (đọc Elo từ DB, chờ đọc xong) rồi gửi dồn cancel / queue trong một giây: chỉ lần đầu đọc DB (một
+  // dòng "Đang tìm đối thủ (Elo"), các lần queue sau đều bị từ chối bằng tin log "thao tác quá nhanh"; hết nhịp thì xếp lại được.
+  { const n=4; t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`xếp hàng lại sau khi hủy (${t})`);
+    const l=E.logs.length;
+    for(let i=0;i<n;i++){ E.room.send("arena",{op:"cancel"}); E.room.send("arena",{op:"queue"}); } E.room.send("arena",{op:"cancel"});
+    const got=()=>E.logs.slice(l), cnt=re=>got().filter(x=>re.test(x)).length;
+    await waitFor(()=>cnt(/quá nhanh/)>=n&&cnt(/hủy/)>=1,2000); await sleep(300);
+    ok(cnt(/Đang tìm đối thủ/)===0&&cnt(/quá nhanh/)===n&&!E.aq.on,
+      `cancel / queue dồn ${n} lần trong ${ARENA.queueCd} giây: không đọc DB thêm, ${cnt(/quá nhanh/)} lần báo "${got().find(x=>/quá nhanh/.test(x))}", cuối cùng đã hủy`);
     t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`sau ARENA.queueCd = ${ARENA.queueCd} giây: xếp hàng lại được (${t})`);
     t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`); }
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
