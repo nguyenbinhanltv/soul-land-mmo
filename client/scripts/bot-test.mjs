@@ -7526,7 +7526,7 @@ async function arenaEdgeTest(){
   const queue=async b=>{ const l=b.logs.length, n=b.aqN; b.room.send("arena",{op:"queue"}); await waitFor(()=>b.aqN>n&&b.logs.length>l,2000); };
   const found=b=>b.arena.filter(m=>m.k==="found").at(-1), ended=b=>b.arena.filter(m=>m.k==="end").at(-1);
   const enterArena=async b=>{ const id=found(b)?.roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>b.room.state.players?.get(b.room.sessionId)&&b.owned&&b.bag,3000); };
-  const leaveArena=async b=>{ await b.room.leave(); await sleep(300); await back(b); };
+  const leaveArena=async b=>{ const r=b.room; if(r) await Promise.race([r.leave().catch(()=>{}),sleep(1000)]); await sleep(300); await back(b); };
   const close=async b=>{ const r=b.room; if(!r) return; await Promise.race([r.leave().catch(()=>{}),sleep(300)]); };
   const at=async b=>test(b,"goto",{x:ns.x,y:ns.y+16});
 
@@ -7552,11 +7552,15 @@ async function arenaEdgeTest(){
     // Mỗi đối thủ chỉ dùng tối đa 3 lần để không rơi vào trận giao hữu; 4 đối thủ đủ 11 trận thắng xếp hạng cho một tài khoản.
     for(let i=0;i<4;i++){ const b=await bot("B121O"+(i+1),i%2?"u_minh_linh_mieu":"hoa_anh",{sex:i%2,hair:i%3,hairCol:i%5,outfitCol:(i+1)%6}); await warpTown(b); opponents.push(b); }
     for(let i=0;i<ARENA.dailyWins+1;i++){
-      const O=opponents[i%opponents.length]; await back(W); await back(O); await at(W); await at(O);
+      const O=opponents[i%opponents.length];
+      await back(O);
+      await at(W); await at(O);
       W.arena=[]; O.arena=[]; await queue(W); await queue(O);
       ok(await waitFor(()=>found(W)&&found(O)&&found(W).roomId===found(O).roomId,3000),"#121: ghép trận thưởng "+(i+1)+"/"+(ARENA.dailyWins+1));
-      // O ngắt kết nối ngay trên bản đồ sau khi đã ghép, chưa vào phòng sân; W vào sân để kết thúc noshow nhanh.
-      await O.room.leave(); await enterArena(W); await test(W,"afast",{s:0});
+      // O vẫn giữ phòng bản đồ; W vào sân trước để giữ ArenaRoom sống trong lúc chờ MapRoom tự ngắt O.
+      await enterArena(W);
+      ok(await waitFor(()=>O.leftCode===4006,ARENA.joinSecs*1000+2000),"#121: server ngắt kết nối người chưa vào sân (mã "+O.leftCode+")");
+      await test(W,"afast",{s:0});
       ok(await waitFor(()=>ended(W),3000),"#121: ngắt kết nối sau khi ghép xử lý trận "+(i+1));
       const m=ended(W), paid=i<ARENA.dailyWins;
       ok(m?.score===1&&m.reason==="noshow"&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-i-1),
