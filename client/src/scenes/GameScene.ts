@@ -665,10 +665,11 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("npc", (m: { id: string }) => {
       if (!npcDef(m?.id)) return;
       hud.openNpc(m.id, this.bag, {
-        buy: (code, qty) => this.room.send("buy", { code, qty }),
-        sell: (id, qty) => this.room.send("sell", { id, qty }),
-        buyback: (key) => this.room.send("buyback", { key }), // 9.8: mua lại đồ vừa bán
-        expand: () => this.room.send("expand"),            // 9.8: mở rộng túi
+        // #111: gửi kèm mã thương nhân đang mở hộp thoại, server tính đúng bảng hàng của thương nhân đó.
+        buy: (code, qty) => this.room.send("buy", { code, qty, npc: m.id }),
+        sell: (id, qty) => this.room.send("sell", { id, qty, npc: m.id }),
+        buyback: (key) => this.room.send("buyback", { key, npc: m.id }), // 9.8: mua lại đồ vừa bán
+        expand: () => this.room.send("expand", { npc: m.id }),            // 9.8: mở rộng túi
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,
