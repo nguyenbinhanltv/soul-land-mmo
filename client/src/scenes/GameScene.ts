@@ -276,7 +276,7 @@ export class GameScene extends Phaser.Scene {
   paintWaypoints(g: Phaser.GameObjects.Graphics, time: number) {
     for (const w of this.waypoints) {
       const x = w.x + w.w / 2, y = w.y + w.h / 2, open = this.wpOpen.has(w.key), col = open ? 0x8fe0ff : 0x9a9aa8;
-      const pulse = open ? 0.75 + 0.25 * Math.sin(time / 420) : 0.45, R = Math.max(w.w, w.h) * 0.62;
+      const pulse = open ? 0.75 + 0.25 * Math.sin(time / 420) : 0.45, R = Math.max(w.w, w.h) * 0.75;
       g.fillStyle(col, 0.14 * pulse); fillGround(g, x, y, R);
       g.lineStyle(1.5, col, 0.85 * pulse); strokeGround(g, x, y, R);
       g.lineStyle(1, col, 0.6 * pulse); strokeGround(g, x, y, R * 0.66);

@@ -755,7 +755,8 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 #world{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:84%;overflow-y:auto;padding:10px;pointer-events:auto;
   touch-action:pan-y;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(6px)}
 #world[hidden]{display:none}
-#world .wmap{width:100%;height:auto;aspect-ratio:300/170;background:color-mix(in srgb,var(--paper2) 45%,transparent);border:1px solid var(--line)}
+#world>*{flex-shrink:0}
+#world .wmap{display:block;width:100%;height:auto;aspect-ratio:300/170;background:color-mix(in srgb,var(--paper2) 45%,transparent);border:1px solid var(--line)}
 #world .wlink{stroke:var(--inkl);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:5 3;opacity:.8}
 #world .wnode{cursor:pointer}
 #world .wnode .wdot{fill:var(--paper);stroke:var(--inkl);stroke-width:1.5}
@@ -776,7 +777,7 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 #world .wrow.sel{outline:2px solid var(--son);outline-offset:1px}
 #world .wrow:disabled{cursor:default}
 #world .wrow.open:disabled:not(.here){opacity:1}
-#world .wgo{flex-wrap:wrap;align-items:center}
+#world .wgo{flex-wrap:wrap;align-items:center;position:sticky;bottom:-10px;padding:6px 0;background:var(--paper)}
 #world .danger{color:var(--son)}
 /* Hồi Thành Phù khi chưa có ảnh item_hoi_thanh_phu: lá bùa giấy vàng, ấn son tròn (vẽ bằng CSS; cần vẽ Gemini sau). */
 .ico.phu{width:40%;height:66%;position:relative;background:linear-gradient(180deg,#f3dc8a,#d9b24a);box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}

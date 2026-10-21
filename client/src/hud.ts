@@ -2286,8 +2286,8 @@ function renderChannels() {
  * Bản đồ chưa có chỗ thì xếp ở hàng dưới cùng.
  */
 const WORLD_POS: Record<string, [number, number]> = {
-  thanh_hon_thon: [12, 86], nac_dinh_thanh: [30, 70], tinh_dau_ngoai_vi: [54, 80], tinh_dau_noi_dia: [75, 70], loi_tinh_dau: [90, 52],
-  thien_dau_thanh: [34, 42], lac_nhat_sam_lam: [11, 36], cuc_bac_chi_dia: [38, 12], hai_than_dao: [74, 26],
+  thanh_hon_thon: [15, 88], nac_dinh_thanh: [30, 70], tinh_dau_ngoai_vi: [54, 82], tinh_dau_noi_dia: [74, 70], loi_tinh_dau: [86, 50],
+  thien_dau_thanh: [38, 42], lac_nhat_sam_lam: [16, 34], cuc_bac_chi_dia: [40, 12], hai_than_dao: [72, 26],
 };
 let worldMsg: WorldMsg | null = null;
 let worldPick: string | null = null;   // trận đích đang chọn (chờ bấm xác nhận)
@@ -2298,7 +2298,7 @@ export const worldOpen = () => !$("#world").hidden;
 /** Mở / đóng bảng bản đồ thế giới (phím M, nút "Thế giới", F khi đứng trên trận). Mở thì GameScene xin tin `world` mới. */
 export function toggleWorld(open = $("#world").hidden) {
   $("#world").hidden = !open; $("#worldBtn")?.setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); renderWorld(); } else worldPick = null;
+  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); renderWorld(); $("#world").scrollTop = 0; } else worldPick = null;
   return open;
 }
 /** Tin `world` mới (server gửi khi xin): vẽ lại nếu bảng đang mở. */
