@@ -212,26 +212,6 @@
       102,
       99
     ],
-    "tay": [
-      6,
-      78
-    ],
-    "cong_tay": [
-      73,
-      78
-    ],
-    "cong_dong": [
-      131,
-      78
-    ],
-    "dong": [
-      198,
-      78
-    ],
-    "san_tap": [
-      158,
-      77
-    ],
     "hau_son": [
       100,
       22
@@ -2373,6 +2353,32 @@
     },
     {
       "type": "area",
+      "name": "Đường làng phía tây",
+      "ground": "path",
+      "rect": [
+        1,
+        76,
+        75,
+        4
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Đường làng phía đông",
+      "ground": "path",
+      "rect": [
+        128,
+        76,
+        75,
+        4
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
       "name": "Đường xuống cổng nam",
       "ground": "path",
       "rect": [
@@ -2603,21 +2609,6 @@
         "thach_dien"
       ],
       "width": 2
-    },
-    {
-      "via": [
-        "tay",
-        "cong_tay"
-      ],
-      "width": 3
-    },
-    {
-      "via": [
-        "cong_dong",
-        "san_tap",
-        "dong"
-      ],
-      "width": 3
     }
   ],
   "spawn": {
