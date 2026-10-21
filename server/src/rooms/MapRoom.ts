@@ -31,7 +31,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_RADIUS, parseAuto, autoLeft, autoTimeText, type AutoSettings,
+  ARENA, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
@@ -132,8 +132,9 @@ export interface PData {
   // tính lại từ võ hồn và đồ đang gắn (resCheck) khi nạp tài khoản và mỗi khi dữ liệu liên quan đổi. `resKey`: tin "resonance" lần trước.
   res: { prog: number[]; lv: number[]; bonus: Record<ResStat, number> }; resKey: string;
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
-  // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng).
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoDirty: boolean;
+  // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
+  // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean;
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
@@ -468,7 +469,7 @@ export class MapRoom extends Room<MapState> {
       throw new ServerError(409, `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${Math.ceil((leftRoom.get(acc.accountId)!.until - Date.now()) / 1000)} giây.`);
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
       bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [],
-      auto: { settings: null, day: "", used: 0 } };
+      auto: { settings: null, day: "", used: 0, bonus: 0 } };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
     // Đội hình (tài khoản cũ được tự xếp trong store). Bỏ ô trỏ tới võ hồn không còn sở hữu; võ hồn ra trận luôn nằm trong đội.
     const team = (await store.getTeam(acc.accountId)).map((r) => (owned.some((v) => v.rowId === r) ? r : 0));
@@ -634,7 +635,8 @@ export class MapRoom extends Room<MapState> {
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false,
-      auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0, autoDirty: false };
+      auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
+      autoBonus: auth.auto.bonus, autoDirty: false };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.state.online = this.state.players.size;
@@ -997,7 +999,7 @@ export class MapRoom extends Room<MapState> {
     if (d.absorbing) return deny("đang hấp thụ hồn hoàn.");
     if (d.travelCast) return deny("đang đi cổng / truyền tống.");
     if (this.map.inSafe(p.x, p.y)) return deny("đang ở vùng an toàn, ra bãi săn rồi bật.");
-    if (d.autoUsed >= AUTO_DAILY_SECS) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
+    if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
     if (bagUsed(d.bag) >= d.bagSlots) return deny(`túi đồ đã đầy (${d.bagSlots} ô).`);
     const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
     let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
@@ -1007,31 +1009,63 @@ export class MapRoom extends Room<MapState> {
     // gửi lại hướng khác 0 là tự di chuyển nên tự săn tắt ngay (tay ưu tiên).
     if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) { p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
     this.applyInput(d, 0, 0, false);
-    this.log(id, `Bật tự động: săn quanh đây (${AUTO_RADIUS / TILE} ô), còn ${autoTimeText(autoLeft(d.autoUsed))} hôm nay. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
+    this.log(id, `Bật tự động: săn quanh đây (${d.autoCfg.radius} ô), còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))} treo. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
     this.sendAuto(id);
   }
 
-  /** Dừng tự săn của `id` (nếu đang chạy) với lý do `why`: đứng yên, lưu giờ treo trong chuỗi lưu, báo người chơi. */
+  /** Dừng tự săn của `id` (nếu đang chạy) với lý do `why`: đứng yên, lưu giờ treo trong chuỗi lưu, báo người chơi kèm tổng kết (Auto 2). */
   autoStop(id: string, why: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!d?.auto) return;
+    const sum = d.auto.summary(d);
     d.auto = null; if (p) p.auto = false;
     this.applyInput(d, 0, 0, false);
     d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
     this.log(id, `Đã dừng tự động: ${why}`, "#ffb35c");
-    this.sendAuto(id, why);
+    this.sendAuto(id, why, sum);
   }
 
-  /** Tin riêng `auto`: đang bật không, giây treo còn lại hôm nay và tối đa, cài đặt, lý do vừa dừng / từ chối (nếu có). */
-  sendAuto(id: string, why?: string) {
+  /**
+   * Tin riêng `auto`: đang bật không, giây treo còn lại (phần còn của hôm nay cộng quỹ Ủy Thác Lệnh), tối đa mỗi ngày, quỹ cộng thêm,
+   * cài đặt, lý do vừa dừng / từ chối và tổng kết lượt vừa dừng (nếu có).
+   */
+  sendAuto(id: string, why?: string, sum?: AutoSummary) {
     const d = this.pdata.get(id); if (!d) return;
-    this.clients.getById(id)?.send("auto", { on: !!d.auto, left: autoLeft(d.autoUsed), max: AUTO_DAILY_SECS, cfg: d.autoCfg, ...(why ? { why } : {}) });
+    this.clients.getById(id)?.send("auto", { on: !!d.auto, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus),
+      cfg: d.autoCfg, ...(why ? { why } : {}), ...(sum ? { sum } : {}) });
+  }
+
+  /** Dòng tự săn để lưu (cài đặt, ngày, giờ đã treo, quỹ cộng thêm; làm tròn 0,1 giây). */
+  autoRow(d: PData): AutoRow {
+    return { settings: d.autoCfg, day: d.autoDay, used: Math.round(d.autoUsed * 10) / 10, bonus: Math.round(d.autoBonus * 10) / 10 };
+  }
+
+  /**
+   * Dùng Ủy Thác Lệnh (Auto 2): cộng `def.auto` giây vào quỹ giờ treo cộng thêm, tối đa AUTO_BONUS_MAX (đầy thì không dùng, lệnh còn).
+   * Túi đã bớt lệnh và quỹ mới ghi cùng một transaction (saveAutoBag) trong chuỗi lưu.
+   */
+  useAutoToken(id: string, d: PData, it: Item, def: ItemDef) {
+    const add = def.auto ?? 0;
+    if (d.autoBonus + add > AUTO_BONUS_MAX)
+      return this.log(id, `Giờ treo cộng thêm đã có ${autoTimeText(d.autoBonus)}, tối đa ${autoTimeText(AUTO_BONUS_MAX)}: dùng bớt rồi hãy dùng ${def.name}.`, "#ffb35c");
+    const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; }
+    this.takeItem(d, it, 1);
+    d.autoBonus += add;
+    const p = this.state.players.get(id);
+    if (p) this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 22, col: def.col });
+    this.log(id, `Dùng ${def.name}: +${autoTimeText(add)} treo tự săn (cộng thêm còn ${autoTimeText(d.autoBonus)}; tổng còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))}).`, def.col);
+    this.sendBag(id); this.sendAuto(id);
+    this.chain(d, async () => {
+      d.autoDirty = false;
+      try { await store.saveAutoBag(d.accountId, this.autoRow(d), this.bagSnapshot(d)); }
+      catch (e) { d.autoDirty = true; d.bagDirty = true; throw e; }
+    });
   }
 
   /** Ghi cài đặt và giờ treo tự săn nếu đổi từ lần trước (chỉ gọi trong chuỗi lưu). Lỗi thì ghi log, đánh dấu để lần sau ghi lại. */
   async flushAuto(d: PData) {
     if (!d.autoDirty) return;
     d.autoDirty = false;
-    try { await store.saveAuto(d.accountId, { settings: d.autoCfg, day: d.autoDay, used: Math.round(d.autoUsed * 10) / 10 }); }
+    try { await store.saveAuto(d.accountId, this.autoRow(d)); }
     catch (e) { d.autoDirty = true; console.error(`Lưu tự săn của tài khoản #${d.accountId} thất bại`, e); }
   }
 
@@ -1494,6 +1528,7 @@ export class MapRoom extends Room<MapState> {
     const def = itemDef(it.code);
     if (def?.kind === "tien_thao") return this.useHerb(id, d, it, vohonId);
     if (def?.recall) return this.useRecall(id, it); // Hồi Thành Phù (11.2)
+    if (def?.auto) return this.useAutoToken(id, d, it, def); // Ủy Thác Lệnh (Auto 2)
     if (!def || !(def.hp || def.mp)) return warn(`${def?.name ?? "Vật phẩm này"} không dùng trực tiếp được.`);
     if (p.dead) return warn("Đã gục ngã, không thể dùng đan dược.");
     if (d.absorbing) return warn("Đang hấp thụ hồn hoàn, không thể dùng đan dược.");
@@ -2384,10 +2419,12 @@ export class MapRoom extends Room<MapState> {
       // Auto 1: `used` đặt số giây đã treo hôm nay (thử hết giờ); `pvp` một đòn như của người chơi khác (hurtPlayer với `pvp`, phòng bản
       // đồ không có PvP thật); trả trạng thái tự săn (mục tiêu, đồ đang nhặt, điểm neo, võ hồn chính khi đổi tay tiên cơ).
       if (typeof o.used === "number" && Number.isFinite(o.used)) { d.autoUsed = Math.max(0, Math.min(AUTO_DAILY_SECS, o.used)); d.autoDay = this.today(); d.autoDirty = true; this.sendAuto(id); }
+      // Auto 2: `bonus` đặt quỹ giờ treo cộng thêm (giây, 0..AUTO_BONUS_MAX).
+      if (typeof o.bonus === "number" && Number.isFinite(o.bonus)) { d.autoBonus = Math.max(0, Math.min(AUTO_BONUS_MAX, o.bonus)); d.autoDirty = true; this.sendAuto(id); }
       if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
       const a = d.auto;
       const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
-      out = { on: !!a, used: d.autoUsed, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
+      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
     }
     else if (op === "elock") {
