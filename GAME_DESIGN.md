@@ -208,7 +208,7 @@ Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. B�
 - **Tên hồn kỹ:** lấy theo truyện khi biết (Lam Ngân Bá Vương Thương, Hạo Thiên Cửu Tuyệt, Loạn Phi Phong Chùy Pháp, U Minh Bách Trảo, Vô Địch Thần Quang, Lôi Động Minh Thiên, Yêu Cung / Thuấn Di / Vô Địch Kim Thân / Bát Đoạn Suất / Mị Hoặc của Tiểu Vũ, Khôi Phục Đại Hương Tràng / Phục Chế Hương Tràng của Áo Tư Tạp…), còn lại đặt theo phong cách Đấu La. Không để hai hồn kỹ của cùng võ hồn trùng hoặc gần trùng tên (bản nhỏ ở vòng 3–4 mang tên khác tuyệt kỹ thật ở vòng 10). Chỉ đổi tên khi có tên truyện chắc chắn.
 
 ### 5.3 Thế giới nhiều bản đồ và hồn thú
-Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đồ là một file Tiled riêng (`shared/assets/<mapId>.json`, sinh bằng `tools/gen-map.mjs`; bản đồ lớn dựng bằng `tools/maps` từ bố cục, mục 6) và một loại phòng trên server (mỗi phòng là một kênh, mục 6). Loại bản đồ (`MapDef.kind`):
+Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đồ là một file Tiled riêng (`shared/assets/<mapId>.json`, sinh bằng `tools/gen-map.mjs`; bản đồ lớn dựng bằng `tools/maps` từ bố cục `tools/maps/layouts/<mapId>.json` ra `<mapId>.v2.json`, mặc định từ 11.5, mục 6) và một loại phòng trên server (mỗi phòng là một kênh, mục 6). Loại bản đồ (`MapDef.kind`):
 - **Thành (`town`):** cả bản đồ an toàn, không hồn thú (Nặc Đinh Thành, Thiên Đấu Thành).
 - **Bản đồ săn (`hunt`):** 3–4 vùng, càng sâu hồn thú càng già và mạnh; có thể chứa vùng an toàn `safe` (làng Thánh Hồn Thôn).
 - **Bản đồ boss (`boss`):** Lõi Tinh Đấu, chỉ có boss thế giới.
@@ -216,16 +216,18 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đ�
 
 **Danh sách bản đồ** (`MAPS`: cấp đề xuất `level`, khoảng niên hạn `years`, mảnh võ hồn `shards`, bộ hồn hạch `cores`, thú vương `king`). Tài khoản mới bắt đầu ở Thánh Hồn Thôn (`DEFAULT_MAP`).
 
+**Cỡ bản đồ** (11.5): bản đồ săn gấp khoảng 8 lần diện tích bản cũ (khoảng ×2,8 mỗi cạnh: 90×60 → 255×170 ô, Cực Bắc 72×96 → 204×272), số hồn thú thường theo mật độ `BEAST_DENSITY` của bản cũ nên tăng theo diện tích; mỗi tầng niên hạn chia vài vùng có tên, mỗi bản đồ một sắc riêng (mục 5.11 B) và một điểm nhấn. Đại Đấu Hồn Trường và Lõi Tinh Đấu giữ cỡ hợp lối chơi.
+
 | Bản đồ (`mapId`) | Loại | Đặc điểm | Nối với |
 |---|---|---|---|
 | Thánh Hồn Thôn (`thanh_hon_thon`) | Săn | Quê Đường Tam; làng giữa bản đồ là vùng `safe`; không có thú vương | Nặc Đinh Thành |
 | Nặc Đinh Thành (`nac_dinh_thanh`) | Thành | Đại Sư, thương nhân, lò rèn | Thánh Hồn Thôn, Ngoại vi, Thiên Đấu Thành |
 | Tinh Đấu Ngoại vi (`tinh_dau_ngoai_vi`) | Săn | Bìa Tinh Đấu Đại Sâm Lâm | Nặc Đinh Thành, Nội địa |
-| Tinh Đấu Nội địa (`tinh_dau_noi_dia`) | Săn | Rừng sâu, đầm độc, thung lũng sấm | Ngoại vi, Lõi Tinh Đấu (bến bờ hồ cuối Hắc Ám Lâm) |
+| Tinh Đấu Nội địa (`tinh_dau_noi_dia`) | Săn | Rừng sâu, đầm độc (Thất Tinh Đàm), hẻm Lôi Cốc vách đôi với Lôi Đài tinh thể tím, Hắc Ám Lâm; hồ trung tâm ở mép đông | Ngoại vi, Lõi Tinh Đấu (bến bờ hồ cuối Hắc Ám Lâm) |
 | Thiên Đấu Thành (`thien_dau_thanh`) | Thành | Thủ đô: Đại Đấu Hồn Trường, Sử Lai Khắc Học Viện, thương hội, lò rèn | Nặc Đinh Thành (cổng nam), Lạc Nhật (cổng tây), Cực Bắc (cổng bắc), Hải Thần Đảo (bến thuyền) |
-| Lạc Nhật Sâm Lâm (`lac_nhat_sam_lam`) | Săn | Thực vật, độc, suối Băng Hỏa Lưỡng Nghi Nhãn; rơi tiên thảo | Thiên Đấu Thành |
-| Cực Bắc Chi Địa (`cuc_bac_chi_dia`) | Săn | Băng tuyết; trại cổng ở mép nam, càng lên bắc càng sâu | Thiên Đấu Thành |
-| Hải Thần Đảo / Ma Quỷ Hải Vực (`hai_than_dao`) | Săn | Đảo giữa biển; hồn thú biển; nơi duy nhất có hồn thú thường 10 vạn năm | Thiên Đấu Thành (bến thuyền) |
+| Lạc Nhật Sâm Lâm (`lac_nhat_sam_lam`) | Săn | Thực vật, độc, đầm Bích Lân; băng nguyên và nham cháy ở Băng Hỏa Tuyền; suối đôi Băng Hỏa Lưỡng Nghi Nhãn (hồ băng cạnh hồ lửa); rơi tiên thảo | Thiên Đấu Thành |
+| Cực Bắc Chi Địa (`cuc_bac_chi_dia`) | Săn | Băng tuyết; trại cổng ở mép nam, càng lên bắc càng sâu: hồ băng, khe băng có cầu băng, thung lũng vách băng, băng điện cổ, vực băng và Băng Tủy Thụ | Thiên Đấu Thành |
+| Hải Thần Đảo / Ma Quỷ Hải Vực (`hai_than_dao`) | Săn | Đảo giữa biển sâu, cầu tàu ở bờ tây; rạn nông có đường đá nối các bãi; đền Hải Thần với tượng đinh ba trên Vách Hải Thần; hồn thú biển; nơi duy nhất có hồn thú thường 10 vạn năm | Thiên Đấu Thành (bến thuyền) |
 | Lõi Tinh Đấu (`loi_tinh_dau`) | Boss | Hồ trung tâm Tinh Đấu Đại Sâm Lâm, sàn đấu boss thế giới | Nội địa |
 | Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Sân đấu | Sân nhỏ cho một trận 1v1 (`ARENA_MAP`) | – |
 
@@ -242,7 +244,7 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đ�
 - Quanh trận không sinh hồn thú (`SPAWN_CLEAR`, như quanh cổng).
 
 - **Lõi Tinh Đấu:** đăng xuất ở đây (rời phòng không qua cổng / đổi kênh) thì lần sau vào ở bến bờ hồ Nội địa (`MapDef.exit`).
-- Vị trí và bản đồ đang đứng được lưu; vào lại ở đúng chỗ cũ (kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn`). Mã bản đồ cũ đã bỏ ánh xạ qua `MAP_MOVED`.
+- Vị trí và bản đồ đang đứng được lưu kèm tên file Tiled lúc lưu; vào lại ở đúng chỗ cũ (kẹt trong ô chặn, ngoài bản đồ, hoặc file đang dùng khác file lúc lưu, ví dụ lưu ở bản cũ rồi bản ×8 thành mặc định, thì về `spawn`). Mã bản đồ cũ đã bỏ ánh xạ qua `MAP_MOVED`.
 
 **Quy cấp theo niên hạn**
 - **Cấp tương đương** của hồn thú là cấp nhỏ nhất mà võ hồn hấp thụ được hồn hoàn của nó trong giới hạn (`beastLevel`, tính từ `RING_LIMIT`; vòng k hấp thụ ở cấp 10×k). Mỗi bản đồ săn nhắm khoảng cấp mà niên hạn hồn thú khớp giới hạn **vòng kế tiếp**, vùng sâu nhất vượt giới hạn một chút cho người muốn liều; khoảng cấp các bản đồ kế nhau chồng lên nhau.
@@ -256,15 +258,15 @@ Vùng là object `zone` trong Tiled: loài (`beasts`, kèm trọng số), niên 
 |---|---|---|
 | Thánh Hồn Thôn | Đồng lúa ven làng, Bãi tập hồn sư, Hậu Sơn | – |
 | Tinh Đấu Ngoại vi | Bìa rừng, Rừng thưa, Khe suối, Rìa nội địa (bản ×8 thêm Đồi Phong Lang, Phế Tích Hồn Sư, Vách Đá Rêu, Lang Cốc) | Huyết Nguyệt Lang Vương (gọi bầy sói; GĐ2 Huyết Cuồng: đánh dấu một người rồi lao xuyên) |
-| Tinh Đấu Nội địa | Rừng cổ thụ, Đầm sương độc, Lôi Cốc, Hắc Ám Lâm | Thiên Độc Chu Hoàng (lưới tơ Trói, mưa kim độc; GĐ2 Vạn Chu Phệ: gọi nhện con, dải tơ rộng) |
-| Lạc Nhật Sâm Lâm | Rừng hoa độc, Đầm Bích Lân, Băng Hỏa Tuyền, Lưỡng Nghi Nhãn | Lưỡng Nghi Thủ Hộ Xà (hơi thở băng / lửa; GĐ2 Lưỡng Nghi: dải băng gây Choáng, dải lửa gây Thiêu đốt) |
-| Cực Bắc Chi Địa | Tuyết nguyên, Băng hà nứt, Băng Phong Cốc, Cực Bắc Băng Uyên | Huyền Minh Băng Giao (vệt băng cắt ngang hang, mưa băng; GĐ2 Cực Hàn: bão băng làm chậm, đánh dấu một người rồi đóng băng) |
-| Hải Thần Đảo | Bãi san hô, Ma Quỷ Hải Vực, Vách Hải Thần, Hải Thần Uyên | Thâm Hải Ma Kình Vương (gầm Choáng, hút người về giữa; GĐ2: dải thủy triều làm chậm, xoáy nước kéo người) |
+| Tinh Đấu Nội địa | Rừng cổ thụ, Đầm sương độc, Lôi Cốc, Hắc Ám Lâm (bản ×8 thêm Lang Lâm U Minh, Thất Tinh Đàm, Lôi Đài Thạch, Thiên Độc Cốc) | Thiên Độc Chu Hoàng (lưới tơ Trói, mưa kim độc; GĐ2 Vạn Chu Phệ: gọi nhện con, dải tơ rộng) |
+| Lạc Nhật Sâm Lâm | Rừng hoa độc, Đầm Bích Lân, Băng Hỏa Tuyền, Lưỡng Nghi Nhãn (bản ×8 thêm Hoa Cốc Mạn Đà, Lân Quang Trạch, Hỏa Diễm Nham, Cổ Đằng Lâm) | Lưỡng Nghi Thủ Hộ Xà (hơi thở băng / lửa; GĐ2 Lưỡng Nghi: dải băng gây Choáng, dải lửa gây Thiêu đốt) |
+| Cực Bắc Chi Địa | Tuyết nguyên, Băng hà nứt, Băng Phong Cốc, Cực Bắc Băng Uyên (bản ×8 thêm Tuyết Lang Nguyên, Vạn Liệt Băng Hà, Hàn Nguyệt Nhai, Huyền Minh Băng Động) | Huyền Minh Băng Giao (vệt băng cắt ngang hang, mưa băng; GĐ2 Cực Hàn: bão băng làm chậm, đánh dấu một người rồi đóng băng) |
+| Hải Thần Đảo | Bãi san hô, Ma Quỷ Hải Vực, Vách Hải Thần, Hải Thần Uyên (bản ×8 thêm Ghềnh Cự Giải, Rạn Lôi Quang, Hải Thần Điện) | Thâm Hải Ma Kình Vương (gầm Choáng, hút người về giữa; GĐ2: dải thủy triều làm chậm, xoáy nước kéo người) |
 
 - Tinh anh, thú vương, boss thế giới không có loài riêng thì **mượn loài gốc** trong `BEASTS` (chỉ số, sprite, hồn cốt).
 - Lõi Tinh Đấu có một vùng "Hồ trung tâm" không sinh hồn thú thường.
 
-**Lạc Nhật Sâm Lâm:** nơi duy nhất rơi **tiên thảo** (mục 5.7). Mỗi con hồn thú hạ ở đây có tỉ lệ theo **tên vùng** (`MapDef.herbs`, vùng càng sâu càng cao), tinh anh nhân `HERB_ELITE`, thú vương không rơi (chỉ có rương). Một cây ngẫu nhiên trong 3 loại vào thẳng túi người hạ.
+**Lạc Nhật Sâm Lâm:** nơi duy nhất rơi **tiên thảo** (mục 5.7). Mỗi con hồn thú hạ ở đây có tỉ lệ theo **tên vùng** (`MapDef.herbs`, vùng càng sâu càng cao; vùng có tên thêm ở bản ×8 cùng tỉ lệ với tầng của nó), tinh anh nhân `HERB_ELITE`, thú vương không rơi (chỉ có rương). Một cây ngẫu nhiên trong 3 loại vào thẳng túi người hạ.
 
 **Hồn thú 10 vạn năm:** mỗi kênh của một bản đồ có tối đa 1 hồn thú **thường** đúng `MAX_YEARS` năm cùng lúc; chỉ vùng có mức trên `years` = `MAX_YEARS` (Hải Thần Uyên) sinh được, mỗi lần sinh có `RED_BEAST_CHANCE` ra đúng 10 vạn năm nếu kênh chưa có con nào. Tinh anh, thú vương, boss thế giới và hồn thú do chúng gọi ra không tính.
 
@@ -640,7 +642,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arrive` không tồn tại hoặc nằm trong `portal`, mã NPC lạ) thì server ghi cảnh báo và bỏ object đó. `npm run map` (`tools/gen-map.mjs`) sinh lại các bản đồ và **ghi đè** bản đã sửa tay.
 
-**Bản đồ lớn dựng bằng `tools/maps`** (11.3, cách dùng ở `tools/maps/README.md`): file Tiled cùng định dạng, sinh từ bố cục `tools/maps/layouts/<mapId>.json` (vùng niên hạn theo đa giác tách thành chữ nhật, điểm chính, đường A*, suối, vách, tàn tích, điểm nhấn) và lớp chỉnh tay `tools/maps/hand/<mapId>.json`; cùng hạt giống ra cùng file, `npm run check` báo lỗi khi file khác bản sinh. Bản dựng lại của bản đồ đang có là `<mapId>.v2.json`, chỉ dùng khi server bật biến môi trường `MAP_V2` (danh sách `mapId` hoặc `all`); server ghi tên file ở `MapState.mapFile`, client tải đúng file đó (cùng lưới va chạm với server).
+**Bản đồ lớn dựng bằng `tools/maps`** (11.3, cách dùng ở `tools/maps/README.md`): file Tiled cùng định dạng, sinh từ bố cục `tools/maps/layouts/<mapId>.json` (vùng niên hạn theo đa giác tách thành chữ nhật, điểm chính, đường A*, suối, vách, tàn tích, điểm nhấn) và lớp chỉnh tay `tools/maps/hand/<mapId>.json`; cùng hạt giống ra cùng file, `npm run check` báo lỗi khi file khác bản sinh. Bản dựng lại của bản đồ đang có là `<mapId>.v2.json` và là **bản mặc định** khi có file (11.5); đường lùi: biến môi trường `MAP_V1` (danh sách `mapId` hoặc `all`) dùng lại bản cũ `<mapId>.json`. Server ghi tên file ở `MapState.mapFile`, client tải đúng file đó (cùng lưới va chạm với server). Tọa độ chỉ có nghĩa trên một file: vị trí lưu kèm tên file đang dùng (`accounts.map_file`); vào lại mà file đã lưu khác file server đang dùng (bản ×8 thành mặc định, đổi qua lại bằng `MAP_V1`) thì vào ở `spawn`; dòng ghi trước 11.5 (NULL) coi là bản cũ `<mapId>`.
 
 **Hiển thị isometric phía client** (quy tắc hình ở mục 5.11)
 - Server và file Tiled giữ tọa độ thế giới Descartes; client chỉ chiếu khi vẽ. `client/src/iso.ts`: `worldToScreen` / `screenToWorld` (cỡ thoi đổi bằng một hằng `TILE_W`, `TILE_H = TILE_W / 2`), độ sâu vẽ `depthAt` (tỉ lệ x + y của điểm chân), elip mặt đất `fillGround` (`RX` / `RY`), đa giác chiếu `ptsToScreen`, hướng 8 phía `dir8` và hướng gần nhất của sprite 4 hướng cũ `legacyDir`. Hằng hiển thị, không phải số cân bằng.
@@ -708,7 +710,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 **Dữ liệu trong `shared/data.ts`** (server và client cùng import; mã cố định không bao giờ đổi, thêm phần tử mới vào cuối mảng vì chỉ số dùng để đồng bộ): `MAPS`, `BEASTS`, `BEAST_SKILLS`, `BOSSES`, `VOHON`, `VOHON_SKILLS`, `VOHON_SKILLS_HIGH`, `TIEN_CO_RIENG`, `CHAN_THAN`, `BONDS`, `STATUS`, `BUFFS`, `ITEMS`, `HERBS`, `CORE_SETS`, `BONE_SKILLS`, `NPCS`, `QUESTS`, `DAILY`, `DAILY_POOL`, `RESONANCE`, `ARENA` và mọi hằng số cân bằng. Cấp tương đương tính bằng hàm từ `RING_LIMIT`, không lưu bảng riêng.
 
 **Dữ liệu lâu dài** trong PostgreSQL / Supabase (`server/sql/`, mỗi file `00N_….sql` với `CREATE TABLE IF NOT EXISTS` và bật RLS; `PgStore.init()` chạy mọi file theo tên mỗi lần khởi động). Không có `DATABASE_URL` thì dùng `MemoryStore` (RAM). Bảng chính:
-- `accounts` (tài khoản, ngoại hình, võ hồn ra trận, `map_id` + `pos_x` / `pos_y`, `bag_slots`, Hồn Tệ), `sessions`.
+- `accounts` (tài khoản, ngoại hình, võ hồn ra trận, `map_id` + `pos_x` / `pos_y` + `map_file` (file Tiled của tọa độ), `bag_slots`, Hồn Tệ), `sessions`.
 - `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn theo số năm, `skills` 4 ô mang theo, `herbs`), `teams` (mỗi ô đội hình một dòng).
 - `items` (mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn).
 - `waypoints` (truyền tống trận tài khoản đã mở, mã `<mapId>:<tên>`; chỉ thêm).
@@ -735,13 +737,13 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
 
-**Đã có:** chạy / đi bộ theo giao chiến, hồn thú đuổi nhanh và bỏ về, bấm chuột tìm đường A*, bản vá state ngay sau mỗi nhịp, animation đi theo vận tốc (11.1); truyền tống trận (object `waypoint`, bảng `waypoints`), bản đồ thế giới thủy mặc, phí và niệm, Hồi Thành Phù (11.2); đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, bản đồ nhỏ qua tin `mini`, vẽ bản đồ theo khối (11.4); công cụ dựng bản đồ lớn `tools/maps` (bố cục, hạt giống, lớp chỉnh tay, ảnh toàn cảnh) và bản thử Tinh Đấu Ngoại vi ×8 bật bằng `MAP_V2` (11.3).
+**Đã có:** chạy / đi bộ theo giao chiến, hồn thú đuổi nhanh và bỏ về, bấm chuột tìm đường A*, bản vá state ngay sau mỗi nhịp, animation đi theo vận tốc (11.1); truyền tống trận (object `waypoint`, bảng `waypoints`), bản đồ thế giới thủy mặc, phí và niệm, Hồi Thành Phù (11.2); đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, bản đồ nhỏ qua tin `mini`, vẽ bản đồ theo khối (11.4); công cụ dựng bản đồ lớn `tools/maps` (bố cục, hạt giống, lớp chỉnh tay, ảnh toàn cảnh) và bản thử Tinh Đấu Ngoại vi ×8 (11.3); bản ×8 dựng bằng `tools/maps` là mặc định (đường lùi `MAP_V1`), Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa, Hải Thần Đảo ×8 (11.5, phần 1).
 
 - [x] 11.1 Di chuyển: đo độ trễ, tốc độ đi / chạy mới, tốc độ lang thang / đuổi và giới hạn đuổi của hồn thú, bấm chuột tìm đường A*, animation khớp vận tốc (#106; mục 4 "Di chuyển", 5.3, 6 "Dự đoán chuyển động").
 - [x] 11.2 Truyền tống trận (`waypoint` trong Tiled, mở khoá lưu DB, phí, niệm có thể bị ngắt, cấm khi giao chiến), bản đồ thế giới thủy mặc, Hồi Thành Phù (#107; mục 5.3 "Truyền tống trận").
-- [x] 11.3 Công cụ dựng bản đồ lớn `tools/maps` và bản mẫu Tinh Đấu Ngoại vi gấp 8 lần diện tích để duyệt (#108; mục 5.3, 6 "Bản đồ lớn dựng bằng `tools/maps`"). Còn: chủ repo duyệt mẫu rồi bật bản ×8 làm mặc định.
+- [x] 11.3 Công cụ dựng bản đồ lớn `tools/maps` và bản mẫu Tinh Đấu Ngoại vi gấp 8 lần diện tích để duyệt (#108; mục 5.3, 6 "Bản đồ lớn dựng bằng `tools/maps`").
 - [x] 11.4 Hiệu năng bản đồ lớn: đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, vẽ theo khối (#109; mục 6 "Đồng bộ xuống client", "Hiển thị isometric phía client").
-- [ ] 11.5 Mở rộng và làm đẹp các bản đồ còn lại theo bản mẫu đã duyệt (#110).
+- [ ] 11.5 Mở rộng và làm đẹp các bản đồ còn lại theo bản mẫu đã duyệt (#110). Còn: thành trấn (Thánh Hồn Thôn, Nặc Đinh Thành, Thiên Đấu Thành), Đại Đấu Hồn Trường và Lõi Tinh Đấu (giữ cỡ, chỉ làm đẹp).
 - [ ] Biểu tượng Hồi Thành Phù (`item_hoi_thanh_phu`, Gemini); hiện vẽ bằng CSS.
 
 **Giai đoạn 12: Âm thanh**

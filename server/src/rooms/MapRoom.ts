@@ -59,6 +59,7 @@ export interface PData {
   // hook test `core` (5.1): cố định số ngẫu nhiên rơi hồn hạch (0..1), sao (0 = ngẫu nhiên trong khoảng) và bộ (-1 = ngẫu nhiên)
   testCore: { r: number; stars: number; set: number } | null;
   testHerb: { r: number; i: number } | null; // hook test `herb` (BĐ6b): cố định số ngẫu nhiên rơi tiên thảo (0..1) và loại (-1 = ngẫu nhiên)
+  testLocFile?: string | null; // hook test `locfile` (11.5): file Tiled ghi kèm vị trí thay cho file đang dùng (null = như dòng trước 11.5)
   shardBusy: boolean;   // đang chờ DB mở võ hồn bằng mảnh (bước 3.4): chặn lần mở thứ hai cho tới khi xong
   mpF: number; hpF: number; // hpF: sinh lực của võ hồn ra trận
   benchHp: Map<number, number>; // sinh lực các võ hồn khác (rowId -> sinh lực; không có = đầy). Không lưu DB: vào lại thì hồi đầy
@@ -490,7 +491,7 @@ export class MapRoom extends Room<MapState> {
   setup(mapId: string) {
     this.map = loadMap(mapId);
     this.state.mapId = mapId;
-    const file = mapFile(mapId); if (file !== mapId) this.state.mapFile = file; // 11.3: bản dựng lại (MAP_V2)
+    const file = mapFile(mapId); if (file !== mapId) this.state.mapFile = file; // 11.3 / 11.5: bản dựng bằng tools/maps (mặc định, trừ MAP_V1)
     // Ghi mapId vào listing để filterBy(["mapId"]) ghép đúng phòng cả khi phòng được mở mà không có mapId trong tham số.
     this.listing.mapId = mapId;
     this.interest = new Interest(this.state, this.map.MW * TILE, this.map.MH * TILE);
@@ -772,7 +773,7 @@ export class MapRoom extends Room<MapState> {
     try {
       await Promise.all(list.map((v) => store.saveCharacter(v)
         .catch((e) => { if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); throw e; })));
-      await store.saveLocation(d.accountId, this.state.mapId, x, y);
+      await store.saveLocation(d.accountId, this.state.mapId, x, y, d.testLocFile);
       if (bag) await store.saveBag(d.accountId, bag);
     } catch (e) { if (bag) d.bagDirty = true; throw e; }
   }
@@ -2038,6 +2039,11 @@ export class MapRoom extends Room<MapState> {
       }
       out = { years, reds: [...this.state.beasts.values()].filter((b) => !b.rank && b.years >= MAX_YEARS).length,
         elites: [...this.state.beasts.values()].filter((b) => b.rank && b.years >= MAX_YEARS).length };
+    }
+    else if (op === "locfile") {
+      // 11.5: các lần ghi vị trí sau (kể cả lần cuối khi rời phòng) ghi kèm file Tiled `file` thay cho file đang dùng, giả vị trí lưu
+      // ở bản đồ phiên bản khác (`file` rỗng = NULL như dòng ghi trước 11.5); bỏ `file` thì ghi như thường.
+      d.testLocFile = o.file === undefined ? undefined : String(o.file).slice(0, 64) || null;
     }
     else if (op === "herb") {
       // BĐ6b: cố định số ngẫu nhiên rơi tiên thảo (r: 0..100, rơi khi r/100 < herbChance; −1 bỏ) và loại (chỉ số i trong HERBS).

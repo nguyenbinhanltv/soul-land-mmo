@@ -111,7 +111,7 @@ export class MapState extends Schema {
   @view() @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
   @view() @type({ map: DropState }) drops = new MapSchema<DropState>();
   @type("uint16") online = 0;
-  @type("string") mapFile: string = ""; // 11.3: tên file Tiled khác `<mapId>` (bản dựng lại `<mapId>.v2` khi bật MAP_V2); rỗng = `<mapId>`
+  @type("string") mapFile: string = ""; // 11.3: tên file Tiled khác `<mapId>` (bản dựng bằng tools/maps `<mapId>.v2`, mặc định trừ khi MAP_V1); rỗng = `<mapId>`
 }
 
 /**
