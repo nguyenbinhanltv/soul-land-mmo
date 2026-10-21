@@ -4688,7 +4688,7 @@ async function bigMapTest(){
   for(const NV of BIG){
     const raw=fileOf(NV), old=oldOf(NV), objs=objsOf(raw), oldObjs=objsOf(old), k=raw.width*raw.height/(old.width*old.height), nm=MAPS[NV].name;
     ok(k>=7.5&&k<=8.5,`${nm}: diện tích ×${k.toFixed(2)}: ${raw.width}×${raw.height} ô (bản cũ ${old.width}×${old.height})`);
-    const zs=objs.filter(o=>o.type==="zone"), zn=zonesByName(objs), oldZn=zonesByName(oldObjs), [ylo,yhi]=MAPS[NV].years;
+    const zs=objs.filter(o=>o.type==="zone"), zn=zonesByName(objs), oldZn=zonesByName(oldObjs), [ylo,yhi]=MAPS[NV].years??[0,0]; // thành trấn: không vùng hồn thú
     const total=sum(zs), oldTotal=sum(oldObjs.filter(o=>o.type==="zone")), tiersOf=m=>new Set([...m.values()].map(z=>z.years)).size;
     ok(zs.every(z=>{ const y=parseLevelRange(pr(z,"years")); return y&&y[0]>=ylo&&y[1]<=yhi; })&&[...oldZn.values()].every(o=>zn.get(o.name)?.years===o.years)
       &&zn.size>=oldZn.size&&tiersOf(zn)===tiersOf(oldZn),
@@ -4721,7 +4721,7 @@ async function bigMapTest(){
     await warp(NV,a0.x,a0.y);
     ok(B.room.state.mapId===NV&&B.room.state.mapFile===mapFileOf(NV),`${nm}: phòng báo file bản đồ ${B.room.state.mapFile} (client tải đúng file này)`);
     if(total) ok(await waitFor(()=>[...B.room.state.beasts.values()].filter(x=>!x.rank).length>=total*0.9,8000),`${nm}: đã sinh ${[...B.room.state.beasts.values()].filter(x=>!x.rank).length}/${total} hồn thú thường`);
-    checkGateClear(B,checkBeastYears(B));
+    if(total) checkGateClear(B,checkBeastYears(B)); // thành trấn: không hồn thú
     // Mọi cổng hai chiều: sang bản đồ kề rồi về bằng cổng của bản đó trỏ về đây.
     for(const p of objs.filter(o=>o.type==="portal")){
       const to=pr(p,"to"), there=objsOf(fileOf(to)), back=there.find(o=>o.type==="portal"&&pr(o,"to")===NV);
