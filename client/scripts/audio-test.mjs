@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { AudioManager, resolveAudioSource } from "../src/audio/AudioManager.ts";
 import { DEFAULT_AUDIO_SETTINGS, normalizeAudioSettings } from "../src/audio/settings.ts";
-import { spatialMix } from "../src/audio/spatial.ts";
+import { panFromProjection, spatialMix } from "../src/audio/spatial.ts";
 import { SFX_IDS, SFX_PARAMS } from "../src/audio/sfxData.ts";
 
 const settings = normalizeAudioSettings({ master: 2, music: -1, sfx: "bad", muted: 1 });
@@ -15,6 +15,8 @@ assert.equal(spatialMix({ x: 100, y: 260 }, { x: 100, y: 100 }).pan, -0.5);
 assert.equal(spatialMix({ x: 260, y: 260 }, { x: 100, y: 100 }).pan, 0);
 assert.equal(spatialMix({ x: 421, y: 100 }, { x: 100, y: 100 }), null);
 assert.equal(spatialMix({ x: -220, y: 100 }, { x: 100, y: 100 }).pan, -1);
+assert.equal(panFromProjection({ x: 100, y: 260 }, { x: 100, y: 100 }, 320, (x) => 2 * x), 0, "topdown: chênh y không làm lệch pan");
+assert.equal(panFromProjection({ x: 260, y: 100 }, { x: 100, y: 100 }, 320, (x) => 2 * x), 0.5, "topdown: chênh x lệch sang phải");
 
 const state = {
   players: new Map([["actor", { x: 260, y: 100 }]]),
