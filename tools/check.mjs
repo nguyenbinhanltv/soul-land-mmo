@@ -42,10 +42,11 @@ if (mode === "--hook") {
 let failed = false;
 for (const p of projects) {
   const tsc = path.join(root, p, "node_modules", "typescript", "bin", "tsc");
-  // Trên CI (biến CI, GitHub Actions tự đặt) thiếu thư viện là lỗi, không được lặng lẽ cho qua.
+  // Kiểm tra đầy đủ trên CI (CI=true, GitHub Actions tự đặt): thiếu thư viện là lỗi, không được lặng lẽ cho qua.
   if (!existsSync(tsc)) {
-    console.error(`[check] ${process.env.CI ? "Lỗi" : "Bỏ qua"} ${p}: chưa cài thư viện (npm run install:all).`);
-    if (process.env.CI) failed = true;
+    const strict = mode === "" && process.env.CI === "true";
+    console.error(`[check] ${strict ? "Lỗi" : "Bỏ qua"} ${p}: chưa cài thư viện (npm run install:all).`);
+    if (strict) failed = true;
     continue;
   }
   const r = spawnSync(process.execPath, [tsc, "--noEmit", "-p", path.join(root, p)], { cwd: root, encoding: "utf8" });
