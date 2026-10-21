@@ -3110,7 +3110,8 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 export type NpcRole = "talk" | "shop" | "forge" | "arena"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng
 /**
  * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
- * `looks`: ngoại hình vẽ bằng sprite hồn sư (mục 5.11); không có = biển hiệu đứng yên. `lines`: lời thoại, hiện lần lượt.
+ * Hình: sheet NPC LPC `lpc_<id>` nếu có trong manifest (mục 5.11 "NPC phụ và dân thường"), không thì `looks` (ngoại hình vẽ bằng
+ * sprite hồn sư); không có cả hai = biển hiệu đứng yên. `lines`: lời thoại, hiện lần lượt.
  */
 export interface NpcDef { id: string; name: string; title: string; role: NpcRole; col: string; looks?: Looks; lines: string[]; }
 /** Bản đồ đang có cấp đề xuất, để Đại Sư giới thiệu (lấy từ MAPS, không chép số). */

@@ -146,24 +146,40 @@ function sheetSpec(key: string, frame?: readonly [number, number], iso = false):
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { url: `beast/${m[1]}.png`, frame };
   if (/^ring\d$/.test(key)) return { url: `ring/${key}.png` };
   if (/^halo\d$/.test(key)) return { url: `ring/${key}.png`, frame: [24, 10] };
+  // NPC phụ / dân thường ghép từ LPC (mục 5.11 "NPC phụ và dân thường"): một lớp đã tô màu, bố cục sheet hồn sư isometric.
+  if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return { url: `iso/lpc/${m[1]}.png`, frame: [ISO_HS_FRAME, ISO_HS_FRAME] };
   return null;
 }
 
-/** Gọi trong preload(): đọc manifest rồi xếp hàng tải các ảnh có trong đó. */
-export function preloadSprites(scene: Phaser.Scene) {
+/** Xếp hàng tải một key theo sheetSpec (bỏ qua nếu texture đã có). */
+export function loadSpriteKey(scene: Phaser.Scene, key: string) {
+  const spec = sheetSpec(key);
+  if (!spec || scene.textures.exists(key)) return;
+  if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
+  else scene.load.image(key, BASE + spec.url);
+}
+
+/**
+ * Gọi trong preload(): đọc manifest rồi xếp hàng tải các ảnh có trong đó. Sheet NPC LPC (`lpc_<tên>`) chỉ cần cho bản đồ đang vào
+ * nên không tải hết: `lpc` nhận danh sách tên có trong manifest và tự xếp hàng tải những tên bản đồ dùng (crowd.ts).
+ */
+export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) => void) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
+    const lpcNames = new Set<string>();
     for (const e of data?.sprites ?? []) {
       // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm), từ 10.5 phụ thể 96×96 (võ hồn
       // chưa có ảnh mới vẫn dùng bộ 48×48 cũ hoặc vẽ bằng code; vohonFrame ánh xạ khung giữa hai bố cục); vật đứng do isoMap.ts tải
       // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); chân dung, NPC, vật phẩm, hồn thú chờ bước dùng chúng (10.6, 10.8).
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
+      if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
       if (iso && !/^(hs|vh)_/.test(key)) continue;
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
     }
+    lpc?.(lpcNames);
   });
 }
 
@@ -209,10 +225,10 @@ export function createBeastAnims(scene: Phaser.Scene, sheet: string) {
   for (const [name, a] of Object.entries(BEAST_ANIMS)) makeAnim(scene, sheet, `${sheet}:${name}`, a.col, a);
 }
 
-/** Tạo animation cho mọi sheet thân hồn sư và hồn thú đang có (ảnh thật hoặc vẽ bằng code). */
+/** Tạo animation cho mọi sheet thân hồn sư, NPC LPC (cùng bố cục) và hồn thú đang có (ảnh thật hoặc vẽ bằng code). */
 export function createSheetAnims(scene: Phaser.Scene) {
   for (const key of scene.textures.getTextureKeys()) {
-    if (/^hs_body_[mf]_\d+$/.test(key)) createHonsuAnims(scene, key);
+    if (/^(hs_body_[mf]_\d+|lpc_[a-z0-9_]+)$/.test(key)) createHonsuAnims(scene, key);
     else if (/^(b\d|beast_[a-z_]+)$/.test(key)) createBeastAnims(scene, key);
   }
 }

@@ -1,0 +1,57 @@
+{
+ "sex": "female",
+ "base": true,
+ "hairRamp": [
+  "#1a1020",
+  "#2b2430",
+  "#47435c",
+  "#5a5672"
+ ],
+ "outfitRamp": [
+  "#142430",
+  "#1f3a4a",
+  "#2f5566",
+  "#4a7584"
+ ],
+ "layers": [
+  {
+   "dir": "dress/kimono/normal/universal/female/",
+   "z": 30,
+   "group": "outfit",
+   "variant": "white"
+  },
+  {
+   "dir": "dress/kimono/sleeves/universal/female/",
+   "z": 31,
+   "group": "outfit",
+   "variant": "white"
+  },
+  {
+   "dir": "torso/waist/obi/thin/",
+   "z": 65,
+   "group": "outfit",
+   "variant": "charcoal",
+   "ramp": [
+    "#1a1020",
+    "#2b2430"
+   ]
+  },
+  {
+   "dir": "torso/aprons/apron_full/female/",
+   "z": 40,
+   "group": "outfit",
+   "variant": "leather",
+   "keep": true
+  },
+  {
+   "dir": "hair/long_center_part/adult/fg/",
+   "z": 120,
+   "group": "hair"
+  },
+  {
+   "dir": "hair/long_center_part/adult/bg/",
+   "z": 9,
+   "group": "hair"
+  }
+ ]
+}

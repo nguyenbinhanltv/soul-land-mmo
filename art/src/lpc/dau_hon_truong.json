@@ -1,0 +1,68 @@
+{
+ "sex": "male",
+ "base": true,
+ "hairRamp": [
+  "#1a1020",
+  "#2b2430",
+  "#47435c",
+  "#5a5672"
+ ],
+ "outfitRamp": [
+  "#2e2419",
+  "#8f2a14",
+  "#a8303a",
+  "#e08a7a"
+ ],
+ "layers": [
+  {
+   "dir": "legs/pants/male/",
+   "z": 20,
+   "group": "outfit",
+   "ramp": [
+    0,
+    1
+   ]
+  },
+  {
+   "dir": "legs/skirts/plain/male/",
+   "z": 21,
+   "group": "outfit",
+   "ramp": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "dir": "torso/clothes/longsleeve/longsleeve2_vneck/male/",
+   "z": 35,
+   "group": "outfit",
+   "ramp": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "dir": "torso/waist/obi/male/",
+   "z": 65,
+   "group": "outfit",
+   "variant": "charcoal",
+   "ramp": [
+    "#6a4a12",
+    "#b8862a",
+    "#f2c84b"
+   ]
+  },
+  {
+   "dir": "hair/parted_side_bangs/adult/",
+   "z": 120,
+   "group": "hair"
+  },
+  {
+   "dir": "hair/extensions/ponytails/topknot_short/adult/",
+   "z": 145,
+   "group": "hair"
+  }
+ ]
+}
