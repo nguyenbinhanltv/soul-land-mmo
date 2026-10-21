@@ -9,7 +9,7 @@ description: Cách thêm bảng, cột hoặc chuyển dữ liệu PostgreSQL / 
 `PgStore.init()` trong `server/src/db.ts` đọc **mọi** file `.sql` trong `server/sql/`, sắp theo tên và chạy lần lượt **mỗi lần server khởi động**. Không có bảng ghi "đã chạy", nên mỗi file phải chạy lại được vô hạn lần mà không lỗi và không nhân đôi dữ liệu. File mới tự được nạp.
 
 ## Viết file SQL mới
-1. Tạo `server/sql/00N_<ten>.sql` với N là số kế tiếp. Xem `ls server/sql` trên **`origin/main` mới nhất** (nhánh khác có thể vừa thêm file) để không trùng số. Không sửa file cũ đã chạy trên DB thật, trừ khi chỉ thêm câu lệnh an toàn khi chạy lại.
+1. Tạo `server/sql/00N_<ten>.sql` với N là số kế tiếp (lúc viết skill: file cuối là `016_account_skin.sql`). Luôn xem `git fetch` rồi `git ls-tree --name-only origin/main server/sql/` (nhánh khác có thể vừa thêm file) để không trùng số. Không sửa file cũ đã chạy trên DB thật, trừ khi chỉ thêm câu lệnh an toàn khi chạy lại.
 2. Đầu file: chú thích tiếng Việt nói file làm gì, trỏ tới mục trong `GAME_DESIGN.md`.
 3. Câu lệnh chạy lại an toàn: `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...`; chuyển dữ liệu bằng `INSERT ... SELECT ... WHERE NOT EXISTS (...)` (mẫu ở cuối `002_vohons.sql`) hoặc `ON CONFLICT DO NOTHING`.
 4. **Bật RLS cho mọi bảng mới**: `ALTER TABLE <bang> ENABLE ROW LEVEL SECURITY;` và **không** tạo policy (Data API công khai của Supabase không đọc được; server kết nối bằng user `postgres` nên không bị chặn; giải thích ở cuối `001_init.sql`).
@@ -27,8 +27,9 @@ Bảng hiện có và vai trò: `GAME_DESIGN.md` mục 6 "Dữ liệu lâu dài"
 
 ## Kiểm tra
 - `npm run check`.
+- Chạy tuần tự, mỗi lượt trên server mới bật (state sạch), cổng riêng nếu có phiên song song.
 - Chế độ RAM: `GAME_TEST=1 npm run dev:server` (không có `DATABASE_URL`) + `npm run bot --prefix client`.
-- PostgreSQL thật, chạy server **hai lần liên tiếp**; cả hai lần phải in `✓ Đã kết nối PostgreSQL và cập nhật bảng.` (chứng minh chạy lại an toàn), rồi chạy bot:
+- Sau đó PostgreSQL thật, chạy server **hai lần liên tiếp**; cả hai lần phải in `✓ Đã kết nối PostgreSQL và cập nhật bảng.` (chứng minh chạy lại an toàn), rồi chạy bot:
   - Có Docker: `docker compose up -d`, `cp .env.example server/.env`.
   - Không có Docker (máy Windows dev): cài `embedded-postgres` trong thư mục tạm **ngoài repo**, chạy ở cổng riêng, tạo DB `CREATE DATABASE … ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'` (cluster mặc định không phải UTF8 nên chữ Việt trong SQL lỗi), rồi `DATABASE_URL=postgres://…@localhost:<cổng>/<db> PGSSL=false GAME_TEST=1 npm run dev:server`. Tắt đúng tiến trình `postgres` mình bật khi xong.
 - Thử nhánh "tài khoản cũ" khi chuyển dữ liệu: chạy server và bot của `origin/main` trên cùng DB trước, rồi mới chạy bản mới.
