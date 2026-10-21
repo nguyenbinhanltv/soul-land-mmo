@@ -358,8 +358,13 @@ async function channelTest(){
     const one=async(b,bid)=>(await T(b,"elite",{bid})).one;
     /** `b` hạ ngay tinh anh `bid` (hook slay, như ra đòn cuối); trả đồ rơi mới và các dòng log. */
     const slayE=async(b,bid)=>{ const bf=new Set(b.room.state.drops.keys()), l=b.logs.length; await T(b,"slay",{bid}); await sleep(250); return {nd:newDrops(b,bf),log:b.logs.slice(l).join(" | ")}; };
-    /** Đổi kênh như người chơi (rời giao chiến, bỏ chờ CHANNEL_CD bằng hook); hồn thú hoang có thể vừa đánh: thử lại tối đa 3 lần. */
-    const swap=async(b,ch)=>{ for(let k=0;k<3;k++){ await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
+    /**
+     * Đổi kênh như người chơi (rời giao chiến, bỏ chờ CHANNEL_CD bằng hook); hồn thú hoang có thể vừa đánh: thử lại tối đa 3 lần.
+     * Tinh anh còn giao chiến đứng gần và bầy sói Hú Bầy của nó đánh liên tục thì `rest` vừa xong đã lại giao chiến (cả 3 lần trượt,
+     * chập chờn trên CI): trước mỗi lần xóa hồn thú thường quanh `b` (giữ tinh anh) và cho hồn thú quanh `b` Choáng vài giây.
+     */
+    const swap=async(b,ch)=>{ for(let k=0;k<3;k++){ await T(b,"clear",{keep:1}); await T(b,"status",{s:"stun",secs:5,all:1});
+      await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
       b.travel=null; const w=await say(b,"channel",{ch}); if(await waitFor(()=>b.travel,3000)) return follow(b);
       console.log(`    ${b.name} chưa đổi được sang kênh ${ch} (đang ở kênh ${chOf(b)}): "${w}"`); } };
     ok(!!EB,`tinh anh của ${MAPS[NV].name}: ${EB}`);
