@@ -1,0 +1,19 @@
+GIMP Palette
+Name: Giao diện thủy mặc: giấy, mực, triện son
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+#
+# Giấy cuộn
+184 168 136	Giấy tối #b8a888
+216 202 168	Giấy #d8caa8
+236 226 200	Giấy sáng #ece2c8
+# Mực
+ 58  52  64	Mực nhạt #3a3440
+106 100 112	Mực loang #6a6470
+# Triện son
+138  32  24	Son tối #8a2018
+176  48  42	Son #b0302a
+216  74  58	Son sáng #d84a3a
+# Trục cuộn
+ 90  59  34	Gỗ trục #5a3b22

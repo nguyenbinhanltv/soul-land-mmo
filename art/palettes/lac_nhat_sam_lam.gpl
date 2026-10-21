@@ -1,0 +1,21 @@
+GIMP Palette
+Name: Lạc Nhật Sâm Lâm: hoàng hôn đỏ cam, lá rụng
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ lac_nhat_sam_lam (MAPS trong shared/data.ts).
+#
+# Đỏ thẫm
+106  26  26	Đỏ thẫm tối #6a1a1a
+160  48  30	Đỏ thẫm #a0301e
+# Cam cháy
+216  96  42	Cam cháy #d8602a
+240 144  74	Cam cháy sáng #f0904a
+# Bóng tím than
+ 42  26  46	Bóng tím than tối #2a1a2e
+ 74  42  64	Bóng tím than #4a2a40
+# Lá vàng
+232 176  74	Lá vàng #e8b04a
+# Đầm Bích Lân, suối Băng Hỏa
+ 58 192 122	Độc Bích Lân #3ac07a
+ 74 176 224	Băng tuyền #4ab0e0

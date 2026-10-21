@@ -1,0 +1,19 @@
+GIMP Palette
+Name: Thánh Hồn Thôn: nắng ấm, khói bếp
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ thanh_hon_thon (MAPS trong shared/data.ts).
+#
+# Nắng mật
+242 196 106	Nắng mật sáng #f2c46a
+217 162  74	Nắng mật #d9a24a
+# Lục non, ruộng
+127 160  74	Lục non sáng #7fa04a
+ 92 125  54	Lục non #5c7d36
+# Mái rạ, khói
+176 138  78	Mái rạ #b08a4e
+200 192 180	Khói bếp #c8c0b4
+# Lam Ngân Thảo ven đường
+ 90 160 200	Lam ngân #5aa0c8
+154 208 232	Lam ngân sáng #9ad0e8

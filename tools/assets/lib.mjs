@@ -28,10 +28,21 @@ export const DIRS = ["down", "right", "up"];
 // ---------- Isometric (Giai đoạn 10, GAME_DESIGN.md mục 5.11) ----------
 // Hằng cho công cụ nhập ảnh isometric (gemini-import.mjs); bộ 32×32 / 48×48 ở trên vẫn là của client hiện nay (tới 10.3).
 /**
- * Ảnh ô nền theo bề ngang thoi: ô logic thoi 32×16 trong ảnh 32×32, tâm mặt trên (16, 19), đáy dày 5;
- * ô lớn thoi 64×32 (phủ 2×2 ô logic) trong ảnh 64×64, tâm (32, 37), đáy dày khoảng 12 (vừa ảnh còn 11).
+ * Bề ngang thoi của MỘT ô logic (16×16 pixel thế giới), mục 5.11: đã chốt thoi 32×16 (người dùng duyệt 2026-10-21).
+ * Phải khớp hằng chiếu ở client/src/iso.ts; mọi cỡ khác ở tools/assets suy ra từ hằng này.
+ * Ô lớn phủ 2×2 ô logic có bề ngang 2 × ISO_TILE_W.
  */
-export const ISO_TILE_IMAGES = { 32: { size: [32, 32], center: [16, 19], thick: 5 }, 64: { size: [64, 64], center: [32, 37], thick: 11 } };
+export const ISO_TILE_W = 32;
+/** Bề dày đáy ô / bề ngang thoi, đo trên ô PixelLab "thin tile" (size 32: đáy 5, size 64: đáy khoảng 11–12). */
+export const ISO_TILE_THICK = 0.17;
+/**
+ * Ảnh ô nền cho thoi bề ngang W: ảnh W×W, thoi W×W/2 nằm sát đáy ảnh trừ phần đáy dày `thick`
+ * (W = 32: tâm mặt trên (16, 19), đáy 5; W = 64: tâm (32, 37), đáy 11, khớp ô PixelLab size 32 / 64).
+ */
+export function isoTileImage(W) {
+  const thick = Math.round(W * ISO_TILE_THICK);
+  return { size: [W, W], center: [W / 2, W - W / 4 - thick], thick };
+}
 /** Hồn sư 64×64 gốc tại chân (32,58); phụ thể 96×96 gốc (48,74). */
 export const ISO_HS_FRAME = 64, ISO_HS_ORIGIN = [32, 58], ISO_VH_FRAME = 96, ISO_VH_ORIGIN = [48, 74];
 /** Khung vuông hồn thú: Trắng / Vàng 64, Tím / Đen 96, Đỏ 128, thú vương 160, boss thế giới 192; gốc giữa đáy, cách mép dưới ISO_BEAST_FOOT. */

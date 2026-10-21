@@ -1,0 +1,20 @@
+GIMP Palette
+Name: Hải Thần Đảo: ngọc lam và vàng
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ hai_than_dao (MAPS trong shared/data.ts).
+#
+# Ngọc lam
+ 14  90 106	Ngọc lam tối #0e5a6a
+ 26 138 154	Ngọc lam #1a8a9a
+ 74 200 200	Ngọc lam sáng #4ac8c8
+# Vàng đền, cát
+224 176  74	Vàng đền #e0b04a
+248 220 138	Vàng đền sáng #f8dc8a
+# San hô
+224 112  74	San hô #e0704a
+240 160 122	San hô sáng #f0a07a
+# Biển sâu, bọt sóng
+ 10  42  74	Biển sâu #0a2a4a
+232 255 248	Bọt sóng #e8fff8

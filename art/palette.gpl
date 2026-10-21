@@ -2,7 +2,9 @@ GIMP Palette
 Name: Rung San Hon
 Columns: 8
 #
-# Bảng màu chung của game (GAME_DESIGN.md mục 5.11), 52 màu (48 màu gốc + 4 sắc tông da thêm ở Lộ trình 9.9).
+# Bảng màu chung của game (GAME_DESIGN.md mục 5.11, phong cách 10.0b): 52 màu cũ (48 gốc + 4 tông da 9.9) cộng các dải thế giới trầm.
+# Màu nhấn theo vùng ở art/palettes/<mapId>.gpl, giao diện thủy mặc ở art/palettes/_thuy_mac.gpl, lưu ly ở art/palettes/_luu_ly.gpl.
+# Dải hồn hoàn không ghi ở đây: lấy col / glow của TIERS (shared/data.ts), validate đã nhận các màu đó.
 # Ngoài bảng này chỉ thêm: col/robe của VOHON (shared/data.ts) cùng tối đa 1 sắc tối và 1 sắc sáng
 # suy ra từ mỗi màu đó, và màu hồn hoàn (col/glow) của TIERS.
 #
@@ -74,3 +76,36 @@ Columns: 8
 227 174 136	Tông da bánh mật sáng #e3ae88
 138  90  60	Tông da ngăm gốc #8a5a3c
 176 125  90	Tông da ngăm sáng #b07d5a
+# Thế giới trầm: đất
+ 46  36  25	Đất trầm 1 tối #2e2419
+ 74  58  40	Đất trầm 2 #4a3a28
+107  90  66	Đất trầm 3 #6b5a42
+140 122  92	Đất trầm 4 sáng #8c7a5c
+# Thế giới trầm: đá
+ 42  42  48	Đá trầm 1 tối #2a2a30
+ 68  67  76	Đá trầm 2 #44434c
+100  99 112	Đá trầm 3 #646370
+138 136 148	Đá trầm 4 sáng #8a8894
+# Thế giới trầm: rêu, cỏ khử màu
+ 31  42  32	Rêu trầm 1 tối #1f2a20
+ 51  66  47	Rêu trầm 2 #33422f
+ 77  94  66	Rêu trầm 3 #4d5e42
+107 122  88	Rêu trầm 4 sáng #6b7a58
+# Thế giới trầm: nước
+ 20  36  48	Nước trầm 1 tối #142430
+ 31  58  74	Nước trầm 2 #1f3a4a
+ 47  85 102	Nước trầm 3 #2f5566
+ 74 117 132	Nước trầm 4 sáng #4a7584
+# Thế giới trầm: tuyết
+106 118 136	Tuyết trầm 1 tối #6a7688
+142 154 172	Tuyết trầm 2 #8e9aac
+180 191 204	Tuyết trầm 3 #b4bfcc
+214 221 229	Tuyết trầm 4 sáng #d6dde5
+# Thế giới trầm: cát
+110  94  68	Cát trầm 1 tối #6e5e44
+142 124  92	Cát trầm 2 #8e7c5c
+173 154 118	Cát trầm 3 #ad9a76
+200 182 144	Cát trầm 4 sáng #c8b690
+# Bóng, sương đêm
+ 16  20  28	Bóng đêm #10141c
+ 28  34  48	Sương đêm #1c2230

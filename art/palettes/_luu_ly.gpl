@@ -1,0 +1,19 @@
+GIMP Palette
+Name: Lưu ly bảo quang: thẻ SSR / UR, tông môn, cung điện, tuyệt kỹ
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+#
+# Ngọc bích
+ 26 106  90	Ngọc bích tối #1a6a5a
+ 42 154 122	Ngọc bích #2a9a7a
+106 208 176	Ngọc bích sáng #6ad0b0
+# Lam lưu ly
+ 26  58 128	Lam lưu ly tối #1a3a80
+ 42  90 176	Lam lưu ly #2a5ab0
+106 154 240	Lam lưu ly sáng #6a9af0
+# Tím lưu ly
+ 74  42 128	Tím lưu ly tối #4a2a80
+122  74 176	Tím lưu ly #7a4ab0
+# Kính sáng
+232 248 255	Ánh kính #e8f8ff

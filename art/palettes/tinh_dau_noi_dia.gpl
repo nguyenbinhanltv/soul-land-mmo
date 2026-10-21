@@ -1,0 +1,22 @@
+GIMP Palette
+Name: Tinh Đấu Nội địa: xanh thẳm, nấm và đom đóm phát quang
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ tinh_dau_noi_dia (MAPS trong shared/data.ts).
+#
+# Lam thẳm
+ 14  30  46	Lam thẳm tối #0e1e2e
+ 22  50  74	Lam thẳm #16324a
+ 30  74  94	Lam thẳm sáng #1e4a5e
+# Lục độc
+ 42  90  74	Lục độc #2a5a4a
+# Nấm phát quang
+ 90 224 208	Nấm phát quang #5ae0d0
+176 255 240	Nấm phát quang sáng #b0fff0
+# Đom đóm
+208 255 138	Đom đóm #d0ff8a
+# Sương độc (Đầm sương độc), sét (Lôi Cốc)
+106  74 154	Sương độc #6a4a9a
+154 122 208	Sương độc sáng #9a7ad0
+224 240 255	Tia sét #e0f0ff

@@ -1,0 +1,17 @@
+GIMP Palette
+Name: Thiên Đấu Thành: trắng ngà, lam ngọc, vàng kim (cung điện, học viện: lưu ly)
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ thien_dau_thanh (MAPS trong shared/data.ts).
+#
+# Trắng ngà
+200 190 168	Ngà tối #c8bea8
+232 224 204	Ngà #e8e0cc
+# Lam ngọc
+ 42 138 154	Lam ngọc #2a8a9a
+ 90 192 200	Lam ngọc sáng #5ac0c8
+# Ngói lam
+ 42  74 122	Ngói lam #2a4a7a
+# Đỏ son
+176  48  42	Đỏ son #b0302a
