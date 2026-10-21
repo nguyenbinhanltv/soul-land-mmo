@@ -1,0 +1,567 @@
+{
+ "_": "Ánh xạ gid Tiled → ảnh isometric (GAME_DESIGN.md mục 5.11, bước 10.2). ground: tên → ảnh ô (đường dẫn trong shared/assets/iso: img 32×32 thoi 32×16, big 64×64 ô lớn phủ 2×2), c / cBig: tâm mặt trên trong ảnh, edge: thứ bậc lớp phủ mép (cao lấn sang thấp). props: tên → key manifest prop_{vật} (ảnh shared/assets/sprites/iso/props/{vật}.png), foot: điểm chân trong ảnh. maps: bộ \"*\" mặc định rồi bộ riêng từng mapId đè lên; gid → \"tên\" hoặc \"tên~#rrggbb\" (nhân màu), vật có thể là danh sách (chọn theo băm vị trí); build: kiểu nhà / tường thành (client/src/isoBuild.ts). Nguồn ảnh: art/CREDITS.md. Kiểm tra: node tools/assets/iso-build.mjs check (npm run check).",
+ "ground": {
+  "nuoc_sau": {
+   "img": ["ground/nuoc_sau_0.png", "ground/nuoc_sau_1.png"],
+   "big": ["ground/nuoc_sau_0_lon.png", "ground/nuoc_sau_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 0
+  },
+  "nuoc_ho": {
+   "img": ["ground/nuoc_ho_0.png", "ground/nuoc_ho_1.png"],
+   "big": ["ground/nuoc_ho_0_lon.png", "ground/nuoc_ho_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 0
+  },
+  "nuoc_nong": {
+   "img": ["ground/nuoc_nong_0.png", "ground/nuoc_nong_1.png"],
+   "big": ["ground/nuoc_nong_0_lon.png", "ground/nuoc_nong_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 1
+  },
+  "bang_nut": {
+   "img": ["ground/bang_nut_0.png", "ground/bang_nut_1.png"],
+   "big": ["ground/bang_nut_0_lon.png", "ground/bang_nut_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 1
+  },
+  "ho_bang": {
+   "img": ["ground/ho_bang_0.png", "ground/ho_bang_1.png"],
+   "big": ["ground/ho_bang_0_lon.png", "ground/ho_bang_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 2
+  },
+  "cat": {
+   "img": ["ground/cat_0.png", "ground/cat_1.png"],
+   "big": ["ground/cat_0_lon.png", "ground/cat_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 2
+  },
+  "cat_uot": {
+   "img": ["ground/cat_uot_0.png", "ground/cat_uot_1.png"],
+   "big": ["ground/cat_uot_0_lon.png", "ground/cat_uot_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 2
+  },
+  "dat": {
+   "img": ["ground/dat_0.png", "ground/dat_1.png"],
+   "big": ["ground/dat_0_lon.png", "ground/dat_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "duong_dat": {
+   "img": ["ground/duong_dat_0.png", "ground/duong_dat_1.png"],
+   "big": ["ground/duong_dat_0_lon.png", "ground/duong_dat_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "dat_lang": {
+   "img": ["ground/dat_lang_0.png", "ground/dat_lang_1.png"],
+   "big": ["ground/dat_lang_0_lon.png", "ground/dat_lang_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "ruong": {
+   "img": ["ground/ruong_0.png", "ground/ruong_1.png"],
+   "big": ["ground/ruong_0_lon.png", "ground/ruong_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "da_cuoi": {
+   "img": ["ground/da_cuoi_0.png", "ground/da_cuoi_1.png"],
+   "big": ["ground/da_cuoi_0_lon.png", "ground/da_cuoi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "da_phien": {
+   "img": ["ground/da_phien_0.png", "ground/da_phien_1.png"],
+   "big": ["ground/da_phien_0_lon.png", "ground/da_phien_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "pho_da": {
+   "img": ["ground/pho_da_0.png", "ground/pho_da_1.png"],
+   "big": ["ground/pho_da_0_lon.png", "ground/pho_da_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "da_cuoi_cung": {
+   "img": ["ground/da_cuoi_cung_0.png", "ground/da_cuoi_cung_1.png"],
+   "big": ["ground/da_cuoi_cung_0_lon.png", "ground/da_cuoi_cung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "duong_luu_ly": {
+   "img": ["ground/duong_luu_ly_0.png", "ground/duong_luu_ly_1.png"],
+   "big": ["ground/duong_luu_ly_0_lon.png", "ground/duong_luu_ly_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "san_da_co": {
+   "img": ["ground/san_da_co_0.png", "ground/san_da_co_1.png"],
+   "big": ["ground/san_da_co_0_lon.png", "ground/san_da_co_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "da_tuyet": {
+   "img": ["ground/da_tuyet_0.png", "ground/da_tuyet_1.png"],
+   "big": ["ground/da_tuyet_0_lon.png", "ground/da_tuyet_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "co_hoa": {
+   "img": ["ground/co_hoa_0.png", "ground/co_hoa_1.png"],
+   "big": ["ground/co_hoa_0_lon.png", "ground/co_hoa_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "co": {
+   "img": ["ground/co_0.png", "ground/co_1.png"],
+   "big": ["ground/co_0_lon.png", "ground/co_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "co_kho": {
+   "img": ["ground/co_kho_0.png", "ground/co_kho_1.png"],
+   "big": ["ground/co_kho_0_lon.png", "ground/co_kho_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "dat_la": {
+   "img": ["ground/dat_la_0.png", "ground/dat_la_1.png"],
+   "big": ["ground/dat_la_0_lon.png", "ground/dat_la_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "co_pho": {
+   "img": ["ground/co_pho_0.png", "ground/co_pho_1.png"],
+   "big": ["ground/co_pho_0_lon.png", "ground/co_pho_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "co_cung": {
+   "img": ["ground/co_cung_0.png", "ground/co_cung_1.png"],
+   "big": ["ground/co_cung_0_lon.png", "ground/co_cung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "tuyet": {
+   "img": ["ground/tuyet_0.png", "ground/tuyet_1.png"],
+   "big": ["ground/tuyet_0_lon.png", "ground/tuyet_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "tuyet_bac": {
+   "img": ["ground/tuyet_bac_0.png", "ground/tuyet_bac_1.png"],
+   "big": ["ground/tuyet_bac_0_lon.png", "ground/tuyet_bac_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "tuyet_gio": {
+   "img": ["ground/tuyet_gio_0.png", "ground/tuyet_gio_1.png"],
+   "big": ["ground/tuyet_gio_0_lon.png", "ground/tuyet_gio_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 6
+  },
+  "co_rung": {
+   "img": ["ground/co_rung_0.png", "ground/co_rung_1.png"],
+   "big": ["ground/co_rung_0_lon.png", "ground/co_rung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "co_reu": {
+   "img": ["ground/co_reu_0.png", "ground/co_reu_1.png"],
+   "big": ["ground/co_reu_0_lon.png", "ground/co_reu_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "la_rung": {
+   "img": ["ground/la_rung_0.png", "ground/la_rung_1.png"],
+   "big": ["ground/la_rung_0_lon.png", "ground/la_rung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "duong_san": {
+   "img": ["ground/duong_san_0.png", "ground/duong_san_1.png"],
+   "big": ["ground/duong_san_0_lon.png", "ground/duong_san_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "suoi_nong": {
+   "img": ["ground/suoi_nong_0.png", "ground/suoi_nong_1.png"],
+   "big": ["ground/suoi_nong_0_lon.png", "ground/suoi_nong_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 1
+  },
+  "dat_re": {
+   "img": ["ground/dat_re_0.png", "ground/dat_re_1.png"],
+   "big": ["ground/dat_re_0_lon.png", "ground/dat_re_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "reu_toi": {
+   "img": ["ground/reu_toi_0.png", "ground/reu_toi_1.png"],
+   "c": [16, 19],
+   "edge": 5
+  },
+  "reu_dom_sang": {
+   "img": ["ground/reu_dom_sang_0.png", "ground/reu_dom_sang_1.png"],
+   "big": ["ground/reu_dom_sang_0_lon.png", "ground/reu_dom_sang_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "dat_da_rung": {
+   "img": ["ground/dat_da_rung_0.png", "ground/dat_da_rung_1.png"],
+   "big": ["ground/dat_da_rung_0_lon.png", "ground/dat_da_rung_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "nuoc_sau_toi": {
+   "img": ["ground/nuoc_sau_toi_0.png", "ground/nuoc_sau_toi_1.png"],
+   "big": ["ground/nuoc_sau_toi_0_lon.png", "ground/nuoc_sau_toi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 1
+  }
+ },
+ "props": {
+  "cay_la_rong": {
+   "key": "prop_cay_la_rong",
+   "foot": [48, 108]
+  },
+  "cay_la_tron": {
+   "key": "prop_cay_la_tron",
+   "foot": [40, 108]
+  },
+  "cay_rung_dem": {
+   "key": "prop_cay_rung_dem",
+   "foot": [40, 124]
+  },
+  "cay_u_minh": {
+   "key": "prop_cay_u_minh",
+   "foot": [48, 124]
+  },
+  "cay_thu_do": {
+   "key": "prop_cay_thu_do",
+   "foot": [56, 124]
+  },
+  "cay_thu_cam": {
+   "key": "prop_cay_thu_cam",
+   "foot": [32, 108]
+  },
+  "bang_tinh": {
+   "key": "prop_bang_tinh",
+   "foot": [24, 60]
+  },
+  "da_ngam": {
+   "key": "prop_da_ngam",
+   "foot": [16, 45]
+  },
+  "leu_tho_san": {
+   "key": "prop_leu_tho_san",
+   "foot": [32, 62]
+  },
+  "lua_trai": {
+   "key": "prop_lua_trai",
+   "foot": [40, 46]
+  },
+  "thong_cao": {
+   "key": "prop_thong_cao",
+   "foot": [24, 94]
+  },
+  "cay_dua_cao": {
+   "key": "prop_cay_dua_cao",
+   "foot": [32, 92]
+  },
+  "thong_tuyet_nho": {
+   "key": "prop_thong_tuyet_nho",
+   "foot": [32, 124]
+  }
+ },
+ "maps": {
+  "*": {
+   "ground": {
+    "1": "co",
+    "2": "co~#d8e0cc",
+    "3": "co~#aab8a4",
+    "4": "co~#76868a",
+    "5": "co_hoa",
+    "6": "co_hoa~#c8d2c0",
+    "7": "dat",
+    "8": "dat~#8c8a94",
+    "9": "nuoc_nong",
+    "10": "da_cuoi",
+    "13": "da_phien",
+    "16": "ruong",
+    "25": "tuyet",
+    "26": "tuyet~#c8d0e0",
+    "27": "ho_bang",
+    "28": "bang_nut~#6a7890",
+    "29": "da_tuyet",
+    "33": "cat",
+    "34": "nuoc_nong",
+    "35": "nuoc_sau"
+   },
+   "props": {
+    "11": "leu_tho_san",
+    "12": "lua_trai",
+    "17": ["cay_la_rong", "cay_la_tron"],
+    "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0"],
+    "19": ["cay_la_rong~#98a8a0", "cay_la_tron~#a0aa98"],
+    "20": ["cay_rung_dem", "cay_u_minh"],
+    "30": "thong_tuyet_nho",
+    "32": "bang_tinh",
+    "36": "da_ngam"
+   },
+   "build": {
+    "wallKind": "plaster",
+    "wall": ["#c8b890", "#a08e6a", "#ddd0ac"],
+    "trim": "#5a3b22",
+    "base": "#6a6258",
+    "win": "#26323c",
+    "roofKind": "tile",
+    "roof": ["#8a4a3a", "#683428", "#a8604a"],
+    "wallH": 30,
+    "roofMax": 34,
+    "fence": {
+     "kind": "stone",
+     "wall": ["#8a8478", "#6a645a", "#a8a294"],
+     "top": "#9a9488",
+     "h": 26
+    }
+   }
+  },
+  "thanh_hon_thon": {
+   "ground": {
+    "7": "duong_dat",
+    "10": "dat_lang",
+    "16": "ruong"
+   },
+   "build": {
+    "wallKind": "plaster",
+    "wall": ["#c8b890", "#a08e6a", "#ddd0ac"],
+    "trim": "#5a3b22",
+    "base": "#6a6258",
+    "win": "#26323c",
+    "roofKind": "thatch",
+    "roof": ["#b08a4e", "#86683a", "#c8a468"],
+    "wallH": 28,
+    "roofMax": 30,
+    "fence": {
+     "kind": "wood",
+     "wall": ["#7a5a38", "#5a3b22", "#94704a"],
+     "top": "#86663e",
+     "h": 20
+    }
+   }
+  },
+  "nac_dinh_thanh": {
+   "ground": {
+    "1": "co_pho",
+    "5": "co_pho",
+    "13": "pho_da"
+   },
+   "build": {
+    "wallKind": "brick",
+    "wall": ["#b0654a", "#8a4a32", "#c47a5c"],
+    "trim": "#6a2a20",
+    "base": "#5a5a62",
+    "win": "#26323c",
+    "roofKind": "tile",
+    "roof": ["#6a7080", "#4a5060", "#8a90a0"],
+    "wallH": 30,
+    "roofMax": 34,
+    "fence": {
+     "kind": "brick",
+     "wall": ["#9a5a42", "#7a3e2c", "#b0654a"],
+     "top": "#8a8478",
+     "h": 30
+    }
+   }
+  },
+  "thien_dau_thanh": {
+   "ground": {
+    "1": "co_cung",
+    "5": "co_cung",
+    "7": "duong_luu_ly",
+    "13": "da_cuoi_cung"
+   },
+   "build": {
+    "wallKind": "stone",
+    "wall": ["#e0d8c4", "#c8bea8", "#ece6d6"],
+    "trim": "#b0302a",
+    "base": "#8a8a92",
+    "win": "#2a4a7a",
+    "roofKind": "tile",
+    "roof": ["#2a4a7a", "#1e3658", "#3e6496"],
+    "wallH": 36,
+    "roofMax": 44,
+    "fence": {
+     "kind": "stone",
+     "wall": ["#d0c8b4", "#aaa290", "#e0d8c4"],
+     "top": "#c8bea8",
+     "h": 32
+    }
+   }
+  },
+  "dai_dau_hon_truong": {
+   "ground": {
+    "7": "cat",
+    "13": "da_phien"
+   },
+   "build": {
+    "wallKind": "stone",
+    "wall": ["#8a8a92", "#5a5a62", "#a2a2aa"],
+    "trim": "#a02a20",
+    "base": "#5a5a62",
+    "win": "#1c2230",
+    "roofKind": "tile",
+    "roof": ["#d04a30", "#a02a20", "#e06a4a"],
+    "wallH": 30,
+    "roofMax": 24,
+    "fence": {
+     "kind": "stone",
+     "wall": ["#8a8a92", "#5a5a62", "#a2a2aa"],
+     "top": "#9a9aa2",
+     "h": 30
+    }
+   }
+  },
+  "hai_than_dao": {
+   "ground": {
+    "1": "co",
+    "2": "co~#e0e4c8",
+    "4": "co~#c0ccb0",
+    "7": "cat_uot"
+   },
+   "props": {
+    "17": "cay_dua_cao",
+    "18": ["cay_dua_cao", "cay_la_tron"],
+    "20": ["cay_dua_cao", "cay_la_tron~#c8d4c0"]
+   },
+   "build": {
+    "wallKind": "plaster",
+    "wall": ["#e8e0cc", "#c8bea8", "#f4eee0"],
+    "trim": "#0e5a6a",
+    "base": "#8a7a60",
+    "win": "#0e3a4a",
+    "roofKind": "tile",
+    "roof": ["#1a8a9a", "#0e5a6a", "#4ac8c8"],
+    "wallH": 30,
+    "roofMax": 30,
+    "fence": {
+     "kind": "stone",
+     "wall": ["#c8b890", "#a08e6a", "#ddd0ac"],
+     "top": "#c8b890",
+     "h": 24
+    }
+   }
+  },
+  "lac_nhat_sam_lam": {
+   "ground": {
+    "1": "co_kho",
+    "2": "co_kho~#d8c8b8",
+    "3": "dat_la",
+    "4": "dat_la~#b8a0a0",
+    "5": "co_hoa~#e8d0c0",
+    "6": "co_hoa~#c8b0a8",
+    "8": "dat~#a08c88",
+    "9": "nuoc_nong~#b8d8a0"
+   },
+   "props": {
+    "17": ["cay_thu_do", "cay_thu_cam"],
+    "18": ["cay_thu_do~#e0d0c8", "cay_thu_cam~#d8c8b8"],
+    "19": ["cay_thu_do~#b8a0a0", "cay_thu_cam~#b09898"],
+    "20": ["cay_thu_do~#90788a", "cay_u_minh~#c0a0b0"]
+   }
+  },
+  "tinh_dau_ngoai_vi": {
+   "ground": {
+    "1": "co_rung",
+    "2": "co_rung~#d8dcd0",
+    "3": "la_rung",
+    "5": "co_reu",
+    "6": "la_rung",
+    "7": "duong_san",
+    "9": "suoi_nong",
+    "10": "dat_re"
+   },
+   "props": {
+    "19": ["cay_la_rong~#98a8a0", "cay_rung_dem", "thong_cao"]
+   }
+  },
+  "tinh_dau_noi_dia": {
+   "ground": {
+    "3": "reu_toi",
+    "4": "reu_dom_sang",
+    "7": "dat_da_rung",
+    "8": "dat_da_rung~#b8b4c0",
+    "9": "nuoc_sau_toi",
+    "10": "dat_da_rung~#d8d0c8"
+   },
+   "props": {
+    "19": ["cay_rung_dem", "cay_la_rong~#7888a0"],
+    "20": ["cay_rung_dem", "cay_u_minh"]
+   }
+  },
+  "loi_tinh_dau": {
+   "ground": {
+    "3": "co~#7a8aa8",
+    "4": "co~#5c6888",
+    "6": "co_hoa~#8090b0",
+    "8": "dat~#787890",
+    "9": "nuoc_ho",
+    "10": "san_da_co~#a0a8c0"
+   },
+   "props": {
+    "19": "cay_rung_dem~#b0b8d0",
+    "20": ["cay_u_minh", "cay_rung_dem~#9098c0"]
+   }
+  },
+  "cuc_bac_chi_dia": {
+   "ground": {
+    "10": "da_cuoi~#c0c8d8",
+    "25": "tuyet_bac",
+    "26": "tuyet_gio",
+    "27": "ho_bang",
+    "28": "bang_nut~#6a7890",
+    "29": "da_tuyet"
+   }
+  }
+ }
+}

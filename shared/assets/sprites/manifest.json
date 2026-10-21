@@ -252,6 +252,10 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "prop_bang_tinh",
+      "iso": true
+    },
+    {
       "key": "prop_bia_da_co",
       "iso": true
     },
@@ -314,9 +318,37 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "prop_cay_dua_cao",
+      "iso": true
+    },
+    {
       "key": "prop_cay_hoa_anh_dao",
       "iso": true,
       "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_cay_la_rong",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_la_tron",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_rung_dem",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_thu_cam",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_thu_do",
+      "iso": true
+    },
+    {
+      "key": "prop_cay_u_minh",
+      "iso": true
     },
     {
       "key": "prop_co_thu_lon",
@@ -390,6 +422,10 @@
       "key": "prop_cum_san_ho",
       "iso": true,
       "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_da_ngam",
+      "iso": true
     },
     {
       "key": "prop_da_phu_tuyet",
@@ -551,6 +587,10 @@
       "key": "prop_thong_tuyet",
       "iso": true,
       "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "prop_thong_tuyet_nho",
+      "iso": true
     },
     {
       "key": "prop_thung_go_chong",

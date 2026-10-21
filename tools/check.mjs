@@ -34,9 +34,9 @@ if (mode === "--hook") {
 } else if (mode === "--staged") {
   const out = execSync("git diff --cached --name-only --diff-filter=ACMR", { cwd: root, encoding: "utf8" });
   projects = targets(out.split(/\r?\n/).filter(Boolean));
-  // Sprite, manifest, dây chuyền asset, bảng màu hoặc màu võ hồn đổi (kể cả xóa file) -> chạy validate (~0,1 giây).
+  // Sprite, manifest, ô / vật isometric (tiles.json), file bản đồ, dây chuyền asset, bảng màu hoặc màu võ hồn đổi (kể cả xóa file) -> chạy validate (~0,1 giây).
   const all = execSync("git diff --cached --name-only", { cwd: root, encoding: "utf8" });
-  assets = /^(shared\/assets\/sprites\/|tools\/assets\/|art\/palette\.gpl$|shared\/data\.ts$)/m.test(all);
+  assets = /^(shared\/assets\/sprites\/|shared\/assets\/iso\/|shared\/assets\/[a-z_]+\.json$|tools\/assets\/|art\/palette\.gpl$|shared\/data\.ts$)/m.test(all);
 } else projects = ["server", "client"];
 
 let failed = false;
