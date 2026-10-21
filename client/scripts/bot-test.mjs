@@ -1473,7 +1473,9 @@ else {
       let bid=await target(4,45,still), h0=await hurtTo(50), x0=me.x, y0=me.y;
       await test(E,"ready"); await cast(E,0);
       let got=hitsOn(bid)[0]?.v, w=exp(atk*P(0)*sk[0].dmg), hw=Math.min(me.maxHp,h0+Math.floor((got??0)*sk[0].lifesteal));
-      ok(w.includes(got)&&moved(x0,y0)>=10&&hasSt(beastOf(E,bid),"stun"),`${sk[0].name}: lướt ${moved(x0,y0).toFixed(0)} pixel, sát thương ${got} (cần ${w.join(" hoặc ")}), quật ngã (Choáng)`);
+      // Tin dmg tới trước bản vá state: Choáng phải chờ theo state (trượt khi máy tải cao, PR #92).
+      const stun=await waitFor(()=>hasSt(beastOf(E,bid),"stun"),1000);
+      ok(w.includes(got)&&moved(x0,y0)>=10&&stun,`${sk[0].name}: lướt ${moved(x0,y0).toFixed(0)} pixel, sát thương ${got} (cần ${w.join(" hoặc ")}), quật ngã (Choáng)`);
       ok(me.hp>=hw-1&&me.hp<=hw+4,`${sk[0].name}: hút ${sk[0].lifesteal*100}% sát thương, sinh lực ${h0} -> ${me.hp} (cần ~${hw})`);
       bid=await target(4,40); x0=me.x; y0=me.y; await test(E,"ready"); await cast(E,1);
       got=hitsOn(bid)[0]?.v; w=exp(atk*P(1)*sk[1].dmg);

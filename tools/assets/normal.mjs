@@ -8,12 +8,12 @@
 // Pháp tuyến lấy từ độ dốc (Sobel) của độ cao, nhân --strength, theo quy ước OpenGL (xanh lá hướng lên, như Phaser):
 // R = x sang phải, G = y lên trên, B = z hướng ra màn hình. Điểm phẳng là (128, 128, 255).
 // --frame WxH: tính riêng từng khung của sheet (mép khung coi như trong suốt, khung kề không ảnh hưởng nhau);
-//   mặc định tự nhận sheet isometric (hồn sư 64, phụ thể 96, hồn thú theo bậc), ảnh khác coi là một khung.
+//   mặc định tự nhận sheet isometric (hồn sư 64, phụ thể 96 hai nửa theo giới, hồn thú theo bậc), ảnh khác coi là một khung.
 // --union: các ảnh là các lớp của cùng một hình (thân, áo, tóc của một bộ hồn sư, cùng cỡ): mép tròn tính theo hình gộp,
 //   nên chỗ giáp giữa hai lớp không thành nếp gấp giả; mỗi lớp vẫn ra một file _n theo độ sáng và alpha của lớp đó.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, ISO_HS_FRAME, ISO_VH_FRAME, ISO_HS_COLS, ISO_HS_ROWS, ISO_BEAST_COLS, ISO_BEAST_ROWS, ISO_BEAST_SIZES } from "./lib.mjs";
+import { decodePng, encodePng, Img, ISO_HS_FRAME, ISO_VH_FRAME, ISO_HS_COLS, ISO_BEAST_COLS, ISO_BEAST_ROWS, ISO_BEAST_SIZES, isoLayout } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -25,7 +25,10 @@ if (!files.length) { console.error("Cách dùng: normal.mjs <ảnh.png …> [--f
 /** Khung của sheet isometric theo kích thước ảnh; ảnh khác là một khung. */
 function frameOf(img) {
   if (frameOpt) return frameOpt.split("x").map(Number);
-  if (img.w % ISO_HS_COLS === 0 && [ISO_HS_FRAME, ISO_VH_FRAME].includes(img.w / ISO_HS_COLS) && img.h === (img.w / ISO_HS_COLS) * ISO_HS_ROWS) return [img.w / ISO_HS_COLS, img.h / ISO_HS_ROWS];
+  if (img.w % ISO_HS_COLS === 0 && [ISO_HS_FRAME, ISO_VH_FRAME].includes(img.w / ISO_HS_COLS)) {
+    const f = img.w / ISO_HS_COLS, rows = isoLayout(f === ISO_HS_FRAME ? "honsu" : "vohon").rows; // phụ thể: hai nửa theo giới
+    if (img.h === f * rows) return [f, f];
+  }
   if (img.w % ISO_BEAST_COLS === 0 && ISO_BEAST_SIZES.includes(img.w / ISO_BEAST_COLS) && img.h === (img.w / ISO_BEAST_COLS) * ISO_BEAST_ROWS) return [img.w / ISO_BEAST_COLS, img.h / ISO_BEAST_ROWS];
   return [img.w, img.h];
 }

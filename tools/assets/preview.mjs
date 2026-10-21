@@ -4,23 +4,24 @@
 // Nhiều lớp thì chồng theo thứ tự (phụ thể sau, thân, áo, tóc, phụ thể trước…) để xem hồn sư ghép lớp.
 // --grid vẽ đường kẻ khung (ví dụ 64x64 cho sheet hồn sư) để soát bố cục 24×6; --crop chỉ lấy một vùng.
 //
-// --dirs8: đọc sheet isometric (hồn sư 1536×384, phụ thể 2304×576, hồn thú 20 × 5 khung theo bậc; nhận ra theo kích thước)
+// --dirs8: đọc sheet isometric (hồn sư 1536×384, phụ thể 2304×1152 hai nửa theo giới, hồn thú 20 × 5 khung theo bậc; nhận ra theo kích thước)
 //   và xếp lại thành 8 hàng hướng theo vòng kim đồng hồ s, sw, w, nw, n, ne, e, se. Ba hướng sw, w, nw lật ngang hàng
 //   se, e, ne như client (nền ô cờ ánh lam để nhận ra). Các lớp khác khung (thân 64, phụ thể 96) được đặt khớp gốc chân.
 //   --anim: chỉ lấy các animation này (mặc định mọi animation, mỗi khung một cột; absorb xem bằng --crop trên sheet).
 //   --raw <thư mục>: thêm cột đầu là khung đứng {hướng}_idle_0.png do normalize ghi (đủ 8 hướng thật của PixelLab, gộp
 //   body/outfit/hair nếu là thư mục --split) để so hướng lật với hướng PixelLab vẽ thật.
+//   --sex m|f: nửa sheet phụ thể (ISO_VH_SEXES) ghép với thân; mặc định theo tên sheet thân (body_f_0.png → f).
 //   --ground: vẽ thoi một ô logic (ISO_TILE_W) dưới gốc chân để soát chân đứng đúng chỗ.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, hex, isoLayout, ISO_DIRS, ISO_DIRS8, ISO_FLIP, ISO_HS_COLS, ISO_HS_ROWS, ISO_HS_FRAME, ISO_VH_FRAME, ISO_BEAST_COLS, ISO_BEAST_ROWS, ISO_BEAST_SIZES, ISO_TILE_W, HS_LAYERS } from "./lib.mjs";
+import { decodePng, encodePng, Img, hex, isoLayout, ISO_DIRS, ISO_DIRS8, ISO_FLIP, ISO_HS_COLS, ISO_HS_ROWS, ISO_HS_FRAME, ISO_VH_FRAME, ISO_VH_SEXES, ISO_BEAST_COLS, ISO_BEAST_ROWS, ISO_BEAST_SIZES, ISO_TILE_W, HS_LAYERS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const dirs8 = flag("--dirs8"), ground = flag("--ground");
 const scale = +opt("--scale", dirs8 ? 3 : 8), grid = opt("--grid", ""), bg = opt("--bg", ""), crop = opt("--crop", "");
-const animOpt = opt("--anim", ""), rawDir = opt("--raw", "");
+const animOpt = opt("--anim", ""), rawDir = opt("--raw", ""), sexOpt = opt("--sex", "");
 const [out, ...inputs] = args;
 if (!out || !inputs.length) { console.error("Cách dùng: preview.mjs <ra.png> <lớp1.png> [lớp2.png …] [--scale 8] [--grid 64x64] [--crop x,y,w,h]\n          preview.mjs <ra.png> <sheet…> --dirs8 [--anim idle,walk] [--raw <thư mục>] [--ground]"); process.exit(1); }
 
@@ -56,15 +57,18 @@ if (!dirs8) {
 // ---------- --dirs8 ----------
 /** Nhận bố cục từ kích thước sheet. */
 function layoutOf(img, file) {
-  if (img.w % ISO_HS_COLS === 0 && img.h === (img.w / ISO_HS_COLS) * ISO_HS_ROWS) {
+  if (img.w % ISO_HS_COLS === 0) {
     const f = img.w / ISO_HS_COLS;
-    if (f === ISO_HS_FRAME) return isoLayout("honsu");
-    if (f === ISO_VH_FRAME) return isoLayout("vohon");
+    if (f === ISO_HS_FRAME && img.h === f * ISO_HS_ROWS) return isoLayout("honsu");
+    if (f === ISO_VH_FRAME && img.h === f * isoLayout("vohon").rows) return isoLayout("vohon");
   }
   if (img.w % ISO_BEAST_COLS === 0 && img.h === (img.w / ISO_BEAST_COLS) * ISO_BEAST_ROWS && ISO_BEAST_SIZES.includes(img.w / ISO_BEAST_COLS)) return isoLayout("beast", img.w / ISO_BEAST_COLS);
   console.error(`[preview] ${file}: ${img.w}×${img.h} không phải sheet isometric (hồn sư, phụ thể, hồn thú)`); process.exit(1);
 }
 const lays = layers.map((l, i) => layoutOf(l, inputs[i]));
+// Phụ thể có một nửa sheet cho mỗi giới (ISO_VH_SEXES): lấy nửa theo --sex, mặc định theo tên sheet thân (body_f_0.png → f).
+const sexOf = inputs.map((f) => path.basename(f).match(/^(?:body|outfit|hair)_([a-z])_[0-9]+[.]png$/)?.[1]).find(Boolean);
+const vhRow0 = Math.max(0, ISO_VH_SEXES.indexOf(sexOpt || sexOf || ISO_VH_SEXES[0])) * ISO_HS_ROWS;
 // Lấy bảng animation của lớp đầu tiên không phải phụ thể (phụ thể chỉ có idle/walk/attack/cast).
 const main = lays.find((l) => l.kind !== "vohon") ?? lays[0];
 // Ô kết quả đủ chứa mọi lớp khi đặt khớp gốc chân.
@@ -106,7 +110,7 @@ for (const [R, d] of ISO_DIRS8.entries()) {
   for (const [j, c] of cols.entries()) {
     const X = (j + rawCol) * CW, Y = R * CH;
     if (ground) drawGround(X, Y);
-    for (const [i, img] of layers.entries()) if (lays[i].kind !== "vohon" || c < lays[i].cols) put(img, lays[i], row, c, X, Y, flip);
+    for (const [i, img] of layers.entries()) if (lays[i].kind !== "vohon" || c < lays[i].cols) put(img, lays[i], lays[i].kind === "vohon" ? vhRow0 + row : row, c, X, Y, flip);
   }
 }
 const dst = upscale(sheet, (sx, sy, x, y) => {
