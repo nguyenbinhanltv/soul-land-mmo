@@ -143,6 +143,13 @@ node tools/assets/lpc-beast.mjs --src <thư mục gói thú> --out <tmp>/thu --s
 cp <tmp>/thu/<loài>.png shared/assets/sprites/beast/ && node tools/assets/normal.mjs shared/assets/sprites/beast/<loài>.png
 ```
 
+**Biểu tượng vật phẩm và hiệu ứng LPC (chủ repo duyệt từng ảnh, #201):** `tools/assets/lpc-item.mjs` theo công thức `art/src/lpc-item.json` (`packs`: tiêu đề, URL, thư mục, giấy phép như trang OGA; `items`: ô [cột, hàng] của sheet 32×32, `gray`; `fx`: dải khung một hàng). Biểu tượng cắt nguyên ô (không phóng), căn giữa, viền `#1a1020`, giảm còn 24 màu; `gray` (rương, tiên thảo) giãn sáng để client tô theo `col` của món (`TINTED` trong `uiArt.ts`). Hiệu ứng `fx_<tên>` giữ màu gốc, client chạy một lần bằng `playFx` (`sprites.ts`). Tải gói ngoài repo như thú LPC; công cụ ghi manifest và mục `<!-- lpc-item:start -->` của `art/CREDITS.md` kèm cờ SA / GPL.
+- **Đang dùng:** `item_hoi_thanh_phu` (cuộn giấy), `item_ruong`, `item_tien_thao` (LPC Items and game effects, Reemax ⚑ SA), `fx_no` (LPC Explosions, CC0) ở quả nổ tiên cơ Cường Công.
+
+```bash
+node tools/assets/lpc-item.mjs --src <thư mục gói> --preview <tmp>/item [--only item_ruong]   # ghi ảnh, manifest, ghi công
+```
+
 ## 6. Vẽ tay
 - **Huy hiệu hệ** `he_<mã HE_IDS>` 24×24: `node tools/assets/he-icons.mjs [--out <dir>]` vẽ từng điểm từ mảng ký tự trong file (tròn màu hệ, viền vàng kim, biểu tượng trắng) vào `shared/assets/sprites/iso/he/`; sửa hình thì sửa mảng rồi chạy lại; dừng nếu `HE_IDS` đổi. CREDITS ghi ở mục "Asset tự vẽ" bằng tay (`--register` chỉ ghi mục PixelLab / Gemini).
 - **Chỉnh pixel:** `pixelart_workbench` (PixelLab MCP, miễn phí: `pixelart_workbench(argv=['describe', 'start'])`) hoặc Aseprite với bảng sinh bằng `node tools/assets/palette.mjs <ra.gpl> [--map <mapId>]` (không đưa vào repo). Xuất sheet từ Aseprite: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 24`. Sửa xong chạy lại `validate`.
