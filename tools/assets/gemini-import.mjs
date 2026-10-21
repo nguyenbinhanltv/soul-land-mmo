@@ -94,6 +94,10 @@ function removeLogo(img, K) {
     const [bx, by, bw, bh] = logoOpt.split(",").map(Number);
     return inpaintBox(img, K, bx, by, bw, bh);
   }
+  // Chỉ dò khi nền là màu khóa đặc, bão hòa (magenta, xanh lá…): ảnh có alpha hay nền xám thì điểm xám của vật
+  // cũng khớp "nền trộn trắng" và bị gỡ nhầm.
+  for (let i = 3; i < img.data.length; i += 4) if (img.data[i] < 250) return null;
+  if (Math.max(...K) - Math.min(...K) < 100) return null;
   const x0 = Math.floor(img.w * 0.82), y0 = Math.floor(img.h * 0.75), pts = [];
   const overKey = (p) => paleKey(p, K);
   for (let y = y0; y < img.h; y++) for (let x = x0; x < img.w; x++) { const al = overKey(img.get(x, y)); if (al >= 0) pts.push([x, y, al]); }
@@ -220,7 +224,8 @@ function splitItems(img) {
   }
   const { lab, comps } = components(img);
   const big = Math.max(...comps.map((c) => c.n));
-  const main = comps.filter((c) => c.n >= big * 0.05);
+  // Vật = mảng ≥ 2% mảng lớn nhất (vật nhỏ như viên sỏi cạnh cây vẫn giữ), các mảng nhỏ hơn xét gộp bên dưới.
+  const main = comps.filter((c) => c.n >= Math.max(64, big * 0.02));
   // Mảnh nhỏ (ngọn cỏ rời, hạt bụi) nằm trong hộp bao nới rộng của một vật lớn thì gộp vào vật đó, còn lại bỏ.
   const owner = new Int32Array(comps.length).fill(-1);
   for (const m of main) owner[m.id] = m.id;
