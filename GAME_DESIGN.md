@@ -341,7 +341,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Chỉ số gốc** (`boneStats`): niên hạn càng cao thì chỉ số gốc càng mạnh; một chỉ số chính theo vị trí (đầu hồn lực, thân và chân sinh lực, tay công), tỉ lệ với mức cộng của hồn hoàn cùng số năm; tính lại từ số năm khi cần (không lưu DB). Cộng phẳng vào võ hồn đang gắn (`boneBonus`), áp ngay cả khi đang ra trận.
 - **Gắn** (mục "Hồn cốt" của bảng đội hình hoặc nút "Gắn…" ở túi; chuột kéo thả được): chỉ vào ô cùng vị trí; ô đã có thì đổi chỗ, món cũ về túi; tháo về túi khi túi đầy bị từ chối. Chỉ khi ngoài giao chiến (mục 4). Hồn cốt đang gắn không chiếm ô túi, không bỏ / bán được, **không bao giờ mất** khi gục hay thua; muốn chuyển sang võ hồn khác thì tháo trước.
 - **Kỹ năng** (`BONE_SKILLS`): theo **loài hồn thú gốc**, mỗi loài 1 kỹ năng chủ động (dùng chung cho đầu, hai tay; thường lấy từ chiêu báo trước của chính loài đó) và 1 bị động (dùng chung cho thân, hai chân; theo đặc tính con vật). Thêm loài vào `BEASTS` thì thêm mục ở đây.
-  - **Chủ động:** phím Z / X / C (đầu, tay trái, tay phải; trên điện thoại 3 nút nhỏ bên trái thanh hồn kỹ). Chạy bằng bộ máy hồn kỹ, mạnh theo số năm hồn cốt (`skillPower` / `buffPower`), tốn hồn lực, mỗi nút một hồi chiêu riêng **thuộc hồn sư** (đổi võ hồn không làm mới, để không xả kỹ năng bằng đổi tay). Chỉ võ hồn đang ra trận dùng kỹ năng của hồn cốt gắn trên nó. Bị chặn như hồn kỹ.
+  - **Chủ động:** phím Z / X / C (đầu, tay trái, tay phải; trên điện thoại 3 nút nhỏ bên trái thanh hồn kỹ). Chạy bằng bộ máy hồn kỹ, mạnh theo số năm hồn cốt (`skillPower` / `buffPower`), tốn hồn lực, mỗi nút một hồi chiêu riêng **thuộc hồn sư** (đổi võ hồn không làm mới, để không xả kỹ năng bằng đổi tay). Chỉ võ hồn đang ra trận dùng kỹ năng của hồn cốt gắn trên nó. Phần hiệu ứng có lợi lên bản thân (`self`) lan tới đồng đội hợp lệ trong `PARTY_BUFF_R` theo `PARTY_BUFF_MULT`; thanh tẩy lan nhưng không nhân hệ số. Sát thương và trạng thái lên hồn thú không lan. Bị chặn như hồn kỹ.
   - **Bị động:** cộng thường trực tốc chạy, công, chí mạng, giảm sát thương nhận, giảm tiêu hao, hút máu hoặc kháng một trạng thái (thời gian ngắn đi), × `buffPower` theo số năm; nhiều hồn cốt cộng dồn tới trần `BONE_PASSIVE_CAP`. Áp ngay khi gắn trên võ hồn ra trận, mất khi tháo hoặc đổi võ hồn.
 - **Cường hóa** (nút "Cường hóa…" ở túi đồ / ô hồn cốt đang gắn, hoặc Thợ rèn; miễn phí, ở đâu cũng được, chỉ khi ngoài giao chiến): chọn hồn cốt đích và tối đa `BONE_FEED_MAX` hồn cốt trong túi làm **nguyên liệu**. Điểm mỗi nguyên liệu tỉ lệ với niên hạn (`BONE_FEED_PER_YEAR`), **cùng vị trí được thêm 50%** (`BONE_FEED_SAME_SLOT`), cộng một phần điểm đã nạp vào nguyên liệu (`BONE_FEED_CARRY`) (`boneFeedXp`). Điểm cộng dồn lên cấp +0 … +`BONE_MAX_ENHANCE` theo `BONE_ENHANCE_COST`; điểm vượt cấp tối đa bị bỏ (bảng xem trước báo trước).
   - Mỗi cấp tăng chỉ số chính theo % chỉ số gốc (`BONE_ENHANCE_STAT`); các mốc `BONE_ENHANCE_MILESTONES` (+5, +10, +15, +20) mở thêm một dòng chỉ số phụ hoặc nâng kỹ năng. Đã chốt **nâng kỹ năng** của hồn cốt (`boneSkillMult`: chủ động là sức mạnh và hiệu ứng lên bản thân, bị động là mức cộng, vẫn kẹp trần); dòng chỉ số phụ ngẫu nhiên để sau.
@@ -353,7 +353,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Rơi:** theo `CORE_DROP` (khoảng sao theo niên hạn, sao thấp hay ra hơn: `CORE_STAR_W`); bộ phần lớn theo bản đồ (`CORE_MAP_SET`), còn lại bộ bất kỳ. Tinh anh chắc chắn rơi 1 hồn hạch. Rơi đất cùng luật nhặt (mục 4). Trong túi biểu tượng viên hạch màu bộ, sao ở góc, tên kiểu *+6 Hồn hạch Hạo Thiên 4★*; chi tiết ô ghi bộ, chỉ số chính, dòng phụ, hiệu ứng bộ.
 - **Gắn** (mục "Hồn hạch" của bảng đội hình hoặc nút "Gắn…" ở túi; kéo thả, kéo giữa hai ô thì đổi chỗ): không chọn ô thì vào ô trống đầu tiên; đủ 6 ô mà không chọn ô thì từ chối. Cùng luật ngoài giao chiến, không chiếm ô túi, không bao giờ mất như hồn cốt.
 - **Chỉ số:** dòng % (sinh lực / công / hồn lực) nhân phần gốc của võ hồn, dòng phẳng cộng thẳng, tỉ lệ / sát thương chí mạng cộng vào `CRIT` (`coreBonus`). Võ hồn không ra trận cũng có sinh lực tối đa theo hồn hạch của nó.
-- **Hiệu ứng bộ** (`CORE_SET_FX`, `CORE_FX_RULE`, `coreFx`): 2 món cùng bộ nhận hiệu ứng 2 món, 4 món nhận thêm hiệu ứng 4 món (ghép 4 + 2 hoặc 2 + 2 + 2). Chỉ tính trên võ hồn **đang ra trận**, chỉ lên hồn thú và chính hồn sư (không lan tổ đội, không áp lên đối thủ ở đấu trường); riêng Tiên Cơ 2 món tính trên võ hồn mang bộ khi ở ngoài sân.
+- **Hiệu ứng bộ** (`CORE_SET_FX`, `CORE_FX_RULE`, `coreFx`): 2 món cùng bộ nhận hiệu ứng 2 món, 4 món nhận thêm hiệu ứng 4 món (ghép 4 + 2 hoặc 2 + 2 + 2). Chỉ tính trên võ hồn **đang ra trận**, chỉ lên hồn thú và chính hồn sư (không áp lên đối thủ ở đấu trường); riêng Tiên Cơ 2 món tính trên võ hồn mang bộ khi ở ngoài sân. Ngoại lệ hỗ trợ tổ đội: Lưu Ly 4 món khi đổi tay chia hiệu ứng tăng công tới đồng đội hợp lệ trong `PARTY_BUFF_R` theo `PARTY_BUFF_MULT`; các CoreFx gây sát thương / trạng thái vẫn chỉ thuộc người mang bộ.
 
 | Bộ | 2 món | 4 món |
 |---|---|---|
@@ -380,6 +380,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Rương** thú vương / boss thế giới: mở trong túi (cần đủ ô trống), mục 5.3 và 5.4.
 - **Hồi Thành Phù** (nhóm phù chú): về thành gần nhất (mục 5.3 "Truyền tống trận").
 - **Thương nhân** (Nặc Đinh Thành, Thiên Đấu Thành; cùng bảng hàng): bán đan và Hồi Thành Phù (`SHOP`; mua 1 / 5 / 10, mỗi lần tối đa `SHOP_MAX_QTY`); thiếu Hồn Tệ hoặc túi không đủ chỗ cho **cả** số món thì từ chối hết, không trừ tiền.
+  - **Thương nhân lưu động** ở trại cổng bản đồ săn (`CAMP_MERCHANT`, mục 5.8): cùng luật mua / bán / mua lại (trại không phải vùng an toàn nên đang giao chiến thì không giao dịch), nhưng chỉ bán đan nhỏ và Hồi Thành Phù, giá cao hơn trong thành (`CAMP_SHOP`); không bán đan lớn, không mở rộng túi. Mua lại đồ dư đúng giá như trong thành. Bảng hàng của từng thương nhân: `shopOf`, `shopExpands`; client gửi kèm mã thương nhân đang mở hộp thoại, server tính giá theo đúng thương nhân đó.
   - **Mua lại đồ dư** (`sellPrice`): hồn hoàn theo số năm (`RING_SELL`, nội suy theo log), hồn cốt gấp `BONE_SELL` lần hồn hoàn cùng số năm và đắt hơn theo cấp cường hóa (`BONE_SELL_ENH`), hồn hạch theo sao (`CORE_SELL`), mảnh theo độ hiếm (`SHARD_SELL`, bán 1 hoặc cả chồng). **Không mua** đồ đang gắn, hồn hoàn đang hấp thụ, đan dược, phù chú, rương. Món giá cao hoặc đã cường hóa phải bấm "Bán" hai lần.
   - **Mở rộng túi** (dịch vụ, có hiệu lực ngay): +`BAG_EXPAND` ô mỗi lần tới `BAG_MAX_SLOTS`, giá tăng dần (`BAG_EXPAND_COST`), bấm hai lần. Số ô chỉ tăng.
   - **Mua lại đồ đã bán:** giữ `BUYBACK_MAX` món bán gần nhất của mỗi tài khoản (bản sao đúng món, mới nhất trước), mua lại đúng giá đã nhận, cần đủ Hồn Tệ và chỗ trống. Giữ ở RAM mức tiến trình: còn khi đi cổng / đổi kênh / vào sân đấu, mất khi rời game. Chung cho mọi thương nhân.
@@ -388,6 +389,8 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 
 ### 5.8 Địa điểm và NPC
 Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đồ săn có **trại nhỏ ở cổng vào** (object `spawn`) làm điểm hồi sinh; trại cổng **không phải vùng an toàn** (vẫn giao chiến được), nhưng trong `SPAWN_CLEAR` pixel quanh trại, quanh mọi cổng và điểm `arrive` không sinh hồn thú (lớn hơn tầm lang thang + tầm phát hiện), để người vừa tới / vừa hồi sinh / đang niệm cổng không bị đánh.
+
+- **Thương nhân lưu động** (mọi bản đồ săn có trại cổng; Thánh Hồn Thôn không có vì `spawn` là quảng trường làng trong vùng `safe`): mua / bán cơ bản không cần về thành (mục 5.7). Không đặt bằng object `npc` trong Tiled: chỗ đứng tính từ file Tiled bằng hàm dùng chung `campMerchantSpot` (`shared/camp.ts`, server và client cùng gọi): điểm đứng được, cách cổng / truyền tống trận `CAMP_GAP` và cách điểm `arrive` / NPC khác `CAMP_PT_GAP`; ưu tiên điểm cách một điểm `arrive` không quá `NPC_RANGE` − `CAMP_STEP` (người vừa tới nói chuyện được ngay, lệch vài bước vẫn trong tầm), rồi điểm gần tâm trại nhất. Bản đồ săn có trại cổng mà không đặt được thương nhân thì server cảnh báo khi nạp bản đồ. Vẽ bằng sprite hồn sư theo `looks` như NPC khác.
 
 - **Thánh Hồn Thôn:** **Tố Vân Đào** (chấp sự Vũ Hồn Điện; lễ thức tỉnh chạy qua `POST /api/awaken` trước khi vào phòng, trong làng là NPC giải thích võ hồn, bình cảnh, đội hình), **Lão Kiệt Khắc** (trưởng thôn, chỉ đường bãi săn và cổng đi Nặc Đinh Thành).
 - **Nặc Đinh Thành:** **Ngọc Tiểu Cương (Đại Sư)** ở Học viện Nặc Đinh (giải thích giới hạn hồn hoàn theo vòng, cấp đề xuất từng bản đồ; giao nhiệm vụ tân thủ), **Thương nhân**, **Thợ rèn** (bảng cường hóa hồn cốt và nâng cấp hồn hạch), **Sứ giả Đại Đấu Hồn Trường** (chỉ đường lên Thiên Đấu Thành), cổng bắc đi Thiên Đấu Thành.
@@ -427,7 +430,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Chia kinh nghiệm:** thành viên cùng phòng (cùng bản đồ, cùng kênh), chưa gục, cách chỗ hồn thú gục dưới `PARTY_XP_RANGE` pixel (khoảng 300px) cùng chia (người hạ luôn được chia): tổng kinh nghiệm gốc thêm `PARTY_XP_BONUS` cho mỗi người thêm (mỗi người thêm 5%) rồi chia đều (`partyXpShare`); sau đó mỗi người tự giảm theo chênh cấp của mình và chia cho đội võ hồn. Tinh anh chia cùng cách; thú vương / boss thế giới chia theo đóng góp. Hồn Tệ và mảnh vào túi vẫn chỉ của người hạ.
 - **Đồ rơi** ưu tiên cả tổ đội của người được ưu tiên (mục 4).
 - Khung tổ đội dưới khung chỉ số: tên, cấp, võ hồn ra trận và sinh lực, bản đồ / kênh (nếu khác), đã rời game; đồng đội cùng phòng có tên và chấm xanh lá trên bản đồ nhỏ.
-- **Hiệu ứng phụ trợ lan cho đồng đội:** hồn kỹ, tiên cơ, Chân Thân tung khi võ hồn hệ **Phụ trợ** ra trận có hiệu ứng lên bản thân (hiệu ứng có lợi, hồi sinh lực, khiên, hồi hồn lực) thì đồng đội cùng phòng, chưa gục cả đội, không đang đi cổng, ngoài vùng an toàn, đứng trong `PARTY_BUFF_R` pixel cũng nhận, mức × `PARTY_BUFF_MULT` (người tung ×1); hồi / khiên tính theo sinh lực tối đa võ hồn ra trận của người nhận; trùng thì lấy mức mạnh hơn và thời gian dài hơn. **Không lan:** thanh tẩy, lãnh vực phượng hoàng (`PARTY_BUFF_SKIP`), tàng hình của võ hồn không phải Phụ trợ (kể cả chép bằng Phục Chế), bất tử khi bay, Phong Lôi Chi Lực. Đồng đội thấy "+N" hồi / khiên và dòng "<tên> tăng công cho bạn".
+- **Hiệu ứng phụ trợ lan cho đồng đội:** hồn kỹ, tiên cơ, Chân Thân tung khi võ hồn hệ **Phụ trợ** ra trận có hiệu ứng lên bản thân (hiệu ứng có lợi, hồi sinh lực, khiên, hồi hồn lực) thì đồng đội cùng phòng, chưa gục cả đội, không đang đi cổng, ngoài vùng an toàn, đứng trong `PARTY_BUFF_R` pixel cũng nhận, mức × `PARTY_BUFF_MULT` (người tung ×1); hồi / khiên tính theo sinh lực tối đa võ hồn ra trận của người nhận; trùng thì lấy mức mạnh hơn và thời gian dài hơn. Thanh tẩy lan tới đồng đội hợp lệ nhưng không nhân hệ số. Kỹ năng hồn cốt của **mọi hệ võ hồn** cũng chỉ lan phần hiệu ứng có lợi lên bản thân; sát thương và trạng thái lên hồn thú không lan. **Không lan:** lãnh vực phượng hoàng (`PARTY_BUFF_SKIP`), tàng hình của võ hồn không phải Phụ trợ (kể cả chép bằng Phục Chế), bất tử khi bay, Phong Lôi Chi Lực, và CoreFx gây sát thương / trạng thái. Các hiệu ứng tổ đội không lan trong sân Đại Đấu Hồn Trường. Đồng đội thấy "+N" hồi / khiên và dòng "<tên> tăng công cho bạn".
 - **Đóng góp hỗ trợ:** hồi máu / khiên thực cho đồng đội đang tham gia tinh anh / thú vương / boss thế giới tính vào đóng góp của người hồi (`SUPPORT_CONTRIB`); bảng xếp hạng có cột "Hỗ trợ". Hồn hoàn đỏ của boss thế giới vẫn xếp theo sát thương.
 - Phục Chế chép được hồn kỹ của đồng đội (mục 5.2).
 
@@ -567,17 +570,27 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ tham khảo ý tưởng, không làm ảnh tham chiếu.
 - **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận CC0, CC-BY hoặc OFL (lớp LPC thêm OGA-BY), mỗi asset một dòng trong `art/CREDITS.md`; CC-BY / OGA-BY phải hiện tên tác giả trong màn hình giới thiệu.
 
-### 5.12 Âm thanh: nền tảng WebAudio và SFX tự tạo
+### 5.12 Âm thanh: nền tảng WebAudio, SFX tự tạo và nhạc nền
 Âm thanh là phần trình bày phía client. Server vẫn quyết định trạng thái, sát thương, vị trí và kết quả; client chỉ phát theo tin `fx`, `dmg` và state đã nhận. Không thêm message server cho âm thanh khi event hiện có đủ dữ liệu. Nếu sau này thiếu event, chỉ thêm event trạng thái tối thiểu, không đưa logic âm thanh lên server.
 
 - `client/src/audio/AudioManager.ts` dùng WebAudio context của Phaser Sound. Trình duyệt bị chặn tự phát thì chỉ `resume()` sau lần chạm, click hoặc phím đầu tiên; context không ở trạng thái `running` thì bỏ qua tiếng, không tạo node âm thanh. Bot headless không cần âm thanh.
 - Bộ phát là bộ tổng hợp lấy ý tưởng từ ZzFX (MIT, Frank Force), không chép mã ZzFX; mã nằm ở `client/src/audio/zzfx.ts`, không thêm package và không tải file âm thanh bên ngoài. Tham số SFX nằm trong `SFX_PARAMS` ở `client/src/audio/sfxData.ts`, không phải số cân bằng và không đặt ở `shared/data.ts`.
-- Bus nhạc của Phaser và bus SFX tự tạo tách riêng: âm lượng tổng nhân với thanh Nhạc chỉ trên nhạc, còn SFX nhận âm lượng tổng nhân với thanh Hiệu ứng; tắt tiếng vẫn áp dụng cho cả hai bus.
+- Bus Nhạc và bus SFX tách riêng: nhạc nền và khúc ngắn nhận âm lượng tổng nhân với thanh Nhạc (bus riêng của `MusicPlayer`, volume Phaser giữ cùng giá trị cho tiếng Phaser nếu có), còn SFX nhận âm lượng tổng nhân với thanh Hiệu ứng; tắt tiếng áp dụng cho cả hai bus.
 - Có 40 SFX theo nhóm giao diện, chiến đấu, hệ võ hồn, hồn hoàn / tiến trình. Event hiện có được ánh xạ trước: `fx` cho chém, hồn kỹ, truyền tống và boss; `dmg` cho trúng, chí mạng, hồi máu, khiên; `absorbing`, `quest`, `ko`, `wp`, `boss` cho trạng thái tương ứng. Bốn hệ võ hồn hiện có trong `shared/data.ts` chỉ chọn màu âm thanh; không tự suy ra hệ nguyên tố chưa có trong dữ liệu authoritative.
 - `fx` ưu tiên `x,y`; nếu payload thiếu tọa độ thì client lấy `players[id]` hoặc `beasts[bid]` từ state server đã đồng bộ. Không tìm được nguồn thì bỏ qua SFX gameplay, không phát toàn cục; chỉ UI và thông báo gọi phát toàn cục trực tiếp.
 - Bảng **Âm thanh** trong HUD thủy mặc lấy mặc định từ `DEFAULT_AUDIO_SETTINGS`; slider chạy trong `[0, 1]`, bước `0,05`; giá trị sai được đưa về mặc định. Lưu ở `localStorage` với khóa `AUDIO_STORAGE_KEY`; không lưu DB, không có API mới.
 - Âm thanh chiến đấu và hồn thú có tầm `AUDIO_RANGE` pixel thế giới. Trong tầm, âm lượng dùng `AUDIO_EDGE_ATTENUATION` theo bình phương khoảng cách, tại mép còn 20%; lệch trái/phải là delta ngang sau `worldToScreen` chia cho độ dài ngang của cùng tầm nghe, kẹp trong `[-1, 1]`. Vì vậy isometric dùng `x − y`, còn `?view=topdown` dùng `2 × x` và chênh `y` không làm lệch pan. Ngoài tầm không tạo node âm thanh. Vị trí nghe lấy từ state hồn sư của mình, không lấy từ dự đoán để tránh sai quyền quyết định.
 - Demo nghe thử tất cả SFX là artifact ngoài repo, không trở thành asset runtime. Đây là điểm nghe duyệt, không phải nguồn dữ liệu gameplay.
+
+**Nhạc nền** (`client/src/audio/music.ts`; nhạc sáng tác bằng code ở `tools/audio/compose`, danh sách bài trong `shared/assets/audio/music/manifest.json`):
+- Mỗi bản đồ một bài lặp (`kind: "map"`, khớp `mapId` trong state của phòng); điểm lặp là cả file, phát bằng `AudioBufferSourceNode` lặp nên liền mạch đúng từng mẫu. `seconds` của manifest chỉ làm tròn tới ms nên không dùng làm điểm cắt; độ dài vòng thật là `musicLoopSeconds` (bội `MUSIC_LOOP_BLOCK` mẫu ở `MUSIC_RENDER_RATE`), chỉ dùng khi bộ giải mã đệm thêm ở cuối file.
+- **Tải lười:** chỉ tải manifest và bài của bản đồ đang đứng, bài giao chiến khi bắt đầu giao chiến, khúc ngắn khi sự kiện đầu tiên xảy ra; không tải trước cả bộ. Giữ tối đa `MUSIC_CACHE_TRACKS` bài nền đã giải mã. Bus Nhạc bằng 0 (thanh Nhạc 0 hoặc tắt tiếng) thì mờ bài đang phát và không tải bài mới. Tải lỗi (manifest, bài, khúc ngắn) không được nhớ: bài nền thử lại sau `MUSIC_RETRY_MS`, gấp đôi mỗi lần, tối đa `MUSIC_RETRY_MAX` lần (đổi bản đồ thì đếm lại); khúc ngắn chỉ tải lại ở sự kiện sau.
+- **Định dạng:** Safari và mọi trình duyệt trên iOS / iPadOS dùng m4a; trình duyệt khác dùng ogg nếu phát được Vorbis (`pickMusicFormat`). Ogg không giải mã được thì thử m4a của cùng bài và dùng m4a từ đó.
+- **Đổi bài** (đổi bản đồ, vào / hết giao chiến) mờ chéo trong `MUSIC_FADE_S`. Mỗi lần đổi bản đồ client tạo lại Phaser.Game nên mọi game dùng chung một AudioContext (`sharedAudioContext`, truyền vào `audio.context`): Phaser chỉ treo context khi hủy game, bài cũ sống qua lúc chuyển và mờ sang bài mới khi scene mới có `mapId`.
+- **Giao chiến** (`bossEngaged`): thú vương hoặc boss thế giới (hạng ≥ 2, mục 5.4) còn sống, trong `MUSIC_BATTLE_RANGE`, đang hung hăng hoặc đã có người góp sát thương, đọc từ state hồn thú ở gần. Khi đó phát bài `kind: "battle"`; hết điều kiện `MUSIC_BATTLE_HOLD_MS` mới mờ về nhạc bản đồ; sang bản đồ khác là hết giao chiến ngay. Tinh anh không đổi nhạc.
+- **Khúc ngắn** (`kind: "jingle"`, phát một lần) theo tin / state có sẵn, không thêm message server: lên cấp (cấp võ hồn ra trận trong state tăng, cùng võ hồn), hấp thụ hồn hoàn thành công (`absorbing`), thắng / thua Đại Đấu Hồn Trường (`arena` k = `end`, hòa không có khúc), nhận / trả nhiệm vụ tân thủ và khảo hạch hằng ngày (`quest`, `daily`). Trong lúc phát, nhạc nền hạ còn `MUSIC_DUCK_GAIN` rồi trả lại. Hai khúc chồng nhau thì khúc có `MUSIC_EVENT_PRIORITY` cao hơn thay khúc đang phát, còn lại bỏ.
+- Như SFX: context chưa chạy (chưa tương tác) thì nhạc nền đứng chờ, khúc ngắn bị bỏ; tab ẩn hoặc mất tiêu điểm thì Phaser treo context nên nhạc dừng theo. Không có WebAudio (bot, headless) thì không có bộ phát. Thêm `?music=log` vào địa chỉ trang để ghi mỗi lần đổi bài vào console và xem `window.__music.status()`.
+- Mất kết nối (màn "Đã rời bản đồ") thì ngừng nhạc.
 
 ### 5.13 Tự săn (Auto 1)
 Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 2026-10-22). Số ở `shared/data.ts`, mục "Tự săn".
@@ -605,7 +618,7 @@ Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 202
 | Võ hồn | `vohons`, `team {slots}`, `loadout {rowId, skills}`, `unlock {vohon}`, `starup {vohon}` |
 | Túi đồ | `bag`, `use {id, vohonId?}`, `pickup`, `discard {id}`, `open {id}`, `absorb {itemId, vohonId}` |
 | Hồn cốt, hồn hạch | `equip` / `unequip`, `equipcore` / `unequipcore`, `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}` |
-| NPC | `talk {npc}`, `buy {code, qty}`, `sell {id, qty?}`, `expand`, `buyback {key}`, `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
+| NPC | `talk {npc}`, `buy {code, qty, npc?}`, `sell {id, qty?, npc?}`, `expand {npc?}`, `buyback {key, npc?}` (`npc`: thương nhân đang mở hộp thoại, thiếu thì thương nhân gần nhất), `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
 | Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}` |
 | Tự săn | `auto {op, cfg?}` (`on`, `off`, `set` cài đặt `AutoSettings`, `get`; mục 5.13) |
 | Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
@@ -632,7 +645,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 | `zone` | Chữ nhật | `beasts` (mã loài, có thể kèm trọng số: `phong_lang:3,man_da_la_xa:1`), `years` (`300-700`; thiếu thì tung bậc theo `weights`, cách cũ), `count`, `hint`; tên vùng dùng cho tiên thảo và mục tiêu nhiệm vụ |
 | `portal` | Chữ nhật | `to` (`mapId` đích), `arrive` (tên điểm ở bản đồ đích), `level` (`10-30`), `boat` (bool, bến thuyền) |
 | `arrive` | Điểm | Tên duy nhất trong bản đồ; phải nằm ngoài mọi vùng `portal` |
-| `spawn` | Chữ nhật | Điểm hồi sinh / trại cổng |
+| `spawn` | Chữ nhật | Điểm hồi sinh / trại cổng; bản đồ săn có thương nhân lưu động tự đứng trong trại (`campMerchantSpot`, mục 5.8) |
 | `safe` | Chữ nhật | Vùng an toàn trong bản đồ săn |
 | `elite` | Chữ nhật | `boss` (mã tinh anh trong `BOSSES`); nằm trong một `zone` |
 | `boss` | Chữ nhật | `boss` (mã thú vương hoặc boss thế giới); là hang / sàn đấu và cũng là bán kính giao chiến |
@@ -747,6 +760,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Giai đoạn 12: Âm thanh**
 - [x] 12.1 Nền tảng WebAudio client, bảng Âm thanh, 40 SFX ZzFX tự tạo, spatial audio theo khoảng cách, demo nghe thử và quy tắc phát theo event/state (#132).
+- [x] 12.3 Nhạc nền tự sáng tác cho mọi bản đồ, bài giao chiến boss / thú vương, khúc ngắn theo sự kiện; tải lười, mờ chéo, hạ nhạc nền khi phát khúc ngắn (#134; mục 5.12 "Nhạc nền").
 
 **Tự săn** (chủ repo chốt 2026-10-22: hiệu suất 100%, tối đa 12 giờ treo mỗi ngày; mục 5.13)
 - [x] Auto 1: lõi tự săn online phía server, nút / phím bật tắt, chữ "Tự động" trên đầu, bảng `auto_hunt` (#155).
@@ -755,10 +769,10 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
-- [ ] Thương nhân lưu động ở trại cổng bản đồ săn (#111).
+- [x] Thương nhân lưu động ở trại cổng bản đồ săn (#111; mục 5.7, 5.8).
 - [x] Vùng an toàn hồi sinh lực / hồn lực nhanh hơn ngoài rừng; chuyển các số hồi sinh lực đang viết thẳng trong `MapRoom.tick` vào `shared/data.ts` (#112; mục 4 "Hồi sinh lực và hồn lực").
 - [ ] Xếp hàng Đại Đấu Hồn Trường cả tổ đội (2v2…); cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); xem trận (#113).
-- [ ] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114).
+- [x] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114): thanh tẩy không nhân hệ số; self-effect hồn cốt và Lưu Ly hỗ trợ theo bán kính / hệ số tổ đội, sát thương và trạng thái hồn thú không lan.
 - [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
 - [ ] Hồn thú: chỉ số thủ (để Phá giáp / xuyên thủ thành giảm thủ thật); trạng thái Mê hoặc / đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), tầng Hàn và Hỏa Đàn (Cực Hàn), vùng ngập luân phiên (Thủy Triều Dâng), bọc trứng nở nhện con (Vạn Chu Phệ); vũng độc / sương độc lưu lại; che tầm nhìn (Phun Mực) (#117).

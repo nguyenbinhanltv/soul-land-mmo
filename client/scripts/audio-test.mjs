@@ -65,6 +65,8 @@ const context = {
     const gain = {
       value: 0,
       setValueAtTime(value) { this.value = value; },
+      linearRampToValueAtTime(value) { this.value = value; },
+      cancelScheduledValues() {},
     };
     const node = { gain, connections: [], connect(target) { this.connections.push(target); }, disconnect() {} };
     gains.push(node);
