@@ -1,5 +1,7 @@
 # Rừng Săn Hồn Online
 
+> **Người mới vào chơi:** đọc [Hướng dẫn chơi](docs/huong-dan-choi.md) (điều khiển, đội hình, hồn hoàn, bản đồ, boss, đấu trường).
+
 MMO săn hồn thế giới mở chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
 săn hồn thú lấy hồn hoàn, hồn cốt, hồn hạch, đánh boss cùng bạn bè và đấu xếp hạng ở Đại Đấu Hồn Trường.
 Đồ họa pixel art **isometric** kiểu Ultima Online (ô thoi 2:1, nhân vật 8 hướng), giao diện thủy mặc.
@@ -62,6 +64,7 @@ npm run test:accounts --prefix server
 - Bot cần server bật `GAME_TEST=1`; thiếu thì nhiều phần bị bỏ qua (có dòng ⚠). Server ở cổng khác thì đặt `SERVER_URL=http://localhost:<cổng>` cho bot.
 - Phần nhiều kênh chạy riêng: server `CHANNEL_MAX=2 GAME_TEST=1 npm run dev:server`, rồi chạy bot lần nữa.
 - Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam; `BOSS_CLOCK=HH:MM` chạy từ giờ đó, `BOSS_CLOCK=real` dùng giờ thật.
+- CI (`.github/workflows/check.yml`, chỉ để tham khảo) chạy `check-build` và `bot-ram` (các bài trên cùng bot RAM chia 3 nhóm song song theo `BOT_PART`, nhiều kênh) trên mọi PR vào `main`; xem `CONTRIBUTING.md` mục Merge.
 - Bật git pre-commit hook một lần sau khi clone: `npm run hooks` (typecheck các file đã stage).
 - Bot chạy trên server mới bật (state sạch). Đổi SQL / `server/src/db.ts` thì chạy thêm bot với PostgreSQL, server bật hai lần liên tiếp để chắc migration chạy lại an toàn (cách dựng PostgreSQL không cần Docker ở `CLAUDE.md`).
 
