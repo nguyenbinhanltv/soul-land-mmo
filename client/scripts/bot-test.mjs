@@ -56,7 +56,8 @@
 // tống trận, vị trí lưu ở phiên bản bản đồ khác thì vào ở trại cổng); mọi bài khác đọc file Tiled đang dùng (mapUrl, theo MAP_V1 như
 // server) nên chạy được trên bản ×8 lẫn bản cũ.
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
-// danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con.
+// danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
+// anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
 import { Client } from "colyseus.js";
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
 import { findPath, clearLine, pathLength } from "../src/path.ts";
@@ -342,6 +343,46 @@ async function channelTest(){
   P1.logs=[]; await slayKing(P1); await waitFor(()=>!king(P1),3000); await sleep(400);
   ok(!king(P1)&&chestN(P1)===1&&/đã nhận rương của khung giờ này ở kênh khác/.test(P1.logs.join("\n")),
     `hạ thú vương kênh 1 trong cùng khung giờ: không nhận thêm rương ("${P1.logs.find(t=>/kênh khác/.test(t))??P1.logs.slice(-3).join(" | ")}")`);
+
+  // ---- #119: tinh anh mỗi kênh hồi sinh riêng, nhưng thưởng tinh anh khóa theo tài khoản ELITE.lock giây ở mọi kênh; đổi kênh rồi
+  // quay về thì đóng góp lên tinh anh còn giao chiến vẫn còn (gắn theo tài khoản) ----
+  {
+    const EB=(await T(P1,"elite")).list[0]?.boss, ek=`${NV}|${EB}`, newDrops=(b,bf)=>[...b.room.state.drops.entries()].filter(([k])=>!bf.has(k)).map(([,x])=>x);
+    const one=async(b,bid)=>(await T(b,"elite",{bid})).one;
+    /** `b` hạ ngay tinh anh `bid` (hook slay, như ra đòn cuối); trả đồ rơi mới và các dòng log. */
+    const slayE=async(b,bid)=>{ const bf=new Set(b.room.state.drops.keys()), l=b.logs.length; await T(b,"slay",{bid}); await sleep(250); return {nd:newDrops(b,bf),log:b.logs.slice(l).join(" | ")}; };
+    /** Đổi kênh như người chơi (rời giao chiến, bỏ chờ CHANNEL_CD bằng hook); hồn thú hoang có thể vừa đánh: thử lại tối đa 3 lần. */
+    const swap=async(b,ch)=>{ for(let k=0;k<3;k++){ await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
+      b.travel=null; const w=await say(b,"channel",{ch}); if(await waitFor(()=>b.travel,3000)) return follow(b);
+      console.log(`    ${b.name} chưa đổi được sang kênh ${ch} (đang ở kênh ${chOf(b)}): "${w}"`); } };
+    ok(!!EB,`tinh anh của ${MAPS[NV].name}: ${EB}`);
+    // Kênh 1: P1 hạ tinh anh (hook sinh 1 máu, cùng mã): chắc chắn rơi hồn hạch (số ngẫu nhiên 0,5), bị khóa ELITE.lock giây.
+    await T(P1,"elock",{s:0}); await T(P1,"core",{r:50});
+    let r=await slayE(P1,(await T(P1,"beast",{boss:EB,dx:14,dy:0})).bid), lc=(await T(P1,"elock")).locks;
+    ok(chOf(P1)===1&&r.nd.some(x=>x.item===CORE_ITEM&&x.owner===P1.room.sessionId)&&lc[ek]>ELITE.lock-60,`kênh 1: P1 hạ ${beastName(1,bossIndex(EB))}: hồn hạch chắc chắn, khóa ${lc[ek]?.toFixed(0)} giây`);
+    // Tinh anh còn giao chiến ở kênh 1: P3 đứng cạnh (giữ giao chiến), P1 ở xa gây 7, P3 gây 5 sát thương.
+    const E1=(await T(P3,"beast",{boss:EB,dx:14,dy:0})).bid; await T(P3,"bhp",{pct:100,bid:E1});
+    await T(P3,"kdmg",{v:5,bid:E1}); await T(P1,"kdmg",{v:7,bid:E1});
+    let o=await one(P3,E1); const s1=P1.room.sessionId;
+    ok(o?.engaged&&o.dmgBy[s1]===7&&o.dmgBy[P3.room.sessionId]===5,`kênh 1: P1, P3 cùng đánh tinh anh (đóng góp ${JSON.stringify(o?.dmgBy)})`);
+    // P1 sang kênh 2 (P2 vào game mở kênh 2): hạ tinh anh cùng mã ở kênh 2 trong lúc còn khóa thì chỉ như hồn thú thường.
+    { const pick=await post("/api/channel",{token:P2.token}); await enter(P2,pick.roomId??undefined); await fresh(P2); }
+    await swap(P1,2);
+    ok(chOf(P2)===2&&chOf(P1)===2,`P2 vào kênh ${chOf(P2)}, P1 đổi sang kênh ${chOf(P1)}`);
+    await T(P1,"core",{r:50}); r=await slayE(P1,(await T(P1,"beast",{boss:EB,dx:14,dy:0})).bid);
+    ok(r.nd.length&&!r.nd.some(x=>x.item===CORE_ITEM)&&/chưa lâu \(kênh nào cũng tính\)/.test(r.log),`kênh 2 trong lúc còn khóa: không hồn hạch chắc chắn ("${r.log}")`);
+    // P1 quay về kênh 1: đóng góp 7 chuyển sang phiên mới; hạ tinh anh khi còn khóa thì quyền ưu tiên sang P3 (chưa khóa) dù P1 đóng góp nhiều hơn.
+    await swap(P1,1);
+    o=await one(P3,E1); const s2=P1.room.sessionId;
+    ok(chOf(P1)===1&&s2!==s1&&o?.engaged&&o.dmgBy[s2]===7&&!(s1 in o.dmgBy),`đổi kênh rồi quay về kênh 1: đóng góp của P1 vẫn ${o?.dmgBy[s2]} (phiên mới), phiên cũ không còn`);
+    await T(P3,"elock",{s:0}); await T(P1,"core",{r:50}); r=await slayE(P1,E1); const sid3=P3.room.sessionId;
+    // Chỉ xét đồ rơi tinh anh (hồn hoàn, hồn cốt, hồn hạch): mảnh / tiên thảo của người hạ rơi xuống đất khi túi P1 đầy thì vẫn thuộc P1.
+    const eliteDr=r.nd.filter(x=>x.item===""||x.item===BONE_ITEM||x.item===CORE_ITEM);
+    ok(eliteDr.some(x=>x.item===CORE_ITEM&&x.owner===sid3)&&eliteDr.every(x=>x.owner===sid3)&&/chưa bị khóa thưởng tinh anh/.test(r.log)&&(await T(P3,"elock")).locks[ek]>0,
+      `P1 (còn khóa, đóng góp 7) hạ tinh anh: đồ rơi tinh anh ưu tiên P3 (đóng góp 5, chưa khóa), P3 bị khóa`);
+    for(const b of [P1,P3]){ await T(b,"core",{r:100}); await T(b,"elock",{s:0}); }
+    await P2.room.leave(); await sleep(300);
+  }
 
   // ---- BĐ6a: Thiên Đấu Thành chia kênh như mọi bản đồ (P3 mở kênh 1, P1 vào cùng, P2 vào kênh 2 khi kênh 1 đầy) ----
   const TD=AT;
@@ -3048,6 +3089,29 @@ else {
     ok(await waitFor(()=>G.elite.some(m=>m.k==="spawn"&&/Thiết Nha/.test(m.name)),4000),`hồi sinh: cả phòng nhận thông báo "${G.elite.find(m=>m.k==="spawn")?.name} xuất hiện" ở ${G.elite.find(m=>m.k==="spawn")?.zone}`);
     I=await info(TN); const nb=I.bid&&st.beasts.get(I.bid);
     ok(nb&&I.bid!==oldId&&nb.rank===1&&inR(I.rect,nb.x,nb.y)&&nb.hp===I.base&&!I.engaged,`tinh anh mới ở đúng chỗ (${nb?.x.toFixed(0)},${nb?.y.toFixed(0)}), đầy máu ${nb?.hp}`);
+
+    // ---------- #119: đóng góp theo tài khoản (thoát vào lại không mất); thưởng tinh anh khóa ELITE.lock giây theo tài khoản ----------
+    const lk=`${st.mapId}|${TN}`, TNn=eOf(TN).name; let lc=(await test(G,"elock")).locks;
+    ok(lc[lk]>ELITE.lock-60&&lc[lk]<=ELITE.lock,`#119: G vừa nhận thưởng ${TNn}: khóa ${lk} còn ${lc[lk]?.toFixed(0)} giây (ELITE.lock ${ELITE.lock})`);
+    L=await els();
+    await near(G,TN,24); await test(G,"clear",{keep:1}); await tranAp(); await sleep(150);
+    I=await info(TN); const g0=G.room.sessionId, v0=I.dmgBy?.[g0]??0;
+    ok(I.engaged&&v0>0,`#119: G đánh ${TNn} mới: đóng góp ${v0}`);
+    const rid=G.room.roomId; await G.room.leave(); await sleep(300); await enter(G,rid); await waitFor(()=>meOf(G)&&G.owned,3000);
+    I=await info(TN); const g1=G.room.sessionId;
+    ok(g1!==g0&&I.engaged&&(I.dmgBy[g1]??0)>=v0&&!(g0 in I.dmgBy)&&!I.parts.includes(g1),
+      `#119: G thoát rồi vào lại (phiên mới): đóng góp ${I.dmgBy[g1]} chuyển sang phiên mới, phiên cũ không còn; chưa là người tham gia tới khi đánh lại`);
+    // Còn khóa: hạ tinh anh chỉ thưởng như hồn thú thường (hồn hạch theo coreChance, không chắc chắn), có nhắc.
+    await test(G,"core",{r:50}); let ln=G.logs.length, bf=new Set(st.drops.keys());
+    await test(G,"slay",{bid:I.bid}); await sleep(250);
+    let nd=[...st.drops.entries()].filter(([k])=>!bf.has(k)).map(([,x])=>x);
+    ok(nd.length&&!nd.some(x=>x.item===CORE_ITEM)&&nd.every(x=>x.owner===g1)&&/Đã nhận thưởng .* chưa lâu/.test(G.logs.slice(ln).join("\n")),
+      `#119: G còn khóa hạ ${TNn}: như hồn thú thường (số ngẫu nhiên 0,5: không hồn hạch), "${G.logs.slice(ln).find(t=>/chưa lâu/.test(t))}"`);
+    lc=(await test(G,"elock",{s:0})).locks; ok(!(lk in lc),"#119: hook elock s=0 bỏ khóa");
+    const tb=(await test(G,"beast",{boss:TN,dx:14,dy:0})).bid; bf=new Set(st.drops.keys());
+    await test(G,"slay",{bid:tb}); await sleep(250); nd=[...st.drops.entries()].filter(([k])=>!bf.has(k)).map(([,x])=>x); lc=(await test(G,"elock")).locks;
+    ok(nd.some(x=>x.item===CORE_ITEM&&x.owner===g1)&&lc[lk]>ELITE.lock-60,`#119: hết khóa: hạ ${TNn} lại chắc chắn rơi hồn hạch, khóa lại ${lc[lk]?.toFixed(0)} giây`);
+    await test(G,"core",{r:100});
     await G.room.leave();
   }
   // ---------- BĐ5: tà hóa thú vương theo lịch, máu theo số người, giai đoạn 2, chia thưởng, 3 lần/ngày, rương ----------
@@ -3538,7 +3602,7 @@ else {
       A.elite=[]; const ke=await killBone(1500,undefined,HN);
       ok(ke&&ke.dr.years===1500&&ke.dr.species===base&&ke.dr.slot===slotOf("than")&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
         `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm (${+(boneChance(1500,x3)*100).toFixed(2)}%) rơi hồn cốt ${ke?boneName(BEASTS[ke.dr.species]?.id,BONE_SLOTS[ke.dr.slot]?.id,ke.dr.years):"?"} (loài gốc), thuộc A`);
-      await test(A,"bone",{r:4});
+      await test(A,"bone",{r:4}); await test(A,"elock",{s:0}); // #119: bỏ khóa thưởng tinh anh để thử đúng tỉ lệ x ELITE.bone
       ok(!await killBone(1500,undefined,HN),`số ngẫu nhiên 0,04 (trên ${+(boneChance(1500,x3)*100).toFixed(2)}%): tinh anh không rơi hồn cốt`);
     }
     // ---------- 5.1: hồn hạch rơi theo bảng 5.3 (15% 1–2★ / 25% 2–4★ / 40% 3–5★ / 100% 5–6★), bộ theo bản đồ, chỉ số chính và phụ; nằm trong túi ----------
@@ -3648,11 +3712,12 @@ else {
         await test(A,"goto",spot); await test(A,"drops",{s:3600}); await sleep(120);
         await test(A,"core",{r:99});
         ok(!await killCore(1500,hb.species),"số ngẫu nhiên 0,99: hồn thú thường 1.500 năm (25%) không rơi hồn hạch");
-        A.elite=[]; const ke=await killCore(1500,undefined,HN);
+        // #119: hạ cùng loài tinh anh liên tiếp thì bị khóa thưởng ELITE.lock giây; bài này thử luật rơi của từng lần hạ nên bỏ khóa trước.
+        await test(A,"elock",{s:0}); A.elite=[]; const ke=await killCore(1500,undefined,HN);
         ok(ke&&ke.dr.stars>=2&&ke.dr.stars<=4&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
           `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm chắc chắn rơi ${ke?coreName(CORE_SETS[ke.dr.cset].id,ke.dr.stars):"không có hồn hạch"} (2–4★), thuộc A`);
         await test(A,"core",{r:-1}); // số ngẫu nhiên thật: tinh anh vẫn luôn rơi
-        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
+        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await test(A,"elock",{s:0}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
         ok(all===3,`số ngẫu nhiên thật: hạ tinh anh 3 lần, rơi hồn hạch ${all}/3 lần`);
         await test(A,"drops",{s:3600});
       }
