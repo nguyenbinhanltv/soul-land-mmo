@@ -205,6 +205,8 @@ function sheetSpec(key: string, frame?: readonly [number, number], iso = false):
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { url: `beast/${m[1]}.png`, frame };
   if (/^ring\d$/.test(key)) return { url: `ring/${key}.png` };
   if (/^halo\d$/.test(key)) return { url: `ring/${key}.png`, frame: [24, 10] };
+  // Hiệu ứng (tools/assets/lpc-item.mjs, #201): dải một hàng, manifest ghi `frame`; chạy bằng playFx.
+  if ((m = key.match(/^fx_([a-z_]+)$/)) && frame) return { url: `iso/fx/${m[1]}.png`, frame };
   // NPC phụ / dân thường ghép từ LPC (mục 5.11 "NPC phụ và dân thường"): một lớp đã tô màu, bố cục sheet hồn sư isometric.
   if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return { url: `iso/lpc/${m[1]}.png`, frame: [ISO_HS_FRAME, ISO_HS_FRAME] };
   return null;
@@ -231,17 +233,17 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // chưa có ảnh mới vẫn dùng bộ 48×48 cũ hoặc vẽ bằng code; vohonFrame ánh xạ khung giữa hai bố cục); vật đứng do isoMap.ts tải
       // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); hồn thú `beast_{loài}` khung vuông theo bậc, sheet 20 × 5
       // (loài chưa có vẫn sheet một hàng cũ hoặc vẽ bằng code; `"lpc": true` là hình tạm từ thú LPC, beastSheetSpecies); chân dung,
-      // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts).
+      // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts); hiệu ứng `fx_*` (#201) là dải một hàng, chạy bằng playFx.
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
-      if (iso && !/^(hs|vh|beast)_/.test(key)) continue;
+      if (iso && !/^(hs|vh|beast|fx)_/.test(key)) continue;
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
-      if (iso && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
+      if (iso && !key.startsWith("fx_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
     lpc?.(lpcNames);
   });
@@ -255,6 +257,21 @@ export function addGridFrames(scene: Phaser.Scene, key: string, fw: number, fh: 
     const i = r * cols + c;
     if (!tex.has(String(i))) tex.add(i, 0, c * fw, r * fh, fw, fh);
   }
+}
+
+/** Thời gian mỗi khung của hiệu ứng `fx_*` (ms): dải nổ 10 khung chạy khoảng nửa giây. */
+const FX_FRAME_MS = 50;
+/**
+ * Chạy một lần hiệu ứng `fx_<tên>` (dải một hàng tải theo manifest) ở (x, y) màn hình, phóng `scale`, rồi tự hủy. Chưa có ảnh
+ * (manifest thiếu key) thì không làm gì để nơi gọi giữ hiệu ứng vẽ bằng code.
+ */
+export function playFx(scene: Phaser.Scene, key: string, x: number, y: number, scale: number, depth: number) {
+  if (!scene.textures.exists(key)) return null;
+  const anim = `${key}:play`;
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: scene.anims.generateFrameNumbers(key), duration: FX_FRAME_MS * (scene.textures.get(key).frameTotal - 1), repeat: 0 });
+  const s = scene.add.sprite(x, y, key, 0).setScale(scale).setDepth(depth);
+  s.play(anim); s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => s.destroy());
+  return s;
 }
 
 function makeAnim(scene: Phaser.Scene, sheet: string, key: string, start: number, a: AnimDef) {

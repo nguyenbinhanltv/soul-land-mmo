@@ -99,7 +99,7 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
     if (w.weak) chip(`Điểm yếu: ${HE[w.weak].name} ×${String(WORLD.weakMult).replace(".", ",")}${weakT > 0 ? ` (${Math.ceil(weakT)} giây)` : ""} · ${w.myHe === w.weak ? "võ hồn của bạn đúng hệ" : `đổi sang võ hồn ${HE[w.weak].name}!`}`, w.myHe === w.weak ? "ok" : "bad");
     if (w.shield && w.armorHe) chip(`Bá Thể: võ hồn ${HE[w.armorHe].name} phá khiên nhanh gấp 3${w.myHe === w.armorHe ? "" : " – đổi võ hồn!"}`, w.myHe === w.armorHe ? "ok" : "bad");
     if (w.charging && w.need) chip(`Tích lực: ngắt ${w.brk}/${w.need} bằng khống chế của võ hồn Khống chế${w.myHe === "khong_che" ? "" : " – đổi võ hồn!"}`, w.myHe === "khong_che" ? "ok" : "bad");
-    if (w.dive) chip("Đang lặn xuống hồ: không nhận sát thương, chờ nổi lên (mẫn công lướt tới đánh điểm yếu)");
+    if (w.dive) chip("Đang lặn giữa hồ: không nhận sát thương, sẽ nổi lên ở vòng sóng xanh (mẫn công đứng chờ đánh điểm yếu)");
     if (!wl.childElementCount) wl.hidden = true;
   }
   // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
@@ -1326,8 +1326,10 @@ function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
   if (bone) { const u = tintedUrl(`item_hon_cot_${bone.slot}`, ringColor(tierOfYears(it.years!))); return u ? `<img class="ico art" src="${u}" alt="" draggable="false">` : ""; }
   const def = itemDef(it.code), kind = def?.kind;
-  // Hồn hoàn tô theo màu niên hạn, mảnh võ hồn theo màu võ hồn (ảnh màu chung của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu).
-  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years)) : kind === "manh_vo_hon" ? def!.col : null;
+  // Hồn hoàn tô theo màu niên hạn; mảnh võ hồn, rương (màu hào quang thú vương / boss), tiên thảo theo `col` của món (ảnh chung
+  // của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu; rương và tiên thảo là bản xám, #170).
+  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years))
+    : kind === "manh_vo_hon" || kind === "ruong" || kind === "tien_thao" ? def!.col : null;
   if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }
   return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
 }

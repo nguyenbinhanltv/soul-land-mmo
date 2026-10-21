@@ -63,6 +63,11 @@ export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; s
  * (giờ Việt Nam). Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
  */
 export interface AutoRow { settings: unknown; day: string; used: number; }
+/**
+ * Ủy thác offline (Auto 3, bảng `auto_offline`, mục 5.13): thoát ở vùng săn `zone` của bản đồ `mapId` lúc `at` (ms, đồng hồ server);
+ * `day` / `used`: ngày giờ Việt Nam và giây tự săn đã treo trong ngày đó lúc thoát.
+ */
+export interface OfflineRow { mapId: string; zone: string; at: number; day: string; used: number; }
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
 const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}),
@@ -157,6 +162,10 @@ export interface Store {
   getAuto(accountId: number): Promise<AutoRow>;
   /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
   saveAuto(accountId: number, row: AutoRow): Promise<void>;
+  /** Ghi (đè) lần ủy thác offline của tài khoản (bảng `auto_offline`, Auto 3); chỉ gọi trong chuỗi lưu của người chơi. */
+  startOffline(accountId: number, row: OfflineRow): Promise<void>;
+  /** Lấy và xóa lần ủy thác offline (một lệnh, nên không nhận hai lần); không có thì null. */
+  takeOffline(accountId: number): Promise<OfflineRow | null>;
   /** Số lần tài khoản đã nhận thưởng boss loại `kind` trong ngày `day` (giờ Việt Nam, "YYYY-MM-DD"; bảng `boss_claims`, BĐ5). */
   bossClaims(accountId: number, day: string, kind: string): Promise<number>;
   /**
@@ -228,6 +237,7 @@ export class MemoryStore implements Store {
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
   autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
+  offline = new Map<number, OfflineRow>(); // accountId -> lần ủy thác offline chưa nhận (bảng auto_offline, Auto 3)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
@@ -374,6 +384,11 @@ export class MemoryStore implements Store {
   async saveAuto(accountId: number, row: AutoRow) {
     if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
     this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used });
+  }
+  async startOffline(accountId: number, row: OfflineRow) { this.offline.set(accountId, { ...row }); }
+  async takeOffline(accountId: number) {
+    const r = this.offline.get(accountId); this.offline.delete(accountId);
+    return r ? { ...r } : null;
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
@@ -748,6 +763,19 @@ export class PgStore implements Store {
       `INSERT INTO auto_hunt (account_id, settings, day, used_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, now())
        ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs, updated_at=now()`,
       [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used]);
+  }
+  async startOffline(accountId: number, row: OfflineRow) {
+    await this.pool.query(
+      `INSERT INTO auto_offline (account_id, map_id, zone, started_at, day, used_secs) VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (account_id) DO UPDATE SET map_id=EXCLUDED.map_id, zone=EXCLUDED.zone, started_at=EXCLUDED.started_at,
+         day=EXCLUDED.day, used_secs=EXCLUDED.used_secs`,
+      [accountId, row.mapId, row.zone, new Date(row.at), row.day, row.used]);
+  }
+  async takeOffline(accountId: number): Promise<OfflineRow | null> {
+    const r = await this.pool.query("DELETE FROM auto_offline WHERE account_id=$1 RETURNING map_id, zone, started_at, day, used_secs", [accountId]);
+    if (!r.rowCount) return null;
+    const o = r.rows[0];
+    return { mapId: String(o.map_id), zone: String(o.zone), at: new Date(o.started_at).getTime(), day: String(o.day), used: Number(o.used_secs) || 0 };
   }
   async bossClaims(accountId: number, day: string, kind: string) {
     const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);

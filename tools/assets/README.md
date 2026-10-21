@@ -130,7 +130,8 @@ Client chiếu từng điểm của hình server gửi (`client/src/iso.ts`): v�
 
 ## NPC phụ và dân thường (LPC)
 - Key `lpc_<tên>`, file `iso/lpc/<tên>.png` (+ `_n.png`): một lớp đã tô màu, bố cục sheet hồn sư 24 × 6, khung 64×64, gốc (32, 58); client tạo animation như lớp thân (`createHonsuAnims`). 10 NPC: `lpc_<mã NPCS>`; dân thường `lpc_dan_*`; lính gác `lpc_linh_gac`. Công thức `art/src/lpc/<tên>.json`.
-- Giấy phép (`GAME_DESIGN.md` 5.11 "Asset bên ngoài"): `lpc-compose.mjs` / `lpc-beast.mjs` nhận mọi giấy phép đã biết (`LICENSE_KNOWN` trong `lib.mjs`), dừng khi không đọc được; nhiều giấy phép thì dùng theo nhóm ít ràng buộc nhất (`licenseUse`), SA / GPL / NC ghi kèm cờ trong `art/CREDITS.md` (sheet ghép có lớp SA / GPL thì cả sheet theo giấy phép đó).
+- **Biểu tượng vật phẩm và hiệu ứng từ gói LPC** (`tools/assets/lpc-item.mjs`, công thức `art/src/lpc-item.json`): cắt ô 32×32 của sheet vật phẩm (không phóng), căn giữa, viền `#1a1020`; `gray` ghi bản xám giãn sáng để client tô theo `col`; giảm còn 24 màu. `fx` chép dải khung một hàng (key `fx_<tên>`, client `playFx`). Ghi manifest và mục `<!-- lpc-item:start -->` của `art/CREDITS.md`.
+- Giấy phép (`GAME_DESIGN.md` 5.11 "Asset bên ngoài"): `lpc-compose.mjs` / `lpc-beast.mjs` / `lpc-item.mjs` nhận mọi giấy phép đã biết (`LICENSE_KNOWN` trong `lib.mjs`), dừng khi không đọc được; nhiều giấy phép thì dùng theo nhóm ít ràng buộc nhất (`licenseUse`), SA / GPL / NC ghi kèm cờ trong `art/CREDITS.md` (sheet ghép có lớp SA / GPL thì cả sheet theo giấy phép đó).
 - 4 hướng LPC → 5 hướng vẽ: `s` nhìn xuống, `n` nhìn lên, `se` / `e` / `ne` nhìn phải (như `legacyDir`); hàng "trái" của LPC bỏ; chân mỗi hướng dời về gốc riêng. `idle` bằng `pack --breathe`, `walk` 6 khung từ LPC.
 - Dân thường (`client/src/crowd.ts`, bảng `CROWD`): chỗ đứng theo hạt giống `mapId`, cách NPC / cổng / nhau (`NPC_GAP`, `GATE_GAP`, `PEOPLE_GAP`), đi chậm (`WALK_SPEED`) trong bán kính `WANDER` theo đường thẳng không vướng `solidGrid`; lính gác hai bên cổng (trừ bến thuyền), lùi vào tới ô không chặn đầu tiên. `lpcPreloader` chỉ tải sheet của NPC trong file Tiled bản đồ đang vào và dân thường trong `CROWD`.
 
@@ -142,7 +143,8 @@ Client chiếu từng điểm của hình server gửi (`client/src/iso.ts`): v�
 | `card_{sr,ssr,ur}` | 96×152 (`ISO_CARD`) | Khung lưu ly, cửa sổ chân dung trong suốt; tên tối đa 2 dòng font 10 px; tấm biển đáy ghi cấp trên nền tối |
 | `he_{mã HE_IDS}` | 24×24 (`ISO_HE_ICON`) | Biểu tượng trắng trên tròn màu hệ, viền vàng kim: Cường công kiếm / đỏ, Mẫn công 3 vết cào / lục, Khống chế mắt xích / tím, Phụ trợ hoa sen / vàng |
 | `status_{mã}` | 24×24 (`ISO_STATUS_ICON`) | Theo `STATUS_IDS` / `BUFF_IDS` / `BEAST_BUFF_IDS`; 16 px mất hình nên không dùng |
-| `item_{mã}` | 32×32 (`ISO_ITEM_ICON`) | Id `ITEMS`, nhóm `ITEM_KINDS` (`item_hon_hach`, `item_manh_vo_hon`) hoặc `item_hon_cot_<vị trí BONE_SLOTS>`; hồn cốt bản xám (chân phải lật chân trái) |
+| `item_{mã}` | 32×32 (`ISO_ITEM_ICON`) | Id `ITEMS`, nhóm `ITEM_KINDS` (`item_hon_hach`, `item_manh_vo_hon`) hoặc `item_hon_cot_<vị trí BONE_SLOTS>`; hồn cốt bản xám (chân phải lật chân trái); `item_ruong`, `item_tien_thao` bản xám tô theo `col` (`lpc-item.mjs`) |
+| `fx_{tên}` | dải một hàng khung vuông (manifest ghi `frame`) | Hiệu ứng từ gói LPC (`lpc-item.mjs`), giữ màu gốc ≤ `PORTRAIT_MAX_COLORS`; client chạy một lần bằng `playFx` |
 | `ui_{tên}` | điểm ảnh thật | Mảnh thủy mặc; kéo giãn ghi `"nine": N` (giấy dùng `round`) |
 
 Bề mặt giao diện thủy mặc và class CSS tương ứng: skill `client-ui`.
@@ -167,6 +169,7 @@ shared/assets/sprites/
   iso/npc/{mã}.png                           npc_{mã}
   iso/lpc/{tên}.png                          lpc_{tên}
   iso/item/{mã}.png                          item_{mã}
+  iso/fx/{tên}.png                           fx_{tên}
   iso/status/{mã}.png                        status_{mã}
   iso/he/{hệ}.png                            he_{hệ}
   iso/ui/{tên}.png                           ui_{tên}
