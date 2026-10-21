@@ -112,6 +112,10 @@ export const ISO_PORTRAIT = 64, PORTRAIT_MAX_COLORS = 32;
 export const ISO_NPC_PORTRAIT = 112;
 /** Biểu tượng vật phẩm trong ô túi đồ (giao diện HTML): khung vuông, nền trong suốt, cùng luật màu với chân dung. */
 export const ISO_ITEM_ICON = 32;
+/** Biểu tượng trạng thái (hiệu ứng trên hồn thú / hồn sư, giao diện HTML): khung vuông, nền trong suốt. */
+export const ISO_STATUS_ICON = 24;
+/** Khung thẻ võ hồn (rộng × cao), cửa sổ chân dung trong suốt; chân dung ISO_PORTRAIT đặt phía trên cửa sổ. */
+export const ISO_CARD = [96, 152];
 /** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
 export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 
@@ -153,6 +157,16 @@ export function npcIds() {
  * Mã biểu tượng vật phẩm hợp lệ: id trong ITEMS (mục có `id`, `kind` liền nhau), nhóm trong ITEM_KINDS (biểu tượng chung
  * của nhóm, ví dụ `hon_hach`, `manh_vo_hon`) và `hon_cot_<vị trí>` theo BONE_SLOTS.
  */
+/** Mã trạng thái / buff trong game (STATUS_IDS, BUFF_IDS, BEAST_BUFF_IDS): tên file biểu tượng trạng thái. */
+export function statusIds() {
+  const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8"), ids = new Set();
+  for (const name of ["STATUS_IDS", "BUFF_IDS", "BEAST_BUFF_IDS"]) {
+    const i = src.indexOf(`export const ${name} = [`);
+    if (i >= 0) for (const m of src.slice(i, src.indexOf("] as const", i)).matchAll(/"([a-z_]+)"/g)) ids.add(m[1]);
+  }
+  return ids;
+}
+
 export function itemIconIds() {
   const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
   const ids = new Set([...src.matchAll(/\bid: "([a-z_]+)",\s*kind: "/g)].map((m) => m[1]));
@@ -314,7 +328,7 @@ export function sheetSpec(key, frame, iso = false) {
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
-    if (!/^(portrait|prop|npc|item)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm: luôn isometric, khớp ở dưới
+    if (!/^(portrait|prop|npc|item|status|ui|card)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, giao diện: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
@@ -324,6 +338,9 @@ export function sheetSpec(key, frame, iso = false) {
   if (/^halo\d$/.test(key)) return { file: `ring/${key}.png`, frame: [24, 10], kind: "ring" };
   // Asset isometric (manifest ghi "iso": true; client chưa tải, bước 10.2 / 10.8 dùng): chân dung võ hồn, NPC, vật phẩm, vật đứng.
   if ((m = key.match(/^portrait_([a-z_]+)$/))) return { file: `iso/portrait/${m[1]}.png`, size: [ISO_PORTRAIT, ISO_PORTRAIT], kind: "portrait", iso: true };
+  if ((m = key.match(/^status_([a-z_]+)$/))) return { file: `iso/status/${m[1]}.png`, size: [ISO_STATUS_ICON, ISO_STATUS_ICON], kind: "portrait", iso: true, status: m[1] };
+  if ((m = key.match(/^card_(sr|ssr|ur)$/))) return { file: `iso/ui/the_${m[1]}.png`, size: ISO_CARD, kind: "portrait", iso: true };
+  if ((m = key.match(/^ui_([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
   if ((m = key.match(/^item_([a-z_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };
   if ((m = key.match(/^prop_([a-z_]+)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };

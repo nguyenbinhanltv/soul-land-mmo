@@ -657,9 +657,11 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 
 **Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
 - **Chân dung 64×64** (`ISO_PORTRAIT`) vẽ **chính võ hồn** (vũ khí, thú, cây…) trên nền tối có quầng màu riêng của võ hồn, không vẽ chủ nhân. Nguồn: ảnh Gemini, nhập bằng `gemini-import --kind portrait` (cắt 1:1 từ pixel thật, không viền ngoài). Chân dung là giao diện HTML nên không theo bảng chung: tối đa `PORTRAIT_MAX_COLORS` màu mỗi ảnh. Hiển thị phóng 2–3 lần với `image-rendering: pixelated`.
-- **Thẻ võ hồn 96×128**: chân dung ở trên, tên, khung viền theo độ hiếm (SR: khung giấy thủy mặc viền bạc; SSR và UR: **lưu ly**, SSR viền vàng kim, UR viền vàng kim với kính màu dày hơn và chữ UR đỏ san hô), huy hiệu hệ ở góc trên trái, sao ở dưới, hồn hoàn là các chấm màu theo bậc.
+- **Thẻ võ hồn 96×152** (`ISO_CARD`; khung Gemini có tỉ lệ khoảng 0,65): khung lưu ly theo độ hiếm có cửa sổ chân dung trong suốt, chân dung 64×64 đặt phía trên cửa sổ, phần dưới cửa sổ cho sao và chấm hồn hoàn, tên trên tấm biển dưới đáy (chữ HTML có nền tối / viền chữ để đọc được trên tấm UR bảy màu). SR khung bạc lam, SSR tím vàng kim, UR vàng kim với kính bảy màu; huy hiệu hệ ở góc trên trái. Key `card_{sr,ssr,ur}`.
 - **Huy hiệu 4 hệ 24×24**, màu, nền trong suốt: một hình to, nét đậm, ít chi tiết trên nền màu của hệ, viền vàng. Bản Gemini đầu (hình mảnh, nhiều hoa văn) thu về 24 hoặc 12 chỉ còn chấm màu, nên chờ vẽ lại; bỏ quy cách cũ 12×12 một màu.
 - **Chân dung NPC 112×112** (`ISO_NPC_PORTRAIT`) trong hộp thoại: bán thân nhìn thẳng trên nền tối, cùng luật màu với chân dung võ hồn (`PORTRAIT_MAX_COLORS`). Nguồn: Gemini, nhập bằng `gemini-import --kind portrait --size 112` (cắt 1:1). Key `npc_<mã trong NPCS>`.
+- **Biểu tượng trạng thái 24×24** (`ISO_STATUS_ICON`): huy hiệu tròn viền màu, nền trong suốt; key `status_<mã>` theo `STATUS_IDS` / `BUFF_IDS` / `BEAST_BUFF_IDS`. Bản Gemini ở 16 px mất hình nên không dùng 16. Chưa có ảnh đạt: Choáng, Dễ thương, chảy máu / hút huyết, Tàng hình (chờ vẽ lại, hình to).
+- **Bộ giao diện thủy mặc** (phong cách C): mảnh `ui_<tên>` giữ điểm ảnh thật (không thu): cuộn giấy, hộp thoại, nút 3 trạng thái, ấn triện, khung thanh, hoa văn góc, vạch bút. Mảnh kéo giãn ghi `"nine": N` trong manifest (giữ N điểm mỗi mép, phần giữa kéo giãn).
 - **Biểu tượng vật phẩm 32×32** (`ISO_ITEM_ICON`) trong ô túi đồ: nền trong suốt, viền `#1a1020`, tối đa `PORTRAIT_MAX_COLORS` màu. Key `item_<mã>`: id trong `ITEMS`, hoặc nhóm trong `ITEM_KINDS` (biểu tượng chung cho cả nhóm, ví dụ `item_hon_hach`, `item_manh_vo_hon`), hoặc `item_hon_cot_<vị trí>` theo `BONE_SLOTS`. **Hồn cốt là bản xám** để client tô theo màu niên hạn (chân phải lật ngang chân trái). Nguồn: Gemini, nhập bằng `gemini-import --kind item` (nền khung tối làm trong suốt, `--gray` cho bản xám).
 
 **Tên file, key Phaser và thư mục**
@@ -670,6 +672,8 @@ art/                         file nguồn, không tải trong game
   palette.gpl                bảng màu chung
   CREDITS.md                 nguồn gốc và giấy phép mọi asset
   src/pixellab/{bộ}/         ảnh thô ({hướng}_{animation}_{i}.png, hướng s/se/e/ne/n)
+  src/gemini/phuthe_s/       phụ thể Gemini hướng nam 96×96 ({mã võ hồn}_s.png): ảnh khởi đầu PixelLab cho 10.5
+  src/gemini/beast_se/       hồn thú Gemini nghiêng 3/4 sang phải ({loài}_se_{64|96}.png): tham chiếu hướng se / e cho 10.6
   honsu/ vohon/ beast/ ui/   file .aseprite (khi chỉnh tay)
 shared/assets/sprites/
   manifest.json              danh sách key đã có ảnh thật (key isometric ghi "iso": true)
@@ -681,12 +685,14 @@ shared/assets/sprites/
   iso/props/{vật}.png                        prop_{vật}: vật đứng, đã cắt đế đất ("iso": true; vật nhiều ô cắt lát 16 pixel ở 10.2)
   iso/npc/{mã}.png                           npc_{mã}: chân dung NPC 112×112 ("iso": true)
   iso/item/{mã}.png                          item_{mã}: biểu tượng vật phẩm 32×32 ("iso": true)
+  iso/status/{mã}.png                        status_{mã}: biểu tượng trạng thái 24×24 ("iso": true)
+  iso/ui/{tên}.png                           ui_{tên}: mảnh giao diện thủy mặc ("iso": true; "nine": N nếu kéo giãn 9 lát)
+  iso/ui/the_{sr,ssr,ur}.png                 card_{sr,ssr,ur}: khung thẻ 96×152 ("iso": true)
 shared/assets/iso/
   tiles.json                 ánh xạ gid Tiled → ô thoi / vật đứng, chân vật, điểm sáng
   ground/{loại}_{i}.png      ô nền 32×32 (thoi 32×16) và ô lớn 64×64 (thoi 64×32, phủ 2×2 ô)
 shared/assets/ui/
-  card/frame_{sr,ssr,ur}.png khung thẻ 96×128
-  icon/he_{he}.png           huy hiệu hệ 24×24
+  icon/he_{he}.png           huy hiệu hệ 24×24 (chờ ảnh vẽ lại)
 ```
 
 - **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, vật đứng) client chưa tải, cho tới bước dùng chúng (10.2, 10.8).
