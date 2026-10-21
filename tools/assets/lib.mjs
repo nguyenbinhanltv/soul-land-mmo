@@ -153,10 +153,6 @@ export function npcIds() {
   return new Set([...src.matchAll(/\bid: "([a-z_]+)", name: "[^"]*", title: "/g)].map((m) => m[1]));
 }
 
-/**
- * Mã biểu tượng vật phẩm hợp lệ: id trong ITEMS (mục có `id`, `kind` liền nhau), nhóm trong ITEM_KINDS (biểu tượng chung
- * của nhóm, ví dụ `hon_hach`, `manh_vo_hon`) và `hon_cot_<vị trí>` theo BONE_SLOTS.
- */
 /** Mã trạng thái / buff trong game (STATUS_IDS, BUFF_IDS, BEAST_BUFF_IDS): tên file biểu tượng trạng thái. */
 export function statusIds() {
   const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8"), ids = new Set();
@@ -167,6 +163,10 @@ export function statusIds() {
   return ids;
 }
 
+/**
+ * Mã biểu tượng vật phẩm hợp lệ: id trong ITEMS (mục có `id`, `kind` liền nhau), nhóm trong ITEM_KINDS (biểu tượng chung
+ * của nhóm, ví dụ `hon_hach`, `manh_vo_hon`) và `hon_cot_<vị trí>` theo BONE_SLOTS.
+ */
 export function itemIconIds() {
   const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
   const ids = new Set([...src.matchAll(/\bid: "([a-z_]+)",\s*kind: "/g)].map((m) => m[1]));
