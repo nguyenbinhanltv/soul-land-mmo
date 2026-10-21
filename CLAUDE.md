@@ -31,7 +31,9 @@ npm run bot --prefix client    # bot kiểm thử, chạy khi server đang bật
 ## Quy trình nhận việc (nhiều người)
 Repo có nhiều người và agent cùng làm; mọi việc đi qua issue GitHub, chi tiết ở `CONTRIBUTING.md`.
 - Chỉ nhận issue có `san-sang`, chưa giao, không có `dang-lam` / `chan`; kiểm lại ngay trước khi làm, đã có người nhận thì không làm.
-- Nhận: tự gán + `dang-lam` + `agent:<tên>`, mở PR nháp ngay với `Closes #N`; cần file SQL mới thì ghi số vào issue. Bỏ dở thì trả nhãn và bỏ giao.
+- Nhận: tự gán + `dang-lam` + `agent:<tên>`, mở PR nháp ngay với `Closes #N` và cùng nhãn `agent:<tên>` (nhãn trên cả issue lẫn PR); cần file SQL mới thì ghi số vào issue. Bỏ dở thì trả nhãn (cả issue lẫn PR) và bỏ giao.
+- Bảng Project 3 khớp nhãn issue (`dang-lam` → Đang làm + Chủ, `cho-review` → Đang review, bỏ dở → Sẵn sàng + Chưa giao); thiếu quyền thì ghi vào comment `Tiến độ`.
+- Comment `Review: đạt` có dòng ``**Head đã review:** `<SHA 40 ký tự>` ``; sửa code sau đó thì cập nhật SHA.
 - Dòng chưa làm ở `GAME_DESIGN.md` mục 7 trỏ tới số issue.
 
 ## Nhánh và PR

@@ -15,7 +15,7 @@ Repo có nhiều người cùng làm, mỗi người có thể có agent AI riê
 | `can-pixellab` | Cần lượt PixelLab (thường đi cùng `chan` khi hết lượt). |
 | `giai-doan-10`, `giai-doan-11` | Thuộc giai đoạn Lộ trình. |
 | `gameplay`, `art`, `tai-lieu`, `bot-test` | Loại việc. |
-| `agent:<tên>` | Nhãn chủ khi agent làm (ví dụ `agent:ao-orchestrator`). Người làm thì chỉ cần assignee. |
+| `agent:<tên>` | Nhãn chủ khi agent làm, gắn trên **cả issue lẫn PR** (ví dụ `agent:ao-orchestrator`). Người làm thì chỉ cần assignee. |
 
 ## Hàng chờ
 
@@ -35,6 +35,7 @@ Orchestrator / agent tự động đọc hàng chờ bằng đúng lệnh này, 
    gh issue edit <N> --add-assignee @me --add-label dang-lam --remove-label san-sang
    gh issue edit <N> --add-label agent:<tên>        # chỉ khi agent làm; nhãn chưa có thì tạo: gh label create agent:<tên>
    ```
+   Trên bảng Project: Status = **Đang làm**, Chủ = người / agent nhận (xem mục Bảng Project).
 3. **Cần bảng / cột mới:** chọn số file SQL kế tiếp rồi **ghi ngay vào issue** (`gh issue comment <N> --body "SQL: 017_<tên>.sql"`). Trước khi chọn số, xem `ls server/sql` trên `origin/main` mới nhất **và** các issue đang `dang-lam` đã khai số nào, để hai nhánh không trùng số.
 4. **Tạo nhánh từ `origin/main`** tên `<người-hoặc-agent>/<số-issue>-<tên-ngắn>`, ví dụ `an/112-hoi-vung-an-toan`, `claude-binh/115-cong-minh`. Agent AO giữ tiền tố phiên của nó (`ao/<phiên>/<số-issue>-<tên-ngắn>`).
 5. **Mở PR nháp ngay** (trước khi viết code), mô tả có `Closes #<N>`, để ai cũng thấy việc đã có người làm:
@@ -42,8 +43,9 @@ Orchestrator / agent tự động đọc hàng chờ bằng đúng lệnh này, 
    git fetch origin && git switch -c <nhánh> origin/main
    git commit --allow-empty -m "Bắt đầu #<N>: <tên việc>"
    git push -u origin <nhánh>
-   gh pr create --draft --base main --title "<tên việc>" --body "Closes #<N>"
+   gh pr create --draft --base main --title "<tên việc>" --body "Closes #<N>" --label agent:<tên>   # --label chỉ khi agent làm
    ```
+   PR của agent quên nhãn thì gắn bù: `gh pr edit <số> --add-label agent:<tên>`.
 6. Việc to (ví dụ "nhận theo từng bản đồ") thì ghi phần mình nhận vào bình luận issue, hoặc tách issue con rồi nhận issue con.
 
 Agent chạy liên tục (cả ban đêm, tự làm tiếp sau khi hết quota): theo luật và cách chạy ở `docs/lam-viec-lien-tuc.md`.
@@ -55,14 +57,17 @@ Không làm tiếp được thì trả việc ngay, đừng giữ chỗ:
 ```bash
 gh issue edit <N> --remove-assignee @me --remove-label dang-lam --remove-label agent:<tên> --add-label san-sang
 gh issue comment <N> --body "Bỏ dở: <đã làm tới đâu, nhánh nào, còn gì>"
+gh pr edit <PR> --remove-label agent:<tên>   # agent: gỡ nhãn chủ ở cả PR
 gh pr close <PR>     # hoặc để PR nháp lại cho người sau, ghi rõ trong bình luận
 ```
+
+Trên bảng Project: Status = **Sẵn sàng**, Chủ = **Chưa giao**.
 
 Bị chặn (chờ việc khác / quyết định) thì thay `dang-lam` bằng `chan` và ghi chờ gì.
 
 ## Trong khi làm
 
-- **Cập nhật nhánh bằng `git merge origin/main`** thường xuyên (ít nhất mỗi ngày và trước khi xin review). **Không rebase nhánh đã push, không force push.**
+- **Cập nhật nhánh bằng `git merge origin/main`** thường xuyên (ít nhất mỗi ngày và trước khi xin review). **Không rebase nhánh đã push, không force push.** Cần sửa gì sau khi đã push thì thêm commit mới.
 - Commit nhỏ, thông điệp tiếng Việt. Không bỏ pre-commit hook (`--no-verify`).
 - Luật chơi chỉ ở server, số liệu chỉ ở `shared/data.ts` (xem `CLAUDE.md`).
 - Không ghi key PixelLab hay bí mật nào vào repo, log, issue, PR.
@@ -89,9 +94,12 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
    - PR đổi `server/` hoặc `shared/`: thêm lượt bot với **PostgreSQL** (bắt buộc khi đổi SQL / `db.ts`; server chạy hai lần liên tiếp);
    - đổi giao diện / ảnh: ảnh chụp trong game.
 2. `git merge origin/main` lần cuối, chạy lại `npm run check`.
-3. **Tự review PR của mình:** chạy reviewer (AO review nếu có, hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận.
-4. `gh pr ready <PR>`; trên issue thay `dang-lam` bằng `cho-review`.
-5. **Đóng băng khi đang review:** không push thêm (kể cả merge `main`) trừ khi sửa theo review hoặc được yêu cầu. Sửa xong thì review lại và cập nhật comment `Review: đạt` với SHA head mới.
+3. **Tự review PR của mình:** chạy reviewer (AO review nếu có, hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận. Comment bắt buộc có dòng (SHA đủ 40 ký tự, lấy bằng `git rev-parse HEAD`):
+   ```
+   **Head đã review:** `<SHA 40 ký tự>`
+   ```
+4. `gh pr ready <PR>`; trên issue thay `dang-lam` bằng `cho-review`; trên bảng Project: Status = **Đang review**.
+5. **Đóng băng khi đang review:** không push thêm (kể cả merge `main`) trừ khi sửa theo review hoặc được yêu cầu. Sửa code sau khi đã xin merge thì review lại và cập nhật dòng `Head đã review` với SHA head mới (sửa comment `Review: đạt` cũ hoặc ghi comment mới).
 
 ## Merge
 
@@ -103,4 +111,12 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Bảng Project
 
-Nếu repo có bảng GitHub Project, trạng thái đi theo nhãn: **Chờ** (`chan`), **Sẵn sàng** (`san-sang`), **Đang làm** (`dang-lam`), **Đang review** (`cho-review`), **Xong** (issue đóng). Nhãn là nguồn sự thật; bảng chỉ để xem.
+Bảng GitHub Project 3 của repo phải khớp nhãn issue. Trường Status đi theo nhãn: **Chờ** (`chan`), **Sẵn sàng** (`san-sang`), **Đang làm** (`dang-lam`), **Đang review** (`cho-review`), **Xong** (issue đóng). Trường Chủ là người / agent đang làm.
+
+| Lúc | Nhãn issue | Project |
+| --- | --- | --- |
+| Nhận việc | `dang-lam` | Status = Đang làm, Chủ = người / agent nhận |
+| Xin review | `cho-review` | Status = Đang review |
+| Bỏ dở | `san-sang` | Status = Sẵn sàng, Chủ = Chưa giao |
+
+Nhãn là nguồn sự thật. Không sửa được bảng (thiếu quyền) thì ghi việc cần đổi vào comment `Tiến độ` của issue; orchestrator AO đồng bộ hộ.

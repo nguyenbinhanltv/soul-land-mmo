@@ -12,7 +12,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 |---|---|
 | Niên hạn (5.2) | `TIERS`, `TIER_MULT`, `MAX_YEARS`, `tierOfYears`, `tierBand`, `rollYears`, `beastStats`, `formatYears` |
 | Bản đồ (5.3) | `MAPS` (`level`, `years`, `shards`, `cores`, `king`, `herbs`, `world`, `exit`), `DEFAULT_MAP`, `MAP_MOVED`, `TRAVEL_CAST`, `BOAT_CAST`, `TRAVEL_LEAVE_SECS`, `CHANNEL_MAX`, `CHANNEL_CD` |
-| Võ hồn, đội hình (5.1) | `HE`, `HE_IDS`, `RARITY_MULT`, `VOHON`, `vohonIndex`, `AWAKEN_GIFT`, `AWAKEN_CHOICES`, `EXTRA_VOHON`, `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`, `calcStats`, `CRIT`, `ATTACK_CD`, `TITLES` / `titleOf` |
+| Võ hồn, đội hình (5.1) | `HE`, `HE_IDS`, `RARITY_MULT`, `VOHON`, `vohonIndex`, `AWAKEN_GIFT`, `AWAKEN_CHOICES`, `EXTRA_VOHON`, `TEAM_SIZE`, `SWITCH_CD`, `TEAM_COMBAT_SECS`, `REVIVE_SECS`, `RESPAWN_SECS`, `PLAYER_REGEN` / `SAFE_REGEN_MULT` / `hpRegen` / `mpRegen` (hồi sinh lực / hồn lực, mục 4), `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`, `calcStats`, `CRIT`, `ATTACK_CD`, `TITLES` / `titleOf` |
 | Tiên cơ (5.1) | `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO`, `TIEN_CO_RIENG` / `tienCoOf`, `TIEN_CO_SET`, `energyGain`, `tienCoDmgMult` |
 | Trạng thái, hiệu ứng (5.1) | `STATUS_IDS` / `STATUS` / `statusBit`, `PLAYER_STATUS`, `SLOW_CAP`, `STATUS_TICK`, `CC_TIER_MULT`, `BUFF_IDS` / `BUFFS` / `buffBit`, `PHOENIX_FIELD_R`, `PHONG_LOI`, `BONDS` / `bondsOf` / `bondSum` / `BOND_KEYS` |
 | Hồn kỹ (5.2) | `SkillDef`, `SKILLS` (dự phòng), `VOHON_SKILLS` / `skillsOf`, `VOHON_SKILLS_HIGH`, `HIGH_RINGS`, `ringSkill`, `skillChoices`, `LOADOUT_SIZE` / `DEFAULT_LOADOUT` / `parseLoadout` / `loadoutOf`, `skillPower`, `buffPower`, `BUFF_SCALE`, `PCT_HP_CAP`, `PROJ_SPEED` |
@@ -37,7 +37,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 2. **Mã cố định:** `VOHON[].id` (lưu ở `vohons`), `BEASTS[].id`, `BOSSES[].id`, `MAPS`, `NPCS`, `ITEMS` (`items.code`), `HERBS`, `CORE_SETS`, mã nhiệm vụ… dùng trong DB và file Tiled; không bao giờ đổi hoặc xóa mã đã dùng. Thứ tự mảng dùng để đồng bộ (`p.vh`, `b.species`, bit trạng thái), nên **thêm phần tử mới vào cuối**.
 3. Thêm võ hồn: một mục `VOHON` (cuối mảng), `VOHON_SKILLS` (vòng 1–4), `TIEN_CO_RIENG`, `VOHON_SKILLS_HIGH` (vòng 5, 6, 8, 9, 10), `CHAN_THAN` (kèm `skill`); cập nhật bảng võ hồn ở mục 5.1 và bảng dạng phụ thể ở `tools/assets/README.md`. Thêm loài hồn thú: `BEASTS` (cuối), `BEAST_SKILLS` nếu có từ `BEAST_SKILL_YEARS` năm, `BONE_SKILLS`.
 4. Dùng đúng tên gốc Đấu La (võ hồn, chủ nhân, hồn thú, lưu phái).
-5. `MapRoom.ts` còn vài số viết thẳng (tốc độ hồi sinh lực / hồn lực…). Việc đang làm chạm tới số nào thì chuyển số đó vào `shared/data.ts` trong cùng thay đổi; không gom hết ngoài phạm vi việc được giao.
+5. `MapRoom.ts` còn vài số viết thẳng. Việc đang làm chạm tới số nào thì chuyển số đó vào `shared/data.ts` trong cùng thay đổi; không gom hết ngoài phạm vi việc được giao.
 6. Hàm trong `data.ts` là hàm thuần (không trạng thái, không `Math.random()`; hàm cần ngẫu nhiên nhận số / hàm ngẫu nhiên do server truyền) để client dùng khi hiển thị. Quyết định kết quả chỉ ở server.
 
 ## Xong thì
