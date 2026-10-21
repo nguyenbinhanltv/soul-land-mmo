@@ -10,13 +10,13 @@
 //       lớp thân thiếu khung bắt buộc, bộ hồn sư giới × kiểu tóc thiếu lớp (phải đủ hs_body/outfit/hair_{giới}_{kiểu}),
 //       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung; chân dung (portrait_{id}) quá PORTRAIT_MAX_COLORS màu
 //       (chân dung không theo bảng chung), vật đứng (prop_{vật}) cạnh không chia hết cho ISO_PROP_STEP hoặc màu ngoài
-//       bảng chung + bảng nhấn art/palettes/*.gpl. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
+//       bảng chung + bảng nhấn art/palettes/*.gpl; chân dung NPC (npc_{mã}) / biểu tượng vật phẩm (item_{mã}) mã không có trong NPCS / ITEMS. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
 // Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
 //       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc (y = 30; isometric y = 58);
 //       isometric: idle cả 4 khung giống nhau (chưa --breathe), chân hồn thú không chạm dòng gốc.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -29,7 +29,7 @@ const entryKey = (e) => (typeof e === "string" ? e : e.key);
 const allowed = allowedColors(), withAccents = new Set([...allowed, ...accentColors()]);
 // Tóc/áo: 4 xám để hoán màu + viền ngoài #1a1020 (màu thứ 5, giữ nguyên khi hoán màu).
 const grayOnly = new Set([...GRAY_RAMP, OUTLINE]);
-let errors = 0, warns = 0;
+let errors = 0, warns = 0, npcIds_, itemIds_;
 const feet = new Map(); // "bộ:hàng" → { low: dòng thấp nhất của idle khung đầu (3 lớp của bộ giới × kiểu tóc), want: dòng gốc }
 const err = (k, m) => { errors++; console.error(`[validate] LỖI ${k}: ${m}`); };
 const warn = (k, m) => { warns++; console.warn(`[validate] cảnh báo ${k}: ${m}`); };
@@ -78,6 +78,8 @@ function check(key, frame, iso = false, map = "") {
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
   if (spec.kind === "portrait" && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, chân dung tối đa ${PORTRAIT_MAX_COLORS}`);
+  if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
+  if (spec.item && !(itemIds_ ??= itemIconIds()).has(spec.item)) err(key, `không có vật phẩm "${spec.item}" trong ITEMS / hồn cốt theo BONE_SLOTS (shared/data.ts)`);
   if (bad.size) err(key, `${bad.size} màu ngoài bảng${palette === grayOnly ? " (tóc/áo chỉ dùng dải 4 xám + viền)" : ""}: ` +
     [...bad].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `${c}×${n}`).join(", "));
 

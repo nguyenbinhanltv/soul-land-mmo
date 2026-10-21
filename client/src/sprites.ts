@@ -107,7 +107,7 @@ export function preloadSprites(scene: Phaser.Scene) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     for (const e of data?.sprites ?? []) {
-      // Asset isometric (chân dung, vật đứng; mục 5.11) chưa dùng ở bản đồ 2D hiện nay: bước 10.2 / 10.8 mới tải.
+      // Asset isometric (chân dung, NPC, vật phẩm, vật đứng; mục 5.11) chưa dùng ở bản đồ 2D hiện nay: bước 10.2 / 10.8 mới tải.
       if (typeof e !== "string" && e.iso) continue;
       const key = typeof e === "string" ? e : e.key;
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame);

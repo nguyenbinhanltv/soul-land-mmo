@@ -108,6 +108,10 @@ export function shortDirName(name) {
 }
 /** Chân dung võ hồn (giao diện HTML): khung vuông, tối đa PORTRAIT_MAX_COLORS màu mỗi ảnh (không theo bảng chung). */
 export const ISO_PORTRAIT = 64, PORTRAIT_MAX_COLORS = 32;
+/** Chân dung NPC trong hộp thoại (giao diện HTML): khung vuông, cùng luật màu với chân dung võ hồn. */
+export const ISO_NPC_PORTRAIT = 112;
+/** Biểu tượng vật phẩm trong ô túi đồ (giao diện HTML): khung vuông, nền trong suốt, cùng luật màu với chân dung. */
+export const ISO_ITEM_ICON = 32;
 /** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
 export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 
@@ -137,6 +141,26 @@ export function readDataColors() {
   const vohon = [...src.matchAll(/vh\("[a-z_]+"[\s\S]*?"(#[0-9a-fA-F]{6})",\s*"(#[0-9a-fA-F]{6})"/g)].flatMap((m) => [m[1], m[2]].map((c) => c.toLowerCase()));
   // TIERS ghi theo tên trường: col (thân vòng) và glow (viền sáng).
   return { vohon, tiers: [...pick(/\bcol:\s*"(#[0-9a-fA-F]{6})"/g), ...pick(/\bglow:\s*"(#[0-9a-fA-F]{6})"/g)] };
+}
+
+/** Mã NPC trong NPCS (shared/data.ts): mục có `id`, `name`, `title` liền nhau. */
+export function npcIds() {
+  const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
+  return new Set([...src.matchAll(/\bid: "([a-z_]+)", name: "[^"]*", title: "/g)].map((m) => m[1]));
+}
+
+/**
+ * Mã biểu tượng vật phẩm hợp lệ: id trong ITEMS (mục có `id`, `kind` liền nhau), nhóm trong ITEM_KINDS (biểu tượng chung
+ * của nhóm, ví dụ `hon_hach`, `manh_vo_hon`) và `hon_cot_<vị trí>` theo BONE_SLOTS.
+ */
+export function itemIconIds() {
+  const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
+  const ids = new Set([...src.matchAll(/\bid: "([a-z_]+)",\s*kind: "/g)].map((m) => m[1]));
+  const k0 = src.indexOf("export const ITEM_KINDS"), kinds = src.slice(k0, src.indexOf("};", k0));
+  for (const m of kinds.matchAll(/^\s*([a-z_]+): \{/gm)) ids.add(m[1]);
+  const start = src.indexOf("export const BONE_SLOTS"), bones = src.slice(start, src.indexOf("];", start));
+  for (const m of bones.matchAll(/\bid: "([a-z_]+)"/g)) ids.add(`hon_cot_${m[1]}`);
+  return ids;
 }
 
 /** `col` và `robe` của một võ hồn trong VOHON (shared/data.ts), hoặc null nếu không có id đó. */
@@ -280,7 +304,7 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * Trả về { file, frame:[w,h], kind } cho một key manifest, hoặc null nếu key sai quy ước.
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
  * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
- * loài cần `frame` vuông); chân dung `portrait_*` và vật đứng `prop_*` chỉ có dạng isometric.
+ * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*` chỉ có dạng isometric.
  */
 export function sheetSpec(key, frame, iso = false) {
   let m;
@@ -290,7 +314,7 @@ export function sheetSpec(key, frame, iso = false) {
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
-    if (!/^(portrait|prop)_/.test(key)) return null; // chân dung, vật đứng: luôn isometric, khớp ở dưới
+    if (!/^(portrait|prop|npc|item)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
@@ -298,8 +322,10 @@ export function sheetSpec(key, frame, iso = false) {
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * BEAST_COLS, frame[1]], kind: "beast" };
   if (/^ring\d$/.test(key)) return { file: `ring/${key}.png`, kind: "ring" };
   if (/^halo\d$/.test(key)) return { file: `ring/${key}.png`, frame: [24, 10], kind: "ring" };
-  // Asset isometric (manifest ghi "iso": true; client chưa tải, bước 10.2 / 10.8 dùng): chân dung võ hồn, vật đứng.
+  // Asset isometric (manifest ghi "iso": true; client chưa tải, bước 10.2 / 10.8 dùng): chân dung võ hồn, NPC, vật phẩm, vật đứng.
   if ((m = key.match(/^portrait_([a-z_]+)$/))) return { file: `iso/portrait/${m[1]}.png`, size: [ISO_PORTRAIT, ISO_PORTRAIT], kind: "portrait", iso: true };
+  if ((m = key.match(/^item_([a-z_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
+  if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };
   if ((m = key.match(/^prop_([a-z_]+)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };
   return null;
 }
