@@ -216,6 +216,9 @@ export function loadMap(mapId: string): GameMap {
   const hits = (x: number, y: number, hw: number, hh: number) => gridHits(grid, x, y, hw, hh);
   const waypoints = parseWaypoints(mapId, wpObjs, portals, (x, y) => x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4));
   const kind = MAPS[mapId].kind;
+  // #118: boss thế giới có Du Thủy thì cần điểm `lake` (giữa hồ); thiếu thì boss lặn tại chỗ.
+  if (!lake && (MAPS[mapId].world ?? []).some((id) => BOSSES[bossIndex(id)]?.world?.dive))
+    console.warn(`[map ${mapId}] Thiếu object \`lake\` (giữa hồ): Du Thủy của boss thế giới sẽ lặn tại chỗ.`);
   const map: GameMap = {
     mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits,
     waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),

@@ -536,6 +536,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
     this.onMessage("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
     this.onMessage("vohons", (c) => this.sendVohons(c));
+    this.onMessage("boss", (c) => this.sendBossJoin(c)); // #118: client xin lại tin boss lúc vào (sau khi đã nghe tin)
     this.onMessage("team", (c, m: { slots: unknown }) => this.setTeam(c, m?.slots));
     this.onMessage("switch", (c, m: { slot: number }) => this.switchSlot(c, Number(m?.slot)));
     this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
@@ -610,13 +611,24 @@ export class MapRoom extends Room<MapState> {
     this.partyPublish(party.goOnline({ acc: auth.accountId, name: p.name, sid: client.sessionId, mapId: this.state.mapId, roomId: this.roomId,
       ch: this.state.channel, level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead }));
     this.sendParty(client.sessionId, true);
-    // Thú vương (BĐ5): người vào giữa lúc chờ thì nhận đếm ngược còn lại; thú vương đang ở bản đồ này thì nhận thời gian trước khi rút đi.
+    this.sendBossJoin(client);
+  }
+
+  /**
+   * Boss cho người vừa vào (BĐ5, #118): gửi lúc onJoin và khi client xin lại bằng tin `boss` (client chỉ nghe tin sau khi dựng cảnh,
+   * nên tin lúc onJoin có thể bị bỏ). Người vào giữa lúc chờ thì nhận đếm ngược còn lại; thú vương / boss thế giới đang ở bản đồ này
+   * thì nhận thời gian trước khi rút đi, đồng hồ nổi giận, điểm yếu, chỗ nổi lên của Du Thủy và chiêu toàn sàn đang báo trước.
+   */
+  sendBossJoin(client: Client) {
     const w = this.bossWarn;
     if (w && w.at > Date.now()) client.send("boss", this.bossMsg(w, "warn", (w.at - Date.now()) / 1000));
     const kb = this.king?.bid ? this.state.beasts.get(this.king.bid) : undefined, kd = this.king?.bid ? this.bdata.get(this.king.bid)?.elite?.king : undefined;
     // `here`: client chỉ đặt đồng hồ / điểm yếu / chỗ nổi lên của Du Thủy khi có cờ này (như tin "spawn" ở đúng bản đồ).
     if (kb && kd) client.send("boss", { k: "here", here: true, bid: this.king!.bid, name: beastName(kb.rank, kb.species), mapId: this.state.mapId, mapName: MAPS[this.state.mapId].name, life: kd.life,
       phase: kd.phase, title: kd.phase === 2 ? (kd.world ? "Nổi giận" : kd.def.phase2?.name) : "", ...this.worldInfo(kd) });
+    // Chiêu toàn sàn đang báo trước (#118): người vừa vào cũng thấy vùng và vòng an toàn (thời gian còn lại) để kịp né.
+    const kc = kb && kd?.world ? this.bdata.get(this.king!.bid!)?.cast : undefined;
+    if (kc?.def.floor) client.send("fx", { k: "tele", bid: this.king!.bid, name: kc.def.name, ...kc.teles[0], parts: kc.teles.slice(1), t: kc.t, ...(kc.safe ? { safe: kc.safe } : {}) });
   }
 
   async onLeave(client: Client) {

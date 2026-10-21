@@ -809,6 +809,7 @@ export class GameScene extends Phaser.Scene {
       else if (m.result === "fail") hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`);
     });
     this.room.send("vohons");
+    this.room.send("boss"); // #118: tin boss lúc vào phòng tới trước khi cảnh nghe tin, xin lại (đếm ngược, đồng hồ, chiêu đang báo trước)
     this.room.send("bag");
     this.room.send("party", { op: "get" });
     this.room.send("quest", { op: "get" });
@@ -1102,7 +1103,7 @@ export class GameScene extends Phaser.Scene {
    */
   drawAuras(g: Phaser.GameObjects.Graphics, st: any, time: number) {
     st.beasts.forEach((b: any, id: string) => {
-      if (!b.rank) return; const s = this.beasts.get(id); if (!s) return;
+      if (!b.rank || b.dive) return; const s = this.beasts.get(id); if (!s) return; // boss đang lặn giữa hồ (#118): không aura
       // Thú vương (BĐ5) ở giai đoạn 2 cũng đập nhanh như Cuồng nộ.
       const rage = (b.buff & beastBuffBit("rage")) !== 0 || b.phase === 2, c = hex(rage && b.rank === 1 ? BEAST_BUFFS.rage.col : BOSSES[b.species]?.aura ?? "#ffffff");
       const w = Math.max(24, s.displayWidth * 0.9), pulse = 0.5 + 0.5 * Math.sin(time / (rage ? 110 : 260));

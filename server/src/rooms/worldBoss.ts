@@ -43,13 +43,13 @@ function lairSpot(map: GameMap, rnd: () => number, at: Anchor, col: number, cols
 
 /**
  * Vòng an toàn của chiêu toàn sàn (BeastSkillDef.safe): `n` vòng bán kính `r`, mỗi vòng một dải cột theo bề ngang sàn (rải đều), tâm
- * đi thẳng tới được từ chỗ sinh của boss `at`, phần lớn trong vòng đứng được (4 điểm cách tâm nửa bán kính), hai vòng không chồng nhau. Dải nào không tìm được
+ * đi thẳng tới được từ chỗ sinh của boss `at`, phần lớn trong vòng đứng được (8 điểm cách tâm 3/4 bán kính), hai vòng không chồng nhau. Dải nào không tìm được
  * chỗ thì thử cả bề ngang sàn; vẫn thiếu thì cảnh báo log.
  */
 export function floorSafeZones(map: GameMap, at: Anchor, n: number, r: number, rnd: () => number): Tele[] {
-  const out: Tele[] = [], h = r / 2;
+  const out: Tele[] = [], ring = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => [Math.cos((k * Math.PI) / 4) * r * 0.75, Math.sin((k * Math.PI) / 4) * r * 0.75]);
   const apart = (x: number, y: number) => out.every((s) => Math.hypot(x - s.x, y - s.y) >= 2 * r)
-    && [[h, 0], [-h, 0], [0, h], [0, -h]].every(([dx, dy]) => !map.hits(x + dx, y + dy, PLAYER_HW, PLAYER_HH));
+    && ring.every(([dx, dy]) => !map.hits(x + dx, y + dy, PLAYER_HW, PLAYER_HH));
   for (let k = 0; k < n; k++) {
     const p = lairSpot(map, rnd, at, k, n, r, PLAYER_BOX, apart) ?? lairSpot(map, rnd, at, 0, 1, r, PLAYER_BOX, apart);
     if (p) out.push({ shape: "circle", x: p.x, y: p.y, ang: 0, r, w: 0, arc: 0 });
