@@ -144,6 +144,8 @@ export class ArenaRoom extends MapRoom {
     super.chanThan(c);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }
+  /** Đấu hồn là 1v1 (7.1): không lan hiệu ứng tổ đội, kể cả khi đối thủ cùng tổ đội. */
+  partyBuffNear(_id: string): string[] { return []; }
   /** Trong sân không mời / nhận lời mời tổ đội (đấu hồn là 1v1, 7.1); xem khung tổ đội, từ chối, rời đội vẫn được. */
   partyAction(id: string, m: unknown) {
     const op = (m as { op?: unknown } | null)?.op;
