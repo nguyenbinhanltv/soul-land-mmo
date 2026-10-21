@@ -185,7 +185,7 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
-    // 11.3: server bật bản dựng lại (MAP_V2) thì báo tên file ở `mapFile` (cùng lưới va chạm với server).
+    // 11.3 / 11.5: server dùng bản dựng bằng tools/maps (`<mapId>.v2`) thì báo tên file ở `mapFile` (cùng lưới va chạm với server).
     this.load.tilemapTiledJSON(this.mapId, `${this.room.state.mapFile || this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);

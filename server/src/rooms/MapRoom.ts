@@ -473,7 +473,7 @@ export class MapRoom extends Room<MapState> {
   setup(mapId: string) {
     this.map = loadMap(mapId);
     this.state.mapId = mapId;
-    const file = mapFile(mapId); if (file !== mapId) this.state.mapFile = file; // 11.3: bản dựng lại (MAP_V2)
+    const file = mapFile(mapId); if (file !== mapId) this.state.mapFile = file; // 11.3 / 11.5: bản dựng bằng tools/maps (mặc định, trừ MAP_V1)
     // Ghi mapId vào listing để filterBy(["mapId"]) ghép đúng phòng cả khi phòng được mở mà không có mapId trong tham số.
     this.listing.mapId = mapId;
     this.interest = new Interest(this.state, this.map.MW * TILE, this.map.MH * TILE);

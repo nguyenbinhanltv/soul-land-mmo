@@ -98,9 +98,10 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const waitFor=async(fn,ms=2000)=>{for(let t=0;t<ms;t+=50){if(fn()) return true; await sleep(50);} return false;};
 // Mật khẩu bot sinh ngẫu nhiên mỗi lần chạy (không ghi cứng trong mã); tên bot kèm hậu tố lần chạy nên luôn là tài khoản mới.
 const PASS=randomUUID(), RUN=Date.now().toString(36).slice(-5);
-// 11.3: server bật MAP_V2 (bản đồ dựng lại bằng tools/maps, `<mapId>.v2.json`) thì chạy bot với cùng MAP_V2 để đọc đúng file Tiled.
-const MAP_V2=new Set((process.env.MAP_V2??"").split(",").map(s=>s.trim()).filter(Boolean));
-const mapFileOf=m=>(MAP_V2.has(m)||MAP_V2.has("all"))&&existsSync(new URL(`../../shared/assets/${m}.v2.json`,import.meta.url))?`${m}.v2`:m;
+// 11.5: server dùng bản dựng bằng tools/maps (`<mapId>.v2.json`) khi có file; bật đường lùi MAP_V1 (bản cũ) thì chạy bot với cùng
+// MAP_V1 để đọc đúng file Tiled.
+const MAP_V1=new Set((process.env.MAP_V1??"").split(",").map(s=>s.trim()).filter(Boolean));
+const mapFileOf=m=>!(MAP_V1.has(m)||MAP_V1.has("all"))&&existsSync(new URL(`../../shared/assets/${m}.v2.json`,import.meta.url))?`${m}.v2`:m;
 const mapUrl=m=>new URL(`../../shared/assets/${mapFileOf(m)}.json`,import.meta.url);
 let fails=0; const ok=(cond,msg)=>{console.log(cond?"  ✓":"  ✗",msg); if(!cond) fails++;};
 
