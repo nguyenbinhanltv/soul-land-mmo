@@ -3265,7 +3265,7 @@ export const NPCS: NpcDef[] = [
   { id: "thuong_nhan_luu_dong", name: "Thương nhân lưu động", title: "Trại cổng", role: "shop", col: "#ffb35c",
     looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
     lines: [
-      "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Đan dược, Hồi Thành Phù ta đều mang theo.",
+      "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Hồi Thành Phù ta cũng mang theo.",
       "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
     ] },
 ];
@@ -3282,13 +3282,10 @@ export const SHOP: { code: string; price: number }[] = [
 ];
 /** Thương nhân lưu động ở trại cổng bản đồ săn (#111): mã NPC trong NPCS. */
 export const CAMP_MERCHANT = "thuong_nhan_luu_dong";
-/**
- * Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, mọi món cùng một giá (#160), không rẻ hơn SHOP (giá đồng mỗi món).
- * Mua lại đồ dư như trong thành.
- */
-export const CAMP_SHOP: { code: string; price: number }[] = [
-  { code: "hoi_huyet_dan", price: 30 }, { code: "hoi_hon_dan", price: 30 }, { code: "hoi_thanh_phu", price: 30 },
-];
+/** Giá mọi món của thương nhân lưu động (#160, đồng mỗi món), không rẻ hơn SHOP. */
+export const CAMP_PRICE = 30;
+/** Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, mọi món giá CAMP_PRICE. Mua lại đồ dư như trong thành. */
+export const CAMP_SHOP: { code: string; price: number }[] = ["hoi_huyet_dan", "hoi_hon_dan", "hoi_thanh_phu"].map((code) => ({ code, price: CAMP_PRICE }));
 /** Bảng hàng của thương nhân `npcId` (thương nhân trong thành dùng chung SHOP). */
 export const shopOf = (npcId: string) => (npcId === CAMP_MERCHANT ? CAMP_SHOP : SHOP);
 /** Thương nhân `npcId` có mở rộng túi không (thương nhân lưu động thì không). */
