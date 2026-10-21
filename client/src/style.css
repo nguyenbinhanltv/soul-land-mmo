@@ -803,6 +803,8 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 #autoPanel>*{flex-shrink:0}
 #autoPanel .anote,#autoSum .anote,#autoPanel .asec small{color:var(--muted);font-size:10px;font-family:var(--f10);line-height:normal}
 #autoPanel .atoggle{align-self:stretch;margin-top:0;min-height:40px}
+#autoPanel .atoggle kbd{font:inherit;font-size:10px;font-family:var(--f10);border:1px solid currentColor;padding:0 4px;margin-left:6px;opacity:.8}
+body.touch #autoPanel .atoggle kbd{display:none}
 #autoPanel .asec{border:1px solid var(--line);border-left:4px solid #2f7a4a;padding:6px 8px;display:flex;flex-direction:column;gap:6px}
 #autoPanel .asec>b{font-size:12px;font-family:var(--f12)}
 #autoPanel .arange{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;font-size:12px;font-family:var(--f12)}

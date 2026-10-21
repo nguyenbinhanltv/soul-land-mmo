@@ -170,13 +170,13 @@ function renderSum(box: HTMLElement, s: AutoSummary, left: number) {
   }
 }
 
-/** Tin `auto` mới: cập nhật bảng; có tổng kết (tự săn vừa dừng) thì mở bảng tổng kết kèm lý do dừng. */
+/** Tin `auto` mới: cập nhật bảng; có tổng kết (tự săn vừa dừng, đã treo ít nhất 1 giây) thì mở bảng tổng kết kèm lý do dừng. */
 export function setAutoMsg(m: AutoMsg) {
   last = m;
   fill(m);
   const el = sumBox(); if (!el) return;
   if (m.on) { el.hidden = true; return; }
-  if (!m.sum) return;
+  if (!m.sum || m.sum.secs < 1) return;
   el.innerHTML = `<div class="rhead"><b>Tổng kết tự động</b><button class="x" type="button" aria-label="Đóng tổng kết">×</button></div>`
     + `<small class="anote"></small><div class="asum"></div>`;
   $("small", el)!.textContent = m.why ? `Đã dừng: ${m.why}` : "Đã dừng.";

@@ -46,7 +46,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | F | Đi qua cổng đang đứng; đứng trên truyền tống trận thì mở bản đồ thế giới; không thì nói chuyện với NPC gần nhất |
 | V / B / K | Bảng đội hình / túi đồ / Cộng minh |
 | M | Bản đồ thế giới (chỉ xem khi không đứng trên truyền tống trận; nút "Thế giới" ở bản đồ nhỏ) |
-| T | Bật / tắt tự săn (nút "Tự động" ở khung chỉ số, mục 5.13) |
+| T | Bật / tắt tự săn ngay (nút "Tự động" ở khung chỉ số mở bảng Tự động, mục 5.13) |
 | Enter / Esc | Chat / đóng bảng, hộp thoại |
 
 Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Bấm / chạm vào hồn sư khác mở menu người chơi.
@@ -385,7 +385,8 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Tiên thảo** (`HERBS`): Ỷ La Uất Kim Hương (sinh lực), Bát Giác Huyền Băng Thảo (hồn lực), Liệt Hỏa Hạnh Kiều Sơ (công); chỉ rơi ở Lạc Nhật Sâm Lâm (mục 5.3). Trong túi bấm **"Dùng cho…"**, chọn một võ hồn sở hữu: võ hồn đó cộng % chỉ số gốc vĩnh viễn (`HERB_PCT`), tối đa `HERB_MAX` cây mỗi loại mỗi võ hồn (đủ thì từ chối, không mất cây). Dùng được khi giao chiến, không dùng khi đang đi cổng và trong sân đấu. Thương nhân không mua bán tiên thảo.
 - **Rương** thú vương / boss thế giới: mở trong túi (cần đủ ô trống), mục 5.3 và 5.4.
 - **Hồi Thành Phù** (nhóm phù chú): về thành gần nhất (mục 5.3 "Truyền tống trận").
-- **Thương nhân** (Nặc Đinh Thành, Thiên Đấu Thành; cùng bảng hàng): bán đan và Hồi Thành Phù (`SHOP`; mua 1 / 5 / 10, mỗi lần tối đa `SHOP_MAX_QTY`); thiếu Hồn Tệ hoặc túi không đủ chỗ cho **cả** số món thì từ chối hết, không trừ tiền.
+- **Ủy Thác Lệnh** (nhóm lệnh bài): cộng giờ treo tự săn (mục 5.13).
+- **Thương nhân** (Nặc Đinh Thành, Thiên Đấu Thành; cùng bảng hàng): bán đan, Hồi Thành Phù và Ủy Thác Lệnh (`SHOP`; mua 1 / 5 / 10, mỗi lần tối đa `SHOP_MAX_QTY`); thiếu Hồn Tệ hoặc túi không đủ chỗ cho **cả** số món thì từ chối hết, không trừ tiền.
   - **Thương nhân lưu động** ở trại cổng bản đồ săn (`CAMP_MERCHANT`, mục 5.8): cùng luật mua / bán / mua lại (trại không phải vùng an toàn nên đang giao chiến thì không giao dịch), nhưng chỉ bán đan nhỏ và Hồi Thành Phù, giá cao hơn trong thành (`CAMP_SHOP`); không bán đan lớn, không mở rộng túi. Mua lại đồ dư đúng giá như trong thành. Bảng hàng của từng thương nhân: `shopOf`, `shopExpands`; client gửi kèm mã thương nhân đang mở hộp thoại, server tính giá theo đúng thương nhân đó.
   - **Mua lại đồ dư** (`sellPrice`): hồn hoàn theo số năm (`RING_SELL`, nội suy theo log), hồn cốt gấp `BONE_SELL` lần hồn hoàn cùng số năm và đắt hơn theo cấp cường hóa (`BONE_SELL_ENH`), hồn hạch theo sao (`CORE_SELL`), mảnh theo độ hiếm (`SHARD_SELL`, bán 1 hoặc cả chồng). **Không mua** đồ đang gắn, hồn hoàn đang hấp thụ, đan dược, phù chú, rương. Món giá cao hoặc đã cường hóa phải bấm "Bán" hai lần.
   - **Mở rộng túi** (dịch vụ, có hiệu lực ngay): +`BAG_EXPAND` ô mỗi lần tới `BAG_MAX_SLOTS`, giá tăng dần (`BAG_EXPAND_COST`), bấm hai lần. Số ô chỉ tăng.
@@ -603,17 +604,20 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - Như SFX: context chưa chạy (chưa tương tác) thì nhạc nền đứng chờ, khúc ngắn bị bỏ; tab ẩn hoặc mất tiêu điểm thì Phaser treo context nên nhạc dừng theo. Không có WebAudio (bot, headless) thì không có bộ phát. Thêm `?music=log` vào địa chỉ trang để ghi mỗi lần đổi bài vào console và xem `window.__music.status()`.
 - Mất kết nối (màn "Đã rời bản đồ") thì ngừng nhạc.
 
-### 5.13 Tự săn (Auto 1)
+### 5.13 Tự săn (Auto 1, Auto 2)
 Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 2026-10-22). Số ở `shared/data.ts`, mục "Tự săn".
-- **Bật / tắt:** nút "Tự động" ở khung chỉ số hoặc phím T. Chỉ bật được ở bản đồ săn (`hunt`), ngoài vùng an toàn, khi không gục / hấp thụ / đi cổng, túi còn chỗ và còn giờ treo. Chỗ bật là **điểm neo**: chỉ nhắm hồn thú và nhặt đồ trong `AUTO_RADIUS` quanh điểm neo, đi ra ngoài thì quay về. Mỗi ô lưới đồng bộ (`SYNC_VIEW.cell`) của một kênh có tối đa `AUTO_MAX_PER_CELL` điểm neo (chống dồn một chỗ).
+- **Bật / tắt:** phím T, hoặc nút trong bảng Tự động (nút "Tự động" ở khung chỉ số mở bảng). Chỉ bật được ở bản đồ săn (`hunt`), ngoài vùng an toàn, khi không gục / hấp thụ / đi cổng, túi còn chỗ và còn giờ treo. Chỗ bật là **điểm neo**: chỉ nhắm hồn thú và nhặt đồ trong bán kính đã chọn quanh điểm neo (`AutoSettings.radius`, số ô từ `AUTO_RADIUS_MIN` tới `AUTO_RADIUS`, mặc định lớn nhất), đi ra ngoài thì quay về. Mỗi ô lưới đồng bộ (`SYNC_VIEW.cell`) của một kênh có tối đa `AUTO_MAX_PER_CELL` điểm neo (chống dồn một chỗ).
 - **Hiệu suất bằng tự đánh:** server phát đúng các lệnh như người chơi (hướng đi như tin `input`, đánh thường, hồn kỹ, đổi võ hồn, dùng đan, nhặt) qua chính các hàm xử lý lệnh đó, nên mọi luật áp như khi bấm tay (hồi chiêu, hồn lực, Choáng / Câm lặng, vùng an toàn, quyền nhặt, túi đầy). Không giảm kinh nghiệm hay tỉ lệ rơi.
 - **Mục tiêu:** hồn thú thường trong khoảng niên hạn đã chọn (`AutoSettings.years`), gần mình nhất; bỏ qua tinh anh, thú vương, boss thế giới, hồn thú đang về chỗ sinh. **Không cướp quái:** hồn thú đang nhắm người khác hoặc bị người khác (ngoài tổ đội) đánh trong `AUTO_CLAIM_SECS` giây thì không nhắm; đòn thường và hồn kỹ diện rộng cũng không ra khi sẽ trúng hồn thú đó (trừ lúc đánh trả). Hồn thú đang đánh mình thì đánh trả trước, kể cả ngoài khoảng niên hạn. Đi thẳng tới mục tiêu, vướng thì theo đường A* (`shared/path.ts`, khung `AUTO_MOVE.path`); không tới được hoặc kẹt thì bỏ qua một lúc (`AUTO_MOVE`); không có việc thì đi dạo trong vùng neo.
-- **Đánh:** đánh thường khi mục tiêu trong tầm; hồn kỹ theo thứ tự ô ưu tiên (`AutoSettings.skills`) khi mục tiêu trong tầm của hồn kỹ đó và hồn lực còn trên `mpKeep` sau khi tung. Tiên cơ (`tienCo`): võ hồn khác trong đội đầy năng lượng thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn chính (người chơi tự đổi võ hồn thì thôi đổi về).
+- **Đánh:** đánh thường khi mục tiêu trong tầm; hồn kỹ theo thứ tự ô ưu tiên (`AutoSettings.skills`) khi mục tiêu trong tầm của hồn kỹ đó và hồn lực còn trên `mpKeep` sau khi tung. Tiên cơ (`tienCo`): võ hồn khác trong đội đầy năng lượng thì đổi tay vào tung (xét các ô đội hình theo thứ tự `slots`; ô không có trong danh sách thì không đổi vào), hết hồi chiêu đổi thì về võ hồn chính (người chơi tự đổi võ hồn thì thôi đổi về).
 - **Đan:** uống khi sinh lực võ hồn ra trận / hồn lực dưới `hp` / `mp` (đan thường trước đan lớn, chung hồi chiêu `DAN_CD`); bật `stopNoPot` thì cần uống mà hết đan hồi sinh lực là dừng.
-- **Nhặt:** hồn hoàn từ `ring` năm, hồn cốt, hồn hạch, vật phẩm khác dưới đất (theo cờ `bone`, `core`, `item`), chỉ món mình được nhặt (mục 4). Nhặt đúng món đã chọn (`pickup` với id món), không nhặt món bị lọc nằm gần hơn. Hồn Tệ vẫn vào thẳng túi như thường. **Không tự hấp thụ hồn hoàn.**
+- **Nhặt:** hồn hoàn từ `ring` năm, hồn cốt (`bone`), hồn hạch từ `coreStar` sao (`core`), vật phẩm khác dưới đất theo loại (`kinds`, trong `AUTO_LOOT_KINDS`: mảnh võ hồn, tiên thảo rơi khi túi người hạ đầy), chỉ món mình được nhặt (mục 4). Nhặt đúng món đã chọn (`pickup` với id món), không nhặt món bị lọc nằm gần hơn. Hồn Tệ vẫn vào thẳng túi như thường. **Không tự hấp thụ hồn hoàn.**
 - **Dừng khi:** cả đội gục, túi đầy, hết đan (tùy chọn), bị người chơi tấn công (đòn `pvp`), vào vùng an toàn, đi cổng / truyền tống / vào sân đấu, đang hấp thụ, hết giờ trong ngày, mất kết nối, và khi **người chơi tự bấm đi, đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt** (tay luôn được ưu tiên; nhả phím không tính). Lý do dừng báo bằng dòng log. Vào lại game thì không tự bật.
-- **Giới hạn giờ:** mỗi tài khoản treo tối đa `AUTO_DAILY_SECS` mỗi ngày theo giờ Việt Nam (đặt lại 00:00 như lượt boss, `this.today()`).
-- **Hiển thị:** ai cũng thấy chữ "Tự động" cạnh danh hiệu trên đầu (`PlayerState.auto`); chính mình thấy nút sáng, giờ treo còn lại ở chú thích nút. Bảng cài đặt đầy đủ, tổng kết và Ủy Thác Lệnh ở Auto 2 (#156); ủy thác offline ở Auto 3 (#157).
+- **Giới hạn giờ:** mỗi tài khoản treo miễn phí tối đa `AUTO_DAILY_SECS` mỗi ngày theo giờ Việt Nam (đặt lại 00:00 như lượt boss, `this.today()`).
+- **Ủy Thác Lệnh** (`AUTO_TOKEN`, nhóm lệnh bài): thương nhân trong thành bán giá `AUTO_TOKEN_PRICE` (thương nhân lưu động không bán, thương nhân không mua lại). Dùng trong túi thì cộng `AUTO_TOKEN_SECS` vào **quỹ giờ cộng thêm** của tài khoản, tích tối đa `AUTO_BONUS_MAX` (quá thì không dùng được, lệnh còn). Quỹ không đặt lại theo ngày; chỉ tiêu khi đã treo hết giờ miễn phí của hôm nay. Túi đã bớt lệnh và quỹ mới ghi trong cùng một transaction (`saveAutoBag`).
+- **Hiển thị:** ai cũng thấy chữ "Tự động" cạnh danh hiệu trên đầu (`PlayerState.auto`); chính mình thấy nút sáng, giờ treo còn lại ở chú thích nút. Ủy thác offline ở Auto 3 (#157).
+- **Bảng Tự động** (thủy mặc, `client/src/autoPanel.ts`): trạng thái và giờ treo còn lại (cả phần từ Ủy Thác Lệnh), nút bật / tắt, bán kính, khoảng niên hạn, thứ tự ưu tiên hồn kỹ (tên hồn kỹ của võ hồn đang ra trận) và ô đội hình đổi tay tiên cơ, chừa hồn lực, ngưỡng đan, dừng khi hết đan, bộ lọc nhặt, nút về mặc định (`AUTO_DEFAULTS`). Đổi gì thì gửi ngay `auto {op: "set", cfg}`; server kẹp bằng `parseAuto` và lưu theo tài khoản (bảng `auto_hunt`). Bản lưu từ Auto 1 có cờ `item: false` thì đọc thành không nhặt loại nào.
+- **Tổng kết:** mỗi lần tự săn dừng (tự tắt hay bị dừng), tin `auto` kèm `sum` (`AutoSummary`): thời gian treo lượt đó, số hồn thú đã hạ, kinh nghiệm mọi võ hồn trong đội nhận, Hồn Tệ, đồ đã nhặt hoặc vào thẳng túi (tối đa `AUTO_SUM_LOOT` dòng), cùng giờ treo còn lại. Server tính bằng ảnh chụp lúc bật so với lúc dừng (`AutoHunter.summary`), không thêm móc vào luật đánh / rơi đồ. Client mở hộp tổng kết kèm lý do dừng (lượt dưới 1 giây thì không) và giữ "Lượt vừa rồi" trong bảng Tự động.
 - **Cách làm:** `server/src/rooms/autoHunt.ts` (`AutoHunter`): quyết định `AUTO_HZ` lần mỗi giây (mục tiêu, đường đi, hồn kỹ, đan, tiên cơ, nhặt), giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi trong tầm. Bật / dừng / lưu ở `MapRoom` (`autoAction`, `autoStop`, `flushAuto`). Đo tải: `client/scripts/auto-soak.mjs`.
 
 ## 6. Kiến trúc (bắt buộc giữ)
@@ -737,7 +741,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn theo số năm, `skills` 4 ô mang theo, `herbs`), `teams` (mỗi ô đội hình một dòng).
 - `items` (mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn).
 - `waypoints` (truyền tống trận tài khoản đã mở, mã `<mapId>:<tên>`; chỉ thêm).
-- `auto_hunt` (tự săn, mục 5.13: cài đặt JSONB, ngày giờ Việt Nam và số giây đã treo trong ngày đó; mỗi tài khoản một dòng).
+- `auto_hunt` (tự săn, mục 5.13: cài đặt JSONB, ngày giờ Việt Nam và số giây đã treo trong ngày đó, quỹ giờ cộng thêm từ Ủy Thác Lệnh `bonus_secs` (021); mỗi tài khoản một dòng).
 - `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`) là bảng cũ, giữ lại để chuyển dữ liệu, không còn ghi.
 
@@ -776,7 +780,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Tự săn** (chủ repo chốt 2026-10-22: hiệu suất 100%, tối đa 12 giờ treo mỗi ngày; mục 5.13)
 - [x] Auto 1: lõi tự săn online phía server, nút / phím bật tắt, chữ "Tự động" trên đầu, bảng `auto_hunt` (#155).
-- [ ] Auto 2: bảng tùy chỉnh tự săn, tổng kết, Ủy Thác Lệnh (#156).
+- [x] Auto 2: bảng Tự động, tổng kết khi dừng, Ủy Thác Lệnh, cột `auto_hunt.bonus_secs` (#156).
 - [ ] Auto 3: ủy thác offline nhận thưởng khi vào lại (#157).
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
