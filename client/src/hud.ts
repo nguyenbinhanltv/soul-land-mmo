@@ -10,7 +10,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, questChain, questRewardText, type QuestStep, RESONANCE, resonanceText,
+  QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
 
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
@@ -18,7 +18,7 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -1597,10 +1597,10 @@ export interface NpcActions {
   buyback(key: string): void; expand(): void; // mua lại đồ vừa bán, mở rộng túi (9.8)
   enhance(targetId: string, materialIds: string[]): void;
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
-  quest(op: "accept" | "turnin"): void; // nhận / trả nhiệm vụ (6.2)
+  quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "rank";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -1618,7 +1618,10 @@ export const npcOpenId = () => npcDefOpen?.id ?? null;
 export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
   const def = NPCS.find((n) => n.id === id); if (!def) return;
   // NPC giao nhiệm vụ (6.2) đang có bài mới / chờ trả thì mở thẳng trang nhiệm vụ.
-  if (npcDefOpen?.id !== id) { const qs = questOf(id)?.status; npcPage = qs === "offer" || qs === "ready" ? "quest" : "talk"; npcLine = 0; }
+  if (npcDefOpen?.id !== id) {
+    const qs = questOf(id)?.status, ds = id === DAILY.giver ? dailyMark() : null;
+    npcPage = qs === "offer" || qs === "ready" ? "quest" : ds === "offer" || ds === "ready" ? "daily" : "talk"; npcLine = 0;
+  }
   npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
   toggleBag(false); toggleRoster(false); toggleReso(false);
   $("#npc").hidden = false;
@@ -1650,8 +1653,8 @@ function renderNpc() {
   };
   const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
   const bag = npcBagMsg;
-  if (npcPage === "quest") {
-    renderQuestPage(el, act);
+  if (npcPage === "quest" || npcPage === "daily") {
+    if (npcPage === "daily") renderDailyPage(el, act); else renderQuestPage(el, act);
     btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
     el.appendChild(row);
     return;
@@ -1679,6 +1682,10 @@ function renderNpc() {
     const q = questOf(def.id), qc = q && questChain(q.chain);
     if (q && qc) btn(q.status === "done" ? `Nhiệm vụ: ${qc.name} (đã xong)` : `Nhiệm vụ: ${qc.steps[q.step].name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`,
       "absorb", () => go("quest"));
+    if (def.id === DAILY.giver && dailyMsg) { // khảo hạch hằng ngày
+      const done = dailyMsg.list.filter((x) => x.status === "done").length, m = dailyMark();
+      btn(`Khảo hạch hằng ngày (${done}/${dailyMsg.list.length})${m === "offer" ? " !" : m === "ready" ? " ?" : ""}`, "absorb", () => go("daily"));
+    }
     if (def.role === "shop") {
       btn("Mua đan dược, mở rộng túi", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
       btn(`Mua lại đồ đã bán (${bag?.buyback?.length ?? 0})`, "absorb", () => go("buyback"), !bag); // 9.8
@@ -1877,6 +1884,8 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
 let questMsg: QuestMsg | null = null; // tin "quest" gần nhất (tiến độ do server giữ)
 let questFold = false;                // khung theo dõi đang thu gọn
+let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
+let dailyFold = false;
 /** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ hoặc chưa nhận tin "quest"). */
 export const questOf = (id: string) => (questMsg && questChain(questMsg.chain)?.giver === id ? questMsg : null);
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
@@ -1899,12 +1908,19 @@ function questGoals(s: QuestStep, prog: number[] | null) {
   });
   return box;
 }
-/** Khung theo dõi trên màn hình: tên bài, mục tiêu x/N, gợi ý quay về NPC; bấm / chạm tiêu đề để thu gọn. Xong cả chuỗi thì ẩn. */
+/**
+ * Khung theo dõi trên màn hình: chuỗi tân thủ (tên bài, mục tiêu x/N, gợi ý quay về NPC; xong cả chuỗi thì bỏ phần này) rồi mục
+ * "Hằng ngày" (khảo hạch của Phất Lan Đức); bấm / chạm tiêu đề từng phần để thu gọn. Không còn gì để theo dõi thì ẩn.
+ */
 function renderQuestTracker() {
-  const el = $("#quest"), q = questMsg, { c, npc, where } = q ? giverOf(q.chain) : { c: undefined, npc: undefined, where: "" };
-  if (!q || !c || q.status === "done") { el.hidden = true; el.innerHTML = ""; return; }
+  const el = $("#quest"); el.innerHTML = "";
+  const starter = renderStarterTracker(el), daily = renderDailyTracker(el);
+  el.hidden = !starter && !daily;
+}
+function renderStarterTracker(el: HTMLElement) {
+  const q = questMsg, { c, npc, where } = q ? giverOf(q.chain) : { c: undefined, npc: undefined, where: "" };
+  if (!q || !c || q.status === "done") return false;
   const s = c.steps[q.step];
-  el.hidden = false; el.innerHTML = "";
   const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!questFold));
   head.innerHTML = "<b></b><i></i>";
   head.querySelector("b")!.textContent = `${s.name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`;
@@ -1913,12 +1929,13 @@ function renderQuestTracker() {
   head.addEventListener("click", () => { questFold = !questFold; renderQuestTracker(); }); // chuột, chạm và bàn phím
   el.appendChild(head);
   const sub = document.createElement("small"); sub.textContent = c.name; el.appendChild(sub);
-  if (questFold) return;
+  if (questFold) return true;
   const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; el.appendChild(t); };
-  if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return; }
+  if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return true; }
   el.appendChild(questGoals(s, q.prog));
   if (q.status === "ready") tip(`Đã xong: quay về gặp ${npc?.name ?? "NPC"} ở ${where} để nhận thưởng.`);
   else { const d = document.createElement("small"); d.textContent = s.desc; el.appendChild(d); }
+  return true;
 }
 /** Trang nhiệm vụ trong hộp thoại NPC giao nhiệm vụ: lời giao + mục tiêu + thưởng + "Nhận", tiến độ, lời khi trả + "Trả", lời kết. */
 function renderQuestPage(el: HTMLElement, act: NpcActions) {
@@ -1943,8 +1960,95 @@ function renderQuestPage(el: HTMLElement, act: NpcActions) {
   b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin"); });
   row.appendChild(b); el.appendChild(row);
 }
-/** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu). */
-export const QUEST_GIVERS = new Set(QUESTS.map((c) => c.giver));
+/** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu), kể cả người ra khảo hạch hằng ngày. */
+export const QUEST_GIVERS = new Set([...QUESTS.map((c) => c.giver), DAILY.giver]);
+/**
+ * Dấu trên đầu NPC `id`: "offer" có bài mới, "ready" có bài chờ trả, "active" đang làm, null = không có gì (xong hết / không giao).
+ * Người ra khảo hạch hằng ngày gộp cả bộ bài: chờ trả trước, rồi bài mới, rồi đang làm.
+ */
+export function questMark(id: string): "offer" | "ready" | "active" | null {
+  const st = questOf(id)?.status;
+  if (st === "offer" || st === "ready" || st === "active") return st;
+  return id === DAILY.giver ? dailyMark() : null;
+}
+function dailyMark(): "offer" | "ready" | "active" | null {
+  const l = dailyMsg?.list ?? [];
+  return l.some((x) => x.status === "ready") ? "ready" : l.some((x) => x.status === "offer") ? "offer" : l.some((x) => x.status === "active") ? "active" : null;
+}
+
+// ---------- Khảo hạch hằng ngày của Phất Lan Đức (mục 5.8 "Nhiệm vụ hằng ngày") ----------
+/** Tin "daily": vẽ lại khung theo dõi (mục "Hằng ngày") và hộp thoại nếu đang mở với Phất Lan Đức. */
+export function setDaily(m: DailyMsg) {
+  dailyMsg = m;
+  renderQuestTracker();
+  if (npcDefOpen?.id === DAILY.giver) renderNpc();
+}
+/** Mục "Hằng ngày" hiện trong khung theo dõi khi đã xong chuỗi tân thủ, đã nhận bài hôm nay, hoặc đang ở bản đồ của Phất Lan Đức. */
+const dailyShown = (mapId: string) => !!dailyMsg &&
+  (questMsg?.status === "done" || dailyMsg.list.some((x) => x.status !== "offer") || mapId === DAILY.map);
+let trackerMap = "";
+/** Bản đồ đang đứng (GameScene gọi khi vào bản đồ): quyết định có hiện mục "Hằng ngày" khi chưa nhận bài nào. */
+export function setTrackerMap(mapId: string) { trackerMap = mapId; renderQuestTracker(); }
+/** Khảo hạch hằng ngày gần nhất (GameScene chấm mục tiêu lên bản đồ nhỏ); mục "Hằng ngày" đang ẩn thì chỉ trả bài đã nhận. */
+export function dailyList() {
+  const l = dailyMsg?.list ?? [];
+  return dailyShown(trackerMap) ? l : l.filter((x) => x.status === "active" || x.status === "ready");
+}
+/** Mục "Hằng ngày" trong khung theo dõi: bài đã nhận (mục tiêu x/N), bài chưa nhận / đã xong tóm một dòng; bấm tiêu đề để thu gọn. */
+function renderDailyTracker(el: HTMLElement) {
+  const m = dailyMsg; if (!m || !dailyShown(trackerMap)) return false;
+  const npc = NPCS.find((n) => n.id === DAILY.giver), where = MAPS[DAILY.map]?.name ?? "";
+  const done = m.list.filter((x) => x.status === "done").length, mark = dailyMark();
+  const sec = document.createElement("div"); sec.className = "qsec";
+  const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!dailyFold));
+  head.innerHTML = "<b></b><i></i>";
+  head.querySelector("b")!.textContent = `Hằng ngày${mark === "offer" ? " !" : mark === "ready" ? " ?" : ""}`;
+  head.querySelector("i")!.textContent = `${done}/${m.list.length} ${dailyFold ? "▸" : "▾"}`;
+  head.title = dailyFold ? "Mở mục Hằng ngày" : "Thu gọn mục Hằng ngày";
+  head.addEventListener("click", () => { dailyFold = !dailyFold; renderQuestTracker(); });
+  sec.appendChild(head);
+  const sub = document.createElement("small"); sub.textContent = DAILY.name; sec.appendChild(sub);
+  el.appendChild(sec);
+  if (dailyFold) return true;
+  const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; sec.appendChild(t); };
+  for (const q of m.list) {
+    if (q.status !== "active" && q.status !== "ready") continue;
+    const s = questChain(q.chain)?.steps[0]; if (!s) continue;
+    const n = document.createElement("div"); n.className = "qname"; n.textContent = s.name; sec.appendChild(n);
+    sec.appendChild(questGoals(s, q.prog));
+  }
+  const offer = m.list.filter((x) => x.status === "offer").length, ready = m.list.filter((x) => x.status === "ready").length;
+  if (ready) tip(`Đã xong ${ready} bài: gặp ${npc?.name ?? "NPC"} ở ${where} để nhận thưởng.`);
+  if (offer) tip(`Còn ${offer} bài chưa nhận: gặp ${npc?.name ?? "NPC"} ở ${where}.`);
+  if (done === m.list.length) { const k = document.createElement("small"); k.textContent = "Đã xong khảo hạch hôm nay · bài mới lúc 0:00 (giờ Việt Nam)."; sec.appendChild(k); }
+  return true;
+}
+/** Trang khảo hạch trong hộp thoại Phất Lan Đức: mỗi bài một khung (mục tiêu, thưởng, lời giao / lời trả) và nút nhận / trả riêng. */
+function renderDailyPage(el: HTMLElement, act: NpcActions) {
+  const m = dailyMsg;
+  const say = (t: string, to: HTMLElement = el) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; to.appendChild(p); };
+  if (!m) { say("…"); return; }
+  const done = m.list.filter((x) => x.status === "done").length;
+  say(done === m.list.length ? questChain(m.list[0]?.chain ?? "")?.finale ?? "" : `Khảo hạch hôm nay ${m.list.length} bài, làm bài nào trước cũng được. Nửa đêm ta đổi bài mới, bài dở dang bỏ luôn!`);
+  m.list.forEach((q, i) => {
+    const s = questChain(q.chain)?.steps[0]; if (!s) return;
+    const box = document.createElement("div"); box.className = "qbox" + (q.status === "done" ? " qdone" : "");
+    const h = document.createElement("b"); h.textContent = `Bài ${i + 1}/${m.list.length}: ${s.name}${q.status === "done" ? " (đã xong)" : ""}`; box.appendChild(h);
+    if (q.status !== "done") {
+      const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
+      box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
+      const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}`; box.appendChild(r);
+      const line = q.status === "offer" ? s.offer.at(-1) : q.status === "ready" ? s.done[0] : "";
+      if (line) { const p = document.createElement("i"); p.className = "qsay"; p.textContent = line; box.appendChild(p); }
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
+      b.textContent = q.status === "offer" ? "Nhận bài" : q.status === "ready" ? "Trả bài, nhận thưởng" : "Đang làm…";
+      b.disabled = q.status === "active";
+      b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain); });
+      box.appendChild(b);
+    }
+    el.appendChild(box);
+  });
+}
 
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng ----------
 /** Tin riêng "arenaTop": ARENA.topN dòng đầu (dòng của mình có `me`), hạng của mình, lượt thắng có thưởng còn lại hôm nay. */

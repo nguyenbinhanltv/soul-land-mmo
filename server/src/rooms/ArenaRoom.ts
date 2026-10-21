@@ -66,7 +66,7 @@ export class ArenaRoom extends MapRoom {
     this.setPhase("wait", ARENA.joinSecs);
     for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
     this.onMessage("quest", (c, msg: { op: unknown }) => {
-      if (msg?.op === "get") this.sendQuest(c.sessionId); else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
+      if (msg?.op === "get") { this.sendQuest(c.sessionId); this.sendDaily(c.sessionId); } else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
     });
     this.onMessage("arena", (c, msg: { op: unknown }) => { if (msg?.op === "top") this.arenaTop(c.sessionId); });
   }
@@ -235,6 +235,9 @@ export class ArenaRoom extends MapRoom {
       const o = this.sides[1 - i], score = winner === null ? 0.5 : winner === i ? 1 : 0;
       const delta: ArenaRecord = { elo: eloAfter(s.rec.elo, o.rec.elo, score) - s.rec.elo, wins: score === 1 ? 1 : 0, losses: score === 0 ? 1 : 0, draws: score === 0.5 ? 1 : 0 };
       const sid = s.sid, p = sid ? this.state.players.get(sid) : undefined, d = sid ? this.pdata.get(sid) : undefined;
+      // Khảo hạch hằng ngày "đánh một trận": người còn ở sân của trận đã giao đấu (không tính bỏ trận, đối thủ không vào sân). Trước
+      // prepareReward để ảnh chụp túi ghi cùng phần thưởng có cả tiến độ này.
+      if (d && !s.left && reason !== "noshow") this.questEvent(sid, { k: "arena" });
       // Gục thì nằm lại tới khi rời sân. Không tự dừng hướng đi đang giữ: sau trận vẫn đi lại được trong sân, và dự đoán chuyển động phía
       // client (mục 6) chỉ đúng khi server áp đúng input client đã gửi (muốn dừng thì phải tăng `PlayerState.seq` như hook `goto`).
       if (p && d && p.dead) d.deadT = Infinity;
