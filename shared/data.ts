@@ -836,7 +836,8 @@ export function teleZones(def: BeastSkillDef, bx: number, by: number, tx: number
 // ---------- Tinh anh, thú vương, boss thế giới (mục 5.4, 6; bước BĐ4, mọi số đã chốt) ----------
 /**
  * Vòng an toàn của chiêu toàn sàn boss thế giới (BeastSkillDef.safe, #118): `floor` cho Bạo Nộ và Thanh Lân Độc Vụ, `charge` cho tích
- * lực Đại Địa Chấn (ít vòng hơn vì báo trước lâu và còn cách ngắt). Thời gian báo trước đủ để đi bộ (PLAYER_SPEED) tới vòng gần nhất.
+ * lực Đại Địa Chấn (ít vòng hơn vì báo trước lâu và còn cách ngắt). Thời gian báo trước tính để từ phần lớn sàn đi bộ (PLAYER_SPEED,
+ * không bị chậm / khống chế) kịp tới vòng gần nhất (LAIR_SPOT.band giữ vòng khỏi sát mép).
  */
 export const FLOOR_SAFE = { floor: { n: 3, r: 40 }, charge: { n: 2, r: 36 } };
 /**

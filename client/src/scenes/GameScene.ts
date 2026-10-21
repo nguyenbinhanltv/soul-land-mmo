@@ -77,9 +77,8 @@ export class GameScene extends Phaser.Scene {
   players = new Map<string, PView>();
   beasts = new Map<string, Phaser.GameObjects.Sprite>();
   /** Vị trí vẽ (thế giới, nội suy) của từng hồn thú; sprite đặt ở hình chiếu (10.1). */
-  bpos = new Map<string, Pt>();
-  /** Cờ lặn (BeastState.dive) đã thấy của từng hồn thú: đổi thì đặt thẳng vị trí (Du Thủy, #118). */
-  bdive = new Map<string, boolean>();
+  /** Vị trí nội suy của hồn thú; `dive`: cờ lặn (BeastState.dive) đã thấy, đổi thì đặt thẳng vị trí (Du Thủy, #118). */
+  bpos = new Map<string, Pt & { dive?: boolean }>();
   /** Hướng nhìn 8 phía của hồn thú (sheet isometric): theo hướng trượt khi đi, theo vùng báo trước khi tung chiêu, đứng yên thì giữ. */
   bface = new Map<string, Dir8>();
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
@@ -1495,8 +1494,8 @@ export class GameScene extends Phaser.Scene {
       const face = mv8 ?? this.bface.get(id) ?? dir8(b.face || 1, 0) ?? "se";
       this.bface.set(id, face);
       // Du Thủy lặn ra giữa hồ / nổi lên (#118, cờ BeastState.dive đổi cùng bản vá với vị trí): đặt thẳng, không trượt qua cây và nước.
-      if (!!b.dive !== (this.bdive.get(id) ?? !!b.dive)) { w.x = b.x; w.y = b.y; }
-      this.bdive.set(id, !!b.dive);
+      if (!!b.dive !== (w.dive ?? !!b.dive)) { w.x = b.x; w.y = b.y; }
+      w.dive = !!b.dive;
       w.x += (b.x - w.x) * lerp; w.y += (b.y - w.y) * lerp;
       const at = W2S(w.x, w.y); s.setPosition(at.x, at.y);
       // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
@@ -1537,7 +1536,7 @@ export class GameScene extends Phaser.Scene {
         lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984).setScale(this.txtK);
       }
     });
-    for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); this.bpos.delete(id); this.bface.delete(id); this.bdive.delete(id); }
+    for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); this.bpos.delete(id); this.bface.delete(id); }
     for (const [id, lb] of this.eliteLabels) if (!seenB.has(id)) { lb.destroy(); this.eliteLabels.delete(id); }
 
     // hồn hoàn rơi

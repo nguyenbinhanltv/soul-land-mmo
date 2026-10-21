@@ -2822,7 +2822,7 @@ export class MapRoom extends Room<MapState> {
     // Từ BĐ5 vòng rơi ngẫu nhiên (`scatter`, Độc Châm Vũ) do server tung.
     const teles = def.floor ? this.floorTeles() : teleZones(def, b.x, b.y, tgt.x, tgt.y, Math.random);
     // Chiêu toàn sàn né được (#118): vòng an toàn rải trong sàn, khóa cùng lúc với vùng.
-    const safe = def.floor && def.safe ? floorSafeZones(this.map, def.safe.n, def.safe.r, Math.random) : undefined;
+    const safe = def.floor && def.safe ? floorSafeZones(this.map, { x: bd.hx, y: bd.hy }, def.safe.n, def.safe.r, Math.random) : undefined;
     bd.cast = { def, teles, t: def.warn, target: pid, safe };
     s.cd = def.cd * (0.8 + Math.random() * 0.4) * (bd.elite?.king?.world?.rage ? WORLD.rageCd : 1); // boss thế giới nổi giận: hồi chiêu nhanh hơn
     b.cast = true; b.moving = false; if (Math.abs(Math.cos(ang)) > 0.1) b.face = Math.cos(ang) > 0 ? 1 : -1;
@@ -4331,8 +4331,8 @@ export class MapRoom extends Room<MapState> {
    */
   worldDive(bid: string, b: BeastState, bd: BData, w: WorldData, dv: NonNullable<NonNullable<BossDef["world"]>["dive"]>) {
     this.cancelCast(bid, b, bd);
-    // Sàn không tìm được chỗ nổi lên thì nổi ở chỗ sinh (trong sàn), không kẹt lại giữa hồ.
-    w.dive = dv.secs; w.surf = surfaceSpot(this.map, b.x, b.y, dv.away, Math.random) ?? { x: bd.hx, y: bd.hy }; b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
+    // Sàn không tìm được chỗ nổi lên thì nổi lại đúng chỗ lặn (trong sàn), không kẹt lại giữa hồ.
+    w.dive = dv.secs; w.surf = surfaceSpot(this.map, { x: bd.hx, y: bd.hy }, b.x, b.y, dv.away, Math.random) ?? { x: b.x, y: b.y }; b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" });
     const lake = this.map.lake;
     if (lake) { b.x = lake.x; b.y = lake.y; this.interest.beasts.put(bid, b.x, b.y); this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" }); }
