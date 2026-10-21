@@ -12,9 +12,10 @@
 //   5. Lượng tử màu: auto-item (mỗi vật một bảng riêng; mặc định cho tile / tile-block vì art/palette.gpl hiện nay
 //      thiếu dải đất / đá / nước trầm), art/palette.gpl (mặc định cho sprite), auto (một bảng chung cả lô) hoặc none.
 //   6. Đưa về khung đích bằng lấy mẫu 4×4 điểm mỗi pixel đích rồi chọn màu nhiều phiếu nhất (không nội suy):
-//      - tile:       mặt trên hình thoi ép về đúng 2:1 rồi đặt vào ảnh ô theo ISO_TILE_IMAGES (mục 5.11): mặc định
-//                    xuất cả ô logic (thoi 32×16 trong ảnh 32×32, tâm (16,19)) và ô lớn 2×2 (thoi 64×32 trong ảnh
-//                    64×64, tâm (32,37)), mỗi cỡ một thư mục con <out>/32, <out>/64. Đỉnh thoi dò bằng cách khớp đường
+//      - tile:       mặt trên hình thoi ép về đúng 2:1 rồi đặt vào ảnh ô isoTileImage(W) (mục 5.11): mặc định
+//                    xuất cả ô logic (bề ngang ISO_TILE_W; với 32: thoi 32×16 trong ảnh 32×32, tâm (16,19)) và ô lớn
+//                    2×2 (bề ngang 2 × ISO_TILE_W; với 64: thoi 64×32 trong ảnh 64×64, tâm (32,37)), mỗi cỡ một thư
+//                    mục con <out>/<W>. Đỉnh thoi dò bằng cách khớp đường
 //                    thẳng vào mép trên (bỏ ngọn cỏ nhô lên); thu vào --inset điểm để bỏ viền / dải mép; --seamless trộn
 //                    (dither có thứ tự) vùng mép với bản dời nửa chu kỳ để ô ghép liền với chính nó. Đáy ô (bị ô phía
 //                    trước che khi lát) lấy từ mặt bên của khối gốc, giãn về bề dày quy cách; khối gốc không có mặt bên
@@ -33,8 +34,8 @@
 //                          Số tên khác số vật tách được thì dừng (in hộp bao từng vật) để không gán nhầm tên.
 //   --grid CxR             tách theo lưới đều C cột × R hàng thay vì thành phần liên thông.
 //   --cell auto|<số>       cỡ điểm ảnh giả; số thì dùng lưới đều cỡ đó (1 = ảnh đã là pixel thật).
-//   --size WxH|N           khung sprite (N = N×N). Ô: danh sách bề ngang thoi, mặc định 32,64 (các cỡ trong ISO_TILE_IMAGES);
-//                          --face-only thì chỉ ghi mặt trên W×W/2 (W bất kỳ chia hết cho 4), không đặt vào ảnh ô.
+//   --size WxH|N           khung sprite (N = N×N). Ô: danh sách bề ngang thoi (chia hết cho 4), mặc định ô logic và ô lớn
+//                          (ISO_TILE_W, 2 × ISO_TILE_W); --face-only thì chỉ ghi mặt trên W×W/2, không đặt vào ảnh ô.
 //   --anchor x,y           gốc chân trong khung sprite.
 //   --palette auto-item|gpl|auto|none|<file.gpl>   --colors: số màu mỗi vật với auto-item (mặc định 10) hoặc của
 //                          bảng auto chung cả lô (mặc định 32; tấm nhiều chất liệu thì ô đều màu chỉ còn 1–3 màu).
@@ -46,7 +47,7 @@
 //   --debug                ghi thêm <out>/_native/<tên>.png (ảnh pixel thật trước khi đưa về khung).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, hex, toHex, readGpl, OUTLINE, ISO_TILE_IMAGES, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_VH_ORIGIN, ISO_BEAST_SIZES, ISO_BEAST_FOOT } from "./lib.mjs";
+import { decodePng, encodePng, Img, hex, toHex, readGpl, OUTLINE, ISO_TILE_W, isoTileImage, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_VH_ORIGIN, ISO_BEAST_SIZES, ISO_BEAST_FOOT } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -65,13 +66,8 @@ if (!outDir || !file || !KINDS.includes(kind)) {
 }
 const isTile = kind === "tile" || kind === "tile-block";
 // Ô: các bề ngang thoi cần xuất (mặc định mọi cỡ ảnh ô của mục 5.11).
-const TILE_WIDTHS = isTile ? (sizeOpt ? sizeOpt.split(",").map((v) => +v.split("x")[0]) : Object.keys(ISO_TILE_IMAGES).map(Number)) : [];
-for (const w of TILE_WIDTHS) {
-  if (faceOnly ? w % 4 : !ISO_TILE_IMAGES[w]) {
-    console.error(`--size ${w}: ${faceOnly ? "bề ngang thoi phải chia hết cho 4" : `ảnh ô chỉ có cỡ ${Object.keys(ISO_TILE_IMAGES).join(" / ")} (mục 5.11); cỡ khác dùng --face-only`}`);
-    process.exit(1);
-  }
-}
+const TILE_WIDTHS = isTile ? (sizeOpt ? sizeOpt.split(",").map((v) => +v.split("x")[0]) : [ISO_TILE_W, 2 * ISO_TILE_W]) : [];
+for (const w of TILE_WIDTHS) if (!(w >= 8) || w % 4) { console.error(`--size ${w}: bề ngang thoi phải chia hết cho 4`); process.exit(1); }
 // Sprite: khung mặc định theo quy cách isometric (hằng ở lib.mjs); hồn thú, vật, chân dung phải chọn cỡ.
 const DEFAULT_SIZE = { honsu: [ISO_HS_FRAME, ISO_HS_FRAME], vohon: [ISO_VH_FRAME, ISO_VH_FRAME] };
 const sizeArg = !isTile && sizeOpt ? sizeOpt.split("x").map(Number) : null;
@@ -564,7 +560,7 @@ function autoInset(nat, g) {
 
 /**
  * Ô bề ngang W: mặt trên thoi W×W/2 (ép affine từ L, T, R của khối gốc) rồi, trừ khi --face-only, đặt vào ảnh ô
- * ISO_TILE_IMAGES[W] và thêm đáy dày `thick` điểm bên dưới hai cạnh dưới của thoi.
+ * isoTileImage(W) và thêm đáy dày `thick` điểm bên dưới hai cạnh dưới của thoi.
  */
 function renderTile(nat, g, W, pal) {
   const C = [(g.L[0] + g.R[0]) / 2, (g.L[1] + g.R[1]) / 2];
@@ -592,7 +588,7 @@ function renderTile(nat, g, W, pal) {
   }
   if (faceOnly) return { out: face, inset, seam };
   // Ảnh ô: mặt trên đặt tại tâm quy cách; đáy dưới mỗi cột lấy từ mặt bên khối gốc (giãn `g.thick` điểm gốc về `thick`).
-  const spec = ISO_TILE_IMAGES[W], out = new Img(...spec.size), oy = spec.center[1] - H / 2, ox = spec.center[0] - W / 2;
+  const spec = isoTileImage(W), out = new Img(...spec.size), oy = spec.center[1] - H / 2, ox = spec.center[0] - W / 2;
   out.blit(face, 0, 0, W, H, ox, oy, true);
   const darken = (c, k) => { const d = [0, 1, 2].map((i) => Math.round(c[i] * k)); return [...(pal ? pal[nearestIdx(d, pal)] : d), 255]; };
   for (let x = 0; x < W; x++) {
