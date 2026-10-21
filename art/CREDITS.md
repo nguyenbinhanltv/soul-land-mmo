@@ -571,3 +571,22 @@ Vùng này do `tools/assets/lpc-beast.mjs` ghi, không sửa tay.
 | `beast_nhu_cot_tho_hoang` (hình tạm) | Stephen "Redshrike" Challener (đặt vẽ: tebruno99), Evert (sắp lại sheet) | **CC-BY 3.0**, CC-BY-SA 3.0, OGA-BY 3.0 | [Reorganised LPC rabbit](https://opengameart.org/content/reorganised-lpc-rabbit), file `rabbit_2.png`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric; gốc: https://opengameart.org/content/bunny-rabbit-lpc-style-for-pixelfarm |
 | `beast_phong_lang` (hình tạm) | Stephen "Redshrike" Challener (họa sĩ), William.Thompsonj (đặt vẽ) | **CC-BY 4.0**, CC-BY 3.0, GPL 3.0, GPL 2.0, OGA-BY 3.0 | [[LPC] Wolf Animation](https://opengameart.org/content/lpc-wolf-animation), file `wolfsheet6_0.png`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric |
 <!-- lpc-beast:end -->
+
+## Âm thanh #133
+
+Được sinh từ `shared/assets/audio/manifest.json` bằng `tools/audio/process.mjs`; không sửa tay.
+
+<!-- audio-sfx:start -->
+| Tệp output | Track | Tác giả | Giấy phép | Provenance |
+|---|---|---|---|---|
+| `shared/assets/audio/ambient/cuc_bac_chi_dia.ogg`<br>`shared/assets/audio/ambient/cuc_bac_chi_dia.m4a` | mountain-wind | remaxim | CC0-1.0 | Short Wind Sound — <https://opengameart.org/content/short-wind-sound> — SHA-256 `4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41` |
+| `shared/assets/audio/ambient/lac_nhat_sam_lam.ogg`<br>`shared/assets/audio/ambient/lac_nhat_sam_lam.m4a` | waterflow-ambience | TyberiusGames | CC0-1.0 | Waterflow Sound — <https://opengameart.org/content/waterflow-sound> — SHA-256 `5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92` |
+| `shared/assets/audio/ambient/thien_dau_thanh.ogg`<br>`shared/assets/audio/ambient/thien_dau_thanh.m4a` | town-crowd-ambience | StarNinjas | CC0-1.0 | Crowd Shouting/Speaking Ambience — <https://opengameart.org/content/crowd-shoutingspeaking-ambience> — SHA-256 `a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca` |
+| `shared/assets/audio/ambient/tinh_dau_ngoai_vi.ogg`<br>`shared/assets/audio/ambient/tinh_dau_ngoai_vi.m4a` | forest-ambience | TinyWorlds | CC0-1.0 | Forest Ambience — <https://opengameart.org/content/forest-ambience> — SHA-256 `9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75` |
+| `shared/assets/audio/ambient/tinh_dau_noi_dia.ogg`<br>`shared/assets/audio/ambient/tinh_dau_noi_dia.m4a` | forest-bird-ambience | Spring Spring | CC0-1.0 | Birds and Wind - Ambient, Birds, Wind and Synth — <https://opengameart.org/content/birds-and-wind-ambient-birds-wind-and-synth> — SHA-256 `28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01` |
+| `shared/assets/audio/sprites/bell.ogg`<br>`shared/assets/audio/sprites/bell.m4a` | spirit-bell | Fupi | CC0-1.0 | Correct Bell — <https://opengameart.org/content/correct-bell> — SHA-256 `7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9` |
+| `shared/assets/audio/sprites/creature-snake.ogg`<br>`shared/assets/audio/sprites/creature-snake.m4a` | spirit-snake-die, spirit-snake-eat | eugeneloza | CC0-1.0 | Snake sprites & sound — <https://opengameart.org/content/snake-sprites-sound> — SHA-256 `b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23` |
+| `shared/assets/audio/sprites/creatures.ogg`<br>`shared/assets/audio/sprites/creatures.m4a` | spirit-wolf-howls, spirit-wolf-bark, spirit-bear-roar, spirit-insect-buzz | rubberduck | CC0-1.0 | 80 CC0 creature SFX — <https://opengameart.org/content/80-cc0-creature-sfx> — SHA-256 `5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768` |
+| `shared/assets/audio/sprites/footsteps-kenney.ogg`<br>`shared/assets/audio/sprites/footsteps-kenney.m4a` | kenney-footstep-00, kenney-footstep-01, kenney-footstep-02 | Kenney | CC0-1.0 | RPG Audio — <https://kenney.nl/assets/rpg-audio> — SHA-256 `6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b` |
+| `shared/assets/audio/sprites/footsteps.ogg`<br>`shared/assets/audio/sprites/footsteps.m4a` | footstep-wood-01, footstep-wood-02, footstep-wood-03, footstep-stone-01, footstep-leaves-01, footstep-leaves-02, footstep-gravel-01, footstep-mud-01 | TinyWorlds | CC0-1.0 | Different steps on wood, stone, leaves, gravel and mud — <https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud> — SHA-256 `987d072b7deaa65177e005ddd8185f2351be7c9a76cd7575dea560549c39b33b` |
+<!-- audio-sfx:end -->
