@@ -581,7 +581,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 | Lam Điện Bá Vương Long (`lam_dien_ba_vuong_long`) | Vảy rồng xanh phủ hai cẳng tay, vuốt rồng; hư ảnh đầu rồng sau lưng | Tay + lưng | Tia điện chạy dọc tay, chớp lóe 1 khung khi đánh trúng |
 | Kỳ Nhung Thông Thiên Cúc (`ky_nhung_thong_thien_cuc`) | Đóa cúc vàng lớn nở sau lưng, cánh hoa xoay quanh người | Lưng + bao quanh | Cánh hoa bay theo vòng, rơi lả tả khi di chuyển |
 | Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | Đôi cánh lửa phượng hoàng | Lưng | Cánh vỗ theo nhịp đi; tàn lửa bay lên |
-| U Minh Linh Miêu (`u_minh_linh_mieu`) | Tai mèo, đuôi mèo, móng vuốt dài trên hai tay | Đầu + tay + lưng | Vệt cào tím; bóng mờ đuổi theo khi lướt |
+| U Minh Linh Miêu (`u_minh_linh_mieu`) | Hư ảnh báo U Minh tím phục sau lưng (10.5a, theo ảnh tham chiếu đã duyệt); tai mèo, đuôi, móng vuốt trên tay để sau | Lưng (sau: đầu + tay) | Vệt cào tím; bóng mờ đuổi theo khi lướt |
 | Nguyệt Nhận (`nguyet_nhan`) | Đôi lưỡi trăng khuyết bạc cầm hai tay | Hai tay | Vệt chém hình trăng khuyết, ánh trăng lạnh |
 | Hỏa Long (`hoa_long`) | Hư ảnh rồng lửa nhỏ quấn quanh thân, đầu rồng trên vai | Bao quanh | Hơi nóng gợn quanh người, tia lửa bắn ra khi đánh |
 | Nhu Cốt Thố (`nhu_cot_tho`) | Tai thỏ dài, đuôi bông; hai chân phát sáng | Đầu + lưng + dưới chân | Vệt sáng hồng hình cung khi lướt và đá |
@@ -594,7 +594,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 | Xúc Xích (`xuc_xich`) | Xúc xích nướng to trên tay, 2–3 xúc xích nhỏ bay quanh | Tay + bao quanh | Hơi nóng bốc lên, xúc xích nhỏ nảy lên xuống |
 | Quỷ Mị (`quy_mi`) | Hư ảnh quỷ mờ sau lưng, khói tím đen bao người | Lưng + bao quanh | Bóng nhân đôi lệch 1–2 pixel; nhấp nháy khi tàng hình |
 | Thiên Càn Bạch Ngọc Đỉnh (`thien_can_bach_ngoc_dinh`) | Đỉnh ba chân bằng bạch ngọc lơ lửng trên lòng bàn tay | Tay (lơ lửng) | Khói ngọc trắng bốc từ miệng đỉnh; quầng sáng khi hồi máu |
-| Lam Ngân Thảo (`lam_ngan_thao`) | Dây cỏ lam ngân quấn hai tay, lan thành thảm dưới chân | Tay + dưới chân | Dây leo bò trên đất, đốm sáng xanh li ti |
+| Lam Ngân Thảo (`lam_ngan_thao`) | Bụi Lam Ngân Thảo mọc quanh chân (10.5a); dây cỏ quấn hai tay để sau | Dưới chân (sau: tay) | Dây leo bò trên đất, đốm sáng xanh li ti |
 | Hạo Thiên Chùy (`hao_thien_chuy`) | Búa đen khổng lồ (đầu búa to gần bằng người) | Tay | Vân đen chạy trên búa; bụi và vết nứt đất khi nện |
 | Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | Tháp lưu ly 9 tầng nhỏ lơ lửng trên tay | Tay (lơ lửng) | Hào quang 7 màu xoay quanh tháp, chiếu tia sáng lên đồng đội |
 | Phá Hồn Thương (`pha_hon_thuong`) | Trường thương cán dài, mũi hình thoi, tua đỏ dưới mũi | Tay phải | Hồn quang lấp lánh ở mũi thương; vệt đâm thẳng khi đánh |
@@ -845,7 +845,9 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [x] 10.3 Dây chuyền `tools/assets` 8 hướng (0–2 lượt; song song với 10.1): khung 64 / 96 / theo bậc, cắt khung thô PixelLab (76, 92) về khung chuẩn, `--split` với màu khóa và tự sửa mắt lam, bố cục sheet 24 × 6 (hồn sư) và 20 × 5 (hồn thú), `normal.mjs` tự sinh normal map, cờ `iso` trong manifest, điểm neo phụ thể, `preview.mjs` xem 8 hướng (kể cả 3 hướng lật).
 - [x] 10.4a Hồn sư bộ gốc `m_0`, `f_0` (31,25 lượt: `m_0` nhập lại ảnh 8 hướng của bản thử 10.0 bằng `create_character` v3 0,25 lượt + 15, `f_0` 1 + 15): mỗi bộ 8 hướng + `walk`, `attack`, `cast` cho 5 hướng; `idle` bằng `--breathe`, `hurt` / `die` / `absorb` bằng code (`pack --code`); quả cầu lửa mẫu `fireball` gỡ bằng `normalize --strip-fx cast`. Client vẽ hồn sư 64×64 nhiều lớp, 8 hướng; bộ chưa có `iso` vẫn dùng bộ 32×32 cũ, phụ thể 48×48 cũ ánh xạ khung tới 10.5.
 - [ ] 10.4b 6 bộ hồn sư còn lại (khoảng 96 lượt; chia nhiều PR theo giới): như 10.4a. Sau đó `hurt`, `die` thật (10 lượt mỗi bộ) khi còn lượt.
-- [ ] 10.5 Phụ thể võ hồn (khoảng 5–8 lượt mỗi võ hồn): phụ thể tĩnh 5 hướng + ghép theo điểm neo; trước hết Lam Ngân Thảo và 4 võ hồn mẫu (Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
+- [ ] 10.5 Phụ thể võ hồn (khoảng 1–5 lượt mỗi võ hồn): phụ thể tĩnh 5 hướng + ghép theo điểm neo; trước hết Lam Ngân Thảo và 4 võ hồn mẫu (Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
+  - [x] 10.5a (2 lượt): dây chuyền `vohon-part.mjs` + `pack --kind vohon` hai nửa sheet theo giới, xoay RotSprite, client tải phụ thể `iso`; đã có **Hạo Thiên Chùy, Cửu Tinh Thất Sát Kiếm, U Minh Linh Miêu** (ảnh Gemini hướng nam vẽ lại đúng cỡ bằng `edit_image_pixen`, một ảnh cho 5 hướng) và **Lam Ngân Thảo** (ảnh Gemini thu 2:1, 4 bụi quanh chân).
+  - [ ] 10.5b Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp (chờ PixelLab: thu nhỏ bằng code bị nhòe); dây Lam Ngân quấn tay; hướng riêng cho hư ảnh thú (Linh Miêu nhìn nghiêng / quay lưng) khi còn lượt.
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` tự mô tả chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu ngoại vi, nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192.
 - [ ] 10.7 Ánh sáng và không khí vùng (0–3 lượt; sau 10.1, 10.2): Light2D, `ambient` ngày / đêm mỗi bản đồ thay lớp `vignette`, nguồn sáng theo phong cách A (hồn hoàn, mắt hồn thú, hồn kỹ; lửa trại, đèn yếu hơn), thời tiết và hạt bay theo bảng các vùng, normal map tự sinh cho ô / vật / sprite, tắt sạch khi chỉ có Canvas; đo khung hình trên điện thoại.
 - [ ] 10.8 Giao diện thủy mặc và thẻ võ hồn (khoảng 30 lượt): khung HUD, hộp thoại, nút ấn triện, font pixel đủ dấu tiếng Việt (phong cách C); chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR lưu ly (phong cách D), huy hiệu 4 hệ 24×24.
