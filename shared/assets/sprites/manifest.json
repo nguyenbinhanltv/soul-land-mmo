@@ -145,6 +145,78 @@
       "iso": true
     },
     {
+      "key": "lpc_dai_su",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_ban_rong",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_khach",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_lao_ba",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_nong_phu",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_thon_nu",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_thu_sinh",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_tieu_thu",
+      "iso": true
+    },
+    {
+      "key": "lpc_dau_hon_truong",
+      "iso": true
+    },
+    {
+      "key": "lpc_lao_kiet_khac",
+      "iso": true
+    },
+    {
+      "key": "lpc_linh_gac",
+      "iso": true
+    },
+    {
+      "key": "lpc_lo_ren",
+      "iso": true
+    },
+    {
+      "key": "lpc_lo_ren_thien_dau",
+      "iso": true
+    },
+    {
+      "key": "lpc_phat_lan_duc",
+      "iso": true
+    },
+    {
+      "key": "lpc_su_gia_dau_hon",
+      "iso": true
+    },
+    {
+      "key": "lpc_thuong_nhan",
+      "iso": true
+    },
+    {
+      "key": "lpc_thuong_nhan_thien_dau",
+      "iso": true
+    },
+    {
+      "key": "lpc_to_van_dao",
+      "iso": true
+    },
+    {
       "key": "npc_dai_su",
       "iso": true
     },

@@ -3,7 +3,7 @@
 //   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH] [--iso] [--map <mapId>] [--nine N]
 //        kiểm file của key, thêm key vào manifest (nếu chưa có; --iso ghi "iso": true, --map ghi "map") và ghi/cập nhật
 //        một dòng trong art/CREDITS.md.
-// Key "iso": true theo bố cục isometric (isoLayout trong lib.mjs: hồn sư 24 × 6, phụ thể 24 × 12 hai nửa theo giới, hồn thú 20 × 5); key chưa có cờ
+// Key "iso": true theo bố cục isometric (isoLayout trong lib.mjs: hồn sư 24 × 6, NPC LPC lpc_<tên> 24 × 6 một lớp đã tô màu, phụ thể 24 × 12 hai nửa theo giới, hồn thú 20 × 5); key chưa có cờ
 // là bộ 32×32 cũ của client hiện nay. Key có "map": "<mapId>" được dùng thêm bảng nhấn art/palettes/<mapId>.gpl.
 // Normal map `<file>_n.png` (normal.mjs) nằm cạnh ảnh của key: phải cùng kích thước ảnh gốc.
 // Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền #1a1020),
@@ -137,8 +137,8 @@ function checkIso(key, spec, img, at, fw, fh) {
   if (stray.length) err(key, `vẽ vào ô ngoài bố cục (client không đọc): ` + stray.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
   if (spec.kind === "vohon") { if (cellEmpty(img, 0, 0, img.w, img.h)) warn(key, "sheet trống hoàn toàn"); return spec; }
   const empty = L.required.filter(([r, c]) => !filled(r, c));
-  // Lớp thân và hồn thú phải đủ khung; lớp áo/tóc có thể trống ở khung bị lớp khác che hết.
-  const hard = spec.kind === "beast" || /^hs_body_/.test(key);
+  // Lớp thân, NPC LPC (một lớp) và hồn thú phải đủ khung; lớp áo/tóc có thể trống ở khung bị lớp khác che hết.
+  const hard = spec.kind === "beast" || spec.kind === "lpc" || /^hs_body_/.test(key);
   if (empty.length) (hard ? err : warn)(key, `${hard ? "thiếu" : "trống"} ${empty.length} khung bắt buộc: ` + empty.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
   const [i0, ni] = L.anims.idle, animOf = (r, c) => (r >= ISO_DIRS.length ? "absorb" : Object.entries(L.anims).find(([, [c0, n]]) => c >= c0 && c < c0 + n)?.[0]);
   // Ô ngoài idle trùng idle khung đầu cùng hàng (absorb so với idle hướng s): thường là chép tạm của pack --fill.
@@ -227,7 +227,7 @@ for (const [set, entries] of sets) {
 const beastFeet = new Map();
 for (const [k, { low, want, beast }] of feet) {
   if (beast) { const b = beastFeet.get(k.split(":")[0]) ?? { lows: [], want }; b.lows.push(low); beastFeet.set(k.split(":")[0], b); }
-  else if (low !== want) warn(`hs_*_${k.split(":")[0]}`, `hàng ${k.split(":")[1]}: chân ở y = ${low}, gốc là y = ${want}`);
+  else if (low !== want) warn(/^lpc_/.test(k) ? k.split(":")[0] : `hs_*_${k.split(":")[0]}`, `hàng ${k.split(":")[1]}: chân ở y = ${low}, gốc là y = ${want}`);
 }
 for (const [k, { lows, want }] of beastFeet) if (want < Math.min(...lows) - 1 || want > Math.max(...lows)) warn(k, `chân idle các hướng ở y = ${Math.min(...lows)}–${Math.max(...lows)}, gốc là y = ${want}`);
 // Ảnh nằm trong thư mục sprites mà manifest không nhắc tới thì client sẽ không tải.
