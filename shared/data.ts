@@ -658,6 +658,13 @@ export const BEAST_GAIT = { wander: 0.4, charm: 0.7, chase: 1.4, ret: 1.4 };
  */
 export const BEAST_LEASH = { r: 240, heal: 0.25, near: 8, secs: 8 };
 /**
+ * Hồn thú thực vật "đứng yên" (#116, mục 5.3): loài `ids` (mã BEASTS; tinh anh mượn loài này cũng vậy) cắm rễ ở chỗ sinh: không lang
+ * thang, không đuổi, không bị đẩy lùi / kéo, bị Mê hoặc cũng không đi. Phát hiện người trong BEAST_AGGRO_R như hồn thú khác; giữ mục tiêu
+ * khi còn cách dưới `keep` pixel (đủ cho chiêu tầm xa như Rễ Trói), xa hơn thì bỏ. Chỉ đánh thường khi mục tiêu kề bên, chiêu báo trước
+ * tung khi mục tiêu trong tầm chiêu.
+ */
+export const BEAST_ROOTED = { ids: ["thuc_nhan_hoa", "quy_dang", "co_moc_thu_nhan"] as readonly string[], keep: 130 };
+/**
  * Bấm chuột trên nền (client, mục 5.11 "Điều khiển"): tìm đường A* trên lưới ô chặn, chỉ trong `maxTiles` ô mỗi trục quanh chỗ đứng và
  * xét tối đa `maxNodes` ô; không tới được thì đi tới ô tới được gần điểm bấm nhất.
  */
