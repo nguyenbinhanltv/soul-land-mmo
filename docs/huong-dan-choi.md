@@ -59,7 +59,7 @@ Chơi được bằng chuột / bàn phím hoặc chạm trên điện thoại.
 ## 3. Vòng chơi chính
 > **Săn hồn thú → nhặt hồn hoàn, hồn cốt, hồn hạch → võ hồn lên cấp và chạm bình cảnh → hấp thụ hồn hoàn hợp giới hạn → mạnh hơn → vào vùng sâu hơn.**
 
-- Mỗi bản đồ săn có 3–4 vùng, **càng vào sâu hồn thú càng già và mạnh**. Hồn thú già thì hồn hoàn rơi ra nhiều năm hơn và tỉ lệ rơi đồ cao hơn.
+- Mỗi bản đồ săn có 3–4 tầng, mỗi tầng gồm vài vùng có tên; **càng vào sâu hồn thú càng già và mạnh**. Hồn thú già thì hồn hoàn rơi ra nhiều năm hơn và tỉ lệ rơi đồ cao hơn.
 - Săn hồn thú quá yếu so với cấp võ hồn đang ra trận thì **kinh nghiệm giảm mạnh** (đồ vẫn rơi bình thường). Thấy kinh nghiệm ít đi là lúc chuyển sang vùng / bản đồ sâu hơn.
 - **Thua không mất đồ:** không bao giờ mất võ hồn, hồn hoàn đã hấp thụ, hồn cốt hay hồn hạch đang gắn.
 - Không có giao dịch giữa người chơi và không có PvP ngoài rừng. Chơi cùng nhau bằng tổ đội và Đại Đấu Hồn Trường.
@@ -176,7 +176,7 @@ Cấp đề xuất của từng bản đồ xem ở **bản đồ thế giới (
 ## 13. Tinh anh, thú vương, boss thế giới
 Máu của tinh anh, thú vương và boss thế giới **tăng theo số người tham gia**, nên đông người không làm boss dễ hơn bao nhiêu, nhưng ai đóng góp cũng có phần.
 
-**Tinh anh (biến dị):** tên "Tinh anh …" màu riêng, có hào quang, chấm sáng trên bản đồ nhỏ; mỗi vùng săn một con, hạ xong một lúc sau mới hồi sinh (cả bản đồ được báo). Máu thấp thì **cuồng nộ** (mạnh và nhanh hơn một lúc). **Chắc chắn rơi 1 hồn hạch**, tỉ lệ hồn cốt cao hơn; người đóng góp nhiều nhất được ưu tiên nhặt.
+**Tinh anh (biến dị):** tên "Tinh anh …" màu riêng, có hào quang, chấm sáng trên bản đồ nhỏ; mỗi tầng vùng săn (mỗi mức niên hạn) một con, hạ xong một lúc sau mới hồi sinh (cả bản đồ được báo). Máu thấp thì **cuồng nộ** (mạnh và nhanh hơn một lúc). **Chắc chắn rơi 1 hồn hạch**, tỉ lệ hồn cốt cao hơn; người đóng góp nhiều nhất được ưu tiên nhặt.
 
 **Tà hóa thú vương:** mỗi bản đồ săn (trừ Thánh Hồn Thôn) có một con trong **hang** ở vùng sâu nhất. Xuất hiện **theo lịch**; cả server được báo trước và có đồng hồ đếm ngược trên màn hình. Không ai hạ kịp thì nó rút đi.
 - Còn ít máu thì vào **giai đoạn 2** (gầm, thêm chiêu mới, nhanh hơn).
@@ -190,7 +190,7 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 - **Thưởng:** người gây sát thương nhiều nhất nhận hồn hoàn đỏ, người khác có cơ hội hồn hoàn đỏ hoặc nhận hồn hoàn đen, kèm **rương** có **mảnh UR**. Lượt thưởng mỗi ngày riêng với thú vương.
 
 > Đứng ngoài vùng giao chiến quá lâu thì bị loại khỏi danh sách tham gia nhưng **vẫn giữ đóng góp đã gây**; còn trong phòng lúc boss gục thì vẫn nhận thưởng.
-> Thoát game hoặc đổi kênh giữa trận có thể làm mất đóng góp cũ, nên tốt nhất ở lại tới khi boss gục.
+> Thoát game hoặc đổi kênh giữa trận thì mất hết đóng góp cũ (đóng góp tính theo lần vào phòng), nên ở lại tới khi boss gục.
 
 ## 14. Tổ đội
 - **Mời:** bấm / chạm hồn sư khác, gõ `/moi <tên>`, hoặc nút "Mời…" ở khung tổ đội (mời được cả người ở bản đồ khác). Người được mời bấm "Vào đội" / "Từ chối". `/roi` hoặc "Rời đội" để rời.
