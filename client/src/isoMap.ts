@@ -10,7 +10,13 @@ import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "
 /** Độ sâu mặt đất: dưới mọi thứ (vùng cảnh báo, hồn sư, chữ). */
 const GROUND_DEPTH = -100000;
 /** Khối cao nhất (cây) nhô lên trên tâm ô chừng này pixel: lề dưới khi chọn ô trong tầm camera. */
-const MAX_RISE = 88;
+/**
+ * Khối cao vẽ bằng code theo cỡ gốc thoi BASE_W × BASE_H (cây, nhà, vật nhỏ so với hồn sư cao khoảng 52 pixel), rồi phóng OBJ_K
+ * cho đúng cỡ thoi đang dùng: đổi TILE_W / TILE_H trong iso.ts là đủ, không phải sửa ở đây.
+ */
+const BASE_W = 32, BASE_H = 16, OBJ_K = TILE_W / BASE_W;
+/** Khối cao nhất (cây, cỡ gốc) nhô lên trên tâm ô chừng này pixel; MAX_RISE là chiều cao thật trên màn hình (lề camera, chọn ô). */
+const BASE_RISE = 88, MAX_RISE = BASE_RISE * OBJ_K;
 /** Độ mờ khối đang che chính mình (để luôn thấy nhân vật khi đứng sau cây / nhà). */
 const FADE = 0.45;
 
@@ -111,10 +117,13 @@ export class IsoMap {
     return [d[o], d[o + 1], d[o + 2], d[o + 3]];
   }
 
-  /** Trải ảnh ô 16×16 lên hình thoi TILE_W × TILE_H có góc trên ở (ox, oy) của bộ đệm (lấy mẫu gần nhất, ô kề nhau khít không hở). */
-  private diamond(b: Buf, gid: number, ox: number, oy: number, k = 1) {
-    const hx = TILE_W / 2, sc = TILE / TILE_H;
-    for (let y = 0; y < TILE_H; y++) for (let x = 0; x < TILE_W; x++) {
+  /**
+   * Trải ảnh ô 16×16 lên hình thoi w × h (mặc định TILE_W × TILE_H, tỉ lệ 2:1) có góc trên ở (ox, oy) của bộ đệm (lấy mẫu gần nhất,
+   * ô kề nhau khít không hở).
+   */
+  private diamond(b: Buf, gid: number, ox: number, oy: number, k = 1, w = TILE_W, h = TILE_H) {
+    const hx = w / 2, sc = TILE / h;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const px = x + 0.5 - hx, py = y + 0.5, u = (py + px / 2) * sc, v = (py - px / 2) * sc;
       if (u < 0 || v < 0 || u >= TILE || v >= TILE) continue;
       const c = this.texel(gid, Math.floor(u), Math.floor(v));
@@ -153,27 +162,27 @@ export class IsoMap {
 
   /** Vẽ vật cao bằng code (cỡ theo thoi 32×16 và hồn sư cao khoảng 52 pixel). Trả bộ đệm và gốc dọc (tỉ lệ) tại tâm hình thoi đáy. */
   private drawObj(gid: number, o: ObjKind): { buf: Buf; oy: number } {
-    const W = TILE_W, hx = W / 2, hy = TILE_H / 2;
+    const W = BASE_W, hx = W / 2, hy = BASE_H / 2, TH = BASE_H; // cỡ gốc, phóng OBJ_K khi đặt
     const r = rng(gid * 7919 + 13);
     if (o.k === "block") {
       // Khối hộp: mặt trên là ô hình thoi lấy từ ảnh ô `top`, hai mặt bên (trái sáng hơn, ánh sáng từ trên bên trái).
-      const h = o.h, b = new Buf(W, TILE_H + h), cy = hy + h;
+      const h = o.h, b = new Buf(W, TH + h), cy = hy + h;
       const side = o.side ? rgba(o.side) : shade(this.texel(o.top, 8, 8), 0.8);
       const L = shade(side, 0.92), R = shade(side, 0.7);
-      b.poly([[0, hy], [hx, TILE_H], [hx, TILE_H + h], [0, hy + h]], (x, y) => (y >= hy + x / 2 + h - 2 ? shade(L, 0.75) : L));
-      b.poly([[hx, TILE_H], [W, hy], [W, hy + h], [hx, TILE_H + h]], (x, y) => (y >= TILE_H - (x - hx) / 2 + h - 2 ? shade(R, 0.75) : R));
+      b.poly([[0, hy], [hx, TH], [hx, TH + h], [0, hy + h]], (x, y) => (y >= hy + x / 2 + h - 2 ? shade(L, 0.75) : L));
+      b.poly([[hx, TH], [W, hy], [W, hy + h], [hx, TH + h]], (x, y) => (y >= TH - (x - hx) / 2 + h - 2 ? shade(R, 0.75) : R));
       if (o.win) for (const [x0, face] of [[4, L], [hx + 4, R]] as [number, RGBA][]) {
         // Cửa sổ trên mỗi mặt bên: khung gỗ tối, kính xanh.
-        const y0 = (x: number) => (x < hx ? hy + x / 2 : TILE_H - (x - hx) / 2) + 12;
+        const y0 = (x: number) => (x < hx ? hy + x / 2 : TH - (x - hx) / 2) + 12;
         b.poly([[x0, y0(x0)], [x0 + 8, y0(x0 + 8)], [x0 + 8, y0(x0 + 8) + 10], [x0, y0(x0) + 10]], rgba("#3a2a18"));
         b.poly([[x0 + 1, y0(x0 + 1) + 1], [x0 + 7, y0(x0 + 7) + 1], [x0 + 7, y0(x0 + 7) + 9], [x0 + 1, y0(x0 + 1) + 9]], face === L ? rgba("#7fb8d8") : rgba("#5a8aa8"));
       }
-      this.diamond(b, o.top, 0, 0);
+      this.diamond(b, o.top, 0, 0, 1, BASE_W, BASE_H);
       return { buf: b, oy: cy / b.h };
     }
     if (o.k === "tree" || o.k === "pine") {
       // Cây rộng hơn một ô (tán lấn sang ô bên), cao khoảng 1,7 lần hồn sư.
-      const TW = 44, tx = TW / 2, H = MAX_RISE, b = new Buf(TW, H), cy = H - hy;
+      const TW = 44, tx = TW / 2, H = BASE_RISE, b = new Buf(TW, H), cy = H - hy;
       b.poly(ellipse(tx, cy, 13, 6.5), [26, 16, 32, 90]); // bóng đổ 2:1 dưới gốc
       const trunk = rgba("#5a3b22"), trunkL = rgba("#6e4b2c");
       b.poly([[tx - 3, cy - 26], [tx + 3, cy - 26], [tx + 3, cy + 1], [tx - 3, cy + 1]], (x) => (x < tx - 1 ? trunkL : x >= tx + 2 ? shade(trunk, 0.8) : trunk));
@@ -261,7 +270,7 @@ export class IsoMap {
 
   private img(x: number, y: number, key: string) {
     const im = this.free.pop() ?? this.scene.add.image(0, 0, key);
-    return im.setTexture(key).setPosition(x, y).setVisible(true).setAlpha(1);
+    return im.setTexture(key).setPosition(x, y).setVisible(true).setAlpha(1).setScale(1);
   }
 
   /** Tạo các ảnh của ô `i`: mặt đất, rồi vật trên lớp `trees` (và tán cây khi nhìn thẳng). */
@@ -272,7 +281,7 @@ export class IsoMap {
     if (g > 0) out.push(this.img(s.x, s.y, this.groundKey(g)).setOrigin(0.5, 0.5).setDepth(GROUND_DEPTH));
     const t = this.trees[i];
     if (t > 0) {
-      const o = this.objKey(t), im = this.img(s.x, s.y, o.key).setOrigin(0.5, o.oy);
+      const o = this.objKey(t), im = this.img(s.x, s.y, o.key).setOrigin(0.5, o.oy).setScale(TOPDOWN ? 1 : OBJ_K);
       // Nhìn thẳng: lớp `trees` nằm sát mặt đất như trước. Isometric: khối sắp lớp theo độ sâu của tâm ô.
       im.setDepth(TOPDOWN ? GROUND_DEPTH + 1 : depthAt(cx, cy));
       out.push(im); if (!TOPDOWN) this.tall.add(im);

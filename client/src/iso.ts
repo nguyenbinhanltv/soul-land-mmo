@@ -6,10 +6,13 @@ import { TILE } from "../../shared/data.ts";
 import type { Dir } from "./sprites.ts";
 
 /**
- * Một ô logic 16×16 thế giới vẽ thành thoi 32×16 (GAME_DESIGN.md mục 5.11): sx = x − y, sy = (x + y) / 2, giữ tầm nhìn khoảng
- * 14 ô ngang mỗi bên ở 640×360. Hằng hiển thị, không phải số cân bằng.
+ * Cỡ thoi của một ô logic 16×16 thế giới (GAME_DESIGN.md mục 5.11), chiếu 2:1 nên TILE_H = TILE_W / 2. Đây là hằng DUY NHẤT quyết
+ * định cỡ thoi: mọi phép chiếu, elip, độ sâu, chiều cao khối bản đồ (isoMap.ts) suy ra từ nó.
+ * 32 → thoi 32×16: sx = x − y, sy = (x + y) / 2 (tầm nhìn khoảng 14 ô ngang mỗi bên ở 640×360).
+ * 64 → thoi 64×32: sx = 2(x − y), sy = x + y (khoảng 7 ô).
+ * Hằng hiển thị, không phải số cân bằng.
  */
-export const TILE_W = 32, TILE_H = 16;
+export const TILE_W = 32, TILE_H = TILE_W / 2;
 /** Sprite cũ (hồn sư 32×32, phụ thể 48×48, hồn thú theo bậc) phóng ×2 lên khung mới (hồn sư 64×64) cho tới khi có ảnh isometric. */
 export const SPR = 2;
 /** Độ phân giải nội bộ: camera phóng số nguyên lớn nhất còn chứa đủ VIEW_W × VIEW_H (mục 5.11). */
