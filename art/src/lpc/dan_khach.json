@@ -1,0 +1,57 @@
+{
+ "sex": "male",
+ "base": true,
+ "hairRamp": [
+  "#2a1b14",
+  "#3a2a18",
+  "#5a3b22",
+  "#957d57"
+ ],
+ "outfitRamp": [
+  "#2e2419",
+  "#4a3a28",
+  "#6b5a42",
+  "#8c7a5c"
+ ],
+ "layers": [
+  {
+   "dir": "legs/pants/male/",
+   "z": 20,
+   "group": "outfit",
+   "ramp": [
+    0,
+    1
+   ]
+  },
+  {
+   "dir": "torso/clothes/longsleeve/longsleeve2_vneck/male/",
+   "z": 35,
+   "group": "outfit",
+   "ramp": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "dir": "torso/waist/obi/male/",
+   "z": 65,
+   "group": "outfit",
+   "variant": "charcoal",
+   "ramp": [
+    "#1a1020",
+    "#2b2430"
+   ]
+  },
+  {
+   "dir": "hair/high_ponytail/adult/fg/",
+   "z": 120,
+   "group": "hair"
+  },
+  {
+   "dir": "hair/high_ponytail/adult/bg/",
+   "z": 9,
+   "group": "hair"
+  }
+ ]
+}
