@@ -2684,10 +2684,9 @@
       "name": "hau_son",
       "label": "Hậu Sơn",
       "at": [
-        97,
-        20
-      ],
-      "ground": "path"
+        92,
+        44
+      ]
     }
   ],
   "elites": [

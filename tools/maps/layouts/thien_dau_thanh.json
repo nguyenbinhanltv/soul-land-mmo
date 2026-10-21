@@ -4,6 +4,7 @@
   "out": "thien_dau_thanh.v2.json",
   "size": [226, 158],
   "seed": 20261112,
+  "border": "deep",
   "gids": {
     "ground": {
       "grass": [1, 2], "leaf": 3, "moss": 6, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,

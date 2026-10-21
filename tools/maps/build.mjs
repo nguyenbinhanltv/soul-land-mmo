@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { hashF, hashStr, fbm, rng } from "./lib/rand.mjs";
 import { shapeTest, rectsOf, spline, astar } from "./lib/geom.mjs";
 import { topdownPreview } from "./lib/preview.mjs";
-import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
+import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, SPAWN_CLEAR, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const LAYOUTS = path.join(ROOT, "tools", "maps", "layouts"), HAND = path.join(ROOT, "tools", "maps", "hand");
@@ -470,6 +470,10 @@ export function build(L, hand = null, seedOverride = null) {
     if (b < 0 || BOSSES[b].rank !== 1) throw new Error(`${mapId}: tinh anh "${e.name}": mã không phải tinh anh: ${e.boss}`);
     if (z < 0) throw new Error(`${mapId}: tinh anh "${e.name}" không nằm trong vùng nào`);
     if (!reachable(x + w / 2, y + h / 2)) warn.push(`tinh anh "${e.name}": tâm không tới được`);
+    // Server không sinh hồn thú (kể cả tinh anh) trong SPAWN_CLEAR pixel quanh trại, cổng, điểm đến, truyền tống trận (mục 5.8).
+    const cx = (x + w / 2) * TILE, cy = (y + h / 2) * TILE, gates = list.filter((o) => ["spawn", "portal", "arrive", "waypoint"].includes(o.type));
+    const g = gates.find((o) => cx > o.x - SPAWN_CLEAR && cx < o.x + o.width + SPAWN_CLEAR && cy > o.y - SPAWN_CLEAR && cy < o.y + o.height + SPAWN_CLEAR);
+    if (g) throw new Error(`${mapId}: tinh anh "${e.name}" cách ${g.type} "${g.name}" dưới SPAWN_CLEAR (${SPAWN_CLEAR} pixel): server không sinh được`);
     rectObj("elite", e.name, x, y, w, h, [prop("boss", "string", e.boss)]);
   }
   if (L.lair) {
