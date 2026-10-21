@@ -5,7 +5,9 @@
 //
 // Gói thú tải về NGOÀI repo game (thư mục artifact), mỗi gói một thư mục con của --src đúng như đường dẫn `file` trong SPECIES
 // (zip giải nén tại chỗ). Chỉ đọc PNG, không chạy gì trong gói. Giấy phép, tác giả, lời ghi công của từng gói lấy từ trang
-// OpenGameArt (PACKS, đã soát 2026-10-21); gói chỉ có CC-BY-SA / GPL thì không có mặt ở đây (rắn LPC, LPC Monsters, bò…).
+// OpenGameArt (PACKS, đã soát 2026-10-21). Nhận mọi giấy phép đã biết (LICENSE_KNOWN của lib.mjs; giấy phép lạ / trống thì
+// dừng); gói nhiều giấy phép thì game dùng theo giấy phép ít ràng buộc nhất (licenseUse), gói chỉ có SA / GPL / NC thì ghi
+// công kèm cờ (mục 5.11).
 //
 // Các bước cho mỗi loài:
 //   1. Cắt khung theo lưới của sheet nguồn (`grids`: cỡ khung, góc trên trái; sói có hai lưới: nhìn dọc 32×64, nhìn ngang 64×32).
@@ -31,7 +33,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, readPng, encodePng, Img, hex, toHex, readGplNamed, OUTLINE, ISO_DIRS, ISO_BEAST_SIZES, ISO_BEAST_FOOT, ISO_BEAST_ANIMS } from "./lib.mjs";
+import { ROOT, readPng, encodePng, Img, hex, toHex, readGplNamed, OUTLINE, ISO_DIRS, ISO_BEAST_SIZES, ISO_BEAST_FOOT, ISO_BEAST_ANIMS, LICENSE_KNOWN, licenseUse } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -41,8 +43,6 @@ const creditsOpt = opt("--credits", ""), list = flag("--list");
 const fail = (m) => { console.error(m); process.exit(1); };
 if (args.length) fail(`tham số lạ: ${args.join(" ")}`);
 
-/** Giấy phép game dùng được (như lpc-compose.mjs): không bắt ảnh dẫn xuất chia sẻ tương tự. Gói phải có ít nhất một giấy phép này. */
-const LICENSE_USE = /^(CC0|CC-BY \d|OGA-BY \d)/;
 /** Giảm bão hòa mặc định: LPC tươi hơn nền trầm của game (phong cách A, mục 5.11); hồn thú vẫn nổi hơn nền. */
 const DESAT_DEFAULT = 0.3;
 /** Khung lớn nhất cho hình tạm: thú vương (160) / boss thế giới (192) không dùng LPC. */
@@ -71,7 +71,11 @@ const PACKS = {
   birds: { title: "[LPC] Birds", url: "https://opengameart.org/content/lpc-birds", by: "bluecarrot16 (đặt vẽ: castelonia)",
     licenses: ["CC-BY 4.0", "CC-BY 3.0", "CC-BY-SA 4.0", "CC-BY-SA 3.0", "GPL 3.0", "GPL 2.0", "OGA-BY 3.0"] },
 };
-for (const [k, p] of Object.entries(PACKS)) if (!p.licenses.some((l) => LICENSE_USE.test(l))) fail(`gói ${k}: chỉ có ${p.licenses.join(", ")}, cần CC0 / CC-BY / OGA-BY`);
+for (const [k, p] of Object.entries(PACKS))
+  if (!p.licenses.length || p.licenses.some((l) => !LICENSE_KNOWN.test(l))) fail(`gói ${k}: không đọc được giấy phép ${p.licenses.join(", ") || "(trống)"}, đọc lại trang OGA`);
+/** Giấy phép game dùng theo của gói, kèm cờ SA / GPL / NC nếu có. */
+const packUse = (p) => { const { use, flags } = licenseUse(p.licenses); return { pick: use[0], flags }; };
+const licenseLabel = (ls) => { const { use, flags } = licenseUse(ls); return use.join(" / ") + (flags.length ? ` (cờ ${flags.join(", ")})` : ""); };
 
 // ---------- Loài ↔ mẫu LPC ----------
 // Ô khung: [lưới, hàng, [cột…], "flip"?]. Hướng LPC: down / right / up (thiếu right thì ghi left kèm "flip").
@@ -137,7 +141,7 @@ const SPECIES = {
 if (list) {
   for (const [id, s] of Object.entries(SPECIES)) {
     const p = PACKS[s.pack];
-    console.log(`${id.padEnd(22)} ← ${p.title} (${s.file.split("/").pop()}), ${s.size}×${s.size} ×${s.scale}, ${p.licenses.filter((l) => LICENSE_USE.test(l)).join(" / ")}`);
+    console.log(`${id.padEnd(22)} ← ${p.title} (${s.file.split("/").pop()}), ${s.size}×${s.size} ×${s.scale}, ${licenseLabel(p.licenses)}`);
   }
   process.exit(0);
 }
@@ -340,8 +344,9 @@ for (const id of ids) {
 const START = "<!-- lpc-beast:start -->", END = "<!-- lpc-beast:end -->";
 const HEAD = ["| Key | Tác giả | Giấy phép của gói (game dùng giấy phép in đậm) | Nguồn, thay đổi |", "|---|---|---|---|"];
 const rows = used.map(({ id, pack, file }) => {
-  const p = PACKS[pack], pick = p.licenses.find((l) => LICENSE_USE.test(l));
-  return `| \`beast_${id}\` (hình tạm) | ${p.by} | ${p.licenses.map((l) => (l === pick ? `**${l}**` : l)).join(", ")} | [${p.title}](${p.url}), file \`${file.split("/").pop()}\`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric${p.note ? `; ${p.note}` : ""} |`;
+  const p = PACKS[pack], { pick, flags } = packUse(p);
+  // Cờ SA / GPL: sheet đã sửa (đổi màu, xếp lại) theo đúng giấy phép đó; NC: thay khi thương mại hóa (mục 5.11).
+  return `| \`beast_${id}\` (hình tạm) | ${p.by} | ${p.licenses.map((l) => (l === pick ? `**${l}**` : l)).join(", ")}${flags.length ? ` (cờ ${flags.join(", ")})` : ""} | [${p.title}](${p.url}), file \`${file.split("/").pop()}\`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric${p.note ? `; ${p.note}` : ""} |`;
 });
 const target = creditsOpt || path.join(out, "CREDITS-LPC-BEASTS.md");
 let doc = existsSync(target) ? readFileSync(target, "utf8") : "";
