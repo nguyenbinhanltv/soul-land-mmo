@@ -5,9 +5,9 @@ description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy c�
 
 # Làm ảnh và đưa vào game
 
-Quy cách (cỡ khung, bố cục sheet, phong cách, bảng màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; skill này chỉ hướng dẫn thao tác. Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
+Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; quy cách chi tiết (bố cục sheet, bảng animation, điểm neo, dạng phụ thể từng võ hồn, key và thư mục) là `tools/assets/README.md`; skill này hướng dẫn thao tác. Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
 
-## 1. Quy cách tóm tắt (đầy đủ ở mục 5.11)
+## 1. Quy cách tóm tắt (quy tắc: mục 5.11; chi tiết: `tools/assets/README.md`)
 | Asset | Khung, sheet | Gốc | Key |
 |---|---|---|---|
 | Hồn sư | 64×64, sheet 24 cột × 6 hàng | (32, 58) | `hs_{body,outfit,hair}_{m,f}_{0–3}`: một bộ giới × kiểu tóc đủ 3 lớp hoặc không lớp nào |
@@ -120,7 +120,7 @@ Universal LPC Spritesheet Character Generator (<https://github.com/LiberatedPixe
 - **Tải repo LPC ngoài repo game** (`git clone --depth 1`, khoảng 450 MB, vào thư mục artifact); chỉ đọc `spritesheets/`, `sheet_definitions/`, `CREDITS.csv`, không chạy code của repo đó.
 - **Công thức** `art/src/lpc/<tên>.json` (`--recipe`, cú pháp ở đầu file công cụ; `"base": true` thêm sẵn thân, đầu, giày); thử nhanh `--npc truong_thon | thuong_nhan | tho_ren | linh_gac`. Trang phục phương Đông gần nhất: nam `longsleeve2_vneck` + `legs/skirts/plain` + `torso/waist/obi`, búi tóc `parted_side_bangs` + `extensions/ponytails/topknot_short`; nữ `dress/kimono` + `kimono/sleeves` + obi (kimono / robe / tunic chỉ có cho thân nữ).
 - **Màu:** NPC phụ không nổi hơn hồn sư. `--game` dùng `hairRamp` / `outfitRamp` của công thức (4 màu trầm của `art/palette.gpl`), không có thì `HAIR_COLORS` / `OUTFIT_COLORS` giảm bão hòa; lớp `keep` (giáp, tạp dề) giảm bão hòa theo `--desat` (mặc định `DESAT_DEFAULT`). `--hair-col`, `--outfit-col`, `--skin` là chỉ số trong `shared/data.ts`.
-- Công cụ tự lo: ánh xạ 4 hướng LPC → 5 hướng vẽ (mục 5.11), chọn khung (walk 6, attack từ slash, cast từ spellcast, `idle` bằng `pack --breathe`, `hurt` / `die` hướng `s` từ hurt LPC, phần còn lại `pack --code`), dời chân về gốc (32, 58), đưa màu về bảng, mép và màu gần đen thành `#1a1020`.
+- Công cụ tự lo: ánh xạ 4 hướng LPC → 5 hướng vẽ (`tools/assets/README.md`), chọn khung (walk 6, attack từ slash, cast từ spellcast, `idle` bằng `pack --breathe`, `hurt` / `die` hướng `s` từ hurt LPC, phần còn lại `pack --code`), dời chân về gốc (32, 58), đưa màu về bảng, mép và màu gần đen thành `#1a1020`.
 
 ```bash
 node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <tmp>/lpc --npc linh_gac --outfit-col 0      # thử, ra <tmp>/lpc/<tên>_mau.png
@@ -170,7 +170,7 @@ node tools/assets/preview.mjs <tmp>/xem.png shared/assets/sprites/vohon/hao_thie
 Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú sau lưng neo `back`; bụi dưới chân neo `feet`.
 
 ## 8. Quy trình "tạo <asset>"
-1. Đọc mục 5.11, xác định key (bảng mục 1) và nguồn (mục 2).
+1. Đọc mục 5.11 và `tools/assets/README.md`, xác định key (bảng mục 1) và nguồn (mục 2).
 2. PixelLab: `get_balance`; khung tĩnh 8 hướng trước, duyệt bằng mắt, rồi animation 5 hướng vẽ. Gemini: viết prompt, người dùng tạo, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
 3. normalize → pack → normal → `preview.mjs` soát lệch chân, màu lạ, điểm vụn, hướng lật → `validate.mjs --register` → `npm run check`.
 4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, nền rừng sâu.
