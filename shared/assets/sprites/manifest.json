@@ -22,27 +22,45 @@
         32
       ]
     },
-    "hs_body_f_0",
+    {
+      "key": "hs_body_f_0",
+      "iso": true
+    },
     "hs_body_f_1",
     "hs_body_f_2",
     "hs_body_f_3",
-    "hs_body_m_0",
+    {
+      "key": "hs_body_m_0",
+      "iso": true
+    },
     "hs_body_m_1",
     "hs_body_m_2",
     "hs_body_m_3",
-    "hs_hair_f_0",
+    {
+      "key": "hs_hair_f_0",
+      "iso": true
+    },
     "hs_hair_f_1",
     "hs_hair_f_2",
     "hs_hair_f_3",
-    "hs_hair_m_0",
+    {
+      "key": "hs_hair_m_0",
+      "iso": true
+    },
     "hs_hair_m_1",
     "hs_hair_m_2",
     "hs_hair_m_3",
-    "hs_outfit_f_0",
+    {
+      "key": "hs_outfit_f_0",
+      "iso": true
+    },
     "hs_outfit_f_1",
     "hs_outfit_f_2",
     "hs_outfit_f_3",
-    "hs_outfit_m_0",
+    {
+      "key": "hs_outfit_m_0",
+      "iso": true
+    },
     "hs_outfit_m_1",
     "hs_outfit_m_2",
     "hs_outfit_m_3",

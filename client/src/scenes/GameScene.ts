@@ -8,14 +8,14 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   WORLD, HE, HE_IDS,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSprite, HS_ANIMS, HS_ORIGIN, VH_ORIGIN, type HsAnim } from "../sprites.ts";
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, HS_ORIGIN, VH_ORIGIN,
+  ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
 import { solidGrid, clampDir } from "../../../shared/move.ts";
-import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, legacyDir, DIR4_VEC, fillGround, strokeGround,
-  groundAt, ptsToScreen, arcPts, type Pt } from "../iso.ts";
+import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
+  groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
 import { IsoMap } from "../isoMap.ts";
-import type { Dir } from "../sprites.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -24,7 +24,7 @@ type Sprite = Phaser.GameObjects.Sprite;
 interface PView {
   root: Phaser.GameObjects.Container;
   wx: number; wy: number;                   // vị trí vẽ theo tọa độ thế giới (nội suy / dự đoán); root đặt ở hình chiếu của điểm này
-  face: Dir;                                // hướng của sprite 4 hướng cũ, gần nhất với hướng 8 phía trên màn hình (10.1)
+  face: Dir8;                               // hướng nhìn 8 phía trên màn hình (bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng, 10.1)
   body: Sprite; outfit: Sprite; hair: Sprite; vb: Sprite; vf: Sprite;
   ringsB: Phaser.GameObjects.Container; ringsF: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text;
@@ -33,14 +33,12 @@ interface PView {
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
   lit: { i: number; t0: number } | null;    // vòng hồn hoàn đang sáng khi tung hồn kỹ
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
-  lock: { face: Dir; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
+  lock: { face: Dir8; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
 }
 /** Bấm để đi tới (10.1): còn cách điểm bấm chừng này pixel thế giới thì coi là tới nơi. */
 const GOAL_NEAR = 3;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
 const HEAD = 30 * SPR;
-/** Tổng thời gian một animation hồn sư (ms). */
-const animMs = (a: HsAnim) => HS_ANIMS[a].ms.reduce((x, y) => x + y, 0);
 /** Vòng thứ i sáng và phình ra trong 300 ms khi tung hồn kỹ của vòng đó (mục 5.11). */
 const RING_LIT_MS = 300;
 interface Rect { x: number; y: number; w: number; h: number; }
@@ -229,9 +227,9 @@ export class GameScene extends Phaser.Scene {
     const def = npcDef(id), w = W2S(x, y), sx = w.x, sy = w.y; // vị trí thế giới (x, y) chiếu ra màn hình (sx, sy)
     let body: Sprite | null = null, clothes: Sprite[] = [], top = sy - 16 * SPR;
     if (def?.looks) {
-      const t = looksTextures(this, def.looks), mk = (k: string) => this.make.sprite({ key: k }, false).setOrigin(HS_ORIGIN.x, HS_ORIGIN.y);
+      const t = looksTextures(this, def.looks), mk = (k: string) => fitHonsuLayer(this.make.sprite({ key: k }, false));
       body = mk(t.body); clothes = [mk(t.outfit), mk(t.hair)];
-      body.play(honsuAnimKey(bodyKey(def.looks), "idle", "down").key);
+      body.play(honsuAnimKey(this, bodyKey(def.looks), "idle", "s").key);
       this.add.container(sx, sy, [this.make.image({ key: "hs_shadow" }, false), body, ...clothes]).setDepth(sy).setScale(SPR);
       top = sy - HEAD;
     } else {
@@ -665,7 +663,7 @@ export class GameScene extends Phaser.Scene {
   /** Tin `fx` có hướng đánh (dx, dy thế giới): hồn sư quay về phía đó suốt animation đánh, rồi lại theo hướng đi (10.1). */
   faceHit(id: string, dx: number, dy: number) {
     const v = this.players.get(id), d = dir8(Number(dx) || 0, Number(dy) || 0);
-    if (v && d) v.lock = { face: legacyDir(d), until: this.time.now + animMs("attack") };
+    if (v && d) v.lock = { face: d, until: this.time.now + honsuAnimMs(this, v.body.texture.key, "attack") };
   }
 
   soulRingFx(id: string, tier: number, dur: number) {
@@ -1149,8 +1147,9 @@ export class GameScene extends Phaser.Scene {
       seenP.add(id);
       let v = this.players.get(id);
       if (!v) {
-        const layer = (o: { x: number; y: number }) => this.make.sprite({ key: "hs_body_m_0" }, false).setOrigin(o.x, o.y);
-        const vb = layer(VH_ORIGIN), body = layer(HS_ORIGIN), outfit = layer(HS_ORIGIN), hair = layer(HS_ORIGIN), vf = layer(VH_ORIGIN);
+        // Gốc và hệ số phóng từng lớp đặt theo texture (fitHonsuLayer) mỗi khi đổi texture: bộ isometric 64×64 và bộ 32×32 cũ dùng chung khung chứa.
+        const layer = () => this.make.sprite({ key: "hs_body_m_0" }, false);
+        const vb = layer(), body = layer(), outfit = layer(), hair = layer(), vf = layer();
         const ringsB = this.make.container({}, false), ringsF = this.make.container({}, false), at = W2S(p.x, p.y);
         const root = this.add.container(at.x, at.y, [this.make.image({ key: "hs_shadow" }, false), ringsB, vb, body, outfit, hair, vf, ringsF]).setScale(SPR);
         const label = this.add.text(at.x, at.y - HEAD, p.name, {
@@ -1161,21 +1160,21 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "6px", fontStyle: "700",
           color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { root, wx: p.x, wy: p.y, face: "down", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "",
+        v = { root, wx: p.x, wy: p.y, face: "s", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "",
           act: null, hurtT: -1e9, lit: null, fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
       const { root, label, title } = v;
       const mine = id === this.me && this.pred;
-      // Hướng nhìn: sprite cũ chỉ có 4 hướng, chọn hướng gần nhất với hướng 8 phía trên màn hình của hướng đi (thế giới).
+      // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng (honsuAnimKey).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
       const walk = mine ? this.pred!.walking(p, this.dir) : p.moving;
       let d8 = mine ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
       if (!d8 && !walk) { const f = DIR4_VEC[mine ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
       else if (mine && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
       if (v.lock && time < v.lock.until) v.face = v.lock.face; // đang đánh: quay về phía đòn đánh
-      else if (d8) { v.lock = null; v.face = legacyDir(d8); }
+      else if (d8) { v.lock = null; v.face = d8; }
       if (mine) { const at = this.pred!.update(p, this.dir, dt); v.wx = at.x; v.wy = at.y; }
       else if (Math.hypot(p.x - v.wx, p.y - v.wy) > 64) { v.wx = p.x; v.wy = p.y; }
       else { v.wx += (p.x - v.wx) * lerp; v.wy += (p.y - v.wy) * lerp; }
@@ -1183,8 +1182,11 @@ export class GameScene extends Phaser.Scene {
       root.setPosition(at.x, at.y).setDepth(at.y);
       // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol, skin) và võ hồn ra trận đồng bộ từ server, ai cũng thấy.
       const looks = `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}|${p.skin}`;
-      if (looks !== v.looks) { v.looks = looks; v.playing = ""; const t = looksTextures(this, p); v.outfit.setTexture(t.outfit); v.hair.setTexture(t.hair); }
-      if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); v.vb.setTexture(kb); v.vf.setTexture(kf); }
+      if (looks !== v.looks) {
+        v.looks = looks; v.playing = ""; const t = looksTextures(this, p);
+        fitHonsuLayer(v.outfit.setTexture(t.outfit)); fitHonsuLayer(v.hair.setTexture(t.hair));
+      }
+      if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
       this.animatePlayer(v, p, time, walk);
@@ -1347,11 +1349,12 @@ export class GameScene extends Phaser.Scene {
    * `moving`: đang đi (chính mình khi dự đoán: theo phím, không chờ cờ `moving` của server).
    */
   animatePlayer(v: PView, p: any, time: number, moving: boolean) {
-    if (v.act && time >= v.act.t0 + animMs(v.act.anim)) v.act = null;
+    const sheet = bodyKey(p);
+    if (v.act && time >= v.act.t0 + honsuAnimMs(this, sheet, v.act.anim)) v.act = null;
     const anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
-    const { key, flip } = honsuAnimKey(bodyKey(p), anim, v.face);
+    const { key, flip } = honsuAnimKey(this, sheet, anim, v.face);
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
-    if (tag !== v.playing) { v.playing = tag; v.body.play(key); }
+    if (tag !== v.playing) { v.playing = tag; fitHonsuLayer(v.body.play(key)); }
     v.body.setFlipX(flip);
     syncLayers(v.body, [v.outfit, v.hair], [v.vb, v.vf]);
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
@@ -1412,16 +1415,18 @@ export class GameScene extends Phaser.Scene {
     const hit = this.portraits.get(vohon);
     if (hit) return hit;
     const t = looksTextures(this, me), [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
-    const cv = document.createElement("canvas"); cv.width = 48; cv.height = 48;
-    const ctx = cv.getContext("2d")!;
-    // Chân ở (24, 40): thân 32×32 gốc HS_ORIGIN (16, 30), phụ thể 48×48 gốc VH_ORIGIN (24, 38).
-    const draw = (k: string, o: { x: number; y: number }) => {
-      if (!this.textures.exists(k)) return;
-      const f = this.textures.getFrame(k, 0);
+    // Bộ 32×32 cũ: ảnh 48×48, chân ở (24, 40). Bộ isometric (10.4): ảnh 96×96 chân ở (48, 80), lớp 64×64 vẽ 1:1, lớp cũ (phụ thể
+    // 48×48 tới 10.5) phóng ×2; khung hồn cốt hiện ảnh ở 96 pixel nên hai cỡ trông như nhau.
+    const k = isIsoSheet(this, t.body) ? 2 : 1, cv = document.createElement("canvas"); cv.width = cv.height = 48 * k;
+    const ctx = cv.getContext("2d")!; ctx.imageSmoothingEnabled = false;
+    const draw = (key: string, vohon = false) => {
+      if (!this.textures.exists(key)) return;
+      const f = this.textures.getFrame(key, 0), iso = isIsoSheet(this, key), s = iso ? 1 : k;
+      const o = iso ? (vohon ? ISO_VH_ORIGIN : ISO_HS_ORIGIN) : vohon ? VH_ORIGIN : HS_ORIGIN;
       ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight,
-        24 - f.cutWidth * o.x, 40 - f.cutHeight * o.y, f.cutWidth, f.cutHeight);
+        24 * k - f.cutWidth * s * o.x, 40 * k - f.cutHeight * s * o.y, f.cutWidth * s, f.cutHeight * s);
     };
-    draw(kb, VH_ORIGIN); draw(t.body, HS_ORIGIN); draw(t.outfit, HS_ORIGIN); draw(t.hair, HS_ORIGIN); draw(kf, VH_ORIGIN);
+    draw(kb, true); draw(t.body); draw(t.outfit); draw(t.hair); draw(kf, true);
     const url = cv.toDataURL();
     this.portraits.set(vohon, url);
     return url;

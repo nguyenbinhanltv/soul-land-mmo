@@ -68,6 +68,9 @@ export const ISO_VH_ANIMS = ["idle", "walk", "attack", "cast"];
 /** Sheet hồn thú: 20 cột × 5 hàng (5 hướng vẽ). */
 export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
 export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
+/** pack --code (hurt / die / absorb vẽ bằng code, mục 5.11): dòng hông mặc định trong khung 64, độ hạ thân khi khuỵu / ngồi,
+ *  nửa bề ngang người đứng (để đặt người nằm chạm đất). */
+export const ISO_HIP = 40, ISO_KNEEL = 6, ISO_SIT = 10, ISO_LIE_HALF = 10;
 /** Góc vung (độ, chiều kim đồng hồ trên màn hình) của vũ khí phụ thể ở 4 khung `attack`: lấy đà, vung, trúng, thu về. */
 export const ISO_ATTACK_SWING = [-25, -55, 45, 15];
 
