@@ -95,7 +95,8 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Merge
 
-- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (và CI đạt, khi đã có CI ở #122).
+- **CI** (`.github/workflows/check.yml`) chạy `npm ci` (server + client, cài đúng lockfile), `npm run check`, `npm run build` trên mọi PR vào `main` và mỗi push vào `main`. CI **chỉ để tham khảo**, chưa là status check bắt buộc trong bảo vệ nhánh `main`. Tên job / status check: `check-build`. CI đỏ thì đọc log: lỗi do PR thì sửa, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
+- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
 - PR của người cộng tác: orchestrator AO của chủ repo kiểm tra lại PR có `cho-review` và comment `Review: đạt` (review độc lập, chạy check / bot nếu cần). Đạt thì orchestrator merge vào `main`; chưa đạt thì comment góp ý trên PR. Người cộng tác **không tự merge**.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
 - Sau khi merge: đánh dấu bước ở `GAME_DESIGN.md` mục 7 (nếu PR chưa làm), xóa nhánh.
