@@ -153,8 +153,9 @@ export function preloadSprites(scene: Phaser.Scene) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     for (const e of data?.sprites ?? []) {
-      // Asset isometric: từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm); chân dung, vật đứng, phụ thể,
-      // hồn thú isometric chờ bước dùng chúng (10.2, 10.5, 10.6, 10.8).
+      // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm); vật đứng do isoMap.ts tải
+      // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); chân dung, NPC, vật phẩm, phụ thể, hồn thú chờ bước dùng
+      // chúng (10.5, 10.6, 10.8).
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (iso && !key.startsWith("hs_")) continue;
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);

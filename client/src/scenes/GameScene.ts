@@ -15,7 +15,7 @@ import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
 import { solidGrid, clampDir } from "../../../shared/move.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
-import { IsoMap } from "../isoMap.ts";
+import { IsoMap, preloadIso } from "../isoMap.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -139,14 +139,15 @@ export class GameScene extends Phaser.Scene {
     // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
     this.load.tilemapTiledJSON(this.mapId, `${this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
+    preloadIso(this, this.mapId);
     preloadSprites(this);
   }
 
   create() {
-    // Lớp ô vẽ theo phép chiếu (isoMap.ts, 10.1); tilemap của Phaser chỉ còn dùng để đọc object và vẽ bản đồ nhỏ (nhìn thẳng).
+    // Lớp ô vẽ theo phép chiếu (isoMap.ts: ảnh isometric theo shared/assets/iso/tiles.json, 10.2); tilemap của Phaser chỉ còn dùng để đọc object và vẽ bản đồ nhỏ (nhìn thẳng).
     const map = this.make.tilemap({ key: this.mapId });
     const raw = this.cache.tilemap.get(this.mapId)?.data;
-    this.isoMap = new IsoMap(this, raw);
+    this.isoMap = new IsoMap(this, raw, this.mapId);
     this.txtK = this.zoomFor() < 2 ? 2 / this.zoomFor() : 1; // chữ của cổng, NPC vẽ ngay dưới đây (fitZoom chạy sau)
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
     const vg = (map.properties as any[] | undefined)?.find?.((p) => p.name === "vignette")?.value;
