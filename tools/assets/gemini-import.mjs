@@ -68,6 +68,10 @@ const isTile = kind === "tile" || kind === "tile-block";
 // Ô: các bề ngang thoi cần xuất (mặc định mọi cỡ ảnh ô của mục 5.11).
 const TILE_WIDTHS = isTile ? (sizeOpt ? sizeOpt.split(",").map((v) => +v.split("x")[0]) : [ISO_TILE_W, 2 * ISO_TILE_W]) : [];
 for (const w of TILE_WIDTHS) if (!(w >= 8) || w % 4) { console.error(`--size ${w}: bề ngang thoi phải chia hết cho 4`); process.exit(1); }
+// Ô thoi luôn 2:1: chiều cao ghi kèm (WxH) mà khác W/2 thì báo, không lặng lẽ bỏ qua.
+if (isTile) for (const [w, h] of (sizeOpt ? sizeOpt.split(",") : []).map((v) => v.split("x").map(Number))) {
+  if (h !== undefined && h !== w / 2) console.warn(`[gemini] cảnh báo: ô thoi luôn có mặt trên ${w}×${w / 2} (2:1), bỏ qua chiều cao ${h}`);
+}
 // Sprite: khung mặc định theo quy cách isometric (hằng ở lib.mjs); hồn thú, vật, chân dung phải chọn cỡ.
 const DEFAULT_SIZE = { honsu: [ISO_HS_FRAME, ISO_HS_FRAME], vohon: [ISO_VH_FRAME, ISO_VH_FRAME] };
 const sizeArg = !isTile && sizeOpt ? sizeOpt.split("x").map(Number) : null;
