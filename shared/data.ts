@@ -674,7 +674,7 @@ export type TeleShape = "line" | "cone" | "circle";
  * - `floor`: chiêu toàn sàn: vùng là cả sàn đấu (object `boss`), chỉ trúng người đứng trong sàn; client vẽ thành một dải phủ sàn.
  * Từ #118 (chiêu toàn sàn né được):
  * - `safe`: chiêu toàn sàn có `n` vòng an toàn bán kính `r` (FLOOR_SAFE) rải đều theo bề ngang sàn, vị trí do server tung lúc bắt đầu
- *   báo trước (tới được bằng đường thẳng từ tâm sàn); người chạm một vòng (teleSafe) lúc chiêu nổ thì không trúng.
+ *   báo trước (đi thẳng tới được từ chỗ sinh của boss); người chạm một vòng (teleSafe) lúc chiêu nổ thì không trúng.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";

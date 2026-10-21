@@ -5424,6 +5424,7 @@ async function loiTinhDauTest(){
     const pos0=[bossB().x,bossB().y]; W1.boss=[]; const wd=await test(W1,"wmech",{m:"dive"});
     ok(await waitFor(()=>bossB().dive,1000)&&await dealt(W1,1000)===0&&W1.boss.some(m=>m.k==="dive"),"Du Thủy: boss lặn xuống hồ, đánh không mất máu");
     // #118: lặn ra giữa hồ (điểm `lake`), chỗ nổi lên báo trước cho cả phòng ngay lúc lặn.
+    await waitFor(()=>W1.boss.some(m=>m.k==="dive")&&W2.boss.some(m=>m.k==="dive"),1500);
     const dv=W1.boss.find(m=>m.k==="dive"), dv2=W2.boss.findLast(m=>m.k==="dive");
     ok(await waitFor(()=>Math.hypot(bossB().x-lake[0].x,bossB().y-lake[0].y)<1,1000)&&wd.x===lake[0].x&&wd.y===lake[0].y,`Du Thủy: boss lặn ra giữa hồ (${Math.round(bossB().x)},${Math.round(bossB().y)})`);
     ok(dv&&dv.sx!==undefined&&dv2?.sx===dv.sx&&dv2?.sy===dv.sy&&inL(dv.sx,dv.sy)&&Math.hypot(dv.sx-pos0[0],dv.sy-pos0[1])>=DM.world.dive.away&&wd.surf?.x===dv.sx&&wd.surf?.y===dv.sy,

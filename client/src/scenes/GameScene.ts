@@ -615,7 +615,9 @@ export class GameScene extends Phaser.Scene {
         if (m.here) hud.setBossLife(m.life);
         // Boss thế giới (BĐ6e): đồng hồ nổi giận, điểm yếu đang hiện (người vào giữa trận).
         if (m.here && m.world) { hud.setBossRage(m.k === "spawn" ? WORLD.enrageSecs : m.rageIn ?? 0); if (m.weak) hud.setBossWeak(m.weakT ?? 0); }
-        if (m.here && m.world && m.dive && m.sx !== undefined) this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.dive * 1000 }; // đang lặn (#118)
+        // Đang lặn (#118): vòng đầy theo thời gian đã lặn, khớp với người đã ở trong phòng.
+        if (m.here && m.world && m.dive && m.sx !== undefined) { const all = Math.max(m.dive, m.diveSecs ?? m.dive) * 1000;
+          this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now - (all - m.dive * 1000), ms: all }; }
         if (m.k === "spawn" && m.world) {
           hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Sàn đấu bên hồ · nổi giận sau ${Math.round(WORLD.enrageSecs / 60)} phút` : m.mapName);
@@ -1850,7 +1852,7 @@ export class GameScene extends Phaser.Scene {
       case "armorEnd": if (m.heal > 0) hud.log(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
       case "dive":
         // #118: lặn ra giữa hồ, chỗ nổi lên báo trước bằng vòng sóng xanh.
-        if (m.sx !== undefined) this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.secs * 1000 };
+        this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.secs * 1000 };
         hud.banner(`${m.name}!`, `Boss lặn ra giữa hồ ${m.secs} giây, sẽ nổi lên ở vòng sóng xanh: mẫn công đứng chờ sẵn`); return true;
       case "surface": this.diveMark = null; return true;
       case "rage":

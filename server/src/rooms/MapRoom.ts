@@ -2149,7 +2149,7 @@ export class MapRoom extends Room<MapState> {
         else if (m === "miasma" && mm.miasma) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.miasma.skill, false); }
         else if (m === "slam") { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, WORLD_SLAM, false); }
         else if (m === "armor" && mm.armor) this.worldArmor(bid, b, w, mm.armor);
-        else if (m === "dive" && mm.dive) this.worldDive(bid, b, bd, w, mm.dive);
+        else if (m === "dive" && mm.dive && w.dive <= 0) this.worldDive(bid, b, bd, w, mm.dive);
         else if (m === "surface" && w.dive > 0) this.worldSurface(bid, b, bd, k, w);
         else if (m === "rage") k.life = Math.min(k.life, WORLD.lifeSecs - WORLD.enrageSecs);
         else if (m === "hold") { // giữ boss đứng yên (Choáng đặt thẳng, bỏ qua miễn khống chế) `secs` giây; 0 = bỏ
@@ -4336,7 +4336,7 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" });
     const lake = this.map.lake;
     if (lake) { b.x = lake.x; b.y = lake.y; this.interest.beasts.put(bid, b.x, b.y); this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" }); }
-    this.broadcast("boss", { k: "dive", bid, name: dv.name, secs: dv.secs, ...(w.surf ? { sx: w.surf.x, sy: w.surf.y } : {}) });
+    this.broadcast("boss", { k: "dive", bid, name: dv.name, secs: dv.secs, sx: w.surf.x, sy: w.surf.y });
   }
 
   /** Nổi lên đúng chỗ đã báo trước lúc lặn (WorldData.surf), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
@@ -4354,7 +4354,7 @@ export class MapRoom extends Room<MapState> {
   worldInfo(k: KingData) {
     const w = k.world; if (!w) return {};
     return { world: true, rageIn: Math.max(0, k.life - (WORLD.lifeSecs - WORLD.enrageSecs)), rage: w.rage, weak: w.weak, weakT: w.weakT,
-      ...(w.dive > 0 && w.surf ? { dive: w.dive, sx: w.surf.x, sy: w.surf.y } : {}) }; // đang lặn (#118): chỗ nổi lên đã báo
+      ...(w.dive > 0 && w.surf ? { dive: w.dive, diveSecs: k.def.world?.dive?.secs ?? w.dive, sx: w.surf.x, sy: w.surf.y } : {}) }; // đang lặn (#118): chỗ nổi lên đã báo
   }
 
   /**

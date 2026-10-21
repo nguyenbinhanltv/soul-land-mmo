@@ -16,8 +16,13 @@ function clearLine(map: GameMap, ax: number, ay: number, bx: number, by: number,
   return true;
 }
 
-/** Gốc để xét đi thẳng tới được: chỗ sinh của boss trong sàn (đã tránh ô chặn ở spawnKing). */
+/** Gốc để xét đi thẳng tới được: chỗ sinh của boss trong sàn; chỗ đó vướng ô chặn thì dùng tâm sàn. */
 export type Anchor = { x: number; y: number };
+const anchorOf = (map: GameMap, at: Anchor): Anchor => {
+  const l = map.lair; return !l || !map.hits(at.x, at.y, PLAYER_HW, PLAYER_HH) ? at : { x: l.x + l.w / 2, y: l.y + l.h / 2 };
+};
+/** Bản đồ đã cảnh báo thiếu vòng an toàn (chỉ cảnh báo một lần mỗi bản đồ, Bạo Nộ lặp mỗi WORLD.slamEvery giây). */
+const warned = new Set<string>();
 
 /**
  * Một chỗ ngẫu nhiên trong sàn đấu (object `boss`), trong dải cột `col` / `cols` theo bề ngang, cách mép sàn `pad`, dọc trong dải
@@ -25,12 +30,12 @@ export type Anchor = { x: number; y: number };
  */
 function lairSpot(map: GameMap, rnd: () => number, at: Anchor, col: number, cols: number, pad: number, box: Box, ok: (x: number, y: number) => boolean) {
   const l = map.lair; if (!l) return null;
-  const cw = l.w / cols, [b0, b1] = LAIR_SPOT.band;
+  const cw = l.w / cols, [b0, b1] = LAIR_SPOT.band, o = anchorOf(map, at);
   // Lấy mẫu đều trong phần cột nằm cách mép sàn `pad` (không kẹp: kẹp dồn nhiều mẫu về đúng mép).
   const x0 = Math.max(l.x + pad, l.x + col * cw), x1 = Math.min(l.x + l.w - pad, l.x + (col + 1) * cw); if (x1 < x0) return null;
   for (let i = 0; i < LAIR_SPOT.tries; i++) {
     const x = x0 + (x1 - x0) * rnd(), y = l.y + l.h * (b0 + (b1 - b0) * rnd());
-    if (ok(x, y) && clearLine(map, at.x, at.y, x, y, box)) return { x: Math.round(x), y: Math.round(y) };
+    if (ok(x, y) && clearLine(map, o.x, o.y, x, y, box)) return { x: Math.round(x), y: Math.round(y) };
   }
   return null;
 }
@@ -48,7 +53,7 @@ export function floorSafeZones(map: GameMap, at: Anchor, n: number, r: number, r
     const p = lairSpot(map, rnd, at, k, n, r, PLAYER_BOX, apart) ?? lairSpot(map, rnd, at, 0, 1, r, PLAYER_BOX, apart);
     if (p) out.push({ shape: "circle", x: p.x, y: p.y, ang: 0, r, w: 0, arc: 0 });
   }
-  if (map.lair && out.length < n) console.warn(`[map ${map.mapId}] Chiêu toàn sàn: chỉ đặt được ${out.length}/${n} vòng an toàn.`);
+  if (map.lair && out.length < n && !warned.has(map.mapId) && warned.add(map.mapId)) console.warn(`[map ${map.mapId}] Chiêu toàn sàn: chỉ đặt được ${out.length}/${n} vòng an toàn.`);
   return out;
 }
 
