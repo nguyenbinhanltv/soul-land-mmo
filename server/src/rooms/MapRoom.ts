@@ -2143,13 +2143,13 @@ export class MapRoom extends Room<MapState> {
       // hold {secs} (giữ boss đứng yên để bot đứng cạnh thử luật; 0 = thả).
       const bid = this.king?.bid, b = bid ? this.state.beasts.get(bid) : undefined, bd = bid ? this.bdata.get(bid) : undefined, k = bd?.elite?.king, w = k?.world, mm = k?.def.world ?? {};
       if (bid && b && bd && k && w) {
-        // Đang lặn (Du Thủy) thì không tung chiêu toàn sàn / lặn chồng (như tickWorld).
+        // Đang lặn (Du Thủy) thì không chạy cơ chế khác / lặn chồng (như tickWorld).
         const m = String(o.m ?? ""), he = HE_IDS.find((x) => x === o.he) ?? null, up = w.dive <= 0;
         if (m === "weak") this.worldWeak(bid, b, w, he, int(o.secs, 1, 600, WORLD.weakSecs));
         else if (m === "charge" && mm.charge && up) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.charge.skill, true); }
         else if (m === "miasma" && mm.miasma && up) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.miasma.skill, false); }
         else if (m === "slam" && up) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, WORLD_SLAM, false); }
-        else if (m === "armor" && mm.armor) this.worldArmor(bid, b, w, mm.armor);
+        else if (m === "armor" && mm.armor && up) this.worldArmor(bid, b, w, mm.armor);
         else if (m === "dive" && mm.dive && up) this.worldDive(bid, b, bd, w, mm.dive);
         else if (m === "surface" && w.dive > 0) this.worldSurface(bid, b, bd, k, w);
         else if (m === "rage") k.life = Math.min(k.life, WORLD.lifeSecs - WORLD.enrageSecs);
