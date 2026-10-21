@@ -342,6 +342,10 @@ async function channelTest(){
     const one=async(b,bid)=>(await T(b,"elite",{bid})).one;
     /** `b` hạ ngay tinh anh `bid` (hook slay, như ra đòn cuối); trả đồ rơi mới và các dòng log. */
     const slayE=async(b,bid)=>{ const bf=new Set(b.room.state.drops.keys()), l=b.logs.length; await T(b,"slay",{bid}); await sleep(250); return {nd:newDrops(b,bf),log:b.logs.slice(l).join(" | ")}; };
+    /** Đổi kênh như người chơi (rời giao chiến, bỏ chờ CHANNEL_CD bằng hook); hồn thú hoang có thể vừa đánh: thử lại tối đa 3 lần. */
+    const swap=async(b,ch)=>{ for(let k=0;k<3;k++){ await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
+      b.travel=null; const w=await say(b,"channel",{ch}); if(await waitFor(()=>b.travel,3000)) return follow(b);
+      console.log(`    ${b.name} chưa đổi được sang kênh ${ch} (đang ở kênh ${chOf(b)}): "${w}"`); } };
     ok(!!EB,`tinh anh của ${MAPS[NV].name}: ${EB}`);
     // Kênh 1: P1 hạ tinh anh (hook sinh 1 máu, cùng mã): chắc chắn rơi hồn hạch (số ngẫu nhiên 0,5), bị khóa ELITE.lock giây.
     await T(P1,"elock",{s:0}); await T(P1,"core",{r:50});
@@ -354,14 +358,12 @@ async function channelTest(){
     ok(o?.engaged&&o.dmgBy[s1]===7&&o.dmgBy[P3.room.sessionId]===5,`kênh 1: P1, P3 cùng đánh tinh anh (đóng góp ${JSON.stringify(o?.dmgBy)})`);
     // P1 sang kênh 2 (P2 vào game mở kênh 2): hạ tinh anh cùng mã ở kênh 2 trong lúc còn khóa thì chỉ như hồn thú thường.
     { const pick=await post("/api/channel",{token:P2.token}); await enter(P2,pick.roomId??undefined); await fresh(P2); }
-    await T(P1,"rest",{s:TEAM_COMBAT_SECS+1}); await T(P1,"chan",{reset:1});
-    P1.travel=null; await say(P1,"channel",{ch:chOf(P2)}); await waitFor(()=>P1.travel,3000); await follow(P1);
+    await swap(P1,2);
     ok(chOf(P2)===2&&chOf(P1)===2,`P2 vào kênh ${chOf(P2)}, P1 đổi sang kênh ${chOf(P1)}`);
     await T(P1,"core",{r:50}); r=await slayE(P1,(await T(P1,"beast",{boss:EB,dx:14,dy:0})).bid);
     ok(r.nd.length&&!r.nd.some(x=>x.item===CORE_ITEM)&&/chưa lâu \(kênh nào cũng tính\)/.test(r.log),`kênh 2 trong lúc còn khóa: không hồn hạch chắc chắn ("${r.log}")`);
     // P1 quay về kênh 1: đóng góp 7 chuyển sang phiên mới; hạ tinh anh khi còn khóa thì quyền ưu tiên sang P3 (chưa khóa) dù P1 đóng góp nhiều hơn.
-    await T(P1,"rest",{s:TEAM_COMBAT_SECS+1}); await T(P1,"chan",{reset:1});
-    P1.travel=null; await say(P1,"channel",{ch:1}); await waitFor(()=>P1.travel,3000); await follow(P1);
+    await swap(P1,1);
     o=await one(P3,E1); const s2=P1.room.sessionId;
     ok(chOf(P1)===1&&s2!==s1&&o?.engaged&&o.dmgBy[s2]===7&&!(s1 in o.dmgBy),`đổi kênh rồi quay về kênh 1: đóng góp của P1 vẫn ${o?.dmgBy[s2]} (phiên mới), phiên cũ không còn`);
     await T(P3,"elock",{s:0}); await T(P1,"core",{r:50}); r=await slayE(P1,E1); const sid3=P3.room.sessionId;
