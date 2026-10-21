@@ -136,6 +136,12 @@ export const MAPS: Record<string, MapDef> = {
  * (vị trí cũ không còn nghĩa). Mã không có ở đây và không có trong MAPS thì về DEFAULT_MAP.
  */
 export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi" };
+/**
+ * Mật độ hồn thú thường của bản đồ dựng bằng `tools/maps` (11.3): số con trên 1.000 ô đi được của mỗi vùng, theo tầng niên hạn
+ * (`tier` trong `tools/maps/layouts/<mapId>.json`, nông → sâu). Công cụ đếm ô đi được rồi ghi `count` của từng vùng vào file Tiled.
+ * Số của Tinh Đấu Ngoại vi đo trên bản 90×60 cũ (14, 12, 10, 9 con), nên bản ×8 diện tích giữ đúng mật độ.
+ */
+export const BEAST_DENSITY: Record<string, number[]> = { tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4] };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
 export const DEFAULT_MAP = "thanh_hon_thon";
 /** "10-30" -> [10, 30]; "10" -> [10, 10]; sai -> null. Dùng cho thuộc tính `level` của cổng và `years` của vùng trong Tiled. */

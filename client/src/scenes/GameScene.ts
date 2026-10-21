@@ -158,7 +158,8 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
-    this.load.tilemapTiledJSON(this.mapId, `${this.mapId}.json`);
+    // 11.3: server bật bản dựng lại (MAP_V2) thì báo tên file ở `mapFile` (cùng lưới va chạm với server).
+    this.load.tilemapTiledJSON(this.mapId, `${this.room.state.mapFile || this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
     preloadSprites(this, lpcPreloader(this, this.mapId)); // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts)
@@ -1228,11 +1229,15 @@ export class GameScene extends Phaser.Scene {
       13: "#a39f94", 14: "#8f3b2e", 15: "#d8c8a2", 16: "#c9b84a",
       // BĐ6c (Cực Bắc): tuyết, tuyết sâu, mặt băng, khe băng, lối tuyết, thông tuyết, băng tinh
       25: "#f4f8ff", 26: "#c0cce0", 27: "#5a9cc9", 28: "#1f4a6b", 29: "#8a87a0", 30: "#1e4a2a", 32: "#7fd0ff",
-      33: "#e8d49a", 34: "#4fa8b8", 35: "#173f63", 36: "#6a6258" }; // BĐ6d: cát, rạn nông, biển sâu, đá ngầm
+      33: "#e8d49a", 34: "#4fa8b8", 35: "#173f63", 36: "#6a6258", // BĐ6d: cát, rạn nông, biển sâu, đá ngầm
+      // 11.3 (gid của bản đồ dựng bằng tools/maps): tường đổ, bia đá, vòm đá, gỗ đổ
+      37: "#6a6a70", 38: "#8a98a8", 39: "#6a6a70", 40: "#5a4a32" };
+    // Gid 27–29 ở lớp vật (11.3: xương thú, cây cỏ nhỏ, biển chỉ đường) trùng gid nền tuyết của Cực Bắc: màu riêng cho lớp vật.
+    const objColorOf: Record<number, string> = { 27: "#d8d0c0", 28: "#467e38", 29: "#a08a63" };
     const ground = map.getLayer("ground")!.data, trees = map.getLayer("trees")!.data;
     for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
       const t = trees[y][x].index, g = ground[y][x].index;
-      b.fillStyle = t >= 17 && t <= 20 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? colorOf[t] ?? "#d8b678" : colorOf[g] ?? "#335f35";
+      b.fillStyle = t >= 17 && t <= 20 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? objColorOf[t] ?? colorOf[t] ?? "#d8b678" : colorOf[g] ?? "#335f35";
       b.fillRect(x, y, 1, 1);
     }
     b.fillStyle = "#86e0b0";

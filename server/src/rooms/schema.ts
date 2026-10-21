@@ -104,6 +104,7 @@ export class MapState extends Schema {
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
   @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
   @type({ map: DropState }) drops = new MapSchema<DropState>();
+  @type("string") mapFile: string = ""; // 11.3: tên file Tiled khác `<mapId>` (bản dựng lại `<mapId>.v2` khi bật MAP_V2); rỗng = `<mapId>`
 }
 
 /**

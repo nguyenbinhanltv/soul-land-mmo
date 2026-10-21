@@ -1,0 +1,448 @@
+// Công cụ dựng bản đồ lớn (bước 11.3, GAME_DESIGN.md mục 5.3, 6): sinh file Tiled shared/assets/<out> từ MÔ TẢ BỐ CỤC
+// tools/maps/layouts/<mapId>.json (kích thước, vùng niên hạn, điểm chính, đường nối, sông suối, rừng, vách, tàn tích, điểm nhấn) và
+// lớp chỉnh tay tools/maps/hand/<mapId>.json (nếu có). Cùng bố cục, cùng hạt giống, cùng lớp tay thì ra đúng cùng một file.
+// Chỉ dùng gid có trong shared/assets/iso/tiles.json (bộ "*" và bộ của mapId). Cách viết bố cục: tools/maps/README.md.
+//
+//   node tools/maps/build.mjs <mapId>… [--seed N] [--preview <ảnh.png>]   sinh file Tiled (và ảnh nhìn thẳng có vùng, điểm chính)
+//   node tools/maps/build.mjs --check                                      sinh lại mọi bố cục trong bộ nhớ, so với file đang có
+//   node tools/maps/build.mjs <mapId> --hand-init                          tạo lớp chỉnh tay rỗng để mở bằng Tiled
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { rng, hashF, hashStr, fbm } from "./lib/rand.mjs";
+import { shapeTest, rectsOf, spline, astar } from "./lib/geom.mjs";
+import { topdownPreview } from "./lib/preview.mjs";
+import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
+
+const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
+const LAYOUTS = path.join(ROOT, "tools", "maps", "layouts"), HAND = path.join(ROOT, "tools", "maps", "hand");
+const ASSETS = path.join(ROOT, "shared", "assets");
+
+// ---------- Loại ô logic ----------
+/** Nền: mỗi loại ứng với một khóa trong `gids.ground` của bố cục. */
+const G = { grass: 0, path: 1, camp: 2, pave: 3, crack: 4, water: 5, ford: 6, bank: 7, deep: 8, stony: 9, glow: 10, bridge: 11 };
+const G_NAMES = Object.keys(G);
+/** Vật trên lớp `trees`: mỗi loại ứng với một khóa trong `gids.objects` (cây theo tầng ở `tiers[].trees`). `plant` đi xuyên được. */
+const O = { none: 0, tree: 1, rock: 2, cliff: 3, ruin: 4, stele: 5, arch: 6, log: 7, ancient: 8, tent: 9, fire: 10, plant: 11, sign: 12, skull: 13 };
+const O_NAMES = Object.keys(O);
+const WET = new Set([G.water, G.deep]);
+
+const prop = (name, type, value) => ({ name, type, value });
+
+/** Đọc bố cục và kiểm tra các trường bắt buộc. */
+export function readLayout(mapId) {
+  const file = path.join(LAYOUTS, `${mapId}.json`);
+  if (!existsSync(file)) throw new Error(`Không có bố cục ${path.relative(ROOT, file)}`);
+  const L = JSON.parse(readFileSync(file, "utf8"));
+  if (L.map !== mapId) throw new Error(`${mapId}.json: trường "map" phải là "${mapId}"`);
+  if (!Object.hasOwn(MAPS, mapId)) throw new Error(`${mapId}: không có trong MAPS (shared/data.ts)`);
+  if (!Array.isArray(L.size) || L.size.length !== 2) throw new Error(`${mapId}: thiếu "size": [rộng, cao]`);
+  for (const k of ["seed", "out", "tiers", "zones", "gids"]) if (L[k] === undefined) throw new Error(`${mapId}: thiếu "${k}"`);
+  return L;
+}
+
+/**
+ * Dựng bản đồ từ bố cục `L` (đã đọc), lớp tay `hand` (Tiled thô hoặc null). Trả { json, stats, preview } với `json` là chuỗi file
+ * Tiled. Hàm thuần: không đọc giờ, không Math.random.
+ */
+export function build(L, hand = null, seedOverride = null) {
+  const [MW, MH] = L.size, N = MW * MH, seed = (seedOverride ?? L.seed) >>> 0, mapId = L.map;
+  const sub = (name) => (seed ^ hashStr(name)) >>> 0; // mỗi tính năng một dòng ngẫu nhiên riêng
+  const gnd = new Uint8Array(N), obj = new Uint8Array(N), lock = new Uint8Array(N);
+  const inside = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
+  const at = (x, y) => y * MW + x;
+  const setG = (x, y, v) => { if (inside(x, y)) gnd[at(x, y)] = v; };
+  const setO = (x, y, v, force = false) => { if (inside(x, y) && (force || !lock[at(x, y)])) obj[at(x, y)] = v; };
+  const disc = (cx, cy, r, fn) => {
+    for (let y = Math.floor(cy - r - 1); y <= Math.ceil(cy + r + 1); y++) for (let x = Math.floor(cx - r - 1); x <= Math.ceil(cx + r + 1); x++)
+      if (inside(x, y)) { const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy); if (d < r) fn(x, y, d); }
+  };
+  const warn = [];
+
+  // ---------- Vùng: mỗi ô thuộc vùng đầu tiên trong danh sách có hình chứa nó ----------
+  const zoneTests = L.zones.map((z) => shapeTest(z));
+  const zoneOf = new Int16Array(N).fill(-1);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) zoneOf[at(x, y)] = zoneTests.findIndex((t) => t(x, y));
+  const tierOf = (i) => { const z = zoneOf[i]; return z < 0 ? 0 : L.zones[z].tier; };
+  const tier = (i) => L.tiers[tierOf(i)];
+
+  // ---------- 1. Rừng nền: mật độ theo tầng, cụm rậm theo nhiễu ----------
+  const sF = sub("forest"), sC = sub("cluster");
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const i = at(x, y), t = tier(i), c = fbm(x, y, t.clusterScale ?? 16, sC, 3);
+    const p = t.density + (c > t.cluster ? (c - t.cluster) / (1 - t.cluster) * (t.clusterDensity ?? 0.8) : 0);
+    if (hashF(x, y, sF) < p) obj[i] = O.tree;
+  }
+
+  // ---------- 2. Tính năng theo thứ tự trong bố cục ----------
+  const F = {
+    /** Sông / suối theo spline qua `pts`: rộng `width` ± `wobble`, bờ `bank` ô, chỗ lội nông quanh `fords`. */
+    river(f) {
+      const s = sub(`river:${f.name ?? ""}`), pts = spline(f.pts, 0.4);
+      pts.forEach(([px, py], k) => {
+        const w = Math.max(1.2, f.width + (fbm(k, 0, 18, s, 2) - 0.5) * 2 * (f.wobble ?? 0)), r = w / 2;
+        disc(px, py, r + (f.bank ?? 1), (x, y, d) => {
+          const i = at(x, y); if (lock[i]) return;
+          if (d < r) { gnd[i] = G.water; obj[i] = O.none; }
+          else if (!WET.has(gnd[i])) { gnd[i] = G.bank; if (hashF(x, y, s + 1) < 0.85) obj[i] = O.none; }
+        });
+      });
+      for (const [fx, fy, fr = 2.5] of f.fords ?? []) disc(fx, fy, fr, (x, y) => { const i = at(x, y); if (WET.has(gnd[i])) gnd[i] = G.ford; });
+    },
+    /** Ao / hồ hình loang quanh `at` bán kính `r`: lòng sâu (chặn), mép nước nông chặn, bờ đất. */
+    pond(f) {
+      const s = sub(`pond:${f.at}`), [cx, cy] = f.at;
+      disc(cx, cy, f.r + 2.5, (x, y, d) => {
+        const i = at(x, y); if (lock[i]) return;
+        const rr = f.r * (0.75 + 0.5 * fbm(x, y, 4, s, 2));
+        if (d < rr - 1.6) { gnd[i] = G.deep; obj[i] = O.none; }
+        else if (d < rr) { gnd[i] = G.water; obj[i] = O.none; }
+        else if (d < rr + 1 && !WET.has(gnd[i])) { gnd[i] = G.bank; obj[i] = O.none; }
+      });
+    },
+    /**
+     * Vách nhiều tầng: `rows` dải khối đá song song cách nhau `spacing` ô (lệch về phía `side` = ±1 so với hướng đi của `pts`),
+     * mỗi dải chừa lối lên `gapLen` ô sau mỗi `gap` ô (lệch pha giữa các tầng để đường lên ngoằn ngoèo); mặt bậc giữa các dải là
+     * nền đá, cây thưa.
+     */
+    cliff(f) {
+      const s = sub(`cliff:${f.pts[0]}`), pts = spline(f.pts, 0.35), rows = f.rows ?? 2, sp = f.spacing ?? 3, side = f.side ?? 1;
+      let len = 0;
+      for (let k = 0; k < pts.length; k++) {
+        const [px, py] = pts[k], [qx, qy] = pts[Math.min(k + 1, pts.length - 1)], [ox, oy] = pts[Math.max(k - 1, 0)];
+        const dx = qx - ox, dy = qy - oy, dl = Math.hypot(dx, dy) || 1, nx = (-dy / dl) * side, ny = (dx / dl) * side;
+        if (k) len += Math.hypot(px - pts[k - 1][0], py - pts[k - 1][1]);
+        for (let row = 0; row < rows; row++) {
+          const off = row * sp, cx = px + nx * off, cy = py + ny * off, phase = (len + row * (f.gap ?? 14) * 0.5 + (s % 7)) % (f.gap ?? 14);
+          if (phase < (f.gapLen ?? 3)) continue;
+          const x = Math.floor(cx), y = Math.floor(cy);
+          if (inside(x, y) && !lock[at(x, y)] && !WET.has(gnd[at(x, y)])) obj[at(x, y)] = O.cliff;
+          // Mặt bậc phía trên dải (giữa dải này và dải sau): nền đá, bớt cây.
+          if (row < rows - 1 || f.top) for (let t = 1; t < sp; t++) {
+            const tx = Math.floor(cx + nx * t), ty = Math.floor(cy + ny * t);
+            if (!inside(tx, ty) || lock[at(tx, ty)] || WET.has(gnd[at(tx, ty)])) continue;
+            gnd[at(tx, ty)] = G.stony; if (obj[at(tx, ty)] === O.tree && hashF(tx, ty, s) < 0.7) obj[at(tx, ty)] = O.none;
+          }
+        }
+      }
+    },
+    /** Khoảng trống tròn loang (bỏ vật, giữ nền), `ground` tùy chọn: tên loại nền phủ lên. */
+    clearing(f) {
+      const s = sub(`clearing:${f.at}`), [cx, cy] = f.at;
+      disc(cx, cy, f.r + 2, (x, y, d) => {
+        const i = at(x, y); if (d > f.r * (0.8 + 0.4 * fbm(x, y, 5, s, 2))) return;
+        if (!WET.has(gnd[i])) { obj[i] = O.none; if (f.ground) gnd[i] = G[f.ground]; }
+        if (f.lock) lock[i] = 1;
+      });
+    },
+    /** Trại: nền trại trong `rect` (mép loang), lều, lửa trại, khúc gỗ, biển chỉ đường; khóa cả khu. */
+    camp(f) {
+      const s = sub(`camp:${f.rect}`), [x0, y0, w, h] = f.rect;
+      for (let y = y0 - 2; y < y0 + h + 2; y++) for (let x = x0 - 2; x < x0 + w + 2; x++) {
+        if (!inside(x, y)) continue;
+        const ex = Math.max(x0 - x, x - (x0 + w - 1), 0), ey = Math.max(y0 - y, y - (y0 + h - 1), 0), e = Math.hypot(ex, ey);
+        if (e > 2.2 * fbm(x, y, 3, s, 2)) continue;
+        const i = at(x, y); gnd[i] = e > 0 ? G.grass : G.camp; obj[i] = O.none; lock[i] = 1;
+      }
+      place(f.tents, O.tent); place(f.fires, O.fire); place(f.logs, O.log); place(f.signs, O.sign);
+    },
+    /**
+     * Tàn tích: sân đá (lẫn ô nứt, cỏ mọc xen) trong `rect`, tường đổ dọc chu vi (khuyết ngẫu nhiên, chừa `gates`), bia đá `steles`,
+     * vòm đá `arches`, đá rơi; khóa cả khu.
+     */
+    ruins(f) {
+      const s = sub(`ruins:${f.rect}`), [x0, y0, w, h] = f.rect, gates = f.gates ?? [];
+      for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+        if (!inside(x, y)) continue;
+        const i = at(x, y), n = fbm(x, y, 4, s, 2), edge = x === x0 || y === y0 || x === x0 + w - 1 || y === y0 + h - 1;
+        gnd[i] = n > 0.66 ? G.grass : fbm(x, y, 3, s + 3, 2) > 0.58 ? G.crack : G.pave; obj[i] = O.none; lock[i] = 1;
+        const nearGate = gates.some(([gx, gy]) => Math.abs(gx - x) <= 1 && Math.abs(gy - y) <= 1);
+        if (edge && !nearGate && hashF(x, y, s + 1) > (f.broken ?? 0.25)) obj[i] = O.ruin;
+        else if (!edge && hashF(x, y, s + 2) < (f.rubble ?? 0.03)) obj[i] = O.rock;
+      }
+      place(f.steles, O.stele); place(f.arches, O.arch); place(f.walls, O.ruin);
+    },
+    /** Điểm nhấn cây cổ thụ: khoảng trống `r`, rêu phát quang loang, cây ở tâm, rễ lớn quanh gốc, dương xỉ / nấm rải vòng ngoài. */
+    ancient(f) {
+      const s = sub(`ancient:${f.at}`), [cx, cy] = f.at;
+      disc(cx, cy, f.r, (x, y, d) => {
+        const i = at(x, y); obj[i] = O.none; lock[i] = 1;
+        if (!WET.has(gnd[i])) gnd[i] = d < f.r * 0.7 && fbm(x, y, 3, s, 2) > 0.5 ? G.glow : G.grass;
+        if (d > f.r * 0.55 && d < f.r * 0.9 && hashF(x, y, s) < (f.plants ?? 0.12)) obj[i] = O.plant;
+      });
+      setO(Math.floor(cx), Math.floor(cy), O.ancient, true);
+      for (const [dx, dy] of f.roots ?? [[-2, 1], [2, -1], [1, 2], [-1, -2]]) setO(Math.floor(cx) + dx, Math.floor(cy) + dy, O.log, true);
+    },
+    /**
+     * Hang thú vương: bãi trống bầu dục tâm `at`, bán trục `rx` × `ry`, vây bằng vòng vách (`wall`: cliff | tree) dày khoảng 2 ô, chừa
+     * lối vào rộng `door` ô ở phía `entrance` (n / s / e / w); xương thú `skulls` sát vách. Khóa cả khu.
+     */
+    lair(f) {
+      const [cx, cy] = f.at, door = (f.door ?? 4) / 2, s = sub(`lair:${f.at}`), wall = O[f.wall ?? "cliff"];
+      for (let y = Math.floor(cy - f.ry - 3); y <= Math.ceil(cy + f.ry + 3); y++) for (let x = Math.floor(cx - f.rx - 3); x <= Math.ceil(cx + f.rx + 3); x++) {
+        if (!inside(x, y)) continue;
+        const i = at(x, y), d = Math.hypot((x + 0.5 - cx) / f.rx, (y + 0.5 - cy) / f.ry);
+        const inDoor = { n: y < cy && Math.abs(x + 0.5 - cx) < door, s: y > cy && Math.abs(x + 0.5 - cx) < door,
+          w: x < cx && Math.abs(y + 0.5 - cy) < door, e: x > cx && Math.abs(y + 0.5 - cy) < door }[f.entrance ?? "n"];
+        if (d < 1) { obj[i] = O.none; gnd[i] = fbm(x, y, 4, s, 2) > 0.55 ? G.stony : G.grass; lock[i] = 1; }
+        else if (d < 1.4) { lock[i] = 1; obj[i] = inDoor ? O.none : wall; if (inDoor) gnd[i] = G.grass; }
+      }
+      place(f.skulls, O.skull);
+    },
+    /** Vật đặt thẳng: `kind` (tên loại vật) tại các ô `at`. */
+    objects(f) { place(f.at, O[f.kind]); },
+  };
+  function place(list, kind) {
+    for (const [x, y] of list ?? []) { if (!inside(x, y)) continue; const i = at(x, y); obj[i] = kind; lock[i] = 1; if (WET.has(gnd[i])) gnd[i] = G.grass; }
+  }
+  for (const f of L.features ?? []) {
+    if (!F[f.type]) throw new Error(`${mapId}: tính năng không có: ${f.type}`);
+    F[f.type](f);
+  }
+
+  // ---------- 3. Đường nối: A* trên lưới chi phí qua các điểm `via` ----------
+  const P = L.points ?? {};
+  const pt = (v) => { const p = typeof v === "string" ? P[v] : v; if (!p) throw new Error(`${mapId}: không có điểm "${v}"`); return [Math.floor(p[0]), Math.floor(p[1])]; };
+  const sR = sub("roads"), roadsOut = [];
+  const HARD = new Set([O.ruin, O.stele, O.arch, O.ancient, O.tent, O.fire, O.sign, O.skull]);
+  for (const road of L.roads ?? []) {
+    const w = road.width ?? 2, lo = -Math.floor((w - 1) / 2), hi = Math.ceil((w - 1) / 2);
+    for (let k = 0; k + 1 < road.via.length; k++) {
+      const a = pt(road.via[k]), b = pt(road.via[k + 1]);
+      const cost = (x, y) => {
+        if (x < 1 || y < 1 || x >= MW - 1 || y >= MH - 1) return Infinity;
+        const i = at(x, y);
+        if (gnd[i] === G.deep || (lock[i] && HARD.has(obj[i])) || (lock[i] && obj[i] === O.cliff)) return Infinity;
+        let c = 1 + 2.2 * fbm(x, y, road.wiggle ?? 10, sR + k, 2);
+        if (gnd[i] === G.path || gnd[i] === G.bridge) c -= 0.8;
+        if (obj[i] === O.tree) c += 1.5;
+        if (obj[i] === O.cliff) c += 40;
+        if (gnd[i] === G.water || gnd[i] === G.ford) c += road.waterCost ?? 30;
+        return Math.max(0.3, c);
+      };
+      const route = astar(MW, MH, a, b, cost);
+      if (!route) throw new Error(`${mapId}: không tìm được đường từ ${road.via[k]} tới ${road.via[k + 1]}`);
+      for (const [x, y] of route) for (let dy = lo; dy <= hi; dy++) for (let dx = lo; dx <= hi; dx++) {
+        const X = x + dx, Y = y + dy; if (X < 1 || Y < 1 || X >= MW - 1 || Y >= MH - 1) continue;
+        const i = at(X, Y);
+        if (lock[i] && HARD.has(obj[i])) continue;
+        if (WET.has(gnd[i]) || gnd[i] === G.ford || gnd[i] === G.bridge) gnd[i] = G.bridge;
+        else if (gnd[i] !== G.pave && gnd[i] !== G.crack && gnd[i] !== G.camp) gnd[i] = G.path;
+        obj[i] = O.none; lock[i] = 1;
+      }
+      roadsOut.push(route);
+    }
+  }
+
+  // ---------- 4. Rải đá, gỗ đổ, cây cỏ nhỏ theo mật độ tầng (chỉ ô chưa khóa, đất trống) ----------
+  const sS = sub("scatter");
+  for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) {
+    const i = at(x, y), t = tier(i);
+    if (lock[i] || obj[i] !== O.none || WET.has(gnd[i]) || gnd[i] === G.path) continue;
+    const r = hashF(x, y, sS), stony = gnd[i] === G.stony ? 3 : 1;
+    if (r < (t.rock ?? 0) * stony) obj[i] = O.rock;
+    else if (r < (t.rock ?? 0) * stony + (t.log ?? 0)) obj[i] = O.log;
+    else if (r < (t.rock ?? 0) * stony + (t.log ?? 0) + (t.plant ?? 0)) obj[i] = O.plant;
+  }
+
+  // ---------- 5. Object Tiled: cổng, điểm đến, trại hồi sinh, truyền tống trận; dọn chỗ đứng quanh chúng ----------
+  let oid = 1;
+  const list = [];
+  const rectObj = (type, name, x, y, w, h, props = []) =>
+    list.push({ id: oid++, name, type, x: x * TILE, y: y * TILE, width: w * TILE, height: h * TILE, rotation: 0, visible: true, properties: props });
+  const pointObj = (type, name, x, y, props = []) =>
+    list.push({ id: oid++, name, type, point: true, x: x * TILE, y: y * TILE, width: 0, height: 0, rotation: 0, visible: true, properties: props });
+  const clearRect = (x0, y0, w, h, m, ground) => {
+    for (let y = Math.floor(y0 - m); y < Math.ceil(y0 + h + m); y++) for (let x = Math.floor(x0 - m); x < Math.ceil(x0 + w + m); x++) {
+      if (x < 1 || y < 1 || x >= MW - 1 || y >= MH - 1) continue;
+      const i = at(x, y); obj[i] = O.none; if (WET.has(gnd[i]) || ground !== undefined) gnd[i] = ground ?? G.grass; lock[i] = 1;
+    }
+  };
+  for (const p of L.portals ?? []) {
+    clearRect(p.rect[0], p.rect[1], p.rect[2], p.rect[3], 1, G.path);
+    rectObj("portal", p.name, ...p.rect, [prop("to", "string", p.to), prop("arrive", "string", p.arrive),
+      ...(p.level ? [prop("level", "string", p.level)] : []), ...(p.boat ? [prop("boat", "bool", true)] : [])]);
+  }
+  for (const a of L.arrives ?? []) { clearRect(a.at[0] - 1, a.at[1] - 1, 2, 2, 0.5); pointObj("arrive", a.name, ...a.at); }
+  if (L.spawn) rectObj("spawn", L.spawn.name, ...L.spawn.rect);
+  for (const w of L.waypoints ?? []) {
+    clearRect(w.at[0], w.at[1], 2, 2, 2, w.ground ? G[w.ground] : undefined);
+    rectObj("waypoint", w.name, w.at[0], w.at[1], 2, 2, [prop("label", "string", w.label)]);
+  }
+  for (const s of L.safe ?? []) rectObj("safe", s.name, ...s.rect);
+
+  // Viền bản đồ: cây (trừ ô cổng sát mép).
+  for (let x = 0; x < MW; x++) for (const y of [0, MH - 1]) if (!lock[at(x, y)]) { obj[at(x, y)] = O.tree; gnd[at(x, y)] = G.grass; }
+  for (let y = 0; y < MH; y++) for (const x of [0, MW - 1]) if (!lock[at(x, y)]) { obj[at(x, y)] = O.tree; gnd[at(x, y)] = G.grass; }
+
+  // ---------- 6. Ra gid: biến thể nền theo nhiễu (không lặp mẫu), cây theo tầng ----------
+  const GG = L.gids.ground, GO = L.gids.objects;
+  for (const n of G_NAMES) if (GG[n] === undefined) throw new Error(`${mapId}: gids.ground thiếu "${n}"`);
+  const ground = new Array(N).fill(0), trees = new Array(N).fill(0), canopy = new Array(N).fill(0);
+  const sV = sub("variant"), pickW = (w, x, y, s) => { // w: { gid: trọng số }
+    const e = Object.entries(w), tot = e.reduce((a, [, v]) => a + v, 0); let r = hashF(x, y, s) * tot;
+    for (const [g, v] of e) { r -= v; if (r < 0) return +g; }
+    return +e[e.length - 1][0];
+  };
+  const pickGid = (v, x, y, s) => (typeof v === "number" ? v : Array.isArray(v) ? v[Math.floor(hashF(x, y, s) * v.length)] : pickW(v, x, y, s));
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const i = at(x, y), t = tier(i), g = gnd[i];
+    if (g === G.grass) {
+      // Thảm lá dưới cây, rêu loang, hai sắc cỏ theo nhiễu tần thấp.
+      let nTree = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (inside(x + dx, y + dy) && obj[at(x + dx, y + dy)] === O.tree) nTree++;
+      const leaf = fbm(x, y, 9, sV + 1, 3) + nTree * 0.05, moss = fbm(x, y, 13, sV + 2, 3), shade = fbm(x, y, 22, sV + 3, 2);
+      ground[i] = moss > (t.moss ?? 0.7) ? GG.moss : leaf > (t.leaf ?? 0.65) ? pickGid(GG.leaf, x, y, sV + 4) : shade > 0.5 ? GG.grass[1] : GG.grass[0];
+    } else if (g === G.path) ground[i] = t.path !== undefined ? GG[t.path] ?? t.path : GG.path;
+    else ground[i] = pickGid(GG[G_NAMES[g]], x, y, sV + 5 + g);
+    const o = obj[i];
+    if (o === O.tree) trees[i] = pickGid(fbm(x, y, t.clusterScale ?? 16, sC, 3) > t.cluster && t.denseTrees ? t.denseTrees : t.trees, x, y, sV + 20);
+    else if (o !== O.none) {
+      if (GO[O_NAMES[o]] === undefined) throw new Error(`${mapId}: gids.objects thiếu "${O_NAMES[o]}"`);
+      trees[i] = pickGid(GO[O_NAMES[o]], x, y, sV + 30 + o);
+    }
+  }
+
+  // ---------- 7. Lớp chỉnh tay (tools/maps/hand/<mapId>.json): tay_nen đè nền, tay_vat đè vật (gid nền ở tay_vat = xóa vật) ----------
+  const groundGids = new Set(G_NAMES.flatMap((n) => [].concat(typeof GG[n] === "object" && !Array.isArray(GG[n]) ? Object.keys(GG[n]).map(Number) : GG[n])));
+  groundGids.add(GG.moss); for (const g of [].concat(GG.leaf)) groundGids.add(g); for (const g of GG.grass) groundGids.add(g);
+  let handN = 0;
+  if (hand) {
+    if (hand.width !== MW || hand.height !== MH) throw new Error(`${mapId}: lớp tay ${hand.width}×${hand.height}, bản đồ ${MW}×${MH}`);
+    const layer = (n) => hand.layers.find((l) => l.type === "tilelayer" && l.name === n)?.data;
+    const hn = layer("tay_nen"), hv = layer("tay_vat");
+    if (hn) hn.forEach((g, i) => { if (g) { ground[i] = g; handN++; } });
+    if (hv) hv.forEach((g, i) => { if (g) { trees[i] = groundGids.has(g) ? 0 : g; handN++; } });
+  }
+
+  // ---------- 8. Ô chặn, nối thông: ô đi được không tới được từ trại thì trồng cây (không sinh hồn thú ở chỗ kẹt) ----------
+  const collides = new Set([GG.water, GG.deep, ...Object.entries(GO).filter(([k]) => k !== "plant").flatMap(([, v]) => gidsOf(v)),
+    ...L.tiers.flatMap((t) => [...gidsOf(t.trees), ...gidsOf(t.denseTrees ?? [])])]);
+  for (const g of gidsOf(GO.plant ?? [])) collides.delete(g);
+  for (const g of groundGids) if (g !== GG.water && g !== GG.deep) collides.delete(g);
+  const solid = (i) => collides.has(ground[i]) || collides.has(trees[i]);
+  const start = L.spawn ? [Math.floor(L.spawn.rect[0] + L.spawn.rect[2] / 2), Math.floor(L.spawn.rect[1] + L.spawn.rect[3] / 2)] : pt(Object.keys(P)[0]);
+  const reach = new Uint8Array(N), q = [at(...start)];
+  if (solid(q[0])) throw new Error(`${mapId}: tâm trại ${start} bị chặn`);
+  reach[q[0]] = 1;
+  while (q.length) {
+    const i = q.pop(), x = i % MW, y = (i / MW) | 0;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const X = x + dx, Y = y + dy; if (!inside(X, Y)) continue;
+      const j = at(X, Y); if (!reach[j] && !solid(j)) { reach[j] = 1; q.push(j); }
+    }
+  }
+  let filled = 0;
+  for (let i = 0; i < N; i++) if (!reach[i] && !solid(i)) { trees[i] = pickGid(tier(i).trees, i % MW, (i / MW) | 0, sV + 20); filled++; }
+  const reachable = (x, y) => reach[at(Math.floor(x), Math.floor(y))] === 1;
+  for (const [name, p] of Object.entries(P)) if (!reachable(...p)) warn.push(`điểm "${name}" ${p} không tới được từ trại`);
+  for (let i = 0; i < N; i++) if (trees[i] && L.gids.canopy?.[trees[i]] && i >= MW) canopy[i - MW] = L.gids.canopy[trees[i]];
+
+  // ---------- 9. Vùng hồn thú: tách hình vùng thành chữ nhật, số con theo mật độ × ô đi được ----------
+  const density = BEAST_DENSITY[mapId];
+  if (!density || density.length < L.tiers.length) throw new Error(`${mapId}: BEAST_DENSITY (shared/data.ts) thiếu mật độ cho ${L.tiers.length} tầng`);
+  const zoneStats = [];
+  L.zones.forEach((z, zi) => {
+    const t = L.tiers[z.tier], years = z.years ?? t.years, beasts = z.beasts ?? t.beasts, yr = parseLevelRange(years);
+    if (!yr || yr[0] < TIERS[0].years || yr[1] > MAX_YEARS) throw new Error(`${mapId}: vùng "${z.name}" niên hạn sai "${years}"`);
+    for (const part of beasts.split(",")) if (beastIndex(part.split(":")[0].trim()) < 0) throw new Error(`${mapId}: vùng "${z.name}": loài không có trong BEASTS: ${part}`);
+    const rects = rectsOf((x, y) => zoneOf[at(x, y)] === zi, MW, MH, L.zoneCell ?? 10);
+    const walk = rects.map((r) => { let n = 0; for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) if (reach[at(x, y)]) n++; return n; });
+    const total = walk.reduce((a, b) => a + b, 0), want = Math.round((density[z.tier] * total) / 1000);
+    // Chia số con cho các mảnh theo số ô đi được (phần dư lớn nhất), tổng đúng bằng `want`.
+    const raw = walk.map((n) => (total ? (want * n) / total : 0)), cnt = raw.map(Math.floor);
+    raw.map((v, k) => [v - cnt[k], k]).sort((a, b) => b[0] - a[0] || a[1] - b[1]).slice(0, want - cnt.reduce((a, b) => a + b, 0)).forEach(([, k]) => cnt[k]++);
+    rects.forEach((r, k) => rectObj("zone", z.name, r.x, r.y, r.w, r.h, [prop("hint", "string", z.hint ?? t.hint), prop("weights", "string", "1"),
+      prop("count", "int", cnt[k]), prop("beasts", "string", beasts), prop("years", "string", years)]));
+    zoneStats.push({ name: z.name, tier: z.tier, rects: rects.length, walk: total, count: want });
+  });
+
+  // ---------- 10. Tinh anh, hang thú vương, NPC (kiểm mã như server) ----------
+  const zoneAt = (x, y) => zoneOf[at(Math.floor(x), Math.floor(y))];
+  for (const e of L.elites ?? []) {
+    const b = bossIndex(e.boss), [x, y, w, h] = e.rect, z = zoneAt(x + w / 2, y + h / 2);
+    if (b < 0 || BOSSES[b].rank !== 1) throw new Error(`${mapId}: tinh anh "${e.name}": mã không phải tinh anh: ${e.boss}`);
+    if (z < 0) throw new Error(`${mapId}: tinh anh "${e.name}" không nằm trong vùng nào`);
+    if (!reachable(x + w / 2, y + h / 2)) warn.push(`tinh anh "${e.name}": tâm không tới được`);
+    rectObj("elite", e.name, x, y, w, h, [prop("boss", "string", e.boss)]);
+  }
+  if (L.lair) {
+    const { name, boss, at: [cx, cy], rx, ry } = L.lair;
+    if (boss !== MAPS[mapId].king) throw new Error(`${mapId}: hang "${name}": MAPS.${mapId}.king là ${MAPS[mapId].king}`);
+    rectObj("boss", name, cx - rx, cy - ry, rx * 2, ry * 2, [prop("boss", "string", boss)]);
+  }
+  for (const n of L.npcs ?? []) pointObj("npc", n.name, ...n.at, [prop("npc", "string", n.npc)]);
+
+  // ---------- 11. File Tiled (cùng định dạng tools/gen-map.mjs: server và client đọc như cũ) ----------
+  const layer = (id, name, data) => ({ id, name, type: "tilelayer", data, width: MW, height: MH, opacity: 1, visible: true, x: 0, y: 0 });
+  const rows = L.tileRows ?? 5;
+  const map = {
+    compressionlevel: -1, type: "map", version: "1.10", tiledversion: "1.10.2",
+    orientation: "orthogonal", renderorder: "right-down", infinite: false,
+    width: MW, height: MH, tilewidth: TILE, tileheight: TILE, nextlayerid: 5, nextobjectid: oid,
+    properties: [prop("generator", "string", `tools/maps/build.mjs ${mapId}`), prop("seed", "int", seed)],
+    layers: [
+      layer(1, "ground", ground), layer(2, "trees", trees),
+      { id: 3, name: "zones", type: "objectgroup", draworder: "topdown", objects: list, opacity: 1, visible: true, x: 0, y: 0 },
+      layer(4, "canopy", canopy),
+    ],
+    tilesets: [{
+      firstgid: 1, name: "tiles", image: "tiles.png", imagewidth: 128, imageheight: rows * TILE, tilewidth: TILE, tileheight: TILE,
+      columns: 8, tilecount: 8 * rows, margin: 0, spacing: 0,
+      tiles: [...collides].sort((a, b) => a - b).map((g) => ({ id: g - 1, properties: [prop("collides", "bool", true)] })),
+    }],
+  };
+  for (const g of collides) if (g < 1 || g > 8 * rows) throw new Error(`${mapId}: gid ${g} ngoài tileset (${8 * rows} ô)`);
+  let walkN = 0; for (let i = 0; i < N; i++) if (reach[i]) walkN++;
+  const stats = { mapId, size: `${MW}×${MH}`, seed, walkable: walkN, walkPct: +(walkN / N * 100).toFixed(1), filled, hand: handN,
+    beasts: zoneStats.reduce((a, z) => a + z.count, 0), zoneRects: zoneStats.reduce((a, z) => a + z.rects, 0), zones: zoneStats, objects: list.length, warn };
+  return { json: JSON.stringify(map), map, stats, roads: roadsOut, zoneOf };
+}
+function gidsOf(v) { return typeof v === "number" ? [v] : Array.isArray(v) ? v : Object.keys(v ?? {}).map(Number); }
+
+/** Lớp tay của mapId nếu có. */
+function readHand(mapId) {
+  const f = path.join(HAND, `${mapId}.json`);
+  return existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
+}
+
+// ---------- Dòng lệnh ----------
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2);
+  const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
+  const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
+  const seedArg = opt("--seed"), previewArg = opt("--preview"), check = flag("--check"), handInit = flag("--hand-init");
+  const all = readdirSync(LAYOUTS).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, ""));
+  const ids = args.length ? args : all;
+  let bad = 0;
+  for (const id of ids) {
+    const L = readLayout(id), out = path.join(ASSETS, L.out), t0 = performance.now();
+    if (handInit) {
+      const f = path.join(HAND, `${id}.json`);
+      if (existsSync(f)) { console.error(`[maps] ${path.relative(ROOT, f)} đã có, không ghi đè.`); process.exit(1); }
+      const { map } = build(L, null);
+      // Lớp tham khảo (khóa, mờ) để thấy bản sinh khi vẽ; công cụ chỉ đọc tay_nen, tay_vat.
+      const ref = (n, id2, name) => ({ ...map.layers.find((l) => l.name === n), id: id2, name, locked: true, opacity: 0.6 });
+      const empty = (id2, name) => ({ id: id2, name, type: "tilelayer", data: new Array(map.width * map.height).fill(0), width: map.width, height: map.height, opacity: 1, visible: true, x: 0, y: 0 });
+      mkdirSync(HAND, { recursive: true });
+      writeFileSync(f, JSON.stringify({ ...map, nextlayerid: 5, layers: [ref("ground", 1, "tham_khao_nen"), ref("trees", 2, "tham_khao_vat"), empty(3, "tay_nen"), empty(4, "tay_vat")],
+        tilesets: map.tilesets.map((t) => ({ ...t, image: "../../../shared/assets/tiles.png" })) }));
+      console.log(`[maps] Đã tạo ${path.relative(ROOT, f)}: vẽ vào lớp tay_nen / tay_vat rồi chạy lại node tools/maps/build.mjs ${id}`);
+      continue;
+    }
+    const r = build(L, readHand(id), seedArg === undefined ? null : Number(seedArg)), ms = Math.round(performance.now() - t0);
+    for (const w of r.stats.warn) console.warn(`[maps] ${id}: CẢNH BÁO ${w}`);
+    if (check) {
+      const same = existsSync(out) && readFileSync(out, "utf8") === r.json;
+      if (!same) { bad++; console.error(`[maps] ${id}: ${path.relative(ROOT, out)} khác bản sinh từ bố cục (chạy node tools/maps/build.mjs ${id}; sửa tay thì vẽ vào tools/maps/hand)`); }
+      else console.log(`[maps] ${id}: OK (${ms} ms)`);
+      continue;
+    }
+    writeFileSync(out, r.json);
+    const s = r.stats;
+    console.log(`[maps] Đã sinh ${path.relative(ROOT, out)} ${s.size}, hạt giống ${s.seed}, ${ms} ms: ${s.walkPct}% ô đi được, ${s.beasts} hồn thú thường ` +
+      `trong ${s.zoneRects} mảnh vùng, ${s.objects} object, lấp ${s.filled} ô kẹt, ${s.hand} ô chỉnh tay`);
+    for (const z of s.zones) console.log(`  ${z.name} (tầng ${z.tier}): ${z.rects} mảnh, ${z.walk} ô đi được, ${z.count} con`);
+    if (previewArg) { writeFileSync(previewArg, topdownPreview(r, L)); console.log(`[maps] Ảnh nhìn thẳng: ${previewArg}`); }
+  }
+  if (bad) process.exit(1);
+}
