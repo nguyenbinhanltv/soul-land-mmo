@@ -1,4 +1,4 @@
-import { access, readFile, stat } from "node:fs/promises";
+import { access, readFile, realpath, stat } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,6 +44,7 @@ try {
     readFile(manifestPath, "utf8").then(JSON.parse),
   ]);
   validateManifestMatchesCatalog({ catalog, manifest });
+  const realAssetRoot = await realpath(assetRoot);
   const checked = new Set();
   const measuredDurations = new Map();
   for (const item of manifest.items) {
@@ -53,6 +54,10 @@ try {
       if (target !== assetRoot && !target.startsWith(`${assetRoot}${path.sep}`)) throw new Error(`manifest path escapes asset root: ${relative}`);
       if (!checked.has(target)) {
         await access(target);
+        const realTarget = await realpath(target);
+        if (realTarget !== realAssetRoot && !realTarget.startsWith(`${realAssetRoot}${path.sep}`)) {
+          throw new Error(`manifest path escapes asset root through symlink: ${relative}`);
+        }
         checked.add(target);
       }
       const bytes = (await stat(target)).size;
