@@ -3276,7 +3276,7 @@ export const shopOf = (npcId: string) => (npcId === CAMP_MERCHANT ? CAMP_SHOP : 
 export const shopExpands = (npcId: string) => npcId !== CAMP_MERCHANT;
 /**
  * Chỗ đứng của thương nhân lưu động (campMerchantSpot): cách mép cổng / truyền tống trận ít nhất CAMP_GAP pixel, cách điểm `arrive` /
- * NPC khác ít nhất CAMP_PT_GAP (nhỏ hơn NPC_RANGE: người vừa tới không đứng chồng lên nhưng vẫn trong tầm nói chuyện), lưới CAMP_STEP.
+ * NPC khác ít nhất CAMP_PT_GAP (nhỏ hơn NPC_RANGE − CAMP_STEP: người vừa tới không đứng chồng lên nhưng vẫn trong tầm nói chuyện), lưới CAMP_STEP.
  */
 export const CAMP_GAP = 16, CAMP_PT_GAP = 28, CAMP_STEP = 8;
 /**

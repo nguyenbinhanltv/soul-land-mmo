@@ -212,6 +212,8 @@ export function loadMap(mapId: string): GameMap {
   const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones), npcs = parseNpcs(mapId, npcObjs);
   const camp = campMerchantSpot(raw, mapId); // #111: thương nhân lưu động ở trại cổng bản đồ săn
   if (camp && !npcs.some((n) => n.id === camp.id)) npcs.push(camp);
+  else if (!camp && MAPS[mapId].kind === "hunt" && !safe.some((r) => inRect(r, spawn.x + spawn.w / 2, spawn.y + spawn.h / 2)))
+    console.warn(`[map ${mapId}] Không có chỗ đứng cho thương nhân lưu động trong trại cổng "spawn" (#111).`);
 
   const isSolidTile = (tx: number, ty: number) => gridSolid(grid, tx, ty);
   const hits = (x: number, y: number, hw: number, hh: number) => gridHits(grid, x, y, hw, hh);
