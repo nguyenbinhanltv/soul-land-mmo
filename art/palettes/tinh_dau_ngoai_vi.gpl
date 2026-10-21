@@ -1,0 +1,17 @@
+GIMP Palette
+Name: Tinh Đấu Ngoại vi: rừng rêu sâu, nắng lốm đốm
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ tinh_dau_ngoai_vi (MAPS trong shared/data.ts).
+#
+# Rêu sâu
+ 30  58  46	Rêu sâu tối #1e3a2e
+ 47  90  64	Rêu sâu #2f5a40
+ 74 122  80	Rêu sâu sáng #4a7a50
+# Nắng xuyên tán
+216 208 138	Nắng lốm đốm #d8d08a
+# Suối
+ 58 122 138	Suối rừng #3a7a8a
+# Đom đóm thưa
+200 240 122	Đom đóm #c8f07a

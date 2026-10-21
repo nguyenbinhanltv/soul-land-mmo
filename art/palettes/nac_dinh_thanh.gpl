@@ -1,0 +1,18 @@
+GIMP Palette
+Name: Nặc Đinh Thành: gạch nung, đèn lồng
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ nac_dinh_thanh (MAPS trong shared/data.ts).
+#
+# Gạch nung
+138  74  50	Gạch tối #8a4a32
+176 101  74	Gạch #b0654a
+# Ngói xám
+ 74  80  96	Ngói tối #4a5060
+106 112 128	Ngói #6a7080
+# Đèn lồng
+216  64  42	Đèn lồng đỏ #d8402a
+255 176  74	Ánh đèn lồng #ffb04a
+# Gỗ sơn
+106  42  32	Gỗ sơn son #6a2a20

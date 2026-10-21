@@ -1,0 +1,17 @@
+GIMP Palette
+Name: Lõi Tinh Đấu: tím than, hồ thần phát sáng
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ loi_tinh_dau (MAPS trong shared/data.ts).
+#
+# Tím than
+ 26  16  48	Tím than tối #1a1030
+ 46  30  74	Tím than #2e1e4a
+# Hồ thần
+ 42 106 160	Hồ thần #2a6aa0
+106 176 240	Hồ thần sáng #6ab0f0
+# Hồn lực trôi
+192 224 255	Hồn lực trôi #c0e0ff
+# Rễ cổ
+ 58  42  42	Rễ cổ #3a2a2a

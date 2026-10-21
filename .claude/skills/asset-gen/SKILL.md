@@ -1,6 +1,6 @@
 ---
 name: asset-gen
-description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (thoi 32×16 mỗi ô logic, ô lớn 64×32 phủ 2×2, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab và dây chuyền tools/assets, kể cả nhập ảnh Gemini (ô isometric, sprite) bằng gemini-import.mjs. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
+description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (phong cách A hồn hoàn chiếu sáng / B mỗi vùng một sắc / C thủy mặc / D lưu ly; thoi 32×16 mỗi ô logic, ô lớn 64×32 phủ 2×2, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab (ô nền PixelLab hoặc Gemini) và dây chuyền tools/assets, kể cả nhập ảnh Gemini (ô isometric, sprite) bằng gemini-import.mjs. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
 ---
 
 # Đưa asset vào game
@@ -11,9 +11,10 @@ description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.
 - Gói trial chỉ chạy **1 việc một lúc** và đôi khi từ chối vì quá tải ("high demand", không trừ lượt): chờ việc trước xong rồi gửi lại.
 - Công cụ miễn phí: `search_help`, `search_knowledge`, `get_pro_flash_capabilities`, `get_balance`, `get_*` / `list_*`.
 - Key chưa có ảnh vẽ bằng code (`client/src/honsuArt.ts`, `textures.ts`); sửa pixel bằng tay (Aseprite, `pixelart_workbench`) khi cần.
+- **Ô Gemini** (người dùng tạo bằng Gemini, nhập bằng `gemini-import.mjs --kind tile`, mục "Nhập ảnh Gemini" bên dưới): mặt trên thoi 64×32 trầm, liền mép, **hợp làm ô lớn 64×32** (nền chính). **Mỗi bản đồ chỉ dùng một nguồn ô nền**, không trộn Gemini với PixelLab; vật đứng / nhân vật / hồn thú vẫn từ PixelLab. Bản đồ dùng Gemini vẫn cần ô thường 32×16 (chỗ 2×2 không cùng loại địa hình, mép địa hình): lấy ô 32×16 do `gemini-import` xuất (`<out>/32`), từ ảnh Gemini riêng với prompt vân to, thưa cho ô nhỏ (mục "Prompt theo phong cách"). Câu "thu về 32×16 thì mất nét và lộ mẫu lặp" chỉ nói việc lấy ô thu nhỏ đó làm **nền chính** cho vùng rộng.
 - Không dùng hay tham chiếu ảnh từ game thương mại, phim, truyện tranh chính thức; không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 
-## Gọi PixelLab (đã thử ở bước 10.0)
+## Gọi PixelLab (đã thử ở bước 10.0, 10.0b)
 | Asset | Lệnh | Tham số | Lượt |
 |---|---|---|---|
 | Hồn sư 8 hướng | `create_character` | `mode: "standard"`, `size: 52` (khung thô 76×76, người cao 52–55), `view: "high top-down"`, `n_directions: 8`, `outline: "single color outline"`, `detail: "high detail"`, `proportions` preset `stylized` | 1 |
@@ -22,9 +23,21 @@ description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.
 | Animation hồn thú | `animate_character` mẫu | chỉ có `idle`, `walk-*`, `running-*`, `sneaking`, `fast-walk`, `bark` (không có đánh / bị đánh / gục: làm bằng code hoặc animation tự mô tả v3, tốn hơn) | 1 mỗi hướng |
 | Ô nền | `create_isometric_tile` | `size: 32` (ô lớn 2×2: 64), `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát) | 1 |
 | Vật đứng | `create_map_object` | `width` / `height` theo vật (cây 96×128, lửa trại 48×48), `view: "high top-down"`, nền trong suốt | 1 |
+| Vật / hồn thú thực vật (Thực Nhân Hoa, Cổ Mộc Thụ Nhân…) | `create_map_object` | 96×96, `view: "high top-down"`; không có mẫu animation, động tác làm bằng code | 1 |
 | Normal map | `create_normal_map` | chỉ khi bản tự sinh (`normal.mjs`) không đạt | 0,5 |
 
 - Ô size 32: mặt trên là **thoi 32×16, tâm (16, 19)** trong ảnh 32×32, đáy dày khoảng 5 pixel. Ô lớn size 64: **thoi 64×32, tâm khoảng (32, 37)** trong ảnh 64×64, đáy dày khoảng 12 pixel. Lật ngang được để có thêm biến thể.
+## Prompt theo phong cách (mục 5.11)
+- **Thế giới (A + B):** mô tả vật bằng màu **trầm, hơi khử màu** của vùng ("muted", "desaturated earthy", "dark teal night forest", "sunset crimson and burnt orange", "icy blue and white"…) và chỉ để **phần phát sáng thật** sáng (nấm phát quang, băng tinh, lửa). Bản thử 10.0b dùng:
+  - nấm: `cluster of bioluminescent forest mushrooms, tall thin stems, caps glowing soft teal and pale cyan…, on a small dark mossy ground patch, night fantasy forest, isometric view` (48×48);
+  - cây Lạc Nhật: `single autumn forest tree at sunset, twisted dark trunk, dense canopy of crimson red and burnt orange leaves…, muted shadows with warm rim light…` (96×128);
+  - thông tuyết: `tall snow-covered pine tree…, dark blue-green needles heavily laden with white snow, icy blue shadows, small snow mound at the base…` (64×128);
+  - băng tinh: `cluster of jagged ice crystals…, translucent pale cyan and deep blue facets…, faint inner glow…` (48×64).
+- **Không vẽ mắt phát sáng hay hào quang vào hồn thú**: client tô mắt theo màu niên hạn (`TIERS[bậc].glow`) và thêm viền sáng; PixelLab tự vẽ mắt sáng thì tô lại về màu mắt thường. Hồn sư cũng không vẽ vòng hồn hoàn.
+- Ô nền vẽ theo bảng chung (trầm), không theo màu vùng: client nhân màu môi trường của vùng lúc vẽ, nên một bộ ô dùng cho nhiều vùng.
+- **Gemini (ô nền):** "flat isometric floor tile, top face only, no side walls, no outline, no vignette; exact 2:1 dimetric diamond, width exactly twice the height; muted desaturated earthy colors; seamless texture that tiles with itself in both diagonal directions, no feature touching the edges; about 64 art pixels across; plain #FF00FF background, even grid, no text". Mỗi ảnh một chất liệu × 4 biến thể cùng bảng màu. Ô 32×16 (ô đơn ở chỗ 2×2 không cùng địa hình, mép): ảnh riêng, thay "about 64 art pixels across" bằng "about 32 art pixels across; large sparse texture features, few small details" để thu về 32×16 không thành nhiễu.
+- **Giao diện (C, D)** vẽ bằng code hoặc `pixelart_workbench` (không tốn lượt) theo bảng `art/palettes/_thuy_mac.gpl`, `_luu_ly.gpl`; font phải đủ dấu tiếng Việt.
+
 - Tải ảnh: `get_character` (URL `rotations/<hướng>.png`), `get_isometric_tile` / `get_map_object` (URL `download`). Ảnh thô lưu ở `art/src/pixellab/<bộ>/`; thư mục tạm để ngoài repo.
 
 ## Quy cách bắt buộc (chi tiết ở mục 5.11)
@@ -34,7 +47,7 @@ description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.
 - Sheet hồn sư 24 cột × 6 hàng (hàng 0–4 là 5 hướng vẽ, hàng 5 `absorb`; cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–16 `cast`, 17–18 `hurt`, 19–22 `die`). Sheet hồn thú 20 cột × 5 hàng (cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–15 `hurt`, 16–19 `die`).
 - **Ghép lớp theo bộ giới × kiểu tóc (phương án (b)):** mỗi bộ vẽ liền thân + áo + tóc rồi tách tự động thành 3 lớp trên từng khung, từng hướng; key `hs_{body,outfit,hair}_{m,f}_{0–3}`; một bộ đủ 3 lớp trong manifest hoặc không có lớp nào. Phụ thể võ hồn là lớp riêng `vh_{id}_b` / `vh_{id}_f`, vẽ tĩnh 5 hướng rồi ghép theo điểm neo của từng khung thân.
 - **Viền ngoài `#1a1020`** cho nhân vật / hồn thú / vật đứng (không đen tuyền), giữ nguyên khi hoán màu: lớp tóc / áo chỉ gồm dải 4 xám chuẩn + `#1a1020`. Ô nền không viền.
-- Màu chỉ lấy từ `art/palette.gpl`, cộng `col` / `robe` của võ hồn (`VOHON`) và 1 sắc tối, 1 sắc sáng suy ra. **Phong cách chờ chốt** (mục 5.11): không tạo ảnh hàng loạt trước khi chốt.
+- Màu lấy từ `art/palette.gpl` (bảng chung) cộng bảng nhấn của vùng `art/palettes/<mapId>.gpl` (giao diện: `_thuy_mac.gpl`, chỗ sang trọng: `_luu_ly.gpl`), `col` / `robe` của võ hồn (`VOHON`) và 1 sắc tối, 1 sắc sáng suy ra, màu hồn hoàn của `TIERS`.
 - Bóng, vòng hồn hoàn, aura do client vẽ, không vẽ trong sprite.
 
 ## Dây chuyền `tools/assets/` (Node thuần)

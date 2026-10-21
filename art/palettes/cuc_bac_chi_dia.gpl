@@ -1,0 +1,18 @@
+GIMP Palette
+Name: Cực Bắc Chi Địa: băng lam, cực quang, tuyết
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ cuc_bac_chi_dia (MAPS trong shared/data.ts).
+#
+# Băng lam
+ 42  90 138	Băng lam tối #2a5a8a
+ 74 138 192	Băng lam #4a8ac0
+138 200 240	Băng lam sáng #8ac8f0
+# Trắng lạnh
+232 244 255	Trắng lạnh #e8f4ff
+# Cực quang
+ 74 240 160	Cực quang lục #4af0a0
+160 122 240	Cực quang tím #a07af0
+# Bóng lạnh
+ 26  42  74	Bóng lạnh #1a2a4a
