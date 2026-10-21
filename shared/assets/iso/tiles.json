@@ -234,9 +234,7 @@
   },
   "reu_toi": {
    "img": ["ground/reu_toi_0.png", "ground/reu_toi_1.png"],
-   "big": ["ground/reu_toi_0_lon.png", "ground/reu_toi_1_lon.png"],
    "c": [16, 19],
-   "cBig": [32, 37],
    "edge": 5
   },
   "reu_dom_sang": {
@@ -253,26 +251,12 @@
    "cBig": [32, 37],
    "edge": 3
   },
-  "bun_toi": {
-   "img": ["ground/bun_toi_0.png", "ground/bun_toi_1.png"],
-   "big": ["ground/bun_toi_0_lon.png", "ground/bun_toi_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 3
-  },
   "nuoc_sau_toi": {
    "img": ["ground/nuoc_sau_toi_0.png", "ground/nuoc_sau_toi_1.png"],
    "big": ["ground/nuoc_sau_toi_0_lon.png", "ground/nuoc_sau_toi_1_lon.png"],
    "c": [16, 19],
    "cBig": [32, 37],
    "edge": 1
-  },
-  "dat_duong_xi": {
-   "img": ["ground/dat_duong_xi_0.png", "ground/dat_duong_xi_1.png"],
-   "big": ["ground/dat_duong_xi_0_lon.png", "ground/dat_duong_xi_1_lon.png"],
-   "c": [16, 19],
-   "cBig": [32, 37],
-   "edge": 3
   }
  },
  "props": {
@@ -529,7 +513,7 @@
   "tinh_dau_ngoai_vi": {
    "ground": {
     "1": "co_rung",
-    "2": "co_reu",
+    "2": "co_rung~#d8dcd0",
     "3": "la_rung",
     "5": "co_reu",
     "6": "la_rung",
@@ -546,9 +530,9 @@
     "3": "reu_toi",
     "4": "reu_dom_sang",
     "7": "dat_da_rung",
-    "8": "bun_toi",
+    "8": "dat_da_rung~#b8b4c0",
     "9": "nuoc_sau_toi",
-    "10": "dat_duong_xi"
+    "10": "dat_da_rung~#d8d0c8"
    },
    "props": {
     "19": ["cay_rung_dem", "cay_la_rong~#7888a0"],
