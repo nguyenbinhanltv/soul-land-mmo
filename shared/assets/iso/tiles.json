@@ -448,6 +448,82 @@
   "tang_da_reu": {
    "key": "prop_tang_da_reu",
    "foot": [48, 62]
+  },
+  "hoang_cung": {
+   "key": "prop_hoang_cung",
+   "foot": [80, 126]
+  },
+  "su_lai_khac": {
+   "key": "prop_su_lai_khac",
+   "foot": [56, 110]
+  },
+  "thuong_hoi": {
+   "key": "prop_thuong_hoi",
+   "foot": [48, 110]
+  },
+  "dien_hai_than": {
+   "key": "prop_dien_hai_than",
+   "foot": [64, 110]
+  },
+  "khan_dai": {
+   "key": "prop_khan_dai",
+   "foot": [56, 78]
+  },
+  "tuong_dau_truong": {
+   "key": "prop_tuong_dau_truong",
+   "foot": [56, 78]
+  },
+  "cong_phu_quy_toc": {
+   "key": "prop_cong_phu_quy_toc",
+   "foot": [48, 110]
+  },
+  "dinh_ngoc": {
+   "key": "prop_dinh_ngoc",
+   "foot": [48, 94]
+  },
+  "dai_phun_nuoc": {
+   "key": "prop_dai_phun_nuoc",
+   "foot": [40, 62]
+  },
+  "cay_hoa_anh_dao": {
+   "key": "prop_cay_hoa_anh_dao",
+   "foot": [40, 78]
+  },
+  "su_tu_vang": {
+   "key": "prop_su_tu_vang",
+   "foot": [32, 78]
+  },
+  "cot_den_do": {
+   "key": "prop_cot_den_do",
+   "foot": [24, 94]
+  },
+  "bon_hoa": {
+   "key": "prop_bon_hoa",
+   "foot": [48, 62]
+  },
+  "tuong_dinh_ba": {
+   "key": "prop_tuong_dinh_ba",
+   "foot": [32, 110]
+  },
+  "bui_hoa_nhiet_doi": {
+   "key": "prop_bui_hoa_nhiet_doi",
+   "foot": [48, 78]
+  },
+  "cong_sat": {
+   "key": "prop_cong_sat",
+   "foot": [32, 78]
+  },
+  "cot_co_do_vang": {
+   "key": "prop_cot_co_do_vang",
+   "foot": [24, 78]
+  },
+  "lo_lua_dong": {
+   "key": "prop_lo_lua_dong",
+   "foot": [24, 62]
+  },
+  "gia_vu_khi": {
+   "key": "prop_gia_vu_khi",
+   "foot": [40, 78]
   }
  },
  "maps": {
@@ -579,7 +655,36 @@
      "top": "#c8bea8",
      "h": 32
     },
-    "tower": "thap_cong_thanh~#e8e4dc"
+    "tower": "thap_cong_thanh~#e8e4dc",
+    "compounds": {
+     "7,4": {
+      "main": ["hoang_cung", "dinh_ngoc", "dinh_ngoc"],
+      "gate": "cong_phu_quy_toc",
+      "deco": ["su_tu_vang", "cay_hoa_anh_dao", "bon_hoa", "cot_den_do"],
+      "floor": "da_cuoi_cung"
+     },
+     "46,6": {
+      "main": ["thuong_hoi"],
+      "gate": "cong_phu_quy_toc",
+      "deco": ["bon_hoa", "cot_den_do"],
+      "floor": "da_cuoi_cung"
+     },
+     "5,34": {
+      "main": ["su_lai_khac", "dinh_ngoc", "dai_phun_nuoc"],
+      "gate": "cong_phu_quy_toc",
+      "deco": ["cay_hoa_anh_dao", "bon_hoa", "su_tu_vang"],
+      "floor": "da_cuoi_cung"
+     },
+     "46,34": {
+      "main": ["tuong_dau_truong", "cot_co_do_vang", "cot_co_do_vang"],
+      "gate": "cong_sat",
+      "deco": ["lo_lua_dong", "gia_vu_khi", "cot_co_do_vang"],
+      "floor": "da_cuoi_cung"
+     }
+    }
+   },
+   "props": {
+    "17": ["cay_la_rong", "cay_hoa_anh_dao", "cay_la_tron", "cot_den_do"]
    }
   },
   "dai_dau_hon_truong": {
@@ -603,7 +708,16 @@
      "wall": ["#8a8a92", "#5a5a62", "#a2a2aa"],
      "top": "#9a9aa2",
      "h": 30
+    },
+    "compounds": {
+     "1,1": {
+      "main": ["khan_dai", "khan_dai", "khan_dai", "khan_dai", "khan_dai"],
+      "floor": "san_da_nut"
+     }
     }
+   },
+   "props": {
+    "17": ["cot_co_do_vang", "lo_lua_dong"]
    }
   },
   "hai_than_dao": {
@@ -618,7 +732,7 @@
    },
    "props": {
     "17": ["cay_dua_cao", "cay_dua"],
-    "18": ["cay_dua", "cay_la_tron"],
+    "18": ["cay_dua", "cay_la_tron", "bui_hoa_nhiet_doi"],
     "20": ["cay_dua_cao", "cay_dua", "cay_la_tron~#c8d4c0"],
     "36": ["da_ngam", "da_ngam", "cum_san_ho"]
    },
@@ -637,6 +751,12 @@
      "wall": ["#c8b890", "#a08e6a", "#ddd0ac"],
      "top": "#c8b890",
      "h": 24
+    },
+    "compounds": {
+     "1,25": {
+      "main": ["dien_hai_than"],
+      "walls": false
+     }
     }
    }
   },

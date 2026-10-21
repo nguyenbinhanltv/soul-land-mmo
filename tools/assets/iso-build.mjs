@@ -142,6 +142,11 @@ export function checkIsoTiles(log = console.error) {
     const set = { ground: { ...data.maps?.["*"]?.ground, ...data.maps?.[id]?.ground }, props: { ...data.maps?.["*"]?.props, ...data.maps?.[id]?.props } };
     const build = data.maps?.[id]?.build ?? data.maps?.["*"]?.build;
     if (build?.tower && !data.props?.[ref(build.tower)]) err(`${id}: build.tower trỏ tới vật "${ref(build.tower)}" không có`);
+    for (const [at, c] of Object.entries(build?.compounds ?? {})) {
+      for (const r of [...(c.main ?? []), ...(c.gate ? [c.gate] : []), ...(c.deco ?? [])]) if (!data.props?.[ref(r)]) err(`${id}: cung uyển ${at} trỏ tới vật "${ref(r)}" không có`);
+      if (c.floor && !data.ground?.[ref(c.floor)]) err(`${id}: cung uyển ${at} trỏ tới ô nền "${ref(c.floor)}" không có`);
+      if (!c.main?.length) err(`${id}: cung uyển ${at} thiếu công trình main`);
+    }
     const used = (n) => new Set(m.layers.find((l) => l.type === "tilelayer" && l.name === n)?.data.filter((g) => g > 0) ?? []);
     for (const gid of used("ground")) {
       const r = set.ground[gid];
