@@ -306,3 +306,4 @@ Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằn
 | File | Tác giả | Link gốc | Giấy phép | Đã chỉnh sửa gì |
 |---|---|---|---|---|
 | (font) Be Vietnam Pro | Lâm Bảo, Tony Le, Việt Anh Nguyễn | https://fonts.google.com/specimen/Be+Vietnam+Pro | OFL | Không, tải qua Google Fonts |
+| `client/src/fonts/ark-pixel-12px-vi.woff2`, `ark-pixel-10px-vi.woff2` (font "Ark Pixel VI 12" / "Ark Pixel VI 10", bước 10.8) | TakWolf (Ark Pixel Font) | https://github.com/TakWolf/ark-pixel-font (bản 2026.10.16, 12px / 10px proportional, bộ `latin`) | OFL 1.1 (`client/src/fonts/OFL-ark-pixel.txt`, không có Reserved Font Name) | Cắt bằng fontTools `pyftsubset` còn U+0020–007E, U+00A0–024F, U+0300–036F, U+1E00–1EFF, U+2000–206F, U+20AB, U+2190–22FF, U+25A0–27BF (Latin, đủ tiếng Việt, dấu câu, mũi tên, hình học, ★ ☆), xuất woff2; không sửa nét. Đã kiểm bằng fontkit: đủ 12 nguyên âm × 6 thanh (hoa và thường) cùng đ Đ ở cả hai cỡ |
