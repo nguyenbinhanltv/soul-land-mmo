@@ -203,7 +203,7 @@ Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normali
 
 Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`.
 
-Ảnh nguồn Gemini không tải trong game (không có trong manifest): `art/src/gemini/phuthe_s/` (24 phụ thể hướng nam 96×96 từ `phuthe-1..4.png`, ảnh khởi đầu PixelLab cho 10.5), `art/src/gemini/beast_se/` (6 hồn thú từ `beast-01.png`, vẽ nghiêng 3/4 sang phải, tham chiếu hướng se / e cho 10.6), `art/src/gemini/status_du_phong/` (3 biểu tượng trạng thái chưa có mã trong game: ngã, đóng băng, bùng nổ). Nhập bằng `gemini-import.mjs` như các dòng dưới, ngày 2026-10-21.
+Ảnh nguồn Gemini không tải trong game (không có trong manifest): `art/src/gemini/phuthe_s/` (24 phụ thể hướng nam 96×96 từ `phuthe-1..4.png`, ảnh khởi đầu PixelLab cho 10.5), `art/src/gemini/beast_se/` (6 hồn thú từ `beast-01.png`, vẽ nghiêng 3/4 sang phải, tham chiếu hướng se / e cho 10.6), `art/src/gemini/status_du_phong/` (4 biểu tượng trạng thái chưa có mã trong game: ngã, đóng băng, bùng nổ từ `status-1.png`; chảy máu `chay_mau.png` từ `status-2-redo.png` ô 4). Nhập bằng `gemini-import.mjs` như các dòng dưới, ngày 2026-10-21.
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
