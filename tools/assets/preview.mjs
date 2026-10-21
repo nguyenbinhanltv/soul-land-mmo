@@ -67,7 +67,7 @@ function layoutOf(img, file) {
 }
 const lays = layers.map((l, i) => layoutOf(l, inputs[i]));
 // Phụ thể có một nửa sheet cho mỗi giới (ISO_VH_SEXES): lấy nửa theo --sex, mặc định theo tên sheet thân (body_f_0.png → f).
-const sexOf = inputs.map((f) => path.basename(f).match(/^(?:body|outfit|hair)_([a-z])_d+.png$/)?.[1]).find(Boolean);
+const sexOf = inputs.map((f) => path.basename(f).match(/^(?:body|outfit|hair)_([a-z])_[0-9]+[.]png$/)?.[1]).find(Boolean);
 const vhRow0 = Math.max(0, ISO_VH_SEXES.indexOf(sexOpt || sexOf || ISO_VH_SEXES[0])) * ISO_HS_ROWS;
 // Lấy bảng animation của lớp đầu tiên không phải phụ thể (phụ thể chỉ có idle/walk/attack/cast).
 const main = lays.find((l) => l.kind !== "vohon") ?? lays[0];
