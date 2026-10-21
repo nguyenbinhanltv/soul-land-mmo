@@ -95,7 +95,7 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Merge
 
-- **CI** (`.github/workflows/check.yml`) chạy `npm run install:all`, `npm run check`, `npm run build` trên mọi PR vào `main` và mỗi push vào `main`. Chỉ merge khi status check **`check-build`** xanh. Chủ repo bật trong *Settings → Branches → main → Require status checks to pass before merging*, chọn `check-build`.
+- **CI** (`.github/workflows/check.yml`) chạy `npm ci` (server + client, cài đúng lockfile), `npm run check`, `npm run build` trên mọi PR vào `main` và mỗi push vào `main`. Chỉ merge khi status check **`check-build`** xanh. Chủ repo bật trong *Settings → Branches → main → Require status checks to pass before merging*, chọn `check-build`.
 - PR của orchestrator AO: orchestrator tự merge khi review AO đạt và CI `check-build` xanh.
 - PR của người cộng tác: orchestrator AO của chủ repo kiểm tra lại PR có `cho-review` và comment `Review: đạt` (review độc lập, chạy check / bot nếu cần). Đạt thì orchestrator merge vào `main`; chưa đạt thì comment góp ý trên PR. Người cộng tác **không tự merge**.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
