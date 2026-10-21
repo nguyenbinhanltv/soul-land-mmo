@@ -13,7 +13,7 @@ export interface MusicTrack {
   maps?: string[];
   event?: string;
   loop: boolean;
-  /** Độ dài vòng lặp; điểm lặp là cả file (phát từ 0 tới hết rồi quay lại 0). */
+  /** Độ dài file, làm tròn tới ms; điểm lặp là cả file (phát từ 0 tới hết rồi quay lại 0), độ dài đúng theo `musicLoopSeconds`. */
   seconds: number;
   files: Partial<Record<MusicFormat, { path: string; bytes: number }>>;
 }
@@ -52,6 +52,9 @@ export const MUSIC_BATTLE_HOLD_MS = 4000;
 export const MUSIC_BATTLE_RANGE = AUDIO_RANGE;
 /** Số bài nền đã giải mã giữ trong bộ nhớ (mỗi bài ~30–40 MB PCM): bản đồ hiện tại, bài giao chiến, bản đồ vừa rời. */
 export const MUSIC_CACHE_TRACKS = 3;
+/** compose.mjs render ở MUSIC_RENDER_RATE Hz và bắt vòng lặp là bội MUSIC_LOOP_BLOCK mẫu (tools/audio/compose/README.md). */
+export const MUSIC_RENDER_RATE = 44100;
+export const MUSIC_LOOP_BLOCK = 1024;
 /** Khúc ngắn ưu tiên cao hơn thì cắt khúc đang phát; bằng hoặc thấp hơn thì bỏ (hấp thụ hồn hoàn kéo theo lên cấp). */
 export const MUSIC_EVENT_PRIORITY: Readonly<Record<MusicEvent, number>> = {
   arena_win: 5, arena_lose: 5, ring_absorb: 4, level_up: 3, quest_complete: 2, quest_accept: 1,
@@ -67,6 +70,11 @@ export function pickMusicFormat(nav?: { userAgent?: string; maxTouchPoints?: num
   const safari = /Safari\//.test(ua) && !/Chrome\/|Chromium\/|Edg\/|OPR\/|Firefox\//.test(ua);
   if (ios || safari) return "m4a";
   return canPlay?.('audio/ogg; codecs="vorbis"') ? "ogg" : "m4a";
+}
+
+/** Độ dài vòng thật (giây) từ `seconds` đã làm tròn của manifest: lấy bội MUSIC_LOOP_BLOCK mẫu gần nhất. */
+export function musicLoopSeconds(seconds: number): number {
+  return (Math.round((seconds * MUSIC_RENDER_RATE) / MUSIC_LOOP_BLOCK) * MUSIC_LOOP_BLOCK) / MUSIC_RENDER_RATE;
 }
 
 function browserMusicFormat(): MusicFormat {
@@ -179,10 +187,12 @@ export class MusicPlayer {
     if (wasSilent !== v <= 0) this.sync();
   }
 
-  /** Bản đồ đang đứng (`mapId` trong state); null = ngừng nhạc nền. */
+  /** Bản đồ đang đứng (`mapId` trong state); null = ngừng nhạc nền. Sang bản đồ khác là hết giao chiến ngay, không chờ giữ. */
   setMap(mapId: string | null): void {
     if (mapId === this.map) return;
     this.map = mapId;
+    this.battle = false;
+    this.battleUntil = 0;
     this.sync();
   }
 
@@ -252,8 +262,10 @@ export class MusicPlayer {
       const source = context.createBufferSource(), gain = context.createGain();
       source.buffer = buffer;
       source.loop = true;
+      // Lặp cả buffer; chỉ khi bộ giải mã đệm thêm mẫu ở cuối (dài hơn vòng thật) mới cắt ở đúng độ dài vòng.
+      const loop = musicLoopSeconds(track.seconds);
       source.loopStart = 0;
-      source.loopEnd = Math.min(buffer.duration, track.seconds);
+      source.loopEnd = loop < buffer.duration - 1 / buffer.sampleRate ? loop : 0;
       gain.gain.value = 0;
       fade(gain.gain, 1, t, MUSIC_FADE_S);
       source.connect(gain);

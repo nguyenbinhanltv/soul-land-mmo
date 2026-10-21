@@ -24,7 +24,7 @@ npm run bot --prefix client    # bot kiểm thử, chạy khi server đang bật
 ```
 - **Bot cần server bật `GAME_TEST=1`** (hook `test`; thiếu thì bot báo bỏ qua phần lớn kiểm tra). Chạy trên **server mới bật** (state sạch), từng lượt một: `GAME_TEST=1 PORT=2600 npm run dev:server` rồi `SERVER_URL=http://localhost:2600 npm run bot --prefix client`. Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam trừ khi đặt `BOSS_CLOCK=HH:MM` hoặc `real`. Phần nhiều kênh chạy riêng với server `CHANNEL_MAX=2 GAME_TEST=1`.
 - Bot không assert mọi thứ: đọc output (dòng ✗ là lỗi, ⚠ là bị bỏ qua) và log server. Luồng mới thì thêm vào `client/scripts/bot-test.mjs`.
-- Kiểm thử khác: `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
+- Kiểm thử khác: `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:audio --prefix client` (SFX, nhạc nền), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
 - **Đổi SQL / `db.ts` thì thử thêm với PostgreSQL**, sau lượt bot ở chế độ RAM: có Docker thì `docker compose up -d` và `cp .env.example server/.env`. Không có Docker thì dùng gói `embedded-postgres` cài trong thư mục tạm **ngoài repo**, cổng riêng, tạo DB `CREATE DATABASE … ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'` (cluster mặc định trên Windows không phải UTF8), rồi `DATABASE_URL=postgres://…@localhost:<cổng>/<db> PGSSL=false GAME_TEST=1 npm run dev:server`. Chạy server **hai lần liên tiếp** (migration phải chạy lại an toàn) rồi chạy bot.
 - Chạy song song nhiều phiên: dùng cổng server / PostgreSQL riêng và chỉ tắt đúng tiến trình mình bật.
 
