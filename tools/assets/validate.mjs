@@ -231,5 +231,7 @@ for (const f of walk(SPRITES).filter((f) => f.endsWith(".png"))) {
   const rel = path.relative(SPRITES, f).split(path.sep).join("/");
   if (!seen.has(rel)) warn(rel, "có ảnh nhưng không có key trong manifest.json");
 }
+// Bản đồ isometric (10.2): shared/assets/iso/tiles.json phủ mọi gid của 10 bản đồ, ảnh ô / vật đúng cỡ, vật đã đăng ký, có kiểu nhà.
+errors += checkIsoTiles((m) => console.error(m));
 console.log(`[validate] ${manifest.sprites.length} key, ${errors} lỗi, ${warns} cảnh báo`);
 process.exit(errors ? 1 : 0);
