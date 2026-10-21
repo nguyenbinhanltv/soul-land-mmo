@@ -481,7 +481,11 @@ export function build(L, hand = null, seedOverride = null) {
     if (boss !== MAPS[mapId].king) throw new Error(`${mapId}: hang "${name}": MAPS.${mapId}.king là ${MAPS[mapId].king}`);
     rectObj("boss", name, cx - rx, cy - ry, rx * 2, ry * 2, [prop("boss", "string", boss)]);
   }
-  for (const n of L.npcs ?? []) pointObj("npc", n.name, ...n.at, [prop("npc", "string", n.npc)]);
+  for (const n of L.npcs ?? []) {
+    // Người chơi đứng cạnh NPC để nói chuyện (thường ngay phía nam): ô NPC và ô phía nam phải đi tới được.
+    if (!reachable(n.at[0], n.at[1]) || !reachable(n.at[0], n.at[1] + 1)) throw new Error(`${mapId}: NPC "${n.name}" ${n.at}: ô đứng hoặc ô phía nam không tới được`);
+    pointObj("npc", n.name, ...n.at, [prop("npc", "string", n.npc)]);
+  }
 
   // ---------- 11. File Tiled (cùng định dạng tools/gen-map.mjs: server và client đọc như cũ) ----------
   const layer = (id, name, data) => ({ id, name, type: "tilelayer", data, width: MW, height: MH, opacity: 1, visible: true, x: 0, y: 0 });
