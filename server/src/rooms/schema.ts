@@ -1,5 +1,5 @@
 // Trạng thái được Colyseus tự đồng bộ xuống mọi client.
-import { Schema, MapSchema, ArraySchema, type } from "@colyseus/schema";
+import { Schema, MapSchema, ArraySchema, type, view } from "@colyseus/schema";
 
 export class PlayerState extends Schema {
   @type("string") name: string = "";
@@ -105,9 +105,12 @@ export class DropState extends Schema {
 export class MapState extends Schema {
   @type("string") mapId: string = "";  // mã bản đồ trong MAPS; client tải shared/assets/<mapId>.json
   @type("uint16") channel = 0;          // số kênh của phòng trong bản đồ (1, 2, 3…; mục 6 "Nhiều kênh")
-  @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
-  @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
-  @type({ map: DropState }) drops = new MapSchema<DropState>();
+  // Từ 11.4: hồn sư, hồn thú, đồ rơi chỉ đồng bộ cho client ở gần (`@view()`, StateView do interest.ts quản lý; mục 6 "Đồng bộ xuống
+  // client"). Số hồn sư cả phòng ở `online` (các hồn sư ở xa không có trong `players` của client).
+  @view() @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
+  @view() @type({ map: BeastState }) beasts = new MapSchema<BeastState>();
+  @view() @type({ map: DropState }) drops = new MapSchema<DropState>();
+  @type("uint16") online = 0;
   @type("string") mapFile: string = ""; // 11.3: tên file Tiled khác `<mapId>` (bản dựng lại `<mapId>.v2` khi bật MAP_V2); rỗng = `<mapId>`
 }
 

@@ -175,6 +175,16 @@ export const TRAVEL_LEAVE_SECS = 10;
  */
 export const CHANNEL_MAX = 60;
 export const CHANNEL_CD = 10;
+/**
+ * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
+ * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
+ * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu
+ * ứng dưới `fx`. Hồn thú thường không có mục tiêu ở ô lưới cách mọi hồn sư trong phòng quá `wake` thì ngủ (không lang thang, không
+ * tìm mục tiêu; vẫn hồi máu, trạng thái vẫn chạy); `wake` ≥ `out` nên hồn thú client đang thấy luôn thức. Lưới không gian ô `cell`
+ * pixel. Bản đồ nhỏ nhận vị trí hồn sư, hồn thú từ nghìn năm, đồ rơi cả bản đồ mỗi `mini` giây
+ * (tin `mini`). Khung camera VIEW_W × VIEW_H chiếu isometric phủ khoảng 340 pixel thế giới quanh mình.
+ */
+export const SYNC_VIEW = { r: 560, out: 660, fx: 760, wake: 660, cell: 128, mini: 1 };
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
