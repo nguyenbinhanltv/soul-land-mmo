@@ -150,8 +150,25 @@ export function validateManifestMatchesCatalog({ catalog, manifest }) {
   validateCatalog(catalog);
   validateManifest(manifest);
 
+  if (!Array.isArray(manifest.sources)) throw new Error("manifest sources must be an array");
+  const sourceFields = ["id", "title", "author", "url", "license", "archiveSha256", "retrievedAt"];
+  const canonicalSource = (source) => Object.fromEntries(sourceFields.map((field) => [field, source[field]]));
+  const catalogSources = new Map(catalog.sources.map((source) => [source.id, source]));
+  const manifestSources = new Map(manifest.sources.map((source) => [source.id, source]));
   const catalogTracks = new Map(catalog.tracks.map((track) => [track.id, track]));
   const manifestItems = new Map(manifest.items.map((item) => [item.id, item]));
+
+  for (const source of catalog.sources) {
+    const manifestSource = manifestSources.get(source.id);
+    if (!manifestSource) throw new Error(`manifest is missing catalog source ${source.id}`);
+    if (JSON.stringify(canonicalSource(manifestSource)) !== JSON.stringify(canonicalSource(source))) {
+      throw new Error(`manifest source metadata mismatch for ${source.id}`);
+    }
+  }
+
+  for (const source of manifest.sources) {
+    if (!catalogSources.has(source.id)) throw new Error(`manifest has an extra source ${source.id}`);
+  }
 
   for (const track of catalog.tracks) {
     const item = manifestItems.get(track.id);

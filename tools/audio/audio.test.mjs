@@ -157,6 +157,27 @@ test("validateManifestMatchesCatalog rejects missing, extra and stale tracks", (
     () => validateManifestMatchesCatalog({ catalog, manifest: staleManifest }),
     /metadata mismatch.*group/i,
   );
+
+  const staleSourceManifest = JSON.parse(JSON.stringify(manifest));
+  staleSourceManifest.sources[0].url = "https://example.invalid/replaced-source";
+  assert.throws(
+    () => validateManifestMatchesCatalog({ catalog, manifest: staleSourceManifest }),
+    /source metadata mismatch/i,
+  );
+  assert.throws(
+    () => validateManifestMatchesCatalog({
+      catalog,
+      manifest: { ...manifest, sources: [] },
+    }),
+    /missing catalog source/i,
+  );
+  assert.throws(
+    () => validateManifestMatchesCatalog({
+      catalog,
+      manifest: { ...manifest, sources: [...manifest.sources, { ...validSource, id: "old-source" }] },
+    }),
+    /extra source/i,
+  );
 });
 
 test("validateManifest rejects an initial download over 2 MiB", () => {
