@@ -11,7 +11,7 @@ CHẾ ĐỘ LÀM VIỆC LIÊN TỤC — soul-land-mmo. Tôi là <tên> (nhãn ag
 Mỗi NHỊP (~30 phút) làm đúng thứ tự, dừng ở bước đầu tiên có việc:
 1. PR của tôi có góp ý review / CONFLICTING / CI đỏ → sửa (merge origin/main, không rebase, không force push), push, trả lời thread.
 2. Đang có issue dang-lam của tôi chưa xong → đọc comment "Tiến độ" mới nhất trong issue rồi làm tiếp từ đó.
-3. Issue của tôi đã xong (check + build + bot RAM và PostgreSQL qua) → TỰ chạy reviewer cho PR của mình (AO review nếu có, hoặc reviewer của agent, vd /code-review), sửa hết góp ý, review lại tới khi đạt; ghi một comment PR tiêu đề "Review: đạt" (công cụ review, SHA head đã review, kết luận); rồi gh pr ready, đổi nhãn sang cho-review, Project Status = Đang review. Orchestrator AO của chủ repo kiểm tra lại và merge nếu đạt, không đạt thì comment góp ý (xử lý ở bước 1, xong review lại và cập nhật comment "Review: đạt").
+3. Issue của tôi đã xong (kiểm thử qua theo CONTRIBUTING.md "Xin review": check + build + bot RAM; thêm bot PostgreSQL khi đổi server/ hoặc shared/, bắt buộc khi đổi SQL / db.ts) → TỰ chạy reviewer cho PR của mình (AO review nếu có, hoặc reviewer của agent, vd /code-review), sửa hết góp ý, review lại tới khi đạt; ghi một comment PR tiêu đề "Review: đạt" (công cụ review, SHA head đã review, kết luận); rồi gh pr ready, đổi nhãn sang cho-review, Project Status = Đang review. Orchestrator AO của chủ repo kiểm tra lại và merge nếu đạt, không đạt thì comment góp ý (xử lý ở bước 1, xong review lại và cập nhật comment "Review: đạt").
 4. Chưa có việc → nhận issue mới theo CONTRIBUTING.md: san-sang, chưa ai nhận, không dang-lam/chan/can-pixellab; mỗi lúc TỐI ĐA 1 issue đang làm + 2 PR chờ review; khai số SQL trong issue nếu cần; PR nháp ngay "Closes #N".
 5. Không còn issue phù hợp → ghi "hết việc" và nghỉ tới nhịp sau.
 Sau MỖI nhịp có thay đổi: cập nhật một comment "Tiến độ" trong issue (đã làm gì, đang ở bước nào, lệnh tiếp theo, PR/nhánh). Đây là bộ nhớ để làm tiếp sau khi hết quota hoặc mất ngữ cảnh — KHÔNG dựa vào trí nhớ hội thoại.
@@ -31,23 +31,54 @@ Mở một phiên Claude Code trong thư mục repo, giữ máy và phiên luôn
 - Nên bật chế độ tự chấp nhận lệnh an toàn (auto-accept / allowlist cho `gh`, `git`, `npm`), để ban đêm không bị kẹt ở bước hỏi quyền.
 - Lịch `/loop` tự hết sau 7 ngày. Sau đó gõ lại.
 
-### Codex CLI / agent không có lịch sẵn: vòng lặp script
+### Agent không có lịch sẵn: vòng lặp script
+Mỗi lần gọi là một phiên mới, chạy không người trông (headless) nên **không ai trả lời câu hỏi xin quyền**. Phải cấp trước quyền ghi file, chạy `git` / `gh` / `npm` và truy cập mạng (GitHub, npm), nếu không agent sẽ dừng hoặc thất bại ở lệnh đầu tiên. Comment "Tiến độ" trong issue là bộ nhớ chung giữa các lần chạy.
+
+#### Claude Code headless (`claude -p`)
+`--permission-mode acceptEdits` chỉ tự chấp nhận sửa file, **không** cho chạy Bash. Hãy liệt kê công cụ được phép bằng `--allowedTools`, hoặc ghi allowlist tương tự vào `permissions.allow` của `.claude/settings.local.json` trên máy mình (file riêng, không commit).
+
+Bash (macOS/Linux):
+```bash
+while true; do
+  if claude -p "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng." \
+      --allowedTools "Bash(git:*) Bash(gh:*) Bash(npm:*) Bash(node:*) Edit Write Read Glob Grep"; then
+    sleep 1800
+  else
+    sleep 900   # lỗi (hết quota) thì chờ 15 phút rồi thử lại
+  fi
+done
+```
 PowerShell (Windows):
 ```powershell
 while ($true) {
-  codex exec "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng."
+  claude -p "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng." `
+    --allowedTools "Bash(git:*) Bash(gh:*) Bash(npm:*) Bash(node:*) Edit Write Read Glob Grep"
+  if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }
+}
+```
+
+#### Codex CLI (`codex exec`)
+`codex exec` mặc định chạy sandbox **chỉ đọc, không mạng**, nên không sửa file, không `git push` / `gh` được. Cần quyền ghi trong thư mục repo **và** quyền mạng. Với bản Codex hiện hành, thường là `--full-auto` (sandbox `workspace-write`) cộng `-c sandbox_workspace_write.network_access=true` (bật mạng). Tên cờ có thể đổi giữa các phiên bản: kiểm bằng `codex exec --help` và tài liệu Codex trước khi chạy qua đêm.
+
+PowerShell (Windows):
+```powershell
+while ($true) {
+  codex exec --full-auto -c sandbox_workspace_write.network_access=true `
+    "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng."
   if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }
 }
 ```
 Bash (macOS/Linux):
 ```bash
 while true; do
-  claude -p "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng." \
-    --permission-mode acceptEdits || sleep 900   # lỗi (hết quota) thì chờ 15 phút rồi thử lại
-  sleep 1800
+  if codex exec --full-auto -c sandbox_workspace_write.network_access=true \
+      "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng."; then
+    sleep 1800
+  else
+    sleep 900   # lỗi (hết quota) thì chờ 15 phút rồi thử lại
+  fi
 done
 ```
-Mỗi lần gọi là một phiên mới. Vì vậy comment "Tiến độ" trong issue chính là bộ nhớ chung giữa các lần chạy.
 
 ### Cursor / Copilot agent
 Hai loại này không chạy nền được. Hãy dùng script ở trên với CLI tương ứng, hoặc chỉ làm ban ngày.
