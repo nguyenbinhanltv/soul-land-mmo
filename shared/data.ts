@@ -573,7 +573,9 @@ export const dir4 = (x: number, y: number) => (Math.abs(x) >= Math.abs(y) ? (x >
 /** Thứ tự trong mảng là bit trong `BeastState.st` (bit i = 1 << i). Chỉ thêm vào cuối. */
 export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "silence", "root",
   // Từ 2.5c (lưu phái Cảm điện): Mị hoặc (cộng dồn thành Mê hoặc), Mê hoặc, Làm chậm, Phong ấn (cộng dồn thành Dễ thương).
-  "allure", "charm", "slow", "lock"] as const;
+  "allure", "charm", "slow", "lock",
+  // Từ #116: Đóng băng (chỉ có trên hồn sư, chiêu băng của hồn thú gây).
+  "freeze"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -615,6 +617,8 @@ export const STATUS: Record<StatusId, StatusDef> = {
   charm:   st("Mê hoặc",   "#ff5ab8", 2.5, 1, { noAtk: true, wander: true }),
   slow:    st("Làm chậm",  "#a0c8ff", 2, 1, { slow: 0.4 }),
   lock:    st("Phong ấn",  "#e0b04a", 6, 3, { burst: { s: "vuln", secs: 6.8 } }),
+  // Từ #116: Đóng băng trên hồn sư: như Choáng (không đi, không đánh, không dùng hồn kỹ), hình khối băng; thời gian ghi ở từng chiêu.
+  freeze:  st("Đóng băng", "#9ad8ff", 1.5, 1, { noMove: true, noAtk: true }),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -624,14 +628,27 @@ export const STATUS_TICK = 1;
 /** Thời gian khống chế (noMove / noAtk) nhân theo bậc hồn thú: hồn thú vạn năm, 10 vạn năm bị khống chế ngắn hơn. */
 export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
 /**
- * Trạng thái trên hồn sư (từ 3.5, đã chốt): chỉ chiêu báo trước của hồn thú gây, cùng bảng STATUS và luật cộng tầng. Choáng: không
- * đi, không đánh, không dùng hồn kỹ; Trói: không đi; Câm lặng: không dùng hồn kỹ; Làm chậm: giảm tốc (tối đa SLOW_CAP); Trúng độc /
+ * Trạng thái trên hồn sư (từ 3.5, đã chốt): chỉ chiêu báo trước của hồn thú gây, cùng bảng STATUS và luật cộng tầng. Choáng, Đóng
+ * băng (#116): không đi, không đánh, không dùng hồn kỹ; Mê hoặc (#116): không đánh, không dùng hồn kỹ, phím bị bỏ qua, server tự đi
+ * lung tung quanh chỗ bị Mê hoặc (PLAYER_CHARM); Trói: không đi; Câm lặng: không dùng hồn kỹ; Làm chậm: giảm tốc (tối đa SLOW_CAP); Trúng độc /
  * Thiêu đốt: mỗi tầng `dot` × sát thương đòn thường của hồn thú mỗi giây; Dễ thương / Phá giáp: nhận thêm sát thương; Cảm điện: đòn
  * của hồn thú trúng hồn sư Cảm điện lan `chain` sang hồn sư Cảm điện khác trong `chainR`. Thuộc hồn sư nên đổi võ hồn vẫn còn; vào
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze"];
+/**
+ * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
+ * bằng PvP riêng để #113).
+ */
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze"];
+/** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
+export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
+/**
+ * Hồn sư bị Mê hoặc (#116): server tự đi bộ × `spd` tới một điểm ngẫu nhiên cách chỗ bị Mê hoặc tối đa `r` pixel mỗi trục, đổi điểm
+ * mỗi `turn` giây (ngẫu nhiên trong khoảng); tới nơi thì đứng chờ. Client không dự đoán (PlayerState.spd = 0).
+ */
+export const PLAYER_CHARM = { r: 40, spd: 0.6, turn: [0.4, 0.7] as [number, number] };
 /** Hồn thú không có mục tiêu và không bị đánh `delay` giây thì hồi `pct` sinh lực tối đa mỗi giây (Trúng độc giảm hồi máu). */
 export const BEAST_REGEN = { delay: 6, pct: 0.04 };
 /**
@@ -743,12 +760,12 @@ export interface BeastSkillDef {
   floor?: boolean;
 }
 /**
- * "Đóng băng" của hồn thú băng (BĐ6c, đã chốt): dùng trạng thái Choáng sẵn có (không đi, không đánh, không dùng hồn kỹ), không thêm
- * trạng thái mới; thời gian ghi ở từng chiêu. Tương tự "Mê hoặc" lên hồn sư (Tuyết Vĩ Yêu Hồ, Lục Vĩ Băng Hồ) là Choáng `CHARM_P`
- * vì Mê hoặc (đi lung tung) chỉ có trên hồn thú.
+ * "Đóng băng" của hồn thú băng lên hồn sư: trạng thái Đóng băng (#116; trước đó là Choáng), thời gian ghi ở từng chiêu. "Mê hoặc" lên
+ * hồn sư (Thực Nhân Hoa, Ỷ La Hoa Yêu, Tuyết Vĩ Yêu Hồ, Lục Vĩ Băng Hồ, Quỷ Diện Hải Yêu…): Mê hoặc `CHARM_P` (#116; trước đó là Choáng
+ * ngắn cùng thời gian).
  */
-const FREEZE: StatusApply = { s: "stun" };
-const CHARM_P: StatusApply = { s: "stun", secs: 0.8 };
+const FREEZE: StatusApply = { s: "freeze" };
+const CHARM_P: StatusApply = { s: "charm", secs: 0.8 };
 /** Hồn thú thường từ ngần ấy năm mới có chiêu báo trước (mục 5.3: dưới 1.000 năm chỉ đánh thường). */
 export const BEAST_SKILL_YEARS = 1000;
 /** Thời gian báo trước mặc định (mục 5.3: khoảng 0,8 giây). Thú vương dài hơn (1–1,5 giây, BĐ5). */
@@ -793,10 +810,9 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   am_kim_khung_trao_hung: [bs("Vỗ Đất", "circle", 56, { dmg: 2, status: [{ s: "stun", secs: 0.6 }] })],
   kiem_vi_hat:  [bs("Kiếm Vĩ Đâm", "line", 85, { w: 12, dmg: 1.6, status: [{ s: "armor", n: 2 }] })],
   quy_anh_bao:  [bs("Ảnh Trảm", "cone", 54, { arc: 90, dmg: 1.8 })],
-  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu: hồn sư chưa có Mê hoặc (đi lung tung) nên tạm là Choáng
-  // ngắn (đã chốt); "để lại sương" của Độc Vụ Thiềm thay bằng Trúng độc 3 tầng (như Thất Tinh Độc Thiềm); Tự Bạo của Hỏa Linh Điệp
-  // chỉ nổ, bướm không chết theo.
-  thuc_nhan_hoa: [bs("Phấn Mê", "circle", 44, { dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
+  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu là Mê hoặc trên hồn sư (CHARM_P, #116); "để lại sương" của
+  // Độc Vụ Thiềm thay bằng Trúng độc 3 tầng (như Thất Tinh Độc Thiềm); Tự Bạo của Hỏa Linh Điệp chỉ nổ, bướm không chết theo.
+  thuc_nhan_hoa: [bs("Phấn Mê", "circle", 44, { dmg: 1.2, status: [CHARM_P] })],
   cuc_yeu_hoa_linh: [bs("Phi Hoa", "cone", 60, { arc: 80, dmg: 1.6 })],
   doc_cuc_dang: [bs("Gai Trồi", "line", 100, { w: 14, dmg: 1.7 })],
   bich_lan_xa:  [bs("Phun Độc", "line", 110, { w: 14, dmg: 1.3, status: [{ s: "poison", n: 2, secs: 5 }] })],
@@ -806,10 +822,10 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   huyen_bang_thiem: [bs("Băng Khí", "circle", 34, { at: "target", range: 120, dmg: 1.1, status: [{ s: "slow", secs: 3 }] })],
   hoa_linh_diep: [bs("Tự Bạo", "circle", 36, { dmg: 2.4, cd: 9 })],
   co_moc_thu_nhan: [bs("Dậm Rễ", "circle", 56, { dmg: 2, status: [{ s: "root", secs: 1 }] })],
-  y_la_hoa_yeu: [bs("Hương Mê", "cone", 60, { arc: 80, dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
+  y_la_hoa_yeu: [bs("Hương Mê", "cone", 60, { arc: 80, dmg: 1.2, status: [CHARM_P] })],
   thanh_lan_doc_co: [bs("Độc Châm", "line", 100, { w: 10, dmg: 1.7, status: [{ s: "poison", n: 2, secs: 5 }] })],
-  // Cực Bắc Chi Địa (BĐ6c, đã chốt). Không thêm trạng thái mới cho băng: "đóng băng" = Choáng (không đi, không đánh, không dùng hồn
-  // kỹ; FREEZE), "Mê hoặc" trên hồn sư = Choáng ngắn (Mê hoặc chỉ có trên hồn thú), băng giá làm chậm = Làm chậm.
+  // Cực Bắc Chi Địa (BĐ6c, đã chốt): "đóng băng" = Đóng băng (FREEZE, #116), "Mê hoặc" trên hồn sư = Mê hoặc (CHARM_P, #116), băng
+  // giá làm chậm = Làm chậm.
   tuyet_lang:   [bs("Băng Nha", "line", 90, { w: 14, dmg: 1.5, dash: true })],
   bang_nguyen_cu_tuong: [bs("Dậm Băng", "circle", 52, { dmg: 1.6, status: [{ s: "slow", secs: 3 }] })],
   bang_vu_ung:  [bs("Bổ Nhào", "circle", 30, { at: "target", range: 120, dmg: 1.6, dash: true })],
@@ -822,12 +838,12 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   bang_bich_hat: [bs("Băng Bích Châm", "line", 100, { w: 12, dmg: 1.6, cd: 8, status: [{ ...FREEZE, secs: 1 }] })],
   huyen_minh_bang_tam: [bs("Nhả Tơ Băng", "line", 110, { w: 14, dmg: 1, status: [{ s: "root", secs: 1.5 }] })],
   tuyet_ma_vien: [bs("Ném Băng Khối", "circle", 32, { at: "target", range: 150, dmg: 1.8 })],
-  // Hải Thần Đảo (BĐ6d). "Mê hoặc" của Mê Ca tạm là Choáng ngắn như Lạc Nhật (hồn sư chưa có Mê hoặc, đã chốt); "nhiều vệt" của
+  // Hải Thần Đảo (BĐ6d). "Mê hoặc" của Mê Ca là Mê hoặc trên hồn sư (CHARM_P, #116); "nhiều vệt" của
   // Xúc Tu Quật là 3 vệt tỏa 60° tung cùng lúc; "vệt rộng" của Sóng Cuộn rộng 30.
   thiet_giap_cu_giai: [bs("Kìm Kẹp", "cone", 50, { arc: 100, dmg: 1.8 })],
   lam_lan_hai_xa: [bs("Thủy Tiễn", "line", 110, { w: 12, dmg: 1.6 })],
   kiem_ngu:     [bs("Xuyên Kích", "line", 160, { w: 12, dmg: 1.9, dash: true, cd: 9 })],
-  quy_dien_hai_yeu: [bs("Mê Ca", "cone", 62, { arc: 80, dmg: 1.2, status: [{ s: "stun", secs: 0.8 }] })],
+  quy_dien_hai_yeu: [bs("Mê Ca", "cone", 62, { arc: 80, dmg: 1.2, status: [CHARM_P] })],
   tham_hai_ma_chuong: [bs("Xúc Tu Quật", "line", 90, { w: 12, count: 3, spread: 60, dmg: 1.6 })],
   loi_quang_hai_dieu: [bs("Điện Lưu", "circle", 50, { dmg: 1.5, status: [{ s: "shock" }] })],
   kim_lan_long_quy: [bs("Sóng Cuộn", "line", 120, { w: 30, dmg: 1.7 })],
@@ -976,11 +992,11 @@ export const BOSSES: BossDef[] = [
       bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16, summon: { species: "nhan_dien_ma_chu_non", n: 4, years: [4000, 8000] } }),
       bs("Chu Ti Phong Tỏa", "line", 190, { w: 64, range: 180, warn: 2, dmg: 1.2, cd: 12, status: [{ s: "slow", secs: 3 }] })] } },
   // Lạc Nhật Sâm Lâm (BĐ6b, 5.000–30.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "giữ 2 giây" của Nuốt Chửng là Trói 2 giây
-  // sau khi kéo; Mê hoặc trên hồn sư tạm là Choáng ngắn (như loài thường); Song Sắc Mãng không đổi băng / hỏa theo 10 giây, mỗi chiêu
+  // sau khi kéo; Mê hoặc trên hồn sư như loài thường (CHARM_P, #116); Song Sắc Mãng không đổi băng / hỏa theo 10 giây, mỗi chiêu
   // gây cả Làm chậm lẫn Thiêu đốt; "chữ X" của Băng Hỏa Giao Thoa là 2 vệt tỏa 90°. Song Sắc Mãng mượn loài Hắc Thủy Mãng.
   { id: "huyet_man_thuc_nhan_hoa", name: "Huyết Mạn Thực Nhân Hoa", rank: 1, species: "thuc_nhan_hoa", aura: "#ff3a7a", skills: [
     bs("Nuốt Chửng", "circle", 50, { dmg: 1.3, cd: 9, pull: 50, status: [{ s: "root", secs: 2 }] }),
-    bs("Đại Phấn Mê", "circle", 56, { dmg: 1.2, status: [{ s: "stun", secs: 1 }] })] },
+    bs("Đại Phấn Mê", "circle", 56, { dmg: 1.2, status: [{ ...CHARM_P, secs: 1 }] })] },
   { id: "song_dau_bich_lan_xa", name: "Song Đầu Bích Lân Xà", rank: 1, species: "bich_lan_xa", aura: "#3affa0", skills: [
     bs("Song Xà Phun", "line", 110, { w: 14, count: 2, spread: 40, dmg: 1.4, status: [{ s: "poison", n: 2, secs: 5 }] }),
     bs("Lân Độc Vụ", "circle", 56, { dmg: 1, status: [{ s: "poison", n: 3, secs: 8 }] })] },
@@ -991,15 +1007,15 @@ export const BOSSES: BossDef[] = [
     bs("Rễ Trói", "circle", 32, { at: "target", range: 130, dmg: 1.2, status: [{ s: "root", secs: 2 }] }),
     bs("Hút Sinh", "circle", 56, { dmg: 1.4, drain: 0.05 })] },
   // Thú vương Lạc Nhật (BĐ6b): mượn loài Hắc Thủy Mãng. GĐ2 bản tối thiểu: thay "hang chia nửa băng / nửa lửa đổi chỗ mỗi 12 giây" bằng
-  // hai dải rộng phủ nửa hang phía mục tiêu, báo trước 2 giây, luân phiên băng (đóng băng = Choáng 1,5 giây) và lửa (Thiêu đốt nặng).
+  // hai dải rộng phủ nửa hang phía mục tiêu, báo trước 2 giây, luân phiên băng (Đóng băng 1,5 giây, #116) và lửa (Thiêu đốt nặng).
   { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 7, skills: [
     bs("Băng Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.4, cd: 8, status: [{ s: "slow", secs: 3 }] }),
     bs("Hỏa Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.5, cd: 8, status: [{ s: "burn", n: 3, secs: 5 }] })],
     phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "nửa hang hóa băng, nửa hang hóa lửa luân phiên (báo trước 2 giây), tốc độ +20%", spd: 1.2, skills: [
-      bs("Lưỡng Nghi Băng", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.5, cd: 12, status: [{ s: "stun", secs: 1.5 }] }),
+      bs("Lưỡng Nghi Băng", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.5, cd: 12, status: [{ ...FREEZE, secs: 1.5 }] }),
       bs("Lưỡng Nghi Hỏa", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.6, cd: 12, status: [{ s: "burn", n: 4, secs: 6 }] })] } },
-  // Cực Bắc Chi Địa (BĐ6c, bảng 5.3; mọi số đã chốt). Đóng băng / giam = Choáng hoặc Trói, "làm chậm tăng dần" = Làm chậm (không thêm
-  // trạng thái mới); "3 ảo ảnh nổ vòng" của Phân Thân là 3 vòng rơi quanh mục tiêu; Huyền Băng Tỏa Liên Mãng mượn Hàn Băng Địa Long
+  // Cực Bắc Chi Địa (BĐ6c, bảng 5.3; mọi số đã chốt). Đóng băng = Đóng băng (FREEZE, #116), giam = Trói, "làm chậm tăng dần" = Làm
+  // chậm; "3 ảo ảnh nổ vòng" của Phân Thân là 3 vòng rơi quanh mục tiêu; Huyền Băng Tỏa Liên Mãng mượn Hàn Băng Địa Long
   // (Cực Bắc không có loài rắn thường).
   { id: "ngan_nguyet_tuyet_lang_vuong", name: "Ngân Nguyệt Tuyết Lang Vương", rank: 1, species: "tuyet_lang", aura: "#c0cce0", skills: [
     bs("Bão Tuyết", "circle", 56, { dmg: 1.2, status: [{ s: "slow", secs: 3 }] }),
