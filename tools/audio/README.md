@@ -25,8 +25,8 @@ Catalog hiện bao phủ rừng, suối, gió núi, thành trấn/đám đông, 
 
 ## License và provenance
 
-- Audio đầu vào của #133 chỉ dùng CC0 hoặc CC-BY. Kenney được ưu tiên; OGA chỉ gap-fill sau khi kiểm tra trang nguồn từng gói.
+- Audio đầu vào nhận mọi giấy phép đã biết (`ALLOWED_LICENSES` trong `lib.mjs`, mã SPDX: CC0, CC-BY, CC-BY-SA, CC-BY-NC, OGA-BY, GPL; luật ở `GAME_DESIGN.md` mục 5.11); giấy phép lạ, trống hay ND thì validator dừng. Bảng ghi công gắn cờ SA / GPL / NC cạnh giấy phép: tệp output (kể cả audio sprite ghép nhiều nguồn) có nguồn SA / GPL thì cả tệp theo giấy phép đó, nên tách nguồn SA / GPL ra sprite riêng khi được; NC thì thay nếu thương mại hóa. Kenney (CC0) được ưu tiên; OGA gap-fill sau khi kiểm tra trang nguồn từng gói.
 - `ffmpeg-static` được pin exact `5.3.0`, license GPL-3.0-or-later. Đây là công cụ build-time, được gọi như tiến trình độc lập trong `tools/audio/process.mjs`; không import vào client/server runtime.
 - Không commit binary FFmpeg, `node_modules`, archive nguồn, hay đưa binary vào `shared/assets`, `public` hoặc Docker image. Docker chỉ cài dependency dưới `server` và `client`; test ranh giới Docker kiểm tra root install và `node_modules`.
 - FFmpeg không nhúng nội dung vào output. License output theo input audio; provenance nguồn được ghi riêng trong catalog và `art/CREDITS.md`.
-- Khi thêm CC-BY, phải hiển thị đúng tên tác giả trong màn hình giới thiệu ở phần nối game sau này. PR này không sửa module audio client, GameScene, Cài đặt hoặc GAME_DESIGN.
+- Khi thêm CC-BY / CC-BY-SA / OGA-BY, phải hiển thị đúng tên tác giả trong màn hình giới thiệu ở phần nối game sau này. PR này không sửa module audio client, GameScene, Cài đặt hoặc GAME_DESIGN.
