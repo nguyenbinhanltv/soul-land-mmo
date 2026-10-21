@@ -110,6 +110,11 @@ const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KIN
 const TELE_COL = 0xff3b3b;
 /** Vòng an toàn của chiêu toàn sàn boss thế giới (#118) và vòng sóng chỗ Du Thủy sắp nổi lên. */
 const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
+/**
+ * Vẽ Du Thủy (#118, chỉ hiển thị): `r` bán kính vòng sóng chỗ sắp nổi lên (pixel thế giới, cỡ thân boss), `ripple` bán kính lớn nhất
+ * của gợn sóng quanh boss đang lặn giữa hồ, `holdMs` giữ dấu thêm sau giờ nổi lên dự kiến phòng tin "surface" tới muộn.
+ */
+const DIVE_MARK = { r: 40, ripple: 52, holdMs: 1500 };
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
 const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow"] as const;
 
@@ -1157,12 +1162,12 @@ export class GameScene extends Phaser.Scene {
     // Không dựa vào boss trong state: tin "dive" / "here" có thể tới trước bản vá đầu tiên có boss (người vừa vào) hoặc có cờ lặn.
     // Chỉ bỏ dấu khi quá giờ hoặc có tin "surface" / "reset" / "leave" / "down".
     const b = this.room.state.beasts.get(dm.bid);
-    if (time - dm.t0 > dm.ms + 1500) { this.diveMark = null; return; }
-    const k = Math.min(1, (time - dm.t0) / dm.ms), R = 40, pulse = 0.5 + 0.5 * Math.sin(time / 120);
+    if (time - dm.t0 > dm.ms + DIVE_MARK.holdMs) { this.diveMark = null; return; }
+    const k = Math.min(1, (time - dm.t0) / dm.ms), R = DIVE_MARK.r, pulse = 0.5 + 0.5 * Math.sin(time / 120);
     g.fillStyle(DIVE_COL, 0.15 + 0.2 * k); fillGround(g, dm.x, dm.y, R * k);
     g.lineStyle(2, DIVE_COL, 0.6 + 0.4 * pulse); strokeGround(g, dm.x, dm.y, R);
     for (let j = 0; j < 2; j++) { const f = (time / 900 + j / 2) % 1; g.lineStyle(1, 0xd8f0ff, 1 - f); strokeGround(g, dm.x, dm.y, R * (0.3 + 0.7 * f)); }
-    if (b?.dive) for (let j = 0; j < 3; j++) { const f = (time / 1100 + j / 3) % 1; g.lineStyle(1, 0xd8f0ff, 0.8 * (1 - f)); strokeGround(g, b.x, b.y, 12 + 40 * f); }
+    if (b?.dive) for (let j = 0; j < 3; j++) { const f = (time / 1100 + j / 3) % 1; g.lineStyle(1, 0xd8f0ff, 0.8 * (1 - f)); strokeGround(g, b.x, b.y, 12 + (DIVE_MARK.ripple - 12) * f); }
   }
   /**
    * Aura tinh anh (BĐ4, mục 5.4 / 5.11, vẽ bằng code): vầng sáng màu riêng dưới chân (lớp mặt đất `teleG`, vẽ sau vùng cảnh báo) và
