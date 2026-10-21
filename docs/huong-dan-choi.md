@@ -95,7 +95,7 @@ Mỗi người có đội tối đa **4 võ hồn**; trên bản đồ chỉ hi�
   - Mỗi vòng có **giới hạn niên hạn** (theo lý thuyết của Đại Sư). Trong giới hạn thì **luôn thành công**. Vượt giới hạn thì có tỉ lệ thất bại, vượt quá xa thì không cho hấp thụ. **Bảng chọn hiện giới hạn vòng kế tiếp, % vượt và tỉ lệ thất bại** trước khi bạn xác nhận.
   - Thất bại thì **chỉ mất hồn hoàn đó**, không mất gì khác.
   - Hấp thụ mất một lúc (năm càng cao càng lâu); di chuyển hoặc bị đánh là hủy, hồn hoàn vẫn còn trong túi.
-  - Thành công: võ hồn lên 1 cấp, mở hồn kỹ của vòng đó.
+  - Thành công: võ hồn lên 1 cấp (trừ vòng 10 ở cấp 100), mở hồn kỹ của vòng đó.
 - **Hồn kỹ theo vòng:** vòng 1–6 mỗi vòng một hồn kỹ, **vòng 7 là Võ Hồn Chân Thân** (phím R: biến hình một lúc, tăng mạnh chỉ số; trong lúc đó ô P đổi thành hồn kỹ Chân Thân riêng), vòng 8–9 hồn kỹ mạnh, **vòng 10 là tuyệt kỹ**.
 - **Sức mạnh hồn kỹ theo số năm của đúng vòng đó:** vòng càng già, hồn kỹ của vòng đó càng mạnh. Nên dành hồn hoàn tốt nhất cho vòng có hồn kỹ bạn dùng nhiều.
 - **4 ô mang theo (U / I / O / P):** mỗi võ hồn tự nhớ 4 hồn kỹ; xếp ở bảng đội hình, mục "Hồn kỹ mang theo" (ngoài giao chiến). Chưa xếp thì mặc định vòng 1–4. Tuyệt kỹ cũng xếp vào một ô như hồn kỹ thường. Xếp lại không làm mới hồi chiêu.
@@ -123,7 +123,7 @@ Mỗi người có đội tối đa **4 võ hồn**; trên bản đồ chỉ hi�
 - **Đan:** Hồi Huyết Đan / Hồi Hồn Đan (và bản Đại) hồi sinh lực võ hồn ra trận / hồn lực, **dùng được khi đang đánh**, chung một hồi chiêu.
 - **Tiên thảo** (Ỷ La Uất Kim Hương, Bát Giác Huyền Băng Thảo, Liệt Hỏa Hạnh Kiều Sơ): chỉ rơi ở **Lạc Nhật Sâm Lâm**. Túi đồ → "Dùng cho…" → chọn võ hồn: cộng chỉ số gốc **vĩnh viễn**, mỗi loại có giới hạn số cây mỗi võ hồn.
 - **Rương** thú vương / boss thế giới: túi đồ → "Mở rương" (cần đủ ô trống).
-- **Thương nhân** ở Nặc Đinh Thành và Thiên Đấu Thành: bán đan, Hồi Thành Phù, mở rộng túi; mua lại hồn hoàn, hồn cốt, hồn hạch, mảnh dư. Không mua đồ đang gắn. Món giá cao phải bấm "Bán" hai lần. Đồ vừa bán có thể **mua lại** đúng giá đã nhận (mất khi thoát game).
+- **Thương nhân** ở Nặc Đinh Thành và **Chưởng quỹ · Thương hội Thiên Đấu** ở Thiên Đấu Thành (cùng bảng hàng): bán đan, Hồi Thành Phù, mở rộng túi; mua lại hồn hoàn, hồn cốt, hồn hạch, mảnh dư. Không mua đồ đang gắn. Món giá cao phải bấm "Bán" hai lần. Đồ vừa bán có thể **mua lại** đúng giá đã nhận (mất khi thoát game).
 - **Thương nhân lưu động** ở trại cổng mỗi bản đồ săn (trừ Thánh Hồn Thôn): mua bán cơ bản không cần về thành, nhưng chỉ bán đan nhỏ và Hồi Thành Phù, giá cao hơn trong thành. Trại không phải vùng an toàn: đang giao chiến thì không giao dịch.
 
 ## 10. Nhiệm vụ tân thủ và khảo hạch hằng ngày
@@ -140,7 +140,7 @@ Mỗi người có đội tối đa **4 võ hồn**; trên bản đồ chỉ hi�
 | 7 | Tinh Đấu Đại Sâm Lâm | Tới Tinh Đấu Ngoại vi và hạ hồn thú ở đó |
 
 - Dấu trên đầu NPC: **"!"** có bài mới, **"?" vàng** đủ mục tiêu chờ trả, "?" xám đang làm.
-- Mục tiêu **chỉ đếm sau khi nhận bài**. Hạ hồn thú trong tổ đội (được chia kinh nghiệm) cũng tính.
+- Mục tiêu **chỉ đếm sau khi nhận bài**. Hạ hồn thú trong tổ đội (được chia kinh nghiệm) cũng tính. Mục tiêu đang có / đang gắn / đang ở mà đã đạt sẵn lúc nhận thì xong ngay.
 - Khung theo dõi dưới bản đồ nhỏ; **chấm vàng nhấp nháy** trên bản đồ nhỏ chỉ chỗ cần tới (ở bản đồ khác thì tô vàng cổng nên đi).
 - Trả bài cần túi đủ chỗ cho cả phần thưởng.
 
@@ -154,10 +154,10 @@ Cấp đề xuất của từng bản đồ xem ở **bản đồ thế giới (
 | Bản đồ | Loại | Ghi chú |
 |---|---|---|
 | Thánh Hồn Thôn | Săn | Nơi bắt đầu; làng giữa bản đồ an toàn; Tố Vân Đào, Lão Kiệt Khắc; không có thú vương |
-| Nặc Đinh Thành | Thành | Đại Sư (nhiệm vụ tân thủ), Thương nhân, Thợ rèn, Sứ giả Đại Đấu Hồn Trường |
+| Nặc Đinh Thành | Thành | Đại Sư (nhiệm vụ tân thủ), Thương nhân, Thợ rèn, Sứ giả Đại Đấu Hồn Trường (chỉ đường lên Thiên Đấu Thành) |
 | Tinh Đấu Ngoại vi | Săn | Bìa Tinh Đấu Đại Sâm Lâm; thú vương Huyết Nguyệt Lang Vương |
 | Tinh Đấu Nội địa | Săn | Rừng sâu, đầm độc, Lôi Cốc, Hắc Ám Lâm; thú vương Thiên Độc Chu Hoàng; bến bờ hồ dẫn vào Lõi Tinh Đấu |
-| Thiên Đấu Thành | Thành | Thủ đô: Đại Đấu Hồn Trường, Phất Lan Đức (khảo hạch), thương hội, lò rèn; cổng đi các bản đồ xa |
+| Thiên Đấu Thành | Thành | Thủ đô: Đại Đấu Hồn Trường, Phất Lan Đức (khảo hạch), Chưởng quỹ · Thương hội Thiên Đấu, Thợ rèn Thiên Đấu; cổng đi các bản đồ xa |
 | Lạc Nhật Sâm Lâm | Săn | Cổng tây Thiên Đấu Thành; nơi duy nhất rơi tiên thảo; thú vương Lưỡng Nghi Thủ Hộ Xà |
 | Cực Bắc Chi Địa | Săn | Cổng bắc Thiên Đấu Thành; băng tuyết, càng lên bắc càng sâu; thú vương Huyền Minh Băng Giao |
 | Hải Thần Đảo | Săn | Đi thuyền từ bến Thiên Đấu Thành; hồn thú biển, nơi duy nhất có hồn thú thường 10 vạn năm; thú vương Thâm Hải Ma Kình Vương |
@@ -189,11 +189,12 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 - Boss không nhận khống chế (Choáng, Trói…); để lâu thì **nổi giận** rồi cuối cùng lặn xuống hồ, không ai nhận thưởng.
 - **Thưởng:** người gây sát thương nhiều nhất nhận hồn hoàn đỏ, người khác có cơ hội hồn hoàn đỏ hoặc nhận hồn hoàn đen, kèm **rương** có **mảnh UR**. Lượt thưởng mỗi ngày riêng với thú vương.
 
-> Đóng góp tính theo phiên: **thoát game hoặc đổi kênh giữa trận là mất đóng góp cũ**. Đứng ngoài vùng giao chiến quá lâu cũng bị loại khỏi danh sách tham gia.
+> Đứng ngoài vùng giao chiến quá lâu thì bị loại khỏi danh sách tham gia nhưng **vẫn giữ đóng góp đã gây**; còn trong phòng lúc boss gục thì vẫn nhận thưởng.
+> Thoát game hoặc đổi kênh giữa trận có thể làm mất đóng góp cũ, nên tốt nhất ở lại tới khi boss gục.
 
 ## 14. Tổ đội
 - **Mời:** bấm / chạm hồn sư khác, gõ `/moi <tên>`, hoặc nút "Mời…" ở khung tổ đội (mời được cả người ở bản đồ khác). Người được mời bấm "Vào đội" / "Từ chối". `/roi` hoặc "Rời đội" để rời.
-- **Chia kinh nghiệm:** đồng đội cùng bản đồ, cùng kênh, đứng gần chỗ hồn thú gục thì cùng chia, kèm phần cộng thêm cho mỗi người. Hồn Tệ và mảnh vẫn của người hạ.
+- **Chia kinh nghiệm:** đồng đội cùng bản đồ, cùng kênh, chưa gục, đứng gần chỗ hồn thú gục thì cùng chia, kèm phần cộng thêm cho mỗi người. Hồn Tệ và mảnh vẫn của người hạ.
 - **Đồ rơi** ưu tiên cả tổ đội của người được ưu tiên.
 - **Võ hồn Phụ trợ lan hiệu ứng:** hồi máu, khiên, tăng chỉ số, thanh tẩy do võ hồn hệ Phụ trợ tung cũng lan cho đồng đội đứng gần (yếu hơn một chút). Hồi / khiên cho đồng đội đang đánh boss được tính vào đóng góp (cột "Hỗ trợ").
 - Khung tổ đội hiện tên, cấp, võ hồn ra trận, sinh lực và bản đồ / kênh của từng người; đồng đội cùng phòng là chấm xanh lá trên bản đồ nhỏ.
