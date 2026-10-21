@@ -34,7 +34,7 @@
 // và thoát vào lại giữ tiến độ, mục tiêu đã đạt sẵn), tổ đội người chơi (7.1: mời theo tên / bấm vào hồn sư, từ chối, chống spam
 // lời mời, tối đa 4, chia kinh nghiệm trong / ngoài 300 pixel và khác bản đồ, +5% mỗi người, giảm chênh cấp từng người, 40/20
 // trong đội võ hồn, ưu tiên nhặt cả tổ đội, rời / đuổi / chuyển trưởng nhóm / giải tán, rời game quá lâu), cộng minh (8.2: từng
-// mốc của 4 trụ cột Võ hồn / Hồn hoàn / Hồn cốt / Hồn hạch, chỉ số mọi võ hồn kể cả võ hồn đổi vào sau, thông báo mốc mới, mất mốc
+// mốc của 5 trụ cột Võ hồn / Hồn hoàn / Hồn cốt / Hồn hạch / Sao, chỉ số mọi võ hồn kể cả võ hồn đổi vào sau, thông báo mốc mới, mất mốc
 // khi tháo đồ, thoát vào lại vẫn giữ), hồn kỹ vòng 5–10 và Võ Hồn Chân Thân (8.1a: hồn kỹ vòng 5, 6, 10 đúng sức mạnh
 // theo năm, chọn 4 ô mang theo và từ chối khi sai / giao chiến, hồi chiêu đi theo hồn kỹ khi đổi ô, Chân Thân tăng chỉ số rồi tắt đúng giờ,
 // hồi chiêu riêng, đổi võ hồn thì hết, võ hồn chưa có dữ liệu chỉ tăng chỉ số, Phục Chế không chép tuyệt kỹ, ô lưu sau khi thoát vào lại;
@@ -180,7 +180,8 @@ async function enter(b,roomId){
   b.party=null; b.partyMsgs=0; b.room.onMessage("party",m=>{b.party=m; b.partyMsgs++;}); // khung tổ đội (7.1)
   b.quest=null; b.questMsgs=0; b.room.onMessage("quest",m=>{b.quest=m; b.questMsgs++;}); // tiến độ nhiệm vụ tân thủ (6.2)
   b.daily=null; b.dailyMsgs=0; b.room.onMessage("daily",m=>{b.daily=m; b.dailyMsgs++;}); // khảo hạch hằng ngày của Phất Lan Đức
-  b.res=null; b.resMsgs=0; b.resEv=[]; b.room.onMessage("resonance",m=>{b.res=m; b.resMsgs++; if(m.ev) b.resEv.push(...m.ev);}); // cộng minh (8.2)
+  b.res=null; b.resMsgs=0; b.resEv=[]; b.resTop=null; b.room.onMessage("resonance",m=>{b.res=m; b.resMsgs++; if(m.ev) b.resEv.push(...m.ev);}); // cộng minh (8.2)
+  b.room.onMessage("resonanceTop",m=>{b.resTop=m;});
   b.elite=[]; b.room.onMessage("elite",m=>b.elite.push(m)); // tinh anh xuất hiện / bị hạ (BĐ4)
   b.boss=[]; b.room.onMessage("boss",m=>{b.boss.push(m); if(b.boss.length>200) b.boss.shift();}); // thú vương: báo trước, xuất hiện, xếp hạng, bị hạ (BĐ5)
   // 5.1: hồn hạch rơi 15% cả với hồn thú dưới 1.000 năm; tắt khi có hook (GAME_TEST=1) để không xen vào các kiểm tra đồ rơi khác,
@@ -6305,20 +6306,20 @@ async function arenaTest(){
   }
 }
 /**
- * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 4 trụ cột bằng hook (grant / set
+ * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 5 trụ cột bằng hook (grant / set
  * võ hồn, hấp thụ thật, give hồn cốt +10 / hồn hạch 5★ rồi gắn bằng message thật): chỉ số mọi võ hồn (ra trận, trong đội, ngoài
  * đội, đổi vào sau) tăng đúng %, thông báo mốc mới (log + `ev`), tháo đồ thì mất mốc, thoát vào lại vẫn giữ.
  */
 async function resonanceTest(){
-  console.log("[8.2] Cộng minh: 4 trụ cột, cộng chỉ số cho mọi võ hồn");
-  const NEED={vohon:[4,6,8],ring:[10,25,50],bone:[6,12,24],core:[8,16,24]};
-  ok(RESONANCE.length===4&&RESONANCE.every(r=>JSON.stringify(r.steps.map(s=>s.need))===JSON.stringify(NEED[r.id])&&r.steps.every(s=>Object.values(s.bonus).every(v=>v>0))),
-    "RESONANCE: Võ hồn 4/6/8, Hồn hoàn 10/25/50, Hồn cốt 6/12/24, Hồn hạch 8/16/24 (mục 5.10)");
-  const pv=resonanceProgress({vohons:[{level:RES_VOHON_LEVEL,rings:3},{level:RES_VOHON_LEVEL-1,rings:7},{level:100,rings:10}],
+  console.log("[8.2] Cộng minh: 5 trụ cột, cộng chỉ số cho mọi võ hồn");
+  const NEED={vohon:[4,6,8],ring:[10,25,50],bone:[6,12,24],core:[8,16,24],star:[4,10,18]};
+  ok(RESONANCE.length===5&&RESONANCE.every(r=>JSON.stringify(r.steps.map(s=>s.need))===JSON.stringify(NEED[r.id])&&r.steps.every(s=>Object.values(s.bonus).every(v=>v>0))),
+    "RESONANCE: Võ hồn 4/6/8, Hồn hoàn 10/25/50, Hồn cốt 6/12/24, Hồn hạch 8/16/24, Sao 4/10/18 (mục 5.10)");
+  const pv=resonanceProgress({vohons:[{level:RES_VOHON_LEVEL,rings:3,stars:3},{level:RES_VOHON_LEVEL-1,rings:7,stars:1},{level:100,rings:10,stars:2}],
     bones:[{enhance:RES_BONE_ENHANCE},{enhance:RES_BONE_ENHANCE-1}],cores:[{stars:RES_CORE_STARS},{stars:RES_CORE_STARS-1},{stars:6}]});
-  ok(JSON.stringify(pv)===JSON.stringify([2,20,1,2])&&JSON.stringify(resonanceLevels([4,24,6,23]))===JSON.stringify([1,1,1,2])
-    &&JSON.stringify(resonanceLevels([99,99,99,99]))===JSON.stringify([3,3,3,3])&&JSON.stringify(resonanceBonus([0,0,0,0]))===JSON.stringify({hp:0,mp:0,atk:0}),
-    `resonanceProgress / resonanceLevels: cấp ${RES_VOHON_LEVEL}+, hồn cốt +${RES_BONE_ENHANCE}, hồn hạch ${RES_CORE_STARS}★ (${JSON.stringify(pv)})`);
+  ok(JSON.stringify(pv)===JSON.stringify([2,20,1,2,3])&&JSON.stringify(resonanceLevels([4,24,6,23,10]))===JSON.stringify([1,1,1,2,2])
+    &&JSON.stringify(resonanceLevels([99,99,99,99,99]))===JSON.stringify([3,3,3,3,3])&&JSON.stringify(resonanceBonus([0,0,0,0,0]))===JSON.stringify({hp:0,mp:0,atk:0,crit:0,def:0,spd:0}),
+    `resonanceProgress / resonanceLevels: cấp ${RES_VOHON_LEVEL}+, hồn cốt +${RES_BONE_ENHANCE}, hồn hạch ${RES_CORE_STARS}★, sao võ hồn (${JSON.stringify(pv)})`);
   const R=await bot("Cộng minh","u_minh_linh_mieu",{sex:0,hair:2,hairCol:3,outfitCol:1});
   const rme=()=>R.room.state.players?.get(R.room.sessionId);
   await waitFor(()=>R.owned&&R.bag&&R.res&&rme(),3000);
@@ -6355,6 +6356,16 @@ async function resonanceTest(){
   ok(R.res.lv[0]===2,`6 võ hồn cấp ${RES_VOHON_LEVEL}+: mốc 2 (${lvOf()})`);
   for(let i=6;i<8;i++) await test(R,"set",{rowId:ids[i],level:RES_VOHON_LEVEL,xp:0});
   ok(R.res.lv[0]===3&&R.res.bonus.hp===10,`8 võ hồn cấp ${RES_VOHON_LEVEL}+: đủ 3 mốc, sinh lực +${R.res.bonus.hp}%`);
+  // ---- Sao võ hồn: tổng sao cộng thêm 4 / 10 / 18; hiệu ứng crit / giảm sát thương / tốc chạy cộng dồn và có cap ----
+  await test(R,"set",{rowId:ids[0],stars:3}); await test(R,"set",{rowId:ids[1],stars:2}); await test(R,"set",{rowId:ids[2],stars:1}); await test(R,"set",{rowId:ids[3],stars:2});
+  ok(R.res.prog[4]===4&&R.res.lv[4]===1&&R.res.bonus.crit===1&&R.res.bonus.def===0&&R.res.bonus.spd===0,
+    `4 sao cộng thêm: chí mạng +${R.res.bonus.crit} điểm %, chưa mở giảm sát thương / tốc chạy`);
+  await test(R,"set",{rowId:ids[4],stars:6}); await test(R,"set",{rowId:ids[5],stars:2});
+  ok(R.res.prog[4]===10&&R.res.lv[4]===2&&R.res.bonus.crit===1&&R.res.bonus.def===1,
+    `10 sao cộng thêm: giảm sát thương +${R.res.bonus.def}% (chí mạng giữ +${R.res.bonus.crit} điểm %)`);
+  await test(R,"set",{rowId:ids[6],stars:5}); await test(R,"set",{rowId:ids[7],stars:5});
+  ok(R.res.prog[4]===18&&R.res.lv[4]===3&&R.res.bonus.crit===1&&R.res.bonus.def===1&&R.res.bonus.spd===2,
+    `18 sao cộng thêm: tốc chạy +${R.res.bonus.spd}%`);
   // ---- Hồn hoàn: tổng 10 / 25 / 50 hồn hoàn trên mọi võ hồn; mốc cuối bằng một lần hấp thụ thật ----
   const Y=n=>Array.from({length:n},()=>10), setRings=(i,n)=>test(R,"set",{rowId:ids[i],level:Math.max(RES_VOHON_LEVEL,(n+1)*10>100?100:n*10+10),xp:0,rings:Y(n)});
   await setRings(0,3); await setRings(1,3); await setRings(2,3);
@@ -6413,11 +6424,11 @@ async function resonanceTest(){
   await gearUp(ids[1],cores(4,RES_CORE_STARS)); await gearUp(ids[2],cores(4,RES_CORE_STARS));
   ok(R.res.prog[3]===16&&R.res.lv[3]===2,"16 hồn hạch: mốc 2");
   await gearUp(ids[2],cores(2,RES_CORE_STARS)); await gearUp(ids[3],cores(6,RES_CORE_STARS));
-  ok(R.res.prog[3]===24&&JSON.stringify(R.res.lv)===JSON.stringify([3,3,3,3]),`24 hồn hạch: đủ 12 mốc (${lvOf()}, ${JSON.stringify(R.res.bonus)})`);
-  const all=resonanceBonus([3,3,3,3]);
-  ok(R.res.bonus.hp===all.hp&&R.res.bonus.mp===all.mp&&R.res.bonus.atk===all.atk&&R.resEv.filter(e=>e.up).length>=12,
-    `tổng cộng minh ${JSON.stringify(all)}, đã báo ${R.resEv.filter(e=>e.up).length} mốc`);
-  await checkAll([3,3,3,3],"đủ 12 mốc");
+  ok(R.res.prog[3]===24&&JSON.stringify(R.res.lv)===JSON.stringify([3,3,3,3,3]),`24 hồn hạch: đủ 15 mốc (${lvOf()}, ${JSON.stringify(R.res.bonus)})`);
+  const all=resonanceBonus([3,3,3,3,3]);
+  ok(R.res.bonus.hp===all.hp&&R.res.bonus.mp===all.mp&&R.res.bonus.atk===all.atk&&R.res.bonus.crit===1&&R.res.bonus.def===1&&R.res.bonus.spd===2&&R.resEv.filter(e=>e.up).length>=15,
+    `tổng cộng minh ${JSON.stringify(all)}, cap crit 3 / def 5 / spd 5; hiện tại crit ${R.res.bonus.crit}, def ${R.res.bonus.def}, spd ${R.res.bonus.spd}, đã báo ${R.resEv.filter(e=>e.up).length} mốc`);
+  await checkAll([3,3,3,3,3],"đủ 15 mốc");
   // Võ hồn trong đội nhưng không ra trận: sinh lực tối đa trong tin squad cũng có cộng minh; đổi vào sau thì chỉ số đang dùng có ngay.
   await test(R,"rest"); await sendTeam(R,[act,ids.find(r=>r!==act&&r!==ids[0])??ids[1],0,0]);
   const bench=R.owned.team[1], bv=R.owned.list.find(v=>v.rowId===bench), bs=await test(R,"stats",{rowId:bench});
@@ -6427,11 +6438,14 @@ async function resonanceTest(){
   ok(sw.rowId===bench&&sw.live.maxHp===calcStats(vohonIndex(bv.vohon),bv.level,bv.rings.map(tierOfYears),bv.stars,sw.bones,sw.cores,all).maxHp&&rme().maxHp===sw.live.maxHp,
     `đổi ${VOHON[vohonIndex(bv.vohon)].name} vào: sinh lực tối đa ${sw.live.maxHp} có cộng minh`);
   // ---- Thoát vào lại: tiến độ tính lại từ dữ liệu đã lưu, không báo lại mốc ----
+  R.resTop=null; R.room.send("resonance",{op:"top",page:1,pageSize:99}); await waitFor(()=>R.resTop,2000);
+  ok(R.resTop?.page===1&&R.resTop.pageSize===20&&R.resTop.total>=1&&R.resTop.me?.rank>=1&&R.resTop.list.every(r=>!("accountId" in r)&&typeof r.name==="string"&&Number.isInteger(r.score)),
+    `bảng xếp hạng: trang ${R.resTop?.page}/${R.resTop?.pageSize}, ${R.resTop?.total} tài khoản, dòng công khai không lộ accountId`);
   const keep=JSON.stringify([R.res.prog,R.res.lv,R.res.bonus]);
   await test(R,"goto",{x:rme().x,y:rme().y}); await R.room.leave(); await sleep(400);
   R.mapId=(await post("/api/me",{token:R.token})).mapId; await enter(R); await waitFor(()=>R.res&&R.owned&&rme(),3000);
   ok(JSON.stringify([R.res.prog,R.res.lv,R.res.bonus])===keep&&!R.resEv.length,`thoát vào lại: cộng minh giữ nguyên ${keep}, không báo lại mốc`);
-  await checkAll([3,3,3,3],"vào lại");
+  await checkAll([3,3,3,3,3],"vào lại");
   await R.room.leave();
 }
 

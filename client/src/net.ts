@@ -1,4 +1,4 @@
-import type { Looks, QuestProgress, QuestStatus } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus, ResEffect } from "../../shared/data.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
@@ -62,7 +62,13 @@ export interface DailyMsg {
  * Tin nhắn riêng "resonance" (cộng minh, bước 8.2): tiến độ `prog` và số mốc đã đạt `lv` từng trụ cột (thứ tự RESONANCE), tổng %
  * đang cộng cho mọi võ hồn. `ev`: mốc vừa đạt (`up`) hoặc vừa mất (tháo đồ), chỉ có khi đổi.
  */
-export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<"hp" | "mp" | "atk", number>; ev?: { pillar: number; step: number; up: boolean }[]; }
+export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<ResEffect, number>; ev?: { pillar: number; step: number; up: boolean }[]; }
+/** Bảng xếp hạng công khai: không có accountId; `me` chỉ là dòng của chính mình. */
+export interface ResonanceTopMsg {
+  page: number; pageSize: number; total: number; hasNext: boolean;
+  list: { name: string; score: number; milestones: number; me: boolean }[];
+  me: { rank: number; score: number; milestones: number; progressBp: number; extraStars: number } | null;
+}
 
 /**
  * Tin nhắn riêng "party" (tổ đội người chơi, bước 7.1): `id` tổ đội (0 = chưa có; so với DropState.party để biết đồ rơi của đội),

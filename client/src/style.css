@@ -567,6 +567,19 @@ body.arena #quest{display:none}
 .ressteps{display:flex;flex-wrap:wrap;gap:4px}
 .resstep{font-size:12px;font-family:var(--f12);border:1px dashed var(--line);padding:2px 6px;color:var(--muted)}
 .resstep.on{border:1px solid var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--text)}
+.resrank{border:1px solid var(--line2);padding:6px 8px;display:flex;flex-direction:column;gap:5px}
+.resrankhead,.respages{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.resrankhead b{font-size:12px;font-family:var(--f12)}
+.resrank button,.respages button{font:inherit;font-size:12px;font-family:var(--f12);min-height:28px;padding:3px 7px;border:1px solid var(--line2);background:var(--wash);color:var(--text);cursor:pointer}
+.resrank button:disabled,.respages button:disabled{opacity:.45;cursor:default}
+.resrank small{color:var(--muted);font-size:12px;font-family:var(--f12)}
+.resranktable{display:flex;flex-direction:column;gap:1px;max-height:190px;overflow-y:auto}
+.resrankrow{display:grid;grid-template-columns:34px 1fr auto;gap:6px;padding:3px 4px;font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
+.resrankrow em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resrankrow i{font-style:normal;color:var(--muted);text-align:right}
+.resrankrow.me{background:rgba(233,196,90,.16);color:var(--xp)}
+.respages{justify-content:flex-end}
+.respages span{font-size:12px;font-family:var(--f12);color:var(--muted)}
 
 /* ===== Bước 10.8: giao diện thủy mặc (phong cách C) và thẻ võ hồn lưu ly (phong cách D), mục 5.11 =====
    Mảnh ui_* nạp qua manifest (uiArt.ts đặt --ui-<tên> và --nine-<tên>, thêm class "thuymac" lên <html>); thiếu ảnh thì giữ kiểu CSS
