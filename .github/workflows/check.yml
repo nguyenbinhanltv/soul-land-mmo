@@ -41,6 +41,7 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix server && npm ci --prefix client
       - run: npm run test:audio
+      - run: npm run test:audio --prefix client # AudioManager, nhạc nền (client/scripts/*-test.mjs, Node chạy thẳng .ts)
       - run: npm run audio:validate
       - run: npm run check
       - run: npm run build

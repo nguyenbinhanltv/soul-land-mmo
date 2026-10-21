@@ -25,7 +25,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
-  npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
+  npcDef, NPC_RANGE, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds, isDaily, fitBeast,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
@@ -553,10 +553,11 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
-    this.onMessage("buy", (c, m: { code: unknown; qty: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty));
-    this.onMessage("sell", (c, m: { id: unknown; qty: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty));
-    this.onMessage("buyback", (c, m: { key: unknown }) => this.buybackItem(c.sessionId, m?.key)); // mua lại đồ vừa bán (9.8)
-    this.onMessage("expand", (c) => this.expandBag(c.sessionId)); // mở rộng túi (9.8)
+    // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
+    this.onMessage("buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
+    this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
+    this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => this.buybackItem(c.sessionId, m?.key, m?.npc)); // mua lại đồ vừa bán (9.8)
+    this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
     this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
     this.onMessage("arena", (c, m: { op: unknown }) => this.arenaAction(c.sessionId, m?.op)); // Đại Đấu Hồn Trường (7.2)
@@ -1441,6 +1442,19 @@ export class MapRoom extends Room<MapState> {
     this.clients.getById(id)?.send("npc", { id: def.id });
   }
 
+  /**
+   * Thương nhân để mua / bán / mua lại / mở rộng túi (#111): `rawNpc` là mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân
+   * gần nhất, như bot / client cũ), phải là thương nhân và đứng trong NPC_RANGE. Thương nhân lưu động đứng ở trại cổng (không phải vùng
+   * an toàn) nên ngoài vùng an toàn, đang giao chiến thì không giao dịch. Trả NPC, hoặc lý do từ chối (`verb`: "mua", "bán"…).
+   */
+  shopFor(id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string {
+    const p = this.state.players.get(id);
+    const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "shop" });
+    if (!p || !npc || npcDef(npc.id)?.role !== "shop") return `Hãy đứng cạnh thương nhân rồi mới ${verb} được.`;
+    if (!this.map.inSafe(p.x, p.y) && d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới ${verb} được.`;
+    return npc;
+  }
+
   // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
   /**
    * Tin riêng "quest": tiến độ chuỗi tân thủ (bước, đã nhận, số đếm từng mục tiêu) và trạng thái (questStatus). Nội dung bài, mục
@@ -1767,14 +1781,16 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
-   * Mua `rawQty` món `rawCode` ở thương nhân (SHOP, giá đồng mỗi món): phải đứng gần thương nhân, mã có trong SHOP, 1..SHOP_MAX_QTY
-   * món, đủ Hồn Tệ và túi đủ chỗ cho cả số món đó (thiếu thì từ chối hết, không trừ tiền). Server tính giá; ghi DB qua chuỗi lưu.
+   * Mua `rawQty` món `rawCode` ở thương nhân (giá đồng mỗi món theo bảng hàng của thương nhân đứng gần, shopOf: SHOP trong thành,
+   * CAMP_SHOP ở trại cổng): phải đứng gần thương nhân, mã có trong bảng hàng đó, 1..SHOP_MAX_QTY món, đủ Hồn Tệ và túi đủ chỗ cho cả
+   * số món đó (thiếu thì từ chối hết, không trừ tiền). Server tính giá; ghi DB qua chuỗi lưu.
    */
-  buyItem(id: string, rawCode: unknown, rawQty: unknown) {
+  buyItem(id: string, rawCode: unknown, rawQty: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới mua được.");
-    const row = SHOP.find((s) => s.code === rawCode), def = row && itemDef(row.code);
+    const npc = this.shopFor(id, d, rawNpc, "mua");
+    if (typeof npc === "string") return warn(npc);
+    const row = shopOf(npc.id).find((s) => s.code === rawCode), def = row && itemDef(row.code);
     if (!row || !def) return warn("Thương nhân không bán món này.");
     const qty = Number.isInteger(rawQty) ? (rawQty as number) : 0;
     if (qty < 1 || qty > SHOP_MAX_QTY) return warn(`Mỗi lần mua từ 1 đến ${SHOP_MAX_QTY} món.`);
@@ -1793,10 +1809,11 @@ export class MapRoom extends Room<MapState> {
    * đồ đang gắn trên võ hồn (hồn cốt, hồn hạch), hồn hoàn đang hấp thụ, đan và rương (sellPrice null). Giá do
    * server tính (sellPrice theo niên hạn / sao / độ hiếm); ghi DB qua chuỗi lưu.
    */
-  sellItem(id: string, rawId: unknown, rawQty: unknown) {
+  sellItem(id: string, rawId: unknown, rawQty: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới bán được.");
+    const npc = this.shopFor(id, d, rawNpc, "bán");
+    if (typeof npc === "string") return warn(npc);
     const it = typeof rawId === "string" ? d.bag.find((i) => i.id === rawId) : undefined;
     if (!it) return warn("Không có vật phẩm này trong túi đồ.");
     if (it.vohonId !== null) return warn(`${this.itemLabel(it)} đang gắn trên võ hồn: tháo ra trước mới bán được.`);
@@ -1822,10 +1839,11 @@ export class MapRoom extends Room<MapState> {
    * nhân, đủ Hồn Tệ cho đúng giá đã bán và túi đủ chỗ (đồ không gộp cần một ô trống). Món về túi đúng như lúc bán (chỉ số, cấp
    * cường hóa) với id mới; ghi DB qua chuỗi lưu như mua / bán.
    */
-  buybackItem(id: string, rawKey: unknown) {
+  buybackItem(id: string, rawKey: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới mua lại được.");
+    const npc = this.shopFor(id, d, rawNpc, "mua lại");
+    if (typeof npc === "string") return warn(npc);
     const list = buybacks.get(d.accountId) ?? [], e = typeof rawKey === "string" ? list.find((x) => x.key === rawKey) : undefined;
     if (!e) return warn(`Thương nhân không còn giữ món này (chỉ giữ ${BUYBACK_MAX} món bán gần nhất, mất khi rời game).`);
     const def = itemDef(e.item.code), label = this.itemLabel(e.item), cost = e.price * e.item.qty;
@@ -1851,12 +1869,14 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Mở rộng túi ở thương nhân (bước 9.8): +BAG_EXPAND ô, tối đa BAG_MAX_SLOTS, giá theo lần mở (bagExpandCost). Phải đứng gần thương
-   * nhân và đủ Hồn Tệ. Số ô lưu cùng túi đồ (`accounts.bag_slots`) qua chuỗi lưu.
+   * nhân trong thành (shopExpands: thương nhân lưu động ở trại cổng không mở rộng túi) và đủ Hồn Tệ. Số ô lưu cùng túi đồ (`accounts.bag_slots`) qua chuỗi lưu.
    */
-  expandBag(id: string) {
+  expandBag(id: string, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới mở rộng túi được.");
+    const npc = this.shopFor(id, d, rawNpc, "mở rộng túi");
+    if (typeof npc === "string") return warn(npc);
+    if (!shopExpands(npc.id)) return warn(`${npcDef(npc.id)?.name ?? "Thương nhân"} không mở rộng túi: về thương nhân trong thành.`);
     const cost = bagExpandCost(d.bagSlots);
     if (cost === null) return warn(`Túi đồ đã mở rộng tối đa (${BAG_MAX_SLOTS} ô).`);
     if (d.honTe < cost) return warn(`Không đủ Hồn Tệ: mở rộng túi giá ${formatHonTe(cost)}, đang có ${formatHonTe(d.honTe)}.`);

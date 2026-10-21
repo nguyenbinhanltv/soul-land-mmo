@@ -24,7 +24,7 @@ npm run bot --prefix client    # bot kiểm thử, chạy khi server đang bật
 ```
 - **Bot cần server bật `GAME_TEST=1`** (hook `test`; thiếu thì bot báo bỏ qua phần lớn kiểm tra). Chạy trên **server mới bật** (state sạch), từng lượt một: `GAME_TEST=1 PORT=2600 npm run dev:server` rồi `SERVER_URL=http://localhost:2600 npm run bot --prefix client`. Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam trừ khi đặt `BOSS_CLOCK=HH:MM` hoặc `real`. Phần nhiều kênh chạy riêng với server `CHANNEL_MAX=2 GAME_TEST=1`.
 - Bot không assert mọi thứ: đọc output (dòng ✗ là lỗi, ⚠ là bị bỏ qua) và log server. Luồng mới thì thêm vào `client/scripts/bot-test.mjs`.
-- Kiểm thử khác: `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
+- Kiểm thử khác: `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:audio --prefix client` (SFX, nhạc nền), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
 - **Đổi SQL / `db.ts` thì thử thêm với PostgreSQL**, sau lượt bot ở chế độ RAM: có Docker thì `docker compose up -d` và `cp .env.example server/.env`. Không có Docker thì dùng gói `embedded-postgres` cài trong thư mục tạm **ngoài repo**, cổng riêng, tạo DB `CREATE DATABASE … ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'` (cluster mặc định trên Windows không phải UTF8), rồi `DATABASE_URL=postgres://…@localhost:<cổng>/<db> PGSSL=false GAME_TEST=1 npm run dev:server`. Chạy server **hai lần liên tiếp** (migration phải chạy lại an toàn) rồi chạy bot.
 - Chạy song song nhiều phiên: dùng cổng server / PostgreSQL riêng và chỉ tắt đúng tiến trình mình bật.
 
@@ -52,3 +52,9 @@ Skill trong `.claude/skills/`:
 - `db-migration`: file SQL mới và lớp lưu trữ `db.ts`.
 - `balance-data`: mọi con số cân bằng trong `shared/data.ts`.
 - `asset-gen`: làm ảnh (PixelLab, Gemini, LPC, vẽ tay) và dây chuyền `tools/assets`.
+- `balance-review`: soát cân bằng, kinh tế Hồn Tệ, tỉ lệ rơi, Elo (phân tích; đặt số vẫn theo `balance-data`).
+- `anti-cheat-audit`: soát server-authoritative theo cách gian lận (message, API, nhân bản đồ, hook test).
+- `soak-perf`: chạy dài nhiều bot trên bản đồ ×8, đo tick / bản vá / băng thông / bộ nhớ, tìm rò.
+- `bot-flakiness`: xử lý bài bot chập chờn (tái hiện N lượt, đối chứng main, chờ theo state).
+- `playtest-triage`: phân loại phản hồi chơi thử thành issue đúng mẫu, nhãn, Project 3.
+- Năm skill trên phỏng theo [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho repo này.
