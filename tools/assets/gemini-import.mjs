@@ -9,7 +9,8 @@
 //   4. Dò cỡ "điểm ảnh giả" theo chu kỳ cạnh (phổ của tổng chênh lệch giữa hai cột / hai hàng kề nhau), cắt lưới
 //      thích nghi theo đỉnh cạnh gần nhất (ô AI không đều 5–7 px), mỗi ô lấy màu chủ đạo (medoid: một điểm thật
 //      của ô, không nội suy) → ảnh "pixel thật".
-//   5. Lượng tử màu: art/palette.gpl (mặc định), auto (median cut ~--colors màu riêng của cả lô) hoặc none.
+//   5. Lượng tử màu: art/palette.gpl (mặc định), auto (median cut --colors màu chung cả lô), auto-item (mỗi vật
+//      một bảng riêng) hoặc none.
 //   6. Đưa về khung đích bằng lấy mẫu 4×4 điểm mỗi pixel đích rồi chọn màu nhiều phiếu nhất (không nội suy):
 //      - tile:       mặt trên hình thoi (bỏ bề dày khối) về đúng --size (mặc định 64x32, tỉ lệ 2:1). Đỉnh thoi dò bằng
 //                    cách khớp đường thẳng vào mép trên (bỏ ngọn cỏ nhô lên); thu vào --inset điểm để bỏ viền đen;
@@ -27,9 +28,11 @@
 //   --cell auto|<số>       cỡ điểm ảnh giả; số thì dùng lưới đều cỡ đó (1 = ảnh đã là pixel thật).
 //   --size WxH             khung đích (tile-block chỉ dùng W và tỉ lệ 2:1 của mặt trên).
 //   --anchor x,y           gốc chân trong khung sprite.
-//   --palette gpl|auto|none|<file.gpl>   --colors 32 (cho auto).
+//   --palette gpl|auto|auto-item|none|<file.gpl>   --colors: số màu của bảng auto chung cả lô (mặc định 32) hoặc
+//                          của mỗi vật với auto-item (mặc định 10; nên dùng cho tấm nhiều chất liệu khác nhau).
 //   --logo auto|off|x,y,w,h               --key #rrggbb (màu nền; mặc định đọc ở góc ảnh)   --tol 60
-//   --inset 1.5            (tile) số điểm ảnh gốc thu vào từ mép thoi để bỏ viền.
+//   --inset auto|<số>      (tile) số điểm ảnh gốc thu vào từ mép thoi để bỏ viền; auto: dò bề rộng dải mép khác màu
+//                          bên trong (viền đen, thành "hộp kính" của nước), tối thiểu 1,5, tối đa 12.
 //   --seamless on|off      (tile, mặc định on)   --seam-band 0.3 (bề rộng dải trộn, phần của bán kính thoi).
 //   --preview 4            hệ số phóng ảnh xem trước (0 = không ghi).
 //   --debug                ghi thêm <out>/_native/<tên>.png (ảnh pixel thật trước khi đưa về khung).
@@ -42,14 +45,14 @@ const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
 const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
-const paletteOpt = opt("--palette", "gpl"), nColors = +opt("--colors", "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), inset = +opt("--inset", "1.5");
+const paletteOpt = opt("--palette", "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" ? "10" : "32"), logoOpt = opt("--logo", "auto");
+const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const debug = flag("--debug");
 const file = args[0];
 const KINDS = ["tile", "tile-block", "honsu", "vohon", "beast", "object", "portrait"];
 if (!outDir || !file || !KINDS.includes(kind)) {
-  console.error(`Cách dùng: gemini-import.mjs --kind ${KINDS.join("|")} --out <thư mục> <ảnh> [--names a,b] [--grid CxR] [--cell auto|N] [--size WxH] [--palette gpl|auto|none]`);
+  console.error(`Cách dùng: gemini-import.mjs --kind ${KINDS.join("|")} --out <thư mục> <ảnh> [--names a,b] [--grid CxR] [--cell auto|N] [--size WxH] [--palette gpl|auto|auto-item|none]`);
   process.exit(1);
 }
 const isTile = kind === "tile" || kind === "tile-block";
@@ -98,9 +101,28 @@ function removeLogo(img, K) {
   // cũng khớp "nền trộn trắng" và bị gỡ nhầm.
   for (let i = 3; i < img.data.length; i += 4) if (img.data[i] < 250) return null;
   if (Math.max(...K) - Math.min(...K) < 100) return null;
-  const x0 = Math.floor(img.w * 0.82), y0 = Math.floor(img.h * 0.75), pts = [];
+  const x0 = Math.floor(img.w * 0.82), y0 = Math.floor(img.h * 0.75), bw = img.w - x0, bh = img.h - y0;
   const overKey = (p) => paleKey(p, K);
-  for (let y = y0; y < img.h; y++) for (let x = x0; x < img.w; x++) { const al = overKey(img.get(x, y)); if (al >= 0) pts.push([x, y, al]); }
+  const alphaAt = new Float32Array(bw * bh).fill(-1);
+  for (let y = y0; y < img.h; y++) for (let x = x0; x < img.w; x++) alphaAt[(y - y0) * bw + x - x0] = overKey(img.get(x, y));
+  // Chỉ lấy mảng liền lớn nhất: viền vật sáng (tuyết, không nét viền) trộn với nền cũng khớp "nền trộn trắng"
+  // nhưng là dải mảnh rời, còn ngôi sao là một khối đặc.
+  const seen = new Uint8Array(bw * bh);
+  let pts = [];
+  for (let i = 0; i < bw * bh; i++) {
+    if (seen[i] || alphaAt[i] < 0) continue;
+    const comp = [], stack = [i];
+    seen[i] = 1;
+    while (stack.length) {
+      const j = stack.pop(), x = j % bw, y = (j / bw) | 0;
+      comp.push([x + x0, y + y0, alphaAt[j]]);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const X = x + dx, Y = y + dy, k = Y * bw + X;
+        if (X >= 0 && Y >= 0 && X < bw && Y < bh && !seen[k] && alphaAt[k] >= 0) { seen[k] = 1; stack.push(k); }
+      }
+    }
+    if (comp.length > pts.length) pts = comp;
+  }
   if (pts.length < 40) return null;
   const xs = pts.map((p) => p[0]), xL = Math.min(...xs), xR = Math.max(...xs);
   const R = (xR - xL + 1) / 2, cx = (xL + xR + 1) / 2;
@@ -296,7 +318,8 @@ function cuts(sig, P, fixed) {
     out.push(x);
   }
   out.push(n);
-  return out;
+  // Bước trung bình lệch quá 3% so với P (vùng phẳng, nhiễu nén kéo lưới trôi) → dùng lưới đều.
+  return Math.abs(n / (out.length - 1) / P - 1) > 0.03 ? cuts(sig, P, true) : out;
 }
 /** Medoid: điểm có tổng khoảng cách tới các điểm khác nhỏ nhất (màu chủ đạo, là màu thật của ô). */
 function medoid(ps) {
@@ -329,12 +352,14 @@ function defake(img, P) {
 }
 
 // ---------- 5. Bảng màu ----------
-/** Median cut rồi tinh chỉnh k-means 6 vòng. */
+/** Median cut (có trọng số số điểm) rồi tinh chỉnh k-means 6 vòng. */
 function medianCut(pixels, n) {
   let boxes = [pixels];
   while (boxes.length < n) {
+    // Tách hộp có (khoảng màu × √số điểm) lớn nhất: chỉ xét khoảng màu thì vùng rộng mà đều màu (cỏ, nước sâu)
+    // chỉ còn 1–2 màu trong khi vài điểm hoa / lá sặc sỡ chiếm hết bảng.
     let bi = -1, bc = 0, br = 0;
-    boxes.forEach((b, i) => { if (b.length < 2) return; for (let c = 0; c < 3; c++) { let lo = 255, hi = 0; for (const p of b) { lo = Math.min(lo, p[c]); hi = Math.max(hi, p[c]); } if (hi - lo > br) { br = hi - lo; bi = i; bc = c; } } });
+    boxes.forEach((b, i) => { if (b.length < 2) return; const w = Math.sqrt(b.length); for (let c = 0; c < 3; c++) { let lo = 255, hi = 0; for (const p of b) { lo = Math.min(lo, p[c]); hi = Math.max(hi, p[c]); } if ((hi - lo) * w > br) { br = (hi - lo) * w; bi = i; bc = c; } } });
     if (bi < 0) break;
     const b = boxes[bi].sort((p, q) => p[bc] - q[bc]), mid = b.length >> 1;
     boxes.splice(bi, 1, b.slice(0, mid), b.slice(mid));
@@ -348,16 +373,15 @@ function medianCut(pixels, n) {
   return cents;
 }
 function nearestIdx(p, pal) { let bi = 0, bd = Infinity; for (let i = 0; i < pal.length; i++) { const d = dist(p, pal[i]); if (d < bd) { bd = d; bi = i; } } return bi; }
-function buildPalette(natives) {
-  if (paletteOpt === "none") return null;
-  if (paletteOpt === "auto") {
-    const px = [];
-    for (const img of natives) for (let i = 0; i < img.data.length; i += 4) if (img.data[i + 3]) px.push([img.data[i], img.data[i + 1], img.data[i + 2]]);
-    const pal = medianCut(px, nColors);
-    if (!isTile || kind === "tile-block") pal.push(OUT_RGB);
-    return pal;
-  }
-  return (paletteOpt === "gpl" ? readGpl() : readGpl(paletteOpt)).map(hex);
+/** Bảng màu của từng vật: auto = một bảng chung cả lô; auto-item = mỗi vật một bảng --colors màu; gpl / file = bảng cố định. */
+function buildPalettes(natives) {
+  if (paletteOpt === "none") return natives.map(() => null);
+  const pixelsOf = (imgs) => { const px = []; for (const img of imgs) for (let i = 0; i < img.data.length; i += 4) if (img.data[i + 3]) px.push([img.data[i], img.data[i + 1], img.data[i + 2]]); return px; };
+  const withOutline = (pal) => (!isTile || kind === "tile-block" ? [...pal, OUT_RGB] : pal);
+  if (paletteOpt === "auto") { const pal = withOutline(medianCut(pixelsOf(natives), nColors)); return natives.map(() => pal); }
+  if (paletteOpt === "auto-item") return natives.map((img) => withOutline(medianCut(pixelsOf([img]), nColors)));
+  const pal = (paletteOpt === "gpl" ? readGpl() : readGpl(paletteOpt)).map(hex);
+  return natives.map(() => pal);
 }
 function quantize(img, pal) {
   if (!pal) return img;
@@ -457,6 +481,7 @@ const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => 
 /**
  * Làm liền mép: mỗi trục (a rồi b) trộn ô với bản dời nửa chu kỳ theo trục đó; dải sát mép lấy bản dời (liền
  * qua mép vì đó là phần giữa ô), vào trong lấy dần ô gốc theo dither Bayer 4×4 (không tạo màu mới).
+ * Hợp với vân nhiễu (cỏ, cát, nước); hoa văn có cấu trúc (phiến đá) sẽ gãy ở dải trộn.
  */
 function makeSeamless(t) {
   const W = t.w, H = W / 2;
@@ -466,7 +491,8 @@ function makeSeamless(t) {
     const ox = axis ? -W / 4 : W / 4, oy = H / 4;
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       if (!inDiamond(x, y, W, H)) continue;
-      const v = Math.abs(isoAB(x, y, W, H)[axis]), w = Math.min(1, Math.max(0, (v - (1 - seamBand)) / seamBand));
+      // 1/4 ngoài cùng của dải lấy hẳn bản dời: mép sáng / tối Gemini hay vẽ sát cạnh thoi không còn lốm đốm.
+      const v = Math.abs(isoAB(x, y, W, H)[axis]), w = Math.min(1, Math.max(0, (v - (1 - seamBand)) / (seamBand * 0.75)));
       if (w > BAYER[(y & 3) * 4 + (x & 3)]) t.set(x, y, wrapGet(src, x + ox, y + oy));
     }
   }
@@ -487,11 +513,36 @@ function scrubOutline(t) {
   }
 }
 
+/**
+ * Bề rộng dải mép (điểm ảnh gốc): độ sáng trung bình theo khoảng cách tới cạnh mặt trên (gộp cả 4 cạnh, nên sáng
+ * trên trái / tối dưới phải tự triệt nhau); dải là các vòng ngoài cùng lệch hẳn so với phần trong (cách mép 16–30).
+ */
+function autoInset(nat, g) {
+  const C = [(g.L[0] + g.R[0]) / 2, (g.L[1] + g.R[1]) / 2], hw = (g.R[0] - g.L[0]) / 2, hh = (g.B[1] - g.T[1]) / 2, edge = (hw * hh) / Math.hypot(hw, hh);
+  const bins = Array.from({ length: 31 }, () => [0, 0]), inner = [];
+  for (let y = 0; y < nat.h; y++) for (let x = 0; x < nat.w; x++) {
+    if (!nat.alpha(x, y)) continue;
+    const dx = (x + 0.5 - C[0]) / hw, dy = (y + 0.5 - C[1]) / hh, m = Math.max(Math.abs(dx + dy), Math.abs(dy - dx));
+    if (m >= 1) continue;
+    const k = Math.floor((1 - m) * edge), l = lum(nat.get(x, y));
+    if (k > 30) continue;
+    bins[k][0] += l; bins[k][1]++;
+    if (k >= 16) inner.push(l);
+  }
+  if (inner.length < 20) return 1.5;
+  const ref = inner.reduce((s, v) => s + v, 0) / inner.length, sd = Math.sqrt(inner.reduce((s, v) => s + (v - ref) ** 2, 0) / inner.length);
+  const off = (k) => (bins[k][1] ? Math.abs(bins[k][0] / bins[k][1] - ref) : 0), lim = Math.max(5, 0.35 * sd);
+  let k = 15;
+  while (k > 0 && off(k - 1) < lim) k--;
+  return Math.min(12, Math.max(1.5, k + 0.5));
+}
+
 function renderTile(nat, g) {
   const C = [(g.L[0] + g.R[0]) / 2, (g.L[1] + g.R[1]) / 2];
   // Thu vào `inset` điểm theo khoảng cách vuông góc từ tâm tới cạnh thoi.
   const hw = (g.R[0] - g.L[0]) / 2, hh = (g.B[1] - g.T[1]) / 2, edge = (hw * hh) / Math.hypot(hw, hh);
-  const s = kind === "tile" ? 1 - inset / edge : 1;
+  const inset = kind !== "tile" ? 0 : insetOpt === "auto" ? autoInset(nat, g) : +insetOpt;
+  const s = 1 - inset / edge;
   const [L, T, R] = [g.L, g.T, g.R].map((v) => [C[0] + (v[0] - C[0]) * s, C[1] + (v[1] - C[1]) * s]);
   const W = FW, H = FW / 2;
   // Điểm đích (u, v) = L + α(T − L) + β(R − T), với α = u/W − (v − H/2)/H, β = u/W + (v − H/2)/H.
@@ -503,7 +554,7 @@ function renderTile(nat, g) {
     scrubOutline(t);
     const before = seamScore(t);
     if (seamless) makeSeamless(t);
-    return { out: t, seam: { before, after: seamless ? seamScore(t) : before } };
+    return { out: t, inset, seam: { before, after: seamless ? seamScore(t) : before } };
   }
   // Khối: thoi trên + hai mặt bên cao `th` pixel đích (cùng hệ số dọc với mặt trên).
   const th = Math.round((g.thick * H) / (g.B[1] - g.T[1])), t = new Img(W, H + th);
@@ -580,8 +631,10 @@ const items = splitItems(clean);
 if (!items.length) { console.error(`${file}: không tìm thấy vật nào sau khi xóa nền`); process.exit(1); }
 const P = cellOpt === "auto" ? commonPeriod(items.map((it) => it.img)) : +cellOpt;
 const nat = items.map((it) => ({ ...it, ...defake(it.img, P) }));
-const pal = buildPalette(nat.map((n) => n.img));
-const q = nat.map((n) => quantize(n.img, pal));
+const pals = buildPalettes(nat.map((n) => n.img));
+const q = nat.map((n, i) => quantize(n.img, pals[i]));
+// Mọi màu đã dùng (bảng auto / auto-item gộp lại, bỏ trùng) để ghi _palette.gpl.
+const pal = [...new Map(pals.flat().filter(Boolean).map((c) => [toHex(c), c])).values()];
 
 // Sprite: hệ số thu chung = vừa vật lớn nhất (cao tới đỉnh khung trừ 2 điểm, rộng trừ 2 điểm mỗi bên); không phóng to.
 let s = 1;
@@ -592,7 +645,7 @@ if (!isTile) {
 }
 
 mkdirSync(outDir, { recursive: true });
-const report = { source: path.resolve(file), kind, size: [FW, FH], key: toHex(K), logo, period: +P.toFixed(2), palette: paletteOpt === "auto" ? `auto ${pal.length} màu` : paletteOpt, items: [] };
+const report = { source: path.resolve(file), kind, size: [FW, FH], key: toHex(K), logo, period: +P.toFixed(2), palette: paletteOpt.startsWith("auto") ? `${paletteOpt} ${pal.length} màu` : paletteOpt, items: [] };
 const outs = [];
 q.forEach((img, n) => {
   const name = names[n] ?? `${kind}_${n}`, it = nat[n];
@@ -602,7 +655,7 @@ q.forEach((img, n) => {
     const g = tileGeometry(img);
     info.face = { width: +(g.R[0] - g.L[0]).toFixed(1), height: +(g.B[1] - g.T[1]).toFixed(1), ratio: +((g.R[0] - g.L[0]) / (g.B[1] - g.T[1])).toFixed(2), thick: +g.thick.toFixed(1) };
     res = renderTile(img, g);
-    if (res.seam) info.seam = res.seam;
+    if (res.seam) { info.inset = res.inset; info.seam = res.seam; }
     if (res.thickPx !== undefined) info.thickPx = res.thickPx;
   } else {
     res = renderSprite(img, s);
@@ -616,12 +669,12 @@ q.forEach((img, n) => {
   outs.push(res.out);
   report.items.push(info);
   const face = info.face ? `  mặt trên ${info.face.width}×${info.face.height} (tỉ lệ ${info.face.ratio}:1), dày ${info.face.thick}` : "";
-  const seam = info.seam ? `  mép ghép ${info.seam.before}→${info.seam.after}` : "";
+  const seam = info.seam ? `  bỏ mép ${info.inset}, mép ghép ${info.seam.before}→${info.seam.after}` : "";
   console.log(`[gemini] ${name}: ô giả ${it.cell.join("×")} px → gốc ${img.w}×${img.h}${face}${seam}, ${info.colors} màu${info.warning ? `  (CẢNH BÁO: ${info.warning})` : ""}`);
 });
 if (!isTile) report.scale = +s.toFixed(3);
 writeFileSync(path.join(outDir, "_report.json"), JSON.stringify(report, null, 2) + "\n");
 // Bảng auto ghi ra .gpl để duyệt và chọn màu bổ sung cho art/palette.gpl.
-if (paletteOpt === "auto") writeFileSync(path.join(outDir, "_palette.gpl"), `GIMP Palette\nName: ${path.basename(file)} auto\nColumns: 8\n#\n` + pal.map((c) => `${c.map((v) => String(v).padStart(3)).join(" ")}\t${toHex(c)}`).join("\n") + "\n");
+if (paletteOpt.startsWith("auto")) writeFileSync(path.join(outDir, "_palette.gpl"), `GIMP Palette\nName: ${path.basename(file)} auto\nColumns: 8\n#\n` + pal.map((c) => `${c.map((v) => String(v).padStart(3)).join(" ")}\t${toHex(c)}`).join("\n") + "\n");
 if (previewScale > 0) writeFileSync(path.join(outDir, "_preview.png"), encodePng(contactSheet(outs, previewScale)));
 console.log(`[gemini] ${outs.length} vật → ${outDir}${logo ? `; logo đã gỡ (${logo.mode}, ${logo.pixels} điểm)` : ""}${isTile ? "" : `; hệ số thu ${s.toFixed(3)}`}`);
