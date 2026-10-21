@@ -105,7 +105,7 @@
   "waypoints": [
     { "name": "trai_cong", "label": "Trại cổng Lạc Nhật", "at": [15, 79] },
     { "name": "bang_hoa", "label": "Băng Hỏa Tuyền", "at": [157, 69], "ground": "pave" },
-    { "name": "luong_nghi", "label": "Suối Lưỡng Nghi", "at": [221, 76], "ground": "glow" }
+    { "name": "luong_nghi", "label": "Suối Lưỡng Nghi", "at": [214, 68], "ground": "glow" }
   ],
   "elites": [
     { "name": "Huyết Mạn Thực Nhân Hoa", "boss": "huyet_man_thuc_nhan_hoa", "rect": [32, 132, 8, 6] },
