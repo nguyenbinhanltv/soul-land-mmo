@@ -11,7 +11,7 @@ description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.
 - Gói trial chỉ chạy **1 việc một lúc** và đôi khi từ chối vì quá tải ("high demand", không trừ lượt): chờ việc trước xong rồi gửi lại.
 - Công cụ miễn phí: `search_help`, `search_knowledge`, `get_pro_flash_capabilities`, `get_balance`, `get_*` / `list_*`.
 - Key chưa có ảnh vẽ bằng code (`client/src/honsuArt.ts`, `textures.ts`); sửa pixel bằng tay (Aseprite, `pixelart_workbench`) khi cần.
-- **Ô Gemini** (người dùng tạo bằng Gemini, nhập bằng `gemini-import.mjs --kind tile`, mục "Nhập ảnh Gemini" bên dưới): mặt trên thoi 64×32 trầm, liền mép, **hợp làm ô lớn 64×32** (nền chính). **Mỗi bản đồ chỉ dùng một nguồn ô nền**, không trộn Gemini với PixelLab; vật đứng / nhân vật / hồn thú vẫn từ PixelLab. Bản đồ dùng Gemini vẫn cần ô thường 32×16 (chỗ 2×2 không cùng loại địa hình, mép địa hình): lấy ô 32×16 do `gemini-import` xuất (`<out>/32`), từ ảnh Gemini riêng với prompt vân to, thưa cho ô nhỏ (mục "Prompt theo phong cách"). Câu "thu về 32×16 thì mất nét và lộ mẫu lặp" chỉ nói việc lấy ô thu nhỏ đó làm **nền chính** cho vùng rộng.
+- **Ô Gemini** (người dùng tạo bằng Gemini, nhập bằng `gemini-import.mjs --kind tile`, mục "Nhập ảnh Gemini" bên dưới): mặt trên thoi 64×32 trầm, liền mép, **hợp làm ô lớn 64×32** (nền chính). **Mỗi bản đồ chỉ dùng một nguồn ô nền**, không trộn Gemini với PixelLab; nhân vật / hồn thú vẫn từ PixelLab. **Vật đứng** lấy từ PixelLab hoặc Gemini; **chân dung võ hồn** lấy từ Gemini và vẽ chính võ hồn, không vẽ chủ nhân (mục 5.11). Bản đồ dùng Gemini vẫn cần ô thường 32×16 (chỗ 2×2 không cùng loại địa hình, mép địa hình): lấy ô 32×16 do `gemini-import` xuất (`<out>/32`), từ ảnh Gemini riêng với prompt vân to, thưa cho ô nhỏ (mục "Prompt theo phong cách"). Câu "thu về 32×16 thì mất nét và lộ mẫu lặp" chỉ nói việc lấy ô thu nhỏ đó làm **nền chính** cho vùng rộng.
 - Không dùng hay tham chiếu ảnh từ game thương mại, phim, truyện tranh chính thức; không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 
 ## Gọi PixelLab (đã thử ở bước 10.0, 10.0b)
@@ -81,13 +81,29 @@ Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗ
 - Bảng màu: ô (`tile`, `tile-block`) mặc định `--palette auto-item` (mỗi vật một bảng `--colors` 10 màu; ghi `_palette.gpl` gộp), giữ như vậy cho tới khi `art/palette.gpl` có dải đất / đá / rêu / tuyết / cát / nước. `--palette auto --colors 32` (một bảng chung cả lô) để vật nhiều màu chiếm hết bảng, ô đều màu chỉ còn 1–3 màu; `--palette gpl` với bảng hiện nay làm ô ngả tím / lam / đỏ; `--palette none` để xem màu gốc.
 - Logo: `--logo auto` (mặc định) dựng lại ngôi sao và gỡ lớp trắng mờ kể cả phần đè lên vật; sao nằm trọn trên vật / khung tối (chân dung) thì dùng vị trí chuẩn của Gemini (ảnh 2752×1536: tâm cách góc dưới phải (112, 112), bán kính 48, alpha 0,51) khi khớp lớp trắng mờ. Vị trí khác thường thì `--logo star:cx,cy,R[,alpha]`, `--logo x,y,w,h` (vá bằng màu lân cận) hoặc `--logo off`.
 - Gemini hay vẽ mỗi ô thành **tấm nền riêng** khác `#FF00FF` (ví dụ `#b424a8` ở ảnh vật Tinh Đấu): đọc màu tấm rồi `--key #rrggbb`; cả tấm lẫn nền ngoài đều bị xóa. Vật có quầng sáng vẽ đè lên nền (nấm, cây phát quang) để lại viền tím nhạt: thêm `--fringe 12` (số lượt gỡ viền nhiễm màu nền, mặc định 2; lượt gỡ dừng ở viền tối của vật).
+- **Đế đất:** vật Gemini hay đứng trên khối đất thoi dày. `--cut-base a,b|all` cắt đế của các vật có tên này:
+  - dò đế từ đáy hình bóng (hai cạnh dốc 1:2) và bậc sáng giữa mặt bên với mặt trên;
+  - bỏ mặt bên, loang bỏ cỏ đất mặt trên trong ngưỡng `--base-tol` (mặc định 1500), dừng ở nét viền tối.
+  - Báo cáo in `cắt đế rộng W dày t`, hoặc `KHÔNG dò được đế` (vật để nguyên).
+  - Xem lại bằng mắt: vật cùng màu với đế (bụi cỏ, lau sậy trên mặt nước) cắt xấu thì không đưa vào game, ghi vào danh sách vẽ lại.
+- Một vùng dùng **chung `--scale`** cho mọi vật (Tinh Đấu: 0,6). Khung mỗi vật là bội `ISO_PROP_STEP` vừa hình: chạy một lần với khung lớn và `--debug`, đo hộp bao trong `_native/`, rồi chạy lại với khung đã tính. Bảng màu: `art/palette.gpl` gộp `art/palettes/<vùng>.gpl` thành một file, truyền bằng `--palette <file>`.
+- **Đăng ký vào game** (sau khi người dùng duyệt):
+  - Chép vào `shared/assets/sprites/iso/portrait/<mã võ hồn>.png` hoặc `iso/props/<vật>.png`.
+  - Chạy `validate.mjs --register portrait_<mã>|prop_<vật> --tool "Gemini (gemini.google.com) + tools/assets/gemini-import.mjs" --prompt "<ảnh, ô, prompt ô>" --note "<lệnh nhập>"`.
+  - Manifest ghi `"iso": true` (client chưa tải). CREDITS ghi vào mục "Asset tạo bằng AI (Gemini)".
+  - Validate kiểm: chân dung 64×64, tối đa `PORTRAIT_MAX_COLORS` màu; vật đứng cạnh chia hết cho `ISO_PROP_STEP`, màu thuộc bảng chung + `art/palettes/*.gpl`.
 - Mỗi lần chạy ghi `_preview.png` (×4), `_report.json` (cỡ ô giả, độ phân giải gốc, tỉ lệ mặt trên, bề dày, điểm lệch mép ghép trước / sau khi làm liền: khoảng 1 là liền như bên trong ô); `--debug` ghi thêm ảnh pixel thật trước khi ép khung vào `_native/`.
 
 **Quy tắc prompt Gemini:**
 - Nền một màu phẳng `#FF00FF` (không bóng đổ, không chuyển màu, không viền trắng quanh vật); vật không được dùng màu hồng / tím gần màu nền ở mép.
 - Lưới đều C cột × R hàng, mỗi ô một vật, các vật cách nhau rõ (không chạm nhau, không tràn sang ô khác); cùng cỡ, cùng góc nhìn.
 - Không chữ, không số, không nhãn, không khung; logo Gemini để công cụ gỡ.
-- Ô nền: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, seamless texture that tiles with itself"; khối pixel lớn (khoảng 64 pixel nghệ thuật trên bề ngang ô) để thu về ô lớn 64×32 không mất nét; ô logic 32×16 thì xin vân thưa, ít chi tiết nhỏ. Sprite: một hướng mỗi ô, chân chạm cùng đường đáy, viền ngoài tối.
+- Ô nền: "flat isometric floor tile, top face only, exact 2:1 diamond (width = 2 × height), no side thickness, no black outline, no edge highlight or bevel, uniform lighting, seamless texture that tiles with itself"; ô logic 32×16 thì xin vân thưa, ít chi tiết nhỏ.
+  - **Bố cục lưới quyết định tỉ lệ thoi:** Gemini vẽ thoi kín ô lưới. Ảnh 16:9 chia 3×2 thì ô lưới 1,19:1, thoi chỉ 1,2:1 (lô 2), bị ép về 2:1 thì mất khoảng 40% chi tiết dọc. Dùng 3×3 hoặc 2×2 (ô lưới 1,79:1) và xin "empty magenta above and below each diamond, diamonds never touch".
+  - Đừng ghi số pixel nghệ thuật ("about 64 art pixels across"): Gemini vẽ ô giả khoảng 11 px, thô gấp đôi.
+- Sprite / vật: một hướng mỗi ô, chân chạm cùng đường đáy, viền ngoài tối. Vật đứng thêm "no ground base, no soil slab under the prop" để khỏi phải cắt đế, và "no glow halo bleeding onto the background".
+- Chân dung: vẽ chính võ hồn trên nền tối có quầng màu của võ hồn; giữ nguyên prompt lô 1 (`gemini-prompts-vohon-tinhdau.md` của orchestrator).
+- Mỗi ảnh vẽ trong **một cuộc trò chuyện Gemini mới**: trong cùng cuộc trò chuyện, Gemini hay vẽ lại ảnh lượt trước (lô 2: 5/10 ảnh sai bản đồ). Kiểm nội dung từng ảnh trước khi nhập.
 
 Ví dụ:
 ```bash
@@ -96,7 +112,7 @@ node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/gras
 ```
 
 ## Quy trình "tạo <asset>"
-1. Đọc mục 5.11 và xác định key: `hs_{body,outfit,hair}_{m/f}_{0–3}`, `vh_{id}_b` / `_f`, `beast_{loài}`, ô / vật trong `shared/assets/iso/tiles.json`.
+1. Đọc mục 5.11 và xác định key: `hs_{body,outfit,hair}_{m/f}_{0–3}`, `vh_{id}_b` / `_f`, `beast_{loài}`, `portrait_{id}`, `prop_{vật}`, ô / vật trong `shared/assets/iso/tiles.json`.
 2. `get_balance`; tạo khung tĩnh 8 hướng trước, duyệt bằng mắt (phóng ×3, đặt trên nền isometric), rồi mới làm animation cho 5 hướng vẽ. Nhân vật mới lấy nhân vật đã duyệt làm mẫu phong cách.
 3. normalize → pack → normal → `preview.mjs` soát lệch chân, màu lạ, điểm vụn, hướng lật → `validate.mjs --register` → `npm run check`.
 4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ghép thử ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, cạnh lửa trại và nền rừng sâu.

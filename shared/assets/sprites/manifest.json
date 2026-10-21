@@ -46,6 +46,170 @@
     "hs_outfit_m_1",
     "hs_outfit_m_2",
     "hs_outfit_m_3",
+    {
+      "key": "portrait_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "portrait_bang_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "portrait_bich_lan_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "portrait_can_khon_hon_nguyen_toa",
+      "iso": true
+    },
+    {
+      "key": "portrait_cuu_bao_luu_ly_thap",
+      "iso": true
+    },
+    {
+      "key": "portrait_cuu_tinh_that_sat_kiem",
+      "iso": true
+    },
+    {
+      "key": "portrait_hao_thien_chuy",
+      "iso": true
+    },
+    {
+      "key": "portrait_hoa_anh",
+      "iso": true
+    },
+    {
+      "key": "portrait_hoa_long",
+      "iso": true
+    },
+    {
+      "key": "portrait_kim_vu_mieu_ung",
+      "iso": true
+    },
+    {
+      "key": "portrait_ky_nhung_thong_thien_cuc",
+      "iso": true
+    },
+    {
+      "key": "portrait_lam_dien_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "portrait_lam_ngan_thao",
+      "iso": true
+    },
+    {
+      "key": "portrait_nguyet_nhan",
+      "iso": true
+    },
+    {
+      "key": "portrait_nhu_cot_tho",
+      "iso": true
+    },
+    {
+      "key": "portrait_pha_hon_thuong",
+      "iso": true
+    },
+    {
+      "key": "portrait_quy_mi",
+      "iso": true
+    },
+    {
+      "key": "portrait_ta_hoa_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "portrait_thien_can_bach_ngoc_dinh",
+      "iso": true
+    },
+    {
+      "key": "portrait_tu_vong_chu_hoang",
+      "iso": true
+    },
+    {
+      "key": "portrait_u_minh_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "portrait_xuc_xich",
+      "iso": true
+    },
+    {
+      "key": "portrait_yeu_ho",
+      "iso": true
+    },
+    {
+      "key": "prop_bia_da_co",
+      "iso": true
+    },
+    {
+      "key": "prop_bien_chi_duong",
+      "iso": true
+    },
+    {
+      "key": "prop_cau_go",
+      "iso": true
+    },
+    {
+      "key": "prop_co_thu_lon",
+      "iso": true
+    },
+    {
+      "key": "prop_cum_da",
+      "iso": true
+    },
+    {
+      "key": "prop_duong_xi_sang",
+      "iso": true
+    },
+    {
+      "key": "prop_goc_cay_nam",
+      "iso": true
+    },
+    {
+      "key": "prop_khuc_go_rong",
+      "iso": true
+    },
+    {
+      "key": "prop_leu_tho_san",
+      "iso": true
+    },
+    {
+      "key": "prop_lua_trai",
+      "iso": true
+    },
+    {
+      "key": "prop_nam_khong_lo",
+      "iso": true
+    },
+    {
+      "key": "prop_nam_xanh_cum",
+      "iso": true
+    },
+    {
+      "key": "prop_re_cay_lon",
+      "iso": true
+    },
+    {
+      "key": "prop_so_thu_khong_lo",
+      "iso": true
+    },
+    {
+      "key": "prop_tang_da_reu",
+      "iso": true
+    },
+    {
+      "key": "prop_thong_cao",
+      "iso": true
+    },
+    {
+      "key": "prop_vach_da_nho",
+      "iso": true
+    },
+    {
+      "key": "prop_vom_da",
+      "iso": true
+    },
     "vh_cuu_bao_luu_ly_thap_b",
     "vh_cuu_bao_luu_ly_thap_f",
     "vh_hao_thien_chuy_b",
