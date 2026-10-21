@@ -9,6 +9,9 @@ import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
 import { paintHonsuPreview } from "./honsuArt.ts";
 import { MAX_LIGHTS } from "./lighting.ts";
+import { loadUiArt } from "./uiArt.ts";
+import { vohonCard } from "./cards.ts";
+import { fontTestScreen } from "./fontTest.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -129,12 +132,7 @@ function createScreen(me: Me) {
 // Lễ thức tỉnh: nhận Lam Ngân Thảo và tự chọn 1 võ hồn SSR. Server kiểm tra lựa chọn và roll hồn lực bẩm sinh.
 function awakenIntro() {
   const gift = VOHON[vohonIndex(AWAKEN_GIFT)];
-  const groups = (Object.keys(HE) as He[]).map((h) => {
-    const list = AWAKEN_CHOICES.filter((v) => v.he === h);
-    return `<h3>${HE[h].name}</h3><div class="vgrid">${list.map((v) =>
-      `<button type="button" class="vcard" data-id="${v.id}" style="--c:${v.col}" aria-pressed="false">
-        <i class="dot"></i><b>${v.name}</b><small>${v.owner || "&nbsp;"}</small></button>`).join("")}</div>`;
-  }).join("");
+  const groups = (Object.keys(HE) as He[]).map((h) => `<h3>${HE[h].name}</h3><div class="cgrid vgrid" data-he="${h}"></div>`).join("");
   card.classList.add("wide");
   card.innerHTML = `<h1>Lễ thức tỉnh</h1>
     <p>Chấp sự Tố Vân Đào làm lễ thức tỉnh: bạn nhận <b style="color:${gift.col}">${gift.name}</b> và được <b>tự chọn một võ hồn SSR</b>.
@@ -145,9 +143,14 @@ function awakenIntro() {
     <div class="err" id="err"></div>`;
   let chosen = "";
   const aw = document.getElementById("aw") as HTMLButtonElement, info = document.getElementById("info")!;
-  card.querySelectorAll<HTMLButtonElement>(".vcard").forEach((b) => b.addEventListener("click", () => {
+  for (const v of AWAKEN_CHOICES) {
+    const b = vohonCard(v, {}, "button");
+    b.classList.add("acard"); b.dataset.id = v.id; b.setAttribute("aria-pressed", "false"); b.title = v.owner ? `${v.name} · ${v.owner}` : v.name;
+    card.querySelector(`.vgrid[data-he="${v.he}"]`)!.appendChild(b);
+  }
+  card.querySelectorAll<HTMLButtonElement>(".acard").forEach((b) => b.addEventListener("click", () => {
     chosen = b.dataset.id!; const v = VOHON[vohonIndex(chosen)];
-    card.querySelectorAll(".vcard").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    card.querySelectorAll(".acard").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     info.innerHTML = `<b style="color:${v.col}">${v.name}</b> · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}<br>${v.trait}
       <br><small>Lưu phái: ${v.flows.join(", ")}</small>`;
     aw.disabled = false; aw.textContent = `Thức tỉnh ${v.name}`;
@@ -162,11 +165,12 @@ async function awaken(vohon: string) {
     const r = await post<{ character: Character }>("/api/awaken", { token, vohon });
     const c = r.character, v = vohonOf(c), gift = VOHON[vohonIndex(AWAKEN_GIFT)];
     card.classList.remove("wide");
-    card.innerHTML = `<div class="vh" style="color:${v.col}"><div class="orb"></div></div>
+    card.innerHTML = `<div class="vh bigcard"></div>
       <div class="vh"><h2>${v.name}</h2><div class="k">${v.rarity} · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}</div>
       <div class="t">${v.trait}<br>Kèm theo võ hồn <b style="color:${gift.col}">${gift.name}</b>.
       <br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === 10 ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
       <div class="btns"><button class="btn primary" id="go">Tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}</button></div>`;
+    card.querySelector(".bigcard")!.appendChild(vohonCard(v, { level: c.level, stars: c.stars, rings: c.rings }));
     document.getElementById("go")!.onclick = () => join();
     document.getElementById("go")!.focus();
   } catch (e) {
@@ -180,10 +184,11 @@ async function awaken(vohon: string) {
 function welcomeScreen(c: Character) {
   const v = vohonOf(c);
   card.classList.remove("wide");
-  card.innerHTML = `<div class="vh" style="color:${v.col}"><div class="orb"></div></div>
+  card.innerHTML = `<div class="vh bigcard"></div>
     <div class="vh"><h2>${esc(c.name)}</h2><div class="k">${v.name} ra trận – cấp ${c.level}, ${c.rings.length} hồn hoàn</div>
     <div class="t"><small>Trong game, nhấn V hoặc nút “Đội hình” để xếp đội 4 võ hồn; nhấn 1–4 để đổi võ hồn ngay khi đang đánh.</small></div></div>
     <div class="btns"><button class="btn primary" id="go">Vào ${esc(MAPS[mapId]?.name ?? "game")}</button><button class="btn" id="out">Đổi tài khoản</button></div>`;
+  card.querySelector(".bigcard")!.appendChild(vohonCard(v, { level: c.level, stars: c.stars, rings: c.rings }));
   document.getElementById("go")!.onclick = () => join();
   document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
   document.getElementById("go")!.focus();
@@ -303,8 +308,11 @@ function play(room: Room, roomMap: string) {
   game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack });
 }
 
-// Có phiên cũ -> thử tải nhân vật luôn.
+// Có phiên cũ -> thử tải nhân vật luôn. Trước đó đọc manifest cho ảnh giao diện (10.8; lỗi thì giao diện vẽ bằng CSS như cũ).
+// `?thu=font`: trang thử font tiếng Việt và bộ giao diện thủy mặc / thẻ võ hồn (không cần đăng nhập).
 (async () => {
+  await loadUiArt();
+  if (new URLSearchParams(location.search).get("thu") === "font") return fontTestScreen(card, overlay);
   if (!token) return loginScreen();
   await resume();
 })();
