@@ -59,7 +59,7 @@ Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. B�
 
 **Vùng an toàn:** cả bản đồ thành (`town`) và vùng `safe` trong bản đồ săn (làng Thánh Hồn Thôn). Ở đó không sinh hồn thú, hồn thú bỏ mục tiêu và không vào, không ai gây sát thương hay trạng thái, không tung hồn kỹ / tiên cơ / Chân Thân / kỹ năng hồn cốt. Người đang đi cổng cũng không gây gì (kể cả đạn đang bay, nhát hẹn giờ, độc và lửa đang cháy).
 
-**Hồi sinh lực và hồn lực:** hồi liên tục, sinh lực hồi nhanh hơn khi không bị đánh vài giây; võ hồn không ra trận trong đội hồi cùng nhịp. Vùng an toàn chưa hồi nhanh hơn ngoài rừng. (Các số này còn viết thẳng trong `MapRoom.tick`, chưa chuyển vào `data.ts`.)
+**Hồi sinh lực và hồn lực** (số ở `shared/data.ts`: `PLAYER_REGEN`, `SAFE_REGEN_MULT`, `hpRegen`, `mpRegen`): hồi liên tục. Hồn lực hồi theo cấp, võ hồn nhiều hồn lực hồi nhanh hơn. Sinh lực hồi theo phần trăm sinh lực tối đa khi không bị đánh quá `PLAYER_REGEN.calmSecs` giây, không thì chỉ hồi chậm một số điểm cố định; võ hồn không ra trận trong đội (chưa gục) hồi cùng nhịp. Trong vùng an toàn (thành, vùng `safe`) cả sinh lực lẫn hồn lực hồi nhanh gấp `SAFE_REGEN_MULT` lần ngoài rừng.
 
 **Gục:** võ hồn ra trận gục thì tự đổi sang võ hồn chưa gục kế tiếp trong đội (không tính hồi chiêu đổi, không tung tiên cơ). Võ hồn đã gục không đổi vào được; hồi đầy khi về trại hoặc sau `REVIVE_SECS` giây ngoài giao chiến (đồng hồ dừng khi giao chiến). Cả đội gục thì sau `RESPAWN_SECS` giây về điểm hồi sinh (`spawn`) của bản đồ, cả đội hồi đầy, **không mất kinh nghiệm hay đồ**. Sinh lực từng võ hồn không lưu DB: vào lại game thì cả đội đầy.
 
@@ -722,7 +722,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
 - [ ] Thương nhân lưu động ở trại cổng bản đồ săn (#111).
-- [ ] Vùng an toàn hồi sinh lực / hồn lực nhanh hơn ngoài rừng; chuyển các số hồi sinh lực đang viết thẳng trong `MapRoom.tick` vào `shared/data.ts` (#112).
+- [x] Vùng an toàn hồi sinh lực / hồn lực nhanh hơn ngoài rừng; chuyển các số hồi sinh lực đang viết thẳng trong `MapRoom.tick` vào `shared/data.ts` (#112; mục 4 "Hồi sinh lực và hồn lực").
 - [ ] Xếp hàng Đại Đấu Hồn Trường cả tổ đội (2v2…); cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); xem trận (#113).
 - [ ] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114).
 - [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
