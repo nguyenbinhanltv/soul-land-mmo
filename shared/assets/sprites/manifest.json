@@ -47,6 +47,98 @@
     "hs_outfit_m_2",
     "hs_outfit_m_3",
     {
+      "key": "item_dai_hoi_hon_dan",
+      "iso": true
+    },
+    {
+      "key": "item_dai_hoi_huyet_dan",
+      "iso": true
+    },
+    {
+      "key": "item_hoi_hon_dan",
+      "iso": true
+    },
+    {
+      "key": "item_hoi_huyet_dan",
+      "iso": true
+    },
+    {
+      "key": "item_hon_cot_chan_phai",
+      "iso": true
+    },
+    {
+      "key": "item_hon_cot_chan_trai",
+      "iso": true
+    },
+    {
+      "key": "item_hon_cot_dau",
+      "iso": true
+    },
+    {
+      "key": "item_hon_cot_tay_phai",
+      "iso": true
+    },
+    {
+      "key": "item_hon_cot_tay_trai",
+      "iso": true
+    },
+    {
+      "key": "item_hon_cot_than",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hoan",
+      "iso": true
+    },
+    {
+      "key": "item_manh_vo_hon",
+      "iso": true
+    },
+    {
+      "key": "npc_dai_su",
+      "iso": true
+    },
+    {
+      "key": "npc_dau_hon_truong",
+      "iso": true
+    },
+    {
+      "key": "npc_lao_kiet_khac",
+      "iso": true
+    },
+    {
+      "key": "npc_lo_ren",
+      "iso": true
+    },
+    {
+      "key": "npc_lo_ren_thien_dau",
+      "iso": true
+    },
+    {
+      "key": "npc_phat_lan_duc",
+      "iso": true
+    },
+    {
+      "key": "npc_su_gia_dau_hon",
+      "iso": true
+    },
+    {
+      "key": "npc_thuong_nhan",
+      "iso": true
+    },
+    {
+      "key": "npc_thuong_nhan_thien_dau",
+      "iso": true
+    },
+    {
+      "key": "npc_to_van_dao",
+      "iso": true
+    },
+    {
       "key": "portrait_a_ngan",
       "iso": true
     },

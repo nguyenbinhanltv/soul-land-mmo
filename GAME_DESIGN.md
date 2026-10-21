@@ -660,8 +660,10 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 
 **Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
 - **Chân dung 64×64** (`ISO_PORTRAIT`) vẽ **chính võ hồn** (vũ khí, thú, cây…) trên nền tối có quầng màu riêng của võ hồn, không vẽ chủ nhân. Nguồn: ảnh Gemini, nhập bằng `gemini-import --kind portrait` (cắt 1:1 từ pixel thật, không viền ngoài). Chân dung là giao diện HTML nên không theo bảng chung: tối đa `PORTRAIT_MAX_COLORS` màu mỗi ảnh. Hiển thị phóng 2–3 lần với `image-rendering: pixelated`.
-- **Thẻ võ hồn 96×128**: chân dung ở trên, tên, khung viền theo độ hiếm (SR: khung giấy thủy mặc viền bạc; SSR và UR: **lưu ly**, SSR viền vàng kim, UR viền vàng kim với kính màu dày hơn và chữ UR đỏ san hô), biểu tượng hệ 12×12 ở góc trên trái, sao ở dưới, hồn hoàn là các chấm màu theo bậc.
-- Biểu tượng 4 hệ: 12×12, một màu trên nền trong suốt, để CSS tô màu.
+- **Thẻ võ hồn 96×128**: chân dung ở trên, tên, khung viền theo độ hiếm (SR: khung giấy thủy mặc viền bạc; SSR và UR: **lưu ly**, SSR viền vàng kim, UR viền vàng kim với kính màu dày hơn và chữ UR đỏ san hô), huy hiệu hệ ở góc trên trái, sao ở dưới, hồn hoàn là các chấm màu theo bậc.
+- **Huy hiệu 4 hệ 24×24**, màu, nền trong suốt: một hình to, nét đậm, ít chi tiết trên nền màu của hệ, viền vàng. Bản Gemini đầu (hình mảnh, nhiều hoa văn) thu về 24 hoặc 12 chỉ còn chấm màu, nên chờ vẽ lại; bỏ quy cách cũ 12×12 một màu.
+- **Chân dung NPC 112×112** (`ISO_NPC_PORTRAIT`) trong hộp thoại: bán thân nhìn thẳng trên nền tối, cùng luật màu với chân dung võ hồn (`PORTRAIT_MAX_COLORS`). Nguồn: Gemini, nhập bằng `gemini-import --kind portrait --size 112` (cắt 1:1). Key `npc_<mã trong NPCS>`.
+- **Biểu tượng vật phẩm 32×32** (`ISO_ITEM_ICON`) trong ô túi đồ: nền trong suốt, viền `#1a1020`, tối đa `PORTRAIT_MAX_COLORS` màu. Key `item_<mã>`: id trong `ITEMS`, hoặc nhóm trong `ITEM_KINDS` (biểu tượng chung cho cả nhóm, ví dụ `item_hon_hach`, `item_manh_vo_hon`), hoặc `item_hon_cot_<vị trí>` theo `BONE_SLOTS`. **Hồn cốt là bản xám** để client tô theo màu niên hạn (chân phải lật ngang chân trái). Nguồn: Gemini, nhập bằng `gemini-import --kind item` (nền khung tối làm trong suốt, `--gray` cho bản xám).
 
 **Tên file, key Phaser và thư mục**
 - `shared/assets` là `publicDir` của Vite, nên ảnh ở đây được client tải thẳng. Tên file dùng mã võ hồn (`id`) và mã loài, **không dùng chỉ số mảng**.
@@ -680,12 +682,14 @@ shared/assets/sprites/
   ring/ring{tier}.png                        ring{tier}, halo{tier}
   iso/portrait/{id}.png                      portrait_{id}: chân dung 64×64 ("iso": true)
   iso/props/{vật}.png                        prop_{vật}: vật đứng, đã cắt đế đất ("iso": true; vật nhiều ô cắt lát 16 pixel ở 10.2)
+  iso/npc/{mã}.png                           npc_{mã}: chân dung NPC 112×112 ("iso": true)
+  iso/item/{mã}.png                          item_{mã}: biểu tượng vật phẩm 32×32 ("iso": true)
 shared/assets/iso/
   tiles.json                 ánh xạ gid Tiled → ô thoi / vật đứng, chân vật, điểm sáng
   ground/{loại}_{i}.png      ô nền 32×32 (thoi 32×16) và ô lớn 64×64 (thoi 64×32, phủ 2×2 ô)
 shared/assets/ui/
   card/frame_{sr,ssr,ur}.png khung thẻ 96×128
-  icon/he_{he}.png           biểu tượng hệ 12×12
+  icon/he_{he}.png           huy hiệu hệ 24×24
 ```
 
 - **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, vật đứng) client chưa tải, cho tới bước dùng chúng (10.2, 10.8).
@@ -837,7 +841,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] 10.5 Phụ thể võ hồn (khoảng 5–8 lượt mỗi võ hồn): phụ thể tĩnh 5 hướng + ghép theo điểm neo; trước hết Lam Ngân Thảo và 4 võ hồn mẫu (Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` tự mô tả chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu ngoại vi, nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192.
 - [ ] 10.7 Ánh sáng và không khí vùng (0–3 lượt; sau 10.1, 10.2): Light2D, `ambient` ngày / đêm mỗi bản đồ thay lớp `vignette`, nguồn sáng theo phong cách A (hồn hoàn, mắt hồn thú, hồn kỹ; lửa trại, đèn yếu hơn), thời tiết và hạt bay theo bảng các vùng, normal map tự sinh cho ô / vật / sprite, tắt sạch khi chỉ có Canvas; đo khung hình trên điện thoại.
-- [ ] 10.8 Giao diện thủy mặc và thẻ võ hồn (khoảng 30 lượt): khung HUD, hộp thoại, nút ấn triện, font pixel đủ dấu tiếng Việt (phong cách C); chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR lưu ly (phong cách D), biểu tượng 4 hệ (vẽ tay hoặc code).
+- [ ] 10.8 Giao diện thủy mặc và thẻ võ hồn (khoảng 30 lượt): khung HUD, hộp thoại, nút ấn triện, font pixel đủ dấu tiếng Việt (phong cách C); chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR lưu ly (phong cách D), huy hiệu 4 hệ 24×24.
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), tạo bằng PixelLab sau 10.4.
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)

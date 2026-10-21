@@ -107,8 +107,8 @@ export function preloadSprites(scene: Phaser.Scene) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     for (const e of data?.sprites ?? []) {
-      // Asset isometric (mục 5.11): vật đứng do isoMap.ts tải theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng),
-      // chân dung chờ bước 10.8.
+      // Asset isometric (mục 5.11): vật đứng do isoMap.ts tải theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng);
+      // chân dung, NPC, vật phẩm chờ bước 10.8.
       if (typeof e !== "string" && e.iso) continue;
       const key = typeof e === "string" ? e : e.key;
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame);
