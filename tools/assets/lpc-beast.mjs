@@ -143,7 +143,9 @@ if (list) {
 }
 if (!src || !out) fail("Cách dùng: lpc-beast.mjs --src <thư mục gói thú LPC> --out <thư mục> [--species a,b,…] [--desat 0…1] [--credits <file.md>] | --list");
 const DATA = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
-const BEAST_IDS = new Set([...DATA.slice(DATA.indexOf("export const BEASTS")).matchAll(/\{ id: "([a-z_]+)"/g)].map((m) => m[1]));
+const BEASTS_AT = DATA.indexOf("export const BEASTS"), BEASTS_END = DATA.indexOf("\n];", BEASTS_AT);
+if (BEASTS_AT < 0 || BEASTS_END < 0) fail("không tìm thấy khối BEASTS trong shared/data.ts");
+const BEAST_IDS = new Set([...DATA.slice(BEASTS_AT, BEASTS_END).matchAll(/\{ id: "([a-z_]+)"/g)].map((m) => m[1]));
 const ids = speciesOpt ? speciesOpt.split(",") : Object.keys(SPECIES);
 for (const id of ids) {
   if (!SPECIES[id]) fail(`--species ${id}: chưa có mẫu LPC (có: ${Object.keys(SPECIES).join(", ")})`);
@@ -175,11 +177,12 @@ function hsl2rgb([h, s, l]) {
 }
 /** Kéo sắc độ `h` về `to` một đoạn `t` (đi đường ngắn trên vòng màu). */
 const lerpHue = (h, to, t) => { const d = ((to - h + 540) % 360) - 180; return (h + d * t + 360) % 360; };
-/** Màu cho phép của loài: bảng chung + bảng nhấn vùng (asset một vùng chỉ dùng hai bảng này, mục 5.11). */
+/** Màu cho phép của loài: bảng chung + bảng nhấn vùng (asset một vùng chỉ dùng hai bảng này, mục 5.11).
+ *  Bỏ các màu "Mắt …": chỉ điểm mắt nguồn (`eyes`) thành màu mắt, lông tối không bị snap nhầm thành điểm mắt. */
 function paletteOf(map) {
   const f = path.join(ROOT, "art", "palettes", `${map}.gpl`);
   if (!existsSync(f)) fail(`không thấy art/palettes/${map}.gpl`);
-  return [...new Set([...PAL.map((c) => c.hex), ...readGplNamed(f).map((c) => c.hex)])];
+  return [...new Set([...PAL, ...readGplNamed(f)].filter((c) => !c.name.startsWith("Mắt ")).map((c) => c.hex))];
 }
 function nearestIn(pal) {
   const rgb = pal.map(hex), memo = new Map();
@@ -280,7 +283,7 @@ for (const id of ids) {
   const shiftOf = {}, standOf = {};
   for (const L of ["down", "right", "up"]) {
     const [st] = frameOf(s.stand[L] ?? fail(`${id}: thiếu stand.${L}`)), b = bbox(st) ?? fail(`${id}: khung đứng ${L} trống`);
-    if (b[2] - b[0] + 1 > size || b[3] - b[1] + 1 > size - ISO_BEAST_FOOT) fail(`${id}: hình ${b[2] - b[0] + 1}×${b[3] - b[1] + 1} không vừa khung ${size} (giảm scale hoặc tăng size)`);
+    if (b[2] - b[0] + 1 > size || b[3] - b[1] + 1 > size - ISO_BEAST_FOOT - (s.hover ?? 0)) fail(`${id}: hình ${b[2] - b[0] + 1}×${b[3] - b[1] + 1} không vừa khung ${size} (giảm scale hoặc tăng size)`);
     shiftOf[L] = [cx - ((b[0] + b[2] + 1) >> 1), foot - b[3]];
     standOf[L] = place(st, shiftOf[L]);
   }
