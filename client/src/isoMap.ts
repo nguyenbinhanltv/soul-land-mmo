@@ -117,7 +117,7 @@ export class IsoMap {
   /** Vật cao nhất nhô lên trên tâm ô (pixel màn hình): lề camera và vùng tải ô. */
   private rise = BASE_RISE * OBJ_K;
 
-  constructor(private scene: Phaser.Scene, raw: any, mapId: string) {
+  constructor(private scene: Phaser.Scene, raw: any, private mapId: string) {
     this.MW = raw.width; this.MH = raw.height;
     const layer = (n: string): number[] => raw.layers.find((l: any) => l.type === "tilelayer" && l.name === n)?.data ?? [];
     this.ground = layer("ground"); this.trees = layer("trees"); this.canopy = layer("canopy");
@@ -216,21 +216,25 @@ export class IsoMap {
   }
 
   private addHouse(X0: number, Y0: number, X1: number, Y1: number) {
-    const b = buildHouse(X0, Y0, X1, Y1, this.build!), key = `isoHouse${X0}_${Y0}`;
-    if (!this.scene.textures.exists(key)) this.scene.textures.addCanvas(key, b.canvas);
-    const tex = this.scene.textures.get(key), group: Tall = { ims: [] };
-    for (let c = 0; c * 16 < b.canvas.width; c++) {
-      const w = Math.min(16, b.canvas.width - c * 16), name = `c${c}`;
-      if (!tex.has(name)) tex.add(name, 0, c * 16, 0, w, b.canvas.height);
-      const im = this.scene.add.image(b.x + c * 16, b.y, key, name).setOrigin(0, 0);
-      im.setDepth(frontDepth(X0, Y0, X1, Y1, b.x + c * 16 + w / 2));
+    // Texture dùng chung mọi scene nên khóa theo bản đồ và chân nhà; vào lại bản đồ thì dùng lại ảnh đã dựng.
+    const key = `isoHouse|${this.mapId}|${X0}_${Y0}_${X1}_${Y1}`;
+    if (!this.scene.textures.exists(key)) {
+      const h = buildHouse(X0, Y0, X1, Y1, this.build!), tex = this.scene.textures.addCanvas(key, h.canvas)!;
+      tex.customData = { x: h.x, y: h.y };
+      for (let c = 0; c * 16 < h.canvas.width; c++) tex.add(`c${c}`, 0, c * 16, 0, Math.min(16, h.canvas.width - c * 16), h.canvas.height);
+    }
+    const tex = this.scene.textures.get(key), at = tex.customData as { x: number; y: number }, W = tex.source[0].width, group: Tall = { ims: [] };
+    for (let c = 0; c * 16 < W; c++) {
+      const w = Math.min(16, W - c * 16);
+      const im = this.scene.add.image(at.x + c * 16, at.y, key, `c${c}`).setOrigin(0, 0);
+      im.setDepth(frontDepth(X0, Y0, X1, Y1, at.x + c * 16 + w / 2));
       group.ims.push(im); this.tallOf.set(im, group);
     }
     this.tall.add(group);
   }
 
   private fenceKey() {
-    const key = "isoFence";
+    const key = `isoFence|${this.mapId}`;
     if (!this.scene.textures.exists(key)) {
       const f = buildFence(this.build!), tex = this.scene.textures.addCanvas(key, f.canvas)!;
       tex.customData = { ox: f.cx / f.canvas.width, oy: f.cy / f.canvas.height };
