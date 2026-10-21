@@ -1,5 +1,7 @@
 # Rừng Săn Hồn Online
 
+> **Người mới vào chơi:** đọc [Hướng dẫn chơi](docs/huong-dan-choi.md) (điều khiển, đội hình, hồn hoàn, bản đồ, boss, đấu trường).
+
 MMO săn hồn thế giới mở chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
 săn hồn thú lấy hồn hoàn, hồn cốt, hồn hạch, đánh boss cùng bạn bè và đấu xếp hạng ở Đại Đấu Hồn Trường.
 Đồ họa pixel art **isometric** kiểu Ultima Online (ô thoi 2:1, nhân vật 8 hướng), giao diện thủy mặc.
@@ -113,8 +115,8 @@ npm run test:accounts --prefix server
 
 Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
 Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
-chỉ lớp CC0 / CC-BY / OGA-BY, chỉ cho NPC phụ và dân thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
-Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
+chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
+Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled
 

@@ -82,7 +82,7 @@ Nhiều việc cùng sửa các file sau. Sửa đúng chỗ cần, **không for
 | `server/src/rooms/MapRoom.ts` | Tách logic mới thành hàm / file riêng khi được, chỉ thêm lời gọi ngắn trong `MapRoom`. |
 | `shared/assets/sprites/manifest.json` | Sinh bằng dây chuyền `tools/assets`, không sửa tay; xung đột thì lấy bản `main` rồi chạy lại công cụ. |
 | `GAME_DESIGN.md` | Chỉ sửa đúng mục của luật đổi và dòng của mình ở mục 7. |
-| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. |
+| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. Asset ngoài nào cũng một dòng (tác giả, URL, giấy phép, file, có sửa gì), SA / GPL / NC ghi cờ (luật ở `GAME_DESIGN.md` 5.11). |
 
 Các file này có chủ repo trong `.github/CODEOWNERS`.
 

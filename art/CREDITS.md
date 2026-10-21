@@ -5,7 +5,7 @@ Quy định ở `GAME_DESIGN.md` mục 5.11 (phần "Nguồn và giấy phép").
 - Hình nhân vật, võ hồn, hồn thú do nhóm tạo: **PixelLab qua dây chuyền `tools/assets`** (dùng thẳng trong game) hoặc vẽ tay trong Aseprite; chỉ dùng màu trong `art/palette.gpl` (cộng màu võ hồn và hồn hoàn theo 5.11). Ô nền, vật đứng và chân dung võ hồn có thể lấy từ **ảnh Gemini** do người dùng tạo, nhập bằng `tools/assets/gemini-import.mjs` (vật đứng thêm bảng nhấn `art/palettes/`, chân dung tối đa 32 màu riêng).
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức, kể cả làm ảnh tham chiếu cho AI.
 - **Ảnh AI:** chỉ dùng công cụ mà điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google). Ghi công cụ, prompt và ngày; không ghi tên họa sĩ còn sống trong prompt. `tools/assets/validate.mjs --register` tự ghi dòng vào mục "Asset tạo bằng AI (PixelLab)" hoặc "Asset tạo bằng AI (Gemini)" theo `--tool`.
-- **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận CC0, CC-BY hoặc OFL. CC-BY phải hiện tên tác giả trong màn hình giới thiệu của game.
+- **Asset bên ngoài** (font, tileset, âm thanh, LPC) nhận mọi giấy phép đã biết (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…), không nhận asset không rõ giấy phép hoặc "all rights reserved". Mỗi asset một dòng: tác giả, nguồn (URL), giấy phép, file trong repo, có sửa gì không. CC-BY / CC-BY-SA / OGA-BY phải hiện tên tác giả trong màn hình giới thiệu của game. Giấy phép SA / GPL / NC ghi kèm **cờ** (SA / GPL: bản đã sửa, kể cả file atlas có gộp asset đó, theo đúng giấy phép; NC: thay nếu thương mại hóa).
 
 Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm key vào `manifest.json` và ghi một dòng ở đây.
 
@@ -311,7 +311,7 @@ Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằn
 
 ## Asset LPC (Universal LPC Spritesheet Character Generator)
 
-NPC phụ ghép bằng `tools/assets/lpc-compose.mjs` từ <https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>; tác giả, giấy phép, nguồn lấy từ `CREDITS.csv` của repo đó cho đúng từng file đã dùng. Chỉ dùng lớp có CC0 / CC-BY / OGA-BY; ảnh đã sửa (ghép lớp, đổi màu, chọn khung) dùng theo giấy phép ở cột "Game dùng theo".
+NPC phụ ghép bằng `tools/assets/lpc-compose.mjs` từ <https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>; tác giả, giấy phép, nguồn lấy từ `CREDITS.csv` của repo đó cho đúng từng file đã dùng. Nhận mọi giấy phép đã biết; lớp nhiều giấy phép thì dùng theo nhóm ít ràng buộc nhất. Ảnh đã sửa (ghép lớp, đổi màu, chọn khung) dùng theo giấy phép ở cột "Game dùng theo"; cờ SA / GPL / NC theo `GAME_DESIGN.md` mục 5.11.
 
 <!-- lpc:start -->
 ### dai_su (lpc-compose.mjs)
