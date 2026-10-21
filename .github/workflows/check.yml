@@ -1,0 +1,35 @@
+# CI: typecheck server + client, validate sprite / tiles.json, build client cho mọi PR vào main.
+# Status check cần bật trong "Require status checks to pass" của main: check-build (xem CONTRIBUTING.md).
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Push mới lên cùng PR thì hủy lượt cũ; trên main thì chạy hết từng lượt.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-build:
+    name: check-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+      - run: npm run install:all
+      - run: npm run check
+      - run: npm run build
