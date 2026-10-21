@@ -1109,9 +1109,13 @@ export const kingYears = (mapId: string): number | null => {
  * Người tham gia: đứng trong `radius` pixel lúc tinh anh bắt đầu giao chiến (lần đầu bị đánh), hoặc gây sát thương sau đó; ở ngoài
  * bán kính `outSecs` giây liên tục hoặc rời phòng thì bị loại; số người giảm tối đa 1 mỗi `dropEvery` giây; `idleSecs` giây không còn
  * người tham gia nào trong bán kính thì bỏ giao chiến (về chỗ, hồi đầy máu, xóa danh sách và đóng góp).
+ * Giới hạn nhiều kênh (#119): nhận thưởng tinh anh (kinh nghiệm x`xp`, quyền ưu tiên đồ rơi tinh anh) của một loài tinh anh trên một bản
+ * đồ thì `lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào; không lớn hơn mức dưới của `respawn` để
+ * chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn (phòng mở lại sinh tinh anh ngay: hạ trong lúc còn khóa chỉ được
+ * thưởng như hồn thú thường).
  */
 export const ELITE = { hp: 2.5, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
-  radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15 };
+  radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15, lock: 480 };
 /** Máu tăng theo số người tham gia (mục 5.4, tinh anh trở lên): máu tối đa × (1 + BOSS_HP_PER_PLAYER × (N − 1)). */
 export const BOSS_HP_PER_PLAYER = 0.6;
 export const bossHpMult = (n: number) => 1 + BOSS_HP_PER_PLAYER * (Math.max(1, Math.floor(n)) - 1);
@@ -3728,3 +3732,65 @@ export function resonanceBonus(levels: readonly number[]): Record<ResStat, numbe
 /** "Sinh lực +6%, Công +3%" ("" nếu không cộng gì). */
 export const resonanceText = (b: Partial<Record<ResStat, number>>) =>
   (Object.keys(RES_STAT_NAMES) as ResStat[]).filter((k) => b[k]).map((k) => `${RES_STAT_NAMES[k]} +${b[k]}%`).join(", ");
+
+// ---------- Tự săn (mục 5.13, Auto 1; chủ repo chốt 2026-10-22) ----------
+/**
+ * Tự săn khi online: server lái hồn sư bằng đúng các lệnh của người chơi (đi, đánh, hồn kỹ, đổi võ hồn, đan, nhặt), nên hiệu suất bằng
+ * tự đánh (không giảm kinh nghiệm hay đồ rơi). Mỗi tài khoản treo tối đa AUTO_DAILY_SECS giây mỗi ngày (đặt lại 00:00 giờ Việt Nam).
+ */
+export const AUTO_DAILY_SECS = 12 * 3600;
+/** Bán kính (pixel) quanh điểm neo (chỗ bật tự săn): chỉ nhắm hồn thú, nhặt đồ trong vùng này; ra ngoài thì quay về. */
+export const AUTO_RADIUS = 15 * TILE;
+/**
+ * Nhịp quyết định (lần mỗi giây): giữ / đổi mục tiêu, tìm đường A*, hồn kỹ, đan, đổi tay tiên cơ, nhặt. Giữa hai nhịp server chỉ lái
+ * hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm (như người giữ phím đánh).
+ */
+export const AUTO_HZ = 4;
+/** Tối đa bấy nhiêu người treo có điểm neo trong cùng một ô lưới SYNC_VIEW.cell của một kênh (chống dồn một chỗ). */
+export const AUTO_MAX_PER_CELL = 3;
+/**
+ * Không cướp quái: hồn thú đang nhắm người khác, hoặc bị người khác đánh trong AUTO_CLAIM_SECS giây gần nhất (ngoài tổ đội của mình),
+ * thì không nhắm; hồn thú đang đánh chính mình thì luôn được đánh trả (kể cả ngoài khoảng niên hạn đã chọn).
+ */
+export const AUTO_CLAIM_SECS = 8;
+/**
+ * Di chuyển của tự săn: không có việc thì đi tới một điểm ngẫu nhiên trong vùng neo, đổi điểm sau `patrol` giây; mục tiêu / đồ không tới
+ * được hoặc kẹt `stuck` giây thì bỏ qua `skip` giây; mục tiêu đi xa đường đã tìm thì tìm lại sau ít nhất `repath` giây. Tìm đường A*
+ * (shared/path.ts) trong khung `path` (nhỏ hơn CLICK_PATH vì chỉ đi trong vùng neo).
+ */
+export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath: 1, path: { maxTiles: 24, maxNodes: 2500 } };
+/** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; Auto 1 chỉ có nút bật / tắt, bảng cài đặt đầy đủ ở Auto 2). */
+export interface AutoSettings {
+  years: [number, number]; // khoảng niên hạn hồn thú thường được nhắm (số năm)
+  hp: number; mp: number;  // uống đan khi sinh lực võ hồn ra trận / hồn lực dưới tỉ lệ này (0 = không uống)
+  mpKeep: number;          // chừa tỉ lệ hồn lực này: không tung hồn kỹ làm hồn lực còn dưới mức đó
+  skills: number[];        // thứ tự ưu tiên các ô hồn kỹ (0–3 = U / I / O / P); ô không có trong danh sách thì không tung
+  ring: number;            // nhặt hồn hoàn từ bấy nhiêu năm (−1 = không nhặt hồn hoàn)
+  bone: boolean; core: boolean; item: boolean; // nhặt hồn cốt, hồn hạch, vật phẩm khác dưới đất (mảnh, tiên thảo khi túi người hạ đầy)
+  stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
+  tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
+}
+/** Mặc định: mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn lực, hồn kỹ ô P → U, nhặt mọi thứ. */
+export const AUTO_DEFAULTS: AutoSettings = { years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15, skills: [3, 2, 1, 0], ring: 0,
+  bone: true, core: true, item: true, stopNoPot: false, tienCo: true };
+/** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
+export function parseAuto(raw: unknown): AutoSettings {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = AUTO_DEFAULTS;
+  const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : def);
+  const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
+  const y = Array.isArray(o.years) ? o.years : [];
+  const y0 = Math.round(num(y[0], 0, MAX_YEARS, D.years[0])), y1 = Math.round(num(y[1], 0, MAX_YEARS, D.years[1]));
+  const skills = Array.isArray(o.skills)
+    ? [...new Set(o.skills.filter((i): i is number => Number.isInteger(i) && (i as number) >= 0 && (i as number) < LOADOUT_SIZE))]
+    : [...D.skills];
+  return { years: [Math.min(y0, y1), Math.max(y0, y1)], hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
+    skills, ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core), item: bool(o.item, D.item),
+    stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo) };
+}
+/** Giây tự săn còn lại hôm nay khi đã dùng `used` giây. */
+export const autoLeft = (used: number) => Math.max(0, AUTO_DAILY_SECS - used);
+/** "11 giờ 30 phút" / "45 phút" (làm tròn xuống theo phút): giờ treo còn lại để hiển thị. */
+export const autoTimeText = (secs: number) => {
+  const m = Math.floor(Math.max(0, secs) / 60), h = Math.floor(m / 60);
+  return h ? `${h} giờ${m % 60 ? ` ${m % 60} phút` : ""}` : `${m} phút`;
+};

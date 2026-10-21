@@ -46,6 +46,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | F | Đi qua cổng đang đứng; đứng trên truyền tống trận thì mở bản đồ thế giới; không thì nói chuyện với NPC gần nhất |
 | V / B / K | Bảng đội hình / túi đồ / Cộng minh |
 | M | Bản đồ thế giới (chỉ xem khi không đứng trên truyền tống trận; nút "Thế giới" ở bản đồ nhỏ) |
+| T | Bật / tắt tự săn (nút "Tự động" ở khung chỉ số, mục 5.13) |
 | Enter / Esc | Chat / đóng bảng, hộp thoại |
 
 Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Bấm / chạm vào hồn sư khác mở menu người chơi.
@@ -299,7 +300,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 | Xuất hiện | Hồi sinh liên tục | Hồi sinh ngẫu nhiên sau khi bị hạ (`ELITE.respawn`) | Theo lịch `KING_TIMES` | 1 lần/ngày lúc `WORLD_TIME`, hai boss luân phiên theo ngày |
 | Chiêu báo trước | 1 chiêu (từ ngàn năm) | 2 chiêu | 2 chiêu + chiêu giai đoạn 2 | Chiêu thường + cơ chế riêng, nổi giận |
 | Thưởng | Bảng rơi mục 5.3 | Hồn cốt tỉ lệ cao hơn, chắc chắn 1 hồn hạch | Rương theo đóng góp | Hồn hoàn đỏ / đen và rương theo đóng góp |
-| Giới hạn nhận thưởng | – | – | `KING.daily` lần/ngày | `WORLD.daily` lần/ngày |
+| Giới hạn nhận thưởng | – | Mỗi loài tinh anh mỗi bản đồ một lần mỗi `ELITE.lock` giây, chung mọi kênh | `KING.daily` lần/ngày | `WORLD.daily` lần/ngày |
 
 **Nhận diện:** tinh anh có tên "Tinh anh …" màu riêng, aura, sprite loài gốc phóng `ELITE.scale`, chấm sáng trên bản đồ nhỏ; thú vương và boss thế giới phóng `KING.scale` / `WORLD.scale` khi chưa có sprite riêng (mục 5.11; các hệ số này chỉ client đọc, ở `rankScale`), thanh máu lớn ở đầu màn hình, bảng xếp hạng đóng góp, chấm đỏ lớn và khung hang / sàn trên bản đồ nhỏ.
 
@@ -308,6 +309,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - Bán kính giao chiến `ELITE.radius`; máu theo số người tham gia (dưới). Tinh anh đang giao chiến không tự hồi máu.
 - **Cuồng nộ** (`ELITE_RAGE`, hiệu ứng có lợi của hồn thú `BEAST_BUFFS`): máu dưới ngưỡng thì nổi một lúc (sát thương và tốc độ tăng); hết giờ hoặc bị xóa (hồn kỹ có `dispel`, ví dụ Thiên Càn Trấn Áp) thì phải chờ mới nổi lại.
 - Thưởng: hồn hoàn, hồn cốt ưu tiên **người đóng góp nhiều nhất** còn trong phòng (không thì người hạ); tỉ lệ hồn cốt × `ELITE.bone` (hồn cốt mang loài gốc); **chắc chắn rơi 1 hồn hạch** (sao theo niên hạn, bộ theo bản đồ); kinh nghiệm × `ELITE.xp` cho người hạ (chia tổ đội như hồn thú thường).
+- **Giới hạn săn nhiều kênh:** mỗi kênh có tinh anh hồi sinh riêng, nhưng tài khoản đã nhận thưởng tinh anh (kinh nghiệm × `ELITE.xp`, hoặc quyền ưu tiên đồ rơi tinh anh) của một loài tinh anh trên một bản đồ thì `ELITE.lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào (`ELITE.lock` không lớn hơn mức dưới của `ELITE.respawn`, nên chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn; phòng bị hủy rồi mở lại thì sinh tinh anh ngay, hạ trong lúc còn khóa chỉ được thưởng như hồn thú thường, nên ra vào bản đồ cũng không nhân thưởng). Trong lúc khóa vẫn đánh được và được nhắc thời gian còn lại; người bị khóa nhận kinh nghiệm như hồn thú thường, không được ưu tiên đồ rơi tinh anh: quyền đó sang người đóng góp nhiều nhất chưa bị khóa còn trong phòng (cả người hạ cũng không, nếu người hạ bị khóa), câu báo đồ rơi ghi rõ "đóng góp nhiều nhất trong số người chưa bị khóa thưởng tinh anh". Mỗi bản đồ mỗi loài tinh anh chỉ ở một vùng (bản đồ trùng loài thì server bỏ con sau và cảnh báo). Không còn ai thì đồ rơi như hồn thú thường (người hạ ưu tiên, tỉ lệ hồn cốt / hồn hạch thường, không chắc chắn hồn hạch).
 
 **Tà hóa thú vương (boss bản đồ)**
 - Ở trong **hang** (object `boss`, cũng là bán kính giao chiến), không ra khỏi hang, không bị đẩy lùi, đuổi bất kỳ ai trong hang. Niên hạn bằng mức trên của bản đồ (hoặc `BossDef.years`, `kingYears`).
@@ -325,7 +327,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Vào giữa trận:** N tăng ngay, máu tối đa tính lại và **máu hiện tại giữ nguyên tỉ lệ** (vào phút cuối không làm boss dễ hơn).
 - **Rời giữa trận:** rời phòng hoặc ở ngoài bán kính `outSecs` giây liên tục thì bị loại; N giảm tối đa 1 mỗi `dropEvery` giây, máu giữ tỉ lệ. Người bị loại giữ đóng góp đã gây nhưng phải còn trong phòng lúc boss bị hạ mới nhận thưởng. Hệ số đã giảm không làm boss hồi máu.
 - **Bỏ giao chiến:** `idleSecs` giây không còn người tham gia trong bán kính thì boss về chỗ, hồi đầy, xóa danh sách và đóng góp.
-- Đóng góp tính theo phiên (sessionId): thoát rồi vào lại, hoặc đổi kênh, thì đóng góp cũ không còn.
+- **Đóng góp gắn theo tài khoản:** thoát rồi vào lại phòng, hoặc đổi kênh rồi quay về, khi boss chưa bỏ giao chiến thì đóng góp cũ vẫn còn (không tự thành người tham gia lại: phải đánh / hỗ trợ lại như người vào giữa trận). Đóng góp thuộc con boss của từng kênh: đóng góp ở kênh này không tính cho con ở kênh khác; vẫn phải còn trong phòng lúc boss bị hạ mới nhận thưởng.
 
 **Boss thế giới 100.000 năm**
 - Ở **Lõi Tinh Đấu**, sàn đấu bên hồ trung tâm (object `boss` phủ sàn). *Thái Thản Cự Viên* và *Thiên Thanh Ngưu Mãng* **luân phiên theo ngày** (`worldBossOn`, để biết trước hôm nay đánh con nào), xuất hiện `WORLD_TIME` giờ Việt Nam; báo toàn server trước và lúc xuất hiện.
@@ -562,7 +564,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 
 **Bản đồ isometric**: file Tiled không đổi định dạng (server đọc như cũ); client vẽ lại theo bảng gid → ô thoi / vật đứng `shared/assets/iso/tiles.json` (kiểm trong `npm run check`). Nhà và tường thành dựng bằng code theo kiểu nhà từng vùng (`client/src/isoBuild.ts`); công trình lớn (cung uyển) dùng ảnh vẽ sẵn, va chạm vẫn là cả chân nhà. Ô có biến thể theo băm vị trí; mép địa hình là lớp phủ sinh khi chạy. **Mỗi bản đồ chỉ dùng một nguồn ô nền** (không trộn Gemini với PixelLab). Vật đứng không có đế đất, một vùng một hệ số thu. Bản đồ nhỏ không chiếu.
 
-**Điều khiển**: phím / cần theo hướng màn hình, client chiếu ngược thành hướng thế giới trong `input {x, y, s}` (W → (−1, −1)/√2). Bấm đất để đi tới theo đường A* trên lưới ô chặn `solidGrid` (`client/src/path.ts`: 8 hướng, không cắt góc ô chặn, rút gọn thành các đoạn đi thẳng được, trong `CLICK_PATH`; không tới được thì tới ô gần nhất; client vẫn chỉ gửi hướng tới điểm kế tiếp, dừng khi tới nơi, bị chặn nửa giây hoặc bấm phím đi; chạy / đi bộ như khi giữ phím), bấm hồn thú để chọn mục tiêu rồi tự đi vào tầm đánh, bấm hồn sư khác / NPC / cổng như cũ; chọn đối tượng theo thứ tự độ sâu.
+**Điều khiển**: phím / cần theo hướng màn hình, client chiếu ngược thành hướng thế giới trong `input {x, y, s}` (W → (−1, −1)/√2). Bấm đất để đi tới theo đường A* trên lưới ô chặn `solidGrid` (`shared/path.ts`: 8 hướng, không cắt góc ô chặn, rút gọn thành các đoạn đi thẳng được, trong `CLICK_PATH`; không tới được thì tới ô gần nhất; client vẫn chỉ gửi hướng tới điểm kế tiếp, dừng khi tới nơi, bị chặn nửa giây hoặc bấm phím đi; chạy / đi bộ như khi giữ phím), bấm hồn thú để chọn mục tiêu rồi tự đi vào tầm đánh, bấm hồn sư khác / NPC / cổng như cũ; chọn đối tượng theo thứ tự độ sâu.
 
 **Chân dung và thẻ võ hồn** (giao diện HTML): chân dung vẽ **chính võ hồn** trên nền tối có quầng màu riêng, không vẽ chủ nhân, hiển thị phóng 2–3 lần `pixelated`. Thẻ võ hồn khung lưu ly theo độ hiếm (SR bạc lam, SSR tím vàng kim, UR vàng kim kính bảy màu) với cửa sổ chân dung, sao, chấm hồn hoàn màu niên hạn, tên, cấp; huy hiệu hệ góc trên trái, ấn son số ô đội góc trên phải, võ hồn ra trận sáng viền, chưa mở thì xám (`client/src/cards.ts`). Biểu tượng vật phẩm nền trong suốt; hồn cốt là bản xám để client tô theo màu niên hạn, mảnh võ hồn tô màu võ hồn.
 
@@ -601,6 +603,19 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - Như SFX: context chưa chạy (chưa tương tác) thì nhạc nền đứng chờ, khúc ngắn bị bỏ; tab ẩn hoặc mất tiêu điểm thì Phaser treo context nên nhạc dừng theo. Không có WebAudio (bot, headless) thì không có bộ phát. Thêm `?music=log` vào địa chỉ trang để ghi mỗi lần đổi bài vào console và xem `window.__music.status()`.
 - Mất kết nối (màn "Đã rời bản đồ") thì ngừng nhạc.
 
+### 5.13 Tự săn (Auto 1)
+Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 2026-10-22). Số ở `shared/data.ts`, mục "Tự săn".
+- **Bật / tắt:** nút "Tự động" ở khung chỉ số hoặc phím T. Chỉ bật được ở bản đồ săn (`hunt`), ngoài vùng an toàn, khi không gục / hấp thụ / đi cổng, túi còn chỗ và còn giờ treo. Chỗ bật là **điểm neo**: chỉ nhắm hồn thú và nhặt đồ trong `AUTO_RADIUS` quanh điểm neo, đi ra ngoài thì quay về. Mỗi ô lưới đồng bộ (`SYNC_VIEW.cell`) của một kênh có tối đa `AUTO_MAX_PER_CELL` điểm neo (chống dồn một chỗ).
+- **Hiệu suất bằng tự đánh:** server phát đúng các lệnh như người chơi (hướng đi như tin `input`, đánh thường, hồn kỹ, đổi võ hồn, dùng đan, nhặt) qua chính các hàm xử lý lệnh đó, nên mọi luật áp như khi bấm tay (hồi chiêu, hồn lực, Choáng / Câm lặng, vùng an toàn, quyền nhặt, túi đầy). Không giảm kinh nghiệm hay tỉ lệ rơi.
+- **Mục tiêu:** hồn thú thường trong khoảng niên hạn đã chọn (`AutoSettings.years`), gần mình nhất; bỏ qua tinh anh, thú vương, boss thế giới, hồn thú đang về chỗ sinh. **Không cướp quái:** hồn thú đang nhắm người khác hoặc bị người khác (ngoài tổ đội) đánh trong `AUTO_CLAIM_SECS` giây thì không nhắm; đòn thường và hồn kỹ diện rộng cũng không ra khi sẽ trúng hồn thú đó (trừ lúc đánh trả). Hồn thú đang đánh mình thì đánh trả trước, kể cả ngoài khoảng niên hạn. Đi thẳng tới mục tiêu, vướng thì theo đường A* (`shared/path.ts`, khung `AUTO_MOVE.path`); không tới được hoặc kẹt thì bỏ qua một lúc (`AUTO_MOVE`); không có việc thì đi dạo trong vùng neo.
+- **Đánh:** đánh thường khi mục tiêu trong tầm; hồn kỹ theo thứ tự ô ưu tiên (`AutoSettings.skills`) khi mục tiêu trong tầm của hồn kỹ đó và hồn lực còn trên `mpKeep` sau khi tung. Tiên cơ (`tienCo`): võ hồn khác trong đội đầy năng lượng thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn chính (người chơi tự đổi võ hồn thì thôi đổi về).
+- **Đan:** uống khi sinh lực võ hồn ra trận / hồn lực dưới `hp` / `mp` (đan thường trước đan lớn, chung hồi chiêu `DAN_CD`); bật `stopNoPot` thì cần uống mà hết đan hồi sinh lực là dừng.
+- **Nhặt:** hồn hoàn từ `ring` năm, hồn cốt, hồn hạch, vật phẩm khác dưới đất (theo cờ `bone`, `core`, `item`), chỉ món mình được nhặt (mục 4). Nhặt đúng món đã chọn (`pickup` với id món), không nhặt món bị lọc nằm gần hơn. Hồn Tệ vẫn vào thẳng túi như thường. **Không tự hấp thụ hồn hoàn.**
+- **Dừng khi:** cả đội gục, túi đầy, hết đan (tùy chọn), bị người chơi tấn công (đòn `pvp`), vào vùng an toàn, đi cổng / truyền tống / vào sân đấu, đang hấp thụ, hết giờ trong ngày, mất kết nối, và khi **người chơi tự bấm đi, đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt** (tay luôn được ưu tiên; nhả phím không tính). Lý do dừng báo bằng dòng log. Vào lại game thì không tự bật.
+- **Giới hạn giờ:** mỗi tài khoản treo tối đa `AUTO_DAILY_SECS` mỗi ngày theo giờ Việt Nam (đặt lại 00:00 như lượt boss, `this.today()`).
+- **Hiển thị:** ai cũng thấy chữ "Tự động" cạnh danh hiệu trên đầu (`PlayerState.auto`); chính mình thấy nút sáng, giờ treo còn lại ở chú thích nút. Bảng cài đặt đầy đủ, tổng kết và Ủy Thác Lệnh ở Auto 2 (#156); ủy thác offline ở Auto 3 (#157).
+- **Cách làm:** `server/src/rooms/autoHunt.ts` (`AutoHunter`): quyết định `AUTO_HZ` lần mỗi giây (mục tiêu, đường đi, hồn kỹ, đan, tiên cơ, nhặt), giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi trong tầm. Bật / dừng / lưu ở `MapRoom` (`autoAction`, `autoStop`, `flushAuto`). Đo tải: `client/scripts/auto-soak.mjs`.
+
 ## 6. Kiến trúc (bắt buộc giữ)
 **Server quyết định mọi thứ.** Client chỉ gửi ý định và hiển thị. Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ, bản đồ hay kênh đích. Ngẫu nhiên (`Math.random()`) chỉ ở server; hàm trong `shared/data.ts` là hàm thuần để client dùng khi hiển thị.
 
@@ -616,6 +631,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 | Hồn cốt, hồn hạch | `equip` / `unequip`, `equipcore` / `unequipcore`, `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}` |
 | NPC | `talk {npc}`, `buy {code, qty, npc?}`, `sell {id, qty?, npc?}`, `expand {npc?}`, `buyback {key, npc?}` (`npc`: thương nhân đang mở hộp thoại, thiếu thì thương nhân gần nhất), `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
 | Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}` |
+| Tự săn | `auto {op, cfg?}` (`on`, `off`, `set` cài đặt `AutoSettings`, `get`; mục 5.13) |
 | Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
 | Kiểm thử | `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
 
@@ -623,7 +639,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 **Đồng bộ xuống client**
 - **Trạng thái công khai** qua Colyseus Schema (`server/src/rooms/schema.ts`: `MapState`, `PlayerState`, `BeastState`, `DropState`; phòng sân `ArenaState` / `ArenaSide`). Chọn kiểu nhỏ nhất đủ dùng; trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối. Client đọc ở `client/src/scenes/GameScene.ts`.
-- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`, `auto`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật) qua `broadcast("fx", {k, …})` và `"dmg"`; tin công khai `elite`, `boss`.
 - **Đồng bộ theo vùng gần** (bản đồ lớn, 11.4; `server/src/rooms/interest.ts`, hằng `SYNC_VIEW`): `MapState.players` / `beasts` / `drops` gắn `@view()`, mỗi client một `StateView`. Cuối mỗi nhịp, trước bản vá, client nhận thêm thực thể cách mình dưới `SYNC_VIEW.r` và bỏ thực thể xa quá `SYNC_VIEW.out`; chính mình và hồn thú có `rank` (tinh anh, thú vương, boss thế giới: thanh máu, bản đồ nhỏ) luôn có. Thực thể ra khỏi view thì client xóa hình như khi thực thể bị xóa khỏi state (hiệu ứng chết / nhặt đến bằng tin `fx`). `MapState.online` đếm hồn sư cả phòng. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu ứng (`x, y`, cuối vệt lướt, hồn sư `id` / `to`, hồn thú `bid`) dưới `SYNC_VIEW.fx`. Tin `mini` mỗi `SYNC_VIEW.mini` giây (như nhau cho mọi client) mang vị trí theo ô của mọi hồn sư, hồn thú thường từ nghìn năm và đồ rơi cả bản đồ cho bản đồ nhỏ. Sân Đại Đấu Hồn Trường không lọc. Hook kiểm thử `test {op: "view", all}` tắt lọc cho một client (bot đọc thực thể ở xa).
 - **Lưới không gian** (cùng file, ô `SYNC_VIEW.cell`): hồn thú, đồ rơi, hồn sư đặt lại lưới mỗi nhịp; truy vấn hồn thú theo vị trí (đánh thường, mọi vùng hồn kỹ, đạn, tiên cơ, lan Cảm điện; `MapRoom.beastsNear`) và tìm mục tiêu của hồn thú chỉ xét ứng viên quanh điểm thay vì cả bản đồ. Hồn thú thường không mục tiêu, không đang về chỗ sinh / niệm chiêu / bị đẩy, ở ô lưới cách mọi hồn sư trong phòng quá `SYNC_VIEW.wake` thì **ngủ**: không lang thang, không tìm mục tiêu, vẫn hồi máu, đếm hồi chiêu và chịu trạng thái (`wake` ≥ `out` nên hồn thú client đang thấy luôn thức; tinh anh, thú vương không ngủ). `PERF_LOG=1` ghi thời gian tick / bản vá mỗi 10 giây.
@@ -674,8 +690,8 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - **Chọn kênh khi vào bản đồ** (`pickChannel`): kênh còn chỗ có nhiều đồng đội tổ đội nhất, không có thì kênh còn chỗ ít người nhất (bằng nhau thì số nhỏ hơn); mọi kênh đầy thì Colyseus mở kênh mới. Vào game: client hỏi `POST /api/channel` (trả `mapId` đang lưu và `roomId`). Đi cổng: server gửi `travel {mapId, roomId}` sau khi transaction đã commit. Client `joinById(roomId, {token, mapId})`; phòng vừa đầy / vừa đóng thì `joinOrCreate`. `onAuth` vẫn đối chiếu `map_id` trong DB với bản đồ của phòng.
 - **Đổi kênh** (`channel {ch}`, `switchChannel`): kiểm tra không gục / hấp thụ / đi cổng, ngoài giao chiến, kênh khác kênh đang ở, đang mở và còn chỗ, cách lần trước `CHANNEL_CD` giây; rồi đi đúng đường đi cổng (`beginTravel` với đích là chính bản đồ này tại vị trí đang đứng), nên tiến độ chưa lưu không mất. Danh sách `channels` gửi tối đa một lần mỗi giây.
 - **Không né luật đổi kênh bằng cách tự rời rồi vào kênh khác:** rời phòng không qua đường server duyệt thì tài khoản bị giữ ở kênh đó `CHANNEL_CD` giây (`leftRoom`): `onAuth` từ chối kênh khác của cùng bản đồ khi kênh cũ còn mở và còn chỗ, còn `pickChannel` đưa về đúng kênh cũ.
-- Không theo kênh: tổ đội, thông báo toàn server, lịch boss. Kinh nghiệm tổ đội, ưu tiên đồ rơi, đóng góp boss chỉ trong phòng (cùng kênh).
-- **Thú vương và boss thế giới:** mỗi kênh đang mở có con riêng (suất theo bản đồ ở `kingSeats`; đổi kênh không mở thêm kênh nên không sinh thêm con), nhưng mỗi khung giờ mỗi tài khoản chỉ nhận một lần (`KingSlot.claimed`) cùng giới hạn mỗi ngày ở `boss_claims`; hạ ở kênh khác trong cùng khung vẫn có kinh nghiệm, Hồn Tệ, ưu tiên hồn hoàn nhưng báo "đã nhận ở kênh khác". Tinh anh mỗi kênh hồi sinh riêng.
+- Không theo kênh: tổ đội, thông báo toàn server, lịch boss. Kinh nghiệm tổ đội, ưu tiên đồ rơi, đóng góp boss chỉ trong phòng (cùng kênh); đóng góp boss gắn theo tài khoản nên đổi kênh rồi quay về vẫn còn (`EliteData.acc`, `rebindContrib` ở `onJoin`).
+- **Thú vương và boss thế giới:** mỗi kênh đang mở có con riêng (suất theo bản đồ ở `kingSeats`; đổi kênh không mở thêm kênh nên không sinh thêm con), nhưng mỗi khung giờ mỗi tài khoản chỉ nhận một lần (`KingSlot.claimed`) cùng giới hạn mỗi ngày ở `boss_claims`; hạ ở kênh khác trong cùng khung vẫn có kinh nghiệm, Hồn Tệ, ưu tiên hồn hoàn nhưng báo "đã nhận ở kênh khác". Tinh anh mỗi kênh hồi sinh riêng, nhưng thưởng tinh anh khóa theo tài khoản `ELITE.lock` giây chung mọi kênh (`eliteLocks`, mục 5.4).
 - **Sân Đại Đấu Hồn Trường không chia kênh:** `ArenaRoom` là phòng riêng 2 người cho mỗi trận, không nằm trong danh sách kênh, `MapState.channel` = 0 (tin `channel` bị từ chối, `channels` trả rỗng, client ẩn nhãn kênh). Rời sân thì vào lại bản đồ cũ qua `/api/channel` như vào game.
 
 **Phòng trường đấu**
@@ -710,6 +726,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - Presence của Colyseus: phòng `publish("announce", {text, col})`, mọi `MapRoom` subscribe trong `onCreate` rồi `broadcast("chat")`. Một tiến trình dùng presence trong bộ nhớ; nhiều tiến trình thì đổi sang `RedisPresence` (khi đó các trạng thái mức tiến trình bên dưới cũng phải chuyển sang presence).
 - Lịch thú vương và boss thế giới ở `server/src/schedule.ts` (`startSchedule`): chỉ đếm giờ Việt Nam và `publish("boss", {mapId, king, phase: "warn" | "spawn", slot, in, life})`. Sinh boss, máu, chiêu, thưởng nằm trong `MapRoom` (`onBossEvent`, `spawnKing`). Phòng mở ra trong khung boss cũng sinh (`kingActive`, `worldActive`); phòng mở ra trong lúc báo trước vẫn có đếm ngược (`kingWarns`).
 - **Trạng thái thú vương giữ theo bản đồ ở mức tiến trình** (`kingSeats`), không theo phòng: mỗi khung đã sinh có danh sách suất, mỗi kênh giữ tối đa một suất (còn sống / đã hạ / đã rút). Phòng bị hủy trả suất; phòng mở lại trong khung nhận lại suất trống trước. Suất đã hạ / rút thì không sinh lại; còn sống thì sinh lại đầy máu ở giai đoạn 1 với thời gian còn lại. Nhờ vậy rời bản đồ cho phòng hủy rồi quay lại không có con mới.
+- **Khóa thưởng tinh anh ở mức tiến trình** (`eliteLocks`): `${mapId}|${mã tinh anh}` -> tài khoản -> lúc được nhận lại; không theo phòng nên đổi kênh hay phòng bị hủy rồi mở lại đều không nhân thưởng. Khởi động lại server thì mất (lâu nhất `ELITE.lock` giây), không lưu DB.
 - **Đồng hồ khi kiểm thử:** mọi chỗ đọc lịch và ngày nhận thưởng đi qua `bossNow` / `bossOffset`. Không bật `GAME_TEST` thì là đồng hồ thật; bật `GAME_TEST=1` thì theo `BOSS_CLOCK`: chưa đặt = đứng yên ở 12:00 giờ Việt Nam của ngày bật server (lịch thật không chen vào bài thử của bot), `HH:MM` = chạy từ giờ đó, `real` = đồng hồ thật.
 - Lượt nhận thưởng mỗi ngày lưu ở `boss_claims` (tài khoản, ngày Việt Nam, loại: thú vương, boss thế giới, thắng đấu trường; số lần).
 
@@ -720,6 +737,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn theo số năm, `skills` 4 ô mang theo, `herbs`), `teams` (mỗi ô đội hình một dòng).
 - `items` (mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn).
 - `waypoints` (truyền tống trận tài khoản đã mở, mã `<mapId>:<tên>`; chỉ thêm).
+- `auto_hunt` (tự săn, mục 5.13: cài đặt JSONB, ngày giờ Việt Nam và số giây đã treo trong ngày đó; mỗi tài khoản một dòng).
 - `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`) là bảng cũ, giữ lại để chuyển dữ liệu, không còn ghi.
 
@@ -756,6 +774,11 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] 12.1 Nền tảng WebAudio client, bảng Âm thanh, 40 SFX ZzFX tự tạo, spatial audio theo khoảng cách, demo nghe thử và quy tắc phát theo event/state (#132).
 - [x] 12.3 Nhạc nền tự sáng tác cho mọi bản đồ, bài giao chiến boss / thú vương, khúc ngắn theo sự kiện; tải lười, mờ chéo, hạ nhạc nền khi phát khúc ngắn (#134; mục 5.12 "Nhạc nền").
 
+**Tự săn** (chủ repo chốt 2026-10-22: hiệu suất 100%, tối đa 12 giờ treo mỗi ngày; mục 5.13)
+- [x] Auto 1: lõi tự săn online phía server, nút / phím bật tắt, chữ "Tự động" trên đầu, bảng `auto_hunt` (#155).
+- [ ] Auto 2: bảng tùy chỉnh tự săn, tổng kết, Ủy Thác Lệnh (#156).
+- [ ] Auto 3: ủy thác offline nhận thưởng khi vào lại (#157).
+
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
 - [x] Thương nhân lưu động ở trại cổng bản đồ săn (#111; mục 5.7, 5.8).
@@ -766,8 +789,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), tầng Hàn và Hỏa Đàn (Cực Hàn), vùng ngập luân phiên (Thủy Triều Dâng), bọc trứng nở nhện con (Vạn Chu Phệ); vũng độc / sương độc lưu lại; che tầm nhìn (Phun Mực) (#117).
 - [ ] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118).
-- [ ] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119).
-- [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
+- [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
+- [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
 - [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).
 - [x] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
 

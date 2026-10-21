@@ -176,7 +176,7 @@ Cấp đề xuất của từng bản đồ xem ở **bản đồ thế giới (
 ## 13. Tinh anh, thú vương, boss thế giới
 Máu của tinh anh, thú vương và boss thế giới **tăng theo số người tham gia**, nên đông người không làm boss dễ hơn bao nhiêu, nhưng ai đóng góp cũng có phần.
 
-**Tinh anh (biến dị):** tên "Tinh anh …" màu riêng, có hào quang, chấm sáng trên bản đồ nhỏ; mỗi tầng vùng săn (mỗi mức niên hạn) một con, hạ xong một lúc sau mới hồi sinh (cả bản đồ được báo). Máu thấp thì **cuồng nộ** (mạnh và nhanh hơn một lúc). **Chắc chắn rơi 1 hồn hạch**, tỉ lệ hồn cốt cao hơn; người đóng góp nhiều nhất được ưu tiên nhặt.
+**Tinh anh (biến dị):** tên "Tinh anh …" màu riêng, có hào quang, chấm sáng trên bản đồ nhỏ; mỗi tầng vùng săn (mỗi mức niên hạn) một con, hạ xong một lúc sau mới hồi sinh (cả bản đồ được báo). Máu thấp thì **cuồng nộ** (mạnh và nhanh hơn một lúc). **Chắc chắn rơi 1 hồn hạch**, tỉ lệ hồn cốt cao hơn; người đóng góp nhiều nhất được ưu tiên nhặt. Mỗi kênh có tinh anh riêng, nhưng đã nhận thưởng một loài tinh anh thì phải chờ một lúc (khoảng bằng thời gian nó hồi sinh) mới nhận lại thưởng của loài đó trên bản đồ đó, dù sang kênh khác; trong lúc chờ vẫn đánh được nhưng chỉ được thưởng như hồn thú thường, và quyền ưu tiên nhặt chuyển cho người đóng góp nhiều nhất chưa phải chờ.
 
 **Tà hóa thú vương:** mỗi bản đồ săn (trừ Thánh Hồn Thôn) có một con trong **hang** ở vùng sâu nhất. Xuất hiện **theo lịch**; cả server được báo trước và có đồng hồ đếm ngược trên màn hình. Không ai hạ kịp thì nó rút đi.
 - Còn ít máu thì vào **giai đoạn 2** (gầm, thêm chiêu mới, nhanh hơn).
@@ -190,7 +190,7 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 - **Thưởng:** người gây sát thương nhiều nhất nhận hồn hoàn đỏ, người khác có cơ hội hồn hoàn đỏ hoặc nhận hồn hoàn đen, kèm **rương** có **mảnh UR**. Lượt thưởng mỗi ngày riêng với thú vương.
 
 > Đứng ngoài vùng giao chiến quá lâu thì bị loại khỏi danh sách tham gia nhưng **vẫn giữ đóng góp đã gây**; còn trong phòng lúc boss gục thì vẫn nhận thưởng.
-> Thoát game hoặc đổi kênh giữa trận thì mất hết đóng góp cũ (đóng góp tính theo lần vào phòng), nên ở lại tới khi boss gục.
+> Đóng góp gắn theo tài khoản: thoát game rồi vào lại, hoặc đổi kênh rồi quay về kênh cũ, khi boss chưa bỏ giao chiến thì đóng góp cũ vẫn còn (phải đánh / hỗ trợ lại mới thành người tham gia). Đóng góp ở kênh này không tính cho boss ở kênh khác, và phải có mặt trong phòng lúc boss gục mới nhận thưởng.
 
 ## 14. Tổ đội
 - **Mời:** bấm / chạm hồn sư khác, gõ `/moi <tên>`, hoặc nút "Mời…" ở khung tổ đội (mời được cả người ở bản đồ khác). Người được mời bấm "Vào đội" / "Từ chối". `/roi` hoặc "Rời đội" để rời.
