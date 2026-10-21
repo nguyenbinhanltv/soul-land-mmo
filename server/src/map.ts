@@ -22,6 +22,11 @@ export interface Portal extends Rect { name: string; to: string; arrive: string;
 export interface EliteSpot extends Rect { boss: number; zone: number; }
 /** Hang thú vương (object `boss`, từ BĐ5): vùng chữ nhật (cũng là bán kính giao chiến), chỉ số trong BOSSES, chỉ số vùng chứa tâm hang. */
 export interface BossSpot extends Rect { boss: number; zone: number; }
+/**
+ * Truyền tống trận (object `waypoint`, 11.2): vùng chữ nhật, `key` = `<mapId>:<tên object>` (lưu ở bảng `waypoints`), `label` = tên hiện
+ * trên bản đồ thế giới (thuộc tính `label`, thiếu thì lấy tên object), điểm xuất hiện là tâm trận (`cx`, `cy`).
+ */
+export interface Waypoint extends Rect { key: string; map: string; name: string; label: string; cx: number; cy: number; }
 /** NPC (object `npc`, từ 6.1): mã trong NPCS và chỗ đứng (chân). */
 export interface NpcSpot { id: string; x: number; y: number; }
 
@@ -37,6 +42,8 @@ export interface GameMap {
   elites: EliteSpot[];  // mỗi vùng tối đa 1 tinh anh (mục 5.4)
   lair: BossSpot | null; // hang tà hóa thú vương (BĐ5): tối đa 1 mỗi bản đồ, đúng thú vương của MAPS[mapId].king
   npcs: NpcSpot[];       // NPC (6.1): mỗi mã tối đa một chỗ trong bản đồ
+  waypoints: Waypoint[]; // truyền tống trận (11.2)
+  waypointAt(x: number, y: number): Waypoint | undefined;
   inLair(x: number, y: number): boolean;
   isSolidTile(tx: number, ty: number): boolean;
   hits(x: number, y: number, hw: number, hh: number): boolean;
@@ -45,8 +52,8 @@ export interface GameMap {
   /** Trong vùng an toàn: không sinh hồn thú, hồn thú không đuổi vào, không giao chiến (mục 5.3, 5.8). */
   inSafe(x: number, y: number): boolean;
   portalAt(x: number, y: number): Portal | undefined;
-  /** Cách trại cổng (`spawn`), một cổng hoặc một điểm `arrive` của bản đồ này dưới SPAWN_CLEAR pixel theo cả hai trục: không sinh
-   *  hồn thú ở đây (mục 5.8). */
+  /** Cách trại cổng (`spawn`), một cổng, một truyền tống trận hoặc một điểm `arrive` của bản đồ này dưới SPAWN_CLEAR pixel theo cả hai
+   *  trục: không sinh hồn thú ở đây (mục 5.8). */
   nearGate(x: number, y: number): boolean;
   /** Vị trí đứng được: trong bản đồ và không kẹt trong ô chặn (dùng khi nạp vị trí đã lưu). */
   standable(x: number, y: number): boolean;
@@ -86,6 +93,63 @@ export function mapRoute(from: string): Record<string, string> {
   return out;
 }
 
+/**
+ * Số lần đi cổng ít nhất từ `from` tới mọi bản đồ đi tới được (chính nó: 0), theo cổng `portal` của các file Tiled. Dùng cho phí
+ * truyền tống (waypointFee) và tìm thành gần nhất (Hồi Thành Phù), 11.2.
+ */
+const hopCache = new Map<string, Record<string, number>>();
+export function mapHops(from: string): Record<string, number> {
+  const hit = hopCache.get(from); if (hit) return hit;
+  const out: Record<string, number> = {};
+  if (Object.hasOwn(MAPS, from)) {
+    out[from] = 0;
+    const q = [from];
+    while (q.length) {
+      const at = q.shift()!;
+      for (const o of rawObjects(at)) {
+        const to = o.type === "portal" ? String(propOf(o, "to") ?? "") : "";
+        if (Object.hasOwn(MAPS, to) && MAPS[to].kind !== "arena" && out[to] === undefined) { out[to] = out[at] + 1; q.push(to); }
+      }
+    }
+  }
+  hopCache.set(from, out);
+  return out;
+}
+
+/** Các cặp bản đồ nối nhau bằng cổng (không lặp, không hướng), cho nét đường trên bản đồ thế giới (11.2). */
+let linkCache: [string, string][] | null = null;
+export function mapLinks(): [string, string][] {
+  if (linkCache) return linkCache;
+  const seen = new Set<string>(), out: [string, string][] = [];
+  for (const a of Object.keys(MAPS)) {
+    if (MAPS[a].kind === "arena") continue;
+    for (const o of rawObjects(a)) {
+      const b = o.type === "portal" ? String(propOf(o, "to") ?? "") : "";
+      if (!Object.hasOwn(MAPS, b) || MAPS[b].kind === "arena") continue;
+      const k = [a, b].sort().join("|");
+      if (!seen.has(k)) { seen.add(k); out.push([a, b]); }
+    }
+  }
+  return (linkCache = out);
+}
+
+/** Mọi truyền tống trận hợp lệ của mọi bản đồ (theo thứ tự MAPS), cho bản đồ thế giới và kiểm tra trận đích (11.2). */
+export function allWaypoints(): Waypoint[] {
+  return Object.keys(MAPS).filter((id) => MAPS[id].kind !== "arena").flatMap((id) => loadMap(id).waypoints);
+}
+
+/**
+ * Nơi Hồi Thành Phù đưa về (11.2): bản đồ thành (`town`) ít lần đi cổng nhất từ `from` (bằng nhau thì theo thứ tự MAPS), xuất hiện ở
+ * truyền tống trận đầu tiên của thành đó, không có thì giữa trại `spawn`. Đang ở thành thì về chính thành đó.
+ */
+export function nearestTown(from: string): { mapId: string; x: number; y: number; label: string } | null {
+  const hops = mapHops(from);
+  const town = Object.keys(MAPS).filter((id) => MAPS[id].kind === "town" && hops[id] !== undefined).sort((a, b) => hops[a] - hops[b])[0];
+  if (!town) return null;
+  const m = loadMap(town), w = m.waypoints[0];
+  return w ? { mapId: town, x: w.cx, y: w.cy, label: w.label } : { mapId: town, x: m.spawn.x + m.spawn.w / 2, y: m.spawn.y + m.spawn.h / 2, label: MAPS[town].name };
+}
+
 /** Bản đồ đã nạp, dùng chung cho mọi kênh (phòng) của cùng `mapId`. */
 const cache = new Map<string, GameMap>();
 
@@ -97,7 +161,7 @@ export function loadMap(mapId: string): GameMap {
   // Lưới ô chặn đọc bằng hàm dùng chung với client (shared/move.ts): client dự đoán chuyển động trên đúng lưới này.
   const grid = solidGrid(raw), { MW, MH, solid } = grid;
 
-  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [], npcObjs: any[] = [];
+  const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [], npcObjs: any[] = [], wpObjs: any[] = [];
   let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
   for (const layer of raw.layers) if (layer.type === "objectgroup") for (const o of layer.objects) {
     const prop = (n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
@@ -118,6 +182,7 @@ export function loadMap(mapId: string): GameMap {
     if (o.type === "elite") eliteObjs.push(o);
     if (o.type === "boss") bossObjs.push(o);
     if (o.type === "npc") npcObjs.push(o);
+    if (o.type === "waypoint") wpObjs.push(o);
     if (o.type === "portal") {
       // Client gửi tên cổng khi xin đi, nên tên phải duy nhất trong bản đồ.
       const p = parsePortal(mapId, o);
@@ -130,15 +195,17 @@ export function loadMap(mapId: string): GameMap {
 
   const isSolidTile = (tx: number, ty: number) => gridSolid(grid, tx, ty);
   const hits = (x: number, y: number, hw: number, hh: number) => gridHits(grid, x, y, hw, hh);
+  const waypoints = parseWaypoints(mapId, wpObjs, portals, (x, y) => x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4));
   const kind = MAPS[mapId].kind;
   const map: GameMap = {
-    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, npcs, isSolidTile, hits,
+    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, npcs, waypoints, isSolidTile, hits,
+    waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),
     inLair: (x, y) => !!lair && inRect(lair, x, y),
     moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),
     inSpawn: (x, y) => inRect(spawn, x, y),
     inSafe: (x, y) => kind === "town" || safe.some((r) => inRect(r, x, y)),
     portalAt: (x, y) => portals.find((p) => inRect(p, x, y)),
-    nearGate: (x, y) => [spawn, ...portals, ...arrives.map((a) => ({ ...a, w: 0, h: 0 }))]
+    nearGate: (x, y) => [spawn, ...portals, ...waypoints, ...arrives.map((a) => ({ ...a, w: 0, h: 0 }))]
       .some((r) => x > r.x - SPAWN_CLEAR && x < r.x + r.w + SPAWN_CLEAR && y > r.y - SPAWN_CLEAR && y < r.y + r.h + SPAWN_CLEAR),
     standable: (x, y) => Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4),
   };
@@ -228,6 +295,26 @@ function parseLair(mapId: string, objs: any[], zones: Zone[]): BossSpot | null {
     out = { ...r, boss, zone };
   }
   if ((king || world.length) && !out) console.warn(`[map ${mapId}] Thiếu object \`boss\` (hang) cho thú vương ${king}: thú vương không xuất hiện.`);
+  return out;
+}
+
+/**
+ * Object `waypoint` (11.2): chữ nhật có tên (duy nhất trong bản đồ, là phần sau của mã lưu DB), thuộc tính `label` là tên hiện trên
+ * bản đồ thế giới. Tâm trận phải đứng được và không nằm trong cổng nào (xuất hiện ở tâm). Không có ở sân đấu. Sai thì cảnh báo và bỏ.
+ */
+function parseWaypoints(mapId: string, objs: any[], portals: Portal[], standable: (x: number, y: number) => boolean): Waypoint[] {
+  const out: Waypoint[] = [];
+  for (const o of objs) {
+    const name = String(o.name ?? ""), r = rectOf(o), cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    const bad = (why: string) => console.warn(`[map ${mapId}] Bỏ truyền tống trận "${name}": ${why}`);
+    if (MAPS[mapId].kind === "arena") { bad("sân đấu không có truyền tống trận"); continue; }
+    if (!/^[a-z0-9_]+$/.test(name)) { bad("tên phải là mã chữ thường không dấu (a-z, 0-9, _)"); continue; }
+    if (out.some((w) => w.name === name)) { bad("trùng tên"); continue; }
+    if (!(r.w > 0 && r.h > 0)) { bad("phải là chữ nhật"); continue; }
+    if (!standable(cx, cy)) { bad("tâm trận nằm trong ô chặn hoặc ngoài bản đồ"); continue; }
+    if (portals.some((p) => inRect(p, cx, cy))) { bad("tâm trận nằm trong một cổng"); continue; }
+    out.push({ ...r, key: `${mapId}:${name}`, map: mapId, name, label: String(propOf(o, "label") ?? "") || name, cx, cy });
+  }
   return out;
 }
 

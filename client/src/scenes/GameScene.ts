@@ -21,7 +21,7 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -98,6 +98,15 @@ export class GameScene extends Phaser.Scene {
   campName = "";
   portals: (Rect & { to: string })[] = [];
   portal: PortalInfo | null = null;
+  /**
+   * Truyền tống trận của bản đồ (object `waypoint`, 11.2): chữ nhật, mã `<mapId>:<tên>`, tên hiện, nhãn chữ trên trận. `wpOpen`: mã các
+   * trận đã mở (tin `world` / `wp`), `wpHere`: tên trận đang đứng (tin `wp {k: "here"}`), `wpCasts`: hồn sư đang niệm truyền tống
+   * (fx `wpcast`: lúc bắt đầu, số giây).
+   */
+  waypoints: (Rect & { key: string; label: string; text: Phaser.GameObjects.Text | null })[] = [];
+  wpOpen = new Set<string>();
+  wpHere: string | null = null;
+  wpCasts = new Map<string, { t0: number; ms: number }>();
   /**
    * NPC của bản đồ (object `npc`, bước 6.1): chỗ đứng, định nghĩa trong NPCS (thiếu = mã lạ, chỉ vẽ biển tên), các lớp sprite hồn sư
    * (thân, áo, tóc; null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
@@ -193,8 +202,10 @@ export class GameScene extends Phaser.Scene {
       if (o.type === "arrive") crowdMap.arrives.push({ x: o.x!, y: o.y! });
       if (o.type === "npc") npcObjs.push({ x: o.x!, y: o.y!, name: o.name, id: String(prop("npc") ?? "") });
       if (o.type === "boss") this.lair = r;
+      if (o.type === "waypoint") this.waypoints.push({ ...r, key: `${this.mapId}:${o.name}`, label: String(prop("label") ?? o.name), text: null });
     }
     this.drawPortals();
+    this.drawWaypoints();
     this.buildMinimap(map);
     hud.setTrackerMap(this.mapId);
     // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts).
@@ -249,6 +260,63 @@ export class GameScene extends Phaser.Scene {
       }).setOrigin(0.5, top ? 0 : 1).setDepth(99984);
       this.wtext(t, top ? Math.max(...ys) + 2 : Math.min(...ys) - 2, 0);
     }
+  }
+
+  /**
+   * Truyền tống trận (11.2): tên trên trận (✦, mờ khi chưa mở) và vùng bấm / chạm mở bản đồ thế giới. Vòng trận phát sáng vẽ mỗi khung ở
+   * `paintWaypoints` (phong cách A: hồn lực sáng màu lam ngọc; chưa mở thì xám mờ), không dùng ảnh.
+   */
+  drawWaypoints() {
+    for (const w of this.waypoints) {
+      const c = W2S(w.x + w.w / 2, w.y + w.h / 2), top = c.y - 10 * SPR;
+      w.text = this.add.text(c.x, top, "", {
+        fontFamily: FONT, fontSize: "6.5px", fontStyle: "700", color: "#bfefff", stroke: "#000", strokeThickness: 2, resolution: 8,
+      }).setOrigin(0.5, 1).setDepth(99984);
+      this.wtext(w.text, top, 0);
+      this.add.zone(c.x, c.y, 26 * SPR, 14 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.openWorld(true));
+    }
+    this.labelWaypoints();
+  }
+  labelWaypoints() {
+    for (const w of this.waypoints) {
+      const open = this.wpOpen.has(w.key);
+      w.text?.setText(`✦ ${w.label}${open ? "" : " (chưa mở)"}`).setColor(open ? "#bfefff" : "#b8b8c4");
+    }
+  }
+  /** Vòng trận trên mặt đất (lớp vùng cảnh báo, dưới hồn sư): hai vòng, 8 phù văn xoay chậm, tâm thoi; đã mở thì sáng nhịp. */
+  paintWaypoints(g: Phaser.GameObjects.Graphics, time: number) {
+    for (const w of this.waypoints) {
+      const x = w.x + w.w / 2, y = w.y + w.h / 2, open = this.wpOpen.has(w.key), col = open ? 0x8fe0ff : 0x9a9aa8;
+      const pulse = open ? 0.75 + 0.25 * Math.sin(time / 420) : 0.45, R = Math.max(w.w, w.h) * 0.75;
+      g.fillStyle(col, 0.14 * pulse); fillGround(g, x, y, R);
+      g.lineStyle(1.5, col, 0.85 * pulse); strokeGround(g, x, y, R);
+      g.lineStyle(1, col, 0.6 * pulse); strokeGround(g, x, y, R * 0.66);
+      const spin = open ? time / 2600 : 0;
+      for (let i = 0; i < 8; i++) {
+        const a = spin + (i * Math.PI) / 4, b = W2S(x + Math.cos(a) * R * 0.72, y + Math.sin(a) * R * 0.72), e = W2S(x + Math.cos(a) * R * 0.94, y + Math.sin(a) * R * 0.94);
+        g.lineStyle(1.5, col, 0.9 * pulse).lineBetween(b.x, b.y, e.x, e.y);
+      }
+      const d = [W2S(x, y - R * 0.3), W2S(x + R * 0.3, y), W2S(x, y + R * 0.3), W2S(x - R * 0.3, y)];
+      g.fillStyle(open ? 0xe8fbff : 0xb8b8c4, 0.7 * pulse).fillPoints(d, true);
+    }
+  }
+  /** Cột sáng trên hồn sư đang niệm truyền tống (fx `wpcast`), mỗi khung; hết giờ hoặc hồn sư rời phòng thì bỏ. */
+  paintWpCasts(g: Phaser.GameObjects.Graphics, time: number) {
+    for (const [id, c] of this.wpCasts) {
+      const v = this.players.get(id), k = (time - c.t0) / c.ms;
+      if (!v || k > 1.2) { this.wpCasts.delete(id); continue; }
+      const { x, y } = v.root, h = (14 + 26 * Math.min(1, k)) * SPR, a = 0.25 + 0.35 * Math.min(1, k);
+      g.fillStyle(0x8fe0ff, a * 0.5).fillRect(x - 5 * SPR, y - h, 10 * SPR, h);
+      g.fillStyle(0xe8fbff, a).fillRect(x - 2 * SPR, y - h, 4 * SPR, h);
+      for (let i = 0; i < 4; i++) {
+        const t = ((time / 700 + i / 4) % 1), px = x + Math.sin(time / 300 + i * 1.7) * 7 * SPR;
+        g.fillStyle(0xbfefff, 1 - t).fillRect(px - SPR, y - t * h - SPR, 2 * SPR, 2 * SPR);
+      }
+    }
+  }
+  /** Mở / đóng bản đồ thế giới; mở thì xin server tin `world` mới (trận đã mở, phí, đang đứng trên trận nào). */
+  openWorld(open?: boolean) {
+    if (hud.toggleWorld(open)) this.room.send("wp", { op: "list" });
   }
 
   /**
@@ -377,8 +445,9 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyV" && !e.repeat) { hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { hud.toggleReso(); return; } // cộng minh (8.2)
-      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); return; }
-      if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.nearNpc) this.talk(this.nearNpc); return; }
+      if (e.code === "KeyM" && !e.repeat) { this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "Escape") { hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); return; }
+      if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
@@ -399,6 +468,8 @@ export class GameScene extends Phaser.Scene {
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); hud.toggleReso(); }, on);
+    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.openWorld(); }, on);
+    hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
     document.getElementById("chanBtn")!.addEventListener("click", (e) => {
       (e.currentTarget as HTMLElement).blur();
@@ -568,6 +639,21 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("fx", (m: any) => this.fx(m));
     // Cổng: server báo riêng khi bước vào / ra khỏi cổng, và khi đã lưu xong thì cho chuyển bản đồ (mục 6).
     this.room.onMessage("portal", (m: PortalInfo) => { this.portal = m?.name ? m : null; hud.showPortal(this.portal, () => this.goPortal()); });
+    // Truyền tống trận (11.2): đứng trên / rời trận, mở khóa trận mới; bảng bản đồ thế giới; thanh niệm truyền tống / Hồi Thành Phù.
+    this.room.onMessage("wp", (m: { k: string; key: string; label: string; map?: string }) => {
+      if (m?.k === "here") { this.wpHere = m.key ? m.label : null; hud.showWaypoint(this.wpHere, () => this.openWorld(true)); }
+      if (m?.k === "unlock") {
+        this.wpOpen.add(m.key); this.labelWaypoints();
+        hud.banner("Mở khóa truyền tống trận", `${m.label} · đứng trên trận bất kỳ, mở bản đồ thế giới để dịch chuyển`);
+        hud.log(`Đã mở khóa truyền tống trận ${m.label}${m.map ? ` (${m.map})` : ""}.`, "#8fe0ff");
+      }
+    });
+    this.room.onMessage("world", (m: WorldMsg) => {
+      this.wpOpen = new Set(m.list.filter((w) => w.open).map((w) => w.key)); this.labelWaypoints();
+      hud.setWorld(m);
+    });
+    this.room.onMessage("recall", (m: { on: boolean; label?: string; secs?: number }) => hud.setRecall(m?.on ? { label: m.label ?? "", secs: m.secs ?? 1 } : null));
+    if (this.waypoints.length) this.room.send("wp", { op: "list" }); // biết trận nào đã mở để tô trận (sân đấu không có trận)
     // NPC (6.1): server đã kiểm tra khoảng cách; lời thoại, cửa hàng và lò rèn lấy từ NPCS. Mua / bán / rèn chỉ gửi ý định.
     this.room.onMessage("npc", (m: { id: string }) => {
       if (!npcDef(m?.id)) return;
@@ -756,6 +842,10 @@ export class GameScene extends Phaser.Scene {
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
     if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.cameras.main.shake(300, 0.004); }
+    // Truyền tống trận (11.2): mở khóa (vòng lan rộng), bắt đầu / thôi niệm (cột sáng), lúc đi và lúc tới (chớp sáng).
+    else if (m.k === "wpopen") { const c = W2S(m.x, m.y); this.ringFx(c, 4, 40, "#8fe0ff", 900); this.ringFx(c, 2, 26, "#e8fbff", 700, 150); }
+    else if (m.k === "wpcast") { if (m.t > 0) this.wpCasts.set(m.id, { t0: this.time.now, ms: m.t * 1000 }); else this.wpCasts.delete(m.id); }
+    else if (m.k === "wpgo") { const c = W2S(m.x, m.y); this.ringFx(c, 2, 30, "#8fe0ff", 500); this.light.flash(c.x, c.y - 10, "#bfefff", 90, 600, 1.2); }
     else if (m.k === "slash") {
       const v = this.players.get(m.id); if (!v) return;
       this.playAct(m.id, "attack"); this.faceHit(m.id, m.dx, m.dy);
@@ -1180,6 +1270,8 @@ export class GameScene extends Phaser.Scene {
     }
     b.fillStyle = "#86e0b0";
     for (const r of this.portals) b.fillRect(Math.floor(r.x / TILE), Math.floor(r.y / TILE), Math.max(1, Math.round(r.w / TILE)), Math.max(1, Math.round(r.h / TILE)));
+    b.fillStyle = "#8fe0ff"; // truyền tống trận (11.2)
+    for (const w of this.waypoints) b.fillRect(Math.floor(w.x / TILE), Math.floor(w.y / TILE), Math.max(1, Math.round(w.w / TILE)), Math.max(1, Math.round(w.h / TILE)));
     const mc = document.getElementById("mini") as HTMLCanvasElement; mc.width = map.width; mc.height = map.height;
     this.mini = { ctx: mc.getContext("2d")!, base };
   }
@@ -1450,6 +1542,8 @@ export class GameScene extends Phaser.Scene {
     this.drawStatus(g, st, time);
     for (const n of this.npcs) if (n.body) syncLayers(n.body, n.clothes, []); // NPC (6.1): áo, tóc theo khung thân
     this.drawTeles(time);
+    this.paintWaypoints(this.teleG, time); // truyền tống trận (11.2): trên mặt đất, dưới hồn sư
+    this.paintWpCasts(g, time);
     // Bóng đổ elip dưới chân hồn thú (hồn sư có sẵn bóng trong container), nằm trên mặt đất cùng lớp vùng cảnh báo.
     for (const [id, s] of this.beasts) if (st.beasts.get(id) && !st.beasts.get(id).dive) {
       const w = Math.max(12 * SPR, s.displayWidth * 0.6);
@@ -1510,6 +1604,11 @@ export class GameScene extends Phaser.Scene {
       const top = beastTop(s, b.tier), dir = s.flipX ? -1 : 1, k = rankScale(b.rank);
       out.push({ x: s.x + dir * s.displayWidth * 0.22, y: top + (s.y - top) * 0.3, col: hex(TIERS[b.tier].glow), r: (18 + 5 * b.tier) * Math.sqrt(k), i: 0.55 + 0.05 * b.tier, p: PRIO.beast });
     });
+    // Truyền tống trận đã mở (11.2): ánh lam ngọc yếu, nhịp chậm, như vật phát sáng.
+    for (const w of this.waypoints) if (this.wpOpen.has(w.key)) {
+      const c = W2S(w.x + w.w / 2, w.y + w.h / 2);
+      out.push({ x: c.x, y: c.y, col: 0x8fe0ff, r: 46, i: 0.5 + 0.1 * Math.sin(time / 420), p: PRIO.prop });
+    }
     st.drops.forEach((d: any, id: string) => {
       const v = this.drops.get(id); if (!v || d.item) return;
       out.push({ x: v.img.x, y: v.img.y + 4, col: hex(TIERS[d.tier]?.glow ?? "#ffffff"), r: 30, i: 0.6, p: PRIO.drop });

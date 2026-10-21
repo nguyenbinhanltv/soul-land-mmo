@@ -13,6 +13,7 @@
 //                    (BĐ6a, mục 5.3, 5.8)
 //   cuc_bac_chi_dia  Cực Bắc Chi Địa: băng nguyên cấp 60–85, 4 vùng 20.000–80.000 năm từ nam lên bắc, hang Huyền Minh Băng Giao (BĐ6c)
 //   dai_dau_hon_truong  sân Đại Đấu Hồn Trường: sân lát đá vây tường và khán đài, không cổng, không hồn thú (bước 7.2, mục 5.9)
+//   Từ 11.2 mọi bản đồ trừ sân đấu có 1–3 object `waypoint` (truyền tống trận): thành, trại cổng, giữa bản đồ săn.
 // Sau khi sinh, mở file bằng Tiled (https://www.mapeditor.org) để vẽ tiếp bằng tay.
 // Chạy: node tools/gen-map.mjs [mapId…]   (không ghi mapId thì sinh tất cả)
 import { writeFileSync } from "node:fs";
@@ -59,7 +60,10 @@ function objects() {
   const elite = (name, boss, x, y, w, h) => rect("elite", name, x, y, w, h, [prop("boss", "string", boss)]);
   // Hang tà hóa thú vương (BĐ5, mục 5.4, 6): boss = mã thú vương trong BOSSES (MAPS.king); chữ nhật là hang, cũng là bán kính giao chiến.
   const boss = (name, id, x, y, w, h) => rect("boss", name, x, y, w, h, [prop("boss", "string", id)]);
-  return { list, rect, point, zone, portal, elite, boss, next: () => oid };
+  // Truyền tống trận (11.2, mục 5.3): 2×2 ô, (x, y) là ô góc trên trái; tên là mã không dấu (lưu DB `<mapId>:<tên>`), label hiện trên
+  // bản đồ thế giới. Chỗ đặt phải đi được (hàm `pad` dọn nền), tâm trận ngoài mọi cổng.
+  const waypoint = (name, label, x, y) => rect("waypoint", name, x, y, 2, 2, [prop("label", "string", label)]);
+  return { list, rect, point, zone, portal, elite, boss, waypoint, next: () => oid };
 }
 
 function writeMap(mapId, MW, MH, ground, trees, canopy, objs, props = []) {
@@ -99,7 +103,9 @@ function grid(MW, MH) {
   const border = () => { for (let x = 0; x < MW; x++) { set(x, 0, 1); set(x, MH - 1, 1); } for (let y = 0; y < MH; y++) { set(0, y, 1); set(MW - 1, y, 1); } };
   /** Nhà: mái `h - 1` hàng, hàng dưới cùng là tường (đều chặn đường). */
   const house = (x0, y0, w, h) => { fill(x0, y0, w, h - 1, 8); fill(x0, y0 + h - 1, w, 1, 9); };
-  return { m, set, get, fill, border, house };
+  /** Bãi trống 6×6 ô (giá trị `v`) quanh truyền tống trận 2×2 có ô góc (x, y) (11.2): không dùng số ngẫu nhiên, phần khác giữ nguyên. */
+  const pad = (x, y, v) => fill(x - 2, y - 2, 6, 6, v);
+  return { m, set, get, fill, border, house, pad };
 }
 
 /**
@@ -152,13 +158,18 @@ function forest(spec) {
   spec.feature?.(g, r);
   // Đường mòn đông–tây (uốn lượn, về lại hàng pathY ở hai đầu để nối cổng) và 4 lối bắc–nam; trại cổng ở mép tây.
   let py = FOREST.pathY;
+  const pathAt = [];
   for (let x = 1; x < MW - 1; x++) {
+    pathAt[x] = py;
     g.set(x, py, 3); g.set(x, py + 1, 3);
     if (x >= MW - 14) py += Math.sign(FOREST.pathY - py);
     else if (x > 10 && r() < 0.3) py = Math.max(8, Math.min(MH - 10, py + (r() < 0.5 ? -1 : 1)));
   }
   for (const x0 of [14, 33, 55, 76]) { let x = x0; for (let y = 2; y < MH - 2; y++) { g.set(x, y, 3); g.set(x + 1, y, 3); if (r() < 0.25) x += r() < 0.5 ? -1 : 1; } }
   g.fill(1, FOREST.camp.y, 8, FOREST.camp.h, 5);
+  // Truyền tống trận giữa bản đồ (11.2): trên đường mòn đông–tây ở cột `spec.mid`, bãi đường đất quanh trận.
+  const mid = spec.mid === undefined ? null : { x: spec.mid, y: pathAt[spec.mid] - 1 };
+  if (mid) g.pad(mid.x, mid.y, 3);
   spec.east?.(g);
   g.border();
   const { ground, trees, canopy } = toLayers(MW, MH, g, (x) => spec.shade[zoneOf(x)]);
@@ -166,8 +177,10 @@ function forest(spec) {
   for (let i = 0; i < MW * MH; i++) if (g.m[i] === 3 && spec.shade[zoneOf(i % MW)] >= 3) ground[i] = GID.pathDark;
   trees[27 * MW + 2] = GID.tent;
   trees[30 * MW + 4] = GID.fire;
-  return { MW, MH, ground, trees, canopy, o: objects() };
+  return { MW, MH, ground, trees, canopy, o: objects(), mid };
 }
+/** Truyền tống trận ở trại cổng mép tây của rừng (11.2): góc đông bắc bãi trại, ngoài cổng tây và điểm `arrive`. */
+const campWaypoint = (o, label) => o.waypoint("trai_cong", label, 5, 26);
 /**
  * Hang thú vương của Ngoại vi và Nội địa (BĐ5): cùng chỗ ở vùng sâu nhất, phía đông nam, ngoài SPAWN_CLEAR của cổng đông (Ngoại vi) và
  * xa tinh anh phía bắc. Object `boss` phủ đúng bãi trống bên trong vòng cây.
@@ -181,8 +194,8 @@ const forestZone = (o, i, name, hint, count, beasts, years) =>
 // Ngoại vi (cấp 10–30, 300–2.000 năm): trại cổng phía tây về Nặc Đinh Thành, cổng phía đông vào Nội địa.
 function tinhDauNgoaiVi() {
   const { MW, MH } = FOREST;
-  const { ground, trees, canopy, o } = forest({
-    seed: 20261019, shade: [0, 1, 1, 2], dens: [0.05, 0.09, 0.11, 0.15],
+  const { ground, trees, canopy, o, mid } = forest({
+    seed: 20261019, shade: [0, 1, 1, 2], dens: [0.05, 0.09, 0.11, 0.15], mid: 40,
     feature(g, r) {
       // Ao nhỏ rải rác ở Bìa rừng và Rừng thưa, và con suối chảy bắc–nam qua vùng Khe suối.
       for (let i = 0; i < 8; i++) {
@@ -211,6 +224,9 @@ function tinhDauNgoaiVi() {
   o.point("arrive", "tu_nac_dinh_thanh", 5.5, 31.5);
   o.portal("Vào Tinh Đấu Nội địa", MW - 3, 28, 2, 6, "tinh_dau_noi_dia", "tu_tinh_dau_ngoai_vi", "30-60");
   o.point("arrive", "tu_tinh_dau_noi_dia", MW - 6.5, 31);
+  campWaypoint(o, "Trại cổng Ngoại vi");
+  o.waypoint("rung_thua", "Rừng thưa", mid.x, mid.y);
+  o.waypoint("tram_gac", "Trạm gác Rìa nội địa", MW - 9, 27);
   writeMap("tinh_dau_ngoai_vi", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0)]);
 }
 
@@ -218,8 +234,8 @@ function tinhDauNgoaiVi() {
 // (bãi trống cuối đường mòn) với cổng đi Lõi Tinh Đấu (`loi_tinh_dau`, chặn mềm cấp 90).
 function tinhDauNoiDia() {
   const { MW, MH } = FOREST;
-  const { ground, trees, canopy, o } = forest({
-    seed: 30111, shade: [2, 2, 3, 3], dens: [0.09, 0.08, 0.12, 0.17],
+  const { ground, trees, canopy, o, mid } = forest({
+    seed: 30111, shade: [2, 2, 3, 3], dens: [0.09, 0.08, 0.12, 0.17], mid: 38,
     feature(g, r) {
       // Đầm sương độc: nhiều vũng nước nối nhau.
       for (let i = 0; i < 16; i++) {
@@ -256,6 +272,9 @@ function tinhDauNoiDia() {
   // BĐ6e: bến bờ hồ đi Lõi Tinh Đấu (cấp đề xuất 90–100 lấy từ MAPS.loi_tinh_dau.level); về từ Lõi (hoặc đăng xuất ở Lõi) thì xuất hiện ở đây.
   o.portal("Đi Lõi Tinh Đấu", MW - 10, 28, 2, 6, "loi_tinh_dau", "tu_tinh_dau_noi_dia");
   o.point("arrive", "tu_loi_tinh_dau", MW - 14.5, 31);
+  campWaypoint(o, "Trại cổng Nội địa");
+  o.waypoint("dam_suong", "Đầm sương độc", mid.x, mid.y);
+  o.waypoint("ben_ho", "Bến bờ hồ", MW - 15, 27);
   writeMap("tinh_dau_noi_dia", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.35)]);
 }
 
@@ -275,8 +294,8 @@ const LAC_NHAT_ELITES = [
 function lacNhatSamLam() {
   const { MW, MH } = FOREST;
   const pool = (g, cx, cy, rad) => { for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (Math.hypot(x, y) < rad) g.set(Math.round(cx + x), Math.round(cy + y), 2); };
-  const { ground, trees, canopy, o } = forest({
-    seed: 40630, shade: [0, 1, 2, 3], dens: [0.06, 0.08, 0.1, 0.16],
+  const { ground, trees, canopy, o, mid } = forest({
+    seed: 40630, shade: [0, 1, 2, 3], dens: [0.06, 0.08, 0.1, 0.16], mid: 50,
     feature(g, r) {
       // Rừng hoa độc: thảm hoa dày.
       for (let y = 1; y < MH - 1; y++) for (let x = 9; x < 22; x++) if (g.get(x, y) === 0 && r() < 0.18) g.set(x, y, 4);
@@ -303,6 +322,9 @@ function lacNhatSamLam() {
   o.rect("spawn", "Trại cổng Lạc Nhật", c.x, c.y, c.w, c.h);
   o.portal("Về Thiên Đấu Thành", 1, 29, 2, 4, "thien_dau_thanh", "tu_lac_nhat_sam_lam");
   o.point("arrive", "tu_thien_dau_thanh", 5.5, 31.5);
+  campWaypoint(o, "Trại cổng Lạc Nhật");
+  o.waypoint("bang_hoa", "Băng Hỏa Tuyền", mid.x, mid.y);
+  o.waypoint("luong_nghi", "Suối Lưỡng Nghi", MW - 13, 28);
   writeMap("lac_nhat_sam_lam", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.2)]);
 }
 
@@ -351,7 +373,9 @@ function haiThanDao() {
   for (let y = 0; y < MH; y++) for (let x = 68; x < MW; x++) if (g.get(x, y) === 0) { const q = r(); if (q < 0.05) g.set(x, y, 13); else if (q < 0.09) g.set(x, y, 1); }
   // Đường cát đông–tây (uốn lượn, về hàng pathY ở hai đầu) và 4 lối bắc–nam: nối mọi vùng qua rãnh biển.
   let py = FOREST.pathY;
+  const pathAt = [];
   for (let x = 5; x < MW - 4; x++) {
+    pathAt[x] = py;
     g.set(x, py, 10); g.set(x, py + 1, 10);
     if (x >= MW - 14) py += Math.sign(FOREST.pathY - py);
     else if (x > 12 && r() < 0.3) py = Math.max(8, Math.min(MH - 10, py + (r() < 0.5 ? -1 : 1)));
@@ -373,6 +397,9 @@ function haiThanDao() {
   g.fill(5, 24, 7, 13, 10);
   g.fill(0, 29, 6, 3, 3);
   g.house(1, 25, 4, 3);
+  // Truyền tống trận ở Vách Hải Thần (11.2): bãi cát trên đường cát đông–tây.
+  const mid = { x: 52, y: pathAt[52] - 1 };
+  g.pad(mid.x, mid.y, 10);
   // Lấp mọi túi đất / nước nông mà hồn sư (khoảng 2×2 ô) không đi tới được từ bến bằng biển sâu: hồn thú sinh trong túi kín thì không
   // ai đánh được (nhất là hồn thú 100.000 năm duy nhất của kênh).
   {
@@ -405,6 +432,8 @@ function haiThanDao() {
   // Bến thuyền về Thiên Đấu Thành ở đầu cầu tàu (thành: không cấp đề xuất), đi thuyền BOAT_CAST giây.
   o.portal("Thuyền về Thiên Đấu Thành", 0, 29, 2, 3, "thien_dau_thanh", "tu_hai_than_dao", "", true);
   o.point("arrive", "tu_thien_dau_thanh", 7.5, 30.5);
+  o.waypoint("ben", "Bến Hải Thần", 9, 26);
+  o.waypoint("vach", "Vách Hải Thần", mid.x, mid.y);
   writeMap("hai_than_dao", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.25)]);
 }
 
@@ -447,6 +476,7 @@ function loiTinhDau() {
   o.rect("spawn", "Trại cổng Lõi Tinh Đấu", 3, 17, 6, 11);
   o.portal("Về Tinh Đấu Nội địa", 1, 20, 2, 4, "tinh_dau_noi_dia", "tu_loi_tinh_dau");
   o.point("arrive", "tu_tinh_dau_noi_dia", 5.5, 22.5);
+  o.waypoint("trai_cong", "Trại cổng Lõi Tinh Đấu", 5, 18);
   writeMap("loi_tinh_dau", MW, MH, ground, trees, canopy, o, [prop("vignette", "float", 0.3)]);
 }
 
@@ -506,6 +536,7 @@ function thanhHonThon() {
   o.rect("spawn", "Quảng trường làng", V.x + 6, V.y + 5, 6, 4);
   o.portal("Đi Nặc Đinh Thành", 35, MH - 3, 3, 2, "nac_dinh_thanh", "tu_thanh_hon_thon");
   o.point("arrive", "tu_nac_dinh_thanh", 36.5, MH - 6);
+  o.waypoint("lang", "Quảng trường làng", V.x + 6, V.y + 5);
   o.point("npc", "Lão Kiệt Khắc", V.x + 3.5, V.y + 5.5, [prop("npc", "string", "lao_kiet_khac")]);
   o.point("npc", "Tố Vân Đào", V.x + 14.5, V.y + 5.5, [prop("npc", "string", "to_van_dao")]);
   writeMap("thanh_hon_thon", MW, MH, ground, trees, canopy, o);
@@ -543,6 +574,7 @@ function nacDinhThanh() {
   // BĐ6a: thành an toàn nên cổng đi Thiên Đấu Thành không có cấp đề xuất (bảng 5.3: "–"), không cảnh báo.
   o.portal("Đi Thiên Đấu Thành", 28, 0, 4, 3, "thien_dau_thanh", "tu_nac_dinh_thanh");
   o.point("arrive", "tu_thien_dau_thanh", 30, 5.5);
+  o.waypoint("quang_truong", "Quảng trường Nặc Đinh", 33, 15);
   o.point("npc", "Ngọc Tiểu Cương (Đại Sư)", 11, 13, [prop("npc", "string", "dai_su")]);
   o.point("npc", "Thợ rèn", 43, 13, [prop("npc", "string", "lo_ren")]);
   o.point("npc", "Thương nhân", 9, 24, [prop("npc", "string", "thuong_nhan")]);
@@ -601,6 +633,7 @@ function thienDauThanh() {
   const { ground, trees, canopy } = toLayers(MW, MH, g, () => 0);
   const o = objects();
   o.rect("spawn", "Quảng trường Thiên Đấu", 31, 22, 18, 12);
+  o.waypoint("quang_truong", "Quảng trường Thiên Đấu", 32, 22);
   o.portal("Về Nặc Đinh Thành", 38, MH - 3, 4, 3, "nac_dinh_thanh", "tu_thien_dau_thanh");
   o.point("arrive", "tu_nac_dinh_thanh", 40, MH - 6.5);
   o.point("npc", "Đại Đấu Hồn Trường", 57, 48, [prop("npc", "string", "dau_hon_truong")]);
@@ -658,7 +691,9 @@ function cucBacChiDia() {
   // Lối tuyết bắc–nam uốn lượn từ trại cổng lên cửa hang (về lại cột 35 ở hai đầu), lối đông–tây ở Tuyết nguyên, Băng Phong Cốc và
   // trước cửa hang (cắt qua vách cốc).
   let px = 35;
+  const pathAt = [];
   for (let y = MH - 2; y >= 18; y--) {
+    pathAt[y] = px;
     g.set(px, y, 3); g.set(px + 1, y, 3);
     if (y > MH - 14 || y < 30) px += Math.sign(35 - px);
     else if (r() < 0.3) px = Math.max(26, Math.min(44, px + (r() < 0.5 ? -1 : 1)));
@@ -667,6 +702,9 @@ function cucBacChiDia() {
   g.fill(3, 20, MW - 6, 2, 3);
   // Hang Huyền Minh Băng Giao (vòng thông tuyết, lối vào phía nam) và trại cổng; cổng ở mép nam mở qua hàng cây biên.
   lairGround(g, CB.lair.cx, CB.lair.cy, CB.lair.rx, CB.lair.ry, true);
+  // Truyền tống trận giữa Băng Phong Cốc (11.2): bãi lối tuyết trên lối bắc–nam.
+  const mid = { x: pathAt[44], y: 44 };
+  g.pad(mid.x, mid.y, 3);
   const c = CB.camp;
   g.fill(c.x, c.y, c.w, c.h, 5);
   g.border();
@@ -695,6 +733,8 @@ function cucBacChiDia() {
   o.rect("spawn", "Trại cổng Cực Bắc", c.x, c.y, c.w, c.h);
   o.portal("Về Thiên Đấu Thành", 34, MH - 3, 4, 3, "thien_dau_thanh", "tu_cuc_bac_chi_dia");
   o.point("arrive", "tu_thien_dau_thanh", 36, MH - 6.5);
+  o.waypoint("trai_cong", "Trại cổng Cực Bắc", c.x + 6, c.y + 1);
+  o.waypoint("bang_phong", "Băng Phong Cốc", mid.x, mid.y);
   writeMap("cuc_bac_chi_dia", MW, MH, ground, trees, canopy, o);
 }
 

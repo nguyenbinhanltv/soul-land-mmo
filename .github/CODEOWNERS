@@ -1,0 +1,11 @@
+# File nhiều việc cùng sửa (hay xung đột): chủ repo được hỏi review. Quy trình: CONTRIBUTING.md.
+/shared/data.ts                          @nguyenbinhanltv
+/server/src/rooms/MapRoom.ts             @nguyenbinhanltv
+/shared/assets/sprites/manifest.json     @nguyenbinhanltv
+/GAME_DESIGN.md                          @nguyenbinhanltv
+/art/CREDITS.md                          @nguyenbinhanltv
+/server/sql/                             @nguyenbinhanltv
+/CONTRIBUTING.md                         @nguyenbinhanltv
+/AGENTS.md                               @nguyenbinhanltv
+/CLAUDE.md                               @nguyenbinhanltv
+/.github/                                @nguyenbinhanltv

@@ -142,6 +142,7 @@ Repo có cấu hình chung trong `.claude/settings.json`: plugin từ marketplac
 `security-guidance`, `feature-dev`, `pr-review-toolkit`, `code-simplifier`), hook tự typecheck sau mỗi lần AI sửa file (`node tools/check.mjs --hook`)
 và skill dự án trong `.claude/skills/` (`roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`, `asset-gen`).
 AI đọc `CLAUDE.md` và `GAME_DESIGN.md`; giao từng việc nhỏ theo mục Lộ trình.
+Nhiều người / agent cùng làm: nhận việc qua issue GitHub theo `CONTRIBUTING.md` (agent khác Claude đọc `AGENTS.md`).
 
 Mỗi máy làm một lần:
 
