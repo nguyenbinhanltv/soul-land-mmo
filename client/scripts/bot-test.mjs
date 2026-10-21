@@ -4477,7 +4477,7 @@ async function bigMapTest(){
   const lair=objs.find(o=>o.type==="boss"), es=objs.filter(o=>o.type==="elite");
   ok(es.length===4&&es.every(e=>zs.some(z=>inR(z,e.x+e.width/2,e.y+e.height/2)))&&pr(lair,"boss")===MAPS[NV].king&&zs.some(z=>inR(z,lair.x+lair.width/2,lair.y+lair.height/2)),
     `4 tinh anh và hang ${lair?.name} nằm trong vùng`);
-  ok(same(objs.filter(o=>o.type==="waypoint").map(o=>o.name).sort(),["rung_thua","tram_gac","trai_cong"]),"giữ 3 truyền tống trận (mã lưu DB không đổi)");
+  ok(same(objs.filter(o=>o.type==="waypoint").map(o=>o.name).sort(),["rung_thua","trai_cong","tram_gac"]),"giữ 3 truyền tống trận (mã lưu DB không đổi)");
   const B=await bot("Rừng lớn","kim_vu_mieu_ung",{sex:0,hair:2,hairCol:1,outfitCol:3});
   if(!(await test(B,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần đi trên bản đồ ×8 (cần hook warp, goto): bật server bằng GAME_TEST=1"); await B.room.leave(); return; }
   const bme=()=>B.room.state.players?.get(B.room.sessionId);
