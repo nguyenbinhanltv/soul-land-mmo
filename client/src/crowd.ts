@@ -3,7 +3,8 @@
 // từ hạt giống theo mapId nên chỗ đứng như nhau ở mọi máy (bước đi lại tính theo đồng hồ từng máy nên có thể lệch nhau).
 // Hình là sheet `lpc_<tên>` ghép từ LPC (tools/assets/lpc-compose.mjs --game), cùng bố cục sheet hồn sư isometric.
 import Phaser from "phaser";
-import { TILE } from "../../shared/data.ts";
+import { TILE, CAMP_MERCHANT } from "../../shared/data.ts";
+import { campMerchantSpot } from "../../shared/camp.ts";
 import { hits, isSolidTile, type SolidGrid } from "../../shared/move.ts";
 import { worldToScreen, dir8, SPR, type Dir8 } from "./iso.ts";
 import { honsuAnimKey, fitHonsuLayer, loadSpriteKey, type HsAnim } from "./sprites.ts";
@@ -66,6 +67,7 @@ export function lpcPreloader(scene: Phaser.Scene, mapId: string) {
     npcs = [];
     for (const l of data?.layers ?? []) if (l.type === "objectgroup") for (const o of l.objects ?? [])
       if (o.type === "npc") { const v = o.properties?.find((p: any) => p.name === "npc")?.value; if (typeof v === "string") npcs.push(v); }
+    if (data && campMerchantSpot(data, mapId)) npcs.push(CAMP_MERCHANT); // #111: thương nhân lưu động không có object `npc`
     go();
   });
   return (names: Set<string>) => { have = names; go(); };

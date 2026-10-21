@@ -22,7 +22,10 @@ export interface Character {
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; }
 
-/** Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí (vào ở `spawn`). */
+/**
+ * Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí hoặc vị trí ghi trên file Tiled khác file server
+ * đang dùng cho bản đồ đó (vào ở `spawn`).
+ */
 export interface Location { mapId: string; x: number | null; y: number | null; }
 /**
  * Ánh xạ `accounts.map_id` sang bản đồ đang có: mã cũ đã bỏ (MAP_MOVED, ví dụ `tinh_dau` từ BĐ3) thì sang bản đồ thay thế;
@@ -30,12 +33,12 @@ export interface Location { mapId: string; x: number | null; y: number | null; }
  */
 export const resolveMap = (raw: string | null | undefined) =>
   (raw && Object.hasOwn(MAPS, raw) ? raw : raw && Object.hasOwn(MAP_MOVED, raw) ? MAP_MOVED[raw] : DEFAULT_MAP);
-const toLocation = (raw: string | null | undefined, x: unknown, y: unknown, file?: string | null): Location => {
+const toLocation = (raw: string | null | undefined, x: unknown, y: unknown, file: string | null | undefined): Location => {
   const mapId = resolveMap(raw);
-  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới. Vị trí lưu trên file Tiled khác file đang dùng (bản cũ
-  // `<mapId>` trước 11.5 / đường lùi MAP_V1 và bản ×8 `<mapId>.v2`, cột `map_file`; NULL = bản cũ) cũng vậy: tọa độ không cùng nghĩa.
-  const sameFile = (file ?? raw) === mapFile(mapId);
-  return mapId === raw && sameFile && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
+  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới. Tọa độ chỉ có nghĩa trên đúng file Tiled lúc ghi
+  // (`accounts.map_file`, 11.5; NULL = ghi trước 11.5, bản cũ `<mapId>`): bản ×8 thành mặc định hoặc đổi qua lại bằng MAP_V1 thì về `spawn`.
+  const same = mapId === raw && (file ?? raw) === mapFile(mapId);
+  return same && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
 };
 
 /** Một ô trong túi đồ (một dòng bảng `items`, mục 5.7). `id` do server sinh (UUID) ngay khi món đồ xuất hiện. */
@@ -106,15 +109,16 @@ export interface Store {
   getLocation(accountId: number): Promise<Location>;
   /**
    * Lưu vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng). Chỉ ghi khi bản đồ đang lưu (đã ánh xạ) vẫn là
-   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi. Ghi kèm tên file Tiled `file` (mặc định
-   * `mapFile(mapId)`, 11.5; hook thử `oldfile` ghi tên bản cũ) để lần vào sau biết tọa độ thuộc file nào.
+   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi. Ghi kèm `file`: file Tiled của tọa độ, mặc định
+   * file server đang dùng (`mapFile`, 11.5); null = như dòng ghi trước 11.5 (chỉ hook test truyền khác mặc định).
    */
-  saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string): Promise<boolean>;
+  saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string | null): Promise<boolean>;
   /**
    * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
    * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
    * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
-   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag.
+   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag. (x, y) ghi kèm file Tiled
+   * server đang dùng cho `to` (`mapFile`, 11.5) như saveLocation.
    */
   saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag): Promise<void>;
   /**
@@ -206,7 +210,7 @@ export class MemoryStore implements Store {
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
-  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file?: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
+  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
   starter = new Set<number>();          // accountId đã nhận vật phẩm khởi đầu (accounts.starter_items)
   claims = new Map<string, number>();   // "accountId|day|kind" -> số lần nhận thưởng boss (bảng boss_claims, BĐ5)
@@ -283,7 +287,7 @@ export class MemoryStore implements Store {
     const l = this.locs.get(accountId);
     return toLocation(l?.mapId, l?.x, l?.y, l?.file);
   }
-  async saveLocation(accountId: number, mapId: string, x: number, y: number, file = mapFile(mapId)) {
+  async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
     this.locs.set(accountId, { mapId, x, y, file }); return true;
   }
@@ -580,7 +584,7 @@ export class PgStore implements Store {
     const x = (await this.pool.query("SELECT map_id, pos_x, pos_y, map_file FROM accounts WHERE id=$1", [accountId])).rows[0];
     return toLocation(x?.map_id, x?.pos_x, x?.pos_y, x?.map_file);
   }
-  async saveLocation(accountId: number, mapId: string, x: number, y: number, file = mapFile(mapId)) {
+  async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     const m = this.mapExpr(6);
     const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
     return (r.rowCount ?? 0) > 0;

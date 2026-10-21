@@ -130,6 +130,25 @@ export const ISO_CARD = [96, 152];
 /** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
 export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 
+// ---------- Giấy phép asset ngoài (GAME_DESIGN.md mục 5.11 "Nguồn và giấy phép") ----------
+/**
+ * Giấy phép đã biết, ghi như CREDITS.csv của LPC / trang OpenGameArt ("CC0", "CC-BY 4.0", "CC-BY-SA 3.0", "OGA-BY 3.0+",
+ * "GPL 3.0", "CC-BY-NC 4.0"…). Mọi giấy phép đã biết đều dùng được; giấy phép lạ, trống, ND (cấm sửa, mà công cụ luôn sửa ảnh)
+ * thì công cụ dừng.
+ */
+export const LICENSE_KNOWN = /^(CC0|CC-BY(-NC)?(-SA)? \d(\.\d)?\+?|OGA-BY \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
+/** Cờ nghĩa vụ của một giấy phép: SA / GPL (bản đã sửa theo đúng giấy phép đó), NC (chỉ dùng khi game phi thương mại). */
+export const licenseFlags = (l) => [/-SA\b/.test(l) && "SA", /^GPL\b/.test(l) && "GPL", /-NC\b/.test(l) && "NC"].filter(Boolean);
+const licenseRank = (l) => { const f = licenseFlags(l); return (f.includes("NC") ? 3 : 0) + (f.includes("SA") ? 1 : 0) + (f.includes("GPL") ? 2 : 0); };
+/**
+ * Asset có nhiều giấy phép (ví dụ "OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0") thì game dùng theo nhóm ít ràng buộc nhất:
+ * CC0 / CC-BY / OGA-BY < CC-BY-SA < GPL < NC. Trả { use: giấy phép game dùng theo, flags: cờ của nhóm đó }.
+ */
+export function licenseUse(licenses) {
+  const min = Math.min(...licenses.map(licenseRank)), use = licenses.filter((l) => licenseRank(l) === min);
+  return { use, flags: [...new Set(use.flatMap(licenseFlags))] };
+}
+
 // ---------- Màu ----------
 export const hex = (c) => { const n = parseInt(c.replace("#", ""), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
 export const toHex = ([r, g, b]) => "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);

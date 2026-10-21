@@ -48,14 +48,23 @@ test("validateCatalog accepts a CC0 source with reproducible provenance", () => 
   assert.doesNotThrow(() => validateCatalog({ sources: [validSource], tracks: [validTrack] }));
 });
 
-test("validateCatalog rejects forbidden licenses and unsafe input paths", () => {
-  assert.throws(
-    () => validateCatalog({
-      sources: [{ ...validSource, license: "CC-BY-SA-4.0" }],
-      tracks: [validTrack],
-    }),
-    /license/i,
-  );
+test("validateCatalog accepts every known license, including SA / GPL / NC", () => {
+  for (const license of ["CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-NC-3.0", "CC-BY-NC-SA-4.0", "OGA-BY-3.0", "GPL-3.0-or-later"]) {
+    assert.doesNotThrow(() => validateCatalog({ sources: [{ ...validSource, license }], tracks: [validTrack] }), license);
+  }
+});
+
+test("validateCatalog rejects unknown licenses and unsafe input paths", () => {
+  for (const license of ["CC-BY-ND-4.0", "All rights reserved", "", "cc0"]) {
+    assert.throws(
+      () => validateCatalog({
+        sources: [{ ...validSource, license }],
+        tracks: [validTrack],
+      }),
+      /license/i,
+      license,
+    );
+  }
   assert.throws(
     () => validateCatalog({
       sources: [validSource],
@@ -106,7 +115,6 @@ test("issue catalog covers town, bird, snake and bell gaps", async () => {
   assert.doesNotThrow(() => validateCatalog(catalog));
   const required = ["town-crowd-ambience", "forest-bird-ambience", "spirit-snake-die", "spirit-bell"];
   for (const id of required) assert.ok(catalog.tracks.some((track) => track.id === id), `missing ${id}`);
-  assert.ok(catalog.sources.every((source) => source.license === "CC0-1.0" || source.license.startsWith("CC-BY-")));
 });
 
 test("buildManifest records both runtime formats and preload byte budgets", () => {
@@ -293,6 +301,24 @@ test("audio credits must be generated from manifest provenance", () => {
     () => validateAudioCredits({ manifest, creditsText: `before\n${block.replace("footsteps.ogg", "stale.ogg")}\nafter` }),
     /credits.*mismatch/i,
   );
+});
+
+test("audio credits flag SA / GPL / NC licenses", () => {
+  const credits = (license) => renderAudioCredits(buildManifest({
+    catalog: { sources: [{ ...validSource, license }], tracks: [validTrack] },
+    outputs: [{
+      id: validTrack.id,
+      files: {
+        ogg: { path: "audio/sprites/footsteps.ogg", bytes: 120 },
+        m4a: { path: "audio/sprites/footsteps.m4a", bytes: 180 },
+      },
+      sprite: { name: "footsteps", start: 0, duration: 0.42 },
+    }],
+  }));
+  assert.match(credits("CC-BY-SA-4.0"), /CC-BY-SA-4\.0 \(cờ SA\)/);
+  assert.match(credits("GPL-3.0-or-later"), /GPL-3\.0-or-later \(cờ GPL\)/);
+  assert.match(credits("CC-BY-NC-SA-4.0"), /CC-BY-NC-SA-4\.0 \(cờ SA, NC\)/);
+  assert.doesNotMatch(credits("CC-BY-4.0"), /cờ/);
 });
 
 test("safeResolve keeps source files inside the selected source root", async () => {
