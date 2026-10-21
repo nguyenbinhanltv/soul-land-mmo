@@ -4,7 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 
 import ffmpegPath from "ffmpeg-static";
-import { buildManifest, safeResolve, sha256, stableJson, validateCatalog } from "./lib.mjs";
+import { buildManifest, safeResolve, stableJson, validateCatalog, verifySha256 } from "./lib.mjs";
 
 const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
 const DEFAULT_CATALOG = path.join(repoRoot, "tools/audio/catalog.json");
@@ -99,9 +99,7 @@ async function main() {
   const prepared = new Map();
   for (const track of catalog.tracks) {
     const input = await safeResolve(sourceRoot, track.input);
-    if (track.inputSha256 && sha256(await readFile(input)) !== track.inputSha256) {
-      throw new Error(`SHA-256 nguồn không khớp cho ${track.id}`);
-    }
+    verifySha256(await readFile(input), track.inputSha256, `Nguồn ${track.id}`);
     const normalized = path.join(tempRoot, `${track.id}.wav`);
     await normalize(input, normalized);
     prepared.set(track.id, { track, file: normalized, duration: await durationOf(normalized) });

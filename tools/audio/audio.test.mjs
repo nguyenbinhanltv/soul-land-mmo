@@ -9,9 +9,11 @@ import { promisify } from "node:util";
 import {
   buildManifest,
   safeResolve,
+  sha256,
   validateCatalog,
   validateManifest,
   validateManifestMatchesCatalog,
+  verifySha256,
 } from "./lib.mjs";
 import { assertDockerRuntimeBoundary } from "./runtime-check.mjs";
 
@@ -35,6 +37,7 @@ const validTrack = {
   mapId: null,
   preload: true,
   sprite: "footsteps",
+  inputSha256: "b".repeat(64),
 };
 
 test("validateCatalog accepts a CC0 source with reproducible provenance", () => {
@@ -62,6 +65,29 @@ test("validateCatalog rejects forbidden licenses and unsafe input paths", () => 
       tracks: [{ ...validTrack, mapId: "tinh-dau-rung" }],
     }),
     /unknown game map/i,
+  );
+  assert.throws(
+    () => validateCatalog({
+      sources: [validSource],
+      tracks: [{ ...validTrack, inputSha256: undefined }],
+    }),
+    /input SHA-256/i,
+  );
+  assert.throws(
+    () => validateCatalog({
+      sources: [validSource],
+      tracks: [{ ...validTrack, inputSha256: "not-a-sha" }],
+    }),
+    /input SHA-256/i,
+  );
+});
+
+test("verifySha256 rejects replaced source content", () => {
+  const source = Buffer.from("original source");
+  assert.doesNotThrow(() => verifySha256(source, sha256(source), "track test"));
+  assert.throws(
+    () => verifySha256(Buffer.from("replaced source"), sha256(source), "track test"),
+    /SHA-256 mismatch/i,
   );
 });
 test("issue catalog covers town, bird, snake and bell gaps", async () => {

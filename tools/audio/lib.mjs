@@ -68,8 +68,8 @@ function validateTrack(track, sourceIds) {
   validateId(track.id, "track.id");
   if (!sourceIds.has(track.sourceId)) throw new Error(`track ${track.id} references an unknown source`);
   validateRelativePath(track.input, `track ${track.id}.input`);
-  if (track.inputSha256 !== undefined && !/^[a-f0-9]{64}$/.test(track.inputSha256)) {
-    throw new Error(`track ${track.id} must have a valid input SHA-256`);
+  if (!/^[a-f0-9]{64}$/.test(track.inputSha256 ?? "")) {
+    throw new Error(`track ${track.id} must have an input SHA-256`);
   }
   validateId(track.group, `track ${track.id}.group`);
   if (track.mapId !== null) {
@@ -226,6 +226,13 @@ export async function safeResolve(root, relativePath) {
 
 export function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
+}
+
+export function verifySha256(buffer, expected, label) {
+  if (!/^[a-f0-9]{64}$/.test(expected ?? "")) throw new Error(`${label} must have a valid SHA-256`);
+  const actual = sha256(buffer);
+  if (actual !== expected) throw new Error(`${label} SHA-256 mismatch`);
+  return true;
 }
 
 export function stableJson(value) {
