@@ -1044,15 +1044,16 @@ export class GameScene extends Phaser.Scene {
       // Biểu tượng trạng thái hàng ngang trên thanh máu: hình riêng mỗi loại, số tầng là chấm nhỏ bên dưới.
       const icons = STATUS_ICONS.filter(has);
       this.statusIcons(g, s.x, top - 13, icons, { burn: b.burn, poison: b.poison, armor: b.armor, allure: b.allure, lock: b.lock });
-      // Mê hoặc (2.5c): tim hồng xoay trên đầu, hồn thú đi lung tung.
+      // Mê hoặc (2.5c): tim hồng xoay trên đầu, hồn thú đi lung tung. Tim và sao choáng gắn với thân nên phóng SPR như sprite.
+      const headY = top - 6 * q - (icons.length ? 9 : 0);
       if (has("charm")) {
-        const y = top - 6 - (icons.length ? 9 : 0);
         for (let k = 0; k < 3; k++) {
-          const a = time / 220 + k * 2.1, x = s.x + Math.cos(a) * 8, sy = y + Math.sin(a) * 2.5;
-          g.fillStyle(hex(STATUS.charm.col), 1).fillCircle(x - 1, sy - 1, 1.3).fillCircle(x + 1, sy - 1, 1.3).fillTriangle(x - 2.3, sy - 0.6, x + 2.3, sy - 0.6, x, sy + 2);
+          const a = time / 220 + k * 2.1, x = s.x + Math.cos(a) * 8 * q, sy = headY + Math.sin(a) * 2.5 * q;
+          g.fillStyle(hex(STATUS.charm.col), 1).fillCircle(x - q, sy - q, 1.3 * q).fillCircle(x + q, sy - q, 1.3 * q)
+            .fillTriangle(x - 2.3 * q, sy - 0.6 * q, x + 2.3 * q, sy - 0.6 * q, x, sy + 2 * q);
         }
       }
-      if (has("stun")) this.stunStars(g, s.x, top - 6 - (icons.length ? 9 : 0), time);
+      if (has("stun")) this.stunStars(g, s.x, headY, time);
     });
   }
 

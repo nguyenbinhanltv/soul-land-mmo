@@ -9,7 +9,6 @@ import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "
 
 /** Độ sâu mặt đất: dưới mọi thứ (vùng cảnh báo, hồn sư, chữ). */
 const GROUND_DEPTH = -100000;
-/** Khối cao nhất (cây) nhô lên trên tâm ô chừng này pixel: lề dưới khi chọn ô trong tầm camera. */
 /**
  * Khối cao vẽ bằng code theo cỡ gốc thoi BASE_W × BASE_H (cây, nhà, vật nhỏ so với hồn sư cao khoảng 52 pixel), rồi phóng OBJ_K
  * cho đúng cỡ thoi đang dùng: đổi TILE_W / TILE_H trong iso.ts là đủ, không phải sửa ở đây.
