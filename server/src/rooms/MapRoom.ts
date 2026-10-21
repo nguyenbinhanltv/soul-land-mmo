@@ -1841,9 +1841,9 @@ export class MapRoom extends Room<MapState> {
    * lấy mốc năm của bậc).
    * Từ 2.5a: `status {s, n, secs, all}` (gây trạng thái lên hồn thú gần nhất trong 160 pixel, `all`: mọi hồn thú trong 160 pixel,
    * bằng applyStatus với sức mạnh 1), `boom` (Viêm bạo lên hồn thú gần nhất), `bhp {pct}` (hồn thú gần nhất còn pct% sinh lực,
-   * coi như vừa bị đánh), `regen {s}` (hồn thú gần nhất hồi máu s giây bằng regenBeast; trả `gain`; #112 `pregen {s, hp, mp, hit}`:
-   * người gọi còn hp% sinh lực, mp% hồn lực, vừa bị đánh nếu `hit`, rồi hồi s giây bằng regenPlayer; trả phần hồi và `safe`), `ready {mp}` (hết hồi chiêu
-   * hồn kỹ, hồn lực còn mp%), `grant {vohon}` (thêm võ hồn bất kỳ, kể cả UR, vào tài khoản; có lưu DB). `down` / `hurt` bỏ qua cả
+   * coi như vừa bị đánh), `regen {s}` (hồn thú gần nhất hồi máu s giây bằng regenBeast; trả `gain`), `ready {mp}` (hết hồi chiêu
+   * hồn kỹ, hồn lực còn mp%), `pregen {s, hp, mp, hit}` (#112: người gọi còn hp% sinh lực, mp% hồn lực, vừa bị đánh nếu `hit`, rồi
+   * hồi s giây bằng regenPlayer; trả phần hồi và `safe`), `grant {vohon}` (thêm võ hồn bất kỳ, kể cả UR, vào tài khoản; có lưu DB). `down` / `hurt` bỏ qua cả
    * miễn sát thương.
    * Từ BĐ3: `legacy {mapId, x, y}` ghi `map_id` cũ đã bỏ khỏi MAPS (mã trong MAP_MOVED, ví dụ `tinh_dau`) và vị trí (x, y) như tài
    * khoản của bản trước, qua đúng transaction đi cổng (freeze, saveTravel; trả `saved`); client rời phòng rồi hỏi lại /api/me.
