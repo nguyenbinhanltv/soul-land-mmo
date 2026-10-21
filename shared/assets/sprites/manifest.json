@@ -218,6 +218,14 @@
       "iso": true
     },
     {
+      "key": "fx_no",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
       "key": "he_cuong_cong",
       "iso": true
     },
@@ -292,6 +300,10 @@
       "iso": true
     },
     {
+      "key": "item_hoi_thanh_phu",
+      "iso": true
+    },
+    {
       "key": "item_hon_cot_chan_phai",
       "iso": true
     },
@@ -325,6 +337,14 @@
     },
     {
       "key": "item_manh_vo_hon",
+      "iso": true
+    },
+    {
+      "key": "item_ruong",
+      "iso": true
+    },
+    {
+      "key": "item_tien_thao",
       "iso": true
     },
     {

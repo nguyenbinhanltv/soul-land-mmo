@@ -720,3 +720,15 @@ Vùng này do `tools/assets/lpc-beast.mjs` ghi, không sửa tay.
 | `shared/assets/audio/sprites/footsteps-kenney.ogg`<br>`shared/assets/audio/sprites/footsteps-kenney.m4a` | kenney-footstep-00, kenney-footstep-01, kenney-footstep-02 | Kenney | CC0-1.0 | RPG Audio — <https://kenney.nl/assets/rpg-audio> — SHA-256 `6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b` |
 | `shared/assets/audio/sprites/footsteps.ogg`<br>`shared/assets/audio/sprites/footsteps.m4a` | footstep-wood-01, footstep-wood-02, footstep-wood-03, footstep-stone-01, footstep-leaves-01, footstep-leaves-02, footstep-gravel-01, footstep-mud-01 | TinyWorlds | CC0-1.0 | Different steps on wood, stone, leaves, gravel and mud — <https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud> — SHA-256 `987d072b7deaa65177e005ddd8185f2351be7c9a76cd7575dea560549c39b33b` |
 <!-- audio-sfx:end -->
+
+## Biểu tượng vật phẩm và hiệu ứng từ gói LPC (OpenGameArt)
+Vùng này do `tools/assets/lpc-item.mjs` ghi theo `art/src/lpc-item.json`, không sửa tay.
+
+<!-- lpc-item:start -->
+| Key | Tác giả | Giấy phép của gói (game dùng giấy phép in đậm) | Nguồn, thay đổi |
+|---|---|---|---|
+| `fx_no` | theidiotmachine | **CC0** | [LPC Explosions](https://opengameart.org/content/lpc-explosions): bang2d-1 trong Pix.zip; 10 khung 32×32 của `bang2d-1.png`, giữ màu gốc |
+| `item_hoi_thanh_phu` | Gwes (gốc), Tuomo Untinen (Reemax, sửa) | **CC-BY-SA 3.0**, GPL 3.0, GPL 2.0 (cờ SA) | [LPC Items and game effects](https://opengameart.org/content/lpc-items-and-game-effects): Scrolls and books: cuộn giấy có dấu son; cắt ô (15, 6) của `items1.png`, căn giữa khung 32, viền #1a1020, giảm còn 24 màu |
+| `item_ruong` | Tuomo Untinen (Reemax) | **CC-BY-SA 3.0**, GPL 3.0, GPL 2.0 (cờ SA) | [LPC Items and game effects](https://opengameart.org/content/lpc-items-and-game-effects): hộp có nắp (Toolbox / Medikit); cắt ô (14, 1) của `items1.png`, căn giữa khung 32, viền #1a1020, bản xám giãn sáng để client tô theo màu vật phẩm, giảm còn 24 màu |
+| `item_tien_thao` | Tuomo Untinen (Reemax) | **CC-BY-SA 3.0**, GPL 3.0, GPL 2.0 (cờ SA) | [LPC Items and game effects](https://opengameart.org/content/lpc-items-and-game-effects): Blue plant and seeds; cắt ô (5, 8) của `items1.png`, căn giữa khung 32, viền #1a1020, bản xám giãn sáng để client tô theo màu vật phẩm, giảm còn 24 màu |
+<!-- lpc-item:end -->

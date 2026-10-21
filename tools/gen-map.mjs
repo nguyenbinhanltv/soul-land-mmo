@@ -440,7 +440,7 @@ function haiThanDao() {
 // ---------- Lõi Tinh Đấu (BĐ6e, mục 5.3, 5.4): hồ trung tâm Tinh Đấu Đại Sâm Lâm, chỉ có boss thế giới ----------
 /**
  * 64×44 ô, rừng già tối bao quanh. Hồ trung tâm (nước) ở phía đông; sàn đấu boss thế giới là bãi trống hình bầu dục bên bờ tây của
- * hồ (vây vòng cây, chừa lối vào phía tây; phía đông là bờ nước, boss Du Thủy lặn xuống hồ ở đây). Trại cổng ở mép tây (điểm hồi sinh,
+ * hồ (vây vòng cây, chừa lối vào phía tây; phía đông là bờ nước, boss Du Thủy lặn ra giữa hồ: điểm `lake`). Trại cổng ở mép tây (điểm hồi sinh,
  * cổng về bờ hồ Nội địa), đường mòn nối trại với lối vào sàn. Object `boss` phủ sàn đấu (bán kính giao chiến, chiêu toàn sàn); một
  * vùng `zone` phủ cả bản đồ, `count` 0 (không sinh hồn thú thường; tên vùng hiện trên HUD).
  */
@@ -473,6 +473,8 @@ function loiTinhDau() {
   const o = objects();
   o.zone("Hồ trung tâm", "Boss thế giới 100.000 năm – 21:00 mỗi ngày", 0, 0, MW, MH, [1], 0, "thai_than_cu_vien:1,thien_thanh_nguu_mang:1", "100000-100000");
   o.boss("Sàn đấu hồ trung tâm", "thai_than_cu_vien", LOI.lair.x, LOI.lair.y, LOI.lair.w, LOI.lair.h);
+  // #118: giữa hồ (object `lake`, điểm): boss Du Thủy lặn ra đây rồi nổi lên ở chỗ đã báo trước trong sàn.
+  o.point("lake", "Giữa hồ", LOI.lake.cx + 0.5, LOI.lake.cy + 0.5);
   o.rect("spawn", "Trại cổng Lõi Tinh Đấu", 3, 17, 6, 11);
   o.portal("Về Tinh Đấu Nội địa", 1, 20, 2, 4, "tinh_dau_noi_dia", "tu_loi_tinh_dau");
   o.point("arrive", "tu_tinh_dau_noi_dia", 5.5, 22.5);

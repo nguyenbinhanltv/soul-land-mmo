@@ -331,15 +331,16 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 
 **Boss thế giới 100.000 năm**
 - Ở **Lõi Tinh Đấu**, sàn đấu bên hồ trung tâm (object `boss` phủ sàn). *Thái Thản Cự Viên* và *Thiên Thanh Ngưu Mãng* **luân phiên theo ngày** (`worldBossOn`, để biết trước hôm nay đánh con nào), xuất hiện `WORLD_TIME` giờ Việt Nam; báo toàn server trước và lúc xuất hiện.
-- Sau `WORLD.enrageSecs` giây thì **nổi giận** (sát thương, tốc độ, hồi chiêu mạnh hơn; chiêu toàn sàn mỗi 15 giây: *Bạo Nộ* `WORLD_SLAM`, chu kỳ `WORLD.slamEvery`, không né được). Hết `WORLD.lifeSecs` mà chưa hạ thì **lặn xuống hồ**, không ai nhận thưởng.
+- Sau `WORLD.enrageSecs` giây thì **nổi giận** (sát thương, tốc độ, hồi chiêu mạnh hơn; thêm chiêu toàn sàn *Bạo Nộ* `WORLD_SLAM`, chu kỳ `WORLD.slamEvery`). Hết `WORLD.lifeSecs` mà chưa hạ thì **lặn xuống hồ**, không ai nhận thưởng.
+- **Chiêu toàn sàn né được** (Bạo Nộ, Thanh Lân Độc Vụ, Đại Địa Chấn; `BeastSkillDef.safe`, số vòng / bán kính ở `FLOOR_SAFE`): lúc bắt đầu báo trước, server rải các **vòng an toàn** trong sàn (mỗi vòng một dải theo bề ngang sàn, đi thẳng từ chỗ sinh của boss tới được, không chồng nhau); client vẽ cả sàn đỏ và các vòng xanh ngọc. Chiêu nổ thì trúng mọi người đứng trong sàn **trừ** người đứng trong một vòng (chạm vòng là an toàn, `teleSafe`) hoặc đã ra khỏi sàn. Thời gian báo trước tính để từ phần lớn sàn đi bộ kịp tới vòng gần nhất (bị Làm chậm / khống chế thì có thể không kịp). Người vào phòng giữa lúc chiêu đang báo trước cũng nhận vùng và các vòng (thời gian còn lại) khi client xin tin boss lúc vào (`boss`).
 - **Không nhận khống chế** (Choáng, Trói, Câm lặng, Mê hoặc; Mị hoặc đủ tầng không thành Mê hoặc); Làm chậm và trạng thái sát thương (Thiêu đốt, Trúng độc, Phá giáp, Dễ thương…) vẫn nhận.
 - **Cơ chế buộc đổi võ hồn đúng lúc** (cần đội 4 võ hồn):
   - **Điểm yếu hệ:** mỗi mốc máu `WORLD.weakAt` lộ một hệ ngẫu nhiên một lúc: võ hồn ra trận đúng hệ gây × `weakMult`, hệ khác × `offMult`. Thanh máu lớn báo võ hồn mình có đúng hệ không.
-  - *Thái Thản Cự Viên:* **Bá Thể** (khiên theo % máu tối đa trong một lúc; võ hồn Cường công phá nhanh hơn; phần đánh vào khiên vẫn tính đóng góp; không phá kịp thì boss hồi máu bằng phần khiên còn lại), **Đại Địa Chấn** (tích lực; chỉ khống chế của võ hồn **Khống chế** đang ra trận mới tính lần ngắt, cần đủ số lần; ngắt được thì boss bị Choáng; không ngắt thì cả sàn dính *Vết thương sâu*: Phá giáp nặng, lâu và Choáng ngắn), cùng Cự Thạch, Địa Liệt Quyền.
-  - *Thiên Thanh Ngưu Mãng:* **Thanh Lân Độc Vụ** (độc toàn sàn có báo trước: Trúng độc nặng, lâu), **Du Thủy** (lặn, không nhận sát thương, nổi lên chỗ khác trong sàn, lộ điểm yếu **Mẫn công**), cùng Ngưu Giác Xung, Mãng Vĩ Tảo.
+  - *Thái Thản Cự Viên:* **Bá Thể** (khiên theo % máu tối đa trong một lúc; võ hồn Cường công phá nhanh hơn; phần đánh vào khiên vẫn tính đóng góp; không phá kịp thì boss hồi máu bằng phần khiên còn lại), **Đại Địa Chấn** (tích lực; chỉ khống chế của võ hồn **Khống chế** đang ra trận mới tính lần ngắt, cần đủ số lần; ngắt được thì boss bị Choáng; không ngắt thì cả sàn, trừ người trong vòng an toàn, dính *Vết thương sâu*: Phá giáp nặng, lâu và Choáng ngắn), cùng Cự Thạch, Địa Liệt Quyền.
+  - *Thiên Thanh Ngưu Mãng:* **Thanh Lân Độc Vụ** (độc toàn sàn có báo trước và vòng an toàn: Trúng độc nặng, lâu), **Du Thủy** (lặn **ra giữa hồ** (điểm `lake` trong Tiled), không nhận sát thương; chỗ nổi lên trong sàn, cách chỗ lặn ít nhất `dive.away`, được chọn ngay lúc lặn và **báo trước** cho cả phòng bằng vòng sóng xanh (người vào giữa lúc boss lặn cũng thấy); hết giờ lặn thì nổi lên đúng chỗ đó, lộ điểm yếu **Mẫn công**), cùng Ngưu Giác Xung, Mãng Vĩ Tảo.
   - *Vết thương sâu* là trạng thái thường (Phá giáp / Trúng độc) nhưng nặng và lâu; Lõi không có vùng an toàn nên chỉ **thanh tẩy** của võ hồn phụ trợ giải được.
 - **Thưởng** (đóng góp từ `WORLD.share`, còn trong phòng, `WORLD.daily` lần/ngày, lượt riêng với thú vương, mỗi khung một lần dù hạ ở kênh nào): người gây **sát thương** nhiều nhất trong kênh đó nhận **hồn hoàn đỏ**; những người khác có tỉ lệ nhận hồn hoàn đỏ, còn lại hồn hoàn đen (`WORLD_RING`); hồn hoàn vào thẳng túi cùng **rương** (`WORLD_CHEST`: mảnh UR, hồn hạch sao cao bộ bất kỳ, có thể có hồn cốt 10 vạn năm của loài boss) trong cùng transaction tăng lượt. Mọi người đóng góp nhận kinh nghiệm × `WORLD.xp`; người hạ nhận Hồn Tệ.
-- Màn hình: thanh máu lớn (đồng hồ nổi giận, thời gian còn lại, khiên, điểm yếu hệ, số lần ngắt tích lực, đang lặn), bảng xếp hạng, banner từng cơ chế.
+- Màn hình: thanh máu lớn (đồng hồ nổi giận, thời gian còn lại, khiên, điểm yếu hệ, số lần ngắt tích lực, đang lặn), bảng xếp hạng, banner từng cơ chế; trên sàn: vùng đỏ và vòng an toàn của chiêu toàn sàn, vòng sóng chỗ Du Thủy sắp nổi lên, gợn sóng quanh boss đang lặn giữa hồ.
 
 ### 5.5 Hồn cốt
 - **6 vị trí trên mỗi võ hồn** (`BONE_SLOTS`): đầu, thân, tay trái, tay phải, chân trái, chân phải. Đầu và hai tay cho kỹ năng **chủ động**, thân và hai chân cho kỹ năng **bị động**.
@@ -566,12 +567,12 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 
 **Điều khiển**: phím / cần theo hướng màn hình, client chiếu ngược thành hướng thế giới trong `input {x, y, s}` (W → (−1, −1)/√2). Bấm đất để đi tới theo đường A* trên lưới ô chặn `solidGrid` (`shared/path.ts`: 8 hướng, không cắt góc ô chặn, rút gọn thành các đoạn đi thẳng được, trong `CLICK_PATH`; không tới được thì tới ô gần nhất; client vẫn chỉ gửi hướng tới điểm kế tiếp, dừng khi tới nơi, bị chặn nửa giây hoặc bấm phím đi; chạy / đi bộ như khi giữ phím), bấm hồn thú để chọn mục tiêu rồi tự đi vào tầm đánh, bấm hồn sư khác / NPC / cổng như cũ; chọn đối tượng theo thứ tự độ sâu.
 
-**Chân dung và thẻ võ hồn** (giao diện HTML): chân dung vẽ **chính võ hồn** trên nền tối có quầng màu riêng, không vẽ chủ nhân, hiển thị phóng 2–3 lần `pixelated`. Thẻ võ hồn khung lưu ly theo độ hiếm (SR bạc lam, SSR tím vàng kim, UR vàng kim kính bảy màu) với cửa sổ chân dung, sao, chấm hồn hoàn màu niên hạn, tên, cấp; huy hiệu hệ góc trên trái, ấn son số ô đội góc trên phải, võ hồn ra trận sáng viền, chưa mở thì xám (`client/src/cards.ts`). Biểu tượng vật phẩm nền trong suốt; hồn cốt là bản xám để client tô theo màu niên hạn, mảnh võ hồn tô màu võ hồn.
+**Chân dung và thẻ võ hồn** (giao diện HTML): chân dung vẽ **chính võ hồn** trên nền tối có quầng màu riêng, không vẽ chủ nhân, hiển thị phóng 2–3 lần `pixelated`. Thẻ võ hồn khung lưu ly theo độ hiếm (SR bạc lam, SSR tím vàng kim, UR vàng kim kính bảy màu) với cửa sổ chân dung, sao, chấm hồn hoàn màu niên hạn, tên, cấp; huy hiệu hệ góc trên trái, ấn son số ô đội góc trên phải, võ hồn ra trận sáng viền, chưa mở thì xám (`client/src/cards.ts`). Biểu tượng vật phẩm nền trong suốt; hồn cốt là bản xám để client tô theo màu niên hạn, mảnh võ hồn tô màu võ hồn, rương (màu hào quang thú vương / boss) và tiên thảo là bản xám chung của nhóm tô theo màu của món.
 
 **Tên file, key và thư mục**: ảnh nằm trong `shared/assets` (`publicDir` của Vite), tên file theo mã võ hồn / mã loài, không theo chỉ số mảng. Client chỉ tải key có trong `shared/assets/sprites/manifest.json`, key còn thiếu vẽ bằng code, nên thêm ảnh chỉ cần ảnh và một dòng manifest. Bảng key → đường dẫn ở `tools/assets/README.md`.
 
 **Nguồn và giấy phép**
-- **Nguồn ảnh được phép:** **PixelLab** (hồn sư, phụ thể, hồn thú, vật đứng); **Gemini** do người dùng tạo (ô nền, vật đứng, công trình, chân dung, khung thẻ, biểu tượng, mảnh giao diện, ảnh tham chiếu); **LPC** (Universal LPC Spritesheet Character Generator) **chỉ cho NPC phụ, dân thường, lính gác**, không cho hồn sư người chơi; **thú LPC** (OpenGameArt) làm **hình tạm cho hồn thú thường** tới khi PixelLab vẽ thay, không cho thú vương / boss thế giới, mỗi loài đưa vào game phải được chủ repo duyệt; giấy phép lớp / gói LPC theo dòng "Asset bên ngoài"; **vẽ tay** (Aseprite, `pixelart_workbench`, hoặc từng điểm bằng code).
+- **Nguồn ảnh được phép:** **PixelLab** (hồn sư, phụ thể, hồn thú, vật đứng); **Gemini** do người dùng tạo (ô nền, vật đứng, công trình, chân dung, khung thẻ, biểu tượng, mảnh giao diện, ảnh tham chiếu); **LPC** (Universal LPC Spritesheet Character Generator) **chỉ cho NPC phụ, dân thường, lính gác**, không cho hồn sư người chơi; **thú LPC** (OpenGameArt) làm **hình tạm cho hồn thú thường** tới khi PixelLab vẽ thay, không cho thú vương / boss thế giới, mỗi loài đưa vào game phải được chủ repo duyệt; **vật phẩm / hiệu ứng LPC** (OpenGameArt, chủ repo duyệt từng ảnh) cho biểu tượng vật phẩm và hiệu ứng (`tools/assets/lpc-item.mjs`); giấy phép lớp / gói LPC theo dòng "Asset bên ngoài"; **vẽ tay** (Aseprite, `pixelart_workbench`, hoặc từng điểm bằng code).
 - Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google); mỗi key một dòng trong `art/CREDITS.md` (file, key, công cụ, prompt, ngày). Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ tham khảo ý tưởng, không làm ảnh tham chiếu.
 - **Asset bên ngoài** (font, tileset, âm thanh, lớp / gói LPC): được dùng **mọi loại giấy phép** (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) vì đây là fan game phi thương mại cho bạn bè. **Không** dùng asset không có giấy phép rõ ràng hoặc ghi "all rights reserved"; ND (cấm sửa) chỉ dùng được nguyên bản. Nghĩa vụ:
@@ -579,7 +580,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
   - **CC-BY / CC-BY-SA / OGA-BY**: hiện tên tác giả trong màn hình giới thiệu.
   - **CC-BY-SA / GPL**: file đã sửa (đổi màu, cắt, ghép) cũng theo đúng giấy phép đó; ghi rõ trong `CREDITS.md` và giữ ảnh / âm thanh trong repo công khai. Không gộp chung vào một file atlas (sheet, audio sprite) với asset của mình nếu không cần; gộp thì ghi chú cả file atlas theo giấy phép SA / GPL.
   - **NC** (phi thương mại): chỉ dùng khi game vẫn phi thương mại; gắn cờ NC trong `CREDITS.md` để dễ thay nếu sau này thương mại hóa.
-  - Asset có nhiều giấy phép thì dùng theo giấy phép ít ràng buộc nhất (CC0 / CC-BY / OGA-BY, rồi CC-BY-SA, GPL, NC). `lpc-compose.mjs`, `lpc-beast.mjs` và `tools/audio` nhận mọi giấy phép đã biết, tự ghi giấy phép kèm cờ SA / GPL / NC vào `CREDITS.md`, và dừng nếu không đọc được giấy phép.
+  - Asset có nhiều giấy phép thì dùng theo giấy phép ít ràng buộc nhất (CC0 / CC-BY / OGA-BY, rồi CC-BY-SA, GPL, NC). `lpc-compose.mjs`, `lpc-beast.mjs`, `lpc-item.mjs` và `tools/audio` nhận mọi giấy phép đã biết, tự ghi giấy phép kèm cờ SA / GPL / NC vào `CREDITS.md`, và dừng nếu không đọc được giấy phép.
 
 ### 5.12 Âm thanh: nền tảng WebAudio, SFX tự tạo và nhạc nền
 Âm thanh là phần trình bày phía client. Server vẫn quyết định trạng thái, sát thương, vị trí và kết quả; client chỉ phát theo tin `fx`, `dmg` và state đã nhận. Không thêm message server cho âm thanh khi event hiện có đủ dữ liệu. Nếu sau này thiếu event, chỉ thêm event trạng thái tối thiểu, không đưa logic âm thanh lên server.
@@ -613,8 +614,17 @@ Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 202
 - **Nhặt:** hồn hoàn từ `ring` năm, hồn cốt, hồn hạch, vật phẩm khác dưới đất (theo cờ `bone`, `core`, `item`), chỉ món mình được nhặt (mục 4). Nhặt đúng món đã chọn (`pickup` với id món), không nhặt món bị lọc nằm gần hơn. Hồn Tệ vẫn vào thẳng túi như thường. **Không tự hấp thụ hồn hoàn.**
 - **Dừng khi:** cả đội gục, túi đầy, hết đan (tùy chọn), bị người chơi tấn công (đòn `pvp`), vào vùng an toàn, đi cổng / truyền tống / vào sân đấu, đang hấp thụ, hết giờ trong ngày, mất kết nối, và khi **người chơi tự bấm đi, đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt** (tay luôn được ưu tiên; nhả phím không tính). Lý do dừng báo bằng dòng log. Vào lại game thì không tự bật.
 - **Giới hạn giờ:** mỗi tài khoản treo tối đa `AUTO_DAILY_SECS` mỗi ngày theo giờ Việt Nam (đặt lại 00:00 như lượt boss, `this.today()`).
-- **Hiển thị:** ai cũng thấy chữ "Tự động" cạnh danh hiệu trên đầu (`PlayerState.auto`); chính mình thấy nút sáng, giờ treo còn lại ở chú thích nút. Bảng cài đặt đầy đủ, tổng kết và Ủy Thác Lệnh ở Auto 2 (#156); ủy thác offline ở Auto 3 (#157).
+- **Hiển thị:** ai cũng thấy chữ "Tự động" cạnh danh hiệu trên đầu (`PlayerState.auto`); chính mình thấy nút sáng, giờ treo còn lại ở chú thích nút. Bảng cài đặt đầy đủ, tổng kết và Ủy Thác Lệnh ở Auto 2 (#156); ủy thác offline ở mục dưới (Auto 3).
 - **Cách làm:** `server/src/rooms/autoHunt.ts` (`AutoHunter`): quyết định `AUTO_HZ` lần mỗi giây (mục tiêu, đường đi, hồn kỹ, đan, tiên cơ, nhặt), giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi trong tầm. Bật / dừng / lưu ở `MapRoom` (`autoAction`, `autoStop`, `flushAuto`). Đo tải: `client/scripts/auto-soak.mjs`.
+
+**Ủy thác offline (Auto 3)** — số ở `shared/data.ts`, mục "Ủy thác offline" (`OFFLINE`, `offlineFight`, `offlineSplit`).
+- **Bắt đầu:** rời game (không qua cổng, đổi kênh hay vào sân đấu) khi đứng trong một vùng săn của bản đồ săn, ngoài vùng an toàn, không gục thì server ghi vùng và thời điểm (đồng hồ server, không dùng giờ client). Không cần bật tự săn. Rời ở thành, trong vùng an toàn (làng Thánh Hồn Thôn) hay khi đã gục thì không ủy thác.
+- **Nhận khi vào lại:** server lấy và xóa lần ủy thác trong một lệnh (một lần thoát chỉ nhận một lần), tính thưởng bằng công thức, **không sinh hay hạ hồn thú thật**. Vắng dưới `OFFLINE.minSecs` thì bỏ.
+- **Giờ được tính, chung quỹ với tự săn:** quãng vắng chia theo ngày giờ Việt Nam; mỗi ngày chỉ tính phần còn lại của `AUTO_DAILY_SECS` (ngày thoát trừ phần đã treo hôm đó), dồn từ ngày cũ tới ngày mới, tối đa `OFFLINE.maxSecs` một lần nhận. Quỹ hôm nay chỉ trừ phần thật sự đã săn rơi vào hôm nay (dừng sớm thì trừ ít hơn).
+- **Hiệu suất 100%:** chạy từng con như săn trong vùng đó: niên hạn và loài tung như hồn thú của vùng; thời gian hạ (`offlineFight`) theo chỉ số võ hồn ra trận lúc vào (công, chí mạng, thủ của loài, hệ số hồn kỹ `OFFLINE.skill`), cộng hồi máu sau trận và thời gian tìm / nhặt `OFFLINE.seek`. Một trận mất quá `OFFLINE.hpCap` sinh lực tối đa thì coi là không đánh nổi (bỏ con đó). Mỗi con: kinh nghiệm (giảm theo chênh cấp, chia đội như hạ tay), Hồn Tệ, mảnh võ hồn, tiên thảo vào thẳng túi; hồn cốt, hồn hạch, hồn hoàn theo bộ lọc nhặt của tự săn (`bone`, `core`, `ring`), hồn hoàn tối đa `OFFLINE.rings` chiếc. Không có tinh anh, thú vương, hồn thú 10 vạn năm, không tính nhiệm vụ.
+- **Dừng sớm:** túi đầy (như tự săn), vùng quá sức (không hạ được con nào), hết giờ treo.
+- **Bảng nhận thưởng** (tin riêng `offline`, khung giấy cuộn thủy mặc, `client/src/offline.ts`): vùng, thời gian vắng / được tính / đã săn, số hồn thú, kinh nghiệm, Hồn Tệ, vật phẩm, lý do dừng sớm, giờ treo còn lại hôm nay; nút "Nhận" đóng bảng (thưởng đã vào túi lúc vào game).
+- **Cách làm:** `MapRoom.onLeave` ghi (`offlineZone`, bảng `auto_offline`), `MapRoom.claimOffline` (xếp vào chuỗi lưu khi vào phòng) tính, cộng rồi `write()`. Hook `test {op: "offline", ago}` lùi thời điểm của lần ủy thác kế tiếp (giả lập thời gian trôi).
 
 ## 6. Kiến trúc (bắt buộc giữ)
 **Server quyết định mọi thứ.** Client chỉ gửi ý định và hiển thị. Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ, bản đồ hay kênh đích. Ngẫu nhiên (`Math.random()`) chỉ ở server; hàm trong `shared/data.ts` là hàm thuần để client dùng khi hiển thị.
@@ -630,7 +640,7 @@ Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 202
 | Túi đồ | `bag`, `use {id, vohonId?}`, `pickup`, `discard {id}`, `open {id}`, `absorb {itemId, vohonId}` |
 | Hồn cốt, hồn hạch | `equip` / `unequip`, `equipcore` / `unequipcore`, `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}` |
 | NPC | `talk {npc}`, `buy {code, qty, npc?}`, `sell {id, qty?, npc?}`, `expand {npc?}`, `buyback {key, npc?}` (`npc`: thương nhân đang mở hộp thoại, thiếu thì thương nhân gần nhất), `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
-| Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}` |
+| Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}`, `boss` (xin lại tin boss lúc vào phòng) |
 | Tự săn | `auto {op, cfg?}` (`on`, `off`, `set` cài đặt `AutoSettings`, `get`; mục 5.13) |
 | Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
 | Kiểm thử | `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
@@ -639,7 +649,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 **Đồng bộ xuống client**
 - **Trạng thái công khai** qua Colyseus Schema (`server/src/rooms/schema.ts`: `MapState`, `PlayerState`, `BeastState`, `DropState`; phòng sân `ArenaState` / `ArenaSide`). Chọn kiểu nhỏ nhất đủ dùng; trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối. Client đọc ở `client/src/scenes/GameScene.ts`.
-- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag` / `bagd`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`, `auto`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag` / `bagd`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`, `auto`, `offline`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - **Túi đồ gửi theo thay đổi** (`shared/bagSync.ts`): tin `bag` (cả túi) chỉ khi client xin hoặc phiên chưa có bản gốc; mỗi lần túi đổi server so với bản đã gửi cho phiên đó và gửi `bagd` gồm số ô, Hồn Tệ, hồi chiêu, ô đổi / mới, id ô mất, thứ tự khi đổi (sắp xếp), danh sách mua lại khi đổi. Client / bot áp bằng `applyBagDelta`; túi vài trăm ô nhặt một món chỉ tốn vài trăm byte.
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật) qua `broadcast("fx", {k, …})` và `"dmg"`; tin công khai `elite`, `boss`.
 - **Đồng bộ theo vùng gần** (bản đồ lớn, 11.4; `server/src/rooms/interest.ts`, hằng `SYNC_VIEW`): `MapState.players` / `beasts` / `drops` gắn `@view()`, mỗi client một `StateView`. Cuối mỗi nhịp, trước bản vá, client nhận thêm thực thể cách mình dưới `SYNC_VIEW.r` và bỏ thực thể xa quá `SYNC_VIEW.out`; chính mình và hồn thú có `rank` (tinh anh, thú vương, boss thế giới: thanh máu, bản đồ nhỏ) luôn có. Thực thể ra khỏi view thì client xóa hình như khi thực thể bị xóa khỏi state (hiệu ứng chết / nhặt đến bằng tin `fx`). `MapState.online` đếm hồn sư cả phòng. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu ứng (`x, y`, cuối vệt lướt, hồn sư `id` / `to`, hồn thú `bid`) dưới `SYNC_VIEW.fx`. Tin `mini` mỗi `SYNC_VIEW.mini` giây (như nhau cho mọi client) mang vị trí theo ô của mọi hồn sư, hồn thú thường từ nghìn năm và đồ rơi cả bản đồ cho bản đồ nhỏ. Sân Đại Đấu Hồn Trường không lọc. Hook kiểm thử `test {op: "view", all}` tắt lọc cho một client (bot đọc thực thể ở xa).
@@ -661,6 +671,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 | `safe` | Chữ nhật | Vùng an toàn trong bản đồ săn |
 | `elite` | Chữ nhật | `boss` (mã tinh anh trong `BOSSES`); nằm trong một `zone` |
 | `boss` | Chữ nhật | `boss` (mã thú vương hoặc boss thế giới); là hang / sàn đấu và cũng là bán kính giao chiến |
+| `lake` | Điểm | Giữa hồ của bản đồ boss thế giới: boss lặn ra đây khi Du Thủy (mục 5.4); không có thì lặn tại chỗ |
 | `npc` | Điểm | `npc` (mã trong `NPCS`) |
 | `waypoint` | Chữ nhật | Tên là mã không dấu duy nhất trong bản đồ (lưu DB `<mapId>:<tên>`), `label` (tên hiện); tâm đứng được, ngoài mọi cổng |
 
@@ -739,6 +750,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - `items` (mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn).
 - `waypoints` (truyền tống trận tài khoản đã mở, mã `<mapId>:<tên>`; chỉ thêm).
 - `auto_hunt` (tự săn, mục 5.13: cài đặt JSONB, ngày giờ Việt Nam và số giây đã treo trong ngày đó; mỗi tài khoản một dòng).
+- `auto_offline` (ủy thác offline, mục 5.13: bản đồ, tên vùng, thời điểm bắt đầu, ngày và giây đã treo lúc thoát; tối đa một dòng mỗi tài khoản, xóa khi nhận).
 - `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`) là bảng cũ, giữ lại để chuyển dữ liệu, không còn ghi.
 
@@ -769,7 +781,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] 11.3 Công cụ dựng bản đồ lớn `tools/maps` và bản mẫu Tinh Đấu Ngoại vi gấp 8 lần diện tích để duyệt (#108; mục 5.3, 6 "Bản đồ lớn dựng bằng `tools/maps`").
 - [x] 11.4 Hiệu năng bản đồ lớn: đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, vẽ theo khối (#109; mục 6 "Đồng bộ xuống client", "Hiển thị isometric phía client").
 - [ ] 11.5 Mở rộng và làm đẹp các bản đồ còn lại theo bản mẫu đã duyệt (#110). Còn: thành trấn (Thánh Hồn Thôn, Nặc Đinh Thành, Thiên Đấu Thành), Đại Đấu Hồn Trường và Lõi Tinh Đấu (giữ cỡ, chỉ làm đẹp).
-- [ ] Biểu tượng Hồi Thành Phù (`item_hoi_thanh_phu`, Gemini); hiện vẽ bằng CSS.
+- [x] Biểu tượng Hồi Thành Phù, rương, tiên thảo (`item_hoi_thanh_phu`, `item_ruong`, `item_tien_thao`; vật phẩm LPC, `tools/assets/lpc-item.mjs`) và quả nổ của tiên cơ Cường Công (`fx_no`) (#170, #201).
 
 **Giai đoạn 12: Âm thanh**
 - [x] 12.1 Nền tảng WebAudio client, bảng Âm thanh, 40 SFX ZzFX tự tạo, spatial audio theo khoảng cách, demo nghe thử và quy tắc phát theo event/state (#132).
@@ -778,7 +790,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Tự săn** (chủ repo chốt 2026-10-22: hiệu suất 100%, tối đa 12 giờ treo mỗi ngày; mục 5.13)
 - [x] Auto 1: lõi tự săn online phía server, nút / phím bật tắt, chữ "Tự động" trên đầu, bảng `auto_hunt` (#155).
 - [ ] Auto 2: bảng tùy chỉnh tự săn, tổng kết, Ủy Thác Lệnh (#156).
-- [ ] Auto 3: ủy thác offline nhận thưởng khi vào lại (#157).
+- [x] Auto 3: ủy thác offline nhận thưởng khi vào lại, chung quỹ giờ treo, bảng nhận thưởng, bảng `auto_offline` (#157).
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
@@ -790,7 +802,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
 - [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), tầng Hàn và Hỏa Đàn (Cực Hàn), vùng ngập luân phiên (Thủy Triều Dâng), bọc trứng nở nhện con (Vạn Chu Phệ); vũng độc / sương độc lưu lại; che tầm nhìn (Phun Mực) (#117).
-- [ ] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118).
+- [x] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118; mục 5.4 "Boss thế giới 100.000 năm").
 - [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
 - [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
 - [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).
