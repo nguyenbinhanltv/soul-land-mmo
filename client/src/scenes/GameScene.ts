@@ -12,7 +12,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, syncLayers, syncBeastSp
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS } from "../predict.ts";
 import { solidGrid, clampDir } from "../../../shared/move.ts";
-import { worldToScreen as W2S, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, legacyDir, DIR4_VEC, fillGround, strokeGround,
+import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, legacyDir, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt } from "../iso.ts";
 import { IsoMap } from "../isoMap.ts";
 import type { Dir } from "../sprites.ts";
@@ -33,7 +33,10 @@ interface PView {
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
   lit: { i: number; t0: number } | null;    // vòng hồn hoàn đang sáng khi tung hồn kỹ
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
+  lock: { face: Dir; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
 }
+/** Bấm để đi tới (10.1): còn cách điểm bấm chừng này pixel thế giới thì coi là tới nơi. */
+const GOAL_NEAR = 3;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
 const HEAD = 30 * SPR;
 /** Tổng thời gian một animation hồn sư (ms). */
@@ -103,6 +106,8 @@ export class GameScene extends Phaser.Scene {
   keys: Record<string, boolean> = {};
   joy = { x: 0, y: 0 };
   lastInput = "";
+  /** Điểm bấm chuột / chạm trên nền để đi tới (thế giới), kèm khoảng cách và lúc kiểm tra gần nhất để dừng khi bị chặn. */
+  goal: { x: number; y: number; d: number; t: number } | null = null;
   dir = { x: 0, y: 0 };             // hướng đi đã gửi gần nhất (đã làm tròn và chuẩn hóa như server đọc)
   pred: Predictor | null = null;    // dự đoán chuyển động của chính mình (mục 6); null khi tắt bằng ?nopredict
   ghost: Phaser.GameObjects.Graphics | null = null; // ?lag: khung đỏ ở vị trí server của chính mình (so với hình vẽ)
@@ -349,7 +354,9 @@ export class GameScene extends Phaser.Scene {
     hud.onChannelPick((ch) => { this.room.send("channel", { ch }); hud.toggleChannels(false); });
 
     // Bấm / chạm vào hồn sư khác (7.1): mở bảng mời vào tổ đội. Chọn hồn sư gần điểm bấm nhất (thân cao khoảng 30 pixel trên chân).
-    this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
+    // Bấm nền đất (không trúng hồn sư khác, NPC): đi tới điểm đó. Điểm bấm chiếu ngược ra tọa độ thế giới; client chỉ tự lái hướng
+    // đi gửi trong `input` như khi giữ phím, server vẫn tính vị trí và va chạm (10.1).
+    this.input.on("pointerdown", (ptr: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       // Điểm bấm và hình hồn sư đều ở tọa độ màn hình (camera) nên so thẳng; thân phóng SPR.
       let best: { sid: string; name: string; level: number } | null = null, bd = 14 * SPR;
       this.room.state.players.forEach((p: any, id: string) => {
@@ -358,6 +365,7 @@ export class GameScene extends Phaser.Scene {
         if (k < bd) { bd = k; best = { sid: id, name: p.name, level: p.level }; }
       });
       hud.showPlayerMenu(best);
+      if (!best && !over.length && ptr.button === 0) { const w = screenToWorld(ptr.worldX, ptr.worldY); this.goal = { x: w.x, y: w.y, d: Infinity, t: this.time.now }; }
     });
 
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
@@ -408,6 +416,16 @@ export class GameScene extends Phaser.Scene {
     const sx = (k.ArrowRight || k.KeyD ? 1 : 0) - (k.ArrowLeft || k.KeyA ? 1 : 0) + this.joy.x;
     const sy = (k.ArrowDown || k.KeyS ? 1 : 0) - (k.ArrowUp || k.KeyW ? 1 : 0) + this.joy.y;
     let { x, y } = screenDirToWorld(sx, sy);
+    if (sx || sy) this.goal = null; // phím / cần điều khiển thắng điểm bấm
+    else if (this.goal) {
+      // Bấm để đi tới: lái thẳng về điểm bấm; tới nơi, hoặc nửa giây không gần thêm (vướng tường, bị chặn) thì dừng.
+      // Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo vị trí server, không theo hình đang nội suy.
+      const at = this.pred?.pos ?? this.room.state.players.get(this.me), g = this.goal;
+      const dx = g.x - (at?.x ?? g.x), dy = g.y - (at?.y ?? g.y), L = Math.hypot(dx, dy);
+      if (L < GOAL_NEAR) this.goal = null;
+      else if (this.time.now - g.t > 500) { if (L > g.d - 2) this.goal = null; else { g.d = L; g.t = this.time.now; } }
+      if (this.goal) { x = dx / L; y = dy / L; }
+    }
     const key = `${x.toFixed(2)},${y.toFixed(2)}`;
     if (this.pred?.resend) this.lastInput = ""; // server đã tự dừng hướng đi (hook thử goto): gửi lại hướng đang giữ với số mới
     if (key !== this.lastInput) {
@@ -627,6 +645,11 @@ export class GameScene extends Phaser.Scene {
   playAct(id: string, anim: HsAnim) {
     const v = this.players.get(id); if (v) v.act = { anim, t0: this.time.now };
   }
+  /** Tin `fx` có hướng đánh (dx, dy thế giới): hồn sư quay về phía đó suốt animation đánh, rồi lại theo hướng đi (10.1). */
+  faceHit(id: string, dx: number, dy: number) {
+    const v = this.players.get(id), d = dir8(Number(dx) || 0, Number(dy) || 0);
+    if (v && d) v.lock = { face: legacyDir(d), until: this.time.now + animMs("attack") };
+  }
 
   soulRingFx(id: string, tier: number, dur: number) {
     const v = this.players.get(id); if (!v) return;
@@ -644,7 +667,7 @@ export class GameScene extends Phaser.Scene {
     if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.cameras.main.shake(300, 0.004); }
     else if (m.k === "slash") {
       const v = this.players.get(m.id); if (!v) return;
-      this.playAct(m.id, "attack");
+      this.playAct(m.id, "attack"); this.faceHit(m.id, m.dx, m.dy);
       const g = this.add.graphics().setDepth(99980), a = Math.atan2(m.dy, m.dx);
       g.lineStyle(2, hex(m.col), 1); g.strokePoints(ptsToScreen(arcPts(v.wx, v.wy, 15, a - 1.1, a + 1.1), 6 * SPR));
       this.tweens.add({ targets: g, alpha: 0, duration: 160, onComplete: () => g.destroy() });
@@ -706,7 +729,7 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: g, alpha: 0, duration: 380, onComplete: () => g.destroy() });
     } else if (m.k === "arc") {
       // Đòn nửa trước mặt: cung rộng dày trên mặt đất trước hồn sư.
-      if (this.players.has(m.id)) this.playAct(m.id, "attack");
+      if (this.players.has(m.id)) { this.playAct(m.id, "attack"); this.faceHit(m.id, m.dx, m.dy); }
       const g = this.add.graphics().setDepth(99980), a = Math.atan2(m.dy, m.dx), c = this.lifted(m.x, m.y);
       g.lineStyle(4, hex(m.col), 1); g.strokePoints(ptsToScreen(arcPts(c.wx, c.wy, m.r, a - 1.2, a + 1.2)));
       g.lineStyle(1, 0xffffff, 0.8); g.strokePoints(ptsToScreen(arcPts(c.wx, c.wy, m.r - 4, a - 1, a + 1)));
@@ -1121,7 +1144,7 @@ export class GameScene extends Phaser.Scene {
           color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
         v = { root, wx: p.x, wy: p.y, face: "down", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "",
-          act: null, hurtT: -1e9, lit: null, fly: null };
+          act: null, hurtT: -1e9, lit: null, fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
@@ -1133,7 +1156,8 @@ export class GameScene extends Phaser.Scene {
       let d8 = mine ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
       if (!d8 && !walk) { const f = DIR4_VEC[mine ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
       else if (mine && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
-      if (d8) v.face = legacyDir(d8);
+      if (v.lock && time < v.lock.until) v.face = v.lock.face; // đang đánh: quay về phía đòn đánh
+      else if (d8) { v.lock = null; v.face = legacyDir(d8); }
       if (mine) { const at = this.pred!.update(p, this.dir, dt); v.wx = at.x; v.wy = at.y; }
       else if (Math.hypot(p.x - v.wx, p.y - v.wy) > 64) { v.wx = p.x; v.wy = p.y; }
       else { v.wx += (p.x - v.wx) * lerp; v.wy += (p.y - v.wy) * lerp; }
@@ -1272,6 +1296,8 @@ export class GameScene extends Phaser.Scene {
       const w = Math.max(12 * SPR, s.displayWidth * 0.6);
       this.teleG.fillStyle(0x1a1020, 0.35).fillEllipse(s.x, s.y, w, w / 2);
     }
+    // Điểm đang đi tới (bấm để đi): vòng nhỏ nhấp nháy trên mặt đất.
+    if (this.goal) { this.teleG.lineStyle(1, 0xfff2b0, 0.6 + 0.3 * Math.sin(time / 120)); strokeGround(this.teleG, this.goal.x, this.goal.y, 5); }
     this.drawAuras(g, st, time);
     // Ô bản đồ trong tầm camera; khối cao đang che chính mình thì mờ đi.
     const mv = this.players.get(this.me);
