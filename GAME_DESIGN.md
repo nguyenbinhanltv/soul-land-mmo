@@ -661,9 +661,9 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 **Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
 - **Chân dung 64×64** (`ISO_PORTRAIT`) vẽ **chính võ hồn** (vũ khí, thú, cây…) trên nền tối có quầng màu riêng của võ hồn, không vẽ chủ nhân. Nguồn: ảnh Gemini, nhập bằng `gemini-import --kind portrait` (cắt 1:1 từ pixel thật, không viền ngoài). Chân dung là giao diện HTML nên không theo bảng chung: tối đa `PORTRAIT_MAX_COLORS` màu mỗi ảnh. Hiển thị phóng 2–3 lần với `image-rendering: pixelated`.
 - **Thẻ võ hồn 96×152** (`ISO_CARD`; khung Gemini có tỉ lệ khoảng 0,65): khung lưu ly theo độ hiếm có cửa sổ chân dung trong suốt, chân dung 64×64 đặt phía trên cửa sổ, phần dưới cửa sổ cho sao và chấm hồn hoàn, tên trên tấm biển dưới đáy (chữ HTML có nền tối / viền chữ để đọc được trên tấm UR bảy màu). SR khung bạc lam, SSR tím vàng kim, UR vàng kim với kính bảy màu; huy hiệu hệ ở góc trên trái. Key `card_{sr,ssr,ur}`.
-- **Huy hiệu 4 hệ 24×24**, màu, nền trong suốt: một hình to, nét đậm, ít chi tiết trên nền màu của hệ, viền vàng. Bản Gemini đầu (hình mảnh, nhiều hoa văn) thu về 24 hoặc 12 chỉ còn chấm màu, nên chờ vẽ lại; bỏ quy cách cũ 12×12 một màu.
+- **Huy hiệu 4 hệ 24×24** (`ISO_HE_ICON`), màu, nền trong suốt: một biểu tượng trắng to, nét đậm trên tròn màu của hệ, viền vàng kim, viền ngoài `#1a1020`: Cường công kiếm trên đỏ, Mẫn công 3 vết cào trên lục, Khống chế mắt xích trên tím, Phụ trợ hoa sen trên vàng. Key `he_<mã HE_IDS>`. Vẽ tay từng điểm bằng code, `tools/assets/he-icons.mjs` (ảnh Gemini thu về 24 chỉ còn chấm màu); bỏ quy cách cũ 12×12 một màu.
 - **Chân dung NPC 112×112** (`ISO_NPC_PORTRAIT`) trong hộp thoại: bán thân nhìn thẳng trên nền tối, cùng luật màu với chân dung võ hồn (`PORTRAIT_MAX_COLORS`). Nguồn: Gemini, nhập bằng `gemini-import --kind portrait --size 112` (cắt 1:1). Key `npc_<mã trong NPCS>`.
-- **Biểu tượng trạng thái 24×24** (`ISO_STATUS_ICON`): huy hiệu tròn viền màu, nền trong suốt; key `status_<mã>` theo `STATUS_IDS` / `BUFF_IDS` / `BEAST_BUFF_IDS`. Bản Gemini ở 16 px mất hình nên không dùng 16. Chưa có ảnh đạt: Choáng, Dễ thương, chảy máu / hút huyết, Tàng hình (chờ vẽ lại, hình to).
+- **Biểu tượng trạng thái 24×24** (`ISO_STATUS_ICON`): huy hiệu tròn viền màu, nền trong suốt; key `status_<mã>` theo `STATUS_IDS` / `BUFF_IDS` / `BEAST_BUFF_IDS`. Bản Gemini ở 16 px mất hình nên không dùng 16. Choáng, Dễ thương, Tàng hình, Hút huyết dùng bản vẽ lại hình to; chảy máu chưa có mã trong game (ảnh để dành ở `art/src/gemini/status_du_phong/`).
 - **Bộ giao diện thủy mặc** (phong cách C): mảnh `ui_<tên>` giữ điểm ảnh thật (không thu): cuộn giấy, hộp thoại, nút 3 trạng thái, ấn triện, khung thanh, hoa văn góc, vạch bút. Mảnh kéo giãn ghi `"nine": N` trong manifest (giữ N điểm mỗi mép, phần giữa kéo giãn).
 - **Biểu tượng vật phẩm 32×32** (`ISO_ITEM_ICON`) trong ô túi đồ: nền trong suốt, viền `#1a1020`, tối đa `PORTRAIT_MAX_COLORS` màu. Key `item_<mã>`: id trong `ITEMS`, hoặc nhóm trong `ITEM_KINDS` (biểu tượng chung cho cả nhóm, ví dụ `item_hon_hach`, `item_manh_vo_hon`), hoặc `item_hon_cot_<vị trí>` theo `BONE_SLOTS`. **Hồn cốt là bản xám** để client tô theo màu niên hạn (chân phải lật ngang chân trái). Nguồn: Gemini, nhập bằng `gemini-import --kind item` (nền khung tối làm trong suốt, `--gray` cho bản xám).
 
@@ -689,16 +689,15 @@ shared/assets/sprites/
   iso/npc/{mã}.png                           npc_{mã}: chân dung NPC 112×112 ("iso": true)
   iso/item/{mã}.png                          item_{mã}: biểu tượng vật phẩm 32×32 ("iso": true)
   iso/status/{mã}.png                        status_{mã}: biểu tượng trạng thái 24×24 ("iso": true)
+  iso/he/{hệ}.png                            he_{hệ}: huy hiệu hệ 24×24 ("iso": true)
   iso/ui/{tên}.png                           ui_{tên}: mảnh giao diện thủy mặc ("iso": true; "nine": N nếu kéo giãn 9 lát)
   iso/ui/the_{sr,ssr,ur}.png                 card_{sr,ssr,ur}: khung thẻ 96×152 ("iso": true)
 shared/assets/iso/
   tiles.json                 ánh xạ gid Tiled → ô thoi / vật đứng, chân vật, điểm sáng
   ground/{loại}_{i}.png      ô nền 32×32 (thoi 32×16) và ô lớn 64×64 (thoi 64×32, phủ 2×2 ô)
-shared/assets/ui/
-  icon/he_{he}.png           huy hiệu hệ 24×24 (chờ ảnh vẽ lại)
 ```
 
-- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, NPC, vật phẩm, trạng thái, giao diện, khung thẻ, phụ thể, hồn thú) client chưa tải qua manifest cho tới bước dùng chúng (phụ thể 10.5, hồn thú 10.6, giao diện 10.8); vật đứng do `isoMap.ts` tải theo `tiles.json` (10.2); bộ hồn sư `iso` tải từ 10.4.
+- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, NPC, vật phẩm, trạng thái, huy hiệu hệ, giao diện, khung thẻ, phụ thể, hồn thú) client chưa tải qua manifest cho tới bước dùng chúng (phụ thể 10.5, hồn thú 10.6, giao diện 10.8); vật đứng do `isoMap.ts` tải theo `tiles.json` (10.2); bộ hồn sư `iso` tải từ 10.4.
 
 **Dây chuyền `tools/assets` → spritesheet** (lệnh chi tiết: skill `asset-gen`)
 1. **Tạo ảnh bằng PixelLab:** hồn sư `create_character` (`mode: "standard"`, `size: 52` → khung thô 76×76, `view: "high top-down"`, 8 hướng, 1 lượt); khung hướng `s` duyệt bằng mắt trước rồi mới làm animation (`animate_character` mẫu có sẵn, 1 lượt mỗi hướng, chỉ xin 5 hướng `s`, `se`, `e`, `ne`, `n`). Hồn thú bốn chân: `body_type: "quadruped"` với mẫu gần nhất (`dog`, `cat`, `lion`, `bear`, `horse`). Nhân vật sau lấy nhân vật đã duyệt làm mẫu phong cách. Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
