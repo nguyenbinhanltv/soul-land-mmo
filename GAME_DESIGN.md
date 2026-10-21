@@ -92,20 +92,21 @@ Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. B�
 | Cảm điện | Đòn trực tiếp trúng mục tiêu Cảm điện thì lan một phần sát thương sang mục tiêu Cảm điện khác ở gần (một bước, không lan tiếp). |
 | Trúng độc | Mất máu mỗi giây theo tầng; hồn thú bị độc hồi máu chậm hơn. |
 | Dễ thương | Nhận thêm sát thương từ mọi nguồn (cả sát thương theo thời gian). |
-| Phá giáp (Liệt thương) | Nhận thêm sát thương đòn trực tiếp theo tầng (hồn thú chưa có chỉ số thủ nên "giảm thủ" quy thành nhận thêm sát thương). |
-| Choáng | Không đi, không đánh, không dùng hồn kỹ, không bị đẩy lùi. "Đóng băng", "hất tung", "quật ngã", "tê liệt" đều là Choáng. |
+| Phá giáp (Liệt thương) | Hồn thú: mỗi tầng giảm một phần thủ (`STATUS.armor.shred`), đủ tầng thì hết thủ (thủ ở mục 5.3). Hồn sư không có thủ: nhận thêm sát thương đòn trực tiếp theo tầng. |
+| Choáng | Không đi, không đánh, không dùng hồn kỹ, không bị đẩy lùi. Trên hồn thú, "đóng băng" (hồn kỹ của hồn sư), "hất tung", "quật ngã", "tê liệt" đều là Choáng. |
 | Câm lặng | Không dùng hồn kỹ / chiêu; vẫn đánh thường. |
 | Trói | Không đi, không bị đẩy lùi; vẫn đánh khi kề bên. "Giam" là Trói. |
 | Làm chậm | Giảm tốc; mọi nguồn làm chậm cộng lại tối đa `SLOW_CAP`. |
 | Mị hoặc | Làm chậm theo tầng; đủ tầng thì bùng phát thành Mê hoặc. Đang Mê hoặc thì không nhận thêm Mị hoặc. |
-| Mê hoặc | Bỏ mục tiêu, đi lung tung quanh chỗ đứng, không đánh. Không bị phá khi trúng đòn. |
+| Mê hoặc | Hồn thú: bỏ mục tiêu, đi lung tung quanh chỗ đứng, không đánh. Hồn sư: không đánh, không dùng hồn kỹ, phím bị bỏ qua, server tự đi lung tung quanh chỗ bị Mê hoặc (`PLAYER_CHARM`). Không bị phá khi trúng đòn. |
+| Đóng băng | Chỉ trên hồn sư (chiêu băng của hồn thú): như Choáng (không đi, không đánh, không dùng hồn kỹ), hình khối băng. |
 | Phong ấn | Không tự gây gì; đủ tầng thì bùng phát thành Dễ thương dài hơn mặc định. |
 
 - Sát thương theo thời gian tính một lần lúc gây (công người gây, kể cả tăng công, × sức mạnh hồn kỹ); không chí mạng, không tạo năng lượng tiên cơ, không giữ hồn sư trong giao chiến. Người gây rời phòng thì trạng thái đó mất.
 - Gây lại cùng trạng thái: cộng tầng tới tối đa, lấy thời gian còn lại dài hơn và độ lớn mạnh hơn.
 - Khống chế (Choáng, Trói, Câm lặng, Mê hoặc, đẩy lùi) ngắn hơn với hồn thú bậc cao (`CC_TIER_MULT`).
 - Choáng, Câm lặng, Mê hoặc trên hồn thú **ngắt chiêu báo trước** đang hiện.
-- **Trạng thái trên hồn sư** (`PLAYER_STATUS`, cùng luật cộng tầng): chỉ chiêu của hồn thú và đòn của đối thủ ở Đại Đấu Hồn Trường gây. Mị hoặc, Mê hoặc, Phong ấn không có trên hồn sư: chiêu "mê hoặc" hay "đóng băng" của hồn thú lên hồn sư là Choáng ngắn. Thời gian khống chế trên hồn sư không nhân theo bậc. Trạng thái thuộc hồn sư (đổi võ hồn vẫn còn); vào vùng an toàn hoặc cả đội gục thì hết; **thanh tẩy** (tiên cơ / hồn kỹ phụ trợ) giải hết. Ai cũng thấy dây trói, sao choáng và biểu tượng trên đầu; chính mình thấy ô viền đỏ cạnh hiệu ứng có lợi.
+- **Trạng thái trên hồn sư** (`PLAYER_STATUS`, cùng luật cộng tầng): chỉ chiêu của hồn thú và đòn của đối thủ ở Đại Đấu Hồn Trường gây. Mị hoặc, Phong ấn không có trên hồn sư. Chiêu "mê hoặc" của hồn thú gây **Mê hoặc**, chiêu "đóng băng" gây **Đóng băng**; hai trạng thái này chỉ hồn thú gây (`PLAYER_STATUS_PVE`: hồn kỹ có Mê hoặc của đối thủ ở đấu trường không gây lên hồn sư). Server bỏ qua đánh thường và từ chối hồn kỹ, Chân Thân, kỹ năng hồn cốt khi đang bị khống chế; đang không đi được (Choáng, Đóng băng, Trói) hoặc Mê hoặc thì không bắt đầu đi cổng / truyền tống (tin báo ghi tên trạng thái). Kháng Choáng của bị động hồn cốt cũng rút ngắn Đóng băng, Mê hoặc (`RESIST_AS`). Thời gian khống chế trên hồn sư không nhân theo bậc. Trạng thái thuộc hồn sư (đổi võ hồn vẫn còn); vào vùng an toàn hoặc cả đội gục thì hết; **thanh tẩy** (tiên cơ / hồn kỹ phụ trợ) giải hết. Ai cũng thấy dây trói, sao choáng, khối băng, tim hồng và biểu tượng trên đầu; chính mình thấy ô viền đỏ cạnh hiệu ứng có lợi.
 - Hồn thú không có mục tiêu và không bị đánh một lúc thì tự hồi máu (`BEAST_REGEN`), để Trúng độc có tác dụng.
 
 **Hiệu ứng có lợi trên hồn sư** (`BUFFS`: tăng công, tăng tốc, tăng thủ (giảm sát thương nhận), tăng chí mạng, giảm tiêu hao hồn lực, miễn sát thương, lãnh vực phượng hoàng, tàng hình, hút huyết). Như khiên, hiệu ứng **thuộc hồn sư** nên đổi võ hồn vẫn còn (tung ở võ hồn phụ trợ rồi đổi về võ hồn đánh chính); cả đội gục thì mất. Hiệu ứng của võ hồn Phụ trợ lan cho đồng đội tổ đội đứng gần (mục 5.9).
@@ -279,6 +280,8 @@ Vùng là object `zone` trong Tiled: loài (`beasts`, kèm trọng số), niên 
 **Luật chung của hồn thú**
 - **Chỉ số hồn thú tăng theo số năm** (`beastStats`), không nhảy theo màu. Loài (`BEASTS`, mã cố định dùng cho sprite `beast_{id}`) quyết định kiểu tấn công, chiêu và hệ số chỉ số; kích thước, tốc độ và Hồn Tệ rơi (`BEAST_COIN`) theo bậc màu.
 - Phát hiện người trong `BEAST_AGGRO_R`, lang thang quanh chỗ sinh (`BEAST_WANDER`). Quanh trại cổng, mọi cổng và điểm `arrive` không sinh hồn thú (`SPAWN_CLEAR`, mục 5.8).
+- **Thú thực vật đứng yên** (`BEAST_ROOTED`: Thực Nhân Hoa, Quỷ Đằng và Quỷ Đằng non, Cổ Mộc Thụ Nhân, kể cả tinh anh mượn các loài này): cắm rễ ở chỗ sinh, không lang thang, không đuổi, không bị đẩy lùi / kéo, bị Mê hoặc cũng không đi. Đánh thường quất xa hơn hồn thú khác (`beastMelee`, thêm `BEAST_ROOTED.lash`) để hồn sư không đứng ngoài tầm đánh trả mà vẫn đánh tới được. Tầm với là tầm đánh thường đó hoặc tầm chiêu báo trước xa nhất (cộng `BEAST_ROOTED.margin`): chỉ nhận và giữ mục tiêu trong tầm với (tối đa `BEAST_AGGRO_R` khi nhận), ra ngoài thì bỏ.
+- **Thủ** (`BEAST_DEF`, `BEAST_DEF_MULT`, `beastDef`, `defMult`): phần sát thương đòn trực tiếp hồn thú đỡ, theo loài (giáp / mai / vỏ cây dày cao, côn trùng / chim / hoa thấp) và tăng nhẹ theo số năm; tinh anh, thú vương, boss thế giới theo loài gốc. Công hồn sư cân theo hồn thú thủ chuẩn (`BEAST_DEF.ref`): hồn thú thủ chuẩn nhận đúng sát thương gốc, thủ cao nhận ít hơn, thủ thấp nhận nhiều hơn. Phá giáp và xuyên thủ (bộ Thất Sát) giảm thủ thật, cộng lại tối đa hết thủ. Sát thương theo thời gian và lan Cảm điện không tính thủ.
 - **Tốc độ theo dáng đi** (`BEAST_GAIT`, nhân `spd` theo bậc ở `TIERS`): lang thang chậm, đuổi mục tiêu nhanh hơn (`chase`), bị Mê hoặc đi lung tung (`charm`). Cuồng nộ, giai đoạn 2 của thú vương, nổi giận của boss thế giới và Làm chậm nhân thêm. Đòn đánh, tầm, chiêu báo trước không đổi theo tốc độ.
 - **Giới hạn đuổi** (`BEAST_LEASH`): hồn thú thường và tinh anh đuổi xa chỗ sinh quá `r` pixel thì bỏ mục tiêu, chạy về chỗ sinh; trên đường về không nhận mục tiêu mới (bị đánh cũng không quay lại), hồn thú thường hồi nhanh sinh lực (tinh anh hồi đầy khi bỏ giao chiến, mục 5.4). Về tới nơi (hoặc hết `secs` giây vì vướng) thì lang thang như cũ. Thú vương và boss thế giới không ra khỏi hang nên không có giới hạn này.
 - **Chiêu có báo trước** (`BEAST_SKILLS`, chọn theo loài và năm bằng `beastSkillOf`): hồn thú thường **từ `BEAST_SKILL_YEARS` năm** có 1 chiêu theo loài; dưới mức đó chỉ đánh thường. Có mục tiêu `TELE_FIRST` giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu (dao động để bầy không tung cùng lúc). Hồn thú đứng yên `TELE_WARN` giây, hiện vùng đỏ đầy dần (hình **vệt**, **nón** hoặc **vòng** quanh thân / dưới chân mục tiêu; hướng và tâm khóa lúc bắt đầu); hết giờ mới tính trúng theo **vị trí thật** lúc đó: chạy ra khỏi vùng là né được. Không trúng người trong vùng an toàn, đang đi cổng, đã gục. Chiêu "lao" thì hồn thú lao tới cuối vệt / tâm vòng. Sát thương là bội số đòn thường của hồn thú; chiêu có thể gây trạng thái lên hồn sư.
@@ -296,7 +299,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 | Xuất hiện | Hồi sinh liên tục | Hồi sinh ngẫu nhiên sau khi bị hạ (`ELITE.respawn`) | Theo lịch `KING_TIMES` | 1 lần/ngày lúc `WORLD_TIME`, hai boss luân phiên theo ngày |
 | Chiêu báo trước | 1 chiêu (từ ngàn năm) | 2 chiêu | 2 chiêu + chiêu giai đoạn 2 | Chiêu thường + cơ chế riêng, nổi giận |
 | Thưởng | Bảng rơi mục 5.3 | Hồn cốt tỉ lệ cao hơn, chắc chắn 1 hồn hạch | Rương theo đóng góp | Hồn hoàn đỏ / đen và rương theo đóng góp |
-| Giới hạn nhận thưởng | – | – | `KING.daily` lần/ngày | `WORLD.daily` lần/ngày |
+| Giới hạn nhận thưởng | – | Mỗi loài tinh anh mỗi bản đồ một lần mỗi `ELITE.lock` giây, chung mọi kênh | `KING.daily` lần/ngày | `WORLD.daily` lần/ngày |
 
 **Nhận diện:** tinh anh có tên "Tinh anh …" màu riêng, aura, sprite loài gốc phóng `ELITE.scale`, chấm sáng trên bản đồ nhỏ; thú vương và boss thế giới phóng `KING.scale` / `WORLD.scale` khi chưa có sprite riêng (mục 5.11; các hệ số này chỉ client đọc, ở `rankScale`), thanh máu lớn ở đầu màn hình, bảng xếp hạng đóng góp, chấm đỏ lớn và khung hang / sàn trên bản đồ nhỏ.
 
@@ -305,6 +308,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - Bán kính giao chiến `ELITE.radius`; máu theo số người tham gia (dưới). Tinh anh đang giao chiến không tự hồi máu.
 - **Cuồng nộ** (`ELITE_RAGE`, hiệu ứng có lợi của hồn thú `BEAST_BUFFS`): máu dưới ngưỡng thì nổi một lúc (sát thương và tốc độ tăng); hết giờ hoặc bị xóa (hồn kỹ có `dispel`, ví dụ Thiên Càn Trấn Áp) thì phải chờ mới nổi lại.
 - Thưởng: hồn hoàn, hồn cốt ưu tiên **người đóng góp nhiều nhất** còn trong phòng (không thì người hạ); tỉ lệ hồn cốt × `ELITE.bone` (hồn cốt mang loài gốc); **chắc chắn rơi 1 hồn hạch** (sao theo niên hạn, bộ theo bản đồ); kinh nghiệm × `ELITE.xp` cho người hạ (chia tổ đội như hồn thú thường).
+- **Giới hạn săn nhiều kênh:** mỗi kênh có tinh anh hồi sinh riêng, nhưng tài khoản đã nhận thưởng tinh anh (kinh nghiệm × `ELITE.xp`, hoặc quyền ưu tiên đồ rơi tinh anh) của một loài tinh anh trên một bản đồ thì `ELITE.lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào (`ELITE.lock` không lớn hơn mức dưới của `ELITE.respawn`, nên chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn; phòng bị hủy rồi mở lại thì sinh tinh anh ngay, hạ trong lúc còn khóa chỉ được thưởng như hồn thú thường, nên ra vào bản đồ cũng không nhân thưởng). Trong lúc khóa vẫn đánh được và được nhắc thời gian còn lại; người bị khóa nhận kinh nghiệm như hồn thú thường, không được ưu tiên đồ rơi tinh anh: quyền đó sang người đóng góp nhiều nhất chưa bị khóa còn trong phòng (cả người hạ cũng không, nếu người hạ bị khóa), câu báo đồ rơi ghi rõ "đóng góp nhiều nhất trong số người chưa bị khóa thưởng tinh anh". Mỗi bản đồ mỗi loài tinh anh chỉ ở một vùng (bản đồ trùng loài thì server bỏ con sau và cảnh báo). Không còn ai thì đồ rơi như hồn thú thường (người hạ ưu tiên, tỉ lệ hồn cốt / hồn hạch thường, không chắc chắn hồn hạch).
 
 **Tà hóa thú vương (boss bản đồ)**
 - Ở trong **hang** (object `boss`, cũng là bán kính giao chiến), không ra khỏi hang, không bị đẩy lùi, đuổi bất kỳ ai trong hang. Niên hạn bằng mức trên của bản đồ (hoặc `BossDef.years`, `kingYears`).
@@ -322,7 +326,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Vào giữa trận:** N tăng ngay, máu tối đa tính lại và **máu hiện tại giữ nguyên tỉ lệ** (vào phút cuối không làm boss dễ hơn).
 - **Rời giữa trận:** rời phòng hoặc ở ngoài bán kính `outSecs` giây liên tục thì bị loại; N giảm tối đa 1 mỗi `dropEvery` giây, máu giữ tỉ lệ. Người bị loại giữ đóng góp đã gây nhưng phải còn trong phòng lúc boss bị hạ mới nhận thưởng. Hệ số đã giảm không làm boss hồi máu.
 - **Bỏ giao chiến:** `idleSecs` giây không còn người tham gia trong bán kính thì boss về chỗ, hồi đầy, xóa danh sách và đóng góp.
-- Đóng góp tính theo phiên (sessionId): thoát rồi vào lại, hoặc đổi kênh, thì đóng góp cũ không còn.
+- **Đóng góp gắn theo tài khoản:** thoát rồi vào lại phòng, hoặc đổi kênh rồi quay về, khi boss chưa bỏ giao chiến thì đóng góp cũ vẫn còn (không tự thành người tham gia lại: phải đánh / hỗ trợ lại như người vào giữa trận). Đóng góp thuộc con boss của từng kênh: đóng góp ở kênh này không tính cho con ở kênh khác; vẫn phải còn trong phòng lúc boss bị hạ mới nhận thưởng.
 
 **Boss thế giới 100.000 năm**
 - Ở **Lõi Tinh Đấu**, sàn đấu bên hồ trung tâm (object `boss` phủ sàn). *Thái Thản Cự Viên* và *Thiên Thanh Ngưu Mãng* **luân phiên theo ngày** (`worldBossOn`, để biết trước hôm nay đánh con nào), xuất hiện `WORLD_TIME` giờ Việt Nam; báo toàn server trước và lúc xuất hiện.
@@ -362,7 +366,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 | Bá Vương Long (Cảm điện) | Sát thương lan Cảm điện mạnh hơn | Đòn trực tiếp trúng hồn thú Cảm điện hồi hồn lực (có hồi chiêu) |
 | Xà Hoàng (Trúng độc) | Trúng độc do hồn sư gây mạnh hơn | Hồn thú Trúng độc đủ nhiều tầng (người gây cuối mang bộ) nhận thêm sát thương từ mọi nguồn |
 | Hạo Thiên (Chấn đãng) | Công (vào chỉ số) | Đòn đánh thường **trúng** thứ 3 liên tiếp (cách nhau không quá vài giây) gây thêm sát thương, chữ "Hạo Thiên liên kích!" |
-| Thất Sát (Phá giáp) | "Xuyên thủ": thêm sát thương đòn trực tiếp (hồn thú chưa có thủ) | Thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp |
+| Thất Sát (Phá giáp) | "Xuyên thủ": đòn trực tiếp bỏ qua một phần thủ của hồn thú (cộng với phần Phá giáp giảm, tối đa hết thủ; mục 5.3) | Thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp |
 | Linh Miêu (Mẫn công) | Tỉ lệ chí mạng (vào chỉ số) | Chí mạng thì tăng tốc độ đánh thường một lúc |
 | Lam Ngân (Khống chế) | Khống chế do hồn sư gây lên hồn thú dài hơn | Hồn kỹ có khống chế trúng ít nhất một hồn thú thì hồi hồn lực (một lần mỗi lần tung) |
 | Lưu Ly (Phụ trợ) | Hồi máu và khiên mạnh hơn | Đổi tay võ hồn mang bộ vào thì cả đội tăng công một lúc (hiệu ứng có lợi của hồn sư) |
@@ -671,8 +675,8 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - **Chọn kênh khi vào bản đồ** (`pickChannel`): kênh còn chỗ có nhiều đồng đội tổ đội nhất, không có thì kênh còn chỗ ít người nhất (bằng nhau thì số nhỏ hơn); mọi kênh đầy thì Colyseus mở kênh mới. Vào game: client hỏi `POST /api/channel` (trả `mapId` đang lưu và `roomId`). Đi cổng: server gửi `travel {mapId, roomId}` sau khi transaction đã commit. Client `joinById(roomId, {token, mapId})`; phòng vừa đầy / vừa đóng thì `joinOrCreate`. `onAuth` vẫn đối chiếu `map_id` trong DB với bản đồ của phòng.
 - **Đổi kênh** (`channel {ch}`, `switchChannel`): kiểm tra không gục / hấp thụ / đi cổng, ngoài giao chiến, kênh khác kênh đang ở, đang mở và còn chỗ, cách lần trước `CHANNEL_CD` giây; rồi đi đúng đường đi cổng (`beginTravel` với đích là chính bản đồ này tại vị trí đang đứng), nên tiến độ chưa lưu không mất. Danh sách `channels` gửi tối đa một lần mỗi giây.
 - **Không né luật đổi kênh bằng cách tự rời rồi vào kênh khác:** rời phòng không qua đường server duyệt thì tài khoản bị giữ ở kênh đó `CHANNEL_CD` giây (`leftRoom`): `onAuth` từ chối kênh khác của cùng bản đồ khi kênh cũ còn mở và còn chỗ, còn `pickChannel` đưa về đúng kênh cũ.
-- Không theo kênh: tổ đội, thông báo toàn server, lịch boss. Kinh nghiệm tổ đội, ưu tiên đồ rơi, đóng góp boss chỉ trong phòng (cùng kênh).
-- **Thú vương và boss thế giới:** mỗi kênh đang mở có con riêng (suất theo bản đồ ở `kingSeats`; đổi kênh không mở thêm kênh nên không sinh thêm con), nhưng mỗi khung giờ mỗi tài khoản chỉ nhận một lần (`KingSlot.claimed`) cùng giới hạn mỗi ngày ở `boss_claims`; hạ ở kênh khác trong cùng khung vẫn có kinh nghiệm, Hồn Tệ, ưu tiên hồn hoàn nhưng báo "đã nhận ở kênh khác". Tinh anh mỗi kênh hồi sinh riêng.
+- Không theo kênh: tổ đội, thông báo toàn server, lịch boss. Kinh nghiệm tổ đội, ưu tiên đồ rơi, đóng góp boss chỉ trong phòng (cùng kênh); đóng góp boss gắn theo tài khoản nên đổi kênh rồi quay về vẫn còn (`EliteData.acc`, `rebindContrib` ở `onJoin`).
+- **Thú vương và boss thế giới:** mỗi kênh đang mở có con riêng (suất theo bản đồ ở `kingSeats`; đổi kênh không mở thêm kênh nên không sinh thêm con), nhưng mỗi khung giờ mỗi tài khoản chỉ nhận một lần (`KingSlot.claimed`) cùng giới hạn mỗi ngày ở `boss_claims`; hạ ở kênh khác trong cùng khung vẫn có kinh nghiệm, Hồn Tệ, ưu tiên hồn hoàn nhưng báo "đã nhận ở kênh khác". Tinh anh mỗi kênh hồi sinh riêng, nhưng thưởng tinh anh khóa theo tài khoản `ELITE.lock` giây chung mọi kênh (`eliteLocks`, mục 5.4).
 - **Sân Đại Đấu Hồn Trường không chia kênh:** `ArenaRoom` là phòng riêng 2 người cho mỗi trận, không nằm trong danh sách kênh, `MapState.channel` = 0 (tin `channel` bị từ chối, `channels` trả rỗng, client ẩn nhãn kênh). Rời sân thì vào lại bản đồ cũ qua `/api/channel` như vào game.
 
 **Phòng trường đấu**
@@ -707,6 +711,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - Presence của Colyseus: phòng `publish("announce", {text, col})`, mọi `MapRoom` subscribe trong `onCreate` rồi `broadcast("chat")`. Một tiến trình dùng presence trong bộ nhớ; nhiều tiến trình thì đổi sang `RedisPresence` (khi đó các trạng thái mức tiến trình bên dưới cũng phải chuyển sang presence).
 - Lịch thú vương và boss thế giới ở `server/src/schedule.ts` (`startSchedule`): chỉ đếm giờ Việt Nam và `publish("boss", {mapId, king, phase: "warn" | "spawn", slot, in, life})`. Sinh boss, máu, chiêu, thưởng nằm trong `MapRoom` (`onBossEvent`, `spawnKing`). Phòng mở ra trong khung boss cũng sinh (`kingActive`, `worldActive`); phòng mở ra trong lúc báo trước vẫn có đếm ngược (`kingWarns`).
 - **Trạng thái thú vương giữ theo bản đồ ở mức tiến trình** (`kingSeats`), không theo phòng: mỗi khung đã sinh có danh sách suất, mỗi kênh giữ tối đa một suất (còn sống / đã hạ / đã rút). Phòng bị hủy trả suất; phòng mở lại trong khung nhận lại suất trống trước. Suất đã hạ / rút thì không sinh lại; còn sống thì sinh lại đầy máu ở giai đoạn 1 với thời gian còn lại. Nhờ vậy rời bản đồ cho phòng hủy rồi quay lại không có con mới.
+- **Khóa thưởng tinh anh ở mức tiến trình** (`eliteLocks`): `${mapId}|${mã tinh anh}` -> tài khoản -> lúc được nhận lại; không theo phòng nên đổi kênh hay phòng bị hủy rồi mở lại đều không nhân thưởng. Khởi động lại server thì mất (lâu nhất `ELITE.lock` giây), không lưu DB.
 - **Đồng hồ khi kiểm thử:** mọi chỗ đọc lịch và ngày nhận thưởng đi qua `bossNow` / `bossOffset`. Không bật `GAME_TEST` thì là đồng hồ thật; bật `GAME_TEST=1` thì theo `BOSS_CLOCK`: chưa đặt = đứng yên ở 12:00 giờ Việt Nam của ngày bật server (lịch thật không chen vào bài thử của bot), `HH:MM` = chạy từ giờ đó, `real` = đồng hồ thật.
 - Lượt nhận thưởng mỗi ngày lưu ở `boss_claims` (tài khoản, ngày Việt Nam, loại: thú vương, boss thế giới, thắng đấu trường; số lần).
 
@@ -760,11 +765,11 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Xếp hàng Đại Đấu Hồn Trường cả tổ đội (2v2…); cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); xem trận (#113).
 - [x] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114): thanh tẩy không nhân hệ số; self-effect hồn cốt và Lưu Ly hỗ trợ theo bán kính / hệ số tổ đội, sát thương và trạng thái hồn thú không lan.
 - [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
-- [ ] Hồn thú: chỉ số thủ (để Phá giáp / xuyên thủ thành giảm thủ thật); trạng thái Mê hoặc / đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116).
+- [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), tầng Hàn và Hỏa Đàn (Cực Hàn), vùng ngập luân phiên (Thủy Triều Dâng), bọc trứng nở nhện con (Vạn Chu Phệ); vũng độc / sương độc lưu lại; che tầm nhìn (Phun Mực) (#117).
 - [ ] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118).
-- [ ] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119).
-- [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
+- [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
+- [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
 - [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).
 - [x] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
 
