@@ -4799,8 +4799,12 @@ async function autoTest(){
   await waitFor(()=>coreAt(),1500); const cd=coreAt(), c0=qtyOf(A,CORE_ITEM);
   m=await autoOp(A,"on"); await sleep(2500);
   ok(cd&&m?.on&&A.room.state.drops.has(cd)&&qtyOf(A,CORE_ITEM)===c0,`chỉ nhặt hồn hạch từ 3★: hồn hạch 2★ vẫn nằm dưới đất`);
-  await autoOp(A,"off"); await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:false,coreStar:2}}); await autoOp(A,"on");
-  ok(cd&&await waitFor(()=>qtyOf(A,CORE_ITEM)>c0,5000),`hạ ngưỡng còn 2★: nhặt hồn hạch (${c0} → ${qtyOf(A,CORE_ITEM)})`);
+  // Về chỗ cũ rồi mới bật lại: lúc nãy đi dạo trong vùng neo, điểm neo mới có thể cách hồn hạch quá bán kính (đúng luật thì không nhặt).
+  // Dọn hồn thú hoang quanh đó trong lúc chờ: hồn thú lao vào thì tự săn đánh trả trước rồi mới đi nhặt.
+  await autoOp(A,"off"); await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:false,coreStar:2}}); await test(A,"goto",home); await test(A,"clear"); m=await autoOp(A,"on");
+  let gotCore=false; for(let k=0;k<5&&!gotCore;k++){ gotCore=await waitFor(()=>qtyOf(A,CORE_ITEM)>c0,2000); if(!gotCore) await test(A,"clear"); }
+  ok(cd&&m?.on&&gotCore,`hạ ngưỡng còn 2★: nhặt hồn hạch (${c0} → ${qtyOf(A,CORE_ITEM)})`);
+  if(!gotCore) console.log(`  (bật ${JSON.stringify(m)}; hồn hạch ${cd} ${JSON.stringify(A.room.state.drops.get(cd)?.toJSON?.())}; tự săn ${JSON.stringify(await test(A,"auto"))}; log ${A.logs.slice(-4).join(" | ")})`);
   await autoOp(A,"off"); await autoOp(A,"set",{cfg:AUTO_DEFAULTS});
 
   // ---- Giới hạn giờ treo mỗi ngày ----
