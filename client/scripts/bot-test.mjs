@@ -88,7 +88,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   DAILY, DAILY_POOL, dailyIds, dailyKey, dailyPicks, isDaily, fitBeast, fitMaps,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
-  RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, resonanceProgress, resonanceLevels, resonanceBonus,
+  RESONANCE, RES_VOHON_LEVEL, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW } from "../../shared/data.ts";
@@ -3824,7 +3824,9 @@ else {
 
       await test(A,"goto",spot); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       const s0=await test(A,"stats");
-      ok(Object.values(s0.cores).every(x=>x===0)&&same(s0.fx,{})&&s0.live.crit===CRIT.chance&&s0.live.critMult===CRIT.mult,"chưa gắn hồn hạch: không cộng gì, chí mạng gốc");
+      const resCrit0=(s0.res?.bonus?.crit??0)/100;
+      ok(Object.values(s0.cores).every(x=>x===0)&&same(s0.fx,{})&&s0.live.crit===CRIT.chance+resCrit0&&s0.live.critMult===CRIT.mult,
+        `chưa gắn hồn hạch: không cộng gì, chí mạng gốc + cộng minh ${(resCrit0*100).toFixed(1)}%`);
       const HT=await giveCores("hao_thien",4);
       ok(HT.length===4&&HT.every(i=>i.vohon===null),"A có 4 hồn hạch Hạo Thiên 6★ (hook give)");
       // Từ chối: không phải hồn hạch, id lạ, võ hồn không thuộc mình, ô sai, đang giao chiến.
@@ -3961,8 +3963,9 @@ else {
       s1=await test(A,"stats");
       ok(s1.sets.linh_mieu===2&&s1.sets.lam_ngan===2&&s1.sets.xa_hoang===2&&same(s1.fx,{poison:0.15,crit:0.12,cc:0.2})&&!Object.keys(s1.sets).includes("phuong_hoang"),
         `ghép 2 + 2 + 2: ${JSON.stringify(s1.sets)}`);
-      ok(s1.cores.crit>=12&&Math.abs(s1.live.crit-(CRIT.chance+s1.cores.crit/100))<1e-9&&Math.abs(s1.live.critMult-(CRIT.mult+s1.cores.crit_dmg/100))<1e-9,
-        `Linh Miêu 2 món: tỉ lệ chí mạng ${(s1.live.crit*100).toFixed(1)}% (gốc ${CRIT.chance*100}% + hồn hạch ${s1.cores.crit}%), hệ số ${s1.live.critMult.toFixed(2)}`);
+      const resCrit1=(s1.res?.bonus?.crit??0)/100;
+      ok(s1.cores.crit>=12&&Math.abs(s1.live.crit-(CRIT.chance+resCrit1+s1.cores.crit/100))<1e-9&&Math.abs(s1.live.critMult-(CRIT.mult+s1.cores.crit_dmg/100))<1e-9,
+        `Linh Miêu 2 món: tỉ lệ chí mạng ${(s1.live.crit*100).toFixed(1)}% (gốc ${CRIT.chance*100}% + cộng minh ${(resCrit1*100).toFixed(1)}% + hồn hạch ${s1.cores.crit}%), hệ số ${s1.live.critMult.toFixed(2)}`);
       await dummy(500); await test(A,"status",{s:"root"}); bs=await test(A,"bst");
       const rootW=STATUS.root.secs*1.2;
       ok(bs.st?.root&&bs.st.root.t>rootW-0.25&&bs.st.root.t<=rootW+1e-9,`Lam Ngân 2 món: Trói ${bs.st?.root?.t.toFixed(2)} giây (thường ${STATUS.root.secs}, +20%)`);
@@ -6320,6 +6323,13 @@ async function resonanceTest(){
   ok(JSON.stringify(pv)===JSON.stringify([2,20,1,2,3])&&JSON.stringify(resonanceLevels([4,24,6,23,10]))===JSON.stringify([1,1,1,2,2])
     &&JSON.stringify(resonanceLevels([99,99,99,99,99]))===JSON.stringify([3,3,3,3,3])&&JSON.stringify(resonanceBonus([0,0,0,0,0]))===JSON.stringify({hp:0,mp:0,atk:0,crit:0,def:0,spd:0}),
     `resonanceProgress / resonanceLevels: cấp ${RES_VOHON_LEVEL}+, hồn cốt +${RES_BONE_ENHANCE}, hồn hạch ${RES_CORE_STARS}★, sao võ hồn (${JSON.stringify(pv)})`);
+  const starSteps=RESONANCE[4].steps;
+  starSteps.push({need:999,bonus:{crit:4,def:6,spd:6}});
+  const capped=resonanceBonus([0,0,0,0,4]);
+  starSteps.pop();
+  ok(Object.entries(RESONANCE_EFFECT_CAP).every(([k,cap])=>capped[k]<=cap)
+    &&capped.crit===RESONANCE_EFFECT_CAP.crit&&capped.def===RESONANCE_EFFECT_CAP.def&&capped.spd===RESONANCE_EFFECT_CAP.spd,
+    `resonanceBonus kẹp đúng RESONANCE_EFFECT_CAP với mốc giả (${JSON.stringify(capped)})`);
   const R=await bot("Cộng minh","u_minh_linh_mieu",{sex:0,hair:2,hairCol:3,outfitCol:1});
   const rme=()=>R.room.state.players?.get(R.room.sessionId);
   await waitFor(()=>R.owned&&R.bag&&R.res&&rme(),3000);
@@ -6361,7 +6371,6 @@ async function resonanceTest(){
     const l=R.logs.length;
     R.room.send("starup",{vohon});
     await waitFor(()=>R.logs.length>l,2000);
-    await sleep(150);
     return R.logs.at(-1)??"";
   }
   async function starupMilestone(values, rowId, need, label) {
@@ -6369,6 +6378,7 @@ async function resonanceTest(){
     const code=shardCode(R.owned.list.find(v=>v.rowId===rowId).vohon), before=R.resEv.length;
     await test(R,"give",{code,qty:starCost(1)});
     const log=await starupOp(R.owned.list.find(v=>v.rowId===rowId).vohon);
+    await waitFor(()=>R.res.prog?.[4]===need,2000);
     ok(R.res.prog[4]===need&&R.res.lv[4]===(need>=18?3:need>=10?2:1)&&R.resEv.slice(before).some(e=>e.pillar===4&&e.up)
       &&/lên \d+★/.test(log),`${label}: starup thật cập nhật mốc (${log})`);
   }

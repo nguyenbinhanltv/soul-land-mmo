@@ -6,6 +6,7 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
@@ -210,7 +211,7 @@ function resonanceEntry(accountId: number, name: string, vohons: { level: number
   return value.score ? { accountId, name, ...value } : null;
 }
 function resonancePage(all: ResonanceTopEntry[], page: number, pageSize: number, accountId: number): ResonanceTopResult {
-  const p = Math.max(1, Math.floor(page) || 1), size = Math.max(1, Math.min(20, Math.floor(pageSize) || 10));
+  const p = Math.max(1, Math.floor(page) || 1), size = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, Math.floor(pageSize) || RESONANCE_RANK_PAGE_SIZE));
   all.sort(resonanceRankCompare);
   const at = all.findIndex((x) => x.accountId === accountId), start = (p - 1) * size;
   const me = at < 0 ? null : { score: all[at].score, milestones: all[at].milestones, progressBp: all[at].progressBp, extraStars: all[at].extraStars, rank: at + 1 };

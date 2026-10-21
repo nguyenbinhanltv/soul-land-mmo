@@ -3613,7 +3613,8 @@ export const RESONANCE_RANK_CD = 2;
  * 5 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
  * mã `id` cố định. Mốc lấy đúng bảng ví dụ 5.10; **giá trị cộng đã chốt**:
  * Võ hồn +3 / +3 / +4% sinh lực, Hồn hoàn +3 / +3 / +4% công, Hồn cốt +2% sinh lực và +2% công mỗi mốc, Hồn hạch +4% hồn lực và
- * +2% công mỗi mốc. Cả 12 mốc: sinh lực +16%, công +22%, hồn lực +12%.
+ * +2% công mỗi mốc. Đủ 15 mốc: sinh lực +16%, công +22%, hồn lực +12%;
+ * trụ Sao cộng chí mạng / giảm sát thương nhận / tốc chạy theo bảng dưới, sau khi kẹp theo RESONANCE_EFFECT_CAP.
  * Tính lại từ dữ liệu sẵn có của tài khoản (võ hồn, hồn hoàn, đồ đang gắn), không lưu DB riêng.
  */
 export const RESONANCE: ResonanceDef[] = [
