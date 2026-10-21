@@ -17,7 +17,9 @@ node tools/audio/preview.mjs \
 
 `generatedAt` lấy từ ngày provenance trong catalog (hoặc `SOURCE_DATE_EPOCH`), nên chạy lại cùng nguồn sẽ cho output và manifest tái lập được.
 
-Pipeline tạo `.ogg` và `.m4a` AAC, chuẩn hóa bằng `loudnorm`, cắt khoảng lặng ở cuối, nhóm tiếng ngắn thành audio sprite và ghi manifest. Chỉ sprite bước chân được preload; ambient và tiếng hồn thú được đánh dấu lazy theo map/sự kiện. Manifest chặn tổng tải ban đầu vượt 2 MiB cho từng format.
+Pipeline tạo `.ogg` và `.m4a` AAC, chuẩn hóa bằng `loudnorm`, cắt khoảng lặng ở cuối, nhóm tiếng ngắn thành audio sprite và ghi manifest. Chỉ sprite bước chân được preload; ambient và tiếng hồn thú được đánh dấu lazy theo map/sự kiện. Manifest chặn tổng tải ban đầu vượt 2 MiB cho từng format. `audio:validate` giải mã từng output bằng FFmpeg và đối chiếu thời lượng thật với sprite, nên output bị cắt hỏng sẽ bị chặn.
+
+`audio:process` tự sinh bảng provenance trong `art/CREDITS.md` giữa hai marker `audio-sfx:start` và `audio-sfx:end`; `audio:validate` báo lỗi nếu bảng này lệch manifest. Preview mặc định ghi vào thư mục tạm của hệ điều hành; dùng `--out` để tạo artifact cố định.
 
 Catalog hiện bao phủ rừng, suối, gió núi, thành trấn/đám đông, chim, sói, rắn, gấu, côn trùng và chuông. Các nhóm bổ sung dùng OGA CC0 đã ghi provenance từng file trong catalog và `art/CREDITS.md`.
 

@@ -1,5 +1,7 @@
 import { cp, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { safeResolve, validateManifest } from "./lib.mjs";
 
 function option(name, fallback) {
@@ -7,10 +9,10 @@ function option(name, fallback) {
   return index >= 0 ? process.argv[index + 1] : fallback;
 }
 
-const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const assetRoot = path.resolve(option("--asset-root", path.join(repoRoot, "shared/assets")));
 const manifestPath = path.resolve(option("--manifest", path.join(assetRoot, "audio/manifest.json")));
-const outputPath = path.resolve(option("--out", path.join(repoRoot, "artifact/audio-preview/index.html")));
+const outputPath = path.resolve(option("--out", path.join(os.tmpdir(), "soul-land-mmo-audio-preview/index.html")));
 
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));

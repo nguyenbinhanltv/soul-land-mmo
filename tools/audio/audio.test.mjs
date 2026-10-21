@@ -8,10 +8,13 @@ import { promisify } from "node:util";
 
 import {
   buildManifest,
+  renderAudioCredits,
   safeResolve,
   sha256,
   validateCatalog,
+  validateAudioCredits,
   validateManifest,
+  validateManifestDurations,
   validateManifestMatchesCatalog,
   verifySha256,
 } from "./lib.mjs";
@@ -235,6 +238,55 @@ test("validateManifest recomputes unique preload files before applying the budge
   const sharedFileManifest = JSON.parse(JSON.stringify(manifest));
   sharedFileManifest.items.push({ ...sharedFileManifest.items[0], id: "footstep-co-02" });
   assert.doesNotThrow(() => validateManifest(sharedFileManifest));
+});
+
+test("validateManifestDurations rejects encoded files shorter than their manifest sprite", () => {
+  const manifest = buildManifest({
+    catalog: { sources: [validSource], tracks: [validTrack] },
+    outputs: [{
+      id: validTrack.id,
+      files: {
+        ogg: { path: "audio/sprites/footsteps.ogg", bytes: 120 },
+        m4a: { path: "audio/sprites/footsteps.m4a", bytes: 180 },
+      },
+      sprite: { name: "footsteps", start: 0, duration: 4.2 },
+    }],
+  });
+  const measured = new Map([
+    ["ogg:audio/sprites/footsteps.ogg", 1.23],
+    ["m4a:audio/sprites/footsteps.m4a", 4.2],
+  ]);
+  assert.throws(
+    () => validateManifestDurations(manifest, measured),
+    /duration mismatch.*ogg/i,
+  );
+  measured.set("ogg:audio/sprites/footsteps.ogg", 4.2);
+  assert.doesNotThrow(() => validateManifestDurations(manifest, measured));
+});
+
+test("audio credits must be generated from manifest provenance", () => {
+  const manifest = buildManifest({
+    catalog: { sources: [validSource], tracks: [validTrack] },
+    outputs: [{
+      id: validTrack.id,
+      files: {
+        ogg: { path: "audio/sprites/footsteps.ogg", bytes: 120 },
+        m4a: { path: "audio/sprites/footsteps.m4a", bytes: 180 },
+      },
+      sprite: { name: "footsteps", start: 0, duration: 0.42 },
+    }],
+  });
+  const block = renderAudioCredits(manifest);
+  assert.match(block, /shared\/assets\/audio\/sprites\/footsteps\.ogg/);
+  assert.match(block, /Kenney/);
+  assert.doesNotThrow(() => validateAudioCredits({
+    manifest,
+    creditsText: `before\n${block}\nafter`,
+  }));
+  assert.throws(
+    () => validateAudioCredits({ manifest, creditsText: `before\n${block.replace("footsteps.ogg", "stale.ogg")}\nafter` }),
+    /credits.*mismatch/i,
+  );
 });
 
 test("safeResolve keeps source files inside the selected source root", async () => {

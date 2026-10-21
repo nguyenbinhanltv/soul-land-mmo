@@ -246,11 +246,11 @@
     {
       "files": {
         "m4a": {
-          "bytes": 15376,
+          "bytes": 547974,
           "path": "audio/ambient/tinh_dau_ngoai_vi.m4a"
         },
         "ogg": {
-          "bytes": 24898,
+          "bytes": 768125,
           "path": "audio/ambient/tinh_dau_ngoai_vi.ogg"
         }
       },
@@ -268,11 +268,11 @@
     {
       "files": {
         "m4a": {
-          "bytes": 15499,
+          "bytes": 70294,
           "path": "audio/ambient/lac_nhat_sam_lam.m4a"
         },
         "ogg": {
-          "bytes": 18981,
+          "bytes": 71554,
           "path": "audio/ambient/lac_nhat_sam_lam.ogg"
         }
       },
@@ -290,11 +290,11 @@
     {
       "files": {
         "m4a": {
-          "bytes": 15386,
+          "bytes": 29763,
           "path": "audio/ambient/cuc_bac_chi_dia.m4a"
         },
         "ogg": {
-          "bytes": 16847,
+          "bytes": 30517,
           "path": "audio/ambient/cuc_bac_chi_dia.ogg"
         }
       },
@@ -304,7 +304,7 @@
       "preload": false,
       "sourceId": "oga-short-wind",
       "sprite": {
-        "duration": 4.16,
+        "duration": 2.36,
         "name": "mountain-wind",
         "start": 0
       }
@@ -312,11 +312,11 @@
     {
       "files": {
         "m4a": {
-          "bytes": 25079,
+          "bytes": 22013,
           "path": "audio/sprites/creatures.m4a"
         },
         "ogg": {
-          "bytes": 23011,
+          "bytes": 20697,
           "path": "audio/sprites/creatures.ogg"
         }
       },
@@ -326,7 +326,7 @@
       "preload": false,
       "sourceId": "oga-creature-sfx",
       "sprite": {
-        "duration": 0.64,
+        "duration": 0.55,
         "name": "creatures",
         "start": 0
       }
@@ -334,11 +334,11 @@
     {
       "files": {
         "m4a": {
-          "bytes": 25079,
+          "bytes": 22013,
           "path": "audio/sprites/creatures.m4a"
         },
         "ogg": {
-          "bytes": 23011,
+          "bytes": 20697,
           "path": "audio/sprites/creatures.ogg"
         }
       },
@@ -350,17 +350,17 @@
       "sprite": {
         "duration": 0.3,
         "name": "creatures",
-        "start": 0.69
+        "start": 0.6
       }
     },
     {
       "files": {
         "m4a": {
-          "bytes": 25079,
+          "bytes": 22013,
           "path": "audio/sprites/creatures.m4a"
         },
         "ogg": {
-          "bytes": 23011,
+          "bytes": 20697,
           "path": "audio/sprites/creatures.ogg"
         }
       },
@@ -372,17 +372,17 @@
       "sprite": {
         "duration": 0.37,
         "name": "creatures",
-        "start": 1.04
+        "start": 0.95
       }
     },
     {
       "files": {
         "m4a": {
-          "bytes": 25079,
+          "bytes": 22013,
           "path": "audio/sprites/creatures.m4a"
         },
         "ogg": {
-          "bytes": 23011,
+          "bytes": 20697,
           "path": "audio/sprites/creatures.ogg"
         }
       },
@@ -392,9 +392,9 @@
       "preload": false,
       "sourceId": "oga-creature-sfx",
       "sprite": {
-        "duration": 0.5,
+        "duration": 0.28,
         "name": "creatures",
-        "start": 1.46
+        "start": 1.37
       }
     },
     {

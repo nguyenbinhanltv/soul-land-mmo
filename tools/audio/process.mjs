@@ -2,11 +2,12 @@ import { mkdir, mkdtemp, readFile, stat, unlink, writeFile } from "node:fs/promi
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 import ffmpegPath from "ffmpeg-static";
-import { buildManifest, safeResolve, stableJson, validateCatalog, verifySha256 } from "./lib.mjs";
+import { buildManifest, replaceAudioCredits, safeResolve, stableJson, validateCatalog, verifySha256 } from "./lib.mjs";
 
-const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const DEFAULT_CATALOG = path.join(repoRoot, "tools/audio/catalog.json");
 const DEFAULT_OUT = path.join(repoRoot, "shared/assets");
 const DEFAULT_MANIFEST = path.join(DEFAULT_OUT, "audio/manifest.json");
@@ -47,7 +48,7 @@ async function durationOf(file) {
 async function normalize(input, output) {
   await run(ffmpegPath, [
     "-hide_banner", "-loglevel", "error", "-y", "-i", input,
-    "-af", "loudnorm=I=-16:LRA=11:TP=-1.5,silenceremove=stop_periods=-1:stop_duration=0.08:stop_threshold=-50dB",
+    "-af", "loudnorm=I=-16:LRA=11:TP=-1.5,silenceremove=stop_periods=1:stop_duration=0.08:stop_threshold=-50dB",
     "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact", "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", output,
   ]);
 }
@@ -89,6 +90,7 @@ async function main() {
   const catalogPath = path.resolve(String(args.get("--catalog") ?? DEFAULT_CATALOG));
   const outputRoot = path.resolve(String(args.get("--out") ?? DEFAULT_OUT));
   const manifestPath = path.resolve(String(args.get("--manifest") ?? DEFAULT_MANIFEST));
+  const creditsPath = path.resolve(String(args.get("--credits") ?? path.join(repoRoot, "art/CREDITS.md")));
   const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
   validateCatalog(catalog);
   if (!ffmpegPath) throw new Error("ffmpeg-static không cung cấp đường dẫn executable");
@@ -122,7 +124,9 @@ async function main() {
       spriteInfo.set(entry.track.id, { start: offset, duration: entry.duration });
       offset += entry.duration + 0.05;
     }
-    const combined = path.join(tempRoot, `${sprite}.wav`);
+    // Không dùng lại tên file normalized: ambient một track có cùng tên sprite
+    // và sẽ khiến FFmpeg đọc/ghi cùng một file, làm hỏng output.
+    const combined = path.join(tempRoot, `${sprite}.combined.wav`);
     await concatWav(concatInput, combined);
     const relativeBase = outputPath(group, sprite, entries).replace(".EXT", "");
     const oggRelative = `${relativeBase}.ogg`;
@@ -150,6 +154,8 @@ async function main() {
   const manifest = buildManifest({ catalog, outputs, generatedAt: sourceDate, pipeline: "tools/audio/process.mjs@1" });
   await mkdir(path.dirname(manifestPath), { recursive: true });
   await writeFile(manifestPath, stableJson(manifest));
+  const credits = await readFile(creditsPath, "utf8");
+  await writeFile(creditsPath, replaceAudioCredits(credits, manifest));
   console.log(`Đã xử lý ${outputs.length} track vào ${outputRoot}`);
   console.log(`Manifest: ${manifestPath}`);
 }

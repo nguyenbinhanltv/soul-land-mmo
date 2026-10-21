@@ -1,26 +1,23 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { access, realpath } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const MAX_INITIAL_BYTES = 2 * 1024 * 1024;
 export const AUDIO_FORMATS = ["ogg", "m4a"];
+export const AUDIO_CREDITS_START = "<!-- audio-sfx:start -->";
+export const AUDIO_CREDITS_END = "<!-- audio-sfx:end -->";
 export const ALLOWED_LICENSES = new Set([
   "CC0-1.0",
   "CC-BY-3.0",
   "CC-BY-4.0",
 ]);
-export const GAME_MAP_IDS = new Set([
-  "thanh_hon_thon",
-  "nac_dinh_thanh",
-  "tinh_dau_ngoai_vi",
-  "tinh_dau_noi_dia",
-  "thien_dau_thanh",
-  "lac_nhat_sam_lam",
-  "cuc_bac_chi_dia",
-  "hai_than_dao",
-  "loi_tinh_dau",
-  "dai_dau_hon_truong",
-]);
+const MAPS_SOURCE = readFileSync(fileURLToPath(new URL("../../shared/data.ts", import.meta.url)), "utf8");
+export const GAME_MAP_IDS = new Set(
+  [...MAPS_SOURCE.matchAll(/^\s{2}[a-z0-9_]+:\s*\{\s*id:\s*"([a-z0-9_]+)"/gm)].map(([, id]) => id),
+);
+if (GAME_MAP_IDS.size === 0) throw new Error("Không đọc được MAPS từ shared/data.ts");
 
 const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -195,6 +192,82 @@ export function validateManifestMatchesCatalog({ catalog, manifest }) {
   }
 
   return true;
+}
+
+function durationKey(format, relativePath) {
+  return `${format}:${relativePath}`;
+}
+
+export function validateManifestDurations(manifest, measuredDurations, tolerance = 0.1) {
+  const expectedDurations = new Map();
+  for (const item of manifest.items) {
+    if (!item.sprite) continue;
+    const expected = item.sprite.start + item.sprite.duration;
+    for (const format of AUDIO_FORMATS) {
+      const key = durationKey(format, item.files[format].path);
+      expectedDurations.set(key, Math.max(expectedDurations.get(key) ?? 0, expected));
+    }
+  }
+  for (const [key, expected] of expectedDurations) {
+    const actual = measuredDurations.get(key);
+    if (!Number.isFinite(actual) || Math.abs(actual - expected) > tolerance) {
+      throw new Error(`audio duration mismatch for ${key}: manifest ${expected.toFixed(3)}s, decoded ${Number(actual).toFixed(3)}s`);
+    }
+  }
+  return true;
+}
+
+function markdownCell(value) {
+  return String(value).replaceAll("|", "\\|");
+}
+
+export function renderAudioCredits(manifest) {
+  const sourceById = new Map(manifest.sources.map((source) => [source.id, source]));
+  const outputs = new Map();
+  for (const item of manifest.items) {
+    const key = `${item.files.ogg.path}|${item.files.m4a.path}`;
+    const output = outputs.get(key) ?? {
+      files: [item.files.ogg.path, item.files.m4a.path],
+      tracks: [],
+      sources: new Map(),
+    };
+    output.tracks.push(item.id);
+    const source = sourceById.get(item.sourceId);
+    if (!source) throw new Error(`manifest credits references unknown source ${item.sourceId}`);
+    output.sources.set(source.id, source);
+    outputs.set(key, output);
+  }
+  const rows = [...outputs.values()].sort((left, right) => left.files[0].localeCompare(right.files[0])).map((output) => {
+    const sources = [...output.sources.values()];
+    const authors = [...new Set(sources.map((source) => source.author))].join("<br>");
+    const licenses = [...new Set(sources.map((source) => source.license))].join("<br>");
+    const provenance = sources.map((source) => `${source.title} — <${source.url}> — SHA-256 \`${source.archiveSha256}\``).join("<br>");
+    const files = output.files.map((file) => `\`shared/assets/${markdownCell(file)}\``).join("<br>");
+    return `| ${files} | ${markdownCell(output.tracks.join(", "))} | ${markdownCell(authors)} | ${markdownCell(licenses)} | ${provenance} |`;
+  });
+  return [
+    AUDIO_CREDITS_START,
+    "| Tệp output | Track | Tác giả | Giấy phép | Provenance |",
+    "|---|---|---|---|---|",
+    ...rows,
+    AUDIO_CREDITS_END,
+  ].join("\n");
+}
+
+export function validateAudioCredits({ manifest, creditsText }) {
+  const startIndex = creditsText.indexOf(AUDIO_CREDITS_START);
+  const endIndex = creditsText.indexOf(AUDIO_CREDITS_END);
+  if (startIndex < 0 || endIndex < 0 || endIndex < startIndex) throw new Error("audio credits markers are missing");
+  const actual = creditsText.slice(startIndex, endIndex + AUDIO_CREDITS_END.length);
+  if (actual !== renderAudioCredits(manifest)) throw new Error("audio credits mismatch with manifest");
+  return true;
+}
+
+export function replaceAudioCredits(creditsText, manifest) {
+  const startIndex = creditsText.indexOf(AUDIO_CREDITS_START);
+  const endIndex = creditsText.indexOf(AUDIO_CREDITS_END);
+  if (startIndex < 0 || endIndex < 0 || endIndex < startIndex) throw new Error("audio credits markers are missing");
+  return `${creditsText.slice(0, startIndex)}${renderAudioCredits(manifest)}${creditsText.slice(endIndex + AUDIO_CREDITS_END.length)}`;
 }
 
 export function buildManifest({ catalog, outputs, generatedAt = new Date().toISOString(), pipeline = "tools/audio" }) {
