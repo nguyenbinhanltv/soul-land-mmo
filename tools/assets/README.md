@@ -91,6 +91,22 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 - Dưới chân: `halo{tier}` vẽ bằng code, khung 24×10 (elip 20×6, viền 1 pixel `glow` ngoài thân `col`; khung 0 cung trên vẽ sau thân, khung 1 cung dưới vẽ trước thân), phóng `SPR` cùng hình chứa hồn sư; vòng 1 sát chân, mỗi vòng sau cao hơn 2 pixel (trước khi phóng), nhấp nhô lệch pha, ẩn khi gục. Tung hồn kỹ vòng i: vòng đó đổi sang `halo{tier}_lit` (28×12, phình 2 pixel, sáng hơn một bậc) trong `RING_LIT_MS`.
 - Rơi trên đất: `ring{tier}` (elip nằm nghiêng phát sáng). File `ring/ring{tier}.png`, `ring/halo{tier}.png`.
 
+## Bảng các vùng đầy đủ (ánh sáng, thời tiết, hạt bay; quy cách bước 10.7)
+Quy tắc chung ở `GAME_DESIGN.md` mục 5.11 (phong cách B, "Ánh sáng và chiều sâu", "Độ tương phản"). Màu nhấn đầy đủ ở `art/palettes/<mapId>.gpl`. Ngày / đêm chỉ ở client, theo giờ Việt Nam (06:00–18:00 là ngày); vùng ghi "luôn" thì không đổi theo giờ.
+
+| Bản đồ (`MAPS`) | Màu chủ đạo | Ngày / đêm | Thời tiết | Hạt bay | Địa hình, vật đặc trưng |
+|---|---|---|---|---|---|
+| Thánh Hồn Thôn (`thanh_hon_thon`) | Nắng mật, lục non | Ngày nắng ấm vàng; đêm cam ánh bếp | Quang | Khói bếp, bồ công anh | Ruộng lúa, mái rạ, hàng rào tre, Lam Ngân Thảo ven đường |
+| Nặc Đinh Thành (`nac_dinh_thanh`) | Gạch nung đỏ đất, ngói xám | Ngày trung tính; đêm đèn lồng đỏ | Quang | Khói, lá rơi thưa | Tường thành, chợ, đèn lồng, học viện sơ cấp (lưu ly ở cổng) |
+| Tinh Đấu Ngoại vi (`tinh_dau_ngoai_vi`) | Lục rêu sâu | Ngày nắng lốm đốm xuyên tán; đêm lam thẫm | Sương mỏng buổi sớm | Đom đóm thưa, lá rơi | Cổ thụ, suối rừng, nấm phát quang thưa |
+| Tinh Đấu Nội địa (`tinh_dau_noi_dia`) | Xanh thẳm lam lục | Ngày tối như chiều; đêm lam đen | Sương độc tím ở Đầm sương độc, sấm chớp ở Lôi Cốc | Đom đóm, bào tử phát quang | Nấm phát quang lớn, dây leo, đầm độc |
+| Thiên Đấu Thành (`thien_dau_thanh`) | Trắng ngà, lam ngọc, vàng kim | Ngày sáng; đêm đèn vàng | Quang | Cánh hoa, cờ bay | Cung điện, Thiên Đấu Hoàng Gia Học Viện (lưu ly), chợ, bến thuyền |
+| Lạc Nhật Sâm Lâm (`lac_nhat_sam_lam`) | Hoàng hôn đỏ cam, bóng tím than | Luôn hoàng hôn; "đêm" đỏ sẫm | Gió nhẹ, nắng chiều chéo | Lá rụng đỏ / cam / vàng, cánh hoa độc | Cây lá đỏ, hoa độc, đầm Bích Lân lục độc, suối Băng Hỏa nửa lam nửa đỏ |
+| Cực Bắc Chi Địa (`cuc_bac_chi_dia`) | Băng lam, trắng lạnh | Ngày trắng lạnh chói; đêm lam đen có cực quang lục tím | Tuyết rơi, bão tuyết dày dần về phía bắc | Bông tuyết | Thông tuyết, băng tinh phát sáng, khe băng, hồ băng |
+| Hải Thần Đảo (`hai_than_dao`) | Ngọc lam, vàng | Ngày nắng biển rực; đêm lam ngọc, sóng phát quang | Gió biển; mưa ở Ma Quỷ Hải Vực | Bọt sóng, đom đóm biển | San hô, đá ngầm, cát vàng, đền Hải Thần (lưu ly) |
+| Lõi Tinh Đấu (`loi_tinh_dau`) | Tím than, lam hồ thần | Luôn đêm, hồ phát sáng | Sương mù | Hạt hồn lực trôi lên | Hồ trung tâm, đá cổ, rễ khổng lồ |
+| Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Đá xám, vàng kim, đỏ son | Luôn sáng đuốc | Quang | Bụi cát; giấy hoa khi có người thắng | Sàn đấu, khán đài, cờ, khán đài vua (lưu ly) |
+
 ## Vùng chiêu
 Client chiếu từng điểm của hình server gửi (`client/src/iso.ts`): vòng tròn bán kính r thành elip bán trục `√2·r` × `r/√2` (`fillGround` / `strokeGround`, `RX` / `RY`); vệt, nón, cung chém (`arcPts`) thành đa giác chiếu (`ptsToScreen`). Cùng các hàm cho vùng báo trước, vùng chiêu, sóng, vùng an toàn, cổng.
 

@@ -445,8 +445,11 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - Thứ tự vẽ: nền đất → vùng báo trước, vòng dưới chân, bóng → vật đứng (hồn sư, hồn thú, NPC, đồ rơi, cây, nhà) theo **độ sâu `x + y` của điểm chân** → chữ, thanh máu → HUD. Vật cao nhiều ô được cắt thành **lát dọc rộng 16 pixel**, mỗi lát mang độ sâu của mép trước chân vật tại cột đó.
 - Vật cao che hồn sư của chính mình thì khoét **lỗ elip quanh thân** và mờ nhẹ (chỉ có Canvas thì chỉ mờ); người khác vẫn thấy bình thường. **Bóng** là elip 2:1 màu `#1a1020` khoảng 35% dưới chân, client vẽ.
 
-**Ánh sáng và chiều sâu** (bước 10.7; hiện chỉ có lớp tối `vignette` theo độ sâu rừng)
-- Light2D + normal map tự sinh (`_n.png`, `tools/assets/normal.mjs`); chỉ có Canvas thì tắt ánh sáng, vẫn chơi được. Mỗi bản đồ có màu môi trường ngày / đêm (phong cách B). Nguồn sáng chính là hồn lực (phong cách A), tối đa khoảng 10 nguồn gần camera. Ánh sáng vẽ sẵn trong sprite luôn từ trên bên trái.
+**Ánh sáng và chiều sâu** (làm ở bước 10.7; hiện bản đồ rừng chỉ có lớp tối `vignette` theo độ sâu)
+- **Light2D + normal map** (WebGL; chỉ có Canvas thì tắt ánh sáng, vẫn chơi được). Mỗi bản đồ có màu môi trường (`ambient`) ngày / đêm theo bảng các vùng (phong cách B), thay lớp `vignette`. Nguồn sáng theo phong cách A: vòng hồn hoàn dưới chân hồn sư, mắt hồn thú, hồn kỹ, hồn hoàn rơi trên đất là chính; lửa trại, đèn lồng, nấm phát quang, băng tinh yếu hơn; tối đa khoảng 10 nguồn cùng lúc gần camera, xa thì bỏ.
+- **Normal map tự sinh** bằng `tools/assets/normal.mjs` cho mọi sprite và ô (file cạnh ảnh gốc, thêm `_n`). Normal map do công cụ AI vẽ chỉ dùng cho vài vật đặc biệt khi bản tự sinh không đạt.
+- Ánh sáng nền vẽ sẵn trong sprite vẫn **từ trên bên trái**; Light2D chỉ thêm sáng tối cục bộ, không đổi hướng sáng chính.
+- Không nguồn sáng nào làm mặt đất trắng xóa; nhiều vòng hồn hoàn cùng chỗ thì cộng dồn có trần; tuyết, cát giảm cường độ đèn khoảng một nửa.
 
 **Phong cách**
 - **A. Hồn Hoàn Chiếu Sáng:** nền, cây, nhà **trầm, hơi khử màu** (bão hòa khoảng một nửa). Màu và ánh sáng mạnh đến từ **hồn lực**: vòng hồn hoàn dưới chân (`glow` của `TIERS`), **mắt hồn thú sáng đúng màu niên hạn**, hồn kỹ và vùng chiêu theo màu võ hồn (`col`); lửa trại, đèn lồng, nấm phát quang yếu hơn và ít hơn.
@@ -454,7 +457,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - **C. Thủy Mặc Pixel** cho giao diện: cuộn giấy ngà mép mực loang, nút chính là ấn triện đỏ son, chữ mực trên giấy (chữ màu sáng có viền mực 1 điểm), bảng màu `art/palettes/_thuy_mac.gpl`. Trong lúc đánh giao diện chỉ nằm ở mép màn hình; hộp thoại NPC chỉ mở ngoài giao chiến và làm tối cảnh nhẹ. **Font phải đủ dấu tiếng Việt:** Ark Pixel (OFL) 12 px / 10 px nhúng trong client, chỉ dùng cỡ bội số nguyên, không chữ đậm giả; chữ trong cảnh Phaser là Be Vietnam Pro; trang thử `?thu=font`. Giao diện HTML phóng số nguyên `--u` = nửa mức phóng của cảnh, tối thiểu 1.
 - **D. Lưu Ly Bảo Quang** cho chỗ sang trọng (khung thẻ võ hồn, học viện, cung điện, khán đài vua, hiệu ứng tuyệt kỹ / Chân Thân): kính màu ghép mảnh, đường chì và viền vàng kim, bảng `art/palettes/_luu_ly.gpl`. Không dùng cho vật thường.
 
-**Bảng các vùng**
+**Bảng các vùng** (bản gọn; bảng đầy đủ với `mapId`, thời tiết và hạt bay tách cột, chi tiết ngày / đêm là quy cách của bước 10.7, ở `tools/assets/README.md` mục "Bảng các vùng đầy đủ")
 
 | Bản đồ | Màu chủ đạo | Ngày / đêm | Thời tiết, hạt bay | Vật đặc trưng |
 |---|---|---|---|---|
@@ -473,7 +476,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - **Nền:** độ sáng trung bình 25–55% (tuyết, cát tới 75%), bão hòa thấp; không điểm trắng hay màu bão hòa cao trên ô nền (dành cho hồn lực).
 - **Thực thể:** viền ngoài `#1a1020`; trên nền tối, hồn thú / hồn sư thêm **viền sáng 1 pixel** (màu niên hạn / `glow` của vòng cao nhất) khi độ sáng thân chênh nền dưới 25%.
 - **Vùng báo trước của hồn thú** luôn đỏ (`TELE_COL` trong `GameScene.ts`), viền nhấp nháy, nền tối đa 30% (Lạc Nhật thêm vạch trắng); **vùng chiêu của người chơi** theo màu võ hồn, không đỏ thuần.
-- Hạt bay, thời tiết mờ tối đa 50%, vẽ dưới chữ và thanh máu, khoảng 150 hạt; giảm một nửa khi đánh thú vương / boss; tắt được. Không nguồn sáng nào làm mặt đất trắng xóa.
+- Hạt bay, thời tiết mờ tối đa 50%, vẽ dưới chữ và thanh máu, khoảng 150 hạt; giảm một nửa khi đánh thú vương / boss; tắt được.
 
 **Bảng màu**
 - Bảng chung `art/palette.gpl`, bảng nhấn từng vùng `art/palettes/<mapId>.gpl` (asset của một vùng chỉ dùng bảng chung + bảng vùng đó), bảng giao diện `_thuy_mac.gpl`, `_luu_ly.gpl`. Màu hồn hoàn lấy `col` / `glow` của `TIERS`, không chép mã màu. Được thêm màu chủ đạo võ hồn (`col`, `robe` trong `VOHON`) cùng tối đa 1 sắc tối, 1 sắc sáng suy ra. Ô nền theo bảng chung rồi nhân màu môi trường của vùng lúc vẽ, nên một bộ ô dùng cho nhiều vùng.
