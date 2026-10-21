@@ -729,7 +729,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119).
 - [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
 - [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).
-- [ ] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
+- [x] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
 
 ## 8. Câu hỏi còn mở
 1. **Ngân sách mỹ thuật isometric:** phần còn lại của Giai đoạn 10 (6 bộ hồn sư, 20 phụ thể, 67 loài hồn thú) vượt xa số lượt PixelLab có được; cần chọn thứ tự ưu tiên, thêm key / lượt thưởng ngày, hoặc chuyển bớt sang Gemini / vẽ tay.
