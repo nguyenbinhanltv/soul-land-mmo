@@ -59,7 +59,7 @@ async function makeSilence(output) {
 
 async function concatWav(files, output) {
   const listPath = `${output}.concat.txt`;
-  const lines = files.map((file) => `file '${file.replaceAll("'", "'\\''")}'`).join("\n");
+  const lines = files.map((file) => `file '${file.replaceAll("\\", "/").replaceAll("'", "'\\''")}'`).join("\n");
   await writeFile(listPath, `${lines}\n`);
   try {
     await run(ffmpegPath, ["-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", listPath, "-c:a", "pcm_s16le", output]);

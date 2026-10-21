@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 
+import ffmpegPath from "ffmpeg-static";
 import {
   buildManifest,
   renderAudioCredits,
@@ -299,6 +300,104 @@ test("safeResolve keeps source files inside the selected source root", async () 
   await writeFile(path.join(root, "ok.ogg"), "ok");
   assert.equal(await safeResolve(root, "ok.ogg"), path.join(root, "ok.ogg"));
   await assert.rejects(() => safeResolve(root, "../outside.ogg"), /path/i);
+});
+
+test("audio validator rejects a symlink escaping the asset root", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "audio-validator-symlink-"));
+  const assetRoot = path.join(root, "assets");
+  const catalogPath = path.join(root, "catalog.json");
+  const manifestPath = path.join(root, "manifest.json");
+  const creditsPath = path.join(root, "CREDITS.md");
+  const outsideOgg = path.resolve("shared/assets/audio/sprites/bell.ogg");
+  const outsideM4a = path.resolve("shared/assets/audio/sprites/bell.m4a");
+  const oggLink = path.join(assetRoot, "audio/escape.ogg");
+  const m4aLink = path.join(assetRoot, "audio/escape.m4a");
+  try {
+    await mkdir(path.dirname(oggLink), { recursive: true });
+    try {
+      await symlink(outsideOgg, oggLink, "file");
+      await symlink(outsideM4a, m4aLink, "file");
+    } catch (error) {
+      if (process.platform === "win32" && ["EACCES", "EPERM"].includes(error.code)) {
+        t.skip("Windows runner does not permit creating symlinks");
+        return;
+      }
+      throw error;
+    }
+    const catalog = { sources: [validSource], tracks: [validTrack] };
+    const manifest = buildManifest({
+      catalog,
+      outputs: [{
+        id: validTrack.id,
+        files: {
+          ogg: { path: "audio/escape.ogg", bytes: (await stat(outsideOgg)).size },
+          m4a: { path: "audio/escape.m4a", bytes: (await stat(outsideM4a)).size },
+        },
+      }],
+    });
+    await writeFile(catalogPath, JSON.stringify(catalog));
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await writeFile(creditsPath, `# test\n<!-- audio-sfx:start -->\n<!-- audio-sfx:end -->\n`);
+    await assert.rejects(
+      () => execFileAsync(process.execPath, [
+        path.resolve("tools/audio/validate.mjs"),
+        "--asset-root", assetRoot,
+        "--catalog", catalogPath,
+        "--manifest", manifestPath,
+        "--credits", creditsPath,
+      ]),
+      /escapes asset root through symlink/i,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("audio process smoke test handles paths with spaces", async () => {
+  assert.ok(ffmpegPath, "ffmpeg-static executable is required");
+  const root = await mkdtemp(path.join(os.tmpdir(), "audio process smoke "));
+  const sourceRoot = path.join(root, "source files");
+  const sourcePath = path.join(sourceRoot, "tone.wav");
+  const catalogPath = path.join(root, "catalog.json");
+  const manifestPath = path.join(root, "manifest.json");
+  const outputRoot = path.join(root, "output files");
+  const creditsPath = path.join(root, "CREDITS.md");
+  try {
+    await mkdir(sourceRoot, { recursive: true });
+    await execFileAsync(ffmpegPath, [
+      "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi",
+      "-i", "anullsrc=r=48000:cl=stereo", "-t", "0.12", "-c:a", "pcm_s16le", sourcePath,
+    ]);
+    const catalog = {
+      sources: [{ ...validSource, id: "smoke-source", title: "Audio smoke source" }],
+      tracks: [{
+        ...validTrack,
+        id: "smoke-tone",
+        sourceId: "smoke-source",
+        input: "tone.wav",
+        inputSha256: sha256(await readFile(sourcePath)),
+        group: "events",
+        preload: false,
+        sprite: "smoke-tone",
+      }],
+    };
+    await writeFile(catalogPath, JSON.stringify(catalog));
+    await writeFile(creditsPath, `# test\n<!-- audio-sfx:start -->\n<!-- audio-sfx:end -->\n`);
+    await execFileAsync(process.execPath, [
+      path.resolve("tools/audio/process.mjs"),
+      "--source-root", sourceRoot,
+      "--catalog", catalogPath,
+      "--manifest", manifestPath,
+      "--out", outputRoot,
+      "--credits", creditsPath,
+    ]);
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    assert.equal(manifest.items.length, 1);
+    assert.ok((await stat(path.join(outputRoot, manifest.items[0].files.ogg.path))).size > 0);
+    assert.ok((await stat(path.join(outputRoot, manifest.items[0].files.m4a.path))).size > 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("Docker runtime boundary keeps ffmpeg out of the runtime image", async () => {
