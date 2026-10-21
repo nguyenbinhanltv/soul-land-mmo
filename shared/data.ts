@@ -1047,7 +1047,8 @@ export const kingYears = (mapId: string): number | null => {
  * người tham gia nào trong bán kính thì bỏ giao chiến (về chỗ, hồi đầy máu, xóa danh sách và đóng góp).
  * Giới hạn nhiều kênh (#119): nhận thưởng tinh anh (kinh nghiệm x`xp`, quyền ưu tiên đồ rơi tinh anh) của một loài tinh anh trên một bản
  * đồ thì `lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào; không lớn hơn mức dưới của `respawn` để
- * người săn một kênh không bao giờ bị chặn.
+ * chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn (phòng mở lại sinh tinh anh ngay: hạ trong lúc còn khóa chỉ được
+ * thưởng như hồn thú thường).
  */
 export const ELITE = { hp: 2.5, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
   radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15, lock: 480 };

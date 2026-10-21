@@ -159,7 +159,7 @@ interface BData {
  * `parts`: người tham gia -> số giây liên tục ở ngoài bán kính ELITE.radius; `lonely`: số giây không còn người tham gia nào trong
  * bán kính; `dropT`: chờ trước lần giảm `n` kế tiếp; `dmgBy`: sát thương đã gây; `supBy` (9.2): sinh lực hồi thực / khiên tạo cho
  * người tham gia khác (đóng góp tổng = dmgBy + supBy × SUPPORT_CONTRIB, `contribOf`); `rageCd`: chờ trước lần Cuồng nộ kế tiếp.
- * `acc` (#119): sessionId -> accountId của mọi người có đóng góp; cùng tài khoản vào lại phòng (thoát rồi vào lại, đổi kênh rồi quay về)
+ * `acc` (#119): sessionId -> accountId của mọi người có đóng góp hoặc đã là người tham gia; cùng tài khoản vào lại phòng (thoát rồi vào lại, đổi kênh rồi quay về)
  * thì đóng góp chuyển sang phiên mới (`rebindContrib`), nên đóng góp gắn theo tài khoản.
  */
 interface EliteData {
@@ -3519,6 +3519,9 @@ export class MapRoom extends Room<MapState> {
     const lockLeft = (pid: string) => { if (!e) return 0; let v = left.get(pid); if (v === undefined) left.set(pid, v = eliteLockLeft(lockKey, accOf(pid), now)); return v; };
     const free = (pid: string) => !lockLeft(pid);
     const owner = e ? this.topContrib(e, by, false, free) : by; // 9.2: đóng góp tổng (sát thương + hỗ trợ); #119: người chưa bị khóa
+    const byFree = free(by); // chụp trước khi ghi khóa của lần này
+    // Người đứng đầu đóng góp bị khóa thì quyền ưu tiên sang người kế tiếp: câu báo không được nói "đóng góp nhiều nhất".
+    const why = e && owner && owner !== this.topContrib(e, by) ? "đóng góp nhiều nhất trong số người chưa bị khóa thưởng tinh anh" : "đóng góp nhiều nhất";
     const got = new Set<string>(); // người nhận thưởng tinh anh lần này (kinh nghiệm x ELITE.xp, quyền ưu tiên đồ rơi tinh anh)
     for (const pid of team) {
       const full = !!e && free(pid); if (full) got.add(pid);
@@ -3546,14 +3549,14 @@ export class MapRoom extends Room<MapState> {
     drop.tier = b.tier; drop.years = b.years;
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: td.size + 10, col: td.glow });
-    this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${this.lootNote(drOwner, by)}`, td.glow);
-    if (drOwner !== by) this.log(drOwner, `Bạn đóng góp nhiều nhất khi hạ ${name}: hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).`, td.glow);
+    this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${this.lootNote(drOwner, by, why)}`, td.glow);
+    if (drOwner !== by) this.log(drOwner, `Bạn ${why} khi hạ ${name}: hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).`, td.glow);
     if (e) this.broadcast("elite", { k: "down", name, by: p.name, col: BOSSES[b.species]?.aura });
     this.rollShard(by, b.years, b.x, b.y);
-    this.rollHerb(by, zone, b.x, b.y, !!e && free(by));
+    this.rollHerb(by, zone, b.x, b.y, !!e && byFree);
     const base = e ? Math.max(0, beastIndex(BOSSES[b.species]?.species ?? "")) : b.species;
-    this.rollBone(by, drOwner, base, b.years, b.tier, b.x, b.y, elite ? ELITE.bone : 1);
-    this.rollCoreDrop(by, drOwner, b.years, b.x, b.y, elite);
+    this.rollBone(by, drOwner, base, b.years, b.tier, b.x, b.y, elite ? ELITE.bone : 1, why);
+    this.rollCoreDrop(by, drOwner, b.years, b.x, b.y, elite, why);
   }
 
   /**
@@ -3563,7 +3566,7 @@ export class MapRoom extends Room<MapState> {
    * túi đầy thì báo. Hook test `core` của người hạ `id` cố định được số ngẫu nhiên, sao và bộ.
    * Rương tà hóa thú vương (BĐ5, openChest) cho hồn hạch thẳng vào túi bằng `rollCore(..., { high: true })` rồi `addCore`.
    */
-  rollCoreDrop(id: string, owner: string, years: number, x: number, y: number, sure = false) {
+  rollCoreDrop(id: string, owner: string, years: number, x: number, y: number, sure = false, why?: string) {
     const d = this.pdata.get(id); if (!d) return;
     const t = d.testCore;
     if ((t ? t.r : Math.random()) >= (sure ? 1 : coreChance(years))) return;
@@ -3578,7 +3581,7 @@ export class MapRoom extends Room<MapState> {
     this.coreDrops.set(did, core); this.state.drops.set(did, drop);
     this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col });
     const msg = `${coreName(core.data.set, core.stars)} rơi xuống đất!`;
-    this.log(id, `${msg} ${this.lootNote(owner, id)}`, col);
+    this.log(id, `${msg} ${this.lootNote(owner, id, why)}`, col);
     if (owner !== id) this.log(owner, `${msg} ${this.lootNote(owner, owner)}`, col);
   }
 
@@ -3588,7 +3591,7 @@ export class MapRoom extends Room<MapState> {
    * giây, nhặt (E) vào túi, túi đầy thì báo. Hook test `bone` của người hạ `id` cố định được số ngẫu nhiên và vị trí.
    * Tinh anh (BĐ4): `mult` = ELITE.bone, quyền ưu tiên thuộc `owner` (người đóng góp nhiều nhất, như hồn hoàn).
    */
-  rollBone(id: string, owner: string, species: number, years: number, tier: number, x: number, y: number, mult = 1) {
+  rollBone(id: string, owner: string, species: number, years: number, tier: number, x: number, y: number, mult = 1, why?: string) {
     const d = this.pdata.get(id); if (!d) return;
     const t = d.testBone;
     if ((t ? t.r : Math.random()) >= boneChance(years, mult)) return;
@@ -3598,7 +3601,7 @@ export class MapRoom extends Room<MapState> {
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col: TIERS[tier].glow });
     const bone = `Hồn cốt ${boneName(BEASTS[species]?.id ?? "", BONE_SLOTS[slot].id, years)} rơi xuống đất!`;
-    this.log(id, `${bone} ${this.lootNote(owner, id)}`, TIERS[tier].glow);
+    this.log(id, `${bone} ${this.lootNote(owner, id, why)}`, TIERS[tier].glow);
     if (owner !== id) this.log(owner, `${bone} ${this.lootNote(owner, owner)}`, TIERS[tier].glow);
   }
 
@@ -4216,7 +4219,7 @@ export class MapRoom extends Room<MapState> {
   joinFight(e: EliteData, pid: string) {
     if (e.parts.has(pid)) return;
     e.parts.set(pid, 0);
-    const d = this.pdata.get(pid);
+    const d = this.pdata.get(pid); if (d) e.acc.set(pid, d.accountId); // #119: vào lại thì lần nhắc hết lượt (noted) cũng chuyển sang phiên mới
     const world = !!e.king?.world, K = bossK(e.king), what = world ? "boss thế giới" : "thú vương";
     if (e.king && d && !e.king.noted.has(pid) && this.claimsToday(d, world) >= K.daily) {
       e.king.noted.add(pid);
@@ -4789,11 +4792,14 @@ export class MapRoom extends Room<MapState> {
     return !!dr.party && !!d && party.partyIdOf(d.accountId) === dr.party;
   }
 
-  /** Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). */
-  lootNote(owner: string, id: string) {
+  /**
+   * Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). `why`: vì sao `owner` được ưu tiên
+   * (#119: tinh anh mà người đứng đầu bị khóa thưởng thì là người đóng góp nhiều nhất chưa bị khóa).
+   */
+  lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") {
     const d = this.pdata.get(owner), team = d && party.partyIdOf(d.accountId) ? "tổ đội " : "";
     if (owner === id) return `${DROP_OWNER_SECS} giây đầu chỉ ${team ? "tổ đội của bạn" : "bạn"} nhặt được (phím E).`;
-    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (đóng góp nhiều nhất).`;
+    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (${why}).`;
   }
 
   // ---------- Vòng lặp ----------
