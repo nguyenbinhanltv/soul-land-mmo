@@ -553,7 +553,7 @@ await leaveSafe(A);
 // lang thang rồi bỏ đuổi về chỗ sinh và hồi máu; bấm chuột tìm đường A* (client/src/path.ts) đi vòng vật cản trên lưới va chạm của server.
 if((await test(A,"ping"))?.enabled){
   const home=[p.x,p.y], act0=A.owned.active; // vừa ra khỏi làng: phần săn hồn thú sau khối này bắt đầu từ đây
-  const grid=solidGrid(JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")));
+  const grid=solidGrid(JSON.parse(readFileSync(mapUrl(st.mapId),"utf8"))); // file Tiled đang dùng (bản ×8 hoặc bản cũ khi MAP_V1)
   const walkSpd=PLAYER_SPEED*VOHON[p.vh].spd, near=(a,b)=>Math.abs(a-b)<0.05*b;
   const gait=async(msg,want)=>{ A.room.send("input",msg); return waitFor(()=>p.moving&&want(),1500); };
   await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
