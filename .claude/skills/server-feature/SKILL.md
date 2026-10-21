@@ -21,7 +21,7 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 - **Chiêu báo trước của hồn thú:** `beginCast` → `tickCast` (ngắt bằng `cancelCast`) → `fireCast` (tính trúng bằng `teleHits` theo vị trí thật lúc tung).
 - **Tinh anh / thú vương / boss thế giới:** máu theo người tham gia `eliteJoin`, luật thời gian `tickElite` / `tickKing` / `tickWorld`, đóng góp đọc qua `contribOf` / `contributors` / `topContrib` (không đọc thẳng `dmgBy`), thưởng `killKing` → `grantChest` (lượt qua `store.claimBoss` trong chuỗi lưu). Lịch ở `server/src/schedule.ts` (`startSchedule`, presence kênh "boss"); đọc giờ qua `bossNow()` / `bossOffset()`, ngày nhận thưởng qua `this.today()`, không `Date.now()` thẳng.
 - **Đồ rơi:** mọi món qua `newDrop` (chụp tổ đội được ưu tiên), quyền nhặt `canLoot`; thêm đồ vào túi qua `addItem` (gộp, giới hạn ô theo `PData.bagSlots`).
-- **Kinh nghiệm:** `killBeast` → `partyNear` + `partyXpShare` → `rewardKill` (giảm chênh cấp, chia 40/20).
+- **Kinh nghiệm:** `killBeast` → `partyNear` + `partyXpShare` → `rewardKill` (giảm chênh cấp `xpLevelScale`, chia cho đội võ hồn theo `XP_SHARE_ACTIVE` / `XP_SHARE_BENCH`).
 - **Nhiệm vụ:** hành động mới muốn tính cho nhiệm vụ thì thêm `QuestGoalKind` và một lần gọi `questEvent(id, {k, …})` đúng chỗ luật chơi xảy ra.
 - **Cộng minh:** dữ liệu ảnh hưởng trụ cột (cấp, số hồn hoàn, đồ đang gắn) đổi thì gọi `resCheck`.
 - **Chỉ số:** tính lại bằng `recalc` / `maxHpOf` (`calcStats` với hồn cốt, hồn hạch, cộng minh, tiên thảo, sao).
