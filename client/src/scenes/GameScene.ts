@@ -1072,10 +1072,10 @@ export class GameScene extends Phaser.Scene {
    */
   drawDiveMark(time: number) {
     const dm = this.diveMark, g = this.teleG; if (!dm) return;
-    // Tin "dive" / "here" có thể tới trước bản vá state (b.dive, hoặc cả boss với người vừa vào): chỉ bỏ dấu khi quá giờ, khi có tin
-    // "surface" / "reset" / "leave" / "down", hoặc khi boss đã mất khỏi state quá 1 giây.
+    // Không dựa vào boss trong state: tin "dive" / "here" có thể tới trước bản vá, và boss ở giữa hồ có thể ngoài vùng đồng bộ của mình
+    // (11.4). Chỉ bỏ dấu khi quá giờ hoặc có tin "surface" / "reset" / "leave" / "down".
     const b = this.room.state.beasts.get(dm.bid);
-    if (time - dm.t0 > dm.ms + 1500 || (!b && time - dm.t0 > 1000)) { this.diveMark = null; return; }
+    if (time - dm.t0 > dm.ms + 1500) { this.diveMark = null; return; }
     const k = Math.min(1, (time - dm.t0) / dm.ms), R = 40, pulse = 0.5 + 0.5 * Math.sin(time / 120);
     g.fillStyle(DIVE_COL, 0.15 + 0.2 * k); fillGround(g, dm.x, dm.y, R * k);
     g.lineStyle(2, DIVE_COL, 0.6 + 0.4 * pulse); strokeGround(g, dm.x, dm.y, R);

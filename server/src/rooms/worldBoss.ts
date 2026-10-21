@@ -16,26 +16,27 @@ function clearLine(map: GameMap, ax: number, ay: number, bx: number, by: number,
   return true;
 }
 
-/** Gốc để xét đi thẳng tới được: chỗ sinh của boss trong sàn; chỗ đó vướng ô chặn thì dùng tâm sàn. */
+/** Gốc để xét đi thẳng tới được: chỗ sinh của boss trong sàn; chỗ đó vướng ô chặn (theo hộp `box`) thì dùng tâm sàn. */
 export type Anchor = { x: number; y: number };
-const anchorOf = (map: GameMap, at: Anchor): Anchor => {
-  const l = map.lair; return !l || !map.hits(at.x, at.y, PLAYER_HW, PLAYER_HH) ? at : { x: l.x + l.w / 2, y: l.y + l.h / 2 };
+const anchorOf = (map: GameMap, at: Anchor, box: Box): Anchor => {
+  const l = map.lair; return !l || !map.hits(at.x, at.y, box.hw, box.hh) ? at : { x: l.x + l.w / 2, y: l.y + l.h / 2 };
 };
 /** Bản đồ đã cảnh báo thiếu vòng an toàn (chỉ cảnh báo một lần mỗi bản đồ, Bạo Nộ lặp mỗi WORLD.slamEvery giây). */
 const warned = new Set<string>();
 
 /**
- * Một chỗ ngẫu nhiên trong sàn đấu (object `boss`), trong dải cột `col` / `cols` theo bề ngang, cách mép sàn `pad`, dọc trong dải
- * LAIR_SPOT.band, đi thẳng từ `at` tới được với hộp `box`, thỏa `ok`. Thử LAIR_SPOT.tries lần; không được thì null.
+ * Một chỗ ngẫu nhiên (tọa độ nguyên) trong sàn đấu (object `boss`), trong dải cột `col` / `cols` theo bề ngang, cách mép sàn `pad`,
+ * dọc trong dải LAIR_SPOT.band, đi thẳng từ `at` tới được với hộp `box`, thỏa `ok`. Thử LAIR_SPOT.tries lần; không được thì null.
  */
 function lairSpot(map: GameMap, rnd: () => number, at: Anchor, col: number, cols: number, pad: number, box: Box, ok: (x: number, y: number) => boolean) {
   const l = map.lair; if (!l) return null;
-  const cw = l.w / cols, [b0, b1] = LAIR_SPOT.band, o = anchorOf(map, at);
-  // Lấy mẫu đều trong phần cột nằm cách mép sàn `pad` (không kẹp: kẹp dồn nhiều mẫu về đúng mép).
-  const x0 = Math.max(l.x + pad, l.x + col * cw), x1 = Math.min(l.x + l.w - pad, l.x + (col + 1) * cw); if (x1 < x0) return null;
+  const cw = l.w / cols, [b0, b1] = LAIR_SPOT.band, o = anchorOf(map, at, box);
+  // Lấy mẫu đều trong phần cột / dải nằm cách mép sàn `pad` (không kẹp: kẹp dồn nhiều mẫu về đúng mép).
+  const x0 = Math.max(l.x + pad, l.x + col * cw), x1 = Math.min(l.x + l.w - pad, l.x + (col + 1) * cw);
+  const y0 = Math.max(l.y + pad, l.y + l.h * b0), y1 = Math.min(l.y + l.h - pad, l.y + l.h * b1); if (x1 < x0 || y1 < y0) return null;
   for (let i = 0; i < LAIR_SPOT.tries; i++) {
-    const x = x0 + (x1 - x0) * rnd(), y = l.y + l.h * (b0 + (b1 - b0) * rnd());
-    if (ok(x, y) && clearLine(map, o.x, o.y, x, y, box)) return { x: Math.round(x), y: Math.round(y) };
+    const x = Math.round(x0 + (x1 - x0) * rnd()), y = Math.round(y0 + (y1 - y0) * rnd());
+    if (ok(x, y) && clearLine(map, o.x, o.y, x, y, box)) return { x, y };
   }
   return null;
 }
