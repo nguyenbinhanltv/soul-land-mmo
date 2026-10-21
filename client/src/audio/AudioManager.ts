@@ -14,11 +14,19 @@ export interface AudioEvent {
   x?: number;
   y?: number;
   id?: string;
+  bid?: string;
   crit?: boolean;
   heal?: boolean;
   shield?: boolean;
   result?: string;
   he?: string;
+}
+
+export type AudioSourceResolver = (message: AudioEvent) => AudioPoint | null;
+
+export function resolveAudioSource(message: AudioEvent, fallback: AudioSourceResolver): AudioPoint | null {
+  if (Number.isFinite(message.x) && Number.isFinite(message.y)) return { x: message.x!, y: message.y! };
+  return fallback(message);
 }
 
 const storage = (): AudioStorage | null => {
@@ -42,16 +50,18 @@ export class AudioManager {
   private readonly context: AudioContext | null;
   private readonly sfxBus: GainNode | null;
   private readonly listener: () => AudioPoint | null;
+  private readonly sourceResolver: AudioSourceResolver;
   private settings: AudioSettings;
   private unlocked = false;
   private readonly active = new Set<AudioBufferSourceNode>();
 
-  constructor(scene: { sound: unknown }, listener: () => AudioPoint | null) {
+  constructor(scene: { sound: unknown }, listener: () => AudioPoint | null, sourceResolver: AudioSourceResolver = () => null) {
     this.host = scene.sound as SoundManagerHost;
     this.context = this.host.context ?? null;
     this.sfxBus = this.context ? this.context.createGain() : null;
     if (this.context && this.sfxBus) this.sfxBus.connect(this.context.destination);
     this.listener = listener;
+    this.sourceResolver = sourceResolver;
     this.settings = loadAudioSettings(storage());
     this.applySettings();
   }
@@ -98,12 +108,14 @@ export class AudioManager {
   }
 
   handleDamage(message: AudioEvent): void {
-    const source = this.eventPoint(message);
+    const source = this.resolveSource(message);
+    if (!source) return;
     this.play(message.heal ? "combat_heal" : message.shield ? "combat_shield" : message.crit ? "combat_crit" : "combat_hit", source);
   }
 
   handleFx(message: AudioEvent, he?: string): void {
-    const source = this.eventPoint(message);
+    const source = this.resolveSource(message);
+    if (!source) return;
     if (message.k === "soulring" || message.k === "ult" || message.k === "avatar" || message.k === "zone" || message.k === "tienco") {
       this.play(skillSfxByHe[he ?? ""] ?? "skill_neutral", source);
       return;
@@ -117,8 +129,8 @@ export class AudioManager {
     this.active.clear();
   }
 
-  private eventPoint(message: AudioEvent): AudioPoint | null {
-    return Number.isFinite(message.x) && Number.isFinite(message.y) ? { x: message.x!, y: message.y! } : null;
+  private resolveSource(message: AudioEvent): AudioPoint | null {
+    return resolveAudioSource(message, this.sourceResolver);
   }
 
   private applySettings(): void {

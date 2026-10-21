@@ -21,7 +21,7 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
-import { AudioManager } from "../audio/AudioManager.ts";
+import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "../net.ts";
 
@@ -243,6 +243,11 @@ export class GameScene extends Phaser.Scene {
     this.audio = new AudioManager(this, () => {
       const p = this.room.state.players.get(this.me);
       return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : null;
+    }, (message: AudioEvent) => {
+      const player = message.id ? this.room.state.players.get(message.id) : undefined;
+      const beast = message.bid ? this.room.state.beasts.get(message.bid) : undefined;
+      const source = player ?? beast;
+      return source && Number.isFinite(source.x) && Number.isFinite(source.y) ? { x: source.x, y: source.y } : null;
     });
     this.audio.bindUnlock(this.ac.signal);
     bindAudioPanel(this.audio, this.ac.signal);

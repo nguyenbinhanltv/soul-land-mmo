@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AudioManager } from "../src/audio/AudioManager.ts";
+import { AudioManager, resolveAudioSource } from "../src/audio/AudioManager.ts";
 import { DEFAULT_AUDIO_SETTINGS, normalizeAudioSettings } from "../src/audio/settings.ts";
 import { spatialMix } from "../src/audio/spatial.ts";
 import { SFX_IDS, SFX_PARAMS } from "../src/audio/sfxData.ts";
@@ -15,6 +15,23 @@ assert.equal(spatialMix({ x: 100, y: 260 }, { x: 100, y: 100 }).pan, -0.5);
 assert.equal(spatialMix({ x: 260, y: 260 }, { x: 100, y: 100 }).pan, 0);
 assert.equal(spatialMix({ x: 421, y: 100 }, { x: 100, y: 100 }), null);
 assert.equal(spatialMix({ x: -220, y: 100 }, { x: 100, y: 100 }).pan, -1);
+
+const state = {
+  players: new Map([["actor", { x: 260, y: 100 }]]),
+  beasts: new Map([["beast", { x: 340, y: 100 }]]),
+};
+const resolveFromState = (message) => {
+  const entity = message.id ? state.players.get(message.id) : message.bid ? state.beasts.get(message.bid) : undefined;
+  return entity && Number.isFinite(entity.x) && Number.isFinite(entity.y) ? { x: entity.x, y: entity.y } : null;
+};
+const listener = { x: 100, y: 100 };
+const actorSource = resolveAudioSource({ k: "slash", id: "actor" }, resolveFromState);
+assert.deepEqual(actorSource, { x: 260, y: 100 }, "fx thiếu x,y lấy vị trí người phát từ state");
+assert.ok(Math.abs(spatialMix(actorSource, listener).volume - 0.8) < 1e-9, "nguồn gần vẫn nghe theo spatial mix");
+const beastSource = resolveAudioSource({ k: "roar", bid: "beast" }, resolveFromState);
+assert.ok(Math.abs(spatialMix(beastSource, listener).volume - 0.55) < 1e-9, "nguồn xa trong tầm bị giảm âm lượng");
+assert.equal(spatialMix({ x: 500, y: 100 }, listener), null, "nguồn ngoài tầm không phát");
+assert.equal(resolveAudioSource({ k: "slash", id: "gone" }, resolveFromState), null, "không có vị trí thì không phát fx gameplay toàn cục");
 
 assert.equal(SFX_IDS.length, 40);
 assert.equal(new Set(SFX_IDS).size, SFX_IDS.length);
