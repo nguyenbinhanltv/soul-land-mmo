@@ -54,7 +54,7 @@ function mapColors(key, map) {
   return readGpl(f);
 }
 
-function check(key, frame, iso = false, map = "") {
+function check(key, frame, iso = false, map = "", nine = 0) {
   const spec = sheetSpec(key, frame, iso);
   if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
@@ -63,6 +63,8 @@ function check(key, frame, iso = false, map = "") {
   try { img = readPng(file); } catch (e) { return err(key, `không đọc được PNG: ${e.message}`); }
   if (spec.size && (img.w !== spec.size[0] || img.h !== spec.size[1])) return err(key, `kích thước ${img.w}×${img.h}, cần ${spec.size[0]}×${spec.size[1]}`);
   if (spec.frame && (img.w % spec.frame[0] || img.h % spec.frame[1])) return err(key, `kích thước không chia hết cho khung ${spec.frame.join("×")}`);
+  // "nine": chỉ cho mảnh giao diện ui_*, số nguyên dương, hai mép cộng lại phải nhỏ hơn cạnh ngắn (còn phần giữa để kéo giãn).
+  if (nine && (!/^ui_/.test(key) || !Number.isInteger(nine) || nine < 1 || 2 * nine >= Math.min(img.w, img.h))) err(key, `"nine": ${nine} không hợp lệ (chỉ ui_*, số nguyên 1…${Math.floor((Math.min(img.w, img.h) - 1) / 2)})`);
   if (spec.kind === "prop" && (img.w % ISO_PROP_STEP || img.h % ISO_PROP_STEP)) return err(key, `kích thước ${img.w}×${img.h} không chia hết cho ${ISO_PROP_STEP}`);
 
   // Màu và alpha.
@@ -182,7 +184,7 @@ function upsertCredits(key, file) {
 if (register) {
   if (!prompt) { console.error("--register cần --prompt (ghi vào art/CREDITS.md)"); process.exit(1); }
   const frame = frameOpt ? frameOpt.split("x").map(Number) : undefined;
-  const spec = check(register, frame, isoOpt, mapOpt);
+  const spec = check(register, frame, isoOpt, mapOpt, nineOpt);
   if (errors) process.exit(1);
   const iso = isoOpt || !!spec.iso;
   // --nine N: mảnh giao diện kéo giãn 9 lát, giữ nguyên N điểm ở mỗi mép (hộp thoại, cuộn giấy, khung thanh).
@@ -206,7 +208,7 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "");
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.

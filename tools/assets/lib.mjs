@@ -318,7 +318,8 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * Trả về { file, frame:[w,h], kind } cho một key manifest, hoặc null nếu key sai quy ước.
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
  * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
- * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*` chỉ có dạng isometric.
+ * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*`, trạng thái `status_*`,
+ * mảnh giao diện `ui_*` và khung thẻ `card_*` chỉ có dạng isometric. `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
  */
 export function sheetSpec(key, frame, iso = false) {
   let m;
@@ -340,7 +341,7 @@ export function sheetSpec(key, frame, iso = false) {
   if ((m = key.match(/^portrait_([a-z_]+)$/))) return { file: `iso/portrait/${m[1]}.png`, size: [ISO_PORTRAIT, ISO_PORTRAIT], kind: "portrait", iso: true };
   if ((m = key.match(/^status_([a-z_]+)$/))) return { file: `iso/status/${m[1]}.png`, size: [ISO_STATUS_ICON, ISO_STATUS_ICON], kind: "portrait", iso: true, status: m[1] };
   if ((m = key.match(/^card_(sr|ssr|ur)$/))) return { file: `iso/ui/the_${m[1]}.png`, size: ISO_CARD, kind: "portrait", iso: true };
-  if ((m = key.match(/^ui_([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
+  if ((m = key.match(/^ui_(?!the_)([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
   if ((m = key.match(/^item_([a-z_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };
   if ((m = key.match(/^prop_([a-z_]+)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };

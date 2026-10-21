@@ -695,7 +695,7 @@ shared/assets/ui/
   icon/he_{he}.png           huy hiệu hệ 24×24 (chờ ảnh vẽ lại)
 ```
 
-- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, vật đứng) client chưa tải, cho tới bước dùng chúng (10.2, 10.8).
+- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest. Key có `"iso": true` (chân dung, NPC, vật phẩm, trạng thái, giao diện, khung thẻ, vật đứng) client chưa tải, cho tới bước dùng chúng (10.2, 10.8).
 
 **Dây chuyền `tools/assets` → spritesheet** (lệnh chi tiết: skill `asset-gen`)
 1. **Tạo ảnh bằng PixelLab:** hồn sư `create_character` (`mode: "standard"`, `size: 52` → khung thô 76×76, `view: "high top-down"`, 8 hướng, 1 lượt); khung hướng `s` duyệt bằng mắt trước rồi mới làm animation (`animate_character` mẫu có sẵn, 1 lượt mỗi hướng, chỉ xin 5 hướng `s`, `se`, `e`, `ne`, `n`). Hồn thú bốn chân: `body_type: "quadruped"` với mẫu gần nhất (`dog`, `cat`, `lion`, `bear`, `horse`). Nhân vật sau lấy nhân vật đã duyệt làm mẫu phong cách. Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
