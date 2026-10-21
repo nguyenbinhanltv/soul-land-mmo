@@ -2026,11 +2026,11 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "bhp") { const x = nearB(); if (x) { x.b.hp = Math.max(1, Math.round(x.b.maxHp * int(o.pct, 1, 100, 100) / 100)); x.bd.calm = 0; x.bd.regen = 0; } }
     else if (op === "regen") { const x = nearB(); if (x) { const h0 = x.b.hp; this.regenBeast(x.b, x.bd, int(o.s, 0, 60, 0)); out = { gain: x.b.hp - h0 }; } }
-    else if (op === "pregen") {
+    else if (op === "pregen" && !p.dead && !d.travelling) {
       // #112: sinh lực / hồn lực của người gọi còn hp% / mp%, `hit`: vừa bị đánh (không thì đã lâu), rồi hồi s giây bằng regenPlayer.
       d.hpF = Math.max(1, p.maxHp * int(o.hp, 1, 100, 100) / 100); d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; d.lastHit = o.hit ? 0 : 99;
-      const h0 = d.hpF, m0 = d.mpF; this.regenPlayer(p, d, int(o.s, 0, 60, 0));
-      out = { safe: this.map.inSafe(p.x, p.y), hp: d.hpF - h0, mp: d.mpF - m0, hp0: h0, mp0: m0, maxHp: p.maxHp, maxMp: p.maxMp, level: p.level, vh: p.vh };
+      const h0 = d.hpF, m0 = d.mpF, safe = this.regenPlayer(p, d, int(o.s, 0, 60, 0)); // kể cả võ hồn ngoài sân (benchHp)
+      out = { safe, hp: d.hpF - h0, mp: d.mpF - m0, hp0: h0, mp0: m0, maxHp: p.maxHp, maxMp: p.maxMp, level: p.level, vh: p.vh };
     }
     else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
@@ -2778,17 +2778,19 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Hồi sinh lực / hồn lực của hồn sư trong `dt` giây (mục 4, hpRegen / mpRegen); vùng an toàn hồi nhanh hơn (SAFE_REGEN_MULT).
-   * Võ hồn khác trong đội (chưa gục) hồi sinh lực cùng nhịp với võ hồn ra trận.
+   * Võ hồn khác trong đội (chưa gục) hồi sinh lực cùng nhịp với võ hồn ra trận. Trả về có đang ở vùng an toàn không.
    */
-  regenPlayer(p: PlayerState, d: PData, dt: number) {
+  regenPlayer(p: PlayerState, d: PData, dt: number): boolean {
     const safe = this.map.inSafe(p.x, p.y), regen = (max: number) => hpRegen(max, d.lastHit, safe) * dt;
     d.mpF = Math.min(p.maxMp, d.mpF + mpRegen(p.level, VOHON[p.vh].mp, safe) * dt);
     d.hpF = Math.min(p.maxHp, d.hpF + regen(p.maxHp));
     p.hp = Math.ceil(d.hpF); p.mp = Math.floor(d.mpF);
     for (const [r, hp] of d.benchHp) {
       const v = d.owned.find((o) => o.rowId === r), max = v ? this.maxHpOf(d, v) : 0;
-      if (!v || hp + regen(max) >= max) d.benchHp.delete(r); else d.benchHp.set(r, hp + regen(max));
+      const nv = hp + regen(max);
+      if (!v || nv >= max) d.benchHp.delete(r); else d.benchHp.set(r, nv);
     }
+    return safe;
   }
 
   /** Hồn thú không mục tiêu, không bị đánh BEAST_REGEN.delay giây thì hồi máu; Trúng độc giảm hồi máu (healCut). */

@@ -910,17 +910,17 @@ else {
     E.dmgs=[]; await test(E,"ready"); E.room.send("skill",{i:0}); ok(await lastLog(E,/Vùng an toàn/),"trong làng: không tung hồn kỹ");
     await sleep(2200); ok(!ticks().length,"trong làng: độc do mình gây tạm dừng, không gây sát thương");
     // #112: hồi sinh lực / hồn lực 1 giây (hook pregen chạy đúng regenPlayer): khớp hpRegen / mpRegen, trong làng nhanh gấp SAFE_REGEN_MULT.
-    const regen=async(safe,hit)=>{ const r=await test(E,"pregen",{s:1,hp:20,mp:0,hit});
-      const hp=Math.min(r.maxHp-r.hp0,hpRegen(r.maxHp,hit?0:99,safe)), mp=Math.min(r.maxMp-r.mp0,mpRegen(r.level,VOHON[r.vh].mp,safe));
-      ok(r.safe===safe&&Math.abs(r.hp-hp)<1e-6&&Math.abs(r.mp-mp)<1e-6,
-        `${safe?"trong":"ngoài"} làng${hit?", vừa bị đánh":""}: hồi ${r.hp.toFixed(2)} sinh lực (cần ${hp.toFixed(2)}), ${r.mp.toFixed(2)} hồn lực (cần ${mp.toFixed(2)}) mỗi giây`);
+    const regen=async(inside,hit)=>{ const r=await test(E,"pregen",{s:1,hp:20,mp:0,hit});
+      const hp=Math.min(r.maxHp-r.hp0,hpRegen(r.maxHp,hit?0:99,inside)), mp=Math.min(r.maxMp-r.mp0,mpRegen(r.level,VOHON[r.vh].mp,inside));
+      ok(r.safe===inside&&Math.abs(r.hp-hp)<1e-6&&Math.abs(r.mp-mp)<1e-6,
+        `${inside?"trong":"ngoài"} làng${hit?", vừa bị đánh":""}: hồi ${r.hp.toFixed(2)} sinh lực (cần ${hp.toFixed(2)}), ${r.mp.toFixed(2)} hồn lực (cần ${mp.toFixed(2)}) mỗi giây`);
       return r; };
-    const sIn=await regen(true,false), sInHit=await regen(true,true);
+    const full=()=>test(E,"pregen",{s:0,hp:100,mp:100}); // trả lại đầy sinh lực / hồn lực, coi như đã lâu không bị đánh
+    const sIn=await regen(true,false), sInHit=await regen(true,true); await full(); // ra khỏi làng với đầy sinh lực như trước
     await goTo(E,out,ry); E.dmgs=[]; ok(!inSafeOf(E)&&await waitFor(()=>ticks().length,1500),"ra khỏi làng: độc gây sát thương tiếp");
-    const sOut=await regen(false,false), sOutHit=await regen(false,true);
+    const sOut=await regen(false,false), sOutHit=await regen(false,true); await full();
     const rt=(x,y)=>Math.abs(x/y-SAFE_REGEN_MULT)<1e-6;
     ok(rt(sIn.hp,sOut.hp)&&rt(sInHit.hp,sOutHit.hp)&&rt(sIn.mp,sOut.mp),`vùng an toàn hồi nhanh gấp ${SAFE_REGEN_MULT}: sinh lực ${sIn.hp.toFixed(1)} / ${sOut.hp.toFixed(1)}, vừa bị đánh ${sInHit.hp.toFixed(1)} / ${sOutHit.hp.toFixed(1)}, hồn lực ${sIn.mp.toFixed(1)} / ${sOut.mp.toFixed(1)}`);
-    await test(E,"pregen",{s:0,hp:100,mp:100}); // trả lại đầy sinh lực / hồn lực, coi như đã lâu không bị đánh
     await test(E,"clear");
   }
   // Hướng thử: tính lại ở chỗ đứng hiện tại mỗi lần quay mặt (không vướng cây, không ra ngoài bản đồ trong 100 pixel).
