@@ -100,6 +100,8 @@ Gemini vẽ nhiều vật trên một ảnh lớn ở dạng "giả pixel" (mỗ
   - Báo cáo in `cắt đế rộng W dày t`, hoặc `KHÔNG dò được đế` (vật để nguyên).
   - Xem lại bằng mắt: vật cùng màu với đế (bụi cỏ, lau sậy trên mặt nước) cắt xấu thì không đưa vào game, ghi vào danh sách vẽ lại.
 - Một vùng dùng **chung `--scale`** cho mọi vật (Tinh Đấu: 0,6). Khung mỗi vật là bội `ISO_PROP_STEP` vừa hình: chạy một lần với khung lớn và `--debug`, đo hộp bao trong `_native/`, rồi chạy lại với khung đã tính. Bảng màu: `art/palette.gpl` gộp `art/palettes/<vùng>.gpl` thành một file, truyền bằng `--palette <file>`.
+- Giao diện / thẻ / trạng thái: mảnh thủy mặc `ui_<tên>` (`--kind object --scale 1`, cắt sát, `--nine N` khi đăng ký nếu kéo giãn 9 lát), khung thẻ `card_{sr,ssr,ur}` 96×152 (`ISO_CARD`, cửa sổ chân dung trong suốt), trạng thái `status_<mã STATUS_IDS / BUFF_IDS>` 24×24 (`--kind portrait --size 24`; validate kiểm mã). Gemini hay kẻ lưới tối giữa các ô: xóa lưới (thay bằng màu nền) trước khi nhập, không thì cả lưới thành một vật.
+- Ảnh tham chiếu cho PixelLab (không vào manifest): `art/src/gemini/phuthe_s/<mã>_s.png` (phụ thể 96×96 hướng nam, 10.5), `art/src/gemini/beast_se/<loài>_se_<cỡ>.png` (hồn thú Gemini vẽ nghiêng 3/4 sang phải: dùng cho hướng `se` / `e`, 10.6).
 - Chân dung NPC: `--kind portrait --size 112` (`ISO_NPC_PORTRAIT`), key `npc_<mã NPCS>` (validate kiểm mã có trong `NPCS`). Biểu tượng vật phẩm: key `item_<mã>` (id `ITEMS`, nhóm `ITEM_KINDS` hoặc `hon_cot_<vị trí>`; validate kiểm mã). Huy hiệu hệ: 24×24 màu, chờ ảnh vẽ lại.
 - **Đăng ký vào game** (sau khi người dùng duyệt):
   - Chép vào `shared/assets/sprites/iso/portrait/<mã võ hồn>.png`, `iso/props/<vật>.png`, `iso/npc/<mã>.png` hoặc `iso/item/<mã>.png`.

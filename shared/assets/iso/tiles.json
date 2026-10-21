@@ -276,10 +276,6 @@
    "key": "prop_cay_u_minh",
    "foot": [48, 124]
   },
-  "cay_dua": {
-   "key": "prop_cay_dua",
-   "foot": [32, 92]
-  },
   "cay_thu_do": {
    "key": "prop_cay_thu_do",
    "foot": [56, 124]
@@ -287,10 +283,6 @@
   "cay_thu_cam": {
    "key": "prop_cay_thu_cam",
    "foot": [32, 108]
-  },
-  "thong_tuyet": {
-   "key": "prop_thong_tuyet",
-   "foot": [32, 124]
   },
   "bang_tinh": {
    "key": "prop_bang_tinh",
@@ -311,6 +303,14 @@
   "thong_cao": {
    "key": "prop_thong_cao",
    "foot": [24, 94]
+  },
+  "cay_dua_cao": {
+   "key": "prop_cay_dua_cao",
+   "foot": [32, 92]
+  },
+  "thong_tuyet_nho": {
+   "key": "prop_thong_tuyet_nho",
+   "foot": [32, 124]
   }
  },
  "maps": {
@@ -344,7 +344,7 @@
     "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0"],
     "19": ["cay_la_rong~#98a8a0", "cay_la_tron~#a0aa98"],
     "20": ["cay_rung_dem", "cay_u_minh"],
-    "30": "thong_tuyet",
+    "30": "thong_tuyet_nho",
     "32": "bang_tinh",
     "36": "da_ngam"
    },
@@ -470,9 +470,9 @@
     "7": "cat_uot"
    },
    "props": {
-    "17": "cay_dua",
-    "18": ["cay_dua", "cay_la_tron"],
-    "20": ["cay_dua", "cay_la_tron~#c8d4c0"]
+    "17": "cay_dua_cao",
+    "18": ["cay_dua_cao", "cay_la_tron"],
+    "20": ["cay_dua_cao", "cay_la_tron~#c8d4c0"]
    },
    "build": {
     "wallKind": "plaster",

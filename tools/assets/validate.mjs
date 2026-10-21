@@ -1,6 +1,6 @@
 // Kiểm tra sprite theo quy cách mục 5.11, và đăng ký sprite mới vào manifest + art/CREDITS.md.
 //   node tools/assets/validate.mjs                     kiểm mọi key trong shared/assets/sprites/manifest.json
-//   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH] [--iso] [--map <mapId>]
+//   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH] [--iso] [--map <mapId>] [--nine N]
 //        kiểm file của key, thêm key vào manifest (nếu chưa có; --iso ghi "iso": true, --map ghi "map") và ghi/cập nhật
 //        một dòng trong art/CREDITS.md.
 // Key "iso": true theo bố cục isometric (isoLayout trong lib.mjs: hồn sư / phụ thể 24 × 6, hồn thú 20 × 5); key chưa có cờ
@@ -17,12 +17,12 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, statusIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const register = opt("--register", ""), prompt = opt("--prompt", ""), tool = opt("--tool", "PixelLab MCP"), note = opt("--note", ""), frameOpt = opt("--frame", "");
-const mapOpt = opt("--map", ""), isoAt = args.indexOf("--iso"), isoOpt = isoAt >= 0 && !!args.splice(isoAt, 1);
+const nineOpt = +opt("--nine", "0"), mapOpt = opt("--map", ""), isoAt = args.indexOf("--iso"), isoOpt = isoAt >= 0 && !!args.splice(isoAt, 1);
 
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 manifest.sprites ??= [];
@@ -30,7 +30,7 @@ const entryKey = (e) => (typeof e === "string" ? e : e.key);
 const allowed = allowedColors(), withAccents = new Set([...allowed, ...accentColors()]);
 // Tóc/áo: 4 xám để hoán màu + viền ngoài #1a1020 (màu thứ 5, giữ nguyên khi hoán màu).
 const grayOnly = new Set([...GRAY_RAMP, OUTLINE]);
-let errors = 0, warns = 0, npcIds_, itemIds_;
+let errors = 0, warns = 0, npcIds_, itemIds_, statusIds_;
 const feet = new Map(); // "bộ:hàng" → { low: dòng thấp nhất của idle khung đầu (3 lớp của bộ giới × kiểu tóc), want: dòng gốc }
 const err = (k, m) => { errors++; console.error(`[validate] LỖI ${k}: ${m}`); };
 const warn = (k, m) => { warns++; console.warn(`[validate] cảnh báo ${k}: ${m}`); };
@@ -55,7 +55,7 @@ function mapColors(key, map) {
   return readGpl(f);
 }
 
-function check(key, frame, iso = false, map = "") {
+function check(key, frame, iso = false, map = "", nine = 0) {
   const spec = sheetSpec(key, frame, iso);
   if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
@@ -64,6 +64,8 @@ function check(key, frame, iso = false, map = "") {
   try { img = readPng(file); } catch (e) { return err(key, `không đọc được PNG: ${e.message}`); }
   if (spec.size && (img.w !== spec.size[0] || img.h !== spec.size[1])) return err(key, `kích thước ${img.w}×${img.h}, cần ${spec.size[0]}×${spec.size[1]}`);
   if (spec.frame && (img.w % spec.frame[0] || img.h % spec.frame[1])) return err(key, `kích thước không chia hết cho khung ${spec.frame.join("×")}`);
+  // "nine": chỉ cho mảnh giao diện ui_*, số nguyên dương, hai mép cộng lại phải nhỏ hơn cạnh ngắn (còn phần giữa để kéo giãn).
+  if (nine && (!/^ui_/.test(key) || !Number.isInteger(nine) || nine < 1 || 2 * nine >= Math.min(img.w, img.h))) err(key, `"nine": ${nine} không hợp lệ (chỉ ui_*, số nguyên 1…${Math.floor((Math.min(img.w, img.h) - 1) / 2)})`);
   if (spec.kind === "prop" && (img.w % ISO_PROP_STEP || img.h % ISO_PROP_STEP)) return err(key, `kích thước ${img.w}×${img.h} không chia hết cho ${ISO_PROP_STEP}`);
 
   // Màu và alpha.
@@ -80,6 +82,7 @@ function check(key, frame, iso = false, map = "") {
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
   if (spec.kind === "portrait" && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, chân dung tối đa ${PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
+  if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.item && !(itemIds_ ??= itemIconIds()).has(spec.item)) err(key, `không có vật phẩm "${spec.item}" trong ITEMS / hồn cốt theo BONE_SLOTS (shared/data.ts)`);
   if (bad.size) err(key, `${bad.size} màu ngoài bảng${palette === grayOnly ? " (tóc/áo chỉ dùng dải 4 xám + viền)" : ""}: ` +
     [...bad].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `${c}×${n}`).join(", "));
@@ -182,10 +185,11 @@ function upsertCredits(key, file) {
 if (register) {
   if (!prompt) { console.error("--register cần --prompt (ghi vào art/CREDITS.md)"); process.exit(1); }
   const frame = frameOpt ? frameOpt.split("x").map(Number) : undefined;
-  const spec = check(register, frame, isoOpt, mapOpt);
+  const spec = check(register, frame, isoOpt, mapOpt, nineOpt);
   if (errors) process.exit(1);
   const iso = isoOpt || !!spec.iso;
-  const entry = frame || iso || mapOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(mapOpt ? { map: mapOpt } : {}) } : register;
+  // --nine N: mảnh giao diện kéo giãn 9 lát, giữ nguyên N điểm ở mỗi mép (hộp thoại, cuộn giấy, khung thanh).
+  const entry = frame || iso || mapOpt || nineOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(mapOpt ? { map: mapOpt } : {}), ...(nineOpt ? { nine: nineOpt } : {}) } : register;
   const i = manifest.sprites.findIndex((e) => entryKey(e) === register);
   if (i < 0 || JSON.stringify(manifest.sprites[i]) !== JSON.stringify(entry)) {
     // Đăng ký lại một key (ví dụ bộ 32×32 cũ thay bằng bộ isometric) thì ghi đè dòng cũ.
@@ -205,7 +209,7 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "");
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.

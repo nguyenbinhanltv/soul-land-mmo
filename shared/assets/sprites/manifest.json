@@ -22,6 +22,18 @@
         32
       ]
     },
+    {
+      "key": "card_sr",
+      "iso": true
+    },
+    {
+      "key": "card_ssr",
+      "iso": true
+    },
+    {
+      "key": "card_ur",
+      "iso": true
+    },
     "hs_body_f_0",
     "hs_body_f_1",
     "hs_body_f_2",
@@ -243,11 +255,36 @@
       "iso": true
     },
     {
+      "key": "prop_bui_gai",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "prop_cau_go",
       "iso": true
     },
     {
+      "key": "prop_cau_tau_go",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_cay_bang_chet",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "prop_cay_bong_mat",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "prop_cay_dua",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_cay_dua_cao",
       "iso": true
     },
     {
@@ -279,20 +316,80 @@
       "iso": true
     },
     {
+      "key": "prop_cong_hoc_vien",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_cong_lang_go",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_cot_bang",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "prop_cot_den_hai_than",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_cua_hang_hai_tang",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_cum_bang_tinh",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "prop_cum_da",
       "iso": true
+    },
+    {
+      "key": "prop_cum_san_ho",
+      "iso": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "prop_da_ngam",
       "iso": true
     },
     {
+      "key": "prop_da_phu_tuyet",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "prop_dong_rom",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "prop_duong_xi_sang",
       "iso": true
     },
     {
+      "key": "prop_gieng_da",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "prop_goc_cay_nam",
       "iso": true
+    },
+    {
+      "key": "prop_hang_rao_go",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_kho_thoc",
+      "iso": true,
+      "map": "thanh_hon_thon"
     },
     {
       "key": "prop_khuc_go_rong",
@@ -303,8 +400,18 @@
       "iso": true
     },
     {
+      "key": "prop_lo_ren_lang",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "prop_lua_trai",
       "iso": true
+    },
+    {
+      "key": "prop_mang_nhen_khong_lo",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "prop_nam_khong_lo",
@@ -315,8 +422,23 @@
       "iso": true
     },
     {
+      "key": "prop_nha_nong_dan",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_nha_truong_thon",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "prop_re_cay_lon",
       "iso": true
+    },
+    {
+      "key": "prop_sap_cho",
+      "iso": true,
+      "map": "nac_dinh_thanh"
     },
     {
       "key": "prop_so_thu_khong_lo",
@@ -327,19 +449,175 @@
       "iso": true
     },
     {
+      "key": "prop_thap_cong_thanh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
       "key": "prop_thong_cao",
       "iso": true
     },
     {
       "key": "prop_thong_tuyet",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "prop_thong_tuyet_nho",
       "iso": true
+    },
+    {
+      "key": "prop_thung_go_chong",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_tinh_the_tim",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_tuong_do_reu",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_tuong_hai_than",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_tuong_thanh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
     },
     {
       "key": "prop_vach_da_nho",
       "iso": true
     },
     {
+      "key": "prop_vo_oc_khong_lo",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "prop_vom_da",
+      "iso": true
+    },
+    {
+      "key": "prop_vu_hon_dien_nho",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_vuon_rau",
+      "iso": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_xuong_co_dong_bang",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "prop_xuong_ren",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "status_armor",
+      "iso": true
+    },
+    {
+      "key": "status_burn",
+      "iso": true
+    },
+    {
+      "key": "status_charm",
+      "iso": true
+    },
+    {
+      "key": "status_def",
+      "iso": true
+    },
+    {
+      "key": "status_poison",
+      "iso": true
+    },
+    {
+      "key": "status_shock",
+      "iso": true
+    },
+    {
+      "key": "status_silence",
+      "iso": true
+    },
+    {
+      "key": "status_slow",
+      "iso": true
+    },
+    {
+      "key": "ui_an_trien_lon",
+      "iso": true
+    },
+    {
+      "key": "ui_an_trien_nho",
+      "iso": true
+    },
+    {
+      "key": "ui_an_trien_vua",
+      "iso": true
+    },
+    {
+      "key": "ui_cuon_giay",
+      "iso": true,
+      "nine": 20
+    },
+    {
+      "key": "ui_goc_duoi_phai",
+      "iso": true
+    },
+    {
+      "key": "ui_goc_duoi_trai",
+      "iso": true
+    },
+    {
+      "key": "ui_goc_tren_phai",
+      "iso": true
+    },
+    {
+      "key": "ui_goc_tren_trai",
+      "iso": true
+    },
+    {
+      "key": "ui_hop_thoai",
+      "iso": true,
+      "nine": 18
+    },
+    {
+      "key": "ui_nut_nhan",
+      "iso": true
+    },
+    {
+      "key": "ui_nut_ro",
+      "iso": true
+    },
+    {
+      "key": "ui_nut_thuong",
+      "iso": true
+    },
+    {
+      "key": "ui_thanh_hon_luc",
+      "iso": true,
+      "nine": 6
+    },
+    {
+      "key": "ui_thanh_sinh_luc",
+      "iso": true,
+      "nine": 6
+    },
+    {
+      "key": "ui_vach_but",
       "iso": true
     },
     "vh_cuu_bao_luu_ly_thap_b",
