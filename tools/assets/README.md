@@ -9,13 +9,13 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | Thứ tự | Lớp | Nguồn | Ghi chú |
 |---|---|---|---|
 | 1 | Bóng | Code | Elip 2:1 dưới chân, `#1a1020` khoảng 35% (hồn sư 24×12) |
-| 2 | Vòng hồn hoàn, nửa sau | Code (hoặc ảnh `halo`) | Cung trên của elip |
+| 2 | Vòng hồn hoàn, nửa sau | Code (`sring…`) | Cung trên của elip |
 | 3 | Phụ thể võ hồn, nửa sau | `vh_{id}_b` | Cánh, đuôi, chân nhện, hư ảnh sau lưng, vũ khí khi bị thân che |
 | 4 | Thân | `hs_body_{m/f}_{0–3}` | Da, mặt, quần hoặc váy lót, giày |
 | 5 | Áo | `hs_outfit_{m/f}_{0–3}` | Dải 4 xám, hoán màu |
 | 6 | Tóc | `hs_hair_{m/f}_{0–3}` | Dải 4 xám, hoán màu |
 | 7 | Phụ thể võ hồn, nửa trước | `vh_{id}_f` | Vũ khí trên tay, tai thú, dây leo trước người, hào quang phía trước |
-| 8 | Vòng hồn hoàn, nửa trước | Code (hoặc ảnh `halo`) | Cung dưới của elip |
+| 8 | Vòng hồn hoàn, nửa trước | Code (`sring…`) | Cung dưới của elip |
 | 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
 
 - **Key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3), file `honsu/{lớp}_{giới}_{kiểu tóc}.png`; client lấy bằng `honsuKey(lớp, giới, kiểu tóc)`. Key đã hoán màu là key gốc + `@` + chỉ số màu (`hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`), chỉ tạo khi có người dùng.
@@ -88,10 +88,19 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 - Mắt phát sáng: client vẽ chấm mắt màu `TIERS[bậc].glow` theo điểm mắt khai báo cho từng loài và hướng trong manifest. Key `beast_{loài}`; loài chưa có ảnh vẽ theo bậc `b{tier}_…` bằng code. Client chưa tải sheet hồn thú `iso` cho tới bước 10.6.
 
 ## Vòng hồn hoàn
-- Dưới chân: `halo{tier}` vẽ bằng code, khung 24×10 (elip 20×6, viền 1 pixel `glow` ngoài thân `col`; khung 0 cung trên vẽ sau thân, khung 1 cung dưới vẽ trước thân), phóng `SPR` cùng hình chứa hồn sư; vòng 1 sát chân, mỗi vòng sau cao hơn 2 pixel (trước khi phóng), nhấp nhô lệch pha, ẩn khi gục. Tung hồn kỹ vòng i: vòng đó đổi sang `halo{tier}_lit` (28×12, phình 2 pixel, sáng hơn một bậc) trong `RING_LIT_MS`.
-- Rơi trên đất: `ring{tier}` (elip nằm nghiêng phát sáng). File `ring/ring{tier}.png`, `ring/halo{tier}.png`.
+- Dưới chân vẽ bằng code (`client/src/textures.ts`), ở pixel nội bộ (lớp hồn sư phóng 1 / `SPR` trong khung chứa): `sring{tier}_{0–9}` là vòng nằm đất theo thứ tự (elip 2:1 bán trục ngang `RING_RX0` + `RING_STEP` × thứ tự; vòng 1 rộng 30, vòng 10 rộng 84; nét 1 pixel `col` cộng 1 pixel `glow` mờ phía trong), `sring{tier}_up` là vòng nổi dẹt 34×10 (thân 2 pixel `col` viền `glow`) khi tung hồn kỹ / Chân Thân; thêm `L` là bản sáng (col → glow, glow → trắng). Khung 0 cung trên (vẽ sau thân), khung 1 cung dưới (vẽ trước thân).
+- Tung hồn kỹ vòng i: vòng đó bay lên ngang ngực rồi hạ về trong `RING_LIT_MS` (`GameScene.ts`). Chân Thân: mọi vòng nổi xếp đều từ chân tới đỉnh đầu, nhấp nhô lệch pha.
+- Rơi trên đất: `ring{tier}` 32×20 (elip 2:1 nằm nghiêng phát sáng), file `ring/ring{tier}.png`; cũng là nguồn sáng nhỏ màu `glow`. (`halo{tier}` là key ảnh cũ của bản vòng chồng dọc, `sprites.ts` vẫn nhận nhưng không còn vẽ.)
 
-## Bảng các vùng đầy đủ (ánh sáng, thời tiết, hạt bay; quy cách bước 10.7)
+## Ánh sáng và thời tiết (cách làm)
+- **`client/src/lighting.ts`:** pipeline Light2D riêng, khoảng cách tới đèn tính theo pixel nội bộ; trên nền và vật đứng ánh sáng tắt dần theo elip 2:1, trên thực thể theo hình tròn và màu môi trường kéo về trắng khoảng 40% (`ENTITY_LIFT`). Tổng ánh sáng có trần; ban ngày đèn giảm một nửa; tuyết, cát, sân đấu giảm theo `dim` của vùng (`REGIONS`: màu ngày / đêm, `always`, `dim`, ánh cửa nhà `house`, mặt nước phát sáng `water`). Vật phát sáng theo tên vật trong `tiles.json` ở `GLOW_PROPS`. Hồn kỹ (vòng lan, vùng chiêu, tung hồn kỹ của vòng) soi mặt đất màu chiêu rồi tắt dần.
+- Số đèn: Phaser `maxLights` khoảng 10, máy cảm ứng 6 (`?den=N` để thử); chọn hồn lực trước rồi gần tâm camera.
+- **Atlas:** ô nền, lớp phủ mép, vật đứng, nhà của một bản đồ gom vào một atlas (cùng atlas normal map, `client/src/isoAtlas.ts`) vì pipeline ánh sáng chỉ gom các ảnh cùng texture vào một lần vẽ (đo ở Tinh Đấu Nội địa: khoảng 1.100 lần vẽ mỗi khung nếu không gom, 80 khi gom, 29 khi tắt ánh sáng).
+- **Tắt sạch:** chỉ có Canvas, WebGL phần mềm (SwiftShader, llvmpipe…) hoặc `?light=0` thì không bật; khung hình dưới `AUTO_OFF_FPS` suốt `AUTO_OFF_MS` thì tự tắt và báo (`?light=1` luôn bật). `?gio=HH:MM` đứng yên đồng hồ ngày / đêm (chụp ảnh, thử).
+- Normal map: client tải `_n.png` của mọi ô nền và vật đứng khi bật ánh sáng; thiếu thì 404 và vật coi như phẳng.
+- **`client/src/weather.ts`:** khói bếp bay từ mái nhà và lửa trại, bọt sóng / đom đóm biển chỉ sinh trên ô nước, tuyết Cực Bắc dày dần về phía bắc, sương / mưa / sét theo vùng (Đầm sương độc, Lôi Cốc, Ma Quỷ Hải Vực, Cực Bắc Băng Uyên), sương sớm Ngoại vi theo giờ, cực quang ban đêm ở mép trên màn hình, giấy hoa khi có người thắng ở Đại Đấu Hồn Trường. Lệnh `/hat` bật / tắt (lưu trên máy).
+
+## Bảng các vùng đầy đủ (ánh sáng, thời tiết, hạt bay)
 Quy tắc chung ở `GAME_DESIGN.md` mục 5.11 (phong cách B, "Ánh sáng và chiều sâu", "Độ tương phản"). Màu nhấn đầy đủ ở `art/palettes/<mapId>.gpl`. Ngày / đêm chỉ ở client, theo giờ Việt Nam (06:00–18:00 là ngày); vùng ghi "luôn" thì không đổi theo giờ.
 
 | Bản đồ (`MAPS`) | Màu chủ đạo | Ngày / đêm | Thời tiết | Hạt bay | Địa hình, vật đặc trưng |
@@ -149,7 +158,7 @@ shared/assets/sprites/
   honsu/{body,outfit,hair}_{m,f}_{0–3}.png   hs_{lớp}_{giới}_{kiểu tóc} (+ _n.png normal map)
   vohon/{id}_b.png, {id}_f.png               vh_{id}_b, vh_{id}_f
   beast/{loài}.png                           beast_{loài}
-  ring/ring{tier}.png                        ring{tier}, halo{tier}
+  ring/ring{tier}.png                        ring{tier} (vòng dưới chân vẽ bằng code: sring…)
   iso/portrait/{id}.png                      portrait_{id}
   iso/props/{vật}.png                        prop_{vật}
   iso/npc/{mã}.png                           npc_{mã}
