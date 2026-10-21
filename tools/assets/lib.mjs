@@ -1,7 +1,7 @@
 // Thư viện dùng chung cho dây chuyền asset (tools/assets/*): đọc/ghi PNG, bảng màu, quy cách 5.11.
 // Không phụ thuộc thư viện ngoài (chỉ node:zlib) để chạy được trong `npm run check` mà không cần cài gì.
 import { inflateSync, deflateSync } from "node:zlib";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -106,6 +106,10 @@ export function shortDirName(name) {
   const d = PIXELLAB_DIRS[m[1]] ?? m[1];
   return m[2] ? d + m[2] : `${d}_idle_0`;
 }
+/** Chân dung võ hồn (giao diện HTML): khung vuông, tối đa PORTRAIT_MAX_COLORS màu mỗi ảnh (không theo bảng chung). */
+export const ISO_PORTRAIT = 64, PORTRAIT_MAX_COLORS = 32;
+/** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
+export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 
 // ---------- Màu ----------
 export const hex = (c) => { const n = parseInt(c.replace("#", ""), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
@@ -148,6 +152,12 @@ export function shadesOf(c) {
   const dark = toHex([r, g, b].map((v) => Math.round(v * 0.62)));
   const light = toHex([r, g, b].map((v) => Math.round(v + (255 - v) * 0.45)));
   return [dark, light];
+}
+
+/** Màu nhấn của mọi vùng / giao diện (art/palettes/*.gpl, phong cách B, C, D ở mục 5.11). */
+export function accentColors() {
+  const dir = path.join(ROOT, "art", "palettes");
+  return new Set(readdirSync(dir).filter((f) => f.endsWith(".gpl")).flatMap((f) => readGpl(path.join(dir, f))));
 }
 
 /** Bảng màu cho phép: palette.gpl + col/robe võ hồn (kèm 1 tối, 1 sáng) + màu hồn hoàn. */
@@ -269,7 +279,8 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
 /**
  * Trả về { file, frame:[w,h], kind } cho một key manifest, hoặc null nếu key sai quy ước.
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
- * `iso` (manifest ghi `"iso": true`): bố cục isometric của isoLayout, kèm `layout`; hồn thú theo loài cần `frame` vuông.
+ * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
+ * loài cần `frame` vuông); chân dung `portrait_*` và vật đứng `prop_*` chỉ có dạng isometric.
  */
 export function sheetSpec(key, frame, iso = false) {
   let m;
@@ -279,7 +290,7 @@ export function sheetSpec(key, frame, iso = false) {
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
-    return null;
+    if (!/^(portrait|prop)_/.test(key)) return null; // chân dung, vật đứng: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
@@ -287,6 +298,9 @@ export function sheetSpec(key, frame, iso = false) {
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * BEAST_COLS, frame[1]], kind: "beast" };
   if (/^ring\d$/.test(key)) return { file: `ring/${key}.png`, kind: "ring" };
   if (/^halo\d$/.test(key)) return { file: `ring/${key}.png`, frame: [24, 10], kind: "ring" };
+  // Asset isometric (manifest ghi "iso": true; client chưa tải, bước 10.2 / 10.8 dùng): chân dung võ hồn, vật đứng.
+  if ((m = key.match(/^portrait_([a-z_]+)$/))) return { file: `iso/portrait/${m[1]}.png`, size: [ISO_PORTRAIT, ISO_PORTRAIT], kind: "portrait", iso: true };
+  if ((m = key.match(/^prop_([a-z_]+)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };
   return null;
 }
 

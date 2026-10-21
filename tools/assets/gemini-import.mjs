@@ -23,9 +23,9 @@
 //      - tile-block: như tile nhưng giữ viền (tối về #1a1020), không làm liền mép, không thu mép (mép vách, bờ nước).
 //      - sprite (khung và gốc lấy từ hằng ISO_* trong lib.mjs: honsu ISO_HS_FRAME / ISO_HS_ORIGIN, vohon ISO_VH_FRAME /
 //        ISO_VH_ORIGIN; beast cần --size một cỡ trong ISO_BEAST_SIZES, chân cách đáy ISO_BEAST_FOOT; object cần --size,
-//        chân cách đáy 2): mọi vật trong một lần chạy dùng CHUNG hệ số thu (--scale đặt hẳn), chân (đáy hộp bao) đặt
+//        chân cách đáy ISO_PROP_FOOT): mọi vật trong một lần chạy dùng CHUNG hệ số thu (--scale đặt hẳn), chân (đáy hộp bao) đặt
 //        vào gốc, viền ngoài tối về #1a1020 và thêm viền nơi còn thiếu.
-//      - portrait (mặc định 64×64): ô là khung nền tối (thẻ võ hồn) → phần đặc của khung cắt từ ảnh gốc, cắt giữa 1:1
+//      - portrait (mặc định ISO_PORTRAIT): ô là khung nền tối (thẻ võ hồn) → phần đặc của khung cắt từ ảnh gốc, cắt giữa 1:1
 //        (lệch cỡ nhiều thì thu / phóng phủ kín), không viền ngoài; ô nền trong suốt thì căn giữa như sprite.
 //   7. Ghi <out>/<tên>.png (ô: <out>/<cỡ>/<tên>.png), _preview.png (phóng --preview, mặc định ×4) và <out>/_report.json
 //      (cỡ ô giả, độ phân giải gốc, tỉ lệ thoi, dải mép đã bỏ, điểm lệch mép ghép); bảng auto / auto-item ghi thêm
@@ -43,6 +43,9 @@
 //                          bảng auto chung cả lô (mặc định 32; tấm nhiều chất liệu thì ô đều màu chỉ còn 1–3 màu).
 //   --scale S              (sprite) hệ số thu chung đặt hẳn thay vì vừa vật lớn nhất.
 //   --logo auto|off|x,y,w,h|star:cx,cy,R[,alpha]   --key #rrggbb (màu nền; mặc định đọc ở góc ảnh)   --tol 60
+//   --cut-base a,b|all     (sprite) cắt đế đất thoi dày dưới chân các vật có tên này (cutBase); --base-tol 1500 độ
+//                          sai khác màu (khoảng cách RGB có trọng số) để coi một điểm mặt trên là đất của đế.
+//   --fringe 2             số lượt gỡ viền nhiễm màu nền (điểm ảnh gốc); quầng sáng vẽ đè lên nền thì tăng (10–20).
 //   --inset auto|<số>      (tile) số điểm ảnh gốc thu vào từ mép thoi để bỏ viền; auto: dò bề rộng dải mép khác màu
 //                          bên trong (viền đen, thành "hộp kính" của nước), tối thiểu 1,5, tối đa 12.
 //   --seamless on|off      (tile, mặc định on)   --seam-band 0.3 (bề rộng dải trộn, phần của bán kính thoi).
@@ -50,7 +53,7 @@
 //   --debug                ghi thêm <out>/_native/<tên>.png (ảnh pixel thật trước khi đưa về khung).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, hex, toHex, readGpl, OUTLINE, ISO_TILE_W, isoTileImage, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_VH_ORIGIN, ISO_BEAST_SIZES, ISO_BEAST_FOOT } from "./lib.mjs";
+import { decodePng, encodePng, Img, hex, toHex, readGpl, OUTLINE, ISO_TILE_W, isoTileImage, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_VH_ORIGIN, ISO_BEAST_SIZES, ISO_BEAST_FOOT, ISO_PORTRAIT, ISO_PROP_FOOT } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -58,9 +61,10 @@ const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i,
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
 const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? "10" : "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto");
+const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const scaleOpt = opt("--scale", ""), debug = flag("--debug"), faceOnly = flag("--face-only");
+const cutBaseOpt = opt("--cut-base", ""), baseTol = +opt("--base-tol", "1500");
 const file = args[0];
 const KINDS = ["tile", "tile-block", "honsu", "vohon", "beast", "object", "portrait"];
 if (!outDir || !file || !KINDS.includes(kind)) {
@@ -76,7 +80,7 @@ if (isTile) for (const [w, h] of (sizeOpt ? sizeOpt.split(",") : []).map((v) => 
   if (h !== undefined && h !== w / 2) console.warn(`[gemini] cảnh báo: ô thoi luôn có mặt trên ${w}×${w / 2} (2:1), bỏ qua chiều cao ${h}`);
 }
 // Sprite: khung mặc định theo quy cách isometric (hằng ở lib.mjs); hồn thú, vật, chân dung phải chọn cỡ.
-const DEFAULT_SIZE = { honsu: [ISO_HS_FRAME, ISO_HS_FRAME], vohon: [ISO_VH_FRAME, ISO_VH_FRAME], portrait: [64, 64] }; // chân dung 64×64 (mục 5.11)
+const DEFAULT_SIZE = { honsu: [ISO_HS_FRAME, ISO_HS_FRAME], vohon: [ISO_VH_FRAME, ISO_VH_FRAME], portrait: [ISO_PORTRAIT, ISO_PORTRAIT] };
 const sizeArg = !isTile && sizeOpt ? sizeOpt.split("x").map(Number) : null;
 if (!isTile && !sizeArg && !DEFAULT_SIZE[kind]) {
   console.error(`--kind ${kind} cần --size${kind === "beast" ? ` (hồn thú: ${ISO_BEAST_SIZES.join(" / ")})` : ""}`);
@@ -85,7 +89,7 @@ if (!isTile && !sizeArg && !DEFAULT_SIZE[kind]) {
 const [FW, FH] = isTile ? [0, 0] : sizeArg ? (sizeArg.length === 1 ? [sizeArg[0], sizeArg[0]] : sizeArg) : DEFAULT_SIZE[kind];
 if (kind === "beast" && !(FW === FH && ISO_BEAST_SIZES.includes(FW))) console.warn(`[gemini] cảnh báo: hồn thú ${FW}×${FH} không thuộc cỡ ${ISO_BEAST_SIZES.join(" / ")}`);
 const DEFAULT_ANCHOR = { honsu: ISO_HS_ORIGIN, vohon: ISO_VH_ORIGIN, beast: [FW >> 1, FH - ISO_BEAST_FOOT] };
-const [AX, AY] = anchorOpt ? anchorOpt.split(",").map(Number) : DEFAULT_ANCHOR[kind] ?? [FW >> 1, FH - 2];
+const [AX, AY] = anchorOpt ? anchorOpt.split(",").map(Number) : DEFAULT_ANCHOR[kind] ?? [FW >> 1, FH - ISO_PROP_FOOT];
 
 // ---------- Màu ----------
 const lum = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
@@ -263,8 +267,9 @@ function removeBackground(img, K) {
     const p = img.get(x, y);
     if (maxDiff(p, K) <= tol || keyness(p) > kRef * 0.55) out.set(x, y, [0, 0, 0, 0]);
   }
-  // Viền nhiễm màu nền: 2 lượt gỡ điểm còn ánh màu khóa nằm sát nền.
-  for (let pass = 0; pass < 2; pass++) {
+  // Viền nhiễm màu nền: --fringe lượt (mặc định 2) gỡ điểm còn ánh màu khóa nằm sát nền. Quầng sáng vẽ đè lên nền
+  // (nấm, cây phát quang) cần nhiều lượt hơn; lượt gỡ dừng ở viền tối của vật vì viền không ánh màu khóa.
+  for (let pass = 0; pass < fringe; pass++) {
     const drop = [];
     for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
       if (!out.alpha(x, y) || keyness(out.get(x, y)) <= kRef * 0.15) continue;
@@ -419,6 +424,76 @@ function defake(img, P) {
     out.set(i, j, medoid(ps));
   }
   return { img: out, cell: [+(img.w / out.w).toFixed(2), +(img.h / out.h).toFixed(2)] };
+}
+
+// ---------- 4b. Cắt đế đất ----------
+/**
+ * Vật Gemini hay đứng trên một khối đất thoi dày (mặt trên cỏ rêu, hai mặt bên tối). Trên ảnh pixel thật:
+ *   - đáy hình bóng của đế là hai cạnh thoi dốc 1:2 gặp nhau ở đỉnh dưới: lấy điểm thấp nhất cột làm đỉnh, đi sang hai
+ *     bên tới khi đáy cột lệch đường dốc quá 2 điểm → bề ngang đế W (bỏ qua nếu W < 40% ảnh: vật không có đế);
+ *   - bề dày t = bậc sáng lên rõ nhất khi đi ngược từ đáy lên (mặt bên tối hơn mặt trên), trong 4–16 điểm;
+ *   - bỏ dải mặt bên (t điểm trên đường đáy), rồi loang từ mép dưới mặt trên qua các điểm cùng màu đất (bảng 8 màu
+ *     lấy ở mép, sai khác < --base-tol) trong thoi mặt trên: cỏ rêu của đế mất, vật (đá, lều, bia…) giữ lại;
+ *   - mảnh rời nhỏ hơn 8 điểm bỏ đi. Chân vật là đáy phần còn lại (renderSprite đặt vào gốc như thường).
+ * Trả về { img, base } với base = { width, thick, removed } hoặc null nếu không dò được đế.
+ */
+function cutBase(img) {
+  const W0 = img.w, H0 = img.h, bot = new Int32Array(W0).fill(-1);
+  for (let x = 0; x < W0; x++) for (let y = H0 - 1; y >= 0; y--) if (img.alpha(x, y)) { bot[x] = y; break; }
+  const yb = Math.max(...bot), low = [...bot.keys()].filter((x) => bot[x] === yb), cx = (low[0] + low[low.length - 1]) / 2;
+  const line = (x) => yb - Math.abs(x - cx) / 2;
+  const walk = (dir) => {
+    let x = Math.round(cx), miss = 0, last = x;
+    for (; x >= 0 && x < W0; x += dir) {
+      if (bot[x] >= 0 && Math.abs(bot[x] - line(x)) <= 2) { last = x; miss = 0; } else if (++miss > 3) break;
+    }
+    return last;
+  };
+  const xL = walk(-1), xR = walk(1), Wb = xR - xL;
+  if (Wb < W0 * 0.4) return { img, base: null };
+  // Bề dày: bậc sáng lên (đi từ dưới lên) mạnh nhất, trung bình trên các cột của đế.
+  let t = 0, best = -Infinity;
+  for (let k = 4; k <= 16; k++) {
+    let sum = 0, n = 0;
+    for (let x = xL + 2; x <= xR - 2; x++) {
+      const y1 = Math.round(line(x)) - k, y0 = y1 + 1;
+      if (y1 < 0 || !img.alpha(x, y1) || !img.alpha(x, y0)) continue;
+      sum += lum(img.get(x, y1)) - lum(img.get(x, y0)); n++;
+    }
+    if (n && sum / n > best) { best = sum / n; t = k; }
+  }
+  const out = new Img(W0, H0, Uint8Array.from(img.data)), clear = (x, y) => out.set(x, y, [0, 0, 0, 0]);
+  let removed = 0;
+  // Mặt bên: t điểm ngay trên đường đáy (cả phần vật nhô ra trước đế trong dải này).
+  for (let x = Math.max(0, xL - 1); x <= Math.min(W0 - 1, xR + 1); x++) for (let y = Math.max(0, Math.round(line(x)) - t + 1); y < H0; y++) if (out.alpha(x, y)) { clear(x, y); removed++; }
+  // Mặt trên: thoi bán trục a = W/2, b = W/4, đỉnh dưới tại yb − t. Màu đất lấy ở 3 hàng ngay trên mép dưới.
+  const a = Wb / 2, b = Wb / 4, yc = yb - t - b, inTop = (x, y) => Math.abs(x - cx) / a + Math.abs(y - yc) / b <= 1.08;
+  const seeds = [], samples = [];
+  for (let x = xL; x <= xR; x++) for (let k = 1; k <= 3; k++) {
+    const y = Math.round(line(x)) - t - k + 1;
+    if (y >= 0 && out.alpha(x, y)) { seeds.push([x, y]); samples.push(out.get(x, y).slice(0, 3)); }
+  }
+  if (samples.length) {
+    const ground = medianCut(samples, 8), seen = new Uint8Array(W0 * H0);
+    // Điểm rất tối (nét viền của vật) không tính là đất để phép loang dừng ở viền vật.
+    const isGround = (p) => lum(p) >= 35 && dist(p, ground[nearestIdx(p, ground)]) < baseTol;
+    const stack = seeds.filter(([x, y]) => isGround(out.get(x, y)));
+    for (const [x, y] of stack) seen[y * W0 + x] = 1;
+    while (stack.length) {
+      const [x, y] = stack.pop();
+      clear(x, y); removed++;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const X = x + dx, Y = y + dy, k = Y * W0 + X;
+        if (X < 0 || Y < 0 || X >= W0 || Y >= H0 || seen[k] || !out.alpha(X, Y) || !inTop(X, Y)) continue;
+        seen[k] = 1;
+        if (isGround(out.get(X, Y))) stack.push([X, Y]);
+      }
+    }
+  }
+  // Mảnh rời nhỏ (lá cỏ, hạt sáng còn sót trên đế).
+  const { lab, comps } = components(out);
+  for (let i = 0; i < W0 * H0; i++) if (lab[i] >= 0 && comps[lab[i]].n < 8) { out.data[i * 4 + 3] = 0; removed++; }
+  return { img: out, base: { width: Wb, thick: t, removed } };
 }
 
 // ---------- 5. Bảng màu ----------
@@ -777,7 +852,11 @@ if (names.length && names.length !== items.length) {
   process.exit(1);
 }
 const P = cellOpt === "auto" ? commonPeriod(items.map((it) => it.img)) : +cellOpt;
-const nat = items.map((it) => ({ ...it, ...defake(it.img, P) }));
+const cutNames = cutBaseOpt.split(",").filter(Boolean);
+const nat = items.map((it, i) => {
+  const n = { ...it, ...defake(it.img, P) }, name = names[i] ?? `${kind}_${i}`;
+  return !isTile && (cutNames.includes("all") || cutNames.includes(name)) ? { ...n, ...cutBase(n.img), cut: true } : n;
+});
 const pals = buildPalettes(nat.map((n) => n.img));
 const q = nat.map((n, i) => quantize(n.img, pals[i]));
 // Mọi màu đã dùng (bảng auto / auto-item gộp lại, bỏ trùng) để ghi _palette.gpl.
@@ -819,9 +898,10 @@ q.forEach((img, n) => {
     const res = nat[n].panel ? renderPanel(img) : renderSprite(img, s);
     if (res.lost) info.warning = "hình tràn khung, bị cắt";
     if (res.mode) info.fit = res.mode;
+    if (it.cut) info.base = it.base ?? "không dò được đế";
     save(outDir, name, res.out);
     info.colors = colorCount(res.out);
-    line = `${info.fit ? ` → khung ${info.fit}` : ""}, ${info.colors} màu${info.warning ? `  (CẢNH BÁO: ${info.warning})` : ""}`;
+    line = `${info.fit ? ` → khung ${info.fit}` : ""}${it.cut ? (it.base ? `, cắt đế rộng ${it.base.width} dày ${it.base.thick} (bỏ ${it.base.removed} điểm)` : ", KHÔNG dò được đế") : ""}, ${info.colors} màu${info.warning ? `  (CẢNH BÁO: ${info.warning})` : ""}`;
   }
   report.items.push(info);
   console.log(`[gemini] ${name}: ô giả ${it.cell.join("×")} px → gốc ${img.w}×${img.h}${line}`);
