@@ -16,6 +16,7 @@ import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath } from "../path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
 import { solidGrid, clampDir, type SolidGrid } from "../../../shared/move.ts";
+import { campMerchantSpot } from "../../../shared/camp.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
@@ -227,6 +228,9 @@ export class GameScene extends Phaser.Scene {
       if (o.type === "boss") this.lair = r;
       if (o.type === "waypoint") this.waypoints.push({ ...r, key: `${this.mapId}:${o.name}`, label: String(prop("label") ?? o.name), text: null });
     }
+    // #111: thương nhân lưu động ở trại cổng bản đồ săn, chỗ đứng tính từ file Tiled như server (shared/camp.ts).
+    const camp = raw && campMerchantSpot(raw, this.mapId);
+    if (camp && !npcObjs.some((n) => n.id === camp.id)) npcObjs.push({ ...camp, name: "" });
     this.drawPortals();
     this.drawWaypoints();
     this.buildMinimap(map);
@@ -698,10 +702,11 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("npc", (m: { id: string }) => {
       if (!npcDef(m?.id)) return;
       hud.openNpc(m.id, this.bag, {
-        buy: (code, qty) => this.room.send("buy", { code, qty }),
-        sell: (id, qty) => this.room.send("sell", { id, qty }),
-        buyback: (key) => this.room.send("buyback", { key }), // 9.8: mua lại đồ vừa bán
-        expand: () => this.room.send("expand"),            // 9.8: mở rộng túi
+        // #111: gửi kèm mã thương nhân đang mở hộp thoại, server tính đúng bảng hàng của thương nhân đó.
+        buy: (code, qty) => this.room.send("buy", { code, qty, npc: m.id }),
+        sell: (id, qty) => this.room.send("sell", { id, qty, npc: m.id }),
+        buyback: (key) => this.room.send("buyback", { key, npc: m.id }), // 9.8: mua lại đồ vừa bán
+        expand: () => this.room.send("expand", { npc: m.id }),            // 9.8: mở rộng túi
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,

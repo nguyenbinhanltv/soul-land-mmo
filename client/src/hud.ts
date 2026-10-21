@@ -8,7 +8,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
@@ -1688,7 +1688,8 @@ function renderNpc() {
       btn(`Khảo hạch hằng ngày (${done}/${dailyMsg.list.length})${m === "offer" ? " !" : m === "ready" ? " ?" : ""}`, "absorb", () => go("daily"));
     }
     if (def.role === "shop") {
-      btn("Mua đan dược, mở rộng túi", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
+      btn(shopExpands(def.id) ? "Mua đan dược, mở rộng túi" : "Mua đan dược, phù chú", "absorb", () => go("buy"), !bag); // #111: trại cổng không mở rộng túi
+      btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
       btn(`Mua lại đồ đã bán (${bag?.buyback?.length ?? 0})`, "absorb", () => go("buyback"), !bag); // 9.8
     }
     if (def.role === "forge") {
@@ -1704,7 +1705,7 @@ function renderNpc() {
     if (NPC_ROLE_NOTE[def.role]) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = NPC_ROLE_NOTE[def.role]; el.appendChild(k); }
     return;
   }
-  if (npcPage === "buy") renderShopBuy(el, bag, act);
+  if (npcPage === "buy") renderShopBuy(el, bag, act, def.id);
   else if (npcPage === "sell") renderShopSell(el, bag, act);
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
@@ -1712,10 +1713,13 @@ function renderNpc() {
   el.appendChild(row);
 }
 
-/** Cửa hàng: mỗi món trong SHOP một dòng (giá, đang có), nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). */
-function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const used = bag.items.filter((i) => i.vohon === null).length;
-  for (const r of SHOP) {
+/**
+ * Cửa hàng của thương nhân `npcId`: mỗi món trong bảng hàng (shopOf: SHOP trong thành, CAMP_SHOP ở trại cổng) một dòng (giá, đang có),
+ * nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). Mở rộng túi chỉ ở thương nhân trong thành (shopExpands).
+ */
+function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
+  const used = bag.items.filter((i) => i.vohon === null).length, shop = shopOf(npcId);
+  for (const r of shop) {
     const def = itemDef(r.code); if (!def) continue;
     const have = bag.items.filter((i) => i.code === r.code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", def.col);
@@ -1734,26 +1738,29 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     el.appendChild(o);
   }
   // Mở rộng túi (9.8): +BAG_EXPAND ô mỗi lần tới BAG_MAX_SLOTS, giá tăng dần (bagExpandCost); bấm hai lần. Server kiểm tra lại.
-  const cost = bagExpandCost(bag.slots);
-  const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
-  o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
-  o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
-    : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
-  if (cost !== null) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
-    b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
-    b.disabled = bag.honTe < cost;
-    b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
-    b.addEventListener("click", () => {
-      b.blur();
-      if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
-      sellConfirm = null; act.expand();
-    });
-    o.querySelector(".brow")!.appendChild(b);
+  if (shopExpands(npcId)) {
+    const cost = bagExpandCost(bag.slots);
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
+    o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
+    o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
+      : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
+    if (cost !== null) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
+      b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
+      b.disabled = bag.honTe < cost;
+      b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
+      b.addEventListener("click", () => {
+        b.blur();
+        if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
+        sellConfirm = null; act.expand();
+      });
+      o.querySelector(".brow")!.appendChild(b);
+    }
+    el.appendChild(o);
   }
-  el.appendChild(o);
   const n = document.createElement("small"); n.className = "rnote";
-  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(SHOP[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`;
+  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(shop[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`
+    + (shopExpands(npcId) ? "" : " Mở rộng túi, đan lớn: về thương nhân trong thành.");
   el.appendChild(n);
 }
 
