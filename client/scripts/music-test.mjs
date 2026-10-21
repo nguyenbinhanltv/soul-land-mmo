@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  MUSIC_BATTLE_HOLD_MS, MUSIC_BATTLE_RANGE, MUSIC_CACHE_TRACKS, MUSIC_DUCK_GAIN, MUSIC_FADE_S, MUSIC_MANIFEST_URL,
+  MUSIC_BATTLE_HOLD_MS, MUSIC_BATTLE_RANGE, MUSIC_CACHE_TRACKS, MUSIC_DUCK_GAIN, MUSIC_FADE_S, MUSIC_MANIFEST_URL, MUSIC_RETRY_MAX, MUSIC_RETRY_MS,
   MusicPlayer, bossEngaged, musicLoopSeconds, musicPlayerFor, pickMusicFormat,
 } from "../src/audio/music.ts";
 import { AudioManager } from "../src/audio/AudioManager.ts";
@@ -81,10 +81,11 @@ function makeContext() {
   return ctx;
 }
 
-function makeLoader({ badOgg = false, pad = 0 } = {}) {
+function makeLoader({ badOgg = false, pad = 0, fail = () => false } = {}) {
   const loads = [];
   const load = async (url) => {
     loads.push(url);
+    if (fail(url)) throw new Error(`mạng lỗi ${url}`); // `fail`: mạng chập với url này
     if (url === MUSIC_MANIFEST_URL) return manifestBytes.slice().buffer;
     const track = manifest.tracks.find((t) => Object.values(t.files).some((f) => f.path === url));
     if (!track) throw new Error(`404 ${url}`);
@@ -265,6 +266,73 @@ assert.equal(Math.round(musicLoopSeconds(109.714) * 44100), 4838400);
   assert.equal(loads.at(-1), mapTrack("hai_than_dao").files.m4a.path, "sau đó chỉ tải m4a");
 }
 
+// Tải lỗi (mạng chập): không nhớ kết quả lỗi; nhạc nền thử lại theo hẹn giờ giãn dần, có giới hạn, đổi bản đồ thì đếm lại.
+{
+  const down = new Set(), timers = [];
+  const ctx = makeContext(), { loads, load } = makeLoader({ fail: (url) => down.has(url) });
+  const music = new MusicPlayer(ctx, { load, format: "ogg", now, schedule: (fn, ms) => timers.push({ fn, ms }) });
+  const fire = async () => { timers.shift().fn(); await music.whenIdle(); };
+  const thth = mapTrack("thanh_hon_thon"), ngoai = mapTrack("tinh_dau_ngoai_vi");
+
+  // Manifest lỗi lần đầu: im, hẹn thử lại; mạng lành thì lượt thử lại tải được manifest và phát.
+  down.add(MUSIC_MANIFEST_URL);
+  music.setMap("thanh_hon_thon");
+  await music.whenIdle(); // chuỗi sync đọc state lúc chạy: chờ để chỉ một lượt tải manifest lỗi
+  music.setVolume(1);
+  await music.whenIdle();
+  assert.equal(music.status().playing, null);
+  assert.deepEqual(timers.map((t) => t.ms), [MUSIC_RETRY_MS], "manifest lỗi: hẹn một lần thử lại");
+  down.delete(MUSIC_MANIFEST_URL);
+  await fire();
+  assert.equal(music.status().playing, thth.id, "thử lại: có nhạc");
+  assert.equal(loads.filter((u) => u === MUSIC_MANIFEST_URL).length, 2, "manifest lỗi không bị nhớ");
+  assert.equal(timers.length, 0);
+
+  // Bài nền lỗi mãi: thử lại đúng MUSIC_RETRY_MAX lần, giãn gấp đôi, rồi thôi.
+  down.add(ngoai.files.ogg.path); down.add(ngoai.files.m4a.path);
+  music.setMap("tinh_dau_ngoai_vi");
+  await music.whenIdle();
+  assert.equal(music.status().playing, null, "bài lỗi: mờ bài cũ, im");
+  const delays = [];
+  while (timers.length) { delays.push(timers[0].ms); await fire(); }
+  assert.deepEqual(delays, Array.from({ length: MUSIC_RETRY_MAX }, (_, i) => MUSIC_RETRY_MS * 2 ** i), "thử lại có giới hạn, giãn dần");
+  assert.equal(loads.filter((u) => u === ngoai.files.ogg.path).length, 1 + MUSIC_RETRY_MAX, "mỗi lượt thử tải lại thật");
+  assert.equal(music.format, "ogg", "mạng lỗi không đổi định dạng sang m4a");
+
+  // Hết lượt thử nhưng đổi bản đồ đi rồi về (mạng đã lành): tải lại và phát, không giữ kết quả lỗi trong bộ đệm.
+  music.setMap("thanh_hon_thon");
+  await music.whenIdle();
+  assert.equal(music.status().playing, thth.id);
+  down.clear();
+  music.setMap("tinh_dau_ngoai_vi");
+  await music.whenIdle();
+  assert.equal(music.status().playing, ngoai.id, "về lại bản đồ từng lỗi: có nhạc");
+  assert.equal(timers.length, 0);
+
+  // Bài lỗi một lần rồi lành: một lượt thử lại là đủ, đếm thử lại về 0 sau khi phát được.
+  const loi = mapTrack("loi_tinh_dau");
+  down.add(loi.files.ogg.path); down.add(loi.files.m4a.path);
+  music.setMap("loi_tinh_dau");
+  await music.whenIdle();
+  assert.equal(timers.length, 1);
+  down.clear();
+  await fire();
+  assert.equal(music.status().playing, loi.id);
+  assert.equal(timers.length, 0);
+
+  // Khúc ngắn lỗi: không nhớ lỗi, lần sự kiện sau tải lại và phát (không hẹn giờ: khúc ngắn trễ thì vô nghĩa).
+  const lv = jingleTrack("level_up");
+  down.add(lv.files.ogg.path); down.add(lv.files.m4a.path);
+  music.jingle("level_up");
+  await music.whenIdle();
+  assert.equal(music.status().jingle, null);
+  assert.equal(timers.length, 0, "khúc ngắn lỗi không hẹn thử lại");
+  down.clear();
+  music.jingle("level_up");
+  await music.whenIdle();
+  assert.equal(music.status().jingle, "level_up", "lần sau tải lại khúc ngắn");
+}
+
 // Định dạng m4a (Safari): tải file m4a.
 {
   const ctx = makeContext(), { loads, load } = makeLoader();
@@ -304,4 +372,4 @@ assert.equal(musicPlayerFor(undefined), null);
   b.dispose();
 }
 
-console.log(`music-test: ${manifest.tracks.length} bài, chọn định dạng, tải lười, mờ chéo, giao chiến, khúc ngắn, tắt tiếng đều đạt`);
+console.log(`music-test: ${manifest.tracks.length} bài, chọn định dạng, tải lười, mờ chéo, giao chiến, khúc ngắn, tắt tiếng, tải lỗi thử lại đều đạt`);

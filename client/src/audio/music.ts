@@ -37,6 +37,8 @@ export interface MusicOptions {
   format?: MusicFormat;
   now?: () => number;
   log?: (text: string) => void;
+  /** Hẹn giờ thử lại khi tải lỗi (mặc định setTimeout; bài thử truyền hàm tự gọi). */
+  schedule?: (fn: () => void, ms: number) => void;
 }
 
 export const MUSIC_MANIFEST_URL = "audio/music/manifest.json";
@@ -52,6 +54,9 @@ export const MUSIC_BATTLE_HOLD_MS = 4000;
 export const MUSIC_BATTLE_RANGE = AUDIO_RANGE;
 /** Số bài nền đã giải mã giữ trong bộ nhớ (mỗi bài ~30–40 MB PCM): bản đồ hiện tại, bài giao chiến, bản đồ vừa rời. */
 export const MUSIC_CACHE_TRACKS = 3;
+/** Tải manifest / bài nền lỗi (mạng chập): thử lại sau MUSIC_RETRY_MS, gấp đôi mỗi lần, tối đa MUSIC_RETRY_MAX lần; đổi bản đồ thì đếm lại. */
+export const MUSIC_RETRY_MS = 3000;
+export const MUSIC_RETRY_MAX = 3;
 /** compose.mjs render ở MUSIC_RENDER_RATE Hz và bắt vòng lặp là bội MUSIC_LOOP_BLOCK mẫu (tools/audio/compose/README.md). */
 export const MUSIC_RENDER_RATE = 44100;
 export const MUSIC_LOOP_BLOCK = 1024;
@@ -134,6 +139,7 @@ export class MusicPlayer {
   private readonly load: (url: string) => Promise<ArrayBuffer>;
   private readonly now: () => number;
   private readonly log: (text: string) => void;
+  private readonly schedule: (fn: () => void, ms: number) => void;
   private fmt: MusicFormat;
   private manifest: Promise<MusicManifest | null> | null = null;
   private readonly buffers = new Map<string, Promise<AudioBuffer | null>>();
@@ -147,12 +153,15 @@ export class MusicPlayer {
   private jingleVoice: JingleVoice | null = null;
   private pending: Promise<void> = Promise.resolve();
   private jinglePending: Promise<void> = Promise.resolve();
+  private retries = 0;
+  private retryArmed = false;
 
   constructor(context: AudioContext, options: MusicOptions = {}) {
     this.context = context;
     this.load = options.load ?? fetchBytes;
     this.now = options.now ?? (() => performance.now());
     this.log = options.log ?? (() => {});
+    this.schedule = options.schedule ?? ((fn, ms) => { setTimeout(fn, ms); });
     this.fmt = options.format ?? browserMusicFormat();
     this.bus = context.createGain();
     this.duck = context.createGain();
@@ -191,6 +200,7 @@ export class MusicPlayer {
   setMap(mapId: string | null): void {
     if (mapId === this.map) return;
     this.map = mapId;
+    this.retries = 0;
     this.battle = false;
     this.battleUntil = 0;
     this.sync();
@@ -227,12 +237,29 @@ export class MusicPlayer {
     this.pending = this.pending.then(() => this.apply()).catch((e) => this.log(`lỗi đổi bài: ${String(e)}`));
   }
 
+  /** Manifest tải một lần; lỗi thì không giữ kết quả để lượt sau (thử lại, đổi bản đồ, khúc ngắn kế) tải lại. */
   private loadManifest(): Promise<MusicManifest | null> {
-    this.manifest ??= this.load(MUSIC_MANIFEST_URL).then((data) => {
+    if (this.manifest) return this.manifest;
+    const p: Promise<MusicManifest | null> = this.load(MUSIC_MANIFEST_URL).then((data) => {
       const m = JSON.parse(new TextDecoder().decode(data)) as MusicManifest;
-      return Array.isArray(m?.tracks) ? m : null;
-    }).catch((e) => { this.log(`không tải được manifest nhạc: ${String(e)}`); return null; });
-    return this.manifest;
+      if (!Array.isArray(m?.tracks)) throw new Error("manifest không có tracks");
+      return m;
+    }).catch((e) => {
+      this.log(`không tải được manifest nhạc: ${String(e)}`);
+      if (this.manifest === p) this.manifest = null;
+      return null;
+    });
+    this.manifest = p;
+    return p;
+  }
+
+  /** Bài nền cần phát mà tải lỗi: hẹn một lượt sync sau (giãn dần, có giới hạn); một hẹn mỗi lúc. */
+  private retryLater(): void {
+    if (this.retryArmed || this.retries >= MUSIC_RETRY_MAX) return;
+    const ms = MUSIC_RETRY_MS * 2 ** this.retries++;
+    this.retryArmed = true;
+    this.log(`tải nhạc lỗi, thử lại sau ${ms} ms (lần ${this.retries}/${MUSIC_RETRY_MAX})`);
+    this.schedule(() => { this.retryArmed = false; this.sync(); }, ms);
   }
 
   private pick(m: MusicManifest): MusicTrack | null {
@@ -242,13 +269,17 @@ export class MusicPlayer {
   }
 
   private async apply(): Promise<void> {
-    const m = this.volume > 0 && this.map ? await this.loadManifest() : null;
+    const want = this.volume > 0 && !!this.map;
+    const m = want ? await this.loadManifest() : null;
+    if (want && !m) { this.retryLater(); return; } // manifest lỗi: chưa từng phát bài nào, để im và thử lại
     const track = m ? this.pick(m) : null;
     if ((track?.id ?? null) === (this.voice?.id ?? null)) return;
     const buffer = track ? await this.cached(this.buffers, track, MUSIC_CACHE_TRACKS) : null;
     // Trong lúc tải đã đổi ý (đổi bản đồ tiếp, hết giao chiến): lượt sync sau trong chuỗi sẽ xử lý.
     if (m && (this.pick(m)?.id ?? null) !== (track?.id ?? null)) return;
     this.crossfade(track, buffer);
+    if (track && !buffer) this.retryLater();
+    else this.retries = 0;
   }
 
   private crossfade(track: MusicTrack | null, buffer: AudioBuffer | null): void {
@@ -299,11 +330,18 @@ export class MusicPlayer {
     this.log(`khúc ngắn ${event} (${track.id}), nhạc nền hạ còn ${MUSIC_DUCK_GAIN}`);
   }
 
-  /** Bộ đệm bài đã giải mã, cũ nhất bị bỏ khi quá `limit` (nguồn đang phát vẫn giữ buffer của nó). */
+  /**
+   * Bộ đệm bài đã giải mã, cũ nhất bị bỏ khi quá `limit` (nguồn đang phát vẫn giữ buffer của nó). Tải / giải mã lỗi thì bỏ khỏi bộ
+   * đệm để lần sau tải lại, không nhớ kết quả lỗi.
+   */
   private cached(cache: Map<string, Promise<AudioBuffer | null>>, track: MusicTrack, limit: number): Promise<AudioBuffer | null> {
     let p = cache.get(track.id);
     if (p) cache.delete(track.id);
-    else p = this.decode(track);
+    else {
+      const fresh = this.decode(track);
+      void fresh.then((buffer) => { if (!buffer && cache.get(track.id) === fresh) cache.delete(track.id); });
+      p = fresh;
+    }
     cache.set(track.id, p);
     while (cache.size > limit) cache.delete(cache.keys().next().value!);
     return p;
