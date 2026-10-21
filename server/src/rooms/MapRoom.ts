@@ -896,7 +896,8 @@ export class MapRoom extends Room<MapState> {
     p.swCd = SWITCH_CD;
     if (d.fight < TEAM_COMBAT_SECS) this.questEvent(id, { k: "switch" }); // 6.2: đổi tay khi đang giao chiến
     // Bộ hồn hạch Lưu Ly 4 món (5.2): đổi tay võ hồn mang bộ vào thì cả đội tăng công (hiệu ứng có lợi của hồn sư) một lúc.
-    const sa = d.coreFx.swapAtk;
+    // Đọc lại bộ của võ hồn vừa vào trận để hiệu ứng vẫn đúng ngay cả khi recalc trước đó chưa cập nhật cache coreFx.
+    const sa = coreFx(this.coresOn(d, next.rowId)).swapAtk;
     if (sa) {
       const cur = d.buffs.get("atk"), col = CORE_SETS[coreSetIndex("luu_ly")].col;
       d.buffs.set("atk", { t: Math.max(cur?.t ?? 0, CORE_FX_RULE.swapSecs), v: Math.max(cur?.v ?? 0, sa) });
