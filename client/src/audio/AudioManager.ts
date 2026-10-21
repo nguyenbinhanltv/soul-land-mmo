@@ -5,7 +5,6 @@ import { createZzFxBuffer } from "./zzfx.ts";
 
 interface SoundManagerHost {
   context?: AudioContext;
-  destination?: AudioNode;
   setMute(muted: boolean): void;
   setVolume(volume: number): void;
 }
@@ -41,6 +40,7 @@ const skillSfxByHe: Readonly<Record<string, SfxId>> = {
 export class AudioManager {
   private readonly host: SoundManagerHost;
   private readonly context: AudioContext | null;
+  private readonly sfxBus: GainNode | null;
   private readonly listener: () => AudioPoint | null;
   private settings: AudioSettings;
   private unlocked = false;
@@ -49,6 +49,8 @@ export class AudioManager {
   constructor(scene: { sound: unknown }, listener: () => AudioPoint | null) {
     this.host = scene.sound as SoundManagerHost;
     this.context = this.host.context ?? null;
+    this.sfxBus = this.context ? this.context.createGain() : null;
+    if (this.context && this.sfxBus) this.sfxBus.connect(this.context.destination);
     this.listener = listener;
     this.settings = loadAudioSettings(storage());
     this.applySettings();
@@ -85,10 +87,11 @@ export class AudioManager {
     const gain = context.createGain();
     const panner = typeof context.createStereoPanner === "function" ? context.createStereoPanner() : null;
     node.buffer = createZzFxBuffer(context, params);
-    gain.gain.value = this.settings.master * this.settings.sfx * mix.volume;
+    gain.gain.value = mix.volume;
     node.connect(gain);
-    if (panner) { panner.pan.value = mix.pan; gain.connect(panner); panner.connect(this.host.destination ?? context.destination); }
-    else gain.connect(this.host.destination ?? context.destination);
+    const destination = this.sfxBus ?? context.destination;
+    if (panner) { panner.pan.value = mix.pan; gain.connect(panner); panner.connect(destination); }
+    else gain.connect(destination);
     this.active.add(node);
     node.addEventListener("ended", () => this.active.delete(node), { once: true });
     node.start();
@@ -121,6 +124,7 @@ export class AudioManager {
   private applySettings(): void {
     this.host.setMute(this.settings.muted);
     this.host.setVolume(this.settings.muted ? 0 : this.settings.master * this.settings.music);
+    if (this.sfxBus) this.sfxBus.gain.value = this.settings.muted ? 0 : this.settings.master * this.settings.sfx;
   }
 }
 
