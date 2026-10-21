@@ -103,8 +103,11 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Merge
 
-- **CI** (`.github/workflows/check.yml`) chạy `npm ci` (server + client, cài đúng lockfile), `npm run check`, `npm run build` trên mọi PR vào `main` và mỗi push vào `main`. CI **chỉ để tham khảo**, chưa là status check bắt buộc trong bảo vệ nhánh `main`. Tên job / status check: `check-build`. CI đỏ thì đọc log: lỗi do PR thì sửa, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
-- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
+- **CI** (`.github/workflows/check.yml`) chạy trên mọi PR vào `main` và mỗi push vào `main`, hai job / status check:
+  - `check-build` (ubuntu + Windows): `npm ci` (server + client, cài đúng lockfile), bài âm thanh, `npm run check`, `npm run build`.
+  - `bot-ram` (ubuntu): `test:predict`, `test:ratelimit`, `test:accounts`, rồi bot trên server mới bật `GAME_TEST=1` chế độ RAM và một lượt nhiều kênh (`CHANNEL_MAX=2`), qua `tools/ci/bot-run.sh` (chạy được ở máy Linux / macOS: `bash tools/ci/bot-run.sh bot`). Bot trượt thì in log server, log đầy đủ ở artifact `bot-logs` của lượt chạy.
+  - CI **chỉ để tham khảo**, không là status check bắt buộc trong bảo vệ nhánh `main` (chủ repo chốt, không đổi ruleset). CI đỏ thì đọc log: lỗi do PR thì sửa, bot chập chờn thì xử lý theo skill `bot-flakiness`, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
+- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build`, `bot-ram` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
 - PR của người cộng tác: orchestrator AO của chủ repo kiểm tra lại PR có `cho-review` và comment `Review: đạt` (review độc lập, chạy check / bot nếu cần). Đạt thì orchestrator merge vào `main`; chưa đạt thì comment góp ý trên PR. Người cộng tác **không tự merge**.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
 - Sau khi merge: đánh dấu bước ở `GAME_DESIGN.md` mục 7 (nếu PR chưa làm), xóa nhánh.

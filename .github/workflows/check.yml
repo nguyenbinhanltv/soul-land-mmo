@@ -63,15 +63,21 @@ jobs:
             package-lock.json
             server/package-lock.json
             client/package-lock.json
-      - run: npm ci --prefix server && npm ci --prefix client
-      - run: npm run test:predict --prefix client
-      - run: npm run test:ratelimit --prefix server
-      - run: npm run test:accounts --prefix server
+      - id: deps
+        run: npm ci --prefix server && npm ci --prefix client
+      # Các bài sau chạy độc lập (một bài đỏ vẫn chạy bài khác) miễn là đã cài xong thư viện.
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: npm run test:predict --prefix client
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: npm run test:ratelimit --prefix server
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: npm run test:accounts --prefix server
       # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server.
       - name: bot (server GAME_TEST=1, RAM)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: bash tools/ci/bot-run.sh bot
       - name: bot nhiều kênh (CHANNEL_MAX=2)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: bash tools/ci/bot-run.sh channel CHANNEL_MAX=2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}
