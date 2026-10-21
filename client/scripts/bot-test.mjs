@@ -68,7 +68,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BEAST_SKILL_YEARS, beastSkillOf, teleHits, TELE_PAD, TELE_WARN, TELE_FIRST,
   BOSSES, bossIndex, beastIndex, ELITE, ELITE_RAGE, bossHpMult, teleZones, beastBuffBit, BEAST_BUFFS, beastName,
   KING, KING_CHEST, KING_TIMES, kingNext, kingActive, vnDay, vnHHMM, kingShardPool, chestCode, kingYears, BOAT_CAST, RED_BEAST_CHANCE,
-  WORLD, WORLD_TIME, WORLD_SLAM, WORLD_RING, WORLD_CHEST, worldNext, worldActive, worldBossOn, HE_IDS,
+  WORLD, WORLD_TIME, WORLD_SLAM, WORLD_RING, WORLD_CHEST, worldNext, worldActive, worldBossOn, HE_IDS, FLOOR_SAFE, teleSafe,
   HERBS, HERB_MAX, HERB_PCT, HERB_ELITE, herbChance, herbBonus, parseHerbs,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
@@ -4041,6 +4041,8 @@ const me=()=>C.room.state.players?.get(C.room.sessionId);
 let joinErr=""; try{ const r=await new Client(WS).joinOrCreate("map",{token:C.token,mapId:"nac_dinh_thanh"}); await r.leave(); }catch(e){ joinErr=String(e?.message??e); }
 ok(/Sai bản đồ/.test(joinErr),`vào bản đồ khác bản đồ đã lưu bị từ chối: ${joinErr}`);
 ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
+// BOT_ONLY=world: sau khi có bot C (ở Thánh Hồn Thôn), chỉ chạy phần boss thế giới ở Lõi Tinh Đấu (BĐ6e, #118).
+if(process.env.BOT_ONLY==="world"){ await loiTinhDauTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 /** Đi theo vector (x,y) đến khi cond() đúng hoặc hết giờ, rồi dừng. */
 async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
 /** Đi tới cột x (pixel) theo phương ngang. */
@@ -5124,6 +5126,8 @@ async function cucBacTest(){
  * được), nổi giận (x3, chiêu toàn sàn), Du Thủy (lặn không nhận sát thương, nổi lên lộ điểm yếu mẫn công), Thanh Lân Độc Vụ, chia
  * thưởng (hồn hoàn đỏ cho người nhiều nhất, rương từ 3%), 1 lần/ngày (sang ngày mới đặt lại), mở rương (hồn cốt, mảnh UR, hồn hạch
  * 5–6★), lặn xuống hồ sau 15 phút, đăng xuất ở Lõi thì lần sau về bờ hồ Nội địa.
+ * #118: chiêu toàn sàn (Bạo Nộ, Thanh Lân Độc Vụ, Đại Địa Chấn) có vòng an toàn (đứng trong vòng thì không trúng); Du Thủy lặn ra giữa
+ * hồ (điểm `lake`), báo trước chỗ nổi lên (tin dive sx/sy) và nổi lên đúng chỗ đó khi hết giờ lặn.
  */
 async function loiTinhDauTest(){
   console.log("[BĐ6e] Lõi Tinh Đấu: boss thế giới, cơ chế đổi võ hồn, chia thưởng, 1 lần/ngày, đăng xuất về Nội địa");
@@ -5137,6 +5141,11 @@ async function loiTinhDauTest(){
     &&DV.world?.charge?.need===3&&DV.world.charge.skill.floor&&DV.world.armor?.he==="cuong_cong"&&DM.world?.miasma?.skill.floor&&DM.world.dive?.he==="man_cong"
     &&WORLD_SLAM.floor&&beastName(3,bossIndex(VIEN))==="Boss thế giới Thái Thản Cự Viên",
     `2 boss thế giới: ${DV?.name} (${DV?.skills.map(s=>s.name).join(", ")}; Bá Thể, Đại Địa Chấn) và ${DM?.name} (${DM?.skills.map(s=>s.name).join(", ")}; Thanh Lân Độc Vụ, Du Thủy)`);
+  // #118: mọi chiêu toàn sàn có vòng an toàn, đủ thời gian đi bộ tới vòng gần nhất; teleSafe là hàm thuần.
+  { const fl=[WORLD_SLAM,DV.world.charge.skill,DM.world.miasma.skill], c={shape:"circle",x:100,y:100,ang:0,r:40,w:0,arc:0};
+    ok(fl.every(d=>d.floor&&d.safe?.n>0&&d.safe.r>0&&d.warn>=2.5)&&WORLD_SLAM.safe===FLOOR_SAFE.floor&&DV.world.charge.skill.safe===FLOOR_SAFE.charge
+      &&teleSafe(c,100,140)&&!teleSafe(c,100,141)&&DM.world.dive.away>0,
+      `chiêu toàn sàn né được: ${fl.map(d=>`${d.name} ${d.safe?.n} vòng r${d.safe?.r}, báo trước ${d.warn} giây`).join("; ")}`); }
   ok(WORLD.hp===30&&WORLD.daily===1&&WORLD.share===0.03&&WORLD_TIME==="21:00"&&WORLD.enrageSecs===600&&WORLD.lifeSecs===900&&WORLD.warnSecs===300&&KING_CHEST.ur===0
     &&[1,3,10].every(n=>Math.abs(bossHpMult(n)-(1+0.6*(n-1)))<1e-9),
     "đã chốt: máu x30, 21:00 mỗi ngày, báo trước 5 phút, nổi giận sau 10 phút, 1 lần/ngày, từ 3% có thưởng; từ BĐ6 rương thú vương không còn mảnh UR");
@@ -5147,7 +5156,8 @@ async function loiTinhDauTest(){
     `lịch boss thế giới ${WORLD_TIME} giờ Việt Nam (không trùng ${KING_TIMES.join(" / ")}), luân phiên theo ngày: 19/10 ${worldBossOn(LT,U(14,0))}, 20/10 ${worldBossOn(LT,U(14,0,20))}`);
   const os=objs(LT), lr=os.filter(o=>o.type==="boss"), zs=os.filter(o=>o.type==="zone"), back=os.filter(o=>o.type==="portal");
   const nd=objs(ND), gate=nd.find(o=>o.type==="portal"&&prop(o,"to")===LT), arrND=nd.find(o=>o.type==="arrive"&&o.name==="tu_loi_tinh_dau"), arrLT=os.find(o=>o.type==="arrive"&&o.name==="tu_tinh_dau_noi_dia");
-  const hac=nd.filter(o=>o.type==="zone").reduce((a,z)=>z.x>a.x?z:a);
+  const hac=nd.filter(o=>o.type==="zone").reduce((a,z)=>z.x>a.x?z:a), lake=os.filter(o=>o.type==="lake");
+  { const L=lr[0]; ok(lake.length===1&&lake[0].point&&L&&lake[0].x>L.x+L.width,`Tiled: điểm giữa hồ "${lake[0]?.name}" (${lake[0]?.x},${lake[0]?.y}) phía đông sàn đấu (#118: Du Thủy lặn ra đây)`); }
   ok(lr.length===1&&M.world.includes(prop(lr[0],"boss"))&&zs.length===1&&prop(zs[0],"count")===0&&back.length===1&&prop(back[0],"to")===ND&&prop(back[0],"arrive")==="tu_loi_tinh_dau"
     &&gate&&!prop(gate,"level")&&prop(gate,"arrive")==="tu_tinh_dau_noi_dia"&&arrND&&arrLT&&gate.x>=hac.x,
     `Tiled: sàn đấu "${lr[0]?.name}" ${lr[0]?.width/16}×${lr[0]?.height/16} ô, không hồn thú thường, cổng về Nội địa; Nội địa có cổng "${gate?.name}" ở ${hac.name} (cấp đề xuất lấy MAPS: 90–100)`);
@@ -5194,7 +5204,7 @@ async function loiTinhDauTest(){
     const base=Math.round(beastStats(Y).hp*WORLD.hp);
     ok(ki.bid&&ki.rank===3&&ki.boss===VIEN&&inL(ki.x,ki.y)&&ki.years===Y&&ki.base===base&&ki.maxHp===base&&Math.abs(ki.dmg-beastStats(Y).dmg*WORLD.dmg)<1e-6&&ki.phase===1&&ki.life>WORLD.lifeSecs-5,
       `${beastName(3,bossIndex(VIEN))} trên sàn đấu, ${ki.years} năm, máu x30 = ${ki.maxHp}, sát thương x${WORLD.dmg}, lặn xuống hồ sau ${Math.round(ki.life)} giây`);
-    ok(await warpIn(W3)&&await waitFor(()=>W3.boss.some(m=>m.k==="here"&&m.world&&m.rageIn>WORLD.enrageSecs-60),1500),`W3 vào khi boss đang ở: nhận thời gian còn lại và đồng hồ nổi giận (${Math.round(W3.boss.find(m=>m.k==="here")?.rageIn??0)} giây)`);
+    ok(await warpIn(W3)&&await waitFor(()=>W3.boss.some(m=>m.k==="here"&&m.here&&m.world&&m.rageIn>WORLD.enrageSecs-60),1500),`W3 vào khi boss đang ở: nhận thời gian còn lại và đồng hồ nổi giận (${Math.round(W3.boss.find(m=>m.k==="here")?.rageIn??0)} giây)`);
     // Cấp 100 cho mọi võ hồn của 3 bot (chịu được sát thương boss 100.000 năm), giữ boss đứng yên, hoãn mọi cơ chế để thử từng cái.
     const R9=[400,700,1700,5000,12000,20000,50000,100000,100000];
     for(const b of W) for(const v of b.owned.list) await test(b,"set",{rowId:v.rowId,level:100,xp:0,rings:R9});
@@ -5203,6 +5213,18 @@ async function loiTinhDauTest(){
     async function intoLair(b,dx,dy){ const t=bossB(); for(let k=0;k<24;k++){ const a=k*Math.PI/6, r=k<12?1:1.6, x=Math.round(t.x+dx*r*Math.cos(a)-dy*Math.sin(a)), y=Math.round(t.y+dx*r*Math.sin(a)+dy*Math.cos(a));
       if(!inL(x,y)) continue; await test(b,"goto",{x,y}); const q=mo(b); if(Math.hypot(q.x-x,q.y-y)<1) return true; } return false; }
     const outLair=async b=>{ await test(b,"goto",{x:arrLT.x,y:arrLT.y}); return !inL(mo(b).x,mo(b).y); };
+    /** Chiêu toàn sàn (#118): `s` là một vòng an toàn thì đưa `b` vào tâm vòng; null thì đưa `b` tới chỗ trong sàn ngoài mọi vòng `safe`. */
+    const inSafe=(safe,x,y)=>safe.some(q=>teleSafe(q,x,y));
+    async function placeFloor(b,safe,s){
+      if(s){ await test(b,"goto",{x:s.x,y:s.y}); return Math.hypot(mo(b).x-s.x,mo(b).y-s.y)<1; }
+      if(inL(mo(b).x,mo(b).y)&&!inSafe(safe,mo(b).x,mo(b).y)) return true;
+      const t=bossB(); for(let k=0;k<48;k++){ const a=k*Math.PI/8, r=40+20*Math.floor(k/16), x=Math.round(t.x+r*Math.cos(a)), y=Math.round(t.y+r*Math.sin(a));
+        if(!inL(x,y)||inSafe(safe,x,y)) continue; await test(b,"goto",{x,y}); if(Math.hypot(mo(b).x-x,mo(b).y-y)<1) return true; }
+      return false; }
+    /** Vòng an toàn của chiêu toàn sàn `name` vừa báo trước (fx tele của W1). */
+    const safeOf=async name=>{ await waitFor(()=>W1.fxs.some(f=>f.k==="tele"&&f.name===name),1500); return W1.fxs.findLast(f=>f.k==="tele"&&f.name===name)?.safe??[]; };
+    /** Vòng an toàn hợp lệ: đủ `n` vòng bán kính `r`, tâm trong sàn, không chồng nhau. */
+    const safeOk=(safe,def)=>safe.length===def.safe.n&&safe.every((q,i)=>q.r===def.safe.r&&inL(q.x,q.y)&&safe.every((o,j)=>j===i||Math.hypot(o.x-q.x,o.y-q.y)>=2*q.r));
     ok(await intoLair(W1,40,0)&&await intoLair(W2,-40,0)&&await intoLair(W3,0,30),"3 bot vào sàn đấu cạnh boss");
     await test(W1,"kdmg",{v:1}); ki=await test(W1,"king");
     ok(ki.engaged&&ki.n===3&&ki.parts.length===3&&ki.maxHp===Math.round(base*bossHpMult(3))&&bossB().parts===3,`W1 đánh: cả 3 người trong sàn thành người tham gia, máu tối đa ${base} -> ${ki.maxHp} (x${bossHpMult(3)})`);
@@ -5252,7 +5274,9 @@ async function loiTinhDauTest(){
     // Không ngắt: cả sàn trúng Vết thương sâu (Phá giáp 3 tầng 30 giây); W3 đổi sang võ hồn phụ trợ đầy năng lượng tiên cơ thì thanh tẩy.
     await swTo(W3,"lam_ngan_thao");
     for(const b of W) await test(b,"set",{rowId:b.owned.active,level:100,xp:0,rings:R9});
-    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; W1.hurts=[]; await test(W1,"wmech",{m:"charge"});
+    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; W1.hurts=[]; W1.fxs=[]; await test(W1,"wmech",{m:"charge"});
+    { const sf=await safeOf("Đại Địa Chấn"); let pl=true; for(const b of W) pl=await placeFloor(b,sf,null)&&pl;
+      ok(safeOk(sf,DV.world.charge.skill)&&pl,`Đại Địa Chấn có ${sf.length} vòng an toàn trong sàn (${sf.map(q=>`${q.x},${q.y}`).join("; ")}); 3 bot đứng ngoài vòng`); }
     ok(await waitFor(()=>W1.boss.some(m=>m.k==="chargeHit"),DV.world.charge.skill.warn*1000+1500)&&await waitFor(()=>!bossB().chg,1000),"không ngắt kịp: Đại Địa Chấn trúng cả sàn (hết cờ tích lực)");
     await test(W1,"wmech",{m:"hold",secs:300}); await sleep(200);
     const armorBit=statusBit("armor");
@@ -5269,10 +5293,14 @@ async function loiTinhDauTest(){
     ok(ki.phase===2&&ki.world.rage&&Math.abs(ki.now-ki.dmg*WORLD.rageDmg)<1e-6&&Math.abs(ki.spd-WORLD.rageSpd)<1e-9&&W1.boss.some(m=>m.k==="rage")&&W1.fxs.some(f=>f.k==="roar"),
       `nổi giận (${Math.round(ki.life)} giây còn lại): sát thương ${ki.dmg.toFixed(0)} -> ${ki.now.toFixed(0)} (x${WORLD.rageDmg}), tốc độ x${ki.spd}`);
     await test(W1,"wmech",{m:"hold",secs:0}); W1.fxs=[]; await test(W1,"wmech",{m:"slam"});
+    // #118: W2 đứng vào một vòng an toàn, W1 và W3 đứng ngoài mọi vòng (vẫn trong sàn).
+    const sfS=await safeOf("Bạo Nộ"), plS=await placeFloor(W2,sfS,sfS[0])&&await placeFloor(W1,sfS,null)&&await placeFloor(W3,sfS,null);
+    ok(safeOk(sfS,WORLD_SLAM)&&plS,`Bạo Nộ có ${sfS.length} vòng an toàn bán kính ${WORLD_SLAM.safe.r} trong sàn, rải theo bề ngang (${sfS.map(q=>`${q.x},${q.y}`).join("; ")}); W2 vào vòng đầu`);
     ok(await waitFor(()=>W1.fxs.some(f=>f.k==="teleHit"&&f.name==="Bạo Nộ"),(KING.roarSecs+WORLD_SLAM.warn)*1000+1500),"Bạo Nộ tung (sau tiếng gầm nổi giận)");
     await test(W1,"wmech",{m:"hold",secs:300});
     const tf=W1.fxs.find(f=>f.k==="tele"&&f.name==="Bạo Nộ"), th=W1.fxs.find(f=>f.k==="teleHit"&&f.name==="Bạo Nộ");
-    ok(tf&&tf.shape==="line"&&tf.r===LR.w&&tf.w===LR.h&&tf.x===LR.x&&W.every(b=>th.hit.includes(sid(b))),`chiêu toàn sàn: vùng phủ đúng sàn đấu ${LR.w}×${LR.h}, cả 3 người trúng`);
+    ok(tf&&tf.shape==="line"&&tf.r===LR.w&&tf.w===LR.h&&tf.x===LR.x&&th.hit.includes(sid(W1))&&th.hit.includes(sid(W3))&&same(th.safe,sfS),`chiêu toàn sàn: vùng phủ đúng sàn đấu ${LR.w}×${LR.h}, W1 và W3 ngoài vòng an toàn trúng`);
+    ok(!th.hit.includes(sid(W2)),`W2 đứng trong vòng an toàn lúc Bạo Nộ nổ: không trúng (trúng: ${th.hit.length} người)`);
 
     // Chia thưởng: W1 nhiều nhất (hồn hoàn đỏ 100.000 năm + rương), W2 từ 3% (hồn hoàn + rương), W3 dưới 3% (không thưởng).
     const chestOf=(b,id)=>qtyOf(b,chestCode(id)), ringsY=b=>(b.bag?.items??[]).filter(i=>i.code===RING_ITEM).map(i=>i.years);
@@ -5307,18 +5335,25 @@ async function loiTinhDauTest(){
     await intoLair(W1,40,0); await intoLair(W2,-40,0); await test(W1,"kdmg",{v:1});
     ok(/Hôm nay đã hết lượt nhận thưởng boss thế giới/.test(W1.logs.join("\n")),`vào giao chiến khi đã nhận thưởng hôm nay: nhắc "${W1.logs.find(t=>/hết lượt/.test(t))}"`);
     // Du Thủy: lặn không nhận sát thương; nổi lên chỗ khác, lộ điểm yếu Mẫn công.
-    const pos0=[bossB().x,bossB().y]; W1.boss=[]; await test(W1,"wmech",{m:"dive"});
+    const pos0=[bossB().x,bossB().y]; W1.boss=[]; const wd=await test(W1,"wmech",{m:"dive"});
     ok(await waitFor(()=>bossB().dive,1000)&&await dealt(W1,1000)===0&&W1.boss.some(m=>m.k==="dive"),"Du Thủy: boss lặn xuống hồ, đánh không mất máu");
-    await test(W1,"wmech",{m:"surface"});
-    ok(await waitFor(()=>!bossB().dive&&bossB().weak===1+HE_IDS.indexOf("man_cong"),1000)&&Math.hypot(bossB().x-pos0[0],bossB().y-pos0[1])>=40&&inL(bossB().x,bossB().y),
-      `nổi lên chỗ khác trong sàn (${pos0.map(Math.round)} -> ${Math.round(bossB().x)},${Math.round(bossB().y)}), lộ điểm yếu Mẫn công ${DM.world.dive.weakSecs} giây`);
+    // #118: lặn ra giữa hồ (điểm `lake`), chỗ nổi lên báo trước cho cả phòng ngay lúc lặn.
+    const dv=W1.boss.find(m=>m.k==="dive"), dv2=W2.boss.findLast(m=>m.k==="dive");
+    ok(await waitFor(()=>Math.hypot(bossB().x-lake[0].x,bossB().y-lake[0].y)<1,1000)&&wd.x===lake[0].x&&wd.y===lake[0].y,`Du Thủy: boss lặn ra giữa hồ (${Math.round(bossB().x)},${Math.round(bossB().y)})`);
+    ok(dv&&dv.sx!==undefined&&dv2?.sx===dv.sx&&dv2?.sy===dv.sy&&inL(dv.sx,dv.sy)&&Math.hypot(dv.sx-pos0[0],dv.sy-pos0[1])>=DM.world.dive.away&&wd.surf?.x===dv.sx&&wd.surf?.y===dv.sy,
+      `báo trước chỗ nổi lên cho cả phòng: ${dv?.sx},${dv?.sy} (trong sàn, cách chỗ lặn ≥ ${DM.world.dive.away})`);
+    await test(W1,"etick",{s:DM.world.dive.secs+0.1});
+    ok(await waitFor(()=>!bossB().dive&&bossB().weak===1+HE_IDS.indexOf("man_cong"),1000)&&bossB().x===dv?.sx&&bossB().y===dv?.sy&&W1.boss.some(m=>m.k==="surface"),
+      `hết ${DM.world.dive.secs} giây lặn: nổi lên đúng chỗ đã báo (${pos0.map(Math.round)} -> ${Math.round(bossB().x)},${Math.round(bossB().y)}), lộ điểm yếu Mẫn công ${DM.world.dive.weakSecs} giây`);
     ok(await swTo(W2,"u_minh_linh_mieu")&&await dealt(W2,1000)===1000*WORLD.weakMult,"W2 đổi lại U Minh Linh Miêu (mẫn công): gây x2,5 lúc boss vừa nổi lên");
     // Thanh Lân Độc Vụ: độc toàn sàn (Trúng độc nhiều tầng 30 giây).
     for(const b of [W1,W2]) await intoLair(b,b===W1?40:-40,0);
-    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; await test(W1,"wmech",{m:"miasma"});
+    await test(W1,"wmech",{m:"hold",secs:0}); W1.boss=[]; W1.fxs=[]; await test(W1,"wmech",{m:"miasma"});
+    const sfM=await safeOf("Thanh Lân Độc Vụ"), plM=await placeFloor(W2,sfM,sfM.at(-1))&&await placeFloor(W1,sfM,null);
+    ok(safeOk(sfM,DM.world.miasma.skill)&&plM,`Thanh Lân Độc Vụ có ${sfM.length} vòng an toàn; W2 vào vòng cuối, W1 ngoài vòng`);
     ok(await waitFor(()=>W1.fxs.some(f=>f.k==="teleHit"&&f.name==="Thanh Lân Độc Vụ"),DM.world.miasma.skill.warn*1000+1500),"Thanh Lân Độc Vụ tung");
     await test(W1,"wmech",{m:"hold",secs:300}); await sleep(150);
-    ok([W1,W2].every(b=>mo(b).st&statusBit("poison")),"người trong sàn trúng độc toàn sàn (Vết thương sâu)");
+    ok(mo(W1).st&statusBit("poison")&&!(mo(W2).st&statusBit("poison")),"W1 ngoài vòng trúng độc toàn sàn (Vết thương sâu), W2 trong vòng an toàn không trúng");
     W1.logs=[]; const c1=chestOf(W1,MANG); await test(W1,"kdmg",{v:1e9}); await waitFor(()=>!bossB(),1500); await sleep(500);
     ok(chestOf(W1,MANG)===c1&&!W1.logs.some(t=>/Nhận hồn hoàn/.test(t))&&/hết lượt nhận thưởng boss thế giới/.test(W1.logs.join("\n")),`đã nhận thưởng hôm nay: hạ boss thứ hai không nhận thêm (${WORLD.daily} lần/ngày)`);
     // Sang ngày mới (00:00 giờ Việt Nam): lượt đặt lại.
