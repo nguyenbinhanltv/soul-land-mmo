@@ -32,10 +32,11 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_RADIUS, parseAuto, autoLeft, autoTimeText, type AutoSettings,
+  BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
-import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
+import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
@@ -319,6 +320,11 @@ const channelSwitchAt = new Map<number, number>();
 const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number }>();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 const testNoLeaveLock = new Set<number>();
+/**
+ * Hook test `offline {ago}` (Auto 3, chỉ GAME_TEST): lần ủy thác offline kế tiếp của tài khoản ghi thời điểm bắt đầu lùi `ago` giây,
+ * như đã thoát từ `ago` giây trước (giả lập thời gian trôi: bot vào lại ngay mà vẫn nhận thưởng theo quãng vắng mặt đó).
+ */
+const testOfflineAgo = new Map<number, number>();
 /** Kênh vừa rời của tài khoản ở bản đồ `mapId` nếu còn khóa và kênh đó còn mở, còn chỗ (trong `list`). */
 function leftLock(accountId: number, mapId: string, list: ChannelInfo[]) {
   const l = leftRoom.get(accountId);
@@ -642,6 +648,7 @@ export class MapRoom extends Room<MapState> {
     this.interest.join(client, p); // 11.4: view riêng, chỉ thực thể ở gần (state đầy đủ đầu tiên gửi sau onJoin)
     this.resCheck(client.sessionId, false); // cộng minh (8.2) tính trước chỉ số ban đầu, không báo mốc
     this.recalc(client.sessionId, true);
+    this.chain(d, () => this.claimOffline(client.sessionId)); // ủy thác offline (Auto 3): nhận thưởng thời gian vắng mặt
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
     // Tổ đội (7.1): có mặt trong game (tổ đội giữ nguyên khi đi cổng); đồng đội ở mọi bản đồ thấy đổi bản đồ / vào lại.
@@ -663,12 +670,21 @@ export class MapRoom extends Room<MapState> {
       // Client đã đi: dừng mọi tiến độ ngay (hấp thụ dở bị hủy). Không dừng thì trong lúc chờ ghi DB, tick vẫn có thể hấp thụ
       // xong hay đạn còn bay hạ hồn thú, cộng vào nhân vật sau khi write() đã chụp dữ liệu, rồi mất khi pdata bị xóa.
       if (d.absorbing) { d.absorbing = null; p.absorb = 0; }
+      const zone = this.offlineZone(id); // ủy thác offline (Auto 3): chụp chỗ đứng trước khi freeze
       this.freeze(id);
       // Tổ đội (7.1): vẫn trong đội PARTY_OFFLINE_SECS giây (đi cổng, vào lại); quá thì party.sweep cho ra khỏi đội.
       this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
       // không ghi gì nữa; transaction lỗi hoặc chưa đi cổng thì lưu như thường (có lớp chặn WHERE map_id).
-      await this.chain(d, () => (d.travelled ? undefined : this.write(id, true)));
+      await this.chain(d, async () => {
+        if (d.travelled) return;
+        await this.write(id, true);
+        // Ủy thác offline (Auto 3, mục 5.13): rời game (không qua cổng / đổi kênh / vào sân đấu) khi đứng trong vùng săn thì ghi vùng và
+        // thời điểm (đồng hồ server; hook test `offline` lùi thời điểm), sau lần ghi cuối để giờ treo trong ngày đã lưu.
+        if (!zone || d.arenaGone) return;
+        const ago = testOfflineAgo.get(d.accountId) ?? 0; testOfflineAgo.delete(d.accountId);
+        await store.startOffline(d.accountId, { mapId: this.state.mapId, zone: zone.name, at: Date.now() - ago * 1000, day: d.autoDay, used: d.autoUsed });
+      });
       if (!d.travelled) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã rời ${MAPS[this.state.mapId].name}.` });
       if (!d.travelled && !d.arenaGone) this.forgetBuyback(d.accountId); // rời game: thương nhân quên đồ vừa bán (9.8)
       // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
@@ -1033,6 +1049,106 @@ export class MapRoom extends Room<MapState> {
     d.autoDirty = false;
     try { await store.saveAuto(d.accountId, { settings: d.autoCfg, day: d.autoDay, used: Math.round(d.autoUsed * 10) / 10 }); }
     catch (e) { d.autoDirty = true; console.error(`Lưu tự săn của tài khoản #${d.accountId} thất bại`, e); }
+  }
+
+  // ---------- Ủy thác offline (Auto 3, mục 5.13 "Ủy thác offline"; công thức ở shared/data.ts, mục "Ủy thác offline") ----------
+  /** Vùng săn nơi hồn sư `id` đang đứng, nếu thoát ở đây thì được ủy thác: bản đồ săn, ngoài vùng an toàn, không gục, vùng có hồn thú. */
+  offlineZone(id: string): Zone | null {
+    const p = this.state.players.get(id); if (!p || p.dead || this.map.kind !== "hunt" || this.map.inSafe(p.x, p.y)) return null;
+    return this.map.zones.find((z) => z.count > 0 && p.x >= z.x0 && p.x < z.x1 && p.y >= z.y0 && p.y < z.y1) ?? null;
+  }
+
+  /**
+   * Vào game: lấy và xóa lần ủy thác offline của tài khoản (store.takeOffline, nên một lần thoát chỉ nhận một lần), rồi tính thưởng
+   * theo thời gian vắng mặt (đồng hồ server) bằng công thức, không đụng thế giới: giây được tính chia theo ngày giờ Việt Nam, mỗi ngày
+   * trong phần còn lại của quỹ AUTO_DAILY_SECS (chung với tự săn online), tối đa OFFLINE.maxSecs (offlineSplit). Mỗi con: niên hạn và
+   * loài tung như hồn thú của vùng, thời gian hạ theo offlineFight (chỉ số võ hồn ra trận lúc vào); kinh nghiệm, Hồn Tệ, mảnh, tiên thảo,
+   * hồn cốt / hồn hạch (theo bộ lọc tự săn `bone` / `core`), hồn hoàn (từ `ring` năm, tối đa OFFLINE.rings) như hạ tay. Túi đầy thì dừng
+   * như tự săn; quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
+   * `offline` (bảng nhận thưởng). Vắng dưới OFFLINE.minSecs hoặc vùng không còn (đổi bản đồ) thì bỏ.
+   */
+  async claimOffline(id: string) {
+    const d0 = this.pdata.get(id); if (!d0 || this.map.kind === "arena") return;
+    const row = await store.takeOffline(d0.accountId);
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!row || !p || !d) return;
+    const away = Math.max(0, Math.floor((Date.now() - row.at) / 1000)), def = MAPS[row.mapId];
+    const zone = def?.kind === "hunt" ? loadMap(row.mapId).zones.find((z) => z.name === row.zone && z.count > 0) : undefined;
+    if (away < OFFLINE.minSecs || !zone) return;
+    const today = this.today(); if (today !== d.autoDay) { d.autoDay = today; d.autoUsed = 0; d.autoDirty = true; }
+    const parts = offlineSplit(bossNow() + this.dayShift * 86400000, away, row.day, row.used);
+    const secs = Math.floor(parts.reduce((a, x) => a + x.secs, 0));
+    const pw: OfflinePower = { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def };
+    const cfg = d.autoCfg, lv = p.level, got = new Map<string, number>(), rings: number[] = [];
+    const add = (name: string, n: number) => got.set(name, (got.get(name) ?? 0) + n);
+    let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false;
+    // Mỗi vòng một con; mỗi con tốn ít nhất OFFLINE.seek giây nên vòng lặp tối đa secs / seek lần.
+    while (!full) {
+      const years = this.offlineYears(zone), species = this.offlineSpecies(zone), beast = BEASTS[species]?.id ?? "";
+      const f = offlineFight(pw, years, beast);
+      if (t + f.secs > secs) break;
+      t += f.secs;
+      if (!f.ok) { weak++; continue; }
+      kills++;
+      xp += beastStats(years).xp * xpLevelScale(lv, beastLevel(years));
+      const [lo, hi] = BEAST_COIN[tierOfYears(years)] ?? BEAST_COIN[0]; coins += lo + Math.floor(Math.random() * (hi - lo + 1));
+      // Mảnh, tiên thảo vào thẳng túi như khi hạ tay; hồn cốt, hồn hạch, hồn hoàn theo bộ lọc nhặt của tự săn.
+      if (def.shards.length && Math.random() < shardChance(years)) {
+        const code = shardCode(def.shards[Math.floor(Math.random() * def.shards.length)]), n = this.addItem(d, code, SHARD_QTY);
+        if (n) add(itemDef(code)?.name ?? code, n);
+        if (n < SHARD_QTY) full = true;
+      }
+      const hc = herbChance(row.mapId, zone.name);
+      if (hc > 0 && Math.random() < hc) {
+        const h = HERBS[Math.floor(Math.random() * HERBS.length)];
+        if (this.addItem(d, h.id, 1)) add(h.name, 1); else full = true;
+      }
+      if (cfg.bone && Math.random() < boneChance(years)) {
+        const it = this.addBone(d, years, beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
+        if (it) add(this.itemLabel(it), 1); else full = true;
+      }
+      if (cfg.core && Math.random() < coreChance(years)) {
+        const c = rollCore(years, def.cores, Math.random), it = this.addCore(d, c.stars, c.data);
+        if (it) add(this.itemLabel(it), 1); else full = true;
+      }
+      if (cfg.ring >= 0 && years >= cfg.ring && rings.length < OFFLINE.rings) { if (this.addRing(d, years)) rings.push(years); else full = true; }
+    }
+    // Quỹ hôm nay chỉ trừ phần đã săn rơi vào hôm nay (quỹ các ngày trước dùng trước: offlineSplit xếp từ cũ tới mới).
+    const last = parts.at(-1), before = parts.slice(0, -1).reduce((a, x) => a + x.secs, 0);
+    const charge = last?.day === today ? Math.max(0, Math.min(last.secs, t - before)) : 0;
+    if (charge > 0) { d.autoUsed = Math.min(AUTO_DAILY_SECS, d.autoUsed + charge); d.autoDirty = true; }
+    if (coins) { d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + coins); d.bagDirty = true; }
+    p.kills += kills;
+    // Kinh nghiệm chia cho đội như rewardKill (so cấp lúc vào, một lần cho cả quãng); bình cảnh thì dừng như khi săn tay.
+    if (xp > 0) for (const r of d.team) {
+      const v = d.owned.find((o) => o.rowId === r); if (!v) continue;
+      if (v === d.ch) this.addXp(id, Math.round(xp * XP_SHARE_ACTIVE)); else this.benchXp(id, v, Math.round(xp * XP_SHARE_BENCH));
+    }
+    if (rings.length) got.set(`Hồn hoàn (cao nhất ${formatYears(Math.max(...rings))})`, rings.length);
+    const stop = full ? "túi đầy" : !kills && weak ? "vùng quá sức" : !secs ? "hết giờ treo" : undefined;
+    await this.write(id);
+    const c = this.clients.getById(id); if (!c) return;
+    this.sendBag(id); this.sendVohons(c); this.sendSquad(id, true); this.sendAuto(id);
+    c.send("offline", { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
+      items: [...got].map(([name, qty]) => ({ name, qty })), left: autoLeft(d.autoUsed), max: AUTO_DAILY_SECS, ...(stop ? { stop } : {}) });
+    this.log(id, `Ủy thác ở ${zone.name} (${def.name}): vắng ${autoTimeText(away)}, tính ${autoTimeText(secs)}, hạ ${kills} hồn thú, ` +
+      `${formatHonTe(coins)} Hồn Tệ${stop ? ` (dừng: ${stop})` : ""}.`, "#86e0b0");
+  }
+
+  /** Niên hạn một hồn thú thường của vùng `z` khi ủy thác (như spawnBeast, không có hồn thú 10 vạn năm). */
+  offlineYears(z: Zone) {
+    if (z.years) return rollYears(z.years[0], Math.max(z.years[0], Math.min(z.years[1], MAX_YEARS - 1)), Math.random());
+    let r = Math.random(), tier = 0;
+    for (let i = 0; i < z.weights.length; i++) { r -= z.weights[i]; if (r <= 0) { tier = i; break; } }
+    const [lo, hi] = tierBand(Math.min(tier, TIERS.length - 2));
+    return rollYears(lo, hi, Math.random());
+  }
+
+  /** Loài (chỉ số BEASTS) một hồn thú của vùng `z` theo trọng số `beasts` (như pickSpecies). */
+  offlineSpecies(z: Zone) {
+    const list = z.beasts.length ? z.beasts : BEASTS.map((_, i) => ({ species: i, w: 1 }));
+    let r = Math.random() * list.reduce((a, b) => a + b.w, 0);
+    for (const b of list) { r -= b.w; if (r <= 0) return b.species; }
+    return list[list.length - 1].species;
   }
 
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
@@ -2389,6 +2505,12 @@ export class MapRoom extends Room<MapState> {
       const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
       out = { on: !!a, used: d.autoUsed, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
+    }
+    else if (op === "offline") {
+      // Auto 3: `ago` (giây, 0–7 ngày) lùi thời điểm của lần ủy thác offline kế tiếp (giả lập thời gian trôi); trả vùng săn chỗ đang
+      // đứng nếu thoát ở đây thì được ủy thác (null = không) và `ago` đang đặt.
+      if (typeof o.ago === "number" && Number.isFinite(o.ago)) testOfflineAgo.set(d.accountId, Math.max(0, Math.min(7 * 86400, o.ago)));
+      out = { zone: this.offlineZone(id)?.name ?? null, ago: testOfflineAgo.get(d.accountId) ?? 0 };
     }
     else if (op === "elock") {
       // #119: khóa nhận thưởng tinh anh của chính mình (mọi bản đồ): `s` (>= 0) đặt mọi khóa đang có còn `s` giây (0 = bỏ khóa);
@@ -5200,7 +5322,7 @@ export class MapRoom extends Room<MapState> {
         }
         if (bd.rooted) { if (Math.abs(dx) > 1) b.face = dx > 0 ? 1 : -1; } // đứng yên: chỉ quay mặt về mục tiêu (#116)
         if (dd > beastMelee(b.tier, bd.rooted)) { if (!noMove && !bd.rooted) { mx = dx / dd; my = dy / dd; } }
-        else if (bd.cd <= 0 && !noAtk) { bd.cd = 1.1; this.hurtPlayer(bd.target!, this.beastDmg(bd) * (0.85 + Math.random() * 0.3)); }
+        else if (bd.cd <= 0 && !noAtk) { bd.cd = BEAST_ATK_CD; this.hurtPlayer(bd.target!, this.beastDmg(bd) * (0.85 + Math.random() * 0.3)); }
       } else {
         bd.wt -= dt;
         // Mê hoặc: đổi hướng liên tục quanh chỗ đang đứng, đi nhanh hơn lúc lang thang thường.

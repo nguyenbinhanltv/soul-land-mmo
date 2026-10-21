@@ -1289,6 +1289,8 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/** Hồi chiêu đòn đánh thường của hồn thú (giây; MapRoom.tick, ủy thác offline offlineFight). */
+export const BEAST_ATK_CD = 1.1;
 
 // ---------- Hồn kỹ (mục 5.2 "Hồn kỹ theo vòng") ----------
 /**
@@ -3794,3 +3796,47 @@ export const autoTimeText = (secs: number) => {
   const m = Math.floor(Math.max(0, secs) / 60), h = Math.floor(m / 60);
   return h ? `${h} giờ${m % 60 ? ` ${m % 60} phút` : ""}` : `${m} phút`;
 };
+
+// ---------- Ủy thác offline (mục 5.13 "Ủy thác offline", Auto 3; chủ repo chốt hiệu suất 100%, chung quỹ AUTO_DAILY_SECS) ----------
+/**
+ * Ủy thác khi offline: thoát game ở bản đồ săn, đứng trong một vùng săn (ngoài vùng an toàn, không gục) thì lần vào sau server tính
+ * thưởng theo thời gian vắng mặt bằng công thức, không sinh hay hạ hồn thú thật. Thời gian theo đồng hồ server.
+ * - `minSecs`: vắng dưới bấy nhiêu giây thì không tính (vào lại ngay, đổi máy).
+ * - `maxSecs`: trần giây tính cho một lần nhận, ngoài quỹ AUTO_DAILY_SECS mỗi ngày dùng chung với tự săn online.
+ * - `rings`: tối đa bấy nhiêu hồn hoàn mỗi lần nhận (theo thứ tự hạ; sau đó bỏ qua như món tự săn không nhặt).
+ * - `seek`: giây tìm / đi tới / nhặt đồ mỗi con (ngoài thời gian đánh và hồi máu); `skill`: hệ số sát thương của hồn kỹ, tiên cơ so với
+ *   chỉ đánh thường. Hai số này hiệu chỉnh theo số đo tự săn online để thưởng ủy thác xấp xỉ 100% tự săn.
+ * - `hpCap`: một trận lấy quá phần này sinh lực tối đa thì coi là không đánh nổi (bỏ con đó, mất `seek` giây).
+ */
+export const OFFLINE = { minSecs: 300, maxSecs: 24 * 3600, rings: 20, seek: 4, skill: 1.5, hpCap: 0.8 };
+/** Chỉ số võ hồn ra trận cho công thức ủy thác (MapRoom chụp lúc nhận): công, chí mạng, sinh lực tối đa, hệ số sát thương nhận VOHON.def. */
+export interface OfflinePower { atk: number; crit: number; critMult: number; maxHp: number; def: number; }
+/**
+ * Thời gian (giây) hạ một hồn thú thường `years` năm, loài `species` (mã BEASTS) khi ủy thác: đánh = máu / DPS (đánh thường mỗi
+ * ATTACK_CD, chí mạng kỳ vọng, thủ của loài qua defMult, × OFFLINE.skill), hồi máu = sát thương nhận trong trận (đòn thường mỗi
+ * BEAST_ATK_CD × `def`) / hồi sinh lực ngoài giao chiến (PLAYER_REGEN.hpCalm), cộng OFFLINE.seek. `ok` = false khi trận lấy quá
+ * OFFLINE.hpCap sinh lực tối đa (không đánh nổi: chỉ mất OFFLINE.seek giây).
+ */
+export function offlineFight(pw: OfflinePower, years: number, species: string) {
+  const st = beastStats(years);
+  const dps = pw.atk * (1 + pw.crit * (pw.critMult - 1)) * defMult(beastDef(species, years), 0) * OFFLINE.skill / ATTACK_CD;
+  const fight = dps > 0 ? st.hp / dps : Infinity, taken = fight * st.dmg * pw.def / BEAST_ATK_CD;
+  const ok = pw.maxHp > 0 && taken <= pw.maxHp * OFFLINE.hpCap;
+  return { ok, secs: ok ? OFFLINE.seek + fight + taken / (pw.maxHp * PLAYER_REGEN.hpCalm) : OFFLINE.seek };
+}
+/**
+ * Chia quãng vắng mặt `secs` giây kết thúc lúc `endMs` (đồng hồ lịch boss, bossNow) theo ngày giờ Việt Nam: mỗi ngày tính tối đa phần
+ * quỹ AUTO_DAILY_SECS còn lại (ngày `usedDay` đã treo `used` giây, ngày khác chưa treo), cộng dồn từ ngày cũ tới ngày mới tới trần
+ * OFFLINE.maxSecs. Trả các phần được tính [{ day, secs }] theo thứ tự thời gian.
+ */
+export function offlineSplit(endMs: number, secs: number, usedDay: string, used: number) {
+  const out: { day: string; secs: number }[] = [];
+  let t = endMs - Math.max(0, secs) * 1000, total = 0;
+  while (t < endMs && total < OFFLINE.maxSecs) {
+    const day = vnDay(t), next = Math.min(endMs, vnAt(t, "00:00", 1));
+    const n = Math.min((next - t) / 1000, autoLeft(day === usedDay ? used : 0), OFFLINE.maxSecs - total);
+    if (n > 0) { out.push({ day, secs: n }); total += n; }
+    t = next;
+  }
+  return out;
+}
