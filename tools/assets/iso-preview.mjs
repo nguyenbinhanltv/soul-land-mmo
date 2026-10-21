@@ -4,12 +4,12 @@
 //
 // Vai trò ô: grass (nền, nhiều ô cùng vai trò thì chọn theo băm vị trí), path (đường thẳng dọc trục + một nhánh),
 // water / deep (ao: mép nông, lòng sâu), stone (sân đá 3×3). Vai trò thiếu thì dùng grass.
-// Ảnh ô theo mục 5.11 (ISO_TILE_IMAGES trong lib.mjs): thoi W×W/2 đặt tại tâm quy cách trong ảnh (32×32 tâm (16,19),
+// Ảnh ô theo mục 5.11 (isoTileImage trong lib.mjs): thoi W×W/2 đặt tại tâm quy cách trong ảnh W×W (32×32 tâm (16,19),
 // 64×64 tâm (32,37)), đáy bên dưới bị ô phía trước che. Ảnh chỉ có mặt trên (cao W/2) thì mặt trên ở đầu ảnh.
 // Ô (i, j) có tâm mặt trên ở x = (i − j)·W/2, y = (i + j)·W/4; vẽ từ sau ra trước (i + j tăng dần).
 // --big: ô lớn bề ngang 2W phủ 2×2 ô logic, đặt ở mọi khối 2×2 thẳng hàng chẵn mà cả 4 ô cùng vai trò.
 import { readFileSync, writeFileSync } from "node:fs";
-import { decodePng, encodePng, Img, hex, ISO_TILE_IMAGES } from "./lib.mjs";
+import { decodePng, encodePng, Img, hex, isoTileImage } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -22,7 +22,7 @@ function readRoles(opt) {
   const roles = new Map();
   for (const part of opt.split(",").filter(Boolean)) {
     const [role, file] = part.split("="), img = decodePng(readFileSync(file));
-    const spec = ISO_TILE_IMAGES[img.w], center = img.h === img.w / 2 || !spec ? [img.w / 2, img.w / 4] : spec.center;
+    const center = img.h === img.w / 2 ? [img.w / 2, img.w / 4] : isoTileImage(img.w).center;
     roles.set(role, [...(roles.get(role) ?? []), { img, center }]);
   }
   return roles;
