@@ -145,7 +145,8 @@ export function checkIsoTiles(log = console.error) {
   const ref = (r) => r.split("~")[0];
   const maps = readdirSync(path.join(ROOT, "shared", "assets")).filter((f) => f.endsWith(".json"));
   for (const f of maps) {
-    const id = f.replace(/\.json$/, ""), m = JSON.parse(readFileSync(path.join(ROOT, "shared", "assets", f), "utf8"));
+    // Bản thử của bản đồ dựng bằng tools/maps (<mapId>.v2.json, 11.3) dùng bộ ô của mapId gốc.
+    const id = f.replace(/(\.v\d+)?\.json$/, ""), m = JSON.parse(readFileSync(path.join(ROOT, "shared", "assets", f), "utf8"));
     const set = { ground: { ...data.maps?.["*"]?.ground, ...data.maps?.[id]?.ground }, props: { ...data.maps?.["*"]?.props, ...data.maps?.[id]?.props } };
     const build = data.maps?.[id]?.build ?? data.maps?.["*"]?.build;
     if (build?.tower && !data.props?.[ref(build.tower)]) err(`${id}: build.tower trỏ tới vật "${ref(build.tower)}" không có`);

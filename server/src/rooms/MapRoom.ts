@@ -33,7 +33,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA, SYNC_VIEW } from "../../../shared/data.ts";
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
-import { loadMap, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
+import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
@@ -473,6 +473,7 @@ export class MapRoom extends Room<MapState> {
   setup(mapId: string) {
     this.map = loadMap(mapId);
     this.state.mapId = mapId;
+    const file = mapFile(mapId); if (file !== mapId) this.state.mapFile = file; // 11.3: bản dựng lại (MAP_V2)
     // Ghi mapId vào listing để filterBy(["mapId"]) ghép đúng phòng cả khi phòng được mở mà không có mapId trong tham số.
     this.listing.mapId = mapId;
     this.interest = new Interest(this.state, this.map.MW * TILE, this.map.MH * TILE);

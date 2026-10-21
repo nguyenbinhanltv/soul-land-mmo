@@ -1,0 +1,119 @@
+{
+  "sources": [
+    {
+      "id": "kenney-rpg-audio",
+      "title": "RPG Audio",
+      "author": "Kenney",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0-1.0",
+      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-tinyworlds-steps",
+      "title": "Different steps on wood, stone, leaves, gravel and mud",
+      "author": "TinyWorlds",
+      "url": "https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud",
+      "license": "CC0-1.0",
+      "archiveSha256": "987d072b7deaa65177e005ddd8185f2351be7c9a76cd7575dea560549c39b33b",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-forest-ambience",
+      "title": "Forest Ambience",
+      "author": "TinyWorlds",
+      "url": "https://opengameart.org/content/forest-ambience",
+      "license": "CC0-1.0",
+      "archiveSha256": "9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-waterflow",
+      "title": "Waterflow Sound",
+      "author": "TyberiusGames",
+      "url": "https://opengameart.org/content/waterflow-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-short-wind",
+      "title": "Short Wind Sound",
+      "author": "remaxim",
+      "url": "https://opengameart.org/content/short-wind-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-creature-sfx",
+      "title": "80 CC0 creature SFX",
+      "author": "rubberduck",
+      "url": "https://opengameart.org/content/80-cc0-creature-sfx",
+      "license": "CC0-1.0",
+      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-crowd-shouting",
+      "title": "Crowd Shouting/Speaking Ambience",
+      "author": "StarNinjas",
+      "url": "https://opengameart.org/content/crowd-shoutingspeaking-ambience",
+      "license": "CC0-1.0",
+      "archiveSha256": "a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-snake-sfx",
+      "title": "Snake sprites & sound",
+      "author": "eugeneloza",
+      "url": "https://opengameart.org/content/snake-sprites-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-bell",
+      "title": "Correct Bell",
+      "author": "Fupi",
+      "url": "https://opengameart.org/content/correct-bell",
+      "license": "CC0-1.0",
+      "archiveSha256": "7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-birds-wind",
+      "title": "Birds and Wind - Ambient, Birds, Wind and Synth",
+      "author": "Spring Spring",
+      "url": "https://opengameart.org/content/birds-and-wind-ambient-birds-wind-and-synth",
+      "license": "CC0-1.0",
+      "archiveSha256": "28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01",
+      "retrievedAt": "2026-10-21"
+    }
+  ],
+  "tracks": [
+    { "id": "footstep-wood-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/wood01.ogg", "inputSha256": "482d97c5e1e6eb7b239be46f25d093ebebb94cefb56eedb04807b6a5dc68e972", "group": "footsteps", "surface": "wood", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-wood-02", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/wood02.ogg", "inputSha256": "588bb121bd3db005b4c2a5b55c1cf39b8ec620f820c2123ac1f62748d132dac2", "group": "footsteps", "surface": "wood", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-wood-03", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/wood03.ogg", "inputSha256": "9b677c284389163f132b94e1323ea713a4c7ac9d5fba849cf7cbf8b53a1627e2", "group": "footsteps", "surface": "wood", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-stone-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/stone01.ogg", "inputSha256": "99b04d784eb6b531777a64fb0e319f104eb7cdd6b625c1fac68f511605930a2c", "group": "footsteps", "surface": "stone", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-leaves-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/leaves01.ogg", "inputSha256": "93b3bbcd06380eec54335d1869924db6ff2cc6c1cb103502133d78484c5ca836", "group": "footsteps", "surface": "grass", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-leaves-02", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/leaves02.ogg", "inputSha256": "477c35bfd3f740915b24f93cb66364523217692d2749057f9b8be162eb8209f4", "group": "footsteps", "surface": "grass", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-gravel-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/gravel.ogg", "inputSha256": "34e6057ec1581b5cb8802e4942952b00b1dac235bfcb0ed8cff0ceb15a3ebbbf", "group": "footsteps", "surface": "dirt", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-mud-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/mud02.ogg", "inputSha256": "354682c2cb340cd787d892d31beb87c45dda94ca6e8363b16828ab2f1d129b82", "group": "footsteps", "surface": "shallow-water", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "kenney-footstep-00", "sourceId": "kenney-rpg-audio", "input": "kenney_rpg-audio/Audio/footstep00.ogg", "inputSha256": "6fe61ef1fc3bcf0e253bf2eb64759db6cb69e2fe452f4d88cc597ecf78a3d601", "group": "footsteps", "surface": "generic", "mapId": null, "preload": true, "sprite": "footsteps-kenney" },
+    { "id": "kenney-footstep-01", "sourceId": "kenney-rpg-audio", "input": "kenney_rpg-audio/Audio/footstep01.ogg", "inputSha256": "313472dba31fd0c855376069fa368bb5a198c27251cc8398ef464578b7047a4c", "group": "footsteps", "surface": "generic", "mapId": null, "preload": true, "sprite": "footsteps-kenney" },
+    { "id": "kenney-footstep-02", "sourceId": "kenney-rpg-audio", "input": "kenney_rpg-audio/Audio/footstep02.ogg", "inputSha256": "2d9575b7dead6e1217ca113991fc5229e9b6d998ea0726ebbb277e7398ab888f", "group": "footsteps", "surface": "generic", "mapId": null, "preload": true, "sprite": "footsteps-kenney" },
+    { "id": "forest-ambience", "sourceId": "oga-forest-ambience", "input": "opengameart/Forest_Ambience.mp3", "inputSha256": "9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75", "group": "environment", "mapId": "tinh_dau_ngoai_vi", "preload": false, "sprite": "forest-ambience" },
+    { "id": "waterflow-ambience", "sourceId": "oga-waterflow", "input": "opengameart/waterflow.mp3", "inputSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92", "group": "environment", "mapId": "lac_nhat_sam_lam", "preload": false, "sprite": "waterflow-ambience" },
+    { "id": "mountain-wind", "sourceId": "oga-short-wind", "input": "opengameart/short_wind_sound.wav", "inputSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41", "group": "environment", "mapId": "cuc_bac_chi_dia", "preload": false, "sprite": "mountain-wind" },
+    { "id": "spirit-wolf-howls", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/howl.ogg", "inputSha256": "e63e29a219dfbe64724525600f36db7aab6017145650ffbc92763f87181c7825", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "spirit-wolf-bark", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/barking_01.ogg", "inputSha256": "f9b32cc139f0b8e7ae1f3b2409c08f374faa3d3a0935beb85b13e822d84bbb3d", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "spirit-bear-roar", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/roar_01.ogg", "inputSha256": "e9d44326860a1c3aba917684faccfd967a4fefa284d7df773e05ae890ec242e0", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "spirit-insect-buzz", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/bug_01.ogg", "inputSha256": "a7afae8bd3b448184e92bbb6162702e86322e5df58045715176c450ba4bbea3a", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "town-crowd-ambience", "sourceId": "oga-crowd-shouting", "input": "opengameart/crowd_shouting.ogg", "inputSha256": "a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca", "group": "environment", "mapId": "thien_dau_thanh", "preload": false, "sprite": "town-crowd" },
+    { "id": "forest-bird-ambience", "sourceId": "oga-birds-wind", "input": "opengameart/birds-wind.ogg", "inputSha256": "28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01", "group": "environment", "mapId": "tinh_dau_noi_dia", "preload": false, "sprite": "forest-birds" },
+    { "id": "spirit-snake-die", "sourceId": "oga-snake-sfx", "input": "opengameart/snake_die.ogg", "inputSha256": "b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23", "group": "creatures", "mapId": null, "preload": false, "sprite": "creature-snake" },
+    { "id": "spirit-snake-eat", "sourceId": "oga-snake-sfx", "input": "opengameart/snake_eat.ogg", "inputSha256": "d1982fb17c17fa358e2491e970ffe01aab7bad34baa6f459ea51fa9a8666c228", "group": "creatures", "mapId": null, "preload": false, "sprite": "creature-snake" },
+    { "id": "spirit-bell", "sourceId": "oga-bell", "input": "opengameart/bell.wav", "inputSha256": "7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9", "group": "events", "mapId": null, "preload": false, "sprite": "bell" }
+  ]
+}
