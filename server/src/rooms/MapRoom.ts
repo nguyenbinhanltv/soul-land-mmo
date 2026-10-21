@@ -18,7 +18,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
-  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
+  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS,
   ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
@@ -47,6 +47,7 @@ export interface PData {
   ch: Character;        // võ hồn đang ra trận, là một phần tử của owned và luôn nằm trong team
   ringYears: number[];  // niên hạn thật của từng hồn hoàn (số năm); p.rings chỉ là bậc để hiển thị
   input: { x: number; y: number }; dir: { x: number; y: number };
+  walk: boolean;        // 11.1: input cuối có `w` (giữ Shift): đi bộ cả khi ngoài giao chiến
   atk: number; speed: number; atkCd: number; inv: number; lastHit: number; deadT: number;
   // Hấp thụ hồn hoàn trong túi (từ 3.2) vào võ hồn `rowId` (từ 3.3 chọn được võ hồn bất kỳ đang ở bình cảnh), vòng thứ `slot`.
   absorbing: { itemId: string; rowId: number; slot: number; years: number; t: number; dur: number; fail: number } | null;
@@ -136,6 +137,7 @@ interface RecallCast { label: string; fee: number; itemId?: string; x0: number; 
 interface SInst { t: number; n: number; v: number; src: string; }
 interface BData {
   zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number;
+  ret: number;              // 11.1: > 0 là đang bỏ đuổi, chạy về chỗ sinh (còn ngần ấy giây, BEAST_LEASH)
   st: Map<StatusId, SInst>; // trạng thái dùng chung (mục 5.1) đang có
   dotT: number;             // đếm giờ tới lần gây sát thương theo thời gian kế tiếp (STATUS_TICK)
   calm: number;             // số giây kể từ lần cuối bị đánh (hồi máu khi không có mục tiêu, BEAST_REGEN)
@@ -469,7 +471,10 @@ export class MapRoom extends Room<MapState> {
     if (this.map.kind !== "town") for (let z = 0; z < zones.length; z++) for (let i = 0; i < zones[z].count; i++) this.spawnBeast(z);
     // Mỗi vùng 1 tinh anh (mục 5.4): sinh ngay khi mở phòng, không báo (chưa có ai trong phòng).
     if (this.map.kind !== "town") { this.elites = this.map.elites.map((spot) => ({ spot, bid: null, t: 0 })); this.elites.forEach((_, i) => this.spawnElite(i, false)); }
-    this.setSimulationInterval((ms) => this.tick(Math.min(ms, 100) / 1000), 1000 / TICK_RATE);
+    // Bản vá state gửi ngay sau mỗi nhịp (11.1), không theo hẹn giờ riêng: hai hẹn giờ lệch pha làm input chờ thêm gần một chu kỳ
+    // mới tới client (đo được khoảng 107 ms → còn khoảng nửa nhịp), và mỗi bản vá luôn mang đúng một bước mô phỏng.
+    this.patchRate = 0; // 0 = Colyseus không tự gửi bản vá
+    this.setSimulationInterval((ms) => { this.tick(Math.min(ms, 100) / 1000); this.broadcastPatch(); }, 1000 / TICK_RATE);
     this.presence.subscribe("kick", this.kickSub);
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
     this.presence.subscribe(ANNOUNCE_TOPIC, this.announceSub);
@@ -491,10 +496,11 @@ export class MapRoom extends Room<MapState> {
     if (!this.bossWarn && wm && wNext - now <= WORLD.warnSecs * 1000)
       this.bossWarn = { mapId: wm.id, king: worldBossOn(wm.id, wNext + off)!, phase: "warn", slot: wNext, in: (wNext - now) / 1000, life: WORLD.lifeSecs, at: wNext };
 
-    this.onMessage("input", (c, m: { x: number; y: number; s?: number }) => {
+    this.onMessage("input", (c, m: { x: number; y: number; s?: number; w?: unknown }) => {
       const d = this.pdata.get(c.sessionId); if (!d || d.travelling) return;
       const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
       d.input = clampDir(num(m?.x), num(m?.y));
+      d.walk = !!m?.w; // 11.1: giữ Shift thì đi bộ cả khi ngoài giao chiến
       // Số thứ tự input của client đang dự đoán chuyển động (mục 6): chỉ để client đối chiếu, vị trí vẫn do tick() tính.
       const p = this.state.players.get(c.sessionId), s = Math.floor(num(m?.s));
       if (p) { if (s > 0 && s <= 0xffffffff) p.seq = s; p.seqT = 0; }
@@ -559,7 +565,7 @@ export class MapRoom extends Room<MapState> {
     // Vị trí đã lưu; chưa có, kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn` (mục 6).
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
-    const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 },
+    const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false,
@@ -2763,9 +2769,9 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Hồn thú không mục tiêu, không bị đánh BEAST_REGEN.delay giây thì hồi máu; Trúng độc giảm hồi máu (healCut). */
-  regenBeast(b: BeastState, bd: BData, dt: number) {
+  regenBeast(b: BeastState, bd: BData, dt: number, pct = BEAST_REGEN.pct) {
     if (b.hp >= b.maxHp || b.hp <= 0) { bd.regen = 0; return; }
-    bd.regen += b.maxHp * BEAST_REGEN.pct * dt * (bd.st.has("poison") ? 1 - STATUS.poison.healCut : 1);
+    bd.regen += b.maxHp * pct * dt * (bd.st.has("poison") ? 1 - STATUS.poison.healCut : 1);
     const add = Math.floor(bd.regen); if (add > 0) { bd.regen -= add; b.hp = Math.min(b.maxHp, b.hp + add); }
   }
 
@@ -3984,7 +3990,7 @@ export class MapRoom extends Room<MapState> {
     b.phase = king ? 1 : 0; b.parts = boss ? 1 : 0;
     const id = uid("b"); this.state.beasts.set(id, b);
     const sk = boss ? null : beastSkillOf(BEASTS[species]?.id ?? "", years);
-    this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0,
+    this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0,
       st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg),
       skills: boss ? boss.skills.map((def) => ({ def, cd: 0 })) : sk ? [{ def: sk, cd: 0 }] : [], skT: 0, cast: null,
       buffs: new Map(), minions: new Set(),
@@ -4113,7 +4119,7 @@ export class MapRoom extends Room<MapState> {
       if (k.world) { k.world = newWorld(k.def); b.weak = 0; b.shield = 0; b.brk = 0; b.dive = false; }
       this.broadcast("boss", { k: "reset", bid, name: beastName(b.rank, b.species) });
     }
-    bd.target = null; b.aggro = false; bd.kx = 0; bd.ky = 0; b.x = bd.hx; b.y = bd.hy; bd.tx = bd.hx; bd.ty = bd.hy;
+    bd.target = null; b.aggro = false; bd.kx = 0; bd.ky = 0; bd.ret = 0; b.x = bd.hx; b.y = bd.hy; bd.tx = bd.hx; bd.ty = bd.hy;
     b.maxHp = e.base; b.hp = e.base; bd.regen = 0;
   }
 
@@ -4683,7 +4689,9 @@ export class MapRoom extends Room<MapState> {
       }
       // Choáng / Trói (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc.
       const ctl = this.pctl(d), { x: ix, y: iy } = ctl.noMove ? { x: 0, y: 0 } : d.input; const il = Math.hypot(ix, iy);
-      const sp = ctl.noMove ? 0 : d.speed * (1 + this.buffV(d, "spd")) * (1 - ctl.slow);
+      // 11.1: ngoài giao chiến tự chạy (× RUN_MULT) trừ khi giữ Shift; giao chiến thì đi bộ. Tăng tốc, Làm chậm vẫn nhân như cũ.
+      p.calm = d.fight >= TEAM_COMBAT_SECS; p.walk = d.walk;
+      const sp = ctl.noMove ? 0 : d.speed * (1 + this.buffV(d, "spd")) * (1 - ctl.slow) * (p.calm && !d.walk ? RUN_MULT : 1);
       p.spd = sp; // client dự đoán chuyển động bằng đúng tốc độ này
       p.moving = il > MOVE_DEAD;
       if (p.moving) {
@@ -4739,10 +4747,16 @@ export class MapRoom extends Room<MapState> {
       let tgt = bd.target ? this.state.players.get(bd.target) : undefined;
       // Không đuổi theo người đã vào vùng an toàn, đang chuyển bản đồ (mục 5.3, 6) hoặc đang tàng hình (Yêu Hồ, 2.5c).
       const off = (p: PlayerState, pid: string) => { const pd = this.pdata.get(pid); return p.dead || this.map.inSafe(p.x, p.y) || !!pd?.travelling || !!pd?.buffs.has("hide"); };
-      // Thú vương (BĐ5) chỉ đuổi người trong hang và nhận mục tiêu là bất kỳ ai trong hang; hồn thú khác bỏ mục tiêu khi xa chỗ sinh quá 220 pixel.
-      const leash = (p: PlayerState) => (king ? !this.map.inLair(p.x, p.y) : Math.hypot(b.x - bd.hx, b.y - bd.hy) > 220);
-      if (tgt && (off(tgt, bd.target!) || leash(tgt))) { bd.target = null; tgt = undefined; }
-      if (!tgt && (b.tier >= 1 || king) && !charm) {
+      // Thú vương (BĐ5) chỉ đuổi người trong hang và nhận mục tiêu là bất kỳ ai trong hang; hồn thú khác xa chỗ sinh quá BEAST_LEASH.r
+      // thì bỏ mục tiêu và chạy về chỗ sinh (11.1); đang về thì không nhận mục tiêu, kể cả người vừa đánh nó.
+      const far = !king && Math.hypot(b.x - bd.hx, b.y - bd.hy) > BEAST_LEASH.r;
+      if (tgt && (off(tgt, bd.target!) || (king && !this.map.inLair(tgt.x, tgt.y)))) { bd.target = null; tgt = undefined; }
+      if (tgt && far && !bd.ret) bd.ret = BEAST_LEASH.secs;
+      if (bd.ret > 0) {
+        bd.target = null; tgt = undefined;
+        if ((bd.ret -= dt) <= 0 || Math.hypot(b.x - bd.hx, b.y - bd.hy) < BEAST_LEASH.near) { bd.ret = 0; bd.wt = 0; }
+      }
+      if (!tgt && !bd.ret && (b.tier >= 1 || king) && !charm) {
         let best = king ? Infinity : BEAST_AGGRO_R;
         this.state.players.forEach((p, pid) => {
           if (off(p, pid) || (king && !this.map.inLair(p.x, p.y))) return;
@@ -4762,14 +4776,20 @@ export class MapRoom extends Room<MapState> {
       let noMove = false, noAtk = false, noSkill = false, slow = 0;
       for (const [s, x] of bd.st) { const def = STATUS[s]; noMove ||= def.noMove; noAtk ||= def.noAtk; noSkill ||= def.noSkill; slow += def.slow * x.n; }
       // Tinh anh đang giao chiến không tự hồi máu (bỏ giao chiến thì hồi đầy, mục 5.4).
-      if (!tgt && bd.calm > BEAST_REGEN.delay && !bd.elite?.engaged) this.regenBeast(b, bd, dt);
+      // Bỏ đuổi về chỗ sinh (11.1): hồn thú thường hồi nhanh BEAST_LEASH.heal trên đường về (tinh anh hồi đầy khi bỏ giao chiến).
+      if (bd.ret > 0) { if (!bd.elite) this.regenBeast(b, bd, dt, BEAST_LEASH.heal); }
+      else if (!tgt && bd.calm > BEAST_REGEN.delay && !bd.elite?.engaged) this.regenBeast(b, bd, dt);
       this.tickCast(id, b, bd, dt, noAtk || noSkill);
       if (stun) { bd.kx = 0; bd.ky = 0; b.moving = false; return; }
       if (noMove) { bd.kx = 0; bd.ky = 0; }
       if (bd.kx || bd.ky) { this.moveBeast(b, bd.kx * dt, bd.ky * dt, hw); bd.kx *= 0.85; bd.ky *= 0.85; if (Math.abs(bd.kx) < 2 && Math.abs(bd.ky) < 2) { bd.kx = 0; bd.ky = 0; } }
       if (bd.cast) { b.moving = false; return; } // đang báo trước: đứng yên, không đánh thường
       let mx = 0, my = 0, sp = td.spd * (1 - Math.min(SLOW_CAP, slow)) * (bd.buffs.has("rage") ? 1 + ELITE_RAGE.spd : 1) * (king?.spd ?? 1);
-      if (tgt) {
+      if (bd.ret > 0) {
+        const ex = bd.hx - b.x, ey = bd.hy - b.y, ed = Math.hypot(ex, ey);
+        if (ed > 1 && !noMove) { mx = ex / ed; my = ey / ed; sp *= BEAST_GAIT.ret; }
+      } else if (tgt) {
+        sp *= BEAST_GAIT.chase; // 11.1: đuổi nhanh hơn lang thang
         const dx = tgt.x - b.x, dy = tgt.y - b.y, dd = Math.hypot(dx, dy);
         // Chiêu báo trước: hết chờ, chiêu hết hồi và mục tiêu trong tầm (không nhắm người trong vùng an toàn: đã bỏ mục tiêu ở trên).
         // Chiêu đánh dấu (BĐ5, `mark`): nhắm một người tham gia ngẫu nhiên trong tầm thay cho mục tiêu đang đuổi; `weak` (BĐ6d):
@@ -4791,7 +4811,7 @@ export class MapRoom extends Room<MapState> {
           bd.wt = charm ? 0.4 + Math.random() * 0.3 : 2 + Math.random() * 3; bd.tx = ox + (Math.random() - 0.5) * w; bd.ty = oy + (Math.random() - 0.5) * w;
         }
         const ex = bd.tx - b.x, ey = bd.ty - b.y, ed = Math.hypot(ex, ey);
-        if (ed > 4 && !noMove) { mx = ex / ed; my = ey / ed; sp *= charm ? 0.7 : 0.4; }
+        if (ed > 4 && !noMove) { mx = ex / ed; my = ey / ed; sp *= charm ? BEAST_GAIT.charm : BEAST_GAIT.wander; }
       }
       b.moving = !!(mx || my);
       if (b.moving) { this.moveBeast(b, mx * sp * dt, my * sp * dt, hw); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
