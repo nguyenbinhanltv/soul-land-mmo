@@ -705,11 +705,17 @@ export const BEAST_GAIT = { wander: 0.4, charm: 0.7, chase: 1.4, ret: 1.4 };
 export const BEAST_LEASH = { r: 240, heal: 0.25, near: 8, secs: 8 };
 /**
  * Hồn thú thực vật "đứng yên" (#116, mục 5.3): loài `ids` (mã BEASTS; Quỷ Đằng non là Quỷ Đằng trẻ; tinh anh mượn các loài này cũng vậy)
- * cắm rễ ở chỗ sinh: không lang thang, không đuổi, không bị đẩy lùi / kéo, bị Mê hoặc cũng không đi. Tầm với = tầm đánh thường kề bên
- * hoặc tầm chiêu báo trước xa nhất, cộng `margin` pixel: nhận mục tiêu trong tầm với (tối đa BEAST_AGGRO_R), giữ mục tiêu khi còn
+ * cắm rễ ở chỗ sinh: không lang thang, không đuổi, không bị đẩy lùi / kéo, bị Mê hoặc cũng không đi. Tầm với = tầm đánh thường (beastMelee,
+ * thêm `lash`) hoặc tầm chiêu báo trước xa nhất, cộng `margin` pixel: nhận mục tiêu trong tầm với (tối đa BEAST_AGGRO_R), giữ mục tiêu khi còn
  * trong tầm với, xa hơn thì bỏ (không đuổi theo được).
  */
-export const BEAST_ROOTED = { ids: ["thuc_nhan_hoa", "quy_dang", "quy_dang_non", "co_moc_thu_nhan"] as readonly string[], margin: 10 };
+export const BEAST_ROOTED = { ids: ["thuc_nhan_hoa", "quy_dang", "quy_dang_non", "co_moc_thu_nhan"] as readonly string[], margin: 10, lash: 24 };
+/**
+ * Tầm đánh thường của hồn thú bậc `tier` (tính từ tâm, pixel): nửa kích thước + `BEAST_MELEE`. Thú đứng yên (#116) quất roi / rễ xa
+ * thêm `BEAST_ROOTED.lash` để không bị hồn sư đứng ngoài tầm đánh trả mà vẫn trong tầm đánh thường của hồn sư (khoảng nửa kích thước + 28).
+ */
+export const BEAST_MELEE = 6;
+export const beastMelee = (tier: number, rooted = false) => TIERS[tier].size / 2 + BEAST_MELEE + (rooted ? BEAST_ROOTED.lash : 0);
 /**
  * Bấm chuột trên nền (client, mục 5.11 "Điều khiển"): tìm đường A* trên lưới ô chặn, chỉ trong `maxTiles` ô mỗi trục quanh chỗ đứng và
  * xét tối đa `maxNodes` ô; không tới được thì đi tới ô tới được gần điểm bấm nhất.

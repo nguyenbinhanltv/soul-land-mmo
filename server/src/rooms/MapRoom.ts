@@ -31,7 +31,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, SYNC_VIEW, BEAST_DEF, defMult, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
+  ARENA, SYNC_VIEW, BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
@@ -958,6 +958,7 @@ export class MapRoom extends Room<MapState> {
     if (this.map.portalAt(p.x, p.y) !== portal) return "Hãy đứng trong cổng rồi mới đi qua được.";
     if (p.dead) return "Đã gục ngã, không thể đi qua cổng.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không thể đi qua cổng.";
+    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d)}: không thể đi qua cổng.`; // #116
     return null;
   }
 
@@ -1119,6 +1120,7 @@ export class MapRoom extends Room<MapState> {
     if (d.travelCast) return d.travelCast.wp ? "Đang niệm truyền tống." : "Đang đi qua cổng.";
     if (p.dead) return "Đã gục ngã, không truyền tống được.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không truyền tống được.";
+    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d)}: không truyền tống được.`; // #116
     if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới truyền tống được.`;
     return null;
   }
@@ -2969,6 +2971,7 @@ export class MapRoom extends Room<MapState> {
     const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - res), v = def.dot ? base * def.dot : def.amp, cur = d.st.get(a.s), n = a.n ?? 1;
     if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); }
     else d.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: "" });
+    if (def.wander) d.charm = null; // Mê hoặc mới (#116): đi lung tung quanh chỗ đang đứng lúc trúng
     this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
   }
   syncPStatus(p: PlayerState, d: PData) { let m = 0; for (const s of d.st.keys()) m |= statusBit(s); p.st = m; }
@@ -2983,7 +2986,7 @@ export class MapRoom extends Room<MapState> {
     return { noMove, noAtk, noSkill, wander, slow: Math.min(SLOW_CAP, slow) };
   }
   /** Tên khống chế đang chặn hồn kỹ của hồn sư (cho tin từ chối). */
-  ccName(d: PData) { return STATUS[(["freeze", "stun", "charm", "silence"] as const).find((s) => d.st.has(s)) ?? "silence"].name; }
+  ccName(d: PData) { return STATUS[(["freeze", "stun", "charm", "root", "silence"] as const).find((s) => d.st.has(s)) ?? "silence"].name; }
   /**
    * Hồn sư đang Mê hoặc (#116, PLAYER_CHARM): hướng đi server tự chọn tới một điểm ngẫu nhiên quanh chỗ bị Mê hoặc, đổi điểm mỗi
    * `turn` giây; tới nơi thì đứng.
@@ -4091,7 +4094,7 @@ export class MapRoom extends Room<MapState> {
       buffs: new Map(), minions: new Set(),
       elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), rageCd: 0,
         king: king ? { def: boss, slot, life, phase: 1, roar: 0, spd: 1, noted: new Set(), rankT: 0, world: world ? newWorld(boss) : null } : null } : null });
-    const bd = this.bdata.get(id)!; if (bd.rooted) bd.reach = rootedReach(TIERS[b.tier].size / 2 + 6, bd.skills.map((s) => s.def));
+    const bd = this.bdata.get(id)!; if (bd.rooted) bd.reach = rootedReach(b.tier, bd.skills.map((s) => s.def));
     return id;
   }
 
@@ -4968,7 +4971,7 @@ export class MapRoom extends Room<MapState> {
           if (m) { this.beginCast(id, b, bd, s, m[0], m[1]); return; }
         }
         if (bd.rooted) { if (Math.abs(dx) > 1) b.face = dx > 0 ? 1 : -1; } // đứng yên: chỉ quay mặt về mục tiêu (#116)
-        if (dd > td.size / 2 + 6) { if (!noMove && !bd.rooted) { mx = dx / dd; my = dy / dd; } }
+        if (dd > beastMelee(b.tier, bd.rooted)) { if (!noMove && !bd.rooted) { mx = dx / dd; my = dy / dd; } }
         else if (bd.cd <= 0 && !noAtk) { bd.cd = 1.1; this.hurtPlayer(bd.target!, this.beastDmg(bd) * (0.85 + Math.random() * 0.3)); }
       } else {
         bd.wt -= dt;
