@@ -1,28 +1,36 @@
 // Kiểm tra sprite theo quy cách mục 5.11, và đăng ký sprite mới vào manifest + art/CREDITS.md.
 //   node tools/assets/validate.mjs                     kiểm mọi key trong shared/assets/sprites/manifest.json
-//   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH]
-//        kiểm file của key, thêm key vào manifest (nếu chưa có) và ghi/cập nhật một dòng trong art/CREDITS.md.
+//   node tools/assets/validate.mjs --register <key> --prompt "<mô tả/prompt>" [--tool "<công cụ>"] [--note "<ghi chú>"] [--frame WxH] [--iso] [--map <mapId>]
+//        kiểm file của key, thêm key vào manifest (nếu chưa có; --iso ghi "iso": true, --map ghi "map") và ghi/cập nhật
+//        một dòng trong art/CREDITS.md.
+// Key "iso": true theo bố cục isometric (isoLayout trong lib.mjs: hồn sư / phụ thể 24 × 6, hồn thú 20 × 5); key chưa có cờ
+// là bộ 32×32 cũ của client hiện nay. Key có "map": "<mapId>" được dùng thêm bảng nhấn art/palettes/<mapId>.gpl.
+// Normal map `<file>_n.png` (normal.mjs) nằm cạnh ảnh của key: phải cùng kích thước ảnh gốc.
 // Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền #1a1020),
 //       lớp thân thiếu khung bắt buộc, bộ hồn sư giới × kiểu tóc thiếu lớp (phải đủ hs_body/outfit/hair_{giới}_{kiểu}),
-//       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung.
+//       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung; chân dung (portrait_{id}) quá PORTRAIT_MAX_COLORS màu
+//       (chân dung không theo bảng chung), vật đứng (prop_{vật}) cạnh không chia hết cho ISO_PROP_STEP hoặc màu ngoài
+//       bảng chung + bảng nhấn art/palettes/*.gpl. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
 // Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
-//       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc y = 30.
+//       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc (y = 30; isometric y = 58);
+//       isometric: idle cả 4 khung giống nhau (chưa --breathe), chân hồn thú không chạm dòng gốc.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const register = opt("--register", ""), prompt = opt("--prompt", ""), tool = opt("--tool", "PixelLab MCP"), note = opt("--note", ""), frameOpt = opt("--frame", "");
+const mapOpt = opt("--map", ""), isoAt = args.indexOf("--iso"), isoOpt = isoAt >= 0 && !!args.splice(isoAt, 1);
 
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 manifest.sprites ??= [];
 const entryKey = (e) => (typeof e === "string" ? e : e.key);
-const allowed = allowedColors();
+const allowed = allowedColors(), withAccents = new Set([...allowed, ...accentColors()]);
 // Tóc/áo: 4 xám để hoán màu + viền ngoài #1a1020 (màu thứ 5, giữ nguyên khi hoán màu).
 const grayOnly = new Set([...GRAY_RAMP, OUTLINE]);
 let errors = 0, warns = 0;
-const feet = new Map(); // "bộ:hàng" → dòng thấp nhất của idle khung đầu (3 lớp của bộ giới × kiểu tóc)
+const feet = new Map(); // "bộ:hàng" → { low: dòng thấp nhất của idle khung đầu (3 lớp của bộ giới × kiểu tóc), want: dòng gốc }
 const err = (k, m) => { errors++; console.error(`[validate] LỖI ${k}: ${m}`); };
 const warn = (k, m) => { warns++; console.warn(`[validate] cảnh báo ${k}: ${m}`); };
 
@@ -38,33 +46,52 @@ function cellSame(img, a, b, w, h) {
   return true;
 }
 
-function check(key, frame) {
-  const spec = sheetSpec(key, frame);
-  if (!spec) return err(key, "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
+/** Màu được phép thêm của bảng nhấn vùng art/palettes/<mapId>.gpl. */
+function mapColors(key, map) {
+  if (!map) return [];
+  const f = path.join(ROOT, "art", "palettes", `${map}.gpl`);
+  if (!existsSync(f)) { err(key, `"map": không có bảng nhấn ${path.relative(ROOT, f)}`); return []; }
+  return readGpl(f);
+}
+
+function check(key, frame, iso = false, map = "") {
+  const spec = sheetSpec(key, frame, iso);
+  if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
   if (!existsSync(file)) return err(key, `thiếu file ${path.relative(ROOT, file)}`);
   let img;
   try { img = readPng(file); } catch (e) { return err(key, `không đọc được PNG: ${e.message}`); }
   if (spec.size && (img.w !== spec.size[0] || img.h !== spec.size[1])) return err(key, `kích thước ${img.w}×${img.h}, cần ${spec.size[0]}×${spec.size[1]}`);
   if (spec.frame && (img.w % spec.frame[0] || img.h % spec.frame[1])) return err(key, `kích thước không chia hết cho khung ${spec.frame.join("×")}`);
+  if (spec.kind === "prop" && (img.w % ISO_PROP_STEP || img.h % ISO_PROP_STEP)) return err(key, `kích thước ${img.w}×${img.h} không chia hết cho ${ISO_PROP_STEP}`);
 
   // Màu và alpha.
-  const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : allowed;
-  const bad = new Map(); let semi = 0;
+  const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
+  const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
     if (!p[3]) continue;
     if (p[3] !== 255) semi++;
     const c = toHex(p);
-    if (!palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
+    used.add(c);
+    if (spec.kind !== "portrait" && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
+  if (spec.kind === "portrait" && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, chân dung tối đa ${PORTRAIT_MAX_COLORS}`);
   if (bad.size) err(key, `${bad.size} màu ngoài bảng${palette === grayOnly ? " (tóc/áo chỉ dùng dải 4 xám + viền)" : ""}: ` +
     [...bad].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `${c}×${n}`).join(", "));
+
+  // Normal map cạnh ảnh (normal.mjs).
+  const nfile = file.replace(/\.png$/, "_n.png");
+  if (existsSync(nfile)) {
+    try { const n = readPng(nfile); if (n.w !== img.w || n.h !== img.h) err(key, `normal map ${n.w}×${n.h}, cần ${img.w}×${img.h} (chạy lại normal.mjs)`); }
+    catch (e) { err(key, `không đọc được normal map: ${e.message}`); }
+  }
 
   // Khung bắt buộc.
   const [fw, fh] = spec.frame ?? [img.w, img.h];
   const at = (r, c) => [c * fw, r * fh];
+  if (spec.layout) return checkIso(key, spec, img, at, fw, fh);
   if (spec.kind === "honsu") {
     const need = [];
     for (let r = 0; r < 3; r++) for (let c = 0; c < SHEET_COLS; c++) need.push([r, c]);
@@ -80,7 +107,7 @@ function check(key, frame) {
     // Dòng thấp nhất của idle khung đầu mỗi hướng; gộp 3 lớp cùng bộ rồi kiểm ở cuối (chân có thể thuộc lớp áo).
     for (let r = 0; r < 3; r++) {
       const [x0, y0] = at(r, 0), k = `${spec.set}:${r}`;
-      for (let y = 0; y < fh; y++) if (!cellEmpty(img, x0, y0 + y, fw, 1)) feet.set(k, Math.max(feet.get(k) ?? -1, y));
+      for (let y = 0; y < fh; y++) if (!cellEmpty(img, x0, y0 + y, fw, 1)) feet.set(k, { low: Math.max(feet.get(k)?.low ?? -1, y), want: HS_ORIGIN[1] });
     }
   } else if (spec.kind === "vohon") {
     const stray = [];
@@ -95,13 +122,43 @@ function check(key, frame) {
   return spec;
 }
 
+/** Sheet isometric: ô bắt buộc, ô ngoài bố cục, khung chép tạm, chân chạm dòng gốc (isoLayout trong lib.mjs). */
+function checkIso(key, spec, img, at, fw, fh) {
+  const L = spec.layout, filled = (r, c) => !cellEmpty(img, ...at(r, c), fw, fh);
+  const stray = [];
+  for (let r = 0; r < L.rows; r++) for (let c = 0; c < L.cols; c++) if (!L.cells.has(`${r},${c}`) && filled(r, c)) stray.push([r, c]);
+  if (stray.length) err(key, `vẽ vào ô ngoài bố cục (client không đọc): ` + stray.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
+  if (spec.kind === "vohon") { if (cellEmpty(img, 0, 0, img.w, img.h)) warn(key, "sheet trống hoàn toàn"); return spec; }
+  const empty = L.required.filter(([r, c]) => !filled(r, c));
+  // Lớp thân và hồn thú phải đủ khung; lớp áo/tóc có thể trống ở khung bị lớp khác che hết.
+  const hard = spec.kind === "beast" || /^hs_body_/.test(key);
+  if (empty.length) (hard ? err : warn)(key, `${hard ? "thiếu" : "trống"} ${empty.length} khung bắt buộc: ` + empty.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
+  const [i0, ni] = L.anims.idle, animOf = (r, c) => (r >= ISO_DIRS.length ? "absorb" : Object.entries(L.anims).find(([, [c0, n]]) => c >= c0 && c < c0 + n)?.[0]);
+  // Ô ngoài idle trùng idle khung đầu cùng hàng (absorb so với idle hướng s): thường là chép tạm của pack --fill.
+  const temp = L.required.filter(([r, c]) => animOf(r, c) !== "idle" && filled(r, c) && cellSame(img, at(r, c), at(r < ISO_DIRS.length ? r : 0, i0), fw, fh));
+  if (temp.length) warn(key, `${temp.length} khung trùng idle khung đầu, thường là chép tạm (${[...new Set(temp.map(([r, c]) => animOf(r, c)))].join(", ")})`);
+  const still = ISO_DIRS.map((_, r) => r).filter((r) => filled(r, i0) && Array.from({ length: ni - 1 }, (_, i) => i0 + 1 + i).every((c) => cellSame(img, at(r, c), at(r, i0), fw, fh)));
+  if (still.length) warn(key, `idle đứng yên ở hướng ${still.map((r) => ISO_DIRS[r]).join(", ")} (cả ${ni} khung giống nhau; pack --breathe)`);
+  // Dòng thấp nhất của idle khung đầu mỗi hướng; hồn sư gộp 3 lớp cùng bộ rồi kiểm ở cuối (chân có thể thuộc lớp áo).
+  for (let r = 0; r < ISO_DIRS.length; r++) {
+    const [x0, y0] = at(r, i0), k = spec.kind === "honsu" ? `${spec.set}:${ISO_DIRS[r]}` : `${key}:${ISO_DIRS[r]}`;
+    for (let y = 0; y < fh; y++) if (!cellEmpty(img, x0, y0 + y, fw, 1)) feet.set(k, { low: Math.max(feet.get(k)?.low ?? -1, y), want: L.origin[1], beast: spec.kind === "beast" });
+  }
+  return spec;
+}
+
 // ---------- Đăng ký key mới ----------
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
   let md = readFileSync(credits, "utf8");
-  const head = "## Asset tạo bằng AI (PixelLab)";
+  // Mỗi công cụ AI một mục: --tool có chữ "Gemini" thì ghi vào mục Gemini, còn lại mục PixelLab.
+  const gemini = /gemini/i.test(tool);
+  const head = gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
+  const intro = gemini
+    ? "Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
+    : "Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.";
   if (!md.includes(head)) {
-    md = md.replace("## Asset bên ngoài", `${head}\n\nTạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng \`tools/assets\` (normalize → pack → validate). Quy trình: \`.claude/skills/asset-gen/SKILL.md\`.\n\n` +
+    md = md.replace("## Asset bên ngoài", `${head}\n\n${intro}\n\n` +
       "| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |\n|---|---|---|---|---|---|\n\n## Asset bên ngoài");
   }
   const date = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD theo giờ máy
@@ -122,10 +179,15 @@ function upsertCredits(key, file) {
 if (register) {
   if (!prompt) { console.error("--register cần --prompt (ghi vào art/CREDITS.md)"); process.exit(1); }
   const frame = frameOpt ? frameOpt.split("x").map(Number) : undefined;
-  const spec = check(register, frame);
+  const spec = check(register, frame, isoOpt, mapOpt);
   if (errors) process.exit(1);
-  if (!manifest.sprites.some((e) => entryKey(e) === register)) {
-    manifest.sprites.push(frame ? { key: register, frame } : register);
+  const iso = isoOpt || !!spec.iso;
+  const entry = frame || iso || mapOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(mapOpt ? { map: mapOpt } : {}) } : register;
+  const i = manifest.sprites.findIndex((e) => entryKey(e) === register);
+  if (i < 0 || JSON.stringify(manifest.sprites[i]) !== JSON.stringify(entry)) {
+    // Đăng ký lại một key (ví dụ bộ 32×32 cũ thay bằng bộ isometric) thì ghi đè dòng cũ.
+    if (i >= 0) manifest.sprites.splice(i, 1);
+    manifest.sprites.push(entry);
     manifest.sprites.sort((a, b) => entryKey(a).localeCompare(entryKey(b)));
     writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
   }
@@ -140,18 +202,26 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = check(key, typeof e === "string" ? undefined : e.frame);
-  if (spec) seen.add(spec.file);
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "");
+  if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.
 const sets = new Map();
-for (const e of manifest.sprites) { const k = entryKey(e), set = sheetSpec(k)?.set; if (set) sets.set(set, [...(sets.get(set) ?? []), k]); }
-for (const [set, keys] of sets) {
-  const miss = HS_LAYERS.map((l) => `hs_${l}_${set}`).filter((k) => !keys.includes(k));
+for (const e of manifest.sprites) { const k = entryKey(e), set = sheetSpec(k)?.set; if (set) sets.set(set, [...(sets.get(set) ?? []), e]); }
+for (const [set, entries] of sets) {
+  const keys = entries.map(entryKey), miss = HS_LAYERS.map((l) => `hs_${l}_${set}`).filter((k) => !keys.includes(k));
   if (miss.length) err(`hs_*_${set}`, `bộ giới × kiểu tóc thiếu lớp ${miss.join(", ")} (mỗi bộ đủ thân, áo, tóc tách từ cùng một hình)`);
+  // Cả 3 lớp cùng bố cục: không trộn lớp isometric với lớp 32×32 cũ.
+  if (new Set(entries.map((e) => typeof e !== "string" && !!e.iso)).size > 1) err(`hs_*_${set}`, `bộ giới × kiểu tóc trộn lớp "iso": true với lớp 32×32 cũ`);
 }
-// Chân hồn sư (gộp thân, áo, tóc cùng bộ) phải chạm dòng gốc y = 30 ở idle mỗi hướng.
-for (const [k, low] of feet) if (low !== HS_ORIGIN[1]) warn(`hs_*_${k.split(":")[0]}`, `hàng ${k.split(":")[1]}: chân ở y = ${low}, gốc là y = ${HS_ORIGIN[1]}`);
+// Chân hồn sư (gộp thân, áo, tóc cùng bộ) phải chạm dòng gốc ở idle mỗi hướng (32×32: y = 30, isometric: y = 58).
+// Hồn thú dùng một dòng chân chung cho mọi hướng (normalize.mjs), nên chỉ cần dòng gốc nằm giữa chân thấp nhất và cao nhất các hướng.
+const beastFeet = new Map();
+for (const [k, { low, want, beast }] of feet) {
+  if (beast) { const b = beastFeet.get(k.split(":")[0]) ?? { lows: [], want }; b.lows.push(low); beastFeet.set(k.split(":")[0], b); }
+  else if (low !== want) warn(`hs_*_${k.split(":")[0]}`, `hàng ${k.split(":")[1]}: chân ở y = ${low}, gốc là y = ${want}`);
+}
+for (const [k, { lows, want }] of beastFeet) if (want < Math.min(...lows) - 1 || want > Math.max(...lows)) warn(k, `chân idle các hướng ở y = ${Math.min(...lows)}–${Math.max(...lows)}, gốc là y = ${want}`);
 // Ảnh nằm trong thư mục sprites mà manifest không nhắc tới thì client sẽ không tải.
 const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((f) => (f.isDirectory() ? walk(path.join(d, f.name)) : [path.join(d, f.name)]));
 for (const f of walk(SPRITES).filter((f) => f.endsWith(".png"))) {

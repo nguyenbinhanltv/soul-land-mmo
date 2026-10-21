@@ -87,7 +87,7 @@ export const honsuKey = (layer: HsLayer, sex: "m" | "f", hair: number) => `hs_${
 export const GRAY_RAMP = ["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca"] as const;
 
 interface SheetSpec { url: string; frame?: readonly [number, number] }
-type ManifestEntry = string | { key: string; frame?: [number, number] };
+type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boolean };
 
 /** Đường dẫn ảnh và kích thước khung suy ra từ key (bảng thư mục ở mục 5.11). */
 function sheetSpec(key: string, frame?: readonly [number, number]): SheetSpec | null {
@@ -107,6 +107,8 @@ export function preloadSprites(scene: Phaser.Scene) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     for (const e of data?.sprites ?? []) {
+      // Asset isometric (chân dung, vật đứng; mục 5.11) chưa dùng ở bản đồ 2D hiện nay: bước 10.2 / 10.8 mới tải.
+      if (typeof e !== "string" && e.iso) continue;
       const key = typeof e === "string" ? e : e.key;
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }

@@ -1,7 +1,7 @@
 // Thư viện dùng chung cho dây chuyền asset (tools/assets/*): đọc/ghi PNG, bảng màu, quy cách 5.11.
 // Không phụ thuộc thư viện ngoài (chỉ node:zlib) để chạy được trong `npm run check` mà không cần cài gì.
 import { inflateSync, deflateSync } from "node:zlib";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -26,7 +26,8 @@ export const HS_ANIMS = { idle: [0, 2], walk: [2, 4], attack: [6, 3], cast: [9, 
 export const DIRS = ["down", "right", "up"];
 
 // ---------- Isometric (Giai đoạn 10, GAME_DESIGN.md mục 5.11) ----------
-// Hằng cho công cụ nhập ảnh isometric (gemini-import.mjs); bộ 32×32 / 48×48 ở trên vẫn là của client hiện nay (tới 10.3).
+// Dây chuyền normalize → pack → normal → validate dùng các hằng dưới đây (từ bước 10.3). Bộ 32×32 / 48×48 ở trên chỉ còn để
+// validate kiểm các key cũ chưa có "iso": true trong manifest (client dùng tới 10.4–10.6).
 /**
  * Bề ngang thoi của MỘT ô logic (16×16 pixel thế giới), mục 5.11: đã chốt thoi 32×16 (người dùng duyệt 2026-10-21).
  * Phải khớp hằng chiếu ở client/src/iso.ts; mọi cỡ khác ở tools/assets suy ra từ hằng này.
@@ -47,6 +48,68 @@ export function isoTileImage(W) {
 export const ISO_HS_FRAME = 64, ISO_HS_ORIGIN = [32, 58], ISO_VH_FRAME = 96, ISO_VH_ORIGIN = [48, 74];
 /** Khung vuông hồn thú: Trắng / Vàng 64, Tím / Đen 96, Đỏ 128, thú vương 160, boss thế giới 192; gốc giữa đáy, cách mép dưới ISO_BEAST_FOOT. */
 export const ISO_BEAST_SIZES = [64, 96, 128, 160, 192], ISO_BEAST_FOOT = 8;
+/** Khung hồn thú theo bậc TIERS (0 Trắng, 1 Vàng → 64; 2 Tím, 3 Đen → 96; 4 Đỏ → 128). Thú vương, boss: `--size 160 / 192`. */
+export const ISO_BEAST_TIER = [0, 0, 1, 1, 2].map((i) => ISO_BEAST_SIZES[i]);
+
+/** 5 hướng vẽ theo thứ tự hàng 0–4 của sheet; 3 hướng còn lại lật ngang (ISO_FLIP). */
+export const ISO_DIRS = ["s", "se", "e", "ne", "n"];
+/** Hướng lật → hướng vẽ được lật ngang (cho mọi lớp cùng lúc). */
+export const ISO_FLIP = { sw: "se", w: "e", nw: "ne" };
+/** 8 hướng theo vòng kim đồng hồ từ `s` (thứ tự xem thử của preview.mjs). */
+export const ISO_DIRS8 = ["s", "sw", "w", "nw", "n", "ne", "e", "se"];
+/** Tên hướng của PixelLab (`rotations/south-east.png`) → hướng ngắn. */
+export const PIXELLAB_DIRS = { south: "s", "south-east": "se", east: "e", "north-east": "ne", north: "n", "north-west": "nw", west: "w", "south-west": "sw" };
+/** Sheet hồn sư / phụ thể: 24 cột × 6 hàng; [cột bắt đầu, số khung]; hàng 5 cột 0–1 là `absorb` (hướng s). */
+export const ISO_HS_COLS = 24, ISO_HS_ROWS = 6;
+export const ISO_HS_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], cast: [14, 3], hurt: [17, 2], die: [19, 4] };
+export const ISO_ABSORB = 2;
+/** Lớp phụ thể chỉ vẽ các animation này (cột 0–16 của hàng 0–4); hurt / die / absorb do client ánh xạ. */
+export const ISO_VH_ANIMS = ["idle", "walk", "attack", "cast"];
+/** Sheet hồn thú: 20 cột × 5 hàng (5 hướng vẽ). */
+export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
+export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
+/** Góc vung (độ, chiều kim đồng hồ trên màn hình) của vũ khí phụ thể ở 4 khung `attack`: lấy đà, vung, trúng, thu về. */
+export const ISO_ATTACK_SWING = [-25, -55, 45, 15];
+
+/**
+ * Bố cục sheet isometric theo loại (mục 5.11): `honsu`, `vohon`, `beast` (cần `size`, một cỡ trong ISO_BEAST_SIZES).
+ * Trả { kind, frame, origin, cols, rows, anims, cells: ô có thể vẽ "hàng,cột", required: [[hàng, cột]…], cellOf(tên khung) }.
+ * Tên khung: `{hướng}_{animation}_{i}` (hướng ISO_DIRS), hồn sư thêm `absorb_{i}`.
+ */
+export function isoLayout(kind, size) {
+  let frame, origin, cols, rows, anims;
+  if (kind === "honsu" || kind === "vohon") {
+    frame = kind === "honsu" ? ISO_HS_FRAME : ISO_VH_FRAME; origin = kind === "honsu" ? ISO_HS_ORIGIN : ISO_VH_ORIGIN;
+    cols = ISO_HS_COLS; rows = ISO_HS_ROWS;
+    anims = kind === "honsu" ? ISO_HS_ANIMS : Object.fromEntries(ISO_VH_ANIMS.map((a) => [a, ISO_HS_ANIMS[a]]));
+  } else if (kind === "beast") {
+    if (!ISO_BEAST_SIZES.includes(size)) throw new Error(`hồn thú cần khung ${ISO_BEAST_SIZES.join(" / ")} (nhận ${size})`);
+    frame = size; origin = [size >> 1, size - ISO_BEAST_FOOT]; cols = ISO_BEAST_COLS; rows = ISO_BEAST_ROWS; anims = ISO_BEAST_ANIMS;
+  } else throw new Error(`loại không hợp lệ: ${kind}`);
+  const required = [];
+  for (let r = 0; r < ISO_DIRS.length; r++) for (const [c0, n] of Object.values(anims)) for (let i = 0; i < n; i++) required.push([r, c0 + i]);
+  if (kind === "honsu") for (let i = 0; i < ISO_ABSORB; i++) required.push([ISO_DIRS.length, i]);
+  const cellOf = (name) => {
+    let m = name.match(/^([a-z]+)_([a-z]+)_(\d+)$/);
+    if (m && ISO_DIRS.includes(m[1]) && anims[m[2]]) return { row: ISO_DIRS.indexOf(m[1]), col: anims[m[2]][0], n: anims[m[2]][1], dir: m[1], anim: m[2], i: +m[3] };
+    m = name.match(/^absorb_(\d+)$/);
+    if (m && kind === "honsu") return { row: ISO_DIRS.length, col: 0, n: ISO_ABSORB, dir: "s", anim: "absorb", i: +m[1] };
+    return null;
+  };
+  return { kind, frame: [frame, frame], origin, cols, rows, anims, required, cells: new Set(required.map((c) => c.join(","))), cellOf };
+}
+
+/** Đổi tên hướng PixelLab ở đầu tên file sang hướng ngắn: `south-east_walk_0` → `se_walk_0`; tên chỉ có hướng → `{hướng}_idle_0`. */
+export function shortDirName(name) {
+  const m = name.match(/^(south-east|south-west|north-east|north-west|south|north|east|west|s|se|e|ne|n|nw|w|sw)(_.*)?$/);
+  if (!m) return name;
+  const d = PIXELLAB_DIRS[m[1]] ?? m[1];
+  return m[2] ? d + m[2] : `${d}_idle_0`;
+}
+/** Chân dung võ hồn (giao diện HTML): khung vuông, tối đa PORTRAIT_MAX_COLORS màu mỗi ảnh (không theo bảng chung). */
+export const ISO_PORTRAIT = 64, PORTRAIT_MAX_COLORS = 32;
+/** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
+export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 
 // ---------- Màu ----------
 export const hex = (c) => { const n = parseInt(c.replace("#", ""), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
@@ -89,6 +152,12 @@ export function shadesOf(c) {
   const dark = toHex([r, g, b].map((v) => Math.round(v * 0.62)));
   const light = toHex([r, g, b].map((v) => Math.round(v + (255 - v) * 0.45)));
   return [dark, light];
+}
+
+/** Màu nhấn của mọi vùng / giao diện (art/palettes/*.gpl, phong cách B, C, D ở mục 5.11). */
+export function accentColors() {
+  const dir = path.join(ROOT, "art", "palettes");
+  return new Set(readdirSync(dir).filter((f) => f.endsWith(".gpl")).flatMap((f) => readGpl(path.join(dir, f))));
 }
 
 /** Bảng màu cho phép: palette.gpl + col/robe võ hồn (kèm 1 tối, 1 sáng) + màu hồn hoàn. */
@@ -210,14 +279,73 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
 /**
  * Trả về { file, frame:[w,h], kind } cho một key manifest, hoặc null nếu key sai quy ước.
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
+ * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
+ * loài cần `frame` vuông); chân dung `portrait_*` và vật đứng `prop_*` chỉ có dạng isometric.
  */
-export function sheetSpec(key, frame) {
+export function sheetSpec(key, frame, iso = false) {
   let m;
+  if (iso) {
+    const spec = (file, layout, extra = {}) => ({ file, frame: layout.frame, size: [layout.frame[0] * layout.cols, layout.frame[1] * layout.rows], kind: layout.kind, layout, iso: true, ...extra });
+    if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
+    if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
+    if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
+    if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
+    if (!/^(portrait|prop)_/.test(key)) return null; // chân dung, vật đứng: luôn isometric, khớp ở dưới
+  }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) { const f = frame ?? BEAST_FRAMES[+m[1]]; return { file: `beast/${key}.png`, frame: f, size: [f[0] * BEAST_COLS, f[1]], kind: "beast" }; }
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * BEAST_COLS, frame[1]], kind: "beast" };
   if (/^ring\d$/.test(key)) return { file: `ring/${key}.png`, kind: "ring" };
   if (/^halo\d$/.test(key)) return { file: `ring/${key}.png`, frame: [24, 10], kind: "ring" };
+  // Asset isometric (manifest ghi "iso": true; client chưa tải, bước 10.2 / 10.8 dùng): chân dung võ hồn, vật đứng.
+  if ((m = key.match(/^portrait_([a-z_]+)$/))) return { file: `iso/portrait/${m[1]}.png`, size: [ISO_PORTRAIT, ISO_PORTRAIT], kind: "portrait", iso: true };
+  if ((m = key.match(/^prop_([a-z_]+)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };
   return null;
+}
+
+// ---------- Điểm neo phụ thể (mục 5.11 "Phụ thể ghép theo điểm neo") ----------
+/** Điểm neo `pack --kind vohon --attach`: tay (mảng da), đỉnh đầu, giữa lưng, chân. */
+export const ANCHORS = ["hand", "head", "back", "feet"];
+/** Phần trên cùng của hình (theo chiều cao) tính là đầu: mảng da trong đó là mặt, không phải tay. */
+export const HEAD_ZONE = 0.3;
+/** Đầu mút mảng da thấp hơn tỉ lệ này của chiều cao hình là bàn chân (dép, chân trần), không phải tay. */
+export const HAND_ZONE = 0.8;
+
+/**
+ * Điểm neo trên một khung thân (vùng x0, y0, w, h của ảnh `fig` gộp thân + áo + tóc; `skin` là ảnh lớp thân, mặc định `fig`):
+ * head = giữa hàng trên cùng; back = trọng tâm phần thân trên (dưới vùng đầu tới giữa người); feet = giữa hàng dưới cùng;
+ * hands = các mảng màu da (3 sắc "Da " của palette.gpl) dưới vùng đầu và trên vùng chân (HAND_ZONE), mỗi mảng { x, y, n }:
+ *   đầu mút của mảng (trung bình các điểm xa giữa lưng nhất, vì tay trần thì cả cánh tay là một mảng da) và số điểm.
+ * Trả null nếu khung trống.
+ */
+export function frameAnchors(fig, x0, y0, w, h, skin = fig) {
+  let top = h, bottom = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (fig.alpha(x0 + x, y0 + y)) { top = Math.min(top, y); bottom = Math.max(bottom, y); }
+  if (bottom < 0) return null;
+  const rowMid = (y) => { let s = 0, n = 0; for (let x = 0; x < w; x++) if (fig.alpha(x0 + x, y0 + y)) { s += x; n++; } return n ? s / n + 0.5 : w / 2; };
+  const headEnd = top + Math.round((bottom - top + 1) * HEAD_ZONE), midEnd = top + Math.round((bottom - top + 1) * 0.55);
+  let bx = 0, by = 0, bn = 0;
+  for (let y = headEnd; y < midEnd; y++) for (let x = 0; x < w; x++) if (fig.alpha(x0 + x, y0 + y)) { bx += x + 0.5; by += y + 0.5; bn++; }
+  const tones = new Set(paletteGroup("Da "));
+  const isSkin = (x, y) => skin.alpha(x0 + x, y0 + y) && tones.has(toHex(skin.get(x0 + x, y0 + y)));
+  const back = bn ? { x: bx / bn, y: by / bn } : { x: rowMid(headEnd), y: headEnd }, footEnd = top + (bottom - top + 1) * HAND_ZONE;
+  const seen = new Uint8Array(w * h), hands = [];
+  for (let y = headEnd; y < h; y++) for (let x = 0; x < w; x++) {
+    if (seen[y * w + x] || !isSkin(x, y)) continue;
+    const stack = [[x, y]], pts = []; seen[y * w + x] = 1;
+    while (stack.length) {
+      const [u, v] = stack.pop(); pts.push([u + 0.5, v + 0.5]);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const U = u + dx, V = v + dy;
+        if (U >= 0 && V >= headEnd && U < w && V < h && !seen[V * w + U] && isSkin(U, V)) { seen[V * w + U] = 1; stack.push([U, V]); }
+      }
+    }
+    if (pts.length < 2) continue;
+    const far = Math.max(...pts.map(([u, v]) => Math.hypot(u - back.x, v - back.y)));
+    const tip = pts.filter(([u, v]) => Math.hypot(u - back.x, v - back.y) >= far - 1.5);
+    const hand = { x: tip.reduce((a, p) => a + p[0], 0) / tip.length, y: tip.reduce((a, p) => a + p[1], 0) / tip.length, n: pts.length };
+    if (hand.y < footEnd) hands.push(hand);
+  }
+  return { head: { x: rowMid(top), y: top }, back, feet: { x: rowMid(bottom), y: bottom + 1 }, hands, mid: rowMid(midEnd) };
 }
