@@ -23,7 +23,8 @@ const ASSETS = path.join(ROOT, "shared", "assets");
 const G = { grass: 0, path: 1, camp: 2, pave: 3, crack: 4, water: 5, ford: 6, bank: 7, deep: 8, stony: 9, glow: 10, bridge: 11 };
 const G_NAMES = Object.keys(G);
 /** Vật trên lớp `trees`: mỗi loại ứng với một khóa trong `gids.objects` (cây theo tầng ở `tiers[].trees`). `plant` đi xuyên được. */
-const O = { none: 0, tree: 1, rock: 2, cliff: 3, ruin: 4, stele: 5, arch: 6, log: 7, ancient: 8, tent: 9, fire: 10, plant: 11, sign: 12, skull: 13 };
+const O = { none: 0, tree: 1, rock: 2, cliff: 3, ruin: 4, stele: 5, arch: 6, log: 7, ancient: 8, tent: 9, fire: 10, plant: 11, sign: 12, skull: 13,
+  roof: 14, wall: 15 };
 const O_NAMES = Object.keys(O);
 const WET = new Set([G.water, G.deep]);
 
@@ -49,6 +50,8 @@ export function build(L, hand = null, seedOverride = null) {
   const [MW, MH] = L.size, N = MW * MH, seed = (seedOverride ?? L.seed) >>> 0, mapId = L.map;
   const sub = (name) => (seed ^ hashStr(name)) >>> 0; // mỗi tính năng một dòng ngẫu nhiên riêng
   const gnd = new Uint8Array(N), obj = new Uint8Array(N), lock = new Uint8Array(N);
+  // Gid nền riêng của ô (tính năng `area` có `gid`): chỉ dùng khi ô còn đúng loại nền `overType` lúc ra gid.
+  const overGid = new Uint16Array(N), overType = new Uint8Array(N), wetOver = new Set();
   const inside = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
   const at = (x, y) => y * MW + x;
   const setO = (x, y, v, force = false) => { if (inside(x, y) && (force || !lock[at(x, y)])) obj[at(x, y)] = v; };
@@ -63,7 +66,17 @@ export function build(L, hand = null, seedOverride = null) {
   const zoneOf = new Int16Array(N).fill(-1);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) zoneOf[at(x, y)] = zoneTests.findIndex((t) => t(x, y));
   const tierOf = (i) => { const z = zoneOf[i]; return z < 0 ? 0 : L.zones[z].tier; };
-  const tier = (i) => L.tiers[tierOf(i)];
+  // Rừng, nền, loài cây theo tầng của ô lệch đi tối đa `blend` ô theo nhiễu (mép tầng loang, không thành đường thẳng); vùng hồn thú
+  // vẫn theo hình đúng. `blend` 0 (mặc định): đúng tầng của ô.
+  const blend = L.blend ?? 0, sJ = sub("blend");
+  const tierVis = new Uint8Array(N);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    if (!blend) { tierVis[at(x, y)] = tierOf(at(x, y)); continue; }
+    const jx = Math.min(MW - 1, Math.max(0, Math.round(x + (fbm(x, y, 9, sJ, 2) - 0.5) * 2 * blend)));
+    const jy = Math.min(MH - 1, Math.max(0, Math.round(y + (fbm(x, y, 9, sJ + 1, 2) - 0.5) * 2 * blend)));
+    tierVis[at(x, y)] = tierOf(at(jx, jy));
+  }
+  const tier = (i) => L.tiers[tierVis[i]];
 
   // ---------- 1. Rừng nền: mật độ theo tầng, cụm rậm theo nhiễu ----------
   const sF = sub("forest"), sC = sub("cluster");
@@ -190,6 +203,47 @@ export function build(L, hand = null, seedOverride = null) {
     },
     /** Vật đặt thẳng: `kind` (tên loại vật) tại các ô `at`. */
     objects(f) { place(f.at, O[f.kind]); },
+    /**
+     * Vùng nền: phủ loại nền `ground` lên hình `rect` / `poly` / `circle` (`invert`: phần ngoài hình), mép loang `edge` ô theo nhiễu;
+     * `on`: chỉ phủ lên các loại nền này. Nền ướt (nước, lòng sâu) hoặc `clear` thì bỏ vật; `lock` khóa ô. `gid`: dùng gid nền này thay
+     * gid của loại nền (ví dụ hồ băng / hồ lửa cạnh nhau); loại nền ướt thì gid đó chặn như nước.
+     */
+    area(f) {
+      const s = sub(`area:${f.name ?? JSON.stringify(f.rect ?? f.poly ?? f.circle)}`), test = shapeTest(f), e = f.edge ?? 0, g = G[f.ground];
+      if (g === undefined) throw new Error(`${mapId}: vùng nền: không có loại nền "${f.ground}"`);
+      const on = f.on ? new Set(f.on.map((n) => G[n])) : null;
+      if (f.gid && WET.has(g)) wetOver.add(f.gid);
+      for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+        const i = at(x, y); if (lock[i] || (on && !on.has(gnd[i]))) continue;
+        const dx = e ? (fbm(x, y, 7, s, 2) - 0.5) * 2 * e : 0, dy = e ? (fbm(x, y, 7, s + 1, 2) - 0.5) * 2 * e : 0;
+        if (test(x + dx, y + dy) === !!f.invert) continue;
+        gnd[i] = g; if (WET.has(g) || f.clear) obj[i] = O.none; if (f.lock) lock[i] = 1;
+        if (f.gid) { overGid[i] = f.gid; overType[i] = g; } else overGid[i] = 0;
+      }
+    },
+    /**
+     * Nhà / đền: khối `rect` [x, y, w, h], mái `h - 1` hàng, hàng dưới cùng là tường (chặn); quanh nhà `margin` ô (mặc định 1) trống nền
+     * `ground` (mặc định giữ nền). Client dựng nhà theo kiểu nhà của vùng, hoặc công trình `build.compounds` trong tiles.json khóa theo góc
+     * trên trái "x,y". Khóa cả khu.
+     */
+    house(f) {
+      const [x0, y0, w, h] = f.rect, m = f.margin ?? 1;
+      for (let y = y0 - m; y < y0 + h + m; y++) for (let x = x0 - m; x < x0 + w + m; x++) {
+        if (!inside(x, y)) continue;
+        const i = at(x, y), inH = x >= x0 && x < x0 + w && y >= y0 && y < y0 + h;
+        obj[i] = inH ? (y === y0 + h - 1 ? O.wall : O.roof) : O.none; lock[i] = 1;
+        if (inH || WET.has(gnd[i]) || f.ground) gnd[i] = inH ? (WET.has(gnd[i]) ? G.grass : gnd[i]) : G[f.ground ?? "grass"] ?? G.grass;
+      }
+    },
+    /** Rải vật `kind` trong hình (`rect` / `poly` / `circle`) với xác suất `p` mỗi ô trống chưa khóa, không ướt; `on`: chỉ trên các loại nền này. */
+    scatter(f) {
+      const s = sub(`scatter:${f.kind}:${JSON.stringify(f.rect ?? f.poly ?? f.circle)}`), test = shapeTest(f), on = f.on ? new Set(f.on.map((n) => G[n])) : null;
+      for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) {
+        const i = at(x, y);
+        if (lock[i] || obj[i] !== O.none || WET.has(gnd[i]) || (on && !on.has(gnd[i])) || !test(x, y)) continue;
+        if (hashF(x, y, s) < f.p) obj[i] = O[f.kind];
+      }
+    },
   };
   function place(list, kind) {
     for (const [x, y] of list ?? []) { if (!inside(x, y)) continue; const i = at(x, y); obj[i] = kind; lock[i] = 1; if (WET.has(gnd[i])) gnd[i] = G.grass; }
@@ -203,7 +257,7 @@ export function build(L, hand = null, seedOverride = null) {
   const P = L.points ?? {};
   const pt = (v) => { const p = typeof v === "string" ? P[v] : v; if (!p) throw new Error(`${mapId}: không có điểm "${v}"`); return [Math.floor(p[0]), Math.floor(p[1])]; };
   const sR = sub("roads"), roadsOut = [];
-  const HARD = new Set([O.ruin, O.stele, O.arch, O.ancient, O.tent, O.fire, O.sign, O.skull]);
+  const HARD = new Set([O.ruin, O.stele, O.arch, O.ancient, O.tent, O.fire, O.sign, O.skull, O.roof, O.wall]);
   for (const road of L.roads ?? []) {
     const w = road.width ?? 2, lo = -Math.floor((w - 1) / 2), hi = Math.ceil((w - 1) / 2);
     for (let k = 0; k + 1 < road.via.length; k++) {
@@ -270,9 +324,11 @@ export function build(L, hand = null, seedOverride = null) {
   }
   for (const s of L.safe ?? []) rectObj("safe", s.name, ...s.rect);
 
-  // Viền bản đồ: cây (trừ ô cổng sát mép).
-  for (let x = 0; x < MW; x++) for (const y of [0, MH - 1]) if (!lock[at(x, y)]) { obj[at(x, y)] = O.tree; gnd[at(x, y)] = G.grass; }
-  for (let y = 0; y < MH; y++) for (const x of [0, MW - 1]) if (!lock[at(x, y)]) { obj[at(x, y)] = O.tree; gnd[at(x, y)] = G.grass; }
+  // Viền bản đồ: cây (trừ ô cổng sát mép); `border` là tên loại nền ướt (ví dụ "deep" cho đảo giữa biển) thì viền là nền đó.
+  const edgeSet = L.border ? (i) => { obj[i] = O.none; gnd[i] = G[L.border]; } : (i) => { obj[i] = O.tree; gnd[i] = G.grass; };
+  if (L.border && !WET.has(G[L.border])) throw new Error(`${mapId}: "border" phải là loại nền ướt (water / deep)`);
+  for (let x = 0; x < MW; x++) for (const y of [0, MH - 1]) if (!lock[at(x, y)]) edgeSet(at(x, y));
+  for (let y = 0; y < MH; y++) for (const x of [0, MW - 1]) if (!lock[at(x, y)]) edgeSet(at(x, y));
 
   // ---------- 6. Ra gid: biến thể nền theo nhiễu (không lặp mẫu), cây theo tầng ----------
   const GG = L.gids.ground, GO = L.gids.objects;
@@ -285,14 +341,15 @@ export function build(L, hand = null, seedOverride = null) {
   };
   const pickGid = (v, x, y, s) => (typeof v === "number" ? v : Array.isArray(v) ? v[Math.floor(hashF(x, y, s) * v.length)] : pickW(v, x, y, s));
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
-    const i = at(x, y), t = tier(i), g = gnd[i];
+    const i = at(x, y), t = tier(i), g = gnd[i], TG = t.ground ? { ...GG, ...t.ground } : GG; // `tiers[].ground`: sắc nền riêng của tầng
     if (g === G.grass) {
       // Thảm lá dưới cây, rêu loang, hai sắc cỏ theo nhiễu tần thấp.
       let nTree = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (inside(x + dx, y + dy) && obj[at(x + dx, y + dy)] === O.tree) nTree++;
       const leaf = fbm(x, y, 9, sV + 1, 3) + nTree * 0.05, moss = fbm(x, y, 13, sV + 2, 3), shade = fbm(x, y, 22, sV + 3, 2);
-      ground[i] = moss > (t.moss ?? 0.7) ? GG.moss : leaf > (t.leaf ?? 0.65) ? pickGid(GG.leaf, x, y, sV + 4) : shade > 0.5 ? GG.grass[1] : GG.grass[0];
-    } else if (g === G.path) ground[i] = t.path !== undefined ? GG[t.path] ?? t.path : GG.path;
-    else ground[i] = pickGid(GG[G_NAMES[g]], x, y, sV + 5 + g);
+      ground[i] = moss > (t.moss ?? 0.7) ? TG.moss : leaf > (t.leaf ?? 0.65) ? pickGid(TG.leaf, x, y, sV + 4) : shade > 0.5 ? TG.grass[1] : TG.grass[0];
+    } else if (g === G.path) ground[i] = t.path !== undefined ? TG[t.path] ?? t.path : TG.path;
+    else ground[i] = pickGid(TG[G_NAMES[g]], x, y, sV + 5 + g);
+    if (overGid[i] && overType[i] === g) ground[i] = overGid[i];
     const o = obj[i];
     if (o === O.tree) trees[i] = pickGid(fbm(x, y, t.clusterScale ?? 16, sC, 3) > t.cluster && t.denseTrees ? t.denseTrees : t.trees, x, y, sV + 20);
     else if (o !== O.none) {
@@ -304,6 +361,8 @@ export function build(L, hand = null, seedOverride = null) {
   // ---------- 7. Lớp chỉnh tay (tools/maps/hand/<mapId>.json): tay_nen đè nền, tay_vat đè vật (gid nền ở tay_vat = xóa vật) ----------
   const groundGids = new Set(G_NAMES.flatMap((n) => [].concat(typeof GG[n] === "object" && !Array.isArray(GG[n]) ? Object.keys(GG[n]).map(Number) : GG[n])));
   groundGids.add(GG.moss); for (const g of [].concat(GG.leaf)) groundGids.add(g); for (const g of GG.grass) groundGids.add(g);
+  for (const t of L.tiers) for (const v of Object.values(t.ground ?? {})) for (const g of gidsOf(v)) groundGids.add(g);
+  for (const g of overGid) if (g) groundGids.add(g);
   let handN = 0;
   if (hand) {
     if (hand.width !== MW || hand.height !== MH) throw new Error(`${mapId}: lớp tay ${hand.width}×${hand.height}, bản đồ ${MW}×${MH}`);
@@ -314,12 +373,13 @@ export function build(L, hand = null, seedOverride = null) {
   }
 
   // ---------- 8. Ô chặn, nối thông: ô đi được không tới được từ trại thì trồng cây (không sinh hồn thú ở chỗ kẹt) ----------
-  const collides = new Set([GG.water, GG.deep, ...Object.entries(GO).filter(([k]) => k !== "plant").flatMap(([, v]) => gidsOf(v)),
+  const collides = new Set([GG.water, GG.deep, ...wetOver, ...Object.entries(GO).filter(([k]) => k !== "plant").flatMap(([, v]) => gidsOf(v)),
     ...L.tiers.flatMap((t) => [...gidsOf(t.trees), ...gidsOf(t.denseTrees ?? [])])]);
   // Ô chặn tính theo gid ở mọi lớp (shared/move.ts): một gid không được vừa là nền vừa là vật.
-  for (const g of collides) if (groundGids.has(g) && g !== GG.water && g !== GG.deep) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`);
+  const wetG = (g) => g === GG.water || g === GG.deep || wetOver.has(g);
+  for (const g of collides) if (groundGids.has(g) && !wetG(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`);
   for (const g of gidsOf(GO.plant ?? [])) { if (groundGids.has(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`); collides.delete(g); }
-  for (const g of groundGids) if (g !== GG.water && g !== GG.deep) collides.delete(g);
+  for (const g of groundGids) if (!wetG(g)) collides.delete(g);
   const solid = (i) => collides.has(ground[i]) || collides.has(trees[i]);
   const start = L.spawn ? [Math.floor(L.spawn.rect[0] + L.spawn.rect[2] / 2), Math.floor(L.spawn.rect[1] + L.spawn.rect[3] / 2)] : pt(Object.keys(P)[0]);
   const reach = new Uint8Array(N), q = [at(...start)];

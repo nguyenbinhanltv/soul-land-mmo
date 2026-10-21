@@ -69,6 +69,32 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
     // xương thú, cây cỏ nhỏ, biển chỉ đường, cổ thụ, vách đá, tường đổ, bia đá, vòm đá, gỗ đổ
     obj: { 27: "#d8d0c0", 28: "#467e38", 29: "#a08a63", 30: "#0e2a18", 32: "#3a3f48", 37: "#6a6a70", 38: "#8a98a8", 39: "#6a6a70", 40: "#5a4a32" },
   },
+  // 11.5: các bản ×8 dựng bằng tools/maps (gid theo bộ của từng bản đồ trong tiles.json; bản cũ dùng ít gid hơn, cùng nghĩa).
+  tinh_dau_noi_dia: {
+    // rêu tối, rêu phát quang, đầm, sân đá miếu, bờ, nền đá Lôi Cốc, cầu, đầm nông, nước sâu
+    ground: { 1: "#3a5a48", 2: "#34503f", 3: "#2a3f3a", 4: "#3a6a6a", 5: "#2f4a42", 6: "#4a4a3a", 7: "#6a6050", 8: "#5a5048", 9: "#1a3a5a", 13: "#6a6878",
+      16: "#5a5868", 25: "#5a5048", 26: "#5a5868", 33: "#7a7480", 34: "#2f5a6a", 35: "#102a40" },
+    // xương / mạng nhện, nấm, biển chỉ đường, cổ thụ, vách, đá, tường đổ, tinh thể tím, vòm, gỗ đổ
+    obj: { 27: "#c8c0d0", 28: "#3a5a48", 29: "#a08a63", 30: "#4a3a6a", 32: "#3a3f48", 36: "#5a5a68", 37: "#5a5a60", 38: "#a070e0", 39: "#5a5a60", 40: "#4a3a2a" },
+  },
+  lac_nhat_sam_lam: {
+    // cỏ khô đỏ, lá đỏ, rêu đỏ, đường đá cũ, đất cháy, đầm Bích Lân, nền băng, hồ băng, hồ lửa, cầu, đầm nông, nước sâu
+    ground: { 1: "#8a4a30", 2: "#7a4430", 3: "#6a3a2a", 4: "#5a2a24", 5: "#8a5040", 6: "#6a3a34", 7: "#9a7a5a", 8: "#4a2a20", 9: "#4a7a5a", 10: "#8a4a3a",
+      13: "#9a8070", 16: "#806858", 25: "#9a7060", 26: "#8a7060", 27: "#8ac8f0", 29: "#e0e8f0", 31: "#ff8040", 33: "#a08878", 34: "#5a8a6a", 35: "#2a4a3a" },
+    obj: { 28: "#c06080", 30: "#c08070", 32: "#5a4a40", 36: "#7a6a60", 37: "#7a6a60", 38: "#b0e0ff", 39: "#ff9060", 40: "#5a3a2a" },
+  },
+  cuc_bac_chi_dia: {
+    // tuyết, mặt băng, đá cuội, bờ khe, cầu đá, lối tối, sân đá băng điện, vực băng
+    ground: { 2: "#e8eef8", 3: "#b8d0e8", 4: "#a0a8b8", 5: "#d0d8e8", 6: "#c8e0f8", 7: "#c8d0e0", 8: "#8a90a8", 13: "#b0b8c8", 16: "#9098a8", 35: "#2a4a70" },
+    // Băng Tủy Thụ, xương, đá / băng tinh, tường đổ, bia, vòm, gỗ
+    obj: { 1: "#a0d0ff", 33: "#e0e0e8", 36: "#a0b0c8", 37: "#9098a8", 38: "#b0b8c8", 39: "#9098a8", 40: "#6a6a78" },
+  },
+  hai_than_dao: {
+    // cỏ đảo, hoa, cát ướt tối, nước biển, bãi trại, sân đá đền, cầu tàu / đường đá, đá cuội
+    ground: { 3: "#5a7a4a", 5: "#8a9a5a", 6: "#6a9a50", 8: "#a08a63", 9: "#3a6a90", 10: "#e8dcc0", 13: "#d8d0c0", 16: "#b8b0a0", 25: "#8a7a60", 26: "#9a9280" },
+    // xương cá voi, bụi hoa / san hô, biển chỉ đường, vách, tường đổ, tượng đinh ba, vòm, gỗ
+    obj: { 27: "#e0d8c8", 28: "#c86a8a", 29: "#a08a63", 32: "#5a5248", 37: "#8a8278", 38: "#e0c060", 39: "#a09888", 40: "#6a4a2a" },
+  },
 };
 /** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo thân (beastBody: sheet isometric
  *  theo thân đã đo, sheet một hàng theo khung), sprite vẽ bằng code theo bậc (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
