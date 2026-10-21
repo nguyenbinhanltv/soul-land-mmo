@@ -610,6 +610,7 @@ export class GameScene extends Phaser.Scene {
         hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
         hud.banner(`${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       } else if (m.k === "spawn" || m.k === "here") {
+        if (m.k === "here") m.here = true; // tin "here" luôn là boss của bản đồ này
         hud.setBossCountdown(null);
         if (m.here) hud.setBossLife(m.life);
         // Boss thế giới (BĐ6e): đồng hồ nổi giận, điểm yếu đang hiện (người vào giữa trận).
@@ -629,11 +630,11 @@ export class GameScene extends Phaser.Scene {
       else if (m.k === "down") {
         // Kết quả cuối chỉ hiện cho người tham gia (đang nhận bảng xếp hạng, hoặc có tên trong danh sách).
         if (this.bossList || m.list?.some((x: { id: string }) => x.id === this.me)) hud.bossRank(m.list, this.me, true, !!MAPS[this.room.state.mapId]?.world?.length);
-        this.bossList = null;
+        this.bossList = null; this.diveMark = null;
         setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
         hud.banner(`Đã hạ ${m.name}`, `${m.top} ${m.topDmg ? "gây sát thương" : "đóng góp"} nhiều nhất`); // 9.2: boss thế giới xếp hồn hoàn đỏ theo sát thương
-      } else if (m.k === "leave") { this.bossList = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
-      else if (m.k === "reset") { this.bossList = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
+      } else if (m.k === "leave") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
+      else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
     this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
@@ -1069,13 +1070,15 @@ export class GameScene extends Phaser.Scene {
    */
   drawDiveMark(time: number) {
     const dm = this.diveMark, g = this.teleG; if (!dm) return;
+    // Tin "dive" / "here" có thể tới trước bản vá state (b.dive, hoặc cả boss với người vừa vào): chỉ bỏ dấu khi quá giờ, khi có tin
+    // "surface" / "reset" / "leave" / "down", hoặc khi boss đã mất khỏi state quá 1 giây.
     const b = this.room.state.beasts.get(dm.bid);
-    if (!b || !b.dive || time - dm.t0 > dm.ms + 1500) { this.diveMark = null; return; }
+    if (time - dm.t0 > dm.ms + 1500 || (!b && time - dm.t0 > 1000)) { this.diveMark = null; return; }
     const k = Math.min(1, (time - dm.t0) / dm.ms), R = 40, pulse = 0.5 + 0.5 * Math.sin(time / 120);
     g.fillStyle(DIVE_COL, 0.15 + 0.2 * k); fillGround(g, dm.x, dm.y, R * k);
     g.lineStyle(2, DIVE_COL, 0.6 + 0.4 * pulse); strokeGround(g, dm.x, dm.y, R);
     for (let j = 0; j < 2; j++) { const f = (time / 900 + j / 2) % 1; g.lineStyle(1, 0xd8f0ff, 1 - f); strokeGround(g, dm.x, dm.y, R * (0.3 + 0.7 * f)); }
-    for (let j = 0; j < 3; j++) { const f = (time / 1100 + j / 3) % 1; g.lineStyle(1, 0xd8f0ff, 0.8 * (1 - f)); strokeGround(g, b.x, b.y, 12 + 40 * f); }
+    if (b?.dive) for (let j = 0; j < 3; j++) { const f = (time / 1100 + j / 3) % 1; g.lineStyle(1, 0xd8f0ff, 0.8 * (1 - f)); strokeGround(g, b.x, b.y, 12 + 40 * f); }
   }
   /**
    * Aura tinh anh (BĐ4, mục 5.4 / 5.11, vẽ bằng code): vầng sáng màu riêng dưới chân (lớp mặt đất `teleG`, vẽ sau vùng cảnh báo) và
@@ -1490,6 +1493,8 @@ export class GameScene extends Phaser.Scene {
       const ox = s.x, mv8 = b.moving && Math.hypot(b.x - w.x, b.y - w.y) > 0.3 ? dir8(b.x - w.x, b.y - w.y) : null;
       const face = mv8 ?? this.bface.get(id) ?? dir8(b.face || 1, 0) ?? "se";
       this.bface.set(id, face);
+      // Dời chỗ xa trong một nhịp (Du Thủy lặn ra hồ / nổi lên, #118; về chỗ sinh): đặt thẳng, không trượt qua cây và nước.
+      if (Math.hypot(b.x - w.x, b.y - w.y) > 96) { w.x = b.x; w.y = b.y; }
       w.x += (b.x - w.x) * lerp; w.y += (b.y - w.y) * lerp;
       const at = W2S(w.x, w.y); s.setPosition(at.x, at.y);
       // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
@@ -1830,7 +1835,7 @@ export class GameScene extends Phaser.Scene {
         hud.banner(`Đã ngắt ${m.name}!`, `${m.by} ngắt chiêu · boss Choáng ${m.secs} giây`);
         return true;
       case "chargeHit":
-        hud.log(`${m.name} không bị ngắt: cả sàn trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
+        hud.log(`${m.name} không bị ngắt: cả sàn (trừ người đứng trong vòng an toàn) trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
         return true;
       case "floor":
         hud.banner(m.name, m.name === "Bạo Nộ" ? "Chiêu toàn sàn: đứng vào vòng xanh ngọc hoặc ra khỏi sàn!"

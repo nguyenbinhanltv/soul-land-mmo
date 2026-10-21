@@ -4331,17 +4331,19 @@ export class MapRoom extends Room<MapState> {
    */
   worldDive(bid: string, b: BeastState, bd: BData, w: WorldData, dv: NonNullable<NonNullable<BossDef["world"]>["dive"]>) {
     this.cancelCast(bid, b, bd);
-    w.dive = dv.secs; w.surf = surfaceSpot(this.map, b.x, b.y, dv.away, Math.random); b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
+    w.dive = dv.secs; w.surf = surfaceSpot(this.map, b.x, b.y, dv.away, Math.random) ?? { x: bd.hx, y: bd.hy }; b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" });
     const lake = this.map.lake;
     if (lake) { b.x = lake.x; b.y = lake.y; this.interest.beasts.put(bid, b.x, b.y); this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" }); }
     this.broadcast("boss", { k: "dive", bid, name: dv.name, secs: dv.secs, ...(w.surf ? { sx: w.surf.x, sy: w.surf.y } : {}) });
   }
 
-  /** Nổi lên đúng chỗ đã báo trước lúc lặn (WorldData.surf), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
+  /** Nổi lên đúng chỗ đã báo trước lúc lặn (WorldData.surf; không có thì chỗ sinh), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
   worldSurface(bid: string, b: BeastState, bd: BData, k: KingData, w: WorldData) {
     const dv = k.def.world?.dive;
-    if (w.surf) { b.x = w.surf.x; b.y = w.surf.y; this.interest.beasts.put(bid, b.x, b.y); } // dời xa hơn lề lưới (11.4): cập nhật ngay
+    // Không có chỗ nổi lên (sàn không tìm được chỗ) thì về chỗ sinh trong sàn, không kẹt lại giữa hồ.
+    const to = w.surf ?? { x: bd.hx, y: bd.hy };
+    b.x = to.x; b.y = to.y; this.interest.beasts.put(bid, b.x, b.y); // dời xa hơn lề lưới (11.4): cập nhật ngay
     w.dive = 0; w.surf = null; b.dive = false;
     bd.skT = Math.max(bd.skT, 1);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 60, col: "#4ab0ff" });

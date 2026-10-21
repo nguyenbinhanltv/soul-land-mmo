@@ -836,6 +836,12 @@ export function teleZones(def: BeastSkillDef, bx: number, by: number, tx: number
  * lực Đại Địa Chấn (ít vòng hơn vì báo trước lâu và còn cách ngắt). Thời gian báo trước đủ để đi bộ (PLAYER_SPEED) tới vòng gần nhất.
  */
 export const FLOOR_SAFE = { floor: { n: 3, r: 40 }, charge: { n: 2, r: 36 } };
+/**
+ * Chọn chỗ trên sàn đấu boss thế giới (#118: vòng an toàn, chỗ Du Thủy nổi lên): dọc trong dải `band` (phần bề cao sàn, để vòng không
+ * nằm sát mép cây và đi bộ tới kịp trong thời gian báo trước), cách mép sàn `pad` pixel (chỗ nổi lên; vòng an toàn cách mép bằng bán
+ * kính), thử tối đa `tries` lần mỗi chỗ.
+ */
+export const LAIR_SPOT = { band: [0.2, 0.8] as [number, number], pad: 16, tries: 30 };
 /** Bậc hồn thú (`BeastState.rank`): 0 thường, 1 tinh anh, 2 tà hóa thú vương (BĐ5), 3 boss thế giới (BĐ6). */
 export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as const;
 /**
@@ -1152,7 +1158,7 @@ export const chestCode = (bossId: string) => `ruong_${bossId}`;
 export const WORLD = { hp: 30, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
   enrageSecs: 600, rageDmg: 3, rageSpd: 1.4, rageCd: 0.6, slamEvery: 15, weakAt: [0.75, 0.5, 0.25], weakSecs: 15, weakMult: 2.5, offMult: 0.5,
   firstMech: 0.5, share: 0.03, daily: 1 };
-/** Chiêu toàn sàn khi nổi giận (mục 5.4 "chiêu toàn sàn mỗi 15 giây"): né bằng cách đứng trong vòng an toàn (FLOOR_SAFE) hoặc ra khỏi sàn. */
+/** Chiêu toàn sàn khi nổi giận (mục 5.4, mỗi WORLD.slamEvery giây): né bằng cách đứng trong vòng an toàn (FLOOR_SAFE) hoặc ra khỏi sàn. */
 export const WORLD_SLAM = bs("Bạo Nộ", "circle", 0, { floor: true, safe: FLOOR_SAFE.floor, warn: 2.5, dmg: 1, cd: WORLD.slamEvery });
 /** Giờ xuất hiện của boss thế giới mỗi ngày (giờ Việt Nam; đã chốt 21:00, không trùng lịch thú vương 20:00 / 22:00). */
 export const WORLD_TIME = "21:00";
