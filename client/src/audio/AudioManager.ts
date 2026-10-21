@@ -24,6 +24,9 @@ export interface AudioEvent {
 
 export type AudioSourceResolver = (message: AudioEvent) => AudioPoint | null;
 
+export const AUDIO_MAX_ACTIVE = 16;
+export const SFX_REPEAT_WINDOW_MS = 50;
+
 export function resolveAudioSource(message: AudioEvent, fallback: AudioSourceResolver): AudioPoint | null {
   if (Number.isFinite(message.x) && Number.isFinite(message.y)) return { x: message.x!, y: message.y! };
   return fallback(message);
@@ -52,8 +55,9 @@ export class AudioManager {
   private readonly listener: () => AudioPoint | null;
   private readonly sourceResolver: AudioSourceResolver;
   private settings: AudioSettings;
-  private unlocked = false;
   private readonly active = new Set<AudioBufferSourceNode>();
+  private readonly bufferCache = new Map<SfxId, AudioBuffer>();
+  private readonly lastPlayedAt = new Map<SfxId, number>();
 
   constructor(scene: { sound: unknown }, listener: () => AudioPoint | null, sourceResolver: AudioSourceResolver = () => null) {
     this.host = scene.sound as SoundManagerHost;
@@ -82,27 +86,35 @@ export class AudioManager {
 
   async unlock(): Promise<void> {
     if (!this.context) return;
-    try {
-      await this.context.resume();
-      this.unlocked = this.context.state === "running";
-    } catch { this.unlocked = false; }
+    try { await this.context.resume(); } catch { /* trình duyệt có thể vẫn chặn tự phát */ }
   }
 
   play(id: SfxId, source?: AudioPoint | null): void {
     const context = this.context, params = SFX_PARAMS[id];
-    if (!context || !params || !this.unlocked || this.settings.muted) return;
-    const mix = source ? spatialMix(source, this.listener() ?? source) : { volume: 1, pan: 0 };
+    if (!context || !params || context.state !== "running" || this.settings.muted) return;
+    const now = Date.now(), lastPlayedAt = this.lastPlayedAt.get(id);
+    if (lastPlayedAt !== undefined && now - lastPlayedAt < SFX_REPEAT_WINDOW_MS) return;
+    const listener = source ? this.listener() : null;
+    if (source && !listener) return;
+    const mix = source ? spatialMix(source, listener!) : { volume: 1, pan: 0 };
     if (!mix) return;
+    if (this.active.size >= AUDIO_MAX_ACTIVE) return;
+    let buffer = this.bufferCache.get(id);
+    if (!buffer) {
+      buffer = createZzFxBuffer(context, params);
+      this.bufferCache.set(id, buffer);
+    }
     const node = context.createBufferSource();
     const gain = context.createGain();
     const panner = typeof context.createStereoPanner === "function" ? context.createStereoPanner() : null;
-    node.buffer = createZzFxBuffer(context, params);
+    node.buffer = buffer;
     gain.gain.value = mix.volume;
     node.connect(gain);
     const destination = this.sfxBus ?? context.destination;
     if (panner) { panner.pan.value = mix.pan; gain.connect(panner); panner.connect(destination); }
     else gain.connect(destination);
     this.active.add(node);
+    this.lastPlayedAt.set(id, now);
     node.addEventListener("ended", () => this.active.delete(node), { once: true });
     node.start();
   }
@@ -127,6 +139,9 @@ export class AudioManager {
   dispose(): void {
     for (const node of this.active) { try { node.stop(); } catch {} }
     this.active.clear();
+    this.sfxBus?.disconnect();
+    this.bufferCache.clear();
+    this.lastPlayedAt.clear();
   }
 
   private resolveSource(message: AudioEvent): AudioPoint | null {

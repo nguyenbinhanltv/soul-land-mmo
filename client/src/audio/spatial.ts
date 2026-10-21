@@ -4,6 +4,7 @@ export interface AudioPoint { x: number; y: number; }
 export interface SpatialMix { volume: number; pan: number; }
 
 export const AUDIO_RANGE = 320;
+export const AUDIO_EDGE_ATTENUATION = 0.8;
 
 const clamp = (value: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, value));
 
@@ -24,5 +25,5 @@ export function spatialMix(source: AudioPoint, listener: AudioPoint, range = AUD
   const distance = Math.hypot(dx, dy);
   if (!Number.isFinite(distance) || distance > range) return null;
   const ratio = distance / range;
-  return { volume: 1 - 0.8 * ratio * ratio, pan: panFromProjection(source, listener, range) };
+  return { volume: 1 - AUDIO_EDGE_ATTENUATION * ratio * ratio, pan: panFromProjection(source, listener, range) };
 }

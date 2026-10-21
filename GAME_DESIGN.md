@@ -506,18 +506,6 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - **Vùng báo trước của hồn thú** luôn đỏ (`TELE_COL` trong `GameScene.ts`), viền nhấp nháy, nền tối đa 30% (Lạc Nhật thêm vạch trắng); **vùng chiêu của người chơi** theo màu võ hồn, không đỏ thuần.
 - Hạt bay, thời tiết mờ tối đa 50%, vẽ dưới chữ và thanh máu, khoảng 150 hạt; giảm một nửa khi đánh thú vương / boss (máy cảm ứng giảm thêm); lệnh chat `/hat` bật / tắt (lưu trên máy). Cách làm (`client/src/weather.ts`) ở `tools/assets/README.md`.
 
-### 5.12 Âm thanh: nền tảng WebAudio và SFX tự tạo
-Âm thanh là phần trình bày phía client. Server vẫn quyết định trạng thái, sát thương, vị trí và kết quả; client chỉ phát theo tin `fx`, `dmg` và state đã nhận. Không thêm message server cho âm thanh khi event hiện có đủ dữ liệu. Nếu sau này thiếu event, chỉ thêm event trạng thái tối thiểu, không đưa logic âm thanh lên server.
-
-- `client/src/audio/AudioManager.ts` dùng WebAudio context của Phaser Sound. Trình duyệt bị chặn tự phát thì chỉ `resume()` sau lần chạm, click hoặc phím đầu tiên; context không sẵn sàng thì bỏ qua tiếng, không làm lỗi game. Bot headless không cần âm thanh.
-- Bộ phát là ZzFX Micro tối giản, MIT, Copyright 2019 Frank Force; mã thích nghi ở `client/src/audio/zzfx.ts`, không thêm package và không tải file âm thanh bên ngoài. Tham số SFX nằm trong `client/src/audio/sfxData.ts`, không phải số cân bằng và không đặt ở `shared/data.ts`.
-- Bus nhạc của Phaser và bus SFX tự tạo tách riêng: âm lượng tổng nhân với thanh Nhạc chỉ trên nhạc, còn SFX nhận âm lượng tổng nhân với thanh Hiệu ứng; tắt tiếng vẫn áp dụng cho cả hai bus.
-- Có 40 SFX theo nhóm giao diện, chiến đấu, hệ võ hồn, hồn hoàn / tiến trình. Event hiện có được ánh xạ trước: `fx` cho chém, hồn kỹ, truyền tống và boss; `dmg` cho trúng, chí mạng, hồi máu, khiên; `absorbing`, `quest`, `ko`, `wp`, `boss` cho trạng thái tương ứng. Bốn hệ võ hồn hiện có trong `shared/data.ts` chỉ chọn màu âm thanh; không tự suy ra hệ nguyên tố chưa có trong dữ liệu authoritative.
-- `fx` ưu tiên `x,y`; nếu payload thiếu tọa độ thì client lấy `players[id]` hoặc `beasts[bid]` từ state server đã đồng bộ. Không tìm được nguồn thì bỏ qua SFX gameplay, không phát toàn cục; chỉ UI và thông báo gọi phát toàn cục trực tiếp.
-- Bảng **Âm thanh** trong HUD thủy mặc có âm lượng tổng (mặc định 90%), nhạc (65%), hiệu ứng (80%) và tắt tiếng. Slider chạy trong `[0, 1]`, bước `0,05`; giá trị sai được đưa về mặc định. Lưu ở `localStorage` với khóa `soul-land-audio-v1`; không lưu DB, không có API mới.
-- Âm thanh chiến đấu và hồn thú có tầm `320` pixel thế giới. Trong tầm, âm lượng nhân `1 − 0,8 × (khoảng cách / 320)²`, tại mép còn 20%; lệch trái/phải là delta ngang sau `worldToScreen` chia cho độ dài ngang của cùng tầm nghe, kẹp trong `[-1, 1]`. Vì vậy isometric dùng `x − y`, còn `?view=topdown` dùng `2 × x` và chênh `y` không làm lệch pan. Ngoài tầm không tạo node âm thanh. Vị trí nghe lấy từ state hồn sư của mình, không lấy từ dự đoán để tránh sai quyền quyết định.
-- Demo nghe thử tất cả SFX là artifact ngoài repo, không trở thành asset runtime. Đây là điểm nghe duyệt, không phải nguồn dữ liệu gameplay.
-
 **Bảng màu**
 - Bảng chung `art/palette.gpl`, bảng nhấn từng vùng `art/palettes/<mapId>.gpl` (asset của một vùng chỉ dùng bảng chung + bảng vùng đó), bảng giao diện `_thuy_mac.gpl`, `_luu_ly.gpl`. Màu hồn hoàn lấy `col` / `glow` của `TIERS`, không chép mã màu. Được thêm màu chủ đạo võ hồn (`col`, `robe` trong `VOHON`) cùng tối đa 1 sắc tối, 1 sắc sáng suy ra. Ô nền theo bảng chung rồi nhân màu môi trường của vùng lúc vẽ, nên một bộ ô dùng cho nhiều vùng.
 
@@ -577,6 +565,18 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 - Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google); mỗi key một dòng trong `art/CREDITS.md` (file, key, công cụ, prompt, ngày). Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ tham khảo ý tưởng, không làm ảnh tham chiếu.
 - **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận CC0, CC-BY hoặc OFL (lớp LPC thêm OGA-BY), mỗi asset một dòng trong `art/CREDITS.md`; CC-BY / OGA-BY phải hiện tên tác giả trong màn hình giới thiệu.
+
+### 5.12 Âm thanh: nền tảng WebAudio và SFX tự tạo
+Âm thanh là phần trình bày phía client. Server vẫn quyết định trạng thái, sát thương, vị trí và kết quả; client chỉ phát theo tin `fx`, `dmg` và state đã nhận. Không thêm message server cho âm thanh khi event hiện có đủ dữ liệu. Nếu sau này thiếu event, chỉ thêm event trạng thái tối thiểu, không đưa logic âm thanh lên server.
+
+- `client/src/audio/AudioManager.ts` dùng WebAudio context của Phaser Sound. Trình duyệt bị chặn tự phát thì chỉ `resume()` sau lần chạm, click hoặc phím đầu tiên; context không ở trạng thái `running` thì bỏ qua tiếng, không tạo node âm thanh. Bot headless không cần âm thanh.
+- Bộ phát là bộ tổng hợp lấy ý tưởng từ ZzFX (MIT, Frank Force), không chép mã ZzFX; mã nằm ở `client/src/audio/zzfx.ts`, không thêm package và không tải file âm thanh bên ngoài. Tham số SFX nằm trong `SFX_PARAMS` ở `client/src/audio/sfxData.ts`, không phải số cân bằng và không đặt ở `shared/data.ts`.
+- Bus nhạc của Phaser và bus SFX tự tạo tách riêng: âm lượng tổng nhân với thanh Nhạc chỉ trên nhạc, còn SFX nhận âm lượng tổng nhân với thanh Hiệu ứng; tắt tiếng vẫn áp dụng cho cả hai bus.
+- Có 40 SFX theo nhóm giao diện, chiến đấu, hệ võ hồn, hồn hoàn / tiến trình. Event hiện có được ánh xạ trước: `fx` cho chém, hồn kỹ, truyền tống và boss; `dmg` cho trúng, chí mạng, hồi máu, khiên; `absorbing`, `quest`, `ko`, `wp`, `boss` cho trạng thái tương ứng. Bốn hệ võ hồn hiện có trong `shared/data.ts` chỉ chọn màu âm thanh; không tự suy ra hệ nguyên tố chưa có trong dữ liệu authoritative.
+- `fx` ưu tiên `x,y`; nếu payload thiếu tọa độ thì client lấy `players[id]` hoặc `beasts[bid]` từ state server đã đồng bộ. Không tìm được nguồn thì bỏ qua SFX gameplay, không phát toàn cục; chỉ UI và thông báo gọi phát toàn cục trực tiếp.
+- Bảng **Âm thanh** trong HUD thủy mặc lấy mặc định từ `DEFAULT_AUDIO_SETTINGS`; slider chạy trong `[0, 1]`, bước `0,05`; giá trị sai được đưa về mặc định. Lưu ở `localStorage` với khóa `AUDIO_STORAGE_KEY`; không lưu DB, không có API mới.
+- Âm thanh chiến đấu và hồn thú có tầm `AUDIO_RANGE` pixel thế giới. Trong tầm, âm lượng dùng `AUDIO_EDGE_ATTENUATION` theo bình phương khoảng cách, tại mép còn 20%; lệch trái/phải là delta ngang sau `worldToScreen` chia cho độ dài ngang của cùng tầm nghe, kẹp trong `[-1, 1]`. Vì vậy isometric dùng `x − y`, còn `?view=topdown` dùng `2 × x` và chênh `y` không làm lệch pan. Ngoài tầm không tạo node âm thanh. Vị trí nghe lấy từ state hồn sư của mình, không lấy từ dự đoán để tránh sai quyền quyết định.
+- Demo nghe thử tất cả SFX là artifact ngoài repo, không trở thành asset runtime. Đây là điểm nghe duyệt, không phải nguồn dữ liệu gameplay.
 
 ## 6. Kiến trúc (bắt buộc giữ)
 **Server quyết định mọi thứ.** Client chỉ gửi ý định và hiển thị. Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ, bản đồ hay kênh đích. Ngẫu nhiên (`Math.random()`) chỉ ở server; hàm trong `shared/data.ts` là hàm thuần để client dùng khi hiển thị.
