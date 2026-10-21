@@ -1,6 +1,6 @@
 ---
 name: asset-gen
-description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (thoi 64×32 mỗi ô logic, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab và dây chuyền tools/assets. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
+description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.md mục 5.11 (thoi 32×16 mỗi ô logic, ô lớn 64×32 phủ 2×2, 8 hướng vẽ 5 lật 3; hồn sư 64×64 ghép lớp theo bộ giới × kiểu tóc, phụ thể 96×96, hồn thú theo bậc 64–192) qua PixelLab và dây chuyền tools/assets. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
 ---
 
 # Đưa asset vào game
@@ -20,21 +20,21 @@ description: Đưa sprite và ô isometric vào game theo quy cách GAME_DESIGN.
 | Animation hồn sư | `animate_character` mẫu | `breathing-idle`, `walking-6-frames`, `cross-punch` / `lead-jab`, `fireball`, `taking-punch`, `falling-back-death`; **chỉ xin 5 hướng** `south`, `south-east`, `east`, `north-east`, `north` | 1 mỗi hướng |
 | Hồn thú bốn chân | `create_character` | `body_type: "quadruped"`, `template` gần nhất (`dog`, `cat`, `lion`, `bear`, `horse`), `size` 48 / 64 / 92 cho khung 64 / 96 / 128 (khung thô lớn hơn khoảng 40%) | 1 |
 | Animation hồn thú | `animate_character` mẫu | chỉ có `idle`, `walk-*`, `running-*`, `sneaking`, `fast-walk`, `bark` (không có đánh / bị đánh / gục: làm bằng code hoặc animation tự mô tả v3, tốn hơn) | 1 mỗi hướng |
-| Ô nền | `create_isometric_tile` | `size: 64`, `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát) | 1 |
+| Ô nền | `create_isometric_tile` | `size: 32` (ô lớn 2×2: 64), `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát) | 1 |
 | Vật đứng | `create_map_object` | `width` / `height` theo vật (cây 96×128, lửa trại 48×48), `view: "high top-down"`, nền trong suốt | 1 |
 | Normal map | `create_normal_map` | chỉ khi bản tự sinh (`normal.mjs`) không đạt | 0,5 |
 
-- Ô size 64: mặt trên là **thoi 64×32, tâm khoảng (32, 37)** trong ảnh 64×64, đáy dày khoảng 12 pixel (size 32 cho thoi 32×16 tâm (16, 19), không dùng); lật ngang được để có thêm biến thể.
+- Ô size 32: mặt trên là **thoi 32×16, tâm (16, 19)** trong ảnh 32×32, đáy dày khoảng 5 pixel. Ô lớn size 64: **thoi 64×32, tâm khoảng (32, 37)** trong ảnh 64×64, đáy dày khoảng 12 pixel. Lật ngang được để có thêm biến thể.
 - Tải ảnh: `get_character` (URL `rotations/<hướng>.png`), `get_isometric_tile` / `get_map_object` (URL `download`). Ảnh thô lưu ở `art/src/pixellab/<bộ>/`; thư mục tạm để ngoài repo.
 
 ## Quy cách bắt buộc (chi tiết ở mục 5.11)
-- Một ô logic 16 px thế giới = **thoi 64×32**; client chiếu `sx = 2·(x − y)`, `sy = x + y`. Server không đổi. Vật nhiều ô cắt lát dọc rộng 32 pixel.
+- Một ô logic 16 px thế giới = **thoi 32×16**; client chiếu `sx = x − y`, `sy = (x + y) / 2`. Vùng rộng cùng địa hình dùng ô lớn 64×32 phủ 2×2 ô. Server không đổi. Vật nhiều ô cắt lát dọc rộng 16 pixel.
 - **8 hướng, vẽ 5 (`s`, `se`, `e`, `ne`, `n`), lật 3** (`sw` = lật `se`, `w` = lật `e`, `nw` = lật `ne`) cho mọi lớp cùng lúc.
 - Hồn sư khung **64×64, gốc (32, 58)**; phụ thể **96×96, gốc (48, 74)**; hồn thú 64 (Trắng, Vàng) / 96 (Tím, Đen) / 128 (Đỏ) / 160 (thú vương) / 192 (boss thế giới), gốc giữa đáy cách mép dưới khoảng 8 pixel.
 - Sheet hồn sư 24 cột × 6 hàng (hàng 0–4 là 5 hướng vẽ, hàng 5 `absorb`; cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–16 `cast`, 17–18 `hurt`, 19–22 `die`). Sheet hồn thú 20 cột × 5 hàng (cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–15 `hurt`, 16–19 `die`).
 - **Ghép lớp theo bộ giới × kiểu tóc (phương án (b)):** mỗi bộ vẽ liền thân + áo + tóc rồi tách tự động thành 3 lớp trên từng khung, từng hướng; key `hs_{body,outfit,hair}_{m,f}_{0–3}`; một bộ đủ 3 lớp trong manifest hoặc không có lớp nào. Phụ thể võ hồn là lớp riêng `vh_{id}_b` / `vh_{id}_f`, vẽ tĩnh 5 hướng rồi ghép theo điểm neo của từng khung thân.
 - **Viền ngoài `#1a1020`** cho nhân vật / hồn thú / vật đứng (không đen tuyền), giữ nguyên khi hoán màu: lớp tóc / áo chỉ gồm dải 4 xám chuẩn + `#1a1020`. Ô nền không viền.
-- Màu chỉ lấy từ `art/palette.gpl`, cộng `col` / `robe` của võ hồn (`VOHON`) và 1 sắc tối, 1 sắc sáng suy ra. Phong cách RPG trung cổ: màu trầm, chất đất, không chibi.
+- Màu chỉ lấy từ `art/palette.gpl`, cộng `col` / `robe` của võ hồn (`VOHON`) và 1 sắc tối, 1 sắc sáng suy ra. **Phong cách chờ chốt** (mục 5.11): không tạo ảnh hàng loạt trước khi chốt.
 - Bóng, vòng hồn hoàn, aura do client vẽ, không vẽ trong sprite.
 
 ## Dây chuyền `tools/assets/` (Node thuần)

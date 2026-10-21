@@ -434,18 +434,18 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - Bảng **Cộng minh** (phím K, nút "Cộng minh" trong khung chỉ số và ở đầu bảng đội hình): tổng % đang cộng, mỗi trụ cột tiến độ x / mốc kế tiếp kèm thanh, các mốc đã đạt sáng màu.
 
 ### 5.11 Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú
-**Từ Giai đoạn 10 game vẽ theo isometric thật** (ô hình thoi 2:1, 8 hướng, kiểu RPG trung cổ nhìn chéo từ trên xuống), vẫn là pixel art. **Server không đổi:** vị trí, va chạm, tầm chiêu vẫn tính trên tọa độ thế giới Descartes (pixel thế giới, `TILE` = 16, `shared/move.ts`); chỉ client chiếu sang màn hình. Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts`, `honsuArt.ts`), cùng key và cùng bố cục khung để ảnh thật thay vào được ngay. Ảnh tạo bằng PixelLab (5 key trial, mỗi key 40 lượt, cộng lượt thưởng ngày; ghi nguồn từng key ở `art/CREDITS.md`), đi qua dây chuyền `tools/assets`; chỉnh tay khi cần (Aseprite, `pixelart_workbench`). Lệnh và tham số: skill `.claude/skills/asset-gen`. Bản thử của bước 10.0 (ảnh cảnh mẫu) chỉ để duyệt quy cách, không đưa vào game.
+**Từ Giai đoạn 10 game vẽ theo isometric thật** (ô hình thoi 2:1, 8 hướng, nhìn chéo từ trên xuống), vẫn là pixel art. **Server không đổi:** vị trí, va chạm, tầm chiêu vẫn tính trên tọa độ thế giới Descartes (pixel thế giới, `TILE` = 16, `shared/move.ts`); chỉ client chiếu sang màn hình. Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts`, `honsuArt.ts`), cùng key và cùng bố cục khung để ảnh thật thay vào được ngay. Ảnh tạo bằng PixelLab (5 key trial, mỗi key 40 lượt, cộng lượt thưởng ngày; ghi nguồn từng key ở `art/CREDITS.md`), đi qua dây chuyền `tools/assets`; chỉnh tay khi cần (Aseprite, `pixelart_workbench`). Lệnh và tham số: skill `.claude/skills/asset-gen`. Bản thử của bước 10.0 (ảnh cảnh mẫu) chỉ để duyệt quy cách, không đưa vào game.
 
 **Phép chiếu và màn hình**
-- **Một ô logic 16×16 pixel thế giới vẽ thành một thoi 64×32 pixel màn hình** (chiếu 2:1). Điểm thế giới (x, y) chiếu thành `sx = 2·(x − y)`, `sy = x + y` (cộng gốc bản đồ). Chiều ngược: `x = sx / 4 + sy / 2`, `y = sy / 2 − sx / 4`. Trục x thế giới đi xuống phải, trục y đi xuống trái; mép trên bản đồ hiện nay (y = 0) thành cạnh trên phải. Hằng số chiếu là của client (`client/src/iso.ts`), không phải số cân bằng.
-  - **Tỉ lệ:** hồn sư (người cao khoảng 52 pixel) rộng khoảng nửa thoi, cao khoảng 1,6 thoi; bản đồ 90×60 ô rộng 4800 × 2400 pixel màn hình.
-  - **Tầm nhìn:** ở 640×360 thấy khoảng 7 ô theo chiều ngang và 8 ô theo chiều dọc mỗi bên (top-down hiện nay ở mức phóng nhỏ nhất: 13 và 7). Tầm chiêu xa nhất khoảng 150 pixel thế giới (khoảng 9 ô), hồn thú bắn từ 130 pixel, nên đòn có thể tới từ ngoài màn hình theo chiều ngang. Bù ở client, không đổi luật: **mũi tên ở mép màn hình** chỉ hồn thú đang nhắm mình và vùng báo trước nằm ngoài khung (màu theo bậc), camera **dẫn trước** khoảng 1/4 màn hình theo hướng đi. Nếu chơi thử ở 10.1 vẫn thấy chật thì phương án dự phòng là **một thoi 64×32 phủ 2×2 ô logic** (`sx = x − y`, `sy = (x + y) / 2`; tầm nhìn gấp đôi, giữ nguyên ảnh ô 64×32 và khung nhân vật, nhưng nền phải vẽ theo khối 2×2); đổi thì sửa mục này.
+- **Một ô logic 16×16 pixel thế giới vẽ thành một thoi 32×16 pixel màn hình.** Điểm thế giới (x, y) chiếu thành `sx = x − y`, `sy = (x + y) / 2` (cộng gốc bản đồ). Chiều ngược: `x = sy + sx / 2`, `y = sy − sx / 2`. Trục x thế giới đi xuống phải, trục y đi xuống trái; mép trên bản đồ hiện nay (y = 0) thành cạnh trên phải. Hằng số chiếu là của client (`client/src/iso.ts`), không phải số cân bằng.
+  - *Vì sao không dùng thoi 64×32 cho một ô:* thoi 64×32 phóng thế giới lên gấp đôi, ở 640×360 chỉ thấy khoảng 7 ô về mỗi bên theo chiều ngang, trong khi tầm chiêu xa nhất khoảng 150 pixel thế giới (khoảng 9 ô) và hồn thú bắn từ 130 pixel: đòn sẽ tới từ ngoài màn hình. Thoi 32×16 cho tầm nhìn khoảng 14 ô ngang, 16 ô dọc mỗi bên (hiện nay 13 và 7), giữ tỉ lệ người / thế giới như cũ (hồn sư rộng khoảng 1 ô, cao khoảng 3 thoi), và đúng cỡ `create_isometric_tile` size 32 của PixelLab.
+  - Vùng rộng cùng một loại địa hình dùng **ô lớn 64×32** phủ đúng 2×2 ô logic (PixelLab size 64) để bớt lặp mẫu và có nhiều chi tiết hơn; lưới logic không đổi. Chỗ 2×2 ô không cùng loại thì vẽ ô thường 32×16.
 - **Độ phân giải nội bộ 640×360**, phóng số nguyên `zoom = max(1, floor(min(rộng / 640, cao / 360)))`: ×2 ở 720p, ×3 ở 1080p, ×4 ở 1440p, ×6 ở 4K. Cửa sổ lẻ cỡ thì thấy rộng hơn một chút (chế độ `RESIZE` như hiện nay), không phóng lẻ. Phaser `pixelArt: true`, `roundPixels: true`; camera bám theo hồn sư và làm tròn vị trí về pixel nội bộ.
-- **Đi theo màn hình:** người đi thẳng lên màn hình thì sprite lên chậm hơn đi ngang (một pixel thế giới bằng 2√2 pixel ngang nhưng chỉ √2 pixel dọc). Đây là đặc tính của phép chiếu 2:1, không bù bằng cách đổi tốc độ ở server.
+- **Đi theo màn hình:** người đi thẳng lên màn hình thì sprite lên chậm hơn đi ngang (một pixel thế giới bằng √2 pixel ngang nhưng chỉ 0,7 pixel dọc). Đây là đặc tính của phép chiếu 2:1, không bù bằng cách đổi tốc độ ở server.
 
 **Sắp lớp theo độ sâu**
 - Thứ tự vẽ: nền đất (thấp nhất) → vùng chiêu báo trước, vòng dưới chân, bóng → mọi vật đứng (hồn sư, hồn thú, NPC, đồ rơi, cây, nhà, vách) sắp theo **độ sâu `x + y` của điểm chân** (tọa độ thế giới) → chữ, thanh máu, hiệu ứng nổi → HUD.
-- **Vật cao nhiều ô** (nhà, vách, cây lớn) được cắt thành **các lát dọc rộng 32 pixel** (nửa thoi); mỗi lát có độ sâu của mép trước chân vật tại cột đó (`tools/assets` cắt tự động theo chân vật khai báo). Nhờ vậy hồn sư đứng trước nửa này, sau nửa kia của một ngôi nhà vẫn đúng.
+- **Vật cao nhiều ô** (nhà, vách, cây lớn) được cắt thành **các lát dọc rộng 16 pixel** (nửa thoi); mỗi lát có độ sâu của mép trước chân vật tại cột đó (`tools/assets` cắt tự động theo chân vật khai báo). Nhờ vậy hồn sư đứng trước nửa này, sau nửa kia của một ngôi nhà vẫn đúng.
 - **Vật cao che hồn sư của chính mình** (tán cây, mái nhà, vách) thì mờ còn khoảng 40% trong lúc che, người khác vẫn thấy bình thường; có thể thêm viền bóng của hồn sư xuyên qua vật che.
 - **Bóng đổ:** elip 2:1 dưới chân, màu `#1a1020`, độ mờ khoảng 35%, rộng bằng thân (hồn sư 24×12, hồn thú theo khung). Bóng do client vẽ, không vẽ trong sprite.
 
@@ -455,10 +455,10 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - Ánh sáng nền vẽ sẵn trong sprite vẫn **từ trên bên trái**; Light2D chỉ thêm sáng tối cục bộ, không đổi hướng sáng chính.
 
 **Phong cách và bảng màu chung**
-- **Pixel art RPG trung cổ isometric:** tỉ lệ người thường (đầu khoảng 1/4–1/3 chiều cao, không chibi), màu trầm, chất đất (nâu, lục rêu, xám đá, vàng đất), sắc sáng chỉ dành cho võ hồn, hồn hoàn và hiệu ứng.
+- **Hướng phong cách: chờ chốt.** Bản thử 10.0 (RPG trung cổ, màu trầm chất đất, tỉ lệ người thường) bị thấy đơn điệu; người dùng đang chọn hướng riêng. Khi chốt thì ghi ở đây: tỉ lệ người (chibi hay thường), bảng màu chủ đạo, độ bão hòa, mức chi tiết của nền và vật. Không tạo ảnh hàng loạt (10.2, 10.4–10.6, 10.8) trước khi chốt. Các quy tắc kỹ thuật dưới đây giữ, trừ khi phong cách mới đổi.
 - Mỗi vùng màu 3 sắc độ (tối, gốc, sáng); sắc thứ 4 chỉ cho kim loại và hiệu ứng phát sáng.
 - **Viền ngoài `#1a1020`** (không đen tuyền) cho nhân vật, hồn thú, vật đứng; viền trong cùng tông, tối hơn màu gốc; không khử răng cưa ở viền ngoài. **Ô nền không viền** (lineless) để mặt đất liền mạch.
-- **Bảng màu chung** ở `art/palette.gpl` (bước 10.2 thêm dải đất, đá, rêu, tuyết, cát, nước). Ngoài bảng chỉ thêm màu chủ đạo của võ hồn (`col`, `robe` trong `VOHON`) cùng tối đa 1 sắc tối, 1 sắc sáng suy ra, và màu hồn hoàn trong `TIERS`.
+- **Bảng màu chung** ở `art/palette.gpl` (bước 10.2 thêm dải cho địa hình theo phong cách đã chốt). Ngoài bảng chỉ thêm màu chủ đạo của võ hồn (`col`, `robe` trong `VOHON`) cùng tối đa 1 sắc tối, 1 sắc sáng suy ra, và màu hồn hoàn trong `TIERS`.
 - **Da:** sprite vẽ bằng 3 sắc da của tông 0; client hoán sang dải của tông khác (`SKIN_TONES`, key `hs_body_f_2@2`).
 - Võ hồn và hồn thú màu tối phải có viền sáng hoặc hào quang để nổi trên nền tối (hồn hoàn đen dùng `glow` tím làm viền).
 
@@ -468,7 +468,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Client tự suy hướng 8, không cần server:** hồn sư của mình theo hướng đang bấm; người khác và hồn thú theo hướng chuyển động nội suy, đứng yên thì giữ hướng cũ; tin `fx` có `dx, dy` (chém, cung) đặt hướng ngay lúc đánh; `PlayerState.dir` (4 hướng) và `BeastState.face` chỉ dùng khi chưa có chuyển động nào.
 
 **Quy cách sprite hồn sư**
-- **Khung 64×64**, người cao khoảng 50–54 pixel, gốc tại chân, điểm (32, 58), tức `origin = (0.5, 58/64)`. Thân rộng khoảng 24–30 pixel, khoảng nửa thoi.
+- **Khung 64×64**, người cao khoảng 50–54 pixel, gốc tại chân, điểm (32, 58), tức `origin = (0.5, 58/64)`. Thân rộng khoảng 24–30 pixel, bằng khoảng 1 thoi.
 - **Ghép theo lớp**, mỗi lớp một spritesheet cùng bố cục khung. Thứ tự vẽ từ sau ra trước:
 
 | Thứ tự | Lớp | Nguồn | Ghi chú |
@@ -574,7 +574,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Hồn hoàn rơi trên đất:** key `ring{tier}` 32×20 (elip 2:1 nằm nghiêng, phát sáng). Vòng dưới chân vẽ bằng code: `halo{tier}` (khung 40×20, khung 0 cung trên, khung 1 cung dưới) và `halo{tier}_lit` (46×24).
 
 **Vùng chiêu và hiệu ứng trên mặt đất**
-- Mọi hình server gửi tính trên mặt phẳng thế giới, client **chiếu từng điểm** rồi vẽ: vòng tròn bán kính r thành **elip** có bán trục ngang `2√2·r`, bán trục dọc `√2·r` (tỉ lệ 2:1), vệt (`line`) và nón (`cone`) thành đa giác chiếu, cung chém (`arc`) thành dải cung chiếu. Một hàm chung `isoPoly` cho vùng báo trước, vùng chiêu, vòng sóng, vùng an toàn và cổng.
+- Mọi hình server gửi tính trên mặt phẳng thế giới, client **chiếu từng điểm** rồi vẽ: vòng tròn bán kính r thành **elip** có bán trục ngang `√2·r`, bán trục dọc `r/√2` (tỉ lệ 2:1), vệt (`line`) và nón (`cone`) thành đa giác chiếu, cung chém (`arc`) thành dải cung chiếu. Một hàm chung `isoPoly` cho vùng báo trước, vùng chiêu, vòng sóng, vùng an toàn và cổng.
 - Hiệu ứng bay (đạn, mũi tên, hạt) đi theo tọa độ thế giới rồi chiếu; độ cao giả (đạn bay ngang ngực) là độ lệch dọc màn hình cố định, không đổi độ sâu.
 
 **Hồn thú**
@@ -598,13 +598,13 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 **Bản đồ isometric** (lưới logic, va chạm, object Tiled giữ nguyên; chỉ đổi cách vẽ)
 - File Tiled `shared/assets/<mapId>.json` **không đổi định dạng** (orthogonal, ô 16): server và `shared/move.ts` đọc như cũ. Client đọc lớp `ground`, `trees`, `canopy` rồi vẽ lại theo isometric bằng **bảng ánh xạ gid → asset isometric** (`shared/assets/iso/tiles.json`): gid nền → ô thoi (kèm biến thể chọn theo băm vị trí để bớt lặp), gid vật cản cao (cây, thông tuyết, lều, lửa trại, tường, mái, băng tinh, đá ngầm) → **vật đứng** đặt ở tâm ô, sắp theo độ sâu. Ô `canopy` không vẽ riêng nữa: tán cây là một phần sprite cây; nhà nhiều ô (`roof` / `wall` liền nhau) gom thành một khối nhà theo hình chữ nhật bao.
 - **Chuyển 10 bản đồ tự động**: không sửa từng file; chỉ cần đủ asset cho mọi gid đang dùng (khoảng 36 gid, `tools/gen-map.mjs` bảng `GID`). `npm run map` vẫn sinh file Tiled như cũ.
-- **Nền vẽ một lần mỗi bản đồ**: lớp `TilemapLayer` isometric của Phaser (`MapData.orientation` isometric, ô 64×32, ảnh ô 64×64) hoặc ghép sẵn thành các khối `RenderTexture`; chọn ở bước 10.1 sau khi đo khung hình trên điện thoại. Mép giữa hai loại địa hình (cỏ → đường, cát → nước) dùng **lớp phủ mép** vẽ chồng lên ô (PixelLab `create_path_tiles` dạng isometric hoặc vẽ tay), chưa cần bộ ô chuyển tiếp đầy đủ.
-- **Ô PixelLab:** `create_isometric_tile` size 64, `tile_shape: "thin tile"`, `outline: "lineless"`: mặt trên là thoi 64×32 có tâm khoảng (32, 37) trong ảnh 64×64, đáy dày khoảng 12 pixel (bị ô phía trước che khi lát); đo lại tâm cho từng ô khi đưa vào `tiles.json`. Nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát). Vật đứng: `create_map_object` (1 lượt, nền trong suốt, `view: "high top-down"`).
+- **Nền vẽ một lần mỗi bản đồ**: lớp `TilemapLayer` isometric của Phaser (`MapData.orientation` isometric, ô 32×16, ảnh ô 32×32; ô lớn 2×2 vẽ chồng thành vật nền riêng) hoặc ghép sẵn thành các khối `RenderTexture`; chọn ở bước 10.1 sau khi đo khung hình trên điện thoại. Mép giữa hai loại địa hình (cỏ → đường, cát → nước) dùng **lớp phủ mép** vẽ chồng lên ô (PixelLab `create_path_tiles` dạng isometric hoặc vẽ tay), chưa cần bộ ô chuyển tiếp đầy đủ.
+- **Ô PixelLab:** `create_isometric_tile`, `tile_shape: "thin tile"`, `outline: "lineless"`; nền chính dùng `detail: "medium detail"`, `shading: "basic shading"` (bản "highly detailed" quá nhiễu khi lát). Size 32: mặt trên là thoi 32×16, tâm (16, 19) trong ảnh 32×32, đáy dày khoảng 5 pixel (bị ô phía trước che khi lát). Size 64 (ô lớn 2×2): thoi 64×32, tâm khoảng (32, 37) trong ảnh 64×64, đáy dày khoảng 12 pixel. Đo lại tâm cho từng ô khi đưa vào `tiles.json`. Vật đứng: `create_map_object` (1 lượt, nền trong suốt, `view: "high top-down"`).
 - **Vùng zone / portal / safe / spawn / boss** (chữ nhật thế giới) hiển thị thành hình bình hành chiếu; NPC, cổng, bảng tên giữ ở điểm chân.
 - Bản đồ nhỏ (minimap, nếu có) vẽ theo lưới thế giới, không chiếu.
 
 **Điều khiển**
-- **Phím WASD / mũi tên theo màn hình:** W lên, S xuống, A trái, D phải, kết hợp được 8 hướng màn hình. Client đổi vector màn hình (mx, my) sang hướng thế giới bằng phép chiếu ngược (bỏ hệ số chung): `x = mx + 2·my`, `y = 2·my − mx`, rồi chuẩn hóa độ dài 1 và gửi `input {x, y, s}` như cũ (server không đổi). Ví dụ W → (−1, −1)/√2, D → (1, −1)/√2. Cần điều khiển chạm làm y như vậy với vector cần.
+- **Phím WASD / mũi tên theo màn hình:** W lên, S xuống, A trái, D phải, kết hợp được 8 hướng màn hình. Client đổi vector màn hình (mx, my) sang hướng thế giới bằng phép chiếu ngược, `x = my + mx / 2`, `y = my − mx / 2`, rồi chuẩn hóa độ dài 1 và gửi `input {x, y, s}` như cũ (server không đổi). Ví dụ W → (−1, −1)/√2, D → (1, −1)/√2. Cần điều khiển chạm làm y như vậy với vector cần.
 - **Chuột:** chiếu ngược điểm bấm (`pointer.worldX/Y` của camera rồi `iso → thế giới`).
   - Bấm hoặc giữ chuột trái trên mặt đất: **đi tới điểm đó** (client gửi hướng tới điểm, dừng khi còn cách dưới 4 pixel, bị chặn quá 0,5 giây, hoặc khi bấm phím đi). Bản đầu không tìm đường; tìm đường A* trên `solidGrid` phía client là bước sau, vẫn chỉ gửi hướng.
   - Bấm vào hồn thú: **chọn mục tiêu** (vòng chọn dưới chân); hồn sư tự đi tới trong tầm đánh thường rồi đánh, hướng đi cuối cùng hướng vào mục tiêu nên server đánh đúng hướng (`d.dir`). Phím đánh / hồn kỹ dùng mục tiêu đang chọn tương tự.
@@ -633,8 +633,8 @@ shared/assets/sprites/
   ring/ring{tier}.png                        ring{tier}, halo{tier}
 shared/assets/iso/
   tiles.json                 ánh xạ gid Tiled → ô thoi / vật đứng, chân vật, điểm sáng
-  ground/{loại}_{i}.png      ô nền 64×64 (mặt trên thoi 64×32)
-  props/{vật}.png            cây, nhà, lều, đá… (đã cắt lát 32 pixel nếu nhiều ô)
+  ground/{loại}_{i}.png      ô nền 32×32 (thoi 32×16) và ô lớn 64×64 (thoi 64×32, phủ 2×2 ô)
+  props/{vật}.png            cây, nhà, lều, đá… (đã cắt lát 16 pixel nếu nhiều ô)
 shared/assets/ui/
   portrait/{id}.png          chân dung 64×64
   card/frame_{sr,ssr,ur}.png khung thẻ 96×128
@@ -770,10 +770,10 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 
 **Mỹ thuật 2D cũ (M1–M5):** M1 nền tảng (palette, `CREDITS.md`, manifest, tải ảnh theo manifest, vẽ code key thiếu) đã xong và dùng tiếp; **M2–M5 được thay bằng Giai đoạn 10**. Ảnh 32×32 đã có (8 bộ hồn sư, 3 phụ thể, 3 loài hồn thú) giữ cho client hiện tại tới khi bước 10.4 / 10.5 / 10.6 thay.
 
-**Giai đoạn 10: Đồ họa isometric** (quy cách ở mục 5.11; server không đổi, mỗi bước một PR; thay nhóm Mỹ thuật M2–M5 cũ). Ngân sách PixelLab: 5 key trial × 40 lượt = 200 lượt, cộng lượt thưởng ngày (+5 mỗi đêm, tối đa 20, chỉ dùng khi hết lượt chính). Số lượt ghi ở mỗi bước là ước tính; phần vượt ngân sách chờ lượt thưởng hoặc key mới, key chưa có ảnh vẫn vẽ bằng code. Hết lượt thì dừng và báo, không tự đổi key.
-- [x] 10.0 Thiết kế và bản thử: quy cách isometric ở mục 5.11; ảnh cảnh mẫu (ngoài repo) ở tỉ lệ đã duyệt từ 1 hồn sư 8 hướng, 5 ô nền (3 ô size 32 thử trước, 2 ô size 64), 1 cây, 1 lửa trại, 1 hồn thú (9 lượt).
-- [ ] 10.1 Nền client isometric (0 lượt): `client/src/iso.ts` (chiếu / chiếu ngược), camera dẫn trước và độ phân giải nội bộ 640×360 phóng số nguyên; vẽ nền và vật cản từ file Tiled hiện có bằng ô thoi 64×32 / khối **vẽ tạm bằng code**; sắp lớp theo `x + y`, vật che mờ, bóng elip, vòng hồn hoàn elip 2:1; từ 10.1 tới 10.3 hồn sư dùng tạm bộ 32×32 cũ (chọn hướng gần nhất trong 4 hướng cũ), từ 10.4 chỉ tải key hồn sư có `iso` (mục 5.11); WASD / mũi tên / cần theo màn hình quy đổi sang vector thế giới; chuột bấm để đi tới, chọn mục tiêu, bấm NPC / cổng / hồn sư khác (chiếu ngược); `isoPoly` cho vùng báo trước, vùng chiêu, sóng, cung chém, đạn; suy hướng 8 từ chuyển động và tin `fx`; mũi tên mép màn hình cho mối đe dọa ngoài khung. Bot và `test:predict` chạy như cũ. Chơi thử tầm nhìn để chốt giữa một thoi một ô và phương án dự phòng 2×2 (mục 5.11).
-- [ ] 10.2 Bản đồ và bộ ô isometric (khoảng 40 lượt; tạo ảnh song song với 10.1, ghép vào client sau 10.1): dải màu đất / đá / rêu / tuyết / cát / nước trong `art/palette.gpl`; khoảng 22 ô nền (2–3 biến thể cho cỏ, tuyết, cát) và khoảng 11 vật đứng (cây lá rộng, thông tuyết, lều, lửa trại, bộ nhà / tường / mái, băng tinh, đá ngầm); `shared/assets/iso/tiles.json` phủ mọi gid đang dùng; cắt lát vật nhiều ô; lớp phủ mép cỏ / đường / nước. Cả 10 bản đồ chuyển tự động.
+**Giai đoạn 10: Đồ họa isometric** (quy cách ở mục 5.11; server không đổi, mỗi bước một PR; thay nhóm Mỹ thuật M2–M5 cũ). Các bước tạo ảnh hàng loạt chờ chốt phong cách (mục 5.11). Ngân sách PixelLab: 5 key trial × 40 lượt = 200 lượt, cộng lượt thưởng ngày (+5 mỗi đêm, tối đa 20, chỉ dùng khi hết lượt chính). Số lượt ghi ở mỗi bước là ước tính; phần vượt ngân sách chờ lượt thưởng hoặc key mới, key chưa có ảnh vẫn vẽ bằng code. Hết lượt thì dừng và báo, không tự đổi key.
+- [x] 10.0 Thiết kế và bản thử: quy cách isometric ở mục 5.11; ảnh cảnh mẫu (ngoài repo) ở thoi 32×16 từ 1 hồn sư 8 hướng, 3 ô size 32, 1 cây, 1 lửa trại, 1 hồn thú, cộng 2 ô size 64 để đo ô lớn và dựng bản so sánh thoi 64×32 (9 lượt). Phong cách chưa chốt.
+- [ ] 10.1 Nền client isometric (0 lượt): `client/src/iso.ts` (chiếu / chiếu ngược), camera và độ phân giải nội bộ 640×360 phóng số nguyên; vẽ nền và vật cản từ file Tiled hiện có bằng ô thoi 32×16 / khối **vẽ tạm bằng code**; sắp lớp theo `x + y`, vật che mờ, bóng elip, vòng hồn hoàn elip 2:1; từ 10.1 tới 10.3 hồn sư dùng tạm bộ 32×32 cũ (chọn hướng gần nhất trong 4 hướng cũ), từ 10.4 chỉ tải key hồn sư có `iso` (mục 5.11); WASD / mũi tên / cần theo màn hình quy đổi sang vector thế giới; chuột bấm để đi tới, chọn mục tiêu, bấm NPC / cổng / hồn sư khác (chiếu ngược); `isoPoly` cho vùng báo trước, vùng chiêu, sóng, cung chém, đạn; suy hướng 8 từ chuyển động và tin `fx`. Bot và `test:predict` chạy như cũ.
+- [ ] 10.2 Bản đồ và bộ ô isometric (khoảng 40 lượt; sau khi chốt phong cách, tạo ảnh song song với 10.1, ghép vào client sau 10.1): dải màu địa hình trong `art/palette.gpl`; ô lớn 64×32 cho cỏ, tuyết, cát, nước sâu; khoảng 22 ô nền (2–3 biến thể cho cỏ, tuyết, cát) và khoảng 11 vật đứng (cây lá rộng, thông tuyết, lều, lửa trại, bộ nhà / tường / mái, băng tinh, đá ngầm); `shared/assets/iso/tiles.json` phủ mọi gid đang dùng; cắt lát vật nhiều ô; lớp phủ mép cỏ / đường / nước. Cả 10 bản đồ chuyển tự động.
 - [ ] 10.3 Dây chuyền `tools/assets` 8 hướng (0–2 lượt; song song với 10.1): khung 64 / 96 / theo bậc, cắt khung thô PixelLab (76, 92) về khung chuẩn, `--split` với màu khóa và tự sửa mắt lam, bố cục sheet 24 × 6 (hồn sư) và 20 × 5 (hồn thú), `normal.mjs` tự sinh normal map, cờ `iso` trong manifest, điểm neo phụ thể, `preview.mjs` xem 8 hướng (kể cả 3 hướng lật).
 - [ ] 10.4a Hồn sư bộ gốc `m_0`, `f_0` (khoảng 32 lượt; sau 10.3): mỗi bộ 8 hướng (1) + `walk`, `attack`, `cast` cho 5 hướng (15); `idle` bằng `--breathe`, `hurt` / `die` bằng code trước. Client vẽ hồn sư 64×64 nhiều lớp.
 - [ ] 10.4b 6 bộ hồn sư còn lại (khoảng 96 lượt; chia nhiều PR theo giới): như 10.4a. Sau đó `hurt`, `die` thật (10 lượt mỗi bộ) khi còn lượt.
@@ -800,5 +800,6 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 ## 8. Câu hỏi còn mở
 Các câu hỏi thiết kế trước đây đều đã chốt và đưa vào mục 5. Còn mở:
 1. **Ngân sách mỹ thuật isometric** (Giai đoạn 10): ước tính vượt 200 lượt PixelLab nếu làm đủ 8 bộ hồn sư, 24 phụ thể, 67 loài hồn thú; cần chọn thứ tự ưu tiên hoặc thêm key / lượt thưởng ngày.
-2. **Trần số người khi tính máu boss:** hiện không có trần (nhóm bạn bè ít người); xem lại nếu phòng đông làm boss quá trâu.
-3. **Chủ nhân và tên hồn kỹ trong truyện** của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, Phá Hồn Thương, Liệt Hỏa Thương Lang: để trống / đặt tạm cho tới khi có nguồn chắc chắn.
+2. **Phong cách mỹ thuật isometric** (mục 5.11): bản thử RPG trung cổ màu trầm bị thấy đơn điệu, người dùng đang chọn hướng riêng.
+3. **Trần số người khi tính máu boss:** hiện không có trần (nhóm bạn bè ít người); xem lại nếu phòng đông làm boss quá trâu.
+4. **Chủ nhân và tên hồn kỹ trong truyện** của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, Phá Hồn Thương, Liệt Hỏa Thương Lang: để trống / đặt tạm cho tới khi có nguồn chắc chắn.
