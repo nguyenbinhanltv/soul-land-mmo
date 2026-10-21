@@ -92,20 +92,21 @@ Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. B�
 | Cảm điện | Đòn trực tiếp trúng mục tiêu Cảm điện thì lan một phần sát thương sang mục tiêu Cảm điện khác ở gần (một bước, không lan tiếp). |
 | Trúng độc | Mất máu mỗi giây theo tầng; hồn thú bị độc hồi máu chậm hơn. |
 | Dễ thương | Nhận thêm sát thương từ mọi nguồn (cả sát thương theo thời gian). |
-| Phá giáp (Liệt thương) | Nhận thêm sát thương đòn trực tiếp theo tầng (hồn thú chưa có chỉ số thủ nên "giảm thủ" quy thành nhận thêm sát thương). |
-| Choáng | Không đi, không đánh, không dùng hồn kỹ, không bị đẩy lùi. "Đóng băng", "hất tung", "quật ngã", "tê liệt" đều là Choáng. |
+| Phá giáp (Liệt thương) | Hồn thú: mỗi tầng giảm một phần thủ (`STATUS.armor.shred`), đủ tầng thì hết thủ (thủ ở mục 5.3). Hồn sư không có thủ: nhận thêm sát thương đòn trực tiếp theo tầng. |
+| Choáng | Không đi, không đánh, không dùng hồn kỹ, không bị đẩy lùi. Trên hồn thú, "đóng băng" (hồn kỹ của hồn sư), "hất tung", "quật ngã", "tê liệt" đều là Choáng. |
 | Câm lặng | Không dùng hồn kỹ / chiêu; vẫn đánh thường. |
 | Trói | Không đi, không bị đẩy lùi; vẫn đánh khi kề bên. "Giam" là Trói. |
 | Làm chậm | Giảm tốc; mọi nguồn làm chậm cộng lại tối đa `SLOW_CAP`. |
 | Mị hoặc | Làm chậm theo tầng; đủ tầng thì bùng phát thành Mê hoặc. Đang Mê hoặc thì không nhận thêm Mị hoặc. |
-| Mê hoặc | Bỏ mục tiêu, đi lung tung quanh chỗ đứng, không đánh. Không bị phá khi trúng đòn. |
+| Mê hoặc | Hồn thú: bỏ mục tiêu, đi lung tung quanh chỗ đứng, không đánh. Hồn sư: không đánh, không dùng hồn kỹ, phím bị bỏ qua, server tự đi lung tung quanh chỗ bị Mê hoặc (`PLAYER_CHARM`). Không bị phá khi trúng đòn. |
+| Đóng băng | Chỉ trên hồn sư (chiêu băng của hồn thú): như Choáng (không đi, không đánh, không dùng hồn kỹ), hình khối băng. |
 | Phong ấn | Không tự gây gì; đủ tầng thì bùng phát thành Dễ thương dài hơn mặc định. |
 
 - Sát thương theo thời gian tính một lần lúc gây (công người gây, kể cả tăng công, × sức mạnh hồn kỹ); không chí mạng, không tạo năng lượng tiên cơ, không giữ hồn sư trong giao chiến. Người gây rời phòng thì trạng thái đó mất.
 - Gây lại cùng trạng thái: cộng tầng tới tối đa, lấy thời gian còn lại dài hơn và độ lớn mạnh hơn.
 - Khống chế (Choáng, Trói, Câm lặng, Mê hoặc, đẩy lùi) ngắn hơn với hồn thú bậc cao (`CC_TIER_MULT`).
 - Choáng, Câm lặng, Mê hoặc trên hồn thú **ngắt chiêu báo trước** đang hiện.
-- **Trạng thái trên hồn sư** (`PLAYER_STATUS`, cùng luật cộng tầng): chỉ chiêu của hồn thú và đòn của đối thủ ở Đại Đấu Hồn Trường gây. Mị hoặc, Mê hoặc, Phong ấn không có trên hồn sư: chiêu "mê hoặc" hay "đóng băng" của hồn thú lên hồn sư là Choáng ngắn. Thời gian khống chế trên hồn sư không nhân theo bậc. Trạng thái thuộc hồn sư (đổi võ hồn vẫn còn); vào vùng an toàn hoặc cả đội gục thì hết; **thanh tẩy** (tiên cơ / hồn kỹ phụ trợ) giải hết. Ai cũng thấy dây trói, sao choáng và biểu tượng trên đầu; chính mình thấy ô viền đỏ cạnh hiệu ứng có lợi.
+- **Trạng thái trên hồn sư** (`PLAYER_STATUS`, cùng luật cộng tầng): chỉ chiêu của hồn thú và đòn của đối thủ ở Đại Đấu Hồn Trường gây. Mị hoặc, Phong ấn không có trên hồn sư. Chiêu "mê hoặc" của hồn thú gây **Mê hoặc**, chiêu "đóng băng" gây **Đóng băng**; hai trạng thái này chỉ hồn thú gây (`PLAYER_STATUS_PVE`: hồn kỹ có Mê hoặc của đối thủ ở đấu trường không gây lên hồn sư). Server bỏ qua đánh thường và từ chối hồn kỹ, Chân Thân, kỹ năng hồn cốt khi đang bị khống chế; đang không đi được (Choáng, Đóng băng, Trói) hoặc Mê hoặc thì không bắt đầu đi cổng / truyền tống (tin báo ghi tên trạng thái). Kháng Choáng của bị động hồn cốt cũng rút ngắn Đóng băng, Mê hoặc (`RESIST_AS`). Thời gian khống chế trên hồn sư không nhân theo bậc. Trạng thái thuộc hồn sư (đổi võ hồn vẫn còn); vào vùng an toàn hoặc cả đội gục thì hết; **thanh tẩy** (tiên cơ / hồn kỹ phụ trợ) giải hết. Ai cũng thấy dây trói, sao choáng, khối băng, tim hồng và biểu tượng trên đầu; chính mình thấy ô viền đỏ cạnh hiệu ứng có lợi.
 - Hồn thú không có mục tiêu và không bị đánh một lúc thì tự hồi máu (`BEAST_REGEN`), để Trúng độc có tác dụng.
 
 **Hiệu ứng có lợi trên hồn sư** (`BUFFS`: tăng công, tăng tốc, tăng thủ (giảm sát thương nhận), tăng chí mạng, giảm tiêu hao hồn lực, miễn sát thương, lãnh vực phượng hoàng, tàng hình, hút huyết). Như khiên, hiệu ứng **thuộc hồn sư** nên đổi võ hồn vẫn còn (tung ở võ hồn phụ trợ rồi đổi về võ hồn đánh chính); cả đội gục thì mất. Hiệu ứng của võ hồn Phụ trợ lan cho đồng đội tổ đội đứng gần (mục 5.9).
@@ -279,6 +280,8 @@ Vùng là object `zone` trong Tiled: loài (`beasts`, kèm trọng số), niên 
 **Luật chung của hồn thú**
 - **Chỉ số hồn thú tăng theo số năm** (`beastStats`), không nhảy theo màu. Loài (`BEASTS`, mã cố định dùng cho sprite `beast_{id}`) quyết định kiểu tấn công, chiêu và hệ số chỉ số; kích thước, tốc độ và Hồn Tệ rơi (`BEAST_COIN`) theo bậc màu.
 - Phát hiện người trong `BEAST_AGGRO_R`, lang thang quanh chỗ sinh (`BEAST_WANDER`). Quanh trại cổng, mọi cổng và điểm `arrive` không sinh hồn thú (`SPAWN_CLEAR`, mục 5.8).
+- **Thú thực vật đứng yên** (`BEAST_ROOTED`: Thực Nhân Hoa, Quỷ Đằng và Quỷ Đằng non, Cổ Mộc Thụ Nhân, kể cả tinh anh mượn các loài này): cắm rễ ở chỗ sinh, không lang thang, không đuổi, không bị đẩy lùi / kéo, bị Mê hoặc cũng không đi. Đánh thường quất xa hơn hồn thú khác (`beastMelee`, thêm `BEAST_ROOTED.lash`) để hồn sư không đứng ngoài tầm đánh trả mà vẫn đánh tới được. Tầm với là tầm đánh thường đó hoặc tầm chiêu báo trước xa nhất (cộng `BEAST_ROOTED.margin`): chỉ nhận và giữ mục tiêu trong tầm với (tối đa `BEAST_AGGRO_R` khi nhận), ra ngoài thì bỏ.
+- **Thủ** (`BEAST_DEF`, `BEAST_DEF_MULT`, `beastDef`, `defMult`): phần sát thương đòn trực tiếp hồn thú đỡ, theo loài (giáp / mai / vỏ cây dày cao, côn trùng / chim / hoa thấp) và tăng nhẹ theo số năm; tinh anh, thú vương, boss thế giới theo loài gốc. Công hồn sư cân theo hồn thú thủ chuẩn (`BEAST_DEF.ref`): hồn thú thủ chuẩn nhận đúng sát thương gốc, thủ cao nhận ít hơn, thủ thấp nhận nhiều hơn. Phá giáp và xuyên thủ (bộ Thất Sát) giảm thủ thật, cộng lại tối đa hết thủ. Sát thương theo thời gian và lan Cảm điện không tính thủ.
 - **Tốc độ theo dáng đi** (`BEAST_GAIT`, nhân `spd` theo bậc ở `TIERS`): lang thang chậm, đuổi mục tiêu nhanh hơn (`chase`), bị Mê hoặc đi lung tung (`charm`). Cuồng nộ, giai đoạn 2 của thú vương, nổi giận của boss thế giới và Làm chậm nhân thêm. Đòn đánh, tầm, chiêu báo trước không đổi theo tốc độ.
 - **Giới hạn đuổi** (`BEAST_LEASH`): hồn thú thường và tinh anh đuổi xa chỗ sinh quá `r` pixel thì bỏ mục tiêu, chạy về chỗ sinh; trên đường về không nhận mục tiêu mới (bị đánh cũng không quay lại), hồn thú thường hồi nhanh sinh lực (tinh anh hồi đầy khi bỏ giao chiến, mục 5.4). Về tới nơi (hoặc hết `secs` giây vì vướng) thì lang thang như cũ. Thú vương và boss thế giới không ra khỏi hang nên không có giới hạn này.
 - **Chiêu có báo trước** (`BEAST_SKILLS`, chọn theo loài và năm bằng `beastSkillOf`): hồn thú thường **từ `BEAST_SKILL_YEARS` năm** có 1 chiêu theo loài; dưới mức đó chỉ đánh thường. Có mục tiêu `TELE_FIRST` giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu (dao động để bầy không tung cùng lúc). Hồn thú đứng yên `TELE_WARN` giây, hiện vùng đỏ đầy dần (hình **vệt**, **nón** hoặc **vòng** quanh thân / dưới chân mục tiêu; hướng và tâm khóa lúc bắt đầu); hết giờ mới tính trúng theo **vị trí thật** lúc đó: chạy ra khỏi vùng là né được. Không trúng người trong vùng an toàn, đang đi cổng, đã gục. Chiêu "lao" thì hồn thú lao tới cuối vệt / tâm vòng. Sát thương là bội số đòn thường của hồn thú; chiêu có thể gây trạng thái lên hồn sư.
@@ -362,7 +365,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 | Bá Vương Long (Cảm điện) | Sát thương lan Cảm điện mạnh hơn | Đòn trực tiếp trúng hồn thú Cảm điện hồi hồn lực (có hồi chiêu) |
 | Xà Hoàng (Trúng độc) | Trúng độc do hồn sư gây mạnh hơn | Hồn thú Trúng độc đủ nhiều tầng (người gây cuối mang bộ) nhận thêm sát thương từ mọi nguồn |
 | Hạo Thiên (Chấn đãng) | Công (vào chỉ số) | Đòn đánh thường **trúng** thứ 3 liên tiếp (cách nhau không quá vài giây) gây thêm sát thương, chữ "Hạo Thiên liên kích!" |
-| Thất Sát (Phá giáp) | "Xuyên thủ": thêm sát thương đòn trực tiếp (hồn thú chưa có thủ) | Thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp |
+| Thất Sát (Phá giáp) | "Xuyên thủ": đòn trực tiếp bỏ qua một phần thủ của hồn thú (cộng với phần Phá giáp giảm, tối đa hết thủ; mục 5.3) | Thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp |
 | Linh Miêu (Mẫn công) | Tỉ lệ chí mạng (vào chỉ số) | Chí mạng thì tăng tốc độ đánh thường một lúc |
 | Lam Ngân (Khống chế) | Khống chế do hồn sư gây lên hồn thú dài hơn | Hồn kỹ có khống chế trúng ít nhất một hồn thú thì hồi hồn lực (một lần mỗi lần tung) |
 | Lưu Ly (Phụ trợ) | Hồi máu và khiên mạnh hơn | Đổi tay võ hồn mang bộ vào thì cả đội tăng công một lúc (hiệu ứng có lợi của hồn sư) |
@@ -760,7 +763,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Xếp hàng Đại Đấu Hồn Trường cả tổ đội (2v2…); cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); xem trận (#113).
 - [x] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114): thanh tẩy không nhân hệ số; self-effect hồn cốt và Lưu Ly hỗ trợ theo bán kính / hệ số tổ đội, sát thương và trạng thái hồn thú không lan.
 - [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
-- [ ] Hồn thú: chỉ số thủ (để Phá giáp / xuyên thủ thành giảm thủ thật); trạng thái Mê hoặc / đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116).
+- [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), tầng Hàn và Hỏa Đàn (Cực Hàn), vùng ngập luân phiên (Thủy Triều Dâng), bọc trứng nở nhện con (Vạn Chu Phệ); vũng độc / sương độc lưu lại; che tầm nhìn (Phun Mực) (#117).
 - [ ] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118).
 - [ ] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119).
