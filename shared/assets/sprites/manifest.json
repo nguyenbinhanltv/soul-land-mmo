@@ -2,6 +2,26 @@
   "about": "Danh sách key đã có ảnh thật (GAME_DESIGN.md mục 5.11). Đường dẫn và khung suy ra từ key: hs_body_m_2 -> honsu/body_m_2.png (32x32; hồn sư theo bộ giới × kiểu tóc, mỗi bộ đủ 3 lớp body/outfit/hair), vh_{id}_b -> vohon/{id}_b.png (48x48), b{tier} -> beast/b{tier}.png, ring{tier}/halo{tier} -> ring/. Hồn thú theo loài ghi kèm khung: { \"key\": \"beast_{loài}\", \"frame\": [48, 32] }. Key theo quy cách isometric (mục 5.11, Giai đoạn 10) ghi thêm \"iso\": true (hồn sư 64x64 sheet 24x6 / phụ thể 96x96 sheet 24x12 hai nửa theo giới, hồn thú khung vuông theo bậc sheet 20x5; \"lpc\": true là hình tạm ghép từ thú LPC, client không dùng cho thú vương / boss); \"map\": \"<mapId>\" cho phép thêm bảng nhấn art/palettes/<mapId>.gpl. Key không có ở đây thì client vẽ bằng code.",
   "sprites": [
     {
+      "key": "beast_am_kim_khung_trao_hung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "tinh_dau_noi_dia",
+      "lpc": true
+    },
+    {
+      "key": "beast_bang_phong_bach_hung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "cuc_bac_chi_dia",
+      "lpc": true
+    },
+    {
       "key": "beast_dien_thu",
       "frame": [
         64,
@@ -22,6 +42,26 @@
       "lpc": true
     },
     {
+      "key": "beast_hac_vu_bien_buc",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "tinh_dau_noi_dia",
+      "lpc": true
+    },
+    {
+      "key": "beast_kim_linh_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "tinh_dau_ngoai_vi",
+      "lpc": true
+    },
+    {
       "key": "beast_liet_trao_hung",
       "frame": [
         96,
@@ -29,6 +69,16 @@
       ],
       "iso": true,
       "map": "tinh_dau_ngoai_vi",
+      "lpc": true
+    },
+    {
+      "key": "beast_loi_quang_hai_dieu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "hai_than_dao",
       "lpc": true
     },
     {
@@ -69,11 +119,91 @@
       "lpc": true
     },
     {
+      "key": "beast_quy_dang",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "map": "tinh_dau_ngoai_vi",
+      "lpc": true
+    },
+    {
+      "key": "beast_quy_ho",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "tinh_dau_ngoai_vi",
+      "lpc": true
+    },
+    {
+      "key": "beast_thanh_lan_xa",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "map": "thanh_hon_thon",
+      "lpc": true
+    },
+    {
+      "key": "beast_thuc_nhan_hoa",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "lac_nhat_sam_lam",
+      "lpc": true
+    },
+    {
       "key": "beast_tu_van_bao",
       "frame": [
         32,
         32
       ]
+    },
+    {
+      "key": "beast_tuyet_lang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "cuc_bac_chi_dia",
+      "lpc": true
+    },
+    {
+      "key": "beast_tuyet_vi_yeu_ho",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "cuc_bac_chi_dia",
+      "lpc": true
+    },
+    {
+      "key": "beast_u_linh_hai_mau",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "hai_than_dao",
+      "lpc": true
+    },
+    {
+      "key": "beast_u_minh_lang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "map": "tinh_dau_noi_dia",
+      "lpc": true
     },
     {
       "key": "card_sr",
