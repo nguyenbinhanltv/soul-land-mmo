@@ -11,6 +11,8 @@ assert.deepEqual(normalizeAudioSettings({ master: Number.NaN }), DEFAULT_AUDIO_S
 
 assert.deepEqual(spatialMix({ x: 100, y: 100 }, { x: 100, y: 100 }), { volume: 1, pan: 0 });
 assert.deepEqual(spatialMix({ x: 260, y: 100 }, { x: 100, y: 100 }), { volume: 0.8, pan: 0.5 });
+assert.equal(spatialMix({ x: 100, y: 260 }, { x: 100, y: 100 }).pan, -0.5);
+assert.equal(spatialMix({ x: 260, y: 260 }, { x: 100, y: 100 }).pan, 0);
 assert.equal(spatialMix({ x: 421, y: 100 }, { x: 100, y: 100 }), null);
 assert.equal(spatialMix({ x: -220, y: 100 }, { x: 100, y: 100 }).pan, -1);
 

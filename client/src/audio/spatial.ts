@@ -12,5 +12,6 @@ export function spatialMix(source: AudioPoint, listener: AudioPoint, range = AUD
   const distance = Math.hypot(dx, dy);
   if (!Number.isFinite(distance) || distance > range) return null;
   const ratio = distance / range;
-  return { volume: 1 - 0.8 * ratio * ratio, pan: clamp(dx / range, -1, 1) };
+  const screenDx = dx - dy; // iso.ts: sx = x - y, nên pan dùng trục ngang sau phép chiếu.
+  return { volume: 1 - 0.8 * ratio * ratio, pan: clamp(screenDx / range, -1, 1) };
 }
