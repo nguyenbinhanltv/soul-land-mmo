@@ -331,15 +331,16 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 
 **Boss thế giới 100.000 năm**
 - Ở **Lõi Tinh Đấu**, sàn đấu bên hồ trung tâm (object `boss` phủ sàn). *Thái Thản Cự Viên* và *Thiên Thanh Ngưu Mãng* **luân phiên theo ngày** (`worldBossOn`, để biết trước hôm nay đánh con nào), xuất hiện `WORLD_TIME` giờ Việt Nam; báo toàn server trước và lúc xuất hiện.
-- Sau `WORLD.enrageSecs` giây thì **nổi giận** (sát thương, tốc độ, hồi chiêu mạnh hơn; chiêu toàn sàn mỗi 15 giây: *Bạo Nộ* `WORLD_SLAM`, chu kỳ `WORLD.slamEvery`, không né được). Hết `WORLD.lifeSecs` mà chưa hạ thì **lặn xuống hồ**, không ai nhận thưởng.
+- Sau `WORLD.enrageSecs` giây thì **nổi giận** (sát thương, tốc độ, hồi chiêu mạnh hơn; thêm chiêu toàn sàn *Bạo Nộ* `WORLD_SLAM`, chu kỳ `WORLD.slamEvery`). Hết `WORLD.lifeSecs` mà chưa hạ thì **lặn xuống hồ**, không ai nhận thưởng.
+- **Chiêu toàn sàn né được** (Bạo Nộ, Thanh Lân Độc Vụ, Đại Địa Chấn; `BeastSkillDef.safe`, số vòng / bán kính ở `FLOOR_SAFE`): lúc bắt đầu báo trước, server rải các **vòng an toàn** trong sàn (mỗi vòng một dải theo bề ngang sàn, đi thẳng từ chỗ sinh của boss tới được, không chồng nhau); client vẽ cả sàn đỏ và các vòng xanh ngọc. Chiêu nổ thì trúng mọi người đứng trong sàn **trừ** người đứng trong một vòng (chạm vòng là an toàn, `teleSafe`) hoặc đã ra khỏi sàn. Thời gian báo trước tính để từ phần lớn sàn đi bộ kịp tới vòng gần nhất (bị Làm chậm / khống chế thì có thể không kịp). Người vào phòng giữa lúc chiêu đang báo trước cũng nhận vùng và các vòng (thời gian còn lại) khi client xin tin boss lúc vào (`boss`).
 - **Không nhận khống chế** (Choáng, Trói, Câm lặng, Mê hoặc; Mị hoặc đủ tầng không thành Mê hoặc); Làm chậm và trạng thái sát thương (Thiêu đốt, Trúng độc, Phá giáp, Dễ thương…) vẫn nhận.
 - **Cơ chế buộc đổi võ hồn đúng lúc** (cần đội 4 võ hồn):
   - **Điểm yếu hệ:** mỗi mốc máu `WORLD.weakAt` lộ một hệ ngẫu nhiên một lúc: võ hồn ra trận đúng hệ gây × `weakMult`, hệ khác × `offMult`. Thanh máu lớn báo võ hồn mình có đúng hệ không.
-  - *Thái Thản Cự Viên:* **Bá Thể** (khiên theo % máu tối đa trong một lúc; võ hồn Cường công phá nhanh hơn; phần đánh vào khiên vẫn tính đóng góp; không phá kịp thì boss hồi máu bằng phần khiên còn lại), **Đại Địa Chấn** (tích lực; chỉ khống chế của võ hồn **Khống chế** đang ra trận mới tính lần ngắt, cần đủ số lần; ngắt được thì boss bị Choáng; không ngắt thì cả sàn dính *Vết thương sâu*: Phá giáp nặng, lâu và Choáng ngắn), cùng Cự Thạch, Địa Liệt Quyền.
-  - *Thiên Thanh Ngưu Mãng:* **Thanh Lân Độc Vụ** (độc toàn sàn có báo trước: Trúng độc nặng, lâu), **Du Thủy** (lặn, không nhận sát thương, nổi lên chỗ khác trong sàn, lộ điểm yếu **Mẫn công**), cùng Ngưu Giác Xung, Mãng Vĩ Tảo.
+  - *Thái Thản Cự Viên:* **Bá Thể** (khiên theo % máu tối đa trong một lúc; võ hồn Cường công phá nhanh hơn; phần đánh vào khiên vẫn tính đóng góp; không phá kịp thì boss hồi máu bằng phần khiên còn lại), **Đại Địa Chấn** (tích lực; chỉ khống chế của võ hồn **Khống chế** đang ra trận mới tính lần ngắt, cần đủ số lần; ngắt được thì boss bị Choáng; không ngắt thì cả sàn, trừ người trong vòng an toàn, dính *Vết thương sâu*: Phá giáp nặng, lâu và Choáng ngắn), cùng Cự Thạch, Địa Liệt Quyền.
+  - *Thiên Thanh Ngưu Mãng:* **Thanh Lân Độc Vụ** (độc toàn sàn có báo trước và vòng an toàn: Trúng độc nặng, lâu), **Du Thủy** (lặn **ra giữa hồ** (điểm `lake` trong Tiled), không nhận sát thương; chỗ nổi lên trong sàn, cách chỗ lặn ít nhất `dive.away`, được chọn ngay lúc lặn và **báo trước** cho cả phòng bằng vòng sóng xanh (người vào giữa lúc boss lặn cũng thấy); hết giờ lặn thì nổi lên đúng chỗ đó, lộ điểm yếu **Mẫn công**), cùng Ngưu Giác Xung, Mãng Vĩ Tảo.
   - *Vết thương sâu* là trạng thái thường (Phá giáp / Trúng độc) nhưng nặng và lâu; Lõi không có vùng an toàn nên chỉ **thanh tẩy** của võ hồn phụ trợ giải được.
 - **Thưởng** (đóng góp từ `WORLD.share`, còn trong phòng, `WORLD.daily` lần/ngày, lượt riêng với thú vương, mỗi khung một lần dù hạ ở kênh nào): người gây **sát thương** nhiều nhất trong kênh đó nhận **hồn hoàn đỏ**; những người khác có tỉ lệ nhận hồn hoàn đỏ, còn lại hồn hoàn đen (`WORLD_RING`); hồn hoàn vào thẳng túi cùng **rương** (`WORLD_CHEST`: mảnh UR, hồn hạch sao cao bộ bất kỳ, có thể có hồn cốt 10 vạn năm của loài boss) trong cùng transaction tăng lượt. Mọi người đóng góp nhận kinh nghiệm × `WORLD.xp`; người hạ nhận Hồn Tệ.
-- Màn hình: thanh máu lớn (đồng hồ nổi giận, thời gian còn lại, khiên, điểm yếu hệ, số lần ngắt tích lực, đang lặn), bảng xếp hạng, banner từng cơ chế.
+- Màn hình: thanh máu lớn (đồng hồ nổi giận, thời gian còn lại, khiên, điểm yếu hệ, số lần ngắt tích lực, đang lặn), bảng xếp hạng, banner từng cơ chế; trên sàn: vùng đỏ và vòng an toàn của chiêu toàn sàn, vòng sóng chỗ Du Thủy sắp nổi lên, gợn sóng quanh boss đang lặn giữa hồ.
 
 ### 5.5 Hồn cốt
 - **6 vị trí trên mỗi võ hồn** (`BONE_SLOTS`): đầu, thân, tay trái, tay phải, chân trái, chân phải. Đầu và hai tay cho kỹ năng **chủ động**, thân và hai chân cho kỹ năng **bị động**.
@@ -630,7 +631,7 @@ Tự săn khi đang online, chạy hoàn toàn ở server (chủ repo chốt 202
 | Túi đồ | `bag`, `use {id, vohonId?}`, `pickup`, `discard {id}`, `open {id}`, `absorb {itemId, vohonId}` |
 | Hồn cốt, hồn hạch | `equip` / `unequip`, `equipcore` / `unequipcore`, `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}` |
 | NPC | `talk {npc}`, `buy {code, qty, npc?}`, `sell {id, qty?, npc?}`, `expand {npc?}`, `buyback {key, npc?}` (`npc`: thương nhân đang mở hộp thoại, thiếu thì thương nhân gần nhất), `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
-| Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}` |
+| Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}`, `boss` (xin lại tin boss lúc vào phòng) |
 | Tự săn | `auto {op, cfg?}` (`on`, `off`, `set` cài đặt `AutoSettings`, `get`; mục 5.13) |
 | Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
 | Kiểm thử | `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
@@ -660,6 +661,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 | `safe` | Chữ nhật | Vùng an toàn trong bản đồ săn |
 | `elite` | Chữ nhật | `boss` (mã tinh anh trong `BOSSES`); nằm trong một `zone` |
 | `boss` | Chữ nhật | `boss` (mã thú vương hoặc boss thế giới); là hang / sàn đấu và cũng là bán kính giao chiến |
+| `lake` | Điểm | Giữa hồ của bản đồ boss thế giới: boss lặn ra đây khi Du Thủy (mục 5.4); không có thì lặn tại chỗ |
 | `npc` | Điểm | `npc` (mã trong `NPCS`) |
 | `waypoint` | Chữ nhật | Tên là mã không dấu duy nhất trong bản đồ (lưu DB `<mapId>:<tên>`), `label` (tên hiện); tâm đứng được, ngoài mọi cổng |
 
@@ -788,7 +790,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
 - [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), tầng Hàn và Hỏa Đàn (Cực Hàn), vùng ngập luân phiên (Thủy Triều Dâng), bọc trứng nở nhện con (Vạn Chu Phệ); vũng độc / sương độc lưu lại; che tầm nhìn (Phun Mực) (#117).
-- [ ] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118).
+- [x] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118; mục 5.4 "Boss thế giới 100.000 năm").
 - [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
 - [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
 - [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).

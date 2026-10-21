@@ -99,7 +99,7 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
     if (w.weak) chip(`Điểm yếu: ${HE[w.weak].name} ×${String(WORLD.weakMult).replace(".", ",")}${weakT > 0 ? ` (${Math.ceil(weakT)} giây)` : ""} · ${w.myHe === w.weak ? "võ hồn của bạn đúng hệ" : `đổi sang võ hồn ${HE[w.weak].name}!`}`, w.myHe === w.weak ? "ok" : "bad");
     if (w.shield && w.armorHe) chip(`Bá Thể: võ hồn ${HE[w.armorHe].name} phá khiên nhanh gấp 3${w.myHe === w.armorHe ? "" : " – đổi võ hồn!"}`, w.myHe === w.armorHe ? "ok" : "bad");
     if (w.charging && w.need) chip(`Tích lực: ngắt ${w.brk}/${w.need} bằng khống chế của võ hồn Khống chế${w.myHe === "khong_che" ? "" : " – đổi võ hồn!"}`, w.myHe === "khong_che" ? "ok" : "bad");
-    if (w.dive) chip("Đang lặn xuống hồ: không nhận sát thương, chờ nổi lên (mẫn công lướt tới đánh điểm yếu)");
+    if (w.dive) chip("Đang lặn giữa hồ: không nhận sát thương, sẽ nổi lên ở vòng sóng xanh (mẫn công đứng chờ đánh điểm yếu)");
     if (!wl.childElementCount) wl.hidden = true;
   }
   // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
