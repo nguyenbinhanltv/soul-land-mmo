@@ -78,7 +78,7 @@ jobs:
         run: npm run test:ratelimit --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:accounts --prefix server
-      # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server. Tóm tắt ✓ / ✗ / ⚠ ở trang lượt chạy.
+      # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server. Số ✓ / ✗ / ⚠ in thành annotation (gh run view) và bảng ở trang lượt chạy.
       - name: bot nhóm ${{ matrix.part }} (server GAME_TEST=1, RAM)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         env:

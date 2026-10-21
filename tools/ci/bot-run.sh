@@ -31,9 +31,15 @@ code=${PIPESTATUS[0]}
 echo "[$name] bot xong sau $((SECONDS - start)) giây, mã thoát $code"
 if ! kill -0 "$pid" 2>/dev/null; then echo "✗ [$name] server đã chết trong lúc chạy bot"; code=1; fi
 
-# Tóm tắt cho reviewer (gh run view <id> hoặc trang lượt chạy): số dòng ✓ / ✗ / ⚠, rồi các dòng ✗ và ⚠ (tối đa 50 dòng mỗi loại).
+n() { grep -c "$1" "$blog"; }
+# Annotation: `gh run view <id>` in ra (step summary thì chỉ có ở trang lượt chạy). Một dòng số ✓ / ✗ / ⚠, mỗi dòng ✗ một lỗi (tối đa 10).
+if [ -n "${GITHUB_ACTIONS:-}" ]; then
+  esc() { sed 's/%/%25/g'; } # message của annotation: % phải viết %25
+  echo "::$([ "$code" -eq 0 ] && echo notice || echo error) title=bot $name::$([ "$code" -eq 0 ] && echo "đạt" || echo "TRƯỢT (mã $code)"): ✓ $(n '^  ✓'), ✗ $(n '^  ✗'), ⚠ $(n '⚠'), $((SECONDS - start)) giây"
+  grep '^  ✗' "$blog" | head -n 10 | esc | while IFS= read -r l; do echo "::error title=bot $name ✗::${l#  ✗ }"; done
+fi
+# Tóm tắt ở trang lượt chạy: số dòng ✓ / ✗ / ⚠, rồi các dòng ✗ và ⚠ (tối đa 50 dòng mỗi loại).
 if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-  n() { grep -c "$1" "$blog"; }
   {
     echo "### bot \`$name\`: $([ "$code" -eq 0 ] && echo "đạt" || echo "TRƯỢT (mã $code)") sau $((SECONDS - start)) giây"
     echo ""
