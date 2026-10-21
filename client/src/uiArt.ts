@@ -81,7 +81,8 @@ export function loadUiArt() {
   applyScale(); addEventListener("resize", applyScale);
   return ready ??= (async () => {
     try {
-      const r = await fetch(BASE + "manifest.json");
+      // Quá 5 giây thì bỏ (giao diện vẽ bằng CSS cũ) để màn đăng nhập không treo trắng khi mạng chậm.
+      const r = await fetch(BASE + "manifest.json", { signal: AbortSignal.timeout(5000) });
       const data = (await r.json()) as { sprites?: (string | Entry)[] };
       for (const e of data.sprites ?? []) if (typeof e !== "string" && e.iso) keys.set(e.key, e);
     } catch { return; }
@@ -94,6 +95,8 @@ export function loadUiArt() {
       if (e.nine) root.setProperty(`--nine-${name}`, String(e.nine));
     }
     document.documentElement.classList.add("thuymac");
-    await Promise.all([...keys.keys()].filter((k) => k.startsWith("item_hon_cot_") || TINTED.includes(k)).map(preloadGray));
+    // Chờ tối đa 5 giây; ảnh tải xong sau đó vẫn được tô ở lần vẽ kế tiếp (trước đó tintedUrl trả ảnh gốc).
+    await Promise.race([Promise.all([...keys.keys()].filter((k) => k.startsWith("item_hon_cot_") || TINTED.includes(k)).map(preloadGray)),
+      new Promise((r) => setTimeout(r, 5000))]);
   })();
 }
