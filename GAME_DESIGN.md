@@ -433,44 +433,64 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - Tiến độ tính lại từ dữ liệu sẵn có (`resonanceProgress` / `resonanceLevels` / `resonanceBonus`, không lưu DB) mỗi khi lên cấp, hấp thụ, mở võ hồn, gắn / tháo / cường hóa / nâng cấp đồ đang gắn; đạt mốc mới thì báo lớn, tháo đồ làm tụt mốc thì báo mất phần cộng.
 - Bảng **Cộng minh** (phím K, nút "Cộng minh" trong khung chỉ số và ở đầu bảng đội hình): tổng % đang cộng, mỗi trụ cột tiến độ x / mốc kế tiếp kèm thanh, các mốc đã đạt sáng màu.
 
-### 5.11 Mỹ thuật: hồn sư, võ hồn, hồn thú
-Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts`, `honsuArt.ts`). Mục này là quy cách để thay dần bằng ảnh thật mà không phải sửa luật chơi. Nguồn ảnh: gói trial PixelLab đã dùng hết (ghi nguồn từng key ở `art/CREDITS.md`); **phần mỹ thuật còn lại làm bằng một dịch vụ self-host (chưa chọn công cụ)**, theo đúng quy cách này và vẫn đi qua dây chuyền `tools/assets`. Trong lúc chờ, key chưa có ảnh vẫn vẽ bằng code, chỉnh tay khi cần (Aseprite, `pixelart_workbench`). Lệnh và tham số của dây chuyền: skill `.claude/skills/asset-gen`.
+### 5.11 Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú
+**Từ Giai đoạn 10 game vẽ theo isometric thật** (ô hình thoi 2:1, 8 hướng, kiểu RPG trung cổ nhìn chéo từ trên xuống), vẫn là pixel art. **Server không đổi:** vị trí, va chạm, tầm chiêu vẫn tính trên tọa độ thế giới Descartes (pixel thế giới, `TILE` = 16, `shared/move.ts`); chỉ client chiếu sang màn hình. Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts`, `honsuArt.ts`), cùng key và cùng bố cục khung để ảnh thật thay vào được ngay. Ảnh tạo bằng PixelLab (5 key trial, mỗi key 40 lượt, cộng lượt thưởng ngày; ghi nguồn từng key ở `art/CREDITS.md`), đi qua dây chuyền `tools/assets`; chỉnh tay khi cần (Aseprite, `pixelart_workbench`). Lệnh và tham số: skill `.claude/skills/asset-gen`. Bản thử của bước 10.0 (ảnh cảnh mẫu) chỉ để duyệt quy cách, không đưa vào game.
+
+**Phép chiếu và màn hình**
+- **Một ô logic 16×16 pixel thế giới vẽ thành một thoi 32×16 pixel màn hình.** Điểm thế giới (x, y) chiếu thành `sx = x − y`, `sy = (x + y) / 2` (cộng gốc bản đồ). Chiều ngược: `x = sy + sx / 2`, `y = sy − sx / 2`. Trục x thế giới đi xuống phải, trục y đi xuống trái; mép trên bản đồ hiện nay (y = 0) thành cạnh trên phải. Hằng số chiếu là của client (`client/src/iso.ts`), không phải số cân bằng.
+  - *Vì sao không dùng thoi 64×32 cho một ô:* thoi 64×32 phóng thế giới lên gấp đôi, ở 640×360 chỉ thấy khoảng 7 ô về mỗi bên theo chiều ngang, trong khi tầm chiêu xa nhất khoảng 150 pixel thế giới (khoảng 9 ô) và hồn thú bắn từ 130 pixel: đòn sẽ tới từ ngoài màn hình. Thoi 32×16 cho tầm nhìn khoảng 14 ô ngang, 16 ô dọc mỗi bên (hiện nay 13 và 7), giữ tỉ lệ người / thế giới như cũ (hồn sư rộng khoảng 1 ô, cao khoảng 3 thoi), và đúng cỡ `create_isometric_tile` size 32 của PixelLab.
+  - Vùng lớn cùng một loại địa hình được phép dùng **ô lớn 64×32** phủ đúng 2×2 ô logic (PixelLab size 64) để bớt lặp mẫu; lưới logic không đổi.
+- **Độ phân giải nội bộ 640×360**, phóng số nguyên `zoom = max(1, floor(min(rộng / 640, cao / 360)))`: ×2 ở 720p, ×3 ở 1080p, ×4 ở 1440p, ×6 ở 4K. Cửa sổ lẻ cỡ thì thấy rộng hơn một chút (chế độ `RESIZE` như hiện nay), không phóng lẻ. Phaser `pixelArt: true`, `roundPixels: true`; camera bám theo hồn sư và làm tròn vị trí về pixel nội bộ.
+- **Đi theo màn hình:** người đi thẳng lên màn hình thì sprite lên chậm hơn đi ngang (một pixel thế giới bằng √2 pixel ngang nhưng chỉ 0,7 pixel dọc). Đây là đặc tính của phép chiếu 2:1, không bù bằng cách đổi tốc độ ở server.
+
+**Sắp lớp theo độ sâu**
+- Thứ tự vẽ: nền đất (thấp nhất) → vùng chiêu báo trước, vòng dưới chân, bóng → mọi vật đứng (hồn sư, hồn thú, NPC, đồ rơi, cây, nhà, vách) sắp theo **độ sâu `x + y` của điểm chân** (tọa độ thế giới) → chữ, thanh máu, hiệu ứng nổi → HUD.
+- **Vật cao nhiều ô** (nhà, vách, cây lớn) được cắt thành **các lát dọc rộng 16 pixel** (nửa thoi); mỗi lát có độ sâu của mép trước chân vật tại cột đó (`tools/assets` cắt tự động theo chân vật khai báo). Nhờ vậy hồn sư đứng trước nửa này, sau nửa kia của một ngôi nhà vẫn đúng.
+- **Vật cao che hồn sư của chính mình** (tán cây, mái nhà, vách) thì mờ còn khoảng 40% trong lúc che, người khác vẫn thấy bình thường; có thể thêm viền bóng của hồn sư xuyên qua vật che.
+- **Bóng đổ:** elip 2:1 dưới chân, màu `#1a1020`, độ mờ khoảng 35%, rộng bằng thân (hồn sư 24×12, hồn thú theo khung). Bóng do client vẽ, không vẽ trong sprite.
+
+**Ánh sáng và chiều sâu**
+- **Light2D + normal map** (WebGL; trình duyệt chỉ có Canvas thì tắt ánh sáng, vẫn chơi được). Mỗi bản đồ có màu môi trường (`ambient`): rừng sâu tối dần thay lớp `vignette` cũ, Lõi Tinh Đấu tím tối, Cực Bắc lam lạnh, thành thị ấm. Nguồn sáng: lửa trại, đèn lồng, cửa hiệu, hồn hoàn trên đất, vòng hồn hoàn dưới chân hồn sư, hiệu ứng hồn kỹ; tối đa khoảng 10 nguồn cùng lúc gần camera (Phaser `maxLights`), xa thì bỏ.
+- **Normal map tự sinh** bằng `tools/assets` (từ alpha và độ sáng: mép tròn, phần sáng nổi lên) cho mọi sprite và ô; không tốn lượt. Chỉ dùng `create_normal_map` của PixelLab (0,5 lượt mỗi ảnh / dải khung) cho vài vật đặc biệt khi bản tự sinh không đạt. File normal map nằm cạnh ảnh gốc, tên thêm `_n` (`body_m_0_n.png`).
+- Ánh sáng nền vẽ sẵn trong sprite vẫn **từ trên bên trái**; Light2D chỉ thêm sáng tối cục bộ, không đổi hướng sáng chính.
 
 **Phong cách và bảng màu chung**
-- **Chibi pixel RPG** nhìn từ trên xuống, hơi nghiêng (kiểu RPG 16-bit). Đầu to bằng khoảng 2/5 chiều cao, mắt 1–2 pixel, tay chân ngắn.
-- **Ánh sáng từ trên bên trái.** Mỗi vùng màu dùng 3 sắc độ (tối, gốc, sáng); sắc độ thứ 4 chỉ cho kim loại và hiệu ứng phát sáng.
-- **Viền tối có màu**, không dùng đen tuyền: viền ngoài `#1a1020`, viền trong cùng tông, tối hơn màu gốc. Không khử răng cưa ở viền ngoài để sprite đọc rõ khi phóng to 2–6 lần.
-- **Bảng màu chung** ở `art/palette.gpl` (bảng màu Aseprite). Ngoài bảng này chỉ được thêm màu chủ đạo của võ hồn (`col`, `robe` trong `VOHON`) cùng tối đa 1 sắc tối và 1 sắc sáng suy ra từ mỗi màu đó, và màu hồn hoàn trong `TIERS`.
-- **Da:** sprite vẽ bằng 3 sắc da của tông 0; client hoán 3 sắc đó sang dải của tông khác (`SKIN_TONES`, key `hs_body_f_2@2`).
-- **Nền tối dần theo độ sâu của rừng** (lớp `vignette`), nên màu tối của võ hồn và hồn thú phải có viền sáng hoặc hào quang (ví dụ hồn hoàn đen dùng `glow` tím làm viền).
+- **Pixel art RPG trung cổ isometric:** tỉ lệ người thường (đầu khoảng 1/4–1/3 chiều cao, không chibi), màu trầm, chất đất (nâu, lục rêu, xám đá, vàng đất), sắc sáng chỉ dành cho võ hồn, hồn hoàn và hiệu ứng.
+- Mỗi vùng màu 3 sắc độ (tối, gốc, sáng); sắc thứ 4 chỉ cho kim loại và hiệu ứng phát sáng.
+- **Viền ngoài `#1a1020`** (không đen tuyền) cho nhân vật, hồn thú, vật đứng; viền trong cùng tông, tối hơn màu gốc; không khử răng cưa ở viền ngoài. **Ô nền không viền** (lineless) để mặt đất liền mạch.
+- **Bảng màu chung** ở `art/palette.gpl` (bước 10.2 thêm dải đất, đá, rêu, tuyết, cát, nước). Ngoài bảng chỉ thêm màu chủ đạo của võ hồn (`col`, `robe` trong `VOHON`) cùng tối đa 1 sắc tối, 1 sắc sáng suy ra, và màu hồn hoàn trong `TIERS`.
+- **Da:** sprite vẽ bằng 3 sắc da của tông 0; client hoán sang dải của tông khác (`SKIN_TONES`, key `hs_body_f_2@2`).
+- Võ hồn và hồn thú màu tối phải có viền sáng hoặc hào quang để nổi trên nền tối (hồn hoàn đen dùng `glow` tím làm viền).
+
+**8 hướng**
+- Hướng màn hình: `s` (xuống), `se`, `e`, `ne`, `n`, `nw`, `w`, `sw`. **Vẽ 5 hướng `s`, `se`, `e`, `ne`, `n`; ba hướng `sw`, `w`, `nw` lật ngang `se`, `e`, `ne`** cho mọi lớp cùng lúc (vũ khí đổi tay khi lật, chấp nhận như các game isometric cổ điển).
+- Hướng thế giới → hướng màn hình: chiếu hướng đi thế giới rồi lấy hướng màn hình gần nhất trong 8 (thế giới (+1, +1) là `s`, (+1, −1) là `e`, +x là `se`, +y là `sw`; trục thế giới lệch hướng màn hình tối đa khoảng 18°).
+- **Client tự suy hướng 8, không cần server:** hồn sư của mình theo hướng đang bấm; người khác và hồn thú theo hướng chuyển động nội suy, đứng yên thì giữ hướng cũ; tin `fx` có `dx, dy` (chém, cung) đặt hướng ngay lúc đánh; `PlayerState.dir` (4 hướng) và `BeastState.face` chỉ dùng khi chưa có chuyển động nào.
 
 **Quy cách sprite hồn sư**
-- **Khung 32×32 pixel**, gốc tại chân, điểm (16, 30), tức `origin = (0.5, 30/32)`. Thân cao khoảng 24–26 pixel. Một ô bản đồ (`TILE`) là 16 pixel nên hồn sư cao khoảng 2 ô, rộng 1 ô.
-- **Bóng dưới chân** không vẽ trong sprite: client vẽ elip mờ 12×4.
-- **4 hướng: xuống, phải, lên, trái.** Chỉ vẽ 3 hướng; hướng trái lật ngang hướng phải, áp cho mọi lớp cùng lúc. Server đồng bộ hướng qua `PlayerState.dir` (`DIRS4`, `dir4()`).
-- **Ghép theo lớp.** Mỗi lớp là một spritesheet riêng có **cùng bố cục khung**. Thứ tự vẽ từ sau ra trước:
+- **Khung 64×64**, người cao khoảng 50–54 pixel, gốc tại chân, điểm (32, 58), tức `origin = (0.5, 58/64)`. Thân rộng khoảng 24–30 pixel, bằng khoảng 1 thoi.
+- **Ghép theo lớp**, mỗi lớp một spritesheet cùng bố cục khung. Thứ tự vẽ từ sau ra trước:
 
 | Thứ tự | Lớp | Nguồn | Ghi chú |
 |---|---|---|---|
-| 1 | Bóng | Code | Elip mờ dưới chân |
-| 2 | Vòng hồn hoàn, nửa sau | Code (hoặc ảnh `halo`) | Phần elip nằm sau thân |
+| 1 | Bóng | Code | Elip 2:1 dưới chân |
+| 2 | Vòng hồn hoàn, nửa sau | Code (hoặc ảnh `halo`) | Cung trên của elip |
 | 3 | Phụ thể võ hồn, nửa sau | `vh_{id}_b` | Cánh, đuôi, chân nhện, hư ảnh sau lưng, vũ khí khi bị thân che |
 | 4 | Thân | `hs_body_{m/f}_{0–3}` | Da, mặt, quần hoặc váy lót, giày |
 | 5 | Áo | `hs_outfit_{m/f}_{0–3}` | Đổi màu bằng hoán màu |
 | 6 | Tóc | `hs_hair_{m/f}_{0–3}` | Đổi màu bằng hoán màu |
 | 7 | Phụ thể võ hồn, nửa trước | `vh_{id}_f` | Vũ khí trên tay, tai thú, dây leo trước người, hào quang phía trước |
-| 8 | Vòng hồn hoàn, nửa trước | Code (hoặc ảnh `halo`) | Phần elip nằm trước thân |
+| 8 | Vòng hồn hoàn, nửa trước | Code (hoặc ảnh `halo`) | Cung dưới của elip |
 | 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
 
-- **Ghép lớp theo bộ giới × kiểu tóc (phương án (b)).** Mỗi tổ hợp giới × kiểu tóc (2 × 4 = 8 bộ) vẽ **liền** thân + áo + tóc trong cùng một hình, rồi `tools/assets` tách tự động thành 3 lớp từ chính hình đó, nên 3 lớp luôn khớp nét và không lộ lỗ ở chỗ tóc che. Không dùng chung một lớp thân cho nhiều kiểu tóc.
-  - **Quy ước key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3); file `honsu/{lớp}_{giới}_{kiểu tóc}.png`. Client lấy key bằng `honsuKey(lớp, giới, kiểu tóc)` (`client/src/sprites.ts`).
-  - **Mỗi bộ đủ 3 lớp hoặc không có lớp nào** trong `manifest.json` (`validate.mjs` báo lỗi bộ thiếu lớp). Bộ chưa có ảnh thật thì client vẽ cả 3 lớp bằng code; không trộn lớp ảnh thật với lớp vẽ code trong một bộ.
-  - **Phụ thể võ hồn vẫn là lớp riêng**, không vẽ liền với hồn sư. Kiểu áo khác về sau (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) sẽ cần thêm chỉ số kiểu áo vào key.
-- **Phụ thể tách hai nửa (sau thân và trước thân) cho từng khung.** Người vẽ tự quyết pixel nào nằm sau, nằm trước theo từng hướng (quay lưng thì cánh ở nửa trước, vũ khí ở nửa sau), nên client không cần đổi thứ tự lớp theo hướng.
-- **Khung phụ thể 48×48**, là khung thân mở rộng 8 pixel mỗi phía, gốc tại (24, 38). Cánh, búa lớn, dây leo dưới đất được tràn ra ngoài khung 32×32.
-- **Hoán màu (palette swap):** tóc và áo vẽ bằng **dải 4 xám chuẩn** `#3a3a3a`, `#6a6a6a`, `#9a9a9a`, `#cacaca` (tối → sáng). Lúc tải, client tạo bản đã tô cho từng tổ hợp đang dùng bằng cách thay đúng 4 màu này bằng dải màu chọn (`HAIR_COLORS`, `OUTFIT_COLORS`). Không dùng `setTint` vì phép nhân màu làm mất sắc độ.
-  - **Viền ngoài `#1a1020` giữ nguyên khi hoán màu.** Trong lớp tóc và áo, `#1a1020` là **màu thứ 5 được phép** và không bị hoán; chỉ viền trong (xám tối nhất) đổi theo màu chọn. `validate.mjs` chỉ nhận 4 xám + `#1a1020` trong lớp tóc / áo.
-  - Key texture đã hoán màu là **key gốc + `@` + chỉ số màu** (`hs_hair_f_2@3`, `hs_outfit_m_2@5`; lớp thân tông da khác `hs_body_f_2@2`). Chỉ tạo khi có người chơi dùng tổ hợp đó.
+- **Ghép lớp theo bộ giới × kiểu tóc (phương án (b)), giữ ở 8 hướng.** Mỗi bộ (2 giới × 4 kiểu tóc = 8 bộ) vẽ **liền** thân + áo + tóc, rồi `tools/assets` tách 3 lớp theo màu khóa trên **từng khung, từng hướng** (tóc lam sáng, áo / quần / váy xám, giày nâu, da bình thường), nên 3 lớp luôn khớp nét. Bản thử 10.0 tách được ở cả 8 hướng; chỉ 1–3 điểm lạc màu khóa mỗi hướng, gán lại theo lớp của điểm kề.
+  - **Quy ước key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3); file `honsu/{lớp}_{giới}_{kiểu tóc}.png`. Client lấy key bằng `honsuKey(lớp, giới, kiểu tóc)`.
+  - **Mỗi bộ đủ 3 lớp hoặc không có lớp nào** trong `manifest.json`; không trộn lớp ảnh thật với lớp vẽ code trong một bộ. Kiểu áo khác về sau cần thêm chỉ số kiểu áo vào key.
+  - Bộ 32×32 cũ (Giai đoạn 9) **không dùng lại** cho isometric: góc nhìn và hướng khác hẳn. Trong lúc chuyển, manifest ghi `"iso": true` cho key đã theo quy cách mới; client isometric chỉ tải key có `iso`, còn lại vẽ bằng code.
+- **Phụ thể tách hai nửa (sau thân, trước thân) cho từng khung, từng hướng.** Người vẽ tự quyết pixel nào sau, pixel nào trước theo hướng (quay lưng `n`, `ne` thì cánh ở nửa trước, vũ khí ở nửa sau).
+- **Khung phụ thể 96×96**, là khung thân mở rộng 16 pixel mỗi phía, gốc tại (48, 74).
+- **Phụ thể ghép theo điểm neo:** animation thân do PixelLab sinh nên không vẽ tay phụ thể cho từng khung. Mỗi võ hồn vẽ phụ thể **tĩnh theo 5 hướng** (vũ khí, cánh, tai, đuôi…, `create_8_direction_object` hoặc vẽ tay); `tools/assets` tìm **điểm neo** trên từng khung thân (tay phải, tay trái, giữa lưng, đỉnh đầu, chân) rồi `pack.mjs` ghép phụ thể vào đúng bố cục sheet `vh_{id}_b` / `vh_{id}_f` (vũ khí xoay theo góc vung cố định của `attack`). Client không đổi: vẫn chỉ đặt khung theo lớp thân.
+- **Hoán màu (palette swap):** tóc và áo vẽ bằng **dải 4 xám chuẩn** `#3a3a3a`, `#6a6a6a`, `#9a9a9a`, `#cacaca`; client thay đúng 4 màu này bằng dải chọn (`HAIR_COLORS`, `OUTFIT_COLORS`). Không dùng `setTint`. **Viền ngoài `#1a1020` là màu thứ 5 được phép** trong lớp tóc / áo và không bị hoán. Key đã hoán màu là key gốc + `@` + chỉ số màu (`hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`); chỉ tạo khi có người dùng.
 
 **Tùy biến khi tạo nhân vật** (`SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `SKIN_TONES`, kiểm tra bằng `parseLooks()`; mọi màu lấy từ `art/palette.gpl`, thêm màu mới vào cuối mảng vì DB lưu chỉ số)
 
@@ -491,29 +511,28 @@ Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts
 
 | Animation | Số khung | Thời gian mỗi khung | Lặp | Ghi chú |
 |---|---|---|---|---|
-| `idle` (đứng) | 2 | 400 ms | Có | Thở: đầu và vai nhích 1 pixel |
-| `walk` (đi) | 4 | 120 ms | Có | Chân trái, đứng, chân phải, đứng |
-| `attack` (đánh thường) | 3 | 80 / 80 / 140 ms | Không | Lấy đà, vung, thu về. Phụ thể vũ khí vung theo |
-| `cast` (tung hồn kỹ) | 3 | 100 / 200 / 140 ms | Không | Giơ tay, giữ (vòng hồn hoàn của hồn kỹ sáng lên), thả |
-| `hurt` (bị đánh) | 1 | 150 ms | Không | Ngửa người; client nháy trắng thêm 2 lần |
-| `die` (gục) | 3 | 120 / 120 / giữ | Không | Khuỵu, ngã, nằm. Ẩn phụ thể |
-| `absorb` (hấp thụ) | 2 | 500 ms | Có | Ngồi xếp bằng thiền, **chỉ hướng xuống**. Phụ thể mờ 60% |
+| `idle` (đứng) | 4 | 200 ms | Có | Thở: đầu và vai nhích 1 pixel (PixelLab `breathing-idle`, hoặc `pack --breathe` khi tiết kiệm lượt) |
+| `walk` (đi) | 6 | 100 ms | Có | PixelLab `walking-6-frames` |
+| `attack` (đánh thường) | 4 | 70 / 70 / 90 / 120 ms | Không | Lấy đà, vung, trúng, thu về (mẫu `cross-punch` / `lead-jab`; vũ khí do lớp phụ thể vung theo) |
+| `cast` (tung hồn kỹ) | 3 | 100 / 200 / 140 ms | Không | Giơ tay, giữ (vòng hồn hoàn của hồn kỹ sáng lên), thả (mẫu `fireball`) |
+| `hurt` (bị đánh) | 2 | 80 / 120 ms | Không | Ngửa người (mẫu `taking-punch`); client nháy trắng thêm 2 lần |
+| `die` (gục) | 4 | 120 / 120 / 120 / giữ | Không | Khuỵu, ngã, nằm (mẫu `falling-back-death`). Ẩn phụ thể |
+| `absorb` (hấp thụ) | 2 | 500 ms | Có | Ngồi xếp bằng thiền, **chỉ hướng `s`**. Phụ thể mờ 60% |
 
-- **Bố cục spritesheet cố định, mọi lớp giống nhau**, 16 cột × 4 hàng = 512×128 (lớp phụ thể 768×192 vì khung 48×48):
-  - Hàng 0 hướng xuống, hàng 1 hướng phải, hàng 2 hướng lên. Trong mỗi hàng: cột 0–1 `idle`, 2–5 `walk`, 6–8 `attack`, 9–11 `cast`, 12 `hurt`, 13–15 `die`.
-  - Hàng 3: cột 0–1 `absorb` (hướng xuống); các cột còn lại để trống.
-- **Client tự tạo animation từ chỉ số khung cố định**, không dùng tag Aseprite: `this.load.spritesheet(key, png, { frameWidth, frameHeight })`, rồi `this.anims.generateFrameNumbers(key, { start, end })` theo bố cục trên; thời gian khung là hằng số trong client.
-  - Key animation có **tiền tố là key của sheet**: `{sheet}:{animation}_{hướng}` (`hs_body_f_0:idle_down`; hướng `down`, `right`, `up`; trái dùng `_right` và lật ngang), để các sheet không va chạm trong AnimationManager toàn cục của Phaser.
-  - Chỉ lớp thân có animation. Mỗi khi khung của lớp thân đổi, client tính (hàng, cột) rồi đặt khung tương ứng cho áo, tóc và phụ thể.
-- **Lớp áo và tóc** vẽ đủ mọi khung như lớp thân.
-- **Lớp phụ thể chỉ vẽ** `idle`, `walk`, `attack`, `cast` (cột 0–11 của hàng 0–2); client dùng **bảng ánh xạ khung cố định**:
+- Tên mẫu là mẫu `animate_character` của PixelLab cho nhân vật người (tra lại bằng `get_character`, mục `available_animations`). PixelLab trả số khung khác thì `pack.mjs` chọn đều khung cho đủ số trên; thiếu animation thì `--fill` chép tạm `idle` (validate cảnh báo).
+- **Bố cục spritesheet cố định, mọi lớp giống nhau**: 24 cột × 6 hàng, khung 64×64 (sheet 1536×384; lớp phụ thể khung 96×96, sheet 2304×576):
+  - Hàng 0–4 là hướng `s`, `se`, `e`, `ne`, `n`. Trong mỗi hàng: cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–16 `cast`, 17–18 `hurt`, 19–22 `die`, cột 23 để trống.
+  - Hàng 5: cột 0–1 `absorb` (hướng `s`); còn lại trống.
+- **Client tạo animation từ chỉ số khung cố định**, không dùng tag Aseprite: `load.spritesheet(key, png, { frameWidth, frameHeight })` rồi `anims.generateFrameNumbers`. Key animation có tiền tố sheet: `{sheet}:{animation}_{hướng}` (`hs_body_f_0:walk_se`; hướng vẽ `s`, `se`, `e`, `ne`, `n`, ba hướng còn lại dùng hướng lật và `flipX`).
+  - Chỉ lớp thân có animation. Khung của lớp thân đổi thì client tính (hàng, cột) rồi đặt khung tương ứng cho áo, tóc, phụ thể.
+- **Lớp phụ thể chỉ vẽ** `idle`, `walk`, `attack`, `cast` (cột 0–16 của hàng 0–4); bảng ánh xạ khung cố định:
 
 | Lớp thân đang ở | Khung phụ thể dùng | Ghi chú |
 |---|---|---|
-| `idle`, `walk`, `attack`, `cast` (cột 0–11) | Cùng hàng, cùng cột | |
-| `hurt` (cột 12) | Cùng hàng, cột 0 | |
-| `die` (cột 13–15) | Không vẽ | Ẩn phụ thể |
-| `absorb` (hàng 3, cột 0–1) | Hàng 0, cột 0–1 | Mờ 60% |
+| `idle`, `walk`, `attack`, `cast` (cột 0–16) | Cùng hàng, cùng cột | |
+| `hurt` (cột 17–18) | Cùng hàng, cột 0 | |
+| `die` (cột 19–22) | Không vẽ | Ẩn phụ thể |
+| `absorb` (hàng 5, cột 0–1) | Hàng 0, cột 0–1 | Mờ 60% |
 
 **Phụ thể của 24 võ hồn** (màu chủ đạo là `col` / `robe` trong `VOHON`)
 
@@ -545,32 +564,52 @@ Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts
 | Băng Phượng Hoàng (`bang_phuong_hoang`) | Đôi cánh băng phượng hoàng, mào băng trên đầu | Lưng + đầu | Tinh thể băng hình chữ thập lấp lánh quanh người |
 
 - Hiệu ứng lớn (kiếm trận, lãnh vực, sóng sét) vẽ bằng code hoặc sprite hiệu ứng riêng, **không** nhét vào lớp phụ thể.
-- **Võ Hồn Chân Thân** là bộ sprite riêng sau này; hiện vẽ bằng code: hồn sư phóng to `CHAN_THAN_SCALE`, quầng sáng màu võ hồn, vòng sáng dưới chân, hạt sáng bay lên; ai cũng thấy (`PlayerState.ava`).
+- **Võ Hồn Chân Thân** là bộ sprite riêng sau này; hiện vẽ bằng code: hồn sư phóng to `CHAN_THAN_SCALE` (phóng lẻ làm pixel không đều, chấp nhận vì chỉ vài chục giây), quầng sáng màu võ hồn, vòng sáng dưới chân, hạt sáng bay lên; ai cũng thấy (`PlayerState.ava`).
 
 **Vòng hồn hoàn**
 - Màu theo 5 bậc niên hạn, lấy `col` (thân vòng) và `glow` (viền sáng) trong `TIERS`. Không chép mã màu sang chỗ khác.
-- **Dưới chân hồn sư:** mỗi hồn hoàn của võ hồn đang ra trận là một elip 20×6, viền 2 pixel màu `col` cộng 1 pixel `glow`. Vòng 1 sát chân, vòng sau cao hơn 2 pixel; 10 vòng cao khoảng 18 pixel. Các vòng nhấp nhô chậm lệch pha nhau.
-- Cung trên của elip vẽ sau thân, cung dưới vẽ trước thân, để vòng trông như bao quanh người.
-- **Khi tung hồn kỹ vòng thứ i:** vòng i sáng gấp đôi và phình ra 2 pixel trong 300 ms.
-- **Hồn hoàn rơi trên đất:** key `ring{tier}` 24×14. Vòng dưới chân vẽ bằng code: `halo{tier}` (khung 24×10, khung 0 cung trên, khung 1 cung dưới) và `halo{tier}_lit` (28×12, vòng đang sáng); vẽ tay sau này thì thay bằng ảnh cùng quy cách.
+- **Dưới chân hồn sư:** mỗi hồn hoàn của võ hồn đang ra trận là một **elip 2:1 nằm trên mặt đất** rộng 36 pixel (cao 18), viền 2 pixel màu `col` cộng 1 pixel `glow`. Vòng 1 sát chân, vòng sau cao hơn 3 pixel; 10 vòng cao khoảng 27 pixel. Các vòng nhấp nhô chậm lệch pha nhau, là nguồn sáng yếu khi bật Light2D.
+- Cung trên của elip vẽ sau thân, cung dưới vẽ trước thân.
+- **Khi tung hồn kỹ vòng thứ i:** vòng i sáng gấp đôi và phình ra 3 pixel trong 300 ms.
+- **Hồn hoàn rơi trên đất:** key `ring{tier}` 32×20 (elip 2:1 nằm nghiêng, phát sáng). Vòng dưới chân vẽ bằng code: `halo{tier}` (khung 40×20, khung 0 cung trên, khung 1 cung dưới) và `halo{tier}_lit` (46×24).
+
+**Vùng chiêu và hiệu ứng trên mặt đất**
+- Mọi hình server gửi tính trên mặt phẳng thế giới, client **chiếu từng điểm** rồi vẽ: vòng tròn bán kính r thành **elip** có bán trục ngang `√2·r`, bán trục dọc `r/√2` (tỉ lệ 2:1), vệt (`line`) và nón (`cone`) thành đa giác chiếu, cung chém (`arc`) thành dải cung chiếu. Một hàm chung `isoPoly` cho vùng báo trước, vùng chiêu, vòng sóng, vùng an toàn và cổng.
+- Hiệu ứng bay (đạn, mũi tên, hạt) đi theo tọa độ thế giới rồi chiếu; độ cao giả (đạn bay ngang ngực) là độ lệch dọc màn hình cố định, không đổi độ sâu.
 
 **Hồn thú**
-- Chỉ vẽ **2 hướng** (sang phải; trái là lật ngang) vì server chỉ gửi `face` = ±1. Gốc tại giữa đáy, cách mép dưới 2–4 pixel.
+- **8 hướng** (vẽ 5, lật 3 như hồn sư); client suy hướng từ chuyển động nội suy, lúc tung chiêu thì quay theo góc vùng báo trước. Gốc tại giữa đáy, cách mép dưới khoảng 8 pixel.
 - Kích thước khung theo bậc:
 
-| Bậc | Khung | Kích thước trên bản đồ |
+| Bậc | Khung | Dáng trên bản đồ |
 |---|---|---|
-| Trắng | 16×16 | 1 ô |
-| Vàng | 32×32 | khoảng 1,5 ô |
-| Tím | 48×32 | khoảng 2 ô dài |
-| Đen | 48×48 | khoảng 2,5 ô |
-| Đỏ | 64×64 | khoảng 3,5 ô |
-| Tinh anh | khung của loài gốc, phóng `ELITE.scale` | thêm aura vẽ bằng code |
-| Tà hóa thú vương | khoảng 96×96 (loài gốc phóng `KING.scale`) | khoảng 5 ô |
+| Trắng, Vàng | 64×64 | thú nhỏ, cao 20–40 pixel |
+| Tím, Đen | 96×96 | thú vừa, dài khoảng 2–3 thoi |
+| Đỏ | 128×128 | thú lớn |
+| Tinh anh | khung của loài gốc | aura và màu đậm vẽ bằng code; không phóng ảnh theo hệ số lẻ (`ELITE.scale` chỉ đổi hộp va chạm) |
+| Tà hóa thú vương | 160×160 | sprite riêng, không phóng `KING.scale` |
+| Boss thế giới | 192×192 | sprite riêng |
 
-- Animation: `idle` 2 khung, `walk` 4, `attack` 3 (khung đầu là tư thế báo trước, client giữ khung này khi `BeastState.cast` bật rồi chạy 2 khung ra đòn lúc tung), `hurt` 1, `die` 3. Spritesheet một hàng theo đúng thứ tự đó, 13 khung. Key animation có tiền tố sheet (`beast_phong_lang:walk`).
+- **Mẫu animation bốn chân của PixelLab chỉ có** `idle`, `walk-*`, `running-*`, `sneaking`, `fast-walk`, `bark` (không có đánh, bị đánh, gục). `attack` dùng animation tự mô tả (v3, tốn hơn) cho loài quan trọng, còn lại client làm bằng code (lao tới 4 pixel + nháy); `hurt` = nháy trắng; `die` = khung `idle` chìm xuống và mờ dần.
+- Animation: `idle` 4 khung, `walk` 6, `attack` 4 (khung đầu là tư thế báo trước, client giữ khung này khi `BeastState.cast` bật rồi chạy 3 khung ra đòn lúc tung), `hurt` 2, `die` 4. Spritesheet 20 cột × 5 hàng (hàng là hướng `s`, `se`, `e`, `ne`, `n`; cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–15 `hurt`, 16–19 `die`). Sheet lớn nhất (192×192) là 3840×960, dưới giới hạn texture 4096 của điện thoại.
 - Trạng thái hung hăng không vẽ khung riêng: client thêm mắt đỏ / dấu "!" bằng code.
 - Mỗi loài một bộ sprite `beast_{loài}`; loài chưa có ảnh vẽ theo bậc `b{tier}_…` bằng code.
+
+**Bản đồ isometric** (lưới logic, va chạm, object Tiled giữ nguyên; chỉ đổi cách vẽ)
+- File Tiled `shared/assets/<mapId>.json` **không đổi định dạng** (orthogonal, ô 16): server và `shared/move.ts` đọc như cũ. Client đọc lớp `ground`, `trees`, `canopy` rồi vẽ lại theo isometric bằng **bảng ánh xạ gid → asset isometric** (`shared/assets/iso/tiles.json`): gid nền → ô thoi (kèm biến thể chọn theo băm vị trí để bớt lặp), gid vật cản cao (cây, thông tuyết, lều, lửa trại, tường, mái, băng tinh, đá ngầm) → **vật đứng** đặt ở tâm ô, sắp theo độ sâu. Ô `canopy` không vẽ riêng nữa: tán cây là một phần sprite cây; nhà nhiều ô (`roof` / `wall` liền nhau) gom thành một khối nhà theo hình chữ nhật bao.
+- **Chuyển 11 bản đồ tự động**: không sửa từng file; chỉ cần đủ asset cho mọi gid đang dùng (khoảng 36 gid, `tools/gen-map.mjs` bảng `GID`). `npm run map` vẫn sinh file Tiled như cũ.
+- **Nền vẽ một lần mỗi bản đồ**: lớp `TilemapLayer` isometric của Phaser (`MapData.orientation` isometric, ô 32×16, ảnh ô 32×32) hoặc ghép sẵn thành các khối `RenderTexture`; chọn ở bước 10.1 sau khi đo khung hình trên điện thoại. Mép giữa hai loại địa hình (cỏ → đường, cát → nước) dùng **lớp phủ mép** vẽ chồng lên ô (PixelLab `create_path_tiles` dạng isometric hoặc vẽ tay), chưa cần bộ ô chuyển tiếp đầy đủ.
+- **Ô PixelLab:** `create_isometric_tile` size 32, `tile_shape: "thin tile"`, `outline: "lineless"`: mặt trên là thoi 32×16 có tâm tại (16, 19) trong ảnh 32×32, đáy dày khoảng 5 pixel (bị ô phía trước che khi lát). Vật đứng: `create_map_object` (1 lượt, nền trong suốt, `view: "high top-down"`).
+- **Vùng zone / portal / safe / spawn / boss** (chữ nhật thế giới) hiển thị thành hình bình hành chiếu; NPC, cổng, bảng tên giữ ở điểm chân.
+- Bản đồ nhỏ (minimap, nếu có) vẽ theo lưới thế giới, không chiếu.
+
+**Điều khiển**
+- **Phím WASD / mũi tên theo màn hình:** W lên, S xuống, A trái, D phải, kết hợp được 8 hướng màn hình. Client đổi vector màn hình (mx, my) sang hướng thế giới bằng phép chiếu ngược, `x = my + mx / 2`, `y = my − mx / 2`, rồi chuẩn hóa độ dài 1 và gửi `input {x, y, s}` như cũ (server không đổi). Ví dụ W → (−1, −1)/√2, D → (1, −1)/√2. Cần điều khiển chạm làm y như vậy với vector cần.
+- **Chuột:** chiếu ngược điểm bấm (`pointer.worldX/Y` của camera rồi `iso → thế giới`).
+  - Bấm hoặc giữ chuột trái trên mặt đất: **đi tới điểm đó** (client gửi hướng tới điểm, dừng khi còn cách dưới 4 pixel, bị chặn quá 0,5 giây, hoặc khi bấm phím đi). Bản đầu không tìm đường; tìm đường A* trên `solidGrid` phía client là bước sau, vẫn chỉ gửi hướng.
+  - Bấm vào hồn thú: **chọn mục tiêu** (vòng chọn dưới chân); hồn sư tự đi tới trong tầm đánh thường rồi đánh, hướng đi cuối cùng hướng vào mục tiêu nên server đánh đúng hướng (`d.dir`). Phím đánh / hồn kỹ dùng mục tiêu đang chọn tương tự.
+  - Bấm vào hồn sư khác: mở bảng mời tổ đội (như cũ). Bấm vào NPC / cổng: đi tới rồi nói chuyện / đi cổng.
+  - Chọn đối tượng dưới con trỏ theo thứ tự độ sâu (vật trước nhất thắng), hộp chọn là khung sprite thu nhỏ, không phải ô dưới chân.
 
 **Chân dung và thẻ võ hồn** (giao diện HTML, không phải Phaser)
 - **Chân dung 64×64**, vẽ nhân vật truyện là chủ nhân (`owner` trong `VOHON`); võ hồn chưa rõ chủ nhân thì vẽ chính võ hồn. Hiển thị phóng 2–3 lần với `image-rendering: pixelated`.
@@ -578,41 +617,45 @@ Sprite chưa có ảnh thật được vẽ bằng code (`client/src/textures.ts
 - Biểu tượng 4 hệ: 12×12, một màu trên nền trong suốt, để CSS tô màu.
 
 **Tên file, key Phaser và thư mục**
-- `shared/assets` là `publicDir` của Vite, nên ảnh ở đây được client tải thẳng. Tên file dùng mã võ hồn (`id`), **không dùng chỉ số mảng**.
+- `shared/assets` là `publicDir` của Vite, nên ảnh ở đây được client tải thẳng. Tên file dùng mã võ hồn (`id`) và mã loài, **không dùng chỉ số mảng**.
 
 ```
 art/                         file nguồn, không tải trong game
   palette.gpl                bảng màu chung
   CREDITS.md                 nguồn gốc và giấy phép mọi asset
-  src/pixellab/{bộ}/         ảnh thô, đầu vào của tools/assets ({hướng}_{animation}_{i}.png)
+  src/pixellab/{bộ}/         ảnh thô ({hướng}_{animation}_{i}.png, hướng s/se/e/ne/n)
   honsu/ vohon/ beast/ ui/   file .aseprite (khi chỉnh tay)
 shared/assets/sprites/
-  manifest.json              danh sách key đã có ảnh thật
-  honsu/{body,outfit,hair}_{m,f}_{0–3}.png   hs_{lớp}_{giới}_{kiểu tóc} (bản hoán màu: …@{màu})
+  manifest.json              danh sách key đã có ảnh thật (key isometric ghi "iso": true)
+  honsu/{body,outfit,hair}_{m,f}_{0–3}.png   hs_{lớp}_{giới}_{kiểu tóc} (+ _n.png normal map)
   vohon/{id}_b.png, {id}_f.png               vh_{id}_b, vh_{id}_f
   beast/{loài}.png                           beast_{loài}
   ring/ring{tier}.png                        ring{tier}, halo{tier}
+shared/assets/iso/
+  tiles.json                 ánh xạ gid Tiled → ô thoi / vật đứng, chân vật, điểm sáng
+  ground/{loại}_{i}.png      ô nền 32×32 (thoi 32×16) và ô lớn 64×64 (thoi 64×32)
+  props/{vật}.png            cây, nhà, lều, đá… (đã cắt lát 16 pixel nếu nhiều ô)
 shared/assets/ui/
   portrait/{id}.png          chân dung 64×64
   card/frame_{sr,ssr,ur}.png khung thẻ 96×128
   icon/he_{he}.png           biểu tượng hệ 12×12
 ```
 
-- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu (`textures.ts` bỏ qua key đã có). Mỗi lần chỉ cần thêm ảnh và một dòng manifest.
-- Sprite vẽ bằng code phải dùng **đúng key** (`honsuKey`, `vh_{id}_f`…) và cùng bố cục khung, để ảnh thật thay vào được ngay.
+- **Cách thay dần:** client đọc `manifest.json` trong `preload()`, chỉ tải các key có trong danh sách, rồi `makeTextures()` vẽ bằng code những key còn thiếu. Mỗi lần chỉ cần thêm ảnh và một dòng manifest.
 
 **Dây chuyền `tools/assets` → spritesheet** (lệnh chi tiết: skill `asset-gen`)
-1. **Tạo ảnh** (dịch vụ self-host khi đã chọn; trước đây là PixelLab): khung hướng xuống trước (hồn sư 32×32, phụ thể 48×48, nền trong suốt, góc nhìn từ trên hơi nghiêng), duyệt bằng mắt rồi mới xoay hướng và làm animation. Nhân vật sau dùng khung gốc của nhân vật đã duyệt làm ảnh khởi đầu để giữ phong cách. Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
-2. **Màu khóa để tách lớp hồn sư:** mỗi bộ giới × kiểu tóc vẽ liền cả người; tóc màu lam sáng, áo / quần / váy màu xám. Ảnh thô lưu ở `art/src/pixellab/{bộ}/`.
-3. **Chuẩn hóa** bằng `normalize.mjs`: xóa nền, đặt chân vào gốc, thu nearest-neighbor nếu quá khung, đưa màu về bảng, viền ngoài `#1a1020`. `--split` tách thân / áo / tóc theo màu khóa và đưa tóc, áo về dải 4 xám; `--vohon <id> --halves <y>` tách phụ thể thành nửa sau / nửa trước.
-4. **Ghép sheet** bằng `pack.mjs` theo bố cục cố định; hồn sư `--set <giới>_<kiểu tóc>` ghi cả 3 lớp của bộ. `--breathe` tạo khung idle thứ 2; `--fill` chép tạm idle vào ô chưa có animation (validate cảnh báo).
-5. **Kiểm tra và đăng ký:** `validate.mjs --register <key>` kiểm kích thước, màu ngoài bảng, khung bắt buộc, rồi thêm key vào `manifest.json` và một dòng vào `art/CREDITS.md`. `npm run check` và pre-commit chạy lại validate cho mọi key.
-6. **Xem trong game** ở mức phóng 2× và 4×: đủ 4 hướng, ghép thử ít nhất 2 màu tóc và 2 màu áo, đặt cạnh nền rừng sâu.
-7. **Chỉnh tay khi cần** trong Aseprite (bảng màu `art/palette.gpl`), rồi chạy lại bước 5. Xuất: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 16`.
+1. **Tạo ảnh bằng PixelLab:** hồn sư `create_character` (`mode: "standard"`, `size: 52` → khung thô 76×76, `view: "high top-down"`, 8 hướng, 1 lượt); khung hướng `s` duyệt bằng mắt trước rồi mới làm animation (`animate_character` mẫu có sẵn, 1 lượt mỗi hướng, chỉ xin 5 hướng `s`, `se`, `e`, `ne`, `n`). Hồn thú bốn chân: `body_type: "quadruped"` với mẫu gần nhất (`dog`, `cat`, `lion`, `bear`, `horse`). Nhân vật sau lấy nhân vật đã duyệt làm mẫu phong cách. Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
+2. **Màu khóa để tách lớp hồn sư:** mỗi bộ giới × kiểu tóc vẽ liền cả người; tóc lam sáng, áo / quần / váy xám. Ảnh thô lưu ở `art/src/pixellab/{bộ}/`.
+3. **Chuẩn hóa** bằng `normalize.mjs`: xóa nền, cắt khung thô về khung chuẩn và đặt chân vào gốc (không phóng to / thu nhỏ ảnh pixel trừ khi quá khung), đưa màu về bảng, viền ngoài `#1a1020`. `--split` tách thân / áo / tóc; `--vohon <id>` tách phụ thể hai nửa. **Tô lại lỗi màu quen thuộc của PixelLab trước khi tách:** mắt lam (bị tính là tóc), ánh tím trên áo xám, đai lưng màu.
+4. **Ghép sheet** bằng `pack.mjs` theo bố cục 8 hướng ở trên (5 hàng hướng); `--breathe`, `--fill` như trước.
+5. **Normal map** bằng `normal.mjs` (tự sinh) cho mọi sheet và ô.
+6. **Kiểm tra và đăng ký:** `validate.mjs --register <key>` kiểm kích thước, màu ngoài bảng, khung bắt buộc, rồi thêm key vào `manifest.json` và một dòng vào `art/CREDITS.md`. `npm run check` và pre-commit chạy lại validate.
+7. **Xem trong game** ở ×2 và ×3: đủ 8 hướng (kể cả 3 hướng lật), ghép thử ít nhất 2 màu tóc và 2 màu áo, đứng trước và sau cây / nhà, dưới ánh sáng lửa trại và nền rừng sâu.
+8. **Chỉnh tay khi cần** trong Aseprite (bảng màu `art/palette.gpl`), rồi chạy lại bước 6. Xuất: `aseprite -b file.aseprite --sheet out.png --sheet-type rows --sheet-columns 24`.
 
 **Nguồn và giấy phép**
 - Hình do nhóm tạo bằng công cụ AI qua dây chuyền `tools/assets` hoặc vẽ tay. Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice); mỗi key ghi một dòng trong `art/CREDITS.md`: file, key, công cụ, prompt, ngày.
-- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức; chỉ xem để tham khảo ý tưởng, không đưa làm ảnh tham chiếu.
+- **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ xem để tham khảo ý tưởng, không đưa làm ảnh tham chiếu.
 - **Asset bên ngoài** (font, tileset, âm thanh) chỉ nhận CC0, CC-BY hoặc OFL; mỗi asset một dòng trong `art/CREDITS.md` (tên file, tác giả, link gốc, giấy phép, đã chỉnh gì). CC-BY phải hiện tên tác giả trong màn hình giới thiệu.
 
 ## 6. Kiến trúc (bắt buộc giữ)
@@ -723,18 +766,23 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 ## 7. Lộ trình
 Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì chạy `npm run check` và bot, cập nhật mục thiết kế tương ứng rồi đánh dấu [x] (hoặc bỏ dòng nếu đã gộp vào luật ở mục 5).
 
-**Đã có** (Giai đoạn 2–9 và nhóm Bản đồ BĐ1–BĐ6 đã merge): mô hình sưu tầm 24 võ hồn với đội hình 4 ô, đổi tay, năng lượng và tiên cơ riêng, hồn kỹ riêng vòng 1–10, Võ Hồn Chân Thân và hồn kỹ Chân Thân, ràng buộc, sao; túi đồ, Hồn Tệ, hồn hoàn theo số năm và hấp thụ theo giới hạn truyện; hồn cốt (rơi, gắn, kỹ năng, cường hóa) và hồn hạch (rơi, gắn, bộ, nâng cấp); 10 bản đồ nối cổng / bến thuyền với tinh anh, tà hóa thú vương theo lịch, boss thế giới ở Lõi Tinh Đấu; NPC, thương nhân (đan lớn, mở rộng túi, mua lại), lò rèn, nhiệm vụ tân thủ; tổ đội (chia kinh nghiệm, lan hiệu ứng phụ trợ, đóng góp hỗ trợ, Phục Chế chép đồng đội); Đại Đấu Hồn Trường xếp hạng Elo có chống dàn xếp; cộng minh; tiên thảo; tạo nhân vật với 3 tông da; nhiều kênh; dự đoán chuyển động; giới hạn đăng nhập sai và chat; dây chuyền asset và ảnh PixelLab cho 8 bộ hồn sư, 3 phụ thể, 3 loài hồn thú.
+**Đã có** (Giai đoạn 2–9 và nhóm Bản đồ BĐ1–BĐ6 đã merge): mô hình sưu tầm 24 võ hồn với đội hình 4 ô, đổi tay, năng lượng và tiên cơ riêng, hồn kỹ riêng vòng 1–10, Võ Hồn Chân Thân và hồn kỹ Chân Thân, ràng buộc, sao; túi đồ, Hồn Tệ, hồn hoàn theo số năm và hấp thụ theo giới hạn truyện; hồn cốt (rơi, gắn, kỹ năng, cường hóa) và hồn hạch (rơi, gắn, bộ, nâng cấp); 10 bản đồ nối cổng / bến thuyền với tinh anh, tà hóa thú vương theo lịch, boss thế giới ở Lõi Tinh Đấu; NPC, thương nhân (đan lớn, mở rộng túi, mua lại), lò rèn, nhiệm vụ tân thủ; tổ đội (chia kinh nghiệm, lan hiệu ứng phụ trợ, đóng góp hỗ trợ, Phục Chế chép đồng đội); Đại Đấu Hồn Trường xếp hạng Elo có chống dàn xếp; cộng minh; tiên thảo; tạo nhân vật với 3 tông da; nhiều kênh; dự đoán chuyển động; giới hạn đăng nhập sai và chat; dây chuyền asset và ảnh PixelLab 32×32 cho 8 bộ hồn sư, 3 phụ thể, 3 loài hồn thú (sẽ thay bằng đồ họa isometric, Giai đoạn 10).
 
-**Mỹ thuật: thay sprite vẽ bằng code** (quy cách ở mục 5.11; làm song song, không chặn việc khác). Lượt PixelLab đã hết: phần còn lại làm bằng dịch vụ self-host (chưa chọn).
-- [x] M1 Nền tảng: `art/palette.gpl`, `art/CREDITS.md`, `sprites/manifest.json`; client tải ảnh theo manifest, tạo animation theo chỉ số khung cố định; key còn thiếu vẽ bằng code.
-- [ ] M2 Hồn sư: thân nam và nữ, 4 kiểu tóc mỗi giới, áo hồn sư; đủ 3 hướng và 7 animation.
-  *Đã có:* 8 bộ `hs_{body,outfit,hair}_{m,f}_{0–3}` ảnh PixelLab, 3 hướng, `idle` + `walk` (walk của kiểu tóc 1–3 ghép bằng code từ bộ 0). *Còn:* `attack` / `cast` / `hurt` / `die` / `absorb` của mọi bộ (đang chép tạm idle), walk vẽ riêng cho kiểu tóc 1–3, vẽ lại nữ kiểu 2 (nhìn sau giống tóc thả), nam kiểu 1 mái che gần hết mặt ở hướng phải.
-- [ ] M3 Lớp phụ thể: Lam Ngân Thảo và 4 võ hồn mẫu (mỗi hệ một: Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
-  *Đã có:* `vh_lam_ngan_thao` (bản thử: thảm dây dưới chân, chưa có dây quấn tay), `vh_hao_thien_chuy` (búa theo bảng góc `HAMMER` của `honsuArt.ts`), `vh_cuu_bao_luu_ly_thap` (chưa có vòng sáng 7 màu). *Còn:* U Minh Linh Miêu, Bích Lân Xà Hoàng và các võ hồn còn lại.
-- [ ] M4 Hồn thú: vẽ theo từng loài ở mục 5.3 (bảng kích thước theo bậc ở 5.11); tinh anh dùng sprite loài gốc kèm aura; thú vương khoảng 96×96; sprite riêng cho 2 boss thế giới.
-  *Đã có:* `beast_phong_lang`, `beast_man_da_la_xa`, `beast_tu_van_bao` (vùng Bìa rừng, đủ 13 khung; Mạn Đà La Xà nên vẽ lại `walk` / `attack` / `die`). GameScene mới dùng `idle` / `walk` vì server chưa gửi trạng thái đánh / bị đánh / gục của hồn thú. *Còn:* mọi loài khác (Lạc Nhật, Cực Bắc, Hải Thần Đảo…), tinh anh, thú vương, boss thế giới.
-- [ ] M5 Giao diện thẻ võ hồn: chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR, biểu tượng 4 hệ.
-- [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): cần thêm chỉ số kiểu áo vào key lớp áo (mục 5.11).
+**Mỹ thuật 2D cũ (M1–M5):** M1 nền tảng (palette, `CREDITS.md`, manifest, tải ảnh theo manifest, vẽ code key thiếu) đã xong và dùng tiếp; **M2–M5 được thay bằng Giai đoạn 10**. Ảnh 32×32 đã có (8 bộ hồn sư, 3 phụ thể, 3 loài hồn thú) giữ cho client hiện tại tới khi bước 10.4 / 10.5 / 10.6 thay.
+
+**Giai đoạn 10: Đồ họa isometric** (quy cách ở mục 5.11; server không đổi, mỗi bước một PR; thay nhóm Mỹ thuật M2–M5 cũ). Ngân sách PixelLab: 5 key trial × 40 lượt = 200 lượt, cộng lượt thưởng ngày (+5 mỗi đêm, tối đa 20, chỉ dùng khi hết lượt chính). Số lượt ghi ở mỗi bước là ước tính; phần vượt ngân sách chờ lượt thưởng hoặc key mới, key chưa có ảnh vẫn vẽ bằng code. Hết lượt thì dừng và báo, không tự đổi key.
+- [x] 10.0 Thiết kế và bản thử: quy cách isometric ở mục 5.11; ảnh cảnh mẫu (ngoài repo) từ 1 hồn sư 8 hướng, 3 ô nền, 1 cây, 1 lửa trại, 1 hồn thú (7 lượt).
+- [ ] 10.1a Nền client (0 lượt): `client/src/iso.ts` (chiếu / chiếu ngược), camera và độ phân giải nội bộ 640×360 phóng số nguyên, vẽ nền và vật cản từ file Tiled hiện có bằng ô thoi / khối **vẽ tạm bằng code**, sắp lớp theo `x + y`, vật che mờ, bóng elip, vòng hồn hoàn elip 2:1, hồn sư 32×32 cũ đứng tạm trên nền mới (chọn hướng gần nhất trong 4 hướng cũ). Bot và `test:predict` chạy như cũ.
+- [ ] 10.1b Điều khiển và vẽ chiêu (0 lượt; sau 10.1a): WASD / mũi tên / cần theo màn hình quy đổi sang vector thế giới, chuột click-to-move và chọn mục tiêu (chiếu ngược), bấm NPC / cổng / hồn sư khác; `isoPoly` cho vùng báo trước, vùng chiêu, sóng, cung chém, đạn; suy hướng 8 từ chuyển động và tin `fx`.
+- [ ] 10.2 Bản đồ và bộ ô isometric (khoảng 40 lượt; làm song song với 10.1, ghép vào sau 10.1a): dải màu đất / đá / rêu / tuyết / cát / nước trong `art/palette.gpl`; khoảng 22 ô nền (2–3 biến thể cho cỏ, tuyết, cát) và khoảng 11 vật đứng (cây lá rộng, thông tuyết, lều, lửa trại, bộ nhà / tường / mái, băng tinh, đá ngầm); `shared/assets/iso/tiles.json` phủ mọi gid đang dùng; cắt lát vật nhiều ô; lớp phủ mép cỏ / đường / nước. Cả 11 bản đồ chuyển tự động.
+- [ ] 10.3 Dây chuyền `tools/assets` 8 hướng (0–2 lượt; song song với 10.1): khung 64 / 96 / theo bậc, cắt khung thô PixelLab (76, 92) về khung chuẩn, `--split` với màu khóa và tự sửa mắt lam, bố cục sheet 24 × 6 (hồn sư) và 20 × 5 (hồn thú), `normal.mjs` tự sinh normal map, cờ `iso` trong manifest, điểm neo phụ thể, `preview.mjs` xem 8 hướng (kể cả 3 hướng lật).
+- [ ] 10.4a Hồn sư bộ gốc `m_0`, `f_0` (khoảng 32 lượt; sau 10.3): mỗi bộ 8 hướng (1) + `walk`, `attack`, `cast` cho 5 hướng (15); `idle` bằng `--breathe`, `hurt` / `die` bằng code trước. Client vẽ hồn sư 64×64 nhiều lớp.
+- [ ] 10.4b 6 bộ hồn sư còn lại (khoảng 96 lượt; chia nhiều PR theo giới): như 10.4a. Sau đó `hurt`, `die` thật (10 lượt mỗi bộ) khi còn lượt.
+- [ ] 10.5 Phụ thể võ hồn (khoảng 5–8 lượt mỗi võ hồn): phụ thể tĩnh 5 hướng + ghép theo điểm neo; trước hết Lam Ngân Thảo và 4 võ hồn mẫu (Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
+- [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` tự mô tả chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu ngoại vi, nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192.
+- [ ] 10.7 Ánh sáng (0–3 lượt; sau 10.1a, 10.2): Light2D, `ambient` mỗi bản đồ thay lớp `vignette`, nguồn sáng (lửa trại, đèn, hồn hoàn, hồn kỹ), normal map tự sinh cho ô / vật / sprite, tắt sạch khi chỉ có Canvas; đo khung hình trên điện thoại.
+- [ ] 10.8 Giao diện thẻ võ hồn (khoảng 30 lượt): chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR, biểu tượng 4 hệ (vẽ tay hoặc code).
+- [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), tạo bằng PixelLab sau 10.4.
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [ ] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ.
@@ -752,6 +800,6 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 
 ## 8. Câu hỏi còn mở
 Các câu hỏi thiết kế trước đây đều đã chốt và đưa vào mục 5. Còn mở:
-1. **Dịch vụ self-host cho mỹ thuật còn lại** (M2–M5): chọn công cụ nào, chất lượng có giữ được phong cách của ảnh PixelLab đã có không.
+1. **Ngân sách mỹ thuật isometric** (Giai đoạn 10): ước tính vượt 200 lượt PixelLab nếu làm đủ 8 bộ hồn sư, 24 phụ thể, 67 loài hồn thú; cần chọn thứ tự ưu tiên hoặc thêm key / lượt thưởng ngày.
 2. **Trần số người khi tính máu boss:** hiện không có trần (nhóm bạn bè ít người); xem lại nếu phòng đông làm boss quá trâu.
 3. **Chủ nhân và tên hồn kỹ trong truyện** của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, Phá Hồn Thương, Liệt Hỏa Thương Lang: để trống / đặt tạm cho tới khi có nguồn chắc chắn.
