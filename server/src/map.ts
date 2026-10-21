@@ -68,6 +68,24 @@ function rawObjects(mapId: string): any[] {
 const propOf = (o: any, n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
 const rectOf = (o: any): Rect => ({ x: o.x, y: o.y, w: o.width, h: o.height });
 
+/**
+ * Chỉ đường giữa các bản đồ (nhiệm vụ hằng ngày, chấm trên bản đồ nhỏ): với mỗi bản đồ đích, bản đồ kề nên đi tới trước (qua cổng
+ * `portal` của `from` trỏ sang nó), theo số lần đi cổng ít nhất. Đọc thô object Tiled của mọi bản đồ, tính một lần mỗi `from`.
+ */
+const routeCache = new Map<string, Record<string, string>>();
+export function mapRoute(from: string): Record<string, string> {
+  const hit = routeCache.get(from); if (hit) return hit;
+  const next = (id: string) => [...new Set(rawObjects(id).filter((o) => o.type === "portal").map((o) => String(propOf(o, "to") ?? ""))
+    .filter((to) => Object.hasOwn(MAPS, to) && MAPS[to].kind !== "arena"))];
+  const out: Record<string, string> = {};
+  if (Object.hasOwn(MAPS, from)) {
+    const q = next(from).map((n) => { out[n] = n; return n; });
+    while (q.length) { const at = q.shift()!; for (const n of next(at)) if (n !== from && !out[n]) { out[n] = out[at]; q.push(n); } }
+  }
+  routeCache.set(from, out);
+  return out;
+}
+
 /** Bản đồ đã nạp, dùng chung cho mọi kênh (phòng) của cùng `mapId`. */
 const cache = new Map<string, GameMap>();
 

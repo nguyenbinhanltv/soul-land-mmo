@@ -5,8 +5,9 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
-  WORLD, HE, HE_IDS, PLAYER_SPEED,
-  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText } from "../../../shared/data.ts";
+  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED,
+  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
+  type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
@@ -20,7 +21,7 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -53,7 +54,7 @@ const RING_LIT_MS = 450;
 /** Vòng hồn hoàn khi bay lên: độ cao ngang ngực khi tung hồn kỹ; Chân Thân xếp đều các vòng từ RING_UP_LOW tới RING_UP_TOP (pixel nội bộ). */
 const RING_CHEST = 28, RING_UP_LOW = 6, RING_UP_TOP = 52;
 interface Rect { x: number; y: number; w: number; h: number; }
-interface Zone extends Rect { name: string; hint: string; }
+interface Zone extends Rect { name: string; hint: string; years?: [number, number] | null; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
 /** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo khung, sprite vẽ bằng code theo bậc
@@ -104,6 +105,9 @@ export class GameScene extends Phaser.Scene {
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null;
     qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
+  daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
+  /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
+  qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
   nearNpc: string | null = null;    // NPC trong tầm nói chuyện (NPC_RANGE) lần kiểm tra gần nhất
   crowd: Crowd | null = null;       // dân thường, lính gác trang trí (crowd.ts, chỉ client)
   onTravel: (mapId: string, roomId: string | null) => void = () => {};
@@ -180,7 +184,7 @@ export class GameScene extends Phaser.Scene {
         // Gợi ý vùng kèm cấp tương đương của khoảng niên hạn (mục 5.3, BĐ3), tính bằng hàm dùng chung.
         const yr = parseLevelRange(prop("years")), lv = yr && [beastLevel(yr[0]), beastLevel(yr[1])];
         const hint = [prop("hint") ?? "", lv ? `cấp ${lv[0] === lv[1] ? lv[0] : `${lv[0]}–${lv[1]}`}` : ""].filter(Boolean).join(" · ");
-        this.zones.push({ ...r, name: o.name, hint });
+        this.zones.push({ ...r, name: o.name, hint, years: yr });
       }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
@@ -192,6 +196,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.drawPortals();
     this.buildMinimap(map);
+    hud.setTrackerMap(this.mapId);
     // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts).
     if (raw) this.grid = solidGrid(raw);
     if (PREDICT && this.grid) this.pred = new Predictor(this.grid);
@@ -293,12 +298,15 @@ export class GameScene extends Phaser.Scene {
     this.updateQuestMarks();
   }
 
-  /** Dấu nhiệm vụ trên đầu NPC giao nhiệm vụ theo tiến độ (6.2): "!" có bài mới, "?" vàng đủ mục tiêu chờ trả, "?" xám đang làm. */
+  /**
+   * Dấu nhiệm vụ trên đầu NPC giao nhiệm vụ theo tiến độ (6.2): "!" có bài mới, "?" vàng đủ mục tiêu chờ trả, "?" xám đang làm.
+   * Phất Lan Đức gộp cả bộ khảo hạch hằng ngày (hud.questMark).
+   */
   updateQuestMarks() {
     for (const n of this.npcs) {
       if (!n.qmark) continue;
-      const q = hud.questOf(n.id), st = q?.status;
-      n.qmark.setVisible(!!st && st !== "done");
+      const st = hud.questMark(n.id);
+      n.qmark.setVisible(!!st);
       if (st === "offer") n.qmark.setText("!").setColor("#ffd84a");
       else if (st === "ready") n.qmark.setText("?").setColor("#ffd84a");
       else if (st === "active") n.qmark.setText("?").setColor("#a8a8a8");
@@ -571,7 +579,7 @@ export class GameScene extends Phaser.Scene {
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
         combat: () => this.combat,
-        quest: (op) => this.room.send("quest", { op }),
+        quest: (op, chain) => this.room.send("quest", chain ? { op, chain } : { op }),
         arena: (op) => this.room.send("arena", { op }), // 7.2: xếp hàng / hủy / bảng xếp hạng
       });
     });
@@ -604,6 +612,17 @@ export class GameScene extends Phaser.Scene {
         if (m.ev === "finish") hud.banner(`Hoàn thành chuỗi: ${c.name}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
         else hud.banner(`Trả nhiệm vụ: ${d?.name ?? ""}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
       }
+    });
+    // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
+    this.room.onMessage("daily", (m: DailyMsg) => {
+      if (!m || !Array.isArray(m.list)) return;
+      this.daily = m; hud.setDaily(m); this.updateQuestMarks();
+      const q = m.list[m.i], s = q && questChain(q.chain)?.steps[0], giver = npcDef(DAILY.giver);
+      if (m.ev === "reset") hud.banner("Khảo hạch hằng ngày đã đổi bài", `Gặp ${giver?.name} ở ${MAPS[DAILY.map].name} nhận ${m.list.length} bài mới`);
+      else if (!s) return;
+      else if (m.ev === "accept") hud.banner(`Nhận khảo hạch: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
+      else if (m.ev === "ready") hud.banner(`Hoàn thành: ${s.name}`, `Quay về gặp ${giver?.name} ở ${MAPS[DAILY.map].name} để nhận thưởng`);
+      else if (m.ev === "reward") hud.banner(`Trả khảo hạch: ${s.name}`, `Nhận ${questRewardText(s.reward)}`);
     });
     // Đi cổng / đổi kênh: server đã lưu xong và chọn phòng (kênh) đích (`roomId`, null = để Colyseus chọn / mở kênh mới).
     this.room.onMessage("travel", (m: { mapId: string; roomId?: string | null }) => {
@@ -1166,7 +1185,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawMinimap() {
-    const { ctx, base } = this.mini; const st = this.room.state;
+    const { ctx, base } = this.mini; const st = this.room.state, me = st.players.get(this.me);
     ctx.imageSmoothingEnabled = false; ctx.drawImage(base, 0, 0);
     st.drops.forEach((d: any) => { ctx.fillStyle = TIERS[d.tier].glow; ctx.fillRect((d.x / TILE) | 0, (d.y / TILE) | 0, 1, 1); });
     st.beasts.forEach((b: any) => { if (b.tier >= 3 && !b.rank) { ctx.fillStyle = b.tier === 4 ? "#ff3b3b" : "#8a6bff"; ctx.fillRect((b.x / TILE) | 0, (b.y / TILE) | 0, 1, 1); } });
@@ -1179,6 +1198,21 @@ export class GameScene extends Phaser.Scene {
       ctx.fillStyle = "#1a1020"; ctx.fillRect(x - r - 1, y - r - 1, 2 * r + 3, 2 * r + 3);
       ctx.fillStyle = on ? BOSSES[b.species]?.aura ?? "#ffffff" : "#ffffff"; ctx.fillRect(x - r, y - r, 2 * r + 1, 2 * r + 1);
     });
+    // Mục tiêu nhiệm vụ (tân thủ, khảo hạch hằng ngày): khung vùng săn, cổng đi tiếp, chấm NPC màu vàng nhấp nháy.
+    const qt = this.questTargets(me?.level ?? 1);
+    if (qt.zones.length || qt.portals.length || qt.npcs.length) {
+      const gold = on ? "#ffd84a" : "#fff2b0";
+      ctx.strokeStyle = gold; ctx.lineWidth = 1;
+      for (const z of qt.zones) ctx.strokeRect((z.x / TILE | 0) + 0.5, (z.y / TILE | 0) + 0.5, Math.max(1, z.w / TILE | 0), Math.max(1, z.h / TILE | 0));
+      for (const r of qt.portals) {
+        const x = (r.x / TILE) | 0, y = (r.y / TILE) | 0, w = Math.max(1, Math.round(r.w / TILE)), h = Math.max(1, Math.round(r.h / TILE));
+        ctx.fillStyle = "#1a1020"; ctx.fillRect(x - 1, y - 1, w + 2, h + 2); ctx.fillStyle = gold; ctx.fillRect(x, y, w, h);
+      }
+      for (const n of qt.npcs) {
+        const x = (n.x / TILE) | 0, y = (n.y / TILE) | 0;
+        ctx.fillStyle = "#1a1020"; ctx.fillRect(x - 2, y - 2, 5, 5); ctx.fillStyle = gold; ctx.fillRect(x - 1, y - 1, 3, 3);
+      }
+    }
     // Đồng đội trong tổ đội (7.1): chấm xanh lá 3×3 viền tối, vẽ sau người khác cho nổi lên.
     const mates = new Set((this.party?.members ?? []).filter((m) => !m.me && m.sid).map((m) => m.sid));
     st.players.forEach((p: any, id: string) => {
@@ -1188,8 +1222,46 @@ export class GameScene extends Phaser.Scene {
       if (!mates.has(id)) return; const x = (p.x / TILE) | 0, y = (p.y / TILE) | 0;
       ctx.fillStyle = "#0c2a12"; ctx.fillRect(x - 2, y - 2, 5, 5); ctx.fillStyle = "#7dff8a"; ctx.fillRect(x - 1, y - 1, 3, 3);
     });
-    const me = st.players.get(this.me);
     if (me) { ctx.fillStyle = "#fff"; ctx.fillRect(((me.x / TILE) | 0) - 1, ((me.y / TILE) | 0) - 1, 3, 3); ctx.fillStyle = "#ff4040"; ctx.fillRect((me.x / TILE) | 0, (me.y / TILE) | 0, 1, 1); }
+  }
+
+  /**
+   * Chỉ đường nhiệm vụ trên bản đồ nhỏ (chuỗi tân thủ đang làm và khảo hạch hằng ngày): mục tiêu ở bản đồ này thì chấm NPC / khung vùng
+   * săn; ở bản đồ khác thì tô cổng đi tới bản đồ kề theo `route` của tin "daily" (server tính đường ít lần đi cổng nhất). Bài chờ trả
+   * hoặc chưa nhận chỉ về NPC giao bài; mục tiêu hạ hồn thú hợp cấp (`fit`) và nộp hồn hạch / hồn hoàn chỉ về vùng săn hợp cấp
+   * (fitMaps, fitBeast theo cấp võ hồn ra trận). Tính lại khi tiến độ hoặc cấp đổi.
+   */
+  questTargets(level: number) {
+    const daily = hud.dailyList(), key = [this.quest?.step, this.quest?.status, ...daily.map((q) => q.chain + q.status + q.prog.join()), level].join("|");
+    if (this.qt.key === key) return this.qt;
+    const npcs: Pt[] = [], zones = new Set<Zone>(), maps = new Set<string>(), route = this.daily?.route ?? {};
+    const toNpc = (id: string, mapId: string) => {
+      if (mapId !== this.mapId) { maps.add(mapId); return; }
+      const n = this.npcs.find((x) => x.id === id); if (n) npcs.push({ x: n.x, y: n.y });
+    };
+    const hunt = (mapId?: string, zone?: string, fit = false) => {
+      const at = mapId ? [mapId] : fitMaps(level);
+      if (!at.includes(this.mapId)) { at.forEach((m) => maps.add(m)); return; }
+      for (const z of this.zones) if ((!zone || z.name === zone) && (!fit || !z.years || fitBeast(level, z.years[1]))) zones.add(z);
+    };
+    const goal = (g: QuestGoal, home: string) => {
+      if (g.near) return toNpc(g.near, home);
+      if (g.k === "talk" && g.npc) return toNpc(g.npc, g.map ?? home);
+      if (g.k === "kill") return hunt(g.map, g.zone, !!g.fit);
+      if (g.k === "map" && g.map) return void (g.map !== this.mapId && maps.add(g.map));
+      if (g.k === "give" && (g.item === CORE_ITEM || g.item === RING_ITEM)) return hunt(undefined, undefined, true);
+    };
+    const one = (q: QuestProgress & { status: QuestStatus }) => {
+      const c = questChain(q.chain), s = c?.steps[q.step]; if (!c || !s || q.status === "done") return;
+      if (q.status !== "active") return toNpc(c.giver, c.map);
+      s.goals.forEach((g, i) => { if ((q.prog[i] ?? 0) < g.n) goal(g, c.map); });
+    };
+    if (this.quest) one(this.quest);
+    daily.forEach(one);
+    // Bản đồ khác: tô cổng đi tới bản đồ kề trên đường tới đó (một bản đồ đích có nhiều cổng thì tô cả).
+    const next = new Set([...maps].map((m) => route[m]).filter(Boolean));
+    this.qt = { key, npcs, zones: [...zones], portals: this.portals.filter((r) => next.has(r.to)) };
+    return this.qt;
   }
 
   // ---------- Đồng bộ trạng thái mỗi khung hình ----------

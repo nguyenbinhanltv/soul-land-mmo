@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { nameKey } from "./names.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -288,13 +288,17 @@ export class MemoryStore implements Store {
     this.locs.set(accountId, { mapId: to, x, y });
     if (bag) this.putBag(accountId, bag);
   }
-  /** Ghi túi (đã kiểm tra) cùng tiến độ nhiệm vụ: như writeBag của PgStore, chuỗi có trong `bag.quests` thì thay, chuỗi khác giữ nguyên. */
+  /**
+   * Ghi túi (đã kiểm tra) cùng tiến độ nhiệm vụ: như writeBag của PgStore, chuỗi có trong `bag.quests` thì thay, chuỗi khác giữ nguyên;
+   * có bài khảo hạch hằng ngày thì bỏ bài của các ngày khác.
+   */
   putBag(accountId: number, bag: Bag) {
     const { quests, slots, ...rest } = copyBag(bag);
     const old = this.bags.get(accountId)?.slots;
     this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}) });
     if (quests) {
-      const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain));
+      const daily = quests.some((x) => isDaily(x.chain));
+      const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain) && !(daily && isDaily(q.chain)));
       this.quests.set(accountId, [...keep, ...quests]);
     }
   }
@@ -620,6 +624,9 @@ export class PgStore implements Store {
          SELECT $1, x.chain, x.step, x.accepted, x.prog FROM jsonb_to_recordset($2::jsonb) AS x(chain text, step smallint, accepted boolean, prog jsonb)
          ON CONFLICT (account_id, chain) DO UPDATE SET step=EXCLUDED.step, accepted=EXCLUDED.accepted, prog=EXCLUDED.prog, updated_at=now()`,
         [accountId, JSON.stringify(bag.quests.map((q) => ({ chain: q.chain, step: q.step, accepted: q.accepted, prog: q.prog })))]);
+      // Khảo hạch hằng ngày (mã `daily:<yyyymmdd>:<i>`): chỉ giữ dòng của bộ bài đang ghi, bài các ngày đã qua xóa đi.
+      const daily = bag.quests.filter((q) => isDaily(q.chain)).map((q) => q.chain);
+      if (daily.length) await db.query("DELETE FROM quests WHERE account_id=$1 AND chain LIKE 'daily:%' AND NOT (chain = ANY($2::text[]))", [accountId, daily]);
     }
   }
   async loadBag(accountId: number, starter: Item[]) {

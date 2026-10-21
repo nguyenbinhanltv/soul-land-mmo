@@ -5,9 +5,9 @@ description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy c�
 
 # Làm ảnh và đưa vào game
 
-Quy cách (cỡ khung, bố cục sheet, phong cách, bảng màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; skill này chỉ hướng dẫn thao tác. Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
+Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; quy cách chi tiết (bố cục sheet, bảng animation, điểm neo, dạng phụ thể từng võ hồn, key và thư mục) là `tools/assets/README.md`; skill này hướng dẫn thao tác. Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
 
-## 1. Quy cách tóm tắt (đầy đủ ở mục 5.11)
+## 1. Quy cách tóm tắt (quy tắc: mục 5.11; chi tiết: `tools/assets/README.md`)
 | Asset | Khung, sheet | Gốc | Key |
 |---|---|---|---|
 | Hồn sư | 64×64, sheet 24 cột × 6 hàng | (32, 58) | `hs_{body,outfit,hair}_{m,f}_{0–3}`: một bộ giới × kiểu tóc đủ 3 lớp hoặc không lớp nào |
@@ -33,7 +33,7 @@ Quy cách (cỡ khung, bố cục sheet, phong cách, bảng màu, nguồn đư�
 |---|---|
 | Hồn sư người chơi và animation | PixelLab (không dùng LPC) |
 | Phụ thể võ hồn | Ảnh Gemini hướng nam (`art/src/gemini/phuthe_s/<mã>_s.png`) vẽ lại đúng cỡ bằng PixelLab `edit_image_pixen`; vũ khí phẳng, vật đối xứng dùng chung một ảnh cho 5 hướng |
-| Hồn thú | PixelLab; ảnh Gemini nghiêng 3/4 (`art/src/gemini/beast_se/<loài>_se_<cỡ>.png`) chỉ làm tham chiếu hướng `se` / `e` |
+| Hồn thú | PixelLab; ảnh Gemini nghiêng 3/4 (`art/src/gemini/beast_se/<loài>_se_<cỡ>.png`) chỉ làm tham chiếu hướng `se` / `e`; hình tạm từ thú LPC đang thử (mục 5) |
 | Ô nền | Gemini (10 bản đồ hiện dùng) hoặc PixelLab; **một bản đồ một nguồn ô nền** |
 | Vật đứng, công trình | PixelLab `create_map_object` hoặc Gemini |
 | Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | Gemini |
@@ -112,7 +112,7 @@ node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/gras
 - Ô nền: `iso-build.mjs ground <tên> <32.png> [<64.png>]` rồi thêm vào `tiles.json` (mục 7). Vật đứng: `iso-build.mjs prop`.
 - Chân dung / NPC / vật phẩm / trạng thái / giao diện / thẻ: chép vào `shared/assets/sprites/iso/{portrait,npc,item,status,ui}/…`, rồi `validate.mjs --register <key> --iso --tool "Gemini (gemini.google.com) + tools/assets/gemini-import.mjs" --prompt "<ảnh, ô, prompt>" --note "<lệnh nhập>"` (mảnh giao diện kéo giãn thêm `--nine N`). CREDITS vào mục "Asset tạo bằng AI (Gemini)"; validate kiểm mã có trong `NPCS` / `ITEMS` / `STATUS_IDS`…
 
-## 5. LPC (chỉ NPC phụ)
+## 5. LPC (NPC phụ; đang thử hình tạm hồn thú)
 Universal LPC Spritesheet Character Generator (<https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>, 0 lượt PixelLab). `tools/assets/lpc-compose.mjs` đọc PNG lớp của repo đó, xuất theo bố cục sheet hồn sư 24 × 6.
 - **Phạm vi (người dùng đã quyết):** chỉ **NPC phụ** (10 NPC trong `NPCS`: `lpc_<mã NPC>`), dân thường `lpc_dan_*`, lính gác `lpc_linh_gac`. **Không** dùng cho hồn sư người chơi (LPC chibi kiểu tây, chỉ 4 hướng).
 - **Giấy phép:** chỉ lớp có ít nhất một giấy phép **CC0 / CC-BY / OGA-BY**. Lớp chỉ có CC-BY-SA / GPL (ví dụ `hair/messy1`, `hair/swoop`, `hair/ponytail`, nhiều `bangs*` / `spiked*`, `weapon/polearm/*`, kính `nerd` / `round`, đầu `male_plump`, râu `basic`) hoặc giấy phép lạ thì công cụ dừng: chọn lớp khác.
@@ -120,7 +120,7 @@ Universal LPC Spritesheet Character Generator (<https://github.com/LiberatedPixe
 - **Tải repo LPC ngoài repo game** (`git clone --depth 1`, khoảng 450 MB, vào thư mục artifact); chỉ đọc `spritesheets/`, `sheet_definitions/`, `CREDITS.csv`, không chạy code của repo đó.
 - **Công thức** `art/src/lpc/<tên>.json` (`--recipe`, cú pháp ở đầu file công cụ; `"base": true` thêm sẵn thân, đầu, giày); thử nhanh `--npc truong_thon | thuong_nhan | tho_ren | linh_gac`. Trang phục phương Đông gần nhất: nam `longsleeve2_vneck` + `legs/skirts/plain` + `torso/waist/obi`, búi tóc `parted_side_bangs` + `extensions/ponytails/topknot_short`; nữ `dress/kimono` + `kimono/sleeves` + obi (kimono / robe / tunic chỉ có cho thân nữ).
 - **Màu:** NPC phụ không nổi hơn hồn sư. `--game` dùng `hairRamp` / `outfitRamp` của công thức (4 màu trầm của `art/palette.gpl`), không có thì `HAIR_COLORS` / `OUTFIT_COLORS` giảm bão hòa; lớp `keep` (giáp, tạp dề) giảm bão hòa theo `--desat` (mặc định `DESAT_DEFAULT`). `--hair-col`, `--outfit-col`, `--skin` là chỉ số trong `shared/data.ts`.
-- Công cụ tự lo: ánh xạ 4 hướng LPC → 5 hướng vẽ (mục 5.11), chọn khung (walk 6, attack từ slash, cast từ spellcast, `idle` bằng `pack --breathe`, `hurt` / `die` hướng `s` từ hurt LPC, phần còn lại `pack --code`), dời chân về gốc (32, 58), đưa màu về bảng, mép và màu gần đen thành `#1a1020`.
+- Công cụ tự lo: ánh xạ 4 hướng LPC → 5 hướng vẽ (`tools/assets/README.md`), chọn khung (walk 6, attack từ slash, cast từ spellcast, `idle` bằng `pack --breathe`, `hurt` / `die` hướng `s` từ hurt LPC, phần còn lại `pack --code`), dời chân về gốc (32, 58), đưa màu về bảng, mép và màu gần đen thành `#1a1020`.
 
 ```bash
 node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <tmp>/lpc --npc linh_gac --outfit-col 0      # thử, ra <tmp>/lpc/<tên>_mau.png
@@ -128,6 +128,17 @@ node tools/assets/preview.mjs <tmp>/xem.png <tmp>/lpc/linh_gac_mau.png --dirs8 -
 for f in art/src/lpc/*.json; do node tools/assets/lpc-compose.mjs --lpc <repo LPC> --game --recipe $f; done   # đưa vào game
 ```
 `--game` ghi `shared/assets/sprites/iso/lpc/<tên>.png` + `_n.png`, thêm key `lpc_<tên>` (`"iso": true`) vào manifest và ghi công. Client tự dùng `lpc_<mã NPC>`; dân thường mới thì thêm tên vào `CROWD` (`client/src/crowd.ts`). Soát bằng mắt (khung đứng 5 hướng, so với chân dung `npc_<mã>`) rồi `npm run check`.
+
+**Thú LPC làm hình tạm cho hồn thú thường (đang thử, chưa đưa vào game):** `tools/assets/lpc-beast.mjs` đọc sprite thú LPC tải từ OpenGameArt (sói, nhện, gấu, cáo, sư tử cái, chuột, thỏ, lợn rừng, chim; bảng loài ↔ mẫu, gói, giấy phép ở `SPECIES` / `PACKS` đầu file, `--list` in ra) và xuất sheet hồn thú 20 × 5 theo khung bậc. Không dùng cho thú vương / boss thế giới (khung ≤ 128) hay hồn sư.
+- Gói chỉ CC-BY-SA / GPL (rắn LPC, LPC Monsters, bò LPC, cá LPC…) không dùng; loài không có mẫu phù hợp giữ hình hiện tại. Thêm gói thì đọc trang OGA lấy đúng tác giả, giấy phép, lời ghi công rồi ghi vào `PACKS`.
+- Tải gói **ngoài repo game** (thư mục artifact), mỗi gói một thư mục con đúng đường dẫn `file` trong `SPECIES`; chỉ đọc PNG.
+- Công cụ tự lo: 4 hướng LPC → 5 hướng vẽ như NPC phụ; animation có trong gói thì chọn khung, thiếu thì vẽ bằng code (idle thở, attack lùi rồi lao, hurt lùi, die ép dẹt); đổi sắc theo loài, giảm bão hòa (`--desat`), đưa màu về bảng chung + bảng vùng `map`; phóng nguyên ×1 / ×2; chân chạm gốc khung bậc; viền `#1a1020`; ghi điểm mắt từng hướng (`eyes`, màu mắt nguồn đổi thành màu "Mắt") vào `<loài>.json`; ghi công vào `<out>/CREDITS-LPC-BEASTS.md` hoặc mục `<!-- lpc-beast:start -->` / `<!-- lpc-beast:end -->` của `--credits`.
+- Đưa vào game cần client tải sheet hồn thú isometric (bước 10.6) và người dùng duyệt từng loài.
+
+```bash
+node tools/assets/lpc-beast.mjs --src <thư mục gói thú> --out <tmp>/thu [--species phong_lang,liet_trao_hung]
+node tools/assets/preview.mjs <tmp>/xem.png <tmp>/thu/phong_lang.png --dirs8 --ground
+```
 
 ## 6. Vẽ tay
 - **Huy hiệu hệ** `he_<mã HE_IDS>` 24×24: `node tools/assets/he-icons.mjs [--out <dir>]` vẽ từng điểm từ mảng ký tự trong file (tròn màu hệ, viền vàng kim, biểu tượng trắng) vào `shared/assets/sprites/iso/he/`; sửa hình thì sửa mảng rồi chạy lại; dừng nếu `HE_IDS` đổi. CREDITS ghi ở mục "Asset tự vẽ" bằng tay (`--register` chỉ ghi mục PixelLab / Gemini).
@@ -170,7 +181,7 @@ node tools/assets/preview.mjs <tmp>/xem.png shared/assets/sprites/vohon/hao_thie
 Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú sau lưng neo `back`; bụi dưới chân neo `feet`.
 
 ## 8. Quy trình "tạo <asset>"
-1. Đọc mục 5.11, xác định key (bảng mục 1) và nguồn (mục 2).
+1. Đọc mục 5.11 và `tools/assets/README.md`, xác định key (bảng mục 1) và nguồn (mục 2).
 2. PixelLab: `get_balance`; khung tĩnh 8 hướng trước, duyệt bằng mắt, rồi animation 5 hướng vẽ. Gemini: viết prompt, người dùng tạo, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
 3. normalize → pack → normal → `preview.mjs` soát lệch chân, màu lạ, điểm vụn, hướng lật → `validate.mjs --register` → `npm run check`.
 4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, nền rừng sâu.

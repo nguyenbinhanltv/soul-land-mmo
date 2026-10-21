@@ -97,7 +97,7 @@ npm run test:accounts --prefix server
 │  ├─ check.mjs            # typecheck theo phần bị ảnh hưởng (npm run check, pre-commit, hook Claude Code)
 │  ├─ gen-map.mjs          # sinh các bản đồ Tiled (npm run map – GHI ĐÈ bản đã sửa tay)
 │  ├─ gen-tiles.py         # sinh tileset
-│  └─ assets/              # dây chuyền ảnh: normalize, pack, normal, preview, validate, iso-build,
+│  └─ assets/              # dây chuyền ảnh (README.md: quy cách chi tiết): normalize, pack, normal, preview, validate, iso-build,
 │                          #   gemini-import (nhập ảnh Gemini), lpc-compose (NPC phụ LPC), he-icons
 ├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
 │                          #   src/ (ảnh thô PixelLab / Gemini, công thức LPC), CREDITS.md
@@ -111,7 +111,7 @@ npm run test:accounts --prefix server
 
 ## Mỹ thuật và giấy phép
 
-Quy cách hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11; cách làm ảnh ở skill `.claude/skills/asset-gen`.
+Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
 Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
 chỉ lớp CC0 / CC-BY / OGA-BY, chỉ cho NPC phụ và dân thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
 Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
