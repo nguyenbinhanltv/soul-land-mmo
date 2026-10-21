@@ -435,7 +435,8 @@ export function partyXpShare(n: number) {
  * Hiệu ứng phụ trợ lan cho đồng đội (bước 9.1, đã chốt 2026-10-20): hồn kỹ, tiên cơ, Chân Thân tung khi võ hồn hệ Phụ trợ ra trận có
  * hiệu ứng lên bản thân (`SkillDef.self`: hiệu ứng có lợi, hồi sinh lực, khiên, hồn lực) thì thành viên tổ đội cùng phòng, chưa gục,
  * không đang đi cổng, ngoài vùng an toàn, đứng trong PARTY_BUFF_R pixel quanh người tung cũng nhận, mức × PARTY_BUFF_MULT
- * (người tung vẫn ×1). Thanh tẩy không lan.
+ * (người tung vẫn ×1); thanh tẩy lan tới đồng đội hợp lệ nhưng không nhân hệ số. Kỹ năng hồn cốt chỉ chia phần `self`, không chia
+ * sát thương / trạng thái lên hồn thú. Số bán kính và hệ số đặt ở đây để server dùng chung.
  */
 export const PARTY_BUFF_R = 160;
 export const PARTY_BUFF_MULT = 0.7;
