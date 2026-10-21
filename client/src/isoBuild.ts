@@ -59,6 +59,15 @@ export interface BuildStyle {
   wallH: number; roofMax: number;
   /** Tường thành (hàng ô `wall` đứng riêng): vân, màu, chiều cao. */
   fence: { kind: "stone" | "brick" | "wood"; wall: [string, string, string]; top: string; h: number };
+  /** Vật đứng (tên trong `props` của tiles.json) thay khối tường thành ở góc và hai đầu tường (cạnh cổng), ví dụ tháp cổng thành. */
+  tower?: string;
+  /**
+   * Cung uyển thay ngôi nhà dựng code, khóa theo góc trên trái khối nhà ("x,y" theo ô): nền sân là ô nền `floor`, mép chân nhà là
+   * tường (khối tường thành), giữa mặt tiền (+y) là vật `gate`, công trình `main` (cái đầu ở giữa, các cái sau rải dọc cạnh dài) và
+   * vật trang trí `deco` ở bốn góc trong sân và hai bên cổng. `walls: false`: không tường (công trình đứng tự do, ví dụ đền nhỏ vừa
+   * chân nhà). Va chạm vẫn là cả chân nhà (server không đổi).
+   */
+  compounds?: Record<string, { main: string[]; gate?: string; deco?: string[]; floor?: string; walls?: boolean }>;
 }
 
 type V3 = [number, number, number];

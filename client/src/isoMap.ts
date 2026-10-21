@@ -34,7 +34,7 @@ const ROOF = 14, WALL = 15;
 interface GroundDef { img: string[]; big?: string[]; c: [number, number]; cBig?: [number, number]; edge: number; flip?: boolean }
 /** Vật đứng: key manifest `prop_{vật}` (ảnh sprites/iso/props/{vật}.png) và điểm chân (chạm tâm ô) trong ảnh. */
 interface PropDef { key: string; foot: [number, number]; flip?: boolean }
-/** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu), kiểu nhà. Bộ "*" là mặc định. */
+/** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu, `~x1.3` để sáng lên), kiểu nhà. Bộ "*" là mặc định. */
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
 interface IsoTiles { ground: Record<string, GroundDef>; props: Record<string, PropDef>; maps: Record<string, MapSet> }
 
@@ -59,7 +59,9 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     const set = mapSet(data, mapId), files = new Set<string>();
     for (const ref of Object.values(set.ground)) { const g = data.ground[parseRef(ref).name]; for (const f of [...(g?.img ?? []), ...(g?.big ?? [])]) files.add(f); }
     for (const f of files) if (!scene.textures.exists(texKey(f))) scene.load.image(texKey(f), BASE + f);
-    for (const v of Object.values(set.props)) for (const ref of ([] as string[]).concat(v)) {
+    const comp = Object.values(set.build?.compounds ?? {}).flatMap((c) => [...c.main, ...(c.gate ? [c.gate] : []), ...(c.deco ?? [])]);
+    for (const c of Object.values(set.build?.compounds ?? {})) if (c.floor) { const g = data.ground[parseRef(c.floor).name]; for (const f of [...(g?.img ?? []), ...(g?.big ?? [])]) if (!scene.textures.exists(texKey(f))) scene.load.image(texKey(f), BASE + f); }
+    for (const v of [...Object.values(set.props), ...(set.build?.tower ? [set.build.tower] : []), ...comp]) for (const ref of ([] as string[]).concat(v)) {
       const p = data.props[parseRef(ref).name];
       if (p && !scene.textures.exists(p.key)) scene.load.image(p.key, propFile(p.key));
     }
@@ -101,6 +103,11 @@ export class IsoMap {
   private groundDefs = new Map<number, Ground | null>();
   private propDefs = new Map<number, { key: string; def: PropDef }[] | null>();
   private build: BuildStyle | null = null;
+  private data: IsoTiles | null = null;
+  /** Ô thuộc cung uyển (`build.compounds`): ô nền sân và vật đặt ở ô đó (tường, cổng, công trình, trang trí). */
+  private comp = new Map<number, { floor: Ground | null; obj?: "wall" | { key: string; def: PropDef } }>();
+  /** Vật thay khối tường thành ở góc / đầu tường (`build.tower`). */
+  private tower: { key: string; def: PropDef } | null = null;
   /** Ô thuộc ô lớn: chỉ số ô góc trên (gốc ô lớn) → true; ô khác trong khối → chỉ số gốc. */
   private bigAt = new Map<number, number>();
   /** Ô thuộc một ngôi nhà (không vẽ vật riêng). */
@@ -133,8 +140,8 @@ export class IsoMap {
       this.holeMask = this.hole.createGeometryMask().setInvertAlpha(true);
     }
     this.resolve(scene.cache.json.get(TILES_KEY) as IsoTiles | undefined, mapId);
-    this.planBig();
     if (this.build) this.buildHouses();
+    this.planBig();
   }
 
   // ---------- Phân giải tiles.json ----------
@@ -157,13 +164,18 @@ export class IsoMap {
       if (list.length) this.propDefs.set(+gid, list);
     }
     this.build = set.build ?? null;
+    this.data = data;
+    const tw = this.build?.tower ? parseRef(this.build.tower) : null, td = tw && data.props[tw.name];
+    if (tw && td && this.scene.textures.exists(td.key)) { this.tower = { key: this.tinted(td.key, tw.tint), def: td }; this.rise = Math.max(this.rise, td.foot[1]); }
   }
 
-  /** Texture nhân màu `tint` (#rrggbb) của `key` (tạo một lần, chạy cả khi chỉ có Canvas, không dùng setTint). */
+  /** Texture nhân màu `tint` (#rrggbb, hoặc x<hệ số> để sáng lên) của `key` (tạo một lần, chạy cả khi chỉ có Canvas, không dùng setTint). */
   private tinted(key: string, tint: string) {
     if (!tint) return key;
     const out = `${key}~${tint}`; if (this.scene.textures.exists(out)) return out;
-    const { cv, ctx, data } = this.pixels(key), [r, g, b] = rgba(tint), d = data.data;
+    // "#rrggbb": nhân màu (tối đi / ngả màu); "x1.3": nhân độ sáng (sáng lên, vùng tối như Nội địa / Lõi Tinh Đấu).
+    const { cv, ctx, data } = this.pixels(key), d = data.data;
+    const [r, g, b] = tint.startsWith("x") ? [0, 0, 0].map(() => 255 * (parseFloat(tint.slice(1)) || 1)) : rgba(tint);
     for (let i = 0; i < d.length; i += 4) { d[i] = (d[i] * r) / 255; d[i + 1] = (d[i + 1] * g) / 255; d[i + 2] = (d[i + 2] * b) / 255; }
     ctx.putImageData(data, 0, 0); this.scene.textures.addCanvas(out, cv);
     return out;
@@ -176,12 +188,28 @@ export class IsoMap {
     return { cv, ctx, data: ctx.getImageData(0, 0, img.width, img.height) };
   }
 
+  /** Ô nền thật của ô `i`: nền sân cung uyển nếu có, không thì theo gid. */
+  private groundOf(i: number) { return this.comp.get(i)?.floor ?? this.groundDefs.get(this.ground[i]) ?? null; }
+
+  /** "tên~màu" của ô nền / vật trong tiles.json → texture đã nhân màu (null nếu thiếu ảnh). */
+  private groundRef(ref: string): Ground | null {
+    const { name, tint } = parseRef(ref), def = this.data?.ground[name], has = (f: string) => this.scene.textures.exists(texKey(f));
+    const small = def?.img.filter(has) ?? [], big = def?.big?.filter(has) ?? [];
+    return def && small.length ? { def, tint, small: small.map((f) => this.tinted(texKey(f), tint)), big: big.map((f) => this.tinted(texKey(f), tint)) } : null;
+  }
+  private propRef(ref: string) {
+    const { name, tint } = parseRef(ref), def = this.data?.props[name];
+    if (!def || !this.scene.textures.exists(def.key)) return null;
+    this.rise = Math.max(this.rise, def.foot[1]);
+    return { key: this.tinted(def.key, tint), def };
+  }
+
   /** Khối 2×2 thẳng hàng chẵn cùng một loại ô (cùng tên, cùng màu nhân) và loại đó có ô lớn → vẽ một ô lớn. */
   private planBig() {
     for (let ty = 0; ty + 1 < this.MH; ty += 2) for (let tx = 0; tx + 1 < this.MW; tx += 2) {
-      const i = ty * this.MW + tx, g = this.groundDefs.get(this.ground[i]);
+      const i = ty * this.MW + tx, g = this.groundOf(i);
       if (!g?.big.length) continue;
-      const same = [i + 1, i + this.MW, i + this.MW + 1].every((j) => { const h = this.groundDefs.get(this.ground[j]); return h && h.def === g.def && h.tint === g.tint; });
+      const same = [i + 1, i + this.MW, i + this.MW + 1].every((j) => { const h = this.groundOf(j); return h && h.def === g.def && h.tint === g.tint; });
       if (same) for (const j of [i, i + 1, i + this.MW, i + this.MW + 1]) this.bigAt.set(j, i);
     }
   }
@@ -211,8 +239,37 @@ export class IsoMap {
         y1++;
       }
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) this.inHouse.add(y * MW + x);
-      this.addHouse(x0 * TILE, y0 * TILE, (x1 + 1) * TILE, (y1 + 1) * TILE);
+      const spec = this.build?.compounds?.[`${x0},${y0}`];
+      if (!(spec && this.addCompound(x0, y0, x1, y1, spec))) this.addHouse(x0 * TILE, y0 * TILE, (x1 + 1) * TILE, (y1 + 1) * TILE);
     }
+  }
+
+  /**
+   * Cung uyển trên chân nhà [x0, x1] × [y0, y1] (ô): ghi nền sân, tường quanh mép, cổng giữa mặt tiền, công trình và trang trí vào
+   * `comp` để `place` vẽ khi tải ô. Trả false (vẽ nhà dựng code) nếu thiếu ảnh công trình chính.
+   */
+  private addCompound(x0: number, y0: number, x1: number, y1: number, spec: NonNullable<BuildStyle["compounds"]>[string]) {
+    const mains = spec.main.map((r) => this.propRef(r)).filter((m) => !!m);
+    if (!mains.length) return false;
+    const floor = spec.floor ? this.groundRef(spec.floor) : null, MW = this.MW, at = (x: number, y: number) => y * MW + x;
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++)
+      this.comp.set(at(x, y), { floor, obj: spec.walls !== false && (x === x0 || x === x1 || y === y0 || y === y1) ? "wall" : undefined });
+    const put = (x: number, y: number, o: { key: string; def: PropDef } | null) => {
+      const e = this.comp.get(at(x, y));
+      if (o && e && x > x0 && x < x1 && y > y0 && y < y1 && !e.obj) e.obj = o;
+    };
+    // Cổng giữa mặt tiền (+y): bỏ tường ở ô cổng và hai ô bên (ảnh cổng rộng khoảng 3 ô).
+    const gx = Math.floor((x0 + x1) / 2), gate = spec.gate ? this.propRef(spec.gate) : null;
+    if (gate) { for (const dx of [-1, 0, 1]) this.comp.get(at(gx + dx, y1))!.obj = undefined; this.comp.get(at(gx, y1))!.obj = gate; }
+    // Công trình: cái đầu ở giữa sân, các cái sau rải hai bên theo cạnh dài.
+    const along = x1 - x0 >= y1 - y0, cx = Math.floor((x0 + x1) / 2), cy = Math.floor((y0 + y1) / 2), long = along ? x1 - x0 : y1 - y0;
+    const step = Math.max(3, Math.floor((long - 2) / (mains.length + 1)));
+    mains.forEach((m, k) => { const d = k === 0 ? 0 : (k % 2 ? -1 : 1) * Math.ceil(k / 2) * step; put(along ? cx + d : cx, along ? cy : cy + d, m); });
+    // Trang trí: bốn góc trong sân và hai bên cổng phía trong.
+    const deco = (spec.deco ?? []).map((r) => this.propRef(r)).filter((d) => !!d);
+    if (deco.length) for (const [x, y] of [[x0 + 2, y0 + 2], [x1 - 2, y0 + 2], [x0 + 2, y1 - 2], [x1 - 2, y1 - 2], [gx - 2, y1 - 2], [gx + 2, y1 - 2]])
+      put(x, y, deco[hash(x, y, 2) % deco.length]);
+    return true;
   }
 
   private addHouse(X0: number, Y0: number, X1: number, Y1: number) {
@@ -231,6 +288,13 @@ export class IsoMap {
       group.ims.push(im); this.tallOf.set(im, group);
     }
     this.tall.add(group);
+  }
+
+  /** Ô tường thành ở góc (có ô tường kề theo cả hai trục) hoặc ở đầu tường (đúng một ô tường kề, cạnh cổng). */
+  private wallEnd(tx: number, ty: number) {
+    const w = (x: number, y: number) => x >= 0 && y >= 0 && x < this.MW && y < this.MH && this.trees[y * this.MW + x] === WALL && !this.inHouse.has(y * this.MW + x);
+    const L = w(tx - 1, ty), R = w(tx + 1, ty), U = w(tx, ty - 1), D = w(tx, ty + 1);
+    return ((L || R) && (U || D)) || +L + +R + +U + +D === 1;
   }
 
   private fenceKey() {
@@ -454,7 +518,7 @@ export class IsoMap {
   private place(i: number): Phaser.GameObjects.Image[] {
     const tx = i % this.MW, ty = Math.floor(i / this.MW), cx = (tx + 0.5) * TILE, cy = (ty + 0.5) * TILE, s = worldToScreen(cx, cy);
     const out: Phaser.GameObjects.Image[] = [];
-    const gid = this.ground[i], g = TOPDOWN ? null : this.groundDefs.get(gid);
+    const gid = this.ground[i], g = TOPDOWN ? null : this.groundOf(i), cp = this.comp.get(i);
     if (g) {
       const root = this.bigAt.get(i), h = hash(tx, ty);
       if (root === i) {
@@ -473,12 +537,19 @@ export class IsoMap {
       for (const [dx, dy, side] of nb) {
         const X = tx + dx, Y = ty + dy;
         if (X < 0 || Y < 0 || X >= this.MW || Y >= this.MH) continue;
-        const o = this.groundDefs.get(this.ground[Y * this.MW + X]);
+        const o = this.groundOf(Y * this.MW + X);
         if (!o || o.def.edge <= g.def.edge) continue;
         const key = this.edgeKey(o.small[0], o.def.c, side, hash(X, Y, side) % 3), tex = this.scene.textures.get(key).getSourceImage();
         out.push(this.img(s.x, s.y, key).setOrigin(o.def.c[0] / tex.width, o.def.c[1] / tex.height).setDepth(EDGE_DEPTH));
       }
     } else if (gid > 0) out.push(this.img(s.x, s.y, this.groundKey(gid)).setOrigin(0.5, 0.5).setDepth(GROUND_DEPTH + (TOPDOWN ? 0 : s.y * 0.01)));
+    if (cp?.obj && !TOPDOWN) {
+      let im: Phaser.GameObjects.Image;
+      if (cp.obj === "wall") { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
+      else { const tex = this.scene.textures.get(cp.obj.key).getSourceImage(); im = this.img(s.x, s.y, cp.obj.key).setOrigin(cp.obj.def.foot[0] / tex.width, cp.obj.def.foot[1] / tex.height); }
+      im.setDepth(depthAt(cx, cy)); out.push(im);
+      const g2: Tall = { ims: [im] }; this.tall.add(g2); this.tallOf.set(im, g2);
+    }
     const t = this.trees[i];
     if (t > 0 && !this.inHouse.has(i)) {
       const props = TOPDOWN ? null : this.propDefs.get(t);
@@ -487,7 +558,9 @@ export class IsoMap {
         const h = hash(tx, ty, 1), p = props[h % props.length], tex = this.scene.textures.get(p.key).getSourceImage();
         im = this.img(s.x, s.y, p.key).setOrigin(p.def.foot[0] / tex.width, p.def.foot[1] / tex.height).setFlipX(p.def.flip !== false && !!(h & 0x100));
       } else if (!TOPDOWN && t === WALL && this.build) {
-        const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy);
+        const tw = this.tower && this.wallEnd(tx, ty) ? this.tower : null;
+        if (tw) { const tex = this.scene.textures.get(tw.key).getSourceImage(); im = this.img(s.x, s.y, tw.key).setOrigin(tw.def.foot[0] / tex.width, tw.def.foot[1] / tex.height); }
+        else { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
       } else {
         const o = this.objKey(t); im = this.img(s.x, s.y, o.key).setOrigin(0.5, o.oy).setScale(TOPDOWN ? 1 : OBJ_K);
       }
