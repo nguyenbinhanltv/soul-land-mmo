@@ -4060,8 +4060,11 @@ ok(/Sai bản đồ/.test(joinErr),`vào bản đồ khác bản đồ đã lưu
 ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
 /** Đi theo vector (x,y) đến khi cond() đúng hoặc hết giờ, rồi dừng. */
 async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
-/** Đi tới cột x (pixel) theo phương ngang. */
-const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
+/**
+ * Đi tới cột x (pixel) theo phương ngang. Đi bộ (`w`, như giữ Shift): từ 11.1 ngoài giao chiến tự chạy ~7,6 pixel mỗi nhịp server, nhảy qua
+ * được cửa sổ ±3 pixel rồi đi quá đà; đi bộ ~4,75 pixel mỗi nhịp thì luôn dừng trong cửa sổ.
+ */
+const walkToX=async(tx)=>{ C.room.send("input",{x:Math.sign(tx-me().x),y:0,w:1}); const r=await waitFor(()=>Math.abs(me().x-tx)<3,12000); C.room.send("input",{x:0,y:0}); await sleep(150); return r; };
 /** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
 async function travelBy(name,to,during,after){
   C.travel=null; C.room.send("travel",{portal:name}); await during?.();
