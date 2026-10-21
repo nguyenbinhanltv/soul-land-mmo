@@ -756,7 +756,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] 10.5 Phụ thể 20 võ hồn còn lại (khoảng 1–5 lượt mỗi võ hồn): phụ thể tĩnh 5 hướng ghép theo điểm neo (#102).
   - [ ] 10.5b Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp (cần vẽ lại đúng cỡ: thu nhỏ bằng code bị nhòe); dây Lam Ngân quấn tay; hướng riêng cho hư ảnh thú (Linh Miêu nhìn nghiêng / quay lưng) khi còn lượt (#101).
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103).
-- [ ] Thú LPC làm hình tạm cho các loài hồn thú chưa có sprite isometric, tới khi 10.6 thay (#105).
+- [ ] Thú LPC làm hình tạm cho các loài hồn thú chưa có sprite isometric, tới khi 10.6 thay (#105; 19 loài đã có, thêm 13 loài ở #201; loài còn lại không có mẫu LPC hợp).
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b (#104).
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
