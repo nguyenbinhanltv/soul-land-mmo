@@ -1,27 +1,48 @@
-// Đưa ảnh thô (PixelLab hoặc nguồn khác) về đúng quy cách khung của mục 5.11.
-//   node tools/assets/normalize.mjs --kind honsu|vohon|beast<bậc> --out <thư mục> <ảnh...> [tùy chọn]
+// Đưa ảnh thô (PixelLab hoặc nguồn khác) về đúng khung isometric của mục 5.11 (hằng ISO_* trong lib.mjs).
+//   node tools/assets/normalize.mjs --kind honsu|vohon|beast<bậc>|beast --out <thư mục> <ảnh...> [tùy chọn]
 //
-// Mọi ảnh trong một lần chạy dùng CHUNG một hệ số thu. Ảnh được gom nhóm theo tên bỏ số khung cuối
-// (down_walk_0..3 → nhóm down_walk); mỗi nhóm đặt chân theo hộp bao chung của nhóm (đáy hộp = dòng chân,
-// giữa hộp = tâm ngang), nên các khung trong một animation không rung dù PixelLab đặt mỗi animation lệch nhau. Các bước:
+// Khung: hồn sư 64×64 gốc (32,58); phụ thể 96×96 gốc (48,74); hồn thú vuông theo bậc (beast0–4: 64, 64, 96, 96, 128;
+// `--kind beast --size 160|192` cho thú vương / boss), gốc giữa đáy cách mép dưới ISO_BEAST_FOOT. "Gốc" là điểm chân:
+// hàng thấp nhất của hình nằm đúng dòng y của gốc.
+//
+// Tên ảnh: `{hướng}_{animation}_{i}.png`; tên hướng của PixelLab được đổi sang hướng ngắn (`south-east_walk_0` → `se_walk_0`),
+// ảnh chỉ có tên hướng (`rotations/south.png` lưu thành `south.png`) thành khung đứng `{hướng}_idle_0`.
+// Mọi ảnh trong một lần chạy dùng CHUNG một hệ số thu (mặc định 1: không phóng ảnh pixel trừ khi quá khung). Các bước:
 //   1. Xóa nền: ảnh có kênh alpha thì lấy ngưỡng alpha; ảnh nền đặc thì loang từ 4 góc theo màu góc.
 //   2. Bỏ phóng to sẵn (ảnh pixel phóng k lần theo khối k×k) và thu bằng nearest-neighbor nếu vẫn quá khung.
-//   3. Đặt chân vào gốc: hồn sư (16,30) trong khung 32×32, phụ thể (24,38) trong 48×48, hồn thú chạm đáy khung.
+//   3. Cắt khung thô về khung chuẩn (--place):
+//      canvas (mặc định, cho khung thô PixelLab 76×76 / 92×92 …): PixelLab đặt nhân vật cố định trong khung thô, tâm ngang
+//        là giữa khung thô (hồn thú quay trái / phải đối xứng quanh đó), nên giữa khung thô → x của gốc, cho mọi ảnh.
+//        Dòng chân lấy theo từng hướng: trung vị hàng thấp nhất của các khung đứng (`idle`) cùng hướng, không có thì của
+//        mọi khung cùng hướng (chân bước khi đi thấp hơn chân đứng vài pixel); --foot ghi đè.
+//        Hồn thú: thân dài theo hướng nhìn nên hàng thấp nhất lệch nhau tới cả chục pixel giữa các hướng (quay `n` thì chân
+//        sau gần người xem); đặt theo từng hướng làm thú nhảy lên xuống khi quay. Vì vậy hồn thú dùng MỘT dòng chân chung
+//        (trung vị dòng chân các hướng), chỉ hướng nào tràn đáy khung mới được nâng lên vừa đủ.
+//        Nhờ vậy đổi hướng, đổi animation hay lật ngang đều không làm hình xê dịch.
+//      bbox: mỗi nhóm animation (tên bỏ số khung cuối) đặt theo hộp bao chung của nhóm, đáy hộp = dòng chân,
+//        giữa hộp = tâm ngang (ảnh không phải khung thô PixelLab).
 //   4. Đưa màu về bảng: hồn sư chỉ dùng art/palette.gpl (bỏ nhóm máu, mắt hung hăng, lửa; điểm tông da về 3 sắc da);
 //      phụ thể và hồn thú thêm col/robe của VOHON (kèm 1 tối, 1 sáng) và màu hồn hoàn, hoặc chỉ của một võ hồn (--vohon).
 //      Điểm gần xám (độ bão hòa thấp) về dải 4 xám chuẩn để hoán màu được; điểm rất tối ở mép ngoài thành viền #1a1020.
 //
 // Tùy chọn:
+//   --place canvas|bbox    cách cắt khung thô (bước 3).
+//   --foot <y>|s=62,se=65  dòng chân trong ảnh thô (hàng thấp nhất của hình khi đứng), cho mọi hướng hoặc theo hướng; mặc định
+//                          tự đo. Chạy animation riêng (không kèm khung đứng) thì lấy giá trị in ở dòng cuối của lần chạy khung đứng.
+//   --size <N>             (--kind beast) khung hồn thú N×N, một cỡ trong ISO_BEAST_SIZES.
 //   --gray none|auto|all   none: không ép xám; auto (mặc định): điểm bão hòa < --sat về dải xám; all: mọi điểm về dải xám
 //                          (dùng cho lớp tóc/áo tách riêng).
 //   --sat 0.16             ngưỡng độ bão hòa cho --gray auto.
 //   --scale auto|<số>      auto (mặc định): bỏ phóng to sẵn, chỉ thu khi vượt khung; số: hệ số thu cố định (0.5 = thu nửa).
-//   --max-h <px>           chiều cao tối đa của hình sau khi thu (mặc định: hồn sư 31 = từ đỉnh khung tới chân, phụ thể và hồn thú = cao khung).
+//   --max-h <px>           chiều cao tối đa của hình sau khi thu (mặc định: hồn sư 59 = từ đỉnh khung tới chân, phụ thể và hồn thú = cao khung).
 //   --anchor x,y           gốc chân trong khung (mặc định theo --kind).
 //   --colors a,b,…         thêm màu được phép (ví dụ col/robe đang dùng cho phụ thể đã có sẵn trong bảng thì không cần).
 //   --split                (hồn sư) tách một hình vẽ liền thành 3 lớp theo MÀU KHÓA: tóc vẽ màu lam (sắc độ trong
 //                          --hair-hue, mặc định 190-260), áo vẽ xám; ghi vào <out>/body, <out>/hair, <out>/outfit.
 //                          Tóc và áo được đưa về dải 4 xám (viền ngoài giữ #1a1020); nét viền thuộc lớp có nhiều điểm kề nhất.
+//                          Trước khi tách tự sửa lỗi màu quen thuộc của PixelLab: mắt lam (điểm lam trong vùng đầu, cạnh ngang
+//                          là tròng trắng, ít điểm tóc quanh nó) → màu "Mắt" của bảng, tròng trắng giữ ở lớp thân; điểm lạc
+//                          màu khóa (tóc / áo đứng lẻ giữa lớp khác) theo lớp chiếm đa số quanh nó.
 //                          Mỗi hình là một bộ giới × kiểu tóc (mục 5.11); ghép tiếp bằng `pack --set <giới>_<kiểu tóc>`.
 //   --vohon <id>           (phụ thể) chỉ dùng palette.gpl + col/robe của võ hồn <id> (kèm 1 tối, 1 sáng mỗi màu).
 //   --halves <y>           (phụ thể) tách theo dòng y: phần trên → <out>/b (sau thân), từ y trở xuống → <out>/f
@@ -29,7 +50,7 @@
 //                          trên tay/lưng cần tách tay theo từng hướng (xem skill asset-gen).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, hex, allowedColors, readGpl, paletteGroup, vohonColors, shadesOf, GRAY_RAMP, OUTLINE, HS_FRAME, VH_FRAME, HS_ORIGIN, VH_ORIGIN, BEAST_FRAMES } from "./lib.mjs";
+import { decodePng, encodePng, Img, hex, allowedColors, readGpl, readGplNamed, paletteGroup, vohonColors, shadesOf, GRAY_RAMP, OUTLINE, isoLayout, shortDirName, ISO_BEAST_TIER, ISO_BEAST_SIZES, HEAD_ZONE } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -40,16 +61,23 @@ const [hue0, hue1] = opt("--hair-hue", "190-260").split("-").map(Number);
 const splitAt = args.indexOf("--split"), split = splitAt >= 0 && !!args.splice(splitAt, 1);
 const vohonId = opt("--vohon", ""), halves = +opt("--halves", "-1");
 const anchor = opt("--anchor", ""), maxH = opt("--max-h", "");
+const place = opt("--place", "canvas"), footOpt = opt("--foot", ""), sizeOpt = opt("--size", "");
 // Đọc hết tùy chọn ở trên rồi mới lấy danh sách ảnh (bản sao, không dùng chung mảng args).
 const files = [...args];
-if (!outDir || !files.length) { console.error("Cách dùng: normalize.mjs --kind honsu|vohon|beast<bậc> --out <thư mục> <ảnh...>"); process.exit(1); }
+if (!outDir || !files.length) { console.error("Cách dùng: normalize.mjs --kind honsu|vohon|beast<bậc>|beast --size N --out <thư mục> <ảnh...>"); process.exit(1); }
+if (!["canvas", "bbox"].includes(place)) { console.error(`--place canvas|bbox (nhận ${place})`); process.exit(1); }
 
-// Khung, gốc và chiều cao tối đa theo loại.
-let FW, FH, AX, AY, MAXH;
-if (kind === "honsu") { FW = FH = HS_FRAME; [AX, AY] = HS_ORIGIN; MAXH = AY + 1; }
-else if (kind === "vohon") { FW = FH = VH_FRAME; [AX, AY] = VH_ORIGIN; MAXH = FH; }
-else if (/^beast\d$/.test(kind)) { [FW, FH] = BEAST_FRAMES[+kind.slice(5)]; AX = FW >> 1; AY = FH - 1; MAXH = FH; }
-else { console.error(`--kind không hợp lệ: ${kind}`); process.exit(1); }
+// Khung, gốc và chiều cao tối đa theo loại (isoLayout trong lib.mjs).
+let layout;
+try {
+  if (kind === "honsu" || kind === "vohon") layout = isoLayout(kind);
+  else if (/^beast\d$/.test(kind) && ISO_BEAST_TIER[+kind.slice(5)]) layout = isoLayout("beast", ISO_BEAST_TIER[+kind.slice(5)]);
+  else if (kind === "beast") layout = isoLayout("beast", +sizeOpt);
+  else throw new Error(`--kind không hợp lệ: ${kind} (honsu, vohon, beast0–4, beast --size ${ISO_BEAST_SIZES.join("|")})`);
+} catch (e) { console.error(e.message); process.exit(1); }
+const [FW, FH] = layout.frame;
+let [AX, AY] = layout.origin;
+let MAXH = kind === "honsu" ? AY + 1 : FH;
 if (anchor) [AX, AY] = anchor.split(",").map(Number);
 if (maxH) MAXH = +maxH;
 
@@ -142,10 +170,34 @@ function layerOf(p) {
   if (satOf(p) < sat) return 2;
   return 0;
 }
-/** Tách khung đã đặt vào khung chuẩn thành 3 ảnh thân/tóc/áo. */
+const EYE = hex(readGplNamed().find((c) => c.name.startsWith("Mắt #"))?.hex ?? OUTLINE);
+/** Tròng trắng: sáng, gần như không màu (PixelLab vẽ cùng màu xám sáng nhất của áo). */
+const isSclera = (p) => lum(p) >= 170 && satOf(p) < 0.12;
+const N8 = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+
+/**
+ * Tách khung đã đặt vào khung chuẩn thành 3 ảnh thân/tóc/áo. Sửa trên `out` (đổi màu mắt, điểm lạc) và trả `keep`:
+ * vị trí điểm giữ nguyên màu khi đưa về bảng (mắt).
+ */
 function splitLayers(out) {
-  const W = out.w, H = out.h, cls = new Int8Array(W * H).fill(-2);
+  const W = out.w, H = out.h, cls = new Int8Array(W * H).fill(-2), keep = new Set();
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (out.alpha(x, y)) cls[y * W + x] = layerOf(out.get(x, y));
+  const at = (x, y) => (x >= 0 && y >= 0 && x < W && y < H ? cls[y * W + x] : -2);
+  const count = (x, y, k) => N8.reduce((n, [dx, dy]) => n + (at(x + dx, y + dy) === k), 0);
+  // Mắt lam: PixelLab tô tròng đen bằng màu lam của tóc. Điểm lam trong vùng đầu, có tròng trắng ngay bên trái / phải
+  // và không quá 2 điểm tóc quanh nó (tóc mái liền mảng thì nhiều hơn) → màu "Mắt", lớp thân; tròng trắng kề nó cũng ở lớp thân.
+  const b = bbox(out);
+  if (b) {
+    const headEnd = b.y0 + Math.round(b.h * HEAD_ZONE), eyes = [];
+    for (let y = b.y0; y < headEnd; y++) for (let x = 0; x < W; x++) {
+      if (at(x, y) !== 1 || count(x, y, 1) > 2) continue;
+      if ([-1, 1].some((dx) => at(x + dx, y) >= 0 && isSclera(out.get(x + dx, y)))) eyes.push([x, y]);
+    }
+    for (const [x, y] of eyes) {
+      cls[y * W + x] = 0; keep.add(y * W + x); out.set(x, y, [...EYE, 255]);
+      for (const [dx, dy] of N8) if (at(x + dx, y + dy) >= 1 && isSclera(out.get(x + dx, y + dy))) cls[(y + dy) * W + x + dx] = 0;
+    }
+  }
   // Ánh sáng trên tóc gần trắng/xám bị xếp nhầm vào áo: điểm "áo" mà phần lớn điểm kề là tóc thì trả về tóc.
   const near = (x, y, k) => {
     let n = 0;
@@ -178,6 +230,20 @@ function splitLayers(out) {
     const c = comp[i];
     if (cls[i] === 1 && c !== main && sizes[c] * 4 < sizes[main] && tops[c] > bottoms[main]) cls[i] = 0;
   }
+  // Điểm lạc màu khóa (1–3 điểm mỗi hướng): tóc / áo có dưới 2 điểm cùng lớp quanh nó mà một lớp khác có từ 3 điểm
+  // thì theo lớp đó; về lớp thân thì lấy màu thân gặp nhiều nhất quanh nó (chóp lọn tóc giữa nét viền vẫn giữ).
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const k = cls[y * W + x];
+    if (k < 1 || count(x, y, k) >= 2) continue;
+    const n = [0, 1, 2].map((j) => (j === k ? 0 : count(x, y, j))), best = n.indexOf(Math.max(...n));
+    if (n[best] < 3) continue;
+    cls[y * W + x] = best;
+    if (best === 0) {
+      const freq = new Map();
+      for (const [dx, dy] of N8) if (at(x + dx, y + dy) === 0) { const c = out.get(x + dx, y + dy).join(); freq.set(c, (freq.get(c) ?? 0) + 1); }
+      out.set(x, y, [...freq].sort((a, b) => b[1] - a[1])[0][0].split(",").map(Number));
+    }
+  }
   // Nét viền thuộc lớp có nhiều điểm kề (8 hướng) nhất; hòa thì ưu tiên tóc > áo > thân (lớp vẽ sau che lớp trước).
   const fixed = Int8Array.from(cls);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
@@ -189,44 +255,63 @@ function splitLayers(out) {
     }
     fixed[y * W + x] = n[1] && n[1] >= n[0] && n[1] >= n[2] ? 1 : n[2] && n[2] >= n[0] ? 2 : 0;
   }
-  return [0, 1, 2].map((k) => {
+  const layers = [0, 1, 2].map((k) => {
     const img = new Img(W, H);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (fixed[y * W + x] === k) img.set(x, y, out.get(x, y));
     return img;
   });
+  return { layers, cls: fixed, keep };
 }
 
 // ---------- Chạy ----------
 const imgs = files.map((f) => removeBackground(decodePng(readFileSync(f))));
-const ref = bbox(imgs[0]);
+const names = files.map((f) => shortDirName(path.basename(f, ".png")));
+const boxes = imgs.map(bbox);
+const ref = boxes[0];
 if (!ref) { console.error(`${files[0]}: ảnh trống sau khi xóa nền`); process.exit(1); }
 // Hộp bao chung của mọi khung (cùng canvas gốc) để biết chiều cao thật khi chuyển động.
-const all = imgs.map(bbox).filter(Boolean).reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }));
+const all = boxes.filter(Boolean).reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }));
 let k = scaleOpt === "auto" ? blockFactor(imgs[0], ref) : 1;
 let s = scaleOpt === "auto" ? 1 / k : +scaleOpt;
 const tallest = (all.y1 - all.y0 + 1) * s;
 if (scaleOpt === "auto" && tallest > MAXH) s *= MAXH / tallest;
-// Mỗi nhóm animation: chân = đáy hộp bao chung, tâm ngang = giữa hộp bao chung.
-const groupOf = (f) => path.basename(f, ".png").replace(/_\d+$/, "");
-const anchors = new Map();
-for (const [n, img] of imgs.entries()) {
-  const b = bbox(img), g = groupOf(files[n]), a = anchors.get(g);
-  if (b) anchors.set(g, a ? { x0: Math.min(a.x0, b.x0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) } : b);
-}
+
+// Điểm đặt của từng ảnh: (cx, footY) trong ảnh thô → (AX, AY + 1) trong khung (footY là mép dưới hàng chân).
+//   canvas: cx = giữa khung thô; footY theo hướng (token đầu tên) = trung vị hàng thấp nhất các khung cùng hướng.
+//   bbox: theo hộp bao chung của nhóm animation (tên bỏ số khung cuối).
+const median = (a) => { const v = [...a].sort((p, q) => p - q); return v[(v.length - 1) >> 1]; };
+const keyOf = (n) => (place === "canvas" ? names[n].split("_")[0] : names[n].replace(/_\d+$/, ""));
+const groups = new Map();
+for (const [n, b] of boxes.entries()) if (b) groups.set(keyOf(n), [...(groups.get(keyOf(n)) ?? []), b]);
+// --foot: một số cho mọi hướng, hoặc theo hướng "s=62,se=65" (lấy từ dòng cuối của lần chạy có khung đứng).
+const footFixed = new Map(footOpt.split(",").filter(Boolean).map((t) => (t.includes("=") ? t.split("=") : ["*", t])).map(([d, y]) => [d, +y]));
+const stand = new Map();
+for (const [n, b] of boxes.entries()) if (b && /_idle_\d+$/.test(names[n])) stand.set(keyOf(n), [...(stand.get(keyOf(n)) ?? []), b]);
+// Chân bước của khung đi / đánh thấp hơn chân đứng: ưu tiên khung đứng (`idle`, kể cả ảnh rotations) cùng hướng.
+const dirFoot = (d) => footFixed.get(d) ?? footFixed.get("*") ?? median((stand.get(d) ?? groups.get(d) ?? [ref]).map((b) => b.y1));
+const beast = layout.kind === "beast" && place === "canvas";
+const common = beast ? median([...groups.keys()].map(dirFoot)) : 0;
+const anchorOf = (n) => {
+  const g = groups.get(keyOf(n)) ?? [ref], img = imgs[n], d = keyOf(n);
+  // Hồn thú: dòng chân chung; hướng có hình thấp hơn chỗ trống dưới gốc (FH − 1 − AY) thì nâng lên vừa đủ.
+  const foot = beast && !footFixed.size ? Math.max(common, Math.max(...g.map((b) => b.y1)) - Math.floor((FH - 1 - AY) / s)) : dirFoot(d);
+  if (place === "canvas") return { cx: img.w / 2, footY: foot + 1 };
+  return { cx: (Math.min(...g.map((b) => b.x0)) + Math.max(...g.map((b) => b.x1)) + 1) / 2, footY: Math.max(...g.map((b) => b.y1)) + 1 };
+};
 
 // Đặt mọi khung vào khung chuẩn (nearest-neighbor ngược: điểm đích (X,Y) ← điểm nguồn tương ứng).
 const placed = imgs.map((img, n) => {
-  const a = anchors.get(groupOf(files[n])) ?? ref, footY = a.y1, cx = (a.x0 + a.x1 + 1) / 2;
+  const { cx, footY } = anchorOf(n);
   const out = new Img(FW, FH);
   for (let Y = 0; Y < FH; Y++) for (let X = 0; X < FW; X++) {
-    const sx = Math.floor(cx + (X + 0.5 - AX) / s), sy = Math.floor(footY + 1 + (Y + 0.5 - AY - 1) / s);
+    const sx = Math.floor(cx + (X + 0.5 - AX) / s), sy = Math.floor(footY + (Y + 0.5 - AY - 1) / s);
     if (sx < 0 || sy < 0 || sx >= img.w || sy >= img.h || !img.alpha(sx, sy)) continue;
     out.set(X, Y, img.get(sx, sy));
   }
-  // Hình tràn khỏi khung thì báo để người làm biết mà chỉnh --anchor/--max-h.
-  const b = bbox(img);
-  const lost = b && (AX + (b.x0 - cx) * s < 0 || AX + (b.x1 + 1 - cx) * s > FW || AY + 1 + (b.y0 - footY - 1) * s < 0);
-  return { out, lost, layers: split ? splitLayers(out) : [out] };
+  // Hình tràn khỏi khung thì báo để người làm biết mà chỉnh --anchor/--max-h/--foot.
+  const b = boxes[n];
+  const lost = b && (AX + (b.x0 - cx) * s < 0 || AX + (b.x1 + 1 - cx) * s > FW || AY + 1 + (b.y0 - footY) * s < 0 || AY + 1 + (b.y1 + 1 - footY) * s > FH);
+  return { out, lost, footY, ...(split ? splitLayers(out) : { layers: [out], cls: null, keep: new Set() }) };
 });
 
 // Dải xám theo khoảng sáng của từng lớp trên MỌI khung (tối nhất → #3a3a3a, sáng nhất → #cacaca),
@@ -237,8 +322,8 @@ const ranges = (split ? [0, 1, 2] : [0]).map((k) => {
     const img = p.layers[k];
     for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
       if (!img.alpha(x, y)) continue;
-      const p = img.get(x, y), l = lum(p);
-      if (split ? layerOf(p) === k : l >= 70) { lo = Math.min(lo, l); hi = Math.max(hi, l); }
+      const q = img.get(x, y), l = lum(q);
+      if (split ? layerOf(q) === k : l >= 70) { lo = Math.min(lo, l); hi = Math.max(hi, l); }
     }
   }
   return [lo, hi];
@@ -246,7 +331,8 @@ const ranges = (split ? [0, 1, 2] : [0]).map((k) => {
 const rampOf = (l, [lo, hi]) => hex(GRAY_RAMP[hi > lo ? Math.max(0, Math.min(3, Math.round(((l - lo) / (hi - lo)) * 3))) : 2]);
 
 mkdirSync(outDir, { recursive: true });
-for (const [n, { out, lost, layers }] of placed.entries()) {
+const feet = new Map();
+for (const [n, { out, lost, footY, layers, keep }] of placed.entries()) {
   // Mép ngoài tính theo cả hình (kể cả khi tách lớp) để nét viền ngoài luôn là #1a1020.
   const edgeOf = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const X = x + dx, Y = y + dy; return X < 0 || Y < 0 || X >= FW || Y >= FH || !out.alpha(X, Y); });
   const recolor = (img, mode, range) => {
@@ -254,25 +340,27 @@ for (const [n, { out, lost, layers }] of placed.entries()) {
     for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
       if (!img.alpha(x, y)) continue;
       const p = img.get(x, y), e = edgeOf(x, y), l = lum(p);
+      if (keep.has(y * FW + x)) { m.set(x, y, p); continue; }
       const fill = split ? layerOf(p) >= 1 : l >= 40 && !(e && l < 70); // điểm tô (không phải nét viền)
       const c = mode === "all" && fill ? rampOf(l, range) : mapColor(p, e, mode);
       m.set(x, y, [...c, 255]);
     }
     return m;
   };
-  const name = path.basename(files[n]), warnLost = lost ? "  (CẢNH BÁO: hình tràn khung, bị cắt)" : "";
+  const name = names[n] + ".png", warnLost = lost ? "  (CẢNH BÁO: hình tràn khung, bị cắt)" : "";
+  if (place === "canvas") feet.set(keyOf(n), footY - 1);
   if (split) {
     for (const [i, sub, mode] of [[0, "body", "none"], [1, "hair", "all"], [2, "outfit", "all"]]) {
       mkdirSync(path.join(outDir, sub), { recursive: true });
       writeFileSync(path.join(outDir, sub, name), encodePng(recolor(layers[i], mode, ranges[i])));
     }
-    console.log(`[normalize] ${path.join(outDir, "{body,hair,outfit}", name)}${warnLost}`);
+    console.log(`[normalize] ${path.join(outDir, "{body,hair,outfit}", name)}${keep.size ? `  (sửa ${keep.size} điểm mắt lam)` : ""}${warnLost}`);
   } else if (halves >= 0) {
     // Phụ thể: điểm trên dòng --halves nằm sau thân (b), từ dòng đó trở xuống nằm trước thân (f).
-    const all = recolor(out, grayMode, ranges[0]);
-    for (const [sub, keep] of [["b", (y) => y < halves], ["f", (y) => y >= halves]]) {
+    const whole = recolor(out, grayMode, ranges[0]);
+    for (const [sub, keepRow] of [["b", (y) => y < halves], ["f", (y) => y >= halves]]) {
       const img = new Img(FW, FH);
-      for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) if (keep(y) && all.alpha(x, y)) img.set(x, y, all.get(x, y));
+      for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) if (keepRow(y) && whole.alpha(x, y)) img.set(x, y, whole.get(x, y));
       mkdirSync(path.join(outDir, sub), { recursive: true });
       writeFileSync(path.join(outDir, sub, name), encodePng(img));
     }
@@ -283,4 +371,5 @@ for (const [n, { out, lost, layers }] of placed.entries()) {
     console.log(`[normalize] ${dst}${warnLost}`);
   }
 }
-console.log(`[normalize] ${imgs.length} ảnh, khung ${FW}×${FH}, gốc (${AX},${AY}), hệ số ${s === 1 ? "1" : s.toFixed(3)}${k > 1 ? ` (bỏ phóng to ×${k})` : ""}`);
+console.log(`[normalize] ${imgs.length} ảnh, khung ${FW}×${FH}, gốc (${AX},${AY}), hệ số ${s === 1 ? "1" : s.toFixed(3)}${k > 1 ? ` (bỏ phóng to ×${k})` : ""}` +
+  (feet.size ? `, dòng chân ảnh thô (--foot) ${[...feet].map(([d, y]) => `${d}=${y}`).join(",")}` : ""));
