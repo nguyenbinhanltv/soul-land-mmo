@@ -72,9 +72,9 @@ const fileCache = new Map<string, string>();
 export function mapFile(mapId: string): string {
   let f = fileCache.get(mapId);
   if (f === undefined) {
-    const v1 = V1.has(mapId) || V1.has("all");
-    const v2 = !v1 && existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
-    fileCache.set(mapId, (f = v2 ? `${mapId}.v2` : mapId));
+    const has = existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
+    const v1 = has && (V1.has(mapId) || V1.has("all")); // chỉ báo đường lùi ở bản đồ có bản ×8
+    fileCache.set(mapId, (f = has && !v1 ? `${mapId}.v2` : mapId));
     if (v1) console.log(`[map] ${mapId}: dùng bản cũ shared/assets/${f}.json (MAP_V1)`);
   }
   return f;
