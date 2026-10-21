@@ -5776,11 +5776,18 @@ async function questTest(){
   t=await qop("turnin"); ok(/lại gần Ngọc Tiểu Cương/.test(t)&&D.quest.step===0&&D.bag.honTe===hb,`đứng ở cửa hàng: trả nhiệm vụ bị từ chối, chưa nhận thưởng (${t})`);
   await atGiver(); await turnIn(0);
   t=await qop("turnin"); ok(/Chưa nhận/.test(t)&&D.quest.step===1,`trả lần hai bị từ chối, không nhận thưởng hai lần (${t})`);
-  // Bài 2: hạ 8 hồn thú ở Bãi tập hồn sư. Hạ ở Đồng lúa thì không tính.
+  // Bài 2: hạ 8 hồn thú ở Bãi tập hồn sư. Hạ ở Đồng lúa thì không tính. Chỗ đứng trong vùng đọc từ file Tiled đang dùng (bản cũ
+  // 90×60 hay bản ×8 đều được, 11.5): tâm các mảnh vùng, thử từng mảnh tới khi đứng được.
+  const zoneSpot=(name)=>{ const os=JSON.parse(readFileSync(mapUrl("thanh_hon_thon"),"utf8")).layers.flatMap(l=>l.objects??[]);
+    const sf=os.find(o=>o.type==="safe"), rs=zonesByName(os).get(name)?.rects??[];
+    for(const r of rs) for(const [fx,fy] of [[0.5,0.5],[0.3,0.3],[0.7,0.7],[0.3,0.7],[0.7,0.3]]){ const x=Math.round(r.x+r.width*fx), y=Math.round(r.y+r.height*fy);
+      if(!blocked(x,y)&&!(sf&&x>=sf.x&&x<=sf.x+sf.width&&y>=sf.y&&y<=sf.y+sf.height)) return {x,y}; }
+    return {x:rs[0].x+rs[0].width/2,y:rs[0].y+rs[0].height/2}; };
+  const bt=zoneSpot("Bãi tập hồn sư"), dl=zoneSpot("Đồng lúa ven làng");
   await accept(1); const need2=ch.steps[1].goals[0].n;
-  await warp("thanh_hon_thon",250,400);
+  await warp("thanh_hon_thon",dl.x,dl.y);
   ok(await killOne()&&D.quest.prog[0]===0,`hạ hồn thú ở Đồng lúa: Bãi tập vẫn ${progOf()}`);
-  await test(D,"goto",{x:850,y:300}); await test(D,"rest",{s:10});
+  await test(D,"goto",bt); await test(D,"rest",{s:10});
   for(let k=0;k<need2;k++) await killOne();
   ok(await waitFor(()=>D.quest.status==="ready")&&D.quest.prog[0]===need2,`hạ ${need2} hồn thú ở Bãi tập hồn sư: ${progOf()}`);
   // Đang ở Thánh Hồn Thôn: không trả được, phải về Nặc Đinh Thành.
@@ -5788,7 +5795,7 @@ async function questTest(){
   await warp(ch.map,ds.x,ds.y+16); await turnIn(1);
   // Bài 3: đổi tay khi giao chiến (ngoài giao chiến không tính) và tiên cơ.
   await accept(2);
-  await warp("thanh_hon_thon",850,300); await test(D,"rest",{s:10});
+  await warp("thanh_hon_thon",bt.x,bt.y); await test(D,"rest",{s:10});
   const other=()=>D.owned.team.findIndex(r=>r&&r!==D.owned.active);
   await switchSlot(other()); ok(D.quest.prog[0]===0,`đổi võ hồn ngoài giao chiến: không tính (${progOf()})`);
   // Hồn thú hoang ở Bãi tập có thể đánh gục võ hồn ra trận trong lúc chờ hồi chiêu đổi: dọn quanh mình trước.
