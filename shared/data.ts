@@ -1109,9 +1109,13 @@ export const kingYears = (mapId: string): number | null => {
  * Người tham gia: đứng trong `radius` pixel lúc tinh anh bắt đầu giao chiến (lần đầu bị đánh), hoặc gây sát thương sau đó; ở ngoài
  * bán kính `outSecs` giây liên tục hoặc rời phòng thì bị loại; số người giảm tối đa 1 mỗi `dropEvery` giây; `idleSecs` giây không còn
  * người tham gia nào trong bán kính thì bỏ giao chiến (về chỗ, hồi đầy máu, xóa danh sách và đóng góp).
+ * Giới hạn nhiều kênh (#119): nhận thưởng tinh anh (kinh nghiệm x`xp`, quyền ưu tiên đồ rơi tinh anh) của một loài tinh anh trên một bản
+ * đồ thì `lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào; không lớn hơn mức dưới của `respawn` để
+ * chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn (phòng mở lại sinh tinh anh ngay: hạ trong lúc còn khóa chỉ được
+ * thưởng như hồn thú thường).
  */
 export const ELITE = { hp: 2.5, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
-  radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15 };
+  radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15, lock: 480 };
 /** Máu tăng theo số người tham gia (mục 5.4, tinh anh trở lên): máu tối đa × (1 + BOSS_HP_PER_PLAYER × (N − 1)). */
 export const BOSS_HP_PER_PLAYER = 0.6;
 export const bossHpMult = (n: number) => 1 + BOSS_HP_PER_PLAYER * (Math.max(1, Math.floor(n)) - 1);
