@@ -57,6 +57,19 @@ interface Rect { x: number; y: number; w: number; h: number; }
 interface Zone extends Rect { name: string; hint: string; years?: [number, number] | null; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
+/**
+ * Màu bản đồ nhỏ riêng từng bản đồ (đè bảng chung trong buildMinimap), tách lớp nền (`ground`) và lớp vật (`obj`), vì một gid ở mỗi
+ * bản đồ trỏ tới ô / vật khác nhau theo shared/assets/iso/tiles.json. Tinh Đấu Ngoại vi (11.3, bản dựng bằng tools/maps): gid 25–26,
+ * 32 trùng tuyết / băng tinh của Cực Bắc nhưng ở đây là bờ nước, nền đá cuội, vách đá; bản cũ 90×60 không dùng các gid này.
+ */
+const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Record<number, string> }> = {
+  tinh_dau_ngoai_vi: {
+    // bờ suối / ao, nền đá cuội mặt bậc vách, sân đá nứt tàn tích, cầu đá, rêu quanh cổ thụ
+    ground: { 4: "#3f7a40", 16: "#8c877c", 25: "#7a6448", 26: "#7d7a70", 33: "#b8a888" },
+    // xương thú, cây cỏ nhỏ, biển chỉ đường, cổ thụ, vách đá, tường đổ, bia đá, vòm đá, gỗ đổ
+    obj: { 27: "#d8d0c0", 28: "#467e38", 29: "#a08a63", 30: "#0e2a18", 32: "#3a3f48", 37: "#6a6a70", 38: "#8a98a8", 39: "#6a6a70", 40: "#5a4a32" },
+  },
+};
 /** Mép trên hồn thú (toạ độ y) để đặt thanh máu, sao choáng: sheet ảnh thật `beast_{loài}` (M4) lấy theo thân (beastBody: sheet isometric
  *  theo thân đã đo, sheet một hàng theo khung), sprite vẽ bằng code theo bậc (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
 const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
@@ -172,7 +185,8 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
-    this.load.tilemapTiledJSON(this.mapId, `${this.mapId}.json`);
+    // 11.3: server bật bản dựng lại (MAP_V2) thì báo tên file ở `mapFile` (cùng lưới va chạm với server).
+    this.load.tilemapTiledJSON(this.mapId, `${this.room.state.mapFile || this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
     preloadSprites(this, lpcPreloader(this, this.mapId)); // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts)
@@ -1272,10 +1286,12 @@ export class GameScene extends Phaser.Scene {
       // BĐ6c (Cực Bắc): tuyết, tuyết sâu, mặt băng, khe băng, lối tuyết, thông tuyết, băng tinh
       25: "#f4f8ff", 26: "#c0cce0", 27: "#5a9cc9", 28: "#1f4a6b", 29: "#8a87a0", 30: "#1e4a2a", 32: "#7fd0ff",
       33: "#e8d49a", 34: "#4fa8b8", 35: "#173f63", 36: "#6a6258" }; // BĐ6d: cát, rạn nông, biển sâu, đá ngầm
+    // Màu riêng từng bản đồ, đè `colorOf` theo lớp: cùng gid mỗi bản đồ ánh xạ sang ô / vật khác (shared/assets/iso/tiles.json).
+    const own = MINI_COLORS[this.mapId], groundOf = { ...colorOf, ...own?.ground }, objOf = { ...colorOf, ...own?.obj };
     const ground = map.getLayer("ground")!.data, trees = map.getLayer("trees")!.data;
     for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
       const t = trees[y][x].index, g = ground[y][x].index;
-      b.fillStyle = t >= 17 && t <= 20 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? colorOf[t] ?? "#d8b678" : colorOf[g] ?? "#335f35";
+      b.fillStyle = t >= 17 && t <= 20 ? ["#24612a", "#1d5024", "#163a22", "#1f2240"][t - 17] : t > 0 ? objOf[t] ?? "#d8b678" : groundOf[g] ?? "#335f35";
       b.fillRect(x, y, 1, 1);
     }
     b.fillStyle = "#86e0b0";
