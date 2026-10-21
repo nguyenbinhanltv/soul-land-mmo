@@ -28,8 +28,8 @@ export const DIRS = ["down", "right", "up"];
 // ---------- Isometric (Giai đoạn 10, GAME_DESIGN.md mục 5.11) ----------
 // Hằng cho công cụ nhập ảnh isometric (gemini-import.mjs); bộ 32×32 / 48×48 ở trên vẫn là của client hiện nay (tới 10.3).
 /**
- * Bề ngang thoi của MỘT ô logic (16×16 pixel thế giới), mục 5.11. Cỡ thoi chưa chốt (32×16 hay 64×32): khi chốt
- * chỉ đổi hằng này (và hằng tương ứng ở client/src/iso.ts); mọi cỡ khác ở tools/assets suy ra từ nó.
+ * Bề ngang thoi của MỘT ô logic (16×16 pixel thế giới), mục 5.11: đã chốt thoi 32×16 (người dùng duyệt 2026-10-21).
+ * Phải khớp hằng chiếu ở client/src/iso.ts; mọi cỡ khác ở tools/assets suy ra từ hằng này.
  * Ô lớn phủ 2×2 ô logic có bề ngang 2 × ISO_TILE_W.
  */
 export const ISO_TILE_W = 32;
