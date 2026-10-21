@@ -290,10 +290,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Hệ số phóng camera (10.1): độ phân giải nội bộ khoảng VIEW_W × VIEW_H phóng số nguyên (×2 ở 1280×720, ×3 ở 1920×1080), pixel art
-   * không mờ. Làm tròn tới số nguyên gần nhất nên vùng nhìn dao động quanh cỡ chuẩn (cửa sổ trình duyệt thường thấp hơn 720 một chút).
+   * Hệ số phóng camera (10.1, mục 5.11): số nguyên lớn nhất còn chứa đủ VIEW_W × VIEW_H (×2 ở 720p, ×3 ở 1080p), pixel art không mờ;
+   * cửa sổ lẻ cỡ thì thấy rộng hơn một chút, không phóng lẻ.
    */
-  zoomFor() { return Math.max(1, Math.round(Math.min(this.scale.width / VIEW_W, this.scale.height / VIEW_H))); }
+  zoomFor() { return Math.max(1, Math.floor(Math.min(this.scale.width / VIEW_W, this.scale.height / VIEW_H))); }
   /** Chữ trong thế giới (tên, số sát thương…) phóng thêm khi camera phóng 1 (cửa sổ nhỏ, điện thoại) để vẫn đọc được như khi phóng 2. */
   txtK = 1;
 
@@ -1270,7 +1270,7 @@ export class GameScene extends Phaser.Scene {
     // Bóng đổ elip dưới chân hồn thú (hồn sư có sẵn bóng trong container), nằm trên mặt đất cùng lớp vùng cảnh báo.
     for (const [id, s] of this.beasts) if (st.beasts.get(id) && !st.beasts.get(id).dive) {
       const w = Math.max(12 * SPR, s.displayWidth * 0.6);
-      this.teleG.fillStyle(0x000000, 0.3).fillEllipse(s.x, s.y, w, w * 0.4);
+      this.teleG.fillStyle(0x1a1020, 0.35).fillEllipse(s.x, s.y, w, w / 2);
     }
     this.drawAuras(g, st, time);
     // Ô bản đồ trong tầm camera; khối cao đang che chính mình thì mờ đi.

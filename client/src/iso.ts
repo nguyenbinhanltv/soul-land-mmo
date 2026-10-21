@@ -5,18 +5,21 @@ import type Phaser from "phaser";
 import { TILE } from "../../shared/data.ts";
 import type { Dir } from "./sprites.ts";
 
-/** Ô đất hình thoi 64×32 (hằng hiển thị, không phải số cân bằng). */
-export const TILE_W = 64, TILE_H = 32;
+/**
+ * Một ô logic 16×16 thế giới vẽ thành thoi 32×16 (GAME_DESIGN.md mục 5.11): sx = x − y, sy = (x + y) / 2, giữ tầm nhìn khoảng
+ * 14 ô ngang mỗi bên ở 640×360. Hằng hiển thị, không phải số cân bằng.
+ */
+export const TILE_W = 32, TILE_H = 16;
 /** Sprite cũ (hồn sư 32×32, phụ thể 48×48, hồn thú theo bậc) phóng ×2 lên khung mới (hồn sư 64×64) cho tới khi có ảnh isometric. */
 export const SPR = 2;
-/** Độ phân giải nội bộ: camera phóng số nguyên để vùng nhìn gần 640×360. */
+/** Độ phân giải nội bộ: camera phóng số nguyên lớn nhất còn chứa đủ VIEW_W × VIEW_H (mục 5.11). */
 export const VIEW_W = 640, VIEW_H = 360;
 
 export const TOPDOWN = typeof location !== "undefined" && new URLSearchParams(location.search).get("view") === "topdown";
 
 /**
  * Ma trận chiếu: màn hình = (a·x + b·y, c·x + d·y). Isometric: trục x thế giới đi xuống bên phải, trục y đi xuống bên trái;
- * ô (16 pixel) thành hình thoi 64×32. Nhìn thẳng: phóng 2 (ô 32 pixel, hồn sư phóng ×2 vẫn cao 2 ô như trước).
+ * ô (16 pixel) thành hình thoi TILE_W × TILE_H. Nhìn thẳng: phóng 2 (ô 32 pixel, hồn sư phóng ×2 vẫn cao 2 ô như trước).
  */
 const M = TOPDOWN ? { a: 2, b: 0, c: 0, d: 2 } : { a: TILE_W / 2 / TILE, b: -TILE_W / 2 / TILE, c: TILE_H / 2 / TILE, d: TILE_H / 2 / TILE };
 const DET = M.a * M.d - M.b * M.c;

@@ -10,7 +10,7 @@ import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "
 /** Độ sâu mặt đất: dưới mọi thứ (vùng cảnh báo, hồn sư, chữ). */
 const GROUND_DEPTH = -100000;
 /** Khối cao nhất (cây) nhô lên trên tâm ô chừng này pixel: lề dưới khi chọn ô trong tầm camera. */
-const MAX_RISE = 112;
+const MAX_RISE = 88;
 /** Độ mờ khối đang che chính mình (để luôn thấy nhân vật khi đứng sau cây / nhà). */
 const FADE = 0.45;
 
@@ -111,7 +111,7 @@ export class IsoMap {
     return [d[o], d[o + 1], d[o + 2], d[o + 3]];
   }
 
-  /** Trải ảnh ô 16×16 lên hình thoi 64×32 có góc trên ở (ox, oy) của bộ đệm (lấy mẫu gần nhất, ô kề nhau khít không hở). */
+  /** Trải ảnh ô 16×16 lên hình thoi TILE_W × TILE_H có góc trên ở (ox, oy) của bộ đệm (lấy mẫu gần nhất, ô kề nhau khít không hở). */
   private diamond(b: Buf, gid: number, ox: number, oy: number, k = 1) {
     const hx = TILE_W / 2, sc = TILE / TILE_H;
     for (let y = 0; y < TILE_H; y++) for (let x = 0; x < TILE_W; x++) {
@@ -139,7 +139,7 @@ export class IsoMap {
     const key = `isoO${gid}`;
     const meta = this.scene.textures.exists(key) ? (this.scene.textures.get(key).customData as { oy: number }) : null;
     if (meta) return { key, oy: meta.oy };
-    const b = TOPDOWN ? this.flatObj(gid) : this.drawObj(gid, OBJ[gid] ?? { k: "block", h: 16, top: gid, side: "" });
+    const b = TOPDOWN ? this.flatObj(gid) : this.drawObj(gid, OBJ[gid] ?? { k: "block", h: 12, top: gid, side: "" });
     const tex = this.scene.textures.addCanvas(key, b.buf.canvas())!;
     tex.customData = { oy: b.oy };
     return { key, oy: b.oy };
@@ -151,7 +151,7 @@ export class IsoMap {
     return { buf, oy: 0.5 };
   }
 
-  /** Vẽ vật cao bằng code. Trả bộ đệm và gốc dọc (tỉ lệ) tại tâm hình thoi đáy. */
+  /** Vẽ vật cao bằng code (cỡ theo thoi 32×16 và hồn sư cao khoảng 52 pixel). Trả bộ đệm và gốc dọc (tỉ lệ) tại tâm hình thoi đáy. */
   private drawObj(gid: number, o: ObjKind): { buf: Buf; oy: number } {
     const W = TILE_W, hx = W / 2, hy = TILE_H / 2;
     const r = rng(gid * 7919 + 13);
@@ -160,68 +160,68 @@ export class IsoMap {
       const h = o.h, b = new Buf(W, TILE_H + h), cy = hy + h;
       const side = o.side ? rgba(o.side) : shade(this.texel(o.top, 8, 8), 0.8);
       const L = shade(side, 0.92), R = shade(side, 0.7);
-      b.poly([[0, hy], [hx, TILE_H], [hx, TILE_H + h], [0, hy + h]], (x, y) => (y >= hy + x / 2 + h - 3 ? shade(L, 0.75) : L));
-      b.poly([[hx, TILE_H], [W, hy], [W, hy + h], [hx, TILE_H + h]], (x, y) => (y >= TILE_H - (x - hx) / 2 + h - 3 ? shade(R, 0.75) : R));
-      if (o.win) for (const [x0, face] of [[8, L], [hx + 8, R]] as [number, RGBA][]) {
+      b.poly([[0, hy], [hx, TILE_H], [hx, TILE_H + h], [0, hy + h]], (x, y) => (y >= hy + x / 2 + h - 2 ? shade(L, 0.75) : L));
+      b.poly([[hx, TILE_H], [W, hy], [W, hy + h], [hx, TILE_H + h]], (x, y) => (y >= TILE_H - (x - hx) / 2 + h - 2 ? shade(R, 0.75) : R));
+      if (o.win) for (const [x0, face] of [[4, L], [hx + 4, R]] as [number, RGBA][]) {
         // Cửa sổ trên mỗi mặt bên: khung gỗ tối, kính xanh.
         const y0 = (x: number) => (x < hx ? hy + x / 2 : TILE_H - (x - hx) / 2) + 12;
-        b.poly([[x0, y0(x0)], [x0 + 14, y0(x0 + 14)], [x0 + 14, y0(x0 + 14) + 14], [x0, y0(x0) + 14]], rgba("#3a2a18"));
-        b.poly([[x0 + 2, y0(x0 + 2) + 2], [x0 + 12, y0(x0 + 12) + 2], [x0 + 12, y0(x0 + 12) + 12], [x0 + 2, y0(x0 + 2) + 12]], face === L ? rgba("#7fb8d8") : rgba("#5a8aa8"));
+        b.poly([[x0, y0(x0)], [x0 + 8, y0(x0 + 8)], [x0 + 8, y0(x0 + 8) + 10], [x0, y0(x0) + 10]], rgba("#3a2a18"));
+        b.poly([[x0 + 1, y0(x0 + 1) + 1], [x0 + 7, y0(x0 + 7) + 1], [x0 + 7, y0(x0 + 7) + 9], [x0 + 1, y0(x0 + 1) + 9]], face === L ? rgba("#7fb8d8") : rgba("#5a8aa8"));
       }
       this.diamond(b, o.top, 0, 0);
       return { buf: b, oy: cy / b.h };
     }
     if (o.k === "tree" || o.k === "pine") {
-      const H = MAX_RISE, b = new Buf(W, H), cy = H - hy;
-      // Bóng đổ dưới gốc.
-      b.poly(ellipse(hx, cy, 20, 8), [0, 0, 0, 70]);
+      // Cây rộng hơn một ô (tán lấn sang ô bên), cao khoảng 1,7 lần hồn sư.
+      const TW = 44, tx = TW / 2, H = MAX_RISE, b = new Buf(TW, H), cy = H - hy;
+      b.poly(ellipse(tx, cy, 13, 6.5), [26, 16, 32, 90]); // bóng đổ 2:1 dưới gốc
       const trunk = rgba("#5a3b22"), trunkL = rgba("#6e4b2c");
-      b.poly([[hx - 4, cy - 34], [hx + 4, cy - 34], [hx + 4, cy + 1], [hx - 4, cy + 1]], (x) => (x < hx - 2 ? trunkL : x >= hx + 2 ? shade(trunk, 0.8) : trunk));
+      b.poly([[tx - 3, cy - 26], [tx + 3, cy - 26], [tx + 3, cy + 1], [tx - 3, cy + 1]], (x) => (x < tx - 1 ? trunkL : x >= tx + 2 ? shade(trunk, 0.8) : trunk));
       if (o.k === "tree") {
         const [base, dark, light] = CANOPY[o.z].map((c) => rgba(c));
-        const blobs: [number, number, number][] = [[hx, cy - 60, 22], [hx - 12, cy - 46, 15], [hx + 12, cy - 46, 15], [hx, cy - 40, 16]];
+        const blobs: [number, number, number][] = [[tx, cy - 54, 15], [tx - 9, cy - 42, 10], [tx + 9, cy - 42, 10], [tx, cy - 36, 11]];
         const inside = (x: number, y: number) => blobs.some(([bx, by, br]) => (x - bx) ** 2 + (y - by) ** 2 <= br * br);
-        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        for (let y = 0; y < H; y++) for (let x = 0; x < TW; x++) {
           if (!inside(x + 0.5, y + 0.5)) continue;
-          const l = (x - hx) * 0.6 + (y - (cy - 56)); // trên trái sáng, dưới phải tối
-          b.set(x, y, l < -16 ? light : l > 12 ? dark : base);
+          const l = (x - tx) * 0.6 + (y - (cy - 50)); // trên trái sáng, dưới phải tối
+          b.set(x, y, l < -11 ? light : l > 8 ? dark : base);
         }
-        for (let i = 0; i < 26; i++) { // đốm lá
-          const x = Math.floor(hx - 22 + r() * 44), y = Math.floor(cy - 80 + r() * 50);
+        for (let i = 0; i < 16; i++) { // đốm lá
+          const x = Math.floor(tx - 15 + r() * 30), y = Math.floor(cy - 68 + r() * 38);
           if (inside(x + 0.5, y + 0.5) && inside(x + 1.5, y + 0.5)) { const c = r() < 0.5 ? light : dark; b.set(x, y, c); b.set(x + 1, y, c); }
         }
       } else {
         const green = rgba("#1e4a2a"), dark = rgba("#163a22"), snow = rgba("#f4f8ff");
         for (let t = 0; t < 4; t++) {
-          const top = cy - 92 + t * 16, bot = top + 26, half = 9 + t * 5;
-          b.poly([[hx, top], [hx + half, bot], [hx - half, bot]], (x, y) => (y < top + 5 ? snow : x > hx + 2 ? dark : green));
+          const top = cy - 76 + t * 12, bot = top + 20, half = 6 + t * 4;
+          b.poly([[tx, top], [tx + half, bot], [tx - half, bot]], (x, y) => (y < top + 4 ? snow : x > tx + 1 ? dark : green));
         }
       }
       b.outline();
       return { buf: b, oy: cy / H };
     }
-    // Vật nhỏ trên nền ô (lều, lửa trại, băng tinh, đá ngầm): khung 64×72, chạm đất ở tâm hình thoi đáy.
-    const H = 72, b = new Buf(W, H), cy = H - hy;
-    b.poly(ellipse(hx, cy, 22, 9), [0, 0, 0, 60]);
+    // Vật nhỏ trên nền ô (lều, lửa trại, băng tinh, đá ngầm): khung 32×48, chạm đất ở tâm hình thoi đáy.
+    const H = 48, b = new Buf(W, H), cy = H - hy;
+    b.poly(ellipse(hx, cy, 12, 6), [26, 16, 32, 80]);
     if (o.k === "tent") {
-      const apex: [number, number] = [hx, cy - 40];
-      b.poly([[hx - 26, cy], [hx, cy + 12], apex], rgba("#c9a46a"));
-      b.poly([[hx, cy + 12], [hx + 26, cy], apex], rgba("#a8844e"));
-      b.poly([[hx - 12, cy + 6], [hx - 2, cy + 11], [hx - 6, cy - 14]], rgba("#3a2a18")); // cửa lều
+      const apex: [number, number] = [hx, cy - 26];
+      b.poly([[hx - 15, cy], [hx, cy + 7], apex], rgba("#c9a46a"));
+      b.poly([[hx, cy + 7], [hx + 15, cy], apex], rgba("#a8844e"));
+      b.poly([[hx - 7, cy + 4], [hx - 1, cy + 7], [hx - 4, cy - 9]], rgba("#3a2a18")); // cửa lều
     } else if (o.k === "fire") {
-      b.poly([[hx - 12, cy - 2], [hx + 10, cy + 6], [hx + 12, cy + 2], [hx - 10, cy - 6]], rgba("#5a3b22"));
-      b.poly([[hx + 10, cy - 4], [hx - 10, cy + 6], [hx - 12, cy + 2], [hx + 8, cy - 8]], rgba("#6e4b2c"));
-      b.poly([[hx - 8, cy], [hx + 8, cy], [hx + 2, cy - 24], [hx - 1, cy - 14]], rgba("#ff9a2e"));
-      b.poly([[hx - 4, cy], [hx + 4, cy], [hx + 1, cy - 13]], rgba("#ffe066"));
+      b.poly([[hx - 8, cy - 1], [hx + 6, cy + 4], [hx + 8, cy + 1], [hx - 6, cy - 4]], rgba("#5a3b22"));
+      b.poly([[hx + 6, cy - 3], [hx - 6, cy + 4], [hx - 8, cy + 1], [hx + 5, cy - 5]], rgba("#6e4b2c"));
+      b.poly([[hx - 5, cy], [hx + 5, cy], [hx + 1, cy - 16], [hx - 1, cy - 9]], rgba("#ff9a2e"));
+      b.poly([[hx - 3, cy], [hx + 3, cy], [hx + 1, cy - 9]], rgba("#ffe066"));
     } else if (o.k === "crystal") {
       const c = rgba("#7fd0ff"), hi = rgba("#c0e8ff"), lo = rgba("#2d6a96");
-      b.poly([[hx - 6, cy + 2], [hx + 6, cy + 2], [hx + 3, cy - 40], [hx - 3, cy - 44]], (x) => (x < hx - 1 ? hi : c));
-      b.poly([[hx - 18, cy + 1], [hx - 8, cy + 3], [hx - 12, cy - 24]], (x) => (x < hx - 13 ? hi : lo));
-      b.poly([[hx + 8, cy + 3], [hx + 20, cy], [hx + 16, cy - 28]], (x) => (x < hx + 14 ? c : lo));
+      b.poly([[hx - 4, cy + 1], [hx + 4, cy + 1], [hx + 2, cy - 28], [hx - 2, cy - 31]], (x) => (x < hx - 1 ? hi : c));
+      b.poly([[hx - 12, cy], [hx - 5, cy + 2], [hx - 8, cy - 16]], (x) => (x < hx - 9 ? hi : lo));
+      b.poly([[hx + 5, cy + 2], [hx + 13, cy], [hx + 10, cy - 19]], (x) => (x < hx + 9 ? c : lo));
     } else if (o.k === "rock") {
       const base = rgba("#6a6258"), hi = rgba("#8f877a"), lo = rgba("#4f4840");
-      b.poly([[hx - 22, cy + 2], [hx - 16, cy - 12], [hx - 4, cy - 20], [hx + 12, cy - 16], [hx + 22, cy - 2], [hx + 10, cy + 8], [hx - 10, cy + 8]],
-        (x, y) => (y < cy - 12 || x < hx - 14 ? hi : y > cy + 2 || x > hx + 14 ? lo : base));
+      b.poly([[hx - 14, cy + 1], [hx - 10, cy - 8], [hx - 3, cy - 13], [hx + 8, cy - 10], [hx + 14, cy - 1], [hx + 7, cy + 5], [hx - 7, cy + 5]],
+        (x, y) => (y < cy - 8 || x < hx - 9 ? hi : y > cy + 1 || x > hx + 9 ? lo : base));
     }
     b.outline();
     return { buf: b, oy: cy / H };
@@ -237,7 +237,7 @@ export class IsoMap {
     if (TOPDOWN) return;
     for (const im of this.tall) {
       // Che: chân mình nằm sau khối (độ sâu nhỏ hơn) và thân mình (khoảng 40 pixel trên chân) nằm trong khung ảnh của khối.
-      const cover = !!focus && im.depth > focus.y && Math.abs(focus.x - im.x) < im.displayWidth / 2 - 6
+      const cover = !!focus && im.depth > focus.y && Math.abs(focus.x - im.x) < im.displayWidth / 2 - 4
         && focus.y - 40 < im.y + im.displayHeight * (1 - im.originY) && focus.y > im.y - im.displayHeight * im.originY;
       const a = cover ? FADE : 1; if (im.alpha !== a) im.setAlpha(a);
     }
