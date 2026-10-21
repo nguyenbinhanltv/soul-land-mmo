@@ -214,11 +214,31 @@
       "iso": true
     },
     {
+      "key": "lpc_dan_lao_nhan",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_nho_sinh",
+      "iso": true
+    },
+    {
       "key": "lpc_dan_nong_phu",
       "iso": true
     },
     {
+      "key": "lpc_dan_nong_phu_cuoc",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_nu_duoi_ngua",
+      "iso": true
+    },
+    {
       "key": "lpc_dan_thon_nu",
+      "iso": true
+    },
+    {
+      "key": "lpc_dan_thon_nu_toc_tet",
       "iso": true
     },
     {
@@ -242,6 +262,10 @@
       "iso": true
     },
     {
+      "key": "lpc_linh_gac_giao",
+      "iso": true
+    },
+    {
       "key": "lpc_lo_ren",
       "iso": true
     },
@@ -259,6 +283,10 @@
     },
     {
       "key": "lpc_thuong_nhan",
+      "iso": true
+    },
+    {
+      "key": "lpc_thuong_nhan_luu_dong",
       "iso": true
     },
     {
