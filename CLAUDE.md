@@ -52,3 +52,9 @@ Skill trong `.claude/skills/`:
 - `db-migration`: file SQL mới và lớp lưu trữ `db.ts`.
 - `balance-data`: mọi con số cân bằng trong `shared/data.ts`.
 - `asset-gen`: làm ảnh (PixelLab, Gemini, LPC, vẽ tay) và dây chuyền `tools/assets`.
+- `balance-review`: soát cân bằng, kinh tế Hồn Tệ, tỉ lệ rơi, Elo (phân tích; đặt số vẫn theo `balance-data`).
+- `anti-cheat-audit`: soát server-authoritative theo cách gian lận (message, API, nhân bản đồ, hook test).
+- `soak-perf`: chạy dài nhiều bot trên bản đồ ×8, đo tick / bản vá / băng thông / bộ nhớ, tìm rò.
+- `bot-flakiness`: xử lý bài bot chập chờn (tái hiện N lượt, đối chứng main, chờ theo state).
+- `playtest-triage`: phân loại phản hồi chơi thử thành issue đúng mẫu, nhãn, Project 3.
+- Năm skill trên phỏng theo [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho repo này.
