@@ -958,7 +958,7 @@ export class MapRoom extends Room<MapState> {
     if (this.map.portalAt(p.x, p.y) !== portal) return "Hãy đứng trong cổng rồi mới đi qua được.";
     if (p.dead) return "Đã gục ngã, không thể đi qua cổng.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không thể đi qua cổng.";
-    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d)}: không thể đi qua cổng.`; // #116
+    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d, true)}: không thể đi qua cổng.`; // #116
     return null;
   }
 
@@ -1120,7 +1120,7 @@ export class MapRoom extends Room<MapState> {
     if (d.travelCast) return d.travelCast.wp ? "Đang niệm truyền tống." : "Đang đi qua cổng.";
     if (p.dead) return "Đã gục ngã, không truyền tống được.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không truyền tống được.";
-    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d)}: không truyền tống được.`; // #116
+    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d, true)}: không truyền tống được.`; // #116
     if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới truyền tống được.`;
     return null;
   }
@@ -2985,8 +2985,11 @@ export class MapRoom extends Room<MapState> {
     for (const [s, x] of d.st) { const def = STATUS[s]; noMove ||= def.noMove; noAtk ||= def.noAtk; noSkill ||= def.noAtk || def.noSkill; wander ||= def.wander; slow += def.slow * x.n; }
     return { noMove, noAtk, noSkill, wander, slow: Math.min(SLOW_CAP, slow) };
   }
-  /** Tên khống chế đang chặn hồn kỹ của hồn sư (cho tin từ chối). */
-  ccName(d: PData) { return STATUS[(["freeze", "stun", "charm", "root", "silence"] as const).find((s) => d.st.has(s)) ?? "silence"].name; }
+  /** Tên khống chế đang chặn hồn kỹ (`move`: đang chặn đi, cho đi cổng / truyền tống) của hồn sư, cho tin từ chối. */
+  ccName(d: PData, move = false) {
+    const order = move ? (["freeze", "stun", "charm", "root"] as const) : (["freeze", "stun", "charm", "silence"] as const);
+    return STATUS[order.find((s) => d.st.has(s)) ?? order[order.length - 1]].name;
+  }
   /**
    * Hồn sư đang Mê hoặc (#116, PLAYER_CHARM): hướng đi server tự chọn tới một điểm ngẫu nhiên quanh chỗ bị Mê hoặc, đổi điểm mỗi
    * `turn` giây; tới nơi thì đứng.
