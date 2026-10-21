@@ -114,7 +114,9 @@ export const MAPS: Record<string, MapDef> = {
   // BĐ6b: rừng thực vật / độc quanh suối Băng Hỏa Lưỡng Nghi Nhãn, cổng tây Thiên Đấu Thành. Tiên thảo chỉ rơi ở đây (đã chốt).
   lac_nhat_sam_lam: { id: "lac_nhat_sam_lam", name: "Lạc Nhật Sâm Lâm", kind: "hunt", level: [40, 70], years: [5000, 30000],
     shards: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "liet_hoa_thuong_lang"], cores: ["xa_hoang", "phuong_hoang"], king: "luong_nghi_thu_ho_xa",
-    herbs: { "Rừng hoa độc": 0.01, "Đầm Bích Lân": 0.02, "Băng Hỏa Tuyền": 0.03, "Lưỡng Nghi Nhãn": 0.05 } },
+    herbs: { "Rừng hoa độc": 0.01, "Đầm Bích Lân": 0.02, "Băng Hỏa Tuyền": 0.03, "Lưỡng Nghi Nhãn": 0.05,
+      // 11.5: vùng có tên thêm ở bản ×8, cùng tỉ lệ với tầng niên hạn của nó
+      "Hoa Cốc Mạn Đà": 0.01, "Lân Quang Trạch": 0.02, "Hỏa Diễm Nham": 0.03, "Cổ Đằng Lâm": 0.05 } },
   // BĐ6c: băng nguyên phía bắc Thiên Đấu Thành, 4 vùng 20.000–80.000 năm (từ vòng 7, giới hạn 50.000 năm, tới vòng 8), thú vương
   // Huyền Minh Băng Giao 80.000 năm.
   cuc_bac_chi_dia: { id: "cuc_bac_chi_dia", name: "Cực Bắc Chi Địa", kind: "hunt", level: [60, 85], years: [20000, 80000],
@@ -139,9 +141,13 @@ export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi"
 /**
  * Mật độ hồn thú thường của bản đồ dựng bằng `tools/maps` (11.3): số con trên 1.000 ô đi được của mỗi vùng, theo tầng niên hạn
  * (`tier` trong `tools/maps/layouts/<mapId>.json`, nông → sâu). Công cụ đếm ô đi được rồi ghi `count` của từng vùng vào file Tiled.
- * Số của Tinh Đấu Ngoại vi đo trên bản 90×60 cũ (14, 12, 10, 9 con), nên bản ×8 diện tích giữ đúng mật độ.
+ * Mỗi số đo trên bản cũ (90×60, Cực Bắc 72×96: số con mỗi vùng / ô đi được của vùng), nên bản ×8 diện tích giữ đúng mật độ và số hồn
+ * thú tăng theo diện tích (11.5).
  */
-export const BEAST_DENSITY: Record<string, number[]> = { tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4] };
+export const BEAST_DENSITY: Record<string, number[]> = {
+  tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
+  cuc_bac_chi_dia: [8.3, 8.2, 8.8, 5.7], hai_than_dao: [16.9, 9.6, 10.4, 10.9],
+};
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
 export const DEFAULT_MAP = "thanh_hon_thon";
 /** "10-30" -> [10, 30]; "10" -> [10, 10]; sai -> null. Dùng cho thuộc tính `level` của cổng và `years` của vùng trong Tiled. */

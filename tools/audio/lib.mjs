@@ -8,11 +8,18 @@ export const MAX_INITIAL_BYTES = 2 * 1024 * 1024;
 export const AUDIO_FORMATS = ["ogg", "m4a"];
 export const AUDIO_CREDITS_START = "<!-- audio-sfx:start -->";
 export const AUDIO_CREDITS_END = "<!-- audio-sfx:end -->";
+// Mọi giấy phép đã biết đều dùng được (GAME_DESIGN.md mục 5.11 "Nguồn và giấy phép"); giấy phép lạ, trống hay ND thì dừng.
+// Ghi theo mã SPDX (OGA-BY không có mã SPDX).
 export const ALLOWED_LICENSES = new Set([
   "CC0-1.0",
-  "CC-BY-3.0",
-  "CC-BY-4.0",
+  ...["2.0", "2.5", "3.0", "4.0"].flatMap((v) => ["CC-BY", "CC-BY-SA", "CC-BY-NC", "CC-BY-NC-SA"].map((l) => `${l}-${v}`)),
+  "OGA-BY-3.0",
+  ...["GPL-2.0", "GPL-3.0"].flatMap((l) => [`${l}-only`, `${l}-or-later`]),
 ]);
+/** Cờ nghĩa vụ: SA / GPL (tệp đã sửa, kể cả audio sprite ghép, theo đúng giấy phép đó), NC (chỉ dùng khi game phi thương mại). */
+export function licenseFlags(license) {
+  return [/-SA-/.test(license) && "SA", /^GPL-/.test(license) && "GPL", /-NC-/.test(license) && "NC"].filter(Boolean);
+}
 const MAPS_SOURCE = readFileSync(fileURLToPath(new URL("../../shared/data.ts", import.meta.url)), "utf8");
 export const GAME_MAP_IDS = new Set(
   [...MAPS_SOURCE.matchAll(/^\s{2}[a-z0-9_]+:\s*\{\s*id:\s*"([a-z0-9_]+)"/gm)].map(([, id]) => id),
@@ -43,7 +50,7 @@ function validateRelativePath(value, field) {
 function validateLicense(value) {
   requiredString(value, "license");
   if (!ALLOWED_LICENSES.has(value)) {
-    throw new Error(`license ${value} is not allowed; use CC0 or CC-BY`);
+    throw new Error(`license ${value} is not recognized; use an SPDX id such as CC0-1.0, CC-BY-4.0, CC-BY-SA-4.0, CC-BY-NC-4.0, OGA-BY-3.0 or GPL-3.0-or-later`);
   }
 }
 
@@ -244,7 +251,11 @@ export function renderAudioCredits(manifest) {
   const rows = [...outputs.values()].sort((left, right) => left.files[0].localeCompare(right.files[0])).map((output) => {
     const sources = [...output.sources.values()];
     const authors = [...new Set(sources.map((source) => source.author))].join("<br>");
-    const licenses = [...new Set(sources.map((source) => source.license))].join("<br>");
+    // Tệp output có nguồn SA / GPL thì cả tệp (kể cả audio sprite ghép nhiều nguồn) theo giấy phép đó: gắn cờ cạnh giấy phép.
+    const licenses = [...new Set(sources.map((source) => source.license))].map((license) => {
+      const flags = licenseFlags(license);
+      return flags.length ? `${license} (cờ ${flags.join(", ")})` : license;
+    }).join("<br>");
     const provenance = sources.map((source) => `${source.title} — <${source.url}> — SHA-256 \`${source.archiveSha256}\``).join("<br>");
     const files = output.files.map((file) => `\`shared/assets/${markdownCell(file)}\``).join("<br>");
     return `| ${files} | ${markdownCell(output.tracks.join(", "))} | ${markdownCell(authors)} | ${markdownCell(licenses)} | ${provenance} |`;
