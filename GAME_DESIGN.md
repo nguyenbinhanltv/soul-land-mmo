@@ -446,11 +446,14 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 **Sắp lớp theo độ sâu**
 - Thứ tự vẽ: nền đất (thấp nhất) → vùng chiêu báo trước, vòng dưới chân, bóng → mọi vật đứng (hồn sư, hồn thú, NPC, đồ rơi, cây, nhà, vách) sắp theo **độ sâu `x + y` của điểm chân** (tọa độ thế giới) → chữ, thanh máu, hiệu ứng nổi → HUD.
 - **Vật cao nhiều ô** (nhà, vách, cây lớn) được cắt thành **các lát dọc rộng 16 pixel** (nửa thoi); mỗi lát có độ sâu của mép trước chân vật tại cột đó (client cắt khi đặt vật: nhà dựng bằng code ở `client/src/isoBuild.ts`, `frontDepth`; cây và vật một ô không cần cắt). Nhờ vậy hồn sư đứng trước nửa này, sau nửa kia của một ngôi nhà vẫn đúng.
-- **Vật cao che hồn sư của chính mình** (tán cây, mái nhà, vách; khung thân giao khung ảnh vật và chân nằm sau vật): WebGL khoét **lỗ elip quanh thân** trên mọi vật đang che (mặt nạ hình học đảo) và mờ nhẹ, nên rừng rậm nhiều cây chồng nhau vẫn thấy hồn sư; chỉ có Canvas thì mờ còn khoảng 40%. Nhà mờ cả khối. Người khác vẫn thấy bình thường.
+- **Vật cao che hồn sư của chính mình** (tán cây, mái nhà, vách; khung thân giao khung ảnh vật và chân nằm sau vật): WebGL khoét **lỗ elip quanh thân** trên mọi vật đang che (mặt nạ hình học đảo) và mờ nhẹ, nên rừng rậm nhiều cây chồng nhau vẫn thấy hồn sư; chỉ có Canvas thì mờ còn khoảng 40%. Nhà mờ cả khối. Từ 10.7 **hồn thú trong tầm nhìn cũng được khoét lỗ** theo cỡ thân (rừng rậm Tinh Đấu không che mất hồn thú). Hồn sư khác vẫn thấy bình thường.
 - **Bóng đổ:** elip 2:1 dưới chân, màu `#1a1020`, độ mờ khoảng 35%, rộng bằng thân (hồn sư 24×12, hồn thú theo khung). Bóng do client vẽ, không vẽ trong sprite.
 
 **Ánh sáng và chiều sâu**
-- **Light2D + normal map** (WebGL; trình duyệt chỉ có Canvas thì tắt ánh sáng, vẫn chơi được). Mỗi bản đồ có màu môi trường (`ambient`) ngày / đêm theo bảng các vùng (phong cách B), thay lớp `vignette` cũ. Nguồn sáng theo phong cách A: vòng hồn hoàn dưới chân hồn sư, mắt hồn thú, hồn kỹ, hồn hoàn rơi trên đất là chính; lửa trại, đèn lồng, nấm phát quang, băng tinh yếu hơn; tối đa khoảng 10 nguồn cùng lúc gần camera (Phaser `maxLights`), xa thì bỏ.
+- **Light2D + normal map** (WebGL; trình duyệt chỉ có Canvas thì tắt ánh sáng, vẫn chơi được). Mỗi bản đồ có màu môi trường (`ambient`) ngày / đêm theo bảng các vùng (phong cách B), thay lớp `vignette` cũ (thuộc tính `vignette` trong file Tiled không còn dùng). Nguồn sáng theo phong cách A: vòng hồn hoàn dưới chân hồn sư, mắt hồn thú, hồn kỹ, hồn hoàn rơi trên đất là chính; lửa trại, đèn lồng, nấm phát quang, băng tinh, ánh cửa nhà ban đêm, mặt nước phát sáng yếu hơn; tối đa khoảng 10 nguồn cùng lúc gần camera (Phaser `maxLights`; máy cảm ứng 6), ưu tiên hồn lực rồi gần camera, xa thì bỏ.
+  - Cách làm (10.7, `client/src/lighting.ts`): pipeline Light2D riêng, khoảng cách tới đèn tính theo pixel nội bộ; trên nền và vật đứng ánh sáng tắt dần theo **elip 2:1** (đúng phép chiếu), trên thực thể (hồn sư, hồn thú, NPC) theo hình tròn và màu môi trường **kéo về trắng khoảng 40%**, nên ban đêm hồn sư, hồn thú vẫn nổi. Tổng ánh sáng có trần (không trắng xóa); ban ngày đèn giảm một nửa; vùng tuyết, cát giảm theo hệ số vùng. Hồn kỹ (vòng lan, vùng chiêu, tung hồn kỹ của vòng) soi mặt đất màu chiêu rồi tắt dần.
+  - Ô nền, lớp phủ mép, vật đứng, nhà của một bản đồ gom vào **một atlas** (cùng atlas normal map), vì pipeline ánh sáng chỉ gom các ảnh cùng texture vào một lần vẽ (đo ở Tinh Đấu Nội địa: khoảng 1.100 lần vẽ mỗi khung nếu không gom, 80 khi gom, 29 khi tắt ánh sáng).
+  - **Tắt sạch:** chỉ có Canvas, WebGL chạy bằng CPU (SwiftShader, llvmpipe… khi trình duyệt chặn GPU) hoặc `?light=0` thì không bật ánh sáng; đang chơi mà khung hình dưới 24 suốt 4 giây thì tự tắt và báo trong khung tin (`?light=1` để luôn bật). `?gio=HH:MM` đứng yên đồng hồ ngày / đêm (chụp ảnh, thử).
 - **Normal map tự sinh** bằng `tools/assets` (từ alpha và độ sáng: mép tròn, phần sáng nổi lên) cho mọi sprite và ô; không tốn lượt. Chỉ dùng `create_normal_map` của PixelLab (0,5 lượt mỗi ảnh / dải khung) cho vài vật đặc biệt khi bản tự sinh không đạt. File normal map nằm cạnh ảnh gốc, tên thêm `_n` (`body_m_0_n.png`).
 - Ánh sáng nền vẽ sẵn trong sprite vẫn **từ trên bên trái**; Light2D chỉ thêm sáng tối cục bộ, không đổi hướng sáng chính.
 - Bản thử 10.0b dựng ánh sáng bằng bản đồ sáng cộng dồn (elip 2:1 trên đất) và viền sáng phía đèn thay normal map; client thật dùng Light2D như trên.
@@ -485,7 +488,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Nền**: độ sáng trung bình 25–55% (tuyết, cát tới 75%), bão hòa thấp; không có điểm trắng hay màu bão hòa cao trên ô nền (dành cho hồn lực).
 - **Thực thể** (hồn sư, hồn thú, NPC, đồ rơi): viền ngoài `#1a1020`; ở nền tối, hồn thú và hồn sư có **viền sáng 1 pixel** (hồn thú: màu niên hạn; hồn sư: màu `glow` của vòng hồn hoàn cao nhất) khi độ sáng thân chênh nền dưới 25%. Bóng elip luôn vẽ.
 - **Vùng báo trước của hồn thú** luôn dùng màu đỏ của vùng báo trước hiện có (`TELE_COL` trong `GameScene.ts`) với viền sáng nhấp nháy, nền tối đa 30% độ mờ; ở vùng nền đỏ cam (Lạc Nhật) viền thêm một vạch trắng. **Vùng chiêu của người chơi** dùng màu võ hồn và không đỏ thuần, để không lẫn với báo trước.
-- **Hạt bay, thời tiết**: độ mờ tối đa 50%, vẽ dưới chữ và thanh máu, không quá khoảng 150 hạt trên màn hình; khi đánh thú vương / boss thế giới thì giảm một nửa; có tùy chọn tắt.
+- **Hạt bay, thời tiết**: độ mờ tối đa 50%, vẽ dưới chữ và thanh máu, không quá khoảng 150 hạt trên màn hình; khi đánh thú vương / boss thế giới thì giảm một nửa (máy cảm ứng giảm thêm); lệnh chat `/hat` bật / tắt (lưu trên máy). Cách làm ở `client/src/weather.ts`: khói bếp bay từ mái nhà và lửa trại, bọt sóng / đom đóm biển chỉ sinh trên ô nước, tuyết Cực Bắc dày dần về phía bắc, sương / mưa / sét theo vùng (Đầm sương độc, Lôi Cốc, Ma Quỷ Hải Vực, Cực Bắc Băng Uyên), sương sớm Ngoại vi theo giờ, cực quang ban đêm ở mép trên màn hình, giấy hoa khi có người thắng ở Đại Đấu Hồn Trường.
 - **Ánh sáng**: không nguồn sáng nào làm mặt đất trắng xóa; nhiều vòng hồn hoàn cùng chỗ thì cộng dồn có trần (tuyết, cát giảm cường độ đèn khoảng một nửa).
 
 **Bảng màu**
@@ -512,13 +515,13 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 | Thứ tự | Lớp | Nguồn | Ghi chú |
 |---|---|---|---|
 | 1 | Bóng | Code | Elip 2:1 dưới chân |
-| 2 | Vòng hồn hoàn, nửa sau | Code (hoặc ảnh `halo`) | Cung trên của elip |
+| 2 | Vòng hồn hoàn, nửa sau | Code (`sring…`) | Cung trên của elip |
 | 3 | Phụ thể võ hồn, nửa sau | `vh_{id}_b` | Cánh, đuôi, chân nhện, hư ảnh sau lưng, vũ khí khi bị thân che |
 | 4 | Thân | `hs_body_{m/f}_{0–3}` | Da, mặt, quần hoặc váy lót, giày |
 | 5 | Áo | `hs_outfit_{m/f}_{0–3}` | Đổi màu bằng hoán màu |
 | 6 | Tóc | `hs_hair_{m/f}_{0–3}` | Đổi màu bằng hoán màu |
 | 7 | Phụ thể võ hồn, nửa trước | `vh_{id}_f` | Vũ khí trên tay, tai thú, dây leo trước người, hào quang phía trước |
-| 8 | Vòng hồn hoàn, nửa trước | Code (hoặc ảnh `halo`) | Cung dưới của elip |
+| 8 | Vòng hồn hoàn, nửa trước | Code (`sring…`) | Cung dưới của elip |
 | 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
 
 - **Ghép lớp theo bộ giới × kiểu tóc (phương án (b)), giữ ở 8 hướng.** Mỗi bộ (2 giới × 4 kiểu tóc = 8 bộ) vẽ **liền** thân + áo + tóc, rồi `tools/assets` tách 3 lớp theo màu khóa trên **từng khung, từng hướng** (tóc lam sáng, áo / quần / váy xám, giày nâu, da bình thường), nên 3 lớp luôn khớp nét. Bản thử 10.0 tách được ở cả 8 hướng; chỉ 1–3 điểm lạc màu khóa mỗi hướng, gán lại theo lớp của điểm kề.
@@ -606,10 +609,12 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 
 **Vòng hồn hoàn**
 - Màu theo 5 bậc niên hạn, lấy `col` (thân vòng) và `glow` (viền sáng) trong `TIERS`. Không chép mã màu sang chỗ khác.
-- **Dưới chân hồn sư:** mỗi hồn hoàn của võ hồn đang ra trận là một **elip 2:1 nằm trên mặt đất** rộng 36 pixel (cao 18), nét mảnh: 1 pixel `glow` ngoài cộng 1 pixel `col`. Vòng 1 sát chân, vòng sau cao hơn 4 pixel; 10 vòng cao khoảng 36 pixel. Cung trước mờ còn khoảng 70% để vẫn thấy chân (bản thử 10.0b: nét 2–3 pixel cách 3 pixel thành một khối trụ che người). Các vòng nhấp nhô chậm lệch pha nhau. **Mỗi vòng là một nguồn sáng màu `glow`** soi đất quanh chân (phong cách A); nhiều vòng cộng dồn có trần.
-- Cung trên của elip vẽ sau thân, cung dưới vẽ trước thân.
-- **Khi tung hồn kỹ vòng thứ i:** vòng i sáng gấp đôi và phình ra 3 pixel trong 300 ms.
-- **Hồn hoàn rơi trên đất:** key `ring{tier}` 32×20 (elip 2:1 nằm nghiêng, phát sáng). Vòng dưới chân vẽ bằng code: `halo{tier}` (khung 40×20, khung 0 cung trên, khung 1 cung dưới) và `halo{tier}_lit` (46×24).
+- **Bình thường (đứng, đi, đánh thường): các vòng nằm đồng tâm trên mặt đất dưới chân**, vòng 1 trong cùng, mỗi vòng sau rộng hơn: elip 2:1 bán trục ngang `RING_RX0` + `RING_STEP` × (thứ tự vòng − 1) pixel (`client/src/textures.ts`; vòng 1 rộng 30, vòng 10 rộng 84), nét 1 pixel `col` cộng 1 pixel `glow` mờ phía trong (vòng đen vẫn nổi trên nền tối nhờ nét tím). Đọc thứ tự màu từ trong ra như vân gỗ; không vòng nào che thân. Ánh sáng lan dần từ vòng trong ra vòng ngoài. (Trước 10.7 các vòng chồng dọc mỗi vòng cao hơn 2–4 pixel: từ 5 vòng trở lên thành một cột trụ che người, bỏ.)
+- **Khi tung hồn kỹ vòng thứ i:** vòng i bay lên ngang ngực thành vòng nổi dẹt (34×10, thân 2 pixel `col` viền `glow`), sáng hơn một bậc (col → glow, glow → trắng) rồi hạ về chỗ cũ trong 450 ms; vòng đó cũng là ánh hồn kỹ soi mặt đất.
+- **Võ Hồn Chân Thân:** mọi vòng bay lên xếp đều quanh thân từ chân tới đỉnh đầu (vòng nổi, nhấp nhô lệch pha), hết Chân Thân thì hạ về mặt đất. Đây là lúc duy nhất các vòng hiện thành cột quanh người như trong truyện.
+- Cung trên của elip vẽ sau thân, cung dưới vẽ trước thân. Vòng nằm trên đất mờ nhẹ, nhịp sáng lệch pha nhau.
+- **Cả bộ vòng là một nguồn sáng màu `glow` của vòng cao nhất** soi đất quanh chân (phong cách A), rộng thêm theo số vòng, Chân Thân rộng hơn; có trần.
+- **Hồn hoàn rơi trên đất:** key `ring{tier}` 32×20 (elip 2:1 nằm nghiêng, phát sáng), cũng là nguồn sáng nhỏ màu `glow`. Vòng dưới chân vẽ bằng code: `sring{tier}_{0–9}` (vòng nằm đất theo thứ tự), `sring{tier}_up` (vòng nổi), thêm `L` là bản sáng; khung 0 cung trên, khung 1 cung dưới, vẽ ở pixel nội bộ.
 
 **Vùng chiêu và hiệu ứng trên mặt đất**
 - Mọi hình server gửi tính trên mặt phẳng thế giới, client **chiếu từng điểm** rồi vẽ: vòng tròn bán kính r thành **elip** có bán trục ngang `√2·r`, bán trục dọc `r/√2` (tỉ lệ 2:1), vệt (`line`) và nón (`cone`) thành đa giác chiếu, cung chém (`arc`) thành dải cung chiếu. Một hàm chung `isoPoly` cho vùng báo trước, vùng chiêu, vòng sóng, vùng an toàn và cổng.
@@ -847,7 +852,7 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
 - [ ] 10.4b 6 bộ hồn sư còn lại (khoảng 96 lượt; chia nhiều PR theo giới): như 10.4a. Sau đó `hurt`, `die` thật (10 lượt mỗi bộ) khi còn lượt.
 - [ ] 10.5 Phụ thể võ hồn (khoảng 5–8 lượt mỗi võ hồn): phụ thể tĩnh 5 hướng + ghép theo điểm neo; trước hết Lam Ngân Thảo và 4 võ hồn mẫu (Hạo Thiên Chùy, U Minh Linh Miêu, Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp), rồi các võ hồn còn lại.
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` tự mô tả chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu ngoại vi, nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192.
-- [ ] 10.7 Ánh sáng và không khí vùng (0–3 lượt; sau 10.1, 10.2): Light2D, `ambient` ngày / đêm mỗi bản đồ thay lớp `vignette`, nguồn sáng theo phong cách A (hồn hoàn, mắt hồn thú, hồn kỹ; lửa trại, đèn yếu hơn), thời tiết và hạt bay theo bảng các vùng, normal map tự sinh cho ô / vật / sprite, tắt sạch khi chỉ có Canvas; đo khung hình trên điện thoại.
+- [x] 10.7 Ánh sáng và không khí vùng (0 lượt): Light2D, `ambient` ngày / đêm mỗi bản đồ thay lớp `vignette`, nguồn sáng theo phong cách A (hồn hoàn, mắt hồn thú, hồn kỹ; lửa trại, đèn yếu hơn), thời tiết và hạt bay theo bảng các vùng, normal map tự sinh cho ô / vật / sprite, tắt sạch khi chỉ có Canvas; đo khung hình trên điện thoại. Kèm: Tinh Đấu Nội địa / Lõi Tinh Đấu đủ sáng đọc địa hình, hồn thú khoét lỗ qua tán rừng, vòng hồn hoàn nằm đồng tâm dưới chân (mục "Vòng hồn hoàn"), atlas ảnh bản đồ cho Light2D, tự tắt ánh sáng khi WebGL chạy bằng CPU hoặc khung hình thấp.
 - [ ] 10.8 Giao diện thủy mặc và thẻ võ hồn (khoảng 30 lượt): khung HUD, hộp thoại, nút ấn triện, font pixel đủ dấu tiếng Việt (phong cách C); chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR lưu ly (phong cách D), huy hiệu 4 hệ 24×24.
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), tạo bằng PixelLab sau 10.4.
 

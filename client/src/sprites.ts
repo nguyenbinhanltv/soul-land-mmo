@@ -9,6 +9,7 @@
 import Phaser from "phaser";
 import { TELE_WARN } from "../../shared/data.ts";
 import { legacyDir, SPR, type Dir8 } from "./iso.ts";
+import { attachNormal, lightingOn } from "./lighting.ts";
 
 const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
@@ -162,6 +163,8 @@ export function preloadSprites(scene: Phaser.Scene) {
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
+      // Normal map của bộ hồn sư isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
+      if (iso && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
   });
 }
@@ -298,5 +301,6 @@ export function recolor(scene: Phaser.Scene, base: string, index: number, ramp: 
     tex.add(name, 0, f.cutX, f.cutY, f.cutWidth, f.cutHeight);
   }
   tex.refresh();
+  attachNormal(scene, base, key); // cùng cỡ, cùng hình: dùng normal map của ảnh gốc (10.7)
   return key;
 }

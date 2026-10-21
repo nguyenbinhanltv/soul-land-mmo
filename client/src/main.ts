@@ -8,6 +8,7 @@ import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES,
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
 import { paintHonsuPreview } from "./honsuArt.ts";
+import { MAX_LIGHTS } from "./lighting.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -294,7 +295,9 @@ function play(room: Room, roomMap: string) {
   const onArena = (roomId: string) => leaveThen(() => joinArena(roomId));
   const onBack = () => onTravel(mapId);
   game = new Phaser.Game({
-    type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true,
+    // `?canvas`: ép Canvas để thử đường lùi không có WebGL (ánh sáng tắt hẳn, 10.7). maxLights: số đèn Light2D (lighting.ts).
+    type: new URLSearchParams(location.search).has("canvas") ? Phaser.CANVAS : Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true,
+    maxLights: MAX_LIGHTS,
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
   });
   game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack });
