@@ -33,7 +33,7 @@ Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu, nguồn được
 |---|---|
 | Hồn sư người chơi và animation | PixelLab (không dùng LPC) |
 | Phụ thể võ hồn | Ảnh Gemini hướng nam (`art/src/gemini/phuthe_s/<mã>_s.png`) vẽ lại đúng cỡ bằng PixelLab `edit_image_pixen`; vũ khí phẳng, vật đối xứng dùng chung một ảnh cho 5 hướng |
-| Hồn thú | PixelLab; ảnh Gemini nghiêng 3/4 (`art/src/gemini/beast_se/<loài>_se_<cỡ>.png`) chỉ làm tham chiếu hướng `se` / `e`; hình tạm từ thú LPC đang thử (mục 5) |
+| Hồn thú | PixelLab; ảnh Gemini nghiêng 3/4 (`art/src/gemini/beast_se/<loài>_se_<cỡ>.png`) chỉ làm tham chiếu hướng `se` / `e`; thú LPC làm hình tạm cho hồn thú thường tới khi PixelLab vẽ thay (mục 5) |
 | Ô nền | Gemini (10 bản đồ hiện dùng) hoặc PixelLab; **một bản đồ một nguồn ô nền** |
 | Vật đứng, công trình | PixelLab `create_map_object` hoặc Gemini |
 | Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | Gemini |
@@ -112,7 +112,7 @@ node tools/assets/iso-preview.mjs <tmp>/map.png --tiles grass=<tmp>/flat/32/gras
 - Ô nền: `iso-build.mjs ground <tên> <32.png> [<64.png>]` rồi thêm vào `tiles.json` (mục 7). Vật đứng: `iso-build.mjs prop`.
 - Chân dung / NPC / vật phẩm / trạng thái / giao diện / thẻ: chép vào `shared/assets/sprites/iso/{portrait,npc,item,status,ui}/…`, rồi `validate.mjs --register <key> --iso --tool "Gemini (gemini.google.com) + tools/assets/gemini-import.mjs" --prompt "<ảnh, ô, prompt>" --note "<lệnh nhập>"` (mảnh giao diện kéo giãn thêm `--nine N`). CREDITS vào mục "Asset tạo bằng AI (Gemini)"; validate kiểm mã có trong `NPCS` / `ITEMS` / `STATUS_IDS`…
 
-## 5. LPC (NPC phụ; đang thử hình tạm hồn thú)
+## 5. LPC (NPC phụ; hình tạm hồn thú thường)
 Universal LPC Spritesheet Character Generator (<https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>, 0 lượt PixelLab). `tools/assets/lpc-compose.mjs` đọc PNG lớp của repo đó, xuất theo bố cục sheet hồn sư 24 × 6.
 - **Phạm vi (người dùng đã quyết):** chỉ **NPC phụ** (10 NPC trong `NPCS`: `lpc_<mã NPC>`), dân thường `lpc_dan_*`, lính gác `lpc_linh_gac`. **Không** dùng cho hồn sư người chơi (LPC chibi kiểu tây, chỉ 4 hướng).
 - **Giấy phép:** chỉ lớp có ít nhất một giấy phép **CC0 / CC-BY / OGA-BY**. Lớp chỉ có CC-BY-SA / GPL (ví dụ `hair/messy1`, `hair/swoop`, `hair/ponytail`, nhiều `bangs*` / `spiked*`, `weapon/polearm/*`, kính `nerd` / `round`, đầu `male_plump`, râu `basic`) hoặc giấy phép lạ thì công cụ dừng: chọn lớp khác.
@@ -129,15 +129,18 @@ for f in art/src/lpc/*.json; do node tools/assets/lpc-compose.mjs --lpc <repo LP
 ```
 `--game` ghi `shared/assets/sprites/iso/lpc/<tên>.png` + `_n.png`, thêm key `lpc_<tên>` (`"iso": true`) vào manifest và ghi công. Client tự dùng `lpc_<mã NPC>`; dân thường mới thì thêm tên vào `CROWD` (`client/src/crowd.ts`). Soát bằng mắt (khung đứng 5 hướng, so với chân dung `npc_<mã>`) rồi `npm run check`.
 
-**Thú LPC làm hình tạm cho hồn thú thường (đang thử, chưa đưa vào game):** `tools/assets/lpc-beast.mjs` đọc sprite thú LPC tải từ OpenGameArt (sói, nhện, gấu, cáo, sư tử cái, chuột, thỏ, lợn rừng, chim; bảng loài ↔ mẫu, gói, giấy phép ở `SPECIES` / `PACKS` đầu file, `--list` in ra) và xuất sheet hồn thú 20 × 5 theo khung bậc. Không dùng cho thú vương / boss thế giới (khung ≤ 128) hay hồn sư.
+**Thú LPC làm hình tạm cho hồn thú thường (người dùng đã duyệt; dùng tới khi PixelLab vẽ thay):** `tools/assets/lpc-beast.mjs` đọc sprite thú LPC tải từ OpenGameArt (sói, nhện, gấu, cáo, sư tử cái, chuột, thỏ, lợn rừng, chim; bảng loài ↔ mẫu, gói, giấy phép ở `SPECIES` / `PACKS` đầu file, `--list` in ra) và xuất sheet hồn thú 20 × 5 theo khung bậc. Không dùng cho thú vương / boss thế giới (khung ≤ 128) hay hồn sư.
 - Gói chỉ CC-BY-SA / GPL (rắn LPC, LPC Monsters, bò LPC, cá LPC…) không dùng; loài không có mẫu phù hợp giữ hình hiện tại. Thêm gói thì đọc trang OGA lấy đúng tác giả, giấy phép, lời ghi công rồi ghi vào `PACKS`.
 - Tải gói **ngoài repo game** (thư mục artifact), mỗi gói một thư mục con đúng đường dẫn `file` trong `SPECIES`; chỉ đọc PNG.
 - Công cụ tự lo: 4 hướng LPC → 5 hướng vẽ như NPC phụ; animation có trong gói thì chọn khung, thiếu thì vẽ bằng code (idle thở, attack lùi rồi lao, hurt lùi, die ép dẹt); đổi sắc theo loài, giảm bão hòa (`--desat`), đưa màu về bảng chung + bảng vùng `map`; phóng nguyên ×1 / ×2; chân chạm gốc khung bậc; viền `#1a1020`; ghi điểm mắt từng hướng (`eyes`, màu mắt nguồn đổi thành màu "Mắt") vào `<loài>.json`; ghi công vào `<out>/CREDITS-LPC-BEASTS.md` hoặc mục `<!-- lpc-beast:start -->` / `<!-- lpc-beast:end -->` của `--credits`.
-- Đưa vào game cần client tải sheet hồn thú isometric (bước 10.6) và người dùng duyệt từng loài.
+- **Đang dùng trong game:** Liệt Trảo Hùng (gấu), Nhân Diện Ma Chu non (nhện), Phong Lang (sói), Hắc Bối Dã Trư (lợn rừng), Nhu Cốt Thỏ hoang (thỏ), Điền Thử (chuột). **Không** dùng sư tử cái cho Tử Văn Báo; loài khác thêm vào game phải được người dùng duyệt từng loài. Chỉ gói CC0 / CC-BY / OGA-BY.
+- Đưa vào game: chép `<out>/<loài>.png` vào `shared/assets/sprites/beast/`, `normal.mjs` sinh `_n.png`, thêm vào manifest `{ "key": "beast_<loài>", "frame": [cỡ, cỡ], "iso": true, "map": "<vùng>", "lpc": true }` (cỡ, vùng lấy ở `<loài>.json`); `"lpc": true` để client không dùng cho thú vương / boss. Ghi công bằng `--credits art/CREDITS.md`. PixelLab vẽ xong loài nào thì thay ảnh, bỏ `"lpc"` và dòng ghi công của loài đó.
 
 ```bash
 node tools/assets/lpc-beast.mjs --src <thư mục gói thú> --out <tmp>/thu [--species phong_lang,liet_trao_hung]
 node tools/assets/preview.mjs <tmp>/xem.png <tmp>/thu/phong_lang.png --dirs8 --ground
+node tools/assets/lpc-beast.mjs --src <thư mục gói thú> --out <tmp>/thu --species <loài,…> --credits art/CREDITS.md   # đưa vào game
+cp <tmp>/thu/<loài>.png shared/assets/sprites/beast/ && node tools/assets/normal.mjs shared/assets/sprites/beast/<loài>.png
 ```
 
 ## 6. Vẽ tay
