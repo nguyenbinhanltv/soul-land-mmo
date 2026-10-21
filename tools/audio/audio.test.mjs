@@ -283,6 +283,11 @@ test("audio credits must be generated from manifest provenance", () => {
     manifest,
     creditsText: `before\n${block}\nafter`,
   }));
+  const crlfBlock = block.replaceAll("\n", "\r\n");
+  assert.doesNotThrow(() => validateAudioCredits({
+    manifest,
+    creditsText: `before\r\n${crlfBlock}\r\nafter`,
+  }));
   assert.throws(
     () => validateAudioCredits({ manifest, creditsText: `before\n${block.replace("footsteps.ogg", "stale.ogg")}\nafter` }),
     /credits.*mismatch/i,

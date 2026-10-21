@@ -221,6 +221,10 @@ function markdownCell(value) {
   return String(value).replaceAll("|", "\\|");
 }
 
+function normalizeNewlines(value) {
+  return String(value).replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+}
+
 export function renderAudioCredits(manifest) {
   const sourceById = new Map(manifest.sources.map((source) => [source.id, source]));
   const outputs = new Map();
@@ -255,19 +259,21 @@ export function renderAudioCredits(manifest) {
 }
 
 export function validateAudioCredits({ manifest, creditsText }) {
-  const startIndex = creditsText.indexOf(AUDIO_CREDITS_START);
-  const endIndex = creditsText.indexOf(AUDIO_CREDITS_END);
+  const normalizedCredits = normalizeNewlines(creditsText);
+  const startIndex = normalizedCredits.indexOf(AUDIO_CREDITS_START);
+  const endIndex = normalizedCredits.indexOf(AUDIO_CREDITS_END);
   if (startIndex < 0 || endIndex < 0 || endIndex < startIndex) throw new Error("audio credits markers are missing");
-  const actual = creditsText.slice(startIndex, endIndex + AUDIO_CREDITS_END.length);
+  const actual = normalizedCredits.slice(startIndex, endIndex + AUDIO_CREDITS_END.length);
   if (actual !== renderAudioCredits(manifest)) throw new Error("audio credits mismatch with manifest");
   return true;
 }
 
 export function replaceAudioCredits(creditsText, manifest) {
-  const startIndex = creditsText.indexOf(AUDIO_CREDITS_START);
-  const endIndex = creditsText.indexOf(AUDIO_CREDITS_END);
+  const normalizedCredits = normalizeNewlines(creditsText);
+  const startIndex = normalizedCredits.indexOf(AUDIO_CREDITS_START);
+  const endIndex = normalizedCredits.indexOf(AUDIO_CREDITS_END);
   if (startIndex < 0 || endIndex < 0 || endIndex < startIndex) throw new Error("audio credits markers are missing");
-  return `${creditsText.slice(0, startIndex)}${renderAudioCredits(manifest)}${creditsText.slice(endIndex + AUDIO_CREDITS_END.length)}`;
+  return `${normalizedCredits.slice(0, startIndex)}${renderAudioCredits(manifest)}${normalizedCredits.slice(endIndex + AUDIO_CREDITS_END.length)}`;
 }
 
 export function buildManifest({ catalog, outputs, generatedAt = new Date().toISOString(), pipeline = "tools/audio" }) {
