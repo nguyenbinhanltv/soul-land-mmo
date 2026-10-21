@@ -4,12 +4,14 @@
 //        kiểm file của key, thêm key vào manifest (nếu chưa có) và ghi/cập nhật một dòng trong art/CREDITS.md.
 // Lỗi (thoát mã 1): kích thước sheet sai bố cục, alpha khác 0/255, màu ngoài bảng (tóc/áo: chỉ dải 4 xám + viền #1a1020),
 //       lớp thân thiếu khung bắt buộc, bộ hồn sư giới × kiểu tóc thiếu lớp (phải đủ hs_body/outfit/hair_{giới}_{kiểu}),
-//       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung.
+//       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung; chân dung (portrait_{id}) quá PORTRAIT_MAX_COLORS màu
+//       (chân dung không theo bảng chung), vật đứng (prop_{vật}) cạnh không chia hết cho ISO_PROP_STEP hoặc màu ngoài
+//       bảng chung + bảng nhấn art/palettes/*.gpl. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
 // Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
 //       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc y = 30.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -18,7 +20,7 @@ const register = opt("--register", ""), prompt = opt("--prompt", ""), tool = opt
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 manifest.sprites ??= [];
 const entryKey = (e) => (typeof e === "string" ? e : e.key);
-const allowed = allowedColors();
+const allowed = allowedColors(), withAccents = new Set([...allowed, ...accentColors()]);
 // Tóc/áo: 4 xám để hoán màu + viền ngoài #1a1020 (màu thứ 5, giữ nguyên khi hoán màu).
 const grayOnly = new Set([...GRAY_RAMP, OUTLINE]);
 let errors = 0, warns = 0;
@@ -47,18 +49,21 @@ function check(key, frame) {
   try { img = readPng(file); } catch (e) { return err(key, `không đọc được PNG: ${e.message}`); }
   if (spec.size && (img.w !== spec.size[0] || img.h !== spec.size[1])) return err(key, `kích thước ${img.w}×${img.h}, cần ${spec.size[0]}×${spec.size[1]}`);
   if (spec.frame && (img.w % spec.frame[0] || img.h % spec.frame[1])) return err(key, `kích thước không chia hết cho khung ${spec.frame.join("×")}`);
+  if (spec.kind === "prop" && (img.w % ISO_PROP_STEP || img.h % ISO_PROP_STEP)) return err(key, `kích thước ${img.w}×${img.h} không chia hết cho ${ISO_PROP_STEP}`);
 
   // Màu và alpha.
-  const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : allowed;
-  const bad = new Map(); let semi = 0;
+  const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : allowed;
+  const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
     if (!p[3]) continue;
     if (p[3] !== 255) semi++;
     const c = toHex(p);
-    if (!palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
+    used.add(c);
+    if (spec.kind !== "portrait" && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
+  if (spec.kind === "portrait" && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, chân dung tối đa ${PORTRAIT_MAX_COLORS}`);
   if (bad.size) err(key, `${bad.size} màu ngoài bảng${palette === grayOnly ? " (tóc/áo chỉ dùng dải 4 xám + viền)" : ""}: ` +
     [...bad].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `${c}×${n}`).join(", "));
 
@@ -99,9 +104,14 @@ function check(key, frame) {
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
   let md = readFileSync(credits, "utf8");
-  const head = "## Asset tạo bằng AI (PixelLab)";
+  // Mỗi công cụ AI một mục: --tool có chữ "Gemini" thì ghi vào mục Gemini, còn lại mục PixelLab.
+  const gemini = /gemini/i.test(tool);
+  const head = gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
+  const intro = gemini
+    ? "Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
+    : "Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.";
   if (!md.includes(head)) {
-    md = md.replace("## Asset bên ngoài", `${head}\n\nTạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng \`tools/assets\` (normalize → pack → validate). Quy trình: \`.claude/skills/asset-gen/SKILL.md\`.\n\n` +
+    md = md.replace("## Asset bên ngoài", `${head}\n\n${intro}\n\n` +
       "| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |\n|---|---|---|---|---|---|\n\n## Asset bên ngoài");
   }
   const date = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD theo giờ máy
@@ -125,7 +135,7 @@ if (register) {
   const spec = check(register, frame);
   if (errors) process.exit(1);
   if (!manifest.sprites.some((e) => entryKey(e) === register)) {
-    manifest.sprites.push(frame ? { key: register, frame } : register);
+    manifest.sprites.push(spec.iso ? { key: register, iso: true } : frame ? { key: register, frame } : register);
     manifest.sprites.sort((a, b) => entryKey(a).localeCompare(entryKey(b)));
     writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
   }
