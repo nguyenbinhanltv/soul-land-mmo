@@ -294,7 +294,7 @@ function play(room: Room, roomMap: string) {
   const onArena = (roomId: string) => leaveThen(() => joinArena(roomId));
   const onBack = () => onTravel(mapId);
   game = new Phaser.Game({
-    type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true,
+    type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true,
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
   });
   game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack });

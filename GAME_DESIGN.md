@@ -660,6 +660,14 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arrive` không tồn tại hoặc nằm trong `portal`, mã NPC lạ) thì server ghi cảnh báo và bỏ object đó. `npm run map` (`tools/gen-map.mjs`) sinh lại các bản đồ và **ghi đè** bản đã sửa tay.
 
+**Hiển thị isometric phía client** (bước 10.1)
+- Server và file Tiled giữ tọa độ thế giới Descartes; client chỉ chiếu khi vẽ. `client/src/iso.ts`: `worldToScreen` / `screenToWorld` (ô logic `TILE` thành thoi `TILE_W` × `TILE_H`), độ sâu vẽ = tung độ màn hình của điểm chân (`depthAt`, tỉ lệ x + y), vòng tròn trên mặt đất thành elip (`fillGround`, `RX` / `RY`), hướng 8 phía trên màn hình (`dir8`) và hướng gần nhất của sprite 4 hướng cũ (`legacyDir`). Hằng hiển thị ở đây, không phải số cân bằng.
+- `client/src/isoMap.ts` vẽ lớp `ground` thành ô thoi (ảnh ô của `tiles.png` trải lên thoi) và lớp `trees` thành khối có chiều cao vẽ bằng code (cây, thông tuyết, mái / tường nhà, lều, lửa trại, băng tinh, đá ngầm), sắp lớp theo độ sâu; chỉ tạo ảnh cho ô trong tầm camera; khối đang che chính mình thì mờ đi. Lớp `canopy` chỉ dùng ở chế độ nhìn thẳng.
+- Mọi vị trí (hồn sư, hồn thú, NPC, đồ rơi, cổng, tin `fx` / `dmg`) nội suy trong tọa độ thế giới rồi chiếu; vùng báo trước, vùng chiêu, sóng, cung chém là hình thế giới chiếu ra (elip, hình bình hành). Điểm `fx` server đã trừ vài pixel ở y để nâng hiệu ứng (cách vẽ cũ) thì bám vào chân hồn sư / hồn thú ngay dưới (`GameScene.lifted`). Bản đồ nhỏ vẫn nhìn thẳng.
+- Camera phóng số nguyên quanh độ phân giải nội bộ `VIEW_W` × `VIEW_H` (`pixelArt`, `roundPixels`); khi phóng 1 thì chữ trong thế giới phóng 2 cho dễ đọc; HUD là HTML nên không đổi cỡ. Sprite cũ phóng `SPR`.
+- Phím / cần điều khiển theo hướng màn hình (lên = lên trên màn hình), chiếu ngược thành hướng thế giới tự do gửi trong `input {x, y, s}` (server không đổi). Bấm chọn hồn sư khác / NPC so trên tọa độ màn hình.
+- `?view=topdown`: vẽ nhìn thẳng như trước (cùng đường code, ma trận chiếu khác) để so sánh / khắc phục.
+
 **Dự đoán chuyển động phía client**
 - Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
 - Client đánh số input `input {x, y, s}`; server ghi `PlayerState.seq` (số cuối đã nhận), `seqT` (số giây hướng đó đã được áp) và `spd` (tốc độ thật lúc này). Server tự dừng hướng đi thì tăng `seq`.
@@ -735,6 +743,9 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   *Đã có:* `beast_phong_lang`, `beast_man_da_la_xa`, `beast_tu_van_bao` (vùng Bìa rừng, đủ 13 khung; Mạn Đà La Xà nên vẽ lại `walk` / `attack` / `die`). GameScene mới dùng `idle` / `walk` vì server chưa gửi trạng thái đánh / bị đánh / gục của hồn thú. *Còn:* mọi loài khác (Lạc Nhật, Cực Bắc, Hải Thần Đảo…), tinh anh, thú vương, boss thế giới.
 - [ ] M5 Giao diện thẻ võ hồn: chân dung 64×64 cho 24 võ hồn, khung thẻ SR / SSR / UR, biểu tượng 4 hệ.
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): cần thêm chỉ số kiểu áo vào key lớp áo (mục 5.11).
+
+**Giai đoạn 10: Đồ họa isometric** (server không đổi)
+- [x] 10.1 Nền client isometric: chiếu / chiếu ngược, camera phóng số nguyên quanh 640×360, bản đồ thoi và khối vẽ tạm bằng code, sắp lớp theo độ sâu, bóng elip, vùng chiêu elip, input theo màn hình, `?view=topdown` (mục 6 "Hiển thị isometric phía client").
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [ ] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ.
