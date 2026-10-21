@@ -25,6 +25,7 @@ import { Weather } from "../weather.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
+import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -730,6 +731,9 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("recall", (m: { on: boolean; label?: string; secs?: number }) => hud.setRecall(m?.on ? { label: m.label ?? "", secs: m.secs ?? 1 } : null));
     // Tự săn (Auto 1): trạng thái nút và giờ treo còn lại; server báo lý do dừng / từ chối bằng dòng log.
     this.room.onMessage("auto", (m: AutoMsg) => hud.setAuto(m));
+    // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
+    this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
+    if (!this.isArena) this.room.send("offline");
     if (!this.isArena) this.room.send("auto", { op: "get" });
     if (this.waypoints.length) this.room.send("wp", { op: "list" }); // biết trận nào đã mở để tô trận (sân đấu không có trận)
     // NPC (6.1): server đã kiểm tra khoảng cách; lời thoại, cửa hàng và lò rèn lấy từ NPCS. Mua / bán / rèn chỉ gửi ý định.

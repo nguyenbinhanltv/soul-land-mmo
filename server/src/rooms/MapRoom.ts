@@ -135,6 +135,9 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng).
   auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoDirty: boolean;
+  // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
+  // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
+  offMsg: Record<string, unknown> | null; offAsk: boolean;
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
@@ -570,6 +573,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("chanthan", (c) => { this.autoHand(c.sessionId); this.chanThan(c); }); // 8.1a: Võ Hồn Chân Thân (phím R)
     this.onMessage("boneskill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.boneSkill(c, Number(m?.i)); });
     this.onMessage("auto", (c, m: { op?: unknown; cfg?: unknown }) => this.autoAction(c.sessionId, m?.op, m?.cfg)); // tự săn (Auto 1)
+    this.onMessage("offline", (c) => { const d = this.pdata.get(c.sessionId); if (d) { d.offAsk = true; this.sendOffline(c.sessionId); } }); // Auto 3
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
     this.onMessage("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
@@ -640,7 +644,8 @@ export class MapRoom extends Room<MapState> {
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false,
-      auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0, autoDirty: false };
+      auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0, autoDirty: false,
+      offMsg: null, offAsk: false };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.state.online = this.state.players.size;
@@ -1123,15 +1128,23 @@ export class MapRoom extends Room<MapState> {
       const v = d.owned.find((o) => o.rowId === r); if (!v) continue;
       if (v === d.ch) this.addXp(id, Math.round(xp * XP_SHARE_ACTIVE)); else this.benchXp(id, v, Math.round(xp * XP_SHARE_BENCH));
     }
-    if (rings.length) got.set(`Hồn hoàn (cao nhất ${formatYears(Math.max(...rings))})`, rings.length);
+    const items = [...(rings.length ? [{ name: `Hồn hoàn (cao nhất ${formatYears(Math.max(...rings))})`, qty: rings.length }] : []),
+      ...[...got].map(([name, qty]) => ({ name, qty }))];
     const stop = full ? "túi đầy" : !kills && weak ? "vùng quá sức" : !secs ? "hết giờ treo" : undefined;
     await this.write(id);
     const c = this.clients.getById(id); if (!c) return;
     this.sendBag(id); this.sendVohons(c); this.sendSquad(id, true); this.sendAuto(id);
-    c.send("offline", { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
-      items: [...got].map(([name, qty]) => ({ name, qty })), left: autoLeft(d.autoUsed), max: AUTO_DAILY_SECS, ...(stop ? { stop } : {}) });
+    d.offMsg = { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
+      items, left: autoLeft(d.autoUsed), max: AUTO_DAILY_SECS, ...(stop ? { stop } : {}) };
+    this.sendOffline(id);
     this.log(id, `Ủy thác ở ${zone.name} (${def.name}): vắng ${autoTimeText(away)}, tính ${autoTimeText(secs)}, hạ ${kills} hồn thú, ` +
       `${formatHonTe(coins)} Hồn Tệ${stop ? ` (dừng: ${stop})` : ""}.`, "#86e0b0");
+  }
+
+  /** Gửi bảng nhận thưởng ủy thác (tin riêng `offline`) một lần, khi đã tính xong và client đã xin. */
+  sendOffline(id: string) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d?.offMsg || !d.offAsk || !c) return;
+    c.send("offline", d.offMsg); d.offMsg = null;
   }
 
   /** Niên hạn một hồn thú thường của vùng `z` khi ủy thác (như spawnBeast, không có hồn thú 10 vạn năm). */
@@ -2508,9 +2521,10 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "offline") {
       // Auto 3: `ago` (giây, 0–7 ngày) lùi thời điểm của lần ủy thác offline kế tiếp (giả lập thời gian trôi); trả vùng săn chỗ đang
-      // đứng nếu thoát ở đây thì được ủy thác (null = không) và `ago` đang đặt.
+      // đứng nếu thoát ở đây thì được ủy thác (null = không), `ago` đang đặt, chế độ và giờ của đồng hồ lịch (chia quỹ theo ngày).
       if (typeof o.ago === "number" && Number.isFinite(o.ago)) testOfflineAgo.set(d.accountId, Math.max(0, Math.min(7 * 86400, o.ago)));
-      out = { zone: this.offlineZone(id)?.name ?? null, ago: testOfflineAgo.get(d.accountId) ?? 0 };
+      out = { zone: this.offlineZone(id)?.name ?? null, ago: testOfflineAgo.get(d.accountId) ?? 0, clock: bossClockMode(),
+        now: bossNow() + this.dayShift * 86400000, day: this.today() };
     }
     else if (op === "elock") {
       // #119: khóa nhận thưởng tinh anh của chính mình (mọi bản đồ): `s` (>= 0) đặt mọi khóa đang có còn `s` giây (0 = bỏ khóa);

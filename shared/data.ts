@@ -3805,10 +3805,11 @@ export const autoTimeText = (secs: number) => {
  * - `maxSecs`: trần giây tính cho một lần nhận, ngoài quỹ AUTO_DAILY_SECS mỗi ngày dùng chung với tự săn online.
  * - `rings`: tối đa bấy nhiêu hồn hoàn mỗi lần nhận (theo thứ tự hạ; sau đó bỏ qua như món tự săn không nhặt).
  * - `seek`: giây tìm / đi tới / nhặt đồ mỗi con (ngoài thời gian đánh và hồi máu); `skill`: hệ số sát thương của hồn kỹ, tiên cơ so với
- *   chỉ đánh thường. Hai số này hiệu chỉnh theo số đo tự săn online để thưởng ủy thác xấp xỉ 100% tự săn.
+ *   chỉ đánh thường. Hiệu chỉnh 2026-10-22 theo số con mỗi giờ của tự săn online lúc vùng còn đủ hồn thú (phút đầu, chưa săn cạn quanh
+ *   điểm neo): Tinh Đấu Ngoại vi / Nội địa, võ hồn cấp 21–45, công thức lệch số đo khoảng ±30% (hồn kỹ diện rộng hạ nhiều con một lúc).
  * - `hpCap`: một trận lấy quá phần này sinh lực tối đa thì coi là không đánh nổi (bỏ con đó, mất `seek` giây).
  */
-export const OFFLINE = { minSecs: 300, maxSecs: 24 * 3600, rings: 20, seek: 4, skill: 1.5, hpCap: 0.8 };
+export const OFFLINE = { minSecs: 300, maxSecs: 24 * 3600, rings: 20, seek: 3.5, skill: 1.5, hpCap: 0.8 };
 /** Chỉ số võ hồn ra trận cho công thức ủy thác (MapRoom chụp lúc nhận): công, chí mạng, sinh lực tối đa, hệ số sát thương nhận VOHON.def. */
 export interface OfflinePower { atk: number; crit: number; critMult: number; maxHp: number; def: number; }
 /**
