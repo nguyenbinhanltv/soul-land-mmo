@@ -632,7 +632,7 @@ export class GameScene extends Phaser.Scene {
     // Tà hóa thú vương (BĐ5): báo toàn server trước 5 phút (đếm ngược) và lúc xuất hiện; trong bản đồ có thú vương thì thêm giai đoạn 2,
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
     this.room.onMessage("boss", (m: any) => {
-      if (m.k === "warn") this.audio.play("boss_warn");
+      if (m.k === "warn" && !m.join) this.audio.play("boss_warn"); // tin xin lại lúc vào phòng (#118, `join`) không kêu lại
       else if (m.k === "down") this.audio.play("boss_down");
       const col = m.col ?? "#ff5a5a";
       if (this.worldBossMsg(m, col)) return; // boss thế giới (BĐ6e): cơ chế riêng
