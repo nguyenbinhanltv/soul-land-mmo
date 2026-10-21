@@ -6,7 +6,8 @@
 //   `wall` phía trước gom thành một ngôi nhà (isoBuild.ts, cắt lát 16 pixel), ô `wall` đứng riêng là tường thành;
 // - lớp `canopy` (tán cây) không vẽ: tán là một phần ảnh cây (chỉ dùng ở chế độ nhìn thẳng).
 // Ô / vật chưa có trong tiles.json (hoặc ảnh chưa tải được) vẽ tạm bằng code từ chính tiles.png như bước 10.1.
-// Chỉ tạo ảnh cho các ô trong tầm camera (cộng lề), dùng lại ảnh khi camera đi; nhà dựng một lần khi vào bản đồ.
+// Ảnh dựng theo khối CHUNK × CHUNK ô (11.4): chỉ khối trong tầm camera (cộng lề) có ảnh, khối ra khỏi tầm thì cất ảnh để dùng lại;
+// nhà dựng một lần khi vào bản đồ. Làm mờ vật che chính mình chỉ xét vật của các khối quanh thực thể cần thấy.
 import Phaser from "phaser";
 import { TILE } from "../../shared/data.ts";
 import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "./iso.ts";
@@ -30,6 +31,13 @@ const BASE_RISE = 88;
 const FADE = 0.4, HOLE_ALPHA = 0.85, HOLE_W = 44, HOLE_H = 64;
 /** Gid Tiled của mái và tường (tools/gen-map.mjs, bảng GID). */
 const ROOF = 14, WALL = 15;
+/** Cạnh khối (ô logic): bản đồ dựng / cất ảnh theo cả khối (11.4), nên camera đi chỉ dựng lại khi qua mép khối. */
+const CHUNK = 8;
+/**
+ * Lề tìm vật che chính mình quanh khung các thực thể cần thấy (pixel màn hình): ngang nửa bề rộng ảnh vật lớn nhất (cung điện), dọc
+ * xuống chiều cao ảnh vật cao nhất (chân vật nằm dưới chân thực thể).
+ */
+const COVER_X = 256, COVER_Y = 512;
 
 // ---------- shared/assets/iso/tiles.json ----------
 /** Ô nền: các biến thể ảnh 32×32 (thoi 32×16), ô lớn 64×64 (thoi 64×32, phủ 2×2 ô), tâm mặt trên trong ảnh, thứ bậc lấn mép. */
@@ -126,12 +134,16 @@ export class IsoMap {
   private bigAt = new Map<number, number>();
   /** Ô thuộc một ngôi nhà (không vẽ vật riêng). */
   private inHouse = new Set<number>();
-  /** Ảnh đang hiện theo chỉ số ô; ảnh rời tầm nhìn cất vào `free` để dùng lại. */
-  private live = new Map<number, Phaser.GameObjects.Image[]>();
+  /** Khối đang hiện (chỉ số khối): ảnh, nhóm vật cao (làm mờ khi che chính mình), các ô; ảnh khối rời tầm nhìn cất vào `free`. */
+  private live = new Map<number, { ims: Phaser.GameObjects.Image[]; tall: Tall[]; tiles: number[] }>();
   private free: Phaser.GameObjects.Image[] = [];
-  /** Vật có chiều cao đang hiện (để làm mờ khi che chính mình). */
-  private tall = new Set<Tall>();
-  private tallOf = new Map<Phaser.GameObjects.Image, Tall>();
+  /** Số khối theo hai trục và khung bao trên màn hình của tâm các ô mỗi khối (x0, y0, x1, y1), tính một lần. */
+  private CW = 0; private CH = 0; private cbox = new Float32Array(0);
+  /** Nhóm ảnh nhà (cố định) và nhóm vật cao đang mờ / khoét lỗ. */
+  private houses: Tall[] = [];
+  private faded = new Set<Tall>();
+  /** Điểm phát sáng gộp của các khối đang hiện (tính lại khi khối đổi). */
+  private glowList: Glow[] | null = null;
   private viewKey = "";
   private hole: Phaser.GameObjects.Graphics | null = null;
   private holeMask: Phaser.Display.Masks.GeometryMask | null = null;
@@ -149,6 +161,7 @@ export class IsoMap {
     this.MW = raw.width; this.MH = raw.height;
     const layer = (n: string): number[] => raw.layers.find((l: any) => l.type === "tilelayer" && l.name === n)?.data ?? [];
     this.ground = layer("ground"); this.trees = layer("trees"); this.canopy = layer("canopy");
+    this.chunkBoxes();
     const img = scene.textures.get("tiles").getSourceImage() as HTMLImageElement;
     if (img?.width) {
       const cv = document.createElement("canvas"); cv.width = img.width; cv.height = img.height;
@@ -336,9 +349,9 @@ export class IsoMap {
       const im = this.scene.add.image(at.x + c * 16, at.y, af ? this.atlas!.key : key, af ?? `c${c}`).setOrigin(0, 0);
       this.opts.lit?.(im);
       im.setDepth(frontDepth(X0, Y0, X1, Y1, at.x + c * 16 + w / 2));
-      group.ims.push(im); this.tallOf.set(im, group);
+      group.ims.push(im);
     }
-    this.tall.add(group);
+    this.houses.push(group);
   }
 
   /** Ô tường thành ở góc (có ô tường kề theo cả hai trục) hoặc ở đầu tường (đúng một ô tường kề, cạnh cổng). */
@@ -386,7 +399,7 @@ export class IsoMap {
 
   // ---------- Ánh sáng và không khí vùng (10.7) ----------
   /** Điểm phát sáng: vật phát sáng và mặt nước của các ô đang hiện, cộng ánh cửa mọi ngôi nhà (Lighting lọc theo khung camera). */
-  glows(): Glow[] { return [...this.houseGlow, ...[...this.glowAt.values()].flat()]; }
+  glows(): Glow[] { return (this.glowList ??= [...this.houseGlow, ...[...this.glowAt.values()].flat()]); }
   /** Chỗ khói bay lên (màn hình): đỉnh mái nhà và lửa đang hiện. */
   chimneys(): { x: number; y: number }[] {
     const fires = [...this.glowAt.values()].flat().filter((g) => GLOW_PROPS[g.kind]?.flicker).map((g) => ({ x: g.x, y: g.y - GLOW_PROPS[g.kind].h - 6 }));
@@ -547,33 +560,67 @@ export class IsoMap {
     this.atlas?.flush();
     if (TOPDOWN) return;
     if (this.hole) { this.hole.clear().fillStyle(0xffffff); for (const f of focus) this.hole.fillEllipse(f.x, f.y - (f.h ?? HOLE_H) / 2 + 6, f.w ?? HOLE_W, f.h ?? HOLE_H); }
-    for (const g of this.tall) {
-      const cover = g.ims.some((im) => focus.some((f) => covers(im, f)));
-      const a = cover ? (this.holeMask ? HOLE_ALPHA : FADE) : 1;
-      for (const im of g.ims) {
-        if (im.alpha !== a) im.setAlpha(a);
-        if (this.holeMask && (im.mask === this.holeMask) !== cover) { if (cover) im.setMask(this.holeMask); else im.clearMask(); }
-      }
+    // Ứng viên che: mọi nhà, cộng vật cao của các khối gần khung các thực thể cần thấy (11.4: không duyệt mọi vật đang hiện mỗi khung).
+    const cand: Tall[] = [...this.houses];
+    if (focus.length) {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const f of focus) { x0 = Math.min(x0, f.x); x1 = Math.max(x1, f.x); y0 = Math.min(y0, f.y - (f.h ?? HOLE_H)); y1 = Math.max(y1, f.y); }
+      x0 -= COVER_X; x1 += COVER_X; y1 += COVER_Y;
+      for (const [k, c] of this.live) { const b = k * 4; if (this.cbox[b] <= x1 && this.cbox[b + 2] >= x0 && this.cbox[b + 1] <= y1 && this.cbox[b + 3] >= y0) cand.push(...c.tall); }
+    }
+    const next = new Set<Tall>();
+    for (const g of cand) if (g.ims.some((im) => focus.some((f) => covers(im, f)))) next.add(g);
+    for (const g of this.faded) if (!next.has(g)) this.cover(g, false);
+    for (const g of next) if (!this.faded.has(g)) this.cover(g, true);
+    this.faded = next;
+  }
+
+  /** Làm mờ (khoét lỗ khi có WebGL) hoặc trả lại nguyên một nhóm vật cao. */
+  private cover(g: Tall, on: boolean) {
+    const a = on ? (this.holeMask ? HOLE_ALPHA : FADE) : 1;
+    for (const im of g.ims) {
+      im.setAlpha(a);
+      if (this.holeMask && (im.mask === this.holeMask) !== on) { if (on) im.setMask(this.holeMask); else im.clearMask(); }
     }
   }
 
+  /** Khung bao trên màn hình của tâm các ô mỗi khối (một lần khi vào bản đồ). */
+  private chunkBoxes() {
+    this.CW = Math.ceil(this.MW / CHUNK); this.CH = Math.ceil(this.MH / CHUNK); this.cbox = new Float32Array(this.CW * this.CH * 4);
+    for (let cy = 0; cy < this.CH; cy++) for (let cx = 0; cx < this.CW; cx++) {
+      const tx0 = cx * CHUNK + 0.5, ty0 = cy * CHUNK + 0.5, tx1 = Math.min(this.MW, (cx + 1) * CHUNK) - 0.5, ty1 = Math.min(this.MH, (cy + 1) * CHUNK) - 0.5;
+      const c = [worldToScreen(tx0 * TILE, ty0 * TILE), worldToScreen(tx1 * TILE, ty0 * TILE), worldToScreen(tx0 * TILE, ty1 * TILE), worldToScreen(tx1 * TILE, ty1 * TILE)];
+      const b = (cy * this.CW + cx) * 4;
+      this.cbox[b] = Math.min(...c.map((p) => p.x)); this.cbox[b + 1] = Math.min(...c.map((p) => p.y));
+      this.cbox[b + 2] = Math.max(...c.map((p) => p.x)); this.cbox[b + 3] = Math.max(...c.map((p) => p.y));
+    }
+  }
+
+  /** Dựng các khối có tâm ô nằm trong khung màn hình (x0, y0)–(x1, y1), cất ảnh các khối đã ra ngoài. */
   private stream(x0: number, y0: number, x1: number, y1: number) {
     const corners = [screenToWorld(x0, y0), screenToWorld(x1, y0), screenToWorld(x0, y1), screenToWorld(x1, y1)];
     const tx0 = Math.max(0, Math.floor(Math.min(...corners.map((c) => c.x)) / TILE)), tx1 = Math.min(this.MW - 1, Math.floor(Math.max(...corners.map((c) => c.x)) / TILE));
     const ty0 = Math.max(0, Math.floor(Math.min(...corners.map((c) => c.y)) / TILE)), ty1 = Math.min(this.MH - 1, Math.floor(Math.max(...corners.map((c) => c.y)) / TILE));
     const want = new Set<number>();
-    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
-      const s = worldToScreen((tx + 0.5) * TILE, (ty + 0.5) * TILE);
-      if (s.x >= x0 && s.x <= x1 && s.y >= y0 && s.y <= y1) want.add(ty * this.MW + tx);
+    for (let cy = Math.floor(ty0 / CHUNK); cy <= Math.floor(ty1 / CHUNK); cy++) for (let cx = Math.floor(tx0 / CHUNK); cx <= Math.floor(tx1 / CHUNK); cx++) {
+      const k = cy * this.CW + cx, b = k * 4;
+      if (this.cbox[b] <= x1 && this.cbox[b + 2] >= x0 && this.cbox[b + 1] <= y1 && this.cbox[b + 3] >= y0) want.add(k);
     }
-    for (const [i, ims] of this.live) if (!want.has(i)) {
-      for (const im of ims) {
-        im.setVisible(false); this.free.push(im);
-        const g = this.tallOf.get(im); if (g) { this.tall.delete(g); this.tallOf.delete(im); }
+    let changed = false;
+    for (const [k, c] of this.live) if (!want.has(k)) {
+      for (const im of c.ims) { im.setVisible(false); this.free.push(im); }
+      for (const g of c.tall) this.faded.delete(g);
+      for (const i of c.tiles) this.glowAt.delete(i);
+      this.live.delete(k); changed = true;
+    }
+    for (const k of want) if (!this.live.has(k)) {
+      const cx = k % this.CW, cy = Math.floor(k / this.CW), tiles: number[] = [], tall: Tall[] = [], ims: Phaser.GameObjects.Image[] = [];
+      for (let ty = cy * CHUNK; ty < Math.min(this.MH, (cy + 1) * CHUNK); ty++) for (let tx = cx * CHUNK; tx < Math.min(this.MW, (cx + 1) * CHUNK); tx++) {
+        const i = ty * this.MW + tx; tiles.push(i); ims.push(...this.place(i, tall));
       }
-      this.live.delete(i); this.glowAt.delete(i);
+      this.live.set(k, { ims, tall, tiles }); changed = true;
     }
-    for (const i of want) if (!this.live.has(i)) this.live.set(i, this.place(i));
+    if (changed) this.glowList = null;
   }
 
   private img(x: number, y: number, key: string) {
@@ -585,7 +632,7 @@ export class IsoMap {
   }
 
   /** Tạo các ảnh của ô `i`: mặt đất (ô thường / ô lớn / vẽ code), lớp phủ mép, rồi vật trên lớp `trees`. */
-  private place(i: number): Phaser.GameObjects.Image[] {
+  private place(i: number, tall: Tall[]): Phaser.GameObjects.Image[] {
     const tx = i % this.MW, ty = Math.floor(i / this.MW), cx = (tx + 0.5) * TILE, cy = (ty + 0.5) * TILE, s = worldToScreen(cx, cy);
     const out: Phaser.GameObjects.Image[] = [];
     const gid = this.ground[i], g = TOPDOWN ? null : this.groundOf(i), cp = this.comp.get(i);
@@ -620,7 +667,7 @@ export class IsoMap {
       if (cp.obj === "wall") { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
       else { const tex = this.scene.textures.get(cp.obj.key).getSourceImage(); im = this.img(s.x, s.y, cp.obj.key).setOrigin(cp.obj.def.foot[0] / tex.width, cp.obj.def.foot[1] / tex.height); }
       im.setDepth(depthAt(cx, cy)); out.push(im);
-      const g2: Tall = { ims: [im] }; this.tall.add(g2); this.tallOf.set(im, g2);
+      tall.push({ ims: [im] });
     }
     const t = this.trees[i];
     if (t > 0 && !this.inHouse.has(i)) {
@@ -641,7 +688,7 @@ export class IsoMap {
       // Nhìn thẳng: lớp `trees` nằm sát mặt đất như trước. Isometric: vật sắp lớp theo độ sâu của tâm ô.
       im.setDepth(TOPDOWN ? GROUND_DEPTH + 1 : depthAt(cx, cy));
       out.push(im);
-      if (!TOPDOWN) { const g2: Tall = { ims: [im] }; this.tall.add(g2); this.tallOf.set(im, g2); }
+      if (!TOPDOWN) tall.push({ ims: [im] });
     }
     const c = this.canopy[i];
     if (TOPDOWN && c > 0) out.push(this.img(s.x, s.y, this.objKey(c).key).setOrigin(0.5, 0.5).setDepth(99970));

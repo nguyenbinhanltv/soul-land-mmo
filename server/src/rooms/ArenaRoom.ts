@@ -57,6 +57,7 @@ export class ArenaRoom extends MapRoom {
     // Chỉ vào được bằng mã phòng (joinById) do server gửi cho đúng hai người đã ghép.
     void this.setPrivate(true);
     this.setup(ARENA_MAP);
+    this.interest.all = true; // sân nhỏ, hai người: không lọc đồng bộ theo vùng (11.4), không gửi tin bản đồ nhỏ
     for (const s of this.sides) { const a = new ArenaSide(); a.name = s.name; a.elo = s.rec.elo; this.state.sides.push(a); }
     // Chống dàn xếp (9.7): báo trước cho hai bên nếu cặp đã đủ ARENA.pairDaily trận tính Elo hôm nay. Chỉ để hiển thị; trận có tính
     // Elo không là do lần đếm lúc hết trận (finish) quyết định.
