@@ -1,8 +1,8 @@
-// Tìm đường khi bấm chuột trên nền (mục 5.11 "Điều khiển", bước 11.1): A* trên lưới ô chặn của file Tiled (shared/move.ts), chỉ ở
-// client. Client vẫn chỉ gửi hướng đi trong `input`; server tính vị trí và va chạm như khi giữ phím (mục 6).
-// Không dùng Phaser: bot (scripts/bot-test.mjs) và kiểm thử Node import thẳng file này.
-import { TILE, CLICK_PATH } from "../../shared/data.ts";
-import { hits, isSolidTile, PLAYER_HW, PLAYER_HH, type SolidGrid } from "../../shared/move.ts";
+// Tìm đường (mục 5.11 "Điều khiển", bước 11.1): A* trên lưới ô chặn của file Tiled (shared/move.ts). Client dùng khi bấm chuột trên
+// nền (vẫn chỉ gửi hướng đi trong `input`; server tính vị trí và va chạm như khi giữ phím, mục 6); server dùng cho tự săn (mục 5.13,
+// server/src/rooms/autoHunt.ts) rồi cũng chỉ đặt hướng đi như input. Không dùng Phaser: bot và kiểm thử Node import thẳng file này.
+import { TILE, CLICK_PATH } from "./data.ts";
+import { hits, isSolidTile, PLAYER_HW, PLAYER_HH, type SolidGrid } from "./move.ts";
 
 /** Một điểm thế giới (pixel). */
 export interface Pt { x: number; y: number; }
