@@ -15,6 +15,7 @@
 //       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc (y = 30; isometric y = 58);
 //       isometric: idle cả 4 khung giống nhau (chưa --breathe), chân hồn thú không chạm dòng gốc.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
 import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, statusIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 
@@ -234,5 +235,7 @@ for (const f of walk(SPRITES).filter((f) => f.endsWith(".png"))) {
   const rel = path.relative(SPRITES, f).split(path.sep).join("/");
   if (!seen.has(rel)) warn(rel, "có ảnh nhưng không có key trong manifest.json");
 }
+// Bản đồ isometric (10.2): shared/assets/iso/tiles.json phủ mọi gid của 10 bản đồ, ảnh ô / vật đúng cỡ, vật đã đăng ký, có kiểu nhà.
+errors += checkIsoTiles((m) => console.error(m));
 console.log(`[validate] ${manifest.sprites.length} key, ${errors} lỗi, ${warns} cảnh báo`);
 process.exit(errors ? 1 : 0);
