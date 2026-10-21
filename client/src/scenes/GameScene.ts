@@ -5,7 +5,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
-  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED,
+  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
@@ -1443,10 +1443,12 @@ export class GameScene extends Phaser.Scene {
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng (honsuAnimKey).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
-      const walk = mine ? this.pred!.walking(p, this.dir) : p.moving;
-      let d8 = mine ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
-      if (!d8 && !walk) { const f = DIR4_VEC[mine ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
-      else if (mine && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
+      // Mê hoặc (#116): server tự đi (spd đồng bộ 0 để không dự đoán theo phím) nên chính mình cũng đi / quay mặt theo vị trí server.
+      const charmed = (p.st & statusBit("charm")) !== 0, self = mine && !charmed;
+      const walk = self ? this.pred!.walking(p, this.dir) : p.moving;
+      let d8 = self ? (walk ? dir8(this.dir.x, this.dir.y) : null) : p.moving ? (Math.hypot(p.x - v.wx, p.y - v.wy) > 0.3 ? dir8(p.x - v.wx, p.y - v.wy) : null) : null;
+      if (!d8 && !walk) { const f = DIR4_VEC[self ? this.pred!.look(p, this.dir) : p.dir] ?? DIR4_VEC[0]; d8 = dir8(f.x, f.y); }
+      else if (self && walk) this.pred!.look(p, this.dir); // giữ hướng vừa đi trong bộ dự đoán (dùng khi vừa nhả phím)
       if (v.lock && time < v.lock.until) v.face = v.lock.face; // đang đánh: quay về phía đòn đánh
       else if (d8) { v.lock = null; v.face = d8; }
       if (mine) { const at = this.pred!.update(p, this.dir, dt, this.walk); v.wx = at.x; v.wy = at.y; }
@@ -1463,8 +1465,9 @@ export class GameScene extends Phaser.Scene {
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
-      // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác theo `spd` của server.
-      const spd = mine ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
+      // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác theo `spd` của server; đang Mê
+      // hoặc theo tốc độ đi bộ gốc × PLAYER_CHARM.spd (server không gửi tốc độ lúc này).
+      const spd = charmed ? PLAYER_SPEED * (VOHON[p.vh]?.spd ?? 1) * PLAYER_CHARM.spd : mine ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
       this.animatePlayer(v, p, time, walk, spd);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;

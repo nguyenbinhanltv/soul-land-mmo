@@ -573,11 +573,11 @@ if((await test(A,"ping"))?.enabled){
   }
   await test(A,"clear");
 
-  // Thú thực vật đứng yên (#116, BEAST_ROOTED): Quỷ Đằng 100 năm thấy A trong BEAST_AGGRO_R nhưng không đuổi; bị đánh không bị đẩy lùi;
-  // A ra xa quá BEAST_ROOTED.keep thì bỏ mục tiêu, vẫn ở chỗ sinh.
+  // Thú thực vật đứng yên (#116, BEAST_ROOTED): Quỷ Đằng 1.000 năm thấy A trong tầm với (tầm Quật Roi + margin) nhưng không đuổi; bị
+  // đánh không bị đẩy lùi; A ra ngoài tầm với thì bỏ mục tiêu, vẫn ở chỗ sinh.
   {
-    const rs=BEAST_ROOTED.ids[1]; await step(A,1,0);
-    const r0=(await test(A,"spawn",{tier:1,dx:40,species:rs}))?.bid, rOf=()=>st.beasts.get(r0);
+    const rs=BEAST_ROOTED.ids[1], ry0=TIERS[2].years, reach=Math.max(TIERS[2].size/2+6,beastSkillOf(rs,ry0)?.range??0)+BEAST_ROOTED.margin; await step(A,1,0);
+    const r0=(await test(A,"spawn",{tier:2,years:ry0,dx:40,species:rs}))?.bid, rOf=()=>st.beasts.get(r0);
     await waitFor(()=>rOf(),1000); const rx=rOf()?.x??0, ry=rOf()?.y??0; // chỗ sinh theo state (A có thể còn trôi sau bước vừa đi)
     ok(BEAST_ROOTED.ids.includes(BEASTS[rOf()?.species]?.id)&&await waitFor(()=>rOf()?.aggro,2000),`${BEASTS[rOf()?.species]?.name}: phát hiện A`);
     await sleep(1000);
@@ -586,10 +586,11 @@ if((await test(A,"ping"))?.enabled){
     const h0=rOf()?.hp; A.room.send("attack");
     ok(await waitFor(()=>rOf()&&rOf().hp<h0,1500)&&(await sleep(300),Math.hypot(rOf().x-rx,rOf().y-ry)<0.5),`bị đánh thường không bị đẩy lùi (lệch ${rOf()&&Math.hypot(rOf().x-rx,rOf().y-ry).toFixed(1)} pixel)`);
     let far=false;
-    for(const [dx,dy] of [[-(BEAST_ROOTED.keep+30),0],[0,BEAST_ROOTED.keep+30],[0,-(BEAST_ROOTED.keep+30)],[BEAST_ROOTED.keep+30,0]]){
+    const fd=Math.round(reach+30);
+    for(const [dx,dy] of [[-fd,0],[0,fd],[0,-fd],[fd,0]]){
       await test(A,"goto",{x:rx+dx,y:ry+dy}); if(Math.hypot(p.x-rx-dx,p.y-ry-dy)<1){ far=true; break; } }
-    if(!far) console.log("  ⚠ bỏ qua kiểm tra bỏ mục tiêu của thú đứng yên: không có chỗ đứng cách", BEAST_ROOTED.keep+30, "pixel");
-    else ok(await waitFor(()=>rOf()&&!rOf().aggro,1500)&&Math.hypot(rOf().x-rx,rOf().y-ry)<0.5,`A ra xa quá ${BEAST_ROOTED.keep} pixel: bỏ mục tiêu, vẫn ở chỗ sinh`+
+    if(!far) console.log("  ⚠ bỏ qua kiểm tra bỏ mục tiêu của thú đứng yên: không có chỗ đứng cách", fd, "pixel");
+    else ok(await waitFor(()=>rOf()&&!rOf().aggro,1500)&&Math.hypot(rOf().x-rx,rOf().y-ry)<0.5,`A ra ngoài tầm với ${reach.toFixed(0)} pixel: bỏ mục tiêu, vẫn ở chỗ sinh`+
       ` (cách A ${rOf()&&Math.hypot(rOf().x-p.x,rOf().y-p.y).toFixed(0)}, aggro ${rOf()?.aggro}, lệch ${rOf()&&Math.hypot(rOf().x-rx,rOf().y-ry).toFixed(1)})`);
     await test(A,"clear");
   }

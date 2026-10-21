@@ -18,7 +18,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
-  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, BEAST_ROOTED, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
+  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS,
   ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
@@ -38,7 +38,7 @@ import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTow
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
-import { isRooted, beastDefOf } from "./beastTraits.ts";
+import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import * as party from "../party.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
@@ -144,6 +144,7 @@ interface BData {
   zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number;
   ret: number;              // 11.1: > 0 là đang bỏ đuổi, chạy về chỗ sinh (còn ngần ấy giây, BEAST_LEASH)
   rooted: boolean;          // #116: thú thực vật đứng yên (BEAST_ROOTED): không đi, không bị đẩy / kéo
+  reach: number;            // #116: tầm với của thú đứng yên (rootedReach): nhận / giữ mục tiêu trong tầm này; 0 với hồn thú khác
   st: Map<StatusId, SInst>; // trạng thái dùng chung (mục 5.1) đang có
   dotT: number;             // đếm giờ tới lần gây sát thương theo thời gian kế tiếp (STATUS_TICK)
   calm: number;             // số giây kể từ lần cuối bị đánh (hồi máu khi không có mục tiêu, BEAST_REGEN)
@@ -4084,12 +4085,13 @@ export class MapRoom extends Room<MapState> {
     b.phase = king ? 1 : 0; b.parts = boss ? 1 : 0;
     const id = uid("b"); this.state.beasts.set(id, b); this.interest.beasts.put(id, x, y);
     const sk = boss ? null : beastSkillOf(BEASTS[species]?.id ?? "", years);
-    this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0, rooted: isRooted(b.rank, species),
+    this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0, rooted: isRooted(b.rank, species), reach: 0,
       st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg), def: beastDefOf(b.rank, species, years),
       skills: boss ? boss.skills.map((def) => ({ def, cd: 0 })) : sk ? [{ def: sk, cd: 0 }] : [], skT: 0, cast: null,
       buffs: new Map(), minions: new Set(),
       elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), rageCd: 0,
         king: king ? { def: boss, slot, life, phase: 1, roar: 0, spd: 1, noted: new Set(), rankT: 0, world: world ? newWorld(boss) : null } : null } : null });
+    const bd = this.bdata.get(id)!; if (bd.rooted) bd.reach = rootedReach(TIERS[b.tier].size / 2 + 6, bd.skills.map((s) => s.def));
     return id;
   }
 
@@ -4911,15 +4913,15 @@ export class MapRoom extends Room<MapState> {
       // thì bỏ mục tiêu và chạy về chỗ sinh (11.1); đang về thì không nhận mục tiêu, kể cả người vừa đánh nó.
       const far = !king && Math.hypot(b.x - bd.hx, b.y - bd.hy) > BEAST_LEASH.r;
       if (tgt && (off(tgt, bd.target!) || (king && !this.map.inLair(tgt.x, tgt.y)))) { bd.target = null; tgt = undefined; }
-      // Thú thực vật đứng yên (#116): mục tiêu ra xa quá BEAST_ROOTED.keep thì bỏ (không đuổi theo được).
-      if (tgt && bd.rooted && Math.hypot(tgt.x - b.x, tgt.y - b.y) > BEAST_ROOTED.keep) { bd.target = null; tgt = undefined; }
+      // Thú thực vật đứng yên (#116): mục tiêu ra ngoài tầm với thì bỏ (không đuổi theo được).
+      if (tgt && bd.rooted && Math.hypot(tgt.x - b.x, tgt.y - b.y) > bd.reach) { bd.target = null; tgt = undefined; }
       if (tgt && far && !bd.ret) bd.ret = BEAST_LEASH.secs;
       if (bd.ret > 0) {
         bd.target = null; tgt = undefined;
         if ((bd.ret -= dt) <= 0 || Math.hypot(b.x - bd.hx, b.y - bd.hy) < BEAST_LEASH.near) { bd.ret = 0; bd.wt = 0; }
       }
       if (!tgt && !bd.ret && (b.tier >= 1 || king) && !charm) {
-        let best = king ? Infinity : BEAST_AGGRO_R;
+        let best = king ? Infinity : bd.rooted ? Math.min(BEAST_AGGRO_R, bd.reach) : BEAST_AGGRO_R; // thú đứng yên: trong tầm với
         const look = (p: PlayerState | undefined, pid: string) => {
           if (!p || off(p, pid) || (king && !this.map.inLair(p.x, p.y))) return;
           const dd = Math.hypot(p.x - b.x, p.y - b.y); if (dd < best) { best = dd; bd.target = pid; tgt = p; }
