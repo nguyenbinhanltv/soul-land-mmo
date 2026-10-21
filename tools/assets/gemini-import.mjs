@@ -43,6 +43,7 @@
 //                          bảng auto chung cả lô (mặc định 32; tấm nhiều chất liệu thì ô đều màu chỉ còn 1–3 màu).
 //   --scale S              (sprite) hệ số thu chung đặt hẳn thay vì vừa vật lớn nhất.
 //   --logo auto|off|x,y,w,h|star:cx,cy,R[,alpha]   --key #rrggbb (màu nền; mặc định đọc ở góc ảnh)   --tol 60
+//   --fringe 2             số lượt gỡ viền nhiễm màu nền (điểm ảnh gốc); quầng sáng vẽ đè lên nền thì tăng (10–20).
 //   --inset auto|<số>      (tile) số điểm ảnh gốc thu vào từ mép thoi để bỏ viền; auto: dò bề rộng dải mép khác màu
 //                          bên trong (viền đen, thành "hộp kính" của nước), tối thiểu 1,5, tối đa 12.
 //   --seamless on|off      (tile, mặc định on)   --seam-band 0.3 (bề rộng dải trộn, phần của bán kính thoi).
@@ -58,7 +59,7 @@ const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i,
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
 const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? "10" : "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto");
+const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const scaleOpt = opt("--scale", ""), debug = flag("--debug"), faceOnly = flag("--face-only");
 const file = args[0];
@@ -263,8 +264,9 @@ function removeBackground(img, K) {
     const p = img.get(x, y);
     if (maxDiff(p, K) <= tol || keyness(p) > kRef * 0.55) out.set(x, y, [0, 0, 0, 0]);
   }
-  // Viền nhiễm màu nền: 2 lượt gỡ điểm còn ánh màu khóa nằm sát nền.
-  for (let pass = 0; pass < 2; pass++) {
+  // Viền nhiễm màu nền: --fringe lượt (mặc định 2) gỡ điểm còn ánh màu khóa nằm sát nền. Quầng sáng vẽ đè lên nền
+  // (nấm, cây phát quang) cần nhiều lượt hơn; lượt gỡ dừng ở viền tối của vật vì viền không ánh màu khóa.
+  for (let pass = 0; pass < fringe; pass++) {
     const drop = [];
     for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
       if (!out.alpha(x, y) || keyness(out.get(x, y)) <= kRef * 0.15) continue;
