@@ -239,14 +239,14 @@ export class MemoryStore implements Store {
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
     const key = nameKey(name);
-    let acc = this.accounts.get(key);
+    let acc = this.accounts.get(key), created = false;
     if (!acc) {
       const pass = await hashPass(password);
       // Trong lúc băm có yêu cầu khác cùng tên vừa tạo tài khoản: kiểm mật khẩu như tài khoản có sẵn.
       acc = this.accounts.get(key);
-      if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); }
-      else if (!(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
-    } else if (!(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
+      if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); created = true; }
+    }
+    if (!created && !(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
     const token = newToken(); this.sessions.set(token, acc.id);
     return { token, accountId: acc.id };
   }
