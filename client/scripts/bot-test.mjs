@@ -3507,7 +3507,7 @@ else {
       A.elite=[]; const ke=await killBone(1500,undefined,HN);
       ok(ke&&ke.dr.years===1500&&ke.dr.species===base&&ke.dr.slot===slotOf("than")&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
         `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm (${+(boneChance(1500,x3)*100).toFixed(2)}%) rơi hồn cốt ${ke?boneName(BEASTS[ke.dr.species]?.id,BONE_SLOTS[ke.dr.slot]?.id,ke.dr.years):"?"} (loài gốc), thuộc A`);
-      await test(A,"bone",{r:4});
+      await test(A,"bone",{r:4}); await test(A,"elock",{s:0}); // #119: bỏ khóa thưởng tinh anh để thử đúng tỉ lệ x ELITE.bone
       ok(!await killBone(1500,undefined,HN),`số ngẫu nhiên 0,04 (trên ${+(boneChance(1500,x3)*100).toFixed(2)}%): tinh anh không rơi hồn cốt`);
     }
     // ---------- 5.1: hồn hạch rơi theo bảng 5.3 (15% 1–2★ / 25% 2–4★ / 40% 3–5★ / 100% 5–6★), bộ theo bản đồ, chỉ số chính và phụ; nằm trong túi ----------
@@ -3617,11 +3617,12 @@ else {
         await test(A,"goto",spot); await test(A,"drops",{s:3600}); await sleep(120);
         await test(A,"core",{r:99});
         ok(!await killCore(1500,hb.species),"số ngẫu nhiên 0,99: hồn thú thường 1.500 năm (25%) không rơi hồn hạch");
-        A.elite=[]; const ke=await killCore(1500,undefined,HN);
+        // #119: hạ cùng loài tinh anh liên tiếp thì bị khóa thưởng ELITE.lock giây; bài này thử luật rơi của từng lần hạ nên bỏ khóa trước.
+        await test(A,"elock",{s:0}); A.elite=[]; const ke=await killCore(1500,undefined,HN);
         ok(ke&&ke.dr.stars>=2&&ke.dr.stars<=4&&ke.dr.owner===A.room.sessionId&&await waitFor(()=>A.elite.some(m=>m.k==="down"),1000),
           `cùng số ngẫu nhiên: hạ ${beastName(1,bossIndex(HN))} 1.500 năm chắc chắn rơi ${ke?coreName(CORE_SETS[ke.dr.cset].id,ke.dr.stars):"không có hồn hạch"} (2–4★), thuộc A`);
         await test(A,"core",{r:-1}); // số ngẫu nhiên thật: tinh anh vẫn luôn rơi
-        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
+        let all=0; for(let k=0;k<3;k++){ await test(A,"drops",{s:3600}); await test(A,"elock",{s:0}); await sleep(120); if(await killCore(437,undefined,HN)) all++; }
         ok(all===3,`số ngẫu nhiên thật: hạ tinh anh 3 lần, rơi hồn hạch ${all}/3 lần`);
         await test(A,"drops",{s:3600});
       }
