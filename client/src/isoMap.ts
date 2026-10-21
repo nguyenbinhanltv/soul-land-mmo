@@ -34,7 +34,7 @@ const ROOF = 14, WALL = 15;
 interface GroundDef { img: string[]; big?: string[]; c: [number, number]; cBig?: [number, number]; edge: number; flip?: boolean }
 /** Vật đứng: key manifest `prop_{vật}` (ảnh sprites/iso/props/{vật}.png) và điểm chân (chạm tâm ô) trong ảnh. */
 interface PropDef { key: string; foot: [number, number]; flip?: boolean }
-/** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu), kiểu nhà. Bộ "*" là mặc định. */
+/** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu, `~x1.3` để sáng lên), kiểu nhà. Bộ "*" là mặc định. */
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
 interface IsoTiles { ground: Record<string, GroundDef>; props: Record<string, PropDef>; maps: Record<string, MapSet> }
 
@@ -159,11 +159,13 @@ export class IsoMap {
     this.build = set.build ?? null;
   }
 
-  /** Texture nhân màu `tint` (#rrggbb) của `key` (tạo một lần, chạy cả khi chỉ có Canvas, không dùng setTint). */
+  /** Texture nhân màu `tint` (#rrggbb, hoặc x<hệ số> để sáng lên) của `key` (tạo một lần, chạy cả khi chỉ có Canvas, không dùng setTint). */
   private tinted(key: string, tint: string) {
     if (!tint) return key;
     const out = `${key}~${tint}`; if (this.scene.textures.exists(out)) return out;
-    const { cv, ctx, data } = this.pixels(key), [r, g, b] = rgba(tint), d = data.data;
+    // "#rrggbb": nhân màu (tối đi / ngả màu); "x1.3": nhân độ sáng (sáng lên, vùng tối như Nội địa / Lõi Tinh Đấu).
+    const { cv, ctx, data } = this.pixels(key), d = data.data;
+    const [r, g, b] = tint.startsWith("x") ? [0, 0, 0].map(() => 255 * (parseFloat(tint.slice(1)) || 1)) : rgba(tint);
     for (let i = 0; i < d.length; i += 4) { d[i] = (d[i] * r) / 255; d[i + 1] = (d[i + 1] * g) / 255; d[i + 2] = (d[i + 2] * b) / 255; }
     ctx.putImageData(data, 0, 0); this.scene.textures.addCanvas(out, cv);
     return out;
