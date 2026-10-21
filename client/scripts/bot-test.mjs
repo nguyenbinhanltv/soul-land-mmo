@@ -92,6 +92,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW } from "../../shared/data.ts";
+import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -929,14 +930,27 @@ else {
   for(const id of [...FIVE,"tu_vong_chu_hoang"]) await test(E,"set",{rowId:rowE(id),level:40,xp:0,rings:YRS});
   ok(await leaveSafe(E),"E: ra khỏi làng");
   {
-    // Vùng an toàn (BĐ2): không tung hồn kỹ; sát thương theo thời gian của người đứng trong làng tạm dừng, ra ngoài thì tiếp tục.
+    // Vùng an toàn (BĐ2): không tung hồn kỹ; sát thương theo thời gian của người đứng trong làng tạm dừng, ra ngoài thì tiếp tục;
+    // sinh lực / hồn lực trong làng hồi nhanh hơn ngoài rừng (#112).
     const ry=27.5*16, out=safe.x+safe.width+30, bid=await spawnNear(E,3,40), pc=STATUS.poison.col, ticks=()=>E.dmgs.filter(d=>d.bid===bid&&d.c===pc);
     await test(E,"status",{s:"stun",secs:30}); await test(E,"status",{s:"poison",n:2,secs:30});
     E.dmgs=[]; ok(await waitFor(()=>ticks().length,1500),`Trúng độc ngoài làng: mất ${ticks()[0]?.v} mỗi giây`);
     await goTo(E,safe.x+safe.width-24,ry); ok(inSafeOf(E),"E vào làng");
     E.dmgs=[]; await test(E,"ready"); E.room.send("skill",{i:0}); ok(await lastLog(E,/Vùng an toàn/),"trong làng: không tung hồn kỹ");
     await sleep(2200); ok(!ticks().length,"trong làng: độc do mình gây tạm dừng, không gây sát thương");
+    // #112: hồi sinh lực / hồn lực 1 giây (hook pregen chạy đúng regenPlayer): khớp hpRegen / mpRegen, trong làng nhanh gấp SAFE_REGEN_MULT.
+    const regen=async(inside,hit)=>{ const r=await test(E,"pregen",{s:1,hp:20,mp:0,hit});
+      if(typeof r?.hp!=="number"){ ok(false,`${inside?"trong":"ngoài"} làng: hook pregen không chạy (E gục / đang đi cổng?)`); return {hp:NaN,mp:NaN}; }
+      const hp=Math.min(r.maxHp-r.hp0,hpRegen(r.maxHp,hit?0:99,inside)), mp=Math.min(r.maxMp-r.mp0,mpRegen(r.level,VOHON[r.vh].mp,inside));
+      ok(r.safe===inside&&Math.abs(r.hp-hp)<1e-6&&Math.abs(r.mp-mp)<1e-6,
+        `${inside?"trong":"ngoài"} làng${hit?", vừa bị đánh":""}: hồi ${r.hp.toFixed(2)} sinh lực (cần ${hp.toFixed(2)}), ${r.mp.toFixed(2)} hồn lực (cần ${mp.toFixed(2)}) mỗi giây`);
+      return r; };
+    const full=()=>test(E,"pregen",{s:0,hp:100,mp:100}); // trả lại đầy sinh lực / hồn lực, coi như đã lâu không bị đánh
+    const sIn=await regen(true,false), sInHit=await regen(true,true); await full(); // ra khỏi làng với đầy sinh lực như trước
     await goTo(E,out,ry); E.dmgs=[]; ok(!inSafeOf(E)&&await waitFor(()=>ticks().length,1500),"ra khỏi làng: độc gây sát thương tiếp");
+    const sOut=await regen(false,false), sOutHit=await regen(false,true); await full();
+    const rt=(x,y)=>Math.abs(x/y-SAFE_REGEN_MULT)<1e-6;
+    ok(rt(sIn.hp,sOut.hp)&&rt(sInHit.hp,sOutHit.hp)&&rt(sIn.mp,sOut.mp),`vùng an toàn hồi nhanh gấp ${SAFE_REGEN_MULT}: sinh lực ${sIn.hp.toFixed(1)} / ${sOut.hp.toFixed(1)}, vừa bị đánh ${sInHit.hp.toFixed(1)} / ${sOutHit.hp.toFixed(1)}, hồn lực ${sIn.mp.toFixed(1)} / ${sOut.mp.toFixed(1)}`);
     await test(E,"clear");
   }
   // Hướng thử: tính lại ở chỗ đứng hiện tại mỗi lần quay mặt (không vướng cây, không ra ngoài bản đồ trong 100 pixel).

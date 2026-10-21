@@ -32,6 +32,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
   ARENA, SYNC_VIEW } from "../../../shared/data.ts";
+import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
@@ -1864,7 +1865,8 @@ export class MapRoom extends Room<MapState> {
    * Từ 2.5a: `status {s, n, secs, all}` (gây trạng thái lên hồn thú gần nhất trong 160 pixel, `all`: mọi hồn thú trong 160 pixel,
    * bằng applyStatus với sức mạnh 1), `boom` (Viêm bạo lên hồn thú gần nhất), `bhp {pct}` (hồn thú gần nhất còn pct% sinh lực,
    * coi như vừa bị đánh), `regen {s}` (hồn thú gần nhất hồi máu s giây bằng regenBeast; trả `gain`), `ready {mp}` (hết hồi chiêu
-   * hồn kỹ, hồn lực còn mp%), `grant {vohon}` (thêm võ hồn bất kỳ, kể cả UR, vào tài khoản; có lưu DB). `down` / `hurt` bỏ qua cả
+   * hồn kỹ, hồn lực còn mp%), `pregen {s, hp, mp, hit}` (#112: người gọi còn hp% sinh lực, mp% hồn lực, vừa bị đánh nếu `hit`, rồi
+   * hồi s giây bằng regenPlayer; trả phần hồi và `safe`), `grant {vohon}` (thêm võ hồn bất kỳ, kể cả UR, vào tài khoản; có lưu DB). `down` / `hurt` bỏ qua cả
    * miễn sát thương.
    * Từ BĐ3: `legacy {mapId, x, y}` ghi `map_id` cũ đã bỏ khỏi MAPS (mã trong MAP_MOVED, ví dụ `tinh_dau`) và vị trí (x, y) như tài
    * khoản của bản trước, qua đúng transaction đi cổng (freeze, saveTravel; trả `saved`); client rời phòng rồi hỏi lại /api/me.
@@ -2056,6 +2058,12 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "bhp") { const x = nearB(); if (x) { x.b.hp = Math.max(1, Math.round(x.b.maxHp * int(o.pct, 1, 100, 100) / 100)); x.bd.calm = 0; x.bd.regen = 0; } }
     else if (op === "regen") { const x = nearB(); if (x) { const h0 = x.b.hp; this.regenBeast(x.b, x.bd, int(o.s, 0, 60, 0)); out = { gain: x.b.hp - h0 }; } }
+    else if (op === "pregen" && !p.dead && !d.travelling) {
+      // #112: sinh lực / hồn lực của người gọi còn hp% / mp%, `hit`: vừa bị đánh (không thì đã lâu), rồi hồi s giây bằng regenPlayer.
+      d.hpF = Math.max(1, p.maxHp * int(o.hp, 1, 100, 100) / 100); d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; d.lastHit = o.hit ? 0 : 99;
+      const h0 = d.hpF, m0 = d.mpF, safe = this.regenPlayer(p, d, int(o.s, 0, 60, 0)); // kể cả võ hồn ngoài sân (benchHp)
+      out = { safe, hp: d.hpF - h0, mp: d.mpF - m0, hp0: h0, mp0: m0, maxHp: p.maxHp, maxMp: p.maxMp, level: p.level, vh: p.vh };
+    }
     else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
       const vohon = String(o.vohon ?? "");
@@ -2798,6 +2806,23 @@ export class MapRoom extends Room<MapState> {
       this.damageBeast(bid, x.v * x.n, x.src, STATUS[s].col, undefined, { direct: false });
     }
     if (!bd.st.size) bd.dotT = 0;
+  }
+
+  /**
+   * Hồi sinh lực / hồn lực của hồn sư trong `dt` giây (mục 4, hpRegen / mpRegen); vùng an toàn hồi nhanh hơn (SAFE_REGEN_MULT).
+   * Võ hồn khác trong đội (chưa gục) hồi sinh lực cùng nhịp với võ hồn ra trận. Trả về có đang ở vùng an toàn không.
+   */
+  regenPlayer(p: PlayerState, d: PData, dt: number): boolean {
+    const safe = this.map.inSafe(p.x, p.y), regen = (max: number) => hpRegen(max, d.lastHit, safe) * dt;
+    d.mpF = Math.min(p.maxMp, d.mpF + mpRegen(p.level, VOHON[p.vh].mp, safe) * dt);
+    d.hpF = Math.min(p.maxHp, d.hpF + regen(p.maxHp));
+    p.hp = Math.ceil(d.hpF); p.mp = Math.floor(d.mpF);
+    for (const [r, hp] of d.benchHp) {
+      const v = d.owned.find((o) => o.rowId === r), max = v ? this.maxHpOf(d, v) : 0;
+      const nv = hp + regen(max);
+      if (!v || nv >= max) d.benchHp.delete(r); else d.benchHp.set(r, nv);
+    }
+    return safe;
   }
 
   /** Hồn thú không mục tiêu, không bị đánh BEAST_REGEN.delay giây thì hồi máu; Trúng độc giảm hồi máu (healCut). */
@@ -4807,15 +4832,7 @@ export class MapRoom extends Room<MapState> {
           if (why === null) this.beginTravel(id, cast.portal); else if (why) this.log(id, why, "#ffb35c");
         }
       }
-      d.mpF = Math.min(p.maxMp, d.mpF + (4 + p.level * 0.15) * (VOHON[p.vh].mp > 1 ? 1.5 : 1) * dt);
-      const regen = (max: number) => (d.lastHit > 5 ? max * 0.04 : 1.5) * dt;
-      d.hpF = Math.min(p.maxHp, d.hpF + regen(p.maxHp));
-      p.hp = Math.ceil(d.hpF); p.mp = Math.floor(d.mpF);
-      // Võ hồn khác trong đội (chưa gục) hồi sinh lực cùng nhịp với võ hồn ra trận.
-      for (const [r, hp] of d.benchHp) {
-        const v = d.owned.find((o) => o.rowId === r), max = v ? this.maxHpOf(d, v) : 0;
-        if (!v || hp + regen(max) >= max) d.benchHp.delete(r); else d.benchHp.set(r, hp + regen(max));
-      }
+      this.regenPlayer(p, d, dt);
       this.tickDowns(id, dt);
       this.tickEnergy(id, dt);
       d.squadT -= dt;

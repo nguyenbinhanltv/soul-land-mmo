@@ -393,6 +393,21 @@ export const TEAM_COMBAT_SECS = 5;
 export const REVIVE_SECS = 60;
 /** Cả đội gục: sau ngần này giây hồn sư về doanh trại, cả đội hồi đầy (không mất kinh nghiệm hay đồ, mục 2). */
 export const RESPAWN_SECS = 2.5;
+/**
+ * Hồi sinh lực / hồn lực của hồn sư mỗi giây (mục 4 "Hồi sinh lực và hồn lực"), server tính trong `MapRoom.regenPlayer`:
+ * - hồn lực: `mp` + `mpLevel` × cấp; võ hồn nhiều hồn lực (`VOHON[].mp` > 1) nhân `mpRich`;
+ * - sinh lực: không bị đánh quá `calmSecs` giây thì `hpCalm` × sinh lực tối đa, không thì `hpHit` điểm. Võ hồn khác trong đội
+ *   (chưa gục) hồi sinh lực cùng nhịp theo sinh lực tối đa của chính nó.
+ */
+export const PLAYER_REGEN = { mp: 4, mpLevel: 0.15, mpRich: 1.5, calmSecs: 5, hpCalm: 0.04, hpHit: 1.5 };
+/** Trong vùng an toàn (cả bản đồ thành, vùng `safe` trong bản đồ săn) sinh lực và hồn lực hồi nhanh gấp ngần này lần ngoài rừng. */
+export const SAFE_REGEN_MULT = 3;
+/** Sinh lực hồi mỗi giây (PLAYER_REGEN): `lastHit` là số giây kể từ lần cuối bị đánh, `safe` đang đứng trong vùng an toàn. */
+export const hpRegen = (maxHp: number, lastHit: number, safe: boolean) =>
+  (lastHit > PLAYER_REGEN.calmSecs ? maxHp * PLAYER_REGEN.hpCalm : PLAYER_REGEN.hpHit) * (safe ? SAFE_REGEN_MULT : 1);
+/** Hồn lực hồi mỗi giây (PLAYER_REGEN): `vohonMp` là hệ số hồn lực của võ hồn ra trận (`VOHON[].mp`). */
+export const mpRegen = (level: number, vohonMp: number, safe: boolean) =>
+  (PLAYER_REGEN.mp + level * PLAYER_REGEN.mpLevel) * (vohonMp > 1 ? PLAYER_REGEN.mpRich : 1) * (safe ? SAFE_REGEN_MULT : 1);
 /** Chia kinh nghiệm hạ hồn thú cho đội (mục 5.1): võ hồn ra trận 40%, mỗi võ hồn khác trong đội 20%. Ô trống, võ hồn ở bình cảnh: phần đó bỏ đi. */
 export const XP_SHARE_ACTIVE = 0.4;
 export const XP_SHARE_BENCH = 0.2;
