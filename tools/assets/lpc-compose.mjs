@@ -1,7 +1,8 @@
-// Ghép nhân vật từ Universal LPC Spritesheet Character Generator (thử nghiệm, xem skill asset-gen mục "Nguồn LPC").
-//   node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <thư mục> --set m_2 [--hair-col 2] [--outfit-col 0] [--credits <file.md>]
+// Ghép NPC phụ (dân thường, lính gác…) từ Universal LPC Spritesheet Character Generator (xem skill asset-gen mục "Nguồn LPC").
+// Không dùng cho hồn sư người chơi (bộ giới × kiểu tóc vẽ bằng PixelLab, phong cách LPC lệch).
 //   node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <thư mục> --npc truong_thon|thuong_nhan|tho_ren|linh_gac
 //   node tools/assets/lpc-compose.mjs --lpc <repo LPC> --out <thư mục> --recipe <công thức.json>
+//   tùy chọn: [--hair-col N] [--outfit-col N] [--skin N] [--desat 0…1] [--credits <file.md>]
 //
 // Repo LPC (https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator) tải về NGOÀI repo game;
 // chỉ đọc PNG trong `spritesheets/` và `CREDITS.csv`, không chạy code của repo đó.
@@ -17,8 +18,9 @@
 //   2. Màu: mỗi lớp tóc / áo đưa về dải 4 xám chuẩn (GRAY_RAMP, hoặc một đoạn của dải theo `ramp`) theo hạng độ sáng các
 //      màu của lớp đó trên cả bộ; da của lớp thân / đầu về 3 sắc da tông 0 (SKIN_TONES[0]), mắt lam về màu "Mắt"; lớp thân
 //      có `ramp` (giày) về dải đó; còn lại (lòng trắng mắt) về màu gần nhất của bảng chung. Lớp `keep` (giáp, mũ sắt, tạp
-//      dề) giữ màu gốc đưa về bảng chung, không hoán màu. Màu gần đen và điểm mép hình (giáp điểm trong suốt) thành viền
-//      `#1a1020`.
+//      dề) giữ màu gốc, giảm bão hòa theo --desat (mặc định DESAT_DEFAULT, NPC phụ không nổi hơn hồn sư) rồi đưa về bảng
+//      chung, không hoán màu. Màu giữ nguyên không lấy dải xám hay dải da tông 0 (client hoán các màu đó). Màu gần đen và
+//      điểm mép hình (giáp điểm trong suốt) thành viền `#1a1020`.
 //   3. Ánh xạ 4 hướng LPC → 5 hướng vẽ của game (LPC_DIR_ROW): s = xuống, n = lên, e / se / ne = phải (hai chéo nông lệch
 //      26,6° so với phương ngang nên gần ngang hơn, cùng quy tắc `legacyDir` của client/src/iso.ts); sw / w / nw do client
 //      lật se / e / ne như mọi bộ isometric. Hàng "trái" của LPC không dùng.
@@ -28,11 +30,13 @@
 //   5. Ghi khung `{hướng}_{animation}_{i}.png` vào <out>/<tên>/{body,outfit,hair}/ rồi gọi pack.mjs --set ghi
 //      <out>/{body,outfit,hair}_<tên>.png (3 lớp xám để client hoán màu như phương án (b) mục 5.11), kèm
 //      <out>/<tên>_mau.png đã tô màu tóc / áo / da (xem thử).
-//   6. Ghi công: mỗi file LPC đã đọc tra trong CREDITS.csv (tác giả, giấy phép, URL); chỉ nhận CC0, CC-BY, CC-BY-SA,
-//      OGA-BY, GPL (giấy phép khác thì dừng). Ghi bảng vào <out>/CREDITS-LPC.md, hoặc vào mục LPC giữa hai dấu
-//      `<!-- lpc:start -->` / `<!-- lpc:end -->` của file `--credits` (ví dụ art/CREDITS.md khi đưa ảnh vào game).
+//   6. Ghi công: mỗi file LPC đã đọc tra đúng mục của nó trong CREDITS.csv (tác giả, giấy phép, URL; file màu
+//      `<thư mục>/<animation>/<màu>.png` tra `<thư mục>/<animation>.png`), không có thì dừng. Chỉ nhận lớp có ít nhất một
+//      giấy phép CC0 / CC-BY / OGA-BY (lớp chỉ có CC-BY-SA / GPL, giấy phép lạ thì dừng). Ghi bảng vào
+//      <out>/CREDITS-LPC.md, hoặc vào mục LPC giữa hai dấu `<!-- lpc:start -->` / `<!-- lpc:end -->` của file `--credits`
+//      (ví dụ art/CREDITS.md khi đưa ảnh vào game; thiếu / thừa dấu thì dừng trước khi ghi).
 //
-// Công thức (--recipe, tên bộ = tên file; hoặc RECIPES dựng sẵn bên dưới): { "sex": "male"|"female", "hairCol", "outfitCol",
+// Công thức (--recipe, tên = tên file; hoặc RECIPES dựng sẵn bên dưới): { "sex": "male"|"female", "hairCol", "outfitCol",
 //   "skin", "layers": [{ "dir": "hair/spiked/adult/", "z": 120, "group": "hair", "variant"?: "white", "keep"?: true,
 //   "ramp"?: [0, 1, 2] | ["#3a2a18", …] }] }. `dir` lấy đúng cột layer_N của sheet_definitions theo thể hình; `z` là zPos
 //   của lớp đó; `ramp` là chỉ số GRAY_RAMP (tóc / áo) hoặc mã màu (lớp thân không phải da, ví dụ giày).
@@ -44,11 +48,13 @@ import { ROOT, readPng, encodePng, Img, hex, toHex, readGplNamed, GRAY_RAMP, OUT
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-const lpc = opt("--lpc", process.env.LPC_DIR ?? ""), out = opt("--out", ""), set = opt("--set", ""), npc = opt("--npc", ""), recipeFile = opt("--recipe", "");
-const hairColOpt = opt("--hair-col", ""), outfitColOpt = opt("--outfit-col", ""), creditsFile = opt("--credits", "");
+const lpc = opt("--lpc", process.env.LPC_DIR ?? ""), out = opt("--out", ""), npc = opt("--npc", ""), recipeFile = opt("--recipe", "");
+const hairColOpt = opt("--hair-col", ""), outfitColOpt = opt("--outfit-col", ""), skinOpt = opt("--skin", ""), desatOpt = opt("--desat", "");
+const creditsFile = opt("--credits", "");
 const fail = (m) => { console.error(m); process.exit(1); };
-if (!lpc || !out || [set, npc, recipeFile].filter(Boolean).length !== 1)
-  fail("Cách dùng: lpc-compose.mjs --lpc <repo LPC> --out <thư mục> (--set m_0…m_3|f_0…f_3 | --npc <tên> | --recipe <file.json>) [--hair-col N] [--outfit-col N] [--credits <file.md>]");
+if (!lpc || !out || [npc, recipeFile].filter(Boolean).length !== 1)
+  fail("Cách dùng: lpc-compose.mjs --lpc <repo LPC> --out <thư mục> (--npc <tên> | --recipe <file.json>) [--hair-col N] [--outfit-col N] [--skin N] [--desat 0…1] [--credits <file.md>]");
+if (args.length) fail(`tham số lạ: ${args.join(" ")}`);
 const SHEETS = path.join(lpc, "spritesheets");
 if (!existsSync(SHEETS) || !existsSync(path.join(lpc, "CREDITS.csv"))) fail(`--lpc ${lpc}: không thấy spritesheets/ và CREDITS.csv`);
 
@@ -67,10 +73,12 @@ const LPC_FRAMES = {
   hurt: { file: "hurt", frames: [1, 2], only: "s", row: 0 },
   die: { file: "hurt", frames: [2, 3, 4, 5], only: "s", row: 0 },
 };
-/** Giấy phép nhận được (mục 5.11 / art/CREDITS.md). */
-const LICENSE_OK = /^(CC0|CC-BY(-SA)? \d(\.\d)?\+?|OGA-BY \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
-/** Giấy phép không bắt chia sẻ tương tự cho ảnh đã sửa. */
-const LICENSE_PERMISSIVE = /^(CC0|CC-BY \d|OGA-BY)/;
+/** Giấy phép biết được (mục 5.11 / art/CREDITS.md); giấy phép lạ thì dừng. */
+const LICENSE_KNOWN = /^(CC0|CC-BY(-SA)? \d(\.\d)?\+?|OGA-BY \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
+/** Giấy phép game dùng cho lớp LPC: không bắt ảnh dẫn xuất chia sẻ tương tự. Lớp phải có ít nhất một giấy phép này. */
+const LICENSE_USE = /^(CC0|CC-BY \d|OGA-BY \d)/;
+/** Giảm bão hòa mặc định cho màu giữ nguyên (lớp `keep`): LPC màu tươi, NPC phụ không được nổi hơn hồn sư. */
+const DESAT_DEFAULT = 0.5;
 
 // ---------- Màu của game (shared/data.ts, art/palette.gpl) ----------
 const DATA = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
@@ -83,8 +91,9 @@ function ramps(constName) {
 const HAIR_RAMPS = ramps("HAIR_COLORS"), OUTFIT_RAMPS = ramps("OUTFIT_COLORS"), SKIN_RAMPS = ramps("SKIN_TONES");
 const PAL = readGplNamed();
 const EYE = PAL.find((c) => c.name.startsWith("Mắt "))?.hex ?? OUTLINE;
-// Màu giữ nguyên (lớp `keep`, lòng trắng mắt) không được rơi vào dải xám hoán màu, kẻo client tô theo màu áo / tóc.
-const KEEP_PAL = PAL.map((c) => c.hex).filter((c) => !GRAY_RAMP.includes(c)), KEEP_RGB = KEEP_PAL.map(hex);
+// Màu giữ nguyên (lớp `keep`, lòng trắng mắt) không được rơi vào dải xám hoán màu (client tô theo màu áo / tóc) hay dải da
+// tông 0 SKIN_TONES[0] (client tô các điểm của lớp thân như da khi người chơi / NPC chọn tông da khác).
+const KEEP_PAL = PAL.map((c) => c.hex).filter((c) => !GRAY_RAMP.includes(c) && !SKIN_RAMPS[0].includes(c)), KEEP_RGB = KEEP_PAL.map(hex);
 const lum = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
 const nearest = (p) => {
   let best = 0, bd = Infinity;
@@ -116,49 +125,47 @@ const OUTFIT = {
     { dir: "torso/waist/obi/thin/", z: 65, group: "outfit", variant: "charcoal", ramp: [0, 1] },
   ],
 };
-/** Kiểu tóc theo HAIR_STYLES (shared/data.ts) → lớp LPC gần nhất. */
-const HAIR = {
-  m: [
-    [{ dir: "hair/messy1/adult/", z: 120 }], // Ngắn rối
-    [{ dir: "hair/long_tied/adult/bg/", z: 9 }, { dir: "hair/long_tied/adult/fg/", z: 120 }], // Dài buộc thấp sau gáy
-    [{ dir: "hair/spiked/adult/", z: 120 }], // Dựng nhọn
-    [{ dir: "hair/swoop/adult/", z: 120 }], // Mái dài che một bên mắt
-  ],
-  f: [
-    [{ dir: "hair/long_straight/adult/", z: 120 }], // Dài thả thẳng
-    [{ dir: "hair/high_ponytail/adult/bg/", z: 9 }, { dir: "hair/high_ponytail/adult/fg/", z: 120 }], // Đuôi ngựa cao
-    [{ dir: "hair/shoulderl/adult/bg/", z: 9 }, { dir: "hair/shoulderl/adult/fg/", z: 120 }], // Bím dài một bên
-    [{ dir: "hair/bob/adult/", z: 120 }], // Ngắn ngang vai, có mái
-  ],
-};
-const hairOf = (s, i) => HAIR[s][i].map((l) => ({ ...l, group: "hair" }));
-/** NPC thử (looks lấy theo NPCS: Lão Kiệt Khắc, Thương nhân, Thợ rèn; lính gác chưa có trong NPCS). */
+/** NPC phụ thử (looks lấy theo NPCS: Lão Kiệt Khắc, Thương nhân, Thợ rèn; lính gác chưa có trong NPCS). Tóc chỉ lấy lớp có CC0 / CC-BY / OGA-BY. */
 const RECIPES = {
   truong_thon: { sex: "male", hairCol: 3, outfitCol: 2, layers: [...base("male"), ...OUTFIT.male,
     { dir: "head/heads/human/male_elderly/", z: 101, group: "body" }, { dir: "hair/balding/adult/", z: 120, group: "hair" },
     { dir: "beards/beard/winter/male/", z: 110, group: "hair" }] },
-  thuong_nhan: { sex: "female", hairCol: 1, outfitCol: 1, layers: [...base("female"), ...OUTFIT.female, ...hairOf("f", 3)] },
-  tho_ren: { sex: "male", hairCol: 1, outfitCol: 5, layers: [...base("male"), ...OUTFIT.male, ...hairOf("m", 0),
+  thuong_nhan: { sex: "female", hairCol: 1, outfitCol: 1, layers: [...base("female"), ...OUTFIT.female, { dir: "hair/bob/adult/", z: 120, group: "hair" }] },
+  tho_ren: { sex: "male", hairCol: 1, outfitCol: 5, layers: [...base("male"), ...OUTFIT.male, { dir: "hair/buzzcut/adult/", z: 120, group: "hair" },
     { dir: "torso/aprons/apron/male/", z: 40, group: "outfit", variant: "leather", keep: true }] },
   linh_gac: { sex: "male", hairCol: 0, outfitCol: 0, layers: [...base("male"), OUTFIT.male[0],
     { dir: "torso/armour/legion/male/", z: 60, group: "outfit", keep: true }, { dir: "hat/helmet/legion/adult/", z: 130, group: "hair", keep: true },
     { dir: "feet/boots/basic/male/", z: 25, group: "body" }] },
 };
-// Công thức một bộ hồn sư giới × kiểu tóc (phương án (b): mỗi bộ một kiểu tóc, áo chung theo giới).
-function setRecipe(s) {
-  const m = s.match(/^([mf])_([0-3])$/);
-  if (!m) fail(`--set cần m_0…m_3 hoặc f_0…f_3 (nhận ${s})`);
-  const sex = m[1] === "m" ? "male" : "female";
-  return { sex, layers: [...base(sex), ...OUTFIT[sex], ...hairOf(m[1], +m[2])] };
-}
-const name = set || npc || path.basename(recipeFile, ".json");
+const name = npc || path.basename(recipeFile, ".json");
 let R;
-if (set) R = setRecipe(set);
-else if (npc) R = RECIPES[npc] ?? fail(`--npc: ${Object.keys(RECIPES).join(", ")} (nhận ${npc})`);
+if (npc) R = RECIPES[npc] ?? fail(`--npc: ${Object.keys(RECIPES).join(", ")} (nhận ${npc})`);
 else R = JSON.parse(readFileSync(recipeFile, "utf8"));
 R = { hairCol: 0, outfitCol: 0, skin: 0, ...R };
 if (hairColOpt) R.hairCol = +hairColOpt;
 if (outfitColOpt) R.outfitCol = +outfitColOpt;
+if (skinOpt) R.skin = +skinOpt;
+const inRange = (v, list) => Number.isInteger(v) && v >= 0 && v < list.length;
+if (!inRange(R.hairCol, HAIR_RAMPS)) fail(`hairCol ${R.hairCol} ngoài 0…${HAIR_RAMPS.length - 1} (HAIR_COLORS)`);
+if (!inRange(R.outfitCol, OUTFIT_RAMPS)) fail(`outfitCol ${R.outfitCol} ngoài 0…${OUTFIT_RAMPS.length - 1} (OUTFIT_COLORS)`);
+if (!inRange(R.skin, SKIN_RAMPS)) fail(`skin ${R.skin} ngoài 0…${SKIN_RAMPS.length - 1} (SKIN_TONES)`);
+const desat = desatOpt ? +desatOpt : DESAT_DEFAULT;
+if (!(desat >= 0 && desat <= 1)) fail(`--desat cần số 0…1 (nhận ${desatOpt})`);
+/** Kéo màu về xám cùng độ sáng theo tỉ lệ `desat` (0 = giữ nguyên, 1 = xám hẳn). */
+const desaturate = (p) => { const L = lum(p); return [0, 1, 2].map((k) => p[k] + (L - p[k]) * desat); };
+// File ghi công: đọc và soát dấu mục LPC trước khi ghi ảnh (thiếu `lpc:end` thì dừng, không ghi chữ "undefined" vào file).
+const START = "<!-- lpc:start -->", END = "<!-- lpc:end -->";
+const creditsTarget = creditsFile || path.join(out, "CREDITS-LPC.md");
+const creditsDoc = existsSync(creditsTarget) ? readFileSync(creditsTarget, "utf8") : "";
+const nStart = creditsDoc.split(START).length - 1, nEnd = creditsDoc.split(END).length - 1;
+if (nStart > 1 || nStart !== nEnd || (nStart && creditsDoc.indexOf(END) < creditsDoc.indexOf(START)))
+  fail(`${creditsTarget}: cần đúng một cặp ${START} … ${END} theo thứ tự (đang có ${nStart} start, ${nEnd} end)`);
+// Mã màu trong `ramp` của lớp thân (giày) không được trùng dải da tông 0, kẻo client hoán thành da.
+for (const l of R.layers) if (l.group === "body") for (const c of l.ramp ?? [])
+  if (typeof c === "string" && SKIN_RAMPS[0].includes(c.toLowerCase())) fail(`${l.dir}: ramp ${c} trùng SKIN_TONES[0], client sẽ hoán thành da`);
+// Mã màu trong `ramp` của lớp thân (giày) không được trùng dải da tông 0, kẻo client tô thành da.
+for (const l of R.layers) for (const c of l.ramp ?? []) if (typeof c === "string" && l.group === "body" && SKIN_RAMPS[0].includes(c.toLowerCase()))
+  fail(`${l.dir}: ramp ${c} trùng SKIN_TONES[0], client sẽ hoán thành da`);
 
 // ---------- Đọc lớp LPC, ghi công ----------
 const used = new Map(); // file tương đối → { dir, variant, c: mục CREDITS }
@@ -171,11 +178,16 @@ function parseCsv(src) {
   }
   return rows;
 }
+/**
+ * Mục CREDITS.csv của đúng file đã đọc: `rel`, hoặc `<thư mục>/<animation>.png` khi `rel` là file màu (CREDITS.csv chỉ ghi
+ * file màu gốc). Không đoán theo thư mục: các animation của một lớp thường do người khác vẽ thêm, ghi công sai là rủi ro giấy phép.
+ */
 function creditOf(rel, dir, anim) {
-  const c = credits.get(rel) ?? credits.get(`${dir}${anim}.png`) ?? [...credits.values()].find((r) => r.file.startsWith(dir));
-  if (!c) fail(`[lpc] ${rel}: không có trong CREDITS.csv, không dùng được`);
-  const bad = c.licenses.filter((l) => !LICENSE_OK.test(l));
+  const plain = `${dir}${anim}.png`, c = credits.get(rel) ?? credits.get(plain);
+  if (!c) fail(`[lpc] ${rel}: CREDITS.csv không có mục ${rel === plain ? rel : `${rel} hay ${plain}`}, không rõ tác giả / giấy phép nên không dùng được`);
+  const bad = c.licenses.filter((l) => !LICENSE_KNOWN.test(l));
   if (!c.licenses.length || bad.length) fail(`[lpc] ${rel}: giấy phép ${c.licenses.join(", ") || "(trống)"} ngoài CC0 / CC-BY / CC-BY-SA / OGA-BY / GPL`);
+  if (!c.licenses.some((l) => LICENSE_USE.test(l))) fail(`[lpc] ${rel}: chỉ có ${c.licenses.join(", ")} (bắt ảnh dẫn xuất chia sẻ tương tự), cần lớp có CC0 / CC-BY / OGA-BY`);
   return c;
 }
 const cache = new Map();
@@ -269,7 +281,7 @@ for (const f of frames) {
     if (X < 0 || Y < 0 || X >= ISO_HS_FRAME || Y >= ISO_HS_FRAME) continue;
     const p = f.px.get(x, y), kind = kindOf(li, p);
     const edge = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([u, v]) => { const a = x + u, b = y + v; return a < 0 || b < 0 || a >= LPC_FRAME || b >= LPC_FRAME || f.own[b * LPC_FRAME + a] < 0; });
-    const c = edge || kind === "outline" ? OUTLINE : kind === "eye" ? EYE : kind === "keep" ? nearest(p) : (kind === "skin" ? skinMap : layerMaps[li]).get(toHex(p));
+    const c = edge || kind === "outline" ? OUTLINE : kind === "eye" ? EYE : kind === "keep" ? nearest(desaturate(p)) : (kind === "skin" ? skinMap : layerMaps[li]).get(toHex(p));
     // Lớp `keep` (giáp, mũ) nằm ở lớp áo / tóc nhưng màu ngoài dải xám: client hoán màu sẽ bỏ qua các màu đó.
     parts[groupOut[layers[li].group]].set(X, Y, [...hex(c), 255]);
   }
@@ -277,7 +289,7 @@ for (const f of frames) {
 }
 
 // ---------- pack.mjs: sheet 24 × 6, idle thở, hurt / die hướng khác và absorb bằng code ----------
-const tag = /^[mf]_\d+$/.test(name) ? name : `${R.sex === "male" ? "m" : "f"}_0`; // pack --set cần dạng giới_số
+const tag = `${R.sex === "male" ? "m" : "f"}_0`; // pack --set cần dạng giới_số, chỉ là tên file tạm
 const packOut = path.join(work, "_pack");
 execFileSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), "pack.mjs"), "--kind", "honsu", "--set", tag, "--out", packOut,
   "--breathe", String(breathe), "--code", "hurt,die,absorb", work], { stdio: "inherit" });
@@ -309,23 +321,17 @@ for (const { dir, variant, c } of used.values()) {
   if (!groups.has(key)) groups.set(key, { dir: variant ? `${dir}*/${variant}.png` : dir, c });
 }
 const cell = (s) => s.replace(/\|/g, "\\|");
-const rowsMd = [...groups.values()].map(({ dir, c }) => {
-  const sa = c.licenses.some((l) => LICENSE_PERMISSIVE.test(l)) ? "không" : "**có**";
-  return `| \`${cell(dir)}\` | ${cell(c.authors.split(",").map((s) => s.trim()).join(", "))} | ${cell(c.licenses.join(", "))} | ${sa} | ${c.urls.split(",").map((u) => u.trim()).filter(Boolean).map((u) => `<${u}>`).join(" ")} |`;
-});
-const section = (title, rows) => [`### ${title}`, "", "| Lớp LPC (`spritesheets/`) | Tác giả | Giấy phép | Chỉ có giấy phép chia sẻ tương tự | Nguồn |", "|---|---|---|---|---|", ...rows, ""].join("\n");
+const rowsMd = [...groups.values()].map(({ dir, c }) =>
+  `| \`${cell(dir)}\` | ${cell(c.authors.split(",").map((s) => s.trim()).join(", "))} | ${cell(c.licenses.join(", "))} | ${cell(c.licenses.filter((l) => LICENSE_USE.test(l)).join(", "))} | ${c.urls.split(",").map((u) => u.trim()).filter(Boolean).map((u) => `<${u}>`).join(" ")} |`);
+const section = (title, rows) => [`### ${title}`, "", "| Lớp LPC (`spritesheets/`) | Tác giả | Giấy phép | Game dùng theo | Nguồn |", "|---|---|---|---|---|", ...rows, ""].join("\n");
 const block = section(`${name} (lpc-compose.mjs)`, rowsMd);
-const START = "<!-- lpc:start -->", END = "<!-- lpc:end -->";
-const header = "## Asset LPC (Universal LPC Spritesheet Character Generator)\n\nGhép bằng `tools/assets/lpc-compose.mjs` từ <https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>; tác giả, giấy phép, nguồn lấy từ `CREDITS.csv` của repo đó cho đúng các file đã dùng. Ảnh đã sửa (ghép lớp, đổi màu, chọn khung) theo giấy phép của từng lớp: lớp chỉ có CC-BY-SA / GPL thì ảnh dẫn xuất phải phát hành cùng giấy phép.\n";
-const target = creditsFile || path.join(out, "CREDITS-LPC.md");
-let doc = existsSync(target) ? readFileSync(target, "utf8") : "";
+const header = "## Asset LPC (Universal LPC Spritesheet Character Generator)\n\nNPC phụ ghép bằng `tools/assets/lpc-compose.mjs` từ <https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>; tác giả, giấy phép, nguồn lấy từ `CREDITS.csv` của repo đó cho đúng từng file đã dùng. Chỉ dùng lớp có CC0 / CC-BY / OGA-BY; ảnh đã sửa (ghép lớp, đổi màu, chọn khung) dùng theo giấy phép ở cột \"Game dùng theo\".\n";
+let doc = creditsDoc;
 if (!doc.includes(START)) doc = `${doc}${doc && !doc.endsWith("\n") ? "\n" : ""}\n${header}\n${START}\n${END}\n`;
 const [pre, rest] = doc.split(START), [mid, post] = rest.split(END);
-// Mỗi bộ / NPC một mục, chạy lại thì thay mục cùng tên.
+// Mỗi NPC một mục, chạy lại thì thay mục cùng tên.
 const others = mid.split(/(?=^### )/m).filter((s) => s.trim() && !s.startsWith(`### ${name} (`));
-writeFileSync(target, `${pre}${START}\n${[...others.map((s) => s.trimEnd() + "\n"), block].join("\n")}${END}${post}`);
+writeFileSync(creditsTarget, `${pre}${START}\n${[...others.map((s) => s.trimEnd() + "\n"), block].join("\n")}${END}${post}`);
 
-const sa = [...groups.values()].filter(({ c }) => !c.licenses.some((l) => LICENSE_PERMISSIVE.test(l))).map((g) => g.dir);
-console.log(`[lpc] ${name}: ${frames.length} khung LPC, ${used.size} file, chân y=${foot} → dời ${dy}, --breathe ${breathe}`);
-console.log(`[lpc] ghi ${HS_LAYERS.map((l) => `${l}_${name}.png`).join(", ")}, ${name}_mau.png; ghi công → ${target}`);
-if (sa.length) console.log(`[lpc] lớp chỉ có giấy phép chia sẻ tương tự (CC-BY-SA / GPL): ${sa.join(", ")}`);
+console.log(`[lpc] ${name}: ${frames.length} khung LPC, ${used.size} file, chân y=${foot} → dời ${dy}, --breathe ${breathe}, --desat ${desat}`);
+console.log(`[lpc] ghi ${HS_LAYERS.map((l) => `${l}_${name}.png`).join(", ")}, ${name}_mau.png; ghi công → ${creditsTarget}`);
