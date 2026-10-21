@@ -503,13 +503,15 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
     : `Chọn võ hồn để đặt vào ô ${rosterSel + 1}.`);
   el.appendChild(sub);
 
-  // Bộ sưu tập (10.8): lưới thẻ võ hồn; võ hồn đã trong đội mang ấn son số ô. Chú thích: hệ, cấp, hiệu ứng hồn kỹ theo sao (9.5).
+  // Bộ sưu tập (10.8): lưới thẻ võ hồn; võ hồn đã trong đội mang ấn son số ô. Hiệu ứng hồn kỹ theo sao (9.5) ghi thành dòng chữ nhỏ
+  // dưới thẻ (đọc được trên màn chạm) và nối vào nhãn đọc màn hình của thẻ.
   const grid = document.createElement("div"); grid.className = "cgrid rgrid"; el.appendChild(grid);
   for (const v of data.list) {
     const def = vohonDef(v.vohon), at = data.team.indexOf(v.rowId);
     const b = vohonCard(def, { level: v.level, stars: v.stars, rings: v.rings, slot: at >= 0 ? at + 1 : undefined, active: v.rowId === data.active }, "button");
     const stx = starSkillText(v.stars);
     b.title = `${def.name} · ${def.rarity} · ${HE[def.he].name} · cấp ${v.level}` + (at >= 0 ? ` · ô ${at + 1}` : "") + (stx ? `\n${stx}` : "");
+    if (stx) b.setAttribute("aria-label", `${b.getAttribute("aria-label")}. ${stx}`);
     b.addEventListener("click", () => {
       b.blur(); // bỏ focus: phím Space là đánh, không bấm lại nút
       const t = [...data.team], to = rosterSel ?? t.indexOf(0);
@@ -519,7 +521,9 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
       t[to] = v.rowId;
       send(t);
     });
-    grid.appendChild(b);
+    const cell = document.createElement("div"); cell.className = "ccol"; cell.appendChild(b);
+    if (stx) { const t = document.createElement("small"); t.className = "rstar"; t.textContent = stx; t.setAttribute("aria-hidden", "true"); cell.appendChild(t); }
+    grid.appendChild(cell);
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
