@@ -209,6 +209,9 @@ function removeLogo(img, K) {
   if (pts.length < 40) return removeStarDefault(img);
   const xs = pts.map((p) => p[0]), xL = Math.min(...xs), xR = Math.max(...xs);
   const R = (xR - xL + 1) / 2, cx = (xL + xR + 1) / 2;
+  // Sao phần lớn nằm trên vật / khung tối, chỉ một cánh lộ trên nền (khe giữa các ô): mảng dò được nhỏ hơn hẳn logo
+  // chuẩn → dùng vị trí chuẩn (vẫn kiểm lớp trắng mờ), nếu không khớp thì mới dùng mảng dò được.
+  if (R < GEMINI_STAR.R * (Math.max(img.w, img.h) / GEMINI_STAR.ref) * 0.7) { const d = removeStarDefault(img); if (d) return d; }
   // Tâm dọc: hàng của mũi cánh trái / phải.
   const tips = pts.filter((p) => p[0] <= xL + 2 || p[0] >= xR - 2), cy = tips.reduce((s, p) => s + p[1], 0) / tips.length + 0.5;
   const shape = starShape(cx, cy, R);
