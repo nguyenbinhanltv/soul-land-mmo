@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { hashF, hashStr, fbm } from "./lib/rand.mjs";
+import { hashF, hashStr, fbm, rng } from "./lib/rand.mjs";
 import { shapeTest, rectsOf, spline, astar } from "./lib/geom.mjs";
 import { topdownPreview } from "./lib/preview.mjs";
 import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
@@ -229,13 +229,48 @@ export function build(L, hand = null, seedOverride = null) {
      * trên trái "x,y". Khóa cả khu.
      */
     house(f) {
-      const [x0, y0, w, h] = f.rect, m = f.margin ?? 1;
-      for (let y = y0 - m; y < y0 + h + m; y++) for (let x = x0 - m; x < x0 + w + m; x++) {
-        if (!inside(x, y)) continue;
-        const i = at(x, y), inH = x >= x0 && x < x0 + w && y >= y0 && y < y0 + h;
-        obj[i] = inH ? (y === y0 + h - 1 ? O.wall : O.roof) : O.none; lock[i] = 1;
-        if (inH || WET.has(gnd[i]) || f.ground) gnd[i] = inH ? (WET.has(gnd[i]) ? G.grass : gnd[i]) : G[f.ground ?? "grass"] ?? G.grass;
+      for (const r of f.rects ?? [f.rect]) houseAt(r, f.margin ?? 1, f.ground);
+    },
+    /**
+     * Tường thành: hàng ô `wall` (gid 15) đứng riêng dọc chu vi `rect` [x, y, w, h], chừa cổng rộng `gate` ô (mặc định 4) quanh các ô
+     * `gates` [[x, y]…] nằm trên chu vi; client dựng khối tường thành theo kiểu nhà của vùng (tháp ở góc / hai bên cổng nếu có
+     * `build.tower`). Ô cổng lát `ground` (mặc định "pave"). Khóa cả hàng.
+     */
+    fence(f) {
+      const [x0, y0, w, h] = f.rect, half = (f.gate ?? 4) / 2, gates = f.gates ?? [];
+      for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+        if (!inside(x, y) || !(x === x0 || y === y0 || x === x0 + w - 1 || y === y0 + h - 1)) continue;
+        const i = at(x, y), gate = gates.some(([gx, gy]) => Math.abs(x + 0.5 - gx) <= half && Math.abs(y + 0.5 - gy) <= half);
+        obj[i] = gate ? O.none : O.wall; lock[i] = 1;
+        if (gate || WET.has(gnd[i])) gnd[i] = G[f.ground ?? "pave"];
       }
+    },
+    /**
+     * Khu nhà: nền `ground` (mặc định "pave") trong `rect`, nhà xếp thành hàng (cao `h` [min, max], rộng `w` [min, max] ô) cách nhau
+     * ngõ `gap` ô (mặc định 2), hàng cách hàng `alley` ô (mặc định 3); `skip` xác suất bỏ trống một lô (sân, vườn). Theo hạt giống.
+     */
+    district(f) {
+      const [x0, y0, W, H] = f.rect, r = rng(sub(`district:${f.rect}`)), gap = f.gap ?? 2, alley = f.alley ?? 3;
+      const [wMin, wMax] = f.w ?? [4, 7], [hMin, hMax] = f.h ?? [3, 5];
+      for (let y = y0; y < y0 + H; y++) for (let x = x0; x < x0 + W; x++) {
+        if (!inside(x, y)) continue; const i = at(x, y); obj[i] = O.none; gnd[i] = G[f.ground ?? "pave"]; lock[i] = 1;
+      }
+      for (let y = y0 + 1; ;) {
+        const rh = r.int(hMin, hMax); if (y + rh > y0 + H - 1) break;
+        for (let x = x0 + 1; ;) {
+          const rw = r.int(wMin, wMax); if (x + rw > x0 + W - 1) break;
+          if (r() >= (f.skip ?? 0.12)) houseAt([x, y, rw, r.int(Math.max(hMin, rh - 1), rh)], 0);
+          else if (f.yard) for (let yy = y; yy < y + rh; yy++) for (let xx = x; xx < x + rw; xx++) if (r() < 0.25) obj[at(xx, yy)] = O[f.yard];
+          x += rw + gap;
+        }
+        y += rh + alley;
+      }
+    },
+    /** Hàng vật `kind` (ví dụ cây, đèn) từ ô `from` tới ô `to`, mỗi `step` ô; khóa các ô đó. */
+    row(f) {
+      const [ax, ay] = f.from, [bx, by] = f.to, n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / (f.step ?? 4)));
+      const list = []; for (let k = 0; k <= n; k++) list.push([Math.round(ax + (bx - ax) * k / n), Math.round(ay + (by - ay) * k / n)]);
+      place(list, O[f.kind]);
     },
     /** Rải vật `kind` trong hình (`rect` / `poly` / `circle`) với xác suất `p` mỗi ô trống chưa khóa, không ướt; `on`: chỉ trên các loại nền này. */
     scatter(f) {
@@ -247,6 +282,14 @@ export function build(L, hand = null, seedOverride = null) {
       }
     },
   };
+  function houseAt([x0, y0, w, h], m, ground) {
+    for (let y = y0 - m; y < y0 + h + m; y++) for (let x = x0 - m; x < x0 + w + m; x++) {
+      if (!inside(x, y)) continue;
+      const i = at(x, y), inH = x >= x0 && x < x0 + w && y >= y0 && y < y0 + h;
+      obj[i] = inH ? (y === y0 + h - 1 ? O.wall : O.roof) : O.none; lock[i] = 1;
+      if (inH || WET.has(gnd[i]) || ground) gnd[i] = inH ? (WET.has(gnd[i]) ? G.grass : gnd[i]) : G[ground ?? "grass"] ?? G.grass;
+    }
+  }
   function place(list, kind) {
     for (const [x, y] of list ?? []) { if (!inside(x, y)) continue; const i = at(x, y); obj[i] = kind; lock[i] = 1; if (WET.has(gnd[i])) gnd[i] = G.grass; }
   }
@@ -401,8 +444,9 @@ export function build(L, hand = null, seedOverride = null) {
   for (let i = 0; i < N; i++) if (trees[i] && L.gids.canopy?.[trees[i]] && i >= MW) canopy[i - MW] = L.gids.canopy[trees[i]];
 
   // ---------- 9. Vùng hồn thú: tách hình vùng thành chữ nhật, số con theo mật độ × ô đi được ----------
-  const density = BEAST_DENSITY[mapId];
-  if (!density || density.length < L.tiers.length) throw new Error(`${mapId}: BEAST_DENSITY (shared/data.ts) thiếu mật độ cho ${L.tiers.length} tầng`);
+  // Thành (không vùng hồn thú nào): không cần mật độ.
+  const density = L.zones.length ? BEAST_DENSITY[mapId] : [];
+  if (L.zones.length && (!density || density.length < L.tiers.length)) throw new Error(`${mapId}: BEAST_DENSITY (shared/data.ts) thiếu mật độ cho ${L.tiers.length} tầng`);
   const zoneStats = [];
   L.zones.forEach((z, zi) => {
     const t = L.tiers[z.tier], years = z.years ?? t.years, beasts = z.beasts ?? t.beasts, yr = parseLevelRange(years);

@@ -22,11 +22,13 @@ interface CrowdDef {
   cheer?: boolean;
 }
 
+/** Lặp danh sách `n` lần (bản ×8 rộng hơn nên nhiều dân hơn, 11.5; cùng sheet, mỗi người một chỗ). */
+const times = (n: number, list: string[]) => Array.from({ length: n }, () => list).flat();
 /** Dân thường theo bản đồ (mã trong MAPS); bản đồ không có ở đây thì không có dân. */
 export const CROWD: Record<string, CrowdDef> = {
-  thanh_hon_thon: { inSafe: true, walk: ["dan_nong_phu", "dan_thon_nu", "dan_lao_ba", "dan_nong_phu"], stand: ["dan_ban_rong"] },
-  nac_dinh_thanh: { walk: ["dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_lao_ba", "dan_thu_sinh"], stand: ["dan_ban_rong", "dan_khach"], guard: "linh_gac" },
-  thien_dau_thanh: { walk: ["dan_thu_sinh", "dan_tieu_thu", "dan_khach", "dan_thon_nu", "dan_thu_sinh", "dan_tieu_thu"], stand: ["dan_ban_rong", "dan_lao_ba"], guard: "linh_gac" },
+  thanh_hon_thon: { inSafe: true, walk: times(2, ["dan_nong_phu", "dan_thon_nu", "dan_lao_ba", "dan_nong_phu"]), stand: times(2, ["dan_ban_rong"]) },
+  nac_dinh_thanh: { walk: times(3, ["dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_lao_ba", "dan_thu_sinh"]), stand: times(3, ["dan_ban_rong", "dan_khach"]), guard: "linh_gac" },
+  thien_dau_thanh: { walk: times(3, ["dan_thu_sinh", "dan_tieu_thu", "dan_khach", "dan_thon_nu", "dan_thu_sinh", "dan_tieu_thu"]), stand: times(3, ["dan_ban_rong", "dan_lao_ba"]), guard: "linh_gac" },
   dai_dau_hon_truong: { outSpawn: true, cheer: true, walk: [],
     stand: ["dan_khach", "dan_thu_sinh", "dan_tieu_thu", "dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_ban_rong", "dan_thu_sinh", "linh_gac", "linh_gac"] },
 };

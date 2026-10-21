@@ -1,0 +1,2743 @@
+{
+  "_": "Thánh Hồn Thôn ×8 diện tích (11.5). Làng của Đường Tam ở giữa (vùng an toàn, hàng rào gỗ, nhà mái rạ, quảng trường, nhà trưởng thôn Lão Kiệt Khắc, phân điện Vũ Hồn Điện), ruộng lúa có bờ ở Đồng lúa phía tây và phía nam, Bãi tập hồn sư phía đông (sân đất, giá binh khí, ao), Hậu Sơn phía bắc (rừng rậm, vách đá, cây cổ thụ, miếu đổ, suối). Cổng đi Nặc Đinh Thành ở mép nam. Định dạng: tools/maps/README.md.",
+  "map": "thanh_hon_thon",
+  "out": "thanh_hon_thon.v2.json",
+  "size": [
+    204,
+    153
+  ],
+  "seed": 20261113,
+  "zoneCell": 8,
+  "blend": 4,
+  "gids": {
+    "ground": {
+      "grass": [
+        1,
+        2
+      ],
+      "leaf": 3,
+      "moss": 5,
+      "path": 7,
+      "pathDark": 8,
+      "camp": 10,
+      "pave": 13,
+      "crack": 16,
+      "water": 9,
+      "ford": 34,
+      "bank": 25,
+      "deep": 35,
+      "stony": 26,
+      "glow": 4,
+      "bridge": 33
+    },
+    "objects": {
+      "rock": 36,
+      "cliff": 32,
+      "ruin": 37,
+      "stele": 38,
+      "arch": 39,
+      "log": 40,
+      "ancient": 30,
+      "tent": 11,
+      "fire": 12,
+      "plant": 28,
+      "sign": 29,
+      "roof": 14,
+      "wall": 15
+    },
+    "canopy": {
+      "17": 21,
+      "18": 22,
+      "19": 23,
+      "20": 24
+    }
+  },
+  "tiers": [
+    {
+      "name": "Đồng lúa ven làng",
+      "years": "10-100",
+      "hint": "Hồn thú 10 – 100 năm",
+      "beasts": "nhu_cot_tho_hoang:2,dien_thu:2,hoi_vu_tuoc:1",
+      "trees": {
+        "17": 2,
+        "18": 1
+      },
+      "denseTrees": {
+        "17": 1,
+        "18": 1
+      },
+      "density": 0.025,
+      "cluster": 0.62,
+      "clusterDensity": 0.8,
+      "leaf": 0.74,
+      "moss": 0.7,
+      "rock": 0.002,
+      "plant": 0.01
+    },
+    {
+      "name": "Bãi tập hồn sư",
+      "years": "80-250",
+      "hint": "Hồn thú 80 – 250 năm",
+      "beasts": "phong_lang_con:2,doc_cham_phong:1,thiet_giap_xuyen_son_giap:2",
+      "trees": {
+        "18": 2,
+        "17": 1
+      },
+      "denseTrees": {
+        "18": 1,
+        "19": 1
+      },
+      "density": 0.05,
+      "cluster": 0.6,
+      "clusterDensity": 0.85,
+      "leaf": 0.7,
+      "moss": 0.72,
+      "rock": 0.006,
+      "log": 0.002,
+      "plant": 0.008
+    },
+    {
+      "name": "Hậu Sơn",
+      "years": "200-450",
+      "hint": "Hồn thú 200 – 450 năm",
+      "beasts": "hac_boi_da_tru:1,thanh_lan_xa:1,quy_dang_non:1",
+      "trees": {
+        "19": 2,
+        "20": 1
+      },
+      "denseTrees": {
+        "19": 1,
+        "20": 1
+      },
+      "density": 0.13,
+      "cluster": 0.54,
+      "clusterDensity": 0.92,
+      "leaf": 0.66,
+      "moss": 0.66,
+      "rock": 0.008,
+      "log": 0.004,
+      "plant": 0.012
+    }
+  ],
+  "zones": [
+    {
+      "name": "Hậu Sơn",
+      "tier": 2,
+      "poly": [
+        [
+          70,
+          0
+        ],
+        [
+          136,
+          0
+        ],
+        [
+          134,
+          54
+        ],
+        [
+          70,
+          54
+        ]
+      ]
+    },
+    {
+      "name": "Bãi tập hồn sư",
+      "tier": 1,
+      "poly": [
+        [
+          136,
+          0
+        ],
+        [
+          204,
+          0
+        ],
+        [
+          204,
+          153
+        ],
+        [
+          134,
+          153
+        ],
+        [
+          134,
+          54
+        ]
+      ]
+    },
+    {
+      "name": "Đồng lúa ven làng",
+      "tier": 0,
+      "poly": [
+        [
+          0,
+          0
+        ],
+        [
+          70,
+          0
+        ],
+        [
+          70,
+          100
+        ],
+        [
+          134,
+          100
+        ],
+        [
+          134,
+          153
+        ],
+        [
+          0,
+          153
+        ]
+      ]
+    }
+  ],
+  "points": {
+    "bac": [
+      102,
+      6
+    ],
+    "cong_bac": [
+      102,
+      54
+    ],
+    "cong_nam": [
+      102,
+      99
+    ],
+    "tay": [
+      6,
+      78
+    ],
+    "cong_tay": [
+      73,
+      78
+    ],
+    "cong_dong": [
+      131,
+      78
+    ],
+    "dong": [
+      198,
+      78
+    ],
+    "san_tap": [
+      158,
+      77
+    ],
+    "hau_son": [
+      100,
+      22
+    ],
+    "thach_dien": [
+      111,
+      39
+    ]
+  },
+  "features": [
+    {
+      "type": "area",
+      "name": "Ruộng 0",
+      "ground": "crack",
+      "rect": [
+        6,
+        44,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 1",
+      "ground": "crack",
+      "rect": [
+        14,
+        44,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 2",
+      "ground": "crack",
+      "rect": [
+        24,
+        44,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 3",
+      "ground": "crack",
+      "rect": [
+        32,
+        44,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 4",
+      "ground": "crack",
+      "rect": [
+        42,
+        44,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 5",
+      "ground": "crack",
+      "rect": [
+        50,
+        44,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 6",
+      "ground": "crack",
+      "rect": [
+        8,
+        50,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 7",
+      "ground": "crack",
+      "rect": [
+        18,
+        50,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 8",
+      "ground": "crack",
+      "rect": [
+        26,
+        50,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 9",
+      "ground": "crack",
+      "rect": [
+        36,
+        50,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 10",
+      "ground": "crack",
+      "rect": [
+        44,
+        50,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 11",
+      "ground": "crack",
+      "rect": [
+        54,
+        50,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 12",
+      "ground": "crack",
+      "rect": [
+        6,
+        56,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 13",
+      "ground": "crack",
+      "rect": [
+        14,
+        56,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 14",
+      "ground": "crack",
+      "rect": [
+        24,
+        56,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 15",
+      "ground": "crack",
+      "rect": [
+        32,
+        56,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 16",
+      "ground": "crack",
+      "rect": [
+        42,
+        56,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 17",
+      "ground": "crack",
+      "rect": [
+        50,
+        56,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 18",
+      "ground": "crack",
+      "rect": [
+        8,
+        62,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 19",
+      "ground": "crack",
+      "rect": [
+        18,
+        62,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 20",
+      "ground": "crack",
+      "rect": [
+        26,
+        62,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 21",
+      "ground": "crack",
+      "rect": [
+        36,
+        62,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 22",
+      "ground": "crack",
+      "rect": [
+        44,
+        62,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 23",
+      "ground": "crack",
+      "rect": [
+        54,
+        62,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 24",
+      "ground": "crack",
+      "rect": [
+        6,
+        68,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 25",
+      "ground": "crack",
+      "rect": [
+        14,
+        68,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 26",
+      "ground": "crack",
+      "rect": [
+        24,
+        68,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 27",
+      "ground": "crack",
+      "rect": [
+        32,
+        68,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 28",
+      "ground": "crack",
+      "rect": [
+        42,
+        68,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 29",
+      "ground": "crack",
+      "rect": [
+        50,
+        68,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 30",
+      "ground": "crack",
+      "rect": [
+        6,
+        84,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 31",
+      "ground": "crack",
+      "rect": [
+        14,
+        84,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 32",
+      "ground": "crack",
+      "rect": [
+        24,
+        84,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 33",
+      "ground": "crack",
+      "rect": [
+        32,
+        84,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 34",
+      "ground": "crack",
+      "rect": [
+        42,
+        84,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 35",
+      "ground": "crack",
+      "rect": [
+        50,
+        84,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 36",
+      "ground": "crack",
+      "rect": [
+        8,
+        90,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 37",
+      "ground": "crack",
+      "rect": [
+        18,
+        90,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 38",
+      "ground": "crack",
+      "rect": [
+        26,
+        90,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 39",
+      "ground": "crack",
+      "rect": [
+        36,
+        90,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 40",
+      "ground": "crack",
+      "rect": [
+        44,
+        90,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 41",
+      "ground": "crack",
+      "rect": [
+        54,
+        90,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 42",
+      "ground": "crack",
+      "rect": [
+        6,
+        96,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 43",
+      "ground": "crack",
+      "rect": [
+        14,
+        96,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 44",
+      "ground": "crack",
+      "rect": [
+        24,
+        96,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 45",
+      "ground": "crack",
+      "rect": [
+        32,
+        96,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 46",
+      "ground": "crack",
+      "rect": [
+        42,
+        96,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 47",
+      "ground": "crack",
+      "rect": [
+        50,
+        96,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 48",
+      "ground": "crack",
+      "rect": [
+        8,
+        102,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 49",
+      "ground": "crack",
+      "rect": [
+        18,
+        102,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 50",
+      "ground": "crack",
+      "rect": [
+        26,
+        102,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 51",
+      "ground": "crack",
+      "rect": [
+        36,
+        102,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 52",
+      "ground": "crack",
+      "rect": [
+        44,
+        102,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 53",
+      "ground": "crack",
+      "rect": [
+        54,
+        102,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 54",
+      "ground": "crack",
+      "rect": [
+        6,
+        108,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 55",
+      "ground": "crack",
+      "rect": [
+        14,
+        108,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 56",
+      "ground": "crack",
+      "rect": [
+        24,
+        108,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 57",
+      "ground": "crack",
+      "rect": [
+        32,
+        108,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 58",
+      "ground": "crack",
+      "rect": [
+        42,
+        108,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 59",
+      "ground": "crack",
+      "rect": [
+        50,
+        108,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 60",
+      "ground": "crack",
+      "rect": [
+        8,
+        114,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 61",
+      "ground": "crack",
+      "rect": [
+        18,
+        114,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 62",
+      "ground": "crack",
+      "rect": [
+        26,
+        114,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 63",
+      "ground": "crack",
+      "rect": [
+        36,
+        114,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 64",
+      "ground": "crack",
+      "rect": [
+        44,
+        114,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 65",
+      "ground": "crack",
+      "rect": [
+        54,
+        114,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 66",
+      "ground": "crack",
+      "rect": [
+        6,
+        120,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 67",
+      "ground": "crack",
+      "rect": [
+        14,
+        120,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 68",
+      "ground": "crack",
+      "rect": [
+        24,
+        120,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 69",
+      "ground": "crack",
+      "rect": [
+        32,
+        120,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 70",
+      "ground": "crack",
+      "rect": [
+        42,
+        120,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 71",
+      "ground": "crack",
+      "rect": [
+        50,
+        120,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 72",
+      "ground": "crack",
+      "rect": [
+        8,
+        126,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 73",
+      "ground": "crack",
+      "rect": [
+        18,
+        126,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 74",
+      "ground": "crack",
+      "rect": [
+        26,
+        126,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 75",
+      "ground": "crack",
+      "rect": [
+        36,
+        126,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 76",
+      "ground": "crack",
+      "rect": [
+        44,
+        126,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 77",
+      "ground": "crack",
+      "rect": [
+        54,
+        126,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 78",
+      "ground": "crack",
+      "rect": [
+        6,
+        132,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 79",
+      "ground": "crack",
+      "rect": [
+        14,
+        132,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 80",
+      "ground": "crack",
+      "rect": [
+        24,
+        132,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 81",
+      "ground": "crack",
+      "rect": [
+        32,
+        132,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 82",
+      "ground": "crack",
+      "rect": [
+        42,
+        132,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 83",
+      "ground": "crack",
+      "rect": [
+        50,
+        132,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 84",
+      "ground": "crack",
+      "rect": [
+        72,
+        104,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 85",
+      "ground": "crack",
+      "rect": [
+        80,
+        104,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 86",
+      "ground": "crack",
+      "rect": [
+        90,
+        104,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 87",
+      "ground": "crack",
+      "rect": [
+        74,
+        110,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 88",
+      "ground": "crack",
+      "rect": [
+        84,
+        110,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 89",
+      "ground": "crack",
+      "rect": [
+        72,
+        116,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 90",
+      "ground": "crack",
+      "rect": [
+        80,
+        116,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 91",
+      "ground": "crack",
+      "rect": [
+        90,
+        116,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 92",
+      "ground": "crack",
+      "rect": [
+        74,
+        122,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 93",
+      "ground": "crack",
+      "rect": [
+        84,
+        122,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 94",
+      "ground": "crack",
+      "rect": [
+        72,
+        128,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 95",
+      "ground": "crack",
+      "rect": [
+        80,
+        128,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 96",
+      "ground": "crack",
+      "rect": [
+        90,
+        128,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 97",
+      "ground": "crack",
+      "rect": [
+        74,
+        134,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 98",
+      "ground": "crack",
+      "rect": [
+        84,
+        134,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 99",
+      "ground": "crack",
+      "rect": [
+        72,
+        140,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 100",
+      "ground": "crack",
+      "rect": [
+        80,
+        140,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 101",
+      "ground": "crack",
+      "rect": [
+        90,
+        140,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 102",
+      "ground": "crack",
+      "rect": [
+        106,
+        104,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 103",
+      "ground": "crack",
+      "rect": [
+        115,
+        104,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 104",
+      "ground": "crack",
+      "rect": [
+        124,
+        104,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 105",
+      "ground": "crack",
+      "rect": [
+        108,
+        110,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 106",
+      "ground": "crack",
+      "rect": [
+        116,
+        110,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 107",
+      "ground": "crack",
+      "rect": [
+        126,
+        110,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 108",
+      "ground": "crack",
+      "rect": [
+        106,
+        116,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 109",
+      "ground": "crack",
+      "rect": [
+        115,
+        116,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 110",
+      "ground": "crack",
+      "rect": [
+        124,
+        116,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 111",
+      "ground": "crack",
+      "rect": [
+        108,
+        122,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 112",
+      "ground": "crack",
+      "rect": [
+        116,
+        122,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 113",
+      "ground": "crack",
+      "rect": [
+        126,
+        122,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 114",
+      "ground": "crack",
+      "rect": [
+        106,
+        128,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 115",
+      "ground": "crack",
+      "rect": [
+        115,
+        128,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 116",
+      "ground": "crack",
+      "rect": [
+        124,
+        128,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 117",
+      "ground": "crack",
+      "rect": [
+        108,
+        134,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 118",
+      "ground": "crack",
+      "rect": [
+        116,
+        134,
+        8,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 119",
+      "ground": "crack",
+      "rect": [
+        126,
+        134,
+        6,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 120",
+      "ground": "crack",
+      "rect": [
+        106,
+        140,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 121",
+      "ground": "crack",
+      "rect": [
+        115,
+        140,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Ruộng 122",
+      "ground": "crack",
+      "rect": [
+        124,
+        140,
+        7,
+        4
+      ],
+      "on": [
+        "grass"
+      ],
+      "clear": true
+    },
+    {
+      "type": "pond",
+      "at": [
+        164,
+        34
+      ],
+      "r": 6
+    },
+    {
+      "type": "pond",
+      "at": [
+        148,
+        120
+      ],
+      "r": 5
+    },
+    {
+      "type": "pond",
+      "at": [
+        34,
+        30
+      ],
+      "r": 4
+    },
+    {
+      "type": "pond",
+      "at": [
+        88,
+        26
+      ],
+      "r": 4
+    },
+    {
+      "type": "river",
+      "name": "Suối Hậu Sơn",
+      "pts": [
+        [
+          118,
+          0
+        ],
+        [
+          112,
+          20
+        ],
+        [
+          120,
+          40
+        ],
+        [
+          132,
+          54
+        ],
+        [
+          150,
+          64
+        ],
+        [
+          164,
+          34
+        ]
+      ],
+      "width": 2.2,
+      "wobble": 0.5,
+      "bank": 1,
+      "fords": [
+        [
+          120,
+          40,
+          2
+        ]
+      ]
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          74,
+          10
+        ],
+        [
+          86,
+          6
+        ],
+        [
+          100,
+          8
+        ],
+        [
+          114,
+          4
+        ]
+      ],
+      "rows": 2,
+      "spacing": 3,
+      "gap": 14,
+      "gapLen": 3,
+      "side": -1
+    },
+    {
+      "type": "ancient",
+      "at": [
+        84,
+        38
+      ],
+      "r": 7
+    },
+    {
+      "type": "ruins",
+      "rect": [
+        104,
+        28,
+        14,
+        10
+      ],
+      "gates": [
+        [
+          110,
+          37
+        ]
+      ],
+      "steles": [],
+      "arches": [
+        [
+          107,
+          31
+        ]
+      ],
+      "broken": 0.4
+    },
+    {
+      "type": "clearing",
+      "at": [
+        100,
+        15
+      ],
+      "r": 7
+    },
+    {
+      "type": "clearing",
+      "at": [
+        24,
+        28
+      ],
+      "r": 7
+    },
+    {
+      "type": "clearing",
+      "at": [
+        173,
+        119
+      ],
+      "r": 7
+    },
+    {
+      "type": "area",
+      "name": "Sân tập 1",
+      "ground": "camp",
+      "rect": [
+        146,
+        66,
+        26,
+        22
+      ],
+      "edge": 2,
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Sân tập 2",
+      "ground": "camp",
+      "rect": [
+        176,
+        96,
+        22,
+        16
+      ],
+      "edge": 2,
+      "clear": true
+    },
+    {
+      "type": "row",
+      "kind": "stele",
+      "from": [
+        148,
+        68
+      ],
+      "to": [
+        170,
+        68
+      ],
+      "step": 4
+    },
+    {
+      "type": "row",
+      "kind": "stele",
+      "from": [
+        148,
+        86
+      ],
+      "to": [
+        170,
+        86
+      ],
+      "step": 4
+    },
+    {
+      "type": "objects",
+      "kind": "stele",
+      "at": [
+        [
+          178,
+          98
+        ],
+        [
+          186,
+          98
+        ],
+        [
+          194,
+          98
+        ]
+      ]
+    },
+    {
+      "type": "area",
+      "name": "Nền làng",
+      "ground": "grass",
+      "rect": [
+        76,
+        57,
+        52,
+        40
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Đường làng đông tây",
+      "ground": "path",
+      "rect": [
+        76,
+        76,
+        52,
+        4
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Đường làng bắc nam",
+      "ground": "path",
+      "rect": [
+        100,
+        57,
+        4,
+        40
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Quảng trường làng",
+      "ground": "camp",
+      "rect": [
+        90,
+        68,
+        24,
+        8
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "objects",
+      "kind": "fire",
+      "at": [
+        [
+          112,
+          72
+        ]
+      ]
+    },
+    {
+      "type": "area",
+      "name": "Đường xuống cổng nam",
+      "ground": "path",
+      "rect": [
+        100,
+        97,
+        4,
+        53
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "house",
+      "rect": [
+        79,
+        60,
+        13,
+        7
+      ],
+      "margin": 1
+    },
+    {
+      "type": "house",
+      "rect": [
+        111,
+        60,
+        13,
+        7
+      ],
+      "margin": 1
+    },
+    {
+      "type": "house",
+      "rect": [
+        94,
+        60,
+        5,
+        5
+      ],
+      "margin": 0
+    },
+    {
+      "type": "house",
+      "rect": [
+        105,
+        60,
+        5,
+        5
+      ],
+      "margin": 0
+    },
+    {
+      "type": "house",
+      "rect": [
+        79,
+        70,
+        7,
+        5
+      ],
+      "margin": 0
+    },
+    {
+      "type": "house",
+      "rect": [
+        117,
+        70,
+        8,
+        5
+      ],
+      "margin": 0
+    },
+    {
+      "type": "house",
+      "rect": [
+        79,
+        83,
+        8,
+        6
+      ],
+      "margin": 1
+    },
+    {
+      "type": "house",
+      "rect": [
+        90,
+        84,
+        7,
+        5
+      ],
+      "margin": 1
+    },
+    {
+      "type": "house",
+      "rect": [
+        107,
+        84,
+        7,
+        5
+      ],
+      "margin": 1
+    },
+    {
+      "type": "house",
+      "rect": [
+        117,
+        83,
+        8,
+        6
+      ],
+      "margin": 1
+    },
+    {
+      "type": "area",
+      "name": "Vườn rau làng",
+      "ground": "crack",
+      "rect": [
+        80,
+        91,
+        16,
+        3
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Vườn rau làng 2",
+      "ground": "crack",
+      "rect": [
+        108,
+        91,
+        16,
+        3
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "objects",
+      "kind": "tree",
+      "at": [
+        [
+          78,
+          59
+        ],
+        [
+          126,
+          59
+        ],
+        [
+          78,
+          94
+        ],
+        [
+          126,
+          94
+        ],
+        [
+          88,
+          81
+        ],
+        [
+          116,
+          81
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "sign",
+      "at": [
+        [
+          99,
+          99
+        ],
+        [
+          74,
+          75
+        ],
+        [
+          130,
+          75
+        ]
+      ]
+    },
+    {
+      "type": "fence",
+      "rect": [
+        76,
+        57,
+        52,
+        40
+      ],
+      "gates": [
+        [
+          102,
+          57.5
+        ],
+        [
+          102,
+          96.5
+        ],
+        [
+          76.5,
+          78
+        ],
+        [
+          127.5,
+          78
+        ]
+      ],
+      "gate": 6,
+      "ground": "path"
+    }
+  ],
+  "roads": [
+    {
+      "via": [
+        "cong_bac",
+        "hau_son",
+        "bac"
+      ],
+      "width": 3
+    },
+    {
+      "via": [
+        "hau_son",
+        "thach_dien"
+      ],
+      "width": 2
+    },
+    {
+      "via": [
+        "tay",
+        "cong_tay"
+      ],
+      "width": 3
+    },
+    {
+      "via": [
+        "cong_dong",
+        "san_tap",
+        "dong"
+      ],
+      "width": 3
+    }
+  ],
+  "spawn": {
+    "name": "Quảng trường làng",
+    "rect": [
+      94,
+      69,
+      16,
+      6
+    ]
+  },
+  "safe": [
+    {
+      "name": "Thánh Hồn Thôn",
+      "rect": [
+        76,
+        57,
+        52,
+        40
+      ]
+    }
+  ],
+  "portals": [
+    {
+      "name": "Đi Nặc Đinh Thành",
+      "rect": [
+        100,
+        150,
+        4,
+        2
+      ],
+      "to": "nac_dinh_thanh",
+      "arrive": "tu_thanh_hon_thon"
+    }
+  ],
+  "arrives": [
+    {
+      "name": "tu_nac_dinh_thanh",
+      "at": [
+        102,
+        145.5
+      ]
+    }
+  ],
+  "waypoints": [
+    {
+      "name": "lang",
+      "label": "Quảng trường làng",
+      "at": [
+        94,
+        69
+      ]
+    },
+    {
+      "name": "bai_tap",
+      "label": "Bãi tập hồn sư",
+      "at": [
+        156,
+        75
+      ],
+      "ground": "camp"
+    },
+    {
+      "name": "hau_son",
+      "label": "Hậu Sơn",
+      "at": [
+        97,
+        20
+      ],
+      "ground": "path"
+    }
+  ],
+  "elites": [
+    {
+      "name": "Bạch Nhung Thỏ Vương",
+      "boss": "bach_nhung_tho_vuong",
+      "rect": [
+        20,
+        24,
+        8,
+        7
+      ]
+    },
+    {
+      "name": "Ngân Bối Phong Lang Đầu Lĩnh",
+      "boss": "ngan_boi_phong_lang_dau_linh",
+      "rect": [
+        170,
+        116,
+        7,
+        7
+      ]
+    },
+    {
+      "name": "Thiết Nha Dã Trư Vương",
+      "boss": "thiet_nha_da_tru_vuong",
+      "rect": [
+        96,
+        12,
+        9,
+        6
+      ]
+    }
+  ],
+  "npcs": [
+    {
+      "name": "Lão Kiệt Khắc",
+      "npc": "lao_kiet_khac",
+      "at": [
+        85.5,
+        69.5
+      ]
+    },
+    {
+      "name": "Tố Vân Đào",
+      "npc": "to_van_dao",
+      "at": [
+        117.5,
+        68.5
+      ]
+    }
+  ]
+}

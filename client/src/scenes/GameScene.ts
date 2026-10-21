@@ -91,6 +91,19 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
     // Băng Tủy Thụ, xương, đá / băng tinh, tường đổ, bia, vòm, gỗ
     obj: { 1: "#a0d0ff", 33: "#e0e0e8", 36: "#a0b0c8", 37: "#9098a8", 38: "#b0b8c8", 39: "#9098a8", 40: "#6a6a78" },
   },
+  // Thành trấn ×8 (11.5): sân đá, bờ / nền đá, cầu; đài phun nước, sư tử đá, đèn lồng, chậu hoa / cờ, giá binh khí.
+  thanh_hon_thon: {
+    ground: { 4: "#6a9a48", 8: "#8a7a58", 25: "#b8a888", 26: "#8a8478", 33: "#b8a888" },
+    obj: { 28: "#5a8a40", 29: "#a08a63", 30: "#2a4a2a", 32: "#3a3f48", 36: "#7a7a70", 37: "#6a6a70", 38: "#6a4a2a", 39: "#8a98a8", 40: "#5a4a32" },
+  },
+  nac_dinh_thanh: {
+    ground: { 4: "#6a9a48", 8: "#8a7a58", 16: "#b0aaa0", 25: "#9a9488", 26: "#8a8478", 33: "#a89a80" },
+    obj: { 12: "#ff9a3c", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#c06080" },
+  },
+  thien_dau_thanh: {
+    ground: { 4: "#6a9a48", 7: "#8aa0b8", 8: "#7a88a0", 10: "#c8c0b0", 16: "#c8c0b0", 25: "#a8a090", 26: "#8a8478", 33: "#b8b0a0" },
+    obj: { 12: "#ff9a3c", 19: "#e8a0b8", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#d8b040" },
+  },
   hai_than_dao: {
     // cỏ đảo, hoa, cát ướt tối, nước biển, bãi trại, sân đá đền, cầu tàu / đường đá, đá cuội
     ground: { 3: "#5a7a4a", 5: "#8a9a5a", 6: "#6a9a50", 8: "#a08a63", 9: "#3a6a90", 10: "#e8dcc0", 13: "#d8d0c0", 16: "#b8b0a0", 25: "#8a7a60", 26: "#9a9280" },
