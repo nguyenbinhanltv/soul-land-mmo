@@ -59,6 +59,8 @@ export interface BuildStyle {
   wallH: number; roofMax: number;
   /** Tường thành (hàng ô `wall` đứng riêng): vân, màu, chiều cao. */
   fence: { kind: "stone" | "brick" | "wood"; wall: [string, string, string]; top: string; h: number };
+  /** Vật đứng (tên trong `props` của tiles.json) thay khối tường thành ở góc và hai đầu tường (cạnh cổng), ví dụ tháp cổng thành. */
+  tower?: string;
 }
 
 type V3 = [number, number, number];

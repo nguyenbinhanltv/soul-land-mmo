@@ -59,7 +59,7 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     const set = mapSet(data, mapId), files = new Set<string>();
     for (const ref of Object.values(set.ground)) { const g = data.ground[parseRef(ref).name]; for (const f of [...(g?.img ?? []), ...(g?.big ?? [])]) files.add(f); }
     for (const f of files) if (!scene.textures.exists(texKey(f))) scene.load.image(texKey(f), BASE + f);
-    for (const v of Object.values(set.props)) for (const ref of ([] as string[]).concat(v)) {
+    for (const v of [...Object.values(set.props), ...(set.build?.tower ? [set.build.tower] : [])]) for (const ref of ([] as string[]).concat(v)) {
       const p = data.props[parseRef(ref).name];
       if (p && !scene.textures.exists(p.key)) scene.load.image(p.key, propFile(p.key));
     }
@@ -101,6 +101,8 @@ export class IsoMap {
   private groundDefs = new Map<number, Ground | null>();
   private propDefs = new Map<number, { key: string; def: PropDef }[] | null>();
   private build: BuildStyle | null = null;
+  /** Vật thay khối tường thành ở góc / đầu tường (`build.tower`). */
+  private tower: { key: string; def: PropDef } | null = null;
   /** Ô thuộc ô lớn: chỉ số ô góc trên (gốc ô lớn) → true; ô khác trong khối → chỉ số gốc. */
   private bigAt = new Map<number, number>();
   /** Ô thuộc một ngôi nhà (không vẽ vật riêng). */
@@ -157,6 +159,8 @@ export class IsoMap {
       if (list.length) this.propDefs.set(+gid, list);
     }
     this.build = set.build ?? null;
+    const tw = this.build?.tower ? parseRef(this.build.tower) : null, td = tw && data.props[tw.name];
+    if (tw && td && this.scene.textures.exists(td.key)) { this.tower = { key: this.tinted(td.key, tw.tint), def: td }; this.rise = Math.max(this.rise, td.foot[1]); }
   }
 
   /** Texture nhân màu `tint` (#rrggbb, hoặc x<hệ số> để sáng lên) của `key` (tạo một lần, chạy cả khi chỉ có Canvas, không dùng setTint). */
@@ -233,6 +237,13 @@ export class IsoMap {
       group.ims.push(im); this.tallOf.set(im, group);
     }
     this.tall.add(group);
+  }
+
+  /** Ô tường thành ở góc (có ô tường kề theo cả hai trục) hoặc ở đầu tường (đúng một ô tường kề, cạnh cổng). */
+  private wallEnd(tx: number, ty: number) {
+    const w = (x: number, y: number) => x >= 0 && y >= 0 && x < this.MW && y < this.MH && this.trees[y * this.MW + x] === WALL && !this.inHouse.has(y * this.MW + x);
+    const L = w(tx - 1, ty), R = w(tx + 1, ty), U = w(tx, ty - 1), D = w(tx, ty + 1);
+    return ((L || R) && (U || D)) || +L + +R + +U + +D === 1;
   }
 
   private fenceKey() {
@@ -489,7 +500,9 @@ export class IsoMap {
         const h = hash(tx, ty, 1), p = props[h % props.length], tex = this.scene.textures.get(p.key).getSourceImage();
         im = this.img(s.x, s.y, p.key).setOrigin(p.def.foot[0] / tex.width, p.def.foot[1] / tex.height).setFlipX(p.def.flip !== false && !!(h & 0x100));
       } else if (!TOPDOWN && t === WALL && this.build) {
-        const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy);
+        const tw = this.tower && this.wallEnd(tx, ty) ? this.tower : null;
+        if (tw) { const tex = this.scene.textures.get(tw.key).getSourceImage(); im = this.img(s.x, s.y, tw.key).setOrigin(tw.def.foot[0] / tex.width, tw.def.foot[1] / tex.height); }
+        else { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
       } else {
         const o = this.objKey(t); im = this.img(s.x, s.y, o.key).setOrigin(0.5, o.oy).setScale(TOPDOWN ? 1 : OBJ_K);
       }

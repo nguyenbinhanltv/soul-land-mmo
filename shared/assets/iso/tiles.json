@@ -388,6 +388,66 @@
   "thong_tuyet_nho": {
    "key": "prop_thong_tuyet_nho",
    "foot": [32, 124]
+  },
+  "cay_bong_mat": {
+   "key": "prop_cay_bong_mat",
+   "foot": [32, 78]
+  },
+  "thap_cong_thanh": {
+   "key": "prop_thap_cong_thanh",
+   "foot": [40, 126]
+  },
+  "cay_bang_chet": {
+   "key": "prop_cay_bang_chet",
+   "foot": [40, 78]
+  },
+  "cum_bang_tinh": {
+   "key": "prop_cum_bang_tinh",
+   "foot": [40, 78]
+  },
+  "cot_bang": {
+   "key": "prop_cot_bang",
+   "foot": [32, 78]
+  },
+  "cum_san_ho": {
+   "key": "prop_cum_san_ho",
+   "foot": [40, 78]
+  },
+  "bui_gai": {
+   "key": "prop_bui_gai",
+   "foot": [48, 78]
+  },
+  "mang_nhen_khong_lo": {
+   "key": "prop_mang_nhen_khong_lo",
+   "foot": [48, 78]
+  },
+  "tinh_the_tim": {
+   "key": "prop_tinh_the_tim",
+   "foot": [24, 46]
+  },
+  "re_cay_lon": {
+   "key": "prop_re_cay_lon",
+   "foot": [48, 62]
+  },
+  "nam_khong_lo": {
+   "key": "prop_nam_khong_lo",
+   "foot": [32, 94]
+  },
+  "cay_dua": {
+   "key": "prop_cay_dua",
+   "foot": [32, 78]
+  },
+  "thong_tuyet": {
+   "key": "prop_thong_tuyet",
+   "foot": [48, 158]
+  },
+  "cum_da": {
+   "key": "prop_cum_da",
+   "foot": [40, 62]
+  },
+  "tang_da_reu": {
+   "key": "prop_tang_da_reu",
+   "foot": [48, 62]
   }
  },
  "maps": {
@@ -465,6 +525,10 @@
      "top": "#86663e",
      "h": 20
     }
+   },
+   "props": {
+    "17": ["cay_la_rong", "cay_la_tron", "cay_bong_mat"],
+    "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0", "cay_bong_mat~#d0dcc8"]
    }
   },
   "nac_dinh_thanh": {
@@ -488,7 +552,8 @@
      "wall": ["#9a5a42", "#7a3e2c", "#b0654a"],
      "top": "#8a8478",
      "h": 30
-    }
+    },
+    "tower": "thap_cong_thanh"
    }
   },
   "thien_dau_thanh": {
@@ -513,7 +578,8 @@
      "wall": ["#d0c8b4", "#aaa290", "#e0d8c4"],
      "top": "#c8bea8",
      "h": 32
-    }
+    },
+    "tower": "thap_cong_thanh~#e8e4dc"
    }
   },
   "dai_dau_hon_truong": {
@@ -551,9 +617,10 @@
     "35": "nuoc_bien~#5a7890"
    },
    "props": {
-    "17": "cay_dua_cao",
-    "18": ["cay_dua_cao", "cay_la_tron"],
-    "20": ["cay_dua_cao", "cay_la_tron~#c8d4c0"]
+    "17": ["cay_dua_cao", "cay_dua"],
+    "18": ["cay_dua", "cay_la_tron"],
+    "20": ["cay_dua_cao", "cay_dua", "cay_la_tron~#c8d4c0"],
+    "36": ["da_ngam", "da_ngam", "cum_san_ho"]
    },
    "build": {
     "wallKind": "plaster",
@@ -605,7 +672,8 @@
     "10": "dat_re"
    },
    "props": {
-    "19": ["cay_la_rong~#98a8a0", "cay_rung_dem", "thong_cao"]
+    "19": ["cay_la_rong~#98a8a0", "cay_rung_dem", "thong_cao"],
+    "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0", "cay_la_rong~#d0dcc8", "tang_da_reu"]
    }
   },
   "tinh_dau_noi_dia": {
@@ -618,8 +686,8 @@
     "10": "dat_da_rung~#d8d0c8"
    },
    "props": {
-    "19": ["cay_rung_dem~x1.35", "cay_la_rong~#a8bcc0"],
-    "20": ["cay_rung_dem~x1.35", "cay_rung_dem~x1.2", "cay_u_minh~x1.5"]
+    "19": ["cay_rung_dem~x1.35", "cay_la_rong~#a8bcc0", "cay_rung_dem~x1.35", "bui_gai"],
+    "20": ["cay_rung_dem~x1.35", "cay_rung_dem~x1.2", "cay_u_minh~x1.5", "cay_rung_dem~x1.35", "mang_nhen_khong_lo"]
    }
   },
   "loi_tinh_dau": {
@@ -633,7 +701,7 @@
    },
    "props": {
     "19": "cay_rung_dem~x1.3",
-    "20": ["cay_u_minh~x1.5", "cay_rung_dem~x1.2"]
+    "20": ["cay_u_minh~x1.5", "cay_rung_dem~x1.2", "cay_u_minh~x1.5", "re_cay_lon", "nam_khong_lo"]
    }
   },
   "cuc_bac_chi_dia": {
@@ -644,6 +712,10 @@
     "27": "ho_bang",
     "28": "bang_nut~#6a7890",
     "29": "da_tuyet"
+   },
+   "props": {
+    "30": ["thong_tuyet_nho", "thong_tuyet_nho", "thong_tuyet", "cay_bang_chet"],
+    "32": ["bang_tinh", "cum_bang_tinh", "cot_bang"]
    }
   }
  }
