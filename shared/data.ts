@@ -3229,6 +3229,13 @@ export const NPCS: NpcDef[] = [
     ] },
   // Biển "sắp mở" của BĐ6a đã bỏ: `cong_lac_nhat` (BĐ6b), `cong_cuc_bac` (BĐ6c), `ben_thuyen_hai_than` (BĐ6d); các cổng đó là object
   // `portal` (bến thuyền có `boat`). Mã NPC không lưu DB.
+  // #111: thương nhân lưu động ở trại cổng bản đồ săn, không đặt bằng object `npc` mà tự đứng ở trại (campNpcSpot).
+  { id: "thuong_nhan_luu_dong", name: "Thương nhân lưu động", title: "Trại cổng", role: "shop", col: "#ffb35c",
+    looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
+    lines: [
+      "Đường xa gánh nặng, giá có cao hơn trong thành một chút, khách quan thông cảm. Đan dược, Hồi Thành Phù ta đều mang theo.",
+      "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
+    ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
@@ -3241,6 +3248,16 @@ export const SHOP: { code: string; price: number }[] = [
   { code: "dai_hoi_huyet_dan", price: 120 }, { code: "dai_hoi_hon_dan", price: 120 },
   { code: "hoi_thanh_phu", price: 30 }, // 11.2
 ];
+/** Thương nhân lưu động ở trại cổng bản đồ săn (#111): mã NPC trong NPCS. */
+export const CAMP_MERCHANT = "thuong_nhan_luu_dong";
+/** Hàng của thương nhân lưu động: chỉ đan nhỏ và Hồi Thành Phù, đắt hơn SHOP (giá đồng mỗi món). Mua lại đồ dư như trong thành. */
+export const CAMP_SHOP: { code: string; price: number }[] = [
+  { code: "hoi_huyet_dan", price: 30 }, { code: "hoi_hon_dan", price: 30 }, { code: "hoi_thanh_phu", price: 45 },
+];
+/** Bảng hàng của thương nhân `npcId` (thương nhân trong thành dùng chung SHOP). */
+export const shopOf = (npcId: string) => (npcId === CAMP_MERCHANT ? CAMP_SHOP : SHOP);
+/** Thương nhân `npcId` có mở rộng túi không (thương nhân lưu động thì không). */
+export const shopExpands = (npcId: string) => npcId !== CAMP_MERCHANT;
 /**
  * Mua lại đồ bán nhầm (bước 9.8): thương nhân giữ BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (RAM, mất khi rời game), mua lại
  * đúng món (cùng chỉ số, cấp cường hóa) với đúng giá đã bán. Thương nhân nào cũng giữ chung danh sách này.
