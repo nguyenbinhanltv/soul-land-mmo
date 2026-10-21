@@ -674,7 +674,7 @@ export type TeleShape = "line" | "cone" | "circle";
  * - `floor`: chiêu toàn sàn: vùng là cả sàn đấu (object `boss`), chỉ trúng người đứng trong sàn; client vẽ thành một dải phủ sàn.
  * Từ #118 (chiêu toàn sàn né được):
  * - `safe`: chiêu toàn sàn có `n` vòng an toàn bán kính `r` (FLOOR_SAFE) rải đều theo bề ngang sàn, vị trí do server tung lúc bắt đầu
- *   báo trước (tới được bằng đường thẳng từ tâm sàn); người đứng trong một vòng (teleSafe) lúc chiêu nổ thì không trúng.
+ *   báo trước (tới được bằng đường thẳng từ tâm sàn); người chạm một vòng (teleSafe) lúc chiêu nổ thì không trúng.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -791,8 +791,11 @@ export function beastSkillOf(species: string, years: number): BeastSkillDef | nu
 }
 /** Một vùng cảnh báo đã khóa: gốc (x, y), hướng `ang` (radian, vệt / nón), kích thước theo BeastSkillDef. */
 export interface Tele { shape: TeleShape; x: number; y: number; ang: number; r: number; w: number; arc: number; }
-/** Điểm (px, py) đứng trong vòng an toàn `s` của chiêu toàn sàn (BeastSkillDef.safe, #118): tâm người chơi trong vòng. Hàm thuần. */
-export const teleSafe = (s: Tele, px: number, py: number) => Math.hypot(px - s.x, py - s.y) <= s.r;
+/**
+ * Điểm (px, py) đứng trong vòng an toàn `s` của chiêu toàn sàn (BeastSkillDef.safe, #118): người chơi (hình tròn bán kính TELE_PAD)
+ * chạm vòng là an toàn, cùng cách tính với teleHits. Hàm thuần: server tính, bot đối chiếu.
+ */
+export const teleSafe = (s: Tele, px: number, py: number) => Math.hypot(px - s.x, py - s.y) <= s.r + TELE_PAD;
 /** Điểm (px, py) có trúng vùng `t` không (người chơi là hình tròn bán kính TELE_PAD). Hàm thuần: server tính, bot đối chiếu. */
 export function teleHits(t: Tele, px: number, py: number) {
   const dx = px - t.x, dy = py - t.y, d = Math.hypot(dx, dy);

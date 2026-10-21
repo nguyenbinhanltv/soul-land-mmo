@@ -39,7 +39,7 @@ import { store, Character, type AccountLooks, type Location, type Item, type Bag
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
 import * as party from "../party.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
-import { floorSafeZones, surfaceSpot } from "./worldBoss.ts";
+import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
 
 export interface PData {
@@ -4231,7 +4231,7 @@ export class MapRoom extends Room<MapState> {
     life = (seat.leaveAt - now) / 1000;
     const cx = lair.x + lair.w / 2, cy = lair.y + lair.h / 2;
     let x = cx, y = cy;
-    for (let k = 0; k < 40 && this.map.hits(x, y, 8, 4); k++) { x = cx + (Math.random() - 0.5) * lair.w * 0.6; y = cy + (Math.random() - 0.5) * lair.h * 0.6; }
+    for (let k = 0; k < 40 && this.map.hits(x, y, BOSS_BOX.hw, BOSS_BOX.hh); k++) { x = cx + (Math.random() - 0.5) * lair.w * 0.6; y = cy + (Math.random() - 0.5) * lair.h * 0.6; }
     const bi = bossIndex(boss);
     this.king.bid = this.addBeast(lair.zone, years, bi, x, y, BOSSES[bi].rank, slot, life);
   }
@@ -4331,6 +4331,7 @@ export class MapRoom extends Room<MapState> {
    */
   worldDive(bid: string, b: BeastState, bd: BData, w: WorldData, dv: NonNullable<NonNullable<BossDef["world"]>["dive"]>) {
     this.cancelCast(bid, b, bd);
+    // Sàn không tìm được chỗ nổi lên thì nổi ở chỗ sinh (trong sàn), không kẹt lại giữa hồ.
     w.dive = dv.secs; w.surf = surfaceSpot(this.map, b.x, b.y, dv.away, Math.random) ?? { x: bd.hx, y: bd.hy }; b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" });
     const lake = this.map.lake;
@@ -4338,12 +4339,10 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("boss", { k: "dive", bid, name: dv.name, secs: dv.secs, ...(w.surf ? { sx: w.surf.x, sy: w.surf.y } : {}) });
   }
 
-  /** Nổi lên đúng chỗ đã báo trước lúc lặn (WorldData.surf; không có thì chỗ sinh), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
+  /** Nổi lên đúng chỗ đã báo trước lúc lặn (WorldData.surf), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
   worldSurface(bid: string, b: BeastState, bd: BData, k: KingData, w: WorldData) {
     const dv = k.def.world?.dive;
-    // Không có chỗ nổi lên (sàn không tìm được chỗ) thì về chỗ sinh trong sàn, không kẹt lại giữa hồ.
-    const to = w.surf ?? { x: bd.hx, y: bd.hy };
-    b.x = to.x; b.y = to.y; this.interest.beasts.put(bid, b.x, b.y); // dời xa hơn lề lưới (11.4): cập nhật ngay
+    if (w.surf) { b.x = w.surf.x; b.y = w.surf.y; this.interest.beasts.put(bid, b.x, b.y); } // dời xa hơn lề lưới (11.4): cập nhật ngay
     w.dive = 0; w.surf = null; b.dive = false;
     bd.skT = Math.max(bd.skT, 1);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 60, col: "#4ab0ff" });

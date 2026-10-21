@@ -78,6 +78,8 @@ export class GameScene extends Phaser.Scene {
   beasts = new Map<string, Phaser.GameObjects.Sprite>();
   /** Vị trí vẽ (thế giới, nội suy) của từng hồn thú; sprite đặt ở hình chiếu (10.1). */
   bpos = new Map<string, Pt>();
+  /** Cờ lặn (BeastState.dive) đã thấy của từng hồn thú: đổi thì đặt thẳng vị trí (Du Thủy, #118). */
+  bdive = new Map<string, boolean>();
   /** Hướng nhìn 8 phía của hồn thú (sheet isometric): theo hướng trượt khi đi, theo vùng báo trước khi tung chiêu, đứng yên thì giữ. */
   bface = new Map<string, Dir8>();
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
@@ -610,7 +612,6 @@ export class GameScene extends Phaser.Scene {
         hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
         hud.banner(`${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       } else if (m.k === "spawn" || m.k === "here") {
-        if (m.k === "here") m.here = true; // tin "here" luôn là boss của bản đồ này
         hud.setBossCountdown(null);
         if (m.here) hud.setBossLife(m.life);
         // Boss thế giới (BĐ6e): đồng hồ nổi giận, điểm yếu đang hiện (người vào giữa trận).
@@ -1493,8 +1494,9 @@ export class GameScene extends Phaser.Scene {
       const ox = s.x, mv8 = b.moving && Math.hypot(b.x - w.x, b.y - w.y) > 0.3 ? dir8(b.x - w.x, b.y - w.y) : null;
       const face = mv8 ?? this.bface.get(id) ?? dir8(b.face || 1, 0) ?? "se";
       this.bface.set(id, face);
-      // Dời chỗ xa trong một nhịp (Du Thủy lặn ra hồ / nổi lên, #118; về chỗ sinh): đặt thẳng, không trượt qua cây và nước.
-      if (Math.hypot(b.x - w.x, b.y - w.y) > 96) { w.x = b.x; w.y = b.y; }
+      // Du Thủy lặn ra giữa hồ / nổi lên (#118, cờ BeastState.dive đổi cùng bản vá với vị trí): đặt thẳng, không trượt qua cây và nước.
+      if (!!b.dive !== (this.bdive.get(id) ?? !!b.dive)) { w.x = b.x; w.y = b.y; }
+      this.bdive.set(id, !!b.dive);
       w.x += (b.x - w.x) * lerp; w.y += (b.y - w.y) * lerp;
       const at = W2S(w.x, w.y); s.setPosition(at.x, at.y);
       // Loài đã có ảnh thật (M4) thì dùng sheet beast_{loài}; chưa có thì vẽ bằng code theo bậc.
@@ -1535,7 +1537,7 @@ export class GameScene extends Phaser.Scene {
         lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984).setScale(this.txtK);
       }
     });
-    for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); this.bpos.delete(id); this.bface.delete(id); }
+    for (const [id, s] of this.beasts) if (!seenB.has(id)) { s.destroy(); this.beasts.delete(id); this.bpos.delete(id); this.bface.delete(id); this.bdive.delete(id); }
     for (const [id, lb] of this.eliteLabels) if (!seenB.has(id)) { lb.destroy(); this.eliteLabels.delete(id); }
 
     // hồn hoàn rơi

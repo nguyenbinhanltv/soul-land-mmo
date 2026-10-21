@@ -5230,7 +5230,7 @@ async function loiTinhDauTest(){
   // #118: mọi chiêu toàn sàn có vòng an toàn, đủ thời gian đi bộ tới vòng gần nhất; teleSafe là hàm thuần.
   { const fl=[WORLD_SLAM,DV.world.charge.skill,DM.world.miasma.skill], c={shape:"circle",x:100,y:100,ang:0,r:40,w:0,arc:0};
     ok(fl.every(d=>d.floor&&d.safe?.n>0&&d.safe.r>0&&d.warn>=2.5)&&WORLD_SLAM.safe===FLOOR_SAFE.floor&&DV.world.charge.skill.safe===FLOOR_SAFE.charge
-      &&teleSafe(c,100,140)&&!teleSafe(c,100,141)&&DM.world.dive.away>0,
+      &&teleSafe(c,100,140+TELE_PAD)&&!teleSafe(c,100,141+TELE_PAD)&&DM.world.dive.away>0,
       `chiêu toàn sàn né được: ${fl.map(d=>`${d.name} ${d.safe?.n} vòng r${d.safe?.r}, báo trước ${d.warn} giây`).join("; ")}`); }
   ok(WORLD.hp===30&&WORLD.daily===1&&WORLD.share===0.03&&WORLD_TIME==="21:00"&&WORLD.enrageSecs===600&&WORLD.lifeSecs===900&&WORLD.warnSecs===300&&KING_CHEST.ur===0
     &&[1,3,10].every(n=>Math.abs(bossHpMult(n)-(1+0.6*(n-1)))<1e-9),
