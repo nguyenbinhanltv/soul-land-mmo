@@ -1,0 +1,38 @@
+# CI: typecheck server + client, validate sprite / tiles.json, build client cho mọi PR vào main và mỗi push vào main.
+# Status check: check-build, chỉ để tham khảo, chưa bắt buộc (xem CONTRIBUTING.md).
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Push mới lên cùng PR thì hủy lượt cũ. Trên main mỗi commit một nhóm riêng (theo SHA), nên không lượt nào bị hủy hay bị bỏ.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-build:
+    name: check-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+      # Như npm run install:all nhưng cài đúng package-lock.json: lockfile lệch package.json thì báo lỗi.
+      - run: npm ci --prefix server && npm ci --prefix client
+      - run: npm run check
+      - run: npm run build
