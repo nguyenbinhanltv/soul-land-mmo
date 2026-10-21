@@ -23,6 +23,7 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
+import { bossEngaged } from "../audio/music.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -171,6 +172,7 @@ export class GameScene extends Phaser.Scene {
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
+  lvSeen = { vh: -1, level: 0 };    // cấp võ hồn ra trận lần trước: tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string) => void; onBack: () => void }) {
@@ -269,6 +271,7 @@ export class GameScene extends Phaser.Scene {
       return source && Number.isFinite(source.x) && Number.isFinite(source.y) ? { x: source.x, y: source.y } : null;
     });
     this.audio.bindUnlock(this.ac.signal);
+    this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
     this.setupInput();
     this.setupMessages();
@@ -718,6 +721,8 @@ export class GameScene extends Phaser.Scene {
       else if (m?.k === "end") {
         hud.arenaEnd(m, { back: () => this.onBack(), top: () => this.room.send("arena", { op: "top" }) });
         if (m.score !== 0.5) this.weather.confetti(); // có người thắng: giấy hoa (mục 5.11, bảng các vùng)
+        if (m.score === 1) this.audio.music?.jingle("arena_win");
+        else if (m.score === 0) this.audio.music?.jingle("arena_lose");
         this.room.send("arena", { op: "top" });
       }
     });
@@ -735,9 +740,9 @@ export class GameScene extends Phaser.Scene {
         if (m.ev === "finish") hud.banner(`Hoàn thành chuỗi: ${c.name}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
         else hud.banner(`Trả nhiệm vụ: ${d?.name ?? ""}`, d ? `Nhận ${questRewardText(d.reward)}` : "");
       }
-      if (m.ev === "accept") this.audio.play("quest_accept");
+      if (m.ev === "accept") { this.audio.play("quest_accept"); this.audio.music?.jingle("quest_accept"); }
       else if (m.ev === "ready") this.audio.play("quest_ready");
-      else if (m.ev === "reward" || m.ev === "finish") this.audio.play("quest_reward");
+      else if (m.ev === "reward" || m.ev === "finish") { this.audio.play("quest_reward"); this.audio.music?.jingle("quest_complete"); }
     });
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
     this.room.onMessage("daily", (m: DailyMsg) => {
@@ -749,6 +754,8 @@ export class GameScene extends Phaser.Scene {
       else if (m.ev === "accept") hud.banner(`Nhận khảo hạch: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
       else if (m.ev === "ready") hud.banner(`Hoàn thành: ${s.name}`, `Quay về gặp ${giver?.name} ở ${MAPS[DAILY.map].name} để nhận thưởng`);
       else if (m.ev === "reward") hud.banner(`Trả khảo hạch: ${s.name}`, `Nhận ${questRewardText(s.reward)}`);
+      if (s && m.ev === "accept") this.audio.music?.jingle("quest_accept");
+      else if (s && m.ev === "reward") this.audio.music?.jingle("quest_complete");
     });
     // Đi cổng / đổi kênh: server đã lưu xong và chọn phòng (kênh) đích (`roomId`, null = để Colyseus chọn / mở kênh mới).
     this.room.onMessage("travel", (m: { mapId: string; roomId?: string | null }) => {
@@ -821,7 +828,7 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       hud.setAbsorbing(null);
-      if (m.result === "ok") { this.audio.play("ring_absorb_success"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
+      if (m.result === "ok") { this.audio.play("ring_absorb_success"); this.audio.music?.jingle("ring_absorb"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
       else if (m.result === "fail") { this.audio.play("ring_absorb_fail"); hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`); }
     });
     this.room.send("vohons");
@@ -1630,6 +1637,12 @@ export class GameScene extends Phaser.Scene {
     let boss = false;
     if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
     this.weather.update(time, cam, zone, boss);
+    // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
+    this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
+    if (me) {
+      if (me.vh === this.lvSeen.vh && me.level > this.lvSeen.level) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); }
+      this.lvSeen = { vh: me.vh, level: me.level };
+    }
     if (me) {
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }

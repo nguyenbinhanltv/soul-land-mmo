@@ -12,6 +12,7 @@ import { MAX_LIGHTS } from "./lighting.ts";
 import { loadUiArt } from "./uiArt.ts";
 import { vohonCard } from "./cards.ts";
 import { fontTestScreen } from "./fontTest.ts";
+import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -281,7 +282,7 @@ function play(room: Room, roomMap: string) {
     left = true;
     if (travelling) return;
     if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
-    document.body.classList.remove("playing"); overlay.hidden = false;
+    document.body.classList.remove("playing"); overlay.hidden = false; stopMusic();
     const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
     card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
   });
@@ -303,6 +304,8 @@ function play(room: Room, roomMap: string) {
     // `?canvas`: ép Canvas để thử đường lùi không có WebGL (ánh sáng tắt hẳn, 10.7). maxLights: số đèn Light2D (lighting.ts).
     type: new URLSearchParams(location.search).has("canvas") ? Phaser.CANVAS : Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true,
     maxLights: MAX_LIGHTS,
+    // AudioContext dùng chung qua các lần tạo lại game (music.ts): Phaser chỉ treo chứ không đóng, nhạc nền mờ chéo được khi đổi bản đồ.
+    audio: { context: sharedAudioContext() },
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
   });
   game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack });
