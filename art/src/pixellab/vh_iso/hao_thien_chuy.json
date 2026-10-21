@@ -1,0 +1,10 @@
+{
+  "attach": "hand",
+  "dirs": {
+    "s":  [{ "img": "hao_thien_chuy_s.png", "pivot": [17, 42], "hand": "right", "layer": "f", "rim": "#9aa0b4" }],
+    "se": [{ "img": "hao_thien_chuy_s.png", "pivot": [17, 42], "hand": "right", "layer": "f", "rim": "#9aa0b4" }],
+    "e":  [{ "img": "hao_thien_chuy_s.png", "pivot": [17, 42], "hand": "right", "layer": "f", "rim": "#9aa0b4" }],
+    "ne": [{ "img": "hao_thien_chuy_s.png", "pivot": [17, 42], "hand": "right", "layer": "b", "rim": "#9aa0b4" }],
+    "n":  [{ "img": "hao_thien_chuy_s.png", "pivot": [17, 42], "hand": "right", "layer": "b", "rim": "#9aa0b4" }]
+  }
+}

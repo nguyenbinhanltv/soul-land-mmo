@@ -29,7 +29,8 @@ export type Dir = (typeof DIRS)[number] | "left";
 
 interface AnimDef { col: number; ms: readonly number[]; loop: boolean; row?: number }
 
-/** Hồn sư isometric (mục 5.11, từ 10.4): khung 64×64 gốc (32,58); phụ thể 96×96 gốc (48,74). Cùng bố cục sheet 24 cột × 6 hàng. */
+/** Hồn sư isometric (mục 5.11, từ 10.4): khung 64×64 gốc (32,58); phụ thể 96×96 gốc (48,74). Sheet hồn sư 24 cột × 6 hàng;
+ *  phụ thể cùng bố cục cột, hai nửa theo giới (24 × 12, vohonHalf). */
 export const ISO_HS_FRAME = 64, ISO_VH_FRAME = 96, ISO_SHEET_COLS = 24;
 export const ISO_HS_ORIGIN = { x: 0.5, y: 58 / 64 };
 export const ISO_VH_ORIGIN = { x: 0.5, y: 74 / 96 };
@@ -140,7 +141,7 @@ type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boo
 function sheetSpec(key: string, frame?: readonly [number, number], iso = false): SheetSpec | null {
   let m: RegExpMatchArray | null;
   if ((m = key.match(/^hs_((?:body|outfit|hair)_[mf]_\d+)$/))) return { url: `honsu/${m[1]}.png`, frame: iso ? [ISO_HS_FRAME, ISO_HS_FRAME] : [HS_FRAME, HS_FRAME] };
-  if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME] };
+  if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: iso ? [ISO_VH_FRAME, ISO_VH_FRAME] : [VH_FRAME, VH_FRAME] };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) return { url: `beast/${key}.png`, frame: frame ?? BEAST_FRAMES[+m[1]] };
   // Khung của từng loài phụ thuộc bậc của loài, nên manifest phải ghi `frame`.
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { url: `beast/${m[1]}.png`, frame };
@@ -154,16 +155,16 @@ export function preloadSprites(scene: Phaser.Scene) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     for (const e of data?.sprites ?? []) {
-      // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm); vật đứng do isoMap.ts tải
-      // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); chân dung, NPC, vật phẩm, phụ thể, hồn thú chờ bước dùng
-      // chúng (10.5, 10.6, 10.8).
+      // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm), từ 10.5 phụ thể 96×96 (võ hồn
+      // chưa có ảnh mới vẫn dùng bộ 48×48 cũ hoặc vẽ bằng code; vohonFrame ánh xạ khung giữa hai bố cục); vật đứng do isoMap.ts tải
+      // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); chân dung, NPC, vật phẩm, hồn thú chờ bước dùng chúng (10.6, 10.8).
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
-      if (iso && !key.startsWith("hs_")) continue;
+      if (iso && !/^(hs|vh)_/.test(key)) continue;
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
-      // Normal map của bộ hồn sư isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
+      // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
       if (iso && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
   });
@@ -262,14 +263,28 @@ export function vohonFrame(bodyFrame: number, isoBody = false, isoVohon = false)
   return { frame: row * (isoVohon ? ISO_SHEET_COLS : SHEET_COLS) + a.col + Math.min(i, a.ms.length - 1), alpha };
 }
 
-/** Đặt khung lớp áo, tóc (cùng khung) và phụ thể (theo bảng ánh xạ) theo khung lớp thân hiện tại. */
+/** Số hàng mỗi nửa sheet phụ thể isometric; sheet đủ hai nửa (nam rồi nữ, mục 5.11) cao 2 × ISO_VH_HALF_ROWS khung. */
+const ISO_VH_HALF_ROWS = 6;
+
+/**
+ * Phụ thể isometric (10.5) có một nửa sheet cho mỗi dáng thân, ghép theo điểm neo của thân mẫu giới đó (mục 5.11: nam hàng 0–4,
+ * nữ hàng 6–10, vì tay nữ khép sát người hơn). Trả số khung cần cộng vào khung phụ thể: thân nữ (`hs_body_f_…`, kể cả bộ 32×32 cũ)
+ * dùng nửa nữ nếu sheet có đủ hai nửa; sheet cũ / vẽ bằng code: 0.
+ */
+export function vohonHalf(scene: Phaser.Scene, vohonKey: string, bodyKey: string): number {
+  if (!/^hs_body_f_/.test(bodyKey) || !isIsoSheet(scene, vohonKey)) return 0;
+  return scene.textures.get(vohonKey).source[0].height >= 2 * ISO_VH_HALF_ROWS * ISO_VH_FRAME ? ISO_VH_HALF_ROWS * ISO_SHEET_COLS : 0;
+}
+
+/** Đặt khung lớp áo, tóc (cùng khung) và phụ thể (theo bảng ánh xạ, nửa sheet theo giới) theo khung lớp thân hiện tại. */
 export function syncLayers(body: Phaser.GameObjects.Sprite, clothes: Phaser.GameObjects.Sprite[], vohon: Phaser.GameObjects.Sprite[]) {
   const n = Number(body.frame.name), isoBody = isIsoSheet(body.scene, body.texture.key);
   for (const s of clothes) { s.setFrame(n); s.setFlipX(body.flipX); }
   const v = vohon.length ? vohonFrame(n, isoBody, isIsoSheet(body.scene, vohon[0].texture.key)) : null;
+  const half = v ? vohonHalf(body.scene, vohon[0].texture.key, body.texture.key) : 0;
   for (const s of vohon) {
     s.setVisible(v !== null).setFlipX(body.flipX);
-    if (v) s.setFrame(v.frame).setAlpha(v.alpha);
+    if (v) s.setFrame(v.frame + half).setAlpha(v.alpha);
   }
 }
 

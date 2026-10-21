@@ -59,12 +59,17 @@ export const ISO_FLIP = { sw: "se", w: "e", nw: "ne" };
 export const ISO_DIRS8 = ["s", "sw", "w", "nw", "n", "ne", "e", "se"];
 /** Tên hướng của PixelLab (`rotations/south-east.png`) → hướng ngắn. */
 export const PIXELLAB_DIRS = { south: "s", "south-east": "se", east: "e", "north-east": "ne", north: "n", "north-west": "nw", west: "w", "south-west": "sw" };
-/** Sheet hồn sư / phụ thể: 24 cột × 6 hàng; [cột bắt đầu, số khung]; hàng 5 cột 0–1 là `absorb` (hướng s). */
+/** Sheet hồn sư: 24 cột × 6 hàng; [cột bắt đầu, số khung]; hàng 5 cột 0–1 là `absorb` (hướng s). Phụ thể: 24 × 12 (ISO_VH_SEXES). */
 export const ISO_HS_COLS = 24, ISO_HS_ROWS = 6;
 export const ISO_HS_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], cast: [14, 3], hurt: [17, 2], die: [19, 4] };
 export const ISO_ABSORB = 2;
 /** Lớp phụ thể chỉ vẽ các animation này (cột 0–16 của hàng 0–4); hurt / die / absorb do client ánh xạ. */
 export const ISO_VH_ANIMS = ["idle", "walk", "attack", "cast"];
+/**
+ * Sheet phụ thể gồm một nửa cho mỗi dáng thân (giới): nửa i là hàng i × ISO_HS_ROWS … + 4 (nam hàng 0–4, nữ hàng 6–10), cùng bố cục
+ * cột với sheet hồn sư; mỗi nửa ghép theo điểm neo của thân giới đó (tay nữ khép sát người hơn tay nam), client chọn theo lớp thân.
+ */
+export const ISO_VH_SEXES = ["m", "f"];
 /** Sheet hồn thú: 20 cột × 5 hàng (5 hướng vẽ). */
 export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
 export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
@@ -83,14 +88,15 @@ export function isoLayout(kind, size) {
   let frame, origin, cols, rows, anims;
   if (kind === "honsu" || kind === "vohon") {
     frame = kind === "honsu" ? ISO_HS_FRAME : ISO_VH_FRAME; origin = kind === "honsu" ? ISO_HS_ORIGIN : ISO_VH_ORIGIN;
-    cols = ISO_HS_COLS; rows = ISO_HS_ROWS;
+    cols = ISO_HS_COLS; rows = kind === "honsu" ? ISO_HS_ROWS : ISO_HS_ROWS * ISO_VH_SEXES.length;
     anims = kind === "honsu" ? ISO_HS_ANIMS : Object.fromEntries(ISO_VH_ANIMS.map((a) => [a, ISO_HS_ANIMS[a]]));
   } else if (kind === "beast") {
     if (!ISO_BEAST_SIZES.includes(size)) throw new Error(`hồn thú cần khung ${ISO_BEAST_SIZES.join(" / ")} (nhận ${size})`);
     frame = size; origin = [size >> 1, size - ISO_BEAST_FOOT]; cols = ISO_BEAST_COLS; rows = ISO_BEAST_ROWS; anims = ISO_BEAST_ANIMS;
   } else throw new Error(`loại không hợp lệ: ${kind}`);
   const required = [];
-  for (let r = 0; r < ISO_DIRS.length; r++) for (const [c0, n] of Object.values(anims)) for (let i = 0; i < n; i++) required.push([r, c0 + i]);
+  const halves = kind === "vohon" ? ISO_VH_SEXES.map((_, k) => k * ISO_HS_ROWS) : [0];
+  for (const r0 of halves) for (let r = 0; r < ISO_DIRS.length; r++) for (const [c0, n] of Object.values(anims)) for (let i = 0; i < n; i++) required.push([r0 + r, c0 + i]);
   if (kind === "honsu") for (let i = 0; i < ISO_ABSORB; i++) required.push([ISO_DIRS.length, i]);
   const cellOf = (name) => {
     let m = name.match(/^([a-z]+)_([a-z]+)_(\d+)$/);
@@ -117,6 +123,8 @@ export const ISO_NPC_PORTRAIT = 112;
 export const ISO_ITEM_ICON = 32;
 /** Biểu tượng trạng thái (hiệu ứng trên hồn thú / hồn sư, giao diện HTML): khung vuông, nền trong suốt. */
 export const ISO_STATUS_ICON = 24;
+/** Huy hiệu hệ võ hồn (giao diện HTML, góc thẻ võ hồn): khung vuông, nền trong suốt, một biểu tượng lớn trên tròn màu hệ. */
+export const ISO_HE_ICON = 24;
 /** Khung thẻ võ hồn (rộng × cao), cửa sổ chân dung trong suốt; chân dung ISO_PORTRAIT đặt phía trên cửa sổ. */
 export const ISO_CARD = [96, 152];
 /** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
@@ -154,6 +162,12 @@ export function readDataColors() {
 export function npcIds() {
   const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
   return new Set([...src.matchAll(/\bid: "([a-z_]+)", name: "[^"]*", title: "/g)].map((m) => m[1]));
+}
+
+/** Mã hệ võ hồn trong HE_IDS (shared/data.ts): tên file huy hiệu hệ. */
+export function heIds() {
+  const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8"), i = src.indexOf("export const HE_IDS");
+  return new Set(i < 0 ? [] : [...src.slice(i, src.indexOf("];", i)).matchAll(/"([a-z_]+)"/g)].map((m) => m[1]));
 }
 
 /** Mã trạng thái / buff trong game (STATUS_IDS, BUFF_IDS, BEAST_BUFF_IDS): tên file biểu tượng trạng thái. */
@@ -322,7 +336,7 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
  * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
  * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*`, trạng thái `status_*`,
- * mảnh giao diện `ui_*` và khung thẻ `card_*` chỉ có dạng isometric. `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
+ * huy hiệu hệ `he_*`, mảnh giao diện `ui_*` và khung thẻ `card_*` chỉ có dạng isometric. `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
  */
 export function sheetSpec(key, frame, iso = false) {
   let m;
@@ -332,7 +346,7 @@ export function sheetSpec(key, frame, iso = false) {
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
-    if (!/^(portrait|prop|npc|item|status|ui|card)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, giao diện: luôn isometric, khớp ở dưới
+    if (!/^(portrait|prop|npc|item|status|he|ui|card)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, hệ, giao diện: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
@@ -343,6 +357,7 @@ export function sheetSpec(key, frame, iso = false) {
   // Asset isometric (manifest ghi "iso": true; client chưa tải, bước 10.2 / 10.8 dùng): chân dung võ hồn, NPC, vật phẩm, vật đứng.
   if ((m = key.match(/^portrait_([a-z_]+)$/))) return { file: `iso/portrait/${m[1]}.png`, size: [ISO_PORTRAIT, ISO_PORTRAIT], kind: "portrait", iso: true };
   if ((m = key.match(/^status_([a-z_]+)$/))) return { file: `iso/status/${m[1]}.png`, size: [ISO_STATUS_ICON, ISO_STATUS_ICON], kind: "portrait", iso: true, status: m[1] };
+  if ((m = key.match(/^he_([a-z_]+)$/))) return { file: `iso/he/${m[1]}.png`, size: [ISO_HE_ICON, ISO_HE_ICON], kind: "portrait", iso: true, he: m[1] };
   if ((m = key.match(/^card_(sr|ssr|ur)$/))) return { file: `iso/ui/the_${m[1]}.png`, size: ISO_CARD, kind: "portrait", iso: true };
   if ((m = key.match(/^ui_(?!the_)([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
   if ((m = key.match(/^item_([a-z_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
@@ -352,6 +367,21 @@ export function sheetSpec(key, frame, iso = false) {
 }
 
 // ---------- Điểm neo phụ thể (mục 5.11 "Phụ thể ghép theo điểm neo") ----------
+/**
+ * Đọc (và gỡ khỏi `args`) các tham số `--body <giới>:<thân.png>,<áo.png>,<tóc.png>` của pack / vohon-part (`--body <…>` không ghi
+ * giới là giới đầu của ISO_VH_SEXES). Trả Map giới → { fig: ảnh gộp các lớp, skin: lớp thân (dò màu da), w, h } theo thứ tự ISO_VH_SEXES.
+ */
+export function vohonBodies(args) {
+  const got = new Map();
+  for (let i = args.indexOf("--body"); i >= 0; i = args.indexOf("--body")) {
+    const [, v] = args.splice(i, 2), m = v?.match(/^([a-z]):(.+)$/), sex = m ? m[1] : ISO_VH_SEXES[0];
+    if (!ISO_VH_SEXES.includes(sex)) throw new Error(`--body: giới ${sex} không thuộc ${ISO_VH_SEXES.join(", ")}`);
+    const sheets = (m ? m[2] : v).split(",").map((f) => readPng(f)), fig = new Img(sheets[0].w, sheets[0].h);
+    for (const s of sheets) fig.blit(s, 0, 0, s.w, s.h, 0, 0, true);
+    got.set(sex, { fig, skin: sheets[0], w: fig.w, h: fig.h });
+  }
+  return new Map(ISO_VH_SEXES.filter((x) => got.has(x)).map((x) => [x, got.get(x)]));
+}
 /** Điểm neo `pack --kind vohon --attach`: tay (mảng da), đỉnh đầu, giữa lưng, chân. */
 export const ANCHORS = ["hand", "head", "back", "feet"];
 /** Phần trên cùng của hình (theo chiều cao) tính là đầu: mảng da trong đó là mặt, không phải tay. */
