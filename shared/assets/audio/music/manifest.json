@@ -1,0 +1,331 @@
+{
+  "generatedBy": "tools/audio/compose/compose.mjs",
+  "soundfont": "GeneralUser-GS.sf2",
+  "tracks": [
+    {
+      "id": "cuc_bac_chi_dia",
+      "title": "Cực Bắc Chi Địa",
+      "kind": "map",
+      "maps": [
+        "cuc_bac_chi_dia"
+      ],
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/cuc_bac_chi_dia.ogg",
+          "bytes": 1156810
+        },
+        "m4a": {
+          "path": "audio/music/cuc_bac_chi_dia.m4a",
+          "bytes": 1344966
+        }
+      }
+    },
+    {
+      "id": "dai_dau_hon_truong",
+      "title": "Đại Đấu Hồn Trường",
+      "kind": "map",
+      "maps": [
+        "dai_dau_hon_truong"
+      ],
+      "loop": true,
+      "seconds": 85.333,
+      "files": {
+        "ogg": {
+          "path": "audio/music/dai_dau_hon_truong.ogg",
+          "bytes": 880607
+        },
+        "m4a": {
+          "path": "audio/music/dai_dau_hon_truong.m4a",
+          "bytes": 1048872
+        }
+      }
+    },
+    {
+      "id": "giao_chien_boss",
+      "title": "Giao chiến boss / thú vương",
+      "kind": "battle",
+      "loop": true,
+      "seconds": 78.367,
+      "files": {
+        "ogg": {
+          "path": "audio/music/giao_chien_boss.ogg",
+          "bytes": 808382
+        },
+        "m4a": {
+          "path": "audio/music/giao_chien_boss.m4a",
+          "bytes": 963972
+        }
+      }
+    },
+    {
+      "id": "hai_than_dao",
+      "title": "Hải Thần Đảo",
+      "kind": "map",
+      "maps": [
+        "hai_than_dao"
+      ],
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/hai_than_dao.ogg",
+          "bytes": 1097194
+        },
+        "m4a": {
+          "path": "audio/music/hai_than_dao.m4a",
+          "bytes": 1342336
+        }
+      }
+    },
+    {
+      "id": "jingle_hap_thu_hon_hoan",
+      "title": "Hấp thụ hồn hoàn / đột phá",
+      "kind": "jingle",
+      "event": "ring_absorb",
+      "loop": false,
+      "seconds": 5.559,
+      "files": {
+        "ogg": {
+          "path": "audio/music/jingle_hap_thu_hon_hoan.ogg",
+          "bytes": 59196
+        },
+        "m4a": {
+          "path": "audio/music/jingle_hap_thu_hon_hoan.m4a",
+          "bytes": 68575
+        }
+      }
+    },
+    {
+      "id": "jingle_hoan_thanh_nhiem_vu",
+      "title": "Hoàn thành nhiệm vụ",
+      "kind": "jingle",
+      "event": "quest_complete",
+      "loop": false,
+      "seconds": 4.101,
+      "files": {
+        "ogg": {
+          "path": "audio/music/jingle_hoan_thanh_nhiem_vu.ogg",
+          "bytes": 45353
+        },
+        "m4a": {
+          "path": "audio/music/jingle_hoan_thanh_nhiem_vu.m4a",
+          "bytes": 50843
+        }
+      }
+    },
+    {
+      "id": "jingle_len_cap",
+      "title": "Lên cấp",
+      "kind": "jingle",
+      "event": "level_up",
+      "loop": false,
+      "seconds": 4.027,
+      "files": {
+        "ogg": {
+          "path": "audio/music/jingle_len_cap.ogg",
+          "bytes": 44643
+        },
+        "m4a": {
+          "path": "audio/music/jingle_len_cap.m4a",
+          "bytes": 50420
+        }
+      }
+    },
+    {
+      "id": "jingle_nhan_nhiem_vu",
+      "title": "Nhận nhiệm vụ",
+      "kind": "jingle",
+      "event": "quest_accept",
+      "loop": false,
+      "seconds": 2.716,
+      "files": {
+        "ogg": {
+          "path": "audio/music/jingle_nhan_nhiem_vu.ogg",
+          "bytes": 34401
+        },
+        "m4a": {
+          "path": "audio/music/jingle_nhan_nhiem_vu.m4a",
+          "bytes": 34034
+        }
+      }
+    },
+    {
+      "id": "jingle_thang",
+      "title": "Thắng đấu trường",
+      "kind": "jingle",
+      "event": "arena_win",
+      "loop": false,
+      "seconds": 5.372,
+      "files": {
+        "ogg": {
+          "path": "audio/music/jingle_thang.ogg",
+          "bytes": 55947
+        },
+        "m4a": {
+          "path": "audio/music/jingle_thang.m4a",
+          "bytes": 66733
+        }
+      }
+    },
+    {
+      "id": "jingle_thua",
+      "title": "Thua đấu trường",
+      "kind": "jingle",
+      "event": "arena_lose",
+      "loop": false,
+      "seconds": 8.892,
+      "files": {
+        "ogg": {
+          "path": "audio/music/jingle_thua.ogg",
+          "bytes": 90237
+        },
+        "m4a": {
+          "path": "audio/music/jingle_thua.m4a",
+          "bytes": 109416
+        }
+      }
+    },
+    {
+      "id": "lac_nhat_sam_lam",
+      "title": "Lạc Nhật Sâm Lâm",
+      "kind": "map",
+      "maps": [
+        "lac_nhat_sam_lam"
+      ],
+      "loop": true,
+      "seconds": 85.333,
+      "files": {
+        "ogg": {
+          "path": "audio/music/lac_nhat_sam_lam.ogg",
+          "bytes": 933261
+        },
+        "m4a": {
+          "path": "audio/music/lac_nhat_sam_lam.m4a",
+          "bytes": 1049199
+        }
+      }
+    },
+    {
+      "id": "loi_tinh_dau",
+      "title": "Lõi Tinh Đấu",
+      "kind": "map",
+      "maps": [
+        "loi_tinh_dau"
+      ],
+      "loop": true,
+      "seconds": 78.367,
+      "files": {
+        "ogg": {
+          "path": "audio/music/loi_tinh_dau.ogg",
+          "bytes": 795404
+        },
+        "m4a": {
+          "path": "audio/music/loi_tinh_dau.m4a",
+          "bytes": 961935
+        }
+      }
+    },
+    {
+      "id": "nac_dinh_thanh",
+      "title": "Nặc Đinh Thành",
+      "kind": "map",
+      "maps": [
+        "nac_dinh_thanh"
+      ],
+      "loop": true,
+      "seconds": 73.143,
+      "files": {
+        "ogg": {
+          "path": "audio/music/nac_dinh_thanh.ogg",
+          "bytes": 823176
+        },
+        "m4a": {
+          "path": "audio/music/nac_dinh_thanh.m4a",
+          "bytes": 896221
+        }
+      }
+    },
+    {
+      "id": "thanh_hon_thon",
+      "title": "Thánh Hồn Thôn",
+      "kind": "map",
+      "maps": [
+        "thanh_hon_thon"
+      ],
+      "loop": true,
+      "seconds": 85.333,
+      "files": {
+        "ogg": {
+          "path": "audio/music/thanh_hon_thon.ogg",
+          "bytes": 880373
+        },
+        "m4a": {
+          "path": "audio/music/thanh_hon_thon.m4a",
+          "bytes": 1046432
+        }
+      }
+    },
+    {
+      "id": "thien_dau_thanh",
+      "title": "Thiên Đấu Thành",
+      "kind": "map",
+      "maps": [
+        "thien_dau_thanh"
+      ],
+      "loop": true,
+      "seconds": 102.4,
+      "files": {
+        "ogg": {
+          "path": "audio/music/thien_dau_thanh.ogg",
+          "bytes": 990328
+        },
+        "m4a": {
+          "path": "audio/music/thien_dau_thanh.m4a",
+          "bytes": 1251214
+        }
+      }
+    },
+    {
+      "id": "tinh_dau_ngoai_vi",
+      "title": "Tinh Đấu Ngoại vi",
+      "kind": "map",
+      "maps": [
+        "tinh_dau_ngoai_vi"
+      ],
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/tinh_dau_ngoai_vi.ogg",
+          "bytes": 1130426
+        },
+        "m4a": {
+          "path": "audio/music/tinh_dau_ngoai_vi.m4a",
+          "bytes": 1348021
+        }
+      }
+    },
+    {
+      "id": "tinh_dau_noi_dia",
+      "title": "Tinh Đấu Nội địa",
+      "kind": "map",
+      "maps": [
+        "tinh_dau_noi_dia"
+      ],
+      "loop": true,
+      "seconds": 102.4,
+      "files": {
+        "ogg": {
+          "path": "audio/music/tinh_dau_noi_dia.ogg",
+          "bytes": 1010367
+        },
+        "m4a": {
+          "path": "audio/music/tinh_dau_noi_dia.m4a",
+          "bytes": 1257174
+        }
+      }
+    }
+  ]
+}

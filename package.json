@@ -9,7 +9,7 @@
     "build": "npm run build --prefix client",
     "start": "npm start --prefix server",
     "map": "node tools/gen-map.mjs",
-    "check": "node tools/check.mjs && node tools/assets/validate.mjs",
+    "check": "node tools/check.mjs && node tools/assets/validate.mjs && node tools/audio/compose/validate.mjs",
     "hooks": "git config core.hooksPath .githooks"
   }
 }
