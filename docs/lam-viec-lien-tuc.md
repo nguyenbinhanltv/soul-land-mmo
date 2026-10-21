@@ -44,7 +44,7 @@ while true; do
       --allowedTools "Bash(git:*) Bash(gh:*) Bash(npm:*) Bash(node:*) Edit Write Read Glob Grep"; then
     sleep 1800
   else
-    sleep 900   # lỗi (hết quota) thì chờ 15 phút rồi thử lại
+    sleep 900   # lỗi (vd hết quota, mạng) thì chờ 15 phút rồi thử lại
   fi
 done
 ```
@@ -53,7 +53,7 @@ PowerShell (Windows):
 while ($true) {
   claude -p "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng." `
     --allowedTools "Bash(git:*) Bash(gh:*) Bash(npm:*) Bash(node:*) Edit Write Read Glob Grep"
-  if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }
+  if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }   # lỗi (vd hết quota, mạng): chờ 15 phút
 }
 ```
 
@@ -65,7 +65,7 @@ PowerShell (Windows):
 while ($true) {
   codex exec --full-auto -c sandbox_workspace_write.network_access=true `
     "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng."
-  if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }
+  if ($LASTEXITCODE -ne 0) { Start-Sleep -Seconds 900 } else { Start-Sleep -Seconds 1800 }   # lỗi (vd hết quota, mạng): chờ 15 phút
 }
 ```
 Bash (macOS/Linux):
@@ -75,7 +75,7 @@ while true; do
       "Làm theo CHẾ ĐỘ LÀM VIỆC LIÊN TỤC trong docs/lam-viec-lien-tuc.md với tên <tên>. Làm một nhịp rồi dừng."; then
     sleep 1800
   else
-    sleep 900   # lỗi (hết quota) thì chờ 15 phút rồi thử lại
+    sleep 900   # lỗi (vd hết quota, mạng) thì chờ 15 phút rồi thử lại
   fi
 done
 ```
