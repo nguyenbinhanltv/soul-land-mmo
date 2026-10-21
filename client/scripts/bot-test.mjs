@@ -6356,16 +6356,28 @@ async function resonanceTest(){
   ok(R.res.lv[0]===2,`6 võ hồn cấp ${RES_VOHON_LEVEL}+: mốc 2 (${lvOf()})`);
   for(let i=6;i<8;i++) await test(R,"set",{rowId:ids[i],level:RES_VOHON_LEVEL,xp:0});
   ok(R.res.lv[0]===3&&R.res.bonus.hp===10,`8 võ hồn cấp ${RES_VOHON_LEVEL}+: đủ 3 mốc, sinh lực +${R.res.bonus.hp}%`);
-  // ---- Sao võ hồn: tổng sao cộng thêm 4 / 10 / 18; hiệu ứng crit / giảm sát thương / tốc chạy cộng dồn và có cap ----
-  await test(R,"set",{rowId:ids[0],stars:3}); await test(R,"set",{rowId:ids[1],stars:2}); await test(R,"set",{rowId:ids[2],stars:1}); await test(R,"set",{rowId:ids[3],stars:2});
-  ok(R.res.prog[4]===4&&R.res.lv[4]===1&&R.res.bonus.crit===1&&R.res.bonus.def===0&&R.res.bonus.spd===0,
-    `4 sao cộng thêm: chí mạng +${R.res.bonus.crit} điểm %, chưa mở giảm sát thương / tốc chạy`);
-  await test(R,"set",{rowId:ids[4],stars:6}); await test(R,"set",{rowId:ids[5],stars:2});
-  ok(R.res.prog[4]===10&&R.res.lv[4]===2&&R.res.bonus.crit===1&&R.res.bonus.def===1,
-    `10 sao cộng thêm: giảm sát thương +${R.res.bonus.def}% (chí mạng giữ +${R.res.bonus.crit} điểm %)`);
-  await test(R,"set",{rowId:ids[6],stars:5}); await test(R,"set",{rowId:ids[7],stars:5});
-  ok(R.res.prog[4]===18&&R.res.lv[4]===3&&R.res.bonus.crit===1&&R.res.bonus.def===1&&R.res.bonus.spd===2,
-    `18 sao cộng thêm: tốc chạy +${R.res.bonus.spd}%`);
+  // ---- Sao võ hồn: tổng sao cộng thêm 4 / 10 / 18; đường starup thật phải cập nhật mốc ngay ----
+  async function starupOp(vohon) {
+    const l=R.logs.length;
+    R.room.send("starup",{vohon});
+    await waitFor(()=>R.logs.length>l,2000);
+    await sleep(150);
+    return R.logs.at(-1)??"";
+  }
+  async function starupMilestone(values, rowId, need, label) {
+    for (const [i, stars] of values.entries()) await test(R,"set",{rowId:ids[i],stars});
+    const code=shardCode(R.owned.list.find(v=>v.rowId===rowId).vohon), before=R.resEv.length;
+    await test(R,"give",{code,qty:starCost(1)});
+    const log=await starupOp(R.owned.list.find(v=>v.rowId===rowId).vohon);
+    ok(R.res.prog[4]===need&&R.res.lv[4]===(need>=18?3:need>=10?2:1)&&R.resEv.slice(before).some(e=>e.pillar===4&&e.up)
+      &&/lên \d+★/.test(log),`${label}: starup thật cập nhật mốc (${log})`);
+  }
+  await starupMilestone([3,2,1,1],ids[3],4,"4 sao cộng thêm: chí mạng +1 điểm %");
+  ok(R.res.bonus.crit===1&&R.res.bonus.def===0&&R.res.bonus.spd===0,"4 sao: chưa mở giảm sát thương / tốc chạy");
+  await starupMilestone([6,4,2,1,1],ids[3],10,"10 sao cộng thêm: giảm sát thương +1%");
+  ok(R.res.bonus.crit===1&&R.res.bonus.def===1,"10 sao: chí mạng giữ +1 điểm %");
+  await starupMilestone([6,6,4,1,5],ids[3],18,"18 sao cộng thêm: tốc chạy +2%");
+  ok(R.res.bonus.crit===1&&R.res.bonus.def===1&&R.res.bonus.spd===2,"18 sao: đủ hiệu ứng Sao võ hồn");
   // ---- Hồn hoàn: tổng 10 / 25 / 50 hồn hoàn trên mọi võ hồn; mốc cuối bằng một lần hấp thụ thật ----
   const Y=n=>Array.from({length:n},()=>10), setRings=(i,n)=>test(R,"set",{rowId:ids[i],level:Math.max(RES_VOHON_LEVEL,(n+1)*10>100?100:n*10+10),xp:0,rings:Y(n)});
   await setRings(0,3); await setRings(1,3); await setRings(2,3);

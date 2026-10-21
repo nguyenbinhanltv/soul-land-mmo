@@ -3673,6 +3673,7 @@ export class MapRoom extends Room<MapState> {
     if (have < cost) return warn(`Cần ${cost} Mảnh ${name} để lên ${v.stars + 1}★, mới có ${have}.`);
     this.takeShards(d, code, cost);
     v.stars++;
+    this.resCheck(id); // cộng minh (8.2): mốc Sao phải cập nhật ngay theo đường starup thật
     if (v === d.ch) this.recalc(id, false); else d.dirty.add(v.rowId);
     this.log(id, `${name} lên ${v.stars}★! Chỉ số gốc tăng.`, VOHON[vi].col);
     const c = this.clients.getById(id); if (c) this.sendVohons(c);
