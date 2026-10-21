@@ -92,7 +92,7 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Merge
 
-- PR của orchestrator AO: orchestrator tự merge khi review AO đạt và CI đạt.
+- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (và CI đạt, khi đã có CI ở #122).
 - PR của người cộng tác: người đó hoặc chủ repo merge sau khi review đạt.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
 - Sau khi merge: đánh dấu bước ở `GAME_DESIGN.md` mục 7 (nếu PR chưa làm), xóa nhánh.
