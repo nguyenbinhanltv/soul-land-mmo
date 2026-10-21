@@ -3265,7 +3265,7 @@ export const NPCS: NpcDef[] = [
   { id: "thuong_nhan_luu_dong", name: "Thương nhân lưu động", title: "Trại cổng", role: "shop", col: "#ffb35c",
     looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
     lines: [
-      "Đường xa gánh nặng, giá có cao hơn trong thành một chút, khách quan thông cảm. Đan dược, Hồi Thành Phù ta đều mang theo.",
+      "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Đan dược, Hồi Thành Phù ta đều mang theo.",
       "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
     ] },
 ];
