@@ -487,11 +487,16 @@ ok(p.dir===1,"đứng yên giữ hướng nhìn cũ");
 const safe=JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe");
 const inSafeOf=b=>{ const q=b.room.state.players.get(b.room.sessionId); return !!safe&&q.x>=safe.x&&q.x<=safe.x+safe.width&&q.y>=safe.y&&q.y<=safe.y+safe.height; };
 const inSafe=()=>inSafeOf(A);
-/** Đi thẳng tới (tx, ty), mỗi 50 ms chỉnh lại hướng; trả về true khi tới cách dưới 3 pixel. */
+/**
+ * Đi thẳng tới (tx, ty), mỗi 50 ms chỉnh lại hướng; trả về true khi tới cách dưới 3 pixel. Từ 11.1 ngoài giao chiến chạy tới
+ * spd / TICK_RATE ≈ 7,6 pixel mỗi nhịp, dài hơn khoảng ±3 pixel: đi hết cỡ thì có thể bước qua đích rồi lắc qua lại. Gần đích
+ * thì đẩy cần nhẹ (server nhân tốc độ theo độ dài input), mỗi nhịp đi khoảng nửa quãng còn lại nên hội tụ dù input tới trễ một nhịp.
+ */
 async function goTo(b,tx,ty,ms=8000){
   const q=b.room.state.players.get(b.room.sessionId);
   const ok=await waitFor(()=>{ const dx=tx-q.x, dy=ty-q.y, d=Math.hypot(dx,dy); if(d<3) return true;
-    b.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); return false; },ms);
+    const k=Math.min(1,d/(2*Math.max(q.spd,1)/TICK_RATE));
+    b.room.send("input",{x:+(k*dx/d).toFixed(2),y:+(k*dy/d).toFixed(2)}); return false; },ms);
   b.room.send("input",{x:0,y:0}); await sleep(150); return ok;
 }
 /** Bước một chút theo (x, y) để quay mặt: chờ thấy bước rồi mới dừng. Gửi dừng sau một khoảng cố định thì server bận có thể nhận
@@ -4043,8 +4048,8 @@ ok(/Sai bản đồ/.test(joinErr),`vào bản đồ khác bản đồ đã lưu
 ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
 /** Đi theo vector (x,y) đến khi cond() đúng hoặc hết giờ, rồi dừng. */
 async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
-/** Đi tới cột x (pixel) theo phương ngang. */
-const walkToX=async(tx)=>walk(Math.sign(tx-me().x),0,()=>Math.abs(me().x-tx)<3);
+/** Đi tới cột x (pixel) theo phương ngang (goTo: chạy nhanh hơn khoảng ±3 pixel, gần đích phải chậm lại, 11.1). */
+const walkToX=async(tx)=>goTo(C,tx,me().y,12000);
 /** Đi cổng `name` tới `to`; `during` chạy ngay sau khi xin đi (lúc đang niệm), `after` chạy khi đã nhận `travel`, trước khi rời phòng. */
 async function travelBy(name,to,during,after){
   C.travel=null; C.room.send("travel",{portal:name}); await during?.();
