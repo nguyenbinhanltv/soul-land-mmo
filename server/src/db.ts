@@ -136,6 +136,10 @@ export interface Store {
    * Hoặc ghi hết, hoặc không ghi gì; võ hồn không thuộc tài khoản thì rollback rồi ném lỗi.
    */
   saveVohonsBag(accountId: number, chars: Character[], bag: Bag): Promise<void>;
+  /** Mã các truyền tống trận tài khoản đã mở khóa (bảng `waypoints`, 11.2; mã `<mapId>:<tên trận>`). */
+  getWaypoints(accountId: number): Promise<string[]>;
+  /** Mở khóa truyền tống trận `wp` (đã có thì thôi, chạy lại an toàn). */
+  unlockWaypoint(accountId: number, wp: string): Promise<void>;
   /** Số lần tài khoản đã nhận thưởng boss loại `kind` trong ngày `day` (giờ Việt Nam, "YYYY-MM-DD"; bảng `boss_claims`, BĐ5). */
   bossClaims(accountId: number, day: string, kind: string): Promise<number>;
   /**
@@ -205,6 +209,7 @@ export class MemoryStore implements Store {
   quests = new Map<number, QuestProgress[]>(); // accountId -> tiến độ nhiệm vụ từng chuỗi (bảng quests, 6.2)
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
+  wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
@@ -337,6 +342,12 @@ export class MemoryStore implements Store {
     this.checkBag(accountId, bag);
     for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
     this.putBag(accountId, bag);
+  }
+  async getWaypoints(accountId: number) { return [...(this.wps.get(accountId) ?? [])]; }
+  async unlockWaypoint(accountId: number, wp: string) {
+    let set = this.wps.get(accountId);
+    if (!set) this.wps.set(accountId, (set = new Set()));
+    set.add(wp);
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
@@ -692,6 +703,13 @@ export class PgStore implements Store {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
     } finally { db.release(); }
+  }
+  async getWaypoints(accountId: number) {
+    const r = await this.pool.query("SELECT wp FROM waypoints WHERE account_id=$1", [accountId]);
+    return r.rows.map((x) => String(x.wp));
+  }
+  async unlockWaypoint(accountId: number, wp: string) {
+    await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
   }
   async bossClaims(accountId: number, day: string, kind: string) {
     const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);
