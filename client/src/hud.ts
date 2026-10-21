@@ -8,7 +8,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
@@ -18,7 +18,7 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "./net.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -346,7 +346,7 @@ export function updateStats(p: any) {
     if (lb.textContent !== txt) lb.textContent = txt;
     ch.classList.toggle("risk", !!a?.risk);
     if (a) ch.style.setProperty("--c", a.col);
-  } else ch.style.display = "none";
+  } else if (!drawRecall(ch)) ch.style.display = "none"; // 11.2: thanh niệm truyền tống dùng chung chỗ
 }
 
 /** Hấp thụ đang chạy (tin riêng "absorbing" từ server): chữ trên thanh tiến độ, tổng số giây, có rủi ro thất bại không. */
@@ -422,7 +422,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
 export function toggleRoster(open = $("#roster").hidden) {
   $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
   if (!open) rosterSel = null;
-  else { toggleBag(false); closeNpc(); toggleReso(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
+  else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
@@ -1278,7 +1278,7 @@ export function showPlayerMenu(t: { sid: string; name: string; level: number } |
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); }
+  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); }
 }
 
 let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
@@ -1535,6 +1535,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
     };
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
+    if (def?.recall) btn("Dùng", "absorb", () => { act.use(sel.id); toggleBag(false); }); // Hồi Thành Phù (11.2): niệm rồi về thành
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
@@ -2203,7 +2204,7 @@ export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidd
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
   $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); renderReso(); }
+  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); renderReso(); }
 }
 /**
  * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 4 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
@@ -2276,4 +2277,141 @@ function renderChannels() {
     box.appendChild(b);
   }
   box.appendChild(el("small", "", "Đổi kênh khi ngoài giao chiến."));
+}
+
+// ---------- Truyền tống trận và bản đồ thế giới (mục 5.3 "Truyền tống trận", bước 11.2) ----------
+/**
+ * Chỗ đặt từng bản đồ trên sơ đồ bản đồ thế giới (phần trăm khung, chỉ để vẽ, không phải số cân bằng): gần đúng hướng địa lý trong
+ * truyện (Tinh Đấu Đại Sâm Lâm phía đông nam, Thiên Đấu Thành ở giữa, Cực Bắc phía bắc, Hải Thần Đảo ngoài biển phía đông).
+ * Bản đồ chưa có chỗ thì xếp ở hàng dưới cùng.
+ */
+const WORLD_POS: Record<string, [number, number]> = {
+  thanh_hon_thon: [12, 86], nac_dinh_thanh: [30, 70], tinh_dau_ngoai_vi: [54, 80], tinh_dau_noi_dia: [75, 70], loi_tinh_dau: [90, 52],
+  thien_dau_thanh: [34, 42], lac_nhat_sam_lam: [11, 36], cuc_bac_chi_dia: [38, 12], hai_than_dao: [74, 26],
+};
+let worldMsg: WorldMsg | null = null;
+let worldPick: string | null = null;   // trận đích đang chọn (chờ bấm xác nhận)
+let worldGo: (key: string) => void = () => {};
+/** Gắn hàm gửi ý định truyền tống (`wp {op: "go", key}`); GameScene gọi mỗi lần vào phòng. */
+export function onWorldGo(fn: (key: string) => void) { worldGo = fn; }
+export const worldOpen = () => !$("#world").hidden;
+/** Mở / đóng bảng bản đồ thế giới (phím M, nút "Thế giới", F khi đứng trên trận). Mở thì GameScene xin tin `world` mới. */
+export function toggleWorld(open = $("#world").hidden) {
+  $("#world").hidden = !open; $("#worldBtn")?.setAttribute("aria-expanded", String(open));
+  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); renderWorld(); } else worldPick = null;
+  return open;
+}
+/** Tin `world` mới (server gửi khi xin): vẽ lại nếu bảng đang mở. */
+export function setWorld(m: WorldMsg) {
+  worldMsg = m;
+  if (worldPick && !m.list.some((w) => w.key === worldPick && w.open && w.fee !== null && w.key !== m.cur)) worldPick = null;
+  if (worldOpen()) renderWorld();
+}
+
+/**
+ * Bảng bản đồ thế giới (cuộn giấy thủy mặc): sơ đồ các bản đồ nối bằng nét mực (cổng), bản đồ có trận đã mở tô mực đậm, bản đồ đang ở
+ * có ấn son; dưới là danh sách theo bản đồ (cấp đề xuất) với từng truyền tống trận đã mở / chưa mở và phí. Đứng trên một trận thì chọn
+ * trận đích rồi bấm ấn son để niệm; không đứng trên trận thì chỉ xem. Server kiểm tra lại mọi thứ.
+ */
+function renderWorld() {
+  const el = $("#world"), m = worldMsg; el.innerHTML = "";
+  const head = document.createElement("div"); head.className = "rhead";
+  head.innerHTML = `<b>Bản đồ thế giới</b><button class="x" aria-label="Đóng">×</button>`;
+  head.querySelector("button")!.addEventListener("click", () => toggleWorld(false));
+  el.appendChild(head);
+  if (!m) { el.insertAdjacentHTML("beforeend", "<small class=\"rnote\">Đang tải…</small>"); return; }
+  const here = m.list.find((w) => w.key === m.cur);
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = here
+    ? `Đang đứng trên truyền tống trận ${here.label}. Chọn trận đích đã mở, niệm ${WAYPOINT_CAST} giây (di chuyển hoặc bị đánh thì hủy, không dùng khi giao chiến).`
+    : `Chỉ xem: hãy đứng trên một truyền tống trận rồi mở bảng này (F) để dịch chuyển. Bước lên trận lần đầu thì mở khóa.`;
+  const coin = document.createElement("div"); coin.className = "restotal"; coin.textContent = `Hồn Tệ: ${formatHonTe(m.honTe)}`;
+  el.append(note, coin);
+
+  // Sơ đồ: nét mực nối bản đồ kề nhau, mỗi bản đồ một ấn (thành vuông, bãi săn tròn).
+  const ids = Object.keys(MAPS).filter((id) => MAPS[id].kind !== "arena");
+  const extra = ids.filter((id) => !WORLD_POS[id]);
+  const pos = (id: string): [number, number] => WORLD_POS[id] ?? [10 + 80 * (extra.indexOf(id) + 0.5) / Math.max(1, extra.length), 96];
+  const W = 300, H = 170, X = (p: number) => (p / 100) * W, Y = (p: number) => (p / 100) * H;
+  const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("class", "wmap"); svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Sơ đồ các bản đồ");
+  const mk = (tag: string, at: Record<string, string | number>) => { const e = document.createElementNS(ns, tag); for (const k in at) e.setAttribute(k, String(at[k])); return e; };
+  for (const [a, b] of m.links) {
+    if (!MAPS[a] || !MAPS[b]) continue;
+    const [x1, y1] = pos(a), [x2, y2] = pos(b);
+    svg.appendChild(mk("line", { x1: X(x1), y1: Y(y1), x2: X(x2), y2: Y(y2), class: "wlink" }));
+  }
+  for (const id of ids) {
+    const [px, py] = pos(id), x = X(px), y = Y(py), def = MAPS[id], wps = m.list.filter((w) => w.map === id);
+    const open = wps.some((w) => w.open), cur = id === m.map;
+    const g = mk("g", { class: `wnode${open ? " open" : ""}${cur ? " cur" : ""}`, tabindex: 0 });
+    if (cur) g.appendChild(mk("circle", { cx: x, cy: y, r: 9, class: "wseal" }));
+    g.appendChild(def.kind === "town" ? mk("rect", { x: x - 4.5, y: y - 4.5, width: 9, height: 9, class: "wdot" }) : mk("circle", { cx: x, cy: y, r: 4.5, class: "wdot" }));
+    const t = mk("text", { x, y: y - 8, "text-anchor": "middle", class: "wname" }); t.textContent = def.name; g.appendChild(t);
+    g.addEventListener("click", () => el.querySelector<HTMLElement>(`.wsec[data-map="${id}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+    svg.appendChild(g);
+  }
+  el.appendChild(svg);
+
+  // Danh sách theo bản đồ.
+  for (const id of ids) {
+    const def = MAPS[id], wps = m.list.filter((w) => w.map === id); if (!wps.length) continue;
+    const sec = document.createElement("section"); sec.className = "wsec" + (id === m.map ? " cur" : ""); sec.dataset.map = id;
+    const top = document.createElement("div"); top.className = "restop";
+    const name = document.createElement("b"); name.textContent = def.name + (id === m.map ? " · đang ở đây" : "");
+    const lv = document.createElement("span"); lv.textContent = def.kind === "town" ? "Thành" : def.level ? `cấp ${def.level[0]}–${def.level[1]}` : "";
+    top.append(name, lv); sec.appendChild(top);
+    for (const w of wps) {
+      const b = document.createElement("button"); b.type = "button";
+      const isHere = w.key === m.cur, can = !!here && w.open && !isHere && w.fee !== null;
+      b.className = "wrow" + (w.open ? " open" : " locked") + (isHere ? " here" : "") + (worldPick === w.key ? " sel" : "");
+      b.disabled = !can;
+      b.innerHTML = `<i></i><span></span><em></em>`;
+      b.querySelector("span")!.textContent = w.label;
+      b.querySelector("em")!.textContent = isHere ? "Đang đứng" : !w.open ? "Chưa mở" : w.fee === null ? "Không tới được" : formatHonTe(w.fee);
+      if (w.open && w.fee !== null && w.fee > m.honTe && !isHere) b.classList.add("poor");
+      b.addEventListener("click", () => { b.blur(); worldPick = w.key; renderWorld(); });
+      sec.appendChild(b);
+    }
+    el.appendChild(sec);
+  }
+  const pick = worldPick ? m.list.find((w) => w.key === worldPick) : undefined;
+  if (pick && here && pick.fee !== null) {
+    const row = document.createElement("div"); row.className = "brow wgo";
+    const ok = document.createElement("button"); ok.className = "buse absorb";
+    ok.textContent = `Truyền tống tới ${pick.label} · ${formatHonTe(pick.fee)}`;
+    ok.disabled = pick.fee > m.honTe;
+    ok.addEventListener("click", () => { ok.blur(); worldGo(pick.key); toggleWorld(false); });
+    const no = document.createElement("button"); no.className = "buse drop"; no.textContent = "Thôi";
+    no.addEventListener("click", () => { no.blur(); worldPick = null; renderWorld(); });
+    row.append(ok, no);
+    if (pick.fee > m.honTe) { const s = document.createElement("small"); s.className = "danger"; s.textContent = "Không đủ Hồn Tệ."; row.appendChild(s); }
+    el.appendChild(row);
+  }
+}
+
+/** Hộp khi đứng trên truyền tống trận (tin riêng `wp {k: "here"}`): tên trận, nút (hoặc phím F) mở bản đồ thế giới. */
+export function showWaypoint(label: string | null, open: () => void) {
+  const el = $("#wpbox");
+  if (!label) { el.hidden = true; el.innerHTML = ""; return; }
+  el.innerHTML = `<div></div><small>Mở bản đồ thế giới để dịch chuyển tới trận đã mở</small><button type="button">Bản đồ thế giới<kbd>F</kbd></button>`;
+  el.querySelector("div")!.textContent = `Truyền tống trận · ${label}`;
+  el.querySelector("button")!.addEventListener("pointerdown", (e) => { e.preventDefault(); open(); });
+  el.hidden = false;
+}
+
+/** Niệm truyền tống / Hồi Thành Phù đang chạy (tin riêng `recall`): chữ trên thanh niệm (dùng chung chỗ thanh hấp thụ), tổng giây, lúc bắt đầu. */
+let recall: { label: string; secs: number; t0: number } | null = null;
+export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
+/** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */
+function drawRecall(ch: HTMLElement) {
+  if (!recall) return false;
+  const t = Math.min(recall.secs, (performance.now() - recall.t0) / 1000), sec = (x: number) => x.toFixed(1).replace(".", ",");
+  ch.style.display = "block"; $("#chFill").style.width = (t / recall.secs) * 100 + "%";
+  const txt = `Truyền tống tới ${recall.label} · ${sec(t)} / ${sec(recall.secs)} giây`;
+  const lb = ch.querySelector<HTMLElement>(".label")!;
+  if (lb.textContent !== txt) lb.textContent = txt;
+  ch.classList.remove("risk"); ch.style.setProperty("--c", "#8fe0ff");
+  return true;
 }

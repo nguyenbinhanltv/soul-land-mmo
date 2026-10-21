@@ -17,6 +17,14 @@ export interface Me { character: Character | null; looks: AccountLooks; mapId: s
 
 /** Tin nhắn riêng "portal": cổng đang đứng (name rỗng = không đứng ở cổng nào), cấp đề xuất, cảnh báo dưới cấp (chặn mềm). */
 /** Hộp đi cổng (tin riêng `portal`); `boat` (BĐ6d): bến thuyền, số giây đi thuyền. */
+/**
+ * Tin riêng "world" (11.2, bảng bản đồ thế giới): bản đồ đang ở, truyền tống trận đang đứng (`cur`, "" = chỉ xem), Hồn Tệ, các cặp
+ * bản đồ nối bằng cổng, mọi trận (đã mở chưa, phí từ bản đồ này; null = không tới được).
+ */
+export interface WorldMsg {
+  map: string; cur: string; honTe: number; links: [string, string][];
+  list: { key: string; map: string; label: string; open: boolean; fee: number | null }[];
+}
 export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô

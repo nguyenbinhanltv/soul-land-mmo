@@ -152,6 +152,16 @@ export const TRAVEL_CAST = 1;
  * TRAVEL_CAST, cùng luật hủy (bị đánh, bước ra khỏi bến). Chờ chốt.
  */
 export const BOAT_CAST = 3;
+/**
+ * Truyền tống trận (11.2, mục 5.3 "Truyền tống trận"): object `waypoint` trong Tiled, bước lên lần đầu thì mở khóa (bảng `waypoints`).
+ * Đứng trên một trận đã mở, chọn trận đích trên bản đồ thế giới: niệm WAYPOINT_CAST giây (di chuyển hoặc bị đánh thì hủy), tốn
+ * waypointFee(số lần đi cổng ít nhất giữa hai bản đồ) đồng, trừ lúc dịch chuyển. Hồi Thành Phù (ITEMS `hoi_thanh_phu`) dùng cùng
+ * thời gian niệm và luật hủy, đưa về thành gần nhất. Chờ chốt.
+ */
+export const WAYPOINT_CAST = 3;
+export const WAYPOINT_FEE = { base: 5, perHop: 10 };
+/** Phí truyền tống (đồng) tới trận ở bản đồ cách `hops` lần đi cổng (cùng bản đồ: 0). */
+export const waypointFee = (hops: number) => WAYPOINT_FEE.base + WAYPOINT_FEE.perHop * Math.max(0, Math.floor(hops));
 export const TRAVEL_LEAVE_SECS = 10;
 /**
  * Kênh (mục 6 "Nhiều kênh"): mỗi phòng của một bản đồ là một kênh, tối đa CHANNEL_MAX người; phòng đầy thì mở kênh mới.
@@ -2962,7 +2972,7 @@ export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; re
 
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây đã chốt) ----------
 /** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5), tiên thảo (BĐ6b, HERBS). */
-export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong";
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
   hon_hoan: { name: "Hồn hoàn" },
@@ -2971,13 +2981,14 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   manh_vo_hon: { name: "Mảnh võ hồn" },
   tien_thao: { name: "Tiên thảo" },
   ruong: { name: "Rương" }, // BĐ5: rương tà hóa thú vương
+  phu: { name: "Phù chú" }, // 11.2: Hồi Thành Phù
 };
 /**
  * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
  * (1 = không gộp, mỗi món một ô như hồn hoàn có số năm riêng). `cd`: nhóm hồi chiêu dùng chung (DAN_CD).
  * `hp` / `mp`: dùng thì hồi ngần ấy phần sinh lực tối đa của võ hồn ra trận / hồn lực tối đa.
  */
-export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; vohon?: string; boss?: string; }
+export interface ItemDef { id: string; kind: ItemKind; name: string; desc: string; col: string; stack: number; cd?: "dan"; hp?: number; mp?: number; vohon?: string; boss?: string; recall?: true; }
 
 // ---------- Tiên thảo (mục 5.3 "Lạc Nhật Sâm Lâm", 5.7; bước BĐ6b, mọi số đã chốt) ----------
 /**
@@ -3051,6 +3062,9 @@ export const ITEMS: ItemDef[] = [
   // Đan lớn (bước 9.8): bán ở thương nhân để tiêu Hồn Tệ cấp cao, chung hồi chiêu đan (DAN_CD) với đan thường; thương nhân không mua lại.
   { id: "dai_hoi_huyet_dan", kind: "dan", name: "Đại Hồi Huyết Đan", desc: "Hồi 60% sinh lực của võ hồn đang ra trận.", col: "#ff3b4e", stack: 99, cd: "dan", hp: 0.6 },
   { id: "dai_hoi_hon_dan",   kind: "dan", name: "Đại Hồi Hồn Đan",   desc: "Hồi 60% hồn lực.",                         col: "#2f7dff", stack: 99, cd: "dan", mp: 0.6 },
+  // Hồi Thành Phù (11.2): niệm WAYPOINT_CAST giây rồi về thành gần nhất; thương nhân bán, không mua lại.
+  { id: "hoi_thanh_phu", kind: "phu", name: "Hồi Thành Phù", col: "#e8c25a", stack: 99, recall: true,
+    desc: `Niệm ${WAYPOINT_CAST} giây rồi về thành gần nhất (ngoài giao chiến; di chuyển hoặc bị đánh thì hủy, phù vẫn còn).` },
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
@@ -3203,6 +3217,7 @@ export const NPC_RANGE = 40;
 export const SHOP: { code: string; price: number }[] = [
   { code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 },
   { code: "dai_hoi_huyet_dan", price: 120 }, { code: "dai_hoi_hon_dan", price: 120 },
+  { code: "hoi_thanh_phu", price: 30 }, // 11.2
 ];
 /**
  * Mua lại đồ bán nhầm (bước 9.8): thương nhân giữ BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (RAM, mất khi rời game), mua lại

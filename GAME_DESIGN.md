@@ -42,8 +42,9 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | Z / X / C | Kỹ năng hồn cốt chủ động: đầu, tay trái, tay phải (mục 5.5) |
 | 1–4 | Đổi sang võ hồn ở ô tương ứng của đội (chạm ô trên thanh đội hình) |
 | E | Nhặt đồ rơi gần nhất |
-| F | Đi qua cổng đang đứng; không ở cổng thì nói chuyện với NPC gần nhất |
+| F | Đi qua cổng đang đứng; đứng trên truyền tống trận thì mở bản đồ thế giới; không thì nói chuyện với NPC gần nhất |
 | V / B / K | Bảng đội hình / túi đồ / Cộng minh |
+| M | Bản đồ thế giới (chỉ xem khi không đứng trên truyền tống trận; nút "Thế giới" ở bản đồ nhỏ) |
 | Enter / Esc | Chat / đóng bảng, hộp thoại |
 
 Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Bấm / chạm vào hồn sư khác mở menu người chơi.
@@ -227,6 +228,13 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đ�
 - Bước vào cổng thì hiện hộp "Đi tới *…* (đề xuất cấp …)"; cấp võ hồn ra trận dưới mức tối thiểu thì thêm **cảnh báo đỏ** nhưng vẫn đi được (**chặn mềm**). Cổng giữa hai thành không có cấp đề xuất.
 - Đi cổng niệm `TRAVEL_CAST` giây; **bến thuyền** (cổng có thuộc tính `boat`, Thiên Đấu Thành ↔ Hải Thần Đảo) "đi thuyền" `BOAT_CAST` giây, hộp ghi "Đi thuyền tới …" và nút "Lên thuyền". Bị đánh hoặc bước ra khỏi cổng thì hủy. Đang niệm vẫn đánh được nhưng không bắt đầu hấp thụ được.
 - Server kiểm tra: đang đứng trong cổng, cổng thuộc bản đồ hiện tại, bản đồ đích có trong `MAPS`, không gục, không hấp thụ. Client chỉ gửi tên cổng, **không bao giờ tự chọn bản đồ** hay tọa độ đích. Thứ tự lưu khi đi cổng ở mục 6.
+**Truyền tống trận** (object `waypoint`, mỗi bản đồ trừ sân đấu 1–3 trận: thành, trại cổng, giữa bản đồ săn; cổng nối bản đồ kề nhau vẫn giữ)
+- **Mở khóa:** bước lên trận lần đầu thì mở khóa cho tài khoản (lưu DB), có thông báo. Trận vẽ bằng code (vòng phù văn phát sáng lam ngọc theo phong cách A, chưa mở thì xám), chấm lam trên bản đồ nhỏ.
+- **Bản đồ thế giới** (thủy mặc; M, nút "Thế giới", hoặc F khi đứng trên trận): sơ đồ các bản đồ nối bằng nét mực theo cổng, danh sách từng bản đồ với cấp đề xuất, các trận đã mở / chưa mở và phí. Không đứng trên trận thì chỉ xem.
+- **Dịch chuyển:** đứng trên một trận, chọn trận đích đã mở khác trận đang đứng: niệm `WAYPOINT_CAST` giây (thanh niệm, cột sáng ai cũng thấy); di chuyển hoặc bị đánh thì hủy, không mất gì. Phí `waypointFee` theo số lần đi cổng ít nhất giữa hai bản đồ (cùng bản đồ: mức `WAYPOINT_FEE.base`), trừ lúc dịch chuyển. Không dùng khi đang giao chiến, gục, đang hấp thụ, đang đi cổng; trong sân Đại Đấu Hồn Trường bị chặn. Cùng bản đồ thì đặt thẳng vị trí; bản đồ khác thì đi đúng transaction đi cổng (mục 6), nên an toàn khi trong tổ đội và lưu đúng thứ tự; lưu lỗi thì trả lại phí.
+- **Hồi Thành Phù** (vật phẩm, thương nhân bán): dùng trong túi thì niệm như truyền tống (cùng luật cấm / hủy, hủy thì giữ phù) rồi về **thành gần nhất** (thành ít lần đi cổng nhất, xuất hiện ở truyền tống trận của thành), mất một phù.
+- Quanh trận không sinh hồn thú (`SPAWN_CLEAR`, như quanh cổng).
+
 - **Lõi Tinh Đấu:** đăng xuất ở đây (rời phòng không qua cổng / đổi kênh) thì lần sau vào ở bến bờ hồ Nội địa (`MapDef.exit`).
 - Vị trí và bản đồ đang đứng được lưu; vào lại ở đúng chỗ cũ (kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn`). Mã bản đồ cũ đã bỏ ánh xạ qua `MAP_MOVED`.
 
@@ -361,8 +369,9 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - **Đan** (`ITEMS`): Hồi Huyết Đan / Hồi Hồn Đan và bản lớn Đại Hồi Huyết Đan / Đại Hồi Hồn Đan hồi % sinh lực võ hồn ra trận / hồn lực, chung hồi chiêu `DAN_CD`, dùng được khi giao chiến; đã đầy thì không cho dùng. Mỗi tài khoản nhận quà khởi đầu một lần (`STARTER_ITEMS`).
 - **Tiên thảo** (`HERBS`): Ỷ La Uất Kim Hương (sinh lực), Bát Giác Huyền Băng Thảo (hồn lực), Liệt Hỏa Hạnh Kiều Sơ (công); chỉ rơi ở Lạc Nhật Sâm Lâm (mục 5.3). Trong túi bấm **"Dùng cho…"**, chọn một võ hồn sở hữu: võ hồn đó cộng % chỉ số gốc vĩnh viễn (`HERB_PCT`), tối đa `HERB_MAX` cây mỗi loại mỗi võ hồn (đủ thì từ chối, không mất cây). Dùng được khi giao chiến, không dùng khi đang đi cổng và trong sân đấu. Thương nhân không mua bán tiên thảo.
 - **Rương** thú vương / boss thế giới: mở trong túi (cần đủ ô trống), mục 5.3 và 5.4.
-- **Thương nhân** (Nặc Đinh Thành, Thiên Đấu Thành; cùng bảng hàng): bán đan (`SHOP`; mua 1 / 5 / 10, mỗi lần tối đa `SHOP_MAX_QTY`); thiếu Hồn Tệ hoặc túi không đủ chỗ cho **cả** số món thì từ chối hết, không trừ tiền.
-  - **Mua lại đồ dư** (`sellPrice`): hồn hoàn theo số năm (`RING_SELL`, nội suy theo log), hồn cốt gấp `BONE_SELL` lần hồn hoàn cùng số năm và đắt hơn theo cấp cường hóa (`BONE_SELL_ENH`), hồn hạch theo sao (`CORE_SELL`), mảnh theo độ hiếm (`SHARD_SELL`, bán 1 hoặc cả chồng). **Không mua** đồ đang gắn, hồn hoàn đang hấp thụ, đan dược, rương. Món giá cao hoặc đã cường hóa phải bấm "Bán" hai lần.
+- **Hồi Thành Phù** (nhóm phù chú): về thành gần nhất (mục 5.3 "Truyền tống trận").
+- **Thương nhân** (Nặc Đinh Thành, Thiên Đấu Thành; cùng bảng hàng): bán đan và Hồi Thành Phù (`SHOP`; mua 1 / 5 / 10, mỗi lần tối đa `SHOP_MAX_QTY`); thiếu Hồn Tệ hoặc túi không đủ chỗ cho **cả** số món thì từ chối hết, không trừ tiền.
+  - **Mua lại đồ dư** (`sellPrice`): hồn hoàn theo số năm (`RING_SELL`, nội suy theo log), hồn cốt gấp `BONE_SELL` lần hồn hoàn cùng số năm và đắt hơn theo cấp cường hóa (`BONE_SELL_ENH`), hồn hạch theo sao (`CORE_SELL`), mảnh theo độ hiếm (`SHARD_SELL`, bán 1 hoặc cả chồng). **Không mua** đồ đang gắn, hồn hoàn đang hấp thụ, đan dược, phù chú, rương. Món giá cao hoặc đã cường hóa phải bấm "Bán" hai lần.
   - **Mở rộng túi** (dịch vụ, có hiệu lực ngay): +`BAG_EXPAND` ô mỗi lần tới `BAG_MAX_SLOTS`, giá tăng dần (`BAG_EXPAND_COST`), bấm hai lần. Số ô chỉ tăng.
   - **Mua lại đồ đã bán:** giữ `BUYBACK_MAX` món bán gần nhất của mỗi tài khoản (bản sao đúng món, mới nhất trước), mua lại đúng giá đã nhận, cần đủ Hồn Tệ và chỗ trống. Giữ ở RAM mức tiến trình: còn khi đi cổng / đổi kênh / vào sân đấu, mất khi rời game. Chung cho mọi thương nhân.
   - Giao dịch ghi DB qua chuỗi lưu, túi và Hồn Tệ trong một transaction.
@@ -563,7 +572,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 | Túi đồ | `bag`, `use {id, vohonId?}`, `pickup`, `discard {id}`, `open {id}`, `absorb {itemId, vohonId}` |
 | Hồn cốt, hồn hạch | `equip` / `unequip`, `equipcore` / `unequipcore`, `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}` |
 | NPC | `talk {npc}`, `buy {code, qty}`, `sell {id, qty?}`, `expand`, `buyback {key}`, `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày) |
-| Bản đồ, kênh | `travel {portal}`, `channels`, `channel {ch}` |
+| Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}` |
 | Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
 | Kiểm thử | `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
 
@@ -571,7 +580,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 **Đồng bộ xuống client**
 - **Trạng thái công khai** qua Colyseus Schema (`server/src/rooms/schema.ts`: `MapState`, `PlayerState`, `BeastState`, `DropState`; phòng sân `ArenaState` / `ArenaSide`). Chọn kiểu nhỏ nhất đủ dùng; trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối. Client đọc ở `client/src/scenes/GameScene.ts`.
-- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật) qua `broadcast("fx", {k, …})` và `"dmg"`; tin công khai `elite`, `boss`.
 
 **Một loại phòng cho mọi bản đồ**
@@ -591,6 +600,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 | `elite` | Chữ nhật | `boss` (mã tinh anh trong `BOSSES`); nằm trong một `zone` |
 | `boss` | Chữ nhật | `boss` (mã thú vương hoặc boss thế giới); là hang / sàn đấu và cũng là bán kính giao chiến |
 | `npc` | Điểm | `npc` (mã trong `NPCS`) |
+| `waypoint` | Chữ nhật | Tên là mã không dấu duy nhất trong bản đồ (lưu DB `<mapId>:<tên>`), `label` (tên hiện); tâm đứng được, ngoài mọi cổng |
 
 Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arrive` không tồn tại hoặc nằm trong `portal`, mã NPC lạ) thì server ghi cảnh báo và bỏ object đó. `npm run map` (`tools/gen-map.mjs`) sinh lại các bản đồ và **ghi đè** bản đã sửa tay.
 
@@ -638,6 +648,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 5. Client rời phòng và vào phòng mới; không rời trong `TRAVEL_LEAVE_SECS` giây thì server ngắt kết nối.
 - `onLeave` của client đang chuyển bản đồ **nối vào chuỗi `saving`** và đọc kết quả transaction (`travelled`), không đọc cờ: đã commit thì không ghi gì; lưu lỗi thì lưu như `onLeave` thường (có lớp chặn `WHERE map_id`).
 - Phòng mới chỉ nạp nhân vật sau commit (`onAuth` chỉ nhận khi `map_id` trong DB đã là bản đồ đích; sai thì từ chối, client hỏi lại `/api/me`), nên không có bản cũ ghi đè bản mới.
+- Truyền tống trận và Hồi Thành Phù sang bản đồ khác dùng đúng các bước này (cổng ẩn tới tâm trận đích); phí / phù đã trừ được trả lại khi transaction lỗi.
 - Bản đồ có `MapDef.exit` (Lõi Tinh Đấu): lần ghi cuối khi rời phòng (`write(id, true)`) dùng `saveTravel` về `arrive` của cổng tới `exit`.
 
 **Mỗi tài khoản một phiên** trên mọi phòng
@@ -658,6 +669,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - `accounts` (tài khoản, ngoại hình, võ hồn ra trận, `map_id` + `pos_x` / `pos_y`, `bag_slots`, Hồn Tệ), `sessions`.
 - `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn theo số năm, `skills` 4 ô mang theo, `herbs`), `teams` (mỗi ô đội hình một dòng).
 - `items` (mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn).
+- `waypoints` (truyền tống trận tài khoản đã mở, mã `<mapId>:<tên>`; chỉ thêm).
 - `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`) là bảng cũ, giữ lại để chuyển dữ liệu, không còn ghi.
 
@@ -677,6 +689,17 @@ Mỗi gạch đầu dòng là một lần giao việc. Xong một bước thì c
   - [ ] 10.5b Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp (cần vẽ lại đúng cỡ: thu nhỏ bằng code bị nhòe); dây Lam Ngân quấn tay; hướng riêng cho hư ảnh thú (Linh Miêu nhìn nghiêng / quay lưng) khi còn lượt.
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192.
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b.
+
+**Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (người dùng chốt 2026-10-21; mỗi bước một PR)
+
+**Đã có:** truyền tống trận (object `waypoint`, bảng `waypoints`), bản đồ thế giới thủy mặc, phí và niệm, Hồi Thành Phù (11.2).
+
+- [ ] 11.1 Di chuyển: đo độ trễ phím → màn hình; tốc độ đi / chạy (ngoài giao chiến tự chạy) mới; hồn thú có tốc độ lang thang, tốc độ đuổi và giới hạn đuổi; bấm chuột tìm đường A*; animation đi / chạy khớp vận tốc.
+- [x] 11.2 Truyền tống trận và bản đồ thế giới (mục 5.3 "Truyền tống trận").
+- [ ] 11.3 Công cụ dựng bản đồ lớn (`tools/maps`, theo hạt giống, chỉnh tay được) và bản mẫu Tinh Đấu Ngoại vi ×8 diện tích để người dùng duyệt.
+- [ ] 11.4 Hiệu năng bản đồ lớn: server chỉ gửi thực thể ở gần, lưới không gian cho hồn thú và va chạm, client vẽ theo khối trong tầm camera; đo FPS và băng thông.
+- [ ] 11.5 Mở rộng và làm đẹp các bản đồ còn lại theo mẫu đã duyệt, mỗi bản đồ một điểm nhấn riêng.
+- [ ] Biểu tượng Hồi Thành Phù (`item_hoi_thanh_phu`, Gemini); hiện vẽ bằng CSS.
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
