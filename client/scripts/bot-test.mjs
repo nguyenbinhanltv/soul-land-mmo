@@ -517,6 +517,7 @@ await leaveSafe(A);
 // Di chuyển (11.1): ngoài giao chiến tự chạy × RUN_MULT, input `w` (giữ Shift) đi bộ, giao chiến thì đi bộ; hồn thú đuổi nhanh hơn
 // lang thang rồi bỏ đuổi về chỗ sinh và hồi máu; bấm chuột tìm đường A* (client/src/path.ts) đi vòng vật cản trên lưới va chạm của server.
 if((await test(A,"ping"))?.enabled){
+  const home=[p.x,p.y], act0=A.owned.active; // vừa ra khỏi làng: phần săn hồn thú sau khối này bắt đầu từ đây
   const grid=solidGrid(JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")));
   const walkSpd=PLAYER_SPEED*VOHON[p.vh].spd, near=(a,b)=>Math.abs(a-b)<0.05*b;
   const gait=async(msg,want)=>{ A.room.send("input",msg); return waitFor(()=>p.moving&&want(),1500); };
@@ -540,6 +541,9 @@ if((await test(A,"ping"))?.enabled){
     await test(A,"goto",{x:hx+dx,y:hy+dy}); if(Math.hypot(p.x-hx-dx,p.y-hy-dy)<1){ spot=[dx,dy]; break; } }
   if(!spot) console.log("  ⚠ bỏ qua kiểm tra bỏ đuổi: không có chỗ đứng cách chỗ sinh", BEAST_LEASH.r+70, "pixel");
   else {
+    // A đứng chờ ở đây hơn chục giây, sâu trong Bãi tập: dọn hồn thú hoang quanh mình (hồn thú thử còn cách hơn tầm `clear` 160 pixel),
+    // không thì chúng đánh A suốt lúc chờ, có lần gục cả Lam Điện.
+    if(bOf()&&Math.hypot(bOf().x-p.x,bOf().y-p.y)>170) await test(A,"clear");
     // Tốc độ đuổi: đo quãng đi trong 0,5 giây khi đang đuổi.
     let chase=null; const b0=bOf();
     if(b0){ const x0=b0.x,y0=b0.y,t0=Date.now(); await sleep(500); const b1=bOf(); if(b1?.aggro) chase=Math.hypot(b1.x-x0,b1.y-y0)/((Date.now()-t0)/1000); }
@@ -576,6 +580,12 @@ if((await test(A,"ping"))?.enabled){
     A.room.send("input",{x:0,y:0}); await sleep(150);
     ok(done&&Math.hypot(p.x-goal.x,p.y-goal.y)<nearOf()+2,`bấm chuột tìm đường: vòng qua vật cản ${route.length} đoạn (${len.toFixed(0)} px) tới (${goal.x.toFixed(0)}, ${goal.y.toFixed(0)}), đang ở (${p.x.toFixed(0)}, ${p.y.toFixed(0)})`);
   }
+  // Phần săn hồn thú sau đây cần A như lúc vừa ra khỏi làng: còn Lam Điện ra trận, đủ sinh lực, gần làng. Đi săn tiếp từ chỗ sâu trong
+  // Bãi tập với nửa sinh lực thì Lam Điện có thể gục, tự đổi sang Lam Ngân Thảo, mọi bài tiên cơ / đổi võ hồn / 2.3b sau trượt dây chuyền.
+  // Trả A về chỗ cũ, dọn hồn thú quanh đó, chờ hồi đầy sinh lực (hồi theo nhịp server khi 5 giây không bị đánh).
+  await test(A,"goto",{x:home[0],y:home[1]}); await test(A,"clear");
+  ok(await waitFor(()=>p.hp===p.maxHp,30000)&&A.owned.active===act0,
+    `về chỗ vừa ra khỏi làng: võ hồn ra trận ${A.owned.active===act0?"vẫn":"KHÔNG còn"} là ${A.owned.list.find(v=>v.rowId===act0)?.vohon}, hồi đầy sinh lực ${p.hp}/${p.maxHp}`);
 }
 console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.sessionId).x.toFixed(1));
 const kills0=p.kills;
@@ -1553,10 +1563,12 @@ else {
       let bo=await test(E,"bond");
       ok(bondsOf(["hao_thien_chuy","nhu_cot_tho"])[0]===BONDS[0]&&bo.crit===BONDS[0].crit&&bo.burn===0,`ràng buộc ${BONDS[0].name}: chí mạng +${Math.round(bo.crit*100)}% khi cả hai trong đội`);
       let bid=await target(4,45,still), h0=await hurtTo(50), x0=me.x, y0=me.y;
-      await test(E,"ready"); await cast(E,0);
+      // Tin dmg tới trước bản vá state: Choáng phải chờ theo state (trượt khi máy tải cao, PR #92). Choáng chỉ 0,6 × CC_TIER_MULT[4] =
+      // 0,3 giây nên chờ ngay từ lúc server xử lý chiêu (cast không ngủ thêm): ngủ 200 ms rồi mới đọc thì máy tải cao có lúc đã hết Choáng.
+      // Sinh lực hút về nằm cùng bản vá với Choáng, tin dmg tới trước bản vá ấy.
+      await test(E,"ready"); await cast(E,0,0);
+      const stun=await waitFor(()=>hasSt(beastOf(E,bid),"stun"),1000); await waitFor(()=>hitsOn(bid).length>0,1000);
       let got=hitsOn(bid)[0]?.v, w=exp(atk*P(0)*sk[0].dmg), hw=Math.min(me.maxHp,h0+Math.floor((got??0)*sk[0].lifesteal));
-      // Tin dmg tới trước bản vá state: Choáng phải chờ theo state (trượt khi máy tải cao, PR #92).
-      const stun=await waitFor(()=>hasSt(beastOf(E,bid),"stun"),1000);
       ok(w.includes(got)&&moved(x0,y0)>=10&&stun,`${sk[0].name}: lướt ${moved(x0,y0).toFixed(0)} pixel, sát thương ${got} (cần ${w.join(" hoặc ")}), quật ngã (Choáng)`);
       ok(me.hp>=hw-1&&me.hp<=hw+4,`${sk[0].name}: hút ${sk[0].lifesteal*100}% sát thương, sinh lực ${h0} -> ${me.hp} (cần ~${hw})`);
       bid=await target(4,40); x0=me.x; y0=me.y; await test(E,"ready"); await cast(E,1);
