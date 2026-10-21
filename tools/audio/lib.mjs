@@ -80,14 +80,22 @@ function validateTrack(track, sourceIds) {
   validateId(track.sprite, `track ${track.id}.sprite`);
 }
 
+function uniqueIds(records, label) {
+  const ids = new Set();
+  for (const record of records) {
+    if (ids.has(record.id)) throw new Error(`duplicate ${label} ${record.id}`);
+    ids.add(record.id);
+  }
+  return ids;
+}
+
 export function validateCatalog(catalog) {
   if (!catalog || !Array.isArray(catalog.sources) || !Array.isArray(catalog.tracks)) {
     throw new Error("catalog must contain sources and tracks arrays");
   }
-  const sourceIds = new Set();
+  const sourceIds = uniqueIds(catalog.sources, "catalog source");
   for (const source of catalog.sources) {
     validateSource(source);
-    if (!sourceIds.add(source.id)) throw new Error(`duplicate source ${source.id}`);
   }
   const trackIds = new Set();
   for (const track of catalog.tracks) {
@@ -153,6 +161,7 @@ export function validateManifestMatchesCatalog({ catalog, manifest }) {
   if (!Array.isArray(manifest.sources)) throw new Error("manifest sources must be an array");
   const sourceFields = ["id", "title", "author", "url", "license", "archiveSha256", "retrievedAt"];
   const canonicalSource = (source) => Object.fromEntries(sourceFields.map((field) => [field, source[field]]));
+  uniqueIds(manifest.sources, "manifest source");
   const catalogSources = new Map(catalog.sources.map((source) => [source.id, source]));
   const manifestSources = new Map(manifest.sources.map((source) => [source.id, source]));
   const catalogTracks = new Map(catalog.tracks.map((track) => [track.id, track]));

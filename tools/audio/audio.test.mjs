@@ -80,6 +80,13 @@ test("validateCatalog rejects forbidden licenses and unsafe input paths", () => 
     }),
     /input SHA-256/i,
   );
+  assert.throws(
+    () => validateCatalog({
+      sources: [{ ...validSource, author: "Tác giả sai" }, { ...validSource }],
+      tracks: [validTrack],
+    }),
+    /duplicate catalog source/i,
+  );
 });
 
 test("verifySha256 rejects replaced source content", () => {
@@ -177,6 +184,16 @@ test("validateManifestMatchesCatalog rejects missing, extra and stale tracks", (
       manifest: { ...manifest, sources: [...manifest.sources, { ...validSource, id: "old-source" }] },
     }),
     /extra source/i,
+  );
+
+  const duplicateSourceManifest = JSON.parse(JSON.stringify(manifest));
+  duplicateSourceManifest.sources = [
+    { ...validSource, author: "Tác giả sai" },
+    { ...validSource },
+  ];
+  assert.throws(
+    () => validateManifestMatchesCatalog({ catalog, manifest: duplicateSourceManifest }),
+    /duplicate manifest source/i,
   );
 });
 
