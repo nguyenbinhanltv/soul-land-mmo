@@ -111,6 +111,31 @@ export function validateManifest(manifest) {
   return true;
 }
 
+export function validateManifestMatchesCatalog({ catalog, manifest }) {
+  validateCatalog(catalog);
+  validateManifest(manifest);
+
+  const catalogTracks = new Map(catalog.tracks.map((track) => [track.id, track]));
+  const manifestItems = new Map(manifest.items.map((item) => [item.id, item]));
+
+  for (const track of catalog.tracks) {
+    const item = manifestItems.get(track.id);
+    if (!item) throw new Error(`manifest is missing catalog track ${track.id}`);
+
+    for (const field of ["sourceId", "group", "mapId", "preload"]) {
+      if (item[field] !== track[field]) {
+        throw new Error(`manifest metadata mismatch for ${track.id}.${field}`);
+      }
+    }
+  }
+
+  for (const item of manifest.items) {
+    if (!catalogTracks.has(item.id)) throw new Error(`manifest has an extra track ${item.id}`);
+  }
+
+  return true;
+}
+
 export function buildManifest({ catalog, outputs, generatedAt = new Date().toISOString(), pipeline = "tools/audio" }) {
   validateCatalog(catalog);
   const sourceById = new Map(catalog.sources.map((source) => [source.id, source]));

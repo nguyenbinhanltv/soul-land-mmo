@@ -1,6 +1,6 @@
 import { access, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { validateCatalog, validateManifest } from "./lib.mjs";
+import { validateManifestMatchesCatalog } from "./lib.mjs";
 
 function option(name, fallback) {
   const index = process.argv.indexOf(name);
@@ -17,8 +17,7 @@ try {
     readFile(catalogPath, "utf8").then(JSON.parse),
     readFile(manifestPath, "utf8").then(JSON.parse),
   ]);
-  validateCatalog(catalog);
-  validateManifest(manifest);
+  validateManifestMatchesCatalog({ catalog, manifest });
   const checked = new Set();
   for (const item of manifest.items) {
     for (const format of ["ogg", "m4a"]) {

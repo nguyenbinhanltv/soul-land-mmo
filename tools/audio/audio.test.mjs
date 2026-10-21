@@ -9,6 +9,7 @@ import {
   safeResolve,
   validateCatalog,
   validateManifest,
+  validateManifestMatchesCatalog,
 } from "./lib.mjs";
 import { assertDockerRuntimeBoundary } from "./runtime-check.mjs";
 
@@ -80,6 +81,41 @@ test("buildManifest records both runtime formats and preload byte budgets", () =
   assert.deepEqual(manifest.preload.bytes, { ogg: 120, m4a: 180 });
   assert.equal(manifest.items[0].files.m4a.path, "audio/sprites/footsteps.m4a");
   assert.doesNotThrow(() => validateManifest(manifest));
+});
+
+test("validateManifestMatchesCatalog rejects missing, extra and stale tracks", () => {
+  const catalog = { sources: [validSource], tracks: [validTrack] };
+  const manifest = buildManifest({
+    catalog,
+    outputs: [{
+      id: validTrack.id,
+      files: {
+        ogg: { path: "audio/sprites/footsteps.ogg", bytes: 120 },
+        m4a: { path: "audio/sprites/footsteps.m4a", bytes: 180 },
+      },
+    }],
+    generatedAt: "2026-10-21T00:00:00.000Z",
+  });
+
+  assert.doesNotThrow(() => validateManifestMatchesCatalog({ catalog, manifest }));
+  assert.throws(
+    () => validateManifestMatchesCatalog({ catalog, manifest: { ...manifest, items: [] } }),
+    /missing catalog track/i,
+  );
+  assert.throws(
+    () => validateManifestMatchesCatalog({
+      catalog,
+      manifest: { ...manifest, items: [...manifest.items, { ...manifest.items[0], id: "old-track" }] },
+    }),
+    /extra track/i,
+  );
+
+  const staleManifest = JSON.parse(JSON.stringify(manifest));
+  staleManifest.items[0].group = "old-group";
+  assert.throws(
+    () => validateManifestMatchesCatalog({ catalog, manifest: staleManifest }),
+    /metadata mismatch.*group/i,
+  );
 });
 
 test("validateManifest rejects an initial download over 2 MiB", () => {
