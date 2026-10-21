@@ -1,6 +1,6 @@
 ---
 name: soak-perf
-description: Chạy dài nhiều bot trên bản đồ lớn (Tinh Đấu Ngoại vi ×8, MAP_V2) để đo hiệu năng server và tìm rò bộ nhớ: thời gian tick / bản vá (PERF_LOG=1), băng thông mỗi client, RSS / heap của tiến trình Node, số phòng còn sống sau khi bot rời. So với số đo của bước 11.4 (PR #129). Dùng khi thêm vòng lặp / truy vấn theo vị trí / Map mức tiến trình vào server, đổi đồng bộ (schema.ts, interest.ts, SYNC_VIEW), trước khi mở server cho nhiều người, hoặc khi nghi server chậm dần / phình bộ nhớ.
+description: Chạy dài nhiều bot trên bản đồ lớn (bản ×8 mặc định; đối chứng bản cũ bằng MAP_V1) để đo hiệu năng server và tìm rò bộ nhớ: thời gian tick / bản vá (PERF_LOG=1), băng thông mỗi client, RSS / heap của tiến trình Node, số phòng còn sống sau khi bot rời. So với số đo của bước 11.4 (PR #129). Dùng khi thêm vòng lặp / truy vấn theo vị trí / Map mức tiến trình vào server, đổi đồng bộ (schema.ts, interest.ts, SYNC_VIEW), trước khi mở server cho nhiều người, hoặc khi nghi server chậm dần / phình bộ nhớ.
 ---
 
 # Chạy dài và đo hiệu năng
@@ -19,8 +19,8 @@ Bản đồ ×8, server `GAME_TEST=1 PERF_LOG=1`, bot đi lang thang:
 Ngưỡng báo động: trung bình tick + bản vá vượt ~10 ms, `max` thường xuyên vượt 50 ms (trễ nhịp), băng thông mỗi client tăng theo tổng số thực thể cả bản đồ (lọc view hỏng).
 
 ## 2. Chuẩn bị (mọi thứ ngoài repo)
-- Server riêng, cổng riêng, không watch: `GAME_TEST=1 PERF_LOG=1 MAP_V2=tinh_dau_ngoai_vi PORT=2650 npm start --prefix server` (chạy nền, ghi log ra file trong thư mục artifact). Đo heap thì thêm `NODE_OPTIONS=--inspect=127.0.0.1:9250` (không dùng 9333 là CDP Chrome của phiên khác).
-- Bản đồ ×8 (11.3): server và bot cùng `MAP_V2=tinh_dau_ngoai_vi`; kiểm nhanh bằng `MAP_V2=tinh_dau_ngoai_vi BOT_ONLY=bigmap SERVER_URL=http://localhost:2650 npm run bot --prefix client`.
+- Server riêng, cổng riêng, không watch: `GAME_TEST=1 PERF_LOG=1 PORT=2650 npm start --prefix server` (chạy nền, ghi log ra file trong thư mục artifact). Đo heap thì thêm `NODE_OPTIONS=--inspect=127.0.0.1:9250` (không dùng 9333 là CDP Chrome của phiên khác).
+- Bản đồ ×8 (11.3 / 11.5) là mặc định; đo bản cũ để so thì server và bot cùng `MAP_V1=<mapId>,…|all`. Kiểm nhanh bản ×8 bằng `BOT_ONLY=bigmap SERVER_URL=http://localhost:2650 npm run bot --prefix client`.
 - **Bot tải** là script riêng ở thư mục artifact (không đưa vào repo), import `colyseus.js` từ `client/node_modules`, làm theo luồng của `bot()` / `enter()` trong `client/scripts/bot-test.mjs`: `POST /api/login {name, password}` → `/api/looks` → `/api/awaken` → `new Client(WS).joinOrCreate("map", {token, mapId})`. Đưa tới bản đồ ×8 bằng hook `test {op: "warp", mapId, x, y}`, rải vị trí. Mỗi bot gửi `input` hướng ngẫu nhiên mỗi 0,5–2 giây, thỉnh thoảng `attack` / `skill`.
 - Bot tải **không** gửi `test {op: "view", all: true}` (tắt lọc view của bot kiểm thử), nếu không sẽ đo sai băng thông.
 - Ghi lại: commit, số bot, cách rải (đều / theo nhóm), máy, có Chrome / bot khác chạy cùng không (nhiễu lớn).
