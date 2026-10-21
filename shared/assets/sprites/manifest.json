@@ -203,6 +203,10 @@
       "iso": true
     },
     {
+      "key": "portrait_liet_hoa_thuong_lang",
+      "iso": true
+    },
+    {
       "key": "portrait_nguyet_nhan",
       "iso": true
     },
@@ -243,6 +247,11 @@
       "iso": true
     },
     {
+      "key": "prop_bac_den",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "prop_bang_tinh",
       "iso": true
     },
@@ -255,9 +264,29 @@
       "iso": true
     },
     {
+      "key": "prop_bon_hoa",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
       "key": "prop_bui_gai",
       "iso": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_bui_hoa_nhiet_doi",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_bui_qua_sang",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_cau_da_vom",
+      "iso": true,
+      "map": "thien_dau_thanh"
     },
     {
       "key": "prop_cau_go",
@@ -279,6 +308,11 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "prop_cay_chet",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "prop_cay_dua",
       "iso": true,
       "map": "hai_than_dao"
@@ -286,6 +320,11 @@
     {
       "key": "prop_cay_dua_cao",
       "iso": true
+    },
+    {
+      "key": "prop_cay_hoa_anh_dao",
+      "iso": true,
+      "map": "thien_dau_thanh"
     },
     {
       "key": "prop_cay_la_rong",
@@ -316,6 +355,11 @@
       "iso": true
     },
     {
+      "key": "prop_co_thu_phat_quang",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "prop_cong_hoc_vien",
       "iso": true,
       "map": "nac_dinh_thanh"
@@ -326,12 +370,37 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "prop_cong_phu_quy_toc",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_cong_sat",
+      "iso": true,
+      "map": "dai_dau_hon_truong"
+    },
+    {
       "key": "prop_cot_bang",
       "iso": true,
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "prop_cot_co_do_vang",
+      "iso": true,
+      "map": "dai_dau_hon_truong"
+    },
+    {
+      "key": "prop_cot_den_do",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
       "key": "prop_cot_den_hai_than",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_cot_vo",
       "iso": true,
       "map": "hai_than_dao"
     },
@@ -364,13 +433,34 @@
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "prop_dai_phun_nuoc",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_dien_hai_than",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "prop_dinh_ngoc",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
       "key": "prop_dong_rom",
       "iso": true,
       "map": "thanh_hon_thon"
     },
     {
       "key": "prop_duong_xi_sang",
-      "iso": true
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_gia_vu_khi",
+      "iso": true,
+      "map": "dai_dau_hon_truong"
     },
     {
       "key": "prop_gieng_da",
@@ -382,9 +472,24 @@
       "iso": true
     },
     {
+      "key": "prop_hai_dang",
+      "iso": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "prop_hang_rao_go",
       "iso": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_hoang_cung",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_khan_dai",
+      "iso": true,
+      "map": "dai_dau_hon_truong"
     },
     {
       "key": "prop_kho_thoc",
@@ -396,8 +501,19 @@
       "iso": true
     },
     {
+      "key": "prop_lam_ngan_thao_bui",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "prop_leu_tho_san",
-      "iso": true
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_lo_lua_dong",
+      "iso": true,
+      "map": "dai_dau_hon_truong"
     },
     {
       "key": "prop_lo_ren_lang",
@@ -445,6 +561,16 @@
       "iso": true
     },
     {
+      "key": "prop_su_lai_khac",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_su_tu_vang",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
       "key": "prop_tang_da_reu",
       "iso": true
     },
@@ -472,9 +598,34 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "prop_thuong_hoi",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_tien_thao",
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "prop_tinh_the_tim",
       "iso": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_tuong_cam_thach",
+      "iso": true,
+      "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_tuong_dau_truong",
+      "iso": true,
+      "map": "dai_dau_hon_truong"
+    },
+    {
+      "key": "prop_tuong_dinh_ba",
+      "iso": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "prop_tuong_do_reu",
