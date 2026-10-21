@@ -1,0 +1,78 @@
+{
+  "sources": [
+    {
+      "id": "kenney-rpg-audio",
+      "title": "RPG Audio",
+      "author": "Kenney",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0-1.0",
+      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-tinyworlds-steps",
+      "title": "Different steps on wood, stone, leaves, gravel and mud",
+      "author": "TinyWorlds",
+      "url": "https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud",
+      "license": "CC0-1.0",
+      "archiveSha256": "987d072b7deaa65177e005ddd8185f2351be7c9a76cd7575dea560549c39b33b",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-forest-ambience",
+      "title": "Forest Ambience",
+      "author": "TinyWorlds",
+      "url": "https://opengameart.org/content/forest-ambience",
+      "license": "CC0-1.0",
+      "archiveSha256": "9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-waterflow",
+      "title": "Waterflow Sound",
+      "author": "TyberiusGames",
+      "url": "https://opengameart.org/content/waterflow-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-short-wind",
+      "title": "Short Wind Sound",
+      "author": "remaxim",
+      "url": "https://opengameart.org/content/short-wind-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "retrievedAt": "2026-10-21"
+    },
+    {
+      "id": "oga-creature-sfx",
+      "title": "80 CC0 creature SFX",
+      "author": "rubberduck",
+      "url": "https://opengameart.org/content/80-cc0-creature-sfx",
+      "license": "CC0-1.0",
+      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+      "retrievedAt": "2026-10-21"
+    }
+  ],
+  "tracks": [
+    { "id": "footstep-wood-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/wood01.ogg", "group": "footsteps", "surface": "wood", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-wood-02", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/wood02.ogg", "group": "footsteps", "surface": "wood", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-wood-03", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/wood03.ogg", "group": "footsteps", "surface": "wood", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-stone-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/stone01.ogg", "group": "footsteps", "surface": "stone", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-leaves-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/leaves01.ogg", "group": "footsteps", "surface": "grass", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-leaves-02", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/leaves02.ogg", "group": "footsteps", "surface": "grass", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-gravel-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/gravel.ogg", "group": "footsteps", "surface": "dirt", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "footstep-mud-01", "sourceId": "oga-tinyworlds-steps", "input": "opengameart/steps-tinyworlds/mud02.ogg", "group": "footsteps", "surface": "shallow-water", "mapId": null, "preload": true, "sprite": "footsteps" },
+    { "id": "kenney-footstep-00", "sourceId": "kenney-rpg-audio", "input": "kenney_rpg-audio/Audio/footstep00.ogg", "group": "footsteps", "surface": "generic", "mapId": null, "preload": true, "sprite": "footsteps-kenney" },
+    { "id": "kenney-footstep-01", "sourceId": "kenney-rpg-audio", "input": "kenney_rpg-audio/Audio/footstep01.ogg", "group": "footsteps", "surface": "generic", "mapId": null, "preload": true, "sprite": "footsteps-kenney" },
+    { "id": "kenney-footstep-02", "sourceId": "kenney-rpg-audio", "input": "kenney_rpg-audio/Audio/footstep02.ogg", "group": "footsteps", "surface": "generic", "mapId": null, "preload": true, "sprite": "footsteps-kenney" },
+    { "id": "forest-ambience", "sourceId": "oga-forest-ambience", "input": "opengameart/Forest_Ambience.mp3", "group": "environment", "mapId": "tinh-dau-rung", "preload": false, "sprite": "forest-ambience" },
+    { "id": "waterflow-ambience", "sourceId": "oga-waterflow", "input": "opengameart/waterflow.mp3", "group": "environment", "mapId": "tinh-dau-suoi", "preload": false, "sprite": "waterflow-ambience" },
+    { "id": "mountain-wind", "sourceId": "oga-short-wind", "input": "opengameart/short_wind_sound.wav", "group": "environment", "mapId": "tinh-dau-gio", "preload": false, "sprite": "mountain-wind" },
+    { "id": "spirit-wolf-howls", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/howl.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "spirit-wolf-bark", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/barking_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "spirit-bear-roar", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/roar_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" },
+    { "id": "spirit-insect-buzz", "sourceId": "oga-creature-sfx", "input": "opengameart/creatures/bug_01.ogg", "group": "creatures", "mapId": null, "preload": false, "sprite": "creatures" }
+  ]
+}

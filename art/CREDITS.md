@@ -571,3 +571,14 @@ Vùng này do `tools/assets/lpc-beast.mjs` ghi, không sửa tay.
 | `beast_nhu_cot_tho_hoang` (hình tạm) | Stephen "Redshrike" Challener (đặt vẽ: tebruno99), Evert (sắp lại sheet) | **CC-BY 3.0**, CC-BY-SA 3.0, OGA-BY 3.0 | [Reorganised LPC rabbit](https://opengameart.org/content/reorganised-lpc-rabbit), file `rabbit_2.png`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric; gốc: https://opengameart.org/content/bunny-rabbit-lpc-style-for-pixelfarm |
 | `beast_phong_lang` (hình tạm) | Stephen "Redshrike" Challener (họa sĩ), William.Thompsonj (đặt vẽ) | **CC-BY 4.0**, CC-BY 3.0, GPL 3.0, GPL 2.0, OGA-BY 3.0 | [[LPC] Wolf Animation](https://opengameart.org/content/lpc-wolf-animation), file `wolfsheet6_0.png`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric |
 <!-- lpc-beast:end -->
+
+## Âm thanh #133
+
+| Phạm vi | Tác giả | Giấy phép | Provenance |
+|---|---|---|---|
+| `shared/assets/audio/sprites/footsteps*.{ogg,m4a}` — bước chân gỗ, đá, lá/cỏ, sỏi/đất, bùn/nước nông | TinyWorlds | CC0-1.0 | [Different steps on wood, stone, leaves, gravel and mud](https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud), SHA-256 `987d072b7deaa65177e005ddd8185f2351be7c9a76cd7575dea560549c39b33b` |
+| `shared/assets/audio/sprites/footsteps-kenney*.{ogg,m4a}` — bước chân RPG bổ sung | Kenney | CC0-1.0 | [RPG Audio](https://kenney.nl/assets/rpg-audio), SHA-256 `6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b` |
+| `shared/assets/audio/ambient/tinh-dau-rung.{ogg,m4a}` | TinyWorlds | CC0-1.0 | [Forest Ambience](https://opengameart.org/content/forest-ambience), SHA-256 `9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75` |
+| `shared/assets/audio/ambient/tinh-dau-suoi.{ogg,m4a}` | TyberiusGames | CC0-1.0 | [Waterflow Sound](https://opengameart.org/content/waterflow-sound), SHA-256 `5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92` |
+| `shared/assets/audio/ambient/tinh-dau-gio.{ogg,m4a}` | remaxim | CC0-1.0 | [Short Wind Sound](https://opengameart.org/content/short-wind-sound), SHA-256 `4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41` |
+| `shared/assets/audio/sprites/creatures.{ogg,m4a}` — sói, gấu, côn trùng | rubberduck | CC0-1.0 | [80 CC0 creature SFX](https://opengameart.org/content/80-cc0-creature-sfx), SHA-256 `5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768` |
