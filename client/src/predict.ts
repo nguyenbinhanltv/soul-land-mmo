@@ -2,20 +2,34 @@
 // Server vẫn là nguồn sự thật: mỗi lần state mới về, lấy vị trí server rồi phát lại các bước chưa được xác nhận.
 // Không dùng Phaser: kiểm thử bằng `npm run test:predict --prefix client` (scripts/predict-test.mjs, chạy thẳng bằng Node).
 import { moveEnt, MOVE_DEAD, PLAYER_HW, PLAYER_HH, type SolidGrid } from "../../shared/move.ts";
-import { dir4 } from "../../shared/data.ts";
+import { dir4, RUN_MULT } from "../../shared/data.ts";
 
 /** Dự đoán cũ và mới lệch quá chừng này (pixel) thì đặt thẳng (bị kéo, đi cổng, hồi sinh, dịch chuyển); dưới thì trượt dần. */
 const SNAP = 40;
 /** Tốc độ làm mờ độ lệch hiển thị sau mỗi lần đối chiếu (mỗi giây). */
 const SMOOTH = 12;
+/**
+ * Đang đi thì mỗi giây chỉ thu độ lệch tối đa chừng này phần tốc độ đi (11.1): vừa vào giao chiến (chạy → đi bộ) với ping cao thì
+ * hình chậm lại một chút cho server đuổi kịp, không bị kéo giật lùi.
+ */
+const SMOOTH_MOVING = 0.6;
 /** Bước chưa được xác nhận giữ tối đa chừng này giây (server không trả lời thì thôi đoán). */
 const MAX_PENDING = 5;
 
-/** Một khung hình đi theo input `seq`: hướng đã gửi, thời lượng. */
-interface Step { seq: number; x: number; y: number; dt: number; }
+/** Một khung hình đi theo input `seq`: hướng đã gửi, có giữ Shift (đi bộ) không, thời lượng. */
+interface Step { seq: number; x: number; y: number; w: boolean; dt: number; }
 
 /** Phần PlayerState của chính mình mà bộ dự đoán đọc (trường đồng bộ từ server). */
-export interface MeState { x: number; y: number; dir: number; seq: number; seqT: number; spd: number; dead: boolean; }
+export interface MeState { x: number; y: number; dir: number; seq: number; seqT: number; spd: number; dead: boolean; calm: boolean; walk: boolean; }
+
+/**
+ * Tốc độ một bước giữ Shift hay không (`w`) theo state server (11.1): `spd` là tốc độ thật lúc này (đã nhân RUN_MULT khi đang chạy:
+ * ngoài giao chiến và input cuối không giữ Shift); tách ra tốc độ đi bộ rồi nhân lại theo cờ của chính bước đó.
+ */
+export function stepSpeed(me: MeState, w: boolean): number {
+  const walkSpd = me.spd / (me.calm && !me.walk ? RUN_MULT : 1);
+  return walkSpd * (me.calm && !w ? RUN_MULT : 1);
+}
 
 /** Bật bằng mặc định; `?nopredict` trên địa chỉ trang thì tắt (để so sánh). */
 const query = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
@@ -48,22 +62,25 @@ export class Predictor {
 
   /**
    * Mỗi khung hình: đối chiếu với state server nếu có bản mới, rồi đi trước một bước theo hướng `dir` đang giữ (đúng như server sẽ
-   * tính khi nhận input: cùng hàm va chạm, cùng tốc độ `spd`, cùng ngưỡng MOVE_DEAD). Trả về vị trí để vẽ.
+   * tính khi nhận input: cùng hàm va chạm, cùng tốc độ (stepSpeed), cùng ngưỡng MOVE_DEAD). `walk`: đang giữ Shift. Trả về vị trí để vẽ.
    */
-  update(me: MeState, dir: { x: number; y: number }, dt: number): { x: number; y: number } {
+  update(me: MeState, dir: { x: number; y: number }, dt: number, walk = false): { x: number; y: number } {
     dt = Math.min(dt, 0.1); // server cũng kẹp mỗi nhịp tối đa 100 ms
     this.reconcile(me);
     const pos = this.pos!;
+    let moved = 0;
     // Bước vẫn ghi cả lúc gục: server đếm `seqT` cả lúc gục, hai bên phải cùng một dòng thời gian thì mới bỏ đúng phần đã áp.
     if (!this.resend && Math.hypot(dir.x, dir.y) > MOVE_DEAD) {
-      this.steps.push({ seq: this.seq, x: dir.x, y: dir.y, dt });
-      if (!me.dead) moveEnt(this.grid, pos, dir.x * me.spd * dt, dir.y * me.spd * dt, PLAYER_HW, PLAYER_HH);
+      this.steps.push({ seq: this.seq, x: dir.x, y: dir.y, w: walk, dt });
+      const sp = stepSpeed(me, walk);
+      if (!me.dead) { moveEnt(this.grid, pos, dir.x * sp * dt, dir.y * sp * dt, PLAYER_HW, PLAYER_HH); moved = sp * Math.hypot(dir.x, dir.y); }
     }
     // Bỏ bước quá cũ: chỉ xảy ra khi server không trả lời; vị trí sẽ được kéo về theo server ở lần đối chiếu sau.
     let old = 0, i = this.steps.length;
     while (i > 0 && old < MAX_PENDING) old += this.steps[--i].dt;
     if (i > 0) this.drop(i);
-    const k = Math.exp(-SMOOTH * dt); this.off.x *= k; this.off.y *= k;
+    const ol = Math.hypot(this.off.x, this.off.y), cut = ol * (1 - Math.exp(-SMOOTH * dt)), max = moved ? SMOOTH_MOVING * moved * dt : Infinity;
+    if (ol > 0) { const k = 1 - Math.min(cut, max) / ol; this.off.x *= k; this.off.y *= k; }
     if (Math.hypot(this.off.x, this.off.y) < 0.05) this.off = { x: 0, y: 0 };
     return { x: pos.x + this.off.x, y: pos.y + this.off.y };
   }
@@ -90,7 +107,7 @@ export class Predictor {
 
   /** State server mới: lấy vị trí server, bỏ các bước server đã áp (theo `seq` / `seqT`), phát lại phần còn lại. */
   private reconcile(me: MeState) {
-    const key = `${me.x}|${me.y}|${me.seq}|${me.seqT}|${me.spd}|${me.dead}`;
+    const key = `${me.x}|${me.y}|${me.seq}|${me.seqT}|${me.spd}|${me.dead}|${me.calm}|${me.walk}`;
     if (key === this.key && this.pos) return;
     this.key = key;
     if (me.seq > this.seq) { this.seq = me.seq; this.resend = true; } // server tự dừng (hook thử): mọi bước đã gửi đều hết hiệu lực
@@ -109,7 +126,8 @@ export class Predictor {
     // Gục: đứng đúng chỗ server (hồi sinh thì về doanh trại). Bước vẫn giữ để còn đối chiếu được sau khi sống lại.
     if (!me.dead) for (let j = 0; j < this.steps.length; j++) {
       const s = this.steps[j], dt = j === 0 ? s.dt - skip : s.dt;
-      if (dt > 0) moveEnt(this.grid, q, s.x * me.spd * dt, s.y * me.spd * dt, PLAYER_HW, PLAYER_HH);
+      const sp = stepSpeed(me, s.w);
+      if (dt > 0) moveEnt(this.grid, q, s.x * sp * dt, s.y * sp * dt, PLAYER_HW, PLAYER_HH);
     }
     if (this.pos) {
       const ex = this.pos.x + this.off.x - q.x, ey = this.pos.y + this.off.y - q.y;

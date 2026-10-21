@@ -19,6 +19,10 @@ export class PlayerState extends Schema {
   @type("uint32") seq: number = 0;
   @type("float32") seqT: number = 0;
   @type("float32") spd: number = 0;
+  // Từ 11.1: ngoài giao chiến (được chạy × RUN_MULT) và input cuối giữ Shift (đi bộ). `spd` đã gồm hệ số chạy; client chia ra tốc độ
+  // đi bộ để dự đoán từng bước theo cờ đi bộ của bước đó, và để chọn nhịp animation đi / chạy.
+  @type("boolean") calm: boolean = true;
+  @type("boolean") walk: boolean = false;
   @type("uint8") level: number = 1;
   @type("uint32") xp: number = 0;
   @type("uint32") xpNeed: number = 0;
