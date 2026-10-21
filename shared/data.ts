@@ -759,6 +759,9 @@ export type TeleShape = "line" | "cone" | "circle";
  *   nhất") thay cho mục tiêu đang đuổi; chưa có người tham gia thì nhắm mục tiêu đang đuổi.
  * Từ BĐ6e (boss thế giới):
  * - `floor`: chiêu toàn sàn: vùng là cả sàn đấu (object `boss`), chỉ trúng người đứng trong sàn; client vẽ thành một dải phủ sàn.
+ * Từ #118 (chiêu toàn sàn né được):
+ * - `safe`: chiêu toàn sàn có `n` vòng an toàn bán kính `r` (FLOOR_SAFE) rải đều theo bề ngang sàn, vị trí do server tung lúc bắt đầu
+ *   báo trước (đi thẳng tới được từ chỗ sinh của boss); người chạm một vòng (teleSafe) lúc chiêu nổ thì không trúng.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -771,6 +774,7 @@ export interface BeastSkillDef {
   drain?: number;
   weak?: boolean;
   floor?: boolean;
+  safe?: { n: number; r: number };
 }
 /**
  * "Đóng băng" của hồn thú băng lên hồn sư: trạng thái Đóng băng (#116; trước đó là Choáng), thời gian ghi ở từng chiêu. "Mê hoặc" lên
@@ -873,6 +877,11 @@ export function beastSkillOf(species: string, years: number): BeastSkillDef | nu
 }
 /** Một vùng cảnh báo đã khóa: gốc (x, y), hướng `ang` (radian, vệt / nón), kích thước theo BeastSkillDef. */
 export interface Tele { shape: TeleShape; x: number; y: number; ang: number; r: number; w: number; arc: number; }
+/**
+ * Điểm (px, py) đứng trong vòng an toàn `s` của chiêu toàn sàn (BeastSkillDef.safe, #118): người chơi (hình tròn bán kính TELE_PAD)
+ * chạm vòng là an toàn, cùng cách tính với teleHits. Hàm thuần: server tính, bot đối chiếu.
+ */
+export const teleSafe = (s: Tele, px: number, py: number) => Math.hypot(px - s.x, py - s.y) <= s.r + TELE_PAD;
 /** Điểm (px, py) có trúng vùng `t` không (người chơi là hình tròn bán kính TELE_PAD). Hàm thuần: server tính, bot đối chiếu. */
 export function teleHits(t: Tele, px: number, py: number) {
   const dx = px - t.x, dy = py - t.y, d = Math.hypot(dx, dy);
@@ -911,6 +920,18 @@ export function teleZones(def: BeastSkillDef, bx: number, by: number, tx: number
 }
 
 // ---------- Tinh anh, thú vương, boss thế giới (mục 5.4, 6; bước BĐ4, mọi số đã chốt) ----------
+/**
+ * Vòng an toàn của chiêu toàn sàn boss thế giới (BeastSkillDef.safe, #118): `floor` cho Bạo Nộ và Thanh Lân Độc Vụ, `charge` cho tích
+ * lực Đại Địa Chấn (ít vòng hơn vì báo trước lâu và còn cách ngắt). Thời gian báo trước tính để từ phần lớn sàn đi bộ (PLAYER_SPEED,
+ * không bị chậm / khống chế) kịp tới vòng gần nhất (LAIR_SPOT.band giữ vòng khỏi sát mép).
+ */
+export const FLOOR_SAFE = { floor: { n: 3, r: 40 }, charge: { n: 2, r: 36 } };
+/**
+ * Chọn chỗ trên sàn đấu boss thế giới (#118: vòng an toàn, chỗ Du Thủy nổi lên): dọc trong dải `band` (phần bề cao sàn, để vòng không
+ * nằm sát mép cây và đi bộ tới kịp trong thời gian báo trước), cách mép sàn `pad` pixel (chỗ nổi lên; vòng an toàn cách mép bằng bán
+ * kính), thử tối đa `tries` lần mỗi chỗ. Vòng an toàn phải đứng được ở 8 hướng cách tâm `open` × bán kính.
+ */
+export const LAIR_SPOT = { band: [0.2, 0.8] as [number, number], pad: 16, tries: 30, open: 0.6 };
 /** Bậc hồn thú (`BeastState.rank`): 0 thường, 1 tinh anh, 2 tà hóa thú vương (BĐ5), 3 boss thế giới (BĐ6). */
 export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as const;
 /**
@@ -933,14 +954,15 @@ export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: s
  * - `armor` (Bá Thể): khoác khiên `pct` máu tối đa trong `secs` giây; sát thương của võ hồn hệ `he` lên khiên x`mult`. Hết giờ mà
  *   khiên chưa vỡ thì boss hồi máu bằng phần khiên còn lại.
  * - `miasma` (Thanh Lân Độc Vụ): chiêu toàn sàn `skill` gây Vết thương sâu (độc cộng dồn lâu), chỉ thanh tẩy giải được.
- * - `dive` (Du Thủy): lặn xuống hồ `secs` giây (không nhận sát thương, không đánh), nổi lên chỗ khác trong sàn và lộ điểm yếu hệ `he`
- *   trong `weakSecs` giây (mẫn công lướt tới kịp thì đánh trúng điểm yếu).
+ * - `dive` (Du Thủy): lặn ra giữa hồ (object `lake` trong Tiled) `secs` giây (không nhận sát thương, không đánh); chỗ nổi lên trong sàn
+ *   (cách chỗ lặn ít nhất `away` pixel) chọn ngay lúc lặn và báo trước cho cả phòng; nổi lên đúng chỗ đó và lộ điểm yếu hệ `he` trong
+ *   `weakSecs` giây (mẫn công lướt tới kịp thì đánh trúng điểm yếu).
  */
 export interface WorldMech {
   charge?: { every: number; need: number; stun: number; skill: BeastSkillDef };
   armor?: { name: string; every: number; pct: number; secs: number; he: He; mult: number };
   miasma?: { every: number; skill: BeastSkillDef };
-  dive?: { name: string; every: number; secs: number; he: He; weakSecs: number };
+  dive?: { name: string; every: number; secs: number; he: He; weakSecs: number; away: number };
 }
 /**
  * Bảng BOSSES (mục 6). Mã cố định, dùng trong thuộc tính `boss` của object `elite` (Tiled); `BeastState.species` của hồn thú bậc > 0
@@ -1083,15 +1105,15 @@ export const BOSSES: BossDef[] = [
     bs("Địa Liệt Quyền", "circle", 64, { warn: 1.2, dmg: 1.8, cd: 7, status: [{ s: "stun", secs: 0.8 }] })],
     world: {
       charge: { every: 40, need: 3, stun: 3,
-        skill: bs("Đại Địa Chấn", "circle", 0, { floor: true, warn: 4, dmg: 3, cd: 999, status: [{ s: "armor", n: 3, secs: 30 }, { s: "stun", secs: 1 }] }) },
+        skill: bs("Đại Địa Chấn", "circle", 0, { floor: true, safe: FLOOR_SAFE.charge, warn: 4, dmg: 3, cd: 999, status: [{ s: "armor", n: 3, secs: 30 }, { s: "stun", secs: 1 }] }) },
       armor: { name: "Bá Thể", every: 35, pct: 0.06, secs: 12, he: "cuong_cong", mult: 3 },
     } },
   { id: "thien_thanh_nguu_mang", name: "Thiên Thanh Ngưu Mãng", rank: 3, species: "thien_thanh_nguu_mang", aura: "#3ad0a0", skills: [
     bs("Ngưu Giác Xung", "line", 300, { w: 24, range: 260, warn: 1.4, dmg: 2.2, cd: 10, dash: true }),
     bs("Mãng Vĩ Tảo", "cone", 80, { arc: 160, warn: 1.2, dmg: 1.6, cd: 7 })],
     world: {
-      miasma: { every: 30, skill: bs("Thanh Lân Độc Vụ", "circle", 0, { floor: true, warn: 2, dmg: 0.5, cd: 999, status: [{ s: "poison", n: 3, secs: 30 }] }) },
-      dive: { name: "Du Thủy", every: 40, secs: 3, he: "man_cong", weakSecs: 6 },
+      miasma: { every: 30, skill: bs("Thanh Lân Độc Vụ", "circle", 0, { floor: true, safe: FLOOR_SAFE.floor, warn: 2.5, dmg: 0.5, cd: 999, status: [{ s: "poison", n: 3, secs: 30 }] }) },
+      dive: { name: "Du Thủy", every: 40, secs: 3, he: "man_cong", weakSecs: 6, away: 80 },
     } },
 ];
 const BOSS_INDEX = new Map(BOSSES.map((b, i) => [b.id, i]));
@@ -1230,8 +1252,8 @@ export const chestCode = (bossId: string) => `ruong_${bossId}`;
 export const WORLD = { hp: 30, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
   enrageSecs: 600, rageDmg: 3, rageSpd: 1.4, rageCd: 0.6, slamEvery: 15, weakAt: [0.75, 0.5, 0.25], weakSecs: 15, weakMult: 2.5, offMult: 0.5,
   firstMech: 0.5, share: 0.03, daily: 1 };
-/** Chiêu toàn sàn khi nổi giận (mục 5.4 "chiêu toàn sàn mỗi 15 giây"): không né được, chỉ hạ boss trước 10 phút mới tránh. */
-export const WORLD_SLAM = bs("Bạo Nộ", "circle", 0, { floor: true, warn: 1.5, dmg: 1, cd: WORLD.slamEvery });
+/** Chiêu toàn sàn khi nổi giận (mục 5.4, mỗi WORLD.slamEvery giây): né bằng cách đứng trong vòng an toàn (FLOOR_SAFE) hoặc ra khỏi sàn. */
+export const WORLD_SLAM = bs("Bạo Nộ", "circle", 0, { floor: true, safe: FLOOR_SAFE.floor, warn: 2.5, dmg: 1, cd: WORLD.slamEvery });
 /** Giờ xuất hiện của boss thế giới mỗi ngày (giờ Việt Nam; đã chốt 21:00, không trùng lịch thú vương 20:00 / 22:00). */
 export const WORLD_TIME = "21:00";
 /** Loại boss trong bảng `boss_claims` (cột `kind`) của boss thế giới: giới hạn WORLD.daily lần/ngày, riêng với lượt thú vương. */
@@ -1289,6 +1311,8 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/** Hồi chiêu đòn đánh thường của hồn thú (giây; MapRoom.tick, ủy thác offline offlineFight). */
+export const BEAST_ATK_CD = 1.1;
 
 // ---------- Hồn kỹ (mục 5.2 "Hồn kỹ theo vòng") ----------
 /**
@@ -3834,3 +3858,48 @@ export const autoTimeText = (secs: number) => {
   const m = Math.floor(Math.max(0, secs) / 60), h = Math.floor(m / 60);
   return h ? `${h} giờ${m % 60 ? ` ${m % 60} phút` : ""}` : `${m} phút`;
 };
+
+// ---------- Ủy thác offline (mục 5.13 "Ủy thác offline", Auto 3; chủ repo chốt hiệu suất 100%, chung quỹ AUTO_DAILY_SECS) ----------
+/**
+ * Ủy thác khi offline: thoát game ở bản đồ săn, đứng trong một vùng săn (ngoài vùng an toàn, không gục) thì lần vào sau server tính
+ * thưởng theo thời gian vắng mặt bằng công thức, không sinh hay hạ hồn thú thật. Thời gian theo đồng hồ server.
+ * - `minSecs`: vắng dưới bấy nhiêu giây thì không tính (vào lại ngay, đổi máy).
+ * - `maxSecs`: trần giây tính cho một lần nhận, ngoài quỹ AUTO_DAILY_SECS mỗi ngày dùng chung với tự săn online.
+ * - `rings`: tối đa bấy nhiêu hồn hoàn mỗi lần nhận (theo thứ tự hạ; sau đó bỏ qua như món tự săn không nhặt).
+ * - `seek`: giây tìm / đi tới / nhặt đồ mỗi con (ngoài thời gian đánh và hồi máu); `skill`: hệ số sát thương của hồn kỹ, tiên cơ so với
+ *   chỉ đánh thường. Hiệu chỉnh 2026-10-22 theo số con mỗi giờ của tự săn online lúc vùng còn đủ hồn thú (phút đầu, chưa săn cạn quanh
+ *   điểm neo): Tinh Đấu Ngoại vi / Nội địa, võ hồn cấp 21–45, công thức lệch số đo khoảng ±30% (hồn kỹ diện rộng hạ nhiều con một lúc).
+ * - `hpCap`: một trận lấy quá phần này sinh lực tối đa thì coi là không đánh nổi (bỏ con đó, mất `seek` giây).
+ */
+export const OFFLINE = { minSecs: 300, maxSecs: 24 * 3600, rings: 20, seek: 3.5, skill: 1.5, hpCap: 0.8 };
+/** Chỉ số võ hồn ra trận cho công thức ủy thác (MapRoom chụp lúc nhận): công, chí mạng, sinh lực tối đa, hệ số sát thương nhận VOHON.def. */
+export interface OfflinePower { atk: number; crit: number; critMult: number; maxHp: number; def: number; }
+/**
+ * Thời gian (giây) hạ một hồn thú thường `years` năm, loài `species` (mã BEASTS) khi ủy thác: đánh = máu / DPS (đánh thường mỗi
+ * ATTACK_CD, chí mạng kỳ vọng, thủ của loài qua defMult, × OFFLINE.skill), hồi máu = sát thương nhận trong trận (đòn thường mỗi
+ * BEAST_ATK_CD × `def`) / hồi sinh lực ngoài giao chiến (PLAYER_REGEN.hpCalm), cộng OFFLINE.seek. `ok` = false khi trận lấy quá
+ * OFFLINE.hpCap sinh lực tối đa (không đánh nổi: chỉ mất OFFLINE.seek giây).
+ */
+export function offlineFight(pw: OfflinePower, years: number, species: string) {
+  const st = beastStats(years);
+  const dps = pw.atk * (1 + pw.crit * (pw.critMult - 1)) * defMult(beastDef(species, years), 0) * OFFLINE.skill / ATTACK_CD;
+  const fight = dps > 0 ? st.hp / dps : Infinity, taken = fight * st.dmg * pw.def / BEAST_ATK_CD;
+  const ok = pw.maxHp > 0 && taken <= pw.maxHp * OFFLINE.hpCap;
+  return { ok, secs: ok ? OFFLINE.seek + fight + taken / (pw.maxHp * PLAYER_REGEN.hpCalm) : OFFLINE.seek };
+}
+/**
+ * Chia quãng vắng mặt `secs` giây kết thúc lúc `endMs` (đồng hồ lịch boss, bossNow) theo ngày giờ Việt Nam: mỗi ngày tính tối đa phần
+ * quỹ AUTO_DAILY_SECS còn lại (ngày `usedDay` đã treo `used` giây, ngày khác chưa treo), cộng dồn từ ngày cũ tới ngày mới tới trần
+ * OFFLINE.maxSecs. Trả các phần được tính [{ day, secs }] theo thứ tự thời gian.
+ */
+export function offlineSplit(endMs: number, secs: number, usedDay: string, used: number) {
+  const out: { day: string; secs: number }[] = [];
+  let t = endMs - Math.max(0, secs) * 1000, total = 0;
+  while (t < endMs && total < OFFLINE.maxSecs) {
+    const day = vnDay(t), next = Math.min(endMs, vnAt(t, "00:00", 1));
+    const n = Math.min((next - t) / 1000, autoLeft(day === usedDay ? used : 0), OFFLINE.maxSecs - total);
+    if (n > 0) { out.push({ day, secs: n }); total += n; }
+    t = next;
+  }
+  return out;
+}
