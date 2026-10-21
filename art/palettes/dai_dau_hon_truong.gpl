@@ -1,0 +1,15 @@
+GIMP Palette
+Name: Đại Đấu Hồn Trường: đá xám, vàng kim, đỏ son (lưu ly ở cổng và khán đài vua)
+Columns: 8
+#
+# Bảng nhấn (GAME_DESIGN.md mục 5.11, phong cách 10.0b): chỉ dùng thêm vào art/palette.gpl, không thay bảng chung.
+# Bản đồ dai_dau_hon_truong (MAPS trong shared/data.ts).
+#
+# Đá sàn đấu
+ 90  90  98	Đá sàn tối #5a5a62
+138 138 146	Đá sàn #8a8a92
+# Đỏ son
+160  42  32	Đỏ son tối #a02a20
+208  74  48	Đỏ son #d04a30
+# Cát sàn
+200 176 138	Cát sàn #c8b08a
