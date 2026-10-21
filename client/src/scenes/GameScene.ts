@@ -172,7 +172,7 @@ export class GameScene extends Phaser.Scene {
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
-  lvSeen = { vh: -1, level: 0 };    // cấp võ hồn ra trận lần trước: tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
+  lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string) => void; onBack: () => void }) {
@@ -1640,8 +1640,8 @@ export class GameScene extends Phaser.Scene {
     // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
     this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
     if (me) {
-      if (me.vh === this.lvSeen.vh && me.level > this.lvSeen.level) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); }
-      this.lvSeen = { vh: me.vh, level: me.level };
+      if (me.vh === this.lvVh && me.level > this.lvSeen) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); }
+      this.lvVh = me.vh; this.lvSeen = me.level;
     }
     if (me) {
       this.hudT -= dt;
