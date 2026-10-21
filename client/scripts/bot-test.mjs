@@ -4535,7 +4535,7 @@ async function npcTown(){
     "giá mảnh võ hồn theo độ hiếm");
   ok(sellPrice({code:"hoi_huyet_dan",years:null,stars:null,enhance:0})===null&&sellPrice({code:chestCode(BOSSES.find(b=>b.rank===2).id),years:null,stars:null,enhance:0})===null&&sellPrice({code:"khong_co",years:null,stars:null,enhance:0})===null&&sellPrice(ring(437))>0,
     "thương nhân không mua đan, rương, đồ lạ");
-  ok(SHOP.every(r=>["dan","phu"].includes(itemDef(r.code)?.kind)&&r.price>0)&&SHOP.some(r=>r.code==="hoi_huyet_dan")&&SHOP.some(r=>r.code==="hoi_hon_dan"),`thương nhân bán ${SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")}`);
+  ok(SHOP.every(r=>["dan","phu","lenh"].includes(itemDef(r.code)?.kind)&&r.price>0)&&SHOP.some(r=>r.code==="hoi_huyet_dan")&&SHOP.some(r=>r.code==="hoi_hon_dan"),`thương nhân bán ${SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")}`);
   const tn=npcSpot("nac_dinh_thanh","thuong_nhan"), lr=npcSpot("nac_dinh_thanh","lo_ren"), ds=npcSpot("nac_dinh_thanh","dai_su"), sg=npcSpot("nac_dinh_thanh","su_gia_dau_hon");
   ok(Math.hypot(tn.x-me().x,tn.y-me().y)>NPC_RANGE&&await talk(C,"thuong_nhan")===null&&/lại gần Thương nhân/.test(C.logs.at(-1)),"đứng ở cổng đông: thương nhân chưa nói chuyện");
   const bk0=bagKey(C);
@@ -4820,8 +4820,9 @@ async function autoTest(){
   await autoOp(A,"off"); await test(A,"day",{shift:0});
 
   // ---- Auto 2: Ủy Thác Lệnh (mua ở thương nhân trong thành, cộng quỹ giờ treo ngoài giờ miễn phí) ----
-  ok(SHOP.some(r=>r.code===AUTO_TOKEN&&r.price===AUTO_TOKEN_PRICE)&&!CAMP_SHOP.some(r=>r.code===AUTO_TOKEN)&&itemDef(AUTO_TOKEN)?.auto===AUTO_TOKEN_SECS,
-    `Ủy Thác Lệnh: thương nhân trong thành bán ${formatHonTe(AUTO_TOKEN_PRICE)}, +${autoTimeText(AUTO_TOKEN_SECS)} mỗi lệnh`);
+  ok(SHOP.some(r=>r.code===AUTO_TOKEN&&r.price===AUTO_TOKEN_PRICE)&&!CAMP_SHOP.some(r=>r.code===AUTO_TOKEN)&&itemDef(AUTO_TOKEN)?.auto===AUTO_TOKEN_SECS
+    &&sellPrice({code:AUTO_TOKEN,years:null,stars:null,enhance:0})===null,
+    `Ủy Thác Lệnh: thương nhân trong thành bán ${formatHonTe(AUTO_TOKEN_PRICE)}, không mua lại, +${autoTimeText(AUTO_TOKEN_SECS)} mỗi lệnh`);
   const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
   await warp(A,"nac_dinh_thanh",tn.x,tn.y+16);
   await test(A,"coin",{n:AUTO_TOKEN_PRICE+5}); await waitFor(()=>A.bag.honTe===AUTO_TOKEN_PRICE+5,1500);
