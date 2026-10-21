@@ -244,7 +244,7 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đ�
 - Quanh trận không sinh hồn thú (`SPAWN_CLEAR`, như quanh cổng).
 
 - **Lõi Tinh Đấu:** đăng xuất ở đây (rời phòng không qua cổng / đổi kênh) thì lần sau vào ở bến bờ hồ Nội địa (`MapDef.exit`).
-- Vị trí và bản đồ đang đứng được lưu; vào lại ở đúng chỗ cũ (kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn`). Mã bản đồ cũ đã bỏ ánh xạ qua `MAP_MOVED`.
+- Vị trí và bản đồ đang đứng được lưu kèm tên file Tiled lúc lưu; vào lại ở đúng chỗ cũ (kẹt trong ô chặn, ngoài bản đồ, hoặc file đang dùng khác file lúc lưu, ví dụ lưu ở bản cũ rồi bản ×8 thành mặc định, thì về `spawn`). Mã bản đồ cũ đã bỏ ánh xạ qua `MAP_MOVED`.
 
 **Quy cấp theo niên hạn**
 - **Cấp tương đương** của hồn thú là cấp nhỏ nhất mà võ hồn hấp thụ được hồn hoàn của nó trong giới hạn (`beastLevel`, tính từ `RING_LIMIT`; vòng k hấp thụ ở cấp 10×k). Mỗi bản đồ săn nhắm khoảng cấp mà niên hạn hồn thú khớp giới hạn **vòng kế tiếp**, vùng sâu nhất vượt giới hạn một chút cho người muốn liều; khoảng cấp các bản đồ kế nhau chồng lên nhau.

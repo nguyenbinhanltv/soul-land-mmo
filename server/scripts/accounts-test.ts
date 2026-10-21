@@ -71,6 +71,11 @@ async function common(label: string, s: Store, u = "") {
     assert.equal(await s.saveLocation(id, DEFAULT_MAP, 1, 1), false);           // phòng khác bản đồ đã ánh xạ không ghi được
     assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40), true);  // phòng Ngoại vi ghi được, thay mã cũ
     assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: 30, y: 40 });
+    // 11.5: vị trí lưu trên file Tiled khác file đang dùng (bản cũ trước khi bản ×8 thành mặc định, đường lùi MAP_V1) thì vào ở `spawn`.
+    assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40, "tinh_dau_ngoai_vi.cu"), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: null, y: null });
+    assert.equal(await s.saveLocation(id, "tinh_dau_ngoai_vi", 30, 40), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: "tinh_dau_ngoai_vi", x: 30, y: 40 });
     // Đi cổng từ bản đồ đã ánh xạ cũng qua được lớp chặn.
     await s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "tinh_dau", 700, 480);
     await s.saveTravel(id, [ch], "tinh_dau_ngoai_vi", "nac_dinh_thanh", 88, 328);
