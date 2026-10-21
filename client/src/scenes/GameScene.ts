@@ -13,7 +13,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
-import { findPath } from "../path.ts";
+import { findPath } from "../../../shared/path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
 import { solidGrid, clampDir, type SolidGrid } from "../../../shared/move.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
@@ -23,7 +23,7 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -480,6 +480,7 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "Escape") { closeAudioPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); return; }
+      if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -502,6 +503,7 @@ export class GameScene extends Phaser.Scene {
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleReso(); }, on);
     document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); this.openWorld(); }, on);
+    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.toggleAuto(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
     document.getElementById("chanBtn")!.addEventListener("click", (e) => {
@@ -557,6 +559,9 @@ export class GameScene extends Phaser.Scene {
 
   /** Xin đi qua cổng đang đứng: chỉ gửi tên cổng, server kiểm tra vị trí và chọn bản đồ đích. */
   goPortal() { if (this.portal?.name) this.room.send("travel", { portal: this.portal.name }); }
+
+  /** Bật / tắt tự săn (phím T, nút "Tự động"; Auto 1): chỉ gửi ý định, server kiểm tra và trả tin `auto`. */
+  toggleAuto() { this.room.send("auto", { op: this.room.state.players.get(this.me)?.auto ? "off" : "on" }); }
 
   act(a: string) {
     if (a === "attack") this.room.send("attack");
@@ -690,6 +695,9 @@ export class GameScene extends Phaser.Scene {
       hud.setWorld(m);
     });
     this.room.onMessage("recall", (m: { on: boolean; label?: string; secs?: number }) => hud.setRecall(m?.on ? { label: m.label ?? "", secs: m.secs ?? 1 } : null));
+    // Tự săn (Auto 1): trạng thái nút và giờ treo còn lại; server báo lý do dừng / từ chối bằng dòng log.
+    this.room.onMessage("auto", (m: AutoMsg) => hud.setAuto(m));
+    if (!this.isArena) this.room.send("auto", { op: "get" });
     if (this.waypoints.length) this.room.send("wp", { op: "list" }); // biết trận nào đã mở để tô trận (sân đấu không có trận)
     // NPC (6.1): server đã kiểm tra khoảng cách; lời thoại, cửa hàng và lò rèn lấy từ NPCS. Mua / bán / rèn chỉ gửi ý định.
     this.room.onMessage("npc", (m: { id: string }) => {
@@ -1486,8 +1494,9 @@ export class GameScene extends Phaser.Scene {
       // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
       const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
       if (label.style.color !== col) label.setColor(col);
-      // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1).
-      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up).setVisible(!p.dead).setText(titleOf(p.level));
+      // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
+      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · Tự động` : titleOf(p.level));
+      const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
     for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); this.players.delete(id); }
     const meS = this.ghost && st.players.get(this.me);

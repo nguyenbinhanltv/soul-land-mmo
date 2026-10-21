@@ -31,16 +31,17 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, SYNC_VIEW } from "../../../shared/data.ts";
+  ARENA, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_RADIUS, parseAuto, autoLeft, autoTimeText, type AutoSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
-import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
+import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
 import * as party from "../party.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
+import { AutoHunter } from "./autoHunt.ts";
 
 export interface PData {
   accountId: number;
@@ -125,11 +126,14 @@ export interface PData {
   // Cộng minh (8.2, mục 5.10): tiến độ và số mốc đã đạt từng trụ cột (thứ tự RESONANCE), tổng % cộng cho mọi võ hồn. Không lưu DB:
   // tính lại từ võ hồn và đồ đang gắn (resCheck) khi nạp tài khoản và mỗi khi dữ liệu liên quan đổi. `resKey`: tin "resonance" lần trước.
   res: { prog: number[]; lv: number[]; bonus: Record<ResStat, number> }; resKey: string;
+  // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
+  // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng).
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoDirty: boolean;
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
 export interface AuthData { accountId: number; ch: Character; owned: Character[]; team: number[]; looks: Looks; loc: Location; bag: Bag; starter: boolean;
-  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; }
+  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; auto: AutoRow; }
 /**
  * Niệm truyền tống (11.2): tên nơi đến, phí (đồng, trừ lúc dịch chuyển), ô Hồi Thành Phù sẽ dùng (không có = truyền tống trận), chỗ
  * đứng lúc bắt đầu (lệch quá 2 pixel thì hủy: di chuyển, bị đẩy / kéo), tổng số giây (thanh niệm của client).
@@ -439,7 +443,8 @@ export class MapRoom extends Room<MapState> {
     if (back && back.roomId !== this.roomId)
       throw new ServerError(409, `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${Math.ceil((leftRoom.get(acc.accountId)!.until - Date.now()) / 1000)} giây.`);
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
-      bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [] };
+      bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [],
+      auto: { settings: null, day: "", used: 0 } };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
     // Đội hình (tài khoản cũ được tự xếp trong store). Bỏ ô trỏ tới võ hồn không còn sở hữu; võ hồn ra trận luôn nằm trong đội.
     const team = (await store.getTeam(acc.accountId)).map((r) => (owned.some((v) => v.rowId === r) ? r : 0));
@@ -455,6 +460,7 @@ export class MapRoom extends Room<MapState> {
     auth.claims.n = await store.bossClaims(acc.accountId, auth.claims.day, BOSS_CLAIM_KING);
     auth.wclaims.n = await store.bossClaims(acc.accountId, auth.wclaims.day, BOSS_CLAIM_WORLD); // boss thế giới (BĐ6e)
     auth.wps = await store.getWaypoints(acc.accountId); // truyền tống trận đã mở (11.2)
+    auth.auto = await store.getAuto(acc.accountId); // cài đặt và giờ treo tự săn (Auto 1)
     return auth;
   }
 
@@ -519,23 +525,30 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("input", (c, m: { x: number; y: number; s?: number; w?: unknown }) => {
       const d = this.pdata.get(c.sessionId); if (!d || d.travelling) return;
       const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
-      d.input = clampDir(num(m?.x), num(m?.y));
-      d.walk = !!m?.w; // 11.1: giữ Shift thì đi bộ cả khi ngoài giao chiến
+      const x = num(m?.x), y = num(m?.y);
+      // Tự săn (mục 5.13): tay luôn được ưu tiên, bấm đi thì tắt tự động; hướng 0 (nhả phím, client gửi lại) thì bỏ qua để tự săn đi tiếp.
+      if (d.auto && Math.hypot(x, y) > MOVE_DEAD) this.autoStop(c.sessionId, "bạn tự di chuyển.");
+      if (!d.auto) this.applyInput(d, x, y, !!m?.w); // 11.1: giữ Shift thì đi bộ cả khi ngoài giao chiến
       // Số thứ tự input của client đang dự đoán chuyển động (mục 6): chỉ để client đối chiếu, vị trí vẫn do tick() tính.
       const p = this.state.players.get(c.sessionId), s = Math.floor(num(m?.s));
       if (p) { if (s > 0 && s <= 0xffffffff) p.seq = s; p.seqT = 0; }
     });
-    this.onMessage("attack", (c) => this.attack(c.sessionId));
-    this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
+    // Đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt do người chơi tự bấm thì tắt tự săn trước (tay ưu tiên); tự săn gọi thẳng các hàm này.
+    this.onMessage("attack", (c) => { this.autoHand(c.sessionId); this.attack(c.sessionId); });
+    this.onMessage("skill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.skill(c, Number(m?.i)); });
     this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, Number(m?.rowId), m?.skills)); // 8.1a
-    this.onMessage("chanthan", (c) => this.chanThan(c)); // 8.1a: Võ Hồn Chân Thân (phím R)
-    this.onMessage("boneskill", (c, m: { i: number }) => this.boneSkill(c, Number(m?.i)));
+    this.onMessage("chanthan", (c) => { this.autoHand(c.sessionId); this.chanThan(c); }); // 8.1a: Võ Hồn Chân Thân (phím R)
+    this.onMessage("boneskill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.boneSkill(c, Number(m?.i)); });
+    this.onMessage("auto", (c, m: { op?: unknown; cfg?: unknown }) => this.autoAction(c.sessionId, m?.op, m?.cfg)); // tự săn (Auto 1)
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
     this.onMessage("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
     this.onMessage("vohons", (c) => this.sendVohons(c));
     this.onMessage("team", (c, m: { slots: unknown }) => this.setTeam(c, m?.slots));
-    this.onMessage("switch", (c, m: { slot: number }) => this.switchSlot(c, Number(m?.slot)));
+    this.onMessage("switch", (c, m: { slot: number }) => { // tự đổi võ hồn khi đang tự săn: tự săn thôi đổi về võ hồn cũ
+      const a = this.pdata.get(c.sessionId)?.auto; if (a) a.home = null;
+      this.switchSlot(c, Number(m?.slot));
+    });
     this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
     this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, String(m?.portal ?? "")));
     this.onMessage("wp", (c, m: { op: unknown; key: unknown }) => this.waypointAction(c.sessionId, m?.op, m?.key)); // truyền tống trận (11.2)
@@ -595,7 +608,8 @@ export class MapRoom extends Room<MapState> {
       claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
-      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false };
+      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false,
+      auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0, autoDirty: false };
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.state.online = this.state.players.size;
@@ -743,6 +757,7 @@ export class MapRoom extends Room<MapState> {
    */
   async write(id: string, final = false) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    await this.flushAuto(d);
     const exit = final ? MAPS[this.state.mapId].exit : undefined, out = exit ? this.map.portals.find((q) => q.to === exit) : undefined;
     if (out) {
       const list = this.unsaved(id), bag = this.unsavedBag(d);
@@ -927,6 +942,69 @@ export class MapRoom extends Room<MapState> {
     });
   }
 
+  // ---------- Tự săn (Auto 1, mục 5.13; quyết định ở autoHunt.ts) ----------
+  /** Hướng đi của hồn sư như tin `input` (người chơi gửi, hoặc tự săn đặt): kẹp độ dài, cờ đi bộ. Vị trí vẫn do tick() tính. */
+  applyInput(d: PData, x: number, y: number, walk: boolean) { d.input = clampDir(x, y); d.walk = walk; }
+
+  /** Người chơi tự bấm đánh / hồn kỹ / Chân Thân / kỹ năng hồn cốt: tay luôn được ưu tiên, tắt tự săn trước. */
+  autoHand(id: string) { if (this.pdata.get(id)?.auto) this.autoStop(id, "bạn tự ra đòn."); }
+
+  /**
+   * Tin `auto {op, cfg}`: `on` bật với điểm neo là chỗ đang đứng, `off` tắt, `set` đổi cài đặt (kẹp bằng parseAuto), `get` xin trạng
+   * thái. Chỉ ở bản đồ săn, ngoài vùng an toàn, không gục / hấp thụ / đi cổng, còn giờ treo hôm nay, túi còn chỗ, ô lưới chưa đủ
+   * AUTO_MAX_PER_CELL người treo. Luôn trả tin riêng `auto`.
+   */
+  autoAction(id: string, op: unknown, cfg: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; d.autoDirty = true; }
+    if (op === "off") { if (d.auto) this.autoStop(id, "đã tắt."); else this.sendAuto(id); return; }
+    if (op === "set") {
+      d.autoCfg = parseAuto(cfg); if (d.auto) d.auto.cfg = d.autoCfg;
+      d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
+      return this.sendAuto(id);
+    }
+    if (op !== "on" || d.auto) return this.sendAuto(id);
+    const deny = (t: string) => { this.log(id, `Không bật được tự động: ${t}`, "#ffb35c"); this.sendAuto(id, t); };
+    if (this.map.kind !== "hunt") return deny("chỉ tự săn được ở bản đồ săn.");
+    if (p.dead) return deny("đã gục ngã.");
+    if (d.absorbing) return deny("đang hấp thụ hồn hoàn.");
+    if (d.travelCast) return deny("đang đi cổng / truyền tống.");
+    if (this.map.inSafe(p.x, p.y)) return deny("đang ở vùng an toàn, ra bãi săn rồi bật.");
+    if (d.autoUsed >= AUTO_DAILY_SECS) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
+    if (bagUsed(d.bag) >= d.bagSlots) return deny(`túi đồ đã đầy (${d.bagSlots} ô).`);
+    const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
+    let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
+    if (n >= AUTO_MAX_PER_CELL) return deny(`chỗ này đã có ${n} người treo, hãy sang chỗ khác.`);
+    d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true;
+    this.applyInput(d, 0, 0, false);
+    this.log(id, `Bật tự động: săn quanh đây (${AUTO_RADIUS / TILE} ô), còn ${autoTimeText(autoLeft(d.autoUsed))} hôm nay. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
+    this.sendAuto(id);
+  }
+
+  /** Dừng tự săn của `id` (nếu đang chạy) với lý do `why`: đứng yên, lưu giờ treo trong chuỗi lưu, báo người chơi. */
+  autoStop(id: string, why: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!d?.auto) return;
+    d.auto = null; if (p) p.auto = false;
+    this.applyInput(d, 0, 0, false);
+    d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
+    this.log(id, `Đã dừng tự động: ${why}`, "#ffb35c");
+    this.sendAuto(id, why);
+  }
+
+  /** Tin riêng `auto`: đang bật không, giây treo còn lại hôm nay và tối đa, cài đặt, lý do vừa dừng / từ chối (nếu có). */
+  sendAuto(id: string, why?: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    this.clients.getById(id)?.send("auto", { on: !!d.auto, left: autoLeft(d.autoUsed), max: AUTO_DAILY_SECS, cfg: d.autoCfg, ...(why ? { why } : {}) });
+  }
+
+  /** Ghi cài đặt và giờ treo tự săn nếu đổi từ lần trước (chỉ gọi trong chuỗi lưu). Lỗi thì ghi log, đánh dấu để lần sau ghi lại. */
+  async flushAuto(d: PData) {
+    if (!d.autoDirty) return;
+    d.autoDirty = false;
+    try { await store.saveAuto(d.accountId, { settings: d.autoCfg, day: d.autoDay, used: Math.round(d.autoUsed * 10) / 10 }); }
+    catch (e) { d.autoDirty = true; console.error(`Lưu tự săn của tài khoản #${d.accountId} thất bại`, e); }
+  }
+
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
   /**
    * Hộp đi cổng gửi riêng: tên cổng, bản đồ đích, cấp đề xuất và cảnh báo khi võ hồn ra trận dưới cấp tối thiểu (chặn mềm). Bến thuyền
@@ -973,6 +1051,7 @@ export class MapRoom extends Room<MapState> {
    */
   freeze(id: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
+    this.autoStop(id, "rời bản đồ."); // tự săn (Auto 1): đi cổng, truyền tống sang bản đồ khác, vào sân đấu, mất kết nối
     d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
     arenaDequeue(d.accountId); // rời bản đồ / đi cổng thì ra khỏi hàng chờ Đại Đấu Hồn Trường (7.2)
     this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
@@ -993,6 +1072,7 @@ export class MapRoom extends Room<MapState> {
     this.portalHint(id, p, d);
     this.chain(d, async () => {
       // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
+      await this.flushAuto(d); // giờ treo tự săn (Auto 1): ghi trước, transaction đi cổng là lần ghi cuối của phòng này
       const list = this.unsaved(id), bag = this.unsavedBag(d);
       try { await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag); }
       // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
@@ -2223,6 +2303,14 @@ export class MapRoom extends Room<MapState> {
       });
       return;
     }
+    else if (op === "auto") {
+      // Auto 1: `used` đặt số giây đã treo hôm nay (thử hết giờ); `pvp` một đòn như của người chơi khác (hurtPlayer với `pvp`, phòng bản
+      // đồ không có PvP thật); trả trạng thái tự săn (mục tiêu, đồ đang nhặt, điểm neo, võ hồn chính khi đổi tay tiên cơ).
+      if (typeof o.used === "number" && Number.isFinite(o.used)) { d.autoUsed = Math.max(0, Math.min(AUTO_DAILY_SECS, o.used)); d.autoDay = this.today(); d.autoDirty = true; this.sendAuto(id); }
+      if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
+      const a = d.auto;
+      out = { on: !!a, used: d.autoUsed, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg };
+    }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
     else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)
       if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
@@ -2303,6 +2391,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, direct = !o.dot && !o.chain;
     if ((direct && d.inv > 0) || p.dead || d.travelling) return false; // trong vùng an toàn hồn thú đã bỏ mục tiêu (tick) nên không đánh tới
     if (d.travelCast) this.stopCast(id, d.travelCast.wp ? "Bị tấn công: đã hủy truyền tống." : "Bị tấn công: đã hủy đi qua cổng.");
+    if (o.pvp) this.autoStop(id, "bị người chơi tấn công."); // tự săn (mục 5.13)
     // Miễn sát thương (Vô Địch Thần Quang): không mất gì nhưng vẫn tính là bị đánh (giao chiến), hiện chữ "Miễn".
     // Đòn của đối thủ (Đại Đấu Hồn Trường, `pvp`, 7.2) không đặt khung bất tử 0,45 giây (hồn kỹ nhiều nhát vẫn trúng đủ) và không lan Cảm điện;
     // bất tử do hồn kỹ / lúc vào sân vẫn chặn.
@@ -2351,6 +2440,7 @@ export class MapRoom extends Room<MapState> {
       if (c) this.sendVohons(c);
     } else {
       p.dead = true; d.deadT = RESPAWN_SECS; this.clearPStatus(p, d); this.endAva(id, "");
+      this.autoStop(id, "cả đội đã gục."); // tự săn (mục 5.13)
       this.log(id, `${name} đã gục, cả đội đều đã gục. Đang trở về doanh trại… (không mất kinh nghiệm hay đồ)`, "#ff8a8a");
       c?.send("ko", { fallen: fallen.vohon, next: null });
       this.sendSquad(id, true);
@@ -4803,6 +4893,8 @@ export class MapRoom extends Room<MapState> {
         }
         return;
       }
+      // Tự săn (Auto 1): quyết định và đặt hướng đi như input của người chơi, trước bước di chuyển dưới đây.
+      if (d.auto) d.auto.tick(dt);
       // Choáng / Trói (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc.
       const ctl = this.pctl(d), { x: ix, y: iy } = ctl.noMove ? { x: 0, y: 0 } : d.input; const il = Math.hypot(ix, iy);
       // 11.1: ngoài giao chiến tự chạy (× RUN_MULT) trừ khi giữ Shift; giao chiến thì đi bộ. Tăng tốc, Làm chậm vẫn nhân như cũ.

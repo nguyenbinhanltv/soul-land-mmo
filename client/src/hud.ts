@@ -18,7 +18,8 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
+import { autoTimeText } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -2403,6 +2404,16 @@ export function showWaypoint(label: string | null, open: () => void) {
 
 /** Niệm truyền tống / Hồi Thành Phù đang chạy (tin riêng `recall`): chữ trên thanh niệm (dùng chung chỗ thanh hấp thụ), tổng giây, lúc bắt đầu. */
 let recall: { label: string; secs: number; t0: number } | null = null;
+/**
+ * Nút "Tự động" (Auto 1, mục 5.13): bật / tắt theo tin riêng `auto` của server, chú thích giờ treo còn lại hôm nay. Lý do dừng server
+ * báo bằng dòng log.
+ */
+export function setAuto(m: AutoMsg) {
+  const b = $("#autoBtn"); if (!b) return;
+  b.setAttribute("aria-pressed", String(m.on));
+  b.firstChild!.textContent = m.on ? "Đang tự động " : "Tự động ";
+  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc bấm lại để tắt" : "Tự săn quanh chỗ đang đứng (tự đi / đánh thì tắt)"}. Còn ${autoTimeText(m.left)} hôm nay (tối đa ${autoTimeText(m.max)}).`;
+}
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
 /** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */
 function drawRecall(ch: HTMLElement) {

@@ -45,6 +45,7 @@ export class PlayerState extends Schema {
   @type("uint8") absorbTier: number = 0;
   @type("boolean") dead: boolean = false;
   @type("uint32") kills: number = 0;
+  @type("boolean") auto: boolean = false; // Auto 1 (mục 5.13): đang tự săn; ai cũng thấy chữ "Tự động" trên đầu
 }
 
 export class BeastState extends Schema {

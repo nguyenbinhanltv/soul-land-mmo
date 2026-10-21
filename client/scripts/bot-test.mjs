@@ -56,7 +56,7 @@
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con.
 import { Client } from "colyseus.js";
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
-import { findPath, clearLine, pathLength } from "../src/path.ts";
+import { findPath, clearLine, pathLength } from "../../shared/path.ts";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
@@ -530,7 +530,7 @@ async function leaveSafe(b){
 }
 await leaveSafe(A);
 // Di chuyển (11.1): ngoài giao chiến tự chạy × RUN_MULT, input `w` (giữ Shift) đi bộ, giao chiến thì đi bộ; hồn thú đuổi nhanh hơn
-// lang thang rồi bỏ đuổi về chỗ sinh và hồi máu; bấm chuột tìm đường A* (client/src/path.ts) đi vòng vật cản trên lưới va chạm của server.
+// lang thang rồi bỏ đuổi về chỗ sinh và hồi máu; bấm chuột tìm đường A* (shared/path.ts) đi vòng vật cản trên lưới va chạm của server.
 if((await test(A,"ping"))?.enabled){
   const home=[p.x,p.y], act0=A.owned.active; // vừa ra khỏi làng: phần săn hồn thú sau khối này bắt đầu từ đây
   const grid=solidGrid(JSON.parse(readFileSync(new URL(`../../shared/assets/${st.mapId}.json`,import.meta.url),"utf8")));

@@ -52,6 +52,11 @@ export interface Item {
  * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua).
  */
 export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; }
+/**
+ * Tự săn (Auto 1, bảng `auto_hunt`, mục 5.13): cài đặt (JSON thô, room kiểm lại bằng parseAuto) và số giây đã treo trong ngày `day`
+ * (giờ Việt Nam). Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
+ */
+export interface AutoRow { settings: unknown; day: string; used: number; }
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
 const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}),
@@ -140,6 +145,10 @@ export interface Store {
   getWaypoints(accountId: number): Promise<string[]>;
   /** Mở khóa truyền tống trận `wp` (đã có thì thôi, chạy lại an toàn). */
   unlockWaypoint(accountId: number, wp: string): Promise<void>;
+  /** Cài đặt và giờ treo tự săn của tài khoản (bảng `auto_hunt`, Auto 1). */
+  getAuto(accountId: number): Promise<AutoRow>;
+  /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
+  saveAuto(accountId: number, row: AutoRow): Promise<void>;
   /** Số lần tài khoản đã nhận thưởng boss loại `kind` trong ngày `day` (giờ Việt Nam, "YYYY-MM-DD"; bảng `boss_claims`, BĐ5). */
   bossClaims(accountId: number, day: string, kind: string): Promise<number>;
   /**
@@ -210,6 +219,7 @@ export class MemoryStore implements Store {
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
+  autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
@@ -348,6 +358,14 @@ export class MemoryStore implements Store {
     let set = this.wps.get(accountId);
     if (!set) this.wps.set(accountId, (set = new Set()));
     set.add(wp);
+  }
+  async getAuto(accountId: number): Promise<AutoRow> {
+    const r = this.autos.get(accountId);
+    return r ? { settings: structuredClone(r.settings), day: r.day, used: r.used } : { settings: null, day: "", used: 0 };
+  }
+  async saveAuto(accountId: number, row: AutoRow) {
+    if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
+    this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used });
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
@@ -710,6 +728,18 @@ export class PgStore implements Store {
   }
   async unlockWaypoint(accountId: number, wp: string) {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
+  }
+  async getAuto(accountId: number): Promise<AutoRow> {
+    const r = await this.pool.query("SELECT settings, day, used_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
+    if (!r.rowCount) return { settings: null, day: "", used: 0 };
+    return { settings: r.rows[0].settings, day: String(r.rows[0].day), used: Number(r.rows[0].used_secs) || 0 };
+  }
+  async saveAuto(accountId: number, row: AutoRow) {
+    if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
+    await this.pool.query(
+      `INSERT INTO auto_hunt (account_id, settings, day, used_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, now())
+       ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs, updated_at=now()`,
+      [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used]);
   }
   async bossClaims(accountId: number, day: string, kind: string) {
     const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);
