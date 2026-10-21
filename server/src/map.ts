@@ -74,7 +74,7 @@ export function mapFile(mapId: string): string {
     const v1 = V1.has(mapId) || V1.has("all");
     const v2 = !v1 && existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
     fileCache.set(mapId, (f = v2 ? `${mapId}.v2` : mapId));
-    if (v1) console.log(`[map] ${mapId}: dùng bản cũ shared/assets/${f}.json (MAP_V1)`);
+    if (v1 && existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url))) console.log(`[map] ${mapId}: dùng bản cũ shared/assets/${f}.json (MAP_V1)`);
   }
   return f;
 }

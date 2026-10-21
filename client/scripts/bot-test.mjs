@@ -4727,6 +4727,15 @@ async function bigMapTest(){
       const to=pr(p,"to"), there=objsOf(fileOf(to)), back=there.find(o=>o.type==="portal"&&pr(o,"to")===NV);
       await hop(objs,p.name,to); if(back) await hop(there,back.name,NV);
     }
+    // Vị trí lưu kèm tên file Tiled (cột map_file, 11.5): lưu ở bản cũ (hook oldfile) thì vào lại ở trại `spawn`; cùng file thì giữ chỗ cũ.
+    if(NV===BIG[0]){
+      const sp=objs.find(o=>o.type==="spawn"), w=objs.filter(o=>o.type==="waypoint").sort((a,c)=>Math.hypot(c.x-sp.x,c.y-sp.y)-Math.hypot(a.x-sp.x,a.y-sp.y))[0];
+      const at={x:w.x+w.width/2,y:w.y+w.height/2};
+      await test(B,"goto",at); await test(B,"oldfile"); await rejoin();
+      ok(inR(sp,bme().x,bme().y),`${nm}: vị trí lưu ở bản cũ (file khác ${mapFileOf(NV)}) thì vào lại ở ${sp.name} (${bme().x.toFixed(0)},${bme().y.toFixed(0)})`);
+      await test(B,"goto",at); await rejoin();
+      ok(Math.hypot(bme().x-at.x,bme().y-at.y)<1,`${nm}: lưu ở file đang dùng thì vào lại đúng chỗ cũ (${bme().x.toFixed(0)},${bme().y.toFixed(0)})`);
+    }
     // Truyền tống trận: bước lên thì mở khóa.
     for(const w of objs.filter(o=>o.type==="waypoint")){
       const key=`${NV}:${w.name}`; B.wpHere=null; await test(B,"goto",{x:w.x+w.width/2,y:w.y+w.height/2});

@@ -54,6 +54,7 @@ export interface PData {
   // Hấp thụ hồn hoàn trong túi (từ 3.2) vào võ hồn `rowId` (từ 3.3 chọn được võ hồn bất kỳ đang ở bình cảnh), vòng thứ `slot`.
   absorbing: { itemId: string; rowId: number; slot: number; years: number; t: number; dur: number; fail: number } | null;
   testRoll: number | null; // hook test `roll` (chỉ khi GAME_TEST=1): cố định số ngẫu nhiên 0..1 cho lần quyết định hấp thụ
+  testFile?: string; // hook test `oldfile` (11.5): ghi vị trí kèm tên file này thay cho file đang dùng, như tài khoản lưu ở bản cũ
   testShard: { r: number; i: number } | null; // hook test `shard`: cố định số ngẫu nhiên rơi mảnh (0..1) và võ hồn được chọn (-1 = ngẫu nhiên)
   testBone: { r: number; s: number } | null;   // hook test `bone` (4.1): cố định số ngẫu nhiên rơi hồn cốt (0..1) và vị trí (-1 = ngẫu nhiên)
   // hook test `core` (5.1): cố định số ngẫu nhiên rơi hồn hạch (0..1), sao (0 = ngẫu nhiên trong khoảng) và bộ (-1 = ngẫu nhiên)
@@ -754,7 +755,7 @@ export class MapRoom extends Room<MapState> {
     try {
       await Promise.all(list.map((v) => store.saveCharacter(v)
         .catch((e) => { if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); throw e; })));
-      await store.saveLocation(d.accountId, this.state.mapId, x, y);
+      await store.saveLocation(d.accountId, this.state.mapId, x, y, d.testFile);
       if (bag) await store.saveBag(d.accountId, bag);
     } catch (e) { if (bag) d.bagDirty = true; throw e; }
   }
@@ -1982,6 +1983,10 @@ export class MapRoom extends Room<MapState> {
       else got = this.addItem(d, code, qty);
       if (got < qty) this.log(id, itemDef(code) ? `Túi đồ đã đầy (${d.bagSlots} ô): ${qty - got} món không nhận được.` : "Vật phẩm không tồn tại.", "#ffb35c");
       this.sendBag(id);
+    }
+    else if (op === "oldfile") {
+      // 11.5: từ giờ phiên này ghi vị trí kèm tên file bản cũ `<mapId>` (như lưu trước khi bản ×8 thành mặc định); vào lại thì ở `spawn`.
+      d.testFile = this.state.mapId; out = { file: mapFile(this.state.mapId) };
     }
     else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; this.sendBag(id); }
     else if (op === "shard") {
