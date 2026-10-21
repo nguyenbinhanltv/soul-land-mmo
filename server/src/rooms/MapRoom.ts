@@ -880,6 +880,7 @@ export class MapRoom extends Room<MapState> {
       d.buffs.set("atk", { t: Math.max(cur?.t ?? 0, CORE_FX_RULE.swapSecs), v: Math.max(cur?.v ?? 0, sa) });
       this.syncBuffs(p, d); this.broadcast("fx", { k: "buff", id, col });
       this.log(id, `Bộ Lưu Ly: cả đội tăng ${Math.round(sa * 100)}% công trong ${CORE_FX_RULE.swapSecs} giây.`, col);
+      this.partyShare(id, { buff: { atk: sa }, secs: CORE_FX_RULE.swapSecs }, 1, 1, col, d.ch.vohon);
     }
     // Đủ năng lượng thì tung chiêu tiên cơ ngay lúc xuất hiện (chỉ khi đổi tay; tự đổi lúc gục thì giữ năng lượng).
     // Vùng an toàn không giao chiến (mục 5.3): đổi vẫn được nhưng không tung, giữ năng lượng.
@@ -2521,7 +2522,7 @@ export class MapRoom extends Room<MapState> {
    * Lan hiệu ứng lên bản thân `e` của người tung `id` cho đồng đội đứng gần (9.1), mức × PARTY_BUFF_MULT: hiệu ứng có lợi (trừ
    * PARTY_BUFF_SKIP; tàng hình chỉ khi võ hồn gốc `src` là Phụ trợ), hồi sinh lực và khiên theo sinh lực tối đa của võ hồn đang ra trận
    * của đồng đội (`hm`: hệ số hồi máu / khiên của người tung), hồn lực. Cùng hiệu ứng thì lấy mức mạnh hơn và thời gian dài hơn.
-   * Thanh tẩy không lan. Đồng đội thấy số hồi / khiên trên đầu và một dòng "<tên> … cho bạn".
+   * Thanh tẩy lan tới đồng đội hợp lệ nhưng không nhân hệ số. Đồng đội thấy số hồi / khiên trên đầu và một dòng "<tên> … cho bạn".
    */
   partyShare(id: string, e: NonNullable<SkillDef["self"]>, bpow: number, hm: number, col: string, src: string) {
     const p = this.state.players.get(id); if (!p) return;
@@ -2551,6 +2552,11 @@ export class MapRoom extends Room<MapState> {
       if (e.mp) {
         const add = Math.min(q.maxMp - o.mpF, q.maxMp * e.mp * bpow * m);
         if (add > 0) { o.mpF += add; q.mp = Math.floor(o.mpF); said.push(`hồi ${Math.round(add)} hồn lực`); }
+      }
+      if (e.cleanse) {
+        const hadStatus = o.st.size > 0;
+        this.clearPStatus(q, o);
+        if (hadStatus) said.push("thanh tẩy");
       }
       if (said.length) this.log(qid, `${p.name} ${said.join(", ")} cho bạn.`, col);
       if (sup > 0) this.supportCredit(id, qid, sup);
@@ -3144,7 +3150,7 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("fx", { k: "bone", id, i, sp: beastIndex(bone.beast), tier });
     // Mốc cường hóa +5 / +10 / +15 / +20 nâng kỹ năng (4.4): sức mạnh và hiệu ứng lên bản thân nhân boneSkillMult.
     const em = boneSkillMult(bone.enhance);
-    this.runSkill(id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false });
+    this.runSkill(id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false }, sk.self ? d.ch.vohon : undefined);
   }
 
   /**
