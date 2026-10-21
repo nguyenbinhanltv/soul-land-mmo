@@ -92,7 +92,7 @@ Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. B�
 | Cảm điện | Đòn trực tiếp trúng mục tiêu Cảm điện thì lan một phần sát thương sang mục tiêu Cảm điện khác ở gần (một bước, không lan tiếp). |
 | Trúng độc | Mất máu mỗi giây theo tầng; hồn thú bị độc hồi máu chậm hơn. |
 | Dễ thương | Nhận thêm sát thương từ mọi nguồn (cả sát thương theo thời gian). |
-| Phá giáp (Liệt thương) | Nhận thêm sát thương đòn trực tiếp theo tầng (hồn thú chưa có chỉ số thủ nên "giảm thủ" quy thành nhận thêm sát thương). |
+| Phá giáp (Liệt thương) | Hồn thú: mỗi tầng giảm một phần thủ (`STATUS.armor.shred`), đủ tầng thì hết thủ (thủ ở mục 5.3). Hồn sư không có thủ: nhận thêm sát thương đòn trực tiếp theo tầng. |
 | Choáng | Không đi, không đánh, không dùng hồn kỹ, không bị đẩy lùi. "Đóng băng", "hất tung", "quật ngã", "tê liệt" đều là Choáng. |
 | Câm lặng | Không dùng hồn kỹ / chiêu; vẫn đánh thường. |
 | Trói | Không đi, không bị đẩy lùi; vẫn đánh khi kề bên. "Giam" là Trói. |
@@ -277,6 +277,8 @@ Vùng là object `zone` trong Tiled: loài (`beasts`, kèm trọng số), niên 
 **Luật chung của hồn thú**
 - **Chỉ số hồn thú tăng theo số năm** (`beastStats`), không nhảy theo màu. Loài (`BEASTS`, mã cố định dùng cho sprite `beast_{id}`) quyết định kiểu tấn công, chiêu và hệ số chỉ số; kích thước, tốc độ và Hồn Tệ rơi (`BEAST_COIN`) theo bậc màu.
 - Phát hiện người trong `BEAST_AGGRO_R`, lang thang quanh chỗ sinh (`BEAST_WANDER`). Quanh trại cổng, mọi cổng và điểm `arrive` không sinh hồn thú (`SPAWN_CLEAR`, mục 5.8).
+- **Thú thực vật đứng yên** (`BEAST_ROOTED`: Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân, kể cả tinh anh mượn các loài này): cắm rễ ở chỗ sinh, không lang thang, không đuổi, không bị đẩy lùi / kéo, bị Mê hoặc cũng không đi. Phát hiện người như hồn thú khác, giữ mục tiêu khi còn trong `BEAST_ROOTED.keep`; chỉ đánh thường khi mục tiêu kề bên, chiêu báo trước tung khi mục tiêu trong tầm chiêu.
+- **Thủ** (`BEAST_DEF`, `BEAST_DEF_MULT`, `beastDef`, `defMult`): phần sát thương đòn trực tiếp hồn thú đỡ, theo loài (giáp / mai / vỏ cây dày cao, côn trùng / chim / hoa thấp) và tăng nhẹ theo số năm; tinh anh, thú vương, boss thế giới theo loài gốc. Công hồn sư cân theo hồn thú thủ chuẩn (`BEAST_DEF.ref`): hồn thú thủ chuẩn nhận đúng sát thương gốc, thủ cao nhận ít hơn, thủ thấp nhận nhiều hơn. Phá giáp và xuyên thủ (bộ Thất Sát) giảm thủ thật, cộng lại tối đa hết thủ. Sát thương theo thời gian và lan Cảm điện không tính thủ.
 - **Tốc độ theo dáng đi** (`BEAST_GAIT`, nhân `spd` theo bậc ở `TIERS`): lang thang chậm, đuổi mục tiêu nhanh hơn (`chase`), bị Mê hoặc đi lung tung (`charm`). Cuồng nộ, giai đoạn 2 của thú vương, nổi giận của boss thế giới và Làm chậm nhân thêm. Đòn đánh, tầm, chiêu báo trước không đổi theo tốc độ.
 - **Giới hạn đuổi** (`BEAST_LEASH`): hồn thú thường và tinh anh đuổi xa chỗ sinh quá `r` pixel thì bỏ mục tiêu, chạy về chỗ sinh; trên đường về không nhận mục tiêu mới (bị đánh cũng không quay lại), hồn thú thường hồi nhanh sinh lực (tinh anh hồi đầy khi bỏ giao chiến, mục 5.4). Về tới nơi (hoặc hết `secs` giây vì vướng) thì lang thang như cũ. Thú vương và boss thế giới không ra khỏi hang nên không có giới hạn này.
 - **Chiêu có báo trước** (`BEAST_SKILLS`, chọn theo loài và năm bằng `beastSkillOf`): hồn thú thường **từ `BEAST_SKILL_YEARS` năm** có 1 chiêu theo loài; dưới mức đó chỉ đánh thường. Có mục tiêu `TELE_FIRST` giây thì tung khi mục tiêu trong tầm, rồi hồi chiêu (dao động để bầy không tung cùng lúc). Hồn thú đứng yên `TELE_WARN` giây, hiện vùng đỏ đầy dần (hình **vệt**, **nón** hoặc **vòng** quanh thân / dưới chân mục tiêu; hướng và tâm khóa lúc bắt đầu); hết giờ mới tính trúng theo **vị trí thật** lúc đó: chạy ra khỏi vùng là né được. Không trúng người trong vùng an toàn, đang đi cổng, đã gục. Chiêu "lao" thì hồn thú lao tới cuối vệt / tâm vòng. Sát thương là bội số đòn thường của hồn thú; chiêu có thể gây trạng thái lên hồn sư.
@@ -360,7 +362,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 | Bá Vương Long (Cảm điện) | Sát thương lan Cảm điện mạnh hơn | Đòn trực tiếp trúng hồn thú Cảm điện hồi hồn lực (có hồi chiêu) |
 | Xà Hoàng (Trúng độc) | Trúng độc do hồn sư gây mạnh hơn | Hồn thú Trúng độc đủ nhiều tầng (người gây cuối mang bộ) nhận thêm sát thương từ mọi nguồn |
 | Hạo Thiên (Chấn đãng) | Công (vào chỉ số) | Đòn đánh thường **trúng** thứ 3 liên tiếp (cách nhau không quá vài giây) gây thêm sát thương, chữ "Hạo Thiên liên kích!" |
-| Thất Sát (Phá giáp) | "Xuyên thủ": thêm sát thương đòn trực tiếp (hồn thú chưa có thủ) | Thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp |
+| Thất Sát (Phá giáp) | "Xuyên thủ": đòn trực tiếp bỏ qua một phần thủ của hồn thú (cộng với phần Phá giáp giảm, tối đa hết thủ; mục 5.3) | Thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp |
 | Linh Miêu (Mẫn công) | Tỉ lệ chí mạng (vào chỉ số) | Chí mạng thì tăng tốc độ đánh thường một lúc |
 | Lam Ngân (Khống chế) | Khống chế do hồn sư gây lên hồn thú dài hơn | Hồn kỹ có khống chế trúng ít nhất một hồn thú thì hồi hồn lực (một lần mỗi lần tung) |
 | Lưu Ly (Phụ trợ) | Hồi máu và khiên mạnh hơn | Đổi tay võ hồn mang bộ vào thì cả đội tăng công một lúc (hiệu ứng có lợi của hồn sư) |

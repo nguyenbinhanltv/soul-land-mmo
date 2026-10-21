@@ -578,8 +578,9 @@ export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
  * - `dot`: sát thương mỗi giây cho mỗi tầng = dot × công người gây × sức mạnh hồn kỹ lúc gây (không chí mạng, không tạo năng lượng tiên cơ).
- * - `amp`: Dễ thương: hồn thú nhận thêm amp sát thương từ mọi nguồn; Phá giáp: thêm amp mỗi tầng cho đòn trực tiếp (hồn thú
- *   chưa có chỉ số thủ, "giảm thủ" tạm quy thành nhận thêm sát thương đòn trực tiếp; đổi khi hồn thú có thủ).
+ * - `amp`: Dễ thương: nhận thêm amp sát thương từ mọi nguồn; Phá giáp trên hồn sư: thêm amp mỗi tầng cho đòn trực tiếp (hồn sư
+ *   không có chỉ số thủ).
+ * - `shred` (#116): Phá giáp trên hồn thú giảm ngần ấy phần thủ (BEAST_DEF) mỗi tầng; đủ tầng tối đa thì thủ về 0.
  * - `healCut`: Trúng độc giảm hồi máu của hồn thú. `chain` / `chainR`: Cảm điện lan `chain` sát thương đòn trực tiếp sang hồn thú
  *   cảm điện khác trong bán kính `chainR` (một bước, không lan tiếp). `boom`: Viêm bạo kích nổ mọi tầng Thiêu đốt còn lại × boom.
  * - `noMove` / `noAtk`: khống chế (không đi / không đánh thường và không tung chiêu). `noSkill` (từ 3.5): chỉ chặn chiêu, Câm lặng:
@@ -593,18 +594,18 @@ export type StatusId = (typeof STATUS_IDS)[number];
  */
 export interface StatusDef {
   name: string; col: string; secs: number; max: number;
-  dot: number; amp: number; healCut: number; chain: number; chainR: number; boom: number;
+  dot: number; amp: number; shred: number; healCut: number; chain: number; chainR: number; boom: number;
   noMove: boolean; noAtk: boolean; noSkill: boolean;
   slow: number; wander: boolean; burst?: { s: StatusId; secs?: number };
 }
 const st = (name: string, col: string, secs: number, max: number, o: Partial<StatusDef> = {}): StatusDef =>
-  ({ name, col, secs, max, dot: 0, amp: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, noSkill: false, slow: 0, wander: false, ...o });
+  ({ name, col, secs, max, dot: 0, amp: 0, shred: 0, healCut: 0, chain: 0, chainR: 0, boom: 0, noMove: false, noAtk: false, noSkill: false, slow: 0, wander: false, ...o });
 export const STATUS: Record<StatusId, StatusDef> = {
   burn:    st("Thiêu đốt", "#ff7a2a", 4, 5, { dot: 0.25, boom: 1.5 }),
   shock:   st("Cảm điện",  "#7fd0ff", 6, 1, { chain: 0.4, chainR: 64 }),
   poison:  st("Trúng độc", "#6ee06a", 6, 5, { dot: 0.18, healCut: 0.5 }),
   vuln:    st("Dễ thương", "#ff6b9a", 5, 1, { amp: 0.25 }),
-  armor:   st("Phá giáp",  "#c0cce0", 6, 3, { amp: 0.1 }),
+  armor:   st("Phá giáp",  "#c0cce0", 6, 3, { amp: 0.1, shred: 1 / 3 }),
   stun:    st("Choáng",    "#ffe08a", 1.5, 1, { noMove: true, noAtk: true }),
   silence: st("Câm lặng",  "#b58cff", 3, 1, { noSkill: true }), // từ 3.5 không còn chặn đánh thường của hồn thú
   root:    st("Trói",      "#4ab0ff", 2, 1, { noMove: true }),
@@ -633,6 +634,34 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
 export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow"];
 /** Hồn thú không có mục tiêu và không bị đánh `delay` giây thì hồi `pct` sinh lực tối đa mỗi giây (Trúng độc giảm hồi máu). */
 export const BEAST_REGEN = { delay: 6, pct: 0.04 };
+/**
+ * Chỉ số thủ của hồn thú (#116, mục 5.1, 5.3): phần sát thương đòn trực tiếp hồn thú đỡ. Thủ = `ref` × hệ số niên hạn `years` (theo
+ * mốc TIERS, nội suy log như beastStats) × hệ số loài BEAST_DEF_MULT (mặc định 1; tinh anh / thú vương / boss thế giới theo loài gốc),
+ * tối đa `cap`. Phá giáp (STATUS.armor.shred mỗi tầng) và xuyên thủ (bộ Thất Sát) cộng lại thành phần thủ bị giảm, tối đa hết thủ.
+ * Công hồn sư vốn cân theo hồn thú thủ chuẩn `ref`, nên đòn trực tiếp nhân defMult: hồn thú thủ chuẩn nhận đúng như trước khi có thủ;
+ * `ref` = 3/13 để mỗi 1/3 thủ bị giảm đúng bằng +10% sát thương như Phá giáp / xuyên thủ cũ. Sát thương theo thời gian, lan Cảm điện,
+ * sát thương cố định của hook thử không tính thủ. Chờ chốt.
+ */
+export const BEAST_DEF = { ref: 3 / 13, years: [0.7, 0.85, 1, 1.1, 1.2], cap: 0.6 };
+/**
+ * Hệ số thủ theo loài (mã BEASTS; loài không ghi là 1). Giáp / mai / vỏ cây dày thủ cao; côn trùng, chim, hoa, thú nhỏ thủ thấp. Chờ chốt.
+ */
+export const BEAST_DEF_MULT: Record<string, number> = {
+  thiet_giap_xuyen_son_giap: 1.4, thiet_giap_te_nguu: 1.4, bang_giap_cu_quy: 1.4, kim_lan_long_quy: 1.4, thiet_giap_cu_giai: 1.4,
+  co_moc_thu_nhan: 1.4,
+  am_kim_khung_trao_hung: 1.2, kiem_vi_hat: 1.2, xich_lan_mang: 1.2, thanh_lan_ngac: 1.2, lam_loi_te_nguu: 1.2,
+  bang_nguyen_cu_tuong: 1.2, bang_tinh_hat: 1.2, han_bang_dia_long: 1.2, bang_bich_hat: 1.2,
+  nhu_cot_tho_hoang: 0.6, dien_thu: 0.6, hoi_vu_tuoc: 0.6, doc_cham_phong: 0.6, hac_vu_bien_buc: 0.6, cuc_yeu_hoa_linh: 0.6,
+  hoa_linh_diep: 0.6, y_la_hoa_yeu: 0.6, thuc_nhan_hoa: 0.8, quy_dien_hai_yeu: 0.8, u_linh_hai_mau: 0.6,
+};
+/** Thủ của hồn thú loài `species` (mã BEASTS) `years` năm (BEAST_DEF). */
+export function beastDef(species: string, years: number) {
+  const y = Math.max(TIERS[0].years, Math.min(MAX_YEARS, years)), t = tierOfYears(y), u = Math.min(t + 1, TIERS.length - 1), k = BEAST_DEF.years;
+  const f = u === t ? 0 : Math.log(y / TIERS[t].years) / Math.log(TIERS[u].years / TIERS[t].years);
+  return Math.min(BEAST_DEF.cap, BEAST_DEF.ref * (k[t] + (k[u] - k[t]) * f) * (BEAST_DEF_MULT[species] ?? 1));
+}
+/** Hệ số sát thương đòn trực tiếp lên hồn thú thủ `def` khi bị giảm `cut` phần thủ (Phá giáp + xuyên thủ, kẹp 0–1). */
+export const defMult = (def: number, cut: number) => (1 - def * (1 - Math.min(1, Math.max(0, cut)))) / (1 - BEAST_DEF.ref);
 /** Hồn thú từ 100 năm (bậc 1 trở lên) thấy người chơi trong bán kính BEAST_AGGRO_R thì đuổi đánh; không có mục tiêu thì lang thang
  *  tối đa BEAST_WANDER pixel mỗi trục quanh chỗ sinh. */
 export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
@@ -2534,7 +2563,7 @@ export const CORE_SETS: { id: CoreSetId; name: string; tag: string; col: string;
     set4: "Mục tiêu trúng độc từ 5 tầng trở lên bị Dễ thương 10%" },
   { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn đãng", col: "#b9a3ff", set2: "+15% công",
     set4: "Đòn đánh thứ 3 liên tiếp gây thêm 40% sát thương" },
-  { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "+10% xuyên thủ (hồn thú chưa có thủ: +10% sát thương đòn trực tiếp)",
+  { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "Đòn trực tiếp xuyên 1/3 thủ của hồn thú",
     set4: "Mục tiêu bị Liệt thương nhận thêm 15% chí mạng từ võ hồn mang bộ" },
   { id: "linh_mieu",     name: "Linh Miêu",     tag: "Mẫn công",  col: "#c77dff", set2: "+12% chí mạng",
     set4: "Chí mạng tăng 10% tốc độ đánh trong 4 giây" },
@@ -2678,8 +2707,8 @@ export function coreSlotOf(stats: unknown) {
  *   như Dễ thương (cộng với Dễ thương thật).
  * - `atk`: công (%; cộng vào chỉ số qua coreBonus). `combo`: đòn đánh thường trúng thứ CORE_FX_RULE.comboN liên tiếp (mỗi đòn cách
  *   nhau không quá comboGap giây, đòn trượt thì đếm lại) thêm sát thương.
- * - `pierce`: "xuyên thủ"; hồn thú chưa có chỉ số thủ nên tạm quy thành thêm sát thương đòn trực tiếp (như Phá giáp, đổi khi hồn thú có
- *   thủ). `armorCrit`: thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp (Liệt thương).
+ * - `pierce`: "xuyên thủ" (#116): đòn trực tiếp bỏ qua ngần ấy phần thủ của hồn thú (BEAST_DEF), cộng với phần Phá giáp giảm, tối đa
+ *   hết thủ. `armorCrit`: thêm tỉ lệ chí mạng lên hồn thú đang Phá giáp (Liệt thương).
  * - `crit`: tỉ lệ chí mạng (cộng vào chỉ số qua coreBonus). `haste`: chí mạng thì tốc độ đánh thường tăng trong hasteSecs giây.
  * - `cc`: thời gian khống chế (trạng thái không đi / không đánh / câm lặng / mê hoặc) hồn sư gây lên hồn thú. `ccMp`: hồn kỹ có gây
  *   khống chế, trúng ít nhất một hồn thú thì hồi tỉ lệ hồn lực tối đa (một lần mỗi lần tung).
@@ -2697,7 +2726,7 @@ export const CORE_SET_FX: Record<CoreSetId, { two: CoreFx; four: CoreFx }> = {
   ba_vuong_long: { two: { chain: 0.15 },  four: { shockMp: 0.03 } },
   xa_hoang:      { two: { poison: 0.15 }, four: { poisonVuln: 0.1 } },
   hao_thien:     { two: { atk: 0.15 },    four: { combo: 0.4 } },
-  that_sat:      { two: { pierce: 0.1 },  four: { armorCrit: 0.15 } },
+  that_sat:      { two: { pierce: 1 / 3 }, four: { armorCrit: 0.15 } },
   linh_mieu:     { two: { crit: 0.12 },   four: { haste: 0.1 } },
   lam_ngan:      { two: { cc: 0.2 },      four: { ccMp: 0.1 } },
   luu_ly:        { two: { heal: 0.15 },   four: { swapAtk: 0.15 } },

@@ -31,14 +31,14 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, SYNC_VIEW } from "../../../shared/data.ts";
+  ARENA, SYNC_VIEW, BEAST_DEF, defMult } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
-import { isRooted } from "./beastTraits.ts";
+import { isRooted, beastDefOf } from "./beastTraits.ts";
 import * as party from "../party.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
@@ -147,6 +147,7 @@ interface BData {
   calm: number;             // số giây kể từ lần cuối bị đánh (hồi máu khi không có mục tiêu, BEAST_REGEN)
   regen: number;            // phần lẻ sinh lực hồi chưa cộng (sinh lực đồng bộ là số nguyên)
   dmg: number;              // sát thương đòn thường theo số năm (beastStats, bước 3.2)
+  def: number;              // #116: thủ (BEAST_DEF, beastDef theo loài gốc và số năm): phần sát thương đòn trực tiếp đỡ được
   // Chiêu báo trước (bước 3.5): hồn thú thường từ 1.000 năm có 1 chiêu (beastSkillOf), tinh anh (BĐ4) có 2 (BOSSES). `cd` từng chiêu,
   // `skT`: chờ trước lần tung kế tiếp (mọi chiêu); `cast`: chiêu đang báo trước (các vùng đã khóa, còn `t` giây).
   skills: { def: BeastSkillDef; cd: number }[];
@@ -1891,6 +1892,8 @@ export class MapRoom extends Room<MapState> {
    * `live` chỉ số đang dùng nếu là võ hồn ra trận).
    * Nhiều kênh: `chan {reset, nolock}` trả `chMax` (người tối đa mỗi kênh: CHANNEL_MAX, hoặc biến môi trường CHANNEL_MAX khi
    * GAME_TEST=1), `channel`, `roomId`; `reset` bỏ thời gian chờ đổi kênh; `nolock` lần rời phòng kế tiếp không khóa kênh.
+   * Từ #116: hồn thú do `spawn` sinh có thủ chuẩn (BEAST_DEF.ref) trừ khi có `realDef`; `bst` trả thêm `def`; `bdmg {v}` gây đúng `v`
+   * sát thương đòn trực tiếp (không chí mạng) lên hồn thú gần nhất / `bid`, trả `dealt`.
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
@@ -2031,6 +2034,9 @@ export class MapRoom extends Room<MapState> {
       const bid = this.addBeast(zi, years, sp >= 0 ? sp : this.map.zones[zi]?.beasts[0]?.species ?? 0, x, y);
       // `hpx` (8.1a): nhân sinh lực hồn thú vừa sinh để bot đếm đủ các nhát của tuyệt kỹ nhiều nhát (không ảnh hưởng luật chơi thật).
       const hb = this.state.beasts.get(bid), hpx = int(o.hpx, 1, 1000, 1); if (hb && hpx > 1) hb.hp = hb.maxHp = hb.maxHp * hpx;
+      // #116: hồn thú thử mặc định có thủ chuẩn (BEAST_DEF.ref) để các bài so sát thương đúng công thức không phụ thuộc loài / niên hạn;
+      // `realDef` giữ thủ thật theo loài và số năm.
+      if (!o.realDef) this.bdata.get(bid)!.def = BEAST_DEF.ref;
       out = { bid }; // bot nhận ra con vừa sinh theo id (hồn thú bậc cao lao về phía người gọi trước bản vá state kế tiếp)
     }
     else if (op === "tele") {
@@ -2056,7 +2062,11 @@ export class MapRoom extends Room<MapState> {
     else if (op === "bst") {
       // Trạng thái trên hồn thú gần nhất (5.2): giây còn lại, số tầng, độ lớn, có phải do người gọi gây không.
       const x = nearB();
-      out = x ? { bid: x.bid, st: Object.fromEntries([...x.bd.st].map(([s, i]) => [s, { t: i.t, n: i.n, v: i.v, mine: i.src === id }])) } : {};
+      out = x ? { bid: x.bid, def: x.bd.def, st: Object.fromEntries([...x.bd.st].map(([s, i]) => [s, { t: i.t, n: i.n, v: i.v, mine: i.src === id }])) } : {};
+    }
+    else if (op === "bdmg") {
+      // #116: đòn trực tiếp đúng `v` (không chí mạng) lên hồn thú gần nhất / `bid`, đi qua damageBeast (thủ, Phá giáp, xuyên thủ); trả `dealt`.
+      const x = nearB(); if (x) out = { dealt: this.damageBeast(x.bid, int(o.v, 1, 1e8, 1), id, "#ffffff", undefined, { crit: -9 }) };
     }
     else if (op === "bhp") { const x = nearB(); if (x) { x.b.hp = Math.max(1, Math.round(x.b.maxHp * int(o.pct, 1, 100, 100) / 100)); x.bd.calm = 0; x.bd.regen = 0; } }
     else if (op === "regen") { const x = nearB(); if (x) { const h0 = x.b.hp; this.regenBeast(x.b, x.bd, int(o.s, 0, 60, 0)); out = { gain: x.b.hp - h0 }; } }
@@ -3190,12 +3200,14 @@ export class MapRoom extends Room<MapState> {
     if (w && w.dive > 0) return 0; // boss thế giới đang lặn (Du Thủy, BĐ6e): không nhận sát thương
     const direct = o.direct !== false && !o.chain, fx = pd.coreFx;
     const vuln = bd.st.get("vuln"), armor = bd.st.get("armor"), poison = bd.st.get("poison"), shocked = bd.st.has("shock");
-    // Bộ hồn hạch Xà Hoàng 4 món (5.2): Trúng độc đủ tầng do người mang bộ gây thì như Dễ thương thêm (mọi nguồn). Thất Sát 2 món:
-    // "xuyên thủ" tạm quy thành thêm sát thương đòn trực tiếp (hồn thú chưa có thủ).
+    // Bộ hồn hạch Xà Hoàng 4 món (5.2): Trúng độc đủ tầng do người mang bộ gây thì như Dễ thương thêm (mọi nguồn).
     const pv = poison && poison.n >= CORE_FX_RULE.poisonStacks ? this.pdata.get(poison.src)?.coreFx.poisonVuln ?? 0 : 0;
     // Ràng buộc Băng Hỏa Lưỡng Nghi (9.4): hồn thú đang Choáng hoặc Thiêu đốt nhận thêm sát thương của hồn sư (mọi nguồn, như Dễ thương).
     const sb = bd.st.has("stun") || bd.st.has("burn") ? this.bondV(pd, "stunBurn") : 0;
-    dmg *= 1 + (vuln ? vuln.v : 0) + pv + sb + (direct ? (armor ? armor.v * armor.n : 0) + (fx.pierce ?? 0) : 0) + this.phoenixAmp(b);
+    // Thủ (#116, BEAST_DEF): đòn trực tiếp nhân defMult; Phá giáp (STATUS.armor.shred mỗi tầng) và xuyên thủ của bộ Thất Sát 2 món giảm
+    // thủ, tối đa hết thủ. Phần chênh so với hồn thú thủ chuẩn cộng như các hệ số khác.
+    const thu = direct ? defMult(bd.def, (armor ? STATUS.armor.shred * armor.n : 0) + (fx.pierce ?? 0)) - 1 : 0;
+    dmg *= 1 + (vuln ? vuln.v : 0) + pv + sb + thu + this.phoenixAmp(b);
     // Chí mạng theo võ hồn ra trận (CRIT cộng hồn hạch, 5.2); bộ Thất Sát 4 món thêm tỉ lệ lên hồn thú Phá giáp.
     const crit = direct && Math.random() < pd.crit + (o.crit ?? 0) + this.buffV(pd, "crit") + this.bondV(pd, "crit") + (armor ? fx.armorCrit ?? 0 : 0);
     if (crit) dmg *= pd.critMult;
@@ -4050,7 +4062,7 @@ export class MapRoom extends Room<MapState> {
     const id = uid("b"); this.state.beasts.set(id, b); this.interest.beasts.put(id, x, y);
     const sk = boss ? null : beastSkillOf(BEASTS[species]?.id ?? "", years);
     this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0, rooted: isRooted(b.rank, species),
-      st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg),
+      st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg), def: beastDefOf(b.rank, species, years),
       skills: boss ? boss.skills.map((def) => ({ def, cd: 0 })) : sk ? [{ def: sk, cd: 0 }] : [], skT: 0, cast: null,
       buffs: new Map(), minions: new Set(),
       elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), rageCd: 0,
