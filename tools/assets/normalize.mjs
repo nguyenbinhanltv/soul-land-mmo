@@ -44,6 +44,13 @@
 //                          là tròng trắng, ít điểm tóc quanh nó) → màu "Mắt" của bảng, tròng trắng giữ ở lớp thân; điểm lạc
 //                          màu khóa (tóc / áo đứng lẻ giữa lớp khác) theo lớp chiếm đa số quanh nó.
 //                          Mỗi hình là một bộ giới × kiểu tóc (mục 5.11); ghép tiếp bằng `pack --set <giới>_<kiểu tóc>`.
+//   --strip-fx <anim,…>    gỡ hiệu ứng mẫu animation PixelLab vẽ kèm (quả cầu lửa của `fireball` ở khung `cast`; hiệu ứng do
+//                          client vẽ, mục 5.11), chỉ ở ảnh của các animation liệt kê (tên `…_cast_3.png` → `cast`).
+//                          1) Chỉ giữ mảng liền (8 hướng) lớn nhất là người: hiệu ứng rời người (lửa vàng lục của bộ nữ) bỏ hết.
+//                          2) Lửa dính tay: loang từ điểm lửa (sắc độ đỏ → vàng, bão hòa ≥ FX_SAT, sáng ≥ FX_VAL) sang điểm lửa
+//                          kề nhau và lõi sáng ánh ấm cách lửa ≤ FX_CORE_D điểm; mảng chỉ bị gỡ khi có từ FX_HOT điểm vàng rất
+//                          sáng, nên bóng da đỏ, đai đỏ, áo trắng, chỗ da sáng không bị gỡ. 3) Bỏ nét viền tối chỉ còn bám vào chỗ
+//                          vừa gỡ và mảnh vụn rời người (dưới FX_SPECK điểm).
 //   --vohon <id>           (phụ thể) chỉ dùng palette.gpl + col/robe của võ hồn <id> (kèm 1 tối, 1 sáng mỗi màu).
 //   --halves <y>           (phụ thể) tách theo dòng y: phần trên → <out>/b (sau thân), từ y trở xuống → <out>/f
 //                          (trước thân). Hợp với phụ thể nằm dưới đất quanh chân (thảm dây leo, vòng); phụ thể
@@ -59,6 +66,7 @@ const grayMode = opt("--gray", "auto"), sat = +opt("--sat", "0.16"), scaleOpt = 
 const extra = opt("--colors", "");
 const [hue0, hue1] = opt("--hair-hue", "190-260").split("-").map(Number);
 const splitAt = args.indexOf("--split"), split = splitAt >= 0 && !!args.splice(splitAt, 1);
+const stripFx = opt("--strip-fx", "").split(",").filter(Boolean);
 const vohonId = opt("--vohon", ""), halves = +opt("--halves", "-1");
 const anchor = opt("--anchor", ""), maxH = opt("--max-h", "");
 const place = opt("--place", "canvas"), footOpt = opt("--foot", ""), sizeOpt = opt("--size", "");
@@ -104,6 +112,97 @@ function removeBackground(img) {
   return out;
 }
 
+/** --strip-fx: ngưỡng điểm lửa (độ bão hòa, độ sáng theo kênh lớn nhất, sắc độ ≤ FX_HUE độ) và lõi trắng của lửa. */
+const FX_SAT = 0.6, FX_VAL = 0.8, FX_HUE = 70, FX_CORE_SAT = 0.3, FX_CORE_VAL = 0.85, FX_CORE_D = 3, FX_SPECK = 24, FX_HOT = 4;
+// hueOf (khai báo ở dưới) trả -1 cho điểm xám; điểm xám không đủ bão hòa nên không bao giờ là lửa.
+/** Áo xám ánh tím (PixelLab hay tô bóng quần như vậy ở khung animation): sắc tím, bão hòa thấp → coi như xám của áo. */
+const tintedGray = (p) => { const h = hueOf(p); return kind === "honsu" && h >= 260 && h <= 330 && satOf(p) < 0.3; };
+// Lửa vàng lục (sắc độ FX_HUE–FX_LIME, PixelLab vẽ cho bộ nữ) nhạt hơn nên ngưỡng bão hòa thấp hơn; hồn sư không có màu này.
+const FX_LIME = 100, FX_LIME_SAT = 0.3;
+const isLime = (p) => hueOf(p) > FX_HUE && hueOf(p) <= FX_LIME && satOf(p) >= FX_LIME_SAT;
+const isFire = (p) => Math.max(p[0], p[1], p[2]) >= FX_VAL * 255 && ((satOf(p) >= FX_SAT && hueOf(p) <= FX_HUE) || isLime(p));
+/** Điểm "nóng" của lửa: vàng (sắc độ 30–65°) hoặc vàng lục rất sáng. */
+const isHot = (p) => Math.max(p[0], p[1], p[2]) >= 0.9 * 255 && ((hueOf(p) >= 30 && hueOf(p) <= 65 && satOf(p) >= 0.5) || isLime(p));
+/** Lõi lửa: rất sáng, nhạt, trắng trung tính hoặc ánh vàng ấm (áo trắng ánh lam, chỗ da sáng ánh cam không tính). */
+const isCore = (p) => satOf(p) <= FX_CORE_SAT && Math.max(p[0], p[1], p[2]) >= FX_CORE_VAL * 255 &&
+  (satOf(p) < 0.05 || (hueOf(p) >= 35 && hueOf(p) <= 70));
+
+/** Gỡ hiệu ứng lửa (--strip-fx); trả số điểm đã gỡ. */
+function stripEffects(img) {
+  const W = img.w, H = img.h, gone = new Uint8Array(W * H), seen = new Uint8Array(W * H);
+  let n = 0;
+  // 1) Chỉ giữ mảng liền lớn nhất (người).
+  const parts = [], mark = new Int32Array(W * H).fill(-1);
+  for (let i = 0; i < W * H; i++) {
+    if (mark[i] >= 0 || !img.alpha(i % W, (i / W) | 0)) continue;
+    const st = [i], cells = []; mark[i] = parts.length;
+    while (st.length) {
+      const j = st.pop(), x = j % W, y = (j / W) | 0; cells.push(j);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const X = x + dx, Y = y + dy, k = Y * W + X;
+        if (X >= 0 && Y >= 0 && X < W && Y < H && mark[k] < 0 && img.alpha(X, Y)) { mark[k] = parts.length; st.push(k); }
+      }
+    }
+    parts.push(cells);
+  }
+  const big = parts.reduce((a, b) => (b.length > a.length ? b : a), []);
+  for (const cells of parts) if (cells !== big) for (const j of cells) { img.set(j % W, (j / W) | 0, [0, 0, 0, 0]); gone[j] = 1; n++; }
+  for (let y0 = 0; y0 < H; y0++) for (let x0 = 0; x0 < W; x0++) {
+    if (seen[y0 * W + x0] || !img.alpha(x0, y0) || !isFire(img.get(x0, y0))) continue;
+    // Loang một mảng lửa / lõi sáng; chỉ gỡ khi mảng có đủ điểm nóng.
+    // Phần tử ngăn xếp: [x, y, số bước lõi tính từ điểm lửa gần nhất].
+    const stack = [[x0, y0, 0]], cells = []; let hot = 0;
+    seen[y0 * W + x0] = 1;
+    while (stack.length) {
+      const [x, y, d] = stack.pop(); cells.push(y * W + x);
+      if (isHot(img.get(x, y))) hot++;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const X = x + dx, Y = y + dy;
+        if (X < 0 || Y < 0 || X >= W || Y >= H || seen[Y * W + X] || !img.alpha(X, Y)) continue;
+        const p = img.get(X, Y);
+        if (isFire(p)) { seen[Y * W + X] = 1; stack.push([X, Y, 0]); }
+        else if (isCore(p) && d < FX_CORE_D) { seen[Y * W + X] = 1; stack.push([X, Y, d + 1]); }
+      }
+    }
+    if (hot >= FX_HOT) for (const i of cells) { gone[i] = 1; n++; }
+  }
+  if (!n) return 0;
+  for (let i = 0; i < W * H; i++) if (gone[i]) img.set(i % W, (i / W) | 0, [0, 0, 0, 0]);
+  // Nét viền tối của lửa: điểm tối kề chỗ vừa gỡ mà không kề điểm sáng nào của hình (viền của người thì kề da / áo / tóc).
+  const dark = (x, y) => lum(img.get(x, y)) < 64;
+  for (let pass = 0; pass < 2; pass++) {
+    const drop = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (!img.alpha(x, y) || !dark(x, y)) continue;
+      let nearGone = false, nearBody = false;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+        const X = x + dx, Y = y + dy;
+        if (X < 0 || Y < 0 || X >= W || Y >= H) continue;
+        if (gone[Y * W + X]) nearGone = true;
+        else if (img.alpha(X, Y) && !dark(X, Y)) nearBody = true;
+      }
+      if (nearGone && !nearBody) drop.push([x, y]);
+    }
+    for (const [x, y] of drop) { img.set(x, y, [0, 0, 0, 0]); gone[y * W + x] = 1; n++; }
+  }
+  // Mảnh vụn của lửa (tia, chấm cam tối) không dính vào người: bỏ mảng liền (8 hướng) dưới FX_SPECK điểm.
+  const comp = new Int32Array(W * H).fill(-1), sizes = [];
+  for (let i = 0; i < W * H; i++) {
+    if (comp[i] >= 0 || !img.alpha(i % W, (i / W) | 0)) continue;
+    const id = sizes.length, st = [i], cells = []; comp[i] = id;
+    while (st.length) {
+      const j = st.pop(), x = j % W, y = (j / W) | 0; cells.push(j);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+        const X = x + dx, Y = y + dy, k = Y * W + X;
+        if (X >= 0 && Y >= 0 && X < W && Y < H && comp[k] < 0 && img.alpha(X, Y)) { comp[k] = id; st.push(k); }
+      }
+    }
+    sizes.push(cells);
+  }
+  for (const cells of sizes) if (cells.length < FX_SPECK) for (const j of cells) { img.set(j % W, (j / W) | 0, [0, 0, 0, 0]); n++; }
+  return n;
+}
+
 function bbox(img) {
   let x0 = img.w, y0 = img.h, x1 = -1, y1 = -1;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) if (img.alpha(x, y)) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
@@ -142,7 +241,7 @@ function mapColor(p, edge, mode = grayMode) {
   const l = lum(p);
   if (edge && l < 70) return hex(OUTLINE);       // viền ngoài tối → #1a1020
   if (l < 40) return hex(OUTLINE);                // gần đen ở trong cũng là nét viền
-  if (mode === "all" || (mode === "auto" && satOf(p) < sat)) return toGray(l); // xám theo độ sáng
+  if (mode === "all" || (mode === "auto" && (satOf(p) < sat || tintedGray(p)))) return toGray(l); // xám theo độ sáng
   // Hồn sư: điểm tông da (đỏ cam, kể cả bóng da đỏ dưới tóc và cổ mà PixelLab hay vẽ) về 3 sắc da theo độ sáng.
   // Lấy màu gần nhất thì bóng da thành mảng màu má/máu rất chói ở 32×32.
   const h = hueOf(p);
@@ -167,9 +266,11 @@ function layerOf(p) {
   if (l < 70) return -1;
   // Da rất nhạt (hồng phấn) có độ bão hòa thấp, phải giữ ở lớp thân chứ không thành áo xám.
   if ((h <= 45 || h >= 340) && h >= 0 && satOf(p) >= 0.08) return 0;
-  if (satOf(p) < sat) return 2;
+  if (satOf(p) < sat || tintedGray(p)) return 2;
   return 0;
 }
+/** Bão hòa trung bình dưới mức này thì mảng lam nhỏ dưới tóc là bóng áo (xem splitLayers), không phải lọn tóc. */
+const SHADOW_SAT = 0.6;
 const EYE = hex(readGplNamed().find((c) => c.name.startsWith("Mắt #"))?.hex ?? OUTLINE);
 /** Tròng trắng: sáng, gần như không màu (PixelLab vẽ cùng màu xám sáng nhất của áo). */
 const isSclera = (p) => lum(p) >= 170 && satOf(p) < 0.12;
@@ -211,24 +312,25 @@ function splitLayers(out) {
     if (cls[y * W + x] === 2 && near(x, y, 1) >= 3 && near(x, y, 1) > near(x, y, 2)) cls[y * W + x] = 1;
   }
   // Bóng xanh tím trên quần áo (PixelLab hay dùng ở khung animation) cũng rơi vào dải lam: mảng tóc liền (8 hướng)
-  // nhỏ hơn 1/4 mảng lớn nhất VÀ nằm hẳn dưới đáy mảng lớn nhất thì trả về lớp thân (lọn tóc rời cạnh mặt vẫn giữ).
-  const comp = new Int32Array(W * H).fill(-1), sizes = [], tops = [], bottoms = [];
+  // nhỏ hơn 1/4 mảng lớn nhất VÀ nằm hẳn dưới đáy mảng lớn nhất VÀ nhạt (bão hòa trung bình < SHADOW_SAT) thì trả về
+  // lớp thân (lọn tóc rời cạnh mặt, lọn tóc dài buông trước ngực của kiểu tóc dài vẫn giữ: tóc lam đậm, bão hòa cao).
+  const comp = new Int32Array(W * H).fill(-1), sizes = [], tops = [], bottoms = [], sats = [];
   for (let i = 0; i < W * H; i++) {
     if (cls[i] !== 1 || comp[i] >= 0) continue;
-    const id = sizes.length, stack = [i]; let n = 0, top = H, bottom = -1; comp[i] = id;
+    const id = sizes.length, stack = [i]; let n = 0, top = H, bottom = -1, sum = 0; comp[i] = id;
     while (stack.length) {
-      const j = stack.pop(), x = j % W, y = (j / W) | 0; n++; top = Math.min(top, y); bottom = Math.max(bottom, y);
+      const j = stack.pop(), x = j % W, y = (j / W) | 0; n++; top = Math.min(top, y); bottom = Math.max(bottom, y); sum += satOf(out.get(x, y));
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         const X = x + dx, Y = y + dy, k = Y * W + X;
         if (X >= 0 && Y >= 0 && X < W && Y < H && cls[k] === 1 && comp[k] < 0) { comp[k] = id; stack.push(k); }
       }
     }
-    sizes.push(n); tops.push(top); bottoms.push(bottom);
+    sizes.push(n); tops.push(top); bottoms.push(bottom); sats.push(sum / n);
   }
   const main = sizes.indexOf(Math.max(0, ...sizes));
   for (let i = 0; i < W * H; i++) {
     const c = comp[i];
-    if (cls[i] === 1 && c !== main && sizes[c] * 4 < sizes[main] && tops[c] > bottoms[main]) cls[i] = 0;
+    if (cls[i] === 1 && c !== main && sizes[c] * 4 < sizes[main] && tops[c] > bottoms[main] && sats[c] < SHADOW_SAT) cls[i] = 0;
   }
   // Điểm lạc màu khóa (1–3 điểm mỗi hướng): tóc / áo có dưới 2 điểm cùng lớp quanh nó mà một lớp khác có từ 3 điểm
   // thì theo lớp đó; về lớp thân thì lấy màu thân gặp nhiều nhất quanh nó (chóp lọn tóc giữa nét viền vẫn giữ).
@@ -265,6 +367,11 @@ function splitLayers(out) {
 
 // ---------- Chạy ----------
 const imgs = files.map((f) => removeBackground(decodePng(readFileSync(f))));
+if (stripFx.length) files.forEach((f, i) => {
+  if (!stripFx.includes(path.basename(f, ".png").split("_")[1])) return;
+  const n = stripEffects(imgs[i]);
+  if (n) console.log(`[normalize] ${path.basename(f)}: gỡ ${n} điểm hiệu ứng`);
+});
 const names = files.map((f) => shortDirName(path.basename(f, ".png")));
 const boxes = imgs.map(bbox);
 const ref = boxes[0];
