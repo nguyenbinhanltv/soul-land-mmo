@@ -27,8 +27,11 @@ export function artImg(key: string, cls = "") {
   return u ? `<img class="${cls}" src="${u}" alt="" draggable="false">` : "";
 }
 
-/** Ảnh vật phẩm tô theo màu khi hiển thị (ngoài hồn cốt xám): hồn hoàn theo niên hạn, mảnh võ hồn theo màu võ hồn. */
-const TINTED = ["item_hon_hoan", "item_manh_vo_hon"];
+/**
+ * Ảnh vật phẩm tô theo màu khi hiển thị (ngoài hồn cốt xám): hồn hoàn theo niên hạn, mảnh võ hồn theo màu võ hồn, rương và tiên
+ * thảo (bản xám, #170) theo `col` của món.
+ */
+const TINTED = ["item_hon_hoan", "item_manh_vo_hon", "item_ruong", "item_tien_thao"];
 const tintCache = new Map<string, string>();
 const grays = new Map<string, HTMLImageElement>();
 /** Tải trước ảnh xám (hồn cốt) để tô màu đồng bộ được. */
