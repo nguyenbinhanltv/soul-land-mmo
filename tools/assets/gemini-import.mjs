@@ -760,7 +760,8 @@ function bboxOf(img) {
  * Chân dung khung nền tối: hộp bao của ô → hình chữ nhật đặc của khung (hàng / cột đục quá nửa; bỏ phần nhô ra
  * nền như tia sét, lửa), thu vào 0,5% mỗi cạnh (tối thiểu 2 điểm) để bỏ mép nhòe với nền. Điểm ảnh lấy
  * từ ảnh gốc `src` (đã gỡ logo, chưa xóa nền) nên ánh hồng tím bên trong khung không bị xóa nhầm thành nền.
- * Khung đục dưới 85% (chân dung nền trong suốt) thì trả null: giữ cách căn giữa trong hộp bao.
+ * Khung đục dưới 85% hoặc góc khung trong suốt (chân dung nền trong suốt, biểu tượng tròn) thì trả null: giữ cách
+ * căn giữa trong hộp bao.
  */
 function panelRect(it, src) {
   const { img } = it, rowN = [], colN = new Array(img.w).fill(0);
@@ -774,6 +775,8 @@ function panelRect(it, src) {
   let opaque = 0;
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (img.alpha(x, y)) opaque++;
   if (opaque < (x1 - x0 + 1) * (y1 - y0 + 1) * 0.85) return null;
+  const dx = Math.round((x1 - x0) * 0.03), dy = Math.round((y1 - y0) * 0.03);
+  if (![[x0 + dx, y0 + dy], [x1 - dx, y0 + dy], [x0 + dx, y1 - dy], [x1 - dx, y1 - dy]].every(([x, y]) => img.alpha(x, y))) return null;
   const inset = Math.max(2, Math.round(Math.min(x1 - x0, y1 - y0) * 0.005)), sx = it.x0 + x0 + inset, sy = it.y0 + y0 + inset;
   const out = new Img(x1 - x0 + 1 - 2 * inset, y1 - y0 + 1 - 2 * inset);
   for (let y = 0; y < out.h; y++) for (let x = 0; x < out.w; x++) out.set(x, y, src.get(sx + x, sy + y));
