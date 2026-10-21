@@ -3,10 +3,12 @@
 // - tạo animation từ chỉ số khung cố định, key `{sheet}:{animation}_{hướng}`;
 // - ánh xạ khung lớp thân sang lớp áo, tóc, phụ thể;
 // - hoán màu dải 4 xám chuẩn, key `{gốc}@{chỉ số màu}`;
-// - hồn sư theo bộ giới × kiểu tóc: `hs_{lớp}_{giới}_{kiểu tóc}` (honsuKey).
+// - hồn sư theo bộ giới × kiểu tóc: `hs_{lớp}_{giới}_{kiểu tóc}` (honsuKey). Từ 10.4 bộ có `"iso": true` trong manifest
+//   là sheet isometric 64×64, 24 × 6, 8 hướng (vẽ 5, lật 3); bộ chưa có vẫn là sheet 32×32 cũ (4 hướng) hoặc vẽ bằng code.
 // Key nào chưa có ảnh thì makeTextures() trong textures.ts vẽ bằng code như cũ.
 import Phaser from "phaser";
 import { TELE_WARN } from "../../shared/data.ts";
+import { legacyDir, SPR, type Dir8 } from "./iso.ts";
 
 const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
@@ -26,6 +28,26 @@ export type Dir = (typeof DIRS)[number] | "left";
 
 interface AnimDef { col: number; ms: readonly number[]; loop: boolean; row?: number }
 
+/** Hồn sư isometric (mục 5.11, từ 10.4): khung 64×64 gốc (32,58); phụ thể 96×96 gốc (48,74). Cùng bố cục sheet 24 cột × 6 hàng. */
+export const ISO_HS_FRAME = 64, ISO_VH_FRAME = 96, ISO_SHEET_COLS = 24;
+export const ISO_HS_ORIGIN = { x: 0.5, y: 58 / 64 };
+export const ISO_VH_ORIGIN = { x: 0.5, y: 74 / 96 };
+/** 5 hướng vẽ theo thứ tự hàng 0–4; sw, w, nw dùng se, e, ne lật ngang. */
+export const ISO_DIRS = ["s", "se", "e", "ne", "n"] as const;
+export type IsoDir = (typeof ISO_DIRS)[number];
+const ISO_FLIP: Partial<Record<Dir8, IsoDir>> = { sw: "se", w: "e", nw: "ne" };
+
+/** Bảng animation hồn sư isometric (mục 5.11): cột bắt đầu và thời gian từng khung (ms); `die` dừng ở khung cuối (nằm). */
+export const ISO_HS_ANIMS = {
+  idle:   { col: 0,  ms: [200, 200, 200, 200], loop: true },
+  walk:   { col: 4,  ms: [100, 100, 100, 100, 100, 100], loop: true },
+  attack: { col: 10, ms: [70, 70, 90, 120], loop: false },
+  cast:   { col: 14, ms: [100, 200, 140], loop: false },
+  hurt:   { col: 17, ms: [80, 120], loop: false },
+  die:    { col: 19, ms: [120, 120, 120, 120], loop: false },
+  absorb: { col: 0,  ms: [500, 500], loop: true, row: 5 }, // chỉ hướng s
+} satisfies Record<string, AnimDef>;
+
 /** Bảng animation hồn sư (mục 5.11): cột bắt đầu và thời gian từng khung (ms). */
 export const HS_ANIMS = {
   idle:   { col: 0,  ms: [400, 400], loop: true },
@@ -37,6 +59,30 @@ export const HS_ANIMS = {
   absorb: { col: 0,  ms: [500, 500], loop: true, row: 3 }, // chỉ hướng xuống
 } satisfies Record<string, AnimDef>;
 export type HsAnim = keyof typeof HS_ANIMS;
+
+/** Sheet hồn sư / phụ thể (kể cả bản hoán màu `…@n`) theo bố cục isometric 24 cột (khung 64 hoặc 96) hay không. */
+export function isIsoSheet(scene: Phaser.Scene, key: string) {
+  if (!scene.textures.exists(key)) return false;
+  const w = scene.textures.get(key).source[0].width;
+  return w === ISO_SHEET_COLS * ISO_HS_FRAME || w === ISO_SHEET_COLS * ISO_VH_FRAME;
+}
+
+/** Bảng animation theo bố cục của sheet thân. */
+export const honsuAnims = (scene: Phaser.Scene, sheet: string): Record<HsAnim, AnimDef> => (isIsoSheet(scene, sheet) ? ISO_HS_ANIMS : HS_ANIMS);
+/** Tổng thời gian một animation hồn sư (ms) theo bố cục của sheet thân. */
+export const honsuAnimMs = (scene: Phaser.Scene, sheet: string, a: HsAnim) => honsuAnims(scene, sheet)[a].ms.reduce((x, y) => x + y, 0);
+
+/**
+ * Gốc và hệ số phóng của một lớp hồn sư / phụ thể theo texture đang đặt: hình chứa (container) của hồn sư phóng SPR cho sprite 32×32
+ * cũ, nên lớp isometric 64×64 / 96×96 phóng 1 / SPR để 1 pixel ảnh là 1 pixel màn hình nội bộ.
+ */
+export function fitHonsuLayer<T extends Phaser.GameObjects.Sprite>(s: T, vohon = false): T {
+  const iso = isIsoSheet(s.scene, s.texture.key), o = iso ? (vohon ? ISO_VH_ORIGIN : ISO_HS_ORIGIN) : vohon ? VH_ORIGIN : HS_ORIGIN;
+  if (s.originY !== o.y) s.setOrigin(o.x, o.y);
+  const k = iso ? 1 / SPR : 1;
+  if (s.scaleX !== k) s.setScale(k);
+  return s;
+}
 
 /** Khung hồn thú theo bậc niên hạn (TIERS): rộng × cao. */
 export const BEAST_FRAMES: readonly [number, number][] = [[16, 16], [32, 32], [48, 32], [48, 48], [64, 64]];
@@ -90,9 +136,9 @@ interface SheetSpec { url: string; frame?: readonly [number, number] }
 type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boolean };
 
 /** Đường dẫn ảnh và kích thước khung suy ra từ key (bảng thư mục ở mục 5.11). */
-function sheetSpec(key: string, frame?: readonly [number, number]): SheetSpec | null {
+function sheetSpec(key: string, frame?: readonly [number, number], iso = false): SheetSpec | null {
   let m: RegExpMatchArray | null;
-  if ((m = key.match(/^hs_((?:body|outfit|hair)_[mf]_\d+)$/))) return { url: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME] };
+  if ((m = key.match(/^hs_((?:body|outfit|hair)_[mf]_\d+)$/))) return { url: `honsu/${m[1]}.png`, frame: iso ? [ISO_HS_FRAME, ISO_HS_FRAME] : [HS_FRAME, HS_FRAME] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME] };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) return { url: `beast/${key}.png`, frame: frame ?? BEAST_FRAMES[+m[1]] };
   // Khung của từng loài phụ thuộc bậc của loài, nên manifest phải ghi `frame`.
@@ -107,11 +153,12 @@ export function preloadSprites(scene: Phaser.Scene) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     for (const e of data?.sprites ?? []) {
-      // Asset isometric (mục 5.11): vật đứng do isoMap.ts tải theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng);
-      // chân dung, NPC, vật phẩm chờ bước 10.8.
-      if (typeof e !== "string" && e.iso) continue;
-      const key = typeof e === "string" ? e : e.key;
-      const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame);
+      // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm); vật đứng do isoMap.ts tải
+      // theo shared/assets/iso/tiles.json (chỉ vật bản đồ đang vào dùng); chân dung, NPC, vật phẩm, phụ thể, hồn thú chờ bước dùng
+      // chúng (10.5, 10.6, 10.8).
+      const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
+      if (iso && !key.startsWith("hs_")) continue;
+      const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
@@ -136,9 +183,19 @@ function makeAnim(scene: Phaser.Scene, sheet: string, key: string, start: number
   scene.anims.create({ key, frames: frames.map((f, i) => ({ ...f, duration: a.ms[i] })), repeat: a.loop ? -1 : 0 });
 }
 
-/** Tạo animation `{sheet}:{animation}_{hướng}` cho một sheet thân hồn sư (chỉ lớp thân có animation). */
+/**
+ * Tạo animation `{sheet}:{animation}_{hướng}` cho một sheet thân hồn sư (chỉ lớp thân có animation). Sheet isometric: hướng
+ * s, se, e, ne, n (`absorb_s`); sheet 32×32 cũ: down, right, up (`absorb_down`).
+ */
 export function createHonsuAnims(scene: Phaser.Scene, sheet: string) {
   if (!scene.textures.exists(sheet)) return;
+  if (isIsoSheet(scene, sheet)) {
+    for (const [name, a] of Object.entries(ISO_HS_ANIMS) as [HsAnim, AnimDef][]) {
+      if (a.row !== undefined) makeAnim(scene, sheet, `${sheet}:${name}_s`, a.row * ISO_SHEET_COLS + a.col, a);
+      else ISO_DIRS.forEach((d, row) => makeAnim(scene, sheet, `${sheet}:${name}_${d}`, row * ISO_SHEET_COLS + a.col, a));
+    }
+    return;
+  }
   for (const [name, a] of Object.entries(HS_ANIMS) as [HsAnim, AnimDef][]) {
     if (a.row !== undefined) makeAnim(scene, sheet, `${sheet}:${name}_down`, a.row * SHEET_COLS + a.col, a);
     else DIRS.forEach((d, row) => makeAnim(scene, sheet, `${sheet}:${name}_${d}`, row * SHEET_COLS + a.col, a));
@@ -159,29 +216,54 @@ export function createSheetAnims(scene: Phaser.Scene) {
   }
 }
 
-/** Key animation và cờ lật ngang cho một hướng; `absorb` chỉ có hướng xuống. */
-export function honsuAnimKey(sheet: string, anim: HsAnim, dir: Dir): { key: string; flip: boolean } {
+/**
+ * Key animation và cờ lật ngang cho hướng 8 phía trên màn hình; `absorb` chỉ có hướng xuống. Sheet isometric: sw, w, nw lật se, e, ne;
+ * sheet 32×32 cũ: hướng gần nhất trong 4 hướng cũ (legacyDir), trái lật phải.
+ */
+export function honsuAnimKey(scene: Phaser.Scene, sheet: string, anim: HsAnim, d: Dir8): { key: string; flip: boolean } {
+  if (isIsoSheet(scene, sheet)) {
+    if (anim === "absorb") return { key: `${sheet}:absorb_s`, flip: false };
+    const f = ISO_FLIP[d];
+    return { key: `${sheet}:${anim}_${f ?? d}`, flip: !!f };
+  }
   if (anim === "absorb") return { key: `${sheet}:absorb_down`, flip: false };
+  const dir = legacyDir(d);
   return { key: `${sheet}:${anim}_${dir === "left" ? "right" : dir}`, flip: dir === "left" };
 }
 
+/** Đọc một khung theo bố cục sheet hồn sư: animation, hàng hướng (absorb: 0), khung thứ mấy; null nếu ô ngoài bố cục. */
+function decodeFrame(n: number, iso: boolean): { anim: HsAnim; row: number; i: number } | null {
+  const cols = iso ? ISO_SHEET_COLS : SHEET_COLS, table: Record<HsAnim, AnimDef> = iso ? ISO_HS_ANIMS : HS_ANIMS;
+  const row = Math.floor(n / cols), col = n % cols, dirs = iso ? ISO_DIRS.length : DIRS.length;
+  for (const [anim, a] of Object.entries(table) as [HsAnim, AnimDef][]) {
+    const onRow = a.row !== undefined ? row === a.row : row < dirs;
+    if (onRow && col >= a.col && col < a.col + a.ms.length) return { anim, row: a.row !== undefined ? 0 : row, i: col - a.col };
+  }
+  return null;
+}
+
+/** Hàng hướng giữa hai bố cục: isometric s, se, e, ne, n → cũ down, right, up; và ngược lại. */
+const ISO_ROW_TO_OLD = [0, 1, 1, 1, 2], OLD_ROW_TO_ISO = [0, 2, 4];
+
 /**
- * Bảng ánh xạ khung dự phòng cho lớp phụ thể (chỉ vẽ idle/walk/attack/cast, cột 0–11 hàng 0–2).
- * Trả về khung phụ thể và độ mờ, hoặc null nếu phải ẩn phụ thể.
+ * Bảng ánh xạ khung lớp phụ thể (mục 5.11; phụ thể chỉ vẽ idle / walk / attack / cast): cùng animation, cùng hướng, cùng khung (phụ thể
+ * ít khung hơn thì khung cuối); hurt → idle khung đầu; absorb → idle hướng xuống, mờ 60%; die → ẩn (null). Thân và phụ thể có thể khác
+ * bố cục trong lúc chuyển sang isometric (thân từ 10.4, phụ thể từ 10.5) nên ánh xạ qua (animation, hướng, khung).
  */
-export function vohonFrame(bodyFrame: number): { frame: number; alpha: number } | null {
-  const row = Math.floor(bodyFrame / SHEET_COLS), col = bodyFrame % SHEET_COLS;
-  if (row === 3) return col <= 1 ? { frame: col, alpha: 0.6 } : null; // absorb → idle hướng xuống, mờ 60%
-  if (col <= 11) return { frame: bodyFrame, alpha: 1 };
-  if (col === 12) return { frame: row * SHEET_COLS, alpha: 1 }; // hurt → idle khung đầu cùng hàng
-  return null; // die: ẩn phụ thể
+export function vohonFrame(bodyFrame: number, isoBody = false, isoVohon = false): { frame: number; alpha: number } | null {
+  const f = decodeFrame(bodyFrame, isoBody);
+  if (!f || f.anim === "die") return null;
+  const [anim, i, alpha]: [HsAnim, number, number] = f.anim === "absorb" ? ["idle", f.i, 0.6] : f.anim === "hurt" ? ["idle", 0, 1] : [f.anim, f.i, 1];
+  const row = isoBody === isoVohon ? f.row : isoBody ? ISO_ROW_TO_OLD[f.row] : OLD_ROW_TO_ISO[f.row];
+  const a = (isoVohon ? ISO_HS_ANIMS : HS_ANIMS)[anim];
+  return { frame: row * (isoVohon ? ISO_SHEET_COLS : SHEET_COLS) + a.col + Math.min(i, a.ms.length - 1), alpha };
 }
 
 /** Đặt khung lớp áo, tóc (cùng khung) và phụ thể (theo bảng ánh xạ) theo khung lớp thân hiện tại. */
 export function syncLayers(body: Phaser.GameObjects.Sprite, clothes: Phaser.GameObjects.Sprite[], vohon: Phaser.GameObjects.Sprite[]) {
-  const n = Number(body.frame.name);
+  const n = Number(body.frame.name), isoBody = isIsoSheet(body.scene, body.texture.key);
   for (const s of clothes) { s.setFrame(n); s.setFlipX(body.flipX); }
-  const v = vohonFrame(n);
+  const v = vohon.length ? vohonFrame(n, isoBody, isIsoSheet(body.scene, vohon[0].texture.key)) : null;
   for (const s of vohon) {
     s.setVisible(v !== null).setFlipX(body.flipX);
     if (v) s.setFrame(v.frame).setAlpha(v.alpha);

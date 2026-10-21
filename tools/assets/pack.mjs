@@ -16,6 +16,11 @@
 // --breathe <y>: idle mỗi hướng chỉ có khung 0 (ảnh rotations của PixelLab) thì tạo đủ 4 khung thở: khung 1, 2 dời mọi điểm
 //         có y ≤ <y> xuống 1 pixel (đầu và vai nhích 1 pixel, mục 5.11), khung 3 như khung 0. Hồn sư: dùng cùng <y> cho
 //         mọi lớp, ngay dưới vai (khung 64: khoảng 30; validate cảnh báo lớp nào cả 4 khung idle giống nhau). Hồn thú: <y> ngang lưng để đầu và lưng nhích, chân đứng yên.
+// --code hurt,die,absorb: hồn sư chưa có animation thật (bước 10.4a) thì vẽ các ô này bằng code từ idle khung 0 cùng hàng
+//         (absorb từ hướng s), cùng một phép biến đổi cho mọi lớp nên 3 lớp vẫn khớp nét: hurt ngửa người (phần trên dòng
+//         --breathe lệch 1 rồi 2 pixel, phần tới --hip lệch 1 pixel), die = hurt khung 2, khuỵu (phần trên --hip hạ
+//         ISO_KNEEL pixel), nằm hơi nhấc, nằm (xoay 90°, đầu sang trái, giữa khung, lưng chạm đất); absorb ngồi (hạ
+//         ISO_SIT pixel, khung 2 thở). Ô đã có ảnh thật thì giữ nguyên. Cần --breathe; --hip mặc định ISO_HIP.
 // --fill: ô bắt buộc còn trống thì chép tạm khung idle đầu cùng hàng (để client không hiện khung rỗng khi mới có vài
 //         animation; absorb mượn idle hướng s). validate.mjs cảnh báo các ô chép tạm này.
 //
@@ -31,12 +36,13 @@
 // hướng đó để trống.
 import { readdirSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
-import { readPng, encodePng, Img, SPRITES, HS_LAYERS, ISO_DIRS, ISO_FLIP, ISO_BEAST_TIER, ISO_BEAST_SIZES, ISO_HS_FRAME, ISO_VH_FRAME, ISO_ATTACK_SWING, ANCHORS, isoLayout, frameAnchors } from "./lib.mjs";
+import { readPng, encodePng, Img, SPRITES, HS_LAYERS, ISO_DIRS, ISO_FLIP, ISO_BEAST_TIER, ISO_BEAST_SIZES, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_VH_FRAME, ISO_ATTACK_SWING, ISO_HIP, ISO_KNEEL, ISO_SIT, ISO_LIE_HALF, ANCHORS, isoLayout, frameAnchors } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const kind = opt("--kind", "honsu"), out = opt("--out", ""), fill = flag("--fill"), breathe = opt("--breathe", ""), set = opt("--set", "");
+const code = opt("--code", ""), hip = +opt("--hip", ISO_HIP);
 const size = opt("--size", ""), id = opt("--id", ""), partDir = opt("--part", ""), bodyOpt = opt("--body", ""), attach = opt("--attach", "hand"), swing = flag("--swing");
 const dir = args[0];
 const usage = "Cách dùng: pack.mjs --kind honsu|beast<bậc>|beast --size N --out <sheet.png> <thư mục khung> [--fill] [--breathe <y>]\n" +
@@ -45,6 +51,8 @@ const usage = "Cách dùng: pack.mjs --kind honsu|beast<bậc>|beast --size N --
 const fail = (m) => { console.error(m); process.exit(1); };
 if (kind === "vohon" ? !(id && partDir && bodyOpt) : (!out && !set) || !dir) fail(usage);
 if (set && (kind !== "honsu" || !/^[mf]_\d+$/.test(set))) fail(`--set cần --kind honsu và dạng m_0 / f_2 (nhận: ${kind}, ${set})`);
+const CODE_ANIMS = ["hurt", "die", "absorb"], codeList = code ? code.split(",") : [];
+if (codeList.some((a) => !CODE_ANIMS.includes(a)) || (code && (kind !== "honsu" || !breathe))) fail(`--code chỉ cho --kind honsu kèm --breathe, gồm ${CODE_ANIMS.join(",")} (nhận ${code})`);
 if (kind === "vohon" && !ANCHORS.includes(attach)) fail(`--attach ${ANCHORS.join("|")} (nhận ${attach})`);
 
 let L;
@@ -102,6 +110,7 @@ function pack(dir, outFile) {
       }
     }
   }
+  if (codeList.length) codeAnims(sheet, filled);
   const missing = L.required.filter((c) => !filled.has(c.join(",")));
   if (fill) {
     for (const [r, c] of missing) {
@@ -115,6 +124,48 @@ function pack(dir, outFile) {
   writeFileSync(outFile, encodePng(sheet));
   console.log(`[pack] ${outFile}: ${sheet.w}×${sheet.h}, ${filled.size} khung` +
     (missing.length ? `, thiếu ${missing.length} ô bắt buộc${fill ? " (đã chép tạm idle)" : ""}` : ""));
+}
+
+/** Khung `src` (FW × FH) với các dải hàng [y0, y1) dời ngang / dọc; phần dời đè lên phần đứng yên (lớp trên của chính lớp này). */
+function shift(src, bands) {
+  const dst = new Img(FW, FH), moved = new Set(bands.flatMap(([y0, y1]) => Array.from({ length: y1 - y0 }, (_, i) => y0 + i)));
+  for (let y = 0; y < FH; y++) if (!moved.has(y)) dst.blit(src, 0, y, FW, 1, 0, y, true);
+  for (const [y0, y1, dx, dy] of bands) dst.blit(src, 0, y0, FW, y1 - y0, dx, y0 + dy, true);
+  return dst;
+}
+
+/** Xoay 90° ngược chiều kim đồng hồ quanh tâm khung (đầu sang trái), rồi hạ `dy` pixel. Điểm ảnh giữ nguyên, không nội suy. */
+function lie(src, dy) {
+  const dst = new Img(FW, FH);
+  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) if (src.alpha(x, y)) {
+    const X = y, Y = FW - 1 - x + dy;
+    if (Y >= 0 && Y < FH) dst.set(X, Y, src.get(x, y));
+  }
+  return dst;
+}
+
+/** --code: vẽ hurt / die / absorb từ idle khung 0 vào các ô còn trống (xem đầu file). */
+function codeAnims(sheet, filled) {
+  const cut = +breathe + 1, [i0] = L.anims.idle, put = (img, r, c) => {
+    if (filled.has(`${r},${c}`)) return;
+    sheet.blit(img, 0, 0, FW, FH, c * FW, r * FH); filled.add(`${r},${c}`);
+  };
+  const lean = (src, k) => shift(src, k === 1 ? [[0, cut, -1, 0]] : [[0, cut, -2, 0], [cut, hip, -1, 0]]);
+  for (let r = 0; r < ISO_DIRS.length; r++) {
+    if (!filled.has(`${r},${i0}`)) continue;
+    const idle = new Img(FW, FH); idle.blit(sheet, i0 * FW, r * FH, FW, FH, 0, 0);
+    if (codeList.includes("hurt")) { const [c0] = L.anims.hurt; put(lean(idle, 1), r, c0); put(lean(idle, 2), r, c0 + 1); }
+    if (codeList.includes("die")) {
+      // Người đứng rộng khoảng 2 × ISO_LIE_HALF quanh giữa khung; xoay xong hạ cho mép lưng chạm dòng gốc.
+      const [c0] = L.anims.die, flat = ISO_HS_ORIGIN[1] - (FW >> 1) + 1 - ISO_LIE_HALF;
+      put(lean(idle, 2), r, c0); put(shift(idle, [[0, hip, 0, ISO_KNEEL]]), r, c0 + 1);
+      put(lie(idle, flat - 3), r, c0 + 2); put(lie(idle, flat), r, c0 + 3);
+    }
+    if (codeList.includes("absorb") && r === 0) {
+      put(shift(idle, [[0, hip, 0, ISO_SIT]]), ISO_DIRS.length, 0);
+      put(shift(idle, [[0, cut, 0, ISO_SIT + 1], [cut, hip, 0, ISO_SIT]]), ISO_DIRS.length, 1);
+    }
+  }
 }
 
 /** Xoay ảnh `src` quanh (cx, cy) góc `deg` (nearest-neighbor ngược, giữ pixel nguyên màu). */
