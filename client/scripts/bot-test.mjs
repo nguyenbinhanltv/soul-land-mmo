@@ -6516,10 +6516,10 @@ async function partyBuffTest(){
 
 /**
  * 9.4: hiệu ứng tổ đội của #114. A là Phụ trợ, B cùng tổ đội, O đứng gần nhưng ngoài đội: thanh tẩy chỉ tới B; khiên hồn cốt
- * chỉ tới B; bộ Lưu Ly 4 món chỉ phát công cho B theo PARTY_BUFF_MULT, không biến sát thương / trạng thái hồn thú thành hào quang.
+ * chỉ tới B; bộ Lưu Ly 4 món chỉ phát công cho B theo PARTY_BUFF_MULT.
  */
 async function partyEffectExpansionTest(){
-  console.log("[9.4] thanh tẩy, hồn cốt và hồn hạch hỗ trợ lan cho đồng đội");
+  console.log("[#114] thanh tẩy, hồn cốt và hồn hạch hỗ trợ lan cho đồng đội");
   const A=await bot("Mở rộng A","xuc_xich",{sex:1,hair:1,hairCol:2,outfitCol:3});
   const B=await bot("Mở rộng B","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:4,outfitCol:1});
   const O=await bot("Mở rộng O","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:1,outfitCol:5});
@@ -6547,7 +6547,7 @@ async function partyEffectExpansionTest(){
 
     // Thanh tẩy: kỹ năng vòng 8 của Xúc Xích không gây sát thương, chỉ giải trạng thái cho đồng đội hợp lệ.
     await test(B,"pst",{s:"stun",secs:60}); await test(O,"pst",{s:"stun",secs:60}); await test(A,"ready");
-    A.room.send("skill",{i:0}); await sleep(300);
+    A.room.send("skill",{i:0}); await waitFor(()=>((meP(B).st??0)&statusBit("stun"))===0,1500);
     ok(((meP(B).st??0)&statusBit("stun"))===0&&((meP(O).st??0)&statusBit("stun"))!==0,"thanh tẩy lan tới B, không lan tới O");
 
     // Hồn cốt khiên tự thân: chỉ self được phép lan; sát thương / trạng thái hồn thú vẫn xử lý ở A.
@@ -6560,13 +6560,13 @@ async function partyEffectExpansionTest(){
     await waitFor(()=>A.bagMsgs>equipN&&A.bag.items.find(i=>i.id===bone?.id)?.vohon===xrow,1500);
     ok(A.bag.items.find(i=>i.id===bone?.id)?.vohon===xrow,"gắn hồn cốt vào Xúc Xích");
     await test(A,"clear"); await test(A,"beast",{dx:16,dy:0,years:5000}); await test(A,"ready"); await test(B,"clear"); await test(O,"clear");
-    await test(B,"rest",{s:30}); await test(O,"rest",{s:30}); A.room.send("boneskill",{i:1}); await sleep(400);
+    await test(B,"rest",{s:30}); await test(O,"rest",{s:30}); A.room.send("boneskill",{i:1}); await waitFor(()=>(meP(B).shield??0)>0,1500);
     const bLive=await live(B), oLive=await live(O), boneShield=Math.round(bLive.maxHp*BONE_SKILLS.thiet_giap_xuyen_son_giap.active.self.shield*buffPower(5000)*PARTY_BUFF_MULT);
     ok(bLive.shield===boneShield&&oLive.shield===0,`khiên hồn cốt của B ${bLive.shield} (cần ${boneShield}), O không nhận`);
 
     // Lưu Ly 4 món: chỉ hiệu ứng hỗ trợ atk lan, không có trạng thái / sát thương hồn thú từ CoreFx.
     await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
-    const cores=[]; for(let i=0;i<4;i++){ await test(A,"give",{code:CORE_ITEM,stars:6,set:"luu_ly"}); await sleep(40); cores.push(A.bag.items.find(v=>v.code===CORE_ITEM&&v.stats?.set==="luu_ly"&&v.vohon===null&&!cores.some(c=>c.id===v.id))); }
+    const cores=[]; for(let i=0;i<4;i++){ const giveN=A.bagMsgs??0; await test(A,"give",{code:CORE_ITEM,stars:6,set:"luu_ly"}); await waitFor(()=>A.bagMsgs>giveN,1500); cores.push(A.bag.items.find(v=>v.code===CORE_ITEM&&v.stats?.set==="luu_ly"&&v.vohon===null&&!cores.some(c=>c.id===v.id))); }
     ok(cores.length===4&&cores.every(Boolean),"nhận đủ 4 hồn hạch Lưu Ly");
     for(const [i,c] of cores.entries()){
       const equipCoreN=A.bagMsgs??0;

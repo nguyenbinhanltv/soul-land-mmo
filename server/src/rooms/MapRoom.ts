@@ -881,7 +881,7 @@ export class MapRoom extends Room<MapState> {
       d.buffs.set("atk", { t: Math.max(cur?.t ?? 0, CORE_FX_RULE.swapSecs), v: Math.max(cur?.v ?? 0, sa) });
       this.syncBuffs(p, d); this.broadcast("fx", { k: "buff", id, col });
       this.log(id, `Bộ Lưu Ly: cả đội tăng ${Math.round(sa * 100)}% công trong ${CORE_FX_RULE.swapSecs} giây.`, col);
-      this.partyShare(id, { buff: { atk: sa }, secs: CORE_FX_RULE.swapSecs }, 1, 1, col, d.ch.vohon);
+      if (!this.map.inSafe(p.x, p.y)) this.partyShare(id, { buff: { atk: sa }, secs: CORE_FX_RULE.swapSecs }, 1, 1, col, d.ch.vohon);
     }
     // Đủ năng lượng thì tung chiêu tiên cơ ngay lúc xuất hiện (chỉ khi đổi tay; tự đổi lúc gục thì giữ năng lượng).
     // Vùng an toàn không giao chiến (mục 5.3): đổi vẫn được nhưng không tung, giữ năng lượng.
