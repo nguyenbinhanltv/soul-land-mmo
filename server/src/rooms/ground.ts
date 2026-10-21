@@ -53,6 +53,11 @@ export class Grounds {
     }
   }
 
+  /** Hook kiểm thử `ground {ttl}`: mọi vùng còn đúng `s` giây. */
+  setTtl(s: number) {
+    for (const [id, z] of this.list) { z.t = s; const g = this.room.state.grounds.get(id); if (g) g.secs = Math.max(g.secs, s); }
+  }
+
   /** Các vùng đang có (hook kiểm thử `ground`). */
   info() {
     return [...this.list].map(([id, z]) => ({ id, kind: z.def.kind, src: z.src, x: z.tele.x, y: z.tele.y, r: z.tele.r, shape: z.tele.shape, ttl: z.t }));
