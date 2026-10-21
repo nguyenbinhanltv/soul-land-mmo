@@ -1,6 +1,6 @@
 // Đọc bản đồ Tiled dùng chung với client (shared/assets/<mapId>.json) để server tự kiểm tra va chạm.
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { solidGrid, hits as gridHits, moveEnt as gridMove, isSolidTile as gridSolid } from "../../shared/move.ts";
 import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, npcDef, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
@@ -61,12 +61,29 @@ export interface GameMap {
 
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 
+/**
+ * Tên file Tiled (không đuôi) của bản đồ: `<mapId>`, hoặc bản dựng lại `<mapId>.v2` (tools/maps, 11.3) khi biến môi trường
+ * `MAP_V2` liệt kê mapId đó (cách nhau bằng dấu phẩy, `all` = mọi bản đồ có bản v2) và file có thật. Client đọc tên này ở
+ * `MapState.mapFile` để tải đúng file (va chạm, dự đoán chuyển động dùng chung lưới).
+ */
+const V2 = new Set((process.env.MAP_V2 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+const fileCache = new Map<string, string>();
+export function mapFile(mapId: string): string {
+  let f = fileCache.get(mapId);
+  if (f === undefined) {
+    const v2 = (V2.has(mapId) || V2.has("all")) && existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
+    fileCache.set(mapId, (f = v2 ? `${mapId}.v2` : mapId));
+    if (v2) console.log(`[map] ${mapId}: dùng bản dựng lại shared/assets/${f}.json (MAP_V2)`);
+  }
+  return f;
+}
+
 /** Object của file Tiled, đọc thô (dùng để kiểm tra cổng trỏ sang bản đồ khác mà không nạp hẳn bản đồ đó). */
 const rawCache = new Map<string, any[]>();
 function rawObjects(mapId: string): any[] {
   let objs = rawCache.get(mapId);
   if (!objs) {
-    const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${mapId}.json`, import.meta.url), "utf8"));
+    const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${mapFile(mapId)}.json`, import.meta.url), "utf8"));
     objs = raw.layers.filter((l: any) => l.type === "objectgroup").flatMap((l: any) => l.objects);
     rawCache.set(mapId, objs!);
   }
@@ -157,7 +174,7 @@ const cache = new Map<string, GameMap>();
 export function loadMap(mapId: string): GameMap {
   const hit = cache.get(mapId); if (hit) return hit;
   if (!Object.hasOwn(MAPS, mapId)) throw new Error(`Bản đồ không tồn tại: ${mapId}`);
-  const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${mapId}.json`, import.meta.url), "utf8"));
+  const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${mapFile(mapId)}.json`, import.meta.url), "utf8"));
   // Lưới ô chặn đọc bằng hàm dùng chung với client (shared/move.ts): client dự đoán chuyển động trên đúng lưới này.
   const grid = solidGrid(raw), { MW, MH, solid } = grid;
 
@@ -245,7 +262,7 @@ function parsePortal(mapId: string, o: any): Portal | null {
   if (!name) return bad("thiếu tên");
   if (!Object.hasOwn(MAPS, to)) return bad(`bản đồ đích không có trong MAPS: ${to}`);
   let objs: any[];
-  try { objs = rawObjects(to); } catch { return bad(`không đọc được shared/assets/${to}.json`); }
+  try { objs = rawObjects(to); } catch { return bad(`không đọc được shared/assets/${mapFile(to)}.json`); }
   const a = objs.find((x) => x.type === "arrive" && x.name === arrive);
   if (!a) return bad(`điểm "${arrive}" không có ở ${to}`);
   if (objs.some((x) => x.type === "portal" && inRect(rectOf(x), a.x, a.y))) return bad(`điểm "${arrive}" nằm trong một cổng của ${to}`);

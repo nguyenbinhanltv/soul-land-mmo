@@ -1,0 +1,611 @@
+{
+  "generatedAt": "2026-10-21T00:00:00.000Z",
+  "items": [
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-wood-01",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.24,
+        "name": "footsteps",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-wood-02",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.24,
+        "name": "footsteps",
+        "start": 0.29
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-wood-03",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.32,
+        "name": "footsteps",
+        "start": 0.58
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-stone-01",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.29,
+        "name": "footsteps",
+        "start": 0.95
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-leaves-01",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.39,
+        "name": "footsteps",
+        "start": 1.29
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-leaves-02",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.47,
+        "name": "footsteps",
+        "start": 1.73
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-gravel-01",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.7,
+        "name": "footsteps",
+        "start": 2.25
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 47342,
+          "path": "audio/sprites/footsteps.m4a"
+        },
+        "ogg": {
+          "bytes": 50664,
+          "path": "audio/sprites/footsteps.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "footstep-mud-01",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "oga-tinyworlds-steps",
+      "sprite": {
+        "duration": 0.26,
+        "name": "footsteps",
+        "start": 3
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 15029,
+          "path": "audio/sprites/footsteps-kenney.m4a"
+        },
+        "ogg": {
+          "bytes": 17055,
+          "path": "audio/sprites/footsteps-kenney.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "kenney-footstep-00",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "kenney-rpg-audio",
+      "sprite": {
+        "duration": 0.25,
+        "name": "footsteps-kenney",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 15029,
+          "path": "audio/sprites/footsteps-kenney.m4a"
+        },
+        "ogg": {
+          "bytes": 17055,
+          "path": "audio/sprites/footsteps-kenney.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "kenney-footstep-01",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "kenney-rpg-audio",
+      "sprite": {
+        "duration": 0.28,
+        "name": "footsteps-kenney",
+        "start": 0.3
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 15029,
+          "path": "audio/sprites/footsteps-kenney.m4a"
+        },
+        "ogg": {
+          "bytes": 17055,
+          "path": "audio/sprites/footsteps-kenney.ogg"
+        }
+      },
+      "group": "footsteps",
+      "id": "kenney-footstep-02",
+      "mapId": null,
+      "preload": true,
+      "sourceId": "kenney-rpg-audio",
+      "sprite": {
+        "duration": 0.24,
+        "name": "footsteps-kenney",
+        "start": 0.63
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 547974,
+          "path": "audio/ambient/tinh_dau_ngoai_vi.m4a"
+        },
+        "ogg": {
+          "bytes": 768125,
+          "path": "audio/ambient/tinh_dau_ngoai_vi.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "forest-ambience",
+      "mapId": "tinh_dau_ngoai_vi",
+      "preload": false,
+      "sourceId": "oga-forest-ambience",
+      "sprite": {
+        "duration": 44.74,
+        "name": "forest-ambience",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 70294,
+          "path": "audio/ambient/lac_nhat_sam_lam.m4a"
+        },
+        "ogg": {
+          "bytes": 71554,
+          "path": "audio/ambient/lac_nhat_sam_lam.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "waterflow-ambience",
+      "mapId": "lac_nhat_sam_lam",
+      "preload": false,
+      "sourceId": "oga-waterflow",
+      "sprite": {
+        "duration": 5.67,
+        "name": "waterflow-ambience",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 29763,
+          "path": "audio/ambient/cuc_bac_chi_dia.m4a"
+        },
+        "ogg": {
+          "bytes": 30517,
+          "path": "audio/ambient/cuc_bac_chi_dia.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "mountain-wind",
+      "mapId": "cuc_bac_chi_dia",
+      "preload": false,
+      "sourceId": "oga-short-wind",
+      "sprite": {
+        "duration": 2.36,
+        "name": "mountain-wind",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 22013,
+          "path": "audio/sprites/creatures.m4a"
+        },
+        "ogg": {
+          "bytes": 20697,
+          "path": "audio/sprites/creatures.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-wolf-howls",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-creature-sfx",
+      "sprite": {
+        "duration": 0.55,
+        "name": "creatures",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 22013,
+          "path": "audio/sprites/creatures.m4a"
+        },
+        "ogg": {
+          "bytes": 20697,
+          "path": "audio/sprites/creatures.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-wolf-bark",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-creature-sfx",
+      "sprite": {
+        "duration": 0.3,
+        "name": "creatures",
+        "start": 0.6
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 22013,
+          "path": "audio/sprites/creatures.m4a"
+        },
+        "ogg": {
+          "bytes": 20697,
+          "path": "audio/sprites/creatures.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-bear-roar",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-creature-sfx",
+      "sprite": {
+        "duration": 0.37,
+        "name": "creatures",
+        "start": 0.95
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 22013,
+          "path": "audio/sprites/creatures.m4a"
+        },
+        "ogg": {
+          "bytes": 20697,
+          "path": "audio/sprites/creatures.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-insect-buzz",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-creature-sfx",
+      "sprite": {
+        "duration": 0.28,
+        "name": "creatures",
+        "start": 1.37
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 335438,
+          "path": "audio/ambient/thien_dau_thanh.m4a"
+        },
+        "ogg": {
+          "bytes": 362565,
+          "path": "audio/ambient/thien_dau_thanh.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "town-crowd-ambience",
+      "mapId": "thien_dau_thanh",
+      "preload": false,
+      "sourceId": "oga-crowd-shouting",
+      "sprite": {
+        "duration": 27.38,
+        "name": "town-crowd",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 1030214,
+          "path": "audio/ambient/tinh_dau_noi_dia.m4a"
+        },
+        "ogg": {
+          "bytes": 1004031,
+          "path": "audio/ambient/tinh_dau_noi_dia.ogg"
+        }
+      },
+      "group": "environment",
+      "id": "forest-bird-ambience",
+      "mapId": "tinh_dau_noi_dia",
+      "preload": false,
+      "sourceId": "oga-birds-wind",
+      "sprite": {
+        "duration": 83.78,
+        "name": "forest-birds",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 56393,
+          "path": "audio/sprites/creature-snake.m4a"
+        },
+        "ogg": {
+          "bytes": 61123,
+          "path": "audio/sprites/creature-snake.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-snake-die",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-snake-sfx",
+      "sprite": {
+        "duration": 4.12,
+        "name": "creature-snake",
+        "start": 0
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 56393,
+          "path": "audio/sprites/creature-snake.m4a"
+        },
+        "ogg": {
+          "bytes": 61123,
+          "path": "audio/sprites/creature-snake.ogg"
+        }
+      },
+      "group": "creatures",
+      "id": "spirit-snake-eat",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-snake-sfx",
+      "sprite": {
+        "duration": 0.36,
+        "name": "creature-snake",
+        "start": 4.17
+      }
+    },
+    {
+      "files": {
+        "m4a": {
+          "bytes": 20586,
+          "path": "audio/sprites/bell.m4a"
+        },
+        "ogg": {
+          "bytes": 16342,
+          "path": "audio/sprites/bell.ogg"
+        }
+      },
+      "group": "events",
+      "id": "spirit-bell",
+      "mapId": null,
+      "preload": false,
+      "sourceId": "oga-bell",
+      "sprite": {
+        "duration": 1.6,
+        "name": "bell",
+        "start": 0
+      }
+    }
+  ],
+  "pipeline": "tools/audio/process.mjs@1",
+  "preload": {
+    "bytes": {
+      "m4a": 62371,
+      "ogg": 67719
+    }
+  },
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "author": "Kenney",
+      "id": "kenney-rpg-audio",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "RPG Audio",
+      "url": "https://kenney.nl/assets/rpg-audio"
+    },
+    {
+      "archiveSha256": "987d072b7deaa65177e005ddd8185f2351be7c9a76cd7575dea560549c39b33b",
+      "author": "TinyWorlds",
+      "id": "oga-tinyworlds-steps",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Different steps on wood, stone, leaves, gravel and mud",
+      "url": "https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud"
+    },
+    {
+      "archiveSha256": "9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75",
+      "author": "TinyWorlds",
+      "id": "oga-forest-ambience",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Forest Ambience",
+      "url": "https://opengameart.org/content/forest-ambience"
+    },
+    {
+      "archiveSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "author": "TyberiusGames",
+      "id": "oga-waterflow",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Waterflow Sound",
+      "url": "https://opengameart.org/content/waterflow-sound"
+    },
+    {
+      "archiveSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "author": "remaxim",
+      "id": "oga-short-wind",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Short Wind Sound",
+      "url": "https://opengameart.org/content/short-wind-sound"
+    },
+    {
+      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+      "author": "rubberduck",
+      "id": "oga-creature-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "80 CC0 creature SFX",
+      "url": "https://opengameart.org/content/80-cc0-creature-sfx"
+    },
+    {
+      "archiveSha256": "a2c23a64c127c77717cbe4abb21f138bac9d9aa6cb3cc89d62bab5d0d96dd7ca",
+      "author": "StarNinjas",
+      "id": "oga-crowd-shouting",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Crowd Shouting/Speaking Ambience",
+      "url": "https://opengameart.org/content/crowd-shoutingspeaking-ambience"
+    },
+    {
+      "archiveSha256": "b36f5a32702844e0723cb5db225b58d28abeac131820afcc308111ff577cbf23",
+      "author": "eugeneloza",
+      "id": "oga-snake-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Snake sprites & sound",
+      "url": "https://opengameart.org/content/snake-sprites-sound"
+    },
+    {
+      "archiveSha256": "7b21371d23bcc5c56866b9bb32791b21bfce467edae05eef4bbc9d547da417a9",
+      "author": "Fupi",
+      "id": "oga-bell",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Correct Bell",
+      "url": "https://opengameart.org/content/correct-bell"
+    },
+    {
+      "archiveSha256": "28f99f536a0772d80052f03bcb22c9ed8fd7c6e4db7f2e8356efcf26a8e24f01",
+      "author": "Spring Spring",
+      "id": "oga-birds-wind",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-21",
+      "title": "Birds and Wind - Ambient, Birds, Wind and Synth",
+      "url": "https://opengameart.org/content/birds-and-wind-ambient-birds-wind-and-synth"
+    }
+  ]
+}
