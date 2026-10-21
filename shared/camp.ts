@@ -15,9 +15,9 @@ const inR = (r: R, x: number, y: number, m = 0) => x >= r.x - m && x < r.x + r.w
  */
 export function campMerchantSpot(raw: any, mapId: string): { id: string; x: number; y: number } | null {
   if (MAPS[mapId]?.kind !== "hunt") return null;
-  const objs: any[] = (raw.layers ?? []).flatMap((l: any) => (l.type === "objectgroup" ? l.objects : []));
+  const objs: any[] = (raw.layers ?? []).flatMap((l: any) => (l.type === "objectgroup" ? l.objects ?? [] : []));
   const rect = (o: any): R => ({ x: o.x, y: o.y, w: o.width ?? 0, h: o.height ?? 0 });
-  const sp = objs.find((o) => o.type === "spawn"); if (!sp) return null;
+  const sp = objs.filter((o) => o.type === "spawn").at(-1); if (!sp) return null; // như map.ts / GameScene: object `spawn` cuối cùng
   const spawn = rect(sp), safe = objs.filter((o) => o.type === "safe").map(rect);
   if (safe.some((r) => inR(r, spawn.x + spawn.w / 2, spawn.y + spawn.h / 2))) return null;
   const avoid = objs.filter((o) => o.type === "portal" || o.type === "waypoint").map(rect);
