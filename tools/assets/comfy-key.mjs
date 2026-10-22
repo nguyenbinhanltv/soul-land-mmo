@@ -1,5 +1,6 @@
 // Tách nền trắng trơn của ảnh ComfyUI (SDXL + pixel-art-xl, skill asset-gen mục ComfyUI) thành trong suốt.
 //   node tools/assets/comfy-key.mjs <vào.png> <ra.png> [--tol 24] [--shadow] [--holes 400] [--fringe 1] [--key #ffffff]
+//   node tools/assets/comfy-key.mjs <texture.png> <ra.png> --diamond 128      (ô nền: texture vuông → thoi 2:1)
 //
 // gemini-import.mjs xóa nền theo màu trên toàn ảnh: với nền trắng, mọi điểm sáng của vật (giấy, đá nhạt, điểm bắt
 // sáng) cũng mất. Công cụ này chỉ xóa phần nền **nối với mép ảnh** (loang 4 hướng từ vành ngoài), nên trắng bên trong
@@ -8,19 +9,24 @@
 // Tùy chọn:
 //   --key #rrggbb  màu nền (mặc định màu nhiều nhất ở 4 góc; thường gần #ffffff).
 //   --tol 24       sai khác tối đa từng kênh so với màu nền để coi là nền.
-//   --shadow       loang cả qua bóng đổ xám nhạt trên nền (độ sáng ≥ 70%, gần như không màu), SDXL hay vẽ dưới vật.
+//   --shadow       loang cả qua bóng đổ xám trên nền (gần như không màu, độ sáng ≥ --shadow-min × độ sáng nền), SDXL hay
+//                  vẽ dưới vật dù prompt cấm. Viền tối của vật chặn đường loang nên thân vật xám vẫn còn.
+//   --shadow-min 0.55  bóng đậm còn sót thì hạ; vật xám nhạt không viền bị ăn thì nâng (0,7).
 //   --holes N      xóa thêm vùng nền kín (không nối mép, ví dụ khe giữa chân thú) có ít nhất N điểm và sát màu nền
 //                  (sai khác ≤ tol / 2); 0 = tắt (mặc định, vì vật có thể có mảng trắng thật).
 //   --fringe 1     số lượt gỡ điểm viền còn ánh nền (sai khác ≤ 3 × tol) nằm sát phần đã xóa.
+//   --diamond W    ô nền: ảnh vào là texture vuông nhìn thẳng từ trên, liền mép (SDXL không vẽ được thoi 2:1 đúng);
+//                  chiếu thành thoi W×W/2 (xoay 45°, ép dọc một nửa, lấy điểm gần nhất, không nội suy) trên nền trong
+//                  suốt, rồi đưa vào gemini-import --kind tile --cell 1. Không xóa nền ở chế độ này.
 // In ra số điểm đã xóa và hộp bao phần còn lại.
 import { readFileSync, writeFileSync } from "node:fs";
-import { decodePng, encodePng, hex } from "./lib.mjs";
+import { decodePng, encodePng, hex, Img } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const keyOpt = opt("--key", ""), tol = +opt("--tol", "24"), holes = +opt("--holes", "0"), fringe = +opt("--fringe", "1");
-const shadow = flag("--shadow");
+const shadowMin = +opt("--shadow-min", "0.55"), shadow = flag("--shadow"), diamond = +opt("--diamond", "0");
 const [inFile, outFile] = args;
 if (!inFile || !outFile) {
   console.error("Cách dùng: comfy-key.mjs <vào.png> <ra.png> [--tol 24] [--shadow] [--holes N] [--fringe 1] [--key #rrggbb]");
@@ -29,6 +35,21 @@ if (!inFile || !outFile) {
 
 const img = decodePng(readFileSync(inFile));
 const W = img.w, H = img.h;
+
+if (diamond) {
+  // Đỉnh trên của thoi ↔ góc (0, 0) của texture, đỉnh phải ↔ (1, 0), đỉnh dưới ↔ (1, 1), đỉnh trái ↔ (0, 1).
+  const DW = diamond, DH = diamond / 2, out = new Img(DW, DH);
+  for (let y = 0; y < DH; y++) for (let x = 0; x < DW; x++) {
+    const dx = x + 0.5 - DW / 2, dy = y + 0.5 - DH / 2;
+    const s = 0.5 + dx / DW + dy / DH, t = 0.5 - dx / DW + dy / DH;
+    if (s < 0 || t < 0 || s >= 1 || t >= 1) continue;
+    const p = img.get(Math.min(W - 1, Math.floor(s * W)), Math.min(H - 1, Math.floor(t * H)));
+    out.set(x, y, [p[0], p[1], p[2], 255]);
+  }
+  writeFileSync(outFile, encodePng(out));
+  console.log(`${outFile}: texture ${W}×${H} → thoi ${DW}×${DH}`);
+  process.exit(0);
+}
 const maxDiff = (p, K) => Math.max(Math.abs(p[0] - K[0]), Math.abs(p[1] - K[1]), Math.abs(p[2] - K[2]));
 
 /** Màu nền: màu nhiều nhất trong 4 ô 8×8 ở góc ảnh (như gemini-import). */
@@ -50,7 +71,7 @@ const isBg = (p) => {
   if (maxDiff(p, K) <= tol) return true;
   if (!shadow) return false;
   const mx = Math.max(p[0], p[1], p[2]), mn = Math.min(p[0], p[1], p[2]);
-  return mx >= 0.7 * 255 && mx - mn <= 14;
+  return mx >= shadowMin * Math.max(...K) && mx - mn <= 14;
 };
 
 // Loang từ vành ngoài.
