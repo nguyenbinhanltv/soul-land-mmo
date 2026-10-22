@@ -94,7 +94,7 @@ body.touch #fusion{bottom:auto;top:31%}
 #fusion .ft{color:#ffe08a;text-shadow:var(--stroke)}
 #fusion .ft small{color:var(--text);text-shadow:none}
 #fusion small{font-variant-numeric:tabular-nums}
-#fusion .bar{height:8px}
+#fusion .bar{height:12px}
 #fusion .bar i{background:linear-gradient(90deg,#fff,#ffe08a);transition:none}
 #fusion.ask{animation:fusAsk .6s ease-in-out infinite alternate}
 @keyframes fusAsk{from{box-shadow:0 0 2px #ffe08a}to{box-shadow:0 0 14px #ffe08a}}

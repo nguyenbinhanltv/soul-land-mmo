@@ -349,11 +349,11 @@ let fusSent = false;
 /** Hồi chiêu dung hợp còn `secs` giây (server gửi; đổi võ hồn không làm mới vì thuộc hồn sư). */
 export function setFusionCd(secs: number) { fusCdEnd = performance.now() + Math.max(0, secs) * 1000; }
 /**
- * Việc phím G / nút gửi: "join" khi đang được mời, "" khi vừa hưởng ứng và đang chờ server (không gửi lại), không thì "start". Gọi
+ * Việc phím G / nút gửi: "join" khi đang được mời, "" khi vừa hưởng ứng hoặc đang chờ đồng đội (không gửi lại), không thì "start". Gọi
  * nghĩa là sẽ gửi: "join" thì khóa tới khi server trả `done` / `cancel`. Server vẫn kiểm lại và báo lý do.
  */
 export function fusionOp(): "join" | "start" | "" {
-  if (fusSent) return "";
+  if (fusSent || fusPend?.k === "wait") return ""; // đang chờ đồng đội hưởng ứng: không mời lại
   if (fusPend?.k !== "ask") return "start";
   fusSent = true; $("#fusion").querySelector("button")?.setAttribute("disabled", ""); return "join";
 }
