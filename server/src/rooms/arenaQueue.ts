@@ -56,13 +56,24 @@ function shadow(r: RemoteEntry): ArenaTeamEntry {
   return e;
 }
 const sub = <M>(topic: string, fn: (m: M) => void) => void presenceBackend.presence.subscribe(topic, (m: M) => { if (m) fn(m); });
+/**
+ * Báo bên `e` vào phòng `roomId`: rời `queue`, nhớ vào `delivered` (30 giây) để rollback từ tiến trình ghép tìm được, rồi gọi `found`.
+ * Dùng cho cả đường ghép trực tiếp ở pass() và đường tin T.found; `found` false thì bỏ khỏi `delivered`.
+ */
+export function arenaDeliver(e: ArenaTeamEntry, roomId: string, foe: ArenaTeamEntry) {
+  if (!shadows.has(e)) {
+    queue.delete(e.id); delivered.set(e.id, e);
+    setTimeout(() => { if (delivered.get(e.id) === e) delivered.delete(e.id); }, 30_000).unref();
+  }
+  const ok = e.found(roomId, foe);
+  if (!ok) delivered.delete(e.id);
+  return ok;
+}
 sub<{ id: string; roomId: string; foe: ArenaTeamEntry }>(T.found, (m) => {
   const e = queue.get(m.id), foe = m.foe;
   // Bên này đã hủy / đã mất: trả đối thủ (đã nhận mã phòng) về hàng chờ thay vì để vào sân một mình.
   if (!e) { publish(T.rollback, { id: foe.id }); publish(T.requeue, { id: foe.id }); return; }
-  queue.delete(m.id); delivered.set(m.id, e);
-  setTimeout(() => { if (delivered.get(m.id) === e) delivered.delete(m.id); }, 30_000).unref();
-  if (!e.found(m.roomId, foe)) { delivered.delete(m.id); publish(T.rollback, { id: foe.id }); publish(T.requeue, { id: foe.id }); e.abort(); }
+  if (!arenaDeliver(e, m.roomId, foe)) { publish(T.rollback, { id: foe.id }); publish(T.requeue, { id: foe.id }); e.abort(); }
 });
 sub<{ id: string }>(T.rollback, (m) => {
   const e = delivered.get(m.id); if (!e) return;
@@ -251,13 +262,13 @@ async function pass() {
           continue;
         }
         // canFound() vừa được kiểm tra sau await; found() chỉ còn là guard cuối nếu callback phát hiện phiên lỗi.
-        const foundA = ea.found(room.roomId, eb), foundB = eb.found(room.roomId, ea);
+        const foundA = arenaDeliver(ea, room.roomId, eb), foundB = arenaDeliver(eb, room.roomId, ea);
         if (!foundA || !foundB) {
           // Guard kép ở trên khiến nhánh này hiếm gặp; hoàn tác bên đã freeze để không tạo trận mồ côi.
           console.error("Không thể báo mã phòng Đại Đấu Hồn Trường cho đủ hai bên");
           arenaMatches.delete(m.id);
           for (const [e, found] of [[ea, foundA], [eb, foundB]] as const) {
-            if (found) e.rollback();
+            if (found) { delivered.delete(e.id); e.rollback(); }
             if (e.ready()) retry(e); else e.abort();
           }
         }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createPresenceBackend, presenceBackend } from "../src/presence.ts";
-import { arenaEnqueue, arenaQueued } from "../src/rooms/arenaQueue.ts";
+import { arenaDeliver, arenaEnqueue, arenaQueued } from "../src/rooms/arenaQueue.ts";
 
 const backend = createPresenceBackend({ mode: "local" });
 try {
@@ -47,6 +47,16 @@ try {
   await presenceBackend.releaseLease("arena:queue:lock", "other");
   await arenaEnqueue(entry);
   assert.equal(arenaQueued(99), entry);
+  let rolled = 0;
+  const x = { ...entry, id: "solo:100", members: [{ accountId: 100, name: "x", rec }], rollback() { rolled++; } };
+  await arenaEnqueue(x);
+  assert.equal(arenaDeliver(x, "room-1", entry), true);
+  assert.equal(arenaQueued(100), undefined);
+  await presenceBackend.presence.publish("arena:rollback", { id: "solo:100" });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(rolled, 1);
+  assert.equal(arenaQueued(100), x);
+  console.log("✓ Hàng chờ đấu trường: bên cục bộ ghép trực tiếp được rollback khi đối thủ hủy");
   console.log("✓ Hàng chờ đấu trường: không lấy được khóa thì rollback và báo lỗi");
 } finally {
   await backend.close();
