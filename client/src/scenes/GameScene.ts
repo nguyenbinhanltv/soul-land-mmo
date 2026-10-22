@@ -899,9 +899,8 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; subs?: { k: CoreStat; v: number }[] }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
-      const subs = (m.subs ?? []).map((u) => `dòng phụ mới ${coreStatText(u.k, u.v)}`).join(" · ");
-      if (m.to > m.from) hud.banner(`Cường hóa hồn cốt +${m.to}`, `+${m.from} → +${m.to} · ${pts}${subs ? ` · ${subs}` : ""}`);
-      else hud.banner(`Cường hóa hồn cốt +${m.to}`, `${pts}, chưa đủ lên cấp${subs ? ` · ${subs}` : ""}`);
+      const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
+      hud.banner(`Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
     });
     // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; subs: CoreSubUp[] }) => {

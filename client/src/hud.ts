@@ -1003,10 +1003,11 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
         + (r.waste ? ` · dư ${num(r.waste)} điểm bị bỏ (đã tối đa)` : "");
       const reach = BONE_ENHANCE_MILESTONES.filter((x) => x > lv0 && x <= r.level);
       const adds = Math.max(0, boneSubsDue(r.level) - subs0.length), next = BONE_ENHANCE_MILESTONES.find((x) => x > r.level);
+      const addTxt = adds ? `thêm ${adds} dòng phụ ngẫu nhiên (${subs0.length + adds}/${BONE_MAX_SUBS} dòng)` : "";
       sm[1].textContent = reach.length
-        ? `Đạt mốc ${reach.map((x) => `+${x}`).join(", ")}: kỹ năng hồn cốt mạnh ×${pow2(boneSkillMult(r.level))} (trước ×${pow2(boneSkillMult(lv0))})`
-          + (adds ? ` và thêm ${adds} dòng phụ ngẫu nhiên (${subs0.length + adds}/${BONE_MAX_SUBS} dòng).` : ".")
-        : `Mốc kế tiếp ${next ? `+${next}` : "đã đủ"}: mỗi mốc nâng kỹ năng và 1 dòng phụ ngẫu nhiên (đang ×${pow2(boneSkillMult(r.level))}, ${boneMilestones(r.level)}/${BONE_ENHANCE_MILESTONES.length} mốc, ${subs0.length}/${BONE_MAX_SUBS} dòng phụ).`;
+        ? `Đạt mốc ${reach.map((x) => `+${x}`).join(", ")}: kỹ năng hồn cốt mạnh ×${pow2(boneSkillMult(r.level))} (trước ×${pow2(boneSkillMult(lv0))})${addTxt ? ` và ${addTxt}` : ""}.`
+        : `Mốc kế tiếp ${next ? `+${next}` : "đã đủ"}: mỗi mốc nâng kỹ năng và 1 dòng phụ ngẫu nhiên (đang ×${pow2(boneSkillMult(r.level))}, ${boneMilestones(r.level)}/${BONE_ENHANCE_MILESTONES.length} mốc, ${subs0.length}/${BONE_MAX_SUBS} dòng phụ).`
+          + (addTxt ? ` Bù dòng còn thiếu: ${addTxt}.` : "");
       const rare = mats.filter((i) => i.enhance > 0 || tierOfYears(i.years) >= 3).length;
       sm[2].textContent = `⚠ ${mats.length} hồn cốt nguyên liệu sẽ bị tiêu hao (mất hẳn)${rare ? `, trong đó ${rare} món đã cường hóa hoặc từ 10.000 năm` : ""}. Cường hóa không bao giờ thất bại.`
         + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi mới cường hóa được." : "");
