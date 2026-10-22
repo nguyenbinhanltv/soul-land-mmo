@@ -2063,7 +2063,7 @@ export class MapRoom extends Room<MapState> {
       return this.sendArenaQueue(id);
     }
     if (op !== "queue") return warn("Thao tác Đại Đấu Hồn Trường không hợp lệ.");
-    if (d.arenaBusy && arenaReadCancelled(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
+    if (arenaReadCancelled(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     if (arenaQueued(d.accountId) || d.arenaBusy) return warn("Đang tìm đối thủ rồi.");
     if (!this.npcNear(id, { role: "arena" })) return warn("Hãy lại gần Đại Đấu Hồn Trường để xếp hàng.");
     const why = this.arenaBusy(id); if (why) return warn(`${why} Chưa xếp hàng được.`);

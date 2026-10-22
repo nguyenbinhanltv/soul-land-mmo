@@ -66,7 +66,7 @@ export function arenaQueueSlot(accountId: number, now = Date.now()) {
  */
 const reads = new Map<number, { cancelled: boolean }>();
 const slow = new Map<number, number>();
-/** Đọc Elo để xếp hàng bằng `read`; trả null nếu người chơi đã hủy trong lúc đọc. */
+/** Đọc Elo để xếp hàng bằng `read`; trả null nếu người chơi đã hủy trong lúc đọc (đọc lỗi sau khi hủy cũng chỉ ghi log, không ném). */
 export async function arenaReadElo(accountId: number, read: () => Promise<ArenaRecord>): Promise<ArenaRecord | null> {
   const r = { cancelled: false }, ms = slow.get(accountId) ?? 0;
   reads.set(accountId, r); slow.delete(accountId);
@@ -74,6 +74,10 @@ export async function arenaReadElo(accountId: number, read: () => Promise<ArenaR
     const rec = await read();
     if (ms) await new Promise((res) => setTimeout(res, ms));
     return r.cancelled ? null : rec;
+  } catch (e) {
+    if (!r.cancelled) throw e;
+    console.error(`Không đọc được Elo của tài khoản #${accountId} (đã hủy xếp hàng)`, e);
+    return null;
   } finally { if (reads.get(accountId) === r) reads.delete(accountId); }
 }
 /** Hủy lần đọc Elo đang chạy; true nếu có lần đọc chưa bị hủy. */
