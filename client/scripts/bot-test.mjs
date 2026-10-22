@@ -1023,9 +1023,15 @@ console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.se
 // Bài đo tiên cơ dưới đây cần cả đội bắt đầu từ 0 năng lượng: đòn đánh Quỷ Đằng (thú đứng yên, #148) ở trên đã cho võ hồn ngoài sân
 // 10 năng lượng, ra khỏi giao chiến quá TIEN_CO_IDLE_SECS thì giảm dần liên tục (TIEN_CO_DECAY), cộng thêm đòn mới thành số lẻ (43, 73).
 await test(A,"energy",{v:0});
+// Săn một hồn thú thử biết trước (#267): hồn thú hoang gần nhất có lúc là con 200+ năm (~136 máu, ~12 sát thương mỗi đòn) ngang sức
+// Lam Điện cấp 3–4 (~122 sinh lực), đánh gục võ hồn ra trận giữa trận; A tự đổi sang Lam Ngân Thảo, võ hồn gục mất năng lượng nên
+// "tích 0/100", rồi đổi võ hồn và 2.3b trượt dây chuyền. Dọn quanh A, sinh hồn thú 10 năm ngay cạnh (phía xa làng) và chỉ đánh con đó
+// theo bid; server không bật GAME_TEST thì săn con gần nhất như cũ.
+await test(A,"clear");
+const huntBid=(await test(A,"spawn",{tier:0,dx:16}))?.bid, huntAct=A.owned.active;
 const kills0=p.kills;
 for(let i=0;i<300;i++){
-  let best=null,bd=1e9; st.beasts.forEach(b=>{const d=Math.hypot(b.x-p.x,b.y-p.y); if(d<bd){bd=d;best=b;}});
+  let best=null,bd=1e9; st.beasts.forEach((b,k)=>{ if(huntBid&&k!==huntBid) return; const d=Math.hypot(b.x-p.x,b.y-p.y); if(d<bd){bd=d;best=b;}});
   if(best){ const dx=best.x-p.x,dy=best.y-p.y,d=Math.hypot(dx,dy)||1; A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); if(d<22) A.room.send("attack"); }
   await sleep(100);
   if(st.drops.size) break;
@@ -1035,7 +1041,9 @@ console.log("drops",st.drops.size,"kills",p.kills,"xp",p.xp,"lvl",p.level,"logs"
 // Năng lượng tiên cơ (2.4): đánh thường trúng thì võ hồn khác trong đội tích năng lượng, võ hồn ra trận không tự tích.
 if(p.kills){
   const benchRow=A.owned.team.find(r=>r&&r!==A.owned.active), en=A.squad?.list.find(s=>s.rowId===benchRow)?.en??0;
-  ok(en>0&&(en===TIEN_CO_MAX||en%TIEN_CO_GAIN.attack===0),`đánh hồn thú: võ hồn ngoài sân tích ${en}/${TIEN_CO_MAX} năng lượng tiên cơ`);
+  const vh=r=>A.owned.list.find(v=>v.rowId===r)?.vohon;
+  ok(en>0&&(en===TIEN_CO_MAX||en%TIEN_CO_GAIN.attack===0),`đánh hồn thú: võ hồn ngoài sân tích ${en}/${TIEN_CO_MAX} năng lượng tiên cơ`+(en>0?"":
+    ` [ra trận ${vh(A.owned.active)}${A.owned.active===huntAct?"":` (lúc bắt đầu ${vh(huntAct)})`}, sinh lực ${p.hp}/${p.maxHp}, hồn thú thử ${huntBid??"không có"}, log ${JSON.stringify(A.logs.slice(-3))}]`));
   ok((A.squad?.list.find(s=>s.rowId===A.owned.active)?.en??0)===0,"võ hồn ra trận không tự tích năng lượng");
 }
 // Hồn Tệ (3.1): hạ hồn thú thì người hạ nhận vài đồng.
