@@ -5176,6 +5176,7 @@ async function autoTest(){
     // AUTO_MOVE.stuck giây thì tự săn bỏ qua con thử AUTO_MOVE.skip giây (#266: hết 10 giây chờ mà chưa hạ, nợ kẹp -credit). Trong lúc
     // thử, B đứng ở điểm vào trại cổng (hồn thú không lang thang tới).
     await test(B,"goto",ar);
+    if(me(B)&&Math.hypot(me(B).x-ar.x,me(B).y-ar.y)>1) console.log(`  ⚠ B không tới được điểm vào trại cổng (${ar.x},${ar.y}), vẫn ở ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}: hồn thú hoang có thể xen vào bài nợ nhịp`);
     await test(A,"goto",home); await test(A,"clear");
     await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
     m=await autoOp(A,"on"); await test(A,"auto",{pace:4});
