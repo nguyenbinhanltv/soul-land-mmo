@@ -5511,10 +5511,19 @@ async function sellTest(){
   ok(await waitFor(()=>S.travel?.mapId==="nac_dinh_thanh",4000),"tới Nặc Đinh Thành");
   await rejoin(); await test(S,"goto",{x:tn.x,y:tn.y+16});
   t=await trade(S,"sell",{id:lk.id}); ok(loose().some(i=>i.id===lk.id)&&/đang khoá/.test(t),`thương nhân: món khoá không bán được (${t})`);
+  // Túi chỉ còn 1 ô trống, đầy hồn hoàn vạn năm (bộ lọc không bán): mua lại một món hợp bộ lọc thì món về túi đã khoá, nhịp sau không bị bán lại.
+  await test(S,"give",{code:RING_ITEM,qty:free()-1,years:AUTO_SELL_GUARD});
   const r0=S.bag.sold[0], h0=S.bag.honTe;
   t=await trade(S,"buyback",{key:r0.key});
-  ok(S.bag.honTe===h0-r0.price*r0.qty&&S.bag.sold.length===AUTO_SELL_BUYBACK-1&&!S.bag.sold.some(r=>r.key===r0.key)
-    &&loose().some(i=>i.code===r0.code&&i.years===r0.years&&i.stars===r0.stars),`mua lại món tự bán đúng giá −${formatHonTe(r0.price*r0.qty)} (${t})`);
+  const back=()=>loose().find(i=>i.code===r0.code&&i.years===r0.years&&i.stars===r0.stars);
+  ok(S.bag.honTe===h0-r0.price*r0.qty&&S.bag.sold.length===AUTO_SELL_BUYBACK-1&&!S.bag.sold.some(r=>r.key===r0.key)&&back()?.lock===true&&/đã khoá/.test(t),
+    `mua lại món tự bán đúng giá −${formatHonTe(r0.price*r0.qty)}, về túi đã khoá (${t})`);
+  await sleep(600);
+  ok(back()&&free()===0&&S.bag.honTe===h0-r0.price*r0.qty,`túi đầy, bộ lọc vẫn bật: món vừa mua lại không bị tự bán lại`);
+  // Cho bán cả vạn năm, mọi niên hạn: đổi bộ lọc là xét ngay, bán hết hồn hoàn vạn năm, giữ món khoá.
+  S.autosold=null; await setSell({...S.bag.sell,ring:MAX_YEARS+1,high:true});
+  ok(await waitFor(()=>S.autosold&&!loose().some(i=>i.years===AUTO_SELL_GUARD),3000)&&back()&&loose().some(i=>i.id===lk.id),
+    `bật bán cả vạn năm: tự bán ${S.autosold?.n} món, giữ món khoá và món vừa mua lại`);
   // ---- Tự săn: túi đầy thì bán theo bộ lọc rồi săn tiếp, tổng kết có dòng đã tự bán ----
   const autoOp=async(op)=>{ S.autoMsg=null; S.room.send("auto",{op}); await waitFor(()=>S.autoMsg,1500); return S.autoMsg; };
   const objs=JSON.parse(readFileSync(mapUrl("thanh_hon_thon"),"utf8")).layers.flatMap(l=>l.objects??[]), sv=objs.find(o=>o.type==="safe"), tv=npcSpot("thanh_hon_thon","to_van_dao");

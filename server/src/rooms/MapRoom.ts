@@ -1561,16 +1561,20 @@ export class MapRoom extends Room<MapState> {
   /**
    * Thêm `qty` món mã `code` vào túi: gộp vào ô cùng mã chưa đầy trước (đồ gộp được), rồi mở ô mới khi còn chỗ (`d.bagSlots`, từ 9.8 theo tài khoản).
    * Trả về số món đã nhận; phần dư khi túi đầy thì không nhận (nơi gọi quyết định báo gì). Không tự gửi tin "bag".
+   * `locked` (#216): chỉ gộp vào ô cùng trạng thái khoá, ô mới mang trạng thái đó (đồ mới nhặt không gộp vào ô người chơi đã khoá).
    */
-  addItem(d: PData, code: string, qty: number) {
+  addItem(d: PData, code: string, qty: number, locked = false) {
     const def = itemDef(code); if (!def || !(qty > 0)) return 0;
     let left = qty;
     for (const it of d.bag) {
       if (left <= 0) break;
-      if (it.code !== code || it.vohonId !== null || it.qty >= def.stack) continue;
+      if (it.code !== code || it.vohonId !== null || it.qty >= def.stack || !!it.locked !== locked) continue;
       const n = Math.min(left, def.stack - it.qty); it.qty += n; left -= n;
     }
-    while (left > 0 && bagUsed(d.bag) < d.bagSlots) { const n = Math.min(left, def.stack); d.bag.push(newItem(def, n)); left -= n; }
+    while (left > 0 && bagUsed(d.bag) < d.bagSlots) {
+      const n = Math.min(left, def.stack), it = newItem(def, n); if (locked) it.locked = true;
+      d.bag.push(it); left -= n;
+    }
     if (left < qty) d.bagDirty = true;
     return qty - left;
   }
@@ -2130,10 +2134,10 @@ export class MapRoom extends Room<MapState> {
     this.chain(d, () => { d.tradeQueued = false; return this.write(id); });
   }
 
-  /** Số món mã `code` túi còn nhận được: chỗ trống trong ô cùng mã chưa đầy và các ô trống (như addItem). */
-  bagRoom(d: PData, code: string) {
+  /** Số món mã `code` túi còn nhận được: chỗ trống trong ô cùng mã (cùng trạng thái khoá `locked`) chưa đầy và các ô trống (như addItem). */
+  bagRoom(d: PData, code: string, locked = false) {
     const def = itemDef(code); if (!def) return 0;
-    const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null ? Math.max(0, def.stack - it.qty) : 0), 0);
+    const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null && !!it.locked === locked ? Math.max(0, def.stack - it.qty) : 0), 0);
     return part + Math.max(0, d.bagSlots - bagUsed(d.bag)) * def.stack;
   }
 
@@ -2195,7 +2199,8 @@ export class MapRoom extends Room<MapState> {
   /**
    * Mua lại đồ vừa bán nhầm (bước 9.8): món `rawKey` trong danh sách mua lại của chính tài khoản (buybacks), phải đứng gần thương
    * nhân, đủ Hồn Tệ cho đúng giá đã bán và túi đủ chỗ (đồ không gộp cần một ô trống). Món về túi đúng như lúc bán (chỉ số, cấp
-   * cường hóa) với id mới; ghi DB qua chuỗi lưu như mua / bán.
+   * cường hóa) với id mới; ghi DB qua chuỗi lưu như mua / bán. Tự bán đang bật mà bộ lọc sẽ bán món này thì món về túi ở trạng thái
+   * khoá (#216), để nhịp sau không tự bán lại ngay khi túi vẫn dưới AUTO_SELL_FREE ô trống.
    */
   buybackItem(id: string, rawKey: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
@@ -2209,17 +2214,19 @@ export class MapRoom extends Room<MapState> {
     const def = itemDef(e.item.code), label = this.itemLabel(e.item), cost = e.price * e.item.qty;
     if (!def) return warn("Vật phẩm không tồn tại.");
     if (d.honTe < cost) return warn(`Không đủ Hồn Tệ: mua lại ${label} giá ${formatHonTe(cost)}, đang có ${formatHonTe(d.honTe)}.`);
-    if (def.stack > 1 ? this.bagRoom(d, def.id) < e.item.qty : bagUsed(d.bag) >= d.bagSlots)
+    const lock = d.sellCfg.on && autoSellable({ ...e.item, locked: false, vohon: null }, d.sellCfg);
+    if (def.stack > 1 ? this.bagRoom(d, def.id, lock) < e.item.qty : bagUsed(d.bag) >= d.bagSlots)
       return warn(`Túi đồ không đủ chỗ để mua lại ${label} (${d.bagSlots} ô): bỏ hoặc bán bớt đồ trước.`);
     buybacks.set(d.accountId, list.filter((x) => x !== e)); d.sold = d.sold.filter((x) => x !== e);
     d.honTe -= cost; d.bagDirty = true;
-    if (def.stack > 1) this.addItem(d, def.id, e.item.qty);
+    if (def.stack > 1) this.addItem(d, def.id, e.item.qty, lock);
     else {
       const it = newItem(def, 1, e.item.years);
       it.stars = e.item.stars; it.enhance = e.item.enhance; it.stats = e.item.stats == null ? null : structuredClone(e.item.stats);
+      if (lock) it.locked = true;
       d.bag.push(it);
     }
-    this.log(id, `Mua lại ${label}: −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)}).`, def.col);
+    this.log(id, `Mua lại ${label}: −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)})${lock ? ", đã khoá để không bị tự bán lại" : ""}.`, def.col);
     this.sendBag(id);
     this.saveTrade(id, d);
   }

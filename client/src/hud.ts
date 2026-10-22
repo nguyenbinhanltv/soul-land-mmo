@@ -1641,7 +1641,7 @@ function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
   const n = document.createElement("small");
   n.textContent = `Bật thì khi túi còn dưới ${AUTO_SELL_FREE} ô trống (hoặc tự săn thấy túi đầy), đồ hợp bộ lọc được bán từ xa đúng giá thương nhân trong thành. `
     + "Không bao giờ bán món khoá, món đang gắn, hồn hoàn đang hấp thụ. Đan, phù chú, lệnh bài, rương, tiên thảo thương nhân không mua nên không bán. "
-    + `${AUTO_SELL_BUYBACK} món tự bán gần nhất mua lại được đúng giá ở thương nhân.`;
+    + `${AUTO_SELL_BUYBACK} món tự bán gần nhất mua lại được đúng giá ở thương nhân (về túi ở trạng thái khoá). Ủy thác offline không tự bán.`;
   box.appendChild(n);
   return box;
 }
