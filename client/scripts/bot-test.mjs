@@ -125,6 +125,7 @@ import { ASK_CD } from "../../shared/data.ts"; // nhịp tin xin lại dữ li�
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 import { GROUND_KINDS, GROUND_TICK, TELE_SHAPES } from "../../shared/data.ts"; // vùng lưu lại trên mặt đất: vũng độc, sương độc (#161)
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
+import { FUSION, FUSIONS, fusionIndex } from "../../shared/data.ts"; // Võ Hồn Dung Hợp Kỹ (#192)
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -204,6 +205,7 @@ async function enter(b,roomId){
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
   b.room.onMessage("ko",m=>{b.ko=m;});
+  b.fus=[]; b.room.onMessage("fusion",m=>b.fus.push(m)); // Võ Hồn Dung Hợp Kỹ (#192): ask / wait / done / cancel
   // Bản vá state đi riêng với tin nhắn (máy bận thì tới sau cả trăm ms): đếm bản vá, test() chờ bản vá đầu tiên sau tin trả hook.
   b.patchN=0; b.room.onStateChange(()=>{b.patchN++;});
   b.room.onMessage("test",m=>{b.test=m; b.testPatch=b.patchN;});
@@ -273,6 +275,8 @@ if(PART&&!["1","2","3"].includes(PART)){ console.log(`✗ BOT_PART=${PART}: ch�
 if(PART) console.log(`BOT_PART=${PART}: chỉ chạy phần chung và nhóm ${PART}`);
 // Bọc trứng Vạn Chu Phệ (#162, eggTest, nhóm 2 của BOT_PART; BOT_ONLY=egg chỉ chạy phần này): đẻ đủ bọc, phá thì không nở, để nguyên thì
 // nở đúng số nhện con, giới hạn nhện con còn sống, thú vương bị hạ thì bọc tan.
+// Võ Hồn Dung Hợp Kỹ (#192, fusionTest, nhóm 2 của BOT_PART; BOT_ONLY=fusion chỉ chạy phần này): hai bot cùng tổ đội tung, nổ ở điểm
+// giữa, tốn hồn lực, hồi chiêu; từng lý do từ chối; hết giờ hủy không tốn; đóng góp tinh anh chia đôi.
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -285,6 +289,7 @@ if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bonesub"){ await boneSubTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="fusion"){ await fusionTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -4429,6 +4434,7 @@ ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào l
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm, sao từng võ hồn (cả võ hồn mở bằng mảnh) đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
 if(inPart(2)) await eggTest(); // #162: bài độc lập, tự tạo bot
+if(inPart(2)) await fusionTest(); // #192: Võ Hồn Dung Hợp Kỹ, bài độc lập (tự tạo bot)
 if(inPart(1)) await boneSubTest(); // #187: bài độc lập, tự tạo bot
 if(inPart(1)) await cheatTest(); // chống gian lận 1 (#164): bài độc lập, tự tạo bot
 
@@ -7388,6 +7394,7 @@ async function arenaTest(){
   await waitFor(()=>E.room.state.phase==="ready",3000);
   l=E.logs.length; E.room.send("chanthan"); ok(await waitFor(()=>E.logs.length>l)&&/đếm ngược/.test(E.logs.at(-1))&&!meOf(E).ava,"đang đếm ngược: chưa biến Võ Hồn Chân Thân");
   l=E.logs.length; E.room.send("loadout",{rowId:rowE,skills:[0,1,2,3]}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: xếp ô hồn kỹ mang theo bị chặn");
+  l=E.logs.length; E.room.send("fusion",{op:"start"}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: Võ Hồn Dung Hợp Kỹ bị chặn (#192)");
   await test(E,"afast",{s:0});
   ok(await waitFor(()=>E.room.state.phase==="fight",2000)&&E.arena.some(m=>m.k==="fight"),`hết đếm ngược: giao đấu ${Math.round(E.room.state.time)} giây`);
   const sid=b=>b.room.sessionId, fv=()=>E.room.state.players.get(sid(F)), sE=sides(E).findIndex(s=>s.sid===sid(E)), dir=sE===0?1:-1;
@@ -8349,4 +8356,115 @@ async function coldTest(){
     if(kingB()) await test(F,"kdmg",{v:1e8}).catch(()=>{}); // bài lỗi giữa chừng: không để thú vương sống sang cucBacTest
     await F.room.leave().catch(()=>{});
   }
+}
+
+/**
+ * Võ Hồn Dung Hợp Kỹ (#192; BOT_ONLY=fusion, nhóm 2 của BOT_PART). A cầm Yêu Hồ, B và O cầm Nguyệt Nhận (cặp Yêu Nguyệt); A và B cùng
+ * tổ đội, O đứng gần nhưng ngoài đội. Từ chối kèm lý do: vùng an toàn, chưa có tổ đội, thiếu hồn hoàn, đứng xa, đồng đội trong vùng an
+ * toàn, sai cặp, đang hồi chiêu, hưởng ứng khi chưa được mời; hết FUSION.window thì hủy không tốn gì. Tung được: B nhận lời nhắc, O
+ * không; chiêu nổ ở điểm giữa, mỗi người tốn FUSION.cost hồn lực và vào hồi chiêu; không tạo năng lượng tiên cơ; đóng góp tinh anh chia đôi.
+ */
+async function fusionTest(){
+  console.log("\n== Võ Hồn Dung Hợp Kỹ (#192) ==");
+  const fi=fusionIndex("yeu_ho","nguyet_nhan"), YN=FUSIONS[fi], sumDmg=f=>f.parts.reduce((a,x)=>a+x.dmg*(x.n??1),0);
+  ok(FUSION.r===PARTY_BUFF_R&&FUSION.window>0&&FUSION.cd>0&&FUSION.cost>0&&FUSION.minRings===3,`FUSION: r ${FUSION.r} (= PARTY_BUFF_R), chờ ${FUSION.window} giây, hồi ${FUSION.cd} giây, ${FUSION.cost} hồn lực, ${FUSION.minRings} hồn hoàn`);
+  ok(FUSIONS.length===4&&fi>=0&&fusionIndex("nguyet_nhan","yeu_ho")===fi&&FUSIONS.every(f=>f.parts.every(x=>x.area==="around")&&sumDmg(f)>=6&&sumDmg(f)<=7),
+    `4 cặp, vùng quanh điểm giữa, tổng dmg ${FUSIONS.map(f=>`${f.name} ${sumDmg(f).toFixed(1)}`).join(", ")}`);
+  const A=await bot("Dung Hợp A","yeu_ho",{sex:1,hair:2,hairCol:1,outfitCol:2});
+  const B=await bot("Dung Hợp B","nguyet_nhan",{sex:0,hair:1,hairCol:3,outfitCol:4});
+  const O=await bot("Dung Hợp O","nguyet_nhan",{sex:0,hair:3,hairCol:2,outfitCol:1});
+  try{
+  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dung hợp kỹ (cần hook set, goto, party): bật server bằng GAME_TEST=1"); return; }
+  const meP=b=>b.room.state.players.get(b.room.sessionId), rowOf=(b,v)=>b.owned.list.find(x=>x.vohon===v)?.rowId;
+  await waitFor(()=>[A,B,O].every(b=>b.owned&&meP(b)),3000);
+  const Y=[423,764,1760];
+  const sf=JSON.parse(readFileSync(mapUrl(A.room.state.mapId),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe");
+  const inSf=b=>{ const q=meP(b); return !!sf&&q.x>=sf.x&&q.x<=sf.x+sf.width&&q.y>=sf.y&&q.y<=sf.y+sf.height; };
+  /** `b` gửi `fusion {op}`, trả dòng log mới (lý do / lời nhắc). */
+  const fus=async(b,op)=>{ const l=b.logs.length; b.room.send("fusion",{op}); await waitFor(()=>b.logs.length>l,1500); return b.logs.slice(l).join(" | "); };
+  for(const [b,v] of [[A,"yeu_ho"],[B,"nguyet_nhan"],[O,"nguyet_nhan"]]){
+    await test(b,"set",{rowId:rowOf(b,v),level:35,xp:0,rings:Y});
+    const want=[rowOf(b,v),rowOf(b,"lam_ngan_thao"),0,0]; // ô 2 Lam Ngân Thảo để thử sai cặp và đổi võ hồn
+    if(JSON.stringify(b.owned.team)!==JSON.stringify(want)||b.owned.active!==want[0]) await sendTeam(b,want);
+  }
+  ok([A,B,O].every(b=>meP(b).rings.length===Y.length)&&meP(A).vh===vohonIndex("yeu_ho")&&meP(B).vh===vohonIndex("nguyet_nhan"),"A Yêu Hồ, B / O Nguyệt Nhận ra trận, 3 hồn hoàn");
+  // Trong làng (vùng an toàn): từ chối.
+  let w=inSf(A)?await fus(A,"start"):"(A không ở trong làng)";
+  ok(/vùng an toàn/.test(w),`A trong làng: "${w}"`);
+  // Ra ngoài làng: điểm đứng được cho A, B (100 pixel) và O (60 pixel), cả ba ngoài làng.
+  let ax=0, ay=0, okSpot=false;
+  for(let k=0;k<12&&!okSpot;k++){
+    ax=Math.round(sf.x+sf.width+60+k*40); ay=Math.round(sf.y+sf.height/2+(k%3-1)*60);
+    await test(A,"goto",{x:ax,y:ay}); await test(B,"goto",{x:ax+100,y:ay}); await test(O,"goto",{x:ax+30,y:ay+50});
+    okSpot=await waitFor(()=>Math.hypot(meP(A).x-ax,meP(A).y-ay)<0.5&&Math.hypot(meP(B).x-ax-100,meP(B).y-ay)<0.5&&Math.hypot(meP(O).x-ax-30,meP(O).y-ay-50)<0.5,600)
+      &&!inSf(A)&&!inSf(B)&&!inSf(O);
+  }
+  ok(okSpot,`A (${ax},${ay}), B cách 100 pixel, O cách ${Math.round(Math.hypot(30,50))} pixel, ngoài làng`);
+  if(!okSpot) return;
+  const clean=async()=>{ for(const b of [A,B,O]) await test(b,"clear"); };
+  await clean(); for(const b of [A,B,O]) await test(b,"ready");
+  w=await fus(A,"start"); ok(/tổ đội/.test(w)&&!O.fus.length&&!B.fus.length,`chưa có tổ đội (O cầm Nguyệt Nhận đứng gần): "${w}"`);
+  // Tổ đội A + B; O ngoài đội.
+  await test(A,"party",{pop:"rlreset"});
+  const n=B.partyMsgs??0; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>(B.partyMsgs??0)>n,2000);
+  B.room.send("party",{op:"accept",name:A.name}); await waitFor(()=>A.party?.members?.length===2&&B.party?.id===A.party.id,2000);
+  ok(A.party?.members?.length===2&&B.party?.id===A.party.id&&!O.party?.id,"A và B cùng tổ đội, O ngoài đội");
+  // Thiếu hồn hoàn (B chỉ có 2 vòng).
+  await test(B,"set",{rowId:rowOf(B,"nguyet_nhan"),level:35,xp:0,rings:Y.slice(0,2)});
+  w=await fus(A,"start"); ok(/2 hồn hoàn/.test(w)&&w.includes(B.name)&&!B.fus.length,`B thiếu hồn hoàn: "${w}"`);
+  await test(B,"set",{rowId:rowOf(B,"nguyet_nhan"),level:35,xp:0,rings:Y}); await test(B,"ready");
+  // Đứng xa.
+  await test(B,"goto",{x:ax+FUSION.r+80,y:ay}); await sleep(150);
+  w=await fus(A,"start"); ok(/đứng xa/.test(w)&&!B.fus.length&&!O.fus.length,`B đứng ${Math.round(meP(B).x-meP(A).x)} pixel: "${w}" (O ngoài đội đứng gần không được mời)`);
+  // Đồng đội trong vùng an toàn.
+  await test(B,"goto",{x:Math.round(sf.x+sf.width/2),y:Math.round(sf.y+sf.height/2)}); await sleep(150);
+  w=inSf(B)?await fus(A,"start"):"(B không vào được làng)"; ok(/vùng an toàn/.test(w)&&w.includes(B.name),`B trong làng: "${w}"`);
+  await test(B,"goto",{x:ax+100,y:ay}); await sleep(150);
+  // Sai cặp: B đổi sang Lam Ngân Thảo.
+  await waitFor(()=>meP(B).swCd===0,3500); B.room.send("switch",{slot:1}); await waitFor(()=>meP(B).vh===vohonIndex("lam_ngan_thao"),2000);
+  w=await fus(A,"start"); ok(/không đồng đội nào ra trận Nguyệt Nhận/.test(w),`B ra trận Lam Ngân Thảo (sai cặp): "${w}"`);
+  await waitFor(()=>meP(B).swCd===0,3500); B.room.send("switch",{slot:0}); await waitFor(()=>meP(B).vh===vohonIndex("nguyet_nhan"),2000);
+  // Hưởng ứng khi chưa được mời.
+  w=await fus(B,"join"); ok(/chưa có lời mời/.test(w),`B hưởng ứng khi chưa được mời: "${w}"`);
+  // Mời rồi hết giờ: hủy, không tốn gì (hook rest trôi FUSION.window giây cho A).
+  await test(A,"ready"); await test(B,"ready");
+  w=await fus(A,"start");
+  ok(await waitFor(()=>B.fus.some(m=>m.k==="ask"&&m.i===fi),1500)&&A.fus.some(m=>m.k==="wait")&&!O.fus.length&&B.logs.some(t=>t.includes(`mời Võ Hồn Dung Hợp Kỹ ${YN.name}`)),
+    `A mời: B nhận lời nhắc ${YN.name} (${FUSION.window} giây), O không: "${w}"`);
+  w=await fus(A,"start"); ok(/đang chờ/.test(w),`mời lần nữa khi đang chờ: "${w}"`);
+  const mpA=meP(A).mp, mpB=meP(B).mp; B.fus.length=0; const lb=B.logs.length;
+  await test(A,"rest",{s:Math.ceil(FUSION.window)+1}); // hook nhận số giây nguyên
+  ok(await waitFor(()=>B.fus.some(m=>m.k==="cancel")&&B.logs.slice(lb).some(t=>/hết .* giây chờ/.test(t)),1500)&&meP(A).mp>=mpA&&meP(B).mp>=mpB,
+    `hết ${FUSION.window} giây: hủy, không tốn hồn lực (A ${mpA} -> ${meP(A).mp}, B ${mpB} -> ${meP(B).mp})`);
+  w=await fus(B,"join"); ok(/chưa có lời mời/.test(w),`sau khi hủy, B hưởng ứng: "${w}"`);
+  // Mời rồi B chạy xa trước khi hưởng ứng: hủy, không tốn gì.
+  await fus(A,"start"); await test(B,"goto",{x:ax+FUSION.r+80,y:ay}); await sleep(150);
+  w=await fus(B,"join"); ok(/đã hủy: .*đứng xa/.test(w)&&meP(B).mp>=mpB,`B ra xa rồi mới hưởng ứng: "${w}"`);
+  await test(B,"goto",{x:ax+100,y:ay}); await sleep(150);
+  // Tung thật lên tinh anh đặt ở điểm giữa: nổ ở điểm giữa, tốn hồn lực, hồi chiêu, không tiên cơ, đóng góp chia đôi.
+  await clean(); await test(A,"ready"); await test(B,"ready");
+  const EB="bach_nhung_tho_vuong", eb=(await test(A,"beast",{boss:EB,dx:50,dy:0,hpx:50})).bid; // đầy máu, trâu: không gục sau một chiêu
+  await test(A,"status",{s:"root",secs:30,bid:eb}); // tinh anh đứng yên ở điểm giữa
+  const pa={x:meP(A).x,y:meP(A).y}, pb={x:meP(B).x,y:meP(B).y}, mid={x:Math.round((pa.x+pb.x)/2),y:Math.round((pa.y+pb.y)/2)};
+  const mp0=[meP(A).mp,meP(B).mp], en0=JSON.stringify(A.squad?.list.map(s=>s.en)); A.fxs=[]; A.fus.length=0; B.fus.length=0;
+  await fus(A,"start"); await waitFor(()=>B.fus.some(m=>m.k==="ask"),1500);
+  w=await fus(B,"join");
+  ok(await waitFor(()=>A.fus.some(m=>m.k==="done")&&B.fus.some(m=>m.k==="done"),1500)&&w.includes(`Võ Hồn Dung Hợp Kỹ ${YN.name}`),`B hưởng ứng: tung ${YN.name}: "${w}"`);
+  const fx=A.fxs.find(f=>f.k==="fusion"), wave=A.fxs.find(f=>f.k==="wave");
+  ok(fx&&fx.x===mid.x&&fx.y===mid.y&&wave&&Math.abs(wave.x-(pa.x+pb.x)/2)<1&&Math.abs(wave.y+6-(pa.y+pb.y)/2)<1,
+    `nổ ở điểm giữa (${mid.x},${mid.y}): fx fusion (${fx?.x},${fx?.y}), vùng (${wave?.x?.toFixed(0)},${(wave?.y+6).toFixed(0)})`);
+  // Hồn lực tự hồi vài điểm mỗi giây: chờ bản vá có phần trừ rồi so với khoảng hẹp quanh FUSION.cost.
+  const spent=b=>mp0[b===A?0:1]-meP(b).mp;
+  ok(await waitFor(()=>[A,B].every(b=>spent(b)>=FUSION.cost-6&&spent(b)<=FUSION.cost),1500),`mỗi người tốn ${FUSION.cost} hồn lực: A ${mp0[0]} -> ${meP(A).mp}, B ${mp0[1]} -> ${meP(B).mp}`);
+  await sleep(YN.parts[0].n*(YN.parts[0].every??0.15)*1000+300);
+  ok(JSON.stringify(A.squad?.list.map(s=>s.en))===en0,`không tạo năng lượng tiên cơ (đội A ${en0})`);
+  const one=(await test(A,"elite",{bid:eb})).one, da=one?.dmgBy?.[A.room.sessionId]??0, db=one?.dmgBy?.[B.room.sessionId]??0;
+  ok(one&&da>0&&Math.abs(da-db)<1e-6&&one.parts.includes(A.room.sessionId)&&one.parts.includes(B.room.sessionId),
+    `đóng góp tinh anh chia đôi: A ${da.toFixed(1)}, B ${db.toFixed(1)}; cả hai là người tham gia`);
+  // Hồi chiêu của hồn sư: đổi võ hồn không làm mới.
+  w=await fus(A,"start"); ok(/hồi chiêu dung hợp/.test(w),`A tung lại ngay: "${w}"`);
+  await waitFor(()=>meP(B).swCd===0,3500); B.room.send("switch",{slot:1}); await waitFor(()=>meP(B).vh===vohonIndex("lam_ngan_thao"),2000);
+  await waitFor(()=>meP(B).swCd===0,3500); B.room.send("switch",{slot:0}); await waitFor(()=>meP(B).vh===vohonIndex("nguyet_nhan"),2000);
+  w=await fus(B,"start"); ok(/hồi chiêu dung hợp/.test(w),`B đổi võ hồn rồi đổi lại vẫn còn hồi chiêu: "${w}"`);
+  } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }

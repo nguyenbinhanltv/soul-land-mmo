@@ -2408,7 +2408,7 @@ export const FUSIONS: FusionDef[] = [
   // Ngọc Thiên Hằng và Độc Cô Nhạn (võ hồn Bích Lân Xà), phỏng theo.
   { name: "Lôi Độc Song Sát", pair: ["lam_dien_ba_vuong_long", "bich_lan_xa_hoang"], icon: "☇",
     desc: "Sấm độc giáng 2 đợt cả vùng: Cảm điện, Trúng độc 2 tầng mỗi đợt, mỗi tầng độc thêm 40% công",
-    parts: [{ name: "Lôi Độc Song Sát", desc: "", icon: "☇", cost: 0, cd: 0, area: "around", r: 110, n: 2, every: 0.4, dmg: 2.4,
+    parts: [{ name: "Lôi Độc Song Sát", desc: "", icon: "☇", cost: 0, cd: 0, area: "around", r: 110, n: 2, every: 0.4, dmg: 3,
       perStack: { s: "poison", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "shock" }, { s: "poison", n: 2 }] }] },
   // Cặp băng / hỏa ở Tinh Anh Đại Tái và suối Băng Hỏa Lưỡng Nghi Nhãn (phỏng theo), cùng tên ràng buộc.
   { name: "Băng Hỏa Lưỡng Nghi", pair: ["bang_phuong_hoang", "hoa_long"], icon: "☯",

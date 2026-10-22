@@ -2519,6 +2519,9 @@ export class MapRoom extends Room<MapState> {
       const bid = this.addBeast(0, yearsOf(0), boss >= 0 ? boss : sp, p.x + int(o.dx, -200, 200, 0), p.y + int(o.dy, -200, 200, 0), boss >= 0 ? 1 : 0);
       this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; this.bdata.get(bid)!.skills = []; // không tung chiêu báo trước
       if (!o.realDef) this.bdata.get(bid)!.def = BEAST_DEF.ref; // #116: thủ chuẩn như `spawn`
+      // #192 `hpx`: tinh anh đầy máu, máu gốc × hpx (eliteScale tính lại theo máu gốc) để bot đọc đóng góp sau một chiêu mạnh.
+      const e = this.bdata.get(bid)!.elite, hb = this.state.beasts.get(bid)!, hpx = int(o.hpx, 1, 1000, 1);
+      if (e && hpx > 1) { e.base *= hpx; hb.maxHp = hb.hp = Math.round(e.base * bossHpMult(e.n)); }
       out = { bid }; // bot nhận ra đúng con này (hồn thú hoang có thể sinh cùng lúc)
     }
     else if (op === "chan") {
