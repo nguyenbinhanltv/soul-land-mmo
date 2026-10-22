@@ -54,6 +54,8 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     <small class="anote" data-a="status"></small>
     <button class="buse absorb atoggle" type="button" data-a="toggle"></button>
     <section class="asec"><b>Vùng săn</b>
+      <label class="achk"><input type="radio" name="ascope" value="map" data-scope> Toàn bản đồ (tự đi tới hồn thú gần nhất, không qua cổng)</label>
+      <label class="achk"><input type="radio" name="ascope" value="near" data-scope> Chỉ quanh chỗ đứng</label>
       <label class="arange">Bán kính quanh chỗ bật <output data-o="radius"></output>
         <input type="range" min="${AUTO_RADIUS_MIN / TILE}" max="${AUTO_RADIUS / TILE}" step="1" data-k="radius"></label>
       <div class="aline">Niên hạn hồn thú từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y0"> đến
@@ -82,9 +84,9 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
   $("[data-a=reset]", el)!.addEventListener("click", () => ctx?.send("set", structuredClone(AUTO_DEFAULTS)), on);
   // Kéo thanh trượt: chỉ đổi số hiển thị; thả ra (change) thì gửi cài đặt.
   el.addEventListener("input", (e) => { const t = e.target as HTMLInputElement; if (t.type === "range") showRange(el, t); }, on);
-  // Ô đánh dấu / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
+  // Ô đánh dấu / chọn / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
   el.addEventListener("change", (e) => {
-    const t = e.target as HTMLInputElement; if (t.type === "checkbox" || t.type === "range") t.blur();
+    const t = e.target as HTMLInputElement; if (t.type === "checkbox" || t.type === "radio" || t.type === "range") t.blur();
     const cfg = read(el); if (cfg) ctx?.send("set", cfg);
   }, on);
   for (const key of ["skills", "slots"] as const) {
@@ -116,7 +118,8 @@ function read(el: HTMLElement): AutoSettings | null {
     l.on = new Set(l.order.filter((i) => $<HTMLInputElement>(`input[data-on="${i}"]`, box)?.checked));
     return l.order.filter((i) => l.on.has(i));
   };
-  return { radius: num("radius"), years: [num("y0"), num("y1")], hp: num("hp"), mp: num("mp"), mpKeep: num("mpKeep"),
+  const scope = $<HTMLInputElement>("input[data-scope]:checked", el)?.value === "near" ? "near" : "map";
+  return { scope, radius: num("radius"), years: [num("y0"), num("y1")], hp: num("hp"), mp: num("mp"), mpKeep: num("mpKeep"),
     skills: picked("skills"), slots: picked("slots"), ring: v("ringOn").checked ? num("ring") : -1, bone: v("bone").checked,
     core: v("core").checked, coreStar: Number($<HTMLSelectElement>("[data-k=coreStar]", el)!.value) || 1,
     kinds: AUTO_LOOT_KINDS.filter((k) => $<HTMLInputElement>(`[data-kind=${k}]`, el)?.checked),
@@ -137,7 +140,9 @@ function fill(m: AutoMsg) {
     if (typeof val === "boolean") i.checked = val; else i.value = String(val);
     if (i.type === "range") showRange(el, i);
   };
-  set("radius", c.radius); set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
+  for (const i of el.querySelectorAll<HTMLInputElement>("input[data-scope]")) i.checked = i.value === c.scope;
+  // Bán kính chỉ dùng khi săn quanh chỗ đứng.
+  set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
   set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot);
   set("ringOn", c.ring >= 0); set("ring", Math.max(0, c.ring)); set("bone", c.bone); set("core", c.core);
   $<HTMLSelectElement>("[data-k=coreStar]", el)!.value = String(c.coreStar);
