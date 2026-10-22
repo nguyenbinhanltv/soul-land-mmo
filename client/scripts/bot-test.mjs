@@ -324,7 +324,12 @@ async function channelTest(){
   P2.travel=null; const l2=await say(P2,"channel",{ch:2});
   ok(/Đang chuyển sang kênh 2/.test(l2)&&await waitFor(()=>P2.travel,3000)&&P2.travel.mapId===P2.mapId&&P2.travel.roomId===P3.room.roomId,
     `đổi sang kênh 2: "${l2}", travel ${JSON.stringify(P2.travel)}`);
-  await follow(P2);
+  { // #164: client không tự chọn kênh đích: rời phòng rồi joinById kênh khác kênh server chọn bị từ chối (CHANNEL_CD giây)
+    const t=P2.travel; await P2.room.leave(); await sleep(200);
+    let other=""; try{ const r=await new Client(WS).joinById(P1.room.roomId,{token:P2.token,mapId:P2.mapId}); await r.leave(); other="vào được"; }catch(e){ other=String(e?.message??e); }
+    ok(/kênh 2/.test(other)&&other!=="vào được",`đổi sang kênh 2 nhưng tự joinById kênh 1: bị từ chối ("${other}")`);
+    await enter(P2,t.roomId); await fresh(P2);
+  }
   ok(P2.room.roomId===P3.room.roomId&&chOf(P2)===2,`P2 vào kênh ${chOf(P2)} cùng P3`);
   ok(prog(P2)===before.prog&&bagKey(P2)===before.bag,`đổi kênh giữ tiến độ: võ hồn ${before.prog}, túi đồ giữ nguyên`);
   ok(Math.hypot(meC(P2).x-before.x,meC(P2).y-before.y)<1,`giữ vị trí (${before.x.toFixed(0)},${before.y.toFixed(0)}) -> (${meC(P2).x.toFixed(0)},${meC(P2).y.toFixed(0)})`);

@@ -347,8 +347,10 @@ const channelSwitchAt = new Map<number, number>();
  * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; đi cổng / đổi kênh đã commit thì không ghi): trong
  * CHANNEL_CD giây tài khoản chỉ được vào lại đúng kênh đó của bản đồ (onAuth từ chối kênh khác khi kênh cũ còn mở và còn chỗ;
  * pickChannel đưa về kênh cũ). Không có lớp này thì client tự rời rồi joinById kênh khác là né được luật đổi kênh (giao chiến, chờ).
+ * Từ #164 (`travel`): đi cổng / đổi kênh / truyền tống sang bản đồ khác commit xong cũng ghi kênh server đã chọn ở bản đồ đích, để
+ * client vào đúng kênh đó (mục 6: client không chọn kênh đích) chứ không tự joinById kênh khác.
  */
-const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number }>();
+const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 const testNoLeaveLock = new Set<number>();
 /**
@@ -507,10 +509,13 @@ export class MapRoom extends Room<MapState> {
     await this.checkJoin(acc.accountId);
     await this.waitOldSession(acc.accountId, client.sessionId);
     const [{ ch, looks, loc }, owned] = await Promise.all([this.checkJoin(acc.accountId), store.listVohons(acc.accountId)]);
-    // Vừa tự rời một kênh khác của bản đồ này (không qua đổi kênh): chỉ được vào lại kênh đó tới hết CHANNEL_CD giây (leftRoom).
+    // Vừa tự rời một kênh khác của bản đồ này (không qua đổi kênh), hoặc vừa đi cổng / đổi kênh tới kênh server chọn: chỉ được vào kênh
+    // đó tới hết CHANNEL_CD giây (leftRoom).
     const back = this.state.channel ? leftLock(acc.accountId, this.state.mapId, await listChannels(this.state.mapId)) : null;
-    if (back && back.roomId !== this.roomId)
-      throw new ServerError(409, `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${Math.ceil((leftRoom.get(acc.accountId)!.until - Date.now()) / 1000)} giây.`);
+    if (back && back.roomId !== this.roomId) {
+      const l = leftRoom.get(acc.accountId)!, wait = Math.ceil((l.until - Date.now()) / 1000);
+      throw new ServerError(409, l.travel ? `Hãy vào kênh ${back.ch} (kênh server đã chọn) hoặc chờ ${wait} giây.` : `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${wait} giây.`);
+    }
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
       bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [],
       auto: { settings: null, day: "", used: 0, bonus: 0 } };
@@ -1368,7 +1373,12 @@ export class MapRoom extends Room<MapState> {
         d.travelling = false;
         return this.log(id, "Không chuyển được bản đồ, thử lại.", "#ff8a8a");
       }
-      const room = roomId ?? (await pickChannel(d.accountId, portal.to).catch(() => null))?.roomId ?? null;
+      const pick = roomId ? (await listChannels(portal.to).catch(() => [])).find((x) => x.roomId === roomId) ?? null
+        : await pickChannel(d.accountId, portal.to).catch(() => null);
+      const room = roomId ?? pick?.roomId ?? null;
+      // Client phải vào đúng kênh này (mục 6, #164): CHANNEL_CD giây onAuth từ chối kênh khác khi kênh này còn mở, còn chỗ (leftRoom).
+      if (pick) leftRoom.set(d.accountId, { mapId: portal.to, roomId: pick.roomId, ch: pick.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true });
+      else leftRoom.delete(d.accountId);
       const c = this.clients.getById(id); if (!c) return;
       c.send("travel", { mapId: portal.to, roomId: room });
       // Client phải tự rời phòng cũ và vào phòng mới; quá TRAVEL_LEAVE_SECS giây thì server ngắt kết nối.
