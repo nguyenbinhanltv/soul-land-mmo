@@ -120,7 +120,13 @@ async function common(label: string, s: Store, u = "") {
       ({ id: randomUUID(), kind: "dan", code, qty, years: null, stars: null, enhance: 0, stats: null, vohonId: null, created: t++, ...extra });
     const starter = [item("hoi_huyet_dan", 5), item("hoi_hon_dan", 5)];
     // loadBag trả kèm số ô túi (9.8) và tiến độ nhiệm vụ (6.2): tài khoản thử chưa mở rộng túi, chưa nhận nhiệm vụ; so phần còn lại.
-    const items = (b: Bag) => { const { slots, quests, ...rest } = b; assert.equal(slots, BAG_SLOTS); assert.deepEqual(quests, []); return rest; };
+    // Từ #216 kèm bộ lọc tự bán và đồ tự bán (`sell`, `sold`): PgStore luôn trả hai khóa này (`sold` rỗng), MemoryStore thì không; tài khoản thử
+    // chưa tự bán gì.
+    const items = (b: Bag) => {
+      const { slots, quests, sell, sold, ...rest } = b;
+      assert.equal(slots, BAG_SLOTS); assert.deepEqual(quests, []); assert.equal(sell, undefined); assert.ok(!sold?.length);
+      return rest;
+    };
     const loadItems = async (acc: number) => items((await s.loadBag(acc, [])).bag);
     // Lần nạp đầu: nhận vật phẩm khởi đầu đúng thứ tự; lần sau không nhận nữa (kể cả khi gửi danh sách khác).
     const first = await s.loadBag(id, starter);
