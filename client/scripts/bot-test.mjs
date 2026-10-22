@@ -9811,14 +9811,15 @@ async function tideTest(){
       if(st0||waves>=WAVES) break;
       console.log(`  (đợt mới thứ ${waves} không có chỗ đứng: vùng ngập không xoáy ${calm?xy(calm):"không có"}, xoáy ${wh.map(xy).join(" ")}, vùng ngập cũ ${olds.map(xy).join(" ")}; gọi đợt kế)`);
       old=[...t.wave];
-      ok(await waitFor(()=>old.every(id=>F.room.state.grounds.get(id)?.wait===0),(TD.warn+1)*1000),`đợt mới thứ ${waves} hết báo trước, có tác dụng`);
+      // Đợt gọi thêm chỉ chờ, không thêm dòng ✓ (số ✓ của nhóm không đổi theo lượt); Choáng lại thú vương vì gọi thêm đợt tốn thời gian.
+      await waitFor(()=>old.every(id=>F.room.state.grounds.get(id)?.wait===0),(TD.warn+1)*1000); await hold();
       t=await test(F,"tide",{next:0}); await test(F,"tide",{next:600}); waves++;
+      if(!t.on||t.wave.every(id=>old.includes(id))){ console.log(`  (không gọi được đợt kế: Thủy Triều Dâng ${t.on?"không ra đợt mới":"đã thôi chạy"})`); break; }
       fl=waveOf("flood"); wh=waveOf("whirl");
     }
     ok(calm&&st0,`F đứng trong vùng ngập không xoáy của đợt mới, cách vùng ngập cũ ${st0?far(st0).toFixed(0):"?"} (${st0?.x},${st0?.y})`+(waves>1?`, ở đợt mới thứ ${waves}`:"")+(st0?"":
       ` [đợt cuối: ${cand.length} chỗ thỏa đứng được, thử ${tried} chỗ không tới được; vùng ngập không xoáy ${calm?xy(calm):"không có"}, xoáy ${wh.map(xy).join(" ")}, vùng ngập cũ ${olds.map(xy).join(" ")}]`));
-    if(!st0) return; // không có chỗ đứng: các bước sau vô nghĩa (finally hạ thú vương)
-    if(waves>1) await hold(); // gọi thêm đợt tốn thời gian: Choáng lại thú vương cho các bước sau
+    if(!calm) return; // không có vùng ngập không xoáy: các bước sau cần nó (finally hạ thú vương)
     await waitFor(()=>!has("flood"),FL.secs*1000+500); // Ngập nước còn lại từ lúc đứng trong nước đợt cũ
     let g=await test(F,"tide"), zc=g.grounds.find(z=>z.id===calm?.id);
     if(zc?.wait>0) ok(!g.st.flood&&g.slow===0,`đang báo trước (còn ${zc.wait.toFixed(2)} giây): chưa bị ${FL.name}`);
