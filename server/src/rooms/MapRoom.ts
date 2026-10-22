@@ -52,6 +52,7 @@ import { AutoHunter } from "./autoHunt.ts";
 import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
 import { ColdStacks } from "./cold.ts";
+import { Tide } from "./tide.ts";
 
 export interface PData {
   accountId: number;
@@ -170,7 +171,7 @@ export interface AuthData { accountId: number; ch: Character; owned: Character[]
 interface RecallCast { label: string; fee: number; itemId?: string; x0: number; y0: number; dur: number; }
 /** Một trạng thái trên hồn thú: giây còn lại, số tầng, độ lớn mỗi tầng (sát thương mỗi giây hoặc tỉ lệ), người gây. */
 interface SInst { t: number; n: number; v: number; src: string; }
-interface BData {
+export interface BData {
   zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number;
   ret: number;              // 11.1: > 0 là đang bỏ đuổi, chạy về chỗ sinh (còn ngần ấy giây, BEAST_LEASH)
   rooted: boolean;          // #116: thú thực vật đứng yên (BEAST_ROOTED): không đi, không bị đẩy / kéo
@@ -450,6 +451,8 @@ export class MapRoom extends Room<MapState> {
   casting = new Set<string>();
   /** Tầng Hàn của Cực Hàn và Hỏa Đàn (#163, cold.ts). */
   cold = new ColdStacks(this);
+  /** Vùng ngập luân phiên và xoáy nước của Thủy Triều Dâng (#174, tide.ts; vùng là vùng lưu lại của ground.ts). */
+  tide = new Tide(this);
   /** Giây tới lần gửi tin `mini` (bản đồ nhỏ, SYNC_VIEW.mini) kế tiếp. */
   miniT = 0;
   /** PERF_LOG=1: đo thời gian tick / bản vá, ghi log mỗi 10 giây (đo hiệu năng 11.4). */
@@ -2780,6 +2783,12 @@ export class MapRoom extends Room<MapState> {
       // giây đã tích (bot không phải chờ đủ nhịp thật).
       out = { ...this.cold.info(id, typeof o.acc === "number" && o.acc >= 0 ? Math.min(60, o.acc) : undefined), st: pst() };
     }
+    else if (op === "tide") {
+      // #174: Thủy Triều Dâng đang chạy không, giây tới đợt kế tiếp, id vùng / tâm vùng ngập của đợt gần nhất, mức Làm chậm của người gọi
+      // (đã cộng mọi trạng thái, tối đa SLOW_CAP) và trạng thái trên người gọi. `next {s}`: 0 = dâng một đợt ngay, > 0 = đặt giây chờ.
+      const t = this.tide.info(typeof o.next === "number" && o.next >= 0 ? Math.min(600, o.next) : undefined);
+      out = { ...t, grounds: this.grounds.info(), slow: d ? this.pctl(d).slow : 0, st: pst() };
+    }
     else if (op === "pst") {
       // Trạng thái lên chính người gọi như do hồn thú gần nhất gây (sát thương đòn thường của nó cho Trúng độc / Thiêu đốt).
       const s = String(o.s ?? "") as StatusId, x = nearB();
@@ -3765,12 +3774,22 @@ export class MapRoom extends Room<MapState> {
 
   /** Kéo hồn sư `id` về phía hồn thú `b` tối đa `dist` pixel (Quấn Kéo, Lưỡi Quất; BĐ4): dừng khi vướng, sát hồn thú hoặc sắp vào vùng an toàn. */
   pullPlayer(id: string, b: BeastState, dist: number) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
-    const dd = Math.hypot(b.x - p.x, b.y - p.y), go = Math.min(dist, dd - TIERS[b.tier].size / 2 - 8); if (go <= 0) return;
-    const ux = (b.x - p.x) / dd, uy = (b.y - p.y) / dd;
+    const p = this.state.players.get(id); if (!p) return;
+    this.dragPlayer(id, b.x, b.y, Math.min(dist, Math.hypot(b.x - p.x, b.y - p.y) - TIERS[b.tier].size / 2 - 8));
+  }
+
+  /**
+   * Kéo hồn sư `id` thẳng về phía (tx, ty) tối đa `dist` pixel, không quá điểm đó (bước tối đa 2 pixel): dừng khi vướng hoặc sắp vào vùng
+   * an toàn; không kéo người đã gục / đang đi cổng / đang đứng trong vùng an toàn. Dùng cho chiêu có `pull` (pullPlayer) và xoáy nước
+   * (GroundDef.pull, #174).
+   */
+  dragPlayer(id: string, tx: number, ty: number, dist: number) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y)) return;
+    const dd = Math.hypot(tx - p.x, ty - p.y), go = Math.min(dist, dd); if (go <= 0) return;
+    const ux = (tx - p.x) / dd, uy = (ty - p.y) / dd;
     for (let moved = 0; moved < go; moved += 2) {
-      const ox = p.x, oy = p.y;
-      this.map.moveEnt(p, ux * 2, uy * 2, 5, 4);
+      const ox = p.x, oy = p.y, st = Math.min(2, go - moved);
+      this.map.moveEnt(p, ux * st, uy * st, PLAYER_HW, PLAYER_HH);
       if (this.map.inSafe(p.x, p.y)) { p.x = ox; p.y = oy; break; }
       if (p.x === ox && p.y === oy) break;
     }
@@ -5942,6 +5961,8 @@ export class MapRoom extends Room<MapState> {
     this.grounds.tick(dt);
     // #163: Cực Hàn tích tầng Hàn cho người tham gia trong hang, Hỏa Đàn xả tầng.
     this.cold.tick(dt);
+    // #174: Thủy Triều Dâng dâng đợt nước mới (vùng có tác dụng từ nhịp sau, sau báo trước).
+    this.tide.tick(dt);
     // 11.4: lưới hồn thú / đồ rơi theo vị trí sau khi di chuyển (đạn, hồn kỹ, lọc đồng bộ dùng tới nhịp sau).
     this.interest.syncEntities();
     // đạn hồn kỹ
