@@ -2393,7 +2393,7 @@ export class GameScene extends Phaser.Scene {
       // UI-1: gắn nhanh cho võ hồn đang ra trận (cùng lệnh với bảng đội hình; server kiểm tra vị trí, giao chiến, túi đầy)
       active: () => this.owned?.active ?? null,
       equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equip", { itemId, vohonId, slot }); },
-      equipCore: (itemId) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId }); },
+      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId, slot }); },
     });
   }
 

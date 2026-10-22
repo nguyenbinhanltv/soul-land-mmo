@@ -1683,7 +1683,7 @@ export interface BagActions {
   lock(id: string): void; autoSell(cfg: SellSettings): void; // khoá / mở khoá ô, bộ lọc tự bán (#216)
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
-  active(): number | null; equipBone(id: string, slot?: string): void; equipCore(id: string): void; // UI-1: võ hồn ra trận, gắn nhanh (kéo thả / nút) cho võ hồn đó
+  active(): number | null; equipBone(id: string, slot?: string): void; equipCore(id: string, slot?: number): void; // UI-1: võ hồn ra trận, gắn nhanh (kéo thả / nút) cho võ hồn đó
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
 }
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
@@ -1951,7 +1951,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (bone) btn("Gắn…", "use", () => openBones(sel.id, bone.slot)); // hồn cốt (4.2): gắn ở bảng đội hình
     if (bone && sel.enhance < BONE_MAX_ENHANCE) btn("Cường hóa…", "use", () => { enhOpen(sel.id); again(); }); // 4.4
     if (core && enhTarget === sel.id) { info.appendChild(corePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
-    if (core && active !== null) btn("Gắn nhanh", "absorb", () => act.equipCore(sel.id));
+    if (core && active !== null) btn("Gắn nhanh", "absorb", () => act.equipCore(sel.id, coreQuickSlot(sel, bag.items, active)));
     if (core) btn("Gắn…", "use", () => openCores(sel.id)); // hồn hạch (5.2): gắn ở bảng đội hình
     if (core && sel.enhance < CORE_MAX_ENHANCE) btn("Nâng cấp…", "use", () => { enhOpen(sel.id); again(); }); // 5.3
     // Khoá (#216): món khoá không bị bán (tay hay tự bán), bỏ, làm nguyên liệu; server kiểm tra lại.
@@ -1964,6 +1964,13 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   el.appendChild(info);
   finishBag(el);
 }
+
+/** Ô gửi kèm khi gắn nhanh hồn hạch: đủ ô thì ô của món yếu nhất (đúng món bảng so sánh nói sẽ bị thay), còn ô trống thì để server chọn. */
+const coreQuickSlot = (it: BagItem, items: BagItem[], active: number) => {
+  const cur = wornFor(it, items, active)?.cur;
+  const s = cur ? coreSlotOf(cur.stats) : -1;
+  return s >= 0 ? s : undefined;
+};
 
 /** Hàng công cụ của túi (UI-1): chip lọc theo nhóm (kèm số món) và hộp chọn cách xếp; đổi gì thì vẽ lại túi, không gửi gì lên server. */
 function bagTools(bag: BagMsg, items: BagItem[], again: () => void) {
@@ -2008,7 +2015,7 @@ function bagEquipStrip(items: BagItem[], vohon: number, act: BagActions) {
   }
   const cores = mine.filter((i) => coreOf(i));
   const cb = cell("core" + (cores.length ? "" : " empty"), `${coreSvg("")}<small>${cores.length}/${CORE_SLOTS}</small>`, (id) => {
-    const d = items.find((i) => i.id === id); if (d && coreOf(d)) act.equipCore(id);
+    const d = items.find((i) => i.id === id); if (d && coreOf(d)) act.equipCore(id, coreQuickSlot(d, items, vohon));
   });
   cb.setAttribute("aria-label", `Hồn hạch đang gắn ${cores.length}/${CORE_SLOTS}`);
   setTip(cb, { title: `Hồn hạch ${cores.length}/${CORE_SLOTS}`, lines: cores.map((c) => itemName(c)), foot: "Kéo hồn hạch từ túi thả vào để gắn (vào ô trống đầu tiên)" });
