@@ -238,17 +238,18 @@ test("Chặn lặp cùng nội dung liên tục trong 30 giây", () => {
   sec(2); assert.equal(send("mua hồn hoàn"), "ok");
 });
 
-test("Mỗi kênh chat một bucket riêng (#188)", () => {
+test("Mỗi kênh chat một bucket riêng (#188, #198)", () => {
   for (let i = 0; i < 5; i++) assert.equal(send(`bđ ${i}`), "ok");
   assert.match(send("bđ 5")!, /chat quá nhanh/);
-  const on = (ch: "party" | "whisper" | "world", t: string) => { const r = chatCheck(1, t, now, ch); return r && ("error" in r ? r.error : "ok"); };
-  for (const ch of ["party", "whisper", "world"] as const) {
+  const on = (ch: "party" | "whisper" | "world" | "tong", t: string) => { const r = chatCheck(1, t, now, ch); return r && ("error" in r ? r.error : "ok"); };
+  for (const ch of ["party", "whisper", "world", "tong"] as const) {
     for (let i = 0; i < 5; i++) assert.equal(on(ch, `${ch} ${i}`), "ok");
     assert.match(on(ch, `${ch} 5`)!, /chat quá nhanh/);
   }
   chatReset(1);
   assert.equal(send("sau reset"), "ok");
   assert.equal(on("party", "sau reset"), "ok");
+  assert.equal(on("tong", "sau reset"), "ok");
 });
 
 test("Kênh thế giới: hồi WORLD_CHAT.cdSecs giây (#188)", () => {

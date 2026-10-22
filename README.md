@@ -37,6 +37,21 @@ cp .env.example server/.env      # đã có sẵn DATABASE_URL cho Postgres loca
 npm run dev:server
 ```
 
+**Nhiều tiến trình với RedisPresence**
+
+Chỉ bật khi chạy hai tiến trình cùng lúc. Dùng cùng `REDIS_URL` cho các tiến trình trong cùng một cụm; mỗi cụm / môi trường phải dùng Redis riêng, không dùng chung Redis của dịch vụ khác.
+
+```bash
+# terminal 1
+PORT=2567 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
+# terminal 2
+PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
+```
+
+Mỗi tiến trình cần `PUBLIC_ADDRESS` là địa chỉ client mở WebSocket tới đúng tiến trình đó (ví dụ `PUBLIC_ADDRESS=localhost:2567` và `PUBLIC_ADDRESS=localhost:2568`, hoặc đường dẫn riêng sau proxy). Không đặt thì client chỉ vào được phòng nằm ở tiến trình đã nhận yêu cầu HTTP. Sân đấu luôn mở ở tiến trình ghép trận.
+
+`RedisPresence` dùng pub/sub và RedisDriver để chia sẻ phòng, số kênh, khóa đổi kênh, phiên tài khoản, thú vương, khóa tinh anh, hàng chờ đấu trường và tổ đội. Lease có TTL 15 giây, heartbeat 5 giây; tiến trình chết không giữ tài khoản hoặc suất vô hạn. `REDIS_PREFIX` chỉ áp cho khóa ioredis của game; kênh pub/sub của `RedisPresence` và registry phòng của `RedisDriver` không có prefix, nên mỗi cụm vẫn cần Redis riêng. Khi không đặt `REDIS_URL`, server tự dùng LocalPresence và RAM như cũ, không cần chạy dịch vụ ngoài. Khi đã bật Redis mà Redis lỗi, server đóng phiên liên quan để tránh hai tiến trình cùng ghi dữ liệu.
+
 **Supabase**
 
 1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database, chọn region gần người chơi.
@@ -76,6 +91,7 @@ npm run bot:local -- --help                 # danh sách nhóm và tham số
 npm run bot:local -- --only bag             # một nhóm BOT_ONLY, chế độ RAM
 npm run bot:local -- --part 2               # một nhóm BOT_PART như CI
 npm run bot:local -- --channels             # lượt nhiều kênh (CHANNEL_MAX=2)
+npm run bot:local -- --fatal --pg           # lỗi nghiêm trọng ngoài phòng (#270): server lưu, đóng DB, thoát mã ≠ 0; bật lại kiểm dữ liệu
 npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, server bật hai lần, xoá database khi xong
 ```
 

@@ -2,9 +2,10 @@ import http from "node:http";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import express from "express";
-import { Server, LocalPresence, matchMaker } from "colyseus";
+import { Server, matchMaker } from "colyseus";
+import { RedisDriver } from "@colyseus/redis-driver";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
+import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP, saveStats } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
@@ -12,6 +13,10 @@ import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
+import { gamePresence, presenceBackend } from "./presence.ts";
+import { configurePresence as configurePartyPresence } from "./party.ts";
+
+configurePartyPresence(presenceBackend);
 
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
@@ -119,9 +124,17 @@ const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
 if (existsSync(dist)) app.use(express.static(dist));
 
 const server = http.createServer(app);
-// Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
-const presence = new LocalPresence();
-const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
+// Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
+const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.REDIS_URL) : undefined;
+// PUBLIC_ADDRESS (mỗi tiến trình một địa chỉ client tới được, vd "game.example.com/2567"): phòng mở ở tiến trình khác thì chỗ giữ mang địa chỉ này để
+// client mở WebSocket đúng tiến trình giữ phòng (không đặt thì phòng ở tiến trình khác không vào được). Sân đấu luôn mở ở tiến trình ghép trận vì
+// `arenaMatches` (arenaQueue.ts) là bộ nhớ của tiến trình đó; phòng khác giữ cách chọn mặc định của Colyseus (tiến trình ít phòng nhất).
+const publicAddress = process.env.PUBLIC_ADDRESS?.trim() || undefined;
+// gracefullyShutdown: false: Colyseus không tự gắn uncaughtException / tín hiệu tắt; việc tắt server chỉ do `shutdown` dưới đây (#270).
+const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, gracefullyShutdown: false, ...(driver ? { driver } : {}), ...(publicAddress ? { publicAddress } : {}),
+  selectProcessIdToCreateRoom: async (roomName) => roomName === "arena"
+    ? matchMaker.processId
+    : (await matchMaker.stats.fetchAll()).sort((a, b) => a.roomCount > b.roomCount ? 1 : -1)[0]?.processId || matchMaker.processId });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 // MapRoom / ArenaRoom có cả `static onAuth` (kiểm token trước khi giữ chỗ, #235) lẫn onAuth của phòng: Colyseus in dòng "onAuth() defined
@@ -134,10 +147,71 @@ gameServer.define("arena", ArenaRoom);
 // joinOrCreate / joinById kiểm token ở static onAuth trước khi giữ chỗ / mở kênh (#235).
 matchMaker.controller.exposedMethods = ["joinOrCreate", "join", "joinById", "reconnect"];
 
+/** Hạn giờ khi tắt server (ms): lưu người chơi đang online (rời mọi phòng), rồi đóng kết nối PostgreSQL. Tổng dưới 10 giây chờ của
+ *  `docker stop` mặc định. */
+const SHUTDOWN_SAVE_MS = 6000, SHUTDOWN_DB_MS = 2000;
+let stopping: Promise<void> | null = null, exitCode = 0;
+/** Chờ `p` tối đa `ms` mili giây; quá giờ hoặc lỗi thì ghi log rồi đi tiếp (đang tắt server, không chờ mãi). */
+const within = async (what: string, p: () => Promise<unknown>, ms: number) => {
+  let timer: NodeJS.Timeout | undefined;
+  const late = new Promise<"late">((r) => { timer = setTimeout(() => r("late"), ms); });
+  const r = await Promise.race([p().then(() => "ok" as const, (e) => { console.error(`${what}: lỗi`, e); return "err" as const; }), late]);
+  clearTimeout(timer);
+  if (r === "late") console.error(`${what}: quá ${ms} ms, bỏ qua.`);
+  return r === "ok";
+};
+/**
+ * Tắt server có kiểm soát (một lần): rời mọi phòng như khi người chơi thoát (onLeave / onDispose của MapRoom ghi lần cuối qua chuỗi lưu
+ * this.chain), đóng PostgreSQL, rồi process.exit để trình quản lý tiến trình (pm2, nền tảng deploy) khởi động lại khi mã ≠ 0. Gọi lại
+ * trong lúc đang tắt chỉ nâng mã thoát (lỗi nghiêm trọng giữa lúc tắt vì tín hiệu vẫn thoát 1).
+ */
+function shutdown(code: number, why: string) {
+  exitCode = Math.max(exitCode, code);
+  stopping ??= (async () => {
+    let last = "";
+    try {
+      const { local } = matchMaker.stats, failed0 = saveStats.failed;
+      console.error(`Đang tắt server (${why}): lưu ${local.ccu} người chơi đang online, hạn ${SHUTDOWN_SAVE_MS} ms…`);
+      await within("Lưu người chơi đang online", () => gameServer.gracefullyShutdown(false), SHUTDOWN_SAVE_MS);
+      // Colyseus tự bắt lỗi giữa chừng (in log) rồi vẫn trả về, nên xét theo số người còn trong phòng (ccu chỉ giảm sau khi onLeave, lần
+      // ghi cuối, xong) và số lần ghi lỗi trong lúc tắt (chuỗi lưu chỉ ghi log lỗi). Phòng còn chỗ đặt trước chưa dùng chỉ đóng khi chỗ đó
+      // hết hạn: không còn người nên không còn gì để lưu.
+      const failed = saveStats.failed - failed0, saved = local.ccu <= 0 && !failed;
+      if (!saved) exitCode = Math.max(exitCode, 1); // tắt vì tín hiệu mà chưa lưu xong cũng báo mã ≠ 0
+      const closed = await within("Đóng kết nối PostgreSQL", () => store.close(), SHUTDOWN_DB_MS);
+      last = `Tắt server: ${saved ? "đã lưu người chơi đang online" : `CHƯA lưu xong người chơi đang online (còn ${local.ccu} người, ${failed} lần lưu lỗi)`}, `
+        + `${closed ? "đã đóng" : "chưa đóng"} kết nối DB; thoát mã ${exitCode}.\n`;
+    } finally {
+      // Thoát sau khi dòng cuối đã ghi ra (stderr là pipe thì ghi bất đồng bộ); lỗi bất ngờ ngay trong lúc tắt cũng không để tiến trình treo.
+      const exit = () => process.exit(exitCode);
+      setTimeout(exit, 500);
+      process.stderr.write(last, exit);
+    }
+  })();
+}
+/**
+ * Lỗi bất ngờ ngoài mọi phòng (hẹn giờ / callback của Node, promise bị từ chối không ai bắt): ghi log đầy đủ rồi thoát có kiểm soát,
+ * không nuốt lỗi chạy tiếp (trạng thái tiến trình có thể đã hỏng). Lỗi ném ngay trong handler / hẹn giờ clock / tick của phòng do
+ * MapRoom.onUncaughtException xử lý (phòng chạy tiếp) nên không tới đây; lỗi trong phần chạy sau một promise của phòng (`.then` sau chuỗi
+ * lưu, callback presence) thì nằm ngoài lớp chặn đó và tới đây. @pm2/io (phụ thuộc gián tiếp của @colyseus/core, nạp động
+ * trong `new Server` qua matchMaker.setup) cũng gắn handler hai sự kiện này, thường trước handler ở đây: nó chỉ in lại lỗi, không tự thoát
+ * vì đã có handler khác (`uncaughtException` của nó chỉ process.exit(1) khi là listener duy nhất, tức lúc đang khởi động, chưa có ai để lưu).
+ */
+function fatal(kind: string, err: unknown) {
+  console.error(`Lỗi nghiêm trọng ngoài phòng (${kind})${stopping ? " trong lúc đang tắt server" : ""}:`, err);
+  shutdown(1, kind);
+}
+
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
 for (const id of Object.keys(MAPS)) loadMap(id);
 await store.init();
+// Gắn sau khi nạp bản đồ / DB: lỗi lúc khởi động vẫn dừng ngay với lỗi gốc của Node (chưa có ai để lưu), trước khi server nhận kết nối.
+process.on("uncaughtException", (err, origin) => fatal(origin, err));
+process.on("unhandledRejection", (reason) => fatal("unhandledRejection", reason));
+// Tắt bình thường (Ctrl+C, nền tảng deploy dừng / khởi động lại, nodemon): lưu như trên rồi thoát mã 0. Tín hiệu lặp lại trong lúc đang
+// tắt không cắt ngang lần lưu (process.on, không once); tối đa SHUTDOWN_SAVE_MS + SHUTDOWN_DB_MS.
+for (const sig of ["SIGINT", "SIGTERM", "SIGUSR2"] as const) process.on(sig, () => shutdown(0, sig));
 await gameServer.listen(PORT);
 // Lịch tà hóa thú vương 20:00 / 22:00 giờ Việt Nam (BĐ5): báo toàn server trước 5 phút, phòng của bản đồ đó sinh thú vương.
-startSchedule(presence);
-console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT}`);
+startSchedule(gamePresence, presenceBackend);
+console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT} (${presenceBackend.mode === "redis" ? "RedisPresence" : "RAM presence"})`);

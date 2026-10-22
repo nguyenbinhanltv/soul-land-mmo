@@ -1,5 +1,5 @@
 {
-  "_": "Hải Thần Đảo / Ma Quỷ Hải Vực ×8 diện tích (11.5). Đảo giữa biển sâu, tây → đông: bến thuyền về Thiên Đấu Thành (cầu tàu ra mép tây), Bãi san hô (Ghềnh Cự Giải), Ma Quỷ Hải Vực (rạn nông, rãnh biển sâu, đường đá nối các bãi), Vách Hải Thần (cao nguyên vách đá, đền Hải Thần với tượng đinh ba ở Hải Thần Điện), Hải Thần Uyên (hố biển sâu, Vực Ma Kình). Định dạng: tools/maps/README.md.",
+  "_": "Hải Thần Đảo / Ma Quỷ Hải Vực ×8 diện tích (11.5). Đảo giữa biển sâu, tây → đông: bến thuyền về Thiên Đấu Thành (cầu tàu ra mép tây), Bãi san hô (Ghềnh Cự Giải), Ma Quỷ Hải Vực (rạn nông, rãnh biển sâu, đường đá nối các bãi), Vách Hải Thần (cao nguyên vách đá, đền Hải Thần với tượng đinh ba ở Hải Thần Điện; sân trước đền là vùng an toàn Thánh địa Hải Thần, chỗ Ba Tái Tây đứng, #284), Hải Thần Uyên (hố biển sâu, Vực Ma Kình). Hải Mã Đấu La (giao chuỗi chương 3) đứng ở trại Bến Hải Thần, trong vùng an toàn nhỏ chỉ quanh chỗ đứng của nó (trại vẫn giao chiến được). Định dạng: tools/maps/README.md.",
   "map": "hai_than_dao",
   "out": "hai_than_dao.v2.json",
   "size": [255, 170],
@@ -110,6 +110,14 @@
     { "name": "Ma Chương Vương", "boss": "ma_chuong_vuong", "rect": [88, 26, 8, 6] },
     { "name": "Huyết Sa Bạo Quân", "boss": "huyet_sa_bao_quan", "rect": [160, 117, 8, 6] },
     { "name": "Hắc Uyên Ma Kình", "boss": "hac_uyen_ma_kinh", "rect": [210, 27, 8, 6] }
+  ],
+  "safe": [
+    { "name": "Bến Hải Thần", "rect": [17, 79, 5, 5] },
+    { "name": "Thánh địa Hải Thần", "rect": [144, 68, 18, 12] }
+  ],
+  "npcs": [
+    { "name": "Hải Mã Đấu La", "npc": "hai_ma_dau_la", "at": [19, 82] },
+    { "name": "Ba Tái Tây", "npc": "ba_tai_tay", "at": [153, 76] }
   ],
   "lair": { "name": "Vực Ma Kình", "boss": "tham_hai_ma_kinh_vuong", "at": [222, 140], "rx": 8, "ry": 6 }
 }
