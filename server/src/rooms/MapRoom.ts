@@ -48,6 +48,7 @@ import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
 import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
+import { ColdStacks } from "./cold.ts";
 
 export interface PData {
   accountId: number;
@@ -411,6 +412,8 @@ export class MapRoom extends Room<MapState> {
   interest!: Interest;
   /** Vùng lưu lại trên mặt đất do chiêu hồn thú để lại (#161, ground.ts). */
   grounds = new Grounds(this);
+  /** Tầng Hàn của Cực Hàn và Hỏa Đàn (#163, cold.ts). */
+  cold = new ColdStacks(this);
   /** Giây tới lần gửi tin `mini` (bản đồ nhỏ, SYNC_VIEW.mini) kế tiếp. */
   miniT = 0;
   /** PERF_LOG=1: đo thời gian tick / bản vá, ghi log mỗi 10 giây (đo hiệu năng 11.4). */
@@ -2440,6 +2443,12 @@ export class MapRoom extends Room<MapState> {
       if (typeof o.ttl === "number" && o.ttl >= 0) this.grounds.setTtl(Math.min(60, o.ttl));
       out = { grounds: this.grounds.info(), st: Object.fromEntries([...d.st].map(([s, x]) => [s, { n: x.n, t: x.t }])) };
     }
+    else if (op === "cold") {
+      // #163: Hỏa Đàn, Cực Hàn đang chạy không, số giây đã tích của người gọi và tầng Hàn / Đóng băng trên người gọi; `acc {s}` đặt số
+      // giây đã tích (bot không phải chờ đủ nhịp thật).
+      out = { ...this.cold.info(id, typeof o.acc === "number" && o.acc >= 0 ? Math.min(60, o.acc) : undefined),
+        st: Object.fromEntries([...d.st].map(([s, x]) => [s, { n: x.n, t: x.t }])) };
+    }
     else if (op === "pst") {
       // Trạng thái lên chính người gọi như do hồn thú gần nhất gây (sát thương đòn thường của nó cho Trúng độc / Thiêu đốt).
       const s = String(o.s ?? "") as StatusId, x = nearB();
@@ -3428,7 +3437,7 @@ export class MapRoom extends Room<MapState> {
    * Gây trạng thái `a` lên hồn sư `id` (do chiêu báo trước, `base`: sát thương đòn thường của hồn thú, nhân `dot` thành sát thương
    * mỗi giây mỗi tầng). Cùng luật cộng tầng với hồn thú (applyStatus). Không gây cho người đã gục, đang chuyển bản đồ, trong vùng an toàn.
    */
-  applyPStatus(id: string, a: StatusApply, base: number) {
+  applyPStatus(id: string, a: StatusApply, base: number): void {
     const p = this.state.players.get(id), d = this.pdata.get(id);
     if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y) || !PLAYER_STATUS.includes(a.s)) return;
     // Kháng trạng thái của bị động hồn cốt (4.3): thời gian ngắn đi theo tỉ lệ.
@@ -3438,9 +3447,14 @@ export class MapRoom extends Room<MapState> {
     if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); }
     else d.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: "" });
     if (def.wander) d.charm = null; // Mê hoặc mới (#116): đi lung tung quanh chỗ đang đứng lúc trúng
+    // Đủ tầng thì bùng phát (#163, tầng Hàn thành Đóng băng): bỏ trạng thái này, gây trạng thái `burst.s` (qua kháng như mọi lần gây).
+    if (def.burst && d.st.get(a.s)!.n >= def.max) {
+      d.st.delete(a.s); this.syncPStatus(p, d);
+      return this.applyPStatus(id, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, base);
+    }
     this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
   }
-  syncPStatus(p: PlayerState, d: PData) { let m = 0; for (const s of d.st.keys()) m |= statusBit(s); p.st = m; }
+  syncPStatus(p: PlayerState, d: PData) { let m = 0; for (const s of d.st.keys()) m |= statusBit(s); p.st = m; p.han = d.st.get("chill")?.n ?? 0; }
   clearPStatus(p: PlayerState, d: PData) { if (d.st.size) { d.st.clear(); d.dotT = 0; d.charm = null; this.syncPStatus(p, d); } }
   /**
    * Khống chế đang có trên hồn sư: không đi (Choáng, Đóng băng, Trói), không đánh (Choáng, Đóng băng, Mê hoặc), không dùng hồn kỹ (thêm
@@ -5493,6 +5507,8 @@ export class MapRoom extends Room<MapState> {
 
     // #161: vùng lưu lại trên mặt đất (sau vòng hồn thú: vùng vừa để lại gây nhịp đầu ngay trong nhịp này).
     this.grounds.tick(dt);
+    // #163: Cực Hàn tích tầng Hàn cho người tham gia trong hang, Hỏa Đàn xả tầng.
+    this.cold.tick(dt);
     // 11.4: lưới hồn thú / đồ rơi theo vị trí sau khi di chuyển (đạn, hồn kỹ, lọc đồng bộ dùng tới nhịp sau).
     this.interest.syncEntities();
     // đạn hồn kỹ

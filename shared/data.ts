@@ -582,7 +582,9 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   // Từ 2.5c (lưu phái Cảm điện): Mị hoặc (cộng dồn thành Mê hoặc), Mê hoặc, Làm chậm, Phong ấn (cộng dồn thành Dễ thương).
   "allure", "charm", "slow", "lock",
   // Từ #116: Đóng băng (chỉ có trên hồn sư, chiêu băng của hồn thú gây).
-  "freeze"] as const;
+  "freeze",
+  // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
+  "chill"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -626,6 +628,10 @@ export const STATUS: Record<StatusId, StatusDef> = {
   lock:    st("Phong ấn",  "#e0b04a", 6, 3, { burst: { s: "vuln", secs: 6.8 } }),
   // Từ #116: Đóng băng trên hồn sư: như Choáng (không đi, không đánh, không dùng hồn kỹ), hình khối băng; thời gian ghi ở từng chiêu.
   freeze:  st("Đóng băng", "#9ad8ff", 1.5, 1, { noMove: true, noAtk: true }),
+  // Từ #163 (thiết kế gốc đã chốt): tầng Hàn của Cực Hàn tự nó không gây gì; đủ 4 tầng thì bùng phát thành Đóng băng 3 giây. Tầng chỉ
+  // mất theo luật Cực Hàn (Hỏa Đàn, thanh tẩy, rời hang, cả đội gục, thú vương bị hạ / rút đi; server/src/rooms/cold.ts): thời gian
+  // dài để không tự hết giữa hai lần tích (BossPhase.cold.every).
+  chill:   st("Hàn",       "#d8f2ff", 60, 4, { burst: { s: "freeze", secs: 3 } }),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -643,12 +649,12 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill"];
 /**
  * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
  * bằng PvP riêng để #113).
  */
-export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze"];
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill"];
 /** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
 export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
 /**
@@ -967,7 +973,15 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
-export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; }
+export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; }
+/**
+ * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): mọi hồn sư đang tham gia trong hang
+ * (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
+ * băng hoặc miễn sát thương thì ngừng tích. Đứng cách Hỏa Đàn (đống lửa trong hang) không quá `fire.r` pixel hoặc được thanh tẩy thì xả
+ * hết tầng. Hỏa Đàn đặt ở điểm đi được trong hang gần điểm tỉ lệ `fire.at` của hình chữ nhật `boss` nhất (hoaDanSpot, shared/hoaDan.ts),
+ * quanh nó `fire.clear` pixel mỗi phía đều đi được.
+ */
+export interface ColdDef { every: number; fire: { r: number; at: [number, number]; clear: number } }
 export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
   world?: WorldMech; }
 /**
@@ -1090,15 +1104,16 @@ export const BOSSES: BossDef[] = [
   { id: "bang_bich_hat_vuong", name: "Băng Bích Hạt Vương", rank: 1, species: "bang_bich_hat", aura: "#7fd0ff", skills: [
     bs("Tam Liên Châm", "line", 110, { w: 12, count: 3, spread: 45, dmg: 1.7 }),
     bs("Cực Hàn Lĩnh Vực", "circle", 60, { dmg: 1, status: [{ s: "slow", secs: 4 }] })] },
-  // Thú vương Cực Bắc (BĐ5 + BĐ6c, đã chốt). Giai đoạn 2 "Cực Hàn" bản tối thiểu: tầng Hàn tích theo thời gian và Hỏa Đàn chưa làm;
-  // thay bằng gió cực hàn phủ cả hang (Làm chậm) và băng phong dưới chân một người bị đánh dấu (đóng băng 3 giây, như đủ 4 tầng Hàn),
-  // chạy khỏi vòng là né được.
+  // Thú vương Cực Bắc (BĐ5 + BĐ6c, đã chốt). Giai đoạn 2 "Cực Hàn" (#163, thiết kế gốc): tầng Hàn tích theo thời gian, đủ tầng thì
+  // Đóng băng (STATUS.chill), Hỏa Đàn / thanh tẩy xả tầng (ColdDef); thêm gió cực hàn quanh thân (Làm chậm). Băng phong dưới chân người
+  // bị đánh dấu của bản tối thiểu (thay cho tầng Hàn) đã bỏ. Mỗi 5 giây một tầng: không về Hỏa Đàn thì 20 giây bị Đóng băng một lần;
+  // Hỏa Đàn ở phía cửa hang, cách tâm hang (chỗ thú vương sinh) khoảng một phần ba bề cao hang.
   { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
     bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
     bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
-    phase2: { name: "Cực Hàn", desc: "gió cực hàn phủ cả hang, đóng băng người bị đánh dấu, tốc độ +20%", spd: 1.2, skills: [
-      bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] }),
-      bs("Huyền Minh Băng Phong", "circle", 30, { at: "target", range: 160, warn: 1.5, dmg: 1.2, cd: 12, mark: true, status: [{ ...FREEZE, secs: 3 }] })] } },
+    phase2: { name: "Cực Hàn", desc: "mọi người trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
+      spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.5, 0.85], clear: 20 } }, skills: [
+      bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
   // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
   // Câm lặng + Làm chậm (client chưa có hiệu ứng che màn hình); Huyết Khí nhắm người tham gia ít máu nhất (`weak`).

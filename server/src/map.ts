@@ -3,6 +3,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { solidGrid, hits as gridHits, moveEnt as gridMove, isSolidTile as gridSolid } from "../../shared/move.ts";
 import { campMerchantSpot } from "../../shared/camp.ts";
+import { hoaDanSpot } from "../../shared/hoaDan.ts";
 import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, npcDef, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
@@ -43,6 +44,7 @@ export interface GameMap {
   elites: EliteSpot[];  // mỗi vùng tối đa 1 tinh anh (mục 5.4)
   lair: BossSpot | null; // hang tà hóa thú vương (BĐ5): tối đa 1 mỗi bản đồ, đúng thú vương của MAPS[mapId].king
   lake: { x: number; y: number } | null; // giữa hồ (object `lake`, điểm; #118): boss thế giới lặn ra đây khi Du Thủy
+  hoaDan: { x: number; y: number } | null; // Hỏa Đàn trong hang (#163, Cực Hàn): tính từ hình chữ nhật `boss` (shared/hoaDan.ts)
   npcs: NpcSpot[];       // NPC (6.1): mỗi mã tối đa một chỗ trong bản đồ
   waypoints: Waypoint[]; // truyền tống trận (11.2)
   waypointAt(x: number, y: number): Waypoint | undefined;
@@ -214,6 +216,8 @@ export function loadMap(mapId: string): GameMap {
 
   const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones), npcs = parseNpcs(mapId, npcObjs);
   const camp = campMerchantSpot(raw, mapId); // #111: thương nhân lưu động ở trại cổng bản đồ săn
+  const hd = hoaDanSpot(raw, mapId), hoaDan = hd && lair && inRect(lair, hd.x, hd.y) ? { x: hd.x, y: hd.y } : null; // #163: Hỏa Đàn
+  if (!hoaDan && BOSSES[bossIndex(MAPS[mapId].king ?? "")]?.phase2?.cold) console.warn(`[map ${mapId}] Không có chỗ đặt Hỏa Đàn trong hang thú vương (#163).`);
   if (camp && !npcs.some((n) => n.id === camp.id)) npcs.push(camp);
   else if (!camp && MAPS[mapId].kind === "hunt" && !safe.some((r) => inRect(r, spawn.x + spawn.w / 2, spawn.y + spawn.h / 2)))
     console.warn(`[map ${mapId}] Không có chỗ đứng cho thương nhân lưu động trong trại cổng "spawn" (#111).`);
@@ -226,7 +230,7 @@ export function loadMap(mapId: string): GameMap {
   if (!lake && (MAPS[mapId].world ?? []).some((id) => BOSSES[bossIndex(id)]?.world?.dive))
     console.warn(`[map ${mapId}] Thiếu object \`lake\` (giữa hồ): Du Thủy của boss thế giới sẽ lặn tại chỗ.`);
   const map: GameMap = {
-    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits,
+    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits, hoaDan,
     waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),
     inLair: (x, y) => !!lair && inRect(lair, x, y),
     moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),
