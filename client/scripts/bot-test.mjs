@@ -8791,15 +8791,15 @@ async function autoBossTest(){
   const team=async slots=>{ await test(A,"clear",{keep:true}); await test(A,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(A,slots); return same(A.owned.team,slots); };
   /**
    * Võ hồn chính của lượt tự săn là võ hồn ra trận lúc bật (tiên cơ / cơ chế đổi tay lượt trước có thể để lại võ hồn khác): đổi về `row`.
-   * Tin vohons của lần tự săn vừa đổi tay tới trước bản vá có swCd mới: đọc swCd sau khi võ hồn trong state (vh, cùng bản vá với swCd) đã
-   * khớp võ hồn ra trận của tin vohons; server vẫn bỏ qua tin switch (không trả lời) thì gửi lại.
+   * Tin vohons tới trước bản vá state: chờ võ hồn trong state (vh, cùng bản vá với swCd) khớp võ hồn ra trận của tin vohons rồi mới đọc swCd
+   * (tự săn vừa đổi tay thì swCd đọc được có lúc còn 0) và trước khi trả về; server vẫn bỏ qua tin switch (không trả lời) thì gửi lại.
    */
-  const swReady=async()=>{ await waitFor(()=>me().vh===vohonIndex(A.owned.list.find(v=>v.rowId===A.owned.active)?.vohon??""),1500);
-    await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); };
-  const toRow=async row=>{ await swReady();
+  const vhSynced=()=>waitFor(()=>me().vh===vohonIndex(A.owned.list.find(v=>v.rowId===A.owned.active)?.vohon??""),1500);
+  const swReady=async()=>{ await vhSynced(); await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); };
+  const toRow=async row=>{ if(!A.owned.team.includes(row)) return false; await swReady();
     for(let k=0;k<3&&A.owned.active!==row;k++){ A.room.send("switch",{slot:A.owned.team.indexOf(row)});
-      if(!await waitFor(()=>A.owned.active===row,1500)) await swReady(); }
-    return A.owned.active===row; };
+      if(!await waitFor(()=>A.owned.active===row,1500)&&k<2) await swReady(); }
+    await vhSynced(); return A.owned.active===row; };
   try{
     await waitFor(()=>me()&&A.bag&&A.owned,3000);
     // Đội: võ hồn chính (cường công), Lam Ngân Thảo (khống chế), Xúc Xích (phụ trợ, hồn kỹ thanh tẩy ở ô U); mọi võ hồn cấp 100, 9 hồn hoàn.
