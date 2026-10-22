@@ -909,6 +909,9 @@ export class GameScene extends Phaser.Scene {
         quest: (op, chain) => this.room.send("quest", chain ? { op, chain } : { op }),
         arena: (op) => this.room.send("arena", { op }), // 7.2: xếp hàng / hủy / bảng xếp hạng
         tong: (op, tong) => this.room.send("tong", { op, tong }), // #196: gia nhập / đổi / rời tông môn
+        shard: (vohon, qty) => this.room.send("shardbuy", { vohon, qty, npc: m.id }), // #282: Thương hội đổi mảnh võ hồn
+        shardInfo: () => this.room.send("shardinfo"),
+        owned: () => (this.owned?.list ?? []).map((v) => v.vohon),
       });
     });
     // Đại Đấu Hồn Trường (7.2): server báo đang xếp hàng, đã ghép trận (vào phòng sân đấu), các pha của trận và kết quả.
@@ -948,6 +951,7 @@ export class GameScene extends Phaser.Scene {
       else if (m.ev === "reward" || m.ev === "finish") { this.audio.play("quest_reward"); this.audio.music?.jingle("quest_complete"); }
     });
     this.room.onMessage("tong", (m: { tong: string; wait: number }) => { if (m && typeof m.tong === "string") hud.setTong(m); }); // #196
+    this.room.onMessage("shardinfo", (m: { n: number; daily: number }) => { if (m && Number.isInteger(m.n)) hud.setShardInfo(m); }); // #282
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
     this.room.onMessage("daily", (m: DailyMsg) => {
       if (!m || !Array.isArray(m.list)) return;

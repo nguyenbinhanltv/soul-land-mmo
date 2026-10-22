@@ -215,8 +215,9 @@ export interface Store {
   /**
    * Nhận thưởng boss (BĐ5): trong MỘT transaction tăng lượt của (`day`, `kind`) nếu còn dưới `limit` và ghi cả túi `bag` (đã có rương),
    * như saveBag. Trả về số lượt sau khi nhận; null (không ghi gì) nếu đã đủ `limit` lượt trong ngày; lỗi khác thì rollback rồi ném lỗi.
+   * `n`: tăng ngần này lượt một lần (mua `n` mảnh ở Thương hội, #282); số lượt sau khi tăng vượt `limit` thì null, không ghi gì.
    */
-  claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag): Promise<number | null>;
+  claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, n?: number): Promise<number | null>;
   /** Elo và thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`, 7.2); chưa đấu trận nào thì Elo `start`, 0 trận. */
   getArena(accountId: number, start: number): Promise<ArenaRecord>;
   /**
@@ -495,12 +496,12 @@ export class MemoryStore implements Store {
     return r ? { ...r } : null;
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
-  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
+  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) {
     const key = `${accountId}|${day}|${kind}`, n = this.claims.get(key) ?? 0;
-    if (n >= limit) return null;
+    if (n + add > limit) return null;
     this.checkBag(accountId, bag);
-    this.claims.set(key, n + 1); this.putBag(accountId, bag);
-    return n + 1;
+    this.claims.set(key, n + add); this.putBag(accountId, bag);
+    return n + add;
   }
   async getArena(accountId: number, start: number) {
     const r = this.arena.get(accountId);
@@ -955,15 +956,15 @@ export class PgStore implements Store {
     const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);
     return r.rowCount ? Number(r.rows[0].n) : 0;
   }
-  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
+  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) {
     const db = await this.pool.connect();
     try {
       await db.query("BEGIN");
-      // Tăng lượt chỉ khi còn dưới giới hạn: hai lần nhận cùng lúc không thể cùng vượt (dòng bị khóa khi cập nhật).
+      // Tăng lượt chỉ khi không vượt giới hạn: hai lần nhận cùng lúc không thể cùng vượt (dòng bị khóa khi cập nhật).
       const r = await db.query(
-        `INSERT INTO boss_claims(account_id, day, kind, n) VALUES ($1, $2::date, $3, 1)
-         ON CONFLICT (account_id, day, kind) DO UPDATE SET n = boss_claims.n + 1, updated_at = now() WHERE boss_claims.n < $4
-         RETURNING n`, [accountId, day, kind, limit]);
+        `INSERT INTO boss_claims(account_id, day, kind, n) VALUES ($1, $2::date, $3, $5::int)
+         ON CONFLICT (account_id, day, kind) DO UPDATE SET n = boss_claims.n + $5::int, updated_at = now() WHERE boss_claims.n + $5::int <= $4
+         RETURNING n`, [accountId, day, kind, limit, add]);
       if (!r.rowCount || Number(r.rows[0].n) > limit) { await db.query("ROLLBACK"); return null; }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
