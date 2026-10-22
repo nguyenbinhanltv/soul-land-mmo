@@ -281,7 +281,8 @@ export class GameScene extends Phaser.Scene {
     const camp = raw && campMerchantSpot(raw, this.mapId);
     if (camp && !npcObjs.some((n) => n.id === camp.id)) npcObjs.push({ ...camp, name: "" });
     // #163: Hỏa Đàn trong hang thú vương có Cực Hàn, chỗ đặt tính từ file Tiled như server (shared/hoaDan.ts); vẽ bằng code mỗi khung.
-    const hd = raw && hoaDanSpot(raw, this.mapId);
+    if (raw) this.grid = solidGrid(raw);
+    const hd = raw && hoaDanSpot(raw, this.mapId, this.grid ?? undefined);
     if (hd) {
       const c = W2S(hd.x, hd.y), top = c.y - 22 * SPR;
       this.hoaDan = { x: hd.x, y: hd.y, r: hd.cold.fire.r, g: this.add.graphics().setDepth(c.y) };
@@ -292,8 +293,7 @@ export class GameScene extends Phaser.Scene {
     this.drawWaypoints();
     this.buildMinimap(map);
     hud.setTrackerMap(this.mapId);
-    // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts).
-    if (raw) this.grid = solidGrid(raw);
+    // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts; dựng ở trên, trước Hỏa Đàn).
     if (PREDICT && this.grid) this.pred = new Predictor(this.grid);
     if (LAG_MS || !PREDICT) {
       // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); gỡ khi scene tắt (đổi bản đồ).
@@ -1246,6 +1246,7 @@ export class GameScene extends Phaser.Scene {
   drawTeles(time: number) {
     const g = this.teleG; g.clear();
     this.drawGrounds(g, time); // vùng lưu lại nằm dưới vùng cảnh báo
+    this.paintHoaDan(g, time); // Hỏa Đàn (#163): vòng hơi ấm cũng dưới vùng cảnh báo; đống lửa ở lớp riêng theo độ sâu
     for (const [bid, x] of this.teles) {
       const k = Math.min(1, (time - x.t0) / x.ms);
       // Hồn thú đã bị hạ hoặc server không gửi kết quả (mất gói): bỏ vùng.
@@ -1874,7 +1875,6 @@ export class GameScene extends Phaser.Scene {
     for (const n of this.npcs) if (n.body) syncLayers(n.body, n.clothes, []); // NPC (6.1): áo, tóc theo khung thân
     this.drawTeles(time);
     this.paintWaypoints(this.teleG, time); // truyền tống trận (11.2): trên mặt đất, dưới hồn sư
-    this.paintHoaDan(this.teleG, time); // Hỏa Đàn (#163): vòng hơi ấm trên mặt đất, đống lửa theo độ sâu
     this.paintWpCasts(g, time);
     // Bóng đổ elip dưới chân hồn thú (hồn sư có sẵn bóng trong container), nằm trên mặt đất cùng lớp vùng cảnh báo.
     for (const [id, s] of this.beasts) if (st.beasts.get(id) && !st.beasts.get(id).dive) {

@@ -7976,5 +7976,8 @@ async function coldTest(){
     await test(F,"kdmg",{v:1e8});
     ok(await waitFor(()=>!kingB()&&!has("chill")&&han()===0,2500),"hạ thú vương: mất tầng Hàn");
     c=await test(F,"cold"); ok(!c.on&&c.acc===null,"không còn Cực Hàn");
-  } finally { await F.room.leave().catch(()=>{}); }
+  } finally {
+    if(kingB()) await test(F,"kdmg",{v:1e8}).catch(()=>{}); // bài lỗi giữa chừng: không để thú vương sống sang cucBacTest
+    await F.room.leave().catch(()=>{});
+  }
 }
