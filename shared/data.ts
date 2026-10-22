@@ -661,9 +661,10 @@ export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "v
 export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood"];
 /**
  * Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là
- * Choáng); kháng Làm chậm cũng rút ngắn Ngập nước (#174, một loại Làm chậm).
+ * Choáng). Ngập nước (#174) không có kháng: đứng trong nước là chậm (vùng gây lại mỗi nhịp; rút ngắn thời gian vốn đã ngắn hơn nhịp chỉ
+ * làm trạng thái nhấp nháy).
  */
-export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun", flood: "slow" };
+export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
 /**
  * Hồn sư bị Mê hoặc (#116): server tự đi bộ × `spd` tới một điểm ngẫu nhiên cách chỗ bị Mê hoặc tối đa `r` pixel mỗi trục, đổi điểm
  * mỗi `turn` giây (ngẫu nhiên trong khoảng); tới nơi thì đứng chờ. Client không dự đoán (PlayerState.spd = 0).

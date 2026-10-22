@@ -3579,7 +3579,7 @@ export class MapRoom extends Room<MapState> {
     const ux = (tx - p.x) / dd, uy = (ty - p.y) / dd;
     for (let moved = 0; moved < go; moved += 2) {
       const ox = p.x, oy = p.y, st = Math.min(2, go - moved);
-      this.map.moveEnt(p, ux * st, uy * st, 5, 4);
+      this.map.moveEnt(p, ux * st, uy * st, PLAYER_HW, PLAYER_HH);
       if (this.map.inSafe(p.x, p.y)) { p.x = ox; p.y = oy; break; }
       if (p.x === ox && p.y === oy) break;
     }

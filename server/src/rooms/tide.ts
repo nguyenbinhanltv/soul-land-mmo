@@ -25,7 +25,7 @@ export function tideSpots(map: GameMap, at: Anchor, n: number, r: number, gap: n
       && (!moved || prev.every((s) => Math.hypot(x - s.x, y - s.y) >= shift * r)) && open(x, y);
     for (let k = 0; k < n; k++) {
       const p = lairSpot(map, rnd, at, k, n, r, PLAYER_BOX, ok) ?? lairSpot(map, rnd, at, 0, 1, r, PLAYER_BOX, ok);
-      if (p) out.push(p);
+      if (p) out.push(p); else if (moved) break; // thiếu một chỗ thì bỏ lượt thử này luôn (không tốn công chọn các chỗ còn lại)
     }
     return out;
   };

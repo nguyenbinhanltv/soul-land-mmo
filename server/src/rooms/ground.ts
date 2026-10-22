@@ -62,12 +62,13 @@ export class Grounds {
       z.t -= dt;
       if (!g || z.t <= EPS || !b || b.hp <= 0) { this.list.delete(id); grounds.delete(id); continue; }
       const ttl = Math.ceil(z.t - EPS); if (g.ttl !== ttl) g.ttl = ttl;
+      let step = dt; // phần nhịp vùng đã có tác dụng (nhịp hết báo trước: chỉ phần sau lúc hết báo trước)
       if (z.wait > 0) {
         z.wait -= dt; const w = Math.max(0, Math.ceil(z.wait - EPS)); if (g.wait !== w) g.wait = w;
         if (z.wait > EPS) continue;
-        z.wait = 0;
+        step = Math.max(0, -z.wait); z.wait = 0;
       }
-      const fire = (z.next -= dt) <= 0, pull = z.def.pull ?? 0;
+      const fire = (z.next -= step) <= 0, pull = z.def.pull ?? 0;
       if (fire) z.next += z.def.every ?? GROUND_TICK;
       if (!fire && !pull) continue;
       // Vệt / nón tính từ gốc: tầm với là chiều dài cộng bề rộng (Grid.near đã cộng lề).
@@ -75,7 +76,7 @@ export class Grounds {
         const p = players.get(pid), d = room.pdata.get(pid);
         if (!p || !d || room.buffV(d, "inv") || !teleHits(z.tele, p.x, p.y)) continue;
         if (fire) for (const a of z.def.status) room.applyPStatus(pid, a, z.base);
-        if (pull) room.dragPlayer(pid, z.tele.x, z.tele.y, pull * dt);
+        if (pull) room.dragPlayer(pid, z.tele.x, z.tele.y, pull * step);
       }
     }
   }
