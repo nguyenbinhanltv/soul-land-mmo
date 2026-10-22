@@ -523,6 +523,10 @@ export class GameScene extends Phaser.Scene {
   setupInput() {
     const chat = document.getElementById("chat") as HTMLInputElement;
     const typing = () => document.activeElement === chat;
+    // Ô nhập khác trên HUD (niên hạn, sao hồn hạch ở bảng Tự động, ô mời tổ đội): phím thuộc về ô, không phải phím tắt game.
+    // Ô đánh dấu / thanh trượt / nút không tính (bảng tự bỏ tiêu điểm sau khi đổi).
+    const field = (t: EventTarget | null) => t instanceof HTMLSelectElement || t instanceof HTMLTextAreaElement ||
+      (t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button"].includes(t.type));
     const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
@@ -530,6 +534,8 @@ export class GameScene extends Phaser.Scene {
         if (e.key === "Escape") chat.blur();
         return;
       }
+      const f = document.activeElement;
+      if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
@@ -555,6 +561,7 @@ export class GameScene extends Phaser.Scene {
     addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
     addEventListener("blur", () => { this.keys = {}; }, on);
     chat.addEventListener("focus", () => { this.keys = {}; }, on);
+    addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);

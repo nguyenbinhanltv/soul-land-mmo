@@ -80,7 +80,11 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
   $("[data-a=reset]", el)!.addEventListener("click", () => ctx?.send("set", structuredClone(AUTO_DEFAULTS)), on);
   // Kéo thanh trượt: chỉ đổi số hiển thị; thả ra (change) thì gửi cài đặt.
   el.addEventListener("input", (e) => { const t = e.target as HTMLInputElement; if (t.type === "range") showRange(el, t); }, on);
-  el.addEventListener("change", () => { const cfg = read(el); if (cfg) ctx?.send("set", cfg); }, on);
+  // Ô đánh dấu / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
+  el.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement; if (t.type === "checkbox" || t.type === "range") t.blur();
+    const cfg = read(el); if (cfg) ctx?.send("set", cfg);
+  }, on);
   for (const key of ["skills", "slots"] as const) {
     $(`[data-list=${key}]`, el)!.addEventListener("click", (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-mv]"); if (!b) return;
