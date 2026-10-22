@@ -582,7 +582,9 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   // Từ 2.5c (lưu phái Cảm điện): Mị hoặc (cộng dồn thành Mê hoặc), Mê hoặc, Làm chậm, Phong ấn (cộng dồn thành Dễ thương).
   "allure", "charm", "slow", "lock",
   // Từ #116: Đóng băng (chỉ có trên hồn sư, chiêu băng của hồn thú gây).
-  "freeze"] as const;
+  "freeze",
+  // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
+  "chill"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -626,6 +628,9 @@ export const STATUS: Record<StatusId, StatusDef> = {
   lock:    st("Phong ấn",  "#e0b04a", 6, 3, { burst: { s: "vuln", secs: 6.8 } }),
   // Từ #116: Đóng băng trên hồn sư: như Choáng (không đi, không đánh, không dùng hồn kỹ), hình khối băng; thời gian ghi ở từng chiêu.
   freeze:  st("Đóng băng", "#9ad8ff", 1.5, 1, { noMove: true, noAtk: true }),
+  // Từ #163 (thiết kế gốc đã chốt): tầng Hàn của Cực Hàn tự nó không gây gì; đủ 4 tầng thì bùng phát thành Đóng băng 3 giây. Tầng chỉ
+  // mất theo luật Cực Hàn (Hỏa Đàn, thanh tẩy, rời hang, cả đội gục, thú vương bị hạ / rút đi; server/src/rooms/cold.ts), không tự hết giờ.
+  chill:   st("Hàn",       "#d8f2ff", Infinity, 4, { burst: { s: "freeze", secs: 3 } }),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -643,12 +648,12 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill"];
 /**
  * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
  * bằng PvP riêng để #113).
  */
-export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze"];
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill"];
 /** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
 export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
 /**
@@ -977,7 +982,15 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
-export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; }
+export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; }
+/**
+ * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): từ khi hết tiếng gầm chuyển giai đoạn,
+ * mọi hồn sư đang tham gia trong hang (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
+ * băng hoặc miễn sát thương thì ngừng tích. Đứng cách Hỏa Đàn (đống lửa trong hang) không quá `fire.r` pixel hoặc được thanh tẩy thì xả
+ * hết tầng. Hỏa Đàn đặt ở điểm đi được trong hang gần điểm tỉ lệ `fire.at` của hình chữ nhật `boss` nhất (hoaDanSpot, shared/hoaDan.ts),
+ * quanh nó `fire.clear` pixel mỗi phía đều đi được.
+ */
+export interface ColdDef { every: number; fire: { r: number; at: [number, number]; clear: number } }
 export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
   world?: WorldMech; }
 /**
@@ -1102,15 +1115,17 @@ export const BOSSES: BossDef[] = [
   { id: "bang_bich_hat_vuong", name: "Băng Bích Hạt Vương", rank: 1, species: "bang_bich_hat", aura: "#7fd0ff", skills: [
     bs("Tam Liên Châm", "line", 110, { w: 12, count: 3, spread: 45, dmg: 1.7 }),
     bs("Cực Hàn Lĩnh Vực", "circle", 60, { dmg: 1, status: [{ s: "slow", secs: 4 }] })] },
-  // Thú vương Cực Bắc (BĐ5 + BĐ6c, đã chốt). Giai đoạn 2 "Cực Hàn" bản tối thiểu: tầng Hàn tích theo thời gian và Hỏa Đàn chưa làm;
-  // thay bằng gió cực hàn phủ cả hang (Làm chậm) và băng phong dưới chân một người bị đánh dấu (đóng băng 3 giây, như đủ 4 tầng Hàn),
-  // chạy khỏi vòng là né được.
+  // Thú vương Cực Bắc (BĐ5 + BĐ6c, đã chốt). Giai đoạn 2 "Cực Hàn" (#163, thiết kế gốc): tầng Hàn tích theo thời gian, đủ tầng thì
+  // Đóng băng (STATUS.chill), Hỏa Đàn / thanh tẩy xả tầng (ColdDef); thêm gió cực hàn quanh thân (Làm chậm). Băng phong dưới chân người
+  // bị đánh dấu của bản tối thiểu (thay cho tầng Hàn) đã bỏ. Mỗi 5 giây một tầng: không về Hỏa Đàn thì 20 giây bị Đóng băng một lần;
+  // Hỏa Đàn ở nửa trái hang, cách tâm hang (chỗ thú vương sinh) khoảng một phần tư bề ngang hang; phía sau theo phép chiếu isometric
+  // (x + y nhỏ) nên vách hang không che đống lửa.
   { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
     bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
     bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
-    phase2: { name: "Cực Hàn", desc: "gió cực hàn phủ cả hang, đóng băng người bị đánh dấu, tốc độ +20%", spd: 1.2, skills: [
-      bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] }),
-      bs("Huyền Minh Băng Phong", "circle", 30, { at: "target", range: 160, warn: 1.5, dmg: 1.2, cd: 12, mark: true, status: [{ ...FREEZE, secs: 3 }] })] } },
+    phase2: { name: "Cực Hàn", desc: "người tham gia trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
+      spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.25, 0.5], clear: 20 } }, skills: [
+      bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
   // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
   // Câm lặng + Làm chậm (client chưa có hiệu ứng che màn hình); Huyết Khí nhắm người tham gia ít máu nhất (`weak`).
@@ -3864,8 +3879,14 @@ export const resonanceText = (b: Partial<Record<ResStat, number>>) =>
  */
 export const AUTO_DAILY_SECS = 12 * 3600;
 /**
- * Bán kính (pixel) quanh điểm neo (chỗ bật tự săn): chỉ nhắm hồn thú, nhặt đồ trong vùng này; ra ngoài thì quay về. Người chơi chọn
- * trong bảng Tự động (`AutoSettings.radius`, số ô) từ AUTO_RADIUS_MIN tới AUTO_RADIUS (mặc định lớn nhất).
+ * Phạm vi tự săn (`AutoSettings.scope`, #213): "map" (mặc định) săn khắp bản đồ đang đứng: nhắm hồn thú gần nhất hợp khoảng niên hạn
+ * trong AUTO_RADIUS quanh mình, không có thì trên cả bản đồ (chỉ chỗ đi bộ tới được, không qua cổng / truyền tống, đường không đi vào vùng
+ * an toàn), nhặt đồ trong AUTO_RADIUS quanh mình. "near" ("Chỉ quanh chỗ đứng", kiểu Auto 1) chỉ săn trong bán kính quanh điểm neo.
+ */
+export type AutoScope = "map" | "near";
+/**
+ * Bán kính (pixel) quanh điểm neo (chỗ bật tự săn) khi phạm vi "near": chỉ nhắm hồn thú, nhặt đồ trong vùng này; ra ngoài thì quay về.
+ * Người chơi chọn trong bảng Tự động (`AutoSettings.radius`, số ô) từ AUTO_RADIUS_MIN tới AUTO_RADIUS (mặc định lớn nhất).
  */
 export const AUTO_RADIUS = 15 * TILE;
 export const AUTO_RADIUS_MIN = 5 * TILE;
@@ -3874,6 +3895,15 @@ export const AUTO_RADIUS_MIN = 5 * TILE;
  * hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm (như người giữ phím đánh).
  */
 export const AUTO_HZ = 4;
+/**
+ * Trần tốc độ tự săn (chủ repo chốt 2026-10-22, #213): hiệu suất tối đa bằng tự đánh, cùng mốc với ủy thác offline. Mỗi hồn thú thường
+ * người đang tự săn hạ (mục tiêu, đánh trả hay trúng lan) cộng vào "nợ nhịp" số giây offlineFight tính cho con đó với chỉ số võ hồn ra
+ * trận lúc hạ (thời gian tự đánh một con, kể cả tìm / đi tới OFFLINE.seek). Nợ giảm theo thời gian thực; còn nợ thì không nhắm con mới
+ * (đứng nghỉ, vẫn đánh trả và nhặt đồ). Mỗi con vì thế tốn khoảng max(thời gian thật, ước lượng). Nợ bị kẹp ở −`credit` giây khi không
+ * có mục tiêu và khi thôi nhắm một mục tiêu (thời gian rảnh / đi đường dư không tích để sau hạ dồn); lúc đang đi tới / đánh một con thì
+ * không kẹp, để trận dài hơn `credit` giây không bị tính hai lần (thời gian thật đã gồm trong ước lượng).
+ */
+export const AUTO_PACE = { credit: 10 };
 /** Tối đa bấy nhiêu người treo có điểm neo trong cùng một ô lưới SYNC_VIEW.cell của một kênh (chống dồn một chỗ). */
 export const AUTO_MAX_PER_CELL = 3;
 /**
@@ -3882,11 +3912,13 @@ export const AUTO_MAX_PER_CELL = 3;
  */
 export const AUTO_CLAIM_SECS = 8;
 /**
- * Di chuyển của tự săn: không có việc thì đi tới một điểm ngẫu nhiên trong vùng neo, đổi điểm sau `patrol` giây; mục tiêu / đồ không tới
- * được hoặc kẹt `stuck` giây thì bỏ qua `skip` giây; mục tiêu đi xa đường đã tìm thì tìm lại sau ít nhất `repath` giây. Tìm đường A*
- * (shared/path.ts) trong khung `path` (nhỏ hơn CLICK_PATH vì chỉ đi trong vùng neo).
+ * Di chuyển của tự săn: không có việc thì đi tới một điểm ngẫu nhiên trong vùng neo (phạm vi "map": quanh chỗ đang đứng), đổi điểm sau
+ * `patrol` giây; mục tiêu / đồ không tới được hoặc kẹt `stuck` giây thì bỏ qua `skip` giây; mục tiêu đi xa đường đã tìm thì tìm lại sau
+ * ít nhất `repath` giây. Tìm đường A* (shared/path.ts) trong khung `path` quanh chỗ đứng; đích xa hơn khung thì đi theo điểm trung gian
+ * của đồ thị dẫn đường `nav` (#213): bản đồ chia khối `block`×`block` ô, mỗi vùng ô liền nhau trong một khối là một nút; A* trên đồ thị
+ * nút rồi nối các điểm trung gian bằng đường thẳng (nhìn trước tối đa `look` nút) hoặc A* trong khung `path`.
  */
-export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath: 1, path: { maxTiles: 24, maxNodes: 2500 } };
+export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath: 1, path: { maxTiles: 24, maxNodes: 2500 }, nav: { block: 8, look: 6 } };
 /**
  * Loại vật phẩm khác (ngoài hồn hoàn, hồn cốt, hồn hạch) có thể nằm dưới đất khi tự săn: mảnh võ hồn và tiên thảo rơi xuống khi túi
  * người hạ đã đầy. Bảng Tự động cho chọn nhặt từng loại (`AutoSettings.kinds`).
@@ -3894,7 +3926,8 @@ export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath
 export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
-  radius: number;          // bán kính vùng neo (số ô, AUTO_RADIUS_MIN..AUTO_RADIUS)
+  scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
+  radius: number;          // bán kính vùng neo khi "near" (số ô, AUTO_RADIUS_MIN..AUTO_RADIUS)
   years: [number, number]; // khoảng niên hạn hồn thú thường được nhắm (số năm)
   hp: number; mp: number;  // uống đan khi sinh lực võ hồn ra trận / hồn lực dưới tỉ lệ này (0 = không uống)
   mpKeep: number;          // chừa tỉ lệ hồn lực này: không tung hồn kỹ làm hồn lực còn dưới mức đó
@@ -3907,8 +3940,11 @@ export interface AutoSettings {
   stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
   tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
 }
-/** Mặc định: vùng neo lớn nhất, mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn lực, hồn kỹ ô P → U, nhặt mọi thứ. */
-export const AUTO_DEFAULTS: AutoSettings = { radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
+/**
+ * Mặc định: săn khắp bản đồ (vùng neo lớn nhất nếu chọn "near"), mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn
+ * lực, hồn kỹ ô P → U, nhặt mọi thứ.
+ */
+export const AUTO_DEFAULTS: AutoSettings = { scope: "map", radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
   skills: [3, 2, 1, 0], slots: Array.from({ length: TEAM_SIZE }, (_, i) => i), ring: 0, bone: true, core: true, coreStar: 1,
   kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true };
 /** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
@@ -3922,7 +3958,8 @@ export function parseAuto(raw: unknown): AutoSettings {
     ? [...new Set(v.filter((i): i is number => Number.isInteger(i) && (i as number) >= 0 && (i as number) < n))] : [...def]);
   // Bản lưu từ Auto 1 chưa có `kinds` mà có cờ `item` (nhặt vật phẩm khác): false thì không nhặt loại nào.
   const kinds = Array.isArray(o.kinds) ? AUTO_LOOT_KINDS.filter((k) => (o.kinds as unknown[]).includes(k)) : o.item === false ? [] : [...D.kinds];
-  return { radius: Math.round(num(o.radius, AUTO_RADIUS_MIN / TILE, AUTO_RADIUS / TILE, D.radius)), years: [Math.min(y0, y1), Math.max(y0, y1)],
+  // Bản lưu trước #213 chưa có `scope`: săn khắp bản đồ như mặc định mới.
+  return { scope: o.scope === "near" ? "near" : "map", radius: Math.round(num(o.radius, AUTO_RADIUS_MIN / TILE, AUTO_RADIUS / TILE, D.radius)), years: [Math.min(y0, y1), Math.max(y0, y1)],
     hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
     skills: order(o.skills, LOADOUT_SIZE, D.skills), slots: order(o.slots, TEAM_SIZE, D.slots),
     ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core),

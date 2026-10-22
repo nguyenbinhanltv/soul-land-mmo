@@ -98,3 +98,112 @@ export function findPath(g: SolidGrid, from: Pt, to: Pt, opt = CLICK_PATH): Pt[]
 
 /** Độ dài đường đi (pixel) từ `from` qua các điểm `path`. */
 export const pathLength = (from: Pt, path: Pt[]) => path.reduce((s, p, i) => s + Math.hypot(p.x - (i ? path[i - 1].x : from.x), p.y - (i ? path[i - 1].y : from.y)), 0);
+
+/**
+ * Đồ thị dẫn đường cho đường đi dài (tự săn toàn bản đồ, #213): bản đồ chia khối `block`×`block` ô; mỗi vùng ô đi được liền nhau (4 hướng,
+ * như A* 8 hướng không cắt góc) trong một khối là một nút, đặt tại ô thoáng gần tâm vùng nhất. Hai nút nối nhau khi có hai ô kề nhau
+ * qua ranh khối. `region`: vùng liên thông của cả bản đồ (khác vùng thì không đi bộ tới được).
+ */
+export interface Nav { MW: number; node: Int32Array; pts: Pt[]; adj: number[][]; region: Int32Array; }
+
+export function buildNav(g: SolidGrid, block: number): Nav {
+  const { MW, MH } = g, node = new Int32Array(MW * MH).fill(-1), pts: Pt[] = [], adj: number[][] = [];
+  const free = (x: number, y: number) => !isSolidTile(g, x, y);
+  const D4: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (let by = 0; by < MH; by += block) for (let bx = 0; bx < MW; bx += block) {
+    const ex = Math.min(MW, bx + block), ey = Math.min(MH, by + block);
+    for (let y = by; y < ey; y++) for (let x = bx; x < ex; x++) {
+      if (!free(x, y) || node[y * MW + x] >= 0) continue;
+      // Loang trong khối: các ô của vùng, rồi chọn ô thoáng (4 ô kề đều đi được) gần tâm vùng nhất làm điểm của nút.
+      const n = pts.length, cells: number[] = [y * MW + x]; node[y * MW + x] = n;
+      let sx = 0, sy = 0;
+      for (let k = 0; k < cells.length; k++) {
+        const cx = cells[k] % MW, cy = (cells[k] - cx) / MW; sx += cx; sy += cy;
+        for (const [dx, dy] of D4) {
+          const nx = cx + dx, ny = cy + dy;
+          if (nx < bx || ny < by || nx >= ex || ny >= ey || !free(nx, ny) || node[ny * MW + nx] >= 0) continue;
+          node[ny * MW + nx] = n; cells.push(ny * MW + nx);
+        }
+      }
+      const mx = sx / cells.length, my = sy / cells.length;
+      let best = cells[0], bs = Infinity;
+      for (const c of cells) {
+        const cx = c % MW, cy = (c - cx) / MW, open = D4.every(([dx, dy]) => free(cx + dx, cy + dy));
+        const s = Math.hypot(cx - mx, cy - my) + (open ? 0 : block);
+        if (s < bs) { bs = s; best = c; }
+      }
+      pts.push({ x: ((best % MW) + 0.5) * TILE, y: (Math.floor(best / MW) + 0.5) * TILE }); adj.push([]);
+    }
+  }
+  // Cạnh: ô kề nhau (phải / dưới) thuộc hai nút khác nhau.
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const a = node[y * MW + x]; if (a < 0) continue;
+    for (const [dx, dy] of [[1, 0], [0, 1]] as const) {
+      if (x + dx >= MW || y + dy >= MH) continue;
+      const b = node[(y + dy) * MW + x + dx];
+      if (b >= 0 && b !== a && !adj[a].includes(b)) { adj[a].push(b); adj[b].push(a); }
+    }
+  }
+  const region = new Int32Array(pts.length).fill(-1);
+  for (let s = 0, r = 0; s < pts.length; s++) {
+    if (region[s] >= 0) continue;
+    const q = [s]; region[s] = r;
+    for (let k = 0; k < q.length; k++) for (const b of adj[q[k]]) if (region[b] < 0) { region[b] = r; q.push(b); }
+    r++;
+  }
+  return { MW, node, pts, adj, region };
+}
+
+/** Nút dẫn đường của điểm (x, y): ô chứa điểm, ô đó chặn thì ô kề đầu tiên đi được; −1 nếu không có. */
+export function navNode(nav: Nav, x: number, y: number): number {
+  const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE), MH = nav.node.length / nav.MW;
+  for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+    const nx = tx + dx, ny = ty + dy;
+    if (nx < 0 || ny < 0 || nx >= nav.MW || ny >= MH) continue;
+    const n = nav.node[ny * nav.MW + nx]; if (n >= 0) return n;
+  }
+  return -1;
+}
+
+/**
+ * Đường đi dài từ `from` tới `to` (tự săn toàn bản đồ, #213): A* trên đồ thị dẫn đường cho dãy điểm trung gian, rồi nối từng đoạn:
+ * đi thẳng tới điểm xa nhất (trong `look` điểm kế tiếp) còn đi thẳng được, không thì A* trong khung `opt` tới điểm kế tiếp (hai nút kề
+ * nhau luôn nằm trong khung khi opt.maxTiles ≥ 2 khối). Trả về các điểm cần đi qua như findPath; rỗng nếu không cùng vùng liên thông.
+ * Một đoạn A* không tới thì dừng ở chỗ tới được gần nhất (nơi gọi so điểm cuối với `to`).
+ */
+export function findLongPath(g: SolidGrid, nav: Nav, from: Pt, to: Pt, look: number, opt = CLICK_PATH): Pt[] {
+  const s = navNode(nav, from.x, from.y), t = navNode(nav, to.x, to.y);
+  if (s < 0 || t < 0 || nav.region[s] !== nav.region[t]) return [];
+  const route: Pt[] = [];
+  if (s !== t) {
+    const N = nav.pts.length, gs = new Float64Array(N).fill(Infinity), fs = new Float64Array(N), came = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+    const h = (n: number) => Math.hypot(nav.pts[n].x - to.x, nav.pts[n].y - to.y), open = new Heap(fs);
+    gs[s] = 0; fs[s] = h(s); open.push(s);
+    while (open.size) {
+      const c = open.pop(); if (closed[c]) continue; closed[c] = 1;
+      if (c === t) break;
+      for (const n of nav.adj[c]) {
+        if (closed[n]) continue;
+        const ng = gs[c] + Math.hypot(nav.pts[n].x - nav.pts[c].x, nav.pts[n].y - nav.pts[c].y); if (ng >= gs[n]) continue;
+        gs[n] = ng; fs[n] = ng + h(n); came[n] = c; open.push(n);
+      }
+    }
+    if (came[t] < 0) return [];
+    // Điểm của các nút giữa (bỏ nút xuất phát và nút đích: đi thẳng từ chỗ đứng / tới đích trong khối của nó).
+    for (let c = came[t]; c !== s && c >= 0; c = came[c]) route.push(nav.pts[c]);
+    route.reverse();
+  }
+  route.push({ x: to.x, y: to.y });
+  const out: Pt[] = []; let at: Pt = from, i = 0;
+  while (i < route.length) {
+    let j = Math.min(route.length - 1, i + look);
+    while (j >= i && !clearLine(g, at, route[j])) j--;
+    if (j >= i) { out.push(route[j]); at = route[j]; i = j + 1; continue; }
+    const seg = findPath(g, at, route[i], opt);
+    out.push(...seg);
+    const end = seg.at(-1) ?? at;
+    if (Math.hypot(end.x - route[i].x, end.y - route[i].y) > 1) break;
+    at = route[i]; i++;
+  }
+  return out;
+}

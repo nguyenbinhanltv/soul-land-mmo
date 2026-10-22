@@ -210,7 +210,8 @@ const chat = new Map<string | number, ChatEntry>();
  * Hợp lệ -> { text } đã cắt khoảng trắng. Bị chặn -> { error } để báo riêng cho người gửi. Tin rỗng -> null (bỏ qua im lặng).
  */
 export function chatCheck(key: string | number, raw: unknown, now = Date.now()): { text: string } | { error: string } | null {
-  const text = String(raw ?? "").replace(/\s+/g, " ").trim();
+  // Chỉ nhận chuỗi: String() trên object tùy ý client gửi có thể ném lỗi (#164).
+  const text = (typeof raw === "string" ? raw : "").replace(/\s+/g, " ").trim();
   if (!text) return null;
   if (text.length > CHAT_MAX_LEN) return { error: `Tin nhắn quá dài (tối đa ${CHAT_MAX_LEN} ký tự).` };
   let e = chat.get(key);

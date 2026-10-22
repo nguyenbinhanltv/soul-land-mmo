@@ -28,7 +28,7 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 
 ## Checklist cho mỗi message từ client
 Đăng ký trong `onCreate()` bằng `this.onMessage(...)`; danh sách hiện có ở `GAME_DESIGN.md` mục 6. Message chưa đăng ký làm Colyseus ngắt client: bỏ message cũ thì sửa client và bot cùng lúc.
-1. **Ép kiểu và kẹp giá trị**: `Number(m?.x) || 0`, `String(m?.text ?? "")` (mẫu `input`, `chat`).
+1. **Ép kiểu và kẹp giá trị** bằng kiểm `typeof`: `numIn(m?.x)`, `intIn(m?.i)`, `strIn(m?.portal)` (`MapRoom.ts`, mẫu `input`, `travel`). Không `Number()` / `String()` / `${}` / `<` / `MAP[raw]` trên giá trị thô: đổi kiểu một object tùy ý có thể ném lỗi (#164).
 2. **Kiểm tra id có thật và thuộc chính người gửi** (`itemId`, `vohonId`, `rowId` so với `pdata.get(id)`).
 3. **Kiểm tra trạng thái**: người chơi tồn tại, không gục, không hấp thụ, không `d.travelling` (đang chuyển bản đồ: mọi hành động mới phải bị chặn, kể cả hiệu ứng trễ), ngoài vùng an toàn nếu là giao chiến (`this.map.inSafe`), ngoài giao chiến nếu là việc sắp xếp (luật chung như `boneLock`), NPC trong tầm nếu cần (`npcNear`), hết hồi chiêu, đủ hồn lực.
 4. **Giới hạn tần suất**: hồi chiêu do server đếm; lệnh tốn tài nguyên hoặc spam được (chat, lời mời, danh sách kênh, bảng xếp hạng) có nhịp riêng (`server/src/ratelimit.ts`).
