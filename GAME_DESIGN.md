@@ -41,7 +41,7 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | U / I / O / P | 4 ô hồn kỹ mang theo (mục 5.2) |
 | R | Võ Hồn Chân Thân (vòng 7) |
 | Z / X / C | Kỹ năng hồn cốt chủ động: đầu, tay trái, tay phải (mục 5.5) |
-| G | Võ Hồn Dung Hợp Kỹ với đồng đội tổ đội: mời, hoặc hưởng ứng khi được mời (mục 5.9; phím, nút chạm và hiệu ứng làm ở #193) |
+| G | Võ Hồn Dung Hợp Kỹ với đồng đội tổ đội: mời, hoặc hưởng ứng khi được mời (mục 5.9; nút "Dung hợp" trên thanh hồn kỹ, chạm được cả nút trong lời nhắc) |
 | 1–4 | Đổi sang võ hồn ở ô tương ứng của đội (chạm ô trên thanh đội hình) |
 | E | Nhặt đồ rơi gần nhất |
 | F | Đi qua cổng đang đứng; đứng trên truyền tống trận thì mở bản đồ thế giới; không thì nói chuyện với NPC gần nhất |
@@ -495,6 +495,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Sức mạnh** (bộ máy hồn kỹ, mục 5.2): công = trung bình công võ hồn ra trận của hai người (kể cả tăng công, không ràng buộc), nhân `skillPower` của hồn hoàn năm cao nhất **thấp hơn** giữa hai võ hồn. Không nhận sao, ràng buộc, Phục Chế (không chép được); không tạo năng lượng tiên cơ. A (người mời) là người gây đòn: hồn thú nhắm A; chí mạng, hiệu ứng bộ hồn hạch, hút huyết, điểm yếu hệ / khiên Bá Thể của boss thế giới tính theo A như hồn kỹ của A; đòn trúng giữ cả hai trong giao chiến. Mọi phần của chiêu là vùng quanh điểm giữa, phần có `side` dời tâm về phía người cầm võ hồn đó.
 - **Đóng góp** tinh anh / thú vương / boss thế giới chia đôi cho hai người (kể cả sát thương theo thời gian, lan Cảm điện do chiêu gây); cả hai thành người tham gia. Lúc gây mà B đã rời, đang đi cổng, đã gục, đứng trong vùng an toàn hay ngoài bán kính giao chiến (hang thú vương) thì A nhận cả. Kinh nghiệm chia theo tổ đội như cũ.
 - Server chọn đồng đội, kiểm khoảng cách, tính vị trí và sát thương; client chỉ gửi ý định. Tin riêng `fusion {k: "ask" | "wait" | "done" | "cancel"}`; `fx fusion` (hai người, điểm giữa) công khai cho người ở gần.
+- **Giao diện** (#193): phím G và nút "Dung hợp" (ô ấn triện cạnh Chân Thân trên thanh hồn kỹ; chỉ hiện khi võ hồn ra trận có cặp trong `FUSIONS`, khóa khi thiếu `FUSION.minRings` hồn hoàn, không hiện ở sân đấu) gửi `start`, hoặc `join` khi đang được mời. Người được mời thấy banner và khung nhắc "Dung hợp [G]" giữa màn hình, đếm ngược `FUSION.window` giây, có nút chạm được; người mời thấy "Chờ … hưởng ứng". Ô G phủ hồi chiêu theo `FUSION.cd` từ tin `done` và trường `fcd` của tin riêng `vohons` (giây còn lại của hồn sư), nên đổi võ hồn, đổi kênh, đi cổng, vào lại không làm mới. Lý do từ chối / hủy là dòng log của server trong khung tin. Hiệu ứng vẽ bằng code: hai luồng sáng màu võ hồn của hai người vòng cung nhập vào điểm giữa, rồi đóa kính lưu ly (phong cách D, mục 5.11) nở trên mặt đất, vòng sáng màu niên hạn, tên chiêu lớn bay lên như tuyệt kỹ; người ở gần thấy theo `fx fusion`, hai người dung hợp thêm banner.
 
 | Cặp võ hồn | Tên chiêu | Hiệu ứng |
 |---|---|---|
@@ -896,7 +897,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] Tự bán từ xa khi túi gần đầy theo bộ lọc (100% giá trong thành, mặc định tắt), khoá món, mua lại `AUTO_SELL_BUYBACK` món tự bán ở thương nhân, tự săn bán thay vì dừng; cột `items.locked`, `accounts.auto_sell` / `auto_sold` (#216; mục 5.7, 5.13).
 - [x] Vùng an toàn hồi sinh lực / hồn lực nhanh hơn ngoài rừng; chuyển các số hồi sinh lực đang viết thẳng trong `MapRoom.tick` vào `shared/data.ts` (#112; mục 4 "Hồi sinh lực và hồn lực").
 - [ ] #113 Đại Đấu Hồn Trường: **phase 1 đã có** hàng chờ tổ đội đúng 2 người, trận 2v2, Elo / thưởng riêng từng tài khoản và bốn cặp chống dàn xếp. **Phase 2a đã có** (#277): hệ số sát thương theo hệ, giảm hồi / khiên và khống chế, hiệu ứng bộ hồn hạch lên hồn sư. **Phase 3a đã có** (#278): xem trực tiếp (server, phòng sân chỉ đọc). **Còn** phase 2b hiệu ứng phụ trợ lan cho đồng đội 2v2 (#279); phase 3b giao diện xem trận (#280).
-- [ ] Võ Hồn Dung Hợp Kỹ giữa hai hồn sư cùng tổ đội (#178): luật server, 4 cặp `FUSIONS`, bài bot đã có (#192; mục 5.9). Còn: phím G, nút chạm, hiệu ứng (#193); võ hồn Bạch Hổ và U Minh Bạch Hổ (#194).
+- [ ] Võ Hồn Dung Hợp Kỹ giữa hai hồn sư cùng tổ đội (#178): luật server, 4 cặp `FUSIONS`, bài bot đã có (#192); phím G, nút chạm, lời nhắc, hiệu ứng, ô hồi chiêu đã có (#193; mục 5.9). Còn: võ hồn Bạch Hổ và U Minh Bạch Hổ (#194).
 - [x] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114): thanh tẩy không nhân hệ số; self-effect hồn cốt và Lưu Ly hỗ trợ theo bán kính / hệ số tổ đội, sát thương và trạng thái hồn thú không lan.
 - [x] Chat tổ đội, tin riêng và kênh thế giới qua presence (#188): `/d`, `/t`, `/r`, `/tg`, tab ô chat; lọc chặn ở #195, chat tông `/tm` ở #198.
 - [x] Cộng minh: hiệu ứng chí mạng / giảm sát thương / tốc chạy, mốc theo sao võ hồn, bảng xếp hạng cộng minh không migration (#115).
