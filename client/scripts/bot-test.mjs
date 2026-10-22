@@ -9577,6 +9577,8 @@ async function tideTest(){
     await hold();
     let inside=false; for(const [fx,fy] of [[0.3,0.5],[0.7,0.5],[0.5,0.3],[0.5,0.7]]) if(await go(LR.x+LR.w*fx,LR.y+LR.h*fy)){ inside=true; break; }
     ok(inside&&inL(mo().x,mo().y),`F đứng trong hang (${mo().x.toFixed(0)},${mo().y.toFixed(0)})`);
+    // Tốc độ gốc lúc chắc chắn chưa có nước, chưa Làm chậm (quy về không chạy): bài Làm chậm 50% dưới đây so với số này khi lúc đo F đã ngập.
+    const base0=!has("flood")&&!has("slow")?mo().spd/(mo().calm&&!mo().walk?RUN_MULT:1):0;
     await test(F,"kdmg",{v:1}); await sleep(300); let t=await test(F,"tide");
     ok(!t.on&&!t.wave.length&&!t.grounds.some(z=>z.src===kb),"giai đoạn 1: chưa có nước");
     ki=await test(F,"king"); await test(F,"kdmg",{v:Math.ceil(ki.hp-ki.maxHp*KING.phaseHp)+1});
@@ -9608,12 +9610,14 @@ async function tideTest(){
     if(zc?.wait>0) ok(!g.st.flood&&g.slow===0,`đang báo trước (còn ${zc.wait.toFixed(2)} giây): chưa bị ${FL.name}`);
     else console.log("  ⚠ không kịp thử lúc báo trước (máy chậm)");
     // Hết báo trước: Ngập nước, Làm chậm 50%; tốc độ thật giảm một nửa.
-    const spdOut=mo().spd, calmOut=mo().calm;
+    // Máy chậm (#303): chờ hết Ngập nước của đợt cũ thì vùng mới đã hết báo trước, F ngập lại ngay, mo().spd lúc này đã giảm (76 → 76).
+    // Chỉ lấy tốc độ đang có làm mốc khi chưa ngập / Làm chậm; không thì dùng tốc độ gốc đo trong hang (base0).
+    const dry0=!has("flood")&&!has("slow"), calmOut=mo().calm, spdOut=dry0?mo().spd:base0*(calmOut&&!mo().walk?RUN_MULT:1);
     ok(await waitFor(()=>has("flood")&&F.room.state.grounds.get(calm.id)?.wait===0,(TD.warn+1)*1000),`hết báo trước: bị ${FL.name}`);
     g=await test(F,"tide"); await sleep(150);
     const want=0.5*(mo().calm?RUN_MULT:1)/(calmOut?RUN_MULT:1);
     ok(g.st.flood&&Math.abs(g.slow-FL.slow)<1e-6&&spdOut>0&&Math.abs(mo().spd/spdOut-want)<0.02,
-      `Làm chậm ${(g.slow*100).toFixed(0)}%: tốc độ ${spdOut.toFixed(1)} → ${mo().spd.toFixed(1)} pixel/giây`);
+      `Làm chậm ${(g.slow*100).toFixed(0)}%: tốc độ ${spdOut.toFixed(1)}${dry0?"":" (gốc đo trong hang)"} → ${mo().spd.toFixed(1)} pixel/giây`);
     ok(!g.grounds.some(z=>old.includes(z.id))&&await waitFor(()=>![...F.room.state.grounds.values()].some(q=>q.wait>0)&&[...F.room.state.grounds.values()].some(q=>kindOf(q)==="flood")
       &&[...F.room.state.grounds.values()].some(q=>kindOf(q)==="whirl"),1500),"đợt cũ đã rút; state.grounds có vùng ngập và xoáy đã có tác dụng (client vẽ được)");
     await test(F,"ground",{ttl:30}); // giữ nước cho các bước sau, không phụ thuộc máy nhanh / chậm
