@@ -9817,6 +9817,8 @@ async function tideTest(){
     }
     ok(calm&&st0,`F đứng trong vùng ngập không xoáy của đợt mới, cách vùng ngập cũ ${st0?far(st0).toFixed(0):"?"} (${st0?.x},${st0?.y})`+(waves>1?`, ở đợt mới thứ ${waves}`:"")+(st0?"":
       ` [đợt cuối: ${cand.length} chỗ thỏa đứng được, thử ${tried} chỗ không tới được; vùng ngập không xoáy ${calm?xy(calm):"không có"}, xoáy ${wh.map(xy).join(" ")}, vùng ngập cũ ${olds.map(xy).join(" ")}]`));
+    if(!st0) return; // không có chỗ đứng: các bước sau vô nghĩa (finally hạ thú vương)
+    if(waves>1) await hold(); // gọi thêm đợt tốn thời gian: Choáng lại thú vương cho các bước sau
     await waitFor(()=>!has("flood"),FL.secs*1000+500); // Ngập nước còn lại từ lúc đứng trong nước đợt cũ
     let g=await test(F,"tide"), zc=g.grounds.find(z=>z.id===calm?.id);
     if(zc?.wait>0) ok(!g.st.flood&&g.slow===0,`đang báo trước (còn ${zc.wait.toFixed(2)} giây): chưa bị ${FL.name}`);
