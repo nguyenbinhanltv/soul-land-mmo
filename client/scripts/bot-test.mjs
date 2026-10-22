@@ -7909,9 +7909,11 @@ async function eggTest(){
     const lv=(await test(E,"stats"))?.live, hitMax=lv?Math.round(lv.atkNow*(1+ATK_SPREAD)*(1+(lv.fx?.combo??0))*defMult(beastDef(EG.species,EG.years[0]),lv.fx?.pierce??0)*Math.max(1,lv.critMult)):Infinity;
     ok(hitMax<hpOf(EG.years[0]),`đòn đánh thường tối đa ${hitMax} < máu bọc ${EG.years[0]} năm ${hpOf(EG.years[0])} (bọc đánh thử: ${b2.years} năm, máu ${b2.maxHp})`);
     await test(E,"status",{s:"stun",secs:3,bid:kb}); E.dmgs=[];
-    for(const [dx,dy] of [[14,0],[-14,0],[0,10],[0,-10]]){ await test(E,"goto",{x:Math.round(b2.x+dx),y:Math.round(b2.y+dy)}); if(Math.hypot(mo(E).x-b2.x-dx,mo(E).y-b2.y-dy)<1) break; }
-    E.room.send("attack"); const hit=await waitFor(()=>E.dmgs.some(m=>m.bid===b2.bid),1500); await test(E,"goto",{x:ox,y:oy});
-    ok(hit&&(await eggs()).find(e=>e.bid===b2.bid)?.hp<b2.maxHp,`đánh thường trúng bọc trứng: -${E.dmgs.find(m=>m.bid===b2.bid)?.v} máu, bọc vẫn đứng yên chờ nở`);
+    // #238: đứng sát bọc (±8 / ±6 px): điểm đánh (cách chân 10 px theo hướng mặt) luôn trong tầm trúng 18 + nửa cỡ bọc dù quay hướng nào;
+    // cũ ±14 px bên phải bọc khi quay phải (hướng mặc định, E chưa đi) sát mép tầm, goto làm tròn toạ độ thì đôi khi trượt.
+    for(const [dx,dy] of [[8,0],[-8,0],[0,6],[0,-6]]){ await test(E,"goto",{x:Math.round(b2.x+dx),y:Math.round(b2.y+dy)}); if(Math.hypot(mo(E).x-b2.x-dx,mo(E).y-b2.y-dy)<1) break; }
+    E.room.send("attack"); const hit=await waitFor(()=>E.dmgs.some(m=>m.bid===b2.bid),1500); const at=[mo(E).x-b2.x,mo(E).y-b2.y].map(v=>v.toFixed(1)).join(", "); await test(E,"goto",{x:ox,y:oy});
+    ok(hit&&(await eggs()).find(e=>e.bid===b2.bid)?.hp<b2.maxHp,`đánh thường trúng bọc trứng: -${E.dmgs.find(m=>m.bid===b2.bid)?.v} máu, bọc vẫn đứng yên chờ nở [E lệch bọc (${at}), sinh lực ${mo(E).hp}]`);
     await waitFor(()=>!((kingB()?.st??0)&statusBit("stun")),4000);
     // Phá một bọc: không nở, không kinh nghiệm / Hồn Tệ / đồ rơi.
     ok(!xpBlocked(mo(E).level,RG.length),`E cấp ${mo(E).level}, ${RG.length} hồn hoàn: không ở bình cảnh (kinh nghiệm còn tăng được, dòng "không kinh nghiệm" có nghĩa)`);
