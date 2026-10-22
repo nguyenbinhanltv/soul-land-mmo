@@ -682,8 +682,8 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * Lệnh trong ô chat (7.1, #188): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>`
-   * nhắn riêng, `/r <tin>` trả lời người vừa nhắn riêng, `/tg <tin>` kênh thế giới, `/hat` hạt bay. Trả true nếu là lệnh (không gửi
-   * theo tab đang chọn). Mọi giới hạn (cấp, hồi, người nhận online, chống spam) do server kiểm.
+   * nhắn riêng, `/r <tin>` trả lời người vừa nhắn riêng, `/tm <tin>` tông môn (#198), `/tg <tin>` kênh thế giới, `/hat` hạt bay. Trả true
+   * nếu là lệnh (không gửi theo tab đang chọn). Mọi giới hạn (cấp, hồi, người nhận online, có tông, chống spam) do server kiểm.
    */
   chatCommand(t: string) {
     const m = /^\/(\S+)\s*(.*)$/u.exec(t); if (!m) return false;
@@ -695,6 +695,7 @@ export class GameScene extends Phaser.Scene {
     else if (cmd === "b") { if (arg) this.room.send("chat", { text: arg }); else need("/b <tin> để chat ở bản đồ"); }
     else if (cmd === "d" || cmd === "đ") { if (arg) this.room.send("chat", { text: arg, ch: "party" }); else need("/d <tin> để chat tổ đội"); }
     else if (cmd === "tg") { if (arg) this.room.send("chat", { text: arg, ch: "world" }); else need("/tg <tin> để chat kênh thế giới"); }
+    else if (cmd === "tm") { if (arg) this.room.send("chat", { text: arg, ch: "tong" }); else need("/tm <tin> để chat tông môn"); }
     else if (cmd === "t") {
       const w = this.whisperArg(arg);
       if (w) this.room.send("chat", { text: w.text, ch: "whisper", to: w.to }); else need("/t <tên> <tin> để nhắn riêng (tên có dấu cách thì để trong ngoặc kép)");
@@ -704,7 +705,7 @@ export class GameScene extends Phaser.Scene {
       else if (arg) this.room.send("chat", { text: arg, ch: "whisper", to }); else need(`/r <tin> để trả lời ${to}`);
     }
     else if (cmd === "hat" || cmd === "hạt") hud.log(`Hạt bay và thời tiết: ${this.weather.toggle() ? "bật" : "tắt"}.`, "#ffb35c");
-    else hud.log("Lệnh: /b, /d, /t <tên>, /r, /tg <tin> (bản đồ, tổ đội, riêng, trả lời, thế giới), /moi <tên>, /roi (tổ đội), /hat (hạt bay, thời tiết).", "#ffb35c");
+    else hud.log("Lệnh: /b, /d, /t <tên>, /r, /tm, /tg <tin> (bản đồ, tổ đội, riêng, trả lời, tông môn, thế giới), /moi <tên>, /roi (tổ đội), /hat (hạt bay, thời tiết).", "#ffb35c");
     return true;
   }
 
@@ -849,13 +850,13 @@ export class GameScene extends Phaser.Scene {
       } else if (m.k === "leave") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
       else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
-    // Chat (#188): `ch` thiếu = bản đồ (kể cả thông báo "Hệ thống"); tổ đội / riêng / thế giới đến từ mọi bản đồ / kênh qua server.
+    // Chat (#188): `ch` thiếu = bản đồ (kể cả thông báo "Hệ thống"); tổ đội / riêng / thế giới / tông môn (#198) đến từ mọi bản đồ / kênh qua server.
     this.room.onMessage("chat", (m: ChatMsg) => {
       if (m.ch === "whisper") {
         const mine = m.name === this.room.state.players.get(this.me)?.name && !!m.to;
         return hud.chatWhisper(mine ? m.to! : m.name, mine, m.text);
       }
-      if (m.ch === "party" || m.ch === "world") return hud.chatLine(m.ch, m.text, hud.CHAT_COL[m.ch], m.name);
+      if (m.ch === "party" || m.ch === "world" || m.ch === "tong") return hud.chatLine(m.ch, m.text, hud.CHAT_COL[m.ch], m.name);
       hud.chatLine("map", m.text, m.name === "Hệ thống" ? "#86e0b0" : hud.CHAT_COL.map, m.name);
     });
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".

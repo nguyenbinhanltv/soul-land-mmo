@@ -98,10 +98,10 @@ export interface PartyMember { name: string; leader: boolean; me: boolean; sid: 
 /** Tin riêng "channels" (mục 6 "Nhiều kênh"): kênh hiện tại và các kênh đang mở của bản đồ (số người, tối đa, đầy chưa). */
 export interface ChannelsMsg { cur: number; list: { ch: number; n: number; max: number; full: boolean }[]; }
 /**
- * Tin "chat" (#188): `ch` thiếu = chat bản đồ (cả thông báo "Hệ thống"); "party" / "world": `name` là người gửi; "whisper": `name`
+ * Tin "chat" (#188): `ch` thiếu = chat bản đồ (cả thông báo "Hệ thống"); "party" / "world" / "tong" (#198): `name` là người gửi; "whisper": `name`
  * là người gửi, `to` là người nhận (người gửi cũng nhận một bản).
  */
-export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world"; to?: string; }
+export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world" | "tong"; to?: string; }
 export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
