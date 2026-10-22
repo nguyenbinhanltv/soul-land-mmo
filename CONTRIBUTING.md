@@ -12,7 +12,7 @@ Repo có nhiều người cùng làm, mỗi người có thể có agent AI riê
 | `dang-lam` | Đang có người làm (xem assignee và nhãn chủ). |
 | `cho-review` | PR đã tự review đạt (comment `Review: đạt`), chờ orchestrator AO của chủ repo kiểm tra lại và merge. |
 | `chan` | Bị chặn: chờ việc khác, quyết định của chủ repo hoặc tài nguyên. Mô tả issue ghi chờ gì. |
-| `can-pixellab` | Cần lượt PixelLab (thường đi cùng `chan` khi hết lượt). |
+| `cho-hoat-anh-8-huong` | Chờ cách làm hoạt ảnh 8 hướng bằng ComfyUI (thử ở #335; thường đi cùng `chan`). Nhãn cũ `can-pixellab` đã đổi tên: PixelLab không dùng nữa từ 2026-10-23. |
 | `giai-doan-10`, `giai-doan-11` | Thuộc giai đoạn Lộ trình. |
 | `gameplay`, `art`, `tai-lieu`, `bot-test` | Loại việc. |
 | `agent:<tên>` | Nhãn chủ khi agent làm, gắn trên **cả issue lẫn PR** (ví dụ `agent:ao-orchestrator`). Người làm thì chỉ cần assignee. |
@@ -70,7 +70,7 @@ Bị chặn (chờ việc khác / quyết định) thì thay `dang-lam` bằng `
 - **Cập nhật nhánh bằng `git merge origin/main`** thường xuyên (ít nhất mỗi ngày và trước khi xin review). **Không rebase nhánh đã push, không force push.** Cần sửa gì sau khi đã push thì thêm commit mới.
 - Commit nhỏ, thông điệp tiếng Việt. Không bỏ pre-commit hook (`--no-verify`).
 - Luật chơi chỉ ở server, số liệu chỉ ở `shared/data.ts` (xem `CLAUDE.md`).
-- Không ghi key PixelLab hay bí mật nào vào repo, log, issue, PR.
+- Không ghi key hay bí mật nào vào repo, log, issue, PR.
 
 ### File hay xung đột
 

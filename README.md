@@ -135,7 +135,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 │  └─ assets/              # dây chuyền ảnh (README.md: quy cách chi tiết): normalize, pack, normal, preview, validate, iso-build,
 │                          #   gemini-import (nhập ảnh Gemini), lpc-compose (NPC phụ LPC), he-icons
 ├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
-│                          #   src/ (ảnh thô PixelLab / Gemini, công thức LPC), CREDITS.md
+│                          #   src/ (ảnh thô ComfyUI / Gemini / PixelLab cũ, công thức LPC), CREDITS.md
 ├─ GAME_DESIGN.md          # thiết kế luật chơi, mỹ thuật, kiến trúc, lộ trình (cho người và AI đọc)
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
 ├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
@@ -147,7 +147,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 ## Mỹ thuật và giấy phép
 
 Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
-Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
+Nguồn ảnh: **ComfyUI** tự host và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
 chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Galmuri (giao diện) và Be Vietnam Pro (OFL).
 Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
