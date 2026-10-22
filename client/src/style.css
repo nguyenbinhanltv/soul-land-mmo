@@ -168,7 +168,6 @@ body.touch #chattabs button{padding:7px 2px}
 /* Tên hồn kỹ riêng có thể dài: tối đa 2 dòng, chữ nhỏ hơn để biểu tượng không bị đẩy ra ngoài. */
 .sk .ico+span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;font-family:var(--f10);line-height:normal;max-width:100%}
 .sk.locked{opacity:.4}
-.sk .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);height:0}
 /* Võ Hồn Chân Thân (8.1a, phím R): viền màu võ hồn; đang biến hình thì sáng nhấp nháy và ghi giây còn lại. */
 .sk.ava{border-style:double;border-width:3px}
 .sk.ava.on{border-color:#ffe08a;box-shadow:0 0 10px #ffe08a;animation:avaPulse .8s ease-in-out infinite alternate}
@@ -452,7 +451,6 @@ body.touch .minibtn kbd{display:none}
 .tm.on small{color:var(--c)}
 .tm.locked{opacity:.4}
 .tm.locked .dot{display:none}
-.tm .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);height:0}
 .tm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Sinh lực riêng từng võ hồn; võ hồn đã gục mờ đi, hiện thời gian hồi (bước 2.3b) */
 .tm .hpb{display:block;width:100%;height:3px;margin-top:2px;background:var(--wash2)}
@@ -763,7 +761,6 @@ body.arena #quest{display:none}
 .thuymac .sk b{left:-2px;top:-3px;z-index:2;padding:0 3px;background:var(--paper);color:var(--ink);border:1px solid var(--ink2);text-shadow:none}
 .thuymac .sk .ico{margin:0 0 2px;background:rgba(26,16,32,.45);box-shadow:0 0 4px currentColor}
 .thuymac .sk .ico+span{-webkit-line-clamp:2;max-width:48px}
-.thuymac .sk .cd{left:3px;right:3px;bottom:2px;clip-path:circle(28px at 50% calc(100% - 28px));background:rgba(26,16,32,.6)}
 .thuymac .sk.locked{opacity:1;filter:grayscale(1) brightness(.75)}
 .thuymac .sk.ava{border:0;filter:drop-shadow(0 0 1px #ffe08a)}
 .thuymac .sk.ava.on{animation:sealPulse .8s ease-in-out infinite alternate;box-shadow:none}
@@ -775,11 +772,10 @@ body.arena #quest{display:none}
 .thuymac .sk:focus-visible{outline:2px solid var(--paper);outline-offset:0}
 @media (max-width:640px){.thuymac .sk{background-image:var(--ui-an-trien-vua);background-position:center 0;padding-top:6px}
   .thuymac .sk .ico{margin-bottom:8px}.thuymac .sk .ico+span{-webkit-line-clamp:1;color:var(--paper);max-width:100%}
-  .thuymac .sk .cd{clip-path:circle(17px at 50% 17px);top:0;bottom:auto;max-height:34px}}
+  .thuymac .sk.ui-cell .ico{margin-bottom:0}}
 .thuymac body.touch .sk.bsk{background-image:var(--ui-an-trien-vua);background-position:center;padding:0;justify-content:center}
 /* Ô đội hình trong trận: nút giấy, viền trong màu võ hồn khi ra trận. */
 .thuymac .tm{color:var(--text)}
-.thuymac .tm .cd{background:rgba(26,16,32,.45)}
 .thuymac .mapbox :is(#chanBtn,#worldBtn){border-image:none;border:1px solid var(--ink2)}
 /* Biểu tượng vật phẩm 32×32 (item_*): giữ điểm ảnh, quầng nhẹ màu món đồ. */
 .ico.art{width:32px;height:32px;display:block;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--c,#000) 60%,transparent))}
@@ -1026,3 +1022,32 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 .bslot i.nw{position:absolute;left:2px;top:2px;width:6px;height:6px;background:var(--son-l);border:1px solid var(--plate);pointer-events:none;z-index:1}
 .bcmp b.t-good{color:#1f7a3a} .bcmp b.t-bad{color:#a8281c} .bcmp b.t-muted{color:var(--muted)}
 .bcmp .bcmpnote{grid-column:1 / -1}
+
+/* ===== UI-3 (#353): thanh kỹ năng, đội hình, khung mục tiêu dựng trên .ui-cell / .ui-chip / .ui-bar =====
+   Viền theo màu hồn hoàn (data-tier), hồi chiêu quét tròn `.ui-cd` + số giây `.cdn`, `.nomp` thiếu hồn lực, `.ready` nháy một lần khi vừa hồi xong. */
+.sk.ui-cell:not([data-tier])::before,.tm.ui-cell::before{display:none}
+.sk.ui-cell[data-tier]{border-color:var(--c)}
+.ui-cell .cdn{position:absolute;left:0;right:0;top:50%;margin-top:-6px;z-index:3;font:normal var(--fs-m)/12px var(--f12);text-align:center;color:var(--plate-text);
+  text-shadow:var(--stroke);font-variant-numeric:tabular-nums;pointer-events:none}
+.sk.ui-cell.ready,.tm.ui-cell.ready{animation:uiReady .45s steps(2) 2}
+.sk.ui-cell.nomp::after{right:2px;top:2px}
+.thuymac .sk.ui-cell.nomp::after{right:4px;top:2px}
+.tm.ui-cell{overflow:visible}
+.ui-cell .ui-cd{z-index:2}
+/* Thủy mặc: ô vuông khung gỗ ui_o (như ô túi đồ), ruột tối cho biểu tượng nổi; độ hiếm thể hiện bằng viền trong màu hồn hoàn. */
+.thuymac .sk.ui-cell{border:4px solid transparent;border-image:var(--frame-cell) var(--nine-o) fill / calc(var(--nine-o) * 1px) stretch;background:none;
+  padding:3px 1px 0;justify-content:center}
+.thuymac .sk.ui-cell:not(.locked):hover{border-image-source:var(--frame-cell-on)}
+.thuymac .sk.ui-cell[data-tier]{outline:2px solid color-mix(in srgb,var(--c) 85%,#1a1020);outline-offset:-3px}
+.thuymac .sk.ui-cell::before{display:none}
+.thuymac .sk.ui-cell .ico{margin:0 0 2px}
+.thuymac .sk .ui-cd{inset:0}
+.thuymac .sk.ui-cell .key{left:-6px;top:-7px}
+.thuymac .sk.ui-cell.nomp::after{right:-2px;top:-2px}
+.thuymac body.touch .sk.bsk.ui-cell{background:none;padding:0}
+/* Khung mục tiêu gọn: tên, chip niên hạn, cấp / kinh nghiệm, thanh máu có số, trạng thái. */
+#target .tn{display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-3)}
+#target .tn b{font-weight:400;font-size:var(--fs-m)}
+#target .tn .tl{color:var(--muted)}
+#target .thp{width:100%;min-width:200px;margin-top:var(--sp-2)}
+#target .thp>i{transition:width .12s linear}

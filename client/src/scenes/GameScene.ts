@@ -2535,7 +2535,7 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? hud.withBeastPortrait(`<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : ""),
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastName(tb.rank, tb.species), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
         beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
