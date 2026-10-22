@@ -18,7 +18,10 @@
 //   --diamond W    ô nền: ảnh vào là texture vuông nhìn thẳng từ trên, liền mép (SDXL không vẽ được thoi 2:1 đúng);
 //                  chiếu thành thoi W×W/2 (xoay 45°, ép dọc một nửa, lấy điểm gần nhất, không nội suy) trên nền trong
 //                  suốt, rồi đưa vào gemini-import --kind tile --cell 1. Không xóa nền ở chế độ này.
-// In ra số điểm đã xóa và hộp bao phần còn lại.
+//   --fit N        sau khi xóa nền: cắt hộp bao vật rồi thu về cạnh dài N (trung bình các điểm đặc trong mỗi ô, không lấy
+//                  mẫu điểm lẻ). Dùng cho ảnh gốc 1024 khi khung đích nhỏ hơn bản 128 nhiều (chân dung hồn thú 64: thu từ 1024
+//                  giữ nét mặt tốt hơn thu tiếp bản 128), rồi gemini-import --cell 1 --scale 1 lo bảng màu, viền, chỗ đặt.
+// In ra số điểm đã xóa và hộp bao phần còn lại; nền không trắng (ảnh SDXL đôi khi ra nền xám) thì cảnh báo.
 import { readFileSync, writeFileSync } from "node:fs";
 import { decodePng, encodePng, hex, Img } from "./lib.mjs";
 
@@ -26,7 +29,7 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const keyOpt = opt("--key", ""), tol = +opt("--tol", "24"), holes = +opt("--holes", "0"), fringe = +opt("--fringe", "1");
-const shadowMin = +opt("--shadow-min", "0.55"), shadow = flag("--shadow"), diamond = +opt("--diamond", "0");
+const shadowMin = +opt("--shadow-min", "0.55"), shadow = flag("--shadow"), diamond = +opt("--diamond", "0"), fit = +opt("--fit", "0");
 const [inFile, outFile] = args;
 if (!inFile || !outFile) {
   console.error("Cách dùng: comfy-key.mjs <vào.png> <ra.png> [--tol 24] [--shadow] [--holes N] [--fringe 1] [--key #rrggbb]");
@@ -126,7 +129,25 @@ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
   img.set(x, y, [p[0], p[1], p[2], 255]);
   x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
 }
-writeFileSync(outFile, encodePng(img));
 const keyHex = "#" + K.map((v) => v.toString(16).padStart(2, "0")).join("");
-if (x1 < 0) console.log(`${outFile}: nền ${keyHex}, xóa hết ảnh (tol quá lớn?)`);
-else console.log(`${outFile}: nền ${keyHex}, xóa ${removed}/${W * H} điểm${holes ? `, ${holeCount} vùng kín` : ""}; vật ${x1 - x0 + 1}×${y1 - y0 + 1} tại (${x0}, ${y0})`);
+if (x1 < 0) { writeFileSync(outFile, encodePng(img)); console.log(`${outFile}: nền ${keyHex}, xóa hết ảnh (tol quá lớn?)`); process.exit(0); }
+let out = img, note = "";
+if (fit && Math.max(x1 - x0 + 1, y1 - y0 + 1) > fit) {
+  // Cắt hộp bao rồi thu về cạnh dài `fit`: mỗi điểm đích là trung bình các điểm đặc trong ô nguồn của nó, đặc khi phủ ≥ nửa ô.
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1, s = fit / Math.max(bw, bh), w = Math.max(1, Math.round(bw * s)), h = Math.max(1, Math.round(bh * s));
+  out = new Img(w, h);
+  for (let ty = 0; ty < h; ty++) for (let tx = 0; tx < w; tx++) {
+    const sx0 = x0 + Math.floor(tx / s), sx1 = x0 + Math.max(Math.floor(tx / s) + 1, Math.floor((tx + 1) / s));
+    const sy0 = y0 + Math.floor(ty / s), sy1 = y0 + Math.max(Math.floor(ty / s) + 1, Math.floor((ty + 1) / s));
+    let n = 0, all = 0; const acc = [0, 0, 0];
+    for (let y = sy0; y < Math.min(sy1, H); y++) for (let x = sx0; x < Math.min(sx1, W); x++) {
+      all++; const p = img.get(x, y); if (!p[3]) continue;
+      n++; acc[0] += p[0]; acc[1] += p[1]; acc[2] += p[2];
+    }
+    if (n * 2 >= all && n) out.set(tx, ty, [Math.round(acc[0] / n), Math.round(acc[1] / n), Math.round(acc[2] / n), 255]);
+  }
+  note = `; thu về ${w}×${h}`;
+}
+writeFileSync(outFile, encodePng(out));
+const grey = Math.max(...K) < 200 ? " (CẢNH BÁO: nền xám, vật cùng tông xám dễ bị xóa nhầm; nên bỏ ảnh này)" : "";
+console.log(`${outFile}: nền ${keyHex}${grey}, xóa ${removed}/${W * H} điểm${holes ? `, ${holeCount} vùng kín` : ""}; vật ${x1 - x0 + 1}×${y1 - y0 + 1} tại (${x0}, ${y0})${note}`);

@@ -640,6 +640,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 | Hồn thú Trắng, Vàng / Tím, Đen / Đỏ | 64 / 96 / 128 | Gốc giữa đáy; tinh anh phóng sprite loài gốc |
 | Tà hóa thú vương / boss thế giới | 160 / 192 | Vẽ ở cỡ thật; chưa có thì phóng loài gốc |
 | Chân dung võ hồn / NPC | 64×64 / 112×112 | Tối đa `PORTRAIT_MAX_COLORS` màu |
+| Chân dung hồn thú (khung mục tiêu) | 64×64 | Nền trong suốt, tối đa `PORTRAIT_MAX_COLORS` màu |
 | Thẻ võ hồn | 96×152 | |
 | Huy hiệu hệ, trạng thái / vật phẩm | 24×24 / 32×32 | |
 | Ô nền / ô lớn | Thoi 32×16 / 64×32 | |
@@ -669,7 +670,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 
 **Điều khiển**: phím / cần theo hướng màn hình, client chiếu ngược thành hướng thế giới trong `input {x, y, s}` (W → (−1, −1)/√2). Bấm đất để đi tới theo đường A* trên lưới ô chặn `solidGrid` (`shared/path.ts`: 8 hướng, không cắt góc ô chặn, rút gọn thành các đoạn đi thẳng được, trong `CLICK_PATH`; không tới được thì tới ô gần nhất; client vẫn chỉ gửi hướng tới điểm kế tiếp, dừng khi tới nơi, bị chặn nửa giây hoặc bấm phím đi; chạy / đi bộ như khi giữ phím), bấm hồn thú để chọn mục tiêu rồi tự đi vào tầm đánh, bấm hồn sư khác / NPC / cổng như cũ; chọn đối tượng theo thứ tự độ sâu.
 
-**Chân dung và thẻ võ hồn** (giao diện HTML): chân dung vẽ **chính võ hồn** trên nền tối có quầng màu riêng, không vẽ chủ nhân, hiển thị phóng 2–3 lần `pixelated`. Thẻ võ hồn khung lưu ly theo độ hiếm (SR bạc lam, SSR tím vàng kim, UR vàng kim kính bảy màu) với cửa sổ chân dung, sao, chấm hồn hoàn màu niên hạn, tên, cấp; huy hiệu hệ góc trên trái, ấn son số ô đội góc trên phải, võ hồn ra trận sáng viền, chưa mở thì xám (`client/src/cards.ts`). Biểu tượng vật phẩm nền trong suốt; hồn cốt là bản xám để client tô theo màu niên hạn, mảnh võ hồn tô màu võ hồn, rương (màu hào quang thú vương / boss) và tiên thảo là bản xám chung của nhóm tô theo màu của món.
+**Chân dung và thẻ võ hồn** (giao diện HTML): chân dung vẽ **chính võ hồn** trên nền tối có quầng màu riêng, không vẽ chủ nhân, hiển thị phóng 2–3 lần `pixelated`. Thẻ võ hồn khung lưu ly theo độ hiếm (SR bạc lam, SSR tím vàng kim, UR vàng kim kính bảy màu) với cửa sổ chân dung, sao, chấm hồn hoàn màu niên hạn, tên, cấp; huy hiệu hệ góc trên trái, ấn son số ô đội góc trên phải, võ hồn ra trận sáng viền, chưa mở thì xám (`client/src/cards.ts`). **Chân dung hồn thú** (`thu_<loài>`) hiện bên trái chữ ở khung mục tiêu, viền màu vòng niên hạn (hồn thú thường) hoặc màu hào quang (tinh anh, thú vương dùng chân dung loài gốc); loài chưa có ảnh thì khung chỉ có chữ. Biểu tượng vật phẩm nền trong suốt; hồn cốt là bản xám để client tô theo màu niên hạn, mảnh võ hồn tô màu võ hồn, rương (màu hào quang thú vương / boss) và tiên thảo là bản xám chung của nhóm tô theo màu của món.
 
 **Tên file, key và thư mục**: ảnh nằm trong `shared/assets` (`publicDir` của Vite), tên file theo mã võ hồn / mã loài, không theo chỉ số mảng. Client chỉ tải key có trong `shared/assets/sprites/manifest.json`, key còn thiếu vẽ bằng code, nên thêm ảnh chỉ cần ảnh và một dòng manifest. Bảng key → đường dẫn ở `tools/assets/README.md`.
 
@@ -897,6 +898,14 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] 10.6 Hồn thú và boss (chờ #335: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103).
 - [ ] Thú LPC làm hình tạm cho các loài hồn thú chưa có sprite isometric, tới khi 10.6 thay (#105; 19 loài đã có, thêm 13 loài ở #201; loài còn lại không có mẫu LPC hợp).
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b (#104).
+- Ảnh tĩnh bằng ComfyUI (skill `asset-gen` mục 10, #331), không tốn lượt PixelLab:
+  - [ ] Đặt 42 vật đã có ảnh nhưng chưa dùng vào bản đồ (#333).
+  - [ ] Công trình Nặc Đinh Thành: nhà chính học viện sơ cấp, đấu hồn trường, tửu lâu (#336).
+  - [ ] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
+  - [ ] Trọn bộ ô nền Lõi Tinh Đấu (#338).
+  - [ ] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339), lô 2 Nội địa, Lạc Nhật (#340), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341).
+  - [ ] Phụ thể tĩnh vũ khí / vật đối xứng (#342).
+  - [ ] Thử nghiệm hoạt ảnh 8 hướng bằng ComfyUI cho hồn sư, hồn thú, phụ thể hư ảnh thú (#335).
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
 
