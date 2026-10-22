@@ -3847,8 +3847,12 @@ export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "
 export interface QuestGoal {
   k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
 }
-/** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
-export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
+/**
+ * Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). `bones`
+ * (#285): mỗi mục một hồn cốt loài `beast` (mã trong BEASTS), `years` năm, vị trí server tung đều trong BONE_SLOTS, +0, chưa có dòng
+ * phụ (như hồn cốt rơi, mục 5.5); mỗi hồn cốt một ô túi.
+ */
+export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; bones?: { beast: string; years: number }[]; }
 /** Một bước (một bài học): `offer` lời giao, `done` lời khi trả nhiệm vụ, `desc` một câu tóm tắt cho khung theo dõi. */
 export interface QuestStep { id: string; name: string; desc: string; goals: QuestGoal[]; reward: QuestReward; offer: string[]; done: string[]; }
 /**
@@ -3873,6 +3877,8 @@ export const QUEST_CH3 = "hai_than";
 export const QUEST_CH3_AFTER = QUEST_CH2;
 /** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
 export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER, [QUEST_CH3]: QUEST_CH3_AFTER };
+/** Thâm Hải Ma Kình Vương (thú vương Hải Thần Đảo): loài và niên hạn hồn cốt thưởng ở bài cuối chương 3 (#285). */
+const MA_KINH_VUONG = BOSSES[bossIndex("tham_hai_ma_kinh_vuong")];
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
   { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
@@ -3986,7 +3992,8 @@ export const QUESTS: QuestChain[] = [
     ] },
   // Chương 3 (#284, #191): giao bài ở Bến Hải Thần, mục tiêu theo bản đồ. Phỏng theo truyện: truyện là chuỗi "Hải Thần Cửu Khảo", game
   // rút gọn và không dùng con số; thứ tự khảo hạch, việc săn Thâm Hải Ma Kình Vương, bài hai thủ hộ của Tiểu Vũ và lời thoại là phỏng
-  // theo. Không thưởng mảnh UR (mục 5.3); thưởng hồn cốt ở bài cuối để #285.
+  // theo. Không thưởng mảnh UR (mục 5.3). Bài cuối thưởng thêm một hồn cốt Thâm Hải Ma Kình (#285) đúng niên hạn của Thâm Hải Ma Kình
+// Vương (BossDef.years), thấp hơn hồn cốt 100.000 năm của rương boss thế giới; thưởng hồn cốt cho người vượt khảo hạch là phỏng theo.
   { id: QUEST_CH3, name: "Hải Thần Đảo", giver: "hai_ma_dau_la", map: "hai_than_dao",
     finale: "Khảo hạch của Thánh Trụ ngươi đã qua hết. Hải Thần Đảo từ nay mở cửa cho ngươi; phần còn lại của khảo hạch Hải Thần, Đại Cung Phụng sẽ tự định đoạt.",
     steps: [
@@ -4038,12 +4045,15 @@ export const QUESTS: QuestChain[] = [
           "Hải Thần Tam Xoa Kích, thần khí của Hải Thần, được thờ ở đó. Đi đi, rồi quay lại báo ta bà nói gì."],
         goals: [{ k: "talk", npc: "ba_tai_tay", n: 1, text: "Nói chuyện với Ba Tái Tây ở Thánh địa Hải Thần" }],
         done: ["Đại Cung Phụng đã gặp ngươi. Tam Xoa Kích không phải thứ ngươi cầm được hôm nay, nhưng con đường tới nó đã mở."],
-        reward: { honTe: 5000, items: [{ code: shardCode("nhu_cot_tho"), qty: 25 }] } },
+        reward: { honTe: 5000, items: [{ code: shardCode("nhu_cot_tho"), qty: 25 }], bones: [{ beast: MA_KINH_VUONG.species, years: MA_KINH_VUONG.years! }] } },
     ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
-/** Chuỗi theo mã: chuỗi cố định trong QUESTS, hoặc bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain). */
-export const questChain = (id: string) => QUEST_INDEX.get(id) ?? dailyChain(id);
+/**
+ * Chuỗi theo mã: chuỗi cố định trong QUESTS, bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain), hoặc tông vụ hằng ngày
+ * `tong:<yyyymmdd>:<i>` (tongTaskChain, #197).
+ */
+export const questChain = (id: string) => QUEST_INDEX.get(id) ?? dailyChain(id) ?? tongTaskChain(id);
 /** Tiến độ khi chưa có dòng trong bảng `quests` (tài khoản mới và cũ): bước 1, chưa nhận. */
 export const questStart = (chain: string): QuestProgress => ({ chain, step: 0, accepted: false, prog: [] });
 /** Đọc tiến độ từ DB / client gửi lên: kẹp bước, số đếm theo mục tiêu của bước; dữ liệu hỏng thì về `questStart`. */
@@ -4069,9 +4079,13 @@ export function questStatus(q: QuestProgress): QuestStatus {
 export const questGoalHit = (g: QuestGoal, ev: QuestEvent) => g.k !== "give" &&
   g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true)
   && (!g.party || ev.party === true);
-/** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
+/** Một hồn cốt thưởng nhiệm vụ: "1 hồn cốt Thâm Hải Ma Kình 95.000 năm (vị trí ngẫu nhiên)". */
+export const questBoneText = (b: { beast: string; years: number }) =>
+  `1 hồn cốt ${BEASTS[beastIndex(b.beast)]?.name ?? "Hồn thú lạ"} ${formatYears(b.years)} (vị trí ngẫu nhiên)`;
+/** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo"; có hồn cốt thì thêm questBoneText mỗi món. */
 export const questRewardText = (r: QuestReward) =>
-  [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");
+  [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`), ...(r.bones ?? []).map(questBoneText)]
+    .filter(Boolean).join(", ");
 
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2; mọi số đã chốt) ----------
 /** Mã bản đồ sân đấu (MAPS, kind `arena`): shared/assets/dai_dau_hon_truong.json, chỉ phòng ArenaRoom dùng. */
@@ -4259,6 +4273,84 @@ function dailyChain(id: string): QuestChain | undefined {
   dailyCache.set(id, c);
   return c;
 }
+// ---------- Tông vụ hằng ngày, điểm tông tuần, bảng xếp hạng, thưởng tuần (#197, mục 5.14) ----------
+/**
+ * Tông vụ: `count` bài mỗi ngày (giờ Việt Nam, đổi lúc 00:00 như khảo hạch: vnDay), nhận và trả ở sứ giả **tông mình** (TONG_MON.npc)
+ * ở bản đồ `map`. Mỗi bài là một chuỗi một bước trong bảng `quests`, mã `tong:<yyyymmdd>:<i>` (tongTaskIds), nội dung suy ra từ mã
+ * (tongTaskChain), bốc ổn định theo ngày từ TONG_POOL (mọi tông cùng một bộ bài trong ngày). Trả bài: Hồn Tệ nhỏ của mẫu (không mảnh:
+ * thưởng chính là điểm) và TONG_POINTS điểm tông vào tuần hiện tại (bảng `tong_points`, tongWeek).
+ */
+export const TONG_DAILY = { count: 2, map: "thien_dau_thanh", name: "Tông vụ" };
+/** Điểm tông mỗi bài tông vụ trả xong. */
+export const TONG_POINTS = 10;
+/**
+ * Thành viên **hoạt động** của tuần: có ít nhất ngần ấy điểm trong tuần (khoảng 2 ngày tông vụ). Bảng xếp hạng tông tính điểm trung bình
+ * của thành viên hoạt động (tông ít người không thiệt); chỉ thành viên hoạt động nhận thưởng tuần.
+ */
+export const TONG_WEEK_MIN = 40;
+/**
+ * Thưởng tuần, nhận ở sứ giả trong tuần kế tiếp, **đúng một lần** (lượt ở bảng `boss_claims`, loại TONG_WEEK_KIND, ngày = thứ Hai của
+ * tuần được thưởng: tongWeekDay): tông hạng 1 (điểm trung bình cao nhất; bằng nhau thì cùng hạng 1) nhận `top`, tông khác nhận `rest`.
+ * `shards` mảnh một võ hồn ngẫu nhiên trong ARENA_SHARDS. So với một bài khảo hạch hằng ngày (70–120 đồng, 2–4 mảnh): một tuần hoạt
+ * động bằng khoảng 2–4 bài khảo hạch.
+ */
+export const TONG_WEEK_REWARD = { top: { honTe: 400, shards: 10 }, rest: { honTe: 200, shards: 5 } };
+export const TONG_WEEK_KIND = "tong_tuan";
+/** Số dòng top cá nhân mỗi tông trên bảng xếp hạng; giây tối thiểu giữa hai lần xin bảng (đọc DB). */
+export const TONG_TOP_N = 5, TONG_BOARD_CD = 1;
+/**
+ * Mẫu tông vụ (thêm mẫu mới thì thêm vào cuối: bộ bài của những ngày đã qua đổi theo, không sao vì bài ngày cũ không còn trả được).
+ * Mục tiêu như khảo hạch (DAILY_POOL): `fit` hồn thú hợp cấp, `elite` tham gia hạ một tinh anh (#189), `arena` đánh một trận đấu hồn,
+ * `give` nộp vật phẩm trong túi lúc trả bài. Hồn Tệ nhỏ hơn khảo hạch (thưởng chính là điểm tông và thưởng tuần).
+ */
+export const TONG_POOL: DailyTemplate[] = [
+  { id: "tong_san", group: "misc", name: "Tuần tra bãi săn", desc: "Hạ hồn thú hợp cấp ở bãi săn hợp cấp của võ hồn ra trận.",
+    goals: [{ k: "kill", fit: true, n: 12, text: "Hạ hồn thú hợp cấp" }], honTe: 40, shards: 0,
+    offer: ["Người của tông ta không ngồi không. Ra bãi săn hợp cấp, hạ mười hai con hồn thú.", "Hồn thú yếu hơn mình quá nhiều thì không tính."],
+    done: ["Tốt. Tông môn ghi công cho ngươi."] },
+  { id: "tong_tinh_anh", group: "misc", name: "Diệt tinh anh", desc: "Tham gia hạ một tinh anh ở bản đồ săn (cùng đánh với người khác cũng được).",
+    goals: [{ k: "elite", n: 1, text: "Tham gia hạ tinh anh" }], honTe: 60, shards: 0,
+    offer: ["Có tinh anh quấy phá dân quanh đây. Tông ta phải ra mặt.", "Tham gia hạ một con tinh anh, đánh cùng người khác cũng tính."],
+    done: ["Tinh anh đã bị hạ. Danh tiếng tông môn nhờ ngươi mà lên."] },
+  { id: "tong_dau_hon", group: "misc", name: "Rèn luyện ở Đấu Hồn Trường", desc: "Đánh một trận ở Đại Đấu Hồn Trường (góc đông nam Thiên Đấu Thành), thắng thua đều được.",
+    goals: [{ k: "arena", n: 1, near: "dau_hon_truong", text: "Đánh một trận đấu hồn" }], honTe: 40, shards: 0,
+    offer: ["Đệ tử tông ta phải dám đối mặt với hồn sư khác.", "Vào Đại Đấu Hồn Trường đánh một trận, thắng thua đều được."],
+    done: ["Đánh xong rồi à? Thắng thua chưa quan trọng, dám đánh là được."] },
+  { id: "tong_nop_hon_hoan", group: "misc", name: "Cống hiến hồn hoàn", desc: "Mang một hồn hoàn (đang để trong túi) tới nộp cho sứ giả tông.",
+    goals: [{ k: "give", item: RING_ITEM, n: 1, text: "Nộp hồn hoàn" }], honTe: 40, shards: 0,
+    offer: ["Kho tông môn cần hồn hoàn cho đệ tử mới.", "Mang tới một hồn hoàn, niên hạn bao nhiêu cũng được."],
+    done: ["Hồn hoàn này sẽ giúp được một đệ tử mới. Tông môn ghi công cho ngươi."] },
+];
+const TONG_TASK_RE = /^tong:(\d{8}):(\d+)$/;
+/** Mã chuỗi của TONG_DAILY.count tông vụ ngày `day` (vnDay): "tong:20261021:0"… */
+export const tongTaskIds = (day: string) => Array.from({ length: TONG_DAILY.count }, (_, i) => `tong:${dailyKey(day)}:${i}`);
+/** Mã chuỗi là tông vụ hằng ngày (của ngày nào cũng được). */
+export const isTongTask = (chain: string) => TONG_TASK_RE.test(chain);
+/** Bộ tông vụ của ngày `key` (yyyymmdd): TONG_DAILY.count mẫu khác nhau, bốc ổn định theo ngày (khác bộ khảo hạch). */
+export function tongTaskPicks(key: string): DailyTemplate[] {
+  const rnd = seeded(Number(key) * 2246822519 + 1013904223), pool = [...TONG_POOL], out: DailyTemplate[] = [];
+  while (out.length < TONG_DAILY.count && pool.length) out.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+  return out;
+}
+const tongTaskCache = new Map<string, QuestChain>();
+/** Chuỗi một bước của tông vụ mã `id` (tongTaskIds); mã sai thì undefined. Người giao là sứ giả tông của người chơi (giver ""). */
+function tongTaskChain(id: string): QuestChain | undefined {
+  const hit = tongTaskCache.get(id); if (hit) return hit;
+  const m = TONG_TASK_RE.exec(id), i = m ? Number(m[2]) : -1, t = m && i < TONG_DAILY.count ? tongTaskPicks(m[1])[i] : undefined;
+  if (!m || !t) return undefined;
+  const c: QuestChain = { id, name: TONG_DAILY.name, giver: "", map: TONG_DAILY.map, finale: "Tông vụ hôm nay xong rồi. Mai quay lại.",
+    steps: [{ id: t.id, name: t.name, desc: t.desc, goals: t.goals, offer: t.offer, done: t.done, reward: { honTe: t.honTe, items: [] } }] };
+  if (tongTaskCache.size > 64) tongTaskCache.clear();
+  tongTaskCache.set(id, c);
+  return c;
+}
+/** Ngày thứ Hai (vnDay "YYYY-MM-DD") của tuần `week` (tongWeek): cột `boss_claims.day` của lượt thưởng tuần. */
+export const tongWeekDay = (week: number) => new Date(week * 86400000).toISOString().slice(0, 10);
+/** Một dòng bảng xếp hạng tông tuần: số thành viên hoạt động và điểm trung bình của họ. */
+export interface TongRank { tong: string; active: number; avg: number; }
+/** Tông hạng 1 của bảng (điểm trung bình cao nhất, cần có thành viên hoạt động; bằng nhau thì cùng hạng 1). */
+export const tongTop = (rows: TongRank[]) => { const best = Math.max(0, ...rows.filter((r) => r.active > 0).map((r) => r.avg)); return rows.filter((r) => r.active > 0 && r.avg === best).map((r) => r.tong); };
+
 /** Hồn thú `years` năm hợp cấp với võ hồn cấp `level`: hạ nó không bị giảm kinh nghiệm theo chênh cấp (xpLevelScale = 1). */
 export const fitBeast = (level: number, years: number) => xpLevelScale(level, beastLevel(years)) >= 1;
 /** Bản đồ săn hợp cấp với cấp `level` (cấp đề xuất của bản đồ chứa nó): chỉ đường cho mục tiêu `fit`. */
