@@ -1,12 +1,12 @@
 // Che tầm nhìn (#175, STATUS.ink; Phun Mực của tinh anh Ma Chương Vương): chính mình đang có trạng thái này thì màn hình phủ mực thủy
 // mặc, chỉ chừa một vòng quanh hồn sư (PLAYER_INK). Chỉ là hiển thị: không đổi luật, người khác chỉ thấy biểu tượng trên đầu.
-// Lớp mực nằm trong cảnh Phaser (trên hồn thú, chữ, thanh máu, vùng báo trước; dưới số sát thương) nên không che HUD HTML; không dùng
+// Lớp mực nằm trên mọi thứ trong cảnh Phaser (hồn thú, chữ, thanh máu, vùng báo trước, chữ nổi) nhưng vẫn là canvas nên không che HUD HTML; không dùng
 // Lighting / Weather nên vẫn hiện khi tắt ánh sáng (?light=0, Canvas) hay tắt hạt bay (/hat).
 import Phaser from "phaser";
 import { PLAYER_INK } from "../../shared/data.ts";
 
-/** Độ sâu: trên thanh máu (99990), dưới số sát thương (99999). */
-const DEPTH = 99996;
+/** Độ sâu: trên mọi lớp của cảnh, kể cả chữ nổi / số sát thương (99999): tên chiêu của hồn thú ngoài vòng không lộ chỗ đứng. */
+const DEPTH = 100000;
 /** Màu mực (đen tím); mép vòng nhạt dần như mực loang trên giấy. */
 const INK = [14, 10, 22], WASH = [52, 40, 72];
 /** Phủ lên trong `inMs`, tan trong `outMs`; lúc trúng vòng hở mở dần từ `open0` lần cỡ thật trong `openMs` (vệt mực bắn vào mặt). */
@@ -100,7 +100,8 @@ export class InkVeil {
     const g = this.rest.clear().fillStyle(Phaser.Display.Color.GetColor(INK[0], INK[1], INK[2]), PLAYER_INK.a * this.k);
     if (t > y0) g.fillRect(x0, y0, x1 - x0, t - y0);
     if (b < y1) g.fillRect(x0, b, x1 - x0, y1 - b);
-    if (l > x0) g.fillRect(x0, Math.max(t, y0), l - x0, Math.min(b, y1) - Math.max(t, y0));
-    if (r < x1) g.fillRect(r, Math.max(t, y0), x1 - r, Math.min(b, y1) - Math.max(t, y0));
+    const st = Math.max(t, y0), sh2 = Math.min(b, y1) - st; // ảnh lệch hẳn khỏi khung nhìn (camera chạm mép bản đồ): không vẽ hai bên
+    if (sh2 > 0 && l > x0) g.fillRect(x0, st, l - x0, sh2);
+    if (sh2 > 0 && r < x1) g.fillRect(r, st, x1 - r, sh2);
   }
 }
