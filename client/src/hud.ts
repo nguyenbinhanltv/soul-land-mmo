@@ -32,15 +32,16 @@ export const BONE_SKILL_KEYS = ["Z", "X", "C"];
 /** Dòng thông báo riêng cho mình (lỗi, đồ rơi, tổ đội…): hiện ở mọi tab của ô chat. */
 export function log(text: string, col?: string, who?: string) { chatLine("sys", text, col, who); }
 
-// ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Thế giới, lịch sử chỉ trong phiên ----------
+// ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Tông / Thế giới, lịch sử chỉ trong phiên ----------
 /** Kênh của một dòng: `sys` = thông báo riêng cho mình (tab nào cũng hiện). */
-export type ChatCh = "sys" | "map" | "party" | "whisper" | "world";
-export type ChatTab = "all" | "map" | "party" | "whisper" | "world";
-/** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng. */
-export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2", party: "#7dff8a", whisper: "#c58cff", world: "#e9c45a" };
-const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]" };
+export type ChatCh = "sys" | "map" | "party" | "whisper" | "world" | "tong";
+export type ChatTab = "all" | "map" | "party" | "whisper" | "world" | "tong";
+/** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng, tông môn (#198) lam ngọc. */
+export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2", party: "#7dff8a", whisper: "#c58cff", world: "#e9c45a", tong: "#6fd3e8" };
+const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]", tong: "[Tông]" };
 const CHAT_TABS: { id: ChatTab; name: string }[] = [
-  { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "world", name: "Thế giới" }];
+  { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "tong", name: "Tông" },
+  { id: "world", name: "Thế giới" }];
 /** Số dòng hiện lúc ô chat đóng (mờ dần sau CHAT_FADE_MS như trước) và lúc mở (không mờ, cuộn được); số dòng giữ trong phiên. */
 const CHAT_SHOW = 6, CHAT_SHOW_OPEN = 40, CHAT_FADE_MS = 9000, CHAT_KEEP = 200;
 interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; act?: { label: string; fn: () => void }; }
@@ -103,8 +104,8 @@ export function chatWhisper(other: string, mine: boolean, text: string) {
 /** Người để `/r` trả lời ("" = chưa ai nhắn riêng cho mình trong phiên). */
 export const chatReplyTo = () => replyTo;
 /** Kênh gửi của tin thường (không phải lệnh) theo tab đang chọn; tab Riêng gửi cho người trò chuyện riêng gần nhất. */
-export function chatSendCh(): { ch: "map" | "party" | "whisper" | "world"; to?: string } {
-  if (chatTab === "party" || chatTab === "world") return { ch: chatTab };
+export function chatSendCh(): { ch: "map" | "party" | "whisper" | "world" | "tong"; to?: string } {
+  if (chatTab === "party" || chatTab === "world" || chatTab === "tong") return { ch: chatTab };
   if (chatTab === "whisper") return { ch: "whisper", to: whisperTo };
   return { ch: "map" };
 }
@@ -114,7 +115,8 @@ function chatPlaceholder() {
   inp.placeholder = chatTab === "party" ? "Tổ đội: Enter để gửi (/d)"
     : chatTab === "whisper" ? (whisperTo ? `Riêng tới ${whisperTo}: Enter để gửi` : "Riêng: /t <tên> <tin>")
     : chatTab === "world" ? `Thế giới (từ cấp ${WORLD_CHAT.minLevel}, ${WORLD_CHAT.cdSecs} giây một tin): /tg`
-    : "Nhấn Enter để chat (/d, /t, /r, /tg)";
+    : chatTab === "tong" ? "Tông môn: Enter để gửi (/tm)"
+    : "Nhấn Enter để chat (/d, /t, /r, /tm, /tg)";
   if (chatTab === "all" || chatTab === "map") inp.style.removeProperty("--c"); else inp.style.setProperty("--c", CHAT_COL[chatTab]);
 }
 

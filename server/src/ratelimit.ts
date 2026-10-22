@@ -233,8 +233,8 @@ export function signupEnd(ip: string, reserved: boolean, created: boolean, now =
 export function _setSignupScale(n: number) { signupScale = n; }
 
 // ---------- Chat ----------
-/** Kênh chat (#188): bản đồ (phòng hiện tại), tổ đội, tin riêng, thế giới. Mỗi kênh một bộ đếm riêng. */
-export type ChatChannel = "map" | "party" | "whisper" | "world";
+/** Kênh chat (#188, #198): bản đồ (phòng hiện tại), tổ đội, tin riêng, thế giới, tông môn. Mỗi kênh một bộ đếm riêng. */
+export type ChatChannel = "map" | "party" | "whisper" | "world" | "tong";
 interface ChatEntry { tokens: number; at: number; lastText: string; lastAt: number; }
 const chat = new Map<string, ChatEntry>();
 const chatKey = (key: string | number, ch: ChatChannel) => `${ch}:${key}`;
@@ -274,7 +274,7 @@ export function worldMark(acc: number, now = Date.now()) { worldAt.set(acc, now)
 
 /** Hook kiểm thử (`test {op: "chat", cop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm chat mọi kênh và hồi kênh thế giới của một tài khoản. */
 export function chatReset(key: number) {
-  for (const ch of ["map", "party", "whisper", "world"] as const) chat.delete(chatKey(key, ch));
+  for (const ch of ["map", "party", "whisper", "world", "tong"] as const) chat.delete(chatKey(key, ch));
   worldAt.delete(key);
 }
 
