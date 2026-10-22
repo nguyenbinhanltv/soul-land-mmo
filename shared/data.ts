@@ -4084,6 +4084,23 @@ export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath
  * người hạ đã đầy. Bảng Tự động cho chọn nhặt từng loại (`AutoSettings.kinds`).
  */
 export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
+/**
+ * Tự săn đánh tinh anh, thú vương, boss thế giới (#218, chủ repo chốt 2026-10-22; mục 5.13). Đây là mục tiêu chung: không có luật
+ * "cướp quái", ai cũng vào đánh, đóng góp theo tài khoản; tự săn chỉ nhắm con mà mình còn nhận được thưởng (tinh anh chưa khóa
+ * ELITE.lock, thú vương / boss thế giới còn lượt KING.daily / WORLD.daily và chưa nhận rương của khung giờ đó). Không tính vào trần
+ * AUTO_PACE (máu boss tăng theo số người nên treo không hạ nhanh hơn tự đánh; thưởng đã giới hạn theo lượt / khóa); hồn thú thường bị
+ * gọi ra trong trận (bầy, nhện con) vẫn tính như mọi hồn thú thường.
+ * - `dodge`: né chiêu báo trước (kể cả chiêu toàn sàn, vòng an toàn) và vùng lưu lại trên đất: đứng trong vùng thì đi tới chỗ an toàn
+ *   gần nhất đi thẳng tới được, tìm trên `dirs` hướng, mỗi `step` pixel tới `max` pixel (cùng các vòng an toàn của chiêu toàn sàn).
+ * - `retreat` / `back`: sinh lực võ hồn ra trận dưới `retreat` phần thì lùi ra cách boss ít nhất `dist` pixel (uống đan theo ngưỡng
+ *   cài đặt như thường), từ `back` phần mới quay lại đánh.
+ * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
+ *   thanh tẩy để giải; `hold`: giữ võ hồn đổi vì cơ chế (khống chế ngắt tích lực, phụ trợ thanh tẩy, đúng hệ điểm yếu / phá Bá Thể) tối
+ *   đa ngần ấy giây mỗi lần rồi thôi (hồi chiêu chưa xong thì không đứng chờ mãi).
+ * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
+ *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
+ */
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
@@ -4099,14 +4116,15 @@ export interface AutoSettings {
   kinds: ItemKind[];       // loại vật phẩm khác được nhặt (trong AUTO_LOOT_KINDS)
   stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
   tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
+  elite: boolean; king: boolean; world: boolean; // #218: đánh cả tinh anh, thú vương, boss thế giới xuất hiện trên bản đồ đang đứng
 }
 /**
  * Mặc định: săn khắp bản đồ (vùng neo lớn nhất nếu chọn "near"), mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn
- * lực, hồn kỹ ô P → U, nhặt mọi thứ.
+ * lực, hồn kỹ ô P → U, nhặt mọi thứ, đánh cả tinh anh, thú vương, boss thế giới (#218).
  */
 export const AUTO_DEFAULTS: AutoSettings = { scope: "map", radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
   skills: [3, 2, 1, 0], slots: Array.from({ length: TEAM_SIZE }, (_, i) => i), ring: 0, bone: true, core: true, coreStar: 1,
-  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true };
+  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true, elite: true, king: true, world: true };
 /** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
 export function parseAuto(raw: unknown): AutoSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = AUTO_DEFAULTS;
@@ -4123,7 +4141,9 @@ export function parseAuto(raw: unknown): AutoSettings {
     hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
     skills: order(o.skills, LOADOUT_SIZE, D.skills), slots: order(o.slots, TEAM_SIZE, D.slots),
     ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core),
-    coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo) };
+    coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo),
+    // Bản lưu trước #218 chưa có ba công tắc: bật như mặc định.
+    elite: bool(o.elite, D.elite), king: bool(o.king, D.king), world: bool(o.world, D.world) };
 }
 /**
  * Giây tự săn còn lại khi hôm nay đã dùng `used` giây: phần còn của AUTO_DAILY_SECS cộng quỹ giờ cộng thêm `bonus` (Ủy Thác Lệnh).
