@@ -973,8 +973,14 @@ if((await test(A,"ping"))?.enabled){
   const grid=solidGrid(JSON.parse(readFileSync(mapUrl(st.mapId),"utf8"))); // file Tiled đang dùng (bản ×8 hoặc bản cũ khi MAP_V1)
   const walkSpd=PLAYER_SPEED*VOHON[p.vh].spd, near=(a,b)=>Math.abs(a-b)<0.05*b;
   const gait=async(msg,want)=>{ A.room.send("input",msg); return waitFor(()=>p.moving&&want(),1500); };
+  // Vừa ra khỏi làng là Bãi tập: hồn thú 100 năm hung hăng đánh trúng A ngay sau lúc nghỉ thì A vào giao chiến lại (đi bộ), bài đo nhầm
+  // tốc độ giao chiến (#297). Dọn hồn thú quanh A trước khi nghỉ; dòng ✗ in sinh lực A và hồn thú đang nhắm A ở gần.
+  await test(A,"clear");
   await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
-  ok(await gait({x:1,y:0},()=>p.calm&&!p.walk&&near(p.spd,walkSpd*RUN_MULT)),`ngoài giao chiến: tự chạy ${p.spd.toFixed(1)} ≈ ${(walkSpd*RUN_MULT).toFixed(1)} px/giây (calm ${p.calm})`);
+  const runOk=await gait({x:1,y:0},()=>p.calm&&!p.walk&&near(p.spd,walkSpd*RUN_MULT));
+  const foes=()=>[...st.beasts.values()].filter(b=>b.aggro&&Math.hypot(b.x-p.x,b.y-p.y)<2*BEAST_AGGRO_R).map(b=>`${b.x.toFixed(0)},${b.y.toFixed(0)}`).join(" ")||"không";
+  ok(runOk,`ngoài giao chiến: tự chạy ${p.spd.toFixed(1)} ≈ ${(walkSpd*RUN_MULT).toFixed(1)} px/giây (calm ${p.calm})`
+    +(runOk?"":` [A ${p.x.toFixed(0)},${p.y.toFixed(0)}, sinh lực ${p.hp}/${p.maxHp}, hồn thú hung hăng gần: ${foes()}; log ${A.logs.slice(-2).join(" | ")}]`));
   ok(await gait({x:-1,y:0,w:1},()=>p.walk&&near(p.spd,walkSpd)),`giữ Shift (w): đi bộ ${p.spd.toFixed(1)} ≈ ${walkSpd.toFixed(1)} px/giây`);
   A.room.send("input",{x:0,y:0}); await test(A,"hurt",{pct:1});
   ok(await gait({x:1,y:0},()=>!p.calm&&!p.walk&&near(p.spd,walkSpd)),`vừa bị đánh (giao chiến): đi bộ ${p.spd.toFixed(1)} px/giây dù không giữ Shift`);
@@ -5305,14 +5311,18 @@ async function autoTest(){
     }
     if(!spot) console.log("  ⚠ bỏ qua #324 (hồn thú sau lưng cùng ô): không tìm được chỗ thử quanh điểm neo");
     else{
-      await test(A,"clear");
+      // Bãi quanh điểm neo có hồn thú hoang hung hăng hồi sinh liên tục: một con đánh A thì tự săn đánh trả trước và kéo A đi (#360). Dọn cả
+      // bản đồ (giữ tinh anh) trước khi sinh, rồi dọn quanh A mỗi 250 ms trong lúc chờ (giữ hồn thú thử), như bài nợ nhịp.
+      await test(A,"clear",{all:true,keep:true});
       // Loài cắm rễ (BEAST_ROOTED): không lang thang, không bị đẩy lùi, chỗ đứng giữ đúng như đã chọn. Không hồn kỹ / tiên cơ (trúng từ xa).
       const bid=(await test(A,"spawn",{tier:0,dx:spot.q.dx,dy:spot.q.dy,years:15,species:BEAST_ROOTED.ids[0],hpx:50}))?.bid, bb=()=>A.room.state.beasts.get(bid);
       await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[],skills:[],tienCo:false}});
       m=await autoOp(A,"on");
-      const hit=m?.on&&bid&&await waitFor(()=>bb()&&bb().hp<bb().maxHp,4000), st=await test(A,"auto",{bid});
+      let hit=false;
+      for(const t0=Date.now();m?.on&&bid&&!hit&&Date.now()-t0<4000;){ hit=await waitFor(()=>bb()&&bb().hp<bb().maxHp,250); if(!hit) await test(A,"clear",{but:[bid]}); }
+      const st=await test(A,"auto",{bid});
       ok(hit&&st?.beast?.skip==null,`#324: hồn thú sau lưng cùng ô, sát ô chặn (đứng ${spot.P.x.toFixed(1)},${spot.P.y.toFixed(1)} mặt ${spot.f}, hồn thú +${spot.q.dx},+${spot.q.dy}): quay lại đánh, không bỏ qua`
-        +(hit&&st?.beast?.skip==null?"":` [A ${me(A).x.toFixed(1)},${me(A).y.toFixed(1)}; mục tiêu ${st?.target}, ${JSON.stringify(st?.beast)}]`));
+        +(hit&&st?.beast?.skip==null?"":` [A ${me(A).x.toFixed(1)},${me(A).y.toFixed(1)}; hồn thú thử ${bid}, mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`));
       await autoOp(A,"off"); if(bid) await test(A,"slay",{bid});
       await autoOp(A,"set",{cfg:NEAR});
     }

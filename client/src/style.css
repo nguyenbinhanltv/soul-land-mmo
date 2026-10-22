@@ -1,21 +1,37 @@
-/* Font pixel đủ dấu tiếng Việt (bước 10.8, mục 5.11 phong cách C): Ark Pixel 12 px cho chữ thường, ×2 cho tiêu đề; Ark Pixel 10 px cho
-   chữ chật (thanh, nút hồn kỹ, góc ô). Chỉ dùng cỡ đúng bội số của lưới font để chữ sắc nét. Ký tự font thiếu (biểu tượng hồn kỹ) rơi
-   về font hệ thống. Nguồn, giấy phép OFL: art/CREDITS.md, client/src/fonts/OFL-ark-pixel.txt. */
-@font-face{font-family:"Ark Pixel VI 12";src:url("./fonts/ark-pixel-12px-vi.woff2") format("woff2");font-display:block}
-@font-face{font-family:"Ark Pixel VI 10";src:url("./fonts/ark-pixel-10px-vi.woff2") format("woff2");font-display:block}
+/* Font pixel đủ dấu tiếng Việt (bước 10.8, mục 5.11 phong cách C): Galmuri 11 (nét 12 px) cho chữ thường, ×2 (24 px) cho tiêu đề; Galmuri 9 (nét 10 px) cho
+   chữ chật (thanh, nút hồn kỹ, góc ô). Chỉ dùng cỡ đúng bội số của lưới font để chữ sắc nét. Ký tự Galmuri thiếu: 12 biểu tượng rơi về Ark Symbols (subset Ark Pixel), còn lại về font hệ thống. Bản Bold và Galmuri 14 thiếu nhiều chữ Việt (Ă Đ Ơ Ư…) nên không dùng. Nguồn, giấy phép OFL: art/CREDITS.md,
+   client/src/fonts/OFL-galmuri.txt (Ark Symbols: OFL-ark-pixel.txt). Không dùng chữ đậm: phân cấp bằng cỡ (24 = Galmuri 11 ×2), màu và viền chữ. */
+@font-face{font-family:"Galmuri 11";src:url("./fonts/galmuri-11.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Galmuri 9";src:url("./fonts/galmuri-9.woff2") format("woff2");font-display:block}
+/* Dự phòng: 12 biểu tượng hồn kỹ / giao diện (☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦) có ở Ark Pixel mà Galmuri không có; subset Ark chỉ còn các ký tự đó (khoảng 1 KB mỗi cỡ, OFL). */
+@font-face{font-family:"Ark Symbols 12";src:url("./fonts/ark-symbols-12.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Ark Symbols 10";src:url("./fonts/ark-symbols-10.woff2") format("woff2");font-display:block}
 /* Bảng màu thủy mặc (art/palettes/_thuy_mac.gpl): giấy ngà, mực, triện son, gỗ trục; chữ mực trên giấy. Lớp "mực" (dải tối trong
    suốt) cho chữ nổi trên cảnh (log, gợi ý). */
 :root{
-  --f12:"Ark Pixel VI 12","Be Vietnam Pro",system-ui,sans-serif; --f10:"Ark Pixel VI 10","Be Vietnam Pro",system-ui,sans-serif;
+  --f12:"Galmuri 11","Ark Symbols 12","Be Vietnam Pro",system-ui,sans-serif; --f10:"Galmuri 9","Ark Symbols 10","Be Vietnam Pro",system-ui,sans-serif;
   --paper:#ece2c8; --paper2:#d8caa8; --paper3:#b8a888; --ink:#2a2230; --ink2:#3a3440; --inkl:#6a6470;
   --son:#b0302a; --son-d:#8a2018; --son-l:#d84a3a; --wood:#5a3b22;
   --bg:#1a1020; --panel:#ece2c8; --line:#9a8a6c; --line2:#3a3440;
-  --text:#2a2230; --muted:#6a6470; --accent:#2a6a52;
+  --text:#2a2230; --muted:#4a4452; --accent:#2a6a52;
   --hp:#c0392b; --mp:#2a5ab0; --xp:#a8780e; --warn:#a84a10;
   --wash:rgba(58,52,64,.08); --wash2:rgba(58,52,64,.16);
   --ink-panel:rgba(26,16,32,.72); --ink-text:#ece2c8;
   /* Viền chữ 1 điểm màu mực: tên võ hồn / vật phẩm mang màu sáng vẫn đọc được trên giấy. */
   --stroke:1px 0 #1a1020,-1px 0 #1a1020,0 1px #1a1020,0 -1px #1a1020;
+  /* ===== UI-0: token dùng chung (GAME_DESIGN.md 5.11 C). Màu độ hiếm / niên hạn --tier-N, --tier-N-glow, --rare-N do uiArt.ts đặt từ TIERS
+     (shared/data.ts), không chép số ở đây. Khung (--frame-*) là chỗ duy nhất đổi ảnh khung 9-slice (ComfyUI sau). ===== */
+  /* Thang cỡ chữ: chỉ bội số lưới Galmuri (9 → 10, 11 → 12, ×2 → 24); chữ chú thích dùng --fs-s, thân --fs-m, tiêu đề --fs-l. */
+  --fs-s:10px; --fs-m:12px; --fs-l:24px;
+  --sp-1:2px; --sp-2:4px; --sp-3:6px; --sp-4:8px; --sp-5:12px; --sp-6:16px;   /* khoảng cách */
+  --bd:2px; --bd-fine:1px;                                                    /* độ dày viền */
+  --sh-panel:0 0 0 1px rgba(26,16,32,.5); --sh-pop:0 0 0 2px #1a1020,0 4px 0 rgba(0,0,0,.4); --sh-glow:0 0 6px currentColor; /* bóng */
+  --track:#3a3440;          /* nền thanh / ô chìm: chữ giấy trên nền này 9,3 : 1 (trên giấy tối chỉ 1,8 : 1) */
+  --plate:#1a1020; --plate-text:#ece2c8;   /* tấm mực: tooltip, chip niên hạn */
+  --good:#2a6a52; --bad:#b0302a; --gem:#8a6bff;
+  --cell:44px;              /* cỡ ô vật phẩm / kỹ năng dùng chung */
+  --frame-panel:var(--ui-hop-thoai); --frame-scroll:var(--ui-cuon-giay);
+  --frame-btn:var(--ui-nut-thuong); --frame-btn-hover:var(--ui-nut-ro); --frame-btn-on:var(--ui-nut-nhan);
   --u:1;
   color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
@@ -38,8 +54,9 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .stats{position:absolute;left:10px;top:10px;width:232px;padding:10px 12px 12px}
 .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
 #vhName{font-size:12px;font-family:var(--f12)}
+#vhName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} #lvl{flex-shrink:0;white-space:nowrap}   /* Galmuri rộng hơn: tên dài rút gọn, tên đầy đủ ở chú thích */
 #lvl{color:var(--accent);font-variant-numeric:tabular-nums}
-.bar{position:relative;height:14px;background:var(--paper3);border:1px solid var(--ink2);margin-top:5px;overflow:hidden}
+.bar{position:relative;height:14px;background:var(--track);border:1px solid var(--ink2);margin-top:5px;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width .12s linear}
 .bar span{position:absolute;inset:0;font-size:10px;font-family:var(--f10);line-height:12px;text-align:center;color:var(--paper);text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
 .hp i{background:var(--hp)} .mp i{background:var(--mp)} .xp i{background:var(--xp)}
@@ -54,6 +71,9 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .buffs span.debuff{border-color:var(--son-l);background:rgba(138,32,24,.8)}
 .buffs span.passive{border-style:dashed}
 #target small{display:block;font-size:12px;font-family:var(--f12);text-align:center;margin-top:2px}
+#target .thu{display:flex;align-items:center;gap:8px}
+#target .thu img{width:64px;height:64px;flex:none;image-rendering:pixelated;border:1px solid;background:rgba(10,8,14,.55)}
+#target .thu small{text-align:left}
 #target .xpcut{font-style:normal;color:var(--warn);font-size:12px;font-family:var(--f12)}
 .mapbox{position:absolute;right:10px;top:10px;padding:6px}
 #mini{display:block;width:150px;height:100px;image-rendering:pixelated}
@@ -61,10 +81,10 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #online{font-size:12px;font-family:var(--f12);color:var(--muted);text-align:center}
 /* Kênh (mục 6 "Nhiều kênh"): nhãn "Kênh N" nổi ở góc bản đồ nhỏ (khung không cao thêm), danh sách kênh nổi ngay dưới khung,
    trên khung nhiệm vụ */
-.mapbox #worldBtn{position:absolute;top:9px;left:9px;width:auto;margin:0;padding:2px 6px;font-size:12px;font-family:var(--f12);color:var(--paper);
+.mapbox #worldBtn{position:absolute;top:9px;left:9px;width:auto;margin:0;padding:2px 4px;font-size:12px;font-family:var(--f12);color:var(--paper);
   background:var(--ink-panel);border-color:var(--ink2)}
-.mapbox #worldBtn kbd{font-size:10px;font-family:var(--f10);color:var(--paper2);margin-left:3px;border:0;padding:0}
-.mapbox #chanBtn{position:absolute;top:9px;right:9px;width:auto;margin:0;padding:2px 6px;font-size:12px;font-family:var(--f12);color:var(--paper);
+.mapbox #worldBtn kbd{font-size:10px;font-family:var(--f10);color:var(--paper2);margin-left:2px;border:0;padding:0}
+.mapbox #chanBtn{position:absolute;top:9px;right:9px;width:auto;margin:0;padding:2px 4px;font-size:12px;font-family:var(--f12);color:var(--paper);
   background:var(--ink-panel);border-color:var(--ink2)}
 #chans{position:absolute;right:-2px;top:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;gap:3px;width:170px;padding:6px;
   background:linear-gradient(var(--panel),var(--panel)),var(--bg);border:2px solid var(--line);box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:auto}
@@ -506,7 +526,7 @@ body.touch #bossRank{top:auto;bottom:200px}
 .nname b{display:block;font-size:12px;font-family:var(--f12);color:var(--c)}
 .nname small{color:var(--muted);font-size:12px;font-family:var(--f12)}
 .nline{margin:0;padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--wash);font-size:12px;font-family:var(--f12);line-height:normal;cursor:default}
-.nline[title]{cursor:pointer}
+.nline[title],.nline[data-tipped]{cursor:pointer}
 .shoprow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 8px;align-items:center;padding:6px 8px;border:1px solid var(--line);
   border-left:3px solid var(--c);background:var(--wash)}
 .shoprow>.ico{width:18px;height:18px}
@@ -618,7 +638,7 @@ body.arena #quest{display:none}
 #offline .oline{font-size:12px;font-family:var(--f12);margin:3px 0}
 #offline .omuted{color:var(--muted);text-align:center} #offline .orew{color:var(--accent)} #offline .ostop{color:var(--hp)}
 #offline .oitems{margin:4px 0;padding-left:18px;font-size:12px;font-family:var(--f12);max-height:200px;overflow-y:auto}
-.thuymac #offline{border-width:16px 10px;border-image:var(--ui-cuon-giay) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
+.thuymac #offline{border-width:16px 10px;border-image:var(--frame-scroll) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 #arenaBar.friendly{border-color:#8ec5ff}
 #arenaBar.friendly .aclock small{color:var(--mp)}
@@ -664,10 +684,10 @@ body.arena #quest{display:none}
    Mảnh ui_* nạp qua manifest (uiArt.ts đặt --ui-<tên> và --nine-<tên>, thêm class "thuymac" lên <html>); thiếu ảnh thì giữ kiểu CSS
    phía trên. Mảnh kéo giãn 9 lát giữ nguyên "nine" điểm mỗi mép, phần giữa lặp (round) để giấy không bị kéo mờ. */
 .thuymac .panel{border:6px solid transparent;background:none;box-shadow:none;
-  border-image:var(--ui-hop-thoai) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
+  border-image:var(--frame-panel) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
 /* Bảng lớn giữa màn hình và thẻ màn đăng nhập: cuộn giấy hai trục gỗ. */
 .thuymac :is(#roster,#bag,#reso,#friends,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
-  border-image:var(--ui-cuon-giay) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
+  border-image:var(--frame-scroll) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 /* Hộp thoại NPC: làm tối cảnh nhẹ (mục 5.11 C), hoa văn mực ở hai góc. */
 .thuymac #npc{box-shadow:0 0 0 100vmax rgba(26,16,32,.35)}
@@ -686,18 +706,18 @@ body.arena #quest{display:none}
 /* Nút giấy 3 trạng thái (ui_nut_thuong / _ro / _nhan). */
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm),.thuymac #chans button,.thuymac #arenaQ button,.thuymac #arenaBar .aleave{
   border:4px solid transparent;background:none;color:var(--text);
-  border-image:var(--ui-nut-thuong) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
+  border-image:var(--frame-btn) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):hover,.thuymac :is(#chans,#arenaQ) button:not(:disabled):hover,
-.thuymac .ft-hover{border-image-source:var(--ui-nut-ro)}
+.thuymac .ft-hover{border-image-source:var(--frame-btn-hover)}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):active,.thuymac :is(#chans,#arenaQ) button:not(:disabled):active,
-.thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bslot,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--ui-nut-nhan)}
-.thuymac .bslot.empty{border-image-source:var(--ui-nut-nhan);opacity:.55}
-.thuymac .bpg{border:4px solid transparent;background:none;border-image:var(--ui-nut-thuong) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
-.thuymac .bpg:not(.cur):hover{border-image-source:var(--ui-nut-ro)}
-.thuymac .bpg.cur{border-image-source:var(--ui-nut-nhan);outline:2px solid var(--son);outline-offset:-3px}
+.thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bslot,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--frame-btn-on)}
+.thuymac .bslot.empty{border-image-source:var(--frame-btn-on);opacity:.55}
+.thuymac .bpg{border:4px solid transparent;background:none;border-image:var(--frame-btn) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
+.thuymac .bpg:not(.cur):hover{border-image-source:var(--frame-btn-hover)}
+.thuymac .bpg.cur{border-image-source:var(--frame-btn-on);outline:2px solid var(--son);outline-offset:-3px}
 /* Trạng thái chọn / màu riêng thể hiện bằng viền trong (border-image che màu viền cũ). */
 .thuymac .bcell:not(.empty):not(.sel),.thuymac .kcard.on{outline:2px solid color-mix(in srgb,var(--c) 75%,#1a1020);outline-offset:-3px}
-.thuymac .kcard.on{border-image-source:var(--ui-nut-nhan)}
+.thuymac .kcard.on{border-image-source:var(--frame-btn-on)}
 .thuymac :is(.bslot,.bcell,.aopt).sel{outline:2px solid var(--son);outline-offset:-3px;box-shadow:none}
 .thuymac .tm.on{outline:2px solid var(--c);outline-offset:-2px}
 .thuymac .tm.full{outline:2px solid var(--xp);outline-offset:-2px}
@@ -925,3 +945,56 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 .ico.lenh{width:46%;height:70%;position:relative;border-radius:3px 3px 40% 40%;background:linear-gradient(180deg,#bdf0d2,#4fa877);
   box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
 .ico.lenh::before{content:"";position:absolute;left:30%;top:22%;width:40%;height:46%;border:2px solid #b0302a;box-sizing:border-box}
+
+/* ===== UI-0: thành phần dùng chung =====
+   Các phần sau (túi đồ, nhân vật, thanh kỹ năng, HUD) dựng trên các lớp này thay vì tự viết lại viền / hồi chiêu / chú thích. */
+/* Ô vật phẩm / kỹ năng: viền theo màu `--c` (hoặc `data-tier="0..4"` lấy --tier-N từ TIERS), viên ngọc góc dưới trái cho bậc cao,
+   thẻ phím `.key`, số lượng `.q`, cấp cường hóa `.e`, lớp hồi chiêu quét tròn `.ui-cd` (tên riêng, không đè `.cd` kiểu chiều cao cũ của ô túi / nút kỹ năng; đặt `--p` từ 0 đến 1 = phần còn lại).
+   Trạng thái: `.sel` chọn, `.ready` sẵn sàng, `.nomp` thiếu hồn lực, `.lock` khóa, `.on` đang kích hoạt. */
+.ui-cell{position:relative;--c:var(--line)}
+.ui-cell[data-tier="0"]{--c:var(--tier-0)} .ui-cell[data-tier="1"]{--c:var(--tier-1)} .ui-cell[data-tier="2"]{--c:var(--tier-2)}
+.ui-cell[data-tier="3"]{--c:var(--tier-3-glow)} .ui-cell[data-tier="4"]{--c:var(--tier-4)}
+.ui-cell:not(.empty)::before{content:"";position:absolute;left:2px;bottom:2px;width:6px;height:6px;background:var(--c);border:1px solid var(--plate);
+  opacity:.9;pointer-events:none;z-index:1}
+.ui-cell .key{position:absolute;left:-2px;top:-3px;z-index:2;min-width:14px;padding:0 3px;background:var(--paper);color:var(--ink);border:1px solid var(--ink2);
+  font:var(--fs-s)/12px var(--f10);text-align:center}
+.ui-cell .q{position:absolute;right:2px;bottom:0;font:var(--fs-s)/12px var(--f10);color:var(--plate-text);text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
+.ui-cell .e{position:absolute;left:2px;top:0;font:var(--fs-s)/12px var(--f10);color:#ffe08a;text-shadow:var(--stroke)}
+.ui-cell .ui-cd{position:absolute;inset:0;pointer-events:none;
+  background:conic-gradient(rgba(10,6,16,.78) calc(var(--p,0) * 360deg),transparent 0)}
+.ui-cell.ready{animation:uiReady 1.6s steps(2) infinite}
+@keyframes uiReady{50%{box-shadow:0 0 8px var(--c)}}
+.ui-cell.nomp{filter:saturate(.45)}
+.ui-cell.nomp::after{content:"!";position:absolute;right:-4px;top:-4px;width:14px;height:14px;background:var(--mp);border:1px solid var(--plate);
+  color:#fff;font:var(--fs-s)/12px var(--f10);text-align:center;z-index:2}
+.ui-cell.lock{filter:grayscale(.9) brightness(.75)}
+.ui-cell.on{box-shadow:0 0 0 2px #ffe08a,0 0 10px #ffe08a}
+@media (prefers-reduced-motion:reduce){.ui-cell.ready{animation:none}}
+/* Dưới giao diện thủy mặc border-image che màu viền, nên độ hiếm thể hiện bằng viền trong (như .bcell). */
+.thuymac .bslot.ui-cell:not(.empty):not(.sel){outline:2px solid color-mix(in srgb,var(--c) 80%,#1a1020);outline-offset:-3px}
+/* Tab: dải nút nằm ngang hoặc dọc, màu chấm theo `--c`. */
+.ui-tab{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) var(--sp-4);border:var(--bd) solid var(--ink2);background:var(--paper2);color:var(--text);
+  font:var(--fs-m) var(--f12);cursor:pointer;white-space:nowrap}
+.ui-tab::before{content:"";width:8px;height:8px;background:var(--c,var(--line));border:1px solid var(--plate)}
+.ui-tab[aria-selected="true"]{background:var(--son);border-color:var(--son-d);color:#f4ead0;text-shadow:var(--stroke)}
+.ui-tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* Thanh tiến độ: nền --track, chữ giấy viền mực (đọc được trên mọi màu fill). Dùng như `.bar` hiện có, thêm class `ui-bar` cho thanh mới. */
+.ui-bar{position:relative;height:14px;background:var(--track);border:var(--bd) solid var(--plate);overflow:hidden}
+.ui-bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--c,var(--hp))}
+.ui-bar>span{position:absolute;inset:0;font:var(--fs-s)/10px var(--f10);text-align:center;color:var(--plate-text);text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
+/* Chip niên hạn: tấm mực, chữ màu sáng (glow). Chữ màu niên hạn không đặt thẳng trên giấy (Vàng trên giấy chỉ 1,2 : 1). */
+.ui-chip{display:inline-block;padding:0 var(--sp-3);background:var(--plate);border:var(--bd) solid var(--c,var(--line));color:var(--cg,var(--plate-text));
+  font:var(--fs-s)/14px var(--f10)}
+.ui-chip[data-tier="0"]{--c:var(--tier-0);--cg:var(--tier-0-glow)} .ui-chip[data-tier="1"]{--c:var(--tier-1);--cg:var(--tier-1-glow)}
+.ui-chip[data-tier="2"]{--c:var(--tier-2);--cg:var(--tier-2-glow)} .ui-chip[data-tier="3"]{--c:var(--tier-3-glow);--cg:var(--tier-3-glow)}
+.ui-chip[data-tier="4"]{--c:var(--tier-4);--cg:var(--tier-4-glow)}
+/* Tooltip dùng chung (client/src/tooltip.ts): một tấm mực, phóng theo --u như HUD, không bắt chuột. */
+#tip{position:fixed;left:0;top:0;z-index:60;max-width:260px;padding:var(--sp-4) var(--sp-5);background:var(--plate);color:var(--plate-text);
+  border:var(--bd) solid var(--tip-c,var(--gem));box-shadow:var(--sh-pop);pointer-events:none;transform-origin:0 0;
+  font:var(--fs-m)/16px var(--f12);overflow-wrap:anywhere;white-space:pre-line;-webkit-font-smoothing:none}
+#tip .t-title{display:block;color:var(--tip-cg,var(--plate-text));font-size:var(--fs-m);margin-bottom:var(--sp-1)}
+#tip .t-sub{display:block;color:#a89fb4;font:var(--fs-s)/12px var(--f10);margin-bottom:var(--sp-2)}
+#tip .t-row{display:flex;justify-content:space-between;gap:var(--sp-5)}
+#tip .t-row b{font-weight:400;color:#ffe08a}
+#tip .t-good{color:#7bd88f} #tip .t-bad{color:#ff8a7a} #tip .t-muted{color:#a89fb4}
+#tip .t-foot{display:block;margin-top:var(--sp-3);padding-top:var(--sp-2);border-top:1px solid #3a3440;color:#a89fb4;font:var(--fs-s)/12px var(--f10)}

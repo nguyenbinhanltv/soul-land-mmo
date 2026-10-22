@@ -18,7 +18,8 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
-import { artImg, tintedUrl } from "./uiArt.ts";
+import { artImg, artUrl, tintedUrl } from "./uiArt.ts";
+import { setTip, tipOf, type TipLine } from "./tooltip.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -274,7 +275,7 @@ let pSlot: SlotView | null = null; // nội dung gốc của nút P (để trả
 function setCtSlot(b: HTMLElement, on: boolean) {
   const sp = b.querySelectorAll<HTMLElement>("span");
   if (on) pSlot = { name: sp[1].textContent ?? "", icon: sp[0].textContent ?? "", col: sp[0].style.color, label: b.getAttribute("aria-label") ?? "",
-    tip: b.title, locked: b.classList.contains("locked") };
+    tip: tipOf(b), locked: b.classList.contains("locked") };
   const v = on ? ctSlot : pSlot; if (!v) return;
   b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked);
   sp[0].textContent = v.icon; sp[0].style.color = v.col; sp[1].textContent = v.name;
@@ -472,8 +473,12 @@ function statusChip(id: string, name: string, col: string, cls = "") {
   if (img) { c.classList.add("art"); c.innerHTML = img; c.title = name; c.setAttribute("aria-label", name); } else c.textContent = name;
   return c;
 }
+let leiTipSet = false;
+let lastVhName = ""; // updateStats chạy mỗi khung: chỉ ghi tên + chú thích khi tên đổi (không gán lại title mỗi khung)
 export function updateStats(p: any) {
-  $("#vhName").textContent = VOHON[p.vh].name; $("#vhName").style.color = VOHON[p.vh].col;
+  const vhName = VOHON[p.vh].name;
+  if (vhName !== lastVhName) { lastVhName = vhName; $("#vhName").textContent = vhName; setTip($("#vhName"), vhName); }
+  $("#vhName").style.color = VOHON[p.vh].col;
   $("#lvl").textContent = `Cấp ${p.level}`;
   $("#hpFill").style.width = (p.hp / Math.max(1, p.maxHp)) * 100 + "%"; $("#hpTxt").textContent = `Sinh lực ${p.hp} / ${p.maxHp}`;
   $("#mpFill").style.width = (p.mp / Math.max(1, p.maxMp)) * 100 + "%"; $("#mpTxt").textContent = `Hồn lực ${p.mp} / ${p.maxMp}`;
@@ -484,7 +489,7 @@ export function updateStats(p: any) {
   else { $("#xpFill").style.width = (p.xp / p.xpNeed) * 100 + "%"; $("#xpTxt").textContent = `Kinh nghiệm ${p.xp} / ${p.xpNeed}`; }
   // Phong Lôi Chi Lực (2.5c): chỉ hiện khi Lam Điện Bá Vương Long ra trận; đầy thì sáng viền (tự tung Lôi Động Minh Thiên khi đánh trúng).
   const lei = VOHON[p.vh].id === PHONG_LOI.vohon, bar = $("#leiBar");
-  bar.hidden = !lei; bar.title = PHONG_LOI.skill.desc;
+  bar.hidden = !lei; if (!leiTipSet) { leiTipSet = true; setTip(bar, PHONG_LOI.skill.desc); } // chú thích đặt một lần, không gán lại mỗi khung
   if (lei) {
     $("#leiFill").style.width = (p.lei / PHONG_LOI.max) * 100 + "%"; bar.classList.toggle("full", p.lei >= PHONG_LOI.max);
     $("#leiTxt").textContent = `${PHONG_LOI.name} ${p.lei} / ${PHONG_LOI.max}`;
@@ -1368,7 +1373,21 @@ function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, sh
   el.appendChild(note);
 }
 
-export function showTarget(html: string | null) { const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }
+let lastTarget: string | null = null;
+/** Khung mục tiêu (gọi mỗi khung hình): chỉ ghi lại DOM khi nội dung đổi, để chân dung không bị tạo lại liên tục. */
+export function showTarget(html: string | null) {
+  if (html === lastTarget) return;
+  lastTarget = html;
+  const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none";
+}
+/**
+ * Chân dung hồn thú `thu_<loài gốc>` cạnh chữ của khung mục tiêu (#339, mục 5.11): tinh anh / thú vương dùng chân dung loài gốc,
+ * viền màu `col` (hào quang của bậc, hoặc màu vòng niên hạn với hồn thú thường). Loài chưa có ảnh thì trả nguyên chữ như cũ.
+ */
+export function withBeastPortrait(html: string, species: string | undefined, col: string) {
+  const u = species ? artUrl(`thu_${species}`) : null;
+  return u ? `<div class="thu"><img src="${u}" alt="" draggable="false" style="border-color:${col}"><div>${html}</div></div>` : html;
+}
 /** Hộp đi cổng (mục 5.3): tên bản đồ đích, cấp đề xuất, cảnh báo đỏ khi võ hồn ra trận dưới cấp; nút (hoặc phím F) để đi. */
 export function showPortal(info: PortalInfo | null, go: () => void) {
   const el = $("#portal");
@@ -1810,7 +1829,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = items[k], b = document.createElement("button");
-    b.className = "bslot" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
+    b.className = "bslot ui-cell" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
     if (it) {
       const def = itemDef(it.code);
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
@@ -1820,7 +1839,15 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
       b.setAttribute("aria-label", (hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
         + (it.lock ? ", đang khoá" : ""));
-      b.title = itemName(it) + (it.lock ? " (khoá)" : "");
+      // Chú thích dùng chung (UI-0): tiêu đề theo màu niên hạn (glow trên tấm mực), dòng phụ nhóm vật phẩm / số năm, chỉ số hồn cốt / hồn hạch.
+      const tier = hasYears(it) ? tierOfYears(it.years) : -1;
+      if (tier >= 0) b.dataset.tier = String(tier);
+      const lines: TipLine[] = [];
+      if (bone) lines.push(boneFullText(it as BagItem & { years: number })); else if (core) lines.push(...coreLines(it));
+      if (it.qty > 1) lines.push({ k: "Số lượng", v: `×${it.qty}`, tone: "gem" });
+      setTip(b, { title: itemName(it) + (it.lock ? " (khoá)" : ""), color: tier >= 0 ? TIERS[tier].glow : undefined, border: itemColor(it),
+        sub: tier >= 0 ? `${bone ? "Hồn cốt" : "Hồn hoàn"} · ${TIERS[tier].color} (${TIERS[tier].age})` : def ? ITEM_KINDS[def.kind].name : undefined,
+        lines, foot: it.lock ? "Đang khoá: không bán / bỏ được" : undefined });
       b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
     grid.appendChild(b);
