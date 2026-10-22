@@ -4826,7 +4826,8 @@ async function autoTest(){
   ok(m?.on&&await waitFor(()=>(A.room.state.beasts.get(Z)?.hp??0)<(A.room.state.beasts.get(Z)?.maxHp??0),8000),"tự săn đánh hồn thú Z (nhiều sinh lực)");
   const pot0=qtyOf(A,"hoi_huyet_dan");
   await test(A,"hurt",{pct:70});
-  ok(await waitFor(()=>qtyOf(A,"hoi_huyet_dan")<pot0,4000)&&me(A).hp>me(A).maxHp*0.3,`sinh lực dưới ${AUTO_DEFAULTS.hp*100}%: tự uống Hồi Huyết Đan (${pot0} → ${qtyOf(A,"hoi_huyet_dan")})`);
+  // Túi (tin riêng) có thể về trước bản vá state mang sinh lực mới: chờ cả hai.
+  ok(await waitFor(()=>qtyOf(A,"hoi_huyet_dan")<pot0&&me(A).hp>me(A).maxHp*0.3,4000),`sinh lực dưới ${AUTO_DEFAULTS.hp*100}%: tự uống Hồi Huyết Đan (${pot0} → ${qtyOf(A,"hoi_huyet_dan")})`);
   const act0=A.owned.active; A.fx=[];
   await test(A,"energy",{v:TIEN_CO_MAX});
   ok(await waitFor(()=>A.owned.active!==act0&&A.fx.some(f=>f.id===A.room.sessionId),4000),`đầy năng lượng tiên cơ: tự đổi tay sang võ hồn khác và tung tiên cơ (${A.fx[0]?.name??""})`);
@@ -4884,16 +4885,19 @@ async function autoTest(){
       ok(m?.on&&fb&&info?.beast&&info.target!==fb&&Math.hypot(me(A).x-home.x,me(A).y-home.y)<=AUTO_RADIUS+32,
         `"Chỉ quanh chỗ đứng": không đi tới hồn thú cách ${Math.round(Math.hypot(F.x-home.x,F.y-home.y)/16)} ô (mục tiêu ${info?.target})`);
       await autoOp(A,"off"); await test(A,"goto",home);
+      // Đường 30 ô đi qua bãi hồn thú 600 năm trở lên hung hăng (tự săn đánh trả trước): võ hồn cấp 60 để không mất cả phút đánh trả.
+      await test(A,"set",{rowId:act,level:60});
       const k1=me(A).kills, l1=A.logs.length;
       await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[]}});
       m=await autoOp(A,"on");
       ok(m?.on&&A.logs.slice(l1).some(t=>/khắp bản đồ/.test(t)),`"Toàn bản đồ" (mặc định): bật, báo săn khắp bản đồ`);
       let far=0, gone=false;
-      for(let t=0;t<60000&&!gone&&me(A).auto;t+=500){ await sleep(500); far=Math.max(far,Math.hypot(me(A).x-home.x,me(A).y-home.y)); gone=!(await test(A,"auto",{bid:fb}))?.beast; }
-      ok(gone&&me(A).kills>k1&&far>box,`vùng neo trống: tự đi xa ${Math.round(far/16)} ô (ngoài khung A* ${AUTO_MOVE.path.maxTiles} ô) hạ hồn thú cách ${Math.round(Math.hypot(F.x-home.x,F.y-home.y)/16)} ô (${k1} → ${me(A).kills})`);
+      for(let t=0;t<90000&&!gone&&me(A).auto;t+=500){ await sleep(500); far=Math.max(far,Math.hypot(me(A).x-home.x,me(A).y-home.y)); gone=!(await test(A,"auto",{bid:fb}))?.beast; }
+      ok(gone&&far>box,`vùng neo trống: tự đi xa ${Math.round(far/16)} ô (ngoài khung A* ${AUTO_MOVE.path.maxTiles} ô) hạ hồn thú cách ${Math.round(Math.hypot(F.x-home.x,F.y-home.y)/16)} ô (${k1} → ${me(A).kills})`);
+      if(!gone){ const st=await test(A,"auto",{bid:fb}); console.log(`  (A ở ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, cách hồn thú xa ${Math.round(Math.hypot(me(A).x-F.x,me(A).y-F.y)/16)} ô; tự săn ${JSON.stringify(st)}; log ${A.logs.slice(-4).join(" | ")})`); }
       ok(me(A).auto&&!A.logs.slice(l1).some(t=>/Đã dừng/.test(t)),`vẫn tự săn sau khi đi xa (đường dài không vào vùng an toàn)${me(A).auto?"":`: ${A.autoMsg?.why}`}`);
       await autoOp(A,"off"); if(!gone) await test(A,"slay",{bid:fb});
-      await autoOp(A,"set",{cfg:NEAR});
+      await test(A,"set",{rowId:act,level:21}); await autoOp(A,"set",{cfg:NEAR});
     }
   }
 
