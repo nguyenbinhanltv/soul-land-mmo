@@ -23,7 +23,7 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
-import { InkVeil } from "../ink.ts";
+import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
@@ -262,6 +262,7 @@ export class GameScene extends Phaser.Scene {
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
     const npcObjs: { x: number; y: number; name: string; id: string }[] = [];
     const crowdMap: CrowdMap = { safes: this.safes, portals: [], spawn: null, npcs: npcObjs, arrives: [], mapW: map.widthInPixels, mapH: map.heightInPixels };
+    let inkHere = false;
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
@@ -272,6 +273,7 @@ export class GameScene extends Phaser.Scene {
         this.zones.push({ ...r, name: o.name, hint, years: yr });
       }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
+      if (o.type === "elite" && causesInk(String(prop("boss") ?? ""))) inkHere = true; // #175: bản đồ có Phun Mực
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
       if (o.type === "portal") crowdMap.portals.push({ ...r, boat: !!prop("boat") });
@@ -326,6 +328,7 @@ export class GameScene extends Phaser.Scene {
 
     this.weather = new Weather(this, this.mapId, this.isoMap, this.light, this.mapH);
     this.ink = new InkVeil(this);
+    if (inkHere) this.ink.prewarm();
     this.audio = new AudioManager(this, () => {
       const p = this.room.state.players.get(this.me);
       return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : null;

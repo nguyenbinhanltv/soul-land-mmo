@@ -3,7 +3,7 @@
 // Lớp mực nằm trên mọi thứ trong cảnh Phaser (hồn thú, chữ, thanh máu, vùng báo trước, chữ nổi) nhưng vẫn là canvas nên không che HUD HTML; không dùng
 // Lighting / Weather nên vẫn hiện khi tắt ánh sáng (?light=0, Canvas) hay tắt hạt bay (/hat).
 import Phaser from "phaser";
-import { PLAYER_INK } from "../../shared/data.ts";
+import { PLAYER_INK, BOSSES } from "../../shared/data.ts";
 
 /** Độ sâu: trên mọi lớp của cảnh, kể cả chữ nổi / số sát thương (99999): tên chiêu của hồn thú ngoài vòng không lộ chỗ đứng. */
 const DEPTH = 100000;
@@ -46,6 +46,10 @@ function makeInkTexture(scene: Phaser.Scene) {
   return S;
 }
 
+/** Tinh anh / thú vương `bossId` (mã BOSSES) có chiêu gây Che tầm nhìn không (bản đồ có nó thì vẽ trước ảnh mực). */
+export const causesInk = (bossId: string) =>
+  !!BOSSES.find((d) => d.id === bossId && [...d.skills, ...(d.phase2?.skills ?? [])].some((s) => s.status?.some((a) => a.s === "ink")));
+
 export class InkVeil {
   /** Ảnh mực và các khối phủ: tạo lần đầu bị Che tầm nhìn (đa số cảnh không bao giờ cần, khỏi tốn vẽ ảnh lúc vào bản đồ). */
   private img: Phaser.GameObjects.Image | null = null;
@@ -65,8 +69,11 @@ export class InkVeil {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => cam.off(Ev.FOLLOW_UPDATE, fn));
   }
 
+  /** Vẽ trước ảnh mực lúc rảnh (sau khi vào bản đồ) để lần trúng đầu không bị giật một khung vì vòng lặp vẽ từng điểm. */
+  prewarm() { this.scene.time.delayedCall(1500, () => { if (!this.size) this.size = makeInkTexture(this.scene); }); }
+
   /**
-   * Mỗi khung: `on` = chính mình đang Che tầm nhìn; `at` = tâm vòng (tọa độ cảnh của thân hồn sư), null khi chưa có hình. Bị lại khi
+   * Mỗi khung: `on` = chính mình đang Che tầm nhìn; `at` = tâm vòng (tọa độ cảnh của thân hồn sư), null khi chưa có hình (khi đó lấy tâm camera). Bị lại khi
    * màn mực đang tan thì vòng hở mở lại từ đầu như lúc mới trúng.
    */
   update(on: boolean, at: { x: number; y: number } | null, delta: number, cam: Phaser.Cameras.Scene2D.Camera) {
@@ -74,7 +81,7 @@ export class InkVeil {
     this.on = on; this.at = at;
     this.k = Phaser.Math.Clamp(this.k + (on ? delta / ANIM.inMs : -delta / ANIM.outMs), 0, 1);
     if (this.k > 0 && !this.img) {
-      this.size = makeInkTexture(this.scene);
+      if (!this.size) this.size = makeInkTexture(this.scene);
       this.img = this.scene.add.image(0, 0, KEY).setScrollFactor(0).setDepth(DEPTH);
       this.rest = this.scene.add.graphics().setScrollFactor(0).setDepth(DEPTH);
     }
@@ -85,13 +92,13 @@ export class InkVeil {
   /** Lớp scrollFactor 0 vẽ quanh tâm camera rồi phóng: điểm cảnh P ở `P - scroll`, khung nhìn rộng `w / zoom` quanh `w / 2`. */
   private layout(cam: Phaser.Cameras.Scene2D.Camera) {
     if (!this.img || !this.rest) return;
-    const at = this.at, show = this.k > 0 && !!at;
+    const at = this.at ?? cam.midPoint, show = this.k > 0;
     this.img.setVisible(show); this.rest.setVisible(show);
     if (!show) return;
     const o = Math.min(1, this.openT / ANIM.openMs), open = ANIM.open0 + (1 - ANIM.open0) * (1 - (1 - o) ** 3);
     // Cỡ ảnh làm tròn thành số nguyên chẵn (tâm nguyên): mép ảnh trùng khít mép các khối phủ, không có đường nối đậm hơn.
     const half = Math.max(1, Math.round((this.size * open) / 2)), sc = (half * 2) / this.size;
-    const cx = Math.round(at!.x - cam.scrollX), cy = Math.round(at!.y - cam.scrollY);
+    const cx = Math.round(at.x - cam.scrollX), cy = Math.round(at.y - cam.scrollY);
     this.img.setPosition(cx, cy).setScale(sc).setAlpha(this.k);
     // Phần khung nhìn ngoài ảnh: bốn khối mực đặc cùng màu, cùng độ đậm với rìa ảnh.
     const sw = this.scene.scale.width, sh = this.scene.scale.height, z = cam.zoom, m = 24;

@@ -8688,8 +8688,8 @@ async function inkTest(){
   const HT="hai_than_dao", EB="ma_chuong_vuong", ED=BOSSES[bossIndex(EB)], PM=ED?.skills.findIndex(s=>s.name==="Phun Mực")??-1, IK=STATUS.ink;
   const pm=ED?.skills[PM];
   ok(PM>=0&&pm.shape==="circle"&&same(pm.status?.map(a=>a.s),["ink"])&&IK&&!IK.noMove&&!IK.noAtk&&!IK.noSkill&&!IK.slow&&!IK.wander
-    &&PLAYER_STATUS.includes("ink")&&STATUS_IDS.at(-1)==="ink"&&statusBit("ink")<1<<16,
-    `${ED?.name} – ${pm?.name}: vòng, gây ${IK?.name} ${IK?.secs} giây (không khống chế; id cuối STATUS_IDS, bit ${Math.log2(statusBit("ink"))} vừa trường uint16)`);
+    &&PLAYER_STATUS.includes("ink")&&STATUS_IDS.indexOf("ink")>STATUS_IDS.indexOf("chill")&&statusBit("ink")<1<<16,
+    `${ED?.name} – ${pm?.name}: vòng, gây ${IK?.name} ${IK?.secs} giây (không khống chế; thêm sau Hàn, bit ${Math.log2(statusBit("ink"))} vừa trường uint16)`);
   if(PM<0) return;
   const F=await bot("Phun Mực F","xuc_xich",{sex:0,hair:2,hairCol:3,outfitCol:2});
   const mo=()=>F.room.state.players?.get(F.room.sessionId), has=s=>((mo()?.st??0)&statusBit(s))!==0, sq=r=>F.squad?.list.find(s=>s.rowId===r);
@@ -8733,10 +8733,11 @@ async function inkTest(){
     // Không đổi luật đánh: vẫn dùng hồn kỹ (Câm lặng cũ thì bị từ chối).
     { await test(F,"ready"); const l=F.logs.length; F.room.send("skill",{i:0});
       ok(await waitFor(()=>mo().cds[0]>0,1500)&&!F.logs.slice(l).some(t=>/không dùng được hồn kỹ/.test(t))&&has("ink"),
-        `đang ${IK.name} vẫn dùng hồn kỹ (hồi chiêu ô 1: ${mo().cds[0]?.toFixed?.(2)})`); }
+        `đang ${IK.name} vẫn dùng hồn kỹ (hồi chiêu ô 1: ${mo().cds[0]?.toFixed?.(2)})`);
+      await test(F,"bhp",{pct:100,...eb}); } // trả máu tinh anh (bài Hải Thần Đảo dùng lại)
     // Thanh tẩy: đổi tay vào Xúc Xích đầy năng lượng, tiên cơ giải Che tầm nhìn.
-    if(!has("ink")){ await test(F,"pst",{s:"ink"}); await waitFor(()=>has("ink"),1000); } // máy chậm: Che tầm nhìn đã hết thì gây lại, chờ bản vá
     await waitFor(()=>mo().swCd===0,3500); await test(F,"energy",{v:TIEN_CO_MAX}); await waitFor(()=>sq(xr)?.en===TIEN_CO_MAX,1500);
+    await test(F,"pst",{s:"ink",secs:20}); await waitFor(()=>has("ink"),1000); // máy chậm: Che tầm nhìn của Phun Mực có thể đã gần hết
     const h0=has("ink"); F.room.send("switch",{slot:F.owned.team.indexOf(xr)});
     ok(h0&&await waitFor(()=>F.owned.active===xr&&!has("ink"),2500),`tiên cơ ${TIEN_CO_RIENG.xuc_xich.name} thanh tẩy: hết ${IK.name}`);
     // Hết giờ thì tự hết.
