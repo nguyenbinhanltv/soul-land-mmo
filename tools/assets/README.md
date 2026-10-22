@@ -1,6 +1,6 @@
 # Quy cách chi tiết asset isometric
 
-Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` / `client/src/sprites.ts`. Quy tắc mỹ thuật (phép chiếu, cỡ khung, phong cách, màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; thao tác (PixelLab, Gemini, LPC, lệnh dây chuyền) là skill `.claude/skills/asset-gen/SKILL.md`. Hằng số khung ở `tools/assets/lib.mjs` (`ISO_*`, `isoLayout`) và `client/src/sprites.ts`; hai nơi phải khớp nhau.
+Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` / `client/src/sprites.ts`. Quy tắc mỹ thuật (phép chiếu, cỡ khung, phong cách, màu, nguồn được phép) là `GAME_DESIGN.md` mục 5.11; thao tác (ComfyUI, Gemini, LPC, lệnh dây chuyền; PixelLab đã bỏ từ 2026-10-23, ảnh cũ vẫn đi qua dây chuyền) là skill `.claude/skills/asset-gen/SKILL.md`. Hằng số khung ở `tools/assets/lib.mjs` (`ISO_*`, `isoLayout`) và `client/src/sprites.ts`; hai nơi phải khớp nhau.
 
 ## Hồn sư
 
@@ -155,7 +155,7 @@ Bề mặt giao diện thủy mặc và class CSS tương ứng: skill `client-u
 art/                         file nguồn, không tải trong game
   palette.gpl, palettes/     bảng màu chung, bảng nhấn từng vùng và giao diện
   CREDITS.md                 nguồn gốc và giấy phép mọi asset
-  src/pixellab/              ảnh nguồn PixelLab: iso/ vật đứng, vh_iso/ phụ thể kèm file mô tả, bộ 32×32 cũ
+  src/pixellab/              ảnh nguồn PixelLab cũ (không làm thêm): iso/ vật đứng, vh_iso/ phụ thể kèm file mô tả, bộ 32×32 cũ
   src/gemini/                ảnh Gemini để dành / tham chiếu (phuthe_s/, beast_se/)
   src/lpc/{tên}.json         công thức ghép NPC phụ / dân thường từ LPC
 shared/assets/sprites/

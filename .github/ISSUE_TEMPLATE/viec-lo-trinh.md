@@ -18,4 +18,4 @@ labels: ["san-sang"]
 <!-- Mục GAME_DESIGN.md liên quan, PR / issue liên quan. -->
 
 ## Ghi chú
-<!-- Bị chặn bởi gì (thì đổi nhãn san-sang thành chan)? Cần lượt PixelLab (can-pixellab)? Cần file SQL mới (người nhận ghi số file vào issue)? -->
+<!-- Bị chặn bởi gì (thì đổi nhãn san-sang thành chan)? Chờ cách làm hoạt ảnh 8 hướng bằng ComfyUI (cho-hoat-anh-8-huong)? Cần file SQL mới (người nhận ghi số file vào issue)? -->
