@@ -162,7 +162,10 @@ function checkIso(key, spec, img, at, fw, fh) {
 // ---------- Đăng ký key mới ----------
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
+  // Git trên Windows (core.autocrlf) có thể checkout file với CRLF: tách dòng chịu cả hai, ghi lại đúng kiểu xuống dòng của file.
   let md = readFileSync(credits, "utf8");
+  const eol = md.includes("\r\n") ? "\r\n" : "\n";
+  md = md.replace(/\r\n/g, "\n");
   // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" thì ghi vào mục đó, còn lại mục PixelLab.
   const comfy = /comfyui/i.test(tool), gemini = !comfy && /gemini/i.test(tool);
   const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
@@ -187,7 +190,7 @@ function upsertCredits(key, file) {
     while (j < lines.length && lines[j].startsWith("|")) j++;
     lines.splice(j, 0, row);
   }
-  writeFileSync(credits, lines.join("\n"));
+  writeFileSync(credits, lines.join(eol));
 }
 
 if (register) {
