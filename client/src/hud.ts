@@ -14,13 +14,13 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
-  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
+  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
-import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef,
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
+import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -45,7 +45,7 @@ const CHAT_TABS: { id: ChatTab; name: string }[] = [
   { id: "world", name: "Thế giới" }];
 /** Số dòng hiện lúc ô chat đóng (mờ dần sau CHAT_FADE_MS như trước) và lúc mở (không mờ, cuộn được); số dòng giữ trong phiên. */
 const CHAT_SHOW = 6, CHAT_SHOW_OPEN = 40, CHAT_FADE_MS = 9000, CHAT_KEEP = 200;
-interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; }
+interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; act?: { label: string; fn: () => void }; }
 const chatHist: ChatLine[] = [];
 let chatTab: ChatTab = "all", chatPinned = false, chatTyping = false;
 /** Người gần nhất nhắn riêng cho mình (`/r`) và người gần nhất mình trò chuyện riêng (tin thường ở tab Riêng gửi cho người này). */
@@ -60,6 +60,7 @@ function chatEl(l: ChatLine, fade: boolean) {
   if (tag) { const t = document.createElement("i"); t.textContent = tag; t.style.color = l.col ?? ""; d.appendChild(t); }
   if (l.who) { const b = document.createElement("b"); b.textContent = l.who + ":"; if (tag) b.style.color = l.col ?? ""; d.appendChild(b); }
   d.appendChild(document.createTextNode(l.text));
+  if (l.act) { const { label, fn } = l.act; d.appendChild(pbtn(label, "ok chatact", fn, label)); } // nút trong dòng (Thêm lại, #195)
   if (l.col) d.style.borderLeftColor = l.col;
   if (fade) setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 700); }, Math.max(0, CHAT_FADE_MS - (Date.now() - l.at)));
   return d;
@@ -82,8 +83,8 @@ function renderChat() {
 }
 
 /** Thêm một dòng vào lịch sử ô chat (chỉ trong phiên, không lưu). Tab khác có tin mới thì hiện chấm. */
-export function chatLine(ch: ChatCh, text: string, col?: string, who?: string) {
-  const l: ChatLine = { ch, text, col, who, at: Date.now() };
+export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"]) {
+  const l: ChatLine = { ch, text, col, who, at: Date.now(), act };
   chatHist.push(l); if (chatHist.length > CHAT_KEEP) chatHist.shift();
   const el = $("#log"); if (!el) return;
   if (ch !== "sys" && ch !== chatTab) document.querySelector(`#chattabs button[data-tab="${ch}"]`)?.classList.add("new");
@@ -283,9 +284,10 @@ function setCtSlot(b: HTMLElement, on: boolean) {
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
  * Hồn Chân Thân (8.1a, chỉ khi võ hồn có dữ liệu; khóa tới vòng 7), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons");
- * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4).
+ * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4). Nút G Võ Hồn Dung Hợp Kỹ (#193)
+ * khi võ hồn ra trận có cặp trong FUSIONS và `fusion` (sân đấu cấm dung hợp nên không hiện).
  */
-export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1) {
+export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1, fusion = true) {
   const el = $("#skills"); el.innerHTML = ""; slotCd = [];
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip = "") => {
     const b = document.createElement("button"); b.className = "sk" + (locked ? " locked" : "");
@@ -321,7 +323,84 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
       tip: `Hồn kỹ Chân Thân (thay ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} khi biến hình) – ${s.name}: ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${cdText(s.cd)} giây.`
         + (has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn vòng ${CHAN_THAN_RING} ${y.toLocaleString("vi-VN")} năm).` : "") };
   } else ctSlot = null;
+  // Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): mời đồng đội gần nhất, hoặc hưởng ứng khi được mời; server chọn người và kiểm mọi điều kiện.
+  const fus = fusion ? fusionsOf(id) : [];
+  el.classList.toggle("fus", fus.length > 0); fusBtn = null;
+  if (fus.length) {
+    const has = rings.length >= FUSION.minRings, mate = (f: (typeof FUSIONS)[number]) => VOHON[vohonIndex(f.pair[0] === id ? f.pair[1] : f.pair[0])]?.name ?? "";
+    const tip = `Võ Hồn Dung Hợp Kỹ (phím ${FUSION_KEY}): ` + fus.map((f) => `${f.name} cùng đồng đội tổ đội ra trận ${mate(f)}: ${f.desc}`).join("; ")
+      + `. Bấm để mời đồng đội gần nhất; đồng đội bấm ${FUSION_KEY} trong ${cdText(FUSION.window)} giây thì chiêu nổ ở điểm giữa hai người.`
+      + ` Đứng cách nhau dưới ${FUSION.r} pixel, mỗi người tốn ${FUSION.cost} hồn lực, hồi ${FUSION.cd} giây (của hồn sư: đổi võ hồn không làm mới).`
+      + (has ? "" : ` Cần ít nhất ${FUSION.minRings} hồn hoàn.`);
+    mk(FUSION_KEY, `Võ Hồn Dung Hợp Kỹ: ${fus.map((f) => f.name).join(" / ")}${has ? "" : " (khóa)"}`, has ? "Dung hợp" : "Khóa",
+      has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, tip);
+    fusBtn = el.lastElementChild as HTMLElement; fusBtn.classList.add("fus");
+    fusCdEl = fusBtn.querySelector(".cd"); fusLabel = fusBtn.querySelectorAll("span")[1]; fusCdPct = -1;
+  }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
+}
+
+// ---------- Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): nút G, lời nhắc có đếm ngược, ô hồi chiêu ----------
+/** Phím Võ Hồn Dung Hợp Kỹ: mời, hoặc hưởng ứng khi đang được mời. */
+export const FUSION_KEY = "G";
+let fusCdEnd = 0; // performance.now() lúc hết hồi chiêu dung hợp của hồn sư (theo tin riêng `fusion done` / `vohons.fcd`)
+/** Lời mời đang chờ: `ask` = mình được mời (B), `wait` = mình mời, chờ đồng đội; `i` cặp trong FUSIONS, `who` tên người kia. */
+let fusPend: { k: "ask" | "wait"; i: number; who: string; end: number; ms: number } | null = null;
+let fusTxt = "", fusBtn: HTMLElement | null = null; // nút G hiện tại (buildSkills dựng lại thì đổi)
+let fusCdEl: HTMLElement | null = null, fusLabel: HTMLElement | null = null, fusCdPct = -1; // lớp phủ hồi chiêu, nhãn của nút G
+/** Đã gửi `join`: chờ server trả `done` / `cancel`, phím G và nút không gửi lại (bấm hai lần không ra lỗi "chưa có lời mời"). */
+let fusSent = false;
+/** Hồi chiêu dung hợp còn `secs` giây (server gửi; đổi võ hồn không làm mới vì thuộc hồn sư). */
+export function setFusionCd(secs: number) { fusCdEnd = performance.now() + Math.max(0, secs) * 1000; }
+/**
+ * Việc phím G / nút gửi: "join" khi đang được mời, "" khi vừa hưởng ứng hoặc đang chờ đồng đội (không gửi lại), không thì "start". Gọi
+ * nghĩa là sẽ gửi: "join" thì khóa tới khi server trả `done` / `cancel`. Server vẫn kiểm lại và báo lý do.
+ */
+export function fusionOp(): "join" | "start" | "" {
+  if (fusSent || fusPend?.k === "wait") return ""; // đang chờ đồng đội hưởng ứng: không mời lại
+  if (fusPend?.k !== "ask") return "start";
+  fusSent = true; $("#fusion").querySelector("button")?.setAttribute("disabled", ""); return "join";
+}
+/**
+ * Khung nhắc dung hợp kỹ (tin riêng `fusion`): B thấy "Dung hợp [G]" kèm đếm ngược `t` giây và nút chạm được (gọi `join`); A thấy
+ * đang chờ ai hưởng ứng. `null` thì ẩn (xong, hủy, đổi bản đồ). Tên người chơi gán bằng textContent. Đếm ngược và thanh `aria-hidden`
+ * để trình đọc màn hình chỉ đọc tên chiêu và nút, không đọc lại mỗi 0,1 giây.
+ */
+export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string; t: number } | null, join?: () => void) {
+  const el = $("#fusion"); fusTxt = ""; fusSent = false;
+  fusPend = p && FUSIONS[p.i] ? { k: p.k, i: p.i, who: p.who, end: performance.now() + p.t * 1000, ms: Math.max(1, p.t * 1000) } : null;
+  if (!fusPend) { el.hidden = true; el.innerHTML = ""; return; }
+  const ask = fusPend.k === "ask";
+  el.classList.toggle("ask", ask);
+  el.innerHTML = `<div class="ft"></div><small class="left" aria-hidden="true"></small><div class="bar" aria-hidden="true"><i></i></div>${ask ? `<button type="button">Dung hợp<kbd>${FUSION_KEY}</kbd></button>` : ""}`;
+  const f = FUSIONS[fusPend.i];
+  el.querySelector(".ft")!.textContent = `${f.icon} Dung hợp kỹ ${f.name}`;
+  el.querySelector(".ft")!.appendChild(document.createElement("small")).textContent = ask ? `${fusPend.who} mời hưởng ứng` : `Chờ ${fusPend.who} hưởng ứng`;
+  // pointerdown cho chuột / chạm (nhanh, như nút cổng); click cho bàn phím / trình đọc màn hình. fusionOp chặn gửi hai lần.
+  const btn = el.querySelector("button");
+  btn?.addEventListener("pointerdown", (e) => { e.preventDefault(); join?.(); });
+  btn?.addEventListener("click", () => join?.());
+  el.hidden = false;
+  updateFusion();
+}
+/** Mỗi khung hình: đếm ngược lời nhắc, ô hồi chiêu và nhãn của nút G. */
+export function updateFusion() {
+  const now = performance.now(), b = fusBtn;
+  if (b && fusCdEl && fusLabel) {
+    const locked = b.classList.contains("locked"), cd = Math.max(0, fusCdEnd - now) / 1000;
+    const pct = locked ? 0 : Math.round(Math.min(1, cd / FUSION.cd) * 1000) / 10;
+    if (pct !== fusCdPct) { fusCdPct = pct; fusCdEl.style.height = pct + "%"; }
+    const ask = !locked && fusPend?.k === "ask" && !fusSent;
+    if (b.classList.contains("ask") !== ask) b.classList.toggle("ask", ask);
+    const txt = locked ? "Khóa" : ask ? "Hưởng ứng" : fusPend ? "Đang chờ" : "Dung hợp";
+    if (fusLabel.textContent !== txt) fusLabel.textContent = txt;
+  }
+  if (!fusPend) return;
+  const left = Math.max(0, fusPend.end - now), sec = (left / 1000).toFixed(1).replace(".", ","), el = $("#fusion");
+  (el.querySelector(".bar i") as HTMLElement).style.width = (left / fusPend.ms) * 100 + "%"; // mỗi khung hình: thanh co mượt
+  const txt = `còn ${sec} giây`;
+  if (txt === fusTxt) return;
+  fusTxt = txt; el.querySelector("small.left")!.textContent = txt;
 }
 /** Phím Võ Hồn Chân Thân (8.1a, chờ chốt): R, không trùng phím nào đang dùng. */
 export const AVA_KEY = "R";
@@ -536,7 +615,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
 export function toggleRoster(open = $("#roster").hidden) {
   $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
   if (!open) rosterSel = null;
-  else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
+  else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
@@ -1343,6 +1422,7 @@ export function renderParty(v: PartyView, act: PartyActions) {
   if (!v.id || v.members.length < v.max)
     head.append(pbtn(partyInviting ? "Đóng" : "Mời…", "", () => { partyInviting = !partyInviting; partyOpenNow = partyInviting; renderParty(v, act); }, "Mời hồn sư vào tổ đội"));
   if (v.id) head.append(pbtn("Rời đội", "warn", () => act.send("leave"), "Rời tổ đội"));
+  head.append(pbtn("Bạn bè", "", () => toggleFriends(), "Bảng bạn bè (phím L)"));
   box.append(head);
   if (partyInviting) {
     const f = el("form", "pinv"), inp = el("input"), go = el("button", "pbtn", "Mời");
@@ -1421,14 +1501,84 @@ export function showPlayerMenu(t: { sid: string; name: string; level: number } |
     pbtn("Mời ra khỏi đội", "warn", () => { act.send("kick", t.name); close(); }));
   else btns.append(el("small", "phint", "Đồng đội trong tổ đội của bạn."));
   btns.append(pbtn("Nhắn riêng", "", () => { close(); chatWhisperTo(t.name); }, `Nhắn riêng cho ${t.name} (/t)`));
+  // Bạn bè và chặn (#195): theo bảng bạn bè gần nhất của chính mình.
+  const fr = friendsLast?.list.some((f) => f.name === t.name), bl = friendsLast?.blocks.includes(t.name);
+  if (friendSend && !fr && !bl) btns.append(pbtn("Kết bạn", "ok", () => { friendSend!("add", t.name); close(); }, `Thêm ${t.name} vào danh sách bạn bè`));
+  if (friendSend) btns.append(bl ? pbtn("Bỏ chặn", "", () => { friendSend!("unblock", t.name); close(); }, `Bỏ chặn ${t.name}`)
+    : pbtn("Chặn", "warn", () => { friendSend!("block", t.name); close(); }, `Chặn ${t.name}: không nhận tin, lời mời, lời thêm bạn`));
   box.append(head, btns);
   box.hidden = false;
+}
+
+// ---------- Bạn bè và chặn (mục 5.9 "Bạn bè", #195): chỉ chính chủ nhận tin "friends" ----------
+let friendsLast: FriendsMsg | null = null;
+let friendSend: ((op: string, name?: string) => void) | null = null;
+let friendAct: { invite(name: string): void } | null = null;
+let friendDraft = "";
+/** Gắn hàm gửi `friend {op, name}` và mời tổ đội (GameScene, mỗi lần vào phòng). */
+export function bindFriends(send: (op: string, name?: string) => void, invite: (name: string) => void) { friendSend = send; friendAct = { invite }; }
+/** Tin "friends" mới: cập nhật bảng (nếu đang mở); `added` thì thêm dòng log, chưa có người đó thì kèm nút "Thêm lại". */
+export function setFriends(m: FriendsMsg) {
+  friendsLast = m;
+  if (m.added) {
+    const { name, back } = m.added;
+    if (back) chatLine("sys", `${name} đã thêm bạn vào danh sách bạn bè: hai bên đã là bạn bè.`, FRIEND_COL);
+    else chatLine("sys", `${name} đã thêm bạn vào danh sách bạn bè. `, FRIEND_COL, undefined, { label: "Thêm lại", fn: () => friendSend?.("add", name) });
+  }
+  if (!$("#friends").hidden) renderFriends();
+}
+const FRIEND_COL = "#9fd8ff";
+/** Mở / đóng bảng Bạn bè (phím L, nút trong khung tổ đội); cùng chỗ giữa màn hình với các bảng khác. Mở thì xin bảng mới. */
+export function toggleFriends(open = $("#friends").hidden) {
+  $("#friends").hidden = !open;
+  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleWorld(false); friendSend?.("list"); renderFriends(); }
+}
+/**
+ * Bảng Bạn bè: ô gõ tên (Thêm bạn / Chặn), danh sách bạn (đã thêm nhau và đang online: bản đồ / kênh, nút Mời tổ đội, Nhắn; chưa thêm
+ * lại: chỉ ghi chú), nút Xóa / Chặn từng người, danh sách chặn với nút Bỏ chặn.
+ */
+function renderFriends() {
+  const box = $("#friends"), typing = document.activeElement?.closest("#friends .finp") ? friendDraft : null; box.innerHTML = "";
+  const m = friendsLast, head = el("div", "rhead");
+  head.append(el("b", "", `Bạn bè ${m?.list.length ?? 0}/${FRIEND_MAX}`));
+  const x = el("button", "x", "×"); x.type = "button"; x.setAttribute("aria-label", "Đóng"); x.addEventListener("click", () => toggleFriends(false));
+  head.append(x); box.append(head);
+  const f = el("form", "pinv finp"), inp = el("input"), add = el("button", "pbtn ok", "Thêm bạn"), blk = pbtn("Chặn", "warn", () => go("block"), "Chặn hồn sư này");
+  inp.placeholder = "Tên hồn sư"; inp.maxLength = 40; inp.autocomplete = "off"; inp.value = friendDraft; add.type = "submit";
+  const go = (op: string) => { const n = inp.value.trim(); if (!n) return; friendSend?.(op, n); friendDraft = ""; inp.value = ""; };
+  inp.addEventListener("input", () => { friendDraft = inp.value; });
+  inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Escape") { inp.blur(); toggleFriends(false); } }); // phím khi gõ không điều khiển nhân vật
+  f.addEventListener("submit", (e) => { e.preventDefault(); go("add"); });
+  f.append(inp, add, blk); box.append(f);
+  if (typing !== null) setTimeout(() => inp.focus(), 0);
+  box.append(el("small", "phint", "Hai bên đã thêm nhau mới thấy nhau đang online và ở đâu. Chặn: không nhận tin, lời mời tổ đội, lời thêm bạn của người đó."));
+  if (!m) { box.append(el("small", "phint", "Đang tải…")); return; }
+  const rank = (e: FriendsMsg["list"][number]) => (e.mutual && e.map ? 0 : e.mutual ? 1 : 2);
+  for (const e of [...m.list].sort((a, b) => rank(a) - rank(b))) {
+    const row = el("div", "pmem frow" + (e.mutual && e.map ? " on" : " off")), top = el("div", "ptop");
+    top.append(el("span", "pname", (e.mutual && e.map ? "● " : "") + e.name),
+      el("small", "", e.mutual ? (e.map ? `Ở ${MAPS[e.map]?.name ?? e.map}${e.ch ? ` · Kênh ${e.ch}` : ""}` : "Ngoại tuyến") : "Chưa thêm lại bạn"));
+    const btns = el("div", "pbtns");
+    if (e.mutual && e.map) btns.append(pbtn("Mời tổ đội", "ok", () => friendAct?.invite(e.name), `Mời ${e.name} vào tổ đội`),
+      pbtn("Nhắn", "", () => { toggleFriends(false); chatWhisperTo(e.name); }, `Nhắn riêng cho ${e.name} (/t)`));
+    btns.append(pbtn("Xóa", "", () => friendSend?.("remove", e.name), `Xóa ${e.name} khỏi danh sách bạn bè`),
+      pbtn("Chặn", "warn", () => friendSend?.("block", e.name), `Chặn ${e.name}`));
+    row.append(top, btns); box.append(row);
+  }
+  if (!m.list.length) box.append(el("small", "phint", "Chưa có bạn: gõ tên rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác."));
+  const bh = el("div", "fsub"); bh.append(el("b", "", `Đã chặn ${m.blocks.length}/${BLOCK_MAX}`)); box.append(bh);
+  for (const n of m.blocks) {
+    const row = el("div", "pmem frow off"), top = el("div", "ptop");
+    top.append(el("span", "pname", n));
+    const btns = el("div", "pbtns"); btns.append(pbtn("Bỏ chặn", "", () => friendSend?.("unblock", n), `Bỏ chặn ${n}`));
+    row.append(top, btns); box.append(row);
+  }
 }
 
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); }
+  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); }
 }
 
 let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
@@ -1890,7 +2040,7 @@ export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
     npcPage = qs === "offer" || qs === "ready" ? "quest" : ds === "offer" || ds === "ready" ? "daily" : "talk"; npcLine = 0;
   }
   npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
-  toggleBag(false); toggleRoster(false); toggleReso(false);
+  toggleBag(false); toggleRoster(false); toggleReso(false); toggleFriends(false);
   $("#npc").hidden = false;
   renderNpc();
 }
@@ -2222,10 +2372,10 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
   return box;
 }
 
-// ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
-let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ; khung theo dõi chỉ vẽ chuỗi này, chương 2 ở #190)
+// ---------- Nhiệm vụ: chuỗi cố định (tân thủ của Ngọc Tiểu Cương, chương 2 của Triệu Vô Cực…; mục 5.8, bước 6.2, #190) ----------
+let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ)
 const questMsgs = new Map<string, QuestMsg>(); // tin "quest" gần nhất của từng chuỗi cố định (kể cả tân thủ)
-let questFold = false;                // khung theo dõi đang thu gọn
+const questFold = new Set<string>();  // mã chuỗi đang thu gọn trong khung theo dõi
 let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
 let dailyFold = false;
 /** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ, chưa nhận tin "quest", hoặc chuỗi chưa mở theo QUEST_AFTER). */
@@ -2233,6 +2383,13 @@ export const questOf = (id: string) => {
   const q = [...questMsgs.values()].find((m) => questChain(m.chain)?.giver === id), after = q && QUEST_AFTER[q.chain];
   return q && (!after || questMsgs.get(after)?.status === "done") ? q : null;
 };
+/**
+ * Chuỗi cố định đang theo dõi (#190, chung cho mọi chuỗi trong QUESTS): đã có tin "quest", đã mở (chuỗi QUEST_AFTER của nó đã xong),
+ * chưa xong cả chuỗi; theo thứ tự QUESTS. Khung theo dõi, dấu NPC và chỉ đường bản đồ nhỏ cùng đọc danh sách này.
+ */
+export function questTracked(): QuestMsg[] {
+  return QUESTS.map((c) => questMsgs.get(c.id)).filter((q): q is QuestMsg => !!q && q.status !== "done" && questOf(questChain(q.chain)?.giver ?? "") === q);
+}
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
 export function setQuest(q: QuestMsg) {
   questMsgs.set(q.chain, q);
@@ -2255,27 +2412,40 @@ function questGoals(s: QuestStep, prog: number[] | null) {
   return box;
 }
 /**
- * Khung theo dõi trên màn hình: chuỗi tân thủ (tên bài, mục tiêu x/N, gợi ý quay về NPC; xong cả chuỗi thì bỏ phần này) rồi mục
- * "Hằng ngày" (khảo hạch của Phất Lan Đức); bấm / chạm tiêu đề từng phần để thu gọn. Không còn gì để theo dõi thì ẩn.
+ * Khung theo dõi trên màn hình: mỗi chuỗi cố định đang theo dõi một mục (questTracked: tân thủ, rồi chương 2 khi đã mở… tên bài, mục
+ * tiêu x/N, gợi ý gặp / quay về NPC giao bài; xong cả chuỗi thì bỏ mục đó), rồi mục "Hằng ngày" (khảo hạch của Phất Lan Đức); bấm /
+ * chạm tiêu đề từng mục để thu gọn. Không còn gì để theo dõi thì ẩn.
  */
 function renderQuestTracker() {
   const el = $("#quest"); el.innerHTML = "";
-  const starter = renderStarterTracker(el), daily = renderDailyTracker(el);
-  el.hidden = !starter && !daily;
+  let any = false;
+  for (const q of questTracked()) any = renderChainTracker(el, q) || any;
+  const daily = renderDailyTracker(el);
+  el.hidden = !any && !daily;
 }
-function renderStarterTracker(el: HTMLElement) {
-  const q = questMsg, { c, npc, where } = q ? giverOf(q.chain) : { c: undefined, npc: undefined, where: "" };
-  if (!q || !c || q.status === "done") return false;
-  const s = c.steps[q.step];
-  const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!questFold));
+/**
+ * Nút bấm / chạm của khung theo dõi (#190): `pointerdown` + preventDefault như thanh hồn kỹ (chạm trên điện thoại không phải lúc nào
+ * cũng sinh `click`); `click` không kèm số lần nhấn chuột (detail 0) là Enter / Space từ bàn phím.
+ */
+function onTap(b: HTMLElement, fn: () => void) {
+  b.addEventListener("pointerdown", (e) => { if (e.button === 0) { e.preventDefault(); fn(); } });
+  b.addEventListener("click", (e) => { if (e.detail === 0) fn(); });
+}
+function renderChainTracker(el: HTMLElement, q: QuestMsg) {
+  const { c, npc, where } = giverOf(q.chain), s = c?.steps[q.step];
+  if (!c || !s) return false;
+  const fold = questFold.has(q.chain), sec = document.createElement("div"); sec.className = "qsec"; sec.dataset.chain = q.chain;
+  const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!fold));
   head.innerHTML = "<b></b><i></i>";
   head.querySelector("b")!.textContent = `${s.name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`;
-  head.querySelector("i")!.textContent = `${q.step + 1}/${c.steps.length} ${questFold ? "▸" : "▾"}`;
-  head.title = questFold ? "Mở khung nhiệm vụ" : "Thu gọn khung nhiệm vụ";
-  head.addEventListener("click", () => { questFold = !questFold; renderQuestTracker(); }); // chuột, chạm và bàn phím
-  el.appendChild(head);
-  const sub = document.createElement("small"); sub.textContent = c.name; el.appendChild(sub);
-  if (questFold) return true;
+  head.querySelector("i")!.textContent = `${q.step + 1}/${c.steps.length} ${fold ? "▸" : "▾"}`;
+  head.title = fold ? `Mở mục ${c.name}` : `Thu gọn mục ${c.name}`;
+  onTap(head, () => { if (!questFold.delete(q.chain)) questFold.add(q.chain); renderQuestTracker(); });
+  sec.appendChild(head);
+  const sub = document.createElement("small"); sub.textContent = c.name; sec.appendChild(sub);
+  el.appendChild(sec);
+  if (fold) return true;
+  el = sec;
   const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; el.appendChild(t); };
   if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return true; }
   el.appendChild(questGoals(s, q.prog));
@@ -2363,7 +2533,7 @@ function renderDailyTracker(el: HTMLElement) {
   head.querySelector("b")!.textContent = `Hằng ngày${mark === "offer" ? " !" : mark === "ready" ? " ?" : ""}`;
   head.querySelector("i")!.textContent = `${done}/${m.list.length} ${dailyFold ? "▸" : "▾"}`;
   head.title = dailyFold ? "Mở mục Hằng ngày" : "Thu gọn mục Hằng ngày";
-  head.addEventListener("click", () => { dailyFold = !dailyFold; renderQuestTracker(); });
+  onTap(head, () => { dailyFold = !dailyFold; renderQuestTracker(); });
   sec.appendChild(head);
   const sub = document.createElement("small"); sub.textContent = DAILY.name; sec.appendChild(sub);
   el.appendChild(sec);
@@ -2631,7 +2801,7 @@ export function onResonanceTop(fn: (page: number, pageSize: number) => void) { r
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
   $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); renderReso(); }
+  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); toggleFriends(false); renderReso(); }
 }
 /**
  * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 5 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
@@ -2754,7 +2924,7 @@ export const worldOpen = () => !$("#world").hidden;
 /** Mở / đóng bảng bản đồ thế giới (phím M, nút "Thế giới", F khi đứng trên trận). Mở thì GameScene xin tin `world` mới. */
 export function toggleWorld(open = $("#world").hidden) {
   $("#world").hidden = !open; $("#worldBtn")?.setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); renderWorld(); $("#world").scrollTop = 0; } else worldPick = null;
+  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleFriends(false); renderWorld(); $("#world").scrollTop = 0; } else worldPick = null;
   return open;
 }
 /** Tin `world` mới (server gửi khi xin): vẽ lại nếu bảng đang mở. */

@@ -34,8 +34,9 @@ export interface AutoMsg { on: boolean; left: number; max: number; bonus: number
 export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô
- *  hồn kỹ mang theo (chỉ số vòng theo ô U / I / O / P, -1 = trống; server đã áp mặc định loadoutOf). */
-export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; skills: number[]; herbs?: Record<string, number> }[]; }
+ *  hồn kỹ mang theo (chỉ số vòng theo ô U / I / O / P, -1 = trống; server đã áp mặc định loadoutOf). `fcd`: giây hồi chiêu Võ Hồn Dung
+ *  Hợp Kỹ còn lại của hồn sư (#193, thiếu = dùng được). */
+export interface OwnedVohons { active: number; team: number[]; list: { rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; skills: number[]; herbs?: Record<string, number> }[]; fcd?: number; }
 /**
  * Tin nhắn riêng "squad": sinh lực từng võ hồn trong đội; `down` > 0 là võ hồn đã gục, còn ngần ấy giây ngoài trận nữa thì hồi.
  * `en`: năng lượng tiên cơ (0..TIEN_CO_MAX). `combat`: đang giao chiến (đồng hồ hồi dừng).
@@ -102,6 +103,11 @@ export interface ChannelsMsg { cur: number; list: { ch: number; n: number; max: 
  */
 export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world" | "tong"; to?: string; }
 export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
+/**
+ * Tin riêng "friends" (#195): bạn bè theo thứ tự thêm (`mutual`: hai bên đã thêm nhau; `map` / `ch` chỉ có khi đã thêm nhau và người đó
+ * đang trong game), tên người đã chặn. `added`: người vừa thêm mình (`back`: mình đã có người đó, không thì hiện nút "Thêm lại").
+ */
+export interface FriendsMsg { list: { name: string; mutual: boolean; map?: string; ch?: number }[]; blocks: string[]; added?: { name: string; back: boolean }; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

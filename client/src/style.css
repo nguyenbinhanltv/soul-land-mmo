@@ -79,13 +79,25 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #target{top:12px}
 #prompt{bottom:96px;border-color:var(--line2)}
 #prompt em{font-style:normal;color:var(--warn)}
-#portal,#wpbox{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:var(--accent)}
-#portal small,#wpbox small{display:block;color:var(--muted);font-size:12px;font-family:var(--f12)}
+#portal,#wpbox,#fusion{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:var(--accent)}
+#portal small,#wpbox small,#fusion small{display:block;color:var(--muted);font-size:12px;font-family:var(--f12)}
 #portal .danger{display:block;color:var(--son);margin-top:3px}
-#portal button,#wpbox button{margin-top:6px;font:inherit;font-size:12px;font-family:var(--f12);padding:5px 14px;border:1px solid var(--accent);background:var(--wash2);color:var(--text);cursor:pointer}
+#portal button,#wpbox button,#fusion button{margin-top:6px;font:inherit;font-size:12px;font-family:var(--f12);padding:5px 14px;border:1px solid var(--accent);background:var(--wash2);color:var(--text);cursor:pointer}
 #portal button.danger{border-color:var(--son-d)}
-#portal kbd,#wpbox kbd{font:inherit;font-size:10px;font-family:var(--f10);color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
+#portal kbd,#wpbox kbd,#fusion kbd{font:inherit;font-size:10px;font-family:var(--f10);color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
 body.touch :is(#portal,#wpbox){bottom:196px}
+/* Võ Hồn Dung Hợp Kỹ (#193): lời nhắc "Dung hợp [G]" có đếm ngược cho người được mời (nút chạm được), hoặc "chờ hưởng ứng" cho người mời. */
+#fusion{min-width:230px;border-color:#ffe08a}
+/* Hộp đi cổng / truyền tống trận / NPC đang hiện ở cùng chỗ thì đẩy lời nhắc lên trên nó. Chạm: phía dưới đã có cần điều khiển, ô chat, nút. */
+body:not(.touch):has(:is(#portal,#wpbox,#talk):not([hidden])) #fusion{bottom:250px}
+body.touch #fusion{bottom:auto;top:31%}
+#fusion .ft{color:#ffe08a;text-shadow:var(--stroke)}
+#fusion .ft small{color:var(--text);text-shadow:none}
+#fusion small{font-variant-numeric:tabular-nums}
+#fusion .bar{height:12px}
+#fusion .bar i{background:linear-gradient(90deg,#fff,#ffe08a);transition:none}
+#fusion.ask{animation:fusAsk .6s ease-in-out infinite alternate}
+@keyframes fusAsk{from{box-shadow:0 0 2px #ffe08a}to{box-shadow:0 0 14px #ffe08a}}
 #wpbox{border-color:#5aa8c0}
 /* NPC (bước 6.1): hộp gợi ý khi đứng gần (cùng chỗ hộp đi cổng, cổng được ưu tiên) */
 #talk{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:var(--son);pointer-events:auto}
@@ -142,6 +154,9 @@ body.touch #chattabs button{padding:7px 2px}
 /* Hồn kỹ Chân Thân (9.6): nút P viền vàng khi đang biến hình. */
 .sk.ct{border-color:#ffe08a;box-shadow:0 0 8px #ffe08a,inset 0 0 6px rgba(255,224,138,.35)}
 @keyframes avaPulse{from{box-shadow:0 0 4px #ffe08a}to{box-shadow:0 0 14px #ffe08a}}
+/* Võ Hồn Dung Hợp Kỹ (#193, phím G): viền vàng kép; đang được mời thì nhấp nháy để bấm hưởng ứng. */
+.sk.fus{border-style:double;border-width:3px;border-color:color-mix(in srgb,#ffe08a 60%,var(--line))}
+.sk.fus.ask{border-color:#ffe08a;animation:avaPulse .4s ease-in-out infinite alternate}
 #banner{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity .5s;text-shadow:var(--stroke),0 2px 0 #1a1020;color:var(--paper)}
 #banner b{display:block;font-size:24px;font-family:var(--f12)}
 #banner span{font-size:12px;font-family:var(--f12);color:var(--paper2)}
@@ -149,7 +164,7 @@ body.touch #chattabs button{padding:7px 2px}
 #knob{position:absolute;left:43px;top:43px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.35)}
 body.touch.playing #joy{display:block}
 body.touch #skills{flex-wrap:wrap;width:208px;justify-content:flex-end}
-body.touch #skills.ava{width:272px} /* có nút Chân Thân (8.1a): 2 hàng 4 nút */
+body.touch #skills:is(.ava,.fus){width:272px} /* có nút Chân Thân (8.1a) / Dung hợp (#193): 2 hàng 4 nút */
 /* Chạm: 3 nút hồn cốt xếp dọc, nhỏ hơn, bên trái hai hàng hồn kỹ (không đẩy thanh đội hình lên). */
 body.touch #actbar{gap:8px}
 body.touch #bskills{flex-direction:column}
@@ -528,6 +543,19 @@ body.touch .shoprow .buse{min-height:38px}
 #pmenu{position:absolute;left:50%;transform:translateX(-50%);top:46px;padding:8px 12px;font-size:12px;font-family:var(--f12);pointer-events:auto;min-width:200px}
 body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4px 10px}
 @media (max-width:640px){#party{width:190px;font-size:12px;font-family:var(--f12)}}
+/* Bạn bè và chặn (#195): bảng giữa màn hình như Cộng minh; nút "Thêm lại" trong dòng log bấm được cả khi ô chat đóng. */
+#friends{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:80%;overflow-y:auto;padding:10px;pointer-events:auto;touch-action:pan-y;
+  display:flex;flex-direction:column;gap:6px;font-size:12px;font-family:var(--f12);backdrop-filter:blur(6px)}
+#friends .rhead b{font-size:12px;font-family:var(--f12);color:var(--accent)}
+#friends .frow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#friends .frow .ptop{flex:1;min-width:120px}
+#friends .frow .pbtns{margin-top:0}
+#friends .frow.on .pname{color:#7dff8a;text-shadow:var(--stroke)}
+#friends .frow.off{opacity:1}
+#friends .frow.off .pname{color:var(--muted)}
+#friends .fsub{margin-top:6px;border-top:1px solid var(--line);padding-top:4px}
+#friends .fsub b{color:var(--warn);font-size:12px;font-family:var(--f12)}
+#log div .chatact{pointer-events:auto;margin-left:6px;vertical-align:middle}
 /* Nhiệm vụ (bước 6.2): khung theo dõi dưới bản đồ nhỏ (ẩn khi có bảng xếp hạng thú vương), trang nhiệm vụ trong hộp thoại NPC */
 #hud{--qgold:#8a5f0a}
 #quest{position:absolute;right:10px;top:168px;width:212px;max-height:max(120px,calc(100% - 330px));overflow-y:auto;padding:6px 8px 7px;font-size:12px;font-family:var(--f12);pointer-events:auto;border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
@@ -552,6 +580,9 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 .qbox .buse{align-self:flex-start;margin-top:3px}
 .qbox.qdone{opacity:.6}
 @media (max-width:640px){#quest{top:130px;width:184px}}
+/* Điện thoại ngang (#190): dưới bản đồ nhỏ chỉ còn ~60px trước thanh đội hình / nút hồn kỹ, khung theo dõi bị che và chạm không tới:
+   đặt sát bên trái bản đồ nhỏ (vùng trên giữa màn hình còn trống), cao tối đa tới trên thanh đội hình. */
+@media (max-height:500px){body.touch #quest{top:22px;right:180px;width:200px;max-height:max(80px,calc(100% - 230px))}}
 /* Đại Đấu Hồn Trường (7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng */
 #arenaQ{position:absolute;left:50%;transform:translateX(-50%);top:46px;display:flex;align-items:center;gap:10px;padding:6px 10px;border-color:#ff6b6b;pointer-events:auto}
 #arenaQ b{display:block;font-size:12px;font-family:var(--f12);color:var(--son)}
@@ -635,7 +666,7 @@ body.arena #quest{display:none}
 .thuymac .panel{border:6px solid transparent;background:none;box-shadow:none;
   border-image:var(--ui-hop-thoai) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
 /* Bảng lớn giữa màn hình và thẻ màn đăng nhập: cuộn giấy hai trục gỗ. */
-.thuymac :is(#roster,#bag,#reso,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
+.thuymac :is(#roster,#bag,#reso,#friends,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
   border-image:var(--ui-cuon-giay) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 /* Hộp thoại NPC: làm tối cảnh nhẹ (mục 5.11 C), hoa văn mực ở hai góc. */
@@ -673,13 +704,13 @@ body.arena #quest{display:none}
 .thuymac .tm.down{opacity:.75}
 .thuymac .aopt.sel.risk{outline-color:var(--hp)}
 /* Nút chính: ấn triện son (ô son, chữ màu giấy, mép sứt). */
-.thuymac :is(.btn.primary,.buse.absorb,.buse.eok,.srow.ready .sbtn),.thuymac :is(#portal,#wpbox) button,.thuymac #talk button{border-image:none;border:2px solid var(--son-d);
+.thuymac :is(.btn.primary,.buse.absorb,.buse.eok,.srow.ready .sbtn),.thuymac :is(#portal,#wpbox,#fusion) button,.thuymac #talk button{border-image:none;border:2px solid var(--son-d);
   background:var(--son);color:var(--paper);box-shadow:inset 0 0 0 1px var(--son-l);
   clip-path:polygon(0 3px,3px 0,calc(100% - 2px) 0,100% 2px,100% calc(100% - 3px),calc(100% - 3px) 100%,2px 100%,0 calc(100% - 2px))}
-.thuymac :is(.btn.primary,.buse.absorb,.buse.eok,.srow.ready .sbtn):not(:disabled):hover,.thuymac :is(#portal,#wpbox,#talk) button:not(:disabled):hover{background:var(--son-l)}
-.thuymac :is(.btn.primary,.buse.absorb,.buse.eok):not(:disabled):active,.thuymac :is(#portal,#wpbox,#talk) button:not(:disabled):active{background:var(--son-d)}
+.thuymac :is(.btn.primary,.buse.absorb,.buse.eok,.srow.ready .sbtn):not(:disabled):hover,.thuymac :is(#portal,#wpbox,#talk,#fusion) button:not(:disabled):hover{background:var(--son-l)}
+.thuymac :is(.btn.primary,.buse.absorb,.buse.eok):not(:disabled):active,.thuymac :is(#portal,#wpbox,#talk,#fusion) button:not(:disabled):active{background:var(--son-d)}
 .thuymac .buse.absorb.risk{background:var(--son-d);color:var(--paper)}
-.thuymac :is(#portal,#wpbox,#talk) kbd,.thuymac .btn.primary kbd{color:var(--paper2);border-color:var(--son-l)}
+.thuymac :is(#portal,#wpbox,#talk,#fusion) kbd,.thuymac .btn.primary kbd{color:var(--paper2);border-color:var(--son-l)}
 /* Thanh sinh lực / hồn lực: khung nét bút mực phủ lên thanh (ui_thanh_*). */
 .bar{height:16px}
 .bar span{line-height:14px;z-index:1}
@@ -706,6 +737,8 @@ body.arena #quest{display:none}
 .thuymac .sk.locked{opacity:1;filter:grayscale(1) brightness(.75)}
 .thuymac .sk.ava{border:0;filter:drop-shadow(0 0 1px #ffe08a)}
 .thuymac .sk.ava.on{animation:sealPulse .8s ease-in-out infinite alternate;box-shadow:none}
+.thuymac .sk.fus{border:0;filter:drop-shadow(0 0 1px #ffe08a)}
+.thuymac .sk.fus.ask{animation:sealPulse .4s ease-in-out infinite alternate;box-shadow:none}
 .thuymac .sk.ct{box-shadow:none;filter:drop-shadow(0 0 3px #ffe08a)}
 @keyframes sealPulse{from{filter:drop-shadow(0 0 2px #ffe08a)}to{filter:drop-shadow(0 0 6px #ffe08a)}}
 .thuymac .sk.bsk i{color:var(--paper)}
@@ -761,8 +794,9 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .vcardx.cempty small{font-size:10px;font-family:var(--f10)}
 /* Bảng đội hình: 4 ô là 4 thẻ, nút Bỏ dưới thẻ; bộ sưu tập là lưới thẻ; mảnh võ hồn là thẻ + thanh mảnh + nút. */
 #roster,#bag,#reso,#audio,#world,#npc,#autoPanel{width:min(452px,94vw)}
+#friends{width:min(380px,94vw)}
 /* Bảng giữa màn hình nằm trên log chat, thanh đội hình, ấn hồn kỹ (màn thấp của điện thoại). */
-#roster,#bag,#reso,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
+#roster,#bag,#reso,#friends,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
 #roster .tslots{display:grid;grid-template-columns:repeat(auto-fill,96px);gap:8px;justify-content:center}
 #roster .tslot{flex-direction:column;align-items:center;gap:3px;border:0;background:none}
 #roster .tslot:not(.empty){border:0}
@@ -796,7 +830,7 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 /* Chữ tô màu tại chỗ (style="color:…": tên võ hồn, trạng thái hồn thú, quà thức tỉnh…) cũng có viền mực. */
 :is(#hud,#overlay) [style*="color:"]{text-shadow:var(--stroke)}
 /* Đang mở bảng giữa màn hình thì ẩn gợi ý nói chuyện (cùng chỗ). */
-:is(#roster,#bag,#reso,#world):not([hidden]) ~ #talk{display:none}
+:is(#roster,#bag,#reso,#friends,#world):not([hidden]) ~ #talk{display:none}
 /* Nút nhỏ trong khung chỉ số: một dòng, font 10. */
 .minirow .minibtn{white-space:nowrap;font-size:10px;font-family:var(--f10)}
 .minirow .minibtn kbd{margin-left:2px;padding:0 2px}
