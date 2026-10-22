@@ -17,6 +17,7 @@ Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu, nguồn được
 | Ô nền | ảnh 32×32 (thoi 32×16, tâm (16, 19), đáy khoảng 5); ô lớn 64×64 (thoi 64×32, tâm khoảng (32, 37), đáy khoảng 11–12) | | tên ô trong `shared/assets/iso/tiles.json` |
 | Vật đứng | cạnh bội `ISO_PROP_STEP` | giữa đáy, cách mép dưới `ISO_PROP_FOOT` | `prop_{vật}` |
 | Chân dung võ hồn / NPC | 64×64 / 112×112, tối đa `PORTRAIT_MAX_COLORS` màu | | `portrait_{id}` / `npc_{mã NPCS}` |
+| Chân dung hồn thú (khung mục tiêu) | 64×64, nền trong suốt, tối đa `PORTRAIT_MAX_COLORS` màu | | `thu_{mã BEASTS}` |
 | Thẻ võ hồn | 96×152, cửa sổ chân dung trong suốt | | `card_{sr,ssr,ur}` |
 | Huy hiệu hệ / trạng thái | 24×24 | | `he_{mã HE_IDS}` / `status_{mã STATUS_IDS, BUFF_IDS}` |
 | Vật phẩm | 32×32 (hồn cốt bản xám) | | `item_{mã ITEMS, nhóm ITEM_KINDS, hon_cot_<vị trí>}` |
