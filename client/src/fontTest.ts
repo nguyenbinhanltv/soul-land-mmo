@@ -19,15 +19,15 @@ export function fontTestScreen(card: HTMLElement, overlay: HTMLElement) {
     `<div class="ftl"><small>${label}</small><p class="${cls}" style="font-size:${size}"></p></div>`.replace("></p>", `>${text}</p>`);
   const pick = (r: string) => VOHON.find((v) => v.rarity === r)!;
   card.innerHTML = `<h1>Thử font tiếng Việt</h1>
-    <p>Ark Pixel 12 px và 10 px (OFL), cắt còn chữ Latin và tiếng Việt; chỉ dùng cỡ bội số nguyên của lưới font.</p>
-    ${line("f12", "12px", "Ark Pixel 12 · 12 px (chữ thường của giao diện)", REQUIRED)}
-    ${line("f12", "24px", "Ark Pixel 12 · 24 px (tiêu đề)", REQUIRED)}
-    ${line("f10", "10px", "Ark Pixel 10 · 10 px (chữ chật: thanh, nút hồn kỹ, thẻ)", REQUIRED)}
-    ${line("f10", "20px", "Ark Pixel 10 · 20 px", REQUIRED)}
+    <p>Galmuri 11 (nét 12 px) và Galmuri 9 (nét 10 px) (OFL), cắt còn chữ Latin và tiếng Việt; chỉ dùng cỡ bội số nguyên của lưới font.</p>
+    ${line("f12", "12px", "Galmuri 11 · 12 px (chữ thường của giao diện)", REQUIRED)}
+    ${line("f12", "24px", "Galmuri 11 · 24 px (tiêu đề)", REQUIRED)}
+    ${line("f10", "10px", "Galmuri 9 · 10 px (chữ chật: thanh, nút hồn kỹ, thẻ)", REQUIRED)}
+    ${line("f10", "20px", "Galmuri 9 · 20 px", REQUIRED)}
     ${line("f12", "12px", "Mọi nguyên âm có dấu, chữ hoa", UPPER)}
     ${line("f12", "12px", "Mọi nguyên âm có dấu, chữ thường", LOWER)}
-    ${line("f10", "10px", "Ark Pixel 10, chữ hoa", UPPER)}
-    ${line("f10", "10px", "Ark Pixel 10, chữ thường", LOWER)}
+    ${line("f10", "10px", "Galmuri 9, chữ hoa", UPPER)}
+    ${line("f10", "10px", "Galmuri 9, chữ thường", LOWER)}
     ${line("f12", "12px", "Câu mẫu", SAMPLE)}
     <h3>Nút, ấn triện, thanh</h3>
     <div class="ftrow"><button class="buse">Nút giấy</button><button class="buse ft-hover">Rê chuột</button><button class="buse ft-press">Đang nhấn</button>

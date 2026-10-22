@@ -123,7 +123,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 │  ├─ src/scenes/GameScene.ts  # vẽ hồn sư, hồn thú, hiệu ứng; nhận state và message
 │  ├─ src/iso.ts, isoMap.ts, isoBuild.ts  # phép chiếu isometric, vẽ bản đồ thành ô thoi, nhà / tường thành dựng bằng code
 │  ├─ src/hud.ts           # giao diện HTML (chỉ số, hồn kỹ, đội hình, túi đồ, NPC, tổ đội, đấu trường…)
-│  ├─ src/uiArt.ts, cards.ts, fonts/  # ảnh giao diện thủy mặc, thẻ võ hồn, font Ark Pixel
+│  ├─ src/uiArt.ts, cards.ts, fonts/  # ảnh giao diện thủy mặc, thẻ võ hồn, font Galmuri
 │  ├─ src/crowd.ts         # dân thường, lính gác trang trí (chỉ phía client)
 │  ├─ src/predict.ts, net.ts   # dự đoán chuyển động, kiểu message
 │  ├─ src/sprites.ts, textures.ts, honsuArt.ts  # nạp sprite theo manifest, vẽ bằng code phần chưa có ảnh
@@ -148,7 +148,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 
 Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
 Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
-chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
+chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Galmuri (giao diện) và Be Vietnam Pro (OFL).
 Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled

@@ -1,12 +1,13 @@
-/* Font pixel đủ dấu tiếng Việt (bước 10.8, mục 5.11 phong cách C): Ark Pixel 12 px cho chữ thường, ×2 cho tiêu đề; Ark Pixel 10 px cho
+/* Font pixel đủ dấu tiếng Việt (bước 10.8, mục 5.11 phong cách C): Galmuri 11 (nét 12 px) cho chữ thường, ×2 (24 px) cho tiêu đề; Galmuri 9 (nét 10 px) cho
    chữ chật (thanh, nút hồn kỹ, góc ô). Chỉ dùng cỡ đúng bội số của lưới font để chữ sắc nét. Ký tự font thiếu (biểu tượng hồn kỹ) rơi
-   về font hệ thống. Nguồn, giấy phép OFL: art/CREDITS.md, client/src/fonts/OFL-ark-pixel.txt. */
-@font-face{font-family:"Ark Pixel VI 12";src:url("./fonts/ark-pixel-12px-vi.woff2") format("woff2");font-display:block}
-@font-face{font-family:"Ark Pixel VI 10";src:url("./fonts/ark-pixel-10px-vi.woff2") format("woff2");font-display:block}
+   về font hệ thống. Bản Bold và Galmuri 14 thiếu nhiều chữ Việt (Ă Đ Ơ Ư…) nên không dùng. Nguồn, giấy phép OFL: art/CREDITS.md,
+   client/src/fonts/OFL-galmuri.txt. */
+@font-face{font-family:"Galmuri 11";src:url("./fonts/galmuri-11.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Galmuri 9";src:url("./fonts/galmuri-9.woff2") format("woff2");font-display:block}
 /* Bảng màu thủy mặc (art/palettes/_thuy_mac.gpl): giấy ngà, mực, triện son, gỗ trục; chữ mực trên giấy. Lớp "mực" (dải tối trong
    suốt) cho chữ nổi trên cảnh (log, gợi ý). */
 :root{
-  --f12:"Ark Pixel VI 12","Be Vietnam Pro",system-ui,sans-serif; --f10:"Ark Pixel VI 10","Be Vietnam Pro",system-ui,sans-serif;
+  --f12:"Galmuri 11","Be Vietnam Pro",system-ui,sans-serif; --f10:"Galmuri 9","Be Vietnam Pro",system-ui,sans-serif;
   --paper:#ece2c8; --paper2:#d8caa8; --paper3:#b8a888; --ink:#2a2230; --ink2:#3a3440; --inkl:#6a6470;
   --son:#b0302a; --son-d:#8a2018; --son-l:#d84a3a; --wood:#5a3b22;
   --bg:#1a1020; --panel:#ece2c8; --line:#9a8a6c; --line2:#3a3440;
@@ -18,7 +19,7 @@
   --stroke:1px 0 #1a1020,-1px 0 #1a1020,0 1px #1a1020,0 -1px #1a1020;
   /* ===== UI-0: token dùng chung (GAME_DESIGN.md 5.11 C). Màu độ hiếm / niên hạn --tier-N, --tier-N-glow, --rare-N do uiArt.ts đặt từ TIERS
      (shared/data.ts), không chép số ở đây. Khung (--frame-*) là chỗ duy nhất đổi ảnh khung 9-slice (ComfyUI sau). ===== */
-  /* Thang cỡ chữ: chỉ bội số lưới Ark Pixel (10 / 12 / 24); chữ chú thích dùng --fs-s, thân --fs-m, tiêu đề --fs-l. */
+  /* Thang cỡ chữ: chỉ bội số lưới Galmuri (9 → 10, 11 → 12, ×2 → 24); chữ chú thích dùng --fs-s, thân --fs-m, tiêu đề --fs-l. */
   --fs-s:10px; --fs-m:12px; --fs-l:24px;
   --sp-1:2px; --sp-2:4px; --sp-3:6px; --sp-4:8px; --sp-5:12px; --sp-6:16px;   /* khoảng cách */
   --bd:2px; --bd-fine:1px;                                                    /* độ dày viền */
@@ -51,6 +52,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .stats{position:absolute;left:10px;top:10px;width:232px;padding:10px 12px 12px}
 .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
 #vhName{font-size:12px;font-family:var(--f12)}
+#vhName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} #lvl{flex-shrink:0;white-space:nowrap}   /* Galmuri rộng hơn: tên dài rút gọn, tên đầy đủ ở chú thích */
 #lvl{color:var(--accent);font-variant-numeric:tabular-nums}
 .bar{position:relative;height:14px;background:var(--track);border:1px solid var(--ink2);margin-top:5px;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width .12s linear}
@@ -74,10 +76,10 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #online{font-size:12px;font-family:var(--f12);color:var(--muted);text-align:center}
 /* Kênh (mục 6 "Nhiều kênh"): nhãn "Kênh N" nổi ở góc bản đồ nhỏ (khung không cao thêm), danh sách kênh nổi ngay dưới khung,
    trên khung nhiệm vụ */
-.mapbox #worldBtn{position:absolute;top:9px;left:9px;width:auto;margin:0;padding:2px 6px;font-size:12px;font-family:var(--f12);color:var(--paper);
+.mapbox #worldBtn{position:absolute;top:9px;left:9px;width:auto;margin:0;padding:2px 4px;font-size:12px;font-family:var(--f12);color:var(--paper);
   background:var(--ink-panel);border-color:var(--ink2)}
-.mapbox #worldBtn kbd{font-size:10px;font-family:var(--f10);color:var(--paper2);margin-left:3px;border:0;padding:0}
-.mapbox #chanBtn{position:absolute;top:9px;right:9px;width:auto;margin:0;padding:2px 6px;font-size:12px;font-family:var(--f12);color:var(--paper);
+.mapbox #worldBtn kbd{font-size:10px;font-family:var(--f10);color:var(--paper2);margin-left:2px;border:0;padding:0}
+.mapbox #chanBtn{position:absolute;top:9px;right:9px;width:auto;margin:0;padding:2px 4px;font-size:12px;font-family:var(--f12);color:var(--paper);
   background:var(--ink-panel);border-color:var(--ink2)}
 #chans{position:absolute;right:-2px;top:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;gap:3px;width:170px;padding:6px;
   background:linear-gradient(var(--panel),var(--panel)),var(--bg);border:2px solid var(--line);box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:auto}
