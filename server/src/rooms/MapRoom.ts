@@ -46,6 +46,7 @@ import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, invi
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
+import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
@@ -267,6 +268,8 @@ const HOLD = "accountHold";
 const CHAT_TOPIC = "chatx";
 interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
+/** PERF_LOG=1 (#273): nhịp chậm khi từ đầu tick tới hết bản vá quá ngần này ms (= một nhịp TICK_RATE), hoặc từ đầu nhịp trước quá PERF_GAP_MS. */
+const PERF_SLOW_MS = 50, PERF_GAP_MS = 100;
 const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
 const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
@@ -569,6 +572,15 @@ export class MapRoom extends Room<MapState> {
    */
   perfAll = { n: 0, tick: 0, patch: 0, max: 0, auto: 0 };
   perfOn = !!process.env.PERF_LOG;
+  /**
+   * PERF_LOG=1, nhịp chậm (#273): mốc thời gian các đoạn của tick (đầu, trước vòng người chơi, trước vòng hồn thú, trước thế giới,
+   * trước sinh lại, cuối), CPU luồng chính và mốc của nhịp trước; nhịp chậm chờ in ở nhịp sau (bản ghi GC tới muộn một vòng lặp).
+   */
+  perfT = [0, 0, 0, 0, 0, 0];
+  perfPrev = { t0: 0, t2: 0, c2: 0 };
+  perfSlowN = 0;
+  /** Nhịp chậm chờ in (cần bản ghi GC của chính nhịp đó). */
+  perfPend: { at: string; t0: number; t2: number; wall: number; cpu: number; parts: string; gap: number; gapCpu: number }[] = [];
   /** Lần ghi log gần nhất của mỗi chỗ + lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
   errLog = new Map<string, { at: number; n: number }>();
   spawnT = 0;
@@ -756,13 +768,15 @@ export class MapRoom extends Room<MapState> {
     // mới tới client (đo được khoảng 107 ms → còn khoảng nửa nhịp), và mỗi bản vá luôn mang đúng một bước mô phỏng.
     this.patchRate = 0; // 0 = Colyseus không tự gửi bản vá
     // Lọc đồng bộ theo vùng gần (11.4): cập nhật view từng client sau tick, ngay trước bản vá.
+    if (this.perfOn) watchGc();
     this.setSimulationInterval((ms) => {
-      const t0 = performance.now();
+      const t0 = performance.now(), c0 = this.perfOn ? cpuMs() : 0;
       this.tick(Math.min(ms, 100) / 1000);
+      const ti = this.perfOn ? performance.now() : 0;
       this.interest.update(this.clients);
       const t1 = performance.now();
       this.broadcastPatch();
-      if (process.env.PERF_LOG) this.perfLog(t0, t1, performance.now());
+      if (this.perfOn) this.perfLog(t0, t1, performance.now(), c0, ti);
     }, 1000 / TICK_RATE);
     this.presence.subscribe("kick", this.kickSub);
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
@@ -6296,18 +6310,41 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("mini", { p, b, d });
   }
 
-  perfLog(t0: number, t1: number, t2: number) {
-    const f = this.perf;
+  /**
+   * PERF_LOG=1: cộng dồn thời gian tick / bản vá, mỗi 10 giây một dòng `[perf]`. Nhịp chậm (#273): thời gian thật từ đầu tick tới hết bản
+   * vá vượt PERF_SLOW_MS, hoặc nhịp bắt đầu trễ (từ đầu nhịp trước quá PERF_GAP_MS) thì in `[perf-slow]` ở nhịp sau: từng đoạn của tick,
+   * CPU luồng chính trong nhịp (gần bằng thời gian thật = server bận; nhỏ hơn nhiều = hệ điều hành cắt luồng), GC chồng lên nhịp, và
+   * khoảng giữa hai nhịp (CPU ngoài tick: tin nhắn, chuỗi lưu, phòng khác). Dòng `[perf]` thêm số nhịp chậm trong 10 giây.
+   */
+  perfLog(t0: number, t1: number, t2: number, c0: number, ti: number) {
+    const f = this.perf, c2 = cpuMs(), pv = this.perfPrev, T = this.perfT;
     f.n++; f.tick += t1 - t0; f.patch += t2 - t1; f.max = Math.max(f.max, t2 - t0);
     const a = this.perfAll; a.n++; a.tick += t1 - t0; a.patch += t2 - t1; a.max = Math.max(a.max, t2 - t0);
+    // In nhịp chậm của các nhịp trước (bản ghi GC đã tới).
+    for (const s of this.perfPend.splice(0)) {
+      const g = gcIn(s.t0, s.t2), gg = gcIn(s.t0 - s.gap, s.t0);
+      console.log(`[perf-slow] ${this.state.mapId}#${this.state.channel} ${s.at} wall ${s.wall.toFixed(1)} ms, cpu ${s.cpu.toFixed(1)} ms, ` +
+        `gc ${g.ms.toFixed(1)} ms${g.kinds.length ? ` (${g.kinds.join("+")})` : ""} | ${s.parts} | gap ${s.gap.toFixed(1)} ms, cpu ngoài tick ${s.gapCpu.toFixed(1)} ms, ` +
+        `gc ngoài tick ${gg.ms.toFixed(1)} ms | players ${this.state.players.size}, beasts ${this.state.beasts.size}`);
+    }
+    const wall = t2 - t0, gap = pv.t0 ? t0 - pv.t0 : 0;
+    if (wall > PERF_SLOW_MS || gap > PERF_GAP_MS) {
+      this.perfSlowN++;
+      const d = (i: number) => (T[i + 1] - T[i]).toFixed(1);
+      this.perfPend.push({ at: clock(), t0, t2, wall, cpu: c2 - c0, gap, gapCpu: pv.t2 ? c0 - pv.c2 : 0,
+        parts: `tick ${(ti - t0).toFixed(1)} (đầu ${d(0)}, người ${d(1)}, thú ${d(2)}, thế giới ${d(3)}, cuối ${d(4)}), view ${(t1 - ti).toFixed(1)}, vá ${(t2 - t1).toFixed(1)}` });
+    }
+    Object.assign(pv, { t0, t2, c2 });
     if (Date.now() - f.at < 10000) return;
     let awake = 0; this.state.beasts.forEach((b) => { if (this.interest.awake(b.x, b.y)) awake++; });
     console.log(`[perf] ${this.state.mapId}#${this.state.channel} tick ${(f.tick / f.n).toFixed(3)} ms, patch ${(f.patch / f.n).toFixed(3)} ms, ` +
-      `max ${f.max.toFixed(2)} ms, beasts ${this.state.beasts.size} (awake ${awake}), players ${this.state.players.size}`);
-    Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() });
+      `max ${f.max.toFixed(2)} ms, slow ${this.perfSlowN}, beasts ${this.state.beasts.size} (awake ${awake}), players ${this.state.players.size}`);
+    Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() }); this.perfSlowN = 0;
   }
 
   tick(dt: number) {
+    const pt = this.perfOn ? this.perfT : null; // #273: mốc đoạn của tick (PERF_LOG=1)
+    if (pt) pt[0] = performance.now();
     // Khảo hạch hằng ngày: qua 00:00 giờ Việt Nam thì mỗi giây kiểm tra một lần, đặt lại bộ bài và báo người đang chơi.
     if ((this.dayT -= dt) <= 0) {
       this.dayT = 1;
@@ -6332,6 +6369,7 @@ export class MapRoom extends Room<MapState> {
       this.timers = this.timers.filter((t) => { t.t -= dt; if (t.t > 0) return true; due.push(t.fn); return false; });
       for (const fn of due) fn();
     }
+    if (pt) pt[1] = performance.now();
 
     // người chơi
     this.state.players.forEach((p, id) => {
@@ -6409,6 +6447,7 @@ export class MapRoom extends Room<MapState> {
       if (d.squadT <= 0) { d.squadT = 0.5; this.sendSquad(id); }
     });
 
+    if (pt) pt[2] = performance.now();
     // 11.4: lưới hồn sư theo vị trí mới, đánh dấu vùng hồn thú còn thức quanh mọi hồn sư.
     this.interest.beginTick();
     // hồn thú: trạng thái trước (sát thương theo thời gian có thể hạ hồn thú), rồi di chuyển và đánh
@@ -6515,6 +6554,7 @@ export class MapRoom extends Room<MapState> {
       if (b.moving) { this.moveBeast(b, mx * sp * dt, my * sp * dt, hw); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
     });
 
+    if (pt) pt[3] = performance.now();
     // #161: vùng lưu lại trên mặt đất (sau vòng hồn thú: vùng vừa để lại gây nhịp đầu ngay trong nhịp này).
     this.grounds.tick(dt);
     // #163: Cực Hàn tích tầng Hàn cho người tham gia trong hang, Hỏa Đàn xả tầng.
@@ -6547,6 +6587,7 @@ export class MapRoom extends Room<MapState> {
       if (dr.ttl <= 0) { this.state.drops.delete(id); this.coreDrops.delete(id); }
     });
 
+    if (pt) pt[4] = performance.now();
     // hồi sinh hồn thú
     this.spawnT -= dt;
     if (this.spawnT <= 0) {
@@ -6569,6 +6610,7 @@ export class MapRoom extends Room<MapState> {
     // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
     this.saveT += dt;
     if (this.saveT > 30) { this.saveT = 0; this.pdata.forEach((d, id) => { if (!d.travelling) this.save(id); }); }
+    if (pt) pt[5] = performance.now();
   }
 
   /** Hồn thú di chuyển nhưng không bước vào vùng an toàn. */
