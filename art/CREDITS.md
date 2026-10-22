@@ -4,7 +4,7 @@ Quy định ở `GAME_DESIGN.md` mục 5.11 (phần "Nguồn và giấy phép").
 
 - Hình nhân vật, võ hồn, hồn thú do nhóm tạo: **PixelLab qua dây chuyền `tools/assets`** (dùng thẳng trong game) hoặc vẽ tay trong Aseprite; chỉ dùng màu trong `art/palette.gpl` (cộng màu võ hồn và hồn hoàn theo 5.11). Ô nền, vật đứng và chân dung võ hồn có thể lấy từ **ảnh Gemini** do người dùng tạo, nhập bằng `tools/assets/gemini-import.mjs` (vật đứng thêm bảng nhấn `art/palettes/`, chân dung tối đa 32 màu riêng).
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn*), phim hoạt hình hay truyện tranh chính thức, kể cả làm ảnh tham chiếu cho AI.
-- **Ảnh AI:** chỉ dùng công cụ mà điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google). Ghi công cụ, prompt và ngày; không ghi tên họa sĩ còn sống trong prompt. `tools/assets/validate.mjs --register` tự ghi dòng vào mục "Asset tạo bằng AI (PixelLab)" hoặc "Asset tạo bằng AI (Gemini)" theo `--tool`.
+- **Ảnh AI:** chỉ dùng công cụ mà điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google; ComfyUI: giấy phép của từng model, xem mục "Asset tạo bằng AI (ComfyUI)"). Ghi công cụ, prompt, seed (ComfyUI) và ngày; không ghi tên họa sĩ còn sống trong prompt. `tools/assets/validate.mjs --register` tự ghi dòng vào mục "Asset tạo bằng AI (PixelLab)", "(Gemini)" hoặc "(ComfyUI)" theo `--tool`.
 - **Asset bên ngoài** (font, tileset, âm thanh, LPC) nhận mọi giấy phép đã biết (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…), không nhận asset không rõ giấy phép hoặc "all rights reserved". Mỗi asset một dòng: tác giả, nguồn (URL), giấy phép, file trong repo, có sửa gì không. CC-BY / CC-BY-SA / OGA-BY phải hiện tên tác giả trong màn hình giới thiệu của game. Giấy phép SA / GPL / NC ghi kèm **cờ** (SA / GPL: bản đã sửa, kể cả file atlas có gộp asset đó, theo đúng giấy phép; NC: thay nếu thương mại hóa).
 
 Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm key vào `manifest.json` và ghi một dòng ở đây.
@@ -301,6 +301,21 @@ Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằn
 | `shared/assets/iso/ground/cat_dau_truong_{0,1}.png`, `cat_dau_truong_{0,1}_lon.png` | tiles.json `cat_dau_truong` | Gemini (gemini.google.com) + tools/assets/gemini-import.mjs + iso-build.mjs | Gemini lô 2 đợt 2 (tiles-dai_dau_hon_truong, khuôn 2:1, ô `cat_dau_truong`): flat isometric floor tile theo vùng, each diamond exactly twice as wide as tall, top face only, seamless | 2026-10-21 | gemini-import --kind tile (tỉ lệ gốc 1,94–2,05:1; 32 và 64); biến thể _1 = iso-build ground |
 | `shared/assets/iso/ground/san_da_{0,1}.png`, `san_da_{0,1}_lon.png` | tiles.json `san_da` | Gemini (gemini.google.com) + tools/assets/gemini-import.mjs + iso-build.mjs | Gemini lô 2 đợt 2 (tiles-dai_dau_hon_truong, khuôn 2:1, ô `san_da`): flat isometric floor tile theo vùng, each diamond exactly twice as wide as tall, top face only, seamless | 2026-10-21 | gemini-import --kind tile (tỉ lệ gốc 1,94–2,05:1; 32 và 64); biến thể _1 = iso-build ground |
 | `shared/assets/iso/ground/san_da_nut_{0,1}.png`, `san_da_nut_{0,1}_lon.png` | tiles.json `san_da_nut` | Gemini (gemini.google.com) + tools/assets/gemini-import.mjs + iso-build.mjs | Gemini lô 2 đợt 2 (tiles-dai_dau_hon_truong, khuôn 2:1, ô `san_da_nut`): flat isometric floor tile theo vùng, each diamond exactly twice as wide as tall, top face only, seamless | 2026-10-21 | gemini-import --kind tile (tỉ lệ gốc 1,94–2,05:1; 32 và 64); biến thể _1 = iso-build ground |
+
+## Asset tạo bằng AI (ComfyUI)
+
+Ảnh AI tạo bằng ComfyUI tự host (SDXL base 1.0, CreativeML Open RAIL++-M + LoRA pixel-art-xl, CreativeML OpenRAIL-M; VAE sdxl-vae-fp16-fix, MIT), tách nền bằng `tools/assets/comfy-key.mjs`, nhập bằng `gemini-import.mjs` và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`.
+
+Model dùng (chạy trên máy chủ repo, không nằm trong repo):
+
+- `sd_xl_base_1.0.safetensors` (SDXL base 1.0), Stability AI, **CreativeML Open RAIL++-M**: https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0
+- `pixel-art-xl.safetensors` (LoRA, từ khóa `pixel art`), nerijs, **CreativeML OpenRAIL-M**: https://huggingface.co/nerijs/pixel-art-xl
+- `sdxl_vae.safetensors` (sdxl-vae-fp16-fix), madebyollin, **MIT**: https://huggingface.co/madebyollin/sdxl-vae-fp16-fix
+
+Hai giấy phép RAIL cho dùng và sửa ảnh tạo ra (kể cả thương mại), kèm các giới hạn dùng có hại trong phụ lục giấy phép; không cần ghi tên tác giả ảnh.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
 
 ## Asset bên ngoài
 
