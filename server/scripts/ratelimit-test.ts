@@ -1,7 +1,8 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { WORLD_CHAT } from "../../shared/data.ts";
 import { nameKey } from "../src/names.ts";
 
 let now = 1_000_000;
@@ -235,6 +236,30 @@ test("Chặn lặp cùng nội dung liên tục trong 30 giây", () => {
   sec(5); assert.equal(send("mua hồn hoàn"), "ok"); // xen tin khác thì được
   sec(29); assert.match(send("mua hồn hoàn")!, /lặp lại/);
   sec(2); assert.equal(send("mua hồn hoàn"), "ok");
+});
+
+test("Mỗi kênh chat một bucket riêng (#188)", () => {
+  for (let i = 0; i < 5; i++) assert.equal(send(`bđ ${i}`), "ok");
+  assert.match(send("bđ 5")!, /chat quá nhanh/);
+  const on = (ch: "party" | "whisper" | "world", t: string) => { const r = chatCheck(1, t, now, ch); return r && ("error" in r ? r.error : "ok"); };
+  for (const ch of ["party", "whisper", "world"] as const) {
+    for (let i = 0; i < 5; i++) assert.equal(on(ch, `${ch} ${i}`), "ok");
+    assert.match(on(ch, `${ch} 5`)!, /chat quá nhanh/);
+  }
+  chatReset(1);
+  assert.equal(send("sau reset"), "ok");
+  assert.equal(on("party", "sau reset"), "ok");
+});
+
+test("Kênh thế giới: hồi WORLD_CHAT.cdSecs giây (#188)", () => {
+  assert.equal(worldWait(7, now), 0);
+  worldMark(7, now);
+  assert.equal(worldWait(7, now), WORLD_CHAT.cdSecs);
+  assert.equal(worldWait(8, now), 0); // người khác không bị ảnh hưởng
+  sec(WORLD_CHAT.cdSecs - 1); assert.equal(worldWait(7, now), 1);
+  sec(1); assert.equal(worldWait(7, now), 0);
+  worldMark(7, now); sweep(now); assert.equal(worldWait(7, now), WORLD_CHAT.cdSecs); // sweep không xóa hồi còn chạy
+  chatReset(7); assert.equal(worldWait(7, now), 0);
 });
 
 test("Dọn dẹp xóa trạng thái cũ", () => {

@@ -50,7 +50,15 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | T | Bật / tắt tự săn ngay (nút "Tự động" ở khung chỉ số mở bảng Tự động, mục 5.13) |
 | Enter / Esc | Chat / đóng bảng, hộp thoại |
 
-Lệnh chat: `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Bấm / chạm vào hồn sư khác mở menu người chơi.
+Lệnh chat: `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>` tin riêng (tên có dấu cách thì để trong ngoặc kép, hoặc client khớp tên đang thấy / đồng đội), `/r <tin>` trả lời người vừa nhắn riêng, `/tg <tin>` kênh thế giới, `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/hat` bật / tắt hạt bay. Bấm / chạm vào hồn sư khác mở menu người chơi (mời tổ đội, nhắn riêng).
+
+**Kênh chat** (`chat {text, ch?, to?}`, server kiểm mọi tin; không lưu DB, client chỉ giữ lịch sử trong phiên; không gửi kèm đồ hay Hồn Tệ):
+- **Bản đồ** (thiếu `ch`): mọi người trong phòng (cùng bản đồ, cùng kênh); thông báo "Hệ thống" giữ như cũ.
+- **Tổ đội** (`party`): mọi thành viên đang trong game dù ở bản đồ / kênh khác; chưa vào đội thì báo lỗi.
+- **Tin riêng** (`whisper`, `to` = tên, không phân biệt hoa thường): người nhận phải đang trong game, không thì báo "không trong game", không lưu thư; người gửi nhận một bản ("Tới …").
+- **Thế giới** (`world`): mọi bản đồ, mọi kênh; chỉ hồn sư từ cấp `WORLD_CHAT.minLevel`, mỗi tài khoản 1 tin / `WORLD_CHAT.cdSecs` giây.
+- Độ dài tối đa `CHAT_MAX_LEN`; chống spam riêng từng kênh (`server/src/ratelimit.ts`, spam một kênh không làm hết lượt kênh khác).
+- **Ô chat:** tab Tất cả / Bản đồ / Tổ đội / Riêng / Thế giới (bấm / chạm; tab có tin mới hiện chấm). Chọn tab hoặc đang gõ thì khung mở rộng (lịch sử không mờ, cuộn được), bấm lại tab hoặc Esc thì đóng. Tin thường gửi theo tab đang chọn (tab Riêng gửi cho người trò chuyện riêng gần nhất). Màu kênh: tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng; ở tab Tất cả có nhãn kênh. Thông báo riêng cho mình (lỗi, đồ rơi…) hiện ở mọi tab.
 
 **Di chuyển** (số ở `shared/data.ts`, mục "Di chuyển"):
 - Hồn sư đi bộ `PLAYER_SPEED` pixel/giây (khoảng 6 ô/giây) nhân hệ số `spd` theo hệ (`HE`, Mẫn công nhanh hơn).
@@ -461,6 +469,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - Người mời làm trưởng nhóm; trưởng nhóm mời thành viên ra hoặc nhường trưởng nhóm; trưởng nhóm rời thì người vào sớm nhất làm trưởng; còn 1 người thì giải tán. Giữ nguyên khi đi cổng / đổi kênh; rời game quá `PARTY_OFFLINE_SECS` giây thì tự ra khỏi đội.
 - **Chia kinh nghiệm:** thành viên cùng phòng (cùng bản đồ, cùng kênh), chưa gục, cách chỗ hồn thú gục dưới `PARTY_XP_RANGE` pixel (khoảng 300px) cùng chia (người hạ luôn được chia): tổng kinh nghiệm gốc thêm `PARTY_XP_BONUS` cho mỗi người thêm (mỗi người thêm 5%) rồi chia đều (`partyXpShare`); sau đó mỗi người tự giảm theo chênh cấp của mình và chia cho đội võ hồn. Tinh anh chia cùng cách; thú vương / boss thế giới chia theo đóng góp. Hồn Tệ và mảnh vào túi vẫn chỉ của người hạ.
 - **Đồ rơi** ưu tiên cả tổ đội của người được ưu tiên (mục 4).
+- **Chat tổ đội** `/d` / tab "Tổ đội" tới mọi thành viên ở mọi bản đồ / kênh (mục 4 "Kênh chat").
 - Khung tổ đội dưới khung chỉ số: tên, cấp, võ hồn ra trận và sinh lực, bản đồ / kênh (nếu khác), đã rời game; đồng đội cùng phòng có tên và chấm xanh lá trên bản đồ nhỏ.
 - **Hiệu ứng phụ trợ lan cho đồng đội:** hồn kỹ, tiên cơ, Chân Thân tung khi võ hồn hệ **Phụ trợ** ra trận có hiệu ứng lên bản thân (hiệu ứng có lợi, hồi sinh lực, khiên, hồi hồn lực) thì đồng đội cùng phòng, chưa gục cả đội, không đang đi cổng, ngoài vùng an toàn, đứng trong `PARTY_BUFF_R` pixel cũng nhận, mức × `PARTY_BUFF_MULT` (người tung ×1); hồi / khiên tính theo sinh lực tối đa võ hồn ra trận của người nhận; trùng thì lấy mức mạnh hơn và thời gian dài hơn. Thanh tẩy lan tới đồng đội hợp lệ nhưng không nhân hệ số. Kỹ năng hồn cốt của **mọi hệ võ hồn** cũng chỉ lan phần hiệu ứng có lợi lên bản thân; sát thương và trạng thái lên hồn thú không lan. **Không lan:** lãnh vực phượng hoàng (`PARTY_BUFF_SKIP`), tàng hình của võ hồn không phải Phụ trợ (kể cả chép bằng Phục Chế), bất tử khi bay, Phong Lôi Chi Lực, và CoreFx gây sát thương / trạng thái. Các hiệu ứng tổ đội không lan trong sân Đại Đấu Hồn Trường. Đồng đội thấy "+N" hồi / khiên và dòng "<tên> tăng công cho bạn".
 - **Đóng góp hỗ trợ:** hồi máu / khiên thực cho đồng đội đang tham gia tinh anh / thú vương / boss thế giới tính vào đóng góp của người hồi (`SUPPORT_CONTRIB`); bảng xếp hạng có cột "Hỗ trợ". Hồn hoàn đỏ của boss thế giới vẫn xếp theo sát thương.
@@ -702,7 +711,7 @@ Bốn **phe có sẵn theo truyện** (`TONG_MON`: mã, tên, màu, sứ giả),
 | NPC | `talk {npc}`, `buy {code, qty, npc?}`, `sell {id, qty?, npc?}`, `expand {npc?}`, `buyback {key, npc?}` (`npc`: thương nhân đang mở hộp thoại, thiếu thì thương nhân gần nhất), `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày), `tong {op, tong?}` (gia nhập / đổi / rời tông môn, mục 5.14) |
 | Bản đồ, kênh | `travel {portal}`, `wp {op, key?}` (truyền tống trận: `list`, `go`, `cancel`), `channels`, `channel {ch}`, `boss` (xin lại tin boss lúc vào phòng) |
 | Tự săn | `auto {op, cfg?}` (`on`, `off`, `set` cài đặt `AutoSettings`, `get`; mục 5.13) |
-| Xã hội | `chat {text}`, `party {op, name?, sid?}`, `arena {op}`, `resonance` |
+| Xã hội | `chat {text, ch?, to?}` (`ch`: thiếu = bản đồ, `party`, `whisper` với `to` = tên, `world`; mục 4 "Kênh chat"), `party {op, name?, sid?}`, `arena {op}`, `resonance` |
 | Kiểm thử | `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
 
 Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thuộc chính người gửi, kiểm tra trạng thái (gục, hấp thụ, đi cổng, giao chiến, vùng an toàn), hồi chiêu do server đếm; từ chối thì gửi lý do bằng tin `log` tiếng Việt, không ném lỗi. Ép kiểu bằng kiểm `typeof` (`numIn` / `intIn` / `strIn` trong `MapRoom.ts`), không `Number()` / `String()` / so sánh trên giá trị thô (đổi kiểu một object tùy ý có thể ném lỗi). Lỗi bất ngờ còn sót trong handler, hẹn giờ, tick thì `MapRoom.onUncaughtException` chỉ ghi log (giới hạn tần suất). Client không gọi được `create` của matchmaker (`index.ts`): phòng bản đồ mới chỉ mở qua `joinOrCreate` khi mọi kênh đầy, sân đấu chỉ do server mở (giữ chỗ trước khi kiểm token qua `joinOrCreate` / `joinById`: #235). Tin client xin lại dữ liệu riêng (`bag`, `vohons`, `quest {op: "get"}`) theo nhịp `ASK_CD`: xin dồn thì gộp thành một lần gửi khi hết nhịp. Trong lúc phần thưởng boss chờ DB xác nhận lượt (`claimBusy`) thì không bán / bỏ / hấp thụ / nộp đồ.
@@ -796,6 +805,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 
 **Thông báo toàn server và lịch boss**
 - Presence của Colyseus: phòng `publish("announce", {text, col})`, mọi `MapRoom` subscribe trong `onCreate` rồi `broadcast("chat")`. Một tiến trình dùng presence trong bộ nhớ; nhiều tiến trình thì đổi sang `RedisPresence` (khi đó các trạng thái mức tiến trình bên dưới cũng phải chuyển sang presence).
+- **Chat xuyên phòng** (tổ đội, tin riêng, thế giới; mục 4 "Kênh chat"): phòng của người gửi kiểm luật rồi `publish("chatx", {to?, msg: {ch, name, text, to?}})`; mọi `MapRoom` (cả sân đấu) gửi tin `chat` cho người của mình có tài khoản trong `to` (không có `to`: mọi người, kênh thế giới). Tra tên → tài khoản đang trong game qua `party.onlineByName` (bảng `Live` của `party.ts`); hồi kênh thế giới giữ ở `ratelimit.ts` theo tài khoản (mức tiến trình).
 - Lịch thú vương và boss thế giới ở `server/src/schedule.ts` (`startSchedule`): chỉ đếm giờ Việt Nam và `publish("boss", {mapId, king, phase: "warn" | "spawn", slot, in, life})`. Sinh boss, máu, chiêu, thưởng nằm trong `MapRoom` (`onBossEvent`, `spawnKing`). Phòng mở ra trong khung boss cũng sinh (`kingActive`, `worldActive`); phòng mở ra trong lúc báo trước vẫn có đếm ngược (`kingWarns`).
 - **Trạng thái thú vương giữ theo bản đồ ở mức tiến trình** (`kingSeats`), không theo phòng: mỗi khung đã sinh có danh sách suất, mỗi kênh giữ tối đa một suất (còn sống / đã hạ / đã rút). Phòng bị hủy trả suất; phòng mở lại trong khung nhận lại suất trống trước. Suất đã hạ / rút thì không sinh lại; còn sống thì sinh lại đầy máu ở giai đoạn 1 với thời gian còn lại. Nhờ vậy rời bản đồ cho phòng hủy rồi quay lại không có con mới.
 - **Khóa thưởng tinh anh ở mức tiến trình** (`eliteLocks`): `${mapId}|${mã tinh anh}` -> tài khoản -> lúc được nhận lại; không theo phòng nên đổi kênh hay phòng bị hủy rồi mở lại đều không nhân thưởng. Khởi động lại server thì mất (lâu nhất `ELITE.lock` giây), không lưu DB.
@@ -814,7 +824,7 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 - `boss_claims` (lượt nhận thưởng mỗi ngày), `quests` (tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi), `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`) là bảng cũ, giữ lại để chuyển dữ liệu, không còn ghi.
 
-**Bảo mật:** giới hạn đăng nhập sai, số tài khoản mới mỗi IP (`/api/login` tự tạo tài khoản; chỉ đếm lần thật sự tạo, hết lượt thì 429 nhưng tài khoản cũ vẫn vào được; ngưỡng là hằng `SIGNUP_IP_*`, nới khi `GAME_TEST=1`), chat và lời mời tổ đội ở `server/src/ratelimit.ts` (RAM); khoá IP chuẩn hoá bằng `ipKey` (IPv6 gom theo /64, `::ffff:a.b.c.d` về IPv4), dùng chung cho đăng nhập sai và tạo tài khoản. Deploy sau proxy thì đặt `TRUST_PROXY=1` (thiếu thì mọi người chung IP của proxy, chạm giới hạn tạo tài khoản rất nhanh). Kiểm thử: `npm run test:ratelimit --prefix server`.
+**Bảo mật:** giới hạn đăng nhập sai, số tài khoản mới mỗi IP (`/api/login` tự tạo tài khoản; chỉ đếm lần thật sự tạo, hết lượt thì 429 nhưng tài khoản cũ vẫn vào được; ngưỡng là hằng `SIGNUP_IP_*`, nới khi `GAME_TEST=1`), chat (riêng từng kênh) và lời mời tổ đội ở `server/src/ratelimit.ts` (RAM); khoá IP chuẩn hoá bằng `ipKey` (IPv6 gom theo /64, `::ffff:a.b.c.d` về IPv4), dùng chung cho đăng nhập sai và tạo tài khoản. Deploy sau proxy thì đặt `TRUST_PROXY=1` (thiếu thì mọi người chung IP của proxy, chạm giới hạn tạo tài khoản rất nhanh). Kiểm thử: `npm run test:ratelimit --prefix server`.
 
 ## 7. Lộ trình
 Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ tới issue GitHub (`#số`), nhận việc theo `CONTRIBUTING.md`. Xong một bước thì chạy `npm run check` và bot, cập nhật mục thiết kế tương ứng rồi bỏ dòng `[ ]` và thêm vài chữ vào đoạn "Đã có" của giai đoạn (còn phần dở thì giữ dòng, ghi "Còn: …").
@@ -863,6 +873,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] #113 Đại Đấu Hồn Trường: **phase 1 đã có** hàng chờ tổ đội đúng 2 người, trận 2v2, Elo / thưởng riêng từng tài khoản và bốn cặp chống dàn xếp. **Còn phase 2:** cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); **phase 3:** xem trận.
 - [ ] Võ Hồn Dung Hợp Kỹ giữa hai hồn sư cùng tổ đội (#178): luật server, 4 cặp `FUSIONS`, bài bot đã có (#192; mục 5.9). Còn: phím G, nút chạm, hiệu ứng (#193); võ hồn Bạch Hổ và U Minh Bạch Hổ (#194).
 - [x] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114): thanh tẩy không nhân hệ số; self-effect hồn cốt và Lưu Ly hỗ trợ theo bán kính / hệ số tổ đội, sát thương và trạng thái hồn thú không lan.
+- [x] Chat tổ đội, tin riêng và kênh thế giới qua presence (#188): `/d`, `/t`, `/r`, `/tg`, tab ô chat; lọc chặn ở #195, chat tông `/tm` ở #198.
 - [x] Cộng minh: hiệu ứng chí mạng / giảm sát thương / tốc chạy, mốc theo sao võ hồn, bảng xếp hạng cộng minh không migration (#115).
 - [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [x] Cơ chế đầy đủ của thú vương / tinh anh thay bản tối thiểu (#117): Lưỡng Nghi Luân Chuyển (#173), Thủy Triều Dâng (#174), Phun Mực (#175).
@@ -874,7 +885,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] Thú vương Thâm Hải Ma Kình Vương: vùng ngập luân phiên làm chậm (Ngập nước) và xoáy nước kéo người (Thủy Triều Dâng) (#174; mục 5.1, 5.3, 5.4).
 - [x] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118; mục 5.4 "Boss thế giới 100.000 năm").
 - [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
-- [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hồi chiêu dung hợp kỹ `fusionReady`, hàng chờ đấu trường, tổ đội, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
+- [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hồi chiêu dung hợp kỹ `fusionReady`, hàng chờ đấu trường, tổ đội (kể cả tra tên cho tin riêng), hồi kênh thế giới, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
 - [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).
 - [x] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
 

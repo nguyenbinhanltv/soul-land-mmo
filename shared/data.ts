@@ -472,6 +472,13 @@ export const PARTY_INVITE_SECS = 60;
  */
 export const PARTY_OFFLINE_SECS = 60;
 
+// ---------- Kênh chat (mục 4 "Lệnh chat", #188) ----------
+/**
+ * Kênh thế giới (`/tg`, mọi bản đồ / kênh nhận): chỉ hồn sư từ cấp `minLevel`, mỗi tài khoản tối đa 1 tin / `cdSecs` giây (server
+ * kiểm; client hiển thị trong lời nhắc). Thông báo hệ thống không chịu giới hạn này.
+ */
+export const WORLD_CHAT = { minLevel: 10, cdSecs: 30 } as const;
+
 // ---------- Năng lượng và chiêu tiên cơ (mục 5.1 "Trong trận"; mọi số dưới đây đã chốt) ----------
 /** Năng lượng tối đa của mỗi võ hồn trong đội. Đủ mức này thì đổi tay vào sẽ tung chiêu tiên cơ, dùng hết năng lượng. */
 export const TIEN_CO_MAX = 100;
