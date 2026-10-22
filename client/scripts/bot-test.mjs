@@ -59,6 +59,8 @@
 // Hỏa Đàn / thanh tẩy / rời hang / hạ thú vương thì mất tầng.
 // Vùng lưu lại trên mặt đất (#161, groundTest; BOT_ONLY=ground, nhóm 3 của BOT_PART): vũng / sương độc gây Trúng độc theo nhịp khi đứng
 // trong vùng, ra khỏi vùng / vào vùng an toàn thì thôi, người vào tầm sau vẫn thấy vùng, vùng mất khi hết giờ / hồn thú gây ra bị hạ.
+// Kiểm thử bổ sung #121 (issue121Test; BOT_ONLY=issue121, nhóm 1 của BOT_PART): bán hồn hoàn đang hấp thụ, trận hòa / hết lượt thưởng
+// Đại Đấu Hồn Trường và server tự ngắt client đã ghép nhưng còn ở bản đồ.
 // Boss thế giới ở Lõi Tinh Đấu (BĐ6e, #118, loiTinhDauTest; BOT_ONLY=world): chạy sau phần tạo bot C (vài phút đầu vẫn chạy) rồi
 // chỉ chạy phần boss thế giới: vòng an toàn của chiêu toàn sàn, Du Thủy lặn ra giữa hồ và nổi lên đúng chỗ đã báo.
 // Tự săn online phía server (Auto 1, mục 5.13; autoTest, BOT_ONLY=auto): bật / tắt, hạ hồn thú, nhặt, tay ưu tiên, không cướp quái,
@@ -4419,6 +4421,7 @@ if(A.boneEq){ // 4.2: hồn cốt đang gắn vẫn gắn, chỉ số vẫn cộ
 ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào lại: đội ${JSON.stringify(A.owned?.team)}, ra trận ${A.owned?.active}`);
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm, sao từng võ hồn (cả võ hồn mở bằng mảnh) đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
+if(inPart(1)) await issue121Test(); // #121: chạy trong nhóm 1 của luồng bot đầy đủ
 if(inPart(2)) await eggTest(); // #162: bài độc lập, tự tạo bot
 if(inPart(1)) await cheatTest(); // chống gian lận 1 (#164): bài độc lập, tự tạo bot
 
