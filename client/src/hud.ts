@@ -1967,12 +1967,12 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
 /** Hàng công cụ của túi (UI-1): chip lọc theo nhóm (kèm số món) và hộp chọn cách xếp; đổi gì thì vẽ lại túi, không gửi gì lên server. */
 function bagTools(bag: BagMsg, items: BagItem[], again: () => void) {
-  const box = document.createElement("div"); box.className = "bfilter";
+  const box = document.createElement("div"); box.className = "bfilter"; box.setAttribute("role", "tablist");
   for (const g of BAG_GROUPS) {
     const n = items.filter((i) => inGroup(i, g.id)).length;
     if (g.id !== "all" && !n && bagGroup !== g.id) continue; // nhóm trống không hiện (trừ nhóm đang chọn)
     const b = document.createElement("button"); b.type = "button"; b.className = "ui-tab" + (bagGroup === g.id ? " on" : "");
-    b.textContent = g.id === "all" ? g.name : `${g.name} ${n}`; b.setAttribute("aria-pressed", String(bagGroup === g.id));
+    b.textContent = g.id === "all" ? g.name : `${g.name} ${n}`; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(bagGroup === g.id)); // .ui-tab[aria-selected] (cả khung gỗ) tô tab đang chọn
     b.addEventListener("click", () => { b.blur(); bagGroup = g.id; bagPage = 0; bagSel = null; again(); });
     box.appendChild(b);
   }

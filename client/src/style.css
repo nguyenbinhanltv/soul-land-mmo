@@ -1013,7 +1013,6 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 .bfilter{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2)}
 .bfilter .ui-tab{padding:var(--sp-1) var(--sp-3);font:var(--fs-m)/16px var(--f12);cursor:pointer}
 .bfilter .ui-tab::before{display:none}
-.bfilter .ui-tab[aria-pressed="true"]{background:var(--son);border-color:var(--son-d);color:#f4ead0;text-shadow:var(--stroke)}
 .bsortsel{margin-left:auto;font:var(--fs-m)/16px var(--f12);padding:2px 4px;border:1px solid var(--line);background:var(--paper2);color:var(--text)}
 .bequip{display:flex;align-items:center;gap:var(--sp-2)}
 .bequip>small{color:var(--muted);font:var(--fs-m)/16px var(--f12);margin-right:var(--sp-2)}
