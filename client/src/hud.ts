@@ -2352,6 +2352,13 @@ function renderNpc() {
   el.appendChild(row);
 }
 
+/** Dòng hàng kiểu chung (UI-4): biểu tượng đầu dòng vào ô `ui_o` (.ui-cell) và cả dòng có chú thích `setTip` (rê chuột / chạm giữ). */
+function shopCell(o: HTMLElement, tip: TipSpec) {
+  const ico = o.firstElementChild; if (!ico) return;
+  const cell = document.createElement("span"); cell.className = "ui-cell sicon"; ico.replaceWith(cell); cell.appendChild(ico);
+  setTip(o, tip);
+}
+
 /**
  * Cửa hàng của thương nhân `npcId`: mỗi món trong bảng hàng (shopOf: SHOP trong thành, CAMP_SHOP ở trại cổng) một dòng (giá, đang có),
  * nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). Mở rộng túi chỉ ở thương nhân trong thành (shopExpands).
@@ -2365,6 +2372,7 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: str
     o.innerHTML = `${artImg(`item_${def.id}`, "ico art") || `<i class="ico ${def.kind}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
     o.querySelector("b")!.textContent = def.name;
     o.querySelector("small")!.textContent = `${formatHonTe(r.price)} mỗi viên · đang có ${have} · ${def.desc}`;
+    shopCell(o, { title: def.name, color: def.col, sub: ITEM_KINDS[def.kind].name, lines: [def.desc, { k: "Giá", v: formatHonTe(r.price) }, { k: "Đang có", v: String(have) }] });
     const row = o.querySelector(".brow")!;
     for (const q of [1, 5, 10].filter((x) => x <= SHOP_MAX_QTY)) {
       const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
@@ -2467,6 +2475,7 @@ function buybackRows(el: HTMLElement, bag: BagMsg, act: NpcActions, list: Buybac
     o.innerHTML = `${itemArt(it) || `<i class="ico ${def?.kind ?? "unknown"}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
     o.querySelector("b")!.textContent = `${itemName(it)}${e.qty > 1 ? ` ×${e.qty}` : ""}`;
     o.querySelector("small")!.textContent = `${def ? ITEM_KINDS[def.kind].name : "Vật phẩm lạ"} · đã bán ${formatHonTe(cost)}${e.enhance && boneOf(it) ? ` · cường hóa +${e.enhance}` : ""}`;
+    shopCell(o, { title: itemName(it), color: itemColor(it), sub: def ? ITEM_KINDS[def.kind].name : "Vật phẩm lạ", lines: [{ k: "Đã bán", v: formatHonTe(cost) }] });
     const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
     b.textContent = `Mua lại · −${formatHonTe(cost)}`; b.disabled = bag.honTe < cost;
     b.setAttribute("aria-label", `Mua lại ${itemName(it)}, giá ${formatHonTe(cost)}`);
@@ -2494,6 +2503,7 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     o.innerHTML = `${itemArt(it) || `<i class="ico ${def?.kind ?? "unknown"}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
     o.querySelector("b")!.textContent = `${itemName(it)}${it.qty > 1 ? ` ×${it.qty}` : ""}`;
     o.querySelector("small")!.textContent = `${ITEM_KINDS[def!.kind].name} · ${formatHonTe(price)}${it.qty > 1 ? " mỗi món" : ""}${it.enhance && boneOf(it) ? ` · cường hóa +${it.enhance}` : ""}`;
+    shopCell(o, { title: itemName(it), color: itemColor(it), sub: ITEM_KINDS[def!.kind].name, lines: [{ k: "Giá bán", v: formatHonTe(price) + (it.qty > 1 ? " mỗi món" : "") }] });
     const row = o.querySelector(".brow")!;
     const sell = (qty: number, label: string) => {
       const key = `${it.id}|${qty}`, gain = price * qty, ask = gain >= SELL_CONFIRM_DONG || it.enhance > 0;
@@ -3253,3 +3263,6 @@ function drawRecall(ch: HTMLElement) {
   ch.classList.remove("risk"); ch.style.setProperty("--c", "#8fe0ff");
   return true;
 }
+
+/** Tên và màu một món trong túi (cho toast đồ nhận được, feedback.ts). */
+export const bagItemInfo = (it: BagItem) => ({ name: itemName(it), color: itemColor(it) });
