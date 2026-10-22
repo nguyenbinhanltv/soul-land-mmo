@@ -4119,8 +4119,8 @@ else {
       ok(tgi.enhance===BONE_MAX_ENHANCE&&tgi.stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(t)&&mats.every(id=>!itemOf(id)),`5 nguyên liệu 100.000 năm: +${tgi.enhance} tối đa, điểm dư bị bỏ (${t})`);
       ok(Math.abs(s20.live.passive.buff.def-def20)<1e-4&&Math.abs(def20-Math.min(BONE_PASSIVE_CAP.def,def0*boneSkillMult(20)))<1e-3&&def20>def0,
         `mốc +20 nâng bị động ${BONE_SKILLS[TG].passive.name}: giảm sát thương ${def0} -> ${s20.live.passive.buff.def} (×${boneSkillMult(20)})`);
-      // Từ #187 mốc còn thêm dòng phụ (Thân có thể ra % sinh lực): lấy dòng đã lưu trong món để tính lại đầy đủ.
-      const bone20=boneBonus([{slot:"than",years:12000,enhance:BONE_MAX_ENHANCE,subs:parseBoneSubs(tgi.stats)}]);
+      // Từ #187 mốc còn thêm dòng phụ: tính lại từ mọi hồn cốt đang gắn trên võ hồn (server bonesOn), kèm dòng phụ đã lưu.
+      const bone20=boneBonus(A.bag.items.filter(i=>i.code===BONE_ITEM&&i.vohon===act).map(i=>({slot:i.stats.slot,years:i.years,enhance:i.enhance,subs:parseBoneSubs(i.stats)})));
       const expected20=s20.stats.maxHp;
       await waitFor(()=>p.maxHp===expected20,5000);
       ok(s20.bones.hp===bone20.hp&&s20.bones.hp_pct===bone20.hp_pct&&p.maxHp===expected20&&p.maxHp>=hp0+dHp,
