@@ -8794,9 +8794,9 @@ async function autoBossTest(){
    * Tin vohons của lần tự săn vừa đổi tay tới trước bản vá có swCd mới: swCd đọc được có lúc còn 0 trong khi server đang hồi chiêu đổi và bỏ
    * qua tin switch (không trả lời), nên gửi lại tới khi võ hồn ra trận đúng là `row`.
    */
-  const toRow=async row=>{ const end=Date.now()+SWITCH_CD*1000+2000; await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500);
-    while(A.owned.active!==row&&Date.now()<end){ const n=A.ownedMsgs; A.room.send("switch",{slot:A.owned.team.indexOf(row)});
-      await waitFor(()=>A.ownedMsgs>n,500); if(A.owned.active!==row) await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); }
+  const toRow=async row=>{ await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500);
+    for(let k=0;k<3&&A.owned.active!==row;k++){ A.room.send("switch",{slot:A.owned.team.indexOf(row)});
+      if(!await waitFor(()=>A.owned.active===row,1500)) await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); }
     return A.owned.active===row; };
   try{
     await waitFor(()=>me()&&A.bag&&A.owned,3000);
