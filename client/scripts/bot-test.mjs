@@ -7369,7 +7369,8 @@ async function chapter2Test(){
  * Chương 3 "Hải Thần Đảo" (#284, phần 1; BOT_ONLY=chuong3, nhóm 2 của BOT_PART): dữ liệu chuỗi (8 bài, Hải Mã Đấu La ở Bến Hải Thần,
  * Ba Tái Tây trong vùng an toàn Thánh địa Hải Thần, Hải Mã Đấu La trong vùng an toàn nhỏ ở trại, thưởng hợp lệ không mảnh UR, đủ SHARD_UNLOCK mảnh Nhu Cốt Thố); mở sau chương 2;
  * sự kiện talk / elite / king lọc theo bản đồ, `world` chỉ tính boss thế giới; đi hết 8 bài, tiến độ hai chuỗi cũ không đổi, lưu qua
- * lần vào lại. Bài đếm bằng sự kiện cũ (hạ hồn thú, tổ đội) thử một lần hạ thật rồi đặt đủ số đếm bằng hook quest.
+ * lần vào lại. #285: chỉ bài 8 thưởng hồn cốt Thâm Hải Ma Kình đúng BossDef.years; túi thiếu một ô cho hồn cốt thì từ chối, giữ
+ * tiến độ; trả được thì đúng một hồn cốt, vị trí hợp lệ, +0, chưa có dòng phụ; không nhận lần hai; vào lại còn trong túi. Bài đếm bằng sự kiện cũ (hạ hồn thú, tổ đội) thử một lần hạ thật rồi đặt đủ số đếm bằng hook quest.
  */
 async function chapter3Test(){
   console.log("[#284] Chương 3: Hải Thần Đảo");
@@ -7383,6 +7384,12 @@ async function chapter3Test(){
   ok(ch.steps.every(x=>x.goals.every(g=>(!g.map||MAPS[g.map])&&(!g.npc||g.npc===CAMP_MERCHANT||Object.keys(MAPS).some(m=>npcSpot(m,g.npc))))),"mục tiêu trỏ tới NPC, bản đồ có thật");
   const nhu=ch.steps.reduce((a,x)=>a+x.reward.items.filter(r=>r.code===shardCode("nhu_cot_tho")).reduce((b,r)=>b+r.qty,0),0);
   ok(nhu===SHARD_UNLOCK,`tổng mảnh Nhu Cốt Thố cả chuỗi = SHARD_UNLOCK (${nhu})`);
+  // #285: chỉ bài cuối thưởng hồn cốt, đúng một hồn cốt Thâm Hải Ma Kình bằng niên hạn của Thâm Hải Ma Kình Vương (BossDef.years).
+  const MKV=BOSSES[bossIndex("tham_hai_ma_kinh_vuong")], rb=ch.steps[7].reward.bones;
+  ok(ch.steps.slice(0,7).every(x=>!x.reward.bones?.length)&&[QUEST_STARTER,QUEST_CH2].every(c=>questChain(c).steps.every(x=>!x.reward.bones?.length))
+    &&rb?.length===1&&rb[0].beast==="tham_hai_ma_kinh"&&rb[0].beast===MKV?.species&&rb[0].years===MKV?.years&&beastIndex(rb[0].beast)>=0
+    &&questRewardText(ch.steps[7].reward).endsWith(`1 hồn cốt Thâm Hải Ma Kình ${formatYears(MKV.years)} (vị trí ngẫu nhiên)`),
+    `chỉ bài 8 thưởng hồn cốt: ${questRewardText(ch.steps[7].reward)}`);
   ok(sanctum&&bt&&inR(sanctum,bt.x,bt.y)&&pier&&inR(pier,gs.x,gs.y)&&inR(pier,gs.x,gs.y+16)&&spawn&&inR(spawn,gs.x,gs.y)&&cm&&!inR(pier,cm.x,cm.y)&&Math.hypot(cm.x-gs.x,cm.y-gs.y)>=CAMP_PT_GAP,
     `Tiled: Ba Tái Tây trong Thánh địa Hải Thần, Hải Mã Đấu La (${gs?.x},${gs?.y}) và chỗ đứng nói chuyện trong vùng an toàn nhỏ Bến Hải Thần ở trại cổng, thương nhân lưu động vẫn có chỗ (${cm?.x},${cm?.y})`);
   const [g1,,g3,,,g6,g7]=ch.steps.map(x=>x.goals), talkG=g1[1];
@@ -7462,10 +7469,28 @@ async function chapter3Test(){
   { const l=D.logs.length; D.room.send("attack"); await waitFor(()=>D.logs.length>l,1500); ok(/Vùng an toàn/.test(D.logs.slice(l).join(" ")),`Thánh địa Hải Thần là vùng an toàn (${D.logs.slice(l).at(-1)})`); }
   ok(await talk(D,"ba_tai_tay")==="ba_tai_tay"&&await waitFor(()=>q3().status==="ready"),"nói chuyện với Ba Tái Tây: bài 8 xong");
   t=await qop("turnin"); ok(/lại gần Hải Mã Đấu La/.test(t)&&q3().step===7,`đứng ở Thánh địa: phải về Bến Hải Thần trả bài (${t})`);
-  await atGiver(); await turn(7);
+  await atGiver();
+  // #285: túi chỉ đủ chỗ cho vật phẩm thưởng, thiếu một ô cho hồn cốt: từ chối, giữ tiến độ, không nhận gì; bỏ thêm một ô thì trả được.
+  { const r=ch.steps[7].reward, loose=()=>looseOf(D), itemSlots=r.items.reduce((a,x)=>{ const st=itemDef(x.code).stack,
+      part=loose().filter(i=>i.code===x.code&&!i.lock).reduce((b,i)=>b+Math.max(0,st-i.qty),0); return a+Math.ceil(Math.max(0,x.qty-part)/st); },0);
+    await test(D,"give",{code:"hoi_hon_dan",qty:D.bag.slots*itemDef("hoi_hon_dan").stack});
+    ok(await waitFor(()=>loose().length===D.bag.slots,2000),`làm đầy túi ${loose().length}/${D.bag.slots} ô`);
+    const drop=async(n)=>{ const k=loose().length; for(const it of loose().filter(i=>i.code==="hoi_hon_dan"&&!i.lock).slice(0,n)) D.room.send("discard",{id:it.id}); return waitFor(()=>loose().length===k-n,2000); };
+    ok(await drop(itemSlots),`bỏ ${itemSlots} ô: túi còn đúng chỗ cho vật phẩm thưởng (${D.bag.slots-loose().length} ô trống)`);
+    const ht=D.bag.honTe, nb=bonesOf(D).length; t=await qop("turnin");
+    ok(/không đủ chỗ/.test(t)&&q3().step===7&&q3().status==="ready"&&D.bag.honTe===ht&&bonesOf(D).length===nb,`thiếu một ô cho hồn cốt: không trả được bài 8, giữ tiến độ (${t})`);
+    ok(await drop(1),`bỏ thêm 1 ô (${D.bag.slots-loose().length} ô trống)`);
+  }
+  const bones0=new Set(bonesOf(D).map(i=>i.id)); await turn(7);
+  const nb8=bonesOf(D).filter(i=>!bones0.has(i.id)), b8=nb8[0];
+  ok(nb8.length===1&&b8.stats?.beast===MKV.species&&b8.years===MKV.years&&BONE_SLOTS.some(s=>s.id===b8.stats?.slot)&&!b8.enhance&&!parseBoneSubs(b8.stats).length&&b8.vohon===null
+    &&D.logs.slice(-4).some(l=>l.includes(boneName(MKV.species,b8.stats?.slot,MKV.years))),
+    `trả bài 8: nhận đúng 1 hồn cốt ${b8&&boneName(b8.stats?.beast,b8.stats?.slot,b8.years)} (+${b8?.enhance??0}, ${parseBoneSubs(b8?.stats).length} dòng phụ)`);
   ok(q3().step===8&&questStatus(q3())==="done"&&q3().ev==="finish",`xong cả chuỗi "${ch.name}"`);
-  await D.room.leave(); await sleep(400); await enter(D); await waitFor(()=>dme()&&D.quest&&D.chains[QUEST_CH3]&&D.chains[QUEST_CH2]);
+  t=await qop("turnin"); ok(/Đã học xong/.test(t)&&bonesOf(D).length===bones0.size+1,`xong rồi: trả lại không nhận thêm hồn cốt (${t})`);
+  await D.room.leave(); await sleep(400); await enter(D); await waitFor(()=>dme()&&D.quest&&D.chains[QUEST_CH3]&&D.chains[QUEST_CH2]&&D.bag);
   ok(q3().step===8&&D.chains[QUEST_CH2].status==="done"&&D.quest.status==="done","thoát vào lại: chương 3 xong, tân thủ và chương 2 giữ nguyên");
+  { const b=bonesOf(D).find(i=>i.id===b8?.id); ok(b&&b.stats?.beast===MKV.species&&b.stats?.slot===b8.stats.slot&&b.years===MKV.years,`thoát vào lại: hồn cốt thưởng còn trong túi (${b&&boneName(b.stats.beast,b.stats.slot,b.years)})`); }
   await D.room.leave();
 }
 
@@ -10031,7 +10056,8 @@ async function coldTest(){
  * Võ Hồn Dung Hợp Kỹ (#192; BOT_ONLY=fusion). A cầm Yêu Hồ, B và O cầm Nguyệt Nhận (cặp Yêu Nguyệt); A và B cùng
  * tổ đội, O đứng gần nhưng ngoài đội. Từ chối kèm lý do: vùng an toàn, chưa có tổ đội, thiếu hồn hoàn, đứng xa, đồng đội trong vùng an
  * toàn, sai cặp, đang hồi chiêu, hưởng ứng khi chưa được mời; hết FUSION.window thì hủy không tốn gì. Tung được: B nhận lời nhắc, O
- * không; chiêu nổ ở điểm giữa, mỗi người tốn FUSION.cost hồn lực và vào hồi chiêu; không tạo năng lượng tiên cơ; đóng góp tinh anh chia đôi.
+ * không; chiêu nổ ở điểm giữa, mỗi người tốn FUSION.cost hồn lực và vào hồi chiêu; không tạo năng lượng tiên cơ; đóng góp tinh anh chia đôi;
+ * tin riêng vohons mang giây hồi chiêu còn lại `fcd` cho ô G của client, cả sau khi vào lại (#193).
  */
 async function fusionTest(){
   console.log("\n== Võ Hồn Dung Hợp Kỹ (#192) ==");
@@ -10134,6 +10160,7 @@ async function fusionTest(){
   const fx=A.fxs.find(f=>f.k==="fusion"), wave=A.fxs.find(f=>f.k==="wave");
   ok(fx&&fx.x===mid.x&&fx.y===mid.y&&wave&&Math.abs(wave.x-(pa.x+pb.x)/2)<1&&Math.abs(wave.y+6-(pa.y+pb.y)/2)<1,
     `nổ ở điểm giữa (${mid.x},${mid.y}): fx fusion (${fx?.x},${fx?.y}), vùng (${wave?.x?.toFixed(0)},${(wave?.y+6).toFixed(0)})`);
+  ok(fx?.va===vohonIndex("yeu_ho")&&fx?.vb===vohonIndex("nguyet_nhan"),`fx fusion mang võ hồn hai người cho màu luồng sáng (#193): va ${fx?.va}, vb ${fx?.vb}`);
   // Hồn lực tự hồi vài điểm mỗi giây: chờ bản vá có phần trừ rồi so với khoảng hẹp quanh FUSION.cost.
   const spent=b=>mp0[b===A?0:1]-meP(b).mp;
   ok(await waitFor(()=>[A,B].every(b=>spent(b)>=FUSION.cost-6&&spent(b)<=FUSION.cost),1500),`mỗi người tốn ${FUSION.cost} hồn lực: A ${mp0[0]} -> ${meP(A).mp}, B ${mp0[1]} -> ${meP(B).mp}`);
@@ -10144,12 +10171,16 @@ async function fusionTest(){
     `đóng góp tinh anh chia đôi: A ${da.toFixed(1)}, B ${db.toFixed(1)}; cả hai là người tham gia`);
   // Hồi chiêu của hồn sư: đổi võ hồn không làm mới.
   w=await fus(A,"start"); ok(/hồi chiêu dung hợp/.test(w),`A tung lại ngay: "${w}"`);
+  // #193: ô hồi chiêu G của client đọc giây còn lại từ tin riêng vohons (`fcd`).
+  { const n0=A.ownedMsgs; A.room.send("vohons"); await waitFor(()=>A.ownedMsgs>n0,2500);
+    ok(A.owned?.fcd>FUSION.cd-30&&A.owned.fcd<=FUSION.cd,`tin riêng vohons có hồi chiêu dung hợp còn lại: ${A.owned?.fcd} giây (FUSION.cd ${FUSION.cd})`); }
   await waitFor(()=>meP(B).swCd===0,3500); B.room.send("switch",{slot:1}); await waitFor(()=>meP(B).vh===vohonIndex("lam_ngan_thao"),2000);
   await waitFor(()=>meP(B).swCd===0,3500); B.room.send("switch",{slot:0}); await waitFor(()=>meP(B).vh===vohonIndex("nguyet_nhan"),2000);
   w=await fus(B,"start"); ok(/hồi chiêu dung hợp/.test(w),`B đổi võ hồn rồi đổi lại vẫn còn hồi chiêu: "${w}"`);
   // Hồi chiêu theo tài khoản: thoát rồi vào lại (phòng mới, dữ liệu phiên mới) vẫn còn.
   await B.room.leave(); await sleep(300); await enter(B); await waitFor(()=>meP(B)&&B.owned,3000);
   w=await fus(B,"start"); ok(/hồi chiêu dung hợp/.test(w),`B thoát rồi vào lại vẫn còn hồi chiêu: "${w}"`);
+  ok(B.owned?.fcd>0&&B.owned.fcd<=FUSION.cd,`vào lại: vohons của B vẫn có hồi chiêu dung hợp ${B.owned?.fcd} giây (ô G không làm mới)`);
   } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
 }
 

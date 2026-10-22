@@ -10,11 +10,11 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
+  QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
-  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
+  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
@@ -284,9 +284,10 @@ function setCtSlot(b: HTMLElement, on: boolean) {
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
  * Hồn Chân Thân (8.1a, chỉ khi võ hồn có dữ liệu; khóa tới vòng 7), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons");
- * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4).
+ * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4). Nút G Võ Hồn Dung Hợp Kỹ (#193)
+ * khi võ hồn ra trận có cặp trong FUSIONS và `fusion` (sân đấu cấm dung hợp nên không hiện).
  */
-export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1) {
+export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1, fusion = true) {
   const el = $("#skills"); el.innerHTML = ""; slotCd = [];
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip = "") => {
     const b = document.createElement("button"); b.className = "sk" + (locked ? " locked" : "");
@@ -322,7 +323,84 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
       tip: `Hồn kỹ Chân Thân (thay ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} khi biến hình) – ${s.name}: ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${cdText(s.cd)} giây.`
         + (has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn vòng ${CHAN_THAN_RING} ${y.toLocaleString("vi-VN")} năm).` : "") };
   } else ctSlot = null;
+  // Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): mời đồng đội gần nhất, hoặc hưởng ứng khi được mời; server chọn người và kiểm mọi điều kiện.
+  const fus = fusion ? fusionsOf(id) : [];
+  el.classList.toggle("fus", fus.length > 0); fusBtn = null;
+  if (fus.length) {
+    const has = rings.length >= FUSION.minRings, mate = (f: (typeof FUSIONS)[number]) => VOHON[vohonIndex(f.pair[0] === id ? f.pair[1] : f.pair[0])]?.name ?? "";
+    const tip = `Võ Hồn Dung Hợp Kỹ (phím ${FUSION_KEY}): ` + fus.map((f) => `${f.name} cùng đồng đội tổ đội ra trận ${mate(f)}: ${f.desc}`).join("; ")
+      + `. Bấm để mời đồng đội gần nhất; đồng đội bấm ${FUSION_KEY} trong ${cdText(FUSION.window)} giây thì chiêu nổ ở điểm giữa hai người.`
+      + ` Đứng cách nhau dưới ${FUSION.r} pixel, mỗi người tốn ${FUSION.cost} hồn lực, hồi ${FUSION.cd} giây (của hồn sư: đổi võ hồn không làm mới).`
+      + (has ? "" : ` Cần ít nhất ${FUSION.minRings} hồn hoàn.`);
+    mk(FUSION_KEY, `Võ Hồn Dung Hợp Kỹ: ${fus.map((f) => f.name).join(" / ")}${has ? "" : " (khóa)"}`, has ? "Dung hợp" : "Khóa",
+      has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, tip);
+    fusBtn = el.lastElementChild as HTMLElement; fusBtn.classList.add("fus");
+    fusCdEl = fusBtn.querySelector(".cd"); fusLabel = fusBtn.querySelectorAll("span")[1]; fusCdPct = -1;
+  }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
+}
+
+// ---------- Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): nút G, lời nhắc có đếm ngược, ô hồi chiêu ----------
+/** Phím Võ Hồn Dung Hợp Kỹ: mời, hoặc hưởng ứng khi đang được mời. */
+export const FUSION_KEY = "G";
+let fusCdEnd = 0; // performance.now() lúc hết hồi chiêu dung hợp của hồn sư (theo tin riêng `fusion done` / `vohons.fcd`)
+/** Lời mời đang chờ: `ask` = mình được mời (B), `wait` = mình mời, chờ đồng đội; `i` cặp trong FUSIONS, `who` tên người kia. */
+let fusPend: { k: "ask" | "wait"; i: number; who: string; end: number; ms: number } | null = null;
+let fusTxt = "", fusBtn: HTMLElement | null = null; // nút G hiện tại (buildSkills dựng lại thì đổi)
+let fusCdEl: HTMLElement | null = null, fusLabel: HTMLElement | null = null, fusCdPct = -1; // lớp phủ hồi chiêu, nhãn của nút G
+/** Đã gửi `join`: chờ server trả `done` / `cancel`, phím G và nút không gửi lại (bấm hai lần không ra lỗi "chưa có lời mời"). */
+let fusSent = false;
+/** Hồi chiêu dung hợp còn `secs` giây (server gửi; đổi võ hồn không làm mới vì thuộc hồn sư). */
+export function setFusionCd(secs: number) { fusCdEnd = performance.now() + Math.max(0, secs) * 1000; }
+/**
+ * Việc phím G / nút gửi: "join" khi đang được mời, "" khi vừa hưởng ứng hoặc đang chờ đồng đội (không gửi lại), không thì "start". Gọi
+ * nghĩa là sẽ gửi: "join" thì khóa tới khi server trả `done` / `cancel`. Server vẫn kiểm lại và báo lý do.
+ */
+export function fusionOp(): "join" | "start" | "" {
+  if (fusSent || fusPend?.k === "wait") return ""; // đang chờ đồng đội hưởng ứng: không mời lại
+  if (fusPend?.k !== "ask") return "start";
+  fusSent = true; $("#fusion").querySelector("button")?.setAttribute("disabled", ""); return "join";
+}
+/**
+ * Khung nhắc dung hợp kỹ (tin riêng `fusion`): B thấy "Dung hợp [G]" kèm đếm ngược `t` giây và nút chạm được (gọi `join`); A thấy
+ * đang chờ ai hưởng ứng. `null` thì ẩn (xong, hủy, đổi bản đồ). Tên người chơi gán bằng textContent. Đếm ngược và thanh `aria-hidden`
+ * để trình đọc màn hình chỉ đọc tên chiêu và nút, không đọc lại mỗi 0,1 giây.
+ */
+export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string; t: number } | null, join?: () => void) {
+  const el = $("#fusion"); fusTxt = ""; fusSent = false;
+  fusPend = p && FUSIONS[p.i] ? { k: p.k, i: p.i, who: p.who, end: performance.now() + p.t * 1000, ms: Math.max(1, p.t * 1000) } : null;
+  if (!fusPend) { el.hidden = true; el.innerHTML = ""; return; }
+  const ask = fusPend.k === "ask";
+  el.classList.toggle("ask", ask);
+  el.innerHTML = `<div class="ft"></div><small class="left" aria-hidden="true"></small><div class="bar" aria-hidden="true"><i></i></div>${ask ? `<button type="button">Dung hợp<kbd>${FUSION_KEY}</kbd></button>` : ""}`;
+  const f = FUSIONS[fusPend.i];
+  el.querySelector(".ft")!.textContent = `${f.icon} Dung hợp kỹ ${f.name}`;
+  el.querySelector(".ft")!.appendChild(document.createElement("small")).textContent = ask ? `${fusPend.who} mời hưởng ứng` : `Chờ ${fusPend.who} hưởng ứng`;
+  // pointerdown cho chuột / chạm (nhanh, như nút cổng); click cho bàn phím / trình đọc màn hình. fusionOp chặn gửi hai lần.
+  const btn = el.querySelector("button");
+  btn?.addEventListener("pointerdown", (e) => { e.preventDefault(); join?.(); });
+  btn?.addEventListener("click", () => join?.());
+  el.hidden = false;
+  updateFusion();
+}
+/** Mỗi khung hình: đếm ngược lời nhắc, ô hồi chiêu và nhãn của nút G. */
+export function updateFusion() {
+  const now = performance.now(), b = fusBtn;
+  if (b && fusCdEl && fusLabel) {
+    const locked = b.classList.contains("locked"), cd = Math.max(0, fusCdEnd - now) / 1000;
+    const pct = locked ? 0 : Math.round(Math.min(1, cd / FUSION.cd) * 1000) / 10;
+    if (pct !== fusCdPct) { fusCdPct = pct; fusCdEl.style.height = pct + "%"; }
+    const ask = !locked && fusPend?.k === "ask" && !fusSent;
+    if (b.classList.contains("ask") !== ask) b.classList.toggle("ask", ask);
+    const txt = locked ? "Khóa" : ask ? "Hưởng ứng" : fusPend ? "Đang chờ" : "Dung hợp";
+    if (fusLabel.textContent !== txt) fusLabel.textContent = txt;
+  }
+  if (!fusPend) return;
+  const left = Math.max(0, fusPend.end - now), sec = (left / 1000).toFixed(1).replace(".", ","), el = $("#fusion");
+  (el.querySelector(".bar i") as HTMLElement).style.width = (left / fusPend.ms) * 100 + "%"; // mỗi khung hình: thanh co mượt
+  const txt = `còn ${sec} giây`;
+  if (txt === fusTxt) return;
+  fusTxt = txt; el.querySelector("small.left")!.textContent = txt;
 }
 /** Phím Võ Hồn Chân Thân (8.1a, chờ chốt): R, không trùng phím nào đang dùng. */
 export const AVA_KEY = "R";
@@ -2351,9 +2429,21 @@ function renderStarterTracker(el: HTMLElement) {
   const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; el.appendChild(t); };
   if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return true; }
   el.appendChild(questGoals(s, q.prog));
+  if (s.reward.bones?.length) el.appendChild(questRewardEl({ honTe: 0, items: [], bones: s.reward.bones }, "Thưởng thêm")); // hồn cốt (#285)
   if (q.status === "ready") tip(`Đã xong: quay về gặp ${npc?.name ?? "NPC"} ở ${where} để nhận thưởng.`);
   else { const d = document.createElement("small"); d.textContent = s.desc; el.appendChild(d); }
   return true;
+}
+/** Dòng "Phần thưởng: …" của một bài; hồn cốt thưởng (#285) tô màu theo niên hạn như hồn hoàn. */
+function questRewardEl(r: QuestReward, label = "Phần thưởng") {
+  const el = document.createElement("span"); el.className = "qrew";
+  const rest = questRewardText({ ...r, bones: [] });
+  el.append(`${label}: ${rest}`);
+  (r.bones ?? []).forEach((b, i) => {
+    if (rest || i) el.append(", ");
+    const c = document.createElement("b"); c.style.color = ringColor(tierOfYears(b.years)); c.textContent = questBoneText(b); el.appendChild(c);
+  });
+  return el;
 }
 /** Trang nhiệm vụ trong hộp thoại NPC giao nhiệm vụ: lời giao + mục tiêu + thưởng + "Nhận", tiến độ, lời khi trả + "Trả", lời kết. */
 function renderQuestPage(el: HTMLElement, act: NpcActions) {
@@ -2366,7 +2456,7 @@ function renderQuestPage(el: HTMLElement, act: NpcActions) {
   const h = document.createElement("b"); h.textContent = `Bài ${q.step + 1}/${c.steps.length}: ${s.name}`; box.appendChild(h);
   const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
   box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
-  const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}`; box.appendChild(r);
+  box.appendChild(questRewardEl(s.reward));
   const lines = q.status === "ready" ? s.done : q.status === "offer" ? s.offer : [s.desc];
   if (q.status !== "active") for (const t of lines) say(t);
   else say("Chưa xong đâu. Làm đủ các mục tiêu rồi quay lại báo ta.");
@@ -2519,7 +2609,7 @@ function renderDailyPage(el: HTMLElement, act: NpcActions) {
     if (q.status !== "done") {
       const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
       box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
-      const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}`; box.appendChild(r);
+      box.appendChild(questRewardEl(s.reward));
       const line = q.status === "offer" ? s.offer.at(-1) : q.status === "ready" ? s.done[0] : "";
       if (line) { const p = document.createElement("i"); p.className = "qsay"; p.textContent = line; box.appendChild(p); }
       const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
