@@ -9626,10 +9626,11 @@ async function splitTest(){
     await test(F,"form",{bid:sb,next:600});
     /**
      * Trước mỗi lần tung: hết trạng thái của lần trước (thời gian trạng thái chạy theo nhịp server nên chờ theo state, không theo giờ
-     * thật), dọn mọi hồn thú trừ Song Sắc Mãng, hồi đầy. Hồn thú Nội địa sinh lại ngay ngoài tầm cấm sinh quanh hồn sư (spawnBeast) rồi
-     * lang thang tới: một đòn của nó ngay trước khi chiêu tung đặt khung bất tử nên chiêu vẫn trúng F mà không gây trạng thái (#289).
+     * thật), dọn hồn thú thường (giữ tinh anh như `phase2`: ô tinh anh xa hang, dọn thì 8–12 phút mới sinh lại), hồi đầy. Hồn thú Nội địa
+     * sinh lại ngay ngoài tầm cấm sinh quanh hồn sư (spawnBeast) rồi lang thang tới: một đòn của nó ngay trước khi chiêu tung đặt khung
+     * bất tử nên chiêu vẫn trúng F mà không gây trạng thái (#289).
      */
-    const ready=async()=>{ const gone=await waitFor(()=>!has("slow")&&!has("burn"),8000); await test(F,"clear",{all:true,but:sb}); await heal();
+    const ready=async()=>{ const gone=await waitFor(()=>!has("slow")&&!has("burn"),8000); await test(F,"clear",{all:true,keep:1}); await heal();
       ok(gone&&!has("slow")&&!has("burn"),`F hết ${STATUS.slow.name} / ${STATUS.burn.name} trước lần tung kế`); F.fxs=[]; F.hurts=[]; };
     const hitOf=()=>F.fxs.find(x=>x.k==="teleHit"&&x.bid===sb), waitHit=()=>waitFor(()=>hitOf(),(SS.skills[1].warn+1.5)*1000);
     /** Chẩn đoán khi trượt: chiêu có trúng F không, trạng thái đang có, các đòn lên F trong lần tung, dạng hiện tại. */
