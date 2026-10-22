@@ -2606,7 +2606,7 @@ export function showArena(a: { phase: string; time: number; me: string; friendly
     const me = !w && s.sid.split(",").includes(a.me);
     box.classList.toggle("me", me);
     box.classList.toggle("follow", !!w && w.follow === i);
-    if (w && !(box as HTMLElement & { _p?: boolean })._p) { (box as HTMLElement & { _p?: boolean })._p = true; box.addEventListener("click", () => arenaPick(i)); }
+    if (w && !(box as HTMLElement & { _p?: boolean })._p) { (box as HTMLElement & { _p?: boolean })._p = true; box.addEventListener("pointerdown", (e) => { e.preventDefault(); arenaPick(i); }); }
     const name = `${s.name || "…"}${me ? " (đội của bạn)" : ""}`;
     if (box.querySelector("b")!.textContent !== name) box.querySelector("b")!.textContent = name;
     box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}${w && w.follow === i && w.who ? ` · theo dõi ${w.who}` : ""}`;

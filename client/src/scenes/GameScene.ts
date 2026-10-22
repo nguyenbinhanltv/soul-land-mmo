@@ -252,7 +252,7 @@ export class GameScene extends Phaser.Scene {
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
       this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
-      hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.showPlayerMenu(null); hud.arenaEnd(null, { back() {}, top() {} });
+      hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);
@@ -1068,6 +1068,7 @@ export class GameScene extends Phaser.Scene {
       if (m.result === "ok") { this.audio.play("ring_absorb_success"); this.audio.music?.jingle("ring_absorb"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
       else if (m.result === "fail") { this.audio.play("ring_absorb_fail"); hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`); }
     });
+    if (this.watching) return; // người xem (#280): không xin dữ liệu riêng
     this.room.send("vohons");
     this.room.send("boss"); // #118: tin boss lúc vào phòng tới trước khi cảnh nghe tin, xin lại (đếm ngược, đồng hồ, chiêu đang báo trước)
     this.room.send("bag");
