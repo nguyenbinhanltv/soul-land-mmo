@@ -121,6 +121,8 @@ export class GroundState extends Schema {
   @type("uint16") w: number = 0;
   @type("uint16") arc: number = 0;
   @type("uint16") ttl: number = 0;
+  // Từ #174: giây báo trước còn lại (làm tròn lên, 0 = vùng đã có tác dụng; GroundDef.warn): client vẽ dạng nước sắp dâng.
+  @type("uint8") wait: number = 0;
 }
 
 export class MapState extends Schema {

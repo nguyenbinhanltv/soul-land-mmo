@@ -590,7 +590,9 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   // Từ #116: Đóng băng (chỉ có trên hồn sư, chiêu băng của hồn thú gây).
   "freeze",
   // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
-  "chill"] as const;
+  "chill",
+  // Từ #174: Ngập nước (chỉ có trên hồn sư, vùng ngập Thủy Triều Dâng của Tà hóa Thâm Hải Ma Kình Vương, BossPhase.tide).
+  "flood"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -637,6 +639,9 @@ export const STATUS: Record<StatusId, StatusDef> = {
   // Từ #163 (thiết kế gốc đã chốt): tầng Hàn của Cực Hàn tự nó không gây gì; đủ 4 tầng thì bùng phát thành Đóng băng 3 giây. Tầng chỉ
   // mất theo luật Cực Hàn (Hỏa Đàn, thanh tẩy, rời hang, cả đội gục, thú vương bị hạ / rút đi; server/src/rooms/cold.ts), không tự hết giờ.
   chill:   st("Hàn",       "#d8f2ff", Infinity, 4, { burst: { s: "freeze", secs: 3 } }),
+  // Từ #174 (thiết kế gốc đã chốt "vùng ngập làm chậm 50%"): Làm chậm của vùng ngập, cộng với Làm chậm khác tới SLOW_CAP. Vùng ngập gây
+  // lại mỗi nhịp (TideDef.flood) với thời gian ngắn nên ra khỏi nước là hết ngay sau đó.
+  flood:   st("Ngập nước", "#4aa8ff", 0.5, 1, { slow: 0.5 }),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -654,13 +659,17 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill", "flood"];
 /**
  * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
  * bằng PvP riêng để #113).
  */
-export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill"];
-/** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood"];
+/**
+ * Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là
+ * Choáng). Ngập nước (#174) không có kháng: đứng trong nước là chậm (vùng gây lại mỗi nhịp; rút ngắn thời gian vốn đã ngắn hơn nhịp chỉ
+ * làm trạng thái nhấp nháy).
+ */
 export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
 /**
  * Hồn sư bị Mê hoặc (#116): server tự đi bộ × `spd` tới một điểm ngẫu nhiên cách chỗ bị Mê hoặc tối đa `r` pixel mỗi trục, đổi điểm
@@ -808,14 +817,20 @@ export interface EggDef { species: string; n: number; per: number; secs: number;
  * đứng trong vùng (teleHits) bị gây `status`; ra khỏi vùng thì thôi nhận. Không gây cho người đã gục, đang đi cổng, đứng trong vùng an
  * toàn, đang miễn sát thương. Vùng mất khi hết giờ hoặc khi hồn thú gây ra bị hạ / rời bản đồ. `kind`: kiểu vùng (GROUND_KINDS: tên, màu client vẽ; không
  * dùng đỏ vì đỏ dành cho vùng báo trước).
+ * Từ #174 (vùng ngập, xoáy nước của Thủy Triều Dâng, TideDef):
+ * - `warn`: vùng hiện trước ngần ấy giây ở dạng báo trước (nước sắp dâng), chưa gây gì; `secs` tính từ lúc hết báo trước.
+ * - `pull`: hồn sư đứng trong vùng bị kéo về tâm vùng ngần ấy pixel mỗi giây (mỗi nhịp server, không theo `every`), dừng khi vướng, tới
+ *   tâm hoặc sắp vào vùng an toàn; cùng điều kiện như gây trạng thái (không kéo người đã gục, đang đi cổng, đang miễn sát thương).
  */
-export type GroundKind = "pool" | "mist";
+export type GroundKind = "pool" | "mist" | "flood" | "whirl";
 /** Kiểu vùng lưu lại; chỉ số trong mảng đồng bộ ở `GroundState.kind`, thêm kiểu mới vào cuối. */
 export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
   { id: "pool", name: "Vũng độc", col: "#9be23a" },
   { id: "mist", name: "Sương độc", col: "#c8f5b4" },
+  { id: "flood", name: "Vùng ngập", col: "#3a8cff" },
+  { id: "whirl", name: "Xoáy nước", col: "#bfe6ff" },
 ];
-export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; }
+export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; warn?: number; pull?: number; }
 /** Nhịp gây trạng thái mặc định của vùng lưu lại (giây). */
 export const GROUND_TICK = 1;
 /** Tối đa vùng lưu lại cùng lúc trong một phòng (chống phình state); vượt thì bỏ vùng cũ nhất. */
@@ -988,7 +1003,7 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
-export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; }
+export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; tide?: TideDef; }
 /**
  * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): từ khi hết tiếng gầm chuyển giai đoạn,
  * mọi hồn sư đang tham gia trong hang (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
@@ -997,6 +1012,17 @@ export interface BossPhase { name: string; desc: string; spd: number; skills: Be
  * quanh nó `fire.clear` pixel mỗi phía đều đi được.
  */
 export interface ColdDef { every: number; fire: { r: number; at: [number, number]; clear: number } }
+/**
+ * Thủy Triều Dâng (#174, giai đoạn 2 của Tà hóa Thâm Hải Ma Kình Vương, mục 5.4; thiết kế gốc đã chốt "các vùng ngập luân phiên làm
+ * chậm 50%, sinh xoáy nước kéo người vào"): từ khi hết tiếng gầm chuyển giai đoạn, lúc thú vương đang giao chiến, cứ `every` giây nước
+ * dâng thành một đợt `flood.n` vùng ngập tròn bán kính `flood.r` ở chỗ ngẫu nhiên trong hang (đi thẳng tới được từ chỗ sinh của thú
+ * vương, tâm cách nhau ít nhất `gap` × `flood.r`, cố cách mọi tâm của đợt trước ít nhất `shift` × `flood.r`), là vùng lưu lại (GroundDef
+ * `flood.ground`). `whirl.n` vùng trong đợt sinh thêm xoáy nước đồng tâm bán kính `whirl.r` (GroundDef `whirl.ground`, có `pull`). Cả đợt
+ * (ngập và xoáy) báo trước `warn` giây (GroundDef.warn do tide.ts đặt, không ghi ở từng `ground`); đợt mới hết báo trước thì nước của
+ * đợt cũ rút (vùng ngập luân phiên: tồn tại một lúc rồi chuyển chỗ).
+ */
+export interface TideDef { every: number; warn: number; gap: number; shift: number;
+  flood: { n: number; r: number; ground: GroundDef }; whirl: { n: number; r: number; ground: GroundDef } }
 export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
   world?: WorldMech; }
 /**
@@ -1148,14 +1174,19 @@ export const BOSSES: BossDef[] = [
     bs("Hấp Thủy", "circle", 90, { range: 80, warn: 1, dmg: 0.8, cd: 10, pull: 70 }),
     bs("Thủy Trụ", "circle", 26, { at: "target", range: 150, count: 5, scatter: 70, dmg: 1.5 })] },
   // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x8. Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
-  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một); GĐ2 "vùng ngập luân phiên làm chậm 50%" là dải nước rộng báo trước 2
-  // giây gây Làm chậm (40%, STATUS.slow), "xoáy nước kéo người vào" là các vòng rơi ngẫu nhiên kéo người trúng về phía thú vương.
+  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một). GĐ2 "Thủy Triều Dâng" (#174, thiết kế gốc; TideDef): nước dâng
+  // từng đợt vùng ngập ở chỗ mới trong hang, đợt cũ rút; đứng trong nước bị Ngập nước (STATUS.flood, gây lại mỗi nhịp ngắn hơn thời gian
+  // của trạng thái), một số vùng có xoáy nước giữa kéo về tâm. Lực kéo nhỏ hơn tốc độ đi bộ khi chỉ bị Ngập nước nên tự thoát được; bị
+  // Làm chậm thêm (cộng tới SLOW_CAP) thì có thể bị giữ trong xoáy. Dải nước báo trước của bản tối thiểu thành Sóng Dữ (sát thương, không
+  // Làm chậm: Làm chậm đã do vùng ngập gây).
   { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 8, years: 95000, skills: [
     bs("Ma Kình Hống", "circle", 70, { warn: 1.3, dmg: 1.4, cd: 10, status: [{ s: "stun", secs: 1.5 }] }),
     bs("Thôn Hải", "circle", 110, { range: 100, warn: 1.4, dmg: 1.2, cd: 12, pull: 80 })],
-    phase2: { name: "Thủy Triều Dâng", desc: "nước dâng thành dải làm chậm (báo trước 2 giây), xoáy nước kéo người vào, tốc độ +20%", spd: 1.2, skills: [
-      bs("Thủy Triều", "line", 140, { w: 150, range: 160, warn: 2, dmg: 1.2, cd: 10, status: [{ s: "slow", secs: 4 }] }),
-      bs("Xoáy Nước", "circle", 30, { at: "target", range: 160, count: 4, scatter: 80, warn: 1.5, dmg: 1.2, cd: 9, pull: 40 })] } },
+    phase2: { name: "Thủy Triều Dâng", desc: "vùng ngập luân phiên trong hang làm chậm 50%, xoáy nước giữa vùng ngập kéo người vào, tốc độ +20%", spd: 1.2,
+      tide: { every: 8, warn: 1.5, gap: 1.5, shift: 1,
+        flood: { n: 3, r: 40, ground: { kind: "flood", secs: 8, every: 0.25, status: [{ s: "flood" }] } },
+        whirl: { n: 2, r: 26, ground: { kind: "whirl", secs: 8, status: [], pull: 28 } } },
+      skills: [bs("Sóng Dữ", "line", 140, { w: 60, range: 160, warn: 1.5, dmg: 1.5, cd: 9 })] } },
   // Boss thế giới 100.000 năm ở Lõi Tinh Đấu (BĐ6e, mục 5.4; mọi số đã chốt). Máu / sát thương theo WORLD; chiêu thường ở `skills`,
   // cơ chế buộc đổi võ hồn ở `world`. "Vết thương sâu" là trạng thái thường nhưng nặng và lâu (Phá giáp 3 tầng / Trúng độc 3 tầng
   // 30 giây), chỉ thanh tẩy (tiên cơ / hồn kỹ phụ trợ) giải được vì Lõi Tinh Đấu không có vùng an toàn.
