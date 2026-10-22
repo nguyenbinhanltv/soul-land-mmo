@@ -2,7 +2,25 @@
 // Đây là cấu hình bảo mật của server, không phải số cân bằng gameplay -> để hằng số ở đây, không đưa vào shared/data.ts.
 // Mọi hàm nhận `now` (ms) để kiểm thử với đồng hồ giả (xem server/scripts/ratelimit-test.ts).
 
+import { isIPv6 } from "node:net";
 import { nameKey } from "./names.ts";
+
+/**
+ * Chuẩn hoá IP thành khoá giới hạn: IPv4-mapped (`::ffff:a.b.c.d`) về `a.b.c.d`, IPv6 cắt về /64 (4 nhóm đầu, đã mở `::`),
+ * IPv4 và chuỗi lạ giữ nguyên. Dùng chung cho mọi bộ đếm theo IP (đăng nhập sai, tạo tài khoản mới) để đổi địa chỉ trong
+ * cùng /64 hay đổi cách viết không có lượt mới.
+ */
+export function ipKey(ip: string): string {
+  const a = ip.replace(/%.*$/, "").toLowerCase();
+  const m = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(a);
+  if (m) return m[1];
+  if (!isIPv6(a)) return ip;
+  const [head, tail] = a.split("::");
+  const h = head ? head.split(":") : [], t = tail ? tail.split(":") : [];
+  const g = (tail === undefined ? h : [...h, ...Array(8 - h.length - t.length).fill("0"), ...t]).map((x) => parseInt(x, 16));
+  if (g.slice(0, 5).every((x) => x === 0) && g[5] === 0xffff) return `${g[6] >> 8}.${g[6] & 255}.${g[7] >> 8}.${g[7] & 255}`;
+  return `${g.slice(0, 4).map((x) => x.toString(16)).join(":")}::/64`;
+}
 
 // ---------- Đăng nhập ----------
 /** Sai bao nhiêu lần với cùng một tên từ cùng một IP thì khóa cặp (tên, IP) đó.
@@ -123,8 +141,8 @@ const lockedSec = (k: string, ip: string, now: number) =>
  * Gọi TRƯỚC khi kiểm tra mật khẩu. Bị khóa -> trả lỗi, KHÔNG được kiểm tra mật khẩu.
  * Trả null -> được thử; sau đó BẮT BUỘC gọi loginEnd đúng một lần (kể cả khi lỗi, dùng try/finally).
  */
-export function loginBegin(name: string, ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
-  const k = nameKey(name), pk = pairKey(k, ip);
+export function loginBegin(name: string, rawIp: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const ip = ipKey(rawIp), k = nameKey(name), pk = pairKey(k, ip);
   const sec = lockedSec(k, ip, now);
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };
   if (byPair.busy(pk) || byName.busy(k) || byIp.busy(ip)) return { error: "Đang xử lý quá nhiều lần đăng nhập. Vui lòng thử lại sau vài giây.", retryAfter: 3 };
@@ -138,8 +156,8 @@ export function loginBegin(name: string, ip: string, now = Date.now()): { error:
  * Đúng -> xóa bộ đếm của cặp (tên, IP) và của tên (đã chứng minh biết mật khẩu của đúng tài khoản ứng với khóa tên);
  * bộ đếm IP giữ nguyên để kẻ dò không "rửa" bằng tài khoản của chính mình.
  */
-export function loginEnd(name: string, ip: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
-  const k = nameKey(name), pk = pairKey(k, ip);
+export function loginEnd(name: string, rawIp: string, ok: boolean | null, now = Date.now()): { error: string; retryAfter?: number } | null {
+  const ip = ipKey(rawIp), k = nameKey(name), pk = pairKey(k, ip);
   byPair.end(pk); byName.end(k); byIp.end(ip);
   if (ok === null) return null;
   if (ok) { byPair.reset(pk); byName.reset(k); return null; }
@@ -181,8 +199,9 @@ function signupWait(e: SignupEntry, now: number) {
  * tên chưa có thì trả 429 với lỗi này. Giữ chỗ trước để nhiều request song song không vượt ngưỡng.
  */
 export function signupBegin(ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
-  let e = signups.get(ip);
-  if (!e) { e = { at: [], pending: 0, warned: false }; signups.set(ip, e); }
+  const key = ipKey(ip);
+  let e = signups.get(key);
+  if (!e) { e = { at: [], pending: 0, warned: false }; signups.set(key, e); }
   const { wait: sec, full } = signupWait(e, now);
   if (!sec) { e.pending++; return null; }
   if (!full) return { error: "Đang xử lý nhiều lần đăng nhập từ mạng của bạn. Vui lòng thử lại sau vài giây.", retryAfter: sec };
@@ -195,7 +214,7 @@ export function signupBegin(ip: string, now = Date.now()): { error: string; retr
 
 /** Gọi sau store.login. reserved: signupBegin đã trả null; created: login vừa tạo tài khoản mới (chỉ lúc đó mới đếm). */
 export function signupEnd(ip: string, reserved: boolean, created: boolean, now = Date.now()) {
-  const e = signups.get(ip);
+  const e = signups.get(ipKey(ip));
   if (!e) return;
   if (reserved && e.pending > 0) e.pending--;
   if (created) { e.at.push(now); e.warned = false; }

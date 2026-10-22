@@ -1370,6 +1370,9 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/** Đòn đánh thường (hồn sư: MapRoom.attack; hồn thú: MapRoom.tick) gây công x (1 ± ATK_SPREAD), ngẫu nhiên đều; `r` trong [0, 1). */
+export const ATK_SPREAD = 0.15;
+export const atkRoll = (r: number) => 1 + (2 * r - 1) * ATK_SPREAD;
 /** Hồi chiêu đòn đánh thường của hồn thú (giây; MapRoom.tick, ủy thác offline offlineFight). */
 export const BEAST_ATK_CD = 1.1;
 
@@ -2465,7 +2468,7 @@ export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.len
  * `herbs` (bước BĐ6b, **đã chốt**): % tiên thảo đã dùng trên chính võ hồn này (herbBonus), cộng chung như `res`.
  */
 export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<CoreStat, number>> = {},
-  cores: Partial<Record<CoreStat, number>> = {}, res: Partial<Record<ResStat, number>> = {}, herbs: Partial<Record<ResStat, number>> = {}) {
+  cores: Partial<Record<CoreStat, number>> = {}, res: Partial<Record<ResEffect, number>> = {}, herbs: Partial<Record<ResStat, number>> = {}) {
   const v = VOHON[vh], k = starMult(stars);
   const pc = (x: CoreStat, r: ResStat) => 1 + ((cores[x] ?? 0) + (bones[x] ?? 0) + (res[r] ?? 0) + (herbs[r] ?? 0)) / 100;
   let hpB = 0, atkB = 0;
@@ -2474,9 +2477,9 @@ export function calcStats(vh: number, level: number, rings: number[], stars = 1,
     maxHp: Math.round((80 + level * 14 + hpB) * v.hp * k * pc("hp_pct", "hp")) + (bones.hp ?? 0) + (cores.hp ?? 0),
     maxMp: Math.round((40 + level * 4 + rings.length * 15) * v.mp * k * pc("mp_pct", "mp")) + (bones.mp ?? 0) + (cores.mp ?? 0),
     atk: (6 + level * 1.6 + atkB) * v.atk * k * pc("atk_pct", "atk") + (bones.atk ?? 0) + (cores.atk ?? 0),
-    speed: PLAYER_SPEED * v.spd, // tốc độ đi bộ; ngoài giao chiến chạy × RUN_MULT (MapRoom.tick)
+    speed: PLAYER_SPEED * v.spd * (1 + (res.spd ?? 0) / 100), // tốc độ đi bộ; ngoài giao chiến chạy × RUN_MULT (MapRoom.tick)
     // Từ 5.2: tỉ lệ và hệ số chí mạng của đòn đánh vào hồn thú (CRIT cộng hồn hạch).
-    crit: CRIT.chance + ((cores.crit ?? 0) + (bones.crit ?? 0)) / 100,
+    crit: CRIT.chance + ((cores.crit ?? 0) + (bones.crit ?? 0) + (res.crit ?? 0)) / 100,
     critMult: CRIT.mult + ((cores.crit_dmg ?? 0) + (bones.crit_dmg ?? 0)) / 100,
   };
 }
@@ -3879,12 +3882,17 @@ export const fitMaps = (level: number) => {
   return Object.values(MAPS).filter((m) => m.kind === "hunt" && m.level && lv >= m.level[0] && lv <= m.level[1]).map((m) => m.id);
 };
 // ---------- Cộng minh (mục 5.10, bước 8.2; mốc theo thiết kế, giá trị cộng đã chốt) ----------
-/** Chỉ số cộng minh cộng cho **mọi** võ hồn: % phần gốc (calcStats, cộng chung với dòng % của hồn hạch). */
+/** Chỉ số phần gốc dùng trong calcStats; giá trị là điểm phần trăm. */
 export type ResStat = "hp" | "mp" | "atk";
 export const RES_STAT_NAMES: Record<ResStat, string> = { hp: "Sinh lực", mp: "Hồn lực", atk: "Công" };
-export type ResPillar = "vohon" | "ring" | "bone" | "core";
+/** Hiệu ứng cộng minh công khai; crit / def / spd là hiệu ứng mới của trụ Sao võ hồn. */
+export type ResEffect = ResStat | "crit" | "def" | "spd";
+export const RES_EFFECT_NAMES: Record<ResEffect, string> = {
+  hp: "Sinh lực", mp: "Hồn lực", atk: "Công", crit: "Chí mạng", def: "Giảm sát thương nhận", spd: "Tốc chạy",
+};
+export type ResPillar = "vohon" | "ring" | "bone" | "core" | "star";
 /** Một mốc của trụ cột: đạt `need` thì cộng thêm `bonus` (% mỗi chỉ số, cộng dồn với các mốc trước). */
-export interface ResonanceStep { need: number; bonus: Partial<Record<ResStat, number>>; }
+export interface ResonanceStep { need: number; bonus: Partial<Record<ResEffect, number>>; }
 /** Trụ cột cộng minh: tên, thứ được đếm (`what`, hiện trong câu "x/mốc …"), màu giao diện, các mốc tăng dần. */
 export interface ResonanceDef { id: ResPillar; name: string; what: string; col: string; steps: ResonanceStep[]; }
 /** Trụ cột Võ hồn đếm võ hồn sở hữu từ cấp này (mục 5.10). */
@@ -3893,11 +3901,19 @@ export const RES_VOHON_LEVEL = 30;
 export const RES_BONE_ENHANCE = 10;
 /** Trụ cột Hồn hạch đếm hồn hạch **đang gắn** từ ngần này sao (đã chốt: đang gắn, không tính hồn hạch nằm trong túi). */
 export const RES_CORE_STARS = 5;
+/** Hiệu ứng cộng minh mới có giới hạn riêng, áp dụng sau khi cộng các mốc. */
+export const RESONANCE_EFFECT_CAP: Partial<Record<ResEffect, number>> = { crit: 3, def: 5, spd: 5 };
+export const RESONANCE_RANK_PAGE_SIZE = 10;
+export const RESONANCE_RANK_PAGE_MAX = 20;
+export const RESONANCE_RANK_CD = 2;
+/** Giây giữ bảng xếp hạng cộng minh đã tính (dùng chung mọi phòng); bảng có thể trễ ngần này so với dữ liệu đã lưu. */
+export const RESONANCE_RANK_CACHE = 30;
 /**
- * 4 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
+ * 5 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
  * mã `id` cố định. Mốc lấy đúng bảng ví dụ 5.10; **giá trị cộng đã chốt**:
  * Võ hồn +3 / +3 / +4% sinh lực, Hồn hoàn +3 / +3 / +4% công, Hồn cốt +2% sinh lực và +2% công mỗi mốc, Hồn hạch +4% hồn lực và
- * +2% công mỗi mốc. Cả 12 mốc: sinh lực +16%, công +22%, hồn lực +12%.
+ * +2% công mỗi mốc. Đủ 15 mốc: sinh lực +16%, công +22%, hồn lực +12%;
+ * trụ Sao cộng chí mạng / giảm sát thương nhận / tốc chạy theo bảng dưới, sau khi kẹp theo RESONANCE_EFFECT_CAP.
  * Tính lại từ dữ liệu sẵn có của tài khoản (võ hồn, hồn hoàn, đồ đang gắn), không lưu DB riêng.
  */
 export const RESONANCE: ResonanceDef[] = [
@@ -3909,9 +3925,11 @@ export const RESONANCE: ResonanceDef[] = [
     steps: [{ need: 6, bonus: { hp: 2, atk: 2 } }, { need: 12, bonus: { hp: 2, atk: 2 } }, { need: 24, bonus: { hp: 2, atk: 2 } }] },
   { id: "core", name: "Hồn hạch", what: `hồn hạch ${RES_CORE_STARS}★ trở lên đang gắn`, col: "#3aa8c0",
     steps: [{ need: 8, bonus: { mp: 4, atk: 2 } }, { need: 16, bonus: { mp: 4, atk: 2 } }, { need: 24, bonus: { mp: 4, atk: 2 } }] },
+  { id: "star", name: "Sao võ hồn", what: "sao cộng thêm trên mọi võ hồn", col: "#e6b84d",
+    steps: [{ need: 4, bonus: { crit: 1 } }, { need: 10, bonus: { def: 1 } }, { need: 18, bonus: { spd: 2 } }] },
 ];
 /** Dữ liệu tài khoản dùng để tính cộng minh: mọi võ hồn sở hữu (cấp, số hồn hoàn), hồn cốt / hồn hạch **đang gắn**. */
-export interface ResonanceInput { vohons: { level: number; rings: number }[]; bones: { enhance: number }[]; cores: { stars: number }[]; }
+export interface ResonanceInput { vohons: { level: number; rings: number; stars?: number }[]; bones: { enhance: number }[]; cores: { stars: number }[]; }
 /** Tiến độ từng trụ cột (theo thứ tự RESONANCE). Hàm thuần: server tính, client chỉ hiển thị số server gửi. */
 export function resonanceProgress(a: ResonanceInput): number[] {
   const of: Record<ResPillar, number> = {
@@ -3919,23 +3937,47 @@ export function resonanceProgress(a: ResonanceInput): number[] {
     ring: a.vohons.reduce((s, v) => s + v.rings, 0),
     bone: a.bones.filter((b) => b.enhance >= RES_BONE_ENHANCE).length,
     core: a.cores.filter((c) => c.stars >= RES_CORE_STARS).length,
+    star: a.vohons.reduce((s, v) => s + Math.max(0, Math.floor(v.stars ?? 1) - 1), 0),
   };
   return RESONANCE.map((r) => of[r.id]);
 }
 /** Số mốc đã đạt của từng trụ cột (0..số mốc), theo tiến độ `prog`. */
 export const resonanceLevels = (prog: readonly number[]) => RESONANCE.map((r, i) => r.steps.filter((s) => (prog[i] ?? 0) >= s.need).length);
 /** Tổng % cộng minh (mọi trụ cột, mọi mốc đã đạt) → tham số `res` của calcStats. */
-export function resonanceBonus(levels: readonly number[]): Record<ResStat, number> {
-  const out: Record<ResStat, number> = { hp: 0, mp: 0, atk: 0 };
+export function resonanceBonus(levels: readonly number[]): Record<ResEffect, number> {
+  const out: Record<ResEffect, number> = { hp: 0, mp: 0, atk: 0, crit: 0, def: 0, spd: 0 };
   RESONANCE.forEach((r, i) => r.steps.slice(0, Math.max(0, levels[i] ?? 0)).forEach((s) => {
-    for (const [k, v] of Object.entries(s.bonus) as [ResStat, number][]) out[k] += v;
+    for (const [k, v] of Object.entries(s.bonus) as [ResEffect, number][]) out[k] += v;
   }));
+  for (const [k, cap] of Object.entries(RESONANCE_EFFECT_CAP) as [ResEffect, number][]) out[k] = Math.min(cap, out[k]);
   return out;
 }
 /** "Sinh lực +6%, Công +3%" ("" nếu không cộng gì). */
-export const resonanceText = (b: Partial<Record<ResStat, number>>) =>
-  (Object.keys(RES_STAT_NAMES) as ResStat[]).filter((k) => b[k]).map((k) => `${RES_STAT_NAMES[k]} +${b[k]}%`).join(", ");
+export const resonanceText = (b: Partial<Record<ResEffect, number>>) =>
+  (Object.keys(RES_EFFECT_NAMES) as ResEffect[]).filter((k) => b[k]).map((k) => `${RES_EFFECT_NAMES[k]} +${b[k]}%`).join(", ");
 
+export interface ResonanceRankValue {
+  score: number;
+  milestones: number;
+  progressBp: number;
+  extraStars: number;
+}
+/** Điểm xếp hạng cộng minh: mốc 1/2/3 lần lượt được 1/2/3 điểm, tối đa 30 điểm. */
+export function resonanceRankValue(prog: readonly number[], levels: readonly number[], extraStars = 0): ResonanceRankValue {
+  let score = 0, milestones = 0, progressBp = 0;
+  RESONANCE.forEach((r, i) => {
+    const lv = Math.max(0, Math.min(r.steps.length, Math.floor(levels[i] ?? 0)));
+    for (let n = 1; n <= lv; n++) score += n;
+    milestones += lv;
+    const finalNeed = r.steps.at(-1)?.need ?? 0;
+    progressBp += finalNeed ? Math.min(10000, Math.floor(Math.max(0, prog[i] ?? 0) / finalNeed * 10000)) : 0;
+  });
+  return { score, milestones, progressBp, extraStars: Math.max(0, Math.floor(extraStars)) };
+}
+export interface ResonanceRankRow extends ResonanceRankValue { accountId: number; }
+/** So sánh giảm dần theo công thức đã chốt; accountId tăng dần là tie-break ổn định cuối cùng. */
+export const resonanceRankCompare = (a: ResonanceRankRow, b: ResonanceRankRow) =>
+  b.score - a.score || b.milestones - a.milestones || b.progressBp - a.progressBp || b.extraStars - a.extraStars || a.accountId - b.accountId;
 // ---------- Tự săn (mục 5.13, Auto 1; chủ repo chốt 2026-10-22) ----------
 /**
  * Tự săn khi online: server lái hồn sư bằng đúng các lệnh của người chơi (đi, đánh, hồn kỹ, đổi võ hồn, đan, nhặt), nên hiệu suất bằng
@@ -3988,6 +4030,23 @@ export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath
  * người hạ đã đầy. Bảng Tự động cho chọn nhặt từng loại (`AutoSettings.kinds`).
  */
 export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
+/**
+ * Tự săn đánh tinh anh, thú vương, boss thế giới (#218, chủ repo chốt 2026-10-22; mục 5.13). Đây là mục tiêu chung: không có luật
+ * "cướp quái", ai cũng vào đánh, đóng góp theo tài khoản; tự săn chỉ nhắm con mà mình còn nhận được thưởng (tinh anh chưa khóa
+ * ELITE.lock, thú vương / boss thế giới còn lượt KING.daily / WORLD.daily và chưa nhận rương của khung giờ đó). Không tính vào trần
+ * AUTO_PACE (máu boss tăng theo số người nên treo không hạ nhanh hơn tự đánh; thưởng đã giới hạn theo lượt / khóa); hồn thú thường bị
+ * gọi ra trong trận (bầy, nhện con) vẫn tính như mọi hồn thú thường.
+ * - `dodge`: né chiêu báo trước (kể cả chiêu toàn sàn, vòng an toàn) và vùng lưu lại trên đất: đứng trong vùng thì đi tới chỗ an toàn
+ *   gần nhất đi thẳng tới được, tìm trên `dirs` hướng, mỗi `step` pixel tới `max` pixel (cùng các vòng an toàn của chiêu toàn sàn).
+ * - `retreat` / `back`: sinh lực võ hồn ra trận dưới `retreat` phần thì lùi ra cách boss ít nhất `dist` pixel (uống đan theo ngưỡng
+ *   cài đặt như thường), từ `back` phần mới quay lại đánh.
+ * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
+ *   thanh tẩy để giải; `hold`: giữ võ hồn đổi vì cơ chế (khống chế ngắt tích lực, phụ trợ thanh tẩy, đúng hệ điểm yếu / phá Bá Thể) tối
+ *   đa ngần ấy giây mỗi lần rồi thôi (hồi chiêu chưa xong thì không đứng chờ mãi).
+ * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
+ *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
+ */
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
@@ -4003,14 +4062,15 @@ export interface AutoSettings {
   kinds: ItemKind[];       // loại vật phẩm khác được nhặt (trong AUTO_LOOT_KINDS)
   stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
   tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
+  elite: boolean; king: boolean; world: boolean; // #218: đánh cả tinh anh, thú vương, boss thế giới xuất hiện trên bản đồ đang đứng
 }
 /**
  * Mặc định: săn khắp bản đồ (vùng neo lớn nhất nếu chọn "near"), mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn
- * lực, hồn kỹ ô P → U, nhặt mọi thứ.
+ * lực, hồn kỹ ô P → U, nhặt mọi thứ, đánh cả tinh anh, thú vương, boss thế giới (#218).
  */
 export const AUTO_DEFAULTS: AutoSettings = { scope: "map", radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
   skills: [3, 2, 1, 0], slots: Array.from({ length: TEAM_SIZE }, (_, i) => i), ring: 0, bone: true, core: true, coreStar: 1,
-  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true };
+  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true, elite: true, king: true, world: true };
 /** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
 export function parseAuto(raw: unknown): AutoSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = AUTO_DEFAULTS;
@@ -4027,7 +4087,9 @@ export function parseAuto(raw: unknown): AutoSettings {
     hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
     skills: order(o.skills, LOADOUT_SIZE, D.skills), slots: order(o.slots, TEAM_SIZE, D.slots),
     ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core),
-    coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo) };
+    coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo),
+    // Bản lưu trước #218 chưa có ba công tắc: bật như mặc định.
+    elite: bool(o.elite, D.elite), king: bool(o.king, D.king), world: bool(o.world, D.world) };
 }
 /**
  * Giây tự săn còn lại khi hôm nay đã dùng `used` giây: phần còn của AUTO_DAILY_SECS cộng quỹ giờ cộng thêm `bonus` (Ủy Thác Lệnh).
