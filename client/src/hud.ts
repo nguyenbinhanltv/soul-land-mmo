@@ -2272,8 +2272,9 @@ export function showArena(a: { phase: string; time: number; me: string; friendly
   el.hidden = false; el.dataset.phase = a.phase;
   a.sides.forEach((s, i) => {
     const box = el.querySelector(`.a${i}`) as HTMLElement; if (!box) return;
-    box.classList.toggle("me", s.sid === a.me);
-    const name = `${s.name || "…"}${s.sid === a.me ? " (bạn)" : ""}`;
+    const me = s.sid.split(",").includes(a.me);
+    box.classList.toggle("me", me);
+    const name = `${s.name || "…"}${me ? " (đội của bạn)" : ""}`;
     if (box.querySelector("b")!.textContent !== name) box.querySelector("b")!.textContent = name;
     box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}`;
     (box.querySelector(".bar i") as HTMLElement).style.width = `${Math.round(s.pct * 1000) / 10}%`;

@@ -110,7 +110,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RESONANCE_RANK_CD, RESONANCE_RANK_PAGE_MAX, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaTeamElo, arenaCrossPairs, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
@@ -7231,6 +7231,10 @@ async function dailyTest(){
 async function arenaTest(){
   console.log("[7.2] Đại Đấu Hồn Trường: ghép trận, đấu, Elo, thưởng, bảng xếp hạng");
   const K=ARENA.k, exp=(r,o)=>1/(1+10**((o-r)/400));
+  ok(arenaTeamElo([1000,1100])===1050&&arenaTeamElo([1000])===1000&&arenaTeamElo([])===0,
+    "Elo đội 2v2: lấy trung bình các thành viên, làm tròn và không có thành viên thì 0");
+  ok(JSON.stringify(arenaCrossPairs([11,12],[21,22]))===JSON.stringify([[11,21],[11,22],[12,21],[12,22]]),
+    "chống dàn xếp đội: kiểm đủ 4 cặp tài khoản chéo giữa hai bên");
   ok(eloAfter(1000,1000,1)===1000+K/2&&eloAfter(1000,1000,0)===1000-K/2&&eloAfter(1000,1000,0.5)===1000
     &&eloAfter(1200,1000,1)===Math.round(1200+K*(1-exp(1200,1000)))&&eloAfter(1000,1200,1)===Math.round(1000+K*(1-exp(1000,1200)))&&eloAfter(10,10,0)===0,
     `Elo: K=${K}, ngang nhau ±${K/2}, thắng người mạnh hơn được nhiều hơn (+${eloAfter(1000,1200,1)-1000} / +${eloAfter(1200,1000,1)-1200}), không dưới 0`);
@@ -7304,10 +7308,38 @@ async function arenaTest(){
   // ---- Xếp hàng ở NPC ----
   await test(E,"goto",{x:34*16,y:24*16}); let t=await aop(E,"queue"); ok(/lại gần/.test(t)&&!E.aq.on,`đứng xa NPC: không xếp hàng được (${t})`);
   await at(E); await test(E,"hurt",{pct:5}); t=await aop(E,"queue"); ok(/giao chiến/.test(t)&&!E.aq.on,`vừa bị đánh: không xếp hàng được (${t})`);
-  // Đang trong tổ đội (7.1): không xếp hàng được; rời tổ đội thì được.
+  // Tổ đội 2 người (7.2): trưởng nhóm xếp cho cả hai, thành phần bị khóa tới khi hủy.
   E.room.send("party",{op:"invite",name:F.name}); await sleep(300); F.room.send("party",{op:"accept",name:E.name}); await sleep(400);
-  await test(E,"rest"); t=await aop(E,"queue"); ok(/tổ đội/.test(t)&&!E.aq.on,`đang trong tổ đội: không xếp hàng được (${t})`);
-  E.room.send("party",{op:"leave"}); await sleep(400);
+  await test(E,"rest"); t=await aop(E,"queue"); ok(E.aq.on&&F.aq.on&&E.aq.elo===ARENA.startElo,`tổ đội 2 người: trưởng nhóm xếp hàng cho cả đội Elo ${E.aq.elo} (${t})`);
+  t=await aop(E,"cancel"); ok(!E.aq.on&&!F.aq.on&&/hủy/.test(t),`hủy hàng chờ tổ đội: cả hai được mở khóa (${t})`);
+  E.room.send("party",{op:"leave"}); await waitFor(()=>!E.party?.id&&!F.party?.id,1500); await sleep(1000);
+  // Thành viên đi cổng thì cả bên ra khỏi hàng và trưởng nhóm nhận queue off + log.
+  F.room.send("party",{op:"invite",name:E.name}); await sleep(250); E.room.send("party",{op:"accept",name:F.name});
+  ok(await waitFor(()=>E.party?.id&&F.party?.id===E.party.id&&E.party.members.length===2&&F.party.members.length===2,1500),"tạo lại tổ đội 2 người trước bài đi cổng");
+  await at(E); await at(F); await aop(F,"queue");
+  ok(E.aq?.members?.length===2&&F.aq?.members?.length===2,"thành viên đi cổng: mục hàng có đủ hai thành viên");
+  const travelLog=F.logs.length; await test(E,"goto",{x:40*16,y:54.5*16}); E.travel=null; E.room.send("travel",{portal:"Về Nặc Đinh Thành"});
+  ok(await waitFor(()=>E.travel?.mapId,4000)&&await waitFor(()=>F.aq&&!F.aq.on,1500)&&F.logs.slice(travelLog).some(x=>/hàng chờ.*hủy/.test(x)),`thành viên đi cổng: trưởng nhóm nhận queue off và log hủy (F.aq=${JSON.stringify(F.aq)}, queues=${JSON.stringify(F.arena.filter(m=>m.k==="queue").slice(-6))}, F.log=${F.logs.slice(travelLog).join(" | ")}, E.travel=${JSON.stringify(E.travel)})`);
+  await E.room.leave(); await sleep(300); await back(E); await warpTown(E); await aop(E,"cancel"); E.room.send("party",{op:"leave"}); F.room.send("party",{op:"leave"}); await waitFor(()=>!E.party?.id&&!F.party?.id,1500);
+  // Khóa cả tài khoản solo: không nhận lời mời đã có và không gửi lời mời mới khi đang chờ.
+  await aop(G,"cancel"); G.room.send("party",{op:"invite",name:E.name});
+  ok(await waitFor(()=>E.party?.invites?.some(i=>i.name===G.name),1500),"người mời: lời mời mới được tạo trước khi xếp đơn");
+  await aop(E,"queue"); let partyLockLog=E.logs.length;
+  E.room.send("party",{op:"accept",name:G.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
+  ok(E.aq.on&&!E.party?.id&&/xếp hàng/.test(E.logs.slice(partyLockLog).join(" ")),"đang xếp hàng đơn: không nhận lời mời vào tổ đội");
+  E.room.send("party",{op:"leave"}); await waitFor(()=>!E.party?.id&&!F.party?.id,1500); await aop(E,"cancel");
+  E.room.send("party",{op:"decline",name:G.name}); await sleep(200);
+  await waitFor(()=>!(E.party?.invites??[]).some(i=>i.name===G.name),1500);
+  await aop(E,"queue"); partyLockLog=E.logs.length; E.room.send("party",{op:"invite",name:F.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
+  ok(E.aq.on&&/xếp hàng/.test(E.logs.slice(partyLockLog).join(" ")),"đang xếp hàng đơn: không mời người khác vào tổ đội");
+  await aop(E,"cancel");
+  // Người mời đã xếp đơn trước khi thành viên nhận lời cũng không được lập tổ đội mới.
+  G.room.send("party",{op:"invite",name:F.name}); await waitFor(()=>F.party?.invites?.some(i=>i.name===G.name),1500);
+  await qwait(G); await aop(G,"queue"); partyLockLog=F.logs.length;
+  F.room.send("party",{op:"accept",name:G.name}); await waitFor(()=>F.logs.length>partyLockLog,1500);
+  ok(G.aq.on&&!F.party?.id&&/Người mời.*xếp hàng/.test(F.logs.slice(partyLockLog).join(" ")),`người mời đang xếp hàng đơn: thành viên không nhận lời mời (G.aq=${JSON.stringify(G.aq)}, F.party=${JSON.stringify(F.party)}, F.log=${F.logs.slice(partyLockLog).join(" | ")})`);
+  await aop(G,"cancel"); F.room.send("party",{op:"decline",name:G.name}); await sleep(200);
+  await waitFor(()=>!(F.party?.invites??[]).some(i=>i.name===G.name),1500);
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
@@ -7322,8 +7354,8 @@ async function arenaTest(){
       `cancel / queue dồn ${n} lần trong ${ARENA.queueCd} giây: không đọc DB thêm, ${cnt(/quá nhanh/)} lần báo "${got().find(x=>/quá nhanh/.test(x))}", cuối cùng đã hủy`);
     t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`sau ARENA.queueCd = ${ARENA.queueCd} giây: xếp hàng lại được (${t})`);
     t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`); }
-  // Hủy lúc đang đọc Elo (#225): F (cùng Elo khởi đầu) đang chờ; hook aslow làm chậm lần đọc DB kế tiếp của E. E xếp hàng, hủy trước khi
-  // đọc xong rồi xếp lại ngay (bị báo thao tác quá nhanh): đọc xong E không vào hàng chờ, không bị ghép với F.
+  // Hủy lúc đang đọc Elo (#225/#227): F (cùng Elo khởi đầu) đang chờ; hook aslow làm chậm lần đọc DB kế tiếp của E. E xếp hàng, hủy trước khi
+  // đọc xong rồi xếp lại ngay (bị báo thao tác quá nhanh): cờ bận giữ tới khi đọc cũ kết thúc, không bị hai lần đọc chồng nhau.
   // Tin "arena" k = queue: một cho cancel, một cho queue bị từ chối, một khi đọc xong; sau đó chờ thêm vài lượt ghép (500 ms một lượt).
   { const ms=1500; await at(F); await aop(F,"queue"); await qwait(E); await test(E,"aslow",{ms});
     const l=E.logs.length, n=E.aqN, got=()=>E.logs.slice(l), has=re=>got().some(x=>re.test(x));
@@ -7332,7 +7364,9 @@ async function arenaTest(){
     await waitFor(()=>E.aqN>=n+3,ms+3000); await sleep(1500); await test(E,"aslow",{ms:0});
     ok(F.aq.on&&!E.aq.on&&!found(E)&&!found(F)&&!has(/Đang tìm đối thủ/)&&has(/hủy/)&&has(/quá nhanh/),
       `hủy trong lúc đọc Elo (chậm ${ms} ms): đọc xong không vào hàng chờ, không bị ghép với F (${got().join(" | ")})`);
-    t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ một mình, hủy"); }
+    t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ một mình, hủy");
+    await sleep(ARENA.queueCd*1000+100); t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ/.test(t),"đọc cũ đã kết thúc: sau queueCd được xếp lại, không có lần đọc chồng");
+    t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),"hủy hàng sau khi đọc cũ kết thúc"); }
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
   await at(F); await aop(F,"queue"); await test(F,"goto",{x:40*16,y:54.5*16});
   await qwait(E); F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
@@ -7588,6 +7622,66 @@ async function arenaTest(){
     await J.room.leave(); await sleep(300); await back(J);
     await kickBack(H);
     for(const b of [H,I,J]) await b.room.leave();
+  }
+  // ---- Tổ đội 2v2: hai tổ đội cùng kênh, vào đủ 4 người, hạ cả đội và cập nhật Elo / thưởng từng tài khoản ----
+  {
+    const K=await bot("Đội A1","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:0,outfitCol:0});
+    const L=await bot("Đội A2","hoa_anh",{sex:1,hair:1,hairCol:1,outfitCol:1});
+    const M=await bot("Đội B1","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:2});
+    const N=await bot("Đội B2","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:3,outfitCol:3});
+    const all=[K,L,M,N]; for(const b of all) await warpTown(b);
+    const joinParty=async(lead,mate)=>{ lead.room.send("party",{op:"invite",name:mate.name}); await sleep(250); mate.room.send("party",{op:"accept",name:lead.name}); await waitFor(()=>lead.party?.members.length===2&&mate.party?.id===lead.party?.id,1500); };
+    await joinParty(K,L); await joinParty(M,N);
+    await at(K,-12); await at(L,-12); await at(M,12); await at(N,12);
+    const nK=K.arena.length, nL=L.arena.length, nM=M.arena.length, nN=N.arena.length;
+    await aop(K,"queue"); await aop(M,"queue");
+    const found2=b=>b.arena.slice(b===K?nK:b===L?nL:b===M?nM:nN).filter(m=>m.k==="found").at(-1);
+    ok(await waitFor(()=>found2(K)&&found2(L)&&found2(M)&&found2(N),4000),"2v2: cả hai trưởng nhóm nhận được mã trận cho đủ 4 thành viên");
+    ok(found2(K)?.foe.includes(M.name)&&found2(K)?.foe.includes(N.name)&&found2(M)?.foe.includes(K.name)&&found2(M)?.foe.includes(L.name),"2v2: tin ghép trận có đủ tên hai thành viên đối thủ");
+    await Promise.all(all.map(async b=>enterArena(b)));
+    await waitFor(()=>K.room.state.phase==="ready",3000);
+    const ss=[...K.room.state.sides];
+    ok(ss.length===2&&ss.every(s=>s.name.includes(" / "))&&ss.every(s=>s.sid.split(",").length===2),"ArenaRoom 2v2: hai bên có đủ 2 session và HUD nhận tên đội");
+    await test(K,"afast",{s:0}); await waitFor(()=>K.room.state.phase==="fight",2000);
+    for(const b of [M,N]) for(let j=0;j<TEAM_SIZE&&!b.room.state.players.get(b.room.sessionId).dead;j++) await test(b,"down");
+    ok(await waitFor(()=>K.arena.slice(nK).some(m=>m.k==="end")&&L.arena.slice(nL).some(m=>m.k==="end")&&M.arena.slice(nM).some(m=>m.k==="end")&&N.arena.slice(nN).some(m=>m.k==="end"),4000),"2v2: hạ cả hai thành viên một bên thì trận kết thúc");
+    const end2=b=>b.arena.slice(b===K?nK:b===L?nL:b===M?nM:nN).filter(m=>m.k==="end").at(-1);
+    ok([K,L].every(b=>end2(b)?.score===1&&end2(b)?.elo1===eloAfter(1000,1000,1))&&[M,N].every(b=>end2(b)?.score===0&&end2(b)?.elo1===eloAfter(1000,1000,0)),"2v2: Elo cập nhật riêng từng tài khoản theo Elo đội đối thủ");
+    await Promise.all(all.map(b=>kickBack(b)));
+
+    // Thành viên rời trong pha chờ: không được chuyển sang giao đấu khi đủ các session còn lại.
+    const nK2=K.arena.length, nL2=L.arena.length, nM2=M.arena.length, nN2=N.arena.length;
+    await aop(K,"queue"); await aop(M,"queue");
+    const found3=b=>b.arena.slice(b===K?nK2:b===L?nL2:b===M?nM2:nN2).filter(m=>m.k==="found").at(-1);
+    ok(await waitFor(()=>found3(K)&&found3(L)&&found3(M)&&found3(N),4000),"2v2 rời khi chờ: cả hai đội nhận được mã trận");
+    await enterArena(K); await enterArena(M);
+    ok(K.room.state.phase==="wait","2v2 rời khi chờ: mới có một người mỗi bên thì vẫn chờ");
+    await K.room.leave();
+    ok(await waitFor(()=>M.arena.slice(nM2).some(m=>m.k==="end"),3000),"2v2 rời khi chờ: bên còn lại nhận kết quả ngay");
+    const leftWait=()=>M.arena.slice(nM2).filter(m=>m.k==="end").at(-1);
+    ok(await waitFor(()=>M.room.state.phase==="end"&&leftWait()?.reason==="leave",1000),"2v2 rời khi chờ: bên rời thua leave, không vào pha giao đấu");
+    await back(K);
+    if(M.room.state.phase==="end") await kickBack(M);
+    else { await test(M,"afast",{s:0}); await M.room.leave().catch(()=>{}); await sleep(300); await back(M); }
+    for(const b of all) await b.room.leave();
+  }
+  // ---- Không ghép chéo 1v2: bên đơn và bên tổ đội cùng chờ phải tiếp tục chờ ----
+  {
+    const Solo=await bot("Đơn lệch", "bich_lan_xa_hoang", {sex:0,hair:0,hairCol:0,outfitCol:0});
+    const TeamA=await bot("Đội lệch A", "hoa_anh", {sex:1,hair:0,hairCol:1,outfitCol:1});
+    const TeamB=await bot("Đội lệch B", "u_minh_linh_mieu", {sex:0,hair:0,hairCol:2,outfitCol:2});
+    const mismatched=[Solo,TeamA,TeamB]; for(const b of mismatched) await warpTown(b);
+    TeamA.room.send("party",{op:"invite",name:TeamB.name}); await sleep(250);
+    TeamB.room.send("party",{op:"accept",name:TeamA.name}); await waitFor(()=>TeamA.party?.members.length===2&&TeamB.party?.id===TeamA.party?.id,1500);
+    await at(Solo,-12); await at(TeamA,12); await at(TeamB,12);
+    const nSolo=Solo.arena.length, nTeamA=TeamA.arena.length, nTeamB=TeamB.arena.length;
+    await aop(Solo,"queue"); await aop(TeamA,"queue");
+    await sleep(1500);
+    const freshFound=(b,n)=>b.arena.slice(n).some(m=>m.k==="found");
+    ok(!freshFound(Solo,nSolo)&&!freshFound(TeamA,nTeamA)&&!freshFound(TeamB,nTeamB),
+      "không ghép người đơn với tổ đội 2 người thành trận 1v2");
+    await aop(Solo,"cancel"); await aop(TeamA,"cancel");
+    for(const b of mismatched) await b.room.leave();
   }
 }
 /**

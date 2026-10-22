@@ -3758,6 +3758,12 @@ export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AW
 export const eloExpect = (r: number, ro: number) => 1 / (1 + Math.pow(10, (ro - r) / 400));
 /** Elo mới sau một trận: `score` 1 thắng, 0,5 hòa, 0 thua; làm tròn, không dưới 0. */
 export const eloAfter = (r: number, ro: number, score: number, k = ARENA.k) => Math.max(0, Math.round(r + k * (score - eloExpect(r, ro))));
+/** Elo của một bên tổ đội: trung bình Elo từng tài khoản, làm tròn để ghép và tính kết quả ổn định. */
+export const arenaTeamElo = (elos: number[]) => elos.length ? Math.round(elos.reduce((sum, elo) => sum + elo, 0) / elos.length) : 0;
+/** Mọi cặp tài khoản chéo giữa hai bên, dùng để chống dàn xếp trong trận tổ đội. */
+export function arenaCrossPairs<T>(a: T[], b: T[]): [T, T][] {
+  return a.flatMap((x) => b.map((y) => [x, y] as [T, T]));
+}
 /** Chênh Elo tối đa được ghép sau `waitSecs` giây chờ (nới dần). */
 export const arenaWindow = (waitSecs: number) => Math.min(ARENA.window.max, ARENA.window.base + ARENA.window.perSec * Math.max(0, waitSecs));
 /**
