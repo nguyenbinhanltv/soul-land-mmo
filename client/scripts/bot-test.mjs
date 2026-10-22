@@ -4224,7 +4224,7 @@ else {
           &&A.logs.slice(lt).some(t=>/Đã rời cổng: hủy đi qua cổng/.test(t))&&st.mapId===m0,
           `đang niệm đi cổng: dùng được kỹ năng hồn cốt, vẫn niệm tới khi rời cổng (${A.logs.slice(lt).join(" | ")})`);
         await test(A,"clear");
-      }
+      } else ok(false,`#270: ${st.mapId} không có cổng để thử kỹ năng hồn cốt khi đang niệm`);
       await test(A,"goto",spot); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       // Tháo hồn cốt Thân: mất bị động ngay.
       await boneOp("unequip",{itemId:tg.id});

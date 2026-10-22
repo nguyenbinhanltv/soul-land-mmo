@@ -282,6 +282,8 @@ const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v 
 const strIn = (v: unknown) => (typeof v === "string" ? v : "");
 /** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
+/** Số lần ghi trong chuỗi lưu (chain) bị lỗi từ lúc bật server: index.ts so trước / sau khi tắt để biết lần lưu cuối có trót lọt (#270). */
+export const saveStats = { failed: 0 };
 
 // ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
 /**
@@ -1017,7 +1019,7 @@ export class MapRoom extends Room<MapState> {
    * không làm gãy chuỗi; promise trả về luôn resolve.
    */
   chain(d: PData, fn: () => unknown) {
-    d.saving = d.saving.then(fn).then(() => {}, (e) => console.error(`Lưu dữ liệu tài khoản #${d.accountId} thất bại`, e));
+    d.saving = d.saving.then(fn).then(() => {}, (e) => { saveStats.failed++; console.error(`Lưu dữ liệu tài khoản #${d.accountId} thất bại`, e); });
     return d.saving;
   }
 

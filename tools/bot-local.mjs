@@ -355,11 +355,12 @@ async function startServer(port, env, log, stats) {
 /**
  * --fatal (#270): mỗi kiểu lỗi (ném lỗi trong hẹn giờ ngoài phòng, promise bị từ chối không ai bắt) một lượt: fatal-test.mjs pha crash
  * gọi hook `crash` -> server phải tự thoát mã ≠ 0, log có lỗi kèm stack và dòng đã lưu người chơi; với --pg bật lại server trên cùng
- * database, pha verify kiểm vị trí / cấp / kinh nghiệm đã lưu. Trả số kiểm tra trượt.
+ * database, pha verify kiểm vị trí / cấp / kinh nghiệm đã lưu. Kết quả qua các dòng ✓ / ✗ gửi cho onLine. Mỗi lần bật lại server lấy cổng
+ * trống mới (cổng cũ đã nhả có thể đã về tay lượt bot khác).
  */
 async function fatalRun(server, port, senv, env, slog, blog, sstats, onLine) {
-  let fails = 0;
-  const check = (c, msg) => { onLine(`${c ? "✓" : "✗"} ${msg}`); if (!c) fails++; };
+  const check = (c, msg) => onLine(`${c ? "✓" : "✗"} ${msg}`);
+  const restart = async () => { port = await freePort(); return startServer(port, { ...senv, PORT: String(port) }, slog, sstats); };
   const stats = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal.json`);
   const script = (phase, kind, file) => spawnNode(path.join(clientDir, "scripts", "fatal-test.mjs"), {
     cwd: clientDir, log: blog, stats, onLine,
@@ -368,7 +369,7 @@ async function fatalRun(server, port, senv, env, slog, blog, sstats, onLine) {
   }).done;
   for (const kind of ["throw", "reject"]) {
     const file = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal-${kind}.json`);
-    if (!server) server = await startServer(port, senv, slog, sstats);
+    if (!server) server = await restart();
     const from = statSync(slog).size;
     check(await script("crash", kind, file) === 0, `[${kind}] pha crash của fatal-test.mjs đạt`);
     const exit = await Promise.race([server.p.done, sleep(20_000).then(() => null)]);
@@ -382,14 +383,13 @@ async function fatalRun(server, port, senv, env, slog, blog, sstats, onLine) {
     check(/Tắt server: đã lưu người chơi đang online, đã đóng kết nối DB; thoát mã 1/.test(log),
       `[${kind}] log server: ${log.match(/Tắt server:[^\n]*/)?.[0] ?? "(không có dòng tắt server)"}`);
     if (opt.pg) {
-      server = await startServer(port, senv, slog, sstats);
+      server = await restart();
       check(await script("verify", kind, file) === 0, `[${kind}] PostgreSQL: dữ liệu đã lưu trước khi thoát`);
     }
     rmSync(file, { force: true });
   }
   if (server) await kill(server.p);
   rmSync(stats, { force: true });
-  return fails;
 }
 
 const what = opt.only ? `only=${opt.only}` : opt.part ? `part=${opt.part}` : opt.channels ? "channels" : opt.fatal ? "fatal" : "full";
@@ -428,8 +428,8 @@ try {
 
   if (opt.fatal) {
     const n = { "✓": 0, "✗": 0 };
-    const fails = await fatalRun(server, port, senv, env, slog, blog, sstats, (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; });
-    code = fails || n["✗"] ? 1 : 0;
+    await fatalRun(server, port, senv, env, slog, blog, sstats, (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; });
+    code = n["✗"] ? 1 : 0;
     console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : "TRƯỢT"}: ✓ ${n["✓"]}, ✗ ${n["✗"]}; tổng ${secs(tAll)}; log: ${path.relative(root, slog)}, ${path.relative(root, blog)}`);
   } else {
     const benv = { ...env, SERVER_URL: `http://localhost:${port}` };

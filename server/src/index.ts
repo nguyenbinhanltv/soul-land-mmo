@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server, LocalPresence, matchMaker } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
+import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP, saveStats } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
@@ -156,14 +156,15 @@ function shutdown(code: number, why: string) {
   exitCode = Math.max(exitCode, code); process.exitCode = exitCode;
   stopping ??= (async () => {
     try {
-      const { local } = matchMaker.stats;
+      const { local } = matchMaker.stats, failed0 = saveStats.failed;
       console.error(`Đang tắt server (${why}): lưu ${local.ccu} người chơi đang online, hạn ${SHUTDOWN_SAVE_MS} ms…`);
       await within("Lưu người chơi đang online", () => gameServer.gracefullyShutdown(false), SHUTDOWN_SAVE_MS);
-      // Colyseus tự bắt lỗi giữa chừng (in log) rồi vẫn trả về, nên xét theo số người còn trong phòng: ccu chỉ giảm sau khi onLeave (lần
-      // ghi cuối) xong. Phòng còn chỗ đặt trước chưa dùng thì chỉ đóng khi chỗ đó hết hạn: không còn người nên không còn gì để lưu.
-      const saved = local.ccu <= 0;
+      // Colyseus tự bắt lỗi giữa chừng (in log) rồi vẫn trả về, nên xét theo số người còn trong phòng (ccu chỉ giảm sau khi onLeave, lần
+      // ghi cuối, xong) và số lần ghi lỗi trong lúc tắt (chuỗi lưu chỉ ghi log lỗi). Phòng còn chỗ đặt trước chưa dùng chỉ đóng khi chỗ đó
+      // hết hạn: không còn người nên không còn gì để lưu.
+      const failed = saveStats.failed - failed0, saved = local.ccu <= 0 && !failed;
       const closed = await within("Đóng kết nối PostgreSQL", () => store.close(), SHUTDOWN_DB_MS);
-      console.error(`Tắt server: ${saved ? "đã lưu người chơi đang online" : `CHƯA lưu xong người chơi đang online (còn ${local.ccu} người)`}, `
+      console.error(`Tắt server: ${saved ? "đã lưu người chơi đang online" : `CHƯA lưu xong người chơi đang online (còn ${local.ccu} người, ${failed} lần ghi lỗi)`}, `
         + `${closed ? "đã đóng" : "chưa đóng"} kết nối DB; thoát mã ${exitCode}.`);
     } finally {
       process.exit(exitCode); // lỗi bất ngờ ngay trong lúc tắt cũng không để tiến trình treo
@@ -180,15 +181,16 @@ function fatal(kind: string, err: unknown) {
   console.error(`Lỗi nghiêm trọng ngoài phòng (${kind})${stopping ? " trong lúc đang tắt server" : ""}:`, err);
   shutdown(1, kind);
 }
+
+// Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
+for (const id of Object.keys(MAPS)) loadMap(id);
+await store.init();
+// Gắn sau khi nạp bản đồ / DB: lỗi lúc khởi động vẫn dừng ngay với lỗi gốc của Node (chưa có ai để lưu), trước khi server nhận kết nối.
 process.on("uncaughtException", (err, origin) => fatal(origin, err));
 process.on("unhandledRejection", (reason) => fatal("unhandledRejection", reason));
 // Tắt bình thường (Ctrl+C, nền tảng deploy dừng / khởi động lại, nodemon): lưu như trên rồi thoát mã 0. Tín hiệu lặp lại trong lúc đang
 // tắt không cắt ngang lần lưu (process.on, không once); tối đa SHUTDOWN_SAVE_MS + SHUTDOWN_DB_MS.
 for (const sig of ["SIGINT", "SIGTERM", "SIGUSR2"] as const) process.on(sig, () => shutdown(0, sig));
-
-// Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
-for (const id of Object.keys(MAPS)) loadMap(id);
-await store.init();
 await gameServer.listen(PORT);
 // Lịch tà hóa thú vương 20:00 / 22:00 giờ Việt Nam (BĐ5): báo toàn server trước 5 phút, phòng của bản đồ đó sinh thú vương.
 startSchedule(presence);
