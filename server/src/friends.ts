@@ -38,8 +38,15 @@ export function enter(acc: number, sid: string, name: string, row: SocialRow) {
   social.set(acc, s);
 }
 
-/** Phiên `sid` rời phòng: bỏ danh sách khỏi RAM (phòng mới nạp lại từ DB). */
-export function leave(acc: number, sid: string) { if (social.get(acc)?.sid === sid) social.delete(acc); }
+/**
+ * Phiên `sid` rời phòng: bỏ danh sách khỏi RAM (phòng mới nạp lại từ DB). Bạn đang trong game ghi nhận `acc` có họ (`fans`), để sau
+ * khi `acc` ngoại tuyến bảng của họ vẫn đúng hai bên đã thêm nhau (kể cả khi họ nạp DB lúc lần thêm của `acc` chưa ghi xong).
+ */
+export function leave(acc: number, sid: string) {
+  const s = social.get(acc); if (s?.sid !== sid) return;
+  for (const f of s.friends.keys()) social.get(f)?.fans.add(acc);
+  social.delete(acc);
+}
 
 /** `by` đang trong game và đã chặn `who`. */
 export function blocked(by: number, who: number) { return !!social.get(by)?.blocks.has(who); }

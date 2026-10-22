@@ -42,7 +42,7 @@ import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
-import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, friendCheck, friendReset, type ChatChannel } from "../ratelimit.ts";
+import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, friendCheck, friendReset, friendNoteOk, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
@@ -964,11 +964,13 @@ export class MapRoom extends Room<MapState> {
       // xong hay đạn còn bay hạ hồn thú, cộng vào nhân vật sau khi write() đã chụp dữ liệu, rồi mất khi pdata bị xóa.
       if (d.absorbing) { d.absorbing = null; p.absorb = 0; }
       const zone = this.offlineZone(id); // ủy thác offline (Auto 3): chụp chỗ đứng trước khi freeze
+      const moving = d.travelling || d.arenaGone; // đang đi cổng / đổi kênh / vào sân đấu (trước khi freeze đặt cờ)
       this.freeze(id);
       // Tổ đội (7.1): vẫn trong đội PARTY_OFFLINE_SECS giây (đi cổng, vào lại); quá thì party.sweep cho ra khỏi đội.
       this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
-      // Bạn bè (#195): người đã thêm nhau thấy mình rời game (hoặc chờ thấy ở bản đồ / kênh mới); lần ghi bạn bè còn trong chuỗi lưu.
-      const mates = friends.mutualOnline(d.accountId);
+      // Bạn bè (#195): người đã thêm nhau thấy mình rời game; đang chuyển phòng thì chờ onJoin của phòng mới báo bản đồ / kênh mới
+      // (không nháy "Ngoại tuyến"). Lần ghi bạn bè còn trong chuỗi lưu.
+      const mates = moving ? [] : friends.mutualOnline(d.accountId);
       friends.leave(d.accountId, id);
       this.friendPublish([{ to: mates }]);
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
@@ -6301,6 +6303,8 @@ export class MapRoom extends Room<MapState> {
       r = op === "add" ? friends.add(acc, t) : friends.block(acc, t);
     }
     if ("error" in r) return warn(r.error);
+    // Lời "đã thêm bạn" tới cùng một người chỉ gửi lại sau một lúc (xóa rồi thêm lại liên tục không làm ngập log người kia).
+    for (const n of r.notes) if (n.added && !friendNoteOk(acc, n.to[0], Date.now())) delete n.added;
     const w = r.write;
     if (w.block) { // lời mời tổ đội giữa hai người có từ trước khi chặn cũng bỏ (cả hai chiều)
       if (party.dropInvite(acc, w.other)) this.sendParty(id, true);
@@ -6361,9 +6365,10 @@ export class MapRoom extends Room<MapState> {
         name = t.name;
       }
       if (!name) return warn("Gõ tên hồn sư muốn mời, ví dụ /moi Đường Tam.");
+      // #195: kiểm chặn trước, để người bị chặn không đọc được tình trạng tổ đội của người chặn qua lỗi của inviteDeny.
+      const on = party.onlineByName(name), bw = on && this.blockDeny(acc, on.acc, on.name, "lời mời tổ đội"); if (bw) return warn(bw);
       const ok = party.inviteDeny(acc, name, now);
       if ("error" in ok) return warn(ok.error);
-      const bw = this.blockDeny(acc, ok.target, name, "lời mời tổ đội"); if (bw) return warn(bw); // #195
       const rl = inviteCheck(acc, ok.target, now);
       if (rl) return warn(rl.error);
       r = { notes: party.addInvite(acc, ok.target, now) };

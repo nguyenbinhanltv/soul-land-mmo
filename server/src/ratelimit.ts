@@ -78,6 +78,8 @@ const INVITE_REPEAT_MS = 30_000;
 const FRIEND_BURST = 10;
 /** …sau đó hồi 1 lượt mỗi giây (thêm theo tên có thể phải tra DB). */
 const FRIEND_REFILL_MS = 1_000;
+/** Lời "X đã thêm bạn" từ cùng một người tới cùng một người: tối đa một lần mỗi 60 giây (xóa rồi thêm lại liên tục). */
+const FRIEND_NOTE_REPEAT_MS = 60_000;
 
 /** Dọn các mục cũ mỗi 5 phút để bộ nhớ không phình ra. */
 const SWEEP_MS = 5 * 60_000;
@@ -314,8 +316,21 @@ export function friendCheck(key: number, now = Date.now()): { error: string } | 
   return null;
 }
 
-/** Hook kiểm thử (`test {op: "friend", fop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm thao tác bạn bè của một tài khoản. */
-export function friendReset(key: number) { friendOps.delete(key); }
+const friendNotes = new Map<string, number>(); // "người thêm|người được thêm" -> lúc gửi lời "đã thêm bạn" gần nhất
+
+/** Được gửi lời "đã thêm bạn" của `key` tới `target` lúc này không (#195); được thì ghi lại lúc gửi. */
+export function friendNoteOk(key: number, target: number, now = Date.now()) {
+  const k = `${key}|${target}`, at = friendNotes.get(k);
+  if (at !== undefined && now - at < FRIEND_NOTE_REPEAT_MS) return false;
+  friendNotes.set(k, now);
+  return true;
+}
+
+/** Hook kiểm thử (`test {op: "friend", fop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm thao tác bạn bè và lời "đã thêm bạn" của một tài khoản. */
+export function friendReset(key: number) {
+  friendOps.delete(key);
+  for (const k of friendNotes.keys()) if (k.startsWith(`${key}|`)) friendNotes.delete(k);
+}
 
 // ---------- Dọn dẹp ----------
 export function sweep(now = Date.now()) {
@@ -328,8 +343,9 @@ export function sweep(now = Date.now()) {
     if (!e.last.size && now - e.at > CHAT_FORGET_MS) invites.delete(k);
   }
   for (const [k, e] of friendOps) if (now - e.at > CHAT_FORGET_MS) friendOps.delete(k);
+  for (const [k, at] of friendNotes) if (now - at >= FRIEND_NOTE_REPEAT_MS) friendNotes.delete(k);
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); }

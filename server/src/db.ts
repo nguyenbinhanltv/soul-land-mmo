@@ -518,9 +518,8 @@ export class MemoryStore implements Store {
   }
   async setFriend(accountId: number, other: number, on: boolean) { this.mark(this.friends, accountId, other, on); }
   async setBlock(accountId: number, other: number, on: boolean) {
-    if (accountId === other || !this.names.has(other)) throw new Error(`Tài khoản #${other} không hợp lệ.`); // kiểm trước, rồi mới gán
-    if (on) this.mark(this.friends, accountId, other, false);
-    this.mark(this.blocks, accountId, other, on);
+    this.mark(this.blocks, accountId, other, on); // kiểm như CHECK / khóa ngoại trước khi gán
+    if (on) this.friends.get(accountId)?.delete(other);
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = this.autos.get(accountId);
