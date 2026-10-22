@@ -1,4 +1,4 @@
-// Phòng Đại Đấu Hồn Trường (mục 5.9, bước 7.2): một trận đấu đội võ hồn 1v1 giữa hai hồn sư đã ghép ở hàng chờ (arenaQueue.ts).
+// Phòng Đại Đấu Hồn Trường (mục 5.9, bước 7.2): một trận đấu đội võ hồn 1v1 hoặc 2v2 giữa hai bên đã ghép ở hàng chờ (arenaQueue.ts).
 // Lớp con của MapRoom trên sân `ARENA_MAP`: dùng lại nguyên vòng lặp, di chuyển, đánh thường, hồn kỹ, tiên cơ, kỹ năng hồn cốt, đổi
 // võ hồn, gục từng võ hồn; MapRoom.foesOf trả đối thủ khi đang giao đấu nên đòn đánh trúng được hồn sư bên kia (damageFoe). Ở đây chỉ
 // có luật riêng của trận: các pha (chờ vào sân, đếm ngược, giao đấu, kết quả), thắng thua, Elo, thưởng, rời sân = thua.
@@ -35,7 +35,7 @@ const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn",
 export const ARENA_END_CODE = 4005;
 
 export class ArenaRoom extends MapRoom {
-  // Không chia kênh (mục 6 "Nhiều kênh"): mỗi trận một phòng riêng 2 người, không theo CHANNEL_MAX; `state.channel` = 0 nên MapRoom
+  // Không chia kênh (mục 6 "Nhiều kênh"): mỗi trận một phòng riêng tối đa 4 người, không theo CHANNEL_MAX; `state.channel` = 0 nên MapRoom
   // không cấp số kênh, không khóa kênh khi rời sân, tin `channel` bị từ chối;
   // rời sân thì vào bản đồ cũ theo pickChannel (kênh đồng đội, không thì ít người nhất).
   maxClients = 4;
@@ -56,10 +56,10 @@ export class ArenaRoom extends MapRoom {
     m.roomId = this.roomId;
     this.match = m;
     this.sides = m.sides.map((s) => ({ id: s.id, elo: s.elo, members: s.members.map((member) => ({ ...member, rec: { ...member.rec }, sid: "", left: false, claims: 0 })) }));
-    // Chỉ vào được bằng mã phòng (joinById) do server gửi cho đúng hai người đã ghép.
+    // Chỉ vào được bằng mã phòng (joinById) do server gửi cho đúng các thành viên của hai bên đã ghép.
     void this.setPrivate(true);
     this.setup(ARENA_MAP);
-    this.interest.all = true; // sân nhỏ, hai người: không lọc đồng bộ theo vùng (11.4), không gửi tin bản đồ nhỏ
+    this.interest.all = true; // sân nhỏ: không lọc đồng bộ theo vùng (11.4), không gửi tin bản đồ nhỏ
     for (const s of this.sides) { const a = new ArenaSide(); a.name = s.members.map((member) => member.name).join(" / "); a.elo = s.elo; this.state.sides.push(a); }
     // Chống dàn xếp (9.7): báo trước cho hai bên nếu cặp đã đủ ARENA.pairDaily trận tính Elo hôm nay. Chỉ để hiển thị; trận có tính
     // Elo không là do lần đếm lúc hết trận (finish) quyết định.
@@ -74,7 +74,7 @@ export class ArenaRoom extends MapRoom {
     this.onMessage("arena", (c, msg: { op: unknown }) => { if (msg?.op === "top") this.arenaTop(c.sessionId); });
   }
 
-  /** Chỉ hai người của trận được vào, mỗi người một lần (rời sân là bỏ trận); không đối chiếu bản đồ đang đứng (vẫn là bản đồ cũ). */
+  /** Chỉ thành viên của hai bên được vào, mỗi tài khoản một phiên (rời sân là bỏ trận); không đối chiếu bản đồ đang đứng. */
   async checkJoin(accountId: number) {
     const s = this.sides.flatMap((x) => x.members).find((x) => x.accountId === accountId);
     if (!s) throw new ServerError(403, "Bạn không ở trong trận đấu này.");
@@ -91,14 +91,14 @@ export class ArenaRoom extends MapRoom {
     return auth;
   }
 
-  /** Vào sân: cả đội đầy sinh lực (MapRoom.onJoin hồi đầy, chưa gục võ hồn nào), đứng ở hai phía sân (1/4 và 3/4 chiều ngang) quay mặt vào nhau. */
+  /** Vào sân: cả đội đầy sinh lực, đứng ở hai phía sân (1/4 và 3/4 chiều ngang) quay mặt vào nhau; thành viên 2v2 lệch nhẹ theo chiều dọc. */
   onJoin(client: Client, o: unknown, auth: AuthData) {
     super.onJoin(client, o, auth);
     const i = this.sides.findIndex((x) => x.members.some((member) => member.accountId === auth.accountId)), s = this.sides[i];
     const mi = s.members.findIndex((member) => member.accountId === auth.accountId), p = this.state.players.get(client.sessionId)!, d = this.pdata.get(client.sessionId)!;
     s.members[mi].sid = client.sessionId; this.state.sides[i].sid = s.members.map((member) => member.sid).filter(Boolean).join(",");
     const sp = this.map.spawn;
-    p.x = Math.round(sp.x + sp.w * (i === 0 ? 0.25 : 0.75)); p.y = Math.round(sp.y + sp.h * (mi ? 0.58 : 0.42));
+    p.x = Math.round(sp.x + sp.w * (i === 0 ? 0.25 : 0.75)); p.y = Math.round(sp.y + sp.h * (s.members.length === 1 ? 0.5 : mi ? 0.58 : 0.42));
     d.dir = { x: i === 0 ? 1 : -1, y: 0 }; p.dir = dir4(d.dir.x, 0);
     this.syncSides();
     if (this.phase === "wait" && this.sides.every((x) => x.members.every((member) => member.sid && !member.left))) {
@@ -148,9 +148,9 @@ export class ArenaRoom extends MapRoom {
     super.chanThan(c);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }
-  /** Đấu hồn là 1v1 (7.1): không lan hiệu ứng tổ đội, kể cả khi đối thủ cùng tổ đội. */
+  /** Đấu hồn 1v1 / 2v2 (7.1): không lan hiệu ứng tổ đội trong sân, kể cả khi các thành viên cùng tổ đội. */
   partyBuffNear(_id: string): string[] { return []; }
-  /** Trong sân không mời / nhận lời mời tổ đội (đấu hồn là 1v1, 7.1); xem khung tổ đội, từ chối, rời đội vẫn được. */
+  /** Trong sân không mời / nhận lời mời tổ đội; hiệu ứng phụ trợ tổ đội không lan, nhưng xem khung, từ chối, rời đội vẫn được. */
   partyAction(id: string, m: unknown) {
     const op = (m as { op?: unknown } | null)?.op;
     if (op === "invite" || op === "accept") return this.log(id, "Đang ở Đại Đấu Hồn Trường: mời / nhận tổ đội sau trận.", "#ffb35c");
@@ -223,7 +223,12 @@ export class ArenaRoom extends MapRoom {
     void this.disconnect();
   }
 
-  /** Kết quả trận; chống dàn xếp kiểm tra đủ bốn cặp chéo trong trận 2v2, còn Elo / thưởng vẫn ghi riêng từng tài khoản. */
+  /**
+   * Kết quả trận (một lần): bên `winner` thắng (null = hòa). Trước hết đếm trận này vào mọi cặp tài khoản chéo hôm nay
+   * (bảng `arena_pairs`, 9.7); chỉ khi mọi cặp còn lượt thì trận có Elo / thành tích / thưởng, nếu không là giao hữu.
+   * Elo và phần thưởng được tính riêng cho từng tài khoản, ghi qua chuỗi lưu của tài khoản đó. Người không vào sân ghi thẳng;
+   * người rời sân không nhận thưởng. Tin `end` gửi sau khi DB xác nhận kết quả.
+   */
   finish(winner: number | null, reason: Reason) {
     if (this.done) return;
     this.done = true;
@@ -238,9 +243,13 @@ export class ArenaRoom extends MapRoom {
       const o = this.sides[1 - i], score = winner === null ? 0.5 : winner === i ? 1 : 0;
       s.members.forEach((member) => {
         const sid = member.sid, p = sid ? this.state.players.get(sid) : undefined, d = sid ? this.pdata.get(sid) : undefined;
+        // Mỗi tài khoản so Elo riêng với Elo trung bình của bên đối thủ; thưởng cũng xét lượt thắng của chính tài khoản này.
         const delta: ArenaRecord = { elo: eloAfter(member.rec.elo, o.elo, score) - member.rec.elo, wins: score === 1 ? 1 : 0, losses: score === 0 ? 1 : 0, draws: score === 0.5 ? 1 : 0 };
         if (d && !member.left && reason !== "noshow") this.questEvent(sid, { k: "arena" });
+        // Khảo hạch phải ghi trước prepareReward để ảnh chụp túi có cả tiến độ trận.
+        // Gục thì nằm lại tới khi rời sân; không tự dừng input để client vẫn nhận đúng dự đoán chuyển động.
         if (p && d && p.dead) d.deadT = Infinity;
+        // Phần thưởng được chuẩn bị trên bản sao túi; trận giao hữu hoặc thành viên đã rời chỉ bỏ bản sao đó.
         const reward = score === 1 && p && d && !member.left && member.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
         const report = (rec: ArenaRecord, paid: boolean, friendly: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.members.map((x) => x.name).join(" / "),
           elo0: member.rec.elo, elo1: rec.elo, rec, reward: paid && reward ? { honTe: reward.honTe, code: reward.code, qty: reward.qty, coin: reward.coin } : null,

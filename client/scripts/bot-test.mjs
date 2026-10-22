@@ -7303,17 +7303,34 @@ async function arenaTest(){
   E.room.send("party",{op:"invite",name:F.name}); await sleep(300); F.room.send("party",{op:"accept",name:E.name}); await sleep(400);
   await test(E,"rest"); t=await aop(E,"queue"); ok(E.aq.on&&F.aq.on&&E.aq.elo===ARENA.startElo,`tổ đội 2 người: trưởng nhóm xếp hàng cho cả đội Elo ${E.aq.elo} (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&!F.aq.on&&/hủy/.test(t),`hủy hàng chờ tổ đội: cả hai được mở khóa (${t})`);
-  E.room.send("party",{op:"leave"}); await sleep(400);
+  E.room.send("party",{op:"leave"}); await waitFor(()=>!E.party?.id&&!F.party?.id,1500); await sleep(1000);
+  // Thành viên đi cổng thì cả bên ra khỏi hàng và trưởng nhóm nhận queue off + log.
+  F.room.send("party",{op:"invite",name:E.name}); await sleep(250); E.room.send("party",{op:"accept",name:F.name});
+  ok(await waitFor(()=>E.party?.id&&F.party?.id===E.party.id&&E.party.members.length===2&&F.party.members.length===2,1500),"tạo lại tổ đội 2 người trước bài đi cổng");
+  await at(E); await at(F); await aop(F,"queue");
+  ok(E.aq?.members?.length===2&&F.aq?.members?.length===2,"thành viên đi cổng: mục hàng có đủ hai thành viên");
+  const travelLog=F.logs.length; await test(E,"goto",{x:40*16,y:54.5*16}); E.travel=null; E.room.send("travel",{portal:"Về Nặc Đinh Thành"});
+  ok(await waitFor(()=>E.travel?.mapId,4000)&&await waitFor(()=>F.aq&&!F.aq.on,1500)&&F.logs.slice(travelLog).some(x=>/hàng chờ.*hủy/.test(x)),`thành viên đi cổng: trưởng nhóm nhận queue off và log hủy (F.aq=${JSON.stringify(F.aq)}, queues=${JSON.stringify(F.arena.filter(m=>m.k==="queue").slice(-6))}, F.log=${F.logs.slice(travelLog).join(" | ")}, E.travel=${JSON.stringify(E.travel)})`);
+  await E.room.leave(); await sleep(300); await back(E); await warpTown(E); await aop(E,"cancel"); E.room.send("party",{op:"leave"}); F.room.send("party",{op:"leave"}); await waitFor(()=>!E.party?.id&&!F.party?.id,1500);
   // Khóa cả tài khoản solo: không nhận lời mời đã có và không gửi lời mời mới khi đang chờ.
-  F.room.send("party",{op:"invite",name:E.name}); await waitFor(()=>E.party?.invites?.some(i=>i.name===F.name),1500);
+  await aop(G,"cancel"); G.room.send("party",{op:"invite",name:E.name});
+  ok(await waitFor(()=>E.party?.invites?.some(i=>i.name===G.name),1500),"người mời: lời mời mới được tạo trước khi xếp đơn");
   await aop(E,"queue"); let partyLockLog=E.logs.length;
-  E.room.send("party",{op:"accept",name:F.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
+  E.room.send("party",{op:"accept",name:G.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
   ok(E.aq.on&&!E.party?.id&&/xếp hàng/.test(E.logs.slice(partyLockLog).join(" ")),"đang xếp hàng đơn: không nhận lời mời vào tổ đội");
-  E.room.send("party",{op:"leave"}); await sleep(200);
-  E.room.send("party",{op:"decline",name:F.name}); await sleep(200); await aop(E,"cancel");
+  E.room.send("party",{op:"leave"}); await waitFor(()=>!E.party?.id&&!F.party?.id,1500); await aop(E,"cancel");
+  E.room.send("party",{op:"decline",name:G.name}); await sleep(200);
+  await waitFor(()=>!(E.party?.invites??[]).some(i=>i.name===G.name),1500);
   await aop(E,"queue"); partyLockLog=E.logs.length; E.room.send("party",{op:"invite",name:F.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
   ok(E.aq.on&&/xếp hàng/.test(E.logs.slice(partyLockLog).join(" ")),"đang xếp hàng đơn: không mời người khác vào tổ đội");
   await aop(E,"cancel");
+  // Người mời đã xếp đơn trước khi thành viên nhận lời cũng không được lập tổ đội mới.
+  G.room.send("party",{op:"invite",name:F.name}); await waitFor(()=>F.party?.invites?.some(i=>i.name===G.name),1500);
+  await qwait(G); await aop(G,"queue"); partyLockLog=F.logs.length;
+  F.room.send("party",{op:"accept",name:G.name}); await waitFor(()=>F.logs.length>partyLockLog,1500);
+  ok(G.aq.on&&!F.party?.id&&/Người mời.*xếp hàng/.test(F.logs.slice(partyLockLog).join(" ")),`người mời đang xếp hàng đơn: thành viên không nhận lời mời (G.aq=${JSON.stringify(G.aq)}, F.party=${JSON.stringify(F.party)}, F.log=${F.logs.slice(partyLockLog).join(" | ")})`);
+  await aop(G,"cancel"); F.room.send("party",{op:"decline",name:G.name}); await sleep(200);
+  await waitFor(()=>!(F.party?.invites??[]).some(i=>i.name===G.name),1500);
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
@@ -7328,8 +7345,8 @@ async function arenaTest(){
       `cancel / queue dồn ${n} lần trong ${ARENA.queueCd} giây: không đọc DB thêm, ${cnt(/quá nhanh/)} lần báo "${got().find(x=>/quá nhanh/.test(x))}", cuối cùng đã hủy`);
     t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`sau ARENA.queueCd = ${ARENA.queueCd} giây: xếp hàng lại được (${t})`);
     t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`); }
-  // Hủy lúc đang đọc Elo (#225): F (cùng Elo khởi đầu) đang chờ; hook aslow làm chậm lần đọc DB kế tiếp của E. E xếp hàng, hủy trước khi
-  // đọc xong rồi xếp lại ngay (bị báo thao tác quá nhanh): đọc xong E không vào hàng chờ, không bị ghép với F.
+  // Hủy lúc đang đọc Elo (#225/#227): F (cùng Elo khởi đầu) đang chờ; hook aslow làm chậm lần đọc DB kế tiếp của E. E xếp hàng, hủy trước khi
+  // đọc xong rồi xếp lại ngay (bị báo thao tác quá nhanh): cờ bận giữ tới khi đọc cũ kết thúc, không bị hai lần đọc chồng nhau.
   // Tin "arena" k = queue: một cho cancel, một cho queue bị từ chối, một khi đọc xong; sau đó chờ thêm vài lượt ghép (500 ms một lượt).
   { const ms=1500; await at(F); await aop(F,"queue"); await qwait(E); await test(E,"aslow",{ms});
     const l=E.logs.length, n=E.aqN, got=()=>E.logs.slice(l), has=re=>got().some(x=>re.test(x));
@@ -7338,7 +7355,9 @@ async function arenaTest(){
     await waitFor(()=>E.aqN>=n+3,ms+3000); await sleep(1500); await test(E,"aslow",{ms:0});
     ok(F.aq.on&&!E.aq.on&&!found(E)&&!found(F)&&!has(/Đang tìm đối thủ/)&&has(/hủy/)&&has(/quá nhanh/),
       `hủy trong lúc đọc Elo (chậm ${ms} ms): đọc xong không vào hàng chờ, không bị ghép với F (${got().join(" | ")})`);
-    t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ một mình, hủy"); }
+    t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ một mình, hủy");
+    await sleep(ARENA.queueCd*1000+100); t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ/.test(t),"đọc cũ đã kết thúc: sau queueCd được xếp lại, không có lần đọc chồng");
+    t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),"hủy hàng sau khi đọc cũ kết thúc"); }
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
   await at(F); await aop(F,"queue"); await test(F,"goto",{x:40*16,y:54.5*16});
   await qwait(E); F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");

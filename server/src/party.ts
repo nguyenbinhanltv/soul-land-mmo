@@ -119,6 +119,12 @@ function takeInvite(acc: number, fromName: string, now: number) {
   return exp !== undefined && exp > now ? from! : null;
 }
 
+/** Tài khoản người mời của lời mời còn hạn, chỉ đọc để MapRoom kiểm tra khóa hàng chờ trước khi nhận lời. */
+export function inviteFrom(acc: number, fromName: string, now: number) {
+  const from = byName.get(nameKey(fromName)), exp = from !== undefined ? invites.get(acc)?.get(from) : undefined;
+  return from !== undefined && exp !== undefined && exp > now ? from : null;
+}
+
 /** `acc` nhận lời mời của `fromName`: vào tổ đội của người mời (người mời chưa có tổ đội thì lập mới, người mời làm trưởng nhóm). */
 export function accept(acc: number, fromName: string, now: number): PartyResult {
   const from = takeInvite(acc, fromName, now);
