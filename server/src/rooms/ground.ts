@@ -1,5 +1,6 @@
 // Vùng lưu lại trên mặt đất (#161, GAME_DESIGN.md mục 5.3 "Luật chung của hồn thú"): vũng độc, sương độc do chiêu hồn thú có `ground`
-// để lại; #173, #174 dùng lại (#174: vùng ngập, xoáy nước của Thủy Triều Dâng, tide.ts; báo trước `warn`, kéo về tâm `pull`). Số liệu
+// để lại; #173, #174 dùng lại (#174: vùng ngập, xoáy nước của Thủy Triều Dâng, tide.ts; báo trước `warn`, kéo về tâm `pull`; #173: phần
+// hang băng / lửa / tơ đang hóa của split.ts, gây một lần mỗi người `once`). Số liệu
 // (thời gian, nhịp, trạng thái) ở shared/data.ts (GroundDef); MapRoom chỉ gọi `add`, `tick`.
 // Vùng đồng bộ xuống client qua MapState.grounds (schema.ts), lọc theo vùng gần ở interest.ts.
 import { GROUND_KINDS, GROUND_MAX, GROUND_TICK, TELE_SHAPES, teleHits, type GroundDef, type Tele } from "../../../shared/data.ts";
@@ -10,9 +11,9 @@ import { GroundState } from "./schema.ts";
 const EPS = 1e-6;
 /**
  * Một vùng đang có: hình (vùng báo trước đã khóa), luật, hồn thú gây ra, sát thương đòn thường của nó (Trúng độc tính theo số này), giây
- * còn lại (gồm cả báo trước), giây báo trước còn lại (#174), giây tới nhịp gây trạng thái kế tiếp.
+ * còn lại (gồm cả báo trước), giây báo trước còn lại (#174), giây tới nhịp gây trạng thái kế tiếp, hồn sư đã bị gây `once` (#173).
  */
-interface Ground { tele: Tele; def: GroundDef; src: string; base: number; t: number; wait: number; next: number }
+interface Ground { tele: Tele; def: GroundDef; src: string; base: number; t: number; wait: number; next: number; once: Set<string> }
 
 export class Grounds {
   private list = new Map<string, Ground>();
@@ -33,15 +34,21 @@ export class Grounds {
       g.x = tele.x; g.y = tele.y; g.ang = tele.ang; g.r = Math.round(tele.r); g.w = Math.round(tele.w); g.arc = Math.round(tele.arc);
       g.ttl = Math.ceil(warn + def.secs); g.wait = Math.ceil(warn);
       grounds.set(id, g);
-      this.list.set(id, { tele, def, src, base, t: warn + def.secs, wait: warn, next: 0 });
+      this.list.set(id, { tele, def, src, base, t: warn + def.secs, wait: warn, next: 0, once: new Set() });
       ids.push(id);
     }
     return ids;
   }
 
-  /** Các vùng `ids` còn nhiều hơn `s` giây thì chỉ còn `s` giây (#174: nước đợt cũ rút khi đợt mới hết báo trước). */
+  /**
+   * Các vùng `ids` còn nhiều hơn `s` giây thì chỉ còn `s` giây (#174: nước đợt cũ rút khi đợt mới hết báo trước); `s` = 0 thì mất ngay
+   * (#173: phần hang cũ tan đúng lúc phần mới bắt đầu báo trước, không chờ nhịp sau).
+   */
   cut(ids: string[], s: number) {
-    for (const id of ids) { const z = this.list.get(id); if (z && z.t > s) z.t = s; }
+    for (const id of ids) {
+      const z = this.list.get(id); if (!z) continue;
+      if (s <= EPS) { this.list.delete(id); this.room.state.grounds.delete(id); } else if (z.t > s) z.t = s;
+    }
   }
 
   /**
@@ -50,7 +57,8 @@ export class Grounds {
    * người đang miễn sát thương (Vô Địch Thần Quang) cũng không dính, như khi chiêu báo trước trúng (hurtPlayer trả false). Khung
    * bất tử ngắn sau mỗi đòn (`d.inv`) không chặn, như sát thương theo thời gian của Trúng độc. Đang báo trước (`warn`, #174) thì chưa gây
    * gì; vùng có `pull` kéo hồn sư đứng trong vùng về tâm mỗi nhịp server (MapRoom.dragPlayer: không kéo người đã gục, đang đi cổng, không
-   * kéo vào vùng an toàn), cùng điều kiện miễn sát thương như gây trạng thái.
+   * kéo vào vùng an toàn), cùng điều kiện miễn sát thương như gây trạng thái. `once` (#173): nhịp đầu tiên một hồn sư đứng trong vùng
+   * thì gây thêm một lần (Đóng băng, Trói), các nhịp sau thì thôi; lúc người đó đã gục / đang đi cổng / trong vùng an toàn thì chưa tính.
    * `ttl` đồng bộ theo giây nguyên (một bản vá mỗi giây; client tự đếm giữa hai lần đổi để mờ dần). Hết giờ xét với lề EPS để số nhịp
    * gây trạng thái luôn là secs / every (không thêm một nhịp do sai số cộng dồn dt).
    */
@@ -75,6 +83,9 @@ export class Grounds {
       for (const pid of room.interest.players.near(z.tele.x, z.tele.y, z.tele.r + z.tele.w)) {
         const p = players.get(pid), d = room.pdata.get(pid);
         if (!p || !d || room.buffV(d, "inv") || !teleHits(z.tele, p.x, p.y)) continue;
+        if (fire && z.def.once && !z.once.has(pid) && !p.dead && !d.travelling && !room.map.inSafe(p.x, p.y)) {
+          z.once.add(pid); for (const a of z.def.once) room.applyPStatus(pid, a, z.base);
+        }
         if (fire) for (const a of z.def.status) room.applyPStatus(pid, a, z.base);
         if (pull) room.dragPlayer(pid, z.tele.x, z.tele.y, pull * step);
       }
