@@ -641,12 +641,6 @@ export async function claimBuyback(accountId: number, key: string) {
   await editBuyback(accountId, (list) => { got = list.find((x) => x.key === key) ?? null; return list.filter((x) => x.key !== key); });
   return got as Buyback | null;
 }
-/** Ghi danh sách mua lại của tài khoản vào presence (rỗng thì xóa). */
-function saveBuyback(accountId: number) {
-  const list = buybacks.get(accountId);
-  const op = list?.length ? presenceBackend.putJson(buybackKey(accountId), list, BUYBACK_TTL_MS) : presenceBackend.delete(buybackKey(accountId));
-  void op.catch((e) => console.error(`Không lưu được danh sách mua lại của #${accountId}`, e));
-}
 
 // ---------- Vật phẩm (mục 5.7) ----------
 let itemClock = 0;
@@ -2913,9 +2907,8 @@ export class MapRoom extends Room<MapState> {
     if (qty < 1 || qty > it.qty) return warn(`Số lượng bán phải từ 1 đến ${it.qty}.`);
     const label = this.itemLabel({ ...it, qty }), gain = price * qty;
     // Thương nhân giữ bản sao đúng món vừa bán (chỉ số, cấp cường hóa, số lượng) để mua lại (9.8); mới nhất trước, tối đa BUYBACK_MAX.
-    const list = buybacks.get(d.accountId) ?? [];
-    list.unshift({ key: randomUUID(), item: { ...it, qty, vohonId: null, stats: it.stats == null ? null : structuredClone(it.stats) }, price });
-    buybacks.set(d.accountId, list.slice(0, BUYBACK_MAX)); saveBuyback(d.accountId);
+    const entry: Buyback = { key: randomUUID(), item: { ...it, qty, vohonId: null, stats: it.stats == null ? null : structuredClone(it.stats) }, price };
+    editBuyback(d.accountId, (cur) => [entry, ...cur].slice(0, BUYBACK_MAX)).then(() => this.sendBag(id), (err) => console.error("Không lưu được món bán vào danh sách mua lại", err));
     this.takeItem(d, it, qty);
     this.addCoin(d, gain);
     this.log(id, `Bán ${label}: +${formatHonTe(gain)} (còn ${formatHonTe(d.honTe)}).`, "#f2c84b");
@@ -2969,7 +2962,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Xóa danh sách mua lại của tài khoản khi rời game (9.8). ArenaRoom không xóa: rời sân là về bản đồ cũ. */
-  forgetBuyback(accountId: number) { buybacks.delete(accountId); saveBuyback(accountId); }
+  forgetBuyback(accountId: number) { buybacks.delete(accountId); void presenceBackend.delete(buybackKey(accountId)).catch((e) => console.error(`Không xóa được danh sách mua lại của #${accountId}`, e)); }
 
   // ---------- Tự bán từ xa (#216, mục 5.7 "Tự bán") ----------
   /** Khoá / mở khoá một ô trong túi của chính người gửi: món khoá không bị bán (tay hay tự bán), bỏ, hay làm nguyên liệu. */

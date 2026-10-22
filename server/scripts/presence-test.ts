@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createPresenceBackend, presenceBackend } from "../src/presence.ts";
-import { claimBuyback } from "../src/rooms/MapRoom.ts";
+import { claimBuyback, editBuyback } from "../src/rooms/MapRoom.ts";
 import { arenaDeliver, arenaEnqueue, arenaQueued } from "../src/rooms/arenaQueue.ts";
 
 const backend = createPresenceBackend({ mode: "local" });
@@ -72,6 +72,11 @@ try {
   const [c1, c2] = await Promise.all([claimBuyback(7, "k1"), claimBuyback(7, "k1")]);
   assert.equal([c1, c2].filter(Boolean).length, 1);
   assert.deepEqual(await presenceBackend.getJson("buyback:7"), []);
+  await presenceBackend.putJson("buyback:8", [{ key: "e", item: { code: "x" }, price: 5 }], 60_000);
+  const sold = { key: "y", item: { code: "y" }, price: 7 } as never;
+  const [claimed] = await Promise.all([claimBuyback(8, "e"), editBuyback(8, (cur) => [sold, ...cur])]);
+  assert.ok(claimed);
+  assert.deepEqual((await presenceBackend.getJson<{ key: string }[]>("buyback:8"))?.map((x) => x.key), ["y"]);
   console.log("✓ Mua lại: hai lần nhận cùng một món ở presence chỉ một lần được trao");
   console.log("✓ Hàng chờ đấu trường: tin found chỉ do tiến trình chủ của bên đó xử lý");
   console.log("✓ Hàng chờ đấu trường: bên cục bộ ghép trực tiếp được rollback khi đối thủ hủy");
