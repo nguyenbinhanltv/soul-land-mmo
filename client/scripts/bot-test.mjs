@@ -4114,14 +4114,17 @@ else {
       const tg=await give(12000,"than",TG); await boneOp("equip",{itemId:tg.id,vohonId:act});
       const sp0=await test(A,"stats"), def0=sp0.live.passive.buff.def, hp0=p.maxHp, mats=[];
       for(let k=0;k<5;k++) mats.push((await give(MAX_YEARS,"than",TG)).id);
-      t=await enh(tg.id,mats); const tgi=itemOf(tg.id), s20=await test(A,"stats");
+      t=await enh(tg.id,mats); await waitFor(()=>parseBoneSubs(itemOf(tg.id)?.stats).length===BONE_MAX_SUBS); const tgi=itemOf(tg.id), s20=await test(A,"stats");
       const def20=bonePassive([{beast:TG,slot:"than",years:12000,enhance:20}]).buff.def, dHp=boneStats("than",12000,20).hp-boneStats("than",12000).hp;
       ok(tgi.enhance===BONE_MAX_ENHANCE&&tgi.stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(t)&&mats.every(id=>!itemOf(id)),`5 nguyên liệu 100.000 năm: +${tgi.enhance} tối đa, điểm dư bị bỏ (${t})`);
       ok(Math.abs(s20.live.passive.buff.def-def20)<1e-4&&Math.abs(def20-Math.min(BONE_PASSIVE_CAP.def,def0*boneSkillMult(20)))<1e-3&&def20>def0,
         `mốc +20 nâng bị động ${BONE_SKILLS[TG].passive.name}: giảm sát thương ${def0} -> ${s20.live.passive.buff.def} (×${boneSkillMult(20)})`);
-      // Từ #187 mốc còn thêm dòng phụ (Thân có thể ra % sinh lực), nên sinh lực tối đa tăng ít nhất phần chỉ số chính.
-      ok(s20.bones.hp===boneStats("than",12000,20).hp&&await waitFor(()=>p.maxHp===s20.live.maxHp)&&s20.live.maxHp===s20.stats.maxHp&&p.maxHp>=hp0+dHp,
-        `sinh lực tối đa ${hp0} -> ${p.maxHp} (chỉ số chính +${dHp}${s20.bones.hp_pct?`, dòng phụ +${s20.bones.hp_pct}%`:""}) ngay khi đang gắn`);
+      // Từ #187 mốc còn thêm dòng phụ (Thân có thể ra % sinh lực): lấy dòng đã lưu trong món để tính lại đầy đủ.
+      const bone20=boneBonus([{slot:"than",years:12000,enhance:BONE_MAX_ENHANCE,subs:parseBoneSubs(tgi.stats)}]);
+      const expected20=s20.stats.maxHp;
+      await waitFor(()=>p.maxHp===expected20,5000);
+      ok(s20.bones.hp===bone20.hp&&s20.bones.hp_pct===bone20.hp_pct&&p.maxHp===expected20&&p.maxHp>=hp0+dHp,
+        `sinh lực tối đa ${hp0} -> ${p.maxHp} (kỳ vọng ${expected20}, chỉ số chính +${dHp}${bone20.hp_pct?`, dòng phụ +${bone20.hp_pct}%`:""}) ngay khi đang gắn`);
       const m5=await give(1000,"than",TG); t=await enh(tg.id,[m5.id]); ok(/tối đa \+20/.test(t)&&itemOf(m5.id),`đã +20: từ chối, nguyên liệu còn nguyên (${t})`);
       // Hồn cốt trong túi (không gắn) cũng cường hóa được; hồn cốt đã cường hóa làm nguyên liệu trả lại 80% điểm.
       const m6=await give(2000,"than",TG); t=await enh(m5.id,[m6.id]);
