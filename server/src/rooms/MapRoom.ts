@@ -2478,8 +2478,8 @@ export class MapRoom extends Room<MapState> {
       }
     }
     else if (op === "egg") {
-      // #162: bọc trứng của phòng (eggs.info) và số hồn thú do thú vương gọi ra còn sống; `t {s}` đặt mọi bọc còn đúng s giây trước khi nở.
-      const t = typeof o.t === "number" && o.t >= 0 ? Math.min(60, o.t) : undefined, kd = this.king?.bid ? this.bdata.get(this.king.bid) : undefined;
+      // #162: bọc trứng của phòng (eggs.info) và số hồn thú do thú vương gọi ra còn sống; `t {s}` đặt mọi bọc còn đúng s giây trước khi nở (tối đa 25: `BeastState.egg` là uint8).
+      const t = typeof o.t === "number" && o.t >= 0 ? Math.min(25, o.t) : undefined, kd = this.king?.bid ? this.bdata.get(this.king.bid) : undefined;
       out = { eggs: this.eggs.info(t), minions: kd ? [...kd.minions].filter((m) => this.state.beasts.has(m)) : [] };
     }
     else if (op === "kdmg") {
@@ -5295,7 +5295,9 @@ export class MapRoom extends Room<MapState> {
     for (const bid of [...this.state.beasts.keys()]) this.tickStatus(bid, dt);
     this.state.beasts.forEach((b, id) => {
       const bd = this.bdata.get(id)!, td = TIERS[b.tier];
-      if (b.egg) return; // bọc trứng (#162): không đi, không đánh, không hồi máu; đếm giờ nở ở eggs.tick
+      // Bọc trứng (#162): không đi, không đánh, không hồi máu; đếm giờ nở ở eggs.tick. Không giữ mục tiêu / hung hăng sau khi bị đánh
+      // (tự săn thấy bọc như hồn thú thường vừa bị đánh: `hitBy` / `calm` vẫn đếm như hồn thú khác).
+      if (b.egg) { bd.calm += dt; bd.target = null; if (b.aggro) b.aggro = false; return; }
       bd.cd -= dt; bd.anim += dt; bd.calm += dt;
       // 11.4: hồn thú thường không mục tiêu, không đang về chỗ sinh / niệm chiêu / bị đẩy, cách mọi hồn sư quá SYNC_VIEW.wake thì ngủ:
       // không lang thang, không tìm mục tiêu (không ai trong tầm phát hiện), chỉ hồi máu và đếm hồi chiêu như khi thức.

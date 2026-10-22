@@ -112,6 +112,8 @@ const TELE_COL = 0xff3b3b;
 /** Thời gian nở của bọc trứng theo mã loài (EggDef trong chiêu thú vương, #162): đồng hồ nở vẽ theo phần còn lại. */
 const EGG_SECS = new Map(BOSSES.flatMap((d) => [...d.skills, ...(d.phase2?.skills ?? [])]).flatMap((x) => (x.eggs ? [[x.eggs.species, x.eggs.secs] as const] : [])));
 const eggLeft = (b: any) => (b.egg / 10).toFixed(1).replace(".", ",");
+/** Bọc trứng còn dưới ngần này (phần mười giây, như BeastState.egg) thì coi là sắp nở: phập phồng nhanh, đồng hồ đỏ. */
+const EGG_SOON = 30;
 /** Vòng an toàn của chiêu toàn sàn boss thế giới (#118) và vòng sóng chỗ Du Thủy sắp nổi lên. */
 const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
 /**
@@ -1658,7 +1660,7 @@ export class GameScene extends Phaser.Scene {
       const egg = b.egg > 0, k = rankScale(b.rank), spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
       if (egg) {
         if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
-        s.setScale(SPR * (1 + (b.egg < 30 ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
+        s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
       } else if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
@@ -1733,7 +1735,7 @@ export class GameScene extends Phaser.Scene {
         const f = Math.min(1, b.egg / 10 / (EGG_SECS.get(BEASTS[b.species]?.id ?? "") ?? b.egg / 10)), n = Math.max(2, Math.ceil(f * 32)), pts: Pt[] = [];
         for (let i = 0; i <= n; i++) { const a = -Math.PI / 2 + (f * 2 * Math.PI * i) / n; pts.push({ x: s.x + Math.cos(a) * RX * 14, y: s.y + Math.sin(a) * RY * 14 }); }
         g.lineStyle(1, 0x000000, 0.5).strokeEllipse(s.x, s.y, 2 * RX * 14, 2 * RY * 14);
-        g.lineStyle(2, b.egg < 30 ? 0xff5a3a : 0x9be23a, 0.95).strokePoints(pts);
+        g.lineStyle(2, b.egg < EGG_SOON ? 0xff5a3a : 0x9be23a, 0.95).strokePoints(pts);
       }
       else if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, (t.size + 6) * SPR, 6 * SPR); }
       if (b.hp < b.maxHp) {

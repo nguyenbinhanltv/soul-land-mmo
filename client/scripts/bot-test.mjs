@@ -7250,12 +7250,6 @@ async function partyEffectExpansionTest(){
 }
 
 /**
- * 9.2: hồi máu / khiên cho người khác tính vào đóng góp boss. 2 bot mới cùng tổ đội ở Tinh Đấu Ngoại vi: H (Cửu Bảo Lưu Ly Tháp, chỉ
- * hồi máu, không gây sát thương) và A (đánh thú vương). H tự hồi cho mình (A đầy máu): đóng góp không đổi. A mất máu, tiên cơ Lưu Ly
- * Hộ Thể của H hồi A: phần hồi thực (× PARTY_BUFF_MULT) vào `supBy` của H, bảng xếp hạng có cột hỗ trợ; hạ thú vương thì H đủ 3% nhận
- * rương và kinh nghiệm x KING.xp.
- */
-/**
  * #162: Vạn Chu Phệ (giai đoạn 2 của Tà hóa Thiên Độc Chu Hoàng, Tinh Đấu Nội địa) đẻ bọc trứng (EggDef). E đứng ngoài hang (thú vương
  * không đuổi được, chỉ tung chiêu bằng hook `tele`): đẻ đủ `n` bọc trong hang, máu `hp` lần máu nhện con cùng số năm, đồng bộ đồng hồ
  * nở; phá một bọc thì nó không nở và không có kinh nghiệm / Hồn Tệ / đồ rơi; hết giờ (hook `egg {t}` rút ngắn) mỗi bọc còn lại nở `per`
@@ -7327,6 +7321,12 @@ async function eggTest(){
   } finally { await E.room.leave().catch(()=>{}); }
 }
 
+/**
+ * 9.2: hồi máu / khiên cho người khác tính vào đóng góp boss. 2 bot mới cùng tổ đội ở Tinh Đấu Ngoại vi: H (Cửu Bảo Lưu Ly Tháp, chỉ
+ * hồi máu, không gây sát thương) và A (đánh thú vương). H tự hồi cho mình (A đầy máu): đóng góp không đổi. A mất máu, tiên cơ Lưu Ly
+ * Hộ Thể của H hồi A: phần hồi thực (× PARTY_BUFF_MULT) vào `supBy` của H, bảng xếp hạng có cột hỗ trợ; hạ thú vương thì H đủ 3% nhận
+ * rương và kinh nghiệm x KING.xp.
+ */
 async function supportContribTest(){
   console.log("[9.2] hồi máu / khiên cho người tham gia khác tính đóng góp thú vương");
   ok(SUPPORT_CONTRIB===1&&KING.share===0.03,`SUPPORT_CONTRIB ${SUPPORT_CONTRIB} (1 sinh lực = 1 sát thương), ngưỡng rương ${KING.share*100}%`);
