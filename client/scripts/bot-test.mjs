@@ -5200,7 +5200,11 @@ async function autoTest(){
   const act1=A.owned.active; await test(A,"energy",{v:TIEN_CO_MAX});
   // Hook spawn đặt theo chỗ người chơi (đã đi dạo trong vùng neo): tính lại để hồn thú cách ĐIỂM NEO 36 pixel, trong bán kính 80 pixel.
   sp=await test(A,"spawn",{tier:0,dx:Math.round(home.x+36-me(A).x),dy:Math.round(home.y-me(A).y),years:15,hpx:20}); const near=sp?.bid;
-  ok(near&&await waitFor(()=>(A.room.state.beasts.get(near)?.hp??0)<(A.room.state.beasts.get(near)?.maxHp??1),8000),"hồn thú trong bán kính: tự đi tới đánh");
+  const hitN=near&&await waitFor(()=>(A.room.state.beasts.get(near)?.hp??0)<(A.room.state.beasts.get(near)?.maxHp??1),8000);
+  // Chẩn đoán khi trượt: chỗ A / hồn thú, mục tiêu, đích, đường đi của tự săn, hồn thú đó nhắm ai / bị bỏ qua.
+  const whyN=hitN?"":await (async()=>{ const st=await test(A,"auto",{bid:near}), b=A.room.state.beasts.get(near);
+    return ` [A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} chết ${me(A).dead}; ${near} ${b?`${b.x.toFixed(0)},${b.y.toFixed(0)} ${b.hp}/${b.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`; })();
+  ok(hitN,`hồn thú trong bán kính: tự đi tới đánh${whyN}`);
   await sleep(1500);
   ok(A.owned.active===act1,"thứ tự ô đội rỗng: đầy năng lượng tiên cơ cũng không đổi tay");
   await autoOp(A,"off"); await test(A,"slay",{bid:near}); await test(A,"slay",{bid:far}); await test(A,"energy",{v:0});
