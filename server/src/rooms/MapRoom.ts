@@ -5186,6 +5186,8 @@ export class MapRoom extends Room<MapState> {
   killKing(bid: string, b: BeastState, e: EliteData, by: string) {
     const k = e.king!, name = beastName(b.rank, b.species), map = MAPS[this.state.mapId].name, rank = this.kingRank(e), K = bossK(k), world = !!k.world;
     // Tài khoản đã nhận rương của khung giờ này (ở kênh nào cũng vậy): mỗi khung một rương, đổi kênh không nhân thưởng (mục 6).
+    const cached = this.king?.bid === bid ? kingClaimCache.get(`${this.state.mapId}:${this.king.slot}`) : undefined;
+    if (cached && this.king) for (const accountId of cached) this.king.claimed.add(accountId);
     const claimed = this.king?.bid === bid ? this.king.claimed : undefined;
     if (this.king?.bid === bid) { this.king.bid = null; this.king.seat.state = "down"; void persistKingSeat(this.state.mapId, this.king.slot, this.king.seat, this.king.claimed); }
     const p = this.state.players.get(by)!; p.kills++;
