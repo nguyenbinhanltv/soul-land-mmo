@@ -134,14 +134,15 @@ export class Interest {
     add(s.b, this.state.beasts, this.beasts, this.ranked);
     add(s.d, this.state.drops, this.drops);
     // Vùng lưu lại trên mặt đất (#161): ít nên quét cả phòng, không cần lưới; khoảng cách tính tới gốc vùng trừ kích thước `r` (vùng
-    // lớn hiện khi mép vào tầm). Người mới vào tầm nhìn vẫn thấy vùng đang có (không chỉ tin `fx` một lần).
+    // lớn hiện khi mép vào tầm). Người mới vào tầm nhìn vẫn thấy vùng đang có (không chỉ tin `fx` một lần). Vệt (phần hang của #173:
+    // dải dài `r`, rộng `w`) cộng thêm bề rộng.
     for (const id of s.g) {
       const g = this.state.grounds.get(id);
       if (!g) s.g.delete(id);
-      else if (!s.all && d2(g) > (out + g.r) ** 2) { v.remove(g); s.g.delete(id); }
+      else if (!s.all && d2(g) > (out + g.r + g.w) ** 2) { v.remove(g); s.g.delete(id); }
     }
     this.state.grounds.forEach((g, id) => {
-      if (!s.g.has(id) && (s.all || d2(g) <= (r + g.r) ** 2)) { v.add(g); s.g.add(id); }
+      if (!s.g.has(id) && (s.all || d2(g) <= (r + g.r + g.w) ** 2)) { v.add(g); s.g.add(id); }
     });
   }
 
