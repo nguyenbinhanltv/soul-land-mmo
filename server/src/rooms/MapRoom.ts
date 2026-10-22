@@ -4138,7 +4138,8 @@ export class MapRoom extends Room<MapState> {
     // Dung hợp kỹ (#192): đồng đội dung hợp còn trong phòng cũng thành người tham gia và nhận nửa đóng góp.
     // Đồng đội đã rời, đang đi cổng, đã gục hay đứng trong vùng an toàn (độc / lửa của chiêu còn cháy) thì không nhận phần, A nhận cả.
     const mp = o.pair && o.pair !== by ? this.state.players.get(o.pair) : undefined, md = mp && this.pdata.get(o.pair!);
-    const mate = mp && md && !md.travelling && !mp.dead && !this.map.inSafe(mp.x, mp.y) ? o.pair : undefined;
+    // Tinh anh / thú vương: B phải đang trong bán kính giao chiến (hang) như người tham gia khác (inFight).
+    const mate = mp && md && !md.travelling && !mp.dead && !this.map.inSafe(mp.x, mp.y) && (!bd.elite || this.inFight(b, bd.elite, mp)) ? o.pair : undefined;
     if (bd.elite) { if (mate) this.joinFight(bd.elite, mate); this.eliteJoin(b, bd, by); } // eliteJoin tính lại máu theo số người
     // Khiên Bá Thể (BĐ6e) đỡ trước; võ hồn hệ của khiên phá nhanh gấp `mult`. Phần đánh vào khiên vẫn tính đóng góp.
     let hpDmg = dmg, credit = Math.min(dmg, b.hp);
