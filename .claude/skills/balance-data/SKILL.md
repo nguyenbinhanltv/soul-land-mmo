@@ -27,7 +27,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 | Túi đồ, cửa hàng (5.7) | `ITEMS` / `itemDef`, `BAG_SLOTS`, `BAG_PAGE`, `BAG_EXPAND`, `BAG_MAX_SLOTS`, `BAG_EXPAND_COST` / `bagExpandCost` / `bagSlotsOf`, `DAN_CD`, `STARTER_ITEMS`, `HON_TE_NGAN` / `HON_TE_KIM` / `formatHonTe`, `SHOP`, `SHOP_MAX_QTY`, `BUYBACK_MAX`, `RING_SELL`, `BONE_SELL`, `BONE_SELL_ENH`, `CORE_SELL`, `SHARD_SELL`, `sellPrice` |
 | Tiên thảo (5.7) | `HERBS`, `HERB_PCT`, `HERB_MAX`, `HERB_ELITE`, `herbChance`, `herbBonus` |
 | NPC, nhiệm vụ (5.8) | `NPCS` / `npcDef`, `NPC_RANGE`, `QUESTS`, `QUEST_STARTER`, `questStatus`, `questGoalHit` |
-| Tổ đội, đấu trường (5.9) | `PARTY_MAX`, `PARTY_XP_RANGE`, `PARTY_XP_BONUS` / `partyXpShare`, `PARTY_BUFF_R`, `PARTY_BUFF_MULT`, `PARTY_BUFF_SKIP`, `COPY_R`, `COPY_WINDOW`, `PARTY_INVITE_SECS`, `PARTY_OFFLINE_SECS`, `ARENA_MAP`, `ARENA`, `ARENA_SHARDS`, `eloAfter`, `arenaWindow`, `arenaPairs`, `arenaRanked` |
+| Tổ đội, đấu trường (5.9) | `PARTY_MAX`, `PARTY_XP_RANGE`, `PARTY_XP_BONUS` / `partyXpShare`, `PARTY_BUFF_R`, `PARTY_BUFF_MULT`, `PARTY_BUFF_SKIP`, `COPY_R`, `COPY_WINDOW`, `PARTY_INVITE_SECS`, `PARTY_OFFLINE_SECS`, `ARENA_MAP`, `ARENA`, `ARENA_SHARDS`, `SHARD_BUY` / `shardBuyPrice` / `shardBuyCost` (Thương hội đổi mảnh), `eloAfter`, `arenaWindow`, `arenaPairs`, `arenaRanked` |
 | Cộng minh (5.10) | `RESONANCE`, `RES_VOHON_LEVEL`, `RES_BONE_ENHANCE`, `RES_CORE_STARS`, `resonanceProgress` / `resonanceLevels` / `resonanceBonus` |
 | Ngoại hình (5.11) | `SEXES`, `HAIR_STYLES`, `HAIR_COLORS`, `OUTFIT_COLORS`, `SKIN_TONES`, `DEFAULT_LOOKS`, `parseLooks`, `DIRS4` / `dir4` |
 | Chung | `TILE`, `TICK_RATE` |
