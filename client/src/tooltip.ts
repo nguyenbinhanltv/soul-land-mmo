@@ -27,9 +27,21 @@ let tipEl: HTMLElement | null = null, cur: Element | null = null, timer = 0, hid
 
 /** Gắn chú thích có cấu trúc (hoặc chữ thường) cho một phần tử; `null` gỡ. */
 export function setTip(el: Element, spec: TipSpec | string | null) {
-  if (spec === null || spec === "") { specs.delete(el); return; }
-  specs.set(el, typeof spec === "string" ? parseText(spec) : spec);
   el.removeAttribute("title");
+  if (spec === null || spec === "") { specs.delete(el); el.removeAttribute("data-tipped"); return; }
+  specs.set(el, typeof spec === "string" ? parseText(spec) : spec);
+  el.setAttribute("data-tipped", "");   // thay cho [title] trong CSS (title đã gỡ để trình duyệt không hiện khung thứ hai)
+}
+
+/**
+ * Nội dung chú thích hiện tại của phần tử dưới dạng chữ (tiêu đề, dòng phụ, các dòng; dòng `{k, v}` thành "k: v"). Mã cũ cần đọc lại
+ * chú thích (ví dụ cất rồi trả lại khi tráo nút) dùng hàm này thay cho `el.title`, vì `title` bị gỡ sau lần rê chuột đầu.
+ */
+export function tipOf(el: Element): string {
+  const attr = el.getAttribute("title");
+  if (attr !== null) return attr;                      // vừa gán `title` mới, chưa được ủy quyền chuyển
+  const s = specs.get(el); if (!s) return "";
+  return [s.title, s.sub, ...(s.lines ?? []).map((l) => (typeof l === "string" ? l : l.k ? `${l.k}: ${l.v}` : l.v)), s.foot].filter(Boolean).join("\n");
 }
 
 /** `title` dạng chữ: dòng đầu là tiêu đề nếu có từ hai dòng; một dòng chỉ là nội dung. */
@@ -90,10 +102,11 @@ export function hideTip() {
 /** Chuyển `title` của phần tử (nếu có) thành chú thích của game. */
 function adopt(el: Element) {
   const t = el.getAttribute("title");
-  if (t) {
-    if (!el.hasAttribute("aria-label") && !el.textContent?.trim()) el.setAttribute("aria-label", t.split("\n")[0]);
-    specs.set(el, parseText(t)); el.removeAttribute("title");
-  }
+  if (t === null) return;
+  el.removeAttribute("title");
+  if (t === "") { specs.delete(el); el.removeAttribute("data-tipped"); return; }   // title rỗng = xóa chú thích (mã cũ dùng để tắt)
+  if (!el.hasAttribute("aria-label") && !el.textContent?.trim()) el.setAttribute("aria-label", t.split("\n")[0]);
+  specs.set(el, parseText(t)); el.setAttribute("data-tipped", "");
 }
 const findTarget = (n: EventTarget | null) => {
   for (let e = n instanceof Element ? n : null; e; e = e.parentElement) {

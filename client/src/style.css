@@ -524,7 +524,7 @@ body.touch #bossRank{top:auto;bottom:200px}
 .nname b{display:block;font-size:12px;font-family:var(--f12);color:var(--c)}
 .nname small{color:var(--muted);font-size:12px;font-family:var(--f12)}
 .nline{margin:0;padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--wash);font-size:12px;font-family:var(--f12);line-height:normal;cursor:default}
-.nline[title]{cursor:pointer}
+.nline[title],.nline[data-tipped]{cursor:pointer}
 .shoprow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 8px;align-items:center;padding:6px 8px;border:1px solid var(--line);
   border-left:3px solid var(--c);background:var(--wash)}
 .shoprow>.ico{width:18px;height:18px}
