@@ -162,10 +162,12 @@ function checkIso(key, spec, img, at, fw, fh) {
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
   let md = readFileSync(credits, "utf8");
-  // Mỗi công cụ AI một mục: --tool có chữ "Gemini" thì ghi vào mục Gemini, còn lại mục PixelLab.
-  const gemini = /gemini/i.test(tool);
-  const head = gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
-  const intro = gemini
+  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" thì ghi vào mục đó, còn lại mục PixelLab.
+  const comfy = /comfyui/i.test(tool), gemini = !comfy && /gemini/i.test(tool);
+  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
+  const intro = comfy
+    ? "Ảnh AI tạo bằng ComfyUI tự host (SDXL base 1.0, CreativeML Open RAIL++-M + LoRA pixel-art-xl, CreativeML OpenRAIL-M; VAE sdxl-vae-fp16-fix, MIT), tách nền bằng `tools/assets/comfy-key.mjs`, nhập bằng `gemini-import.mjs` và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
+    : gemini
     ? "Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : "Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.";
   if (!md.includes(head)) {

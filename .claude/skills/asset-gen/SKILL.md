@@ -1,6 +1,6 @@
 ---
 name: asset-gen
-description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy cách isometric ở GAME_DESIGN.md mục 5.11 (hồn sư 64×64 ghép lớp, phụ thể võ hồn 96×96, hồn thú theo bậc 64–192, ô nền thoi 32×16 / ô lớn 64×32, vật đứng, chân dung, thẻ, biểu tượng, mảnh giao diện thủy mặc, NPC phụ LPC): gọi PixelLab (tham số đã thử, lượt, lỗi), nhập ảnh Gemini bằng gemini-import.mjs, ghép NPC phụ từ LPC bằng lpc-compose.mjs, vẽ tay (he-icons.mjs, pixelart_workbench) và dây chuyền tools/assets normalize → pack → normal → preview → validate. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà, biểu tượng…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
+description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy cách isometric ở GAME_DESIGN.md mục 5.11 (hồn sư 64×64 ghép lớp, phụ thể võ hồn 96×96, hồn thú theo bậc 64–192, ô nền thoi 32×16 / ô lớn 64×32, vật đứng, chân dung, thẻ, biểu tượng, mảnh giao diện thủy mặc, NPC phụ LPC): tạo ảnh tĩnh bằng ComfyUI tự host (MCP comfyui-pixel, SDXL + pixel-art-xl; prompt, ảnh dẫn isometric comfy-guide.mjs, tách nền trắng / chiếu thoi comfy-key.mjs), gọi PixelLab (tham số đã thử, lượt, lỗi), nhập ảnh Gemini bằng gemini-import.mjs, ghép NPC phụ từ LPC bằng lpc-compose.mjs, vẽ tay (he-icons.mjs, pixelart_workbench) và dây chuyền tools/assets normalize → pack → normal → preview → validate. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà, biểu tượng…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
 ---
 
 # Làm ảnh và đưa vào game
@@ -34,12 +34,13 @@ Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu, nguồn được
 | Hồn sư người chơi và animation | PixelLab (không dùng LPC) |
 | Phụ thể võ hồn | Ảnh Gemini hướng nam (`art/src/gemini/phuthe_s/<mã>_s.png`) vẽ lại đúng cỡ bằng PixelLab `edit_image_pixen`; vũ khí phẳng, vật đối xứng dùng chung một ảnh cho 5 hướng |
 | Hồn thú | PixelLab; ảnh Gemini nghiêng 3/4 (`art/src/gemini/beast_se/<loài>_se_<cỡ>.png`) chỉ làm tham chiếu hướng `se` / `e`; thú LPC làm hình tạm cho hồn thú thường tới khi PixelLab vẽ thay (mục 5) |
-| Ô nền | Gemini (10 bản đồ hiện dùng) hoặc PixelLab; **một bản đồ một nguồn ô nền** |
-| Vật đứng, công trình | PixelLab `create_map_object` hoặc Gemini |
-| Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | Gemini |
+| Ô nền | Gemini (10 bản đồ hiện dùng), ComfyUI (mục 10) hoặc PixelLab; **một bản đồ một nguồn ô nền** |
+| Vật đứng, công trình | **ComfyUI** (mục 10), PixelLab `create_map_object` hoặc Gemini |
+| Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | Gemini; biểu tượng vật phẩm cũng làm được bằng ComfyUI (mục 10) |
 | Huy hiệu hệ, chỉnh pixel | Vẽ tay (mục 6) |
 | NPC phụ, dân thường, lính gác | LPC (mục 5) |
 
+- **PixelLab đã hết lượt trial (2026-10-20):** ảnh tĩnh (vật đứng, công trình, biểu tượng, ô nền) làm bằng ComfyUI (mục 10, không tốn lượt); PixelLab chỉ khi orchestrator có key mới, cho hồn sư / hồn thú nhiều hướng và animation.
 - Không dùng hay tham chiếu ảnh từ game thương mại, phim, truyện tranh chính thức; không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 - Ảnh thô và thư mục làm việc để ngoài repo (thư mục artifact của phiên hoặc thư mục tạm); chỉ chép vào `shared/assets` sau khi người dùng duyệt.
 
@@ -193,7 +194,7 @@ Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú s
 
 ## 8. Quy trình "tạo <asset>"
 1. Đọc mục 5.11 và `tools/assets/README.md`, xác định key (bảng mục 1) và nguồn (mục 2).
-2. PixelLab: `get_balance`; khung tĩnh 8 hướng trước, duyệt bằng mắt, rồi animation 5 hướng vẽ. Gemini: viết prompt, người dùng tạo, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
+2. ComfyUI (ảnh tĩnh, mục 10): chờ hàng đợi Mac trống, 2–4 seed, `comfy-key` → `gemini-import`. PixelLab: `get_balance`; khung tĩnh 8 hướng trước, duyệt bằng mắt, rồi animation 5 hướng vẽ. Gemini: viết prompt, người dùng tạo, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
 3. normalize → pack → normal → `preview.mjs` soát lệch chân, màu lạ, điểm vụn, hướng lật → `validate.mjs --register` → `npm run check`.
 4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, nền rừng sâu.
 5. `npm run build --prefix client`, bot khi server bật; PR kèm ảnh chụp, nguồn ảnh và số lượt PixelLab đã dùng; đánh dấu bước Giai đoạn 10 ở mục 7.
@@ -201,3 +202,53 @@ Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú s
 ## 9. Phía client
 - `client/src/sprites.ts` (`preloadSprites`) tải key trong manifest (bố cục nhận theo bề ngang sheet, `fitHonsuLayer` đặt gốc / cỡ theo texture; `lpc_*` chỉ tải của bản đồ đang vào qua `lpcPreloader`); `textures.ts` / `honsuArt.ts` chỉ vẽ bằng code key **chưa có** ảnh, nên thêm key vào manifest là đủ. Giao diện HTML đọc ảnh qua `client/src/uiArt.ts`; ô và vật đứng qua `isoMap.ts` theo `tiles.json`.
 - Key hồn sư lấy bằng `honsuKey(lớp, giới, kiểu tóc)`; hoán màu bằng `recolor` (key `hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`); ánh xạ khung phụ thể `vohonFrame`, nửa sheet theo giới `vohonHalf`.
+
+## 10. ComfyUI (tự host, thay PixelLab cho ảnh tĩnh)
+ComfyUI chạy trên MacBook M4 Pro của chủ repo (LAN `http://192.168.1.4:8188`), gọi qua MCP `comfyui-pixel` (`server.py` và workflow `pixel_sprite_api.json` nằm ở máy người dùng, **ngoài repo**; cách dùng ở thư mục artifact của phiên dựng quy trình #330). Workflow: SDXL base 1.0 + LoRA pixel-art-xl (độ mạnh 1,1) + VAE sdxl-vae-fp16-fix, sinh 1024×1024, 28 bước `dpmpp_2m` / `karras`, rồi `ImageScale` nearest-exact về 128 px (×8: mỗi ô 8×8 của LoRA thành 1 điểm ảnh) và `ImageQuantize` không dither. Không tốn lượt hay tiền; giới hạn là máy.
+- **Mỗi lần một job.** Mac 16 GB: khoảng 5 giây / bước, 2,5–5 phút / ảnh (lần đầu nạp model lâu hơn). Trước khi gửi, `curl -s http://192.168.1.4:8188/queue` phải trống (`queue_running`, `queue_pending` rỗng: có thể phiên khác đang dùng); không gửi song song. Mac tắt hoặc ComfyUI lỗi thì báo orchestrator, không đổi sang dịch vụ khác.
+- **Hợp:** vật đứng, công trình, biểu tượng vật phẩm, ô nền (ảnh tĩnh một khung). **Chưa hợp:** hồn sư, phụ thể, hồn thú nhiều hướng và animation (không giữ được cùng một vật giữa các hướng / khung); hồn thú chỉ thử khung tĩnh làm tham chiếu.
+- Mọi ảnh ComfyUI vào game phải được chủ repo duyệt (mẫu đã duyệt làm chuẩn phong cách cho lô sau). Một bản đồ một nguồn ô nền: không trộn ô ComfyUI với ô Gemini / PixelLab trên cùng bản đồ.
+
+**Tham số `generate_pixel_art`** (chỉ `prompt`, `output_path` là bắt buộc; lệnh cũ hai tham số vẫn chạy)
+| Tham số | Mặc định | Ghi chú |
+|---|---|---|
+| `prompt` | | Server tự thêm `pixel art, ` ở đầu (từ khóa LoRA); prompt không có chữ `background` thì thêm `isolated on plain white background`. |
+| `output_path` | | PNG đã thu nhỏ + giảm màu (đường dẫn tuyệt đối, thư mục artifact). |
+| `width`, `height` | 128 | Cỡ đích; giữ đúng `gen_width / 8`, `gen_height / 8` (thu số lẻ làm vỡ ô điểm ảnh). |
+| `colors` | 24 | 1–256; 0 = không giảm. `gemini-import` còn đưa màu về bảng lần nữa. |
+| `seed` | -1 (ngẫu nhiên) | Kết quả trả về seed đã dùng: ghi vào CREDITS để vẽ lại đúng ảnh. |
+| `negative` | | Thêm vào prompt âm mặc định (blurry, 3d render, photo, anti-aliasing, text, frame…). |
+| `gen_width`, `gen_height` | 1024 | Bội 64, 512–2048; SDXL đẹp nhất quanh 1 megapixel (1024×1024, 1152×896, 896×1152). |
+| `steps`, `lora_strength` | 28, 1,1 | 10–60, 0–2 (mẫu #330 đều chạy với mặc định). |
+| `raw_path` | | Lưu thêm ảnh gốc 1024 (để so hoặc nhập bằng `--cell auto` khi bản 128 mất chi tiết). |
+| `init_image`, `denoise` | , 0,75 | img2img: PNG trên Windows làm ảnh dẫn (kéo về `gen_*`), `denoise` 0,05–1 (thấp giữ sát ảnh dẫn). Dùng cho công trình (bên dưới). |
+
+**Công thức prompt:** `[chủ thể: tả hình bằng tiếng Anh] + [góc nhìn] + [màu theo vùng] + [nét] + [nền]`.
+- **Tên Đấu La không có nghĩa với SDXL:** tả hình thay vì gọi tên ("Hồi Thành Phù" → `one vertical strip of yellow paper with red ink rune symbols and a red seal stamp`; "Phong Lang" → `grey wind wolf, slate grey fur with pale blue-white wind-swept tufts`). Kiến trúc, đồ vật theo kiểu cổ phong phương Đông (`ancient chinese village house, curved grey clay tile roof with upturned eave corners`).
+- **Góc nhìn (đã thử 2026-10-22):** chỉ bằng chữ, SDXL + pixel-art-xl vẽ công trình **nhìn thẳng** hoặc ra tấm linh kiện, dù có `isometric`, `seen from a high corner angle`, negative `front view`.
+  - **Công trình (nhà, cổng, tháp):** img2img từ ảnh dẫn: `node tools/assets/comfy-guide.mjs <dẫn.png> --w 3 --d 2.2 --h 1.25 --roof 1.6` (khối thô đúng phép chiếu 2:1: tường trái sáng, phải tối, mái bốn mái, cửa; `--roof 0` cho hộp mái bằng), rồi `init_image=<dẫn.png>`, `denoise=0.75`; prompt tả vật liệu, mái, cửa như thường. Model giữ góc isometric và hình khối, vẽ lại chi tiết; denoise cao hơn sáng tạo hơn nhưng dễ lệch góc.
+  - **Vật nhỏ đối xứng** (đèn, cột, bia): nhìn thẳng hơi từ trên chấp nhận được (như vật Gemini đang có); prompt `isometric view … seen from above, single object, whole object in frame`. Cần góc chéo rõ thì cũng dùng ảnh dẫn (`--roof 0` cho bệ, rương).
+  - **Ô nền:** SDXL không vẽ được thoi 2:1 đúng (ra texture phủ kín khung): xin **texture vuông nhìn thẳng từ trên, liền mép** (`seamless tileable texture, top-down view straight from above, …, low contrast, uniform lighting, no perspective, full frame texture with no background`; negative `objects, border, white background, perspective, high contrast, saturated`) rồi `comfy-key --diamond 128` chiếu thành thoi.
+  - **Biểu tượng:** `game item icon, front view, centered, compact square composition filling the icon, simple readable silhouette`; vật dài (bùa dải giấy) để chéo hoặc gấp cho vừa ô vuông, không thì vào khung 32 chỉ còn một vạch.
+  - **Hồn thú (chỉ tham chiếu tĩnh):** `three-quarter view from above, full body`; model quay trái / phải tùy seed: lật ngang cho hướng `se`.
+- **Màu (phong cách A + B, mục 1):** `muted desaturated earthy colors` + màu chủ đạo vùng (`deep mossy green`, `sunset crimson and burnt orange`, `icy blue and white`…), `soft sunlight from top left`; chỉ phần phát sáng thật mới sáng. **Thủy mặc** (`chinese ink wash, ivory paper, red cinnabar seal`) chỉ cho mảnh giao diện, không cho vật trong thế giới.
+- **Nét:** `crisp pixel clusters, dark outline` (viền về `#1a1020` ở bước nhập); ô nền không viền.
+- **Nền:** `no ground, no base, isolated on plain white background`; negative thêm `ground, grass base, terrain, floor, shadow, drop shadow, multiple objects, people`. SDXL vẫn hay vẽ nền xám nhạt (có khi xám hẳn) kèm bóng đổ: `comfy-key --shadow` gỡ.
+- Không vẽ mắt phát sáng, hào quang, vòng hồn hoàn, bóng (client vẽ). Không tên họa sĩ, tên game thương mại.
+
+**Các bước** (ảnh làm việc ở thư mục artifact, ngoài repo)
+1. Tạo 2–4 seed mỗi vật (`raw_path` giữ ảnh 1024), xem cả bản 128 phóng ×4 lẫn ảnh gốc; chọn bản đúng góc nhìn, ít vụn.
+2. Tách nền: `node tools/assets/comfy-key.mjs <128.png> <tach.png> --shadow --holes 20` (loang từ mép ảnh qua nền và bóng xám ≥ `--shadow-min` 0,55 × độ sáng nền; viền tối của vật chặn đường loang nên phần trắng / xám trong vật còn nguyên; `--holes 20` xóa khe nền kín giữa cột, giữa chân thú; in hộp bao vật). Ô nền: `--diamond 128` thay cho tách nền. Không dùng thẳng `gemini-import` cho nền trắng: nó xóa nền theo màu trên cả ảnh nên mất phần sáng của vật.
+3. Nhập về khung như ảnh Gemini (mục 4), thêm `--cell 1 --logo off --grid 1x1` (một vật một ảnh, mảnh rời không làm lệch số tên): vật đứng `--kind object --size WxH` (một vùng một `--scale`), biểu tượng `--kind item`, hồn thú `--kind beast --size <cỡ bậc>`, ô nền `--kind tile`. Ảnh 1024 (`--cell auto`, dò được ô 8) giữ nhiều màu hơn nhưng hay còn vệt bóng; mặc định dùng bản 128.
+4. Soát bằng `preview.mjs` / `iso-preview.mjs` cạnh asset cùng vùng (cùng tỉ lệ), rồi gửi chủ repo duyệt.
+5. Đưa vào game như Gemini: `iso-build.mjs ground|prop`, chép biểu tượng vào `shared/assets/sprites/iso/item/`; `validate.mjs --register <key> --iso --tool "ComfyUI (SDXL base 1.0 + pixel-art-xl) + comfy-key.mjs + gemini-import.mjs" --prompt "<prompt>; negative <…>; seed <N>" --note "<lệnh nhập>"` ghi vào mục "Asset tạo bằng AI (ComfyUI)" của `art/CREDITS.md`. Ô nền (iso-build không ghi công) thì thêm tay một dòng vào bảng mục đó.
+
+```bash
+node tools/assets/comfy-guide.mjs <art>/dan_nha.png --w 3 --d 2.2   # rồi generate_pixel_art(..., init_image=<art>/dan_nha.png, denoise=0.75)
+node tools/assets/comfy-key.mjs <art>/den_long_101.png <tmp>/den_long.png --shadow --holes 20
+node tools/assets/comfy-key.mjs <art>/o_co_101.png <tmp>/o_co.png --diamond 128
+node tools/assets/gemini-import.mjs --kind tile --cell 1 --logo off --grid 1x1 --names co_rung_moi --out <tmp>/tile <tmp>/o_co.png
+node tools/assets/gemini-import.mjs --kind object --size 48x96 --cell 1 --logo off --grid 1x1 --names den_long_da --out <tmp>/obj <tmp>/den_long.png
+node tools/assets/gemini-import.mjs --kind item --cell 1 --logo off --grid 1x1 --names hoi_thanh_phu --out <tmp>/item <tmp>/phu.png
+```
+
