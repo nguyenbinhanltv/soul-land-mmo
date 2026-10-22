@@ -56,6 +56,7 @@ Gói miễn phí của Supabase tạm dừng project sau khoảng 1 tuần khôn
 npm run check                         # typecheck server + client, kiểm tra sprite (bắt buộc trước khi commit)
 GAME_TEST=1 npm run dev:server        # server bật hook kiểm thử (Git Bash / Linux / macOS)
 npm run bot --prefix client           # terminal khác: bot tự chơi và kiểm tra hầu hết luật chơi
+npm run bot:local -- --only bag       # hoặc: một lượt bot trọn gói (tự bật server, chạy một nhóm, tự dọn), xem dưới
 npm run test:predict --prefix client  # dự đoán chuyển động, không cần server
 npm run test:ratelimit --prefix server
 npm run test:accounts --prefix server
@@ -66,7 +67,22 @@ npm run test:accounts --prefix server
 - Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam; `BOSS_CLOCK=HH:MM` chạy từ giờ đó, `BOSS_CLOCK=real` dùng giờ thật.
 - CI (`.github/workflows/check.yml`, chỉ để tham khảo) chạy `check-build` và `bot-ram` (các bài trên cùng bot RAM chia 3 nhóm song song theo `BOT_PART`, nhiều kênh) trên mọi PR vào `main`; xem `CONTRIBUTING.md` mục Merge.
 - Bật git pre-commit hook một lần sau khi clone: `npm run hooks` (typecheck các file đã stage).
-- Bot chạy trên server mới bật (state sạch). Đổi SQL / `server/src/db.ts` thì chạy thêm bot với PostgreSQL, server bật hai lần liên tiếp để chắc migration chạy lại an toàn (cách dựng PostgreSQL không cần Docker ở `CLAUDE.md`).
+- Bot chạy trên server mới bật (state sạch). Đổi SQL / `server/src/db.ts` thì chạy thêm bot với PostgreSQL, server bật hai lần liên tiếp để chắc migration chạy lại an toàn.
+
+**Bot ở máy: `npm run bot:local`** (`tools/bot-local.mjs`, cách agent chạy bot ở máy)
+
+```bash
+npm run bot:local -- --help                 # danh sách nhóm và tham số
+npm run bot:local -- --only bag             # một nhóm BOT_ONLY, chế độ RAM
+npm run bot:local -- --part 2               # một nhóm BOT_PART như CI
+npm run bot:local -- --channels             # lượt nhiều kênh (CHANNEL_MAX=2)
+npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, server bật hai lần, xoá database khi xong
+```
+
+- Server build một lần bằng esbuild (`server/dist/bot-<hash>.mjs`, build lại khi nguồn đổi) rồi chạy `node` (không qua npm / tsx), trần heap 768 MB (`--heap`), cổng trống, `GAME_TEST=1`; không đọc `server/.env`. Biến thêm cho server: `--env BOSS_CLOCK=20:00`.
+- Tối đa 2 lượt cùng lúc trên cả máy (`BOT_LOCAL_MAX`), lượt thừa chờ. Chỉ tắt tiến trình con của chính nó; bị tắt cứng thì server / bot tự thoát, lượt sau gỡ khoá và database còn sót. Cuối lượt in số ✓ / ✗ / ⚠, thời gian, RAM đỉnh; log ở `ci-logs/local-*`.
+- `--pg` dùng **một PostgreSQL chung cho cả máy**: binary `embedded-postgres` trong `node_modules` (devDependency ở thư mục gốc, không cần cài thêm hay quyền admin), cổng `BOT_PG_PORT` (mặc định 5433), dữ liệu `BOT_PG_DIR` (mặc định `D:/soul-pg-shared` nếu có ổ D, không thì thư mục tạm). Lần đầu tự `initdb` (UTF8), sau đó dùng lại; instance chạy tiếp sau khi lượt bot xong. Có PostgreSQL cài sẵn thì trỏ vào bằng `BOT_PG_URL=postgres://user:pass@localhost:5432/postgres`.
+- **Tắt PostgreSQL chung:** `npm run bot:local -- --pg-stop` (từ chối khi còn lượt bot đang chạy; `--force` để tắt luôn). Xem trạng thái: `--pg-status`. Xoá hẳn: tắt rồi xoá thư mục `BOT_PG_DIR`.
 
 ## Cấu trúc thư mục
 
