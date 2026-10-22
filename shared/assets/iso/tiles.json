@@ -1136,7 +1136,8 @@
     "41": "cau_tau_go",
     "42": "hai_dang",
     "43": "cot_den_hai_than",
-    "44": "vo_oc_khong_lo"
+    "44": "vo_oc_khong_lo",
+    "45": "tuong_hai_than"
    },
    "build": {
     "wallKind": "plaster",
@@ -1160,7 +1161,7 @@
       "walls": false
      },
      "146,60": {
-      "main": ["dien_hai_than", "tuong_hai_than", "tuong_hai_than"],
+      "main": ["dien_hai_than", "tuong_dinh_ba", "tuong_dinh_ba"],
       "gate": "vom_da~#e0d8c8",
       "deco": ["tuong_dinh_ba", "cot_den_do", "bon_hoa", "cot_den_do"],
       "floor": "san_da"
