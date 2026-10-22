@@ -1174,13 +1174,17 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Võ hồn sở hữu và đội hình ----------
-  /** Danh sách võ hồn và đội hình chỉ gửi riêng cho chính chủ, không nằm trong state đồng bộ (mục 6). */
+  /**
+   * Danh sách võ hồn và đội hình chỉ gửi riêng cho chính chủ, không nằm trong state đồng bộ (mục 6). `fcd`: giây hồi chiêu Võ Hồn Dung
+   * Hợp Kỹ còn lại của hồn sư (#193; chỉ khi > 0), để ô hồi chiêu đúng sau khi đổi kênh / đi cổng / vào lại.
+   */
   sendVohons(c: Client) {
     const d = this.pdata.get(c.sessionId); if (!d) return;
     this.syncCh(c.sessionId);
+    const fcd = Math.round(fusionCdLeft(d.accountId) * 10) / 10;
     c.send("vohons", { active: d.ch.rowId, team: [...d.team],
       list: d.owned.map((v) => ({ rowId: v.rowId, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings],
-        skills: loadoutOf(v.vohon, v.skills), herbs: { ...v.herbs } })) });
+        skills: loadoutOf(v.vohon, v.skills), herbs: { ...v.herbs } })), ...(fcd > 0 ? { fcd } : {}) });
     this.sendSquad(c.sessionId, true);
   }
 
