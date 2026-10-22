@@ -8421,10 +8421,11 @@ async function autoBossPerf(){
     // Máu boss x AB_HPX (mặc định 50) để cả lượt đo là trận đánh thật (12 hồn sư cấp 100 hạ boss máu gốc trong khoảng nửa phút).
     let ki=await test(H,"king"); await test(H,"bmax",{bid:ki.bid,x:Math.max(1,Number(process.env.AB_HPX)||50)}); ki=await test(H,"king");
     const L=ki.lair, cell=SYNC_VIEW.cell, used=new Map();
-    // Rải mỗi bot một chỗ trong sàn đấu (mỗi ô lưới đồng bộ tối đa 2 điểm neo, AUTO_MAX_PER_CELL).
-    for(const b of B) for(let k=0;k<200;k++){
-      const x=Math.round(L.x+16+Math.random()*(L.w-32)), y=Math.round(L.y+16+Math.random()*(L.h-32)), key=`${Math.floor(x/cell)},${Math.floor(y/cell)}`;
-      if((used.get(key)??0)>=2) continue; await test(b,"goto",{x,y}); if(Math.hypot(mo(b).x-x,mo(b).y-y)<1){ used.set(key,(used.get(key)??0)+1); break; }
+    // Rải mỗi bot một chỗ trong sàn đấu (mỗi ô lưới đồng bộ tối đa AUTO_MAX_PER_CELL điểm neo); sàn đầy thì ra quanh sàn (lề tăng dần).
+    for(const b of B) for(let k=0;k<400;k++){
+      const pad=k<200?-16:16*Math.ceil((k-199)/50), x=Math.round(L.x-pad+Math.random()*(L.w+2*pad)), y=Math.round(L.y-pad+Math.random()*(L.h+2*pad));
+      const key=`${Math.floor(x/cell)},${Math.floor(y/cell)}`;
+      if((used.get(key)??0)>=AUTO_MAX_PER_CELL) continue; await test(b,"goto",{x,y}); if(Math.hypot(mo(b).x-x,mo(b).y-y)<1){ used.set(key,(used.get(key)??0)+1); break; }
     }
     const perf=async(reset)=>test(H,"perf",{reset});
     const p0=await perf(true); if(!p0?.on) console.log("  ⚠ server chưa bật PERF_LOG=1: không đo được thời gian tick (npm run bot:local -- --only autobossperf --env PERF_LOG=1)");
