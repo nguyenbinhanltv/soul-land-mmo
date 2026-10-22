@@ -1,13 +1,15 @@
 /* Font pixel đủ dấu tiếng Việt (bước 10.8, mục 5.11 phong cách C): Galmuri 11 (nét 12 px) cho chữ thường, ×2 (24 px) cho tiêu đề; Galmuri 9 (nét 10 px) cho
-   chữ chật (thanh, nút hồn kỹ, góc ô). Chỉ dùng cỡ đúng bội số của lưới font để chữ sắc nét. Ký tự font thiếu (biểu tượng hồn kỹ) rơi
-   về font hệ thống. Bản Bold và Galmuri 14 thiếu nhiều chữ Việt (Ă Đ Ơ Ư…) nên không dùng. Nguồn, giấy phép OFL: art/CREDITS.md,
-   client/src/fonts/OFL-galmuri.txt. */
+   chữ chật (thanh, nút hồn kỹ, góc ô). Chỉ dùng cỡ đúng bội số của lưới font để chữ sắc nét. Ký tự Galmuri thiếu: 12 biểu tượng rơi về Ark Symbols (subset Ark Pixel), còn lại về font hệ thống. Bản Bold và Galmuri 14 thiếu nhiều chữ Việt (Ă Đ Ơ Ư…) nên không dùng. Nguồn, giấy phép OFL: art/CREDITS.md,
+   client/src/fonts/OFL-galmuri.txt (Ark Symbols: OFL-ark-pixel.txt). Không dùng chữ đậm: phân cấp bằng cỡ (24 = Galmuri 11 ×2), màu và viền chữ. */
 @font-face{font-family:"Galmuri 11";src:url("./fonts/galmuri-11.woff2") format("woff2");font-display:block}
 @font-face{font-family:"Galmuri 9";src:url("./fonts/galmuri-9.woff2") format("woff2");font-display:block}
+/* Dự phòng: 12 biểu tượng hồn kỹ / giao diện (☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦) có ở Ark Pixel mà Galmuri không có; subset Ark chỉ còn các ký tự đó (khoảng 1 KB mỗi cỡ, OFL). */
+@font-face{font-family:"Ark Symbols 12";src:url("./fonts/ark-symbols-12.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Ark Symbols 10";src:url("./fonts/ark-symbols-10.woff2") format("woff2");font-display:block}
 /* Bảng màu thủy mặc (art/palettes/_thuy_mac.gpl): giấy ngà, mực, triện son, gỗ trục; chữ mực trên giấy. Lớp "mực" (dải tối trong
    suốt) cho chữ nổi trên cảnh (log, gợi ý). */
 :root{
-  --f12:"Galmuri 11","Be Vietnam Pro",system-ui,sans-serif; --f10:"Galmuri 9","Be Vietnam Pro",system-ui,sans-serif;
+  --f12:"Galmuri 11","Ark Symbols 12","Be Vietnam Pro",system-ui,sans-serif; --f10:"Galmuri 9","Ark Symbols 10","Be Vietnam Pro",system-ui,sans-serif;
   --paper:#ece2c8; --paper2:#d8caa8; --paper3:#b8a888; --ink:#2a2230; --ink2:#3a3440; --inkl:#6a6470;
   --son:#b0302a; --son-d:#8a2018; --son-l:#d84a3a; --wood:#5a3b22;
   --bg:#1a1020; --panel:#ece2c8; --line:#9a8a6c; --line2:#3a3440;

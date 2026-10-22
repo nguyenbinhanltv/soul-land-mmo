@@ -29,6 +29,8 @@ export function fontTestScreen(card: HTMLElement, overlay: HTMLElement) {
     ${line("f10", "10px", "Galmuri 9, chữ hoa", UPPER)}
     ${line("f10", "10px", "Galmuri 9, chữ thường", LOWER)}
     ${line("f12", "12px", "Câu mẫu", SAMPLE)}
+    ${line("f12", "12px", "Biểu tượng dự phòng (Ark Symbols 12)", "☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦")}
+    ${line("f10", "10px", "Biểu tượng dự phòng (Ark Symbols 10)", "☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦")}
     <h3>Nút, ấn triện, thanh</h3>
     <div class="ftrow"><button class="buse">Nút giấy</button><button class="buse ft-hover">Rê chuột</button><button class="buse ft-press">Đang nhấn</button>
       <button class="buse absorb">Ấn son (nút chính)</button><button class="minibtn" style="width:auto;margin:0">Đội hình <kbd>V</kbd></button></div>
