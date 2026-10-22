@@ -20,7 +20,8 @@ import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
-import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
+import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
+  type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -1916,11 +1917,12 @@ export interface NpcActions {
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
-  tong(op: "join" | "leave", tong?: string): void; // tông môn (#196): gia nhập / đổi sang `tong`, rời tông
+  // Tông môn (#196): gia nhập / đổi sang `tong`, rời tông; #197: nhận / trả tông vụ `chain`, xin bảng tông tuần, nhận thưởng tuần.
+  tong(op: "join" | "leave" | "accept" | "turnin" | "board" | "claim", tong?: string, chain?: string): void;
   shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank" | "shard";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -1932,12 +1934,22 @@ const SELL_CONFIRM_DONG = 100;
 const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
   arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
   tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
-let tongMsg: { tong: string; wait: number } | null = null; // tin "tong" gần nhất: tông đang thuộc ("" = không), giây còn chờ
+/** Tin "tong": tông đang thuộc ("" = không), giây còn chờ đổi tông; từ #197 tông vụ hôm nay (tiến độ do server giữ). */
+export interface TongMsg { tong: string; wait: number; day?: string; tasks?: (QuestProgress & { status: QuestStatus })[]; }
+/** Tin "tongBoard" (#197): bảng tông tuần này (`cur`, điểm của mình `me`) và tuần trước (`last`: tông hạng nhất, phần thưởng của mình). */
+export interface TongBoardMsg {
+  week: number; min: number; me: number; cur: { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]> };
+  last: { week: number; board: { tongs: TongRank[] }; first: string[]; tong: string; points: number; reward: "top" | "rest" | null; claimed: boolean };
+}
+let tongMsg: TongMsg | null = null; // tin "tong" gần nhất
+let tongBoardMsg: TongBoardMsg | null = null; // tin "tongBoard" gần nhất
 let shardMsg: { n: number; daily: number } | null = null; // tin "shardinfo" gần nhất (#282): số mảnh đã đổi hôm nay ở Thương hội
 /** Tin "shardinfo" (#282): vẽ lại hộp thoại Chưởng quỹ nếu đang mở. */
 export function setShardInfo(m: { n: number; daily: number }) { shardMsg = m; if (npcDefOpen?.id === SHARD_BUY.npc) renderNpc(); }
 /** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
-export function setTong(m: { tong: string; wait: number }) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
+export function setTong(m: TongMsg) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
+/** Tin "tongBoard" (#197): vẽ lại hộp thoại sứ giả nếu đang mở. */
+export function setTongBoard(m: TongBoardMsg) { tongBoardMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 
 /** NPC đang mở hộp thoại (null = đóng). */
 export const npcOpenId = () => npcDefOpen?.id ?? null;
@@ -1980,6 +1992,12 @@ function renderNpc() {
   };
   const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
   const bag = npcBagMsg;
+  if (npcPage === "tongtask" || npcPage === "tongrank") { // #197: tông vụ hôm nay, bảng tông tuần
+    if (npcPage === "tongtask") renderTongTasks(el, act); else renderTongRank(el, act);
+    btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
+    el.appendChild(row);
+    return;
+  }
   if (npcPage === "quest" || npcPage === "daily") {
     if (npcPage === "daily") renderDailyPage(el, act); else renderQuestPage(el, act);
     btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
@@ -2031,6 +2049,12 @@ function renderNpc() {
       const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
       if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true);
       else if (t) btn(cur ? `Đổi sang ${t.name}` : `Gia nhập ${t.name}`, "absorb", () => act.tong("join", t.id));
+      if (t && t.id === cur?.id) { // #197: tông vụ chỉ ở sứ giả tông mình
+        const l = tongMsg?.tasks ?? [], done = l.filter((x) => x.status === "done").length;
+        const mark = l.some((x) => x.status === "ready") ? " ?" : l.some((x) => x.status === "offer") ? " !" : "";
+        btn(`Tông vụ hôm nay (${done}/${l.length || TONG_DAILY.count})${mark}`, "absorb", () => go("tongtask"));
+      }
+      if (cur) btn("Bảng tông tuần, thưởng tuần", "absorb", () => { act.tong("board"); go("tongrank"); });
       if (cur) btn(`Rời ${cur.name}`, "drop", () => act.tong("leave"));
       if (tongMsg && tongMsg.wait > 0) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Còn ${Math.ceil(tongMsg.wait / 86400)} ngày nữa mới đổi được tông.`; el.appendChild(k); }
     }
@@ -2418,6 +2442,70 @@ function renderDailyTracker(el: HTMLElement) {
   return true;
 }
 /** Trang khảo hạch trong hộp thoại Phất Lan Đức: mỗi bài một khung (mục tiêu, thưởng, lời giao / lời trả) và nút nhận / trả riêng. */
+/** Trang tông vụ hôm nay (#197) ở sứ giả tông mình: như khảo hạch hằng ngày, thưởng Hồn Tệ và điểm tông. */
+function renderTongTasks(el: HTMLElement, act: NpcActions) {
+  const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
+  const l = tongMsg?.tasks;
+  if (!l?.length) { say("…"); return; }
+  say(l.every((x) => x.status === "done") ? questChain(l[0].chain)?.finale ?? "" :
+    `Tông vụ hôm nay ${l.length} bài, mỗi bài ${TONG_POINTS} điểm tông. Nửa đêm có bài mới, bài dở dang bỏ luôn.`);
+  l.forEach((q, i) => {
+    const s = questChain(q.chain)?.steps[0]; if (!s) return;
+    const box = document.createElement("div"); box.className = "qbox" + (q.status === "done" ? " qdone" : "");
+    const h = document.createElement("b"); h.textContent = `Bài ${i + 1}/${l.length}: ${s.name}${q.status === "done" ? " (đã xong)" : ""}`; box.appendChild(h);
+    if (q.status !== "done") {
+      const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
+      box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
+      const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}, ${TONG_POINTS} điểm tông`; box.appendChild(r);
+      const line = q.status === "offer" ? s.offer.at(-1) : q.status === "ready" ? s.done[0] : "";
+      if (line) { const p = document.createElement("i"); p.className = "qsay"; p.textContent = line; box.appendChild(p); }
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
+      b.textContent = q.status === "offer" ? "Nhận bài" : q.status === "ready" ? "Trả bài, nhận thưởng" : "Đang làm…";
+      b.disabled = q.status === "active";
+      b.addEventListener("click", () => { b.blur(); act.tong(q.status === "offer" ? "accept" : "turnin", undefined, q.chain); });
+      box.appendChild(b);
+    }
+    el.appendChild(box);
+  });
+}
+
+/** Trang bảng tông tuần (#197): điểm trung bình thành viên hoạt động từng tông, top cá nhân tông mình, thưởng tuần trước. */
+function renderTongRank(el: HTMLElement, act: NpcActions) {
+  const m = tongBoardMsg, mine = tongMsg?.tong ?? "";
+  const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
+  if (!m) { say("…"); return; }
+  const table = (rows: TongRank[], first: string[]) => {
+    const tb = document.createElement("div"); tb.className = "qbox";
+    const sorted = TONG_MON.map((t) => rows.find((r) => r.tong === t.id) ?? { tong: t.id, active: 0, avg: 0 }).sort((a, b) => b.avg - a.avg);
+    for (const r of sorted) {
+      const t = tongDef(r.tong), line = document.createElement("span");
+      line.textContent = `${first.includes(r.tong) ? "★ " : ""}${t?.name ?? r.tong}: ${r.avg.toLocaleString("vi-VN", { maximumFractionDigits: 1 })} điểm trung bình, ${r.active} người hoạt động`;
+      if (t) line.style.color = t.col;
+      if (r.tong === mine) line.style.fontWeight = "bold";
+      tb.appendChild(line);
+    }
+    return tb;
+  };
+  const cur = m.cur.tongs, best = Math.max(0, ...cur.filter((r) => r.active > 0).map((r) => r.avg));
+  say(`Tuần này: ngươi có ${m.me} điểm tông (cần ${m.min} điểm để là thành viên hoạt động). Xếp theo điểm trung bình của thành viên hoạt động.`);
+  el.appendChild(table(cur, cur.filter((r) => r.active > 0 && r.avg === best).map((r) => r.tong)));
+  const top = m.cur.top[mine] ?? [];
+  if (top.length) {
+    const tb = document.createElement("div"); tb.className = "qbox";
+    const h = document.createElement("b"); h.textContent = `Top ${tongDef(mine)?.name ?? ""} tuần này`; tb.appendChild(h);
+    top.forEach((x, i) => { const s2 = document.createElement("span"); s2.textContent = `${i + 1}. ${x.name}: ${x.points} điểm`; tb.appendChild(s2); });
+    el.appendChild(tb);
+  }
+  const L = m.last, R = L.reward ? TONG_WEEK_REWARD[L.reward] : null;
+  say(`Tuần trước: ${L.first.length ? `hạng nhất ${L.first.map((x) => tongDef(x)?.name ?? x).join(", ")}` : "chưa tông nào có thành viên hoạt động"}; ngươi có ${L.points} điểm${L.tong ? ` ở ${tongDef(L.tong)?.name ?? L.tong}` : ""}.`);
+  el.appendChild(table(L.board.tongs, L.first));
+  const b = document.createElement("button"); b.type = "button"; b.className = "buse absorb";
+  b.textContent = L.claimed ? "Đã nhận thưởng tuần trước" : R ? `Nhận thưởng tuần: ${formatHonTe(R.honTe)} và ${R.shards} mảnh võ hồn` : `Tuần trước chưa đủ ${TONG_WEEK_MIN} điểm: không có thưởng`;
+  b.disabled = L.claimed || !R;
+  b.addEventListener("click", () => { b.blur(); act.tong("claim"); });
+  el.appendChild(b);
+}
+
 function renderDailyPage(el: HTMLElement, act: NpcActions) {
   const m = dailyMsg;
   const say = (t: string, to: HTMLElement = el) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; to.appendChild(p); };
