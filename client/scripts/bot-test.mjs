@@ -476,6 +476,11 @@ async function channelTest(){
     ok(await waitFor(()=>P3.chats.some(m=>m.ch==="party"&&m.text===tp&&m.name===P2.name)&&P3.chats.some(m=>m.ch==="whisper"&&m.text===tw&&m.name===P1.name),2000),
       "P3 (kênh 2) nhận chat tổ đội của P2 và tin riêng của P1 (kênh 1)");
     ok(await waitFor(()=>P1.chats.some(m=>m.text===tm),2000)&&(await sleep(300),!P3.chats.some(m=>m.text===tm)),"chat bản đồ của P2 tới P1 (kênh 1), không sang kênh 2");
+    // #198: chat tông xuyên kênh (P1, P3 không cùng tổ đội, chỉ cùng tông; hook tong {set} đặt thẳng tông rồi trả lại).
+    for(const b of [P1,P3]) await T(b,"tong",{set:TONG_MON[0].id});
+    const tt=`tông kênh ${RUN}`; P1.room.send("chat",{text:tt,ch:"tong"});
+    ok(await waitFor(()=>P3.chats.some(m=>m.ch==="tong"&&m.text===tt&&m.name===P1.name),2000),`P3 (kênh 2) nhận chat tông ${TONG_MON[0].name} của P1 (kênh 1)`);
+    for(const b of [P1,P3]) await T(b,"tong",{set:null});
   }
   await T(P2,"chan",{nolock:1}); await P2.room.leave(); await sleep(400);
   pick=await post("/api/channel",{token:P2.token});
@@ -8695,13 +8700,13 @@ async function partyEffectExpansionTest(){
 }
 
 /**
- * Chat tổ đội, tin riêng, kênh thế giới (#188; BOT_ONLY=chat, nhóm 3 của BOT_PART): `chat {text, ch?, to?}`, thiếu `ch` là chat bản
- * đồ như cũ; tổ đội / riêng / thế giới tới người ở bản đồ khác (qua presence); người nhận phải đang trong game; thế giới chặn dưới
- * WORLD_CHAT.minLevel và 1 tin / WORLD_CHAT.cdSecs giây; chống spam riêng từng kênh; giá trị lạ bị bỏ qua. Phần xuyên kênh cùng bản đồ
- * ở channelTest (CHANNEL_MAX=2).
+ * Chat tổ đội, tin riêng, kênh thế giới (#188), chat tông (#198; BOT_ONLY=chat, nhóm 3 của BOT_PART): `chat {text, ch?, to?}`, thiếu
+ * `ch` là chat bản đồ như cũ; tổ đội / riêng / thế giới / tông tới người ở bản đồ khác (qua presence); người nhận phải đang trong game;
+ * thế giới chặn dưới WORLD_CHAT.minLevel và 1 tin / WORLD_CHAT.cdSecs giây; tông chỉ tới người cùng tông, chưa có tông thì báo; chống
+ * spam riêng từng kênh; giá trị lạ bị bỏ qua. Phần xuyên kênh cùng bản đồ ở channelTest (CHANNEL_MAX=2).
  */
 async function chatTest(){
-  console.log("[#188] Chat tổ đội, tin riêng, kênh thế giới (xuyên bản đồ)");
+  console.log("[#188, #198] Chat tổ đội, tin riêng, kênh thế giới, tông môn (xuyên bản đồ)");
   const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
   /** Gửi `chat` rồi chờ một dòng log từ chối (trả các dòng mới; "" nếu không có). */
   const said=async(b,msg)=>{ const l=b.logs.length; b.room.send("chat",msg); await waitFor(()=>b.logs.length>l,1500); await sleep(50); return b.logs.slice(l).join(" | "); };
@@ -8756,6 +8761,21 @@ async function chatTest(){
     await T(X,"chat",{cop:"rlreset"}); const tG2=`thế giới 2 ${RUN}`; X.room.send("chat",{text:tG2,ch:"world"});
     ok(await got(Z,tG2,"world"),"hết hồi (hook rlreset): gửi được tin thế giới tiếp");
 
+    // ---- Tông môn (#198): chưa thuộc tông thì báo; cùng tông nhận dù khác bản đồ; tông khác không nhận; rời tông là thôi nhận ----
+    // Hook tong {set} đặt thẳng tông (bỏ qua sứ giả / cấp / chờ đổi, luật gia nhập thử ở tongTest).
+    const [TA,TB]=TONG_MON;
+    for(const b of [X,Y,Z]) await T(b,"tong",{set:null});
+    ok(/chưa thuộc tông/.test(await said(X,{text:"tông ơi",ch:"tong"})),"chat tông khi chưa thuộc tông: báo lỗi riêng");
+    await T(X,"tong",{set:TA.id}); await T(Z,"tong",{set:TA.id}); await T(Y,"tong",{set:TB.id});
+    const tT=`tông ${RUN}`; X.room.send("chat",{text:tT,ch:"tong"});
+    ok(await got(Z,tT,"tong")&&has(Z,tT,"tong").name===X.name,`chat tông ${TA.name}: Z ở bản đồ khác nhận (ch tong, tên người gửi)`);
+    ok(await got(X,tT,"tong"),"người gửi cũng nhận tin tông của mình");
+    await sleep(300); ok(!Y.chats.some(m=>m.text===tT),`Y thuộc ${TB.name} (cùng phòng với X): không nhận tin tông khác`);
+    const tY=`tông khác ${RUN}`; Y.room.send("chat",{text:tY,ch:"tong"});
+    ok(await got(Y,tY,"tong")&&(await sleep(300),!X.chats.some(m=>m.text===tY)&&!Z.chats.some(m=>m.text===tY)),`tin tông của Y chỉ tới ${TB.name}`);
+    await T(Z,"tong",{set:null}); const tT2=`rời tông ${RUN}`; X.room.send("chat",{text:tT2,ch:"tong"});
+    ok(await got(X,tT2,"tong")&&(await sleep(300),!Z.chats.some(m=>m.text===tT2)),"Z rời tông: thôi nhận chat tông ngay");
+
     // ---- Chống spam riêng từng kênh, độ dài, giá trị lạ ----
     await T(X,"chat",{cop:"rlreset"});
     for(let i=0;i<5;i++) X.room.send("chat",{text:`spam ${i} ${RUN}`,ch:"party"});
@@ -8763,8 +8783,10 @@ async function chatTest(){
     ok(/quá nhanh/.test(await said(X,{text:`spam 5 ${RUN}`,ch:"party"})),"tổ đội: tin thứ 6 liền nhau bị chặn (5 tin, hồi 1 tin / 2 giây)");
     const tMap2=`bđ vẫn được ${RUN}`; X.room.send("chat",{text:tMap2});
     ok(await got(Y,tMap2),"hết lượt tổ đội nhưng chat bản đồ vẫn gửi được (bucket riêng)");
+    const tT3=`tông vẫn được ${RUN}`; X.room.send("chat",{text:tT3,ch:"tong"});
+    ok(await got(X,tT3,"tong"),"hết lượt tổ đội nhưng chat tông vẫn gửi được (bucket riêng)");
     ok(/quá dài/.test(await said(Y,{text:"a".repeat(121),ch:"whisper",to:Z.name})),"tin quá CHAT_MAX_LEN ký tự bị từ chối");
-    for(const m of [{text:"x",ch:"abc"},{text:"x",ch:5},{text:{toString:0},ch:"party"},{text:"x",ch:"whisper",to:{a:1}},{text:"x",ch:"world",to:7},{text:["x"]},null,"x"]) X.room.send("chat",m);
+    for(const m of [{text:"x",ch:"abc"},{text:"x",ch:5},{text:{toString:0},ch:"party"},{text:"x",ch:"whisper",to:{a:1}},{text:"x",ch:"world",to:7},{text:{a:1},ch:"tong"},{text:"x",ch:["tong"]},{text:["x"]},null,"x"]) X.room.send("chat",m);
     const tAfter=`còn kết nối ${RUN}`; await sleep(300); X.room.send("chat",{text:tAfter});
     ok(await got(Y,tAfter)&&X.leftCode===null,"chat mang kênh / người nhận / nội dung lạ: bỏ qua, không ngắt kết nối");
 
