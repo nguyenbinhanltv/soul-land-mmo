@@ -709,7 +709,8 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk), rp = resMsg?.bonus[k] ?? 0;
     const bp = bonus[`${k}_pct`]; // dòng phụ % của hồn cốt (#187)
     return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${bp ? `<em>+${bp.toLocaleString("vi-VN")}% hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}${hb[k] ? `<em>+${hb[k]}% tiên thảo</em>` : ""}</b>`;
-  }).join("");
+  }).join("") + (bonus.crit || bonus.crit_dmg ? `<span>Chí mạng</span><b>${(st.crit * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}%`
+    + `${bonus.crit ? `<em>+${bonus.crit.toLocaleString("vi-VN")}% tỉ lệ hồn cốt</em>` : ""}${bonus.crit_dmg ? `<em>+${bonus.crit_dmg.toLocaleString("vi-VN")}% sát thương hồn cốt</em>` : ""}</b>` : ""); // dòng phụ chí mạng (#187)
   el.appendChild(sum);
 
   const info = document.createElement("div"); info.className = "binfo bpick";

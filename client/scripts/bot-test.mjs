@@ -7474,10 +7474,9 @@ async function partyEffectExpansionTest(){
 }
 
 /**
- * #162: Vạn Chu Phệ (giai đoạn 2 của Tà hóa Thiên Độc Chu Hoàng, Tinh Đấu Nội địa) đẻ bọc trứng (EggDef). E đứng ngoài hang (thú vương
- * không đuổi được, chỉ tung chiêu bằng hook `tele`): đẻ đủ `n` bọc trong hang, máu `hp` lần máu nhện con cùng số năm, đồng bộ đồng hồ
- * nở; phá một bọc thì nó không nở và không có kinh nghiệm / Hồn Tệ / đồ rơi; hết giờ (hook `egg {t}` rút ngắn) mỗi bọc còn lại nở `per`
- * nhện con; còn nhện con thì chỉ đẻ thêm cho đủ tối đa `n` × `per`; thú vương bị hạ thì bọc tan, không nở.
+ * #187: dòng phụ hồn cốt. Hàm thuần (bộ theo vị trí, mức theo bậc, đủ dòng ở mốc cuối), rồi S cường hóa hồn cốt đang gắn qua từng
+ * mốc (mỗi mốc 1 dòng, không trùng, cộng ngay vào chỉ số); hồn cốt +N tạo bằng hook `give` (chưa có dòng) được tung bù khi vào lại,
+ * vào lần nữa không tung thêm (đã lưu; lượt PostgreSQL kiểm qua DB thật).
  */
 async function boneSubTest(){
   console.log("[#187] Hồn cốt: dòng phụ ngẫu nhiên ở mốc cường hóa, tung bù cho hồn cốt cũ");
@@ -7554,6 +7553,12 @@ async function boneSubTest(){
   } finally { await S.room.leave(); }
 }
 
+/**
+ * #162: Vạn Chu Phệ (giai đoạn 2 của Tà hóa Thiên Độc Chu Hoàng, Tinh Đấu Nội địa) đẻ bọc trứng (EggDef). E đứng ngoài hang (thú vương
+ * không đuổi được, chỉ tung chiêu bằng hook `tele`): đẻ đủ `n` bọc trong hang, máu `hp` lần máu nhện con cùng số năm, đồng bộ đồng hồ
+ * nở; phá một bọc thì nó không nở và không có kinh nghiệm / Hồn Tệ / đồ rơi; hết giờ (hook `egg {t}` rút ngắn) mỗi bọc còn lại nở `per`
+ * nhện con; còn nhện con thì chỉ đẻ thêm cho đủ tối đa `n` × `per`; thú vương bị hạ thì bọc tan, không nở.
+ */
 async function eggTest(){
   console.log("[#162] Vạn Chu Phệ: bọc trứng phá được, không phá thì nở nhện con");
   const ND="tinh_dau_noi_dia", KB=MAPS[ND].king, VCP=BOSSES[bossIndex(KB)].phase2.skills.find(x=>x.eggs), EG=VCP?.eggs;

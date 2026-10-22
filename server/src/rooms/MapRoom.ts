@@ -4217,11 +4217,11 @@ export class MapRoom extends Room<MapState> {
   bonesOn(d: PData, rowId: number) {
     return d.bag.flatMap((it) => {
       const b = it.vohonId === rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
-      return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years!, enhance: it.enhance, subs: parseBoneSubs(it.stats) }] : [];
+      return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years!, enhance: it.enhance }] : [];
     });
   }
   /** Tổng chỉ số hồn cốt đang gắn trên võ hồn `rowId` (boneBonus: chỉ số chính và dòng phụ), cộng vào calcStats. */
-  boneBonusOf(d: PData, rowId: number) { return boneBonus(this.bonesOn(d, rowId)); }
+  boneBonusOf(d: PData, rowId: number) { return boneBonus(this.bonesOn(d, rowId).map((b) => ({ ...b, subs: parseBoneSubs(b.it.stats) }))); }
   /**
    * Tung bù dòng phụ hồn cốt (#187) khi nạp túi đồ lúc vào phòng: hồn cốt +N có ít dòng hơn số mốc đã đạt (cường hóa trước khi có
    * dòng phụ, hoặc tạo bằng hook test) được tung phần còn thiếu (boneAddSubs), đánh dấu `bagDirty`; nơi gọi ghi ngay qua chuỗi lưu.
