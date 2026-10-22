@@ -3067,6 +3067,13 @@ export const CORE_ENHANCE_COST = [20, 30, 40, 55, 70, 90, 110, 135, 160, 190, 22
  * (enhanceFee). +1…+3 miễn phí, +4…+6 1.000, +7…+9 2.500, +10…+12 5.000, +13…+15 10.000: một hồn hạch +15 hết 55.500.
  */
 export const CORE_ENHANCE_FEE = [0, 0, 0, 1000, 1000, 1000, 2500, 2500, 2500, 5000, 5000, 5000, 10000, 10000, 10000];
+/**
+ * **(đề xuất, #283)** Phí Hồn Tệ (đồng) mỗi lần đổi bộ hồn hạch ở Thợ rèn, theo sao 1★..6★ (CORE_RESET_FEE[sao − 1]). Sao thấp rẻ nhưng
+ * không đáng (rơi dày, nên làm nguyên liệu); 5★ / 6★ đắt để săn đúng bộ vẫn là đường rẻ hơn.
+ */
+export const CORE_RESET_FEE = [500, 1000, 3000, 10000, 30000, 80000];
+/** Phí đổi bộ một hồn hạch `stars` sao (sao ngoài 1..MAX_CORE_STARS thì kẹp vào khoảng). */
+export const coreResetFee = (stars: number) => CORE_RESET_FEE[Math.max(1, Math.min(CORE_RESET_FEE.length, Math.floor(stars) || 1)) - 1];
 /** **(đã chốt)** Điểm gốc một nguyên liệu theo sao 1★..6★ (gấp đôi mỗi sao: sao cao làm nguyên liệu đáng giá hơn nhiều). */
 export const CORE_FEED_STAR = [10, 20, 40, 80, 160, 320];
 /** **(đã chốt)** Nguyên liệu cùng bộ với hồn hạch được nâng cấp thì điểm gốc ×1,5 (như hồn cốt cùng vị trí ở 4.4). */

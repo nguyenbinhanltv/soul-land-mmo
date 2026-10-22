@@ -103,7 +103,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee,
   boneEnhancePreview, BONE_MAX_SUBS, BONE_SUB_K, BONE_SUB_POOL, BONE_ENHANCE_MILESTONES, boneSubMax, boneSubsDue, parseBoneSubs, boneAddSubs,
-  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore, rollCoreStats,
+  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreResetFee, coreChance, coreStarBand, rollCore, rollCoreStats,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
@@ -4981,6 +4981,27 @@ async function npcTown(){
     const cu=C.bag.items.find(i=>i.id===ct?.id);
     ok(ct&&cm.length===2&&C.coreUp?.to===cl&&cu?.enhance===cl&&cu.stats.subs.length===CORE_SUBS[1]+1&&!cm.some(id=>C.bag.items.some(i=>i.id===id)),
       `lò rèn: nâng cấp hồn hạch Lam Ngân 2★ lên +${cu?.enhance} (${cu?.stats.subs.length} dòng phụ), 2 nguyên liệu đã mất`); }
+  // #283: đổi bộ hồn hạch ở Thợ rèn (message coreset): giữ sao / cấp / chỉ số / dòng phụ, phí theo sao, bị từ chối thì không trừ gì.
+  { const had=new Set(C.bag.items.map(i=>i.id)), coin=async n=>{ await test(C,"coin",{n}); return waitFor(()=>C.bag.honTe===n,1500); };
+    await test(C,"give",{code:CORE_ITEM,stars:2,set:"lam_ngan"}); await test(C,"give",{code:CORE_ITEM,stars:5,set:"hao_thien"});
+    const fresh=C.bag.items.filter(i=>!had.has(i.id)), c2=fresh.find(i=>i.stars===2), c5=fresh.find(i=>i.stars===5), before=JSON.stringify(c2?.stats);
+    const set=async(id,to,npc="lo_ren")=>{ const l=C.logs.length, n=C.bagMsgs??0; C.room.send("coreset",{id,set:to,npc}); await waitFor(()=>(C.bagMsgs??0)>n&&C.logs.length>l,1500); return C.logs.at(-1); };
+    const cur=id=>C.bag.items.find(i=>i.id===id);
+    ok(!!c2&&!!c5,"đổi bộ: có hồn hạch 2★ Lam Ngân và 5★ Hạo Thiên để thử"); await coin(coreResetFee(2)-1);
+    let t=await set(c2.id,"hao_thien"); ok(/Không đủ Hồn Tệ/.test(t)&&cur(c2.id).stats.set==="lam_ngan"&&C.bag.honTe===coreResetFee(2)-1,`đổi bộ thiếu Hồn Tệ bị từ chối, không trừ gì: ${t}`);
+    await coin(coreResetFee(2)+coreResetFee(5)+7);
+    t=await set(c2.id,"lam_ngan"); ok(/đã thuộc/.test(t)&&C.bag.honTe===coreResetFee(2)+coreResetFee(5)+7,`đổi sang đúng bộ hiện tại bị từ chối: ${t}`);
+    t=await set(c2.id,"khong_co_bo"); ok(/không hợp lệ/.test(t)&&cur(c2.id).stats.set==="lam_ngan","bộ lạ bị từ chối");
+    t=await set("khong-co","hao_thien"); ok(/Không có hồn hạch/.test(t),"món lạ (của người khác) bị từ chối");
+    t=await set(c2.id,"hao_thien","dai_su"); ok(/Thợ rèn/.test(t)&&cur(c2.id).stats.set==="lam_ngan","NPC không phải Thợ rèn bị từ chối");
+    await test(C,"goto",{x:ds.x,y:ds.y+16}); t=await set(c2.id,"hao_thien"); ok(/lại gần Thợ rèn/.test(t)&&cur(c2.id).stats.set==="lam_ngan","đứng xa Thợ rèn: bị từ chối");
+    await test(C,"goto",{x:lr.x,y:lr.y+16});
+    t=await set(c2.id,"hao_thien"); const u=cur(c2.id), o=JSON.parse(before);
+    ok(u.stats.set==="hao_thien"&&u.stars===2&&u.stats.main===o.main&&JSON.stringify(u.stats.subs)===JSON.stringify(o.subs)&&C.bag.honTe===coreResetFee(5)+7,`đổi bộ 2★ Lam Ngân → Hạo Thiên: phí ${coreResetFee(2)} đồng, giữ sao / chỉ số chính / dòng phụ (${t})`);
+    await waitFor(()=>C.owned,2000); const vid=C.owned?.active;
+    C.room.send("equipcore",{itemId:c5.id,vohonId:vid}); await waitFor(()=>cur(c5.id)?.vohon===vid,2000);
+    t=await set(c5.id,"lam_ngan"); ok(cur(c5.id).stats.set==="lam_ngan"&&cur(c5.id).vohon===vid&&cur(c5.id).stars===5&&C.bag.honTe===7,`đổi bộ món đang gắn (5★, ${coreResetFee(5)} đồng): vẫn gắn, đã sang Lam Ngân (${t})`);
+    globalThis.__coreSetIds=[c2.id,c5.id]; }
   // Đại Sư và sứ giả Đại Đấu Hồn Trường (BĐ6a, chỗ của lối vào tạm 7.2): chỉ có lời thoại (nhiệm vụ ở 6.2); đứng cạnh Thợ rèn thì Đại Sư ở xa.
   ok(await talk(C,"dai_su")===null&&/lại gần Ngọc Tiểu Cương/.test(C.logs.at(-1)),"đứng ở lò rèn: Đại Sư ở xa, chưa nói chuyện");
   await test(C,"goto",{x:ds.x,y:ds.y+16}); ok(await talk(C,"dai_su")==="dai_su","đứng cạnh Ngọc Tiểu Cương (Đại Sư): mở hộp thoại");
@@ -4993,6 +5014,8 @@ async function npcTown(){
   const bk=bagKey(C); await C.room.leave(); await sleep(400);
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+  { const [i2,i5]=globalThis.__coreSetIds, g=id=>C.bag.items.find(i=>i.id===id);
+    ok(g(i2)?.stats.set==="hao_thien"&&g(i5)?.stats.set==="lam_ngan"&&g(i5)?.vohon!==null,"vào lại: bộ hồn hạch đã đổi (trong túi và đang gắn) vẫn đúng"); }
 }
 
 /**

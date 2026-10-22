@@ -905,6 +905,7 @@ export class GameScene extends Phaser.Scene {
         expand: () => this.room.send("expand", { npc: m.id }),            // 9.8: mở rộng túi
         enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
         enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // lò rèn: nâng cấp hồn hạch (5.3)
+        coreSet: (id, set) => this.room.send("coreset", { id, set, npc: m.id }), // lò rèn: đổi bộ hồn hạch (#283)
         combat: () => this.combat,
         quest: (op, chain) => this.room.send("quest", chain ? { op, chain } : { op }),
         arena: (op) => this.room.send("arena", { op }), // 7.2: xếp hàng / hủy / bảng xếp hạng
