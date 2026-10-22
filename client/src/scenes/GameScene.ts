@@ -29,7 +29,7 @@ import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -612,9 +612,10 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
-      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
+      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
@@ -1000,6 +1001,9 @@ export class GameScene extends Phaser.Scene {
     });
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("party", (m: PartyView) => { this.party = m; hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
+    // Bạn bè và chặn (#195): bảng bạn bè và lời "đã thêm bạn", chỉ gửi riêng cho mình.
+    hud.bindFriends((op, name) => this.room.send("friend", { op, ...(name ? { name } : {}) }), (name) => this.partySend("invite", name));
+    this.room.onMessage("friends", (m: FriendsMsg) => { if (m && Array.isArray(m.list) && Array.isArray(m.blocks)) hud.setFriends(m); });
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
@@ -1070,6 +1074,7 @@ export class GameScene extends Phaser.Scene {
     this.room.send("boss"); // #118: tin boss lúc vào phòng tới trước khi cảnh nghe tin, xin lại (đếm ngược, đồng hồ, chiêu đang báo trước)
     this.room.send("bag");
     this.room.send("party", { op: "get" });
+    this.room.send("friend", { op: "list" });
     this.room.send("quest", { op: "get" });
     this.room.send("resonance");
   }

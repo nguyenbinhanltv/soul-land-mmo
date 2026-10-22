@@ -122,6 +122,12 @@ export function onlineByName(name: string) {
   return l && !l.off ? { acc: l.acc, name: l.name } : null;
 }
 
+/** Bản đồ và kênh của hồn sư đang trong game (không tính người vừa rời chờ vào lại); không có thì null (bảng bạn bè, #195). */
+export function whereIs(acc: number) {
+  const l = live.get(acc);
+  return l && !l.off ? { mapId: l.mapId, ch: l.ch } : null;
+}
+
 /** Phòng `roomId` nhận người chơi (vào game, vào lại, sang bản đồ mới qua cổng). */
 function goOnlineLocal(l: Omit<Live, "off">): PartyNote[] {
   const old = live.get(l.acc);
@@ -192,6 +198,14 @@ function takeInvite(acc: number, fromName: string, now: number) {
   if (m && !m.size) invites.delete(acc);
   return exp !== undefined && exp > now ? from! : null;
 }
+
+/** Bỏ lời mời của `from` gửi `acc` (chặn, #195); trả true nếu có lời mời để bỏ. */
+function dropInviteLocal(acc: number, from: number) {
+  const m = invites.get(acc); if (!m?.delete(from)) return false;
+  if (!m.size) invites.delete(acc);
+  return true;
+}
+export function dropInvite(acc: number, from: number) { return remoteMutation(() => dropInviteLocal(acc, from)); }
 
 /** Tài khoản người mời của lời mời còn hạn, chỉ đọc để MapRoom kiểm tra khóa hàng chờ trước khi nhận lời. */
 export function inviteFrom(acc: number, fromName: string, now: number) {

@@ -543,6 +543,19 @@ body.touch .shoprow .buse{min-height:38px}
 #pmenu{position:absolute;left:50%;transform:translateX(-50%);top:46px;padding:8px 12px;font-size:12px;font-family:var(--f12);pointer-events:auto;min-width:200px}
 body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4px 10px}
 @media (max-width:640px){#party{width:190px;font-size:12px;font-family:var(--f12)}}
+/* Bạn bè và chặn (#195): bảng giữa màn hình như Cộng minh; nút "Thêm lại" trong dòng log bấm được cả khi ô chat đóng. */
+#friends{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:80%;overflow-y:auto;padding:10px;pointer-events:auto;touch-action:pan-y;
+  display:flex;flex-direction:column;gap:6px;font-size:12px;font-family:var(--f12);backdrop-filter:blur(6px)}
+#friends .rhead b{font-size:12px;font-family:var(--f12);color:var(--accent)}
+#friends .frow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#friends .frow .ptop{flex:1;min-width:120px}
+#friends .frow .pbtns{margin-top:0}
+#friends .frow.on .pname{color:#7dff8a;text-shadow:var(--stroke)}
+#friends .frow.off{opacity:1}
+#friends .frow.off .pname{color:var(--muted)}
+#friends .fsub{margin-top:6px;border-top:1px solid var(--line);padding-top:4px}
+#friends .fsub b{color:var(--warn);font-size:12px;font-family:var(--f12)}
+#log div .chatact{pointer-events:auto;margin-left:6px;vertical-align:middle}
 /* Nhiệm vụ (bước 6.2): khung theo dõi dưới bản đồ nhỏ (ẩn khi có bảng xếp hạng thú vương), trang nhiệm vụ trong hộp thoại NPC */
 #hud{--qgold:#8a5f0a}
 #quest{position:absolute;right:10px;top:168px;width:212px;max-height:max(120px,calc(100% - 330px));overflow-y:auto;padding:6px 8px 7px;font-size:12px;font-family:var(--f12);pointer-events:auto;border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
@@ -653,7 +666,7 @@ body.arena #quest{display:none}
 .thuymac .panel{border:6px solid transparent;background:none;box-shadow:none;
   border-image:var(--ui-hop-thoai) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
 /* Bảng lớn giữa màn hình và thẻ màn đăng nhập: cuộn giấy hai trục gỗ. */
-.thuymac :is(#roster,#bag,#reso,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
+.thuymac :is(#roster,#bag,#reso,#friends,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
   border-image:var(--ui-cuon-giay) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 /* Hộp thoại NPC: làm tối cảnh nhẹ (mục 5.11 C), hoa văn mực ở hai góc. */
@@ -781,8 +794,9 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .vcardx.cempty small{font-size:10px;font-family:var(--f10)}
 /* Bảng đội hình: 4 ô là 4 thẻ, nút Bỏ dưới thẻ; bộ sưu tập là lưới thẻ; mảnh võ hồn là thẻ + thanh mảnh + nút. */
 #roster,#bag,#reso,#audio,#world,#npc,#autoPanel{width:min(452px,94vw)}
+#friends{width:min(380px,94vw)}
 /* Bảng giữa màn hình nằm trên log chat, thanh đội hình, ấn hồn kỹ (màn thấp của điện thoại). */
-#roster,#bag,#reso,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
+#roster,#bag,#reso,#friends,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
 #roster .tslots{display:grid;grid-template-columns:repeat(auto-fill,96px);gap:8px;justify-content:center}
 #roster .tslot{flex-direction:column;align-items:center;gap:3px;border:0;background:none}
 #roster .tslot:not(.empty){border:0}
@@ -816,7 +830,7 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 /* Chữ tô màu tại chỗ (style="color:…": tên võ hồn, trạng thái hồn thú, quà thức tỉnh…) cũng có viền mực. */
 :is(#hud,#overlay) [style*="color:"]{text-shadow:var(--stroke)}
 /* Đang mở bảng giữa màn hình thì ẩn gợi ý nói chuyện (cùng chỗ). */
-:is(#roster,#bag,#reso,#world):not([hidden]) ~ #talk{display:none}
+:is(#roster,#bag,#reso,#friends,#world):not([hidden]) ~ #talk{display:none}
 /* Nút nhỏ trong khung chỉ số: một dòng, font 10. */
 .minirow .minibtn{white-space:nowrap;font-size:10px;font-family:var(--f10)}
 .minirow .minibtn kbd{margin-left:2px;padding:0 2px}

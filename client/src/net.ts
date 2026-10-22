@@ -103,6 +103,11 @@ export interface ChannelsMsg { cur: number; list: { ch: number; n: number; max: 
  */
 export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world" | "tong"; to?: string; }
 export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
+/**
+ * Tin riêng "friends" (#195): bạn bè theo thứ tự thêm (`mutual`: hai bên đã thêm nhau; `map` / `ch` chỉ có khi đã thêm nhau và người đó
+ * đang trong game), tên người đã chặn. `added`: người vừa thêm mình (`back`: mình đã có người đó, không thì hiện nút "Thêm lại").
+ */
+export interface FriendsMsg { list: { name: string; mutual: boolean; map?: string; ch?: number }[]; blocks: string[]; added?: { name: string; back: boolean }; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
