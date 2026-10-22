@@ -106,7 +106,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands } from "../../shared/data.ts";
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
-import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1)
+import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
@@ -4707,6 +4707,10 @@ async function autoTest(){
   ok(pb.radius===AUTO_RADIUS/16&&pc.radius===AUTO_RADIUS_MIN/16&&same(pb.slots,[3,0])&&pb.coreStar===MAX_CORE_STARS&&pc.coreStar===1&&same(pb.kinds,["tien_thao"])
     &&same(pc.kinds,[])&&same(parseAuto({}).kinds,AUTO_LOOT_KINDS)&&AUTO_DEFAULTS.radius===AUTO_RADIUS/16,
     `Auto 2: kẹp bán kính ${AUTO_RADIUS_MIN/16}–${AUTO_RADIUS/16} ô, thứ tự ô đội, sao hồn hạch, loại vật phẩm; bản lưu cũ item:false thì không nhặt loại nào`);
+  ok(AUTO_DEFAULTS.scope==="map"&&parseAuto({}).scope==="map"&&parseAuto({scope:"near"}).scope==="near"&&parseAuto({scope:"x"}).scope==="map",
+    `#213: phạm vi mặc định "Toàn bản đồ", chọn được "Chỉ quanh chỗ đứng" (near), bản lưu cũ / sai thì toàn bản đồ`);
+  // Các phần Auto 1 / Auto 2 bên dưới thử vùng neo: chạy với phạm vi "Chỉ quanh chỗ đứng"; phần #213 thử toàn bản đồ riêng.
+  const NEAR={...AUTO_DEFAULTS,scope:"near"};
   const A=await bot("Treo máy","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1});
   if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự săn (cần hook warp, goto, spawn, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
   const extra=[];
@@ -4753,6 +4757,7 @@ async function autoTest(){
   await test(A,"clear");
   let r0=qtyOf(A,RING_ITEM), k0=me(A).kills;
   let sp=await test(A,"spawn",{tier:0,dx:56,dy:0,years:150,hpx:8}); const b1=sp?.bid;
+  await autoOp(A,"set",{cfg:NEAR});
   A.fxs=[]; m=await autoOp(A,"on");
   ok(m?.on&&m.left<=AUTO_DAILY_SECS,`bật tự săn ở bãi săn (điểm neo ${home.x.toFixed(0)},${home.y.toFixed(0)})`);
   ok(b1&&await waitFor(()=>!A.room.state.beasts.has(b1),25000),`tự đi tới và hạ hồn thú ${b1}`);
@@ -4825,7 +4830,7 @@ async function autoTest(){
 
   // ---- Auto 2: bán kính vùng neo theo cài đặt; thứ tự ô đội rỗng thì không đổi tay tiên cơ ----
   await test(A,"goto",home); await test(A,"clear");
-  await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,radius:AUTO_RADIUS_MIN/16,slots:[]}});
+  await autoOp(A,"set",{cfg:{...NEAR,radius:AUTO_RADIUS_MIN/16,slots:[]}});
   sp=await test(A,"spawn",{tier:0,dx:180,dy:0,years:15}); const far=sp?.bid; // 10 năm không hung hăng; lang thang tối đa 60 pixel
   m=await autoOp(A,"on"); await sleep(2500);
   let info=await test(A,"auto");
@@ -4837,11 +4842,45 @@ async function autoTest(){
   await sleep(1500);
   ok(A.owned.active===act1,"thứ tự ô đội rỗng: đầy năng lượng tiên cơ cũng không đổi tay");
   await autoOp(A,"off"); await test(A,"slay",{bid:near}); await test(A,"slay",{bid:far}); await test(A,"energy",{v:0});
-  await autoOp(A,"set",{cfg:AUTO_DEFAULTS});
+  await autoOp(A,"set",{cfg:NEAR});
+
+  // ---- #213: toàn bản đồ. Quanh điểm neo không có hồn thú hợp niên hạn (10–200 năm: Ngoại vi tự sinh 300 năm trở lên) thì tự đi xa,
+  // ngoài khung A* thường (AUTO_MOVE.path), theo đường dài có điểm trung gian, hạ con ở đó rồi vẫn tự săn. "Chỉ quanh chỗ đứng" thì không đi.
+  {
+    const box=AUTO_MOVE.path.maxTiles*16, minD=box+6*16, safes=objsOf(NV).filter(o=>o.type==="safe"), M2=48;
+    const bad=(x,y)=>inCamp(x,y)||safes.some(o=>x>=o.x-M2&&x<=o.x+o.width+M2&&y>=o.y-M2&&y<=o.y+o.height+M2);
+    let F=null;
+    for(let r=minD;r<=minD+20*16&&!F;r+=48) for(const [ux,uy] of [[1,0],[0,1],[-1,0],[0,-1],[0.7,0.7],[0.7,-0.7],[-0.7,0.7],[-0.7,-0.7]]){
+      const x=Math.round(home.x+ux*r), y=Math.round(home.y+uy*r); if(bad(x,y)) continue;
+      await test(A,"goto",{x,y}); if(Math.hypot(me(A).x-x,me(A).y-y)<1){ F={x,y}; break; }
+    }
+    if(!F) console.log("  ⚠ bỏ qua tự săn toàn bản đồ: không tìm được chỗ đứng xa điểm neo");
+    else{
+      await test(A,"clear");
+      sp=await test(A,"spawn",{tier:0,dx:0,dy:0,years:15,hpx:3}); const fb=sp?.bid;
+      await test(A,"goto",home); await test(A,"clear");
+      await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
+      m=await autoOp(A,"on"); await sleep(2500);
+      info=await test(A,"auto",{bid:fb});
+      ok(m?.on&&fb&&info?.beast&&info.target!==fb&&Math.hypot(me(A).x-home.x,me(A).y-home.y)<=AUTO_RADIUS+32,
+        `"Chỉ quanh chỗ đứng": không đi tới hồn thú cách ${Math.round(Math.hypot(F.x-home.x,F.y-home.y)/16)} ô (mục tiêu ${info?.target})`);
+      await autoOp(A,"off"); await test(A,"goto",home);
+      const k1=me(A).kills, l1=A.logs.length;
+      await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[]}});
+      m=await autoOp(A,"on");
+      ok(m?.on&&A.logs.slice(l1).some(t=>/khắp bản đồ/.test(t)),`"Toàn bản đồ" (mặc định): bật, báo săn khắp bản đồ`);
+      let far=0, gone=false;
+      for(let t=0;t<60000&&!gone&&me(A).auto;t+=500){ await sleep(500); far=Math.max(far,Math.hypot(me(A).x-home.x,me(A).y-home.y)); gone=!(await test(A,"auto",{bid:fb}))?.beast; }
+      ok(gone&&me(A).kills>k1&&far>box,`vùng neo trống: tự đi xa ${Math.round(far/16)} ô (ngoài khung A* ${AUTO_MOVE.path.maxTiles} ô) hạ hồn thú cách ${Math.round(Math.hypot(F.x-home.x,F.y-home.y)/16)} ô (${k1} → ${me(A).kills})`);
+      ok(me(A).auto&&!A.logs.slice(l1).some(t=>/Đã dừng/.test(t)),`vẫn tự săn sau khi đi xa (đường dài không vào vùng an toàn)${me(A).auto?"":`: ${A.autoMsg?.why}`}`);
+      await autoOp(A,"off"); if(!gone) await test(A,"slay",{bid:fb});
+      await autoOp(A,"set",{cfg:NEAR});
+    }
+  }
 
   // ---- Auto 2: lọc hồn hạch theo sao ----
   await test(A,"goto",home); await test(A,"clear");
-  await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:false,coreStar:3}});
+  await autoOp(A,"set",{cfg:{...NEAR,ring:-1,bone:false,coreStar:3}});
   await test(A,"core",{r:0,stars:2}); // chắc chắn rơi hồn hạch 2 sao
   sp=await test(A,"spawn",{tier:0,dx:30,dy:0,years:1500}); const sc=await test(A,"slay",{bid:sp?.bid}); await test(A,"core",{r:-1});
   const coreAt=()=>[...A.room.state.drops.entries()].find(([,d])=>d.item===CORE_ITEM&&Math.hypot(d.x-sc.x,d.y-sc.y)<24)?.[0];
@@ -4850,11 +4889,11 @@ async function autoTest(){
   ok(cd&&m?.on&&A.room.state.drops.has(cd)&&qtyOf(A,CORE_ITEM)===c0,`chỉ nhặt hồn hạch từ 3★: hồn hạch 2★ vẫn nằm dưới đất`);
   // Về chỗ cũ rồi mới bật lại: lúc nãy đi dạo trong vùng neo, điểm neo mới có thể cách hồn hạch quá bán kính (đúng luật thì không nhặt).
   // Dọn hồn thú hoang quanh đó trong lúc chờ: hồn thú lao vào thì tự săn đánh trả trước rồi mới đi nhặt.
-  await autoOp(A,"off"); await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:false,coreStar:2}}); await test(A,"goto",home); await test(A,"clear"); m=await autoOp(A,"on");
+  await autoOp(A,"off"); await autoOp(A,"set",{cfg:{...NEAR,ring:-1,bone:false,coreStar:2}}); await test(A,"goto",home); await test(A,"clear"); m=await autoOp(A,"on");
   let gotCore=false; for(let k=0;k<5&&!gotCore;k++){ gotCore=await waitFor(()=>qtyOf(A,CORE_ITEM)>c0,2000); if(!gotCore) await test(A,"clear"); }
   ok(cd&&m?.on&&gotCore,`hạ ngưỡng còn 2★: nhặt hồn hạch (${c0} → ${qtyOf(A,CORE_ITEM)})`);
   if(!gotCore) console.log(`  (bật ${JSON.stringify(m)}; hồn hạch ${cd} ${JSON.stringify(A.room.state.drops.get(cd)?.toJSON?.())}; tự săn ${JSON.stringify(await test(A,"auto"))}; log ${A.logs.slice(-4).join(" | ")})`);
-  await autoOp(A,"off"); await autoOp(A,"set",{cfg:AUTO_DEFAULTS});
+  await autoOp(A,"off"); await autoOp(A,"set",{cfg:NEAR});
 
   // ---- Giới hạn giờ treo mỗi ngày ----
   await test(A,"goto",home); await test(A,"clear");
@@ -4910,7 +4949,7 @@ async function autoTest(){
   }
 
   // ---- Cài đặt và giờ treo lưu qua lần vào lại; mất kết nối thì dừng ----
-  const cfg={...AUTO_DEFAULTS,years:[100,5000],hp:0.5,skills:[1,0],ring:500,core:false};
+  const cfg={...NEAR,years:[100,5000],hp:0.5,skills:[1,0],ring:500,core:false};
   m=await autoOp(A,"set",{cfg});
   ok(same(m?.cfg,cfg),"đổi cài đặt (tin auto set)");
   await test(A,"auto",{used:3600}); await autoOp(A,"on");
@@ -4919,7 +4958,7 @@ async function autoTest(){
 
   // ---- Bộ lọc nhặt: hồn hoàn (bị lọc) nằm gần hơn hồn cốt (được nhặt) thì vẫn chỉ nhặt hồn cốt ----
   await test(A,"goto",home); await test(A,"clear");
-  await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,ring:-1,bone:true}});
+  await autoOp(A,"set",{cfg:{...NEAR,ring:-1,bone:true}});
   await test(A,"bone",{r:0,s:0}); // r/100 dưới tỉ lệ rơi: chắc chắn rơi hồn cốt
   sp=await test(A,"spawn",{tier:0,dx:30,dy:0,years:1500}); const sb=await test(A,"slay",{bid:sp?.bid}); await test(A,"bone",{r:-1});
   const dropsAt=()=>[...A.room.state.drops.entries()].filter(([,d])=>Math.hypot(d.x-sb.x,d.y-sb.y)<12);
