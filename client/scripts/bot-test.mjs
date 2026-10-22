@@ -67,12 +67,14 @@
 import { Client } from "colyseus.js";
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
 import { findPath, clearLine, pathLength } from "../../shared/path.ts";
+import { bagDiff, applyBagDelta } from "../../shared/bagSync.ts";
+import { pack } from "@colyseus/msgpackr"; // đo byte tin túi đồ như trên dây (Colyseus mã hóa tin bằng msgpack)
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
   BEASTS, MAP_MOVED, XP_LEVEL_CAP,
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
-  BAG_SLOTS, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe, formatYears,
+  BAG_SLOTS, BAG_PAGE, DAN_CD, STARTER_ITEMS, itemDef, formatHonTe, formatYears,
   TIER_MULT, SKILLS, skillsOf, skillPower, buffPower, BUFF_SCALE, TIEN_CO_RIENG, tienCoOf, STATUS, statusBit, buffBit, BUFFS, CRIT, PCT_HP_CAP,
   BONDS, bondsOf, BOND_KEYS, bondSum,
   CC_TIER_MULT, BEAST_REGEN, TEAM_COMBAT_SECS, PHOENIX_FIELD_R, PHONG_LOI, BEAST_AGGRO_R, BEAST_WANDER, SPAWN_CLEAR,
@@ -92,7 +94,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
-  NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
+  ITEMS, ITEM_KINDS, NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD,
   DAILY, DAILY_POOL, dailyIds, dailyKey, dailyPicks, isDaily, fitBeast, fitMaps,
@@ -189,7 +191,15 @@ async function enter(b,roomId){
   // Bản vá state đi riêng với tin nhắn (máy bận thì tới sau cả trăm ms): đếm bản vá, test() chờ bản vá đầu tiên sau tin trả hook.
   b.patchN=0; b.room.onStateChange(()=>{b.patchN++;});
   b.room.onMessage("test",m=>{b.test=m; b.testPatch=b.patchN;});
-  b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1;});
+  // Túi đồ: tin "bag" là cả túi; từ #215 mỗi lần túi đổi server chỉ gửi tin "bagd" (phần đổi, shared/bagSync.ts). Chưa có túi gốc
+  // (b.bag=null chờ tin "bag" vừa xin) thì bỏ qua tin "bagd". `bagStat`: số tin và byte msgpack của từng loại (đo đồng bộ túi, cộng dồn qua các lần vào phòng).
+  b.bagStat??={bag:{n:0,bytes:0,max:0},bagd:{n:0,bytes:0,max:0}};
+  const bagCount=(k,m)=>{ const st=b.bagStat[k], n=pack(m).length; st.n++; st.bytes+=n; st.max=Math.max(st.max,n); b.bagLast={k,n,m}; };
+  b.room.onMessage("bag",m=>{b.bag=m; b.bagMsgs=(b.bagMsgs??0)+1; bagCount("bag",m);});
+  b.room.onMessage("bagd",m=>{
+    if(b.bag) b.bag={slots:m.slots,honTe:m.honTe,cd:m.cd,items:applyBagDelta(b.bag.items,m),buyback:m.buyback??b.bag.buyback};
+    b.bagMsgs=(b.bagMsgs??0)+1; bagCount("bagd",m);
+  });
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
   b.room.onMessage("enhancedcore",m=>{b.coreUp=m;}); // kết quả nâng cấp hồn hạch (5.3)
@@ -252,6 +262,7 @@ if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -418,6 +429,27 @@ async function channelTest(){
     `Thiên Đấu Thành: P3, P1 kênh ${chOf(P3)}; P2 kênh ${chOf(P2)} (kênh 1 đầy, đồng đội P3 không còn chỗ)`);
   cl=await chans(P2); ok(JSON.stringify(cl?.list.map(c=>[c.ch,c.n]))==="[[1,2],[2,1]]",`danh sách kênh Thiên Đấu Thành: ${JSON.stringify(cl?.list)}`);
   for(const b of [P1,P2,P3]) await b.room.leave();
+}
+
+// Chống gian lận (#166): API REST gặp dữ liệu lạ trả lỗi JSON ngay (không treo request, không lộ stack / đường dẫn server).
+{
+  console.log("\n== Chống gian lận: API REST ==");
+  const raw=async(p,body)=>{ try{ const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body,signal:AbortSignal.timeout(3000)});
+    const t=await r.text(); let j=null; try{ j=JSON.parse(t); }catch{} return {status:r.status,j,t,cors:r.headers.get("access-control-allow-origin")}; }catch(e){ return {status:0,j:null,t:String(e)}; } };
+  const leak=t=>/node_modules|\/src\/|\bat [\w.<]+ \(/.test(t);
+  for(const p of ["/api/me","/api/channel","/api/looks","/api/awaken"]){
+    const bad=[];
+    for(const token of ["\u0000",`${"a".repeat(31)}\u0000`,{x:1},["t"],12,"x".repeat(5000)]){
+      const r=await raw(p,JSON.stringify({token})); if(!(r.status===401&&typeof r.j?.error==="string")) bad.push(`${JSON.stringify(token).slice(0,12)}:${r.status}`);
+    }
+    ok(!bad.length,`${p}: token lạ (NUL, object, mảng, số, quá dài) -> 401 JSON ${bad.join(" ")}`);
+  }
+  for(const [p,body] of [["/api/login",'{"name":'],["/api/me","not json"]]){
+    const r=await raw(p,body); ok(r.status===400&&typeof r.j?.error==="string"&&!leak(r.t)&&!!r.cors,`${p} JSON hỏng -> 400 JSON có header CORS, không lộ stack (${r.status})`);
+  }
+  const big=await raw("/api/login",JSON.stringify({name:"x",password:"p".repeat(20000)}));
+  ok(big.status===413&&typeof big.j?.error==="string"&&!leak(big.t)&&!!big.cors,`/api/login body > 10kb -> 413 JSON có header CORS (${big.status})`);
+  ok((await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok,"server vẫn trả /health sau các request lạ");
 }
 
 // 9.9: A tạo nhân vật tông da 2; B không gửi tông da (như client / tài khoản cũ có từ trước 9.9) nên giữ tông 0.
@@ -3497,7 +3529,7 @@ else {
         B.room.send("pickup"); ok(await lastLog(B,/Mảnh Lam Ngân Thảo thuộc về người hạ/)&&st.drops.has(sid)&&qtyOf(B,giftCode)===bGift,`B không nhặt được mảnh của A: ${B.logs.at(-1)}`);
         // Mảnh có thể nằm chồng lên hồn hoàn (chỗ cạnh bên không đứng được): nhặt hồn hoàn trước thì nhấn E thêm lần nữa.
         const l0=A.logs.length; A.room.send("pickup");
-        ok(await waitFor(()=>A.logs.length>l0)&&A.logs.slice(l0).some(t=>/^Túi đồ đã đầy \(40 ô\): bỏ bớt/.test(t))&&st.drops.has(sid),`A túi đầy: ${A.logs.at(-1)}`);
+        ok(await waitFor(()=>A.logs.length>l0)&&A.logs.slice(l0).some(t=>t.startsWith(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt`))&&st.drops.has(sid),`A túi đầy: ${A.logs.at(-1)}`);
         for(let k=0;k<3&&qtyOf(A,giftCode)===0;k++){
           const junk=ringsOf(A).find(i=>i.years===50); A.room.send("discard",{id:junk.id}); await waitFor(()=>!A.bag.items.some(i=>i.id===junk.id));
           A.room.send("pickup"); await waitFor(()=>qtyOf(A,giftCode)===1,1000);
@@ -4489,6 +4521,7 @@ await travelBy("Về Nặc Đinh Thành","nac_dinh_thanh",
   }));
 ok(Math.hypot(me().x-54.5*16,me().y-20.5*16)<1,`xuất hiện ở cổng đông Nặc Đinh Thành: ${me().x},${me().y}`);
 await npcTown();
+bagSyncPure();
 await shopBuybackTest();
 await waypointTest();
 await campTest();
@@ -4648,8 +4681,8 @@ async function npcTown(){
 
 /**
  * 9.8 thương nhân (bot riêng E, tài khoản mới nên túi khởi đầu BAG_SLOTS ô): hàm thuần (đan lớn, giá mở rộng túi, bagSlotsOf); với
- * hook: mở rộng túi (đứng xa / thiếu Hồn Tệ bị từ chối, 40 → 50 ô nhận thêm đúng 10 ô, vào lại vẫn 50 ô, giá lần sau, tới 80 ô thì
- * hết), đan lớn (mua 120 đồng, hồi đúng 60% sinh lực / hồn lực, chung hồi chiêu đan, thương nhân không mua lại), mua lại (hồn cốt cường
+ * hook: mở rộng túi (đứng xa / thiếu Hồn Tệ bị từ chối, BAG_SLOTS → +BAG_EXPAND ô nhận thêm đúng chừng ấy ô, vào lại vẫn giữ, giá lần
+ * sau, tới BAG_MAX_SLOTS thì hết; #215 trang, sắp xếp, đồng bộ theo thay đổi ở bagPageTest), đan lớn (mua 120 đồng, hồi đúng 60% sinh lực / hồn lực, chung hồi chiêu đan, thương nhân không mua lại), mua lại (hồn cốt cường
  * hóa về đúng chỉ số và cấp, Hồn Tệ trả đúng; thiếu tiền / túi đầy / mã lạ / đứng xa bị từ chối; chỉ giữ BUYBACK_MAX món; mảnh bán
  * một phần mua lại gộp ô; đi cổng sang Thiên Đấu Thành vẫn còn và mua lại được ở thương nhân Thiên Đấu; rời game thì mất).
  */
@@ -4835,10 +4868,17 @@ async function autoTest(){
   if(!gotBone) console.log(`  (giết ${JSON.stringify(sb)}; đồ gần: ${JSON.stringify(dropsAt().map(([k,d])=>[k,d.item,d.x,d.y,d.owner===A.room.sessionId]))}; bật ${JSON.stringify(m)}; tự săn ${JSON.stringify(await test(A,"auto"))}; log ${A.logs.slice(-4).join(" | ")})`);
   await autoOp(A,"off"); await autoOp(A,"set",{cfg});
 
+  // #215: khi tự săn, mỗi lần nhặt / hạ hồn thú server chỉ gửi phần túi đổi (tin "bagd"), không gửi lại cả túi.
+  { const st=A.bagStat;
+    ok(st.bagd.n>0&&st.bagd.max<1500,`đồng bộ túi khi tự săn: ${st.bagd.n} tin "bagd", trung bình ${Math.round(st.bagd.bytes/Math.max(1,st.bagd.n))} byte, lớn nhất ${st.bagd.max} byte (cả túi "bag": ${st.bag.n} tin, lớn nhất ${st.bag.max} byte)`); }
   // ---- Túi đầy ----
   await test(A,"goto",home); await test(A,"clear");
   const free=()=>A.bag.slots-looseOf(A).length;
   await test(A,"give",{code:RING_ITEM,qty:Math.max(0,free()-1),years:20}); await waitFor(()=>free()===1,2000);
+  { A.bagLast=null; A.room.send("bag"); await waitFor(()=>A.bagLast?.k==="bag",2000); const full=A.bagLast?.n??0;
+    A.bagLast=null; await test(A,"give",{code:RING_ITEM,qty:1,years:20}); await waitFor(()=>A.bagLast,2000); const one=A.bagLast;
+    ok(one?.k==="bagd"&&one.m.up?.length===1&&!one.m.rm&&!one.m.ord&&one.n*20<full,`túi ${looseOf(A).length} ô: thêm 1 hồn hoàn gửi ${one?.n} byte ("bagd" 1 ô), cả túi ${full} byte`);
+    A.room.send("discard",{id:looseOf(A).at(-1).id}); await waitFor(()=>free()===1,2000); }
   m=await autoOp(A,"on");
   await test(A,"give",{code:RING_ITEM,qty:1,years:20});
   ok(m?.on&&await stopped(A,/túi đồ đã đầy/),`túi đầy khi đang treo: dừng (${A.autoMsg?.why})`);
@@ -4987,9 +5027,19 @@ async function syncViewTest(){
   V.mini=null; ok(await waitFor(()=>V.mini?.p?.includes(sid),2500),"tin mini (bản đồ nhỏ) có hồn sư ở xa");
   const k=V.mini?.p?.indexOf(sid)??-1;
   ok(k>=0&&Math.abs(V.mini.p[k+1]-Math.floor(me(W).x/16))<=2&&Math.abs(V.mini.p[k+2]-Math.floor(me(W).y/16))<=2,`tin mini: vị trí theo ô ${V.mini?.p?.slice(k+1,k+3)}`);
+  // Chống gian lận (#166): sid ở xa (lấy từ tin mini) không đổi được ra tên qua lời mời tổ đội.
+  /** Khung tổ đội mới nhất của `b` (xin `party {op:"get"}`, chờ tin về): đọc sau khi server đã xử lý tin của người kia. */
+  const partyNow=async b=>{ const n=b.partyMsgs; b.room.send("party",{op:"get"}); await waitFor(()=>b.partyMsgs>n,2000); return b.party; };
+  const inviteSid=async()=>{ const l=V.logs.length; V.room.send("party",{op:"invite",sid}); await waitFor(()=>V.logs.length>l,2000); return V.logs.slice(l).join(" | "); };
+  { const t=await inviteSid(), wp=await partyNow(W);
+    ok(/không còn ở đây/.test(t)&&!t.includes(W.name)&&!!wp&&!wp.invites.length,`mời tổ đội bằng sid của hồn sư ở xa: bị từ chối, không lộ tên (${t})`); }
   // Lại gần dưới SYNC_VIEW.r: thấy nhau.
   await place(W,{x:west.x+48,y:west.y+16});
   ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
+  // Bấm vào hồn sư đang thấy (sid): lời mời tới đúng người, có tên người mời; từ chối để dọn.
+  { const t=await inviteSid(), wp=await partyNow(W);
+    ok(wp?.invites?.some(i=>i.name===V.name)&&t.includes(W.name),`mời tổ đội bằng sid của hồn sư đang thấy: W nhận lời mời của V (${t})`);
+    W.room.send("party",{op:"decline",name:V.name}); const wq=await partyNow(W); ok(!!wq&&!wq.invites.length,"W từ chối: hết lời mời"); }
   // Tin fx: người ở xa đánh thường thì không gửi tới; ở gần thì có.
   await place(W,east); ok(await waitFor(()=>!V.room.state.players.has(sid),1500),"đi xa quá out: hồn sư rời state");
   V.fxs=[]; W.fxs=[]; W.room.send("attack"); await waitFor(()=>W.fxs.some(f=>f.k==="slash"&&f.id===sid),1500); await sleep(300);
@@ -5306,18 +5356,65 @@ async function bigMapTest(){
   await B.room.leave();
 }
 
+/** #215: hàm thuần đồng bộ túi theo thay đổi (shared/bagSync.ts): ô đổi / mới / mất, thứ tự, không đổi gì thì delta rỗng. */
+function bagSyncPure(){
+  console.log("[#215] Đồng bộ túi theo thay đổi: bagDiff / applyBagDelta");
+  const it=(id,q)=>({id,qty:q}), a=[it("a",1),it("b",1),it("c",1)], s0=bagDiff(new Map(),a).next;
+  const b=[it("a",2),it("c",1),it("d",1)], d1=bagDiff(s0,b);
+  ok(same(d1.delta.up?.map(i=>i.id),["a","d"])&&same(d1.delta.rm,["b"])&&!d1.delta.ord&&same(applyBagDelta(a,d1.delta),b),
+    `đổi số lượng, bỏ một ô, thêm một ô: ${JSON.stringify(d1.delta)}`);
+  const c=[it("d",1),it("a",2),it("c",1)], d2=bagDiff(d1.next,c);
+  ok(!d2.delta.up&&!d2.delta.rm&&same(d2.delta.ord,["d","a","c"])&&same(applyBagDelta(b,d2.delta),c),`chỉ đổi thứ tự (sắp xếp): gửi kèm thứ tự ${JSON.stringify(d2.delta)}`);
+  ok(same(bagDiff(d2.next,c).delta,{})&&same(applyBagDelta(c,{}),c),"không đổi gì: delta rỗng");
+}
+
+/**
+ * #215 (bot E ở thương nhân, túi đã BAG_MAX_SLOTS ô): số trang, túi dựng từ các tin "bagd" khớp cả túi xin lại, "Sắp xếp" gộp chồng
+ * mảnh chưa đầy và xếp theo nhóm / loại / số năm (gửi kèm thứ tự), thứ tự giữ sau khi vào lại (items.created_at).
+ */
+async function bagPageTest(E,relog){
+  console.log("[#215] Túi 250–500 ô: trang, sắp xếp, đồng bộ theo thay đổi");
+  const loose=()=>looseOf(E), full=async()=>{ E.bag=null; E.room.send("bag"); await waitFor(()=>E.bag,2000); };
+  ok(E.bag.slots/BAG_PAGE===BAG_MAX_SLOTS/BAG_PAGE&&BAG_SLOTS/BAG_PAGE===5,`túi ${E.bag.slots} ô = ${E.bag.slots/BAG_PAGE} trang × ${BAG_PAGE} ô (khởi đầu ${BAG_SLOTS/BAG_PAGE} trang)`);
+  ok(E.bagStat.bagd.n>E.bagStat.bag.n,`túi đổi gửi tin "bagd": ${E.bagStat.bagd.n} tin "bagd", ${E.bagStat.bag.n} tin "bag" (cả túi, khi vào phòng / xin lại)`);
+  let k=bagKey(E); await full(); ok(bagKey(E)===k,"túi dựng từ các tin \"bagd\" khớp cả túi xin lại");
+  // Mảnh chia hai ô chưa đầy (bán gần hết ô đầu), hồn hoàn lẫn số năm.
+  const sc=shardCode("hao_thien_chuy"), st=itemDef(sc).stack;
+  await test(E,"give",{code:sc,qty:st+3});
+  await trade(E,"sell",{id:loose().find(i=>i.code===sc&&i.qty===st).id,qty:st-1});
+  for(const y of [300,10,5000,120]) await test(E,"give",{code:RING_ITEM,qty:1,years:y});
+  ok(same(loose().filter(i=>i.code===sc).map(i=>i.qty),[1,3]),`mảnh Hạo Thiên Chùy ở hai ô chưa đầy: ${loose().filter(i=>i.code===sc).map(i=>i.qty).join(" + ")}`);
+  const n0=loose().length, l0=E.logs.length; E.bagLast=null; E.room.send("sortbag");
+  await waitFor(()=>E.logs.length>l0&&E.bagLast,2000);
+  const kinds=Object.keys(ITEM_KINDS), rank=i=>{ const d=itemDef(i.code); return d?kinds.indexOf(d.kind)*1e4+ITEMS.indexOf(d):1e9; };
+  const L=loose(), rings=L.filter(i=>i.code===RING_ITEM).map(i=>i.years);
+  ok(/Đã sắp xếp túi đồ, gộp bớt 1 ô/.test(E.logs.at(-1))&&same(L.filter(i=>i.code===sc).map(i=>i.qty),[4])&&L.length===n0-1,`sắp xếp: gộp mảnh về một ô ${L.filter(i=>i.code===sc).map(i=>i.qty)}, ${n0} → ${L.length} ô (${E.logs.at(-1)})`);
+  ok(L.every((i,j)=>j===0||rank(L[j-1])<=rank(i))&&rings.every((y,j)=>j===0||rings[j-1]>=y)&&E.bagLast?.k==="bagd"&&E.bagLast.m.ord?.length===E.bag.items.length,
+    `xếp theo nhóm / loại, hồn hoàn số năm giảm dần (${rings.join(", ")}), tin "bagd" kèm thứ tự ${E.bagLast?.m.ord?.length} ô`);
+  k=bagKey(E); await full(); ok(bagKey(E)===k,"sau sắp xếp: túi dựng từ tin \"bagd\" khớp cả túi xin lại");
+  E.bagLast=null; E.room.send("sortbag"); await waitFor(()=>E.bagLast,2000);
+  ok(E.bagLast?.k==="bagd"&&!E.bagLast.m.ord&&!E.bagLast.m.up&&!E.bagLast.m.rm,`sắp xếp lần nữa khi đã gọn: không gửi lại ô nào (${E.bagLast?.n} byte)`);
+  const ids=loose().map(i=>i.id); await relog();
+  ok(same(loose().map(i=>i.id),ids),`rời game rồi vào lại: thứ tự ${ids.length} ô sau sắp xếp còn nguyên`);
+  for(const it of loose().filter(i=>i.code===RING_ITEM||i.code===sc)) E.room.send("discard",{id:it.id});
+  await waitFor(()=>!loose().some(i=>i.code===RING_ITEM||i.code===sc),3000);
+  await test(E,"coin",{n:1e6}); // phần sau (đan lớn) tính Hồn Tệ từ mốc này
+}
+
 async function shopBuybackTest(){
   console.log("[9.8] Thương nhân: đan lớn, mở rộng túi, mua lại đồ bán nhầm");
   const big=["dai_hoi_huyet_dan","dai_hoi_hon_dan"].map(c=>itemDef(c)), small=itemDef("hoi_huyet_dan");
   ok(big.every(d=>d?.kind==="dan"&&d.cd==="dan"&&d.stack===small.stack)&&big[0].hp===0.6&&big[1].mp===0.6,"Đại Hồi Huyết Đan / Đại Hồi Hồn Đan: đan hồi 60%, chung hồi chiêu đan");
   ok(big.every(d=>SHOP.find(r=>r.code===d.id)?.price===120)&&big.every(d=>sellPrice({code:d.id,years:null,stars:null,enhance:0})===null),
     `thương nhân bán đan lớn ${formatHonTe(120)}, không mua lại đan`);
-  ok(BAG_SLOTS===40&&BAG_EXPAND===10&&BAG_MAX_SLOTS===80&&same([40,50,60,70,80].map(bagExpandCost),[2000,5000,10000,20000,null]),
-    `mở rộng túi: ${[40,50,60,70].map(n=>`${n}→${n+BAG_EXPAND} ô ${formatHonTe(bagExpandCost(n))}`).join(", ")}, tối đa ${BAG_MAX_SLOTS} ô`);
-  ok(bagSlotsOf(null)===BAG_SLOTS&&bagSlotsOf(undefined)===BAG_SLOTS&&bagSlotsOf("x")===BAG_SLOTS&&bagSlotsOf(55)===55&&bagSlotsOf(999)===BAG_MAX_SLOTS&&bagSlotsOf(3)===BAG_SLOTS,
+  // #215: 250 ô (5 trang × 50), +50 ô (một trang) mỗi lần tới 500 ô, 5 mức giá tăng dần.
+  ok(BAG_SLOTS===250&&BAG_PAGE===50&&BAG_EXPAND===BAG_PAGE&&BAG_MAX_SLOTS===500&&BAG_SLOTS%BAG_PAGE===0&&BAG_EXPAND_COST.length===(BAG_MAX_SLOTS-BAG_SLOTS)/BAG_EXPAND
+    &&BAG_EXPAND_COST.every((c,k)=>k===0||c>BAG_EXPAND_COST[k-1])&&same([250,300,350,400,450,500].map(bagExpandCost),[...BAG_EXPAND_COST,null]),
+    `mở rộng túi: ${[250,300,350,400,450].map(n=>`${n}→${n+BAG_EXPAND} ô ${formatHonTe(bagExpandCost(n))}`).join(", ")}, tối đa ${BAG_MAX_SLOTS} ô (${BAG_MAX_SLOTS/BAG_PAGE} trang)`);
+  ok(bagSlotsOf(null)===BAG_SLOTS&&bagSlotsOf(undefined)===BAG_SLOTS&&bagSlotsOf("x")===BAG_SLOTS&&bagSlotsOf(300)===300&&bagSlotsOf(999)===BAG_MAX_SLOTS&&bagSlotsOf(55)===BAG_SLOTS,
     "bagSlotsOf: dữ liệu trống / hỏng là mức khởi đầu, kẹp trong khoảng");
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / mở rộng (cần hook warp, goto, coin, give…): bật server bằng GAME_TEST=1"); return; }
   const E=await bot("Lái buôn","u_minh_linh_mieu",{sex:0,hair:2,hairCol:0,outfitCol:1});
+  if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / mở rộng (cần hook warp, goto, coin, give…): bật server bằng GAME_TEST=1"); await E.room.leave(); return; }
   const eme=()=>E.room.state.players?.get(E.room.sessionId), loose=()=>looseOf(E);
   /** Hook warp: sang `mapId` tại (x, y) qua transaction đi cổng rồi vào phòng mới như đi cổng thật. */
   async function warp(mapId,x,y){
@@ -5339,10 +5436,11 @@ async function shopBuybackTest(){
   await test(E,"coin",{n:c0-1});
   t=await trade(E,"expand",{}); ok(/Không đủ Hồn Tệ/.test(t)&&E.bag.slots===BAG_SLOTS&&E.bag.honTe===c0-1,`thiếu 1 đồng: không mở rộng được, không mất tiền (${t})`);
   await test(E,"coin",{n:c0});
-  t=await trade(E,"expand",{}); ok(E.bag.slots===BAG_SLOTS+BAG_EXPAND&&E.bag.honTe===0&&/40 → 50 ô/.test(t),`mở rộng túi: ${BAG_SLOTS} → ${E.bag.slots} ô, −${formatHonTe(c0)} (${t})`);
-  // Túi 50 ô nhận đúng 50 ô (hồn hoàn mỗi chiếc một ô), chiếc thứ 51 không nhận.
+  const s1=BAG_SLOTS+BAG_EXPAND;
+  t=await trade(E,"expand",{}); ok(E.bag.slots===s1&&E.bag.honTe===0&&t.includes(`${BAG_SLOTS} → ${s1} ô`),`mở rộng túi: ${BAG_SLOTS} → ${E.bag.slots} ô, −${formatHonTe(c0)} (${t})`);
+  // Túi s1 ô nhận đúng s1 ô (hồn hoàn mỗi chiếc một ô), chiếc kế tiếp không nhận.
   await test(E,"give",{code:RING_ITEM,qty:E.bag.slots-loose().length+1,years:10});
-  ok(loose().length===BAG_SLOTS+BAG_EXPAND&&/Túi đồ đã đầy \(50 ô\)/.test(E.logs.at(-1)),`túi đầy ở ${loose().length}/${E.bag.slots} ô: chiếc thứ 51 không nhận (${E.logs.at(-1)})`);
+  ok(loose().length===s1&&E.logs.at(-1)?.includes(`Túi đồ đã đầy (${s1} ô)`),`túi đầy ở ${loose().length}/${E.bag.slots} ô: chiếc thứ ${s1+1} không nhận (${E.logs.at(-1)})`);
   for(const it of loose().filter(i=>i.code===RING_ITEM)) E.room.send("discard",{id:it.id});
   ok(await waitFor(()=>!loose().some(i=>i.code===RING_ITEM),3000),"bỏ hết hồn hoàn thử");
   await relog();
@@ -5355,6 +5453,7 @@ async function shopBuybackTest(){
   }
   await test(E,"coin",{n:1e6});
   t=await trade(E,"expand",{}); ok(E.bag.slots===BAG_MAX_SLOTS&&E.bag.honTe===1e6&&/tối đa/.test(t),`đã ${BAG_MAX_SLOTS} ô: không mở rộng thêm, không mất tiền (${t})`);
+  await bagPageTest(E,relog);
   // ---- Đan lớn ----
   const [dh,dn]=big.map(d=>SHOP.find(r=>r.code===d.id));
   t=await trade(E,"buy",{code:dh.code,qty:2}); ok(qtyOf(E,dh.code)===2&&E.bag.honTe===1e6-2*dh.price,`mua 2 Đại Hồi Huyết Đan: −${formatHonTe(2*dh.price)} (${t})`);
@@ -6661,8 +6760,17 @@ async function arenaTest(){
   }
   /** Vào lại phòng của bản đồ đang lưu (/api/me), chờ state, đội hình, túi đồ. */
   async function back(b){ b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
-  /** Gửi `arena {op}`, chờ tin "arena" k = queue (và dòng log mới khi xếp hàng). Trả dòng log mới nhất của lần này. */
-  async function aop(b,op){ const l=b.logs.length, n=b.aqN; b.room.send("arena",{op}); await waitFor(()=>b.aqN>n&&(op!=="queue"||b.logs.length>l),2000); await sleep(60); return b.logs.slice(l).at(-1)??""; }
+  /** Chờ hết nhịp xếp hàng ARENA.queueCd (#208) của `b`: tính từ lúc bot nhận tin đã đọc Elo, muộn hơn mốc server ghi. */
+  const qwait=async b=>{ const w=(b.aqAt??0)+ARENA.queueCd*1000+20-Date.now(); if(w>0) await sleep(w); };
+  /**
+   * Gửi `arena {op}`, chờ tin "arena" k = queue (và dòng log mới khi xếp hàng). Trả dòng log mới nhất của lần này. `queue` chờ hết
+   * nhịp xếp hàng trước (qwait), để bài khác không bị báo thao tác quá nhanh; xếp hàng được (đã đọc Elo) thì ghi mốc mới.
+   */
+  async function aop(b,op){
+    if(op==="queue") await qwait(b);
+    const l=b.logs.length, n=b.aqN; b.room.send("arena",{op}); await waitFor(()=>b.aqN>n&&(op!=="queue"||b.logs.length>l),2000);
+    if(op==="queue"&&b.logs.slice(l).some(x=>/Đang tìm đối thủ \(Elo/.test(x))) b.aqAt=Date.now();
+    await sleep(60); return b.logs.slice(l).at(-1)??""; }
   const found=b=>b.arena.filter(m=>m.k==="found").at(-1), endOf=b=>b.arena.filter(m=>m.k==="end").at(-1);
   /** Đang ở bản đồ, đã được ghép: rời phòng bản đồ, vào phòng sân đấu bằng mã phòng. */
   async function enterArena(b){ const id=found(b).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
@@ -6702,9 +6810,20 @@ async function arenaTest(){
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
+  // Nhịp xếp hàng (#208): xếp hàng (đọc Elo từ DB, chờ đọc xong) rồi gửi dồn cancel / queue trong một giây: chỉ lần đầu đọc DB (một
+  // dòng "Đang tìm đối thủ (Elo"), các lần queue sau đều bị từ chối bằng tin log "thao tác quá nhanh"; hết nhịp thì xếp lại được.
+  { const n=4; t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`xếp hàng lại sau khi hủy (${t})`);
+    const l=E.logs.length;
+    for(let i=0;i<n;i++){ E.room.send("arena",{op:"cancel"}); E.room.send("arena",{op:"queue"}); } E.room.send("arena",{op:"cancel"});
+    const got=()=>E.logs.slice(l), cnt=re=>got().filter(x=>re.test(x)).length;
+    await waitFor(()=>cnt(/quá nhanh/)>=n&&cnt(/hủy/)>=1,2000); await sleep(300);
+    ok(cnt(/Đang tìm đối thủ/)===0&&cnt(/quá nhanh/)===n&&!E.aq.on,
+      `cancel / queue dồn ${n} lần trong ${ARENA.queueCd} giây: không đọc DB thêm, ${cnt(/quá nhanh/)} lần báo "${got().find(x=>/quá nhanh/.test(x))}", cuối cùng đã hủy`);
+    t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`sau ARENA.queueCd = ${ARENA.queueCd} giây: xếp hàng lại được (${t})`);
+    t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`); }
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
   await at(F); await aop(F,"queue"); await test(F,"goto",{x:40*16,y:54.5*16});
-  F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
+  await qwait(E); F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
   ok(await waitFor(()=>F.travel?.mapId,4000),"F đi qua cổng trong lúc đang xếp hàng");
   ok(!found(E)&&!found(F),"đang niệm đi cổng: không bị ghép trận");
   await F.room.leave(); await sleep(300); await back(F);

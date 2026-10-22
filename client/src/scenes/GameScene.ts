@@ -26,7 +26,8 @@ import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -865,7 +866,12 @@ export class GameScene extends Phaser.Scene {
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
-    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); });
+    // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
+    const onBag = (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    this.room.onMessage("bag", onBag);
+    this.room.onMessage("bagd", (m: BagDeltaMsg) => {
+      if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback });
+    });
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
@@ -1945,6 +1951,7 @@ export class GameScene extends Phaser.Scene {
       use: (id) => this.room.send("use", { id }),
       absorb: (id, vohonId) => this.room.send("absorb", { itemId: id, vohonId }),
       discard: (id) => this.room.send("discard", { id }),
+      sort: () => this.room.send("sortbag"),
       open: (id) => this.room.send("open", { id }), // rương thú vương (BĐ5): server tung phần thưởng
       absorbOptions: (years) => this.absorbOptions(years),
       herb: (id, vohonId) => this.room.send("use", { id, vohonId }), // tiên thảo (BĐ6b): dùng cho võ hồn đã chọn

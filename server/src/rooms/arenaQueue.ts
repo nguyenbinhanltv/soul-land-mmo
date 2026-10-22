@@ -5,7 +5,7 @@
 // Chạy nhiều tiến trình thì hàng chờ phải chuyển sang presence (Redis), như lịch boss.
 import { matchMaker } from "colyseus";
 import { randomUUID } from "node:crypto";
-import { arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
+import { ARENA, arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
 
 /** Một người đang xếp hàng. Hàm `ready` / `found` do phòng bản đồ của người đó cung cấp. */
 export interface ArenaEntry {
@@ -45,6 +45,19 @@ export function arenaDequeue(accountId: number) {
   const had = queue.delete(accountId);
   if (!queue.size && timer) { clearInterval(timer); timer = null; }
   return had;
+}
+
+/**
+ * Lần xếp hàng có đọc Elo từ DB gần nhất của mỗi tài khoản (ms, #208): hai lần đọc cách nhau ít nhất ARENA.queueCd giây, kể cả khi đổi
+ * kênh / bản đồ giữa chừng (như channelSwitchAt của MapRoom). Mỗi lần gọi dọn các mốc đã hết nhịp nên Map chỉ giữ người vừa xếp hàng.
+ */
+const queueReadAt = new Map<number, number>();
+/** Hết nhịp thì ghi mốc lúc `now` và trả true (được đọc Elo từ DB); còn trong nhịp thì false (xếp hàng quá nhanh). */
+export function arenaQueueSlot(accountId: number, now = Date.now()) {
+  for (const [id, t] of queueReadAt) if (now - t >= ARENA.queueCd * 1000) queueReadAt.delete(id);
+  if (queueReadAt.has(accountId)) return false;
+  queueReadAt.set(accountId, now);
+  return true;
 }
 
 /**
