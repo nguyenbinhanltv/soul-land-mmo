@@ -19,6 +19,8 @@ const dur = (secs: number) => (secs < 60 ? `${Math.max(0, Math.round(secs))} gi�
 
 let ctx: AutoPanelCtx | null = null;
 let last: AutoMsg | null = null;
+/** Tổng kết lượt gần nhất (mục "Lượt vừa rồi", kèm giờ treo còn lại lúc dừng): chỉ thay khi tin mới có `sum`, xóa khi bật lại. */
+let lastSum: { sum: AutoSummary; left: number } | null = null;
 /** Thứ tự đầy đủ đang hiển thị của hai danh sách (ô bật trước theo thứ tự ưu tiên, ô tắt sau) và ô đang bật. */
 const lists = { skills: { order: [0, 1, 2, 3], on: new Set<number>() }, slots: { order: [0, 1, 2, 3], on: new Set<number>() } };
 
@@ -143,8 +145,8 @@ function fill(m: AutoMsg) {
   order(el, "skills", c.skills, (i) => `${SKILL_KEYS[i]} · ${ctx?.skillName(i) || "chưa có hồn kỹ"}`);
   order(el, "slots", c.slots, (i) => `Ô ${i + 1} · ${ctx?.slotName(i) || "trống"}`);
   const box = $("[data-a=last]", el)!;
-  box.hidden = !m.sum;
-  if (m.sum) renderSum($(".asum", box)!, m.sum, m.left);
+  box.hidden = !lastSum;
+  if (lastSum) renderSum($(".asum", box)!, lastSum.sum, lastSum.left);
 }
 
 /** Danh sách thứ tự: ô bật theo thứ tự ưu tiên, ô tắt ở sau; mỗi dòng một ô chọn và hai nút lên / xuống. */
@@ -177,6 +179,8 @@ function renderSum(box: HTMLElement, s: AutoSummary, left: number) {
 /** Tin `auto` mới: cập nhật bảng; có tổng kết (tự săn vừa dừng, đã treo ít nhất 1 giây) thì mở bảng tổng kết kèm lý do dừng. */
 export function setAutoMsg(m: AutoMsg) {
   last = m;
+  // Tin `auto` không kèm `sum` (đổi cài đặt, từ chối bật…) không xóa mục "Lượt vừa rồi".
+  if (m.on) lastSum = null; else if (m.sum) lastSum = { sum: m.sum, left: m.left };
   fill(m);
   const el = sumBox(); if (!el) return;
   if (m.on) { el.hidden = true; return; }
