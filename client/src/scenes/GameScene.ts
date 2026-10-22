@@ -1909,7 +1909,7 @@ export class GameScene extends Phaser.Scene {
     if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
     this.weather.update(time, cam, zone, boss);
     // Che tầm nhìn (#175): chỉ màn hình của chính người trúng phủ mực, vòng hở quanh thân mình.
-    this.ink.update(!!me && (me.st & statusBit("ink")) !== 0, mv ? { x: mv.root.x, y: mv.root.y - HEAD / 2 } : null, delta, time, cam);
+    this.ink.update(!!me && (me.st & statusBit("ink")) !== 0, mv ? { x: mv.root.x, y: mv.root.y - HEAD / 2 } : null, delta, cam);
     // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
     this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
     if (me) {

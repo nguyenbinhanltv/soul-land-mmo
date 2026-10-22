@@ -64,7 +64,7 @@ export class InkVeil {
    * Mỗi khung: `on` = chính mình đang Che tầm nhìn; `at` = tâm vòng (tọa độ cảnh của thân hồn sư), null khi chưa có hình. Lớp
    * scrollFactor 0 vẽ quanh tâm camera rồi phóng: điểm cảnh P ở `P - scroll`, khung nhìn rộng `w / zoom` quanh `w / 2`.
    */
-  update(on: boolean, at: { x: number; y: number } | null, delta: number, time: number, cam: Phaser.Cameras.Scene2D.Camera) {
+  update(on: boolean, at: { x: number; y: number } | null, delta: number, cam: Phaser.Cameras.Scene2D.Camera) {
     if (on && this.k === 0) this.openT = 0;
     this.k = Phaser.Math.Clamp(this.k + (on ? delta / ANIM.inMs : -delta / ANIM.outMs), 0, 1);
     const show = this.k > 0 && !!at;
@@ -72,7 +72,8 @@ export class InkVeil {
     if (!show) return;
     this.openT += delta;
     const o = Math.min(1, this.openT / ANIM.openMs), open = ANIM.open0 + (1 - ANIM.open0) * (1 - (1 - o) ** 3);
-    const sc = open * (1 + 0.025 * Math.sin(time / 650)), half = (this.size * sc) / 2;
+    // Cỡ ảnh làm tròn thành số nguyên chẵn (tâm nguyên): mép ảnh trùng khít mép các khối phủ, không có đường nối đậm hơn.
+    const half = Math.max(1, Math.round((this.size * open) / 2)), sc = (half * 2) / this.size;
     const cx = Math.round(at!.x - cam.scrollX), cy = Math.round(at!.y - cam.scrollY);
     this.img.setPosition(cx, cy).setScale(sc).setAlpha(this.k);
     // Phần khung nhìn ngoài ảnh: bốn khối mực đặc cùng màu, cùng độ đậm với rìa ảnh.
