@@ -16,7 +16,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
-  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs,
+  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS, FUSION, FUSIONS, fusionIndex, fusionsOf,
@@ -5103,10 +5103,12 @@ export class MapRoom extends Room<MapState> {
    * 5.5, bước 4.4): nguyên liệu phải là hồn cốt nằm trong túi (không đang gắn), không phải chính nó, không trùng, tối đa
    * BONE_FEED_MAX món. Điểm tính bằng boneEnhancePreview (niên hạn, cùng vị trí +50%, trả lại phần điểm đã nạp vào nguyên liệu),
    * cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +20, điểm dư bị bỏ). Mỗi mốc BONE_ENHANCE_MILESTONES vượt qua thêm 1 dòng
-   * phụ ngẫu nhiên (#187, boneAddSubs, ghi vào `stats.subs`). Luôn thành công, nguyên liệu bị xóa khỏi túi. Cùng
-   * luật như gắn / tháo (boneLock: ngoài giao chiến, không gục, không hấp thụ), không đang chuyển bản đồ. Hồn cốt đang gắn thì chỉ
-   * số / kỹ năng đổi ngay (afterBones). Ghi DB qua chuỗi lưu (save) như các thay đổi túi đồ khác; transaction đi cổng cũng mang
-   * theo nếu lần lưu này chưa kịp chạy. Lò rèn ở Nặc Đinh Thành (6.1) sẽ mở cùng message này.
+   * phụ ngẫu nhiên (#187, boneAddSubs, ghi vào `stats.subs`). Phí Hồn Tệ của mọi cấp vừa vượt qua (#281, enhanceFee theo
+   * BONE_ENHANCE_FEE) trừ cùng lúc với nguyên liệu; thiếu thì từ chối cả lần, không mất gì. Không bao giờ thất bại, nguyên liệu bị
+   * xóa khỏi túi. Cùng luật như gắn / tháo (boneLock: ngoài giao chiến, không gục, không hấp thụ), không đang chuyển bản đồ. Hồn cốt
+   * đang gắn thì chỉ số / kỹ năng đổi ngay (afterBones). Ghi DB qua chuỗi lưu (save) như các thay đổi túi đồ khác (túi và Hồn Tệ cùng
+   * một transaction); transaction đi cổng cũng mang theo nếu lần lưu này chưa kịp chạy. Lò rèn ở Nặc Đinh Thành
+   * (6.1) sẽ mở cùng message này.
    */
   enhanceBone(id: string, rawTarget: unknown, rawMats: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
@@ -5130,15 +5132,18 @@ export class MapRoom extends Room<MapState> {
     const lock = this.boneLock(p, d); if (lock) return warn(lock.replace("gắn / tháo", "cường hóa"));
     const r = boneEnhancePreview({ slot: bone.slot, xp: boneXp(it.stats) },
       mats.map((m) => ({ slot: parseBone(m.stats)!.slot, years: m.years!, xp: boneXp(m.stats) })));
+    const fee = enhanceFee(BONE_ENHANCE_FEE, r.from, r.level); // #281: phí mỗi cấp vừa vượt qua, thiếu thì từ chối cả lần
+    if (d.honTe < fee) return warn(`Không đủ Hồn Tệ: cường hóa lên +${r.level} cần phí ${formatHonTe(fee)}, đang có ${formatHonTe(d.honTe)}.`);
     const sub = boneAddSubs(bone.slot, it.years!, r.level, parseBoneSubs(it.stats), Math.random); // #187: dòng phụ ở mốc
     const drop = new Set(mats);
     d.bag = d.bag.filter((x) => !drop.has(x));
-    it.stats = { ...(it.stats as object), xp: r.xp, ...(sub.added.length ? { subs: sub.subs } : {}) }; it.enhance = r.level; d.bagDirty = true;
+    it.stats = { ...(it.stats as object), xp: r.xp, ...(sub.added.length ? { subs: sub.subs } : {}) }; it.enhance = r.level; d.honTe -= fee; d.bagDirty = true;
     const up = r.level > r.from ? ` lên +${r.level}` : ` (vẫn +${r.level})`;
     this.log(id, `Cường hóa ${this.itemLabel(it)}${up}: ${mats.length} nguyên liệu, +${r.gain.toLocaleString("vi-VN")} điểm`
+      + (fee ? `, phí −${formatHonTe(fee)} (còn ${formatHonTe(d.honTe)})` : "")
       + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "")
       + sub.added.map(([k, v]) => `; thêm dòng phụ ${coreStatText(k, v)}`).join("") + ".", TIERS[tierOfYears(it.years!)].glow);
-    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length,
+    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length, fee,
       subs: sub.added.map(([k, v]) => ({ k, v })) });
     const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
     if (v) this.afterBones(id, v); else this.sendBag(id);
@@ -5238,9 +5243,9 @@ export class MapRoom extends Room<MapState> {
    * 5.6, bước 5.3): nguyên liệu phải là hồn hạch nằm trong túi (không đang gắn), không phải chính nó, không trùng, tối đa
    * CORE_FEED_MAX món; một món sai thì cả lần bị từ chối, không mất gì. Điểm tính bằng coreEnhancePreview (theo sao, cùng bộ thêm,
    * trả lại phần điểm đã nạp vào nguyên liệu), cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +15, điểm dư bị bỏ). Mỗi mốc
-   * +3 / +6 / +9 / +12 / +15 vượt qua thì tăng 1 dòng phụ ngẫu nhiên (coreUpgradeSubs, ghi vào `stats.subs`). Luôn thành công,
-   * nguyên liệu bị xóa khỏi túi. Cùng luật như gắn / tháo (boneLock), không đang chuyển bản đồ. Đang gắn thì chỉ số đổi ngay
-   * (afterBones). Ghi DB qua chuỗi lưu (save) như cường hóa hồn cốt; transaction đi cổng cũng mang theo nếu lần lưu chưa kịp chạy.
+   * +3 / +6 / +9 / +12 / +15 vượt qua thì tăng 1 dòng phụ ngẫu nhiên (coreUpgradeSubs, ghi vào `stats.subs`). Phí Hồn Tệ như hồn
+   * cốt (#281, CORE_ENHANCE_FEE): thiếu thì từ chối cả lần. Không bao giờ thất bại, nguyên liệu bị xóa khỏi túi. Cùng luật như gắn
+   * / tháo (boneLock), không đang chuyển bản đồ. Đang gắn thì chỉ số đổi ngay (afterBones). Ghi DB qua chuỗi lưu (save) như cường hóa hồn cốt; transaction đi cổng cũng mang theo nếu lần lưu chưa kịp chạy.
    */
   enhanceCore(id: string, rawTarget: unknown, rawMats: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
@@ -5264,18 +5269,21 @@ export class MapRoom extends Room<MapState> {
     const lock = this.boneLock(p, d, "hồn hạch"); if (lock) return warn(lock.replace("gắn / tháo", "nâng cấp"));
     const stars = it.stars ?? 1, r = coreEnhancePreview({ set: core.set, xp: coreXp(it.stats), subs: core.subs.length },
       mats.map((m) => ({ set: parseCore(m.stats)!.set, stars: m.stars ?? 1, xp: coreXp(m.stats) })));
+    const fee = enhanceFee(CORE_ENHANCE_FEE, r.from, r.level); // #281: như hồn cốt
+    if (d.honTe < fee) return warn(`Không đủ Hồn Tệ: nâng cấp lên +${r.level} cần phí ${formatHonTe(fee)}, đang có ${formatHonTe(d.honTe)}.`);
     const up = coreUpgradeSubs(core, stars, r.rolls, Math.random), label = this.itemLabel(it); // tên trước khi lên cấp
     const drop = new Set(mats);
     d.bag = d.bag.filter((x) => !drop.has(x));
-    it.stats = { ...(it.stats as object), subs: up.data.subs, xp: r.xp }; it.enhance = r.level; d.bagDirty = true;
+    it.stats = { ...(it.stats as object), subs: up.data.subs, xp: r.xp }; it.enhance = r.level; d.honTe -= fee; d.bagDirty = true;
     const lv = r.level > r.from ? ` lên +${r.level}` : ` (vẫn +${r.level})`;
     // "thêm dòng phụ Công +3,2%" / "dòng phụ Sinh lực +150 (tăng +62)"
     const subs = up.ups.map((u) => (u.add ? `thêm dòng phụ ${coreStatText(u.k, u.v)}`
       : `dòng phụ ${coreStatText(u.k, u.to)} (tăng +${coreStatText(u.k, u.v).split(" +").pop()})`));
     this.log(id, `Nâng cấp ${label}${lv}: ${mats.length} nguyên liệu, +${r.gain.toLocaleString("vi-VN")} điểm`
+      + (fee ? `, phí −${formatHonTe(fee)} (còn ${formatHonTe(d.honTe)})` : "")
       + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "") + (subs.length ? `; ${subs.join("; ")}` : "") + ".",
       CORE_SETS[coreSetIndex(core.set)]?.col);
-    this.clients.getById(id)?.send("enhancedcore", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length, subs: up.ups });
+    this.clients.getById(id)?.send("enhancedcore", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length, fee, subs: up.ups });
     const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
     if (v) this.afterBones(id, v); else this.sendBag(id);
     this.save(id); // nguyên liệu đã mất: ghi ngay qua chuỗi lưu
