@@ -296,11 +296,11 @@ function applyEliteLock(key: string, values: Record<string, number>) {
 async function persistEliteLock(key: string, changes: Map<number, number>) {
   const owner = `${presenceBackend.workerId}:elite:${key}`;
   let merged: Record<string, number> = {};
-  await presenceBackend.withLock<Record<string, number>>(`elite:${key}`, owner, ELITE_STATE_TTL_MS, (old) => {
+  await presenceBackend.withLock<Record<string, number>>(`elite:${key}`, owner, 5000, (old) => {
     merged = { ...(old ?? {}) };
     for (const [acc, until] of changes) merged[String(acc)] = until;
     return merged;
-  });
+  }, ELITE_STATE_TTL_MS);
   void presenceBackend.presence.publish(ELITE_LOCK_TOPIC, { key, values: merged });
 }
 /** Số giây còn lại trước khi tài khoản `acc` nhận lại thưởng tinh anh `key` (0 = nhận được); bỏ các mục đã hết hạn của `key`. */
@@ -351,19 +351,19 @@ async function persistKingSeat(mapId: string, slot: number, seat: KingSeat, clai
   for (const accountId of claimed) cached.add(accountId);
   kingClaimCache.set(cacheKey, cached);
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${seat.id}`;
-  await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, KING_STATE_TTL_MS, (old) => {
+  await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, 5000, (old) => {
     const next = old ?? {}, rec = next[String(slot)];
     if (!rec) return next;
     const found = rec.seats.findIndex((s) => s.id === seat.id);
     if (found >= 0) rec.seats[found] = { ...seat };
     rec.claimed = [...new Set([...rec.claimed, ...cached])];
     return next;
-  });
+  }, KING_STATE_TTL_MS);
 }
 async function takeKingSeat(mapId: string, slot: number, until: number, roomId: string, boss: string): Promise<{ seat: KingSeat; claimed: Set<number>; boss: string }> {
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${roomId}`;
   let result!: { seat: KingSeat; claimed: Set<number>; boss: string };
-  const ok = await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, KING_STATE_TTL_MS, (old) => {
+  const ok = await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, 5000, (old) => {
     const now = Date.now(), next = old ?? {};
     for (const [key, value] of Object.entries(next)) if (value.until <= now) delete next[key];
     let rec = next[String(slot)];
@@ -376,7 +376,7 @@ async function takeKingSeat(mapId: string, slot: number, until: number, roomId: 
     kingClaimCache.set(cacheKey, cached);
     result = { seat: { ...seat }, claimed: new Set(cached), boss: rec.boss };
     return next;
-  });
+  }, KING_STATE_TTL_MS);
   if (!ok || !result) throw new ServerError(503, "Không lấy được suất thú vương, hãy thử lại sau.");
   await loadKingState(mapId);
   const local = kingSeats.get(mapId)?.get(slot), seat = local?.seats.find((s) => s.id === result.seat.id) ?? result.seat;
@@ -404,32 +404,32 @@ const channelKey = (mapId: string) => `channels:${mapId}`;
 async function takeChannel(mapId: string, roomId: string) {
   const owner = `${presenceBackend.workerId}:${roomId}`;
   let chosen = 0;
-  const ok = await presenceBackend.withLock<ChannelRegistry>(channelKey(mapId), owner, CHANNEL_TTL_MS, (old) => {
+  const ok = await presenceBackend.withLock<ChannelRegistry>(channelKey(mapId), owner, 5000, (old) => {
     const now = Date.now(), next = old ?? {};
     for (const [ch, lease] of Object.entries(next)) if (lease.expiresAt <= now) delete next[ch];
     const used = new Set(Object.keys(next).map(Number));
     chosen = 1; while (used.has(chosen)) chosen++;
     next[String(chosen)] = { roomId, owner, ch: chosen, expiresAt: now + CHANNEL_TTL_MS };
     return next;
-  });
+  }, CHANNEL_TTL_MS);
   if (!ok || !chosen) throw new ServerError(503, "Không cấp được kênh, hãy thử lại sau.");
   return chosen;
 }
 async function touchChannel(mapId: string, roomId: string, ch: number) {
   const owner = `${presenceBackend.workerId}:${roomId}`;
-  await presenceBackend.withLock<ChannelRegistry>(channelKey(mapId), owner, CHANNEL_TTL_MS, (old) => {
+  await presenceBackend.withLock<ChannelRegistry>(channelKey(mapId), owner, 5000, (old) => {
     const next = old ?? {}, found = next[String(ch)];
     if (found?.roomId === roomId && found.owner === owner) found.expiresAt = Date.now() + CHANNEL_TTL_MS;
     return next;
-  });
+  }, CHANNEL_TTL_MS);
 }
 async function releaseChannel(mapId: string, roomId: string, ch: number) {
   const owner = `${presenceBackend.workerId}:${roomId}`;
-  await presenceBackend.withLock<ChannelRegistry>(channelKey(mapId), owner, CHANNEL_TTL_MS, (old) => {
+  await presenceBackend.withLock<ChannelRegistry>(channelKey(mapId), owner, 5000, (old) => {
     const next = old ?? {}, found = next[String(ch)];
     if (found?.roomId === roomId && found.owner === owner) delete next[String(ch)];
     return next;
-  });
+  }, CHANNEL_TTL_MS);
 }
 /** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
 const channelSwitchAt = new Map<number, number>();

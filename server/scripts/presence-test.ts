@@ -16,6 +16,13 @@ try {
   assert.equal(await backend.withLock("party:1", "worker-b", 1000, async (value) => ({ ...(value ?? {}), members: [7] })), true);
   assert.deepEqual(await backend.getJson("party:1"), { members: [7] });
 
+  assert.equal(await backend.withLock("ttl:document", "worker-a", 25, async () => {
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    return { keep: true };
+  }, 0), true);
+  await new Promise((resolve) => setTimeout(resolve, 35));
+  assert.deepEqual(await backend.getJson("ttl:document"), { keep: true });
+
   const [lockedA, lockedB] = await Promise.all([
     backend.withLock("race", "worker-a", 1000, async (value) => {
       await new Promise((resolve) => setTimeout(resolve, 25));

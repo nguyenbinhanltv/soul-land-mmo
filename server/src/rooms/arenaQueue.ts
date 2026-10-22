@@ -51,10 +51,10 @@ void presenceBackend.presence.subscribe(FOUND_TOPIC, (m: { accountId: number; ro
 });
 async function addRemote(e: ArenaEntry) {
   await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => [ ...(old ?? []).filter((x) => x.accountId !== e.accountId),
-    { accountId: e.accountId, name: e.name, rec: { ...e.rec }, since: e.since, owner: presenceBackend.workerId } ]);
+    { accountId: e.accountId, name: e.name, rec: { ...e.rec }, since: e.since, owner: presenceBackend.workerId } ], 0);
 }
 async function removeRemote(accountId: number) {
-  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => (old ?? []).filter((x) => x.accountId !== accountId));
+  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => (old ?? []).filter((x) => x.accountId !== accountId), 0);
 }
 async function claimRemote(a: number, b: number) {
   let claimed = false;
@@ -62,7 +62,7 @@ async function claimRemote(a: number, b: number) {
     const next = old ?? [], hasA = next.some((x) => x.accountId === a), hasB = next.some((x) => x.accountId === b);
     if (hasA && hasB) { claimed = true; return next.filter((x) => x.accountId !== a && x.accountId !== b); }
     return next;
-  });
+  }, 0);
   return claimed;
 }
 

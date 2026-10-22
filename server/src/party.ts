@@ -74,7 +74,7 @@ async function remoteMutation<T>(fn: () => T): Promise<T> {
   let result!: T;
   const ok = await remote.withLock<PartySnapshot>(REMOTE_KEY, remote.workerId, 5000, (old) => {
     applySnapshot(old ?? snapshot()); result = fn(); return snapshot();
-  });
+  }, 0);
   if (!ok) throw new Error("Không khóa được trạng thái tổ đội trong presence.");
   void remote.presence.publish(PARTY_STATE_TOPIC, snapshot());
   return result;

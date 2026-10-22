@@ -20,7 +20,7 @@ export interface PresenceBackend {
   getJson<T>(key: string): Promise<T | null>;
   putJson<T>(key: string, value: T, ttlMs?: number): Promise<void>;
   delete(key: string): Promise<void>;
-  withLock<T>(key: string, owner: string, ttlMs: number, update: (value: T | null) => T | Promise<T>): Promise<boolean>;
+  withLock<T>(key: string, owner: string, lockTtlMs: number, update: (value: T | null) => T | Promise<T>, dataTtlMs?: number): Promise<boolean>;
   close(): Promise<void>;
 }
 
@@ -72,13 +72,13 @@ class LocalBackend implements PresenceBackend {
   async putJson<T>(key: string, value: T, ttlMs = 0) { await this.put(key, JSON.stringify(value), ttlMs); }
   async delete(key: string) { this.values.delete(key); }
 
-  async withLock<T>(key: string, owner: string, ttlMs: number, update: (value: T | null) => T | Promise<T>) {
+  async withLock<T>(key: string, owner: string, lockTtlMs: number, update: (value: T | null) => T | Promise<T>, dataTtlMs = 0) {
     const lock = `${key}:lock`;
     for (let attempt = 0; attempt < 100; attempt++) {
-      if (await this.acquireLease(lock, owner, ttlMs)) {
+      if (await this.acquireLease(lock, owner, lockTtlMs)) {
         try {
           const next = await update(await this.getJson<T>(key));
-          await this.putJson(key, next, ttlMs);
+          await this.putJson(key, next, dataTtlMs);
           return true;
         } finally { await this.releaseLease(lock, owner); }
       }
@@ -138,13 +138,13 @@ class RedisBackend implements PresenceBackend {
   async putJson<T>(key: string, value: T, ttlMs = 0) { await this.put(key, JSON.stringify(value), ttlMs); }
   async delete(key: string) { await this.redis.del(this.key(key)); }
 
-  async withLock<T>(key: string, owner: string, ttlMs: number, update: (value: T | null) => T | Promise<T>) {
+  async withLock<T>(key: string, owner: string, lockTtlMs: number, update: (value: T | null) => T | Promise<T>, dataTtlMs = 0) {
     const lock = `${key}:lock`;
     for (let attempt = 0; attempt < 100; attempt++) {
-      if (await this.acquireLease(lock, owner, ttlMs)) {
+      if (await this.acquireLease(lock, owner, lockTtlMs)) {
         try {
           const next = await update(await this.getJson<T>(key));
-          await this.putJson(key, next, ttlMs);
+          await this.putJson(key, next, dataTtlMs);
           return true;
         } finally { await this.releaseLease(lock, owner); }
       }
