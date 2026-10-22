@@ -592,7 +592,8 @@ async function channelTest(){
 /**
  * #235: matchmake HTTP (joinOrCreate, joinById) kiểm token ở static onAuth trước khi giữ chỗ / mở kênh. Token sai / thiếu gửi dồn quá
  * sức chứa một kênh: không giữ chỗ, không mở kênh mới (danh sách kênh của X không đổi). Token đúng: sai bản đồ / bản đồ sân đấu bị từ
- * chối trước khi giữ chỗ; mỗi tài khoản giữ tối đa 3 chỗ chưa dùng, dùng (mở WebSocket) xong thì giữ được tiếp.
+ * chối trước khi giữ chỗ, joinById kênh bản đồ khác không giữ chỗ; mỗi tài khoản giữ tối đa 3 chỗ chưa dùng (kể cả request song song),
+ * dùng (mở WebSocket) xong thì giữ được tiếp.
  */
 async function matchmakeSeatTest(X){
   const mm=(m,target,body)=>fetch(API+`/matchmake/${m}/${target}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
@@ -615,9 +616,13 @@ async function matchmakeSeatTest(X){
   ok(!r.sessionId&&/Sai bản đồ/.test(r.error??""),`token đúng nhưng sai bản đồ: từ chối trước khi giữ chỗ (${r.error??"được giữ chỗ"})`);
   r=await mm("joinOrCreate","map",{token:Y.token,mapId:ARENA_MAP});
   ok(!r.sessionId&&/không tồn tại/.test(r.error??""),`token đúng, bản đồ sân đấu: từ chối (${r.error??"được giữ chỗ"})`);
-  const seats=[]; for(let k=0;k<4;k++) seats.push(await mm("joinOrCreate","map",{token:Y.token,mapId:Y.mapId}));
-  ok(seats.slice(0,3).every(s=>s.sessionId)&&!seats[3].sessionId&&/thử lại/.test(seats[3].error??""),
-    `giữ tối đa 3 chỗ chưa dùng mỗi tài khoản: ${seats.map(s=>s.sessionId?"giữ":s.error).join(" / ")}`);
+  r=await mm("joinById",X.room.roomId,{token:Y.token,mapId:Y.mapId});
+  const c2=await chans();
+  ok(!r.sessionId&&JSON.stringify(c2)===JSON.stringify(c1),`token đúng, joinById kênh bản đồ khác: không giữ chỗ (${r.error??"được giữ chỗ"}; ${JSON.stringify(c2?.map(c=>[c.ch,c.n]))})`);
+  // Gửi song song: kiểm số chỗ và ghi chỗ tạm cùng một nhịp nên không cùng lọt qua giới hạn.
+  const seats=await Promise.all(Array.from({length:6},()=>mm("joinOrCreate","map",{token:Y.token,mapId:Y.mapId})));
+  ok(seats.filter(s=>s.sessionId).length===3&&seats.filter(s=>!s.sessionId).every(s=>/thử lại/.test(s.error??"")),
+    `giữ tối đa 3 chỗ chưa dùng mỗi tài khoản (6 request song song): ${seats.map(s=>s.sessionId?"giữ":s.error).join(" / ")}`);
   // Dùng các chỗ đã giữ (mở WebSocket như client): onAuth của phòng vẫn chạy (nạp hồn sư), giữ chỗ lại được.
   let named=0;
   for(const s of seats.filter(s=>s.sessionId)){

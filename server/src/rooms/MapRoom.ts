@@ -433,11 +433,18 @@ export async function pickChannel(accountId: number, mapId: string): Promise<Cha
  * Colyseus giữ chỗ (tính vào maxClients, khóa kênh khi đủ) và joinOrCreate mở kênh mới ngay ở bước HTTP, trước khi client mở WebSocket
  * và onAuth của phòng chạy. Vì vậy `static onAuth` (chạy trước khi tìm / mở phòng và giữ chỗ) kiểm token và các điều kiện rẻ, rồi
  * trả SeatPass; `_reserveSeat` của phòng bỏ SeatPass đi để onAuth của phòng vẫn chạy lúc mở WebSocket (nạp DB sau waitOldSession).
+ * `mapId`: bản đồ đã kiểm (null: sân đấu, không theo bản đồ); `key`: chỗ tạm trong seatPending, ghi ngay khi kiểm xong để các request
+ * chạy song song của cùng tài khoản không cùng lọt qua giới hạn; `_reserveSeat` đổi thành sessionId, không tới được thì tự hết hạn.
  */
-export interface SeatPass { seatFor: number; }
+export interface SeatPass { seatFor: number; mapId: string | null; key: string; }
 /** Mỗi tài khoản giữ tối đa bấy nhiêu chỗ chưa dùng cùng lúc (client thật: một, thêm lần dự phòng joinOrCreate / tab khác). */
 const SEAT_PENDING_MAX = 3;
-/** Chỗ đã giữ chưa dùng của mỗi tài khoản (một tiến trình, LocalPresence): sessionId -> hết hạn (ms). onAuth của phòng xóa khi dùng. */
+/** Chỗ tạm (SeatPass.key) sống tối đa bấy nhiêu mili giây nếu matchmake không tới được bước giữ chỗ (bằng seatReservationTime mặc định). */
+const SEAT_PASS_MS = 15_000;
+/**
+ * Chỗ đã giữ chưa dùng của mỗi tài khoản (một tiến trình, LocalPresence): sessionId (hoặc chỗ tạm SeatPass.key) -> hết hạn (ms). onAuth
+ * của phòng xóa khi dùng.
+ */
 const seatPending = new Map<number, Map<string, number>>();
 function seatsPending(accountId: number) {
   const m = seatPending.get(accountId), now = Date.now();
@@ -445,6 +452,11 @@ function seatsPending(accountId: number) {
   for (const [sid, until] of m) if (until <= now) m.delete(sid);
   if (!m.size) seatPending.delete(accountId);
   return m.size;
+}
+function seatAdd(accountId: number, key: string, until: number) {
+  let m = seatPending.get(accountId);
+  if (!m) { m = new Map(); seatPending.set(accountId, m); }
+  m.set(key, until);
 }
 function seatUsed(accountId: number, sessionId: string) {
   const m = seatPending.get(accountId);
@@ -454,13 +466,18 @@ function seatUsed(accountId: number, sessionId: string) {
  * Bước kiểm chung của `static onAuth` (MapRoom, ArenaRoom): token hợp lệ và tài khoản chưa giữ quá SEAT_PENDING_MAX chỗ. Lỗi bất ngờ
  * (DB…) trả câu chung: Colyseus gửi nguyên `message` của lỗi về client.
  */
-export async function seatAccount(token: unknown, check?: (accountId: number) => Promise<unknown>): Promise<SeatPass> {
+export async function seatAccount(token: unknown, mapId: string | null, check?: (accountId: number) => Promise<unknown>): Promise<SeatPass> {
+  const full = new ServerError(429, "Đang vào phòng ở nơi khác, hãy thử lại sau giây lát.");
   try {
     const acc = await store.accountFromToken(token);
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
-    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw new ServerError(429, "Đang vào phòng ở nơi khác, hãy thử lại sau giây lát.");
+    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
     await check?.(acc.accountId);
-    return { seatFor: acc.accountId };
+    // Kiểm lại và ghi chỗ tạm cùng một nhịp (không await ở giữa).
+    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
+    const key = `pass:${randomUUID()}`;
+    seatAdd(acc.accountId, key, Date.now() + SEAT_PASS_MS);
+    return { seatFor: acc.accountId, mapId, key };
   } catch (e) {
     if (e instanceof ServerError) throw e;
     console.error("Lỗi kiểm tra trước khi giữ chỗ (matchmake):", e);
@@ -617,31 +634,35 @@ export class MapRoom extends Room<MapState> {
    * phòng vẫn kiểm lại tất cả lúc mở WebSocket (token có thể vừa hết hạn, phiên cũ vừa đi cổng).
    */
   static async onAuth(_token: string, options: { token?: unknown; mapId?: unknown }) {
-    return seatAccount(options?.token, (id) => {
-      const mapId = mapIdIn(options?.mapId);
+    const mapId = mapIdIn(options?.mapId);
+    return seatAccount(options?.token, mapId, (id) => {
       if (!mapId) throw new ServerError(400, "Bản đồ không tồn tại.");
       return joinableMap(id, mapId);
     });
   }
 
-  /** Tài khoản được giữ chỗ ở phòng này không (ArenaRoom: chỉ thành viên của trận). Kiểm bản đồ đã làm ở static onAuth. */
-  seatAllowed(_accountId: number) { return true; }
+  /**
+   * SeatPass được giữ chỗ ở phòng này không: bản đồ đã kiểm ở static onAuth phải là bản đồ của phòng (joinById vào kênh bản đồ khác thì
+   * không). ArenaRoom: chỉ thành viên của trận.
+   */
+  seatAllowed(pass: SeatPass) { return pass.mapId === this.state.mapId; }
 
   /**
    * Giữ chỗ từ matchmake: bỏ SeatPass (authData của static onAuth) để onAuth của phòng chạy lúc mở WebSocket (Colyseus bỏ qua onAuth của
-   * phòng khi chỗ giữ có authData), kiểm lại số chỗ đang giữ (các request chạy song song) và ghi chỗ mới vào seatPending.
+   * phòng khi chỗ giữ có authData), và đổi chỗ tạm của SeatPass thành sessionId trong seatPending (giữ không được thì bỏ cả hai).
    */
   protected override async _reserveSeat(sessionId: string, joinOptions?: unknown, authData?: unknown, seconds = this.seatReservationTime,
     allowReconnection?: boolean, devModeReconnection?: boolean) {
-    const acc = (authData as Partial<SeatPass> | undefined)?.seatFor;
-    if (typeof acc !== "number") return super._reserveSeat(sessionId, joinOptions, authData, seconds, allowReconnection, devModeReconnection);
-    if (!this.seatAllowed(acc) || seatsPending(acc) >= SEAT_PENDING_MAX) return false;
-    const ok = await super._reserveSeat(sessionId, joinOptions, undefined, seconds, allowReconnection, devModeReconnection);
-    if (ok) {
-      let m = seatPending.get(acc);
-      if (!m) { m = new Map(); seatPending.set(acc, m); }
-      m.set(sessionId, Date.now() + seconds * 1000);
+    const pass = authData as Partial<SeatPass> | undefined;
+    if (typeof pass?.seatFor !== "number" || typeof pass.key !== "string") {
+      return super._reserveSeat(sessionId, joinOptions, authData, seconds, allowReconnection, devModeReconnection);
     }
+    const acc = pass.seatFor;
+    seatUsed(acc, pass.key);
+    if (!this.seatAllowed(pass as SeatPass)) return false;
+    seatAdd(acc, sessionId, Date.now() + seconds * 1000);
+    const ok = await super._reserveSeat(sessionId, joinOptions, undefined, seconds, allowReconnection, devModeReconnection);
+    if (!ok) seatUsed(acc, sessionId);
     return ok;
   }
 
