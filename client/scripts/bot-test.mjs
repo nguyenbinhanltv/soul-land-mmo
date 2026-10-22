@@ -9623,18 +9623,30 @@ async function splitTest(){
     ok(f.form===0&&await waitFor(()=>sB()?.form===1&&!sB().formWarn,1000),`dạng ${FD.forms[0].name}, chưa báo trước đổi`);
     await test(F,"form",{bid:sb,next:FD.warn-0.5});
     ok(await waitFor(()=>sB()?.formWarn,1000),`còn dưới ${FD.warn} giây: báo trước đổi dạng`);
-    await test(F,"form",{bid:sb,next:600}); await waitFor(()=>!has("slow")&&!has("burn"),5000); await heal();
-    const castAt=async()=>{ F.fxs=[]; const tl=await test(F,"tele",{i:1,bid:sb,cancel:true});
-      return tl?.bid===sb&&await waitFor(()=>F.fxs.some(x=>x.k==="teleHit"&&x.bid===sb),(SS.skills[1].warn+1.5)*1000)&&F.fxs.find(x=>x.k==="teleHit"&&x.bid===sb).hit.includes(F.room.sessionId); };
-    ok(await castAt()&&await waitFor(()=>has("slow"),500)&&!has("burn"),`dạng ${FD.forms[0].name}: ${SS.skills[1].name} trúng gây ${STATUS.slow.name}, không ${STATUS.burn.name}`);
+    await test(F,"form",{bid:sb,next:600});
+    /**
+     * Trước mỗi lần tung: hết trạng thái của lần trước (thời gian trạng thái chạy theo nhịp server nên chờ theo state, không theo giờ
+     * thật), hồi đầy, dọn hồn thú hoang. Hồn thú hoang Nội địa sinh lại ngay ngoài SPAWN_CLEAR rồi lang thang tới: một đòn của nó ngay
+     * trước khi chiêu tung đặt khung bất tử nên chiêu vẫn trúng F mà không gây trạng thái (#289).
+     */
+    const ready=async()=>{ ok(await waitFor(()=>!has("slow")&&!has("burn"),8000),`F hết ${STATUS.slow.name} / ${STATUS.burn.name} trước lần tung kế`);
+      await heal(); await test(F,"clear",{all:true,keep:1}); F.fxs=[]; F.hurts=[]; };
+    const hitOf=()=>F.fxs.find(x=>x.k==="teleHit"&&x.bid===sb), waitHit=()=>waitFor(()=>hitOf(),(SS.skills[1].warn+1.5)*1000);
+    /** Chẩn đoán khi trượt: chiêu có trúng F không, trạng thái đang có, các đòn lên F trong lần tung, dạng hiện tại. */
+    const why=()=>{ const h=hitOf(), st=STATUS_IDS.filter(s=>has(s)).map(s=>STATUS[s].name).join(" + ")||"không";
+      return ` [${h?(h.hit.includes(F.room.sessionId)?"trúng F":`trúng ${h.hit.length} người, không có F`):"không có teleHit"}, trạng thái ${st}, đòn lên F ${F.hurts.map(x=>x.v).join(", ")||"không"}, dạng ${sB()?.form}]`; };
+    await ready(); const t1=await test(F,"tele",{i:1,bid:sb,cancel:true});
+    let hitOk=t1?.bid===sb&&await waitHit()&&hitOf().hit.includes(F.room.sessionId)&&await waitFor(()=>has("slow"),500)&&!has("burn");
+    ok(hitOk,`dạng ${FD.forms[0].name}: ${SS.skills[1].name} trúng gây ${STATUS.slow.name}, không ${STATUS.burn.name}${hitOk?"":why()}`);
     f=await test(F,"form",{bid:sb,next:0}); await test(F,"form",{bid:sb,next:600});
     ok(f.form===1&&await waitFor(()=>sB()?.form===2&&!sB().formWarn,1000),`đổi sang dạng ${FD.forms[1].name}`);
-    await waitFor(()=>!has("slow")&&!has("burn"),5000); await heal();
     // Bắt đầu báo trước ở dạng hỏa, đổi sang băng giữa chừng: chiêu vẫn theo dạng lúc bắt đầu (Thiêu đốt).
-    F.fxs=[]; const tl=await test(F,"tele",{i:1,bid:sb,cancel:true}); await test(F,"form",{bid:sb,next:0}); await test(F,"form",{bid:sb,next:600});
-    const hitFx=await waitFor(()=>F.fxs.some(x=>x.k==="teleHit"&&x.bid===sb),(SS.skills[1].warn+1.5)*1000)&&F.fxs.find(x=>x.k==="teleHit"&&x.bid===sb);
-    ok(tl?.bid===sb&&hitFx?.hit?.includes(F.room.sessionId)&&await waitFor(()=>has("burn"),500)&&!has("slow")&&sB()?.form===1,
-      `bắt đầu ở dạng ${FD.forms[1].name}, đổi ${FD.forms[0].name} giữa lúc báo trước: chiêu vẫn gây ${STATUS.burn.name}, không ${STATUS.slow.name}`);
+    await ready(); const tl=await test(F,"tele",{i:1,bid:sb,cancel:true});
+    ok(tl?.bid===sb&&sB()?.form===2,`dạng ${FD.forms[1].name}: bắt đầu báo trước ${SS.skills[1].name}`);
+    await test(F,"form",{bid:sb,next:0}); await test(F,"form",{bid:sb,next:600});
+    ok(await waitFor(()=>sB()?.form===1,1000)&&!hitOf(),`đổi ${FD.forms[0].name} khi chiêu còn đang báo trước`);
+    hitOk=await waitHit()&&hitOf().hit.includes(F.room.sessionId)&&await waitFor(()=>has("burn"),500)&&!has("slow")&&sB()?.form===1;
+    ok(hitOk,`bắt đầu ở dạng ${FD.forms[1].name}, đổi ${FD.forms[0].name} giữa lúc báo trước: chiêu vẫn gây ${STATUS.burn.name}, không ${STATUS.slow.name}${hitOk?"":why()}`);
     await test(F,"slay",{bid:sb});
   } finally {
     if(kingB()) await test(F,"kdmg",{v:1e8}).catch(()=>{}); // bài lỗi giữa chừng: không để thú vương sống sang bài khác
