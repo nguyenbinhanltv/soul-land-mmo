@@ -998,3 +998,22 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 #tip .t-row b{font-weight:400;color:#ffe08a}
 #tip .t-good{color:#7bd88f} #tip .t-bad{color:#ff8a7a} #tip .t-muted{color:#a89fb4}
 #tip .t-foot{display:block;margin-top:var(--sp-3);padding-top:var(--sp-2);border-top:1px solid #3a3440;color:#a89fb4;font:var(--fs-s)/12px var(--f10)}
+
+/* ===== UI-1 (#351): túi đồ dạng lưới — lọc nhóm, dải gắn nhanh, dấu "mới", so sánh trang bị ===== */
+.bfilter{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2)}
+.bfilter .ui-tab{padding:var(--sp-1) var(--sp-3);font:var(--fs-m)/16px var(--f12);cursor:pointer}
+.bfilter .ui-tab::before{display:none}
+.bfilter .ui-tab[aria-pressed="true"]{background:var(--son);border-color:var(--son-d);color:#f4ead0;text-shadow:var(--stroke)}
+.bsortsel{margin-left:auto;font:var(--fs-m)/16px var(--f12);padding:2px 4px;border:1px solid var(--line);background:var(--paper2);color:var(--text)}
+.bequip{display:flex;align-items:center;gap:var(--sp-2)}
+.bequip>small{color:var(--muted);font:var(--fs-m)/16px var(--f12);margin-right:var(--sp-2)}
+.bq{width:34px;height:34px;padding:0;border:2px solid var(--line);background:var(--wash);cursor:default;display:flex;align-items:center;justify-content:center}
+.bq.empty{opacity:.55;border-style:dashed}
+.bq svg,.bq img{width:24px;height:24px;image-rendering:pixelated;pointer-events:none}
+.bq small{position:absolute;right:1px;bottom:0;font:var(--fs-s)/12px var(--f10);text-shadow:var(--stroke);pointer-events:none}
+.bq.over,.bslot.over{box-shadow:0 0 0 2px var(--son);outline:2px solid var(--son)}
+#bag.drag-bone .bq.bone,#bag.drag-core .bq.core{box-shadow:0 0 0 2px #ffe08a}
+.bslot[draggable="true"]{cursor:grab}
+.bslot i.nw{position:absolute;left:2px;top:2px;width:6px;height:6px;background:var(--son-l);border:1px solid var(--plate);pointer-events:none;z-index:1}
+.bcmp b.t-good{color:#1f7a3a} .bcmp b.t-bad{color:#a8281c} .bcmp b.t-muted{color:var(--muted)}
+.bcmp .bcmpnote{grid-column:1 / -1}

@@ -19,7 +19,8 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, artUrl, tintedUrl } from "./uiArt.ts";
-import { setTip, tipOf, type TipLine } from "./tooltip.ts";
+import { setTip, tipOf, hideTip, type TipLine } from "./tooltip.ts";
+import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -1682,6 +1683,7 @@ export interface BagActions {
   lock(id: string): void; autoSell(cfg: SellSettings): void; // khoá / mở khoá ô, bộ lọc tự bán (#216)
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
+  active(): number | null; equipBone(id: string, slot?: string): void; equipCore(id: string): void; // UI-1: võ hồn ra trận, gắn nhanh (kéo thả / nút) cho võ hồn đó
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
 }
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
@@ -1777,6 +1779,8 @@ function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again:
 
 /** Số ô túi của tài khoản theo tin "bag" gần nhất (từ 9.8 mở rộng được; trước tin đầu tiên là mức khởi đầu). */
 let bagCap = BAG_SLOTS;
+let bagGroup = "all";              // nhóm lọc đang chọn (UI-1, BAG_GROUPS)
+let bagSortMode: BagSort = "tay";  // cách xếp thứ tự hiển thị (UI-1, chỉ phía client)
 let bagPage = 0; // trang túi đang xem (#215: mỗi trang BAG_PAGE ô)
 /**
  * Bảng túi đồ: Hồn Tệ, các trang BAG_PAGE ô (#215; tab trang có vạch mức đầy, trang đầy viền đỏ), lưới ô của trang đang xem (số
@@ -1801,11 +1805,16 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
   el.appendChild(coin);
 
+  // UI-1: lọc theo nhóm và xếp thứ tự hiển thị chỉ ở client (nút "Sắp xếp" gộp / xếp thật vẫn do server). `view` = cả túi đã xếp, `shown` = sau lọc.
+  noteSeen(items);
+  const view = sortView(items, bagSortMode), shown = view.filter((i) => inGroup(i, bagGroup)), filtered = bagGroup !== "all", active = act.active();
+  el.appendChild(bagTools(bag, items, again));
+
   const pages = Math.max(1, Math.ceil(bag.slots / BAG_PAGE));
   bagPage = Math.max(0, Math.min(pages - 1, bagPage));
   const bar = document.createElement("div"); bar.className = "bpages";
   for (let p = 0; p < pages; p++) {
-    const cap = Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, items.length - p * BAG_PAGE));
+    const cap = Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, shown.length - p * BAG_PAGE));
     const b = document.createElement("button"); b.className = "bpg" + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
     b.innerHTML = `<b>${p + 1}</b><i style="--f:${n / cap}"></i>`;
     b.title = `Trang ${p + 1}: ${n}/${cap} ô${n >= cap ? " (đầy)" : ""}`; b.setAttribute("aria-label", b.title);
@@ -1822,21 +1831,42 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const sort = document.createElement("button"); sort.className = "buse bsort"; sort.textContent = "Sắp xếp";
   sort.title = "Gộp đồ cùng loại chưa đầy ô và xếp lại cả túi (mọi trang) theo loại, số năm, sao.";
   sort.disabled = items.length < 2;
-  sort.addEventListener("click", () => { sort.blur(); act.sort(); });
+  sort.addEventListener("click", () => { sort.blur(); clearOrder(); bagSortMode = "tay"; act.sort(); });
   bar.appendChild(sort);
   el.appendChild(bar);
+  if (active !== null) el.appendChild(bagEquipStrip(bag.items, active, act));
 
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
-    const it = items[k], b = document.createElement("button");
+    const it = shown[k], b = document.createElement("button");
     b.className = "bslot ui-cell" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
+    // Kéo-thả (UI-1): thả lên ô khác = đổi chỗ (chỉ khi không lọc; thứ tự nhớ ở trình duyệt), kéo lên ô gắn nhanh = gắn (lệnh server như nút "Gắn nhanh").
+    if (!filtered) {
+      b.addEventListener("dragover", (e) => { if (!e.dataTransfer?.types.includes("text/plain")) return; e.preventDefault(); b.classList.add("over"); });
+      b.addEventListener("dragleave", () => b.classList.remove("over"));
+      b.addEventListener("drop", (e) => {
+        e.preventDefault(); b.classList.remove("over");
+        const id = e.dataTransfer?.getData("text/plain");
+        if (!id || id === it?.id || !items.some((i) => i.id === id)) return;
+        moveItem(view, id, it ? view.indexOf(it) : view.length); bagSortMode = "tay"; again();
+      });
+    }
     if (it) {
       const def = itemDef(it.code);
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
-      b.style.setProperty("--c", itemColor(it));
+      b.draggable = true;
+      b.addEventListener("dragstart", (e) => {
+        hideTip(); e.dataTransfer?.setData("text/plain", it.id); if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+        el.classList.add(boneOf(it) ? "drag-bone" : coreOf(it) ? "drag-core" : "drag");
+      });
+      b.addEventListener("dragend", () => el.classList.remove("drag", "drag-bone", "drag-core"));
+      const rare = rarityOf(it);
+      // Viền theo độ hiếm: hồn hoàn / hồn cốt theo bậc niên hạn (itemColor), hồn hạch theo sao (token --rare-N); món khác màu theo ITEMS.
+      b.style.setProperty("--c", coreOf(it) && rare >= 0 ? `var(--rare-${rare})` : itemColor(it));
+      if (rare >= 0) b.dataset.rare = String(rare);
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : it.qty > 1 ? String(it.qty) : "";
       const bone = boneOf(it), icon = itemArt(it) || (bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
-      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
+      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}${isNew(it.id) ? `<i class="nw" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
       b.setAttribute("aria-label", (hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
         + (it.lock ? ", đang khoá" : ""));
       // Chú thích dùng chung (UI-0): tiêu đề theo màu niên hạn (glow trên tấm mực), dòng phụ nhóm vật phẩm / số năm, chỉ số hồn cốt / hồn hạch.
@@ -1845,10 +1875,13 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const lines: TipLine[] = [];
       if (bone) lines.push(boneFullText(it as BagItem & { years: number })); else if (core) lines.push(...coreLines(it));
       if (it.qty > 1) lines.push({ k: "Số lượng", v: `×${it.qty}`, tone: "gem" });
+      // So sánh với món đang gắn của võ hồn ra trận (chỉ số ▲ xanh / ▼ đỏ); máy cảm ứng: chạm giữ ra chú thích, chạm một lần xem ở khung chi tiết.
+      const worn = wornFor(it, bag.items, active), cmp = worn && compareLines(it, worn, worn.cur ? itemName(worn.cur) : null);
+      if (cmp) lines.push(...cmp);
       setTip(b, { title: itemName(it) + (it.lock ? " (khoá)" : ""), color: tier >= 0 ? TIERS[tier].glow : undefined, border: itemColor(it),
         sub: tier >= 0 ? `${bone ? "Hồn cốt" : "Hồn hoàn"} · ${TIERS[tier].color} (${TIERS[tier].age})` : def ? ITEM_KINDS[def.kind].name : undefined,
         lines, foot: it.lock ? "Đang khoá: không bán / bỏ được" : undefined });
-      b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
+      b.addEventListener("click", () => { b.blur(); markSeen(it.id); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
     grid.appendChild(b);
   }
@@ -1894,6 +1927,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       st.classList.add("core");
       info.insertBefore(st, info.querySelector("p"));
     }
+    const worn = wornFor(sel, bag.items, active), cmp = worn && compareLines(sel, worn, worn.cur ? itemName(worn.cur) : null);
+    if (cmp) info.insertBefore(compareBox(cmp), info.querySelector("p"));
     const ready = isRing(sel) ? act.absorbOptions(sel.years).filter((o) => !o.reason).length : 0;
     info.querySelector("p")!.textContent = (def?.desc ?? "Vật phẩm không còn trong trò chơi, vẫn được giữ trong túi.")
       + (isRing(sel) ? (ready ? ` Có ${ready} võ hồn ở bình cảnh hấp thụ được.` : " Chưa có võ hồn nào ở bình cảnh hấp thụ được hồn hoàn này.") : "");
@@ -1912,9 +1947,11 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (def?.kind === "tien_thao" && pickHerb === sel.id) { info.appendChild(herbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (def?.kind === "tien_thao") btn("Dùng cho…", "absorb", () => { pickHerb = sel.id; pickVh = null; act.refresh(); again(); }); // BĐ6b
     if (bone && hasYears(sel) && enhTarget === sel.id) { info.appendChild(enhancePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
+    if (bone && active !== null) btn("Gắn nhanh", "absorb", () => act.equipBone(sel.id)); // UI-1: gắn thẳng cho võ hồn ra trận, không mở bảng đội hình
     if (bone) btn("Gắn…", "use", () => openBones(sel.id, bone.slot)); // hồn cốt (4.2): gắn ở bảng đội hình
     if (bone && sel.enhance < BONE_MAX_ENHANCE) btn("Cường hóa…", "use", () => { enhOpen(sel.id); again(); }); // 4.4
     if (core && enhTarget === sel.id) { info.appendChild(corePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
+    if (core && active !== null) btn("Gắn nhanh", "absorb", () => act.equipCore(sel.id));
     if (core) btn("Gắn…", "use", () => openCores(sel.id)); // hồn hạch (5.2): gắn ở bảng đội hình
     if (core && sel.enhance < CORE_MAX_ENHANCE) btn("Nâng cấp…", "use", () => { enhOpen(sel.id); again(); }); // 5.3
     // Khoá (#216): món khoá không bị bán (tay hay tự bán), bỏ, làm nguyên liệu; server kiểm tra lại.
@@ -1926,6 +1963,70 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   } else info.innerHTML = `<small>Chọn một ô để xem, dùng, hấp thụ hoặc bỏ vật phẩm.</small>`;
   el.appendChild(info);
   finishBag(el);
+}
+
+/** Hàng công cụ của túi (UI-1): chip lọc theo nhóm (kèm số món) và hộp chọn cách xếp; đổi gì thì vẽ lại túi, không gửi gì lên server. */
+function bagTools(bag: BagMsg, items: BagItem[], again: () => void) {
+  const box = document.createElement("div"); box.className = "bfilter";
+  for (const g of BAG_GROUPS) {
+    const n = items.filter((i) => inGroup(i, g.id)).length;
+    if (g.id !== "all" && !n && bagGroup !== g.id) continue; // nhóm trống không hiện (trừ nhóm đang chọn)
+    const b = document.createElement("button"); b.type = "button"; b.className = "ui-tab" + (bagGroup === g.id ? " on" : "");
+    b.textContent = g.id === "all" ? g.name : `${g.name} ${n}`; b.setAttribute("aria-pressed", String(bagGroup === g.id));
+    b.addEventListener("click", () => { b.blur(); bagGroup = g.id; bagPage = 0; bagSel = null; again(); });
+    box.appendChild(b);
+  }
+  const s = document.createElement("select"); s.className = "bsortsel"; s.setAttribute("aria-label", "Cách xếp thứ tự hiển thị");
+  s.title = "Xếp thứ tự hiển thị\nChỉ đổi cách xem trên máy bạn; nút Sắp xếp mới gộp và xếp thật ở server.";
+  for (const m of BAG_SORTS) { const o = document.createElement("option"); o.value = m.id; o.textContent = m.id === "tay" ? "Xếp: mặc định" : `Xếp: ${m.name.toLowerCase()}`; o.selected = m.id === bagSortMode; s.appendChild(o); }
+  s.addEventListener("change", () => { bagSortMode = s.value as BagSort; if (bagSortMode === "tay") clearOrder(); again(); });
+  box.appendChild(s);
+  return box;
+}
+
+/** Dải gắn nhanh (UI-1): 6 ô hồn cốt và ô hồn hạch của võ hồn ra trận; kéo món từ lưới thả vào là gửi đúng lệnh gắn như nút (server kiểm tra vị trí). */
+function bagEquipStrip(items: BagItem[], vohon: number, act: BagActions) {
+  const box = document.createElement("div"); box.className = "bequip";
+  const lab = document.createElement("small"); lab.textContent = "Gắn nhanh:"; box.appendChild(lab);
+  const mine = items.filter((i) => i.vohon === vohon);
+  const cell = (cls: string, html: string, drop: (id: string) => void) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "bq ui-cell " + cls; b.innerHTML = html;
+    b.addEventListener("dragover", (e) => { e.preventDefault(); b.classList.add("over"); });
+    b.addEventListener("dragleave", () => b.classList.remove("over"));
+    b.addEventListener("drop", (e) => { e.preventDefault(); b.classList.remove("over"); const id = e.dataTransfer?.getData("text/plain"); if (id) drop(id); });
+    box.appendChild(b); return b;
+  };
+  for (const s of BONE_SLOTS) {
+    const it = mine.find((i) => boneOf(i)?.slot === s.id);
+    const b = cell(`bone${it ? "" : " empty"}`, it ? `${boneIcon(s.id, itemColor(it))}<small>${yearsShort(it.years!)}</small>` : boneSvg(s.id), (id) => {
+      const d = items.find((i) => i.id === id); if (d && boneOf(d)) act.equipBone(id, s.id);
+    });
+    b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}`);
+    if (it) { b.dataset.tier = String(tierOfYears(it.years!)); b.style.setProperty("--c", itemColor(it)); }
+    setTip(b, { title: it ? itemName(it) : `Ô ${s.name} trống`, color: it ? TIERS[tierOfYears(it.years!)].glow : undefined, sub: `Hồn cốt · ${s.name}`,
+      lines: it ? [boneFullText(it as BagItem & { years: number })] : [], foot: "Kéo hồn cốt từ túi thả vào để gắn" });
+  }
+  const cores = mine.filter((i) => coreOf(i));
+  const cb = cell("core" + (cores.length ? "" : " empty"), `${coreSvg("")}<small>${cores.length}/${CORE_SLOTS}</small>`, (id) => {
+    const d = items.find((i) => i.id === id); if (d && coreOf(d)) act.equipCore(id);
+  });
+  cb.setAttribute("aria-label", `Hồn hạch đang gắn ${cores.length}/${CORE_SLOTS}`);
+  setTip(cb, { title: `Hồn hạch ${cores.length}/${CORE_SLOTS}`, lines: cores.map((c) => itemName(c)), foot: "Kéo hồn hạch từ túi thả vào để gắn (vào ô trống đầu tiên)" });
+  return box;
+}
+
+/** Khung so sánh trong chi tiết ô (UI-1): cùng nội dung chú thích so sánh, cho máy cảm ứng và người không rê chuột. */
+function compareBox(lines: TipLine[]) {
+  const box = document.createElement("div"); box.className = "bstat bcmp";
+  for (const ln of lines) {
+    if (typeof ln === "string") continue;
+    const a = document.createElement("span");
+    if (!ln.k) { a.textContent = ln.v; a.className = "bcmpnote"; box.append(a); continue; }
+    const b = document.createElement("b");
+    a.textContent = ln.k; b.textContent = ln.v; if (ln.tone) b.className = `t-${ln.tone}`;
+    box.append(a, b);
+  }
+  return box;
 }
 
 let sellOpen = false; // đang mở bộ lọc tự bán thay cho chi tiết ô (#216)
@@ -1981,7 +2082,7 @@ function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
 
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = `Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Mỗi trang ${BAG_PAGE} ô, mở rộng túi ở thương nhân trong thành. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.`;
+  note.textContent = `Kéo thả để đổi chỗ ô, kéo hồn cốt / hồn hạch lên dải "Gắn nhanh" để gắn; chọn nhóm và cách xếp ở đầu túi. Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Mỗi trang ${BAG_PAGE} ô, mở rộng túi ở thương nhân trong thành. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.`;
   el.appendChild(note);
   updateBag();
 }
