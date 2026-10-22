@@ -7,6 +7,7 @@
     153
   ],
   "seed": 20261113,
+  "tileRows": 6,
   "zoneCell": 8,
   "blend": 4,
   "gids": {
@@ -43,8 +44,21 @@
       "plant": 28,
       "sign": 29,
       "roof": 14,
-      "wall": 15
+      "wall": 15,
+      "haystack": 41,
+      "fence_post": 42,
+      "garden": 43,
+      "lamngan": 44,
+      "well": 45,
+      "crates": 46,
+      "plank_bridge": 47,
+      "reeds": 48
     },
+    "walk": [
+      "lamngan",
+      "plank_bridge",
+      "reeds"
+    ],
     "canopy": {
       "17": 21,
       "18": 22,
@@ -2592,6 +2606,175 @@
       ],
       "gate": 6,
       "ground": "path"
+    },
+    {
+      "type": "row",
+      "kind": "garden",
+      "from": [
+        81,
+        92
+      ],
+      "to": [
+        95,
+        92
+      ],
+      "step": 3
+    },
+    {
+      "type": "row",
+      "kind": "garden",
+      "from": [
+        109,
+        92
+      ],
+      "to": [
+        123,
+        92
+      ],
+      "step": 3
+    },
+    {
+      "type": "objects",
+      "kind": "well",
+      "at": [
+        [
+          114,
+          74
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "crates",
+      "at": [
+        [
+          93,
+          66
+        ],
+        [
+          110,
+          66
+        ]
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "haystack",
+      "rect": [
+        4,
+        42,
+        70,
+        104
+      ],
+      "p": 0.006,
+      "on": [
+        "grass"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "haystack",
+      "rect": [
+        70,
+        98,
+        66,
+        52
+      ],
+      "p": 0.006,
+      "on": [
+        "grass"
+      ]
+    },
+    {
+      "type": "row",
+      "kind": "fence_post",
+      "from": [
+        4,
+        44
+      ],
+      "to": [
+        4,
+        72
+      ],
+      "step": 2
+    },
+    {
+      "type": "row",
+      "kind": "fence_post",
+      "from": [
+        4,
+        84
+      ],
+      "to": [
+        4,
+        140
+      ],
+      "step": 2
+    },
+    {
+      "type": "row",
+      "kind": "fence_post",
+      "from": [
+        69,
+        102
+      ],
+      "to": [
+        69,
+        146
+      ],
+      "step": 2
+    },
+    {
+      "type": "scatter",
+      "kind": "lamngan",
+      "rect": [
+        76,
+        57,
+        52,
+        40
+      ],
+      "p": 0.03,
+      "on": [
+        "grass"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "lamngan",
+      "rect": [
+        60,
+        0,
+        80,
+        56
+      ],
+      "p": 0.006,
+      "on": [
+        "grass"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "reeds",
+      "rect": [
+        0,
+        0,
+        204,
+        153
+      ],
+      "p": 0.12,
+      "on": [
+        "bank"
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "plank_bridge",
+      "at": [
+        [
+          120,
+          40
+        ]
+      ]
     }
   ],
   "roads": [
