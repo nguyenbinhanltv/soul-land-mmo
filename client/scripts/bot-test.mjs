@@ -4215,9 +4215,11 @@ else {
         await test(A,"goto",{x:gate.x+gate.width/2,y:gate.y+gate.height/2}); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
         await test(A,"beast",{dx:16,dy:0,years:MAX_YEARS}); await test(A,"bhp",{pct:100}); await test(A,"ready");
         await waitFor(()=>A.portal?.name===gate.name,1000); const lt=A.logs.length, m0=st.mapId;
-        // Niệm chỉ TRAVEL_CAST giây: gửi kỹ năng ngay sau tin đi cổng (server xử lý tin theo thứ tự, lúc đó đã đang niệm), rồi rời cổng.
-        A.room.send("travel",{portal:gate.name}); r=await bsk(2,250); const cast=A.logs.slice(lt).join(" | ");
-        await test(A,"goto",spot); await waitFor(()=>A.logs.slice(lt).some(t=>/hủy đi qua cổng/.test(t)),1000);
+        // Niệm chỉ TRAVEL_CAST giây: gửi liền tin đi cổng, kỹ năng hồn cốt, rời cổng (hook goto). Server xử lý tin theo thứ tự nên kỹ năng
+        // dùng lúc đang niệm và niệm bị hủy vì rời cổng, không phụ thuộc máy chậm hay nhanh.
+        A.dmgs=[]; A.fxs=[]; A.room.send("travel",{portal:gate.name}); A.room.send("boneskill",{i:2}); await test(A,"goto",spot);
+        await waitFor(()=>A.fxs.some(f=>f.k==="bone")&&A.logs.slice(lt).some(t=>/hủy đi qua cổng/.test(t)),1500);
+        const cast=A.logs.slice(lt).filter(t=>!/Đã rời cổng: hủy đi qua cổng/.test(t)).join(" | ");
         ok(/Đang đi tới/.test(cast)&&A.fxs.some(f=>f.k==="bone"&&f.i===2)&&p.bcds[2]>0&&!/hủy|không dùng được/.test(cast)
           &&A.logs.slice(lt).some(t=>/Đã rời cổng: hủy đi qua cổng/.test(t))&&st.mapId===m0,
           `đang niệm đi cổng: dùng được kỹ năng hồn cốt, vẫn niệm tới khi rời cổng (${A.logs.slice(lt).join(" | ")})`);
