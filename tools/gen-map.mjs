@@ -642,6 +642,11 @@ function thienDauThanh() {
   o.point("npc", "Phất Lan Đức", 15, 47, [prop("npc", "string", "phat_lan_duc")]);
   o.point("npc", "Thương nhân Thiên Đấu", 51, 15, [prop("npc", "string", "thuong_nhan_thien_dau")]);
   o.point("npc", "Thợ rèn Thiên Đấu", 64, 15, [prop("npc", "string", "lo_ren_thien_dau")]);
+  // #196: sứ giả bốn tông môn ở hàng phía bắc quảng trường.
+  o.point("npc", "Sứ giả Hạo Thiên Tông", 34, 21, [prop("npc", "string", "su_gia_hao_thien")]);
+  o.point("npc", "Ninh Phong Trí", 40, 21, [prop("npc", "string", "ninh_phong_tri")]);
+  o.point("npc", "Sứ giả Lam Điện Bá Vương Long Tông", 46, 21, [prop("npc", "string", "su_gia_lam_dien")]);
+  o.point("npc", "Chủ giáo Vũ Hồn Điện", 52, 21, [prop("npc", "string", "chu_giao_vu_hon_dien")]);
   // BĐ6b: cổng tây (thay biển "sắp mở" `cong_lac_nhat`); chặn mềm theo cấp đề xuất của Lạc Nhật.
   o.portal("Đi Lạc Nhật Sâm Lâm", 0, 26, 2, 4, "lac_nhat_sam_lam", "tu_thien_dau_thanh", "40-70");
   o.point("arrive", "tu_lac_nhat_sam_lam", 5, 28);

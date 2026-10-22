@@ -25,7 +25,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
-  npcDef, NPC_RANGE, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
+  npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds, isDaily, fitBeast,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
@@ -41,7 +41,7 @@ import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#18
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
-import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow } from "../db.ts";
+import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow } from "../db.ts";
 import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
@@ -160,11 +160,12 @@ export interface PData {
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
+  tong: string | null; tongAt: number | null; // #196: tông môn (mã trong TONG_MON) và lúc gia nhập gần nhất (ms; giữ khi rời); bảng accounts
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
 export interface AuthData { accountId: number; ch: Character; owned: Character[]; team: number[]; looks: Looks; loc: Location; bag: Bag; starter: boolean;
-  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; auto: AutoRow; }
+  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; auto: AutoRow; tong: TongRow; }
 /**
  * Niệm truyền tống (11.2): tên nơi đến, phí (đồng, trừ lúc dịch chuyển), ô Hồi Thành Phù sẽ dùng (không có = truyền tống trận), chỗ
  * đứng lúc bắt đầu (lệch quá 2 pixel thì hủy: di chuyển, bị đẩy / kéo), tổng số giây (thanh niệm của client).
@@ -556,7 +557,7 @@ export class MapRoom extends Room<MapState> {
     }
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
       bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [],
-      auto: { settings: null, day: "", used: 0, bonus: 0 } };
+      auto: { settings: null, day: "", used: 0, bonus: 0 }, tong: { tong: null, at: null } };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
     // Đội hình (tài khoản cũ được tự xếp trong store). Bỏ ô trỏ tới võ hồn không còn sở hữu; võ hồn ra trận luôn nằm trong đội.
     const team = (await store.getTeam(acc.accountId)).map((r) => (owned.some((v) => v.rowId === r) ? r : 0));
@@ -573,6 +574,7 @@ export class MapRoom extends Room<MapState> {
     auth.wclaims.n = await store.bossClaims(acc.accountId, auth.wclaims.day, BOSS_CLAIM_WORLD); // boss thế giới (BĐ6e)
     auth.wps = await store.getWaypoints(acc.accountId); // truyền tống trận đã mở (11.2)
     auth.auto = await store.getAuto(acc.accountId); // cài đặt và giờ treo tự săn (Auto 1)
+    auth.tong = await store.getTong(acc.accountId); // tông môn (#196)
     return auth;
   }
 
@@ -706,6 +708,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
+    this.onMessage("tong", (c, m: { op: unknown; tong: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong)); // tông môn (#196)
     // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
     this.onMessage("buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
     this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
@@ -748,7 +751,9 @@ export class MapRoom extends Room<MapState> {
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false };
+      autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
+      tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
+    p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.state.online = this.state.players.size;
@@ -1976,7 +1981,52 @@ export class MapRoom extends Room<MapState> {
     if (p.dead) return this.log(id, "Đã gục ngã, không thể nói chuyện.", "#ffb35c");
     if (!this.npcNear(id, { id: def.id })) return this.log(id, `Hãy lại gần ${def.name} hơn để nói chuyện.`, "#ffb35c");
     this.questEvent(id, { k: "talk", npc: def.id }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
+    if (def.role === "tong") this.sendTong(id); // #196: trước tin npc để hộp thoại có trạng thái tông
     this.clients.getById(id)?.send("npc", { id: def.id });
+  }
+
+  // ---------- Tông môn (#196, mục 5.14) ----------
+  /** Tin riêng `tong {tong, wait}`: tông đang thuộc ("" = không) và số giây còn phải chờ mới gia nhập / đổi được (0 = được). */
+  sendTong(id: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    const wait = d.tongAt === null ? 0 : Math.max(0, Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - Date.now()) / 1000));
+    this.clients.getById(id)?.send("tong", { tong: d.tong ?? "", wait });
+  }
+
+  /**
+   * Tin client `tong {op, tong}`: `join` gia nhập hoặc đổi sang tông `tong` (đứng gần sứ giả của tông đó; xong chuỗi tân thủ, võ hồn
+   * cao nhất từ TONG_MIN_LEVEL, từ lần gia nhập trước đủ TONG_SWITCH_DAYS ngày; xoá điểm tuần hiện tại), `leave` rời tông (đứng gần
+   * một sứ giả; giữ `tongAt` nên không rời rồi vào tông khác để lách thời gian chờ). Ghi DB qua chuỗi lưu.
+   */
+  tongAction(id: string, op: unknown, raw: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendTong(id); };
+    if (op !== "join" && op !== "leave") return warn("Thao tác tông môn không hợp lệ.");
+    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
+    if (op === "leave") {
+      if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào.");
+      if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để rời tông.");
+      const old = tongDef(d.tong)!;
+      d.tong = null; p.tong = 0;
+      this.chain(d, () => store.setTong(d.accountId, null, null));
+      this.log(id, `Ngươi đã rời ${old.name}.`, old.col);
+      return this.sendTong(id);
+    }
+    const t = tongDef(raw);
+    if (!t) return warn("Tông môn không tồn tại.");
+    const npc = npcDef(t.npc)!;
+    if (!this.npcNear(id, { id: t.npc })) return warn(`Hãy lại gần ${npc.name} hơn để gia nhập.`);
+    if (d.tong === t.id) return warn(`Ngươi đã là người của ${t.name}.`);
+    if (questStatus(d.quest) !== "done") return warn(`Hãy hoàn thành chuỗi "Bài học của Đại Sư" trước khi gia nhập tông môn.`);
+    if (Math.max(p.level, ...d.owned.map((v) => v.level)) < TONG_MIN_LEVEL) return warn(`Cần võ hồn cấp ${TONG_MIN_LEVEL} trở lên để gia nhập tông môn.`);
+    const now = Date.now();
+    if (d.tongAt !== null && now < d.tongAt + TONG_SWITCH_DAYS * 86400000)
+      return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
+    const from = d.tong ? tongDef(d.tong) : null;
+    d.tong = t.id; d.tongAt = now; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
+    this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(now)));
+    this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
+    this.sendTong(id);
   }
 
   /**
@@ -3027,6 +3077,14 @@ export class MapRoom extends Room<MapState> {
         // #218: mục tiêu là boss, số lần bắt đầu né, chỗ né đang đi tới, đang lùi vì ít máu, hệ võ hồn cơ chế đang cần.
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
+    }
+    else if (op === "tong") {
+      // #196: `back` (số ngày) lùi lúc gia nhập tông về trước (giả lập thời gian trôi, ghi DB); trả tông, lúc gia nhập, số giây còn chờ.
+      if (d.tongAt !== null && typeof o.back === "number" && Number.isFinite(o.back)) {
+        d.tongAt -= Math.max(0, Math.min(365, o.back)) * 86400000;
+        const at = d.tongAt; this.chain(d, () => store.setTong(d.accountId, d.tong, at));
+      }
+      out = { tong: d.tong, at: d.tongAt, ptong: p.tong };
     }
     else if (op === "perf") {
       // #218: thời gian tick / bản vá trung bình và lớn nhất (ms) của phòng từ lần đặt lại trước (chỉ đo khi server bật PERF_LOG=1);
