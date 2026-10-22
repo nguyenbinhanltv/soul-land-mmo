@@ -57,10 +57,12 @@ function shadow(r: RemoteEntry): ArenaTeamEntry {
 }
 const sub = <M>(topic: string, fn: (m: M) => void) => void presenceBackend.presence.subscribe(topic, (m: M) => { if (m) fn(m); });
 sub<{ id: string; roomId: string; foe: ArenaTeamEntry }>(T.found, (m) => {
-  const e = queue.get(m.id); if (!e) return;
+  const e = queue.get(m.id), foe = m.foe;
+  // Bên này đã hủy / đã mất: trả đối thủ (đã nhận mã phòng) về hàng chờ thay vì để vào sân một mình.
+  if (!e) { publish(T.rollback, { id: foe.id }); publish(T.requeue, { id: foe.id }); return; }
   queue.delete(m.id); delivered.set(m.id, e);
   setTimeout(() => { if (delivered.get(m.id) === e) delivered.delete(m.id); }, 30_000).unref();
-  e.found(m.roomId, m.foe);
+  if (!e.found(m.roomId, foe)) { delivered.delete(m.id); publish(T.rollback, { id: foe.id }); publish(T.requeue, { id: foe.id }); e.abort(); }
 });
 sub<{ id: string }>(T.rollback, (m) => {
   const e = delivered.get(m.id); if (!e) return;
@@ -115,11 +117,20 @@ export const arenaQueued = (accountId: number) => [...queue.values()].find((e) =
 /** Xếp hàng: ném lỗi (đã rollback hàng cục bộ) nếu không ghi được vào hàng chung; phòng gọi báo người chơi. */
 export async function arenaEnqueue(e: ArenaTeamEntry) {
   if (shadows.has(e)) return; // bên của tiến trình khác: chủ của nó tự trả về hàng khi nhận tin requeue
-  queue.set(e.id, e);
+  queue.set(e.id, e); pendingRemove.delete(e.id);
   try { await addRemote(e); } catch (err) { if (queue.get(e.id) === e) queue.delete(e.id); throw err; }
-  if (queue.get(e.id) !== e) { await removeRemote(e.id).catch((err) => console.error("Không xóa được hàng chờ đấu trường khỏi presence", err)); return; }
-  if (!timer) timer = setInterval(() => { if (!busy) void pass().catch((err) => console.error("Lượt ghép Đại Đấu Hồn Trường lỗi", err)); }, TICK_MS);
+  if (queue.get(e.id) !== e) { await removeRemote(e.id).catch((err) => { console.error("Không xóa được hàng chờ đấu trường khỏi presence, sẽ thử lại", err); pendingRemove.add(e.id); startTimer(); }); return; }
+  startTimer();
 }
+/** Bên đã hủy cục bộ nhưng chưa xóa được khỏi hàng chung (không lấy được khóa): thử lại mỗi nhịp, timer chạy tới khi xóa hết. */
+const pendingRemove = new Set<string>();
+function startTimer() {
+  if (!timer) timer = setInterval(() => {
+    for (const id of pendingRemove) removeRemote(id).then(() => { pendingRemove.delete(id); stopTimer(); }, (err) => console.error("Không xóa được hàng chờ đấu trường khỏi presence, thử lại", err));
+    if (!busy) void pass().catch((err) => console.error("Lượt ghép Đại Đấu Hồn Trường lỗi", err));
+  }, TICK_MS);
+}
+function stopTimer() { if (!queue.size && !pendingRemove.size && timer) { clearInterval(timer); timer = null; } }
 /** Trả bên về hàng sau lỗi ghép rồi báo `requeue`; không ghi được hàng chung thì hủy bên đó. */
 function retry(e: ArenaTeamEntry) {
   if (shadows.has(e)) return e.requeue();
@@ -129,8 +140,11 @@ function retry(e: ArenaTeamEntry) {
 export function arenaDequeue(accountId: number) {
   const e = arenaQueued(accountId);
   const had = e ? queue.delete(e.id) : false;
-  if (e) void removeRemote(e.id).catch((err) => console.error("Không xóa được hàng chờ đấu trường khỏi presence", err));
-  if (!queue.size && timer) { clearInterval(timer); timer = null; }
+  if (e) {
+    pendingRemove.add(e.id);
+    removeRemote(e.id).then(() => { pendingRemove.delete(e.id); stopTimer(); }, (err) => { console.error("Không xóa được hàng chờ đấu trường khỏi presence, sẽ thử lại", err); startTimer(); });
+  }
+  stopTimer();
   return had;
 }
 export const arenaQueueLocked = (accountId: number) => !!arenaQueued(accountId);
