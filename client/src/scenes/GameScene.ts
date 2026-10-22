@@ -2390,6 +2390,10 @@ export class GameScene extends Phaser.Scene {
       refresh: () => this.room.send("vohons"),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
+      // UI-1: gắn nhanh cho võ hồn đang ra trận (cùng lệnh với bảng đội hình; server kiểm tra vị trí, giao chiến, túi đầy)
+      active: () => this.owned?.active ?? null,
+      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equip", { itemId, vohonId, slot }); },
+      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId, slot }); },
     });
   }
 
