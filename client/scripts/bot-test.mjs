@@ -8143,7 +8143,10 @@ async function chatTest(){
   ok(/\/t/.test(await said(Y,{text:"alo",ch:"whisper"})),"tin riêng thiếu người nhận: nhắc cú pháp /t");
 
   // ---- Thế giới: dưới cấp WORLD_CHAT.minLevel bị chặn; 1 tin / WORLD_CHAT.cdSecs giây; mọi bản đồ nhận ----
-  ok(/từ cấp/.test(await said(X,{text:"thế giới",ch:"world"})),`kênh thế giới dưới cấp ${WORLD_CHAT.minLevel}: bị chặn`);
+  // Cấp nhân vật mới không cố định: đặt hẳn dưới ngưỡng bằng hook rồi mới thử.
+  await T(X,"set",{rowId:X.owned.active,level:WORLD_CHAT.minLevel-1});
+  await waitFor(()=>X.room.state.players.get(X.room.sessionId)?.level===WORLD_CHAT.minLevel-1,2000);
+  ok(/từ cấp/.test(await said(X,{text:"thế giới",ch:"world"})),`kênh thế giới ở cấp ${WORLD_CHAT.minLevel-1}: bị chặn`);
   await T(X,"set",{rowId:X.owned.active,level:WORLD_CHAT.minLevel});
   await waitFor(()=>X.room.state.players.get(X.room.sessionId)?.level>=WORLD_CHAT.minLevel,2000);
   const tG=`thế giới ${RUN}`; X.room.send("chat",{text:tG,ch:"world"});
