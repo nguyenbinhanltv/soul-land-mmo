@@ -8612,10 +8612,21 @@ async function autoBossTest(){
   async function near(x,y,r0=60,cond=()=>true){ for(let r=r0;r<=r0+120;r+=20) for(let k=0;k<8;k++){ const a=k*Math.PI/4, px=Math.round(x+r*Math.cos(a)), py=Math.round(y+r*Math.sin(a));
     if(!cond(px,py)) continue; await test(A,"goto",{x:px,y:py}); if(Math.hypot(me().x-px,me().y-py)<1) return true; } return false; }
   const cfg=(o={})=>autoOp("set",{cfg:{...AUTO_DEFAULTS,...o}});
-  /** Võ hồn chính của lượt tự săn là võ hồn ra trận lúc bật (tiên cơ / cơ chế đổi tay lượt trước có thể để lại võ hồn khác): đổi về `row`. */
-  /** Đổi đội hình (ngoài giao chiến mới đổi được: nghỉ TEAM_COMBAT_SECS giây bằng hook rest trước). */
-  const team=async slots=>{ await test(A,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(A,slots); return same(A.owned.team,slots); };
-  const toRow=async row=>{ await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); if(A.owned.active!==row){ A.room.send("switch",{slot:A.owned.team.indexOf(row)}); await waitFor(()=>A.owned.active===row,1500); } return A.owned.active===row; };
+  /**
+   * Đổi đội hình (ngoài giao chiến mới đổi được: nghỉ TEAM_COMBAT_SECS giây bằng hook rest trước). Dọn hồn thú thường quanh mình trước (giữ
+   * tinh anh / thú vương / boss): hồn kỹ nhiều nhát tự săn vừa tung (Vô Ngã Kiếm Trận: 6 nhát trong 3 giây) vẫn đánh hồn thú quanh A sau
+   * khi tắt tự săn, mỗi nhát trúng là giao chiến lại; nhát rơi giữa hook rest và tin team thì server từ chối đổi đội hình (#268).
+   */
+  const team=async slots=>{ await test(A,"clear",{keep:true}); await test(A,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(A,slots); return same(A.owned.team,slots); };
+  /**
+   * Võ hồn chính của lượt tự săn là võ hồn ra trận lúc bật (tiên cơ / cơ chế đổi tay lượt trước có thể để lại võ hồn khác): đổi về `row`.
+   * Tin vohons của lần tự săn vừa đổi tay tới trước bản vá có swCd mới: swCd đọc được có lúc còn 0 trong khi server đang hồi chiêu đổi và bỏ
+   * qua tin switch (không trả lời), nên gửi lại tới khi võ hồn ra trận đúng là `row`.
+   */
+  const toRow=async row=>{ const end=Date.now()+SWITCH_CD*1000+2000; await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500);
+    while(A.owned.active!==row&&Date.now()<end){ const n=A.ownedMsgs; A.room.send("switch",{slot:A.owned.team.indexOf(row)});
+      await waitFor(()=>A.ownedMsgs>n,500); if(A.owned.active!==row) await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); }
+    return A.owned.active===row; };
   try{
     await waitFor(()=>me()&&A.bag&&A.owned,3000);
     // Đội: võ hồn chính (cường công), Lam Ngân Thảo (khống chế), Xúc Xích (phụ trợ, hồn kỹ thanh tẩy ở ô U); mọi võ hồn cấp 100, 9 hồn hoàn.
