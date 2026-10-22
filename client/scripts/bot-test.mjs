@@ -18,7 +18,8 @@
 // thú (3.5: đứng trong vùng thì trúng, ra khỏi vùng trước 0,8 giây thì không, vùng an toàn không trúng, trạng thái trên hồn sư), tinh anh
 // (BĐ4: đúng vùng, hệ số máu / sát thương, máu tăng theo số người tham gia, 2 chiêu, gọi bầy, Cuồng nộ và xóa buff, hồi sinh),
 // gắn hồn cốt (4.2: đúng / sai vị trí, đổi chỗ, tháo khi túi đầy, chỉ số, giao chiến, đi cổng và vào lại), kỹ năng hồn cốt
-// (4.3: chủ động trúng, tốn hồn lực, hồi chiêu riêng, bị chặn khi Câm lặng / vùng an toàn; bị động áp khi gắn, mất khi tháo), cường hóa hồn
+// (4.3: chủ động trúng, tốn hồn lực, hồi chiêu riêng, bị chặn khi Câm lặng / vùng an toàn, dùng được khi đang niệm đi cổng (#270); bị động
+// áp khi gắn, mất khi tháo), cường hóa hồn
 // cốt (4.4: điểm theo niên hạn, cùng vị trí +50%, mốc +5 / +20, nguyên liệu bị xóa, từ chối đang gắn / chính nó / giao chiến, chỉ số
 // tăng ngay khi đang gắn, giữ cấp khi tháo, qua đi cổng và vào lại), hồn hạch rơi
 // (5.1: sao theo niên hạn, bộ theo bản đồ, số dòng phụ theo sao, tinh anh chắc chắn rơi, túi đầy, đi cổng và vào lại), gắn hồn hạch
@@ -4148,6 +4149,21 @@ else {
       await test(A,"clear"); const safeAt={x:Math.round(safe.x+safe.width/2),y:27.5*16};
       await test(A,"goto",safeAt); await waitFor(()=>inSafe(),1000); await test(A,"ready"); const mp3=p.mp;
       r=await bsk(2); ok(inSafe()&&/Vùng an toàn/.test(r)&&!A.fxs.some(f=>f.k==="bone")&&p.bcds[2]===0&&p.mp>=mp3,`vùng an toàn: bị chặn (${r})`);
+      // #270 (mục 5.3 "đang niệm vẫn đánh được"): đang niệm đi cổng vẫn dùng được kỹ năng hồn cốt như hồn kỹ, không hủy niệm.
+      // Cổng làng (ngoài vùng an toàn); hồn thú cạnh bên không đánh trả (hook beast), bước ra khỏi cổng thì mới hủy niệm.
+      const gate=JSON.parse(readFileSync(mapUrl(st.mapId),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="portal");
+      if(gate){
+        await test(A,"goto",{x:gate.x+gate.width/2,y:gate.y+gate.height/2}); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+        await test(A,"beast",{dx:16,dy:0,years:MAX_YEARS}); await test(A,"bhp",{pct:100}); await test(A,"ready");
+        await waitFor(()=>A.portal?.name===gate.name,1000); const lt=A.logs.length, m0=st.mapId;
+        A.room.send("travel",{portal:gate.name}); await waitFor(()=>A.logs.slice(lt).some(t=>/Đang đi tới/.test(t)),800);
+        r=await bsk(2,200); const cast=A.logs.slice(lt).join(" | ");
+        await test(A,"goto",spot); await waitFor(()=>A.logs.slice(lt).some(t=>/hủy đi qua cổng/.test(t)),1000);
+        ok(/Đang đi tới/.test(cast)&&A.fxs.some(f=>f.k==="bone"&&f.i===2)&&p.bcds[2]>0&&!/hủy|không dùng được/.test(cast)
+          &&A.logs.slice(lt).some(t=>/Đã rời cổng: hủy đi qua cổng/.test(t))&&st.mapId===m0,
+          `đang niệm đi cổng: dùng được kỹ năng hồn cốt, vẫn niệm tới khi rời cổng (${A.logs.slice(lt).join(" | ")})`);
+        await test(A,"clear");
+      }
       await test(A,"goto",spot); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       // Tháo hồn cốt Thân: mất bị động ngay.
       await boneOp("unequip",{itemId:tg.id});
