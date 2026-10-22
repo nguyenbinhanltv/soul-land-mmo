@@ -6,7 +6,10 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
+  BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
+  type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -143,6 +146,12 @@ export interface Store {
    */
   saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string | null): Promise<boolean>;
   /**
+   * Lưu định kỳ / khi rời phòng (MapRoom.write, #165): trong MỘT transaction ghi vị trí như saveLocation (cùng lớp chặn `WHERE map_id`),
+   * các võ hồn `chars` (như saveTravel) và túi `bag` nếu có (như saveBag). Lớp chặn không khớp (DB đã ở bản đồ khác, vd transaction đi
+   * cổng đã commit dù phòng nhận lỗi) thì không ghi gì, kể cả túi, và trả false. Lỗi khác thì rollback rồi ném lỗi.
+   */
+  saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file?: string | null, bag?: Bag): Promise<boolean>;
+  /**
    * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
    * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
    * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
@@ -212,6 +221,8 @@ export interface Store {
    * hạng và thành tích của `accountId` (null = chưa đấu trận nào).
    */
   arenaTop(n: number, accountId: number): Promise<{ list: (ArenaRecord & { accountId: number; name: string })[]; me: (ArenaRecord & { rank: number }) | null }>;
+  /** Bảng xếp hạng cộng minh, tính lại từ võ hồn và đồ đang gắn; không có bảng tóm tắt riêng. */
+  resonanceTop(page: number, pageSize: number, accountId: number): Promise<ResonanceTopResult>;
   /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
   arenaPairCount(day: string, a: number, b: number): Promise<number>;
   /**
@@ -247,6 +258,31 @@ function arenaOk(r: ArenaRecord) {
 /** Khóa cặp của bảng arena_pairs (9.7): mã nhỏ trước. */
 const pairKey = (day: string, a: number, b: number) => `${day}|${Math.min(a, b)}|${Math.max(a, b)}`;
 const arenaRow = (x: any): ArenaRecord => ({ elo: Number(x.elo), wins: Number(x.wins), losses: Number(x.losses), draws: Number(x.draws) });
+
+export interface ResonanceTopEntry extends ResonanceRankRow { name: string; }
+export interface ResonanceTopResult {
+  page: number; pageSize: number; total: number; hasNext: boolean;
+  list: ResonanceTopEntry[];
+  me: (ResonanceRankValue & { rank: number }) | null;
+}
+function resonanceEntry(accountId: number, name: string, vohons: { level: number; rings: number; stars: number }[], bones: { enhance: number }[], cores: { stars: number }[]): ResonanceTopEntry | null {
+  const prog = resonanceProgress({ vohons, bones, cores }), levels = resonanceLevels(prog);
+  const value = resonanceRankValue(prog, levels, vohons.reduce((s, v) => s + Math.max(0, Math.floor(v.stars) - 1), 0));
+  return value.score ? { accountId, name, ...value } : null;
+}
+// Bảng đã sắp xếp dùng chung mọi phòng / cả hai Store, hết hạn sau RESONANCE_RANK_CACHE giây; yêu cầu đến lúc đang tính dùng chung một Promise.
+let resonanceCache: { at: number; all: ResonanceTopEntry[] } | null = null, resonanceBusy: Promise<ResonanceTopEntry[]> | null = null;
+async function resonanceRanking(compute: () => Promise<ResonanceTopEntry[]>): Promise<ResonanceTopEntry[]> {
+  if (resonanceCache && Date.now() - resonanceCache.at < RESONANCE_RANK_CACHE * 1000) return resonanceCache.all;
+  resonanceBusy ??= compute().then((all) => { all.sort(resonanceRankCompare); resonanceCache = { at: Date.now(), all }; return all; }).finally(() => { resonanceBusy = null; });
+  return resonanceBusy;
+}
+function resonancePage(all: ResonanceTopEntry[], page: number, pageSize: number, accountId: number): ResonanceTopResult {
+  const p = Math.max(1, Math.floor(page) || 1), size = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, Math.floor(pageSize) || RESONANCE_RANK_PAGE_SIZE));
+  const at = all.findIndex((x) => x.accountId === accountId), start = (p - 1) * size;
+  const me = at < 0 ? null : { score: all[at].score, milestones: all[at].milestones, progressBp: all[at].progressBp, extraStars: all[at].extraStars, rank: at + 1 };
+  return { page: p, pageSize: size, total: all.length, hasNext: start + size < all.length, list: all.slice(start, start + size), me };
+}
 
 export class MemoryStore implements Store {
   accounts = new Map<string, { id: number; pass: string }>();  // nameKey(tên) -> tài khoản
@@ -343,6 +379,17 @@ export class MemoryStore implements Store {
   async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
     this.locs.set(accountId, { mapId, x, y, file }); return true;
+  }
+  async saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file: string | null = mapFile(mapId), bag?: Bag) {
+    // Như saveTravel: kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ.
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
+    for (const c of chars)
+      if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+    if (bag) this.checkBag(accountId, bag);
+    for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
+    this.locs.set(accountId, { mapId, x, y, file });
+    if (bag) this.putBag(accountId, bag);
+    return true;
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     // Kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ (không có await xen giữa): ghi hết hoặc không ghi gì.
@@ -461,6 +508,15 @@ export class MemoryStore implements Store {
     const rec = ([id, r]: [number, ArenaRecord & { t: number }]) => ({ accountId: id, name: this.names.get(id) ?? "?", elo: r.elo, wins: r.wins, losses: r.losses, draws: r.draws });
     const at = all.findIndex(([id]) => id === accountId), mine = at >= 0 ? all[at][1] : null;
     return { list: all.slice(0, n).map(rec), me: mine ? { elo: mine.elo, wins: mine.wins, losses: mine.losses, draws: mine.draws, rank: at + 1 } : null };
+  }
+  async resonanceTop(page: number, pageSize: number, accountId: number) {
+    const all = await resonanceRanking(async () => [...this.names].map(([id, name]) => {
+      const vohons = this.owned(id).map((v) => ({ level: v.level, rings: v.rings.length, stars: v.stars }));
+      const worn = (this.bags.get(id)?.items ?? []).filter((i) => i.vohonId !== null);
+      return resonanceEntry(id, name, vohons, worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
+        worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
+    }).filter((x): x is ResonanceTopEntry => !!x));
+    return resonancePage(all, page, pageSize, accountId);
   }
   async arenaPairCount(day: string, a: number, b: number) { return this.pairs.get(pairKey(day, a, b)) ?? 0; }
   async arenaPairAdd(day: string, a: number, b: number) {
@@ -663,6 +719,28 @@ export class PgStore implements Store {
     const m = this.mapExpr(6);
     const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
     return (r.rowCount ?? 0) > 0;
+  }
+  async saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file: string | null = mapFile(mapId), bag?: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Câu UPDATE accounts đầu tiên vừa là lớp chặn WHERE map_id vừa khóa dòng tài khoản (như writeBag).
+      const m = this.mapExpr(6);
+      const a = await db.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
+      if (a.rowCount !== 1) { await db.query("ROLLBACK"); return false; }
+      for (const c of chars) {
+        const v = await db.query(
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, herbs=$8::jsonb, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
+        if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+      }
+      if (bag) await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return true;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     const db = await this.pool.connect();
@@ -901,6 +979,32 @@ export class PgStore implements Store {
     ]);
     return { list: top.rows.map((x) => ({ accountId: Number(x.account_id), name: x.name as string, ...arenaRow(x) })),
       me: me.rowCount ? { ...arenaRow(me.rows[0]), rank: Number(me.rows[0].rank) } : null };
+  }
+  async resonanceTop(page: number, pageSize: number, accountId: number) {
+    const all = await resonanceRanking(() => this.resonanceAll());
+    return resonancePage(all, page, pageSize, accountId);
+  }
+  private async resonanceAll(): Promise<ResonanceTopEntry[]> {
+    const [accounts, vohons, items] = await Promise.all([
+      this.pool.query("SELECT id, name FROM accounts ORDER BY id"),
+      this.pool.query("SELECT account_id, level, rings, stars FROM vohons ORDER BY id"),
+      this.pool.query("SELECT account_id, code, enhance, stars FROM items WHERE vohon_id IS NOT NULL AND code = ANY($1::text[])", [[BONE_ITEM, CORE_ITEM]]),
+    ]);
+    const byVohon = new Map<number, { level: number; rings: number; stars: number }[]>(), byItem = new Map<number, { code: string; enhance: number; stars: number | null }[]>();
+    for (const v of vohons.rows) {
+      const id = Number(v.account_id), list = byVohon.get(id) ?? [];
+      list.push({ level: Number(v.level), rings: Array.isArray(v.rings) ? v.rings.length : 0, stars: Number(v.stars ?? 1) }); byVohon.set(id, list);
+    }
+    for (const i of items.rows) {
+      const id = Number(i.account_id), list = byItem.get(id) ?? [];
+      list.push({ code: String(i.code), enhance: Number(i.enhance ?? 0), stars: i.stars == null ? null : Number(i.stars) }); byItem.set(id, list);
+    }
+    return accounts.rows.map((a) => {
+      const worn = byItem.get(Number(a.id)) ?? [];
+      return resonanceEntry(Number(a.id), String(a.name), byVohon.get(Number(a.id)) ?? [],
+        worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
+        worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
+    }).filter((x): x is ResonanceTopEntry => !!x);
   }
   async arenaPairCount(day: string, a: number, b: number) {
     const r = await this.pool.query("SELECT n FROM arena_pairs WHERE day=$1::date AND a=$2 AND b=$3", [day, Math.min(a, b), Math.max(a, b)]);
