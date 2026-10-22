@@ -58,8 +58,8 @@ export class Grid {
   get cellCount() { return this.cells.length; }
 }
 
-/** Thực thể đang đồng bộ cho một client: hồn sư khác, hồn thú, đồ rơi; `all`: tắt lọc (hook kiểm thử, phòng sân đấu). */
-interface Seen { p: Set<string>; b: Set<string>; d: Set<string>; all: boolean }
+/** Thực thể đang đồng bộ cho một client: hồn sư khác, hồn thú, đồ rơi, vùng lưu lại (#161); `all`: tắt lọc (hook kiểm thử, phòng sân đấu). */
+interface Seen { p: Set<string>; b: Set<string>; d: Set<string>; g: Set<string>; all: boolean }
 
 /**
  * Lọc đồng bộ theo vùng gần: mỗi client có một StateView; mỗi nhịp (trước bản vá) thêm thực thể vào trong SYNC_VIEW.r, bỏ thực thể ra
@@ -81,14 +81,14 @@ export class Interest {
   join(c: Client, p: PlayerState) {
     c.view = new StateView();
     c.view.add(p);
-    this.seen.set(c.sessionId, { p: new Set([c.sessionId]), b: new Set(), d: new Set(), all: this.all });
+    this.seen.set(c.sessionId, { p: new Set([c.sessionId]), b: new Set(), d: new Set(), g: new Set(), all: this.all });
     this.refresh(c);
   }
   leave(id: string) { this.seen.delete(id); }
   /** Tắt / bật lọc cho một client (hook kiểm thử `view`). Bật lại lọc thì thực thể ở xa bị bỏ ở nhịp sau. */
   setAll(id: string, on: boolean) { const s = this.seen.get(id); if (s) s.all = on; }
-  stats(id: string) { const s = this.seen.get(id); return s && { all: s.all, players: s.p.size, beasts: s.b.size, drops: s.d.size }; }
-  sees(id: string, kind: "p" | "b" | "d", eid: string) { return !!this.seen.get(id)?.[kind].has(eid); }
+  stats(id: string) { const s = this.seen.get(id); return s && { all: s.all, players: s.p.size, beasts: s.b.size, drops: s.d.size, grounds: s.g.size }; }
+  sees(id: string, kind: "p" | "b" | "d" | "g", eid: string) { return !!this.seen.get(id)?.[kind].has(eid); }
 
   /** Đầu nhịp: đặt lại lưới hồn sư và đánh dấu các ô hồn thú còn thức (quanh mọi hồn sư trong phòng). */
   beginTick() {
@@ -133,6 +133,16 @@ export class Interest {
     add(s.p, this.state.players, this.players);
     add(s.b, this.state.beasts, this.beasts, this.ranked);
     add(s.d, this.state.drops, this.drops);
+    // Vùng lưu lại trên mặt đất (#161): ít nên quét cả phòng, không cần lưới; khoảng cách tính tới gốc vùng trừ kích thước `r` (vùng
+    // lớn hiện khi mép vào tầm). Người mới vào tầm nhìn vẫn thấy vùng đang có (không chỉ tin `fx` một lần).
+    for (const id of s.g) {
+      const g = this.state.grounds.get(id);
+      if (!g) s.g.delete(id);
+      else if (!s.all && d2(g) > (out + g.r) ** 2) { v.remove(g); s.g.delete(id); }
+    }
+    this.state.grounds.forEach((g, id) => {
+      if (!s.g.has(id) && (s.all || d2(g) <= (r + g.r) ** 2)) { v.add(g); s.g.add(id); }
+    });
   }
 
   /** Client `id` ở xa điểm (x, y) hơn r (tin `fx` / `dmg` không cần gửi). Tắt lọc thì không bao giờ xa. */
