@@ -250,7 +250,7 @@ const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v :
 const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : NaN);
 /** Chuỗi client gửi; khác thì "". */
 const strIn = (v: unknown) => (typeof v === "string" ? v : "");
-/** Cùng một chỗ lỗi bất ngờ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
+/** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
 
 // ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
@@ -438,7 +438,7 @@ export class MapRoom extends Room<MapState> {
   miniT = 0;
   /** PERF_LOG=1: đo thời gian tick / bản vá, ghi log mỗi 10 giây (đo hiệu năng 11.4). */
   perf = { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() };
-  /** Lần ghi log gần nhất của mỗi chỗ lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
+  /** Lần ghi log gần nhất của mỗi chỗ + lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
   errLog = new Map<string, { at: number; n: number }>();
   spawnT = 0;
   testRed: number | null = null; // hook test `red` (BĐ6d): cố định số ngẫu nhiên ra hồn thú MAX_YEARS năm ở vùng có mức trên MAX_YEARS
@@ -558,9 +558,11 @@ export class MapRoom extends Room<MapState> {
    */
   onUncaughtException(err: RoomException, method: string) {
     if (err.cause instanceof ServerError) return;
-    const where = err instanceof OnMessageException ? `${method} "${err.type}"` : method, now = Date.now(), last = this.errLog.get(where);
+    const where = err instanceof OnMessageException ? `${method} "${err.type}"` : method, now = Date.now();
+    const key = `${where}|${err.message}`, last = this.errLog.get(key); // cùng chỗ, cùng lỗi
     if (last && now - last.at < ERR_LOG_MS) { last.n++; return; }
-    this.errLog.set(where, { at: now, n: 0 });
+    if (this.errLog.size >= 100) this.errLog.clear(); // không để Map lớn dần theo số loại lỗi
+    this.errLog.set(key, { at: now, n: 0 });
     const who = err instanceof OnMessageException ? ` từ ${err.client.sessionId}` : "";
     console.error(`Lỗi ở ${where}${who} (phòng ${this.roomId}${last?.n ? `, bỏ ${last.n} lần ghi trước` : ""}):`, err.cause ?? err);
   }
@@ -1096,7 +1098,7 @@ export class MapRoom extends Room<MapState> {
     if (op === "off") { if (d.auto) this.autoStop(id, "đã tắt."); else this.sendAuto(id); return; }
     if (op === "set") {
       d.autoCfg = parseAuto(cfg); if (d.auto) d.auto.cfg = d.autoCfg;
-      d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
+      d.autoDirty = true; this.chainLatest(d, "auto", () => this.flushAuto(d)); // gửi dồn: ghi một lần (#164)
       return this.sendAuto(id);
     }
     if (op !== "on" || d.auto) return this.sendAuto(id);
@@ -1350,15 +1352,16 @@ export class MapRoom extends Room<MapState> {
   /**
    * Bước 2–4 của mục 6: đánh dấu đang chuyển bản đồ, nối transaction đi cổng vào chuỗi lưu (chờ mọi lần ghi trước xong rồi
    * mới chụp dữ liệu), commit xong mới gửi riêng `travel {mapId, roomId}`. Lỗi thì bỏ cờ, người chơi ở lại.
-   * `roomId`: phòng (kênh) đích khi đổi kênh; đi cổng thì chọn lúc commit (pickChannel: kênh có đồng đội, không thì ít người nhất
+   * `to`: phòng (kênh) đích khi đổi kênh; đi cổng thì chọn lúc commit (pickChannel: kênh có đồng đội, không thì ít người nhất
    * còn chỗ; null = mọi kênh đầy, client joinOrCreate để mở kênh mới). `undo`: hoàn tác phần đã trừ trước khi đi (phí truyền tống,
    * Hồi Thành Phù) khi transaction lỗi.
    */
-  beginTravel(id: string, portal: Portal, roomId?: string, undo?: () => void) {
+  beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
     this.endAva(id, "");
     this.freeze(id);
     this.portalHint(id, p, d);
+    let dest: { roomId: string; ch: number } | null = null;
     this.chain(d, async () => {
       // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
       await this.flushAuto(d); // giờ treo tự săn (Auto 1): ghi trước, transaction đi cổng là lần ghi cuối của phòng này
@@ -1367,20 +1370,18 @@ export class MapRoom extends Room<MapState> {
       // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; undo?.(); throw e; }
       d.travelled = true;
-    }).then(async () => {
-      if (!this.clients.getById(id)) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
+      // Kênh đích chọn ngay trong chuỗi, trước khi phiên này nhả tài khoản (onLeave nối sau): client, kể cả vừa mất kết nối rồi vào
+      // lại, chỉ vào được kênh này CHANNEL_CD giây khi nó còn mở, còn chỗ (leftRoom cờ `travel`; mục 6: client không chọn kênh đích, #164).
+      dest = to ?? (await pickChannel(d.accountId, portal.to).catch(() => null));
+      if (dest) leftRoom.set(d.accountId, { mapId: portal.to, roomId: dest.roomId, ch: dest.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true });
+      else leftRoom.delete(d.accountId);
+    }).then(() => {
+      const c = this.clients.getById(id); if (!c) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
       if (!d.travelled) {
         d.travelling = false;
         return this.log(id, "Không chuyển được bản đồ, thử lại.", "#ff8a8a");
       }
-      const pick = roomId ? (await listChannels(portal.to).catch(() => [])).find((x) => x.roomId === roomId) ?? null
-        : await pickChannel(d.accountId, portal.to).catch(() => null);
-      const room = roomId ?? pick?.roomId ?? null;
-      // Client phải vào đúng kênh này (mục 6, #164): CHANNEL_CD giây onAuth từ chối kênh khác khi kênh này còn mở, còn chỗ (leftRoom).
-      if (pick) leftRoom.set(d.accountId, { mapId: portal.to, roomId: pick.roomId, ch: pick.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true });
-      else leftRoom.delete(d.accountId);
-      const c = this.clients.getById(id); if (!c) return;
-      c.send("travel", { mapId: portal.to, roomId: room });
+      c.send("travel", { mapId: portal.to, roomId: dest?.roomId ?? null });
       // Client phải tự rời phòng cũ và vào phòng mới; quá TRAVEL_LEAVE_SECS giây thì server ngắt kết nối.
       this.clock.setTimeout(() => { if (this.clients.getById(id)) c.leave(4003); }, TRAVEL_LEAVE_SECS * 1000);
     });
@@ -1443,7 +1444,7 @@ export class MapRoom extends Room<MapState> {
     channelSwitchAt.set(d.accountId, Date.now());
     const p = this.state.players.get(id)!;
     this.log(id, `Đang chuyển sang kênh ${ch}…`);
-    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to.roomId);
+    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to);
   }
 
   // ---------- Truyền tống trận, bản đồ thế giới, Hồi Thành Phù (mục 5.3 "Truyền tống trận", bước 11.2) ----------

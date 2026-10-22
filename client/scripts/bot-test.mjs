@@ -486,8 +486,12 @@ async function cheatTest(){
   const X=await bot("Gian lận","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0});
   try{
   if(!(await test(X,"ping"))?.enabled){ console.log("  ⚠ bỏ qua chống gian lận 1 (cần hook rest, set): bật server bằng GAME_TEST=1"); return; }
+  // Sang thành (không hồn thú kéo / đẩy làm lệch vị trí khi so trước / sau), vào đúng kênh server chọn như client.
+  X.travel=null; X.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>X.travel,4000);
+  if(X.travel){ const t=X.travel; await X.room.leave(); await sleep(300); X.mapId=t.mapId; await enter(X,t.roomId??undefined); }
   const sid=X.room.sessionId, me=()=>X.room.state.players?.get(sid);
   await waitFor(()=>me()&&X.owned,3000);
+  ok(X.room.state.mapId==="nac_dinh_thanh",`bài chạy ở ${MAPS[X.room.state.mapId]?.name} (thành, không hồn thú)`);
   const alive=async()=>X.leftCode===null&&(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok===true;
   const snap=()=>{ const p=me(); return {x:p.x,y:p.y,cds:[...p.cds],bcds:[...p.bcds],swCd:p.swCd,active:X.owned?.active,team:JSON.stringify(X.owned?.team)}; };
   X.room.send("input",{x:0,y:0}); await sleep(200);
