@@ -98,10 +98,11 @@ export class InkVeil {
     const o = Math.min(1, this.openT / ANIM.openMs), open = ANIM.open0 + (1 - ANIM.open0) * (1 - (1 - o) ** 3);
     // Cỡ ảnh làm tròn thành số nguyên chẵn (tâm nguyên): mép ảnh trùng khít mép các khối phủ, không có đường nối đậm hơn.
     const half = Math.max(1, Math.round((this.size * open) / 2)), sc = (half * 2) / this.size;
-    const cx = Math.round(at.x - cam.scrollX), cy = Math.round(at.y - cam.scrollY);
+    // Tâm làm tròn theo pixel màn hình (1 / zoom pixel cảnh) như hình nhân vật: vòng không nhảy bậc khi đi, mép ảnh và khối phủ vẫn khít.
+    const z = cam.zoom, px = (v: number) => Math.round(v * z) / z, cx = px(at.x - cam.scrollX), cy = px(at.y - cam.scrollY);
     this.img.setPosition(cx, cy).setScale(sc).setAlpha(this.k);
     // Phần khung nhìn ngoài ảnh: bốn khối mực đặc cùng màu, cùng độ đậm với rìa ảnh.
-    const sw = this.scene.scale.width, sh = this.scene.scale.height, z = cam.zoom, m = 24;
+    const sw = cam.width, sh = cam.height, m = 24;
     const x0 = sw / 2 - sw / (2 * z) - m, x1 = sw / 2 + sw / (2 * z) + m, y0 = sh / 2 - sh / (2 * z) - m, y1 = sh / 2 + sh / (2 * z) + m;
     const l = cx - half, r = cx + half, t = cy - half, b = cy + half;
     const g = this.rest.clear().fillStyle(Phaser.Display.Color.GetColor(INK[0], INK[1], INK[2]), PLAYER_INK.a * this.k);
