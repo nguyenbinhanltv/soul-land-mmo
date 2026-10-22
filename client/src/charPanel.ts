@@ -93,7 +93,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   el.appendChild(tabs);
 
   const body = mk("div", "cbody"); el.appendChild(body);
-  const left = mk("div", "ccolL"), right = mk("div", "ccolR"); body.append(left, right);
+  const left = mk("div", "ccolL"), midc = mk("div", "ccolM"), right = mk("div", "ccolR"); body.append(left, midc, right);
 
   // --- Búp bê: 6 ô hồn cốt quanh hình võ hồn ---
   const worn = new Map<string, BagItem & { years: number }>();
@@ -103,7 +103,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const src = act.portrait(v.vohon);
   mid.innerHTML = src ? `<img alt="" src="${src}">` : `<i class="dot"></i>`;
   mid.appendChild(mk("small", "", def.name));
-  mid.appendChild(mk("small", "cstar", `${"★".repeat(v.stars)} cấp ${v.level}`));
+  mid.appendChild(mk("small", "cstar", `${v.stars}★ · cấp ${v.level}`));
   fig.appendChild(mid);
   for (const s of BONE_SLOTS) {
     const it = worn.get(s.id), b = mk("button", "bcell ui-cell" + (it ? "" : " empty"));
@@ -148,10 +148,10 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     s4.textContent = `${n >= CORE_SET_4 ? "✓" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
     sets.appendChild(row);
   }
-  left.appendChild(sets);
+  const setsEl = sets;
 
   // --- Hồn hoàn: cột 10 vòng, vòng màu theo niên hạn; rê chuột ra hồn kỹ ---
-  right.appendChild(mk("small", "cshead", `Hồn hoàn (${v.rings.length}/${MAX_RINGS})`));
+  midc.appendChild(mk("small", "cshead", `Hồn hoàn (${v.rings.length}/${MAX_RINGS})`));
   const col = mk("div", "crings"), loadout = loadoutOf(v.vohon, v.skills);
   for (let r = 0; r < MAX_RINGS; r++) {
     const open = r < v.rings.length, sk = ringSkill(v.vohon, r), at = loadout.indexOf(r);
@@ -159,16 +159,16 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     b.type = "button";
     if (open) b.dataset.tier = String(rings[r]);
     let need = 1; while (!atBottleneck(need, r)) need++; // cấp bình cảnh mở vòng thứ r + 1 (cùng hàm server dùng)
-    b.innerHTML = `<i class="rdot"></i><span><b></b><small></small></span>`;
-    b.querySelector("b")!.textContent = open ? `${r + 1}. ${TIERS[rings[r]].color}` : `${r + 1}. Chưa mở`;
-    b.querySelector("small")!.textContent = open ? `${formatYears(v.rings[r])}${sk ? ` · ${sk.name}${at >= 0 ? ` [${SKILL_KEYS[at]}]` : ""}` : ""}` : `Mở ở cấp ${need}`;
+    b.innerHTML = `<i class="rdot"></i><span></span><em></em>`;
+    b.querySelector("span")!.textContent = open ? `${r + 1}. ${sk?.name ?? TIERS[rings[r]].color}` : `${r + 1}. Chưa mở`;
+    b.querySelector("em")!.textContent = open ? (at >= 0 ? SKILL_KEYS[at] : "") : `Cấp ${need}`;
     b.setAttribute("aria-label", open ? `Vòng ${r + 1}: ${TIERS[rings[r]].color}, ${formatYears(v.rings[r])}${sk ? `, hồn kỹ ${sk.name}` : ""}` : `Vòng ${r + 1}: chưa mở, mở ở cấp ${need}`);
     if (sk) setTip(b, skillSpec(sk, r, rings, v.rings, v.stars));
     else setTip(b, open ? { title: `Vòng ${r + 1}: ${TIERS[rings[r]].color}`, color: TIERS[rings[r]].glow, border: TIERS[rings[r]].col, lines: [`${formatYears(v.rings[r])}.`, "Chưa có hồn kỹ ở vòng này (bản sau): vòng chỉ tăng chỉ số."] }
       : { title: `Vòng ${r + 1}: chưa mở`, lines: [`Hấp thụ hồn hoàn khi tới bình cảnh cấp ${need}.`] });
     col.appendChild(b);
   }
-  right.appendChild(col);
+  midc.appendChild(col);
 
   // --- Chỉ số: nhóm chính / phụ (số từ tin "stats" của server) ---
   const st = stats && stats.rowId === v.rowId ? stats : null;
@@ -198,6 +198,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
       t.critMult - b.critMult > 1e-9 ? `+${(t.critMult - b.critMult).toLocaleString("vi-VN", { maximumFractionDigits: 2 })}` : "", "");
   }
   right.appendChild(box);
+  right.appendChild(mk("small", "cshead", "Bộ hồn hạch")); right.appendChild(setsEl);
   const stx = starSkillText(v.stars);
   if (stx) right.appendChild(mk("small", "rnote", stx));
 
