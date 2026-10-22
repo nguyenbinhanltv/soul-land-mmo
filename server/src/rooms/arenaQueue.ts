@@ -68,14 +68,16 @@ export function arenaReadCancel(accountId: number) {
 export const arenaReadCancelled = (accountId: number) => reads.get(accountId)?.cancelled === true;
 export function arenaTestSlow(accountId: number, ms: number) { if (ms > 0) slow.set(accountId, ms); else slow.delete(accountId); }
 
-/** Ghép hai bên theo Elo trung bình. `id` dùng để tránh ghép lại cùng cặp bên trong thời gian ngắn. */
+/** Ghép hai bên cùng cỡ theo Elo trung bình. `id` dùng để tránh ghép lại cùng cặp bên trong thời gian ngắn. */
 async function pass() {
   busy = true;
   try {
     const now = Date.now();
     const list = [...queue.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since)
-      .map((e) => ({ id: e.id, elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id) }));
-    for (const [a, b] of arenaPairs(list)) {
+      .map((e) => ({ id: e.id, size: e.members.length, elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id) }));
+    const groups = new Map<number, typeof list>();
+    for (const item of list) groups.set(item.size, [...(groups.get(item.size) ?? []), item]);
+    for (const group of groups.values()) for (const [a, b] of arenaPairs(group)) {
       const ea = queue.get(a), eb = queue.get(b); if (!ea || !eb) continue;
       arenaDequeue(ea.members[0].accountId); arenaDequeue(eb.members[0].accountId);
       lastFoe.set(a, b); lastFoe.set(b, a);

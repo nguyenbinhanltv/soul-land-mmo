@@ -7612,6 +7612,24 @@ async function arenaTest(){
     await Promise.all(all.map(b=>kickBack(b)));
     for(const b of all) await b.room.leave();
   }
+  // ---- Không ghép chéo 1v2: bên đơn và bên tổ đội cùng chờ phải tiếp tục chờ ----
+  {
+    const Solo=await bot("Đơn lệch", "bich_lan_xa_hoang", {sex:0,hair:0,hairCol:0,outfitCol:0});
+    const TeamA=await bot("Đội lệch A", "hoa_anh", {sex:1,hair:0,hairCol:1,outfitCol:1});
+    const TeamB=await bot("Đội lệch B", "u_minh_linh_mieu", {sex:0,hair:0,hairCol:2,outfitCol:2});
+    const mismatched=[Solo,TeamA,TeamB]; for(const b of mismatched) await warpTown(b);
+    TeamA.room.send("party",{op:"invite",name:TeamB.name}); await sleep(250);
+    TeamB.room.send("party",{op:"accept",name:TeamA.name}); await waitFor(()=>TeamA.party?.members.length===2&&TeamB.party?.id===TeamA.party?.id,1500);
+    await at(Solo,-12); await at(TeamA,12); await at(TeamB,12);
+    const nSolo=Solo.arena.length, nTeamA=TeamA.arena.length, nTeamB=TeamB.arena.length;
+    await aop(Solo,"queue"); await aop(TeamA,"queue");
+    await sleep(1500);
+    const freshFound=(b,n)=>b.arena.slice(n).some(m=>m.k==="found");
+    ok(!freshFound(Solo,nSolo)&&!freshFound(TeamA,nTeamA)&&!freshFound(TeamB,nTeamB),
+      "không ghép người đơn với tổ đội 2 người thành trận 1v2");
+    await aop(Solo,"cancel"); await aop(TeamA,"cancel");
+    for(const b of mismatched) await b.room.leave();
+  }
 }
 /**
  * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 5 trụ cột bằng hook (grant / set
