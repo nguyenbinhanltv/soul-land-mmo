@@ -298,7 +298,12 @@ export function partyView(acc: number, roomId: string, now: number) {
 }
 
 /** Hook kiểm thử: đẩy lùi lúc rời game của `acc` `s` giây (thử loại người rời game quá lâu mà không phải chờ). */
-export function _ageOffline(name: string, s: number) {
-  const l = live.get(byName.get(nameKey(name)) ?? -1); if (l?.off) l.off -= s * 1000;
-  return !!l?.off;
+export async function _ageOffline(name: string, s: number) {
+  const l = live.get(byName.get(nameKey(name)) ?? -1); if (!l?.off) return false;
+  l.off -= s * 1000;
+  if (remote) {
+    await remote.putJson(`party:live:${l.acc}`, l, REMOTE_TTL_MS);
+    await remote.putJson(REMOTE_KEY, snapshot());
+  }
+  return true;
 }

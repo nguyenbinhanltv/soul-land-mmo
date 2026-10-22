@@ -2533,7 +2533,7 @@ export class MapRoom extends Room<MapState> {
    * đặt mọi vùng còn đúng ngần ấy giây.
    * Từ #164: `throw` ném lỗi ngay trong handler (không trả lời): thử lớp chặn chung onUncaughtException giữ server sống.
    */
-  testHook(c: Client, m: unknown) {
+  async testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     if (process.env.GAME_TEST !== "1") return c.send("test", { op, enabled: false });
     if (op === "throw") throw new Error("hook test: lỗi cố ý (#164)");
@@ -2579,7 +2579,11 @@ export class MapRoom extends Room<MapState> {
       // mọi `pop` trả khung tổ đội của người gọi.
       const pop = String(o.pop ?? "");
       if (pop === "rlreset") inviteReset(d.accountId);
-      else if (pop === "age") { out = { aged: party._ageOffline(String(o.name ?? ""), int(o.s, 0, 86400, 0)) }; this.partyPublish(party.sweep(Date.now())); }
+      else if (pop === "age") {
+        const aged = await party._ageOffline(String(o.name ?? ""), int(o.s, 0, 86400, 0));
+        this.partyPublish(await party.sweep(Date.now()));
+        out = { aged };
+      }
       out = { ...out, view: party.partyView(d.accountId, this.roomId, Date.now()).view };
     }
     else if (op === "view") {

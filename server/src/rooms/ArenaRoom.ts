@@ -285,7 +285,7 @@ export class ArenaRoom extends MapRoom {
   }
 
   /** Hook kiểm thử (GAME_TEST=1): `afast {s}` rút thời gian còn lại của pha hiện tại xuống `s` giây; còn lại như MapRoom. */
-  testHook(c: Client, m: unknown) {
+  async testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
     if (process.env.GAME_TEST === "1" && o.op === "afast") {
       this.state.time = Math.min(this.state.time, Math.max(0, Number(o.s) || 0));
@@ -293,6 +293,6 @@ export class ArenaRoom extends MapRoom {
       c.send("test", { op: "afast", enabled: true, phase: this.phase });
       return;
     }
-    super.testHook(c, m);
+    await super.testHook(c, m);
   }
 }
