@@ -3570,10 +3570,11 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Kéo hồn sư `id` thẳng về phía (tx, ty) tối đa `dist` pixel, không quá điểm đó (bước tối đa 2 pixel): dừng khi vướng hoặc sắp vào vùng
-   * an toàn; không kéo người đã gục / đang đi cổng. Dùng cho chiêu có `pull` (pullPlayer) và xoáy nước (GroundDef.pull, #174).
+   * an toàn; không kéo người đã gục / đang đi cổng / đang đứng trong vùng an toàn. Dùng cho chiêu có `pull` (pullPlayer) và xoáy nước
+   * (GroundDef.pull, #174).
    */
   dragPlayer(id: string, tx: number, ty: number, dist: number) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y)) return;
     const dd = Math.hypot(tx - p.x, ty - p.y), go = Math.min(dist, dd); if (go <= 0) return;
     const ux = (tx - p.x) / dd, uy = (ty - p.y) / dd;
     for (let moved = 0; moved < go; moved += 2) {

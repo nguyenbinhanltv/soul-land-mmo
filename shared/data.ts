@@ -659,8 +659,11 @@ export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "v
  * bằng PvP riêng để #113).
  */
 export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood"];
-/** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
-export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
+/**
+ * Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là
+ * Choáng); kháng Làm chậm cũng rút ngắn Ngập nước (#174, một loại Làm chậm).
+ */
+export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun", flood: "slow" };
 /**
  * Hồn sư bị Mê hoặc (#116): server tự đi bộ × `spd` tới một điểm ngẫu nhiên cách chỗ bị Mê hoặc tối đa `r` pixel mỗi trục, đổi điểm
  * mỗi `turn` giây (ngẫu nhiên trong khoảng); tới nơi thì đứng chờ. Client không dự đoán (PlayerState.spd = 0).
@@ -1006,11 +1009,13 @@ export interface ColdDef { every: number; fire: { r: number; at: [number, number
  * Thủy Triều Dâng (#174, giai đoạn 2 của Tà hóa Thâm Hải Ma Kình Vương, mục 5.4; thiết kế gốc đã chốt "các vùng ngập luân phiên làm
  * chậm 50%, sinh xoáy nước kéo người vào"): từ khi hết tiếng gầm chuyển giai đoạn, lúc thú vương đang giao chiến, cứ `every` giây nước
  * dâng thành một đợt `flood.n` vùng ngập tròn bán kính `flood.r` ở chỗ ngẫu nhiên trong hang (đi thẳng tới được từ chỗ sinh của thú
- * vương, không chồng nhau, cố tránh chỗ của đợt trước), là vùng lưu lại (GroundDef `flood.ground`, báo trước `warn` giây). `whirl.n` vùng
- * trong đợt sinh thêm xoáy nước đồng tâm bán kính `whirl.r` (GroundDef `whirl.ground`, có `pull`). Đợt mới hết báo trước thì nước của
+ * vương, tâm cách nhau ít nhất `gap` × `flood.r`, cố cách mọi tâm của đợt trước ít nhất `shift` × `flood.r`), là vùng lưu lại (GroundDef
+ * `flood.ground`). `whirl.n` vùng trong đợt sinh thêm xoáy nước đồng tâm bán kính `whirl.r` (GroundDef `whirl.ground`, có `pull`). Cả đợt
+ * (ngập và xoáy) báo trước `warn` giây (GroundDef.warn do tide.ts đặt, không ghi ở từng `ground`); đợt mới hết báo trước thì nước của
  * đợt cũ rút (vùng ngập luân phiên: tồn tại một lúc rồi chuyển chỗ).
  */
-export interface TideDef { every: number; flood: { n: number; r: number; ground: GroundDef }; whirl: { n: number; r: number; ground: GroundDef } }
+export interface TideDef { every: number; warn: number; gap: number; shift: number;
+  flood: { n: number; r: number; ground: GroundDef }; whirl: { n: number; r: number; ground: GroundDef } }
 export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
   world?: WorldMech; }
 /**
@@ -1162,17 +1167,18 @@ export const BOSSES: BossDef[] = [
     bs("Hấp Thủy", "circle", 90, { range: 80, warn: 1, dmg: 0.8, cd: 10, pull: 70 }),
     bs("Thủy Trụ", "circle", 26, { at: "target", range: 150, count: 5, scatter: 70, dmg: 1.5 })] },
   // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x8. Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
-  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một). GĐ2 "Thủy Triều Dâng" (#174, thiết kế gốc): mỗi 8 giây nước dâng thành
-  // 3 vùng ngập (báo trước 1,5 giây) ở chỗ mới trong hang, đợt cũ rút; đứng trong nước bị Ngập nước (Làm chậm 50%, STATUS.flood, gây lại
-  // mỗi 0,25 giây), 2 trong 3 vùng có xoáy nước giữa kéo về tâm 28 pixel/giây (đi bộ trong nước 47,5 pixel/giây vẫn thoát được nếu không
-  // bị Làm chậm thêm). Dải nước báo trước của bản tối thiểu thành Sóng Dữ (sát thương, không Làm chậm: Làm chậm đã do vùng ngập gây).
+  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một). GĐ2 "Thủy Triều Dâng" (#174, thiết kế gốc; TideDef): nước dâng
+  // từng đợt vùng ngập ở chỗ mới trong hang, đợt cũ rút; đứng trong nước bị Ngập nước (STATUS.flood, gây lại mỗi nhịp ngắn hơn thời gian
+  // của trạng thái), một số vùng có xoáy nước giữa kéo về tâm. Lực kéo nhỏ hơn tốc độ đi bộ khi chỉ bị Ngập nước nên tự thoát được; bị
+  // Làm chậm thêm (cộng tới SLOW_CAP) thì có thể bị giữ trong xoáy. Dải nước báo trước của bản tối thiểu thành Sóng Dữ (sát thương, không
+  // Làm chậm: Làm chậm đã do vùng ngập gây).
   { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 8, years: 95000, skills: [
     bs("Ma Kình Hống", "circle", 70, { warn: 1.3, dmg: 1.4, cd: 10, status: [{ s: "stun", secs: 1.5 }] }),
     bs("Thôn Hải", "circle", 110, { range: 100, warn: 1.4, dmg: 1.2, cd: 12, pull: 80 })],
     phase2: { name: "Thủy Triều Dâng", desc: "vùng ngập luân phiên trong hang làm chậm 50%, xoáy nước giữa vùng ngập kéo người vào, tốc độ +20%", spd: 1.2,
-      tide: { every: 8,
-        flood: { n: 3, r: 40, ground: { kind: "flood", secs: 8, warn: 1.5, every: 0.25, status: [{ s: "flood" }] } },
-        whirl: { n: 2, r: 26, ground: { kind: "whirl", secs: 8, warn: 1.5, status: [], pull: 28 } } },
+      tide: { every: 8, warn: 1.5, gap: 1.5, shift: 1,
+        flood: { n: 3, r: 40, ground: { kind: "flood", secs: 8, every: 0.25, status: [{ s: "flood" }] } },
+        whirl: { n: 2, r: 26, ground: { kind: "whirl", secs: 8, status: [], pull: 28 } } },
       skills: [bs("Sóng Dữ", "line", 140, { w: 60, range: 160, warn: 1.5, dmg: 1.5, cd: 9 })] } },
   // Boss thế giới 100.000 năm ở Lõi Tinh Đấu (BĐ6e, mục 5.4; mọi số đã chốt). Máu / sát thương theo WORLD; chiêu thường ở `skills`,
   // cơ chế buộc đổi võ hồn ở `world`. "Vết thương sâu" là trạng thái thường nhưng nặng và lâu (Phá giáp 3 tầng / Trúng độc 3 tầng

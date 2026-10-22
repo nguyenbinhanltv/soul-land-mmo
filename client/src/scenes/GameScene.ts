@@ -5,7 +5,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
-  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
+  WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
@@ -124,6 +124,8 @@ const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
  * của gợn sóng quanh boss đang lặn giữa hồ, `holdMs` giữ dấu thêm sau giờ nổi lên dự kiến phòng tin "surface" tới muộn.
  */
 const DIVE_MARK = { r: 40, ripple: 52, holdMs: 1500 };
+/** Làm chậm của hồn sư theo bit trạng thái `st`: cộng mọi trạng thái (Làm chậm, Ngập nước #174), tối đa SLOW_CAP (như server). */
+const pSlow = (st: number) => Math.min(SLOW_CAP, PLAYER_STATUS.reduce((a, s) => a + (st & statusBit(s) ? STATUS[s].slow : 0), 0));
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
 const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood"] as const;
 
@@ -1769,7 +1771,7 @@ export class GameScene extends Phaser.Scene {
       if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
       // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác (và chính mình khi tự săn) theo
       // `spd` của server; đang Mê hoặc theo tốc độ đi bộ gốc × PLAYER_CHARM.spd × Làm chậm (server không gửi tốc độ lúc này).
-      const spd = charmed ? PLAYER_SPEED * (VOHON[p.vh]?.spd ?? 1) * PLAYER_CHARM.spd * (p.st & statusBit("slow") ? 1 - STATUS.slow.slow : 1) : self ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
+      const spd = charmed ? PLAYER_SPEED * (VOHON[p.vh]?.spd ?? 1) * PLAYER_CHARM.spd * (1 - pSlow(p.st)) : self ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
       this.animatePlayer(v, p, time, walk, spd);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;

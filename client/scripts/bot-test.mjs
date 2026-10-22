@@ -8274,9 +8274,9 @@ async function tideTest(){
   console.log("[#174] Thủy Triều Dâng: vùng ngập luân phiên, Ngập nước, xoáy nước");
   const HT="hai_than_dao", KB=MAPS[HT].king, KD=BOSSES[bossIndex(KB)], TD=KD?.phase2?.tide, FL=STATUS.flood, fg=TD?.flood.ground, wg=TD?.whirl.ground;
   ok(KB==="tham_hai_ma_kinh_vuong"&&TD&&FL?.slow===0.5&&SLOW_CAP>=FL.slow&&PLAYER_STATUS.includes("flood")&&fg?.kind==="flood"&&fg.status.some(a=>a.s==="flood")
-    &&wg?.kind==="whirl"&&wg.pull>0&&TD.whirl.n>=1&&TD.whirl.n<=TD.flood.n&&TD.whirl.r<TD.flood.r&&fg.warn>0&&fg.warn===wg.warn&&fg.secs>=TD.every
+    &&wg?.kind==="whirl"&&wg.pull>0&&TD.whirl.n>=1&&TD.whirl.n<=TD.flood.n&&TD.whirl.r<TD.flood.r&&TD.warn>0&&fg.warn===undefined&&wg.warn===undefined&&fg.secs>=TD.every&&TD.gap>=1&&TD.shift>0
     &&GROUND_KINDS.some(k=>k.id==="flood")&&GROUND_KINDS.some(k=>k.id==="whirl")&&KD.phase2.skills.length>=1&&KD.phase2.skills.every(s=>s.warn>=1&&!s.status?.some(a=>a.s==="slow")),
-    `${KD?.name} – ${KD?.phase2?.name}: mỗi ${TD?.every} giây ${TD?.flood.n} vùng ngập bán kính ${TD?.flood.r} (${FL?.name} ${FL?.slow*100}%, Làm chậm tối đa ${SLOW_CAP*100}%), ${TD?.whirl.n} xoáy bán kính ${TD?.whirl.r} kéo ${wg?.pull} pixel/giây, báo trước ${fg?.warn} giây`);
+    `${KD?.name} – ${KD?.phase2?.name}: mỗi ${TD?.every} giây ${TD?.flood.n} vùng ngập bán kính ${TD?.flood.r} (${FL?.name} ${FL?.slow*100}%, Làm chậm tối đa ${SLOW_CAP*100}%), ${TD?.whirl.n} xoáy bán kính ${TD?.whirl.r} kéo ${wg?.pull} pixel/giây, báo trước ${TD?.warn} giây`);
   if(!TD) return;
   const F=await bot("Thủy Triều F","xuc_xich",{sex:0,hair:2,hairCol:1,outfitCol:3});
   if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua Thủy Triều Dâng (cần hook warp, king, tide): bật server bằng GAME_TEST=1"); await F.room.leave(); return; }
@@ -8306,21 +8306,29 @@ async function tideTest(){
     ok(t.on&&fl0.length===TD.flood.n&&wh0.length===TD.whirl.n&&ours.every(z=>z.src===kb&&z.shape==="circle"&&inL(z.x,z.y))
       &&fl0.every(z=>z.r===TD.flood.r)&&wh0.every(z=>z.r===TD.whirl.r&&fl0.some(f=>d2(f,z)<1)),
       `hết gầm: nước dâng ngay, ${fl0.length} vùng ngập + ${wh0.length} xoáy (đồng tâm vùng ngập) trong hang`);
-    // Đợt mới: chỗ khác đợt trước; đang báo trước thì chưa có tác dụng; nước đợt cũ chỉ còn tới lúc đợt mới hết báo trước.
+    // Đợt mới: chỗ khác đợt trước; đang báo trước thì chưa có tác dụng; nước đợt cũ (đã có tác dụng) chỉ còn tới lúc đợt mới hết báo trước.
     const old=[...t.wave], prev=t.spots;
+    ok(await waitFor(()=>old.every(id=>F.room.state.grounds.get(id)?.wait===0),(TD.warn+1)*1000),"đợt đầu hết báo trước, có tác dụng");
+    const oldTtl=Math.min(...(await test(F,"tide")).grounds.filter(z=>old.includes(z.id)).map(z=>z.ttl));
     t=await test(F,"tide",{next:0}); await test(F,"tide",{next:600});
     const fl=t.grounds.filter(z=>t.wave.includes(z.id)&&z.kind==="flood"), wh=t.grounds.filter(z=>t.wave.includes(z.id)&&z.kind==="whirl");
-    ok(fl.length===TD.flood.n&&wh.length===TD.whirl.n&&fl.every(z=>prev.every(p=>d2(p,z)>=TD.flood.r)),
-      `đợt mới ở chỗ khác: tâm cách mọi tâm đợt trước ≥ ${TD.flood.r} (gần nhất ${Math.min(...fl.flatMap(z=>prev.map(p=>d2(p,z)))).toFixed(0)})`);
-    ok(t.grounds.filter(z=>old.includes(z.id)).every(z=>z.ttl<=fg.warn+0.05),"nước đợt cũ rút khi đợt mới hết báo trước");
+    ok(fl.length===TD.flood.n&&wh.length===TD.whirl.n&&fl.every(z=>prev.every(p=>d2(p,z)>=TD.shift*TD.flood.r)),
+      `đợt mới ở chỗ khác: tâm cách mọi tâm đợt trước ≥ ${TD.shift*TD.flood.r} (gần nhất ${Math.min(...fl.flatMap(z=>prev.map(p=>d2(p,z)))).toFixed(0)})`);
+    const cut=t.grounds.filter(z=>old.includes(z.id));
+    ok(oldTtl>TD.warn+1&&cut.length===old.length&&cut.every(z=>z.ttl<=TD.warn+0.05),`nước đợt cũ (còn ${oldTtl.toFixed(1)} giây) rút khi đợt mới hết báo trước (còn ${Math.max(...cut.map(z=>z.ttl)).toFixed(2)} giây)`);
     const calm=fl.find(z=>!wh.some(w=>d2(w,z)<1)); // vùng ngập không có xoáy
-    ok(calm&&await go(calm.x,calm.y),`F đứng giữa vùng ngập không xoáy (${calm?.x},${calm?.y})`);
+    // Nước đợt cũ còn tác dụng tới lúc đợt mới hết báo trước: đứng trong vùng mới, xa hẳn mọi vùng ngập cũ và mọi xoáy mới.
+    const far=p=>Math.min(...prev.map(q=>d2(p,q))), cand=[];
+    for(let dx=-32;dx<=32;dx+=4) for(let dy=-32;dy<=32;dy+=4){ const p={x:calm.x+dx,y:calm.y+dy}; if(d2(p,calm)<=TD.flood.r-8&&far(p)>TD.flood.r+8&&wh.every(w=>d2(p,w)>TD.whirl.r+6)) cand.push(p); }
+    cand.sort((a,b)=>far(b)-far(a)); let st0=null; for(const p of cand.slice(0,12)) if(await go(p.x,p.y)){ st0=p; break; }
+    ok(calm&&st0,`F đứng trong vùng ngập không xoáy của đợt mới, cách vùng ngập cũ ${st0?far(st0).toFixed(0):"?"} (${st0?.x},${st0?.y})`);
+    await waitFor(()=>!has("flood"),FL.secs*1000+500); // Ngập nước còn lại từ lúc đứng trong nước đợt cũ
     let g=await test(F,"tide"), zc=g.grounds.find(z=>z.id===calm?.id);
     if(zc?.wait>0) ok(!g.st.flood&&g.slow===0,`đang báo trước (còn ${zc.wait.toFixed(2)} giây): chưa bị ${FL.name}`);
     else console.log("  ⚠ không kịp thử lúc báo trước (máy chậm)");
     // Hết báo trước: Ngập nước, Làm chậm 50%; tốc độ thật giảm một nửa.
     const spdOut=mo().spd, calmOut=mo().calm;
-    ok(await waitFor(()=>has("flood")&&F.room.state.grounds.get(calm.id)?.wait===0,(fg.warn+1)*1000),`hết báo trước: bị ${FL.name}`);
+    ok(await waitFor(()=>has("flood")&&F.room.state.grounds.get(calm.id)?.wait===0,(TD.warn+1)*1000),`hết báo trước: bị ${FL.name}`);
     g=await test(F,"tide"); await sleep(150);
     const want=0.5*(mo().calm?RUN_MULT:1)/(calmOut?RUN_MULT:1);
     ok(g.st.flood&&Math.abs(g.slow-FL.slow)<1e-6&&spdOut>0&&Math.abs(mo().spd/spdOut-want)<0.02,
