@@ -7,7 +7,7 @@ import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
-import { loginBegin, loginEnd } from "./ratelimit.ts";
+import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
@@ -50,8 +50,16 @@ app.post("/api/login", route(async (req, res) => {
   const ip = req.ip ?? req.socket.remoteAddress ?? "?";
   const blocked = loginBegin(name, ip);
   if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return; }
+  // Giới hạn số tài khoản MỚI mỗi IP (#207): hết lượt thì login không tạo, tài khoản cũ vẫn vào được; chỉ đếm khi thật sự tạo.
+  const noSignup = signupBegin(ip);
   let r: Awaited<ReturnType<typeof store.login>>;
-  try { r = await store.login(name, password); } catch (e) { loginEnd(name, ip, null); throw e; }
+  try { r = await store.login(name, password, !noSignup); } catch (e) { loginEnd(name, ip, null); signupEnd(ip, !noSignup, false); throw e; }
+  signupEnd(ip, !noSignup, !("error" in r) && r.created);
+  if ("noCreate" in r) {
+    // Không tính là đăng nhập sai (khoá oan quán net). 429 / 401 cho biết tên đã có hay chưa, như vốn có khi /api/login tự tạo tài khoản.
+    loginEnd(name, ip, null);
+    res.setHeader("Retry-After", String(noSignup!.retryAfter)); res.status(429).json({ error: noSignup!.error }); return;
+  }
   const fail = loginEnd(name, ip, !("error" in r));
   if (fail || "error" in r) {
     if (fail?.retryAfter) res.setHeader("Retry-After", String(fail.retryAfter));
