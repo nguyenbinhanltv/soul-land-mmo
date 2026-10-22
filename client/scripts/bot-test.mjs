@@ -7273,7 +7273,7 @@ async function chapter2Test(){
 
 /**
  * Chương 3 "Hải Thần Đảo" (#284, phần 1; BOT_ONLY=chuong3, nhóm 2 của BOT_PART): dữ liệu chuỗi (8 bài, Hải Mã Đấu La ở Bến Hải Thần,
- * Ba Tái Tây trong vùng an toàn Thánh địa Hải Thần, thưởng hợp lệ không mảnh UR, đủ SHARD_UNLOCK mảnh Nhu Cốt Thố); mở sau chương 2;
+ * Ba Tái Tây trong vùng an toàn Thánh địa Hải Thần, Hải Mã Đấu La trong vùng an toàn nhỏ ở trại, thưởng hợp lệ không mảnh UR, đủ SHARD_UNLOCK mảnh Nhu Cốt Thố); mở sau chương 2;
  * sự kiện talk / elite / king lọc theo bản đồ, `world` chỉ tính boss thế giới; đi hết 8 bài, tiến độ hai chuỗi cũ không đổi, lưu qua
  * lần vào lại. Bài đếm bằng sự kiện cũ (hạ hồn thú, tổ đội) thử một lần hạ thật rồi đặt đủ số đếm bằng hook quest.
  */
@@ -7281,7 +7281,7 @@ async function chapter3Test(){
   console.log("[#284] Chương 3: Hải Thần Đảo");
   const ch=questChain(QUEST_CH3), HT="hai_than_dao", objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
   const gs=npcSpot(HT,"hai_ma_dau_la"), bt=npcSpot(HT,"ba_tai_tay"), os=objsOf(HT), inR=(r,x,y)=>x>=r.x&&x<r.x+r.width&&y>=r.y&&y<r.y+r.height;
-  const sanctum=os.find(o=>o.type==="safe"&&o.name==="Thánh địa Hải Thần"), spawn=os.filter(o=>o.type==="spawn").at(-1), cm=campMerchantSpot(JSON.parse(readFileSync(mapUrl(HT),"utf8")),HT);
+  const sanctum=os.find(o=>o.type==="safe"&&o.name==="Thánh địa Hải Thần"), pier=os.find(o=>o.type==="safe"&&o.name==="Bến Hải Thần"), spawn=os.filter(o=>o.type==="spawn").at(-1), cm=campMerchantSpot(JSON.parse(readFileSync(mapUrl(HT),"utf8")),HT);
   ok(ch&&ch.steps.length===8&&ch.giver==="hai_ma_dau_la"&&ch.map===HT&&gs&&QUEST_AFTER[QUEST_CH3]===QUEST_CH2,
     `chuỗi "${ch?.name}": ${ch?.steps.length} bài, ${npcDef(ch?.giver)?.name} ở ${MAPS[ch?.map]?.name}, mở sau chương 2`);
   ok(new Set(ch.steps.map(x=>x.id)).size===8&&ch.steps.every(x=>x.offer.length&&x.done.length&&x.goals.length&&x.goals.every(g=>Number.isInteger(g.n)&&g.n>0&&g.text)
@@ -7289,8 +7289,8 @@ async function chapter3Test(){
   ok(ch.steps.every(x=>x.goals.every(g=>(!g.map||MAPS[g.map])&&(!g.npc||g.npc===CAMP_MERCHANT||Object.keys(MAPS).some(m=>npcSpot(m,g.npc))))),"mục tiêu trỏ tới NPC, bản đồ có thật");
   const nhu=ch.steps.reduce((a,x)=>a+x.reward.items.filter(r=>r.code===shardCode("nhu_cot_tho")).reduce((b,r)=>b+r.qty,0),0);
   ok(nhu===SHARD_UNLOCK,`tổng mảnh Nhu Cốt Thố cả chuỗi = SHARD_UNLOCK (${nhu})`);
-  ok(sanctum&&bt&&inR(sanctum,bt.x,bt.y)&&!inR(sanctum,gs.x,gs.y)&&spawn&&inR(spawn,gs.x,gs.y)&&cm&&Math.hypot(cm.x-gs.x,cm.y-gs.y)>=CAMP_PT_GAP,
-    `Tiled: Ba Tái Tây trong Thánh địa Hải Thần, Hải Mã Đấu La ở trại Bến Hải Thần (${gs?.x},${gs?.y}), thương nhân lưu động vẫn có chỗ (${cm?.x},${cm?.y})`);
+  ok(sanctum&&bt&&inR(sanctum,bt.x,bt.y)&&pier&&inR(pier,gs.x,gs.y)&&inR(pier,gs.x,gs.y+16)&&spawn&&inR(spawn,gs.x,gs.y)&&cm&&!inR(pier,cm.x,cm.y)&&Math.hypot(cm.x-gs.x,cm.y-gs.y)>=CAMP_PT_GAP,
+    `Tiled: Ba Tái Tây trong Thánh địa Hải Thần, Hải Mã Đấu La (${gs?.x},${gs?.y}) và chỗ đứng nói chuyện trong vùng an toàn nhỏ Bến Hải Thần ở trại cổng, thương nhân lưu động vẫn có chỗ (${cm?.x},${cm?.y})`);
   const [g1,,g3,,,g6,g7]=ch.steps.map(x=>x.goals), talkG=g1[1];
   ok(questGoalHit(talkG,{k:"talk",npc:CAMP_MERCHANT,map:HT})&&!questGoalHit(talkG,{k:"talk",npc:CAMP_MERCHANT,map:"tinh_dau_ngoai_vi"})
     &&questGoalHit(g3[0],{k:"elite",map:HT})&&!questGoalHit(g3[0],{k:"elite",map:"thanh_hon_thon"})&&questGoalHit(g6[0],{k:"king",map:HT})&&!questGoalHit(g6[0],{k:"king",map:"loi_tinh_dau"})
@@ -7316,8 +7316,8 @@ async function chapter3Test(){
   }
   const full=async(i)=>{ await setStep(i,true,ch.steps[i].goals.map(g=>g.n)); ok(await waitFor(()=>q3().status==="ready"),`bài ${i+1}: đủ mục tiêu`); };
   const slayAt=async(extra)=>{ await test(D,"clear"); const r=await test(D,"beast",{dx:14,dy:0,...extra}); await test(D,"slay",{bid:r?.bid}); await sleep(200); return r?.bid; };
-  /** Gọi thú vương / boss thế giới của bản đồ đang đứng (khung mới mỗi lần), D góp 1 sát thương rồi hạ. */
-  async function slayKing(opts={}){
+  /** Gọi thú vương / boss thế giới của bản đồ đang đứng (khung mới mỗi lần), D góp 1 sát thương rồi hạ. Trong vùng an toàn không gây sát thương: ở Hải Thần Đảo ra chỗ thương nhân lưu động (ngoài vùng an toàn Bến Hải Thần) trước. */
+  async function slayKing(opts={}){ if(D.room.state.mapId===HT) await test(D,"goto",{x:cm.x,y:cm.y+12});
     await test(D,"king",{kop:"spawn",...opts}); const kb=()=>[...D.room.state.beasts.entries()].find(([,b])=>b.rank>=2);
     const okb=await waitFor(()=>kb(),2500); const kid=kb()?.[0];
     if(opts.mapId) { await test(D,"wmech",{m:"hold",secs:120}); await test(D,"wmech",{m:"timers"}); }
