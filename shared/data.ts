@@ -1470,6 +1470,8 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  *   mạnh thêm ngần ấy phần (cộng với bộ hồn hạch Phượng Hoàng 4 món). Tuyệt kỹ Hỏa Long: Viêm bạo toàn vùng.
  * Từ 8.1c: `shockR` (around): sét tìm mục tiêu Cảm điện: mỗi nhát còn trúng mọi hồn thú (và đối thủ) đang Cảm điện ở ngoài `r` nhưng
  *   trong `shockR` (tuyệt kỹ Lam Điện Bá Vương Long "toàn vực": phủ Cảm điện rộng rồi đổi sang Lam Điện kích nổ cả vùng).
+ * Từ #192: `vsSt`: sát thương mỗi nhát nhân thêm (1 + `v`) khi mục tiêu đang có ít nhất một trạng thái trong `s` (Băng Hỏa Lưỡng Nghi
+ *   của Võ Hồn Dung Hợp Kỹ, FUSIONS).
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -1478,7 +1480,7 @@ export interface SkillDef {
   crit?: number; lifesteal?: number; pull?: boolean; dash?: number; inv?: number; glow?: boolean; shake?: boolean;
   status?: StatusApply[]; finisher?: StatusApply[];
   boom?: { keep: number; last?: boolean; mult?: number }; push?: number; pick?: "near" | "low"; lowHp?: number; fly?: number;
-  at?: number; fixed?: boolean; copy?: number; shockR?: number;
+  at?: number; fixed?: boolean; copy?: number; shockR?: number; vsSt?: { s: StatusId[]; v: number };
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number; cleanse?: boolean };
   dispel?: boolean;
   ult?: boolean;
@@ -2411,6 +2413,58 @@ export const BONDS: BondDef[] = [
 export const bondsOf = (vohonIds: string[]) => BONDS.filter((b) => b.pair.every((v) => vohonIds.includes(v)));
 /** Tổng hiệu ứng loại `k` của mọi ràng buộc đang có trong đội (9.4: cùng loại từ nhiều cặp thì cộng). */
 export const bondSum = (vohonIds: string[], k: BondKey) => bondsOf(vohonIds).reduce((a, b) => a + (b[k] ?? 0), 0);
+
+/**
+ * Võ Hồn Dung Hợp Kỹ (#192, mục 5.9; chủ repo chốt 2026-10-22 ở #178): chiêu chủ động của HAI hồn sư cùng tổ đội, mỗi người đang ra
+ * trận một võ hồn của một cặp trong FUSIONS, đứng cách nhau dưới `r` pixel (bằng PARTY_BUFF_R). Người A gửi `fusion {op: "start"}`,
+ * đồng đội B hợp lệ gần nhất nhận lời nhắc trong `window` giây và gửi `fusion {op: "join"}` thì chiêu nổ ở điểm giữa hai người. Mỗi
+ * người tốn `cost` hồn lực và vào hồi chiêu `cd` giây (của hồn sư: đổi võ hồn không làm mới); hết giờ hay có người không đủ điều kiện
+ * thì hủy, không tốn gì. Cả hai võ hồn cần ít nhất `minRings` hồn hoàn (3 vòng ≈ cấp 30, giai đoạn Sử Lai Khắc).
+ * Số đề xuất ở #192 (cost cỡ CHAN_THAN_SKILL_COST).
+ */
+export const FUSION = { r: PARTY_BUFF_R, window: 4, cd: 90, cost: 50, minRings: 3 };
+/**
+ * Một phần của chiêu dung hợp: hồn kỹ vùng "around" chạy bằng bộ máy hồn kỹ, tâm ở điểm giữa hai người; `side` 0 / 1 thì tâm dời về
+ * phía người cầm võ hồn `pair[side]` (giữa điểm giữa và người đó). Các phần chạy lần lượt trong cùng một lần tung.
+ */
+export type FusionPart = SkillDef & { side?: 0 | 1 };
+/**
+ * Cặp dung hợp (#192): `pair` hai mã võ hồn (thứ tự không quan trọng khi ghép), tên chiêu, mô tả, biểu tượng, các phần (FusionPart).
+ * Sức mạnh: công = trung bình công (kể cả tăng công) của võ hồn ra trận hai người, nhân skillPower theo hồn hoàn năm cao nhất thấp
+ * hơn giữa hai võ hồn; không nhận sao, ràng buộc, Phục Chế; không tạo năng lượng tiên cơ. Tổng `dmg` mỗi chiêu khoảng 6–7 (ngang tuyệt
+ * kỹ, nhưng cần hai người và hồi chiêu dài). Tên chiêu là tên phỏng theo truyện (GAME_DESIGN.md mục 5.9), thêm cặp mới vào cuối mảng.
+ */
+export interface FusionDef { name: string; pair: [string, string]; desc: string; icon: string; parts: FusionPart[]; }
+export const FUSIONS: FusionDef[] = [
+  // Hồ Liệt Na và Tà Nguyệt (đội Vũ Hồn Điện): truyện có dung hợp kỹ của hai người; tên "Yêu Nguyệt" phỏng theo, cần kiểm lại tên gốc.
+  { name: "Yêu Nguyệt", pair: ["yeu_ho", "nguyet_nhan"], icon: "☽",
+    desc: "Lưỡi trăng xoay 3 vòng quanh điểm giữa hai người: mỗi vòng Mị hoặc 1 tầng (đủ tầng thành Mê hoặc)",
+    parts: [{ name: "Yêu Nguyệt", desc: "", icon: "☽", cost: 0, cd: 0, area: "around", r: 100, n: 3, every: 0.3, dmg: 2.2,
+      glow: true, shake: true, status: [{ s: "allure" }] }] },
+  // Đường Tam và Tiểu Vũ (phỏng theo), cùng tên ràng buộc Hạo Thiên – Nhu Cốt.
+  { name: "Hạo Thiên Nhu Cốt", pair: ["hao_thien_chuy", "nhu_cot_tho"], icon: "⚒",
+    desc: "Quật ngã cả vùng (Choáng 1,5 giây) rồi chùy giáng: thêm 5% sinh lực tối đa mỗi nhát (có trần)",
+    parts: [{ name: "Hạo Thiên Nhu Cốt", desc: "", icon: "⚒", cost: 0, cd: 0, area: "around", r: 90, n: 2, every: 0.5, dmg: 3.2, pctHp: 0.05,
+      glow: true, shake: true, status: [{ s: "stun", secs: 1.5 }] }] },
+  // Ngọc Thiên Hằng và Độc Cô Nhạn (võ hồn Bích Lân Xà), phỏng theo.
+  { name: "Lôi Độc Song Sát", pair: ["lam_dien_ba_vuong_long", "bich_lan_xa_hoang"], icon: "☇",
+    desc: "Sấm độc giáng 2 đợt cả vùng: Cảm điện, Trúng độc 2 tầng mỗi đợt, mỗi tầng độc thêm 40% công",
+    parts: [{ name: "Lôi Độc Song Sát", desc: "", icon: "☇", cost: 0, cd: 0, area: "around", r: 110, n: 2, every: 0.4, dmg: 3,
+      perStack: { s: "poison", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "shock" }, { s: "poison", n: 2 }] }] },
+  // Cặp băng / hỏa ở Tinh Anh Đại Tái và suối Băng Hỏa Lưỡng Nghi Nhãn (phỏng theo), cùng tên ràng buộc.
+  { name: "Băng Hỏa Lưỡng Nghi", pair: ["bang_phuong_hoang", "hoa_long"], icon: "☯",
+    desc: "Nửa vùng phía Băng Phượng Hoàng đóng băng (Choáng 1,5 giây), nửa phía Hỏa Long Thiêu đốt 3 tầng; rồi băng hỏa giao nhau, hồn thú đang Choáng hoặc Thiêu đốt chịu thêm 50%",
+    parts: [
+      { name: "Băng", desc: "", icon: "❄", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 0, status: [{ s: "stun", secs: 1.5 }, { s: "slow" }] },
+      { name: "Hỏa", desc: "", icon: "✹", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 1, status: [{ s: "burn", n: 3 }] },
+      { name: "Lưỡng Nghi", desc: "", icon: "☯", cost: 0, cd: 0, area: "around", r: 110, dmg: 1.6, vsSt: { s: ["stun", "burn"], v: 0.5 },
+        glow: true, shake: true },
+    ] },
+];
+/** Chỉ số cặp dung hợp của hai võ hồn (mã), bất kể thứ tự; -1 nếu không ghép được. */
+export const fusionIndex = (a: string, b: string) => FUSIONS.findIndex((f) => (f.pair[0] === a && f.pair[1] === b) || (f.pair[0] === b && f.pair[1] === a));
+/** Các cặp dung hợp có võ hồn `v` (để báo "cần đồng đội cầm …"). */
+export const fusionsOf = (v: string) => FUSIONS.filter((f) => f.pair.includes(v));
 /**
  * Phong Lôi Chi Lực (bước 2.5c, đã chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
  * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú
