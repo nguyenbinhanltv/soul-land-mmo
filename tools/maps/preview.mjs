@@ -1,6 +1,7 @@
 // Ảnh toàn cảnh isometric của một file Tiled, vẽ bằng đúng ảnh ô / vật của shared/assets/iso/tiles.json như client (bước 11.3):
 // ô nền chọn biến thể và lật theo băm vị trí, vật đứng đặt chân ở tâm ô và sắp theo độ sâu x + y, nhân màu `~#rrggbb` / sáng `~x1.3`.
-// Không có lớp phủ mép, nhà dựng code, ánh sáng và hồn thú (chỉ để duyệt bố cục cả bản đồ); ảnh trong game chụp bằng Chrome.
+// Nhà / tường thành (gid 14 / 15, client dựng bằng code) vẽ thành khối đơn giản theo màu `build` của vùng. Không có lớp phủ mép,
+// công trình ảnh, ánh sáng và hồn thú (chỉ để duyệt bố cục cả bản đồ); ảnh trong game chụp bằng Chrome.
 //   node tools/maps/preview.mjs <file Tiled .json> <ra.png> [--map <mapId>] [--scale 0.25] [--tint #eef4dc]
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -70,14 +71,32 @@ for (let s = 0; s < MW + MH - 1; s++) for (let y = Math.max(0, s - MW + 1); y <=
 const props = [];
 for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
   const gid = trees[y * MW + x]; if (!gid) continue;
-  if (gid === 14 || gid === 15) { missing.add("nhà / tường (dựng bằng code, bỏ qua)"); continue; }
+  if (gid === 14 || gid === 15) { props.push({ x, y, d: x + y, block: gid }); continue; }
   const r = set.props[gid]; if (!r) { missing.add(`vật ${gid}`); continue; }
   const list = [].concat(r), pick = ref(list[hash(x, y, 7) % list.length]), p = data.props[pick.name];
   if (!p) { missing.add(`vật ${pick.name}`); continue; }
   props.push({ x, y, d: x + y, file: path.join(PROPS, `${p.key.replace(/^prop_/, "")}.png`), tint: pick.tint, foot: p.foot, flip: p.flip !== false && hash(x, y, 3) % 2 === 1 });
 }
 props.sort((a, b) => a.d - b.d || a.x - b.x);
-for (const p of props) { const [cx, cy] = center(p.x, p.y); paste(image(p.file, p.tint), p.foot[0], p.foot[1], cx, cy, p.flip); }
+// Khối nhà: mái (gid 14) cao hơn tường (gid 15); tường đứng riêng (không có mái ngay phía trên) là tường thành, màu `fence`.
+const build = data.maps[mapId]?.build ?? data.maps["*"]?.build;
+const rgb = (h) => hex(h ?? "#888888").slice(0, 3), shade = (c, k) => c.map((v) => Math.min(255, Math.round(v * k)));
+function block(x, y, gid) {
+  const roofAbove = y > 0 && trees[(y - 1) * MW + x] === 14, house = gid === 14 || roofAbove;
+  const h = gid === 14 ? (build?.wallH ?? 30) + 10 : house ? (build?.wallH ?? 30) : (build?.fence?.h ?? 26);
+  const top = rgb(gid === 14 ? build?.roof?.[0] : house ? build?.wall?.[2] : build?.fence?.top), side = rgb(gid === 14 ? build?.roof?.[1] : house ? build?.wall?.[0] : build?.fence?.wall?.[0]);
+  const [cx, cy] = center(x, y), put = (X, Y, c) => { if (X >= 0 && Y >= 0 && X < W && Y < H) canvas.data.set([...c, 255], (Y * W + X) * 4); };
+  // Mặt bên trái / phải (thẳng đứng dưới hai cạnh dưới của thoi), rồi mặt trên ở độ cao h.
+  for (let dx = -TW / 2; dx < TW / 2; dx++) {
+    const yEdge = cy + TH / 2 - Math.abs(dx) * (TH / TW) * 1;
+    for (let k = 0; k < h; k++) put(Math.round(cx + dx), Math.round(yEdge - k), shade(side, dx < 0 ? 0.85 : 0.65));
+  }
+  for (let dy = -TH / 2; dy <= TH / 2; dy++) { const half = (TW / 2) * (1 - Math.abs(dy) / (TH / 2)); for (let dx = -half; dx < half; dx++) put(Math.round(cx + dx), Math.round(cy + dy - h), top); }
+}
+for (const p of props) {
+  if (p.block) { block(p.x, p.y, p.block); continue; }
+  const [cx, cy] = center(p.x, p.y); paste(image(p.file, p.tint), p.foot[0], p.foot[1], cx, cy, p.flip);
+}
 if (missing.size) console.warn("[preview] bỏ qua:", [...missing].join(", "));
 
 // Thu nhỏ bằng lọc hộp (trung bình các điểm), giữ màu đọc được ở cỡ duyệt.
