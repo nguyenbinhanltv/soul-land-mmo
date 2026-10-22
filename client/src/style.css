@@ -254,7 +254,19 @@ body.touch #prompt{bottom:160px}
 .coin>span:first-of-type{color:var(--muted)}
 .coinico{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2b0,#f2c84b 45%,#b8862a);box-shadow:0 0 0 1px #6a4a12}
 .ht.kim{color:#8a5f0a} .ht.ngan{color:#4d5a73} .ht.dong{color:#9a4a1c}
-.bgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.bgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+/* Trang túi (#215): tab số trang, vạch dưới là mức đầy (đỏ khi đầy), nút "Sắp xếp" bên phải. */
+.bpages{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.bpg{position:relative;min-width:30px;height:28px;padding:0 6px 4px;border:2px solid var(--line);background:var(--wash);color:var(--text);font:inherit;cursor:pointer}
+.bpg b{font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
+.bpg i{position:absolute;left:5px;right:5px;bottom:4px;height:3px;background:var(--wash2)}
+.bpg i::after{content:"";display:block;height:100%;width:calc(var(--f) * 100%);background:var(--xp)}
+.bpg.full i::after{background:var(--hp)}
+.bpg.none b{opacity:.55}
+.bpg.cur{border-color:var(--xp)}
+.bpg:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bsort{margin-left:auto;padding:4px 10px}
+@media (max-width:420px){.bgrid{grid-template-columns:repeat(5,1fr)}} /* màn hẹp: ô đủ lớn để chạm, trang 10 hàng cuộn trong bảng */
 .bslot{position:relative;aspect-ratio:1;min-width:0;padding:0;border:2px solid var(--line);background:var(--wash);color:var(--text);
   font:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .bslot.empty{border-style:dashed;opacity:.45;cursor:default}
@@ -583,7 +595,7 @@ body.arena #quest{display:none}
 .thuymac .panel{border:6px solid transparent;background:none;box-shadow:none;
   border-image:var(--ui-hop-thoai) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
 /* Bảng lớn giữa màn hình và thẻ màn đăng nhập: cuộn giấy hai trục gỗ. */
-.thuymac :is(#roster,#bag,#reso,#world,#arenaEnd,#overlay .card){border-width:16px 10px;
+.thuymac :is(#roster,#bag,#reso,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
   border-image:var(--ui-cuon-giay) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 /* Hộp thoại NPC: làm tối cảnh nhẹ (mục 5.11 C), hoa văn mực ở hai góc. */
@@ -609,6 +621,9 @@ body.arena #quest{display:none}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):active,.thuymac :is(#chans,#arenaQ) button:not(:disabled):active,
 .thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bslot,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--ui-nut-nhan)}
 .thuymac .bslot.empty{border-image-source:var(--ui-nut-nhan);opacity:.55}
+.thuymac .bpg{border:4px solid transparent;background:none;border-image:var(--ui-nut-thuong) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
+.thuymac .bpg:not(.cur):hover{border-image-source:var(--ui-nut-ro)}
+.thuymac .bpg.cur{border-image-source:var(--ui-nut-nhan);outline:2px solid var(--son);outline-offset:-3px}
 /* Trạng thái chọn / màu riêng thể hiện bằng viền trong (border-image che màu viền cũ). */
 .thuymac .bcell:not(.empty):not(.sel),.thuymac .kcard.on{outline:2px solid color-mix(in srgb,var(--c) 75%,#1a1020);outline-offset:-3px}
 .thuymac .kcard.on{border-image-source:var(--ui-nut-nhan)}
@@ -705,9 +720,9 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .vcardx.cempty .csl{position:absolute}
 .vcardx.cempty small{font-size:10px;font-family:var(--f10)}
 /* Bảng đội hình: 4 ô là 4 thẻ, nút Bỏ dưới thẻ; bộ sưu tập là lưới thẻ; mảnh võ hồn là thẻ + thanh mảnh + nút. */
-#roster,#bag,#reso,#audio,#world,#npc{width:min(452px,94vw)}
+#roster,#bag,#reso,#audio,#world,#npc,#autoPanel{width:min(452px,94vw)}
 /* Bảng giữa màn hình nằm trên log chat, thanh đội hình, ấn hồn kỹ (màn thấp của điện thoại). */
-#roster,#bag,#reso,#audio,#world,#npc,#arenaEnd{z-index:4}
+#roster,#bag,#reso,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
 #roster .tslots{display:grid;grid-template-columns:repeat(auto-fill,96px);gap:8px;justify-content:center}
 #roster .tslot{flex-direction:column;align-items:center;gap:3px;border:0;background:none}
 #roster .tslot:not(.empty){border:0}
@@ -804,3 +819,35 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .ico.phu{width:40%;height:66%;position:relative;background:linear-gradient(180deg,#f3dc8a,#d9b24a);box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
 .ico.phu::before{content:"";position:absolute;left:22%;top:14%;width:56%;height:36%;border:2px solid #b0302a;border-radius:50%;box-sizing:border-box}
 .ico.phu::after{content:"";position:absolute;left:46%;top:56%;width:8%;height:32%;background:#b0302a}
+/* Bảng Tự động (Auto 2, mục 5.13): cài đặt tự săn giữa màn hình; tổng kết khi dừng là hộp giấy nhỏ phía trên, không chặn cảnh. */
+#autoPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:84%;overflow-y:auto;padding:10px;pointer-events:auto;
+  touch-action:pan-y;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(6px)}
+#autoPanel[hidden],#autoSum[hidden]{display:none}
+#autoPanel>*{flex-shrink:0}
+#autoPanel .anote,#autoSum .anote,#autoPanel .asec small{color:var(--muted);font-size:10px;font-family:var(--f10);line-height:normal}
+#autoPanel .atoggle{align-self:stretch;margin-top:0;min-height:40px}
+#autoPanel .atoggle kbd{font:inherit;font-size:10px;font-family:var(--f10);border:1px solid currentColor;padding:0 4px;margin-left:6px;opacity:.8}
+body.touch #autoPanel .atoggle kbd{display:none}
+#autoPanel .asec{border:1px solid var(--line);border-left:4px solid #2f7a4a;padding:6px 8px;display:flex;flex-direction:column;gap:6px}
+#autoPanel .asec>b{font-size:12px;font-family:var(--f12)}
+#autoPanel .arange{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;font-size:12px;font-family:var(--f12)}
+#autoPanel .arange input{grid-column:1 / -1;width:100%;accent-color:var(--son);cursor:pointer}
+#autoPanel output{color:var(--accent);font-size:12px;font-family:var(--f10);font-variant-numeric:tabular-nums}
+#autoPanel .aline,#autoPanel .achk{font-size:12px;font-family:var(--f12);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+#autoPanel .achk input[type=checkbox]{accent-color:var(--son);width:16px;height:16px;cursor:pointer}
+#autoPanel input[type=number],#autoPanel select{width:88px;font:inherit;font-size:12px;font-family:var(--f12);padding:2px 4px;border:1px solid var(--line);
+  background:var(--wash);color:var(--text)}
+#autoPanel select{width:auto}
+#autoPanel .aorder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+#autoPanel .aorder li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center}
+#autoPanel .aorder .rlink{min-height:28px;padding:2px 8px}
+body.touch #autoPanel .aorder .rlink{min-height:36px}
+#autoPanel .brow{display:flex;gap:6px}
+#autoSum{position:absolute;left:50%;top:56px;transform:translateX(-50%);width:min(340px,92vw);padding:8px 12px;pointer-events:auto;display:flex;flex-direction:column;gap:6px}
+.asum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:12px;font-family:var(--f12)}
+.asum span{color:var(--muted)}
+.asum b{font-weight:normal;color:var(--text);overflow-wrap:anywhere}
+/* Ủy Thác Lệnh khi chưa có ảnh item_uy_thac_lenh: lệnh bài ngọc bích, viền mực, chữ "lệnh" là vạch son (vẽ bằng CSS; cần vẽ ảnh sau). */
+.ico.lenh{width:46%;height:70%;position:relative;border-radius:3px 3px 40% 40%;background:linear-gradient(180deg,#bdf0d2,#4fa877);
+  box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
+.ico.lenh::before{content:"";position:absolute;left:30%;top:22%;width:40%;height:46%;border:2px solid #b0302a;box-sizing:border-box}

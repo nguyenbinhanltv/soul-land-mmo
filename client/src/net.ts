@@ -1,4 +1,5 @@
-import type { Looks, QuestProgress, QuestStatus, AutoSettings } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus, AutoSettings, AutoSummary } from "../../shared/data.ts";
+import type { BagDelta } from "../../shared/bagSync.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
@@ -26,10 +27,10 @@ export interface WorldMsg {
   list: { key: string; map: string; label: string; open: boolean; fee: number | null }[];
 }
 /**
- * Tin riêng "auto" (Auto 1, mục 5.13): đang tự săn không, giây treo còn lại hôm nay / tối đa mỗi ngày, cài đặt (AutoSettings), lý do
- * vừa dừng hoặc từ chối bật.
+ * Tin riêng "auto" (mục 5.13): đang tự săn không, giây treo còn lại (phần còn của hôm nay cộng quỹ Ủy Thác Lệnh `bonus`), giây miễn
+ * phí mỗi ngày, cài đặt (AutoSettings), lý do vừa dừng hoặc từ chối bật, tổng kết lượt vừa dừng (Auto 2).
  */
-export interface AutoMsg { on: boolean; left: number; max: number; cfg: AutoSettings; why?: string; }
+export interface AutoMsg { on: boolean; left: number; max: number; bonus: number; cfg: AutoSettings; why?: string; sum?: AutoSummary; }
 export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô
@@ -50,6 +51,11 @@ export interface BuybackItem { key: string; kind: string; code: string; qty: num
  * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước).
  */
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; }
+/**
+ * Tin riêng "bagd" (#215): túi đổi so với lần gửi trước (shared/bagSync.ts, áp bằng applyBagDelta lên tin "bag" đang có); số ô, Hồn
+ * Tệ, hồi chiêu luôn có, danh sách mua lại chỉ khi đổi.
+ */
+export interface BagDeltaMsg extends BagDelta<BagItem> { slots: number; honTe: number; cd: number; buyback?: BuybackItem[]; }
 /**
  * Tin nhắn riêng "quest" (6.2): tiến độ chuỗi tân thủ và trạng thái; `ev` = vừa nhận / vừa đủ mục tiêu / vừa trả (`done` = mã bước
  * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.

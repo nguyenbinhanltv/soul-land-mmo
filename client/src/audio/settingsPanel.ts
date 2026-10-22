@@ -17,7 +17,7 @@ export function toggleAudioPanel(): boolean {
   if (!el) return false;
   const open = el.hidden;
   if (open) {
-    for (const id of ["roster", "bag", "reso", "npc", "world", "pmenu"]) document.getElementById(id)?.setAttribute("hidden", "");
+    for (const id of ["roster", "bag", "reso", "npc", "world", "pmenu", "autoPanel"]) document.getElementById(id)?.setAttribute("hidden", "");
     el.hidden = false;
   } else closeAudioPanel();
   document.getElementById("audioBtn")?.setAttribute("aria-expanded", String(open));
