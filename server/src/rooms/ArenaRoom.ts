@@ -75,6 +75,9 @@ export class ArenaRoom extends MapRoom {
     this.onMessage("arena", (c, msg: { op: unknown }) => { if (msg?.op === "top") this.arenaTop(c.sessionId); });
   }
 
+  /** Hồi sinh lực và khiên trong sân (#277): × ARENA.healMult sau bộ Lưu Ly 2 món / ràng buộc Lam Ngân Hoàng. */
+  healMult(d: PData) { return super.healMult(d) * ARENA.healMult; }
+
   /** Chỉ thành viên của hai bên được vào, mỗi tài khoản một phiên (rời sân là bỏ trận); không đối chiếu bản đồ đang đứng. */
   async checkJoin(accountId: number) {
     const s = this.sides.flatMap((x) => x.members).find((x) => x.accountId === accountId);

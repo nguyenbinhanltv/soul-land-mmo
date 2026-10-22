@@ -31,7 +31,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, arenaTeamElo, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
+  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
   BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
@@ -2906,6 +2906,31 @@ export class MapRoom extends Room<MapState> {
       const s = String(o.s ?? "") as StatusId, x = nearB();
       this.applyPStatus(id, { s, n: int(o.n, 1, 9, 1), ...(typeof o.secs === "number" && o.secs > 0 ? { secs: Math.min(60, o.secs) } : {}) }, x?.bd.dmg ?? 10);
     }
+    else if (op === "pvp") {
+      // Cân bằng PvP (#277), đo không phụ thuộc ngẫu nhiên. `k`: `hit` gây `dmg` (tính như lên hồn thú) cho đối thủ đầu tiên qua damageFoe,
+      // cộng `crit` vào tỉ lệ chí mạng (-1: không chí mạng trừ khi hiệu ứng bộ bù), trả sinh lực + khiên đối thủ mất; `st` gây trạng thái
+      // lên đối thủ như hồn kỹ công 1 (`self`: lên chính mình như do hồn thú, không nguồn), trả trạng thái đó; `fx` đặt hiệu ứng bộ hồn
+      // hạch đang dùng (tới lần tính lại chỉ số kế tiếp; mọi `k` kèm `fx` thì đặt trước khi làm); `heal` trả hệ số hồi máu / khiên.
+      const fid = this.foesOf(id)[0], fd = fid ? this.pdata.get(fid) : undefined, k = o.k;
+      const num = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : 0);
+      if (o.fx && typeof o.fx === "object") {
+        const fx: Record<string, number> = {};
+        for (const [key, v] of Object.entries(o.fx)) if (typeof v === "number" && Number.isFinite(v)) fx[key] = Math.max(-10, Math.min(10, v));
+        d.coreFx = fx as CoreFx; out = { ...d.coreFx };
+      }
+      if (k === "hit" && fid && fd) {
+        // `full`: đối thủ đầy sinh lực trước đòn (Trúng độc / Thiêu đốt của bài thử không làm võ hồn ra trận gục giữa chừng).
+        const f = this.state.players.get(fid); if (o.full && f) { fd.hpF = f.maxHp; f.hp = f.maxHp; }
+        const before = fd.hpF + fd.shield;
+        const hit = this.damageFoe(fid, num(o.dmg, 0, 1e6), id, "#fff", undefined, { crit: num(o.crit, -10, 10) });
+        out = { hit, dealt: Math.round(before - (fd.hpF + fd.shield)), vh: p.vh, foeVh: this.state.players.get(fid)?.vh };
+      } else if (k === "st") {
+        const s = String(o.s ?? "") as StatusId, tid = o.self ? id : fid, td = tid ? this.pdata.get(tid) : undefined;
+        const a: StatusApply = { s, n: int(o.n, 1, 9, 1), ...(typeof o.secs === "number" && o.secs > 0 ? { secs: Math.min(60, o.secs) } : {}) };
+        if (tid && td) this.applyPStatus(tid, a, o.self ? 10 : this.atkOf(d) * ARENA.dmgMult, o.self ? undefined : id);
+        const x = td?.st.get(s); out = x ? { t: x.t, v: x.v, n: x.n, src: x.src === id } : { none: true };
+      } else if (k === "heal") out = { mult: this.healMult(d) };
+    }
     else if (op === "status") {
       const s = String(o.s ?? "") as StatusId, x = nearB();
       const a: StatusApply = { s, n: int(o.n, 1, 9, 1), ...(typeof o.secs === "number" && o.secs > 0 ? { secs: Math.min(60, o.secs) } : {}) };
@@ -3256,8 +3281,11 @@ export class MapRoom extends Room<MapState> {
     if (this.buffV(d, "inv")) { d.fight = 0; if (direct && !o.pvp) d.inv = 0.45; this.broadcast("dmg", { x: p.x, y: p.y - 18, v: 0, c: "#fff2b0", id, immune: true }); return false; }
     // Tàng hình (đã chốt 2026-10-20): bị đòn trực tiếp đánh trúng thì hiện hình, kể cả khi khiên đỡ hết; đòn bị miễn ở trên thì không.
     if (direct) this.unhide(p, d);
-    const raw = dmg, armor = d.st.get("armor");
-    dmg *= 1 + (d.st.has("vuln") ? STATUS.vuln.amp : 0) + (direct && armor ? STATUS.armor.amp * armor.n : 0);
+    const raw = dmg, armor = d.st.get("armor"), poison = d.st.get("poison");
+    // Bộ hồn hạch Xà Hoàng 4 món lên hồn sư (#277): Trúng độc đủ tầng do đối thủ mang bộ gây (src, chỉ đối thủ trong sân ghi) thì như
+    // Dễ thương thêm, mọi đòn kể cả sát thương theo thời gian.
+    const pv = poison?.src && poison.n >= CORE_FX_RULE.poisonStacks ? this.pdata.get(poison.src)?.coreFx.poisonVuln ?? 0 : 0;
+    dmg *= 1 + (d.st.has("vuln") ? STATUS.vuln.amp : 0) + (direct && armor ? STATUS.armor.amp * armor.n : 0) + pv;
     dmg = Math.round(dmg * VOHON[p.vh].def * (1 - Math.min(0.9, this.buffV(d, "def"))));
     // Khiên (tiên cơ phụ trợ) đỡ trước; vẫn tính là bị đánh (giao chiến, gián đoạn hấp thụ).
     const blocked = Math.min(d.shield, dmg); d.shield -= blocked; dmg -= blocked; p.shield = Math.ceil(d.shield);
@@ -3624,7 +3652,7 @@ export class MapRoom extends Room<MapState> {
       const landed = dmg > 0 ? this.damageFoe(fid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal }) : !this.buffV(fd, "inv");
       if (!landed) return;
       // Mê hoặc / Đóng băng trên hồn sư chỉ do hồn thú gây (PLAYER_STATUS_PVE, #116).
-      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) if (!PLAYER_STATUS_PVE.includes(a.s)) this.applyPStatus(fid, a, atk * ARENA.dmgMult);
+      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) if (!PLAYER_STATUS_PVE.includes(a.s)) this.applyPStatus(fid, a, atk * ARENA.dmgMult, id);
     };
     const near = (r: number, x = p.x, y = p.y) => this.beastsNear(x, y, r).filter(([, b]) => Math.hypot(b.x - x, b.y - y) < r).map(([bid]) => bid);
     if (sk.fly) this.broadcast("fx", { k: "fly", id, t: sk.fly, col });
@@ -3957,21 +3985,28 @@ export class MapRoom extends Room<MapState> {
   /**
    * Gây trạng thái `a` lên hồn sư `id` (do chiêu báo trước, `base`: sát thương đòn thường của hồn thú, nhân `dot` thành sát thương
    * mỗi giây mỗi tầng). Cùng luật cộng tầng với hồn thú (applyStatus). Không gây cho người đã gục, đang chuyển bản đồ, trong vùng an toàn.
+   * `src`: đối thủ gây (Đại Đấu Hồn Trường, #277; `base` đã × ARENA.dmgMult): khống chế × ARENA.ccMult sau kháng; Thiêu đốt / Trúng độc ×
+   * ARENA_HE_DMG theo hệ người gây × (1 + bộ Phượng Hoàng / Xà Hoàng 2 món + ràng buộc Tà Hỏa – Hỏa Ảnh), tính một lần lúc gây; bộ
+   * Phượng Hoàng 4 món thêm tầng Thiêu đốt tối đa; Trúng độc ghi người gây (Xà Hoàng 4 món, hurtPlayer).
    */
-  applyPStatus(id: string, a: StatusApply, base: number): void {
+  applyPStatus(id: string, a: StatusApply, base: number, src?: string): void {
     const p = this.state.players.get(id), d = this.pdata.get(id);
     if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y) || !PLAYER_STATUS.includes(a.s)) return;
     // Kháng trạng thái của bị động hồn cốt (4.3): thời gian ngắn đi theo tỉ lệ.
     // Đóng băng / Mê hoặc (#116) dùng kháng Choáng khi bị động không ghi riêng (RESIST_AS).
     const res = d.passive.resist[a.s] ?? (RESIST_AS[a.s] ? d.passive.resist[RESIST_AS[a.s]!] ?? 0 : 0);
-    const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - res), v = def.dot ? base * def.dot : def.amp, cur = d.st.get(a.s), n = a.n ?? 1;
-    if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); }
-    else d.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: "" });
+    const sd = src ? this.pdata.get(src) : undefined, sp = src ? this.state.players.get(src) : undefined, fx: CoreFx = sd?.coreFx ?? {};
+    const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - res) * (sd && isCcStatus(a.s) ? ARENA.ccMult : 1);
+    const amp = !sd ? 0 : a.s === "burn" ? this.bondV(sd, "burn") + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
+    const he = sp ? VOHON[sp.vh]?.he : undefined, pvp = he ? ARENA_HE_DMG[he] * (1 + amp) : 1;
+    const v = def.dot ? base * def.dot * pvp : def.amp, max = def.max + (sd && a.s === "burn" ? fx.burnMax ?? 0 : 0), cur = d.st.get(a.s), n = a.n ?? 1;
+    if (cur) { cur.n = Math.max(cur.n, Math.min(max, cur.n + n)); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); if (src) cur.src = src; }
+    else d.st.set(a.s, { t: secs, n: Math.min(max, n), v, src: src ?? "" });
     if (def.wander) d.charm = null; // Mê hoặc mới (#116): đi lung tung quanh chỗ đang đứng lúc trúng
     // Đủ tầng thì bùng phát (#163, tầng Hàn thành Đóng băng): bỏ trạng thái này, gây trạng thái `burst.s` (qua kháng như mọi lần gây).
     if (def.burst && d.st.get(a.s)!.n >= def.max) {
       d.st.delete(a.s); this.syncPStatus(p, d);
-      return this.applyPStatus(id, { s: def.burst.s, secs: def.burst.secs }, base);
+      return this.applyPStatus(id, { s: def.burst.s, secs: def.burst.secs }, base, src);
     }
     this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
   }
@@ -4448,18 +4483,24 @@ export class MapRoom extends Room<MapState> {
     return best;
   }
   /**
-   * Hồn sư `by` gây `dmg` (tính như lên hồn thú) cho đối thủ `fid` (7.2): nhân ARENA.dmgMult, chí mạng theo người đánh (tỉ lệ, hồn kỹ,
-   * hiệu ứng có lợi, ràng buộc), rồi đi qua hurtPlayer (thủ theo hệ, tăng thủ, Dễ thương / Phá giáp, khiên, miễn sát thương, gục từng
-   * võ hồn). Đòn trúng tạo năng lượng tiên cơ / Phong Lôi Chi Lực và hút máu như damageBeast. Hiệu ứng chỉ có trên hồn thú (Lãnh vực
-   * phượng hoàng, kích nổ, đẩy lùi, hiệu ứng bộ hồn hạch lên mục tiêu) không áp lên hồn sư (chờ chốt). Trả về đòn có trúng không.
+   * Hồn sư `by` gây `dmg` (tính như lên hồn thú) cho đối thủ `fid` (7.2). Thứ tự (#277, mục 5.9): × ARENA_HE_DMG theo hệ võ hồn ra trận
+   * của người đánh → × ARENA.dmgMult → chí mạng theo người đánh (tỉ lệ, hồn kỹ, hiệu ứng có lợi, ràng buộc, bộ Thất Sát 4 món lên đối
+   * thủ Phá giáp) → hurtPlayer (Dễ thương / Phá giáp / Xà Hoàng 4 món, thủ theo hệ, tăng thủ, khiên, miễn sát thương, gục từng võ hồn).
+   * Đòn trúng tạo năng lượng tiên cơ / Phong Lôi Chi Lực, hút máu, bộ Linh Miêu / Bá Vương Long 4 món như damageBeast. Lãnh vực phượng
+   * hoàng, kích nổ, đẩy lùi, lan Cảm điện chỉ áp lên hồn thú. Trả về đòn có trúng không.
    */
   damageFoe(fid: string, dmg: number, by: string, _col: string, hit?: Hit, o: DmgOpt = {}) {
     const p = this.state.players.get(by), pd = this.pdata.get(by), f = this.state.players.get(fid), fd = this.pdata.get(fid);
     if (!p || !pd || !f || !fd || f.dead || pd.travelling || fd.travelling || !this.foesOf(by).includes(fid)) return false;
-    const direct = o.direct !== false && !o.chain;
-    const crit = direct && Math.random() < pd.crit + (o.crit ?? 0) + this.buffV(pd, "crit") + this.bondV(pd, "crit");
+    const direct = o.direct !== false && !o.chain, fx = pd.coreFx, he = VOHON[p.vh]?.he, shocked = fd.st.has("shock");
+    const crit = direct && Math.random() < pd.crit + (o.crit ?? 0) + this.buffV(pd, "crit") + this.bondV(pd, "crit") + (fd.st.has("armor") ? fx.armorCrit ?? 0 : 0);
     const r = { dealt: 0 };
-    if (!this.hurtPlayer(fid, dmg * ARENA.dmgMult * (crit ? pd.critMult : 1), { dot: !direct, pvp: r, crit })) return false;
+    if (!this.hurtPlayer(fid, dmg * (he ? ARENA_HE_DMG[he] : 1) * ARENA.dmgMult * (crit ? pd.critMult : 1), { dot: !direct, pvp: r, crit })) return false;
+    if (crit && fx.haste) pd.haste = CORE_FX_RULE.hasteSecs; // bộ Linh Miêu 4 món
+    // Bộ Bá Vương Long 4 món: đòn trực tiếp trúng đối thủ Cảm điện hồi hồn lực, chung hồi chiêu shockMpCd với hồn thú.
+    if (direct && shocked && fx.shockMp && pd.shockMpCd <= 0 && !p.dead) {
+      pd.shockMpCd = CORE_FX_RULE.shockMpCd; pd.mpF = Math.min(p.maxMp, pd.mpF + p.maxMp * fx.shockMp); p.mp = Math.floor(pd.mpF);
+    }
     if (direct) pd.fight = 0;
     if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, fd.st.has("shock")); hit.onHit?.(); }
     const steal = (o.lifesteal ?? 0) + this.buffV(pd, "leech");
@@ -4579,7 +4620,7 @@ export class MapRoom extends Room<MapState> {
         this.damageBeast(bid, dmg, id, col);
       }
       for (const fid of this.foesNear(id, tc.r + ARENA.body, p.x, p.y)) {
-        if (this.damageFoe(fid, dmg, id, col) && tc.stun) this.applyPStatus(fid, { s: "stun", secs: tc.stun }, 0);
+        if (this.damageFoe(fid, dmg, id, col) && tc.stun) this.applyPStatus(fid, { s: "stun", secs: tc.stun }, 0, id);
       }
     }
     this.log(id, `Tiên cơ – ${def.name}: ${tc.name}, ${tc.desc}!`, col);
