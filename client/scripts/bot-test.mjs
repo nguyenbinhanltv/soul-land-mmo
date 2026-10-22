@@ -589,6 +589,45 @@ async function channelTest(){
  * trận không đổi. Hướng đi quá dài không đi nhanh hơn; gửi dồn đánh
  * thường / đổi võ hồn chỉ ra một lần. Client không tự mở phòng bản đồ (`create`). Xếp ô hồn kỹ / đội hình gửi dồn vẫn lưu đúng lần cuối.
  */
+/**
+ * #235: matchmake HTTP (joinOrCreate, joinById) kiểm token ở static onAuth trước khi giữ chỗ / mở kênh. Token sai / thiếu gửi dồn quá
+ * sức chứa một kênh: không giữ chỗ, không mở kênh mới (danh sách kênh của X không đổi). Token đúng: sai bản đồ / bản đồ sân đấu bị từ
+ * chối trước khi giữ chỗ; mỗi tài khoản giữ tối đa 3 chỗ chưa dùng, dùng (mở WebSocket) xong thì giữ được tiếp.
+ */
+async function matchmakeSeatTest(X){
+  const mm=(m,target,body)=>fetch(API+`/matchmake/${m}/${target}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+    .then(async r=>({status:r.status,...await r.json().catch(()=>({}))})).catch(e=>({status:0,error:String(e)}));
+  const chans=async()=>{ await sleep(1050); X.chans=null; X.room.send("channels"); await waitFor(()=>X.chans,1500); return X.chans?.list??null; };
+  const cap=(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).chMax??60, c0=await chans(), bad=[];
+  for(let k=0;k<=cap;k++) for(const [m,t,b] of [["joinOrCreate","map",{mapId:X.mapId}],["joinOrCreate","map",{token:"x".repeat(64),mapId:X.mapId}],
+    ["joinOrCreate","map",{token:{toString:0},mapId:X.mapId}],["joinById",X.room.roomId,{token:"sai",mapId:X.mapId}]]){
+    const r=await mm(m,t,b);
+    if(r.sessionId||r.room||!/không hợp lệ/.test(r.error??"")) bad.push(`${m} ${JSON.stringify(b.token)}: ${r.error??"được giữ chỗ"}`);
+  }
+  const c1=await chans();
+  ok(!bad.length,`matchmake token sai / thiếu ×${4*(cap+1)}: bị từ chối, không giữ chỗ${bad.length?` (${bad[0]})`:""}`);
+  ok(c0&&c1&&c1.length<=c0.length&&c1.every(c=>c.n<=(c0.find(o=>o.ch===c.ch)?.n??0)),
+    `token sai không mở kênh mới, không chiếm chỗ: ${JSON.stringify(c0?.map(c=>[c.ch,c.n]))} -> ${JSON.stringify(c1?.map(c=>[c.ch,c.n]))}`);
+  // Token đúng: tài khoản mới (ở Thánh Hồn Thôn) đã rời phòng.
+  const Y=await bot("Giữ chỗ","bich_lan_xa_hoang",{sex:1,hair:0,hairCol:0,outfitCol:0});
+  await Y.room.leave(); await sleep(300);
+  let r=await mm("joinOrCreate","map",{token:Y.token,mapId:"nac_dinh_thanh"});
+  ok(!r.sessionId&&/Sai bản đồ/.test(r.error??""),`token đúng nhưng sai bản đồ: từ chối trước khi giữ chỗ (${r.error??"được giữ chỗ"})`);
+  r=await mm("joinOrCreate","map",{token:Y.token,mapId:ARENA_MAP});
+  ok(!r.sessionId&&/không tồn tại/.test(r.error??""),`token đúng, bản đồ sân đấu: từ chối (${r.error??"được giữ chỗ"})`);
+  const seats=[]; for(let k=0;k<4;k++) seats.push(await mm("joinOrCreate","map",{token:Y.token,mapId:Y.mapId}));
+  ok(seats.slice(0,3).every(s=>s.sessionId)&&!seats[3].sessionId&&/thử lại/.test(seats[3].error??""),
+    `giữ tối đa 3 chỗ chưa dùng mỗi tài khoản: ${seats.map(s=>s.sessionId?"giữ":s.error).join(" / ")}`);
+  // Dùng các chỗ đã giữ (mở WebSocket như client): onAuth của phòng vẫn chạy (nạp hồn sư), giữ chỗ lại được.
+  let named=0;
+  for(const s of seats.filter(s=>s.sessionId)){
+    try{ const room=await new Client(WS).consumeSeatReservation(s); if(await waitFor(()=>room.state.players?.get(room.sessionId)?.name===Y.name,3000)) named++; await room.leave(); await sleep(200); }catch{}
+  }
+  ok(named>=1,`dùng chỗ đã giữ: onAuth của phòng vẫn nạp hồn sư (${named}/3 lần vào)`);
+  r=await mm("joinOrCreate","map",{token:Y.token,mapId:Y.mapId});
+  ok(!!r.sessionId,`dùng xong thì giữ chỗ lại được (${r.error??"giữ"})`);
+  if(r.sessionId){ try{ const room=await new Client(WS).consumeSeatReservation(r); await room.leave(); }catch{} }
+}
 async function cheatTest(){
   console.log("\n== Chống gian lận: di chuyển, chiến đấu, đi cổng, truyền tống, kênh (#164) ==");
   // Gọi thẳng HTTP matchmake: với `create` của colyseus.js thì onAuth từ chối (không token) làm client tự rời, nhưng phòng vẫn đã mở.
@@ -604,6 +643,7 @@ async function cheatTest(){
   const sid=X.room.sessionId, me=()=>X.room.state.players?.get(sid);
   await waitFor(()=>me()&&X.owned,3000);
   ok(X.room.state.mapId==="nac_dinh_thanh",`bài chạy ở ${MAPS[X.room.state.mapId]?.name} (thành, không hồn thú)`);
+  await matchmakeSeatTest(X);
   const alive=async()=>X.leftCode===null&&(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok===true;
   const snap=()=>{ const p=me(); return {x:p.x,y:p.y,cds:[...p.cds],bcds:[...p.bcds],swCd:p.swCd,active:X.owned?.active,team:JSON.stringify(X.owned?.team)}; };
   X.room.send("input",{x:0,y:0}); await sleep(200);
@@ -7425,8 +7465,9 @@ async function arenaTest(){
   ok(P([["a",1000,30],["b",1090],["c",1050],["d",1500]])==='[["a","c"]]',"nhiều người vừa cửa sổ: chọn Elo gần nhất");
   ok(MAPS[ARENA_MAP]?.kind==="arena"&&npcDef("dau_hon_truong")?.role==="arena"&&!!npcSpot(AT,"dau_hon_truong")&&!npcSpot("nac_dinh_thanh","dau_hon_truong"),
     `sân đấu riêng (kind arena), NPC Đại Đấu Hồn Trường ở ${MAPS[AT].name} (BĐ6a), không còn ở Nặc Đinh Thành`);
+  // Không token: static onAuth từ chối trước khi mở phòng (#235); có token thì "không tồn tại" (matchmakeSeatTest).
   let err=""; try{ const r=await new Client(WS).joinOrCreate("map",{mapId:ARENA_MAP}); await r.leave(); }catch(e){ err=String(e?.message??e); }
-  ok(/không tồn tại/.test(err),`không mở được phòng bản đồ trên sân đấu (${err})`);
+  ok(/không tồn tại|không hợp lệ/.test(err),`không mở được phòng bản đồ trên sân đấu (${err})`);
   err=""; try{ const r=await new Client(WS).create("arena",{matchId:"khong_co"}); await r.leave(); }catch(e){ err=String(e?.message??e); }
   ok(/không tồn tại|invalid method/.test(err),`client không tự mở được trận đấu (${err})`); // #164: server tắt hẳn `create`
 

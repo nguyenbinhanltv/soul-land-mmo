@@ -4,7 +4,7 @@
 // có luật riêng của trận: các pha (chờ vào sân, đếm ngược, giao đấu, kết quả), thắng thua, Elo, thưởng, rời sân = thua.
 // Server quyết định mọi thứ; client chỉ gửi ý định như ở bản đồ (mục 6).
 import { Client, ServerError } from "colyseus";
-import { MapRoom, type AuthData, type PData } from "./MapRoom.ts";
+import { MapRoom, seatAccount, type AuthData, type PData } from "./MapRoom.ts";
 import { ArenaState, ArenaSide } from "./schema.ts";
 import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
 import { arenaMatches, type ArenaMatch } from "./arenaQueue.ts";
@@ -73,6 +73,15 @@ export class ArenaRoom extends MapRoom {
       if (msg?.op === "get") this.askQuest(c.sessionId); else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
     });
     this.onMessage("arena", (c, msg: { op: unknown }) => { if (msg?.op === "top") this.arenaTop(c.sessionId); });
+  }
+
+  /** Trước khi giữ chỗ (#235): token hợp lệ, chưa giữ quá số chỗ; không đối chiếu bản đồ đang đứng (seatAllowed kiểm thành viên). */
+  static async onAuth(_token: string, options: { token?: unknown }) { return seatAccount(options?.token); }
+
+  /** Chỉ thành viên còn trong trận được giữ chỗ: người ngoài có token cũng không chiếm được chỗ của sân. */
+  seatAllowed(accountId: number) {
+    const s = this.sides.flatMap((x) => x.members).find((x) => x.accountId === accountId);
+    return !!s && !s.left && !this.done;
   }
 
   /** Chỉ thành viên của hai bên được vào, mỗi tài khoản một phiên (rời sân là bỏ trận); không đối chiếu bản đồ đang đứng. */
