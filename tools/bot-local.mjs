@@ -1,6 +1,6 @@
 // Chạy một lượt bot ở máy cho nhẹ khi nhiều agent làm song song (#228). Bot đầy đủ vẫn để job CI bot-ram lo.
 //   npm run bot:local -- --only <nhóm> [--pg]   một nhóm BOT_ONLY (danh sách: --help), --pg thì lưu PostgreSQL thay vì RAM
-//   npm run bot:local -- --part 1|2|3 [--pg]     một nhóm BOT_PART như CI
+//   npm run bot:local -- --part <1..4> [--pg]    một nhóm BOT_PART như CI (số nhóm: BOT_PARTS trong bot-test.mjs)
 //   npm run bot:local -- --channels              lượt nhiều kênh (server CHANNEL_MAX=2)
 //   npm run bot:local -- --full [--pg]           bot đầy đủ (~25 phút)
 //   npm run bot:local -- --pg-status | --pg-stop PostgreSQL chung của máy: xem / tắt
@@ -30,8 +30,10 @@ const secs = (t0) => `${((Date.now() - t0) / 1000).toFixed(1)} giây`;
 // ---------- Tham số ----------
 const argv = process.argv.slice(2);
 const opt = { only: "", part: "", pg: false, full: false, channels: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false };
-const onlyNames = [...new Set([...readFileSync(path.join(clientDir, "scripts", "bot-test.mjs"), "utf8").matchAll(/BOT_ONLY==="(\w+)"/g)].map((m) => m[1]))];
-const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhóm> | --part 1|2|3 | --channels | --full) [--pg] [--once] [--heap <MB>] [--env K=V]...
+const botSrc = readFileSync(path.join(clientDir, "scripts", "bot-test.mjs"), "utf8");
+const onlyNames = [...new Set([...botSrc.matchAll(/BOT_ONLY==="(\w+)"/g)].map((m) => m[1]))];
+const partCount = Number(botSrc.match(/^const BOT_PARTS=(\d+);/m)?.[1] ?? 0);
+const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhóm> | --part 1..${partCount} | --channels | --full) [--pg] [--once] [--heap <MB>] [--env K=V]...
   --only     BOT_ONLY: ${onlyNames.join(", ")}
   --part     BOT_PART như job CI bot-ram
   --channels lượt nhiều kênh (server CHANNEL_MAX=2)
@@ -63,7 +65,7 @@ for (let i = 0; i < argv.length; i++) {
 if (!pgCmd) {
   if ([opt.only, opt.part, opt.full, opt.channels].filter(Boolean).length !== 1) die("chọn đúng một trong --only, --part, --channels, --full");
   if (opt.only && !onlyNames.includes(opt.only)) die(`--only ${opt.only}: không có trong bot-test.mjs`);
-  if (opt.part && !["1", "2", "3"].includes(opt.part)) die("--part chỉ nhận 1, 2 hoặc 3");
+  if (opt.part && !(/^\d+$/.test(opt.part) && +opt.part >= 1 && +opt.part <= partCount)) die(`--part chỉ nhận 1..${partCount}`);
   if (!(opt.heap >= 128)) die("--heap tối thiểu 128 (MB)");
 }
 
