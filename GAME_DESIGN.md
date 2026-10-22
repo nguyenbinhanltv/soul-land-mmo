@@ -489,7 +489,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 **PvP ngoài rừng:** không có. Phòng bản đồ luôn trả "không có đối thủ" (`MapRoom.foesOf`); chỉ phòng Đại Đấu Hồn Trường bật.
 
 ### 5.10 Cộng minh (giai đoạn cuối)
-Đạt mốc theo từng trụ cột thì cộng % chỉ số gốc cho **mọi** võ hồn của tài khoản (ra trận, trong đội, ngoài đội, mở sau), buộc nuôi đều thay vì dồn cho một võ hồn. Bảng `RESONANCE`: 4 trụ cột, mỗi trụ cột 3 mốc, mỗi mốc cộng % sinh lực / hồn lực / công.
+Đạt mốc theo từng trụ cột thì cộng % chỉ số gốc cho **mọi** võ hồn của tài khoản (ra trận, trong đội, ngoài đội, mở sau), buộc nuôi đều thay vì dồn cho một võ hồn. Bảng `RESONANCE`: 5 trụ cột, mỗi trụ cột 3 mốc, mỗi mốc cộng hiệu ứng cụ thể.
 
 | Trụ cột | Đếm gì |
 |---|---|
@@ -497,10 +497,14 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 | Hồn hoàn | Tổng số hồn hoàn đã hấp thụ trên mọi võ hồn |
 | Hồn cốt | Số hồn cốt **đang gắn** có cấp cường hóa từ `RES_BONE_ENHANCE` |
 | Hồn hạch | Số hồn hạch **đang gắn** từ `RES_CORE_STARS` sao |
+| Sao võ hồn | Tổng `max(0, sao - 1)` của mọi võ hồn sở hữu |
 
 - Chỉ đếm đồ đang gắn (đồ trong túi không tính), để buộc trang bị đều cho nhiều võ hồn. % cộng chung với dòng % của hồn hạch trong `calcStats`.
+- Các mốc và hiệu ứng của 5 trụ cột lấy từ `RESONANCE`; trụ Sao cộng chí mạng, giảm sát thương nhận và tốc chạy. Giới hạn hiệu ứng cộng minh dùng `RESONANCE_EFFECT_CAP`.
 - Tiến độ tính lại từ dữ liệu sẵn có (`resonanceProgress` / `resonanceLevels` / `resonanceBonus`, không lưu DB) mỗi khi lên cấp, hấp thụ, mở võ hồn, gắn / tháo / cường hóa / nâng cấp đồ đang gắn; đạt mốc mới thì báo lớn, tháo đồ làm tụt mốc thì báo mất phần cộng.
-- Bảng **Cộng minh** (phím K, nút "Cộng minh" trong khung chỉ số và ở đầu bảng đội hình): tổng % đang cộng, mỗi trụ cột tiến độ x / mốc kế tiếp kèm thanh, các mốc đã đạt sáng màu.
+- Bảng **Cộng minh** (phím K, nút "Cộng minh" trong khung chỉ số và ở đầu bảng đội hình): tổng hiệu ứng đang cộng, mỗi trụ cột tiến độ x / mốc kế tiếp kèm thanh, các mốc đã đạt sáng màu. Nút xếp hạng gửi `resonance {op:"top", page, pageSize}`; kích thước mặc định dùng `RESONANCE_RANK_PAGE_SIZE`, giới hạn dùng `RESONANCE_RANK_PAGE_MAX`, và giới hạn gọi lại dùng `RESONANCE_RANK_CD`. Chỉ tài khoản đạt ít nhất một mốc được xếp. Bảng đã sắp xếp được giữ chung cho mọi phòng trong `RESONANCE_RANK_CACHE` giây (yêu cầu đến lúc đang tính dùng chung một lần tính), nên bảng có thể trễ ngần ấy so với dữ liệu đã lưu và tiến độ đang chơi.
+- Điểm xếp hạng và tie-break do `resonanceRankValue` / `resonanceRankCompare` định nghĩa. Kết quả có trang 1-based, `total`, `hasNext` và hạng riêng của mình. Dòng công khai chỉ có tên hiển thị, hạng, điểm, số mốc; chi tiết tiến độ / hiệu ứng chỉ trả cho chính chủ.
+- Không thêm bảng SQL: `Store.resonanceTop` đọc canonical `accounts`, `vohons`, `items`; `MemoryStore` và `PgStore` cùng tính kết quả. Không có bảng riêng cho cộng minh; PostgreSQL chỉ cần kiểm thử đọc dữ liệu hiện có.
 
 ### 5.11 Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú
 Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống). **Server không đổi:** vị trí, va chạm, tầm chiêu tính trên tọa độ thế giới Descartes (`TILE` = 16, `shared/move.ts`); chỉ client chiếu khi vẽ (mục 6 "Hiển thị isometric phía client"). Key chưa có ảnh thật được vẽ bằng code cùng key và bố cục khung. Mục này chỉ ghi quy tắc. Bố cục sheet, bảng animation, ánh xạ khung phụ thể, điểm neo, dạng phụ thể từng võ hồn, quy ước key và thư mục ở `tools/assets/README.md`; tham số công cụ và quy trình làm ảnh ở skill `asset-gen`.
@@ -684,7 +688,7 @@ Mỗi message: ép kiểu và kẹp giá trị, kiểm tra id có thật và thu
 
 **Đồng bộ xuống client**
 - **Trạng thái công khai** qua Colyseus Schema (`server/src/rooms/schema.ts`: `MapState`, `PlayerState`, `BeastState`, `DropState`, `GroundState`; phòng sân `ArenaState` / `ArenaSide`). Chọn kiểu nhỏ nhất đủ dùng; trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối. Client đọc ở `client/src/scenes/GameScene.ts`.
-- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag` / `bagd`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`, `auto`, `offline`, `autosold`, `fusion`…). Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
+- **Dữ liệu riêng** (túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường…) chỉ gửi cho chính chủ bằng tin riêng (`vohons`, `squad`, `bag` / `bagd`, `absorbing`, `enhanced`, `enhancedcore`, `quest`, `party`, `resonance`, `resonanceTop`, `arena`, `arenaTop`, `npc`, `portal`, `travel`, `channels`, `daily`, `wp`, `world`, `recall`, `auto`, `offline`, `autosold`, `fusion`…). Bảng cộng minh công khai chỉ che giấu `account_id`, cấp / đồ / tiến độ chi tiết của người khác; người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
 - **Túi đồ gửi theo thay đổi** (`shared/bagSync.ts`): tin `bag` (cả túi) chỉ khi client xin hoặc phiên chưa có bản gốc; mỗi lần túi đổi server so với bản đã gửi cho phiên đó và gửi `bagd` gồm số ô, Hồn Tệ, hồi chiêu, ô đổi / mới, id ô mất, thứ tự khi đổi (sắp xếp), danh sách mua lại khi đổi, bộ lọc tự bán và đồ tự bán (`sell`, `sold`) khi đổi; ô khoá có `lock`. Client / bot áp bằng `applyBagDelta`; túi vài trăm ô nhặt một món chỉ tốn vài trăm byte.
 - **Hiệu ứng hình ảnh** (không ảnh hưởng luật) qua `broadcast("fx", {k, …})` và `"dmg"`; tin công khai `elite`, `boss`.
 - **Đồng bộ theo vùng gần** (bản đồ lớn, 11.4; `server/src/rooms/interest.ts`, hằng `SYNC_VIEW`): `MapState.players` / `beasts` / `drops` gắn `@view()`, mỗi client một `StateView`. Cuối mỗi nhịp, trước bản vá, client nhận thêm thực thể cách mình dưới `SYNC_VIEW.r` và bỏ thực thể xa quá `SYNC_VIEW.out`; chính mình và hồn thú có `rank` (tinh anh, thú vương, boss thế giới: thanh máu, bản đồ nhỏ) luôn có. Thực thể ra khỏi view thì client xóa hình như khi thực thể bị xóa khỏi state (hiệu ứng chết / nhặt đến bằng tin `fx`). `MapState.online` đếm hồn sư cả phòng. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu ứng (`x, y`, cuối vệt lướt, hồn sư `id` / `to`, hồn thú `bid`) dưới `SYNC_VIEW.fx`. Tin `mini` mỗi `SYNC_VIEW.mini` giây (như nhau cho mọi client) mang vị trí theo ô của mọi hồn sư, hồn thú thường từ nghìn năm và đồ rơi cả bản đồ cho bản đồ nhỏ. Vùng lưu lại trên mặt đất (`MapState.grounds`, #161) cũng gắn `@view()`: client nhận vùng có mép trong `SYNC_VIEW.r` và bỏ khi mép xa quá `SYNC_VIEW.out`, nên người vào tầm sau vẫn thấy vùng đang có. Sân Đại Đấu Hồn Trường không lọc. Hook kiểm thử `test {op: "view", all}` tắt lọc cho một client (bot đọc thực thể ở xa).
@@ -837,7 +841,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Xếp hàng Đại Đấu Hồn Trường cả tổ đội (2v2…); cân bằng PvP riêng (hệ số theo hệ, hiệu ứng bộ hồn hạch lên hồn sư); xem trận (#113).
 - [ ] Võ Hồn Dung Hợp Kỹ giữa hai hồn sư cùng tổ đội (#178): luật server, 4 cặp `FUSIONS`, bài bot đã có (#192; mục 5.9). Còn: phím G, nút chạm, hiệu ứng (#193); võ hồn Bạch Hổ và U Minh Bạch Hổ (#194).
 - [x] Tổ đội: hiệu ứng bộ hồn hạch, kỹ năng hồn cốt và thanh tẩy cho đồng đội (#114): thanh tẩy không nhân hệ số; self-effect hồn cốt và Lưu Ly hỗ trợ theo bán kính / hệ số tổ đội, sát thương và trạng thái hồn thú không lan.
-- [ ] Cộng minh: cộng hiệu ứng khác ngoài sinh lực / hồn lực / công; mốc theo sao võ hồn; bảng xếp hạng cộng minh (#115).
+- [x] Cộng minh: hiệu ứng chí mạng / giảm sát thương / tốc chạy, mốc theo sao võ hồn, bảng xếp hạng cộng minh không migration (#115).
 - [x] Hồn thú: chỉ số thủ (Phá giáp / xuyên thủ giảm thủ thật); trạng thái Mê hoặc / Đóng băng riêng trên hồn sư; "đứng yên" cho Thực Nhân Hoa, Quỷ Đằng, Cổ Mộc Thụ Nhân (#116; mục 5.1, 5.3, 5.6).
 - [ ] Cơ chế đầy đủ của thú vương thay bản tối thiểu: hang chia nửa băng / lửa đổi chỗ (Lưỡng Nghi), vùng ngập luân phiên (Thủy Triều Dâng); che tầm nhìn (Phun Mực) (#117).
 - [x] Hồn thú: vùng lưu lại trên mặt đất (vũng độc, sương độc), cơ chế dùng chung cho Lưỡng Nghi / Thủy Triều Dâng (#161; mục 5.3, 6).
