@@ -55,7 +55,7 @@ export class ArenaRoom extends MapRoom {
   get phase() { return this.state.phase as Phase; }
   setPhase(p: Phase, secs: number) { this.state.phase = p; this.state.time = secs; }
 
-  onCreate(options: { mapId?: unknown; matchId?: unknown }) {
+  async onCreate(options: { mapId?: unknown; matchId?: unknown }) {
     // Mỗi trận đã ghép đúng một phòng: phòng đầu tiên nhận trận, lần mở thứ hai (kể cả client tự gọi create("arena")) bị từ chối.
     const m = typeof options?.matchId === "string" ? arenaMatches.get(options.matchId) : undefined;
     if (!m || m.roomId) throw new ServerError(400, "Trận đấu không tồn tại.");
@@ -64,7 +64,7 @@ export class ArenaRoom extends MapRoom {
     this.sides = m.sides.map((s) => ({ id: s.id, elo: s.elo, members: s.members.map((member) => ({ ...member, rec: { ...member.rec }, sid: "", left: false, claims: 0 })) }));
     // Chỉ vào được bằng mã phòng (joinById) do server gửi cho đúng các thành viên của hai bên đã ghép.
     void this.setPrivate(true);
-    this.setup(ARENA_MAP);
+    await this.setup(ARENA_MAP);
     this.interest.all = true; // sân nhỏ: không lọc đồng bộ theo vùng (11.4), không gửi tin bản đồ nhỏ
     for (const s of this.sides) { const a = new ArenaSide(); a.name = s.members.map((member) => member.name).join(" / "); a.elo = s.elo; this.state.sides.push(a); }
     // Chống dàn xếp (9.7): báo trước cho hai bên nếu cặp đã đủ ARENA.pairDaily trận tính Elo hôm nay. Chỉ để hiển thị; trận có tính
@@ -134,7 +134,7 @@ export class ArenaRoom extends MapRoom {
     // onLeave xong), không nạp võ hồn / túi đồ.
     const acc = options?.token ? await store.accountFromToken(options.token) : null;
     if (acc && !this.sides.some((x) => x.members.some((member) => member.accountId === acc.accountId))) {
-      seatUsed(acc.accountId, client.sessionId);
+      await seatUsed(acc.accountId, client.sessionId);
       if (this.done || !this.watchHold(acc.accountId)) throw new ServerError(403, "Không có chỗ xem trận đấu này.");
       await this.waitOldSession(acc.accountId, client.sessionId);
       return { accountId: acc.accountId, watch: true } satisfies WatchAuth as unknown as AuthData;
@@ -236,10 +236,10 @@ export class ArenaRoom extends MapRoom {
     });
   }
   /** Trong sân không mời / nhận lời mời tổ đội (hiệu ứng phụ trợ lan theo bên của trận, partyBuffNear); xem khung, từ chối, rời đội vẫn được. */
-  partyAction(id: string, m: unknown) {
+  async partyAction(id: string, m: unknown) {
     const op = (m as { op?: unknown } | null)?.op;
     if (op === "invite" || op === "accept") return this.log(id, "Đang ở Đại Đấu Hồn Trường: mời / nhận tổ đội sau trận.", "#ffb35c");
-    super.partyAction(id, m);
+    await super.partyAction(id, m);
   }
   /** Võ hồn đã gục không hồi trong trận (không có doanh trại, không đếm giờ ngoài trận). */
   tickDowns(_id: string, _dt: number) {}
@@ -378,7 +378,7 @@ export class ArenaRoom extends MapRoom {
   }
 
   /** Hook kiểm thử (GAME_TEST=1): `afast {s}` rút thời gian còn lại của pha hiện tại xuống `s` giây; còn lại như MapRoom. */
-  testHook(c: Client, m: unknown) {
+  async testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
     if (process.env.GAME_TEST === "1" && o.op === "afast") {
       this.state.time = Math.min(this.state.time, Math.max(0, Number(o.s) || 0));
@@ -386,6 +386,6 @@ export class ArenaRoom extends MapRoom {
       c.send("test", { op: "afast", enabled: true, phase: this.phase });
       return;
     }
-    super.testHook(c, m);
+    await super.testHook(c, m);
   }
 }

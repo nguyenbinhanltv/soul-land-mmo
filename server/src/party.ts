@@ -5,9 +5,11 @@
 // phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại khung tổ đội và dòng thông báo cho đúng người đó (dữ liệu riêng, mục 6).
 import { PARTY_MAX, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS } from "../../shared/data.ts";
 import { nameKey } from "./names.ts";
+import type { PresenceBackend } from "./presence.ts";
 
 /** Kênh presence: mọi phòng nghe, gửi tin riêng "party" (và log) cho người chơi của mình có trong `to`. */
 export const PARTY_TOPIC = "party";
+export const PARTY_STATE_TOPIC = "party:state";
 
 /**
  * Người chơi đang trong game (hoặc vừa rời phòng, chờ vào lại / đi cổng trong PARTY_OFFLINE_SECS): phòng đang giữ người đó ghi đè
@@ -31,6 +33,56 @@ const parties = new Map<number, Party>();
 const partyOfAcc = new Map<number, number>();             // accountId -> id tổ đội
 const invites = new Map<number, Map<number, number>>();   // người được mời -> (người mời -> hết hạn, ms)
 let nextParty = 1;
+let remote: PresenceBackend | null = null;
+const REMOTE_KEY = "party:state";
+const REMOTE_TTL_MS = 60_000;
+const PARTY_SWEEP_LEASE_KEY = "party:sweep";
+const PARTY_SWEEP_INTERVAL_MS = 500;
+const PARTY_SWEEP_LEASE_TTL_MS = 1_000;
+let nextSweepAt = 0;
+let sweepInFlight: Promise<PartyNote[]> | null = null;
+export type PartySnapshot = { nextParty: number; live: Record<string, Live>; parties: Record<string, Party>; invites: Record<string, Record<string, number>> };
+
+const snapshot = (): PartySnapshot => ({
+  nextParty,
+  live: Object.fromEntries(live),
+  parties: Object.fromEntries(parties),
+  invites: Object.fromEntries([...invites].map(([acc, m]) => [acc, Object.fromEntries(m)])),
+});
+export function applySnapshot(s: (PartySnapshot | { live?: Record<string, Live>; parties?: unknown; invites?: unknown }) | null | undefined) {
+  if (!s) return;
+  const partial = s as { live?: Record<string, Live>; parties?: unknown; invites?: unknown };
+  if (!partial.parties && !partial.invites) {
+    for (const [acc, value] of Object.entries(partial.live ?? {})) {
+      const l = value as Live; live.set(Number(acc), l); byName.set(nameKey(l.name), Number(acc));
+    }
+    return;
+  }
+  const full = s as PartySnapshot;
+  live.clear(); byName.clear(); parties.clear(); partyOfAcc.clear(); invites.clear();
+  nextParty = Math.max(1, Number(full.nextParty) || 1);
+  for (const [acc, value] of Object.entries(full.live ?? {})) {
+    const l = value as Live; live.set(Number(acc), l); byName.set(nameKey(l.name), Number(acc));
+  }
+  for (const [id, value] of Object.entries(full.parties ?? {})) {
+    const p = value as Party; parties.set(Number(id), p); for (const acc of p.members) partyOfAcc.set(acc, p.id);
+  }
+  for (const [acc, value] of Object.entries(full.invites ?? {})) invites.set(Number(acc), new Map(Object.entries(value).map(([from, exp]) => [Number(from), Number(exp)])));
+}
+export function configurePresence(backend: PresenceBackend) {
+  remote = backend;
+  void backend.getJson<PartySnapshot>(REMOTE_KEY).then(applySnapshot).catch((e) => console.error("Không đọc được trạng thái tổ đội từ presence", e));
+}
+async function remoteMutation<T>(fn: () => T | Promise<T>, publish = true): Promise<T> {
+  if (!remote) return fn();
+  let result!: T;
+  const ok = await remote.withLock<PartySnapshot>(REMOTE_KEY, remote.workerId, 5000, async (old) => {
+    applySnapshot(old ?? snapshot()); result = await fn(); return snapshot();
+  }, 0);
+  if (!ok) throw new Error("Không khóa được trạng thái tổ đội trong presence.");
+  if (publish) void remote.presence.publish(PARTY_STATE_TOPIC, snapshot());
+  return result;
+}
 
 const nameOf = (acc: number) => live.get(acc)?.name ?? "?";
 const partyOf = (acc: number) => parties.get(partyOfAcc.get(acc) ?? 0);
@@ -71,7 +123,7 @@ export function onlineByName(name: string) {
 }
 
 /** Phòng `roomId` nhận người chơi (vào game, vào lại, sang bản đồ mới qua cổng). */
-export function goOnline(l: Omit<Live, "off">): PartyNote[] {
+function goOnlineLocal(l: Omit<Live, "off">): PartyNote[] {
   const old = live.get(l.acc);
   if (old && nameKey(old.name) !== nameKey(l.name)) byName.delete(nameKey(old.name));
   live.set(l.acc, { ...l, off: 0 });
@@ -79,19 +131,31 @@ export function goOnline(l: Omit<Live, "off">): PartyNote[] {
   const p = partyOf(l.acc);
   return p ? [all(p)] : [];
 }
+export async function goOnline(l: Omit<Live, "off">) {
+  const notes = await remoteMutation(() => goOnlineLocal(l));
+  if (remote) await remote.putJson(`party:live:${l.acc}`, { ...l, off: 0 }, REMOTE_TTL_MS);
+  return notes;
+}
 
 /** Cập nhật định kỳ trạng thái hiển thị (cấp, võ hồn ra trận, sinh lực) của người đang trong phòng `sid`. */
 export function setLive(acc: number, sid: string, v: Pick<Live, "level" | "vh" | "hp" | "maxHp" | "dead">) {
   const l = live.get(acc); if (!l || l.sid !== sid) return;
   l.level = v.level; l.vh = v.vh; l.hp = v.hp; l.maxHp = v.maxHp; l.dead = v.dead;
+  if (remote) void remote.putJson(`party:live:${acc}`, l, REMOTE_TTL_MS).then(() => remote!.presence.publish(PARTY_STATE_TOPIC, { live: { [acc]: l } })).catch((e) => console.error("Không cập nhật trạng thái tổ đội", e));
 }
 
 /** Phiên `sid` rời phòng (đi cổng, đóng tab, mất mạng): vẫn trong tổ đội PARTY_OFFLINE_SECS giây (sweep mới loại). */
-export function goOffline(acc: number, sid: string, now: number): PartyNote[] {
+function goOfflineLocal(acc: number, sid: string, now: number): PartyNote[] {
   const l = live.get(acc); if (!l || l.sid !== sid) return [];
   l.off = now;
   const p = partyOf(acc);
   return p ? [all(p)] : [];
+}
+export async function goOffline(acc: number, sid: string, now: number) {
+  const notes = await remoteMutation(() => goOfflineLocal(acc, sid, now));
+  const l = live.get(acc);
+  if (remote && l?.sid === sid) await remote.putJson(`party:live:${acc}`, l, REMOTE_TTL_MS);
+  return notes;
 }
 
 /** Người được mời `name` có hợp lệ không (chưa tốn lượt mời của ratelimit). Trả tài khoản người được mời. */
@@ -109,7 +173,7 @@ export function inviteDeny(from: number, name: string, now: number): { error: st
 }
 
 /** Ghi lời mời (sau inviteDeny và ratelimit). */
-export function addInvite(from: number, target: number, now: number): PartyNote[] {
+function addInviteLocal(from: number, target: number, now: number): PartyNote[] {
   let m = invites.get(target);
   if (!m) { m = new Map(); invites.set(target, m); }
   m.set(from, now + PARTY_INVITE_SECS * 1000);
@@ -118,6 +182,7 @@ export function addInvite(from: number, target: number, now: number): PartyNote[
     { to: [from], text: `Đã mời ${nameOf(target)} vào tổ đội.`, col: COL },
   ];
 }
+export function addInvite(from: number, target: number, now: number) { return remoteMutation(() => addInviteLocal(from, target, now)); }
 
 /** Lời mời của `fromName` gửi `acc` còn hạn: trả tài khoản người mời, đồng thời xóa lời mời đó. */
 function takeInvite(acc: number, fromName: string, now: number) {
@@ -135,7 +200,7 @@ export function inviteFrom(acc: number, fromName: string, now: number) {
 }
 
 /** `acc` nhận lời mời của `fromName`: vào tổ đội của người mời (người mời chưa có tổ đội thì lập mới, người mời làm trưởng nhóm). */
-export function accept(acc: number, fromName: string, now: number): PartyResult {
+function acceptLocal(acc: number, fromName: string, now: number): PartyResult {
   const from = takeInvite(acc, fromName, now);
   if (from === null || !live.has(from)) return { error: "Lời mời không còn hiệu lực." };
   if (partyOfAcc.has(acc)) return { error: "Bạn đang ở trong tổ đội: rời tổ đội trước khi vào đội khác." };
@@ -146,13 +211,15 @@ export function accept(acc: number, fromName: string, now: number): PartyResult 
   invites.delete(acc); // đã vào đội: các lời mời khác hết tác dụng
   return { notes: [all(p, `${nameOf(acc)} đã vào tổ đội (${p.members.length}/${PARTY_MAX}).`)] };
 }
+export function accept(acc: number, fromName: string, now: number) { return remoteMutation(() => acceptLocal(acc, fromName, now)); }
 
 /** `acc` từ chối lời mời của `fromName`. */
-export function decline(acc: number, fromName: string, now: number): PartyResult {
+function declineLocal(acc: number, fromName: string, now: number): PartyResult {
   const from = takeInvite(acc, fromName, now);
   if (from === null) return { notes: [{ to: [acc] }] }; // đã hết hạn: chỉ vẽ lại khung
   return { notes: [{ to: [acc] }, { to: [from], text: `${nameOf(acc)} từ chối lời mời vào tổ đội.`, col: "#ffb35c" }] };
 }
+export function decline(acc: number, fromName: string, now: number) { return remoteMutation(() => declineLocal(acc, fromName, now)); }
 
 /**
  * Đưa `acc` ra khỏi tổ đội. Trưởng nhóm rời thì người vào sớm nhất còn lại làm trưởng nhóm; còn 1 người thì tổ đội giải tán.
@@ -176,10 +243,11 @@ function remove(acc: number, why: "leave" | "kick" | "timeout"): PartyNote[] {
   return notes;
 }
 
-export function leave(acc: number): PartyResult {
+function leaveLocal(acc: number): PartyResult {
   if (!partyOfAcc.has(acc)) return { error: "Bạn không ở trong tổ đội nào." };
   return { notes: remove(acc, "leave") };
 }
+export function leave(acc: number) { return remoteMutation(() => leaveLocal(acc)); }
 
 /** Thành viên `name` trong tổ đội của trưởng nhóm `leader` (lỗi nếu không phải trưởng nhóm hoặc không có người đó). */
 function leaderTarget(leader: number, name: string, what: string): { error: string } | { target: number; p: Party } {
@@ -193,21 +261,23 @@ function leaderTarget(leader: number, name: string, what: string): { error: stri
 }
 
 /** Trưởng nhóm đuổi thành viên `name`. */
-export function kick(leader: number, name: string): PartyResult {
+function kickLocal(leader: number, name: string): PartyResult {
   const r = leaderTarget(leader, name, "mời thành viên ra khỏi đội được");
   return "error" in r ? r : { notes: remove(r.target, "kick") };
 }
+export function kick(leader: number, name: string) { return remoteMutation(() => kickLocal(leader, name)); }
 
 /** Trưởng nhóm nhường trưởng nhóm cho thành viên `name`. */
-export function promote(leader: number, name: string): PartyResult {
+function promoteLocal(leader: number, name: string): PartyResult {
   const r = leaderTarget(leader, name, "nhường trưởng nhóm được");
   if ("error" in r) return r;
   r.p.leader = r.target;
   return { notes: [all(r.p, `${nameOf(r.target)} trở thành trưởng nhóm.`)] };
 }
+export function promote(leader: number, name: string) { return remoteMutation(() => promoteLocal(leader, name)); }
 
 /** Dọn định kỳ: lời mời hết hạn, người rời game quá PARTY_OFFLINE_SECS giây thì ra khỏi tổ đội và khỏi danh sách đang trong game. */
-export function sweep(now: number): PartyNote[] {
+function sweepLocal(now: number): PartyNote[] {
   const notes: PartyNote[] = [];
   for (const [acc, m] of invites) {
     let gone = false;
@@ -223,6 +293,32 @@ export function sweep(now: number): PartyNote[] {
     invites.delete(acc);
   }
   return notes;
+}
+export async function sweep(now: number): Promise<PartyNote[]> {
+  if (!remote) return sweepLocal(now);
+  if (sweepInFlight) return sweepInFlight;
+  if (now < nextSweepAt) return [];
+  nextSweepAt = now + PARTY_SWEEP_INTERVAL_MS;
+  const backend = remote;
+  const run = (async () => {
+    // Giữ lease tới hết chu kỳ để nhiều phòng / tiến trình không cùng quét và phát snapshot.
+    const owner = `${backend.workerId}:party-sweep`;
+    if (!await backend.acquireLease(PARTY_SWEEP_LEASE_KEY, owner, PARTY_SWEEP_LEASE_TTL_MS)) return [];
+    const notes = await remoteMutation(async () => {
+      const members = [...live.values()];
+      const heartbeats = await backend.getJsonMany<Live>(members.map((l) => `party:live:${l.acc}`));
+      for (let i = 0; i < members.length; i++) {
+        const l = members[i], heartbeat = heartbeats[i];
+        if (heartbeat?.sid === l.sid) Object.assign(l, heartbeat);
+        else if (!heartbeat && !l.off) l.off = now - PARTY_OFFLINE_SECS * 1000;
+      }
+      return sweepLocal(now);
+    }, false);
+    if (notes.length) void backend.presence.publish(PARTY_STATE_TOPIC, snapshot());
+    return notes;
+  })();
+  sweepInFlight = run.finally(() => { sweepInFlight = null; });
+  return sweepInFlight;
 }
 
 /**
@@ -243,7 +339,12 @@ export function partyView(acc: number, roomId: string, now: number) {
 }
 
 /** Hook kiểm thử: đẩy lùi lúc rời game của `acc` `s` giây (thử loại người rời game quá lâu mà không phải chờ). */
-export function _ageOffline(name: string, s: number) {
-  const l = live.get(byName.get(nameKey(name)) ?? -1); if (l?.off) l.off -= s * 1000;
-  return !!l?.off;
+export async function _ageOffline(name: string, s: number) {
+  const l = live.get(byName.get(nameKey(name)) ?? -1); if (!l?.off) return false;
+  l.off -= s * 1000;
+  if (remote) {
+    await remote.putJson(`party:live:${l.acc}`, l, REMOTE_TTL_MS);
+    await remote.putJson(REMOTE_KEY, snapshot());
+  }
+  return true;
 }

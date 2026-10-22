@@ -4123,7 +4123,7 @@ export const ARENA = {
   dmgMult: 0.35, drawPct: 0.005, body: 8,
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
-  pairDaily: 3, rematchSecs: 60,
+  pairDaily: 3, rematchSecs: 60, rematchSettleSecs: 1,
   watchMax: 6, liveN: 10,
   healMult: 0.5, ccMult: 0.7,
 };
