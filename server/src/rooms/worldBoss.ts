@@ -1,4 +1,5 @@
-// Chỗ đứng trên sàn đấu boss thế giới (mục 5.4, #118): vòng an toàn của chiêu toàn sàn và chỗ nổi lên của Du Thủy. Hàm của server
+// Chỗ đứng trên sàn đấu boss thế giới (mục 5.4, #118): vòng an toàn của chiêu toàn sàn và chỗ nổi lên của Du Thủy (lairSpot dùng cả cho
+// vùng ngập Thủy Triều Dâng trong hang thú vương, tide.ts, #174). Hàm của server
 // (tung bằng `rnd`, server truyền Math.random); tách khỏi MapRoom.ts để giảm xung đột. Luật dùng các chỗ này nằm trong MapRoom.
 import { LAIR_SPOT, type Tele } from "../../../shared/data.ts";
 import { PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
@@ -6,7 +7,7 @@ import { type GameMap } from "../map.ts";
 
 /** Hộp va chạm khi xét chỗ đứng: vòng an toàn theo hộp hồn sư; chỗ nổi lên và chỗ sinh của boss (spawnKing) theo hộp boss. */
 type Box = { hw: number; hh: number };
-const PLAYER_BOX: Box = { hw: PLAYER_HW, hh: PLAYER_HH };
+export const PLAYER_BOX: Box = { hw: PLAYER_HW, hh: PLAYER_HH };
 export const BOSS_BOX: Box = { hw: 8, hh: 4 };
 
 /** Đi thẳng từ (ax, ay) tới (bx, by) với hộp `box` không vướng ô chặn (lấy mẫu mỗi 8 pixel). */
@@ -28,7 +29,7 @@ const warned = new Set<string>();
  * Một chỗ ngẫu nhiên (tọa độ nguyên) trong sàn đấu (object `boss`), trong dải cột `col` / `cols` theo bề ngang, cách mép sàn `pad`,
  * dọc trong dải LAIR_SPOT.band, đi thẳng từ `at` tới được với hộp `box`, thỏa `ok`. Thử LAIR_SPOT.tries lần; không được thì null.
  */
-function lairSpot(map: GameMap, rnd: () => number, at: Anchor, col: number, cols: number, pad: number, box: Box, ok: (x: number, y: number) => boolean) {
+export function lairSpot(map: GameMap, rnd: () => number, at: Anchor, col: number, cols: number, pad: number, box: Box, ok: (x: number, y: number) => boolean) {
   const l = map.lair; if (!l) return null;
   const cw = l.w / cols, [b0, b1] = LAIR_SPOT.band, o = anchorOf(map, at, box);
   // Lấy mẫu đều trong phần cột / dải nằm cách mép sàn `pad` (không kẹp: kẹp dồn nhiều mẫu về đúng mép).
