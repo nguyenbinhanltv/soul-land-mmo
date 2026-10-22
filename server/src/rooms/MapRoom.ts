@@ -5478,7 +5478,7 @@ export class MapRoom extends Room<MapState> {
     let name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40);
     const now = Date.now(), acc = d.accountId;
     if (["invite", "accept", "leave", "kick", "lead"].includes(op)) {
-      const locked = party.partyMembers(acc).some((member) => arenaQueueLocked(member));
+      const locked = arenaQueueLocked(acc) || party.partyMembers(acc).some((member) => arenaQueueLocked(member));
       if (locked || d.arenaBusy) return warn("Tổ đội đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
     }
     let r: party.PartyResult;

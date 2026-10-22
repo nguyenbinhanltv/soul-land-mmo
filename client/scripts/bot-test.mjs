@@ -7304,6 +7304,16 @@ async function arenaTest(){
   await test(E,"rest"); t=await aop(E,"queue"); ok(E.aq.on&&F.aq.on&&E.aq.elo===ARENA.startElo,`tổ đội 2 người: trưởng nhóm xếp hàng cho cả đội Elo ${E.aq.elo} (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&!F.aq.on&&/hủy/.test(t),`hủy hàng chờ tổ đội: cả hai được mở khóa (${t})`);
   E.room.send("party",{op:"leave"}); await sleep(400);
+  // Khóa cả tài khoản solo: không nhận lời mời đã có và không gửi lời mời mới khi đang chờ.
+  F.room.send("party",{op:"invite",name:E.name}); await waitFor(()=>E.party?.invites?.some(i=>i.name===F.name),1500);
+  await aop(E,"queue"); let partyLockLog=E.logs.length;
+  E.room.send("party",{op:"accept",name:F.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
+  ok(E.aq.on&&!E.party?.id&&/xếp hàng/.test(E.logs.slice(partyLockLog).join(" ")),"đang xếp hàng đơn: không nhận lời mời vào tổ đội");
+  E.room.send("party",{op:"leave"}); await sleep(200);
+  E.room.send("party",{op:"decline",name:F.name}); await sleep(200); await aop(E,"cancel");
+  await aop(E,"queue"); partyLockLog=E.logs.length; E.room.send("party",{op:"invite",name:F.name}); await waitFor(()=>E.logs.length>partyLockLog,1500);
+  ok(E.aq.on&&/xếp hàng/.test(E.logs.slice(partyLockLog).join(" ")),"đang xếp hàng đơn: không mời người khác vào tổ đội");
+  await aop(E,"cancel");
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
