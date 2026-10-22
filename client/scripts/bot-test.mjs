@@ -136,6 +136,7 @@ import { AUTO_BOSS } from "../../shared/data.ts"; // tự săn đánh tinh anh, 
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
 import { WORLD_CHAT } from "../../shared/data.ts"; // kênh thế giới (#188)
 import { FUSION, FUSIONS, fusionIndex } from "../../shared/data.ts"; // Võ Hồn Dung Hợp Kỹ (#192)
+import { TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_POOL, TONG_BOARD_CD, tongTaskIds, tongTaskPicks, isTongTask, tongWeekDay, tongTop } from "../../shared/data.ts"; // tông môn 2 (#197)
 import { ARENA_HE_DMG, CORE_FX_RULE } from "../../shared/data.ts"; // cân bằng PvP trong sân (#277)
 import { ATK_SPREAD, xpBlocked } from "../../shared/data.ts"; // #238: dải ngẫu nhiên đòn đánh thường (cận trên đòn đánh bọc trứng), bình cảnh
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
@@ -203,6 +204,7 @@ async function enter(b,roomId){
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
   b.tong=null; b.tongN=0; b.room.onMessage("tong",m=>{b.tong=m; b.tongN++;}); // tông môn (#196)
+  b.tboard=null; b.tboardN=0; b.room.onMessage("tongBoard",m=>{b.tboard=m; b.tboardN++;}); // bảng tông tuần (#197)
   b.top=null; b.topN=0; b.room.onMessage("arenaTop",m=>{b.top=m; b.topN++;});
   b.room.onMessage("log",m=>b.logs.push(m.text)); b.chats=[]; b.room.onMessage("chat",m=>{b.chats.push(m); if(b.chats.length>200) b.chats.shift();});
   b.fx=[]; b.fxs=[]; b.dmgs=[]; b.hurts=[]; b.gifts=[];
@@ -5947,6 +5949,86 @@ async function tongTest(){
   t=await act(S,"join",L.id); ok(S.tong.tong===L.id&&me(S).tong===3&&/Chúc mừng/.test(t),`hết thời gian chờ: gia nhập ${L.name} (${t})`);
   t=await act(S,"leave"); ok(S.tong.tong==="","rời tông cuối"); 
   }finally{ await S.room.leave().catch(()=>{}); await O.room.leave().catch(()=>{}); }
+  await tongWeekTest();
+}
+/**
+ * #197 Tông môn 2 (gọi cuối tongTest, BOT_ONLY=tong): dữ liệu tông vụ / tuần (hàm thuần); A, B vào Hạo Thiên Tông, C vào Thất Bảo Lưu Ly
+ * Tông. Tông vụ chỉ ở sứ giả tông mình (người ngoài tông, sứ giả tông khác bị từ chối), trả bài cộng Hồn Tệ và TONG_POINTS điểm tuần
+ * (lưu DB). Hook tpts dựng điểm tuần: A 50, B 30 (không hoạt động), C 45. Bảng tuần: điểm trung bình thành viên hoạt động, top cá nhân.
+ * Qua tuần (hook tweek): A nhận thưởng hạng nhất đúng một lần (cả sau khi vào lại), C nhận thưởng thường, B không nhận. Đổi tông xoá
+ * điểm tuần hiện tại (MemoryStore.setTong / PgStore như nhau).
+ */
+async function tongWeekTest(){
+  console.log("[#197] Tông vụ, điểm tuần, bảng xếp hạng, thưởng tuần");
+  const day="2026-10-22", ids=tongTaskIds(day), picks=tongTaskPicks("20261022");
+  ok(TONG_DAILY.count===2&&ids.join()==="tong:20261022:0,tong:20261022:1"&&ids.every(isTongTask)&&!isTongTask("daily:20261022:0")&&!isDaily(ids[0]),"mã tông vụ tong:<yyyymmdd>:<i>, khác khảo hạch");
+  ok(new Set(picks.map(t=>t.id)).size===TONG_DAILY.count&&picks.every(t=>TONG_POOL.includes(t))&&JSON.stringify(tongTaskPicks("20261022"))===JSON.stringify(picks),`bộ tông vụ ổn định theo ngày, không trùng: ${picks.map(t=>t.name).join(", ")}`);
+  ok(ids.every((id,i)=>{ const c=questChain(id); return c&&c.giver===""&&c.steps.length===1&&c.steps[0].id===picks[i].id&&c.steps[0].reward.items.length===0&&c.steps[0].reward.honTe===picks[i].honTe; })&&!questChain("tong:20261022:2"),
+    "questChain đọc được tông vụ (một bước, thưởng Hồn Tệ, không vật phẩm); số bài ngoài TONG_DAILY.count thì không");
+  ok(tongWeekDay(Date.UTC(2026,9,19)/86400000)==="2026-10-19",`tongWeekDay: ngày thứ Hai của tuần (${tongWeekDay(Date.UTC(2026,9,19)/86400000)})`);
+  ok(JSON.stringify(tongTop([{tong:"a",active:1,avg:50},{tong:"b",active:2,avg:45},{tong:"c",active:0,avg:0}]))==='["a"]'&&JSON.stringify(tongTop([{tong:"a",active:1,avg:40},{tong:"b",active:1,avg:40}]))==='["a","b"]'&&tongTop([{tong:"c",active:0,avg:0}]).length===0,
+    "tongTop: tông có điểm trung bình cao nhất (bằng nhau cùng hạng nhất), không tính tông không ai hoạt động");
+  const A=await bot("Tông vụ A","u_minh_linh_mieu",{sex:1,hair:1,hairCol:3,outfitCol:0}), B=await bot("Tông vụ B","u_minh_linh_mieu",{sex:0,hair:2,hairCol:0,outfitCol:3});
+  const C=await bot("Tông vụ C","u_minh_linh_mieu",{sex:1,hair:2,hairCol:2,outfitCol:1});
+  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tông vụ (cần hook test): bật server bằng GAME_TEST=1"); for(const b of [A,B,C]) await b.room.leave(); return; }
+  const MAP="thien_dau_thanh", spot=id=>npcSpot(MAP,id), nsteps=questChain(QUEST_STARTER).steps.length, me=b=>b.room.state.players?.get(b.room.sessionId);
+  const H=TONG_MON[0], T=TONG_MON[1];
+  async function rejoin(b){ await b.room.leave(); await sleep(400); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag,3000); }
+  async function near(b,id){ await test(b,"goto",{x:spot(id).x,y:spot(id).y+16}); }
+  async function to(b,id){ b.travel=null; b.room.send("test",{op:"warp",mapId:MAP,x:spot(id).x,y:spot(id).y+16}); await waitFor(()=>b.travel?.mapId===MAP,4000); await rejoin(b); await near(b,id); }
+  /** Gửi `tong {op…}`, chờ tin "tong" hoặc dòng log mới; trả các dòng log mới. */
+  async function op(b,m){ const l=b.logs.length, n=b.tongN; b.room.send("tong",m); await waitFor(()=>b.tongN>n||b.logs.length>l,1500); await sleep(120); return b.logs.slice(l).join(" | "); }
+  /** Xin bảng tông tuần (qua nhịp TONG_BOARD_CD), chờ tin "tongBoard" mới. */
+  async function board(b){ await sleep(TONG_BOARD_CD*1000+60); const n=b.tboardN; b.room.send("tong",{op:"board"}); await waitFor(()=>b.tboardN>n,2000); return b.tboard; }
+  async function pts(b,n){ const l=b.logs.length; await test(b,"tpts",{n}); await waitFor(()=>b.logs.slice(l).some(t=>/\[test\] điểm tông/.test(t)),2000); }
+  async function join(b,t){ await test(b,"quest",{step:nsteps,accepted:false}); await test(b,"set",{rowId:b.owned.active,level:TONG_MIN_LEVEL,xp:0}); await to(b,t.npc); await op(b,{op:"join",tong:t.id}); return b.tong?.tong===t.id; }
+  try{
+    const w0=(await test(A,"tweek",{shift:70})).week; // tuần riêng của bài này (10 tuần sau), không lẫn điểm bài khác
+    await to(A,H.npc); await talk(A,H.npc);
+    ok(A.tong?.tasks?.length===TONG_DAILY.count&&A.tong.tasks.every(q=>isTongTask(q.chain)&&q.status==="offer"),`sứ giả gửi ${A.tong?.tasks?.length} tông vụ hôm nay (chưa nhận)`);
+    let t=await op(A,{op:"accept",chain:A.tong.tasks[0].chain}); ok(/trong tông môn/.test(t),`chưa vào tông: không nhận tông vụ (${t})`);
+    ok(await join(A,H)&&await join(B,H)&&await join(C,T),`A, B vào ${H.name}; C vào ${T.name}`);
+    await near(C,H.npc); t=await op(C,{op:"accept",chain:C.tong.tasks[0].chain}); ok(/sứ giả/.test(t)&&/Thất Bảo/.test(t),`C đứng ở sứ giả tông khác: không nhận (${t})`);
+    // A: một tông vụ không phải nộp đồ, nhận rồi đặt đủ mục tiêu (hook ttask), trả bài.
+    await near(A,H.npc); await op(A,{op:"get"});
+    const i=A.tong.tasks.findIndex(q=>!questChain(q.chain).steps[0].goals.some(g=>g.k==="give")), q0=A.tong.tasks[i], s0=questChain(q0.chain).steps[0];
+    t=await op(A,{op:"accept",chain:q0.chain}); ok(A.tong.tasks[i].status==="active"&&/Nhận tông vụ/.test(t),`nhận tông vụ "${s0.name}"`);
+    t=await op(A,{op:"turnin",chain:q0.chain}); ok(/Chưa xong/.test(t),`chưa đủ mục tiêu: không trả được (${t})`);
+    await test(A,"ttask",{i,step:0,accepted:true,prog:s0.goals.map(g=>g.n)}); await op(A,{op:"get"});
+    ok(A.tong.tasks[i].status==="ready","hook ttask: đủ mục tiêu, chờ trả");
+    const coin0=A.bag.honTe; t=await op(A,{op:"turnin",chain:q0.chain});
+    ok(A.tong.tasks[i].status==="done"&&new RegExp(`${TONG_POINTS} điểm`).test(t)&&await waitFor(()=>A.bag.honTe===coin0+s0.reward.honTe,1500),`trả tông vụ: +${s0.reward.honTe} đồng, +${TONG_POINTS} điểm (${t})`);
+    t=await op(A,{op:"turnin",chain:q0.chain}); ok(/Đã xong/.test(t),`trả lần hai: từ chối (${t})`);
+    let bd=await board(A); ok(bd?.week===w0&&bd.me===TONG_POINTS,`bảng tuần: A có ${bd?.me} điểm tuần ${bd?.week}`);
+    await rejoin(A); await near(A,H.npc); await op(A,{op:"get"});
+    ok(A.tong.tasks[i].status==="done"&&(await board(A))?.me===TONG_POINTS,"vào lại: tông vụ vẫn xong, điểm tuần vẫn còn (lưu DB)");
+    // Điểm tuần: A 50, B 30 (dưới TONG_WEEK_MIN: không hoạt động), C 45.
+    await pts(A,50-TONG_POINTS); await pts(B,30); await pts(C,45);
+    bd=await board(A); const row=id=>bd.cur.tongs.find(r=>r.tong===id);
+    ok(row(H.id)?.active===1&&row(H.id)?.avg===50&&row(T.id)?.active===1&&row(T.id)?.avg===45,
+      `điểm trung bình thành viên hoạt động (từ ${TONG_WEEK_MIN} điểm): ${H.name} ${row(H.id)?.avg} (${row(H.id)?.active} người), ${T.name} ${row(T.id)?.avg}`);
+    ok(JSON.stringify(bd.cur.top[H.id]?.map(x=>[x.name,x.points]))===JSON.stringify([[A.name,50],[B.name,30]]),`top cá nhân ${H.name}: ${JSON.stringify(bd.cur.top[H.id])}`);
+    t=await op(A,{op:"claim"}); ok(/chưa đủ/.test(t),`tuần này chưa có thưởng tuần trước: từ chối (${t})`);
+    // Qua tuần: thưởng tuần trước, đúng một lần, đúng hạng.
+    await test(A,"tweek",{shift:77});
+    bd=await board(A); ok(bd.last.week===w0&&JSON.stringify(bd.last.first)===JSON.stringify([H.id])&&bd.last.reward==="top"&&!bd.last.claimed&&bd.me===0,
+      `tuần mới: tuần trước hạng nhất ${H.name}, A được thưởng ${bd.last.reward}, điểm tuần mới ${bd.me}`);
+    const shards=b=>b.bag.items.filter(x=>/^manh_/.test(x.code)).reduce((a,x)=>a+x.qty,0);
+    const a0=A.bag.honTe, sa0=shards(A); t=await op(A,{op:"claim"});
+    ok(await waitFor(()=>A.bag.honTe===a0+TONG_WEEK_REWARD.top.honTe&&shards(A)===sa0+TONG_WEEK_REWARD.top.shards,2000),`A nhận thưởng hạng nhất: +${A.bag.honTe-a0} đồng, +${shards(A)-sa0} mảnh (${t})`);
+    t=await op(A,{op:"claim"}); ok(/Đã nhận/.test(t)&&A.bag.honTe===a0+TONG_WEEK_REWARD.top.honTe,`nhận lần hai: từ chối (${t})`);
+    await rejoin(A); await near(A,H.npc); t=await op(A,{op:"claim"}); ok(/Đã nhận/.test(t)&&(await board(A)).last.claimed,"vào lại: vẫn đã nhận (lượt ở DB)");
+    await near(B,H.npc); t=await op(B,{op:"claim"}); ok(/chưa đủ/.test(t),`B (30 điểm, không hoạt động): không có thưởng (${t})`);
+    await near(C,T.npc); const c0=C.bag.honTe, sc0=shards(C); t=await op(C,{op:"claim"});
+    ok(await waitFor(()=>C.bag.honTe===c0+TONG_WEEK_REWARD.rest.honTe&&shards(C)===sc0+TONG_WEEK_REWARD.rest.shards,2000),`C (${T.name}, không hạng nhất) nhận thưởng thường: +${C.bag.honTe-c0} đồng, +${shards(C)-sc0} mảnh`);
+    // Đổi tông xoá điểm tuần hiện tại.
+    await pts(C,20); ok((await board(C)).me===20,"C có 20 điểm tuần mới");
+    await test(C,"tong",{back:TONG_SWITCH_DAYS+1}); await near(C,H.npc); t=await op(C,{op:"join",tong:H.id});
+    ok(C.tong.tong===H.id&&(await board(C)).me===0,`C đổi sang ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+  }finally{
+    await test(A,"tweek",{shift:0}).catch(()=>{});
+    for(const b of [A,B,C]) await b.room.leave().catch(()=>{});
+  }
 }
 /**
  * #282 Thương hội Thiên Đấu đổi mảnh võ hồn (bot riêng M; BOT_ONLY=shardbuy, nhóm 3): giá tăng dần, chỉ mảnh SR / SSR (không UR, không Lam

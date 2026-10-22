@@ -236,9 +236,10 @@ export class ArenaRoom extends MapRoom {
   persistTeam(_d: PData) {}
   /** Trong sân chỉ túi đồ có thể đổi (phần thưởng): không ghi võ hồn hay vị trí (bản đồ đang đứng vẫn là bản đồ cũ). */
   async write(id: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    const bag = this.unsavedBag(d); if (!bag) return;
+    const d = this.pdata.get(id); if (!d) return false;
+    const bag = this.unsavedBag(d); if (!bag) return true;
     try { await store.saveBag(d.accountId, bag); } catch (e) { d.bagDirty = true; throw e; }
+    return true;
   }
 
   /** Sinh lực cả đội theo % (võ hồn đã gục tính 0), số võ hồn chưa gục / trong đội của một bên. */
