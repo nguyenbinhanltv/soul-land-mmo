@@ -4,7 +4,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   ringSkill, loadoutOf, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
+  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe } from "../../../shared/data.ts";
@@ -17,6 +17,7 @@ import { findPath } from "../../../shared/path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
 import { solidGrid, clampDir, type SolidGrid } from "../../../shared/move.ts";
 import { campMerchantSpot } from "../../../shared/camp.ts";
+import { hoaDanSpot } from "../../../shared/hoaDan.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
   groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
@@ -124,7 +125,7 @@ const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
  */
 const DIVE_MARK = { r: 40, ripple: 52, holdMs: 1500 };
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
-const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow"] as const;
+const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill"] as const;
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -147,6 +148,8 @@ export class GameScene extends Phaser.Scene {
   eliteLabels = new Map<string, Phaser.GameObjects.Text>();
   /** Hang thú vương của bản đồ (object `boss`, BĐ5): vẽ trên bản đồ nhỏ. */
   lair: Rect | null = null;
+  /** Hỏa Đàn trong hang (#163, Cực Hàn): chỗ đặt (shared/hoaDan.ts, như server), bán kính xả tầng Hàn, lớp vẽ đống lửa (độ sâu theo chân). */
+  hoaDan: { x: number; y: number; r: number; g: Phaser.GameObjects.Graphics } | null = null;
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
   bossList: { id: string; name: string; pct: number }[] | null = null;
   teleG!: Phaser.GameObjects.Graphics;
@@ -277,12 +280,20 @@ export class GameScene extends Phaser.Scene {
     // #111: thương nhân lưu động ở trại cổng bản đồ săn, chỗ đứng tính từ file Tiled như server (shared/camp.ts).
     const camp = raw && campMerchantSpot(raw, this.mapId);
     if (camp && !npcObjs.some((n) => n.id === camp.id)) npcObjs.push({ ...camp, name: "" });
+    // #163: Hỏa Đàn trong hang thú vương có Cực Hàn, chỗ đặt tính từ file Tiled như server (shared/hoaDan.ts); vẽ bằng code mỗi khung.
+    if (raw) this.grid = solidGrid(raw);
+    const hd = raw && hoaDanSpot(raw, this.mapId, this.grid ?? undefined);
+    if (hd) {
+      const c = W2S(hd.x, hd.y), top = c.y - 22 * SPR;
+      this.hoaDan = { x: hd.x, y: hd.y, r: hd.cold.fire.r, g: this.add.graphics().setDepth(c.y) };
+      this.wtext(this.add.text(c.x, top, "Hỏa Đàn", { fontFamily: FONT, fontSize: "6.5px", fontStyle: "700", color: "#ffc27a", stroke: "#000", strokeThickness: 2, resolution: 8 })
+        .setOrigin(0.5, 1).setDepth(99984), top, 0);
+    }
     this.drawPortals();
     this.drawWaypoints();
     this.buildMinimap(map);
     hud.setTrackerMap(this.mapId);
-    // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts).
-    if (raw) this.grid = solidGrid(raw);
+    // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts; dựng ở trên, trước Hỏa Đàn).
     if (PREDICT && this.grid) this.pred = new Predictor(this.grid);
     if (LAG_MS || !PREDICT) {
       // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); gỡ khi scene tắt (đổi bản đồ).
@@ -395,6 +406,35 @@ export class GameScene extends Phaser.Scene {
       }
       const d = [W2S(x, y - R * 0.3), W2S(x + R * 0.3, y), W2S(x, y + R * 0.3), W2S(x - R * 0.3, y)];
       g.fillStyle(open ? 0xe8fbff : 0xb8b8c4, 0.7 * pulse).fillPoints(d, true);
+    }
+  }
+  /**
+   * Hỏa Đàn (#163, Cực Hàn): vòng hơi ấm bán kính xả tầng Hàn trên mặt đất (lớp `g` dưới hồn sư), và đống lửa (vòng đá, hai khúc củi,
+   * ba lưỡi lửa lay theo thời gian, tàn lửa bay lên) ở lớp riêng xếp theo chân. Nguồn sáng ở lightSources.
+   */
+  paintHoaDan(g: Phaser.GameObjects.Graphics, time: number) {
+    const h = this.hoaDan; if (!h) return;
+    const c = W2S(h.x, h.y), v = this.cameras.main.worldView, m = 2 * RX * h.r;
+    // Ngoài khung hình (cách xa hang) thì không vẽ lại mỗi khung.
+    if (c.x < v.x - m || c.x > v.right + m || c.y < v.y - m || c.y > v.bottom + m) { if (h.g.visible) h.g.clear().setVisible(false); return; }
+    h.g.setVisible(true);
+    const pulse = 0.8 + 0.2 * Math.sin(time / 380);
+    g.fillStyle(0xff9a3c, 0.12 * pulse); fillGround(g, h.x, h.y, h.r);
+    g.lineStyle(1.5, 0xffb45a, 0.6 * pulse); strokeGround(g, h.x, h.y, h.r);
+    const f = h.g, k = SPR, x = c.x, y = c.y;
+    f.clear();
+    f.fillStyle(0x1a1020, 0.35).fillEllipse(x, y + k, 18 * k, 7 * k);
+    for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4; f.fillStyle(i % 2 ? 0x3e3a44 : 0x58545e, 1).fillEllipse(x + Math.cos(a) * 7 * k, y + Math.sin(a) * 3 * k, 4 * k, 2.6 * k); }
+    f.lineStyle(2.2 * k, 0x5a3a22, 1).lineBetween(x - 6 * k, y + k, x + 5 * k, y - 2 * k).lineBetween(x - 5 * k, y - 2 * k, x + 6 * k, y + k);
+    const fl = (ph: number) => 0.85 + 0.15 * Math.sin(time / 90 + ph) + 0.08 * Math.sin(time / 37 + ph * 2);
+    const tongue = (dx: number, w: number, hgt: number, col: number, ph: number) => {
+      const hh = hgt * fl(ph) * k, sway = Math.sin(time / 160 + ph) * 1.2 * k;
+      f.fillStyle(col, 0.95).fillTriangle(x + (dx - w) * k, y - k, x + (dx + w) * k, y - k, x + dx * k + sway, y - k - hh);
+    };
+    tongue(-2.5, 2.6, 9, 0xff5a1e, 0); tongue(2.5, 2.6, 8, 0xff5a1e, 1.7); tongue(0, 3.4, 13, 0xff9a3c, 0.9); tongue(0, 2, 8, 0xffe08a, 2.3);
+    for (let i = 0; i < 4; i++) {
+      const t = ((time / 900 + i * 0.27) % 1), ex = x + Math.sin(time / 300 + i * 2.1) * 3 * k, ey = y - (10 + t * 16) * k;
+      f.fillStyle(0xffc27a, 0.9 * (1 - t)).fillRect(ex, ey, k * 0.8, k * 0.8);
     }
   }
   /** Cột sáng trên hồn sư đang niệm truyền tống (fx `wpcast`), mỗi khung; hết giờ hoặc hồn sư rời phòng thì bỏ. */
@@ -897,12 +937,13 @@ export class GameScene extends Phaser.Scene {
     });
     // Tự bán từ xa (#216): server vừa bán đồ hợp bộ lọc; túi mới đến bằng tin "bagd", dòng log chi tiết đến cùng lúc.
     this.room.onMessage("autosold", (m: AutoSoldMsg) => hud.banner(`Đã tự bán ${m.n.toLocaleString("vi-VN")} món`, `+${formatHonTe(m.coins)} · mua lại ở thương nhân`));
-    // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag".
-    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number }) => {
+    // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag". Từ #187 kèm
+    // các dòng phụ server vừa tung ở mốc (`subs`).
+    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; subs?: { k: CoreStat; v: number }[] }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
-      if (m.to > m.from) hud.banner(`Cường hóa hồn cốt +${m.to}`, `+${m.from} → +${m.to} · ${pts}`);
-      else hud.banner(`Cường hóa hồn cốt +${m.to}`, `${pts}, chưa đủ lên cấp`);
+      const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
+      hud.banner(`Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
     });
     // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; subs: CoreSubUp[] }) => {
@@ -1206,6 +1247,7 @@ export class GameScene extends Phaser.Scene {
   drawTeles(time: number) {
     const g = this.teleG; g.clear();
     this.drawGrounds(g, time); // vùng lưu lại nằm dưới vùng cảnh báo
+    this.paintHoaDan(g, time); // Hỏa Đàn (#163): vòng hơi ấm cũng dưới vùng cảnh báo; đống lửa ở lớp riêng theo độ sâu
     for (const [bid, x] of this.teles) {
       const k = Math.min(1, (time - x.t0) / x.ms);
       // Hồn thú đã bị hạ hoặc server không gửi kết quả (mất gói): bỏ vùng.
@@ -1415,7 +1457,7 @@ export class GameScene extends Phaser.Scene {
           for (let j = 0; j < 4; j++) { const x = rx + (-8 + j * 5.3) * q; g.lineBetween(x, ry + q, x + q, ry - (5 + (j % 2) * 2) * q); }
         }
         const icons = STATUS_ICONS.filter((x) => PLAYER_STATUS.includes(x) && ph(x));
-        this.statusIcons(g, rx, ry - HEAD - 24 * this.txtK, icons, {});
+        this.statusIcons(g, rx, ry - HEAD - 24 * this.txtK, icons, { chill: p.han ?? 0 }); // tầng Hàn (#163): chấm dưới bông tuyết
         if (ph("freeze")) this.iceBlock(g, rx, ry, time);
         if (ph("stun")) this.stunStars(g, rx, ry - 26 * q, time);
         if (ph("charm")) this.charmHearts(g, rx, ry - 26 * q, time);
@@ -1504,6 +1546,7 @@ export class GameScene extends Phaser.Scene {
       else if (k === "allure") { g.fillCircle(x + 1.5, y0 + 1.8, 1.4); g.fillCircle(x + 3.5, y0 + 1.8, 1.4); g.fillTriangle(x, y0 + 2.3, x + 5, y0 + 2.3, x + 2.5, y0 + 5); }
       else if (k === "lock") { g.lineStyle(1, c, 1); g.strokeRect(x + 0.5, y0 + 2.5, 4, 2.5); g.strokeCircle(x + 2.5, y0 + 2, 1.5); }
       else if (k === "slow") { g.fillRect(x, y0 + 4, 5, 1); g.fillTriangle(x + 1, y0, x + 4, y0, x + 2.5, y0 + 3); }
+      else if (k === "chill") { g.lineStyle(1, c, 1); g.lineBetween(x + 2.5, y0, x + 2.5, y0 + 5); g.lineBetween(x, y0 + 1.2, x + 5, y0 + 3.8); g.lineBetween(x, y0 + 3.8, x + 5, y0 + 1.2); }
       else { g.lineStyle(1, c, 1); g.strokeCircle(x + 2.5, y0 + 2.5, 2.2); g.lineBetween(x + 1, y0 + 4, x + 4, y0 + 1); }
       for (let n = 0; n < (stacks[k] ?? 0) && n < 5; n++) g.fillStyle(c, 1).fillRect(x + n * 1.2, y0 + 6.5, 1, 1);
       x += 7;
@@ -1904,6 +1947,11 @@ export class GameScene extends Phaser.Scene {
     for (const w of this.waypoints) if (this.wpOpen.has(w.key)) {
       const c = W2S(w.x + w.w / 2, w.y + w.h / 2);
       out.push({ x: c.x, y: c.y, col: 0x8fe0ff, r: 46, i: 0.5 + 0.1 * Math.sin(time / 420), p: PRIO.prop });
+    }
+    // Hỏa Đàn (#163): ánh lửa cam lay động như vật phát sáng.
+    if (this.hoaDan) {
+      const c = W2S(this.hoaDan.x, this.hoaDan.y);
+      out.push({ x: c.x, y: c.y - 8 * SPR, col: 0xff9a3c, r: 90, i: 0.85 * (0.85 + 0.1 * Math.sin(time / 90) + 0.05 * Math.sin(time / 37)), p: PRIO.prop });
     }
     st.drops.forEach((d: any, id: string) => {
       const v = this.drops.get(id); if (!v || d.item) return;
