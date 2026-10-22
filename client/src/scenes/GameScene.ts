@@ -748,8 +748,8 @@ export class GameScene extends Phaser.Scene {
     else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
     else if (a === "chanthan") this.room.send("chanthan");
-    // Võ Hồn Dung Hợp Kỹ (#193): đang được mời thì hưởng ứng, không thì mời; server chọn đồng đội và kiểm mọi điều kiện.
-    else if (a === "fusion") this.room.send("fusion", { op: hud.fusionAsked() ? "join" : "start" });
+    // Võ Hồn Dung Hợp Kỹ (#193): đang được mời thì hưởng ứng (một lần), không thì mời; server chọn đồng đội và kiểm mọi điều kiện.
+    else if (a === "fusion") { const op = hud.fusionOp(); if (op) this.room.send("fusion", { op }); }
   }
 
   /**

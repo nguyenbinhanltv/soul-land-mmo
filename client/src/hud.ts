@@ -331,6 +331,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     mk(FUSION_KEY, `Võ Hồn Dung Hợp Kỹ: ${fus.map((f) => f.name).join(" / ")}${has ? "" : " (khóa)"}`, has ? "Dung hợp" : "Khóa",
       has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, tip);
     fusBtn = el.lastElementChild as HTMLElement; fusBtn.classList.add("fus");
+    fusCdEl = fusBtn.querySelector(".cd"); fusLabel = fusBtn.querySelectorAll("span")[1]; fusCdPct = -1;
   }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
 }
@@ -342,17 +343,27 @@ let fusCdEnd = 0; // performance.now() lúc hết hồi chiêu dung hợp của 
 /** Lời mời đang chờ: `ask` = mình được mời (B), `wait` = mình mời, chờ đồng đội; `i` cặp trong FUSIONS, `who` tên người kia. */
 let fusPend: { k: "ask" | "wait"; i: number; who: string; end: number; ms: number } | null = null;
 let fusTxt = "", fusBtn: HTMLElement | null = null; // nút G hiện tại (buildSkills dựng lại thì đổi)
+let fusCdEl: HTMLElement | null = null, fusLabel: HTMLElement | null = null, fusCdPct = -1; // lớp phủ hồi chiêu, nhãn của nút G
+/** Đã gửi `join`: chờ server trả `done` / `cancel`, phím G và nút không gửi lại (bấm hai lần không ra lỗi "chưa có lời mời"). */
+let fusSent = false;
 /** Hồi chiêu dung hợp còn `secs` giây (server gửi; đổi võ hồn không làm mới vì thuộc hồn sư). */
 export function setFusionCd(secs: number) { fusCdEnd = performance.now() + Math.max(0, secs) * 1000; }
-/** Có đang được mời không (phím G / nút gửi `join` thay vì `start`). Server vẫn kiểm lại và báo lý do. */
-export const fusionAsked = () => fusPend?.k === "ask";
+/**
+ * Việc phím G / nút gửi: "join" khi đang được mời, "" khi vừa hưởng ứng và đang chờ server (không gửi lại), không thì "start". Gọi
+ * nghĩa là sẽ gửi: "join" thì khóa tới khi server trả `done` / `cancel`. Server vẫn kiểm lại và báo lý do.
+ */
+export function fusionOp(): "join" | "start" | "" {
+  if (fusSent) return "";
+  if (fusPend?.k !== "ask") return "start";
+  fusSent = true; $("#fusion").querySelector("button")?.setAttribute("disabled", ""); return "join";
+}
 /**
  * Khung nhắc dung hợp kỹ (tin riêng `fusion`): B thấy "Dung hợp [G]" kèm đếm ngược `t` giây và nút chạm được (gọi `join`); A thấy
  * đang chờ ai hưởng ứng. `null` thì ẩn (xong, hủy, đổi bản đồ). Tên người chơi gán bằng textContent. Đếm ngược và thanh `aria-hidden`
  * để trình đọc màn hình chỉ đọc tên chiêu và nút, không đọc lại mỗi 0,1 giây.
  */
 export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string; t: number } | null, join?: () => void) {
-  const el = $("#fusion"); fusTxt = "";
+  const el = $("#fusion"); fusTxt = ""; fusSent = false;
   fusPend = p && FUSIONS[p.i] ? { k: p.k, i: p.i, who: p.who, end: performance.now() + p.t * 1000, ms: Math.max(1, p.t * 1000) } : null;
   if (!fusPend) { el.hidden = true; el.innerHTML = ""; return; }
   const ask = fusPend.k === "ask";
@@ -368,12 +379,14 @@ export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string;
 /** Mỗi khung hình: đếm ngược lời nhắc, ô hồi chiêu và nhãn của nút G. */
 export function updateFusion() {
   const now = performance.now(), b = fusBtn;
-  if (b) {
+  if (b && fusCdEl && fusLabel) {
     const locked = b.classList.contains("locked"), cd = Math.max(0, fusCdEnd - now) / 1000;
-    (b.querySelector(".cd") as HTMLElement).style.height = (locked ? 0 : Math.min(1, cd / FUSION.cd) * 100) + "%";
-    b.classList.toggle("ask", !locked && fusPend?.k === "ask");
-    const label = b.querySelectorAll("span")[1], txt = locked ? "Khóa" : fusPend?.k === "ask" ? "Hưởng ứng" : fusPend ? "Đang chờ" : "Dung hợp";
-    if (label.textContent !== txt) label.textContent = txt;
+    const pct = locked ? 0 : Math.round(Math.min(1, cd / FUSION.cd) * 1000) / 10;
+    if (pct !== fusCdPct) { fusCdPct = pct; fusCdEl.style.height = pct + "%"; }
+    const ask = !locked && fusPend?.k === "ask" && !fusSent;
+    if (b.classList.contains("ask") !== ask) b.classList.toggle("ask", ask);
+    const txt = locked ? "Khóa" : ask ? "Hưởng ứng" : fusPend ? "Đang chờ" : "Dung hợp";
+    if (fusLabel.textContent !== txt) fusLabel.textContent = txt;
   }
   if (!fusPend) return;
   const left = Math.max(0, fusPend.end - now), sec = (left / 1000).toFixed(1).replace(".", ",");
