@@ -1220,6 +1220,12 @@ export class GameScene extends Phaser.Scene {
       this.ringFx(s, 6, rage ? 40 : 30, col, 450);
       if (rage) this.cameras.main.shake(120, 0.003);
     }
+    else if (m.k === "form") {
+      // Hồn thú đổi dạng (#173, Song Sắc Mãng băng / hỏa): chữ tên dạng và vòng màu dạng mới.
+      const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid); if (!s || !b) return;
+      this.floatText(s.x, beastTop(s, b.tier) - 10, `Hóa ${m.name}!`, m.col ?? "#ffffff");
+      this.ringFx(s, 6, 36, m.col ?? "#ffffff", 450);
+    }
     else if (m.k === "roar") {
       // Thú vương chuyển giai đoạn 2 (BĐ5): gầm lên, sóng đỏ lan ra, rung màn hình.
       const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid); if (!s || !b) return;
@@ -1316,6 +1322,7 @@ export class GameScene extends Phaser.Scene {
       const fade = Math.max(0, Math.min(1, left, (time - ck.seen) / 300)), pulse = 0.5 + 0.5 * Math.sin(time / 420 + seed);
       const circle = t.shape === "circle";
       if (kind.id === "flood" || kind.id === "whirl") { this.drawWater(g, t, kind.id === "whirl", c, z.wait > 0, fade, time, seed); return; }
+      if (kind.id === "ice" || kind.id === "fire" || kind.id === "web") { this.drawLairPart(g, t, kind.id, c, z.wait > 0, fade, time); return; }
       if (kind.id === "mist") {
         // Sương: nền mờ cả vùng và 4 làn sương lệch tâm xoay chậm (vòng tròn); hình khác chỉ tô nền nhạt hơn.
         g.fillStyle(c, 0.22 * fade); this.teleShape(g, t, 1);
@@ -1336,6 +1343,58 @@ export class GameScene extends Phaser.Scene {
         g.fillStyle(0xe8ffb8, (1 - ph) * 0.9 * fade); fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, 1 + ph * 2.2);
       }
     });
+  }
+  /**
+   * Phần hang đang hóa (#173, drawGrounds; dải `line` phủ một phần hang): băng là mặt băng xanh nhạt với tinh thể sáng lấp lánh, lửa là
+   * nền cam đập nhẹ với tàn lửa bay lên, tơ là nền trắng mờ với các sợi tơ chéo đan nhau. Đang báo trước (`wait`): nền rất nhạt, viền
+   * nhấp nháy nhanh và một vệt màu quét dọc dải (lặp), chưa có tác dụng.
+   */
+  drawLairPart(g: Phaser.GameObjects.Graphics, t: Tele, kind: "ice" | "fire" | "web", c: number, wait: boolean, fade: number, time: number) {
+    // Điểm thế giới theo tọa độ trong dải: u 0..1 dọc chiều dài, v −0,5..0,5 theo bề rộng.
+    const cs = Math.cos(t.ang), sn = Math.sin(t.ang), at = (u: number, v: number) => ({ x: t.x + cs * u * t.r - sn * v * t.w, y: t.y + sn * u * t.r + cs * v * t.w });
+    const scr = (u: number, v: number) => { const p = at(u, v); return W2S(p.x, p.y); };
+    // Hang thú vương ở bản đồ ×8 nhiều tán cây che mặt đất: thêm nền rất nhạt và viền trên lớp phủ (`ov`, trên cây và hồn sư) để luôn
+    // thấy phần nào đang hóa / sắp hóa.
+    const o = this.ov, beat = wait ? 0.5 + 0.5 * Math.sin(time / 110) : 0.5 + 0.5 * Math.sin(time / 600);
+    o.fillStyle(c, (wait ? 0.05 : 0.08) * fade); this.teleShape(o, t, 1);
+    o.lineStyle(1.5, c, (0.35 + 0.4 * beat) * fade); this.teleOutline(o, t);
+    if (wait) {
+      const blink = 0.5 + 0.5 * Math.sin(time / 110), k = (time / 700) % 1;
+      g.fillStyle(c, 0.1 * fade); this.teleShape(g, t, 1);
+      g.fillStyle(c, 0.22 * (1 - k) * fade); g.fillPoints(ptsToScreen([at(k * 0.85, -0.5), at(k * 0.85 + 0.15, -0.5), at(k * 0.85 + 0.15, 0.5), at(k * 0.85, 0.5)]), true);
+      g.lineStyle(2, c, (0.45 + 0.5 * blink) * fade); this.teleOutline(g, t);
+      return;
+    }
+    const pulse = 0.5 + 0.5 * Math.sin(time / (kind === "fire" ? 260 : 600));
+    g.fillStyle(kind === "fire" ? 0x3a1200 : kind === "ice" ? 0x0a2a44 : 0x2a2a34, 0.3 * fade); this.teleShape(g, t, 1);
+    g.fillStyle(c, (kind === "web" ? 0.14 : 0.22 + 0.08 * pulse) * fade); this.teleShape(g, t, 1);
+    g.lineStyle(2, c, (0.55 + 0.3 * pulse) * fade); this.teleOutline(g, t);
+    // Số điểm hoa văn theo diện tích dải (khoảng một điểm mỗi 20×20 pixel), vị trí cố định theo chỉ số (giả ngẫu nhiên).
+    const n = Math.min(60, Math.max(8, Math.round((t.r * t.w) / 400))), fr = (x: number) => x - Math.floor(x);
+    if (kind === "web") {
+      // Sợi tơ: các đường chéo nối hai mép dài, đan hai chiều, rung nhẹ.
+      const m = Math.max(4, Math.round(t.r / 18));
+      for (let j = 0; j <= m; j++) {
+        const u = j / m, sway = 0.02 * Math.sin(time / 500 + j);
+        g.lineStyle(1, 0xffffff, (0.35 + 0.15 * Math.sin(time / 700 + j)) * fade);
+        const a = scr(u, -0.5), b = scr(Math.min(1, u + 1 / m + sway), 0.5), d = scr(Math.max(0, u - 1 / m - sway), 0.5);
+        g.lineBetween(a.x, a.y, b.x, b.y); g.lineBetween(a.x, a.y, d.x, d.y);
+      }
+      for (let j = 0; j < n / 3; j++) { const p = scr(fr(j * 0.618), fr(j * 0.377) - 0.5); g.fillStyle(0xffffff, 0.6 * fade); g.fillRect(p.x - SPR, p.y - SPR, 2 * SPR, 2 * SPR); }
+      return;
+    }
+    for (let j = 0; j < n; j++) {
+      const u = fr(j * 0.618 + 0.11), v = fr(j * 0.377 + 0.23) - 0.5;
+      if (kind === "ice") {
+        // Tinh thể băng: chữ thập nhỏ lấp lánh lệch pha.
+        const p = scr(u, v), a = (0.3 + 0.6 * Math.max(0, Math.sin(time / 400 + j * 1.9))) * fade, s = 2 * SPR;
+        g.lineStyle(1, 0xffffff, a); g.lineBetween(p.x - s, p.y, p.x + s, p.y); g.lineBetween(p.x, p.y - s * 0.6, p.x, p.y + s * 0.6);
+      } else {
+        // Tàn lửa: bay lên rồi tắt, lặp theo chu kỳ riêng.
+        const ph = fr(time / 1300 + j * 0.37), p = scr(u, v);
+        g.fillStyle(ph < 0.5 ? 0xffe08a : c, (1 - ph) * 0.9 * fade); g.fillRect(p.x - SPR, p.y - ph * 14 * SPR - SPR, 2 * SPR, 2 * SPR);
+      }
+    }
   }
   /** Vùng ngập / xoáy nước của Thủy Triều Dâng (#174, drawGrounds): vòng tròn trên mặt đất theo phép chiếu, vẽ bằng code. */
   drawWater(g: Phaser.GameObjects.Graphics, t: Tele, whirl: boolean, c: number, wait: boolean, fade: number, time: number, seed: number) {
@@ -1384,7 +1443,10 @@ export class GameScene extends Phaser.Scene {
     st.beasts.forEach((b: any, id: string) => {
       if (!b.rank || b.dive) return; const s = this.beasts.get(id); if (!s) return; // boss đang lặn giữa hồ (#118): không aura
       // Thú vương (BĐ5) ở giai đoạn 2 cũng đập nhanh như Cuồng nộ.
-      const rage = (b.buff & beastBuffBit("rage")) !== 0 || b.phase === 2, c = hex(rage && b.rank === 1 ? BEAST_BUFFS.rage.col : BOSSES[b.species]?.aura ?? "#ffffff");
+      // Hồn thú đổi dạng (#173): aura màu dạng đang có (cả khi Cuồng nộ: vẫn đập nhanh); báo trước đổi dạng thì nhấp nháy sang màu dạng sắp tới.
+      const forms = b.form ? BOSSES[b.species]?.forms?.forms : undefined, fNow = forms?.[b.form - 1], fNext = forms?.[b.form % forms.length];
+      const fCol = fNow && (b.formWarn && fNext && Math.floor(time / 180) % 2 ? fNext.col : fNow.col);
+      const rage = (b.buff & beastBuffBit("rage")) !== 0 || b.phase === 2, c = hex(fCol ?? (rage && b.rank === 1 ? BEAST_BUFFS.rage.col : BOSSES[b.species]?.aura ?? "#ffffff"));
       const w = Math.max(24, s.displayWidth * 0.9), pulse = 0.5 + 0.5 * Math.sin(time / (rage ? 110 : 260));
       this.teleG.fillStyle(c, 0.3 + 0.15 * pulse).fillEllipse(s.x, s.y, w + 12, (w + 12) * 0.4);
       this.teleG.fillStyle(c, 0.35).fillEllipse(s.x, s.y, w * 0.6, w * 0.24);

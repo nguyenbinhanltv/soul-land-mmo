@@ -23,7 +23,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
   beastSkillOf, teleHits, teleSafe, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
-  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
+  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef, type FormDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
@@ -53,6 +53,7 @@ import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
 import { ColdStacks } from "./cold.ts";
 import { Tide } from "./tide.ts";
+import { LairSplit } from "./split.ts";
 
 export interface PData {
   accountId: number;
@@ -193,7 +194,8 @@ export interface BData {
   skills: { def: BeastSkillDef; cd: number }[];
   skT: number;
   // charge: tích lực phải ngắt (BĐ6e); safe: vòng an toàn của chiêu toàn sàn (BeastSkillDef.safe, #118)
-  cast: { def: BeastSkillDef; teles: Tele[]; t: number; target: string; charge?: boolean; safe?: Tele[] } | null;
+  // status (#173): trạng thái theo dạng lúc bắt đầu báo trước (BeastSkillDef.forms), thay cho def.status
+  cast: { def: BeastSkillDef; teles: Tele[]; t: number; target: string; charge?: boolean; safe?: Tele[]; status?: StatusApply[] } | null;
   buffs: Map<BeastBuffId, number>; // từ BĐ4: hiệu ứng có lợi của hồn thú (giây còn lại), ví dụ Cuồng nộ của tinh anh
   minions: Set<string>;     // hồn thú do chiêu gọi bầy (BeastSkillDef.summon) của con này gọi ra
   elite: EliteData | null;  // tinh anh (BĐ4); null với hồn thú thường
@@ -209,6 +211,7 @@ export interface BData {
 interface EliteData {
   base: number; n: number; engaged: boolean; parts: Map<string, number>; lonely: number; dropT: number;
   dmgBy: Map<string, number>; supBy: Map<string, number>; acc: Map<string, number>; rageCd: number;
+  form: number; formT: number; // #173: dạng đang có (chỉ số trong BossDef.forms) và giây còn lại của dạng; không đổi dạng thì 0
   king: KingData | null; // tà hóa thú vương (BĐ5): cùng bộ máy người tham gia / máu theo số người, bán kính là cả hang
 }
 /**
@@ -473,6 +476,8 @@ export class MapRoom extends Room<MapState> {
   cold = new ColdStacks(this);
   /** Vùng ngập luân phiên và xoáy nước của Thủy Triều Dâng (#174, tide.ts; vùng là vùng lưu lại của ground.ts). */
   tide = new Tide(this);
+  /** Hang chia phần luân phiên của Lưỡng Nghi Luân Chuyển / tơ Vạn Chu Phệ (#173, split.ts; phần đang hóa là vùng lưu lại của ground.ts). */
+  split = new LairSplit(this);
   /** Giây tới lần gửi tin `mini` (bản đồ nhỏ, SYNC_VIEW.mini) kế tiếp. */
   miniT = 0;
   /** PERF_LOG=1: đo thời gian tick / bản vá, ghi log mỗi 10 giây (đo hiệu năng 11.4). */
@@ -2709,7 +2714,8 @@ export class MapRoom extends Room<MapState> {
       const sp = typeof o.species === "string" ? Math.max(0, beastIndex(o.species)) : 0; // từ 4.1: loài theo mã (hồn cốt mang tên loài)
       const boss = typeof o.boss === "string" ? bossIndex(o.boss) : -1; // từ BĐ4: tinh anh theo mã BOSSES (không thuộc ô tinh anh nào)
       const bid = this.addBeast(0, yearsOf(0), boss >= 0 ? boss : sp, p.x + int(o.dx, -200, 200, 0), p.y + int(o.dy, -200, 200, 0), boss >= 0 ? 1 : 0);
-      this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; this.bdata.get(bid)!.skills = []; // không tung chiêu báo trước
+      // Không tung chiêu báo trước; `skills` (#173): giữ chiêu (chỉ tung khi bot gọi `tele`, Song Sắc Mãng đổi dạng).
+      this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; if (o.skills) this.bdata.get(bid)!.skT = 1e9; else this.bdata.get(bid)!.skills = [];
       if (!o.realDef) this.bdata.get(bid)!.def = BEAST_DEF.ref; // #116: thủ chuẩn như `spawn`
       // #192 `hpx`: tinh anh đầy máu, máu gốc × hpx (eliteScale tính lại theo máu gốc) để bot đọc đóng góp sau một chiêu mạnh.
       const e = this.bdata.get(bid)!.elite, hb = this.state.beasts.get(bid)!, hpx = int(o.hpx, 1, 1000, 1);
@@ -2870,6 +2876,21 @@ export class MapRoom extends Room<MapState> {
       // (đã cộng mọi trạng thái, tối đa SLOW_CAP) và trạng thái trên người gọi. `next {s}`: 0 = dâng một đợt ngay, > 0 = đặt giây chờ.
       const t = this.tide.info(typeof o.next === "number" && o.next >= 0 ? Math.min(600, o.next) : undefined);
       out = { ...t, grounds: this.grounds.info(), slow: d ? this.pctl(d).slow : 0, st: pst() };
+    }
+    else if (op === "split") {
+      // #173: hang chia phần đang chạy không, giây tới lần đổi kế tiếp, phần đang hóa, các phần của hang, vùng lưu lại và trạng thái trên
+      // người gọi. `next {s}`: 0 = đổi phần ngay, > 0 = đặt giây chờ.
+      const t = this.split.info(typeof o.next === "number" && o.next >= 0 ? Math.min(600, o.next) : undefined);
+      out = { ...t, grounds: this.grounds.info(), slow: this.pctl(d).slow, st: pst() };
+    }
+    else if (op === "form") {
+      // #173: dạng của hồn thú đổi dạng (`bid` hoặc gần nhất; BossDef.forms): chỉ số dạng, giây còn lại. `next {s}`: 0 = đổi ngay, > 0 = đặt giây.
+      const x = nearB(), e = x?.bd.elite, fd = x && x.b.rank ? BOSSES[x.b.species]?.forms : undefined;
+      if (x && e && fd) {
+        if (o.next === 0) e.formT = 0; else if (typeof o.next === "number" && o.next > 0) e.formT = Math.min(600, o.next);
+        if (o.next === 0) this.tickForm(x.bid, x.b, e, fd, 0);
+        out = { bid: x.bid, form: e.form, t: e.formT, name: fd.forms[e.form]?.name, sync: x.b.form, warn: x.b.formWarn };
+      }
     }
     else if (op === "pst") {
       // Trạng thái lên chính người gọi như do hồn thú gần nhất gây (sát thương đòn thường của nó cho Trúng độc / Thiêu đốt).
@@ -3805,7 +3826,9 @@ export class MapRoom extends Room<MapState> {
     const teles = def.floor ? this.floorTeles() : teleZones(def, b.x, b.y, tgt.x, tgt.y, Math.random);
     // Chiêu toàn sàn né được (#118): vòng an toàn rải trong sàn, khóa cùng lúc với vùng.
     const safe = def.floor && def.safe ? floorSafeZones(this.map, { x: bd.hx, y: bd.hy }, def.safe.n, def.safe.r, Math.random) : undefined;
-    bd.cast = { def, teles, t: def.warn, target: pid, safe }; this.casting.add(bid);
+    // Hồn thú đổi dạng (#173): trạng thái theo dạng lúc này (đổi dạng giữa lúc báo trước không đổi chiêu đang tung).
+    const status = def.forms && bd.elite ? def.forms[bd.elite.form] : undefined;
+    bd.cast = { def, teles, t: def.warn, target: pid, safe, status }; this.casting.add(bid);
     s.cd = def.cd * (0.8 + Math.random() * 0.4) * (bd.elite?.king?.world?.rage ? WORLD.rageCd : 1); // boss thế giới nổi giận: hồi chiêu nhanh hơn
     b.cast = true; b.moving = false; if (Math.abs(Math.cos(ang)) > 0.1) b.face = Math.cos(ang) > 0 ? 1 : -1;
     this.broadcast("fx", { k: "tele", bid, name: def.name, ...teles[0], parts: teles.slice(1), t: def.warn, ...(safe ? { safe } : {}) });
@@ -3859,7 +3882,7 @@ export class MapRoom extends Room<MapState> {
     for (const pid of hit) {
       const rooted = !!def.drain && !!this.pdata.get(pid)?.st.has("root"); // BĐ6b Hút Sinh: xét Trói trước khi chiêu gây trạng thái mới
       if (!this.hurtPlayer(pid, base * def.dmg * (0.9 + Math.random() * 0.2))) continue;
-      for (const a of def.status ?? []) this.applyPStatus(pid, a, base);
+      for (const a of c.status ?? def.status ?? []) this.applyPStatus(pid, a, base);
       if (def.pull) this.pullPlayer(pid, b, def.pull);
       if (rooted && b.hp > 0) {
         const add = Math.min(b.maxHp - b.hp, Math.ceil(b.maxHp * def.drain!));
@@ -5255,8 +5278,10 @@ export class MapRoom extends Room<MapState> {
       skills: boss ? boss.skills.map((def) => ({ def, cd: 0 })) : sk ? [{ def: sk, cd: 0 }] : [], skT: 0, cast: null,
       buffs: new Map(), minions: new Set(),
       elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), acc: new Map(), rageCd: 0,
+        form: boss.forms ? Math.floor(Math.random() * boss.forms.forms.length) : 0, formT: boss.forms?.every ?? 0,
         king: king ? { def: boss, slot, life, phase: 1, roar: 0, spd: 1, noted: new Set(), rankT: 0, world: world ? newWorld(boss) : null } : null } : null });
     const bd = this.bdata.get(id)!; if (bd.rooted) bd.reach = rootedReach(b.tier, bd.skills.map((s) => s.def));
+    if (boss?.forms) b.form = bd.elite!.form + 1;
     return id;
   }
 
@@ -5334,10 +5359,24 @@ export class MapRoom extends Room<MapState> {
    * Mỗi tick của tinh anh: Cuồng nộ (máu dưới ELITE_RAGE.hp), loại người tham gia đã rời phòng / ở ngoài bán kính ELITE.outSecs giây
    * liên tục, bỏ giao chiến sau ELITE.idleSecs giây không còn người tham gia nào trong bán kính. Hook test `etick` gọi với `dt` lớn.
    */
+  /**
+   * Đổi dạng (#173, BossDef.forms; tinh anh Song Sắc Mãng): mỗi `every` giây sang dạng kế tiếp (báo cả vùng gần bằng `fx form`), `warn`
+   * giây cuối của dạng thì `formWarn` (client nhấp nháy màu dạng sắp tới). Chạy cả khi chưa giao chiến để người tới gần thấy dạng thật.
+   */
+  tickForm(bid: string, b: BeastState, e: EliteData, fd: FormDef, dt: number) {
+    if ((e.formT -= dt) <= 0) {
+      e.form = (e.form + 1) % fd.forms.length; e.formT += fd.every; if (e.formT <= 0) e.formT = fd.every;
+      b.form = e.form + 1;
+      const f = fd.forms[e.form]; this.broadcast("fx", { k: "form", bid, name: f.name, col: f.col, x: b.x, y: b.y });
+    }
+    const warn = e.formT <= fd.warn; if (b.formWarn !== warn) b.formWarn = warn;
+  }
+
   tickElite(bid: string, b: BeastState, bd: BData, dt: number) {
     const e = bd.elite!, k = e.king;
     e.rageCd = Math.max(0, e.rageCd - dt); e.dropT = Math.max(0, e.dropT - dt);
-    const rage = bd.buffs.get("rage");
+    const rage = bd.buffs.get("rage"), forms = BOSSES[b.species]?.forms;
+    if (forms) this.tickForm(bid, b, e, forms, dt);
     if (k) { if (this.tickKing(bid, b, bd, k, dt)) return; } // thú vương: rút đi, giai đoạn 2 (không có Cuồng nộ)
     else if (rage !== undefined) {
       if (rage - dt <= 0) { bd.buffs.delete("rage"); e.rageCd = ELITE_RAGE.cd; this.syncBeastBuff(b, bd); } else bd.buffs.set("rage", rage - dt);
@@ -6200,6 +6239,8 @@ export class MapRoom extends Room<MapState> {
     this.cold.tick(dt);
     // #174: Thủy Triều Dâng dâng đợt nước mới (vùng có tác dụng từ nhịp sau, sau báo trước).
     this.tide.tick(dt);
+    // #173: hang chia phần luân phiên đổi phần đang hóa (vùng có tác dụng sau báo trước).
+    this.split.tick(dt);
     // 11.4: lưới hồn thú / đồ rơi theo vị trí sau khi di chuyển (đạn, hồn kỹ, lọc đồng bộ dùng tới nhịp sau).
     this.interest.syncEntities();
     // đạn hồn kỹ
