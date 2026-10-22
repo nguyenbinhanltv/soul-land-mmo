@@ -44,7 +44,7 @@ import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
-import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlot, type ArenaEntry } from "./arenaQueue.ts";
+import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlot, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
@@ -2079,25 +2079,28 @@ export class MapRoom extends Room<MapState> {
    * `arena {op}` (7.2): `queue` xếp hàng (phải đứng cạnh NPC Đại Đấu Hồn Trường, NPC_RANGE; không gục, không đi cổng, không hấp thụ,
    * không giao chiến), `cancel` hủy xếp hàng, `top` xin bảng xếp hạng kèm thành tích của mình (ở đâu cũng xem được, cách nhau ARENA.topCd
    * giây). Elo đọc từ DB lúc xếp hàng, hai lần đọc của một tài khoản cách nhau ít nhất ARENA.queueCd giây (arenaQueueSlot; xếp rồi hủy
-   * liên tục không tạo tải DB đều đặn); ghép trận ở arenaQueue.ts, trận đấu ở ArenaRoom.
+   * liên tục không tạo tải DB đều đặn); `cancel` trong lúc đang đọc thì đọc xong không xếp hàng (#225). Ghép trận ở arenaQueue.ts, trận
+   * đấu ở ArenaRoom.
    */
   arenaAction(id: string, raw: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const op = String(raw ?? ""), warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendArenaQueue(id); };
     if (op === "top") return this.arenaTop(id);
     if (op === "cancel") {
-      if (arenaDequeue(d.accountId)) this.log(id, "Đã hủy xếp hàng Đại Đấu Hồn Trường.");
+      if (arenaDequeue(d.accountId) || (d.arenaBusy && arenaReadCancel(d.accountId))) this.log(id, "Đã hủy xếp hàng Đại Đấu Hồn Trường.");
       return this.sendArenaQueue(id);
     }
     if (op !== "queue") return warn("Thao tác Đại Đấu Hồn Trường không hợp lệ.");
+    if (d.arenaBusy && arenaReadCancelled(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     if (arenaQueued(d.accountId) || d.arenaBusy) return warn("Đang tìm đối thủ rồi.");
     if (!this.npcNear(id, { role: "arena" })) return warn("Hãy lại gần Đại Đấu Hồn Trường để xếp hàng.");
     const why = this.arenaBusy(id); if (why) return warn(`${why} Chưa xếp hàng được.`);
     if (!arenaQueueSlot(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     d.arenaBusy = true;
-    store.getArena(d.accountId, ARENA.startElo).then((rec) => {
+    arenaReadElo(d.accountId, () => store.getArena(d.accountId, ARENA.startElo)).then((rec) => {
       d.arenaBusy = false;
       if (this.pdata.get(id) !== d) return; // đã rời phòng trong lúc chờ DB
+      if (!rec) return this.sendArenaQueue(id); // đã hủy trong lúc đọc (#225), đã báo lúc hủy
       const late = this.arenaBusy(id); if (late) return warn(`${late} Chưa xếp hàng được.`);
       const e: ArenaEntry = { accountId: d.accountId, name: p.name, rec, since: Date.now(),
         ready: () => this.pdata.get(id) === d && !this.arenaBusy(id), found: (roomId, foe) => this.arenaFound(id, d, roomId, foe) };
@@ -2720,6 +2723,7 @@ export class MapRoom extends Room<MapState> {
       }).then(() => { this.sendVohons(c); c.send("test", { op, enabled: true, rec }); });
       return;
     }
+    else if (op === "aslow") arenaTestSlow(d.accountId, int(o.ms, 0, 10000, 0)); // #225: lần đọc Elo kế tiếp lúc xếp hàng chậm thêm `ms` mili giây
     else if (op === "claims") {
       // BĐ5: lượt nhận rương thú vương hôm nay trong bộ nhớ và trong DB (đọc sau khi chuỗi lưu xong).
       this.chain(d, async () => {
