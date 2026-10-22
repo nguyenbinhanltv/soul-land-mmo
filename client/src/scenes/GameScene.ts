@@ -12,6 +12,7 @@ import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soul
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
+import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath } from "../../../shared/path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
@@ -243,6 +244,7 @@ export class GameScene extends Phaser.Scene {
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
   bagKey = "";
+  charStats: StatsMsg | null = null; // tin riêng "stats" gần nhất (bảng nhân vật)
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
@@ -615,13 +617,14 @@ export class GameScene extends Phaser.Scene {
       const f = document.activeElement;
       if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
+      if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2)
       if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
-      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
+      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); toggleChar(false); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
@@ -645,6 +648,7 @@ export class GameScene extends Phaser.Scene {
     chat.addEventListener("blur", () => hud.chatFocus(false), on);
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
+    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); toggleChar(); }, on);
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
@@ -1010,6 +1014,9 @@ export class GameScene extends Phaser.Scene {
     // Bạn bè và chặn (#195): bảng bạn bè và lời "đã thêm bạn", chỉ gửi riêng cho mình.
     hud.bindFriends((op, name) => this.room.send("friend", { op, ...(name ? { name } : {}) }), (name) => this.partySend("invite", name));
     this.room.onMessage("friends", (m: FriendsMsg) => { if (m && Array.isArray(m.list) && Array.isArray(m.blocks)) hud.setFriends(m); });
+    // Bảng nhân vật (UI-2): chỉ số tổng hợp do server tính (tin riêng "stats"), client chỉ hiển thị.
+    this.room.onMessage("stats", (m: StatsMsg) => { if (m && m.total && m.base) { this.charStats = m; this.renderChar(); } });
+    onCharOpen(() => this.askStats());
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
@@ -2316,7 +2323,14 @@ export class GameScene extends Phaser.Scene {
    * trong túi) từ tin riêng "bag",
    * võ hồn từ tin riêng "vohons".
    */
+  /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */
+  askStats() { this.room.send("stats", { rowId: charViewRow() }); }
+  renderChar() {
+    if (!this.owned || !isCharOpen()) return;
+    renderChar(this.owned, this.bag?.items ?? [], this.charStats, { portrait: (vohon) => this.portrait(vohon), ask: (rowId) => this.room.send("stats", { rowId }) });
+  }
   renderRoster() {
+    if (isCharOpen()) { this.askStats(); this.renderChar(); } // vohons / bag / cộng minh đổi: chỉ số và ô trên bảng nhân vật cũng đổi
     if (!this.owned) return;
     const shards = new Map<string, number>();
     for (const it of this.bag?.items ?? []) {

@@ -19,6 +19,7 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, artUrl, tintedUrl } from "./uiArt.ts";
+import { toggleChar } from "./charPanel.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
@@ -252,7 +253,7 @@ export function banner(a: string, b: string) {
 
 /** Hồi chiêu của hồn kỹ vòng `r` của võ hồn `stars` sao (9.5: vòng 1–4 từ 4★ ngắn hơn; server tính như nhau). */
 export const skillCd = (s: SkillDef, r: number, stars: number) => s.cd * (starRing(r) ? starCdMult(stars) : 1);
-const cdText = (x: number) => String(Math.round(x * 100) / 100).replace(".", ",");
+export const cdText = (x: number) => String(Math.round(x * 100) / 100).replace(".", ",");
 /** Dòng "Sao: hồn kỹ +x%…" của võ hồn `stars` sao (9.5, mục 5.1); 1★ thì "". */
 export function starSkillText(stars: number) {
   if (starSkillMult(stars) <= 1) return "";
@@ -261,7 +262,7 @@ export function starSkillText(stars: number) {
     + `, tiên cơ riêng ${pct(starTienCoMult(stars))}`;
 }
 /** Chú thích một hồn kỹ của vòng `r` (chỉ số 0..9): tốn / hồi, sức mạnh theo số năm hồn hoàn (kèm sao võ hồn, 9.5), hoặc vòng cần để mở. */
-function skillSpec(s: SkillDef, r: number, rings: number[], years: number[] | null, stars: number): TipSpec {
+export function skillSpec(s: SkillDef, r: number, rings: number[], years: number[] | null, stars: number): TipSpec {
   const has = r < rings.length, y = years?.[r] ?? (has ? TIERS[rings[r]].years : 0), sm = starRing(r) ? starSkillMult(stars) : 1;
   const lines: TipLine[] = [s.desc + "."];
   if (has) lines.push({ k: "Sức mạnh", v: `×${(skillPower(y) * sm).toFixed(2).replace(".", ",")}`, tone: "gem" },
@@ -667,7 +668,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
 export function toggleRoster(open = $("#roster").hidden) {
   $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
   if (!open) rosterSel = null;
-  else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
+  else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); toggleChar(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
@@ -876,8 +877,8 @@ let rosterAgain: (() => void) | null = null; // vẽ lại bảng đội hình b
 const BONE_AREA: Record<string, string> = { dau: "1 / 2", tay_trai: "2 / 1", tay_phai: "2 / 3", than: "3 / 2", chan_trai: "3 / 1", chan_phai: "3 / 3" };
 
 /** Mở bảng đội hình ở mục hồn cốt, chọn sẵn ô của hồn cốt `itemId` (nút "Gắn…" trong túi đồ). */
-export function openBones(itemId: string, slot: string) {
-  boneFocus = itemId; boneCell = slot; boneVh = null; // xem võ hồn đang ra trận
+export function openBones(itemId: string, slot: string, rowId: number | null = null) {
+  boneFocus = itemId || null; boneCell = slot; boneVh = rowId; // xem võ hồn đang ra trận (hoặc võ hồn `rowId` từ bảng nhân vật)
   rosterAgain?.(); // vẽ ngay: ô chọn sẵn, món tô sáng, danh sách lọc theo vị trí (không chờ tin bag/vohons/squad kế tiếp)
   toggleRoster(true);
   requestAnimationFrame(() => document.querySelector("#roster .bfig")?.scrollIntoView({ block: "start" }));
@@ -1022,16 +1023,16 @@ let coreCell: number | null = null;   // ô hồn hạch đang chọn (0..CORE_S
 let coreFocus: string | null = null;  // hồn hạch trong túi vừa bấm "Gắn…" ở túi đồ: tô sáng
 
 /** Mở bảng đội hình ở mục hồn hạch của võ hồn ra trận, tô sáng hồn hạch `itemId` (nút "Gắn…" trong túi đồ). */
-export function openCores(itemId: string) {
-  coreFocus = itemId; coreCell = null; boneVh = null; // võ hồn đang ra trận (dùng chung lựa chọn với mục hồn cốt)
+export function openCores(itemId: string, rowId: number | null = null, slot: number | null = null) {
+  coreFocus = itemId || null; coreCell = slot; boneVh = rowId; // võ hồn đang ra trận (dùng chung lựa chọn với mục hồn cốt)
   rosterAgain?.();
   toggleRoster(true);
   requestAnimationFrame(() => document.querySelector("#roster .cfig")?.scrollIntoView({ block: "start" }));
 }
 /** Hồn hạch (sao, dữ liệu) trong danh sách món, để tính coreBonus / coreSetCounts như server (chỉ hiển thị). */
-const wornCores = (list: BagItem[]) => list.flatMap((it) => { const c = coreOf(it); return c ? [{ stars: it.stars ?? 1, data: c, enhance: it.enhance }] : []; });
+export const wornCores = (list: BagItem[]) => list.flatMap((it) => { const c = coreOf(it); return c ? [{ stars: it.stars ?? 1, data: c, enhance: it.enhance }] : []; });
 /** Dòng chỉ số của một hồn hạch: chỉ số chính (theo sao và cấp nâng cấp) rồi các dòng phụ. */
-const coreLines = (it: BagItem) => {
+export const coreLines = (it: BagItem) => {
   const c = coreOf(it); if (!c) return [];
   return [`Chính: ${coreStatText(c.main, coreMainValue(c.main, it.stars ?? 1, it.enhance))}`, ...c.subs.map(([k, x]) => `Phụ: ${coreStatText(k, x)}`)];
 };
@@ -1618,7 +1619,7 @@ const FRIEND_COL = "#9fd8ff";
 /** Mở / đóng bảng Bạn bè (phím L, nút trong khung tổ đội); cùng chỗ giữa màn hình với các bảng khác. Mở thì xin bảng mới. */
 export function toggleFriends(open = $("#friends").hidden) {
   $("#friends").hidden = !open;
-  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleWorld(false); friendSend?.("list"); renderFriends(); }
+  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleWorld(false); toggleChar(false); friendSend?.("list"); renderFriends(); }
 }
 /**
  * Bảng Bạn bè: ô gõ tên (Thêm bạn / Chặn), danh sách bạn (đã thêm nhau và đang online: bản đồ / kênh, nút Mời tổ đội, Nhắn; chưa thêm
@@ -1665,7 +1666,7 @@ function renderFriends() {
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); }
+  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); toggleChar(false); }
 }
 
 let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
@@ -1677,13 +1678,13 @@ function honTeHtml(dong: number) {
 }
 
 /** Hồn cốt trong túi (bước 4.1): số năm, loài và vị trí; dữ liệu hỏng thì null (hiện như vật phẩm thường). */
-const boneOf = (it: BagItem) => (it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null);
+export const boneOf = (it: BagItem) => (it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null);
 /** Hồn hạch trong túi (bước 5.1): bộ, chỉ số chính, dòng phụ; dữ liệu hỏng thì null (hiện như vật phẩm thường). */
-const coreOf = (it: BagItem) => (it.code === CORE_ITEM ? parseCore(it.stats) : null);
+export const coreOf = (it: BagItem) => (it.code === CORE_ITEM ? parseCore(it.stats) : null);
 /** Bộ hồn hạch theo mã (bộ lạ: undefined). */
-const coreSet = (set: string) => CORE_SETS[coreSetIndex(set)];
+export const coreSet = (set: string) => CORE_SETS[coreSetIndex(set)];
 /** Tên hiển thị một ô (mã không còn trong ITEMS: "Vật phẩm lạ"); hồn hoàn kèm số năm; hồn cốt "Loài – Vị trí, N năm"; hồn hạch "Hồn hạch Bộ N★". */
-function itemName(it: BagItem) {
+export function itemName(it: BagItem) {
   const bone = boneOf(it);
   if (bone) return boneName(bone.beast, bone.slot, it.years!, it.enhance);
   const core = coreOf(it);
@@ -1698,16 +1699,16 @@ const hasYears = (it: BagItem): it is BagItem & { years: number } => (it.code ==
 const boneStatText = (slot: string, years: number, enhance = 0) =>
   Object.entries(boneStats(slot, years, enhance)).map(([k, v]) => `${BONE_STAT_NAMES[k as BoneStat]} +${v}`).join(", ");
 /** Chỉ số chính kèm các dòng phụ đã tung của một hồn cốt (#187, `stats.subs` do server tung): "Công +30, Chí mạng +2,1%". */
-const boneFullText = (it: BagItem & { years: number }) => {
+export const boneFullText = (it: BagItem & { years: number }) => {
   const b = boneOf(it); if (!b) return "";
   return [boneStatText(b.slot, it.years, it.enhance), ...parseBoneSubs(it.stats).map(([k, v]) => coreStatText(k, v))].join(", ");
 };
 /** Tên một mã dòng phụ trong danh sách có thể tung: dòng % ghi thêm "%" ("Công %"), để phân biệt với dòng phẳng cùng tên. */
 const subName = (k: CoreStat) => `${CORE_STATS[k].name}${CORE_STATS[k].pct && k.endsWith("_pct") ? " %" : ""}`;
 /** Số năm gọn để ghi ở góc ô: "437", "1.760", "2,5v" (vạn năm). */
-const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
+export const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
 /** Màu một ô: hồn hoàn, hồn cốt theo số năm; hồn hạch theo bộ; vật phẩm khác theo ITEMS. */
-const itemColor = (it: BagItem) => {
+export const itemColor = (it: BagItem) => {
   const core = coreOf(it);
   return hasYears(it) ? ringColor(tierOfYears(it.years)) : (core && coreSet(core.set)?.col) || (itemDef(it.code)?.col ?? "#9db3a2");
 };
@@ -1727,7 +1728,7 @@ function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
 }
 /** Biểu tượng hồn cốt ở vị trí `slot` tô màu `col` (ảnh xám item_hon_cot_*), không có ảnh thì SVG điểm ảnh cũ. */
-const boneIcon = (slot: string, col: string) => {
+export const boneIcon = (slot: string, col: string) => {
   const u = tintedUrl(`item_hon_cot_${slot}`, col);
   return u ? `<img class="ico art bone" src="${u}" alt="" draggable="false">` : boneSvg(slot);
 };
@@ -2242,7 +2243,7 @@ export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
     npcPage = qs === "offer" || qs === "ready" ? "quest" : ds === "offer" || ds === "ready" ? "daily" : "talk"; npcLine = 0;
   }
   npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
-  toggleBag(false); toggleRoster(false); toggleReso(false); toggleFriends(false);
+  toggleBag(false); toggleRoster(false); toggleReso(false); toggleFriends(false); toggleChar(false);
   $("#npc").hidden = false;
   renderNpc();
 }
@@ -3003,7 +3004,7 @@ export function onResonanceTop(fn: (page: number, pageSize: number) => void) { r
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
   $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); toggleFriends(false); renderReso(); }
+  if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); toggleFriends(false); toggleChar(false); renderReso(); }
 }
 /**
  * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 5 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
@@ -3126,7 +3127,7 @@ export const worldOpen = () => !$("#world").hidden;
 /** Mở / đóng bảng bản đồ thế giới (phím M, nút "Thế giới", F khi đứng trên trận). Mở thì GameScene xin tin `world` mới. */
 export function toggleWorld(open = $("#world").hidden) {
   $("#world").hidden = !open; $("#worldBtn")?.setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleFriends(false); renderWorld(); $("#world").scrollTop = 0; } else worldPick = null;
+  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleFriends(false); toggleChar(false); renderWorld(); $("#world").scrollTop = 0; } else worldPick = null;
   return open;
 }
 /** Tin `world` mới (server gửi khi xin): vẽ lại nếu bảng đang mở. */
