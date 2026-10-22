@@ -591,7 +591,7 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   "freeze",
   // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
   "chill",
-  // Từ #175: che tầm nhìn (chỉ có trên hồn sư, Phun Mực của tinh anh Ma Chương Vương). Bit 15: hết chỗ trong trường uint16 `st`.
+  // Từ #175: che tầm nhìn (chỉ có trên hồn sư, Phun Mực của tinh anh Ma Chương Vương). Bit 14: trường uint16 `st` còn một bit.
   "ink"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
