@@ -478,6 +478,11 @@ async function channelTest(){
     ok(await waitFor(()=>P3.chats.some(m=>m.ch==="party"&&m.text===tp&&m.name===P2.name)&&P3.chats.some(m=>m.ch==="whisper"&&m.text===tw&&m.name===P1.name),2000),
       "P3 (kênh 2) nhận chat tổ đội của P2 và tin riêng của P1 (kênh 1)");
     ok(await waitFor(()=>P1.chats.some(m=>m.text===tm),2000)&&(await sleep(300),!P3.chats.some(m=>m.text===tm)),"chat bản đồ của P2 tới P1 (kênh 1), không sang kênh 2");
+    // #198: chat tông xuyên kênh (P1, P3 không cùng tổ đội, chỉ cùng tông; hook tong {set} đặt thẳng tông rồi trả lại).
+    for(const b of [P1,P3]) await T(b,"tong",{set:TONG_MON[0].id});
+    const tt=`tông kênh ${RUN}`; P1.room.send("chat",{text:tt,ch:"tong"});
+    ok(await waitFor(()=>P3.chats.some(m=>m.ch==="tong"&&m.text===tt&&m.name===P1.name),2000),`P3 (kênh 2) nhận chat tông ${TONG_MON[0].name} của P1 (kênh 1)`);
+    for(const b of [P1,P3]) await T(b,"tong",{set:null});
   }
   await T(P2,"chan",{nolock:1}); await P2.room.leave(); await sleep(400);
   pick=await post("/api/channel",{token:P2.token});
@@ -8349,6 +8354,56 @@ async function arenaTest(){
     ok(healBack===healTown,`về thành: hệ số hồi máu / khiên trở lại ×${healBack}`);
     for(const b of [PA,PB]) await b.room.leave();
   }
+  // ---- #279 2v2: hiệu ứng phụ trợ lan cho đồng đội cùng bên (mức × PARTY_BUFF_MULT, hồi / khiên thêm × ARENA.healMult), không lan cho đối thủ ----
+  {
+    console.log("[#279] 2v2: phụ trợ lan cho đồng đội cùng bên trong sân, không lan cho đối thủ");
+    const SA=await bot("Lan đội A","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
+    const SB=await bot("Lan đội B","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:0,outfitCol:1});
+    const OA=await bot("Lan địch A","hoa_anh",{sex:0,hair:0,hairCol:3,outfitCol:2});
+    const OB=await bot("Lan địch B","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:4});
+    const all=[SA,SB,OA,OB]; for(const b of all) await warpTown(b);
+    // SA: Cửu Bảo Lưu Ly Tháp (Phụ trợ) 4 hồn hoàn ra trận.
+    const CB="cuu_bao_luu_ly_thap", sk=skillsOf(CB), Y=[423,764,1760,5000], BP=i=>buffPower(Y[i]);
+    await test(SA,"grant",{vohon:CB}); const cb=SA.owned.list.find(v=>v.vohon===CB)?.rowId, st=SA.owned.list.find(v=>v.vohon==="bich_lan_xa_hoang")?.rowId;
+    await test(SA,"set",{rowId:cb,level:40,xp:0,rings:Y}); await sendTeam(SA,[cb,0,0,0]); await sendTeam(SA,[cb,st,0,0]);
+    ok(SA.owned.active===cb,"SA: Cửu Bảo Lưu Ly Tháp ra trận (4 hồn hoàn)");
+    const joinParty=async(lead,mate)=>{ await test(lead,"party",{pop:"rlreset"}); lead.room.send("party",{op:"invite",name:mate.name}); await sleep(250); mate.room.send("party",{op:"accept",name:lead.name});
+      await waitFor(()=>lead.party?.members.length===2&&mate.party?.id===lead.party?.id,1500); };
+    await joinParty(SA,SB); await joinParty(OA,OB);
+    await at(SA,-12); await at(SB,-12); await at(OA,12); await at(OB,12);
+    const n0=new Map(all.map(b=>[b,b.arena.length])), fnd=b=>b.arena.slice(n0.get(b)).filter(m=>m.k==="found").at(-1);
+    await aop(SA,"queue"); await aop(OA,"queue");
+    ok(await waitFor(()=>all.every(fnd),4000)&&new Set(all.map(b=>fnd(b).roomId)).size===1,"#279: ghép 2v2 (SA + SB gặp OA + OB)");
+    for(const b of all){ const id=fnd(b).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.squad,3000); }
+    await waitFor(()=>SA.room.state.phase==="ready",3000); if(SA.room.state.phase==="ready") await test(SA,"afast",{s:0});
+    ok(await waitFor(()=>SA.room.state.phase==="fight",3000),"2v2: giao đấu");
+    // SB (đồng đội) và OA (đối thủ) đứng trong PARTY_BUFF_R quanh SA; OB ở xa.
+    const pa=meOf(SA), live=async b=>(await test(b,"stats")).live, d=b=>Math.round(Math.hypot(meOf(b).x-meOf(SA).x,meOf(b).y-meOf(SA).y));
+    await test(SB,"goto",{x:pa.x,y:pa.y+60}); await test(OA,"goto",{x:pa.x,y:pa.y-60}); await sleep(200);
+    ok(d(SB)<PARTY_BUFF_R&&d(OA)<PARTY_BUFF_R,`SB cách SA ${d(SB)}, OA (đối thủ) cách ${d(OA)} pixel (< ${PARTY_BUFF_R})`);
+    // Lực Chi Lưu Ly (tăng công): SB nhận × PARTY_BUFF_MULT, OA không.
+    await test(SA,"ready"); let lb=SB.logs.length; SA.room.send("skill",{i:0});
+    await waitFor(()=>SB.logs.length>lb,1500); await waitFor(()=>(meOf(SB).buff&buffBit("atk"))!==0,1000);
+    const wantAtk=sk[0].self.buff.atk*BP(0); let lB=await live(SB), lO=await live(OA);
+    ok(Math.abs((lB.buffs.atk?.v??0)-wantAtk*PARTY_BUFF_MULT)<1e-9&&!lO.buffs.atk&&!OA.logs.some(t=>t.includes(SA.name)),
+      `${sk[0].name} trong sân: SB công +${((lB.buffs.atk?.v??0)*100).toFixed(1)}% (× ${PARTY_BUFF_MULT}), OA không nhận`);
+    // Phòng Chi Lưu Ly (khiên theo sinh lực tối đa): SA × hm (đã × ARENA.healMult), SB × hm × PARTY_BUFF_MULT, OA không.
+    const hm=(await test(SA,"pvp",{k:"heal"}))?.mult;
+    await test(SA,"ready"); SB.gifts=[]; lb=SB.logs.length; SA.room.send("skill",{i:3});
+    await waitFor(()=>SB.logs.length>lb,1500); await waitFor(()=>meOf(SB).shield>0,1000);
+    lB=await live(SB); lO=await live(OA); const la=await live(SA);
+    const wantB=Math.round(lB.maxHp*sk[3].self.shield*BP(3)*hm*PARTY_BUFF_MULT), wantA=Math.round(la.maxHp*sk[3].self.shield*BP(3)*hm);
+    ok(Math.abs(hm-ARENA.healMult)<1e-9&&lB.shield===wantB&&la.shield===wantA&&!lO.shield&&!lO.buffs.def,
+      `${sk[3].name} trong sân: khiên SA ${la.shield} (cần ${wantA}, × healMult ${hm}), SB ${lB.shield} (cần ${wantB} = × ${PARTY_BUFF_MULT} × ${hm}), OA ${lO.shield||0}`);
+    // Đồng đội đứng xa quá PARTY_BUFF_R: không nhận.
+    await test(SB,"rest",{s:30}); await test(SB,"goto",{x:pa.x+PARTY_BUFF_R+80,y:pa.y}); await sleep(200);
+    await test(SA,"ready"); lb=SB.logs.length; SA.room.send("skill",{i:0}); await sleep(500);
+    lB=await live(SB); ok(d(SB)>PARTY_BUFF_R&&!lB.buffs.atk&&SB.logs.length===lb,`SB đứng ${d(SB)} pixel: không nhận`);
+    for(const b of [OA,OB]) for(let j=0;j<TEAM_SIZE&&!meOf(b).dead;j++) await test(b,"down");
+    await waitFor(()=>SA.room.state.phase==="end",3000); await test(SA,"afast",{s:0});
+    for(const b of all){ await waitFor(()=>b.leftCode===4005,3000); await back(b); }
+    for(const b of all) await b.room.leave();
+  }
 }
 
 /**
@@ -8777,13 +8832,13 @@ async function partyEffectExpansionTest(){
 }
 
 /**
- * Chat tổ đội, tin riêng, kênh thế giới (#188; BOT_ONLY=chat, nhóm 3 của BOT_PART): `chat {text, ch?, to?}`, thiếu `ch` là chat bản
- * đồ như cũ; tổ đội / riêng / thế giới tới người ở bản đồ khác (qua presence); người nhận phải đang trong game; thế giới chặn dưới
- * WORLD_CHAT.minLevel và 1 tin / WORLD_CHAT.cdSecs giây; chống spam riêng từng kênh; giá trị lạ bị bỏ qua. Phần xuyên kênh cùng bản đồ
- * ở channelTest (CHANNEL_MAX=2).
+ * Chat tổ đội, tin riêng, kênh thế giới (#188), chat tông (#198; BOT_ONLY=chat, nhóm 3 của BOT_PART): `chat {text, ch?, to?}`, thiếu
+ * `ch` là chat bản đồ như cũ; tổ đội / riêng / thế giới / tông tới người ở bản đồ khác (qua presence); người nhận phải đang trong game;
+ * thế giới chặn dưới WORLD_CHAT.minLevel và 1 tin / WORLD_CHAT.cdSecs giây; tông chỉ tới người cùng tông, chưa có tông thì báo; chống
+ * spam riêng từng kênh; giá trị lạ bị bỏ qua. Phần xuyên kênh cùng bản đồ ở channelTest (CHANNEL_MAX=2).
  */
 async function chatTest(){
-  console.log("[#188] Chat tổ đội, tin riêng, kênh thế giới (xuyên bản đồ)");
+  console.log("[#188, #198] Chat tổ đội, tin riêng, kênh thế giới, tông môn (xuyên bản đồ)");
   const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
   /** Gửi `chat` rồi chờ một dòng log từ chối (trả các dòng mới; "" nếu không có). */
   const said=async(b,msg)=>{ const l=b.logs.length; b.room.send("chat",msg); await waitFor(()=>b.logs.length>l,1500); await sleep(50); return b.logs.slice(l).join(" | "); };
@@ -8838,6 +8893,21 @@ async function chatTest(){
     await T(X,"chat",{cop:"rlreset"}); const tG2=`thế giới 2 ${RUN}`; X.room.send("chat",{text:tG2,ch:"world"});
     ok(await got(Z,tG2,"world"),"hết hồi (hook rlreset): gửi được tin thế giới tiếp");
 
+    // ---- Tông môn (#198): chưa thuộc tông thì báo; cùng tông nhận dù khác bản đồ; tông khác không nhận; rời tông là thôi nhận ----
+    // Hook tong {set} đặt thẳng tông (bỏ qua sứ giả / cấp / chờ đổi, luật gia nhập thử ở tongTest).
+    const [TA,TB]=TONG_MON;
+    for(const b of [X,Y,Z]) await T(b,"tong",{set:null});
+    ok(/chưa thuộc tông/.test(await said(X,{text:"tông ơi",ch:"tong"})),"chat tông khi chưa thuộc tông: báo lỗi riêng");
+    await T(X,"tong",{set:TA.id}); await T(Z,"tong",{set:TA.id}); await T(Y,"tong",{set:TB.id});
+    const tT=`tông ${RUN}`; X.room.send("chat",{text:tT,ch:"tong"});
+    ok(await got(Z,tT,"tong")&&has(Z,tT,"tong").name===X.name,`chat tông ${TA.name}: Z ở bản đồ khác nhận (ch tong, tên người gửi)`);
+    ok(await got(X,tT,"tong"),"người gửi cũng nhận tin tông của mình");
+    await sleep(300); ok(!Y.chats.some(m=>m.text===tT),`Y thuộc ${TB.name} (cùng phòng với X): không nhận tin tông khác`);
+    const tY=`tông khác ${RUN}`; Y.room.send("chat",{text:tY,ch:"tong"});
+    ok(await got(Y,tY,"tong")&&(await sleep(300),!X.chats.some(m=>m.text===tY)&&!Z.chats.some(m=>m.text===tY)),`tin tông của Y chỉ tới ${TB.name}`);
+    await T(Z,"tong",{set:null}); const tT2=`rời tông ${RUN}`; X.room.send("chat",{text:tT2,ch:"tong"});
+    ok(await got(X,tT2,"tong")&&(await sleep(300),!Z.chats.some(m=>m.text===tT2)),"Z rời tông: thôi nhận chat tông ngay");
+
     // ---- Chống spam riêng từng kênh, độ dài, giá trị lạ ----
     await T(X,"chat",{cop:"rlreset"});
     for(let i=0;i<5;i++) X.room.send("chat",{text:`spam ${i} ${RUN}`,ch:"party"});
@@ -8845,8 +8915,10 @@ async function chatTest(){
     ok(/quá nhanh/.test(await said(X,{text:`spam 5 ${RUN}`,ch:"party"})),"tổ đội: tin thứ 6 liền nhau bị chặn (5 tin, hồi 1 tin / 2 giây)");
     const tMap2=`bđ vẫn được ${RUN}`; X.room.send("chat",{text:tMap2});
     ok(await got(Y,tMap2),"hết lượt tổ đội nhưng chat bản đồ vẫn gửi được (bucket riêng)");
+    const tT3=`tông vẫn được ${RUN}`; X.room.send("chat",{text:tT3,ch:"tong"});
+    ok(await got(X,tT3,"tong"),"hết lượt tổ đội nhưng chat tông vẫn gửi được (bucket riêng)");
     ok(/quá dài/.test(await said(Y,{text:"a".repeat(121),ch:"whisper",to:Z.name})),"tin quá CHAT_MAX_LEN ký tự bị từ chối");
-    for(const m of [{text:"x",ch:"abc"},{text:"x",ch:5},{text:{toString:0},ch:"party"},{text:"x",ch:"whisper",to:{a:1}},{text:"x",ch:"world",to:7},{text:["x"]},null,"x"]) X.room.send("chat",m);
+    for(const m of [{text:"x",ch:"abc"},{text:"x",ch:5},{text:{toString:0},ch:"party"},{text:"x",ch:"whisper",to:{a:1}},{text:"x",ch:"world",to:7},{text:{a:1},ch:"tong"},{text:"x",ch:["tong"]},{text:["x"]},null,"x"]) X.room.send("chat",m);
     const tAfter=`còn kết nối ${RUN}`; await sleep(300); X.room.send("chat",{text:tAfter});
     ok(await got(Y,tAfter)&&X.leftCode===null,"chat mang kênh / người nhận / nội dung lạ: bỏ qua, không ngắt kết nối");
 
