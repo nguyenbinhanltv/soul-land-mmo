@@ -947,7 +947,7 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 /* ===== UI-0: thành phần dùng chung =====
    Các phần sau (túi đồ, nhân vật, thanh kỹ năng, HUD) dựng trên các lớp này thay vì tự viết lại viền / hồi chiêu / chú thích. */
 /* Ô vật phẩm / kỹ năng: viền theo màu `--c` (hoặc `data-tier="0..4"` lấy --tier-N từ TIERS), viên ngọc góc dưới trái cho bậc cao,
-   thẻ phím `.key`, số lượng `.q`, cấp cường hóa `.e`, lớp hồi chiêu quét tròn `.cd` (đặt `--p` từ 0 đến 1 = phần còn lại).
+   thẻ phím `.key`, số lượng `.q`, cấp cường hóa `.e`, lớp hồi chiêu quét tròn `.ui-cd` (tên riêng, không đè `.cd` kiểu chiều cao cũ của ô túi / nút kỹ năng; đặt `--p` từ 0 đến 1 = phần còn lại).
    Trạng thái: `.sel` chọn, `.ready` sẵn sàng, `.nomp` thiếu hồn lực, `.lock` khóa, `.on` đang kích hoạt. */
 .ui-cell{position:relative;--c:var(--line)}
 .ui-cell[data-tier="0"]{--c:var(--tier-0)} .ui-cell[data-tier="1"]{--c:var(--tier-1)} .ui-cell[data-tier="2"]{--c:var(--tier-2)}
@@ -958,7 +958,7 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
   font:var(--fs-s)/12px var(--f10);text-align:center}
 .ui-cell .q{position:absolute;right:2px;bottom:0;font:var(--fs-s)/12px var(--f10);color:var(--plate-text);text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
 .ui-cell .e{position:absolute;left:2px;top:0;font:var(--fs-s)/12px var(--f10);color:#ffe08a;text-shadow:var(--stroke)}
-.ui-cell .cd{position:absolute;inset:0;pointer-events:none;
+.ui-cell .ui-cd{position:absolute;inset:0;pointer-events:none;
   background:conic-gradient(rgba(10,6,16,.78) calc(var(--p,0) * 360deg),transparent 0)}
 .ui-cell.ready{animation:uiReady 1.6s steps(2) infinite}
 @keyframes uiReady{50%{box-shadow:0 0 8px var(--c)}}
