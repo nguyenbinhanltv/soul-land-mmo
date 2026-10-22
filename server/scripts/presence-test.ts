@@ -13,6 +13,8 @@ try {
 
   await backend.putJson("arena:match", { id: "m-1", status: "queued" }, 1000);
   assert.deepEqual(await backend.getJson("arena:match"), { id: "m-1", status: "queued" });
+  await backend.putJson("party:live:7", { acc: 7, sid: "s-7" });
+  assert.deepEqual(await backend.getJsonMany(["party:live:7", "party:live:8"]), [{ acc: 7, sid: "s-7" }, null]);
   assert.equal(await backend.withLock("party:1", "worker-b", 1000, async (value) => ({ ...(value ?? {}), members: [7] })), true);
   assert.deepEqual(await backend.getJson("party:1"), { members: [7] });
 

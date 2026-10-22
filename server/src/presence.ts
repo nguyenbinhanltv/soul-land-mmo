@@ -18,6 +18,7 @@ export interface PresenceBackend {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, ttlMs?: number): Promise<void>;
   getJson<T>(key: string): Promise<T | null>;
+  getJsonMany<T>(keys: readonly string[]): Promise<(T | null)[]>;
   putJson<T>(key: string, value: T, ttlMs?: number): Promise<void>;
   delete(key: string): Promise<void>;
   withLock<T>(key: string, owner: string, lockTtlMs: number, update: (value: T | null) => T | Promise<T>, dataTtlMs?: number): Promise<boolean>;
@@ -67,6 +68,10 @@ class LocalBackend implements PresenceBackend {
   async getJson<T>(key: string) {
     const value = await this.get(key);
     return value === null ? null : JSON.parse(value) as T;
+  }
+
+  async getJsonMany<T>(keys: readonly string[]) {
+    return Promise.all(keys.map((key) => this.getJson<T>(key)));
   }
 
   async putJson<T>(key: string, value: T, ttlMs = 0) { await this.put(key, JSON.stringify(value), ttlMs); }
@@ -134,6 +139,11 @@ class RedisBackend implements PresenceBackend {
   async getJson<T>(key: string) {
     const value = await this.get(key);
     return value === null ? null : JSON.parse(value) as T;
+  }
+  async getJsonMany<T>(keys: readonly string[]) {
+    if (!keys.length) return [];
+    const values = await this.redis.mget(keys.map((key) => this.key(key)));
+    return values.map((value) => value === null ? null : JSON.parse(value) as T);
   }
   async putJson<T>(key: string, value: T, ttlMs = 0) { await this.put(key, JSON.stringify(value), ttlMs); }
   async delete(key: string) { await this.redis.del(this.key(key)); }

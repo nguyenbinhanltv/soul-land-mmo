@@ -36,6 +36,11 @@ let nextParty = 1;
 let remote: PresenceBackend | null = null;
 const REMOTE_KEY = "party:state";
 const REMOTE_TTL_MS = 60_000;
+const PARTY_SWEEP_LEASE_KEY = "party:sweep";
+const PARTY_SWEEP_INTERVAL_MS = 500;
+const PARTY_SWEEP_LEASE_TTL_MS = 1_000;
+let nextSweepAt = 0;
+let sweepInFlight: Promise<PartyNote[]> | null = null;
 export type PartySnapshot = { nextParty: number; live: Record<string, Live>; parties: Record<string, Party>; invites: Record<string, Record<string, number>> };
 
 const snapshot = (): PartySnapshot => ({
@@ -69,14 +74,14 @@ export function configurePresence(backend: PresenceBackend) {
   void backend.getJson<PartySnapshot>(REMOTE_KEY).then(applySnapshot).catch((e) => console.error("Không đọc được trạng thái tổ đội từ presence", e));
 }
 const local = <T>(fn: () => T) => fn();
-async function remoteMutation<T>(fn: () => T): Promise<T> {
-  if (!remote) return local(fn);
+async function remoteMutation<T>(fn: () => T | Promise<T>, publish = true): Promise<T> {
+  if (!remote) return fn();
   let result!: T;
-  const ok = await remote.withLock<PartySnapshot>(REMOTE_KEY, remote.workerId, 5000, (old) => {
-    applySnapshot(old ?? snapshot()); result = fn(); return snapshot();
+  const ok = await remote.withLock<PartySnapshot>(REMOTE_KEY, remote.workerId, 5000, async (old) => {
+    applySnapshot(old ?? snapshot()); result = await fn(); return snapshot();
   }, 0);
   if (!ok) throw new Error("Không khóa được trạng thái tổ đội trong presence.");
-  void remote.presence.publish(PARTY_STATE_TOPIC, snapshot());
+  if (publish) void remote.presence.publish(PARTY_STATE_TOPIC, snapshot());
   return result;
 }
 
@@ -270,14 +275,29 @@ function sweepLocal(now: number): PartyNote[] {
 }
 export async function sweep(now: number): Promise<PartyNote[]> {
   if (!remote) return sweepLocal(now);
-  return remoteMutation(async () => {
-    for (const [acc, l] of live) {
-      const heartbeat = await remote!.getJson<Live>(`party:live:${acc}`);
-      if (heartbeat?.sid === l.sid) Object.assign(l, heartbeat);
-      else if (!heartbeat && !l.off) l.off = now - PARTY_OFFLINE_SECS * 1000;
-    }
-    return sweepLocal(now);
-  });
+  if (sweepInFlight) return sweepInFlight;
+  if (now < nextSweepAt) return [];
+  nextSweepAt = now + PARTY_SWEEP_INTERVAL_MS;
+  const backend = remote;
+  const run = (async () => {
+    // Giữ lease tới hết chu kỳ để nhiều phòng / tiến trình không cùng quét và phát snapshot.
+    const owner = `${backend.workerId}:party-sweep`;
+    if (!await backend.acquireLease(PARTY_SWEEP_LEASE_KEY, owner, PARTY_SWEEP_LEASE_TTL_MS)) return [];
+    const notes = await remoteMutation(async () => {
+      const members = [...live.values()];
+      const heartbeats = await backend.getJsonMany<Live>(members.map((l) => `party:live:${l.acc}`));
+      for (let i = 0; i < members.length; i++) {
+        const l = members[i], heartbeat = heartbeats[i];
+        if (heartbeat?.sid === l.sid) Object.assign(l, heartbeat);
+        else if (!heartbeat && !l.off) l.off = now - PARTY_OFFLINE_SECS * 1000;
+      }
+      return sweepLocal(now);
+    }, false);
+    if (notes.length) void backend.presence.publish(PARTY_STATE_TOPIC, snapshot());
+    return notes;
+  })();
+  sweepInFlight = run.finally(() => { sweepInFlight = null; });
+  return sweepInFlight;
 }
 
 /**
