@@ -9141,15 +9141,20 @@ async function fusionTest(){
   }
   ok([A,B,O].every(b=>meP(b).rings.length===Y.length)&&meP(A).vh===vohonIndex("yeu_ho")&&meP(B).vh===vohonIndex("nguyet_nhan"),`A Yêu Hồ, B / O Nguyệt Nhận ra trận, ${Y.length} hồn hoàn`);
   // Trong làng (vùng an toàn): từ chối.
+  // Chỗ A đứng lúc vào (trong làng, đứng được): B quay lại đây cho bài "đồng đội trong vùng an toàn"; tâm vùng an toàn của bản ×8
+  // có thể là nhà / lửa trại, hook goto bỏ qua ô không đứng được.
+  const home=inSf(A)?{x:meP(A).x,y:meP(A).y}:{x:Math.round(sf.x+sf.width/2),y:Math.round(sf.y+sf.height/2)};
   let w=inSf(A)?await fus(A,"start"):"(A không ở trong làng)";
   ok(/vùng an toàn/.test(w),`A trong làng: "${w}"`);
-  // Ra ngoài làng: điểm đứng được cho A, B (100 pixel) và O (60 pixel), cả ba ngoài làng.
+  // Ra ngoài làng: điểm đứng được cho A, B (100 pixel) và O (60 pixel), cả ba ngoài làng; B đứng được cả ở ngoài FUSION.r (bài "đứng xa").
   let ax=0, ay=0, okSpot=false;
   for(let k=0;k<12&&!okSpot;k++){
     ax=Math.round(sf.x+sf.width+60+k*40); ay=Math.round(sf.y+sf.height/2+(k%3-1)*60);
     await test(A,"goto",{x:ax,y:ay}); await test(B,"goto",{x:ax+100,y:ay}); await test(O,"goto",{x:ax+30,y:ay+50});
     okSpot=await waitFor(()=>Math.hypot(meP(A).x-ax,meP(A).y-ay)<0.5&&Math.hypot(meP(B).x-ax-100,meP(B).y-ay)<0.5&&Math.hypot(meP(O).x-ax-30,meP(O).y-ay-50)<0.5,600)
       &&!inSf(A)&&!inSf(B)&&!inSf(O);
+    if(okSpot){ const fx=ax+FUSION.r+80; await test(B,"goto",{x:fx,y:ay}); okSpot=await waitFor(()=>Math.hypot(meP(B).x-fx,meP(B).y-ay)<0.5,600);
+      await test(B,"goto",{x:ax+100,y:ay}); okSpot=okSpot&&await waitFor(()=>Math.hypot(meP(B).x-ax-100,meP(B).y-ay)<0.5,600); }
   }
   ok(okSpot,`A (${ax},${ay}), B cách 100 pixel, O cách ${Math.round(Math.hypot(30,50))} pixel, ngoài làng`);
   if(!okSpot) return;
@@ -9169,7 +9174,7 @@ async function fusionTest(){
   await test(B,"goto",{x:ax+FUSION.r+80,y:ay}); await sleep(150);
   w=await fus(A,"start"); ok(/đứng xa/.test(w)&&!B.fus.length&&!O.fus.length,`B đứng ${Math.round(meP(B).x-meP(A).x)} pixel: "${w}" (O ngoài đội đứng gần không được mời)`);
   // Đồng đội trong vùng an toàn.
-  await test(B,"goto",{x:Math.round(sf.x+sf.width/2),y:Math.round(sf.y+sf.height/2)}); await sleep(150);
+  await test(B,"goto",home); await sleep(150);
   w=inSf(B)?await fus(A,"start"):"(B không vào được làng)"; ok(/vùng an toàn/.test(w)&&w.includes(B.name),`B trong làng: "${w}"`);
   await test(B,"goto",{x:ax+100,y:ay}); await sleep(150);
   // Sai cặp: B đổi sang Lam Ngân Thảo.
