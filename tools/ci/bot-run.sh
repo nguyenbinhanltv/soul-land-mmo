@@ -37,6 +37,8 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
   esc() { sed 's/%/%25/g'; } # message của annotation: % phải viết %25
   echo "::$([ "$code" -eq 0 ] && echo notice || echo error) title=bot $name::$([ "$code" -eq 0 ] && echo "đạt" || echo "TRƯỢT (mã $code)"): ✓ $(n '^  ✓'), ✗ $(n '^  ✗'), ⚠ $(n '⚠'), $((SECONDS - start)) giây"
   grep '^  ✗' "$blog" | head -n 10 | esc | while IFS= read -r l; do echo "::error title=bot $name ✗::${l#  ✗ }"; done
+  # Thời gian từng phần (dòng ⏱ của bot-test.mjs, #236): đọc bằng gh run view để chia lại nhóm BOT_PART cho cân.
+  grep -m1 '^⏱' "$blog" | esc | while IFS= read -r l; do echo "::notice title=bot $name ⏱::${l#⏱ }"; done
 fi
 # Tóm tắt ở trang lượt chạy: số dòng ✓ / ✗ / ⚠, rồi các dòng ✗ và ⚠ (tối đa 50 dòng mỗi loại).
 if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
@@ -46,6 +48,7 @@ if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
     echo "| ✓ | ✗ | ⚠ |"
     echo "|---|---|---|"
     echo "| $(n '^  ✓') | $(n '^  ✗') | $(n '⚠') |"
+    if grep -q '^⏱' "$blog"; then echo ""; grep -m1 '^⏱' "$blog"; fi
     for mark in ✗ ⚠; do
       if grep -q "^ *$mark" "$blog"; then
         echo ""; echo "<details$([ "$mark" = ✗ ] && echo " open")><summary>Dòng $mark</summary>"; echo ""; echo '```'
