@@ -2391,6 +2391,7 @@ export class MapRoom extends Room<MapState> {
     d.tong = t.id; d.tongAt = now; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
     this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())));
     this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
+    this.questEvent(id, { k: "tong" }); // #286: gia nhập hoặc đổi tông
     this.sendTong(id);
   }
 
@@ -2537,11 +2538,15 @@ export class MapRoom extends Room<MapState> {
   /** Chuỗi `chain` đã mở cho người chơi chưa: chuỗi không có điều kiện, hoặc chuỗi `QUEST_AFTER` của nó đã xong. */
   questOpen(d: PData, chain: string) { const a = QUEST_AFTER[chain]; return !a || questStatus(this.fixedQuest(d, a) ?? questStart(a)) === "done"; }
 
-  /** Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó. */
+  /**
+   * Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó,
+   * đang thuộc một tông môn (#286).
+   */
   questHave(d: PData, g: QuestGoal) {
     if (g.k === "absorb") return d.ringYears.length > 0 || d.owned.some((v) => v !== d.ch && v.rings.length > 0);
     if (g.k === "equip") return d.bag.some((i) => i.vohonId !== null);
     if (g.k === "map") return g.map === this.state.mapId;
+    if (g.k === "tong") return d.tong !== null;
     return false;
   }
 
@@ -3806,6 +3811,7 @@ export class MapRoom extends Room<MapState> {
         if (t) d.tongAt = now;
         // Như tongAction: gia nhập xoá điểm tuần (week), rời thì không; tong_at giữ (COALESCE ở PgStore).
         const id2 = d.tong, at = t ? now : null; this.chain(d, () => t ? store.setTong(d.accountId, id2, at, tongWeek(now)) : store.setTong(d.accountId, null, null));
+        if (t) this.questEvent(id, { k: "tong" }); // #286: như gia nhập thật
         this.sendTong(id);
       }
       if (d.tongAt !== null && typeof o.back === "number" && Number.isFinite(o.back)) {
@@ -4937,6 +4943,7 @@ export class MapRoom extends Room<MapState> {
     }
     this.log(a, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pb.name}!`, col);
     this.log(b, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pa.name}!`, col);
+    for (const q of [a, b]) this.questEvent(q, { k: "fusion" }); // #286: tính cho cả người mời lẫn người hưởng ứng
   }
 
   /** Trôi `dt` giây cho lời mời đang chờ (tick, hook `rest`): người mời hết giờ hoặc đồng đội đã rời thì hủy. */
