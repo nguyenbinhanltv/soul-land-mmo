@@ -65,7 +65,7 @@ export class FriendHub {
   private readonly social = new Map<number, Social>();
   private readonly remote = new Map<number, Remote>();
   private lastV = 0;
-  private readonly pending = new Map<number, Shared & { enter?: boolean; gone?: boolean }>();
+  private readonly pending = new Map<number, Shared & { gone?: boolean }>();
   private flushing: Promise<void> | null = null;
   private readonly sub = (m: StateMsg) => this.apply(m);
   /** Đã nạp tài liệu STATE_KEY (khởi động). */
@@ -75,7 +75,11 @@ export class FriendHub {
     if (!backend) { this.ready = Promise.resolve(); return; }
     void Promise.resolve(backend.presence.subscribe(FRIEND_STATE_TOPIC, this.sub));
     this.ready = backend.getJson<StateDoc>(STATE_KEY).then((doc) => {
-      for (const [acc, ses] of Object.entries(doc ?? {})) for (const e of Object.values(ses)) this.apply({ ...e, acc: Number(acc), w: "" });
+      // Tài khoản đã có tin tới trước bản chụp (hoặc đang ở tiến trình này) thì tin đó mới hơn: bỏ mục trong tài liệu.
+      for (const [key, ses] of Object.entries(doc ?? {})) {
+        const acc = Number(key);
+        if (!this.remote.has(acc) && !this.social.has(acc)) for (const e of Object.values(ses)) this.apply({ ...e, acc, w: "" });
+      }
     }).catch((e) => console.error("Không đọc được danh sách bạn bè / chặn từ presence", e));
   }
 
@@ -100,6 +104,12 @@ export class FriendHub {
     return { friends: { has: (id) => live.every((m) => m.friends.has(id)) }, blocks: { has: (id) => live.some((m) => m.blocks.has(id)) } };
   }
 
+  /** Phiên `sid` trong bản sao `r` đã kết thúc: bỏ khỏi `live`, tin của nó tới sau bị bỏ. */
+  private end(r: Remote, sid: string) { r.live.delete(sid); r.ended.push(sid); if (r.ended.length > ENDED_KEEP) r.ended.shift(); }
+
+  /** Có phiên mới `sid` của tài khoản: mọi phiên khác trong bản sao `r` đã kết thúc. */
+  private endAll(r: Remote, sid?: string) { for (const x of [...r.live.keys()]) if (x !== sid) this.end(r, x); }
+
   /** Bạn bè (theo bản sao gộp) của tài khoản trong bản sao `r`. */
   private mergedFriends(r: Remote) {
     const l = this.merged(r), first = r.live.values().next().value;
@@ -117,10 +127,9 @@ export class FriendHub {
     let r = this.remote.get(m.acc);
     if (!r) this.remote.set(m.acc, r = { live: new Map(), ended: [] });
     if (r.ended.includes(sid) || (r.live.get(sid)?.v ?? -1) >= m.v) return;
-    const end = (x: string) => { r.live.delete(x); r.ended.push(x); if (r.ended.length > ENDED_KEEP) r.ended.shift(); };
     const before = this.mergedFriends(r), friends = new Set(Array.isArray(m.friends) ? m.friends : []);
-    if (m.enter) for (const x of [...r.live.keys()]) if (x !== sid) end(x);
-    if (m.gone) end(sid);
+    if (m.enter) this.endAll(r, sid);
+    if (m.gone) this.end(r, sid);
     else r.live.set(sid, { v: m.v, friends, blocks: new Set(Array.isArray(m.blocks) ? m.blocks : []) });
     // `fans` theo danh sách gộp trước / sau tin; phiên cuối rời thì giữ danh sách lúc rời (như leave).
     const after = r.live.size ? new Set(this.mergedFriends(r)) : new Set(before);
@@ -136,14 +145,14 @@ export class FriendHub {
     const flags = kind ? { [kind]: true } : {};
     void Promise.resolve(b.presence.publish(FRIEND_STATE_TOPIC, { ...e, w: this.id, acc, ...flags }))
       .catch((err) => console.error("Không phát được danh sách bạn bè / chặn lên presence", err));
-    const prev = this.pending.get(acc), enter = kind === "enter" || (prev?.sid === s.sid && !!prev.enter);
-    this.pending.set(acc, { ...e, ...(enter ? { enter } : {}), ...(kind === "gone" ? { gone: true } : {}) });
+    this.pending.set(acc, kind === "gone" ? { ...e, gone: true } : e);
     this.flushing ??= this.flush();
   }
 
   /**
-   * Ghi các danh sách đang chờ vào tài liệu STATE_KEY dưới lock (gộp nhiều lần đổi thành một lần ghi). Vào phòng thì bỏ mọi phiên khác
-   * của tài khoản; rời chỉ xóa đúng phiên đó; bản của phiên đã rời ở tiến trình này (ghi trễ) không ghi lại.
+   * Ghi các danh sách đang chờ vào tài liệu STATE_KEY dưới lock (gộp nhiều lần đổi thành một lần ghi). Mỗi tài khoản: bỏ các phiên đã
+   * biết là kết thúc (`ended` của bản sao, gồm phiên cũ mà lần vào phòng ở đây đã kết thúc; không bỏ phiên lạ, có thể mới hơn), rời
+   * thì xóa đúng phiên đó; bản của phiên đã rời ở tiến trình này (ghi trễ) không ghi lại.
    */
   private async flush() {
     const b = this.backend!;
@@ -151,16 +160,19 @@ export class FriendHub {
       const batch = [...this.pending]; this.pending.clear();
       const ok = await b.withLock<StateDoc>(STATE_KEY, `${this.id}:friend:${batch[0][1].v}`, 5000, (old) => {
         const doc = old ?? {};
-        for (const [acc, { gone, enter, ...e }] of batch) {
-          const ses = enter && !gone ? {} : { ...doc[acc] };
+        for (const [acc, { gone, ...e }] of batch) {
+          const ses = { ...doc[acc] };
+          for (const x of this.remote.get(acc)?.ended ?? []) delete ses[x];
           if (gone) delete ses[e.sid];
-          else if (this.social.get(acc)?.sid !== e.sid || (ses[e.sid]?.v ?? -1) > e.v) continue;
-          else ses[e.sid] = e;
+          else if (this.social.get(acc)?.sid === e.sid && (ses[e.sid]?.v ?? -1) <= e.v) ses[e.sid] = e;
           if (Object.keys(ses).length) doc[acc] = ses; else delete doc[acc];
         }
         return doc;
       }, 0).catch((err) => { console.error("Không ghi được danh sách bạn bè / chặn vào presence", err); return true; });
-      if (!ok) console.error("Không khóa được danh sách bạn bè / chặn trong presence.");
+      if (ok) continue;
+      // Không khóa được (tranh chấp lâu): ghi lại lần sau các mục chưa có bản mới hơn chờ ghi.
+      console.error("Không khóa được danh sách bạn bè / chặn trong presence: ghi lại lần sau.");
+      for (const [acc, e] of batch) if (!this.pending.has(acc)) this.pending.set(acc, e);
     }
     this.flushing = null;
   }
@@ -174,6 +186,8 @@ export class FriendHub {
     const s: Social = { sid, name, friends: new Map(row.friends.map((p) => [p.id, p.name])), blocks: new Map(row.blocks.map((p) => [p.id, p.name])),
       fans: new Set(row.fans) };
     for (const f of s.friends.keys()) { const o = this.lists(f); if (o) { if (o.friends.has(acc)) s.fans.add(f); else s.fans.delete(f); } }
+    // Bản sao của chính tài khoản này (phiên ở tiến trình khác, kể cả tiến trình đã chết) đã kết thúc: rời phòng ở đây không rơi về nó.
+    const own = this.remote.get(acc); if (own) this.endAll(own);
     this.social.set(acc, s);
     this.share(acc, s, "enter");
   }

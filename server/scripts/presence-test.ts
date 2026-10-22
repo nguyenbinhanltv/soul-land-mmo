@@ -142,7 +142,20 @@ try {
   assert.equal(p1.blocked(B.id, A.id), false, "tin cũ của phiên đã rời tới sau không dựng lại bản sao");
   const doc = await backend.getJson<Record<string, unknown>>("friend:state");
   assert.deepEqual(Object.keys(doc ?? {}), [String(A.id)]);
-  for (const h of [p1, p2, p3]) h.close();
+  // Tiến trình giữ D đã chết (mục cũ còn trong tài liệu); D vào rồi rời ở tiến trình 5: không rơi về bản sao cũ.
+  const D = { id: 4, name: "Áo Tư Tạp" };
+  await backend.putJson("friend:state", { ...doc, [D.id]: { y1: { sid: "y1", v: 1, friends: [A.id], blocks: [A.id] } } });
+  const p5 = new FriendHub(backend, "tiến-trình-5"); await p5.ready;
+  assert.equal(p5.blocked(D.id, A.id), true);
+  p5.enter(D.id, "x1", D.name, row([], []));
+  assert.equal(p5.blocked(D.id, A.id), false);
+  p5.leave(D.id, "x1");
+  await p5.settled();
+  assert.equal(p5.blocked(D.id, A.id), false, "vào rồi rời ở chính tiến trình này: bản sao cũ đã kết thúc");
+  assert.equal(p1.blocked(D.id, A.id), false);
+  assert.deepEqual(Object.keys((await backend.getJson<Record<string, unknown>>("friend:state")) ?? {}), [String(A.id)]);
+  console.log("✓ Vào lại sau khi tiến trình cũ chết: bản sao cũ của chính tài khoản kết thúc");
+  for (const h of [p1, p2, p3, p5]) h.close();
   friends.enter(9, "s9", "Một tiến trình", row([], []));
   assert.equal(await presenceBackend.getJson("friend:state"), null, "không có Redis thì không ghi presence");
   console.log("✓ Rời game ở tiến trình khác: bản sao bỏ, tài liệu presence chỉ còn người đang trong game");
