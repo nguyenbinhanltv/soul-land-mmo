@@ -1,0 +1,105 @@
+{
+  "_": "Thiên Đấu Thành ×8 diện tích (11.5). Thủ đô: tường thành đá trắng, sông phía đông có bến thuyền đi Hải Thần Đảo; đại lộ lưu ly chữ thập từ cổng nam (Nặc Đinh Thành), cổng bắc (Cực Bắc Chi Địa), cổng tây (Lạc Nhật Sâm Lâm) ra bến; quảng trường lớn có đài phun nước; Hoàng cung Thiên Đấu (tây bắc), Thương hội và lò rèn (đông bắc), Sử Lai Khắc Học Viện và sân tập (tây nam), Đại Đấu Hồn Trường (đông nam); vườn anh đào, khu nhà quý tộc và dân. Định dạng: tools/maps/README.md.",
+  "map": "thien_dau_thanh",
+  "out": "thien_dau_thanh.v2.json",
+  "size": [226, 158],
+  "seed": 20261112,
+  "border": "deep",
+  "gids": {
+    "ground": {
+      "grass": [1, 2], "leaf": 3, "moss": 6, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
+      "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
+    },
+    "objects": {
+      "rock": 36, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28, "sign": 29,
+      "roof": 14, "wall": 15
+    },
+    "canopy": { "17": 21, "19": 23 }
+  },
+  "tiers": [
+    { "name": "Thành", "trees": { "17": 2, "19": 1 }, "density": 0, "cluster": 0.99, "leaf": 0.72, "moss": 0.74, "plant": 0.003 }
+  ],
+  "zones": [],
+  "points": {},
+  "features": [
+    { "type": "area", "name": "Sông đông", "ground": "water", "rect": [205, 0, 21, 158], "edge": 1 },
+    { "type": "area", "name": "Lòng sông", "ground": "deep", "rect": [209, 0, 17, 158], "edge": 1, "on": ["water"] },
+    { "type": "area", "name": "Cầu tàu", "ground": "bridge", "rect": [203, 76, 23, 4], "lock": true, "clear": true },
+    { "type": "house", "rect": [214, 70, 6, 4], "margin": 0 },
+    { "type": "area", "name": "Đại lộ bắc nam", "ground": "path", "rect": [99, 1, 6, 156], "lock": true, "clear": true },
+    { "type": "area", "name": "Đại lộ đông tây", "ground": "path", "rect": [1, 75, 203, 6], "lock": true, "clear": true },
+    { "type": "area", "name": "Quảng trường", "ground": "pave", "rect": [78, 56, 48, 44], "lock": true, "clear": true },
+    { "type": "area", "name": "Sân đá quảng trường", "ground": "crack", "circle": [102, 78, 12], "on": ["pave", "path"] },
+    { "type": "objects", "kind": "ancient", "at": [[102, 68]] },
+    { "type": "objects", "kind": "ruin", "at": [[95, 64], [109, 64], [95, 92], [109, 92]] },
+    { "type": "row", "kind": "stele", "from": [80, 58], "to": [124, 58], "step": 6 },
+    { "type": "row", "kind": "stele", "from": [80, 98], "to": [124, 98], "step": 6 },
+    { "type": "row", "kind": "arch", "from": [80, 60], "to": [80, 96], "step": 6 },
+    { "type": "row", "kind": "arch", "from": [124, 60], "to": [124, 96], "step": 6 },
+    { "type": "row", "kind": "tree", "from": [4, 73], "to": [74, 73], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [4, 83], "to": [74, 83], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [130, 73], "to": [200, 73], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [130, 83], "to": [200, 83], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [97, 4], "to": [97, 52], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [107, 4], "to": [107, 52], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [97, 104], "to": [97, 150], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [107, 104], "to": [107, 150], "step": 5 },
+    { "type": "area", "name": "Vườn hoàng cung", "ground": "grass", "rect": [6, 4, 66, 42], "clear": true, "lock": true },
+    { "type": "scatter", "kind": "tree", "rect": [6, 4, 66, 4], "p": 0.25 },
+    { "type": "scatter", "kind": "tree", "rect": [6, 38, 66, 8], "p": 0.12 },
+    { "type": "house", "rect": [16, 10, 46, 24], "margin": 1, "ground": "pave" },
+    { "type": "area", "name": "Lối hoàng cung", "ground": "pave", "rect": [36, 35, 6, 40], "lock": true, "clear": true },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [74, 4, 22, 48], "w": [5, 8], "h": [4, 6] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [4, 48, 92, 23], "w": [5, 8], "h": [4, 6] },
+    { "type": "house", "rect": [126, 14, 28, 16], "margin": 1, "ground": "pave" },
+    { "type": "house", "rect": [162, 16, 24, 12], "margin": 1, "ground": "pave" },
+    { "type": "area", "name": "Sân thương hội", "ground": "pave", "rect": [124, 31, 66, 8], "lock": true, "clear": true },
+    { "type": "objects", "kind": "fire", "at": [[166, 33], [182, 33]] },
+    { "type": "objects", "kind": "rock", "at": [[168, 35], [171, 35], [177, 35], [180, 35]] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [110, 4, 92, 8], "w": [5, 8], "h": [3, 4], "alley": 2 },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [110, 41, 92, 31], "w": [5, 8], "h": [4, 6] },
+    { "type": "area", "name": "Vườn anh đào", "ground": "grass", "rect": [4, 86, 92, 8], "clear": true, "lock": true },
+    { "type": "scatter", "kind": "tree", "rect": [4, 86, 92, 8], "p": 0.18 },
+    { "type": "house", "rect": [14, 98, 50, 24], "margin": 1, "ground": "pave" },
+    { "type": "area", "name": "Sân tập Sử Lai Khắc", "ground": "path", "rect": [12, 124, 56, 20], "lock": true, "clear": true },
+    { "type": "objects", "kind": "rock", "at": [[16, 128], [16, 138], [62, 128], [62, 138]] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [70, 102, 26, 52], "w": [5, 8], "h": [4, 6] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [4, 146, 64, 9], "w": [5, 8], "h": [3, 4], "alley": 2 },
+    { "type": "house", "rect": [126, 96, 58, 30], "margin": 1, "ground": "pave" },
+    { "type": "area", "name": "Sân Đại Đấu Hồn Trường", "ground": "pave", "rect": [124, 127, 64, 10], "lock": true, "clear": true },
+    { "type": "row", "kind": "fire", "from": [128, 128], "to": [182, 128], "step": 9 },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [110, 140, 92, 15], "w": [5, 8], "h": [3, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [110, 86, 14, 52], "w": [4, 6], "h": [4, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [188, 86, 14, 52], "w": [4, 6], "h": [4, 5] },
+    { "type": "fence", "rect": [0, 0, 205, 158], "gates": [[0.5, 78], [102, 0.5], [102, 157.5], [204.5, 78]], "gate": 6 }
+  ],
+  "spawn": { "name": "Quảng trường Thiên Đấu", "rect": [86, 70, 32, 18] },
+  "portals": [
+    { "name": "Về Nặc Đinh Thành", "rect": [99, 155, 6, 3], "to": "nac_dinh_thanh", "arrive": "tu_thien_dau_thanh" },
+    { "name": "Đi Lạc Nhật Sâm Lâm", "rect": [0, 75, 2, 6], "to": "lac_nhat_sam_lam", "arrive": "tu_thien_dau_thanh", "level": "40-70" },
+    { "name": "Đi Cực Bắc Chi Địa", "rect": [99, 0, 6, 3], "to": "cuc_bac_chi_dia", "arrive": "tu_thien_dau_thanh", "level": "60-85" },
+    { "name": "Thuyền đi Hải Thần Đảo", "rect": [224, 76, 2, 4], "to": "hai_than_dao", "arrive": "tu_thien_dau_thanh", "level": "80-100", "boat": true }
+  ],
+  "arrives": [
+    { "name": "tu_nac_dinh_thanh", "at": [102, 150.5] },
+    { "name": "tu_lac_nhat_sam_lam", "at": [5, 78] },
+    { "name": "tu_cuc_bac_chi_dia", "at": [102, 5.5] },
+    { "name": "tu_hai_than_dao", "at": [219, 78] }
+  ],
+  "waypoints": [
+    { "name": "quang_truong", "label": "Quảng trường Thiên Đấu", "at": [86, 60] },
+    { "name": "ben_thuyen", "label": "Bến thuyền Thiên Đấu", "at": [194, 76] },
+    { "name": "cong_nam", "label": "Cổng nam Thiên Đấu", "at": [101, 140] }
+  ],
+  "npcs": [
+    { "name": "Đại Đấu Hồn Trường", "npc": "dau_hon_truong", "at": [155, 131] },
+    { "name": "Phất Lan Đức", "npc": "phat_lan_duc", "at": [40, 130] },
+    { "name": "Triệu Vô Cực", "npc": "trieu_vo_cuc", "at": [46, 130] },
+    { "name": "Thương nhân Thiên Đấu", "npc": "thuong_nhan_thien_dau", "at": [140, 33] },
+    { "name": "Thợ rèn Thiên Đấu", "npc": "lo_ren_thien_dau", "at": [174, 31] },
+    { "name": "Sứ giả Hạo Thiên Tông", "npc": "su_gia_hao_thien", "at": [80, 61] },
+    { "name": "Ninh Phong Trí", "npc": "ninh_phong_tri", "at": [86, 61] },
+    { "name": "Sứ giả Lam Điện Bá Vương Long Tông", "npc": "su_gia_lam_dien", "at": [92, 61] },
+    { "name": "Chủ giáo Vũ Hồn Điện", "npc": "chu_giao_vu_hon_dien", "at": [98, 61] }
+  ]
+}

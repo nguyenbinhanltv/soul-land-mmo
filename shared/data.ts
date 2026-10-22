@@ -145,7 +145,7 @@ export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi"
  * thú tăng theo diện tích (11.5).
  */
 export const BEAST_DENSITY: Record<string, number[]> = {
-  tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
+  thanh_hon_thon: [10.5, 10.0, 25.2], tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
   cuc_bac_chi_dia: [8.3, 8.2, 8.8, 5.7], hai_than_dao: [16.9, 9.6, 10.4, 10.9],
 };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
