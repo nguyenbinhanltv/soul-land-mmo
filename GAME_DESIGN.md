@@ -466,7 +466,12 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Mục tiêu theo bản đồ, không theo vùng.** Kiểu mới: `elite` (tham gia hạ một tinh anh), `king` (có đóng góp khi một thú vương bị hạ), cờ `party` trên `kill` (chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm). Đấu trường tính cả trận thua và giao hữu như khảo hạch hằng ngày.
 - Không thưởng mảnh UR (mảnh UR chỉ trong rương boss thế giới, mục 5.3).
 - **Server phát sự kiện** (`killBeast`, `killKing`; chỉ đếm sau khi nhận bài): `elite` cho người hạ tinh anh và đồng đội trong `partyNear` (những người được chia kinh nghiệm); `king` cho mọi người có đóng góp (`contributors`) còn trong phòng lúc thú vương bị hạ; `party` là cờ trên sự kiện `kill` khi `partyNear` có từ 2 người.
-- Hộp thoại nhận / trả có ở Triệu Vô Cực; khung theo dõi, dấu "!" / "?" và chỉ đường cho chương 2 chờ #190.
+- Hộp thoại nhận / trả có ở Triệu Vô Cực.
+
+**Hiển thị chuỗi cố định** (#190, chung cho mọi chuỗi trong `QUESTS`, theo `giver` / `map` của chuỗi; chương sau không phải làm lại phía client): chỉ từ tin riêng `quest` của từng chuỗi, không thêm tin mới.
+- Một chuỗi được **theo dõi** khi đã mở (chuỗi `QUEST_AFTER` của nó đã xong) và chưa xong cả chuỗi. Khung theo dõi có mỗi chuỗi đang theo dõi một mục theo thứ tự `QUESTS` (tên bài, bài x/N, mục tiêu x/N; chưa nhận thì "Gặp <NPC> ở <bản đồ>", đủ thì "quay về gặp…"), rồi mục "Hằng ngày"; bấm / chạm tiêu đề từng mục để thu gọn riêng mục đó (nhận cả chạm trên điện thoại). Điện thoại ngang (màn thấp) thì khung nằm sát bên trái bản đồ nhỏ, không đè thanh đội hình / nút hồn kỹ.
+- Dấu **"!" / "?"** trên đầu NPC `giver` của chuỗi đang theo dõi như Đại Sư (Triệu Vô Cực chỉ có dấu khi chương 2 đã mở; dấu của Phất Lan Đức chỉ theo khảo hạch hằng ngày).
+- **Chỉ đường trên bản đồ nhỏ** như nhiệm vụ tân thủ và khảo hạch (chấm NPC, khung vùng săn, tô cổng đi tiếp theo `route` của tin `daily`): bài chưa nhận / chờ trả chỉ về NPC giao bài; mục tiêu có `near` chỉ về NPC đó (đấu trường: Đại Đấu Hồn Trường); `elite` chấm chỗ sinh tinh anh của bản đồ đang đứng, không có thì về bản đồ săn hợp cấp; `king` khung hang thú vương của bản đồ đang đứng, không có thì về các bản đồ có thú vương (ưu tiên hợp cấp).
 
 **Nhiệm vụ hằng ngày** ("Khảo hạch Sử Lai Khắc", `DAILY`, `DAILY_POOL`; số bài, mục tiêu, phần thưởng ở dữ liệu): mỗi ngày `DAILY.count` bài, nhận và trả từng bài với Phất Lan Đức ở Thiên Đấu Thành (cùng luật đứng gần, gục, túi đủ chỗ như nhiệm vụ tân thủ), không cần xong chuỗi tân thủ.
 - **Đặt lại lúc 00:00 giờ Việt Nam** (như lượt thưởng boss, `vnDay`): bộ bài mới chưa nhận, bài hôm qua dở dang bỏ luôn, không trả được. Người đang chơi được báo ngay lúc qua ngày.
@@ -892,7 +897,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
-- [ ] #189 Chương 2 "Sử Lai Khắc Thất Quái": **phần 1 và 2 đã có** (dữ liệu 9 bài, NPC Triệu Vô Cực, server nhiều chuỗi cố định, nhận / trả bài, sự kiện `elite` / `king` / `party`, bài bot đủ 9 bài; mục 5.8). Khung theo dõi / dấu NPC ở #190.
+- [x] #189 Chương 2 "Sử Lai Khắc Thất Quái": dữ liệu 9 bài, NPC Triệu Vô Cực, server nhiều chuỗi cố định, nhận / trả bài, sự kiện `elite` / `king` / `party`, bài bot đủ 9 bài; khung theo dõi, dấu "!" / "?", chỉ đường chung cho mọi chuỗi cố định (#190; mục 5.8).
 - [x] Thương nhân lưu động ở trại cổng bản đồ săn (#111; mục 5.7, 5.8).
 - [x] Túi đồ chia trang, mở rộng theo trang, nút sắp xếp, gửi túi theo thay đổi; tài khoản cũ giữ số lần đã mở rộng (#215; mục 5.7, 6).
 - [x] Tự bán từ xa khi túi gần đầy theo bộ lọc (100% giá trong thành, mặc định tắt), khoá món, mua lại `AUTO_SELL_BUYBACK` món tự bán ở thương nhân, tự săn bán thay vì dừng; cột `items.locked`, `accounts.auto_sell` / `auto_sold` (#216; mục 5.7, 5.13).

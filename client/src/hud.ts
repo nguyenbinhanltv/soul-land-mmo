@@ -2198,10 +2198,10 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
   return box;
 }
 
-// ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
-let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ; khung theo dõi chỉ vẽ chuỗi này, chương 2 ở #190)
+// ---------- Nhiệm vụ: chuỗi cố định (tân thủ của Ngọc Tiểu Cương, chương 2 của Triệu Vô Cực…; mục 5.8, bước 6.2, #190) ----------
+let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ)
 const questMsgs = new Map<string, QuestMsg>(); // tin "quest" gần nhất của từng chuỗi cố định (kể cả tân thủ)
-let questFold = false;                // khung theo dõi đang thu gọn
+const questFold = new Set<string>();  // mã chuỗi đang thu gọn trong khung theo dõi
 let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
 let dailyFold = false;
 /** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ, chưa nhận tin "quest", hoặc chuỗi chưa mở theo QUEST_AFTER). */
@@ -2209,6 +2209,13 @@ export const questOf = (id: string) => {
   const q = [...questMsgs.values()].find((m) => questChain(m.chain)?.giver === id), after = q && QUEST_AFTER[q.chain];
   return q && (!after || questMsgs.get(after)?.status === "done") ? q : null;
 };
+/**
+ * Chuỗi cố định đang theo dõi (#190, chung cho mọi chuỗi trong QUESTS): đã có tin "quest", đã mở (chuỗi QUEST_AFTER của nó đã xong),
+ * chưa xong cả chuỗi; theo thứ tự QUESTS. Khung theo dõi, dấu NPC và chỉ đường bản đồ nhỏ cùng đọc danh sách này.
+ */
+export function questTracked(): QuestMsg[] {
+  return QUESTS.map((c) => questMsgs.get(c.id)).filter((q): q is QuestMsg => !!q && q.status !== "done" && questOf(questChain(q.chain)?.giver ?? "") === q);
+}
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
 export function setQuest(q: QuestMsg) {
   questMsgs.set(q.chain, q);
@@ -2231,27 +2238,40 @@ function questGoals(s: QuestStep, prog: number[] | null) {
   return box;
 }
 /**
- * Khung theo dõi trên màn hình: chuỗi tân thủ (tên bài, mục tiêu x/N, gợi ý quay về NPC; xong cả chuỗi thì bỏ phần này) rồi mục
- * "Hằng ngày" (khảo hạch của Phất Lan Đức); bấm / chạm tiêu đề từng phần để thu gọn. Không còn gì để theo dõi thì ẩn.
+ * Khung theo dõi trên màn hình: mỗi chuỗi cố định đang theo dõi một mục (questTracked: tân thủ, rồi chương 2 khi đã mở… tên bài, mục
+ * tiêu x/N, gợi ý gặp / quay về NPC giao bài; xong cả chuỗi thì bỏ mục đó), rồi mục "Hằng ngày" (khảo hạch của Phất Lan Đức); bấm /
+ * chạm tiêu đề từng mục để thu gọn. Không còn gì để theo dõi thì ẩn.
  */
 function renderQuestTracker() {
   const el = $("#quest"); el.innerHTML = "";
-  const starter = renderStarterTracker(el), daily = renderDailyTracker(el);
-  el.hidden = !starter && !daily;
+  let any = false;
+  for (const q of questTracked()) any = renderChainTracker(el, q) || any;
+  const daily = renderDailyTracker(el);
+  el.hidden = !any && !daily;
 }
-function renderStarterTracker(el: HTMLElement) {
-  const q = questMsg, { c, npc, where } = q ? giverOf(q.chain) : { c: undefined, npc: undefined, where: "" };
-  if (!q || !c || q.status === "done") return false;
-  const s = c.steps[q.step];
-  const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!questFold));
+/**
+ * Nút bấm / chạm của khung theo dõi (#190): `pointerdown` + preventDefault như thanh hồn kỹ (chạm trên điện thoại không phải lúc nào
+ * cũng sinh `click`); `click` không kèm số lần nhấn chuột (detail 0) là Enter / Space từ bàn phím.
+ */
+function onTap(b: HTMLElement, fn: () => void) {
+  b.addEventListener("pointerdown", (e) => { if (e.button === 0) { e.preventDefault(); fn(); } });
+  b.addEventListener("click", (e) => { if (e.detail === 0) fn(); });
+}
+function renderChainTracker(el: HTMLElement, q: QuestMsg) {
+  const { c, npc, where } = giverOf(q.chain), s = c?.steps[q.step];
+  if (!c || !s) return false;
+  const fold = questFold.has(q.chain), sec = document.createElement("div"); sec.className = "qsec"; sec.dataset.chain = q.chain;
+  const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!fold));
   head.innerHTML = "<b></b><i></i>";
   head.querySelector("b")!.textContent = `${s.name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`;
-  head.querySelector("i")!.textContent = `${q.step + 1}/${c.steps.length} ${questFold ? "▸" : "▾"}`;
-  head.title = questFold ? "Mở khung nhiệm vụ" : "Thu gọn khung nhiệm vụ";
-  head.addEventListener("click", () => { questFold = !questFold; renderQuestTracker(); }); // chuột, chạm và bàn phím
-  el.appendChild(head);
-  const sub = document.createElement("small"); sub.textContent = c.name; el.appendChild(sub);
-  if (questFold) return true;
+  head.querySelector("i")!.textContent = `${q.step + 1}/${c.steps.length} ${fold ? "▸" : "▾"}`;
+  head.title = fold ? `Mở mục ${c.name}` : `Thu gọn mục ${c.name}`;
+  onTap(head, () => { if (!questFold.delete(q.chain)) questFold.add(q.chain); renderQuestTracker(); });
+  sec.appendChild(head);
+  const sub = document.createElement("small"); sub.textContent = c.name; sec.appendChild(sub);
+  el.appendChild(sec);
+  if (fold) return true;
+  el = sec;
   const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; el.appendChild(t); };
   if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return true; }
   el.appendChild(questGoals(s, q.prog));
@@ -2327,7 +2347,7 @@ function renderDailyTracker(el: HTMLElement) {
   head.querySelector("b")!.textContent = `Hằng ngày${mark === "offer" ? " !" : mark === "ready" ? " ?" : ""}`;
   head.querySelector("i")!.textContent = `${done}/${m.list.length} ${dailyFold ? "▸" : "▾"}`;
   head.title = dailyFold ? "Mở mục Hằng ngày" : "Thu gọn mục Hằng ngày";
-  head.addEventListener("click", () => { dailyFold = !dailyFold; renderQuestTracker(); });
+  onTap(head, () => { dailyFold = !dailyFold; renderQuestTracker(); });
   sec.appendChild(head);
   const sub = document.createElement("small"); sub.textContent = DAILY.name; sec.appendChild(sub);
   el.appendChild(sec);

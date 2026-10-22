@@ -551,6 +551,9 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 .qbox .buse{align-self:flex-start;margin-top:3px}
 .qbox.qdone{opacity:.6}
 @media (max-width:640px){#quest{top:130px;width:184px}}
+/* Điện thoại ngang (#190): dưới bản đồ nhỏ chỉ còn ~60px trước thanh đội hình / nút hồn kỹ, khung theo dõi bị che và chạm không tới:
+   đặt sát bên trái bản đồ nhỏ (vùng trên giữa màn hình còn trống), cao tối đa tới trên thanh đội hình. */
+@media (max-height:500px){body.touch #quest{top:22px;right:180px;width:200px;max-height:max(80px,calc(100% - 230px))}}
 /* Đại Đấu Hồn Trường (7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng */
 #arenaQ{position:absolute;left:50%;transform:translateX(-50%);top:46px;display:flex;align-items:center;gap:10px;padding:6px 10px;border-color:#ff6b6b;pointer-events:auto}
 #arenaQ b{display:block;font-size:12px;font-family:var(--f12);color:var(--son)}

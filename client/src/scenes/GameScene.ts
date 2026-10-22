@@ -6,7 +6,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
-  npcDef, NPC_RANGE, type NpcDef, QUEST_STARTER, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
+  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
@@ -164,6 +164,7 @@ export class GameScene extends Phaser.Scene {
   eliteLabels = new Map<string, Phaser.GameObjects.Text>();
   /** Hang thú vương của bản đồ (object `boss`, BĐ5): vẽ trên bản đồ nhỏ. */
   lair: Rect | null = null;
+  eliteSpots: Pt[] = []; // chỗ sinh tinh anh của bản đồ (object `elite` trong Tiled), cho chỉ đường mục tiêu `elite` (#190)
   /** Hỏa Đàn trong hang (#163, Cực Hàn): chỗ đặt (shared/hoaDan.ts, như server), bán kính xả tầng Hàn, lớp vẽ đống lửa (độ sâu theo chân). */
   hoaDan: { x: number; y: number; r: number; g: Phaser.GameObjects.Graphics } | null = null;
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
@@ -199,7 +200,6 @@ export class GameScene extends Phaser.Scene {
    */
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null;
     qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
-  quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
   qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
@@ -289,6 +289,7 @@ export class GameScene extends Phaser.Scene {
       }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
       if (o.type === "elite" && causesInk(String(prop("boss") ?? ""))) inkHere = true; // #175: bản đồ có Phun Mực
+      if (o.type === "elite") this.eliteSpots.push({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
       if (o.type === "portal") crowdMap.portals.push({ ...r, boat: !!prop("boat") });
@@ -933,10 +934,10 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.room.onMessage("arenaTop", (m: hud.ArenaTopMsg) => { if (m && Array.isArray(m.list)) hud.setArenaTop(m); });
-    // Nhiệm vụ tân thủ (6.2): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu trên đầu NPC và thông báo.
+    // Nhiệm vụ chuỗi cố định (6.2, #190: tân thủ, chương 2…): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu
+    // trên đầu NPC giao bài, chỉ đường bản đồ nhỏ và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
-      if (m.chain === QUEST_STARTER) this.quest = m;
       hud.setQuest(m); this.updateQuestMarks();
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
@@ -1819,13 +1820,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Chỉ đường nhiệm vụ trên bản đồ nhỏ (chuỗi tân thủ đang làm và khảo hạch hằng ngày): mục tiêu ở bản đồ này thì chấm NPC / khung vùng
+   * Chỉ đường nhiệm vụ trên bản đồ nhỏ (mọi chuỗi cố định đang theo dõi, hud.questTracked: tân thủ, chương 2…, và khảo hạch hằng
+   * ngày; #190): mục tiêu ở bản đồ này thì chấm NPC / khung vùng
    * săn; ở bản đồ khác thì tô cổng đi tới bản đồ kề theo `route` của tin "daily" (server tính đường ít lần đi cổng nhất). Bài chờ trả
    * hoặc chưa nhận chỉ về NPC giao bài; mục tiêu hạ hồn thú hợp cấp (`fit`) và nộp hồn hạch / hồn hoàn chỉ về vùng săn hợp cấp
-   * (fitMaps, fitBeast theo cấp võ hồn ra trận). Tính lại khi tiến độ hoặc cấp đổi.
+   * (fitMaps, fitBeast theo cấp võ hồn ra trận). Mục tiêu tinh anh (`elite`) chấm các chỗ sinh tinh anh của bản đồ này, không có thì
+   * về bản đồ săn hợp cấp; thú vương (`king`) khung hang của bản đồ này, không có thì về các bản đồ có thú vương (ưu tiên hợp cấp).
+   * Tính lại khi tiến độ hoặc cấp đổi.
    */
   questTargets(level: number) {
-    const daily = hud.dailyList(), key = [this.quest?.step, this.quest?.status, ...daily.map((q) => q.chain + q.status + q.prog.join()), level].join("|");
+    const fixed = hud.questTracked(), daily = hud.dailyList();
+    const key = [...[...fixed, ...daily].map((q) => q.chain + q.step + q.status + q.prog.join()), level, this.daily?.route ? 1 : 0].join("|");
     if (this.qt.key === key) return this.qt;
     const npcs: Pt[] = [], zones = new Set<Zone>(), maps = new Set<string>(), route = this.daily?.route ?? {};
     const toNpc = (id: string, mapId: string) => {
@@ -1843,13 +1848,22 @@ export class GameScene extends Phaser.Scene {
       if (g.k === "kill") return hunt(g.map, g.zone, !!g.fit);
       if (g.k === "map" && g.map) return void (g.map !== this.mapId && maps.add(g.map));
       if (g.k === "give" && (g.item === CORE_ITEM || g.item === RING_ITEM)) return hunt(undefined, undefined, true);
+      if (g.k === "elite") {
+        if (this.eliteSpots.length) return void npcs.push(...this.eliteSpots);
+        return void fitMaps(level).forEach((m) => maps.add(m));
+      }
+      if (g.k === "king") {
+        if (this.lair && MAPS[this.mapId]?.king) return void zones.add({ ...this.lair, name: "", hint: "" });
+        const all = Object.keys(MAPS).filter((m) => MAPS[m].king), fit = all.filter((m) => fitMaps(level).includes(m));
+        return void (fit.length ? fit : all).forEach((m) => maps.add(m));
+      }
     };
     const one = (q: QuestProgress & { status: QuestStatus }) => {
       const c = questChain(q.chain), s = c?.steps[q.step]; if (!c || !s || q.status === "done") return;
       if (q.status !== "active") return toNpc(c.giver, c.map);
       s.goals.forEach((g, i) => { if ((q.prog[i] ?? 0) < g.n) goal(g, c.map); });
     };
-    if (this.quest) one(this.quest);
+    fixed.forEach(one);
     daily.forEach(one);
     // Bản đồ khác: tô cổng đi tới bản đồ kề trên đường tới đó (một bản đồ đích có nhiều cổng thì tô cả).
     const next = new Set([...maps].map((m) => route[m]).filter(Boolean));
