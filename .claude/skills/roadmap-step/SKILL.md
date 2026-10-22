@@ -22,8 +22,8 @@ Mỗi gạch đầu dòng ở `GAME_DESIGN.md` mục 7 là **một** lần giao 
 
 ## 3. Kiểm tra
 1. `npm run check` (hook PostToolUse cũng tự chạy `tools/check.mjs --hook` sau mỗi lần sửa; lỗi thì sửa ngay).
-2. Bật server mới (state sạch) với hook kiểm thử: `GAME_TEST=1 npm run dev:server` (chạy nền, đợi cổng sẵn sàng; phiên song song thì dùng `PORT` riêng và `SERVER_URL` cho bot).
-3. `npm run bot --prefix client`. Đọc output: dòng ✗ là lỗi thật, ⚠ là phần bị bỏ qua; xem log server không có lỗi. Đổi luật kênh thì chạy thêm với server `CHANNEL_MAX=2 GAME_TEST=1`.
+2. Bot ở máy bằng `npm run bot:local -- --only <nhóm>` hoặc `--part 1..4` (server mới bật `GAME_TEST=1`, cổng trống, tự dọn; tối đa 2 lượt cùng lúc trên máy). Bot đầy đủ để job CI `bot-ram` chạy mỗi push. Đổi SQL / `db.ts` thì thêm `--pg`.
+3. Đọc output: dòng ✗ là lỗi thật, ⚠ là phần bị bỏ qua; xem log server (`ci-logs/local-*-server.log`) không có lỗi. Đổi luật kênh thì chạy thêm `npm run bot:local -- --channels`.
 4. Luồng / message mới: thêm kiểm tra vào `client/scripts/bot-test.mjs`; luồng khó dựng bằng bot thì thêm `op` cho hook `test` gọi đúng hàm luật chơi (chỉ chạy khi `GAME_TEST=1`), không viết luật riêng cho bot.
 5. Đổi giao diện: `npm run dev:client`, mở `http://localhost:5173` thử bằng tay (chuột, phím, chạm).
 6. Đổi SQL / `db.ts`: thử với PostgreSQL như skill `db-migration`.

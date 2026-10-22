@@ -106,7 +106,7 @@ Mỗi người có đội tối đa **4 võ hồn**; trên bản đồ chỉ hi�
 - 6 vị trí trên mỗi võ hồn: **đầu, thân, tay trái, tay phải, chân trái, chân phải**. Hồn cốt rơi đúng một vị trí và **chỉ gắn vào ô cùng vị trí**.
 - **Đầu và hai tay** cho kỹ năng **chủ động** (phím Z / X / C); **thân và hai chân** cho kỹ năng **bị động** (tốc chạy, công, chí mạng, giảm sát thương, hút máu, kháng trạng thái…). Kỹ năng theo **loài hồn thú gốc**, mạnh theo số năm của hồn cốt. Chỉ võ hồn đang ra trận dùng được hồn cốt gắn trên nó.
 - **Gắn:** túi đồ → hồn cốt → "Gắn…", hoặc mục "Hồn cốt" ở bảng đội hình (kéo thả được). Ngoài giao chiến. Đồ đang gắn không chiếm ô túi và **không bao giờ mất**; muốn chuyển sang võ hồn khác thì tháo trước.
-- **Cường hóa:** nút "Cường hóa…" (túi đồ hoặc ô đang gắn) hoặc Thợ rèn. Miễn phí, ở đâu cũng được (ngoài giao chiến). Chọn hồn cốt dư làm **nguyên liệu**: nguyên liệu bị tiêu hao, **không bao giờ thất bại**. Hồn cốt nguyên liệu càng già và **cùng vị trí** thì càng nhiều điểm. Các mốc cường hóa nâng kỹ năng của hồn cốt. Bảng xem trước ghi rõ cấp sẽ đạt và số hồn cốt sẽ mất.
+- **Cường hóa:** nút "Cường hóa…" (túi đồ hoặc ô đang gắn) hoặc Thợ rèn. Miễn phí, ở đâu cũng được (ngoài giao chiến). Chọn hồn cốt dư làm **nguyên liệu**: nguyên liệu bị tiêu hao, **không bao giờ thất bại**. Hồn cốt nguyên liệu càng già và **cùng vị trí** thì càng nhiều điểm. Mỗi mốc cường hóa nâng kỹ năng của hồn cốt và thêm một dòng chỉ số phụ ngẫu nhiên theo vị trí (mốc cuối là đủ dòng; hồn cốt đã qua mốc từ trước được bù dòng khi vào game). Bảng xem trước ghi rõ cấp sẽ đạt, mốc kế tiếp và số hồn cốt sẽ mất.
 
 ## 8. Hồn hạch
 - 6 ô trên mỗi võ hồn, **ô nào cũng gắn được mọi hồn hạch**. Mỗi viên có **sao 1–6**, thuộc một **bộ**, có 1 chỉ số chính và vài dòng phụ ngẫu nhiên (sao càng cao càng nhiều dòng).
@@ -200,9 +200,9 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 - Khung tổ đội hiện tên, cấp, võ hồn ra trận, sinh lực và bản đồ / kênh của từng người; đồng đội cùng phòng là chấm xanh lá trên bản đồ nhỏ.
 
 ## 15. Đại Đấu Hồn Trường
-Đấu **đội võ hồn 1 đấu 1**, xếp hạng theo Elo.
-- **Xếp hàng:** tới biển **Đại Đấu Hồn Trường** trước cửa đấu trường (góc đông nam Thiên Đấu Thành), nói chuyện rồi bấm "Xếp hàng đấu hồn". Phải **ra khỏi tổ đội**, ngoài giao chiến. Đi bản đồ khác hoặc thoát game thì ra khỏi hàng.
-- Ghép xong cả hai vào sân riêng, **cả đội hồi đầy**, đếm ngược rồi giao đấu có giới hạn thời gian. Dùng mọi thứ như ngoài rừng: hồn kỹ, Chân Thân, hồn cốt, tiên cơ, đổi tay. Không xếp đội, không dùng vật phẩm trong sân.
+Đấu **đội võ hồn 1 đấu 1 hoặc 2 đấu 2**, xếp hạng theo Elo từng tài khoản.
+- **Xếp hàng:** người chơi đơn tự xếp. Tổ đội **đúng 2 người** do trưởng nhóm xếp cho cả đội; hai người phải cùng kênh và cùng đứng gần biển **Đại Đấu Hồn Trường** trước cửa đấu trường (góc đông nam Thiên Đấu Thành). Khi chờ ghép, thành phần tổ đội bị khóa; cả hai có thể hủy. Ngoài giao chiến. Đi bản đồ khác hoặc thoát game thì cả bên ra khỏi hàng.
+- Ghép xong hai bên vào sân riêng (2v2 tối đa 4 người), **cả đội hồi đầy**, đếm ngược rồi giao đấu có giới hạn thời gian. Dùng mọi thứ như ngoài rừng: hồn kỹ, Chân Thân, hồn cốt, tiên cơ, đổi tay. Không xếp đội, không dùng vật phẩm trong sân.
 - **Thắng:** hạ hết đội đối thủ, hoặc hết giờ mà còn nhiều % sinh lực cả đội hơn (chênh ít thì hòa). Rời sân hoặc không vào sân kịp là thua.
 - **Thưởng thắng:** Hồn Tệ và mảnh võ hồn, có giới hạn số trận thắng có thưởng mỗi ngày. **Thua / hòa không mất gì.**
 - Cùng một đối thủ chỉ tính Elo và thưởng vài trận mỗi ngày; sau đó là **giao hữu** (vẫn đấu, không đổi Elo).

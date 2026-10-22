@@ -99,12 +99,24 @@ body.touch #talk kbd{display:none}
 #channel{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);width:min(380px,92vw);text-align:center;display:none;padding:6px 10px;background:var(--panel);border:1px solid var(--line)}
 #channel .label{font-size:12px;font-family:var(--f12);margin-bottom:5px;color:var(--text)}
 #channel .bar{height:10px}
-#chatbox{position:absolute;left:10px;bottom:12px;width:min(380px,58vw);display:flex;flex-direction:column;gap:3px}
+#chatbox{position:absolute;left:10px;bottom:12px;width:min(380px,58vw);display:flex;flex-direction:column;gap:3px;z-index:2} /* trên chữ thanh máu (.bar span z-index:1) của bảng tổ đội, dưới các bảng lớn (z-index 3–4) */
 #log{display:flex;flex-direction:column;gap:3px}
 #log div{background:var(--ink-panel);color:var(--ink-text);border-left:3px solid var(--son);padding:3px 8px;font-size:12px;font-family:var(--f12);transition:opacity .6s;user-select:text}
 #log div b{margin-right:4px}
+#log div i{font-style:normal;margin-right:4px;text-shadow:var(--stroke)}
+#log div b[style]{text-shadow:var(--stroke)}
+/* Ô chat mở (đang gõ hoặc vừa chọn tab, #188): lịch sử trong phiên không mờ, cuộn được */
+#chatbox.open #log{max-height:min(320px,42vh);overflow-y:auto;pointer-events:auto;touch-action:pan-y;overscroll-behavior:contain}
+#chatbox.open #log div{background:rgba(26,16,32,.9)} /* mở rộng thì đè lên bảng tổ đội: nền đậm để không lẫn chữ */
+#chattabs{display:flex;gap:2px;margin-top:3px}
+#chattabs button{flex:1;position:relative;font:inherit;font-size:12px;font-family:var(--f12);padding:3px 2px;background:rgba(26,16,32,.9);color:var(--ink-text);
+  border:0;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+#chattabs button:not(.on){color:color-mix(in srgb,var(--ink-text) 70%,transparent)}
+#chattabs button.on{border-bottom-color:var(--c,var(--son));color:var(--c,var(--ink-text));text-shadow:var(--stroke)}
+#chattabs button.new::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;background:var(--c,var(--son))}
+body.touch #chattabs button{padding:7px 2px}
 #chat{font:inherit;font-size:12px;font-family:var(--f12);padding:6px 8px;background:var(--paper);color:var(--text);border:2px solid var(--ink2);margin-top:3px;user-select:text}
-#chat:focus{outline:none;border-color:var(--son)}
+#chat:focus{outline:none;border-color:var(--c,var(--son))}
 /* Thanh hành động: kỹ năng hồn cốt chủ động (4.3, Z/X/C) bên trái thanh hồn kỹ. */
 #actbar{position:absolute;right:10px;bottom:12px;display:flex;gap:12px;align-items:flex-end}
 #skills{display:flex;gap:6px}
@@ -254,7 +266,19 @@ body.touch #prompt{bottom:160px}
 .coin>span:first-of-type{color:var(--muted)}
 .coinico{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2b0,#f2c84b 45%,#b8862a);box-shadow:0 0 0 1px #6a4a12}
 .ht.kim{color:#8a5f0a} .ht.ngan{color:#4d5a73} .ht.dong{color:#9a4a1c}
-.bgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.bgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+/* Trang túi (#215): tab số trang, vạch dưới là mức đầy (đỏ khi đầy), nút "Sắp xếp" bên phải. */
+.bpages{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.bpg{position:relative;min-width:30px;height:28px;padding:0 6px 4px;border:2px solid var(--line);background:var(--wash);color:var(--text);font:inherit;cursor:pointer}
+.bpg b{font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
+.bpg i{position:absolute;left:5px;right:5px;bottom:4px;height:3px;background:var(--wash2)}
+.bpg i::after{content:"";display:block;height:100%;width:calc(var(--f) * 100%);background:var(--xp)}
+.bpg.full i::after{background:var(--hp)}
+.bpg.none b{opacity:.55}
+.bpg.cur{border-color:var(--xp)}
+.bpg:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bsort{margin-left:auto;padding:4px 10px}
+@media (max-width:420px){.bgrid{grid-template-columns:repeat(5,1fr)}} /* màn hẹp: ô đủ lớn để chạm, trang 10 hàng cuộn trong bảng */
 .bslot{position:relative;aspect-ratio:1;min-width:0;padding:0;border:2px solid var(--line);background:var(--wash);color:var(--text);
   font:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .bslot.empty{border-style:dashed;opacity:.45;cursor:default}
@@ -263,6 +287,18 @@ body.touch #prompt{bottom:160px}
 .bslot:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .bslot small{position:absolute;right:2px;bottom:0;font-size:10px;font-family:var(--f10);text-shadow:0 1px 0 #000,0 0 2px #000;font-variant-numeric:tabular-nums}
 .bslot .cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
+/* Tự bán (#216): ổ khoá vẽ bằng CSS ở góc phải trên ô khoá; nút bộ lọc cạnh "Sắp xếp"; bộ lọc thay chỗ chi tiết ô */
+.bslot i.lk{position:absolute;right:3px;top:5px;width:8px;height:6px;background:#e8d9a8;border-radius:1px;pointer-events:none;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000)}
+.bslot i.lk::before{content:"";position:absolute;left:1px;bottom:5px;width:4px;height:4px;border:1px solid #e8d9a8;border-bottom:0;border-radius:3px 3px 0 0}
+.bsellbtn{margin-left:auto;padding:4px 10px}
+.bsellbtn.on{border-color:var(--xp);color:var(--xp)}
+.bsellbtn+.bsort{margin-left:4px}
+.binfo.bsell{gap:6px}
+.binfo.bsell .achk{font-size:12px;font-family:var(--f12);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.binfo.bsell .achk input[type=checkbox]{accent-color:var(--son);width:16px;height:16px;cursor:pointer}
+.binfo.bsell select{font:inherit;font-size:12px;font-family:var(--f12);padding:2px 4px;border:1px solid var(--line);background:var(--wash);color:var(--text)}
+.binfo.bsell>.buse{align-self:flex-start}
 /* Biểu tượng vật phẩm theo nhóm: đan là viên tròn sáng; nhóm chưa có ảnh dùng hình chung */
 .ico{display:block;width:58%;height:58%}
 .ico.dan{border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff 0 12%,var(--c) 38%,color-mix(in srgb,var(--c) 45%,#000) 100%);
@@ -576,6 +612,19 @@ body.arena #quest{display:none}
 .ressteps{display:flex;flex-wrap:wrap;gap:4px}
 .resstep{font-size:12px;font-family:var(--f12);border:1px dashed var(--line);padding:2px 6px;color:var(--muted)}
 .resstep.on{border:1px solid var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--text)}
+.resrank{border:1px solid var(--line2);padding:6px 8px;display:flex;flex-direction:column;gap:5px}
+.resrankhead,.respages{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.resrankhead b{font-size:12px;font-family:var(--f12)}
+.resrank button,.respages button{font:inherit;font-size:12px;font-family:var(--f12);min-height:28px;padding:3px 7px;border:1px solid var(--line2);background:var(--wash);color:var(--text);cursor:pointer}
+.resrank button:disabled,.respages button:disabled{opacity:.45;cursor:default}
+.resrank small{color:var(--muted);font-size:12px;font-family:var(--f12)}
+.resranktable{display:flex;flex-direction:column;gap:1px;max-height:190px;overflow-y:auto}
+.resrankrow{display:grid;grid-template-columns:34px 1fr auto;gap:6px;padding:3px 4px;font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
+.resrankrow em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resrankrow i{font-style:normal;color:var(--muted);text-align:right}
+.resrankrow.me{background:rgba(233,196,90,.16);color:var(--xp)}
+.respages{justify-content:flex-end}
+.respages span{font-size:12px;font-family:var(--f12);color:var(--muted)}
 
 /* ===== Bước 10.8: giao diện thủy mặc (phong cách C) và thẻ võ hồn lưu ly (phong cách D), mục 5.11 =====
    Mảnh ui_* nạp qua manifest (uiArt.ts đặt --ui-<tên> và --nine-<tên>, thêm class "thuymac" lên <html>); thiếu ảnh thì giữ kiểu CSS
@@ -583,7 +632,7 @@ body.arena #quest{display:none}
 .thuymac .panel{border:6px solid transparent;background:none;box-shadow:none;
   border-image:var(--ui-hop-thoai) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
 /* Bảng lớn giữa màn hình và thẻ màn đăng nhập: cuộn giấy hai trục gỗ. */
-.thuymac :is(#roster,#bag,#reso,#world,#arenaEnd,#overlay .card){border-width:16px 10px;
+.thuymac :is(#roster,#bag,#reso,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
   border-image:var(--ui-cuon-giay) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 /* Hộp thoại NPC: làm tối cảnh nhẹ (mục 5.11 C), hoa văn mực ở hai góc. */
@@ -609,6 +658,9 @@ body.arena #quest{display:none}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):active,.thuymac :is(#chans,#arenaQ) button:not(:disabled):active,
 .thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bslot,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--ui-nut-nhan)}
 .thuymac .bslot.empty{border-image-source:var(--ui-nut-nhan);opacity:.55}
+.thuymac .bpg{border:4px solid transparent;background:none;border-image:var(--ui-nut-thuong) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
+.thuymac .bpg:not(.cur):hover{border-image-source:var(--ui-nut-ro)}
+.thuymac .bpg.cur{border-image-source:var(--ui-nut-nhan);outline:2px solid var(--son);outline-offset:-3px}
 /* Trạng thái chọn / màu riêng thể hiện bằng viền trong (border-image che màu viền cũ). */
 .thuymac .bcell:not(.empty):not(.sel),.thuymac .kcard.on{outline:2px solid color-mix(in srgb,var(--c) 75%,#1a1020);outline-offset:-3px}
 .thuymac .kcard.on{border-image-source:var(--ui-nut-nhan)}
@@ -705,9 +757,9 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .vcardx.cempty .csl{position:absolute}
 .vcardx.cempty small{font-size:10px;font-family:var(--f10)}
 /* Bảng đội hình: 4 ô là 4 thẻ, nút Bỏ dưới thẻ; bộ sưu tập là lưới thẻ; mảnh võ hồn là thẻ + thanh mảnh + nút. */
-#roster,#bag,#reso,#audio,#world,#npc{width:min(452px,94vw)}
+#roster,#bag,#reso,#audio,#world,#npc,#autoPanel{width:min(452px,94vw)}
 /* Bảng giữa màn hình nằm trên log chat, thanh đội hình, ấn hồn kỹ (màn thấp của điện thoại). */
-#roster,#bag,#reso,#audio,#world,#npc,#arenaEnd{z-index:4}
+#roster,#bag,#reso,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
 #roster .tslots{display:grid;grid-template-columns:repeat(auto-fill,96px);gap:8px;justify-content:center}
 #roster .tslot{flex-direction:column;align-items:center;gap:3px;border:0;background:none}
 #roster .tslot:not(.empty){border:0}
@@ -804,3 +856,35 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .ico.phu{width:40%;height:66%;position:relative;background:linear-gradient(180deg,#f3dc8a,#d9b24a);box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
 .ico.phu::before{content:"";position:absolute;left:22%;top:14%;width:56%;height:36%;border:2px solid #b0302a;border-radius:50%;box-sizing:border-box}
 .ico.phu::after{content:"";position:absolute;left:46%;top:56%;width:8%;height:32%;background:#b0302a}
+/* Bảng Tự động (Auto 2, mục 5.13): cài đặt tự săn giữa màn hình; tổng kết khi dừng là hộp giấy nhỏ phía trên, không chặn cảnh. */
+#autoPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:84%;overflow-y:auto;padding:10px;pointer-events:auto;
+  touch-action:pan-y;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(6px)}
+#autoPanel[hidden],#autoSum[hidden]{display:none}
+#autoPanel>*{flex-shrink:0}
+#autoPanel .anote,#autoSum .anote,#autoPanel .asec small{color:var(--muted);font-size:10px;font-family:var(--f10);line-height:normal}
+#autoPanel .atoggle{align-self:stretch;margin-top:0;min-height:40px}
+#autoPanel .atoggle kbd{font:inherit;font-size:10px;font-family:var(--f10);border:1px solid currentColor;padding:0 4px;margin-left:6px;opacity:.8}
+body.touch #autoPanel .atoggle kbd{display:none}
+#autoPanel .asec{border:1px solid var(--line);border-left:4px solid #2f7a4a;padding:6px 8px;display:flex;flex-direction:column;gap:6px}
+#autoPanel .asec>b{font-size:12px;font-family:var(--f12)}
+#autoPanel .arange{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;font-size:12px;font-family:var(--f12)}
+#autoPanel .arange input{grid-column:1 / -1;width:100%;accent-color:var(--son);cursor:pointer}
+#autoPanel output{color:var(--accent);font-size:12px;font-family:var(--f10);font-variant-numeric:tabular-nums}
+#autoPanel .aline,#autoPanel .achk{font-size:12px;font-family:var(--f12);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+#autoPanel .achk input[type=checkbox]{accent-color:var(--son);width:16px;height:16px;cursor:pointer}
+#autoPanel input[type=number],#autoPanel select{width:88px;font:inherit;font-size:12px;font-family:var(--f12);padding:2px 4px;border:1px solid var(--line);
+  background:var(--wash);color:var(--text)}
+#autoPanel select{width:auto}
+#autoPanel .aorder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+#autoPanel .aorder li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center}
+#autoPanel .aorder .rlink{min-height:28px;padding:2px 8px}
+body.touch #autoPanel .aorder .rlink{min-height:36px}
+#autoPanel .brow{display:flex;gap:6px}
+#autoSum{position:absolute;left:50%;top:56px;transform:translateX(-50%);width:min(340px,92vw);padding:8px 12px;pointer-events:auto;display:flex;flex-direction:column;gap:6px}
+.asum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:12px;font-family:var(--f12)}
+.asum span{color:var(--muted)}
+.asum b{font-weight:normal;color:var(--text);overflow-wrap:anywhere}
+/* Ủy Thác Lệnh khi chưa có ảnh item_uy_thac_lenh: lệnh bài ngọc bích, viền mực, chữ "lệnh" là vạch son (vẽ bằng CSS; cần vẽ ảnh sau). */
+.ico.lenh{width:46%;height:70%;position:relative;border-radius:3px 3px 40% 40%;background:linear-gradient(180deg,#bdf0d2,#4fa877);
+  box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
+.ico.lenh::before{content:"";position:absolute;left:30%;top:22%;width:40%;height:46%;border:2px solid #b0302a;box-sizing:border-box}

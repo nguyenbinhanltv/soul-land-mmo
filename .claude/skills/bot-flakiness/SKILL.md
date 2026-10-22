@@ -10,8 +10,7 @@ Bot không chập chờn tới khi chứng minh được: các nguồn chập ch
 Ý tưởng phỏng theo skill `test-flakiness` và `regression-suite` của [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho bot của repo này.
 
 ## 1. Tái hiện
-- Mỗi lượt một **server mới** (state sạch), cổng riêng, chạy tuần tự (`CLAUDE.md` phần Lệnh):
-  `GAME_TEST=1 PORT=2600 npm run dev:server` rồi `SERVER_URL=http://localhost:2600 npm run bot --prefix client`. Ghi output ra file ở thư mục artifact.
+- Mỗi lượt một **server mới** (state sạch), chạy tuần tự bằng `npm run bot:local -- --only <nhóm>` (hoặc `--part 1..4`; `CLAUDE.md` phần Lệnh): tự bật server ở cổng trống, tự dọn, in số ✓ / ✗ / ⚠ và log ở `ci-logs/local-*`. Ghi output ra file ở thư mục artifact.
 - Ít nhất **3 lượt** trước khi gọi là chập chờn (1 trượt / 2 lượt chỉ là nghi ngờ); muốn kết luận đã sửa thì 5–10 lượt. Ghi tỉ lệ trượt từng dòng.
 - Thu hẹp: khối có `BOT_ONLY` (`waypoint`, `bigmap`, `view`, `daily`) thì chạy riêng khối đó. Không có thì viết script tái hiện ngoài repo chỉ lặp đúng thao tác trượt 20–40 lần (#139: `walkToX` trượt 10/30, sau sửa 0/40).
 - Dừng bot giữa chừng thì **khởi động lại server** trước lượt sau (hồn thú thử còn trong phòng RAM làm lượt sau trượt dây chuyền).
