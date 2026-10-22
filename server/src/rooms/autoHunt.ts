@@ -77,8 +77,8 @@ export class AutoHunter {
   /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
   los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
 
-  /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. */
-  pace = 0;
+  /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. `est`: giây tự đánh ước lượng của con vừa hạ (hook test). */
+  pace = 0; est = 0;
 
   /** Tổng kết: giây đã treo lượt này và ảnh chụp lúc bật. */
   secs = 0; start: AutoSnap;
@@ -109,7 +109,9 @@ export class AutoHunter {
   tick(dt: number) {
     const room = this.room, p = room.state.players.get(this.id), d = room.pdata.get(this.id), c = room.clients.getById(this.id);
     if (!p || !d || !c) return room.autoStop(this.id, "mất kết nối.");
-    this.clock += dt; this.secs += dt; this.pace = Math.max(-AUTO_PACE.credit, this.pace - dt);
+    this.clock += dt; this.secs += dt;
+    // Nợ nhịp giảm theo thời gian thực; chỉ kẹp khi không có mục tiêu (rảnh), không kẹp lúc đang đi tới / đánh một con (AUTO_PACE).
+    this.pace -= dt; if (!this.target) this.pace = Math.max(-AUTO_PACE.credit, this.pace);
     // Giờ miễn phí của hôm nay trước, hết thì tiêu quỹ cộng thêm từ Ủy Thác Lệnh (Auto 2).
     if (d.autoUsed < AUTO_DAILY_SECS) d.autoUsed += dt; else d.autoBonus = Math.max(0, d.autoBonus - dt);
     d.autoDirty = true;
@@ -209,11 +211,15 @@ export class AutoHunter {
     this.go(this.patrol);
   }
 
-  /** MapRoom báo mình vừa hạ một hồn thú thường (killBeast): cộng thời gian tự đánh con đó vào nợ nhịp (AUTO_PACE). */
-  killed(pw: OfflinePower, years: number, species: string) { this.pace += offlineFight(pw, years, species).secs; }
+  /**
+   * MapRoom báo mình vừa hạ một hồn thú thường (killBeast): cộng thời gian tự đánh con đó vào nợ nhịp (AUTO_PACE). Thời gian thật đã
+   * đi / đánh mục tiêu đã trừ vào nợ (không kẹp), nên con đó tốn max(thật, ước lượng); phần thật dư quá `credit` giây bỏ khi thôi nhắm
+   * mục tiêu (drop). Hạ lan con khác giữa trận không kẹp, để không xóa thời gian thật của trận đang đánh.
+   */
+  killed(pw: OfflinePower, years: number, species: string) { this.est = offlineFight(pw, years, species).secs; this.pace += this.est; }
 
   setTarget(bid: string) { this.target = bid; this.hit = false; this.blockT = 0; this.go(null); }
-  drop() { this.target = null; this.hit = false; this.go(null); }
+  drop() { this.target = null; this.hit = false; this.go(null); this.pace = Math.max(-AUTO_PACE.credit, this.pace); }
 
   /** Đặt đích đi tới (null = đứng yên); đích đổi thì bỏ đường cũ để lần lái sau tìm lại. */
   go(goal: Pt | null) {
@@ -443,8 +449,10 @@ export class AutoHunter {
     const { grid, nav } = navOf(this.room.map), M = AUTO_MOVE.path;
     const far = Math.max(Math.abs(this.goal.x - p.x), Math.abs(this.goal.y - p.y)) > (M.maxTiles - 2) * TILE;
     this.path = far ? findLongPath(grid, nav, p, this.goal, AUTO_MOVE.nav.look, M) : findPath(grid, p, this.goal, M);
+    // Không tới gần được; hoặc không còn bước nào mà chưa tới đích (đích sát ô chặn / vùng an toàn: đã đứng ở ô tới được gần nhất, ví dụ
+    // đồ rơi ngoài tầm nhặt), không thì đứng yên mãi mà không tính là kẹt.
     const end = this.path.at(-1) ?? p;
-    if (Math.hypot(end.x - this.goal.x, end.y - this.goal.y) > 2 * TILE) this.unreachable();
+    if (Math.hypot(end.x - this.goal.x, end.y - this.goal.y) > 2 * TILE || (!this.path.length && Math.hypot(p.x - this.goal.x, p.y - this.goal.y) > 6)) this.unreachable();
   }
 
   /** Kẹt: định đi mà quá AUTO_MOVE.stuck giây không nhích thì bỏ việc đang làm (mục tiêu / đồ / điểm dạo). */

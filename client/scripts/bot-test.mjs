@@ -110,7 +110,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
-import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
+import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
@@ -4892,9 +4892,11 @@ async function autoTest(){
       m=await autoOp(A,"on");
       ok(m?.on&&A.logs.slice(l1).some(t=>/khắp bản đồ/.test(t)),`"Toàn bản đồ" (mặc định): bật, báo săn khắp bản đồ`);
       let far=0, gone=false;
-      for(let t=0;t<90000&&!gone&&me(A).auto;t+=500){ await sleep(500); far=Math.max(far,Math.hypot(me(A).x-home.x,me(A).y-home.y)); gone=!(await test(A,"auto",{bid:fb,pace:0}))?.beast; } // nợ nhịp (đánh trả dọc đường) thử riêng ở phần trần tốc độ
+      for(let t=0;t<90000&&!gone&&me(A).auto;t+=500){ await sleep(500); far=Math.max(far,Math.hypot(me(A).x-home.x,me(A).y-home.y)); await test(A,"clear",{but:fb}); gone=!(await test(A,"auto",{bid:fb,pace:0}))?.beast; }
+      // Dọc đường dọn hồn thú tự nhiên quanh A (bãi 300 năm trở lên hung hăng, hồi sinh liên tục) và giữ nợ nhịp 0: bài này thử đường đi,
+      // đánh trả và trần tốc độ thử ở phần khác.
       ok(gone&&far>box,`vùng neo trống: tự đi xa ${Math.round(far/16)} ô (ngoài khung A* ${AUTO_MOVE.path.maxTiles} ô) hạ hồn thú cách ${Math.round(Math.hypot(F.x-home.x,F.y-home.y)/16)} ô (${k1} → ${me(A).kills})`);
-      if(!gone){ const st=await test(A,"auto",{bid:fb}); console.log(`  (A ở ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, cách hồn thú xa ${Math.round(Math.hypot(me(A).x-F.x,me(A).y-F.y)/16)} ô; tự săn ${JSON.stringify(st)}; log ${A.logs.slice(-4).join(" | ")})`); }
+      if(!gone){ const st=await test(A,"auto",{bid:fb}); console.log(`  (A ở ${JSON.stringify({p:[me(A).x,me(A).y],drop:st?.drop,goal:st?.goal,path:st?.path})}; A ở ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, cách hồn thú xa ${Math.round(Math.hypot(me(A).x-F.x,me(A).y-F.y)/16)} ô; tự săn ${JSON.stringify(st)}; log ${A.logs.slice(-4).join(" | ")})`); }
       ok(me(A).auto&&!A.logs.slice(l1).some(t=>/Đã dừng/.test(t)),`vẫn tự săn sau khi đi xa (đường dài không vào vùng an toàn)${me(A).auto?"":`: ${A.autoMsg?.why}`}`);
       await autoOp(A,"off"); if(!gone) await test(A,"slay",{bid:fb});
       await test(A,"set",{rowId:act,level:21}); await autoOp(A,"set",{cfg:NEAR});
@@ -4903,20 +4905,37 @@ async function autoTest(){
 
   // ---- #213: trần tốc độ (AUTO_PACE): còn nợ nhịp thì đứng nghỉ; mỗi con hạ cộng thời gian tự đánh (offlineFight, mốc ủy thác offline) ----
   {
+    // Điểm neo ở bãi hồn thú hung hăng hồi sinh liên tục: trong lúc chờ, dọn hồn thú tự nhiên quanh A (giữ các con đang thử) để không
+    // có trận đánh trả nào xen vào nợ nhịp.
+    const quiet=async(fn,ms,keep)=>{ for(let t=0;t<ms;t+=500){ if(fn()) return true; await test(A,"clear",{but:keep}); await sleep(500); } return fn(); };
     await test(A,"goto",home); await test(A,"clear");
     await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
     m=await autoOp(A,"on"); await test(A,"auto",{pace:4});
     const pb=(await test(A,"spawn",{tier:0,dx:40,dy:0,years:15}))?.bid;
-    await sleep(2000); info=await test(A,"auto");
+    await quiet(()=>false,2000,[pb]); info=await test(A,"auto");
     ok(m?.on&&pb&&info?.pace>0&&info.target!==pb&&A.room.state.beasts.has(pb),`còn nợ nhịp ${info?.pace?.toFixed(1)} giây: đứng nghỉ, chưa nhắm hồn thú mới (mục tiêu ${info?.target})`);
-    ok(await waitFor(()=>!A.room.state.beasts.has(pb),10000),"hết nợ nhịp: hạ tiếp");
+    ok(await quiet(()=>!A.room.state.beasts.has(pb),10000,[pb]),"hết nợ nhịp: hạ tiếp");
     info=await test(A,"auto");
     ok(info?.pace>0,`hạ một con: cộng thời gian tự đánh con đó vào nợ nhịp (còn ${info?.pace?.toFixed(1)} giây)`);
+    // Trận dài hơn AUTO_PACE.credit giây: thời gian thật đã trừ vào nợ, nên sau khi hạ nợ chỉ còn phần ước lượng vượt thời gian thật
+    // (không kẹp lúc đang đánh rồi cộng nguyên ước lượng, tức không tính trận hai lần).
+    await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); // cả bản đồ: không hồn thú tự nhiên nào xen vào trận
+    const lb=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:15,hpx:1000}))?.bid;
+    let engaged=false; for(let t=0;t<5000&&lb&&!engaged;t+=250){ engaged=(await test(A,"auto"))?.target===lb; if(!engaged) await sleep(250); }
+    const lt0=Date.now();
+    // Đánh lâu hơn credit giây (hồn thú nhiều sinh lực), rồi hạ nốt bằng hook như đòn cuối của A; suốt trận A phải giữ mục tiêu này.
+    let stay=engaged, left=null;
+    for(let t=0;t<(AUTO_PACE.credit+5)*1000;t+=1000){ await sleep(1000); await test(A,"clear",{but:lb}); const st=await test(A,"auto",{bid:lb}); if(st?.target!==lb&&stay){ stay=false; left=st; } }
+    await test(A,"slay",{bid:lb}); const LF=(Date.now()-lt0)/1000;
+    info=await test(A,"auto");
+    if(!stay) console.log(`  ⚠ bỏ qua kiểm trận dài: A không giữ mục tiêu suốt trận (${engaged?`đổi sang ${left?.target}, hồn thú ${JSON.stringify(left?.beast)}, nợ ${left?.pace?.toFixed(1)}`:"chưa nhắm"})`);
+    else ok(!A.room.state.beasts.has(lb)&&info?.pace<=Math.max(-AUTO_PACE.credit,(info?.est??0)-LF)+1.5,
+      `trận dài ${LF.toFixed(0)} giây (ước lượng tự đánh ${info?.est?.toFixed(1)} giây): sau khi hạ nợ ${info?.pace?.toFixed(1)} giây, không tính trận hai lần`);
     // Sáu hồn thú yếu quanh mình (cách nhau ~60 pixel), bắt đầu từ nợ 0: trong T giây nhắm tối đa 1 + T / OFFLINE.seek con, cộng một con
     // hồn kỹ diện rộng có thể hạ lan (không trần thì hạ hết cả sáu).
     await test(A,"clear"); await test(A,"auto",{pace:0});
     const six=[]; for(let k=0;k<6;k++) six.push((await test(A,"spawn",{tier:0,dx:Math.round(60*Math.cos(k*Math.PI/3)),dy:Math.round(60*Math.sin(k*Math.PI/3)),years:15}))?.bid);
-    const T=10, cap=2+Math.floor(T/OFFLINE.seek); await sleep(T*1000);
+    const T=10, cap=2+Math.floor(T/OFFLINE.seek); await quiet(()=>false,T*1000,six);
     const dead=six.filter(b=>b&&!A.room.state.beasts.has(b)).length;
     ok(me(A).auto&&dead>=1&&dead<=cap&&dead<6,`trần tốc độ: ${T} giây hạ ${dead}/6 hồn thú yếu sát bên (tối đa ${cap})`);
     await autoOp(A,"off"); for(const b of six) if(b) await test(A,"slay",{bid:b});

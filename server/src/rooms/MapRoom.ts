@@ -2743,7 +2743,8 @@ export class MapRoom extends Room<MapState> {
       // #213: `pace` đặt nợ nhịp (giây) của lượt tự săn đang chạy (thử trần tốc độ AUTO_PACE).
       if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
       const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
-      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, pace: a?.pace ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
+      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
+        drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
     }
     else if (op === "offline") {
@@ -2766,7 +2767,8 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
     else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)
-      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
+      // `but` (#213): giữ hồn thú có id này / trong danh sách này (bài tự săn dọn hồn thú tự nhiên quanh mình mà không xóa mục tiêu đang thử).
+      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank) && !(Array.isArray(o.but) ? o.but.includes(bid) : bid === o.but)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
     });
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);
@@ -2938,9 +2940,9 @@ export class MapRoom extends Room<MapState> {
     return (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0) + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + Chân Thân (8.1a)
   }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
+  atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk") + this.bondV(d, "atk")); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4)
   /** Chỉ số võ hồn ra trận cho công thức tự đánh (offlineFight): ủy thác offline và trần tốc độ tự săn (AUTO_PACE). */
   offlinePower(d: PData, p: PlayerState): OfflinePower { return { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def }; }
-  atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk") + this.bondV(d, "atk")); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4)
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
   /**
