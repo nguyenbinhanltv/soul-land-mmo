@@ -508,8 +508,9 @@ export class AutoHunter {
     if (!this.away && r < AUTO_BOSS.retreat) this.away = true;
     else if (this.away && r >= AUTO_BOSS.back) { this.away = false; this.go(null); }
     if (!this.away) return;
-    this.go(Math.hypot(p.x - b.x, p.y - b.y) >= AUTO_BOSS.dist ? null
-      : this.spot(p, (x, y) => Math.hypot(x - b.x, y - b.y) >= AUTO_BOSS.dist && !this.inDanger(x, y)));
+    // Không có chỗ đi thẳng tới được (trong hang hẹp) thì chỗ cùng vùng liên thông, đi theo đường A*.
+    const ok = (x: number, y: number) => Math.hypot(x - b.x, y - b.y) >= AUTO_BOSS.dist && !this.inDanger(x, y);
+    this.go(Math.hypot(p.x - b.x, p.y - b.y) >= AUTO_BOSS.dist ? null : this.spot(p, ok) ?? this.spot(p, ok, [], false));
   }
   /**
    * Điểm (x, y) sẽ trúng một chiêu đang báo trước (trừ khi đứng trong vòng an toàn của chiêu toàn sàn, teleSafe) hoặc đang trong vùng
@@ -521,17 +522,19 @@ export class AutoHunter {
   }
   /**
    * Chỗ gần mình nhất thỏa `ok`, đứng được, ngoài vùng an toàn (vào là tự săn dừng), đi thẳng tới được: xét các điểm `extra` (tâm vòng
-   * an toàn) rồi AUTO_BOSS.dodge.dirs hướng, mỗi `step` pixel tới `max` pixel. Không có thì null.
+   * an toàn) rồi AUTO_BOSS.dodge.dirs hướng, mỗi `step` pixel tới `max` pixel. `straight` = false: cùng vùng liên thông của đồ thị dẫn
+   * đường (đi theo A*), xa tới 2 lần `max`. Không có thì null.
    */
-  spot(p: PlayerState, ok: (x: number, y: number) => boolean, extra: Pt[] = []): Pt | null {
-    const map = this.room.map, grid = navOf(map).grid, D = AUTO_BOSS.dodge;
+  spot(p: PlayerState, ok: (x: number, y: number) => boolean, extra: Pt[] = [], straight = true): Pt | null {
+    const map = this.room.map, { grid, nav } = navOf(map), D = AUTO_BOSS.dodge, me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1;
+    const reach = (x: number, y: number) => { if (straight) return clearLine(grid, p, { x, y }); const n = navNode(nav, x, y); return n >= 0 && nav.region[n] === region; };
     let best: Pt | null = null, bd = Infinity;
     const at = (x: number, y: number) => {
       const dd = Math.hypot(x - p.x, y - p.y);
-      if (dd < bd && map.standable(x, y) && !map.inSafe(x, y) && ok(x, y) && clearLine(grid, p, { x, y })) { best = { x, y }; bd = dd; }
+      if (dd < bd && map.standable(x, y) && !map.inSafe(x, y) && ok(x, y) && reach(x, y)) { best = { x, y }; bd = dd; }
     };
     for (const e of extra) at(e.x, e.y);
-    for (let r = D.step; r <= D.max && r < bd; r += D.step)
+    for (let r = D.step; r <= D.max * (straight ? 1 : 2) && r < bd; r += D.step)
       for (let k = 0; k < D.dirs; k++) { const a = (k / D.dirs) * Math.PI * 2; at(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r); }
     return best;
   }
@@ -634,6 +637,8 @@ export class AutoHunter {
     if (this.stuckT >= AUTO_MOVE.stuck) { this.stuckT = 0; this.unreachable(); }
   }
   unreachable() {
+    // Đang lùi / tới Hỏa Đàn (#218): chỉ bỏ đích đó (nhịp quyết định sau chọn lại), không bỏ boss đang đánh.
+    if (this.away || this.warm) { this.go(null); return; }
     const key = this.target ?? this.loot;
     if (key) this.skip.set(key, this.clock + AUTO_MOVE.skip);
     if (this.target) this.drop(); else this.loot = null;
