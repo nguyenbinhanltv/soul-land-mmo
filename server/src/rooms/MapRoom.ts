@@ -263,6 +263,7 @@ const kingKey = (mapId: string) => `king:${mapId}`;
  * (`claimed`): đổi kênh rồi hạ thú vương của kênh khác trong cùng khung thì không nhận thêm rương (mục 6 "Nhiều kênh").
  */
 interface KingSlot { slot: number; until: number; seats: KingSeat[]; claimed: Set<number>; boss: string; } // boss: mã BOSSES của khung (BĐ6e: boss thế giới luân phiên)
+const KING_STATE_TTL_MS = (Math.max(KING.lifeSecs, WORLD.lifeSecs) + 120) * 1000;
 // ---------- Giới hạn săn tinh anh nhiều kênh, mức tiến trình (mục 5.4; #119) ----------
 /**
  * `${mapId}|${mã tinh anh}` -> accountId -> lúc (ms) được nhận lại thưởng tinh anh đó (ELITE.lock giây sau lần nhận). Theo bản đồ, không
@@ -271,6 +272,7 @@ interface KingSlot { slot: number; until: number; seats: KingSeat[]; claimed: Se
  */
 const eliteLocks = new Map<string, Map<number, number>>();
 const ELITE_LOCK_TOPIC = "presence:elite-lock";
+const ELITE_STATE_TTL_MS = (ELITE.lock + 60) * 1000;
 function applyEliteLock(key: string, values: Record<string, number>) {
   const m = new Map(Object.entries(values).map(([acc, until]) => [Number(acc), Number(until)]));
   if (m.size) eliteLocks.set(key, m); else eliteLocks.delete(key);
@@ -278,7 +280,7 @@ function applyEliteLock(key: string, values: Record<string, number>) {
 async function persistEliteLock(key: string, changes: Map<number, number>) {
   const owner = `${presenceBackend.workerId}:elite:${key}`;
   let merged: Record<string, number> = {};
-  await presenceBackend.withLock<Record<string, number>>(`elite:${key}`, owner, CHANNEL_TTL_MS, (old) => {
+  await presenceBackend.withLock<Record<string, number>>(`elite:${key}`, owner, ELITE_STATE_TTL_MS, (old) => {
     merged = { ...(old ?? {}) };
     for (const [acc, until] of changes) merged[String(acc)] = until;
     return merged;
@@ -325,19 +327,19 @@ function applyKingDoc(mapId: string, doc: KingDoc | null) {
 async function loadKingState(mapId: string) { applyKingDoc(mapId, await presenceBackend.getJson<KingDoc>(kingKey(mapId))); }
 async function persistKingSeat(mapId: string, slot: number, seat: KingSeat, claimed: Set<number>) {
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${seat.id}`;
-  await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, CHANNEL_TTL_MS, (old) => {
+  await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, KING_STATE_TTL_MS, (old) => {
     const next = old ?? {}, rec = next[String(slot)];
     if (!rec) return next;
     const found = rec.seats.findIndex((s) => s.id === seat.id);
     if (found >= 0) rec.seats[found] = { ...seat };
-    rec.claimed = [...claimed];
+    rec.claimed = [...new Set([...rec.claimed, ...claimed])];
     return next;
   });
 }
 async function takeKingSeat(mapId: string, slot: number, until: number, roomId: string, boss: string): Promise<{ seat: KingSeat; claimed: Set<number>; boss: string }> {
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${roomId}`;
   let result!: { seat: KingSeat; claimed: Set<number>; boss: string };
-  const ok = await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, CHANNEL_TTL_MS, (old) => {
+  const ok = await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, KING_STATE_TTL_MS, (old) => {
     const now = Date.now(), next = old ?? {};
     for (const [key, value] of Object.entries(next)) if (value.until <= now) delete next[key];
     let rec = next[String(slot)];

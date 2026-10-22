@@ -111,7 +111,11 @@ function goOnlineLocal(l: Omit<Live, "off">): PartyNote[] {
   const p = partyOf(l.acc);
   return p ? [all(p)] : [];
 }
-export function goOnline(l: Omit<Live, "off">) { return remoteMutation(() => goOnlineLocal(l)); }
+export async function goOnline(l: Omit<Live, "off">) {
+  const notes = await remoteMutation(() => goOnlineLocal(l));
+  if (remote) await remote.putJson(`party:live:${l.acc}`, { ...l, off: 0 }, REMOTE_TTL_MS);
+  return notes;
+}
 
 /** Cập nhật định kỳ trạng thái hiển thị (cấp, võ hồn ra trận, sinh lực) của người đang trong phòng `sid`. */
 export function setLive(acc: number, sid: string, v: Pick<Live, "level" | "vh" | "hp" | "maxHp" | "dead">) {
@@ -127,7 +131,12 @@ function goOfflineLocal(acc: number, sid: string, now: number): PartyNote[] {
   const p = partyOf(acc);
   return p ? [all(p)] : [];
 }
-export function goOffline(acc: number, sid: string, now: number) { return remoteMutation(() => goOfflineLocal(acc, sid, now)); }
+export async function goOffline(acc: number, sid: string, now: number) {
+  const notes = await remoteMutation(() => goOfflineLocal(acc, sid, now));
+  const l = live.get(acc);
+  if (remote && l?.sid === sid) await remote.putJson(`party:live:${acc}`, l, REMOTE_TTL_MS);
+  return notes;
+}
 
 /** Người được mời `name` có hợp lệ không (chưa tốn lượt mời của ratelimit). Trả tài khoản người được mời. */
 export function inviteDeny(from: number, name: string, now: number): { error: string } | { target: number } {
@@ -259,10 +268,16 @@ function sweepLocal(now: number): PartyNote[] {
   }
   return notes;
 }
-export function sweep(now: number): PartyNote[] {
-  const notes = sweepLocal(now);
-  if (remote && notes.length) void remoteMutation(() => sweepLocal(now)).catch((e) => console.error("Không dọn được tổ đội trong presence", e));
-  return notes;
+export async function sweep(now: number): Promise<PartyNote[]> {
+  if (!remote) return sweepLocal(now);
+  return remoteMutation(async () => {
+    for (const [acc, l] of live) {
+      const heartbeat = await remote!.getJson<Live>(`party:live:${acc}`);
+      if (heartbeat?.sid === l.sid) Object.assign(l, heartbeat);
+      else if (!heartbeat && !l.off) l.off = now - PARTY_OFFLINE_SECS * 1000;
+    }
+    return sweepLocal(now);
+  });
 }
 
 /**
