@@ -216,7 +216,7 @@ export function loadMap(mapId: string): GameMap {
 
   const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones), npcs = parseNpcs(mapId, npcObjs);
   const camp = campMerchantSpot(raw, mapId); // #111: thương nhân lưu động ở trại cổng bản đồ săn
-  const hd = hoaDanSpot(raw, mapId), hoaDan = hd && lair && inRect(lair, hd.x, hd.y) ? { x: hd.x, y: hd.y } : null; // #163: Hỏa Đàn
+  const hd = hoaDanSpot(raw, mapId, grid), hoaDan = hd && lair && inRect(lair, hd.x, hd.y) ? { x: hd.x, y: hd.y } : null; // #163: Hỏa Đàn
   if (!hoaDan && BOSSES[bossIndex(MAPS[mapId].king ?? "")]?.phase2?.cold) console.warn(`[map ${mapId}] Không có chỗ đặt Hỏa Đàn trong hang thú vương (#163).`);
   if (camp && !npcs.some((n) => n.id === camp.id)) npcs.push(camp);
   else if (!camp && MAPS[mapId].kind === "hunt" && !safe.some((r) => inRect(r, spawn.x + spawn.w / 2, spawn.y + spawn.h / 2)))

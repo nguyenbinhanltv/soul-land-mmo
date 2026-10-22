@@ -7851,8 +7851,10 @@ async function coldTest(){
     // Thanh tẩy: đổi tay vào Xúc Xích đầy năng lượng, tiên cơ giải hết tầng Hàn.
     await goFar(); await step(1); await step(2);
     await waitFor(()=>mo().swCd===0,3500); await test(F,"energy",{v:TIEN_CO_MAX}); await waitFor(()=>sq(xr)?.en===TIEN_CO_MAX,1500);
+    await test(F,"cold",{acc:CD.every-1.5}); // sắp tới tầng kế tiếp: thanh tẩy xả cả số giây đã tích như Hỏa Đàn
     const h0=han(); F.room.send("switch",{slot:F.owned.team.indexOf(xr)});
     ok(h0===2&&await waitFor(()=>F.owned.active===xr&&!has("chill")&&han()===0,2000),`${h0} tầng, tiên cơ ${TIEN_CO_RIENG.xuc_xich.name} thanh tẩy: tầng Hàn về 0`);
+    c=await test(F,"cold"); ok(c.acc!==null&&c.acc<1,`thanh tẩy: tích lại từ đầu (đã tích ${c.acc?.toFixed(2)} giây, trước đó ${CD.every-1.5})`);
     ok(await step(1),"sau thanh tẩy vẫn ở trong hang thì tích lại từ đầu");
     // Rời hang thì mất tầng.
     const ox=Math.round(LR.x+LR.w/2); let out=false;

@@ -5,8 +5,11 @@ import { STATUS, type ColdDef } from "../../../shared/data.ts";
 import type { MapRoom } from "./MapRoom.ts";
 
 export class ColdStacks {
-  /** sessionId -> số giây đã tích về tầng Hàn kế tiếp; có mặt = đang chịu Cực Hàn. */
-  private acc = new Map<string, number>();
+  /**
+   * sessionId -> số giây đã tích về tầng Hàn kế tiếp (`t`) và số tầng lúc cuối nhịp trước (`n`, để nhận ra tầng bị thanh tẩy xả giữa
+   * hai nhịp); có mặt = đang chịu Cực Hàn.
+   */
+  private acc = new Map<string, { t: number; n: number }>();
   constructor(private room: MapRoom) {}
 
   /** Luật Cực Hàn đang chạy trong phòng: thú vương còn sống, đang giao chiến, ở giai đoạn 2 và có `phase2.cold`. */
@@ -31,22 +34,23 @@ export class ColdStacks {
     for (const pid of [...this.acc.keys()]) if (!who.has(pid)) { this.acc.delete(pid); this.drop(pid); }
     if (!on) return;
     for (const pid of who) {
-      const p = room.state.players.get(pid)!, d = room.pdata.get(pid)!;
+      const p = room.state.players.get(pid)!, d = room.pdata.get(pid)!, a = this.acc.get(pid) ?? { t: 0, n: 0 };
+      this.acc.set(pid, a);
+      // Tầng mất giữa hai nhịp (thanh tẩy giải hết trạng thái): xả như Hỏa Đàn, tích lại từ đầu.
+      if (a.n > 0 && !d.st.has("chill")) a.t = 0;
       if (fire && Math.hypot(p.x - fire.x, p.y - fire.y) <= on.cold.fire.r) {
-        this.acc.set(pid, 0);
+        a.t = 0; a.n = 0;
         if (this.drop(pid)) room.log(pid, "Hơi ấm Hỏa Đàn xua tan tầng Hàn.", STATUS.chill.col);
         continue;
       }
-      if (d.st.has("freeze") || room.buffV(d, "inv")) { this.acc.set(pid, this.acc.get(pid) ?? 0); continue; }
-      let t = (this.acc.get(pid) ?? 0) + dt;
-      if (t >= on.cold.every) {
-        t = 0;
+      if (!d.st.has("freeze") && !room.buffV(d, "inv") && (a.t += dt) >= on.cold.every) {
+        a.t = 0;
         room.applyPStatus(pid, { s: "chill" }, 0);
-        const burst = STATUS.chill.burst;
-        if (burst && !d.st.has("chill") && d.st.has(burst.s))
-          room.log(pid, `Đủ ${STATUS.chill.max} tầng Hàn: bị ${STATUS[burst.s].name} ${burst.secs ?? STATUS[burst.s].secs} giây. Đứng cạnh Hỏa Đàn để xả tầng.`, STATUS.chill.col);
+        const burst = STATUS.chill.burst, fz = burst && !d.st.has("chill") ? d.st.get(burst.s) : undefined;
+        if (burst && fz) // thời gian thật sau kháng (RESIST_AS)
+          room.log(pid, `Đủ ${STATUS.chill.max} tầng Hàn: bị ${STATUS[burst.s].name} ${+fz.t.toFixed(1)} giây. Đứng cạnh Hỏa Đàn để xả tầng.`, STATUS.chill.col);
       }
-      this.acc.set(pid, t);
+      a.n = d.st.get("chill")?.n ?? 0;
     }
   }
 
@@ -60,7 +64,8 @@ export class ColdStacks {
 
   /** Hook kiểm thử `cold`: Hỏa Đàn, luật đang chạy không, giây đã tích của `pid`; `acc` đặt lại số giây đã tích (bot không chờ thật). */
   info(pid: string, acc?: number) {
-    if (acc !== undefined && this.acc.has(pid)) this.acc.set(pid, acc);
-    return { fire: this.room.map.hoaDan, on: !!this.active(), acc: this.acc.get(pid) ?? null };
+    const a = this.acc.get(pid);
+    if (acc !== undefined && a) a.t = acc;
+    return { fire: this.room.map.hoaDan, on: !!this.active(), acc: a?.t ?? null };
   }
 }

@@ -2294,6 +2294,8 @@ export class MapRoom extends Room<MapState> {
       const bid = typeof o.bid === "string" && this.state.beasts.has(o.bid) ? o.bid : this.nearestBeast(p, 160);
       return bid ? { bid, b: this.state.beasts.get(bid)!, bd: this.bdata.get(bid)! } : null;
     };
+    /** Trạng thái trên người gọi (số tầng, giây còn lại) cho hook `ground` / `cold`. */
+    const pst = () => Object.fromEntries([...d.st].map(([s, x]) => [s, { n: x.n, t: x.t }]));
     let out: Record<string, unknown> = {};
     const yearsOf = (tier: number) => int(o.years, TIERS[0].years, MAX_YEARS, TIERS[tier].years);
     if (op === "down" && !p.dead) { d.inv = 0; d.shield = 0; this.hurtPlayer(id, d.hpF / VOHON[p.vh].def + 1); }
@@ -2444,13 +2446,12 @@ export class MapRoom extends Room<MapState> {
       // #161: các vùng lưu lại của phòng (id, kiểu, hồn thú gây ra, tâm, bán kính, giây còn lại) và trạng thái trên người gọi (số tầng,
       // giây còn lại) để bot đếm Trúng độc theo nhịp. `ttl {s}`: mọi vùng còn đúng s giây (bot không phụ thuộc thời gian thật của vùng).
       if (typeof o.ttl === "number" && o.ttl >= 0) this.grounds.setTtl(Math.min(60, o.ttl));
-      out = { grounds: this.grounds.info(), st: Object.fromEntries([...d.st].map(([s, x]) => [s, { n: x.n, t: x.t }])) };
+      out = { grounds: this.grounds.info(), st: pst() };
     }
     else if (op === "cold") {
       // #163: Hỏa Đàn, Cực Hàn đang chạy không, số giây đã tích của người gọi và tầng Hàn / Đóng băng trên người gọi; `acc {s}` đặt số
       // giây đã tích (bot không phải chờ đủ nhịp thật).
-      out = { ...this.cold.info(id, typeof o.acc === "number" && o.acc >= 0 ? Math.min(60, o.acc) : undefined),
-        st: Object.fromEntries([...d.st].map(([s, x]) => [s, { n: x.n, t: x.t }])) };
+      out = { ...this.cold.info(id, typeof o.acc === "number" && o.acc >= 0 ? Math.min(60, o.acc) : undefined), st: pst() };
     }
     else if (op === "pst") {
       // Trạng thái lên chính người gọi như do hồn thú gần nhất gây (sát thương đòn thường của nó cho Trúng độc / Thiêu đốt).
@@ -3459,7 +3460,7 @@ export class MapRoom extends Room<MapState> {
     // Đủ tầng thì bùng phát (#163, tầng Hàn thành Đóng băng): bỏ trạng thái này, gây trạng thái `burst.s` (qua kháng như mọi lần gây).
     if (def.burst && d.st.get(a.s)!.n >= def.max) {
       d.st.delete(a.s); this.syncPStatus(p, d);
-      return this.applyPStatus(id, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, base);
+      return this.applyPStatus(id, { s: def.burst.s, secs: def.burst.secs }, base);
     }
     this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
   }
