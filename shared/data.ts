@@ -4018,6 +4018,8 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
  *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
  *   trong cửa sổ (arenaPairs).
+ * - Xem trực tiếp (#278, mục 5.9): mỗi trận tối đa `watchMax` người xem (sân 4 người đấu + 6 người xem = 10 kết nối; sân nhỏ không lọc
+ *   đồng bộ nên tải thấp); danh sách xem trận có tối đa `liveN` trận đang đếm ngược / giao đấu, xin lại theo nhịp `topCd`.
  * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
  *   hồi máu của bộ Lưu Ly / ràng buộc) × ngần ấy: sát thương lên hồn sư đã × `dmgMult` nhưng hồi tính theo % sinh lực tối đa nên
  *   mạnh gấp ~3 lần so với ngoài rừng, không giảm thì Phụ trợ gần như không chết. Hút máu và hồi tự nhiên không đổi.
@@ -4032,6 +4034,7 @@ export const ARENA = {
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
   pairDaily: 3, rematchSecs: 60,
+  watchMax: 6, liveN: 10,
   healMult: 0.5, ccMult: 0.7,
 };
 /**
@@ -4044,6 +4047,16 @@ export const ARENA = {
 export const ARENA_HE_DMG: Record<He, number> = { cuong_cong: 0.9, man_cong: 0.95, khong_che: 1.15, phu_tro: 1.35 };
 /** Mảnh thưởng thắng trận: võ hồn SR / SSR (không có UR, không có Lam Ngân Thảo ai cũng sẵn). */
 export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AWAKEN_GIFT).map((v) => v.id);
+/**
+ * **(đã chốt, #282)** Thương hội Thiên Đấu đổi mảnh võ hồn (mục 5.7; nguồn ra Hồn Tệ): chỉ NPC `npc`, chỉ mảnh trong ARENA_SHARDS
+ * (không bao giờ bán mảnh UR), tối đa `daily` mảnh mỗi ngày giờ Việt Nam tính chung mọi võ hồn (lượt ở bảng `boss_claims` loại
+ * `claimKind`, đặt lại 00:00 như lượt boss). Giá mảnh thứ i trong ngày (i từ 0): shardBuyPrice; đủ 10 mảnh hết 226.800 đồng.
+ */
+export const SHARD_BUY = { npc: "thuong_nhan_thien_dau", daily: 10, base: 2000, grow: 1.5, claimKind: "mua_manh" };
+/** Giá mảnh thứ `i` (từ 0) đã mua trong ngày: SHARD_BUY.base × SHARD_BUY.grow^i, làm tròn trăm đồng (2.000, 3.000, 4.500, 6.800, …). */
+export const shardBuyPrice = (i: number) => Math.round(SHARD_BUY.base * SHARD_BUY.grow ** Math.max(0, Math.floor(i)) / 100) * 100;
+/** Tổng giá `qty` mảnh khi hôm nay đã mua `done` mảnh (giá từng mảnh tăng dần như mua lẻ từng mảnh). */
+export const shardBuyCost = (done: number, qty: number) => Array.from({ length: Math.max(0, Math.floor(qty)) }, (_, k) => shardBuyPrice(done + k)).reduce((a, x) => a + x, 0);
 /** Xác suất thắng kỳ vọng của Elo `r` trước Elo `ro`. */
 export const eloExpect = (r: number, ro: number) => 1 / (1 + Math.pow(10, (ro - r) / 400));
 /** Elo mới sau một trận: `score` 1 thắng, 0,5 hòa, 0 thua; làm tròn, không dưới 0. */
@@ -4334,6 +4347,8 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * gọi ra trong trận (bầy, nhện con) vẫn tính như mọi hồn thú thường.
  * - `dodge`: né chiêu báo trước (kể cả chiêu toàn sàn, vòng an toàn) và vùng lưu lại trên đất: đứng trong vùng thì đi tới chỗ an toàn
  *   gần nhất đi thẳng tới được, tìm trên `dirs` hướng, mỗi `step` pixel tới `max` pixel (cùng các vòng an toàn của chiêu toàn sàn).
+ *   Chỗ né phải an toàn cả các điểm quanh nó trong `pad` pixel: tới cách chỗ né dưới 1 pixel là dừng (#292), chỗ sát mép vòng an toàn
+ *   / vùng thì có lúc đứng lại ngay ngoài mép mà vẫn trúng.
  * - `retreat` / `back`: sinh lực võ hồn ra trận dưới `retreat` phần thì lùi ra cách boss ít nhất `dist` pixel (uống đan theo ngưỡng
  *   cài đặt như thường), từ `back` phần mới quay lại đánh.
  * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
@@ -4342,7 +4357,7 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
  *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
  */
-export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168, pad: 3 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
