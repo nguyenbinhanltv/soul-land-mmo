@@ -175,6 +175,8 @@ function renderSum(box: HTMLElement, s: AutoSummary, left: number) {
   const rows: [string, string][] = [["Thời gian", dur(s.secs)], ["Hồn thú đã hạ", s.kills.toLocaleString("vi-VN")],
     ["Kinh nghiệm", s.xp.toLocaleString("vi-VN")], ["Hồn Tệ", s.coins ? formatHonTe(s.coins) : "0"],
     ["Đồ nhặt", s.loot.length ? s.loot.map(([n, q]) => `${n} ×${q}`).join(", ") : "Không có"], ["Giờ treo còn lại", dur(left)]];
+  // Tự bán từ xa trong lượt (#216): Hồn Tệ đã tính trong dòng "Hồn Tệ"; đồ đã bán không còn trong "Đồ nhặt".
+  if (s.sold) rows.splice(4, 0, ["Đã tự bán", `${s.sold[0].toLocaleString("vi-VN")} món, +${formatHonTe(s.sold[1])}`]);
   box.innerHTML = "";
   for (const [k, v] of rows) {
     const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; box.append(a, b);

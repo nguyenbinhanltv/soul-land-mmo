@@ -732,6 +732,8 @@ export const CLICK_PATH = { maxTiles: 40, maxNodes: 8000 };
 // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5, mọi số đã chốt) ----------
 /** Hình vùng: vệt (đường thẳng dài `r`, rộng `w`), nón (quạt bán kính `r`, góc `arc` độ), vòng (tròn bán kính `r`). */
 export type TeleShape = "line" | "cone" | "circle";
+/** Hình vùng theo chỉ số (đồng bộ ở `GroundState.shape`, #161); thêm hình mới vào cuối. */
+export const TELE_SHAPES: readonly TeleShape[] = ["line", "cone", "circle"];
 /**
  * Một chiêu báo trước. Hồn thú hiện vùng cảnh báo `warn` giây (đứng yên, không đánh thường), hết giờ mới tính trúng theo vị trí
  * THẬT của người chơi lúc đó: chạy ra khỏi vùng là né được.
@@ -751,6 +753,7 @@ export type TeleShape = "line" | "cone" | "circle";
  *   server tung (tham số `rnd` của teleZones).
  * - `mark`: đánh dấu một người tham gia ngẫu nhiên trong tầm (không nhất thiết là mục tiêu đang đuổi) rồi tung vào người đó (Huyết Cuồng).
  * - `summon.years`: tuổi hồn thú gọi ra (mặc định theo `years` của vùng).
+ * - `eggs` (#162): tung xong đẻ bọc trứng quanh thân (Vạn Chu Phệ, EggDef), phá kịp thì không nở.
  * Từ BĐ6b:
  * - `drain`: mỗi người trúng chiêu mà đang bị Trói (trước khi chiêu gây trạng thái mới) thì hồn thú hồi ngần ấy phần máu tối đa (Hút
  *   Sinh của Khô Đằng Thụ Vương: "hồi máu từ người đang bị trói").
@@ -762,6 +765,8 @@ export type TeleShape = "line" | "cone" | "circle";
  * Từ #118 (chiêu toàn sàn né được):
  * - `safe`: chiêu toàn sàn có `n` vòng an toàn bán kính `r` (FLOOR_SAFE) rải đều theo bề ngang sàn, vị trí do server tung lúc bắt đầu
  *   báo trước (đi thẳng tới được từ chỗ sinh của boss); người chạm một vòng (teleSafe) lúc chiêu nổ thì không trúng.
+ * Từ #161:
+ * - `ground`: tung xong (tính trúng như mọi chiêu) để lại vùng lưu lại trên mặt đất đúng hình các vùng báo trước (GroundDef).
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -769,13 +774,43 @@ export interface BeastSkillDef {
   warn: number; cd: number; dmg: number;
   status?: StatusApply[]; dash?: boolean; years?: number;
   count?: number; spread?: number; step?: number;
-  summon?: { species: string; n: number; years?: [number, number] }; pull?: number;
+  summon?: { species: string; n: number; years?: [number, number] }; pull?: number; eggs?: EggDef;
   scatter?: number; mark?: boolean;
   drain?: number;
   weak?: boolean;
   floor?: boolean;
   safe?: { n: number; r: number };
+  ground?: GroundDef;
 }
+/**
+ * Bọc trứng (#162, Vạn Chu Phệ của Tà hóa Thiên Độc Chu Hoàng, mục 5.4; số theo thiết kế gốc đã chốt): chiêu có `eggs` tung xong đẻ bọc
+ * trứng quanh thân cho tới khi có `n` bọc do hồn thú này đẻ còn nguyên, nhưng không quá mức để nhện con còn sống do nó gọi cộng số nhện
+ * sẽ nở từ các bọc vượt `n` × `per`. Bọc trứng là hồn thú đứng yên của loài `species` (không đi, không đánh, không tung chiêu, không bị
+ * đẩy / kéo), tuổi tung trong `years`, máu bằng `hp` lần máu hồn thú loài đó cùng số năm; đánh được bằng mọi đòn như hồn thú. Còn nguyên
+ * sau `secs` giây thì nở `per` con loài `species` cùng số năm tại chỗ (hồn thú do thú vương gọi ra như `summon`), lao vào mục tiêu của
+ * thú vương; bị phá trước đó thì không nở. Thú vương bị hạ / rút đi thì bọc trứng của nó tan, không nở.
+ */
+export interface EggDef { species: string; n: number; per: number; secs: number; hp: number; years: [number, number]; }
+/**
+ * Vùng lưu lại trên mặt đất (#161, mục 5.3; vũng độc, sương độc; #173, #174 dùng lại): chiêu có `ground` tung xong thì để lại vùng đúng
+ * hình các vùng báo trước của lần tung đó, tồn tại `secs` giây. Mỗi `every` giây (mặc định GROUND_TICK; nhịp đầu ngay lúc tung) hồn sư
+ * đứng trong vùng (teleHits) bị gây `status`; ra khỏi vùng thì thôi nhận. Không gây cho người đã gục, đang đi cổng, đứng trong vùng an
+ * toàn, đang miễn sát thương. Vùng mất khi hết giờ hoặc khi hồn thú gây ra bị hạ / rời bản đồ. `kind`: kiểu vùng (GROUND_KINDS: tên, màu client vẽ; không
+ * dùng đỏ vì đỏ dành cho vùng báo trước).
+ */
+export type GroundKind = "pool" | "mist";
+/** Kiểu vùng lưu lại; chỉ số trong mảng đồng bộ ở `GroundState.kind`, thêm kiểu mới vào cuối. */
+export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
+  { id: "pool", name: "Vũng độc", col: "#9be23a" },
+  { id: "mist", name: "Sương độc", col: "#c8f5b4" },
+];
+export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; }
+/** Nhịp gây trạng thái mặc định của vùng lưu lại (giây). */
+export const GROUND_TICK = 1;
+/** Tối đa vùng lưu lại cùng lúc trong một phòng (chống phình state); vượt thì bỏ vùng cũ nhất. */
+export const GROUND_MAX = 48;
+/** Mỗi nhịp vũng / sương độc gây Trúng độc 1 tầng, giữ ngần này giây (đứng lâu thì cộng tầng tới STATUS.poison.max). */
+const POISON_GROUND: StatusApply[] = [{ s: "poison", n: 1, secs: 3 }];
 /**
  * "Đóng băng" của hồn thú băng lên hồn sư: trạng thái Đóng băng (#116; trước đó là Choáng), thời gian ghi ở từng chiêu. "Mê hoặc" lên
  * hồn sư (Thực Nhân Hoa, Ỷ La Hoa Yêu, Tuyết Vĩ Yêu Hồ, Lục Vĩ Băng Hồ, Quỷ Diện Hải Yêu…): Mê hoặc `CHARM_P` (#116; trước đó là Choáng
@@ -818,8 +853,8 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   // Nội địa: Rừng cổ thụ, Đầm sương độc, Lôi Cốc, Hắc Ám Lâm.
   nhan_dien_ma_chu: [bs("Phun Tơ", "line", 110, { w: 14, dmg: 0.9, status: [{ s: "root", secs: 1.5 }] })],
   u_minh_lang:  [bs("Ảnh Vồ", "line", 95, { w: 14, dmg: 1.5, dash: true })],
-  // "Để lại vũng độc" của Thất Tinh Độc Thiềm chưa làm: Trúng độc 3 tầng thay cho vũng.
-  that_tinh_doc_thiem: [bs("Phun Độc", "circle", 34, { at: "target", range: 120, dmg: 1, status: [{ s: "poison", n: 3, secs: 5 }] })],
+  // Phun Độc để lại vũng độc (#161): Trúng độc theo nhịp khi đứng trong vũng.
+  that_tinh_doc_thiem: [bs("Phun Độc", "circle", 34, { at: "target", range: 120, dmg: 1, ground: { kind: "pool", secs: 4, status: POISON_GROUND } })],
   xich_lan_mang: [bs("Quấn Siết", "circle", 32, { dmg: 1.2, status: [{ s: "root", secs: 1.5 }] })],
   hac_vu_bien_buc: [bs("Âm Ba", "cone", 64, { arc: 70, dmg: 1, status: [{ s: "silence", secs: 2 }] })],
   lam_loi_te_nguu: [bs("Lôi Xung", "line", 140, { w: 18, dmg: 1.7, dash: true, cd: 9, status: [{ s: "shock" }] })],
@@ -827,13 +862,13 @@ export const BEAST_SKILLS: Record<string, BeastSkillDef[]> = {
   am_kim_khung_trao_hung: [bs("Vỗ Đất", "circle", 56, { dmg: 2, status: [{ s: "stun", secs: 0.6 }] })],
   kiem_vi_hat:  [bs("Kiếm Vĩ Đâm", "line", 85, { w: 12, dmg: 1.6, status: [{ s: "armor", n: 2 }] })],
   quy_anh_bao:  [bs("Ảnh Trảm", "cone", 54, { arc: 90, dmg: 1.8 })],
-  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu là Mê hoặc trên hồn sư (CHARM_P, #116); "để lại sương" của
-  // Độc Vụ Thiềm thay bằng Trúng độc 3 tầng (như Thất Tinh Độc Thiềm); Tự Bạo của Hỏa Linh Điệp chỉ nổ, bướm không chết theo.
+  // Lạc Nhật Sâm Lâm (BĐ6b). "Mê hoặc" của Thực Nhân Hoa / Ỷ La Hoa Yêu là Mê hoặc trên hồn sư (CHARM_P, #116); Sương Độc của
+  // Độc Vụ Thiềm để lại sương độc (#161); Tự Bạo của Hỏa Linh Điệp chỉ nổ, bướm không chết theo.
   thuc_nhan_hoa: [bs("Phấn Mê", "circle", 44, { dmg: 1.2, status: [CHARM_P] })],
   cuc_yeu_hoa_linh: [bs("Phi Hoa", "cone", 60, { arc: 80, dmg: 1.6 })],
   doc_cuc_dang: [bs("Gai Trồi", "line", 100, { w: 14, dmg: 1.7 })],
   bich_lan_xa:  [bs("Phun Độc", "line", 110, { w: 14, dmg: 1.3, status: [{ s: "poison", n: 2, secs: 5 }] })],
-  doc_vu_thiem: [bs("Sương Độc", "circle", 34, { at: "target", range: 120, dmg: 1, status: [{ s: "poison", n: 3, secs: 6 }] })],
+  doc_vu_thiem: [bs("Sương Độc", "circle", 34, { at: "target", range: 120, dmg: 1, ground: { kind: "mist", secs: 5, status: POISON_GROUND } })],
   hac_thuy_mang: [bs("Quật Đuôi", "cone", 56, { arc: 150, dmg: 1.8 })],
   liet_hoa_tich_dich: [bs("Phun Lửa", "cone", 58, { arc: 70, dmg: 1.4, status: [{ s: "burn", n: 2, secs: 4 }] })],
   huyen_bang_thiem: [bs("Băng Khí", "circle", 34, { at: "target", range: 120, dmg: 1.1, status: [{ s: "slow", secs: 3 }] })],
@@ -1002,8 +1037,8 @@ export const BOSSES: BossDef[] = [
     // Biến mất rồi hiện ra ở chân mục tiêu: vòng nhỏ báo trước, hồn thú lao tới tâm vòng.
     bs("Ảnh Tập", "circle", 30, { at: "target", range: 130, dmg: 1.8, dash: true })] },
   { id: "kim_boi_that_tinh_thiem", name: "Kim Bối Thất Tinh Thiềm", rank: 1, species: "that_tinh_doc_thiem", aura: "#f2c84b", skills: [
-    // Vũng độc 6 giây chưa làm (như Phun Độc 3.5): Trúng độc 3 tầng 6 giây thay cho vũng.
-    bs("Nổ Túi Độc", "circle", 56, { dmg: 1.2, status: [{ s: "poison", n: 3, secs: 6 }] }),
+    // Vũng độc 6 giây (bảng gốc, #161).
+    bs("Nổ Túi Độc", "circle", 56, { dmg: 1.2, ground: { kind: "pool", secs: 6, status: POISON_GROUND } }),
     bs("Lưỡi Quất", "line", 110, { w: 12, dmg: 1.1, pull: 60 })] },
   { id: "lam_dien_loi_tich", name: "Lam Điện Lôi Tích", rank: 1, species: "lam_loi_te_nguu", aura: "#4ab0ff", skills: [
     bs("Lôi Trụ", "circle", 26, { at: "target", range: 140, count: 3, step: 46, dmg: 1.6, status: [{ s: "shock" }] }),
@@ -1012,8 +1047,9 @@ export const BOSSES: BossDef[] = [
     bs("Ám Kim Liệt Địa", "line", 110, { w: 14, count: 3, spread: 50, dmg: 1.8 }),
     bs("Cuồng Bạo Vỗ", "circle", 56, { dmg: 2.6, status: [{ s: "stun", secs: 0.6 }] })] },
   // Tà hóa thú vương (BĐ5, bảng 5.3; mọi số đã chốt). Báo trước 1–2 giây (dài hơn hồn thú thường): vòng quanh thân ≤ 64 để chạy
-  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt; bọc trứng của Vạn Chu
-  // Phệ thay bằng gọi thẳng nhện con; "tơ phủ 1/3 hang luân phiên" thay bằng một dải tơ rộng báo trước 2 giây nhắm người chơi.
+  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt; "tơ phủ 1/3 hang
+  // luân phiên" thay bằng một dải tơ rộng báo trước 2 giây nhắm người chơi. Vạn Chu Phệ đẻ bọc trứng (EggDef, #162): máu bọc bằng nửa
+  // nhện con cùng số năm để một người tập trung phá kịp cả 3 bọc trong thời gian nở.
   { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 6, skills: [
     bs("Huyết Nguyệt Hú", "circle", 60, { warn: 1.2, dmg: 1, cd: 14, summon: { species: "phong_lang", n: 4 } }),
     bs("Liệt Phong Trảo", "cone", 58, { arc: 60, count: 3, spread: 130, warn: 1, dmg: 1.4, cd: 8 })],
@@ -1023,8 +1059,9 @@ export const BOSSES: BossDef[] = [
     bs("Thiên La Võng", "circle", 64, { warn: 1.3, dmg: 0.9, cd: 12, status: [{ s: "root", secs: 2 }] }),
     bs("Độc Châm Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8,
       status: [{ s: "poison", n: 2, secs: 5 }] })],
-    phase2: { name: "Vạn Chu Phệ", desc: "gọi nhện con, giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
-      bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16, summon: { species: "nhan_dien_ma_chu_non", n: 4, years: [4000, 8000] } }),
+    phase2: { name: "Vạn Chu Phệ", desc: "đẻ bọc trứng (không phá kịp thì nở nhện con), giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
+      bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16,
+        eggs: { species: "nhan_dien_ma_chu_non", n: 3, per: 2, secs: 8, hp: 0.5, years: [4000, 8000] } }),
       bs("Chu Ti Phong Tỏa", "line", 190, { w: 64, range: 180, warn: 2, dmg: 1.2, cd: 12, status: [{ s: "slow", secs: 3 }] })] } },
   // Lạc Nhật Sâm Lâm (BĐ6b, 5.000–30.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "giữ 2 giây" của Nuốt Chửng là Trói 2 giây
   // sau khi kéo; Mê hoặc trên hồn sư như loài thường (CHARM_P, #116); Song Sắc Mãng không đổi băng / hỏa theo 10 giây, mỗi chiêu
@@ -1034,7 +1071,8 @@ export const BOSSES: BossDef[] = [
     bs("Đại Phấn Mê", "circle", 56, { dmg: 1.2, status: [{ ...CHARM_P, secs: 1 }] })] },
   { id: "song_dau_bich_lan_xa", name: "Song Đầu Bích Lân Xà", rank: 1, species: "bich_lan_xa", aura: "#3affa0", skills: [
     bs("Song Xà Phun", "line", 110, { w: 14, count: 2, spread: 40, dmg: 1.4, status: [{ s: "poison", n: 2, secs: 5 }] }),
-    bs("Lân Độc Vụ", "circle", 56, { dmg: 1, status: [{ s: "poison", n: 3, secs: 8 }] })] },
+    // Sương độc 8 giây (bảng gốc, #161).
+    bs("Lân Độc Vụ", "circle", 56, { dmg: 1, ground: { kind: "mist", secs: 8, status: POISON_GROUND } })] },
   { id: "bang_hoa_song_sac_mang", name: "Băng Hỏa Song Sắc Mãng", rank: 1, species: "hac_thuy_mang", aura: "#b07aff", skills: [
     bs("Băng Hỏa Giao Thoa", "line", 120, { w: 14, count: 2, spread: 90, dmg: 1.6, status: [{ s: "slow", secs: 2 }, { s: "burn", n: 2, secs: 4 }] }),
     bs("Song Sắc Tức", "cone", 58, { arc: 100, dmg: 1.6, status: [{ s: "slow", secs: 3 }, { s: "burn", n: 2, secs: 4 }] })] },
@@ -3441,6 +3479,50 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
   return null;
 }
 
+// ---------- Tự bán từ xa (#216, mục 5.7 "Tự bán"; chủ repo chốt phương án A 2026-10-22) ----------
+/**
+ * Bật tự bán thì khi túi còn dưới AUTO_SELL_FREE ô trống (hoặc tự săn thấy túi đầy), server bán từ xa mọi món hợp bộ lọc với đúng giá
+ * thương nhân trong thành (sellPrice, 100%). Giữ AUTO_SELL_BUYBACK món tự bán gần nhất (lưu DB) để mua lại đúng giá ở thương nhân.
+ */
+export const AUTO_SELL_FREE = 5;
+export const AUTO_SELL_BUYBACK = 20;
+/** Hồn hoàn, hồn cốt từ bấy nhiêu năm (vạn năm) trở lên không bao giờ tự bán, trừ khi người chơi bật `high`. */
+export const AUTO_SELL_GUARD = 10000;
+/** Bộ lọc tự bán của tài khoản (`accounts.auto_sell`; chỉnh ở bảng Túi đồ). Món khoá, món đang gắn không bao giờ bán. */
+export interface SellSettings {
+  on: boolean;     // bật tự bán (mặc định tắt)
+  ring: number;    // bán hồn hoàn dưới bấy nhiêu năm (0 = không bán hồn hoàn)
+  high: boolean;   // cho bán cả hồn hoàn / hồn cốt từ AUTO_SELL_GUARD năm trở lên
+  bone: number;    // bán hồn cốt cường hóa dưới +bone (0 = không bán hồn cốt)
+  core: number;    // bán hồn hạch chưa nâng cấp dưới bấy nhiêu sao (1 = không bán hồn hạch)
+  shard: boolean;  // bán mảnh võ hồn (vật phẩm thường thương nhân mua; đan, phù chú, lệnh bài, rương, tiên thảo thì thương nhân không mua)
+}
+/** Mặc định: tắt; khi bật chỉ bán đồ giá trị thấp (hồn hoàn dưới nghìn năm, hồn hạch 1–2 sao), giữ hồn cốt và mảnh võ hồn. */
+export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false };
+/** Bộ lọc từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định. */
+export function parseSell(raw: unknown): SellSettings {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = SELL_DEFAULTS;
+  const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v))) : def);
+  const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
+  return { on: bool(o.on, D.on), ring: num(o.ring, 0, MAX_YEARS + 1, D.ring), high: bool(o.high, D.high),
+    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard) };
+}
+/**
+ * Món `it` có bị tự bán theo bộ lọc `s` không (hàm thuần, client dùng để xem trước): không khoá, không gắn, thương nhân mua (sellPrice),
+ * vạn năm trở lên chỉ khi bật `high`. Server còn bỏ qua hồn hoàn đang hấp thụ.
+ */
+export function autoSellable(it: { code: string; years: number | null; stars: number | null; enhance: number; locked?: boolean; vohon?: number | null },
+  s: SellSettings): boolean {
+  if (it.locked || (it.vohon ?? null) !== null || sellPrice(it) === null) return false;
+  const kind = itemDef(it.code)?.kind, y = it.years ?? 0;
+  if ((kind === "hon_hoan" || kind === "hon_cot") && y >= AUTO_SELL_GUARD && !s.high) return false;
+  if (kind === "hon_hoan") return y < s.ring;
+  if (kind === "hon_cot") return it.enhance < s.bone;
+  if (kind === "hon_hach") return it.enhance === 0 && (it.stars ?? 1) < s.core;
+  if (kind === "manh_vo_hon") return s.shard;
+  return false;
+}
+
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng đã chốt) ----------
 /**
  * Loại mục tiêu, server đếm theo sự kiện thật (MapRoom.questEvent): `talk` nói chuyện với NPC `npc`; `kill` hạ hồn thú (tùy chọn
@@ -3866,8 +3948,9 @@ export const autoLeft = (used: number, bonus = 0) => Math.max(0, AUTO_DAILY_SECS
 /**
  * Tổng kết một lượt tự săn (Auto 2), server gửi trong tin `auto` khi tắt / dừng: số giây đã treo, hồn thú đã hạ, kinh nghiệm (tổng
  * mọi võ hồn trong đội nhận), Hồn Tệ, đồ đã nhặt hoặc vào thẳng túi (tên món, số lượng; tối đa AUTO_SUM_LOOT dòng, nhiều nhất trước).
+ * `sold`: số món đã tự bán trong lượt (#216) và Hồn Tệ thu được (đã nằm trong `coins`); không có thì lượt đó không tự bán gì.
  */
-export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; }
+export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; sold?: [number, number]; }
 export const AUTO_SUM_LOOT = 12;
 /** "11 giờ 30 phút" / "45 phút" (làm tròn xuống theo phút): giờ treo còn lại để hiển thị. */
 export const autoTimeText = (secs: number) => {
