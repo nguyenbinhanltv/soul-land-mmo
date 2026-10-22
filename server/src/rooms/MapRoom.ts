@@ -628,6 +628,19 @@ interface Buyback { key: string; item: Item; price: number; }
 const buybacks = new Map<number, Buyback[]>();
 const BUYBACK_TTL_MS = 6 * 3600 * 1000;
 const buybackKey = (accountId: number) => `buyback:${accountId}`;
+/** Đọc-sửa-ghi danh sách mua lại ở presence trong một lần khóa (presence là nguồn đúng); cập nhật bản cục bộ theo kết quả. */
+export async function editBuyback(accountId: number, edit: (list: Buyback[]) => Buyback[]) {
+  let next: Buyback[] = [];
+  const ok = await presenceBackend.withLock<Buyback[]>(buybackKey(accountId), `${presenceBackend.workerId}:buyback`, 5000, (old) => { next = edit(old ?? []); return next; }, BUYBACK_TTL_MS);
+  if (!ok) throw new Error("Không khóa được danh sách mua lại trong presence.");
+  if (next.length) buybacks.set(accountId, next); else buybacks.delete(accountId);
+}
+/** Lấy món `key` ra khỏi danh sách mua lại ở presence (chỉ một lần gọi nhận được món); null nếu không còn. */
+export async function claimBuyback(accountId: number, key: string) {
+  let got: Buyback | null = null;
+  await editBuyback(accountId, (list) => { got = list.find((x) => x.key === key) ?? null; return list.filter((x) => x.key !== key); });
+  return got as Buyback | null;
+}
 /** Ghi danh sách mua lại của tài khoản vào presence (rỗng thì xóa). */
 function saveBuyback(accountId: number) {
   const list = buybacks.get(accountId);
@@ -994,7 +1007,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
     this.onMessage("shardbuy", (c, m: { vohon: unknown; qty: unknown; npc: unknown }) => this.buyShards(c.sessionId, m?.vohon, m?.qty, m?.npc)); // #282
     this.onMessage("shardinfo", (c) => this.sendShardInfo(c.sessionId)); // #282: số mảnh đã đổi hôm nay cho trang Thương hội
-    this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => this.buybackItem(c.sessionId, m?.key, m?.npc)); // mua lại đồ vừa bán (9.8)
+    this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => { void this.buybackItem(c.sessionId, m?.key, m?.npc).catch((e) => console.error("Lỗi mua lại", e)); }); // mua lại đồ vừa bán (9.8)
     this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => { void this.partyAction(c.sessionId, m); }); // tổ đội người chơi (7.1)
     this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
@@ -1013,7 +1026,7 @@ export class MapRoom extends Room<MapState> {
     if (this.state.channel) { leftRoom.delete(auth.accountId); void presenceBackend.delete(channelLeftKey(auth.accountId)); } // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
     const leaseOwner = this.leaseOwner(client.sessionId);
     this.holdAccount(auth.accountId, client.sessionId);
-    void presenceBackend.getJson<Buyback[]>(buybackKey(auth.accountId)).then((list) => { if (list?.length && !buybacks.has(auth.accountId)) buybacks.set(auth.accountId, list); })
+    void presenceBackend.getJson<Buyback[]>(buybackKey(auth.accountId)).then((list) => { if (list?.length) buybacks.set(auth.accountId, list); else buybacks.delete(auth.accountId); })
       .catch((e) => console.error(`Không đọc được danh sách mua lại của #${auth.accountId}`, e));
     void presenceBackend.getJson<number>(fusionKey(auth.accountId)).then((t) => { if (t && t > Date.now()) fusionReady.set(auth.accountId, t); })
       .catch((e) => console.error(`Không đọc được hồi chiêu dung hợp của #${auth.accountId}`, e));
@@ -1101,7 +1114,7 @@ export class MapRoom extends Room<MapState> {
         await store.startOffline(d.accountId, { mapId: this.state.mapId, zone: zone.name, at: Date.now() - ago * 1000, day: d.autoDay, used: d.autoUsed });
       });
       if (!d.travelled) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã rời ${MAPS[this.state.mapId].name}.` });
-      if (!d.travelled && !d.arenaGone) this.forgetBuyback(d.accountId); // rời game: thương nhân quên đồ vừa bán (9.8)
+      if (!d.travelled && !d.arenaGone) this.forgetBuyback(d.accountId); else buybacks.delete(d.accountId); // rời game: thương nhân quên đồ vừa bán (9.8); sang phòng khác (có thể tiến trình khác): bản ở presence là bản đúng, nạp lại lúc vào
       // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
       if (this.state.channel && !d.travelled && !testNoLeaveLock.delete(d.accountId)) {
         const lock = { mapId: this.state.mapId, roomId: this.roomId, ch: this.state.channel, until: Date.now() + CHANNEL_CD * 1000 };
@@ -2916,7 +2929,7 @@ export class MapRoom extends Room<MapState> {
    * cường hóa) với id mới; ghi DB qua chuỗi lưu như mua / bán. Tự bán đang bật mà bộ lọc sẽ bán món này thì món về túi ở trạng thái
    * khoá (#216), để nhịp sau không tự bán lại ngay khi túi vẫn dưới AUTO_SELL_FREE ô trống.
    */
-  buybackItem(id: string, rawKey: unknown, rawNpc?: unknown) {
+  async buybackItem(id: string, rawKey: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
     const npc = this.shopFor(id, d, rawNpc, "mua lại");
@@ -2931,7 +2944,17 @@ export class MapRoom extends Room<MapState> {
     const lock = d.sellCfg.on && autoSellable({ ...e.item, locked: false, vohon: null }, d.sellCfg);
     if (def.stack > 1 ? this.bagRoom(d, def.id, lock) < e.item.qty : bagUsed(d.bag) >= d.bagSlots)
       return warn(`Túi đồ không đủ chỗ để mua lại ${label} (${d.bagSlots} ô): bỏ hoặc bán bớt đồ trước.`);
-    buybacks.set(d.accountId, list.filter((x) => x !== e)); saveBuyback(d.accountId); d.sold = d.sold.filter((x) => x !== e);
+    if (list.includes(e)) {
+      // Đồ bán tay: lấy khỏi danh sách ở presence trước khi trao (hai tiến trình / hai lần bấm không cùng nhận một món); sau await kiểm lại.
+      const claimed = await claimBuyback(d.accountId, e.key).catch((err) => { console.error("Không lấy được món mua lại trong presence", err); return null; });
+      if (!claimed) return warn(`Thương nhân không còn giữ món này (chỉ giữ ${BUYBACK_MAX} món bán gần nhất, mất khi rời game; ${AUTO_SELL_BUYBACK} món tự bán gần nhất).`);
+      const room = def.stack > 1 ? this.bagRoom(d, def.id, lock) >= e.item.qty : bagUsed(d.bag) < d.bagSlots;
+      if (this.pdata.get(id) !== d || d.travelling || d.honTe < cost || !room) {
+        await editBuyback(d.accountId, (cur) => [claimed, ...cur.filter((x) => x.key !== claimed.key)].slice(0, BUYBACK_MAX)).catch((err) => console.error("Không trả món mua lại về presence", err));
+        return warn("Không mua lại được lúc này, thử lại.");
+      }
+    }
+    d.sold = d.sold.filter((x) => x !== e);
     d.honTe -= cost; d.bagDirty = true;
     if (def.stack > 1) this.addItem(d, def.id, e.item.qty, lock);
     else {

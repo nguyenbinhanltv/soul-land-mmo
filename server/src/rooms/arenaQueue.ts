@@ -59,8 +59,6 @@ export const arenaWatchingAny = (accountId: number) =>
 /** Bên đối thủ của trận ngay trước, giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. */
 const lastFoe = new Map<string, string>();
 const TICK_MS = 500;
-/** Ghép lại cặp vừa đấu nhau chỉ sau ngần này giây chờ (giây). */
-const REMATCH_SETTLE_S = 1;
 let timer: ReturnType<typeof setInterval> | null = null;
 let busy = false;
 
@@ -263,9 +261,9 @@ async function pass() {
     const groups = new Map<number, typeof list>();
     for (const item of list) groups.set(item.size, [...(groups.get(item.size) ?? []), item]);
     for (const group of groups.values()) for (const [a, b] of arenaPairs(group)) {
-      // Ghép lại đúng đối thủ vừa đấu thì chờ REMATCH_SETTLE_S giây cho người khác kịp xếp hàng (arenaPairs chỉ tránh được khi họ đã có mặt).
+      // Ghép lại đúng đối thủ vừa đấu thì chờ ARENA.rematchSettleSecs giây cho người khác kịp xếp hàng (arenaPairs chỉ tránh được khi họ đã có mặt).
       const waited = (id: string) => group.find((x) => x.id === id)!.wait;
-      if ((lastFoe.get(a) === b || lastFoe.get(b) === a) && Math.min(waited(a), waited(b)) < REMATCH_SETTLE_S) continue;
+      if ((lastFoe.get(a) === b || lastFoe.get(b) === a) && Math.min(waited(a), waited(b)) < ARENA.rematchSettleSecs) continue;
       const ea = entries.get(a), eb = entries.get(b); if (!ea || !eb) continue;
       try { if (!await claimRemote(a, b)) continue; } catch (err) { console.error("Không giành được cặp ở hàng chờ đấu trường", err); continue; }
       queue.delete(a); queue.delete(b);
