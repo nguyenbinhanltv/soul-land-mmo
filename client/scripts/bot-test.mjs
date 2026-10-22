@@ -9879,7 +9879,7 @@ async function tideTest(){
     const far=p=>Math.min(...olds.map(q=>d2(p,q)));
     for(;;){
       calm=fl.find(z=>!wh.some(w=>d2(w,z)<1)); // vùng ngập không có xoáy
-      olds=t.grounds.filter(z=>z.kind==="flood"&&!t.wave.includes(z.id)); cand=[]; tried=0;
+      olds=t.grounds.filter(z=>z.src===kb&&z.kind==="flood"&&!t.wave.includes(z.id)); cand=[]; tried=0;
       if(calm) for(let dx=-32;dx<=32;dx+=4) for(let dy=-32;dy<=32;dy+=4){ const p={x:Math.round(calm.x+dx),y:Math.round(calm.y+dy)}; // goto làm tròn
         if(d2(p,calm)<=TD.flood.r-8&&far(p)>TD.flood.r+8&&wh.every(w=>d2(p,w)>TD.whirl.r+6)&&!hits(grid,p.x,p.y,PLAYER_HW,PLAYER_HH)) cand.push(p); }
       cand.sort((a,b)=>far(b)-far(a)); for(const p of cand.slice(0,12)){ tried++; if(await go(p.x,p.y)){ st0=p; break; } }
@@ -9887,10 +9887,10 @@ async function tideTest(){
       console.log(`  (đợt mới thứ ${waves} không có chỗ đứng: vùng ngập không xoáy ${calm?xy(calm):"không có"}, xoáy ${wh.map(xy).join(" ")}, vùng ngập cũ ${olds.map(xy).join(" ")}; gọi đợt kế)`);
       old=[...t.wave];
       // Đợt gọi thêm chỉ chờ, không thêm dòng ✓ (số ✓ của nhóm không đổi theo lượt); Choáng lại thú vương vì gọi thêm đợt tốn thời gian.
-      await waitFor(()=>old.every(id=>F.room.state.grounds.get(id)?.wait===0),(TD.warn+1)*1000); await hold();
-      t=await test(F,"tide",{next:0}); await test(F,"tide",{next:600}); waves++;
+      if(!(await waitFor(()=>old.every(id=>F.room.state.grounds.get(id)?.wait===0),(TD.warn+1)*1000))){ ok(false,`đợt mới thứ ${waves} hết báo trước, có tác dụng`); break; }
+      await hold(); t=await test(F,"tide",{next:0}); await test(F,"tide",{next:600});
       if(!t.on||t.wave.every(id=>old.includes(id))){ console.log(`  (không gọi được đợt kế: Thủy Triều Dâng ${t.on?"không ra đợt mới":"đã thôi chạy"})`); break; }
-      fl=waveOf("flood"); wh=waveOf("whirl");
+      waves++; fl=waveOf("flood"); wh=waveOf("whirl");
     }
     ok(calm&&st0,`F đứng trong vùng ngập không xoáy của đợt mới, cách vùng ngập cũ ${st0?far(st0).toFixed(0):"?"} (${st0?.x},${st0?.y})`+(waves>1?`, ở đợt mới thứ ${waves}`:"")+(st0?"":
       ` [đợt cuối: ${cand.length} chỗ thỏa đứng được, thử ${tried} chỗ không tới được; vùng ngập không xoáy ${calm?xy(calm):"không có"}, xoáy ${wh.map(xy).join(" ")}, vùng ngập cũ ${olds.map(xy).join(" ")}]`));
