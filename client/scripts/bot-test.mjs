@@ -4891,6 +4891,7 @@ async function autoTest(){
       await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[]}});
       m=await autoOp(A,"on");
       ok(m?.on&&A.logs.slice(l1).some(t=>/khắp bản đồ/.test(t)),`"Toàn bản đồ" (mặc định): bật, báo săn khắp bản đồ`);
+      await waitFor(()=>me(A).auto,2000); // tin riêng `auto` có thể về trước bản vá state mang cờ auto
       let far=0, gone=false;
       for(let t=0;t<90000&&!gone&&me(A).auto;t+=500){ await sleep(500); far=Math.max(far,Math.hypot(me(A).x-home.x,me(A).y-home.y)); await test(A,"clear",{but:fb}); gone=!(await test(A,"auto",{bid:fb,pace:0}))?.beast; }
       // Dọc đường dọn hồn thú tự nhiên quanh A (bãi 300 năm trở lên hung hăng, hồi sinh liên tục) và giữ nợ nhịp 0: bài này thử đường đi,
