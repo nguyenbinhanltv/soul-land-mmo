@@ -2770,6 +2770,19 @@ export const BONE_ENHANCE_STAT = 0.05;
  */
 export const BONE_ENHANCE_MILESTONES = [5, 10, 15, 20];
 export const BONE_MILESTONE_SKILL = 0.1;
+/**
+ * **(đã chốt, #281)** Phí Hồn Tệ (đồng) khi cường hóa hồn cốt **lên** +(n + 1): BONE_ENHANCE_FEE[n]; trả một lần cho mỗi cấp vừa
+ * vượt qua (enhanceFee). +1…+5 miễn phí, +6…+10 1.000, +11…+15 3.000, +16…+20 8.000: tới +10 hết 5.000, một hồn cốt +20 hết 60.000.
+ */
+export const BONE_ENHANCE_FEE = [0, 0, 0, 0, 0, 1000, 1000, 1000, 1000, 1000, 3000, 3000, 3000, 3000, 3000, 8000, 8000, 8000, 8000, 8000];
+/**
+ * Phí Hồn Tệ của một lần cường hóa / nâng cấp từ +`from` lên +`to` theo bảng `table` (BONE_ENHANCE_FEE, CORE_ENHANCE_FEE): tổng phí
+ * mọi cấp vừa vượt qua (#281). Nạp điểm mà chưa lên cấp thì 0; chia nhỏ nhiều lần hay một lần nhảy nhiều cấp đều trả cùng tổng.
+ */
+export function enhanceFee(table: readonly number[], from: number, to: number) {
+  const a = Math.max(0, Math.floor(from) || 0), b = Math.min(table.length, Math.floor(to) || 0);
+  return table.slice(a, Math.max(a, b)).reduce((s, x) => s + x, 0);
+}
 /** Cấp cường hóa hợp lệ (số nguyên 0..BONE_MAX_ENHANCE). */
 export function boneEnhanceClamp(e: unknown) { return Math.max(0, Math.min(BONE_MAX_ENHANCE, Math.floor(Number(e)) || 0)); }
 /** Tổng điểm cường hóa để đạt +`level` từ +0. */
@@ -3049,6 +3062,11 @@ export const CORE_MAX_ENHANCE = 15;
  * 1.380, +15 cần 2.450 (khoảng 5–6 hồn hạch 6★ cùng bộ, 8 hồn hạch 6★ khác bộ, hay 31 hồn hạch 4★ khác bộ). Một bảng cho mọi sao.
  */
 export const CORE_ENHANCE_COST = [20, 30, 40, 55, 70, 90, 110, 135, 160, 190, 220, 260, 300, 350, 420];
+/**
+ * **(đã chốt, #281)** Phí Hồn Tệ (đồng) khi nâng cấp hồn hạch **lên** +(n + 1): CORE_ENHANCE_FEE[n], trả một lần mỗi cấp vượt qua
+ * (enhanceFee). +1…+3 miễn phí, +4…+6 1.000, +7…+9 2.500, +10…+12 5.000, +13…+15 10.000: một hồn hạch +15 hết 55.500.
+ */
+export const CORE_ENHANCE_FEE = [0, 0, 0, 1000, 1000, 1000, 2500, 2500, 2500, 5000, 5000, 5000, 10000, 10000, 10000];
 /** **(đã chốt)** Điểm gốc một nguyên liệu theo sao 1★..6★ (gấp đôi mỗi sao: sao cao làm nguyên liệu đáng giá hơn nhiều). */
 export const CORE_FEED_STAR = [10, 20, 40, 80, 160, 320];
 /** **(đã chốt)** Nguyên liệu cùng bộ với hồn hạch được nâng cấp thì điểm gốc ×1,5 (như hồn cốt cùng vị trí ở 4.4). */
@@ -4319,6 +4337,8 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * gọi ra trong trận (bầy, nhện con) vẫn tính như mọi hồn thú thường.
  * - `dodge`: né chiêu báo trước (kể cả chiêu toàn sàn, vòng an toàn) và vùng lưu lại trên đất: đứng trong vùng thì đi tới chỗ an toàn
  *   gần nhất đi thẳng tới được, tìm trên `dirs` hướng, mỗi `step` pixel tới `max` pixel (cùng các vòng an toàn của chiêu toàn sàn).
+ *   Chỗ né phải an toàn cả các điểm quanh nó trong `pad` pixel: tới cách chỗ né dưới 1 pixel là dừng (#292), chỗ sát mép vòng an toàn
+ *   / vùng thì có lúc đứng lại ngay ngoài mép mà vẫn trúng.
  * - `retreat` / `back`: sinh lực võ hồn ra trận dưới `retreat` phần thì lùi ra cách boss ít nhất `dist` pixel (uống đan theo ngưỡng
  *   cài đặt như thường), từ `back` phần mới quay lại đánh.
  * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
@@ -4327,7 +4347,7 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
  *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
  */
-export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168, pad: 3 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
