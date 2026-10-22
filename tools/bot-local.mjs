@@ -306,14 +306,13 @@ function spawnNode(script, { cwd, env, log, stats, onLine }) {
     cwd, env: { ...env, BOT_LOCAL_PARENT: String(process.pid), BOT_LOCAL_STATS: stats }, stdio: ["ignore", "pipe", "pipe"], windowsHide: true,
   });
   children.add(p);
-  // close (không phải exit): đã đọc hết stdout / stderr, không mất dòng cuối của bot.
-  p.done = new Promise((r) => p.on("close", (code, sig) => { children.delete(p); r(code ?? (sig ? 1 : 0)); }));
   const w = createWriteStream(log, { flags: "a" });
+  // close (không phải exit): đã đọc hết stdout / stderr, không mất dòng cuối của bot; chờ cả file log ghi xong (--fatal đọc log ngay sau).
+  p.done = new Promise((r) => p.on("close", (code, sig) => { children.delete(p); w.end(() => r(code ?? (sig ? 1 : 0))); }));
   for (const s of [p.stdout, p.stderr]) {
     let buf = "";
     s.on("data", (d) => { w.write(d); buf += d; const lines = buf.split("\n"); buf = lines.pop(); for (const l of lines) onLine?.(l.replace(/\r$/, "")); });
   }
-  p.on("close", () => w.end());
   return p;
 }
 const kill = async (p) => { if (p && p.exitCode === null && p.signalCode === null) { p.kill(); await p.done; } };
@@ -358,13 +357,14 @@ async function startServer(port, env, log, stats) {
  * gọi hook `crash` -> server phải tự thoát mã ≠ 0, log có lỗi kèm stack và dòng đã lưu người chơi; với --pg bật lại server trên cùng
  * database, pha verify kiểm vị trí / cấp / kinh nghiệm đã lưu. Trả số kiểm tra trượt.
  */
-async function fatalRun(server, port, senv, env, slog, sstats, onLine) {
+async function fatalRun(server, port, senv, env, slog, blog, sstats, onLine) {
   let fails = 0;
   const check = (c, msg) => { onLine(`${c ? "✓" : "✗"} ${msg}`); if (!c) fails++; };
   const stats = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal.json`);
   const script = (phase, kind, file) => spawnNode(path.join(clientDir, "scripts", "fatal-test.mjs"), {
-    cwd: clientDir, env: { ...env, SERVER_URL: `http://localhost:${port}`, FATAL_PHASE: phase, FATAL_KIND: kind, FATAL_FILE: file },
-    log: slog.replace(/-server\.log$/, "-bot.log"), stats, onLine,
+    cwd: clientDir, log: blog, stats, onLine,
+    // MAP_V1: script đọc cùng bản đồ với server (như bot thường)
+    env: { ...env, SERVER_URL: `http://localhost:${port}`, FATAL_PHASE: phase, FATAL_KIND: kind, FATAL_FILE: file, ...(senv.MAP_V1 ? { MAP_V1: senv.MAP_V1 } : {}) },
   }).done;
   for (const kind of ["throw", "reject"]) {
     const file = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal-${kind}.json`);
@@ -428,9 +428,9 @@ try {
 
   if (opt.fatal) {
     const n = { "✓": 0, "✗": 0 };
-    const fails = await fatalRun(server, port, senv, env, slog, sstats, (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; });
+    const fails = await fatalRun(server, port, senv, env, slog, blog, sstats, (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; });
     code = fails || n["✗"] ? 1 : 0;
-    console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : "TRƯỢT"}: ✓ ${n["✓"]}, ✗ ${n["✗"]}; tổng ${secs(tAll)}; log: ${path.relative(root, slog)}`);
+    console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : "TRƯỢT"}: ✓ ${n["✓"]}, ✗ ${n["✗"]}; tổng ${secs(tAll)}; log: ${path.relative(root, slog)}, ${path.relative(root, blog)}`);
   } else {
     const benv = { ...env, SERVER_URL: `http://localhost:${port}` };
     if (opt.only) benv.BOT_ONLY = opt.only;

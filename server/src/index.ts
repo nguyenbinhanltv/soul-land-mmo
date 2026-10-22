@@ -135,7 +135,7 @@ matchMaker.controller.exposedMethods = ["joinOrCreate", "join", "joinById", "rec
 
 /** Hạn giờ khi tắt server (ms): lưu người chơi đang online (rời mọi phòng), rồi đóng kết nối PostgreSQL. */
 const SHUTDOWN_SAVE_MS = 8000, SHUTDOWN_DB_MS = 2000;
-let stopping: Promise<void> | null = null;
+let stopping: Promise<void> | null = null, exitCode = 0;
 /** Chờ `p` tối đa `ms` mili giây; quá giờ hoặc lỗi thì ghi log rồi đi tiếp (đang tắt server, không chờ mãi). */
 const within = async (what: string, p: () => Promise<unknown>, ms: number) => {
   let timer: NodeJS.Timeout | undefined;
@@ -147,17 +147,21 @@ const within = async (what: string, p: () => Promise<unknown>, ms: number) => {
 };
 /**
  * Tắt server có kiểm soát (một lần): rời mọi phòng như khi người chơi thoát (onLeave / onDispose của MapRoom ghi lần cuối qua chuỗi lưu
- * this.chain), đóng PostgreSQL, rồi process.exit(code) để trình quản lý tiến trình (pm2, nền tảng deploy) khởi động lại khi code ≠ 0.
+ * this.chain), đóng PostgreSQL, rồi process.exit để trình quản lý tiến trình (pm2, nền tảng deploy) khởi động lại khi mã ≠ 0. Gọi lại
+ * trong lúc đang tắt chỉ nâng mã thoát (lỗi nghiêm trọng giữa lúc tắt vì tín hiệu vẫn thoát 1).
  */
 function shutdown(code: number, why: string) {
+  exitCode = Math.max(exitCode, code); process.exitCode = exitCode;
   stopping ??= (async () => {
-    process.exitCode = code;
-    const online = matchMaker.stats.local.ccu;
-    console.error(`Đang tắt server (${why}): lưu ${online} người chơi đang online, hạn ${SHUTDOWN_SAVE_MS} ms…`);
-    const saved = await within("Lưu người chơi đang online", () => gameServer.gracefullyShutdown(false), SHUTDOWN_SAVE_MS);
+    const { local } = matchMaker.stats;
+    console.error(`Đang tắt server (${why}): lưu ${local.ccu} người chơi đang online, hạn ${SHUTDOWN_SAVE_MS} ms…`);
+    // Colyseus tự bắt lỗi giữa chừng (in log) rồi vẫn trả về: chỉ coi là đã lưu khi mọi người chơi đã rời (onLeave xong) và mọi phòng đã đóng.
+    const done = await within("Lưu người chơi đang online", () => gameServer.gracefullyShutdown(false), SHUTDOWN_SAVE_MS);
+    const saved = done && local.ccu <= 0 && local.roomCount <= 0;
     const closed = await within("Đóng kết nối PostgreSQL", () => store.close(), SHUTDOWN_DB_MS);
-    console.error(`Tắt server: ${saved ? "đã lưu" : "CHƯA lưu xong"} người chơi đang online, ${closed ? "đã đóng" : "chưa đóng"} kết nối DB; thoát mã ${code}.`);
-    process.exit(code);
+    console.error(`Tắt server: ${saved ? "đã lưu người chơi đang online" : `CHƯA lưu xong người chơi đang online (còn ${local.ccu} người, ${local.roomCount} phòng)`}, `
+      + `${closed ? "đã đóng" : "chưa đóng"} kết nối DB; thoát mã ${exitCode}.`);
+    process.exit(exitCode);
   })();
 }
 /**

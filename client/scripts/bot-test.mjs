@@ -4156,8 +4156,8 @@ else {
         await test(A,"goto",{x:gate.x+gate.width/2,y:gate.y+gate.height/2}); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
         await test(A,"beast",{dx:16,dy:0,years:MAX_YEARS}); await test(A,"bhp",{pct:100}); await test(A,"ready");
         await waitFor(()=>A.portal?.name===gate.name,1000); const lt=A.logs.length, m0=st.mapId;
-        A.room.send("travel",{portal:gate.name}); await waitFor(()=>A.logs.slice(lt).some(t=>/Đang đi tới/.test(t)),800);
-        r=await bsk(2,200); const cast=A.logs.slice(lt).join(" | ");
+        // Niệm chỉ TRAVEL_CAST giây: gửi kỹ năng ngay sau tin đi cổng (server xử lý tin theo thứ tự, lúc đó đã đang niệm), rồi rời cổng.
+        A.room.send("travel",{portal:gate.name}); r=await bsk(2,250); const cast=A.logs.slice(lt).join(" | ");
         await test(A,"goto",spot); await waitFor(()=>A.logs.slice(lt).some(t=>/hủy đi qua cổng/.test(t)),1000);
         ok(/Đang đi tới/.test(cast)&&A.fxs.some(f=>f.k==="bone"&&f.i===2)&&p.bcds[2]>0&&!/hủy|không dùng được/.test(cast)
           &&A.logs.slice(lt).some(t=>/Đã rời cổng: hủy đi qua cổng/.test(t))&&st.mapId===m0,

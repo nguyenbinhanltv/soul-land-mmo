@@ -41,8 +41,10 @@ if (PHASE === "crash") {
   // Tiến độ chưa lưu: kinh nghiệm của 3 hồn thú (hook kill) và đứng ở cổng làng (xa chỗ sinh). Lưu định kỳ chưa tới lượt trong vài giây này.
   const xp0 = p().xp, lv0 = p().level;
   for (let i = 0; i < 3; i++) await test("kill", { tier: 0 });
-  const file = (m) => new URL(`../../shared/assets/${m}.json`, import.meta.url), m = room.state.mapId; // bản dựng .v2 nếu có (như bot-test)
-  const gate = JSON.parse(readFileSync(existsSync(file(`${m}.v2`)) ? file(`${m}.v2`) : file(m), "utf8"))
+  // Bản dựng .v2 nếu có, trừ khi MAP_V1 (như mapFileOf của bot-test).
+  const file = (m) => new URL(`../../shared/assets/${m}.json`, import.meta.url), m = room.state.mapId;
+  const v1 = new Set((process.env.MAP_V1 ?? "").split(",").map((x) => x.trim()));
+  const gate = JSON.parse(readFileSync(!v1.has(m) && !v1.has("all") && existsSync(file(`${m}.v2`)) ? file(`${m}.v2`) : file(m), "utf8"))
     .layers.flatMap((x) => x.objects ?? []).find((o) => o.type === "portal");
   const at = { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 };
   await test("goto", at);
