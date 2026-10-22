@@ -27,7 +27,8 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
   QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
-  DAILY, dailyIds, isDaily, fitBeast,
+  DAILY, dailyIds, isDaily, fitBeast, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_WEEK_KIND, TONG_TOP_N, TONG_BOARD_CD,
+  tongTaskIds, tongWeekDay, tongTop,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
@@ -46,6 +47,7 @@ import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, invi
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
+import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
 import { arenaLive, arenaWatchMax, arenaWatchUsed, arenaWatchingAny, setTestWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
@@ -146,6 +148,9 @@ export interface PData {
   chains: QuestProgress[];
   // Khảo hạch hằng ngày của Phất Lan Đức (DAILY): DAILY.count bài của ngày `dailyDay` (vnDay), tin riêng "daily"; lưu cùng túi đồ như `quest`.
   daily: QuestProgress[]; dailyDay: string;
+  // Tông vụ hằng ngày (#197, TONG_DAILY): TONG_DAILY.count bài của ngày `tongDay` ở sứ giả tông mình, gửi trong tin riêng "tong"; lưu cùng
+  // túi đồ như khảo hạch. `tongBoardAt`: lúc xin bảng tông tuần gần nhất (ms, TONG_BOARD_CD).
+  tongTasks: QuestProgress[]; tongDay: string; tongBoardAt: number;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
   arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; resonanceTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
@@ -268,6 +273,8 @@ const HOLD = "accountHold";
  */
 const CHAT_TOPIC = "chatx";
 interface ChatRoute { to?: number[]; tong?: string; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
+/** PERF_LOG=1 (#273): nhịp chậm khi từ đầu tick tới hết bản vá quá ngần này ms (= một nhịp TICK_RATE), hoặc từ đầu nhịp trước quá PERF_GAP_MS. */
+const PERF_SLOW_MS = 50, PERF_GAP_MS = 100;
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
@@ -541,6 +548,8 @@ const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k
 
 /** Hook test `daily {shift}`: lệch ngày của khảo hạch hằng ngày cho cả tiến trình (MapRoom.dailyDay); chỉ đổi khi GAME_TEST=1. */
 let dailyShift = 0;
+/** Hook test `tweek {shift}` (#197): lệch số ngày của tuần tông (tongNow, tongWeek) cho cả tiến trình; chỉ đổi khi GAME_TEST=1. */
+let tongShift = 0;
 
 export class MapRoom extends Room<MapState> {
   maxClients = CHANNEL_CAP;
@@ -576,6 +585,15 @@ export class MapRoom extends Room<MapState> {
    */
   perfAll = { n: 0, tick: 0, patch: 0, max: 0, auto: 0 };
   perfOn = !!process.env.PERF_LOG;
+  /**
+   * PERF_LOG=1, nhịp chậm (#273): mốc thời gian các đoạn của tick (đầu, trước vòng người chơi, trước vòng hồn thú, trước thế giới,
+   * trước sinh lại, cuối), CPU luồng chính và mốc của nhịp trước; nhịp chậm chờ in ở nhịp sau (bản ghi GC tới muộn một vòng lặp).
+   */
+  perfT = [0, 0, 0, 0, 0, 0];
+  perfPrev = { t0: 0, t2: 0, c2: 0 };
+  perfSlowN = 0;
+  /** Nhịp chậm chờ in (cần bản ghi GC của chính nhịp đó). */
+  perfPend: { at: string; t0: number; t2: number; wall: number; cpu: number; parts: string; gap: number; gapCpu: number }[] = [];
   /** Lần ghi log gần nhất của mỗi chỗ + lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
   errLog = new Map<string, { at: number; n: number }>();
   spawnT = 0;
@@ -784,13 +802,15 @@ export class MapRoom extends Room<MapState> {
     // mới tới client (đo được khoảng 107 ms → còn khoảng nửa nhịp), và mỗi bản vá luôn mang đúng một bước mô phỏng.
     this.patchRate = 0; // 0 = Colyseus không tự gửi bản vá
     // Lọc đồng bộ theo vùng gần (11.4): cập nhật view từng client sau tick, ngay trước bản vá.
+    if (this.perfOn) watchGc();
     this.setSimulationInterval((ms) => {
-      const t0 = performance.now();
+      const t0 = performance.now(), c0 = this.perfOn ? cpuMs() : 0;
       this.tick(Math.min(ms, 100) / 1000);
+      const ti = this.perfOn ? performance.now() : 0;
       this.interest.update(this.clients);
       const t1 = performance.now();
       this.broadcastPatch();
-      if (process.env.PERF_LOG) this.perfLog(t0, t1, performance.now());
+      if (this.perfOn) this.perfLog(t0, t1, performance.now(), c0, ti);
     }, 1000 / TICK_RATE);
     this.presence.subscribe("kick", this.kickSub);
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
@@ -867,7 +887,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
-    this.onMessage("tong", (c, m: { op: unknown; tong: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong)); // tông môn (#196)
+    this.onMessage("tong", (c, m: { op: unknown; tong: unknown; chain?: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong, m?.chain)); // tông môn (#196, #197)
     // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
     this.onMessage("buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
     this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
@@ -908,7 +928,7 @@ export class MapRoom extends Room<MapState> {
       claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
-      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests),
+      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0,
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
@@ -1087,7 +1107,7 @@ export class MapRoom extends Room<MapState> {
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
     return { honTe: d.honTe, slots: d.bagSlots, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
-      quests: [d.quest, ...d.chains, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })),
+      quests: [d.quest, ...d.chains, ...d.daily, ...d.tongTasks].map((q) => ({ ...q, prog: [...q.prog] })),
       sell: { ...d.sellCfg }, sold: d.sold.map((r) => ({ ...r, item: { ...r.item, stats: r.item.stats == null ? null : structuredClone(r.item.stats) } })) };
   }
 
@@ -1097,28 +1117,30 @@ export class MapRoom extends Room<MapState> {
    * `final`: lần ghi cuối khi rời phòng (onLeave / onDispose, không qua cổng / đổi kênh). Bản đồ có MapDef.exit (Lõi Tinh Đấu, BĐ6e):
    * "đăng xuất" ở đây thì ghi như đi cổng (một transaction saveTravel) về điểm `arrive` của cổng tới bản đồ `exit`, lần sau vào ở đó.
    */
-  async write(id: string, final = false) {
+  /** Trả true khi dữ liệu đã được ghi (tông vụ #197 chỉ cộng điểm sau lần ghi bài đã trả); lỗi DB thì ném. */
+  async write(id: string, final = false): Promise<boolean> {
     // Đã đi cổng / đổi kênh (transaction đi cổng là lần ghi cuối của phòng này): không ghi gì nữa.
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled) return;
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled) return false;
     await this.flushAuto(d);
     const exit = final ? MAPS[this.state.mapId].exit : undefined, out = exit ? this.map.portals.find((q) => q.to === exit) : undefined;
     if (out) {
       const list = this.unsaved(id), bag = this.unsavedBag(d);
       try { await store.saveTravel(d.accountId, list, this.state.mapId, out.to, out.ax, out.ay, bag); }
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-      return;
+      return true;
     }
     // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
     const list = this.unsaved(id), x = p.x, y = p.y, bag = this.unsavedBag(d);
     let saved: boolean;
     try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-    if (saved) return;
+    if (saved) return true;
     // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
     // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
     console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${this.state.mapId}; ngắt kết nối để vào lại.`);
     this.log(id, "Dữ liệu nhân vật đã ở bản đồ khác: hãy vào lại game.", "#ff8a8a");
     this.clients.getById(id)?.leave(4003);
+    return false;
   }
 
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
@@ -1855,7 +1877,7 @@ export class MapRoom extends Room<MapState> {
     }, wait);
   }
   /** `quest {op: "get"}`: tiến độ chuỗi tân thủ và khảo hạch hằng ngày, theo nhịp `ask`. */
-  askQuest(id: string) { this.ask(id, "quest", () => { for (const c of [QUEST_STARTER, ...this.pdata.get(id)?.chains.map((q) => q.chain) ?? []]) this.sendQuest(id, undefined, undefined, c); this.sendDaily(id); }); }
+  askQuest(id: string) { this.ask(id, "quest", () => { for (const c of [QUEST_STARTER, ...this.pdata.get(id)?.chains.map((q) => q.chain) ?? []]) this.sendQuest(id, undefined, undefined, c); this.sendDaily(id); this.sendTong(id); }); }
 
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
   /**
@@ -2140,27 +2162,50 @@ export class MapRoom extends Room<MapState> {
     if (!def || !spot) return this.log(id, "Không có NPC này ở đây.", "#ffb35c");
     if (p.dead) return this.log(id, "Đã gục ngã, không thể nói chuyện.", "#ffb35c");
     if (!this.npcNear(id, { id: def.id })) return this.log(id, `Hãy lại gần ${def.name} hơn để nói chuyện.`, "#ffb35c");
-    this.questEvent(id, { k: "talk", npc: def.id }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
+    this.questEvent(id, { k: "talk", npc: def.id, map: this.state.mapId }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
     if (def.role === "tong") this.sendTong(id); // #196: trước tin npc để hộp thoại có trạng thái tông
     this.clients.getById(id)?.send("npc", { id: def.id });
   }
 
   // ---------- Tông môn (#196, mục 5.14) ----------
-  /** Tin riêng `tong {tong, wait}`: tông đang thuộc ("" = không) và số giây còn phải chờ mới gia nhập / đổi được (0 = được). */
+  /**
+   * Tin riêng `tong {tong, wait, day, tasks}`: tông đang thuộc ("" = không), số giây còn phải chờ mới gia nhập / đổi được (0 = được), và
+   * TONG_DAILY.count tông vụ hôm nay (#197: tiến độ như tin "daily" kèm trạng thái; nội dung bài client tự suy từ mã, questChain).
+   */
   sendTong(id: string) {
     const d = this.pdata.get(id); if (!d) return;
+    this.tongFresh(d); this.dailyGive(d, d.tongTasks);
     const wait = d.tongAt === null ? 0 : Math.max(0, Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - Date.now()) / 1000));
-    this.clients.getById(id)?.send("tong", { tong: d.tong ?? "", wait });
+    this.clients.getById(id)?.send("tong", { tong: d.tong ?? "", wait, day: d.tongDay,
+      tasks: d.tongTasks.map((q) => ({ ...q, prog: [...q.prog], status: questStatus(q) })) });
+  }
+  /** Giờ của tuần tông (ms): giờ thật, hook test `tweek` lệch được (#197). */
+  tongNow() { return Date.now() + tongShift * 86400000; }
+  /** Bộ tông vụ hôm nay từ các dòng `quests` đã lưu (như dailyOf); bài chưa có dòng thì chưa nhận. */
+  tongTasksOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) {
+    return { tongDay: day, tongTasks: tongTaskIds(day).map((id) => saved?.find((q) => q.chain === id) ?? questStart(id)) };
+  }
+  /** Sang ngày mới thì thay bằng bộ tông vụ mới chưa nhận (như dailyFresh); trả true khi vừa đặt lại. */
+  tongFresh(d: PData, day = this.dailyDay()) {
+    if (d.tongDay === day) return false;
+    Object.assign(d, this.tongTasksOf(undefined, day));
+    d.bagDirty = true;
+    return true;
   }
 
   /**
    * Tin client `tong {op, tong}`: `join` gia nhập hoặc đổi sang tông `tong` (đứng gần sứ giả của tông đó; xong chuỗi tân thủ, võ hồn
    * cao nhất từ TONG_MIN_LEVEL, từ lần gia nhập trước đủ TONG_SWITCH_DAYS ngày; xoá điểm tuần hiện tại), `leave` rời tông (đứng gần
-   * một sứ giả; giữ `tongAt` nên không rời rồi vào tông khác để lách thời gian chờ). Ghi DB qua chuỗi lưu.
+   * một sứ giả; giữ `tongAt` nên không rời rồi vào tông khác để lách thời gian chờ). Ghi DB qua chuỗi lưu. Từ #197: `accept` / `turnin`
+   * tông vụ `chain` (tongTaskAction), `board` xin bảng tông tuần (tongBoard), `claim` nhận thưởng tuần trước (tongClaim), `get` xin lại tin.
    */
-  tongAction(id: string, op: unknown, raw: unknown) {
+  tongAction(id: string, op: unknown, raw: unknown, chain?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendTong(id); };
+    if (op === "get") return this.sendTong(id);
+    if (op === "accept" || op === "turnin") return this.tongTaskAction(id, op, chain);
+    if (op === "board") return this.tongBoard(id);
+    if (op === "claim") return this.tongClaim(id);
     if (op !== "join" && op !== "leave") return warn("Thao tác tông môn không hợp lệ.");
     if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
     if (op === "leave") {
@@ -2184,9 +2229,124 @@ export class MapRoom extends Room<MapState> {
       return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
     const from = d.tong ? tongDef(d.tong) : null;
     d.tong = t.id; d.tongAt = now; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
-    this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(now)));
+    this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())));
     this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
     this.sendTong(id);
+  }
+
+  /**
+   * Nhận / trả tông vụ `chainId` hôm nay (#197): phải thuộc một tông, đứng trong NPC_RANGE của sứ giả **tông mình**, không gục. Như
+   * dailyAction: mục tiêu `give` bớt đồ khỏi túi lúc trả (rẻ nhất trước). Trả bài: Hồn Tệ của mẫu, rồi trong chuỗi lưu ghi túi (bài đã
+   * xong, Hồn Tệ, đồ đã nộp) và **chỉ khi đã ghi** mới cộng TONG_POINTS điểm vào tuần hiện tại của tông đang thuộc (tong_points), nên ghi
+   * lỗi thì không có điểm, bài vẫn trả lại được.
+   */
+  tongTaskAction(id: string, op: "accept" | "turnin", chainId: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendTong(id); };
+    this.tongFresh(d);
+    const t = d.tong ? tongDef(d.tong) : undefined;
+    if (!t) return warn("Chỉ người trong tông môn mới nhận được tông vụ.");
+    const i = typeof chainId === "string" ? d.tongTasks.findIndex((q) => q.chain === chainId) : -1;
+    if (i < 0) return warn("Tông vụ đó đã hết hạn: hôm nay có bài mới.");
+    const npc = npcDef(t.npc)!, verb = op === "accept" ? "nhận" : "trả";
+    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
+    if (!this.npcNear(id, { id: t.npc })) return warn(`Hãy lại gần ${npc.name} (sứ giả ${t.name}) để ${verb} tông vụ.`);
+    const step = questChain(d.tongTasks[i].chain)!.steps[0];
+    this.dailyGive(d, d.tongTasks);
+    const st = questStatus(d.tongTasks[i]);
+    if (st === "done") return warn(`Đã xong "${step.name}" hôm nay: mai có tông vụ mới.`);
+    if (op === "accept") {
+      if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả bài.`);
+      d.tongTasks[i] = { chain: d.tongTasks[i].chain, step: 0, accepted: true, prog: step.goals.map(() => 0) };
+      d.bagDirty = true;
+      this.dailyGive(d, d.tongTasks);
+      this.log(id, `Nhận tông vụ "${step.name}": ${step.desc}`, t.col);
+      if (questStatus(d.tongTasks[i]) === "ready") this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả bài ngay để nhận thưởng.`, "#86e0b0");
+      this.sendTong(id);
+      this.saveTrade(id, d);
+      return;
+    }
+    if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
+    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, k) => `${g.text} ${d.tongTasks[i].prog[k] ?? 0}/${g.n}`).join(", ")}.`);
+    const gives = step.goals.some((g) => g.k === "give");
+    if (gives && claimHeld(d)) return warn(CLAIM_BUSY); // #165: như bán / bỏ đồ
+    if (gives) d.bag = d.bag.map((it) => ({ ...it }));
+    for (const g of step.goals) {
+      if (g.k !== "give" || !g.item) continue;
+      let left = g.n;
+      for (const it of this.giveItems(d, g.item)) { if (left <= 0) break; const n = Math.min(left, it.qty); this.takeItem(d, it, n); left -= n; }
+    }
+    this.addCoin(d, step.reward.honTe);
+    d.tongTasks[i] = { chain: d.tongTasks[i].chain, step: 1, accepted: false, prog: [] };
+    d.bagDirty = true;
+    const week = tongWeek(this.tongNow()), tong = t.id;
+    const given = step.goals.filter((g) => g.k === "give").map((g) => `${g.n} ${itemDef(g.item ?? "")?.name ?? g.item}`).join(", ");
+    this.log(id, `Trả tông vụ "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${formatHonTe(step.reward.honTe)} và ${TONG_POINTS} điểm ${t.name}.`, "#f2c84b");
+    this.sendBag(id);
+    this.sendTong(id);
+    this.chain(d, async () => {
+      if (!(await this.write(id))) return;
+      await store.addTongPoints(d.accountId, week, tong, TONG_POINTS);
+    });
+  }
+
+  /**
+   * Tin riêng `tongBoard` (#197), cách nhau TONG_BOARD_CD giây: tuần hiện tại (`week`, bảng `cur`: điểm trung bình thành viên hoạt động
+   * từng tông và top TONG_TOP_N cá nhân mỗi tông, điểm của mình `me`), và tuần trước (`last`: bảng, tông hạng 1, điểm của mình, phần
+   * thưởng `reward` top / rest / null = không hoạt động, đã nhận `claimed`).
+   */
+  tongBoard(id: string, force = false) {
+    const d = this.pdata.get(id); if (!d) return;
+    const now = Date.now(); if (!force && now - d.tongBoardAt < TONG_BOARD_CD * 1000) return;
+    d.tongBoardAt = now;
+    const week = tongWeek(this.tongNow()), last = week - 7;
+    Promise.all([store.tongBoard(week, TONG_WEEK_MIN, TONG_TOP_N), store.tongBoard(last, TONG_WEEK_MIN, TONG_TOP_N), store.tongPoints(d.accountId, week),
+      store.tongPoints(d.accountId, last), store.bossClaims(d.accountId, tongWeekDay(last), TONG_WEEK_KIND)]).then(([cur, prev, mine, mineLast, claimed]) => {
+      const first = tongTop(prev.tongs), active = !!mineLast && mineLast.points >= TONG_WEEK_MIN;
+      this.clients.getById(id)?.send("tongBoard", { week, min: TONG_WEEK_MIN, cur, me: mine && mine.tong === d.tong ? mine.points : 0,
+        last: { week: last, board: prev, first, tong: mineLast?.tong ?? "", points: mineLast?.points ?? 0,
+          reward: active ? (first.includes(mineLast!.tong) ? "top" : "rest") : null, claimed: claimed > 0 } });
+    }, (e) => console.error("Không đọc được bảng tông môn", e));
+  }
+
+  /**
+   * Nhận thưởng tuần trước (#197) ở một sứ giả tông môn, đúng một lần: thành viên hoạt động tuần trước (từ TONG_WEEK_MIN điểm ở tông khi
+   * đó) nhận TONG_WEEK_REWARD.top nếu tông đó hạng 1 tuần trước (tongTop), không thì `rest`. Như đổi mảnh ở Thương hội (#282): trong
+   * chuỗi lưu, cộng thưởng vào túi rồi ghi lượt (boss_claims loại TONG_WEEK_KIND, ngày thứ Hai của tuần được thưởng) cùng túi trong một
+   * transaction (claimBoss); đã nhận / lỗi thì trả lại túi như cũ. Túi không đủ chỗ cho mảnh thì từ chối (không mất lượt).
+   */
+  tongClaim(id: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.tongBoard(id, true); };
+    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
+    if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để nhận thưởng tuần.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY);
+    d.claimBusy++;
+    this.chain(d, async () => {
+      const last = tongWeek(this.tongNow()) - 7, day = tongWeekDay(last);
+      const mine = await store.tongPoints(d.accountId, last);
+      if (!mine || mine.points < TONG_WEEK_MIN) return warn(`Tuần trước ngươi chưa đủ ${TONG_WEEK_MIN} điểm tông (có ${mine?.points ?? 0}): không có thưởng tuần.`);
+      const t = tongDef(mine.tong), board = await store.tongBoard(last, TONG_WEEK_MIN, 0);
+      const top = tongTop(board.tongs).includes(mine.tong), R = top ? TONG_WEEK_REWARD.top : TONG_WEEK_REWARD.rest;
+      const code = shardCode(ARENA_SHARDS[Math.floor(Math.random() * ARENA_SHARDS.length)]), def = itemDef(code)!;
+      if (this.bagRoom(d, code) < R.shards) return warn(`Túi đồ không đủ chỗ cho ${R.shards} ${def.name}: bỏ hoặc bán bớt đồ rồi nhận lại.`);
+      const coin0 = d.honTe;
+      this.addCoin(d, R.honTe); this.addItem(d, code, R.shards); d.bagDirty = true;
+      const takeBack = () => {
+        d.honTe = coin0; d.bagDirty = true;
+        let n = R.shards;
+        for (const x of d.bag.filter((i) => i.code === code && i.vohonId === null).reverse()) { const k = Math.min(n, x.qty); this.takeItem(d, x, k); n -= k; if (!n) break; }
+      };
+      let n: number | null;
+      try { n = await store.claimBoss(d.accountId, day, TONG_WEEK_KIND, 1, this.bagSnapshot(d)); }
+      catch (e) { takeBack(); warn("Không lưu được lần nhận thưởng tuần, thử lại sau."); throw e; }
+      if (n === null) { takeBack(); return warn("Đã nhận thưởng tuần trước rồi."); }
+      this.log(id, `Thưởng tuần ${t?.name ?? mine.tong}${top ? " (tông hạng nhất)" : ""}: ${formatHonTe(R.honTe)} và ${R.shards} ${def.name}.`, t?.col ?? "#f2c84b");
+      this.tongBoard(id, true);
+    }).then(() => {
+      d.claimBusy--;
+      if (this.pdata.get(id) === d) this.sendBag(id);
+    });
   }
 
   /**
@@ -2249,6 +2409,15 @@ export class MapRoom extends Room<MapState> {
       if (x === "ready") { ready = i; this.log(id, `Hoàn thành khảo hạch "${questChain(q.chain)?.steps[0].name}": quay về gặp ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name} để nhận thưởng.`, "#86e0b0"); }
     });
     if (hit) { d.bagDirty = true; this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready); }
+    // Tông vụ (#197): cùng sự kiện, từng bài đã nhận.
+    if (this.tongFresh(d)) this.sendTong(id);
+    let tHit = false;
+    for (const q of d.tongTasks) {
+      const x = this.questBump(q, ev); if (!x) continue;
+      tHit = true;
+      if (x === "ready") this.log(id, `Hoàn thành tông vụ "${questChain(q.chain)?.steps[0].name}": quay về sứ giả tông môn để nhận thưởng.`, "#86e0b0");
+    }
+    if (tHit) { d.bagDirty = true; this.sendTong(id); }
   }
   /** Cộng sự kiện `ev` vào bước đang làm (đã nhận) của tiến độ `q`: null = không mục tiêu nào khớp, "ready" = vừa đủ mọi mục tiêu. */
   questBump(q: QuestProgress, ev: QuestEvent): "hit" | "ready" | null {
@@ -2353,9 +2522,9 @@ export class MapRoom extends Room<MapState> {
    * Số đếm của mục tiêu `give` = số món đang có trong túi (kẹp ở `n`), tính lại mỗi khi túi đổi. Trả chỉ số bài vừa đủ mục tiêu
    * (-1 = không có) và có đổi số đếm nào không.
    */
-  dailyGive(d: PData) {
+  dailyGive(d: PData, list: QuestProgress[] = d.daily) {
     let changed = false, ready = -1;
-    d.daily.forEach((q, i) => {
+    list.forEach((q, i) => {
       const step = q.accepted ? questChain(q.chain)?.steps[q.step] : undefined; if (!step) return;
       const was = questStatus(q);
       step.goals.forEach((g, k) => {
@@ -2381,6 +2550,11 @@ export class MapRoom extends Room<MapState> {
   /** Túi vừa đổi: mục tiêu nộp vật phẩm có thể vừa đủ / vừa thiếu, gửi lại tin "daily" khi đổi số đếm. */
   dailyBag(id: string) {
     const d = this.pdata.get(id); if (!d) return;
+    const t = this.dailyGive(d, d.tongTasks); // tông vụ nộp vật phẩm (#197)
+    if (t.changed) {
+      if (t.ready >= 0) this.log(id, `Đã đủ đồ cho tông vụ "${questChain(d.tongTasks[t.ready].chain)?.steps[0].name}": mang tới nộp cho sứ giả tông môn.`, "#86e0b0");
+      this.sendTong(id);
+    }
     const { changed, ready } = this.dailyGive(d); if (!changed) return;
     if (ready >= 0) this.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
     this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready);
@@ -3341,6 +3515,21 @@ export class MapRoom extends Room<MapState> {
     else if (op === "day") {
       this.dayShift = int(o.shift, -3650, 3650, 0); out = { day: this.today() };
       for (const [pid, pd] of this.pdata) if (this.dailyFresh(pd)) this.sendDaily(pid, "reset"); // khảo hạch hằng ngày đặt lại ngay
+    }
+    else if (op === "tweek") { // #197: lệch tuần tông cho cả tiến trình (số ngày); trả tuần hiện tại
+      if (typeof o.shift === "number") tongShift = int(o.shift, -3650, 3650, 0);
+      out = { week: tongWeek(this.tongNow()), shift: tongShift };
+    }
+    else if (op === "ttask") { // #197: đặt tiến độ tông vụ `i` như hook daily; trả bộ tông vụ
+      this.tongFresh(d);
+      const i = int(o.i, -1, TONG_DAILY.count - 1, -1), q = d.tongTasks[i];
+      if (q && Number.isInteger(o.step)) { d.tongTasks[i] = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, q.chain); d.bagDirty = true; this.sendTong(id); }
+      out = { day: d.tongDay, tasks: d.tongTasks.map((x) => ({ ...x, status: questStatus(x) })) };
+    }
+    else if (op === "tpts") { // #197: cộng `n` điểm tông tuần hiện tại (qua chuỗi lưu), xong thì gửi log "[test] điểm tông …"
+      const n = int(o.n, 0, 10000, 0), tong = d.tong, week = tongWeek(this.tongNow());
+      if (tong) this.chain(d, async () => { const pts = await store.addTongPoints(d.accountId, week, tong, n); this.log(id, `[test] điểm tông ${pts}`); });
+      out = { week, tong };
     }
     else if (op === "daily") {
       // Khảo hạch hằng ngày: `shift` lệch ngày của bộ bài cho cả tiến trình (mọi phòng, kể cả phòng sân đấu mở sau; phòng khác đặt lại
@@ -4943,7 +5132,7 @@ export class MapRoom extends Room<MapState> {
     const elite = !!e && !!owner, drOwner = owner ?? by; // elite: còn người nhận đồ rơi tinh anh (hồn cốt x ELITE.bone, chắc chắn hồn hạch)
     // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
     for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone, fit: fit(pid), party: grp });
-    if (e) for (const pid of team) this.questEvent(pid, { k: "elite" }); // #256: người hạ và đồng đội được chia kinh nghiệm cùng tính "tham gia hạ tinh anh"
+    if (e) for (const pid of team) this.questEvent(pid, { k: "elite", map: this.state.mapId }); // #256 (#284: kèm bản đồ): người hạ và đồng đội được chia kinh nghiệm cùng tính "tham gia hạ tinh anh"
     if (team.length > 1) {
       const names = team.map((pid) => this.state.players.get(pid)?.name ?? "").join(", ");
       for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
@@ -6042,7 +6231,8 @@ export class MapRoom extends Room<MapState> {
       const v = this.contribOf(e, pid), d = this.pdata.get(pid); if (!d || !this.state.players.has(pid) || d.travelling) continue;
       const pct = v / total, pctTxt = `${(pct * 100).toFixed(1).replace(".", ",")}%`;
       this.rewardKill(pid, b.years, K.xp);
-      this.questEvent(pid, { k: "king" }); // #256: mọi người có đóng góp còn trong phòng
+      this.questEvent(pid, { k: "king", map: this.state.mapId }); // #256: mọi người có đóng góp còn trong phòng (boss thế giới cũng tính)
+      if (world) this.questEvent(pid, { k: "world", map: this.state.mapId }); // #284: chương 3 "Thủ hộ của Tiểu Vũ"
       const ring = world ? "" : pid === owner ? ` Hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).` : "";
       const coinTxt = pid === by ? ` Nhận ${formatHonTe(coin)} Hồn Tệ.` : "";
       // Hồn hoàn boss thế giới: người nhiều nhất hồn hoàn đỏ 100.000 năm; người khác WORLD_RING.red cơ hội đỏ, còn lại đen.
@@ -6384,23 +6574,47 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("mini", { p, b, d });
   }
 
-  perfLog(t0: number, t1: number, t2: number) {
-    const f = this.perf;
+  /**
+   * PERF_LOG=1: cộng dồn thời gian tick / bản vá, mỗi 10 giây một dòng `[perf]`. Nhịp chậm (#273): thời gian thật từ đầu tick tới hết bản
+   * vá vượt PERF_SLOW_MS, hoặc nhịp bắt đầu trễ (từ đầu nhịp trước quá PERF_GAP_MS) thì in `[perf-slow]` ở nhịp sau: từng đoạn của tick,
+   * CPU luồng chính trong nhịp (gần bằng thời gian thật = server bận; nhỏ hơn nhiều = hệ điều hành cắt luồng), GC chồng lên nhịp, và
+   * khoảng giữa hai nhịp (CPU ngoài tick: tin nhắn, chuỗi lưu, phòng khác). Dòng `[perf]` thêm số nhịp chậm trong 10 giây.
+   */
+  perfLog(t0: number, t1: number, t2: number, c0: number, ti: number) {
+    const f = this.perf, c2 = cpuMs(), pv = this.perfPrev, T = this.perfT;
     f.n++; f.tick += t1 - t0; f.patch += t2 - t1; f.max = Math.max(f.max, t2 - t0);
     const a = this.perfAll; a.n++; a.tick += t1 - t0; a.patch += t2 - t1; a.max = Math.max(a.max, t2 - t0);
+    // In nhịp chậm của các nhịp trước (bản ghi GC đã tới).
+    for (const s of this.perfPend.splice(0)) {
+      const g = gcIn(s.t0, s.t2), gg = gcIn(s.t0 - s.gap, s.t0);
+      console.log(`[perf-slow] ${this.state.mapId}#${this.state.channel} ${s.at} wall ${s.wall.toFixed(1)} ms, cpu ${s.cpu.toFixed(1)} ms, ` +
+        `gc ${g.ms.toFixed(1)} ms${g.kinds.length ? ` (${g.kinds.join("+")})` : ""} | ${s.parts} | gap ${s.gap.toFixed(1)} ms, cpu ngoài tick ${s.gapCpu.toFixed(1)} ms, ` +
+        `gc ngoài tick ${gg.ms.toFixed(1)} ms | players ${this.state.players.size}, beasts ${this.state.beasts.size}`);
+    }
+    const wall = t2 - t0, gap = pv.t0 ? t0 - pv.t0 : 0;
+    if (wall > PERF_SLOW_MS || gap > PERF_GAP_MS) {
+      this.perfSlowN++;
+      const d = (i: number) => (T[i + 1] - T[i]).toFixed(1);
+      this.perfPend.push({ at: clock(), t0, t2, wall, cpu: c2 - c0, gap, gapCpu: pv.t2 ? c0 - pv.c2 : 0,
+        parts: `tick ${(ti - t0).toFixed(1)} (đầu ${d(0)}, người ${d(1)}, thú ${d(2)}, thế giới ${d(3)}, cuối ${d(4)}), view ${(t1 - ti).toFixed(1)}, vá ${(t2 - t1).toFixed(1)}` });
+    }
+    Object.assign(pv, { t0, t2, c2 });
     if (Date.now() - f.at < 10000) return;
     let awake = 0; this.state.beasts.forEach((b) => { if (this.interest.awake(b.x, b.y)) awake++; });
     console.log(`[perf] ${this.state.mapId}#${this.state.channel} tick ${(f.tick / f.n).toFixed(3)} ms, patch ${(f.patch / f.n).toFixed(3)} ms, ` +
-      `max ${f.max.toFixed(2)} ms, beasts ${this.state.beasts.size} (awake ${awake}), players ${this.state.players.size}`);
-    Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() });
+      `max ${f.max.toFixed(2)} ms, slow ${this.perfSlowN}, beasts ${this.state.beasts.size} (awake ${awake}), players ${this.state.players.size}`);
+    Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() }); this.perfSlowN = 0;
   }
 
   tick(dt: number) {
+    const pt = this.perfOn ? this.perfT : null; // #273: mốc đoạn của tick (PERF_LOG=1)
+    if (pt) pt[0] = performance.now();
     // Khảo hạch hằng ngày: qua 00:00 giờ Việt Nam thì mỗi giây kiểm tra một lần, đặt lại bộ bài và báo người đang chơi.
     if ((this.dayT -= dt) <= 0) {
       this.dayT = 1;
       const day = this.dailyDay();
       for (const [id, d] of this.pdata) if (!d.travelling && this.dailyFresh(d, day)) this.sendDaily(id, "reset");
+      for (const [id, d] of this.pdata) if (!d.travelling && this.tongFresh(d, day)) this.sendTong(id); // tông vụ (#197)
     }
     // Tổ đội (7.1): mỗi 0,5 giây ghi cấp / sinh lực vào party.ts (đồng đội ở bản đồ khác cũng thấy), gửi lại khung tổ đội khi đổi,
     // dọn lời mời hết hạn và người rời game quá lâu.
@@ -6420,6 +6634,7 @@ export class MapRoom extends Room<MapState> {
       this.timers = this.timers.filter((t) => { t.t -= dt; if (t.t > 0) return true; due.push(t.fn); return false; });
       for (const fn of due) fn();
     }
+    if (pt) pt[1] = performance.now();
 
     // người chơi
     this.state.players.forEach((p, id) => {
@@ -6497,6 +6712,7 @@ export class MapRoom extends Room<MapState> {
       if (d.squadT <= 0) { d.squadT = 0.5; this.sendSquad(id); }
     });
 
+    if (pt) pt[2] = performance.now();
     // 11.4: lưới hồn sư theo vị trí mới, đánh dấu vùng hồn thú còn thức quanh mọi hồn sư.
     this.interest.beginTick();
     // hồn thú: trạng thái trước (sát thương theo thời gian có thể hạ hồn thú), rồi di chuyển và đánh
@@ -6603,6 +6819,7 @@ export class MapRoom extends Room<MapState> {
       if (b.moving) { this.moveBeast(b, mx * sp * dt, my * sp * dt, hw); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
     });
 
+    if (pt) pt[3] = performance.now();
     // #161: vùng lưu lại trên mặt đất (sau vòng hồn thú: vùng vừa để lại gây nhịp đầu ngay trong nhịp này).
     this.grounds.tick(dt);
     // #163: Cực Hàn tích tầng Hàn cho người tham gia trong hang, Hỏa Đàn xả tầng.
@@ -6635,6 +6852,7 @@ export class MapRoom extends Room<MapState> {
       if (dr.ttl <= 0) { this.state.drops.delete(id); this.coreDrops.delete(id); }
     });
 
+    if (pt) pt[4] = performance.now();
     // hồi sinh hồn thú
     this.spawnT -= dt;
     if (this.spawnT <= 0) {
@@ -6657,6 +6875,7 @@ export class MapRoom extends Room<MapState> {
     // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
     this.saveT += dt;
     if (this.saveT > 30) { this.saveT = 0; this.pdata.forEach((d, id) => { if (!d.travelling) this.save(id); }); }
+    if (pt) pt[5] = performance.now();
   }
 
   /** Hồn thú di chuyển nhưng không bước vào vùng an toàn. */

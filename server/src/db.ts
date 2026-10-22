@@ -6,7 +6,7 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
@@ -65,6 +65,8 @@ export interface Item {
  */
 /** Tông môn của tài khoản (#196). */
 export interface TongRow { tong: string | null; at: number | null; }
+/** Bảng tông tuần (#197): mỗi tông có điểm trong tuần (TongRank), và top cá nhân mỗi tông (tên, điểm; điểm > 0, cao trước). */
+export interface TongBoard { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]>; }
 export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
 /** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
 export interface SoldRow { key: string; item: Item; price: number; at: number; }
@@ -199,6 +201,15 @@ export interface Store {
    * trong cùng transaction; thiếu thì không xoá. Gọi qua chuỗi lưu của người chơi.
    */
   setTong(accountId: number, tong: string | null, at: number | null, week?: number): Promise<void>;
+  /** Điểm tông tuần `week` (tongWeek) của tài khoản (#197, bảng `tong_points`): tông và số điểm; chưa có dòng thì null. */
+  tongPoints(accountId: number, week: number): Promise<{ tong: string; points: number } | null>;
+  /** Cộng `n` điểm tông tuần `week` cho tài khoản ở tông `tong` (#197); trả số điểm sau khi cộng. Gọi qua chuỗi lưu của người chơi. */
+  addTongPoints(accountId: number, week: number, tong: string, n: number): Promise<number>;
+  /**
+   * Bảng tông tuần `week` (#197): mỗi tông có dòng điểm trong tuần: số thành viên hoạt động (từ `min` điểm) và điểm trung bình của họ
+   * (0 nếu không ai hoạt động); top `topN` cá nhân mỗi tông.
+   */
+  tongBoard(week: number, min: number, topN: number): Promise<TongBoard>;
   /** Cài đặt và giờ treo tự săn của tài khoản (bảng `auto_hunt`, Auto 1). */
   getAuto(accountId: number): Promise<AutoRow>;
   /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
@@ -315,6 +326,7 @@ export class MemoryStore implements Store {
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
   tongs = new Map<number, TongRow>(); // accountId -> tông môn (accounts.tong / tong_at, #196)
+  tongPts = new Map<string, { accountId: number; week: number; tong: string; points: number }>(); // `${accountId}|${week}|${tong}` -> điểm tông tuần (tong_points, #197)
   autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
   offline = new Map<number, OfflineRow>(); // accountId -> lần ủy thác offline chưa nhận (bảng auto_offline, Auto 3)
   arenaT = 0;
@@ -420,7 +432,7 @@ export class MemoryStore implements Store {
   }
   /**
    * Ghi túi (đã kiểm tra) cùng tiến độ nhiệm vụ: như writeBag của PgStore, chuỗi có trong `bag.quests` thì thay, chuỗi khác giữ nguyên;
-   * có bài khảo hạch hằng ngày thì bỏ bài của các ngày khác.
+   * có bài khảo hạch hằng ngày (tông vụ, #197) thì bỏ bài khảo hạch (tông vụ) của các ngày khác.
    */
   putBag(accountId: number, bag: Bag) {
     const { quests, slots, sell, sold, ...rest } = copyBag(bag), prev = this.bags.get(accountId), old = prev?.slots;
@@ -429,8 +441,9 @@ export class MemoryStore implements Store {
     this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}),
       ...(keepSell !== undefined ? { sell: keepSell } : {}), ...(keepSold ? { sold: keepSold } : {}) });
     if (quests) {
-      const daily = quests.some((x) => isDaily(x.chain));
-      const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain) && !(daily && isDaily(q.chain)));
+      const daily = quests.some((x) => isDaily(x.chain)), tong = quests.some((x) => isTongTask(x.chain));
+      const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain) && !(daily && isDaily(q.chain))
+        && !(tong && isTongTask(q.chain)));
       this.quests.set(accountId, [...keep, ...quests]);
     }
   }
@@ -477,8 +490,31 @@ export class MemoryStore implements Store {
     set.add(wp);
   }
   async getTong(accountId: number) { return { ...(this.tongs.get(accountId) ?? { tong: null, at: null }) }; }
-  async setTong(accountId: number, tong: string | null, at: number | null) { // chưa có điểm tuần trong RAM (#197) nên bỏ qua `week`
+  async setTong(accountId: number, tong: string | null, at: number | null, week?: number) {
     this.tongs.set(accountId, { tong, at: at ?? this.tongs.get(accountId)?.at ?? null });
+    if (week !== undefined) for (const [k, x] of this.tongPts) if (x.accountId === accountId && x.week === week) this.tongPts.delete(k);
+  }
+  async tongPoints(accountId: number, week: number) {
+    let best: { tong: string; points: number } | null = null;
+    for (const x of this.tongPts.values()) if (x.accountId === accountId && x.week === week && (!best || x.points > best.points)) best = { tong: x.tong, points: x.points };
+    return best;
+  }
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
+    const k = `${accountId}|${week}|${tong}`, x = this.tongPts.get(k) ?? { accountId, week, tong, points: 0 };
+    x.points += n; this.tongPts.set(k, x);
+    return x.points;
+  }
+  async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
+    const by = new Map<string, { accountId: number; points: number }[]>();
+    for (const x of this.tongPts.values()) if (x.week === week) { const l = by.get(x.tong) ?? []; l.push(x); by.set(x.tong, l); }
+    const tongs: TongRank[] = [], top: TongBoard["top"] = {};
+    for (const [tong, l] of by) {
+      const act = l.filter((x) => x.points >= min);
+      tongs.push({ tong, active: act.length, avg: act.length ? act.reduce((a, x) => a + x.points, 0) / act.length : 0 });
+      top[tong] = l.filter((x) => x.points > 0).sort((a, b) => b.points - a.points || a.accountId - b.accountId).slice(0, topN)
+        .map((x) => ({ name: this.names.get(x.accountId) ?? "?", points: x.points }));
+    }
+    return { tongs, top };
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = this.autos.get(accountId);
@@ -827,6 +863,9 @@ export class PgStore implements Store {
       // Khảo hạch hằng ngày (mã `daily:<yyyymmdd>:<i>`): chỉ giữ dòng của bộ bài đang ghi, bài các ngày đã qua xóa đi.
       const daily = bag.quests.filter((q) => isDaily(q.chain)).map((q) => q.chain);
       if (daily.length) await db.query("DELETE FROM quests WHERE account_id=$1 AND chain LIKE 'daily:%' AND NOT (chain = ANY($2::text[]))", [accountId, daily]);
+      // Tông vụ (#197, mã `tong:<yyyymmdd>:<i>`): như khảo hạch, chỉ giữ dòng của bộ bài đang ghi.
+      const tong = bag.quests.filter((q) => isTongTask(q.chain)).map((q) => q.chain);
+      if (tong.length) await db.query("DELETE FROM quests WHERE account_id=$1 AND chain LIKE 'tong:%' AND NOT (chain = ANY($2::text[]))", [accountId, tong]);
     }
   }
   async loadBag(accountId: number, starter: Item[]) {
@@ -917,6 +956,31 @@ export class PgStore implements Store {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
     } finally { db.release(); }
+  }
+  async tongPoints(accountId: number, week: number) {
+    const r = await this.pool.query("SELECT tong, points FROM tong_points WHERE account_id=$1 AND week=$2 ORDER BY points DESC LIMIT 1", [accountId, week]);
+    return r.rowCount ? { tong: r.rows[0].tong as string, points: Number(r.rows[0].points) } : null;
+  }
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
+    const r = await this.pool.query(
+      `INSERT INTO tong_points(account_id, week, tong, points) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (account_id, week, tong) DO UPDATE SET points = tong_points.points + EXCLUDED.points RETURNING points`, [accountId, week, tong, n]);
+    return Number(r.rows[0].points);
+  }
+  async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
+    const [g, t] = await Promise.all([
+      this.pool.query(
+        `SELECT tong, COUNT(*) FILTER (WHERE points >= $2)::int AS active, COALESCE(AVG(points) FILTER (WHERE points >= $2), 0)::float8 AS avg
+         FROM tong_points WHERE week=$1 GROUP BY tong`, [week, min]),
+      this.pool.query(
+        `SELECT x.tong, a.name, x.points FROM (
+           SELECT tong, account_id, points, ROW_NUMBER() OVER (PARTITION BY tong ORDER BY points DESC, account_id) AS r
+           FROM tong_points WHERE week=$1 AND points > 0) x
+         JOIN accounts a ON a.id = x.account_id WHERE x.r <= $2 ORDER BY x.tong, x.points DESC, x.account_id`, [week, topN]),
+    ]);
+    const top: TongBoard["top"] = {};
+    for (const x of t.rows) (top[x.tong] ??= []).push({ name: x.name, points: Number(x.points) });
+    return { tongs: g.rows.map((x) => ({ tong: x.tong as string, active: Number(x.active), avg: Number(x.avg) })), top };
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = await this.pool.query("SELECT settings, day, used_secs, bonus_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
