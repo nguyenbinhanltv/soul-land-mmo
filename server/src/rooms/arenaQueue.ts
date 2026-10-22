@@ -122,6 +122,23 @@ export async function arenaEnqueue(e: ArenaTeamEntry) {
   if (queue.get(e.id) !== e) { await removeRemote(e.id).catch((err) => { console.error("Không xóa được hàng chờ đấu trường khỏi presence, sẽ thử lại", err); pendingRemove.add(e.id); startTimer(); }); return; }
   startTimer();
 }
+/**
+ * Đối soát bên của tiến trình này: có ở `queue` mà không có ở hàng chung quá RECONCILE_MS (bị giành nhưng tin found / requeue / abort mất,
+ * hoặc tiến trình ghép chết giữa chừng) thì ghi lại vào hàng chung (giữ `since`); không ghi được thì hủy để người chơi không chờ mãi.
+ */
+const RECONCILE_MS = 10_000;
+const missingSince = new Map<string, number>();
+function reconcile(raw: RemoteEntry[], now: number) {
+  const inRemote = new Set(raw.map((r) => r.id));
+  for (const id of missingSince.keys()) if (!queue.has(id) || inRemote.has(id)) missingSince.delete(id);
+  for (const [id, e] of queue) {
+    if (inRemote.has(id) || pendingRemove.has(id)) continue;
+    const t = missingSince.get(id) ?? now; missingSince.set(id, t);
+    if (now - t < RECONCILE_MS) continue;
+    missingSince.delete(id);
+    addRemote(e).catch((err) => { console.error("Không đối soát được hàng chờ đấu trường", err); if (queue.get(id) === e) { queue.delete(id); e.abort(); } });
+  }
+}
 /** Bên đã hủy cục bộ nhưng chưa xóa được khỏi hàng chung (không lấy được khóa): thử lại mỗi nhịp, timer chạy tới khi xóa hết. */
 const pendingRemove = new Set<string>();
 function startTimer() {
@@ -198,7 +215,9 @@ async function pass() {
   busy = true;
   try {
     const now = Date.now();
-    const remote = await liveRemote(await presenceBackend.getJson<RemoteEntry[]>(QUEUE_KEY) ?? []);
+    const raw = await presenceBackend.getJson<RemoteEntry[]>(QUEUE_KEY) ?? [];
+    reconcile(raw, now);
+    const remote = await liveRemote(raw);
     const entries = new Map(remote.map((r) => [r.id, queue.get(r.id) ?? shadow(r)] as const));
     const list = [...entries.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since)
       .map((e) => ({ id: e.id, size: e.members.length, elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id) }));
