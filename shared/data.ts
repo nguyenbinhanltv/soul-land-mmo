@@ -3441,6 +3441,50 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
   return null;
 }
 
+// ---------- Tự bán từ xa (#216, mục 5.7 "Tự bán"; chủ repo chốt phương án A 2026-10-22) ----------
+/**
+ * Bật tự bán thì khi túi còn dưới AUTO_SELL_FREE ô trống (hoặc tự săn thấy túi đầy), server bán từ xa mọi món hợp bộ lọc với đúng giá
+ * thương nhân trong thành (sellPrice, 100%). Giữ AUTO_SELL_BUYBACK món tự bán gần nhất (lưu DB) để mua lại đúng giá ở thương nhân.
+ */
+export const AUTO_SELL_FREE = 5;
+export const AUTO_SELL_BUYBACK = 20;
+/** Hồn hoàn, hồn cốt từ bấy nhiêu năm (vạn năm) trở lên không bao giờ tự bán, trừ khi người chơi bật `high`. */
+export const AUTO_SELL_GUARD = 10000;
+/** Bộ lọc tự bán của tài khoản (`accounts.auto_sell`; chỉnh ở bảng Túi đồ). Món khoá, món đang gắn không bao giờ bán. */
+export interface SellSettings {
+  on: boolean;     // bật tự bán (mặc định tắt)
+  ring: number;    // bán hồn hoàn dưới bấy nhiêu năm (0 = không bán hồn hoàn)
+  high: boolean;   // cho bán cả hồn hoàn / hồn cốt từ AUTO_SELL_GUARD năm trở lên
+  bone: number;    // bán hồn cốt cường hóa dưới +bone (0 = không bán hồn cốt)
+  core: number;    // bán hồn hạch chưa nâng cấp dưới bấy nhiêu sao (1 = không bán hồn hạch)
+  shard: boolean;  // bán mảnh võ hồn (vật phẩm thường thương nhân mua; đan, phù chú, lệnh bài, rương, tiên thảo thì thương nhân không mua)
+}
+/** Mặc định: tắt; khi bật chỉ bán đồ giá trị thấp (hồn hoàn dưới nghìn năm, hồn hạch 1–2 sao), giữ hồn cốt và mảnh võ hồn. */
+export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false };
+/** Bộ lọc từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định. */
+export function parseSell(raw: unknown): SellSettings {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = SELL_DEFAULTS;
+  const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v))) : def);
+  const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
+  return { on: bool(o.on, D.on), ring: num(o.ring, 0, MAX_YEARS + 1, D.ring), high: bool(o.high, D.high),
+    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard) };
+}
+/**
+ * Món `it` có bị tự bán theo bộ lọc `s` không (hàm thuần, client dùng để xem trước): không khoá, không gắn, thương nhân mua (sellPrice),
+ * vạn năm trở lên chỉ khi bật `high`. Server còn bỏ qua hồn hoàn đang hấp thụ.
+ */
+export function autoSellable(it: { code: string; years: number | null; stars: number | null; enhance: number; locked?: boolean; vohon?: number | null },
+  s: SellSettings): boolean {
+  if (it.locked || (it.vohon ?? null) !== null || sellPrice(it) === null) return false;
+  const kind = itemDef(it.code)?.kind, y = it.years ?? 0;
+  if ((kind === "hon_hoan" || kind === "hon_cot") && y >= AUTO_SELL_GUARD && !s.high) return false;
+  if (kind === "hon_hoan") return y < s.ring;
+  if (kind === "hon_cot") return it.enhance < s.bone;
+  if (kind === "hon_hach") return it.enhance === 0 && (it.stars ?? 1) < s.core;
+  if (kind === "manh_vo_hon") return s.shard;
+  return false;
+}
+
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng đã chốt) ----------
 /**
  * Loại mục tiêu, server đếm theo sự kiện thật (MapRoom.questEvent): `talk` nói chuyện với NPC `npc`; `kill` hạ hồn thú (tùy chọn
@@ -3853,8 +3897,9 @@ export const autoLeft = (used: number, bonus = 0) => Math.max(0, AUTO_DAILY_SECS
 /**
  * Tổng kết một lượt tự săn (Auto 2), server gửi trong tin `auto` khi tắt / dừng: số giây đã treo, hồn thú đã hạ, kinh nghiệm (tổng
  * mọi võ hồn trong đội nhận), Hồn Tệ, đồ đã nhặt hoặc vào thẳng túi (tên món, số lượng; tối đa AUTO_SUM_LOOT dòng, nhiều nhất trước).
+ * `sold`: số món đã tự bán trong lượt (#216) và Hồn Tệ thu được (đã nằm trong `coins`); không có thì lượt đó không tự bán gì.
  */
-export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; }
+export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; sold?: [number, number]; }
 export const AUTO_SUM_LOOT = 12;
 /** "11 giờ 30 phút" / "45 phút" (làm tròn xuống theo phút): giờ treo còn lại để hiển thị. */
 export const autoTimeText = (secs: number) => {
