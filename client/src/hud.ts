@@ -19,6 +19,7 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
+import { setTip, type TipLine } from "./tooltip.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -1810,7 +1811,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = items[k], b = document.createElement("button");
-    b.className = "bslot" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
+    b.className = "bslot ui-cell" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
     if (it) {
       const def = itemDef(it.code);
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
@@ -1820,7 +1821,15 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
       b.setAttribute("aria-label", (hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
         + (it.lock ? ", đang khoá" : ""));
-      b.title = itemName(it) + (it.lock ? " (khoá)" : "");
+      // Chú thích dùng chung (UI-0): tiêu đề theo màu niên hạn (glow trên tấm mực), dòng phụ nhóm vật phẩm / số năm, chỉ số hồn cốt / hồn hạch.
+      const tier = hasYears(it) ? tierOfYears(it.years) : -1;
+      if (tier >= 0) b.dataset.tier = String(tier);
+      const lines: TipLine[] = [];
+      if (bone) lines.push(boneFullText(it as BagItem & { years: number })); else if (core) lines.push(...coreLines(it));
+      if (it.qty > 1) lines.push({ k: "Số lượng", v: `×${it.qty}`, tone: "gem" });
+      setTip(b, { title: itemName(it) + (it.lock ? " (khoá)" : ""), color: tier >= 0 ? TIERS[tier].glow : undefined, border: itemColor(it),
+        sub: tier >= 0 ? `${bone ? "Hồn cốt" : "Hồn hoàn"} · ${TIERS[tier].color} (${TIERS[tier].age})` : def ? ITEM_KINDS[def.kind].name : undefined,
+        lines, foot: it.lock ? "Đang khoá: không bán / bỏ được" : undefined });
       b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
     grid.appendChild(b);
