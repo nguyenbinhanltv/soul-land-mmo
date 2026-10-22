@@ -47,6 +47,7 @@ import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
+import { arenaLive, arenaWatchMax, arenaWatchUsed, arenaWatchingAny, setTestWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
@@ -147,7 +148,7 @@ export interface PData {
   // Khảo hạch hằng ngày của Phất Lan Đức (DAILY): DAILY.count bài của ngày `dailyDay` (vnDay), tin riêng "daily"; lưu cùng túi đồ như `quest`.
   daily: QuestProgress[]; dailyDay: string;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
-  arenaBusy: boolean; arenaTopAt: number; resonanceTopAt: number;
+  arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; resonanceTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
   // Võ Hồn Chân Thân (vòng 7, từ 8.1a): võ hồn đang biến hình (`row`), giây còn lại, chỉ số đang cộng (chanThanStats, đọc trong buffV
   // và recalc); `avaCd`: hồi chiêu Chân Thân còn lại của từng võ hồn (rowId -> giây). Không lưu DB.
@@ -287,6 +288,11 @@ const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v 
 const strIn = (v: unknown) => (typeof v === "string" ? v : "");
 /** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
+/**
+ * Số lần lưu bị lỗi từ lúc bật server: lần ghi trong chuỗi lưu (chain), và lỗi trong onLeave / onDispose (có thể ném trước khi tới lần
+ * ghi cuối). index.ts so trước / sau khi tắt để biết lần lưu cuối có trót lọt (#270).
+ */
+export const saveStats = { failed: 0 };
 
 // ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
 /**
@@ -463,7 +469,7 @@ function seatAdd(accountId: number, key: string, until: number) {
   if (!m) { m = new Map(); seatPending.set(accountId, m); }
   m.set(key, until);
 }
-function seatUsed(accountId: number, sessionId: string) {
+export function seatUsed(accountId: number, sessionId: string) {
   const m = seatPending.get(accountId);
   if (m?.delete(sessionId) && !m.size) seatPending.delete(accountId);
 }
@@ -610,7 +616,8 @@ export class MapRoom extends Room<MapState> {
   chatSub = (r: ChatRoute) => {
     if (!r?.msg) return;
     if (!Array.isArray(r.to)) return this.broadcast("chat", r.msg);
-    for (const [id, d] of this.pdata) if (r.to.includes(d.accountId)) this.clients.getById(id)?.send("chat", r.msg);
+    // Theo tài khoản của phiên (client.auth): cả người xem trận (#278, không có pdata) vẫn nhận tin riêng / tổ đội.
+    for (const c of this.clients) { const acc = (c.auth as { accountId?: number } | undefined)?.accountId; if (acc !== undefined && r.to.includes(acc)) c.send("chat", r.msg); }
   };
   partyT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
@@ -631,6 +638,12 @@ export class MapRoom extends Room<MapState> {
       if ((await this.presence.hget(HOLD, key)) !== old) return;
     }
     throw new ServerError(503, "Phiên trước của tài khoản chưa lưu xong, hãy thử lại sau giây lát.");
+  }
+
+  /** Phiên `sessionId` giữ tài khoản (presence `accountHold`) và đá phiên khác của tài khoản ở mọi phòng (mục 6). */
+  holdAccount(accountId: number, sessionId: string) {
+    this.presence.hset(HOLD, String(accountId), sessionId).catch((e) => console.error(`Không ghi được phiên giữ tài khoản #${accountId}`, e));
+    this.presence.publish("kick", { accountId, sessionId });
   }
 
   /** Nhả tài khoản sau lần ghi cuối của phiên `sessionId` (chỉ khi phiên đó vẫn đang giữ). */
@@ -740,6 +753,7 @@ export class MapRoom extends Room<MapState> {
    */
   onUncaughtException(err: RoomException, method: string) {
     if (err.cause instanceof ServerError) return;
+    if (method === "onLeave" || method === "onDispose") saveStats.failed++;
     const where = err instanceof OnMessageException ? `${method} "${err.type}"` : method, now = Date.now();
     // Cùng chỗ, cùng dòng mã ném lỗi (khung đầu của stack; nội dung lỗi có thể chứa giá trị thay đổi theo từng lần).
     const frame = (err.cause instanceof Error ? err.cause : err).stack?.split("\n")[1]?.trim() ?? err.message;
@@ -863,7 +877,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
     this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
-    this.onMessage("arena", (c, m: { op: unknown }) => this.arenaAction(c.sessionId, m?.op)); // Đại Đấu Hồn Trường (7.2)
+    this.onMessage("arena", (c, m: { op: unknown; roomId?: unknown }) => this.arenaAction(c.sessionId, m?.op, m?.roomId)); // Đại Đấu Hồn Trường (7.2)
     this.onMessage("resonance", (c, m: { op?: unknown; page?: unknown; pageSize?: unknown }) => {
       if (m?.op === "top") return this.resonanceTop(c.sessionId, m.page, m.pageSize);
       this.sendRes(c.sessionId, [], true);
@@ -876,9 +890,7 @@ export class MapRoom extends Room<MapState> {
     // Một tài khoản chỉ được vào một lần: giữ tài khoản cho phiên này, đá phiên cũ ở mọi phòng (kể cả phòng này). onAuth đã
     // chờ phiên cũ lưu xong; lần đá này chặn hai lần vào gần như cùng lúc.
     if (this.state.channel) leftRoom.delete(auth.accountId); // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
-    this.presence.hset(HOLD, String(auth.accountId), client.sessionId)
-      .catch((e) => console.error(`Không ghi được phiên giữ tài khoản #${auth.accountId}`, e));
-    this.presence.publish("kick", { accountId: auth.accountId, sessionId: client.sessionId });
+    this.holdAccount(auth.accountId, client.sessionId);
     const p = new PlayerState();
     p.name = ch.name; this.showVohon(p, ch);
     p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol; p.skin = looks.skin;
@@ -897,7 +909,7 @@ export class MapRoom extends Room<MapState> {
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests),
-      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, resonanceTopAt: 0, arenaGone: false,
+      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
@@ -1036,7 +1048,7 @@ export class MapRoom extends Room<MapState> {
    * không làm gãy chuỗi; promise trả về luôn resolve.
    */
   chain(d: PData, fn: () => unknown) {
-    d.saving = d.saving.then(fn).then(() => {}, (e) => console.error(`Lưu dữ liệu tài khoản #${d.accountId} thất bại`, e));
+    d.saving = d.saving.then(fn).then(() => {}, (e) => { saveStats.failed++; console.error(`Lưu dữ liệu tài khoản #${d.accountId} thất bại`, e); });
     return d.saving;
   }
 
@@ -2444,16 +2456,18 @@ export class MapRoom extends Room<MapState> {
     return members.length ? [...members] : [accountId];
   }
 
+  /** Lý do một hồn sư chưa rời bản đồ sang sân được (xếp hàng, xem trận); "" = được. */
+  arenaBusyOne(q: PlayerState, x: PData): string {
+    if (x.travelling) return "Đang chuyển bản đồ.";
+    if (x.travelCast) return "Đang đi qua cổng.";
+    if (q.dead) return "Đã gục ngã.";
+    if (x.absorbing) return "Đang hấp thụ hồn hoàn.";
+    if (x.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
+    return "";
+  }
   arenaBusy(id: string): string {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return "Không có hồn sư.";
-    const one = (q: PlayerState, x: PData) => {
-      if (x.travelling) return "Đang chuyển bản đồ.";
-      if (x.travelCast) return "Đang đi qua cổng.";
-      if (q.dead) return "Đã gục ngã.";
-      if (x.absorbing) return "Đang hấp thụ hồn hoàn.";
-      if (x.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
-      return "";
-    };
+    const one = (q: PlayerState, x: PData) => this.arenaBusyOne(q, x);
     const own = one(p, d); if (own) return own;
     const pid = party.partyIdOf(d.accountId); if (!pid) return "";
     const members = party.partyMembers(d.accountId);
@@ -2504,12 +2518,14 @@ export class MapRoom extends Room<MapState> {
    * giây). Elo đọc từ DB lúc xếp hàng, hai lần đọc của một tài khoản cách nhau ít nhất ARENA.queueCd giây (arenaQueueSlots; cả bên ghi
    * mốc nguyên tử, xếp rồi hủy
    * liên tục không tạo tải DB đều đặn); `cancel` trong lúc đang đọc thì đọc xong không xếp hàng (#225). Ghép trận ở arenaQueue.ts, trận
-   * đấu ở ArenaRoom.
+   * đấu ở ArenaRoom. Xem trực tiếp (#278): `live` danh sách trận đang đếm ngược / giao đấu, `watch {roomId}` vào xem (arenaWatch).
    */
-  arenaAction(id: string, raw: unknown) {
+  arenaAction(id: string, raw: unknown, roomId?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const op = strIn(raw), warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendArenaQueue(id); };
     if (op === "top") return this.arenaTop(id);
+    if (op === "live") return this.arenaLiveList(id);
+    if (op === "watch") return this.arenaWatch(id, strIn(roomId));
     if (op === "cancel") {
       const accounts = this.arenaAccounts(d.accountId), removed = arenaDequeue(d.accountId), cancelled = accounts.some((acc) => arenaReadCancel(acc));
       if (removed || cancelled) {
@@ -2564,6 +2580,41 @@ export class MapRoom extends Room<MapState> {
       this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
     }
     return true;
+  }
+
+  /**
+   * Tin riêng "arena" k = "live" (#278): tối đa ARENA.liveN trận đang đếm ngược / giao đấu (giao đấu trước, rồi ít thời gian còn lại
+   * hơn): mã phòng, 1v1 / 2v2, tên và Elo hai bên, pha, giây còn lại, số người xem / tối đa. Xin lại cách nhau ARENA.topCd giây.
+   */
+  arenaLiveList(id: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    const now = Date.now(); if (now - d.arenaLiveAt < ARENA.topCd * 1000) return;
+    d.arenaLiveAt = now;
+    const list = [...arenaLive.values()].filter((l) => l.phase() === "ready" || l.phase() === "fight")
+      .sort((a, b) => (a.phase() === "fight" ? 0 : 1) - (b.phase() === "fight" ? 0 : 1) || a.secs() - b.secs()).slice(0, ARENA.liveN)
+      .map((l) => ({ roomId: l.roomId, mode: l.mode, sides: l.sides, phase: l.phase(), secs: Math.ceil(l.secs()), watchers: l.watching.size, max: arenaWatchMax() }));
+    this.clients.getById(id)?.send("arena", { k: "live", list });
+  }
+
+  /**
+   * Vào xem trực tiếp trận `roomId` (#278, mục 5.9): đứng gần Đại Đấu Hồn Trường, cùng điều kiện như xếp hàng (arenaBusyOne), không đang
+   * xếp hàng / xem trận khác; trận còn đếm ngược / giao đấu và còn chỗ (arenaWatchMax, gồm chỗ đang giữ). Giữ chỗ cho tài khoản
+   * ARENA.joinSecs giây rồi đi đúng đường vào sân như người đấu (freeze, tin `arena {k: "watch"}`, không rời kịp thì ngắt kết nối).
+   */
+  arenaWatch(id: string, roomId: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id), c = this.clients.getById(id); if (!p || !d || !c) return;
+    const no = (text: string) => this.log(id, `${text} Chưa vào xem được.`, "#ffb35c");
+    if (!this.npcNear(id, { role: "arena" })) return no("Hãy lại gần Đại Đấu Hồn Trường.");
+    const why = this.arenaBusyOne(p, d); if (why) return no(why);
+    if (arenaQueued(d.accountId) || d.arenaBusy) return no("Đang xếp hàng: hủy hàng trước khi xem trận.");
+    if (arenaWatchingAny(d.accountId)) return no("Đang xem một trận khác.");
+    const l = arenaLive.get(roomId);
+    if (!l || (l.phase() !== "ready" && l.phase() !== "fight")) return no("Trận đấu không còn diễn ra.");
+    if (arenaWatchUsed(l) >= arenaWatchMax()) return no(`Trận đã đủ ${arenaWatchMax()} người xem.`);
+    l.holds.set(d.accountId, Date.now() + ARENA.joinSecs * 1000);
+    this.freeze(id); this.portalHint(id, p, d); d.arenaGone = true;
+    c.send("arena", { k: "watch", roomId, sides: l.sides });
+    this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
   }
 
   /** Hoàn tác freeze nếu bên kia mất phiên ngay sau khi matchMaker mở phòng nhưng trước khi cả hai nhận mã. */
@@ -2886,11 +2937,22 @@ export class MapRoom extends Room<MapState> {
    * cho chính mình; `auto {kn, wn}` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ, trả thêm trạng thái trận boss
    * của tự săn; `perf {reset}` thời gian tick / bản vá (server PERF_LOG=1).
    * Từ #164: `throw` ném lỗi ngay trong handler (không trả lời): thử lớp chặn chung onUncaughtException giữ server sống.
+   * Từ #270: `crash {reject}` trả lời rồi ném lỗi NGOÀI phòng (hẹn giờ thường của Node, không qua clock của phòng; `reject`: promise bị từ
+   * chối không ai bắt): thử process.on ở index.ts lưu người chơi đang online rồi thoát mã 1. Chỉ bài `bot:local --fatal` gọi.
    */
   testHook(c: Client, m: unknown) {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     if (process.env.GAME_TEST !== "1") return c.send("test", { op, enabled: false });
     if (op === "throw") throw new Error("hook test: lỗi cố ý (#164)");
+    if (op === "crash") {
+      const reject = !!o.reject;
+      c.send("test", { op, reject });
+      setTimeout(() => {
+        if (reject) void Promise.reject(new Error("hook test: promise bị từ chối không ai bắt (#270)"));
+        else throw new Error("hook test: lỗi cố ý ngoài phòng (#270)");
+      }, 100);
+      return;
+    }
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
     const int = (x: unknown, lo: number, hi: number, def: number) => (Number.isInteger(x) ? Math.max(lo, Math.min(hi, x as number)) : def);
     if ((op === "down" || op === "hurt") && d.buffs.delete("inv")) this.syncBuffs(p, d);
@@ -3308,6 +3370,7 @@ export class MapRoom extends Room<MapState> {
         out = { warp: to };
       }
     }
+    else if (op === "awatch") { const n = int(o.max, 0, ARENA.watchMax, -1); setTestWatchMax(n < 0 ? null : n); out = { max: arenaWatchMax() }; } // #278: số người xem tối đa
     else if (op === "aelo") {
       // 7.2: ghi Elo / thành tích Đại Đấu Hồn Trường của người gọi (qua chuỗi lưu, không thưởng) để thử ghép theo Elo và bảng xếp hạng.
       const rec = { elo: int(o.elo, 0, 1e6, ARENA.startElo), wins: int(o.wins, 0, 1e6, 0), losses: int(o.losses, 0, 1e6, 0), draws: int(o.draws, 0, 1e6, 0) };
@@ -4548,8 +4611,8 @@ export class MapRoom extends Room<MapState> {
    * Kỹ năng chủ động của hồn cốt (mục 5.5, bước 4.3) ở nút `i` (BONE_ACTIVE_SLOTS: đầu, tay trái, tay phải) của võ hồn ĐANG RA TRẬN.
    * Kỹ năng theo loài hồn thú gốc (BONE_SKILLS), mạnh theo số năm hồn cốt (skillPower / buffPower như hồn kỹ), chạy bằng runSkill.
    * Mỗi nút một hồi chiêu riêng (`PlayerState.bcds`, thuộc hồn sư: đổi võ hồn không làm mới), tốn hồn lực. Cùng luật chặn với hồn kỹ:
-   * gục, hấp thụ, đang chuyển bản đồ / niệm cổng, vùng an toàn, Choáng / Câm lặng; kỹ năng đánh một mục tiêu mà không có hồn thú
-   * trong tầm thì không tung (không tốn hồn lực, không hồi chiêu).
+   * gục, hấp thụ, đang chuyển bản đồ, vùng an toàn, Choáng / Câm lặng; kỹ năng đánh một mục tiêu mà không có hồn thú trong tầm thì
+   * không tung (không tốn hồn lực, không hồi chiêu). Đang niệm đi cổng / truyền tống vẫn dùng được, không hủy niệm (mục 5.3, #270).
    */
   boneSkill(c: Client, i: number) {
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
@@ -4558,7 +4621,6 @@ export class MapRoom extends Room<MapState> {
     const bone = this.bonesOn(d, d.ch.rowId).find((b) => b.slot === slot.id);
     const k = bone ? boneSkillOf(bone.beast, bone.slot) : null;
     if (!bone || !k?.active) return this.log(id, `Ô ${slot.name} của ${VOHON[p.vh].name} chưa gắn hồn cốt có kỹ năng chủ động.`, "#ffb35c");
-    if (d.travelCast) return this.log(id, "Đang đi qua cổng: không dùng được kỹ năng hồn cốt.", "#ffb35c");
     if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
     if (p.bcds[i] > 0) return;
     if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${this.ccName(d)}: không dùng được kỹ năng hồn cốt.`, "#ffb35c");
