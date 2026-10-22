@@ -117,10 +117,11 @@ async function common(label: string, s: Store, u = "") {
     assert.deepEqual(await s.getLocation(id), cur === nv ? { mapId: nv, x: 30, y: 40 } : { mapId: nv, x: null, y: null });
     assert.equal(await s.saveLocation(id, nv, 30, 40), true);                   // ghi lại theo file đang dùng
     assert.deepEqual(await s.getLocation(id), { mapId: nv, x: 30, y: 40 });
-    await s.saveTravel(id, [ch], nv, DEFAULT_MAP, 10, 10);
-    assert.equal(mapFile(DEFAULT_MAP), DEFAULT_MAP);                            // Thánh Hồn Thôn chưa có bản ×8: NULL vẫn giữ vị trí
-    assert.equal(await s.saveLocation(id, DEFAULT_MAP, 12, 14, null), true);
-    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 12, y: 14 });
+    const v1 = "loi_tinh_dau";                                                 // Lõi Tinh Đấu giữ bản cũ (11.5 chỉ làm đẹp)
+    await s.saveTravel(id, [ch], nv, v1, 10, 10);
+    assert.equal(mapFile(v1), v1);                                              // bản đồ chưa có bản ×8: NULL vẫn giữ vị trí
+    assert.equal(await s.saveLocation(id, v1, 12, 14, null), true);
+    assert.deepEqual(await s.getLocation(id), { mapId: v1, x: 12, y: 14 });
   });
   await test(`${label}: túi đồ, Hồn Tệ, vật phẩm khởi đầu một lần và túi đồ trong transaction đi cổng (3.1)`, async () => {
     const id = ok(await s.login(cleanName(`Túi${u}`), PW[5]));
