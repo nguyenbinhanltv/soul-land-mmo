@@ -133,6 +133,7 @@ import { AUTO_BOSS } from "../../shared/data.ts"; // tự săn đánh tinh anh, 
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
 import { WORLD_CHAT } from "../../shared/data.ts"; // kênh thế giới (#188)
 import { FUSION, FUSIONS, fusionIndex } from "../../shared/data.ts"; // Võ Hồn Dung Hợp Kỹ (#192)
+import { ARENA_HE_DMG, CORE_FX_RULE } from "../../shared/data.ts"; // cân bằng PvP trong sân (#277)
 import { ATK_SPREAD, xpBlocked } from "../../shared/data.ts"; // #238: dải ngẫu nhiên đòn đánh thường (cận trên đòn đánh bọc trứng), bình cảnh
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
@@ -7999,6 +8000,73 @@ async function arenaTest(){
     for(const w of [WA,WB]){ await waitFor(()=>w.leftCode===4005,3000); await back(w); }
     await test(V,"awatch",{});
     for(const b of [WA,WB,V,V2]) await b.room.leave();
+  }
+  // ---- #277 Cân bằng PvP: hệ số sát thương theo hệ, hồi / khiên, khống chế, hiệu ứng bộ hồn hạch lên đối thủ (mục 5.9) ----
+  // Đo bằng hook pvp (đòn / trạng thái thử lên đối thủ, đặt hiệu ứng bộ ngay trước khi làm) để không phụ thuộc chí mạng ngẫu nhiên.
+  {
+    console.log("[#277] Cân bằng PvP trong sân: ARENA_HE_DMG, ARENA.healMult, ARENA.ccMult, bộ hồn hạch lên đối thủ");
+    const PA=await bot("Cân bằng A","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:1,outfitCol:2});
+    const PB=await bot("Cân bằng B","hoa_anh",{sex:1,hair:2,hairCol:2,outfitCol:1});
+    for(const b of [PA,PB]) await warpTown(b);
+    // Đội PA đủ bốn hệ: Bích Lân Xà Hoàng (Khống chế), Lam Điện Bá Vương Long (Cường công), Hỏa Long (Mẫn công), Xúc Xích (Phụ trợ).
+    const HE_VH={khong_che:"bich_lan_xa_hoang",cuong_cong:"lam_dien_ba_vuong_long",man_cong:"hoa_long",phu_tro:"xuc_xich"};
+    for(const vo of Object.values(HE_VH)) if(!PA.owned.list.some(v=>v.vohon===vo)) await test(PA,"grant",{vohon:vo});
+    const rowHe=Object.fromEntries(HE_IDS.map(he=>[he,PA.owned.list.find(v=>v.vohon===HE_VH[he])?.rowId]));
+    for(const v of PA.owned.list) await test(PA,"set",{rowId:v.rowId,level:70,xp:0});
+    for(const v of PB.owned.list) await test(PB,"set",{rowId:v.rowId,level:70,xp:0});
+    await sendTeam(PA,HE_IDS.map(he=>rowHe[he])); await test(PA,"rest"); await test(PB,"rest");
+    ok(HE_IDS.every(he=>PA.owned.team.includes(rowHe[he])),`PA: đội ${HE_IDS.map(he=>`${HE[he].name} ${VOHON[vohonIndex(HE_VH[he])].name}`).join(", ")}`);
+    const healTown=(await test(PA,"pvp",{k:"heal"}))?.mult;
+    await at(PA,-12); await at(PB,12); const nA=PA.arena.length, nB=PB.arena.length;
+    await aop(PA,"queue"); await aop(PB,"queue");
+    const fA=()=>PA.arena.slice(nA).filter(m=>m.k==="found").at(-1), fB=()=>PB.arena.slice(nB).filter(m=>m.k==="found").at(-1);
+    ok(await waitFor(()=>fA()&&fB()&&fA().roomId===fB().roomId,3000),"#277: ghép PA với PB");
+    for(const b of [PA,PB]){ const id=(b===PA?fA():fB()).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
+    await waitFor(()=>PA.room.state.phase==="ready",3000); await test(PA,"afast",{s:0}); await waitFor(()=>PA.room.state.phase==="fight",2000);
+    // Sát thương theo hệ võ hồn ra trận của người đánh: × ARENA_HE_DMG rồi × ARENA.dmgMult, phía đối thủ × thủ theo hệ của nó.
+    const D=400, want=(he,foeVh,m=1)=>Math.round(D*ARENA_HE_DMG[he]*ARENA.dmgMult*m*VOHON[foeVh].def);
+    const hit=(extra={})=>test(PA,"pvp",{k:"hit",dmg:D,crit:-1,full:true,fx:{},...extra});
+    const rows=[];
+    for(const he of HE_IDS){
+      if(PA.owned.active!==rowHe[he]){ await waitFor(()=>meOf(PA).swCd===0,4000); PA.room.send("switch",{slot:PA.owned.team.indexOf(rowHe[he])}); await waitFor(()=>PA.owned.active===rowHe[he],1500); }
+      const r=await hit(); rows.push({he,ok:PA.owned.active===rowHe[he]&&r?.hit&&Math.abs(r.dealt-want(he,r.foeVh))<=1,dealt:r?.dealt,want:r?want(he,r.foeVh):"?"});
+    }
+    ok(rows.every(x=>x.ok),`sát thương lên đối thủ theo hệ người đánh: ${rows.map(x=>`${HE[x.he].name} ×${ARENA_HE_DMG[x.he]} ${x.dealt}/${x.want}`).join(", ")}`);
+    const he=HE_IDS.find(h=>rowHe[h]===PA.owned.active);
+    // Hồi sinh lực / khiên trong sân × ARENA.healMult (cùng đội, cùng võ hồn ra trận như ở thành).
+    const healArena=(await test(PA,"pvp",{k:"heal"}))?.mult;
+    ok(typeof healTown==="number"&&Math.abs(healArena-healTown*ARENA.healMult)<1e-9,`hồi máu / khiên: ở thành ×${healTown}, trong sân ×${healArena} (= × ARENA.healMult ${ARENA.healMult})`);
+    // Khống chế từ đối thủ × ARENA.ccMult (bộ Lam Ngân 2 món không kéo dài khống chế lên hồn sư); Làm chậm không đổi.
+    const st=(s,extra={})=>test(PA,"pvp",{k:"st",s,secs:10,fx:{},...extra});
+    const cc=[];
+    for(const s of ["stun","root","silence"]) cc.push([s,(await st(s,{fx:{cc:CORE_SET_FX.lam_ngan.two.cc}}))?.t]);
+    const slow=(await st("slow"))?.t;
+    ok(cc.every(([,t])=>Math.abs(t-10*ARENA.ccMult)<1e-6)&&Math.abs(slow-10)<1e-6,
+      `khống chế từ đối thủ 10 giây → ${cc.map(([s,t])=>`${STATUS[s].name} ${t?.toFixed(2)}`).join(", ")} (× ARENA.ccMult, kể cả mang Lam Ngân 2 món); Làm chậm ${slow?.toFixed(2)}`);
+    // Bộ Xà Hoàng 4 món: đối thủ Trúng độc đủ tầng do người mang bộ gây nhận thêm sát thương.
+    const pv=CORE_SET_FX.xa_hoang.four.poisonVuln;
+    await st("poison",{n:CORE_FX_RULE.poisonStacks});
+    const p0=await hit(), p1=await hit({fx:{poisonVuln:pv}});
+    ok(Math.abs(p0?.dealt-want(he,p0?.foeVh))<=1&&Math.abs(p1?.dealt-want(he,p1?.foeVh,1+pv))<=1,`Xà Hoàng 4 món: đối thủ ${CORE_FX_RULE.poisonStacks} tầng độc nhận ${p0?.dealt} → ${p1?.dealt} (×${1+pv})`);
+    // Bộ Thất Sát 4 món: tỉ lệ chí mạng thêm chỉ khi đối thủ Phá giáp (hook bù −1 tỉ lệ: không Phá giáp thì không chí mạng).
+    const live=(await test(PA,"stats"))?.live, ac=2;
+    const a0=await hit({fx:{armorCrit:ac}});
+    await st("armor"); const a1=await hit(), a2=await hit({fx:{armorCrit:ac}});
+    ok(Math.abs(a0?.dealt-want(he,a0?.foeVh))<=1&&a1?.dealt>0&&Math.abs(a2?.dealt-Math.round(a1.dealt*live?.critMult))<=2,
+      `Thất Sát 4 món: không Phá giáp thì không chí mạng (${a0?.dealt}); Phá giáp thì chí mạng ${a1?.dealt} → ${a2?.dealt} (×${live?.critMult})`);
+    // Bộ Phượng Hoàng (sau các đòn đo sát thương: Thiêu đốt cháy dần sinh lực đối thủ): 2 món Thiêu đốt mạnh hơn (theo hệ người gây, tính lúc gây), 4 món thêm một tầng tối đa.
+    const b0=await st("burn"), b1=await st("burn",{fx:{burn:CORE_SET_FX.phuong_hoang.two.burn}});
+    ok(b0&&b1&&Math.abs(b1.v/b0.v-(1+CORE_SET_FX.phuong_hoang.two.burn))<1e-9&&b1.src,`Phượng Hoàng 2 món: Thiêu đốt lên đối thủ ${b0?.v.toFixed(2)} → ${b1?.v.toFixed(2)} mỗi tầng (×${1+CORE_SET_FX.phuong_hoang.two.burn})`);
+    const n0=(await st("burn",{n:9}))?.n, n1=(await st("burn",{n:9,fx:{burnMax:CORE_SET_FX.phuong_hoang.four.burnMax}}))?.n;
+    ok(n0===STATUS.burn.max&&n1===STATUS.burn.max+CORE_SET_FX.phuong_hoang.four.burnMax,`Phượng Hoàng 4 món: tầng Thiêu đốt tối đa trên đối thủ ${n0} → ${n1}`);
+    // Khống chế không do đối thủ gây (như hồn thú ngoài rừng; vùng an toàn của thành không nhận trạng thái) giữ nguyên thời gian.
+    const pve=(await test(PA,"pvp",{k:"st",self:true,s:"stun",secs:10}))?.t;
+    ok(Math.abs(pve-10)<1e-6,`Choáng không do đối thủ gây: 10 giây giữ ${pve?.toFixed(2)}`);
+    await test(PA,"afast",{s:0}); await waitFor(()=>PA.room.state.phase==="end",3000);
+    await kickBack(PA); await kickBack(PB);
+    const healBack=(await test(PA,"pvp",{k:"heal"}))?.mult;
+    ok(healBack===healTown,`về thành: hệ số hồi máu / khiên trở lại ×${healBack}`);
+    for(const b of [PA,PB]) await b.room.leave();
   }
 }
 /**

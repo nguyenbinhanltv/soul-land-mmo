@@ -101,6 +101,9 @@ export class ArenaRoom extends MapRoom {
     }, validate);
   }
 
+  /** Hồi sinh lực và khiên trong sân (#277): × ARENA.healMult sau bộ Lưu Ly 2 món / ràng buộc Lam Ngân Hoàng. */
+  healMult(d: PData) { return super.healMult(d) * ARENA.healMult; }
+
   /** Trước khi giữ chỗ (#235): token hợp lệ, chưa giữ quá số chỗ; không đối chiếu bản đồ đang đứng (seatAllowed kiểm thành viên). */
   static async onAuth(_token: string, options: { token?: unknown }) { return seatAccount(options?.token, null); }
 

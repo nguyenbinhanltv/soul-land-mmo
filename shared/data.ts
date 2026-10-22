@@ -4002,6 +4002,11 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   trong cửa sổ (arenaPairs).
  * - Xem trực tiếp (#278, mục 5.9): mỗi trận tối đa `watchMax` người xem (sân 4 người đấu + 6 người xem = 10 kết nối; sân nhỏ không lọc
  *   đồng bộ nên tải thấp); danh sách xem trận có tối đa `liveN` trận đang đếm ngược / giao đấu, xin lại theo nhịp `topCd`.
+ * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
+ *   hồi máu của bộ Lưu Ly / ràng buộc) × ngần ấy: sát thương lên hồn sư đã × `dmgMult` nhưng hồi tính theo % sinh lực tối đa nên
+ *   mạnh gấp ~3 lần so với ngoài rừng, không giảm thì Phụ trợ gần như không chết. Hút máu và hồi tự nhiên không đổi.
+ *   `ccMult`: thời gian khống chế (isCcStatus) đối thủ gây lên hồn sư × ngần ấy, sau kháng của bị động hồn cốt: đối thủ trong sân
+ *   như mục tiêu bậc cao (ngoài rừng là CC_TIER_MULT), tránh khóa chết.
  */
 export const ARENA = {
   startElo: 1000, k: 32,
@@ -4012,7 +4017,16 @@ export const ARENA = {
   topN: 20, topCd: 1, queueCd: 1,
   pairDaily: 3, rematchSecs: 60,
   watchMax: 6, liveN: 10,
+  healMult: 0.5, ccMult: 0.7,
 };
+/**
+ * Hệ số sát thương lên đối thủ trong sân theo hệ võ hồn ra trận của người đánh (#277, mục 5.9), nhân vào mọi sát thương PvP (đánh
+ * thường, hồn kỹ, Chân Thân, tiên cơ, kỹ năng hồn cốt, sát thương theo thời gian) trước ARENA.dmgMult. Căn cứ DPS đơn mục tiêu so
+ * trung vị (#176): Cường công 1,08–1,48× (bùng nổ diện rộng không bị chia trong 1v1), Mẫn công 0,9–1,58× (chí mạng, cơ động đã lợi
+ * khi đuổi đánh), Khống chế 0,69–1,0× (mất lợi đánh bầy, khống chế lên hồn sư bị giảm ARENA.ccMult), Phụ trợ 0,3–0,86× (hồi / khiên
+ * bị giảm ARENA.healMult). Chênh giữa hệ mạnh nhất và yếu nhất còn ~1,4 lần thay vì ~2,2. Ước lượng từ PvE, chỉnh sau chơi thử.
+ */
+export const ARENA_HE_DMG: Record<He, number> = { cuong_cong: 0.9, man_cong: 0.95, khong_che: 1.15, phu_tro: 1.35 };
 /** Mảnh thưởng thắng trận: võ hồn SR / SSR (không có UR, không có Lam Ngân Thảo ai cũng sẵn). */
 export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AWAKEN_GIFT).map((v) => v.id);
 /** Xác suất thắng kỳ vọng của Elo `r` trước Elo `ro`. */
