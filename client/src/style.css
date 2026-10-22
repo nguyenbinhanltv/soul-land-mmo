@@ -79,18 +79,21 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #target{top:12px}
 #prompt{bottom:96px;border-color:var(--line2)}
 #prompt em{font-style:normal;color:var(--warn)}
-#portal,#wpbox{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:var(--accent)}
-#portal small,#wpbox small{display:block;color:var(--muted);font-size:12px;font-family:var(--f12)}
+#portal,#wpbox,#fusion{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:var(--accent)}
+#portal small,#wpbox small,#fusion small{display:block;color:var(--muted);font-size:12px;font-family:var(--f12)}
 #portal .danger{display:block;color:var(--son);margin-top:3px}
 #portal button,#wpbox button,#fusion button{margin-top:6px;font:inherit;font-size:12px;font-family:var(--f12);padding:5px 14px;border:1px solid var(--accent);background:var(--wash2);color:var(--text);cursor:pointer}
 #portal button.danger{border-color:var(--son-d)}
 #portal kbd,#wpbox kbd,#fusion kbd{font:inherit;font-size:10px;font-family:var(--f10);color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
 body.touch :is(#portal,#wpbox){bottom:196px}
 /* Võ Hồn Dung Hợp Kỹ (#193): lời nhắc "Dung hợp [G]" có đếm ngược cho người được mời (nút chạm được), hoặc "chờ hưởng ứng" cho người mời. */
-#fusion{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);min-width:230px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:#ffe08a}
-body.touch #fusion{bottom:auto;top:31%} /* chạm: phía dưới đã có cần điều khiển, ô chat, nút */
+#fusion{min-width:230px;border-color:#ffe08a}
+/* Hộp đi cổng / truyền tống trận / NPC đang hiện ở cùng chỗ thì đẩy lời nhắc lên trên nó. Chạm: phía dưới đã có cần điều khiển, ô chat, nút. */
+body:has(:is(#portal,#wpbox,#talk):not([hidden])) #fusion{bottom:250px}
+body.touch #fusion{bottom:auto;top:31%}
 #fusion .ft{color:#ffe08a;text-shadow:var(--stroke)}
-#fusion small{display:block;color:var(--muted);font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
+#fusion .ft small{color:var(--text);text-shadow:none}
+#fusion small{font-variant-numeric:tabular-nums}
 #fusion .bar{height:8px}
 #fusion .bar i{background:linear-gradient(90deg,#fff,#ffe08a);transition:none}
 #fusion.ask{animation:fusAsk .6s ease-in-out infinite alternate}

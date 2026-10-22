@@ -251,7 +251,7 @@ export class GameScene extends Phaser.Scene {
     const off = () => {
       this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
-      hud.setFusionPending(null, () => {}); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời)
+      hud.setFusionPending(null); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời)
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);
@@ -894,13 +894,13 @@ export class GameScene extends Phaser.Scene {
     // Võ Hồn Dung Hợp Kỹ (#192, #193): tin riêng ask / wait / done / cancel. B thấy khung "Dung hợp [G]" đếm ngược (chạm được), A thấy
     // đang chờ; xong thì ô G vào hồi chiêu `cd`. Lý do từ chối / hủy server gửi bằng dòng log (khung tin).
     this.room.onMessage("fusion", (m: { k: string; by?: string; to?: string; i?: number; t?: number; cd?: number }) => {
-      const join = () => this.act("fusion");
       if (m?.k === "ask" || m?.k === "wait") {
         const i = m.i ?? -1, f = FUSIONS[i]; if (!f) return;
-        hud.setFusionPending({ k: m.k, i, who: (m.k === "ask" ? m.by : m.to) ?? "", t: m.t ?? 0 }, join);
-        if (m.k === "ask") hud.banner(`Dung hợp kỹ ${f.name}`, `${m.by ?? ""} mời hưởng ứng · phím ${hud.FUSION_KEY}`);
-      } else if (m?.k === "done") { hud.setFusionPending(null, join); hud.setFusionCd(m.cd ?? 0); }
-      else if (m?.k === "cancel") hud.setFusionPending(null, join);
+        hud.setFusionPending({ k: m.k, i, who: (m.k === "ask" ? m.by : m.to) ?? "", t: m.t ?? 0 }, () => this.act("fusion"));
+        const how = document.body.classList.contains("touch") ? "chạm nút Dung hợp" : `phím ${hud.FUSION_KEY}`;
+        if (m.k === "ask") hud.banner(`Dung hợp kỹ ${f.name}`, `${m.by ?? ""} mời hưởng ứng · ${how}`);
+      } else if (m?.k === "done") { hud.setFusionPending(null); hud.setFusionCd(m.cd ?? 0); }
+      else if (m?.k === "cancel") hud.setFusionPending(null);
     });
     if (!this.isArena) this.room.send("offline");
     if (!this.isArena) this.room.send("auto", { op: "get" });
@@ -1145,7 +1145,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   fx(m: any) {
-    const actor = typeof m.id === "string" ? this.players.get(m.id) : undefined;
+    // Dung hợp kỹ (#193): người mời ngoài vùng đồng bộ thì lấy hệ của người hưởng ứng cho tiếng.
+    const actor = (typeof m.id === "string" ? this.players.get(m.id) : undefined) ?? (m.k === "fusion" && typeof m.to === "string" ? this.players.get(m.to) : undefined);
     this.audio.handleFx(m, actor ? VOHON[actor.vh]?.he : undefined);
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
@@ -1565,7 +1566,6 @@ export class GameScene extends Phaser.Scene {
     if (m.hit.includes(this.me)) this.cameras.main.shake(180, 0.006);
   }
 
-  /** Chiêu tiên cơ (bước 2.4): hiệu ứng chung theo hệ và chữ "Tiên cơ" bay lên trên đầu hồn sư. */
   /**
    * Võ Hồn Dung Hợp Kỹ (#193, `fx fusion` công khai cho người ở gần): hai luồng sáng màu võ hồn (`VOHON.col`) từ ngực người mời `id` và
    * người hưởng ứng `to` vòng cung nhập vào điểm giữa (x, y); nhập xong thì đóa kính lưu ly nở trên mặt đất (phong cách D "Lưu Ly Bảo
@@ -1626,6 +1626,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Chiêu tiên cơ (bước 2.4): hiệu ứng chung theo hệ và chữ "Tiên cơ" bay lên trên đầu hồn sư. */
   tienCoFx(m: { id: string; he: He; col: string; x: number; y: number; r?: number; x0?: number; y0?: number; vh?: number; own?: boolean }) {
     const c = hex(m.col), gold = 0xffe08a, at = this.lifted(m.x, m.y), k = SPR;
     this.playAct(m.id, "cast");
