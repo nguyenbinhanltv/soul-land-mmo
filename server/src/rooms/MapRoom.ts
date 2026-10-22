@@ -2182,7 +2182,7 @@ export class MapRoom extends Room<MapState> {
     if (!def || !spot) return this.log(id, "Không có NPC này ở đây.", "#ffb35c");
     if (p.dead) return this.log(id, "Đã gục ngã, không thể nói chuyện.", "#ffb35c");
     if (!this.npcNear(id, { id: def.id })) return this.log(id, `Hãy lại gần ${def.name} hơn để nói chuyện.`, "#ffb35c");
-    this.questEvent(id, { k: "talk", npc: def.id }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
+    this.questEvent(id, { k: "talk", npc: def.id, map: this.state.mapId }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
     if (def.role === "tong") this.sendTong(id); // #196: trước tin npc để hộp thoại có trạng thái tông
     this.clients.getById(id)?.send("npc", { id: def.id });
   }
@@ -4986,7 +4986,7 @@ export class MapRoom extends Room<MapState> {
     const elite = !!e && !!owner, drOwner = owner ?? by; // elite: còn người nhận đồ rơi tinh anh (hồn cốt x ELITE.bone, chắc chắn hồn hạch)
     // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
     for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone, fit: fit(pid), party: grp });
-    if (e) for (const pid of team) this.questEvent(pid, { k: "elite" }); // #256: người hạ và đồng đội được chia kinh nghiệm cùng tính "tham gia hạ tinh anh"
+    if (e) for (const pid of team) this.questEvent(pid, { k: "elite", map: this.state.mapId }); // #256 (#284: kèm bản đồ): người hạ và đồng đội được chia kinh nghiệm cùng tính "tham gia hạ tinh anh"
     if (team.length > 1) {
       const names = team.map((pid) => this.state.players.get(pid)?.name ?? "").join(", ");
       for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
@@ -6085,7 +6085,8 @@ export class MapRoom extends Room<MapState> {
       const v = this.contribOf(e, pid), d = this.pdata.get(pid); if (!d || !this.state.players.has(pid) || d.travelling) continue;
       const pct = v / total, pctTxt = `${(pct * 100).toFixed(1).replace(".", ",")}%`;
       this.rewardKill(pid, b.years, K.xp);
-      this.questEvent(pid, { k: "king" }); // #256: mọi người có đóng góp còn trong phòng
+      this.questEvent(pid, { k: "king", map: this.state.mapId }); // #256: mọi người có đóng góp còn trong phòng (boss thế giới cũng tính)
+      if (world) this.questEvent(pid, { k: "world", map: this.state.mapId }); // #284: chương 3 "Thủ hộ của Tiểu Vũ"
       const ring = world ? "" : pid === owner ? ` Hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).` : "";
       const coinTxt = pid === by ? ` Nhận ${formatHonTe(coin)} Hồn Tệ.` : "";
       // Hồn hoàn boss thế giới: người nhiều nhất hồn hoàn đỏ 100.000 năm; người khác WORLD_RING.red cơ hội đỏ, còn lại đen.
