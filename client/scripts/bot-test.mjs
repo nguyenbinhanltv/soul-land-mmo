@@ -273,27 +273,25 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
 if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 // ---- Chia nhóm BOT_PART=1..BOT_PARTS (job bot-ram của CI chạy song song, .github/workflows/check.yml; #236). Mọi nhóm chạy phần chung
-// (A, B, 2.3b, 2.4, vào lại của A, ~85 giây trên runner CI); mỗi phần còn lại thuộc đúng một nhóm, khai báo một chỗ ở INLINE và STANDALONE
+// (A, B, 2.3b, 2.4, vào lại của A, ~80 giây trên runner CI); mỗi phần còn lại thuộc đúng một nhóm, khai báo một chỗ ở INLINE và STANDALONE
 // dưới đây. Không đặt BOT_PART thì chạy hết. Cuối mỗi lượt in dòng "⏱" (thời gian từng phần) để chia lại cho cân: mỗi nhóm ~7 phút
 // trên runner thường (~9 phút khi runner chậm). Bài mới tự tạo bot thì thêm vào STANDALONE, gắn nhóm đang nhẹ nhất theo dòng ⏱. ----
 const BOT_PARTS=4;
 // Khối nằm trong luồng A / B hay bot C (dùng state của các bot đó nên không tách ra được): khóa -> nhóm.
 const INLINE={
-  ab1:1,  // ~240 giây: 2.5a–2.5d (bot E), BĐ5, 3.2
-  ab2:2,  // ~255 giây: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4
-  botC:3, // ~155 giây: bot C đi cổng BĐ2, NPC 6.1, BĐ6a–BĐ6e, BĐ3, tổ đội 7.1
+  ab1:1,  // ~325 giây: 2.5a–2.5d (bot E), BĐ5, 3.2
+  ab2:2,  // ~275 giây: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4
+  botC:3, // ~160 giây: bot C đi cổng BĐ2, NPC 6.1, BĐ6a–BĐ6e, BĐ3, tổ đội 7.1
 };
 // Bài độc lập (tự tạo bot, gọi được ở bất kỳ đâu): [khóa, nhóm, hàm, cần hook test]. Thứ tự là thứ tự chạy; số giây đo trên runner CI.
 const STANDALONE=[
-  ["cold",1,coldTest],                        //  97 #163 Cực Hàn
+  ["cold",1,coldTest],                        //  18 #163 Cực Hàn
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
-  ["egg",2,eggTest],                          //  12 #162 bọc trứng Vạn Chu Phệ
-  ["tide",2,tideTest],                        //  10 #174 Thủy Triều Dâng
-  ["arena",2,arenaTest],                      //  76 7.2, 9.7 Đại Đấu Hồn Trường
+  ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); }], // 16 #215, 9.8
   ["sell",3,sellTest],                        //   5 #216
-  ["tong",3,tongTest],                        //  13 #196 tông môn
-  ["waypoint",3,waypointTest],                //  44 11.2
+  ["tong",3,tongTest],                        //   9 #196 tông môn
+  ["waypoint",3,waypointTest],                //  45 11.2
   ["camp",3,campTest],                        //   9 #111
   ["bigmap",3,bigMapTest],                    //  36 11.3 / 11.5
   ["view",3,syncViewTest],                    //   8 11.4
@@ -301,11 +299,13 @@ const STANDALONE=[
   ["daily",3,dailyTest],                      //  18 khảo hạch hằng ngày
   ["resonance",3,resonanceTest],              //  20 8.2
   ["auto",4,autoTest],                        // 145–190 Auto 1
-  ["autoBoss",4,autoBossTest],                //  57 #218
-  ["cheat",4,cheatTest],                      //  34 #164 chống gian lận 1
+  ["autoBoss",4,autoBossTest],                //  55 #218
+  ["egg",4,eggTest],                          //  12 #162 bọc trứng Vạn Chu Phệ
+  ["tide",4,tideTest],                        //  10 #174 Thủy Triều Dâng
+  ["cheat",4,cheatTest],                      //  11 #164 chống gian lận 1
   ["offline",4,offlineTest],                  //  12 Auto 3
   ["ground",4,groundTest],                    //  12 #161
-  ["cheat2",4,cheatBagTest],                  //  13 #165 chống gian lận 2
+  ["cheat2",4,cheatBagTest],                  //  12 #165 chống gian lận 2
   ["partyBuff",4,partyBuffTest,true],         //  10 9.1
   ["partyEffect",4,partyEffectExpansionTest,true], // 11 #114
   ["supportContrib",4,supportContribTest,true],    // 13 9.2
