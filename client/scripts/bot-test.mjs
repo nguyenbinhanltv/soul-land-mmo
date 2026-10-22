@@ -6832,15 +6832,18 @@ async function arenaTest(){
   await enterArena(E); await enterArena(F); await waitFor(()=>E.room.state.phase==="ready",3000);
   await test(E,"afast",{s:0}); await waitFor(()=>E.room.state.phase==="fight",2000);
   // Tuyệt kỹ trúng đối thủ: sát thương và trạng thái có trên hồn sư (Trói, Trúng độc, Câm lặng, Cảm điện); kéo chỉ áp lên hồn thú.
+  // Đếm đòn trúng F bằng tin dmg (F.hurts) như 8.1c dưới đây, không so sinh lực: tuyệt kỹ chí mạng có thể hạ võ hồn ra trận của F, F tự
+  // đổi sang võ hồn còn đầy sinh lực (trạng thái vẫn ở trên hồn sư) nên sinh lực sau đòn có thể cao hơn trước (#217).
   {
-    const d4=sides(E).findIndex(s=>s.sid===sid(E))===0?1:-1; await test(E,"goto",{x:fv().x-d4*90,y:fv().y}); await sleep(150); const hpF=fv().hp, fx0=fv().x, bf=F.fxs.length; E.room.send("skill",{i:0});
-    const has=s=>(fv().st&statusBit(s))!==0;
-    ok(await waitFor(()=>fv().hp<hpF&&["root","poison","silence","shock"].every(has),2000)&&Math.abs(fv().x-fx0)<2
+    const d4=sides(E).findIndex(s=>s.sid===sid(E))===0?1:-1; await test(E,"goto",{x:fv().x-d4*90,y:fv().y}); await sleep(150);
+    const hpF=fv().hp, fx0=fv().x, bf=F.fxs.length, actF=F.owned.active; F.hurts=[]; E.room.send("skill",{i:0});
+    const has=s=>(fv().st&statusBit(s))!==0, hit=()=>F.hurts.find(m=>m.v<0);
+    ok(await waitFor(()=>hit()&&["root","poison","silence","shock"].every(has),2000)&&Math.abs(fv().x-fx0)<2
       &&await waitFor(()=>F.fxs.slice(bf).some(f=>f.k==="ult"&&f.id===sid(E)),800),
-      `${ultC.name} (8.1d) trong sân: trúng F ${hpF} → ${fv().hp}, Trói + Trúng độc + Câm lặng + Cảm điện, F không bị kéo, F thấy fx tuyệt kỹ`+
+      `${ultC.name} (8.1d) trong sân: trúng F ${-(hit()?.v??0)}${hit()?.crit?" (chí mạng)":""} (sinh lực ${hpF} → ${fv().hp}${F.owned.active!==actF?", võ hồn ra trận gục, tự đổi":""}),`+
+      ` Trói + Trúng độc + Câm lặng + Cảm điện, F không bị kéo, F thấy fx tuyệt kỹ`+
       ` [F có ${["root","poison","silence","shock"].filter(has).join("+")}, lệch x ${(fv().x-fx0).toFixed(1)}, cách E ${Math.hypot(meOf(E).x-fv().x,meOf(E).y-fv().y).toFixed(0)},`+
-      ` E hồn lực ${meOf(E).mp}/${meOf(E).maxMp}, hồi chiêu ${[...meOf(E).cds].map(c=>+c.toFixed?.(1)||c)}, ra trận ${E.owned.active===rowC?"Chu Hoàng":E.owned.active}, fx ${F.fxs.slice(bf).map(f=>f.k).join(",")},`+
-      ` log E ${JSON.stringify(E.logs.slice(-2))}, log F ${JSON.stringify(F.logs.slice(-2))}]`);
+      ` fx ${F.fxs.slice(bf).map(f=>f.k).join(",")}, log E ${JSON.stringify(E.logs.slice(-1))}]`);
   }
   // 8.1c trong sân: đổi sang Lam Điện Bá Vương Long (ô U còn hồi chiêu chung của tuyệt kỹ vừa tung: đặt lại bằng hook ready).
   await waitFor(()=>meOf(E).swCd===0,3500); E.room.send("switch",{slot:E.owned.team.indexOf(rowLD)});
