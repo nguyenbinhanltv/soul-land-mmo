@@ -8267,6 +8267,56 @@ async function arenaTest(){
     ok(healBack===healTown,`về thành: hệ số hồi máu / khiên trở lại ×${healBack}`);
     for(const b of [PA,PB]) await b.room.leave();
   }
+  // ---- #279 2v2: hiệu ứng phụ trợ lan cho đồng đội cùng bên (mức × PARTY_BUFF_MULT, hồi / khiên thêm × ARENA.healMult), không lan cho đối thủ ----
+  {
+    console.log("[#279] 2v2: phụ trợ lan cho đồng đội cùng bên trong sân, không lan cho đối thủ");
+    const SA=await bot("Lan đội A","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
+    const SB=await bot("Lan đội B","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:0,outfitCol:1});
+    const OA=await bot("Lan địch A","hoa_anh",{sex:0,hair:0,hairCol:3,outfitCol:2});
+    const OB=await bot("Lan địch B","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:4});
+    const all=[SA,SB,OA,OB]; for(const b of all) await warpTown(b);
+    // SA: Cửu Bảo Lưu Ly Tháp (Phụ trợ) 4 hồn hoàn ra trận.
+    const CB="cuu_bao_luu_ly_thap", sk=skillsOf(CB), Y=[423,764,1760,5000], BP=i=>buffPower(Y[i]);
+    await test(SA,"grant",{vohon:CB}); const cb=SA.owned.list.find(v=>v.vohon===CB)?.rowId, st=SA.owned.list.find(v=>v.vohon==="bich_lan_xa_hoang")?.rowId;
+    await test(SA,"set",{rowId:cb,level:40,xp:0,rings:Y}); await sendTeam(SA,[cb,0,0,0]); await sendTeam(SA,[cb,st,0,0]);
+    ok(SA.owned.active===cb,"SA: Cửu Bảo Lưu Ly Tháp ra trận (4 hồn hoàn)");
+    const joinParty=async(lead,mate)=>{ await test(lead,"party",{pop:"rlreset"}); lead.room.send("party",{op:"invite",name:mate.name}); await sleep(250); mate.room.send("party",{op:"accept",name:lead.name});
+      await waitFor(()=>lead.party?.members.length===2&&mate.party?.id===lead.party?.id,1500); };
+    await joinParty(SA,SB); await joinParty(OA,OB);
+    await at(SA,-12); await at(SB,-12); await at(OA,12); await at(OB,12);
+    const n0=new Map(all.map(b=>[b,b.arena.length])), fnd=b=>b.arena.slice(n0.get(b)).filter(m=>m.k==="found").at(-1);
+    await aop(SA,"queue"); await aop(OA,"queue");
+    ok(await waitFor(()=>all.every(fnd),4000)&&new Set(all.map(b=>fnd(b).roomId)).size===1,"#279: ghép 2v2 (SA + SB gặp OA + OB)");
+    for(const b of all){ const id=fnd(b).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.squad,3000); }
+    await waitFor(()=>SA.room.state.phase==="ready",3000); if(SA.room.state.phase==="ready") await test(SA,"afast",{s:0});
+    ok(await waitFor(()=>SA.room.state.phase==="fight",3000),"2v2: giao đấu");
+    // SB (đồng đội) và OA (đối thủ) đứng trong PARTY_BUFF_R quanh SA; OB ở xa.
+    const pa=meOf(SA), live=async b=>(await test(b,"stats")).live, d=b=>Math.round(Math.hypot(meOf(b).x-meOf(SA).x,meOf(b).y-meOf(SA).y));
+    await test(SB,"goto",{x:pa.x,y:pa.y+60}); await test(OA,"goto",{x:pa.x,y:pa.y-60}); await sleep(200);
+    ok(d(SB)<PARTY_BUFF_R&&d(OA)<PARTY_BUFF_R,`SB cách SA ${d(SB)}, OA (đối thủ) cách ${d(OA)} pixel (< ${PARTY_BUFF_R})`);
+    // Lực Chi Lưu Ly (tăng công): SB nhận × PARTY_BUFF_MULT, OA không.
+    await test(SA,"ready"); let lb=SB.logs.length; SA.room.send("skill",{i:0});
+    await waitFor(()=>SB.logs.length>lb,1500); await waitFor(()=>(meOf(SB).buff&buffBit("atk"))!==0,1000);
+    const wantAtk=sk[0].self.buff.atk*BP(0); let lB=await live(SB), lO=await live(OA);
+    ok(Math.abs((lB.buffs.atk?.v??0)-wantAtk*PARTY_BUFF_MULT)<1e-9&&!lO.buffs.atk&&!OA.logs.some(t=>t.includes(SA.name)),
+      `${sk[0].name} trong sân: SB công +${((lB.buffs.atk?.v??0)*100).toFixed(1)}% (× ${PARTY_BUFF_MULT}), OA không nhận`);
+    // Phòng Chi Lưu Ly (khiên theo sinh lực tối đa): SA × hm (đã × ARENA.healMult), SB × hm × PARTY_BUFF_MULT, OA không.
+    const hm=(await test(SA,"pvp",{k:"heal"}))?.mult;
+    await test(SA,"ready"); SB.gifts=[]; lb=SB.logs.length; SA.room.send("skill",{i:3});
+    await waitFor(()=>SB.logs.length>lb,1500); await waitFor(()=>meOf(SB).shield>0,1000);
+    lB=await live(SB); lO=await live(OA); const la=await live(SA);
+    const wantB=Math.round(lB.maxHp*sk[3].self.shield*BP(3)*hm*PARTY_BUFF_MULT), wantA=Math.round(la.maxHp*sk[3].self.shield*BP(3)*hm);
+    ok(Math.abs(hm-ARENA.healMult)<1e-9&&lB.shield===wantB&&la.shield===wantA&&!lO.shield&&!lO.buffs.def,
+      `${sk[3].name} trong sân: khiên SA ${la.shield} (cần ${wantA}, × healMult ${hm}), SB ${lB.shield} (cần ${wantB} = × ${PARTY_BUFF_MULT} × ${hm}), OA ${lO.shield||0}`);
+    // Đồng đội đứng xa quá PARTY_BUFF_R: không nhận.
+    await test(SB,"rest",{s:30}); await test(SB,"goto",{x:pa.x+PARTY_BUFF_R+80,y:pa.y}); await sleep(200);
+    await test(SA,"ready"); lb=SB.logs.length; SA.room.send("skill",{i:0}); await sleep(500);
+    lB=await live(SB); ok(d(SB)>PARTY_BUFF_R&&!lB.buffs.atk&&SB.logs.length===lb,`SB đứng ${d(SB)} pixel: không nhận`);
+    for(const b of [OA,OB]) for(let j=0;j<TEAM_SIZE&&!meOf(b).dead;j++) await test(b,"down");
+    await waitFor(()=>SA.room.state.phase==="end",3000); await test(SA,"afast",{s:0});
+    for(const b of all){ await waitFor(()=>b.leftCode===4005,3000); await back(b); }
+    for(const b of all) await b.room.leave();
+  }
 }
 
 /**
