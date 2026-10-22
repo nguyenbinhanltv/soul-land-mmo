@@ -623,7 +623,7 @@ export class GameScene extends Phaser.Scene {
       const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
       const bk = hud.BONE_SKILL_KEYS.findIndex((k) => e.code === "Key" + k); // kỹ năng hồn cốt Z / X / C (4.3)
       if (e.code === "Key" + hud.AVA_KEY) return this.act("chanthan"); // Võ Hồn Chân Thân (8.1a)
-      if (e.code === "Key" + hud.FUSION_KEY) return this.act("fusion"); // Võ Hồn Dung Hợp Kỹ: mời / hưởng ứng (#193)
+      if (e.code === "Key" + hud.FUSION_KEY) { if (!this.isArena) this.act("fusion"); return; } // Võ Hồn Dung Hợp Kỹ: mời / hưởng ứng (#193); sân đấu cấm
       const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
       else if (e.code === "KeyE") this.act("pickup");
@@ -1145,9 +1145,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   fx(m: any) {
-    // Dung hợp kỹ (#193): người mời ngoài vùng đồng bộ thì lấy hệ của người hưởng ứng cho tiếng.
-    const actor = (typeof m.id === "string" ? this.players.get(m.id) : undefined) ?? (m.k === "fusion" && typeof m.to === "string" ? this.players.get(m.to) : undefined);
-    this.audio.handleFx(m, actor ? VOHON[actor.vh]?.he : undefined);
+    const actor = typeof m.id === "string" ? this.players.get(m.id) : undefined;
+    // Dung hợp kỹ (#193): hệ của người mời lấy từ `va` trong tin (người mời có thể ngoài vùng đồng bộ, 11.4).
+    this.audio.handleFx(m, m.k === "fusion" ? VOHON[m.va]?.he : actor ? VOHON[actor.vh]?.he : undefined);
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
     if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.cameras.main.shake(300, 0.004); }
@@ -1567,17 +1567,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Võ Hồn Dung Hợp Kỹ (#193, `fx fusion` công khai cho người ở gần): hai luồng sáng màu võ hồn (`VOHON.col`) từ ngực người mời `id` và
-   * người hưởng ứng `to` vòng cung nhập vào điểm giữa (x, y); nhập xong thì đóa kính lưu ly nở trên mặt đất (phong cách D "Lưu Ly Bảo
+   * Võ Hồn Dung Hợp Kỹ (#193, `fx fusion` công khai cho người ở gần): hai luồng sáng màu võ hồn (`VOHON.col` của `va` / `vb`) từ ngực
+   * người mời `id` và người hưởng ứng `to` vòng cung nhập vào điểm giữa (x, y); cùng lúc đóa kính lưu ly nở trên mặt đất (đòn của server
+   * tới ngay sau tin này nên hình không chờ luồng sáng tới nơi) (phong cách D "Lưu Ly Bảo
    * Quang", mục 5.11: mảnh kính hai màu võ hồn và lam / ngọc / tím lưu ly, đường chì, viền vàng kim), vòng sáng màu niên hạn `col`, tên
    * chiêu lớn bay lên như tuyệt kỹ. Người nào ngoài vùng đồng bộ (11.4) thì bỏ luồng của người đó. Chỉ hình ảnh: sát thương do server.
    */
-  fusionFx(m: { id: string; to: string; x: number; y: number; i: number; col?: string }) {
+  fusionFx(m: { id: string; to: string; x: number; y: number; i: number; col?: string; va?: number; vb?: number }) {
     const f = FUSIONS[m.i]; if (!f) return;
-    const k = SPR, c = W2S(m.x, m.y), cy = c.y - 12 * k, col = m.col ?? "#ffe08a", MERGE = 420;
+    const k = SPR, c = W2S(m.x, m.y), cy = c.y - 12 * k, col = m.col ?? "#ffe08a", MERGE = 280, BLOOM = 120;
     const R = Math.max(40, ...f.parts.map((p) => p.r ?? 0)), cols: number[] = [];
-    for (const id of [m.id, m.to]) {
-      const v = this.players.get(id), vc = hex(VOHON[this.room.state.players.get(id)?.vh ?? -1]?.col ?? col); cols.push(vc);
+    for (const [id, vh] of [[m.id, m.va], [m.to, m.vb]] as const) {
+      const v = this.players.get(id), vc = hex(VOHON[vh ?? -1]?.col ?? col); cols.push(vc);
       if (!v) continue;
       this.playAct(id, "cast");
       const x0 = v.root.x, y0 = v.root.y - 14 * k, g = this.add.graphics().setDepth(99981), o = { t: 0 };
@@ -1589,7 +1590,7 @@ export class GameScene extends Phaser.Scene {
         g.fillStyle(vc, 0.5).fillCircle(h.x, h.y, 5 * k); g.fillStyle(0xffffff, 1).fillCircle(h.x, h.y, 2.5 * k);
       }, onComplete: () => this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() }) });
     }
-    this.time.delayedCall(MERGE, () => {
+    this.time.delayedCall(BLOOM, () => {
       // Đóa kính lưu ly: vòng trong là mảnh tam giác xen hai màu võ hồn, vòng ngoài là mảnh lam / ngọc / tím lưu ly (_luu_ly.gpl),
       // mọi mảnh viền chì sẫm, mép ngoài viền vàng kim; nở ra rồi mờ dần.
       const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };

@@ -4526,7 +4526,8 @@ export class MapRoom extends Room<MapState> {
     const top = (d: PData) => Math.max(TIERS[0].years, ...d.ringYears), years = Math.min(top(da), top(db));
     const atk = (this.atkOf(da, false) + this.atkOf(db, false)) / 2, power = skillPower(years); // công trung bình, không ràng buộc
     const mid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 }, col = TIERS[tierOfYears(years)].glow;
-    this.broadcast("fx", { k: "fusion", id: a, to: b, x: Math.round(mid.x), y: Math.round(mid.y), i: fi, col });
+    // `va` / `vb`: võ hồn ra trận của A / B (màu luồng sáng, tiếng theo hệ ở client #193; người xem có thể không có A / B trong state, 11.4).
+    this.broadcast("fx", { k: "fusion", id: a, to: b, x: Math.round(mid.x), y: Math.round(mid.y), i: fi, col, va: pa.vh, vb: pb.vh });
     for (const part of def.parts) {
       const h = part.side === undefined ? null : da.ch.vohon === def.pair[part.side] ? pa : pb;
       const at = h ? { x: (mid.x + h.x) / 2, y: (mid.y + h.y) / 2 } : mid;

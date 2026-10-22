@@ -89,7 +89,7 @@ body.touch :is(#portal,#wpbox){bottom:196px}
 /* Võ Hồn Dung Hợp Kỹ (#193): lời nhắc "Dung hợp [G]" có đếm ngược cho người được mời (nút chạm được), hoặc "chờ hưởng ứng" cho người mời. */
 #fusion{min-width:230px;border-color:#ffe08a}
 /* Hộp đi cổng / truyền tống trận / NPC đang hiện ở cùng chỗ thì đẩy lời nhắc lên trên nó. Chạm: phía dưới đã có cần điều khiển, ô chat, nút. */
-body:has(:is(#portal,#wpbox,#talk):not([hidden])) #fusion{bottom:250px}
+body:not(.touch):has(:is(#portal,#wpbox,#talk):not([hidden])) #fusion{bottom:250px}
 body.touch #fusion{bottom:auto;top:31%}
 #fusion .ft{color:#ffe08a;text-shadow:var(--stroke)}
 #fusion .ft small{color:var(--text);text-shadow:none}

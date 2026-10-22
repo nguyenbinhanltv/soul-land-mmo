@@ -9721,6 +9721,7 @@ async function fusionTest(){
   const fx=A.fxs.find(f=>f.k==="fusion"), wave=A.fxs.find(f=>f.k==="wave");
   ok(fx&&fx.x===mid.x&&fx.y===mid.y&&wave&&Math.abs(wave.x-(pa.x+pb.x)/2)<1&&Math.abs(wave.y+6-(pa.y+pb.y)/2)<1,
     `nổ ở điểm giữa (${mid.x},${mid.y}): fx fusion (${fx?.x},${fx?.y}), vùng (${wave?.x?.toFixed(0)},${(wave?.y+6).toFixed(0)})`);
+  ok(fx?.va===vohonIndex("yeu_ho")&&fx?.vb===vohonIndex("nguyet_nhan"),`fx fusion mang võ hồn hai người cho màu luồng sáng (#193): va ${fx?.va}, vb ${fx?.vb}`);
   // Hồn lực tự hồi vài điểm mỗi giây: chờ bản vá có phần trừ rồi so với khoảng hẹp quanh FUSION.cost.
   const spent=b=>mp0[b===A?0:1]-meP(b).mp;
   ok(await waitFor(()=>[A,B].every(b=>spent(b)>=FUSION.cost-6&&spent(b)<=FUSION.cost),1500),`mỗi người tốn ${FUSION.cost} hồn lực: A ${mp0[0]} -> ${meP(A).mp}, B ${mp0[1]} -> ${meP(B).mp}`);
