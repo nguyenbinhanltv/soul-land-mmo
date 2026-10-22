@@ -86,8 +86,8 @@ export class AutoHunter {
   boss = false;
   /** Chỗ né đang đi tới khi đứng trong vùng báo trước / vùng độc (#218); `dodgeT`: chờ trước lần tìm lại; `dodges`: số lần chọn chỗ né (hook test). */
   dodge: Pt | null = null; dodgeT = 0; dodges = 0;
-  /** Đang lùi ra khỏi boss vì ít máu (AUTO_BOSS.retreat → back). */
-  away = false;
+  /** Đang lùi ra khỏi boss vì ít máu (AUTO_BOSS.retreat → back); `warm`: đang tới Hỏa Đàn xả tầng Hàn (Cực Hàn, #163). */
+  away = false; warm = false;
   /** Võ hồn đổi vì cơ chế boss (#218): hệ đang cần và số giây đã giữ (quá AUTO_BOSS.hold thì thôi tới khi cơ chế đổi). */
   role: { he: He; t: number } | null = null;
 
@@ -135,7 +135,7 @@ export class AutoHunter {
     // Đòn thường trúng mọi hồn thú quanh điểm trước mặt: vướng hồn thú người khác đang giao chiến thì không đánh (trừ khi mục tiêu đang
     // đánh mình), quá AUTO_MOVE.stuck giây vẫn vướng thì bỏ mục tiêu này.
     const b = this.target ? room.state.beasts.get(this.target) : undefined;
-    if (b && !this.away && d.atkCd <= 0 && this.inReach(p, d, b)) {
+    if (b && !this.away && !this.warm && d.atkCd <= 0 && this.inReach(p, d, b)) {
       const ax = p.x + d.dir.x * 10, ay = p.y - 6 + d.dir.y * 10;
       if (!this.fighting() && this.splash(ax, ay, 18)) { if ((this.blockT += dt) >= AUTO_MOVE.stuck) this.unreachable(); }
       else { this.blockT = 0; room.attack(this.id); }
@@ -197,7 +197,7 @@ export class AutoHunter {
     if (this.target) {
       this.loot = null; this.patrol = null;
       const b = room.state.beasts.get(this.target)!;
-      if (this.boss) this.hurt(p, b);
+      if (this.boss) this.hurt(p, d, b);
       const need = this.boss ? this.mechanic(p, d, c, b, dt) : null;
       if (need === "swap") return;
       if (!need && this.tienCo(p, d, c)) return;
@@ -239,11 +239,11 @@ export class AutoHunter {
 
   setTarget(bid: string) {
     this.target = bid; this.hit = false; this.blockT = 0; this.go(null);
-    this.boss = !!this.room.state.beasts.get(bid)?.rank; this.away = false; this.role = null;
+    this.boss = !!this.room.state.beasts.get(bid)?.rank; this.away = this.warm = false; this.role = null;
   }
   drop() {
     this.target = null; this.hit = false; this.go(null); this.pace = Math.max(-AUTO_PACE.credit, this.pace);
-    this.boss = false; this.away = false; this.role = null;
+    this.boss = false; this.away = this.warm = false; this.role = null;
   }
 
   /** Đặt đích đi tới (null = đứng yên); đích đổi thì bỏ đường cũ để lần lái sau tìm lại. */
@@ -479,10 +479,11 @@ export class AutoHunter {
   }
   /**
    * Võ hồn Phụ trợ trong đội (chưa gục) có hồn kỹ thanh tẩy trong ô được phép tung (`skills`), đã mở vòng và hết hồi chiêu, khi trên mình
-   * có trạng thái xấu còn từ AUTO_BOSS.cleanse giây (Vết thương sâu); ưu tiên võ hồn đang ra trận. Không cần / không có thì null.
+   * có trạng thái xấu còn từ AUTO_BOSS.cleanse giây (Vết thương sâu) hoặc từ AUTO_BOSS.chill tầng Hàn (Cực Hàn, không tự hết); ưu tiên võ
+   * hồn đang ra trận. Không cần / không có thì null.
    */
   cleanseRow(d: PData): number | null {
-    if (![...d.st.values()].some((x) => x.t >= AUTO_BOSS.cleanse)) return null;
+    if (![...d.st].some(([s, x]) => (s === "chill" ? x.n >= AUTO_BOSS.chill : x.t >= AUTO_BOSS.cleanse))) return null;
     for (const row of [d.ch.rowId, ...d.team]) {
       const v = d.owned.find((o) => o.rowId === row);
       if (!v || d.down.has(row) || VOHON[vohonIndex(v.vohon)]?.he !== "phu_tro") continue;
@@ -493,10 +494,16 @@ export class AutoHunter {
     return null;
   }
   /**
-   * Ít máu khi đánh boss: sinh lực võ hồn ra trận dưới AUTO_BOSS.retreat thì lùi ra cách boss ít nhất AUTO_BOSS.dist (đan uống theo
-   * ngưỡng cài đặt như thường, potions), từ AUTO_BOSS.back thì quay lại đánh.
+   * Cực Hàn (#163): từ AUTO_BOSS.chill tầng Hàn mà không có thanh tẩy sẵn sàng (cleanseRow) thì tới đứng cạnh Hỏa Đàn cho tới khi hết tầng
+   * rồi quay lại đánh. Ít máu khi đánh boss: sinh lực võ hồn ra trận dưới AUTO_BOSS.retreat thì lùi ra cách boss ít nhất AUTO_BOSS.dist
+   * (đan uống theo ngưỡng cài đặt như thường, potions), từ AUTO_BOSS.back thì quay lại đánh.
    */
-  hurt(p: PlayerState, b: BeastState) {
+  hurt(p: PlayerState, d: PData, b: BeastState) {
+    const cold = this.room.cold.active()?.cold, fire = cold ? this.room.map.hoaDan : null, chill = d.st.get("chill")?.n ?? 0;
+    const was = this.warm;
+    this.warm = !!fire && chill > 0 && (this.warm || chill >= AUTO_BOSS.chill) && this.cleanseRow(d) === null;
+    if (this.warm && fire && cold) { this.go(Math.hypot(p.x - fire.x, p.y - fire.y) <= cold.fire.r * 0.6 ? null : fire); return; }
+    if (was) this.go(null);
     const r = p.hp / Math.max(1, p.maxHp);
     if (!this.away && r < AUTO_BOSS.retreat) this.away = true;
     else if (this.away && r >= AUTO_BOSS.back) { this.away = false; this.go(null); }
@@ -560,8 +567,9 @@ export class AutoHunter {
     // #218: đang đứng trong vùng báo trước / vùng độc thì đi thẳng tới chỗ né trước mọi việc khác.
     const esc = this.escape(p, dt);
     if (esc) return this.move(p, d, esc, dt, true);
-    // Đang lùi vì ít máu: đi theo đích đã đặt (hurt). Boss thế giới đang lặn (Du Thủy): tới chỗ nổi lên đã báo trước, không thì đứng chờ.
-    const t = this.target && !this.away ? room.state.beasts.get(this.target) : undefined, b = t && !t.dive ? t : undefined;
+    // Đang lùi vì ít máu / tới Hỏa Đàn: đi theo đích đã đặt (hurt). Boss thế giới đang lặn (Du Thủy): tới chỗ nổi lên đã báo trước, không
+    // thì đứng chờ.
+    const t = this.target && !this.away && !this.warm ? room.state.beasts.get(this.target) : undefined, b = t && !t.dive ? t : undefined;
     if (t?.dive) this.go(room.bdata.get(this.target!)?.elite?.king?.world?.surf ?? null);
     let to: Pt | null = null;
     if (b) {

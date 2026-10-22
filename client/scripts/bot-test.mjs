@@ -270,7 +270,8 @@ const PART=process.env.BOT_PART??"", inPart=n=>!PART||PART===String(n);
 if(PART&&!["1","2","3"].includes(PART)){ console.log(`✗ BOT_PART=${PART}: chỉ nhận 1, 2 hoặc 3`); process.exit(1); }
 if(PART) console.log(`BOT_PART=${PART}: chỉ chạy phần chung và nhóm ${PART}`);
 // Tự săn đánh tinh anh, thú vương, boss thế giới (#218, autoBossTest, nhóm 2 của BOT_PART; BOT_ONLY=autoboss): né chiêu báo trước / vũng độc,
-// đóng góp, khóa ELITE.lock, hết lượt KING.daily, lùi khi ít máu, ngắt tích lực, né chiêu toàn sàn, thanh tẩy. BOT_ONLY=autobossperf (không
+// đóng góp, khóa ELITE.lock, hết lượt KING.daily, lùi khi ít máu, ngắt tích lực, né chiêu toàn sàn, thanh tẩy, Cực Hàn tới Hỏa Đàn xả
+// tầng (#163). BOT_ONLY=autobossperf (không
 // chạy trong bot đầy đủ): đo tick khi nhiều bot tự săn cùng đánh một boss thế giới (server PERF_LOG=1).
 // Bọc trứng Vạn Chu Phệ (#162, eggTest, nhóm 2 của BOT_PART; BOT_ONLY=egg chỉ chạy phần này): đẻ đủ bọc, phá thì không nở, để nguyên thì
 // nở đúng số nhện con, giới hạn nhện con còn sống, thú vương bị hạ thì bọc tan.
@@ -8117,6 +8118,8 @@ async function autoBossTest(){
     if(!cond(px,py)) continue; await test(A,"goto",{x:px,y:py}); if(Math.hypot(me().x-px,me().y-py)<1) return true; } return false; }
   const cfg=(o={})=>autoOp("set",{cfg:{...AUTO_DEFAULTS,...o}});
   /** Võ hồn chính của lượt tự săn là võ hồn ra trận lúc bật (tiên cơ / cơ chế đổi tay lượt trước có thể để lại võ hồn khác): đổi về `row`. */
+  /** Đổi đội hình (ngoài giao chiến mới đổi được: nghỉ TEAM_COMBAT_SECS giây bằng hook rest trước). */
+  const team=async slots=>{ await test(A,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(A,slots); return same(A.owned.team,slots); };
   const toRow=async row=>{ await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500); if(A.owned.active!==row){ A.room.send("switch",{slot:A.owned.team.indexOf(row)}); await waitFor(()=>A.owned.active===row,1500); } return A.owned.active===row; };
   try{
     await waitFor(()=>me()&&A.bag&&A.owned,3000);
@@ -8184,7 +8187,7 @@ async function autoBossTest(){
 
     // ---- Thú vương: mục tiêu chung, giới hạn KING.daily, lùi khi ít máu, hạ thì nhận rương ----
     // Bỏ Xúc Xích khỏi đội trong phần này: trạng thái xấu lâu của thú vương làm tự săn đổi sang Xúc Xích thanh tẩy (đầy máu), lẫn với bước lùi.
-    await toRow(main); await sendTeam(A,[main,LAM,0,0]);
+    ok(await toRow(main)&&await team([main,LAM,0,0]),"thú vương: đội chỉ võ hồn chính + Lam Ngân Thảo");
     await test(A,"king",{kop:"spawn"}); await waitFor(()=>[...A.room.state.beasts.values()].some(b=>b.rank===2),2000);
     let ki=await test(A,"king"); const LR=ki.lair, KB=ki.bid, kb=()=>A.room.state.beasts.get(KB);
     await test(A,"bmax",{bid:KB,x:1000});
@@ -8202,9 +8205,10 @@ async function autoBossTest(){
     // nhưng ở đây thử lùi).
     // Thú vương đứng Choáng trong bước này: đánh tiếp lúc còn 20% sinh lực thì võ hồn ra trận gục trước khi kịp lùi (võ hồn khác vào thay).
     await cfg({years:[0,0],elite:false,world:false,hp:0,tienCo:false,skills:[]}); await waitFor(()=>!(me().swCd>0),SWITCH_CD*1000+500);
-    await test(A,"status",{s:"stun",secs:10,bid:KB}); await test(A,"hurt",{pct:80});
-    ok(await until(async()=>(ai=await info()).away,2000)&&await waitFor(()=>Math.hypot(me().x-kb().x,me().y-kb().y)>=AUTO_BOSS.dist-8,5000),
-      `sinh lực ${me().hp}/${me().maxHp} dưới ${AUTO_BOSS.retreat*100}%: lùi ra cách thú vương ${Math.hypot(me().x-kb().x,me().y-kb().y).toFixed(0)} pixel`);
+    await test(A,"status",{s:"stun",secs:10,bid:KB}); const hu=await test(A,"hurt",{pct:80}); const rt=[`${me().hp}/${me().maxHp}`];
+    ok(await until(async()=>{ ai=await info(); rt.push(`${me().hp}/${me().maxHp} ${VOHON[me().vh].id.slice(0,5)}${ai.away?" lùi":""}`); return ai.away; },2000)
+      &&await waitFor(()=>Math.hypot(me().x-kb().x,me().y-kb().y)>=AUTO_BOSS.dist-8,5000),
+      `sinh lực ${me().hp}/${me().maxHp} dưới ${AUTO_BOSS.retreat*100}%: lùi ra cách thú vương ${Math.hypot(me().x-kb().x,me().y-kb().y).toFixed(0)} pixel [${rt.join(" | ")}]`);
     await test(A,"pregen",{s:0,hp:100,mp:100});
     ok(await until(async()=>{ ai=await info(); return !ai.away&&ai.target===KB; },2000),"hồi đủ sinh lực: quay lại đánh");
     await cfg({years:[0,0],elite:false,world:false});
@@ -8215,7 +8219,7 @@ async function autoBossTest(){
     await autoOp("off");
 
     // ---- Lõi Tinh Đấu: boss thế giới (tự săn bật được ở bản đồ boss), ngắt tích lực, né chiêu toàn sàn, thanh tẩy ----
-    await sendTeam(A,[main,LAM,XUC,0]);
+    ok(await team([main,LAM,XUC,0]),"boss thế giới: đội có lại Xúc Xích (phụ trợ)");
     const arLT=objsOf(LT).find(o=>o.type==="arrive"&&o.name==="tu_tinh_dau_noi_dia");
     ok(await warp(LT,arLT.x,arLT.y),`tới ${MAPS[LT].name}`);
     await test(A,"king",{kop:"spawn",mapId:LT,boss:VIEN}); await waitFor(()=>[...A.room.state.beasts.values()].some(b=>b.rank===3),2000);
@@ -8264,6 +8268,36 @@ async function autoBossTest(){
     ok(back,mainDown()?"xong việc: võ hồn chính đã gục, ở lại võ hồn đang ra trận":`xong việc: về võ hồn chính (đang ${VOHON[me().vh].name}; `
       +`${JSON.stringify({home:ai.home,main,role:ai.role,target:ai.target,boss:ai.boss,swCd:me().swCd,squad:A.squad?.list?.map(x=>[x.rowId,x.hp,x.down])})})`);
     await autoOp("off"); await test(A,"slay",{bid:WB});
+
+    // ---- Cực Bắc Chi Địa: Cực Hàn (#163) của Huyền Minh Băng Giao: đủ AUTO_BOSS.chill tầng Hàn, không có thanh tẩy thì tới Hỏa Đàn xả ----
+    const CB="cuc_bac_chi_dia", CD=BOSSES[bossIndex(MAPS[CB].king)]?.phase2?.cold, han=()=>me()?.han??0;
+    if(CD){
+      ok(await toRow(main)&&await team([main,LAM,0,0]),"Cực Hàn: đội không có võ hồn phụ trợ (phải tới Hỏa Đàn)");
+      ok(await warp(CB,0,0),`tới ${MAPS[CB].name}`);
+      await test(A,"clear",{all:true,keep:1});
+      await test(A,"king",{kop:"spawn"}); await waitFor(()=>[...A.room.state.beasts.values()].some(b=>b.rank===2),2000);
+      let kc=await test(A,"king"); const CKB=kc.bid, CL=kc.lair, ck=()=>A.room.state.beasts.get(CKB), inC=(x,y)=>x>=CL.x&&x<CL.x+CL.w&&y>=CL.y&&y<CL.y+CL.h;
+      await test(A,"bmax",{bid:CKB,x:100});
+      const fire=(await test(A,"cold"))?.fire, hold=()=>test(A,"status",{s:"stun",secs:60,bid:CKB}), dF=()=>Math.hypot(me().x-fire.x,me().y-fire.y);
+      await hold();
+      ok(fire&&CKB&&await near(ck().x,ck().y,40,(x,y)=>inC(x,y)&&Math.hypot(x-fire.x,y-fire.y)>CD.fire.r+40),`A trong hang cạnh ${beastName(2,ck()?.species)}, cách Hỏa Đàn ${fire?dF().toFixed(0):"?"} pixel`);
+      await test(A,"kdmg",{bid:CKB,v:1}); kc=await test(A,"king"); await test(A,"kdmg",{bid:CKB,v:Math.ceil(kc.hp-kc.maxHp*KING.phaseHp)+1});
+      ok(await waitFor(()=>ck()?.phase===2,2000),"thú vương sang giai đoạn 2 (Cực Hàn)");
+      await sleep(KING.roarSecs*1000+150); await hold(); // tiếng gầm bỏ khống chế: hết gầm thì Choáng lại (không đánh A)
+      // Võ hồn ra trận là võ hồn chính (không phụ trợ): không có hồn kỹ thanh tẩy nào để giải tầng Hàn.
+      ok(await toRow(main)&&VOHON[me().vh].he!=="phu_tro",`ra trận ${VOHON[me().vh].name}, đội không có võ hồn phụ trợ`);
+      await cfg({years:[0,0],elite:false,world:false,tienCo:false}); m=await autoOp("on");
+      ok(m?.on&&await until(async()=>(await info()).target===CKB,3000),"tự săn đánh thú vương giai đoạn 2");
+      // Tích nhanh tầng Hàn (hook cold {acc}: như đã đứng gần đủ một nhịp).
+      for(let k=0;k<AUTO_BOSS.chill;k++){ await test(A,"cold",{acc:CD.every-0.05}); await waitFor(()=>han()>k,1500); }
+      const h0=han(); let warm=false, minF=Infinity, left=false; const tr=[];
+      const cleared=await until(async()=>{ const i=await info(); if(i.warm) warm=true; minF=Math.min(minF,dF()); if(!inC(me().x,me().y)) left=true;
+        tr.push(`${dF().toFixed(0)}${i.warm?" tới Hỏa Đàn":""} ${han()} tầng ${VOHON[me().vh].id}`); return han()===0; },8000);
+      // Đọc vị trí theo bản vá, mỗi lần đọc cách nhau vài nhịp (đi được ~20 pixel): lề 16 pixel.
+      ok(h0>=AUTO_BOSS.chill&&cleared&&warm&&!left&&minF<=CD.fire.r+16,`${h0} tầng Hàn, không có thanh tẩy: tới Hỏa Đàn (cách ${minF.toFixed(0)} pixel, bán kính ${CD.fire.r}), xả hết tầng${left?" (có lúc ra khỏi hang)":""} [${tr.join(" ")}]`);
+      ok(await until(async()=>{ ai=await info(); return !ai.warm&&ai.target===CKB&&dF()>CD.fire.r; },6000)&&me().auto,"hết tầng Hàn: quay lại đánh thú vương");
+      await autoOp("off"); await test(A,"slay",{bid:CKB});
+    }
   }finally{ await A.room.leave(); }
 }
 

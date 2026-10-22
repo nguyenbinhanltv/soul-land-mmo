@@ -3995,8 +3995,10 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
  *   thanh tẩy để giải; `hold`: giữ võ hồn đổi vì cơ chế (khống chế ngắt tích lực, phụ trợ thanh tẩy, đúng hệ điểm yếu / phá Bá Thể) tối
  *   đa ngần ấy giây mỗi lần rồi thôi (hồi chiêu chưa xong thì không đứng chờ mãi).
+ * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
+ *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
  */
-export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8 };
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
