@@ -109,6 +109,9 @@ const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
 const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
 const TELE_COL = 0xff3b3b;
+/** Thời gian nở của bọc trứng theo mã loài (EggDef trong chiêu thú vương, #162): đồng hồ nở vẽ theo phần còn lại. */
+const EGG_SECS = new Map(BOSSES.flatMap((d) => [...d.skills, ...(d.phase2?.skills ?? [])]).flatMap((x) => (x.eggs ? [[x.eggs.species, x.eggs.secs] as const] : [])));
+const eggLeft = (b: any) => (b.egg / 10).toFixed(1).replace(".", ",");
 /** Vòng an toàn của chiêu toàn sàn boss thế giới (#118) và vòng sóng chỗ Du Thủy sắp nổi lên. */
 const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
 /**
@@ -924,6 +927,27 @@ export class GameScene extends Phaser.Scene {
       const r = r0 + (r1 - r0) * o.k; g.clear(); g.lineStyle(2, hex(col), 1 - o.k); g.strokeEllipse(c.x, c.y, 2 * RX * r, 2 * RY * r);
     }, onComplete: () => g.destroy() });
   }
+  /**
+   * Bọc trứng (#162): `lay` sợi tơ từ thú vương tới chỗ đẻ và vòng nhỏ; `hatch` vòng lan màu hào quang, chữ "Nở!"; `break` mảnh kén văng
+   * ra và vòng trắng; `fade` (thú vương không còn) chỉ mảnh kén.
+   */
+  eggFx(m: any) {
+    const c = W2S(m.x, m.y), col = m.col ?? "#c8f5b4";
+    if (m.s === "lay") {
+      const o = W2S(m.x0, m.y0), g = this.add.graphics().setDepth(99980);
+      g.lineStyle(1, 0xeef6e4, 0.9).lineBetween(o.x, o.y - 10 * SPR, c.x, c.y - 6 * SPR);
+      this.tweens.add({ targets: g, alpha: 0, duration: 450, onComplete: () => g.destroy() });
+      this.ringFx(c, 2, 12, col, 400);
+      return;
+    }
+    if (m.s === "hatch") { this.ringFx(c, 4, 28, col, 550); this.ringFx(c, 2, 16, "#ffffff", 400, 120); this.floatText(c.x, c.y - 22 * SPR, "Nở!", "#ff6b6b"); }
+    if (m.s === "break") this.ringFx(c, 2, 16, "#ffffff", 350);
+    for (let k = 0; k < 7; k++) {
+      const a = (k / 7) * Math.PI * 2 + Math.random() * 0.5, d = (10 + Math.random() * 8) * SPR;
+      const r = this.add.rectangle(c.x, c.y - 8 * SPR, 2 * SPR, 2 * SPR, k % 2 ? 0xeef6e4 : 0xa9bd96).setDepth(99980);
+      this.tweens.add({ targets: r, x: c.x + Math.cos(a) * d, y: c.y - 8 * SPR + Math.sin(a) * d * 0.6 + 6 * SPR, alpha: 0, duration: 450, onComplete: () => r.destroy() });
+    }
+  }
   /** Chân hồn sư `id` trên màn hình (điểm gốc của hình đang vẽ). */
   feet(v: PView): Pt { return { x: v.root.x, y: v.root.y }; }
 
@@ -954,6 +978,7 @@ export class GameScene extends Phaser.Scene {
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
     if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.cameras.main.shake(300, 0.004); }
+    else if (m.k === "egg") this.eggFx(m);
     // Truyền tống trận (11.2): mở khóa (vòng lan rộng), bắt đầu / thôi niệm (cột sáng), lúc đi và lúc tới (chớp sáng).
     else if (m.k === "wpopen") { const c = W2S(m.x, m.y); this.ringFx(c, 4, 40, "#8fe0ff", 900); this.ringFx(c, 2, 26, "#e8fbff", 700, 150); }
     else if (m.k === "wpcast") { if (m.t > 0) this.wpCasts.set(m.id, { t0: this.time.now, ms: m.t * 1000 }); else this.wpCasts.delete(m.id); }
@@ -1629,8 +1654,12 @@ export class GameScene extends Phaser.Scene {
       // Báo trước chiêu (3.5): sheet theo loài giữ khung đầu `attack`; sprite vẽ bằng code thì phồng lên co lại.
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
       // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
-      const k = rankScale(b.rank), spr = syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
-      if (!spr) {
+      // Bọc trứng (#162): kén vẽ bằng code, phập phồng nhanh dần khi sắp nở (đồng hồ nở vẽ ở lớp phủ bên dưới).
+      const egg = b.egg > 0, k = rankScale(b.rank), spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
+      if (egg) {
+        if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
+        s.setScale(SPR * (1 + (b.egg < 30 ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
+      } else if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
       } else {
@@ -1650,15 +1679,15 @@ export class GameScene extends Phaser.Scene {
       const dsx = s.x - ox;
       if (spr !== "iso") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
       s.setDepth(s.y);
-      if (b.rank) {
+      if (b.rank || egg) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
-          lb = this.add.text(s.x, s.y, beastName(b.rank, b.species), { fontFamily: FONT, fontSize: b.rank >= 2 ? "9px" : "7px", fontStyle: "800",
-            color: BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
+          lb = this.add.text(s.x, s.y, "", { fontFamily: FONT, fontSize: b.rank >= 2 ? "9px" : "7px", fontStyle: "800",
+            color: egg ? "#c8f5b4" : BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984).setScale(this.txtK);
       }
@@ -1699,7 +1728,14 @@ export class GameScene extends Phaser.Scene {
     const g = this.ov; g.clear();
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id)!, t = TIERS[b.tier];
-      if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, (t.size + 6) * SPR, 6 * SPR); }
+      if (b.egg) {
+        // Đồng hồ nở (#162): cung trên mặt đất quanh bọc, ngắn dần theo thời gian còn lại; dưới 3 giây thì đỏ.
+        const f = Math.min(1, b.egg / 10 / (EGG_SECS.get(BEASTS[b.species]?.id ?? "") ?? b.egg / 10)), n = Math.max(2, Math.ceil(f * 32)), pts: Pt[] = [];
+        for (let i = 0; i <= n; i++) { const a = -Math.PI / 2 + (f * 2 * Math.PI * i) / n; pts.push({ x: s.x + Math.cos(a) * RX * 14, y: s.y + Math.sin(a) * RY * 14 }); }
+        g.lineStyle(1, 0x000000, 0.5).strokeEllipse(s.x, s.y, 2 * RX * 14, 2 * RY * 14);
+        g.lineStyle(2, b.egg < 30 ? 0xff5a3a : 0x9be23a, 0.95).strokePoints(pts);
+      }
+      else if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, (t.size + 6) * SPR, 6 * SPR); }
       if (b.hp < b.maxHp) {
         const w = Math.max(14, t.size + 4) * SPR;
         const y = beastTop(s, b.tier) - 2;
@@ -2056,7 +2092,9 @@ export class GameScene extends Phaser.Scene {
     // Cấp tương đương theo số năm (BĐ3) và mức kinh nghiệm còn nhận khi hồn thú thấp hơn võ hồn ra trận (mục 5.3).
     const tLv = tb ? beastLevel(tb.years) : 0, xpk = tb ? xpLevelScale(me.level, tLv) : 1;
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+    // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
+    hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
+      : tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
     let dr: any = null, dd = PICKUP_RANGE;

@@ -41,6 +41,7 @@ import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClock
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow } from "../db.ts";
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
+import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
@@ -396,6 +397,8 @@ export class MapRoom extends Room<MapState> {
   map!: GameMap;
   pdata = new Map<string, PData>();
   bdata = new Map<string, BData>();
+  /** Bọc trứng của chiêu có `eggs` (#162, Vạn Chu Phệ; eggs.ts). */
+  eggs = new SpiderEggs(this);
   /** Hồn hạch đang nằm dưới đất (bước 5.1): id đồ rơi -> sao và chỉ số đã tung lúc rơi (DropState chỉ đồng bộ sao và bộ). */
   coreDrops = new Map<string, { stars: number; data: CoreData }>();
   projs: Proj[] = [];
@@ -2474,6 +2477,11 @@ export class MapRoom extends Room<MapState> {
           safe: bd.cast?.safe ?? [], x: b.x, y: b.y };
       }
     }
+    else if (op === "egg") {
+      // #162: bọc trứng của phòng (eggs.info) và số hồn thú do thú vương gọi ra còn sống; `t {s}` đặt mọi bọc còn đúng s giây trước khi nở.
+      const t = typeof o.t === "number" && o.t >= 0 ? Math.min(60, o.t) : undefined, kd = this.king?.bid ? this.bdata.get(this.king.bid) : undefined;
+      out = { eggs: this.eggs.info(t), minions: kd ? [...kd.minions].filter((m) => this.state.beasts.has(m)) : [] };
+    }
     else if (op === "kdmg") {
       // BĐ5: gây đúng `v` sát thương lên thú vương của phòng (không chí mạng, đi qua damageBeast: thành người tham gia, ghi đóng góp).
       // Từ #119 `bid`: lên hồn thú đó (tinh anh, dù ở xa).
@@ -3272,6 +3280,7 @@ export class MapRoom extends Room<MapState> {
         if (add > 0) { b.hp += add; this.broadcast("dmg", { x: b.x, y: b.y - 10, v: add, c: "#7dff8a" }); } // số xanh: hồi máu
       }
     }
+    if (def.eggs) this.eggs.lay(bid, b, def.eggs); // #162: đẻ bọc trứng, phá kịp thì không nở
     if (def.summon) this.summonPack(b, bd, def.summon, c.target);
   }
 
@@ -3815,6 +3824,7 @@ export class MapRoom extends Room<MapState> {
    * vào túi vẫn chỉ của người hạ. Đồ rơi ưu tiên cả tổ đội của người được ưu tiên (newDrop chụp id tổ đội).
    */
   killBeast(bid: string, by: string) {
+    if (this.eggs.has(bid)) return this.eggs.broke(bid, by); // bọc trứng (#162): vỡ, không nở, không thưởng
     const b = this.state.beasts.get(bid)!, e = this.bdata.get(bid)?.elite;
     const td = TIERS[b.tier], name = beastName(b.rank, b.species), age = formatYears(b.years);
     this.state.beasts.delete(bid); this.bdata.delete(bid);
@@ -5285,6 +5295,7 @@ export class MapRoom extends Room<MapState> {
     for (const bid of [...this.state.beasts.keys()]) this.tickStatus(bid, dt);
     this.state.beasts.forEach((b, id) => {
       const bd = this.bdata.get(id)!, td = TIERS[b.tier];
+      if (b.egg) return; // bọc trứng (#162): không đi, không đánh, không hồi máu; đếm giờ nở ở eggs.tick
       bd.cd -= dt; bd.anim += dt; bd.calm += dt;
       // 11.4: hồn thú thường không mục tiêu, không đang về chỗ sinh / niệm chiêu / bị đẩy, cách mọi hồn sư quá SYNC_VIEW.wake thì ngủ:
       // không lang thang, không tìm mục tiêu (không ai trong tầm phát hiện), chỉ hồi máu và đếm hồi chiêu như khi thức.
@@ -5396,6 +5407,9 @@ export class MapRoom extends Room<MapState> {
       }
       return true;
     });
+
+    // #162: bọc trứng đếm giờ nở, hết giờ thì nở nhện con
+    this.eggs.tick(dt);
 
     // hồn hoàn rơi dưới đất: hết DROP_TTL_SECS giây thì biến mất (từ 3.2 hấp thụ từ túi, không còn ai "đang hấp thụ" hồn hoàn dưới đất)
     this.state.drops.forEach((dr, id) => {
