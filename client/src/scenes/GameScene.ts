@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
+  ringSkill, loadoutOf, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
@@ -24,6 +24,7 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
+import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
@@ -220,7 +221,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
-      this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
+      this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
@@ -315,6 +316,17 @@ export class GameScene extends Phaser.Scene {
     this.audio.bindUnlock(this.ac.signal);
     this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
+    // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
+    const ownedAt = (rowId: number | undefined) => this.owned?.list.find((v) => v.rowId === rowId);
+    bindAutoPanel({
+      send: (op, cfg) => this.room.send("auto", cfg ? { op, cfg } : { op }),
+      slotName: (i) => { const v = ownedAt(this.owned?.team[i]); return v ? `${VOHON[Math.max(0, vohonIndex(v.vohon))].name} cấp ${v.level}` : ""; },
+      skillName: (i) => {
+        const v = ownedAt(this.owned?.active); if (!v) return "";
+        const r = loadoutOf(v.vohon, v.skills)[i];
+        return r >= 0 && r < v.rings.length ? ringSkill(v.vohon, r)?.name ?? "" : "";
+      },
+    }, this.ac.signal);
     this.setupInput();
     this.setupMessages();
     document.getElementById("hud")!.hidden = false;
@@ -512,6 +524,10 @@ export class GameScene extends Phaser.Scene {
   setupInput() {
     const chat = document.getElementById("chat") as HTMLInputElement;
     const typing = () => document.activeElement === chat;
+    // Ô nhập khác trên HUD (niên hạn, sao hồn hạch ở bảng Tự động, ô mời tổ đội): phím thuộc về ô, không phải phím tắt game.
+    // Ô đánh dấu / thanh trượt / nút không tính (bảng tự bỏ tiêu điểm sau khi đổi).
+    const field = (t: EventTarget | null) => t instanceof HTMLSelectElement || t instanceof HTMLTextAreaElement ||
+      (t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button"].includes(t.type));
     const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
@@ -519,12 +535,14 @@ export class GameScene extends Phaser.Scene {
         if (e.key === "Escape") chat.blur();
         return;
       }
+      const f = document.activeElement;
+      if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
-      if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); hud.toggleRoster(); return; }
-      if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); hud.toggleBag(); return; }
-      if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
-      if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
-      if (e.code === "Escape") { closeAudioPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); return; }
+      if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
+      if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
+      if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
@@ -544,11 +562,13 @@ export class GameScene extends Phaser.Scene {
     addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
     addEventListener("blur", () => { this.keys = {}; }, on);
     chat.addEventListener("focus", () => { this.keys = {}; }, on);
-    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleRoster(); }, on);
-    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleBag(); }, on);
-    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleReso(); }, on);
-    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); this.openWorld(); }, on);
-    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.toggleAuto(); }, on);
+    addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
+    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
+    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
+    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
+    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); this.openWorld(); }, on);
+    // Nút "Tự động" mở bảng cài đặt (Auto 2); phím T vẫn bật / tắt ngay.
+    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); toggleAutoPanel(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
     document.getElementById("chanBtn")!.addEventListener("click", (e) => {
@@ -605,7 +625,7 @@ export class GameScene extends Phaser.Scene {
   /** Xin đi qua cổng đang đứng: chỉ gửi tên cổng, server kiểm tra vị trí và chọn bản đồ đích. */
   goPortal() { if (this.portal?.name) this.room.send("travel", { portal: this.portal.name }); }
 
-  /** Bật / tắt tự săn (phím T, nút "Tự động"; Auto 1): chỉ gửi ý định, server kiểm tra và trả tin `auto`. */
+  /** Bật / tắt tự săn (phím T, nút trong bảng Tự động): chỉ gửi ý định, server kiểm tra và trả tin `auto`. */
   toggleAuto() { this.room.send("auto", { op: this.room.state.players.get(this.me)?.auto ? "off" : "on" }); }
 
   act(a: string) {
@@ -745,7 +765,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.room.onMessage("recall", (m: { on: boolean; label?: string; secs?: number }) => hud.setRecall(m?.on ? { label: m.label ?? "", secs: m.secs ?? 1 } : null));
     // Tự săn (Auto 1): trạng thái nút và giờ treo còn lại; server báo lý do dừng / từ chối bằng dòng log.
-    this.room.onMessage("auto", (m: AutoMsg) => hud.setAuto(m));
+    this.room.onMessage("auto", (m: AutoMsg) => { hud.setAuto(m); setAutoMsg(m); }); // bảng Tự động, tổng kết khi dừng (Auto 2)
     // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
     this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
     if (!this.isArena) this.room.send("offline");

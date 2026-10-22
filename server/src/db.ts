@@ -61,9 +61,14 @@ export interface Item {
 export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; }
 /**
  * Tự săn (Auto 1, bảng `auto_hunt`, mục 5.13): cài đặt (JSON thô, room kiểm lại bằng parseAuto) và số giây đã treo trong ngày `day`
- * (giờ Việt Nam). Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
+ * (giờ Việt Nam), `bonus`: giây treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2, 021_auto_bonus.sql; không đặt lại theo ngày).
+ * Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
  */
-export interface AutoRow { settings: unknown; day: string; used: number; }
+export interface AutoRow { settings: unknown; day: string; used: number; bonus: number; }
+/** Giờ treo đã dùng / cộng thêm phải là số hữu hạn không âm (lưu của cả hai store kiểm trước khi ghi). */
+function checkAutoRow(row: AutoRow) {
+  if (!Number.isFinite(row.used) || row.used < 0 || !Number.isFinite(row.bonus) || row.bonus < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
+}
 /**
  * Ủy thác offline (Auto 3, bảng `auto_offline`, mục 5.13): thoát ở vùng săn `zone` của bản đồ `mapId` lúc `at` (ms, đồng hồ server);
  * `day` / `used`: ngày giờ Việt Nam và giây tự săn đã treo trong ngày đó lúc thoát.
@@ -170,6 +175,11 @@ export interface Store {
   getAuto(accountId: number): Promise<AutoRow>;
   /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
   saveAuto(accountId: number, row: AutoRow): Promise<void>;
+  /**
+   * Dùng Ủy Thác Lệnh (Auto 2): trong MỘT transaction ghi dòng tự săn `row` (quỹ giờ đã cộng) và cả túi `bag` (đã bớt lệnh), như
+   * saveAuto + saveBag. Hoặc ghi hết, hoặc không ghi gì (không mất lệnh mà không có giờ, không có giờ mà lệnh còn).
+   */
+  saveAutoBag(accountId: number, row: AutoRow, bag: Bag): Promise<void>;
   /** Ghi (đè) lần ủy thác offline của tài khoản (bảng `auto_offline`, Auto 3); chỉ gọi trong chuỗi lưu của người chơi. */
   startOffline(accountId: number, row: OfflineRow): Promise<void>;
   /** Lấy và xóa lần ủy thác offline (một lệnh, nên không nhận hai lần); không có thì null. */
@@ -407,11 +417,16 @@ export class MemoryStore implements Store {
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = this.autos.get(accountId);
-    return r ? { settings: structuredClone(r.settings), day: r.day, used: r.used } : { settings: null, day: "", used: 0 };
+    return r ? { settings: structuredClone(r.settings), day: r.day, used: r.used, bonus: r.bonus } : { settings: null, day: "", used: 0, bonus: 0 };
   }
   async saveAuto(accountId: number, row: AutoRow) {
-    if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
-    this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used });
+    checkAutoRow(row);
+    this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used, bonus: row.bonus });
+  }
+  async saveAutoBag(accountId: number, row: AutoRow, bag: Bag) {
+    checkAutoRow(row); this.checkBag(accountId, bag);
+    await this.saveAuto(accountId, row);
+    this.putBag(accountId, bag);
   }
   async startOffline(accountId: number, row: OfflineRow) { this.offline.set(accountId, { ...row }); }
   async takeOffline(accountId: number) {
@@ -807,16 +822,30 @@ export class PgStore implements Store {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
   }
   async getAuto(accountId: number): Promise<AutoRow> {
-    const r = await this.pool.query("SELECT settings, day, used_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
-    if (!r.rowCount) return { settings: null, day: "", used: 0 };
-    return { settings: r.rows[0].settings, day: String(r.rows[0].day), used: Number(r.rows[0].used_secs) || 0 };
+    const r = await this.pool.query("SELECT settings, day, used_secs, bonus_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
+    if (!r.rowCount) return { settings: null, day: "", used: 0, bonus: 0 };
+    return { settings: r.rows[0].settings, day: String(r.rows[0].day), used: Number(r.rows[0].used_secs) || 0, bonus: Number(r.rows[0].bonus_secs) || 0 };
   }
-  async saveAuto(accountId: number, row: AutoRow) {
-    if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
-    await this.pool.query(
-      `INSERT INTO auto_hunt (account_id, settings, day, used_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, now())
-       ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs, updated_at=now()`,
-      [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used]);
+  async saveAuto(accountId: number, row: AutoRow, db: pg.Pool | pg.PoolClient = this.pool) {
+    checkAutoRow(row);
+    await db.query(
+      `INSERT INTO auto_hunt (account_id, settings, day, used_secs, bonus_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, $5, now())
+       ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs,
+         bonus_secs=EXCLUDED.bonus_secs, updated_at=now()`,
+      [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used, row.bonus]);
+  }
+  async saveAutoBag(accountId: number, row: AutoRow, bag: Bag) {
+    checkAutoRow(row);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await this.saveAuto(accountId, row, db);
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async startOffline(accountId: number, row: OfflineRow) {
     await this.pool.query(
