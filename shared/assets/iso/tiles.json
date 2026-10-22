@@ -831,14 +831,15 @@
      "79,60": {
       "main": ["nha_truong_thon"],
       "gate": "cong_lang_go",
-      "deco": ["gieng_da", "thung_go_chong", "vuon_rau", "dong_rom"],
+      "deco": ["thung_go_chong", "vuon_rau", "dong_rom"],
       "floor": "dat_lang"
      },
      "111,60": {
       "main": ["vu_hon_dien_nho"],
       "gate": "bac_den",
-      "deco": ["cot_den_do", "bon_hoa", "thung_go_chong"],
-      "floor": "da_cuoi"
+      "deco": ["cot_den_do", "bon_hoa"],
+      "floor": "da_cuoi",
+      "walls": false
      },
      "94,60": {
       "main": ["nha_nong_dan"],
@@ -919,7 +920,7 @@
     "tower": "thap_cong_thanh",
     "compounds": {
      "100,10": {
-      "main": ["xuong_ren"],
+      "main": ["xuong_ren", "lo_ren_lang"],
       "gate": "cong_sat",
       "deco": ["gia_vu_khi", "thung_go_chong", "lo_lua_dong"],
       "floor": "pho_da"
