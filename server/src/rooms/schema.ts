@@ -41,13 +41,14 @@ export class PlayerState extends Schema {
   @type("float32") avaCd: number = 0;   // từ 8.1a: hồi chiêu Chân Thân còn lại của võ hồn ra trận (nút R của chính mình)
   @type("float32") ctCd: number = 0;    // từ 9.6: hồi chiêu hồn kỹ Chân Thân (ô P khi đang Chân Thân, CHAN_THAN_SKILL_CD); hồi chiêu ô P cũ vẫn ở cds
   @type("uint16") st: number = 0;       // từ 3.5: trạng thái trên hồn sư do chiêu báo trước của hồn thú gây (bit theo STATUS_IDS, PLAYER_STATUS)
-  // #175: Che tầm nhìn (`ink`) là bit 14, uint16 còn một bit (15); thêm quá thì đổi `st` ở đây và ở BeastState sang uint32.
+  // #175: Che tầm nhìn (`ink`) là bit 15, bit cuối của uint16; thêm trạng thái nữa thì đổi `st` ở đây và ở BeastState sang uint32.
   @type("uint8") han: number = 0;       // từ #163: số tầng Hàn (Cực Hàn, STATUS.chill); ai cũng thấy chấm tầng dưới biểu tượng trên đầu
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;
   @type("boolean") dead: boolean = false;
   @type("uint32") kills: number = 0;
   @type("boolean") auto: boolean = false; // Auto 1 (mục 5.13): đang tự săn; ai cũng thấy chữ "Tự động" trên đầu
+  @type("uint8") tong: number = 0;        // #196 (mục 5.14): tông môn, chỉ số trong TONG_MON + 1 (0 = không); tên tông màu riêng dưới tên
 }
 
 export class BeastState extends Schema {
@@ -122,6 +123,8 @@ export class GroundState extends Schema {
   @type("uint16") w: number = 0;
   @type("uint16") arc: number = 0;
   @type("uint16") ttl: number = 0;
+  // Từ #174: giây báo trước còn lại (làm tròn lên, 0 = vùng đã có tác dụng; GroundDef.warn): client vẽ dạng nước sắp dâng.
+  @type("uint8") wait: number = 0;
 }
 
 export class MapState extends Schema {
