@@ -5246,6 +5246,52 @@ async function autoTest(){
     }
   }
 
+  // ---- #324: hồn thú sau lưng, cùng ô với mình, sát ô chặn: đường thẳng vướng mà A* trả đường rỗng (không có ô nào để đi). Tự săn phải
+  // quay lại đánh, không coi là không tới được rồi bỏ qua nó AUTO_MOVE.skip giây (quanh điểm neo có nhiều ô chặn lẻ; bài nợ nhịp bên dưới
+  // từng trượt vì vậy: hồn thú thử bị bỏ qua đúng 10 giây chờ). Chỗ thử chọn theo lưới ô chặn của file Tiled đang dùng.
+  {
+    const g=solidGrid(JSON.parse(readFileSync(mapUrl(NV),"utf8"))), s=TIERS[0].size, F=[[1,0],[-1,0],[0,1],[0,-1]];
+    const reach=(P,f,Q)=>Math.hypot(Q.x-(P.x+f[0]*10),Q.y-s/2-(P.y-6+f[1]*10))<18+s/2-2; // hình đòn thường (AutoHunter.inReach)
+    /** Độ dời nguyên tới chỗ hồn thú sau lưng P (mặt hướng f): cùng ô, ngoài tầm đánh, đường thẳng vướng, A* rỗng; không có thì null. */
+    const behind=(P,f)=>{
+      const tx=Math.floor(P.x/16), ty=Math.floor(P.y/16);
+      for(let dy=-15;dy<=15;dy++) for(let dx=-15;dx<=15;dx++){
+        const Q={x:P.x+dx,y:P.y+dy};
+        if(Math.floor(Q.x/16)!==tx||Math.floor(Q.y/16)!==ty||Math.hypot(dx,dy)<=8||dx*f[0]+dy*f[1]>0) continue;
+        if(hits(g,Q.x,Q.y,3,3)||reach(P,f,Q)||clearLine(g,P,Q)||findPath(g,P,Q,AUTO_MOVE.path).length) continue;
+        return {dx,dy};
+      }
+      return null;
+    };
+    // Chỗ đứng S gần điểm neo: bước một chút theo f (quay mặt) từ S thì chỗ mới vẫn có hồn thú sau lưng như trên.
+    let spot=null;
+    for(let r=0;r<=4&&!spot;r++) for(let ty=Math.floor(home.y/16)-r;ty<=Math.floor(home.y/16)+r&&!spot;ty++) for(let tx=Math.floor(home.x/16)-r;tx<=Math.floor(home.x/16)+r&&!spot;tx++){
+      if(Math.max(Math.abs(tx-Math.floor(home.x/16)),Math.abs(ty-Math.floor(home.y/16)))!==r) continue;
+      for(let oy=2;oy<=14&&!spot;oy+=2) for(let ox=2;ox<=14&&!spot;ox+=2) for(const f of F){
+        const S={x:tx*16+ox,y:ty*16+oy};
+        if(hits(g,S.x,S.y,PLAYER_HW,PLAYER_HH)||inCamp(S.x,S.y)) continue;
+        let all=true; for(let k=1;k<=8&&all;k++){ const P={x:S.x+f[0]*k,y:S.y+f[1]*k}; all=!hits(g,P.x,P.y,PLAYER_HW,PLAYER_HH)&&!!behind(P,f); }
+        if(!all) continue;
+        await test(A,"goto",S); if(Math.hypot(me(A).x-S.x,me(A).y-S.y)>=1) continue;
+        await step(A,f[0],f[1]);
+        const P={x:me(A).x,y:me(A).y}, q=behind(P,f); if(q){ spot={P,f,q}; break; }
+      }
+    }
+    if(!spot) console.log("  ⚠ bỏ qua #324 (hồn thú sau lưng cùng ô): không tìm được chỗ thử quanh điểm neo");
+    else{
+      await test(A,"clear");
+      // Loài cắm rễ (BEAST_ROOTED): không lang thang, không bị đẩy lùi, chỗ đứng giữ đúng như đã chọn. Không hồn kỹ / tiên cơ (trúng từ xa).
+      const bid=(await test(A,"spawn",{tier:0,dx:spot.q.dx,dy:spot.q.dy,years:15,species:BEAST_ROOTED.ids[0],hpx:50}))?.bid, bb=()=>A.room.state.beasts.get(bid);
+      await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[],skills:[],tienCo:false}});
+      m=await autoOp(A,"on");
+      const hit=m?.on&&bid&&await waitFor(()=>bb()&&bb().hp<bb().maxHp,4000), st=await test(A,"auto",{bid});
+      ok(hit&&st?.beast?.skip==null,`#324: hồn thú sau lưng cùng ô, sát ô chặn (đứng ${spot.P.x.toFixed(1)},${spot.P.y.toFixed(1)} mặt ${spot.f}, hồn thú +${spot.q.dx},+${spot.q.dy}): quay lại đánh, không bỏ qua`
+        +(hit&&st?.beast?.skip==null?"":` [A ${me(A).x.toFixed(1)},${me(A).y.toFixed(1)}; mục tiêu ${st?.target}, ${JSON.stringify(st?.beast)}]`));
+      await autoOp(A,"off"); if(bid) await test(A,"slay",{bid});
+      await autoOp(A,"set",{cfg:NEAR});
+    }
+  }
+
   // ---- #213: trần tốc độ (AUTO_PACE): còn nợ nhịp thì đứng nghỉ; mỗi con hạ cộng thời gian tự đánh (offlineFight, mốc ủy thác offline) ----
   {
     // Điểm neo ở bãi hồn thú hung hăng hồi sinh liên tục: trong lúc chờ, dọn hồn thú tự nhiên quanh A (giữ các con đang thử) để không

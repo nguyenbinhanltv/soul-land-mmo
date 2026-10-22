@@ -635,6 +635,10 @@ export class AutoHunter {
     const { grid, nav } = navOf(this.room.map), M = AUTO_MOVE.path;
     const far = Math.max(Math.abs(this.goal.x - p.x), Math.abs(this.goal.y - p.y)) > (M.maxTiles - 2) * TILE;
     this.path = far ? findLongPath(grid, nav, p, this.goal, AUTO_MOVE.nav.look, M) : findPath(grid, p, this.goal, M);
+    // Đích cùng ô với mình mà đường thẳng vướng (ví dụ hồn thú đứng sau lưng, sát ô chặn): A* không có ô nào để đi nên trả đường rỗng,
+    // không phải không tới được; đi thẳng tới (bước này quay mặt), vướng thật thì checkStuck bỏ sau AUTO_MOVE.stuck giây (#324).
+    if (!this.path.length && Math.floor(p.x / TILE) === Math.floor(this.goal.x / TILE) && Math.floor(p.y / TILE) === Math.floor(this.goal.y / TILE))
+      this.path = [{ x: this.goal.x, y: this.goal.y }];
     // Không tới gần được; hoặc không còn bước nào mà chưa tới đích (đích sát ô chặn / vùng an toàn: đã đứng ở ô tới được gần nhất, ví dụ
     // đồ rơi ngoài tầm nhặt), không thì đứng yên mãi mà không tính là kẹt.
     const end = this.path.at(-1) ?? p;
