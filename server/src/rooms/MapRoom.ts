@@ -31,7 +31,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
+  ARENA, arenaTeamElo, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
   BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
@@ -45,7 +45,7 @@ import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
-import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlot, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaEntry } from "./arenaQueue.ts";
+import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
@@ -1418,7 +1418,19 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     this.autoStop(id, "rời bản đồ."); // tự săn (Auto 1): đi cổng, truyền tống sang bản đồ khác, vào sân đấu, mất kết nối
     d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
-    arenaDequeue(d.accountId); // rời bản đồ / đi cổng thì ra khỏi hàng chờ Đại Đấu Hồn Trường (7.2)
+    // Rời bản đồ thì bỏ cả bên. Báo cho thành viên còn ở phòng để ô hàng chờ và khóa tổ đội không bị treo.
+    const q = arenaQueued(d.accountId);
+    if (q && arenaDequeue(d.accountId)) {
+      for (const member of q.members) {
+        const row = [...this.pdata.entries()].find(([, x]) => x.accountId === member.accountId);
+        if (!row) continue;
+        this.sendArenaQueue(row[0]);
+        if (row[0] !== id) this.log(row[0], "Đồng đội đã rời phòng, hàng chờ Đại Đấu Hồn Trường đã hủy.", "#ffb35c");
+      }
+    }
+    // Nếu còn ở pha đọc Elo, đánh dấu hủy nhưng giữ arenaBusy tới khi Promise kết thúc (#225/#227).
+    const accounts = party.partyIdOf(d.accountId) ? party.partyMembers(d.accountId) : [d.accountId];
+    accounts.forEach((acc) => arenaReadCancel(acc));
     this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
     this.projs = this.projs.filter((pr) => pr.owner !== id);
   }
@@ -2226,31 +2238,74 @@ export class MapRoom extends Room<MapState> {
 
   // ---------- Đại Đấu Hồn Trường: xếp hàng ở NPC, bảng xếp hạng (mục 5.9, bước 7.2; trận đấu ở ArenaRoom) ----------
   /**
-   * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến, đang trong
-   * tổ đội người chơi (7.1; đấu hồn là 1v1, rời tổ đội rồi mới xếp hàng). Người đang xếp hàng mà rơi vào một trong các trạng thái này
-   * thì vòng ghép bỏ qua (vẫn giữ chỗ).
+   * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến,
+   * hoặc tổ đội chưa đủ điều kiện 2 người cùng phòng. Người đang xếp hàng mà rơi vào một trạng thái này thì vòng ghép bỏ qua
+   * (vẫn giữ chỗ), trừ khi rời phòng thì cả bên bị bỏ khỏi hàng.
    */
+  arenaAccounts(accountId: number) {
+    const members = party.partyMembers(accountId);
+    return members.length ? [...members] : [accountId];
+  }
+
   arenaBusy(id: string): string {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return "Không có hồn sư.";
-    if (d.travelling) return "Đang chuyển bản đồ.";
-    if (d.travelCast) return "Đang đi qua cổng.";
-    if (p.dead) return "Đã gục ngã.";
-    if (d.absorbing) return "Đang hấp thụ hồn hoàn.";
-    if (d.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
-    if (party.partyIdOf(d.accountId)) return "Đang trong tổ đội: rời tổ đội rồi mới đấu hồn 1v1.";
+    const one = (q: PlayerState, x: PData) => {
+      if (x.travelling) return "Đang chuyển bản đồ.";
+      if (x.travelCast) return "Đang đi qua cổng.";
+      if (q.dead) return "Đã gục ngã.";
+      if (x.absorbing) return "Đang hấp thụ hồn hoàn.";
+      if (x.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
+      return "";
+    };
+    const own = one(p, d); if (own) return own;
+    const pid = party.partyIdOf(d.accountId); if (!pid) return "";
+    const members = party.partyMembers(d.accountId);
+    if (members.length !== 2) return "Tổ đội Đại Đấu Hồn Trường cần đúng 2 người.";
+    if (party.partyLeader(d.accountId) !== d.accountId) return "Chỉ trưởng nhóm được xếp hàng cho tổ đội.";
+    if (!party.partyInRoom(d.accountId, this.roomId)) return "Hai thành viên phải ở cùng kênh bản đồ.";
+    for (const acc of members) {
+      const row = [...this.pdata.entries()].find(([, x]) => x.accountId === acc);
+      if (!row) return "Cả hai thành viên phải đang ở cùng kênh bản đồ.";
+      const q = this.state.players.get(row[0]); if (!q) return "Cả hai thành viên phải đang ở cùng kênh bản đồ.";
+      const why = one(q, row[1]); if (why) return `${why} (thành viên tổ đội).`;
+    }
     return "";
+  }
+
+  /** Kiểm tra phiên của cả bên còn nguyên trước khi mở phòng riêng, tránh tạo trận thiếu thành viên. */
+  arenaCanFound(rows: [string, PData][]) {
+    return rows.every(([sid, d]) => this.clients.getById(sid) && this.state.players.get(sid) && this.pdata.get(sid) === d && !d.travelling);
+  }
+
+  /** Báo và đưa bên còn nguyên về hàng khi đối thủ rời đúng lúc vòng ghép mở phòng. */
+  arenaQueueRetry(rows: [string, PData][]) {
+    for (const [sid] of rows) {
+      if (!this.pdata.has(sid)) continue;
+      this.log(sid, "Đối thủ vừa rời hàng chờ, tiếp tục tìm trận.", "#ff9a8a");
+      this.sendArenaQueue(sid);
+    }
+  }
+
+  /** Báo cho phiên còn lại rằng mục hàng đã hủy vì bên này không còn đủ người vào sân. */
+  arenaQueueAbort(rows: [string, PData][]) {
+    for (const [sid] of rows) {
+      if (!this.pdata.has(sid)) continue;
+      this.log(sid, "Không thể vào sân Đại Đấu Hồn Trường, hàng chờ đã hủy.", "#ffb35c");
+      this.sendArenaQueue(sid);
+    }
   }
 
   /** Tin riêng "arena" k = "queue": đang xếp hàng hay không (client hiện / ẩn ô "Đang tìm trận"). */
   sendArenaQueue(id: string) {
     const d = this.pdata.get(id), q = d && arenaQueued(d.accountId);
-    this.clients.getById(id)?.send("arena", q ? { k: "queue", on: true, elo: q.rec.elo, secs: (Date.now() - q.since) / 1000 } : { k: "queue", on: false });
+    this.clients.getById(id)?.send("arena", q ? { k: "queue", on: true, elo: q.elo, members: q.members.map((m) => m.name), secs: (Date.now() - q.since) / 1000 } : { k: "queue", on: false });
   }
 
   /**
    * `arena {op}` (7.2): `queue` xếp hàng (phải đứng cạnh NPC Đại Đấu Hồn Trường, NPC_RANGE; không gục, không đi cổng, không hấp thụ,
    * không giao chiến), `cancel` hủy xếp hàng, `top` xin bảng xếp hạng kèm thành tích của mình (ở đâu cũng xem được, cách nhau ARENA.topCd
-   * giây). Elo đọc từ DB lúc xếp hàng, hai lần đọc của một tài khoản cách nhau ít nhất ARENA.queueCd giây (arenaQueueSlot; xếp rồi hủy
+   * giây). Elo đọc từ DB lúc xếp hàng, hai lần đọc của một tài khoản cách nhau ít nhất ARENA.queueCd giây (arenaQueueSlots; cả bên ghi
+   * mốc nguyên tử, xếp rồi hủy
    * liên tục không tạo tải DB đều đặn); `cancel` trong lúc đang đọc thì đọc xong không xếp hàng (#225). Ghép trận ở arenaQueue.ts, trận
    * đấu ở ArenaRoom.
    */
@@ -2259,43 +2314,68 @@ export class MapRoom extends Room<MapState> {
     const op = strIn(raw), warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendArenaQueue(id); };
     if (op === "top") return this.arenaTop(id);
     if (op === "cancel") {
-      if (arenaDequeue(d.accountId) || (d.arenaBusy && arenaReadCancel(d.accountId))) this.log(id, "Đã hủy xếp hàng Đại Đấu Hồn Trường.");
+      const accounts = this.arenaAccounts(d.accountId), removed = arenaDequeue(d.accountId), cancelled = accounts.some((acc) => arenaReadCancel(acc));
+      if (removed || cancelled) {
+        // Hủy mục đã vào queue thì mở khóa ngay; hủy lúc đọc Elo chỉ đánh dấu, Promise phải tự hạ cờ khi kết thúc.
+        for (const acc of accounts) {
+          const row = [...this.pdata.entries()].find(([, x]) => x.accountId === acc);
+          if (row) { if (removed) row[1].arenaBusy = false; this.sendArenaQueue(row[0]); }
+        }
+        this.log(id, "Đã hủy xếp hàng Đại Đấu Hồn Trường.");
+      }
       return this.sendArenaQueue(id);
     }
     if (op !== "queue") return warn("Thao tác Đại Đấu Hồn Trường không hợp lệ.");
     if (d.arenaBusy && arenaReadCancelled(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     if (arenaQueued(d.accountId) || d.arenaBusy) return warn("Đang tìm đối thủ rồi.");
-    if (!this.npcNear(id, { role: "arena" })) return warn("Hãy lại gần Đại Đấu Hồn Trường để xếp hàng.");
     const why = this.arenaBusy(id); if (why) return warn(`${why} Chưa xếp hàng được.`);
-    if (!arenaQueueSlot(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
-    d.arenaBusy = true;
-    arenaReadElo(d.accountId, () => store.getArena(d.accountId, ARENA.startElo)).then((rec) => {
-      d.arenaBusy = false;
-      if (this.pdata.get(id) !== d) return; // đã rời phòng trong lúc chờ DB
-      if (!rec) return this.sendArenaQueue(id); // đã hủy trong lúc đọc (#225), đã báo lúc hủy
+    const accounts = this.arenaAccounts(d.accountId);
+    const rows = accounts.map((acc) => [...this.pdata.entries()].find(([, x]) => x.accountId === acc)).filter((x): x is [string, PData] => !!x);
+    if (rows.length !== accounts.length) return warn("Cả hai thành viên phải đang ở cùng kênh bản đồ.");
+    if (!rows.every(([sid]) => this.npcNear(sid, { role: "arena" }))) return warn("Cả hai thành viên phải lại gần Đại Đấu Hồn Trường.");
+    if (!arenaQueueSlots(accounts)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
+    rows.forEach(([, x]) => { x.arenaBusy = true; });
+    Promise.all(rows.map(([, x]) => arenaReadElo(x.accountId, () => store.getArena(x.accountId, ARENA.startElo)))).then((recs) => {
+      rows.forEach(([, x]) => { x.arenaBusy = false; });
+      if (rows.some(([sid, x]) => this.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return;
+      const current = this.arenaAccounts(d.accountId);
+      if (current.length !== accounts.length || current.some((acc) => !accounts.includes(acc))) return;
       const late = this.arenaBusy(id); if (late) return warn(`${late} Chưa xếp hàng được.`);
-      const e: ArenaEntry = { accountId: d.accountId, name: p.name, rec, since: Date.now(),
-        ready: () => this.pdata.get(id) === d && !this.arenaBusy(id), found: (roomId, foe) => this.arenaFound(id, d, roomId, foe) };
+      const e: ArenaTeamEntry = { id: party.partyIdOf(d.accountId) ? `party:${party.partyIdOf(d.accountId)}` : `solo:${d.accountId}`,
+        members: rows.map(([, x], i) => ({ accountId: x.accountId, name: this.state.players.get(rows[i][0])!.name, rec: recs[i]! })),
+        elo: arenaTeamElo(recs.map((rec) => rec!.elo)), since: Date.now(),
+        ready: () => this.pdata.get(id) === d && this.arenaAccounts(d.accountId).length === accounts.length
+          && this.arenaAccounts(d.accountId).every((acc) => accounts.includes(acc)) && !this.arenaBusy(id),
+        canFound: () => this.arenaCanFound(rows), found: (roomId, foe) => this.arenaFound(rows, roomId, foe),
+        requeue: () => this.arenaQueueRetry(rows), abort: () => this.arenaQueueAbort(rows), rollback: () => this.arenaFoundRollback(rows) };
       arenaEnqueue(e);
-      this.log(id, `Đang tìm đối thủ (Elo ${rec.elo}): ghép người Elo gần nhất, chờ càng lâu càng nới rộng.`, "#ff9a8a");
-      this.sendArenaQueue(id);
-    }, (e) => { d.arenaBusy = false; console.error(`Không đọc được Elo của tài khoản #${d.accountId}`, e); warn("Không xếp hàng được, thử lại."); });
+      for (const [sid, x] of rows) { this.log(sid, `Đang tìm đối thủ (Elo đội ${e.elo}): ghép đội Elo gần nhất, chờ càng lâu càng nới rộng.`, "#ff9a8a"); this.sendArenaQueue(sid); }
+    }, (e) => { rows.forEach(([, x]) => { x.arenaBusy = false; }); console.error(`Không đọc được Elo đội Đại Đấu Hồn Trường`, e); warn("Không xếp hàng được, thử lại."); });
   }
 
   /**
    * Đã ghép trận (arenaQueue.ts): dừng mọi hành động như lúc đi cổng (freeze), báo client vào phòng ArenaRoom `roomId`. Client rời
    * phòng này (onLeave lưu vị trí như thường: sau trận quay về đúng chỗ cũ); không rời trong ARENA.joinSecs giây thì server ngắt kết
-   * nối. Trả false nếu người chơi đã rời phòng (trận sẽ xử như bỏ trận).
+   * nối. Trả false nếu một thành viên đã rời phòng; arenaQueue sẽ hủy trận và trả bên còn nguyên về hàng.
    */
-  arenaFound(id: string, d: PData, roomId: string, foe: ArenaEntry) {
-    const c = this.clients.getById(id), p = this.state.players.get(id);
-    if (!c || !p || this.pdata.get(id) !== d || d.travelling) return false;
-    this.freeze(id);
-    this.portalHint(id, p, d);
-    d.arenaGone = true;
-    c.send("arena", { k: "found", roomId, foe: foe.name, elo: foe.rec.elo });
-    this.clock.setTimeout(() => { if (this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+  arenaFound(rows: [string, PData][], roomId: string, foe: ArenaTeamEntry) {
+    if (!this.arenaCanFound(rows)) return false;
+    for (const [id, d] of rows) {
+      const c = this.clients.getById(id)!, p = this.state.players.get(id)!;
+      this.freeze(id); this.portalHint(id, p, d); d.arenaGone = true;
+      c.send("arena", { k: "found", roomId, foe: foe.members.map((m) => m.name).join(" / "), elo: foe.elo, members: foe.members.map((m) => m.name) });
+      this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+    }
     return true;
+  }
+
+  /** Hoàn tác freeze nếu bên kia mất phiên ngay sau khi matchMaker mở phòng nhưng trước khi cả hai nhận mã. */
+  arenaFoundRollback(rows: [string, PData][]) {
+    for (const [sid, d] of rows) {
+      const p = this.state.players.get(sid);
+      if (!p || this.pdata.get(sid) !== d) continue;
+      d.travelling = false; d.arenaGone = false; this.portalHint(sid, p, d);
+    }
   }
 
   /** Tin riêng "arenaTop": ARENA.topN dòng đầu bảng xếp hạng (dòng của mình có `me`), hạng / thành tích của mình, lượt thắng có thưởng còn lại hôm nay. */
@@ -5689,6 +5769,10 @@ export class MapRoom extends Room<MapState> {
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     let name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40);
     const now = Date.now(), acc = d.accountId;
+    if (["invite", "accept", "leave", "kick", "lead"].includes(op)) {
+      const locked = arenaQueueLocked(acc) || party.partyMembers(acc).some((member) => arenaQueueLocked(member));
+      if (locked || d.arenaBusy) return warn("Tổ đội đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
+    }
     let r: party.PartyResult;
     if (op === "get") return this.sendParty(id, true);
     if (op === "invite") {
@@ -5705,7 +5789,12 @@ export class MapRoom extends Room<MapState> {
       if (rl) return warn(rl.error);
       r = { notes: party.addInvite(acc, ok.target, now) };
     }
-    else if (op === "accept") r = party.accept(acc, name, now);
+    else if (op === "accept") {
+      // Lời mời được tạo trước khi người mời xếp đơn cũng phải bị chặn; nếu không tổ đội mới sẽ làm mục solo cũ sai thành phần.
+      const inviter = party.inviteFrom(acc, name, now);
+      if (inviter !== null && (arenaQueueLocked(inviter) || arenaReadActive(inviter))) return warn("Người mời đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
+      r = party.accept(acc, name, now);
+    }
     else if (op === "decline") r = party.decline(acc, name, now);
     else if (op === "leave") r = party.leave(acc);
     else if (op === "kick") r = party.kick(acc, name);
