@@ -7827,12 +7827,13 @@ async function eggTest(){
     ok(hit&&(await eggs()).find(e=>e.bid===b2.bid)?.hp<b2.maxHp,`đánh thường trúng bọc trứng: -${E.dmgs.find(m=>m.bid===b2.bid)?.v} máu, bọc vẫn đứng yên chờ nở`);
     await waitFor(()=>!((kingB()?.st??0)&statusBit("stun")),4000);
     // Phá một bọc: không nở, không kinh nghiệm / Hồn Tệ / đồ rơi.
+    ok(!xpBlocked(mo(E).level,RG.length),`E cấp ${mo(E).level}, ${RG.length} hồn hoàn: không ở bình cảnh (kinh nghiệm còn tăng được, dòng "không kinh nghiệm" có nghĩa)`);
     const br=eg[0], xp0=JSON.stringify([mo(E).level,mo(E).xp]), coin0=E.bag.honTe, l0=E.logs.length, d0=new Set(E.room.state.drops.keys()); E.fxs=[];
     const dealt=(await test(E,"bdmg",{bid:br.bid,v:1e8}))?.dealt;
     ok(dealt>0&&await waitFor(()=>E.fxs.some(f=>f.k==="egg"&&f.s==="break"),1500)&&(await eggs()).length===EG.n-1&&E.logs.slice(l0).some(t=>/Phá vỡ một bọc trứng/.test(t)),
       `phá một bọc: vỡ, còn ${EG.n-1} bọc; log "${E.logs.slice(l0).find(t=>/bọc trứng/.test(t))}"`);
     await sleep(300);
-    ok(!xpBlocked(mo(E).level,RG.length)&&JSON.stringify([mo(E).level,mo(E).xp])===xp0&&E.bag.honTe===coin0&&![...E.room.state.drops.keys()].some(k=>!d0.has(k)),"phá bọc: không kinh nghiệm, không Hồn Tệ, không đồ rơi");
+    ok(JSON.stringify([mo(E).level,mo(E).xp])===xp0&&E.bag.honTe===coin0&&![...E.room.state.drops.keys()].some(k=>!d0.has(k)),"phá bọc: không kinh nghiệm, không Hồn Tệ, không đồ rơi");
     // Hết giờ: mỗi bọc còn lại nở `per` nhện con cùng số năm; bọc đã phá không nở.
     const left=(await eggs()).map(e=>e.years); E.fxs=[]; await eggs(0.2);
     ok(await waitFor(()=>E.fxs.filter(f=>f.k==="egg"&&f.s==="hatch").length===EG.n-1,2000),`hết ${EG.secs} giây: ${EG.n-1} bọc nở`);
