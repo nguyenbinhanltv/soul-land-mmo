@@ -101,7 +101,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   WORLD, WORLD_TIME, WORLD_SLAM, WORLD_RING, WORLD_CHEST, worldNext, worldActive, worldBossOn, HE_IDS, FLOOR_SAFE, teleSafe,
   HERBS, HERB_MAX, HERB_PCT, HERB_ELITE, herbChance, herbBonus, parseHerbs,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
-  BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
+  BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee,
   boneEnhancePreview, BONE_MAX_SUBS, BONE_SUB_K, BONE_SUB_POOL, BONE_ENHANCE_MILESTONES, boneSubMax, boneSubsDue, parseBoneSubs, boneAddSubs,
   CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore, rollCoreStats,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
@@ -4237,10 +4237,19 @@ else {
       ok(boneName(AK,"tay_phai",32000,5)==="+5 Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm"&&boneName(AK,"tay_phai",32000)===akName,`tên có +N: ${boneName(AK,"tay_phai",32000,5)}`);
       const pv=boneEnhancePreview({slot:"than",xp:boneEnhanceNeed(19)},[{slot:"than",years:MAX_YEARS}]);
       ok(pv.level===BONE_MAX_ENHANCE&&pv.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&pv.waste===boneEnhanceNeed(19)+pv.gain-pv.xp&&pv.waste>0,`xem trước: kẹp ở +${BONE_MAX_ENHANCE}, dư ${pv.waste} điểm`);
+      // #281: phí Hồn Tệ theo cấp vượt qua (hàm thuần): cấp thấp miễn phí, chia nhỏ hay nhảy một lần cùng tổng, chưa lên cấp không mất phí.
+      { const stepSum=(T,a,b)=>Array.from({length:b-a},(_,k)=>enhanceFee(T,a+k,a+k+1)).reduce((x,y)=>x+y,0);
+        ok(BONE_ENHANCE_FEE.length===BONE_MAX_ENHANCE&&CORE_ENHANCE_FEE.length===CORE_MAX_ENHANCE&&enhanceFee(BONE_ENHANCE_FEE,0,5)===0&&enhanceFee(CORE_ENHANCE_FEE,0,3)===0
+          &&enhanceFee(BONE_ENHANCE_FEE,0,10)===5000&&enhanceFee(BONE_ENHANCE_FEE,0,BONE_MAX_ENHANCE)===60000&&enhanceFee(CORE_ENHANCE_FEE,0,CORE_MAX_ENHANCE)===55500
+          &&enhanceFee(BONE_ENHANCE_FEE,4,7)===BONE_ENHANCE_FEE[4]+BONE_ENHANCE_FEE[5]+BONE_ENHANCE_FEE[6]&&enhanceFee(BONE_ENHANCE_FEE,8,8)===0
+          &&stepSum(BONE_ENHANCE_FEE,0,BONE_MAX_ENHANCE)===enhanceFee(BONE_ENHANCE_FEE,0,BONE_MAX_ENHANCE)&&stepSum(CORE_ENHANCE_FEE,2,13)===enhanceFee(CORE_ENHANCE_FEE,2,13),
+          `phí cường hóa: +1..+5 miễn phí, tới +10 ${formatHonTe(enhanceFee(BONE_ENHANCE_FEE,0,10))}, +20 ${formatHonTe(enhanceFee(BONE_ENHANCE_FEE,0,BONE_MAX_ENHANCE))}; hồn hạch +15 ${formatHonTe(enhanceFee(CORE_ENHANCE_FEE,0,CORE_MAX_ENHANCE))}; chia nhỏ cùng tổng`); }
       // Hồn cốt đích: Tay phải 32.000 năm đang gắn trên võ hồn ra trận (từ 4.2).
       const act=A.owned.active, tpw=bonesOf(A).find(i=>i.vohon===act&&i.stats?.slot==="tay_phai"&&i.years===32000);
       ok(tpw&&tpw.enhance===0,"đích: hồn cốt Tay phải 32.000 năm đang gắn, +0");
       await test(A,"goto",spot); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
+      const coin0=A.bag.honTe, coin=async n=>{ await test(A,"coin",{n}); return waitFor(()=>A.bag.honTe===n,1500); }; // #281: số dư biết trước, trả lại cuối bài
+      await coin(1000);
       const m1=await give(1000,"tay_phai"), m2=await give(1000,"dau",MD), s0=await test(A,"stats");
       let t=await enh(tpw.id,[m1.id,m2.id]), tw=itemOf(tpw.id);
       const g1=fx(1000,"tay_phai","tay_phai")+fx(1000,"dau","tay_phai"), s1=await test(A,"stats");
@@ -4269,12 +4278,20 @@ else {
       t=await enh(tpw.id,[m3.id,m4.id]); tw=itemOf(tpw.id); const s5=await test(A,"stats");
       ok(!itemOf(m3.id)&&!itemOf(m4.id)&&tw.stats.xp===g5&&tw.enhance===boneEnhanceLevel(g5)&&tw.enhance===5&&s5.bones.atk===atkAt(5)&&Math.abs(s5.live.atk-s5.stats.atk)<1e-6,
         `lên mốc +5 (${g5} điểm), công hồn cốt +${s5.bones.atk}: ${t}`);
+      ok(A.bag.honTe===1000&&A.enh?.fee===0&&!/phí/.test(t),`#281: +0 → +1 → +5 miễn phí (Hồn Tệ giữ ${formatHonTe(A.bag.honTe)})`);
       ok(A.logs.at(-1)?.includes(boneName(AK,"tay_phai",32000,5)),"log ghi tên hồn cốt kèm +5");
       // Mốc nâng kỹ năng: bị động Thân Thiết Giáp Tê Ngưu 12.000 năm lên +20 bằng 5 hồn cốt 100.000 năm cùng vị trí (điểm dư bị bỏ).
       const tg=await give(12000,"than",TG); await boneOp("equip",{itemId:tg.id,vohonId:act});
       const sp0=await test(A,"stats"), def0=sp0.live.passive.buff.def, hp0=p.maxHp, mats=[];
       for(let k=0;k<5;k++) mats.push((await give(MAX_YEARS,"than",TG)).id);
+      // #281: +0 → +20 một lần cần phí của cả 20 cấp; thiếu 1 đồng thì từ chối, không mất nguyên liệu / điểm / tiền.
+      const fee20=enhanceFee(BONE_ENHANCE_FEE,0,BONE_MAX_ENHANCE), fee6=enhanceFee(BONE_ENHANCE_FEE,5,6);
+      await coin(fee20-1); t=await enh(tg.id,mats);
+      ok(/Không đủ Hồn Tệ/.test(t)&&t.includes(formatHonTe(fee20))&&mats.every(id=>itemOf(id))&&itemOf(tg.id).enhance===0&&!itemOf(tg.id).stats?.xp&&A.bag.honTe===fee20-1&&!A.enh,
+        `thiếu Hồn Tệ (${formatHonTe(fee20-1)} < ${formatHonTe(fee20)}): từ chối cả lần, không mất gì (${t})`);
+      await coin(fee20+fee6+321);
       t=await enh(tg.id,mats); const tgi=itemOf(tg.id), s20=await test(A,"stats");
+      ok(A.enh?.fee===fee20&&A.bag.honTe===fee6+321&&t.includes(`phí −${formatHonTe(fee20)}`),`+0 → +20: trừ đúng ${formatHonTe(fee20)} cùng lần, còn ${formatHonTe(A.bag.honTe)}`);
       const def20=bonePassive([{beast:TG,slot:"than",years:12000,enhance:20}]).buff.def, dHp=boneStats("than",12000,20).hp-boneStats("than",12000).hp;
       ok(tgi.enhance===BONE_MAX_ENHANCE&&tgi.stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(t)&&mats.every(id=>!itemOf(id)),`5 nguyên liệu 100.000 năm: +${tgi.enhance} tối đa, điểm dư bị bỏ (${t})`);
       ok(Math.abs(s20.live.passive.buff.def-def20)<1e-4&&Math.abs(def20-Math.min(BONE_PASSIVE_CAP.def,def0*boneSkillMult(20)))<1e-3&&def20>def0,
@@ -4292,6 +4309,9 @@ else {
       ok(m5i?.vohon===null&&m5i.stats.xp===g6&&m5i.enhance===boneEnhanceLevel(g6)&&!itemOf(m6.id),`cường hóa hồn cốt trong túi: +${m5i?.enhance} (${g6} điểm)`);
       const g7=g5+fx(1000,"than","tay_phai",g6); t=await enh(tpw.id,[m5.id]); tw=itemOf(tpw.id);
       ok(tw.stats.xp===g7&&tw.enhance===boneEnhanceLevel(g7)&&!itemOf(m5.id)&&/vẫn \+5|lên \+/.test(t),`nguyên liệu +${m5i?.enhance}: ${fx(1000,"than","tay_phai")} + ${Math.floor(g6*BONE_FEED_CARRY)} điểm trả lại = ${g7-g5} (${t})`);
+      { const f=enhanceFee(BONE_ENHANCE_FEE,5,tw.enhance);
+        ok(tw.enhance===6&&f===fee6&&A.enh?.fee===f&&A.bag.honTe===321,`#281: +5 → +${tw.enhance} trả phí ${formatHonTe(f)} (m5 +0 → +${m5i?.enhance} miễn phí), còn ${formatHonTe(A.bag.honTe)}`); }
+      await coin(coin0);
       // Tháo về túi vẫn giữ cấp và điểm; võ hồn mất phần chỉ số của hồn cốt đó.
       t=await boneOp("unequip",{itemId:tg.id});
       ok(itemOf(tg.id)?.vohon===null&&itemOf(tg.id).enhance===BONE_MAX_ENHANCE&&itemOf(tg.id).stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/giữ cường hóa \+20/.test(t)&&await waitFor(()=>p.maxHp===hp0-boneStats("than",12000).hp),
@@ -4535,8 +4555,17 @@ else {
           &&A.coreUp?.subs.length===1&&A.coreUp.subs[0].add&&A.coreUp.subs[0].k===nk&&/thêm dòng phụ/.test(r),`+3: thêm dòng phụ ${nk&&coreStatText(nk,nv)} (${r})`);
         ok(Math.abs(s2.cores[nk]-s1.cores[nk]-nv)<0.11&&liveOk(s2)&&same(s2.cores,coreBonus(wornE())),`dòng phụ mới cộng ngay vào võ hồn đang gắn (${CORE_STATS[nk]?.name} +${(s2.cores[nk]-s1.cores[nk]).toFixed(1)})`);
         // Tới +15: năm hồn hạch Linh Miêu 6★ cùng bộ (+6 thêm dòng thứ 4, +9 / +12 / +15 tăng dòng có sẵn), điểm dư bị bỏ.
-        const M6=await giveCores("linh_mieu",5,6), before=new Map(tw.stats.subs.map(([k,v])=>[k,v]));
-        r=await up(T.id,M6.map(i=>i.id)); tw=itOf(T.id); const s3=await test(A,"stats"), ups=A.coreUp?.subs??[];
+        // #281: +0 → +3 miễn phí; +3 → +15 cần phí của 12 cấp, thiếu thì từ chối cả lần.
+        const coin0=A.bag.honTe, coin=async n=>{ await test(A,"coin",{n}); return waitFor(()=>A.bag.honTe===n,1500); };
+        const M6=await giveCores("linh_mieu",5,6), before=new Map(tw.stats.subs.map(([k,v])=>[k,v])), fee15=enhanceFee(CORE_ENHANCE_FEE,3,CORE_MAX_ENHANCE);
+        ok(A.coreUp?.fee===0,"#281: hồn hạch +0 → +2 → +3 miễn phí");
+        await coin(fee15-1); r=await up(T.id,M6.map(i=>i.id));
+        ok(/Không đủ Hồn Tệ/.test(r)&&r.includes(formatHonTe(fee15))&&M6.every(i=>itOf(i.id))&&itOf(T.id).enhance===3&&A.bag.honTe===fee15-1&&!A.coreUp,
+          `thiếu Hồn Tệ (${formatHonTe(fee15-1)} < ${formatHonTe(fee15)}): từ chối, không mất nguyên liệu / cấp / tiền (${r})`);
+        await coin(fee15+55);
+        r=await up(T.id,M6.map(i=>i.id)); tw=itOf(T.id);
+        ok(A.coreUp?.fee===fee15&&A.bag.honTe===55&&r.includes(`phí −${formatHonTe(fee15)}`),`+3 → +15: trừ đúng ${formatHonTe(fee15)}, còn ${formatHonTe(A.bag.honTe)}`);
+        await coin(coin0); const s3=await test(A,"stats"), ups=A.coreUp?.subs??[];
         const growOk=tw.stats.subs.every(([k,v])=>Math.abs(v-(before.get(k)??0)-ups.filter(u=>u.k===k).reduce((a,u)=>a+u.v,0))<(CORE_STATS[k].pct?0.15:0.5)); // mỗi dòng: tăng đúng tổng các lần tung (dòng mới ở +6 có thể được tăng tiếp)
         ok(tw.enhance===CORE_MAX_ENHANCE&&tw.stats.xp===coreEnhanceNeed(CORE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(r)&&M6.every(i=>!itOf(i.id))&&tw.stats.subs.length===CORE_MAX_SUBS
           &&ups.length===4&&ups.filter(u=>u.add).length===1&&ups.every(u=>inRoll(u.k,u.v,4))&&growOk,
@@ -4708,8 +4737,10 @@ if((await test(C,"ping"))?.enabled){
   // transaction đi cổng, nguyên liệu không quay lại.
   for(const y of [10000,10000]) await test(C,"give",{code:BONE_ITEM,years:y,beast:"am_kim_khung_trao_hung",slot:"tay_phai"});
   const cm=bonesOf(C).filter(i=>i.vohon===null&&i.years===10000).map(i=>i.id), cLv=boneEnhanceLevel(2*boneFeedXp({slot:"tay_phai",years:10000},"tay_phai"));
+  const cFee=enhanceFee(BONE_ENHANCE_FEE,0,cLv); await test(C,"coin",{n:cFee+50}); await waitFor(()=>C.bag.honTe===cFee+50,1500); // #281: phí từ +6
   { const n=C.bagMsgs??0; C.room.send("enhance",{targetId:cb.id,materialIds:cm}); await waitFor(()=>(C.bagMsgs??0)>n&&bonesOf(C).find(i=>i.id===cb.id)?.enhance===cLv,2000); }
-  ok(bonesOf(C).find(i=>i.id===cb.id)?.enhance===cLv&&!bonesOf(C).some(i=>cm.includes(i.id)),`C cường hóa hồn cốt đang gắn lên +${cLv} trong làng, 2 nguyên liệu đã mất`);
+  ok(bonesOf(C).find(i=>i.id===cb.id)?.enhance===cLv&&!bonesOf(C).some(i=>cm.includes(i.id))&&cFee>0&&await waitFor(()=>C.bag.honTe===50,1500),
+    `C cường hóa hồn cốt đang gắn lên +${cLv} trong làng, 2 nguyên liệu đã mất, phí ${formatHonTe(cFee)}`);
   C.boneEq={id:cb.id,vohon:C.owned.active,atk:boneStats("tay_phai",32000,cLv).atk};
   await test(C,"give",{code:"hoi_hon_dan",qty:BAG_SLOTS*st});
   const cLoose=()=>C.bag.items.filter(i=>i.vohon===null).length;
@@ -8386,23 +8417,27 @@ async function boneSubTest(){
     const liveOk=s=>s.live&&s.live.maxHp===s.stats.maxHp&&s.live.maxMp===s.stats.maxMp&&Math.abs(s.live.atk-s.stats.atk)<1e-6&&Math.abs(s.live.crit-s.stats.crit)<1e-9&&Math.abs(s.live.critMult-s.stats.critMult)<1e-9;
     const subsOf=id=>parseBoneSubs(itemOf(id)?.stats);
     await test(S,"rest",{s:TEAM_COMBAT_SECS+1});
+    // #281: đủ phí đưa một hồn cốt +0 → +20 qua nhiều lần (tổng bằng một lần), dư 777 đồng; mỗi lần trừ đúng phí các cấp vừa qua.
+    const feeAll=enhanceFee(BONE_ENHANCE_FEE,0,BONE_MAX_ENHANCE); await test(S,"coin",{n:feeAll+777}); await waitFor(()=>S.bag.honTe===feeAll+777,1500);
+    let paid=0; const feeOk=()=>{ const e=S.enh; if(!e) return false; paid+=e.fee; return e.fee===enhanceFee(BONE_ENHANCE_FEE,e.from,e.to)&&S.bag.honTe===feeAll+777-paid; };
     const tp=await give(32000,"tay_phai"); await op("equip",{itemId:tp.id,vohonId:act});
     ok(itemOf(tp.id)?.vohon===act&&subsOf(tp.id).length===0,"đích: Tay phải 32.000 năm đang gắn, chưa có dòng phụ");
     // +0 -> +8 (qua mốc +5): một dòng.
-    let m=await give(32000,"tay_phai"), t=await enh(tp.id,[m.id]), s1=await test(S,"stats"), sub=subsOf(tp.id);
+    let m=await give(32000,"tay_phai"), t=await enh(tp.id,[m.id]), s1=await test(S,"stats"), sub=subsOf(tp.id), fees=[feeOk()];
     ok(itemOf(tp.id).enhance>=5&&itemOf(tp.id).enhance<10&&sub.length===1&&poolOk("tay_phai",sub)&&inRoll(sub[0][0],sub[0][1],32000),
       `qua mốc +5 (lên +${itemOf(tp.id).enhance}): thêm 1 dòng ${coreStatText(...(sub[0]??["hp",0]))}`);
     ok(same(S.enh?.subs,sub.map(([k,v])=>({k,v})))&&t.includes(`thêm dòng phụ ${coreStatText(...(sub[0]??["hp",0]))}`),`tin "enhanced" và log báo dòng vừa thêm: ${t}`);
     ok(s1.bones[sub[0]?.[0]]>=sub[0]?.[1]&&liveOk(s1),"dòng phụ cộng ngay vào võ hồn ra trận (boneBonus, calcStats)");
     // Không qua mốc mới: không thêm dòng.
-    const lv1=itemOf(tp.id).enhance; m=await give(1000,"tay_phai"); await enh(tp.id,[m.id]);
+    const lv1=itemOf(tp.id).enhance; m=await give(1000,"tay_phai"); await enh(tp.id,[m.id]); fees.push(feeOk());
     ok(itemOf(tp.id).enhance<10&&same(subsOf(tp.id),sub)&&(S.enh?.subs??[]).length===0,`+${lv1} -> +${itemOf(tp.id).enhance} chưa tới mốc +10: dòng phụ giữ nguyên`);
     // Qua +10 và +15 một lần: thêm 2 dòng; rồi +20: đủ 4 dòng, không trùng, không trùng chỉ số chính.
-    const ms=[await give(MAX_YEARS,"tay_phai"),await give(MAX_YEARS,"tay_phai")]; t=await enh(tp.id,ms.map(x=>x.id)); const lv2=itemOf(tp.id).enhance, sub2=subsOf(tp.id);
+    const ms=[await give(MAX_YEARS,"tay_phai"),await give(MAX_YEARS,"tay_phai")]; t=await enh(tp.id,ms.map(x=>x.id)); fees.push(feeOk()); const lv2=itemOf(tp.id).enhance, sub2=subsOf(tp.id);
     ok(lv2>=15&&lv2<20&&sub2.length===3&&same(sub2[0],sub[0])&&poolOk("tay_phai",sub2)&&sub2.every(([k,v])=>inRoll(k,v,32000))&&(S.enh?.subs??[]).length===2,
       `qua mốc +10, +15 cùng lúc (lên +${lv2}): thêm 2 dòng ${JSON.stringify(sub2.slice(1))}`);
     const m20=[]; for(let k=0;k<4;k++) m20.push((await give(MAX_YEARS,"tay_phai")).id);
-    await enh(tp.id,m20); const sub4=subsOf(tp.id), s4=await test(S,"stats");
+    await enh(tp.id,m20); fees.push(feeOk()); const sub4=subsOf(tp.id), s4=await test(S,"stats");
+    ok(fees.every(Boolean)&&paid===feeAll&&S.bag.honTe===777,`#281: 4 lần cường hóa +0 → +${BONE_MAX_ENHANCE} trả phí từng lần đúng các cấp vừa qua, tổng ${formatHonTe(paid)} (= một lần), còn ${formatHonTe(S.bag.honTe)}`);
     ok(itemOf(tp.id).enhance===BONE_MAX_ENHANCE&&sub4.length===BONE_MAX_SUBS&&poolOk("tay_phai",sub4)&&same(sub4.slice(0,3),sub2),
       `+${BONE_MAX_ENHANCE}: đủ ${BONE_MAX_SUBS} dòng ${sub4.map(x=>coreStatText(...x)).join(", ")}`);
     const want=boneBonus([{slot:"tay_phai",years:32000,enhance:BONE_MAX_ENHANCE,subs:sub4}]);
@@ -8414,6 +8449,7 @@ async function boneSubTest(){
     const rejoin=async()=>{ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; S.bag=null; await enter(S); S.room.send("bag"); await waitFor(()=>me()&&S.bag&&S.owned,3000); };
     await rejoin();
     const got=old.map(([it])=>subsOf(it.id)), s5=await test(S,"stats");
+    ok(S.bag.honTe===777,`#281: vào lại, Hồn Tệ sau phí cường hóa đã lưu (${formatHonTe(S.bag.honTe)})`);
     ok(old.every(([it,n],i)=>got[i].length===n&&poolOk(it.stats.slot,got[i])&&got[i].every(([k,v])=>inRoll(k,v,it.years))),
       `vào lại: tung bù đúng số dòng còn thiếu (+12: ${got[0].length}, +20: ${got[1].length}, +4: ${got[2].length})`);
     ok(same(subsOf(tp.id),sub4),"hồn cốt đã đủ dòng không bị tung thêm");

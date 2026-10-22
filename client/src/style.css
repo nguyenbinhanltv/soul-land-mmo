@@ -338,6 +338,8 @@ svg.ico.bone{width:62%;height:62%;transform:translateY(-14%);color:var(--c);filt
 .aconf b{font-size:12px;font-family:var(--f12);color:var(--accent)}
 .aconf.risk{border-color:var(--hp);background:rgba(224,82,90,.14)}
 .aconf.risk b{color:var(--hp)}
+.aconf .poor{color:#ffb35c;font-weight:bold}
+.aconf .poor:empty{display:none}
 .buse.absorb.risk{border-color:var(--hp);color:var(--hp)}
 #channel.risk{border-color:var(--hp)} #channel.risk .label{color:var(--hp)}
 #channel i{background:linear-gradient(90deg,#fff,var(--c,var(--xp)))}

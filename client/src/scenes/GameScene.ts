@@ -1021,17 +1021,17 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("autosold", (m: AutoSoldMsg) => hud.banner(`Đã tự bán ${m.n.toLocaleString("vi-VN")} món`, `+${formatHonTe(m.coins)} · mua lại ở thương nhân`));
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag". Từ #187 kèm
     // các dòng phụ server vừa tung ở mốc (`subs`).
-    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; subs?: { k: CoreStat; v: number }[] }) => {
+    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; fee?: number; subs?: { k: CoreStat; v: number }[] }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
-      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
+      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu${m.fee ? `, phí ${formatHonTe(m.fee)}` : ""}`; // phí #281
       const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
       hud.banner(`Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
     });
     // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
-    this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; subs: CoreSubUp[] }) => {
-      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
+    this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; fee?: number; subs: CoreSubUp[] }) => {
+      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`, fee = m.fee ? ` · phí ${formatHonTe(m.fee)}` : ""; // phí #281
       const subs = m.subs.map((u) => (u.add ? `dòng phụ mới ${coreStatText(u.k, u.v)}` : `${coreStatText(u.k, u.to)} (tăng)`)).join(" · ");
-      hud.banner(`Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}` : `${pts}, chưa đủ lên cấp`);
+      hud.banner(`Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}${fee}` : `${pts}, chưa đủ lên cấp`);
     });
     // Hấp thụ hồn hoàn (bước 3.3): server báo riêng lúc bắt đầu (thanh tiến độ) và kết quả; thành công / thất bại do server quyết định.
     this.room.onMessage("absorbing", (m: { on: boolean; rowId: number; years: number; slot?: number; secs?: number; fail?: number; result?: string; level?: number }) => {
