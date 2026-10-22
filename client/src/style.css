@@ -254,7 +254,19 @@ body.touch #prompt{bottom:160px}
 .coin>span:first-of-type{color:var(--muted)}
 .coinico{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2b0,#f2c84b 45%,#b8862a);box-shadow:0 0 0 1px #6a4a12}
 .ht.kim{color:#8a5f0a} .ht.ngan{color:#4d5a73} .ht.dong{color:#9a4a1c}
-.bgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.bgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+/* Trang túi (#215): tab số trang, vạch dưới là mức đầy (đỏ khi đầy), nút "Sắp xếp" bên phải. */
+.bpages{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.bpg{position:relative;min-width:30px;height:28px;padding:0 6px 4px;border:2px solid var(--line);background:var(--wash);color:var(--text);font:inherit;cursor:pointer}
+.bpg b{font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
+.bpg i{position:absolute;left:5px;right:5px;bottom:4px;height:3px;background:var(--wash2)}
+.bpg i::after{content:"";display:block;height:100%;width:calc(var(--f) * 100%);background:var(--xp)}
+.bpg.full i::after{background:var(--hp)}
+.bpg.none b{opacity:.55}
+.bpg.cur{border-color:var(--xp)}
+.bpg:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bsort{margin-left:auto;padding:4px 10px}
+@media (max-width:420px){.bgrid{grid-template-columns:repeat(5,1fr)}} /* màn hẹp: ô đủ lớn để chạm, trang 10 hàng cuộn trong bảng */
 .bslot{position:relative;aspect-ratio:1;min-width:0;padding:0;border:2px solid var(--line);background:var(--wash);color:var(--text);
   font:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .bslot.empty{border-style:dashed;opacity:.45;cursor:default}
@@ -609,6 +621,9 @@ body.arena #quest{display:none}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):active,.thuymac :is(#chans,#arenaQ) button:not(:disabled):active,
 .thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bslot,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--ui-nut-nhan)}
 .thuymac .bslot.empty{border-image-source:var(--ui-nut-nhan);opacity:.55}
+.thuymac .bpg{border:4px solid transparent;background:none;border-image:var(--ui-nut-thuong) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
+.thuymac .bpg:not(.cur):hover{border-image-source:var(--ui-nut-ro)}
+.thuymac .bpg.cur{border-image-source:var(--ui-nut-nhan);outline:2px solid var(--son);outline-offset:-3px}
 /* Trạng thái chọn / màu riêng thể hiện bằng viền trong (border-image che màu viền cũ). */
 .thuymac .bcell:not(.empty):not(.sel),.thuymac .kcard.on{outline:2px solid color-mix(in srgb,var(--c) 75%,#1a1020);outline-offset:-3px}
 .thuymac .kcard.on{border-image-source:var(--ui-nut-nhan)}

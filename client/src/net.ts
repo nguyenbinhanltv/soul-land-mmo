@@ -1,4 +1,5 @@
 import type { Looks, QuestProgress, QuestStatus, AutoSettings, AutoSummary } from "../../shared/data.ts";
+import type { BagDelta } from "../../shared/bagSync.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
@@ -50,6 +51,11 @@ export interface BuybackItem { key: string; kind: string; code: string; qty: num
  * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước).
  */
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; }
+/**
+ * Tin riêng "bagd" (#215): túi đổi so với lần gửi trước (shared/bagSync.ts, áp bằng applyBagDelta lên tin "bag" đang có); số ô, Hồn
+ * Tệ, hồi chiêu luôn có, danh sách mua lại chỉ khi đổi.
+ */
+export interface BagDeltaMsg extends BagDelta<BagItem> { slots: number; honTe: number; cd: number; buyback?: BuybackItem[]; }
 /**
  * Tin nhắn riêng "quest" (6.2): tiến độ chuỗi tân thủ và trạng thái; `ev` = vừa nhận / vừa đủ mục tiêu / vừa trả (`done` = mã bước
  * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.

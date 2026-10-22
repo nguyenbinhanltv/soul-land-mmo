@@ -9,7 +9,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
-  itemDef, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
+  itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
@@ -42,10 +42,11 @@ import { store, Character, type AccountLooks, type Location, type Item, type Bag
 import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import * as party from "../party.ts";
-import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
+import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlot, type ArenaEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
+import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 
 export interface PData {
   accountId: number;
@@ -99,6 +100,8 @@ export interface PData {
   honTe: number;        // Hồn Tệ (đồng)
   bagSlots: number;     // số ô túi của tài khoản (khởi đầu BAG_SLOTS, mở rộng ở thương nhân từ 9.8; accounts.bag_slots)
   bagDirty: boolean;    // túi hoặc Hồn Tệ đổi từ lần lưu trước
+  // Bản túi đã gửi cho client (#215, shared/bagSync.ts): null = lần gửi tới là cả túi (tin "bag"), sau đó chỉ gửi thay đổi (tin "bagd").
+  bagSent: BagSent | null; bagBuyback: string;
   danCd: number;        // giây còn lại của hồi chiêu chung các đan (DAN_CD)
   starterNote: boolean; // vừa nhận vật phẩm khởi đầu: báo một lần khi client xin túi đồ
   // Trạng thái trên hồn sư (từ 3.5, PLAYER_STATUS): do chiêu báo trước của hồn thú gây; `src` là mã hồn thú. Không lưu DB.
@@ -387,6 +390,8 @@ function itemStacks(code: string, qty: number): Item[] {
 }
 /** Số ô túi đang dùng: món đang gắn vào võ hồn không tính. */
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
+/** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
+const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
 
 /** Hook test `daily {shift}`: lệch ngày của khảo hạch hằng ngày cho cả tiến trình (MapRoom.dailyDay); chỉ đổi khi GAME_TEST=1. */
 let dailyShift = 0;
@@ -582,6 +587,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
     this.onMessage("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
+    this.onMessage("sortbag", (c) => this.sortBag(c.sessionId)); // sắp xếp + gộp chồng cả túi (#215)
     this.onMessage("vohons", (c) => this.sendVohons(c));
     this.onMessage("boss", (c) => { // #118: client xin tin boss lúc vào phòng (sau khi đã nghe tin); tối đa 1 lần / giây, xin dồn thì bỏ
       const d = this.pdata.get(c.sessionId), now = Date.now();
@@ -598,7 +604,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("wp", (c, m: { op: unknown; key: unknown }) => this.waypointAction(c.sessionId, m?.op, m?.key)); // truyền tống trận (11.2)
     this.onMessage("channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
     this.onMessage("channel", (c, m: { ch: unknown }) => this.switchChannel(c, m?.ch)); // đổi kênh trong cùng bản đồ
-    this.onMessage("bag", (c) => this.sendBag(c.sessionId));
+    this.onMessage("bag", (c) => this.sendBag(c.sessionId, true)); // client xin: cả túi
     this.onMessage("use", (c, m: { id: unknown; vohonId?: unknown }) => this.useItem(c.sessionId, m?.id, m?.vohonId));
     this.onMessage("open", (c, m: { id: unknown }) => this.openChest(c.sessionId, m?.id)); // mở rương thú vương (BĐ5)
     this.onMessage("unlock", (c, m: { vohon: unknown }) => this.unlockVohon(c.sessionId, m?.vohon));
@@ -649,7 +655,7 @@ export class MapRoom extends Room<MapState> {
       saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false, bossAskAt: 0,
       wps: new Set(auth.wps), wpKey: "",
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
-      bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, charm: null,
+      bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "", danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, charm: null,
       claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
@@ -1509,15 +1515,25 @@ export class MapRoom extends Room<MapState> {
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
   /**
    * Tin riêng "bag": mọi ô túi đồ, số ô tối đa, Hồn Tệ (đồng) và giây còn lại của hồi chiêu chung đan. Chỉ gửi cho chính chủ
-   * (mục 6), không nằm trong state đồng bộ. Gửi khi client xin và mỗi khi túi đổi.
+   * (mục 6), không nằm trong state đồng bộ. Gửi khi client xin (`full`) và mỗi khi túi đổi; từ #215 lần đổi chỉ gửi tin "bagd" gồm
+   * số ô, Hồn Tệ, hồi chiêu và phần túi đổi so với bản đã gửi (bagDiff), danh sách mua lại chỉ khi đổi.
    */
-  sendBag(id: string) {
+  sendBag(id: string, full = false) {
     const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
-    c.send("bag", { slots: d.bagSlots, honTe: d.honTe, cd: d.danCd,
-      items: d.bag.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars, enhance: i.enhance, stats: i.stats, vohon: i.vohonId })),
-      // Đồ vừa bán cho thương nhân, mua lại được (9.8): `price` là giá mỗi món đã nhận lúc bán.
-      buyback: (buybacks.get(d.accountId) ?? []).map(({ key, item: i, price }) => ({ key, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-        enhance: i.enhance, stats: i.stats, price })) });
+    const items = d.bag.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars, enhance: i.enhance, stats: i.stats, vohon: i.vohonId }));
+    // Đồ vừa bán cho thương nhân, mua lại được (9.8): `price` là giá mỗi món đã nhận lúc bán.
+    const buyback = (buybacks.get(d.accountId) ?? []).map(({ key, item: i, price }) => ({ key, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
+      enhance: i.enhance, stats: i.stats, price }));
+    const head = { slots: d.bagSlots, honTe: d.honTe, cd: d.danCd }, bb = JSON.stringify(buyback);
+    if (full || !d.bagSent) {
+      c.send("bag", { ...head, items, buyback });
+      d.bagSent = bagDiff(new Map(), items).next;
+    } else {
+      const { delta, next } = bagDiff(d.bagSent, items);
+      c.send("bagd", { ...head, ...delta, ...(bb !== d.bagBuyback ? { buyback } : {}) });
+      d.bagSent = next;
+    }
+    d.bagBuyback = bb;
     if (d.starterNote) {
       d.starterNote = false;
       const gift = STARTER_ITEMS.map((s) => `${s.qty} ${itemDef(s.code)?.name ?? s.code}`).join(", ");
@@ -1660,6 +1676,40 @@ export class MapRoom extends Room<MapState> {
     if (d.claimBusy && itemDef(it.code)?.kind === "ruong") return this.log(id, "Đang nhận rương thú vương, đợi một chút.", "#ffb35c");
     this.takeItem(d, it, it.qty);
     this.log(id, `Đã bỏ ${this.itemLabel(it)}.`);
+    this.sendBag(id);
+  }
+
+  /**
+   * Sắp xếp túi (#215, nút "Sắp xếp" trên cả túi, mọi trang): gộp các ô gộp được (ItemDef.stack) cùng loại chưa đầy vào các ô đầu, ô
+   * thừa bỏ đi; rồi xếp theo nhóm (ITEM_KINDS), loại (ITEMS), số năm / sao / cường hóa giảm dần. Món đang gắn vào võ hồn không đổi.
+   * Thứ tự lưu DB bằng `created` (nạp túi theo items.created_at): các ô nhận lại chính các mốc thời gian cũ theo thứ tự mới.
+   */
+  sortBag(id: string) {
+    const d = this.pdata.get(id); if (!d || d.travelling) return;
+    if (d.claimBusy || d.shardBusy) return this.log(id, "Đang xử lý vật phẩm, đợi một chút rồi sắp xếp.", "#ffb35c");
+    const loose = d.bag.filter((i) => i.vohonId === null), worn = d.bag.filter((i) => i.vohonId !== null);
+    const times = loose.map((i) => i.created).sort((a, b) => a - b);
+    const groups = new Map<string, Item[]>();
+    for (const it of loose) {
+      if ((itemDef(it.code)?.stack ?? 1) <= 1 || d.absorbing?.itemId === it.id) continue;
+      const k = [it.code, it.years, it.stars, it.enhance, JSON.stringify(it.stats)].join("|");
+      groups.set(k, [...(groups.get(k) ?? []), it]);
+    }
+    const gone = new Set<Item>();
+    for (const list of groups.values()) {
+      if (list.length < 2) continue;
+      const stack = itemDef(list[0].code)!.stack;
+      let left = list.reduce((a, i) => a + i.qty, 0);
+      for (const it of list) { if (left > 0) { it.qty = Math.min(stack, left); left -= it.qty; } else gone.add(it); }
+    }
+    const rank = (it: Item) => { const def = itemDef(it.code); return def ? KIND_ORDER.indexOf(def.kind) * 1e4 + (ITEM_ORDER.get(def.id) ?? 0) : 1e9; };
+    const kept = loose.filter((i) => !gone.has(i)).sort((a, b) => rank(a) - rank(b) || (b.years ?? 0) - (a.years ?? 0) || (b.stars ?? 0) - (a.stars ?? 0)
+      || b.enhance - a.enhance || b.qty - a.qty || a.created - b.created);
+    let prev = -Infinity;
+    kept.forEach((it, k) => { it.created = prev = Math.max(times[k], prev + 1); });
+    itemClock = Math.max(itemClock, prev);
+    d.bag = [...kept, ...worn]; d.bagDirty = true;
+    this.log(id, `Đã sắp xếp túi đồ${gone.size ? `, gộp bớt ${gone.size} ô` : ""}.`);
     this.sendBag(id);
   }
 
@@ -2000,7 +2050,8 @@ export class MapRoom extends Room<MapState> {
   /**
    * `arena {op}` (7.2): `queue` xếp hàng (phải đứng cạnh NPC Đại Đấu Hồn Trường, NPC_RANGE; không gục, không đi cổng, không hấp thụ,
    * không giao chiến), `cancel` hủy xếp hàng, `top` xin bảng xếp hạng kèm thành tích của mình (ở đâu cũng xem được, cách nhau ARENA.topCd
-   * giây). Elo đọc từ DB lúc xếp hàng; ghép trận ở arenaQueue.ts, trận đấu ở ArenaRoom.
+   * giây). Elo đọc từ DB lúc xếp hàng, hai lần đọc của một tài khoản cách nhau ít nhất ARENA.queueCd giây (arenaQueueSlot; xếp rồi hủy
+   * liên tục không tạo tải DB đều đặn); ghép trận ở arenaQueue.ts, trận đấu ở ArenaRoom.
    */
   arenaAction(id: string, raw: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
@@ -2014,6 +2065,7 @@ export class MapRoom extends Room<MapState> {
     if (arenaQueued(d.accountId) || d.arenaBusy) return warn("Đang tìm đối thủ rồi.");
     if (!this.npcNear(id, { role: "arena" })) return warn("Hãy lại gần Đại Đấu Hồn Trường để xếp hàng.");
     const why = this.arenaBusy(id); if (why) return warn(`${why} Chưa xếp hàng được.`);
+    if (!arenaQueueSlot(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     d.arenaBusy = true;
     store.getArena(d.accountId, ARENA.startElo).then((rec) => {
       d.arenaBusy = false;
@@ -2294,7 +2346,7 @@ export class MapRoom extends Room<MapState> {
       d.danCd = Math.max(0, d.danCd - s); this.sendBag(id);
     }
     else if (op === "give") {
-      const code = String(o.code ?? ""), qty = int(o.qty, 1, 10000, 1);
+      const code = String(o.code ?? ""), qty = int(o.qty, 1, 1e6, 1); // đủ lấp túi BAG_MAX_SLOTS ô đồ gộp (#215)
       let got = 0;
       if (code === RING_ITEM) while (got < qty && this.addRing(d, yearsOf(0))) got++;
       else if (code === BONE_ITEM) {
@@ -5110,8 +5162,9 @@ export class MapRoom extends Room<MapState> {
     if (op === "get") return this.sendParty(id, true);
     if (op === "invite") {
       if (typeof o.sid === "string" && o.sid) {
+        // Chỉ hồn sư client đang thấy (bấm vào trên màn hình): `sid` ở xa (lấy từ tin `mini`) không được đổi ra tên (11.4).
         const t = this.state.players.get(o.sid);
-        if (!t) return warn("Hồn sư này không còn ở đây.");
+        if (!t || !this.interest.sees(id, "p", o.sid)) return warn("Hồn sư này không còn ở đây.");
         name = t.name;
       }
       if (!name) return warn("Gõ tên hồn sư muốn mời, ví dụ /moi Đường Tam.");
