@@ -1825,7 +1825,8 @@ export class GameScene extends Phaser.Scene {
    * săn; ở bản đồ khác thì tô cổng đi tới bản đồ kề theo `route` của tin "daily" (server tính đường ít lần đi cổng nhất). Bài chờ trả
    * hoặc chưa nhận chỉ về NPC giao bài; mục tiêu hạ hồn thú hợp cấp (`fit`) và nộp hồn hạch / hồn hoàn chỉ về vùng săn hợp cấp
    * (fitMaps, fitBeast theo cấp võ hồn ra trận). Mục tiêu tinh anh (`elite`) chấm các chỗ sinh tinh anh của bản đồ này, không có thì
-   * về bản đồ săn hợp cấp; thú vương (`king`) khung hang của bản đồ này, không có thì về các bản đồ có thú vương (ưu tiên hợp cấp).
+   * về bản đồ săn hợp cấp; thú vương (`king`) / boss thế giới (`world`) khung hang của bản đồ này, không có thì về các bản đồ có thú
+   * vương / bản đồ boss (ưu tiên hợp cấp); mục tiêu ghi `map` (chỉ tính ở bản đồ đó) thì ở bản đồ khác chỉ đường tới đúng bản đồ đó.
    * Tính lại khi tiến độ hoặc cấp đổi.
    */
   questTargets(level: number) {
@@ -1848,14 +1849,20 @@ export class GameScene extends Phaser.Scene {
       if (g.k === "kill") return hunt(g.map, g.zone, !!g.fit);
       if (g.k === "map" && g.map) return void (g.map !== this.mapId && maps.add(g.map));
       if (g.k === "give" && (g.item === CORE_ITEM || g.item === RING_ITEM)) return hunt(undefined, undefined, true);
-      if (g.k === "elite") {
-        if (this.eliteSpots.length) return void npcs.push(...this.eliteSpots);
-        return void fitMaps(level).forEach((m) => maps.add(m));
-      }
-      if (g.k === "king") {
-        if (this.lair && MAPS[this.mapId]?.king) return void zones.add({ ...this.lair, name: "", hint: "" });
-        const all = Object.keys(MAPS).filter((m) => MAPS[m].king), fit = all.filter((m) => fitMaps(level).includes(m));
-        return void (fit.length ? fit : all).forEach((m) => maps.add(m));
+      // Tinh anh / thú vương / boss thế giới: mục tiêu có `map` (chương 3: Hải Thần Đảo) chỉ tính ở đúng bản đồ đó (server lọc theo
+      // bản đồ, #284), nên ở bản đồ khác thì chỉ đường tới đó; đứng đúng bản đồ (hoặc mục tiêu không ghi bản đồ) mới chấm chỗ sinh / khung hang.
+      if (g.k === "elite" || g.k === "king" || g.k === "world") {
+        if (g.map && g.map !== this.mapId) return void maps.add(g.map);
+        if (g.k === "elite") {
+          if (this.eliteSpots.length) return void npcs.push(...this.eliteSpots);
+          if (!g.map) fitMaps(level).forEach((m) => maps.add(m));
+          return;
+        }
+        const here = g.k === "king" ? !!MAPS[this.mapId]?.king : MAPS[this.mapId]?.kind === "boss";
+        if (this.lair && here) return void zones.add({ ...this.lair, name: "", hint: "" });
+        if (g.map) return;
+        const all = Object.keys(MAPS).filter((m) => (g.k === "king" ? !!MAPS[m].king : MAPS[m].kind === "boss")), fit = all.filter((m) => fitMaps(level).includes(m));
+        return void (fit.length ? fit : all).forEach((m) => m !== this.mapId && maps.add(m));
       }
     };
     const one = (q: QuestProgress & { status: QuestStatus }) => {
