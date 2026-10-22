@@ -7,7 +7,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -818,6 +818,10 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("auto", (m: AutoMsg) => { hud.setAuto(m); setAutoMsg(m); }); // bảng Tự động, tổng kết khi dừng (Auto 2)
     // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
     this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
+    // Võ Hồn Dung Hợp Kỹ (#192): tin riêng ask / wait / done / cancel; lời nhắc và lý do đã có ở dòng log. Phím G, nút chạm, hiệu ứng: #193.
+    this.room.onMessage("fusion", (m: { k: string; by?: string; i?: number }) => {
+      if (m?.k === "ask") hud.banner(`Dung hợp kỹ ${FUSIONS[m.i ?? -1]?.name ?? ""}`, `${m.by ?? ""} mời hưởng ứng`);
+    });
     if (!this.isArena) this.room.send("offline");
     if (!this.isArena) this.room.send("auto", { op: "get" });
     if (this.waypoints.length) this.room.send("wp", { op: "list" }); // biết trận nào đã mở để tô trận (sân đấu không có trận)
