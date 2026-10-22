@@ -6,7 +6,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
-  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
+  npcDef, NPC_RANGE, type NpcDef, QUEST_STARTER, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
@@ -97,6 +97,19 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
     ground: { 2: "#e8eef8", 3: "#b8d0e8", 4: "#a0a8b8", 5: "#d0d8e8", 6: "#c8e0f8", 7: "#c8d0e0", 8: "#8a90a8", 13: "#b0b8c8", 16: "#9098a8", 35: "#2a4a70" },
     // Băng Tủy Thụ, xương, đá / băng tinh, tường đổ, bia, vòm, gỗ
     obj: { 1: "#a0d0ff", 33: "#e0e0e8", 36: "#a0b0c8", 37: "#9098a8", 38: "#b0b8c8", 39: "#9098a8", 40: "#6a6a78" },
+  },
+  // Thành trấn ×8 (11.5): sân đá, bờ / nền đá, cầu; đài phun nước, sư tử đá, đèn lồng, chậu hoa / cờ, giá binh khí.
+  thanh_hon_thon: {
+    ground: { 4: "#6a9a48", 8: "#8a7a58", 25: "#b8a888", 26: "#8a8478", 33: "#b8a888" },
+    obj: { 28: "#5a8a40", 29: "#a08a63", 30: "#2a4a2a", 32: "#3a3f48", 36: "#7a7a70", 37: "#6a6a70", 38: "#6a4a2a", 39: "#8a98a8", 40: "#5a4a32" },
+  },
+  nac_dinh_thanh: {
+    ground: { 4: "#6a9a48", 8: "#8a7a58", 16: "#b0aaa0", 25: "#9a9488", 26: "#8a8478", 33: "#a89a80" },
+    obj: { 12: "#ff9a3c", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#c06080" },
+  },
+  thien_dau_thanh: {
+    ground: { 4: "#6a9a48", 7: "#8aa0b8", 8: "#7a88a0", 10: "#c8c0b0", 16: "#c8c0b0", 25: "#a8a090", 26: "#8a8478", 33: "#b8b0a0" },
+    obj: { 12: "#ff9a3c", 19: "#e8a0b8", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#d8b040" },
   },
   hai_than_dao: {
     // cỏ đảo, hoa, cát ướt tối, nước biển, bãi trại, sân đá đền, cầu tàu / đường đá, đá cuội
@@ -919,7 +932,8 @@ export class GameScene extends Phaser.Scene {
     // Nhiệm vụ tân thủ (6.2): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu trên đầu NPC và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
-      this.quest = m; hud.setQuest(m); this.updateQuestMarks();
+      if (m.chain === QUEST_STARTER) this.quest = m;
+      hud.setQuest(m); this.updateQuestMarks();
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
       if (m.ev === "accept" && s) hud.banner(`Nhận nhiệm vụ: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
@@ -1007,17 +1021,17 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("autosold", (m: AutoSoldMsg) => hud.banner(`Đã tự bán ${m.n.toLocaleString("vi-VN")} món`, `+${formatHonTe(m.coins)} · mua lại ở thương nhân`));
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag". Từ #187 kèm
     // các dòng phụ server vừa tung ở mốc (`subs`).
-    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; subs?: { k: CoreStat; v: number }[] }) => {
+    this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; fee?: number; subs?: { k: CoreStat; v: number }[] }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
-      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
+      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu${m.fee ? `, phí ${formatHonTe(m.fee)}` : ""}`; // phí #281
       const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
       hud.banner(`Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
     });
     // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
-    this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; subs: CoreSubUp[] }) => {
-      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`;
+    this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; fee?: number; subs: CoreSubUp[] }) => {
+      const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`, fee = m.fee ? ` · phí ${formatHonTe(m.fee)}` : ""; // phí #281
       const subs = m.subs.map((u) => (u.add ? `dòng phụ mới ${coreStatText(u.k, u.v)}` : `${coreStatText(u.k, u.to)} (tăng)`)).join(" · ");
-      hud.banner(`Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}` : `${pts}, chưa đủ lên cấp`);
+      hud.banner(`Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}${fee}` : `${pts}, chưa đủ lên cấp`);
     });
     // Hấp thụ hồn hoàn (bước 3.3): server báo riêng lúc bắt đầu (thanh tiến độ) và kết quả; thành công / thất bại do server quyết định.
     this.room.onMessage("absorbing", (m: { on: boolean; rowId: number; years: number; slot?: number; secs?: number; fail?: number; result?: string; level?: number }) => {

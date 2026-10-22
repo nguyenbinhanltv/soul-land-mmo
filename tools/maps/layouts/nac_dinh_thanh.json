@@ -1,0 +1,88 @@
+{
+  "_": "Nặc Đinh Thành ×8 diện tích (11.5). Tường thành gạch bao quanh, cổng tây (về Thánh Hồn Thôn), cổng đông (Tinh Đấu Ngoại vi), cổng bắc (Thiên Đấu Thành); đại lộ chữ thập lát đá, quảng trường giữa có đài phun nước và sư tử đá; Học viện Nặc Đinh (Đại Sư) tây bắc, lò rèn đông bắc, chợ lều tây nam (thương nhân), trạm sứ giả Đại Đấu Hồn Trường đông nam; khu nhà dân, vườn, ao. Định dạng: tools/maps/README.md.",
+  "map": "nac_dinh_thanh",
+  "out": "nac_dinh_thanh.v2.json",
+  "size": [170, 113],
+  "seed": 20261111,
+  "gids": {
+    "ground": {
+      "grass": [1, 2], "leaf": 3, "moss": 6, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
+      "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
+    },
+    "objects": {
+      "rock": 36, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28, "sign": 29,
+      "roof": 14, "wall": 15
+    },
+    "canopy": { "17": 21, "18": 22 }
+  },
+  "tiers": [
+    { "name": "Thành", "trees": { "17": 2, "18": 1 }, "density": 0, "cluster": 0.99, "leaf": 0.72, "moss": 0.74, "plant": 0.004 }
+  ],
+  "zones": [],
+  "points": {},
+  "features": [
+    { "type": "area", "name": "Đại lộ đông tây", "ground": "pave", "rect": [1, 53, 168, 7], "lock": true, "clear": true },
+    { "type": "area", "name": "Đại lộ bắc nam", "ground": "pave", "rect": [82, 1, 6, 111], "lock": true, "clear": true },
+    { "type": "area", "name": "Quảng trường", "ground": "crack", "rect": [66, 40, 38, 32], "lock": true, "clear": true },
+    { "type": "objects", "kind": "ancient", "at": [[85, 45]] },
+    { "type": "objects", "kind": "ruin", "at": [[80, 44], [90, 44], [80, 68], [90, 68]] },
+    { "type": "row", "kind": "stele", "from": [68, 42], "to": [102, 42], "step": 6 },
+    { "type": "row", "kind": "stele", "from": [68, 70], "to": [102, 70], "step": 6 },
+    { "type": "row", "kind": "tree", "from": [4, 51], "to": [63, 51], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [4, 61], "to": [63, 61], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [107, 51], "to": [165, 51], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [107, 61], "to": [165, 61], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [80, 4], "to": [80, 37], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [89, 4], "to": [89, 37], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [80, 75], "to": [80, 108], "step": 5 },
+    { "type": "row", "kind": "tree", "from": [89, 75], "to": [89, 108], "step": 5 },
+    { "type": "house", "rect": [14, 10, 30, 14], "margin": 2, "ground": "pave" },
+    { "type": "area", "name": "Sân học viện", "ground": "path", "rect": [16, 27, 26, 14], "clear": true, "lock": true },
+    { "type": "row", "kind": "tree", "from": [16, 41], "to": [42, 41], "step": 4 },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [48, 3, 30, 34], "w": [4, 7], "h": [3, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [3, 43, 60, 7], "w": [4, 6], "h": [3, 4], "alley": 2 },
+    { "type": "house", "rect": [100, 10, 22, 12], "margin": 2, "ground": "pave" },
+    { "type": "area", "name": "Sân lò rèn", "ground": "camp", "rect": [101, 24, 20, 8], "clear": true, "lock": true },
+    { "type": "objects", "kind": "fire", "at": [[104, 26], [118, 26]] },
+    { "type": "objects", "kind": "rock", "at": [[106, 29], [109, 29], [112, 29], [115, 29]] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [126, 3, 40, 46], "w": [4, 7], "h": [3, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [92, 34, 32, 15], "w": [4, 6], "h": [3, 4] },
+    { "type": "area", "name": "Chợ", "ground": "camp", "rect": [6, 65, 44, 26], "clear": true, "lock": true },
+    { "type": "objects", "kind": "tent", "at": [[10, 70], [16, 70], [22, 70], [28, 70], [34, 70], [40, 70], [10, 80], [16, 80], [22, 80], [34, 80], [40, 80], [46, 80]] },
+    { "type": "objects", "kind": "plant", "at": [[13, 74], [25, 74], [37, 74], [19, 84], [31, 84]] },
+    { "type": "objects", "kind": "sign", "at": [[50, 64]] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [54, 64, 24, 46], "w": [4, 6], "h": [3, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [3, 94, 48, 16], "w": [4, 7], "h": [3, 4] },
+    { "type": "house", "rect": [108, 66, 26, 12], "margin": 2, "ground": "pave" },
+    { "type": "area", "name": "Sân trạm sứ giả", "ground": "pave", "rect": [108, 80, 26, 6], "clear": true, "lock": true },
+    { "type": "objects", "kind": "ruin", "at": [[110, 82], [131, 82]] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [92, 88, 74, 22], "w": [4, 7], "h": [3, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [138, 64, 28, 22], "w": [4, 6], "h": [3, 4] },
+    { "type": "area", "name": "Vườn hoa tây bắc", "ground": "grass", "rect": [3, 3, 42, 6], "clear": true },
+    { "type": "scatter", "kind": "tree", "rect": [3, 3, 42, 6], "p": 0.12 },
+    { "type": "scatter", "kind": "plant", "rect": [3, 3, 42, 6], "p": 0.06 },
+    { "type": "fence", "rect": [0, 0, 170, 113], "gates": [[0.5, 56.5], [169.5, 56.5], [85, 0.5]], "gate": 7 }
+  ],
+  "spawn": { "name": "Quảng trường Nặc Đinh", "rect": [76, 50, 18, 14] },
+  "portals": [
+    { "name": "Về Thánh Hồn Thôn", "rect": [0, 53, 3, 7], "to": "thanh_hon_thon", "arrive": "tu_nac_dinh_thanh", "level": "1-10" },
+    { "name": "Đi Tinh Đấu Ngoại vi", "rect": [167, 53, 3, 7], "to": "tinh_dau_ngoai_vi", "arrive": "tu_nac_dinh_thanh", "level": "10-30" },
+    { "name": "Đi Thiên Đấu Thành", "rect": [82, 0, 6, 3], "to": "thien_dau_thanh", "arrive": "tu_nac_dinh_thanh" }
+  ],
+  "arrives": [
+    { "name": "tu_thanh_hon_thon", "at": [6.5, 56.5] },
+    { "name": "tu_tinh_dau_ngoai_vi", "at": [163.5, 56.5] },
+    { "name": "tu_thien_dau_thanh", "at": [85, 7.5] }
+  ],
+  "waypoints": [
+    { "name": "quang_truong", "label": "Quảng trường Nặc Đinh", "at": [94, 46] },
+    { "name": "cong_tay", "label": "Cổng tây Nặc Đinh", "at": [12, 54] },
+    { "name": "cong_dong", "label": "Cổng đông Nặc Đinh", "at": [156, 54] }
+  ],
+  "npcs": [
+    { "name": "Ngọc Tiểu Cương (Đại Sư)", "npc": "dai_su", "at": [29, 29] },
+    { "name": "Thợ rèn", "npc": "lo_ren", "at": [111, 27] },
+    { "name": "Thương nhân", "npc": "thuong_nhan", "at": [26, 76] },
+    { "name": "Sứ giả Đại Đấu Hồn Trường", "npc": "su_gia_dau_hon", "at": [121, 82] }
+  ]
+}

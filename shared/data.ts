@@ -145,7 +145,7 @@ export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi"
  * thú tăng theo diện tích (11.5).
  */
 export const BEAST_DENSITY: Record<string, number[]> = {
-  tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
+  thanh_hon_thon: [10.5, 10.0, 25.2], tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
   cuc_bac_chi_dia: [8.3, 8.2, 8.8, 5.7], hai_than_dao: [16.9, 9.6, 10.4, 10.9],
 };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
@@ -1027,8 +1027,9 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * Một tinh anh / thú vương / boss. `species`: loài gốc (mã BEASTS): dùng lại chỉ số theo năm của loài và sprite (phóng ELITE.scale).
  * `aura`: màu vầng sáng riêng (client vẽ bằng code). `skills`: chiêu báo trước (tinh anh: 2 chiêu, cùng bộ máy với 3.5).
  * Hệ số máu / sát thương theo bậc nằm ở ELITE (tinh anh) và KING (thú vương, BĐ5).
- * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x6–8, bảng 5.3), niên hạn bằng mức trên của bản đồ (MAPS.years) trừ khi
- * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
+ * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x72–96: #264 nhân 12 so với x6–8 cũ vì trận chỉ kéo dài vài chục
+ * giây, giai đoạn 2 chưa kịp chạy một chu kỳ; báo cáo #176), niên hạn bằng mức trên của bản đồ (MAPS.years) trừ khi có `years`
+ * riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
 export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; tide?: TideDef; split?: SplitDef; }
@@ -1139,12 +1140,12 @@ export const BOSSES: BossDef[] = [
   // trứng (EggDef, #162): máu bọc bằng nửa nhện con cùng số năm để một người tập trung phá kịp cả 3 bọc trong thời gian nở; "tơ phủ 1/3
   // hang luân phiên (vùng cấm báo trước 2 giây)" (#173, SplitDef): hang chia 3 phần, tơ phủ lần lượt từng phần; bước vào tơ bị Trói một
   // lần, đứng trong tơ bị Làm chậm.
-  { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 6, skills: [
+  { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 72, skills: [
     bs("Huyết Nguyệt Hú", "circle", 60, { warn: 1.2, dmg: 1, cd: 14, summon: { species: "phong_lang", n: 4 } }),
     bs("Liệt Phong Trảo", "cone", 58, { arc: 60, count: 3, spread: 130, warn: 1, dmg: 1.4, cd: 8 })],
     phase2: { name: "Huyết Cuồng", desc: "tốc độ +40%, cứ 10 giây đánh dấu một người rồi lao xuyên tới", spd: 1.4, skills: [
       bs("Huyết Cuồng Xung", "line", 170, { w: 20, range: 160, warn: 1.2, dmg: 1.8, cd: 10, dash: true, mark: true })] } },
-  { id: "thien_doc_chu_hoang", name: "Thiên Độc Chu Hoàng", rank: 2, species: "nhan_dien_ma_chu", aura: "#7bff5a", hp: 7, skills: [
+  { id: "thien_doc_chu_hoang", name: "Thiên Độc Chu Hoàng", rank: 2, species: "nhan_dien_ma_chu", aura: "#7bff5a", hp: 84, skills: [
     bs("Thiên La Võng", "circle", 64, { warn: 1.3, dmg: 0.9, cd: 12, status: [{ s: "root", secs: 2 }] }),
     bs("Độc Châm Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8,
       status: [{ s: "poison", n: 2, secs: 5 }] })],
@@ -1174,7 +1175,7 @@ export const BOSSES: BossDef[] = [
   // Thú vương Lạc Nhật (BĐ6b): mượn loài Hắc Thủy Mãng. GĐ2 "Lưỡng Nghi Luân Chuyển" (#173, thiết kế gốc; SplitDef): hang chia nửa
   // băng, nửa lửa; mỗi 12 giây đổi nửa đang hóa (báo trước 2 giây), nửa kia an toàn. Đứng nhầm nửa băng: Đóng băng 1,5 giây một lần
   // (#116; gây mỗi nhịp thì không ra được) rồi Làm chậm khi còn đứng; nửa lửa: Thiêu đốt nặng cộng tầng mỗi nhịp.
-  { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 7, skills: [
+  { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 84, skills: [
     bs("Băng Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.4, cd: 8, status: [{ s: "slow", secs: 3 }] }),
     bs("Hỏa Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.5, cd: 8, status: [{ s: "burn", n: 3, secs: 5 }] })],
     phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "hang chia nửa băng, nửa lửa, mỗi 12 giây đổi nửa đang hóa (báo trước 2 giây); đứng nhầm nửa thì bị đóng băng hoặc thiêu đốt nặng; tốc độ +20%",
@@ -1202,7 +1203,7 @@ export const BOSSES: BossDef[] = [
   // bị đánh dấu của bản tối thiểu (thay cho tầng Hàn) đã bỏ. Mỗi 5 giây một tầng: không về Hỏa Đàn thì 20 giây bị Đóng băng một lần;
   // Hỏa Đàn ở nửa trái hang, cách tâm hang (chỗ thú vương sinh) khoảng một phần tư bề ngang hang; phía sau theo phép chiếu isometric
   // (x + y nhỏ) nên vách hang không che đống lửa.
-  { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
+  { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 96, skills: [
     bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
     bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
     phase2: { name: "Cực Hàn", desc: "người tham gia trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
@@ -1223,13 +1224,13 @@ export const BOSSES: BossDef[] = [
   { id: "hac_uyen_ma_kinh", name: "Hắc Uyên Ma Kình", rank: 1, species: "tham_hai_ma_kinh", aura: "#1a3aa0", skills: [
     bs("Hấp Thủy", "circle", 90, { range: 80, warn: 1, dmg: 0.8, cd: 10, pull: 70 }),
     bs("Thủy Trụ", "circle", 26, { at: "target", range: 150, count: 5, scatter: 70, dmg: 1.5 })] },
-  // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x8. Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
+  // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x96 (#264). Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
   // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một). GĐ2 "Thủy Triều Dâng" (#174, thiết kế gốc; TideDef): nước dâng
   // từng đợt vùng ngập ở chỗ mới trong hang, đợt cũ rút; đứng trong nước bị Ngập nước (STATUS.flood, gây lại mỗi nhịp ngắn hơn thời gian
   // của trạng thái), một số vùng có xoáy nước giữa kéo về tâm. Lực kéo nhỏ hơn tốc độ đi bộ khi chỉ bị Ngập nước nên tự thoát được; bị
   // Làm chậm thêm (cộng tới SLOW_CAP) thì có thể bị giữ trong xoáy. Dải nước báo trước của bản tối thiểu thành Sóng Dữ (sát thương, không
   // Làm chậm: Làm chậm đã do vùng ngập gây).
-  { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 8, years: 95000, skills: [
+  { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 96, years: 95000, skills: [
     bs("Ma Kình Hống", "circle", 70, { warn: 1.3, dmg: 1.4, cd: 10, status: [{ s: "stun", secs: 1.5 }] }),
     bs("Thôn Hải", "circle", 110, { range: 100, warn: 1.4, dmg: 1.2, cd: 12, pull: 80 })],
     phase2: { name: "Thủy Triều Dâng", desc: "vùng ngập luân phiên trong hang làm chậm 50%, xoáy nước giữa vùng ngập kéo người vào, tốc độ +20%", spd: 1.2,
@@ -1275,8 +1276,10 @@ export const kingYears = (mapId: string): number | null => {
  * đồ thì `lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào; không lớn hơn mức dưới của `respawn` để
  * chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn (phòng mở lại sinh tinh anh ngay: hạ trong lúc còn khóa chỉ được
  * thưởng như hồn thú thường).
+ * `hp` 8 (#263, trước là 2,5; báo cáo #176): với 2,5 tinh anh chết trong 3–7 giây, Cuồng nộ (ELITE_RAGE) chỉ kéo dài 1–3 giây và hai
+ * chiêu báo trước thường không kịp tung lần nào.
  */
-export const ELITE = { hp: 2.5, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
+export const ELITE = { hp: 8, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
   radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15, lock: 480 };
 /** Máu tăng theo số người tham gia (mục 5.4, tinh anh trở lên): máu tối đa × (1 + BOSS_HP_PER_PLAYER × (N − 1)). */
 export const BOSS_HP_PER_PLAYER = 0.6;
@@ -1304,7 +1307,7 @@ export const ELITE_RAGE = { hp: 0.5, dmg: 0.3, spd: 0.25, secs: 10, cd: 20 };
 
 // ---------- Tà hóa thú vương (boss bản đồ, mục 5.4, 6; bước BĐ5, mọi số đã chốt) ----------
 /**
- * Thú vương: máu x BossDef.hp (6–8 theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
+ * Thú vương: máu x BossDef.hp (theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
  * kinh nghiệm x`xp` cho mọi người đóng góp còn trong phòng; sprite loài gốc phóng `scale` (khoảng 96×96, mục 5.11).
  * Giai đoạn 2: máu còn `phaseHp` thì gầm lên, đứng yên `roarSecs` giây (không nhận khống chế), rồi thêm chiêu BossDef.phase2 và nhanh hơn.
  * Người tham gia như tinh anh nhưng bán kính là cả hang (object `boss`): ngoài hang `outSecs` giây liên tục thì bị loại, số người giảm
@@ -1377,7 +1380,8 @@ export const chestCode = (bossId: string) => `ruong_${bossId}`;
 
 // ---------- Boss thế giới 100.000 năm (Lõi Tinh Đấu, mục 5.4, 6; bước BĐ6e, mọi số đã chốt) ----------
 /**
- * Boss thế giới: máu x`hp` (30, mục 5.4), sát thương x`dmg` so với loài gốc cùng năm (100.000 năm); kinh nghiệm x`xp` cho mọi người
+ * Boss thế giới: máu x`hp` (150, #265, trước là 30: boss chết trong khoảng 1 phút, trước khi cơ chế riêng và điểm yếu hệ
+ * chạy đủ vòng; báo cáo #176; mục 5.4), sát thương x`dmg` so với loài gốc cùng năm (100.000 năm); kinh nghiệm x`xp` cho mọi người
  * đóng góp còn trong phòng; sprite loài gốc phóng `scale`. Người tham gia / máu theo số người / bỏ giao chiến như thú vương (sàn đấu
  * là object `boss` của Lõi Tinh Đấu): ngoài sàn `outSecs` giây thì bị loại, số người giảm tối đa 1 mỗi `dropEvery` giây, `idleSecs`
  * giây không còn ai trong sàn thì về chỗ, hồi đầy.
@@ -1389,7 +1393,7 @@ export const chestCode = (bossId: string) => `ruong_${bossId}`;
  * Thưởng: đóng góp (sát thương) từ `share` (3%, đã chốt) và còn trong phòng thì nhận hồn hoàn (WORLD_RING) và rương (WORLD_CHEST);
  * tối đa `daily` lần/ngày (1, đã chốt), loại BOSS_CLAIM_WORLD trong `boss_claims`, đặt lại 00:00 giờ Việt Nam.
  */
-export const WORLD = { hp: 30, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
+export const WORLD = { hp: 150, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
   enrageSecs: 600, rageDmg: 3, rageSpd: 1.4, rageCd: 0.6, slamEvery: 15, weakAt: [0.75, 0.5, 0.25], weakSecs: 15, weakMult: 2.5, offMult: 0.5,
   firstMech: 0.5, share: 0.03, daily: 1 };
 /** Chiêu toàn sàn khi nổi giận (mục 5.4, mỗi WORLD.slamEvery giây): né bằng cách đứng trong vòng an toàn (FLOOR_SAFE) hoặc ra khỏi sàn. */
@@ -2766,6 +2770,19 @@ export const BONE_ENHANCE_STAT = 0.05;
  */
 export const BONE_ENHANCE_MILESTONES = [5, 10, 15, 20];
 export const BONE_MILESTONE_SKILL = 0.1;
+/**
+ * **(đã chốt, #281)** Phí Hồn Tệ (đồng) khi cường hóa hồn cốt **lên** +(n + 1): BONE_ENHANCE_FEE[n]; trả một lần cho mỗi cấp vừa
+ * vượt qua (enhanceFee). +1…+5 miễn phí, +6…+10 1.000, +11…+15 3.000, +16…+20 8.000: tới +10 hết 5.000, một hồn cốt +20 hết 60.000.
+ */
+export const BONE_ENHANCE_FEE = [0, 0, 0, 0, 0, 1000, 1000, 1000, 1000, 1000, 3000, 3000, 3000, 3000, 3000, 8000, 8000, 8000, 8000, 8000];
+/**
+ * Phí Hồn Tệ của một lần cường hóa / nâng cấp từ +`from` lên +`to` theo bảng `table` (BONE_ENHANCE_FEE, CORE_ENHANCE_FEE): tổng phí
+ * mọi cấp vừa vượt qua (#281). Nạp điểm mà chưa lên cấp thì 0; chia nhỏ nhiều lần hay một lần nhảy nhiều cấp đều trả cùng tổng.
+ */
+export function enhanceFee(table: readonly number[], from: number, to: number) {
+  const a = Math.max(0, Math.floor(from) || 0), b = Math.min(table.length, Math.floor(to) || 0);
+  return table.slice(a, Math.max(a, b)).reduce((s, x) => s + x, 0);
+}
 /** Cấp cường hóa hợp lệ (số nguyên 0..BONE_MAX_ENHANCE). */
 export function boneEnhanceClamp(e: unknown) { return Math.max(0, Math.min(BONE_MAX_ENHANCE, Math.floor(Number(e)) || 0)); }
 /** Tổng điểm cường hóa để đạt +`level` từ +0. */
@@ -3045,6 +3062,11 @@ export const CORE_MAX_ENHANCE = 15;
  * 1.380, +15 cần 2.450 (khoảng 5–6 hồn hạch 6★ cùng bộ, 8 hồn hạch 6★ khác bộ, hay 31 hồn hạch 4★ khác bộ). Một bảng cho mọi sao.
  */
 export const CORE_ENHANCE_COST = [20, 30, 40, 55, 70, 90, 110, 135, 160, 190, 220, 260, 300, 350, 420];
+/**
+ * **(đã chốt, #281)** Phí Hồn Tệ (đồng) khi nâng cấp hồn hạch **lên** +(n + 1): CORE_ENHANCE_FEE[n], trả một lần mỗi cấp vượt qua
+ * (enhanceFee). +1…+3 miễn phí, +4…+6 1.000, +7…+9 2.500, +10…+12 5.000, +13…+15 10.000: một hồn hạch +15 hết 55.500.
+ */
+export const CORE_ENHANCE_FEE = [0, 0, 0, 1000, 1000, 1000, 2500, 2500, 2500, 5000, 5000, 5000, 10000, 10000, 10000];
 /** **(đã chốt)** Điểm gốc một nguyên liệu theo sao 1★..6★ (gấp đôi mỗi sao: sao cao làm nguyên liệu đáng giá hơn nhiều). */
 export const CORE_FEED_STAR = [10, 20, 40, 80, 160, 320];
 /** **(đã chốt)** Nguyên liệu cùng bộ với hồn hạch được nâng cấp thì điểm gốc ×1,5 (như hồn cốt cùng vị trí ở 4.4). */
@@ -3610,6 +3632,12 @@ export const NPCS: NpcDef[] = [
       "Học viện mới dời về Thiên Đấu Thành, nhưng khảo hạch thì không nghỉ ngày nào: mỗi ngày ta ra vài bài, nửa đêm đổi bài mới (nhiệm vụ hằng ngày).",
       "Muốn mạnh lên thì ra Đại Đấu Hồn Trường mà rèn luyện thực chiến, hoặc quay về Tinh Đấu Đại Sâm Lâm săn hồn hoàn hợp vòng.",
     ] },
+  { id: "trieu_vo_cuc", name: "Triệu Vô Cực", title: "Bất Động Minh Vương · Sử Lai Khắc Học Viện", role: "talk", col: "#ff9a5c",
+    looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
+    lines: [
+      "Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Võ hồn của ta là Địa Ngục Ma Long, đừng thử đứng trước mặt ta quá một nén nhang.",
+      "Sử Lai Khắc chỉ nhận quái vật. Xong bài của Đại Sư rồi thì tới đây, ta có chín bài cho ngươi: Thất Quái ngày trước cũng đi con đường này.",
+    ] },
   { id: "thuong_nhan_thien_dau", name: "Chưởng quỹ", title: "Thương hội Thiên Đấu", role: "shop", col: "#ffb35c",
     looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 1, skin: 0 },
     lines: [
@@ -3791,14 +3819,16 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
  * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
  * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
  */
-export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give";
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king";
 /**
  * Từ nhiệm vụ hằng ngày (DAILY_POOL): `kill` thêm `fit` (chỉ hồn thú hợp cấp, fitBeast); `arena` đánh xong một trận Đại Đấu Hồn
  * Trường (thắng / thua / hòa, không tính bỏ trận hay đối thủ không vào sân); `give` nộp `n` món mã `item` lúc trả bài (số đếm là số
  * món đang có trong túi, server tính lại mỗi khi túi đổi); `near`: NPC chỉ đường trên bản đồ nhỏ.
+ * Từ chương 2 (QUEST_CH2): `elite` tham gia hạ một tinh anh (người hạ và đồng đội được chia kinh nghiệm); `king` có đóng góp khi một
+ * thú vương bị hạ; `party` (trên `kill`) chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm.
  */
 export interface QuestGoal {
-  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; item?: string; near?: string;
+  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
 }
 /** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
 export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
@@ -3815,9 +3845,14 @@ export interface QuestChain { id: string; name: string; giver: string; map: stri
  */
 export interface QuestProgress { chain: string; step: number; accepted: boolean; prog: number[]; }
 /** Sự kiện server báo cho bộ đếm nhiệm vụ (MapRoom.questEvent). */
-export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; }
+export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; party?: boolean; }
 /** Mã chuỗi tân thủ (mọi tài khoản, cả tài khoản cũ, bắt đầu ở bước 1 khi chưa có dòng trong bảng `quests`). */
 export const QUEST_STARTER = "tan_thu";
+/** Mã chuỗi chương 2 "Sử Lai Khắc Thất Quái" (bảng `quests` như chuỗi tân thủ); chỉ nhận được khi chuỗi `QUEST_CH2_AFTER` đã xong. */
+export const QUEST_CH2 = "su_lai_khac";
+export const QUEST_CH2_AFTER = QUEST_STARTER;
+/** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
+export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER };
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
   { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
@@ -3867,6 +3902,68 @@ export const QUESTS: QuestChain[] = [
         done: ["Tốt lắm. Ngươi đã đứng vững ở Tinh Đấu Đại Sâm Lâm."],
         reward: { honTe: 150, items: [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }, { code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
     ] },
+  // Chương 2 (#189): giao bài ở Thiên Đấu Thành, mục tiêu theo bản đồ (không theo vùng, vì bản đồ có thể đổi tên vùng). Không thưởng
+  // mảnh UR (chỉ rơi từ rương boss thế giới, mục 5.3).
+  { id: QUEST_CH2, name: "Sử Lai Khắc Thất Quái", giver: "trieu_vo_cuc", map: "thien_dau_thanh",
+    finale: "Chín bài ta ra, ngươi đã qua hết. Sử Lai Khắc không nhận người thường, nhưng từ hôm nay ngươi không còn là người thường nữa. Đường phía trước còn dài.",
+    steps: [
+      { id: "hoc_vien", name: "Học viện của quái vật", desc: "Tới Thiên Đấu Thành, gặp Phất Lan Đức.",
+        offer: ["Ta là Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Đại Sư đã theo Đường Tam lên đây, và hắn nhắc tới ngươi.",
+          "Sử Lai Khắc chỉ nhận quái vật. Muốn biết mình có đủ tư cách không thì làm chín bài của ta. Bài đầu: tìm Phất Lan Đức, viện trưởng của chúng ta."],
+        goals: [{ k: "map", map: "thien_dau_thanh", n: 1, have: true, text: "Đặt chân tới Thiên Đấu Thành" }, { k: "talk", npc: "phat_lan_duc", n: 1, text: "Nói chuyện với Phất Lan Đức" }],
+        done: ["Phất Lan Đức nói không sai: Thất Quái ngày đầu cũng như ngươi bây giờ, chẳng ai ra dáng gì cả."],
+        reward: { honTe: 100, items: [{ code: "dai_hoi_huyet_dan", qty: 2 }] } },
+      { id: "mot_nen_nhang", name: "Một nén nhang", desc: "Cùng đồng đội hạ một tinh anh ở bất kỳ bản đồ săn nào.",
+        offer: ["Thử thách của Sử Lai Khắc: trụ trước ta một nén nhang. Ngươi chưa đủ sức, nên ta đổi: hạ một tinh anh, kẻ mạnh hơn hồn thú thường rất nhiều.",
+          "Tinh anh canh các vùng săn. Một mình khó thì rủ đồng đội, ai được chia kinh nghiệm cũng được tính."],
+        goals: [{ k: "elite", n: 1, text: "Tham gia hạ một tinh anh" }],
+        done: ["Một nén nhang tàn rồi. Biết liều mà không mù quáng, đó là điều ta muốn thấy."],
+        reward: { honTe: 200, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 10 }] } },
+      { id: "tinh_dau_sau", name: "Tinh Đấu sâu thẳm", desc: "Tới Tinh Đấu Nội địa, hạ hồn thú ở đó.",
+        offer: ["Bài thứ ba: vào sâu hơn. Tinh Đấu Nội địa là nơi hồn thú nghìn năm trở lên lui tới, không còn là chỗ cho kẻ xem thường.",
+          "Tới đó, hạ ba mươi con hồn thú rồi trở về."],
+        goals: [{ k: "map", map: "tinh_dau_noi_dia", n: 1, have: true, text: "Đặt chân tới Tinh Đấu Nội địa" },
+          { k: "kill", map: "tinh_dau_noi_dia", n: 30, text: "Hạ hồn thú ở Tinh Đấu Nội địa" }],
+        done: ["Về được là tốt. Hồn sư sống lâu không phải nhờ mạnh nhất, mà nhờ biết lúc nào nên lui."],
+        reward: { honTe: 300, items: [{ code: "dai_hoi_hon_dan", qty: 3 }] } },
+      { id: "ly_luan", name: "Lý luận của Đại Sư", desc: "Hấp thụ thành công một hồn hoàn trong giới hạn của vòng.",
+        offer: ["Bài thứ tư: lý luận. Đại Sư nói hồn hoàn phải chọn theo giới hạn, ta thì thấy ngươi nên nghe lời hắn một lần.",
+          "Hấp thụ thành công một hồn hoàn không vượt giới hạn của vòng rồi về báo."],
+        goals: [{ k: "absorb", n: 1, text: "Hấp thụ thành công hồn hoàn trong giới hạn" }],
+        done: ["Lý luận của Đại Sư có chỗ khô khan, nhưng chưa bao giờ sai. Ghi nhớ."],
+        reward: { honTe: 300, items: [{ code: shardCode("xuc_xich"), qty: 10 }] } },
+      { id: "hoc_phi", name: "Đấu hồn kiếm học phí", desc: "Đánh ba trận Đại Đấu Hồn Trường ở Thiên Đấu Thành, thắng thua đều tính.",
+        offer: ["Bài thứ năm: thực chiến. Sử Lai Khắc không dạy hồn sư đóng cửa tu luyện. Ra Đại Đấu Hồn Trường mà đánh.",
+          "Ba trận, thắng thua đều tính, ta chỉ muốn thấy ngươi dám bước vào sân. Bỏ trận thì không tính."],
+        goals: [{ k: "arena", n: 3, text: "Đánh trận Đại Đấu Hồn Trường" }],
+        done: ["Thua cũng được, miễn là đứng dậy. Thất Quái trận nào cũng thắng thì đâu cần tới ta."],
+        reward: { honTe: 300, items: [{ code: "hoi_thanh_phu", qty: 2 }] } },
+      { id: "ket_nghia", name: "Thất Quái kết nghĩa", desc: "Lập tổ đội, hạ hồn thú hợp cấp cùng đồng đội chia kinh nghiệm.",
+        offer: ["Bài thứ sáu: bảy người của Thất Quái, từ Đường Tam tới Tiểu Vũ, Đái Mộc Bạch, Chu Trúc Thanh, Ninh Vinh Vinh, Áo Tư Tạp, Mã Hồng Tuấn, không ai mạnh một mình.",
+          "Lập tổ đội với ít nhất một người, hạ hai mươi con hồn thú hợp cấp khi cả đội cùng chia kinh nghiệm."],
+        goals: [{ k: "kill", n: 20, fit: true, party: true, text: "Hạ hồn thú hợp cấp khi tổ đội cùng chia kinh nghiệm" }],
+        done: ["Có đồng đội thì đường dài đi cũng ngắn. Nhớ lấy điều này."],
+        reward: { honTe: 400, items: [{ code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
+      { id: "bang_hoa", name: "Băng Hỏa Lưỡng Nghi Nhãn", desc: "Tới Lạc Nhật Sâm Lâm, hạ hồn thú ở đó.",
+        offer: ["Bài thứ bảy: Lạc Nhật Sâm Lâm, nơi Độc Cô Bác canh giữ Băng Hỏa Lưỡng Nghi Nhãn. Hắn không thích khách lạ.",
+          "Tới đó, hạ ba mươi con hồn thú rồi trở về. Đừng lại gần suối, và đừng chọc vào kẻ không nên chọc."],
+        goals: [{ k: "map", map: "lac_nhat_sam_lam", n: 1, have: true, text: "Đặt chân tới Lạc Nhật Sâm Lâm" },
+          { k: "kill", map: "lac_nhat_sam_lam", n: 30, text: "Hạ hồn thú ở Lạc Nhật Sâm Lâm" }],
+        done: ["Còn sống mà về, đủ để kể cho Mã Hồng Tuấn nghe. Hắn sẽ ghen tị lắm."],
+        reward: { honTe: 500, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 15 }] } },
+      { id: "thu_vuong_ta_hoa", name: "Thú vương tà hóa", desc: "Có đóng góp khi một thú vương bị hạ.",
+        offer: ["Bài thứ tám: thú vương tà hóa, hồn thú bị tà khí ăn mòn, hung bạo hơn thú vương bình thường. Một mình ngươi không đủ sức đâu.",
+          "Cùng người khác hạ một thú vương. Có đóng góp và còn ở đó lúc nó ngã xuống là tính."],
+        goals: [{ k: "king", n: 1, text: "Có đóng góp khi hạ một thú vương" }],
+        done: ["Thú vương ngã xuống, tà khí tan. Lần sau gặp thứ như vậy, ngươi biết phải làm gì."],
+        reward: { honTe: 600, items: [{ code: "dai_hoi_huyet_dan", qty: 3 }, { code: "dai_hoi_hon_dan", qty: 3 }] } },
+      { id: "vong_loai", name: "Vòng loại Tinh Anh Đại Tái", desc: "Đánh năm trận Đại Đấu Hồn Trường để tranh suất Toàn Đại Lục Cao Cấp Hồn Sư Tinh Anh Đại Tái.",
+        offer: ["Bài cuối: Toàn Đại Lục Cao Cấp Hồn Sư Tinh Anh Đại Tái. Muốn dự thì qua vòng loại, vòng loại ở Đại Đấu Hồn Trường.",
+          "Năm trận, thắng thua đều tính. Đánh xong thì về đây."],
+        goals: [{ k: "arena", n: 5, text: "Đánh trận Đại Đấu Hồn Trường" }],
+        done: ["Vòng loại ngươi qua rồi. Phần còn lại, tự ngươi bước tiếp."],
+        reward: { honTe: 800, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 25 }] } },
+    ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
 /** Chuỗi theo mã: chuỗi cố định trong QUESTS, hoặc bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain). */
@@ -3894,7 +3991,8 @@ export function questStatus(q: QuestProgress): QuestStatus {
 }
 /** Sự kiện `ev` có tính cho mục tiêu `g` không. */
 export const questGoalHit = (g: QuestGoal, ev: QuestEvent) => g.k !== "give" &&
-  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true);
+  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true)
+  && (!g.party || ev.party === true);
 /** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
 export const questRewardText = (r: QuestReward) =>
   [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");
@@ -3920,6 +4018,11 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
  *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
  *   trong cửa sổ (arenaPairs).
+ * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
+ *   hồi máu của bộ Lưu Ly / ràng buộc) × ngần ấy: sát thương lên hồn sư đã × `dmgMult` nhưng hồi tính theo % sinh lực tối đa nên
+ *   mạnh gấp ~3 lần so với ngoài rừng, không giảm thì Phụ trợ gần như không chết. Hút máu và hồi tự nhiên không đổi.
+ *   `ccMult`: thời gian khống chế (isCcStatus) đối thủ gây lên hồn sư × ngần ấy, sau kháng của bị động hồn cốt: đối thủ trong sân
+ *   như mục tiêu bậc cao (ngoài rừng là CC_TIER_MULT), tránh khóa chết.
  */
 export const ARENA = {
   startElo: 1000, k: 32,
@@ -3929,7 +4032,16 @@ export const ARENA = {
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
   pairDaily: 3, rematchSecs: 60,
+  healMult: 0.5, ccMult: 0.7,
 };
+/**
+ * Hệ số sát thương lên đối thủ trong sân theo hệ võ hồn ra trận của người đánh (#277, mục 5.9), nhân vào mọi sát thương PvP (đánh
+ * thường, hồn kỹ, Chân Thân, tiên cơ, kỹ năng hồn cốt, sát thương theo thời gian) trước ARENA.dmgMult. Căn cứ DPS đơn mục tiêu so
+ * trung vị (#176): Cường công 1,08–1,48× (bùng nổ diện rộng không bị chia trong 1v1), Mẫn công 0,9–1,58× (chí mạng, cơ động đã lợi
+ * khi đuổi đánh), Khống chế 0,69–1,0× (mất lợi đánh bầy, khống chế lên hồn sư bị giảm ARENA.ccMult), Phụ trợ 0,3–0,86× (hồi / khiên
+ * bị giảm ARENA.healMult). Chênh giữa hệ mạnh nhất và yếu nhất còn ~1,4 lần thay vì ~2,2. Ước lượng từ PvE, chỉnh sau chơi thử.
+ */
+export const ARENA_HE_DMG: Record<He, number> = { cuong_cong: 0.9, man_cong: 0.95, khong_che: 1.15, phu_tro: 1.35 };
 /** Mảnh thưởng thắng trận: võ hồn SR / SSR (không có UR, không có Lam Ngân Thảo ai cũng sẵn). */
 export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AWAKEN_GIFT).map((v) => v.id);
 /** Xác suất thắng kỳ vọng của Elo `r` trước Elo `ro`. */
@@ -4222,6 +4334,8 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * gọi ra trong trận (bầy, nhện con) vẫn tính như mọi hồn thú thường.
  * - `dodge`: né chiêu báo trước (kể cả chiêu toàn sàn, vòng an toàn) và vùng lưu lại trên đất: đứng trong vùng thì đi tới chỗ an toàn
  *   gần nhất đi thẳng tới được, tìm trên `dirs` hướng, mỗi `step` pixel tới `max` pixel (cùng các vòng an toàn của chiêu toàn sàn).
+ *   Chỗ né phải an toàn cả các điểm quanh nó trong `pad` pixel: tới cách chỗ né dưới 1 pixel là dừng (#292), chỗ sát mép vòng an toàn
+ *   / vùng thì có lúc đứng lại ngay ngoài mép mà vẫn trúng.
  * - `retreat` / `back`: sinh lực võ hồn ra trận dưới `retreat` phần thì lùi ra cách boss ít nhất `dist` pixel (uống đan theo ngưỡng
  *   cài đặt như thường), từ `back` phần mới quay lại đánh.
  * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
@@ -4230,7 +4344,7 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
  *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
  */
-export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168, pad: 3 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")

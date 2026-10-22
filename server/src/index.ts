@@ -129,12 +129,14 @@ const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.RE
 const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, ...(driver ? { driver } : {}) });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
+// MapRoom / ArenaRoom có cả `static onAuth` (kiểm token trước khi giữ chỗ, #235) lẫn onAuth của phòng: Colyseus in dòng "onAuth() defined
+// at the instance level will be ignored", nhưng _reserveSeat của phòng bỏ authData nên onAuth của phòng vẫn chạy lúc mở WebSocket.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
 // Đại Đấu Hồn Trường (7.2): mỗi trận một phòng riêng, server mở khi ghép trận (arenaQueue.ts); client vào bằng mã phòng (joinById).
 gameServer.define("arena", ArenaRoom);
 // Client không gọi được `create` (mặc định Colyseus mở cho mọi người, kể cả chưa đăng nhập): mở phòng bản đồ mới chỉ qua
-// joinOrCreate khi mọi kênh đầy, sân đấu chỉ do server mở (arenaQueue.ts, matchMaker.createRoom). Chặn tự mở kênh riêng (#164); còn
-// joinOrCreate / joinById giữ chỗ trước khi kiểm token: #235.
+// joinOrCreate khi mọi kênh đầy, sân đấu chỉ do server mở (arenaQueue.ts, matchMaker.createRoom). Chặn tự mở kênh riêng (#164);
+// joinOrCreate / joinById kiểm token ở static onAuth trước khi giữ chỗ / mở kênh (#235).
 matchMaker.controller.exposedMethods = ["joinOrCreate", "join", "joinById", "reconnect"];
 
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
