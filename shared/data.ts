@@ -479,6 +479,12 @@ export const PARTY_OFFLINE_SECS = 60;
  */
 export const WORLD_CHAT = { minLevel: 10, cdSecs: 30 } as const;
 
+// ---------- Bạn bè và chặn (mục 5.9 "Bạn bè", #195) ----------
+/** Số người tối đa trong danh sách bạn bè của một tài khoản (mỗi người tự thêm vào danh sách của mình; server kiểm). */
+export const FRIEND_MAX = 50;
+/** Số người tối đa trong danh sách chặn của một tài khoản (server kiểm). */
+export const BLOCK_MAX = 100;
+
 // ---------- Năng lượng và chiêu tiên cơ (mục 5.1 "Trong trận"; mọi số dưới đây đã chốt) ----------
 /** Năng lượng tối đa của mỗi võ hồn trong đội. Đủ mức này thì đổi tay vào sẽ tung chiêu tiên cơ, dùng hết năng lượng. */
 export const TIEN_CO_MAX = 100;

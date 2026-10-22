@@ -8,7 +8,8 @@ import { MapRoom, seatAccount, seatUsed, type AuthData, type PData, type SeatPas
 import { ArenaState, ArenaSide } from "./schema.ts";
 import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
 import { arenaMatches, arenaLive, type ArenaMatch } from "./arenaQueue.ts";
-import { store, type Item, type Bag } from "../db.ts";
+import { store, type Item, type Bag, type SocialRow } from "../db.ts";
+import * as friends from "../friends.ts";
 
 type Phase = "wait" | "ready" | "fight" | "end";
 type Reason = "ko" | "time" | "leave" | "noshow";
@@ -34,8 +35,8 @@ const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", 
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };
 /** Mã đóng kết nối khi trận đã xong và hết ARENA.endSecs: client tự quay về bản đồ cũ. */
 export const ARENA_END_CODE = 4005;
-/** Dữ liệu xác thực của người xem trận (#278): chỉ tài khoản, không nạp võ hồn / túi đồ. */
-interface WatchAuth { accountId: number; watch: true; }
+/** Dữ liệu xác thực của người xem trận (#278): chỉ tài khoản (và danh sách chặn để lọc chat, #195), không nạp võ hồn / túi đồ. */
+interface WatchAuth { accountId: number; watch: true; social: SocialRow; }
 const isWatch = (a: unknown): a is WatchAuth => (a as WatchAuth | undefined)?.watch === true;
 
 export class ArenaRoom extends MapRoom {
@@ -137,7 +138,8 @@ export class ArenaRoom extends MapRoom {
       seatUsed(acc.accountId, client.sessionId);
       if (this.done || !this.watchHold(acc.accountId)) throw new ServerError(403, "Không có chỗ xem trận đấu này.");
       await this.waitOldSession(acc.accountId, client.sessionId);
-      return { accountId: acc.accountId, watch: true } satisfies WatchAuth as unknown as AuthData;
+      const social = await store.getSocial(acc.accountId); // chặn vẫn lọc tin tổ đội / riêng / thế giới khi xem trận (#195)
+      return { accountId: acc.accountId, watch: true, social } satisfies WatchAuth as unknown as AuthData;
     }
     const auth = await super.onAuth(client, options);
     const s = this.sides.flatMap((x) => x.members).find((x) => x.accountId === auth.accountId)!;
@@ -169,6 +171,7 @@ export class ArenaRoom extends MapRoom {
   joinWatch(client: Client, auth: WatchAuth) {
     const l = arenaLive.get(this.roomId);
     this.holdAccount(auth.accountId, client.sessionId);
+    friends.enter(auth.accountId, client.sessionId, "", auth.social); // MapRoom.onLeave bỏ ra
     this.watchers.set(client.sessionId, auth.accountId);
     l?.holds.delete(auth.accountId); l?.watching.set(client.sessionId, auth.accountId);
     this.state.watchers = this.watchers.size;

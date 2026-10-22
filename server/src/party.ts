@@ -70,6 +70,12 @@ export function onlineByName(name: string) {
   return l && !l.off ? { acc: l.acc, name: l.name } : null;
 }
 
+/** Bản đồ và kênh của hồn sư đang trong game (không tính người vừa rời chờ vào lại); không có thì null (bảng bạn bè, #195). */
+export function whereIs(acc: number) {
+  const l = live.get(acc);
+  return l && !l.off ? { mapId: l.mapId, ch: l.ch } : null;
+}
+
 /** Phòng `roomId` nhận người chơi (vào game, vào lại, sang bản đồ mới qua cổng). */
 export function goOnline(l: Omit<Live, "off">): PartyNote[] {
   const old = live.get(l.acc);
