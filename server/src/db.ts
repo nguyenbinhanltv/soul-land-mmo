@@ -511,14 +511,14 @@ export class MemoryStore implements Store {
   }
   /** Thêm / bỏ `other` trong tập của `accountId` ở `m` (giữ thứ tự thêm như created_at). */
   private mark(m: Map<number, Set<number>>, accountId: number, other: number, on: boolean) {
-    if (accountId === other || !this.names.has(other)) throw new Error(`Tài khoản #${other} không hợp lệ.`); // như CHECK / khóa ngoại
+    if (on && (accountId === other || !this.names.has(other))) throw new Error(`Tài khoản #${other} không hợp lệ.`); // như CHECK / khóa ngoại khi thêm
     let set = m.get(accountId);
     if (!set) m.set(accountId, (set = new Set()));
     if (on) set.add(other); else set.delete(other);
   }
   async setFriend(accountId: number, other: number, on: boolean) { this.mark(this.friends, accountId, other, on); }
   async setBlock(accountId: number, other: number, on: boolean) {
-    this.mark(this.blocks, accountId, other, on); // kiểm như CHECK / khóa ngoại trước khi gán
+    this.mark(this.blocks, accountId, other, on); // thêm: kiểm như CHECK / khóa ngoại trước khi gán
     if (on) this.friends.get(accountId)?.delete(other);
   }
   async getAuto(accountId: number): Promise<AutoRow> {

@@ -964,13 +964,12 @@ export class MapRoom extends Room<MapState> {
       // xong hay đạn còn bay hạ hồn thú, cộng vào nhân vật sau khi write() đã chụp dữ liệu, rồi mất khi pdata bị xóa.
       if (d.absorbing) { d.absorbing = null; p.absorb = 0; }
       const zone = this.offlineZone(id); // ủy thác offline (Auto 3): chụp chỗ đứng trước khi freeze
-      const moving = d.travelling || d.arenaGone; // đang đi cổng / đổi kênh / vào sân đấu (trước khi freeze đặt cờ)
       this.freeze(id);
       // Tổ đội (7.1): vẫn trong đội PARTY_OFFLINE_SECS giây (đi cổng, vào lại); quá thì party.sweep cho ra khỏi đội.
       this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
-      // Bạn bè (#195): người đã thêm nhau thấy mình rời game; đang chuyển phòng thì chờ onJoin của phòng mới báo bản đồ / kênh mới
-      // (không nháy "Ngoại tuyến"). Lần ghi bạn bè còn trong chuỗi lưu.
-      const mates = moving ? [] : friends.mutualOnline(d.accountId);
+      // Bạn bè (#195): người đã thêm nhau thấy mình rời phòng (đi cổng / đổi kênh thì onJoin của phòng mới báo bản đồ / kênh mới;
+      // không tới được phòng mới thì vẫn đúng là ngoại tuyến). Lần ghi bạn bè còn trong chuỗi lưu.
+      const mates = friends.mutualOnline(d.accountId);
       friends.leave(d.accountId, id);
       this.friendPublish([{ to: mates }]);
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
