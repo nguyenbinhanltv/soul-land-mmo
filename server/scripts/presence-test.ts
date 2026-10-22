@@ -117,12 +117,20 @@ try {
   p2.enter(C.id, "sc", C.name, row([A], [])); online.add(C.id);
   assert.equal(seen(p1, A.id).find((e) => e.name === C.name)?.mutual, true);
   p2.leave(C.id, "sc"); online.delete(C.id);
-  p2.leave(B.id, "sb"); online.delete(B.id);
-  assert.deepEqual(seen(p1, A.id), [{ name: B.name, mutual: false }, { name: C.name, mutual: true }], "rời game: fans giữ đúng hai bên đã thêm nhau");
-  assert.equal(p1.blocked(B.id, A.id), false);
-  await backend.presence.publish("friend:state", { w: "cũ", acc: B.id, sid: "sb", v: 1, friends: [A.id], blocks: [A.id] });
-  assert.equal(p1.blocked(B.id, A.id), false, "tin cũ tới sau không dựng lại bản sao");
+  assert.equal(seen(p1, A.id).find((e) => e.name === C.name)?.mutual, true, "rời game: fans giữ đúng hai bên đã thêm nhau");
+  // B sang tiến trình 3 (phiên mới, vẫn chặn A) trước khi tin rời của phiên cũ ở tiến trình 2 tới: tin rời đó không xóa phiên mới.
+  p3.enter(B.id, "sb2", B.name, { friends: [], blocks: [A], fans: [] });
+  await p3.settled();
+  p2.leave(B.id, "sb");
   await p2.settled();
+  assert.equal(p1.blocked(B.id, A.id), true, "tin rời của phiên cũ không bỏ chặn của phiên mới");
+  assert.deepEqual(Object.keys((await backend.getJson<Record<string, unknown>>("friend:state")) ?? {}).sort(), [String(A.id), String(B.id)]);
+  p3.leave(B.id, "sb2"); online.delete(B.id);
+  await p3.settled();
+  assert.equal(p1.blocked(B.id, A.id), false);
+  assert.deepEqual(seen(p1, A.id), [{ name: B.name, mutual: false }, { name: C.name, mutual: true }]);
+  await backend.presence.publish("friend:state", { w: "cũ", acc: B.id, sid: "sb2", v: 1, friends: [A.id], blocks: [A.id] });
+  assert.equal(p1.blocked(B.id, A.id), false, "tin cũ của phiên đã rời tới sau không dựng lại bản sao");
   const doc = await backend.getJson<Record<string, unknown>>("friend:state");
   assert.deepEqual(Object.keys(doc ?? {}), [String(A.id)]);
   for (const h of [p1, p2, p3]) h.close();

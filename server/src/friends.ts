@@ -21,11 +21,14 @@ const STATE_KEY = "friend:state";
 
 /** Danh sách của một người đang trong game: bạn bè / chặn (tài khoản -> tên), `fans`: tài khoản đã thêm người này làm bạn. */
 interface Social { sid: string; name: string; friends: Map<number, string>; blocks: Map<number, string>; fans: Set<number>; }
-/** Danh sách chia sẻ qua presence (chỉ số tài khoản). `v` tăng dần theo thời gian: bản cũ tới sau bị bỏ. */
+/**
+ * Danh sách chia sẻ qua presence (chỉ số tài khoản) của phiên `sid`. `v`: bộ đếm tăng dần của tiến trình giữ phiên, chỉ so trong cùng
+ * một phiên (không so đồng hồ giữa các tiến trình); phiên khác của cùng tài khoản chỉ mở sau khi phiên cũ nhả tài khoản (mục 6).
+ */
 interface Shared { sid: string; v: number; friends: number[]; blocks: number[]; }
 /** Tin FRIEND_STATE_TOPIC: `w` tiến trình phát (tự bỏ tin của mình), `gone`: phiên `sid` rời phòng (`friends` là danh sách lúc rời). */
 type StateMsg = Shared & { w: string; acc: number; gone?: boolean };
-/** Bản sao danh sách của người đang trong game ở tiến trình khác. `gone`: đã rời (giữ `v` để tin cũ tới sau không dựng lại). */
+/** Bản sao danh sách của người đang trong game ở tiến trình khác. `gone`: phiên `sid` đã rời (tin cũ của phiên đó tới sau bị bỏ). */
 interface Mirror { sid: string; v: number; friends: Set<number>; blocks: Set<number>; gone: boolean; }
 /** Danh sách đọc được của một người đang trong game (ở tiến trình này hoặc bản sao). */
 interface Lists { friends: { has(id: number): boolean }; blocks: { has(id: number): boolean }; }
@@ -83,22 +86,23 @@ export class FriendHub {
 
   /**
    * Tin FRIEND_STATE_TOPIC (hoặc một mục của tài liệu lúc khởi động): cập nhật bản sao, và `fans` của người ở tiến trình này mà người
-   * kia vừa thêm / bỏ (rời phòng thì vẫn giữ: như leave, để bảng vẫn đúng hai bên đã thêm nhau sau khi người kia ngoại tuyến).
+   * kia vừa thêm / bỏ (rời phòng thì vẫn giữ: như leave, để bảng vẫn đúng hai bên đã thêm nhau sau khi người kia ngoại tuyến). Cùng
+   * phiên thì theo `v`; tin của phiên khác là phiên mới, trừ tin rời (của phiên cũ, không xóa bản sao của phiên đang trong game).
    */
   private apply(m: StateMsg) {
     if (!m || typeof m.acc !== "number" || typeof m.v !== "number" || m.w === this.id) return;
-    const old = this.remote.get(m.acc);
-    if (old && old.v >= m.v) return;
+    const old = this.remote.get(m.acc), sid = String(m.sid);
+    if (old?.sid === sid ? old.gone || old.v >= m.v : m.gone && old) return;
     const friends = new Set(Array.isArray(m.friends) ? m.friends : []);
     for (const f of friends) this.social.get(f)?.fans.add(m.acc);
     if (old && !old.gone) for (const f of old.friends) if (!friends.has(f)) this.social.get(f)?.fans.delete(m.acc);
-    this.remote.set(m.acc, { sid: String(m.sid), v: m.v, friends, blocks: new Set(Array.isArray(m.blocks) ? m.blocks : []), gone: !!m.gone });
+    this.remote.set(m.acc, { sid, v: m.v, friends, blocks: new Set(Array.isArray(m.blocks) ? m.blocks : []), gone: !!m.gone });
   }
 
   /** Chia sẻ danh sách của `acc` (phiên `s.sid`) với tiến trình khác: phát ngay (trước FriendNote của cùng thao tác) rồi ghi tài liệu. */
   private share(acc: number, s: Social, gone = false) {
     const b = this.backend; if (!b) return;
-    const v = this.lastV = Math.max(this.lastV + 1, Date.now() * 1000);
+    const v = ++this.lastV;
     const e: Shared = { sid: s.sid, v, friends: [...s.friends.keys()], blocks: [...s.blocks.keys()] };
     void Promise.resolve(b.presence.publish(FRIEND_STATE_TOPIC, { ...e, w: this.id, acc, ...(gone ? { gone: true } : {}) }))
       .catch((err) => console.error("Không phát được danh sách bạn bè / chặn lên presence", err));
@@ -106,7 +110,10 @@ export class FriendHub {
     this.flushing ??= this.flush();
   }
 
-  /** Ghi các danh sách đang chờ vào tài liệu STATE_KEY dưới lock (gộp nhiều lần đổi thành một lần ghi; bản mới hơn ở tài liệu thì giữ). */
+  /**
+   * Ghi các danh sách đang chờ vào tài liệu STATE_KEY dưới lock (gộp nhiều lần đổi thành một lần ghi). Rời chỉ xóa mục của đúng phiên
+   * đó; bản của phiên đã rời ở tiến trình này (ghi trễ) không đè phiên mới ở tiến trình khác.
+   */
   private async flush() {
     const b = this.backend!;
     while (this.pending.size) {
@@ -115,8 +122,9 @@ export class FriendHub {
         const doc = old ?? {};
         for (const [acc, { gone, ...e }] of batch) {
           const cur = doc[acc];
-          if (cur && cur.v > e.v) continue;
-          if (gone) delete doc[acc]; else doc[acc] = e;
+          if (gone) { if (cur?.sid === e.sid) delete doc[acc]; continue; }
+          if (this.social.get(acc)?.sid !== e.sid || (cur?.sid === e.sid && cur.v > e.v)) continue;
+          doc[acc] = e;
         }
         return doc;
       }, 0).catch((err) => { console.error("Không ghi được danh sách bạn bè / chặn vào presence", err); return true; });
