@@ -909,7 +909,7 @@ export class GameScene extends Phaser.Scene {
         combat: () => this.combat,
         quest: (op, chain) => this.room.send("quest", chain ? { op, chain } : { op }),
         arena: (op) => this.room.send("arena", { op }), // 7.2: xếp hàng / hủy / bảng xếp hạng
-        tong: (op, tong) => this.room.send("tong", { op, tong }), // #196: gia nhập / đổi / rời tông môn
+        tong: (op, tong, chain) => this.room.send("tong", { op, tong, chain }), // #196: gia nhập / đổi / rời tông môn; #197: tông vụ, bảng tuần, thưởng tuần
         shard: (vohon, qty) => this.room.send("shardbuy", { vohon, qty, npc: m.id }), // #282: Thương hội đổi mảnh võ hồn
         shardInfo: () => this.room.send("shardinfo"),
         owned: () => (this.owned?.list ?? []).map((v) => v.vohon),
@@ -951,7 +951,8 @@ export class GameScene extends Phaser.Scene {
       else if (m.ev === "ready") this.audio.play("quest_ready");
       else if (m.ev === "reward" || m.ev === "finish") { this.audio.play("quest_reward"); this.audio.music?.jingle("quest_complete"); }
     });
-    this.room.onMessage("tong", (m: { tong: string; wait: number }) => { if (m && typeof m.tong === "string") hud.setTong(m); }); // #196
+    this.room.onMessage("tong", (m: hud.TongMsg) => { if (m && typeof m.tong === "string") hud.setTong(m); }); // #196, #197 tông vụ
+    this.room.onMessage("tongBoard", (m: hud.TongBoardMsg) => { if (m && m.cur && m.last) hud.setTongBoard(m); }); // #197 bảng tông tuần
     this.room.onMessage("shardinfo", (m: { n: number; daily: number }) => { if (m && Number.isInteger(m.n)) hud.setShardInfo(m); }); // #282
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
     this.room.onMessage("daily", (m: DailyMsg) => {
