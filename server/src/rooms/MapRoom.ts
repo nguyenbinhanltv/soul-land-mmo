@@ -47,7 +47,7 @@ import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, invi
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
-import * as friends from "../friends.ts";
+import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
 import { arenaLive, arenaWatchMax, arenaWatchUsed, arenaWatchingAny, setTestWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
@@ -775,7 +775,7 @@ export class MapRoom extends Room<MapState> {
     }
   };
   /** Bạn bè (presence FRIEND_TOPIC, #195): gửi lại bảng bạn bè và thông báo cho người của phòng này có trong `to`. */
-  friendSub = (n: friends.FriendNote) => this.friendNote(n);
+  friendSub = (n: FriendNote) => this.friendNote(n);
   /** Tông môn của phiên `c` cho chat tông (#198): hồn sư trong phòng đọc `pdata` (đổi tông có hiệu lực ngay); người xem trận không có
    *  pdata (#278) thì theo tông lúc vào phòng (client.auth). */
   chatTong(c: Client): string | null {
@@ -972,7 +972,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.subscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
     this.presence.subscribe(CHAT_TOPIC, this.chatSub);
-    this.presence.subscribe(friends.FRIEND_TOPIC, this.friendSub);
+    this.presence.subscribe(FRIEND_TOPIC, this.friendSub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
     // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
     const now = Date.now(), active = kingSlotNow(mapId, now);
@@ -1192,7 +1192,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.unsubscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
     this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
-    this.presence.unsubscribe(friends.FRIEND_TOPIC, this.friendSub);
+    this.presence.unsubscribe(FRIEND_TOPIC, this.friendSub);
     // Redis lỗi không được bỏ qua lần ghi DB cuối của người còn trong phòng: lỗi presence chỉ ghi log.
     if (this.state.channel) await releaseChannel(this.state.mapId, this.roomId, this.state.channel).catch((e) => console.error("Không trả kênh trong presence", e));
     for (const [id, d] of this.pdata) { const offline = party.goOffline(d.accountId, id, Date.now()); this.partyPublish(offline); this.friendAfter(offline, d.accountId, id); }
@@ -6695,10 +6695,10 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Phát các thông báo bạn bè lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại bảng bạn bè và dòng log. */
-  friendPublish(notes: friends.FriendNote[]) { for (const n of notes) if (n.to.length) this.presence.publish(friends.FRIEND_TOPIC, n); }
+  friendPublish(notes: FriendNote[]) { for (const n of notes) if (n.to.length) this.presence.publish(FRIEND_TOPIC, n); }
 
   /** Thông báo bạn bè trên presence: người của phòng này có trong `to` nhận dòng log (nếu có) và bảng bạn bè mới. */
-  friendNote(n: friends.FriendNote) {
+  friendNote(n: FriendNote) {
     if (!Array.isArray(n?.to)) return;
     for (const [id, d] of this.pdata) {
       if (!n.to.includes(d.accountId)) continue;
@@ -6734,7 +6734,7 @@ export class MapRoom extends Room<MapState> {
     const name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40), acc = d.accountId;
     if (!name) return warn("Gõ tên hồn sư.");
     const rl = friendCheck(acc, Date.now()); if (rl) return warn(rl.error);
-    let r: friends.FriendResult;
+    let r: FriendResult;
     if (op === "remove") r = friends.remove(acc, name);
     else if (op === "unblock") r = friends.unblock(acc, name);
     else {

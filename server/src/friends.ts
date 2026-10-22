@@ -1,19 +1,34 @@
 // Bạn bè và chặn (mục 5.9 "Bạn bè", #195). Mỗi người tự thêm vào danh sách của mình (tối đa FRIEND_MAX), chỉ khi hai bên đã thêm
 // nhau mới thấy nhau đang online và ở bản đồ / kênh nào. Chặn (tối đa BLOCK_MAX) lọc tin riêng, lời mời tổ đội, lời thêm bạn và chat
 // bản đồ / tổ đội / thế giới của người bị chặn; chặn thì tự bỏ người đó khỏi danh sách bạn bè.
-// File này giữ danh sách của người đang trong game (mức tiến trình, khóa theo accountId; nạp ở onAuth, bỏ khi rời phòng) và luật.
-// MapRoom ghi DB phần của chính người gửi qua chuỗi lưu (không ghi chéo tài khoản khác), rồi phát mỗi FriendNote lên presence
-// FRIEND_TOPIC để phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại bảng bạn bè. Chạy nhiều tiến trình thì phải chuyển sang
-// presence (Redis), như tổ đội (party.ts, mục 6).
+// File này giữ danh sách của người đang trong game (khóa theo accountId; nạp ở onAuth, bỏ khi rời phòng) và luật. MapRoom ghi DB phần
+// của chính người gửi qua chuỗi lưu (không ghi chéo tài khoản khác), rồi phát mỗi FriendNote lên presence FRIEND_TOPIC để phòng đang
+// giữ người nhận (có thể ở bản đồ khác) gửi lại bảng bạn bè.
+// Nhiều tiến trình (REDIS_URL, #326): mỗi lần danh sách của người đang trong game đổi, tiến trình giữ người đó phát danh sách (chỉ số
+// tài khoản) lên FRIEND_STATE_TOPIC và ghi tài liệu presence STATE_KEY; tiến trình khác giữ bản sao để kiểm phía người gửi (đã bị
+// chặn chưa) và thấy bạn online / vị trí (đã bị xóa / chặn thì thôi thấy ngay). Không có Redis thì không phát, không ghi.
 import { FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
 import { nameKey } from "./names.ts";
+import { presenceBackend, type PresenceBackend } from "./presence.ts";
 import type { SocialPeer, SocialRow } from "./db.ts";
 
 /** Kênh presence: mọi phòng nghe, gửi lại tin riêng "friends" (và log) cho người chơi của mình có trong `to`. */
 export const FRIEND_TOPIC = "friend";
+/** Kênh presence (nhiều tiến trình, #326): danh sách bạn bè / chặn của một người đang trong game vừa đổi, hoặc người đó rời phòng. */
+export const FRIEND_STATE_TOPIC = "friend:state";
+/** Tài liệu presence: danh sách của mọi người đang trong game (tiến trình mở sau nạp lúc khởi động). */
+const STATE_KEY = "friend:state";
 
 /** Danh sách của một người đang trong game: bạn bè / chặn (tài khoản -> tên), `fans`: tài khoản đã thêm người này làm bạn. */
 interface Social { sid: string; name: string; friends: Map<number, string>; blocks: Map<number, string>; fans: Set<number>; }
+/** Danh sách chia sẻ qua presence (chỉ số tài khoản). `v` tăng dần theo thời gian: bản cũ tới sau bị bỏ. */
+interface Shared { sid: string; v: number; friends: number[]; blocks: number[]; }
+/** Tin FRIEND_STATE_TOPIC: `w` tiến trình phát (tự bỏ tin của mình), `gone`: phiên `sid` rời phòng (`friends` là danh sách lúc rời). */
+type StateMsg = Shared & { w: string; acc: number; gone?: boolean };
+/** Bản sao danh sách của người đang trong game ở tiến trình khác. `gone`: đã rời (giữ `v` để tin cũ tới sau không dựng lại). */
+interface Mirror { sid: string; v: number; friends: Set<number>; blocks: Set<number>; gone: boolean; }
+/** Danh sách đọc được của một người đang trong game (ở tiến trình này hoặc bản sao). */
+interface Lists { friends: { has(id: number): boolean }; blocks: { has(id: number): boolean }; }
 /**
  * Thông báo cho các tài khoản `to`: phòng của họ gửi lại bảng bạn bè (luôn), kèm dòng log `text` (nếu có). `added`: `acc` vừa thêm
  * người nhận vào danh sách bạn bè (người nhận đã chặn `acc` thì phòng bỏ phần này, mục 5.9).
@@ -24,54 +39,6 @@ export type FriendResult = { error: string } | { write: { other: number; friend?
 /** Một mục trong bảng bạn bè gửi cho chính chủ: `map` / `ch` chỉ có khi hai bên đã thêm nhau và người đó đang trong game. */
 export interface FriendEntry { name: string; mutual: boolean; map?: string; ch?: number; }
 
-const social = new Map<number, Social>();
-
-/**
- * Phòng nhận người chơi (onJoin): giữ danh sách vừa nạp từ DB (onAuth, sau lần ghi cuối của phiên cũ). `fans` của DB có thể thiếu /
- * thừa lần thêm / xóa của người khác chưa ghi xong hoặc xảy ra lúc người này đang chuyển phòng: với bạn đang trong game thì lấy theo
- * danh sách trong RAM của họ (đúng nhất), để khi họ rời game bảng vẫn biết hai bên đã thêm nhau chưa.
- */
-export function enter(acc: number, sid: string, name: string, row: SocialRow) {
-  const s: Social = { sid, name, friends: new Map(row.friends.map((p) => [p.id, p.name])), blocks: new Map(row.blocks.map((p) => [p.id, p.name])),
-    fans: new Set(row.fans) };
-  for (const f of s.friends.keys()) { const o = social.get(f); if (o) { if (o.friends.has(acc)) s.fans.add(f); else s.fans.delete(f); } }
-  social.set(acc, s);
-}
-
-/**
- * Phiên `sid` rời phòng: bỏ danh sách khỏi RAM (phòng mới nạp lại từ DB). Bạn đang trong game ghi nhận `acc` có họ (`fans`), để sau
- * khi `acc` ngoại tuyến bảng của họ vẫn đúng hai bên đã thêm nhau (kể cả khi họ nạp DB lúc lần thêm của `acc` chưa ghi xong).
- */
-export function leave(acc: number, sid: string) {
-  const s = social.get(acc); if (s?.sid !== sid) return;
-  for (const f of s.friends.keys()) social.get(f)?.fans.add(acc);
-  social.delete(acc);
-}
-
-/** `by` đang trong game và đã chặn `who`. */
-export function blocked(by: number, who: number) { return !!social.get(by)?.blocks.has(who); }
-
-/**
- * `a` và `b` đã thêm nhau chưa, nhìn từ phía `a` (đang trong game): `a` có `b`, và `b` có `a` (đọc danh sách của `b` nếu `b` đang
- * trong game, không thì theo `fans` của `a` nạp từ DB và cập nhật khi người khác thêm / bỏ).
- */
-function mutual(a: number, b: number) {
-  const s = social.get(a), o = social.get(b);
-  return !!s?.friends.has(b) && (o ? o.friends.has(a) : s.fans.has(b));
-}
-
-/**
- * Người đang trong game đã thêm nhau với `acc` (`acc` đang trong game): cần gửi lại bảng bạn bè khi `acc` vào / rời game, đổi bản đồ /
- * kênh. Chỉ duyệt danh sách của `acc` (tối đa FRIEND_MAX), không duyệt mọi người đang online.
- */
-export function mutualOnline(acc: number) { return [...(social.get(acc)?.friends.keys() ?? [])].filter((o) => !!social.get(o)?.friends.has(acc)); }
-
-/** Hồn sư tên `name` có trong danh sách bạn bè hoặc chặn của `acc` (tra không cần DB). */
-export function known(acc: number, name: string): SocialPeer | null {
-  const s = social.get(acc);
-  return s ? find(s.friends, name) ?? find(s.blocks, name) : null;
-}
-
 /** Tìm `name` trong `m` (theo nameKey). */
 function find(m: Map<number, string>, name: string): SocialPeer | null {
   const key = nameKey(name);
@@ -79,66 +46,201 @@ function find(m: Map<number, string>, name: string): SocialPeer | null {
   return null;
 }
 
-/** `acc` thêm `t` vào danh sách bạn bè của mình; `t` nhận lời "X đã thêm bạn…" (trừ khi `t` đã chặn `acc`). */
-export function add(acc: number, t: SocialPeer): FriendResult {
-  const s = social.get(acc); if (!s) return { error: "Chưa nạp xong danh sách bạn bè, thử lại sau giây lát." };
-  if (t.id === acc) return { error: "Không thể tự thêm chính mình vào danh sách bạn bè." };
-  if (s.friends.has(t.id)) return { error: `${t.name} đã có trong danh sách bạn bè.` };
-  if (s.blocks.has(t.id)) return { error: `Bạn đang chặn ${t.name}: bỏ chặn trước rồi mới thêm bạn.` };
-  if (s.friends.size >= FRIEND_MAX) return { error: `Danh sách bạn bè đã đủ ${FRIEND_MAX} người: xóa bớt rồi thêm.` };
-  s.friends.set(t.id, t.name);
-  social.get(t.id)?.fans.add(acc);
-  return { write: { other: t.id, friend: true }, notes: [
-    { to: [acc], text: `Đã thêm ${t.name} vào danh sách bạn bè.` },
-    { to: [t.id], added: { acc, name: s.name } },
-  ] };
-}
-
-/** Gửi lại bảng cho `other` (không báo) khi `acc` vừa bỏ / chặn: chỉ khi `other` đang trong game và có `acc` (bảng của họ đổi). */
-const peerNote = (other: number, acc: number): FriendNote[] => (social.get(other)?.friends.has(acc) ? [{ to: [other] }] : []);
-
-/** `acc` bỏ `name` khỏi danh sách bạn bè của mình; người kia (nếu đang trong game) chỉ được gửi lại bảng, không báo. */
-export function remove(acc: number, name: string): FriendResult {
-  const s = social.get(acc), t = s && find(s.friends, name);
-  if (!s || !t) return { error: `${name} không có trong danh sách bạn bè.` };
-  s.friends.delete(t.id);
-  social.get(t.id)?.fans.delete(acc);
-  return { write: { other: t.id, friend: false }, notes: [{ to: [acc], text: `Đã xóa ${t.name} khỏi danh sách bạn bè.` }, ...peerNote(t.id, acc)] };
-}
-
-/** `acc` chặn `t` (tự bỏ khỏi danh sách bạn bè của `acc`); người bị chặn không được báo, chỉ được gửi lại bảng. */
-export function block(acc: number, t: SocialPeer): FriendResult {
-  const s = social.get(acc); if (!s) return { error: "Chưa nạp xong danh sách chặn, thử lại sau giây lát." };
-  if (t.id === acc) return { error: "Không thể tự chặn chính mình." };
-  if (s.blocks.has(t.id)) return { error: `${t.name} đã ở trong danh sách chặn.` };
-  if (s.blocks.size >= BLOCK_MAX) return { error: `Danh sách chặn đã đủ ${BLOCK_MAX} người: bỏ chặn bớt rồi chặn.` };
-  s.blocks.set(t.id, t.name);
-  if (s.friends.delete(t.id)) social.get(t.id)?.fans.delete(acc);
-  return { write: { other: t.id, block: true }, notes: [
-    { to: [acc], text: `Đã chặn ${t.name}: không nhận tin, lời mời tổ đội, lời thêm bạn của người này.` }, ...peerNote(t.id, acc),
-  ] };
-}
-
-/** `acc` bỏ chặn `name`. */
-export function unblock(acc: number, name: string): FriendResult {
-  const s = social.get(acc), t = s && find(s.blocks, name);
-  if (!s || !t) return { error: `${name} không có trong danh sách chặn.` };
-  s.blocks.delete(t.id);
-  return { write: { other: t.id, block: false }, notes: [{ to: [acc], text: `Đã bỏ chặn ${t.name}.` }] };
-}
-
 /**
- * Bảng bạn bè của `acc` (tin riêng "friends"): mỗi bạn kèm đã thêm nhau chưa; bản đồ / kênh (`where`, null = không trong game) chỉ
- * có khi đã thêm nhau. Danh sách chặn là tên.
+ * Bạn bè / chặn của một tiến trình. `backend`: presence chung giữa các tiến trình (null = một tiến trình, không chia sẻ); `id` phân
+ * biệt tiến trình (bài thử giả lập hai tiến trình trên cùng một LocalBackend).
  */
-export function view(acc: number, where: (acc: number) => { mapId: string; ch: number } | null) {
-  const s = social.get(acc);
-  const list: FriendEntry[] = [...(s?.friends ?? [])].map(([id, name]) => {
-    const m = mutual(acc, id), w = m ? where(id) : null;
-    return { name, mutual: m, ...(w ? { map: w.mapId, ch: w.ch } : {}) };
-  });
-  return { list, blocks: [...(s?.blocks.values() ?? [])] };
+export class FriendHub {
+  private readonly social = new Map<number, Social>();
+  private readonly remote = new Map<number, Mirror>();
+  private lastV = 0;
+  private readonly pending = new Map<number, Shared & { gone?: boolean }>();
+  private flushing: Promise<void> | null = null;
+  private readonly sub = (m: StateMsg) => this.apply(m);
+  /** Đã nạp tài liệu STATE_KEY (khởi động). */
+  readonly ready: Promise<void>;
+
+  constructor(private readonly backend: PresenceBackend | null, private readonly id = backend?.workerId ?? "") {
+    if (!backend) { this.ready = Promise.resolve(); return; }
+    void Promise.resolve(backend.presence.subscribe(FRIEND_STATE_TOPIC, this.sub));
+    this.ready = backend.getJson<Record<string, Shared>>(STATE_KEY).then((doc) => {
+      for (const [acc, e] of Object.entries(doc ?? {})) this.apply({ ...e, acc: Number(acc), w: "" });
+    }).catch((e) => console.error("Không đọc được danh sách bạn bè / chặn từ presence", e));
+  }
+
+  /** Thôi nghe presence (bài thử). */
+  close() { this.backend?.presence.unsubscribe(FRIEND_STATE_TOPIC, this.sub); }
+
+  /** Các lần ghi tài liệu STATE_KEY đang chờ đã xong (bài thử). */
+  async settled() { while (this.flushing) await this.flushing; }
+
+  /** Danh sách của `acc` đang trong game: ở tiến trình này, không thì bản sao từ tiến trình khác. */
+  private lists(acc: number): Lists | undefined {
+    const s = this.social.get(acc); if (s) return s;
+    const r = this.remote.get(acc);
+    return r && !r.gone ? r : undefined;
+  }
+
+  /**
+   * Tin FRIEND_STATE_TOPIC (hoặc một mục của tài liệu lúc khởi động): cập nhật bản sao, và `fans` của người ở tiến trình này mà người
+   * kia vừa thêm / bỏ (rời phòng thì vẫn giữ: như leave, để bảng vẫn đúng hai bên đã thêm nhau sau khi người kia ngoại tuyến).
+   */
+  private apply(m: StateMsg) {
+    if (!m || typeof m.acc !== "number" || typeof m.v !== "number" || m.w === this.id) return;
+    const old = this.remote.get(m.acc);
+    if (old && old.v >= m.v) return;
+    const friends = new Set(Array.isArray(m.friends) ? m.friends : []);
+    for (const f of friends) this.social.get(f)?.fans.add(m.acc);
+    if (old && !old.gone) for (const f of old.friends) if (!friends.has(f)) this.social.get(f)?.fans.delete(m.acc);
+    this.remote.set(m.acc, { sid: String(m.sid), v: m.v, friends, blocks: new Set(Array.isArray(m.blocks) ? m.blocks : []), gone: !!m.gone });
+  }
+
+  /** Chia sẻ danh sách của `acc` (phiên `s.sid`) với tiến trình khác: phát ngay (trước FriendNote của cùng thao tác) rồi ghi tài liệu. */
+  private share(acc: number, s: Social, gone = false) {
+    const b = this.backend; if (!b) return;
+    const v = this.lastV = Math.max(this.lastV + 1, Date.now() * 1000);
+    const e: Shared = { sid: s.sid, v, friends: [...s.friends.keys()], blocks: [...s.blocks.keys()] };
+    void Promise.resolve(b.presence.publish(FRIEND_STATE_TOPIC, { ...e, w: this.id, acc, ...(gone ? { gone: true } : {}) }))
+      .catch((err) => console.error("Không phát được danh sách bạn bè / chặn lên presence", err));
+    this.pending.set(acc, gone ? { ...e, gone } : e);
+    this.flushing ??= this.flush();
+  }
+
+  /** Ghi các danh sách đang chờ vào tài liệu STATE_KEY dưới lock (gộp nhiều lần đổi thành một lần ghi; bản mới hơn ở tài liệu thì giữ). */
+  private async flush() {
+    const b = this.backend!;
+    while (this.pending.size) {
+      const batch = [...this.pending]; this.pending.clear();
+      const ok = await b.withLock<Record<string, Shared>>(STATE_KEY, `${this.id}:friend:${batch[0][1].v}`, 5000, (old) => {
+        const doc = old ?? {};
+        for (const [acc, { gone, ...e }] of batch) {
+          const cur = doc[acc];
+          if (cur && cur.v > e.v) continue;
+          if (gone) delete doc[acc]; else doc[acc] = e;
+        }
+        return doc;
+      }, 0).catch((err) => { console.error("Không ghi được danh sách bạn bè / chặn vào presence", err); return true; });
+      if (!ok) console.error("Không khóa được danh sách bạn bè / chặn trong presence.");
+    }
+    this.flushing = null;
+  }
+
+  /**
+   * Phòng nhận người chơi (onJoin): giữ danh sách vừa nạp từ DB (onAuth, sau lần ghi cuối của phiên cũ). `fans` của DB có thể thiếu /
+   * thừa lần thêm / xóa của người khác chưa ghi xong hoặc xảy ra lúc người này đang chuyển phòng: với bạn đang trong game thì lấy theo
+   * danh sách của họ (đúng nhất, kể cả ở tiến trình khác), để khi họ rời game bảng vẫn biết hai bên đã thêm nhau chưa.
+   */
+  enter(acc: number, sid: string, name: string, row: SocialRow) {
+    const s: Social = { sid, name, friends: new Map(row.friends.map((p) => [p.id, p.name])), blocks: new Map(row.blocks.map((p) => [p.id, p.name])),
+      fans: new Set(row.fans) };
+    for (const f of s.friends.keys()) { const o = this.lists(f); if (o) { if (o.friends.has(acc)) s.fans.add(f); else s.fans.delete(f); } }
+    this.social.set(acc, s);
+    this.share(acc, s);
+  }
+
+  /**
+   * Phiên `sid` rời phòng: bỏ danh sách khỏi RAM (phòng mới nạp lại từ DB). Bạn đang trong game ghi nhận `acc` có họ (`fans`), để sau
+   * khi `acc` ngoại tuyến bảng của họ vẫn đúng hai bên đã thêm nhau (kể cả khi họ nạp DB lúc lần thêm của `acc` chưa ghi xong).
+   */
+  leave(acc: number, sid: string) {
+    const s = this.social.get(acc); if (s?.sid !== sid) return;
+    for (const f of s.friends.keys()) this.social.get(f)?.fans.add(acc);
+    this.social.delete(acc);
+    this.share(acc, s, true);
+  }
+
+  /** `by` đang trong game (ở bất kỳ tiến trình nào) và đã chặn `who`. */
+  blocked(by: number, who: number) { return !!this.lists(by)?.blocks.has(who); }
+
+  /**
+   * `a` và `b` đã thêm nhau chưa, nhìn từ phía `a` (đang trong game ở tiến trình này): `a` có `b`, và `b` có `a` (đọc danh sách của `b`
+   * nếu `b` đang trong game, không thì theo `fans` của `a` nạp từ DB và cập nhật khi người khác thêm / bỏ), `b` không chặn `a`.
+   */
+  private mutual(a: number, b: number) {
+    const s = this.social.get(a), o = this.lists(b);
+    return !!s?.friends.has(b) && (o ? o.friends.has(a) && !o.blocks.has(a) : s.fans.has(b));
+  }
+
+  /**
+   * Người đang trong game (mọi tiến trình) đã thêm nhau với `acc` (`acc` đang trong game ở đây): cần gửi lại bảng bạn bè khi `acc` vào /
+   * rời game, đổi bản đồ / kênh. Chỉ duyệt danh sách của `acc` (tối đa FRIEND_MAX), không duyệt mọi người đang online.
+   */
+  mutualOnline(acc: number) { return [...(this.social.get(acc)?.friends.keys() ?? [])].filter((o) => !!this.lists(o)?.friends.has(acc)); }
+
+  /** Hồn sư tên `name` có trong danh sách bạn bè hoặc chặn của `acc` (tra không cần DB). */
+  known(acc: number, name: string): SocialPeer | null {
+    const s = this.social.get(acc);
+    return s ? find(s.friends, name) ?? find(s.blocks, name) : null;
+  }
+
+  /** `acc` thêm `t` vào danh sách bạn bè của mình; `t` nhận lời "X đã thêm bạn…" (trừ khi `t` đã chặn `acc`). */
+  add(acc: number, t: SocialPeer): FriendResult {
+    const s = this.social.get(acc); if (!s) return { error: "Chưa nạp xong danh sách bạn bè, thử lại sau giây lát." };
+    if (t.id === acc) return { error: "Không thể tự thêm chính mình vào danh sách bạn bè." };
+    if (s.friends.has(t.id)) return { error: `${t.name} đã có trong danh sách bạn bè.` };
+    if (s.blocks.has(t.id)) return { error: `Bạn đang chặn ${t.name}: bỏ chặn trước rồi mới thêm bạn.` };
+    if (s.friends.size >= FRIEND_MAX) return { error: `Danh sách bạn bè đã đủ ${FRIEND_MAX} người: xóa bớt rồi thêm.` };
+    s.friends.set(t.id, t.name);
+    this.social.get(t.id)?.fans.add(acc);
+    this.share(acc, s);
+    return { write: { other: t.id, friend: true }, notes: [
+      { to: [acc], text: `Đã thêm ${t.name} vào danh sách bạn bè.` },
+      { to: [t.id], added: { acc, name: s.name } },
+    ] };
+  }
+
+  /** Gửi lại bảng cho `other` (không báo) khi `acc` vừa bỏ / chặn: chỉ khi `other` đang trong game và có `acc` (bảng của họ đổi). */
+  private peerNote(other: number, acc: number): FriendNote[] { return this.lists(other)?.friends.has(acc) ? [{ to: [other] }] : []; }
+
+  /** `acc` bỏ `name` khỏi danh sách bạn bè của mình; người kia (nếu đang trong game) chỉ được gửi lại bảng, không báo. */
+  remove(acc: number, name: string): FriendResult {
+    const s = this.social.get(acc), t = s && find(s.friends, name);
+    if (!s || !t) return { error: `${name} không có trong danh sách bạn bè.` };
+    s.friends.delete(t.id);
+    this.social.get(t.id)?.fans.delete(acc);
+    this.share(acc, s);
+    return { write: { other: t.id, friend: false }, notes: [{ to: [acc], text: `Đã xóa ${t.name} khỏi danh sách bạn bè.` }, ...this.peerNote(t.id, acc)] };
+  }
+
+  /** `acc` chặn `t` (tự bỏ khỏi danh sách bạn bè của `acc`); người bị chặn không được báo, chỉ được gửi lại bảng. */
+  block(acc: number, t: SocialPeer): FriendResult {
+    const s = this.social.get(acc); if (!s) return { error: "Chưa nạp xong danh sách chặn, thử lại sau giây lát." };
+    if (t.id === acc) return { error: "Không thể tự chặn chính mình." };
+    if (s.blocks.has(t.id)) return { error: `${t.name} đã ở trong danh sách chặn.` };
+    if (s.blocks.size >= BLOCK_MAX) return { error: `Danh sách chặn đã đủ ${BLOCK_MAX} người: bỏ chặn bớt rồi chặn.` };
+    s.blocks.set(t.id, t.name);
+    if (s.friends.delete(t.id)) this.social.get(t.id)?.fans.delete(acc);
+    this.share(acc, s);
+    return { write: { other: t.id, block: true }, notes: [
+      { to: [acc], text: `Đã chặn ${t.name}: không nhận tin, lời mời tổ đội, lời thêm bạn của người này.` }, ...this.peerNote(t.id, acc),
+    ] };
+  }
+
+  /** `acc` bỏ chặn `name`. */
+  unblock(acc: number, name: string): FriendResult {
+    const s = this.social.get(acc), t = s && find(s.blocks, name);
+    if (!s || !t) return { error: `${name} không có trong danh sách chặn.` };
+    s.blocks.delete(t.id);
+    this.share(acc, s);
+    return { write: { other: t.id, block: false }, notes: [{ to: [acc], text: `Đã bỏ chặn ${t.name}.` }] };
+  }
+
+  /**
+   * Bảng bạn bè của `acc` (tin riêng "friends"): mỗi bạn kèm đã thêm nhau chưa; bản đồ / kênh (`where`, null = không trong game) chỉ
+   * có khi đã thêm nhau. Danh sách chặn là tên.
+   */
+  view(acc: number, where: (acc: number) => { mapId: string; ch: number } | null) {
+    const s = this.social.get(acc);
+    const list: FriendEntry[] = [...(s?.friends ?? [])].map(([id, name]) => {
+      const m = this.mutual(acc, id), w = m ? where(id) : null;
+      return { name, mutual: m, ...(w ? { map: w.mapId, ch: w.ch } : {}) };
+    });
+    return { list, blocks: [...(s?.blocks.values() ?? [])] };
+  }
+
+  /** `acc` đã có `other` trong danh sách bạn bè. */
+  has(acc: number, other: number) { return !!this.social.get(acc)?.friends.has(other); }
 }
 
-/** `acc` đã có `other` trong danh sách bạn bè. */
-export function has(acc: number, other: number) { return !!social.get(acc)?.friends.has(other); }
+/** Bạn bè / chặn của tiến trình server: chia sẻ qua presence chỉ khi chạy Redis (nhiều tiến trình). */
+export const friends = new FriendHub(presenceBackend.mode === "redis" ? presenceBackend : null);
