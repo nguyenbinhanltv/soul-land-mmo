@@ -2302,7 +2302,7 @@ export class MapRoom extends Room<MapState> {
       d.danCd = Math.max(0, d.danCd - s); this.sendBag(id);
     }
     else if (op === "give") {
-      const code = String(o.code ?? ""), qty = int(o.qty, 1, 10000, 1);
+      const code = String(o.code ?? ""), qty = int(o.qty, 1, 1e6, 1); // đủ lấp túi BAG_MAX_SLOTS ô đồ gộp (#215)
       let got = 0;
       if (code === RING_ITEM) while (got < qty && this.addRing(d, yearsOf(0))) got++;
       else if (code === BONE_ITEM) {

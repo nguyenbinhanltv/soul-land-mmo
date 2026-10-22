@@ -3505,7 +3505,7 @@ else {
         B.room.send("pickup"); ok(await lastLog(B,/Mảnh Lam Ngân Thảo thuộc về người hạ/)&&st.drops.has(sid)&&qtyOf(B,giftCode)===bGift,`B không nhặt được mảnh của A: ${B.logs.at(-1)}`);
         // Mảnh có thể nằm chồng lên hồn hoàn (chỗ cạnh bên không đứng được): nhặt hồn hoàn trước thì nhấn E thêm lần nữa.
         const l0=A.logs.length; A.room.send("pickup");
-        ok(await waitFor(()=>A.logs.length>l0)&&A.logs.slice(l0).some(t=>/^Túi đồ đã đầy \(40 ô\): bỏ bớt/.test(t))&&st.drops.has(sid),`A túi đầy: ${A.logs.at(-1)}`);
+        ok(await waitFor(()=>A.logs.length>l0)&&A.logs.slice(l0).some(t=>t.startsWith(`Túi đồ đã đầy (${BAG_SLOTS} ô): bỏ bớt`))&&st.drops.has(sid),`A túi đầy: ${A.logs.at(-1)}`);
         for(let k=0;k<3&&qtyOf(A,giftCode)===0;k++){
           const junk=ringsOf(A).find(i=>i.years===50); A.room.send("discard",{id:junk.id}); await waitFor(()=>!A.bag.items.some(i=>i.id===junk.id));
           A.room.send("pickup"); await waitFor(()=>qtyOf(A,giftCode)===1,1000);
