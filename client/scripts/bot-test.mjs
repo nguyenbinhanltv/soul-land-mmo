@@ -5219,7 +5219,8 @@ async function autoTest(){
     if(!F) console.log("  ⚠ bỏ qua tự săn toàn bản đồ: không tìm được chỗ đứng xa điểm neo");
     else{
       await test(A,"clear");
-      sp=await test(A,"spawn",{tier:0,dx:0,dy:0,years:15,hpx:3}); const fb=sp?.bid;
+      // Loài cắm rễ (BEAST_ROOTED): không lang thang về phía điểm neo, nên lúc hạ A luôn ở xa điểm neo hơn khung A* (#325).
+      sp=await test(A,"spawn",{tier:0,dx:0,dy:0,years:15,hpx:3,species:BEAST_ROOTED.ids[0]}); const fb=sp?.bid;
       await test(A,"goto",home); await test(A,"clear");
       await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
       m=await autoOp(A,"on"); await sleep(2500);
@@ -5230,7 +5231,9 @@ async function autoTest(){
       // Đường 30 ô đi qua bãi hồn thú 600 năm trở lên hung hăng (tự săn đánh trả trước): võ hồn cấp 60 để không mất cả phút đánh trả.
       await test(A,"set",{rowId:act,level:60});
       const k1=me(A).kills, l1=A.logs.length;
-      await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[]}});
+      // Tắt đánh tinh anh / thú vương / boss thế giới (#218: có trên bản đồ thì tới đánh trước mọi việc khác): không thì A đi lần lượt tới
+      // từng tinh anh khắp Ngoại vi (hơn 200 ô, vòng dọn bên dưới xóa con đó khi tới gần) rồi mới về hồn thú thử, sát 90 giây chờ (#325).
+      await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[],elite:false,king:false,world:false}});
       m=await autoOp(A,"on");
       ok(m?.on&&A.logs.slice(l1).some(t=>/khắp bản đồ/.test(t)),`"Toàn bản đồ" (mặc định): bật, báo săn khắp bản đồ`);
       await waitFor(()=>me(A).auto,2000); // tin riêng `auto` có thể về trước bản vá state mang cờ auto
