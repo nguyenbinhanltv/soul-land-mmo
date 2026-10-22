@@ -67,7 +67,7 @@ export class ArenaRoom extends MapRoom {
     this.setPhase("wait", ARENA.joinSecs);
     for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
     this.onMessage("quest", (c, msg: { op: unknown }) => {
-      if (msg?.op === "get") { this.sendQuest(c.sessionId); this.sendDaily(c.sessionId); } else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
+      if (msg?.op === "get") this.askQuest(c.sessionId); else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
     });
     this.onMessage("arena", (c, msg: { op: unknown }) => { if (msg?.op === "top") this.arenaTop(c.sessionId); });
   }
@@ -278,7 +278,7 @@ export class ArenaRoom extends MapRoom {
     const code = shardCode(ARENA_SHARDS[Math.floor(Math.random() * ARENA_SHARDS.length)]);
     const qty = this.addItem(d, code, ARENA.winShards);
     const coin = (sellPrice({ code, years: null, stars: null, enhance: 0 }) ?? 0) * (ARENA.winShards - qty);
-    d.honTe += ARENA.winHonTe + coin;
+    this.addCoin(d, ARENA.winHonTe + coin);
     const r: Reward = { items: d.bag, honTeAfter: d.honTe, bag: this.bagSnapshot(d), honTe: ARENA.winHonTe + coin, code, qty, coin };
     d.bag = items; d.honTe = honTe; d.bagDirty = dirty;
     return r;
