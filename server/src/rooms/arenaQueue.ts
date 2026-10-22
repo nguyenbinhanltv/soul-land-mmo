@@ -6,7 +6,7 @@
 import { matchMaker } from "colyseus";
 import { randomUUID } from "node:crypto";
 import { ARENA, arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
-import { presenceBackend } from "../presence.ts";
+import { presenceBackend, PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS } from "../presence.ts";
 
 /** Một người đang xếp hàng. Hàm `ready` / `found` do phòng bản đồ của người đó cung cấp. */
 export interface ArenaEntry {
@@ -49,28 +49,49 @@ void presenceBackend.presence.subscribe(FOUND_TOPIC, (m: { accountId: number; ro
   const e = queue.get(m?.accountId); if (!e) return;
   queue.delete(m.accountId); e.found(m.roomId, m.foe);
 });
+const workerKey = (id: string) => `arena:worker:${id}`;
+// Lease sống của tiến trình này: mục hàng chờ của owner hết lease (crash / kill) bị coi là mục ma và bị dọn ở pass().
+const beat = () => presenceBackend.putJson(workerKey(presenceBackend.workerId), 1, PRESENCE_TTL_MS);
+setInterval(() => { void beat().catch((err) => console.error("Không gia hạn lease worker đấu trường", err)); }, PRESENCE_HEARTBEAT_MS).unref();
+async function locked(update: (old: RemoteEntry[]) => RemoteEntry[]) {
+  if (!await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => update(old ?? []), 0)) throw new Error("Không lấy được khóa hàng chờ đấu trường");
+}
 async function addRemote(e: ArenaEntry) {
-  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => [ ...(old ?? []).filter((x) => x.accountId !== e.accountId),
-    { accountId: e.accountId, name: e.name, rec: { ...e.rec }, since: e.since, owner: presenceBackend.workerId } ], 0);
+  await beat();
+  await locked((old) => [ ...old.filter((x) => x.accountId !== e.accountId),
+    { accountId: e.accountId, name: e.name, rec: { ...e.rec }, since: e.since, owner: presenceBackend.workerId } ]);
 }
-async function removeRemote(accountId: number) {
-  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => (old ?? []).filter((x) => x.accountId !== accountId), 0);
-}
+const removeRemote = (accountId: number) => locked((old) => old.filter((x) => x.accountId !== accountId));
 async function claimRemote(a: number, b: number) {
   let claimed = false;
-  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => {
-    const next = old ?? [], hasA = next.some((x) => x.accountId === a), hasB = next.some((x) => x.accountId === b);
-    if (hasA && hasB) { claimed = true; return next.filter((x) => x.accountId !== a && x.accountId !== b); }
-    return next;
-  }, 0);
+  await locked((old) => {
+    const hasA = old.some((x) => x.accountId === a), hasB = old.some((x) => x.accountId === b);
+    if (hasA && hasB) { claimed = true; return old.filter((x) => x.accountId !== a && x.accountId !== b); }
+    return old;
+  });
   return claimed;
+}
+/** Mục còn hiệu lực: owner là tiến trình này và còn xếp hàng cục bộ, hoặc owner khác còn lease. */
+async function liveRemote(remote: RemoteEntry[]) {
+  const others = [...new Set(remote.map((e) => e.owner).filter((o) => o !== presenceBackend.workerId))];
+  const leases = await presenceBackend.getJsonMany<number>(others.map(workerKey));
+  const alive = new Set(others.filter((_, i) => leases[i] !== null));
+  const live = remote.filter((e) => e.owner === presenceBackend.workerId ? queue.has(e.accountId) : alive.has(e.owner));
+  if (live.length < remote.length) {
+    const keep = new Set(live.map((e) => `${e.accountId}:${e.owner}`));
+    await locked((old) => old.filter((x) => keep.has(`${x.accountId}:${x.owner}`) || !remote.some((r) => r.accountId === x.accountId && r.owner === x.owner)))
+      .catch((err) => console.error("Không dọn được mục ma của hàng chờ đấu trường", err));
+  }
+  return live;
 }
 
 export const arenaQueued = (accountId: number) => queue.get(accountId);
-export function arenaEnqueue(e: ArenaEntry) {
+/** Xếp hàng: ném lỗi (đã rollback hàng cục bộ) nếu không ghi được vào hàng chung; phòng gọi báo người chơi. */
+export async function arenaEnqueue(e: ArenaEntry) {
   queue.set(e.accountId, e);
-  void addRemote(e).catch((err) => console.error("Không thêm được hàng chờ đấu trường vào presence", err));
-  if (!timer) timer = setInterval(() => { if (!busy) void pass(); }, TICK_MS);
+  try { await addRemote(e); } catch (err) { if (queue.get(e.accountId) === e) queue.delete(e.accountId); throw err; }
+  if (queue.get(e.accountId) !== e) { await removeRemote(e.accountId).catch((err) => console.error("Không xóa được hàng chờ đấu trường khỏi presence", err)); return; }
+  if (!timer) timer = setInterval(() => { if (!busy) void pass().catch((err) => console.error("Lượt ghép Đại Đấu Hồn Trường lỗi", err)); }, TICK_MS);
 }
 /** Bỏ người khỏi hàng chờ; true nếu người đó đang xếp hàng. */
 export function arenaDequeue(accountId: number) {
@@ -131,11 +152,11 @@ async function pass() {
   busy = true;
   try {
     const now = Date.now();
-    const remote = await presenceBackend.getJson<RemoteEntry[]>(QUEUE_KEY) ?? [];
+    const remote = await liveRemote(await presenceBackend.getJson<RemoteEntry[]>(QUEUE_KEY) ?? []);
     const entries = remote.map((e) => queue.get(e.accountId) ?? shadow(e));
     const list = entries.filter((e) => e.ready()).sort((x, y) => x.since - y.since).map((e) => ({ id: e.accountId, elo: e.rec.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.accountId) }));
     for (const [a, b] of arenaPairs(list)) {
-      if (!await claimRemote(a, b)) continue;
+      try { if (!await claimRemote(a, b)) continue; } catch (err) { console.error("Không giành được cặp ở hàng chờ đấu trường", err); continue; }
       const ea = entries.find((e) => e.accountId === a), eb = entries.find((e) => e.accountId === b); if (!ea || !eb) continue;
       queue.delete(a); queue.delete(b);
       lastFoe.set(a, b); lastFoe.set(b, a);
@@ -149,7 +170,7 @@ async function pass() {
         // Không mở được phòng: trả cả hai về hàng chờ, giữ thời gian chờ cũ.
         console.error("Không mở được phòng Đại Đấu Hồn Trường", err);
         arenaMatches.delete(m.id);
-        for (const e of [ea, eb]) if (e.ready()) arenaEnqueue(e);
+        for (const e of [ea, eb]) if (e.ready()) void arenaEnqueue(e).catch((er) => console.error("Không trả lại hàng chờ đấu trường", er));
       }
     }
   } finally { busy = false; }

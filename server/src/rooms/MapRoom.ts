@@ -2334,9 +2334,10 @@ export class MapRoom extends Room<MapState> {
       const late = this.arenaBusy(id); if (late) return warn(`${late} Chưa xếp hàng được.`);
       const e: ArenaEntry = { accountId: d.accountId, name: p.name, rec, since: Date.now(),
         ready: () => this.pdata.get(id) === d && !this.arenaBusy(id), found: (roomId, foe) => this.arenaFound(id, d, roomId, foe) };
-      arenaEnqueue(e);
-      this.log(id, `Đang tìm đối thủ (Elo ${rec.elo}): ghép người Elo gần nhất, chờ càng lâu càng nới rộng.`, "#ff9a8a");
-      this.sendArenaQueue(id);
+      return arenaEnqueue(e).then(() => {
+        this.log(id, `Đang tìm đối thủ (Elo ${rec.elo}): ghép người Elo gần nhất, chờ càng lâu càng nới rộng.`, "#ff9a8a");
+        this.sendArenaQueue(id);
+      }, (err) => { console.error(`Không xếp hàng được tài khoản #${d.accountId}`, err); warn("Không xếp hàng được, thử lại."); });
     }, (e) => { d.arenaBusy = false; console.error(`Không đọc được Elo của tài khoản #${d.accountId}`, e); warn("Không xếp hàng được, thử lại."); });
   }
 

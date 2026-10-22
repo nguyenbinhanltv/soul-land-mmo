@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { createPresenceBackend } from "../src/presence.ts";
+import { createPresenceBackend, presenceBackend } from "../src/presence.ts";
+import { arenaEnqueue, arenaQueued } from "../src/rooms/arenaQueue.ts";
 
 const backend = createPresenceBackend({ mode: "local" });
 try {
@@ -36,6 +37,16 @@ try {
   assert.equal(lockedB, true);
   assert.deepEqual(await backend.getJson("race"), { a: true, b: true });
   console.log("✓ Presence local: lease, TTL document, lock và idempotency");
+
+  await presenceBackend.acquireLease("arena:queue:lock", "other", 5000);
+  const entry = { accountId: 99, name: "t", rec: { elo: 1000 } as never, since: Date.now(), ready: () => true, found: () => true };
+  await assert.rejects(arenaEnqueue(entry), /khóa hàng chờ/);
+  assert.equal(arenaQueued(99), undefined);
+  await presenceBackend.releaseLease("arena:queue:lock", "other");
+  await arenaEnqueue(entry);
+  assert.equal(arenaQueued(99), entry);
+  console.log("✓ Hàng chờ đấu trường: không lấy được khóa thì rollback và báo lỗi");
 } finally {
   await backend.close();
+  process.exit(process.exitCode ?? 0);
 }
