@@ -4,6 +4,7 @@
   "out": "thien_dau_thanh.v2.json",
   "size": [226, 158],
   "seed": 20261112,
+  "tileRows": 6,
   "border": "deep",
   "gids": {
     "ground": {
@@ -12,7 +13,8 @@
     },
     "objects": {
       "rock": 36, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28, "sign": 29,
-      "roof": 14, "wall": 15
+      "roof": 14, "wall": 15,
+      "marble_wall": 41
     },
     "canopy": { "17": 21, "19": 23 }
   },
@@ -71,7 +73,9 @@
     { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [110, 140, 92, 15], "w": [5, 8], "h": [3, 5] },
     { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [110, 86, 14, 52], "w": [4, 6], "h": [4, 5] },
     { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.15, "rect": [188, 86, 14, 52], "w": [4, 6], "h": [4, 5] },
-    { "type": "fence", "rect": [0, 0, 205, 158], "gates": [[0.5, 78], [102, 0.5], [102, 157.5], [204.5, 78]], "gate": 6 }
+    { "type": "fence", "rect": [0, 0, 205, 158], "gates": [[0.5, 78], [102, 0.5], [102, 157.5], [204.5, 78]], "gate": 6 },
+    { "type": "row", "kind": "marble_wall", "from": [18, 36], "to": [32, 36], "step": 4 },
+    { "type": "row", "kind": "marble_wall", "from": [44, 36], "to": [58, 36], "step": 4 }
   ],
   "spawn": { "name": "Quảng trường Thiên Đấu", "rect": [86, 70, 32, 18] },
   "portals": [

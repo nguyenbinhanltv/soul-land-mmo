@@ -4,6 +4,7 @@
   "out": "hai_than_dao.v2.json",
   "size": [255, 170],
   "seed": 20261104,
+  "tileRows": 6,
   "zoneCell": 8,
   "blend": 5,
   "border": "deep",
@@ -14,8 +15,10 @@
     },
     "objects": {
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "tent": 11, "fire": 12, "plant": 28, "sign": 29, "skull": 27,
-      "roof": 14, "wall": 15
+      "roof": 14, "wall": 15,
+      "pier": 41, "lighthouse": 42, "sea_lamp": 43, "shell": 44
     },
+    "walk": ["pier"],
     "canopy": { "17": 21, "18": 22, "20": 24 }
   },
   "tiers": [
@@ -83,7 +86,12 @@
     { "type": "clearing", "at": [214, 30], "r": 6 },
     { "type": "area", "name": "Cầu tàu", "ground": "bridge", "rect": [0, 83, 14, 4], "lock": true, "clear": true },
     { "type": "camp", "rect": [12, 75, 16, 20], "tents": [[14, 77], [26, 77], [25, 93]], "fires": [[20, 91]], "logs": [[22, 92]], "signs": [[28, 82]] },
-    { "type": "lair", "at": [222, 140], "rx": 8, "ry": 6, "entrance": "n", "wall": "rock", "door": 4, "skulls": [[216, 137], [228, 143]] }
+    { "type": "lair", "at": [222, 140], "rx": 8, "ry": 6, "entrance": "n", "wall": "rock", "door": 4, "skulls": [[216, 137], [228, 143]] },
+    { "type": "objects", "kind": "pier", "at": [[5, 85], [9, 84]] },
+    { "type": "objects", "kind": "lighthouse", "at": [[8, 78]] },
+    { "type": "objects", "kind": "sea_lamp", "at": [[145, 72], [161, 72], [146, 79], [161, 80]] },
+    { "type": "scatter", "kind": "shell", "rect": [0, 60, 60, 110], "p": 0.008, "on": ["grass"] },
+    { "type": "house", "rect": [30, 87, 4, 3], "margin": 1 }
   ],
   "roads": [
     { "via": ["ben", "san_ho", "mqh", "vach_chan", "vach", "uyen"], "width": 3, "waterCost": 6 },

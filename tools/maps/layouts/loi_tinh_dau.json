@@ -7,6 +7,7 @@
     44
   ],
   "seed": 20261121,
+  "tileRows": 6,
   "zoneCell": 4,
   "gids": {
     "ground": {
@@ -38,7 +39,8 @@
       "tent": 11,
       "fire": 12,
       "plant": 28,
-      "skull": 27
+      "skull": 27,
+      "rune_tree": 41
     },
     "canopy": {
       "19": 23,
@@ -937,6 +939,16 @@
         [
           36,
           38
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "rune_tree",
+      "at": [
+        [
+          9,
+          37
         ]
       ]
     }

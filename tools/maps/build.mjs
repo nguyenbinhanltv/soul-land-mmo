@@ -22,10 +22,13 @@ const ASSETS = path.join(ROOT, "shared", "assets");
 /** Nền: mỗi loại ứng với một khóa trong `gids.ground` của bố cục. */
 const G = { grass: 0, path: 1, camp: 2, pave: 3, crack: 4, water: 5, ford: 6, bank: 7, deep: 8, stony: 9, glow: 10, bridge: 11 };
 const G_NAMES = Object.keys(G);
-/** Vật trên lớp `trees`: mỗi loại ứng với một khóa trong `gids.objects` (cây theo tầng ở `tiers[].trees`). `plant` đi xuyên được. */
+/**
+ * Vật trên lớp `trees`: mỗi loại ứng với một khóa trong `gids.objects` (cây theo tầng ở `tiers[].trees`). `plant` đi xuyên được.
+ * Khóa khác trong `gids.objects` của bố cục là loại vật riêng của bản đồ đó (giếng, hải đăng…, #333), dùng như các loại ở đây;
+ * loại riêng có trong `gids.walk` thì đi xuyên được như `plant`.
+ */
 const O = { none: 0, tree: 1, rock: 2, cliff: 3, ruin: 4, stele: 5, arch: 6, log: 7, ancient: 8, tent: 9, fire: 10, plant: 11, sign: 12, skull: 13,
   roof: 14, wall: 15 };
-const O_NAMES = Object.keys(O);
 const WET = new Set([G.water, G.deep]);
 
 const prop = (name, type, value) => ({ name, type, value });
@@ -50,6 +53,12 @@ export function build(L, hand = null, seedOverride = null) {
   const [MW, MH] = L.size, N = MW * MH, seed = (seedOverride ?? L.seed) >>> 0, mapId = L.map;
   const sub = (name) => (seed ^ hashStr(name)) >>> 0; // mỗi tính năng một dòng ngẫu nhiên riêng
   const gnd = new Uint8Array(N), obj = new Uint8Array(N), lock = new Uint8Array(N);
+  // Loại vật của bố cục: loại chung (O) rồi loại riêng khai trong `gids.objects`; tên loại không có thì báo lỗi (không bỏ lặng lẽ).
+  const K = { ...O }; for (const k of Object.keys(L.gids.objects ?? {})) if (!Object.hasOwn(K, k)) K[k] = Object.keys(K).length;
+  const K_NAMES = Object.keys(K), WALK = new Set(["plant", ...(L.gids.walk ?? [])]);
+  if (K_NAMES.length > 255) throw new Error(`${mapId}: quá nhiều loại vật`);
+  for (const k of WALK) if (k !== "plant" && !Object.hasOwn(L.gids.objects ?? {}, k)) throw new Error(`${mapId}: gids.walk có "${k}" không khai trong gids.objects`);
+  const kind = (k) => { if (!Object.hasOwn(K, k)) throw new Error(`${mapId}: không có loại vật "${k}" (khai trong gids.objects)`); return K[k]; };
   // Gid nền riêng của ô (tính năng `area` có `gid`): chỉ dùng khi ô còn đúng loại nền `overType` lúc ra gid.
   const overGid = new Uint16Array(N), overType = new Uint8Array(N), wetOver = new Set();
   const inside = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
@@ -192,7 +201,7 @@ export function build(L, hand = null, seedOverride = null) {
      * lối vào rộng `door` ô ở phía `entrance` (n / s / e / w); xương thú `skulls` sát vách. Khóa cả khu.
      */
     lair(f) {
-      const [cx, cy] = f.at, door = (f.door ?? 4) / 2, s = sub(`lair:${f.at}`), wall = O[f.wall ?? "cliff"];
+      const [cx, cy] = f.at, door = (f.door ?? 4) / 2, s = sub(`lair:${f.at}`), wall = kind(f.wall ?? "cliff");
       for (let y = Math.floor(cy - f.ry - 3); y <= Math.ceil(cy + f.ry + 3); y++) for (let x = Math.floor(cx - f.rx - 3); x <= Math.ceil(cx + f.rx + 3); x++) {
         if (!inside(x, y)) continue;
         const i = at(x, y), d = Math.hypot((x + 0.5 - cx) / f.rx, (y + 0.5 - cy) / f.ry);
@@ -204,7 +213,7 @@ export function build(L, hand = null, seedOverride = null) {
       place(f.skulls, O.skull);
     },
     /** Vật đặt thẳng: `kind` (tên loại vật) tại các ô `at`. */
-    objects(f) { place(f.at, O[f.kind]); },
+    objects(f) { place(f.at, kind(f.kind)); },
     /**
      * Vùng nền: phủ loại nền `ground` lên hình `rect` / `poly` / `circle` (`invert`: phần ngoài hình), mép loang `edge` ô theo nhiễu;
      * `on`: chỉ phủ lên các loại nền này. Nền ướt (nước, lòng sâu) hoặc `clear` thì bỏ vật; `lock` khóa ô. `gid`: dùng gid nền này thay
@@ -260,7 +269,7 @@ export function build(L, hand = null, seedOverride = null) {
         for (let x = x0 + 1; ;) {
           const rw = r.int(wMin, wMax); if (x + rw > x0 + W - 1) break;
           if (r() >= (f.skip ?? 0.12)) houseAt([x, y, rw, r.int(Math.max(hMin, rh - 1), rh)], 0);
-          else if (f.yard) for (let yy = y; yy < y + rh; yy++) for (let xx = x; xx < x + rw; xx++) if (r() < 0.25) obj[at(xx, yy)] = O[f.yard];
+          else if (f.yard) for (let yy = y; yy < y + rh; yy++) for (let xx = x; xx < x + rw; xx++) if (r() < 0.25) obj[at(xx, yy)] = kind(f.yard);
           x += rw + gap;
         }
         y += rh + alley;
@@ -270,15 +279,15 @@ export function build(L, hand = null, seedOverride = null) {
     row(f) {
       const [ax, ay] = f.from, [bx, by] = f.to, n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / (f.step ?? 4)));
       const list = []; for (let k = 0; k <= n; k++) list.push([Math.round(ax + (bx - ax) * k / n), Math.round(ay + (by - ay) * k / n)]);
-      place(list, O[f.kind]);
+      place(list, kind(f.kind));
     },
     /** Rải vật `kind` trong hình (`rect` / `poly` / `circle`) với xác suất `p` mỗi ô trống chưa khóa, không ướt; `on`: chỉ trên các loại nền này. */
     scatter(f) {
-      const s = sub(`scatter:${f.kind}:${JSON.stringify(f.rect ?? f.poly ?? f.circle)}`), test = shapeTest(f), on = f.on ? new Set(f.on.map((n) => G[n])) : null;
+      const s = sub(`scatter:${f.kind}:${JSON.stringify(f.rect ?? f.poly ?? f.circle)}`), test = shapeTest(f), on = f.on ? new Set(f.on.map((n) => G[n])) : null, k = kind(f.kind);
       for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) {
         const i = at(x, y);
         if (lock[i] || obj[i] !== O.none || WET.has(gnd[i]) || (on && !on.has(gnd[i])) || !test(x, y)) continue;
-        if (hashF(x, y, s) < f.p) obj[i] = O[f.kind];
+        if (hashF(x, y, s) < f.p) obj[i] = k;
       }
     },
   };
@@ -398,8 +407,8 @@ export function build(L, hand = null, seedOverride = null) {
     const o = obj[i];
     if (o === O.tree) trees[i] = pickGid(fbm(x, y, t.clusterScale ?? 16, sC, 3) > t.cluster && t.denseTrees ? t.denseTrees : t.trees, x, y, sV + 20);
     else if (o !== O.none) {
-      if (GO[O_NAMES[o]] === undefined) throw new Error(`${mapId}: gids.objects thiếu "${O_NAMES[o]}"`);
-      trees[i] = pickGid(GO[O_NAMES[o]], x, y, sV + 30 + o);
+      if (GO[K_NAMES[o]] === undefined) throw new Error(`${mapId}: gids.objects thiếu "${K_NAMES[o]}"`);
+      trees[i] = pickGid(GO[K_NAMES[o]], x, y, sV + 30 + o);
     }
   }
 
@@ -418,12 +427,12 @@ export function build(L, hand = null, seedOverride = null) {
   }
 
   // ---------- 8. Ô chặn, nối thông: ô đi được không tới được từ trại thì trồng cây (không sinh hồn thú ở chỗ kẹt) ----------
-  const collides = new Set([GG.water, GG.deep, ...wetOver, ...Object.entries(GO).filter(([k]) => k !== "plant").flatMap(([, v]) => gidsOf(v)),
+  const collides = new Set([GG.water, GG.deep, ...wetOver, ...Object.entries(GO).filter(([k]) => !WALK.has(k)).flatMap(([, v]) => gidsOf(v)),
     ...L.tiers.flatMap((t) => [...gidsOf(t.trees), ...gidsOf(t.denseTrees ?? [])])]);
   // Ô chặn tính theo gid ở mọi lớp (shared/move.ts): một gid không được vừa là nền vừa là vật.
   const wetG = (g) => g === GG.water || g === GG.deep || wetOver.has(g);
   for (const g of collides) if (groundGids.has(g) && !wetG(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`);
-  for (const g of gidsOf(GO.plant ?? [])) { if (groundGids.has(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`); collides.delete(g); }
+  for (const g of [...WALK].flatMap((k) => gidsOf(GO[k] ?? []))) { if (groundGids.has(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`); collides.delete(g); }
   for (const g of groundGids) if (!wetG(g)) collides.delete(g);
   const solid = (i) => collides.has(ground[i]) || collides.has(trees[i]);
   const start = L.spawn ? [Math.floor(L.spawn.rect[0] + L.spawn.rect[2] / 2), Math.floor(L.spawn.rect[1] + L.spawn.rect[3] / 2)] : pt(Object.keys(P)[0]);
