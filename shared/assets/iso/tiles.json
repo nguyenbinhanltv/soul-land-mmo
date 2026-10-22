@@ -583,10 +583,20 @@
    "foot": [56, 75],
    "flip": false
   },
+  "cau_da_vom_ngang": {
+   "key": "prop_cau_da_vom",
+   "foot": [56, 75],
+   "flip": true
+  },
   "cau_go": {
    "key": "prop_cau_go",
    "foot": [48, 75],
    "flip": false
+  },
+  "cau_go_ngang": {
+   "key": "prop_cau_go",
+   "foot": [48, 75],
+   "flip": true
   },
   "cau_tau_go": {
    "key": "prop_cau_tau_go",
@@ -878,7 +888,7 @@
     "44": "lam_ngan_thao_bui",
     "45": "gieng_da",
     "46": "thung_go_chong",
-    "47": "cau_go",
+    "47": "cau_go_ngang",
     "48": "lau_say"
    }
   },
@@ -1048,7 +1058,8 @@
     "38": "cot_den_do",
     "39": "cot_co_do_vang",
     "40": "khuc_go_rong",
-    "41": "tuong_cam_thach"
+    "41": "tuong_cam_thach",
+    "42": "cau_da_vom_ngang"
    }
   },
   "dai_dau_hon_truong": {
@@ -1231,7 +1242,7 @@
     "39": "vom_da",
     "40": ["khuc_go_rong", "re_cay_lon"],
     "41": "co_thu_lon",
-    "42": "cau_go"
+    "42": "cau_go_ngang"
    }
   },
   "tinh_dau_noi_dia": {

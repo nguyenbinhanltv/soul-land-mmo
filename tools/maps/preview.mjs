@@ -75,7 +75,7 @@ for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
   const r = set.props[gid]; if (!r) { missing.add(`vật ${gid}`); continue; }
   const list = [].concat(r), pick = ref(list[hash(x, y, 7) % list.length]), p = data.props[pick.name];
   if (!p) { missing.add(`vật ${pick.name}`); continue; }
-  props.push({ x, y, d: x + y, file: path.join(PROPS, `${p.key.replace(/^prop_/, "")}.png`), tint: pick.tint, foot: p.foot, flip: p.flip !== false && hash(x, y, 3) % 2 === 1 });
+  props.push({ x, y, d: x + y, file: path.join(PROPS, `${p.key.replace(/^prop_/, "")}.png`), tint: pick.tint, foot: p.foot, flip: p.flip === true || (p.flip !== false && hash(x, y, 3) % 2 === 1) });
 }
 props.sort((a, b) => a.d - b.d || a.x - b.x);
 // Khối nhà: mái (gid 14) cao hơn tường (gid 15); tường đứng riêng (không có mái ngay phía trên) là tường thành, màu `fence`.
