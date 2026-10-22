@@ -472,6 +472,13 @@ export const PARTY_INVITE_SECS = 60;
  */
 export const PARTY_OFFLINE_SECS = 60;
 
+// ---------- Kênh chat (mục 4 "Lệnh chat", #188) ----------
+/**
+ * Kênh thế giới (`/tg`, mọi bản đồ / kênh nhận): chỉ hồn sư từ cấp `minLevel`, mỗi tài khoản tối đa 1 tin / `cdSecs` giây (server
+ * kiểm; client hiển thị trong lời nhắc). Thông báo hệ thống không chịu giới hạn này.
+ */
+export const WORLD_CHAT = { minLevel: 10, cdSecs: 30 } as const;
+
 // ---------- Năng lượng và chiêu tiên cơ (mục 5.1 "Trong trận"; mọi số dưới đây đã chốt) ----------
 /** Năng lượng tối đa của mỗi võ hồn trong đội. Đủ mức này thì đổi tay vào sẽ tung chiêu tiên cơ, dùng hết năng lượng. */
 export const TIEN_CO_MAX = 100;
@@ -592,7 +599,9 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
   "chill",
   // Từ #174: Ngập nước (chỉ có trên hồn sư, vùng ngập Thủy Triều Dâng của Tà hóa Thâm Hải Ma Kình Vương, BossPhase.tide).
-  "flood"] as const;
+  "flood",
+  // Từ #175: che tầm nhìn (chỉ có trên hồn sư, Phun Mực của tinh anh Ma Chương Vương). Bit 15: bit cuối của trường uint16 `st`.
+  "ink"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -642,6 +651,9 @@ export const STATUS: Record<StatusId, StatusDef> = {
   // Từ #174 (thiết kế gốc đã chốt "vùng ngập làm chậm 50%"): Làm chậm của vùng ngập, cộng với Làm chậm khác tới SLOW_CAP. Vùng ngập gây
   // lại mỗi nhịp (TideDef.flood) với thời gian ngắn nên ra khỏi nước là hết ngay sau đó.
   flood:   st("Ngập nước", "#4aa8ff", 0.5, 1, { slow: 0.5 }),
+  // Từ #175 (thiết kế gốc: Phun Mực "vòng, che tầm nhìn"): chỉ đổi hiển thị của người trúng (màn mực che khung nhìn, chừa vòng
+  // PLAYER_INK quanh chính mình), không chặn đi / đánh / hồn kỹ; server không đổi luật đánh.
+  ink:     st("Che tầm nhìn", "#9a8ac8", 4, 1),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -655,16 +667,23 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
  * băng (#116): không đi, không đánh, không dùng hồn kỹ; Mê hoặc (#116): không đánh, không dùng hồn kỹ, phím bị bỏ qua, server tự đi
  * lung tung quanh chỗ bị Mê hoặc (PLAYER_CHARM); Trói: không đi; Câm lặng: không dùng hồn kỹ; Làm chậm: giảm tốc (tối đa SLOW_CAP); Trúng độc /
  * Thiêu đốt: mỗi tầng `dot` × sát thương đòn thường của hồn thú mỗi giây; Dễ thương / Phá giáp: nhận thêm sát thương; Cảm điện: đòn
- * của hồn thú trúng hồn sư Cảm điện lan `chain` sang hồn sư Cảm điện khác trong `chainR`. Thuộc hồn sư nên đổi võ hồn vẫn còn; vào
+ * của hồn thú trúng hồn sư Cảm điện lan `chain` sang hồn sư Cảm điện khác trong `chainR`; Che tầm nhìn (#175): chỉ màn hình người
+ * trúng phủ mực (PLAYER_INK), không đổi luật. Thuộc hồn sư nên đổi võ hồn vẫn còn; vào
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill", "flood"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill", "flood", "ink"];
 /**
  * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
  * bằng PvP riêng để #113).
  */
-export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood"];
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood", "ink"];
+/**
+ * Che tầm nhìn (#175, STATUS.ink): màn hình người trúng phủ mực, chỉ còn thấy vòng bán kính `r` pixel cảnh quanh thân mình (khung
+ * nhìn gốc 640 × 360 pixel cảnh, mép mực loang thêm `edge`); `a`: độ đậm của mực ngoài vòng (1 = đen hẳn). Chỉ là hiển thị, server
+ * không dùng.
+ */
+export const PLAYER_INK = { r: 60, edge: 30, a: 0.94 };
 /**
  * Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là
  * Choáng). Ngập nước (#174) không có kháng: đứng trong nước là chậm (vùng gây lại mỗi nhịp; rút ngắn thời gian vốn đã ngắn hơn nhịp chỉ
@@ -1190,14 +1209,14 @@ export const BOSSES: BossDef[] = [
       spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.25, 0.5], clear: 20 } }, skills: [
       bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
-  // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
-  // Câm lặng + Làm chậm (client chưa có hiệu ứng che màn hình); Huyết Khí nhắm người tham gia ít máu nhất (`weak`).
+  // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; Huyết Khí nhắm người tham gia ít
+  // máu nhất (`weak`). Phun Mực gây Che tầm nhìn (#175, STATUS.ink, PLAYER_INK) như thiết kế gốc, không còn Câm lặng + Làm chậm.
   { id: "hac_giap_cu_giai_vuong", name: "Hắc Giáp Cự Giải Vương", rank: 1, species: "thiet_giap_cu_giai", aura: "#4a5a7a", skills: [
     bs("Song Kìm", "cone", 54, { arc: 80, count: 2, spread: 70, dmg: 1.7 }),
     bs("Phun Bọt", "circle", 56, { dmg: 1, status: [{ s: "slow", secs: 3 }] })] },
   { id: "ma_chuong_vuong", name: "Ma Chương Vương", rank: 1, species: "tham_hai_ma_chuong", aura: "#8a3aff", skills: [
     bs("Bát Xúc Đập", "line", 100, { w: 12, count: 8, spread: 315, range: 80, dmg: 1.6, cd: 9 }),
-    bs("Phun Mực", "circle", 40, { at: "target", range: 130, dmg: 1, status: [{ s: "silence", secs: 2 }, { s: "slow", secs: 2 }] })] },
+    bs("Phun Mực", "circle", 40, { at: "target", range: 130, dmg: 1, status: [{ s: "ink" }] })] },
   { id: "huyet_sa_bao_quan", name: "Huyết Sa Bạo Quân", rank: 1, species: "huyet_nha_cu_sa", aura: "#ff2a3a", skills: [
     bs("Tam Liên Xé", "line", 110, { w: 14, count: 3, spread: 40, dmg: 1.7 }),
     bs("Huyết Khí", "circle", 34, { at: "target", range: 160, warn: 1, dmg: 1.8, weak: true })] },
@@ -3591,6 +3610,12 @@ export const NPCS: NpcDef[] = [
       "Học viện mới dời về Thiên Đấu Thành, nhưng khảo hạch thì không nghỉ ngày nào: mỗi ngày ta ra vài bài, nửa đêm đổi bài mới (nhiệm vụ hằng ngày).",
       "Muốn mạnh lên thì ra Đại Đấu Hồn Trường mà rèn luyện thực chiến, hoặc quay về Tinh Đấu Đại Sâm Lâm săn hồn hoàn hợp vòng.",
     ] },
+  { id: "trieu_vo_cuc", name: "Triệu Vô Cực", title: "Bất Động Minh Vương · Sử Lai Khắc Học Viện", role: "talk", col: "#ff9a5c",
+    looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
+    lines: [
+      "Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Võ hồn của ta là Địa Ngục Ma Long, đừng thử đứng trước mặt ta quá một nén nhang.",
+      "Sử Lai Khắc chỉ nhận quái vật. Xong bài của Đại Sư rồi thì tới đây, ta có chín bài cho ngươi: Thất Quái ngày trước cũng đi con đường này.",
+    ] },
   { id: "thuong_nhan_thien_dau", name: "Chưởng quỹ", title: "Thương hội Thiên Đấu", role: "shop", col: "#ffb35c",
     looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 1, skin: 0 },
     lines: [
@@ -3772,14 +3797,16 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
  * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
  * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
  */
-export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give";
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king";
 /**
  * Từ nhiệm vụ hằng ngày (DAILY_POOL): `kill` thêm `fit` (chỉ hồn thú hợp cấp, fitBeast); `arena` đánh xong một trận Đại Đấu Hồn
  * Trường (thắng / thua / hòa, không tính bỏ trận hay đối thủ không vào sân); `give` nộp `n` món mã `item` lúc trả bài (số đếm là số
  * món đang có trong túi, server tính lại mỗi khi túi đổi); `near`: NPC chỉ đường trên bản đồ nhỏ.
+ * Từ chương 2 (QUEST_CH2): `elite` tham gia hạ một tinh anh (người hạ và đồng đội được chia kinh nghiệm); `king` có đóng góp khi một
+ * thú vương bị hạ; `party` (trên `kill`) chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm.
  */
 export interface QuestGoal {
-  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; item?: string; near?: string;
+  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
 }
 /** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
 export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
@@ -3796,9 +3823,14 @@ export interface QuestChain { id: string; name: string; giver: string; map: stri
  */
 export interface QuestProgress { chain: string; step: number; accepted: boolean; prog: number[]; }
 /** Sự kiện server báo cho bộ đếm nhiệm vụ (MapRoom.questEvent). */
-export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; }
+export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; party?: boolean; }
 /** Mã chuỗi tân thủ (mọi tài khoản, cả tài khoản cũ, bắt đầu ở bước 1 khi chưa có dòng trong bảng `quests`). */
 export const QUEST_STARTER = "tan_thu";
+/** Mã chuỗi chương 2 "Sử Lai Khắc Thất Quái" (bảng `quests` như chuỗi tân thủ); chỉ nhận được khi chuỗi `QUEST_CH2_AFTER` đã xong. */
+export const QUEST_CH2 = "su_lai_khac";
+export const QUEST_CH2_AFTER = QUEST_STARTER;
+/** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
+export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER };
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
   { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
@@ -3848,6 +3880,68 @@ export const QUESTS: QuestChain[] = [
         done: ["Tốt lắm. Ngươi đã đứng vững ở Tinh Đấu Đại Sâm Lâm."],
         reward: { honTe: 150, items: [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }, { code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
     ] },
+  // Chương 2 (#189): giao bài ở Thiên Đấu Thành, mục tiêu theo bản đồ (không theo vùng, vì bản đồ có thể đổi tên vùng). Không thưởng
+  // mảnh UR (chỉ rơi từ rương boss thế giới, mục 5.3).
+  { id: QUEST_CH2, name: "Sử Lai Khắc Thất Quái", giver: "trieu_vo_cuc", map: "thien_dau_thanh",
+    finale: "Chín bài ta ra, ngươi đã qua hết. Sử Lai Khắc không nhận người thường, nhưng từ hôm nay ngươi không còn là người thường nữa. Đường phía trước còn dài.",
+    steps: [
+      { id: "hoc_vien", name: "Học viện của quái vật", desc: "Tới Thiên Đấu Thành, gặp Phất Lan Đức.",
+        offer: ["Ta là Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Đại Sư đã theo Đường Tam lên đây, và hắn nhắc tới ngươi.",
+          "Sử Lai Khắc chỉ nhận quái vật. Muốn biết mình có đủ tư cách không thì làm chín bài của ta. Bài đầu: tìm Phất Lan Đức, viện trưởng của chúng ta."],
+        goals: [{ k: "map", map: "thien_dau_thanh", n: 1, have: true, text: "Đặt chân tới Thiên Đấu Thành" }, { k: "talk", npc: "phat_lan_duc", n: 1, text: "Nói chuyện với Phất Lan Đức" }],
+        done: ["Phất Lan Đức nói không sai: Thất Quái ngày đầu cũng như ngươi bây giờ, chẳng ai ra dáng gì cả."],
+        reward: { honTe: 100, items: [{ code: "dai_hoi_huyet_dan", qty: 2 }] } },
+      { id: "mot_nen_nhang", name: "Một nén nhang", desc: "Cùng đồng đội hạ một tinh anh ở bất kỳ bản đồ săn nào.",
+        offer: ["Thử thách của Sử Lai Khắc: trụ trước ta một nén nhang. Ngươi chưa đủ sức, nên ta đổi: hạ một tinh anh, kẻ mạnh hơn hồn thú thường rất nhiều.",
+          "Tinh anh canh các vùng săn. Một mình khó thì rủ đồng đội, ai được chia kinh nghiệm cũng được tính."],
+        goals: [{ k: "elite", n: 1, text: "Tham gia hạ một tinh anh" }],
+        done: ["Một nén nhang tàn rồi. Biết liều mà không mù quáng, đó là điều ta muốn thấy."],
+        reward: { honTe: 200, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 10 }] } },
+      { id: "tinh_dau_sau", name: "Tinh Đấu sâu thẳm", desc: "Tới Tinh Đấu Nội địa, hạ hồn thú ở đó.",
+        offer: ["Bài thứ ba: vào sâu hơn. Tinh Đấu Nội địa là nơi hồn thú nghìn năm trở lên lui tới, không còn là chỗ cho kẻ xem thường.",
+          "Tới đó, hạ ba mươi con hồn thú rồi trở về."],
+        goals: [{ k: "map", map: "tinh_dau_noi_dia", n: 1, have: true, text: "Đặt chân tới Tinh Đấu Nội địa" },
+          { k: "kill", map: "tinh_dau_noi_dia", n: 30, text: "Hạ hồn thú ở Tinh Đấu Nội địa" }],
+        done: ["Về được là tốt. Hồn sư sống lâu không phải nhờ mạnh nhất, mà nhờ biết lúc nào nên lui."],
+        reward: { honTe: 300, items: [{ code: "dai_hoi_hon_dan", qty: 3 }] } },
+      { id: "ly_luan", name: "Lý luận của Đại Sư", desc: "Hấp thụ thành công một hồn hoàn trong giới hạn của vòng.",
+        offer: ["Bài thứ tư: lý luận. Đại Sư nói hồn hoàn phải chọn theo giới hạn, ta thì thấy ngươi nên nghe lời hắn một lần.",
+          "Hấp thụ thành công một hồn hoàn không vượt giới hạn của vòng rồi về báo."],
+        goals: [{ k: "absorb", n: 1, text: "Hấp thụ thành công hồn hoàn trong giới hạn" }],
+        done: ["Lý luận của Đại Sư có chỗ khô khan, nhưng chưa bao giờ sai. Ghi nhớ."],
+        reward: { honTe: 300, items: [{ code: shardCode("xuc_xich"), qty: 10 }] } },
+      { id: "hoc_phi", name: "Đấu hồn kiếm học phí", desc: "Đánh ba trận Đại Đấu Hồn Trường ở Thiên Đấu Thành, thắng thua đều tính.",
+        offer: ["Bài thứ năm: thực chiến. Sử Lai Khắc không dạy hồn sư đóng cửa tu luyện. Ra Đại Đấu Hồn Trường mà đánh.",
+          "Ba trận, thắng thua đều tính, ta chỉ muốn thấy ngươi dám bước vào sân. Bỏ trận thì không tính."],
+        goals: [{ k: "arena", n: 3, text: "Đánh trận Đại Đấu Hồn Trường" }],
+        done: ["Thua cũng được, miễn là đứng dậy. Thất Quái trận nào cũng thắng thì đâu cần tới ta."],
+        reward: { honTe: 300, items: [{ code: "hoi_thanh_phu", qty: 2 }] } },
+      { id: "ket_nghia", name: "Thất Quái kết nghĩa", desc: "Lập tổ đội, hạ hồn thú hợp cấp cùng đồng đội chia kinh nghiệm.",
+        offer: ["Bài thứ sáu: bảy người của Thất Quái, từ Đường Tam tới Tiểu Vũ, Đái Mộc Bạch, Chu Trúc Thanh, Ninh Vinh Vinh, Áo Tư Tạp, Mã Hồng Tuấn, không ai mạnh một mình.",
+          "Lập tổ đội với ít nhất một người, hạ hai mươi con hồn thú hợp cấp khi cả đội cùng chia kinh nghiệm."],
+        goals: [{ k: "kill", n: 20, fit: true, party: true, text: "Hạ hồn thú hợp cấp khi tổ đội cùng chia kinh nghiệm" }],
+        done: ["Có đồng đội thì đường dài đi cũng ngắn. Nhớ lấy điều này."],
+        reward: { honTe: 400, items: [{ code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
+      { id: "bang_hoa", name: "Băng Hỏa Lưỡng Nghi Nhãn", desc: "Tới Lạc Nhật Sâm Lâm, hạ hồn thú ở đó.",
+        offer: ["Bài thứ bảy: Lạc Nhật Sâm Lâm, nơi Độc Cô Bác canh giữ Băng Hỏa Lưỡng Nghi Nhãn. Hắn không thích khách lạ.",
+          "Tới đó, hạ ba mươi con hồn thú rồi trở về. Đừng lại gần suối, và đừng chọc vào kẻ không nên chọc."],
+        goals: [{ k: "map", map: "lac_nhat_sam_lam", n: 1, have: true, text: "Đặt chân tới Lạc Nhật Sâm Lâm" },
+          { k: "kill", map: "lac_nhat_sam_lam", n: 30, text: "Hạ hồn thú ở Lạc Nhật Sâm Lâm" }],
+        done: ["Còn sống mà về, đủ để kể cho Mã Hồng Tuấn nghe. Hắn sẽ ghen tị lắm."],
+        reward: { honTe: 500, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 15 }] } },
+      { id: "thu_vuong_ta_hoa", name: "Thú vương tà hóa", desc: "Có đóng góp khi một thú vương bị hạ.",
+        offer: ["Bài thứ tám: thú vương tà hóa, hồn thú bị tà khí ăn mòn, hung bạo hơn thú vương bình thường. Một mình ngươi không đủ sức đâu.",
+          "Cùng người khác hạ một thú vương. Có đóng góp và còn ở đó lúc nó ngã xuống là tính."],
+        goals: [{ k: "king", n: 1, text: "Có đóng góp khi hạ một thú vương" }],
+        done: ["Thú vương ngã xuống, tà khí tan. Lần sau gặp thứ như vậy, ngươi biết phải làm gì."],
+        reward: { honTe: 600, items: [{ code: "dai_hoi_huyet_dan", qty: 3 }, { code: "dai_hoi_hon_dan", qty: 3 }] } },
+      { id: "vong_loai", name: "Vòng loại Tinh Anh Đại Tái", desc: "Đánh năm trận Đại Đấu Hồn Trường để tranh suất Toàn Đại Lục Cao Cấp Hồn Sư Tinh Anh Đại Tái.",
+        offer: ["Bài cuối: Toàn Đại Lục Cao Cấp Hồn Sư Tinh Anh Đại Tái. Muốn dự thì qua vòng loại, vòng loại ở Đại Đấu Hồn Trường.",
+          "Năm trận, thắng thua đều tính. Đánh xong thì về đây."],
+        goals: [{ k: "arena", n: 5, text: "Đánh trận Đại Đấu Hồn Trường" }],
+        done: ["Vòng loại ngươi qua rồi. Phần còn lại, tự ngươi bước tiếp."],
+        reward: { honTe: 800, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 25 }] } },
+    ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
 /** Chuỗi theo mã: chuỗi cố định trong QUESTS, hoặc bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain). */
@@ -3875,7 +3969,8 @@ export function questStatus(q: QuestProgress): QuestStatus {
 }
 /** Sự kiện `ev` có tính cho mục tiêu `g` không. */
 export const questGoalHit = (g: QuestGoal, ev: QuestEvent) => g.k !== "give" &&
-  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true);
+  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true)
+  && (!g.party || ev.party === true);
 /** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
 export const questRewardText = (r: QuestReward) =>
   [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");

@@ -61,6 +61,15 @@ export function mateRooms(acc: number, mapId: string) {
   return out;
 }
 
+/**
+ * Hồn sư tên `name` đang trong game (đang ở một phòng, không tính người vừa rời chờ vào lại): tài khoản và tên đúng cách viết, cho
+ * tin riêng (#188). Không có thì null.
+ */
+export function onlineByName(name: string) {
+  const acc = byName.get(nameKey(name)), l = acc !== undefined ? live.get(acc) : undefined;
+  return l && !l.off ? { acc: l.acc, name: l.name } : null;
+}
+
 /** Phòng `roomId` nhận người chơi (vào game, vào lại, sang bản đồ mới qua cổng). */
 export function goOnline(l: Omit<Live, "off">): PartyNote[] {
   const old = live.get(l.acc);

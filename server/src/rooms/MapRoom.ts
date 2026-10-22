@@ -26,7 +26,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef, type FormDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
-  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
+  QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds, isDaily, fitBeast,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
@@ -37,11 +37,12 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { ASK_CD } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
+import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow } from "../db.ts";
-import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
+import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
@@ -138,6 +139,8 @@ export interface PData {
   partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
   // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
   quest: QuestProgress;
+  // Chuỗi cố định khác chuỗi tân thủ (QUESTS, chương 2 trở đi; #189): tiến độ từng chuỗi, tin riêng "quest" kèm mã chuỗi.
+  chains: QuestProgress[];
   // Khảo hạch hằng ngày của Phất Lan Đức (DAILY): DAILY.count bài của ngày `dailyDay` (vnDay), tin riêng "daily"; lưu cùng túi đồ như `quest`.
   daily: QuestProgress[]; dailyDay: string;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
@@ -255,6 +258,12 @@ const uid = (p: string) => p + (nextId++).toString(36);
 // ---------- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên") ----------
 /** Hash presence: accountId -> sessionId của phiên đang giữ tài khoản, từ onJoin tới khi lần ghi DB cuối của phiên đó xong. */
 const HOLD = "accountHold";
+/**
+ * Chat xuyên phòng (#188, mục 6 "Xã hội"): tổ đội, tin riêng, thế giới phát lên chủ đề presence này; mọi phòng nghe và gửi tin
+ * `chat` cho người chơi của mình có trong `to` (không có `to`: mọi người, kênh thế giới). Không lưu lịch sử.
+ */
+const CHAT_TOPIC = "chatx";
+interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang nhận phần thưởng boss, đợi một chút.";
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
@@ -511,6 +520,12 @@ export class MapRoom extends Room<MapState> {
   /** Đá phiên trùng tài khoản ở mọi phòng (presence, mục 6). */
   /** Tổ đội người chơi (presence PARTY_TOPIC, 7.1): gửi lại khung tổ đội và thông báo cho người của phòng này có trong `to`. */
   partySub = (n: party.PartyNote) => this.partyNote(n);
+  /** Chat xuyên phòng (presence CHAT_TOPIC, #188): gửi tin cho người của phòng này có trong `to` (không có `to` thì mọi người). */
+  chatSub = (r: ChatRoute) => {
+    if (!r?.msg) return;
+    if (!Array.isArray(r.to)) return this.broadcast("chat", r.msg);
+    for (const [id, d] of this.pdata) if (r.to.includes(d.accountId)) this.clients.getById(id)?.send("chat", r.msg);
+  };
   partyT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
@@ -647,6 +662,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
     this.presence.subscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
+    this.presence.subscribe(CHAT_TOPIC, this.chatSub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
     // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
     const now = Date.now(), active = kingSlotNow(mapId, now);
@@ -730,14 +746,7 @@ export class MapRoom extends Room<MapState> {
       if (m?.op === "top") return this.resonanceTop(c.sessionId, m.page, m.pageSize);
       this.sendRes(c.sessionId, [], true);
     }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
-    this.onMessage("chat", (c, m: { text: string }) => {
-      // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
-      const p = this.state.players.get(c.sessionId); if (!p) return;
-      const r = chatCheck((c.auth as AuthData)?.accountId ?? c.sessionId, m?.text);
-      if (!r) return;
-      if ("error" in r) return this.log(c.sessionId, r.error, "#ffb35c");
-      this.broadcast("chat", { name: p.name, text: r.text });
-    });
+    this.onMessage("chat", (c, m: unknown) => this.chatAction(c.sessionId, m)); // chat bản đồ / tổ đội / riêng / thế giới (#188)
   }
 
   onJoin(client: Client, _o: unknown, auth: AuthData) {
@@ -764,7 +773,8 @@ export class MapRoom extends Room<MapState> {
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
       claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
-      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
+      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
+      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
@@ -847,6 +857,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(BOSS_TOPIC, this.bossSub);
     this.presence.unsubscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
+    this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
     if (this.state.channel) channelsInUse.get(this.state.mapId)?.delete(this.state.channel);
     for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
@@ -942,7 +953,7 @@ export class MapRoom extends Room<MapState> {
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
     return { honTe: d.honTe, slots: d.bagSlots, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
-      quests: [d.quest, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })),
+      quests: [d.quest, ...d.chains, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })),
       sell: { ...d.sellCfg }, sold: d.sold.map((r) => ({ ...r, item: { ...r.item, stats: r.item.stats == null ? null : structuredClone(r.item.stats) } })) };
   }
 
@@ -1710,7 +1721,7 @@ export class MapRoom extends Room<MapState> {
     }, wait);
   }
   /** `quest {op: "get"}`: tiến độ chuỗi tân thủ và khảo hạch hằng ngày, theo nhịp `ask`. */
-  askQuest(id: string) { this.ask(id, "quest", () => { this.sendQuest(id); this.sendDaily(id); }); }
+  askQuest(id: string) { this.ask(id, "quest", () => { for (const c of [QUEST_STARTER, ...this.pdata.get(id)?.chains.map((q) => q.chain) ?? []]) this.sendQuest(id, undefined, undefined, c); this.sendDaily(id); }); }
 
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
   /**
@@ -2063,10 +2074,14 @@ export class MapRoom extends Room<MapState> {
    * tiêu, phần thưởng client đọc từ QUESTS. `ev`: vừa nhận (`accept`), vừa đủ mục tiêu (`ready`), vừa trả (`reward`, kèm `done` = mã
    * bước vừa trả), vừa xong cả chuỗi (`finish`); client hiện thông báo theo `ev`.
    */
-  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    this.clients.getById(id)?.send("quest", { ...d.quest, prog: [...d.quest.prog], status: questStatus(d.quest), ev, done });
+  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string, chain = QUEST_STARTER) {
+    const d = this.pdata.get(id), q = d && this.fixedQuest(d, chain); if (!q) return;
+    this.clients.getById(id)?.send("quest", { ...q, prog: [...q.prog], status: questStatus(q), ev, done });
   }
+  /** Tiến độ chuỗi cố định `chain` (tân thủ hoặc chương sau) của người chơi; undefined nếu không phải chuỗi cố định. */
+  fixedQuest(d: PData, chain: string) { return d.quest.chain === chain ? d.quest : d.chains.find((q) => q.chain === chain); }
+  /** Chuỗi `chain` đã mở cho người chơi chưa: chuỗi không có điều kiện, hoặc chuỗi `QUEST_AFTER` của nó đã xong. */
+  questOpen(d: PData, chain: string) { const a = QUEST_AFTER[chain]; return !a || questStatus(this.fixedQuest(d, a) ?? questStart(a)) === "done"; }
 
   /** Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó. */
   questHave(d: PData, g: QuestGoal) {
@@ -2084,11 +2099,12 @@ export class MapRoom extends Room<MapState> {
    */
   questEvent(id: string, ev: QuestEvent) {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
-    const r = this.questBump(d.quest, ev), chain = questChain(d.quest.chain);
-    if (r && chain) {
+    for (const q of [d.quest, ...d.chains]) {
+      const r = this.questBump(q, ev), chain = questChain(q.chain);
+      if (!r || !chain) continue;
       d.bagDirty = true;
-      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[d.quest.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, r === "ready" ? "ready" : undefined);
+      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[q.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
+      this.sendQuest(id, r === "ready" ? "ready" : undefined, undefined, q.chain);
     }
     // Khảo hạch hằng ngày: cùng sự kiện, từng bài đã nhận (sang ngày mới thì bộ bài cũ bỏ trước).
     if (this.dailyFresh(d)) this.sendDaily(id, "reset");
@@ -2134,39 +2150,40 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     if (op === "get") return this.askQuest(id);
     if (typeof chainId === "string" && isDaily(chainId)) return this.dailyAction(id, op, chainId);
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id); };
-    const chain = questChain(d.quest.chain); if (!chain) return;
+    const q = this.fixedQuest(d, typeof chainId === "string" ? chainId : QUEST_STARTER), chain = q && questChain(q.chain); if (!q || !chain) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id, undefined, undefined, q.chain); };
     if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
     const giver = npcDef(chain.giver)!, verb = op === "accept" ? "nhận" : "trả";
     if (!this.map.npcs.some((n) => n.id === chain.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[chain.map].name} để ${verb} nhiệm vụ.`);
     if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
     if (!this.npcNear(id, { id: chain.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} nhiệm vụ.`);
-    const st = questStatus(d.quest), step = chain.steps[d.quest.step];
+    const st = questStatus(q), step = chain.steps[q.step];
     if (st === "done") return warn(`Đã học xong cả chuỗi "${chain.name}".`);
+    if (!this.questOpen(d, chain.id)) return warn(`Chưa mở chuỗi "${chain.name}": hoàn thành chuỗi "${questChain(QUEST_AFTER[chain.id])?.name}" trước.`);
     if (op === "accept") {
       if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả nhiệm vụ.`);
-      d.quest = { chain: chain.id, step: d.quest.step, accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) };
+      Object.assign(q, { accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) });
       d.bagDirty = true;
-      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${d.quest.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
-      const ready = questStatus(d.quest) === "ready";
+      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${q.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
+      const ready = questStatus(q) === "ready";
       if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả nhiệm vụ ngay để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, ready ? "ready" : "accept");
+      this.sendQuest(id, ready ? "ready" : "accept", undefined, q.chain);
       this.saveTrade(id, d);
       return;
     }
     if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
-    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${d.quest.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
+    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${q.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
     if (!this.bagFits(d, step.reward.items))
       return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
     this.addCoin(d, step.reward.honTe);
     for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
-    d.quest = { chain: chain.id, step: d.quest.step + 1, accepted: false, prog: [] };
+    Object.assign(q, { step: q.step + 1, accepted: false, prog: [] });
     d.bagDirty = true;
     this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${questRewardText(step.reward)}.`, "#f2c84b");
-    const finish = questStatus(d.quest) === "done";
+    const finish = questStatus(q) === "done";
     if (finish) this.log(id, `Hoàn thành chuỗi nhiệm vụ "${chain.name}"!`, giver.col);
     this.sendBag(id);
-    this.sendQuest(id, finish ? "finish" : "reward", step.id);
+    this.sendQuest(id, finish ? "finish" : "reward", step.id, q.chain);
     this.save(id); // phần thưởng và bước mới ghi ngay, cùng một lần ghi túi đồ
   }
 
@@ -2726,6 +2743,7 @@ export class MapRoom extends Room<MapState> {
       const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
+    else if (op === "chat") { if (o.cop === "rlreset") chatReset(d.accountId); } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
     else if (op === "party") {
       // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
       // mọi `pop` trả khung tổ đội của người gọi.
@@ -3061,9 +3079,11 @@ export class MapRoom extends Room<MapState> {
       out = { day: d.dailyDay, daily: d.daily.map((x) => ({ ...x, status: questStatus(x) })) };
     }
     else if (op === "quest") {
-      // 6.2: đặt tiến độ chuỗi tân thủ (bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi; trả tiến độ hiện tại.
-      if (Number.isInteger(o.step)) { d.quest = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, QUEST_STARTER); d.bagDirty = true; this.sendQuest(id); }
-      out = { quest: { ...d.quest, status: questStatus(d.quest) } };
+      // 6.2: đặt tiến độ chuỗi cố định `chain` (mặc định tân thủ; bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi;
+      // trả tiến độ hiện tại.
+      const q = this.fixedQuest(d, typeof o.chain === "string" ? o.chain : QUEST_STARTER);
+      if (q && Number.isInteger(o.step)) { Object.assign(q, parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, q.chain)); d.bagDirty = true; this.sendQuest(id, undefined, undefined, q.chain); }
+      out = { quest: q && { ...q, status: questStatus(q) } };
     }
     else if (op === "warp") {
       // 6.2: chuyển sang bản đồ `mapId` tại (x, y) qua đúng transaction đi cổng (beginTravel, như một cổng ẩn); client nhận `travel`
@@ -5849,6 +5869,45 @@ export class MapRoom extends Room<MapState> {
     const done: number[] = [];
     for (const [r, t] of d.down) { if (t - dt <= 0) done.push(r); else d.down.set(r, t - dt); }
     if (done.length) this.revive(id, done, "sau khi nghỉ ngoài trận");
+  }
+
+  // ---------- Chat (mục 4 "Lệnh chat", #188) ----------
+  /**
+   * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =
+   * hồn sư tên `to` đang trong game (kèm bản sao cho người gửi); "world" = mọi phòng, từ cấp WORLD_CHAT.minLevel, 1 tin /
+   * WORLD_CHAT.cdSecs giây. Tổ đội / riêng / thế giới đi qua presence CHAT_TOPIC tới phòng đang giữ người nhận (có thể ở bản đồ /
+   * kênh khác). Kiểm luật kênh trước, rồi mới tính lượt chống spam (riêng từng kênh, ratelimit.chatCheck). Lỗi báo riêng người gửi.
+   */
+  chatAction(id: string, m: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
+    const ch = o.ch === undefined ? "map" : strIn(o.ch);
+    if (ch !== "map" && ch !== "party" && ch !== "whisper" && ch !== "world") return;
+    if (!chatText(o.text)) return;
+    const warn = (text: string) => this.log(id, text, "#ffb35c"), acc = d.accountId, now = Date.now();
+    let to: number[] | undefined, toName: string | undefined;
+    if (ch === "party") {
+      to = party.partyMembers(acc);
+      if (!to.length) return warn("Bạn không ở trong tổ đội nào: mời bằng /moi <tên> trước.");
+    } else if (ch === "whisper") {
+      const name = chatText(o.to).slice(0, 40);
+      if (!name) return warn("Gõ /t <tên> <tin> để nhắn riêng.");
+      const t = party.onlineByName(name);
+      if (!t) return warn(`${name} không trong game: tin không được gửi.`);
+      if (t.acc === acc) return warn("Không thể tự nhắn riêng cho chính mình.");
+      to = [acc, t.acc]; toName = t.name;
+    } else if (ch === "world") {
+      if (p.level < WORLD_CHAT.minLevel) return warn(`Kênh thế giới mở từ cấp ${WORLD_CHAT.minLevel}.`);
+      const wait = worldWait(acc, now);
+      if (wait) return warn(`Kênh thế giới: mỗi ${WORLD_CHAT.cdSecs} giây một tin, đợi ${wait} giây.`);
+    }
+    const r = chatCheck(acc, o.text, now, ch);
+    if (!r) return;
+    if ("error" in r) return warn(r.error);
+    if (ch === "map") return this.broadcast("chat", { name: p.name, text: r.text });
+    if (ch === "world") worldMark(acc, now);
+    const route: ChatRoute = { ...(to ? { to } : {}), msg: { ch, name: p.name, text: r.text, ...(toName ? { to: toName } : {}) } };
+    this.presence.publish(CHAT_TOPIC, route);
   }
 
   // ---------- Tổ đội người chơi (mục 5.9, bước 7.1; trạng thái và luật ở server/src/party.ts) ----------
