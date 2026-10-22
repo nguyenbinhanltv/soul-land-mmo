@@ -1,7 +1,7 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { ipKey, loginBegin, loginEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN } from "../src/ratelimit.ts";
 import { WORLD_CHAT } from "../../shared/data.ts";
 import { nameKey } from "../src/names.ts";
 
@@ -9,6 +9,9 @@ let now = 1_000_000;
 const sec = (s: number) => { now += s * 1000; };
 /** Một lần thử đăng nhập trọn vẹn: trả về lỗi (nếu có). */
 const attempt = (name: string, ip: string, ok: boolean) => loginBegin(name, ip, now)?.error ?? loginEnd(name, ip, ok, now)?.error ?? null;
+
+// Ngưỡng như server thật, kể cả khi môi trường chạy bài thử có GAME_TEST=1.
+_setSignupScale(1);
 
 function test(title: string, fn: () => void) {
   _resetAll(); now = 1_000_000;
@@ -118,6 +121,90 @@ test("Bắn nhiều request song song không vượt được giới hạn", () 
 test("Lỗi hệ thống (ok=null) không tính là sai", () => {
   for (let i = 0; i < 10; i++) { loginBegin("Mã Hồng Tuấn", "1.1.1.1", now); loginEnd("Mã Hồng Tuấn", "1.1.1.1", null, now); }
   assert.equal(attempt("Mã Hồng Tuấn", "1.1.1.1", true), null);
+});
+
+// ---------- Tạo tài khoản mới (#207) ----------
+/** Một lần /api/login: `isNew` = tên chưa có tài khoản. Trả lỗi giới hạn nếu tên mới mà IP hết lượt (tài khoản cũ luôn vào được). */
+const signup = (ip: string, isNew = true) => {
+  const b = signupBegin(ip, now);
+  signupEnd(ip, !b, isNew && !b, now);
+  return isNew ? (b?.error ?? null) : null;
+};
+const quiet = <T>(fn: () => T) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
+
+test("Tạo tài khoản: 10 tài khoản mới mỗi IP mỗi giờ, cái thứ 11 bị chặn; IP khác và tài khoản cũ không ảnh hưởng", () => quiet(() => {
+  for (let i = 0; i < 10; i++) { assert.equal(signup("5.5.5.5"), null, `tài khoản ${i + 1}`); sec(60); }
+  assert.match(signup("5.5.5.5")!, /quá nhiều tài khoản mới.*thử lại sau 50 phút/);
+  assert.ok(signupBegin("5.5.5.5", now)!.retryAfter > 0);
+  assert.equal(signup("5.5.5.6"), null); // IP khác
+  // Đăng nhập tài khoản cũ từ IP đã hết lượt vẫn được (index.ts gọi login không tạo) và không làm lượt chờ dài thêm.
+  for (let i = 0; i < 50; i++) assert.equal(signup("5.5.5.5", false), null);
+  assert.match(signup("5.5.5.5")!, /thử lại sau 50 phút/);
+}));
+
+test("Tạo tài khoản: đăng nhập tài khoản cũ không bị đếm", () => {
+  for (let i = 0; i < 100; i++) signup("5.5.5.5", false);
+  for (let i = 0; i < 10; i++) assert.equal(signup("5.5.5.5"), null);
+});
+
+test("Tạo tài khoản: cửa sổ trượt 1 giờ, tài khoản cũ nhất ra khỏi cửa sổ thì tạo thêm được đúng một", () => quiet(() => {
+  for (let i = 0; i < 10; i++) { signup("5.5.5.5"); sec(60); } // tạo lúc 0, 1, …, 9 phút; giờ là phút 10
+  assert.equal(signupBegin("5.5.5.5", now)!.retryAfter, 50 * 60);
+  sec(50 * 60 - 1); assert.match(signup("5.5.5.5")!, /thử lại sau 1 giây/);
+  sec(1); assert.equal(signup("5.5.5.5"), null);
+  assert.match(signup("5.5.5.5")!, /thử lại sau 1 phút/); // tài khoản thứ hai (phút 1) chưa ra
+}));
+
+test("Tạo tài khoản: tối đa 30 mỗi 24 giờ dù chia đều theo giờ", () => quiet(() => {
+  for (let h = 0; h < 3; h++) { for (let i = 0; i < 10; i++) assert.equal(signup("5.5.5.5"), null); sec(3600); }
+  assert.match(signup("5.5.5.5")!, /thử lại sau 21 giờ/); // tới 24 giờ sau tài khoản đầu
+  assert.equal(signupBegin("5.5.5.5", now)!.retryAfter, 21 * 3600);
+  sec(21 * 3600); assert.equal(signup("5.5.5.5"), null);
+}));
+
+test("Tạo tài khoản: bắn nhiều request song song không vượt ngưỡng; request không tạo trả lại chỗ", () => quiet(() => {
+  for (let i = 0; i < 10; i++) assert.equal(signupBegin("5.5.5.5", now), null);
+  // Chặn chỉ vì đang xử lý (có thể là đăng nhập tài khoản cũ): báo bận, chờ vài giây, không báo "quá nhiều tài khoản".
+  const busy = signupBegin("5.5.5.5", now)!;
+  assert.equal(busy.retryAfter, 3); assert.match(busy.error, /Đang xử lý nhiều lần đăng nhập/);
+  for (let i = 0; i < 4; i++) signupEnd("5.5.5.5", true, true, now);
+  for (let i = 0; i < 6; i++) signupEnd("5.5.5.5", true, false, now); // tên đã có / sai mật khẩu / lỗi DB
+  for (let i = 0; i < 6; i++) assert.equal(signup("5.5.5.5"), null);
+  assert.match(signup("5.5.5.5")!, /thử lại sau 1 giờ/);
+}));
+
+test("Tạo tài khoản: chạm ngưỡng một phần do request đang xử lý (9 đã tạo + 1) -> báo bận, không báo hết lượt", () => {
+  for (let i = 0; i < 9; i++) { assert.equal(signup("5.5.5.5"), null); sec(60); }
+  assert.equal(signupBegin("5.5.5.5", now), null); // một người đang đăng nhập (chưa biết tên mới hay cũ)
+  const warn = console.warn; let warned = false; console.warn = () => { warned = true; };
+  try {
+    const busy = signupBegin("5.5.5.5", now)!;
+    assert.equal(busy.retryAfter, 3); assert.match(busy.error, /Đang xử lý nhiều lần đăng nhập/);
+  } finally { console.warn = warn; }
+  assert.equal(warned, false); // không cảnh báo TRUST_PROXY khi chỉ bận
+  signupEnd("5.5.5.5", true, false, now); // hóa ra là tài khoản cũ: trả chỗ
+  assert.equal(signup("5.5.5.5"), null); // tài khoản thứ 10
+  quiet(() => assert.match(signup("5.5.5.5")!, /quá nhiều tài khoản mới.*thử lại sau 51 phút/)); // cái thứ 11: hết lượt (tài khoản đầu tạo lúc phút 0, giờ là phút 9)
+});
+
+test("Tạo tài khoản: hai địa chỉ IPv6 cùng /64 (và IPv4-mapped với IPv4) chung lượt tạo, khác /64 thì riêng", () => quiet(() => {
+  for (let i = 0; i < 5; i++) { assert.equal(signup("2001:db8:1:2::1"), null); assert.equal(signup(`2001:db8:1:2:${i + 1}::9`), null); }
+  assert.match(signup("2001:db8:1:2:ffff:ffff:ffff:ffff")!, /quá nhiều tài khoản mới/);
+  assert.equal(signup("2001:db8:1:3::1"), null); // /64 khác
+  // Giữ chỗ ở một cách viết, trả ở cách viết khác (cùng khoá) không rò pending.
+  for (let i = 0; i < 9; i++) assert.equal(signup(i % 2 ? "::ffff:9.9.9.9" : "9.9.9.9"), null);
+  assert.equal(signupBegin("::ffff:9.9.9.9", now), null);
+  signupEnd("9.9.9.9", true, false, now);
+  assert.equal(signup("::ffff:909:909"), null); // thứ 10
+  assert.match(signup("9.9.9.9")!, /quá nhiều tài khoản mới/);
+}));
+
+test("Tạo tài khoản: GAME_TEST nới ngưỡng (hệ số), dọn dẹp xóa IP đã hết cửa sổ", () => {
+  _setSignupScale(1000);
+  try { for (let i = 0; i < 200; i++) assert.equal(signup("127.0.0.1"), null); } finally { _setSignupScale(1); }
+  quiet(() => assert.ok(signup("127.0.0.1")));
+  sec(24 * 3600); sweep(now);
+  for (let i = 0; i < 10; i++) assert.equal(signup("127.0.0.1"), null);
 });
 
 // ---------- Chat ----------

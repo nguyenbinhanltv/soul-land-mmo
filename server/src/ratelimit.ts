@@ -1,4 +1,4 @@
-// Giới hạn tần suất (rate limit) chống dò mật khẩu và spam chat. Lưu trong RAM, mất khi tắt server.
+// Giới hạn tần suất (rate limit) chống dò mật khẩu, tạo tài khoản phụ hàng loạt và spam chat. Lưu trong RAM, mất khi tắt server.
 // Đây là cấu hình bảo mật của server, không phải số cân bằng gameplay -> để hằng số ở đây, không đưa vào shared/data.ts.
 // Mọi hàm nhận `now` (ms) để kiểm thử với đồng hồ giả (xem server/scripts/ratelimit-test.ts).
 
@@ -38,6 +38,20 @@ const LOGIN_LOCK_BASE_MS = 60_000;
 const LOGIN_LOCK_MAX_MS = 30 * 60_000;
 /** Không sai thêm lần nào trong 1 giờ thì xóa hẳn bộ đếm (kể cả mức khóa tăng dần). */
 const LOGIN_FORGET_MS = 60 * 60_000;
+
+// ---------- Tạo tài khoản mới (#207) ----------
+// /api/login tự tạo tài khoản khi tên chưa có: không giới hạn thì một IP tạo được tài khoản phụ liên tục (phình DB, cày Elo).
+// Chỉ đếm tài khoản THẬT SỰ được tạo, không đếm lần đăng nhập tài khoản cũ. Ngưỡng nới cho nhiều người chung IP (quán net, NAT,
+// mạng di động); deploy sau proxy mà quên TRUST_PROXY thì mọi người chung IP của proxy: server ghi cảnh báo khi IP chạm ngưỡng.
+/** Một IP tạo tối đa 10 tài khoản mới mỗi giờ (cửa sổ trượt)… */
+const SIGNUP_IP_HOUR_MAX = 10;
+const SIGNUP_HOUR_MS = 60 * 60_000;
+/** …và 30 tài khoản mỗi 24 giờ. */
+const SIGNUP_IP_DAY_MAX = 30;
+const SIGNUP_DAY_MS = 24 * 60 * 60_000;
+/** GAME_TEST=1: bot tạo vài trăm tài khoản từ localhost mỗi lượt -> nhân ngưỡng lên 1000 lần (coi như tắt). Chỉ có hiệu lực khi
+ *  bật GAME_TEST=1; bài test:ratelimit đặt lại bằng _setSignupScale. */
+let signupScale = process.env.GAME_TEST === "1" ? 1000 : 1;
 
 // ---------- Chat ----------
 /** Độ dài tối đa một tin (khớp maxlength của ô chat trong client/index.html). */
@@ -119,7 +133,7 @@ const byIp = new FailCounter(LOGIN_IP_MAX_FAILS);
 // Tên chỉ gồm chữ, số, dấu cách, _ (kiểm tra ở index.ts) nên không thể chứa \u0000: ghép khóa cặp không bị trùng.
 const pairKey = (k: string, ip: string) => `${k}\u0000${ip}`;
 
-const waitText = (sec: number) => (sec >= 60 ? `${Math.ceil(sec / 60)} phút` : `${sec} giây`);
+const waitText = (sec: number) => (sec >= 3600 ? `${Math.ceil(sec / 3600)} giờ` : sec >= 60 ? `${Math.ceil(sec / 60)} phút` : `${sec} giây`);
 const lockedMsg = (sec: number) => `Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ${waitText(sec)}.`;
 const lockedSec = (k: string, ip: string, now: number) =>
   Math.max(byPair.lockedFor(pairKey(k, ip), now), byName.lockedFor(k, now), byIp.lockedFor(ip, now));
@@ -153,6 +167,62 @@ export function loginEnd(name: string, rawIp: string, ok: boolean | null, now = 
   if (sec) return { error: lockedMsg(sec), retryAfter: sec };
   return { error: `Tên đăng nhập hoặc mật khẩu không đúng.${left <= 2 ? ` Còn ${left} lần thử trước khi bị khóa tạm.` : ""}` };
 }
+
+// ---------- Tạo tài khoản mới ----------
+/** at: thời điểm các tài khoản đã tạo trong 24 giờ qua (tăng dần); pending: số yêu cầu đang được phép tạo mà chưa xong. */
+interface SignupEntry { at: number[]; pending: number; warned: boolean; }
+const signups = new Map<string, SignupEntry>();
+
+/**
+ * Số giây phải chờ trước khi IP được tạo thêm tài khoản (wait 0 = được tạo); lần chờ tính theo tài khoản cũ nhất còn trong cửa sổ.
+ * full: riêng số tài khoản đã tạo đã chạm ngưỡng; false mà wait > 0 là chạm ngưỡng (toàn bộ hay một phần) do các yêu cầu đang xử lý
+ * (kể cả đăng nhập tài khoản cũ), ví dụ 9 đã tạo + 1 đang xử lý: vài giây sau có thể vẫn tạo được.
+ */
+function signupWait(e: SignupEntry, now: number) {
+  e.at = e.at.filter((t) => now - t < SIGNUP_DAY_MS);
+  let wait = 0, full = false;
+  for (const [max, ms] of [[SIGNUP_IP_HOUR_MAX, SIGNUP_HOUR_MS], [SIGNUP_IP_DAY_MAX, SIGNUP_DAY_MS]]) {
+    const lim = max * signupScale, recent = e.at.filter((t) => now - t < ms);
+    if (recent.length + e.pending < lim) continue;
+    // Tài khoản đã tạo đủ ngưỡng: chờ tài khoản thứ k (tính từ cũ nhất) ra khỏi cửa sổ. Chạm ngưỡng có phần do các yêu cầu đang xử lý
+    // (chưa biết có tạo không): chờ vài giây như `busy` của đăng nhập.
+    if (recent.length >= lim) {
+      const k = Math.min(recent.length + e.pending - lim, recent.length - 1);
+      full = true; wait = Math.max(wait, Math.ceil((recent[k] + ms - now) / 1000));
+    } else wait = Math.max(wait, 3);
+  }
+  return { wait, full };
+}
+
+/**
+ * Gọi TRƯỚC store.login, sau loginBegin. null -> IP còn được tạo tài khoản mới: đã giữ một chỗ, gọi login với quyền tạo và BẮT BUỘC gọi
+ * signupEnd(ip, true, created) đúng một lần. Có lỗi -> gọi login KHÔNG được tạo (tài khoản cũ vẫn đăng nhập bình thường); login báo
+ * tên chưa có thì trả 429 với lỗi này. Giữ chỗ trước để nhiều request song song không vượt ngưỡng.
+ */
+export function signupBegin(ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const key = ipKey(ip);
+  let e = signups.get(key);
+  if (!e) { e = { at: [], pending: 0, warned: false }; signups.set(key, e); }
+  const { wait: sec, full } = signupWait(e, now);
+  if (!sec) { e.pending++; return null; }
+  if (!full) return { error: "Đang xử lý nhiều lần đăng nhập từ mạng của bạn. Vui lòng thử lại sau vài giây.", retryAfter: sec };
+  if (!e.warned) {
+    e.warned = true;
+    console.warn(`⚠  IP ${ip} chạm giới hạn tạo tài khoản mới (#207). Nếu mọi người chơi cùng hiện một IP thì kiểm tra TRUST_PROXY.`);
+  }
+  return { error: `Mạng của bạn đã tạo quá nhiều tài khoản mới. Vui lòng đăng nhập tài khoản cũ hoặc thử lại sau ${waitText(sec)}.`, retryAfter: sec };
+}
+
+/** Gọi sau store.login. reserved: signupBegin đã trả null; created: login vừa tạo tài khoản mới (chỉ lúc đó mới đếm). */
+export function signupEnd(ip: string, reserved: boolean, created: boolean, now = Date.now()) {
+  const e = signups.get(ipKey(ip));
+  if (!e) return;
+  if (reserved && e.pending > 0) e.pending--;
+  if (created) { e.at.push(now); e.warned = false; }
+}
+
+/** Chỉ dùng trong kiểm thử: hệ số nhân ngưỡng (1 = như server thật, không phụ thuộc GAME_TEST của môi trường chạy bài thử). */
+export function _setSignupScale(n: number) { signupScale = n; }
 
 // ---------- Chat ----------
 /** Kênh chat (#188): bản đồ (phòng hiện tại), tổ đội, tin riêng, thế giới. Mỗi kênh một bộ đếm riêng. */
@@ -225,6 +295,7 @@ export function inviteReset(key: number) { invites.delete(key); }
 // ---------- Dọn dẹp ----------
 export function sweep(now = Date.now()) {
   byPair.sweep(now); byName.sweep(now); byIp.sweep(now);
+  for (const [k, e] of signups) if (e.pending === 0 && e.at.every((t) => now - t >= SIGNUP_DAY_MS)) signups.delete(k);
   for (const [k, e] of chat) if (now - Math.max(e.at, e.lastAt) > CHAT_FORGET_MS) chat.delete(k);
   for (const [k, at] of worldAt) if (now - at >= WORLD_CHAT.cdSecs * 1000) worldAt.delete(k);
   for (const [k, e] of invites) {
@@ -235,4 +306,4 @@ export function sweep(now = Date.now()) {
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); chat.clear(); worldAt.clear(); invites.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); }
