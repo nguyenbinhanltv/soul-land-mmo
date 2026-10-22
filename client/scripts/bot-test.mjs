@@ -42,7 +42,7 @@
 // 8.1c lưu phái Cảm điện: vòng 5–6, tuyệt kỹ và Chân Thân của 5 võ hồn, sét tìm hồn thú Cảm điện ngoài vùng, Phong Lôi gấp đôi khi Chân Thân,
 // Phong ấn đủ tầng thành Dễ thương, Mê hoặc diện rộng, Phục Chế đại thành;
 // 8.1d 5 võ hồn còn lại: vòng 5–6, tuyệt kỹ thật Kiếm Trảm Sơn Hà / Quỷ Ảnh Trùng Trùng / Tịnh Thế Lưu Ly, Chân Thân),
-// Đại Đấu Hồn Trường (7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng / trong tổ đội, đấu đội võ hồn trong
+// Đại Đấu Hồn Trường (arenaTest; BOT_ONLY=arena chỉ chạy phần này. 7.2: xếp hàng ở NPC, ghép theo Elo gần nhất, không ghép khi đang đi cổng / trong tổ đội, đấu đội võ hồn trong
 // phòng riêng, đánh trúng đối thủ, hạ hết đội / rời sân / không vào sân / hết giờ, Elo, thưởng, về đúng bản đồ và vị trí cũ, bảng xếp
 // hạng, cộng minh, Chân Thân (cả lưu phái Thiêu đốt), tuyệt kỹ Tử Vong Chu Hoàng (8.1d), tuyệt kỹ Cảm điện (8.1c: sét tìm đối thủ Cảm điện, Mê hoặc chỉ lên hồn thú) và dự đoán chuyển động trong sân) cần server bật hook kiểm thử: GAME_TEST=1 npm run dev:server.
 // Đồng bộ theo vùng gần (11.4, syncViewTest; BOT_ONLY=view chỉ chạy phần này): hồn sư / hồn thú / đồ rơi ở xa không có trong state,
@@ -251,6 +251,7 @@ if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ 
 if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
 /**
@@ -710,6 +711,9 @@ if((await test(A,"ping"))?.enabled){
     `về chỗ vừa ra khỏi làng: võ hồn ra trận ${A.owned.active===act0?"vẫn":"KHÔNG còn"} là ${A.owned.list.find(v=>v.rowId===act0)?.vohon}, hồi đầy sinh lực ${p.hp}/${p.maxHp}`);
 }
 console.log("A x",p.x.toFixed(1),"B sees A x",B.room.state.players.get(A.room.sessionId).x.toFixed(1));
+// Bài đo tiên cơ dưới đây cần cả đội bắt đầu từ 0 năng lượng: đòn đánh Quỷ Đằng (thú đứng yên, #148) ở trên đã cho võ hồn ngoài sân
+// 10 năng lượng, ra khỏi giao chiến quá TIEN_CO_IDLE_SECS thì giảm dần liên tục (TIEN_CO_DECAY), cộng thêm đòn mới thành số lẻ (43, 73).
+await test(A,"energy",{v:0});
 const kills0=p.kills;
 for(let i=0;i<300;i++){
   let best=null,bd=1e9; st.beasts.forEach(b=>{const d=Math.hypot(b.x-p.x,b.y-p.y); if(d<bd){bd=d;best=b;}});
@@ -742,7 +746,8 @@ if(dr){
   ok(yrs>=10&&dr.tier===tierOfYears(yrs)&&A.logs.some(t=>t.startsWith("Hạ ")&&t.includes(`${yrs.toLocaleString("vi-VN")} năm`)),`hồn hoàn rơi mang số năm của hồn thú: ${yrs} năm`);
   for(let i=0;i<50 && Math.hypot(dr.x-p.x,dr.y-p.y)>10;i++){const dx=dr.x-p.x,dy=dr.y-p.y,d=Math.hypot(dx,dy); A.room.send("input",{x:+(dx/d).toFixed(2),y:+(dy/d).toFixed(2)}); await sleep(60);}
   A.room.send("input",{x:0,y:0}); await sleep(150); A.room.send("pickup");
-  ok(await waitFor(()=>(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length===n0+1),`nhặt hồn hoàn: túi có ${A.bag?.items.filter(i=>i.code===RING_ITEM).map(i=>i.years).join(", ")} năm`);
+  ok(await waitFor(()=>(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length===n0+1),`nhặt hồn hoàn: túi có ${A.bag?.items.filter(i=>i.code===RING_ITEM).map(i=>i.years).join(", ")} năm`+
+    ` [cách hồn hoàn ${Math.hypot(dr.x-p.x,dr.y-p.y).toFixed(0)}, còn dưới đất ${[...st.drops.values()].includes(dr)}, st ${p.st}, sinh lực ${p.hp}/${p.maxHp}, log ${JSON.stringify(A.logs.slice(-3))}]`);
   const it=A.bag?.items.find(i=>i.code===RING_ITEM&&i.years===yrs);
   if(it){ A.room.send("absorb",{itemId:it.id}); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
 }
@@ -6832,7 +6837,10 @@ async function arenaTest(){
     const has=s=>(fv().st&statusBit(s))!==0;
     ok(await waitFor(()=>fv().hp<hpF&&["root","poison","silence","shock"].every(has),2000)&&Math.abs(fv().x-fx0)<2
       &&await waitFor(()=>F.fxs.slice(bf).some(f=>f.k==="ult"&&f.id===sid(E)),800),
-      `${ultC.name} (8.1d) trong sân: trúng F ${hpF} → ${fv().hp}, Trói + Trúng độc + Câm lặng + Cảm điện, F không bị kéo, F thấy fx tuyệt kỹ`);
+      `${ultC.name} (8.1d) trong sân: trúng F ${hpF} → ${fv().hp}, Trói + Trúng độc + Câm lặng + Cảm điện, F không bị kéo, F thấy fx tuyệt kỹ`+
+      ` [F có ${["root","poison","silence","shock"].filter(has).join("+")}, lệch x ${(fv().x-fx0).toFixed(1)}, cách E ${Math.hypot(meOf(E).x-fv().x,meOf(E).y-fv().y).toFixed(0)},`+
+      ` E hồn lực ${meOf(E).mp}/${meOf(E).maxMp}, hồi chiêu ${[...meOf(E).cds].map(c=>+c.toFixed?.(1)||c)}, ra trận ${E.owned.active===rowC?"Chu Hoàng":E.owned.active}, fx ${F.fxs.slice(bf).map(f=>f.k).join(",")},`+
+      ` log E ${JSON.stringify(E.logs.slice(-2))}, log F ${JSON.stringify(F.logs.slice(-2))}]`);
   }
   // 8.1c trong sân: đổi sang Lam Điện Bá Vương Long (ô U còn hồi chiêu chung của tuyệt kỹ vừa tung: đặt lại bằng hook ready).
   await waitFor(()=>meOf(E).swCd===0,3500); E.room.send("switch",{slot:E.owned.team.indexOf(rowLD)});
