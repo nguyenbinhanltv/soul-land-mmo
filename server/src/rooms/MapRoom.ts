@@ -16,7 +16,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
-  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee,
+  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS, FUSION, FUSIONS, fusionIndex, fusionsOf,
@@ -126,6 +126,8 @@ export interface PData {
   // Lượt nhận rương thú vương hôm nay (BĐ5, bảng boss_claims; `day` theo giờ Việt Nam): nạp lúc vào phòng, DB là nguồn chính khi nhận.
   claims: { day: string; n: number };
   wclaims: { day: string; n: number }; // lượt nhận thưởng boss thế giới hôm nay (BĐ6e, loại BOSS_CLAIM_WORLD), như `claims`
+  // Mảnh đã đổi ở Thương hội hôm nay (#282, loại SHARD_BUY.claimKind), như `claims`; `pend`: số mảnh của các lần đổi đang chờ DB.
+  shardBuy: { day: string; n: number; pend: number };
   claimBusy: number;    // số lần nhận phần thưởng boss đang chờ DB: chặn mở rương, bán / bỏ / hấp thụ / nộp đồ cho tới khi xong (#165)
   testClaimHold: boolean; // hook test `claimhold` (#165): như đang chờ DB ghi phần thưởng boss, cờ riêng để không đụng bộ đếm claimBusy thật
   testTravelLost: boolean; // hook test `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi, như mất phản hồi sau COMMIT
@@ -171,7 +173,7 @@ export interface PData {
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
 export interface AuthData { accountId: number; ch: Character; owned: Character[]; team: number[]; looks: Looks; loc: Location; bag: Bag; starter: boolean;
-  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; auto: AutoRow; tong: TongRow; }
+  claims: { day: string; n: number }; wclaims: { day: string; n: number }; shardBuy: { day: string; n: number }; wps: string[]; auto: AutoRow; tong: TongRow; }
 /**
  * Niệm truyền tống (11.2): tên nơi đến, phí (đồng, trừ lúc dịch chuyển), ô Hồi Thành Phù sẽ dùng (không có = truyền tống trận), chỗ
  * đứng lúc bắt đầu (lệch quá 2 pixel thì hủy: di chuyển, bị đẩy / kéo), tổng số giây (thanh niệm của client).
@@ -265,7 +267,7 @@ const HOLD = "accountHold";
 const CHAT_TOPIC = "chatx";
 interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
-const CLAIM_BUSY = "Đang nhận phần thưởng boss, đợi một chút.";
+const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
 const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
@@ -683,7 +685,7 @@ export class MapRoom extends Room<MapState> {
       throw new ServerError(409, l.travel ? `Hãy vào kênh ${back.ch} (kênh server đã chọn) hoặc chờ ${wait} giây.` : `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${wait} giây.`);
     }
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
-      bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [],
+      bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, shardBuy: { day: this.today(), n: 0 }, wps: [],
       auto: { settings: null, day: "", used: 0, bonus: 0 }, tong: { tong: null, at: null } };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
     // Đội hình (tài khoản cũ được tự xếp trong store). Bỏ ô trỏ tới võ hồn không còn sở hữu; võ hồn ra trận luôn nằm trong đội.
@@ -699,6 +701,7 @@ export class MapRoom extends Room<MapState> {
     // Lượt nhận rương thú vương hôm nay (BĐ5): để nhắc "hết lượt" khi vào giao chiến; lúc nhận thì DB kiểm tra lại.
     auth.claims.n = await store.bossClaims(acc.accountId, auth.claims.day, BOSS_CLAIM_KING);
     auth.wclaims.n = await store.bossClaims(acc.accountId, auth.wclaims.day, BOSS_CLAIM_WORLD); // boss thế giới (BĐ6e)
+    auth.shardBuy.n = await store.bossClaims(acc.accountId, auth.shardBuy.day, SHARD_BUY.claimKind); // Thương hội đổi mảnh (#282)
     auth.wps = await store.getWaypoints(acc.accountId); // truyền tống trận đã mở (11.2)
     auth.auto = await store.getAuto(acc.accountId); // cài đặt và giờ treo tự săn (Auto 1)
     auth.tong = await store.getTong(acc.accountId); // tông môn (#196)
@@ -841,6 +844,8 @@ export class MapRoom extends Room<MapState> {
     // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
     this.onMessage("buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
     this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
+    this.onMessage("shardbuy", (c, m: { vohon: unknown; qty: unknown; npc: unknown }) => this.buyShards(c.sessionId, m?.vohon, m?.qty, m?.npc)); // #282
+    this.onMessage("shardinfo", (c) => this.sendShardInfo(c.sessionId)); // #282: số mảnh đã đổi hôm nay cho trang Thương hội
     this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => this.buybackItem(c.sessionId, m?.key, m?.npc)); // mua lại đồ vừa bán (9.8)
     this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
@@ -875,7 +880,7 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
-      claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
+      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests),
@@ -2606,6 +2611,73 @@ export class MapRoom extends Room<MapState> {
     this.saveTrade(id, d);
   }
 
+  /** Số mảnh đã đổi ở Thương hội hôm nay (đã được DB xác nhận); sang ngày mới (giờ Việt Nam) thì về 0 (#282). */
+  shardBuyToday(d: PData) {
+    if (d.shardBuy.day !== this.today()) { d.shardBuy.day = this.today(); d.shardBuy.n = 0; }
+    return d.shardBuy.n;
+  }
+  /** Tin riêng "shardinfo" (#282): số mảnh đã đổi hôm nay (kể cả lần đang chờ DB) và trần ngày; client tính giá bằng shardBuyPrice. */
+  sendShardInfo(id: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    this.clients.getById(id)?.send("shardinfo", { n: this.shardBuyToday(d) + d.shardBuy.pend, daily: SHARD_BUY.daily });
+  }
+
+  /**
+   * Đổi `rawQty` mảnh võ hồn `rawVohon` ở Thương hội Thiên Đấu (#282, mục 5.7): phải đứng cạnh đúng NPC SHARD_BUY.npc, ngoài giao
+   * chiến (shopFor), võ hồn trong ARENA_SHARDS (không bao giờ bán mảnh UR), không vượt SHARD_BUY.daily mảnh hôm nay, đủ Hồn Tệ và
+   * túi đủ chỗ cho cả số mảnh (thiếu thì từ chối hết). Giá tăng dần theo số mảnh đã đổi trong ngày (shardBuyCost). Như rương thú
+   * vương (grantChest): giữ chỗ ngay (`pend`, claimBusy chặn bán / bỏ đồ), tới lượt trong chuỗi lưu mới kiểm lại, trừ tiền, cho mảnh
+   * vào túi và ngay đó tăng lượt cùng ghi túi (cả Hồn Tệ) trong một transaction (store.claimBoss). Giá tính theo số lượt đã được DB
+   * xác nhận lúc tới lượt, nên bấm dồn không sai giá hay vượt trần. DB báo hết lượt hoặc lỗi thì trả lại tiền và lấy lại mảnh.
+   */
+  buyShards(id: string, rawVohon: unknown, rawQty: unknown, rawNpc: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); this.sendShardInfo(id); };
+    const npc = this.shopFor(id, d, rawNpc, "đổi mảnh");
+    if (typeof npc === "string") return warn(npc);
+    if (npc.id !== SHARD_BUY.npc) return warn("Chỉ Chưởng quỹ Thương hội Thiên Đấu (Thiên Đấu Thành) đổi mảnh võ hồn.");
+    const vh = typeof rawVohon === "string" && ARENA_SHARDS.includes(rawVohon) ? VOHON[vohonIndex(rawVohon)] : undefined;
+    const def = vh && itemDef(shardCode(vh.id));
+    if (!vh || !def) return warn("Thương hội chỉ đổi mảnh võ hồn SR / SSR (không có mảnh UR).");
+    const K = SHARD_BUY, left = K.daily - this.shardBuyToday(d) - d.shardBuy.pend;
+    if (left <= 0) return warn(`Hôm nay đã đổi đủ ${K.daily}/${K.daily} mảnh ở Thương hội. Lượt mới lúc 00:00 giờ Việt Nam.`);
+    const qty = Number.isInteger(rawQty) ? (rawQty as number) : 0;
+    if (qty < 1 || qty > left) return warn(`Mỗi lần đổi từ 1 đến ${left} mảnh (hôm nay còn ${left}/${K.daily}).`);
+    const need = shardBuyCost(K.daily - left, qty);
+    if (d.honTe < need) return warn(`Không đủ Hồn Tệ: ${qty} ${def.name} giá ${formatHonTe(need)}, đang có ${formatHonTe(d.honTe)}.`);
+    if (this.bagRoom(d, def.id) < qty) return warn(`Túi đồ không đủ chỗ cho ${qty} ${def.name} (${d.bagSlots} ô): bỏ hoặc bán bớt đồ trước.`);
+    const day = this.today();
+    d.shardBuy.pend += qty; d.claimBusy++;
+    this.chain(d, async () => {
+      // Tới lượt: kiểm lại theo số lượt DB đã xác nhận (các lần đổi trước đã xong), rồi trừ tiền + cho mảnh ngay trước khi chụp túi.
+      if (this.today() !== day) return warn("Đã sang ngày mới: mở lại trang Thương hội để xem giá.");
+      const done = this.shardBuyToday(d), cost = shardBuyCost(done, qty);
+      if (done + qty > K.daily) return warn(`Hôm nay chỉ còn ${Math.max(0, K.daily - done)}/${K.daily} mảnh ở Thương hội.`);
+      if (d.honTe < cost) return warn(`Không đủ Hồn Tệ: ${qty} ${def.name} giá ${formatHonTe(cost)}, đang có ${formatHonTe(d.honTe)}.`);
+      if (this.bagRoom(d, def.id) < qty) return warn(`Túi đồ không đủ chỗ cho ${qty} ${def.name} (${d.bagSlots} ô): bỏ hoặc bán bớt đồ trước.`);
+      d.honTe -= cost; d.bagDirty = true; this.addItem(d, def.id, qty);
+      const takeBack = () => {
+        d.honTe += cost; d.bagDirty = true;
+        let n = qty;
+        for (const x of d.bag.filter((i) => i.code === def.id && i.vohonId === null).reverse()) { // cả ô vừa khoá trong lúc chờ
+          const k = Math.min(n, x.qty); this.takeItem(d, x, k); n -= k; if (!n) break;
+        }
+      };
+      let n: number | null;
+      try { n = await store.claimBoss(d.accountId, day, K.claimKind, K.daily, this.bagSnapshot(d), qty); }
+      catch (e) { takeBack(); warn(`Không lưu được lần đổi ${def.name}, thử lại sau (không mất Hồn Tệ).`); throw e; }
+      if (n === null) {
+        takeBack(); d.shardBuy.n = await store.bossClaims(d.accountId, day, K.claimKind).catch(() => K.daily);
+        return warn(`Hôm nay đã đổi đủ ${K.daily}/${K.daily} mảnh ở Thương hội.`);
+      }
+      if (d.shardBuy.day === day) d.shardBuy.n = n;
+      this.log(id, `Đổi ${qty} ${def.name} ở Thương hội: −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)}), hôm nay ${n}/${K.daily} mảnh.`, vh.col);
+    }).then(() => {
+      d.shardBuy.pend -= qty; d.claimBusy--;
+      if (this.pdata.get(id) === d) { this.sendBag(id); this.sendShardInfo(id); }
+    });
+  }
+
   /**
    * Bán cho thương nhân `rawQty` món (thiếu: cả ô) ở ô `rawId` trong túi của chính người gửi: phải đứng gần thương nhân; không bán
    * đồ đang gắn trên võ hồn (hồn cốt, hồn hạch), hồn hoàn đang hấp thụ, đan và rương (sellPrice null). Giá do
@@ -3237,7 +3309,8 @@ export class MapRoom extends Room<MapState> {
       // BĐ5: lượt nhận rương thú vương hôm nay trong bộ nhớ và trong DB (đọc sau khi chuỗi lưu xong).
       this.chain(d, async () => {
         const db = await store.bossClaims(d.accountId, this.today(), BOSS_CLAIM_KING), wdb = await store.bossClaims(d.accountId, this.today(), BOSS_CLAIM_WORLD);
-        this.sendVohons(c); c.send("test", { op, enabled: true, day: this.today(), n: this.claimsToday(d), db, w: this.claimsToday(d, true), wdb });
+        const sdb = await store.bossClaims(d.accountId, this.today(), SHARD_BUY.claimKind); // #282: mảnh đã đổi ở Thương hội
+        this.sendVohons(c); c.send("test", { op, enabled: true, day: this.today(), n: this.claimsToday(d), db, w: this.claimsToday(d, true), wdb, s: this.shardBuyToday(d), sdb });
       });
       return;
     }
@@ -3255,12 +3328,16 @@ export class MapRoom extends Room<MapState> {
       // là nguồn chính lúc nhận, claimBoss).
       if (typeof o.kn === "number") Object.assign(d.claims, { day: this.today(), n: int(o.kn, 0, KING.daily, 0) });
       if (typeof o.wn === "number") Object.assign(d.wclaims, { day: this.today(), n: int(o.wn, 0, WORLD.daily, 0) });
-      const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
+      // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất, đang về chỗ sinh; #266: số giây tự săn của mình còn bỏ qua nó (kẹt / không tới
+      // được; null khi không bị bỏ qua hoặc đã hết hạn mà chưa tới nhịp dọn), những người treo ngoài tổ đội đang nhắm nó (như
+      // AutoHunter.claimed: tự săn của mình không nhắm theo).
+      const bid = typeof o.bid === "string" ? o.bid : "", bd = bid ? this.bdata.get(bid) : undefined, skipTo = a?.skip.get(bid);
+      const claim: string[] = []; if (bd) for (const [sid, x] of this.pdata) if (x.auto && x.auto !== a && x.auto.target === bid && !a?.ally(sid)) claim.push(sid);
       out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
         drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         // #218: mục tiêu là boss, số lần bắt đầu né, chỗ né đang đi tới, đang lùi vì ít máu, hệ võ hồn cơ chế đang cần.
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
-        ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
+        ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm, ret: bd.ret, skip: a && skipTo !== undefined && skipTo > a.clock ? skipTo - a.clock : null, claim } } : {}) };
     }
     else if (op === "tong") {
       // #196: `back` (số ngày) lùi lúc gia nhập tông về trước (giả lập thời gian trôi, ghi DB); trả tông, lúc gia nhập, số giây còn chờ.
@@ -4747,11 +4824,12 @@ export class MapRoom extends Room<MapState> {
     // 6.2: vùng săn tính theo chỗ hồn thú bị hạ (khung vùng trong Tiled).
     const zone = this.map.zones.find((z) => b.x >= z.x0 && b.x < z.x1 && b.y >= z.y0 && b.y < z.y1)?.name;
     const fit = (pid: string) => fitBeast(this.state.players.get(pid)?.level ?? 1, b.years); // khảo hạch hằng ngày: hồn thú hợp cấp của từng người
-    this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by) });
+    const team = this.partyNear(by, b.x, b.y), grp = team.length > 1; // #256: cờ `party` của mục tiêu hạ hồn thú: từ 2 người chia kinh nghiệm
+    this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by), party: grp });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
     const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? ""); // trần tốc độ tự săn
-    const team = this.partyNear(by, b.x, b.y), share = partyXpShare(team.length);
+    const share = partyXpShare(team.length);
     // Giới hạn săn tinh anh nhiều kênh (#119, mục 5.4): tài khoản đã nhận thưởng loài tinh anh này trên bản đồ này trong ELITE.lock giây
     // (ở bất kỳ kênh nào) thì lần này chỉ nhận như hồn thú thường; ai nhận thưởng tinh anh lần này thì bị khóa ELITE.lock giây.
     const now = Date.now(), lockKey = e ? eliteKey(this.state.mapId, b) : "";
@@ -4780,7 +4858,8 @@ export class MapRoom extends Room<MapState> {
     }
     const elite = !!e && !!owner, drOwner = owner ?? by; // elite: còn người nhận đồ rơi tinh anh (hồn cốt x ELITE.bone, chắc chắn hồn hạch)
     // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
-    for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone, fit: fit(pid) });
+    for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone, fit: fit(pid), party: grp });
+    if (e) for (const pid of team) this.questEvent(pid, { k: "elite" }); // #256: người hạ và đồng đội được chia kinh nghiệm cùng tính "tham gia hạ tinh anh"
     if (team.length > 1) {
       const names = team.map((pid) => this.state.players.get(pid)?.name ?? "").join(", ");
       for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
@@ -4960,6 +5039,7 @@ export class MapRoom extends Room<MapState> {
     const name = VOHON[vi].name, code = shardCode(vohon);
     if (d.owned.some((v) => v.vohon === vohon)) return warn(`Đã sở hữu ${name}: dùng mảnh để lên sao.`);
     if (d.shardBusy) return warn("Đang mở võ hồn, đợi một chút.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: mảnh vừa đổi ở Thương hội còn chờ DB xác nhận lượt, chưa tiêu được
     const have = this.shardCount(d, code);
     if (have < SHARD_UNLOCK) return warn(`Cần ${SHARD_UNLOCK} Mảnh ${name} để mở, mới có ${have}.`);
     this.takeShards(d, code, SHARD_UNLOCK);
@@ -5001,6 +5081,7 @@ export class MapRoom extends Room<MapState> {
     if (vi < 0) return warn("Võ hồn không tồn tại.");
     const name = VOHON[vi].name, code = shardCode(vohon);
     if (!v) return warn(`Chưa sở hữu ${name}: đủ ${SHARD_UNLOCK} mảnh thì mở trước.`);
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: như mở võ hồn
     const cost = starCost(v.stars);
     if (cost === null) return warn(`${name} đã đạt ${MAX_STARS}★, không lên sao thêm được.`);
     const have = this.shardCount(d, code);
@@ -5904,6 +5985,7 @@ export class MapRoom extends Room<MapState> {
       const v = this.contribOf(e, pid), d = this.pdata.get(pid); if (!d || !this.state.players.has(pid) || d.travelling) continue;
       const pct = v / total, pctTxt = `${(pct * 100).toFixed(1).replace(".", ",")}%`;
       this.rewardKill(pid, b.years, K.xp);
+      this.questEvent(pid, { k: "king" }); // #256: mọi người có đóng góp còn trong phòng
       const ring = world ? "" : pid === owner ? ` Hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).` : "";
       const coinTxt = pid === by ? ` Nhận ${formatHonTe(coin)} Hồn Tệ.` : "";
       // Hồn hoàn boss thế giới: người nhiều nhất hồn hoàn đỏ 100.000 năm; người khác WORLD_RING.red cơ hội đỏ, còn lại đen.
