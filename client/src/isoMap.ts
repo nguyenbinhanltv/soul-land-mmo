@@ -52,6 +52,7 @@ const EDGE_Z = Infinity;
 /** Ô nền: các biến thể ảnh 32×32 (thoi 32×16), ô lớn 64×64 (thoi 64×32, phủ 2×2 ô), tâm mặt trên trong ảnh, thứ bậc lấn mép. */
 interface GroundDef { img: string[]; big?: string[]; c: [number, number]; cBig?: [number, number]; edge: number; flip?: boolean }
 /** Vật đứng: key manifest `prop_{vật}` (ảnh sprites/iso/props/{vật}.png) và điểm chân (chạm tâm ô) trong ảnh. */
+/** `flip`: thiếu thì lật ngang theo băm vị trí, `false` không bao giờ lật, `true` luôn lật (vật có hướng: lật là đổi trục x ↔ y). */
 interface PropDef { key: string; foot: [number, number]; flip?: boolean }
 /** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu, `~x1.3` để sáng lên), kiểu nhà. Bộ "*" là mặc định. */
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
@@ -745,7 +746,7 @@ export class IsoMap {
       let im: Phaser.GameObjects.Image;
       if (props) {
         const h = hash(tx, ty, 1), p = props[h % props.length], tex = this.scene.textures.get(p.key).getSourceImage();
-        im = this.img(s.x, s.y, p.key).setOrigin(p.def.foot[0] / tex.width, p.def.foot[1] / tex.height).setFlipX(p.def.flip !== false && !!(h & 0x100));
+        im = this.img(s.x, s.y, p.key).setOrigin(p.def.foot[0] / tex.width, p.def.foot[1] / tex.height).setFlipX(p.def.flip === true || (p.def.flip !== false && !!(h & 0x100)));
         const name = p.key.replace(/^prop_/, "").split("~")[0];
         if (GLOW_PROPS[name]) this.glowAt.set(i, [...(this.glowAt.get(i) ?? []), { x: s.x, y: s.y, kind: name }]);
       } else if (!TOPDOWN && t === WALL && this.build) {

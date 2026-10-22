@@ -18,7 +18,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
-import { artImg, tintedUrl } from "./uiArt.ts";
+import { artImg, artUrl, tintedUrl } from "./uiArt.ts";
 import { setTip, type TipLine } from "./tooltip.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
@@ -1369,7 +1369,21 @@ function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, sh
   el.appendChild(note);
 }
 
-export function showTarget(html: string | null) { const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none"; }
+let lastTarget: string | null = null;
+/** Khung mục tiêu (gọi mỗi khung hình): chỉ ghi lại DOM khi nội dung đổi, để chân dung không bị tạo lại liên tục. */
+export function showTarget(html: string | null) {
+  if (html === lastTarget) return;
+  lastTarget = html;
+  const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none";
+}
+/**
+ * Chân dung hồn thú `thu_<loài gốc>` cạnh chữ của khung mục tiêu (#339, mục 5.11): tinh anh / thú vương dùng chân dung loài gốc,
+ * viền màu `col` (hào quang của bậc, hoặc màu vòng niên hạn với hồn thú thường). Loài chưa có ảnh thì trả nguyên chữ như cũ.
+ */
+export function withBeastPortrait(html: string, species: string | undefined, col: string) {
+  const u = species ? artUrl(`thu_${species}`) : null;
+  return u ? `<div class="thu"><img src="${u}" alt="" draggable="false" style="border-color:${col}"><div>${html}</div></div>` : html;
+}
 /** Hộp đi cổng (mục 5.3): tên bản đồ đích, cấp đề xuất, cảnh báo đỏ khi võ hồn ra trận dưới cấp; nút (hoặc phím F) để đi. */
 export function showPortal(info: PortalInfo | null, go: () => void) {
   const el = $("#portal");

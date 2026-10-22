@@ -4,6 +4,7 @@
   "out": "lac_nhat_sam_lam.v2.json",
   "size": [255, 170],
   "seed": 20261102,
+  "tileRows": 6,
   "zoneCell": 8,
   "blend": 5,
   "gids": {
@@ -12,7 +13,8 @@
       "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
     },
     "objects": {
-      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28
+      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28,
+      "burnt_tree": 41
     },
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
@@ -86,7 +88,10 @@
     { "type": "camp", "rect": [4, 76, 16, 18], "tents": [[6, 78], [9, 77], [17, 91]], "fires": [[10, 88]], "logs": [[12, 89]] },
     { "type": "ancient", "at": [36, 120], "r": 9 },
     { "type": "ruins", "rect": [148, 64, 20, 14], "gates": [[158, 64], [167, 71], [158, 77]], "steles": [[152, 67]], "arches": [[163, 74]], "broken": 0.4 },
-    { "type": "lair", "at": [222, 150], "rx": 8, "ry": 6, "entrance": "n", "wall": "tree", "door": 4 }
+    { "type": "lair", "at": [222, 150], "rx": 8, "ry": 6, "entrance": "n", "wall": "tree", "door": 4 },
+    { "type": "scatter", "kind": "burnt_tree", "rect": [138, 128, 24, 24], "p": 0.03, "on": ["path"] },
+    { "type": "scatter", "kind": "burnt_tree", "rect": [168, 112, 20, 20], "p": 0.03, "on": ["path"] },
+    { "type": "scatter", "kind": "burnt_tree", "rect": [220, 60, 16, 16], "p": 0.02, "on": ["path"] }
   ],
   "roads": [
     { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 3 },

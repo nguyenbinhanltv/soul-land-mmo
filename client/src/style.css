@@ -69,6 +69,9 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .buffs span.debuff{border-color:var(--son-l);background:rgba(138,32,24,.8)}
 .buffs span.passive{border-style:dashed}
 #target small{display:block;font-size:12px;font-family:var(--f12);text-align:center;margin-top:2px}
+#target .thu{display:flex;align-items:center;gap:8px}
+#target .thu img{width:64px;height:64px;flex:none;image-rendering:pixelated;border:1px solid;background:rgba(10,8,14,.55)}
+#target .thu small{text-align:left}
 #target .xpcut{font-style:normal;color:var(--warn);font-size:12px;font-family:var(--f12)}
 .mapbox{position:absolute;right:10px;top:10px;padding:6px}
 #mini{display:block;width:150px;height:100px;image-rendering:pixelated}
