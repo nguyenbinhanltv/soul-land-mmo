@@ -84,6 +84,10 @@ export class BeastState extends Schema {
   @type("boolean") dive: boolean = false;
   // Từ #162: bọc trứng (Vạn Chu Phệ, EggDef): số phần mười giây còn lại trước khi nở; 0 = không phải bọc trứng (eggs.ts).
   @type("uint8") egg: number = 0;
+  // Từ #173: hồn thú đổi dạng (BossDef.forms, tinh anh Song Sắc Mãng): 1 + chỉ số dạng đang có (0 = không đổi dạng) và đang báo trước
+  // đổi dạng (`warn` giây cuối của dạng): client tô aura theo màu dạng, nhấp nháy màu dạng sắp tới.
+  @type("uint8") form: number = 0;
+  @type("boolean") formWarn: boolean = false;
 }
 
 export class DropState extends Schema {
