@@ -26,7 +26,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef, type FormDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
-  QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
+  QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds, isDaily, fitBeast, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_WEEK_KIND, TONG_TOP_N, TONG_BOARD_CD,
   tongTaskIds, tongWeekDay, tongTop,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
@@ -2430,8 +2430,11 @@ export class MapRoom extends Room<MapState> {
     return !hit ? null : was !== "ready" && questStatus(q) === "ready" ? "ready" : "hit";
   }
 
-  /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy, không khoá, trước, rồi mở ô mới như addItem). */
-  bagFits(d: PData, items: { code: string; qty: number }[]) {
+  /**
+   * Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy, không khoá, trước, rồi mở ô mới như addItem),
+   * cộng thêm `extra` ô riêng (mỗi hồn cốt một ô).
+   */
+  bagFits(d: PData, items: { code: string; qty: number }[], extra = 0) {
     const need = new Map<string, number>();
     for (const it of items) need.set(it.code, (need.get(it.code) ?? 0) + it.qty);
     let slots = 0;
@@ -2440,14 +2443,32 @@ export class MapRoom extends Room<MapState> {
       const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null && !it.locked ? Math.max(0, def.stack - it.qty) : 0), 0);
       slots += Math.ceil(Math.max(0, qty - part) / def.stack);
     }
-    return bagUsed(d.bag) + slots <= d.bagSlots;
+    return bagUsed(d.bag) + slots + extra <= d.bagSlots;
+  }
+
+  /** Túi đủ chỗ cho cả phần thưởng nhiệm vụ `r` không: vật phẩm như bagFits, mỗi hồn cốt (`bones`, #285) thêm một ô. */
+  rewardFits(d: PData, r: QuestReward) { return this.bagFits(d, r.items, r.bones?.length ?? 0); }
+
+  /**
+   * Trao phần thưởng nhiệm vụ đã qua rewardFits: Hồn Tệ, vật phẩm, rồi mỗi hồn cốt (#285) đúng loài và số năm, vị trí tung đều trong
+   * BONE_SLOTS, +0, chưa có dòng phụ như hồn cốt rơi (addBone). Trả văn bản để báo log (hồn cốt ghi vị trí đã tung). Không gửi "bag".
+   */
+  grantReward(d: PData, r: QuestReward) {
+    this.addCoin(d, r.honTe);
+    for (const it of r.items) this.addItem(d, it.code, it.qty);
+    const bones = (r.bones ?? []).flatMap((b) => {
+      const it = this.addBone(d, b.years, b.beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
+      return it ? [this.itemLabel(it)] : [];
+    });
+    return [questRewardText({ ...r, bones: [] }), ...bones].filter(Boolean).join(", ");
   }
 
   /**
    * Nhận (`accept`) / trả (`turnin`) bước đang làm của chuỗi tân thủ, hoặc xin tiến độ (`get`). Nhận và trả chỉ khi NPC giao nhiệm vụ
    * có ở bản đồ này, người chơi không gục, không đang chuyển bản đồ và đứng trong NPC_RANGE (như 6.1). Nhận: mục tiêu `have` đã đạt
-   * sẵn thì tính xong ngay. Trả: đủ mọi mục tiêu và túi đủ chỗ cho cả phần thưởng (không thì từ chối hết), Hồn Tệ và vật phẩm vào
-   * túi, sang bước kế (chưa nhận); ghi ngay qua chuỗi lưu, cùng một lần ghi với túi đồ.
+   * sẵn thì tính xong ngay. Trả: đủ mọi mục tiêu và túi đủ chỗ cho cả phần thưởng (không thì từ chối hết), Hồn Tệ, vật phẩm và
+   * hồn cốt (grantReward) vào túi, sang bước kế (chưa nhận; bước đã trả không trả lại được); ghi ngay qua chuỗi lưu, cùng một lần ghi
+   * với túi đồ.
    */
   questAction(id: string, op: unknown, chainId?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
@@ -2476,13 +2497,12 @@ export class MapRoom extends Room<MapState> {
     }
     if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
     if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${q.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
-    if (!this.bagFits(d, step.reward.items))
+    if (!this.rewardFits(d, step.reward))
       return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
-    this.addCoin(d, step.reward.honTe);
-    for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
+    const got = this.grantReward(d, step.reward);
     Object.assign(q, { step: q.step + 1, accepted: false, prog: [] });
     d.bagDirty = true;
-    this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${questRewardText(step.reward)}.`, "#f2c84b");
+    this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${got}.`, "#f2c84b");
     const finish = questStatus(q) === "done";
     if (finish) this.log(id, `Hoàn thành chuỗi nhiệm vụ "${chain.name}"!`, giver.col);
     this.sendBag(id);
@@ -2604,16 +2624,15 @@ export class MapRoom extends Room<MapState> {
       let left = g.n;
       for (const it of this.giveItems(d, g.item)) { if (left <= 0) break; const n = Math.min(left, it.qty); this.takeItem(d, it, n); left -= n; }
     }
-    if (!this.bagFits(d, step.reward.items)) {
+    if (!this.rewardFits(d, step.reward)) {
       d.bag = keep; d.bagDirty = dirty;
       return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
     }
-    this.addCoin(d, step.reward.honTe);
-    for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
+    const got = this.grantReward(d, step.reward);
     d.daily[i] = { chain: chainId, step: 1, accepted: false, prog: [] };
     d.bagDirty = true;
     const given = step.goals.filter((g) => g.k === "give").map((g) => `${g.n} ${itemDef(g.item ?? "")?.name ?? g.item}`).join(", ");
-    this.log(id, `Trả khảo hạch "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${questRewardText(step.reward)}.`, "#f2c84b");
+    this.log(id, `Trả khảo hạch "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${got}.`, "#f2c84b");
     this.sendBag(id);
     this.sendDaily(id, "reward", i);
     this.save(id); // phần thưởng, đồ đã nộp và bài đã xong ghi ngay, cùng một lần ghi túi đồ

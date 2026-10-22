@@ -10,7 +10,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
+  QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
@@ -2279,9 +2279,21 @@ function renderStarterTracker(el: HTMLElement) {
   const tip = (text: string) => { const t = document.createElement("div"); t.className = "qtip"; t.textContent = text; el.appendChild(t); };
   if (q.status === "offer") { tip(`Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`); return true; }
   el.appendChild(questGoals(s, q.prog));
+  if (s.reward.bones?.length) el.appendChild(questRewardEl({ honTe: 0, items: [], bones: s.reward.bones }, "Thưởng thêm")); // hồn cốt (#285)
   if (q.status === "ready") tip(`Đã xong: quay về gặp ${npc?.name ?? "NPC"} ở ${where} để nhận thưởng.`);
   else { const d = document.createElement("small"); d.textContent = s.desc; el.appendChild(d); }
   return true;
+}
+/** Dòng "Phần thưởng: …" của một bài; hồn cốt thưởng (#285) tô màu theo niên hạn như hồn hoàn. */
+function questRewardEl(r: QuestReward, label = "Phần thưởng") {
+  const el = document.createElement("span"); el.className = "qrew";
+  const rest = questRewardText({ ...r, bones: [] });
+  el.append(`${label}: ${rest}`);
+  (r.bones ?? []).forEach((b, i) => {
+    if (rest || i) el.append(", ");
+    const c = document.createElement("b"); c.style.color = ringColor(tierOfYears(b.years)); c.textContent = questBoneText(b); el.appendChild(c);
+  });
+  return el;
 }
 /** Trang nhiệm vụ trong hộp thoại NPC giao nhiệm vụ: lời giao + mục tiêu + thưởng + "Nhận", tiến độ, lời khi trả + "Trả", lời kết. */
 function renderQuestPage(el: HTMLElement, act: NpcActions) {
@@ -2294,7 +2306,7 @@ function renderQuestPage(el: HTMLElement, act: NpcActions) {
   const h = document.createElement("b"); h.textContent = `Bài ${q.step + 1}/${c.steps.length}: ${s.name}`; box.appendChild(h);
   const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
   box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
-  const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}`; box.appendChild(r);
+  box.appendChild(questRewardEl(s.reward));
   const lines = q.status === "ready" ? s.done : q.status === "offer" ? s.offer : [s.desc];
   if (q.status !== "active") for (const t of lines) say(t);
   else say("Chưa xong đâu. Làm đủ các mục tiêu rồi quay lại báo ta.");
@@ -2447,7 +2459,7 @@ function renderDailyPage(el: HTMLElement, act: NpcActions) {
     if (q.status !== "done") {
       const d = document.createElement("span"); d.textContent = s.desc; box.appendChild(d);
       box.appendChild(questGoals(s, q.status === "offer" ? null : q.prog));
-      const r = document.createElement("span"); r.className = "qrew"; r.textContent = `Phần thưởng: ${questRewardText(s.reward)}`; box.appendChild(r);
+      box.appendChild(questRewardEl(s.reward));
       const line = q.status === "offer" ? s.offer.at(-1) : q.status === "ready" ? s.done[0] : "";
       if (line) { const p = document.createElement("i"); p.className = "qsay"; p.textContent = line; box.appendChild(p); }
       const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
