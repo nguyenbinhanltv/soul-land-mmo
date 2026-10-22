@@ -104,8 +104,10 @@ function bagOk(b: Bag) {
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
   init(): Promise<void>;
-  /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. */
-  login(name: string, password: string): Promise<{ token: string; accountId: number } | { error: string }>;
+  /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. `created`: lần này vừa tạo tài khoản (giới
+   *  hạn tạo tài khoản mới theo IP, #207). `create` false (IP hết lượt tạo): tên chưa có thì không tạo, trả lỗi kèm `noCreate`. */
+  login(name: string, password: string, create?: boolean):
+    Promise<{ token: string; accountId: number; created: boolean } | { error: string; noCreate?: true }>;
   /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
   accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
@@ -269,9 +271,10 @@ export class MemoryStore implements Store {
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
-  async login(name: string, password: string) {
+  async login(name: string, password: string, create = true) {
     const key = nameKey(name);
     let acc = this.accounts.get(key), created = false;
+    if (!acc && !create) return { error: "Chưa có tài khoản.", noCreate: true as const };
     if (!acc) {
       const pass = await hashPass(password);
       // Trong lúc băm có yêu cầu khác cùng tên vừa tạo tài khoản: kiểm mật khẩu như tài khoản có sẵn.
@@ -280,7 +283,7 @@ export class MemoryStore implements Store {
     }
     if (!created && !(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
     const token = newToken(); this.sessions.set(token, acc.id);
-    return { token, accountId: acc.id };
+    return { token, accountId: acc.id, created };
   }
   async accountFromToken(token: unknown) {
     const id = tokenOk(token) ? this.sessions.get(token) : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
@@ -515,10 +518,11 @@ export class PgStore implements Store {
         + `sau khi chuẩn hóa. Giữ nguyên dữ liệu; chủ #${a.id} vẫn vào được bằng mật khẩu riêng. Nên đổi tên #${a.id}.`);
     }
   }
-  async login(name: string, password: string) {
+  async login(name: string, password: string, create = true) {
     const key = nameKey(name);
     const find = async () => (await this.pool.query("SELECT id, pass_hash FROM accounts WHERE name_key=$1", [key])).rows[0];
     let acc = await find(), created = false;
+    if (!acc && !create) return { error: "Chưa có tài khoản.", noCreate: true as const };
     if (!acc) {
       const ins = await this.pool.query(
         "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, await hashPass(password)]);
@@ -539,7 +543,7 @@ export class PgStore implements Store {
     const id = Number(acc.id);
     const token = newToken();
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
-    return { token, accountId: id };
+    return { token, accountId: id, created };
   }
   async accountFromToken(token: unknown) {
     if (!tokenOk(token)) return null;
