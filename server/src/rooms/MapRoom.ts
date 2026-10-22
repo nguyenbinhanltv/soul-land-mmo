@@ -282,7 +282,10 @@ const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v 
 const strIn = (v: unknown) => (typeof v === "string" ? v : "");
 /** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
-/** Số lần ghi trong chuỗi lưu (chain) bị lỗi từ lúc bật server: index.ts so trước / sau khi tắt để biết lần lưu cuối có trót lọt (#270). */
+/**
+ * Số lần lưu bị lỗi từ lúc bật server: lần ghi trong chuỗi lưu (chain), và lỗi trong onLeave / onDispose (có thể ném trước khi tới lần
+ * ghi cuối). index.ts so trước / sau khi tắt để biết lần lưu cuối có trót lọt (#270).
+ */
 export const saveStats = { failed: 0 };
 
 // ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
@@ -727,6 +730,7 @@ export class MapRoom extends Room<MapState> {
    */
   onUncaughtException(err: RoomException, method: string) {
     if (err.cause instanceof ServerError) return;
+    if (method === "onLeave" || method === "onDispose") saveStats.failed++;
     const where = err instanceof OnMessageException ? `${method} "${err.type}"` : method, now = Date.now();
     // Cùng chỗ, cùng dòng mã ném lỗi (khung đầu của stack; nội dung lỗi có thể chứa giá trị thay đổi theo từng lần).
     const frame = (err.cause instanceof Error ? err.cause : err).stack?.split("\n")[1]?.trim() ?? err.message;

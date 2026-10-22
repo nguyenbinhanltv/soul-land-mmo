@@ -364,32 +364,34 @@ async function fatalRun(server, port, senv, env, slog, blog, sstats, onLine) {
   const stats = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal.json`);
   const script = (phase, kind, file) => spawnNode(path.join(clientDir, "scripts", "fatal-test.mjs"), {
     cwd: clientDir, log: blog, stats, onLine,
-    // MAP_V1: script đọc cùng bản đồ với server (như bot thường)
-    env: { ...env, SERVER_URL: `http://localhost:${port}`, FATAL_PHASE: phase, FATAL_KIND: kind, FATAL_FILE: file, ...(senv.MAP_V1 ? { MAP_V1: senv.MAP_V1 } : {}) },
+    env: { ...env, SERVER_URL: `http://localhost:${port}`, FATAL_PHASE: phase, FATAL_KIND: kind, FATAL_FILE: file },
   }).done;
   for (const kind of ["throw", "reject"]) {
     const file = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal-${kind}.json`);
-    if (!server) server = await restart();
-    const from = statSync(slog).size;
-    check(await script("crash", kind, file) === 0, `[${kind}] pha crash của fatal-test.mjs đạt`);
-    const exit = await Promise.race([server.p.done, sleep(20_000).then(() => null)]);
-    if (exit === null) await kill(server.p);
-    server = null;
-    const log = readFileSync(slog).subarray(from).toString("utf8"); // `from` tính theo byte
-    check(exit !== null && exit !== 0, `[${kind}] server tự thoát sau lỗi, mã ${exit ?? "(không thoát sau 20 giây, đã tắt)"}`);
-    const msg = kind === "reject" ? "promise bị từ chối không ai bắt (#270)" : "lỗi cố ý ngoài phòng (#270)";
-    check(/Lỗi nghiêm trọng ngoài phòng/.test(log) && log.includes(msg) && /\n\s+at /.test(log.slice(log.indexOf(msg))),
-      `[${kind}] log server có lỗi kèm stack: ${log.match(/Lỗi nghiêm trọng ngoài phòng[^\n]*/)?.[0] ?? "(không có)"}`);
-    check(/Tắt server: đã lưu người chơi đang online, đã đóng kết nối DB; thoát mã 1/.test(log),
-      `[${kind}] log server: ${log.match(/Tắt server:[^\n]*/)?.[0] ?? "(không có dòng tắt server)"}`);
-    if (opt.pg) {
-      server = await restart();
-      check(await script("verify", kind, file) === 0, `[${kind}] PostgreSQL: dữ liệu đã lưu trước khi thoát`);
+    try {
+      if (!server) server = await restart();
+      const from = statSync(slog).size;
+      check(await script("crash", kind, file) === 0, `[${kind}] pha crash của fatal-test.mjs đạt`);
+      const exit = await Promise.race([server.p.done, sleep(20_000).then(() => null)]);
+      if (exit === null) await kill(server.p);
+      server = null;
+      const log = readFileSync(slog).subarray(from).toString("utf8"); // `from` tính theo byte
+      check(exit !== null && exit !== 0, `[${kind}] server tự thoát sau lỗi, mã ${exit ?? "(không thoát sau 20 giây, đã tắt)"}`);
+      const msg = kind === "reject" ? "promise bị từ chối không ai bắt (#270)" : "lỗi cố ý ngoài phòng (#270)";
+      check(/Lỗi nghiêm trọng ngoài phòng/.test(log) && log.includes(msg) && /\n\s+at /.test(log.slice(log.indexOf(msg))),
+        `[${kind}] log server có lỗi kèm stack: ${log.match(/Lỗi nghiêm trọng ngoài phòng[^\n]*/)?.[0] ?? "(không có)"}`);
+      check(/Tắt server: đã lưu người chơi đang online, đã đóng kết nối DB; thoát mã 1/.test(log),
+        `[${kind}] log server: ${log.match(/Tắt server:[^\n]*/)?.[0] ?? "(không có dòng tắt server)"}`);
+      if (opt.pg) {
+        server = await restart();
+        check(await script("verify", kind, file) === 0, `[${kind}] PostgreSQL: dữ liệu đã lưu trước khi thoát`);
+      }
+    } finally {
+      rmSync(file, { force: true }); // có mật khẩu tài khoản thử
     }
-    rmSync(file, { force: true });
   }
   if (server) await kill(server.p);
-  rmSync(stats, { force: true });
+  rmSync(stats, { force: true }); rmSync(sstats, { force: true });
 }
 
 const what = opt.only ? `only=${opt.only}` : opt.part ? `part=${opt.part}` : opt.channels ? "channels" : opt.fatal ? "fatal" : "full";

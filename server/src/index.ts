@@ -163,8 +163,9 @@ function shutdown(code: number, why: string) {
       // ghi cuối, xong) và số lần ghi lỗi trong lúc tắt (chuỗi lưu chỉ ghi log lỗi). Phòng còn chỗ đặt trước chưa dùng chỉ đóng khi chỗ đó
       // hết hạn: không còn người nên không còn gì để lưu.
       const failed = saveStats.failed - failed0, saved = local.ccu <= 0 && !failed;
+      if (!saved) { exitCode = Math.max(exitCode, 1); process.exitCode = exitCode; } // tắt vì tín hiệu mà chưa lưu xong cũng báo mã ≠ 0
       const closed = await within("Đóng kết nối PostgreSQL", () => store.close(), SHUTDOWN_DB_MS);
-      console.error(`Tắt server: ${saved ? "đã lưu người chơi đang online" : `CHƯA lưu xong người chơi đang online (còn ${local.ccu} người, ${failed} lần ghi lỗi)`}, `
+      console.error(`Tắt server: ${saved ? "đã lưu người chơi đang online" : `CHƯA lưu xong người chơi đang online (còn ${local.ccu} người, ${failed} lần lưu lỗi)`}, `
         + `${closed ? "đã đóng" : "chưa đóng"} kết nối DB; thoát mã ${exitCode}.`);
     } finally {
       process.exit(exitCode); // lỗi bất ngờ ngay trong lúc tắt cũng không để tiến trình treo
@@ -174,8 +175,9 @@ function shutdown(code: number, why: string) {
 /**
  * Lỗi bất ngờ ngoài mọi phòng (hẹn giờ / callback của Node, promise bị từ chối không ai bắt): ghi log đầy đủ rồi thoát có kiểm soát,
  * không nuốt lỗi chạy tiếp (trạng thái tiến trình có thể đã hỏng). Lỗi trong handler / hẹn giờ / tick của phòng do
- * MapRoom.onUncaughtException xử lý (phòng chạy tiếp) nên không tới đây. @pm2/io (phụ thuộc gián tiếp của @colyseus/core, nạp khi server
- * bật) cũng gắn handler hai sự kiện này sau handler ở đây: nó chỉ in lại lỗi, không tự thoát vì đã có handler khác.
+ * MapRoom.onUncaughtException xử lý (phòng chạy tiếp) nên không tới đây. @pm2/io (phụ thuộc gián tiếp của @colyseus/core, nạp động
+ * trong `new Server` qua matchMaker.setup) cũng gắn handler hai sự kiện này, thường trước handler ở đây: nó chỉ in lại lỗi, không tự thoát
+ * vì đã có handler khác (`uncaughtException` của nó chỉ process.exit(1) khi là listener duy nhất, tức lúc đang khởi động, chưa có ai để lưu).
  */
 function fatal(kind: string, err: unknown) {
   console.error(`Lỗi nghiêm trọng ngoài phòng (${kind})${stopping ? " trong lúc đang tắt server" : ""}:`, err);

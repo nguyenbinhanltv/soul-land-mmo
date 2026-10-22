@@ -6,7 +6,7 @@
 //                      lúc lỗi, tức server đã lưu người chơi đang online trước khi thoát.
 // bot-local tự kiểm phần còn lại: mã thoát ≠ 0, log server có lỗi kèm stack và dòng đã lưu.
 import { Client } from "colyseus.js";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 const API = process.env.SERVER_URL ?? "http://localhost:2567", WS = API.replace(/^http/, "ws");
@@ -41,10 +41,8 @@ if (PHASE === "crash") {
   // Tiến độ chưa lưu: kinh nghiệm của 3 hồn thú (hook kill) và đứng ở cổng làng (xa chỗ sinh). Lưu định kỳ chưa tới lượt trong vài giây này.
   const xp0 = p().xp, lv0 = p().level;
   for (let i = 0; i < 3; i++) await test("kill", { tier: 0 });
-  // Bản dựng .v2 nếu có, trừ khi MAP_V1 (như mapFileOf của bot-test).
-  const file = (m) => new URL(`../../shared/assets/${m}.json`, import.meta.url), m = room.state.mapId;
-  const v1 = new Set((process.env.MAP_V1 ?? "").split(",").map((x) => x.trim()));
-  const gate = JSON.parse(readFileSync(!v1.has(m) && !v1.has("all") && existsSync(file(`${m}.v2`)) ? file(`${m}.v2`) : file(m), "utf8"))
+  // File bản đồ server đang dùng (state.mapFile: bản dựng .v2, trống = theo mapId).
+  const gate = JSON.parse(readFileSync(new URL(`../../shared/assets/${room.state.mapFile || room.state.mapId}.json`, import.meta.url), "utf8"))
     .layers.flatMap((x) => x.objects ?? []).find((o) => o.type === "portal");
   const at = { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 };
   await test("goto", at);
