@@ -10436,12 +10436,18 @@ async function tideTest(){
     ok(!t.on&&!t.wave.length&&!t.grounds.some(z=>z.src===kb),"giai đoạn 1: chưa có nước");
     ki=await test(F,"king"); await test(F,"kdmg",{v:Math.ceil(ki.hp-ki.maxHp*KING.phaseHp)+1});
     ok(await waitFor(()=>kingB()?.phase===2,2000),`giai đoạn 2 ${KD.phase2.name}`);
-    await sleep(KING.roarSecs*1000+150); await hold(); // tiếng gầm bỏ khống chế: hết gầm thì Choáng lại
-    t=await test(F,"tide",{next:600}); // giữ đợt hiện tại, bot tự gọi đợt mới
+    // Hết gầm chạy theo nhịp server (dt kẹp), máy bận thì chậm hơn đồng hồ thật (#364): chờ theo state (roar về 0, rồi đợt đầu dâng), không sleep cố định.
+    // Hạn chót tính theo thời gian thật nhưng rộng (gấp 5 lần), chỉ để không treo bot; trượt thì dòng ✗ in roar / on / số vùng.
+    const pollOp=async(op,pred,ms)=>{ let r; for(let t0=Date.now();Date.now()-t0<ms;){ r=await test(F,op); if(pred(r)) return r; await sleep(100); } return r; };
+    const roar=await pollOp("king",r=>!(r?.roar>0),(KING.roarSecs*5+5)*1000);
+    await hold(); // tiếng gầm bỏ khống chế: hết gầm thì Choáng lại
+    t=await pollOp("tide",r=>r?.on&&r.wave?.length>0,(TD.every+5)*1000);
+    await test(F,"tide",{next:600}); // giữ đợt hiện tại, bot tự gọi đợt mới
+    t=await test(F,"tide");
     const ours=t.grounds.filter(z=>t.wave.includes(z.id)), fl0=ours.filter(z=>z.kind==="flood"), wh0=ours.filter(z=>z.kind==="whirl");
     ok(t.on&&fl0.length===TD.flood.n&&wh0.length===TD.whirl.n&&ours.every(z=>z.src===kb&&z.shape==="circle"&&inL(z.x,z.y))
       &&fl0.every(z=>z.r===TD.flood.r)&&wh0.every(z=>z.r===TD.whirl.r&&fl0.some(f=>d2(f,z)<1)),
-      `hết gầm: nước dâng ngay, ${fl0.length} vùng ngập + ${wh0.length} xoáy (đồng tâm vùng ngập) trong hang`);
+      `hết gầm: nước dâng ngay, ${fl0.length} vùng ngập + ${wh0.length} xoáy (đồng tâm vùng ngập) trong hang`+(t.on&&fl0.length===TD.flood.n?"":` [roar ${roar?.roar}, on ${t.on}, đợt ${t.wave.length} id, tới đợt kế ${t.next?.toFixed?.(1)}, thú vương giai đoạn ${kingB()?.phase}, vùng ${t.grounds.length}]`));
     // Đợt mới: chỗ khác đợt trước; đang báo trước thì chưa có tác dụng; nước đợt cũ (đã có tác dụng) chỉ còn tới lúc đợt mới hết báo trước.
     let old=[...t.wave]; const prev=t.spots;
     ok(await waitFor(()=>old.every(id=>F.room.state.grounds.get(id)?.wait===0),(TD.warn+1)*1000),"đợt đầu hết báo trước, có tác dụng");
