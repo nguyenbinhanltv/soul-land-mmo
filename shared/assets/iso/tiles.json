@@ -627,7 +627,12 @@
    "ground": {
     "7": "duong_dat",
     "10": "dat_lang",
-    "16": "ruong"
+    "16": "ruong",
+    "4": "co_hoa~x1.1",
+    "8": "duong_dat~#a09080",
+    "25": "dat_lang~#b8a888",
+    "26": "da_cuoi",
+    "33": "da_phien~#c8bca8"
    },
    "build": {
     "wallKind": "plaster",
@@ -648,14 +653,37 @@
    },
    "props": {
     "17": ["cay_la_rong", "cay_la_tron", "cay_bong_mat"],
-    "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0", "cay_bong_mat~#d0dcc8"]
+    "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0", "cay_bong_mat~#d0dcc8"],
+    "20": ["cay_la_rong~#90a090", "cay_la_tron~#90a090", "thong_cao~#a8b4a0"],
+    "28": ["bui_hoa_nhiet_doi~#e0e0c0", "bui_hoa_nhiet_doi~#d0d8b8"],
+    "29": "bien_chi_duong",
+    "30": "co_thu_phat_quang~#c8d8b0",
+    "32": "vach_da_nho",
+    "36": ["cum_da", "tang_da_reu"],
+    "37": "tuong_do_reu",
+    "38": "gia_vu_khi",
+    "39": "bia_da_co",
+    "40": ["khuc_go_rong", "re_cay_lon"]
    }
   },
   "nac_dinh_thanh": {
    "ground": {
     "1": "co_pho",
     "5": "co_pho",
-    "13": "pho_da"
+    "13": "pho_da",
+    "2": "co_pho~#d8dcc8",
+    "3": "co_pho~#c4ccb4",
+    "4": "co_hoa~x1.1",
+    "6": "co_hoa",
+    "7": "duong_dat",
+    "8": "dat~#9a9080",
+    "10": "da_cuoi",
+    "16": "pho_da~#d4ccbc",
+    "25": "da_cuoi~#b8b0a0",
+    "26": "da_cuoi",
+    "33": "pho_da~#b8a890",
+    "34": "nuoc_nong",
+    "35": "nuoc_sau"
    },
    "build": {
     "wallKind": "brick",
@@ -674,6 +702,17 @@
      "h": 30
     },
     "tower": "thap_cong_thanh"
+   },
+   "props": {
+    "12": "lo_lua_dong",
+    "28": ["bon_hoa", "bui_hoa_nhiet_doi~#d8d0c0", "bon_hoa"],
+    "29": "bien_chi_duong",
+    "30": "dai_phun_nuoc",
+    "36": ["gia_vu_khi", "cum_da"],
+    "37": "su_tu_vang",
+    "38": "cot_den_do",
+    "39": "bon_hoa",
+    "40": "khuc_go_rong"
    }
   },
   "thien_dau_thanh": {
@@ -681,7 +720,19 @@
     "1": "co_cung",
     "5": "co_cung",
     "7": "duong_luu_ly",
-    "13": "da_cuoi_cung"
+    "13": "da_cuoi_cung",
+    "2": "co_cung~#d8dcc8",
+    "3": "co_cung~#c4ccb4",
+    "4": "co_hoa~x1.1",
+    "6": "co_hoa",
+    "8": "duong_luu_ly~#c8c0d0",
+    "10": "da_cuoi_cung",
+    "16": "san_da",
+    "25": "da_cuoi~#c8c0b0",
+    "26": "da_cuoi",
+    "33": "da_cuoi_cung~#c8bca8",
+    "34": "nuoc_nong",
+    "35": "nuoc_sau"
    },
    "build": {
     "wallKind": "stone",
@@ -724,11 +775,45 @@
       "gate": "cong_sat",
       "deco": ["lo_lua_dong", "gia_vu_khi", "cot_co_do_vang"],
       "floor": "da_cuoi_cung"
+     },
+     "16,10": {
+      "main": ["hoang_cung", "dinh_ngoc", "dinh_ngoc", "dinh_ngoc"],
+      "gate": "cong_phu_quy_toc",
+      "deco": ["su_tu_vang", "cay_hoa_anh_dao", "bon_hoa", "cot_den_do", "cay_hoa_anh_dao", "su_tu_vang"],
+      "floor": "da_cuoi_cung"
+     },
+     "126,14": {
+      "main": ["thuong_hoi"],
+      "gate": "cong_phu_quy_toc",
+      "deco": ["bon_hoa", "cot_den_do"],
+      "floor": "da_cuoi_cung"
+     },
+     "14,98": {
+      "main": ["su_lai_khac", "dinh_ngoc", "dai_phun_nuoc", "dinh_ngoc"],
+      "gate": "cong_phu_quy_toc",
+      "deco": ["cay_hoa_anh_dao", "bon_hoa", "su_tu_vang", "cay_hoa_anh_dao"],
+      "floor": "da_cuoi_cung"
+     },
+     "126,96": {
+      "main": ["tuong_dau_truong", "cot_co_do_vang", "cot_co_do_vang", "cot_co_do_vang"],
+      "gate": "cong_sat",
+      "deco": ["lo_lua_dong", "gia_vu_khi", "cot_co_do_vang", "lo_lua_dong"],
+      "floor": "da_cuoi_cung"
      }
     }
    },
    "props": {
-    "17": ["cay_la_rong", "cay_hoa_anh_dao", "cay_la_tron", "cot_den_do"]
+    "17": ["cay_la_rong", "cay_hoa_anh_dao", "cay_la_tron", "cot_den_do"],
+    "12": "lo_lua_dong",
+    "19": ["cay_hoa_anh_dao", "cay_hoa_anh_dao", "cay_la_tron"],
+    "28": ["bon_hoa", "bon_hoa", "bui_hoa_nhiet_doi~#e0d8c8"],
+    "29": "bien_chi_duong",
+    "30": "dai_phun_nuoc",
+    "36": ["gia_vu_khi", "cum_da"],
+    "37": "su_tu_vang",
+    "38": "cot_den_do",
+    "39": "cot_co_do_vang",
+    "40": "khuc_go_rong"
    }
   },
   "dai_dau_hon_truong": {
