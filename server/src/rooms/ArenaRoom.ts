@@ -6,7 +6,7 @@
 import { Client, ServerError } from "colyseus";
 import { MapRoom, seatAccount, type AuthData, type PData, type SeatPass } from "./MapRoom.ts";
 import { ArenaState, ArenaSide } from "./schema.ts";
-import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
+import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord, PARTY_BUFF_R } from "../../../shared/data.ts";
 import { arenaMatches, type ArenaMatch } from "./arenaQueue.ts";
 import { store, type Item, type Bag } from "../db.ts";
 
@@ -161,8 +161,19 @@ export class ArenaRoom extends MapRoom {
     super.chanThan(c);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }
-  /** Đấu hồn 1v1 / 2v2 (7.1): không lan hiệu ứng tổ đội trong sân, kể cả khi các thành viên cùng tổ đội. */
-  partyBuffNear(_id: string): string[] { return []; }
+  /**
+   * Đồng đội nhận hiệu ứng phụ trợ trong sân (#279, mục 5.9): thành viên **cùng bên** của trận (theo `sides`, không theo tổ đội vì tổ đội
+   * có thể đổi giữa trận) còn trong sân, chưa gục cả đội, cách người tung dưới PARTY_BUFF_R; 1v1 không có ai. Mức như ngoài rừng
+   * (partyShare × PARTY_BUFF_MULT); hồi / khiên lan theo `hm` của người tung, đã × ARENA.healMult (healMult) nên không nhân hai lần.
+   */
+  partyBuffNear(id: string): string[] {
+    const p = this.state.players.get(id), side = this.sides.find((x) => x.members.some((member) => member.sid === id));
+    if (!p || !side) return [];
+    return side.members.filter((member) => member.sid && member.sid !== id && !member.left).map((member) => member.sid).filter((sid) => {
+      const q = this.state.players.get(sid), o = this.pdata.get(sid);
+      return !!q && !!o && !q.dead && !o.travelling && Math.hypot(q.x - p.x, q.y - p.y) < PARTY_BUFF_R;
+    });
+  }
   /** Trong sân không mời / nhận lời mời tổ đội; hiệu ứng phụ trợ tổ đội không lan, nhưng xem khung, từ chối, rời đội vẫn được. */
   partyAction(id: string, m: unknown) {
     const op = (m as { op?: unknown } | null)?.op;
