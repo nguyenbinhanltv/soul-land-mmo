@@ -7566,17 +7566,19 @@ async function arenaEdgeTest(){
     for(let i=0;i<4;i++){ const b=await bot("B121O"+(i+1),i%2?"u_minh_linh_mieu":"hoa_anh",{sex:i%2,hair:i%3,hairCol:i%5,outfitCol:(i+1)%6}); await warpTown(b); opponents.push(b); }
     for(let i=0;i<ARENA.dailyWins+1;i++){
       const O=opponents[i%opponents.length];
-      await back(O);
+      if(O.leftCode!==null) await back(O);
       await at(W); await at(O);
       W.arena=[]; O.arena=[]; await queue(W); await queue(O);
       ok(await waitFor(()=>found(W)&&found(O)&&found(W).roomId===found(O).roomId,3000),"#121: ghép trận thưởng "+(i+1)+"/"+(ARENA.dailyWins+1));
-      // O vẫn giữ phòng bản đồ; W vào sân trước để giữ ArenaRoom sống trong lúc chờ MapRoom tự ngắt O.
+      // Trận đầu: O vẫn giữ phòng bản đồ, W vào sân trước để giữ ArenaRoom sống trong lúc chờ MapRoom tự ngắt O (20 s).
+      // Các trận sau: cả hai vào sân rồi O rời, kết thúc ngay (reason "leave"), không chờ 20 s mỗi trận.
+      const slow=i===0;
       await enterArena(W);
-      ok(await waitFor(()=>O.leftCode===4006,ARENA.joinSecs*1000+2000),"#121: server ngắt kết nối người chưa vào sân (mã "+O.leftCode+")");
-      await test(W,"afast",{s:0});
-      ok(await waitFor(()=>ended(W),3000),"#121: ngắt kết nối sau khi ghép xử lý trận "+(i+1));
+      if(slow) ok(await waitFor(()=>O.leftCode===4006,ARENA.joinSecs*1000+2000),"#121: server ngắt kết nối người chưa vào sân (mã "+O.leftCode+")");
+      else { await enterArena(O); await close(O); }
+      ok(await waitFor(()=>ended(W),5000),"#121: trận thưởng "+(i+1)+" kết thúc ("+(slow?"noshow":"đối thủ rời sân")+")");
       const m=ended(W), paid=i<ARENA.dailyWins;
-      ok(!m?.friendly&&m?.score===1&&m.reason==="noshow"&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-i-1),
+      ok(!m?.friendly&&m?.score===1&&m.reason===(slow?"noshow":"leave")&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-i-1),
         "#121: trận "+(i+1)+" "+(paid?"còn lượt thưởng":"hết lượt thưởng, không thưởng")+" (left "+m?.left+", capped "+m?.capped+")");
       await leaveArena(W);
     }
