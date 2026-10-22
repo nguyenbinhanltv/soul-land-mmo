@@ -787,6 +787,8 @@ export const TELE_SHAPES: readonly TeleShape[] = ["line", "cone", "circle"];
  *   báo trước (đi thẳng tới được từ chỗ sinh của boss); người chạm một vòng (teleSafe) lúc chiêu nổ thì không trúng.
  * Từ #161:
  * - `ground`: tung xong (tính trúng như mọi chiêu) để lại vùng lưu lại trên mặt đất đúng hình các vùng báo trước (GroundDef).
+ * Từ #173:
+ * - `forms`: hồn thú đổi dạng (BossDef.forms) gây `forms[dạng]` thay cho `status`, theo dạng lúc bắt đầu báo trước.
  */
 export interface BeastSkillDef {
   name: string; shape: TeleShape; at?: "target";
@@ -801,6 +803,7 @@ export interface BeastSkillDef {
   floor?: boolean;
   safe?: { n: number; r: number };
   ground?: GroundDef;
+  forms?: StatusApply[][];
 }
 /**
  * Bọc trứng (#162, Vạn Chu Phệ của Tà hóa Thiên Độc Chu Hoàng, mục 5.4; số theo thiết kế gốc đã chốt): chiêu có `eggs` tung xong đẻ bọc
@@ -821,16 +824,22 @@ export interface EggDef { species: string; n: number; per: number; secs: number;
  * - `warn`: vùng hiện trước ngần ấy giây ở dạng báo trước (nước sắp dâng), chưa gây gì; `secs` tính từ lúc hết báo trước.
  * - `pull`: hồn sư đứng trong vùng bị kéo về tâm vùng ngần ấy pixel mỗi giây (mỗi nhịp server, không theo `every`), dừng khi vướng, tới
  *   tâm hoặc sắp vào vùng an toàn; cùng điều kiện như gây trạng thái (không kéo người đã gục, đang đi cổng, đang miễn sát thương).
+ * Từ #173 (phần hang băng / lửa / tơ của SplitDef):
+ * - `once`: gây cho mỗi hồn sư một lần trong đời vùng, ở nhịp đầu tiên người đó đứng trong vùng (Đóng băng, Trói: gây mỗi nhịp thì
+ *   bị giữ mãi trong vùng); các nhịp sau chỉ gây `status`.
  */
-export type GroundKind = "pool" | "mist" | "flood" | "whirl";
+export type GroundKind = "pool" | "mist" | "flood" | "whirl" | "ice" | "fire" | "web";
 /** Kiểu vùng lưu lại; chỉ số trong mảng đồng bộ ở `GroundState.kind`, thêm kiểu mới vào cuối. */
 export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
   { id: "pool", name: "Vũng độc", col: "#9be23a" },
   { id: "mist", name: "Sương độc", col: "#c8f5b4" },
   { id: "flood", name: "Vùng ngập", col: "#3a8cff" },
   { id: "whirl", name: "Xoáy nước", col: "#bfe6ff" },
+  { id: "ice", name: "Nửa hang băng", col: "#8fdcff" },
+  { id: "fire", name: "Nửa hang lửa", col: "#ffa040" },
+  { id: "web", name: "Tơ nhện", col: "#e8e4f0" },
 ];
-export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; warn?: number; pull?: number; }
+export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; warn?: number; pull?: number; once?: StatusApply[]; }
 /** Nhịp gây trạng thái mặc định của vùng lưu lại (giây). */
 export const GROUND_TICK = 1;
 /** Tối đa vùng lưu lại cùng lúc trong một phòng (chống phình state); vượt thì bỏ vùng cũ nhất. */
@@ -1003,7 +1012,22 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
-export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; tide?: TideDef; }
+export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; tide?: TideDef; split?: SplitDef; }
+/**
+ * Hang chia phần luân phiên (#173, giai đoạn 2 của Lưỡng Nghi Thủ Hộ Xà và Thiên Độc Chu Hoàng, mục 5.4; thiết kế gốc đã chốt): hang
+ * (chữ nhật `boss`) chia theo chiều dài thành `parts` phần bằng nhau (splitParts). Từ khi hết tiếng gầm chuyển giai đoạn, lúc thú vương
+ * đang giao chiến, cứ `every` giây một phần hang "hóa" thành vùng lưu lại (GroundDef `grounds[phần % grounds.length]`, nên phần nào
+ * cũng luôn mang cùng một kiểu: Lưỡng Nghi nửa đầu là băng, nửa sau là lửa), báo trước `warn` giây (GroundDef.warn do split.ts đặt);
+ * phần trước đó tan đúng lúc phần mới bắt đầu báo trước (chỗ đứng an toàn luôn có). Phần đầu tiên ngẫu nhiên, sau đó lần lượt sang
+ * phần kế tiếp (luân phiên). `secs` của vùng không nhỏ hơn `every` − `warn` (có tác dụng tới lúc phần kế tiếp bắt đầu báo trước).
+ */
+export interface SplitDef { parts: number; every: number; warn: number; grounds: GroundDef[] }
+/**
+ * Đổi dạng (#173, tinh anh Băng Hỏa Song Sắc Mãng, mục 5.3; thiết kế gốc "đổi băng / hỏa mỗi 10 giây"): hồn thú luân phiên các dạng
+ * `forms` (tên, màu aura), mỗi dạng `every` giây; `warn` giây cuối của một dạng là báo trước đổi (client nhấp nháy màu dạng sắp tới).
+ * Chiêu có `forms` (BeastSkillDef) gây trạng thái theo dạng lúc bắt đầu báo trước thay cho `status`. Dạng đầu ngẫu nhiên khi sinh.
+ */
+export interface FormDef { every: number; warn: number; forms: { name: string; col: string }[] }
 /**
  * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): từ khi hết tiếng gầm chuyển giai đoạn,
  * mọi hồn sư đang tham gia trong hang (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
@@ -1024,7 +1048,7 @@ export interface ColdDef { every: number; fire: { r: number; at: [number, number
 export interface TideDef { every: number; warn: number; gap: number; shift: number;
   flood: { n: number; r: number; ground: GroundDef }; whirl: { n: number; r: number; ground: GroundDef } }
 export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
-  world?: WorldMech; }
+  world?: WorldMech; forms?: FormDef; }
 /**
  * Cơ chế riêng của boss thế giới (BĐ6e, mục 5.4 "buộc đổi võ hồn đúng lúc"; mọi số đã chốt). Mỗi cơ chế có chu kỳ `every` giây
  * (lần đầu sau `every` × WORLD.firstMech), không chạy khi đang báo trước chiêu khác, đang lặn hay đứng Choáng sau khi bị ngắt.
@@ -1092,9 +1116,10 @@ export const BOSSES: BossDef[] = [
     bs("Ám Kim Liệt Địa", "line", 110, { w: 14, count: 3, spread: 50, dmg: 1.8 }),
     bs("Cuồng Bạo Vỗ", "circle", 56, { dmg: 2.6, status: [{ s: "stun", secs: 0.6 }] })] },
   // Tà hóa thú vương (BĐ5, bảng 5.3; mọi số đã chốt). Báo trước 1–2 giây (dài hơn hồn thú thường): vòng quanh thân ≤ 64 để chạy
-  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt; "tơ phủ 1/3 hang
-  // luân phiên" thay bằng một dải tơ rộng báo trước 2 giây nhắm người chơi. Vạn Chu Phệ đẻ bọc trứng (EggDef, #162): máu bọc bằng nửa
-  // nhện con cùng số năm để một người tập trung phá kịp cả 3 bọc trong thời gian nở.
+  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt. Vạn Chu Phệ đẻ bọc
+  // trứng (EggDef, #162): máu bọc bằng nửa nhện con cùng số năm để một người tập trung phá kịp cả 3 bọc trong thời gian nở; "tơ phủ 1/3
+  // hang luân phiên (vùng cấm báo trước 2 giây)" (#173, SplitDef): hang chia 3 phần, tơ phủ lần lượt từng phần; bước vào tơ bị Trói một
+  // lần, đứng trong tơ bị Làm chậm.
   { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 6, skills: [
     bs("Huyết Nguyệt Hú", "circle", 60, { warn: 1.2, dmg: 1, cd: 14, summon: { species: "phong_lang", n: 4 } }),
     bs("Liệt Phong Trảo", "cone", 58, { arc: 60, count: 3, spread: 130, warn: 1, dmg: 1.4, cd: 8 })],
@@ -1104,13 +1129,15 @@ export const BOSSES: BossDef[] = [
     bs("Thiên La Võng", "circle", 64, { warn: 1.3, dmg: 0.9, cd: 12, status: [{ s: "root", secs: 2 }] }),
     bs("Độc Châm Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8,
       status: [{ s: "poison", n: 2, secs: 5 }] })],
-    phase2: { name: "Vạn Chu Phệ", desc: "đẻ bọc trứng (không phá kịp thì nở nhện con), giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
+    phase2: { name: "Vạn Chu Phệ", desc: "đẻ bọc trứng (không phá kịp thì nở nhện con), tơ phủ lần lượt 1/3 hang (báo trước 2 giây), tốc độ +25%", spd: 1.25,
+      split: { parts: 3, every: 10, warn: 2,
+        grounds: [{ kind: "web", secs: 8, every: 1, once: [{ s: "root", secs: 1.5 }], status: [{ s: "slow", secs: 2 }] }] },
+      skills: [
       bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16,
-        eggs: { species: "nhan_dien_ma_chu_non", n: 3, per: 2, secs: 8, hp: 0.5, years: [4000, 8000] } }),
-      bs("Chu Ti Phong Tỏa", "line", 190, { w: 64, range: 180, warn: 2, dmg: 1.2, cd: 12, status: [{ s: "slow", secs: 3 }] })] } },
+        eggs: { species: "nhan_dien_ma_chu_non", n: 3, per: 2, secs: 8, hp: 0.5, years: [4000, 8000] } })] } },
   // Lạc Nhật Sâm Lâm (BĐ6b, 5.000–30.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "giữ 2 giây" của Nuốt Chửng là Trói 2 giây
-  // sau khi kéo; Mê hoặc trên hồn sư như loài thường (CHARM_P, #116); Song Sắc Mãng không đổi băng / hỏa theo 10 giây, mỗi chiêu
-  // gây cả Làm chậm lẫn Thiêu đốt; "chữ X" của Băng Hỏa Giao Thoa là 2 vệt tỏa 90°. Song Sắc Mãng mượn loài Hắc Thủy Mãng.
+  // sau khi kéo; Mê hoặc trên hồn sư như loài thường (CHARM_P, #116); "chữ X" của Băng Hỏa Giao Thoa là 2 vệt tỏa 90°. Song Sắc Mãng
+  // mượn loài Hắc Thủy Mãng, đổi băng / hỏa mỗi 10 giây (#173, FormDef): dạng băng chiêu gây Làm chậm, dạng hỏa gây Thiêu đốt.
   { id: "huyet_man_thuc_nhan_hoa", name: "Huyết Mạn Thực Nhân Hoa", rank: 1, species: "thuc_nhan_hoa", aura: "#ff3a7a", skills: [
     bs("Nuốt Chửng", "circle", 50, { dmg: 1.3, cd: 9, pull: 50, status: [{ s: "root", secs: 2 }] }),
     bs("Đại Phấn Mê", "circle", 56, { dmg: 1.2, status: [{ ...CHARM_P, secs: 1 }] })] },
@@ -1118,20 +1145,24 @@ export const BOSSES: BossDef[] = [
     bs("Song Xà Phun", "line", 110, { w: 14, count: 2, spread: 40, dmg: 1.4, status: [{ s: "poison", n: 2, secs: 5 }] }),
     // Sương độc 8 giây (bảng gốc, #161).
     bs("Lân Độc Vụ", "circle", 56, { dmg: 1, ground: { kind: "mist", secs: 8, status: POISON_GROUND } })] },
-  { id: "bang_hoa_song_sac_mang", name: "Băng Hỏa Song Sắc Mãng", rank: 1, species: "hac_thuy_mang", aura: "#b07aff", skills: [
-    bs("Băng Hỏa Giao Thoa", "line", 120, { w: 14, count: 2, spread: 90, dmg: 1.6, status: [{ s: "slow", secs: 2 }, { s: "burn", n: 2, secs: 4 }] }),
-    bs("Song Sắc Tức", "cone", 58, { arc: 100, dmg: 1.6, status: [{ s: "slow", secs: 3 }, { s: "burn", n: 2, secs: 4 }] })] },
+  { id: "bang_hoa_song_sac_mang", name: "Băng Hỏa Song Sắc Mãng", rank: 1, species: "hac_thuy_mang", aura: "#b07aff",
+    forms: { every: 10, warn: 2, forms: [{ name: "Băng", col: "#8fdcff" }, { name: "Hỏa", col: "#ff8a3a" }] }, skills: [
+    bs("Băng Hỏa Giao Thoa", "line", 120, { w: 14, count: 2, spread: 90, dmg: 1.6, forms: [[{ s: "slow", secs: 2 }], [{ s: "burn", n: 2, secs: 4 }]] }),
+    bs("Song Sắc Tức", "cone", 58, { arc: 100, dmg: 1.6, forms: [[{ s: "slow", secs: 3 }], [{ s: "burn", n: 2, secs: 4 }]] })] },
   { id: "kho_dang_thu_vuong", name: "Khô Đằng Thụ Vương", rank: 1, species: "co_moc_thu_nhan", aura: "#a0b040", skills: [
     bs("Rễ Trói", "circle", 32, { at: "target", range: 130, dmg: 1.2, status: [{ s: "root", secs: 2 }] }),
     bs("Hút Sinh", "circle", 56, { dmg: 1.4, drain: 0.05 })] },
-  // Thú vương Lạc Nhật (BĐ6b): mượn loài Hắc Thủy Mãng. GĐ2 bản tối thiểu: thay "hang chia nửa băng / nửa lửa đổi chỗ mỗi 12 giây" bằng
-  // hai dải rộng phủ nửa hang phía mục tiêu, báo trước 2 giây, luân phiên băng (Đóng băng 1,5 giây, #116) và lửa (Thiêu đốt nặng).
+  // Thú vương Lạc Nhật (BĐ6b): mượn loài Hắc Thủy Mãng. GĐ2 "Lưỡng Nghi Luân Chuyển" (#173, thiết kế gốc; SplitDef): hang chia nửa
+  // băng, nửa lửa; mỗi 12 giây đổi nửa đang hóa (báo trước 2 giây), nửa kia an toàn. Đứng nhầm nửa băng: Đóng băng 1,5 giây một lần
+  // (#116; gây mỗi nhịp thì không ra được) rồi Làm chậm khi còn đứng; nửa lửa: Thiêu đốt nặng cộng tầng mỗi nhịp.
   { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 7, skills: [
     bs("Băng Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.4, cd: 8, status: [{ s: "slow", secs: 3 }] }),
     bs("Hỏa Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.5, cd: 8, status: [{ s: "burn", n: 3, secs: 5 }] })],
-    phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "nửa hang hóa băng, nửa hang hóa lửa luân phiên (báo trước 2 giây), tốc độ +20%", spd: 1.2, skills: [
-      bs("Lưỡng Nghi Băng", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.5, cd: 12, status: [{ ...FREEZE, secs: 1.5 }] }),
-      bs("Lưỡng Nghi Hỏa", "line", 120, { w: 160, range: 140, warn: 2, dmg: 1.6, cd: 12, status: [{ s: "burn", n: 4, secs: 6 }] })] } },
+    phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "hang chia nửa băng, nửa lửa, mỗi 12 giây đổi nửa đang hóa (báo trước 2 giây); đứng nhầm nửa thì bị đóng băng hoặc thiêu đốt nặng; tốc độ +20%",
+      spd: 1.2, skills: [],
+      split: { parts: 2, every: 12, warn: 2, grounds: [
+        { kind: "ice", secs: 10, every: 1, once: [{ ...FREEZE, secs: 1.5 }], status: [{ s: "slow", secs: 2 }] },
+        { kind: "fire", secs: 10, every: 1, status: [{ s: "burn", n: 2, secs: 6 }] }] } } },
   // Cực Bắc Chi Địa (BĐ6c, bảng 5.3; mọi số đã chốt). Đóng băng = Đóng băng (FREEZE, #116), giam = Trói, "làm chậm tăng dần" = Làm
   // chậm; "3 ảo ảnh nổ vòng" của Phân Thân là 3 vòng rơi quanh mục tiêu; Huyền Băng Tỏa Liên Mãng mượn Hàn Băng Địa Long
   // (Cực Bắc không có loài rắn thường).
