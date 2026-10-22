@@ -4055,7 +4055,9 @@ else {
 
       await test(A,"goto",spot); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       const s0=await test(A,"stats");
-      ok(Object.values(s0.cores).every(x=>x===0)&&same(s0.fx,{})&&s0.live.crit===CRIT.chance&&s0.live.critMult===CRIT.mult,"chưa gắn hồn hạch: không cộng gì, chí mạng gốc");
+      // Từ #187 hồn cốt đang gắn có thể có dòng phụ chí mạng (tung ngẫu nhiên): chí mạng = gốc + phần hồn cốt (`bones`).
+      ok(Object.values(s0.cores).every(x=>x===0)&&same(s0.fx,{})&&Math.abs(s0.live.crit-(CRIT.chance+s0.bones.crit/100))<1e-9&&Math.abs(s0.live.critMult-(CRIT.mult+s0.bones.crit_dmg/100))<1e-9,
+        `chưa gắn hồn hạch: không cộng gì, chí mạng gốc${s0.bones.crit||s0.bones.crit_dmg?` + hồn cốt (${s0.bones.crit}% / ${s0.bones.crit_dmg}%)`:""}`);
       const HT=await giveCores("hao_thien",4);
       ok(HT.length===4&&HT.every(i=>i.vohon===null),"A có 4 hồn hạch Hạo Thiên 6★ (hook give)");
       // Từ chối: không phải hồn hạch, id lạ, võ hồn không thuộc mình, ô sai, đang giao chiến.
@@ -4192,8 +4194,8 @@ else {
       s1=await test(A,"stats");
       ok(s1.sets.linh_mieu===2&&s1.sets.lam_ngan===2&&s1.sets.xa_hoang===2&&same(s1.fx,{poison:0.15,crit:0.12,cc:0.2})&&!Object.keys(s1.sets).includes("phuong_hoang"),
         `ghép 2 + 2 + 2: ${JSON.stringify(s1.sets)}`);
-      ok(s1.cores.crit>=12&&Math.abs(s1.live.crit-(CRIT.chance+s1.cores.crit/100))<1e-9&&Math.abs(s1.live.critMult-(CRIT.mult+s1.cores.crit_dmg/100))<1e-9,
-        `Linh Miêu 2 món: tỉ lệ chí mạng ${(s1.live.crit*100).toFixed(1)}% (gốc ${CRIT.chance*100}% + hồn hạch ${s1.cores.crit}%), hệ số ${s1.live.critMult.toFixed(2)}`);
+      ok(s1.cores.crit>=12&&Math.abs(s1.live.crit-(CRIT.chance+(s1.cores.crit+s1.bones.crit)/100))<1e-9&&Math.abs(s1.live.critMult-(CRIT.mult+(s1.cores.crit_dmg+s1.bones.crit_dmg)/100))<1e-9,
+        `Linh Miêu 2 món: tỉ lệ chí mạng ${(s1.live.crit*100).toFixed(1)}% (gốc ${CRIT.chance*100}% + hồn hạch ${s1.cores.crit}%${s1.bones.crit?` + hồn cốt ${s1.bones.crit}%`:""}), hệ số ${s1.live.critMult.toFixed(2)}`);
       await dummy(500); await test(A,"status",{s:"root"}); bs=await test(A,"bst");
       const rootW=STATUS.root.secs*1.2;
       ok(bs.st?.root&&bs.st.root.t>rootW-0.25&&bs.st.root.t<=rootW+1e-9,`Lam Ngân 2 món: Trói ${bs.st?.root?.t.toFixed(2)} giây (thường ${STATUS.root.secs}, +20%)`);
