@@ -3407,7 +3407,7 @@ else {
     // Dữ liệu: thú vương của Ngoại vi và Nội địa (bảng 5.3), Thánh Hồn Thôn không có; hang (object `boss`) ở vùng sâu nhất.
     const kings=BOSSES.filter(b=>b.rank===2), objsK=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
     const kbad=[];
-    for(const [m,id,hp] of [["tinh_dau_ngoai_vi","huyet_nguyet_lang_vuong",6],["tinh_dau_noi_dia","thien_doc_chu_hoang",7],["lac_nhat_sam_lam","luong_nghi_thu_ho_xa",7],["cuc_bac_chi_dia","huyen_minh_bang_giao",8],["hai_than_dao","tham_hai_ma_kinh_vuong",8]]){
+    for(const [m,id,hp] of [["tinh_dau_ngoai_vi","huyet_nguyet_lang_vuong",72],["tinh_dau_noi_dia","thien_doc_chu_hoang",84],["lac_nhat_sam_lam","luong_nghi_thu_ho_xa",84],["cuc_bac_chi_dia","huyen_minh_bang_giao",96],["hai_than_dao","tham_hai_ma_kinh_vuong",96]]){
       // Vùng sâu nhất = vùng có niên hạn cao nhất (Cực Bắc BĐ6c chia vùng theo hàng, càng lên bắc càng sâu).
       const zy=z=>parseLevelRange(z.properties.find(q=>q.name==="years")?.value)?.[1]??0;
       // Bản đồ lớn (11.3): vùng sâu nhất có thể là nhiều chữ nhật; hang phải nằm trong các mảnh cùng niên hạn cao nhất.
