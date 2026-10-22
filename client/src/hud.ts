@@ -3,7 +3,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, starSkillMult, starCdMult, starTienCoMult, starRing, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
+  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, BAG_PAGE, type BoneStat,
   CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
@@ -1353,6 +1353,7 @@ export interface HerbOption { rowId: number; name: string; col: string; level: n
  */
 export interface BagActions {
   use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void; open(id: string): void;
+  sort(): void; // sắp xếp + gộp chồng cả túi (#215), server làm
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
@@ -1448,12 +1449,14 @@ function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again:
   return box;
 }
 
-/**
- * Bảng túi đồ: Hồn Tệ, lưới BAG_SLOTS ô (số lượng ở góc ô, đồ cùng loại đã được server gộp), chi tiết ô đang chọn và nút "Dùng".
- * Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
- */
 /** Số ô túi của tài khoản theo tin "bag" gần nhất (từ 9.8 mở rộng được; trước tin đầu tiên là mức khởi đầu). */
 let bagCap = BAG_SLOTS;
+let bagPage = 0; // trang túi đang xem (#215: mỗi trang BAG_PAGE ô)
+/**
+ * Bảng túi đồ: Hồn Tệ, các trang BAG_PAGE ô (#215; tab trang có vạch mức đầy, trang đầy viền đỏ), lưới ô của trang đang xem (số
+ * lượng ở góc ô, đồ cùng loại đã được server gộp), nút "Sắp xếp" (server sắp và gộp chồng trên cả túi), chi tiết ô đang chọn và nút
+ * "Dùng". Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
+ */
 export function renderBag(bag: BagMsg, act: BagActions) {
   bagCap = bag.slots;
   bagCdEnd = performance.now() + Math.max(0, bag.cd) * 1000;
@@ -1472,8 +1475,27 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
   el.appendChild(coin);
 
+  const pages = Math.max(1, Math.ceil(bag.slots / BAG_PAGE));
+  bagPage = Math.max(0, Math.min(pages - 1, bagPage));
+  const bar = document.createElement("div"); bar.className = "bpages";
+  for (let p = 0; p < pages; p++) {
+    const cap = Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, items.length - p * BAG_PAGE));
+    const b = document.createElement("button"); b.className = "bpg" + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
+    b.innerHTML = `<b>${p + 1}</b><i style="--f:${n / cap}"></i>`;
+    b.title = `Trang ${p + 1}: ${n}/${cap} ô${n >= cap ? " (đầy)" : ""}`; b.setAttribute("aria-label", b.title);
+    b.setAttribute("aria-pressed", String(p === bagPage));
+    b.addEventListener("click", () => { b.blur(); bagPage = p; again(); });
+    bar.appendChild(b);
+  }
+  const sort = document.createElement("button"); sort.className = "buse bsort"; sort.textContent = "Sắp xếp";
+  sort.title = "Gộp đồ cùng loại chưa đầy ô và xếp lại cả túi (mọi trang) theo loại, số năm, sao.";
+  sort.disabled = items.length < 2;
+  sort.addEventListener("click", () => { sort.blur(); act.sort(); });
+  bar.appendChild(sort);
+  el.appendChild(bar);
+
   const grid = document.createElement("div"); grid.className = "bgrid";
-  for (let k = 0; k < bag.slots; k++) {
+  for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = items[k], b = document.createElement("button");
     b.className = "bslot" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
     if (it) {
@@ -1562,7 +1584,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
+  note.textContent = `Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Mỗi trang ${BAG_PAGE} ô, mở rộng túi ở thương nhân trong thành. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.`;
   el.appendChild(note);
   updateBag();
 }

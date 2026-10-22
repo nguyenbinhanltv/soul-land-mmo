@@ -35,6 +35,18 @@ async function common(label: string, s: Store, u = "") {
     const id = ok(await s.login(cleanName(`Đường Tam${u}`), PW[2]));
     assert.equal(ok(await s.login(cleanName(`ĐƯỜNG TAM${u}`.normalize("NFD")), PW[2])), id);
   });
+  await test(`${label}: token sai định dạng (NUL, object, số, quá dài) -> null, không ném lỗi`, async () => {
+    for (const t of ["\u0000", `${"a".repeat(31)}\u0000`, "", "a".repeat(33), "a".repeat(10_000), { $ne: 1 }, ["x"], 42, null, undefined])
+      assert.equal(await s.accountFromToken(t), null, JSON.stringify(t));
+  });
+  await test(`${label}: hai lần tạo cùng tên cùng lúc, khác mật khẩu -> một tài khoản, lần kia sai mật khẩu`, async () => {
+    // Bên nào băm / chèn xong trước thì tạo tài khoản (scrypt chạy song song trên threadpool): không giả định thứ tự.
+    const pws = [PW[6], WRONG], r = await Promise.all([s.login(cleanName(`Đua${u}`), pws[0]), s.login(cleanName(`ĐUA${u}`), pws[1])]);
+    const won = r.findIndex((x) => !("error" in x));
+    assert.ok(won >= 0 && r.filter((x) => "error" in x).length === 1, JSON.stringify(r));
+    assert.equal(ok(await s.login(cleanName(`đua${u}`), pws[won])), (r[won] as { accountId: number }).accountId);
+    assert.ok("error" in await s.login(cleanName(`đua${u}`), pws[1 - won]));
+  });
   await test(`${label}: bản đồ đang đứng, lớp chặn WHERE map_id và transaction đi cổng (BĐ2)`, async () => {
     const id = ok(await s.login(cleanName(`Cổng${u}`), PW[5]));
     const ch = (await s.awaken(id, `Cổng${u}`, ["lam_ngan_thao", "bich_lan_xa_hoang"], "bich_lan_xa_hoang", 3))!;
