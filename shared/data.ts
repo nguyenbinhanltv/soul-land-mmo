@@ -3666,6 +3666,21 @@ export const NPCS: NpcDef[] = [
       "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Hồi Thành Phù ta cũng mang theo.",
       "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
     ] },
+  // Chương 3 (#284): Hải Mã Đấu La giao chuỗi QUEST_CH3 ở trại Bến Hải Thần; Ba Tái Tây đứng ở vùng an toàn Thánh địa Hải Thần trước
+  // đền Hải Thần (tools/maps/layouts/hai_than_dao.json). Lời thoại phỏng theo truyện.
+  { id: "hai_ma_dau_la", name: "Hải Mã Đấu La", title: "Thánh Trụ Đấu La · Hải Thần Đảo", role: "talk", col: "#5cc8ff",
+    looks: { sex: 0, hair: 2, hairCol: 3, outfitCol: 4, skin: 1 },
+    lines: [
+      "Ta là Hải Mã Đấu La, một trong các Thánh Trụ Đấu La canh giữ Hải Thần Đảo. Người ngoài đặt chân lên đảo, trước hết phải qua mắt ta.",
+      "Hải Thần Đảo nằm giữa Ma Quỷ Hải Vực, hồn thú ở đây đều mấy vạn năm trở lên. Võ hồn chưa tới cấp tám mươi thì đừng đi xa khỏi bến.",
+      "Muốn nhận khảo hạch của Hải Thần thì Sử Lai Khắc Học Viện phải công nhận ngươi trước: xong các bài của Triệu Vô Cực rồi hãy tới tìm ta.",
+    ] },
+  { id: "ba_tai_tay", name: "Ba Tái Tây", title: "Đại Cung Phụng · Hải Thần Đảo", role: "talk", col: "#7ce0d0",
+    looks: { sex: 1, hair: 3, hairCol: 3, outfitCol: 0, skin: 0 },
+    lines: [
+      "Ta là Ba Tái Tây, Đại Cung Phụng của Hải Thần Đảo. Nơi ngươi đang đứng là Thánh địa Hải Thần, không hồn thú nào dám bước vào.",
+      "Hải Thần Tam Xoa Kích là thần khí của Hải Thần. Kẻ muốn chạm tới nó phải vượt qua khảo hạch của Hải Thần, từng bước một, không bước nào được đi tắt.",
+    ] },
   // #196: sứ giả bốn tông môn ở Thiên Đấu Thành (TONG_MON, mục 5.14); gia nhập / đổi / rời qua hộp thoại. Tên tông, màu ở TONG_MON.
   { id: "su_gia_hao_thien", name: "Sứ giả Hạo Thiên Tông", title: "Hạo Thiên Tông", role: "tong", col: "#e0a458",
     looks: { sex: 0, hair: 3, hairCol: 1, outfitCol: 3, skin: 0 },
@@ -3826,13 +3841,15 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
  * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
  * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
  */
-export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king";
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king" | "world";
 /**
  * Từ nhiệm vụ hằng ngày (DAILY_POOL): `kill` thêm `fit` (chỉ hồn thú hợp cấp, fitBeast); `arena` đánh xong một trận Đại Đấu Hồn
  * Trường (thắng / thua / hòa, không tính bỏ trận hay đối thủ không vào sân); `give` nộp `n` món mã `item` lúc trả bài (số đếm là số
  * món đang có trong túi, server tính lại mỗi khi túi đổi); `near`: NPC chỉ đường trên bản đồ nhỏ.
  * Từ chương 2 (QUEST_CH2): `elite` tham gia hạ một tinh anh (người hạ và đồng đội được chia kinh nghiệm); `king` có đóng góp khi một
- * thú vương bị hạ; `party` (trên `kill`) chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm.
+ * thú vương bị hạ (kể cả boss thế giới); `party` (trên `kill`) chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm.
+ * Từ chương 3 (QUEST_CH3): `world` có đóng góp khi một boss thế giới bị hạ; `talk`, `elite`, `king`, `world` cũng lọc được theo `map`
+ * (bản đồ của phòng nơi sự kiện xảy ra).
  */
 export interface QuestGoal {
   k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
@@ -3858,8 +3875,11 @@ export const QUEST_STARTER = "tan_thu";
 /** Mã chuỗi chương 2 "Sử Lai Khắc Thất Quái" (bảng `quests` như chuỗi tân thủ); chỉ nhận được khi chuỗi `QUEST_CH2_AFTER` đã xong. */
 export const QUEST_CH2 = "su_lai_khac";
 export const QUEST_CH2_AFTER = QUEST_STARTER;
+/** Mã chuỗi chương 3 "Hải Thần Đảo" (#284, bảng `quests`); mở khi xong chương 2, không chặn theo cấp (cổng Hải Thần Đảo chặn mềm). */
+export const QUEST_CH3 = "hai_than";
+export const QUEST_CH3_AFTER = QUEST_CH2;
 /** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
-export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER };
+export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER, [QUEST_CH3]: QUEST_CH3_AFTER };
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
   { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
@@ -3912,7 +3932,7 @@ export const QUESTS: QuestChain[] = [
   // Chương 2 (#189): giao bài ở Thiên Đấu Thành, mục tiêu theo bản đồ (không theo vùng, vì bản đồ có thể đổi tên vùng). Không thưởng
   // mảnh UR (chỉ rơi từ rương boss thế giới, mục 5.3).
   { id: QUEST_CH2, name: "Sử Lai Khắc Thất Quái", giver: "trieu_vo_cuc", map: "thien_dau_thanh",
-    finale: "Chín bài ta ra, ngươi đã qua hết. Sử Lai Khắc không nhận người thường, nhưng từ hôm nay ngươi không còn là người thường nữa. Đường phía trước còn dài.",
+    finale: "Chín bài ta ra, ngươi đã qua hết. Sử Lai Khắc không nhận người thường, nhưng từ hôm nay ngươi không còn là người thường nữa. Đường phía trước còn dài: ra bến thuyền ở mép đông Thiên Đấu Thành, vượt biển tới Hải Thần Đảo, Hải Mã Đấu La đang đợi ở Bến Hải Thần.",
     steps: [
       { id: "hoc_vien", name: "Học viện của quái vật", desc: "Tới Thiên Đấu Thành, gặp Phất Lan Đức.",
         offer: ["Ta là Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Đại Sư đã theo Đường Tam lên đây, và hắn nhắc tới ngươi.",
@@ -3971,10 +3991,69 @@ export const QUESTS: QuestChain[] = [
         done: ["Vòng loại ngươi qua rồi. Phần còn lại, tự ngươi bước tiếp."],
         reward: { honTe: 800, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 25 }] } },
     ] },
+  // Chương 3 (#284, #191): giao bài ở Bến Hải Thần, mục tiêu theo bản đồ. Phỏng theo truyện: truyện là chuỗi "Hải Thần Cửu Khảo", game
+  // rút gọn và không dùng con số; thứ tự khảo hạch, việc săn Thâm Hải Ma Kình Vương, bài hai thủ hộ của Tiểu Vũ và lời thoại là phỏng
+  // theo. Không thưởng mảnh UR (mục 5.3); thưởng hồn cốt ở bài cuối để #285.
+  { id: QUEST_CH3, name: "Hải Thần Đảo", giver: "hai_ma_dau_la", map: "hai_than_dao",
+    finale: "Khảo hạch của Thánh Trụ ngươi đã qua hết. Hải Thần Đảo từ nay mở cửa cho ngươi; phần còn lại của khảo hạch Hải Thần, Đại Cung Phụng sẽ tự định đoạt.",
+    steps: [
+      { id: "vuot_bien", name: "Hậu cần vượt biển", desc: "Tới Hải Thần Đảo, gặp Thương nhân lưu động ở trại Bến Hải Thần.",
+        offer: ["Ngươi từ Sử Lai Khắc tới? Năm xưa cũng có một thiếu niên tên Đường Tam cùng bạn bè vượt biển tới đây, xin nhận khảo hạch của Hải Thần.",
+          "Ta là Hải Mã Đấu La, Thánh Trụ Đấu La canh giữ hòn đảo này. Khảo hạch của ta có tám bài. Bài đầu: biển xa, đảo hoang, đan dược phải mang đủ. Gặp thương nhân lưu động ở trại này đi."],
+        goals: [{ k: "map", map: "hai_than_dao", n: 1, have: true, text: "Đặt chân tới Hải Thần Đảo" },
+          { k: "talk", npc: CAMP_MERCHANT, map: "hai_than_dao", n: 1, text: "Nói chuyện với Thương nhân lưu động ở Bến Hải Thần" }],
+        done: ["Đan dược ở đảo đắt hơn trong thành, nhưng hết đan giữa Ma Quỷ Hải Vực thì còn đắt hơn nhiều."],
+        reward: { honTe: 800, items: [{ code: "dai_hoi_huyet_dan", qty: 5 }] } },
+      { id: "ma_quy_hai_vuc", name: "Ma Quỷ Hải Vực", desc: "Hạ hồn thú ở Hải Thần Đảo.",
+        offer: ["Bài thứ hai: Ma Quỷ Hải Vực. Quanh đảo là rạn nông và biển sâu, hồn thú ở đây mấy vạn năm, không giống rừng ở đất liền.",
+          "Hạ bốn mươi con hồn thú ở Hải Thần Đảo rồi về đây. Thấy rãnh nước tối màu thì đi vòng, đó là biển sâu."],
+        goals: [{ k: "kill", map: "hai_than_dao", n: 40, text: "Hạ hồn thú ở Hải Thần Đảo" }],
+        done: ["Ngươi còn đứng được, nghĩa là biển chưa nuốt được ngươi. Như vậy là đủ cho bài này."],
+        reward: { honTe: 1200, items: [{ code: "dai_hoi_hon_dan", qty: 5 }] } },
+      { id: "thanh_tru", name: "Khảo hạch Thánh Trụ", desc: "Cùng đồng đội hạ ba tinh anh ở Hải Thần Đảo.",
+        offer: ["Bài thứ ba: khảo hạch của Thánh Trụ. Các vùng săn trên đảo đều có tinh anh canh giữ, mạnh hơn hồn thú thường rất nhiều.",
+          "Hạ ba tinh anh ở Hải Thần Đảo. Rủ đồng đội cũng được, ai được chia kinh nghiệm đều tính."],
+        goals: [{ k: "elite", map: "hai_than_dao", n: 3, text: "Tham gia hạ tinh anh ở Hải Thần Đảo" }],
+        done: ["Ba tinh anh ngã xuống. Thánh Trụ Đấu La không dễ công nhận ai, nhưng ta công nhận ngươi."],
+        reward: { honTe: 1500, items: [{ code: shardCode("nhu_cot_tho"), qty: 10 }] } },
+      { id: "dong_tam", name: "Đồng tâm hiệp lực", desc: "Lập tổ đội, hạ hồn thú hợp cấp ở Hải Thần Đảo cùng đồng đội chia kinh nghiệm.",
+        offer: ["Bài thứ tư: khảo hạch của Hải Thần không dành cho kẻ đơn độc. Đường Tam năm xưa cũng không vượt biển một mình.",
+          "Lập tổ đội với ít nhất một người, hạ ba mươi con hồn thú hợp cấp ở Hải Thần Đảo khi cả đội cùng chia kinh nghiệm."],
+        goals: [{ k: "kill", map: "hai_than_dao", n: 30, fit: true, party: true, text: "Hạ hồn thú hợp cấp ở Hải Thần Đảo khi tổ đội cùng chia kinh nghiệm" }],
+        done: ["Một người mạnh không giữ nổi một hòn đảo. Có đồng đội thì biển rộng cũng hẹp lại."],
+        reward: { honTe: 1500, items: [{ code: shardCode("pha_hon_thuong"), qty: 10 }] } },
+      { id: "bien_sau", name: "Biển sâu", desc: "Hạ hồn thú hợp cấp ở Hải Thần Đảo.",
+        offer: ["Bài thứ năm: càng vào sâu, hồn thú càng già. Phía đông đảo là Hải Thần Uyên, hồn thú ở đó gần mười vạn năm.",
+          "Hạ sáu mươi con hồn thú hợp cấp ở Hải Thần Đảo. Không gấp, ta có thời gian; biển cũng vậy."],
+        goals: [{ k: "kill", map: "hai_than_dao", n: 60, fit: true, text: "Hạ hồn thú hợp cấp ở Hải Thần Đảo" }],
+        done: ["Ngươi đã quen hơi biển. Hai tấm Ủy Thác Lệnh này, lúc mỏi tay thì dùng."],
+        reward: { honTe: 2000, items: [{ code: AUTO_TOKEN, qty: 2 }] } },
+      { id: "ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", desc: "Có đóng góp khi thú vương Hải Thần Đảo bị hạ.",
+        offer: ["Bài thứ sáu: dưới Vực Ma Kình ở Hải Thần Uyên có Thâm Hải Ma Kình Vương, chúa tể của vùng biển này. Nó chỉ nổi lên theo giờ.",
+          "Cùng người khác hạ nó. Có đóng góp và còn ở đó lúc nó ngã xuống là tính."],
+        goals: [{ k: "king", map: "hai_than_dao", n: 1, text: "Có đóng góp khi hạ thú vương Hải Thần Đảo" }],
+        done: ["Thâm Hải Ma Kình Vương ngã xuống, biển yên được vài canh giờ. Ngươi đủ tư cách cho bài kế tiếp."],
+        reward: { honTe: 3000, items: [{ code: shardCode("nhu_cot_tho"), qty: 15 }] } },
+      { id: "thu_ho_tieu_vu", name: "Thủ hộ của Tiểu Vũ", desc: "Về Tinh Đấu Đại Sâm Lâm, có đóng góp khi một boss thế giới ở Lõi Tinh Đấu bị hạ.",
+        offer: ["Bài thứ bảy: về đất liền một chuyến. Ở hồ trung tâm Tinh Đấu Đại Sâm Lâm có Thái Thản Cự Viên và Thiên Thanh Ngưu Mãng, Đại Minh và Nhị Minh, hai thủ hộ của Tiểu Vũ.",
+          "Chúng là hồn thú mạnh nhất đại lục. Cùng người khác đánh bại một trong hai con ở Lõi Tinh Đấu; có đóng góp và còn ở đó lúc nó ngã xuống là tính."],
+        goals: [{ k: "world", n: 1, text: "Có đóng góp khi hạ một boss thế giới" }],
+        done: ["Đối mặt hai thủ hộ của Tiểu Vũ mà còn trở về được, ở đất liền chẳng mấy hồn sư làm nổi."],
+        reward: { honTe: 3000, items: [{ code: "dai_hoi_huyet_dan", qty: 5 }, { code: "dai_hoi_hon_dan", qty: 5 }] } },
+      { id: "tam_xoa_kich", name: "Hải Thần Tam Xoa Kích", desc: "Tới Thánh địa Hải Thần trước đền Hải Thần, gặp Ba Tái Tây.",
+        offer: ["Bài cuối: Đại Cung Phụng Ba Tái Tây muốn gặp ngươi. Bà ở Thánh địa Hải Thần, sân trước đền Hải Thần giữa đảo.",
+          "Hải Thần Tam Xoa Kích, thần khí của Hải Thần, được thờ ở đó. Đi đi, rồi quay lại báo ta bà nói gì."],
+        goals: [{ k: "talk", npc: "ba_tai_tay", n: 1, text: "Nói chuyện với Ba Tái Tây ở Thánh địa Hải Thần" }],
+        done: ["Đại Cung Phụng đã gặp ngươi. Tam Xoa Kích không phải thứ ngươi cầm được hôm nay, nhưng con đường tới nó đã mở."],
+        reward: { honTe: 5000, items: [{ code: shardCode("nhu_cot_tho"), qty: 25 }] } },
+    ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
-/** Chuỗi theo mã: chuỗi cố định trong QUESTS, hoặc bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain). */
-export const questChain = (id: string) => QUEST_INDEX.get(id) ?? dailyChain(id);
+/**
+ * Chuỗi theo mã: chuỗi cố định trong QUESTS, bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain), hoặc tông vụ hằng ngày
+ * `tong:<yyyymmdd>:<i>` (tongTaskChain, #197).
+ */
+export const questChain = (id: string) => QUEST_INDEX.get(id) ?? dailyChain(id) ?? tongTaskChain(id);
 /** Tiến độ khi chưa có dòng trong bảng `quests` (tài khoản mới và cũ): bước 1, chưa nhận. */
 export const questStart = (chain: string): QuestProgress => ({ chain, step: 0, accepted: false, prog: [] });
 /** Đọc tiến độ từ DB / client gửi lên: kẹp bước, số đếm theo mục tiêu của bước; dữ liệu hỏng thì về `questStart`. */
@@ -4025,6 +4104,8 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
  *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
  *   trong cửa sổ (arenaPairs).
+ * - Xem trực tiếp (#278, mục 5.9): mỗi trận tối đa `watchMax` người xem (sân 4 người đấu + 6 người xem = 10 kết nối; sân nhỏ không lọc
+ *   đồng bộ nên tải thấp); danh sách xem trận có tối đa `liveN` trận đang đếm ngược / giao đấu, xin lại theo nhịp `topCd`.
  * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
  *   hồi máu của bộ Lưu Ly / ràng buộc) × ngần ấy: sát thương lên hồn sư đã × `dmgMult` nhưng hồi tính theo % sinh lực tối đa nên
  *   mạnh gấp ~3 lần so với ngoài rừng, không giảm thì Phụ trợ gần như không chết. Hút máu và hồi tự nhiên không đổi.
@@ -4039,6 +4120,7 @@ export const ARENA = {
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
   pairDaily: 3, rematchSecs: 60,
+  watchMax: 6, liveN: 10,
   healMult: 0.5, ccMult: 0.7,
 };
 /**
@@ -4187,6 +4269,84 @@ function dailyChain(id: string): QuestChain | undefined {
   dailyCache.set(id, c);
   return c;
 }
+// ---------- Tông vụ hằng ngày, điểm tông tuần, bảng xếp hạng, thưởng tuần (#197, mục 5.14) ----------
+/**
+ * Tông vụ: `count` bài mỗi ngày (giờ Việt Nam, đổi lúc 00:00 như khảo hạch: vnDay), nhận và trả ở sứ giả **tông mình** (TONG_MON.npc)
+ * ở bản đồ `map`. Mỗi bài là một chuỗi một bước trong bảng `quests`, mã `tong:<yyyymmdd>:<i>` (tongTaskIds), nội dung suy ra từ mã
+ * (tongTaskChain), bốc ổn định theo ngày từ TONG_POOL (mọi tông cùng một bộ bài trong ngày). Trả bài: Hồn Tệ nhỏ của mẫu (không mảnh:
+ * thưởng chính là điểm) và TONG_POINTS điểm tông vào tuần hiện tại (bảng `tong_points`, tongWeek).
+ */
+export const TONG_DAILY = { count: 2, map: "thien_dau_thanh", name: "Tông vụ" };
+/** Điểm tông mỗi bài tông vụ trả xong. */
+export const TONG_POINTS = 10;
+/**
+ * Thành viên **hoạt động** của tuần: có ít nhất ngần ấy điểm trong tuần (khoảng 2 ngày tông vụ). Bảng xếp hạng tông tính điểm trung bình
+ * của thành viên hoạt động (tông ít người không thiệt); chỉ thành viên hoạt động nhận thưởng tuần.
+ */
+export const TONG_WEEK_MIN = 40;
+/**
+ * Thưởng tuần, nhận ở sứ giả trong tuần kế tiếp, **đúng một lần** (lượt ở bảng `boss_claims`, loại TONG_WEEK_KIND, ngày = thứ Hai của
+ * tuần được thưởng: tongWeekDay): tông hạng 1 (điểm trung bình cao nhất; bằng nhau thì cùng hạng 1) nhận `top`, tông khác nhận `rest`.
+ * `shards` mảnh một võ hồn ngẫu nhiên trong ARENA_SHARDS. So với một bài khảo hạch hằng ngày (70–120 đồng, 2–4 mảnh): một tuần hoạt
+ * động bằng khoảng 2–4 bài khảo hạch.
+ */
+export const TONG_WEEK_REWARD = { top: { honTe: 400, shards: 10 }, rest: { honTe: 200, shards: 5 } };
+export const TONG_WEEK_KIND = "tong_tuan";
+/** Số dòng top cá nhân mỗi tông trên bảng xếp hạng; giây tối thiểu giữa hai lần xin bảng (đọc DB). */
+export const TONG_TOP_N = 5, TONG_BOARD_CD = 1;
+/**
+ * Mẫu tông vụ (thêm mẫu mới thì thêm vào cuối: bộ bài của những ngày đã qua đổi theo, không sao vì bài ngày cũ không còn trả được).
+ * Mục tiêu như khảo hạch (DAILY_POOL): `fit` hồn thú hợp cấp, `elite` tham gia hạ một tinh anh (#189), `arena` đánh một trận đấu hồn,
+ * `give` nộp vật phẩm trong túi lúc trả bài. Hồn Tệ nhỏ hơn khảo hạch (thưởng chính là điểm tông và thưởng tuần).
+ */
+export const TONG_POOL: DailyTemplate[] = [
+  { id: "tong_san", group: "misc", name: "Tuần tra bãi săn", desc: "Hạ hồn thú hợp cấp ở bãi săn hợp cấp của võ hồn ra trận.",
+    goals: [{ k: "kill", fit: true, n: 12, text: "Hạ hồn thú hợp cấp" }], honTe: 40, shards: 0,
+    offer: ["Người của tông ta không ngồi không. Ra bãi săn hợp cấp, hạ mười hai con hồn thú.", "Hồn thú yếu hơn mình quá nhiều thì không tính."],
+    done: ["Tốt. Tông môn ghi công cho ngươi."] },
+  { id: "tong_tinh_anh", group: "misc", name: "Diệt tinh anh", desc: "Tham gia hạ một tinh anh ở bản đồ săn (cùng đánh với người khác cũng được).",
+    goals: [{ k: "elite", n: 1, text: "Tham gia hạ tinh anh" }], honTe: 60, shards: 0,
+    offer: ["Có tinh anh quấy phá dân quanh đây. Tông ta phải ra mặt.", "Tham gia hạ một con tinh anh, đánh cùng người khác cũng tính."],
+    done: ["Tinh anh đã bị hạ. Danh tiếng tông môn nhờ ngươi mà lên."] },
+  { id: "tong_dau_hon", group: "misc", name: "Rèn luyện ở Đấu Hồn Trường", desc: "Đánh một trận ở Đại Đấu Hồn Trường (góc đông nam Thiên Đấu Thành), thắng thua đều được.",
+    goals: [{ k: "arena", n: 1, near: "dau_hon_truong", text: "Đánh một trận đấu hồn" }], honTe: 40, shards: 0,
+    offer: ["Đệ tử tông ta phải dám đối mặt với hồn sư khác.", "Vào Đại Đấu Hồn Trường đánh một trận, thắng thua đều được."],
+    done: ["Đánh xong rồi à? Thắng thua chưa quan trọng, dám đánh là được."] },
+  { id: "tong_nop_hon_hoan", group: "misc", name: "Cống hiến hồn hoàn", desc: "Mang một hồn hoàn (đang để trong túi) tới nộp cho sứ giả tông.",
+    goals: [{ k: "give", item: RING_ITEM, n: 1, text: "Nộp hồn hoàn" }], honTe: 40, shards: 0,
+    offer: ["Kho tông môn cần hồn hoàn cho đệ tử mới.", "Mang tới một hồn hoàn, niên hạn bao nhiêu cũng được."],
+    done: ["Hồn hoàn này sẽ giúp được một đệ tử mới. Tông môn ghi công cho ngươi."] },
+];
+const TONG_TASK_RE = /^tong:(\d{8}):(\d+)$/;
+/** Mã chuỗi của TONG_DAILY.count tông vụ ngày `day` (vnDay): "tong:20261021:0"… */
+export const tongTaskIds = (day: string) => Array.from({ length: TONG_DAILY.count }, (_, i) => `tong:${dailyKey(day)}:${i}`);
+/** Mã chuỗi là tông vụ hằng ngày (của ngày nào cũng được). */
+export const isTongTask = (chain: string) => TONG_TASK_RE.test(chain);
+/** Bộ tông vụ của ngày `key` (yyyymmdd): TONG_DAILY.count mẫu khác nhau, bốc ổn định theo ngày (khác bộ khảo hạch). */
+export function tongTaskPicks(key: string): DailyTemplate[] {
+  const rnd = seeded(Number(key) * 2246822519 + 1013904223), pool = [...TONG_POOL], out: DailyTemplate[] = [];
+  while (out.length < TONG_DAILY.count && pool.length) out.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+  return out;
+}
+const tongTaskCache = new Map<string, QuestChain>();
+/** Chuỗi một bước của tông vụ mã `id` (tongTaskIds); mã sai thì undefined. Người giao là sứ giả tông của người chơi (giver ""). */
+function tongTaskChain(id: string): QuestChain | undefined {
+  const hit = tongTaskCache.get(id); if (hit) return hit;
+  const m = TONG_TASK_RE.exec(id), i = m ? Number(m[2]) : -1, t = m && i < TONG_DAILY.count ? tongTaskPicks(m[1])[i] : undefined;
+  if (!m || !t) return undefined;
+  const c: QuestChain = { id, name: TONG_DAILY.name, giver: "", map: TONG_DAILY.map, finale: "Tông vụ hôm nay xong rồi. Mai quay lại.",
+    steps: [{ id: t.id, name: t.name, desc: t.desc, goals: t.goals, offer: t.offer, done: t.done, reward: { honTe: t.honTe, items: [] } }] };
+  if (tongTaskCache.size > 64) tongTaskCache.clear();
+  tongTaskCache.set(id, c);
+  return c;
+}
+/** Ngày thứ Hai (vnDay "YYYY-MM-DD") của tuần `week` (tongWeek): cột `boss_claims.day` của lượt thưởng tuần. */
+export const tongWeekDay = (week: number) => new Date(week * 86400000).toISOString().slice(0, 10);
+/** Một dòng bảng xếp hạng tông tuần: số thành viên hoạt động và điểm trung bình của họ. */
+export interface TongRank { tong: string; active: number; avg: number; }
+/** Tông hạng 1 của bảng (điểm trung bình cao nhất, cần có thành viên hoạt động; bằng nhau thì cùng hạng 1). */
+export const tongTop = (rows: TongRank[]) => { const best = Math.max(0, ...rows.filter((r) => r.active > 0).map((r) => r.avg)); return rows.filter((r) => r.active > 0 && r.avg === best).map((r) => r.tong); };
+
 /** Hồn thú `years` năm hợp cấp với võ hồn cấp `level`: hạ nó không bị giảm kinh nghiệm theo chênh cấp (xpLevelScale = 1). */
 export const fitBeast = (level: number, years: number) => xpLevelScale(level, beastLevel(years)) >= 1;
 /** Bản đồ săn hợp cấp với cấp `level` (cấp đề xuất của bản đồ chứa nó): chỉ đường cho mục tiêu `fit`. */
