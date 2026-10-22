@@ -1152,6 +1152,9 @@ export class MapRoom extends Room<MapState> {
     this.applyInput(d, 0, 0, false);
     const where = d.autoCfg.scope === "near" ? `quanh đây (${d.autoCfg.radius} ô)` : "khắp bản đồ";
     this.log(id, `Bật tự động: săn ${where}, còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))} treo. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
+    // #218: bản đồ boss không có hồn thú thường: chưa có boss thì chỉ đi dạo chờ, vẫn tính giờ treo.
+    if (this.map.kind === "boss" && !this.autoBosses().length)
+      this.log(id, "Bản đồ này chưa có boss: tự động chỉ đi dạo chờ boss xuất hiện, vẫn tính giờ treo.", "#ffb35c");
     this.sendAuto(id);
   }
 
@@ -5041,7 +5044,6 @@ export class MapRoom extends Room<MapState> {
   // ---------- Tà hóa thú vương (mục 5.4, 6; bước BĐ5) ----------
   /** Ngày nhận thưởng boss theo giờ Việt Nam (đổi lúc 00:00; hook test `day` lệch được để thử đặt lại lượt). */
   today() { return vnDay(bossNow() + this.dayShift * 86400000); }
-  /** Lượt nhận rương thú vương (hoặc boss thế giới khi `world`, BĐ6e) hôm nay của người chơi (sang ngày mới thì về 0). */
   /** Tinh anh (theo ô tinh anh) và thú vương / boss thế giới đang sống của phòng: mục tiêu chung của tự săn (#218). */
   autoBosses(): [string, BeastState][] {
     const out: [string, BeastState][] = [];
@@ -5059,6 +5061,7 @@ export class MapRoom extends Room<MapState> {
     return this.claimsToday(d, world) < (world ? WORLD : KING).daily && !this.king?.claimed.has(d.accountId);
   }
 
+  /** Lượt nhận rương thú vương (hoặc boss thế giới khi `world`, BĐ6e) hôm nay của người chơi (sang ngày mới thì về 0). */
   claimsToday(d: PData, world = false) {
     const c = world ? d.wclaims : d.claims;
     if (c.day !== this.today()) { c.day = this.today(); c.n = 0; }
