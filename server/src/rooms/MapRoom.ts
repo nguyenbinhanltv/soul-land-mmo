@@ -1056,7 +1056,7 @@ export class MapRoom extends Room<MapState> {
     if (d.travelCast) return deny("đang đi cổng / truyền tống.");
     if (this.map.inSafe(p.x, p.y)) return deny("đang ở vùng an toàn, ra bãi săn rồi bật.");
     if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
-    if (bagUsed(d.bag) >= d.bagSlots && !this.autoSell(id, true)) return deny(`túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`);
+    if (bagUsed(d.bag) >= d.bagSlots && !this.autoSell(id)) return deny(`túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`);
     const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
     let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
     if (n >= AUTO_MAX_PER_CELL) return deny(`chỗ này đã có ${n} người treo, hãy sang chỗ khác.`);
@@ -2251,14 +2251,14 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
-   * Tự bán từ xa (#216): bật tự bán và túi còn dưới AUTO_SELL_FREE ô trống (`force`: tự săn thấy túi đầy) thì bán mọi món hợp bộ lọc
+   * Tự bán từ xa (#216): bật tự bán và túi còn dưới AUTO_SELL_FREE ô trống thì bán mọi món hợp bộ lọc
    * (autoSellable) với đúng giá thương nhân trong thành (sellPrice, 100%), không cần đứng gần thương nhân. Không bán khi đang đi cổng /
    * truyền tống, đang hấp thụ, đang chờ DB xử lý vật phẩm, trong sân đấu. Món đã bán vào danh sách mua lại AUTO_SELL_BUYBACK món (lưu DB
    * cùng túi). Trả về số ô đã giải phóng.
    */
-  autoSell(id: string, force = false) {
+  autoSell(id: string) {
     const d = this.pdata.get(id); if (!d || !d.sellCfg.on || d.travelling || d.travelCast || d.absorbing || d.claimBusy || d.shardBusy) return 0;
-    if (this.map.kind === "arena" || (!force && d.bagSlots - bagUsed(d.bag) >= AUTO_SELL_FREE)) return 0;
+    if (this.map.kind === "arena" || d.bagSlots - bagUsed(d.bag) >= AUTO_SELL_FREE) return 0;
     const sold: SoldRow[] = [];
     let coins = 0, n = 0;
     for (const it of d.bag) {

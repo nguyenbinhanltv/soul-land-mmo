@@ -126,7 +126,7 @@ export class AutoHunter {
     if (this.room.map.inSafe(p.x, p.y)) return "vào vùng an toàn.";
     if (d.absorbing) return "đang hấp thụ hồn hoàn.";
     if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return `đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)} hôm nay.`;
-    if (d.bag.filter((i) => i.vohonId === null).length >= d.bagSlots && !this.room.autoSell(this.id, true))
+    if (d.bag.filter((i) => i.vohonId === null).length >= d.bagSlots && !this.room.autoSell(this.id))
       return `túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`;
     return null;
   }
