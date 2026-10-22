@@ -153,6 +153,20 @@ test("Tạo tài khoản: bắn nhiều request song song không vượt ngưỡ
   assert.match(signup("5.5.5.5")!, /thử lại sau 1 giờ/);
 }));
 
+test("Tạo tài khoản: chạm ngưỡng một phần do request đang xử lý (9 đã tạo + 1) -> báo bận, không báo hết lượt", () => {
+  for (let i = 0; i < 9; i++) { assert.equal(signup("5.5.5.5"), null); sec(60); }
+  assert.equal(signupBegin("5.5.5.5", now), null); // một người đang đăng nhập (chưa biết tên mới hay cũ)
+  const warn = console.warn; let warned = false; console.warn = () => { warned = true; };
+  try {
+    const busy = signupBegin("5.5.5.5", now)!;
+    assert.equal(busy.retryAfter, 3); assert.match(busy.error, /Đang xử lý nhiều lần đăng nhập/);
+  } finally { console.warn = warn; }
+  assert.equal(warned, false); // không cảnh báo TRUST_PROXY khi chỉ bận
+  signupEnd("5.5.5.5", true, false, now); // hóa ra là tài khoản cũ: trả chỗ
+  assert.equal(signup("5.5.5.5"), null); // tài khoản thứ 10
+  quiet(() => assert.match(signup("5.5.5.5")!, /quá nhiều tài khoản mới.*thử lại sau 51 phút/)); // cái thứ 11: hết lượt (tài khoản đầu tạo lúc phút 0, giờ là phút 9)
+});
+
 test("Tạo tài khoản: GAME_TEST nới ngưỡng (hệ số), dọn dẹp xóa IP đã hết cửa sổ", () => {
   _setSignupScale(1000);
   try { for (let i = 0; i < 200; i++) assert.equal(signup("127.0.0.1"), null); } finally { _setSignupScale(1); }

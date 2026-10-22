@@ -131,11 +131,12 @@ async function common(label: string, s: Store, u = "") {
     const item = (code: string, qty: number, extra: Partial<Item> = {}): Item =>
       ({ id: randomUUID(), kind: "dan", code, qty, years: null, stars: null, enhance: 0, stats: null, vohonId: null, created: t++, ...extra });
     const starter = [item("hoi_huyet_dan", 5), item("hoi_hon_dan", 5)];
-    // loadBag trả kèm số ô túi (9.8), tiến độ nhiệm vụ (6.2) và bộ lọc / món đã tự bán (#216; PgStore luôn có `sold`): tài khoản thử
-    // chưa mở rộng túi, chưa nhận nhiệm vụ, chưa đặt bộ lọc; so phần còn lại.
+    // loadBag trả kèm số ô túi (9.8) và tiến độ nhiệm vụ (6.2): tài khoản thử chưa mở rộng túi, chưa nhận nhiệm vụ; so phần còn lại.
+    // Từ #216 kèm bộ lọc tự bán và đồ tự bán (`sell`, `sold`): PgStore luôn trả hai khóa này (`sold` rỗng), MemoryStore thì không; tài khoản thử
+    // chưa tự bán gì.
     const items = (b: Bag) => {
       const { slots, quests, sell, sold, ...rest } = b;
-      assert.equal(slots, BAG_SLOTS); assert.deepEqual(quests, []); assert.equal(sell, undefined); assert.deepEqual(sold ?? [], []);
+      assert.equal(slots, BAG_SLOTS); assert.deepEqual(quests, []); assert.equal(sell, undefined); assert.ok(!sold?.length);
       return rest;
     };
     const loadItems = async (acc: number) => items((await s.loadBag(acc, [])).bag);
@@ -170,6 +171,37 @@ async function common(label: string, s: Store, u = "") {
     // Không có túi trong transaction (không đổi gì) thì túi giữ nguyên.
     await s.saveTravel(id, [ch], "nac_dinh_thanh", DEFAULT_MAP, 10, 10);
     assert.deepEqual(await loadItems(id), travelBag);
+    // Lưu định kỳ / rời phòng (saveProgress, #165): vị trí, võ hồn và túi trong một transaction. Phòng của bản đồ khác (DB đã sang bản
+    // đồ khác, vd transaction đi cổng đã commit dù phòng nhận lỗi rồi hoàn phí) thì không ghi gì, kể cả túi và võ hồn.
+    const lv = async () => (await s.listVohons(id)).find((v) => v.rowId === ch.rowId)!.level;
+    const level0 = await lv(), refund = { honTe: 9_999, items: [item("hoi_thanh_phu", 1, { kind: "phu" })] };
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 5 }], "nac_dinh_thanh", 1, 2, undefined, refund), false);
+    assert.deepEqual(await loadItems(id), travelBag);
+    assert.equal(await lv(), level0);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 10 });
+    // Lỗi giữa chừng (võ hồn của tài khoản khác) thì không ghi gì.
+    await assert.rejects(s.saveProgress(id, [{ ...ch, level: level0 + 5 }, { ...och, accountId: id }], DEFAULT_MAP, 3, 4, undefined, refund));
+    assert.deepEqual(await loadItems(id), travelBag);
+    assert.equal(await lv(), level0);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 10 });
+    // Đúng bản đồ: ghi hết; không có túi thì túi giữ nguyên.
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 1 }], DEFAULT_MAP, 30, 40, undefined, refund), true);
+    assert.deepEqual(await loadItems(id), refund);
+    assert.equal(await lv(), level0 + 1);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 30, y: 40 });
+    assert.equal(await s.saveProgress(id, [ch], DEFAULT_MAP, 31, 41), true);
+    assert.deepEqual(await loadItems(id), refund);
+    // Transaction đi cổng đã commit dù phòng nhận lỗi (MapRoom.beginTravel, #165): phòng đọc lại getLocation thấy bản đồ đích thì coi như đã
+    // đi; phòng cũ không ghi đè được gì (kể cả phí đã hoàn trong RAM), phòng mới lưu bình thường.
+    const moved = { honTe: 1_000, items: [item("hoi_hon_dan", 2)] };
+    await s.saveTravel(id, [{ ...ch, level: level0 + 2 }], DEFAULT_MAP, "nac_dinh_thanh", 88, 328, moved);
+    assert.equal((await s.getLocation(id)).mapId, "nac_dinh_thanh");
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 1 }], DEFAULT_MAP, 31, 41, undefined, { ...moved, honTe: 1_030 }), false);
+    assert.deepEqual(await loadItems(id), moved);
+    assert.equal(await lv(), level0 + 2);
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 3 }], "nac_dinh_thanh", 90, 330, undefined, { ...moved, honTe: 1_200 }), true);
+    assert.deepEqual(await loadItems(id), { ...moved, honTe: 1_200 });
+    assert.equal(await lv(), level0 + 3);
   });
 }
 

@@ -156,7 +156,8 @@ const signups = new Map<string, SignupEntry>();
 
 /**
  * Số giây phải chờ trước khi IP được tạo thêm tài khoản (wait 0 = được tạo); lần chờ tính theo tài khoản cũ nhất còn trong cửa sổ.
- * full: đã chạm ngưỡng bằng tài khoản đã tạo; false mà wait > 0 là chỉ do các yêu cầu đang xử lý (kể cả đăng nhập tài khoản cũ).
+ * full: riêng số tài khoản đã tạo đã chạm ngưỡng; false mà wait > 0 là chạm ngưỡng (toàn bộ hay một phần) do các yêu cầu đang xử lý
+ * (kể cả đăng nhập tài khoản cũ), ví dụ 9 đã tạo + 1 đang xử lý: vài giây sau có thể vẫn tạo được.
  */
 function signupWait(e: SignupEntry, now: number) {
   e.at = e.at.filter((t) => now - t < SIGNUP_DAY_MS);
@@ -164,10 +165,12 @@ function signupWait(e: SignupEntry, now: number) {
   for (const [max, ms] of [[SIGNUP_IP_HOUR_MAX, SIGNUP_HOUR_MS], [SIGNUP_IP_DAY_MAX, SIGNUP_DAY_MS]]) {
     const lim = max * signupScale, recent = e.at.filter((t) => now - t < ms);
     if (recent.length + e.pending < lim) continue;
-    // Phải chờ tài khoản thứ k (tính từ cũ nhất) ra khỏi cửa sổ. Chạm ngưỡng chỉ vì các yêu cầu đang xử lý (chưa biết có tạo
-    // không): chờ vài giây như `busy` của đăng nhập.
-    const k = recent.length + e.pending - lim;
-    if (k < recent.length) { full = true; wait = Math.max(wait, Math.ceil((recent[k] + ms - now) / 1000)); } else wait = Math.max(wait, 3);
+    // Tài khoản đã tạo đủ ngưỡng: chờ tài khoản thứ k (tính từ cũ nhất) ra khỏi cửa sổ. Chạm ngưỡng có phần do các yêu cầu đang xử lý
+    // (chưa biết có tạo không): chờ vài giây như `busy` của đăng nhập.
+    if (recent.length >= lim) {
+      const k = Math.min(recent.length + e.pending - lim, recent.length - 1);
+      full = true; wait = Math.max(wait, Math.ceil((recent[k] + ms - now) / 1000));
+    } else wait = Math.max(wait, 3);
   }
   return { wait, full };
 }

@@ -65,6 +65,8 @@
 // đan, tiên cơ, dừng khi PvP / gục / hết giờ / túi đầy, giới hạn mỗi ô lưới, lưu cài đặt và giờ treo.
 // Ủy thác offline (Auto 3, mục 5.13; offlineTest, BOT_ONLY=offline): thoát trong vùng săn, giả lập thời gian trôi (hook offline), vào lại
 // nhận thưởng đúng số giây / Hồn Tệ / hồn hoàn tối đa, quỹ giờ treo chung với tự săn, chia theo ngày, quá sức, túi đầy, vùng an toàn.
+// Chống gian lận 2 (#165; cheatBagTest, BOT_ONLY=cheat2): tin xin lại bag / vohons / quest theo nhịp ASK_CD, hồn hoàn đang hấp thụ không
+// tính cho khảo hạch nộp hồn hoàn, đang ghi phần thưởng boss (hook claimhold) thì không bán / bỏ / hấp thụ.
 // Tự bán từ xa (#216, sellTest; BOT_ONLY=sell): bộ lọc, khoá món, bán khi túi gần đầy, lưu qua lần vào lại, mua lại ở thương nhân, tự săn bán thay vì dừng.
 // Chống gian lận 1 (#164, cheatTest, nhóm 1 của BOT_PART; BOT_ONLY=cheat): message di chuyển / chiến đấu / cổng / kênh mang giá trị lạ bị bỏ qua
 // (không đổi vị trí / hồi chiêu / đội), gửi dồn chỉ ra một lần, client không tự mở phòng, xếp ô / đội gửi dồn lưu đúng lần cuối.
@@ -96,7 +98,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HERBS, HERB_MAX, HERB_PCT, HERB_ELITE, herbChance, herbBonus, parseHerbs,
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult,
-  boneEnhancePreview,
+  boneEnhancePreview, BONE_MAX_SUBS, BONE_SUB_K, BONE_SUB_POOL, BONE_ENHANCE_MILESTONES, boneSubMax, boneSubsDue, parseBoneSubs, boneAddSubs,
   CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore, rollCoreStats,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
@@ -119,6 +121,7 @@ import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // h�
 import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
+import { ASK_CD } from "../../shared/data.ts"; // nhịp tin xin lại dữ liệu riêng (#165)
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 import { GROUND_KINDS, GROUND_TICK, TELE_SHAPES } from "../../shared/data.ts"; // vùng lưu lại trên mặt đất: vũng độc, sương độc (#161)
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
@@ -281,7 +284,9 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bonesub"){ await boneSubTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cheat"){ await cheatTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -3910,12 +3915,13 @@ else {
       const act=A.owned.active, other=A.owned.list.find(v=>v.rowId!==act)?.rowId;
       const tp=bonesOf(A).find(i=>i.stats?.slot==="tay_phai"&&i.years===32000), hd=bonesOf(A).find(i=>i.stats?.slot==="dau"&&i.years===12000);
       const addAtk=boneStats("tay_phai",32000).atk, addMp=boneStats("dau",12000).mp;
-      ok(same(boneBonus([{slot:"tay_phai",years:32000},{slot:"dau",years:12000},{slot:"than",years:1000}]),{hp:boneStats("than",1000).hp,mp:addMp,atk:addAtk}),
+      const bb=boneBonus([{slot:"tay_phai",years:32000},{slot:"dau",years:12000},{slot:"than",years:1000}]);
+      ok(same([bb.hp,bb.mp,bb.atk],[boneStats("than",1000).hp,addMp,addAtk])&&CORE_STAT_IDS.every(k=>["hp","mp","atk"].includes(k)||bb[k]===0),
         "boneBonus cộng đúng chỉ số chính từng vị trí");
       ok(tp&&hd,"A có hồn cốt Tay phải 32.000 năm và Đầu 12.000 năm để gắn");
       await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       const s0=await test(A,"stats");
-      ok(same(s0.bones,{hp:0,mp:0,atk:0})&&s0.live.maxHp===s0.base.maxHp&&s0.live.maxMp===s0.base.maxMp,"chưa gắn: chỉ số võ hồn ra trận = chỉ số gốc");
+      ok(CORE_STAT_IDS.every(k=>s0.bones[k]===0)&&s0.live.maxHp===s0.base.maxHp&&s0.live.maxMp===s0.base.maxMp,"chưa gắn: chỉ số võ hồn ra trận = chỉ số gốc");
       let t=await boneOp("equip",{itemId:tp.id,vohonId:act,slot:"dau"});
       ok(/chỉ gắn vào ô Tay phải, không gắn vào ô Đầu/.test(t)&&eqOf(tp.id)===null,`thả hồn cốt Tay phải vào ô Đầu bị từ chối: ${t}`);
       t=await boneOp("equip",{itemId:tp.id,vohonId:act,slot:"xyz"}); ok(/chỉ gắn vào ô Tay phải/.test(t)&&eqOf(tp.id)===null,"ô lạ bị từ chối");
@@ -4114,7 +4120,9 @@ else {
       ok(tgi.enhance===BONE_MAX_ENHANCE&&tgi.stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(t)&&mats.every(id=>!itemOf(id)),`5 nguyên liệu 100.000 năm: +${tgi.enhance} tối đa, điểm dư bị bỏ (${t})`);
       ok(Math.abs(s20.live.passive.buff.def-def20)<1e-4&&Math.abs(def20-Math.min(BONE_PASSIVE_CAP.def,def0*boneSkillMult(20)))<1e-3&&def20>def0,
         `mốc +20 nâng bị động ${BONE_SKILLS[TG].passive.name}: giảm sát thương ${def0} -> ${s20.live.passive.buff.def} (×${boneSkillMult(20)})`);
-      ok(s20.bones.hp===boneStats("than",12000,20).hp&&await waitFor(()=>p.maxHp===hp0+dHp),`sinh lực tối đa ${hp0} -> ${p.maxHp} (+${dHp}) ngay khi đang gắn`);
+      // Từ #187 mốc còn thêm dòng phụ (Thân có thể ra % sinh lực), nên sinh lực tối đa tăng ít nhất phần chỉ số chính.
+      ok(s20.bones.hp===boneStats("than",12000,20).hp&&await waitFor(()=>p.maxHp===s20.live.maxHp)&&s20.live.maxHp===s20.stats.maxHp&&p.maxHp>=hp0+dHp,
+        `sinh lực tối đa ${hp0} -> ${p.maxHp} (chỉ số chính +${dHp}${s20.bones.hp_pct?`, dòng phụ +${s20.bones.hp_pct}%`:""}) ngay khi đang gắn`);
       const m5=await give(1000,"than",TG); t=await enh(tg.id,[m5.id]); ok(/tối đa \+20/.test(t)&&itemOf(m5.id),`đã +20: từ chối, nguyên liệu còn nguyên (${t})`);
       // Hồn cốt trong túi (không gắn) cũng cường hóa được; hồn cốt đã cường hóa làm nguyên liệu trả lại 80% điểm.
       const m6=await give(2000,"than",TG); t=await enh(m5.id,[m6.id]);
@@ -4160,7 +4168,9 @@ else {
 
       await test(A,"goto",spot); await test(A,"clear"); await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
       const s0=await test(A,"stats");
-      ok(Object.values(s0.cores).every(x=>x===0)&&same(s0.fx,{})&&s0.live.crit===CRIT.chance&&s0.live.critMult===CRIT.mult,"chưa gắn hồn hạch: không cộng gì, chí mạng gốc");
+      // Từ #187 hồn cốt đang gắn có thể có dòng phụ chí mạng (tung ngẫu nhiên): chí mạng = gốc + phần hồn cốt (`bones`).
+      ok(Object.values(s0.cores).every(x=>x===0)&&same(s0.fx,{})&&Math.abs(s0.live.crit-(CRIT.chance+s0.bones.crit/100))<1e-9&&Math.abs(s0.live.critMult-(CRIT.mult+s0.bones.crit_dmg/100))<1e-9,
+        `chưa gắn hồn hạch: không cộng gì, chí mạng gốc${s0.bones.crit||s0.bones.crit_dmg?` + hồn cốt (${s0.bones.crit}% / ${s0.bones.crit_dmg}%)`:""}`);
       const HT=await giveCores("hao_thien",4);
       ok(HT.length===4&&HT.every(i=>i.vohon===null),"A có 4 hồn hạch Hạo Thiên 6★ (hook give)");
       // Từ chối: không phải hồn hạch, id lạ, võ hồn không thuộc mình, ô sai, đang giao chiến.
@@ -4297,8 +4307,8 @@ else {
       s1=await test(A,"stats");
       ok(s1.sets.linh_mieu===2&&s1.sets.lam_ngan===2&&s1.sets.xa_hoang===2&&same(s1.fx,{poison:0.15,crit:0.12,cc:0.2})&&!Object.keys(s1.sets).includes("phuong_hoang"),
         `ghép 2 + 2 + 2: ${JSON.stringify(s1.sets)}`);
-      ok(s1.cores.crit>=12&&Math.abs(s1.live.crit-(CRIT.chance+s1.cores.crit/100))<1e-9&&Math.abs(s1.live.critMult-(CRIT.mult+s1.cores.crit_dmg/100))<1e-9,
-        `Linh Miêu 2 món: tỉ lệ chí mạng ${(s1.live.crit*100).toFixed(1)}% (gốc ${CRIT.chance*100}% + hồn hạch ${s1.cores.crit}%), hệ số ${s1.live.critMult.toFixed(2)}`);
+      ok(s1.cores.crit>=12&&Math.abs(s1.live.crit-(CRIT.chance+(s1.cores.crit+s1.bones.crit)/100))<1e-9&&Math.abs(s1.live.critMult-(CRIT.mult+(s1.cores.crit_dmg+s1.bones.crit_dmg)/100))<1e-9,
+        `Linh Miêu 2 món: tỉ lệ chí mạng ${(s1.live.crit*100).toFixed(1)}% (gốc ${CRIT.chance*100}% + hồn hạch ${s1.cores.crit}%${s1.bones.crit?` + hồn cốt ${s1.bones.crit}%`:""}), hệ số ${s1.live.critMult.toFixed(2)}`);
       await dummy(500); await test(A,"status",{s:"root"}); bs=await test(A,"bst");
       const rootW=STATUS.root.secs*1.2;
       ok(bs.st?.root&&bs.st.root.t>rootW-0.25&&bs.st.root.t<=rootW+1e-9,`Lam Ngân 2 món: Trói ${bs.st?.root?.t.toFixed(2)} giây (thường ${STATUS.root.secs}, +20%)`);
@@ -4419,6 +4429,7 @@ ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào l
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm, sao từng võ hồn (cả võ hồn mở bằng mảnh) đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
 if(inPart(2)) await eggTest(); // #162: bài độc lập, tự tạo bot
+if(inPart(1)) await boneSubTest(); // #187: bài độc lập, tự tạo bot
 if(inPart(1)) await cheatTest(); // chống gian lận 1 (#164): bài độc lập, tự tạo bot
 
 // BOT_PART=1 dừng ở đây; BOT_PART=2 chạy thêm Đại Đấu Hồn Trường (bài độc lập, tự tạo bot) rồi dừng. Phần từ bot C trở xuống thuộc nhóm 3.
@@ -4662,6 +4673,7 @@ await dailyTest();
 await autoTest();
 await offlineTest();
 await groundTest(); // #161, nhóm 3
+await cheatBagTest();
 // BĐ3: tài khoản cũ còn map_id `tinh_dau` (bản đồ đã tách) -> vào Ngoại vi ở trại cổng, bỏ vị trí cũ. Hook legacy ghi mã cũ
 // qua đúng transaction đi cổng, như tài khoản đăng xuất ở Tinh Đấu trước BĐ3.
 if((await test(C,"ping"))?.enabled){
@@ -6954,6 +6966,94 @@ async function questTest(){
 }
 
 /**
+ * Chống gian lận 2 (#165; BOT_ONLY=cheat2 chỉ chạy phần này): tin xin lại `bag` / `vohons` / `quest get` theo nhịp ASK_CD (gửi dồn chỉ
+ * nhận tối đa 2 tin); hồn hoàn đang hấp thụ không tính cho bài khảo hạch nộp hồn hoàn, thôi hấp thụ thì tính lại; đang ghi phần thưởng
+ * boss (claimBusy, hook claimhold) thì không bán / bỏ / hấp thụ đồ, xong thì bán được; đi cổng commit xong mà phòng nhận lỗi (hook
+ * travellost) thì vẫn chuyển bản đồ. Phần lưu một transaction (saveProgress) thử ở `npm run test:accounts --prefix server`.
+ */
+async function cheatBagTest(){
+  console.log("[Chống gian lận 2] Túi đồ, mua bán, phần thưởng (#165)");
+  const G=await bot("Gian lận","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:3});
+  if(!(await test(G,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần chống gian lận 2 (cần hook give, daily, warp, claimhold…): bật server bằng GAME_TEST=1"); await G.room.leave(); return; }
+  // Nhịp tin xin lại dữ liệu riêng: gửi dồn 20 lần trong một nhịp thì nhận 1 tin ngay (hoặc khi hết nhịp của lần xin trước) và tối đa 1
+  // tin hẹn khi hết nhịp; chờ tối đa 3 nhịp để bắt tin thừa nếu server không gộp. Túi đếm tin "bag" (cả túi, chỉ gửi khi xin), không đếm "bagd".
+  for(const [type,msg,cnt] of [["bag",undefined,()=>G.bagStat.bag.n],["vohons",undefined,()=>G.ownedMsgs],["quest",{op:"get"},()=>G.questMsgs]]){
+    const n0=cnt(); for(let k=0;k<20;k++) G.room.send(type,msg);
+    const got=await waitFor(()=>cnt()>n0,2000); await waitFor(()=>cnt()>n0+2,ASK_CD*3000);
+    ok(got&&cnt()-n0<=2,`gửi dồn 20 tin "${type}": nhận ${cnt()-n0} tin (gộp theo nhịp ASK_CD ${ASK_CD} giây)`);
+    const n1=cnt(); G.room.send(type,msg);
+    ok(await waitFor(()=>cnt()>n1,2000),`hết nhịp: xin "${type}" lần nữa vẫn được trả`);
+  }
+  const gs=npcSpot(DAILY.map,DAILY.giver);
+  G.travel=null; G.room.send("test",{op:"warp",mapId:DAILY.map,x:gs.x,y:gs.y+16});
+  ok(await waitFor(()=>G.travel?.mapId===DAILY.map,4000),`warp -> ${MAPS[DAILY.map].name}`);
+  await G.room.leave(); await waitFor(()=>G.leftCode!==null,2000);
+  G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>G.room.state.players?.get(G.room.sessionId)&&G.owned&&G.bag&&G.daily,3000);
+  // Hồn hoàn đang hấp thụ không tính cho bài khảo hạch nộp hồn hoàn. Chọn ngày (hook daily lệch cho cả tiến trình, nên luôn trả về 0 ở
+  // finally) có bài đó.
+  const setOf=day=>dailyPicks(dailyKey(day)), today=(await test(G,"daily",{})).day, [y,mo,dd]=today.split("-").map(Number);
+  const dayAt=s=>vnDay(Date.UTC(y,mo-1,dd,5)+s*86400000), shift=Array.from({length:240},(_,s)=>s).find(s=>setOf(dayAt(s)).some(p=>p.tpl.id==="nop_hon_hoan"));
+  try{
+    let n=G.dailyMsgs; if(shift!==undefined){ await test(G,"daily",{shift}); await waitFor(()=>G.dailyMsgs>n&&G.daily.day===dayAt(shift),1500); }
+    const iR=G.daily.list.findIndex(q=>questChain(q.chain)?.steps[0].id==="nop_hon_hoan");
+    ok(shift!==undefined&&iR>=0,`ngày ${shift===undefined?"?":dayAt(shift)} (lệch ${shift}) có bài nộp hồn hoàn (bài ${iR+1})`);
+    if(iR>=0) await ringGiveTest(iR);
+  } finally { await test(G,"daily",{shift:0}); }
+  async function ringGiveTest(iR){
+    const st=()=>G.daily.list[iR]?.status;
+    async function dq(op){ const k=G.dailyMsgs, l=G.logs.length; G.room.send("quest",{op,chain:G.daily.list[iR].chain}); await waitFor(()=>G.dailyMsgs>k&&G.logs.length>l,1500); return G.logs.slice(l).at(-1)??""; }
+    await test(G,"goto",{x:gs.x,y:gs.y+16});
+    for(const it of looseOf(G).filter(i=>i.code===RING_ITEM)) G.room.send("discard",{id:it.id});
+    await waitFor(()=>!looseOf(G).some(i=>i.code===RING_ITEM),2000);
+    let t=await dq("accept"); ok(G.daily.list[iR].accepted,`nhận bài "${questChain(G.daily.list[iR].chain).steps[0].name}" (${t})`);
+    // Võ hồn ra trận ở bình cảnh cấp 10, chưa có hồn hoàn; một hồn hoàn trong túi thì bài đủ.
+    await test(G,"set",{rowId:G.owned.active,level:10,xp:0,rings:[]}); await test(G,"give",{code:RING_ITEM,qty:1});
+    ok(await waitFor(()=>looseOf(G).some(i=>i.code===RING_ITEM)&&st()==="ready",2000),"một hồn hoàn trong túi: bài nộp hồn hoàn đủ");
+    const ring=looseOf(G).find(i=>i.code===RING_ITEM);
+    const absorb=async()=>{ G.absorbing=null; G.room.send("absorb",{itemId:ring.id}); return waitFor(()=>G.absorbing?.on,1500); };
+    ok(await absorb()&&await waitFor(()=>st()==="active",1500),`bắt đầu hấp thụ hồn hoàn đó: bài về chưa đủ (${st()})`);
+    // Đi một bước: thôi hấp thụ, hồn hoàn lại tính.
+    G.room.send("input",{x:1,y:0}); await waitFor(()=>G.absorbing?.on===false,1500); G.room.send("input",{x:0,y:0});
+    ok(G.absorbing?.result==="cancel"&&await waitFor(()=>st()==="ready",1500),"di chuyển thì thôi hấp thụ: hồn hoàn lại tính, bài đủ");
+    await test(G,"goto",{x:gs.x,y:gs.y+16});
+    ok(await absorb()&&await waitFor(()=>st()==="active",1500),"hấp thụ lại: bài về chưa đủ");
+    t=await dq("turnin");
+    ok(/Chưa xong/.test(t)&&G.absorbing?.on&&looseOf(G).some(i=>i.id===ring.id)&&st()==="active",`trả bài khi hồn hoàn duy nhất đang hấp thụ: từ chối, hấp thụ vẫn chạy (${t})`);
+    await test(G,"rush"); ok(await waitFor(()=>G.absorbing?.result==="ok"&&!looseOf(G).some(i=>i.id===ring.id),1500),"hấp thụ xong bình thường");
+    await test(G,"give",{code:RING_ITEM,qty:1}); await waitFor(()=>st()==="ready",1500);
+    t=await dq("turnin"); ok(/Trả khảo hạch/.test(t)&&st()==="done",`có hồn hoàn khác trong túi: trả bài được (${t})`);
+  }
+  // Đang ghi phần thưởng boss (claimBusy): không bán / bỏ / hấp thụ; nhả thì bán được.
+  const sp=npcSpot(DAILY.map,"thuong_nhan_thien_dau"); await test(G,"goto",{x:sp.x,y:sp.y+16});
+  await test(G,"set",{rowId:G.owned.active,level:20,xp:0,rings:[10]}); await test(G,"give",{code:RING_ITEM,qty:1});
+  await waitFor(()=>looseOf(G).some(i=>i.code===RING_ITEM),1500);
+  const r2=looseOf(G).find(i=>i.code===RING_ITEM), h0=G.bag.honTe;
+  ok((await test(G,"claimhold",{on:true}))?.busy===true,"hook claimhold: giữ như đang chờ DB ghi phần thưởng boss");
+  let t=await trade(G,"sell",{id:r2.id,npc:"thuong_nhan_thien_dau"});
+  ok(/phần thưởng boss/.test(t)&&G.bag.honTe===h0&&looseOf(G).some(i=>i.id===r2.id),`đang ghi phần thưởng boss: không bán được (${t})`);
+  { const l=G.logs.length; G.room.send("discard",{id:r2.id}); await waitFor(()=>G.logs.length>l,1500);
+    ok(/phần thưởng boss/.test(G.logs.at(-1))&&looseOf(G).some(i=>i.id===r2.id),`không bỏ được (${G.logs.at(-1)})`); }
+  { const l=G.logs.length; G.absorbing=null; G.room.send("absorb",{itemId:r2.id}); await waitFor(()=>G.logs.length>l,1500);
+    ok(/phần thưởng boss/.test(G.logs.at(-1))&&!G.absorbing?.on,`không hấp thụ được (${G.logs.at(-1)})`); }
+  ok((await test(G,"claimhold",{on:false}))?.busy===false,"nhả claimhold");
+  t=await trade(G,"sell",{id:r2.id,npc:"thuong_nhan_thien_dau"});
+  ok(/^Bán/.test(t)&&G.bag.honTe>h0&&!looseOf(G).some(i=>i.id===r2.id),`xong thì bán được (${t})`);
+  // Đi cổng mà transaction đã commit nhưng phòng nhận lỗi (hook travellost): server đọc lại DB, thấy đã ở bản đồ đích thì vẫn cho đi (không
+  // ở lại phòng cũ, nơi mọi lần lưu sau sẽ bị lớp chặn WHERE map_id bỏ); lưu ở phòng mới vẫn được.
+  { const ns=npcSpot("nac_dinh_thanh","thuong_nhan"), l=G.logs.length; await test(G,"travellost");
+    G.travel=null; G.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:ns.x,y:ns.y+16});
+    ok(await waitFor(()=>G.travel?.mapId==="nac_dinh_thanh",4000)&&!G.logs.slice(l).some(x=>/Không chuyển được/.test(x)),
+      "đi cổng báo lỗi sau khi đã commit: vẫn chuyển bản đồ, không báo lỗi cho người chơi");
+    await G.room.leave(); await waitFor(()=>G.leftCode!==null,2000);
+    G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>G.room.state.players?.get(G.room.sessionId)&&G.bag,3000);
+    ok(G.mapId==="nac_dinh_thanh"&&G.room.state.mapId==="nac_dinh_thanh",`/api/me và phòng mới: ${G.mapId}`);
+    await test(G,"coin",{n:4321}); await G.room.leave(); await waitFor(()=>G.leftCode!==null,2000);
+    await enter(G); await waitFor(()=>G.bag,3000);
+    ok(G.bag?.honTe===4321,`lưu ở phòng mới vẫn được: vào lại còn ${G.bag?.honTe} đồng`); }
+  await G.room.leave();
+}
+
+/**
  * Nhiệm vụ hằng ngày (khảo hạch Sử Lai Khắc của Phất Lan Đức, mục 5.8): hàm thuần (mã chuỗi `daily:<yyyymmdd>:<i>`, bộ bài ổn định
  * theo ngày, bài 1 săn, các bài sau không trùng, mẫu hợp lệ, parseQuest, hồn thú / bản đồ hợp cấp, chỉ đường giữa các bản đồ); tài
  * khoản mới: 3 bài chưa nhận, ở bản đồ khác không nhận được. Ở Thiên Đấu Thành (hook `daily {shift}` chọn ngày có bài đấu hồn và bài
@@ -7772,6 +7872,86 @@ async function partyEffectExpansionTest(){
     const coreB=await live(B), coreO=await live(O), coreWant=CORE_SET_FX.luu_ly.four.swapAtk*PARTY_BUFF_MULT;
     ok(Math.abs((coreB.buffs.atk?.v??0)-coreWant)<1e-9&&!coreO.buffs.atk,`Lưu Ly 4 món: B nhận công ${(coreB.buffs.atk?.v??0)*100}% (cần ${coreWant*100}%), O không nhận [đổi tay ${sw1}/${sw2}, B: ${B.logs.slice(lb).join(" | ")}]`);
   } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
+}
+
+/**
+ * #187: dòng phụ hồn cốt. Hàm thuần (bộ theo vị trí, mức theo bậc, đủ dòng ở mốc cuối), rồi S cường hóa hồn cốt đang gắn qua từng
+ * mốc (mỗi mốc 1 dòng, không trùng, cộng ngay vào chỉ số); hồn cốt +N tạo bằng hook `give` (chưa có dòng) được tung bù khi vào lại,
+ * vào lần nữa không tung thêm (đã lưu; lượt PostgreSQL kiểm qua DB thật).
+ */
+async function boneSubTest(){
+  console.log("[#187] Hồn cốt: dòng phụ ngẫu nhiên ở mốc cường hóa, tung bù cho hồn cốt cũ");
+  // Hàm thuần (shared/data.ts): bộ theo vị trí, mức theo bậc niên hạn, đủ dòng ở mốc cuối.
+  const rd=(k,x)=>CORE_STATS[k].pct?Math.max(0.1,Math.round(x*10)/10):Math.max(1,Math.round(x));
+  const inRoll=(k,v,years)=>v>=rd(k,boneSubMax(k,years)*CORE_SUB_ROLL[0])-1e-9&&v<=rd(k,boneSubMax(k,years)*CORE_SUB_ROLL[1])+1e-9;
+  const poolOk=(slot,subs)=>subs.every(([k])=>BONE_SUB_POOL[slot].includes(k))&&new Set(subs.map(([k])=>k)).size===subs.length
+    &&!subs.some(([k])=>k===BONE_SLOTS.find(s=>s.id===slot).stat);
+  ok(BONE_SLOTS.every(s=>BONE_SUB_POOL[s.id].length>=BONE_MAX_SUBS&&BONE_SUB_POOL[s.id].every(k=>CORE_STATS[k]&&k!==s.stat))
+    &&BONE_SUB_K.length===TIERS.length&&BONE_SUB_K.every((x,i)=>i===0||x>BONE_SUB_K[i-1])&&BONE_SUB_K.at(-1)===1,
+    `bộ dòng phụ theo vị trí (mã CORE_STATS, không trùng chỉ số chính), hệ số theo bậc ${BONE_SUB_K.join(" / ")}`);
+  ok([0,4,5,9,10,15,19,20].map(boneSubsDue).join(" ")==="0 0 1 1 2 3 3 4"&&BONE_ENHANCE_MILESTONES.length===BONE_MAX_SUBS,"số dòng phải có: một dòng mỗi mốc +5 / +10 / +15 / +20");
+  ok(boneSubMax("crit",MAX_YEARS)===CORE_STATS.crit.sub&&Math.abs(boneSubMax("hp",1000)-CORE_STATS.hp.sub*BONE_SUB_K[2])<1e-9,"mức dòng phụ = CORE_STATS.sub × BONE_SUB_K theo bậc");
+  { const r=boneAddSubs("tay_phai",MAX_YEARS,20,[],Math.random), r2=boneAddSubs("tay_phai",32000,10,[["crit",2]],Math.random), r3=boneAddSubs("than",5000,15,r2.subs.slice(0,1),Math.random);
+    ok(r.subs.length===BONE_MAX_SUBS&&r.added.length===BONE_MAX_SUBS&&poolOk("tay_phai",r.subs)&&r.subs.every(([k,v])=>inRoll(k,v,MAX_YEARS)),`+20 từ 0 dòng: đủ ${BONE_MAX_SUBS} dòng ${JSON.stringify(r.subs)}`);
+    ok(r2.added.length===1&&r2.subs[0][0]==="crit"&&r2.subs[0][1]===2&&poolOk("tay_phai",r2.subs)&&inRoll(r2.added[0][0],r2.added[0][1],32000),`+10 có 1 dòng: thêm đúng 1 dòng không trùng ${JSON.stringify(r2.subs)}`);
+    ok(boneAddSubs("tay_phai",32000,9,[["crit",2]],Math.random).added.length===0&&boneAddSubs("dau",1000,4,[],Math.random).subs.length===0,"chưa qua mốc mới thì không thêm dòng");
+    ok(r3.subs.length===3&&r3.added.length===2,"tung bù: thêm đúng phần còn thiếu"); }
+  ok(same(parseBoneSubs({subs:[["crit",2],["crit",3],["xx",1],["hp","1"],["hp",30],["atk_pct",1],["mp",9],["mp_pct",1]]}),[["crit",2],["hp",30],["atk_pct",1],["mp",9]])&&same(parseBoneSubs({}),[]),
+    "parseBoneSubs bỏ mục hỏng / trùng, tối đa 4 dòng");
+  const bb=boneBonus([{slot:"tay_phai",years:32000,enhance:10,subs:[["atk_pct",3],["hp",40]]},{slot:"dau",years:1000,subs:[["atk_pct",1.5]]}]);
+  ok(bb.atk===boneStats("tay_phai",32000,10).atk&&bb.atk_pct===4.5&&bb.hp===40&&bb.mp===boneStats("dau",1000).mp,"boneBonus cộng dòng phụ (cùng mã thì dồn)");
+  ok(Math.abs(calcStats(0,30,[1,1],1,{atk_pct:10,crit:5,crit_dmg:10}).atk-calcStats(0,30,[1,1],1,{},{atk_pct:10}).atk)<1e-9
+    &&calcStats(0,30,[1,1],1,{crit:5,crit_dmg:10}).crit===CRIT.chance+0.05&&calcStats(0,30,[1,1],1,{crit_dmg:10}).critMult===CRIT.mult+0.1,
+    "calcStats: dòng % / chí mạng của hồn cốt tính như hồn hạch");
+  // Trong game: S cường hóa hồn cốt đang gắn qua các mốc; hồn cốt +N tạo bằng hook (không dòng phụ) được tung bù một lần khi vào lại.
+  const S=await bot("Cốt Phụ","u_minh_linh_mieu",{sex:1,hair:0,hairCol:2,outfitCol:1});
+  const me=()=>S.room.state.players?.get(S.room.sessionId);
+  await waitFor(()=>S.owned&&S.bag&&me(),3000);
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dòng phụ hồn cốt trong game (cần hook give, stats): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+    const AK="am_kim_khung_trao_hung", act=S.owned.active, itemOf=id=>S.bag.items.find(i=>i.id===id);
+    async function op(type,msg){ const n=S.bagMsgs??0, l=S.logs.length; S.room.send(type,msg); await waitFor(()=>(S.bagMsgs??0)>n&&S.logs.length>l,2000); await sleep(80); return S.logs.at(-1)??""; }
+    async function give(years,slot,enhance=0){ const had=new Set(bonesOf(S).map(i=>i.id)); await test(S,"give",{code:BONE_ITEM,years,beast:AK,slot,enhance}); return bonesOf(S).find(i=>!had.has(i.id)); }
+    const enh=(t,m)=>{ S.enh=null; return op("enhance",{targetId:t,materialIds:m}); };
+    const liveOk=s=>s.live&&s.live.maxHp===s.stats.maxHp&&s.live.maxMp===s.stats.maxMp&&Math.abs(s.live.atk-s.stats.atk)<1e-6&&Math.abs(s.live.crit-s.stats.crit)<1e-9&&Math.abs(s.live.critMult-s.stats.critMult)<1e-9;
+    const subsOf=id=>parseBoneSubs(itemOf(id)?.stats);
+    await test(S,"rest",{s:TEAM_COMBAT_SECS+1});
+    const tp=await give(32000,"tay_phai"); await op("equip",{itemId:tp.id,vohonId:act});
+    ok(itemOf(tp.id)?.vohon===act&&subsOf(tp.id).length===0,"đích: Tay phải 32.000 năm đang gắn, chưa có dòng phụ");
+    // +0 -> +8 (qua mốc +5): một dòng.
+    let m=await give(32000,"tay_phai"), t=await enh(tp.id,[m.id]), s1=await test(S,"stats"), sub=subsOf(tp.id);
+    ok(itemOf(tp.id).enhance>=5&&itemOf(tp.id).enhance<10&&sub.length===1&&poolOk("tay_phai",sub)&&inRoll(sub[0][0],sub[0][1],32000),
+      `qua mốc +5 (lên +${itemOf(tp.id).enhance}): thêm 1 dòng ${coreStatText(...(sub[0]??["hp",0]))}`);
+    ok(same(S.enh?.subs,sub.map(([k,v])=>({k,v})))&&t.includes(`thêm dòng phụ ${coreStatText(...(sub[0]??["hp",0]))}`),`tin "enhanced" và log báo dòng vừa thêm: ${t}`);
+    ok(s1.bones[sub[0]?.[0]]>=sub[0]?.[1]&&liveOk(s1),"dòng phụ cộng ngay vào võ hồn ra trận (boneBonus, calcStats)");
+    // Không qua mốc mới: không thêm dòng.
+    const lv1=itemOf(tp.id).enhance; m=await give(1000,"tay_phai"); await enh(tp.id,[m.id]);
+    ok(itemOf(tp.id).enhance<10&&same(subsOf(tp.id),sub)&&(S.enh?.subs??[]).length===0,`+${lv1} -> +${itemOf(tp.id).enhance} chưa tới mốc +10: dòng phụ giữ nguyên`);
+    // Qua +10 và +15 một lần: thêm 2 dòng; rồi +20: đủ 4 dòng, không trùng, không trùng chỉ số chính.
+    const ms=[await give(MAX_YEARS,"tay_phai"),await give(MAX_YEARS,"tay_phai")]; t=await enh(tp.id,ms.map(x=>x.id)); const lv2=itemOf(tp.id).enhance, sub2=subsOf(tp.id);
+    ok(lv2>=15&&lv2<20&&sub2.length===3&&same(sub2[0],sub[0])&&poolOk("tay_phai",sub2)&&sub2.every(([k,v])=>inRoll(k,v,32000))&&(S.enh?.subs??[]).length===2,
+      `qua mốc +10, +15 cùng lúc (lên +${lv2}): thêm 2 dòng ${JSON.stringify(sub2.slice(1))}`);
+    const m20=[]; for(let k=0;k<4;k++) m20.push((await give(MAX_YEARS,"tay_phai")).id);
+    await enh(tp.id,m20); const sub4=subsOf(tp.id), s4=await test(S,"stats");
+    ok(itemOf(tp.id).enhance===BONE_MAX_ENHANCE&&sub4.length===BONE_MAX_SUBS&&poolOk("tay_phai",sub4)&&same(sub4.slice(0,3),sub2),
+      `+${BONE_MAX_ENHANCE}: đủ ${BONE_MAX_SUBS} dòng ${sub4.map(x=>coreStatText(...x)).join(", ")}`);
+    const want=boneBonus([{slot:"tay_phai",years:32000,enhance:BONE_MAX_ENHANCE,subs:sub4}]);
+    ok(CORE_STAT_IDS.every(k=>Math.abs(s4.bones[k]-want[k])<1e-9)&&liveOk(s4),"chỉ số trong trận khớp boneBonus kèm 4 dòng phụ");
+    // Tung bù: hồn cốt +N tạo bằng hook (như hồn cốt cường hóa trước #187) chưa có dòng phụ.
+    const old=[[await give(12000,"than",12),2],[await give(MAX_YEARS,"dau",20),4],[await give(5000,"chan_trai",4),0]];
+    await op("equip",{itemId:old[1][0].id,vohonId:act});
+    ok(old.every(([it])=>subsOf(it.id).length===0),"hồn cốt +12 / +20 / +4 tạo bằng hook: chưa có dòng phụ");
+    const rejoin=async()=>{ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; S.bag=null; await enter(S); S.room.send("bag"); await waitFor(()=>me()&&S.bag&&S.owned,3000); };
+    await rejoin();
+    const got=old.map(([it])=>subsOf(it.id)), s5=await test(S,"stats");
+    ok(old.every(([it,n],i)=>got[i].length===n&&poolOk(it.stats.slot,got[i])&&got[i].every(([k,v])=>inRoll(k,v,it.years))),
+      `vào lại: tung bù đúng số dòng còn thiếu (+12: ${got[0].length}, +20: ${got[1].length}, +4: ${got[2].length})`);
+    ok(same(subsOf(tp.id),sub4),"hồn cốt đã đủ dòng không bị tung thêm");
+    ok(itemOf(old[1][0].id)?.vohon===act&&CORE_STAT_IDS.every(k=>Math.abs(s5.bones[k]-boneBonus([{slot:"tay_phai",years:32000,enhance:20,subs:sub4},{slot:"dau",years:MAX_YEARS,enhance:20,subs:got[1]}])[k])<1e-9)&&liveOk(s5),
+      "dòng tung bù của hồn cốt đang gắn cộng vào chỉ số ngay khi vào");
+    await rejoin();
+    ok(old.every(([it],i)=>same(subsOf(it.id),got[i]))&&same(subsOf(tp.id),sub4),"vào lại lần nữa: không tung thêm, dòng phụ giữ nguyên (đã lưu)");
+  } finally { await S.room.leave(); }
 }
 
 /**
