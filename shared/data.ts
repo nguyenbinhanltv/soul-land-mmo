@@ -3610,6 +3610,12 @@ export const NPCS: NpcDef[] = [
       "Học viện mới dời về Thiên Đấu Thành, nhưng khảo hạch thì không nghỉ ngày nào: mỗi ngày ta ra vài bài, nửa đêm đổi bài mới (nhiệm vụ hằng ngày).",
       "Muốn mạnh lên thì ra Đại Đấu Hồn Trường mà rèn luyện thực chiến, hoặc quay về Tinh Đấu Đại Sâm Lâm săn hồn hoàn hợp vòng.",
     ] },
+  { id: "trieu_vo_cuc", name: "Triệu Vô Cực", title: "Bất Động Minh Vương · Sử Lai Khắc Học Viện", role: "talk", col: "#ff9a5c",
+    looks: { sex: 0, hair: 0, hairCol: 1, outfitCol: 3, skin: 0 },
+    lines: [
+      "Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Võ hồn của ta là Địa Ngục Ma Long, đừng thử đứng trước mặt ta quá một nén nhang.",
+      "Sử Lai Khắc chỉ nhận quái vật. Xong bài của Đại Sư rồi thì tới đây, ta có chín bài cho ngươi: Thất Quái ngày trước cũng đi con đường này.",
+    ] },
   { id: "thuong_nhan_thien_dau", name: "Chưởng quỹ", title: "Thương hội Thiên Đấu", role: "shop", col: "#ffb35c",
     looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 1, skin: 0 },
     lines: [
@@ -3791,14 +3797,16 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
  * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
  * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
  */
-export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give";
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king";
 /**
  * Từ nhiệm vụ hằng ngày (DAILY_POOL): `kill` thêm `fit` (chỉ hồn thú hợp cấp, fitBeast); `arena` đánh xong một trận Đại Đấu Hồn
  * Trường (thắng / thua / hòa, không tính bỏ trận hay đối thủ không vào sân); `give` nộp `n` món mã `item` lúc trả bài (số đếm là số
  * món đang có trong túi, server tính lại mỗi khi túi đổi); `near`: NPC chỉ đường trên bản đồ nhỏ.
+ * Từ chương 2 (QUEST_CH2): `elite` tham gia hạ một tinh anh (người hạ và đồng đội được chia kinh nghiệm); `king` có đóng góp khi một
+ * thú vương bị hạ; `party` (trên `kill`) chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm.
  */
 export interface QuestGoal {
-  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; item?: string; near?: string;
+  k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
 }
 /** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
 export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
@@ -3815,9 +3823,14 @@ export interface QuestChain { id: string; name: string; giver: string; map: stri
  */
 export interface QuestProgress { chain: string; step: number; accepted: boolean; prog: number[]; }
 /** Sự kiện server báo cho bộ đếm nhiệm vụ (MapRoom.questEvent). */
-export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; }
+export interface QuestEvent { k: QuestGoalKind; npc?: string; map?: string; zone?: string; fit?: boolean; party?: boolean; }
 /** Mã chuỗi tân thủ (mọi tài khoản, cả tài khoản cũ, bắt đầu ở bước 1 khi chưa có dòng trong bảng `quests`). */
 export const QUEST_STARTER = "tan_thu";
+/** Mã chuỗi chương 2 "Sử Lai Khắc Thất Quái" (bảng `quests` như chuỗi tân thủ); chỉ nhận được khi chuỗi `QUEST_CH2_AFTER` đã xong. */
+export const QUEST_CH2 = "su_lai_khac";
+export const QUEST_CH2_AFTER = QUEST_STARTER;
+/** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
+export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER };
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
   { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
@@ -3867,6 +3880,68 @@ export const QUESTS: QuestChain[] = [
         done: ["Tốt lắm. Ngươi đã đứng vững ở Tinh Đấu Đại Sâm Lâm."],
         reward: { honTe: 150, items: [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_hon_dan", qty: 5 }, { code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
     ] },
+  // Chương 2 (#189): giao bài ở Thiên Đấu Thành, mục tiêu theo bản đồ (không theo vùng, vì bản đồ có thể đổi tên vùng). Không thưởng
+  // mảnh UR (chỉ rơi từ rương boss thế giới, mục 5.3).
+  { id: QUEST_CH2, name: "Sử Lai Khắc Thất Quái", giver: "trieu_vo_cuc", map: "thien_dau_thanh",
+    finale: "Chín bài ta ra, ngươi đã qua hết. Sử Lai Khắc không nhận người thường, nhưng từ hôm nay ngươi không còn là người thường nữa. Đường phía trước còn dài.",
+    steps: [
+      { id: "hoc_vien", name: "Học viện của quái vật", desc: "Tới Thiên Đấu Thành, gặp Phất Lan Đức.",
+        offer: ["Ta là Triệu Vô Cực, Bất Động Minh Vương của Sử Lai Khắc Học Viện. Đại Sư đã theo Đường Tam lên đây, và hắn nhắc tới ngươi.",
+          "Sử Lai Khắc chỉ nhận quái vật. Muốn biết mình có đủ tư cách không thì làm chín bài của ta. Bài đầu: tìm Phất Lan Đức, viện trưởng của chúng ta."],
+        goals: [{ k: "map", map: "thien_dau_thanh", n: 1, have: true, text: "Đặt chân tới Thiên Đấu Thành" }, { k: "talk", npc: "phat_lan_duc", n: 1, text: "Nói chuyện với Phất Lan Đức" }],
+        done: ["Phất Lan Đức nói không sai: Thất Quái ngày đầu cũng như ngươi bây giờ, chẳng ai ra dáng gì cả."],
+        reward: { honTe: 100, items: [{ code: "dai_hoi_huyet_dan", qty: 2 }] } },
+      { id: "mot_nen_nhang", name: "Một nén nhang", desc: "Cùng đồng đội hạ một tinh anh ở bất kỳ bản đồ săn nào.",
+        offer: ["Thử thách của Sử Lai Khắc: trụ trước ta một nén nhang. Ngươi chưa đủ sức, nên ta đổi: hạ một tinh anh, kẻ mạnh hơn hồn thú thường rất nhiều.",
+          "Tinh anh canh các vùng săn. Một mình khó thì rủ đồng đội, ai được chia kinh nghiệm cũng được tính."],
+        goals: [{ k: "elite", n: 1, text: "Tham gia hạ một tinh anh" }],
+        done: ["Một nén nhang tàn rồi. Biết liều mà không mù quáng, đó là điều ta muốn thấy."],
+        reward: { honTe: 200, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 10 }] } },
+      { id: "tinh_dau_sau", name: "Tinh Đấu sâu thẳm", desc: "Tới Tinh Đấu Nội địa, hạ hồn thú ở đó.",
+        offer: ["Bài thứ ba: vào sâu hơn. Tinh Đấu Nội địa là nơi hồn thú nghìn năm trở lên lui tới, không còn là chỗ cho kẻ xem thường.",
+          "Tới đó, hạ ba mươi con hồn thú rồi trở về."],
+        goals: [{ k: "map", map: "tinh_dau_noi_dia", n: 1, have: true, text: "Đặt chân tới Tinh Đấu Nội địa" },
+          { k: "kill", map: "tinh_dau_noi_dia", n: 30, text: "Hạ hồn thú ở Tinh Đấu Nội địa" }],
+        done: ["Về được là tốt. Hồn sư sống lâu không phải nhờ mạnh nhất, mà nhờ biết lúc nào nên lui."],
+        reward: { honTe: 300, items: [{ code: "dai_hoi_hon_dan", qty: 3 }] } },
+      { id: "ly_luan", name: "Lý luận của Đại Sư", desc: "Hấp thụ thành công một hồn hoàn trong giới hạn của vòng.",
+        offer: ["Bài thứ tư: lý luận. Đại Sư nói hồn hoàn phải chọn theo giới hạn, ta thì thấy ngươi nên nghe lời hắn một lần.",
+          "Hấp thụ thành công một hồn hoàn không vượt giới hạn của vòng rồi về báo."],
+        goals: [{ k: "absorb", n: 1, text: "Hấp thụ thành công hồn hoàn trong giới hạn" }],
+        done: ["Lý luận của Đại Sư có chỗ khô khan, nhưng chưa bao giờ sai. Ghi nhớ."],
+        reward: { honTe: 300, items: [{ code: shardCode("xuc_xich"), qty: 10 }] } },
+      { id: "hoc_phi", name: "Đấu hồn kiếm học phí", desc: "Đánh ba trận Đại Đấu Hồn Trường ở Thiên Đấu Thành, thắng thua đều tính.",
+        offer: ["Bài thứ năm: thực chiến. Sử Lai Khắc không dạy hồn sư đóng cửa tu luyện. Ra Đại Đấu Hồn Trường mà đánh.",
+          "Ba trận, thắng thua đều tính, ta chỉ muốn thấy ngươi dám bước vào sân. Bỏ trận thì không tính."],
+        goals: [{ k: "arena", n: 3, text: "Đánh trận Đại Đấu Hồn Trường" }],
+        done: ["Thua cũng được, miễn là đứng dậy. Thất Quái trận nào cũng thắng thì đâu cần tới ta."],
+        reward: { honTe: 300, items: [{ code: "hoi_thanh_phu", qty: 2 }] } },
+      { id: "ket_nghia", name: "Thất Quái kết nghĩa", desc: "Lập tổ đội, hạ hồn thú hợp cấp cùng đồng đội chia kinh nghiệm.",
+        offer: ["Bài thứ sáu: bảy người của Thất Quái, từ Đường Tam tới Tiểu Vũ, Đái Mộc Bạch, Chu Trúc Thanh, Ninh Vinh Vinh, Áo Tư Tạp, Mã Hồng Tuấn, không ai mạnh một mình.",
+          "Lập tổ đội với ít nhất một người, hạ hai mươi con hồn thú hợp cấp khi cả đội cùng chia kinh nghiệm."],
+        goals: [{ k: "kill", n: 20, fit: true, party: true, text: "Hạ hồn thú hợp cấp khi tổ đội cùng chia kinh nghiệm" }],
+        done: ["Có đồng đội thì đường dài đi cũng ngắn. Nhớ lấy điều này."],
+        reward: { honTe: 400, items: [{ code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
+      { id: "bang_hoa", name: "Băng Hỏa Lưỡng Nghi Nhãn", desc: "Tới Lạc Nhật Sâm Lâm, hạ hồn thú ở đó.",
+        offer: ["Bài thứ bảy: Lạc Nhật Sâm Lâm, nơi Độc Cô Bác canh giữ Băng Hỏa Lưỡng Nghi Nhãn. Hắn không thích khách lạ.",
+          "Tới đó, hạ ba mươi con hồn thú rồi trở về. Đừng lại gần suối, và đừng chọc vào kẻ không nên chọc."],
+        goals: [{ k: "map", map: "lac_nhat_sam_lam", n: 1, have: true, text: "Đặt chân tới Lạc Nhật Sâm Lâm" },
+          { k: "kill", map: "lac_nhat_sam_lam", n: 30, text: "Hạ hồn thú ở Lạc Nhật Sâm Lâm" }],
+        done: ["Còn sống mà về, đủ để kể cho Mã Hồng Tuấn nghe. Hắn sẽ ghen tị lắm."],
+        reward: { honTe: 500, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 15 }] } },
+      { id: "thu_vuong_ta_hoa", name: "Thú vương tà hóa", desc: "Có đóng góp khi một thú vương bị hạ.",
+        offer: ["Bài thứ tám: thú vương tà hóa, hồn thú bị tà khí ăn mòn, hung bạo hơn thú vương bình thường. Một mình ngươi không đủ sức đâu.",
+          "Cùng người khác hạ một thú vương. Có đóng góp và còn ở đó lúc nó ngã xuống là tính."],
+        goals: [{ k: "king", n: 1, text: "Có đóng góp khi hạ một thú vương" }],
+        done: ["Thú vương ngã xuống, tà khí tan. Lần sau gặp thứ như vậy, ngươi biết phải làm gì."],
+        reward: { honTe: 600, items: [{ code: "dai_hoi_huyet_dan", qty: 3 }, { code: "dai_hoi_hon_dan", qty: 3 }] } },
+      { id: "vong_loai", name: "Vòng loại Tinh Anh Đại Tái", desc: "Đánh năm trận Đại Đấu Hồn Trường để tranh suất Toàn Đại Lục Cao Cấp Hồn Sư Tinh Anh Đại Tái.",
+        offer: ["Bài cuối: Toàn Đại Lục Cao Cấp Hồn Sư Tinh Anh Đại Tái. Muốn dự thì qua vòng loại, vòng loại ở Đại Đấu Hồn Trường.",
+          "Năm trận, thắng thua đều tính. Đánh xong thì về đây."],
+        goals: [{ k: "arena", n: 5, text: "Đánh trận Đại Đấu Hồn Trường" }],
+        done: ["Vòng loại ngươi qua rồi. Phần còn lại, tự ngươi bước tiếp."],
+        reward: { honTe: 800, items: [{ code: shardCode("ta_hoa_phuong_hoang"), qty: 25 }] } },
+    ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
 /** Chuỗi theo mã: chuỗi cố định trong QUESTS, hoặc bài khảo hạch hằng ngày `daily:<yyyymmdd>:<i>` (dailyChain). */
@@ -3894,7 +3969,8 @@ export function questStatus(q: QuestProgress): QuestStatus {
 }
 /** Sự kiện `ev` có tính cho mục tiêu `g` không. */
 export const questGoalHit = (g: QuestGoal, ev: QuestEvent) => g.k !== "give" &&
-  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true);
+  g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true)
+  && (!g.party || ev.party === true);
 /** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
 export const questRewardText = (r: QuestReward) =>
   [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");

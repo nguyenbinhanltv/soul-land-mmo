@@ -10,7 +10,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
+  QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
@@ -2133,15 +2133,20 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
 }
 
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
-let questMsg: QuestMsg | null = null; // tin "quest" gần nhất (tiến độ do server giữ)
+let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ; khung theo dõi chỉ vẽ chuỗi này, chương 2 ở #190)
+const questMsgs = new Map<string, QuestMsg>(); // tin "quest" gần nhất của từng chuỗi cố định (kể cả tân thủ)
 let questFold = false;                // khung theo dõi đang thu gọn
 let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
 let dailyFold = false;
-/** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ hoặc chưa nhận tin "quest"). */
-export const questOf = (id: string) => (questMsg && questChain(questMsg.chain)?.giver === id ? questMsg : null);
+/** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ, chưa nhận tin "quest", hoặc chuỗi chưa mở theo QUEST_AFTER). */
+export const questOf = (id: string) => {
+  const q = [...questMsgs.values()].find((m) => questChain(m.chain)?.giver === id), after = q && QUEST_AFTER[q.chain];
+  return q && (!after || questMsgs.get(after)?.status === "done") ? q : null;
+};
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
 export function setQuest(q: QuestMsg) {
-  questMsg = q;
+  questMsgs.set(q.chain, q);
+  if (q.chain === QUEST_STARTER) questMsg = q;
   renderQuestTracker();
   if (npcDefOpen && questOf(npcDefOpen.id)) renderNpc();
 }
@@ -2208,7 +2213,7 @@ function renderQuestPage(el: HTMLElement, act: NpcActions) {
   const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
   b.textContent = q.status === "offer" ? "Nhận nhiệm vụ" : q.status === "ready" ? "Trả nhiệm vụ, nhận thưởng" : "Đang làm…";
   b.disabled = q.status === "active";
-  b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin"); });
+  b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain === QUEST_STARTER ? undefined : q.chain); });
   row.appendChild(b); el.appendChild(row);
 }
 /** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu), kể cả người ra khảo hạch hằng ngày. */

@@ -26,7 +26,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef, type FormDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
   npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
-  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
+  QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds, isDaily, fitBeast,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
@@ -139,6 +139,8 @@ export interface PData {
   partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
   // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
   quest: QuestProgress;
+  // Chuỗi cố định khác chuỗi tân thủ (QUESTS, chương 2 trở đi; #189): tiến độ từng chuỗi, tin riêng "quest" kèm mã chuỗi.
+  chains: QuestProgress[];
   // Khảo hạch hằng ngày của Phất Lan Đức (DAILY): DAILY.count bài của ngày `dailyDay` (vnDay), tin riêng "daily"; lưu cùng túi đồ như `quest`.
   daily: QuestProgress[]; dailyDay: string;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
@@ -771,7 +773,8 @@ export class MapRoom extends Room<MapState> {
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
       claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
-      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
+      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
+      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
@@ -950,7 +953,7 @@ export class MapRoom extends Room<MapState> {
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
     return { honTe: d.honTe, slots: d.bagSlots, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
-      quests: [d.quest, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })),
+      quests: [d.quest, ...d.chains, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })),
       sell: { ...d.sellCfg }, sold: d.sold.map((r) => ({ ...r, item: { ...r.item, stats: r.item.stats == null ? null : structuredClone(r.item.stats) } })) };
   }
 
@@ -1718,7 +1721,7 @@ export class MapRoom extends Room<MapState> {
     }, wait);
   }
   /** `quest {op: "get"}`: tiến độ chuỗi tân thủ và khảo hạch hằng ngày, theo nhịp `ask`. */
-  askQuest(id: string) { this.ask(id, "quest", () => { this.sendQuest(id); this.sendDaily(id); }); }
+  askQuest(id: string) { this.ask(id, "quest", () => { for (const c of [QUEST_STARTER, ...this.pdata.get(id)?.chains.map((q) => q.chain) ?? []]) this.sendQuest(id, undefined, undefined, c); this.sendDaily(id); }); }
 
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
   /**
@@ -2071,10 +2074,14 @@ export class MapRoom extends Room<MapState> {
    * tiêu, phần thưởng client đọc từ QUESTS. `ev`: vừa nhận (`accept`), vừa đủ mục tiêu (`ready`), vừa trả (`reward`, kèm `done` = mã
    * bước vừa trả), vừa xong cả chuỗi (`finish`); client hiện thông báo theo `ev`.
    */
-  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    this.clients.getById(id)?.send("quest", { ...d.quest, prog: [...d.quest.prog], status: questStatus(d.quest), ev, done });
+  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string, chain = QUEST_STARTER) {
+    const d = this.pdata.get(id), q = d && this.fixedQuest(d, chain); if (!q) return;
+    this.clients.getById(id)?.send("quest", { ...q, prog: [...q.prog], status: questStatus(q), ev, done });
   }
+  /** Tiến độ chuỗi cố định `chain` (tân thủ hoặc chương sau) của người chơi; undefined nếu không phải chuỗi cố định. */
+  fixedQuest(d: PData, chain: string) { return d.quest.chain === chain ? d.quest : d.chains.find((q) => q.chain === chain); }
+  /** Chuỗi `chain` đã mở cho người chơi chưa: chuỗi không có điều kiện, hoặc chuỗi `QUEST_AFTER` của nó đã xong. */
+  questOpen(d: PData, chain: string) { const a = QUEST_AFTER[chain]; return !a || questStatus(this.fixedQuest(d, a) ?? questStart(a)) === "done"; }
 
   /** Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó. */
   questHave(d: PData, g: QuestGoal) {
@@ -2092,11 +2099,12 @@ export class MapRoom extends Room<MapState> {
    */
   questEvent(id: string, ev: QuestEvent) {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
-    const r = this.questBump(d.quest, ev), chain = questChain(d.quest.chain);
-    if (r && chain) {
+    for (const q of [d.quest, ...d.chains]) {
+      const r = this.questBump(q, ev), chain = questChain(q.chain);
+      if (!r || !chain) continue;
       d.bagDirty = true;
-      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[d.quest.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, r === "ready" ? "ready" : undefined);
+      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[q.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
+      this.sendQuest(id, r === "ready" ? "ready" : undefined, undefined, q.chain);
     }
     // Khảo hạch hằng ngày: cùng sự kiện, từng bài đã nhận (sang ngày mới thì bộ bài cũ bỏ trước).
     if (this.dailyFresh(d)) this.sendDaily(id, "reset");
@@ -2142,39 +2150,40 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     if (op === "get") return this.askQuest(id);
     if (typeof chainId === "string" && isDaily(chainId)) return this.dailyAction(id, op, chainId);
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id); };
-    const chain = questChain(d.quest.chain); if (!chain) return;
+    const q = this.fixedQuest(d, typeof chainId === "string" ? chainId : QUEST_STARTER), chain = q && questChain(q.chain); if (!q || !chain) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id, undefined, undefined, q.chain); };
     if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
     const giver = npcDef(chain.giver)!, verb = op === "accept" ? "nhận" : "trả";
     if (!this.map.npcs.some((n) => n.id === chain.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[chain.map].name} để ${verb} nhiệm vụ.`);
     if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
     if (!this.npcNear(id, { id: chain.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} nhiệm vụ.`);
-    const st = questStatus(d.quest), step = chain.steps[d.quest.step];
+    const st = questStatus(q), step = chain.steps[q.step];
     if (st === "done") return warn(`Đã học xong cả chuỗi "${chain.name}".`);
+    if (!this.questOpen(d, chain.id)) return warn(`Chưa mở chuỗi "${chain.name}": hoàn thành chuỗi "${questChain(QUEST_AFTER[chain.id])?.name}" trước.`);
     if (op === "accept") {
       if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả nhiệm vụ.`);
-      d.quest = { chain: chain.id, step: d.quest.step, accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) };
+      Object.assign(q, { accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) });
       d.bagDirty = true;
-      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${d.quest.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
-      const ready = questStatus(d.quest) === "ready";
+      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${q.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
+      const ready = questStatus(q) === "ready";
       if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả nhiệm vụ ngay để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, ready ? "ready" : "accept");
+      this.sendQuest(id, ready ? "ready" : "accept", undefined, q.chain);
       this.saveTrade(id, d);
       return;
     }
     if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
-    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${d.quest.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
+    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${q.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
     if (!this.bagFits(d, step.reward.items))
       return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
     this.addCoin(d, step.reward.honTe);
     for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
-    d.quest = { chain: chain.id, step: d.quest.step + 1, accepted: false, prog: [] };
+    Object.assign(q, { step: q.step + 1, accepted: false, prog: [] });
     d.bagDirty = true;
     this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${questRewardText(step.reward)}.`, "#f2c84b");
-    const finish = questStatus(d.quest) === "done";
+    const finish = questStatus(q) === "done";
     if (finish) this.log(id, `Hoàn thành chuỗi nhiệm vụ "${chain.name}"!`, giver.col);
     this.sendBag(id);
-    this.sendQuest(id, finish ? "finish" : "reward", step.id);
+    this.sendQuest(id, finish ? "finish" : "reward", step.id, q.chain);
     this.save(id); // phần thưởng và bước mới ghi ngay, cùng một lần ghi túi đồ
   }
 
@@ -3070,9 +3079,11 @@ export class MapRoom extends Room<MapState> {
       out = { day: d.dailyDay, daily: d.daily.map((x) => ({ ...x, status: questStatus(x) })) };
     }
     else if (op === "quest") {
-      // 6.2: đặt tiến độ chuỗi tân thủ (bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi; trả tiến độ hiện tại.
-      if (Number.isInteger(o.step)) { d.quest = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, QUEST_STARTER); d.bagDirty = true; this.sendQuest(id); }
-      out = { quest: { ...d.quest, status: questStatus(d.quest) } };
+      // 6.2: đặt tiến độ chuỗi cố định `chain` (mặc định tân thủ; bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi;
+      // trả tiến độ hiện tại.
+      const q = this.fixedQuest(d, typeof o.chain === "string" ? o.chain : QUEST_STARTER);
+      if (q && Number.isInteger(o.step)) { Object.assign(q, parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, q.chain)); d.bagDirty = true; this.sendQuest(id, undefined, undefined, q.chain); }
+      out = { quest: q && { ...q, status: questStatus(q) } };
     }
     else if (op === "warp") {
       // 6.2: chuyển sang bản đồ `mapId` tại (x, y) qua đúng transaction đi cổng (beginTravel, như một cổng ẩn); client nhận `travel`

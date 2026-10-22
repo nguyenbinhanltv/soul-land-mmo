@@ -109,7 +109,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   ITEMS, ITEM_KINDS, NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
-  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek,
+  QUEST_STARTER, QUEST_CH2, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, SWITCH_CD, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek,
   DAILY, DAILY_POOL, dailyIds, dailyKey, dailyPicks, isDaily, fitBeast, fitMaps,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
@@ -233,7 +233,8 @@ async function enter(b,roomId){
   b.room.onMessage("enhancedcore",m=>{b.coreUp=m;}); // kết quả nâng cấp hồn hạch (5.3)
   b.npc=null; b.room.onMessage("npc",m=>{b.npc=m;}); // server cho mở hộp thoại NPC (6.1)
   b.party=null; b.partyMsgs=0; b.room.onMessage("party",m=>{b.party=m; b.partyMsgs++;}); // khung tổ đội (7.1)
-  b.quest=null; b.questMsgs=0; b.room.onMessage("quest",m=>{b.quest=m; b.questMsgs++;}); // tiến độ nhiệm vụ tân thủ (6.2)
+  b.quest=null; b.questMsgs=0; b.chains={}; b.chainMsgs=0; // tiến độ nhiệm vụ tân thủ (6.2); chuỗi cố định khác (chương 2, #189) ở b.chains[mã chuỗi]
+  b.room.onMessage("quest",m=>{ if(m.chain===QUEST_STARTER){b.quest=m; b.questMsgs++;} else {b.chains[m.chain]=m; b.chainMsgs++;} });
   b.daily=null; b.dailyMsgs=0; b.room.onMessage("daily",m=>{b.daily=m; b.dailyMsgs++;}); // khảo hạch hằng ngày của Phất Lan Đức
   b.res=null; b.resMsgs=0; b.resEv=[]; b.resTop=null; b.room.onMessage("resonance",m=>{b.res=m; b.resMsgs++; if(m.ev) b.resEv.push(...m.ev);}); // cộng minh (8.2)
   b.room.onMessage("resonanceTop",m=>{b.resTop=m;});
@@ -303,6 +304,7 @@ const STANDALONE=[
   ["bigmap",3,bigMapTest],                    //  36 11.3 / 11.5
   ["view",3,syncViewTest],                    //   8 11.4
   ["quest",3,questTest],                      //  31 6.2
+  ["chuong2",3,chapter2Test],                //  42 #189 chương 2 Sử Lai Khắc Thất Quái
   ["daily",3,dailyTest],                      //  18 khảo hạch hằng ngày
   ["resonance",3,resonanceTest],              //  20 8.2
   ["chat",3,chatTest,true],                   //  ~8 #188 chat tổ đội / riêng / thế giới (đo ở máy)
@@ -349,6 +351,7 @@ function finish(){
 // chạy trong bot đầy đủ): đo tick khi nhiều bot tự săn cùng đánh một boss thế giới (server PERF_LOG=1).
 // Bọc trứng Vạn Chu Phệ (#162, eggTest; BOT_ONLY=egg chỉ chạy phần này): đẻ đủ bọc, phá thì không nở, để nguyên thì
 // nở đúng số nhện con, giới hạn nhện con còn sống, thú vương bị hạ thì bọc tan.
+// Chương 2 Sử Lai Khắc Thất Quái (#189, chapter2Test, nhóm 3 của BOT_PART; BOT_ONLY=chuong2): dữ liệu chuỗi, mở sau tân thủ, nhận / trả bài 1, lưu qua lần vào lại.
 // Võ Hồn Dung Hợp Kỹ (#192, fusionTest; BOT_ONLY=fusion chỉ chạy phần này): hai bot cùng tổ đội tung, nổ ở điểm
 // giữa, tốn hồn lực, hồi chiêu; từng lý do từ chối; hết giờ hủy không tốn; đóng góp tinh anh chia đôi.
 // Thủy Triều Dâng của Thâm Hải Ma Kình Vương (#174, tideTest; BOT_ONLY=tide): vùng ngập luân phiên đổi chỗ mỗi đợt,
@@ -368,6 +371,7 @@ if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="split"){ await splitTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="tide"){ await tideTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bonesub"){ await boneSubTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -6950,6 +6954,56 @@ async function partyTest(C){
   const ag=await test(P4,"party",{pop:"age",name:P5.name,s:PARTY_OFFLINE_SECS}); await waitFor(()=>P4.party?.id===0,2000);
   ok(ag?.aged&&P4.party?.id===0&&/rời game quá lâu/.test(P4.logs.join(" ")),`quá ${PARTY_OFFLINE_SECS} giây không vào lại: ra khỏi đội, tổ đội giải tán`);
   for(const b of [P1,P2,P3,P4]) await b.room.leave();
+}
+
+/**
+ * Chương 2 "Sử Lai Khắc Thất Quái" (#189, phần 1; BOT_ONLY=chuong2, nhóm 3 của BOT_PART): dữ liệu chuỗi (9 bài, NPC Triệu Vô Cực ở Thiên Đấu
+ * Thành, mục tiêu trỏ tới bản đồ / NPC có thật, không thưởng mảnh UR, khớp sự kiện elite / king / party); server giữ tiến độ nhiều chuỗi:
+ * chương 2 chỉ mở sau tân thủ, tiến độ tân thủ không đổi; nhận / trả bài 1 (đặt chân tới Thiên Đấu Thành, nói chuyện với Phất Lan Đức)
+ * và lưu qua lần vào lại. Sự kiện elite / king / party do server phát ở phần 2.
+ */
+async function chapter2Test(){
+  console.log("[#189] Chương 2: Sử Lai Khắc Thất Quái");
+  const ch=questChain(QUEST_CH2);
+  ok(ch&&ch.steps.length===9&&npcSpot(ch.map,ch.giver)&&npcDef(ch.giver)?.name==="Triệu Vô Cực"&&QUEST_AFTER[QUEST_CH2]===QUEST_STARTER,
+    `chuỗi "${ch?.name}": ${ch?.steps.length} bài, ${npcDef(ch?.giver)?.name} ở ${MAPS[ch?.map]?.name}, mở sau chuỗi tân thủ`);
+  ok(new Set(ch.steps.map(x=>x.id)).size===9&&ch.steps.every(x=>x.offer.length&&x.done.length&&x.goals.length&&x.goals.every(g=>Number.isInteger(g.n)&&g.n>0&&g.text)
+    &&x.reward.items.every(r=>itemDef(r.code)&&r.qty>0&&VOHON.find(v=>shardCode(v.id)===r.code)?.rarity!=="UR")),"mỗi bài có lời giao, lời trả, mục tiêu và thưởng hợp lệ (không mảnh UR)");
+  ok(ch.steps.every(x=>x.goals.every(g=>(!g.map||MAPS[g.map])&&(!g.npc||Object.keys(MAPS).some(m=>npcSpot(m,g.npc))))),"mục tiêu trỏ tới NPC, bản đồ có thật");
+  const el=ch.steps[1].goals[0], kg=ch.steps[5].goals[0], king=ch.steps[7].goals[0];
+  ok(questGoalHit(el,{k:"elite"})&&!questGoalHit(el,{k:"kill"})&&questGoalHit(king,{k:"king"})&&!questGoalHit(kg,{k:"kill",fit:true})&&!questGoalHit(kg,{k:"kill",party:true})
+    &&questGoalHit(kg,{k:"kill",fit:true,party:true}),"khớp sự kiện elite / king; kill cần cả fit và party");
+  ok(same(parseQuest({step:99,accepted:true,prog:[5]},QUEST_CH2),{chain:QUEST_CH2,step:9,accepted:false,prog:[]}),"parseQuest kẹp bước của chương 2");
+  const D=await bot("Thất Quái","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  const dme=()=>D.room.state.players?.get(D.room.sessionId);
+  if(!(await test(D,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần server (cần hook warp, goto, quest…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
+  async function warp(mapId,x,y){
+    D.travel=null; D.room.send("test",{op:"warp",mapId,x,y});
+    ok(await waitFor(()=>D.travel?.mapId===mapId,4000),`warp -> ${mapId}`);
+    await D.room.leave(); await sleep(300); D.mapId=(await post("/api/me",{token:D.token})).mapId; await enter(D);
+    await waitFor(()=>dme()&&D.bag&&D.quest&&D.chains[QUEST_CH2],3000);
+  }
+  /** Gửi `quest {op, chain: QUEST_CH2}`; server luôn trả tin "quest" của chuỗi đó. Trả dòng log cuối. */
+  async function qop(op){ const n=D.chainMsgs, l=D.logs.length; D.room.send("quest",{op,chain:QUEST_CH2}); await waitFor(()=>D.chainMsgs>n,1500); await sleep(60); return D.logs.slice(l).at(-1)??""; }
+  const q2=()=>D.chains[QUEST_CH2];
+  ok(await waitFor(()=>q2(),2000)&&q2().step===0&&!q2().accepted&&D.quest.chain===QUEST_STARTER&&D.quest.step===0,`tài khoản mới: có tiến độ cả hai chuỗi, chương 2 ở bài 1 (${JSON.stringify(q2())})`);
+  const gs=npcSpot(ch.map,ch.giver);
+  await warp(ch.map,gs.x,gs.y+16);
+  let t=await qop("accept"); ok(/Chưa mở/.test(t)&&!q2().accepted,`chưa xong chuỗi tân thủ: không nhận được chương 2 (${t})`);
+  await test(D,"quest",{step:questChain(QUEST_STARTER).steps.length,accepted:false});
+  ok(await waitFor(()=>D.quest.status==="done"),"hook quest: đặt chuỗi tân thủ xong");
+  t=await qop("turnin"); ok(/Chưa nhận/.test(t)&&q2().step===0,`xong tân thủ: chương 2 mở, chưa nhận thì không trả được (${t})`);
+  await test(D,"goto",{x:gs.x+800,y:gs.y}); t=await qop("accept"); ok(/lại gần Triệu Vô Cực/.test(t)&&!q2().accepted,`đứng xa Triệu Vô Cực: không nhận được (${t})`);
+  await test(D,"goto",{x:gs.x,y:gs.y+16}); t=await qop("accept");
+  ok(q2().accepted&&q2().ev==="accept"&&q2().prog[0]===1&&q2().prog[1]===0&&D.quest.status==="done",`nhận bài 1: đã đứng ở Thiên Đấu Thành nên xong mục tiêu bản đồ (${JSON.stringify(q2().prog)})`);
+  const pg=npcSpot(ch.map,"phat_lan_duc"); await test(D,"goto",{x:pg.x,y:pg.y+16}); await talk(D,"phat_lan_duc");
+  ok(await waitFor(()=>q2().status==="ready")&&q2().ev==="ready","nói chuyện với Phất Lan Đức: bài 1 xong");
+  await test(D,"goto",{x:gs.x,y:gs.y+16});
+  const s=ch.steps[0], ht=D.bag.honTe, qty0=qtyOf(D,s.reward.items[0].code); t=await qop("turnin");
+  ok(q2().step===1&&!q2().accepted&&q2().done===s.id&&D.bag.honTe===ht+s.reward.honTe&&qtyOf(D,s.reward.items[0].code)===qty0+s.reward.items[0].qty,`trả bài 1 "${s.name}": +${questRewardText(s.reward)} (${t})`);
+  await D.room.leave(); await sleep(400); await enter(D); await waitFor(()=>dme()&&D.quest&&D.chains[QUEST_CH2]);
+  ok(q2().step===1&&D.quest.status==="done","thoát vào lại: chương 2 ở bài 2, chuỗi tân thủ vẫn xong");
+  await D.room.leave();
 }
 
 /**
