@@ -73,7 +73,6 @@ export function configurePresence(backend: PresenceBackend) {
   remote = backend;
   void backend.getJson<PartySnapshot>(REMOTE_KEY).then(applySnapshot).catch((e) => console.error("Không đọc được trạng thái tổ đội từ presence", e));
 }
-const local = <T>(fn: () => T) => fn();
 async function remoteMutation<T>(fn: () => T | Promise<T>, publish = true): Promise<T> {
   if (!remote) return fn();
   let result!: T;
