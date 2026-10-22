@@ -3847,8 +3847,12 @@ export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "
 export interface QuestGoal {
   k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
 }
-/** Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). */
-export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; }
+/**
+ * Phần thưởng một bước: Hồn Tệ (đồng) và vật phẩm vào túi (server kiểm tra túi đủ chỗ cho cả phần thưởng mới cho trả). `bones`
+ * (#285): mỗi mục một hồn cốt loài `beast` (mã trong BEASTS), `years` năm, vị trí server tung đều trong BONE_SLOTS, +0, chưa có dòng
+ * phụ (như hồn cốt rơi, mục 5.5); mỗi hồn cốt một ô túi.
+ */
+export interface QuestReward { honTe: number; items: { code: string; qty: number }[]; bones?: { beast: string; years: number }[]; }
 /** Một bước (một bài học): `offer` lời giao, `done` lời khi trả nhiệm vụ, `desc` một câu tóm tắt cho khung theo dõi. */
 export interface QuestStep { id: string; name: string; desc: string; goals: QuestGoal[]; reward: QuestReward; offer: string[]; done: string[]; }
 /**
@@ -3873,6 +3877,8 @@ export const QUEST_CH3 = "hai_than";
 export const QUEST_CH3_AFTER = QUEST_CH2;
 /** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
 export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER, [QUEST_CH3]: QUEST_CH3_AFTER };
+/** Thâm Hải Ma Kình Vương (thú vương Hải Thần Đảo): loài và niên hạn hồn cốt thưởng ở bài cuối chương 3 (#285). */
+const MA_KINH_VUONG = BOSSES[bossIndex("tham_hai_ma_kinh_vuong")];
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
   { id: QUEST_STARTER, name: "Bài học của Đại Sư", giver: "dai_su", map: "nac_dinh_thanh",
@@ -3986,7 +3992,8 @@ export const QUESTS: QuestChain[] = [
     ] },
   // Chương 3 (#284, #191): giao bài ở Bến Hải Thần, mục tiêu theo bản đồ. Phỏng theo truyện: truyện là chuỗi "Hải Thần Cửu Khảo", game
   // rút gọn và không dùng con số; thứ tự khảo hạch, việc săn Thâm Hải Ma Kình Vương, bài hai thủ hộ của Tiểu Vũ và lời thoại là phỏng
-  // theo. Không thưởng mảnh UR (mục 5.3); thưởng hồn cốt ở bài cuối để #285.
+  // theo. Không thưởng mảnh UR (mục 5.3). Bài cuối thưởng thêm một hồn cốt Thâm Hải Ma Kình (#285) đúng niên hạn của Thâm Hải Ma Kình
+// Vương (BossDef.years), thấp hơn hồn cốt 100.000 năm của rương boss thế giới; thưởng hồn cốt cho người vượt khảo hạch là phỏng theo.
   { id: QUEST_CH3, name: "Hải Thần Đảo", giver: "hai_ma_dau_la", map: "hai_than_dao",
     finale: "Khảo hạch của Thánh Trụ ngươi đã qua hết. Hải Thần Đảo từ nay mở cửa cho ngươi; phần còn lại của khảo hạch Hải Thần, Đại Cung Phụng sẽ tự định đoạt.",
     steps: [
@@ -4038,7 +4045,7 @@ export const QUESTS: QuestChain[] = [
           "Hải Thần Tam Xoa Kích, thần khí của Hải Thần, được thờ ở đó. Đi đi, rồi quay lại báo ta bà nói gì."],
         goals: [{ k: "talk", npc: "ba_tai_tay", n: 1, text: "Nói chuyện với Ba Tái Tây ở Thánh địa Hải Thần" }],
         done: ["Đại Cung Phụng đã gặp ngươi. Tam Xoa Kích không phải thứ ngươi cầm được hôm nay, nhưng con đường tới nó đã mở."],
-        reward: { honTe: 5000, items: [{ code: shardCode("nhu_cot_tho"), qty: 25 }] } },
+        reward: { honTe: 5000, items: [{ code: shardCode("nhu_cot_tho"), qty: 25 }], bones: [{ beast: MA_KINH_VUONG.species, years: MA_KINH_VUONG.years! }] } },
     ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
@@ -4069,9 +4076,13 @@ export function questStatus(q: QuestProgress): QuestStatus {
 export const questGoalHit = (g: QuestGoal, ev: QuestEvent) => g.k !== "give" &&
   g.k === ev.k && (!g.npc || g.npc === ev.npc) && (!g.map || g.map === ev.map) && (!g.zone || g.zone === ev.zone) && (!g.fit || ev.fit === true)
   && (!g.party || ev.party === true);
-/** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo". */
+/** Một hồn cốt thưởng nhiệm vụ: "1 hồn cốt Thâm Hải Ma Kình 95.000 năm (vị trí ngẫu nhiên)". */
+export const questBoneText = (b: { beast: string; years: number }) =>
+  `1 hồn cốt ${BEASTS[beastIndex(b.beast)]?.name ?? "Hồn thú lạ"} ${formatYears(b.years)} (vị trí ngẫu nhiên)`;
+/** "30 đồng, 2 Hồi Huyết Đan, 5 Mảnh Lam Ngân Thảo"; có hồn cốt thì thêm questBoneText mỗi món. */
 export const questRewardText = (r: QuestReward) =>
-  [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`)].filter(Boolean).join(", ");
+  [r.honTe ? formatHonTe(r.honTe) : "", ...r.items.map((i) => `${i.qty} ${itemDef(i.code)?.name ?? i.code}`), ...(r.bones ?? []).map(questBoneText)]
+    .filter(Boolean).join(", ");
 
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2; mọi số đã chốt) ----------
 /** Mã bản đồ sân đấu (MAPS, kind `arena`): shared/assets/dai_dau_hon_truong.json, chỉ phòng ArenaRoom dùng. */
