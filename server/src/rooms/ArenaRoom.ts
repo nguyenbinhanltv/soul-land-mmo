@@ -101,7 +101,7 @@ export class ArenaRoom extends MapRoom {
     p.x = Math.round(sp.x + sp.w * (i === 0 ? 0.25 : 0.75)); p.y = Math.round(sp.y + sp.h * (mi ? 0.58 : 0.42));
     d.dir = { x: i === 0 ? 1 : -1, y: 0 }; p.dir = dir4(d.dir.x, 0);
     this.syncSides();
-    if (this.phase === "wait" && this.sides.every((x) => x.members.every((member) => member.sid))) {
+    if (this.phase === "wait" && this.sides.every((x) => x.members.every((member) => member.sid && !member.left))) {
       this.setPhase("ready", ARENA.readySecs);
       this.broadcast("arena", { k: "ready", secs: ARENA.readySecs });
     }
@@ -111,7 +111,7 @@ export class ArenaRoom extends MapRoom {
   async onLeave(client: Client) {
     const i = this.sides.findIndex((x) => x.members.some((member) => member.sid === client.sessionId));
     const member = i >= 0 ? this.sides[i].members.find((x) => x.sid === client.sessionId) : undefined;
-    if (member && !this.done) { member.left = true; if (this.phase !== "wait") this.finish(1 - i, "leave"); }
+    if (member && !this.done) { member.left = true; this.finish(1 - i, "leave"); }
     await super.onLeave(client);
   }
 

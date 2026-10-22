@@ -7620,6 +7620,21 @@ async function arenaTest(){
     const end2=b=>b.arena.slice(b===K?nK:b===L?nL:b===M?nM:nN).filter(m=>m.k==="end").at(-1);
     ok([K,L].every(b=>end2(b)?.score===1&&end2(b)?.elo1===eloAfter(1000,1000,1))&&[M,N].every(b=>end2(b)?.score===0&&end2(b)?.elo1===eloAfter(1000,1000,0)),"2v2: Elo cập nhật riêng từng tài khoản theo Elo đội đối thủ");
     await Promise.all(all.map(b=>kickBack(b)));
+
+    // Thành viên rời trong pha chờ: không được chuyển sang giao đấu khi đủ các session còn lại.
+    const nK2=K.arena.length, nL2=L.arena.length, nM2=M.arena.length, nN2=N.arena.length;
+    await aop(K,"queue"); await aop(M,"queue");
+    const found3=b=>b.arena.slice(b===K?nK2:b===L?nL2:b===M?nM2:nN2).filter(m=>m.k==="found").at(-1);
+    ok(await waitFor(()=>found3(K)&&found3(L)&&found3(M)&&found3(N),4000),"2v2 rời khi chờ: cả hai đội nhận được mã trận");
+    await enterArena(K); await enterArena(M);
+    ok(K.room.state.phase==="wait","2v2 rời khi chờ: mới có một người mỗi bên thì vẫn chờ");
+    await K.room.leave();
+    ok(await waitFor(()=>M.arena.slice(nM2).some(m=>m.k==="end"),3000),"2v2 rời khi chờ: bên còn lại nhận kết quả ngay");
+    const leftWait=endOf(M);
+    ok(leftWait?.reason==="leave"&&M.room.state.phase==="end","2v2 rời khi chờ: bên rời thua leave, không vào pha giao đấu");
+    await back(K);
+    if(M.room.state.phase==="end") await kickBack(M);
+    else { await test(M,"afast",{s:0}); await M.room.leave().catch(()=>{}); await sleep(300); await back(M); }
     for(const b of all) await b.room.leave();
   }
   // ---- Không ghép chéo 1v2: bên đơn và bên tổ đội cùng chờ phải tiếp tục chờ ----
