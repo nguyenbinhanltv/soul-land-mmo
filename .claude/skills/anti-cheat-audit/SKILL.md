@@ -11,7 +11,7 @@ Luật nền: `CLAUDE.md` (server-authoritative) và skill `server-feature` mụ
 
 ## 0. Cách làm
 1. Liệt kê bề mặt: `grep -n 'onMessage("' server/src/rooms/MapRoom.ts server/src/rooms/ArenaRoom.ts` và `grep -n 'app\.\(get\|post\)' server/src/index.ts`. Mỗi message / route là một dòng trong báo cáo, **kể cả dòng không có lỗi** (ghi "đã đọc, ổn"), để người sau biết cái gì đã soát.
-2. Với mỗi handler: đọc tới tận chỗ đổi state / ghi DB, hỏi "gửi giá trị lạ thì sao?" (`NaN`, `Infinity`, số âm, số thực, chuỗi, mảng, object lồng, thiếu trường, id của người khác, gửi 50 lần trong một nhịp, gửi lúc đang đi cổng / gục / hấp thụ / trong vùng an toàn).
+2. Với mỗi handler: đọc tới tận chỗ đổi state / ghi DB, hỏi "gửi giá trị lạ thì sao?" (`NaN`, `Infinity`, số âm, số thực, chuỗi, mảng, object lồng, object tùy ý (đổi kiểu bằng `Number()` / `String()` có thể ném lỗi), thiếu trường, id của người khác, gửi 50 lần trong một nhịp, gửi lúc đang đi cổng / gục / hấp thụ / trong vùng an toàn).
 3. Nghi ngờ thì **thử thật** bằng bot: thêm kiểm tra vào `client/scripts/bot-test.mjs` gửi message xấu và kỳ vọng bị từ chối (mẫu: các dòng `ngoại hình sai … -> 400`). Không kết luận "an toàn" chỉ vì grep không thấy gì.
 
 ## 1. Checklist theo cách gian lận

@@ -66,6 +66,8 @@
 // Ủy thác offline (Auto 3, mục 5.13; offlineTest, BOT_ONLY=offline): thoát trong vùng săn, giả lập thời gian trôi (hook offline), vào lại
 // nhận thưởng đúng số giây / Hồn Tệ / hồn hoàn tối đa, quỹ giờ treo chung với tự săn, chia theo ngày, quá sức, túi đầy, vùng an toàn.
 // Tự bán từ xa (#216, sellTest; BOT_ONLY=sell): bộ lọc, khoá món, bán khi túi gần đầy, lưu qua lần vào lại, mua lại ở thương nhân, tự săn bán thay vì dừng.
+// Chống gian lận 1 (#164, cheatTest, nhóm 1 của BOT_PART; BOT_ONLY=cheat): message di chuyển / chiến đấu / cổng / kênh mang giá trị lạ bị bỏ qua
+// (không đổi vị trí / hồi chiêu / đội), gửi dồn chỉ ra một lần, client không tự mở phòng, xếp ô / đội gửi dồn lưu đúng lần cuối.
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
@@ -119,6 +121,7 @@ import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOK
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 import { GROUND_KINDS, GROUND_TICK, TELE_SHAPES } from "../../shared/data.ts"; // vùng lưu lại trên mặt đất: vũng độc, sương độc (#161)
+import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -260,7 +263,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
 if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 // BOT_PART=1|2|3: chia bot thành 3 nhóm chạy song song (job bot-ram của CI, .github/workflows/check.yml). Mọi nhóm chạy phần chung (A, B,
-// 2.3b, 2.4, vào lại của A); nhóm 1: 2.5a–2.5d, BĐ5, 3.2; nhóm 2: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4, Đại Đấu Hồn Trường; nhóm 3: từ bot C
+// 2.3b, 2.4, vào lại của A); nhóm 1: 2.5a–2.5d, BĐ5, 3.2, chống gian lận 1; nhóm 2: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4, Đại Đấu Hồn Trường; nhóm 3: từ bot C
 // (cổng BĐ2) tới hết, trừ Đại Đấu Hồn Trường. Đoạn mới không gắn inPart thì chạy ở mọi nhóm. Không đặt BOT_PART thì chạy hết như cũ.
 const PART=process.env.BOT_PART??"", inPart=n=>!PART||PART===String(n);
 if(PART&&!["1","2","3"].includes(PART)){ console.log(`✗ BOT_PART=${PART}: chỉ nhận 1, 2 hoặc 3`); process.exit(1); }
@@ -281,6 +284,7 @@ if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`�
 if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="cheat"){ await cheatTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
 /**
  * Bot thứ 3 vào kênh 2; danh sách kênh; đổi kênh (từ chối khi đầy / chưa mở / đang ở / giao chiến / vừa đổi) giữ tiến độ chưa lưu và
@@ -325,7 +329,12 @@ async function channelTest(){
   P2.travel=null; const l2=await say(P2,"channel",{ch:2});
   ok(/Đang chuyển sang kênh 2/.test(l2)&&await waitFor(()=>P2.travel,3000)&&P2.travel.mapId===P2.mapId&&P2.travel.roomId===P3.room.roomId,
     `đổi sang kênh 2: "${l2}", travel ${JSON.stringify(P2.travel)}`);
-  await follow(P2);
+  { // #164: client không tự chọn kênh đích: rời phòng rồi joinById kênh khác kênh server chọn bị từ chối (CHANNEL_CD giây)
+    const t=P2.travel; await P2.room.leave(); await sleep(200);
+    let other=""; try{ const r=await new Client(WS).joinById(P1.room.roomId,{token:P2.token,mapId:P2.mapId}); await r.leave(); other="vào được"; }catch(e){ other=String(e?.message??e); }
+    ok(/kênh 2/.test(other)&&other!=="vào được",`đổi sang kênh 2 nhưng tự joinById kênh 1: bị từ chối ("${other}")`);
+    await enter(P2,t.roomId); await fresh(P2);
+  }
   ok(P2.room.roomId===P3.room.roomId&&chOf(P2)===2,`P2 vào kênh ${chOf(P2)} cùng P3`);
   ok(prog(P2)===before.prog&&bagKey(P2)===before.bag,`đổi kênh giữ tiến độ: võ hồn ${before.prog}, túi đồ giữ nguyên`);
   ok(Math.hypot(meC(P2).x-before.x,meC(P2).y-before.y)<1,`giữ vị trí (${before.x.toFixed(0)},${before.y.toFixed(0)}) -> (${meC(P2).x.toFixed(0)},${meC(P2).y.toFixed(0)})`);
@@ -465,6 +474,100 @@ async function channelTest(){
   const big=await raw("/api/login",JSON.stringify({name:"x",password:"p".repeat(20000)}));
   ok(big.status===413&&typeof big.j?.error==="string"&&!leak(big.t)&&!!big.cors,`/api/login body > 10kb -> 413 JSON có header CORS (${big.status})`);
   ok((await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok,"server vẫn trả /health sau các request lạ");
+}
+
+/**
+ * Chống gian lận 1 (#164; BOT_ONLY=cheat, nhóm 1 của BOT_PART): message di chuyển, chiến đấu, đi cổng, truyền tống, kênh mang giá trị
+ * lạ (sai kiểu, số không hợp lệ, thiếu trường) bị bỏ qua: phòng vẫn chạy, client vẫn ở phòng, vị trí / hồi chiêu / võ hồn ra
+ * trận không đổi. Hướng đi quá dài không đi nhanh hơn; gửi dồn đánh
+ * thường / đổi võ hồn chỉ ra một lần. Client không tự mở phòng bản đồ (`create`). Xếp ô hồn kỹ / đội hình gửi dồn vẫn lưu đúng lần cuối.
+ */
+async function cheatTest(){
+  console.log("\n== Chống gian lận: di chuyển, chiến đấu, đi cổng, truyền tống, kênh (#164) ==");
+  // Gọi thẳng HTTP matchmake: với `create` của colyseus.js thì onAuth từ chối (không token) làm client tự rời, nhưng phòng vẫn đã mở.
+  const mk=await fetch(API+"/matchmake/create/map",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mapId:"thanh_hon_thon"})})
+    .then(async r=>({status:r.status,...await r.json().catch(()=>({}))})).catch(e=>({status:0,error:String(e)}));
+  ok(!mk.sessionId&&!mk.room&&/invalid method/.test(mk.error??""),`matchmake create (không token): bị từ chối, không mở phòng, không giữ chỗ (${mk.status} ${mk.error??""})`);
+  const X=await bot("Gian lận","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0});
+  try{
+  if(!(await test(X,"ping"))?.enabled){ console.log("  ⚠ bỏ qua chống gian lận 1 (cần hook rest, set): bật server bằng GAME_TEST=1"); return; }
+  // Sang thành (không hồn thú kéo / đẩy làm lệch vị trí khi so trước / sau), vào đúng kênh server chọn như client.
+  X.travel=null; X.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>X.travel,4000);
+  if(X.travel){ const t=X.travel; await X.room.leave(); await sleep(300); X.mapId=t.mapId; await enter(X,t.roomId??undefined); }
+  const sid=X.room.sessionId, me=()=>X.room.state.players?.get(sid);
+  await waitFor(()=>me()&&X.owned,3000);
+  ok(X.room.state.mapId==="nac_dinh_thanh",`bài chạy ở ${MAPS[X.room.state.mapId]?.name} (thành, không hồn thú)`);
+  const alive=async()=>X.leftCode===null&&(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok===true;
+  const snap=()=>{ const p=me(); return {x:p.x,y:p.y,cds:[...p.cds],bcds:[...p.bcds],swCd:p.swCd,active:X.owned?.active,team:JSON.stringify(X.owned?.team)}; };
+  X.room.send("input",{x:0,y:0}); await sleep(200);
+
+  // Giá trị sai kiểu và số không hợp lệ.
+  const ODD=[{toString:0},{toString:0,valueOf:0},{x:{y:[1]}},[1],"1",null,true], NUM=[NaN,Infinity,-Infinity,-1,0.5,1e308];
+  const probes=[["input",v=>({x:v,y:v,s:v,w:v}),[NaN,Infinity,-Infinity]],["input",()=>({x:1e308,y:1e308,s:-1}),[0]],["attack",v=>v],
+    ["skill",v=>({i:v})],["boneskill",v=>({i:v})],["chanthan",v=>v],["switch",v=>({slot:v})],["loadout",v=>({rowId:v,skills:[v,v,v,v]})],
+    ["team",v=>({slots:[v,v,v,v]})],["travel",v=>({portal:v})],["wp",v=>({op:"go",key:v})],["wp",v=>({op:v})],["channels",v=>v],["channel",v=>({ch:v})],
+    ["test",v=>({op:v})],["arena",v=>({op:v})],["party",v=>({op:v})],["party",v=>({op:"invite",name:v,sid:v})]];
+  const s0=snap(), down=[];
+  for(const [type,mk,nums=NUM] of probes){
+    for(const v of [...ODD,...nums]) X.room.send(type,mk(v));
+    X.room.send(type,{}); X.room.send(type,[1,2]); X.room.send(type,"x");
+    await sleep(120);
+    if(!(await alive())) down.push(type);
+  }
+  await sleep(300);
+  ok(!down.length&&await alive(),`${probes.length} kiểu message × ${ODD.length+NUM.length+3} giá trị lạ: bị bỏ qua, phòng vẫn chạy${down.length?` (hỏng từ ${down[0]})`:""}`);
+  if(down.length) return;
+  // Các message còn lại (ngoài đợt này): mọi trường mang cùng giá trị lạ.
+  const rest=["auto","offline","absorb","pickup","discard","sortbag","lock","autosell","vohons","boss","bag","use","open","unlock","starup","equip","unequip",
+    "equipcore","unequipcore","enhance","enhancecore","talk","buy","sell","buyback","expand","quest","resonance","chat"];
+  for(const type of rest){
+    for(const v of ODD) X.room.send(type,{op:v,id:v,itemId:v,vohonId:v,vohon:v,slot:v,targetId:v,materialIds:[v],npc:v,code:v,qty:v,key:v,cfg:v,chain:v,text:v});
+    X.room.send(type,"x"); X.room.send(type,[1]);
+  }
+  await sleep(500);
+  ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: phòng vẫn chạy`);
+  for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
+  await sleep(300);
+  ok(await alive()&&(await test(X,"ping"))?.enabled,"lỗi bất ngờ trong handler (hook throw ×5): phòng vẫn xử lý message tiếp");
+  const s1=snap();
+  ok(Math.hypot(s1.x-s0.x,s1.y-s0.y)<0.5,`giá trị lạ không làm hồn sư di chuyển (${s0.x.toFixed(1)},${s0.y.toFixed(1)} -> ${s1.x.toFixed(1)},${s1.y.toFixed(1)})`);
+  ok(s1.cds.every(c=>c===0)&&s1.bcds.every(c=>c===0)&&s1.swCd===0&&s1.active===s0.active&&s1.team===s0.team,
+    `giá trị lạ không tung hồn kỹ / kỹ năng hồn cốt, không đổi võ hồn hay đội hình (hồi chiêu ${s1.cds}/${s1.bcds}/${s1.swCd})`);
+
+  // Hướng đi dài bao nhiêu cũng chỉ đi đúng tốc độ (clampDir), tốc độ do server tính.
+  const p0={x:me().x,y:me().y}, spd=me().spd;
+  X.room.send("input",{x:1e9,y:1}); await sleep(500); X.room.send("input",{x:0,y:0}); await sleep(300);
+  const moved=Math.hypot(me().x-p0.x,me().y-p0.y);
+  ok(spd>0&&moved<=spd*0.9,`input {x: 1e9}: đi ${moved.toFixed(1)} px trong ~0,5 giây, không quá tốc độ ${spd.toFixed(1)} px/giây`);
+
+  // Gửi dồn trong một nhịp: đánh thường chỉ ra một đòn (ATTACK_CD) hoặc một dòng từ chối (vùng an toàn); đổi võ hồn chỉ một lần (SWITCH_CD).
+  X.fxs=[]; let l=X.logs.length;
+  for(let k=0;k<30;k++) X.room.send("attack");
+  await sleep(300);
+  const swings=X.fxs.filter(f=>f.k==="slash"&&f.id===sid).length+X.logs.slice(l).filter(t=>/Vùng an toàn/.test(t)).length;
+  ok(swings===1,`gửi dồn 30 lần attack: ${swings} đòn / lần từ chối (ATTACK_CD ${ATTACK_CD} giây)`);
+  await test(X,"rest",{s:10});
+  const slot=X.owned.team.findIndex(r=>r&&r!==X.owned.active);
+  l=X.logs.length;
+  for(let k=0;k<10;k++) X.room.send("switch",{slot});
+  await sleep(300);
+  const outs=X.logs.slice(l).filter(t=>/ra trận/.test(t)).length;
+  ok(slot>=0&&outs===1&&me().swCd>0,`gửi dồn 10 lần switch: đổi võ hồn ${outs} lần, hồi ${me().swCd.toFixed(1)} giây`);
+
+  // Xếp ô hồn kỹ / đội hình gửi dồn (ngoài giao chiến): lần ghi DB gộp lại nhưng vẫn lưu đúng lần cuối.
+  await test(X,"rest",{s:10});
+  const row=X.owned.active, other=X.owned.list.find(v=>v.rowId!==row)?.rowId;
+  await test(X,"set",{rowId:row,rings:[50,50]});
+  for(let k=0;k<41;k++) X.room.send("loadout",{rowId:row,skills:k%2?[0,1,-1,-1]:[1,0,-1,-1]});
+  for(let k=0;k<21;k++) X.room.send("team",{slots:k%2?[row,0,0,0]:[other,0,0,0]});
+  ok(await waitFor(()=>X.owned?.active===other&&same(X.owned.team,[other,0,0,0])&&same(X.owned.list.find(v=>v.rowId===row)?.skills,[1,0,-1,-1]),3000),
+    `gửi dồn 41 lần loadout, 21 lần team: lần cuối có hiệu lực (ô ${JSON.stringify(X.owned?.list.find(v=>v.rowId===row)?.skills)}, đội ${JSON.stringify(X.owned?.team)})`);
+  await X.room.leave(); await sleep(300);
+  X.mapId=(await post("/api/me",{token:X.token})).mapId; await enter(X); await waitFor(()=>X.owned&&me(),3000);
+  const v=X.owned?.list.find(x=>x.rowId===row);
+  ok(X.owned?.active===other&&same(X.owned.team,[other,0,0,0])&&same(v?.skills,[1,0,-1,-1])&&same(v?.rings,[50,50]),
+    `vào lại: đội ${JSON.stringify(X.owned?.team)}, ra trận ${X.owned?.active}, ô hồn kỹ ${JSON.stringify(v?.skills)}, hồn hoàn ${JSON.stringify(v?.rings)} đúng lần cuối`);
+  } finally { await X.room.leave().catch(()=>{}); }
 }
 
 // 9.9: A tạo nhân vật tông da 2; B không gửi tông da (như client / tài khoản cũ có từ trước 9.9) nên giữ tông 0.
@@ -4316,6 +4419,7 @@ ok(A.owned&&same(A.owned.team,saved.team)&&A.owned.active===saved.active,`vào l
 ok(same(prog(),saved.prog),`vào lại: cấp, kinh nghiệm, sao từng võ hồn (cả võ hồn mở bằng mảnh) đã lưu ${JSON.stringify(prog())}`);
 await A.room.leave();
 if(inPart(2)) await eggTest(); // #162: bài độc lập, tự tạo bot
+if(inPart(1)) await cheatTest(); // chống gian lận 1 (#164): bài độc lập, tự tạo bot
 
 // BOT_PART=1 dừng ở đây; BOT_PART=2 chạy thêm Đại Đấu Hồn Trường (bài độc lập, tự tạo bot) rồi dừng. Phần từ bot C trở xuống thuộc nhóm 3.
 if(PART==="1"||PART==="2"){ if(PART==="2") await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -7029,7 +7133,7 @@ async function arenaTest(){
   let err=""; try{ const r=await new Client(WS).joinOrCreate("map",{mapId:ARENA_MAP}); await r.leave(); }catch(e){ err=String(e?.message??e); }
   ok(/không tồn tại/.test(err),`không mở được phòng bản đồ trên sân đấu (${err})`);
   err=""; try{ const r=await new Client(WS).create("arena",{matchId:"khong_co"}); await r.leave(); }catch(e){ err=String(e?.message??e); }
-  ok(/không tồn tại/.test(err),`client không tự mở được trận đấu (${err})`);
+  ok(/không tồn tại|invalid method/.test(err),`client không tự mở được trận đấu (${err})`); // #164: server tắt hẳn `create`
 
   const E=await bot("Đấu sĩ","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
   const F=await bot("Võ sĩ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:4,outfitCol:5});
