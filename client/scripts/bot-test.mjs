@@ -6662,8 +6662,17 @@ async function arenaTest(){
   }
   /** Vào lại phòng của bản đồ đang lưu (/api/me), chờ state, đội hình, túi đồ. */
   async function back(b){ b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
-  /** Gửi `arena {op}`, chờ tin "arena" k = queue (và dòng log mới khi xếp hàng). Trả dòng log mới nhất của lần này. */
-  async function aop(b,op){ const l=b.logs.length, n=b.aqN; b.room.send("arena",{op}); await waitFor(()=>b.aqN>n&&(op!=="queue"||b.logs.length>l),2000); await sleep(60); return b.logs.slice(l).at(-1)??""; }
+  /** Chờ hết nhịp xếp hàng ARENA.queueCd (#208) của `b`: tính từ lúc bot nhận tin đã đọc Elo, muộn hơn mốc server ghi. */
+  const qwait=async b=>{ const w=(b.aqAt??0)+ARENA.queueCd*1000+20-Date.now(); if(w>0) await sleep(w); };
+  /**
+   * Gửi `arena {op}`, chờ tin "arena" k = queue (và dòng log mới khi xếp hàng). Trả dòng log mới nhất của lần này. `queue` chờ hết
+   * nhịp xếp hàng trước (qwait), để bài khác không bị báo thao tác quá nhanh; xếp hàng được (đã đọc Elo) thì ghi mốc mới.
+   */
+  async function aop(b,op){
+    if(op==="queue") await qwait(b);
+    const l=b.logs.length, n=b.aqN; b.room.send("arena",{op}); await waitFor(()=>b.aqN>n&&(op!=="queue"||b.logs.length>l),2000);
+    if(op==="queue"&&b.logs.slice(l).some(x=>/Đang tìm đối thủ \(Elo/.test(x))) b.aqAt=Date.now();
+    await sleep(60); return b.logs.slice(l).at(-1)??""; }
   const found=b=>b.arena.filter(m=>m.k==="found").at(-1), endOf=b=>b.arena.filter(m=>m.k==="end").at(-1);
   /** Đang ở bản đồ, đã được ghép: rời phòng bản đồ, vào phòng sân đấu bằng mã phòng. */
   async function enterArena(b){ const id=found(b).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
@@ -6703,9 +6712,20 @@ async function arenaTest(){
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
   t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`);
+  // Nhịp xếp hàng (#208): xếp hàng (đọc Elo từ DB, chờ đọc xong) rồi gửi dồn cancel / queue trong một giây: chỉ lần đầu đọc DB (một
+  // dòng "Đang tìm đối thủ (Elo"), các lần queue sau đều bị từ chối bằng tin log "thao tác quá nhanh"; hết nhịp thì xếp lại được.
+  { const n=4; t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`xếp hàng lại sau khi hủy (${t})`);
+    const l=E.logs.length;
+    for(let i=0;i<n;i++){ E.room.send("arena",{op:"cancel"}); E.room.send("arena",{op:"queue"}); } E.room.send("arena",{op:"cancel"});
+    const got=()=>E.logs.slice(l), cnt=re=>got().filter(x=>re.test(x)).length;
+    await waitFor(()=>cnt(/quá nhanh/)>=n&&cnt(/hủy/)>=1,2000); await sleep(300);
+    ok(cnt(/Đang tìm đối thủ/)===0&&cnt(/quá nhanh/)===n&&!E.aq.on,
+      `cancel / queue dồn ${n} lần trong ${ARENA.queueCd} giây: không đọc DB thêm, ${cnt(/quá nhanh/)} lần báo "${got().find(x=>/quá nhanh/.test(x))}", cuối cùng đã hủy`);
+    t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`sau ARENA.queueCd = ${ARENA.queueCd} giây: xếp hàng lại được (${t})`);
+    t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`); }
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
   await at(F); await aop(F,"queue"); await test(F,"goto",{x:40*16,y:54.5*16});
-  F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
+  await qwait(E); F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
   ok(await waitFor(()=>F.travel?.mapId,4000),"F đi qua cổng trong lúc đang xếp hàng");
   ok(!found(E)&&!found(F),"đang niệm đi cổng: không bị ghép trận");
   await F.room.leave(); await sleep(300); await back(F);
