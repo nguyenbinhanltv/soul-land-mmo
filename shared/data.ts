@@ -1307,7 +1307,7 @@ export const ELITE_RAGE = { hp: 0.5, dmg: 0.3, spd: 0.25, secs: 10, cd: 20 };
 
 // ---------- Tà hóa thú vương (boss bản đồ, mục 5.4, 6; bước BĐ5, mọi số đã chốt) ----------
 /**
- * Thú vương: máu x BossDef.hp (6–8 theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
+ * Thú vương: máu x BossDef.hp (theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
  * kinh nghiệm x`xp` cho mọi người đóng góp còn trong phòng; sprite loài gốc phóng `scale` (khoảng 96×96, mục 5.11).
  * Giai đoạn 2: máu còn `phaseHp` thì gầm lên, đứng yên `roarSecs` giây (không nhận khống chế), rồi thêm chiêu BossDef.phase2 và nhanh hơn.
  * Người tham gia như tinh anh nhưng bán kính là cả hang (object `boss`): ngoài hang `outSecs` giây liên tục thì bị loại, số người giảm
