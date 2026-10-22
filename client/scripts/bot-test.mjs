@@ -7022,6 +7022,17 @@ async function arenaTest(){
       `cancel / queue dồn ${n} lần trong ${ARENA.queueCd} giây: không đọc DB thêm, ${cnt(/quá nhanh/)} lần báo "${got().find(x=>/quá nhanh/.test(x))}", cuối cùng đã hủy`);
     t=await aop(E,"queue"); ok(E.aq.on&&/Đang tìm đối thủ \(Elo/.test(t),`sau ARENA.queueCd = ${ARENA.queueCd} giây: xếp hàng lại được (${t})`);
     t=await aop(E,"cancel"); ok(!E.aq.on&&/hủy/.test(t),`hủy xếp hàng (${t})`); }
+  // Hủy lúc đang đọc Elo (#225): F (cùng Elo khởi đầu) đang chờ; hook aslow làm chậm lần đọc DB kế tiếp của E. E xếp hàng, hủy trước khi
+  // đọc xong rồi xếp lại ngay (bị báo thao tác quá nhanh): đọc xong E không vào hàng chờ, không bị ghép với F.
+  // Tin "arena" k = queue: một cho cancel, một cho queue bị từ chối, một khi đọc xong; sau đó chờ thêm vài lượt ghép (500 ms một lượt).
+  { const ms=1500; await at(F); await aop(F,"queue"); await qwait(E); await test(E,"aslow",{ms});
+    const l=E.logs.length, n=E.aqN, got=()=>E.logs.slice(l), has=re=>got().some(x=>re.test(x));
+    E.room.send("arena",{op:"queue"}); E.aqAt=Date.now(); await sleep(150);
+    E.room.send("arena",{op:"cancel"}); E.room.send("arena",{op:"queue"});
+    await waitFor(()=>E.aqN>=n+3,ms+3000); await sleep(1500); await test(E,"aslow",{ms:0});
+    ok(F.aq.on&&!E.aq.on&&!found(E)&&!found(F)&&!has(/Đang tìm đối thủ/)&&has(/hủy/)&&has(/quá nhanh/),
+      `hủy trong lúc đọc Elo (chậm ${ms} ms): đọc xong không vào hàng chờ, không bị ghép với F (${got().join(" | ")})`);
+    t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ một mình, hủy"); }
   // Đang niệm đi cổng: không bị ghép; đi cổng xong thì ra khỏi hàng chờ.
   await at(F); await aop(F,"queue"); await test(F,"goto",{x:40*16,y:54.5*16});
   await qwait(E); F.travel=null; F.room.send("travel",{portal:"Về Nặc Đinh Thành"}); await sleep(100); await aop(E,"queue");
