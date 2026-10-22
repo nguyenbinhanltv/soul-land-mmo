@@ -313,6 +313,7 @@ function setCtSlot(b: HTMLElement, on: boolean) {
     tip: cellBase.get(b) ?? "", cost: Number(b.dataset.cost), cd: Number(b.dataset.cdfull), tier: Number(b.dataset.tier ?? -1), locked: b.classList.contains("locked") };
   const v = on ? ctSlot : pSlot; if (!v) return;
   b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked);
+  b.dataset.cool = "0"; // đổi nội dung ô không phải "vừa hồi xong" (paintCell không nháy .ready)
   sp[0].textContent = v.icon; sp[0].style.color = v.col; sp[1].textContent = v.name;
   b.dataset.cost = String(v.cost); b.dataset.cdfull = String(v.cd);
   if (v.tier >= 0) b.dataset.tier = String(v.tier); else delete b.dataset.tier;
@@ -374,8 +375,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     const has = rings.length >= FUSION.minRings, mate = (f: (typeof FUSIONS)[number]) => VOHON[vohonIndex(f.pair[0] === id ? f.pair[1] : f.pair[0])]?.name ?? "";
     const tip = `Võ Hồn Dung Hợp Kỹ (phím ${FUSION_KEY}): ` + fus.map((f) => `${f.name} cùng đồng đội tổ đội ra trận ${mate(f)}: ${f.desc}`).join("; ")
       + `. Bấm để mời đồng đội gần nhất; đồng đội bấm ${FUSION_KEY} trong ${cdText(FUSION.window)} giây thì chiêu nổ ở điểm giữa hai người.`
-      + ` Đứng cách nhau dưới ${FUSION.r} pixel, mỗi người tốn ${FUSION.cost} hồn lực, hồi ${FUSION.cd} giây (của hồn sư: đổi võ hồn không làm mới).`
-      + (has ? "" : ` Cần ít nhất ${FUSION.minRings} hồn hoàn.`);
+      + ` Đứng cách nhau dưới ${FUSION.r} pixel, mỗi người tốn ${FUSION.cost} hồn lực, hồi ${FUSION.cd} giây (của hồn sư: đổi võ hồn không làm mới).`;
     mk(FUSION_KEY, `Võ Hồn Dung Hợp Kỹ: ${fus.map((f) => f.name).join(" / ")}${has ? "" : " (khóa)"}`, has ? "Dung hợp" : `Vòng ${FUSION.minRings}`,
       has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, has ? tip : { ...parseText(tip), foot: `Cần ít nhất ${FUSION.minRings} hồn hoàn.` }, -1, FUSION.cost, FUSION.cd);
     fusBtn = el.lastElementChild as HTMLElement; fusBtn.classList.add("fus");
@@ -478,7 +478,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     const sk = k?.active ? k.sk : null, col = w ? ringColor(tierOfYears(w.years)) : "#666";
     boneCd[i] = sk?.cd ?? 1;
     const b = document.createElement("button"); b.className = "sk bsk ui-cell" + (sk ? "" : " locked"); b.dataset.b = String(i);
-    if (sk && w) b.dataset.tier = String(tierOfYears(w.years));
+    if (w) b.dataset.tier = String(tierOfYears(w.years)); // cả hồn cốt bị động (ô mờ nhưng giữ viền màu niên hạn)
     b.dataset.cost = String(sk?.cost ?? 0);
     b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico" style="color:${col}">${boneSvg(slot, "bico")}</span><span></span><div class="ui-cd"></div><em class="cdn"></em>`;
     b.querySelector("i")!.textContent = sk?.icon ?? "";
@@ -1423,13 +1423,21 @@ let lastTarget: string | null = null;
 /** Khung mục tiêu (gọi mỗi khung hình): chỉ ghi lại DOM khi nội dung đổi, để chân dung không bị tạo lại liên tục. */
 export function showTarget(html: string | null) {
   if (html === lastTarget) return;
-  lastTarget = html;
-  const t = $("#target"); if (html) { t.style.display = "block"; t.innerHTML = html; } else t.style.display = "none";
+  const prev = lastTarget; lastTarget = html;
+  const t = $("#target");
+  if (!html) { t.style.display = "none"; return; }
+  // Chỉ đổi thanh máu (.thp) thì cập nhật tại chỗ để transition width chạy, không dựng lại cả khung (chân dung, chip).
+  const bar = /<div class="ui-bar thp">.*?<\/div>/, cur = t.querySelector<HTMLElement>(".thp"), m = html.match(bar);
+  if (cur && m && prev !== null && prev.replace(bar, "") === html.replace(bar, "")) {
+    const w = /width:([\d.]+)%/.exec(m[0])?.[1], tx = />([^<>]*)<\/span><\/div>$/.exec(m[0])?.[1];
+    if (w !== undefined && tx !== undefined) {
+      (cur.firstElementChild as HTMLElement).style.width = w + "%";
+      const sp = cur.querySelector("span")!; if (sp.textContent !== tx) sp.textContent = tx;
+      return;
+    }
+  }
+  t.style.display = "block"; t.innerHTML = html;
 }
-/**
- * Chân dung hồn thú `thu_<loài gốc>` cạnh chữ của khung mục tiêu (#339, mục 5.11): tinh anh / thú vương dùng chân dung loài gốc,
- * viền màu `col` (hào quang của bậc, hoặc màu vòng niên hạn với hồn thú thường). Loài chưa có ảnh thì trả nguyên chữ như cũ.
- */
 /**
  * Nội dung khung mục tiêu hồn thú (UI-3, #353): dòng tên + chip niên hạn (nền mực, chữ sáng theo bậc) + cấp tương đương, thanh máu có số,
  * dòng trạng thái. `xpNote` là html có sẵn của dòng kinh nghiệm bị cắt (hồn thú thấp cấp hơn võ hồn ra trận).
@@ -1439,6 +1447,10 @@ export function beastTargetHtml(o: { name: string; years: number; tier: number; 
   return `<div class="tn"><b>${o.name}</b><span class="ui-chip" data-tier="${o.tier}">${formatYears(o.years)}</span><span class="tl">cấp ${o.level}${o.xpNote}</span></div>`
     + `<div class="ui-bar thp"><i style="width:${pct}%"></i><span>${o.hp} / ${o.maxHp}</span></div>` + (o.status ? `<small>${o.status}</small>` : "");
 }
+/**
+ * Chân dung hồn thú `thu_<loài gốc>` cạnh chữ của khung mục tiêu (#339, mục 5.11): tinh anh / thú vương dùng chân dung loài gốc,
+ * viền màu `col` (hào quang của bậc, hoặc màu vòng niên hạn với hồn thú thường). Loài chưa có ảnh thì trả nguyên chữ như cũ.
+ */
 export function withBeastPortrait(html: string, species: string | undefined, col: string) {
   const u = species ? artUrl(`thu_${species}`) : null;
   return u ? `<div class="thu"><img src="${u}" alt="" draggable="false" style="border-color:${col}"><div>${html}</div></div>` : html;
