@@ -2381,7 +2381,7 @@ export const bondSum = (vohonIds: string[], k: BondKey) => bondsOf(vohonIds).red
  * thì hủy, không tốn gì. Cả hai võ hồn cần ít nhất `minRings` hồn hoàn (3 vòng ≈ cấp 30, giai đoạn Sử Lai Khắc).
  * Số đề xuất ở #192 (cost cỡ CHAN_THAN_SKILL_COST).
  */
-export const FUSION = { r: 160, window: 4, cd: 90, cost: 50, minRings: 3 };
+export const FUSION = { r: PARTY_BUFF_R, window: 4, cd: 90, cost: 50, minRings: 3 };
 /**
  * Một phần của chiêu dung hợp: hồn kỹ vùng "around" chạy bằng bộ máy hồn kỹ, tâm ở điểm giữa hai người; `side` 0 / 1 thì tâm dời về
  * phía người cầm võ hồn `pair[side]` (giữa điểm giữa và người đó). Các phần chạy lần lượt trong cùng một lần tung.

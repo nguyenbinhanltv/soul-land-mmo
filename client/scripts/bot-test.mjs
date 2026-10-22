@@ -8405,9 +8405,11 @@ async function coldTest(){
 async function fusionTest(){
   console.log("\n== Võ Hồn Dung Hợp Kỹ (#192) ==");
   const fi=fusionIndex("yeu_ho","nguyet_nhan"), YN=FUSIONS[fi], sumDmg=f=>f.parts.reduce((a,x)=>a+x.dmg*(x.n??1),0);
-  ok(FUSION.r===PARTY_BUFF_R&&FUSION.window>0&&FUSION.cd>0&&FUSION.cost>0&&FUSION.minRings===3,`FUSION: r ${FUSION.r} (= PARTY_BUFF_R), chờ ${FUSION.window} giây, hồi ${FUSION.cd} giây, ${FUSION.cost} hồn lực, ${FUSION.minRings} hồn hoàn`);
-  ok(FUSIONS.length===4&&fi>=0&&fusionIndex("nguyet_nhan","yeu_ho")===fi&&FUSIONS.every(f=>f.parts.every(x=>x.area==="around")&&sumDmg(f)>=6&&sumDmg(f)<=7),
-    `4 cặp, vùng quanh điểm giữa, tổng dmg ${FUSIONS.map(f=>`${f.name} ${sumDmg(f).toFixed(1)}`).join(", ")}`);
+  // Số cân bằng chỉ ở shared/data.ts: bài chỉ kiểm quan hệ / cấu trúc, in số ra để đọc.
+  ok(FUSION.r===PARTY_BUFF_R&&FUSION.window>0&&FUSION.cd>FUSION.window&&FUSION.cost>0&&FUSION.minRings>1,`FUSION: r ${FUSION.r} (= PARTY_BUFF_R), chờ ${FUSION.window} giây, hồi ${FUSION.cd} giây, ${FUSION.cost} hồn lực, ${FUSION.minRings} hồn hoàn`);
+  const MVP=[["yeu_ho","nguyet_nhan"],["hao_thien_chuy","nhu_cot_tho"],["lam_dien_ba_vuong_long","bich_lan_xa_hoang"],["bang_phuong_hoang","hoa_long"]];
+  ok(fi>=0&&fusionIndex("nguyet_nhan","yeu_ho")===fi&&MVP.every(([a,b])=>fusionIndex(a,b)>=0)&&FUSIONS.every(f=>f.parts.every(x=>x.area==="around")&&sumDmg(f)>0),
+    `4 cặp MVP có trong FUSIONS, vùng quanh điểm giữa, tổng dmg ${FUSIONS.map(f=>`${f.name} ${sumDmg(f).toFixed(1)}`).join(", ")}`);
   const A=await bot("Dung Hợp A","yeu_ho",{sex:1,hair:2,hairCol:1,outfitCol:2});
   const B=await bot("Dung Hợp B","nguyet_nhan",{sex:0,hair:1,hairCol:3,outfitCol:4});
   const O=await bot("Dung Hợp O","nguyet_nhan",{sex:0,hair:3,hairCol:2,outfitCol:1});
@@ -8415,7 +8417,7 @@ async function fusionTest(){
   if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dung hợp kỹ (cần hook set, goto, party): bật server bằng GAME_TEST=1"); return; }
   const meP=b=>b.room.state.players.get(b.room.sessionId), rowOf=(b,v)=>b.owned.list.find(x=>x.vohon===v)?.rowId;
   await waitFor(()=>[A,B,O].every(b=>b.owned&&meP(b)),3000);
-  const Y=[423,764,1760];
+  const Y=[423,764,1760,5000,12000,30000].slice(0,FUSION.minRings);
   const sf=JSON.parse(readFileSync(mapUrl(A.room.state.mapId),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe");
   const inSf=b=>{ const q=meP(b); return !!sf&&q.x>=sf.x&&q.x<=sf.x+sf.width&&q.y>=sf.y&&q.y<=sf.y+sf.height; };
   /** `b` gửi `fusion {op}`, trả dòng log mới (lý do / lời nhắc). */
@@ -8425,7 +8427,7 @@ async function fusionTest(){
     const want=[rowOf(b,v),rowOf(b,"lam_ngan_thao"),0,0]; // ô 2 Lam Ngân Thảo để thử sai cặp và đổi võ hồn
     if(JSON.stringify(b.owned.team)!==JSON.stringify(want)||b.owned.active!==want[0]) await sendTeam(b,want);
   }
-  ok([A,B,O].every(b=>meP(b).rings.length===Y.length)&&meP(A).vh===vohonIndex("yeu_ho")&&meP(B).vh===vohonIndex("nguyet_nhan"),"A Yêu Hồ, B / O Nguyệt Nhận ra trận, 3 hồn hoàn");
+  ok([A,B,O].every(b=>meP(b).rings.length===Y.length)&&meP(A).vh===vohonIndex("yeu_ho")&&meP(B).vh===vohonIndex("nguyet_nhan"),`A Yêu Hồ, B / O Nguyệt Nhận ra trận, ${Y.length} hồn hoàn`);
   // Trong làng (vùng an toàn): từ chối.
   let w=inSf(A)?await fus(A,"start"):"(A không ở trong làng)";
   ok(/vùng an toàn/.test(w),`A trong làng: "${w}"`);
@@ -8447,9 +8449,9 @@ async function fusionTest(){
   const n=B.partyMsgs??0; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>(B.partyMsgs??0)>n,2000);
   B.room.send("party",{op:"accept",name:A.name}); await waitFor(()=>A.party?.members?.length===2&&B.party?.id===A.party.id,2000);
   ok(A.party?.members?.length===2&&B.party?.id===A.party.id&&!O.party?.id,"A và B cùng tổ đội, O ngoài đội");
-  // Thiếu hồn hoàn (B chỉ có 2 vòng).
-  await test(B,"set",{rowId:rowOf(B,"nguyet_nhan"),level:35,xp:0,rings:Y.slice(0,2)});
-  w=await fus(A,"start"); ok(/2 hồn hoàn/.test(w)&&w.includes(B.name)&&!B.fus.length,`B thiếu hồn hoàn: "${w}"`);
+  // Thiếu hồn hoàn (B thiếu một vòng).
+  await test(B,"set",{rowId:rowOf(B,"nguyet_nhan"),level:35,xp:0,rings:Y.slice(0,-1)});
+  w=await fus(A,"start"); ok(w.includes(`${Y.length-1} hồn hoàn`)&&w.includes(B.name)&&!B.fus.length,`B thiếu hồn hoàn: "${w}"`);
   await test(B,"set",{rowId:rowOf(B,"nguyet_nhan"),level:35,xp:0,rings:Y}); await test(B,"ready");
   // Đứng xa.
   await test(B,"goto",{x:ax+FUSION.r+80,y:ay}); await sleep(150);
@@ -8479,6 +8481,11 @@ async function fusionTest(){
   await fus(A,"start"); await test(B,"goto",{x:ax+FUSION.r+80,y:ay}); await sleep(150);
   w=await fus(B,"join"); ok(/đã hủy: .*đứng xa/.test(w)&&meP(B).mp>=mpB,`B ra xa rồi mới hưởng ứng: "${w}"`);
   await test(B,"goto",{x:ax+100,y:ay}); await sleep(150);
+  // Mời rồi B rời tổ đội trước khi hưởng ứng: hủy, không tốn gì; vào lại tổ đội.
+  await fus(A,"start"); B.room.send("party",{op:"leave"}); await waitFor(()=>!B.party?.id,2000);
+  w=await fus(B,"join"); ok(/đã hủy: .*không còn cùng tổ đội/.test(w)&&meP(B).mp>=mpB,`B rời tổ đội rồi mới hưởng ứng: "${w}"`);
+  { await test(A,"party",{pop:"rlreset"}); const k=B.partyMsgs??0; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>(B.partyMsgs??0)>k,2000);
+    B.room.send("party",{op:"accept",name:A.name}); ok(await waitFor(()=>A.party?.members?.length===2&&B.party?.id===A.party.id,2000),"A và B vào lại tổ đội"); }
   // Tung thật lên tinh anh đặt ở điểm giữa: nổ ở điểm giữa, tốn hồn lực, hồi chiêu, không tiên cơ, đóng góp chia đôi.
   await clean(); await test(A,"ready"); await test(B,"ready");
   const EB="bach_nhung_tho_vuong", eb=(await test(A,"beast",{boss:EB,dx:50,dy:0,hpx:50})).bid; // đầy máu, trâu: không gục sau một chiêu

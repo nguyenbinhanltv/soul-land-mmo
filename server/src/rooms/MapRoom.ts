@@ -241,6 +241,8 @@ interface Proj { x: number; y: number; vx: number; vy: number; life: number; own
  *  không tính Phá giáp, không lan Cảm điện). `chain`: sát thương lan của Cảm điện (không chí mạng, không lan tiếp).
  *  `pair` (#192): đòn của Võ Hồn Dung Hợp Kỹ, phiên đồng đội dung hợp: không nhận ràng buộc, đóng góp tinh anh / thú vương / boss chia đôi. */
 interface DmgOpt { crit?: number; lifesteal?: number; direct?: boolean; chain?: boolean; pair?: string; }
+/** Một đòn của Võ Hồn Dung Hợp Kỹ (#192): đồng đội dung hợp và công trung bình của hai người (không ràng buộc). */
+interface FusHit { pair: string; atk: number; }
 
 let nextId = 1;
 const uid = (p: string) => p + (nextId++).toString(36);
@@ -647,7 +649,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, intIn(m?.rowId), m?.skills)); // 8.1a
     this.onMessage("chanthan", (c) => { this.autoHand(c.sessionId); this.chanThan(c); }); // 8.1a: Võ Hồn Chân Thân (phím R)
     this.onMessage("boneskill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.boneSkill(c, intIn(m?.i)); });
-    this.onMessage("fusion", (c, m: { op: unknown }) => this.fusionAction(c.sessionId, strIn(m?.op))); // Võ Hồn Dung Hợp Kỹ (#192)
+    this.onMessage("fusion", (c, m: { op: unknown }) => { this.autoHand(c.sessionId); this.fusionAction(c.sessionId, strIn(m?.op)); }); // Võ Hồn Dung Hợp Kỹ (#192)
     this.onMessage("auto", (c, m: { op?: unknown; cfg?: unknown }) => this.autoAction(c.sessionId, m?.op, m?.cfg)); // tự săn (Auto 1)
     this.onMessage("offline", (c) => { const d = this.pdata.get(c.sessionId); if (d) { d.offAsk = true; this.sendOffline(c.sessionId); } }); // Auto 3
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
@@ -3346,10 +3348,12 @@ export class MapRoom extends Room<MapState> {
    * bản thân (buffPower). `hit`: đòn tạo năng lượng tiên cơ (bỏ trống với tiên cơ). Vùng "target" không có mục tiêu thì
    * lướt theo hướng nhìn nếu có `dash` (người gọi đã kiểm tra trước với hồn kỹ thường). `share` (9.1): mã võ hồn gốc khi hiệu ứng lên
    * bản thân lan cho tổ đội (shareOf), bỏ trống thì không lan. `fus` (#192, Võ Hồn Dung Hợp Kỹ): vùng "around" đặt cố định ở `at`;
-   * `pair` là đồng đội dung hợp: sát thương / trạng thái không nhận ràng buộc, đóng góp tinh anh / thú vương / boss chia đôi.
+   * `atk` là công dùng thay công của `id` (cả sát thương theo thời gian); `pair` là đồng đội dung hợp: không nhận ràng buộc, đóng góp tinh
+   * anh / thú vương / boss chia đôi.
    */
-  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: { at: { x: number; y: number }; pair: string }) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, atk = this.atkOf(d) * power, pair = fus?.pair;
+  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: FusHit & { at: { x: number; y: number } }) {
+    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, atk = (fus ? fus.atk : this.atkOf(d)) * power, pair = fus?.pair;
+    const fs: FusHit | undefined = fus && { pair: fus.pair, atk: fus.atk };
     /** Một nhát trúng hồn thú `bid`: sát thương (kèm % sinh lực, theo tầng trạng thái) rồi gây trạng thái. */
     const strike = (bid: string, last: boolean) => {
       const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || b.hp <= 0) return;
@@ -3365,9 +3369,9 @@ export class MapRoom extends Room<MapState> {
       // Viêm bạo (Hỏa Long): kích nổ mọi tầng Thiêu đốt rồi đặt lại `keep` tầng. Từ 8.1b `boom.last`: chỉ nhát cuối kích nổ, `mult` nổ mạnh thêm.
       if (sk.boom && (!sk.boom.last || last)) {
         this.detonateBurn(bid, id, sk.boom.mult);
-        if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power, pair);
+        if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power, fs);
       }
-      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power, pair);
+      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power, fs);
     };
     /**
      * Một nhát trúng đối thủ `fid` (Đại Đấu Hồn Trường, 7.2): cùng công thức sát thương như lên hồn thú (damageFoe nhân ARENA.dmgMult),
@@ -3487,9 +3491,11 @@ export class MapRoom extends Room<MapState> {
   /**
    * Gây trạng thái `a` lên hồn thú `bid`, người gây `by`, sức mạnh hồn kỹ `power`. Cộng dồn tầng tới STATUS.max, thời gian lấy
    * phần còn lại dài hơn, độ lớn lấy giá trị mạnh hơn. Khống chế ngắn hơn với hồn thú bậc cao (CC_TIER_MULT).
-   * `pair` (#192): gây bởi Võ Hồn Dung Hợp Kỹ cùng đồng đội này: không nhận ràng buộc, sát thương theo thời gian chia đôi đóng góp.
+   * `fus` (#192): gây bởi Võ Hồn Dung Hợp Kỹ: công `fus.atk` thay công của `by`, không nhận ràng buộc, sát thương theo thời gian chia
+   * đôi đóng góp với đồng đội `fus.pair`.
    */
-  applyStatus(bid: string, a: StatusApply, by: string, power = 1, pair?: string) {
+  applyStatus(bid: string, a: StatusApply, by: string, power = 1, fus?: FusHit) {
+    const pair = fus?.pair;
     const b = this.state.beasts.get(bid), bd = this.bdata.get(bid), pd = this.pdata.get(by), p = this.state.players.get(by);
     // Như damageBeast: đang chuyển bản đồ hoặc đứng trong vùng an toàn thì không gây trạng thái.
     if (!b || !bd || b.hp <= 0 || !pd || !p || pd.travelling || this.map.inSafe(p.x, p.y)) return;
@@ -3504,7 +3510,7 @@ export class MapRoom extends Room<MapState> {
     // Ràng buộc Tà Hỏa – Hỏa Ảnh (2.5d), bộ hồn hạch Phượng Hoàng / Xà Hoàng 2 món (5.2): Thiêu đốt / Trúng độc của hồn sư mạnh
     // thêm, tính lúc gây như tăng công.
     const amp = a.s === "burn" ? (pair ? 0 : this.bondV(pd, "burn")) + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
-    const v = def.dot ? this.atkOf(pd) * def.dot * power * (1 + amp) : def.amp;
+    const v = def.dot ? (fus ? fus.atk : this.atkOf(pd)) * def.dot * power * (1 + amp) : def.amp;
     // Bộ Phượng Hoàng 4 món: Thiêu đốt của hồn sư thêm tầng tối đa (người khác gây tiếp không làm giảm số tầng đang có).
     const max = def.max + (a.s === "burn" ? fx.burnMax ?? 0 : 0);
     const cur = bd.st.get(a.s), n = a.n ?? 1;
@@ -3514,7 +3520,7 @@ export class MapRoom extends Room<MapState> {
     // Đủ tầng thì bùng phát (2.5c): Mị hoặc thành Mê hoặc, Phong ấn thành Dễ thương 6,8 giây; tầng về 0.
     if (def.burst && bd.st.get(a.s)!.n >= def.max) {
       bd.st.delete(a.s);
-      this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power, pair);
+      this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power, fus);
       if (STATUS[def.burst.s].wander) { bd.target = null; b.aggro = false; }
     }
     this.syncStatus(b, bd);
@@ -3903,6 +3909,8 @@ export class MapRoom extends Room<MapState> {
   fusionCheck(a: string, b: string, fi = -1) {
     const pa = this.state.players.get(a), da = this.pdata.get(a), pb = this.state.players.get(b), db = this.pdata.get(b);
     if (!pa || !da || !pb || !db) return "đồng đội đã rời bản đồ";
+    const pid = party.partyIdOf(da.accountId);
+    if (!pid || party.partyIdOf(db.accountId) !== pid) return `${pb.name} không còn cùng tổ đội`;
     const k = fusionIndex(da.ch.vohon, db.ch.vohon);
     if (k < 0 || (fi >= 0 && k !== fi)) return `${VOHON[pa.vh].name} và ${VOHON[pb.vh].name} của ${pb.name} không ghép thành cặp dung hợp`;
     const wa = this.fusionBlock(a); if (wa) return `${pa.name} ${wa}`;
@@ -3979,14 +3987,13 @@ export class MapRoom extends Room<MapState> {
       this.clients.getById(q)?.send("fusion", { k: "done", i: fi, cd: FUSION.cd });
     }
     const top = (d: PData) => Math.max(TIERS[0].years, ...d.ringYears), years = Math.min(top(da), top(db));
-    // runSkill nhân công của A (atkOf, có ràng buộc): quy về công trung bình không ràng buộc của hai người.
-    const atk = (this.atkOf(da, false) + this.atkOf(db, false)) / 2, power = skillPower(years) * atk / Math.max(1, this.atkOf(da));
+    const atk = (this.atkOf(da, false) + this.atkOf(db, false)) / 2, power = skillPower(years); // công trung bình, không ràng buộc
     const mid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 }, col = TIERS[tierOfYears(years)].glow;
     this.broadcast("fx", { k: "fusion", id: a, to: b, x: Math.round(mid.x), y: Math.round(mid.y), i: fi, col });
     for (const part of def.parts) {
       const h = part.side === undefined ? null : da.ch.vohon === def.pair[part.side] ? pa : pb;
       const at = h ? { x: (mid.x + h.x) / 2, y: (mid.y + h.y) / 2 } : mid;
-      this.runSkill(a, part, power, 1, col, undefined, undefined, { at, pair: b });
+      this.runSkill(a, part, power, 1, col, undefined, undefined, { at, pair: b, atk });
     }
     this.log(a, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pb.name}!`, col);
     this.log(b, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pa.name}!`, col);
@@ -4135,13 +4142,13 @@ export class MapRoom extends Room<MapState> {
     else if (bd.elite) this.credit(bd.elite, "dmgBy", by, credit);
     // Khiên đỡ hết đòn: vẫn là một đòn trúng (năng lượng tiên cơ, tích Lôi, onHit như đòn trúng máu), chỉ không trừ máu.
     if (hpDmg <= 0) {
-      b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0; if (o.direct !== false) pd.fight = 0;
+      b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0; if (o.direct !== false) { pd.fight = 0; if (mate) this.pdata.get(mate)!.fight = 0; }
       if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, bd.st.has("shock")); hit.onHit?.(); }
       return dmg;
     }
     dmg = hpDmg;
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0;
-    if (o.direct !== false) pd.fight = 0; // sát thương theo thời gian không giữ hồn sư trong giao chiến
+    if (o.direct !== false) { pd.fight = 0; if (mate) this.pdata.get(mate)!.fight = 0; } // sát thương theo thời gian không giữ hồn sư trong giao chiến; dung hợp kỹ: cả đồng đội
     if (direct && !bd.st.has("stun") && !bd.st.has("root") && !bd.rooted) { // thú thực vật đứng yên không bị đẩy lùi (#116)
       const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1, kb = b.rank >= 2 ? 0 : b.tier >= 3 ? 40 : 110; // thú vương không bị đẩy lùi
       bd.kx = (dx / dd) * kb; bd.ky = (dy / dd) * kb;
