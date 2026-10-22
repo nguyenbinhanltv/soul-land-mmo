@@ -124,6 +124,12 @@ export interface Store {
    */
   saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string | null): Promise<boolean>;
   /**
+   * Lưu định kỳ / khi rời phòng (MapRoom.write, #165): trong MỘT transaction ghi vị trí như saveLocation (cùng lớp chặn `WHERE map_id`),
+   * các võ hồn `chars` (như saveTravel) và túi `bag` nếu có (như saveBag). Lớp chặn không khớp (DB đã ở bản đồ khác, vd transaction đi
+   * cổng đã commit dù phòng nhận lỗi) thì không ghi gì, kể cả túi, và trả false. Lỗi khác thì rollback rồi ném lỗi.
+   */
+  saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file?: string | null, bag?: Bag): Promise<boolean>;
+  /**
    * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
    * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
    * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
@@ -310,6 +316,17 @@ export class MemoryStore implements Store {
   async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
     this.locs.set(accountId, { mapId, x, y, file }); return true;
+  }
+  async saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file: string | null = mapFile(mapId), bag?: Bag) {
+    // Như saveTravel: kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ.
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
+    for (const c of chars)
+      if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+    if (bag) this.checkBag(accountId, bag);
+    for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
+    this.locs.set(accountId, { mapId, x, y, file });
+    if (bag) this.putBag(accountId, bag);
+    return true;
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     // Kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ (không có await xen giữa): ghi hết hoặc không ghi gì.
@@ -621,6 +638,28 @@ export class PgStore implements Store {
     const m = this.mapExpr(6);
     const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
     return (r.rowCount ?? 0) > 0;
+  }
+  async saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file: string | null = mapFile(mapId), bag?: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Câu UPDATE accounts đầu tiên vừa là lớp chặn WHERE map_id vừa khóa dòng tài khoản (như writeBag).
+      const m = this.mapExpr(6);
+      const a = await db.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
+      if (a.rowCount !== 1) { await db.query("ROLLBACK"); return false; }
+      for (const c of chars) {
+        const v = await db.query(
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, herbs=$8::jsonb, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
+        if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+      }
+      if (bag) await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return true;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     const db = await this.pool.connect();

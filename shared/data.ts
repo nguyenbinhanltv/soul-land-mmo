@@ -182,6 +182,12 @@ export const TRAVEL_LEAVE_SECS = 10;
 export const CHANNEL_MAX = 60;
 export const CHANNEL_CD = 10;
 /**
+ * Khoảng cách tối thiểu (giây) giữa hai lần client xin lại cùng một loại dữ liệu riêng (`bag`, `vohons`, `quest {op: "get"}`; #165):
+ * xin dồn trong khoảng này thì server gộp thành đúng một lần gửi khi hết khoảng, để gửi dồn không tốn CPU / băng thông. Lần server tự
+ * gửi khi dữ liệu đổi không theo nhịp này.
+ */
+export const ASK_CD = 0.25;
+/**
  * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
  * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
  * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu

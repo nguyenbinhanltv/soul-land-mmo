@@ -141,6 +141,26 @@ async function common(label: string, s: Store, u = "") {
     // Không có túi trong transaction (không đổi gì) thì túi giữ nguyên.
     await s.saveTravel(id, [ch], "nac_dinh_thanh", DEFAULT_MAP, 10, 10);
     assert.deepEqual(await loadItems(id), travelBag);
+    // Lưu định kỳ / rời phòng (saveProgress, #165): vị trí, võ hồn và túi trong một transaction. Phòng của bản đồ khác (DB đã sang bản
+    // đồ khác, vd transaction đi cổng đã commit dù phòng nhận lỗi rồi hoàn phí) thì không ghi gì, kể cả túi và võ hồn.
+    const lv = async () => (await s.listVohons(id)).find((v) => v.rowId === ch.rowId)!.level;
+    const level0 = await lv(), refund = { honTe: 9_999, items: [item("hoi_thanh_phu", 1, { kind: "phu" })] };
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 5 }], "nac_dinh_thanh", 1, 2, undefined, refund), false);
+    assert.deepEqual(await loadItems(id), travelBag);
+    assert.equal(await lv(), level0);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 10 });
+    // Lỗi giữa chừng (võ hồn của tài khoản khác) thì không ghi gì.
+    await assert.rejects(s.saveProgress(id, [{ ...ch, level: level0 + 5 }, { ...och, accountId: id }], DEFAULT_MAP, 3, 4, undefined, refund));
+    assert.deepEqual(await loadItems(id), travelBag);
+    assert.equal(await lv(), level0);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 10, y: 10 });
+    // Đúng bản đồ: ghi hết; không có túi thì túi giữ nguyên.
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 1 }], DEFAULT_MAP, 30, 40, undefined, refund), true);
+    assert.deepEqual(await loadItems(id), refund);
+    assert.equal(await lv(), level0 + 1);
+    assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 30, y: 40 });
+    assert.equal(await s.saveProgress(id, [ch], DEFAULT_MAP, 31, 41), true);
+    assert.deepEqual(await loadItems(id), refund);
   });
 }
 
