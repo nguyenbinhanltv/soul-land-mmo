@@ -78,7 +78,7 @@ Không có hàm game nào nổi bật. `vnClock` (`Intl.DateTimeFormat`, gọi t
 | Giữ nhịp 50 ms, 40 người một kênh ×8 (tự săn) | **Đạt**: p50 7,7 ms, p95 12 ms (mốc 11.4 ~7 ms khi đi lang thang) |
 | 40 người trộn vai trên 6 phòng | **Đạt**: mỗi phòng 1,5–2 ms (p50), cả tiến trình 8–10 ms mỗi nhịp |
 | 60 người một kênh | **Cảnh báo**: p50 6,8–10,9 ms, p95 10–17 ms. Vượt ngưỡng báo động ~10 ms của skill ở một lượt, nhưng vẫn còn xa 50 ms |
-| Nhịp chậm > 50 ms (`max`) | **Chưa rõ**: đỉnh 75–90 ms ở p95 của các cửa sổ 10 giây, lớn nhất 200 ms khi 40–60 người một kênh. Profile không chỉ ra hàm game nào, GC chỉ 0,2 %. Nghi do máy đo bị nhiễu (3 phiên agent khác và Chrome chạy cùng); cần đo lại trên máy rảnh / Linux |
+| Nhịp chậm > 50 ms (`max`) | **Chưa rõ**: đỉnh 75–90 ms ở p95 của các cửa sổ 10 giây, lớn nhất 200 ms khi 40–60 người một kênh. Profile không chỉ ra hàm game nào, GC chỉ 0,2 %. Nghi do máy đo bị nhiễu (3 phiên agent khác và Chrome chạy cùng); cần đo lại trên máy rảnh / Linux (#273) |
 | Băng thông mỗi client | **Đạt**: 5–8 KB/s (mốc 7–8), 9–12 KB/s cạnh thú vương, ~0,5 KB/s trong thành |
 | Phòng trống tự hủy, heap về gần mức đầu | **Đạt** |
 | Rò bộ nhớ | **Không thấy**: heap tăng do túi đồ đầy dần (có trần), dừng tăng khi túi đầy |
