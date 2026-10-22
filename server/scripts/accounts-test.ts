@@ -7,7 +7,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { MemoryStore, PgStore, type Store, type Item, type Bag } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
 import { mapFile } from "../src/map.ts";
-import { DEFAULT_MAP, MAP_MOVED, BAG_SLOTS } from "../../shared/data.ts";
+import { DEFAULT_MAP, MAP_MOVED, BAG_SLOTS, MAPS } from "../../shared/data.ts";
 
 // Mật khẩu thử sinh ngẫu nhiên mỗi lần chạy, không ghi cứng trong mã: PW[i] thay cho mật khẩu thứ i, WRONG là mật khẩu sai.
 const PW = Array.from({ length: 7 }, () => randomUUID()), WRONG = randomUUID();
@@ -117,11 +117,18 @@ async function common(label: string, s: Store, u = "") {
     assert.deepEqual(await s.getLocation(id), cur === nv ? { mapId: nv, x: 30, y: 40 } : { mapId: nv, x: null, y: null });
     assert.equal(await s.saveLocation(id, nv, 30, 40), true);                   // ghi lại theo file đang dùng
     assert.deepEqual(await s.getLocation(id), { mapId: nv, x: 30, y: 40 });
-    const v1 = "loi_tinh_dau";                                                 // Lõi Tinh Đấu giữ bản cũ (11.5 chỉ làm đẹp)
-    await s.saveTravel(id, [ch], nv, v1, 10, 10);
-    assert.equal(mapFile(v1), v1);                                              // bản đồ chưa có bản ×8: NULL vẫn giữ vị trí
-    assert.equal(await s.saveLocation(id, v1, 12, 14, null), true);
-    assert.deepEqual(await s.getLocation(id), { mapId: v1, x: 12, y: 14 });
+    // Lõi Tinh Đấu cũng có bản dựng lại (11.5 phần 3, giữ cỡ): dòng NULL là bản cũ nên vị trí bỏ như mọi bản đồ khác.
+    const lo = "loi_tinh_dau", loCur = mapFile(lo);
+    await s.saveTravel(id, [ch], nv, lo, 10, 10);
+    assert.equal(await s.saveLocation(id, lo, 12, 14, null), true);
+    assert.deepEqual(await s.getLocation(id), loCur === lo ? { mapId: lo, x: 12, y: 14 } : { mapId: lo, x: null, y: null });
+    // Bản đồ đang dùng file cũ (chưa có bản dựng lại, hoặc MAP_V1 bật đường lùi): NULL vẫn giữ vị trí.
+    const v1 = Object.keys(MAPS).find((m) => mapFile(m) === m);
+    if (v1) {
+      await s.saveTravel(id, [ch], lo, v1, 10, 10);
+      assert.equal(await s.saveLocation(id, v1, 12, 14, null), true);
+      assert.deepEqual(await s.getLocation(id), { mapId: v1, x: 12, y: 14 });
+    }
   });
   await test(`${label}: túi đồ, Hồn Tệ, vật phẩm khởi đầu một lần và túi đồ trong transaction đi cổng (3.1)`, async () => {
     const id = ok(await s.login(cleanName(`Túi${u}`), PW[5]));

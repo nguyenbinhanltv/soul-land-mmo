@@ -1,0 +1,290 @@
+{
+  "_": "Đại Đấu Hồn Trường (11.5, giữ cỡ 40×24 hợp trận 1v1, chỉ làm đẹp). Tường đá, khán đài phía bắc (công trình khan_dai) và phía nam, sân cát viền quanh sàn đá có huy hiệu giữa, cột cờ và lò lửa đồng hai bên, sư tử vàng ở bốn góc sân. Định dạng: tools/maps/README.md.",
+  "map": "dai_dau_hon_truong",
+  "out": "dai_dau_hon_truong.v2.json",
+  "size": [
+    40,
+    24
+  ],
+  "seed": 20261122,
+  "gids": {
+    "ground": {
+      "grass": [
+        1,
+        1
+      ],
+      "leaf": 1,
+      "moss": 1,
+      "path": 7,
+      "pathDark": 8,
+      "camp": 7,
+      "pave": 13,
+      "crack": 16,
+      "water": 9,
+      "ford": 34,
+      "bank": 25,
+      "deep": 35,
+      "stony": 26,
+      "glow": 5,
+      "bridge": 33
+    },
+    "objects": {
+      "stele": 38,
+      "fire": 12,
+      "ruin": 37,
+      "roof": 14,
+      "wall": 15
+    }
+  },
+  "tiers": [
+    {
+      "name": "Sân",
+      "trees": {
+        "17": 1
+      },
+      "density": 0,
+      "cluster": 0.99
+    }
+  ],
+  "zones": [],
+  "points": {},
+  "features": [
+    {
+      "type": "area",
+      "name": "Nền",
+      "ground": "grass",
+      "rect": [
+        0,
+        0,
+        40,
+        24
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Huy hiệu",
+      "ground": "crack",
+      "poly": [
+        [
+          25.0,
+          13.0
+        ],
+        [
+          24.6,
+          14.3
+        ],
+        [
+          23.5,
+          15.5
+        ],
+        [
+          21.9,
+          16.2
+        ],
+        [
+          20.0,
+          16.5
+        ],
+        [
+          18.1,
+          16.2
+        ],
+        [
+          16.5,
+          15.5
+        ],
+        [
+          15.4,
+          14.3
+        ],
+        [
+          15.0,
+          13.0
+        ],
+        [
+          15.4,
+          11.7
+        ],
+        [
+          16.5,
+          10.5
+        ],
+        [
+          18.1,
+          9.8
+        ],
+        [
+          20.0,
+          9.5
+        ],
+        [
+          21.9,
+          9.8
+        ],
+        [
+          23.5,
+          10.5
+        ],
+        [
+          24.6,
+          11.7
+        ]
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Vạch giữa",
+      "ground": "crack",
+      "rect": [
+        19,
+        6,
+        2,
+        14
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Sàn đá",
+      "ground": "pave",
+      "rect": [
+        4,
+        6,
+        32,
+        14
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "area",
+      "name": "Sân cát",
+      "ground": "path",
+      "rect": [
+        3,
+        5,
+        34,
+        16
+      ],
+      "clear": true,
+      "lock": true
+    },
+    {
+      "type": "house",
+      "rect": [
+        1,
+        1,
+        38,
+        4
+      ],
+      "margin": 0
+    },
+    {
+      "type": "house",
+      "rect": [
+        1,
+        21,
+        38,
+        2
+      ],
+      "margin": 0
+    },
+    {
+      "type": "row",
+      "kind": "stele",
+      "from": [
+        1,
+        6
+      ],
+      "to": [
+        1,
+        18
+      ],
+      "step": 4
+    },
+    {
+      "type": "row",
+      "kind": "stele",
+      "from": [
+        38,
+        6
+      ],
+      "to": [
+        38,
+        18
+      ],
+      "step": 4
+    },
+    {
+      "type": "row",
+      "kind": "fire",
+      "from": [
+        1,
+        8
+      ],
+      "to": [
+        1,
+        16
+      ],
+      "step": 4
+    },
+    {
+      "type": "row",
+      "kind": "fire",
+      "from": [
+        38,
+        8
+      ],
+      "to": [
+        38,
+        16
+      ],
+      "step": 4
+    },
+    {
+      "type": "objects",
+      "kind": "ruin",
+      "at": [
+        [
+          2,
+          5
+        ],
+        [
+          37,
+          5
+        ],
+        [
+          2,
+          20
+        ],
+        [
+          37,
+          20
+        ]
+      ]
+    },
+    {
+      "type": "fence",
+      "rect": [
+        0,
+        0,
+        40,
+        24
+      ],
+      "gates": []
+    }
+  ],
+  "spawn": {
+    "name": "Sân đấu",
+    "rect": [
+      4,
+      6,
+      32,
+      14
+    ]
+  }
+}

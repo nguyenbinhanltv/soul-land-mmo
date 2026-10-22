@@ -246,8 +246,8 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**. Mỗi bản đ�
 | Lạc Nhật Sâm Lâm (`lac_nhat_sam_lam`) | Săn | Thực vật, độc, đầm Bích Lân; băng nguyên và nham cháy ở Băng Hỏa Tuyền; suối đôi Băng Hỏa Lưỡng Nghi Nhãn (hồ băng cạnh hồ lửa); rơi tiên thảo | Thiên Đấu Thành |
 | Cực Bắc Chi Địa (`cuc_bac_chi_dia`) | Săn | Băng tuyết; trại cổng ở mép nam, càng lên bắc càng sâu: hồ băng, khe băng có cầu băng, thung lũng vách băng, băng điện cổ, vực băng và Băng Tủy Thụ | Thiên Đấu Thành |
 | Hải Thần Đảo / Ma Quỷ Hải Vực (`hai_than_dao`) | Săn | Đảo giữa biển sâu, cầu tàu ở bờ tây; rạn nông có đường đá nối các bãi; đền Hải Thần với tượng đinh ba trên Vách Hải Thần, sân trước đền là vùng `safe` **Thánh địa Hải Thần** (không hồn thú, không giao chiến; tự săn đi vòng); trại Bến Hải Thần có vùng `safe` nhỏ quanh Hải Mã Đấu La; hồn thú biển; nơi duy nhất có hồn thú thường 10 vạn năm | Thiên Đấu Thành (bến thuyền) |
-| Lõi Tinh Đấu (`loi_tinh_dau`) | Boss | Hồ trung tâm Tinh Đấu Đại Sâm Lâm, sàn đấu boss thế giới | Nội địa |
-| Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Sân đấu | Sân nhỏ cho một trận 1v1 hoặc 2v2 (`ARENA_MAP`) | – |
+| Lõi Tinh Đấu (`loi_tinh_dau`) | Boss | Hồ trung tâm Tinh Đấu Đại Sâm Lâm: Hồ Sinh Mệnh phát sáng (rìa nước nông có sen, rêu phát quang quanh bờ), sàn đấu boss thế giới lát đá giữa vòng cột tinh thể, cổ thụ phát quang | Nội địa |
+| Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Sân đấu | Sân nhỏ cho một trận 1v1 hoặc 2v2 (`ARENA_MAP`): khán đài hai phía, sàn đá có huy hiệu giữa sân cát, cột cờ, lò lửa, sư tử vàng | – |
 
 **Cổng và chặn mềm**
 - Cổng là object `portal` trong Tiled: bản đồ đích, điểm xuất hiện `arrive` ở bản đồ đích, cấp đề xuất `level`. Điểm `arrive` phải nằm ngoài mọi vùng `portal` của bản đồ đích.
@@ -900,13 +900,13 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
 
-**Đã có:** chạy / đi bộ theo giao chiến, hồn thú đuổi nhanh và bỏ về, bấm chuột tìm đường A*, bản vá state ngay sau mỗi nhịp, animation đi theo vận tốc (11.1); truyền tống trận (object `waypoint`, bảng `waypoints`), bản đồ thế giới thủy mặc, phí và niệm, Hồi Thành Phù (11.2); đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, bản đồ nhỏ qua tin `mini`, vẽ bản đồ theo khối (11.4); công cụ dựng bản đồ lớn `tools/maps` (bố cục, hạt giống, lớp chỉnh tay, ảnh toàn cảnh) và bản thử Tinh Đấu Ngoại vi ×8 (11.3); bản ×8 dựng bằng `tools/maps` là mặc định (đường lùi `MAP_V1`), Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa, Hải Thần Đảo ×8 (11.5, phần 1); Thánh Hồn Thôn, Nặc Đinh Thành, Thiên Đấu Thành ×8 với nhà, tường thành, khu phố, công trình dựng bằng `tools/maps` (11.5, phần 2).
+**Đã có:** chạy / đi bộ theo giao chiến, hồn thú đuổi nhanh và bỏ về, bấm chuột tìm đường A*, bản vá state ngay sau mỗi nhịp, animation đi theo vận tốc (11.1); truyền tống trận (object `waypoint`, bảng `waypoints`), bản đồ thế giới thủy mặc, phí và niệm, Hồi Thành Phù (11.2); đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, bản đồ nhỏ qua tin `mini`, vẽ bản đồ theo khối (11.4); công cụ dựng bản đồ lớn `tools/maps` (bố cục, hạt giống, lớp chỉnh tay, ảnh toàn cảnh) và bản thử Tinh Đấu Ngoại vi ×8 (11.3); bản ×8 dựng bằng `tools/maps` là mặc định (đường lùi `MAP_V1`), Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa, Hải Thần Đảo ×8 (11.5, phần 1); Thánh Hồn Thôn, Nặc Đinh Thành, Thiên Đấu Thành ×8 với nhà, tường thành, khu phố, công trình dựng bằng `tools/maps` (11.5, phần 2); Lõi Tinh Đấu và Đại Đấu Hồn Trường giữ cỡ, làm đẹp (11.5, phần 3); vị trí lưu kèm tên file bản đồ (`accounts.map_file`).
 
 - [x] 11.1 Di chuyển: đo độ trễ, tốc độ đi / chạy mới, tốc độ lang thang / đuổi và giới hạn đuổi của hồn thú, bấm chuột tìm đường A*, animation khớp vận tốc (#106; mục 4 "Di chuyển", 5.3, 6 "Dự đoán chuyển động").
 - [x] 11.2 Truyền tống trận (`waypoint` trong Tiled, mở khoá lưu DB, phí, niệm có thể bị ngắt, cấm khi giao chiến), bản đồ thế giới thủy mặc, Hồi Thành Phù (#107; mục 5.3 "Truyền tống trận").
 - [x] 11.3 Công cụ dựng bản đồ lớn `tools/maps` và bản mẫu Tinh Đấu Ngoại vi gấp 8 lần diện tích để duyệt (#108; mục 5.3, 6 "Bản đồ lớn dựng bằng `tools/maps`").
 - [x] 11.4 Hiệu năng bản đồ lớn: đồng bộ theo vùng gần, lưới không gian, hồn thú ngủ, vẽ theo khối (#109; mục 6 "Đồng bộ xuống client", "Hiển thị isometric phía client").
-- [ ] 11.5 Mở rộng và làm đẹp các bản đồ còn lại theo bản mẫu đã duyệt (#110). Còn: Đại Đấu Hồn Trường và Lõi Tinh Đấu (giữ cỡ, chỉ làm đẹp).
+- [x] 11.5 Mở rộng và làm đẹp các bản đồ còn lại theo bản mẫu đã duyệt (#110; mục 5.3, 6 "Bản đồ lớn dựng bằng `tools/maps`").
 - [x] Biểu tượng Hồi Thành Phù, rương, tiên thảo (`item_hoi_thanh_phu`, `item_ruong`, `item_tien_thao`; vật phẩm LPC, `tools/assets/lpc-item.mjs`) và quả nổ của tiên cơ Cường Công (`fx_no`) (#170, #201).
 
 **Giai đoạn 12: Âm thanh**

@@ -820,7 +820,8 @@
    "ground": {
     "1": "san_da_nut",
     "7": "cat_dau_truong~#f0e8d8",
-    "13": "san_da~#8c8e9c"
+    "13": "san_da~#8c8e9c",
+    "16": "san_da_nut~#e0c890"
    },
    "build": {
     "wallKind": "stone",
@@ -846,7 +847,10 @@
     }
    },
    "props": {
-    "17": ["cot_co_do_vang", "lo_lua_dong"]
+    "17": ["cot_co_do_vang", "lo_lua_dong"],
+    "12": "lo_lua_dong",
+    "37": "su_tu_vang",
+    "38": "cot_co_do_vang"
    }
   },
   "hai_than_dao": {
@@ -1028,11 +1032,27 @@
     "6": "co_hoa~#a8b4c8",
     "8": "dat~#9898ac",
     "9": "nuoc_ho",
-    "10": "san_da_co~#a0a8c0"
+    "10": "san_da_co~#a0a8c0",
+    "5": "reu_dom_sang",
+    "7": "dat~#a0a0b8",
+    "13": "san_da_co~#c0c8e0",
+    "16": "san_da_co~#a8b0d0",
+    "25": "co~#b8c4d8",
+    "26": "da_cuoi~#a8b0c8",
+    "33": "san_da_co~#b8c0d8",
+    "34": "nuoc_ho~#c8e8ff",
+    "35": "nuoc_ho~x0.75"
    },
    "props": {
     "19": "cay_rung_dem~x1.3",
-    "20": ["cay_u_minh~x1.5", "cay_rung_dem~x1.2", "cay_u_minh~x1.5", "re_cay_lon", "nam_khong_lo"]
+    "20": ["cay_u_minh~x1.5", "cay_rung_dem~x1.2", "cay_u_minh~x1.5", "re_cay_lon", "nam_khong_lo"],
+    "27": "so_thu_khong_lo~#c8d0e0",
+    "28": ["duong_xi_sang", "nam_xanh_cum", "duong_xi_sang~#c0d8ff"],
+    "30": "co_thu_phat_quang",
+    "36": ["cum_da~#a8b0c8", "tang_da_reu"],
+    "38": "tinh_the_tim~#a8d0ff",
+    "39": "vom_da~#b0b8d0",
+    "40": "re_cay_lon"
    }
   },
   "cuc_bac_chi_dia": {
