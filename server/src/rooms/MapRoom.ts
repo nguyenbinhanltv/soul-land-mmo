@@ -1071,7 +1071,8 @@ export class MapRoom extends Room<MapState> {
     // gửi lại hướng khác 0 là tự di chuyển nên tự săn tắt ngay (tay ưu tiên).
     if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) { p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
     this.applyInput(d, 0, 0, false);
-    this.log(id, `Bật tự động: săn quanh đây (${d.autoCfg.radius} ô), còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))} treo. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
+    const where = d.autoCfg.scope === "near" ? `quanh đây (${d.autoCfg.radius} ô)` : "khắp bản đồ";
+    this.log(id, `Bật tự động: săn ${where}, còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))} treo. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
     this.sendAuto(id);
   }
 
@@ -1160,7 +1161,7 @@ export class MapRoom extends Room<MapState> {
     // Auto 2: hết quỹ miễn phí của ngày thì dùng tiếp quỹ giờ cộng thêm (Ủy Thác Lệnh) còn lại lúc nhận (đã trừ phần tự săn online tiêu).
     const parts = offlineSplit(bossNow() + this.dayShift * 86400000, away, row.day, row.used, d.autoBonus);
     const secs = Math.floor(parts.reduce((a, x) => a + x.secs, 0));
-    const pw: OfflinePower = { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def };
+    const pw = this.offlinePower(d, p);
     const cfg = d.autoCfg, lv = p.level, got = new Map<string, number>(), rings: number[] = [];
     const add = (name: string, n: number) => got.set(name, (got.get(name) ?? 0) + n);
     let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false;
@@ -2739,8 +2740,11 @@ export class MapRoom extends Room<MapState> {
       if (typeof o.bonus === "number" && Number.isFinite(o.bonus)) { d.autoBonus = Math.max(0, Math.min(AUTO_BONUS_MAX, o.bonus)); d.autoDirty = true; this.sendAuto(id); }
       if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
       const a = d.auto;
+      // #213: `pace` đặt nợ nhịp (giây) của lượt tự săn đang chạy (thử trần tốc độ AUTO_PACE).
+      if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
       const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
-      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
+      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
+        drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
     }
     else if (op === "offline") {
@@ -2763,7 +2767,8 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
     else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)
-      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
+      // `but` (#213): giữ hồn thú có id này / trong danh sách này (bài tự săn dọn hồn thú tự nhiên quanh mình mà không xóa mục tiêu đang thử).
+      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank) && !(Array.isArray(o.but) ? o.but.includes(bid) : bid === o.but)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
     });
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);
@@ -2936,6 +2941,8 @@ export class MapRoom extends Room<MapState> {
   }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
   atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk") + this.bondV(d, "atk")); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4)
+  /** Chỉ số võ hồn ra trận cho công thức tự đánh (offlineFight): ủy thác offline và trần tốc độ tự săn (AUTO_PACE). */
+  offlinePower(d: PData, p: PlayerState): OfflinePower { return { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def }; }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
   /**
@@ -4028,6 +4035,7 @@ export class MapRoom extends Room<MapState> {
     this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by) });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
+    const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? ""); // trần tốc độ tự săn
     const team = this.partyNear(by, b.x, b.y), share = partyXpShare(team.length);
     // Giới hạn săn tinh anh nhiều kênh (#119, mục 5.4): tài khoản đã nhận thưởng loài tinh anh này trên bản đồ này trong ELITE.lock giây
     // (ở bất kỳ kênh nào) thì lần này chỉ nhận như hồn thú thường; ai nhận thưởng tinh anh lần này thì bị khóa ELITE.lock giây.

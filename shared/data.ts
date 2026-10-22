@@ -3864,8 +3864,14 @@ export const resonanceText = (b: Partial<Record<ResStat, number>>) =>
  */
 export const AUTO_DAILY_SECS = 12 * 3600;
 /**
- * Bán kính (pixel) quanh điểm neo (chỗ bật tự săn): chỉ nhắm hồn thú, nhặt đồ trong vùng này; ra ngoài thì quay về. Người chơi chọn
- * trong bảng Tự động (`AutoSettings.radius`, số ô) từ AUTO_RADIUS_MIN tới AUTO_RADIUS (mặc định lớn nhất).
+ * Phạm vi tự săn (`AutoSettings.scope`, #213): "map" (mặc định) săn khắp bản đồ đang đứng: nhắm hồn thú gần nhất hợp khoảng niên hạn
+ * trong AUTO_RADIUS quanh mình, không có thì trên cả bản đồ (chỉ chỗ đi bộ tới được, không qua cổng / truyền tống, đường không đi vào vùng
+ * an toàn), nhặt đồ trong AUTO_RADIUS quanh mình. "near" ("Chỉ quanh chỗ đứng", kiểu Auto 1) chỉ săn trong bán kính quanh điểm neo.
+ */
+export type AutoScope = "map" | "near";
+/**
+ * Bán kính (pixel) quanh điểm neo (chỗ bật tự săn) khi phạm vi "near": chỉ nhắm hồn thú, nhặt đồ trong vùng này; ra ngoài thì quay về.
+ * Người chơi chọn trong bảng Tự động (`AutoSettings.radius`, số ô) từ AUTO_RADIUS_MIN tới AUTO_RADIUS (mặc định lớn nhất).
  */
 export const AUTO_RADIUS = 15 * TILE;
 export const AUTO_RADIUS_MIN = 5 * TILE;
@@ -3874,6 +3880,15 @@ export const AUTO_RADIUS_MIN = 5 * TILE;
  * hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm (như người giữ phím đánh).
  */
 export const AUTO_HZ = 4;
+/**
+ * Trần tốc độ tự săn (chủ repo chốt 2026-10-22, #213): hiệu suất tối đa bằng tự đánh, cùng mốc với ủy thác offline. Mỗi hồn thú thường
+ * người đang tự săn hạ (mục tiêu, đánh trả hay trúng lan) cộng vào "nợ nhịp" số giây offlineFight tính cho con đó với chỉ số võ hồn ra
+ * trận lúc hạ (thời gian tự đánh một con, kể cả tìm / đi tới OFFLINE.seek). Nợ giảm theo thời gian thực; còn nợ thì không nhắm con mới
+ * (đứng nghỉ, vẫn đánh trả và nhặt đồ). Mỗi con vì thế tốn khoảng max(thời gian thật, ước lượng). Nợ bị kẹp ở −`credit` giây khi không
+ * có mục tiêu và khi thôi nhắm một mục tiêu (thời gian rảnh / đi đường dư không tích để sau hạ dồn); lúc đang đi tới / đánh một con thì
+ * không kẹp, để trận dài hơn `credit` giây không bị tính hai lần (thời gian thật đã gồm trong ước lượng).
+ */
+export const AUTO_PACE = { credit: 10 };
 /** Tối đa bấy nhiêu người treo có điểm neo trong cùng một ô lưới SYNC_VIEW.cell của một kênh (chống dồn một chỗ). */
 export const AUTO_MAX_PER_CELL = 3;
 /**
@@ -3882,11 +3897,13 @@ export const AUTO_MAX_PER_CELL = 3;
  */
 export const AUTO_CLAIM_SECS = 8;
 /**
- * Di chuyển của tự săn: không có việc thì đi tới một điểm ngẫu nhiên trong vùng neo, đổi điểm sau `patrol` giây; mục tiêu / đồ không tới
- * được hoặc kẹt `stuck` giây thì bỏ qua `skip` giây; mục tiêu đi xa đường đã tìm thì tìm lại sau ít nhất `repath` giây. Tìm đường A*
- * (shared/path.ts) trong khung `path` (nhỏ hơn CLICK_PATH vì chỉ đi trong vùng neo).
+ * Di chuyển của tự săn: không có việc thì đi tới một điểm ngẫu nhiên trong vùng neo (phạm vi "map": quanh chỗ đang đứng), đổi điểm sau
+ * `patrol` giây; mục tiêu / đồ không tới được hoặc kẹt `stuck` giây thì bỏ qua `skip` giây; mục tiêu đi xa đường đã tìm thì tìm lại sau
+ * ít nhất `repath` giây. Tìm đường A* (shared/path.ts) trong khung `path` quanh chỗ đứng; đích xa hơn khung thì đi theo điểm trung gian
+ * của đồ thị dẫn đường `nav` (#213): bản đồ chia khối `block`×`block` ô, mỗi vùng ô liền nhau trong một khối là một nút; A* trên đồ thị
+ * nút rồi nối các điểm trung gian bằng đường thẳng (nhìn trước tối đa `look` nút) hoặc A* trong khung `path`.
  */
-export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath: 1, path: { maxTiles: 24, maxNodes: 2500 } };
+export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath: 1, path: { maxTiles: 24, maxNodes: 2500 }, nav: { block: 8, look: 6 } };
 /**
  * Loại vật phẩm khác (ngoài hồn hoàn, hồn cốt, hồn hạch) có thể nằm dưới đất khi tự săn: mảnh võ hồn và tiên thảo rơi xuống khi túi
  * người hạ đã đầy. Bảng Tự động cho chọn nhặt từng loại (`AutoSettings.kinds`).
@@ -3894,7 +3911,8 @@ export const AUTO_MOVE = { patrol: [3, 6] as const, stuck: 1.5, skip: 10, repath
 export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
-  radius: number;          // bán kính vùng neo (số ô, AUTO_RADIUS_MIN..AUTO_RADIUS)
+  scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
+  radius: number;          // bán kính vùng neo khi "near" (số ô, AUTO_RADIUS_MIN..AUTO_RADIUS)
   years: [number, number]; // khoảng niên hạn hồn thú thường được nhắm (số năm)
   hp: number; mp: number;  // uống đan khi sinh lực võ hồn ra trận / hồn lực dưới tỉ lệ này (0 = không uống)
   mpKeep: number;          // chừa tỉ lệ hồn lực này: không tung hồn kỹ làm hồn lực còn dưới mức đó
@@ -3907,8 +3925,11 @@ export interface AutoSettings {
   stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
   tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
 }
-/** Mặc định: vùng neo lớn nhất, mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn lực, hồn kỹ ô P → U, nhặt mọi thứ. */
-export const AUTO_DEFAULTS: AutoSettings = { radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
+/**
+ * Mặc định: săn khắp bản đồ (vùng neo lớn nhất nếu chọn "near"), mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn
+ * lực, hồn kỹ ô P → U, nhặt mọi thứ.
+ */
+export const AUTO_DEFAULTS: AutoSettings = { scope: "map", radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
   skills: [3, 2, 1, 0], slots: Array.from({ length: TEAM_SIZE }, (_, i) => i), ring: 0, bone: true, core: true, coreStar: 1,
   kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true };
 /** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
@@ -3922,7 +3943,8 @@ export function parseAuto(raw: unknown): AutoSettings {
     ? [...new Set(v.filter((i): i is number => Number.isInteger(i) && (i as number) >= 0 && (i as number) < n))] : [...def]);
   // Bản lưu từ Auto 1 chưa có `kinds` mà có cờ `item` (nhặt vật phẩm khác): false thì không nhặt loại nào.
   const kinds = Array.isArray(o.kinds) ? AUTO_LOOT_KINDS.filter((k) => (o.kinds as unknown[]).includes(k)) : o.item === false ? [] : [...D.kinds];
-  return { radius: Math.round(num(o.radius, AUTO_RADIUS_MIN / TILE, AUTO_RADIUS / TILE, D.radius)), years: [Math.min(y0, y1), Math.max(y0, y1)],
+  // Bản lưu trước #213 chưa có `scope`: săn khắp bản đồ như mặc định mới.
+  return { scope: o.scope === "near" ? "near" : "map", radius: Math.round(num(o.radius, AUTO_RADIUS_MIN / TILE, AUTO_RADIUS / TILE, D.radius)), years: [Math.min(y0, y1), Math.max(y0, y1)],
     hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
     skills: order(o.skills, LOADOUT_SIZE, D.skills), slots: order(o.slots, TEAM_SIZE, D.slots),
     ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core),
