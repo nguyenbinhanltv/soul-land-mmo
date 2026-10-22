@@ -47,8 +47,11 @@ function mutual(a: number, b: number) {
   return !!s?.friends.has(b) && (o ? o.friends.has(a) : s.fans.has(b));
 }
 
-/** Người đang trong game đã thêm nhau với `acc`: cần gửi lại bảng bạn bè khi `acc` vào / rời game, đổi bản đồ / kênh. */
-export function mutualOnline(acc: number) { return [...social.keys()].filter((o) => o !== acc && mutual(o, acc)); }
+/**
+ * Người đang trong game đã thêm nhau với `acc` (`acc` đang trong game): cần gửi lại bảng bạn bè khi `acc` vào / rời game, đổi bản đồ /
+ * kênh. Chỉ duyệt danh sách của `acc` (tối đa FRIEND_MAX), không duyệt mọi người đang online.
+ */
+export function mutualOnline(acc: number) { return [...(social.get(acc)?.friends.keys() ?? [])].filter((o) => !!social.get(o)?.friends.has(acc)); }
 
 /** Hồn sư tên `name` có trong danh sách bạn bè hoặc chặn của `acc` (tra không cần DB). */
 export function known(acc: number, name: string): SocialPeer | null {

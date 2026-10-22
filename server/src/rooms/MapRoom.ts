@@ -992,7 +992,7 @@ export class MapRoom extends Room<MapState> {
     this.pdata.delete(id);
     // Lần ghi cuối đã xong: phiên mới của tài khoản (đang chờ trong onAuth) được nạp DB.
     const accountId = d?.accountId ?? (client.auth as AuthData | undefined)?.accountId;
-    if (accountId !== undefined) friends.leave(accountId, id); // người xem trận (#278) không có pdata
+    if (!d && accountId !== undefined) friends.leave(accountId, id); // người xem trận (#278) không có pdata
     if (accountId !== undefined) await this.releaseAccount(accountId, id);
   }
 
@@ -3006,8 +3006,8 @@ export class MapRoom extends Room<MapState> {
       const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
-    else if (op === "chat") { if (o.cop === "rlreset") chatReset(d.accountId); }
-    else if (op === "friend") { if (o.fop === "rlreset") friendReset(d.accountId); } // #195: xóa bộ đếm thao tác bạn bè của người gọi // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
+    else if (op === "chat") { if (o.cop === "rlreset") chatReset(d.accountId); } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
+    else if (op === "friend") { if (o.fop === "rlreset") friendReset(d.accountId); } // #195: xóa bộ đếm thao tác bạn bè của người gọi
     else if (op === "party") {
       // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
       // mọi `pop` trả khung tổ đội của người gọi.
@@ -6273,8 +6273,9 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Thao tác bạn bè từ client `friend {op, name?}` (#195): `list` (xin bảng), `add` / `block` (theo tên, kể cả người ngoại tuyến: tra
-   * danh sách của mình, người đang trong game rồi mới tới DB), `remove` / `unblock` (tên trong danh sách của mình). Luật ở friends.ts;
-   * mỗi thao tác hợp lệ tính một lượt chống spam (ratelimit.friendCheck) và ghi DB phần của chính người gửi qua chuỗi lưu.
+   * danh sách của mình, người đang trong game rồi mới tới DB), `remove` / `unblock` (tên trong danh sách của mình). Luật ở friends.ts.
+   * Mỗi thao tác có tên (kể cả bị từ chối, vì tra tên có thể tốn một lần đọc DB) tính một lượt chống spam (ratelimit.friendCheck);
+   * thao tác hợp lệ ghi DB phần của chính người gửi qua chuỗi lưu, lỗi ghi thì báo người gửi.
    */
   async friendAction(id: string, m: unknown) {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
@@ -6300,7 +6301,10 @@ export class MapRoom extends Room<MapState> {
     }
     if ("error" in r) return warn(r.error);
     const w = r.write;
-    this.chain(d, () => (w.block !== undefined ? store.setBlock(acc, w.other, w.block) : store.setFriend(acc, w.other, !!w.friend)));
+    this.chain(d, () => (w.block !== undefined ? store.setBlock(acc, w.other, w.block) : store.setFriend(acc, w.other, !!w.friend)).catch((e) => {
+      this.log(id, "Không lưu được danh sách bạn bè / chặn: thao tác vừa rồi có thể mất khi vào lại game.", "#ff6b6b");
+      throw e; // chuỗi lưu ghi log và giữ chuỗi
+    }));
     this.friendPublish(r.notes);
   }
 

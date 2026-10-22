@@ -64,12 +64,12 @@ export interface Item {
  * parseSell; `accounts.auto_sell`), `sold`: các món tự bán gần nhất để mua lại (`accounts.auto_sold`); thiếu khi ghi thì giữ nguyên.
  */
 /** Tông môn của tài khoản (#196). */
+export interface TongRow { tong: string | null; at: number | null; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
 /** Một hồn sư trong danh sách bạn bè / chặn (#195). */
 export interface SocialPeer { id: number; name: string; }
 /** Bạn bè, chặn và người đã thêm mình của một tài khoản (#195; Store.getSocial). */
 export interface SocialRow { friends: SocialPeer[]; blocks: SocialPeer[]; fans: number[]; }
-export interface TongRow { tong: string | null; at: number | null; }
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
 /** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
 export interface SoldRow { key: string; item: Item; price: number; at: number; }
 /**
