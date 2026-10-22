@@ -92,6 +92,13 @@ const all = (p: Party, text?: string, col = COL): PartyNote => ({ to: [...p.memb
 export function partyIdOf(acc: number) { return partyOfAcc.get(acc) ?? 0; }
 /** Mọi thành viên (accountId) của tổ đội có `acc`, kể cả chính nó; không có tổ đội thì []. */
 export function partyMembers(acc: number) { return partyOf(acc)?.members ?? []; }
+/** Trưởng nhóm của tổ đội; 0 nếu tài khoản chưa vào tổ đội. */
+export function partyLeader(acc: number) { return partyOf(acc)?.leader ?? 0; }
+/** Tổ đội đã đủ thành viên đang online trong cùng một phòng bản đồ chưa. */
+export function partyInRoom(acc: number, roomId: string) {
+  const p = partyOf(acc);
+  return !!p && p.members.every((m) => { const l = live.get(m); return !!l && !l.off && l.roomId === roomId; });
+}
 
 /**
  * Phòng (kênh) của đồng đội đang trong game ở bản đồ `mapId` (không tính chính `acc`), kèm số đồng đội ở mỗi phòng: vào game, đi
@@ -175,6 +182,12 @@ function takeInvite(acc: number, fromName: string, now: number) {
   if (from !== undefined) m?.delete(from);
   if (m && !m.size) invites.delete(acc);
   return exp !== undefined && exp > now ? from! : null;
+}
+
+/** Tài khoản người mời của lời mời còn hạn, chỉ đọc để MapRoom kiểm tra khóa hàng chờ trước khi nhận lời. */
+export function inviteFrom(acc: number, fromName: string, now: number) {
+  const from = byName.get(nameKey(fromName)), exp = from !== undefined ? invites.get(acc)?.get(from) : undefined;
+  return from !== undefined && exp !== undefined && exp > now ? from : null;
 }
 
 /** `acc` nhận lời mời của `fromName`: vào tổ đội của người mời (người mời chưa có tổ đội thì lập mới, người mời làm trưởng nhóm). */

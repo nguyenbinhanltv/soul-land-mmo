@@ -39,7 +39,9 @@ try {
   console.log("✓ Presence local: lease, TTL document, lock và idempotency");
 
   await presenceBackend.acquireLease("arena:queue:lock", "other", 5000);
-  const entry = { accountId: 99, name: "t", rec: { elo: 1000 } as never, since: Date.now(), ready: () => true, found: () => true };
+  const rec = { elo: 1000 } as never;
+  const entry = { id: "solo:99", members: [{ accountId: 99, name: "t", rec }], elo: 1000, since: Date.now(), canFound: () => true, ready: () => true,
+    found: () => true, requeue() {}, abort() {}, rollback() {} };
   await assert.rejects(arenaEnqueue(entry), /khóa hàng chờ/);
   assert.equal(arenaQueued(99), undefined);
   await presenceBackend.releaseLease("arena:queue:lock", "other");
