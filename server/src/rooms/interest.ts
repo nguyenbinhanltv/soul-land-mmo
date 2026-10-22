@@ -84,6 +84,12 @@ export class Interest {
     this.seen.set(c.sessionId, { p: new Set([c.sessionId]), b: new Set(), d: new Set(), g: new Set(), all: this.all });
     this.refresh(c);
   }
+  /** Người xem trận (#278, sân không lọc): không có hồn sư của mình, view có mọi thực thể của phòng. */
+  spectate(c: Client) {
+    c.view = new StateView();
+    this.seen.set(c.sessionId, { p: new Set(), b: new Set(), d: new Set(), g: new Set(), all: true });
+    this.refresh(c);
+  }
   leave(id: string) { this.seen.delete(id); }
   /** Tắt / bật lọc cho một client (hook kiểm thử `view`). Bật lại lọc thì thực thể ở xa bị bỏ ở nhịp sau. */
   setAll(id: string, on: boolean) { const s = this.seen.get(id); if (s) s.all = on; }
@@ -109,8 +115,9 @@ export class Interest {
 
   private refresh(c: Client) {
     const s = this.seen.get(c.sessionId), v = c.view, me = this.state.players.get(c.sessionId);
-    if (!s || !v || !me) return;
-    const { r, out } = SYNC_VIEW, d2 = (e: Pos) => (e.x - me.x) ** 2 + (e.y - me.y) ** 2;
+    // Người xem (spectate) không có hồn sư: chỉ đi nhánh tắt lọc (`all`), không tính khoảng cách.
+    if (!s || !v || (!me && !s.all)) return;
+    const { r, out } = SYNC_VIEW, mx = me?.x ?? 0, my = me?.y ?? 0, d2 = (e: Pos) => (e.x - mx) ** 2 + (e.y - my) ** 2;
     const R2 = r * r, OUT2 = out * out;
     // Bỏ thực thể đã ra xa (thực thể đã bị xóa khỏi state: Colyseus đã báo xóa, chỉ quên id).
     const drop = <T extends Schema & Pos>(set: Set<string>, all: { get(k: string): T | undefined }, keep: (e: T, id: string) => boolean) => {
@@ -127,7 +134,7 @@ export class Interest {
     const add = <T extends Schema & Pos>(set: Set<string>, all: { get(k: string): T | undefined; forEach(fn: (v: T, k: string) => void): void }, grid: Grid,
       always: Iterable<string> = []) => {
       if (s.all) { all.forEach((e, id) => { if (!set.has(id)) { v.add(e); set.add(id); } }); return; }
-      for (const id of grid.near(me.x, me.y, r)) if (!set.has(id)) { const e = all.get(id); if (e && d2(e) <= R2) { v.add(e); set.add(id); } }
+      for (const id of grid.near(mx, my, r)) if (!set.has(id)) { const e = all.get(id); if (e && d2(e) <= R2) { v.add(e); set.add(id); } }
       for (const id of always) if (!set.has(id)) { const e = all.get(id); if (e) { v.add(e); set.add(id); } }
     };
     add(s.p, this.state.players, this.players);

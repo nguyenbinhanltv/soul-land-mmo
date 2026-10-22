@@ -4018,6 +4018,8 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
  *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
  *   trong cửa sổ (arenaPairs).
+ * - Xem trực tiếp (#278, mục 5.9): mỗi trận tối đa `watchMax` người xem (sân 4 người đấu + 6 người xem = 10 kết nối; sân nhỏ không lọc
+ *   đồng bộ nên tải thấp); danh sách xem trận có tối đa `liveN` trận đang đếm ngược / giao đấu, xin lại theo nhịp `topCd`.
  * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
  *   hồi máu của bộ Lưu Ly / ràng buộc) × ngần ấy: sát thương lên hồn sư đã × `dmgMult` nhưng hồi tính theo % sinh lực tối đa nên
  *   mạnh gấp ~3 lần so với ngoài rừng, không giảm thì Phụ trợ gần như không chết. Hút máu và hồi tự nhiên không đổi.
@@ -4032,6 +4034,7 @@ export const ARENA = {
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
   pairDaily: 3, rematchSecs: 60,
+  watchMax: 6, liveN: 10,
   healMult: 0.5, ccMult: 0.7,
 };
 /**
