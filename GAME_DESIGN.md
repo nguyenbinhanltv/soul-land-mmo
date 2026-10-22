@@ -461,7 +461,8 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - **Server giữ tiến độ nhiều chuỗi cố định** (tân thủ ở `quest`, các chuỗi sau ở `chains`; mỗi chuỗi một dòng bảng `quests`, không cần SQL); tin riêng `quest` kèm mã chuỗi, `questAction` nhận `chain`.
 - **Mục tiêu theo bản đồ, không theo vùng.** Kiểu mới: `elite` (tham gia hạ một tinh anh), `king` (có đóng góp khi một thú vương bị hạ), cờ `party` trên `kill` (chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm). Đấu trường tính cả trận thua và giao hữu như khảo hạch hằng ngày.
 - Không thưởng mảnh UR (mảnh UR chỉ trong rương boss thế giới, mục 5.3).
-- Hộp thoại nhận / trả có ở Triệu Vô Cực; khung theo dõi, dấu "!" / "?" và chỉ đường cho chương 2 chờ #190; phát sự kiện `elite` / `king` / `party` chờ #256 (đến lúc đó ba bài tương ứng chưa tiến được).
+- **Server phát sự kiện** (`killBeast`, `killKing`; chỉ đếm sau khi nhận bài): `elite` cho người hạ tinh anh và đồng đội trong `partyNear` (những người được chia kinh nghiệm); `king` cho mọi người có đóng góp (`contributors`) còn trong phòng lúc thú vương bị hạ; `party` là cờ trên sự kiện `kill` khi `partyNear` có từ 2 người.
+- Hộp thoại nhận / trả có ở Triệu Vô Cực; khung theo dõi, dấu "!" / "?" và chỉ đường cho chương 2 chờ #190.
 
 **Nhiệm vụ hằng ngày** ("Khảo hạch Sử Lai Khắc", `DAILY`, `DAILY_POOL`; số bài, mục tiêu, phần thưởng ở dữ liệu): mỗi ngày `DAILY.count` bài, nhận và trả từng bài với Phất Lan Đức ở Thiên Đấu Thành (cùng luật đứng gần, gục, túi đủ chỗ như nhiệm vụ tân thủ), không cần xong chuỗi tân thủ.
 - **Đặt lại lúc 00:00 giờ Việt Nam** (như lượt thưởng boss, `vnDay`): bộ bài mới chưa nhận, bài hôm qua dở dang bỏ luôn, không trả được. Người đang chơi được báo ngay lúc qua ngày.
@@ -885,7 +886,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
-- [ ] #189 Chương 2 "Sử Lai Khắc Thất Quái": **phần 1 đã có** (dữ liệu 9 bài, NPC Triệu Vô Cực, server nhiều chuỗi cố định, nhận / trả bài; mục 5.8). **Còn phần 2** (#256): phát sự kiện `elite` / `king` / `party`, bài bot đủ 9 bài. Khung theo dõi / dấu NPC ở #190.
+- [ ] #189 Chương 2 "Sử Lai Khắc Thất Quái": **phần 1 và 2 đã có** (dữ liệu 9 bài, NPC Triệu Vô Cực, server nhiều chuỗi cố định, nhận / trả bài, sự kiện `elite` / `king` / `party`, bài bot đủ 9 bài; mục 5.8). Khung theo dõi / dấu NPC ở #190.
 - [x] Thương nhân lưu động ở trại cổng bản đồ săn (#111; mục 5.7, 5.8).
 - [x] Túi đồ chia trang, mở rộng theo trang, nút sắp xếp, gửi túi theo thay đổi; tài khoản cũ giữ số lần đã mở rộng (#215; mục 5.7, 6).
 - [x] Tự bán từ xa khi túi gần đầy theo bộ lọc (100% giá trong thành, mặc định tắt), khoá món, mua lại `AUTO_SELL_BUYBACK` món tự bán ở thương nhân, tự săn bán thay vì dừng; cột `items.locked`, `accounts.auto_sell` / `auto_sold` (#216; mục 5.7, 5.13).
@@ -906,7 +907,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118; mục 5.4 "Boss thế giới 100.000 năm").
 - [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
 - [ ] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hồi chiêu dung hợp kỹ `fusionReady`, hàng chờ đấu trường, tổ đội (kể cả tra tên cho tin riêng), hồi kênh thế giới, khóa đổi kênh sang presence; dọn phiên giữ tài khoản của tiến trình chết (#120).
-- [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121).
+- [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121; BOT_ONLY=issue121).
 - [x] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
 
 ## 8. Câu hỏi còn mở
