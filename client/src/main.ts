@@ -254,13 +254,13 @@ async function join(retry = true, roomId?: string | null) {
  * Vào phòng sân đấu Đại Đấu Hồn Trường bằng mã phòng server gửi khi ghép trận (7.2; phòng riêng, không ghép theo mapId). Không vào
  * được (trận đã hủy, quá giờ) thì quay về bản đồ đang đứng.
  */
-async function joinArena(roomId: string) {
+async function joinArena(roomId: string, watch = false) {
   overlay.hidden = false; card.classList.remove("wide");
-  card.innerHTML = `<h1>Đang vào Đại Đấu Hồn Trường…</h1>`;
+  card.innerHTML = `<h1>${watch ? "Đang vào xem trận…" : "Đang vào Đại Đấu Hồn Trường…"}</h1>`;
   try {
     const room = await new Client(WS).joinById(roomId, { token });
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
-    play(room, roomMap);
+    play(room, roomMap, watch);
   } catch (e) {
     card.innerHTML = `<h1>Không vào được trận đấu</h1><p>${esc((e as Error).message ?? "")}</p>`;
     setTimeout(() => join(), 1500);
@@ -276,7 +276,7 @@ const ARENA_END_CODE = 4005;
  * Từ 7.2: ghép được trận thì rời bản đồ, vào phòng sân đấu; xong trận (hoặc bấm rời sân) thì về lại bản đồ đang đứng (`mapId` không đổi
  * khi vào sân, server giữ vị trí cũ; kênh chọn lại qua /api/channel).
  */
-function play(room: Room, roomMap: string) {
+function play(room: Room, roomMap: string, watch = false) {
   overlay.hidden = true;
   addLag(room); // ?lag=<ms>: giả lập ping cao để thử dự đoán chuyển động
   let travelling = false, left = false;
@@ -301,7 +301,7 @@ function play(room: Room, roomMap: string) {
   };
   // `roomId`: kênh server đã chọn (tin `travel`); không có (về từ sân đấu) thì join hỏi /api/channel.
   const onTravel = (to: string, roomId?: string | null) => leaveThen(() => { mapId = to; join(true, roomId); });
-  const onArena = (roomId: string) => leaveThen(() => joinArena(roomId));
+  const onArena = (roomId: string, w = false) => leaveThen(() => joinArena(roomId, w));
   const onBack = () => onTravel(mapId);
   game = new Phaser.Game({
     // `?canvas`: ép Canvas để thử đường lùi không có WebGL (ánh sáng tắt hẳn, 10.7). maxLights: số đèn Light2D (lighting.ts).
@@ -311,7 +311,7 @@ function play(room: Room, roomMap: string) {
     audio: { context: sharedAudioContext() },
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
   });
-  game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack });
+  game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack, watch });
 }
 
 // Có phiên cũ -> thử tải nhân vật luôn. Trước đó đọc manifest cho ảnh giao diện (10.8; lỗi thì giao diện vẽ bằng CSS như cũ).
