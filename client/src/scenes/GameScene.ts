@@ -2123,7 +2123,7 @@ export class GameScene extends Phaser.Scene {
       if (me.vh === this.lvVh && me.level > this.lvSeen) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); }
       this.lvVh = me.vh; this.lvSeen = me.level;
     }
-    if (this.watching) this.arenaBar(st);
+    if (this.watching && (this.hudT -= dt) <= 0) { this.hudT = 0.08; this.arenaBar(st); } // người xem không có `me` nên hudT không dùng chỗ khác
     if (me) {
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
