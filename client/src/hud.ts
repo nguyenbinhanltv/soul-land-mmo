@@ -939,7 +939,7 @@ const enhText = (it: BagItem) => (it.enhance >= BONE_MAX_ENHANCE ? `+${BONE_MAX_
 
 /**
  * Bảng cường hóa hồn cốt `target` (mục 5.5): chọn nhiều hồn cốt trong túi làm nguyên liệu (chạm / bấm để chọn, cùng vị trí được
- * thêm 50%), xem trước điểm, cấp, chỉ số chính và mốc nâng kỹ năng sẽ đạt (boneEnhancePreview của shared/data.ts, chỉ để hiển
+ * thêm 50%), xem trước điểm, cấp, chỉ số chính, mốc nâng kỹ năng và dòng phụ sẽ thêm (#187) (boneEnhancePreview của shared/data.ts, chỉ để hiển
  * thị), rồi xác nhận vì nguyên liệu mất hẳn. Server kiểm tra và tính lại. Mở từ NPC Thợ rèn ở Nặc Đinh Thành (6.1, renderForge),
  * và vẫn mở được bằng nút "Cường hóa…" ở túi đồ và bảng hồn cốt (chờ chốt: có giới hạn ở lò rèn không, mục 8).
  */

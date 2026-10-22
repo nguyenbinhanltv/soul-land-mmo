@@ -3299,7 +3299,7 @@ export const ITEMS: ItemDef[] = [
   // Hồn cốt (bước 4.1): mỗi món một ô; số năm ở `items.years`, loài và vị trí ở `items.stats`, cấp cường hóa ở `items.enhance`.
   // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn từ bước 4.2 (`items.vohon_id`, không chiếm ô túi).
   { id: BONE_ITEM, kind: "hon_cot", name: "Hồn cốt", col: "#e8dcc0", stack: 1,
-    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số. Cường hóa bằng hồn cốt dư (nút Cường hóa…): mỗi cấp tăng chỉ số chính, mốc +5 / +10 / +15 / +20 nâng kỹ năng. Tháo ra vẫn giữ cấp cường hóa." },
+    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số. Cường hóa bằng hồn cốt dư (nút Cường hóa…): mỗi cấp tăng chỉ số chính, mốc +5 / +10 / +15 / +20 nâng kỹ năng và thêm 1 dòng phụ ngẫu nhiên. Tháo ra vẫn giữ cấp cường hóa và dòng phụ." },
   // Hồn hạch (bước 5.1): mỗi món một ô; sao ở `items.stars`, bộ / chỉ số ở `items.stats`. Màu theo bộ (CORE_SETS), `col` chỉ là mặc định.
   { id: CORE_ITEM, kind: "hon_hach", name: "Hồn hạch", col: "#d9b8ff", stack: 1,
     desc: "Mỗi võ hồn có 6 ô hồn hạch: bấm \"Gắn…\" để gắn vào võ hồn (bảng đội hình). Gắn 2 hoặc 4 món cùng bộ trên võ hồn ra trận thì nhận hiệu ứng bộ." },
