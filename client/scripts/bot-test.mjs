@@ -5310,9 +5310,13 @@ async function autoTest(){
       const bid=(await test(A,"spawn",{tier:0,dx:spot.q.dx,dy:spot.q.dy,years:15,species:BEAST_ROOTED.ids[0],hpx:50}))?.bid, bb=()=>A.room.state.beasts.get(bid);
       await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[],skills:[],tienCo:false}});
       m=await autoOp(A,"on");
-      const hit=m?.on&&bid&&await waitFor(()=>bb()&&bb().hp<bb().maxHp,4000), st=await test(A,"auto",{bid});
+      // Bãi quanh điểm neo có hồn thú hoang hung hăng hồi sinh liên tục: một con đánh A thì tự săn đánh trả trước, kéo A đi (#360). Dọn quanh
+      // A mỗi 500 ms (giữ hồn thú thử) như các bài tự săn khác; vẫn chờ 4 giây.
+      let hit=false;
+      for(const t0=Date.now();m?.on&&bid&&!hit&&Date.now()-t0<4000;){ hit=await waitFor(()=>bb()&&bb().hp<bb().maxHp,500); if(!hit) await test(A,"clear",{but:[bid]}); }
+      const st=await test(A,"auto",{bid});
       ok(hit&&st?.beast?.skip==null,`#324: hồn thú sau lưng cùng ô, sát ô chặn (đứng ${spot.P.x.toFixed(1)},${spot.P.y.toFixed(1)} mặt ${spot.f}, hồn thú +${spot.q.dx},+${spot.q.dy}): quay lại đánh, không bỏ qua`
-        +(hit&&st?.beast?.skip==null?"":` [A ${me(A).x.toFixed(1)},${me(A).y.toFixed(1)}; mục tiêu ${st?.target}, ${JSON.stringify(st?.beast)}]`));
+        +(hit&&st?.beast?.skip==null?"":` [A ${me(A).x.toFixed(1)},${me(A).y.toFixed(1)}; hồn thú thử ${bid}, mục tiêu ${st?.target}, ${JSON.stringify(st?.beast)}]`));
       await autoOp(A,"off"); if(bid) await test(A,"slay",{bid});
       await autoOp(A,"set",{cfg:NEAR});
     }
