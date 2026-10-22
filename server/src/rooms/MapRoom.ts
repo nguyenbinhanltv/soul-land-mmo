@@ -14,7 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
-  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, type CoreFx,
+  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, ATK_SPREAD, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
@@ -2997,8 +2997,8 @@ export class MapRoom extends Room<MapState> {
       d.combo = near.length || foes.length ? (d.comboT <= CORE_FX_RULE.comboGap ? d.combo + 1 : 1) : 0; d.comboT = 0;
       if (d.combo >= CORE_FX_RULE.comboN) { d.combo = 0; mult += d.coreFx.combo; this.broadcast("fx", { k: "combo", id, col: CORE_SETS[coreSetIndex("hao_thien")].col }); }
     }
-    for (const [bid] of near) this.damageBeast(bid, this.atkOf(d) * mult * (0.85 + Math.random() * 0.3), id, VOHON[p.vh].col, hit);
-    for (const f of foes) this.damageFoe(f, this.atkOf(d) * mult * (0.85 + Math.random() * 0.3), id, VOHON[p.vh].col, hit);
+    for (const [bid] of near) this.damageBeast(bid, this.atkOf(d) * mult * (1 - ATK_SPREAD + Math.random() * 2 * ATK_SPREAD), id, VOHON[p.vh].col, hit);
+    for (const f of foes) this.damageFoe(f, this.atkOf(d) * mult * (1 - ATK_SPREAD + Math.random() * 2 * ATK_SPREAD), id, VOHON[p.vh].col, hit);
   }
 
   /** Độ lớn hiệu ứng có lợi `b` đang có trên hồn sư (0 = không có), cộng cả bị động hồn cốt cùng tên (4.3) của võ hồn ra trận. */

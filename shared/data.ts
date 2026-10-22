@@ -1364,6 +1364,8 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/** Đòn đánh thường của hồn sư gây công x (1 ± ATK_SPREAD), ngẫu nhiên đều (MapRoom.attack). */
+export const ATK_SPREAD = 0.15;
 /** Hồi chiêu đòn đánh thường của hồn thú (giây; MapRoom.tick, ủy thác offline offlineFight). */
 export const BEAST_ATK_CD = 1.1;
 

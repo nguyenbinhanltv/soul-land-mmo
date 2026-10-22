@@ -122,6 +122,7 @@ import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // �
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 import { GROUND_KINDS, GROUND_TICK, TELE_SHAPES } from "../../shared/data.ts"; // vùng lưu lại trên mặt đất: vũng độc, sương độc (#161)
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
+import { ATK_SPREAD } from "../../shared/data.ts"; // #238: dải ngẫu nhiên đòn đánh thường (cận trên đòn đánh bọc trứng)
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -7817,8 +7818,8 @@ async function eggTest(){
     await sleep(1000); const eg1=await eggs(); ok(eg1.length===EG.n&&eg1.every(e=>{ const o=eg.find(x=>x.bid===e.bid); return o&&o.x===e.x&&o.y===e.y; }),"bọc trứng đứng yên");
     // Đánh thường thật (không qua hook): thú vương Choáng ngắn để E đứng cạnh bọc thứ hai trong hang mà không bị đánh, rồi E ra lại.
     const ox=Math.round(mo(E).x), oy=Math.round(mo(E).y), b2=eg[1];
-    // #238: đòn đánh thường lớn nhất (công x 1,15 x thủ của bọc ít năm nhất x chí mạng) phải nhỏ hơn máu bọc ít năm nhất, không thì bọc vỡ ngay.
-    const lv=(await test(E,"stats"))?.live, hitMax=lv?Math.round(lv.atkNow*1.15*defMult(beastDef(EG.species,EG.years[0]),0)*Math.max(1,lv.critMult)):Infinity;
+    // #238: đòn đánh thường lớn nhất (công x (1 + ATK_SPREAD) x combo Hạo Thiên x thủ của bọc ít năm nhất trừ xuyên thủ x chí mạng) phải nhỏ hơn máu bọc ít năm nhất, không thì bọc vỡ ngay.
+    const lv=(await test(E,"stats"))?.live, hitMax=lv?Math.round(lv.atkNow*(1+ATK_SPREAD)*(1+(lv.fx?.combo??0))*defMult(beastDef(EG.species,EG.years[0]),lv.fx?.pierce??0)*Math.max(1,lv.critMult)):Infinity;
     ok(hitMax<hpOf(EG.years[0]),`đòn đánh thường tối đa ${hitMax} < máu bọc ${EG.years[0]} năm ${hpOf(EG.years[0])} (bọc đánh thử: ${b2.years} năm, máu ${b2.maxHp})`);
     await test(E,"status",{s:"stun",secs:3,bid:kb}); E.dmgs=[];
     for(const [dx,dy] of [[14,0],[-14,0],[0,10],[0,-10]]){ await test(E,"goto",{x:Math.round(b2.x+dx),y:Math.round(b2.y+dy)}); if(Math.hypot(mo(E).x-b2.x-dx,mo(E).y-b2.y-dy)<1) break; }
