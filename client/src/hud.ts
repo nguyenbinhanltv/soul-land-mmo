@@ -1326,8 +1326,10 @@ function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
   if (bone) { const u = tintedUrl(`item_hon_cot_${bone.slot}`, ringColor(tierOfYears(it.years!))); return u ? `<img class="ico art" src="${u}" alt="" draggable="false">` : ""; }
   const def = itemDef(it.code), kind = def?.kind;
-  // Hồn hoàn tô theo màu niên hạn, mảnh võ hồn theo màu võ hồn (ảnh màu chung của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu).
-  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years)) : kind === "manh_vo_hon" ? def!.col : null;
+  // Hồn hoàn tô theo màu niên hạn; mảnh võ hồn, rương (màu hào quang thú vương / boss), tiên thảo theo `col` của món (ảnh chung
+  // của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu; rương và tiên thảo là bản xám, #170).
+  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years))
+    : kind === "manh_vo_hon" || kind === "ruong" || kind === "tien_thao" ? def!.col : null;
   if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }
   return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
 }

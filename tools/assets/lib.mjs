@@ -355,7 +355,8 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
  * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
  * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*`, trạng thái `status_*`,
- * huy hiệu hệ `he_*`, mảnh giao diện `ui_*` và khung thẻ `card_*` chỉ có dạng isometric. `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
+ * huy hiệu hệ `he_*`, mảnh giao diện `ui_*`, khung thẻ `card_*` và hiệu ứng `fx_*` (cần `frame` vuông) chỉ có dạng isometric.
+ * `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
  */
 export function sheetSpec(key, frame, iso = false) {
   let m;
@@ -367,6 +368,8 @@ export function sheetSpec(key, frame, iso = false) {
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
     // NPC phụ / dân thường ghép từ LPC (lpc-compose --game): bố cục sheet hồn sư 24 × 6, đã tô màu (không hoán màu), một lớp.
     if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return spec(`iso/lpc/${m[1]}.png`, isoLayout("honsu"), { kind: "lpc" });
+    // Hiệu ứng (lpc-item.mjs): dải một hàng khung vuông `frame` (manifest ghi), giữ màu gốc của gói như chân dung.
+    if ((m = key.match(/^fx_([a-z_]+)$/)) && frame && frame[0] === frame[1]) return { file: `iso/fx/${m[1]}.png`, frame, kind: "fx", iso: true };
     if (!/^(portrait|prop|npc|item|status|he|ui|card)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, hệ, giao diện: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
