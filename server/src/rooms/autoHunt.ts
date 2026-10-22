@@ -4,8 +4,8 @@
 // Quyết định chạy AUTO_HZ lần mỗi giây; giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm.
 import type { Client } from "colyseus";
 import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
-  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, loadoutOf, ringSkill, chanThanOf, autoTimeText, itemDef, xpNeed, formatYears,
-  type AutoSettings, type AutoSummary, type SkillDef, type ItemDef } from "../../../shared/data.ts";
+  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, offlineFight, loadoutOf, ringSkill, chanThanOf, autoTimeText, itemDef, xpNeed, formatYears,
+  type AutoSettings, type AutoSummary, type OfflinePower, type SkillDef, type ItemDef } from "../../../shared/data.ts";
 import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
 import { findPath, findLongPath, clearLine, buildNav, navNode, type Pt, type Nav } from "../../../shared/path.ts";
 import type { GameMap } from "../map.ts";
@@ -77,6 +77,9 @@ export class AutoHunter {
   /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
   los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
 
+  /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. */
+  pace = 0;
+
   /** Tổng kết: giây đã treo lượt này và ảnh chụp lúc bật. */
   secs = 0; start: AutoSnap;
 
@@ -106,7 +109,7 @@ export class AutoHunter {
   tick(dt: number) {
     const room = this.room, p = room.state.players.get(this.id), d = room.pdata.get(this.id), c = room.clients.getById(this.id);
     if (!p || !d || !c) return room.autoStop(this.id, "mất kết nối.");
-    this.clock += dt; this.secs += dt;
+    this.clock += dt; this.secs += dt; this.pace = Math.max(-AUTO_PACE.credit, this.pace - dt);
     // Giờ miễn phí của hôm nay trước, hết thì tiêu quỹ cộng thêm từ Ủy Thác Lệnh (Auto 2).
     if (d.autoUsed < AUTO_DAILY_SECS) d.autoUsed += dt; else d.autoBonus = Math.max(0, d.autoBonus - dt);
     d.autoDirty = true;
@@ -169,7 +172,7 @@ export class AutoHunter {
     const foe = this.attacker(p);
     if (foe && foe !== this.target && (!this.target || room.bdata.get(this.target)?.target !== this.id)) this.setTarget(foe);
     // Săn khắp bản đồ: đang đi tới hồn thú ở xa (chưa đánh trúng, nó chưa đánh mình) mà gần mình có con hợp lệ thì đổi sang con gần.
-    if (this.target && this.wide && !this.hit && !this.fighting()) {
+    if (this.target && this.wide && !this.hit && !this.fighting() && this.pace <= 0) {
       const b = room.state.beasts.get(this.target)!;
       if (Math.hypot(b.x - p.x, b.y - p.y) > this.R) { const t = this.findTarget(p, true); if (t) this.setTarget(t); }
     }
@@ -193,6 +196,8 @@ export class AutoHunter {
       } else this.go({ x: dr.x, y: dr.y });
       return;
     }
+    // Trần tốc độ (AUTO_PACE): còn nợ nhịp thì đứng nghỉ, chưa nhắm con mới.
+    if (this.pace > 0) { this.patrol = null; this.go(null); return; }
     const t = this.findTarget(p);
     if (t) { this.setTarget(t); return; }
     const far = !this.wide && Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > this.R;
@@ -203,6 +208,9 @@ export class AutoHunter {
     }
     this.go(this.patrol);
   }
+
+  /** MapRoom báo mình vừa hạ một hồn thú thường (killBeast): cộng thời gian tự đánh con đó vào nợ nhịp (AUTO_PACE). */
+  killed(pw: OfflinePower, years: number, species: string) { this.pace += offlineFight(pw, years, species).secs; }
 
   setTarget(bid: string) { this.target = bid; this.hit = false; this.blockT = 0; this.go(null); }
   drop() { this.target = null; this.hit = false; this.go(null); }

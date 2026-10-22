@@ -3880,6 +3880,14 @@ export const AUTO_RADIUS_MIN = 5 * TILE;
  * hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm (như người giữ phím đánh).
  */
 export const AUTO_HZ = 4;
+/**
+ * Trần tốc độ tự săn (chủ repo chốt 2026-10-22, #213): hiệu suất tối đa bằng tự đánh, cùng mốc với ủy thác offline. Mỗi hồn thú thường
+ * người đang tự săn hạ (mục tiêu, đánh trả hay trúng lan) cộng vào "nợ nhịp" số giây offlineFight tính cho con đó với chỉ số võ hồn ra
+ * trận lúc hạ (thời gian tự đánh một con, kể cả tìm / đi tới OFFLINE.seek). Nợ giảm theo thời gian thực; còn nợ thì không nhắm con mới
+ * (đứng nghỉ, vẫn đánh trả và nhặt đồ). Nợ không xuống dưới −`credit` giây: thời gian đi đường / không có thú được tính trước tối đa
+ * bấy nhiêu, không tích để sau hạ dồn.
+ */
+export const AUTO_PACE = { credit: 10 };
 /** Tối đa bấy nhiêu người treo có điểm neo trong cùng một ô lưới SYNC_VIEW.cell của một kênh (chống dồn một chỗ). */
 export const AUTO_MAX_PER_CELL = 3;
 /**
