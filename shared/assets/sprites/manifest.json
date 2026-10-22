@@ -1200,7 +1200,7 @@
     {
       "key": "ui_cuon_giay",
       "iso": true,
-      "nine": 20
+      "nine": 14
     },
     {
       "key": "ui_goc_duoi_phai",
@@ -1221,7 +1221,7 @@
     {
       "key": "ui_hop_thoai",
       "iso": true,
-      "nine": 18
+      "nine": 14
     },
     {
       "key": "ui_nut_nhan",
@@ -1234,9 +1234,24 @@
       "nine": 6
     },
     {
+      "key": "ui_nut_tat",
+      "iso": true,
+      "nine": 6
+    },
+    {
       "key": "ui_nut_thuong",
       "iso": true,
       "nine": 6
+    },
+    {
+      "key": "ui_o",
+      "iso": true,
+      "nine": 4
+    },
+    {
+      "key": "ui_o_chon",
+      "iso": true,
+      "nine": 4
     },
     {
       "key": "ui_thanh_hon_luc",
