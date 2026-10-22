@@ -1600,7 +1600,7 @@ export class GameScene extends Phaser.Scene {
           const inner = [c, P(r0, j), P(r0, j + 1)], outer = [P(r0, j), P(r1, j), P(r1, j + 1), P(r0, j + 1)];
           g.fillStyle(cols[j % cols.length] ?? hex(col), 0.5 * o.a).fillPoints(inner, true);
           g.fillStyle(glass[j % glass.length], 0.42 * o.a).fillPoints(outer, true);
-          g.lineStyle(1.5 * k, 0x1a1020, 0.8 * o.a).strokePoints(inner, true).strokePoints(outer, true);
+          g.lineStyle(1.2 * k, 0x1a1020, 0.65 * o.a).strokePoints(inner, true).strokePoints(outer, true);
         }
         g.lineStyle(2 * k, 0xffe08a, o.a).strokeEllipse(c.x, c.y, 2 * RX * r1, 2 * RY * r1);
         g.fillStyle(0xe8f8ff, 0.8 * o.a).fillCircle(c.x, c.y, 3 * k);
@@ -1609,17 +1609,20 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: o, a: 0, duration: 650, delay: 250, onUpdate: draw, onComplete: () => g.destroy() }) });
       this.ringFx(c, 6, R, col, 650); this.ringFx(c, 4, R * 0.7, "#ffffff", 550, 120);
       this.light.flash(c.x, cy, "#ffe08a", R * RX + 30, 900, 1.4);
-      // Tên chiêu lớn bay lên ở điểm giữa (ai ở gần cũng thấy, như tuyệt kỹ); hai người dung hợp thêm banner.
-      const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
-        .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
-      this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
-      this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+      // Như tuyệt kỹ: hai người dung hợp thấy banner, người khác ở gần thấy tên chiêu lớn bay lên ở điểm giữa.
+      const own = this.me === m.id || this.me === m.to;
+      if (own) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
+      else {
+        const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
+          .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
+        this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
+        this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+      }
       const me = this.players.get(this.me);
       if (me && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) {
         const cc = Phaser.Display.Color.ValueToColor(hex(col));
         this.cameras.main.flash(260, cc.red, cc.green, cc.blue); this.cameras.main.shake(320, 0.006);
       }
-      if (this.me === m.id || this.me === m.to) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
     });
   }
 

@@ -87,7 +87,8 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #portal kbd,#wpbox kbd,#fusion kbd{font:inherit;font-size:10px;font-family:var(--f10);color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
 body.touch :is(#portal,#wpbox){bottom:196px}
 /* Võ Hồn Dung Hợp Kỹ (#193): lời nhắc "Dung hợp [G]" có đếm ngược cho người được mời (nút chạm được), hoặc "chờ hưởng ứng" cho người mời. */
-#fusion{position:absolute;left:50%;top:31%;transform:translateX(-50%);min-width:230px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:#ffe08a}
+#fusion{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);min-width:230px;padding:8px 14px;text-align:center;font-size:12px;font-family:var(--f12);border-color:#ffe08a}
+body.touch #fusion{bottom:auto;top:31%} /* chạm: phía dưới đã có cần điều khiển, ô chat, nút */
 #fusion .ft{color:#ffe08a;text-shadow:var(--stroke)}
 #fusion small{display:block;color:var(--muted);font-size:12px;font-family:var(--f12);font-variant-numeric:tabular-nums}
 #fusion .bar{height:8px}
