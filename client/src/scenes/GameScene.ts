@@ -415,12 +415,12 @@ export class GameScene extends Phaser.Scene {
   paintHoaDan(g: Phaser.GameObjects.Graphics, time: number) {
     const h = this.hoaDan; if (!h) return;
     const pulse = 0.8 + 0.2 * Math.sin(time / 380);
-    g.fillStyle(0xff9a3c, 0.08 * pulse); fillGround(g, h.x, h.y, h.r);
-    g.lineStyle(1, 0xffb45a, 0.45 * pulse); strokeGround(g, h.x, h.y, h.r);
+    g.fillStyle(0xff9a3c, 0.12 * pulse); fillGround(g, h.x, h.y, h.r);
+    g.lineStyle(1.5, 0xffb45a, 0.6 * pulse); strokeGround(g, h.x, h.y, h.r);
     const f = h.g, c = W2S(h.x, h.y), k = SPR, x = c.x, y = c.y;
     f.clear();
     f.fillStyle(0x1a1020, 0.35).fillEllipse(x, y + k, 18 * k, 7 * k);
-    for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4; f.fillStyle(i % 2 ? 0x6a6a74 : 0x84848e, 1).fillEllipse(x + Math.cos(a) * 7 * k, y + Math.sin(a) * 3 * k, 4 * k, 2.6 * k); }
+    for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4; f.fillStyle(i % 2 ? 0x3e3a44 : 0x58545e, 1).fillEllipse(x + Math.cos(a) * 7 * k, y + Math.sin(a) * 3 * k, 4 * k, 2.6 * k); }
     f.lineStyle(2.2 * k, 0x5a3a22, 1).lineBetween(x - 6 * k, y + k, x + 5 * k, y - 2 * k).lineBetween(x - 5 * k, y - 2 * k, x + 6 * k, y + k);
     const fl = (ph: number) => 0.85 + 0.15 * Math.sin(time / 90 + ph) + 0.08 * Math.sin(time / 37 + ph * 2);
     const tongue = (dx: number, w: number, hgt: number, col: number, ph: number) => {

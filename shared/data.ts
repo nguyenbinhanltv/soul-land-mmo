@@ -1119,12 +1119,13 @@ export const BOSSES: BossDef[] = [
   // Thú vương Cực Bắc (BĐ5 + BĐ6c, đã chốt). Giai đoạn 2 "Cực Hàn" (#163, thiết kế gốc): tầng Hàn tích theo thời gian, đủ tầng thì
   // Đóng băng (STATUS.chill), Hỏa Đàn / thanh tẩy xả tầng (ColdDef); thêm gió cực hàn quanh thân (Làm chậm). Băng phong dưới chân người
   // bị đánh dấu của bản tối thiểu (thay cho tầng Hàn) đã bỏ. Mỗi 5 giây một tầng: không về Hỏa Đàn thì 20 giây bị Đóng băng một lần;
-  // Hỏa Đàn ở phía cửa hang, cách tâm hang (chỗ thú vương sinh) khoảng một phần ba bề cao hang.
+  // Hỏa Đàn ở nửa trái hang, cách tâm hang (chỗ thú vương sinh) khoảng một phần tư bề ngang hang; phía sau theo phép chiếu isometric
+  // (x + y nhỏ) nên vách hang không che đống lửa.
   { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
     bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
     bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
     phase2: { name: "Cực Hàn", desc: "mọi người trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
-      spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.5, 0.85], clear: 20 } }, skills: [
+      spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.25, 0.5], clear: 20 } }, skills: [
       bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
   // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
