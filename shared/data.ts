@@ -3434,7 +3434,7 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
  * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
  * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
  */
-export type NpcRole = "talk" | "shop" | "forge" | "arena"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng
+export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn
 /**
  * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
  * Hình: sheet NPC LPC `lpc_<id>` nếu có trong manifest (mục 5.11 "NPC phụ và dân thường"), không thì `looks` (ngoại hình vẽ bằng
@@ -3527,12 +3527,55 @@ export const NPCS: NpcDef[] = [
       "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Hồi Thành Phù ta cũng mang theo.",
       "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
     ] },
+  // #196: sứ giả bốn tông môn ở Thiên Đấu Thành (TONG_MON, mục 5.14); gia nhập / đổi / rời qua hộp thoại. Tên tông, màu ở TONG_MON.
+  { id: "su_gia_hao_thien", name: "Sứ giả Hạo Thiên Tông", title: "Hạo Thiên Tông", role: "tong", col: "#e0a458",
+    looks: { sex: 0, hair: 3, hairCol: 1, outfitCol: 3, skin: 0 },
+    lines: [
+      "Hạo Thiên Tông là tông môn đứng đầu Thượng Tam Tông, nổi danh với võ hồn Hạo Thiên Chùy. Tông chủ Đường Khiếu đang chờ những hồn sư có chí.",
+      "Muốn dưới trướng Hạo Thiên Tông thì cần xong bài học của Đại Sư và có võ hồn đủ cấp. Mỗi người chỉ thuộc một tông.",
+    ] },
+  { id: "ninh_phong_tri", name: "Ninh Phong Trí", title: "Tông chủ Thất Bảo Lưu Ly Tông", role: "tong", col: "#7cc4ff",
+    looks: { sex: 0, hair: 2, hairCol: 3, outfitCol: 4, skin: 0 },
+    lines: [
+      "Ta là Ninh Phong Trí, tông chủ Thất Bảo Lưu Ly Tông. Bảo vật của bản tông là Thất Bảo Lưu Ly Tháp, tăng phụ trợ cho cả đội.",
+      "Tông môn không đòi hỏi gì ngoài một võ hồn đủ cấp và nền tảng vững. Ngươi có muốn trở thành người của Thất Bảo Lưu Ly Tông không?",
+    ] },
+  { id: "su_gia_lam_dien", name: "Sứ giả Lam Điện Bá Vương Long Tông", title: "Lam Điện Bá Vương Long Tông", role: "tong", col: "#6a8cff",
+    looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 5, skin: 0 },
+    lines: [
+      "Lam Điện Bá Vương Long Tông, tộc trưởng Ngọc Nguyên Chấn, truyền nhân của Lam Điện Bá Vương Long hùng mạnh nhất.",
+      "Muốn mang họ Lam Điện thì phải có võ hồn đủ cấp và đã qua bài học nhập môn. Không cần đọ sức, nhưng phải xứng đáng.",
+    ] },
+  { id: "chu_giao_vu_hon_dien", name: "Chủ giáo Vũ Hồn Điện", title: "Phân điện Thiên Đấu", role: "tong", col: "#e8e0ff",
+    looks: { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0 },
+    lines: [
+      "Vũ Hồn Điện là tổ chức lớn nhất đại lục, giáo hoàng Bỉ Bỉ Đông cai quản; phân điện có mặt ở mọi thành lớn, kể cả Thiên Đấu.",
+      "Muốn gia nhập thì cần hoàn thành bài học nhập môn và có võ hồn đủ cấp. Vào rồi vẫn có thể rời hoặc đổi, nhưng đừng đổi đi đổi lại.",
+    ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
 export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
 /** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
 export const NPC_RANGE = 40;
+/**
+ * Tông môn (#196, mục 5.14): bốn phe có sẵn theo truyện, mỗi người thuộc tối đa một tông; `npc` là sứ giả (mã trong NPCS) ở Thiên Đấu
+ * Thành, `col` màu tên tông dưới tên hồn sư. Thứ tự cố định: chỉ số + 1 là `PlayerState.tong`. Không buff chỉ số theo tông.
+ */
+export const TONG_MON = [
+  { id: "hao_thien_tong", name: "Hạo Thiên Tông", col: "#e0a458", npc: "su_gia_hao_thien" },
+  { id: "that_bao_luu_ly_tong", name: "Thất Bảo Lưu Ly Tông", col: "#7cc4ff", npc: "ninh_phong_tri" },
+  { id: "lam_dien_tong", name: "Lam Điện Bá Vương Long Tông", col: "#6a8cff", npc: "su_gia_lam_dien" },
+  { id: "vu_hon_dien", name: "Vũ Hồn Điện", col: "#e8e0ff", npc: "chu_giao_vu_hon_dien" },
+] as const;
+/** Cấp võ hồn (cao nhất trong số đang sở hữu) tối thiểu để gia nhập tông, và số ngày tối thiểu từ lần gia nhập gần nhất tới lần đổi tông. */
+export const TONG_MIN_LEVEL = 30, TONG_SWITCH_DAYS = 7;
+/** Tông theo mã (cột `accounts.tong`); mã lạ thì undefined. */
+export const tongDef = (id: unknown) => TONG_MON.find((t) => t.id === id);
+/** Tông theo `PlayerState.tong` (0 = không tông). */
+export const tongByIndex = (i: number) => TONG_MON[i - 1];
+/** Mã tuần (ngày thứ Hai theo giờ Việt Nam, số ngày từ 1970-01-01): cột `tong_points.week`. */
+export const tongWeek = (ms: number) => { const n = vnDayNum(ms); return n - ((n + 3) % 7); };
 /** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. Đan lớn từ 9.8 (120 đồng, hồi 60%). */
 export const SHOP: { code: string; price: number }[] = [
   { code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 },
