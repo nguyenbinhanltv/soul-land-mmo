@@ -37,11 +37,12 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { ASK_CD } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
+import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow } from "../db.ts";
-import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
+import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
@@ -245,6 +246,12 @@ const uid = (p: string) => p + (nextId++).toString(36);
 // ---------- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên") ----------
 /** Hash presence: accountId -> sessionId của phiên đang giữ tài khoản, từ onJoin tới khi lần ghi DB cuối của phiên đó xong. */
 const HOLD = "accountHold";
+/**
+ * Chat xuyên phòng (#188, mục 6 "Xã hội"): tổ đội, tin riêng, thế giới phát lên chủ đề presence này; mọi phòng nghe và gửi tin
+ * `chat` cho người chơi của mình có trong `to` (không có `to`: mọi người, kênh thế giới). Không lưu lịch sử.
+ */
+const CHAT_TOPIC = "chatx";
+interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang nhận phần thưởng boss, đợi một chút.";
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
@@ -488,6 +495,12 @@ export class MapRoom extends Room<MapState> {
   /** Đá phiên trùng tài khoản ở mọi phòng (presence, mục 6). */
   /** Tổ đội người chơi (presence PARTY_TOPIC, 7.1): gửi lại khung tổ đội và thông báo cho người của phòng này có trong `to`. */
   partySub = (n: party.PartyNote) => this.partyNote(n);
+  /** Chat xuyên phòng (presence CHAT_TOPIC, #188): gửi tin cho người của phòng này có trong `to` (không có `to` thì mọi người). */
+  chatSub = (r: ChatRoute) => {
+    if (!r?.msg) return;
+    if (!Array.isArray(r.to)) return this.broadcast("chat", r.msg);
+    for (const [id, d] of this.pdata) if (r.to.includes(d.accountId)) this.clients.getById(id)?.send("chat", r.msg);
+  };
   partyT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
@@ -623,6 +636,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
     this.presence.subscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
+    this.presence.subscribe(CHAT_TOPIC, this.chatSub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
     // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
     const now = Date.now(), active = kingSlotNow(mapId, now);
@@ -704,14 +718,7 @@ export class MapRoom extends Room<MapState> {
       if (m?.op === "top") return this.resonanceTop(c.sessionId, m.page, m.pageSize);
       this.sendRes(c.sessionId, [], true);
     }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
-    this.onMessage("chat", (c, m: { text: string }) => {
-      // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
-      const p = this.state.players.get(c.sessionId); if (!p) return;
-      const r = chatCheck((c.auth as AuthData)?.accountId ?? c.sessionId, m?.text);
-      if (!r) return;
-      if ("error" in r) return this.log(c.sessionId, r.error, "#ffb35c");
-      this.broadcast("chat", { name: p.name, text: r.text });
-    });
+    this.onMessage("chat", (c, m: unknown) => this.chatAction(c.sessionId, m)); // chat bản đồ / tổ đội / riêng / thế giới (#188)
   }
 
   onJoin(client: Client, _o: unknown, auth: AuthData) {
@@ -819,6 +826,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(BOSS_TOPIC, this.bossSub);
     this.presence.unsubscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
+    this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
     if (this.state.channel) channelsInUse.get(this.state.mapId)?.delete(this.state.channel);
     for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
@@ -2649,6 +2657,7 @@ export class MapRoom extends Room<MapState> {
       const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
+    else if (op === "chat") { if (o.cop === "rlreset") chatReset(d.accountId); } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
     else if (op === "party") {
       // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
       // mọi `pop` trả khung tổ đội của người gọi.
@@ -5585,6 +5594,45 @@ export class MapRoom extends Room<MapState> {
     const done: number[] = [];
     for (const [r, t] of d.down) { if (t - dt <= 0) done.push(r); else d.down.set(r, t - dt); }
     if (done.length) this.revive(id, done, "sau khi nghỉ ngoài trận");
+  }
+
+  // ---------- Chat (mục 4 "Lệnh chat", #188) ----------
+  /**
+   * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =
+   * hồn sư tên `to` đang trong game (kèm bản sao cho người gửi); "world" = mọi phòng, từ cấp WORLD_CHAT.minLevel, 1 tin /
+   * WORLD_CHAT.cdSecs giây. Tổ đội / riêng / thế giới đi qua presence CHAT_TOPIC tới phòng đang giữ người nhận (có thể ở bản đồ /
+   * kênh khác). Kiểm luật kênh trước, rồi mới tính lượt chống spam (riêng từng kênh, ratelimit.chatCheck). Lỗi báo riêng người gửi.
+   */
+  chatAction(id: string, m: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
+    const ch = o.ch === undefined ? "map" : strIn(o.ch);
+    if (ch !== "map" && ch !== "party" && ch !== "whisper" && ch !== "world") return;
+    if (!chatText(o.text)) return;
+    const warn = (text: string) => this.log(id, text, "#ffb35c"), acc = d.accountId, now = Date.now();
+    let to: number[] | undefined, toName: string | undefined;
+    if (ch === "party") {
+      to = party.partyMembers(acc);
+      if (!to.length) return warn("Bạn không ở trong tổ đội nào: mời bằng /moi <tên> trước.");
+    } else if (ch === "whisper") {
+      const name = chatText(o.to).slice(0, 40);
+      if (!name) return warn("Gõ /t <tên> <tin> để nhắn riêng.");
+      const t = party.onlineByName(name);
+      if (!t) return warn(`${name} không trong game: tin không được gửi.`);
+      if (t.acc === acc) return warn("Không thể tự nhắn riêng cho chính mình.");
+      to = [acc, t.acc]; toName = t.name;
+    } else if (ch === "world") {
+      if (p.level < WORLD_CHAT.minLevel) return warn(`Kênh thế giới mở từ cấp ${WORLD_CHAT.minLevel}.`);
+      const wait = worldWait(acc, now);
+      if (wait) return warn(`Kênh thế giới: mỗi ${WORLD_CHAT.cdSecs} giây một tin, đợi ${wait} giây.`);
+    }
+    const r = chatCheck(acc, o.text, now, ch);
+    if (!r) return;
+    if ("error" in r) return warn(r.error);
+    if (ch === "map") return this.broadcast("chat", { name: p.name, text: r.text });
+    if (ch === "world") worldMark(acc, now);
+    const route: ChatRoute = { ...(to ? { to } : {}), msg: { ch, name: p.name, text: r.text, ...(toName ? { to: toName } : {}) } };
+    this.presence.publish(CHAT_TOPIC, route);
   }
 
   // ---------- Tổ đội người chơi (mục 5.9, bước 7.1; trạng thái và luật ở server/src/party.ts) ----------

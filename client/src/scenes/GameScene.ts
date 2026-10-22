@@ -28,7 +28,7 @@ import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -580,7 +580,7 @@ export class GameScene extends Phaser.Scene {
     const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
-        if (e.key === "Enter") { const t = chat.value.trim(); if (t && !this.chatCommand(t)) this.room.send("chat", { text: t }); chat.value = ""; chat.blur(); }
+        if (e.key === "Enter") { const t = chat.value.trim(); if (t && !this.chatCommand(t)) this.chatSend(t); chat.value = ""; chat.blur(); }
         if (e.key === "Escape") chat.blur();
         return;
       }
@@ -591,6 +591,7 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
       if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
@@ -610,7 +611,9 @@ export class GameScene extends Phaser.Scene {
     }, on);
     addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
     addEventListener("blur", () => { this.keys = {}; }, on);
-    chat.addEventListener("focus", () => { this.keys = {}; }, on);
+    chat.addEventListener("focus", () => { this.keys = {}; hud.chatFocus(true); }, on);
+    chat.addEventListener("blur", () => hud.chatFocus(false), on);
+    hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
@@ -656,17 +659,55 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Lệnh trong ô chat (7.1): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Trả true nếu là lệnh (không gửi lên kênh chat chung).
+   * Lệnh trong ô chat (7.1, #188): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>`
+   * nhắn riêng, `/r <tin>` trả lời người vừa nhắn riêng, `/tg <tin>` kênh thế giới, `/hat` hạt bay. Trả true nếu là lệnh (không gửi
+   * theo tab đang chọn). Mọi giới hạn (cấp, hồi, người nhận online, chống spam) do server kiểm.
    */
   chatCommand(t: string) {
     const m = /^\/(\S+)\s*(.*)$/u.exec(t); if (!m) return false;
     const cmd = m[1].toLowerCase(), arg = m[2].trim();
+    const need = (usage: string) => hud.log(`Gõ ${usage}.`, "#ffb35c");
     if (cmd === "moi" || cmd === "mời") {
-      if (arg) this.partySend("invite", arg); else hud.log("Gõ /moi <tên hồn sư> để mời vào tổ đội.", "#ffb35c");
+      if (arg) this.partySend("invite", arg); else need("/moi <tên hồn sư> để mời vào tổ đội");
     } else if (cmd === "roi" || cmd === "rời") this.partySend("leave");
+    else if (cmd === "b") { if (arg) this.room.send("chat", { text: arg }); else need("/b <tin> để chat ở bản đồ"); }
+    else if (cmd === "d" || cmd === "đ") { if (arg) this.room.send("chat", { text: arg, ch: "party" }); else need("/d <tin> để chat tổ đội"); }
+    else if (cmd === "tg") { if (arg) this.room.send("chat", { text: arg, ch: "world" }); else need("/tg <tin> để chat kênh thế giới"); }
+    else if (cmd === "t") {
+      const w = this.whisperArg(arg);
+      if (w) this.room.send("chat", { text: w.text, ch: "whisper", to: w.to }); else need("/t <tên> <tin> để nhắn riêng (tên có dấu cách thì để trong ngoặc kép)");
+    } else if (cmd === "r") {
+      const to = hud.chatReplyTo();
+      if (!to) hud.log("Chưa có ai nhắn riêng cho bạn.", "#ffb35c");
+      else if (arg) this.room.send("chat", { text: arg, ch: "whisper", to }); else need(`/r <tin> để trả lời ${to}`);
+    }
     else if (cmd === "hat" || cmd === "hạt") hud.log(`Hạt bay và thời tiết: ${this.weather.toggle() ? "bật" : "tắt"}.`, "#ffb35c");
-    else hud.log("Lệnh: /moi <tên> (mời vào tổ đội), /roi (rời tổ đội), /hat (bật / tắt hạt bay, thời tiết).", "#ffb35c");
+    else hud.log("Lệnh: /b, /d, /t <tên>, /r, /tg <tin> (bản đồ, tổ đội, riêng, trả lời, thế giới), /moi <tên>, /roi (tổ đội), /hat (hạt bay, thời tiết).", "#ffb35c");
     return true;
+  }
+
+  /** Tin thường (không phải lệnh) gửi theo tab đang chọn của ô chat (#188). */
+  chatSend(text: string) {
+    const c = hud.chatSendCh();
+    if (c.ch === "whisper" && !c.to) return hud.log("Chọn người nhận: /t <tên> <tin>, hoặc bấm vào hồn sư → Nhắn riêng.", "#ffb35c");
+    this.room.send("chat", c.ch === "map" ? { text } : { text, ...c });
+  }
+
+  /**
+   * Tách `/t` thành người nhận và tin. Tên có dấu cách: `"Đường Tam" tin`, hoặc khớp tên dài nhất đã biết (hồn sư đang thấy, đồng đội,
+   * người vừa nhắn riêng); còn lại lấy từ đầu tiên. Server tra tên thật (không phân biệt hoa thường).
+   */
+  whisperArg(arg: string): { to: string; text: string } | null {
+    const q = /^"([^"]+)"\s+(.+)$/u.exec(arg);
+    if (q) return { to: q[1].trim(), text: q[2].trim() };
+    const known = new Set<string>([hud.chatReplyTo(), ...(this.party?.members.map((m) => m.name) ?? [])]);
+    this.room.state.players.forEach((p: { name: string }) => known.add(p.name));
+    const low = arg.toLowerCase();
+    let to = "";
+    for (const n of known) if (n && n.includes(" ") && n.length > to.length && low.startsWith(n.toLowerCase() + " ")) to = n;
+    if (!to) to = arg.split(" ")[0];
+    const text = arg.slice(to.length).trim();
+    return to && text ? { to, text } : null;
   }
 
   /** Thao tác tổ đội: chỉ gửi ý định, server kiểm tra (7.1). */
@@ -784,7 +825,15 @@ export class GameScene extends Phaser.Scene {
       } else if (m.k === "leave") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
       else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
-    this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
+    // Chat (#188): `ch` thiếu = bản đồ (kể cả thông báo "Hệ thống"); tổ đội / riêng / thế giới đến từ mọi bản đồ / kênh qua server.
+    this.room.onMessage("chat", (m: ChatMsg) => {
+      if (m.ch === "whisper") {
+        const mine = m.name === this.room.state.players.get(this.me)?.name && !!m.to;
+        return hud.chatWhisper(mine ? m.to! : m.name, mine, m.text);
+      }
+      if (m.ch === "party" || m.ch === "world") return hud.chatLine(m.ch, m.text, hud.CHAT_COL[m.ch], m.name);
+      hud.chatLine("map", m.text, m.name === "Hệ thống" ? "#86e0b0" : hud.CHAT_COL.map, m.name);
+    });
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean; heal?: boolean; shield?: boolean }) => {
       this.audio.handleDamage(m);

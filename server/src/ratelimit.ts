@@ -4,6 +4,7 @@
 
 import { isIPv6 } from "node:net";
 import { nameKey } from "./names.ts";
+import { WORLD_CHAT } from "../../shared/data.ts";
 
 /**
  * Chuẩn hoá IP thành khoá giới hạn: IPv4-mapped (`::ffff:a.b.c.d`) về `a.b.c.d`, IPv6 cắt về /64 (4 nhóm đầu, đã mở `::`),
@@ -154,26 +155,49 @@ export function loginEnd(name: string, rawIp: string, ok: boolean | null, now = 
 }
 
 // ---------- Chat ----------
+/** Kênh chat (#188): bản đồ (phòng hiện tại), tổ đội, tin riêng, thế giới. Mỗi kênh một bộ đếm riêng. */
+export type ChatChannel = "map" | "party" | "whisper" | "world";
 interface ChatEntry { tokens: number; at: number; lastText: string; lastAt: number; }
-const chat = new Map<string | number, ChatEntry>();
+const chat = new Map<string, ChatEntry>();
+const chatKey = (key: string | number, ch: ChatChannel) => `${ch}:${key}`;
+/** Tài khoản -> lúc gửi tin kênh thế giới gần nhất (ms), cho hồi WORLD_CHAT.cdSecs giây. */
+const worldAt = new Map<number, number>();
+
+/** Chuẩn hoá nội dung tin: chỉ nhận chuỗi (String() trên object tùy ý client gửi có thể ném lỗi, #164), gộp khoảng trắng. */
+export function chatText(raw: unknown) { return (typeof raw === "string" ? raw : "").replace(/\s+/g, " ").trim(); }
 
 /**
- * Kiểm tra một tin chat của người chơi `key` (nên dùng accountId để vào lại phòng không được hồi lượt).
- * Hợp lệ -> { text } đã cắt khoảng trắng. Bị chặn -> { error } để báo riêng cho người gửi. Tin rỗng -> null (bỏ qua im lặng).
+ * Kiểm tra một tin chat của người chơi `key` (nên dùng accountId để vào lại phòng không được hồi lượt) trên kênh `ch` (mỗi kênh
+ * một bucket riêng: spam tổ đội không làm hết lượt chat bản đồ). Hợp lệ -> { text } đã cắt khoảng trắng (đã tính lượt). Bị chặn ->
+ * { error } để báo riêng cho người gửi. Tin rỗng -> null (bỏ qua im lặng). Gọi sau các bước kiểm tra luật của kênh.
  */
-export function chatCheck(key: string | number, raw: unknown, now = Date.now()): { text: string } | { error: string } | null {
-  // Chỉ nhận chuỗi: String() trên object tùy ý client gửi có thể ném lỗi (#164).
-  const text = (typeof raw === "string" ? raw : "").replace(/\s+/g, " ").trim();
+export function chatCheck(key: string | number, raw: unknown, now = Date.now(), ch: ChatChannel = "map"): { text: string } | { error: string } | null {
+  const text = chatText(raw);
   if (!text) return null;
   if (text.length > CHAT_MAX_LEN) return { error: `Tin nhắn quá dài (tối đa ${CHAT_MAX_LEN} ký tự).` };
-  let e = chat.get(key);
-  if (!e) { e = { tokens: CHAT_BURST, at: now, lastText: "", lastAt: 0 }; chat.set(key, e); }
+  const k = chatKey(key, ch);
+  let e = chat.get(k);
+  if (!e) { e = { tokens: CHAT_BURST, at: now, lastText: "", lastAt: 0 }; chat.set(k, e); }
   e.tokens = Math.min(CHAT_BURST, e.tokens + (now - e.at) / CHAT_REFILL_MS); e.at = now;
   if (e.tokens < 1) return { error: `Bạn chat quá nhanh. Đợi ${Math.ceil(((1 - e.tokens) * CHAT_REFILL_MS) / 1000)} giây rồi gửi tiếp.` };
   const norm = text.toLowerCase();
   if (norm === e.lastText && now - e.lastAt < CHAT_REPEAT_MS) return { error: "Đừng gửi lặp lại cùng một nội dung liên tục." };
   e.tokens -= 1; e.lastText = norm; e.lastAt = now;
   return { text };
+}
+
+/** Kênh thế giới: số giây tài khoản `acc` còn phải chờ (0 = gửi được). Không tính lượt. */
+export function worldWait(acc: number, now = Date.now()) {
+  const left = (worldAt.get(acc) ?? -Infinity) + WORLD_CHAT.cdSecs * 1000 - now;
+  return left > 0 ? Math.ceil(left / 1000) : 0;
+}
+/** Kênh thế giới: ghi lần gửi (sau chatCheck hợp lệ). */
+export function worldMark(acc: number, now = Date.now()) { worldAt.set(acc, now); }
+
+/** Hook kiểm thử (`test {op: "chat", cop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm chat mọi kênh và hồi kênh thế giới của một tài khoản. */
+export function chatReset(key: number) {
+  for (const ch of ["map", "party", "whisper", "world"] as const) chat.delete(chatKey(key, ch));
+  worldAt.delete(key);
 }
 
 // ---------- Lời mời tổ đội ----------
@@ -202,6 +226,7 @@ export function inviteReset(key: number) { invites.delete(key); }
 export function sweep(now = Date.now()) {
   byPair.sweep(now); byName.sweep(now); byIp.sweep(now);
   for (const [k, e] of chat) if (now - Math.max(e.at, e.lastAt) > CHAT_FORGET_MS) chat.delete(k);
+  for (const [k, at] of worldAt) if (now - at >= WORLD_CHAT.cdSecs * 1000) worldAt.delete(k);
   for (const [k, e] of invites) {
     for (const [t, at] of e.last) if (now - at >= INVITE_REPEAT_MS) e.last.delete(t);
     if (!e.last.size && now - e.at > CHAT_FORGET_MS) invites.delete(k);
@@ -210,4 +235,4 @@ export function sweep(now = Date.now()) {
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); chat.clear(); invites.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); chat.clear(); worldAt.clear(); invites.clear(); }
