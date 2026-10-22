@@ -145,7 +145,7 @@ export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi"
  * thú tăng theo diện tích (11.5).
  */
 export const BEAST_DENSITY: Record<string, number[]> = {
-  tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
+  thanh_hon_thon: [10.5, 10.0, 25.2], tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
   cuc_bac_chi_dia: [8.3, 8.2, 8.8, 5.7], hai_than_dao: [16.9, 9.6, 10.4, 10.9],
 };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
@@ -1027,8 +1027,9 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * Một tinh anh / thú vương / boss. `species`: loài gốc (mã BEASTS): dùng lại chỉ số theo năm của loài và sprite (phóng ELITE.scale).
  * `aura`: màu vầng sáng riêng (client vẽ bằng code). `skills`: chiêu báo trước (tinh anh: 2 chiêu, cùng bộ máy với 3.5).
  * Hệ số máu / sát thương theo bậc nằm ở ELITE (tinh anh) và KING (thú vương, BĐ5).
- * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x6–8, bảng 5.3), niên hạn bằng mức trên của bản đồ (MAPS.years) trừ khi
- * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
+ * Thú vương (rank 2, BĐ5): `hp` là hệ số máu riêng của bản đồ (x72–96: #264 nhân 12 so với x6–8 cũ vì trận chỉ kéo dài vài chục
+ * giây, giai đoạn 2 chưa kịp chạy một chu kỳ; báo cáo #176), niên hạn bằng mức trên của bản đồ (MAPS.years) trừ khi có `years`
+ * riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
 export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; tide?: TideDef; split?: SplitDef; }
@@ -1139,12 +1140,12 @@ export const BOSSES: BossDef[] = [
   // trứng (EggDef, #162): máu bọc bằng nửa nhện con cùng số năm để một người tập trung phá kịp cả 3 bọc trong thời gian nở; "tơ phủ 1/3
   // hang luân phiên (vùng cấm báo trước 2 giây)" (#173, SplitDef): hang chia 3 phần, tơ phủ lần lượt từng phần; bước vào tơ bị Trói một
   // lần, đứng trong tơ bị Làm chậm.
-  { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 6, skills: [
+  { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 72, skills: [
     bs("Huyết Nguyệt Hú", "circle", 60, { warn: 1.2, dmg: 1, cd: 14, summon: { species: "phong_lang", n: 4 } }),
     bs("Liệt Phong Trảo", "cone", 58, { arc: 60, count: 3, spread: 130, warn: 1, dmg: 1.4, cd: 8 })],
     phase2: { name: "Huyết Cuồng", desc: "tốc độ +40%, cứ 10 giây đánh dấu một người rồi lao xuyên tới", spd: 1.4, skills: [
       bs("Huyết Cuồng Xung", "line", 170, { w: 20, range: 160, warn: 1.2, dmg: 1.8, cd: 10, dash: true, mark: true })] } },
-  { id: "thien_doc_chu_hoang", name: "Thiên Độc Chu Hoàng", rank: 2, species: "nhan_dien_ma_chu", aura: "#7bff5a", hp: 7, skills: [
+  { id: "thien_doc_chu_hoang", name: "Thiên Độc Chu Hoàng", rank: 2, species: "nhan_dien_ma_chu", aura: "#7bff5a", hp: 84, skills: [
     bs("Thiên La Võng", "circle", 64, { warn: 1.3, dmg: 0.9, cd: 12, status: [{ s: "root", secs: 2 }] }),
     bs("Độc Châm Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8,
       status: [{ s: "poison", n: 2, secs: 5 }] })],
@@ -1174,7 +1175,7 @@ export const BOSSES: BossDef[] = [
   // Thú vương Lạc Nhật (BĐ6b): mượn loài Hắc Thủy Mãng. GĐ2 "Lưỡng Nghi Luân Chuyển" (#173, thiết kế gốc; SplitDef): hang chia nửa
   // băng, nửa lửa; mỗi 12 giây đổi nửa đang hóa (báo trước 2 giây), nửa kia an toàn. Đứng nhầm nửa băng: Đóng băng 1,5 giây một lần
   // (#116; gây mỗi nhịp thì không ra được) rồi Làm chậm khi còn đứng; nửa lửa: Thiêu đốt nặng cộng tầng mỗi nhịp.
-  { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 7, skills: [
+  { id: "luong_nghi_thu_ho_xa", name: "Lưỡng Nghi Thủ Hộ Xà", rank: 2, species: "hac_thuy_mang", aura: "#9ad8ff", hp: 84, skills: [
     bs("Băng Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.4, cd: 8, status: [{ s: "slow", secs: 3 }] }),
     bs("Hỏa Tức", "cone", 62, { arc: 80, warn: 1.2, dmg: 1.5, cd: 8, status: [{ s: "burn", n: 3, secs: 5 }] })],
     phase2: { name: "Lưỡng Nghi Luân Chuyển", desc: "hang chia nửa băng, nửa lửa, mỗi 12 giây đổi nửa đang hóa (báo trước 2 giây); đứng nhầm nửa thì bị đóng băng hoặc thiêu đốt nặng; tốc độ +20%",
@@ -1202,7 +1203,7 @@ export const BOSSES: BossDef[] = [
   // bị đánh dấu của bản tối thiểu (thay cho tầng Hàn) đã bỏ. Mỗi 5 giây một tầng: không về Hỏa Đàn thì 20 giây bị Đóng băng một lần;
   // Hỏa Đàn ở nửa trái hang, cách tâm hang (chỗ thú vương sinh) khoảng một phần tư bề ngang hang; phía sau theo phép chiếu isometric
   // (x + y nhỏ) nên vách hang không che đống lửa.
-  { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
+  { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 96, skills: [
     bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
     bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
     phase2: { name: "Cực Hàn", desc: "người tham gia trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
@@ -1223,13 +1224,13 @@ export const BOSSES: BossDef[] = [
   { id: "hac_uyen_ma_kinh", name: "Hắc Uyên Ma Kình", rank: 1, species: "tham_hai_ma_kinh", aura: "#1a3aa0", skills: [
     bs("Hấp Thủy", "circle", 90, { range: 80, warn: 1, dmg: 0.8, cd: 10, pull: 70 }),
     bs("Thủy Trụ", "circle", 26, { at: "target", range: 150, count: 5, scatter: 70, dmg: 1.5 })] },
-  // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x8. Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
+  // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x96 (#264). Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
   // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một). GĐ2 "Thủy Triều Dâng" (#174, thiết kế gốc; TideDef): nước dâng
   // từng đợt vùng ngập ở chỗ mới trong hang, đợt cũ rút; đứng trong nước bị Ngập nước (STATUS.flood, gây lại mỗi nhịp ngắn hơn thời gian
   // của trạng thái), một số vùng có xoáy nước giữa kéo về tâm. Lực kéo nhỏ hơn tốc độ đi bộ khi chỉ bị Ngập nước nên tự thoát được; bị
   // Làm chậm thêm (cộng tới SLOW_CAP) thì có thể bị giữ trong xoáy. Dải nước báo trước của bản tối thiểu thành Sóng Dữ (sát thương, không
   // Làm chậm: Làm chậm đã do vùng ngập gây).
-  { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 8, years: 95000, skills: [
+  { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 96, years: 95000, skills: [
     bs("Ma Kình Hống", "circle", 70, { warn: 1.3, dmg: 1.4, cd: 10, status: [{ s: "stun", secs: 1.5 }] }),
     bs("Thôn Hải", "circle", 110, { range: 100, warn: 1.4, dmg: 1.2, cd: 12, pull: 80 })],
     phase2: { name: "Thủy Triều Dâng", desc: "vùng ngập luân phiên trong hang làm chậm 50%, xoáy nước giữa vùng ngập kéo người vào, tốc độ +20%", spd: 1.2,
@@ -1275,8 +1276,10 @@ export const kingYears = (mapId: string): number | null => {
  * đồ thì `lock` giây sau mới nhận lại thưởng của loài đó trên bản đồ đó, ở bất kỳ kênh nào; không lớn hơn mức dưới của `respawn` để
  * chờ tinh anh hồi sinh trong cùng một phòng không bao giờ bị chặn (phòng mở lại sinh tinh anh ngay: hạ trong lúc còn khóa chỉ được
  * thưởng như hồn thú thường).
+ * `hp` 8 (#263, trước là 2,5; báo cáo #176): với 2,5 tinh anh chết trong 3–7 giây, Cuồng nộ (ELITE_RAGE) chỉ kéo dài 1–3 giây và hai
+ * chiêu báo trước thường không kịp tung lần nào.
  */
-export const ELITE = { hp: 2.5, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
+export const ELITE = { hp: 8, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
   radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15, lock: 480 };
 /** Máu tăng theo số người tham gia (mục 5.4, tinh anh trở lên): máu tối đa × (1 + BOSS_HP_PER_PLAYER × (N − 1)). */
 export const BOSS_HP_PER_PLAYER = 0.6;
@@ -1304,7 +1307,7 @@ export const ELITE_RAGE = { hp: 0.5, dmg: 0.3, spd: 0.25, secs: 10, cd: 20 };
 
 // ---------- Tà hóa thú vương (boss bản đồ, mục 5.4, 6; bước BĐ5, mọi số đã chốt) ----------
 /**
- * Thú vương: máu x BossDef.hp (6–8 theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
+ * Thú vương: máu x BossDef.hp (theo bản đồ), sát thương x`dmg` so với loài gốc cùng năm (niên hạn = mức trên của bản đồ);
  * kinh nghiệm x`xp` cho mọi người đóng góp còn trong phòng; sprite loài gốc phóng `scale` (khoảng 96×96, mục 5.11).
  * Giai đoạn 2: máu còn `phaseHp` thì gầm lên, đứng yên `roarSecs` giây (không nhận khống chế), rồi thêm chiêu BossDef.phase2 và nhanh hơn.
  * Người tham gia như tinh anh nhưng bán kính là cả hang (object `boss`): ngoài hang `outSecs` giây liên tục thì bị loại, số người giảm
@@ -1377,7 +1380,8 @@ export const chestCode = (bossId: string) => `ruong_${bossId}`;
 
 // ---------- Boss thế giới 100.000 năm (Lõi Tinh Đấu, mục 5.4, 6; bước BĐ6e, mọi số đã chốt) ----------
 /**
- * Boss thế giới: máu x`hp` (30, mục 5.4), sát thương x`dmg` so với loài gốc cùng năm (100.000 năm); kinh nghiệm x`xp` cho mọi người
+ * Boss thế giới: máu x`hp` (150, #265, trước là 30: boss chết trong khoảng 1 phút, trước khi cơ chế riêng và điểm yếu hệ
+ * chạy đủ vòng; báo cáo #176; mục 5.4), sát thương x`dmg` so với loài gốc cùng năm (100.000 năm); kinh nghiệm x`xp` cho mọi người
  * đóng góp còn trong phòng; sprite loài gốc phóng `scale`. Người tham gia / máu theo số người / bỏ giao chiến như thú vương (sàn đấu
  * là object `boss` của Lõi Tinh Đấu): ngoài sàn `outSecs` giây thì bị loại, số người giảm tối đa 1 mỗi `dropEvery` giây, `idleSecs`
  * giây không còn ai trong sàn thì về chỗ, hồi đầy.
@@ -1389,7 +1393,7 @@ export const chestCode = (bossId: string) => `ruong_${bossId}`;
  * Thưởng: đóng góp (sát thương) từ `share` (3%, đã chốt) và còn trong phòng thì nhận hồn hoàn (WORLD_RING) và rương (WORLD_CHEST);
  * tối đa `daily` lần/ngày (1, đã chốt), loại BOSS_CLAIM_WORLD trong `boss_claims`, đặt lại 00:00 giờ Việt Nam.
  */
-export const WORLD = { hp: 30, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
+export const WORLD = { hp: 150, dmg: 3, xp: 5, scale: 4, outSecs: 30, dropEvery: 10, idleSecs: 15, warnSecs: 300, lifeSecs: 900,
   enrageSecs: 600, rageDmg: 3, rageSpd: 1.4, rageCd: 0.6, slamEvery: 15, weakAt: [0.75, 0.5, 0.25], weakSecs: 15, weakMult: 2.5, offMult: 0.5,
   firstMech: 0.5, share: 0.03, daily: 1 };
 /** Chiêu toàn sàn khi nổi giận (mục 5.4, mỗi WORLD.slamEvery giây): né bằng cách đứng trong vòng an toàn (FLOOR_SAFE) hoặc ra khỏi sàn. */
@@ -2766,6 +2770,19 @@ export const BONE_ENHANCE_STAT = 0.05;
  */
 export const BONE_ENHANCE_MILESTONES = [5, 10, 15, 20];
 export const BONE_MILESTONE_SKILL = 0.1;
+/**
+ * **(đã chốt, #281)** Phí Hồn Tệ (đồng) khi cường hóa hồn cốt **lên** +(n + 1): BONE_ENHANCE_FEE[n]; trả một lần cho mỗi cấp vừa
+ * vượt qua (enhanceFee). +1…+5 miễn phí, +6…+10 1.000, +11…+15 3.000, +16…+20 8.000: tới +10 hết 5.000, một hồn cốt +20 hết 60.000.
+ */
+export const BONE_ENHANCE_FEE = [0, 0, 0, 0, 0, 1000, 1000, 1000, 1000, 1000, 3000, 3000, 3000, 3000, 3000, 8000, 8000, 8000, 8000, 8000];
+/**
+ * Phí Hồn Tệ của một lần cường hóa / nâng cấp từ +`from` lên +`to` theo bảng `table` (BONE_ENHANCE_FEE, CORE_ENHANCE_FEE): tổng phí
+ * mọi cấp vừa vượt qua (#281). Nạp điểm mà chưa lên cấp thì 0; chia nhỏ nhiều lần hay một lần nhảy nhiều cấp đều trả cùng tổng.
+ */
+export function enhanceFee(table: readonly number[], from: number, to: number) {
+  const a = Math.max(0, Math.floor(from) || 0), b = Math.min(table.length, Math.floor(to) || 0);
+  return table.slice(a, Math.max(a, b)).reduce((s, x) => s + x, 0);
+}
 /** Cấp cường hóa hợp lệ (số nguyên 0..BONE_MAX_ENHANCE). */
 export function boneEnhanceClamp(e: unknown) { return Math.max(0, Math.min(BONE_MAX_ENHANCE, Math.floor(Number(e)) || 0)); }
 /** Tổng điểm cường hóa để đạt +`level` từ +0. */
@@ -3045,6 +3062,11 @@ export const CORE_MAX_ENHANCE = 15;
  * 1.380, +15 cần 2.450 (khoảng 5–6 hồn hạch 6★ cùng bộ, 8 hồn hạch 6★ khác bộ, hay 31 hồn hạch 4★ khác bộ). Một bảng cho mọi sao.
  */
 export const CORE_ENHANCE_COST = [20, 30, 40, 55, 70, 90, 110, 135, 160, 190, 220, 260, 300, 350, 420];
+/**
+ * **(đã chốt, #281)** Phí Hồn Tệ (đồng) khi nâng cấp hồn hạch **lên** +(n + 1): CORE_ENHANCE_FEE[n], trả một lần mỗi cấp vượt qua
+ * (enhanceFee). +1…+3 miễn phí, +4…+6 1.000, +7…+9 2.500, +10…+12 5.000, +13…+15 10.000: một hồn hạch +15 hết 55.500.
+ */
+export const CORE_ENHANCE_FEE = [0, 0, 0, 1000, 1000, 1000, 2500, 2500, 2500, 5000, 5000, 5000, 10000, 10000, 10000];
 /** **(đã chốt)** Điểm gốc một nguyên liệu theo sao 1★..6★ (gấp đôi mỗi sao: sao cao làm nguyên liệu đáng giá hơn nhiều). */
 export const CORE_FEED_STAR = [10, 20, 40, 80, 160, 320];
 /** **(đã chốt)** Nguyên liệu cùng bộ với hồn hạch được nâng cấp thì điểm gốc ×1,5 (như hồn cốt cùng vị trí ở 4.4). */
@@ -3996,6 +4018,11 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
  *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
  *   trong cửa sổ (arenaPairs).
+ * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
+ *   hồi máu của bộ Lưu Ly / ràng buộc) × ngần ấy: sát thương lên hồn sư đã × `dmgMult` nhưng hồi tính theo % sinh lực tối đa nên
+ *   mạnh gấp ~3 lần so với ngoài rừng, không giảm thì Phụ trợ gần như không chết. Hút máu và hồi tự nhiên không đổi.
+ *   `ccMult`: thời gian khống chế (isCcStatus) đối thủ gây lên hồn sư × ngần ấy, sau kháng của bị động hồn cốt: đối thủ trong sân
+ *   như mục tiêu bậc cao (ngoài rừng là CC_TIER_MULT), tránh khóa chết.
  */
 export const ARENA = {
   startElo: 1000, k: 32,
@@ -4005,7 +4032,16 @@ export const ARENA = {
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
   pairDaily: 3, rematchSecs: 60,
+  healMult: 0.5, ccMult: 0.7,
 };
+/**
+ * Hệ số sát thương lên đối thủ trong sân theo hệ võ hồn ra trận của người đánh (#277, mục 5.9), nhân vào mọi sát thương PvP (đánh
+ * thường, hồn kỹ, Chân Thân, tiên cơ, kỹ năng hồn cốt, sát thương theo thời gian) trước ARENA.dmgMult. Căn cứ DPS đơn mục tiêu so
+ * trung vị (#176): Cường công 1,08–1,48× (bùng nổ diện rộng không bị chia trong 1v1), Mẫn công 0,9–1,58× (chí mạng, cơ động đã lợi
+ * khi đuổi đánh), Khống chế 0,69–1,0× (mất lợi đánh bầy, khống chế lên hồn sư bị giảm ARENA.ccMult), Phụ trợ 0,3–0,86× (hồi / khiên
+ * bị giảm ARENA.healMult). Chênh giữa hệ mạnh nhất và yếu nhất còn ~1,4 lần thay vì ~2,2. Ước lượng từ PvE, chỉnh sau chơi thử.
+ */
+export const ARENA_HE_DMG: Record<He, number> = { cuong_cong: 0.9, man_cong: 0.95, khong_che: 1.15, phu_tro: 1.35 };
 /** Mảnh thưởng thắng trận: võ hồn SR / SSR (không có UR, không có Lam Ngân Thảo ai cũng sẵn). */
 export const ARENA_SHARDS = VOHON.filter((v) => v.rarity !== "UR" && v.id !== AWAKEN_GIFT).map((v) => v.id);
 /** Xác suất thắng kỳ vọng của Elo `r` trước Elo `ro`. */

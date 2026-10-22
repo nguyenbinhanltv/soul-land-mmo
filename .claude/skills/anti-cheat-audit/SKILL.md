@@ -38,6 +38,7 @@ Luật nền: `CLAUDE.md` (server-authoritative) và skill `server-feature` mụ
 
 **Tần suất, spam** (`server/src/ratelimit.ts`, `npm run test:ratelimit --prefix server`)
 - [ ] Đăng nhập khóa theo cặp tên + IP, theo tên, theo IP; `TRUST_PROXY` chỉ bật sau proxy thật.
+- [ ] Matchmake HTTP (`joinOrCreate`, `joinById`) giữ chỗ / mở kênh trước WebSocket: chỉ khi `static onAuth` (`seatAccount`) đã kiểm token, số chỗ đang giữ của tài khoản và bản đồ (#235). Phòng mới cần kiểm tương tự trước khi giữ chỗ.
 - [ ] Chat, lời mời tổ đội có token bucket; `channels`, bảng xếp hạng, lệnh tốn DB có nhịp riêng. Message rẻ (`input`) gửi dồn chỉ ghi đè ý định, không tốn thêm việc.
 
 **Lộ dữ liệu**
