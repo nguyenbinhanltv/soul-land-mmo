@@ -4302,6 +4302,8 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * gọi ra trong trận (bầy, nhện con) vẫn tính như mọi hồn thú thường.
  * - `dodge`: né chiêu báo trước (kể cả chiêu toàn sàn, vòng an toàn) và vùng lưu lại trên đất: đứng trong vùng thì đi tới chỗ an toàn
  *   gần nhất đi thẳng tới được, tìm trên `dirs` hướng, mỗi `step` pixel tới `max` pixel (cùng các vòng an toàn của chiêu toàn sàn).
+ *   Chỗ né phải an toàn cả các điểm quanh nó trong `pad` pixel: tới cách chỗ né dưới 1 pixel là dừng (#292), chỗ sát mép vòng an toàn
+ *   / vùng thì có lúc đứng lại ngay ngoài mép mà vẫn trúng.
  * - `retreat` / `back`: sinh lực võ hồn ra trận dưới `retreat` phần thì lùi ra cách boss ít nhất `dist` pixel (uống đan theo ngưỡng
  *   cài đặt như thường), từ `back` phần mới quay lại đánh.
  * - `cleanse`: trạng thái xấu trên mình còn từ ngần ấy giây (Vết thương sâu của boss thế giới) thì đổi sang võ hồn phụ trợ có hồn kỹ
@@ -4310,7 +4312,7 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  * - `chill`: Cực Hàn (#163) từ ngần ấy tầng Hàn (STATUS.chill.max tầng thì Đóng băng) thì thanh tẩy (như trên) hoặc, không có thanh tẩy sẵn
  *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
  */
-export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
+export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168, pad: 3 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
