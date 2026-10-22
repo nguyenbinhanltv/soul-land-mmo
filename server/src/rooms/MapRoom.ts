@@ -977,8 +977,8 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(id); if (!d) return;
     const now = Date.now(); if (now - d.resonanceTopAt < RESONANCE_RANK_CD * 1000) return;
     d.resonanceTopAt = now;
-    const page = Math.max(1, Math.floor(Number(rawPage)) || 1);
-    const pageSize = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, Math.floor(Number(rawPageSize)) || RESONANCE_RANK_PAGE_SIZE));
+    const page = Math.max(1, intIn(rawPage) || 1);
+    const pageSize = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, intIn(rawPageSize) || RESONANCE_RANK_PAGE_SIZE));
     store.resonanceTop(page, pageSize, d.accountId).then((t) => {
       this.clients.getById(id)?.send("resonanceTop", {
         page: t.page, pageSize: t.pageSize, total: t.total, hasNext: t.hasNext,

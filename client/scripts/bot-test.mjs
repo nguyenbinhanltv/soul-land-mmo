@@ -107,7 +107,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   DAILY, DAILY_POOL, dailyIds, dailyKey, dailyPicks, isDaily, fitBeast, fitMaps,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
-  RESONANCE, RES_VOHON_LEVEL, RESONANCE_RANK_CD, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus,
+  RESONANCE, RES_VOHON_LEVEL, RESONANCE_RANK_CD, RESONANCE_RANK_PAGE_MAX, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus,
   ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands,
@@ -7641,7 +7641,7 @@ async function resonanceTest(){
     `đổi ${VOHON[vohonIndex(bv.vohon)].name} vào: sinh lực tối đa ${sw.live.maxHp} có cộng minh`);
   // ---- Thoát vào lại: tiến độ tính lại từ dữ liệu đã lưu, không báo lại mốc ----
   R.resTop=null; R.room.send("resonance",{op:"top",page:1,pageSize:99}); await waitFor(()=>R.resTop,2000);
-  ok(R.resTop?.page===1&&R.resTop.pageSize===20&&R.resTop.total>=1&&R.resTop.me?.rank>=1&&R.resTop.list.every(r=>!("accountId" in r)&&typeof r.name==="string"&&Number.isInteger(r.score)),
+  ok(R.resTop?.page===1&&R.resTop.pageSize===RESONANCE_RANK_PAGE_MAX&&R.resTop.total>=1&&R.resTop.me?.rank>=1&&R.resTop.list.every(r=>!("accountId" in r)&&typeof r.name==="string"&&Number.isInteger(r.score)),
     `bảng xếp hạng: trang ${R.resTop?.page}/${R.resTop?.pageSize}, ${R.resTop?.total} tài khoản, dòng công khai không lộ accountId`);
   const top1=JSON.stringify(R.resTop); await sleep(RESONANCE_RANK_CD*1000+300);
   R.resTop=null; R.room.send("resonance",{op:"top",page:1,pageSize:99}); await waitFor(()=>R.resTop,2000);
