@@ -250,6 +250,7 @@ export class ArenaRoom extends MapRoom {
     const d = this.pdata.get(id); if (!d) return false;
     const bag = this.unsavedBag(d); if (!bag) return true;
     try { await store.saveBag(d.accountId, bag); } catch (e) { d.bagDirty = true; throw e; }
+    d.tongPend.splice(0, bag.tongPts?.length ?? 0);
     return true;
   }
 

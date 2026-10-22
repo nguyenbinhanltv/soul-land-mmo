@@ -151,6 +151,7 @@ export interface PData {
   // Tông vụ hằng ngày (#197, TONG_DAILY): TONG_DAILY.count bài của ngày `tongDay` ở sứ giả tông mình, gửi trong tin riêng "tong"; lưu cùng
   // túi đồ như khảo hạch. `tongBoardAt`: lúc xin bảng tông tuần gần nhất (ms, TONG_BOARD_CD).
   tongTasks: QuestProgress[]; tongDay: string; tongBoardAt: number;
+  tongPend: { week: number; tong: string; n: number }[]; // điểm tông vụ chờ ghi cùng túi (#320): chỉ bỏ khỏi hàng sau khi lần ghi thành công
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
   arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; resonanceTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
@@ -928,7 +929,7 @@ export class MapRoom extends Room<MapState> {
       claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
-      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0,
+      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
@@ -1101,7 +1102,9 @@ export class MapRoom extends Room<MapState> {
 
   /** Ảnh chụp túi đồ và Hồn Tệ chưa lưu (bỏ đánh dấu `bagDirty`); undefined nếu không đổi gì từ lần lưu trước. */
   unsavedBag(d: PData): Bag | undefined {
-    return d.bagDirty ? this.bagSnapshot(d) : undefined;
+    const bag = d.bagDirty || d.tongPend.length ? this.bagSnapshot(d) : undefined;
+    if (bag && d.tongPend.length) bag.tongPts = d.tongPend.map((t) => ({ ...t }));
+    return bag;
   }
   /** Ảnh chụp cả túi đồ, Hồn Tệ và tiến độ nhiệm vụ (6.2; bỏ đánh dấu `bagDirty`), dù có đổi hay không. */
   bagSnapshot(d: PData): Bag {
@@ -1127,6 +1130,7 @@ export class MapRoom extends Room<MapState> {
       const list = this.unsaved(id), bag = this.unsavedBag(d);
       try { await store.saveTravel(d.accountId, list, this.state.mapId, out.to, out.ax, out.ay, bag); }
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
+      d.tongPend.splice(0, bag?.tongPts?.length ?? 0);
       return true;
     }
     // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
@@ -1134,7 +1138,7 @@ export class MapRoom extends Room<MapState> {
     let saved: boolean;
     try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-    if (saved) return true;
+    if (saved) { d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
     // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
     // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
     console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${this.state.mapId}; ngắt kết nối để vào lại.`);
@@ -2212,9 +2216,9 @@ export class MapRoom extends Room<MapState> {
       if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào.");
       if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để rời tông.");
       const old = tongDef(d.tong)!;
-      d.tong = null; p.tong = 0;
-      this.chain(d, () => store.setTong(d.accountId, null, null));
-      this.log(id, `Ngươi đã rời ${old.name}.`, old.col);
+      d.tong = null; p.tong = 0; d.tongPend = [];
+      this.chain(d, () => store.setTong(d.accountId, null, null, tongWeek(this.tongNow())));
+      this.log(id, `Ngươi đã rời ${old.name}; điểm tuần này đã bỏ.`, old.col);
       return this.sendTong(id);
     }
     const t = tongDef(raw);
@@ -2228,7 +2232,7 @@ export class MapRoom extends Room<MapState> {
     if (d.tongAt !== null && now < d.tongAt + TONG_SWITCH_DAYS * 86400000)
       return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
     const from = d.tong ? tongDef(d.tong) : null;
-    d.tong = t.id; d.tongAt = now; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
+    d.tong = t.id; d.tongAt = now; d.tongPend = []; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
     this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())));
     this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
     this.sendTong(id);
@@ -2284,10 +2288,8 @@ export class MapRoom extends Room<MapState> {
     this.log(id, `Trả tông vụ "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${formatHonTe(step.reward.honTe)} và ${TONG_POINTS} điểm ${t.name}.`, "#f2c84b");
     this.sendBag(id);
     this.sendTong(id);
-    this.chain(d, async () => {
-      if (!(await this.write(id))) return;
-      await store.addTongPoints(d.accountId, week, tong, TONG_POINTS);
-    });
+    d.tongPend.push({ week, tong, n: TONG_POINTS });
+    this.saveTrade(id, d);
   }
 
   /**
@@ -3628,10 +3630,10 @@ export class MapRoom extends Room<MapState> {
       // #198: `set` = mã tông (hoặc "" / null để rời) đặt thẳng, bỏ qua điều kiện sứ giả / cấp / chờ đổi (bài chat tông); ghi DB như gia nhập.
       if ("set" in o) {
         const t = tongDef(o.set), now = Date.now();
-        d.tong = t?.id ?? null; p.tong = t ? TONG_MON.findIndex((x) => x.id === t.id) + 1 : 0;
+        d.tong = t?.id ?? null; d.tongPend = []; p.tong = t ? TONG_MON.findIndex((x) => x.id === t.id) + 1 : 0;
         if (t) d.tongAt = now;
-        // Như tongAction: gia nhập xoá điểm tuần (week), rời thì không; tong_at giữ (COALESCE ở PgStore).
-        const id2 = d.tong, at = t ? now : null; this.chain(d, () => t ? store.setTong(d.accountId, id2, at, tongWeek(now)) : store.setTong(d.accountId, null, null));
+        // Như tongAction: gia nhập hay rời đều xoá điểm tuần (week); tong_at giữ (COALESCE ở PgStore).
+        const id2 = d.tong, at = t ? now : null; this.chain(d, () => t ? store.setTong(d.accountId, id2, at, tongWeek(now)) : store.setTong(d.accountId, null, null, tongWeek(now)));
         this.sendTong(id);
       }
       if (d.tongAt !== null && typeof o.back === "number" && Number.isFinite(o.back)) {

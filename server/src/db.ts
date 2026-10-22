@@ -67,7 +67,9 @@ export interface Item {
 export interface TongRow { tong: string | null; at: number | null; }
 /** Bảng tông tuần (#197): mỗi tông có điểm trong tuần (TongRank), và top cá nhân mỗi tông (tên, điểm; điểm > 0, cao trước). */
 export interface TongBoard { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]>; }
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[];
+  /** Điểm tông tuần (#197, #320) cộng cùng transaction với túi: bài tông vụ đã xong thì điểm đi theo lần ghi túi, không mất một nửa. */
+  tongPts?: { week: number; tong: string; n: number }[]; }
 /** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
 export interface SoldRow { key: string; item: Item; price: number; at: number; }
 /**
@@ -435,6 +437,7 @@ export class MemoryStore implements Store {
    * có bài khảo hạch hằng ngày (tông vụ, #197) thì bỏ bài khảo hạch (tông vụ) của các ngày khác.
    */
   putBag(accountId: number, bag: Bag) {
+    for (const t of bag.tongPts ?? []) this.bumpTong(accountId, t.week, t.tong, t.n);
     const { quests, slots, sell, sold, ...rest } = copyBag(bag), prev = this.bags.get(accountId), old = prev?.slots;
     // Bộ lọc / danh sách tự bán (#216): thiếu khi ghi thì giữ bản đang lưu, như writeBag.
     const keepSell = sell !== undefined ? sell : prev?.sell, keepSold = sold ?? prev?.sold;
@@ -499,11 +502,12 @@ export class MemoryStore implements Store {
     for (const x of this.tongPts.values()) if (x.accountId === accountId && x.week === week && (!best || x.points > best.points)) best = { tong: x.tong, points: x.points };
     return best;
   }
-  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
+  bumpTong(accountId: number, week: number, tong: string, n: number) {
     const k = `${accountId}|${week}|${tong}`, x = this.tongPts.get(k) ?? { accountId, week, tong, points: 0 };
     x.points += n; this.tongPts.set(k, x);
     return x.points;
   }
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.bumpTong(accountId, week, tong, n); }
   async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
     const by = new Map<string, { accountId: number; points: number }[]>();
     for (const x of this.tongPts.values()) if (x.week === week) { const l = by.get(x.tong) ?? []; l.push(x); by.set(x.tong, l); }
@@ -854,6 +858,7 @@ export class PgStore implements Store {
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
     await this.upsertItems(db, accountId, bag.items);
+    for (const t of bag.tongPts ?? []) await this.addTongPointsTx(db, accountId, t.week, t.tong, t.n);
     if (bag.quests?.length) {
       await db.query(
         `INSERT INTO quests(account_id, chain, step, accepted, prog)
@@ -961,8 +966,9 @@ export class PgStore implements Store {
     const r = await this.pool.query("SELECT tong, points FROM tong_points WHERE account_id=$1 AND week=$2 ORDER BY points DESC LIMIT 1", [accountId, week]);
     return r.rowCount ? { tong: r.rows[0].tong as string, points: Number(r.rows[0].points) } : null;
   }
-  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
-    const r = await this.pool.query(
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.addTongPointsTx(this.pool, accountId, week, tong, n); }
+  async addTongPointsTx(db: pg.Pool | pg.PoolClient, accountId: number, week: number, tong: string, n: number) {
+    const r = await db.query(
       `INSERT INTO tong_points(account_id, week, tong, points) VALUES ($1, $2, $3, $4)
        ON CONFLICT (account_id, week, tong) DO UPDATE SET points = tong_points.points + EXCLUDED.points RETURNING points`, [accountId, week, tong, n]);
     return Number(r.rows[0].points);
