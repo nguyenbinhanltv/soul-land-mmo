@@ -50,7 +50,7 @@ const publish = (topic: string, m: unknown) => { void presenceBackend.presence.p
 function shadow(r: RemoteEntry): ArenaTeamEntry {
   const e: ArenaTeamEntry = { id: r.id, members: r.members.map((m) => ({ ...m, rec: { ...m.rec } })), elo: r.elo, since: r.since,
     canFound: () => true, ready: () => true,
-    found: (roomId, foe) => publish(T.found, { id: r.id, roomId, foe: { id: foe.id, members: foe.members, elo: foe.elo, since: foe.since } }),
+    found: (roomId, foe) => publish(T.found, { id: r.id, owner: r.owner, roomId, foe: { id: foe.id, members: foe.members, elo: foe.elo, since: foe.since } }),
     requeue: () => { publish(T.requeue, { id: r.id }); }, abort: () => { publish(T.abort, { id: r.id }); }, rollback: () => { publish(T.rollback, { id: r.id }); } };
   shadows.add(e);
   return e;
@@ -69,7 +69,8 @@ export function arenaDeliver(e: ArenaTeamEntry, roomId: string, foe: ArenaTeamEn
   if (!ok) delivered.delete(e.id);
   return ok;
 }
-sub<{ id: string; roomId: string; foe: ArenaTeamEntry }>(T.found, (m) => {
+sub<{ id: string; owner: string; roomId: string; foe: ArenaTeamEntry }>(T.found, (m) => {
+  if (m.owner !== presenceBackend.workerId) return; // tin tới mọi tiến trình: chỉ tiến trình chủ của bên này xử lý
   const e = queue.get(m.id), foe = m.foe;
   // Bên này đã hủy / đã mất: trả đối thủ (đã nhận mã phòng) về hàng chờ thay vì để vào sân một mình.
   if (!e) { publish(T.rollback, { id: foe.id }); publish(T.requeue, { id: foe.id }); return; }

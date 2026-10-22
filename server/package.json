@@ -11,9 +11,9 @@
     "test:presence": "tsx scripts/presence-test.ts"
   },
   "dependencies": {
-    "@colyseus/schema": "3.0.76",
-    "@colyseus/redis-presence": "0.16.4",
     "@colyseus/redis-driver": "0.16.1",
+    "@colyseus/redis-presence": "0.16.4",
+    "@colyseus/schema": "3.0.76",
     "@colyseus/ws-transport": "0.16.5",
     "colyseus": "0.16.5",
     "express": "4.22.3",

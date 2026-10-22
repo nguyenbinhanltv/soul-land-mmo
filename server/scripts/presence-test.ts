@@ -56,6 +56,18 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 30));
   assert.equal(rolled, 1);
   assert.equal(arenaQueued(100), x);
+  let foundN = 0;
+  const y = { ...entry, id: "solo:101", members: [{ accountId: 101, name: "y", rec }], found: () => { foundN++; return true; } };
+  await arenaEnqueue(y);
+  await presenceBackend.presence.publish("arena:found", { id: "solo:101", owner: "tiến-trình-khác", roomId: "r", foe: entry });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(foundN, 0);
+  assert.equal(arenaQueued(101), y);
+  await presenceBackend.presence.publish("arena:found", { id: "solo:101", owner: presenceBackend.workerId, roomId: "r", foe: entry });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(foundN, 1);
+  assert.equal(arenaQueued(101), undefined);
+  console.log("✓ Hàng chờ đấu trường: tin found chỉ do tiến trình chủ của bên đó xử lý");
   console.log("✓ Hàng chờ đấu trường: bên cục bộ ghép trực tiếp được rollback khi đối thủ hủy");
   console.log("✓ Hàng chờ đấu trường: không lấy được khóa thì rollback và báo lỗi");
 } finally {

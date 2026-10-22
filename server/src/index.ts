@@ -126,7 +126,14 @@ if (existsSync(dist)) app.use(express.static(dist));
 const server = http.createServer(app);
 // Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
 const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.REDIS_URL) : undefined;
-const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, ...(driver ? { driver } : {}) });
+// PUBLIC_ADDRESS (mỗi tiến trình một địa chỉ client tới được, vd "game.example.com/2567"): phòng mở ở tiến trình khác thì chỗ giữ mang địa chỉ này để
+// client mở WebSocket đúng tiến trình giữ phòng (không đặt thì phòng ở tiến trình khác không vào được). Sân đấu luôn mở ở tiến trình ghép trận vì
+// `arenaMatches` (arenaQueue.ts) là bộ nhớ của tiến trình đó; phòng khác giữ cách chọn mặc định của Colyseus (tiến trình ít phòng nhất).
+const publicAddress = process.env.PUBLIC_ADDRESS?.trim() || undefined;
+const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, ...(driver ? { driver } : {}), ...(publicAddress ? { publicAddress } : {}),
+  selectProcessIdToCreateRoom: async (roomName) => roomName === "arena"
+    ? matchMaker.processId
+    : (await matchMaker.stats.fetchAll()).sort((a, b) => a.roomCount > b.roomCount ? 1 : -1)[0]?.processId || matchMaker.processId });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 // MapRoom / ArenaRoom có cả `static onAuth` (kiểm token trước khi giữ chỗ, #235) lẫn onAuth của phòng: Colyseus in dòng "onAuth() defined
@@ -144,5 +151,5 @@ for (const id of Object.keys(MAPS)) loadMap(id);
 await store.init();
 await gameServer.listen(PORT);
 // Lịch tà hóa thú vương 20:00 / 22:00 giờ Việt Nam (BĐ5): báo toàn server trước 5 phút, phòng của bản đồ đó sinh thú vương.
-startSchedule(gamePresence);
+startSchedule(gamePresence, presenceBackend);
 console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT} (${presenceBackend.mode === "redis" ? "RedisPresence" : "RAM presence"})`);

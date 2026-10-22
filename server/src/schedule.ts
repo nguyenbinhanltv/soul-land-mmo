@@ -3,6 +3,7 @@
 // mọi phòng (mọi bản đồ) báo cho người chơi của mình. Chạy nhiều tiến trình thì presence phải là RedisPresence và chỉ một tiến
 // trình chạy lịch này (chưa làm: hiện chạy một tiến trình).
 import type { Presence } from "colyseus";
+import type { PresenceBackend } from "./presence.ts";
 import { MAPS, KING, kingNext, vnHHMM, vnAt, WORLD, worldNext, worldBossOn, worldMaps } from "../../shared/data.ts";
 
 /**
@@ -42,6 +43,7 @@ export interface BossEvent { mapId: string; king: string; phase: "warn" | "spawn
 /** Phát một sự kiện boss cho mọi phòng (lịch và hook test dùng chung). */
 export function publishBoss(presence: Presence, ev: BossEvent) { presence.publish(BOSS_TOPIC, ev); }
 
+const SCHEDULE_LEASE = "schedule:leader";
 /** Mọi bản đồ có thú vương (MAPS.king). */
 const kingMaps = () => Object.values(MAPS).filter((m) => m.king);
 
@@ -49,7 +51,7 @@ const kingMaps = () => Object.values(MAPS).filter((m) => m.king);
  * Bật lịch: mỗi giây xem khung giờ kế tiếp (kingNext); tới mốc trước KING.warnSecs giây thì phát `warn`, tới giờ thì phát `spawn` cho
  * mọi bản đồ có thú vương. Server bật giữa khung giờ thì không phát lại `spawn`: phòng tự sinh khi mở ra (kingActive trong onCreate).
  */
-export function startSchedule(presence: Presence) {
+export function startSchedule(presence: Presence, backend?: PresenceBackend) {
   // Mọi mốc trong hai hàm dưới tính trên đồng hồ lịch (bossNow); `slot` phát đi đổi về giờ thật (trừ bossOffset) để phòng so với Date.now().
   if (CLOCK_ANCHOR !== null) console.log(`⏰ GAME_TEST: lịch boss theo đồng hồ riêng (${bossClockMode()}, BOSS_CLOCK), không theo giờ thật.`);
   let warned = 0, spawned = 0;
@@ -82,8 +84,20 @@ export function startSchedule(presence: Presence) {
       console.log(`⏰ Boss thế giới xuất hiện (${vnHHMM(wWarned)} giờ Việt Nam).`);
     }
   };
-  const timer = setInterval(() => { tick(); worldTick(); }, 1000);
-  worldTick();
-  tick();
+  // Nhiều tiến trình: chỉ tiến trình giữ lease `schedule:leader` phát lịch (gia hạn mỗi nhịp; chết thì lease hết TTL và tiến trình khác nhận).
+  // Phòng đã chặn trùng theo `slot`, nên lúc đổi chủ phát lại cùng khung không sinh thêm.
+  let leader = !backend, busy = false;
+  const run = async () => {
+    if (busy) return; busy = true;
+    try {
+      if (backend) {
+        const id = `${backend.workerId}:schedule`;
+        leader = leader ? await backend.renewLease(SCHEDULE_LEASE, id) : await backend.acquireLease(SCHEDULE_LEASE, id);
+      }
+      if (leader) { tick(); worldTick(); }
+    } catch (e) { leader = false; console.error("Không giữ được lease lịch boss", e); } finally { busy = false; }
+  };
+  const timer = setInterval(() => { void run(); }, 1000);
+  void run();
   return () => clearInterval(timer);
 }

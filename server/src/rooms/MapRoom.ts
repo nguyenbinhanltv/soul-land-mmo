@@ -322,6 +322,17 @@ function applyEliteLock(key: string, values: Record<string, number>) {
   const m = new Map(Object.entries(values).map(([acc, until]) => [Number(acc), Number(until)]));
   if (m.size) eliteLocks.set(key, m); else eliteLocks.delete(key);
 }
+/** Nạp khóa thưởng tinh anh của bản đồ từ presence (phòng mới mở / tiến trình mới bật chưa nghe tin nào), gộp giữ mốc muộn hơn. */
+async function loadEliteLocks(mapId: string) {
+  const keys = BOSSES.map((b) => `${mapId}|${b.id}`);
+  const docs = await presenceBackend.getJsonMany<Record<string, number>>(keys.map((k) => `elite:${k}`));
+  docs.forEach((doc, i) => {
+    if (!doc) return;
+    const m = eliteLocks.get(keys[i]) ?? new Map<number, number>();
+    for (const [acc, until] of Object.entries(doc)) m.set(Number(acc), Math.max(m.get(Number(acc)) ?? 0, Number(until)));
+    if (m.size) eliteLocks.set(keys[i], m);
+  });
+}
 async function persistEliteLock(key: string, changes: Map<number, number>) {
   const owner = `${presenceBackend.workerId}:elite:${key}`;
   let merged: Record<string, number> = {};
@@ -527,7 +538,7 @@ export async function pickChannel(accountId: number, mapId: string): Promise<Cha
  * Colyseus giữ chỗ (tính vào maxClients, khóa kênh khi đủ) và joinOrCreate mở kênh mới ngay ở bước HTTP, trước khi client mở WebSocket
  * và onAuth của phòng chạy. Vì vậy `static onAuth` (chạy trước khi tìm / mở phòng và giữ chỗ) kiểm token và các điều kiện rẻ, rồi
  * trả SeatPass; `_reserveSeat` của phòng bỏ SeatPass đi để onAuth của phòng vẫn chạy lúc mở WebSocket (nạp DB sau waitOldSession).
- * `mapId`: bản đồ đã kiểm (null: sân đấu, không theo bản đồ); `key`: chỗ tạm trong seatPending, ghi ngay khi kiểm xong để các request
+ * `mapId`: bản đồ đã kiểm (null: sân đấu, không theo bản đồ); `key`: chỗ tạm trong bảng chỗ giữ (seats:<acc>, presence), ghi ngay khi kiểm xong để các request
  * chạy song song của cùng tài khoản không cùng lọt qua giới hạn; `_reserveSeat` đổi thành sessionId, không tới được thì tự hết hạn.
  */
 export interface SeatPass { seatFor: number; mapId: string | null; key: string; }
@@ -536,25 +547,33 @@ const SEAT_PENDING_MAX = 3;
 /** Chỗ tạm (SeatPass.key) sống tối đa bấy nhiêu mili giây nếu matchmake không tới được bước giữ chỗ (bằng seatReservationTime mặc định). */
 const SEAT_PASS_MS = 15_000;
 /**
- * Chỗ đã giữ chưa dùng của mỗi tài khoản (một tiến trình, LocalPresence): sessionId (hoặc chỗ tạm SeatPass.key) -> hết hạn (ms). onAuth
- * của phòng xóa khi dùng.
+ * Chỗ đã giữ chưa dùng của mỗi tài khoản, ở presence (`seats:<acc>`: sessionId hoặc chỗ tạm SeatPass.key -> hết hạn ms) để tiến trình nhận HTTP
+ * (static onAuth ghi chỗ tạm) và tiến trình giữ phòng (_reserveSeat / onAuth xóa) thấy cùng một bảng. onAuth của phòng xóa khi dùng.
  */
-const seatPending = new Map<number, Map<string, number>>();
-function seatsPending(accountId: number) {
-  const m = seatPending.get(accountId), now = Date.now();
-  if (!m) return 0;
-  for (const [sid, until] of m) if (until <= now) m.delete(sid);
-  if (!m.size) seatPending.delete(accountId);
-  return m.size;
+const seatsKey = (accountId: number) => `seats:${accountId}`;
+const seatsOwner = () => `${presenceBackend.workerId}:seats`;
+const SEAT_DOC_TTL_MS = 60_000;
+type SeatDoc = Record<string, number>;
+const liveSeats = (doc: SeatDoc | null, now: number) => Object.fromEntries(Object.entries(doc ?? {}).filter(([, until]) => until > now));
+async function seatsPending(accountId: number) {
+  return Object.keys(liveSeats(await presenceBackend.getJson<SeatDoc>(seatsKey(accountId)), Date.now())).length;
 }
-function seatAdd(accountId: number, key: string, until: number) {
-  let m = seatPending.get(accountId);
-  if (!m) { m = new Map(); seatPending.set(accountId, m); }
-  m.set(key, until);
+/** Ghi chỗ `key` (hết hạn `until`) nếu số chỗ đang giữ còn dưới `max` (không giới hạn khi bỏ `max`); kiểm và ghi trong một lần khóa. */
+async function seatAdd(accountId: number, key: string, until: number, max = Infinity) {
+  let added = false;
+  const ok = await presenceBackend.withLock<SeatDoc>(seatsKey(accountId), seatsOwner(), 5000, (old) => {
+    const doc = liveSeats(old, Date.now());
+    if (Object.keys(doc).length >= max) return doc;
+    doc[key] = until; added = true; return doc;
+  }, SEAT_DOC_TTL_MS);
+  if (!ok) throw new Error("Không khóa được bảng chỗ giữ của tài khoản.");
+  return added;
 }
-function seatUsed(accountId: number, sessionId: string) {
-  const m = seatPending.get(accountId);
-  if (m?.delete(sessionId) && !m.size) seatPending.delete(accountId);
+async function seatUsed(accountId: number, sessionId: string) {
+  const ok = await presenceBackend.withLock<SeatDoc>(seatsKey(accountId), seatsOwner(), 5000, (old) => {
+    const doc = liveSeats(old, Date.now()); delete doc[sessionId]; return doc;
+  }, SEAT_DOC_TTL_MS);
+  if (!ok) throw new Error("Không khóa được bảng chỗ giữ của tài khoản.");
 }
 /**
  * Bước kiểm chung của `static onAuth` (MapRoom, ArenaRoom): token hợp lệ và tài khoản chưa giữ quá SEAT_PENDING_MAX chỗ. Lỗi bất ngờ
@@ -565,12 +584,11 @@ export async function seatAccount(token: unknown, mapId: string | null, check?: 
   try {
     const acc = await store.accountFromToken(token);
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
-    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
+    if (await seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
     await check?.(acc.accountId);
-    // Kiểm lại và ghi chỗ tạm cùng một nhịp (không await ở giữa).
-    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
+    // Kiểm lại và ghi chỗ tạm trong một lần khóa: request song song của cùng tài khoản không cùng lọt qua giới hạn.
     const key = `pass:${randomUUID()}`;
-    seatAdd(acc.accountId, key, Date.now() + SEAT_PASS_MS);
+    if (!await seatAdd(acc.accountId, key, Date.now() + SEAT_PASS_MS, SEAT_PENDING_MAX)) throw full;
     return { seatFor: acc.accountId, mapId, key };
   } catch (e) {
     if (e instanceof ServerError) throw e;
@@ -596,11 +614,19 @@ function mapIdIn(v: unknown) {
 
 /**
  * Mua lại đồ bán nhầm (bước 9.8): BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (mới nhất trước), mức tiến trình theo tài khoản để
- * đi cổng / đổi kênh / vào sân đấu vẫn còn; chỉ ở RAM, xóa khi người chơi rời game (onLeave không qua đi cổng, forgetBuyback).
+ * đi cổng / đổi kênh / vào sân đấu vẫn còn; ghi cả vào presence (`buyback:<acc>`, TTL BUYBACK_TTL_MS, nạp lại lúc vào phòng) để sang phòng ở tiến trình khác vẫn còn; xóa khi người chơi rời game (onLeave không qua đi cổng, forgetBuyback).
  * `item`: bản sao món đã bán (số lượng đã bán, giữ chỉ số / cấp cường hóa), `price`: giá đã nhận mỗi món.
  */
 interface Buyback { key: string; item: Item; price: number; }
 const buybacks = new Map<number, Buyback[]>();
+const BUYBACK_TTL_MS = 6 * 3600 * 1000;
+const buybackKey = (accountId: number) => `buyback:${accountId}`;
+/** Ghi danh sách mua lại của tài khoản vào presence (rỗng thì xóa). */
+function saveBuyback(accountId: number) {
+  const list = buybacks.get(accountId);
+  const op = list?.length ? presenceBackend.putJson(buybackKey(accountId), list, BUYBACK_TTL_MS) : presenceBackend.delete(buybackKey(accountId));
+  void op.catch((e) => console.error(`Không lưu được danh sách mua lại của #${accountId}`, e));
+}
 
 // ---------- Vật phẩm (mục 5.7) ----------
 let itemClock = 0;
@@ -696,6 +722,8 @@ export class MapRoom extends Room<MapState> {
     for (const [id, d] of this.pdata) if (r.to.includes(d.accountId)) this.clients.getById(id)?.send("chat", r.msg);
   };
   partyT = 0;
+  /** Khung giờ đang lấy suất thú vương (đặt trước `await takeKingSeat`): tin `spawn` tới trùng không lấy thêm suất / sinh thêm thú vương. */
+  kingTaking = 0;
   channelT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
@@ -748,7 +776,7 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Giữ chỗ từ matchmake: bỏ SeatPass (authData của static onAuth) để onAuth của phòng chạy lúc mở WebSocket (Colyseus bỏ qua onAuth của
-   * phòng khi chỗ giữ có authData), và đổi chỗ tạm của SeatPass thành sessionId trong seatPending (giữ không được thì bỏ cả hai).
+   * phòng khi chỗ giữ có authData), và đổi chỗ tạm của SeatPass thành sessionId trong bảng chỗ giữ (giữ không được thì bỏ cả hai).
    */
   protected override async _reserveSeat(sessionId: string, joinOptions?: unknown, authData?: unknown, seconds = this.seatReservationTime,
     allowReconnection?: boolean, devModeReconnection?: boolean) {
@@ -757,18 +785,18 @@ export class MapRoom extends Room<MapState> {
       return super._reserveSeat(sessionId, joinOptions, authData, seconds, allowReconnection, devModeReconnection);
     }
     const acc = pass.seatFor;
-    seatUsed(acc, pass.key);
+    await seatUsed(acc, pass.key);
     if (!this.seatAllowed(pass as SeatPass)) return false;
-    seatAdd(acc, sessionId, Date.now() + seconds * 1000);
+    await seatAdd(acc, sessionId, Date.now() + seconds * 1000);
     const ok = await super._reserveSeat(sessionId, joinOptions, undefined, seconds, allowReconnection, devModeReconnection);
-    if (!ok) seatUsed(acc, sessionId);
+    if (!ok) await seatUsed(acc, sessionId);
     return ok;
   }
 
   async onAuth(client: Client, options: { token?: string }) {
     const acc = options?.token ? await store.accountFromToken(options.token) : null;
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
-    seatUsed(acc.accountId, client.sessionId);
+    await seatUsed(acc.accountId, client.sessionId);
     // Kiểm tra trước khi đá phiên cũ: lần vào bị từ chối không được đá phiên đang chơi. Chờ xong thì đọc và kiểm tra lại
     // (phiên cũ có thể vừa đi cổng xong, đổi map_id).
     await this.checkJoin(acc.accountId);
@@ -838,6 +866,7 @@ export class MapRoom extends Room<MapState> {
   /** Nạp bản đồ, sinh hồn thú / tinh anh / thú vương, bật vòng lặp, nghe presence và đăng ký message (ArenaRoom dùng lại, 7.2). */
   async setup(mapId: string) {
     await loadKingState(mapId);
+    await loadEliteLocks(mapId);
     this.map = loadMap(mapId);
     this.state.mapId = mapId;
     const file = mapFile(mapId); if (file !== mapId) this.state.mapFile = file; // 11.3 / 11.5: bản dựng bằng tools/maps (mặc định, trừ MAP_V1)
@@ -965,6 +994,8 @@ export class MapRoom extends Room<MapState> {
     void presenceBackend.acquireLease(accountLeaseKey(auth.accountId), leaseOwner, PRESENCE_TTL_MS).then((ok) => {
       if (!ok) client.leave(4001);
     }).catch((e) => { console.error(`Không ghi được phiên giữ tài khoản #${auth.accountId}`, e); client.leave(1011); });
+    void presenceBackend.getJson<Buyback[]>(buybackKey(auth.accountId)).then((list) => { if (list?.length && !buybacks.has(auth.accountId)) buybacks.set(auth.accountId, list); })
+      .catch((e) => console.error(`Không đọc được danh sách mua lại của #${auth.accountId}`, e));
     void presenceBackend.getJson<number>(fusionKey(auth.accountId)).then((t) => { if (t && t > Date.now()) fusionReady.set(auth.accountId, t); })
       .catch((e) => console.error(`Không đọc được hồi chiêu dung hợp của #${auth.accountId}`, e));
     void presenceBackend.getJson<number>(worldChatKey(auth.accountId)).then((t) => { if (t) worldMark(auth.accountId, t); })
@@ -1075,7 +1106,8 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.unsubscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
     this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
-    if (this.state.channel) await releaseChannel(this.state.mapId, this.roomId, this.state.channel);
+    // Redis lỗi không được bỏ qua lần ghi DB cuối của người còn trong phòng: lỗi presence chỉ ghi log.
+    if (this.state.channel) await releaseChannel(this.state.mapId, this.roomId, this.state.channel).catch((e) => console.error("Không trả kênh trong presence", e));
     for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
     const ks = this.king?.seat;
@@ -1083,7 +1115,7 @@ export class MapRoom extends Room<MapState> {
       const kd = this.king?.bid ? this.bdata.get(this.king.bid)?.elite?.king : undefined;
       if (ks.state === "alive" && kd) ks.leaveAt = Date.now() + kd.life * 1000;
       ks.owner = null;
-      await persistKingSeat(this.state.mapId, this.king!.slot, ks, this.king!.claimed);
+      await persistKingSeat(this.state.mapId, this.king!.slot, ks, this.king!.claimed).catch((e) => console.error("Không trả suất thú vương trong presence", e));
     }
     await Promise.all([...this.pdata.entries()].map(async ([id, d]) => {
       await this.chain(d, () => (d.travelled ? undefined : this.write(id, true)));
@@ -2746,7 +2778,7 @@ export class MapRoom extends Room<MapState> {
     // Thương nhân giữ bản sao đúng món vừa bán (chỉ số, cấp cường hóa, số lượng) để mua lại (9.8); mới nhất trước, tối đa BUYBACK_MAX.
     const list = buybacks.get(d.accountId) ?? [];
     list.unshift({ key: randomUUID(), item: { ...it, qty, vohonId: null, stats: it.stats == null ? null : structuredClone(it.stats) }, price });
-    buybacks.set(d.accountId, list.slice(0, BUYBACK_MAX));
+    buybacks.set(d.accountId, list.slice(0, BUYBACK_MAX)); saveBuyback(d.accountId);
     this.takeItem(d, it, qty);
     this.addCoin(d, gain);
     this.log(id, `Bán ${label}: +${formatHonTe(gain)} (còn ${formatHonTe(d.honTe)}).`, "#f2c84b");
@@ -2775,7 +2807,7 @@ export class MapRoom extends Room<MapState> {
     const lock = d.sellCfg.on && autoSellable({ ...e.item, locked: false, vohon: null }, d.sellCfg);
     if (def.stack > 1 ? this.bagRoom(d, def.id, lock) < e.item.qty : bagUsed(d.bag) >= d.bagSlots)
       return warn(`Túi đồ không đủ chỗ để mua lại ${label} (${d.bagSlots} ô): bỏ hoặc bán bớt đồ trước.`);
-    buybacks.set(d.accountId, list.filter((x) => x !== e)); d.sold = d.sold.filter((x) => x !== e);
+    buybacks.set(d.accountId, list.filter((x) => x !== e)); saveBuyback(d.accountId); d.sold = d.sold.filter((x) => x !== e);
     d.honTe -= cost; d.bagDirty = true;
     if (def.stack > 1) this.addItem(d, def.id, e.item.qty, lock);
     else {
@@ -2790,7 +2822,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Xóa danh sách mua lại của tài khoản khi rời game (9.8). ArenaRoom không xóa: rời sân là về bản đồ cũ. */
-  forgetBuyback(accountId: number) { buybacks.delete(accountId); }
+  forgetBuyback(accountId: number) { buybacks.delete(accountId); saveBuyback(accountId); }
 
   // ---------- Tự bán từ xa (#216, mục 5.7 "Tự bán") ----------
   /** Khoá / mở khoá một ô trong túi của chính người gửi: món khoá không bị bán (tay hay tự bán), bỏ, hay làm nguyên liệu. */
@@ -5787,9 +5819,13 @@ export class MapRoom extends Room<MapState> {
     const lair = this.map.lair, mid = this.state.mapId, years = kingYears(mid), now = Date.now();
     if (!lair || !years || life <= 0 || this.king?.slot === slot) return;
     if (this.king?.bid && this.state.beasts.has(this.king.bid)) return;
+    if (this.kingTaking === slot) return;
     // Boss của khung: thú vương theo hang; boss thế giới (BĐ6e) theo lịch luân phiên (hoặc hook test), giữ theo khung ở kingSeats.
     const world = MAPS[mid].world ?? [], pick = world.length ? (want && world.includes(want) ? want : worldBossOn(mid, slot + bossOffset(now))!) : BOSSES[lair.boss].id;
-    const { seat, claimed, boss } = await takeKingSeat(mid, slot, now + life * 1000, this.roomId, pick);
+    this.kingTaking = slot;
+    let taken: Awaited<ReturnType<typeof takeKingSeat>>;
+    try { taken = await takeKingSeat(mid, slot, now + life * 1000, this.roomId, pick); } catch (e) { this.kingTaking = 0; throw e; }
+    const { seat, claimed, boss } = taken;
     this.king = { slot, bid: null, seat, claimed };
     if (seat.state === "alive" && seat.leaveAt <= now) seat.state = "gone";
     if (seat.state !== "alive") return;
