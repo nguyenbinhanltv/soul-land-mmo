@@ -55,6 +55,8 @@
 // Bản đồ lớn (11.3 / 11.5, bigMapTest; BOT_ONLY=bigmap): kiểm mọi bản ×8 dựng bằng tools/maps (vùng, mật độ, cổng hai chiều, truyền
 // tống trận, vị trí lưu ở phiên bản bản đồ khác thì vào ở trại cổng); mọi bài khác đọc file Tiled đang dùng (mapUrl, theo MAP_V1 như
 // server) nên chạy được trên bản ×8 lẫn bản cũ.
+// Cực Hàn của Huyền Minh Băng Giao (#163, coldTest; BOT_ONLY=cold, nhóm 1 của BOT_PART): tầng Hàn tích theo nhịp, đủ tầng thì Đóng băng,
+// Hỏa Đàn / thanh tẩy / rời hang / hạ thú vương thì mất tầng.
 // Vùng lưu lại trên mặt đất (#161, groundTest; BOT_ONLY=ground, nhóm 3 của BOT_PART): vũng / sương độc gây Trúng độc theo nhịp khi đứng
 // trong vùng, ra khỏi vùng / vào vùng an toàn thì thôi, người vào tầm sau vẫn thấy vùng, vùng mất khi hết giờ / hồn thú gây ra bị hạ.
 // Boss thế giới ở Lõi Tinh Đấu (BĐ6e, #118, loiTinhDauTest; BOT_ONLY=world): chạy sau phần tạo bot C (vài phút đầu vẫn chạy) rồi
@@ -109,6 +111,8 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
 import { campMerchantSpot } from "../../shared/camp.ts";
+import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
+import { PLAYER_STATUS } from "../../shared/data.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
 import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
@@ -268,6 +272,7 @@ if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -3350,6 +3355,7 @@ else {
       `hạ rồi để phòng hủy, mở lại trong cùng khung giờ: không sinh thú vương mới (suất "${ki.seat}")`);
     await K.room.leave();
   }
+  if(inPart(1)) await coldTest(); // #163: Cực Hàn của Huyền Minh Băng Giao, bài độc lập (tự tạo bot)
   // ---------- 3.2: hạ hồn thú -> hồn hoàn mang đúng số năm -> nhặt vào túi; ưu tiên người hạ 15 giây; túi đầy; hấp thụ từ túi ----------
   if(inPart(1)){
     const zs=tiled.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone"), hz=zs.find(z=>/Bãi tập/.test(z.name))??zs[0];
@@ -6199,7 +6205,7 @@ async function cucBacTest(){
   const order=TB.map(([,yr])=>tierTop(yr)), nTier=new Set([...zn.values()].map(z=>z.years)).size;
   ok(!zbad.length&&nTier===4&&order.every((y,i)=>!i||y<order[i-1]),`4 tầng đúng bảng 5.3, từ nam lên bắc: ${TB.map(([n,yr])=>`${n} ${yr}`).join(" → ")}`+(zbad.length?`: ${zbad.join("; ")}`:""));
   const kd=BOSSES[bossIndex(M.king)], lair=objs.find(o=>o.type==="boss"), deep={name:TB[3][0],rects:[...zn.values()].filter(z=>z.years===TB[3][1]).flatMap(z=>z.rects)};
-  ok(kd?.rank===2&&kd.hp===8&&kd.skills.length===2&&kd.phase2?.name==="Cực Hàn"&&kd.phase2.skills.length===2&&lair&&pr(lair,"boss")===M.king&&inZone(deep,lair.x,lair.y)&&inZone(deep,lair.x+lair.width,lair.y+lair.height)
+  ok(kd?.rank===2&&kd.hp===8&&kd.skills.length===2&&kd.phase2?.name==="Cực Hàn"&&kd.phase2.skills.length===1&&kd.phase2.cold&&lair&&pr(lair,"boss")===M.king&&inZone(deep,lair.x,lair.y)&&inZone(deep,lair.x+lair.width,lair.y+lair.height)
     &&itemDef(chestCode(M.king))?.kind==="ruong",`thú vương ${kd?.name} x${kd?.hp}: ${kd?.skills.map(s=>s.name).join(", ")} + GĐ2 ${kd?.phase2?.name} (${kd?.phase2?.skills.map(s=>s.name).join(", ")}), hang trong ${deep?.name}`);
   // Rơi đặc trưng: mảnh của Cực Bắc vào rương các bản đồ khác không còn là "bản đồ chưa mở"; hồn hạch phần lớn thuộc bộ của bản đồ.
   const pool=kingShardPool(CBM), poolNV=kingShardPool("tinh_dau_ngoai_vi").map(x=>x.vohon);
@@ -7971,4 +7977,92 @@ async function groundTest(){
   await test(G,"slay",{bid:c?.bid}); g=await ground();
   ok(c&&had&&!g.grounds.some(x=>x.src===c.bid)&&await waitFor(()=>G.room.state.grounds.size===0,1000),`${c?.name}: hạ Thất Tinh Độc Thiềm thì vũng của nó mất ngay`);
   } finally { for(const b of [G,V]) await b.room.leave().catch(()=>{}); }
+}
+
+/**
+ * #163: Cực Hàn (giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, Cực Bắc Chi Địa; ColdDef, STATUS.chill). F (Xúc Xích + Lam Ngân Thảo)
+ * đứng trong hang, xa Hỏa Đàn; thú vương bị Choáng bằng hook để không đánh. Giai đoạn 1 không tích. Giai đoạn 2: đủ nhịp thật thì có
+ * 1 tầng Hàn; hook `cold {acc}` rút ngắn nhịp tới đủ tầng thì Đóng băng (tầng về 0, ngừng tích khi đang Đóng băng). Đứng cạnh Hỏa Đàn
+ * (chỗ server tính khớp hàm dùng chung của client) thì xả hết tầng và không tích; tiên cơ Xúc Xích thanh tẩy cũng xả; rời hang thì mất
+ * tầng; hạ thú vương thì mất tầng.
+ */
+async function coldTest(){
+  console.log("[#163] Cực Hàn: tầng Hàn, Đóng băng, Hỏa Đàn, thanh tẩy");
+  const CB="cuc_bac_chi_dia", KB=MAPS[CB].king, KD=BOSSES[bossIndex(KB)], CD=KD?.phase2?.cold, CH=STATUS.chill, FZ=CH?.burst;
+  ok(KB==="huyen_minh_bang_giao"&&CD&&CH?.max===4&&FZ?.s==="freeze"&&FZ.secs===3&&PLAYER_STATUS.includes("chill"),
+    `${KD?.name} – ${KD?.phase2?.name}: mỗi ${CD?.every} giây một ${CH?.name}, đủ ${CH?.max} tầng thì ${STATUS[FZ?.s]?.name} ${FZ?.secs} giây (thiết kế gốc 4 tầng / 3 giây), Hỏa Đàn bán kính ${CD?.fire.r}`);
+  if(!CD) return;
+  const spot=hoaDanSpot(JSON.parse(readFileSync(mapUrl(CB),"utf8")),CB);
+  const F=await bot("Cực Hàn F","xuc_xich",{sex:1,hair:1,hairCol:2,outfitCol:1});
+  const mo=()=>F.room.state.players?.get(F.room.sessionId), kingB=()=>[...F.room.state.beasts.values()].find(b=>b.rank===2);
+  const has=s=>((mo()?.st??0)&statusBit(s))!==0, han=()=>mo()?.han??0, sq=r=>F.squad?.list.find(s=>s.rowId===r);
+  await waitFor(()=>F.owned&&mo(),3000);
+  try{
+    const xr=F.owned.list.find(v=>v.vohon==="xuc_xich")?.rowId, lr=F.owned.list.find(v=>v.vohon==="lam_ngan_thao")?.rowId;
+    for(const r of [xr,lr]) await test(F,"set",{rowId:r,level:50,xp:0,rings:[423,764,1760,5000,12000]});
+    F.travel=null; await test(F,"warp",{mapId:CB,x:0,y:0}); await waitFor(()=>F.travel,3000); const tv=F.travel;
+    await F.room.leave(); await sleep(300); F.mapId=tv.mapId; await enter(F,tv.roomId??undefined); await waitFor(()=>mo()&&F.owned&&F.bag&&F.squad,3000);
+    ok(F.room.state.mapId===CB,"F tới Cực Bắc Chi Địa");
+    // Xúc Xích ngồi ghế dự bị để lát nữa đổi tay vào tung tiên cơ thanh tẩy.
+    await test(F,"rest",{s:TEAM_COMBAT_SECS+1}); await sendTeam(F,[lr,xr,0,0]);
+    if(F.owned.active!==lr){ await waitFor(()=>mo().swCd===0,3500); F.room.send("switch",{slot:0}); await waitFor(()=>F.owned.active===lr,2000); }
+    ok(F.owned.active===lr&&F.owned.team.includes(xr),"đội: Lam Ngân Thảo ra trận, Xúc Xích dự bị");
+    await test(F,"view",{all:true}); await test(F,"clear",{all:true,keep:1});
+    let c=await test(F,"cold");
+    await test(F,"king",{kop:"spawn"}); ok(await waitFor(()=>kingB(),2000),"thú vương xuất hiện");
+    let ki=await test(F,"king"); const LR=ki.lair, kb=ki.bid, inL=(x,y)=>x>=LR.x&&x<LR.x+LR.w&&y>=LR.y&&y<LR.y+LR.h;
+    ok(spot&&c.fire&&c.fire.x===spot.x&&c.fire.y===spot.y&&inL(spot.x,spot.y),
+      `Hỏa Đàn (${c.fire?.x},${c.fire?.y}) trong hang (${LR.x},${LR.y} ${LR.w}×${LR.h}): server và hàm dùng chung (client) cùng chỗ`);
+    const hold=()=>test(F,"status",{s:"stun",secs:60,bid:kb}); // thú vương đứng Choáng, không đánh F
+    const far=[[LR.x+LR.w/2,LR.y+LR.h*0.3],[LR.x+LR.w*0.3,LR.y+LR.h/2],[LR.x+LR.w*0.7,LR.y+LR.h/2],[LR.x+LR.w*0.25,LR.y+LR.h*0.35]].map(([x,y])=>[Math.round(x),Math.round(y)]);
+    const goFar=async()=>{ for(const [x,y] of far){ if(Math.hypot(x-spot.x,y-spot.y)<=CD.fire.r+16) continue; await test(F,"goto",{x,y}); if(Math.hypot(mo().x-x,mo().y-y)<1) return true; } return false; };
+    await hold(); ok(await goFar()&&inL(mo().x,mo().y),`F đứng trong hang, xa Hỏa Đàn (${mo().x.toFixed(0)},${mo().y.toFixed(0)}; cách ${Math.hypot(mo().x-spot.x,mo().y-spot.y).toFixed(0)})`);
+    // Giai đoạn 1: là người tham gia trong hang nhưng chưa có Cực Hàn.
+    await test(F,"kdmg",{v:1}); await sleep(300); c=await test(F,"cold");
+    ok(!c.on&&c.acc===null&&!has("chill"),"giai đoạn 1: không tích tầng Hàn");
+    ki=await test(F,"king"); await test(F,"kdmg",{v:Math.ceil(ki.hp-ki.maxHp*KING.phaseHp)+1});
+    ok(await waitFor(()=>kingB()?.phase===2,2000),`giai đoạn 2 ${KD.phase2.name}`);
+    await sleep(KING.roarSecs*1000+150); await hold(); // tiếng gầm bỏ khống chế: hết gầm thì Choáng lại
+    c=await test(F,"cold"); ok(c.on&&c.acc!==null,"Cực Hàn đang chạy, F (người tham gia trong hang) đang tích");
+    // Nhịp thật: đứng xa Hỏa Đàn một nhịp thì có 1 tầng (bản vá: bit `chill` và số tầng `han`).
+    const t0=Date.now();
+    ok(await waitFor(()=>has("chill")&&han()===1,(CD.every+1.5)*1000),`đứng xa Hỏa Đàn: sau ${((Date.now()-t0)/1000).toFixed(1)} giây có ${han()} tầng Hàn (nhịp ${CD.every} giây)`);
+    const step=async n=>{ await test(F,"cold",{acc:CD.every-0.05}); return waitFor(()=>han()===n,1500); };
+    const st2=[]; for(let n=2;n<CH.max;n++) st2.push(await step(n)?n:`✗${han()}`);
+    ok(st2.every(x=>typeof x==="number"),`tích tiếp: ${st2.join(" → ")} tầng`);
+    const l0=F.logs.length; await test(F,"cold",{acc:CD.every-0.05});
+    ok(await waitFor(()=>has(FZ.s)&&!has("chill")&&han()===0,1500)&&await waitFor(()=>F.logs.slice(l0).some(t=>/tầng Hàn/.test(t)),800),
+      `đủ ${CH.max} tầng: ${STATUS[FZ.s].name}, tầng về 0 ("${F.logs.slice(l0).find(t=>/tầng Hàn/.test(t))}")`);
+    c=await test(F,"cold"); ok(c.st[FZ.s]&&c.st[FZ.s].t<=FZ.secs&&c.st[FZ.s].t>FZ.secs-1,`${STATUS[FZ.s].name} còn ${c.st[FZ.s]?.t.toFixed(2)} giây (đặt ${FZ.secs})`);
+    await test(F,"cold",{acc:CD.every-0.05}); await sleep(400);
+    ok(has(FZ.s)&&!has("chill")&&han()===0,`đang ${STATUS[FZ.s].name}: không tích thêm tầng`);
+    ok(await waitFor(()=>!has(FZ.s),(FZ.secs+1)*1000),`hết ${STATUS[FZ.s].name}`);
+    // Hỏa Đàn: đứng cạnh (trong bán kính, phía tâm hang) thì xả hết tầng, đứng đó không tích.
+    await hold(); await step(1); await step(2);
+    const nx=spot.x, ny=spot.y-(CD.fire.r-6); F.logs.length=0; await test(F,"goto",{x:nx,y:ny});
+    ok(Math.hypot(mo().x-nx,mo().y-ny)<1&&await waitFor(()=>!has("chill")&&han()===0,1000)&&await waitFor(()=>F.logs.some(t=>/Hỏa Đàn/.test(t)),800),
+      `2 tầng, đứng cạnh Hỏa Đàn (cách ${Math.hypot(mo().x-spot.x,mo().y-spot.y).toFixed(0)} ≤ ${CD.fire.r}): xả hết tầng ("${F.logs.find(t=>/Hỏa Đàn/.test(t))}")`);
+    await test(F,"cold",{acc:CD.every-0.05}); await sleep(500); c=await test(F,"cold");
+    ok(!has("chill")&&han()===0&&c.acc===0,"đứng cạnh Hỏa Đàn: không tích tầng");
+    // Thanh tẩy: đổi tay vào Xúc Xích đầy năng lượng, tiên cơ giải hết tầng Hàn.
+    await goFar(); await step(1); await step(2);
+    await waitFor(()=>mo().swCd===0,3500); await test(F,"energy",{v:TIEN_CO_MAX}); await waitFor(()=>sq(xr)?.en===TIEN_CO_MAX,1500);
+    await test(F,"cold",{acc:CD.every-1.5}); // sắp tới tầng kế tiếp: thanh tẩy xả cả số giây đã tích như Hỏa Đàn
+    const h0=han(); F.room.send("switch",{slot:F.owned.team.indexOf(xr)});
+    ok(h0===2&&await waitFor(()=>F.owned.active===xr&&!has("chill")&&han()===0,2000),`${h0} tầng, tiên cơ ${TIEN_CO_RIENG.xuc_xich.name} thanh tẩy: tầng Hàn về 0`);
+    c=await test(F,"cold"); ok(c.acc!==null&&c.acc<1,`thanh tẩy: tích lại từ đầu (đã tích ${c.acc?.toFixed(2)} giây, trước đó ${CD.every-1.5})`);
+    ok(await step(1),"sau thanh tẩy vẫn ở trong hang thì tích lại từ đầu");
+    // Rời hang thì mất tầng.
+    const ox=Math.round(LR.x+LR.w/2); let out=false;
+    for(const y of [LR.y+LR.h+30,LR.y+LR.h+60,LR.y-30]){ await test(F,"goto",{x:ox,y:Math.round(y)}); if(!inL(mo().x,mo().y)&&Math.abs(mo().y-y)<1){ out=true; break; } }
+    ok(out&&await waitFor(()=>!has("chill")&&han()===0,1000),`ra khỏi hang (${mo().x.toFixed(0)},${mo().y.toFixed(0)}): mất tầng Hàn`);
+    // Hạ thú vương thì mất tầng.
+    await hold(); await goFar(); ok(await step(1),"vào lại hang, tích 1 tầng");
+    await test(F,"kdmg",{v:1e8});
+    ok(await waitFor(()=>!kingB()&&!has("chill")&&han()===0,2500),"hạ thú vương: mất tầng Hàn");
+    c=await test(F,"cold"); ok(!c.on&&c.acc===null,"không còn Cực Hàn");
+  } finally {
+    if(kingB()) await test(F,"kdmg",{v:1e8}).catch(()=>{}); // bài lỗi giữa chừng: không để thú vương sống sang cucBacTest
+    await F.room.leave().catch(()=>{});
+  }
 }
