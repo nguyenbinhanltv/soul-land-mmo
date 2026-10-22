@@ -26,10 +26,16 @@ export interface FriendEntry { name: string; mutual: boolean; map?: string; ch?:
 
 const social = new Map<number, Social>();
 
-/** Phòng nhận người chơi (onJoin): giữ danh sách vừa nạp từ DB (onAuth, sau lần ghi cuối của phiên cũ). */
+/**
+ * Phòng nhận người chơi (onJoin): giữ danh sách vừa nạp từ DB (onAuth, sau lần ghi cuối của phiên cũ). `fans` của DB có thể thiếu /
+ * thừa lần thêm / xóa của người khác chưa ghi xong hoặc xảy ra lúc người này đang chuyển phòng: với bạn đang trong game thì lấy theo
+ * danh sách trong RAM của họ (đúng nhất), để khi họ rời game bảng vẫn biết hai bên đã thêm nhau chưa.
+ */
 export function enter(acc: number, sid: string, name: string, row: SocialRow) {
-  social.set(acc, { sid, name, friends: new Map(row.friends.map((p) => [p.id, p.name])), blocks: new Map(row.blocks.map((p) => [p.id, p.name])),
-    fans: new Set(row.fans) });
+  const s: Social = { sid, name, friends: new Map(row.friends.map((p) => [p.id, p.name])), blocks: new Map(row.blocks.map((p) => [p.id, p.name])),
+    fans: new Set(row.fans) };
+  for (const f of s.friends.keys()) { const o = social.get(f); if (o) { if (o.friends.has(acc)) s.fans.add(f); else s.fans.delete(f); } }
+  social.set(acc, s);
 }
 
 /** Phiên `sid` rời phòng: bỏ danh sách khỏi RAM (phòng mới nạp lại từ DB). */
@@ -55,9 +61,8 @@ export function mutualOnline(acc: number) { return [...(social.get(acc)?.friends
 
 /** Hồn sư tên `name` có trong danh sách bạn bè hoặc chặn của `acc` (tra không cần DB). */
 export function known(acc: number, name: string): SocialPeer | null {
-  const s = social.get(acc), key = nameKey(name);
-  for (const m of [s?.friends, s?.blocks]) for (const [id, n] of m ?? []) if (nameKey(n) === key) return { id, name: n };
-  return null;
+  const s = social.get(acc);
+  return s ? find(s.friends, name) ?? find(s.blocks, name) : null;
 }
 
 /** Tìm `name` trong `m` (theo nameKey). */

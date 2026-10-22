@@ -134,6 +134,13 @@ function takeInvite(acc: number, fromName: string, now: number) {
   return exp !== undefined && exp > now ? from! : null;
 }
 
+/** Bỏ lời mời của `from` gửi `acc` (chặn, #195); trả true nếu có lời mời để bỏ. */
+export function dropInvite(acc: number, from: number) {
+  const m = invites.get(acc); if (!m?.delete(from)) return false;
+  if (!m.size) invites.delete(acc);
+  return true;
+}
+
 /** Tài khoản người mời của lời mời còn hạn, chỉ đọc để MapRoom kiểm tra khóa hàng chờ trước khi nhận lời. */
 export function inviteFrom(acc: number, fromName: string, now: number) {
   const from = byName.get(nameKey(fromName)), exp = from !== undefined ? invites.get(acc)?.get(from) : undefined;

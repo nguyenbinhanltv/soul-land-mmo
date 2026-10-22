@@ -8807,7 +8807,6 @@ async function friendTest(){
     await waitFor(()=>C.room.state.mapId==="nac_dinh_thanh",2000);
     ok(A.room.roomId===B.room.roomId&&B.room.roomId===D.room.roomId&&C.room.state.mapId==="nac_dinh_thanh",`A, B, D cùng phòng ${A.room.state.mapId}; C ở ${C.room.state.mapId}`);
     for(const b of all){ await T(b,"friend",{fop:"rlreset"}); await T(b,"chat",{cop:"rlreset"}); }
-    ok(FRIEND_MAX===50&&BLOCK_MAX===100,`FRIEND_MAX ${FRIEND_MAX}, BLOCK_MAX ${BLOCK_MAX} (shared/data.ts)`);
     const l0=await list(A); ok(l0&&l0.list.length===0&&l0.blocks.length===0,"bảng bạn bè ban đầu trống");
 
     // ---- Thêm một chiều: A thấy B nhưng chưa thấy online / vị trí; B nhận lời "đã thêm bạn" kèm Thêm lại ----
@@ -8836,7 +8835,11 @@ async function friendTest(){
     ok(entry(A,C)?.mutual===true&&entry(A,C).map===undefined,`C rời game: A thấy C ngoại tuyến ${JSON.stringify(entry(A,C))}`);
 
     // ---- Chặn: B chặn A; A tự bị bỏ khỏi danh sách bạn bè của B, A không còn thấy B online ----
-    { const n=A.friendsN; ok(/Đã chặn/.test(await F(B,"block",A.name)),"B chặn A"); await waitFor(()=>A.friendsN>n,2000); }
+    { const n=B.partyMsgs; A.room.send("party",{op:"invite",name:B.name}); await waitFor(()=>B.partyMsgs>n&&B.party?.invites?.some(i=>i.name===A.name),2000); }
+    ok(B.party?.invites?.some(i=>i.name===A.name),"A mời B vào tổ đội (trước khi bị chặn)");
+    { const n=A.friendsN, pn=B.partyMsgs; ok(/Đã chặn/.test(await F(B,"block",A.name)),"B chặn A"); await waitFor(()=>A.friendsN>n,2000);
+      await waitFor(()=>B.partyMsgs>pn,2000); ok(!B.party?.invites?.some(i=>i.name===A.name),"chặn thì lời mời tổ đội đang chờ của A cũng bị bỏ"); }
+    await T(A,"party",{pop:"rlreset"});
     ok(!entry(B,A)&&B.friends.blocks.includes(A.name),`chặn thì tự xóa A khỏi bạn bè của B, A vào danh sách chặn: ${JSON.stringify(B.friends)}`);
     ok(entry(A,B)?.mutual===false&&entry(A,B).map===undefined,"A vẫn có B (một chiều) nhưng không còn thấy B online");
     ok(/đã ở trong danh sách chặn/.test(await F(B,"block",A.name)),"chặn lại người đã chặn: từ chối");

@@ -1005,7 +1005,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(friends.FRIEND_TOPIC, this.friendSub);
     if (this.state.channel) channelsInUse.get(this.state.mapId)?.delete(this.state.channel);
     for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
-    for (const [id, d] of this.pdata) friends.leave(d.accountId, id);
+    for (const [id, d] of this.pdata) { const mates = friends.mutualOnline(d.accountId); friends.leave(d.accountId, id); this.friendPublish([{ to: mates }]); }
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
     const ks = this.king?.seat;
     if (ks?.owner === this.roomId) {
@@ -6281,7 +6281,7 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     const warn = (text: string) => this.log(id, text, "#ffb35c");
-    if (op === "list") return this.sendFriends(id);
+    if (op === "list") return this.ask(id, "friends", () => this.sendFriends(id)); // theo nhịp ASK_CD như các tin xin lại dữ liệu riêng
     if (op !== "add" && op !== "remove" && op !== "block" && op !== "unblock") return;
     const name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40), acc = d.accountId;
     if (!name) return warn("Gõ tên hồn sư.");
@@ -6301,6 +6301,7 @@ export class MapRoom extends Room<MapState> {
     }
     if ("error" in r) return warn(r.error);
     const w = r.write;
+    if (w.block && party.dropInvite(acc, w.other)) this.sendParty(id, true); // lời mời tổ đội có từ trước khi chặn cũng bỏ
     this.chain(d, () => (w.block !== undefined ? store.setBlock(acc, w.other, w.block) : store.setFriend(acc, w.other, !!w.friend)).catch((e) => {
       this.log(id, "Không lưu được danh sách bạn bè / chặn: thao tác vừa rồi có thể mất khi vào lại game.", "#ff6b6b");
       throw e; // chuỗi lưu ghi log và giữ chuỗi
