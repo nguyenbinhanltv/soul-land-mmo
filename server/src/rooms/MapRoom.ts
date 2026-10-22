@@ -3993,6 +3993,7 @@ export class MapRoom extends Room<MapState> {
   fusionFire(a: string, b: string, fi: number) {
     const pa = this.state.players.get(a)!, da = this.pdata.get(a)!, pb = this.state.players.get(b)!, db = this.pdata.get(b)!, def = FUSIONS[fi];
     da.fus = null; db.fus = null;
+    const now = Date.now(); for (const [k, t] of fusionReady) if (t <= now) fusionReady.delete(k); // dọn hồi chiêu đã hết của mọi tài khoản
     for (const [q, p, d] of [[a, pa, da], [b, pb, db]] as const) {
       d.mpF -= FUSION.cost; p.mp = Math.floor(d.mpF); fusionReady.set(d.accountId, Date.now() + FUSION.cd * 1000); this.unhide(p, d);
       this.clients.getById(q)?.send("fusion", { k: "done", i: fi, cd: FUSION.cd });
@@ -4135,8 +4136,9 @@ export class MapRoom extends Room<MapState> {
     dmg = Math.max(1, Math.round(dmg));
     // Tinh anh (BĐ4): người gây sát thương thành người tham gia trước (máu tối đa tăng theo số người, giữ tỉ lệ), rồi mới trừ máu.
     // Dung hợp kỹ (#192): đồng đội dung hợp còn trong phòng cũng thành người tham gia và nhận nửa đóng góp.
-    const md = o.pair && o.pair !== by && this.state.players.has(o.pair) ? this.pdata.get(o.pair) : undefined;
-    const mate = md && !md.travelling ? o.pair : undefined; // đồng đội đang đi cổng / đã rời: không nhận phần (như eliteJoin)
+    // Đồng đội đã rời, đang đi cổng, đã gục hay đứng trong vùng an toàn (độc / lửa của chiêu còn cháy) thì không nhận phần, A nhận cả.
+    const mp = o.pair && o.pair !== by ? this.state.players.get(o.pair) : undefined, md = mp && this.pdata.get(o.pair!);
+    const mate = mp && md && !md.travelling && !mp.dead && !this.map.inSafe(mp.x, mp.y) ? o.pair : undefined;
     if (bd.elite) { if (mate) this.joinFight(bd.elite, mate); this.eliteJoin(b, bd, by); } // eliteJoin tính lại máu theo số người
     // Khiên Bá Thể (BĐ6e) đỡ trước; võ hồn hệ của khiên phá nhanh gấp `mult`. Phần đánh vào khiên vẫn tính đóng góp.
     let hpDmg = dmg, credit = Math.min(dmg, b.hp);
