@@ -616,9 +616,12 @@ export class AutoHunter {
   move(p: PlayerState, d: PData, to: Pt, dt: number, last: boolean, wary = false) {
     const room = this.room, dx = to.x - p.x, dy = to.y - p.y, dd = Math.hypot(dx, dy);
     if (dd < 1) return room.applyInput(d, 0, 0, false);
-    const look = Math.max(10, p.spd * 0.3);
-    if (wary && this.inDanger(p.x + (dx / dd) * look, p.y + (dy / dd) * look)) return room.applyInput(d, 0, 0, false);
     const k = last ? Math.max(MOVE_DEAD * 1.5, Math.min(1, dd / Math.max(1, 2 * p.spd * dt))) : 1;
+    // Xét cả điểm nhìn trước lẫn đúng chỗ đứng sau bước này (k × tốc độ × dt, như bước di chuyển của phòng): đi xiên sát mép vùng tròn
+    // thì điểm nhìn trước ở ngoài mà bước kế tiếp đã lấn vào dây cung (#328).
+    const look = Math.max(10, p.spd * 0.3), step = Math.min(dd, k * p.spd * dt);
+    if (wary && (this.inDanger(p.x + (dx / dd) * look, p.y + (dy / dd) * look) || this.inDanger(p.x + (dx / dd) * step, p.y + (dy / dd) * step)))
+      return room.applyInput(d, 0, 0, false);
     room.applyInput(d, (k * dx) / dd, (k * dy) / dd, false);
   }
 
