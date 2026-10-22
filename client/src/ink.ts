@@ -47,30 +47,47 @@ function makeInkTexture(scene: Phaser.Scene) {
 }
 
 export class InkVeil {
-  private img: Phaser.GameObjects.Image;
-  private rest: Phaser.GameObjects.Graphics;
-  private size: number;
-  /** Độ phủ hiện tại 0..1; `openT`: ms kể từ lúc trúng (vòng hở mở dần). */
+  /** Ảnh mực và các khối phủ: tạo lần đầu bị Che tầm nhìn (đa số cảnh không bao giờ cần, khỏi tốn vẽ ảnh lúc vào bản đồ). */
+  private img: Phaser.GameObjects.Image | null = null;
+  private rest: Phaser.GameObjects.Graphics | null = null;
+  private size = 0;
+  /** Độ phủ hiện tại 0..1; `openT`: ms kể từ lúc trúng (vòng hở mở dần); `on` / `at` của khung này cho `layout`. */
   private k = 0;
   private openT = Infinity;
+  private on = false;
+  private at: { x: number; y: number } | null = null;
 
   constructor(private scene: Phaser.Scene) {
-    this.size = makeInkTexture(scene);
-    this.img = scene.add.image(0, 0, KEY).setScrollFactor(0).setDepth(DEPTH).setVisible(false);
-    this.rest = scene.add.graphics().setScrollFactor(0).setDepth(DEPTH).setVisible(false);
+    // Camera theo chính mình cập nhật scroll trong preRender, sau update() của cảnh: đặt lại vị trí ngay sau đó để vòng hở không trễ
+    // một khung so với nhân vật khi đi.
+    const cam = scene.cameras.main, Ev = Phaser.Cameras.Scene2D.Events, fn = () => this.layout(cam);
+    cam.on(Ev.FOLLOW_UPDATE, fn);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => cam.off(Ev.FOLLOW_UPDATE, fn));
   }
 
   /**
-   * Mỗi khung: `on` = chính mình đang Che tầm nhìn; `at` = tâm vòng (tọa độ cảnh của thân hồn sư), null khi chưa có hình. Lớp
-   * scrollFactor 0 vẽ quanh tâm camera rồi phóng: điểm cảnh P ở `P - scroll`, khung nhìn rộng `w / zoom` quanh `w / 2`.
+   * Mỗi khung: `on` = chính mình đang Che tầm nhìn; `at` = tâm vòng (tọa độ cảnh của thân hồn sư), null khi chưa có hình. Bị lại khi
+   * màn mực đang tan thì vòng hở mở lại từ đầu như lúc mới trúng.
    */
   update(on: boolean, at: { x: number; y: number } | null, delta: number, cam: Phaser.Cameras.Scene2D.Camera) {
-    if (on && this.k === 0) this.openT = 0;
+    if (on && !this.on) this.openT = 0;
+    this.on = on; this.at = at;
     this.k = Phaser.Math.Clamp(this.k + (on ? delta / ANIM.inMs : -delta / ANIM.outMs), 0, 1);
-    const show = this.k > 0 && !!at;
+    if (this.k > 0 && !this.img) {
+      this.size = makeInkTexture(this.scene);
+      this.img = this.scene.add.image(0, 0, KEY).setScrollFactor(0).setDepth(DEPTH);
+      this.rest = this.scene.add.graphics().setScrollFactor(0).setDepth(DEPTH);
+    }
+    if (this.k > 0) this.openT += delta;
+    this.layout(cam);
+  }
+
+  /** Lớp scrollFactor 0 vẽ quanh tâm camera rồi phóng: điểm cảnh P ở `P - scroll`, khung nhìn rộng `w / zoom` quanh `w / 2`. */
+  private layout(cam: Phaser.Cameras.Scene2D.Camera) {
+    if (!this.img || !this.rest) return;
+    const at = this.at, show = this.k > 0 && !!at;
     this.img.setVisible(show); this.rest.setVisible(show);
     if (!show) return;
-    this.openT += delta;
     const o = Math.min(1, this.openT / ANIM.openMs), open = ANIM.open0 + (1 - ANIM.open0) * (1 - (1 - o) ** 3);
     // Cỡ ảnh làm tròn thành số nguyên chẵn (tâm nguyên): mép ảnh trùng khít mép các khối phủ, không có đường nối đậm hơn.
     const half = Math.max(1, Math.round((this.size * open) / 2)), sc = (half * 2) / this.size;
