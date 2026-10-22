@@ -553,13 +553,15 @@ export class MapRoom extends Room<MapState> {
   /**
    * Lỗi bất ngờ trong handler message, hẹn giờ của clock, vòng tick, onAuth / onJoin / onLeave (Colyseus tự bọc khi phòng có hàm
    * này): chỉ ghi log, không để lỗi lọt ra uncaughtException của tiến trình (@pm2/io, phụ thuộc gián tiếp của @colyseus/core, thoát
-   * tiến trình khi có lỗi đó; #164). Từ chối bằng ServerError (onAuth / onCreate) là bình thường, không ghi. Cùng một chỗ lỗi chỉ ghi
-   * tối đa một lần mỗi ERR_LOG_MS (lỗi lặp lại không làm ngập log).
+   * tiến trình khi có lỗi đó; #164). Từ chối bằng ServerError (onAuth / onCreate) là bình thường, không ghi. Cùng một chỗ, cùng dòng
+   * mã ném lỗi chỉ ghi tối đa một lần mỗi ERR_LOG_MS (lỗi lặp lại không làm ngập log).
    */
   onUncaughtException(err: RoomException, method: string) {
     if (err.cause instanceof ServerError) return;
     const where = err instanceof OnMessageException ? `${method} "${err.type}"` : method, now = Date.now();
-    const key = `${where}|${err.message}`, last = this.errLog.get(key); // cùng chỗ, cùng lỗi
+    // Cùng chỗ, cùng dòng mã ném lỗi (khung đầu của stack; nội dung lỗi có thể chứa giá trị thay đổi theo từng lần).
+    const frame = (err.cause instanceof Error ? err.cause : err).stack?.split("\n")[1]?.trim() ?? err.message;
+    const key = `${where}|${frame}`, last = this.errLog.get(key);
     if (last && now - last.at < ERR_LOG_MS) { last.n++; return; }
     if (this.errLog.size >= 100) this.errLog.clear(); // không để Map lớn dần theo số loại lỗi
     this.errLog.set(key, { at: now, n: 0 });

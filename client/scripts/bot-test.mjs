@@ -482,7 +482,7 @@ async function cheatTest(){
   // Gọi thẳng HTTP matchmake: với `create` của colyseus.js thì onAuth từ chối (không token) làm client tự rời, nhưng phòng vẫn đã mở.
   const mk=await fetch(API+"/matchmake/create/map",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mapId:"thanh_hon_thon"})})
     .then(async r=>({status:r.status,...await r.json().catch(()=>({}))})).catch(e=>({status:0,error:String(e)}));
-  ok(!mk.sessionId&&!mk.room,`matchmake create (không token): không mở phòng, không giữ chỗ (${mk.status} ${mk.error??""})`);
+  ok(!mk.sessionId&&!mk.room&&/invalid method/.test(mk.error??""),`matchmake create (không token): bị từ chối, không mở phòng, không giữ chỗ (${mk.status} ${mk.error??""})`);
   const X=await bot("Gian lận","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0});
   try{
   if(!(await test(X,"ping"))?.enabled){ console.log("  ⚠ bỏ qua chống gian lận 1 (cần hook rest, set): bật server bằng GAME_TEST=1"); return; }
