@@ -92,7 +92,7 @@ export function remove(acc: number, name: string): FriendResult {
 export function block(acc: number, t: SocialPeer): FriendResult {
   const s = social.get(acc); if (!s) return { error: "Chưa nạp xong danh sách chặn, thử lại sau giây lát." };
   if (t.id === acc) return { error: "Không thể tự chặn chính mình." };
-  if (s.blocks.has(t.id)) return { error: `Đã chặn ${t.name} rồi.` };
+  if (s.blocks.has(t.id)) return { error: `${t.name} đã ở trong danh sách chặn.` };
   if (s.blocks.size >= BLOCK_MAX) return { error: `Danh sách chặn đã đủ ${BLOCK_MAX} người: bỏ chặn bớt rồi chặn.` };
   s.blocks.set(t.id, t.name);
   if (s.friends.delete(t.id)) social.get(t.id)?.fans.delete(acc);
