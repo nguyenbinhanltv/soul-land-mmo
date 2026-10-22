@@ -667,10 +667,11 @@ export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "v
  */
 export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "ink"];
 /**
- * Che tầm nhìn (#175, STATUS.ink): màn hình người trúng phủ mực, chỉ còn thấy vòng bán kính `r` pixel thế giới quanh chính mình (mép
- * mực loang thêm `edge` pixel); `a`: độ đậm của mực ngoài vòng (1 = đen hẳn). Chỉ là hiển thị, server không dùng.
+ * Che tầm nhìn (#175, STATUS.ink): màn hình người trúng phủ mực, chỉ còn thấy vòng bán kính `r` pixel cảnh quanh thân mình (khung
+ * nhìn gốc 640 × 360 pixel cảnh, mép mực loang thêm `edge`); `a`: độ đậm của mực ngoài vòng (1 = đen hẳn). Chỉ là hiển thị, server
+ * không dùng.
  */
-export const PLAYER_INK = { r: 44, edge: 26, a: 0.94 };
+export const PLAYER_INK = { r: 60, edge: 30, a: 0.94 };
 /** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
 export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
 /**
