@@ -255,6 +255,7 @@ interface KingSeat { id: string; owner: string | null; state: "alive" | "down" |
  * hủy, quay lại cũng không có con mới. Khung hết hạn thì bỏ. Chạy nhiều tiến trình thì phải chuyển sang presence (Redis), như lịch.
  */
 const kingSeats = new Map<string, Map<number, KingSlot>>();
+const kingClaimCache = new Map<string, Set<number>>();
 type KingSlotDoc = { slot: number; until: number; boss: string; seats: KingSeat[]; claimed: number[] };
 type KingDoc = Record<string, KingSlotDoc>;
 const kingKey = (mapId: string) => `king:${mapId}`;
@@ -321,18 +322,26 @@ function kingSlotNow(mapId: string, now: number): { slot: number; until: number 
 function applyKingDoc(mapId: string, doc: KingDoc | null) {
   if (!doc) return;
   const recs = new Map<number, KingSlot>();
-  for (const value of Object.values(doc)) recs.set(value.slot, { slot: value.slot, until: value.until, boss: value.boss, seats: value.seats, claimed: new Set(value.claimed) });
+  for (const value of Object.values(doc)) {
+    const cacheKey = `${mapId}:${value.slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
+    for (const accountId of value.claimed) cached.add(accountId);
+    kingClaimCache.set(cacheKey, cached);
+    recs.set(value.slot, { slot: value.slot, until: value.until, boss: value.boss, seats: value.seats, claimed: new Set(cached) });
+  }
   kingSeats.set(mapId, recs);
 }
 async function loadKingState(mapId: string) { applyKingDoc(mapId, await presenceBackend.getJson<KingDoc>(kingKey(mapId))); }
 async function persistKingSeat(mapId: string, slot: number, seat: KingSeat, claimed: Set<number>) {
+  const cacheKey = `${mapId}:${slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
+  for (const accountId of claimed) cached.add(accountId);
+  kingClaimCache.set(cacheKey, cached);
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${seat.id}`;
   await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, KING_STATE_TTL_MS, (old) => {
     const next = old ?? {}, rec = next[String(slot)];
     if (!rec) return next;
     const found = rec.seats.findIndex((s) => s.id === seat.id);
     if (found >= 0) rec.seats[found] = { ...seat };
-    rec.claimed = [...new Set([...rec.claimed, ...claimed])];
+    rec.claimed = [...new Set([...rec.claimed, ...cached])];
     return next;
   });
 }
@@ -347,7 +356,10 @@ async function takeKingSeat(mapId: string, slot: number, until: number, roomId: 
     let seat = rec.seats.find((s) => s.owner === null);
     if (!seat) { seat = { id: randomUUID(), owner: null, state: "alive", leaveAt: until }; rec.seats.push(seat); }
     seat.owner = roomId;
-    result = { seat: { ...seat }, claimed: new Set(rec.claimed), boss: rec.boss };
+    const cacheKey = `${mapId}:${slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
+    for (const accountId of rec.claimed) cached.add(accountId);
+    kingClaimCache.set(cacheKey, cached);
+    result = { seat: { ...seat }, claimed: new Set(cached), boss: rec.boss };
     return next;
   });
   if (!ok || !result) throw new ServerError(503, "Không lấy được suất thú vương, hãy thử lại sau.");
