@@ -267,7 +267,7 @@ const HOLD = "accountHold";
 const CHAT_TOPIC = "chatx";
 interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
-const CLAIM_BUSY = "Đang nhận phần thưởng boss, đợi một chút.";
+const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
 const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
@@ -2658,7 +2658,7 @@ export class MapRoom extends Room<MapState> {
       const takeBack = () => {
         d.honTe += cost; d.bagDirty = true;
         let n = qty;
-        for (const x of d.bag.filter((i) => i.code === def.id && i.vohonId === null && !i.locked).reverse()) {
+        for (const x of d.bag.filter((i) => i.code === def.id && i.vohonId === null).reverse()) { // cả ô vừa khoá trong lúc chờ
           const k = Math.min(n, x.qty); this.takeItem(d, x, k); n -= k; if (!n) break;
         }
       };
@@ -5032,6 +5032,7 @@ export class MapRoom extends Room<MapState> {
     const name = VOHON[vi].name, code = shardCode(vohon);
     if (d.owned.some((v) => v.vohon === vohon)) return warn(`Đã sở hữu ${name}: dùng mảnh để lên sao.`);
     if (d.shardBusy) return warn("Đang mở võ hồn, đợi một chút.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: mảnh vừa đổi ở Thương hội còn chờ DB xác nhận lượt, chưa tiêu được
     const have = this.shardCount(d, code);
     if (have < SHARD_UNLOCK) return warn(`Cần ${SHARD_UNLOCK} Mảnh ${name} để mở, mới có ${have}.`);
     this.takeShards(d, code, SHARD_UNLOCK);
@@ -5073,6 +5074,7 @@ export class MapRoom extends Room<MapState> {
     if (vi < 0) return warn("Võ hồn không tồn tại.");
     const name = VOHON[vi].name, code = shardCode(vohon);
     if (!v) return warn(`Chưa sở hữu ${name}: đủ ${SHARD_UNLOCK} mảnh thì mở trước.`);
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: như mở võ hồn
     const cost = starCost(v.stars);
     if (cost === null) return warn(`${name} đã đạt ${MAX_STARS}★, không lên sao thêm được.`);
     const have = this.shardCount(d, code);

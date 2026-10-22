@@ -5989,6 +5989,19 @@ async function shardBuyTest(){
   t=await buy(SR,1); await waitFor(()=>M.shardInfo?.n===1,1500);
   ok(has(SR)===2&&M.bag.honTe===h0-P[0],`ngày mới: đổi lại được, giá ${formatHonTe(P[0])} (${t})`);
   { const c=await test(M,"claims"); ok(c?.sdb===1,`DB ngày mới: ${c?.sdb}/${K.daily}`); }
+  // Review #298: lần đổi còn chờ DB (claimBusy) thì không tiêu được mảnh vào mở võ hồn / lên sao (DB từ chối thì mảnh bị lấy lại).
+  { for(const it of loose().filter(i=>i.code===RING_ITEM&&i.years===10).slice(0,2)) M.room.send("discard",{id:it.id});
+    await waitFor(()=>M.bag.slots-loose().length>=2,2000);
+    const UM="u_minh_linh_mieu", stars=()=>M.owned.list.find(v=>v.vohon===UM)?.stars, s0=stars();
+    await test(M,"give",{code:shardCode(UM),qty:starCost(s0)}); await test(M,"give",{code:shardCode(SR2),qty:SHARD_UNLOCK-has(SR2)});
+    ok((await test(M,"claimhold",{on:true}))?.busy===true&&has(SR2)===SHARD_UNLOCK&&has(UM)>=starCost(s0),`đủ mảnh mở ${VOHON[vohonIndex(SR2)].name} và lên sao ${VOHON[vohonIndex(UM)].name}; giữ chỗ (hook claimhold)`);
+    let l=M.logs.length; M.room.send("starup",{vohon:UM}); M.room.send("unlock",{vohon:SR2}); await waitFor(()=>M.logs.length>=l+2,1500);
+    const said=M.logs.slice(l);
+    ok(said.length>=2&&said.every(x=>/mảnh vừa đổi/.test(x))&&stars()===s0&&!M.owned.list.some(v=>v.vohon===SR2)&&has(SR2)===SHARD_UNLOCK,`đang chờ DB: lên sao / mở võ hồn bị từ chối (${said.join(" | ")})`);
+    // Nhả giữ chỗ (lần đổi đã được DB xác nhận): lên sao được. Lần đổi thật ở RAM xong ngay trong microtask nên không đo khoảng chờ bằng
+    // tin starup gửi liền sau shardbuy được; khoảng chờ thử bằng hook claimhold ở trên.
+    await test(M,"claimhold",{on:false});
+    M.room.send("starup",{vohon:UM}); ok(await waitFor(()=>stars()===s0+1,2000),`hết chờ DB: lên ${s0+1}★ được`); }
   await test(M,"day",{shift:0});
   } finally { await test(M,"day",{shift:0}).catch(()=>{}); await M.room.leave().catch(()=>{}); }
 }
