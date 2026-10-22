@@ -47,6 +47,7 @@ export class PlayerState extends Schema {
   @type("boolean") dead: boolean = false;
   @type("uint32") kills: number = 0;
   @type("boolean") auto: boolean = false; // Auto 1 (mục 5.13): đang tự săn; ai cũng thấy chữ "Tự động" trên đầu
+  @type("uint8") tong: number = 0;        // #196 (mục 5.14): tông môn, chỉ số trong TONG_MON + 1 (0 = không); tên tông màu riêng dưới tên
 }
 
 export class BeastState extends Schema {
@@ -121,6 +122,8 @@ export class GroundState extends Schema {
   @type("uint16") w: number = 0;
   @type("uint16") arc: number = 0;
   @type("uint16") ttl: number = 0;
+  // Từ #174: giây báo trước còn lại (làm tròn lên, 0 = vùng đã có tác dụng; GroundDef.warn): client vẽ dạng nước sắp dâng.
+  @type("uint8") wait: number = 0;
 }
 
 export class MapState extends Schema {

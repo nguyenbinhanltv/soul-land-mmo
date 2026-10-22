@@ -10,7 +10,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
   BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, resonanceText,
+  QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
@@ -19,8 +19,8 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
-import { autoTimeText } from "../../shared/data.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
+import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -1712,6 +1712,7 @@ export interface NpcActions {
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
+  tong(op: "join" | "leave", tong?: string): void; // tông môn (#196): gia nhập / đổi sang `tong`, rời tông
 }
 type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
@@ -1723,7 +1724,11 @@ let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" 
 /** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
 const SELL_CONFIRM_DONG = 100;
 const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
-  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì." };
+  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
+  tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
+let tongMsg: { tong: string; wait: number } | null = null; // tin "tong" gần nhất: tông đang thuộc ("" = không), giây còn chờ
+/** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
+export function setTong(m: { tong: string; wait: number }) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 
 /** NPC đang mở hộp thoại (null = đóng). */
 export const npcOpenId = () => npcDefOpen?.id ?? null;
@@ -1811,6 +1816,13 @@ function renderNpc() {
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
       btn("Bảng xếp hạng", "absorb", () => { act.arena("top"); go("rank"); });
+    }
+    if (def.role === "tong") {
+      const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
+      if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true);
+      else if (t) btn(cur ? `Đổi sang ${t.name}` : `Gia nhập ${t.name}`, "absorb", () => act.tong("join", t.id));
+      if (cur) btn(`Rời ${cur.name}`, "drop", () => act.tong("leave"));
+      if (tongMsg && tongMsg.wait > 0) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Còn ${Math.ceil(tongMsg.wait / 86400)} ngày nữa mới đổi được tông.`; el.appendChild(k); }
     }
     btn("Tạm biệt", "drop", () => closeNpc());
     el.appendChild(row);
@@ -2272,8 +2284,9 @@ export function showArena(a: { phase: string; time: number; me: string; friendly
   el.hidden = false; el.dataset.phase = a.phase;
   a.sides.forEach((s, i) => {
     const box = el.querySelector(`.a${i}`) as HTMLElement; if (!box) return;
-    box.classList.toggle("me", s.sid === a.me);
-    const name = `${s.name || "…"}${s.sid === a.me ? " (bạn)" : ""}`;
+    const me = s.sid.split(",").includes(a.me);
+    box.classList.toggle("me", me);
+    const name = `${s.name || "…"}${me ? " (đội của bạn)" : ""}`;
     if (box.querySelector("b")!.textContent !== name) box.querySelector("b")!.textContent = name;
     box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}`;
     (box.querySelector(".bar i") as HTMLElement).style.width = `${Math.round(s.pct * 1000) / 10}%`;
@@ -2329,15 +2342,20 @@ export function updateArenaEnd() {
 }
 // ---------- Cộng minh (mục 5.10, bước 8.2): chỉ hiển thị số server gửi (tin riêng "resonance") ----------
 let resMsg: ResonanceMsg | null = null;
+let resTopMsg: ResonanceTopMsg | null = null;
+let resTopRequest: (page: number, pageSize: number) => void = () => {};
 /** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
 export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidden) renderReso(); }
+/** Tin "resonanceTop" mới: bảng công khai chỉ hiển thị tên / điểm và dòng riêng của mình. */
+export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; if (!$("#reso").hidden) renderReso(); }
+export function onResonanceTop(fn: (page: number, pageSize: number) => void) { resTopRequest = fn; }
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
   $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
   if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); renderReso(); }
 }
 /**
- * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 4 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
+ * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 5 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
  * sáng màu trụ cột, chưa đạt mờ) và phần cộng của từng mốc.
  */
 function renderReso() {
@@ -2351,6 +2369,35 @@ function renderReso() {
   const txt = resMsg ? resonanceText(resMsg.bonus) : "";
   total.textContent = !resMsg ? "Đang tải…" : txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào.";
   el.append(head, note, total);
+  const rank = document.createElement("section"); rank.className = "resrank";
+  const rankHead = document.createElement("div"); rankHead.className = "resrankhead";
+  const rankTitle = document.createElement("b"); rankTitle.textContent = "Bảng xếp hạng cộng minh";
+  const rankBtn = document.createElement("button"); rankBtn.type = "button"; rankBtn.textContent = resTopMsg ? "Làm mới" : "Xem bảng";
+  rankBtn.addEventListener("click", () => resTopRequest(1, resTopMsg?.pageSize ?? RESONANCE_RANK_PAGE_SIZE));
+  rankHead.append(rankTitle, rankBtn); rank.appendChild(rankHead);
+  if (!resTopMsg) {
+    const hint = document.createElement("small"); hint.textContent = "Chỉ tài khoản đã đạt ít nhất một mốc được xếp hạng."; rank.appendChild(hint);
+  } else {
+    const mine = document.createElement("small");
+    mine.textContent = resTopMsg.me ? `Hạng ${resTopMsg.me.rank} · ${resTopMsg.me.score} điểm · ${resTopMsg.me.milestones} mốc · tiến độ ${Math.floor(resTopMsg.me.progressBp / 100)}% · sao thêm ${resTopMsg.me.extraStars}` : "Chưa đạt mốc để xếp hạng.";
+    rank.appendChild(mine);
+    const table = document.createElement("div"); table.className = "resranktable";
+    resTopMsg.list.forEach((r, i) => { const row = document.createElement("div"); row.className = "resrankrow" + (r.me ? " me" : "");
+      const n = document.createElement("span"); n.textContent = `#${(resTopMsg!.page - 1) * resTopMsg!.pageSize + i + 1}`;
+      const name = document.createElement("em"); name.textContent = r.name;
+      const score = document.createElement("i"); score.textContent = `${r.score} điểm · ${r.milestones} mốc`;
+      row.append(n, name, score); table.appendChild(row); });
+    if (!resTopMsg.list.length) { const empty = document.createElement("small"); empty.textContent = "Chưa có tài khoản đạt mốc."; table.appendChild(empty); }
+    rank.appendChild(table);
+    const pages = document.createElement("div"); pages.className = "respages";
+    const prev = document.createElement("button"); prev.type = "button"; prev.textContent = "‹ Trước"; prev.disabled = resTopMsg.page <= 1;
+    prev.addEventListener("click", () => resTopRequest(resTopMsg!.page - 1, resTopMsg!.pageSize));
+    const page = document.createElement("span"); page.textContent = `Trang ${resTopMsg.page}`;
+    const next = document.createElement("button"); next.type = "button"; next.textContent = "Sau ›"; next.disabled = !resTopMsg.hasNext;
+    next.addEventListener("click", () => resTopRequest(resTopMsg!.page + 1, resTopMsg!.pageSize));
+    pages.append(prev, page, next); rank.appendChild(pages);
+  }
+  el.appendChild(rank);
   RESONANCE.forEach((r, i) => {
     const have = resMsg?.prog[i] ?? 0, lv = resMsg?.lv[i] ?? 0, next = r.steps[lv];
     const box = document.createElement("section"); box.className = "respil"; box.style.setProperty("--c", r.col);
