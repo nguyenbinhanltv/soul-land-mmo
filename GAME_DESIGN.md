@@ -897,6 +897,14 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] 10.6 Hồn thú và boss (khoảng 6 lượt mỗi loài: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103).
 - [ ] Thú LPC làm hình tạm cho các loài hồn thú chưa có sprite isometric, tới khi 10.6 thay (#105; 19 loài đã có, thêm 13 loài ở #201; loài còn lại không có mẫu LPC hợp).
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b (#104).
+- Ảnh tĩnh bằng ComfyUI (skill `asset-gen` mục 10, #331), không tốn lượt PixelLab:
+  - [ ] Đặt 42 vật đã có ảnh nhưng chưa dùng vào bản đồ (#333).
+  - [ ] Công trình Nặc Đinh Thành: nhà chính học viện sơ cấp, đấu hồn trường, tửu lâu (#336).
+  - [ ] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
+  - [ ] Trọn bộ ô nền Lõi Tinh Đấu (#338).
+  - [ ] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339), lô 2 Nội địa, Lạc Nhật (#340), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341).
+  - [ ] Phụ thể tĩnh vũ khí / vật đối xứng (#342).
+  - [ ] Thử nghiệm hoạt ảnh 8 hướng bằng ComfyUI cho hồn sư, hồn thú, phụ thể hư ảnh thú (#335).
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
 
