@@ -118,7 +118,7 @@ test("Giới hạn độ dài và tin rỗng", () => {
   assert.match(send("b".repeat(CHAT_MAX_LEN + 1))!, /quá dài/);
   assert.equal(send("   "), null);
   assert.equal(chatCheck(1, undefined, now), null);
-  // #164: giá trị không phải chuỗi (object có khóa toString không gọi được, số, mảng) bỏ qua im lặng, không ném lỗi.
+  // #164: giá trị không phải chuỗi bỏ qua im lặng.
   for (const raw of [{ toString: 0 }, { toString: 0, valueOf: 0 }, 12, ["a"]]) assert.equal(chatCheck(1, raw, now), null);
 });
 

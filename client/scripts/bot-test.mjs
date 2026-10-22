@@ -65,7 +65,7 @@
 // nhận thưởng đúng số giây / Hồn Tệ / hồn hoàn tối đa, quỹ giờ treo chung với tự săn, chia theo ngày, quá sức, túi đầy, vùng an toàn.
 // Tự bán từ xa (#216, sellTest; BOT_ONLY=sell): bộ lọc, khoá món, bán khi túi gần đầy, lưu qua lần vào lại, mua lại ở thương nhân, tự săn bán thay vì dừng.
 // Chống gian lận 1 (#164, cheatTest, nhóm 1 của BOT_PART; BOT_ONLY=cheat): message di chuyển / chiến đấu / cổng / kênh mang giá trị lạ bị bỏ qua
-// (server không sập, không đổi vị trí / hồi chiêu), gửi dồn chỉ ra một lần, client không tự mở phòng, xếp ô / đội gửi dồn lưu đúng lần cuối.
+// (không đổi vị trí / hồi chiêu / đội), gửi dồn chỉ ra một lần, client không tự mở phòng, xếp ô / đội gửi dồn lưu đúng lần cuối.
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
@@ -473,8 +473,8 @@ async function channelTest(){
 
 /**
  * Chống gian lận 1 (#164; BOT_ONLY=cheat, nhóm 1 của BOT_PART): message di chuyển, chiến đấu, đi cổng, truyền tống, kênh mang giá trị
- * lạ (object có `toString` / `valueOf` không gọi được, số thực, NaN, Infinity, chuỗi, mảng, object lồng, thiếu trường) bị bỏ qua: server
- * không sập, client không bị ngắt, vị trí / hồi chiêu / võ hồn ra trận không đổi. Hướng đi quá dài không đi nhanh hơn; gửi dồn đánh
+ * lạ (sai kiểu, số không hợp lệ, thiếu trường) bị bỏ qua: phòng vẫn chạy, client vẫn ở phòng, vị trí / hồi chiêu / võ hồn ra
+ * trận không đổi. Hướng đi quá dài không đi nhanh hơn; gửi dồn đánh
  * thường / đổi võ hồn chỉ ra một lần. Client không tự mở phòng bản đồ (`create`). Xếp ô hồn kỹ / đội hình gửi dồn vẫn lưu đúng lần cuối.
  */
 async function cheatTest(){
@@ -496,7 +496,7 @@ async function cheatTest(){
   const snap=()=>{ const p=me(); return {x:p.x,y:p.y,cds:[...p.cds],bcds:[...p.bcds],swCd:p.swCd,active:X.owned?.active,team:JSON.stringify(X.owned?.team)}; };
   X.room.send("input",{x:0,y:0}); await sleep(200);
 
-  // Giá trị lạ: object không đổi được ra số / chuỗi (Number() / String() ném lỗi), object lồng, mảng, chuỗi, null, bool, số không hợp lệ.
+  // Giá trị sai kiểu và số không hợp lệ.
   const ODD=[{toString:0},{toString:0,valueOf:0},{x:{y:[1]}},[1],"1",null,true], NUM=[NaN,Infinity,-Infinity,-1,0.5,1e308];
   const probes=[["input",v=>({x:v,y:v,s:v,w:v}),[NaN,Infinity,-Infinity]],["input",()=>({x:1e308,y:1e308,s:-1}),[0]],["attack",v=>v],
     ["skill",v=>({i:v})],["boneskill",v=>({i:v})],["chanthan",v=>v],["switch",v=>({slot:v})],["loadout",v=>({rowId:v,skills:[v,v,v,v]})],
@@ -510,10 +510,9 @@ async function cheatTest(){
     if(!(await alive())) down.push(type);
   }
   await sleep(300);
-  ok(!down.length&&await alive(),`${probes.length} kiểu message × ${ODD.length+NUM.length+3} giá trị lạ: server không sập, client không bị ngắt${down.length?` (hỏng từ ${down[0]})`:""}`);
+  ok(!down.length&&await alive(),`${probes.length} kiểu message × ${ODD.length+NUM.length+3} giá trị lạ: bị bỏ qua, phòng vẫn chạy${down.length?` (hỏng từ ${down[0]})`:""}`);
   if(down.length) return;
-  // Các message còn lại (ngoài đợt này): mọi trường mang cùng giá trị lạ. Handler nào còn ném lỗi thì lớp chặn chung của phòng
-  // (onUncaughtException) chỉ ghi log, server vẫn sống.
+  // Các message còn lại (ngoài đợt này): mọi trường mang cùng giá trị lạ.
   const rest=["auto","offline","absorb","pickup","discard","sortbag","lock","autosell","vohons","boss","bag","use","open","unlock","starup","equip","unequip",
     "equipcore","unequipcore","enhance","enhancecore","talk","buy","sell","buyback","expand","quest","resonance","chat"];
   for(const type of rest){
@@ -521,10 +520,10 @@ async function cheatTest(){
     X.room.send(type,"x"); X.room.send(type,[1]);
   }
   await sleep(500);
-  ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: server không sập, client không bị ngắt`);
-  for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // handler ném lỗi thật (hook): lớp chặn chung chỉ ghi log
+  ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: phòng vẫn chạy`);
+  for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
   await sleep(300);
-  ok(await alive()&&(await test(X,"ping"))?.enabled,"handler ném lỗi (hook throw ×5): server vẫn sống, phòng vẫn xử lý message tiếp");
+  ok(await alive()&&(await test(X,"ping"))?.enabled,"lỗi bất ngờ trong handler (hook throw ×5): phòng vẫn xử lý message tiếp");
   const s1=snap();
   ok(Math.hypot(s1.x-s0.x,s1.y-s0.y)<0.5,`giá trị lạ không làm hồn sư di chuyển (${s0.x.toFixed(1)},${s0.y.toFixed(1)} -> ${s1.x.toFixed(1)},${s1.y.toFixed(1)})`);
   ok(s1.cds.every(c=>c===0)&&s1.bcds.every(c=>c===0)&&s1.swCd===0&&s1.active===s0.active&&s1.team===s0.team,
