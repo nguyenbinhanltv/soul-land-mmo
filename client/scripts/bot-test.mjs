@@ -9899,6 +9899,9 @@ async function autoBossTest(){
     A.boss=[]; A.fxs=[]; await test(A,"wmech",{m:"hold",secs:0}); await test(A,"wmech",{m:"charge"});
     // Lần ngắt chỉ tính khi võ hồn Khống chế đang ra trận (worldBreak): có tin `brk` của A là đã đổi sang Lam Ngân Thảo.
     const vhs=new Set(); await waitFor(()=>{ vhs.add(VOHON[me().vh].id); return A.boss.some(x=>x.k==="brk"&&x.by===me().name); },CH.warn*1000);
+    // Tin `brk` có thể tới trước bản vá state mang võ hồn vừa đổi (#362: lần ngắt đã tính, tức server thấy Khống chế ra trận, mà bot chưa
+    // thấy Lam Ngân Thảo); đổi lại phải chờ SWITCH_CD giây nên bản vá kế tiếp luôn còn Lam Ngân Thảo: chờ thấy nó.
+    if(A.boss.some(x=>x.k==="brk"&&x.by===me().name)) await waitFor(()=>{ vhs.add(VOHON[me().vh].id); return vhs.has("lam_ngan_thao"); },1000);
     ok(A.boss.some(x=>x.k==="brk"&&x.by===me().name)&&vhs.has("lam_ngan_thao"),`boss tích lực ${CH.name}: đổi sang Lam Ngân Thảo (khống chế) và ngắt (${A.boss.filter(x=>x.k==="brk").length} lần; võ hồn ra trận ${[...vhs].join(" → ")})`);
     await waitFor(()=>!wb()||!wb().chg||A.boss.some(x=>x.k==="broken"),CH.warn*1000+1500);
     await waitFor(()=>A.boss.some(x=>x.k==="broken")||A.fxs.some(f=>f.k==="teleHit"&&f.name===CH.name),10000);
