@@ -5336,7 +5336,9 @@ async function autoTest(){
       await test(A,"clear",{all:true,keep:true});
       // Loài cắm rễ (BEAST_ROOTED): không lang thang, không bị đẩy lùi, chỗ đứng giữ đúng như đã chọn. Không hồn kỹ / tiên cơ (trúng từ xa).
       const bid=(await test(A,"spawn",{tier:0,dx:spot.q.dx,dy:spot.q.dy,years:15,species:BEAST_ROOTED.ids[0],hpx:50}))?.bid, bb=()=>A.room.state.beasts.get(bid);
-      await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[],skills:[],tienCo:false}});
+      // Không nhặt đồ: rảnh (hồn thú thử không hung hăng) thì tự săn nhặt đồ rơi trước khi nhắm hồn thú mới, mà quanh điểm neo còn hồn hoàn
+      // của bài trước (Y bài "không cướp quái") nên A đi nhặt rồi mới quay lại, quá 4 giây (#305).
+      await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[],skills:[],tienCo:false,ring:-1,bone:false,core:false,kinds:[]}});
       m=await autoOp(A,"on");
       let hit=false;
       for(const t0=Date.now();m?.on&&bid&&!hit&&Date.now()-t0<4000;){ hit=await waitFor(()=>bb()&&bb().hp<bb().maxHp,250); if(!hit) await test(A,"clear",{but:[bid]}); }
