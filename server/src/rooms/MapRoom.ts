@@ -121,6 +121,8 @@ export interface PData {
   claims: { day: string; n: number };
   wclaims: { day: string; n: number }; // lượt nhận thưởng boss thế giới hôm nay (BĐ6e, loại BOSS_CLAIM_WORLD), như `claims`
   claimBusy: number;    // số lần nhận phần thưởng boss đang chờ DB: chặn mở rương, bán / bỏ / hấp thụ / nộp đồ cho tới khi xong (#165)
+  testClaimHold: boolean; // hook test `claimhold` (#165): như đang chờ DB ghi phần thưởng boss, cờ riêng để không đụng bộ đếm claimBusy thật
+  testTravelLost: boolean; // hook test `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi, như mất phản hồi sau COMMIT
   testChest: { bone: number; ur: number; i: number; n: number; s: number } | null; // hook test `chest`: cố định số ngẫu nhiên khi mở rương (−1 = ngẫu nhiên)
   // Kỹ năng bị động của hồn cốt thân / chân trên võ hồn ra trận (từ 4.3, bonePassive): tính lại trong recalc. Không lưu DB.
   passive: BonePassive;
@@ -241,6 +243,8 @@ const uid = (p: string) => p + (nextId++).toString(36);
 const HOLD = "accountHold";
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang nhận phần thưởng boss, đợi một chút.";
+/** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
+const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
 const HOLD_WAIT_MS = 8000;
 
@@ -674,7 +678,7 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, charm: null,
-      claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
+      claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false,
@@ -850,7 +854,8 @@ export class MapRoom extends Room<MapState> {
    * "đăng xuất" ở đây thì ghi như đi cổng (một transaction saveTravel) về điểm `arrive` của cổng tới bản đồ `exit`, lần sau vào ở đó.
    */
   async write(id: string, final = false) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    // Đã đi cổng / đổi kênh (transaction đi cổng là lần ghi cuối của phòng này): không ghi gì nữa.
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled) return;
     await this.flushAuto(d);
     const exit = final ? MAPS[this.state.mapId].exit : undefined, out = exit ? this.map.portals.find((q) => q.to === exit) : undefined;
     if (out) {
@@ -859,13 +864,17 @@ export class MapRoom extends Room<MapState> {
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
       return;
     }
-    // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác (transaction đi cổng đã commit
-    // dù phòng nhận lỗi và đã hoàn phí / Hồi Thành Phù) thì không ghi gì, để phần đã hoàn không thành thừa trong DB.
+    // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
     const list = this.unsaved(id), x = p.x, y = p.y, bag = this.unsavedBag(d);
     let saved: boolean;
     try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-    if (!saved) console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${this.state.mapId}.`);
+    if (saved) return;
+    // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
+    // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
+    console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${this.state.mapId}; ngắt kết nối để vào lại.`);
+    this.log(id, "Dữ liệu nhân vật đã ở bản đồ khác: hãy vào lại game.", "#ff8a8a");
+    this.clients.getById(id)?.leave(4003);
   }
 
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
@@ -1322,9 +1331,22 @@ export class MapRoom extends Room<MapState> {
       // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
       await this.flushAuto(d); // giờ treo tự săn (Auto 1): ghi trước, transaction đi cổng là lần ghi cuối của phòng này
       const list = this.unsaved(id), bag = this.unsavedBag(d);
-      try { await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag); }
-      // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
-      catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; undo?.(); throw e; }
+      try {
+        await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag);
+        if (d.testTravelLost) { d.testTravelLost = false; throw new Error("hook travellost: giả lập mất phản hồi sau COMMIT"); }
+      } catch (e) {
+        // #165: lỗi có thể tới sau khi COMMIT đã xong (mất phản hồi). DB đã ở bản đồ đích thì coi như đã đi (không hoàn phí / phù): ở lại
+        // thì mọi lần lưu sau của phòng này bị lớp chặn WHERE map_id bỏ. Đổi kênh (cùng bản đồ) không đổi map_id nên xử như lỗi thường.
+        if (portal.to !== from && (await store.getLocation(d.accountId).catch(() => null))?.mapId === portal.to) {
+          console.error(`Đi cổng của tài khoản #${d.accountId} báo lỗi nhưng DB đã ở ${portal.to}: coi như đã đi.`, e);
+          d.travelled = true;
+          return;
+        }
+        // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
+        for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId);
+        if (bag) d.bagDirty = true;
+        undo?.(); throw e;
+      }
       d.travelled = true;
     }).then(async () => {
       if (!this.clients.getById(id)) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
@@ -1728,7 +1750,7 @@ export class MapRoom extends Room<MapState> {
     if (!it) return this.log(id, "Không có vật phẩm này trong túi đồ.", "#ffb35c");
     if (d.absorbing?.itemId === it.id) return this.log(id, "Đang hấp thụ hồn hoàn này, không bỏ được.", "#ffb35c");
     if (it.locked) return this.log(id, `${this.itemLabel(it)} đang khoá: mở khoá rồi mới bỏ được.`, "#ffb35c");
-    if (d.claimBusy) return this.log(id, CLAIM_BUSY, "#ffb35c");
+    if (claimHeld(d)) return this.log(id, CLAIM_BUSY, "#ffb35c");
     this.takeItem(d, it, it.qty);
     this.log(id, `Đã bỏ ${this.itemLabel(it)}.`);
     this.sendBag(id);
@@ -1746,7 +1768,7 @@ export class MapRoom extends Room<MapState> {
    */
   sortBag(id: string) {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
-    if (d.claimBusy || d.shardBusy) return this.log(id, "Đang xử lý vật phẩm, đợi một chút rồi sắp xếp.", "#ffb35c");
+    if (claimHeld(d) || d.shardBusy) return this.log(id, "Đang xử lý vật phẩm, đợi một chút rồi sắp xếp.", "#ffb35c");
     const loose = d.bag.filter((i) => i.vohonId === null), worn = d.bag.filter((i) => i.vohonId !== null);
     const times = loose.map((i) => i.created).sort((a, b) => a - b);
     const groups = new Map<string, Item[]>();
@@ -2064,10 +2086,12 @@ export class MapRoom extends Room<MapState> {
     }
     if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
     if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, k) => `${g.text} ${d.daily[i].prog[k] ?? 0}/${g.n}`).join(", ")}.`);
-    if (d.claimBusy && step.goals.some((g) => g.k === "give")) return warn(CLAIM_BUSY); // #165: như bán / bỏ đồ
-    // Nộp vật phẩm trên bản sao túi: túi không đủ chỗ cho phần thưởng thì trả lại túi cũ.
+    const gives = step.goals.some((g) => g.k === "give");
+    if (gives && claimHeld(d)) return warn(CLAIM_BUSY); // #165: như bán / bỏ đồ
+    // Nộp vật phẩm trên bản sao túi: túi không đủ chỗ cho phần thưởng thì trả lại túi cũ. Bài không nộp đồ thì không chép túi (#165:
+    // các món đang chờ DB xác nhận, như phần thưởng boss, giữ nguyên đối tượng).
     const keep = d.bag, dirty = d.bagDirty;
-    d.bag = d.bag.map((it) => ({ ...it }));
+    if (gives) d.bag = d.bag.map((it) => ({ ...it }));
     for (const g of step.goals) {
       if (g.k !== "give" || !g.item) continue;
       let left = g.n;
@@ -2226,7 +2250,7 @@ export class MapRoom extends Room<MapState> {
     if (it.vohonId !== null) return warn(`${this.itemLabel(it)} đang gắn trên võ hồn: tháo ra trước mới bán được.`);
     if (it.locked) return warn(`${this.itemLabel(it)} đang khoá: mở khoá ở túi đồ rồi mới bán được.`);
     if (d.absorbing?.itemId === it.id) return warn("Đang hấp thụ hồn hoàn này, không bán được.");
-    if (d.claimBusy) return warn(CLAIM_BUSY); // #165: phần thưởng boss đang chờ DB xác nhận lượt
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #165: phần thưởng boss đang chờ DB xác nhận lượt
     const price = sellPrice(it);
     if (price === null) return warn(`Thương nhân không mua ${itemDef(it.code)?.name ?? "vật phẩm lạ"}.`);
     const qty = rawQty === undefined || rawQty === null ? it.qty : Number.isInteger(rawQty) ? (rawQty as number) : 0;
@@ -2311,7 +2335,7 @@ export class MapRoom extends Room<MapState> {
    * cùng túi). Trả về số ô đã giải phóng.
    */
   autoSell(id: string) {
-    const d = this.pdata.get(id); if (!d || !d.sellCfg.on || d.travelling || d.travelCast || d.absorbing || d.claimBusy || d.shardBusy) return 0;
+    const d = this.pdata.get(id); if (!d || !d.sellCfg.on || d.travelling || d.travelCast || d.absorbing || claimHeld(d) || d.shardBusy) return 0;
     if (this.map.kind === "arena" || d.bagSlots - bagUsed(d.bag) >= AUTO_SELL_FREE) return 0;
     const sold: SoldRow[] = [];
     let coins = 0, n = 0;
@@ -2532,9 +2556,10 @@ export class MapRoom extends Room<MapState> {
       const r = int(o.r, -1, 100, -1);
       d.testCore = r < 0 ? null : { r: Math.min(0.9999, r / 100), stars: int(o.stars, 0, MAX_CORE_STARS, 0), set: int(o.set, -1, CORE_SETS.length - 1, -1) };
     }
-    // #165: `claimhold {on}` giữ / nhả một lượt claimBusy như đang chờ DB ghi phần thưởng boss (MemoryStore ghi xong ngay nên bot không
-    // bắt được lúc đó); trả số lượt đang giữ.
-    else if (op === "claimhold") { d.claimBusy = Math.max(0, d.claimBusy + (o.on === true ? 1 : -1)); out = { busy: d.claimBusy }; }
+    // #165: `claimhold {on}` bật / tắt cờ riêng như đang chờ DB ghi phần thưởng boss (MemoryStore ghi xong ngay nên bot không bắt được lúc
+    // đó; không đụng bộ đếm claimBusy thật); trả có đang giữ không. `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi.
+    else if (op === "claimhold") { d.testClaimHold = o.on === true; out = { busy: claimHeld(d) }; }
+    else if (op === "travellost") { d.testTravelLost = true; }
     else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
@@ -4592,7 +4617,7 @@ export class MapRoom extends Room<MapState> {
     if (!p || !d || p.dead || d.absorbing || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     if (d.travelCast) return warn("Đang đi qua cổng, không thể hấp thụ.");
-    if (d.claimBusy) return warn(CLAIM_BUSY); // #165: hồn hoàn boss thế giới vào túi trước khi DB xác nhận lượt
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #165: hồn hoàn boss thế giới vào túi trước khi DB xác nhận lượt
     const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw && i.vohonId === null) : undefined;
     if (!it || it.code !== RING_ITEM || it.years === null) return warn("Hãy chọn một hồn hoàn trong túi đồ để hấp thụ (phím B).");
     const v = rawVohon === undefined || rawVohon === null ? d.ch : d.owned.find((x) => x.rowId === rawVohon);
@@ -5165,7 +5190,9 @@ export class MapRoom extends Room<MapState> {
     let ring: Item | null = null;
     const takeBack = () => {
       const x = d.bag.find((i) => i.code === it.id && i.vohonId === null); if (x) this.takeItem(d, x, 1);
-      if (ring && d.bag.includes(ring)) { d.bag.splice(d.bag.indexOf(ring), 1); d.bagDirty = true; }
+      // Theo id (#165): túi có thể đã được chép sang đối tượng mới trong lúc chờ DB.
+      const ri = ring ? d.bag.findIndex((i) => i.id === ring!.id) : -1;
+      if (ri >= 0) { d.bag.splice(ri, 1); d.bagDirty = true; }
       claimed?.delete(d.accountId);
     };
     claimed?.add(d.accountId);
@@ -5200,7 +5227,7 @@ export class MapRoom extends Room<MapState> {
     if (!it || !def) return warn("Không có vật phẩm này trong túi đồ.");
     const boss = BOSSES[bossIndex(def.boss ?? "")];
     if (def.kind !== "ruong" || !boss) return warn(`${def.name} không mở được.`);
-    if (d.claimBusy) return warn("Đang nhận rương, đợi một chút.");
+    if (claimHeld(d)) return warn("Đang nhận rương, đợi một chút.");
     if (boss.rank === 3) return this.openWorldChest(id, p, d, it, def, boss);
     if (d.bagSlots - bagUsed(d.bag) < KING_CHEST.slots) return warn(`Cần ${KING_CHEST.slots} ô trống trong túi đồ để mở ${def.name}.`);
     const mapId = Object.values(MAPS).find((m) => m.king === boss.id)?.id ?? this.state.mapId, years = kingYears(mapId) ?? TIERS[0].years;

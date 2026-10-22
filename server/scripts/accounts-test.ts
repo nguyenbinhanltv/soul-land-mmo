@@ -179,6 +179,17 @@ async function common(label: string, s: Store, u = "") {
     assert.deepEqual(await s.getLocation(id), { mapId: DEFAULT_MAP, x: 30, y: 40 });
     assert.equal(await s.saveProgress(id, [ch], DEFAULT_MAP, 31, 41), true);
     assert.deepEqual(await loadItems(id), refund);
+    // Transaction đi cổng đã commit dù phòng nhận lỗi (MapRoom.beginTravel, #165): phòng đọc lại getLocation thấy bản đồ đích thì coi như đã
+    // đi; phòng cũ không ghi đè được gì (kể cả phí đã hoàn trong RAM), phòng mới lưu bình thường.
+    const moved = { honTe: 1_000, items: [item("hoi_hon_dan", 2)] };
+    await s.saveTravel(id, [{ ...ch, level: level0 + 2 }], DEFAULT_MAP, "nac_dinh_thanh", 88, 328, moved);
+    assert.equal((await s.getLocation(id)).mapId, "nac_dinh_thanh");
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 1 }], DEFAULT_MAP, 31, 41, undefined, { ...moved, honTe: 1_030 }), false);
+    assert.deepEqual(await loadItems(id), moved);
+    assert.equal(await lv(), level0 + 2);
+    assert.equal(await s.saveProgress(id, [{ ...ch, level: level0 + 3 }], "nac_dinh_thanh", 90, 330, undefined, { ...moved, honTe: 1_200 }), true);
+    assert.deepEqual(await loadItems(id), { ...moved, honTe: 1_200 });
+    assert.equal(await lv(), level0 + 3);
   });
 }
 

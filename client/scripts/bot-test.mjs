@@ -6764,19 +6764,10 @@ async function questTest(){
 }
 
 /**
- * Nhiệm vụ hằng ngày (khảo hạch Sử Lai Khắc của Phất Lan Đức, mục 5.8): hàm thuần (mã chuỗi `daily:<yyyymmdd>:<i>`, bộ bài ổn định
- * theo ngày, bài 1 săn, các bài sau không trùng, mẫu hợp lệ, parseQuest, hồn thú / bản đồ hợp cấp, chỉ đường giữa các bản đồ); tài
- * khoản mới: 3 bài chưa nhận, ở bản đồ khác không nhận được. Ở Thiên Đấu Thành (hook `daily {shift}` chọn ngày có bài đấu hồn và bài
- * nộp đồ): đứng xa bị từ chối, nhận cả 3 bài; nộp đồ đếm theo túi (đồ đang gắn không tính); một trận Đại Đấu Hồn Trường thật với bot
- * thứ hai (tiến độ ghi trong phòng sân đấu, mang về bản đồ); hồn thú không hợp cấp không tính, hợp cấp thì tính; thoát vào lại giữ
- * tiến độ; trả bài: thưởng đúng, đồ nộp bị trừ, túi đầy thì từ chối và giữ nguyên túi, trả lần hai bị từ chối; sang ngày mới (hook
- * `day`) thì đổi bộ bài, bài ngày cũ không trả được.
- */
-/**
  * Chống gian lận 2 (#165; BOT_ONLY=cheat2 chỉ chạy phần này): tin xin lại `bag` / `vohons` / `quest get` theo nhịp ASK_CD (gửi dồn chỉ
  * nhận tối đa 2 tin); hồn hoàn đang hấp thụ không tính cho bài khảo hạch nộp hồn hoàn, thôi hấp thụ thì tính lại; đang ghi phần thưởng
- * boss (claimBusy, hook claimhold) thì không bán / bỏ / hấp thụ đồ, xong thì bán được. Phần lưu một transaction (saveProgress) thử ở
- * `npm run test:accounts --prefix server`.
+ * boss (claimBusy, hook claimhold) thì không bán / bỏ / hấp thụ đồ, xong thì bán được; đi cổng commit xong mà phòng nhận lỗi (hook
+ * travellost) thì vẫn chuyển bản đồ. Phần lưu một transaction (saveProgress) thử ở `npm run test:accounts --prefix server`.
  */
 async function cheatBagTest(){
   console.log("[Chống gian lận 2] Túi đồ, mua bán, phần thưởng (#165)");
@@ -6791,57 +6782,84 @@ async function cheatBagTest(){
     const n1=cnt(); G.room.send(type,msg);
     ok(await waitFor(()=>cnt()>n1,2000),`hết nhịp: xin "${type}" lần nữa vẫn được trả`);
   }
-  // Hồn hoàn đang hấp thụ không tính cho bài khảo hạch nộp hồn hoàn. Chọn ngày (hook daily lệch toàn tiến trình) có bài đó.
-  const setOf=day=>dailyPicks(dailyKey(day)), today=(await test(G,"daily",{})).day, [y,mo,dd]=today.split("-").map(Number);
-  const dayAt=s=>vnDay(Date.UTC(y,mo-1,dd,5)+s*86400000), shift=Array.from({length:240},(_,s)=>s).find(s=>setOf(dayAt(s)).some(p=>p.tpl.id==="nop_hon_hoan"));
-  ok(shift!==undefined,`ngày ${dayAt(shift)} (lệch ${shift}) có bài nộp hồn hoàn`);
   const gs=npcSpot(DAILY.map,DAILY.giver);
   G.travel=null; G.room.send("test",{op:"warp",mapId:DAILY.map,x:gs.x,y:gs.y+16});
   ok(await waitFor(()=>G.travel?.mapId===DAILY.map,4000),`warp -> ${MAPS[DAILY.map].name}`);
   await G.room.leave(); await waitFor(()=>G.leftCode!==null,2000);
   G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>G.room.state.players?.get(G.room.sessionId)&&G.owned&&G.bag&&G.daily,3000);
-  let n=G.dailyMsgs; await test(G,"daily",{shift}); await waitFor(()=>G.dailyMsgs>n&&G.daily.day===dayAt(shift),1500);
-  const iR=G.daily.list.findIndex(q=>questChain(q.chain).steps[0].id==="nop_hon_hoan"), st=()=>G.daily.list[iR]?.status;
-  async function dq(op){ const k=G.dailyMsgs, l=G.logs.length; G.room.send("quest",{op,chain:G.daily.list[iR].chain}); await waitFor(()=>G.dailyMsgs>k&&G.logs.length>l,1500); return G.logs.slice(l).at(-1)??""; }
-  await test(G,"goto",{x:gs.x,y:gs.y+16});
-  for(const it of looseOf(G).filter(i=>i.code===RING_ITEM)) G.room.send("discard",{id:it.id});
-  await waitFor(()=>!looseOf(G).some(i=>i.code===RING_ITEM),2000);
-  let t=await dq("accept"); ok(iR>=0&&G.daily.list[iR].accepted,`nhận bài "${questChain(G.daily.list[iR].chain).steps[0].name}" (${t})`);
-  // Võ hồn ra trận ở bình cảnh cấp 10, chưa có hồn hoàn; một hồn hoàn trong túi thì bài đủ.
-  await test(G,"set",{rowId:G.owned.active,level:10,xp:0,rings:[]}); await test(G,"give",{code:RING_ITEM,qty:1});
-  ok(await waitFor(()=>looseOf(G).some(i=>i.code===RING_ITEM)&&st()==="ready",2000),"một hồn hoàn trong túi: bài nộp hồn hoàn đủ");
-  const ring=looseOf(G).find(i=>i.code===RING_ITEM);
-  const absorb=async()=>{ G.absorbing=null; G.room.send("absorb",{itemId:ring.id}); return waitFor(()=>G.absorbing?.on,1500); };
-  ok(await absorb()&&await waitFor(()=>st()==="active",1500),`bắt đầu hấp thụ hồn hoàn đó: bài về chưa đủ (${st()})`);
-  // Đi một bước: thôi hấp thụ, hồn hoàn lại tính.
-  G.room.send("input",{x:1,y:0}); await waitFor(()=>G.absorbing?.on===false,1500); G.room.send("input",{x:0,y:0});
-  ok(G.absorbing?.result==="cancel"&&await waitFor(()=>st()==="ready",1500),"di chuyển thì thôi hấp thụ: hồn hoàn lại tính, bài đủ");
-  await test(G,"goto",{x:gs.x,y:gs.y+16});
-  ok(await absorb()&&await waitFor(()=>st()==="active",1500),"hấp thụ lại: bài về chưa đủ");
-  t=await dq("turnin");
-  ok(/Chưa xong/.test(t)&&G.absorbing?.on&&looseOf(G).some(i=>i.id===ring.id)&&st()==="active",`trả bài khi hồn hoàn duy nhất đang hấp thụ: từ chối, hấp thụ vẫn chạy (${t})`);
-  await test(G,"rush"); ok(await waitFor(()=>G.absorbing?.result==="ok"&&!looseOf(G).some(i=>i.id===ring.id),1500),"hấp thụ xong bình thường");
-  await test(G,"give",{code:RING_ITEM,qty:1}); await waitFor(()=>st()==="ready",1500);
-  t=await dq("turnin"); ok(/Trả khảo hạch/.test(t)&&st()==="done",`có hồn hoàn khác trong túi: trả bài được (${t})`);
+  // Hồn hoàn đang hấp thụ không tính cho bài khảo hạch nộp hồn hoàn. Chọn ngày (hook daily lệch cho cả tiến trình, nên luôn trả về 0 ở
+  // finally) có bài đó.
+  const setOf=day=>dailyPicks(dailyKey(day)), today=(await test(G,"daily",{})).day, [y,mo,dd]=today.split("-").map(Number);
+  const dayAt=s=>vnDay(Date.UTC(y,mo-1,dd,5)+s*86400000), shift=Array.from({length:240},(_,s)=>s).find(s=>setOf(dayAt(s)).some(p=>p.tpl.id==="nop_hon_hoan"));
+  try{
+    let n=G.dailyMsgs; if(shift!==undefined){ await test(G,"daily",{shift}); await waitFor(()=>G.dailyMsgs>n&&G.daily.day===dayAt(shift),1500); }
+    const iR=G.daily.list.findIndex(q=>questChain(q.chain)?.steps[0].id==="nop_hon_hoan");
+    ok(shift!==undefined&&iR>=0,`ngày ${shift===undefined?"?":dayAt(shift)} (lệch ${shift}) có bài nộp hồn hoàn (bài ${iR+1})`);
+    if(iR>=0) await ringGiveTest(iR);
+  } finally { await test(G,"daily",{shift:0}); }
+  async function ringGiveTest(iR){
+    const st=()=>G.daily.list[iR]?.status;
+    async function dq(op){ const k=G.dailyMsgs, l=G.logs.length; G.room.send("quest",{op,chain:G.daily.list[iR].chain}); await waitFor(()=>G.dailyMsgs>k&&G.logs.length>l,1500); return G.logs.slice(l).at(-1)??""; }
+    await test(G,"goto",{x:gs.x,y:gs.y+16});
+    for(const it of looseOf(G).filter(i=>i.code===RING_ITEM)) G.room.send("discard",{id:it.id});
+    await waitFor(()=>!looseOf(G).some(i=>i.code===RING_ITEM),2000);
+    let t=await dq("accept"); ok(G.daily.list[iR].accepted,`nhận bài "${questChain(G.daily.list[iR].chain).steps[0].name}" (${t})`);
+    // Võ hồn ra trận ở bình cảnh cấp 10, chưa có hồn hoàn; một hồn hoàn trong túi thì bài đủ.
+    await test(G,"set",{rowId:G.owned.active,level:10,xp:0,rings:[]}); await test(G,"give",{code:RING_ITEM,qty:1});
+    ok(await waitFor(()=>looseOf(G).some(i=>i.code===RING_ITEM)&&st()==="ready",2000),"một hồn hoàn trong túi: bài nộp hồn hoàn đủ");
+    const ring=looseOf(G).find(i=>i.code===RING_ITEM);
+    const absorb=async()=>{ G.absorbing=null; G.room.send("absorb",{itemId:ring.id}); return waitFor(()=>G.absorbing?.on,1500); };
+    ok(await absorb()&&await waitFor(()=>st()==="active",1500),`bắt đầu hấp thụ hồn hoàn đó: bài về chưa đủ (${st()})`);
+    // Đi một bước: thôi hấp thụ, hồn hoàn lại tính.
+    G.room.send("input",{x:1,y:0}); await waitFor(()=>G.absorbing?.on===false,1500); G.room.send("input",{x:0,y:0});
+    ok(G.absorbing?.result==="cancel"&&await waitFor(()=>st()==="ready",1500),"di chuyển thì thôi hấp thụ: hồn hoàn lại tính, bài đủ");
+    await test(G,"goto",{x:gs.x,y:gs.y+16});
+    ok(await absorb()&&await waitFor(()=>st()==="active",1500),"hấp thụ lại: bài về chưa đủ");
+    t=await dq("turnin");
+    ok(/Chưa xong/.test(t)&&G.absorbing?.on&&looseOf(G).some(i=>i.id===ring.id)&&st()==="active",`trả bài khi hồn hoàn duy nhất đang hấp thụ: từ chối, hấp thụ vẫn chạy (${t})`);
+    await test(G,"rush"); ok(await waitFor(()=>G.absorbing?.result==="ok"&&!looseOf(G).some(i=>i.id===ring.id),1500),"hấp thụ xong bình thường");
+    await test(G,"give",{code:RING_ITEM,qty:1}); await waitFor(()=>st()==="ready",1500);
+    t=await dq("turnin"); ok(/Trả khảo hạch/.test(t)&&st()==="done",`có hồn hoàn khác trong túi: trả bài được (${t})`);
+  }
   // Đang ghi phần thưởng boss (claimBusy): không bán / bỏ / hấp thụ; nhả thì bán được.
   const sp=npcSpot(DAILY.map,"thuong_nhan_thien_dau"); await test(G,"goto",{x:sp.x,y:sp.y+16});
   await test(G,"set",{rowId:G.owned.active,level:20,xp:0,rings:[10]}); await test(G,"give",{code:RING_ITEM,qty:1});
   await waitFor(()=>looseOf(G).some(i=>i.code===RING_ITEM),1500);
   const r2=looseOf(G).find(i=>i.code===RING_ITEM), h0=G.bag.honTe;
-  ok((await test(G,"claimhold",{on:true}))?.busy===1,"hook claimhold: giữ một lượt claimBusy");
-  t=await trade(G,"sell",{id:r2.id,npc:"thuong_nhan_thien_dau"});
+  ok((await test(G,"claimhold",{on:true}))?.busy===true,"hook claimhold: giữ như đang chờ DB ghi phần thưởng boss");
+  let t=await trade(G,"sell",{id:r2.id,npc:"thuong_nhan_thien_dau"});
   ok(/phần thưởng boss/.test(t)&&G.bag.honTe===h0&&looseOf(G).some(i=>i.id===r2.id),`đang ghi phần thưởng boss: không bán được (${t})`);
   { const l=G.logs.length; G.room.send("discard",{id:r2.id}); await waitFor(()=>G.logs.length>l,1500);
     ok(/phần thưởng boss/.test(G.logs.at(-1))&&looseOf(G).some(i=>i.id===r2.id),`không bỏ được (${G.logs.at(-1)})`); }
   { const l=G.logs.length; G.absorbing=null; G.room.send("absorb",{itemId:r2.id}); await waitFor(()=>G.logs.length>l,1500);
     ok(/phần thưởng boss/.test(G.logs.at(-1))&&!G.absorbing?.on,`không hấp thụ được (${G.logs.at(-1)})`); }
-  ok((await test(G,"claimhold",{on:false}))?.busy===0,"nhả claimBusy");
+  ok((await test(G,"claimhold",{on:false}))?.busy===false,"nhả claimhold");
   t=await trade(G,"sell",{id:r2.id,npc:"thuong_nhan_thien_dau"});
   ok(/^Bán/.test(t)&&G.bag.honTe>h0&&!looseOf(G).some(i=>i.id===r2.id),`xong thì bán được (${t})`);
-  await test(G,"daily",{shift:0});
+  // Đi cổng mà transaction đã commit nhưng phòng nhận lỗi (hook travellost): server đọc lại DB, thấy đã ở bản đồ đích thì vẫn cho đi (không
+  // ở lại phòng cũ, nơi mọi lần lưu sau sẽ bị lớp chặn WHERE map_id bỏ); lưu ở phòng mới vẫn được.
+  { const ns=npcSpot("nac_dinh_thanh","thuong_nhan"), l=G.logs.length; await test(G,"travellost");
+    G.travel=null; G.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:ns.x,y:ns.y+16});
+    ok(await waitFor(()=>G.travel?.mapId==="nac_dinh_thanh",4000)&&!G.logs.slice(l).some(x=>/Không chuyển được/.test(x)),
+      "đi cổng báo lỗi sau khi đã commit: vẫn chuyển bản đồ, không báo lỗi cho người chơi");
+    await G.room.leave(); await waitFor(()=>G.leftCode!==null,2000);
+    G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>G.room.state.players?.get(G.room.sessionId)&&G.bag,3000);
+    ok(G.mapId==="nac_dinh_thanh"&&G.room.state.mapId==="nac_dinh_thanh",`/api/me và phòng mới: ${G.mapId}`);
+    await test(G,"coin",{n:4321}); await G.room.leave(); await waitFor(()=>G.leftCode!==null,2000);
+    await enter(G); await waitFor(()=>G.bag,3000);
+    ok(G.bag?.honTe===4321,`lưu ở phòng mới vẫn được: vào lại còn ${G.bag?.honTe} đồng`); }
   await G.room.leave();
 }
 
+/**
+ * Nhiệm vụ hằng ngày (khảo hạch Sử Lai Khắc của Phất Lan Đức, mục 5.8): hàm thuần (mã chuỗi `daily:<yyyymmdd>:<i>`, bộ bài ổn định
+ * theo ngày, bài 1 săn, các bài sau không trùng, mẫu hợp lệ, parseQuest, hồn thú / bản đồ hợp cấp, chỉ đường giữa các bản đồ); tài
+ * khoản mới: 3 bài chưa nhận, ở bản đồ khác không nhận được. Ở Thiên Đấu Thành (hook `daily {shift}` chọn ngày có bài đấu hồn và bài
+ * nộp đồ): đứng xa bị từ chối, nhận cả 3 bài; nộp đồ đếm theo túi (đồ đang gắn không tính); một trận Đại Đấu Hồn Trường thật với bot
+ * thứ hai (tiến độ ghi trong phòng sân đấu, mang về bản đồ); hồn thú không hợp cấp không tính, hợp cấp thì tính; thoát vào lại giữ
+ * tiến độ; trả bài: thưởng đúng, đồ nộp bị trừ, túi đầy thì từ chối và giữ nguyên túi, trả lần hai bị từ chối; sang ngày mới (hook
+ * `day`) thì đổi bộ bài, bài ngày cũ không trả được.
+ */
 async function dailyTest(){
   console.log("[Hằng ngày] Khảo hạch Sử Lai Khắc của Phất Lan Đức");
   const ids=dailyIds("2026-10-21");
