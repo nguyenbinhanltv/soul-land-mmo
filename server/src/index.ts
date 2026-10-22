@@ -56,6 +56,7 @@ app.post("/api/login", route(async (req, res) => {
   try { r = await store.login(name, password, !noSignup); } catch (e) { loginEnd(name, ip, null); signupEnd(ip, !noSignup, false); throw e; }
   signupEnd(ip, !noSignup, !("error" in r) && r.created);
   if ("noCreate" in r) {
+    // Không tính là đăng nhập sai (khoá oan quán net). 429 / 401 cho biết tên đã có hay chưa, như vốn có khi /api/login tự tạo tài khoản.
     loginEnd(name, ip, null);
     res.setHeader("Retry-After", String(noSignup!.retryAfter)); res.status(429).json({ error: noSignup!.error }); return;
   }

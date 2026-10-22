@@ -154,19 +154,22 @@ export function loginEnd(name: string, ip: string, ok: boolean | null, now = Dat
 interface SignupEntry { at: number[]; pending: number; warned: boolean; }
 const signups = new Map<string, SignupEntry>();
 
-/** Số giây phải chờ trước khi IP được tạo thêm tài khoản (0 = được tạo). Lần chờ tính theo tài khoản cũ nhất còn trong cửa sổ. */
+/**
+ * Số giây phải chờ trước khi IP được tạo thêm tài khoản (wait 0 = được tạo); lần chờ tính theo tài khoản cũ nhất còn trong cửa sổ.
+ * full: đã chạm ngưỡng bằng tài khoản đã tạo; false mà wait > 0 là chỉ do các yêu cầu đang xử lý (kể cả đăng nhập tài khoản cũ).
+ */
 function signupWait(e: SignupEntry, now: number) {
   e.at = e.at.filter((t) => now - t < SIGNUP_DAY_MS);
-  let wait = 0;
+  let wait = 0, full = false;
   for (const [max, ms] of [[SIGNUP_IP_HOUR_MAX, SIGNUP_HOUR_MS], [SIGNUP_IP_DAY_MAX, SIGNUP_DAY_MS]]) {
     const lim = max * signupScale, recent = e.at.filter((t) => now - t < ms);
     if (recent.length + e.pending < lim) continue;
     // Phải chờ tài khoản thứ k (tính từ cũ nhất) ra khỏi cửa sổ. Chạm ngưỡng chỉ vì các yêu cầu đang xử lý (chưa biết có tạo
     // không): chờ vài giây như `busy` của đăng nhập.
     const k = recent.length + e.pending - lim;
-    wait = Math.max(wait, k < recent.length ? Math.ceil((recent[k] + ms - now) / 1000) : 3);
+    if (k < recent.length) { full = true; wait = Math.max(wait, Math.ceil((recent[k] + ms - now) / 1000)); } else wait = Math.max(wait, 3);
   }
-  return wait;
+  return { wait, full };
 }
 
 /**
@@ -177,9 +180,10 @@ function signupWait(e: SignupEntry, now: number) {
 export function signupBegin(ip: string, now = Date.now()): { error: string; retryAfter: number } | null {
   let e = signups.get(ip);
   if (!e) { e = { at: [], pending: 0, warned: false }; signups.set(ip, e); }
-  const sec = signupWait(e, now);
+  const { wait: sec, full } = signupWait(e, now);
   if (!sec) { e.pending++; return null; }
-  if (!e.warned && e.at.length) {
+  if (!full) return { error: "Đang xử lý nhiều lần đăng nhập từ mạng của bạn. Vui lòng thử lại sau vài giây.", retryAfter: sec };
+  if (!e.warned) {
     e.warned = true;
     console.warn(`⚠  IP ${ip} chạm giới hạn tạo tài khoản mới (#207). Nếu mọi người chơi cùng hiện một IP thì kiểm tra TRUST_PROXY.`);
   }

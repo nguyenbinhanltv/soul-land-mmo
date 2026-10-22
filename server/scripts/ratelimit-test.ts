@@ -144,7 +144,9 @@ test("Tạo tài khoản: tối đa 30 mỗi 24 giờ dù chia đều theo giờ
 
 test("Tạo tài khoản: bắn nhiều request song song không vượt ngưỡng; request không tạo trả lại chỗ", () => quiet(() => {
   for (let i = 0; i < 10; i++) assert.equal(signupBegin("5.5.5.5", now), null);
-  assert.equal(signupBegin("5.5.5.5", now)!.retryAfter, 3); // chỉ vì đang xử lý: chờ vài giây
+  // Chặn chỉ vì đang xử lý (có thể là đăng nhập tài khoản cũ): báo bận, chờ vài giây, không báo "quá nhiều tài khoản".
+  const busy = signupBegin("5.5.5.5", now)!;
+  assert.equal(busy.retryAfter, 3); assert.match(busy.error, /Đang xử lý nhiều lần đăng nhập/);
   for (let i = 0; i < 4; i++) signupEnd("5.5.5.5", true, true, now);
   for (let i = 0; i < 6; i++) signupEnd("5.5.5.5", true, false, now); // tên đã có / sai mật khẩu / lỗi DB
   for (let i = 0; i < 6; i++) assert.equal(signup("5.5.5.5"), null);

@@ -36,7 +36,7 @@ async function common(label: string, s: Store, u = "") {
     assert.equal(ok(await s.login(cleanName(`ĐƯỜNG TAM${u}`.normalize("NFD")), PW[2])), id);
   });
   await test(`${label}: cờ created chỉ đúng ở lần tạo; create=false không tạo tài khoản mới nhưng tài khoản cũ vẫn vào được (#207)`, async () => {
-    const created = (r: Awaited<ReturnType<Store["login"]>>) => { ok(r); return (r as { created: boolean }).created; };
+    const created = (r: Awaited<ReturnType<Store["login"]>>) => { assert.ok(!("error" in r), JSON.stringify(r)); return r.created; };
     assert.equal(created(await s.login(cleanName(`Mới${u}`), PW[0])), true);
     assert.equal(created(await s.login(cleanName(`MỚI${u}`), PW[0])), false);
     assert.equal(created(await s.login(cleanName(`mới${u}`), PW[0], false)), false); // IP hết lượt tạo vẫn vào tài khoản cũ
@@ -55,7 +55,7 @@ async function common(label: string, s: Store, u = "") {
     const pws = [PW[6], WRONG], r = await Promise.all([s.login(cleanName(`Đua${u}`), pws[0]), s.login(cleanName(`ĐUA${u}`), pws[1])]);
     const won = r.findIndex((x) => !("error" in x));
     assert.ok(won >= 0 && r.filter((x) => "error" in x).length === 1, JSON.stringify(r));
-    assert.equal((r[won] as { created: boolean }).created, true);
+    const w = r[won]; assert.ok(!("error" in w) && w.created);
     assert.equal(ok(await s.login(cleanName(`đua${u}`), pws[won])), (r[won] as { accountId: number }).accountId);
     assert.ok("error" in await s.login(cleanName(`đua${u}`), pws[1 - won]));
   });
