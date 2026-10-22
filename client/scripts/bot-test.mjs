@@ -5209,19 +5209,30 @@ async function autoTest(){
     // Điểm neo ở bãi hồn thú hung hăng hồi sinh liên tục: trong lúc chờ, dọn hồn thú tự nhiên quanh A (giữ các con đang thử) để không
     // có trận đánh trả nào xen vào nợ nhịp.
     const quiet=async(fn,ms,keep)=>{ for(let t=0;t<ms;t+=500){ if(fn()) return true; await test(A,"clear",{but:keep}); await sleep(500); } return fn(); };
+    /** Chẩn đoán khi trượt (#266): chỗ A, hồn thú `bid`, mục tiêu / nợ của tự săn, hồn thú đó nhắm ai / bị bỏ qua / người treo khác nhắm. */
+    const why=async bid=>{ const st=await test(A,"auto",{bid}), b=A.room.state.beasts.get(bid);
+      return ` [A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}; ${bid} ${b?`${b.x.toFixed(0)},${b.y.toFixed(0)} ${b.hp}/${b.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, nợ ${st?.pace?.toFixed(1)}, ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`; };
+    // B (bài không cướp quái) đứng cạnh điểm neo kéo hồn thú hoang tới sát hồn thú thử: đòn của A vướng hồn thú B đang bị đuổi quá
+    // AUTO_MOVE.stuck giây thì tự săn bỏ qua con thử AUTO_MOVE.skip giây (#266: hết 10 giây chờ mà chưa hạ, nợ kẹp -credit). Trong lúc
+    // thử, B đứng ở điểm vào trại cổng (hồn thú không lang thang tới).
+    await test(B,"goto",ar);
+    if(me(B)&&Math.hypot(me(B).x-ar.x,me(B).y-ar.y)>1) console.log(`  ⚠ B không tới được điểm vào trại cổng (${ar.x},${ar.y}), vẫn ở ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}: hồn thú hoang có thể xen vào bài nợ nhịp`);
     await test(A,"goto",home); await test(A,"clear");
     await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
     m=await autoOp(A,"on"); await test(A,"auto",{pace:4});
     const pb=(await test(A,"spawn",{tier:0,dx:40,dy:0,years:15}))?.bid;
     await quiet(()=>false,2000,[pb]); info=await test(A,"auto");
     ok(m?.on&&pb&&info?.pace>0&&info.target!==pb&&A.room.state.beasts.has(pb),`còn nợ nhịp ${info?.pace?.toFixed(1)} giây: đứng nghỉ, chưa nhắm hồn thú mới (mục tiêu ${info?.target})`);
-    ok(await quiet(()=>!A.room.state.beasts.has(pb),10000,[pb]),"hết nợ nhịp: hạ tiếp");
+    const pk=await quiet(()=>!A.room.state.beasts.has(pb),10000,[pb]);
+    ok(pk,`hết nợ nhịp: hạ tiếp${pk?"":await why(pb)}`);
     info=await test(A,"auto");
-    ok(info?.pace>0,`hạ một con: cộng thời gian tự đánh con đó vào nợ nhịp (còn ${info?.pace?.toFixed(1)} giây)`);
+    ok(info?.pace>0,`hạ một con: cộng thời gian tự đánh con đó vào nợ nhịp (còn ${info?.pace?.toFixed(1)} giây${info?.pace>0?"":`, ước lượng ${info?.est?.toFixed(1)}, mục tiêu ${info?.target}`})`);
     // Trận dài hơn AUTO_PACE.credit giây: thời gian thật đã trừ vào nợ, nên sau khi hạ nợ chỉ còn phần ước lượng vượt thời gian thật
     // (không kẹp lúc đang đánh rồi cộng nguyên ước lượng, tức không tính trận hai lần).
     await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); // cả bản đồ: không hồn thú tự nhiên nào xen vào trận
-    const lb=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:15,hpx:1000}))?.bid;
+    // Loài cắm rễ (BEAST_ROOTED, không bị đẩy lùi): hồn thú thường bị đòn của A đẩy dần ra xa, quá BEAST_LEASH.r thì bỏ đuổi chạy về
+    // chỗ sinh và tự săn thôi nhắm giữa trận (#266).
+    const lb=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:15,species:BEAST_ROOTED.ids[0],hpx:1000}))?.bid;
     let engaged=false; for(let t=0;t<5000&&lb&&!engaged;t+=250){ engaged=(await test(A,"auto"))?.target===lb; if(!engaged) await sleep(250); }
     const lt0=Date.now();
     // Đánh lâu hơn credit giây (hồn thú nhiều sinh lực), rồi hạ nốt bằng hook như đòn cuối của A; suốt trận A phải giữ mục tiêu này.
