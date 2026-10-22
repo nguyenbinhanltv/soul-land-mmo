@@ -3,6 +3,7 @@
 //   npm run bot:local -- --part <1..4> [--pg]    một nhóm BOT_PART như CI (số nhóm: BOT_PARTS trong bot-test.mjs)
 //   npm run bot:local -- --channels              lượt nhiều kênh (server CHANNEL_MAX=2)
 //   npm run bot:local -- --full [--pg]           bot đầy đủ (~25 phút)
+//   npm run bot:local -- --fatal [--pg]          lỗi nghiêm trọng ngoài phòng (#270, client/scripts/fatal-test.mjs): server lưu rồi thoát mã ≠ 0
 //   npm run bot:local -- --pg-status | --pg-stop PostgreSQL chung của máy: xem / tắt
 // Khác cách cũ (npm start + embedded-postgres riêng mỗi lượt):
 // - Server build một lần bằng esbuild (cache theo hash nguồn ở server/dist/bot-<hash>.mjs) rồi chạy `node`, không qua npm / tsx.
@@ -29,15 +30,17 @@ const secs = (t0) => `${((Date.now() - t0) / 1000).toFixed(1)} giây`;
 
 // ---------- Tham số ----------
 const argv = process.argv.slice(2);
-const opt = { only: "", part: "", pg: false, full: false, channels: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false };
+const opt = { only: "", part: "", pg: false, full: false, channels: false, fatal: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false };
 const botSrc = readFileSync(path.join(clientDir, "scripts", "bot-test.mjs"), "utf8");
 const onlyNames = [...new Set([...botSrc.matchAll(/BOT_ONLY==="(\w+)"/g)].map((m) => m[1]))];
 const partCount = Number(botSrc.match(/^const BOT_PARTS=(\d+);/m)?.[1] ?? 0);
-const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhóm> | --part 1..${partCount} | --channels | --full) [--pg] [--once] [--heap <MB>] [--env K=V]...
+const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhóm> | --part 1..${partCount} | --channels | --full | --fatal) [--pg] [--once] [--heap <MB>] [--env K=V]...
   --only     BOT_ONLY: ${onlyNames.join(", ")}
   --part     BOT_PART như job CI bot-ram
   --channels lượt nhiều kênh (server CHANNEL_MAX=2)
   --full     bot đầy đủ (~25 phút; thường để CI bot-ram chạy)
+  --fatal    lỗi nghiêm trọng ngoài phòng (#270): hook ném lỗi / promise bị từ chối không ai bắt -> server ghi log, lưu người chơi
+             đang online, thoát mã ≠ 0; với --pg bật lại server kiểm dữ liệu đã lưu
   --pg       lưu PostgreSQL (database riêng trên instance chung, xoá khi xong); server bật hai lần liên tiếp (migration chạy lại
              an toàn) rồi mới chạy bot, --once để chỉ bật một lần
   --heap     trần heap của server và bot (mặc định 768, biến BOT_HEAP_MB)
@@ -55,6 +58,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--once") opt.once = true;
   else if (a === "--full") opt.full = true;
   else if (a === "--channels") opt.channels = true;
+  else if (a === "--fatal") opt.fatal = true;
   else if (a === "--heap") opt.heap = Number(val());
   else if (a === "--env") { const e = val(); if (!/^[A-Z_][A-Z0-9_]*=/.test(e)) die(`--env cần dạng TÊN=giá trị: ${e}`); opt.env.push(e); }
   else if (a === "--pg-status" || a === "--pg-stop") pgCmd = a;
@@ -63,7 +67,7 @@ for (let i = 0; i < argv.length; i++) {
   else die(`không hiểu tham số ${a}`);
 }
 if (!pgCmd) {
-  if ([opt.only, opt.part, opt.full, opt.channels].filter(Boolean).length !== 1) die("chọn đúng một trong --only, --part, --channels, --full");
+  if ([opt.only, opt.part, opt.full, opt.channels, opt.fatal].filter(Boolean).length !== 1) die("chọn đúng một trong --only, --part, --channels, --full, --fatal");
   if (opt.only && !onlyNames.includes(opt.only)) die(`--only ${opt.only}: không có trong bot-test.mjs`);
   if (opt.part && !(/^\d+$/.test(opt.part) && +opt.part >= 1 && +opt.part <= partCount)) die(`--part chỉ nhận 1..${partCount}`);
   if (!(opt.heap >= 128)) die("--heap tối thiểu 128 (MB)");
@@ -349,7 +353,46 @@ async function startServer(port, env, log, stats) {
   return { p, ms: Date.now() - t0 };
 }
 
-const what = opt.only ? `only=${opt.only}` : opt.part ? `part=${opt.part}` : opt.channels ? "channels" : "full";
+/**
+ * --fatal (#270): mỗi kiểu lỗi (ném lỗi trong hẹn giờ ngoài phòng, promise bị từ chối không ai bắt) một lượt: fatal-test.mjs pha crash
+ * gọi hook `crash` -> server phải tự thoát mã ≠ 0, log có lỗi kèm stack và dòng đã lưu người chơi; với --pg bật lại server trên cùng
+ * database, pha verify kiểm vị trí / cấp / kinh nghiệm đã lưu. Trả số kiểm tra trượt.
+ */
+async function fatalRun(server, port, senv, env, slog, sstats, onLine) {
+  let fails = 0;
+  const check = (c, msg) => { onLine(`${c ? "✓" : "✗"} ${msg}`); if (!c) fails++; };
+  const stats = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal.json`);
+  const script = (phase, kind, file) => spawnNode(path.join(clientDir, "scripts", "fatal-test.mjs"), {
+    cwd: clientDir, env: { ...env, SERVER_URL: `http://localhost:${port}`, FATAL_PHASE: phase, FATAL_KIND: kind, FATAL_FILE: file },
+    log: slog.replace(/-server\.log$/, "-bot.log"), stats, onLine,
+  }).done;
+  for (const kind of ["throw", "reject"]) {
+    const file = path.join(os.tmpdir(), `soul-bot-${process.pid}-fatal-${kind}.json`);
+    if (!server) server = await startServer(port, senv, slog, sstats);
+    const from = statSync(slog).size;
+    check(await script("crash", kind, file) === 0, `[${kind}] pha crash của fatal-test.mjs đạt`);
+    const exit = await Promise.race([server.p.done, sleep(20_000).then(() => null)]);
+    if (exit === null) await kill(server.p);
+    server = null;
+    const log = readFileSync(slog).subarray(from).toString("utf8"); // `from` tính theo byte
+    check(exit !== null && exit !== 0, `[${kind}] server tự thoát sau lỗi, mã ${exit ?? "(không thoát sau 20 giây, đã tắt)"}`);
+    const msg = kind === "reject" ? "promise bị từ chối không ai bắt (#270)" : "lỗi cố ý ngoài phòng (#270)";
+    check(/Lỗi nghiêm trọng ngoài phòng/.test(log) && log.includes(msg) && /\n\s+at /.test(log.slice(log.indexOf(msg))),
+      `[${kind}] log server có lỗi kèm stack: ${log.match(/Lỗi nghiêm trọng ngoài phòng[^\n]*/)?.[0] ?? "(không có)"}`);
+    check(/Tắt server: đã lưu người chơi đang online, đã đóng kết nối DB; thoát mã 1/.test(log),
+      `[${kind}] log server: ${log.match(/Tắt server:[^\n]*/)?.[0] ?? "(không có dòng tắt server)"}`);
+    if (opt.pg) {
+      server = await startServer(port, senv, slog, sstats);
+      check(await script("verify", kind, file) === 0, `[${kind}] PostgreSQL: dữ liệu đã lưu trước khi thoát`);
+    }
+    rmSync(file, { force: true });
+  }
+  if (server) await kill(server.p);
+  rmSync(stats, { force: true });
+  return fails;
+}
+
+const what = opt.only ? `only=${opt.only}` : opt.part ? `part=${opt.part}` : opt.channels ? "channels" : opt.fatal ? "fatal" : "full";
 const label = `${what}${opt.pg ? " pg" : ""}`;
 let build;
 let code = 1;
@@ -383,26 +426,33 @@ try {
     console.log(`[bot-local ${label}] server bật lần 2 (migration chạy lại) sẵn sàng sau ${server.ms} ms, cổng ${port}`);
   } else console.log(`[bot-local ${label}] server sẵn sàng sau ${server.ms} ms, cổng ${port}`);
 
-  const benv = { ...env, SERVER_URL: `http://localhost:${port}` };
-  if (opt.only) benv.BOT_ONLY = opt.only;
-  if (opt.part) benv.BOT_PART = opt.part;
-  for (const e of opt.env) if (e.startsWith("MAP_V1=")) benv.MAP_V1 = e.slice(7); // bot cần cùng bản đồ với server
-  const n = { "✓": 0, "✗": 0, "⚠": 0 };
-  const tBot = Date.now();
-  const bot = spawnNode(path.join(clientDir, "scripts", "bot-test.mjs"), {
-    cwd: clientDir, env: benv, log: blog, stats: bstats,
-    onLine: (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; },
-  });
-  let serverDied = false;
-  server.p.done.then(() => { if (bot.exitCode === null) { serverDied = true; console.log("✗ server chết trong lúc chạy bot"); kill(bot); } });
-  code = await bot.done;
-  if (serverDied) { code = 1; console.log(`---- log server (60 dòng cuối, đầy đủ ở ${slog}) ----\n${tail(slog, 60)}`); }
-  await kill(server.p);
-  const ss = readStats(sstats), bs = readStats(bstats);
-  rmSync(sstats, { force: true }); rmSync(bstats, { force: true });
-  console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : `TRƯỢT (mã ${code})`}: ✓ ${n["✓"]}, ✗ ${n["✗"]}, ⚠ ${n["⚠"]}; bot ${secs(tBot)}, tổng ${secs(tAll)}`);
-  console.log(`[bot-local ${label}] RAM đỉnh: server RSS ${ss ? mb(ss.rss) : "?"} (heap ${ss ? mb(ss.heap) : "?"}), bot RSS ${bs ? mb(bs.rss) : "?"}; trần heap ${opt.heap} MB`);
-  console.log(`[bot-local ${label}] log: ${path.relative(root, slog)}, ${path.relative(root, blog)}`);
+  if (opt.fatal) {
+    const n = { "✓": 0, "✗": 0 };
+    const fails = await fatalRun(server, port, senv, env, slog, sstats, (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; });
+    code = fails || n["✗"] ? 1 : 0;
+    console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : "TRƯỢT"}: ✓ ${n["✓"]}, ✗ ${n["✗"]}; tổng ${secs(tAll)}; log: ${path.relative(root, slog)}`);
+  } else {
+    const benv = { ...env, SERVER_URL: `http://localhost:${port}` };
+    if (opt.only) benv.BOT_ONLY = opt.only;
+    if (opt.part) benv.BOT_PART = opt.part;
+    for (const e of opt.env) if (e.startsWith("MAP_V1=")) benv.MAP_V1 = e.slice(7); // bot cần cùng bản đồ với server
+    const n = { "✓": 0, "✗": 0, "⚠": 0 };
+    const tBot = Date.now();
+    const bot = spawnNode(path.join(clientDir, "scripts", "bot-test.mjs"), {
+      cwd: clientDir, env: benv, log: blog, stats: bstats,
+      onLine: (l) => { console.log(l); for (const k of Object.keys(n)) if (l.trimStart().startsWith(k)) n[k]++; },
+    });
+    let serverDied = false;
+    server.p.done.then(() => { if (bot.exitCode === null) { serverDied = true; console.log("✗ server chết trong lúc chạy bot"); kill(bot); } });
+    code = await bot.done;
+    if (serverDied) { code = 1; console.log(`---- log server (60 dòng cuối, đầy đủ ở ${slog}) ----\n${tail(slog, 60)}`); }
+    await kill(server.p);
+    const ss = readStats(sstats), bs = readStats(bstats);
+    rmSync(sstats, { force: true }); rmSync(bstats, { force: true });
+    console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : `TRƯỢT (mã ${code})`}: ✓ ${n["✓"]}, ✗ ${n["✗"]}, ⚠ ${n["⚠"]}; bot ${secs(tBot)}, tổng ${secs(tAll)}`);
+    console.log(`[bot-local ${label}] RAM đỉnh: server RSS ${ss ? mb(ss.rss) : "?"} (heap ${ss ? mb(ss.heap) : "?"}), bot RSS ${bs ? mb(bs.rss) : "?"}; trần heap ${opt.heap} MB`);
+    console.log(`[bot-local ${label}] log: ${path.relative(root, slog)}, ${path.relative(root, blog)}`);
+  }
 } catch (e) {
   console.error(`✗ [bot-local ${label}] ${e.message}`);
   code = 1;

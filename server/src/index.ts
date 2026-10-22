@@ -121,7 +121,8 @@ if (existsSync(dist)) app.use(express.static(dist));
 const server = http.createServer(app);
 // Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
 const presence = new LocalPresence();
-const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
+// gracefullyShutdown: false: Colyseus không tự gắn uncaughtException / tín hiệu tắt; việc tắt server chỉ do `shutdown` dưới đây (#270).
+const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence, gracefullyShutdown: false });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
@@ -131,6 +132,48 @@ gameServer.define("arena", ArenaRoom);
 // joinOrCreate khi mọi kênh đầy, sân đấu chỉ do server mở (arenaQueue.ts, matchMaker.createRoom). Chặn tự mở kênh riêng (#164); còn
 // joinOrCreate / joinById giữ chỗ trước khi kiểm token: #235.
 matchMaker.controller.exposedMethods = ["joinOrCreate", "join", "joinById", "reconnect"];
+
+/** Hạn giờ khi tắt server (ms): lưu người chơi đang online (rời mọi phòng), rồi đóng kết nối PostgreSQL. */
+const SHUTDOWN_SAVE_MS = 8000, SHUTDOWN_DB_MS = 2000;
+let stopping: Promise<void> | null = null;
+/** Chờ `p` tối đa `ms` mili giây; quá giờ hoặc lỗi thì ghi log rồi đi tiếp (đang tắt server, không chờ mãi). */
+const within = async (what: string, p: () => Promise<unknown>, ms: number) => {
+  let timer: NodeJS.Timeout | undefined;
+  const late = new Promise<"late">((r) => { timer = setTimeout(() => r("late"), ms); });
+  const r = await Promise.race([p().then(() => "ok" as const, (e) => { console.error(`${what}: lỗi`, e); return "err" as const; }), late]);
+  clearTimeout(timer);
+  if (r === "late") console.error(`${what}: quá ${ms} ms, bỏ qua.`);
+  return r === "ok";
+};
+/**
+ * Tắt server có kiểm soát (một lần): rời mọi phòng như khi người chơi thoát (onLeave / onDispose của MapRoom ghi lần cuối qua chuỗi lưu
+ * this.chain), đóng PostgreSQL, rồi process.exit(code) để trình quản lý tiến trình (pm2, nền tảng deploy) khởi động lại khi code ≠ 0.
+ */
+function shutdown(code: number, why: string) {
+  stopping ??= (async () => {
+    process.exitCode = code;
+    const online = matchMaker.stats.local.ccu;
+    console.error(`Đang tắt server (${why}): lưu ${online} người chơi đang online, hạn ${SHUTDOWN_SAVE_MS} ms…`);
+    const saved = await within("Lưu người chơi đang online", () => gameServer.gracefullyShutdown(false), SHUTDOWN_SAVE_MS);
+    const closed = await within("Đóng kết nối PostgreSQL", () => store.close(), SHUTDOWN_DB_MS);
+    console.error(`Tắt server: ${saved ? "đã lưu" : "CHƯA lưu xong"} người chơi đang online, ${closed ? "đã đóng" : "chưa đóng"} kết nối DB; thoát mã ${code}.`);
+    process.exit(code);
+  })();
+}
+/**
+ * Lỗi bất ngờ ngoài mọi phòng (hẹn giờ / callback của Node, promise bị từ chối không ai bắt): ghi log đầy đủ rồi thoát có kiểm soát,
+ * không nuốt lỗi chạy tiếp (trạng thái tiến trình có thể đã hỏng). Lỗi trong handler / hẹn giờ / tick của phòng do
+ * MapRoom.onUncaughtException xử lý (phòng chạy tiếp) nên không tới đây. @pm2/io (phụ thuộc gián tiếp của @colyseus/core, nạp khi server
+ * bật) cũng gắn handler hai sự kiện này sau handler ở đây: nó chỉ in lại lỗi, không tự thoát vì đã có handler khác.
+ */
+function fatal(kind: string, err: unknown) {
+  console.error(`Lỗi nghiêm trọng ngoài phòng (${kind})${stopping ? " trong lúc đang tắt server" : ""}:`, err);
+  shutdown(1, kind);
+}
+process.on("uncaughtException", (err, origin) => fatal(origin, err));
+process.on("unhandledRejection", (reason) => fatal("unhandledRejection", reason));
+// Tắt bình thường (Ctrl+C, nền tảng deploy dừng / khởi động lại, nodemon): lưu như trên rồi thoát mã 0.
+for (const sig of ["SIGINT", "SIGTERM", "SIGUSR2"] as const) process.once(sig, () => shutdown(0, sig));
 
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
 for (const id of Object.keys(MAPS)) loadMap(id);

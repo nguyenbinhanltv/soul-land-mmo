@@ -109,6 +109,8 @@ function bagOk(b: Bag) {
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
   init(): Promise<void>;
+  /** Đóng kết nối DB khi tắt server (index.ts, sau lần lưu cuối của mọi người chơi đang online; #270). */
+  close(): Promise<void>;
   /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. `created`: lần này vừa tạo tài khoản (giới
    *  hạn tạo tài khoản mới theo IP, #207). `create` false (IP hết lượt tạo): tên chưa có thì không tạo, trả lỗi kèm `noCreate`. */
   login(name: string, password: string, create?: boolean):
@@ -317,6 +319,7 @@ export class MemoryStore implements Store {
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
+  async close() {}
   async login(name: string, password: string, create = true) {
     const key = nameKey(name);
     let acc = this.accounts.get(key), created = false;
@@ -568,6 +571,8 @@ export class PgStore implements Store {
     }
     console.log("✓ Đã kết nối PostgreSQL và cập nhật bảng.");
   }
+  /** Chờ các truy vấn đang chạy xong rồi đóng mọi kết nối của pool. */
+  async close() { await this.pool.end(); }
   /**
    * Điền accounts.name_key (cột thêm ở 004_account_name_key.sql) cho tài khoản chưa có. Tính bằng nameKey trong JS,
    * không bằng SQL, để khớp tuyệt đối với login() và rate limit. Chạy mỗi lần khởi động, chỉ đụng dòng name_key IS NULL.
