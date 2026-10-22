@@ -7,7 +7,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, FUSIONS } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -40,7 +40,7 @@ interface PView {
   face: Dir8;                               // hướng nhìn 8 phía trên màn hình (bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng, 10.1)
   body: Sprite; outfit: Sprite; hair: Sprite; vb: Sprite; vf: Sprite;
   ringsB: Phaser.GameObjects.Container; ringsF: Phaser.GameObjects.Container;
-  label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text;
+  label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text; tongT: Phaser.GameObjects.Text; // tongT: tên tông môn dưới tên (#196)
   looks: string; vh: number; rings: string; playing: string;
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
@@ -839,6 +839,7 @@ export class GameScene extends Phaser.Scene {
         combat: () => this.combat,
         quest: (op, chain) => this.room.send("quest", chain ? { op, chain } : { op }),
         arena: (op) => this.room.send("arena", { op }), // 7.2: xếp hàng / hủy / bảng xếp hạng
+        tong: (op, tong) => this.room.send("tong", { op, tong }), // #196: gia nhập / đổi / rời tông môn
       });
     });
     // Đại Đấu Hồn Trường (7.2): server báo đang xếp hàng, đã ghép trận (vào phòng sân đấu), các pha của trận và kết quả.
@@ -876,6 +877,7 @@ export class GameScene extends Phaser.Scene {
       else if (m.ev === "ready") this.audio.play("quest_ready");
       else if (m.ev === "reward" || m.ev === "finish") { this.audio.play("quest_reward"); this.audio.music?.jingle("quest_complete"); }
     });
+    this.room.onMessage("tong", (m: { tong: string; wait: number }) => { if (m && typeof m.tong === "string") hud.setTong(m); }); // #196
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
     this.room.onMessage("daily", (m: DailyMsg) => {
       if (!m || !Array.isArray(m.list)) return;
@@ -1745,12 +1747,16 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "6px", fontStyle: "700",
           color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { root, wx: p.x, wy: p.y, face: "s", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, looks: "", vh: -1, rings: "", playing: "",
+        const tongT = this.add.text(at.x, at.y - HEAD, "", {
+          fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "5.5px", fontStyle: "700",
+          color: "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
+        }).setOrigin(0.5, 1).setDepth(99985);
+        v = { root, wx: p.x, wy: p.y, face: "s", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, rings: "", playing: "",
           act: null, hurtT: -1e9, lit: null, ringY: [], fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
-      const { root, label, title } = v;
+      const { root, label, title, tongT } = v;
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng (honsuAnimKey).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
@@ -1783,21 +1789,25 @@ export class GameScene extends Phaser.Scene {
       this.animatePlayer(v, p, time, walk, spd);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
-      if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); }
+      if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); tongT.setAlpha(a); }
       // Võ Hồn Chân Thân (8.1a): phóng to dần (bộ sprite riêng làm sau, mục 5.11); hào quang vẽ trong drawStatus.
       const sc = (p.ava > 0 && !p.dead ? CHAN_THAN_SCALE : 1) * SPR;
       if (root.scale !== sc) root.setScale(Math.abs(sc - root.scale) < 0.01 ? sc : root.scale + (sc - root.scale) * lerp);
       const up = (root.scale - SPR) * 30;
-      if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); }
-      label.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); tongT.setScale(this.txtK); }
+      // Tên tông (#196) ngay trên đầu, tên và danh hiệu dịch lên một dòng khi có tông.
+      const tg = tongByIndex(p.tong), tu = tg ? 7 * this.txtK : 0;
+      tongT.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up).setVisible(!!tg && !p.dead).setText(tg?.name ?? "");
+      if (tg && tongT.style.color !== tg.col) tongT.setColor(tg.col);
+      label.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up - tu).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
       // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
       const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
-      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · Tự động` : titleOf(p.level));
+      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up - tu).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · Tự động` : titleOf(p.level));
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
-    for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); this.players.delete(id); }
+    for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); this.players.delete(id); }
     const meS = this.ghost && st.players.get(this.me);
     if (meS) { const s = W2S(meS.x, meS.y); this.ghost!.clear().lineStyle(1, 0xff4040, 1).strokeRect(s.x - 6 * SPR, s.y - 22 * SPR, 12 * SPR, 24 * SPR); }
 
