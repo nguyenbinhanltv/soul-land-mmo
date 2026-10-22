@@ -836,7 +836,7 @@ export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
   { id: "flood", name: "Vùng ngập", col: "#3a8cff" },
   { id: "whirl", name: "Xoáy nước", col: "#bfe6ff" },
   { id: "ice", name: "Nửa hang băng", col: "#8fdcff" },
-  { id: "fire", name: "Nửa hang lửa", col: "#ffa040" },
+  { id: "fire", name: "Nửa hang lửa", col: "#f0a040" },
   { id: "web", name: "Tơ nhện", col: "#e8e4f0" },
 ];
 export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; warn?: number; pull?: number; once?: StatusApply[]; }
