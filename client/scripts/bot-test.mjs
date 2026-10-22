@@ -6913,7 +6913,7 @@ async function arenaTest(){
     const l=E.logs.length, n=E.aqN, got=()=>E.logs.slice(l), has=re=>got().some(x=>re.test(x));
     E.room.send("arena",{op:"queue"}); E.aqAt=Date.now(); await sleep(150);
     E.room.send("arena",{op:"cancel"}); E.room.send("arena",{op:"queue"});
-    await waitFor(()=>E.aqN>=n+3,ms+3000); await sleep(1500);
+    await waitFor(()=>E.aqN>=n+3,ms+3000); await sleep(1500); await test(E,"aslow",{ms:0});
     ok(F.aq.on&&!E.aq.on&&!found(E)&&!found(F)&&!has(/Đang tìm đối thủ/)&&has(/hủy/)&&has(/quá nhanh/),
       `hủy trong lúc đọc Elo (chậm ${ms} ms): đọc xong không vào hàng chờ, không bị ghép với F (${got().join(" | ")})`);
     t=await aop(F,"cancel"); ok(/hủy/.test(t),"F vẫn chờ một mình, hủy"); }
