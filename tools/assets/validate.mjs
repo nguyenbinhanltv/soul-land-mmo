@@ -11,14 +11,14 @@
 //       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung; chân dung (portrait_{id}) quá PORTRAIT_MAX_COLORS màu
 //       (chân dung không theo bảng chung), vật đứng (prop_{vật}) cạnh không chia hết cho ISO_PROP_STEP hoặc màu ngoài
 //       bảng chung + bảng nhấn art/palettes/*.gpl; hiệu ứng (fx_{tên}) không phải dải một hàng, có khung trống hoặc quá
-//       PORTRAIT_MAX_COLORS màu; chân dung NPC (npc_{mã}) / biểu tượng vật phẩm (item_{mã}) mã không có trong NPCS / ITEMS. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
+//       PORTRAIT_MAX_COLORS màu; chân dung NPC (npc_{mã}) / biểu tượng vật phẩm (item_{mã}) / chân dung hồn thú (thu_{loài}) mã không có trong NPCS / ITEMS / BEASTS. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
 // Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
 //       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc (y = 30; isometric y = 58);
 //       isometric: idle cả 4 khung giống nhau (chưa --breathe), chân hồn thú không chạm dòng gốc.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, statusIds, heIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -31,7 +31,7 @@ const entryKey = (e) => (typeof e === "string" ? e : e.key);
 const allowed = allowedColors(), withAccents = new Set([...allowed, ...accentColors()]);
 // Tóc/áo: 4 xám để hoán màu + viền ngoài #1a1020 (màu thứ 5, giữ nguyên khi hoán màu).
 const grayOnly = new Set([...GRAY_RAMP, OUTLINE]);
-let errors = 0, warns = 0, npcIds_, itemIds_, statusIds_, heIds_;
+let errors = 0, warns = 0, npcIds_, itemIds_, statusIds_, heIds_, beastIds_;
 const feet = new Map(); // "bộ:hàng" → { low: dòng thấp nhất của idle khung đầu (3 lớp của bộ giới × kiểu tóc), want: dòng gốc }
 const err = (k, m) => { errors++; console.error(`[validate] LỖI ${k}: ${m}`); };
 const warn = (k, m) => { warns++; console.warn(`[validate] cảnh báo ${k}: ${m}`); };
@@ -86,6 +86,7 @@ function check(key, frame, iso = false, map = "", nine = 0) {
   if (free && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : "chân dung"} tối đa ${PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
+  if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
   if (spec.he && !(heIds_ ??= heIds()).has(spec.he)) err(key, `không có hệ "${spec.he}" trong HE_IDS (shared/data.ts)`);
   if (spec.item && !(itemIds_ ??= itemIconIds()).has(spec.item)) err(key, `không có vật phẩm "${spec.item}" trong ITEMS / hồn cốt theo BONE_SLOTS (shared/data.ts)`);
   if (bad.size) err(key, `${bad.size} màu ngoài bảng${palette === grayOnly ? " (tóc/áo chỉ dùng dải 4 xám + viền)" : ""}: ` +
@@ -161,7 +162,10 @@ function checkIso(key, spec, img, at, fw, fh) {
 // ---------- Đăng ký key mới ----------
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
+  // Git trên Windows (core.autocrlf) có thể checkout file với CRLF: tách dòng chịu cả hai, ghi lại đúng kiểu xuống dòng của file.
   let md = readFileSync(credits, "utf8");
+  const eol = md.includes("\r\n") ? "\r\n" : "\n";
+  md = md.replace(/\r\n/g, "\n");
   // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" thì ghi vào mục đó, còn lại mục PixelLab.
   const comfy = /comfyui/i.test(tool), gemini = !comfy && /gemini/i.test(tool);
   const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
@@ -186,7 +190,7 @@ function upsertCredits(key, file) {
     while (j < lines.length && lines[j].startsWith("|")) j++;
     lines.splice(j, 0, row);
   }
-  writeFileSync(credits, lines.join("\n"));
+  writeFileSync(credits, lines.join(eol));
 }
 
 if (register) {
