@@ -8,7 +8,7 @@ import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
-  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX,
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
@@ -264,9 +264,15 @@ function resonanceEntry(accountId: number, name: string, vohons: { level: number
   const value = resonanceRankValue(prog, levels, vohons.reduce((s, v) => s + Math.max(0, Math.floor(v.stars) - 1), 0));
   return value.score ? { accountId, name, ...value } : null;
 }
+// Bảng đã sắp xếp dùng chung mọi phòng / cả hai Store, hết hạn sau RESONANCE_RANK_CACHE giây; yêu cầu đến lúc đang tính dùng chung một Promise.
+let resonanceCache: { at: number; all: ResonanceTopEntry[] } | null = null, resonanceBusy: Promise<ResonanceTopEntry[]> | null = null;
+async function resonanceRanking(compute: () => Promise<ResonanceTopEntry[]>): Promise<ResonanceTopEntry[]> {
+  if (resonanceCache && Date.now() - resonanceCache.at < RESONANCE_RANK_CACHE * 1000) return resonanceCache.all;
+  resonanceBusy ??= compute().then((all) => { all.sort(resonanceRankCompare); resonanceCache = { at: Date.now(), all }; return all; }).finally(() => { resonanceBusy = null; });
+  return resonanceBusy;
+}
 function resonancePage(all: ResonanceTopEntry[], page: number, pageSize: number, accountId: number): ResonanceTopResult {
   const p = Math.max(1, Math.floor(page) || 1), size = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, Math.floor(pageSize) || RESONANCE_RANK_PAGE_SIZE));
-  all.sort(resonanceRankCompare);
   const at = all.findIndex((x) => x.accountId === accountId), start = (p - 1) * size;
   const me = at < 0 ? null : { score: all[at].score, milestones: all[at].milestones, progressBp: all[at].progressBp, extraStars: all[at].extraStars, rank: at + 1 };
   return { page: p, pageSize: size, total: all.length, hasNext: start + size < all.length, list: all.slice(start, start + size), me };
@@ -487,12 +493,12 @@ export class MemoryStore implements Store {
     return { list: all.slice(0, n).map(rec), me: mine ? { elo: mine.elo, wins: mine.wins, losses: mine.losses, draws: mine.draws, rank: at + 1 } : null };
   }
   async resonanceTop(page: number, pageSize: number, accountId: number) {
-    const all = [...this.names].map(([id, name]) => {
+    const all = await resonanceRanking(async () => [...this.names].map(([id, name]) => {
       const vohons = this.owned(id).map((v) => ({ level: v.level, rings: v.rings.length, stars: v.stars }));
       const worn = (this.bags.get(id)?.items ?? []).filter((i) => i.vohonId !== null);
       return resonanceEntry(id, name, vohons, worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
         worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
-    }).filter((x): x is ResonanceTopEntry => !!x);
+    }).filter((x): x is ResonanceTopEntry => !!x));
     return resonancePage(all, page, pageSize, accountId);
   }
   async arenaPairCount(day: string, a: number, b: number) { return this.pairs.get(pairKey(day, a, b)) ?? 0; }
@@ -936,6 +942,10 @@ export class PgStore implements Store {
       me: me.rowCount ? { ...arenaRow(me.rows[0]), rank: Number(me.rows[0].rank) } : null };
   }
   async resonanceTop(page: number, pageSize: number, accountId: number) {
+    const all = await resonanceRanking(() => this.resonanceAll());
+    return resonancePage(all, page, pageSize, accountId);
+  }
+  private async resonanceAll(): Promise<ResonanceTopEntry[]> {
     const [accounts, vohons, items] = await Promise.all([
       this.pool.query("SELECT id, name FROM accounts ORDER BY id"),
       this.pool.query("SELECT account_id, level, rings, stars FROM vohons ORDER BY id"),
@@ -950,13 +960,12 @@ export class PgStore implements Store {
       const id = Number(i.account_id), list = byItem.get(id) ?? [];
       list.push({ code: String(i.code), enhance: Number(i.enhance ?? 0), stars: i.stars == null ? null : Number(i.stars) }); byItem.set(id, list);
     }
-    const all = accounts.rows.map((a) => {
+    return accounts.rows.map((a) => {
       const worn = byItem.get(Number(a.id)) ?? [];
       return resonanceEntry(Number(a.id), String(a.name), byVohon.get(Number(a.id)) ?? [],
         worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
         worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
     }).filter((x): x is ResonanceTopEntry => !!x);
-    return resonancePage(all, page, pageSize, accountId);
   }
   async arenaPairCount(day: string, a: number, b: number) {
     const r = await this.pool.query("SELECT n FROM arena_pairs WHERE day=$1::date AND a=$2 AND b=$3", [day, Math.min(a, b), Math.max(a, b)]);
