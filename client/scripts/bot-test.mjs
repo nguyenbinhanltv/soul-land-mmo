@@ -9603,8 +9603,10 @@ async function tideTest(){
     // Nước đợt cũ còn tác dụng tới lúc đợt mới hết báo trước: đứng trong vùng mới, xa hẳn mọi vùng ngập cũ và mọi xoáy mới.
     const far=p=>Math.min(...prev.map(q=>d2(p,q))), cand=[];
     for(let dx=-32;dx<=32;dx+=4) for(let dy=-32;dy<=32;dy+=4){ const p={x:calm.x+dx,y:calm.y+dy}; if(d2(p,calm)<=TD.flood.r-8&&far(p)>TD.flood.r+8&&wh.every(w=>d2(p,w)>TD.whirl.r+6)) cand.push(p); }
-    cand.sort((a,b)=>far(b)-far(a)); let st0=null; for(const p of cand.slice(0,12)) if(await go(p.x,p.y)){ st0=p; break; }
-    ok(calm&&st0,`F đứng trong vùng ngập không xoáy của đợt mới, cách vùng ngập cũ ${st0?far(st0).toFixed(0):"?"} (${st0?.x},${st0?.y})`);
+    cand.sort((a,b)=>far(b)-far(a)); let st0=null, tried=0; for(const p of cand.slice(0,12)){ tried++; if(await go(p.x,p.y)){ st0=p; break; } }
+    const xy=q=>`${q.x.toFixed(0)},${q.y.toFixed(0)}`;
+    ok(calm&&st0,`F đứng trong vùng ngập không xoáy của đợt mới, cách vùng ngập cũ ${st0?far(st0).toFixed(0):"?"} (${st0?.x},${st0?.y})`+(st0?"":
+      ` [${cand.length} chỗ thỏa, thử ${tried} chỗ không đứng được; vùng ngập không xoáy ${calm?xy(calm):"không có"}, xoáy ${wh.map(xy).join(" ")}, tâm đợt cũ ${prev.map(xy).join(" ")}]`));
     await waitFor(()=>!has("flood"),FL.secs*1000+500); // Ngập nước còn lại từ lúc đứng trong nước đợt cũ
     let g=await test(F,"tide"), zc=g.grounds.find(z=>z.id===calm?.id);
     if(zc?.wait>0) ok(!g.st.flood&&g.slow===0,`đang báo trước (còn ${zc.wait.toFixed(2)} giây): chưa bị ${FL.name}`);
