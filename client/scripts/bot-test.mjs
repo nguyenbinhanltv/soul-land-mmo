@@ -5487,6 +5487,12 @@ async function sellTest(){
   ok(loose().find(i=>i.id===lk?.id)?.lock===true&&/Đã khoá/.test(t),`khoá hồn hoàn 300 năm (${t})`);
   { const l=S.logs.length; S.room.send("discard",{id:lk.id}); await waitFor(()=>S.logs.length>l,1500);
     ok(loose().some(i=>i.id===lk.id)&&/đang khoá/.test(S.logs.at(-1)??""),`món khoá không bỏ được (${S.logs.at(-1)})`); }
+  // Đồ gộp được mới vào túi không gộp vào ô khoá (addItem / bagRoom / bagFits cùng luật): khoá chồng đan khởi đầu rồi nhận thêm 1 viên.
+  { const pot=loose().find(i=>i.code==="hoi_huyet_dan"), q0=pot?.qty;
+    await trade(S,"lock",{id:pot?.id}); await test(S,"give",{code:"hoi_huyet_dan",qty:1});
+    const pots=loose().filter(i=>i.code==="hoi_huyet_dan");
+    ok(pots.length===2&&pots.find(i=>i.id===pot.id)?.qty===q0&&pots.find(i=>i.id===pot.id)?.lock&&pots.some(i=>i.id!==pot.id&&i.qty===1&&!i.lock),
+      `chồng ${q0} Hồi Huyết Đan đang khoá: viên mới vào ô riêng không khoá`); }
   // ---- Bật tự bán, lấp túi tới dưới AUTO_SELL_FREE ô trống ----
   ok(await setSell(cfg)&&S.bag.sell.on&&free()>=AUTO_SELL_FREE&&S.bag.honTe===0,`bật tự bán khi túi còn ${free()} ô trống: chưa bán gì`);
   await test(S,"give",{code:RING_ITEM,qty:1,years:AUTO_SELL_GUARD}); // vạn năm: không bán (chưa bật `high`)

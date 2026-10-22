@@ -1868,14 +1868,14 @@ export class MapRoom extends Room<MapState> {
     return !hit ? null : was !== "ready" && questStatus(q) === "ready" ? "ready" : "hit";
   }
 
-  /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy trước, rồi mở ô mới như addItem). */
+  /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy, không khoá, trước, rồi mở ô mới như addItem). */
   bagFits(d: PData, items: { code: string; qty: number }[]) {
     const need = new Map<string, number>();
     for (const it of items) need.set(it.code, (need.get(it.code) ?? 0) + it.qty);
     let slots = 0;
     for (const [code, qty] of need) {
       const def = itemDef(code); if (!def) return false;
-      const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null ? Math.max(0, def.stack - it.qty) : 0), 0);
+      const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null && !it.locked ? Math.max(0, def.stack - it.qty) : 0), 0);
       slots += Math.ceil(Math.max(0, qty - part) / def.stack);
     }
     return bagUsed(d.bag) + slots <= d.bagSlots;
