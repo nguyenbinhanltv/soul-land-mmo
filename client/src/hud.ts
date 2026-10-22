@@ -372,7 +372,10 @@ export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string;
   const f = FUSIONS[fusPend.i];
   el.querySelector(".ft")!.textContent = `${f.icon} Dung hợp kỹ ${f.name}`;
   el.querySelector(".ft")!.appendChild(document.createElement("small")).textContent = ask ? `${fusPend.who} mời hưởng ứng` : `Chờ ${fusPend.who} hưởng ứng`;
-  el.querySelector("button")?.addEventListener("pointerdown", (e) => { e.preventDefault(); join?.(); });
+  // pointerdown cho chuột / chạm (nhanh, như nút cổng); click cho bàn phím / trình đọc màn hình. fusionOp chặn gửi hai lần.
+  const btn = el.querySelector("button");
+  btn?.addEventListener("pointerdown", (e) => { e.preventDefault(); join?.(); });
+  btn?.addEventListener("click", () => join?.());
   el.hidden = false;
   updateFusion();
 }
@@ -389,12 +392,11 @@ export function updateFusion() {
     if (fusLabel.textContent !== txt) fusLabel.textContent = txt;
   }
   if (!fusPend) return;
-  const left = Math.max(0, fusPend.end - now), sec = (left / 1000).toFixed(1).replace(".", ",");
+  const left = Math.max(0, fusPend.end - now), sec = (left / 1000).toFixed(1).replace(".", ","), el = $("#fusion");
+  (el.querySelector(".bar i") as HTMLElement).style.width = (left / fusPend.ms) * 100 + "%"; // mỗi khung hình: thanh co mượt
   const txt = `còn ${sec} giây`;
   if (txt === fusTxt) return;
-  fusTxt = txt; const el = $("#fusion");
-  el.querySelector("small.left")!.textContent = txt;
-  (el.querySelector(".bar i") as HTMLElement).style.width = (left / fusPend.ms) * 100 + "%";
+  fusTxt = txt; el.querySelector("small.left")!.textContent = txt;
 }
 /** Phím Võ Hồn Chân Thân (8.1a, chờ chốt): R, không trùng phím nào đang dùng. */
 export const AVA_KEY = "R";
