@@ -590,7 +590,9 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   // Từ #116: Đóng băng (chỉ có trên hồn sư, chiêu băng của hồn thú gây).
   "freeze",
   // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
-  "chill"] as const;
+  "chill",
+  // Từ #174: Ngập nước (chỉ có trên hồn sư, vùng ngập Thủy Triều Dâng của Tà hóa Thâm Hải Ma Kình Vương, BossPhase.tide).
+  "flood"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -637,6 +639,9 @@ export const STATUS: Record<StatusId, StatusDef> = {
   // Từ #163 (thiết kế gốc đã chốt): tầng Hàn của Cực Hàn tự nó không gây gì; đủ 4 tầng thì bùng phát thành Đóng băng 3 giây. Tầng chỉ
   // mất theo luật Cực Hàn (Hỏa Đàn, thanh tẩy, rời hang, cả đội gục, thú vương bị hạ / rút đi; server/src/rooms/cold.ts), không tự hết giờ.
   chill:   st("Hàn",       "#d8f2ff", Infinity, 4, { burst: { s: "freeze", secs: 3 } }),
+  // Từ #174 (thiết kế gốc đã chốt "vùng ngập làm chậm 50%"): Làm chậm của vùng ngập, cộng với Làm chậm khác tới SLOW_CAP. Vùng ngập gây
+  // lại mỗi nhịp (TideDef.flood) với thời gian ngắn nên ra khỏi nước là hết ngay sau đó.
+  flood:   st("Ngập nước", "#4aa8ff", 0.5, 1, { slow: 0.5 }),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -654,13 +659,17 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill", "flood"];
 /**
  * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
  * bằng PvP riêng để #113).
  */
-export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill"];
-/** Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là Choáng). */
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood"];
+/**
+ * Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là
+ * Choáng). Ngập nước (#174) không có kháng: đứng trong nước là chậm (vùng gây lại mỗi nhịp; rút ngắn thời gian vốn đã ngắn hơn nhịp chỉ
+ * làm trạng thái nhấp nháy).
+ */
 export const RESIST_AS: Partial<Record<StatusId, StatusId>> = { freeze: "stun", charm: "stun" };
 /**
  * Hồn sư bị Mê hoặc (#116): server tự đi bộ × `spd` tới một điểm ngẫu nhiên cách chỗ bị Mê hoặc tối đa `r` pixel mỗi trục, đổi điểm
@@ -808,14 +817,20 @@ export interface EggDef { species: string; n: number; per: number; secs: number;
  * đứng trong vùng (teleHits) bị gây `status`; ra khỏi vùng thì thôi nhận. Không gây cho người đã gục, đang đi cổng, đứng trong vùng an
  * toàn, đang miễn sát thương. Vùng mất khi hết giờ hoặc khi hồn thú gây ra bị hạ / rời bản đồ. `kind`: kiểu vùng (GROUND_KINDS: tên, màu client vẽ; không
  * dùng đỏ vì đỏ dành cho vùng báo trước).
+ * Từ #174 (vùng ngập, xoáy nước của Thủy Triều Dâng, TideDef):
+ * - `warn`: vùng hiện trước ngần ấy giây ở dạng báo trước (nước sắp dâng), chưa gây gì; `secs` tính từ lúc hết báo trước.
+ * - `pull`: hồn sư đứng trong vùng bị kéo về tâm vùng ngần ấy pixel mỗi giây (mỗi nhịp server, không theo `every`), dừng khi vướng, tới
+ *   tâm hoặc sắp vào vùng an toàn; cùng điều kiện như gây trạng thái (không kéo người đã gục, đang đi cổng, đang miễn sát thương).
  */
-export type GroundKind = "pool" | "mist";
+export type GroundKind = "pool" | "mist" | "flood" | "whirl";
 /** Kiểu vùng lưu lại; chỉ số trong mảng đồng bộ ở `GroundState.kind`, thêm kiểu mới vào cuối. */
 export const GROUND_KINDS: { id: GroundKind; name: string; col: string }[] = [
   { id: "pool", name: "Vũng độc", col: "#9be23a" },
   { id: "mist", name: "Sương độc", col: "#c8f5b4" },
+  { id: "flood", name: "Vùng ngập", col: "#3a8cff" },
+  { id: "whirl", name: "Xoáy nước", col: "#bfe6ff" },
 ];
-export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; }
+export interface GroundDef { kind: GroundKind; secs: number; every?: number; status: StatusApply[]; warn?: number; pull?: number; }
 /** Nhịp gây trạng thái mặc định của vùng lưu lại (giây). */
 export const GROUND_TICK = 1;
 /** Tối đa vùng lưu lại cùng lúc trong một phòng (chống phình state); vượt thì bỏ vùng cũ nhất. */
@@ -988,7 +1003,7 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  * có `years` riêng (BĐ6d: Hải Thần Đảo 100.000 năm là mức của hồn thú thường đỏ, thú vương 95.000 năm theo 5.4; xem kingYears);
  * `phase2`: giai đoạn 2 khi máu còn KING.phaseHp (tên, mô tả, hệ số tốc độ, chiêu thêm vào `skills`).
  */
-export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; }
+export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; tide?: TideDef; }
 /**
  * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): từ khi hết tiếng gầm chuyển giai đoạn,
  * mọi hồn sư đang tham gia trong hang (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
@@ -997,6 +1012,17 @@ export interface BossPhase { name: string; desc: string; spd: number; skills: Be
  * quanh nó `fire.clear` pixel mỗi phía đều đi được.
  */
 export interface ColdDef { every: number; fire: { r: number; at: [number, number]; clear: number } }
+/**
+ * Thủy Triều Dâng (#174, giai đoạn 2 của Tà hóa Thâm Hải Ma Kình Vương, mục 5.4; thiết kế gốc đã chốt "các vùng ngập luân phiên làm
+ * chậm 50%, sinh xoáy nước kéo người vào"): từ khi hết tiếng gầm chuyển giai đoạn, lúc thú vương đang giao chiến, cứ `every` giây nước
+ * dâng thành một đợt `flood.n` vùng ngập tròn bán kính `flood.r` ở chỗ ngẫu nhiên trong hang (đi thẳng tới được từ chỗ sinh của thú
+ * vương, tâm cách nhau ít nhất `gap` × `flood.r`, cố cách mọi tâm của đợt trước ít nhất `shift` × `flood.r`), là vùng lưu lại (GroundDef
+ * `flood.ground`). `whirl.n` vùng trong đợt sinh thêm xoáy nước đồng tâm bán kính `whirl.r` (GroundDef `whirl.ground`, có `pull`). Cả đợt
+ * (ngập và xoáy) báo trước `warn` giây (GroundDef.warn do tide.ts đặt, không ghi ở từng `ground`); đợt mới hết báo trước thì nước của
+ * đợt cũ rút (vùng ngập luân phiên: tồn tại một lúc rồi chuyển chỗ).
+ */
+export interface TideDef { every: number; warn: number; gap: number; shift: number;
+  flood: { n: number; r: number; ground: GroundDef }; whirl: { n: number; r: number; ground: GroundDef } }
 export interface BossDef { id: string; name: string; rank: 1 | 2 | 3; species: string; aura: string; skills: BeastSkillDef[]; hp?: number; phase2?: BossPhase; years?: number;
   world?: WorldMech; }
 /**
@@ -1148,14 +1174,19 @@ export const BOSSES: BossDef[] = [
     bs("Hấp Thủy", "circle", 90, { range: 80, warn: 1, dmg: 0.8, cd: 10, pull: 70 }),
     bs("Thủy Trụ", "circle", 26, { at: "target", range: 150, count: 5, scatter: 70, dmg: 1.5 })] },
   // Thú vương Hải Thần Đảo (BĐ6d), 95.000 năm, máu x8. Bản tối thiểu: Thôn Hải kéo mọi người trong vòng lớn về phía thú vương và gây
-  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một); GĐ2 "vùng ngập luân phiên làm chậm 50%" là dải nước rộng báo trước 2
-  // giây gây Làm chậm (40%, STATUS.slow), "xoáy nước kéo người vào" là các vòng rơi ngẫu nhiên kéo người trúng về phía thú vương.
+  // sát thương cùng lúc ("hút về giữa rồi nổ vòng" gộp làm một). GĐ2 "Thủy Triều Dâng" (#174, thiết kế gốc; TideDef): nước dâng
+  // từng đợt vùng ngập ở chỗ mới trong hang, đợt cũ rút; đứng trong nước bị Ngập nước (STATUS.flood, gây lại mỗi nhịp ngắn hơn thời gian
+  // của trạng thái), một số vùng có xoáy nước giữa kéo về tâm. Lực kéo nhỏ hơn tốc độ đi bộ khi chỉ bị Ngập nước nên tự thoát được; bị
+  // Làm chậm thêm (cộng tới SLOW_CAP) thì có thể bị giữ trong xoáy. Dải nước báo trước của bản tối thiểu thành Sóng Dữ (sát thương, không
+  // Làm chậm: Làm chậm đã do vùng ngập gây).
   { id: "tham_hai_ma_kinh_vuong", name: "Thâm Hải Ma Kình Vương", rank: 2, species: "tham_hai_ma_kinh", aura: "#3a8aff", hp: 8, years: 95000, skills: [
     bs("Ma Kình Hống", "circle", 70, { warn: 1.3, dmg: 1.4, cd: 10, status: [{ s: "stun", secs: 1.5 }] }),
     bs("Thôn Hải", "circle", 110, { range: 100, warn: 1.4, dmg: 1.2, cd: 12, pull: 80 })],
-    phase2: { name: "Thủy Triều Dâng", desc: "nước dâng thành dải làm chậm (báo trước 2 giây), xoáy nước kéo người vào, tốc độ +20%", spd: 1.2, skills: [
-      bs("Thủy Triều", "line", 140, { w: 150, range: 160, warn: 2, dmg: 1.2, cd: 10, status: [{ s: "slow", secs: 4 }] }),
-      bs("Xoáy Nước", "circle", 30, { at: "target", range: 160, count: 4, scatter: 80, warn: 1.5, dmg: 1.2, cd: 9, pull: 40 })] } },
+    phase2: { name: "Thủy Triều Dâng", desc: "vùng ngập luân phiên trong hang làm chậm 50%, xoáy nước giữa vùng ngập kéo người vào, tốc độ +20%", spd: 1.2,
+      tide: { every: 8, warn: 1.5, gap: 1.5, shift: 1,
+        flood: { n: 3, r: 40, ground: { kind: "flood", secs: 8, every: 0.25, status: [{ s: "flood" }] } },
+        whirl: { n: 2, r: 26, ground: { kind: "whirl", secs: 8, status: [], pull: 28 } } },
+      skills: [bs("Sóng Dữ", "line", 140, { w: 60, range: 160, warn: 1.5, dmg: 1.5, cd: 9 })] } },
   // Boss thế giới 100.000 năm ở Lõi Tinh Đấu (BĐ6e, mục 5.4; mọi số đã chốt). Máu / sát thương theo WORLD; chiêu thường ở `skills`,
   // cơ chế buộc đổi võ hồn ở `world`. "Vết thương sâu" là trạng thái thường nhưng nặng và lâu (Phá giáp 3 tầng / Trúng độc 3 tầng
   // 30 giây), chỉ thanh tẩy (tiên cơ / hồn kỹ phụ trợ) giải được vì Lõi Tinh Đấu không có vùng an toàn.
@@ -1432,6 +1463,8 @@ export interface StatusApply { s: StatusId; n?: number; secs?: number; }
  *   mạnh thêm ngần ấy phần (cộng với bộ hồn hạch Phượng Hoàng 4 món). Tuyệt kỹ Hỏa Long: Viêm bạo toàn vùng.
  * Từ 8.1c: `shockR` (around): sét tìm mục tiêu Cảm điện: mỗi nhát còn trúng mọi hồn thú (và đối thủ) đang Cảm điện ở ngoài `r` nhưng
  *   trong `shockR` (tuyệt kỹ Lam Điện Bá Vương Long "toàn vực": phủ Cảm điện rộng rồi đổi sang Lam Điện kích nổ cả vùng).
+ * Từ #192: `vsSt`: sát thương mỗi nhát nhân thêm (1 + `v`) khi mục tiêu đang có ít nhất một trạng thái trong `s` (Băng Hỏa Lưỡng Nghi
+ *   của Võ Hồn Dung Hợp Kỹ, FUSIONS).
  */
 export interface SkillDef {
   name: string; desc: string; icon: string; cost: number; cd: number;
@@ -1440,7 +1473,7 @@ export interface SkillDef {
   crit?: number; lifesteal?: number; pull?: boolean; dash?: number; inv?: number; glow?: boolean; shake?: boolean;
   status?: StatusApply[]; finisher?: StatusApply[];
   boom?: { keep: number; last?: boolean; mult?: number }; push?: number; pick?: "near" | "low"; lowHp?: number; fly?: number;
-  at?: number; fixed?: boolean; copy?: number; shockR?: number;
+  at?: number; fixed?: boolean; copy?: number; shockR?: number; vsSt?: { s: StatusId[]; v: number };
   self?: { buff?: Partial<Record<BuffId, number>>; secs?: number; heal?: number; shield?: number; mp?: number; cleanse?: boolean };
   dispel?: boolean;
   ult?: boolean;
@@ -2373,6 +2406,58 @@ export const BONDS: BondDef[] = [
 export const bondsOf = (vohonIds: string[]) => BONDS.filter((b) => b.pair.every((v) => vohonIds.includes(v)));
 /** Tổng hiệu ứng loại `k` của mọi ràng buộc đang có trong đội (9.4: cùng loại từ nhiều cặp thì cộng). */
 export const bondSum = (vohonIds: string[], k: BondKey) => bondsOf(vohonIds).reduce((a, b) => a + (b[k] ?? 0), 0);
+
+/**
+ * Võ Hồn Dung Hợp Kỹ (#192, mục 5.9; chủ repo chốt 2026-10-22 ở #178): chiêu chủ động của HAI hồn sư cùng tổ đội, mỗi người đang ra
+ * trận một võ hồn của một cặp trong FUSIONS, đứng cách nhau dưới `r` pixel (bằng PARTY_BUFF_R). Người A gửi `fusion {op: "start"}`,
+ * đồng đội B hợp lệ gần nhất nhận lời nhắc trong `window` giây và gửi `fusion {op: "join"}` thì chiêu nổ ở điểm giữa hai người. Mỗi
+ * người tốn `cost` hồn lực và vào hồi chiêu `cd` giây (của hồn sư: đổi võ hồn không làm mới); hết giờ hay có người không đủ điều kiện
+ * thì hủy, không tốn gì. Cả hai võ hồn cần ít nhất `minRings` hồn hoàn (3 vòng ≈ cấp 30, giai đoạn Sử Lai Khắc).
+ * Số đề xuất ở #192 (cost cỡ CHAN_THAN_SKILL_COST).
+ */
+export const FUSION = { r: PARTY_BUFF_R, window: 4, cd: 90, cost: 50, minRings: 3 };
+/**
+ * Một phần của chiêu dung hợp: hồn kỹ vùng "around" chạy bằng bộ máy hồn kỹ, tâm ở điểm giữa hai người; `side` 0 / 1 thì tâm dời về
+ * phía người cầm võ hồn `pair[side]` (giữa điểm giữa và người đó). Các phần chạy lần lượt trong cùng một lần tung.
+ */
+export type FusionPart = SkillDef & { side?: 0 | 1 };
+/**
+ * Cặp dung hợp (#192): `pair` hai mã võ hồn (thứ tự không quan trọng khi ghép), tên chiêu, mô tả, biểu tượng, các phần (FusionPart).
+ * Sức mạnh: công = trung bình công (kể cả tăng công) của võ hồn ra trận hai người, nhân skillPower theo hồn hoàn năm cao nhất thấp
+ * hơn giữa hai võ hồn; không nhận sao, ràng buộc, Phục Chế; không tạo năng lượng tiên cơ. Tổng `dmg` mỗi chiêu khoảng 6–7 (ngang tuyệt
+ * kỹ, nhưng cần hai người và hồi chiêu dài). Tên chiêu là tên phỏng theo truyện (GAME_DESIGN.md mục 5.9), thêm cặp mới vào cuối mảng.
+ */
+export interface FusionDef { name: string; pair: [string, string]; desc: string; icon: string; parts: FusionPart[]; }
+export const FUSIONS: FusionDef[] = [
+  // Hồ Liệt Na và Tà Nguyệt (đội Vũ Hồn Điện): truyện có dung hợp kỹ của hai người; tên "Yêu Nguyệt" phỏng theo, cần kiểm lại tên gốc.
+  { name: "Yêu Nguyệt", pair: ["yeu_ho", "nguyet_nhan"], icon: "☽",
+    desc: "Lưỡi trăng xoay 3 vòng quanh điểm giữa hai người: mỗi vòng Mị hoặc 1 tầng (đủ tầng thành Mê hoặc)",
+    parts: [{ name: "Yêu Nguyệt", desc: "", icon: "☽", cost: 0, cd: 0, area: "around", r: 100, n: 3, every: 0.3, dmg: 2.2,
+      glow: true, shake: true, status: [{ s: "allure" }] }] },
+  // Đường Tam và Tiểu Vũ (phỏng theo), cùng tên ràng buộc Hạo Thiên – Nhu Cốt.
+  { name: "Hạo Thiên Nhu Cốt", pair: ["hao_thien_chuy", "nhu_cot_tho"], icon: "⚒",
+    desc: "Quật ngã cả vùng (Choáng 1,5 giây) rồi chùy giáng: thêm 5% sinh lực tối đa mỗi nhát (có trần)",
+    parts: [{ name: "Hạo Thiên Nhu Cốt", desc: "", icon: "⚒", cost: 0, cd: 0, area: "around", r: 90, n: 2, every: 0.5, dmg: 3.2, pctHp: 0.05,
+      glow: true, shake: true, status: [{ s: "stun", secs: 1.5 }] }] },
+  // Ngọc Thiên Hằng và Độc Cô Nhạn (võ hồn Bích Lân Xà), phỏng theo.
+  { name: "Lôi Độc Song Sát", pair: ["lam_dien_ba_vuong_long", "bich_lan_xa_hoang"], icon: "☇",
+    desc: "Sấm độc giáng 2 đợt cả vùng: Cảm điện, Trúng độc 2 tầng mỗi đợt, mỗi tầng độc thêm 40% công",
+    parts: [{ name: "Lôi Độc Song Sát", desc: "", icon: "☇", cost: 0, cd: 0, area: "around", r: 110, n: 2, every: 0.4, dmg: 3,
+      perStack: { s: "poison", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "shock" }, { s: "poison", n: 2 }] }] },
+  // Cặp băng / hỏa ở Tinh Anh Đại Tái và suối Băng Hỏa Lưỡng Nghi Nhãn (phỏng theo), cùng tên ràng buộc.
+  { name: "Băng Hỏa Lưỡng Nghi", pair: ["bang_phuong_hoang", "hoa_long"], icon: "☯",
+    desc: "Nửa vùng phía Băng Phượng Hoàng đóng băng (Choáng 1,5 giây), nửa phía Hỏa Long Thiêu đốt 3 tầng; rồi băng hỏa giao nhau, hồn thú đang Choáng hoặc Thiêu đốt chịu thêm 50%",
+    parts: [
+      { name: "Băng", desc: "", icon: "❄", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 0, status: [{ s: "stun", secs: 1.5 }, { s: "slow" }] },
+      { name: "Hỏa", desc: "", icon: "✹", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 1, status: [{ s: "burn", n: 3 }] },
+      { name: "Lưỡng Nghi", desc: "", icon: "☯", cost: 0, cd: 0, area: "around", r: 110, dmg: 1.6, vsSt: { s: ["stun", "burn"], v: 0.5 },
+        glow: true, shake: true },
+    ] },
+];
+/** Chỉ số cặp dung hợp của hai võ hồn (mã), bất kể thứ tự; -1 nếu không ghép được. */
+export const fusionIndex = (a: string, b: string) => FUSIONS.findIndex((f) => (f.pair[0] === a && f.pair[1] === b) || (f.pair[0] === b && f.pair[1] === a));
+/** Các cặp dung hợp có võ hồn `v` (để báo "cần đồng đội cầm …"). */
+export const fusionsOf = (v: string) => FUSIONS.filter((f) => f.pair.includes(v));
 /**
  * Phong Lôi Chi Lực (bước 2.5c, đã chốt): thanh riêng của Lam Điện Bá Vương Long, 0..max, thuộc hồn sư (không lưu DB). Mỗi đòn đánh
  * thường / mỗi lần tung hồn kỹ của võ hồn này trúng ít nhất một hồn thú: +gain (một lần như năng lượng tiên cơ), × shockMult nếu hồn thú
@@ -3403,7 +3488,7 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
  * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
  * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
  */
-export type NpcRole = "talk" | "shop" | "forge" | "arena"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng
+export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn
 /**
  * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
  * Hình: sheet NPC LPC `lpc_<id>` nếu có trong manifest (mục 5.11 "NPC phụ và dân thường"), không thì `looks` (ngoại hình vẽ bằng
@@ -3496,12 +3581,55 @@ export const NPCS: NpcDef[] = [
       "Đường xa gánh nặng, đan dược có đắt hơn trong thành một chút, khách quan thông cảm. Hồi Thành Phù ta cũng mang theo.",
       "Hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn dư cứ bán cho ta, giá như thương nhân trong thành. Muốn mở rộng túi hay mua đan lớn thì phải về thành.",
     ] },
+  // #196: sứ giả bốn tông môn ở Thiên Đấu Thành (TONG_MON, mục 5.14); gia nhập / đổi / rời qua hộp thoại. Tên tông, màu ở TONG_MON.
+  { id: "su_gia_hao_thien", name: "Sứ giả Hạo Thiên Tông", title: "Hạo Thiên Tông", role: "tong", col: "#e0a458",
+    looks: { sex: 0, hair: 3, hairCol: 1, outfitCol: 3, skin: 0 },
+    lines: [
+      "Hạo Thiên Tông là tông môn đứng đầu Thượng Tam Tông, nổi danh với võ hồn Hạo Thiên Chùy. Tông chủ Đường Khiếu đang chờ những hồn sư có chí.",
+      "Muốn dưới trướng Hạo Thiên Tông thì cần xong bài học của Đại Sư và có võ hồn đủ cấp. Mỗi người chỉ thuộc một tông.",
+    ] },
+  { id: "ninh_phong_tri", name: "Ninh Phong Trí", title: "Tông chủ Thất Bảo Lưu Ly Tông", role: "tong", col: "#7cc4ff",
+    looks: { sex: 0, hair: 2, hairCol: 3, outfitCol: 4, skin: 0 },
+    lines: [
+      "Ta là Ninh Phong Trí, tông chủ Thất Bảo Lưu Ly Tông. Bảo vật của bản tông là Thất Bảo Lưu Ly Tháp, tăng phụ trợ cho cả đội.",
+      "Tông môn không đòi hỏi gì ngoài một võ hồn đủ cấp và nền tảng vững. Ngươi có muốn trở thành người của Thất Bảo Lưu Ly Tông không?",
+    ] },
+  { id: "su_gia_lam_dien", name: "Sứ giả Lam Điện Bá Vương Long Tông", title: "Lam Điện Bá Vương Long Tông", role: "tong", col: "#6a8cff",
+    looks: { sex: 0, hair: 1, hairCol: 2, outfitCol: 5, skin: 0 },
+    lines: [
+      "Lam Điện Bá Vương Long Tông, tộc trưởng Ngọc Nguyên Chấn, truyền nhân của Lam Điện Bá Vương Long hùng mạnh nhất.",
+      "Muốn mang họ Lam Điện thì phải có võ hồn đủ cấp và đã qua bài học nhập môn. Không cần đọ sức, nhưng phải xứng đáng.",
+    ] },
+  { id: "chu_giao_vu_hon_dien", name: "Chủ giáo Vũ Hồn Điện", title: "Phân điện Thiên Đấu", role: "tong", col: "#e8e0ff",
+    looks: { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0 },
+    lines: [
+      "Vũ Hồn Điện là tổ chức lớn nhất đại lục, giáo hoàng Bỉ Bỉ Đông cai quản; phân điện có mặt ở mọi thành lớn, kể cả Thiên Đấu.",
+      "Muốn gia nhập thì cần hoàn thành bài học nhập môn và có võ hồn đủ cấp. Vào rồi vẫn có thể rời hoặc đổi, nhưng đừng đổi đi đổi lại.",
+    ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
 export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
 /** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
 export const NPC_RANGE = 40;
+/**
+ * Tông môn (#196, mục 5.14): bốn phe có sẵn theo truyện, mỗi người thuộc tối đa một tông; `npc` là sứ giả (mã trong NPCS) ở Thiên Đấu
+ * Thành, `col` màu tên tông dưới tên hồn sư. Thứ tự cố định: chỉ số + 1 là `PlayerState.tong`. Không buff chỉ số theo tông.
+ */
+export const TONG_MON = [
+  { id: "hao_thien_tong", name: "Hạo Thiên Tông", col: "#e0a458", npc: "su_gia_hao_thien" },
+  { id: "that_bao_luu_ly_tong", name: "Thất Bảo Lưu Ly Tông", col: "#7cc4ff", npc: "ninh_phong_tri" },
+  { id: "lam_dien_tong", name: "Lam Điện Bá Vương Long Tông", col: "#6a8cff", npc: "su_gia_lam_dien" },
+  { id: "vu_hon_dien", name: "Vũ Hồn Điện", col: "#e8e0ff", npc: "chu_giao_vu_hon_dien" },
+] as const;
+/** Cấp võ hồn (cao nhất trong số đang sở hữu) tối thiểu để gia nhập tông, và số ngày tối thiểu từ lần gia nhập gần nhất tới lần đổi tông. */
+export const TONG_MIN_LEVEL = 30, TONG_SWITCH_DAYS = 7;
+/** Tông theo mã (cột `accounts.tong`); mã lạ thì undefined. */
+export const tongDef = (id: unknown) => TONG_MON.find((t) => t.id === id);
+/** Tông theo `PlayerState.tong` (0 = không tông). */
+export const tongByIndex = (i: number) => TONG_MON[i - 1];
+/** Mã tuần (ngày thứ Hai theo giờ Việt Nam, số ngày từ 1970-01-01): cột `tong_points.week`. */
+export const tongWeek = (ms: number) => { const n = vnDayNum(ms); return n - ((n + 3) % 7); };
 /** Thương nhân bán (giá đồng mỗi món). Chỉ đồ có trong ITEMS; thêm món thì thêm dòng. Đan lớn từ 9.8 (120 đồng, hồi 60%). */
 export const SHOP: { code: string; price: number }[] = [
   { code: "hoi_huyet_dan", price: 20 }, { code: "hoi_hon_dan", price: 20 },

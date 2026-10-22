@@ -35,6 +35,17 @@ async function common(label: string, s: Store, u = "") {
     const id = ok(await s.login(cleanName(`Đường Tam${u}`), PW[2]));
     assert.equal(ok(await s.login(cleanName(`ĐƯỜNG TAM${u}`.normalize("NFD")), PW[2])), id);
   });
+  await test(`${label}: cờ created chỉ đúng ở lần tạo; create=false không tạo tài khoản mới nhưng tài khoản cũ vẫn vào được (#207)`, async () => {
+    const created = (r: Awaited<ReturnType<Store["login"]>>) => { assert.ok(!("error" in r), JSON.stringify(r)); return r.created; };
+    assert.equal(created(await s.login(cleanName(`Mới${u}`), PW[0])), true);
+    assert.equal(created(await s.login(cleanName(`MỚI${u}`), PW[0])), false);
+    assert.equal(created(await s.login(cleanName(`mới${u}`), PW[0], false)), false); // IP hết lượt tạo vẫn vào tài khoản cũ
+    assert.ok(!("noCreate" in await s.login(cleanName(`Mới${u}`), WRONG, false))); // sai mật khẩu là lỗi thường, không phải noCreate
+    const r = await s.login(cleanName(`Chưa Có${u}`), PW[0], false);
+    assert.deepEqual("noCreate" in r && r.noCreate, true);
+    // Không tạo gì: lần sau (được tạo) mới là lần tạo, với mật khẩu khác cũng được.
+    assert.equal(created(await s.login(cleanName(`Chưa Có${u}`), PW[1])), true);
+  });
   await test(`${label}: token sai định dạng (NUL, object, số, quá dài) -> null, không ném lỗi`, async () => {
     for (const t of ["\u0000", `${"a".repeat(31)}\u0000`, "", "a".repeat(33), "a".repeat(10_000), { $ne: 1 }, ["x"], 42, null, undefined])
       assert.equal(await s.accountFromToken(t), null, JSON.stringify(t));
@@ -44,6 +55,7 @@ async function common(label: string, s: Store, u = "") {
     const pws = [PW[6], WRONG], r = await Promise.all([s.login(cleanName(`Đua${u}`), pws[0]), s.login(cleanName(`ĐUA${u}`), pws[1])]);
     const won = r.findIndex((x) => !("error" in x));
     assert.ok(won >= 0 && r.filter((x) => "error" in x).length === 1, JSON.stringify(r));
+    const w = r[won]; assert.ok(!("error" in w) && w.created);
     assert.equal(ok(await s.login(cleanName(`đua${u}`), pws[won])), (r[won] as { accountId: number }).accountId);
     assert.ok("error" in await s.login(cleanName(`đua${u}`), pws[1 - won]));
   });
@@ -236,8 +248,9 @@ else {
 
   await test("PgStore: nhiều yêu cầu tạo cùng một tên cùng lúc -> chỉ một tài khoản", async () => {
     const n = `Song${u}`, variants = [n, n.toUpperCase(), `Ｓｏｎｇ${u}`, n.toLowerCase()];
-    const ids = (await Promise.all(variants.map((v) => s.login(cleanName(v), PW[3])))).map(ok);
-    assert.equal(new Set(ids).size, 1);
+    const rs = await Promise.all(variants.map((v) => s.login(cleanName(v), PW[3])));
+    assert.equal(new Set(rs.map(ok)).size, 1);
+    assert.equal(rs.filter((x) => "created" in x && x.created).length, 1); // chỉ một lần được đếm là tạo mới (#207)
   });
   await s.pool.end();
 }
