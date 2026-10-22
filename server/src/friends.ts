@@ -87,13 +87,16 @@ export function add(acc: number, t: SocialPeer): FriendResult {
   ] };
 }
 
+/** Gửi lại bảng cho `other` (không báo) khi `acc` vừa bỏ / chặn: chỉ khi `other` đang trong game và có `acc` (bảng của họ đổi). */
+const peerNote = (other: number, acc: number): FriendNote[] => (social.get(other)?.friends.has(acc) ? [{ to: [other] }] : []);
+
 /** `acc` bỏ `name` khỏi danh sách bạn bè của mình; người kia (nếu đang trong game) chỉ được gửi lại bảng, không báo. */
 export function remove(acc: number, name: string): FriendResult {
   const s = social.get(acc), t = s && find(s.friends, name);
   if (!s || !t) return { error: `${name} không có trong danh sách bạn bè.` };
   s.friends.delete(t.id);
   social.get(t.id)?.fans.delete(acc);
-  return { write: { other: t.id, friend: false }, notes: [{ to: [acc], text: `Đã xóa ${t.name} khỏi danh sách bạn bè.` }, { to: [t.id] }] };
+  return { write: { other: t.id, friend: false }, notes: [{ to: [acc], text: `Đã xóa ${t.name} khỏi danh sách bạn bè.` }, ...peerNote(t.id, acc)] };
 }
 
 /** `acc` chặn `t` (tự bỏ khỏi danh sách bạn bè của `acc`); người bị chặn không được báo, chỉ được gửi lại bảng. */
@@ -105,7 +108,7 @@ export function block(acc: number, t: SocialPeer): FriendResult {
   s.blocks.set(t.id, t.name);
   if (s.friends.delete(t.id)) social.get(t.id)?.fans.delete(acc);
   return { write: { other: t.id, block: true }, notes: [
-    { to: [acc], text: `Đã chặn ${t.name}: không nhận tin, lời mời tổ đội, lời thêm bạn của người này.` }, { to: [t.id] },
+    { to: [acc], text: `Đã chặn ${t.name}: không nhận tin, lời mời tổ đội, lời thêm bạn của người này.` }, ...peerNote(t.id, acc),
   ] };
 }
 

@@ -609,12 +609,13 @@ export class MapRoom extends Room<MapState> {
   chatSub = (r: ChatRoute) => {
     if (!r?.msg) return;
     const to = Array.isArray(r.to) ? r.to : null;
-    // Theo tài khoản của phiên (client.auth): cả người xem trận (#278, không có pdata) vẫn nhận tin riêng / tổ đội. Người nhận đã chặn
-    // người gửi thì server không gửi (#195), trừ bản sao của chính người gửi.
+    // Người nhận đã chặn người gửi thì server không gửi (#195), trừ bản sao của chính người gửi.
+    const cut = (acc: number) => r.from !== undefined && acc !== r.from && friends.blocked(acc, r.from);
+    if (!to) return this.broadcast("chat", r.msg, { except: this.clients.filter((c) => { const a = accOf(c); return a !== undefined && cut(a); }) }); // kênh thế giới
+    // Theo tài khoản của phiên (client.auth): cả người xem trận (#278, không có pdata) vẫn nhận tin riêng / tổ đội.
     for (const c of this.clients) {
       const acc = accOf(c);
-      if (acc === undefined || (to && !to.includes(acc))) continue;
-      if (r.from !== undefined && acc !== r.from && friends.blocked(acc, r.from)) continue;
+      if (acc === undefined || !to.includes(acc) || cut(acc)) continue;
       c.send("chat", r.msg);
     }
   };
@@ -730,8 +731,8 @@ export class MapRoom extends Room<MapState> {
     auth.shardBuy.n = await store.bossClaims(acc.accountId, auth.shardBuy.day, SHARD_BUY.claimKind); // Thương hội đổi mảnh (#282)
     auth.wps = await store.getWaypoints(acc.accountId); // truyền tống trận đã mở (11.2)
     auth.auto = await store.getAuto(acc.accountId); // cài đặt và giờ treo tự săn (Auto 1)
-    auth.tong = await store.getTong(acc.accountId); // tông môn (#196)
-    auth.social = await store.getSocial(acc.accountId); // bạn bè và chặn (#195)
+    // tông môn (#196); bạn bè và chặn (#195)
+    [auth.tong, auth.social] = await Promise.all([store.getTong(acc.accountId), store.getSocial(acc.accountId)]);
     return auth;
   }
 
@@ -6301,7 +6302,10 @@ export class MapRoom extends Room<MapState> {
     }
     if ("error" in r) return warn(r.error);
     const w = r.write;
-    if (w.block && party.dropInvite(acc, w.other)) this.sendParty(id, true); // lời mời tổ đội có từ trước khi chặn cũng bỏ
+    if (w.block) { // lời mời tổ đội giữa hai người có từ trước khi chặn cũng bỏ (cả hai chiều)
+      if (party.dropInvite(acc, w.other)) this.sendParty(id, true);
+      if (party.dropInvite(w.other, acc)) this.partyPublish([{ to: [w.other] }]);
+    }
     this.chain(d, () => (w.block !== undefined ? store.setBlock(acc, w.other, w.block) : store.setFriend(acc, w.other, !!w.friend)).catch((e) => {
       this.log(id, "Không lưu được danh sách bạn bè / chặn: thao tác vừa rồi có thể mất khi vào lại game.", "#ff6b6b");
       throw e; // chuỗi lưu ghi log và giữ chuỗi
@@ -6368,6 +6372,7 @@ export class MapRoom extends Room<MapState> {
       // Lời mời được tạo trước khi người mời xếp đơn cũng phải bị chặn; nếu không tổ đội mới sẽ làm mục solo cũ sai thành phần.
       const inviter = party.inviteFrom(acc, name, now);
       if (inviter !== null && (arenaQueueLocked(inviter) || arenaReadActive(inviter))) return warn("Người mời đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
+      const bw = inviter !== null && this.blockDeny(acc, inviter, name, "lời mời tổ đội"); if (bw) return warn(bw); // #195
       r = party.accept(acc, name, now);
     }
     else if (op === "decline") r = party.decline(acc, name, now);
