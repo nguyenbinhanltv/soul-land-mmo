@@ -241,6 +241,9 @@ async function join(retry = true, roomId?: string | null) {
       const me = await post<Me>("/api/me", { token }).catch(() => null);
       if (me) { mapId = me.mapId; return join(false); }
     }
+    // Đang bị giữ ở một kênh (vừa rời / kênh server đã chọn khi chuyển, mục 6) mà lần dự phòng joinOrCreate rơi vào kênh khác: hỏi lại
+    // /api/channel (trả đúng kênh đó) rồi vào một lần.
+    if (retry && /Hãy vào kênh|Vừa rời kênh/.test(m)) return join(false);
     // Chưa tạo nhân vật hoặc chưa thức tỉnh (ví dụ tab khác vừa đổi): hỏi lại server để mở đúng màn.
     if (/Chưa tạo nhân vật|Chưa thức tỉnh/.test(m)) resume(m);
     else if (/401|403|không hợp lệ/.test(m)) loginScreen(m); else loginScreen(`Không vào được phòng: ${m}`);

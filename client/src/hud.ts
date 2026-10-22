@@ -314,11 +314,13 @@ export function updateStats(p: any) {
     el.appendChild(s);
   }
   // Hiệu ứng có lợi, rồi trạng thái bất lợi do chiêu báo trước của hồn thú gây (từ 3.5, viền đỏ).
-  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st;
+  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st + "|" + (p.han ?? 0);
   if (buffs !== buffKey) {
     buffKey = buffs; const el = $("#buffs"); el.innerHTML = "";
     for (const b of BUFF_IDS) if (p.buff & buffBit(b)) el.appendChild(statusChip(b, BUFFS[b].name, BUFFS[b].col));
-    for (const s of PLAYER_STATUS) if (p.st & statusBit(s)) el.appendChild(statusChip(s, STATUS[s].name, STATUS[s].col, "debuff"));
+    // Tầng Hàn (#163, Cực Hàn): ô ghi số tầng / số tầng thì đóng băng.
+    for (const s of PLAYER_STATUS) if (p.st & statusBit(s))
+      el.appendChild(statusChip(s, s === "chill" ? `${STATUS[s].name} ${p.han ?? 0}/${STATUS[s].max}` : STATUS[s].name, STATUS[s].col, "debuff"));
   }
   // Hồn kỹ Chân Thân (9.6): đang biến hình thì nút P mang hồn kỹ Chân Thân, hồi chiêu riêng `ctCd`; hết thì trả nút P cũ.
   const pb = document.querySelector<HTMLElement>(`.sk[data-i="${CHAN_THAN_SKILL_SLOT}"]`), ctOn = !!ctSlot && p.ava > 0;
