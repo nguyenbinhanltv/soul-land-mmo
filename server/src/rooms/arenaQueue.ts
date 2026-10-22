@@ -31,6 +31,31 @@ export interface ArenaMatch { id: string; roomId?: string; sides: { id: string; 
 
 const queue = new Map<string, ArenaTeamEntry>();
 export const arenaMatches = new Map<string, ArenaMatch>();
+
+/**
+ * Trận mở cho người xem trực tiếp (#278, mục 5.9): ArenaRoom ghi lúc mở phòng, xóa lúc hủy phòng. `holds`: tài khoản được giữ chỗ xem
+ * (MapRoom `arena {op: "watch"}`) -> hết hạn (ms); `watching`: phiên đang xem -> tài khoản. Mức tiến trình như hàng chờ (nhiều tiến
+ * trình thì chuyển sang presence, #120).
+ */
+export interface ArenaLive {
+  roomId: string; mode: string; sides: { name: string; elo: number }[];
+  phase(): string; secs(): number;
+  holds: Map<number, number>; watching: Map<string, number>;
+}
+export const arenaLive = new Map<string, ArenaLive>();
+/** Hook test `awatch {max}` (chỉ GAME_TEST): hạ số người xem tối đa mỗi trận để bot thử từ chối khi đầy; null = ARENA.watchMax. */
+let testWatchMax: number | null = null;
+export const arenaWatchMax = () => testWatchMax ?? ARENA.watchMax;
+export function setTestWatchMax(n: number | null) { testWatchMax = n; }
+/** Số chỗ xem đã dùng của trận: đang xem + giữ chỗ còn hạn (bỏ chỗ giữ đã hết hạn). */
+export function arenaWatchUsed(l: ArenaLive) {
+  const now = Date.now();
+  for (const [acc, until] of l.holds) if (until <= now) l.holds.delete(acc);
+  return l.watching.size + l.holds.size;
+}
+/** Tài khoản đang xem hoặc đang giữ chỗ xem một trận nào đó. */
+export const arenaWatchingAny = (accountId: number) =>
+  [...arenaLive.values()].some((l) => (l.holds.get(accountId) ?? 0) > Date.now() || [...l.watching.values()].includes(accountId));
 /** Bên đối thủ của trận ngay trước, giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. */
 const lastFoe = new Map<string, string>();
 const TICK_MS = 500;
