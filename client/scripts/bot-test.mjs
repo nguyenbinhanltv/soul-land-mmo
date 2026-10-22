@@ -5015,7 +5015,9 @@ async function npcTown(){
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
   { const [i2,i5]=globalThis.__coreSetIds, g=id=>C.bag.items.find(i=>i.id===id);
-    ok(g(i2)?.stats.set==="hao_thien"&&g(i5)?.stats.set==="lam_ngan"&&g(i5)?.vohon!==null,"vào lại: bộ hồn hạch đã đổi (trong túi và đang gắn) vẫn đúng"); }
+    ok(g(i2)?.stats.set==="hao_thien"&&g(i5)?.stats.set==="lam_ngan"&&g(i5)?.vohon!==null,"vào lại: bộ hồn hạch đã đổi (trong túi và đang gắn) vẫn đúng")
+    C.room.send("unequipcore",{itemId:i5}); await waitFor(()=>g(i5)?.vohon===null,2000);
+    for(const id of [i2,i5]) C.room.send("discard",{id}); await waitFor(()=>!g(i2)&&!g(i5),2000); } // dọn: bài sau cần túi còn chỗ
 }
 
 /**
