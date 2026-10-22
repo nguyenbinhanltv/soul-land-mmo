@@ -23,6 +23,7 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
+import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
@@ -127,7 +128,7 @@ const DIVE_MARK = { r: 40, ripple: 52, holdMs: 1500 };
 /** Làm chậm của hồn sư theo bit trạng thái `st`: cộng mọi trạng thái (Làm chậm, Ngập nước #174), tối đa SLOW_CAP (như server). */
 const pSlow = (st: number) => Math.min(SLOW_CAP, PLAYER_STATUS.reduce((a, s) => a + (st & statusBit(s) ? STATUS[s].slow : 0), 0));
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
-const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood"] as const;
+const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood", "ink"] as const;
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -162,6 +163,8 @@ export class GameScene extends Phaser.Scene {
   /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
   light!: Lighting;
   weather!: Weather;
+  /** Màn mực khi chính mình bị Che tầm nhìn (#175, Phun Mực). */
+  ink!: InkVeil;
   zones: Zone[] = [];
   safes: Zone[] = [];   // vùng an toàn (object `safe`)
   campRect = { x: 0, y: 0, w: 0, h: 0 };
@@ -261,6 +264,7 @@ export class GameScene extends Phaser.Scene {
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
     const npcObjs: { x: number; y: number; name: string; id: string }[] = [];
     const crowdMap: CrowdMap = { safes: this.safes, portals: [], spawn: null, npcs: npcObjs, arrives: [], mapW: map.widthInPixels, mapH: map.heightInPixels };
+    let inkHere = false;
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
@@ -271,6 +275,7 @@ export class GameScene extends Phaser.Scene {
         this.zones.push({ ...r, name: o.name, hint, years: yr });
       }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
+      if (o.type === "elite" && causesInk(String(prop("boss") ?? ""))) inkHere = true; // #175: bản đồ có Phun Mực
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
       if (o.type === "portal") crowdMap.portals.push({ ...r, boat: !!prop("boat") });
@@ -324,6 +329,8 @@ export class GameScene extends Phaser.Scene {
     this.scale.on("resize", () => this.fitZoom());
 
     this.weather = new Weather(this, this.mapId, this.isoMap, this.light, this.mapH);
+    this.ink = new InkVeil(this);
+    if (inkHere) this.ink.prewarm();
     this.audio = new AudioManager(this, () => {
       const p = this.room.state.players.get(this.me);
       return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : null;
@@ -1565,7 +1572,7 @@ export class GameScene extends Phaser.Scene {
         g.lineStyle(2, 0xfff2b0, 0.9).strokeEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
       }
       // Trạng thái do chiêu báo trước của hồn thú gây (3.5): dây trói dưới chân, sao choáng, khối băng (Đóng băng) và tim hồng (Mê hoặc)
-      // (#116), biểu tượng trên danh hiệu.
+      // (#116), biểu tượng trên danh hiệu (Che tầm nhìn #175: giọt mực; màn mực chỉ người trúng thấy, InkVeil).
       if (p.st) {
         const ph = (x: (typeof PLAYER_STATUS)[number]) => (p.st & statusBit(x)) !== 0;
         if (ph("root")) {
@@ -1664,6 +1671,7 @@ export class GameScene extends Phaser.Scene {
       else if (k === "slow") { g.fillRect(x, y0 + 4, 5, 1); g.fillTriangle(x + 1, y0, x + 4, y0, x + 2.5, y0 + 3); }
       else if (k === "chill") { g.lineStyle(1, c, 1); g.lineBetween(x + 2.5, y0, x + 2.5, y0 + 5); g.lineBetween(x, y0 + 1.2, x + 5, y0 + 3.8); g.lineBetween(x, y0 + 3.8, x + 5, y0 + 1.2); }
       else if (k === "flood") { g.lineStyle(1, c, 1); for (const dy of [1, 4]) { g.lineBetween(x, y0 + dy + 0.5, x + 1.7, y0 + dy - 0.5); g.lineBetween(x + 1.7, y0 + dy - 0.5, x + 3.3, y0 + dy + 0.5); g.lineBetween(x + 3.3, y0 + dy + 0.5, x + 5, y0 + dy - 0.5); } } // #174: hai làn sóng
+      else if (k === "ink") { g.fillTriangle(x + 2.5, y0, x + 0.6, y0 + 3, x + 4.4, y0 + 3); g.fillCircle(x + 2.5, y0 + 3.3, 1.9); g.fillRect(x + 4.5, y0 + 0.5, 1, 1); } // giọt mực (#175)
       else { g.lineStyle(1, c, 1); g.strokeCircle(x + 2.5, y0 + 2.5, 2.2); g.lineBetween(x + 1, y0 + 4, x + 4, y0 + 1); }
       for (let n = 0; n < (stacks[k] ?? 0) && n < 5; n++) g.fillStyle(c, 1).fillRect(x + n * 1.2, y0 + 6.5, 1, 1);
       x += 7;
@@ -2024,6 +2032,8 @@ export class GameScene extends Phaser.Scene {
     let boss = false;
     if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
     this.weather.update(time, cam, zone, boss);
+    // Che tầm nhìn (#175): chỉ màn hình của chính người trúng phủ mực, vòng hở quanh thân mình.
+    this.ink.update(!!me && (me.st & statusBit("ink")) !== 0, mv ? { x: mv.root.x, y: mv.root.y - HEAD / 2 } : null, delta, cam);
     // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
     this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
     if (me) {
