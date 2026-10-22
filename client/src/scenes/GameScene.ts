@@ -23,12 +23,13 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
+import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -127,7 +128,7 @@ const DIVE_MARK = { r: 40, ripple: 52, holdMs: 1500 };
 /** Làm chậm của hồn sư theo bit trạng thái `st`: cộng mọi trạng thái (Làm chậm, Ngập nước #174), tối đa SLOW_CAP (như server). */
 const pSlow = (st: number) => Math.min(SLOW_CAP, PLAYER_STATUS.reduce((a, s) => a + (st & statusBit(s) ? STATUS[s].slow : 0), 0));
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
-const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood"] as const;
+const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood", "ink"] as const;
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -162,6 +163,8 @@ export class GameScene extends Phaser.Scene {
   /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
   light!: Lighting;
   weather!: Weather;
+  /** Màn mực khi chính mình bị Che tầm nhìn (#175, Phun Mực). */
+  ink!: InkVeil;
   zones: Zone[] = [];
   safes: Zone[] = [];   // vùng an toàn (object `safe`)
   campRect = { x: 0, y: 0, w: 0, h: 0 };
@@ -261,6 +264,7 @@ export class GameScene extends Phaser.Scene {
     this.mapW = map.widthInPixels; this.mapH = map.heightInPixels;
     const npcObjs: { x: number; y: number; name: string; id: string }[] = [];
     const crowdMap: CrowdMap = { safes: this.safes, portals: [], spawn: null, npcs: npcObjs, arrives: [], mapW: map.widthInPixels, mapH: map.heightInPixels };
+    let inkHere = false;
     for (const o of map.getObjectLayer("zones")?.objects ?? []) {
       const prop = (n: string) => (o.properties as any[] | undefined)?.find((p) => p.name === n)?.value;
       const r = { x: o.x!, y: o.y!, w: o.width!, h: o.height! };
@@ -271,6 +275,7 @@ export class GameScene extends Phaser.Scene {
         this.zones.push({ ...r, name: o.name, hint, years: yr });
       }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
+      if (o.type === "elite" && causesInk(String(prop("boss") ?? ""))) inkHere = true; // #175: bản đồ có Phun Mực
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
       if (o.type === "portal") crowdMap.portals.push({ ...r, boat: !!prop("boat") });
@@ -324,6 +329,8 @@ export class GameScene extends Phaser.Scene {
     this.scale.on("resize", () => this.fitZoom());
 
     this.weather = new Weather(this, this.mapId, this.isoMap, this.light, this.mapH);
+    this.ink = new InkVeil(this);
+    if (inkHere) this.ink.prewarm();
     this.audio = new AudioManager(this, () => {
       const p = this.room.state.players.get(this.me);
       return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : null;
@@ -580,7 +587,7 @@ export class GameScene extends Phaser.Scene {
     const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
-        if (e.key === "Enter") { const t = chat.value.trim(); if (t && !this.chatCommand(t)) this.room.send("chat", { text: t }); chat.value = ""; chat.blur(); }
+        if (e.key === "Enter") { const t = chat.value.trim(); if (t && !this.chatCommand(t)) this.chatSend(t); chat.value = ""; chat.blur(); }
         if (e.key === "Escape") chat.blur();
         return;
       }
@@ -591,6 +598,7 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
       if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
@@ -610,7 +618,9 @@ export class GameScene extends Phaser.Scene {
     }, on);
     addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
     addEventListener("blur", () => { this.keys = {}; }, on);
-    chat.addEventListener("focus", () => { this.keys = {}; }, on);
+    chat.addEventListener("focus", () => { this.keys = {}; hud.chatFocus(true); }, on);
+    chat.addEventListener("blur", () => hud.chatFocus(false), on);
+    hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
@@ -656,17 +666,55 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Lệnh trong ô chat (7.1): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội. Trả true nếu là lệnh (không gửi lên kênh chat chung).
+   * Lệnh trong ô chat (7.1, #188): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>`
+   * nhắn riêng, `/r <tin>` trả lời người vừa nhắn riêng, `/tg <tin>` kênh thế giới, `/hat` hạt bay. Trả true nếu là lệnh (không gửi
+   * theo tab đang chọn). Mọi giới hạn (cấp, hồi, người nhận online, chống spam) do server kiểm.
    */
   chatCommand(t: string) {
     const m = /^\/(\S+)\s*(.*)$/u.exec(t); if (!m) return false;
     const cmd = m[1].toLowerCase(), arg = m[2].trim();
+    const need = (usage: string) => hud.log(`Gõ ${usage}.`, "#ffb35c");
     if (cmd === "moi" || cmd === "mời") {
-      if (arg) this.partySend("invite", arg); else hud.log("Gõ /moi <tên hồn sư> để mời vào tổ đội.", "#ffb35c");
+      if (arg) this.partySend("invite", arg); else need("/moi <tên hồn sư> để mời vào tổ đội");
     } else if (cmd === "roi" || cmd === "rời") this.partySend("leave");
+    else if (cmd === "b") { if (arg) this.room.send("chat", { text: arg }); else need("/b <tin> để chat ở bản đồ"); }
+    else if (cmd === "d" || cmd === "đ") { if (arg) this.room.send("chat", { text: arg, ch: "party" }); else need("/d <tin> để chat tổ đội"); }
+    else if (cmd === "tg") { if (arg) this.room.send("chat", { text: arg, ch: "world" }); else need("/tg <tin> để chat kênh thế giới"); }
+    else if (cmd === "t") {
+      const w = this.whisperArg(arg);
+      if (w) this.room.send("chat", { text: w.text, ch: "whisper", to: w.to }); else need("/t <tên> <tin> để nhắn riêng (tên có dấu cách thì để trong ngoặc kép)");
+    } else if (cmd === "r") {
+      const to = hud.chatReplyTo();
+      if (!to) hud.log("Chưa có ai nhắn riêng cho bạn.", "#ffb35c");
+      else if (arg) this.room.send("chat", { text: arg, ch: "whisper", to }); else need(`/r <tin> để trả lời ${to}`);
+    }
     else if (cmd === "hat" || cmd === "hạt") hud.log(`Hạt bay và thời tiết: ${this.weather.toggle() ? "bật" : "tắt"}.`, "#ffb35c");
-    else hud.log("Lệnh: /moi <tên> (mời vào tổ đội), /roi (rời tổ đội), /hat (bật / tắt hạt bay, thời tiết).", "#ffb35c");
+    else hud.log("Lệnh: /b, /d, /t <tên>, /r, /tg <tin> (bản đồ, tổ đội, riêng, trả lời, thế giới), /moi <tên>, /roi (tổ đội), /hat (hạt bay, thời tiết).", "#ffb35c");
     return true;
+  }
+
+  /** Tin thường (không phải lệnh) gửi theo tab đang chọn của ô chat (#188). */
+  chatSend(text: string) {
+    const c = hud.chatSendCh();
+    if (c.ch === "whisper" && !c.to) return hud.log("Chọn người nhận: /t <tên> <tin>, hoặc bấm vào hồn sư → Nhắn riêng.", "#ffb35c");
+    this.room.send("chat", c.ch === "map" ? { text } : { text, ...c });
+  }
+
+  /**
+   * Tách `/t` thành người nhận và tin. Tên có dấu cách: `"Đường Tam" tin`, hoặc khớp tên dài nhất đã biết (hồn sư đang thấy, đồng đội,
+   * người vừa nhắn riêng); còn lại lấy từ đầu tiên. Server tra tên thật (không phân biệt hoa thường).
+   */
+  whisperArg(arg: string): { to: string; text: string } | null {
+    const q = /^"([^"]+)"\s+(.+)$/u.exec(arg);
+    if (q) return { to: q[1].trim(), text: q[2].trim() };
+    const known = new Set<string>([hud.chatReplyTo(), ...(this.party?.members.map((m) => m.name) ?? [])]);
+    this.room.state.players.forEach((p: { name: string }) => known.add(p.name));
+    const low = arg.toLowerCase();
+    let to = "";
+    for (const n of known) if (n && n.includes(" ") && n.length > to.length && low.startsWith(n.toLowerCase() + " ")) to = n;
+    if (!to) to = arg.split(" ")[0];
+    const text = arg.slice(to.length).trim();
+    return to && text ? { to, text } : null;
   }
 
   /** Thao tác tổ đội: chỉ gửi ý định, server kiểm tra (7.1). */
@@ -784,7 +832,15 @@ export class GameScene extends Phaser.Scene {
       } else if (m.k === "leave") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
       else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
-    this.room.onMessage("chat", (m: { name: string; text: string }) => hud.log(m.text, m.name === "Hệ thống" ? "#86e0b0" : "#9db3a2", m.name));
+    // Chat (#188): `ch` thiếu = bản đồ (kể cả thông báo "Hệ thống"); tổ đội / riêng / thế giới đến từ mọi bản đồ / kênh qua server.
+    this.room.onMessage("chat", (m: ChatMsg) => {
+      if (m.ch === "whisper") {
+        const mine = m.name === this.room.state.players.get(this.me)?.name && !!m.to;
+        return hud.chatWhisper(mine ? m.to! : m.name, mine, m.text);
+      }
+      if (m.ch === "party" || m.ch === "world") return hud.chatLine(m.ch, m.text, hud.CHAT_COL[m.ch], m.name);
+      hud.chatLine("map", m.text, m.name === "Hệ thống" ? "#86e0b0" : hud.CHAT_COL.map, m.name);
+    });
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean; heal?: boolean; shield?: boolean }) => {
       this.audio.handleDamage(m);
@@ -1565,7 +1621,7 @@ export class GameScene extends Phaser.Scene {
         g.lineStyle(2, 0xfff2b0, 0.9).strokeEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
       }
       // Trạng thái do chiêu báo trước của hồn thú gây (3.5): dây trói dưới chân, sao choáng, khối băng (Đóng băng) và tim hồng (Mê hoặc)
-      // (#116), biểu tượng trên danh hiệu.
+      // (#116), biểu tượng trên danh hiệu (Che tầm nhìn #175: giọt mực; màn mực chỉ người trúng thấy, InkVeil).
       if (p.st) {
         const ph = (x: (typeof PLAYER_STATUS)[number]) => (p.st & statusBit(x)) !== 0;
         if (ph("root")) {
@@ -1664,6 +1720,7 @@ export class GameScene extends Phaser.Scene {
       else if (k === "slow") { g.fillRect(x, y0 + 4, 5, 1); g.fillTriangle(x + 1, y0, x + 4, y0, x + 2.5, y0 + 3); }
       else if (k === "chill") { g.lineStyle(1, c, 1); g.lineBetween(x + 2.5, y0, x + 2.5, y0 + 5); g.lineBetween(x, y0 + 1.2, x + 5, y0 + 3.8); g.lineBetween(x, y0 + 3.8, x + 5, y0 + 1.2); }
       else if (k === "flood") { g.lineStyle(1, c, 1); for (const dy of [1, 4]) { g.lineBetween(x, y0 + dy + 0.5, x + 1.7, y0 + dy - 0.5); g.lineBetween(x + 1.7, y0 + dy - 0.5, x + 3.3, y0 + dy + 0.5); g.lineBetween(x + 3.3, y0 + dy + 0.5, x + 5, y0 + dy - 0.5); } } // #174: hai làn sóng
+      else if (k === "ink") { g.fillTriangle(x + 2.5, y0, x + 0.6, y0 + 3, x + 4.4, y0 + 3); g.fillCircle(x + 2.5, y0 + 3.3, 1.9); g.fillRect(x + 4.5, y0 + 0.5, 1, 1); } // giọt mực (#175)
       else { g.lineStyle(1, c, 1); g.strokeCircle(x + 2.5, y0 + 2.5, 2.2); g.lineBetween(x + 1, y0 + 4, x + 4, y0 + 1); }
       for (let n = 0; n < (stacks[k] ?? 0) && n < 5; n++) g.fillStyle(c, 1).fillRect(x + n * 1.2, y0 + 6.5, 1, 1);
       x += 7;
@@ -2024,6 +2081,8 @@ export class GameScene extends Phaser.Scene {
     let boss = false;
     if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
     this.weather.update(time, cam, zone, boss);
+    // Che tầm nhìn (#175): chỉ màn hình của chính người trúng phủ mực, vòng hở quanh thân mình.
+    this.ink.update(!!me && (me.st & statusBit("ink")) !== 0, mv ? { x: mv.root.x, y: mv.root.y - HEAD / 2 } : null, delta, cam);
     // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
     this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
     if (me) {

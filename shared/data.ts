@@ -472,6 +472,13 @@ export const PARTY_INVITE_SECS = 60;
  */
 export const PARTY_OFFLINE_SECS = 60;
 
+// ---------- Kênh chat (mục 4 "Lệnh chat", #188) ----------
+/**
+ * Kênh thế giới (`/tg`, mọi bản đồ / kênh nhận): chỉ hồn sư từ cấp `minLevel`, mỗi tài khoản tối đa 1 tin / `cdSecs` giây (server
+ * kiểm; client hiển thị trong lời nhắc). Thông báo hệ thống không chịu giới hạn này.
+ */
+export const WORLD_CHAT = { minLevel: 10, cdSecs: 30 } as const;
+
 // ---------- Năng lượng và chiêu tiên cơ (mục 5.1 "Trong trận"; mọi số dưới đây đã chốt) ----------
 /** Năng lượng tối đa của mỗi võ hồn trong đội. Đủ mức này thì đổi tay vào sẽ tung chiêu tiên cơ, dùng hết năng lượng. */
 export const TIEN_CO_MAX = 100;
@@ -592,7 +599,9 @@ export const STATUS_IDS = ["burn", "shock", "poison", "vuln", "armor", "stun", "
   // Từ #163: tầng Hàn (chỉ có trên hồn sư, Cực Hàn của Tà hóa Huyền Minh Băng Giao, BossPhase.cold).
   "chill",
   // Từ #174: Ngập nước (chỉ có trên hồn sư, vùng ngập Thủy Triều Dâng của Tà hóa Thâm Hải Ma Kình Vương, BossPhase.tide).
-  "flood"] as const;
+  "flood",
+  // Từ #175: che tầm nhìn (chỉ có trên hồn sư, Phun Mực của tinh anh Ma Chương Vương). Bit 15: bit cuối của trường uint16 `st`.
+  "ink"] as const;
 export type StatusId = (typeof STATUS_IDS)[number];
 /**
  * - `secs`: thời gian mặc định (giây); gây lại thì lấy thời gian còn lại dài hơn. `max`: số tầng tối đa (1 = không cộng dồn).
@@ -642,6 +651,9 @@ export const STATUS: Record<StatusId, StatusDef> = {
   // Từ #174 (thiết kế gốc đã chốt "vùng ngập làm chậm 50%"): Làm chậm của vùng ngập, cộng với Làm chậm khác tới SLOW_CAP. Vùng ngập gây
   // lại mỗi nhịp (TideDef.flood) với thời gian ngắn nên ra khỏi nước là hết ngay sau đó.
   flood:   st("Ngập nước", "#4aa8ff", 0.5, 1, { slow: 0.5 }),
+  // Từ #175 (thiết kế gốc: Phun Mực "vòng, che tầm nhìn"): chỉ đổi hiển thị của người trúng (màn mực che khung nhìn, chừa vòng
+  // PLAYER_INK quanh chính mình), không chặn đi / đánh / hồn kỹ; server không đổi luật đánh.
+  ink:     st("Che tầm nhìn", "#9a8ac8", 4, 1),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -655,16 +667,23 @@ export const CC_TIER_MULT = [1, 1, 1, 0.75, 0.5];
  * băng (#116): không đi, không đánh, không dùng hồn kỹ; Mê hoặc (#116): không đánh, không dùng hồn kỹ, phím bị bỏ qua, server tự đi
  * lung tung quanh chỗ bị Mê hoặc (PLAYER_CHARM); Trói: không đi; Câm lặng: không dùng hồn kỹ; Làm chậm: giảm tốc (tối đa SLOW_CAP); Trúng độc /
  * Thiêu đốt: mỗi tầng `dot` × sát thương đòn thường của hồn thú mỗi giây; Dễ thương / Phá giáp: nhận thêm sát thương; Cảm điện: đòn
- * của hồn thú trúng hồn sư Cảm điện lan `chain` sang hồn sư Cảm điện khác trong `chainR`. Thuộc hồn sư nên đổi võ hồn vẫn còn; vào
+ * của hồn thú trúng hồn sư Cảm điện lan `chain` sang hồn sư Cảm điện khác trong `chainR`; Che tầm nhìn (#175): chỉ màn hình người
+ * trúng phủ mực (PLAYER_INK), không đổi luật. Thuộc hồn sư nên đổi võ hồn vẫn còn; vào
  * vùng an toàn, cả đội gục thì hết. Tiên cơ Xúc Xích (Thanh Tâm Hương Tràng) và Thiên Càn Bạch Ngọc Đỉnh (Bạch Ngọc Thánh Quang) giải
  * mọi trạng thái này.
  */
-export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill", "flood"];
+export const PLAYER_STATUS: readonly StatusId[] = ["poison", "burn", "shock", "vuln", "armor", "stun", "silence", "root", "slow", "charm", "freeze", "chill", "flood", "ink"];
 /**
  * Trạng thái trên hồn sư chỉ chiêu của hồn thú gây (#116): hồn kỹ của đối thủ ở Đại Đấu Hồn Trường có Mê hoặc chưa gây lên hồn sư (cân
  * bằng PvP riêng để #113).
  */
-export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood"];
+export const PLAYER_STATUS_PVE: readonly StatusId[] = ["charm", "freeze", "chill", "flood", "ink"];
+/**
+ * Che tầm nhìn (#175, STATUS.ink): màn hình người trúng phủ mực, chỉ còn thấy vòng bán kính `r` pixel cảnh quanh thân mình (khung
+ * nhìn gốc 640 × 360 pixel cảnh, mép mực loang thêm `edge`); `a`: độ đậm của mực ngoài vòng (1 = đen hẳn). Chỉ là hiển thị, server
+ * không dùng.
+ */
+export const PLAYER_INK = { r: 60, edge: 30, a: 0.94 };
 /**
  * Kháng trạng thái của bị động hồn cốt (BonePassiveDef.resist): kháng Choáng cũng rút ngắn Đóng băng, Mê hoặc trên hồn sư (trước #116 là
  * Choáng). Ngập nước (#174) không có kháng: đứng trong nước là chậm (vùng gây lại mỗi nhịp; rút ngắn thời gian vốn đã ngắn hơn nhịp chỉ
@@ -1190,14 +1209,14 @@ export const BOSSES: BossDef[] = [
       spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.25, 0.5], clear: 20 } }, skills: [
       bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa
-  // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; "che tầm nhìn" của Phun Mực thay bằng
-  // Câm lặng + Làm chậm (client chưa có hiệu ứng che màn hình); Huyết Khí nhắm người tham gia ít máu nhất (`weak`).
+  // 70° cùng lúc; "8 vệt luân phiên" của Bát Xúc Đập là 8 vệt tỏa đều quanh thân tung cùng lúc; Huyết Khí nhắm người tham gia ít
+  // máu nhất (`weak`). Phun Mực gây Che tầm nhìn (#175, STATUS.ink, PLAYER_INK) như thiết kế gốc, không còn Câm lặng + Làm chậm.
   { id: "hac_giap_cu_giai_vuong", name: "Hắc Giáp Cự Giải Vương", rank: 1, species: "thiet_giap_cu_giai", aura: "#4a5a7a", skills: [
     bs("Song Kìm", "cone", 54, { arc: 80, count: 2, spread: 70, dmg: 1.7 }),
     bs("Phun Bọt", "circle", 56, { dmg: 1, status: [{ s: "slow", secs: 3 }] })] },
   { id: "ma_chuong_vuong", name: "Ma Chương Vương", rank: 1, species: "tham_hai_ma_chuong", aura: "#8a3aff", skills: [
     bs("Bát Xúc Đập", "line", 100, { w: 12, count: 8, spread: 315, range: 80, dmg: 1.6, cd: 9 }),
-    bs("Phun Mực", "circle", 40, { at: "target", range: 130, dmg: 1, status: [{ s: "silence", secs: 2 }, { s: "slow", secs: 2 }] })] },
+    bs("Phun Mực", "circle", 40, { at: "target", range: 130, dmg: 1, status: [{ s: "ink" }] })] },
   { id: "huyet_sa_bao_quan", name: "Huyết Sa Bạo Quân", rank: 1, species: "huyet_nha_cu_sa", aura: "#ff2a3a", skills: [
     bs("Tam Liên Xé", "line", 110, { w: 14, count: 3, spread: 40, dmg: 1.7 }),
     bs("Huyết Khí", "circle", 34, { at: "target", range: 160, warn: 1, dmg: 1.8, weak: true })] },
