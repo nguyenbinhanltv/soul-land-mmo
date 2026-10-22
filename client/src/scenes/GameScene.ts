@@ -7,7 +7,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, FUSIONS } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -1924,6 +1924,8 @@ export class GameScene extends Phaser.Scene {
       if (g.k === "kill") return hunt(g.map, g.zone, !!g.fit);
       if (g.k === "map" && g.map) return void (g.map !== this.mapId && maps.add(g.map));
       if (g.k === "give" && (g.item === CORE_ITEM || g.item === RING_ITEM)) return hunt(undefined, undefined, true);
+      // Gia nhập tông (#286): chấm các sứ giả tông (TONG_MON.npc) ở bản đồ của họ; mục tiêu không ghi `map` vì sự kiện `tong` không có bản đồ.
+      if (g.k === "tong") return TONG_MON.forEach((t) => toNpc(t.npc, TONG_DAILY.map));
       // Tinh anh / thú vương / boss thế giới: mục tiêu có `map` (chương 3: Hải Thần Đảo) chỉ tính ở đúng bản đồ đó (server lọc theo
       // bản đồ, #284), nên ở bản đồ khác thì chỉ đường tới đó; đứng đúng bản đồ (hoặc mục tiêu không ghi bản đồ) mới chấm chỗ sinh / khung hang.
       if (g.k === "elite" || g.k === "king" || g.k === "world") {
