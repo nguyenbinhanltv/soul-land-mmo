@@ -7922,6 +7922,76 @@ async function arenaTest(){
     await aop(Solo,"cancel"); await aop(TeamA,"cancel");
     for(const b of mismatched) await b.room.leave();
   }
+  // ---- #278 Xem trực tiếp: danh sách trận, vào xem (phòng sân chỉ đọc), lệnh của người xem bị bỏ qua, giới hạn người xem, về bản đồ cũ ----
+  {
+    console.log("[#278] Xem trực tiếp Đại Đấu Hồn Trường: danh sách, vào xem, chỉ đọc, ARENA.watchMax, rời / hết trận về bản đồ cũ");
+    const WA=await bot("Đấu xem A","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:1,outfitCol:3});
+    const WB=await bot("Đấu xem B","hoa_anh",{sex:1,hair:0,hairCol:3,outfitCol:2});
+    const V=await bot("Người xem","u_minh_linh_mieu",{sex:0,hair:1,hairCol:4,outfitCol:0});
+    const V2=await bot("Người xem 2","bich_lan_xa_hoang",{sex:1,hair:2,hairCol:0,outfitCol:4});
+    for(const b of [WA,WB,V,V2]) await warpTown(b);
+    const last=(b,k,n=0)=>b.arena.slice(n).filter(m=>m.k===k).at(-1);
+    /** Gửi `arena {op, roomId}`, chờ tin `k` mới hoặc dòng log mới; trả {m: tin mới, log: dòng log mới}. */
+    async function wop(b,op,k,extra={}){
+      await sleep(ARENA.topCd*1000+50); const n=b.arena.length, l=b.logs.length;
+      b.room.send("arena",{op,...extra}); await waitFor(()=>last(b,k,n)||b.logs.length>l,2000);
+      return { m:last(b,k,n), log:b.logs.slice(l).at(-1)??"" };
+    }
+    await at(WA,-12); await at(WB,12); const nA=WA.arena.length, nB=WB.arena.length;
+    await aop(WA,"queue"); await aop(WB,"queue");
+    const fA=()=>last(WA,"found",nA), fB=()=>last(WB,"found",nB);
+    ok(await waitFor(()=>fA()&&fB()&&fA().roomId===fB().roomId,3000),"#278: ghép WA với WB");
+    const rid=fA().roomId;
+    for(const b of [WA,WB]){ await b.room.leave(); await enter(b,rid); await waitFor(()=>meOf(b)&&b.owned&&b.squad,3000); }
+    ok(await waitFor(()=>WA.room.state.phase==="ready",3000),"WA, WB vào sân: đếm ngược");
+    // Danh sách: trận đang đếm ngược có trong danh sách, đúng chế độ / tên / Elo / số người xem.
+    await test(V,"goto",{x:ns.x+200,y:ns.y+16});
+    let r=await wop(V,"live","live"); const row=()=>r.m?.list.find(x=>x.roomId===rid);
+    ok(r.m&&r.m.list.length<=ARENA.liveN&&r.m.list.every(x=>x.phase==="ready"||x.phase==="fight")&&row()?.mode==="1v1"&&row()?.watchers===0
+      &&row()?.sides.map(x=>x.name).sort().join()===[WA.name,WB.name].sort().join(),`danh sách xem trận: ${JSON.stringify(row())}`);
+    r=await wop(V,"watch","watch",{roomId:rid}); ok(!r.m&&/lại gần/.test(r.log),`đứng xa biển: không vào xem được (${r.log})`);
+    await at(V,0); await at(V2,6);
+    await aop(V,"queue"); r=await wop(V,"watch","watch",{roomId:rid}); ok(!r.m&&/xếp hàng/.test(r.log),`đang xếp hàng: không vào xem được (${r.log})`);
+    await aop(V,"cancel");
+    r=await wop(V,"watch","watch",{roomId:"khong_co"}); ok(!r.m&&/không còn diễn ra/.test(r.log),`mã trận sai: từ chối (${r.log})`);
+    // Giới hạn người xem ở server: hạ tối đa còn 1 (hook awatch), người thứ hai bị từ chối.
+    ok((await test(V,"awatch",{max:1}))?.max===1,"hook awatch: tối đa 1 người xem mỗi trận");
+    const posV=[meOf(V).x,meOf(V).y], bagV=bagKey(V), progV=prog(V);
+    r=await wop(V,"watch","watch",{roomId:rid}); ok(r.m?.roomId===rid,`V được giữ chỗ xem trận (${r.log||"tin watch"})`);
+    r=await wop(V2,"watch","watch",{roomId:rid}); ok(!r.m&&/đủ 1 người xem/.test(r.log),`V2: trận đủ người xem (gồm chỗ đang giữ) thì từ chối (${r.log})`);
+    await V.room.leave(); await sleep(300); await enter(V,rid);
+    ok(await waitFor(()=>WA.room.state.watchers===1&&V.room.state.watchers===1,2000)&&V.room.state.phase&&!V.room.state.players.has(V.room.sessionId)
+      &&[...V.room.state.players.values()].map(p=>p.name).sort().join()===[WA.name,WB.name].sort().join(),
+      `V vào xem: watchers ${WA.room.state.watchers}, không có hồn sư của V trên sân, V thấy cả hai người đấu`);
+    // Đếm ngược có thể đã xong lúc người xem vào (afast trong lúc giao đấu sẽ kết thúc trận): chỉ rút giờ khi còn đếm ngược.
+    if(WA.room.state.phase==="ready") await test(WA,"afast",{s:0});
+    ok(await waitFor(()=>WA.room.state.phase==="fight",2000),"giao đấu khi đang có người xem");
+    // Mọi message của người xem bị bỏ qua: không đánh, không chat bản đồ của sân, không dùng hook test, không bị ngắt kết nối.
+    const hpA=meOf(WA).hp, hpB=meOf(WB).hp, chA=WA.chats.length, lV=V.logs.length; V.test=null;
+    for(const [t,m] of [["attack",{}],["skill",{i:0}],["chanthan",{}],["input",{x:1,y:0}],["chat",{text:"người xem nói"}],["test",{op:"ping"}],["arena",{op:"queue"}],["party",{op:"leave"}]]) V.room.send(t,m);
+    await sleep(800);
+    ok(V.leftCode===null&&!V.test&&V.logs.length===lV&&!WA.chats.slice(chA).some(c=>c.text==="người xem nói")&&meOf(WA).hp===hpA&&meOf(WB).hp===hpB&&WA.room.state.phase==="fight",
+      `lệnh của người xem bị bỏ qua: V vẫn kết nối, không có phản hồi / chat, hai bên không mất sinh lực`);
+    // Rời xem giữa trận: về đúng chỗ cũ ở bản đồ, trận tiếp tục, người thứ hai xem được.
+    V.room.send("arena",{op:"unwatch"}); ok(await waitFor(()=>V.leftCode===4005,2000),`V rời xem (mã ${V.leftCode})`);
+    await back(V);
+    ok(V.room.state.mapId===AT&&Math.hypot(meOf(V).x-posV[0],meOf(V).y-posV[1])<1&&bagKey(V)===bagV&&prog(V)===progV,
+      `V về ${MAPS[AT].name} đúng chỗ cũ; túi, cấp, đội hình không đổi`);
+    ok(await waitFor(()=>WA.room.state.watchers===0,2000)&&WA.room.state.phase==="fight"&&!endOf(WA),"người xem rời: watchers 0, trận vẫn đang giao đấu");
+    const posV2=[meOf(V2).x,meOf(V2).y], bagV2=bagKey(V2);
+    r=await wop(V2,"watch","watch",{roomId:rid}); ok(r.m?.roomId===rid,"V2 vào xem sau khi V rời (còn chỗ)");
+    await V2.room.leave(); await sleep(300); await enter(V2,rid); await waitFor(()=>WA.room.state.watchers===1,2000);
+    // Hết trận: người xem không nhận kết quả / thưởng, bị đưa ra cùng người đấu và về bản đồ cũ.
+    for(let j=0;j<TEAM_SIZE&&!meOf(WB).dead;j++) await test(WB,"down");
+    ok(await waitFor(()=>endOf(WA)&&endOf(WB),3000)&&!V2.arena.some(m=>m.k==="end"),"hết trận: hai bên có kết quả, người xem không nhận tin kết quả");
+    await test(WA,"afast",{s:0});
+    ok(await waitFor(()=>V2.leftCode===4005,3000),`hết giờ kết quả: người xem bị đưa ra (mã ${V2.leftCode})`);
+    await back(V2);
+    ok(V2.room.state.mapId===AT&&Math.hypot(meOf(V2).x-posV2[0],meOf(V2).y-posV2[1])<1&&bagKey(V2)===bagV2,`V2 về ${MAPS[AT].name} đúng chỗ cũ, túi không đổi`);
+    for(const w of [WA,WB]){ await waitFor(()=>w.leftCode===4005,3000); await back(w); }
+    await test(V,"awatch",{});
+    for(const b of [WA,WB,V,V2]) await b.room.leave();
+  }
 }
 /**
  * 8.2 Cộng minh: bảng RESONANCE đúng mốc 5.10 (hàm thuần), rồi một tài khoản mới đạt từng mốc của 5 trụ cột bằng hook (grant / set
