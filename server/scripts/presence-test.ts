@@ -121,6 +121,15 @@ try {
   // B sang tiến trình 3 (phiên mới, vẫn chặn A) trước khi tin rời của phiên cũ ở tiến trình 2 tới: tin rời đó không xóa phiên mới.
   p3.enter(B.id, "sb2", B.name, { friends: [], blocks: [A], fans: [] });
   await p3.settled();
+  // Tin lệch thứ tự: bản cũ của phiên `sb` (đã bỏ chặn) tới sau lúc phiên `sb2` vào thì bị bỏ.
+  await backend.presence.publish("friend:state", { w: "tiến-trình-2", acc: B.id, sid: "sb", v: 999, friends: [A.id], blocks: [] });
+  assert.equal(p1.blocked(B.id, A.id), true, "tin cũ của phiên đã có phiên mới không bỏ chặn");
+  // Tiến trình chưa biết phiên cũ: tạm có hai phiên thì gộp chặt (chặn của phiên nào cũng tính, bạn chỉ khi mọi phiên có).
+  const p4 = new FriendHub(backend, "tiến-trình-4"); await p4.ready;
+  await backend.presence.publish("friend:state", { w: "x", acc: B.id, sid: "sb-lạ", v: 1, friends: [A.id], blocks: [] });
+  assert.equal(p4.blocked(B.id, A.id), true);
+  await backend.presence.publish("friend:state", { w: "x", acc: B.id, sid: "sb-lạ", v: 2, friends: [A.id], blocks: [], gone: true });
+  p4.close();
   p2.leave(B.id, "sb");
   await p2.settled();
   assert.equal(p1.blocked(B.id, A.id), true, "tin rời của phiên cũ không bỏ chặn của phiên mới");
