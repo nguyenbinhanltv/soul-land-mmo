@@ -629,9 +629,8 @@ export const STATUS: Record<StatusId, StatusDef> = {
   // Từ #116: Đóng băng trên hồn sư: như Choáng (không đi, không đánh, không dùng hồn kỹ), hình khối băng; thời gian ghi ở từng chiêu.
   freeze:  st("Đóng băng", "#9ad8ff", 1.5, 1, { noMove: true, noAtk: true }),
   // Từ #163 (thiết kế gốc đã chốt): tầng Hàn của Cực Hàn tự nó không gây gì; đủ 4 tầng thì bùng phát thành Đóng băng 3 giây. Tầng chỉ
-  // mất theo luật Cực Hàn (Hỏa Đàn, thanh tẩy, rời hang, cả đội gục, thú vương bị hạ / rút đi; server/src/rooms/cold.ts): thời gian
-  // dài để không tự hết giữa hai lần tích (BossPhase.cold.every).
-  chill:   st("Hàn",       "#d8f2ff", 60, 4, { burst: { s: "freeze", secs: 3 } }),
+  // mất theo luật Cực Hàn (Hỏa Đàn, thanh tẩy, rời hang, cả đội gục, thú vương bị hạ / rút đi; server/src/rooms/cold.ts), không tự hết giờ.
+  chill:   st("Hàn",       "#d8f2ff", Infinity, 4, { burst: { s: "freeze", secs: 3 } }),
 };
 /** Tốc độ hồn thú giảm tối đa ngần này dù chồng nhiều trạng thái làm chậm (2.5c). */
 export const SLOW_CAP = 0.8;
@@ -985,8 +984,8 @@ export const RANK_NAMES = ["", "Tinh anh", "Tà hóa", "Boss thế giới"] as c
  */
 export interface BossPhase { name: string; desc: string; spd: number; skills: BeastSkillDef[]; cold?: ColdDef; }
 /**
- * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): mọi hồn sư đang tham gia trong hang
- * (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
+ * Cực Hàn (#163, giai đoạn 2 của Tà hóa Huyền Minh Băng Giao, mục 5.4; thiết kế gốc đã chốt): từ khi hết tiếng gầm chuyển giai đoạn,
+ * mọi hồn sư đang tham gia trong hang (chưa gục, không đi cổng) cứ `every` giây thêm một tầng Hàn (STATUS.chill: đủ tầng tối đa thì bùng phát thành Đóng băng); đang Đóng
  * băng hoặc miễn sát thương thì ngừng tích. Đứng cách Hỏa Đàn (đống lửa trong hang) không quá `fire.r` pixel hoặc được thanh tẩy thì xả
  * hết tầng. Hỏa Đàn đặt ở điểm đi được trong hang gần điểm tỉ lệ `fire.at` của hình chữ nhật `boss` nhất (hoaDanSpot, shared/hoaDan.ts),
  * quanh nó `fire.clear` pixel mỗi phía đều đi được.
@@ -1124,7 +1123,7 @@ export const BOSSES: BossDef[] = [
   { id: "huyen_minh_bang_giao", name: "Huyền Minh Băng Giao", rank: 2, species: "han_bang_dia_long", aura: "#8ad8ff", hp: 8, skills: [
     bs("Băng Phong Thiên Lý", "line", 230, { w: 20, range: 200, warn: 1.3, dmg: 1.8, cd: 10 }),
     bs("Băng Trùy Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8, status: [{ s: "slow", secs: 2 }] })],
-    phase2: { name: "Cực Hàn", desc: "mọi người trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
+    phase2: { name: "Cực Hàn", desc: "người tham gia trong hang tích tầng Hàn, đủ tầng thì bị đóng băng; đứng cạnh Hỏa Đàn hoặc được thanh tẩy để xả tầng; tốc độ +20%",
       spd: 1.2, cold: { every: 5, fire: { r: 40, at: [0.25, 0.5], clear: 20 } }, skills: [
       bs("Cực Hàn Phong Bạo", "circle", 64, { warn: 2, dmg: 0.8, cd: 12, status: [{ s: "slow", secs: 4 }] })] } },
   // Hải Thần Đảo (BĐ6d, 50.000–100.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "2 nón liên tiếp" của Song Kìm là 2 nón tỏa

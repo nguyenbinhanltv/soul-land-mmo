@@ -9,10 +9,10 @@ export class ColdStacks {
   private under = new Set<string>();
   constructor(private room: MapRoom) {}
 
-  /** Luật Cực Hàn đang chạy trong phòng: thú vương còn sống, đang giao chiến, ở giai đoạn 2 và có `phase2.cold`. */
+  /** Luật Cực Hàn đang chạy trong phòng: thú vương còn sống, đang giao chiến, ở giai đoạn 2 (hết tiếng gầm) và có `phase2.cold`. */
   active(): { cold: ColdDef; parts: Map<string, number> } | null {
     const room = this.room, bid = room.king?.bid, b = bid ? room.state.beasts.get(bid) : undefined, e = bid ? room.bdata.get(bid)?.elite : undefined;
-    const k = e?.king, cold = k && !k.world && k.phase === 2 ? k.def.phase2?.cold : undefined;
+    const k = e?.king, cold = k && !k.world && k.phase === 2 && k.roar <= 0 ? k.def.phase2?.cold : undefined;
     return b && e && cold && e.engaged && b.hp > 0 ? { cold, parts: e.parts } : null;
   }
 
@@ -34,7 +34,6 @@ export class ColdStacks {
       const p = room.state.players.get(pid)!, d = room.pdata.get(pid)!;
       if (!this.under.has(pid)) { this.under.add(pid); d.hanT = 0; } // mới chịu Cực Hàn: tích từ đầu
       if (fire && Math.hypot(p.x - fire.x, p.y - fire.y) <= on.cold.fire.r) {
-        d.hanT = 0;
         if (this.drop(pid)) room.log(pid, "Hơi ấm Hỏa Đàn xua tan tầng Hàn.", STATUS.chill.col);
         continue;
       }
