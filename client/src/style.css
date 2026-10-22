@@ -31,7 +31,8 @@
   --good:#2a6a52; --bad:#b0302a; --gem:#8a6bff;
   --cell:44px;              /* cỡ ô vật phẩm / kỹ năng dùng chung */
   --frame-panel:var(--ui-hop-thoai); --frame-scroll:var(--ui-cuon-giay);
-  --frame-btn:var(--ui-nut-thuong); --frame-btn-hover:var(--ui-nut-ro); --frame-btn-on:var(--ui-nut-nhan);
+  --frame-btn:var(--ui-nut-thuong); --frame-btn-hover:var(--ui-nut-ro); --frame-btn-on:var(--ui-nut-nhan); --frame-btn-off:var(--ui-nut-tat);
+  --frame-cell:var(--ui-o); --frame-cell-on:var(--ui-o-chon);
   --u:1;
   color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
@@ -710,15 +711,24 @@ body.arena #quest{display:none}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):hover,.thuymac :is(#chans,#arenaQ) button:not(:disabled):hover,
 .thuymac .ft-hover{border-image-source:var(--frame-btn-hover)}
 .thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.bslot,.bcell,.aopt,.kcard,.trm):not(:disabled):active,.thuymac :is(#chans,#arenaQ) button:not(:disabled):active,
-.thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bslot,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--frame-btn-on)}
-.thuymac .bslot.empty{border-image-source:var(--frame-btn-on);opacity:.55}
+.thuymac :is(.opt,.aopt,.kcard)[aria-pressed="true"],.thuymac :is(.aopt,.bcell).sel,.thuymac .ft-press,.thuymac #chans button.cur{border-image-source:var(--frame-btn-on)}
+/* Nút tắt (ui_nut_tat) và tab dùng chung khung nút: tab chọn = khung nhấn. */
+.thuymac :where(.minibtn,.sbtn,.buse,.pbtn,.rlink,.rhead .x,.opt,.btn,.tm,.aopt,.kcard,.trm):disabled,.thuymac :is(#chans,#arenaQ) button:disabled{border-image-source:var(--frame-btn-off);color:var(--muted)}
+.thuymac .ui-tab{border:4px solid transparent;background:none;color:var(--text);text-shadow:none;
+  border-image:var(--frame-btn) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
+.thuymac .ui-tab:not([aria-selected="true"]):hover{border-image-source:var(--frame-btn-hover)}
+.thuymac .ui-tab[aria-selected="true"]{border-image-source:var(--frame-btn-on);color:#f4ead0;text-shadow:var(--stroke)}
+/* Ô vật phẩm / kỹ năng: khung gỗ mép 4 điểm, ruột tối cho biểu tượng nổi (ui_o, ui_o_chon). */
+.thuymac .bslot{border-width:4px;border-image:var(--frame-cell) var(--nine-o) fill / calc(var(--nine-o) * 1px) stretch}
+.thuymac .bslot:not(.empty):not(:disabled):is(:hover,:active,.sel){border-image-source:var(--frame-cell-on)}
+.thuymac .bslot.empty{border-image-source:var(--frame-cell);opacity:.55}
 .thuymac .bpg{border:4px solid transparent;background:none;border-image:var(--frame-btn) var(--nine-nut-thuong) fill / calc(var(--nine-nut-thuong) * 1px) stretch}
 .thuymac .bpg:not(.cur):hover{border-image-source:var(--frame-btn-hover)}
 .thuymac .bpg.cur{border-image-source:var(--frame-btn-on);outline:2px solid var(--son);outline-offset:-3px}
 /* Trạng thái chọn / màu riêng thể hiện bằng viền trong (border-image che màu viền cũ). */
 .thuymac .bcell:not(.empty):not(.sel),.thuymac .kcard.on{outline:2px solid color-mix(in srgb,var(--c) 75%,#1a1020);outline-offset:-3px}
 .thuymac .kcard.on{border-image-source:var(--frame-btn-on)}
-.thuymac :is(.bslot,.bcell,.aopt).sel{outline:2px solid var(--son);outline-offset:-3px;box-shadow:none}
+.thuymac :is(.bcell,.aopt).sel{outline:2px solid var(--son);outline-offset:-3px;box-shadow:none}
 .thuymac .tm.on{outline:2px solid var(--c);outline-offset:-2px}
 .thuymac .tm.full{outline:2px solid var(--xp);outline-offset:-2px}
 .thuymac .tm.down{opacity:.75}
