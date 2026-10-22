@@ -6,14 +6,16 @@
 import { Client, ServerError } from "colyseus";
 import { MapRoom, type AuthData, type PData } from "./MapRoom.ts";
 import { ArenaState, ArenaSide } from "./schema.ts";
-import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
+import { ARENA, ARENA_MAP, ARENA_SHARDS, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
 import { arenaMatches, type ArenaMatch } from "./arenaQueue.ts";
 import { store, type Item, type Bag } from "../db.ts";
 
 type Phase = "wait" | "ready" | "fight" | "end";
 type Reason = "ko" | "time" | "leave" | "noshow";
-/** Một bên của trận: tài khoản, thành tích trước trận (Elo dùng để tính), phiên đang ở sân, đã rời sân, lượt thắng có thưởng hôm nay. */
-interface Side { accountId: number; name: string; rec: ArenaRecord; sid: string; left: boolean; claims: number; }
+/** Thành viên của một bên: thành tích trước trận, phiên đang ở sân, đã rời sân, lượt thắng có thưởng hôm nay. */
+interface Member { accountId: number; name: string; rec: ArenaRecord; sid: string; left: boolean; claims: number; }
+/** Một bên trận 1v1 hoặc 2v2. Elo đội chỉ dùng để ghép và tính đối thủ; Elo lưu vẫn riêng từng tài khoản. */
+interface Side { id: string; members: Member[]; elo: number; }
 /**
  * Phần thưởng thắng đã chuẩn bị nhưng CHƯA vào túi đang chơi: túi và Hồn Tệ sau khi thưởng (`items`, `honTeAfter`, chỉ áp vào sau khi
  * DB xác nhận còn lượt), ảnh chụp để ghi DB (`bag`), và phần báo client (`honTe`, `code`, `qty`, `coin`).
@@ -36,7 +38,7 @@ export class ArenaRoom extends MapRoom {
   // Không chia kênh (mục 6 "Nhiều kênh"): mỗi trận một phòng riêng 2 người, không theo CHANNEL_MAX; `state.channel` = 0 nên MapRoom
   // không cấp số kênh, không khóa kênh khi rời sân, tin `channel` bị từ chối;
   // rời sân thì vào bản đồ cũ theo pickChannel (kênh đồng đội, không thì ít người nhất).
-  maxClients = 2;
+  maxClients = 4;
   state = new ArenaState();
   match!: ArenaMatch;
   sides: Side[] = [];
@@ -53,16 +55,16 @@ export class ArenaRoom extends MapRoom {
     if (!m || m.roomId) throw new ServerError(400, "Trận đấu không tồn tại.");
     m.roomId = this.roomId;
     this.match = m;
-    this.sides = m.sides.map((s) => ({ accountId: s.accountId, name: s.name, rec: { ...s.rec }, sid: "", left: false, claims: 0 }));
+    this.sides = m.sides.map((s) => ({ id: s.id, elo: s.elo, members: s.members.map((member) => ({ ...member, rec: { ...member.rec }, sid: "", left: false, claims: 0 })) }));
     // Chỉ vào được bằng mã phòng (joinById) do server gửi cho đúng hai người đã ghép.
     void this.setPrivate(true);
     this.setup(ARENA_MAP);
     this.interest.all = true; // sân nhỏ, hai người: không lọc đồng bộ theo vùng (11.4), không gửi tin bản đồ nhỏ
-    for (const s of this.sides) { const a = new ArenaSide(); a.name = s.name; a.elo = s.rec.elo; this.state.sides.push(a); }
+    for (const s of this.sides) { const a = new ArenaSide(); a.name = s.members.map((member) => member.name).join(" / "); a.elo = s.elo; this.state.sides.push(a); }
     // Chống dàn xếp (9.7): báo trước cho hai bên nếu cặp đã đủ ARENA.pairDaily trận tính Elo hôm nay. Chỉ để hiển thị; trận có tính
     // Elo không là do lần đếm lúc hết trận (finish) quyết định.
-    const [a, b] = this.sides.map((x) => x.accountId);
-    store.arenaPairCount(this.today(), a, b).then((n) => { if (!this.done) this.state.friendly = !arenaRanked(n + 1); },
+    const pairs = arenaCrossPairs(this.sides[0].members.map((m) => m.accountId), this.sides[1].members.map((m) => m.accountId));
+    Promise.all(pairs.map(([a, b]) => store.arenaPairCount(this.today(), a, b))).then((counts) => { if (!this.done) this.state.friendly = counts.some((n) => !arenaRanked(n + 1)); },
       (e) => console.error("Không đọc được số trận của cặp đấu hồn", e));
     this.setPhase("wait", ARENA.joinSecs);
     for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
@@ -74,7 +76,7 @@ export class ArenaRoom extends MapRoom {
 
   /** Chỉ hai người của trận được vào, mỗi người một lần (rời sân là bỏ trận); không đối chiếu bản đồ đang đứng (vẫn là bản đồ cũ). */
   async checkJoin(accountId: number) {
-    const s = this.sides.find((x) => x.accountId === accountId);
+    const s = this.sides.flatMap((x) => x.members).find((x) => x.accountId === accountId);
     if (!s) throw new ServerError(403, "Bạn không ở trong trận đấu này.");
     if (s.left || this.done) throw new ServerError(409, "Trận đấu đã kết thúc.");
     const [ch, looks, loc] = await Promise.all([store.getCharacter(accountId), store.getLooks(accountId), store.getLocation(accountId)]);
@@ -84,7 +86,7 @@ export class ArenaRoom extends MapRoom {
 
   async onAuth(client: Client, options: { token?: string }) {
     const auth = await super.onAuth(client, options);
-    const s = this.sides.find((x) => x.accountId === auth.accountId)!;
+    const s = this.sides.flatMap((x) => x.members).find((x) => x.accountId === auth.accountId)!;
     s.claims = await store.bossClaims(auth.accountId, this.today(), ARENA.claimKind);
     return auth;
   }
@@ -92,13 +94,14 @@ export class ArenaRoom extends MapRoom {
   /** Vào sân: cả đội đầy sinh lực (MapRoom.onJoin hồi đầy, chưa gục võ hồn nào), đứng ở hai phía sân (1/4 và 3/4 chiều ngang) quay mặt vào nhau. */
   onJoin(client: Client, o: unknown, auth: AuthData) {
     super.onJoin(client, o, auth);
-    const i = this.sides.findIndex((x) => x.accountId === auth.accountId), p = this.state.players.get(client.sessionId)!, d = this.pdata.get(client.sessionId)!;
-    this.sides[i].sid = client.sessionId; this.state.sides[i].sid = client.sessionId;
+    const i = this.sides.findIndex((x) => x.members.some((member) => member.accountId === auth.accountId)), s = this.sides[i];
+    const mi = s.members.findIndex((member) => member.accountId === auth.accountId), p = this.state.players.get(client.sessionId)!, d = this.pdata.get(client.sessionId)!;
+    s.members[mi].sid = client.sessionId; this.state.sides[i].sid = s.members.map((member) => member.sid).filter(Boolean).join(",");
     const sp = this.map.spawn;
-    p.x = Math.round(sp.x + sp.w * (i === 0 ? 0.25 : 0.75)); p.y = Math.round(sp.y + sp.h / 2);
+    p.x = Math.round(sp.x + sp.w * (i === 0 ? 0.25 : 0.75)); p.y = Math.round(sp.y + sp.h * (mi ? 0.58 : 0.42));
     d.dir = { x: i === 0 ? 1 : -1, y: 0 }; p.dir = dir4(d.dir.x, 0);
     this.syncSides();
-    if (this.phase === "wait" && this.sides.every((x) => x.sid)) {
+    if (this.phase === "wait" && this.sides.every((x) => x.members.every((member) => member.sid))) {
       this.setPhase("ready", ARENA.readySecs);
       this.broadcast("arena", { k: "ready", secs: ARENA.readySecs });
     }
@@ -106,8 +109,9 @@ export class ArenaRoom extends MapRoom {
 
   /** Rời sân trước khi có kết quả (đóng tab, mất mạng, bấm rời) là bỏ trận: thua (mục 5.9, bước 7.2). */
   async onLeave(client: Client) {
-    const i = this.sides.findIndex((x) => x.sid === client.sessionId);
-    if (i >= 0 && !this.done) { this.sides[i].left = true; this.finish(1 - i, "leave"); }
+    const i = this.sides.findIndex((x) => x.members.some((member) => member.sid === client.sessionId));
+    const member = i >= 0 ? this.sides[i].members.find((x) => x.sid === client.sessionId) : undefined;
+    if (member && !this.done) { member.left = true; if (this.phase !== "wait") this.finish(1 - i, "leave"); }
     await super.onLeave(client);
   }
 
@@ -123,8 +127,8 @@ export class ArenaRoom extends MapRoom {
   /** Đối thủ chỉ có khi đang giao đấu: chờ, đếm ngược, kết quả thì không ai đánh trúng ai. */
   foesOf(id: string): string[] {
     if (this.phase !== "fight") return [];
-    const i = this.sides.findIndex((x) => x.sid === id), o = i >= 0 ? this.sides[1 - i] : undefined;
-    return o?.sid && this.state.players.has(o.sid) ? [o.sid] : [];
+    const i = this.sides.findIndex((x) => x.members.some((member) => member.sid === id)), o = i >= 0 ? this.sides[1 - i] : undefined;
+    return o?.members.map((member) => member.sid).filter((sid) => !!sid && this.state.players.has(sid)) ?? [];
   }
   attack(id: string) { if (this.phase === "fight") super.attack(id); }
   skill(c: Client, i: number) {
@@ -179,8 +183,11 @@ export class ArenaRoom extends MapRoom {
   }
   syncSides() {
     this.sides.forEach((s, i) => {
-      const a = this.state.sides[i]; if (!s.sid || !this.state.players.has(s.sid)) return;
-      const t = this.teamHp(s.sid); a.pct = t.pct; a.alive = t.alive; a.total = t.total;
+      const a = this.state.sides[i];
+      a.sid = s.members.map((member) => member.sid).filter(Boolean).join(",");
+      const stats = s.members.map((member) => member.sid ? this.teamHp(member.sid) : { pct: 0, alive: 0, total: 0 });
+      const total = stats.reduce((n, t) => n + t.total, 0), alive = stats.reduce((n, t) => n + t.alive, 0);
+      a.pct = stats.length ? stats.reduce((n, t) => n + t.pct, 0) / stats.length : 0; a.alive = alive; a.total = total;
     });
   }
 
@@ -189,14 +196,14 @@ export class ArenaRoom extends MapRoom {
     this.state.time = Math.max(0, this.state.time - dt);
     if ((this.syncT -= dt) <= 0 && this.phase !== "end") { this.syncT = 0.2; this.syncSides(); }
     if (this.phase === "wait" && this.state.time <= 0) {
-      const joined = this.sides.findIndex((s) => s.sid && !s.left);
-      if (joined >= 0) this.finish(joined, "noshow"); else this.cancel();
+      const joined = this.sides.map((s) => s.members.every((member) => member.sid && !member.left));
+      if (joined[0] !== joined[1]) this.finish(joined[0] ? 0 : 1, "noshow"); else this.cancel();
     } else if (this.phase === "ready" && this.state.time <= 0) {
       this.setPhase("fight", ARENA.fightSecs);
       for (const d of this.pdata.values()) d.inv = 0; // bỏ khung bất tử lúc vào sân (không ai đánh được trong lúc đếm ngược)
       this.broadcast("arena", { k: "fight", secs: ARENA.fightSecs });
     } else if (this.phase === "fight") {
-      const dead = this.sides.map((s) => !!this.state.players.get(s.sid)?.dead);
+      const dead = this.sides.map((s) => s.members.every((member) => !!member.sid && (member.left || this.state.players.get(member.sid)?.dead)));
       if (dead[0] || dead[1]) this.finish(dead[0] && dead[1] ? null : dead[0] ? 1 : 0, "ko");
       else if (this.state.time <= 0) {
         this.syncSides();
@@ -216,14 +223,7 @@ export class ArenaRoom extends MapRoom {
     void this.disconnect();
   }
 
-  /**
-   * Kết quả trận (một lần): bên `winner` thắng (null = hòa). Trước hết đếm trận này vào cặp hai tài khoản hôm nay (bảng arena_pairs,
-   * 9.7): quá ARENA.pairDaily trận thì là **giao hữu**: không đổi Elo / thành tích, không thưởng, không đếm lượt ARENA.dailyWins.
-   * Trận tính Elo: mỗi bên Elo mới theo eloAfter (K = ARENA.k), thêm thắng / thua / hòa; người thắng còn ở sân và còn lượt hôm nay
-   * (ARENA.dailyWins) nhận Hồn Tệ và mảnh võ hồn. Ghi DB qua chuỗi lưu của người đó (một
-   * transaction: cộng Elo / thành tích, lượt, túi có phần thưởng); phần thưởng chỉ vào túi đang chơi khi DB xác nhận còn lượt. Người
-   * không có trong phòng (bỏ trận trước khi vào sân) ghi thẳng. Tin "end" gửi sau khi ghi xong. Thua không mất gì (mục 2).
-   */
+  /** Kết quả trận; chống dàn xếp kiểm tra đủ bốn cặp chéo trong trận 2v2, còn Elo / thưởng vẫn ghi riêng từng tài khoản. */
   finish(winner: number | null, reason: Reason) {
     if (this.done) return;
     this.done = true;
@@ -231,40 +231,38 @@ export class ArenaRoom extends MapRoom {
     this.setPhase("end", ARENA.endSecs);
     this.state.winner = winner ?? 2;
     const day = this.today();
-    // Một lần đếm cho cả hai bên, trước lần ghi kết quả của từng bên; lỗi DB thì lần ghi của cả hai bên cùng báo lỗi.
-    const ranked = store.arenaPairAdd(day, this.sides[0].accountId, this.sides[1].accountId).then(arenaRanked);
+    const pairs = arenaCrossPairs(this.sides[0].members.map((m) => m.accountId), this.sides[1].members.map((m) => m.accountId));
+    const ranked = Promise.all(pairs.map(([a, b]) => store.arenaPairAdd(day, a, b))).then((counts) => counts.every(arenaRanked));
     ranked.then((r) => { this.state.friendly = !r; }, (e) => console.error("Không đếm được trận của cặp đấu hồn", e));
     this.sides.forEach((s, i) => {
       const o = this.sides[1 - i], score = winner === null ? 0.5 : winner === i ? 1 : 0;
-      const delta: ArenaRecord = { elo: eloAfter(s.rec.elo, o.rec.elo, score) - s.rec.elo, wins: score === 1 ? 1 : 0, losses: score === 0 ? 1 : 0, draws: score === 0.5 ? 1 : 0 };
-      const sid = s.sid, p = sid ? this.state.players.get(sid) : undefined, d = sid ? this.pdata.get(sid) : undefined;
-      // Khảo hạch hằng ngày "đánh một trận": người còn ở sân của trận đã giao đấu (không tính bỏ trận, đối thủ không vào sân). Trước
-      // prepareReward để ảnh chụp túi ghi cùng phần thưởng có cả tiến độ này.
-      if (d && !s.left && reason !== "noshow") this.questEvent(sid, { k: "arena" });
-      // Gục thì nằm lại tới khi rời sân. Không tự dừng hướng đi đang giữ: sau trận vẫn đi lại được trong sân, và dự đoán chuyển động phía
-      // client (mục 6) chỉ đúng khi server áp đúng input client đã gửi (muốn dừng thì phải tăng `PlayerState.seq` như hook `goto`).
-      if (p && d && p.dead) d.deadT = Infinity;
-      // Phần thưởng chuẩn bị trên bản sao túi: trận giao hữu chỉ việc bỏ đi.
-      const reward = score === 1 && p && d && !s.left && s.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
-      const report = (rec: ArenaRecord, paid: boolean, friendly: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.name,
-        elo0: s.rec.elo, elo1: rec.elo, rec, reward: paid && reward ? { honTe: reward.honTe, code: reward.code, qty: reward.qty, coin: reward.coin } : null,
-        capped: !friendly && !!reward && !paid, friendly, left: Math.max(0, ARENA.dailyWins - s.claims - (paid ? 1 : 0)), secs: this.state.time });
-      const save = () => ranked.then((r) => r
-        ? store.saveArena(s.accountId, ARENA.startElo, delta, reward ? { day, kind: ARENA.claimKind, limit: ARENA.dailyWins, bag: reward.bag } : undefined)
-          .then(({ rec, paid }) => ({ rec, paid, friendly: false }))
-        : store.getArena(s.accountId, ARENA.startElo).then((rec) => ({ rec, paid: false, friendly: true })))
-        .then(({ rec, paid, friendly }) => {
-          if (paid && reward && d && this.pdata.get(sid) === d) { d.bag = reward.items; d.honTe = reward.honTeAfter; this.sendBag(sid); }
-          report(rec, paid, friendly);
-        }, (e) => {
-          this.log(sid, "Không lưu được kết quả trận đấu: Elo và phần thưởng chưa được ghi.", "#ff8a8a");
-          report({ elo: s.rec.elo, wins: s.rec.wins, losses: s.rec.losses, draws: s.rec.draws }, false, false);
-          throw e;
-        });
-      if (d) this.chain(d, save); else save().catch((e) => console.error(`Lưu kết quả đấu hồn của tài khoản #${s.accountId} thất bại`, e));
+      s.members.forEach((member) => {
+        const sid = member.sid, p = sid ? this.state.players.get(sid) : undefined, d = sid ? this.pdata.get(sid) : undefined;
+        const delta: ArenaRecord = { elo: eloAfter(member.rec.elo, o.elo, score) - member.rec.elo, wins: score === 1 ? 1 : 0, losses: score === 0 ? 1 : 0, draws: score === 0.5 ? 1 : 0 };
+        if (d && !member.left && reason !== "noshow") this.questEvent(sid, { k: "arena" });
+        if (p && d && p.dead) d.deadT = Infinity;
+        const reward = score === 1 && p && d && !member.left && member.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
+        const report = (rec: ArenaRecord, paid: boolean, friendly: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.members.map((x) => x.name).join(" / "),
+          elo0: member.rec.elo, elo1: rec.elo, rec, reward: paid && reward ? { honTe: reward.honTe, code: reward.code, qty: reward.qty, coin: reward.coin } : null,
+          capped: !friendly && !!reward && !paid, friendly, left: Math.max(0, ARENA.dailyWins - member.claims - (paid ? 1 : 0)), secs: this.state.time });
+        const save = () => ranked.then((r) => r
+          ? store.saveArena(member.accountId, ARENA.startElo, delta, reward ? { day, kind: ARENA.claimKind, limit: ARENA.dailyWins, bag: reward.bag } : undefined)
+            .then(({ rec, paid }) => ({ rec, paid, friendly: false }))
+          : store.getArena(member.accountId, ARENA.startElo).then((rec) => ({ rec, paid: false, friendly: true })))
+          .then(({ rec, paid, friendly }) => {
+            if (paid && reward && d && this.pdata.get(sid) === d) { d.bag = reward.items; d.honTe = reward.honTeAfter; this.sendBag(sid); }
+            report(rec, paid, friendly);
+          }, (e) => {
+            this.log(sid, "Không lưu được kết quả trận đấu: Elo và phần thưởng chưa được ghi.", "#ff8a8a");
+            report({ elo: member.rec.elo, wins: member.rec.wins, losses: member.rec.losses, draws: member.rec.draws }, false, false);
+            throw e;
+          });
+        if (d) this.chain(d, save); else save().catch((e) => console.error(`Lưu kết quả đấu hồn của tài khoản #${member.accountId} thất bại`, e));
+      });
     });
     const [a, b] = this.sides, w = winner === null ? null : this.sides[winner];
-    const text = w ? `${w.name} thắng ${this.sides[1 - winner!].name} (${REASON_TEXT[reason]})` : `${a.name} và ${b.name} hòa (${REASON_TEXT[reason]})`;
+    const text = w ? `${w.members.map((x) => x.name).join(" / ")} thắng ${this.sides[1 - winner!].members.map((x) => x.name).join(" / ")} (${REASON_TEXT[reason]})`
+      : `${a.members.map((x) => x.name).join(" / ")} và ${b.members.map((x) => x.name).join(" / ")} hòa (${REASON_TEXT[reason]})`;
     ranked.catch(() => true).then((r) => this.broadcast("chat", { name: "Hệ thống", text: r ? `${text}.` : `${text}; trận giao hữu, không tính Elo.` }));
   }
 

@@ -110,7 +110,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RESONANCE_RANK_CD, RESONANCE_RANK_PAGE_MAX, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
+  ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaTeamElo, arenaCrossPairs, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
@@ -7222,6 +7222,10 @@ async function dailyTest(){
 async function arenaTest(){
   console.log("[7.2] Đại Đấu Hồn Trường: ghép trận, đấu, Elo, thưởng, bảng xếp hạng");
   const K=ARENA.k, exp=(r,o)=>1/(1+10**((o-r)/400));
+  ok(arenaTeamElo([1000,1100])===1050&&arenaTeamElo([1000])===1000&&arenaTeamElo([])===0,
+    "Elo đội 2v2: lấy trung bình các thành viên, làm tròn và không có thành viên thì 0");
+  ok(JSON.stringify(arenaCrossPairs([11,12],[21,22]))===JSON.stringify([[11,21],[11,22],[12,21],[12,22]]),
+    "chống dàn xếp đội: kiểm đủ 4 cặp tài khoản chéo giữa hai bên");
   ok(eloAfter(1000,1000,1)===1000+K/2&&eloAfter(1000,1000,0)===1000-K/2&&eloAfter(1000,1000,0.5)===1000
     &&eloAfter(1200,1000,1)===Math.round(1200+K*(1-exp(1200,1000)))&&eloAfter(1000,1200,1)===Math.round(1000+K*(1-exp(1000,1200)))&&eloAfter(10,10,0)===0,
     `Elo: K=${K}, ngang nhau ±${K/2}, thắng người mạnh hơn được nhiều hơn (+${eloAfter(1000,1200,1)-1000} / +${eloAfter(1200,1000,1)-1200}), không dưới 0`);
@@ -7295,9 +7299,10 @@ async function arenaTest(){
   // ---- Xếp hàng ở NPC ----
   await test(E,"goto",{x:34*16,y:24*16}); let t=await aop(E,"queue"); ok(/lại gần/.test(t)&&!E.aq.on,`đứng xa NPC: không xếp hàng được (${t})`);
   await at(E); await test(E,"hurt",{pct:5}); t=await aop(E,"queue"); ok(/giao chiến/.test(t)&&!E.aq.on,`vừa bị đánh: không xếp hàng được (${t})`);
-  // Đang trong tổ đội (7.1): không xếp hàng được; rời tổ đội thì được.
+  // Tổ đội 2 người (7.2): trưởng nhóm xếp cho cả hai, thành phần bị khóa tới khi hủy.
   E.room.send("party",{op:"invite",name:F.name}); await sleep(300); F.room.send("party",{op:"accept",name:E.name}); await sleep(400);
-  await test(E,"rest"); t=await aop(E,"queue"); ok(/tổ đội/.test(t)&&!E.aq.on,`đang trong tổ đội: không xếp hàng được (${t})`);
+  await test(E,"rest"); t=await aop(E,"queue"); ok(E.aq.on&&F.aq.on&&E.aq.elo===ARENA.startElo,`tổ đội 2 người: trưởng nhóm xếp hàng cho cả đội Elo ${E.aq.elo} (${t})`);
+  t=await aop(E,"cancel"); ok(!E.aq.on&&!F.aq.on&&/hủy/.test(t),`hủy hàng chờ tổ đội: cả hai được mở khóa (${t})`);
   E.room.send("party",{op:"leave"}); await sleep(400);
   t=await aop(E,"queue"); ok(E.aq.on&&E.aq.elo===ARENA.startElo,`cạnh NPC: đang tìm trận, Elo khởi đầu ${E.aq.elo} (${t})`);
   t=await aop(E,"queue"); ok(/rồi/.test(t)&&E.aq.on,`xếp hàng lần hai: báo đang tìm (${t})`);
@@ -7579,6 +7584,33 @@ async function arenaTest(){
     await J.room.leave(); await sleep(300); await back(J);
     await kickBack(H);
     for(const b of [H,I,J]) await b.room.leave();
+  }
+  // ---- Tổ đội 2v2: hai tổ đội cùng kênh, vào đủ 4 người, hạ cả đội và cập nhật Elo / thưởng từng tài khoản ----
+  {
+    const K=await bot("Đội A1","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:0,outfitCol:0});
+    const L=await bot("Đội A2","hoa_anh",{sex:1,hair:1,hairCol:1,outfitCol:1});
+    const M=await bot("Đội B1","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:2});
+    const N=await bot("Đội B2","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:3,outfitCol:3});
+    const all=[K,L,M,N]; for(const b of all) await warpTown(b);
+    const joinParty=async(lead,mate)=>{ lead.room.send("party",{op:"invite",name:mate.name}); await sleep(250); mate.room.send("party",{op:"accept",name:lead.name}); await waitFor(()=>lead.party?.members.length===2&&mate.party?.id===lead.party?.id,1500); };
+    await joinParty(K,L); await joinParty(M,N);
+    await at(K,-12); await at(L,-12); await at(M,12); await at(N,12);
+    const nK=K.arena.length, nL=L.arena.length, nM=M.arena.length, nN=N.arena.length;
+    await aop(K,"queue"); await aop(M,"queue");
+    const found2=b=>b.arena.slice(b===K?nK:b===L?nL:b===M?nM:nN).filter(m=>m.k==="found").at(-1);
+    ok(await waitFor(()=>found2(K)&&found2(L)&&found2(M)&&found2(N),4000),"2v2: cả hai trưởng nhóm nhận được mã trận cho đủ 4 thành viên");
+    ok(found2(K)?.foe.includes(M.name)&&found2(K)?.foe.includes(N.name)&&found2(M)?.foe.includes(K.name)&&found2(M)?.foe.includes(L.name),"2v2: tin ghép trận có đủ tên hai thành viên đối thủ");
+    await Promise.all(all.map(async b=>enterArena(b)));
+    await waitFor(()=>K.room.state.phase==="ready",3000);
+    const ss=[...K.room.state.sides];
+    ok(ss.length===2&&ss.every(s=>s.name.includes(" / "))&&ss.every(s=>s.sid.split(",").length===2),"ArenaRoom 2v2: hai bên có đủ 2 session và HUD nhận tên đội");
+    await test(K,"afast",{s:0}); await waitFor(()=>K.room.state.phase==="fight",2000);
+    for(const b of [M,N]) for(let j=0;j<TEAM_SIZE&&!b.room.state.players.get(b.room.sessionId).dead;j++) await test(b,"down");
+    ok(await waitFor(()=>K.arena.slice(nK).some(m=>m.k==="end")&&L.arena.slice(nL).some(m=>m.k==="end")&&M.arena.slice(nM).some(m=>m.k==="end")&&N.arena.slice(nN).some(m=>m.k==="end"),4000),"2v2: hạ cả hai thành viên một bên thì trận kết thúc");
+    const end2=b=>b.arena.slice(b===K?nK:b===L?nL:b===M?nM:nN).filter(m=>m.k==="end").at(-1);
+    ok([K,L].every(b=>end2(b)?.score===1&&end2(b)?.elo1===eloAfter(1000,1000,1))&&[M,N].every(b=>end2(b)?.score===0&&end2(b)?.elo1===eloAfter(1000,1000,0)),"2v2: Elo cập nhật riêng từng tài khoản theo Elo đội đối thủ");
+    await Promise.all(all.map(b=>kickBack(b)));
+    for(const b of all) await b.room.leave();
   }
 }
 /**
