@@ -122,7 +122,7 @@ import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // �
 import { BEAST_ROOTED, beastMelee, BEAST_DEF, BEAST_DEF_MULT, beastDef, defMult, PLAYER_CHARM } from "../../shared/data.ts"; // hồn thú: thú thực vật đứng yên, thủ, trạng thái riêng trên hồn sư (#116)
 import { GROUND_KINDS, GROUND_TICK, TELE_SHAPES } from "../../shared/data.ts"; // vùng lưu lại trên mặt đất: vũng độc, sương độc (#161)
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
-import { ATK_SPREAD } from "../../shared/data.ts"; // #238: dải ngẫu nhiên đòn đánh thường (cận trên đòn đánh bọc trứng)
+import { ATK_SPREAD, xpBlocked } from "../../shared/data.ts"; // #238: dải ngẫu nhiên đòn đánh thường (cận trên đòn đánh bọc trứng), bình cảnh
 const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
 const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -7790,8 +7790,8 @@ async function eggTest(){
   const mo=b=>b.room.state.players?.get(b.room.sessionId), kingB=()=>[...E.room.state.beasts.values()].find(b=>b.rank===2);
   await waitFor(()=>E.owned&&mo(E),3000);
   try{
-    // #238: 4 hồn hoàn (không 12.000 năm) để một đòn đánh thường, kể cả chí mạng, không phá nổi bọc máu thấp nhất (kiểm ở dưới).
-    await test(E,"set",{rowId:E.owned.active,level:50,xp:0,rings:[423,764,1760,5000]});
+    // #238: hồn hoàn thứ 5 8.000 năm (không 12.000) để một đòn đánh thường, kể cả chí mạng, không phá nổi bọc máu thấp nhất (kiểm ở dưới); 5 hồn hoàn để cấp 50 không ở bình cảnh.
+    const RG=[423,764,1760,5000,8000]; await test(E,"set",{rowId:E.owned.active,level:50,xp:0,rings:RG});
     E.travel=null; await test(E,"warp",{mapId:ND,x:0,y:0}); await waitFor(()=>E.travel,3000); const tv=E.travel;
     await E.room.leave(); await sleep(300); E.mapId=tv.mapId; await enter(E,tv.roomId??undefined); await waitFor(()=>mo(E)&&E.owned&&E.bag,3000);
     ok(E.room.state.mapId===ND,"E tới Tinh Đấu Nội địa");
@@ -7832,7 +7832,7 @@ async function eggTest(){
     ok(dealt>0&&await waitFor(()=>E.fxs.some(f=>f.k==="egg"&&f.s==="break"),1500)&&(await eggs()).length===EG.n-1&&E.logs.slice(l0).some(t=>/Phá vỡ một bọc trứng/.test(t)),
       `phá một bọc: vỡ, còn ${EG.n-1} bọc; log "${E.logs.slice(l0).find(t=>/bọc trứng/.test(t))}"`);
     await sleep(300);
-    ok(JSON.stringify([mo(E).level,mo(E).xp])===xp0&&E.bag.honTe===coin0&&![...E.room.state.drops.keys()].some(k=>!d0.has(k)),"phá bọc: không kinh nghiệm, không Hồn Tệ, không đồ rơi");
+    ok(!xpBlocked(mo(E).level,RG.length)&&JSON.stringify([mo(E).level,mo(E).xp])===xp0&&E.bag.honTe===coin0&&![...E.room.state.drops.keys()].some(k=>!d0.has(k)),"phá bọc: không kinh nghiệm, không Hồn Tệ, không đồ rơi");
     // Hết giờ: mỗi bọc còn lại nở `per` nhện con cùng số năm; bọc đã phá không nở.
     const left=(await eggs()).map(e=>e.years); E.fxs=[]; await eggs(0.2);
     ok(await waitFor(()=>E.fxs.filter(f=>f.k==="egg"&&f.s==="hatch").length===EG.n-1,2000),`hết ${EG.secs} giây: ${EG.n-1} bọc nở`);
