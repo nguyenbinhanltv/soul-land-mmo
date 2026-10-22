@@ -8,7 +8,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, WAYPOINT_CAST, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
@@ -32,15 +32,16 @@ export const BONE_SKILL_KEYS = ["Z", "X", "C"];
 /** Dòng thông báo riêng cho mình (lỗi, đồ rơi, tổ đội…): hiện ở mọi tab của ô chat. */
 export function log(text: string, col?: string, who?: string) { chatLine("sys", text, col, who); }
 
-// ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Thế giới, lịch sử chỉ trong phiên ----------
+// ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Tông / Thế giới, lịch sử chỉ trong phiên ----------
 /** Kênh của một dòng: `sys` = thông báo riêng cho mình (tab nào cũng hiện). */
-export type ChatCh = "sys" | "map" | "party" | "whisper" | "world";
-export type ChatTab = "all" | "map" | "party" | "whisper" | "world";
-/** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng. */
-export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2", party: "#7dff8a", whisper: "#c58cff", world: "#e9c45a" };
-const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]" };
+export type ChatCh = "sys" | "map" | "party" | "whisper" | "world" | "tong";
+export type ChatTab = "all" | "map" | "party" | "whisper" | "world" | "tong";
+/** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng, tông môn (#198) lam ngọc. */
+export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2", party: "#7dff8a", whisper: "#c58cff", world: "#e9c45a", tong: "#6fd3e8" };
+const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]", tong: "[Tông]" };
 const CHAT_TABS: { id: ChatTab; name: string }[] = [
-  { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "world", name: "Thế giới" }];
+  { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "tong", name: "Tông" },
+  { id: "world", name: "Thế giới" }];
 /** Số dòng hiện lúc ô chat đóng (mờ dần sau CHAT_FADE_MS như trước) và lúc mở (không mờ, cuộn được); số dòng giữ trong phiên. */
 const CHAT_SHOW = 6, CHAT_SHOW_OPEN = 40, CHAT_FADE_MS = 9000, CHAT_KEEP = 200;
 interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; }
@@ -102,8 +103,8 @@ export function chatWhisper(other: string, mine: boolean, text: string) {
 /** Người để `/r` trả lời ("" = chưa ai nhắn riêng cho mình trong phiên). */
 export const chatReplyTo = () => replyTo;
 /** Kênh gửi của tin thường (không phải lệnh) theo tab đang chọn; tab Riêng gửi cho người trò chuyện riêng gần nhất. */
-export function chatSendCh(): { ch: "map" | "party" | "whisper" | "world"; to?: string } {
-  if (chatTab === "party" || chatTab === "world") return { ch: chatTab };
+export function chatSendCh(): { ch: "map" | "party" | "whisper" | "world" | "tong"; to?: string } {
+  if (chatTab === "party" || chatTab === "world" || chatTab === "tong") return { ch: chatTab };
   if (chatTab === "whisper") return { ch: "whisper", to: whisperTo };
   return { ch: "map" };
 }
@@ -113,7 +114,8 @@ function chatPlaceholder() {
   inp.placeholder = chatTab === "party" ? "Tổ đội: Enter để gửi (/d)"
     : chatTab === "whisper" ? (whisperTo ? `Riêng tới ${whisperTo}: Enter để gửi` : "Riêng: /t <tên> <tin>")
     : chatTab === "world" ? `Thế giới (từ cấp ${WORLD_CHAT.minLevel}, ${WORLD_CHAT.cdSecs} giây một tin): /tg`
-    : "Nhấn Enter để chat (/d, /t, /r, /tg)";
+    : chatTab === "tong" ? "Tông môn: Enter để gửi (/tm)"
+    : "Nhấn Enter để chat (/d, /t, /r, /tm, /tg)";
   if (chatTab === "all" || chatTab === "map") inp.style.removeProperty("--c"); else inp.style.setProperty("--c", CHAT_COL[chatTab]);
 }
 
@@ -1843,8 +1845,10 @@ export interface NpcActions {
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
   tong(op: "join" | "leave", tong?: string): void; // tông môn (#196): gia nhập / đổi sang `tong`, rời tông
+  shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
+  owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank" | "shard";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -1857,6 +1861,9 @@ const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân
   arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
   tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
 let tongMsg: { tong: string; wait: number } | null = null; // tin "tong" gần nhất: tông đang thuộc ("" = không), giây còn chờ
+let shardMsg: { n: number; daily: number } | null = null; // tin "shardinfo" gần nhất (#282): số mảnh đã đổi hôm nay ở Thương hội
+/** Tin "shardinfo" (#282): vẽ lại hộp thoại Chưởng quỹ nếu đang mở. */
+export function setShardInfo(m: { n: number; daily: number }) { shardMsg = m; if (npcDefOpen?.id === SHARD_BUY.npc) renderNpc(); }
 /** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
 export function setTong(m: { tong: string; wait: number }) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 
@@ -1938,6 +1945,7 @@ function renderNpc() {
       btn(shopExpands(def.id) ? "Mua đan dược, mở rộng túi" : "Mua đan dược, phù chú", "absorb", () => go("buy"), !bag); // #111: trại cổng không mở rộng túi
       btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
       btn(`Mua lại đồ đã bán (${(bag?.buyback?.length ?? 0) + (bag?.sold?.length ?? 0)})`, "absorb", () => go("buyback"), !bag); // 9.8, đồ tự bán #216
+      if (def.id === SHARD_BUY.npc) btn(`Đổi mảnh võ hồn${shardMsg ? ` (${shardMsg.n}/${shardMsg.daily} hôm nay)` : ""}`, "absorb", () => { act.shardInfo(); go("shard"); }, !bag); // #282
     }
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
@@ -1962,6 +1970,7 @@ function renderNpc() {
   if (npcPage === "buy") renderShopBuy(el, bag, act, def.id);
   else if (npcPage === "sell") renderShopSell(el, bag, act);
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
+  else if (npcPage === "shard") renderShardShop(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
   btn("‹ Quay lại", "drop", () => go("talk"));
   el.appendChild(row);
@@ -2016,6 +2025,41 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: str
   n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(shop[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`
     + (shopExpands(npcId) ? "" : " Mở rộng túi, đan lớn: về thương nhân trong thành.");
   el.appendChild(n);
+}
+
+/**
+ * Thương hội đổi mảnh võ hồn (#282): mỗi võ hồn SR / SSR trong ARENA_SHARDS một dòng (mảnh đang có, đã có võ hồn chưa), nút đổi 1 /
+ * 5 / hết lượt hôm nay với tổng giá (shardBuyCost theo số đã đổi hôm nay, tin "shardinfo"); thiếu Hồn Tệ thì mờ nút. Server tính giá
+ * và kiểm lại lượt, tiền, chỗ trống.
+ */
+function renderShardShop(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const K = SHARD_BUY, n = shardMsg?.n ?? 0, left = Math.max(0, K.daily - n), owned = new Set(act.owned());
+  const head = document.createElement("small"); head.className = "rnote";
+  head.textContent = !shardMsg ? "Đang hỏi Chưởng quỹ số mảnh đã đổi hôm nay…"
+    : left ? `Hôm nay đã đổi ${n}/${K.daily} mảnh · mảnh kế tiếp ${formatHonTe(shardBuyPrice(n))}.`
+    : `Hôm nay đã đổi đủ ${K.daily}/${K.daily} mảnh. Lượt mới lúc 00:00 giờ Việt Nam.`;
+  el.appendChild(head);
+  const qs = shardMsg ? [...new Set([1, 5, left])].filter((q) => q >= 1 && q <= left).sort((a, b) => a - b) : [];
+  for (const id of ARENA_SHARDS) {
+    const v = VOHON[vohonIndex(id)], def = itemDef(shardCode(id)); if (!v || !def) continue;
+    const have = bag.items.filter((i) => i.code === def.id && i.vohon === null).reduce((a, i) => a + i.qty, 0);
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", v.col);
+    o.innerHTML = `<i class="ico ${def.kind}"></i><div><b></b><small></small></div><div class="brow"></div>`;
+    o.querySelector("b")!.textContent = `${v.name} (${v.rarity})`;
+    o.querySelector("small")!.textContent = `đang có ${have} mảnh · ${owned.has(id) ? "đã có võ hồn" : `chưa có (mở bằng ${SHARD_UNLOCK} mảnh)`}`;
+    for (const q of qs) {
+      const cost = shardBuyCost(n, q), b = document.createElement("button"); b.type = "button"; b.className = "buse use";
+      b.textContent = `Đổi ${q} · ${formatHonTe(cost)}`; b.disabled = bag.honTe < cost;
+      b.setAttribute("aria-label", `Đổi ${q} mảnh ${v.name}, giá ${formatHonTe(cost)}`);
+      b.addEventListener("click", () => { b.blur(); act.shard(id, q); });
+      o.querySelector(".brow")!.appendChild(b);
+    }
+    el.appendChild(o);
+  }
+  const note = document.createElement("small"); note.className = "rnote";
+  note.textContent = `Giá tăng dần theo số mảnh đã đổi trong ngày, tính chung mọi võ hồn: ${Array.from({ length: K.daily }, (_, i) => formatHonTe(shardBuyPrice(i))).join(" → ")}. `
+    + `Tối đa ${K.daily} mảnh mỗi ngày, đặt lại 00:00 giờ Việt Nam. Thương hội không bán mảnh UR. Túi phải đủ chỗ cho cả số mảnh.`;
+  el.appendChild(note);
 }
 
 /**
