@@ -8953,6 +8953,11 @@ async function friendTest(){
     const tP=`đội ${RUN}`; A.room.send("chat",{text:tP,ch:"party"});
     ok(await waitFor(()=>has(D,tP,"party"),2000),"chat tổ đội của A: D nhận"); await sleep(300); ok(!has(B,tP,"party"),"chat tổ đội của A: B không nhận");
     ok(await waitFor(()=>has(A,tP,"party"),2000),"A vẫn nhận bản sao tin tổ đội của mình");
+    // Chat tông (#198): A, B, D cùng tông; tin tông của A tới D, không tới B.
+    for(const x of [A,B,D]) await T(x,"tong",{set:TONG_MON[0].id});
+    const tT=`tông ${RUN}`; A.room.send("chat",{text:tT,ch:"tong"});
+    ok(await waitFor(()=>has(D,tT,"tong"),2000),"chat tông của A: D nhận"); await sleep(300); ok(!has(B,tT,"tong"),"chat tông của A: B không nhận");
+    for(const x of [A,B,D]) await T(x,"tong",{set:null});
     for(const x of [A,B,D]) x.room.send("party",{op:"leave"}); await sleep(300);
     // Bỏ chặn: tin riêng tới được.
     ok(/Đã bỏ chặn/.test(await F(B,"unblock",A.name.toLowerCase()))&&!B.friends.blocks.includes(A.name),"B bỏ chặn A (tên viết thường)");
