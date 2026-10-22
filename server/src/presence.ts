@@ -74,12 +74,17 @@ class LocalBackend implements PresenceBackend {
 
   async withLock<T>(key: string, owner: string, ttlMs: number, update: (value: T | null) => T | Promise<T>) {
     const lock = `${key}:lock`;
-    if (!await this.acquireLease(lock, owner, ttlMs)) return false;
-    try {
-      const next = await update(await this.getJson<T>(key));
-      await this.putJson(key, next, ttlMs);
-      return true;
-    } finally { await this.releaseLease(lock, owner); }
+    for (let attempt = 0; attempt < 100; attempt++) {
+      if (await this.acquireLease(lock, owner, ttlMs)) {
+        try {
+          const next = await update(await this.getJson<T>(key));
+          await this.putJson(key, next, ttlMs);
+          return true;
+        } finally { await this.releaseLease(lock, owner); }
+      }
+      await sleep(10);
+    }
+    return false;
   }
 
   async close() { /* LocalPresence is owned by Colyseus and has no shutdown method. */ }
