@@ -6,6 +6,7 @@
 import { matchMaker } from "colyseus";
 import { randomUUID } from "node:crypto";
 import { ARENA, arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
+import { presenceBackend } from "../presence.ts";
 
 /** Một người đang xếp hàng. Hàm `ready` / `found` do phòng bản đồ của người đó cung cấp. */
 export interface ArenaEntry {
@@ -34,15 +35,47 @@ const lastFoe = new Map<number, number>();
 const TICK_MS = 500;
 let timer: ReturnType<typeof setInterval> | null = null;
 let busy = false;
+const QUEUE_KEY = "arena:queue";
+const FOUND_TOPIC = "arena:found";
+type RemoteEntry = { accountId: number; name: string; rec: ArenaRecord; since: number; owner: string };
+const owner = () => `${presenceBackend.workerId}:arena`;
+
+function shadow(e: RemoteEntry): ArenaEntry {
+  return { accountId: e.accountId, name: e.name, rec: { ...e.rec }, since: e.since,
+    ready: () => true,
+    found: (roomId, foe) => { void presenceBackend.presence.publish(FOUND_TOPIC, { accountId: e.accountId, roomId, foe: { accountId: foe.accountId, name: foe.name, rec: foe.rec } }); return true; } };
+}
+void presenceBackend.presence.subscribe(FOUND_TOPIC, (m: { accountId: number; roomId: string; foe: ArenaEntry }) => {
+  const e = queue.get(m?.accountId); if (!e) return;
+  queue.delete(m.accountId); e.found(m.roomId, m.foe);
+});
+async function addRemote(e: ArenaEntry) {
+  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => [ ...(old ?? []).filter((x) => x.accountId !== e.accountId),
+    { accountId: e.accountId, name: e.name, rec: { ...e.rec }, since: e.since, owner: presenceBackend.workerId } ]);
+}
+async function removeRemote(accountId: number) {
+  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => (old ?? []).filter((x) => x.accountId !== accountId));
+}
+async function claimRemote(a: number, b: number) {
+  let claimed = false;
+  await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => {
+    const next = old ?? [], hasA = next.some((x) => x.accountId === a), hasB = next.some((x) => x.accountId === b);
+    if (hasA && hasB) { claimed = true; return next.filter((x) => x.accountId !== a && x.accountId !== b); }
+    return next;
+  });
+  return claimed;
+}
 
 export const arenaQueued = (accountId: number) => queue.get(accountId);
 export function arenaEnqueue(e: ArenaEntry) {
   queue.set(e.accountId, e);
+  void addRemote(e).catch((err) => console.error("Không thêm được hàng chờ đấu trường vào presence", err));
   if (!timer) timer = setInterval(() => { if (!busy) void pass(); }, TICK_MS);
 }
 /** Bỏ người khỏi hàng chờ; true nếu người đó đang xếp hàng. */
 export function arenaDequeue(accountId: number) {
   const had = queue.delete(accountId);
+  void removeRemote(accountId).catch((err) => console.error("Không xóa được hàng chờ đấu trường khỏi presence", err));
   if (!queue.size && timer) { clearInterval(timer); timer = null; }
   return had;
 }
@@ -98,10 +131,13 @@ async function pass() {
   busy = true;
   try {
     const now = Date.now();
-    const list = [...queue.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since).map((e) => ({ id: e.accountId, elo: e.rec.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.accountId) }));
+    const remote = await presenceBackend.getJson<RemoteEntry[]>(QUEUE_KEY) ?? [];
+    const entries = remote.map((e) => queue.get(e.accountId) ?? shadow(e));
+    const list = entries.filter((e) => e.ready()).sort((x, y) => x.since - y.since).map((e) => ({ id: e.accountId, elo: e.rec.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.accountId) }));
     for (const [a, b] of arenaPairs(list)) {
-      const ea = queue.get(a), eb = queue.get(b); if (!ea || !eb) continue;
-      arenaDequeue(a); arenaDequeue(b);
+      if (!await claimRemote(a, b)) continue;
+      const ea = entries.find((e) => e.accountId === a), eb = entries.find((e) => e.accountId === b); if (!ea || !eb) continue;
+      queue.delete(a); queue.delete(b);
       lastFoe.set(a, b); lastFoe.set(b, a);
       const m: ArenaMatch = { id: randomUUID(), sides: [ea, eb].map((e) => ({ accountId: e.accountId, name: e.name, rec: { ...e.rec } })) };
       arenaMatches.set(m.id, m);

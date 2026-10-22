@@ -2,7 +2,8 @@ import http from "node:http";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import express from "express";
-import { Server, LocalPresence } from "colyseus";
+import { Server } from "colyseus";
+import { RedisDriver } from "@colyseus/redis-driver";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
@@ -12,6 +13,10 @@ import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
+import { gamePresence, presenceBackend } from "./presence.ts";
+import { configurePresence as configurePartyPresence } from "./party.ts";
+
+configurePartyPresence(presenceBackend);
 
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
@@ -111,9 +116,9 @@ const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
 if (existsSync(dist)) app.use(express.static(dist));
 
 const server = http.createServer(app);
-// Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
-const presence = new LocalPresence();
-const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence });
+// Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
+const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.REDIS_URL) : undefined;
+const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, ...(driver ? { driver } : {}) });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
@@ -125,5 +130,5 @@ for (const id of Object.keys(MAPS)) loadMap(id);
 await store.init();
 await gameServer.listen(PORT);
 // Lịch tà hóa thú vương 20:00 / 22:00 giờ Việt Nam (BĐ5): báo toàn server trước 5 phút, phòng của bản đồ đó sinh thú vương.
-startSchedule(presence);
-console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT}`);
+startSchedule(gamePresence);
+console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT} (${presenceBackend.mode === "redis" ? "RedisPresence" : "RAM presence"})`);

@@ -37,6 +37,19 @@ cp .env.example server/.env      # đã có sẵn DATABASE_URL cho Postgres loca
 npm run dev:server
 ```
 
+**Nhiều tiến trình với RedisPresence**
+
+Chỉ bật khi chạy hai tiến trình cùng lúc. Dùng cùng `REDIS_URL` cho các tiến trình trong cùng một cụm; mỗi cụm / môi trường phải dùng Redis riêng, không dùng chung Redis của dịch vụ khác.
+
+```bash
+# terminal 1
+PORT=2567 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
+# terminal 2
+PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
+```
+
+`RedisPresence` dùng pub/sub và RedisDriver để chia sẻ phòng, số kênh, khóa đổi kênh, phiên tài khoản, thú vương, khóa tinh anh, hàng chờ đấu trường và tổ đội. Lease có TTL 15 giây, heartbeat 5 giây; tiến trình chết không giữ tài khoản hoặc suất vô hạn. Khi không đặt `REDIS_URL`, server tự dùng LocalPresence và RAM như cũ, không cần chạy dịch vụ ngoài. Khi đã bật Redis mà Redis lỗi, server đóng phiên liên quan để tránh hai tiến trình cùng ghi dữ liệu.
+
 **Supabase**
 
 1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database, chọn region gần người chơi.

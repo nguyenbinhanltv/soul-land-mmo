@@ -47,7 +47,7 @@ export class ArenaRoom extends MapRoom {
   get phase() { return this.state.phase as Phase; }
   setPhase(p: Phase, secs: number) { this.state.phase = p; this.state.time = secs; }
 
-  onCreate(options: { mapId?: unknown; matchId?: unknown }) {
+  async onCreate(options: { mapId?: unknown; matchId?: unknown }) {
     // Mỗi trận đã ghép đúng một phòng: phòng đầu tiên nhận trận, lần mở thứ hai (kể cả client tự gọi create("arena")) bị từ chối.
     const m = typeof options?.matchId === "string" ? arenaMatches.get(options.matchId) : undefined;
     if (!m || m.roomId) throw new ServerError(400, "Trận đấu không tồn tại.");
@@ -56,7 +56,7 @@ export class ArenaRoom extends MapRoom {
     this.sides = m.sides.map((s) => ({ accountId: s.accountId, name: s.name, rec: { ...s.rec }, sid: "", left: false, claims: 0 }));
     // Chỉ vào được bằng mã phòng (joinById) do server gửi cho đúng hai người đã ghép.
     void this.setPrivate(true);
-    this.setup(ARENA_MAP);
+    await this.setup(ARENA_MAP);
     this.interest.all = true; // sân nhỏ, hai người: không lọc đồng bộ theo vùng (11.4), không gửi tin bản đồ nhỏ
     for (const s of this.sides) { const a = new ArenaSide(); a.name = s.name; a.elo = s.rec.elo; this.state.sides.push(a); }
     // Chống dàn xếp (9.7): báo trước cho hai bên nếu cặp đã đủ ARENA.pairDaily trận tính Elo hôm nay. Chỉ để hiển thị; trận có tính
@@ -147,10 +147,10 @@ export class ArenaRoom extends MapRoom {
   /** Đấu hồn là 1v1 (7.1): không lan hiệu ứng tổ đội, kể cả khi đối thủ cùng tổ đội. */
   partyBuffNear(_id: string): string[] { return []; }
   /** Trong sân không mời / nhận lời mời tổ đội (đấu hồn là 1v1, 7.1); xem khung tổ đội, từ chối, rời đội vẫn được. */
-  partyAction(id: string, m: unknown) {
+  async partyAction(id: string, m: unknown) {
     const op = (m as { op?: unknown } | null)?.op;
     if (op === "invite" || op === "accept") return this.log(id, "Đang ở Đại Đấu Hồn Trường: mời / nhận tổ đội sau trận.", "#ffb35c");
-    super.partyAction(id, m);
+    await super.partyAction(id, m);
   }
   /** Võ hồn đã gục không hồi trong trận (không có doanh trại, không đếm giờ ngoài trận). */
   tickDowns(_id: string, _dt: number) {}
