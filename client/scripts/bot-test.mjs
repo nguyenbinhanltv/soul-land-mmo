@@ -417,6 +417,27 @@ async function channelTest(){
   for(const b of [P1,P2,P3]) await b.room.leave();
 }
 
+// Chống gian lận (#166): API REST gặp dữ liệu lạ trả lỗi JSON ngay (không treo request, không lộ stack / đường dẫn server).
+{
+  console.log("\n== Chống gian lận: API REST ==");
+  const raw=async(p,body)=>{ try{ const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body,signal:AbortSignal.timeout(3000)});
+    const t=await r.text(); let j=null; try{ j=JSON.parse(t); }catch{} return {status:r.status,j,t,cors:r.headers.get("access-control-allow-origin")}; }catch(e){ return {status:0,j:null,t:String(e)}; } };
+  const leak=t=>/node_modules|\/src\/|\bat [\w.<]+ \(/.test(t);
+  for(const p of ["/api/me","/api/channel","/api/looks","/api/awaken"]){
+    const bad=[];
+    for(const token of ["\u0000",`${"a".repeat(31)}\u0000`,{x:1},["t"],12,"x".repeat(5000)]){
+      const r=await raw(p,JSON.stringify({token})); if(!(r.status===401&&typeof r.j?.error==="string")) bad.push(`${JSON.stringify(token).slice(0,12)}:${r.status}`);
+    }
+    ok(!bad.length,`${p}: token lạ (NUL, object, mảng, số, quá dài) -> 401 JSON ${bad.join(" ")}`);
+  }
+  for(const [p,body] of [["/api/login",'{"name":'],["/api/me","not json"]]){
+    const r=await raw(p,body); ok(r.status===400&&typeof r.j?.error==="string"&&!leak(r.t)&&!!r.cors,`${p} JSON hỏng -> 400 JSON có header CORS, không lộ stack (${r.status})`);
+  }
+  const big=await raw("/api/login",JSON.stringify({name:"x",password:"p".repeat(20000)}));
+  ok(big.status===413&&typeof big.j?.error==="string"&&!leak(big.t)&&!!big.cors,`/api/login body > 10kb -> 413 JSON có header CORS (${big.status})`);
+  ok((await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).ok,"server vẫn trả /health sau các request lạ");
+}
+
 // 9.9: A tạo nhân vật tông da 2; B không gửi tông da (như client / tài khoản cũ có từ trước 9.9) nên giữ tông 0.
 const A=await bot("Tester A","lam_dien_ba_vuong_long",{sex:1,hair:2,hairCol:3,outfitCol:4,skin:2}), B=await bot("Tester B","bich_lan_xa_hoang",{sex:0,hair:3,hairCol:5,outfitCol:1});
 await sleep(800);
@@ -4983,9 +5004,19 @@ async function syncViewTest(){
   V.mini=null; ok(await waitFor(()=>V.mini?.p?.includes(sid),2500),"tin mini (bản đồ nhỏ) có hồn sư ở xa");
   const k=V.mini?.p?.indexOf(sid)??-1;
   ok(k>=0&&Math.abs(V.mini.p[k+1]-Math.floor(me(W).x/16))<=2&&Math.abs(V.mini.p[k+2]-Math.floor(me(W).y/16))<=2,`tin mini: vị trí theo ô ${V.mini?.p?.slice(k+1,k+3)}`);
+  // Chống gian lận (#166): sid ở xa (lấy từ tin mini) không đổi được ra tên qua lời mời tổ đội.
+  /** Khung tổ đội mới nhất của `b` (xin `party {op:"get"}`, chờ tin về): đọc sau khi server đã xử lý tin của người kia. */
+  const partyNow=async b=>{ const n=b.partyMsgs; b.room.send("party",{op:"get"}); await waitFor(()=>b.partyMsgs>n,2000); return b.party; };
+  const inviteSid=async()=>{ const l=V.logs.length; V.room.send("party",{op:"invite",sid}); await waitFor(()=>V.logs.length>l,2000); return V.logs.slice(l).join(" | "); };
+  { const t=await inviteSid(), wp=await partyNow(W);
+    ok(/không còn ở đây/.test(t)&&!t.includes(W.name)&&!!wp&&!wp.invites.length,`mời tổ đội bằng sid của hồn sư ở xa: bị từ chối, không lộ tên (${t})`); }
   // Lại gần dưới SYNC_VIEW.r: thấy nhau.
   await place(W,{x:west.x+48,y:west.y+16});
   ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
+  // Bấm vào hồn sư đang thấy (sid): lời mời tới đúng người, có tên người mời; từ chối để dọn.
+  { const t=await inviteSid(), wp=await partyNow(W);
+    ok(wp?.invites?.some(i=>i.name===V.name)&&t.includes(W.name),`mời tổ đội bằng sid của hồn sư đang thấy: W nhận lời mời của V (${t})`);
+    W.room.send("party",{op:"decline",name:V.name}); const wq=await partyNow(W); ok(!!wq&&!wq.invites.length,"W từ chối: hết lời mời"); }
   // Tin fx: người ở xa đánh thường thì không gửi tới; ở gần thì có.
   await place(W,east); ok(await waitFor(()=>!V.room.state.players.has(sid),1500),"đi xa quá out: hồn sư rời state");
   V.fxs=[]; W.fxs=[]; W.room.send("attack"); await waitFor(()=>W.fxs.some(f=>f.k==="slash"&&f.id===sid),1500); await sleep(300);

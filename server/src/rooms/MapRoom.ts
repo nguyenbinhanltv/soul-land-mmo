@@ -5068,8 +5068,9 @@ export class MapRoom extends Room<MapState> {
     if (op === "get") return this.sendParty(id, true);
     if (op === "invite") {
       if (typeof o.sid === "string" && o.sid) {
+        // Chỉ hồn sư client đang thấy (bấm vào trên màn hình): `sid` ở xa (lấy từ tin `mini`) không được đổi ra tên (11.4).
         const t = this.state.players.get(o.sid);
-        if (!t) return warn("Hồn sư này không còn ở đây.");
+        if (!t || !this.interest.sees(id, "p", o.sid)) return warn("Hồn sư này không còn ở đây.");
         name = t.name;
       }
       if (!name) return warn("Gõ tên hồn sư muốn mời, ví dụ /moi Đường Tam.");
