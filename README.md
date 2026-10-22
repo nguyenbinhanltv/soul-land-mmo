@@ -76,6 +76,7 @@ npm run bot:local -- --help                 # danh sách nhóm và tham số
 npm run bot:local -- --only bag             # một nhóm BOT_ONLY, chế độ RAM
 npm run bot:local -- --part 2               # một nhóm BOT_PART như CI
 npm run bot:local -- --channels             # lượt nhiều kênh (CHANNEL_MAX=2)
+npm run bot:local -- --fatal --pg           # lỗi nghiêm trọng ngoài phòng (#270): server lưu, đóng DB, thoát mã ≠ 0; bật lại kiểm dữ liệu
 npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, server bật hai lần, xoá database khi xong
 ```
 
