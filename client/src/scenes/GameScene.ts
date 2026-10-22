@@ -1348,6 +1348,11 @@ export class GameScene extends Phaser.Scene {
     // Điểm thế giới theo tọa độ trong dải: u 0..1 dọc chiều dài, v −0,5..0,5 theo bề rộng.
     const cs = Math.cos(t.ang), sn = Math.sin(t.ang), at = (u: number, v: number) => ({ x: t.x + cs * u * t.r - sn * v * t.w, y: t.y + sn * u * t.r + cs * v * t.w });
     const scr = (u: number, v: number) => { const p = at(u, v); return W2S(p.x, p.y); };
+    // Hang thú vương ở bản đồ ×8 nhiều tán cây che mặt đất: thêm nền rất nhạt và viền trên lớp phủ (`ov`, trên cây và hồn sư) để luôn
+    // thấy phần nào đang hóa / sắp hóa.
+    const o = this.ov, beat = wait ? 0.5 + 0.5 * Math.sin(time / 110) : 0.5 + 0.5 * Math.sin(time / 600);
+    o.fillStyle(c, (wait ? 0.05 : 0.08) * fade); this.teleShape(o, t, 1);
+    o.lineStyle(1.5, c, (0.35 + 0.4 * beat) * fade); this.teleOutline(o, t);
     if (wait) {
       const blink = 0.5 + 0.5 * Math.sin(time / 110), k = (time / 700) % 1;
       g.fillStyle(c, 0.1 * fade); this.teleShape(g, t, 1);
