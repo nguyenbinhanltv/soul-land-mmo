@@ -3222,13 +3222,15 @@ const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
 export const itemDef = (code: string) => ITEM_INDEX.get(code);
 /**
- * Số ô túi đồ khởi đầu (mỗi ô một món hoặc một chồng đồ gộp). Từ 9.8 mua "Mở rộng túi" ở thương nhân: +BAG_EXPAND ô mỗi lần, tối đa
- * BAG_MAX_SLOTS; giá lần thứ i là BAG_EXPAND_COST[i] (đồng). Số ô của tài khoản lưu ở `accounts.bag_slots` (NULL = BAG_SLOTS).
+ * Số ô túi đồ khởi đầu (mỗi ô một món hoặc một chồng đồ gộp), chia trang BAG_PAGE ô. Từ 9.8 mua "Mở rộng túi" ở thương nhân:
+ * +BAG_EXPAND ô (một trang) mỗi lần, tối đa BAG_MAX_SLOTS; giá lần thứ i là BAG_EXPAND_COST[i] (đồng). Số ô của tài khoản lưu ở
+ * `accounts.bag_slots` (NULL = BAG_SLOTS; tài khoản thời túi 40–80 ô đổi sang mức này ở server/sql/023_tui_250.sql).
  */
-export const BAG_SLOTS = 40;
-export const BAG_EXPAND = 10;
-export const BAG_MAX_SLOTS = 80;
-export const BAG_EXPAND_COST = [2000, 5000, 10000, 20000];
+export const BAG_SLOTS = 250;
+export const BAG_PAGE = 50;
+export const BAG_EXPAND = 50;
+export const BAG_MAX_SLOTS = 500;
+export const BAG_EXPAND_COST = [5000, 10000, 20000, 40000, 80000];
 /** Số ô hợp lệ từ dữ liệu lưu (null / hỏng = BAG_SLOTS; kẹp BAG_SLOTS..BAG_MAX_SLOTS). */
 export const bagSlotsOf = (x: unknown) => {
   const n = Math.floor(Number(x));
