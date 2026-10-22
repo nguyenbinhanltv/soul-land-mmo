@@ -772,7 +772,7 @@ body.arena #quest{display:none}
 .thuymac .sk:focus-visible{outline:2px solid var(--paper);outline-offset:0}
 @media (max-width:640px){.thuymac .sk{background-image:var(--ui-an-trien-vua);background-position:center 0;padding-top:6px}
   .thuymac .sk .ico{margin-bottom:8px}.thuymac .sk .ico+span{-webkit-line-clamp:1;color:var(--paper);max-width:100%}
-  .thuymac .sk.ui-cell::before,.thuymac .sk .ui-cd{width:34px;height:34px;margin-left:-17px;top:0}}
+  .thuymac .sk.ui-cell .ico{margin-bottom:0}}
 .thuymac body.touch .sk.bsk{background-image:var(--ui-an-trien-vua);background-position:center;padding:0;justify-content:center}
 /* Ô đội hình trong trận: nút giấy, viền trong màu võ hồn khi ra trận. */
 .thuymac .tm{color:var(--text)}
@@ -1016,16 +1016,20 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 .thuymac .sk.ui-cell.nomp::after{right:4px;top:2px}
 .tm.ui-cell{overflow:visible}
 .ui-cell .ui-cd{z-index:2}
-/* Ấn triện tròn (thủy mặc): vòng hồn hoàn và lớp quét tròn đúng bằng ấn, đặt ở giữa ô. */
-.thuymac .sk.ui-cell[data-tier]::before{content:"";display:block;position:absolute;left:50%;top:2px;width:56px;height:56px;margin-left:-28px;right:auto;bottom:auto;
-  border:3px solid var(--c);border-radius:50%;background:none;opacity:.95;z-index:1}
-.thuymac .sk .ui-cd{inset:auto;left:50%;top:2px;width:56px;height:56px;margin-left:-28px;border-radius:50%}
-.thuymac .sk.ui-cell.on{box-shadow:none}
+/* Thủy mặc: ô vuông khung gỗ ui_o (như ô túi đồ), ruột tối cho biểu tượng nổi; độ hiếm thể hiện bằng viền trong màu hồn hoàn. */
+.thuymac .sk.ui-cell{border:4px solid transparent;border-image:var(--frame-cell) var(--nine-o) fill / calc(var(--nine-o) * 1px) stretch;background:none;
+  padding:3px 1px 0;justify-content:center}
+.thuymac .sk.ui-cell:not(.locked):hover{border-image-source:var(--frame-cell-on)}
+.thuymac .sk.ui-cell[data-tier]{outline:2px solid color-mix(in srgb,var(--c) 85%,#1a1020);outline-offset:-3px}
+.thuymac .sk.ui-cell::before{display:none}
+.thuymac .sk.ui-cell .ico{margin:0 0 2px}
+.thuymac .sk .ui-cd{inset:0}
+.thuymac .sk.ui-cell .key{left:-6px;top:-7px}
+.thuymac .sk.ui-cell.nomp::after{right:-2px;top:-2px}
+.thuymac body.touch .sk.bsk.ui-cell{background:none;padding:0}
 /* Khung mục tiêu gọn: tên, chip niên hạn, cấp / kinh nghiệm, thanh máu có số, trạng thái. */
 #target .tn{display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-3)}
 #target .tn b{font-weight:400;font-size:var(--fs-m)}
 #target .tn .tl{color:var(--muted)}
 #target .thp{width:100%;min-width:200px;margin-top:var(--sp-2)}
 #target .thp>i{transition:width .12s linear}
-/* Chạm: nút hồn cốt 44 px, vòng hồn hoàn và lớp quét thu nhỏ theo. */
-.thuymac body.touch .sk.bsk.ui-cell[data-tier]::before,.thuymac body.touch .sk.bsk .ui-cd{width:40px;height:40px;margin-left:-20px;top:2px}
