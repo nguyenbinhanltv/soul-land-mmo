@@ -7566,7 +7566,7 @@ async function arenaEdgeTest(){
       await test(W,"afast",{s:0});
       ok(await waitFor(()=>ended(W),3000),"#121: ngắt kết nối sau khi ghép xử lý trận "+(i+1));
       const m=ended(W), paid=i<ARENA.dailyWins;
-      ok(m?.score===1&&m.reason==="noshow"&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-i-1),
+      ok(!m?.friendly&&m?.score===1&&m.reason==="noshow"&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-i-1),
         "#121: trận "+(i+1)+" "+(paid?"còn lượt thưởng":"hết lượt thưởng, không thưởng")+" (left "+m?.left+", capped "+m?.capped+")");
       await leaveArena(W);
     }
