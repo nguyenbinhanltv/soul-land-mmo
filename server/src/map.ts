@@ -2,6 +2,7 @@
 // Ô nào có thuộc tính "collides" = true trong tileset sẽ chặn đường.
 import { readFileSync, existsSync } from "node:fs";
 import { solidGrid, hits as gridHits, moveEnt as gridMove, isSolidTile as gridSolid } from "../../shared/move.ts";
+import { campMerchantSpot } from "../../shared/camp.ts";
 import { TILE, TIERS, MAPS, MAX_YEARS, SPAWN_CLEAR, BOSSES, beastIndex, bossIndex, npcDef, parseLevelRange, type MapKind } from "../../shared/data.ts";
 
 /** Loài sinh trong vùng: chỉ số trong BEASTS và trọng số. */
@@ -41,6 +42,7 @@ export interface GameMap {
   portals: Portal[];
   elites: EliteSpot[];  // mỗi vùng tối đa 1 tinh anh (mục 5.4)
   lair: BossSpot | null; // hang tà hóa thú vương (BĐ5): tối đa 1 mỗi bản đồ, đúng thú vương của MAPS[mapId].king
+  lake: { x: number; y: number } | null; // giữa hồ (object `lake`, điểm; #118): boss thế giới lặn ra đây khi Du Thủy
   npcs: NpcSpot[];       // NPC (6.1): mỗi mã tối đa một chỗ trong bản đồ
   waypoints: Waypoint[]; // truyền tống trận (11.2)
   waypointAt(x: number, y: number): Waypoint | undefined;
@@ -62,18 +64,19 @@ export interface GameMap {
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 
 /**
- * Tên file Tiled (không đuôi) của bản đồ: `<mapId>`, hoặc bản dựng lại `<mapId>.v2` (tools/maps, 11.3) khi biến môi trường
- * `MAP_V2` liệt kê mapId đó (cách nhau bằng dấu phẩy, `all` = mọi bản đồ có bản v2) và file có thật. Client đọc tên này ở
- * `MapState.mapFile` để tải đúng file (va chạm, dự đoán chuyển động dùng chung lưới).
+ * Tên file Tiled (không đuôi) của bản đồ: bản dựng bằng `tools/maps` (`<mapId>.v2`, 11.3 / 11.5) nếu có file, trừ khi biến môi
+ * trường `MAP_V1` liệt kê mapId đó (cách nhau bằng dấu phẩy, `all` = mọi bản đồ) thì dùng bản cũ `<mapId>` (đường lùi). Client đọc
+ * tên này ở `MapState.mapFile` để tải đúng file (va chạm, dự đoán chuyển động dùng chung lưới).
  */
-const V2 = new Set((process.env.MAP_V2 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+const V1 = new Set((process.env.MAP_V1 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 const fileCache = new Map<string, string>();
 export function mapFile(mapId: string): string {
   let f = fileCache.get(mapId);
   if (f === undefined) {
-    const v2 = (V2.has(mapId) || V2.has("all")) && existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
-    fileCache.set(mapId, (f = v2 ? `${mapId}.v2` : mapId));
-    if (v2) console.log(`[map] ${mapId}: dùng bản dựng lại shared/assets/${f}.json (MAP_V2)`);
+    const has = existsSync(new URL(`../../shared/assets/${mapId}.v2.json`, import.meta.url));
+    const v1 = has && (V1.has(mapId) || V1.has("all")); // chỉ báo đường lùi ở bản đồ có bản ×8
+    fileCache.set(mapId, (f = has && !v1 ? `${mapId}.v2` : mapId));
+    if (v1) console.log(`[map] ${mapId}: dùng bản cũ shared/assets/${f}.json (MAP_V1)`);
   }
   return f;
 }
@@ -179,7 +182,7 @@ export function loadMap(mapId: string): GameMap {
   const grid = solidGrid(raw), { MW, MH, solid } = grid;
 
   const zones: Zone[] = [], safe: Rect[] = [], portals: Portal[] = [], arrives: { x: number; y: number }[] = [], eliteObjs: any[] = [], bossObjs: any[] = [], npcObjs: any[] = [], wpObjs: any[] = [];
-  let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE };
+  let spawn: Rect = { x: 3 * TILE, y: 28 * TILE, w: 4 * TILE, h: 4 * TILE }, lake: { x: number; y: number } | null = null;
   for (const layer of raw.layers) if (layer.type === "objectgroup") for (const o of layer.objects) {
     const prop = (n: string) => (o.properties ?? []).find((p: any) => p.name === n)?.value;
     if (o.type === "zone") {
@@ -196,6 +199,7 @@ export function loadMap(mapId: string): GameMap {
     if (o.type === "spawn") spawn = rectOf(o);
     if (o.type === "safe") safe.push(rectOf(o));
     if (o.type === "arrive") arrives.push({ x: o.x, y: o.y });
+    if (o.type === "lake") lake = { x: o.x, y: o.y };
     if (o.type === "elite") eliteObjs.push(o);
     if (o.type === "boss") bossObjs.push(o);
     if (o.type === "npc") npcObjs.push(o);
@@ -209,13 +213,20 @@ export function loadMap(mapId: string): GameMap {
   }
 
   const elites = parseElites(mapId, eliteObjs, zones), lair = parseLair(mapId, bossObjs, zones), npcs = parseNpcs(mapId, npcObjs);
+  const camp = campMerchantSpot(raw, mapId); // #111: thương nhân lưu động ở trại cổng bản đồ săn
+  if (camp && !npcs.some((n) => n.id === camp.id)) npcs.push(camp);
+  else if (!camp && MAPS[mapId].kind === "hunt" && !safe.some((r) => inRect(r, spawn.x + spawn.w / 2, spawn.y + spawn.h / 2)))
+    console.warn(`[map ${mapId}] Không có chỗ đứng cho thương nhân lưu động trong trại cổng "spawn" (#111).`);
 
   const isSolidTile = (tx: number, ty: number) => gridSolid(grid, tx, ty);
   const hits = (x: number, y: number, hw: number, hh: number) => gridHits(grid, x, y, hw, hh);
   const waypoints = parseWaypoints(mapId, wpObjs, portals, (x, y) => x > 0 && y > 0 && x < MW * TILE && y < MH * TILE && !hits(x, y, 5, 4));
   const kind = MAPS[mapId].kind;
+  // #118: boss thế giới có Du Thủy thì cần điểm `lake` (giữa hồ); thiếu thì boss lặn tại chỗ.
+  if (!lake && (MAPS[mapId].world ?? []).some((id) => BOSSES[bossIndex(id)]?.world?.dive))
+    console.warn(`[map ${mapId}] Thiếu object \`lake\` (giữa hồ): Du Thủy của boss thế giới sẽ lặn tại chỗ.`);
   const map: GameMap = {
-    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, npcs, waypoints, isSolidTile, hits,
+    mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits,
     waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),
     inLair: (x, y) => !!lair && inRect(lair, x, y),
     moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),
@@ -274,7 +285,8 @@ function parsePortal(mapId: string, o: any): Portal | null {
 
 /**
  * Object `elite` (mục 6, BĐ4): `boss` phải là mã tinh anh trong BOSSES, tâm phải nằm trong một `zone`, mỗi vùng (theo tên) tối đa
- * 1 tinh anh (mục 5.4). Sai thì cảnh báo và bỏ. Bản đồ `town` không có tinh anh.
+ * 1 tinh anh (mục 5.4), mỗi loài tinh anh tối đa 1 vùng (khóa thưởng tinh anh nhiều kênh theo loài, #119). Sai thì cảnh báo và bỏ. Bản đồ
+ * `town` không có tinh anh.
  */
 function parseElites(mapId: string, objs: any[], zones: Zone[]): EliteSpot[] {
   const out: EliteSpot[] = [];
@@ -286,6 +298,7 @@ function parseElites(mapId: string, objs: any[], zones: Zone[]): EliteSpot[] {
     const zone = zones.findIndex((z) => cx >= z.x0 && cx < z.x1 && cy >= z.y0 && cy < z.y1);
     if (zone < 0) { bad("không nằm trong vùng nào"); continue; }
     if (out.some((e) => zones[e.zone].name === zones[zone].name)) { bad(`vùng "${zones[zone].name}" đã có tinh anh`); continue; }
+    if (out.some((e) => e.boss === boss)) { bad(`loài ${id} đã có ở vùng khác (khóa thưởng tinh anh theo loài)`); continue; }
     out.push({ ...r, boss, zone });
   }
   return out;

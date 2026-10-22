@@ -3,7 +3,8 @@
 // từ hạt giống theo mapId nên chỗ đứng như nhau ở mọi máy (bước đi lại tính theo đồng hồ từng máy nên có thể lệch nhau).
 // Hình là sheet `lpc_<tên>` ghép từ LPC (tools/assets/lpc-compose.mjs --game), cùng bố cục sheet hồn sư isometric.
 import Phaser from "phaser";
-import { TILE } from "../../shared/data.ts";
+import { TILE, CAMP_MERCHANT } from "../../shared/data.ts";
+import { campMerchantSpot } from "../../shared/camp.ts";
 import { hits, isSolidTile, type SolidGrid } from "../../shared/move.ts";
 import { worldToScreen, dir8, SPR, type Dir8 } from "./iso.ts";
 import { honsuAnimKey, fitHonsuLayer, loadSpriteKey, type HsAnim } from "./sprites.ts";
@@ -24,11 +25,13 @@ interface CrowdDef {
 
 /** Dân thường theo bản đồ (mã trong MAPS); bản đồ không có ở đây thì không có dân. */
 export const CROWD: Record<string, CrowdDef> = {
-  thanh_hon_thon: { inSafe: true, walk: ["dan_nong_phu", "dan_thon_nu", "dan_lao_ba", "dan_nong_phu"], stand: ["dan_ban_rong"] },
-  nac_dinh_thanh: { walk: ["dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_lao_ba", "dan_thu_sinh"], stand: ["dan_ban_rong", "dan_khach"], guard: "linh_gac" },
-  thien_dau_thanh: { walk: ["dan_thu_sinh", "dan_tieu_thu", "dan_khach", "dan_thon_nu", "dan_thu_sinh", "dan_tieu_thu"], stand: ["dan_ban_rong", "dan_lao_ba"], guard: "linh_gac" },
+  // Làng: nông dân vác cuốc, thôn nữ tóc tết, lão nhân râu bạc (#201).
+  thanh_hon_thon: { inSafe: true, walk: ["dan_nong_phu", "dan_thon_nu", "dan_lao_ba", "dan_nong_phu_cuoc", "dan_thon_nu_toc_tet", "dan_lao_nhan"], stand: ["dan_ban_rong"] },
+  nac_dinh_thanh: { walk: ["dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_lao_ba", "dan_thu_sinh", "dan_lao_nhan", "dan_nu_duoi_ngua"], stand: ["dan_ban_rong", "dan_khach"], guard: "linh_gac" },
+  // Kinh thành: lính gác cầm giáo ở cổng, nho sinh tóc dài, thiếu nữ buộc tóc đuôi ngựa (#201).
+  thien_dau_thanh: { walk: ["dan_thu_sinh", "dan_tieu_thu", "dan_khach", "dan_thon_nu", "dan_nho_sinh", "dan_nu_duoi_ngua"], stand: ["dan_ban_rong", "dan_lao_ba"], guard: "linh_gac_giao" },
   dai_dau_hon_truong: { outSpawn: true, cheer: true, walk: [],
-    stand: ["dan_khach", "dan_thu_sinh", "dan_tieu_thu", "dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_ban_rong", "dan_thu_sinh", "linh_gac", "linh_gac"] },
+    stand: ["dan_khach", "dan_thu_sinh", "dan_tieu_thu", "dan_nong_phu", "dan_thon_nu", "dan_khach", "dan_ban_rong", "dan_nho_sinh", "linh_gac", "linh_gac_giao"] },
 };
 
 /** Tốc độ đi (pixel thế giới / giây; hồn sư khoảng 58) và hệ số nhịp animation đi cho khớp bước chậm. */
@@ -64,6 +67,7 @@ export function lpcPreloader(scene: Phaser.Scene, mapId: string) {
     npcs = [];
     for (const l of data?.layers ?? []) if (l.type === "objectgroup") for (const o of l.objects ?? [])
       if (o.type === "npc") { const v = o.properties?.find((p: any) => p.name === "npc")?.value; if (typeof v === "string") npcs.push(v); }
+    if (data && campMerchantSpot(data, mapId)) npcs.push(CAMP_MERCHANT); // #111: thương nhân lưu động không có object `npc`
     go();
   });
   return (names: Set<string>) => { have = names; go(); };

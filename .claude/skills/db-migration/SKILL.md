@@ -27,9 +27,9 @@ Bảng hiện có và vai trò: `GAME_DESIGN.md` mục 6 "Dữ liệu lâu dài"
 
 ## Kiểm tra
 - `npm run check`.
-- Chạy tuần tự, mỗi lượt trên server mới bật (state sạch), cổng riêng nếu có phiên song song.
-- Chế độ RAM: `GAME_TEST=1 npm run dev:server` (không có `DATABASE_URL`) + `npm run bot --prefix client`.
+- Chạy tuần tự, mỗi lượt trên server mới bật (state sạch): `npm run bot:local` (`CLAUDE.md` phần Lệnh) lo cổng, server và dọn dẹp.
+- Chế độ RAM: `npm run bot:local -- --only <nhóm>` (nhóm gần phần dữ liệu đổi; bot đầy đủ để CI `bot-ram`).
 - Sau đó PostgreSQL thật, chạy server **hai lần liên tiếp**; cả hai lần phải in `✓ Đã kết nối PostgreSQL và cập nhật bảng.` (chứng minh chạy lại an toàn), rồi chạy bot:
-  - Có Docker: `docker compose up -d`, `cp .env.example server/.env`.
-  - Không có Docker (máy Windows dev): cài `embedded-postgres` trong thư mục tạm **ngoài repo**, chạy ở cổng riêng, tạo DB `CREATE DATABASE … ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'` (cluster mặc định không phải UTF8 nên chữ Việt trong SQL lỗi), rồi `DATABASE_URL=postgres://…@localhost:<cổng>/<db> PGSSL=false GAME_TEST=1 npm run dev:server`. Tắt đúng tiến trình `postgres` mình bật khi xong.
-- Thử nhánh "tài khoản cũ" khi chuyển dữ liệu: chạy server và bot của `origin/main` trên cùng DB trước, rồi mới chạy bản mới.
+  - `npm run bot:local -- --only <nhóm> --pg`: PostgreSQL chung của máy (tự bật từ `embedded-postgres` trong `node_modules`, cổng 5433), database riêng UTF8 mỗi lượt, server bật hai lần (log ở `ci-logs/local-*-server.log` có hai dòng `✓ Đã kết nối…`) rồi bot, xoá database khi xong. Không tự bật embedded-postgres riêng.
+  - Có Docker / PostgreSQL cài sẵn: `BOT_PG_URL=postgres://…/postgres` cho công cụ; server dev thì `docker compose up -d`, `cp .env.example server/.env`.
+- Thử nhánh "tài khoản cũ" khi chuyển dữ liệu: chạy server và bot của `origin/main` trên cùng DB trước, rồi mới chạy bản mới (tạo database tay trên instance chung `postgres://postgres@localhost:5433/postgres`, xoá khi xong).

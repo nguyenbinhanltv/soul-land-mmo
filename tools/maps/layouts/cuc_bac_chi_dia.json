@@ -1,0 +1,106 @@
+{
+  "_": "Cực Bắc Chi Địa ×8 diện tích (11.5). Nam → bắc: trại cổng về Thiên Đấu Thành ở mép nam, Tuyết nguyên (hồ băng, Tuyết Lang Nguyên), Băng hà nứt (khe băng cầu băng, Vạn Liệt Băng Hà), Băng Phong Cốc (thung lũng vách băng, Hàn Nguyệt Nhai với băng điện cổ), Cực Bắc Băng Uyên (vực băng, Băng Tủy Thụ, hang Huyền Minh Băng Giao). Định dạng: tools/maps/README.md.",
+  "map": "cuc_bac_chi_dia",
+  "out": "cuc_bac_chi_dia.v2.json",
+  "size": [204, 272],
+  "seed": 20261103,
+  "zoneCell": 8,
+  "blend": 6,
+  "gids": {
+    "ground": {
+      "grass": [25, 26], "leaf": 2, "moss": 3, "path": 29, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 28, "ford": 27,
+      "bank": 5, "deep": 35, "stony": 4, "glow": 6, "bridge": 7
+    },
+    "objects": {
+      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 1, "tent": 11, "fire": 12, "skull": 33
+    },
+    "canopy": { "30": 31 }
+  },
+  "tiers": [
+    { "name": "Tuyết nguyên", "years": "20000-35000", "hint": "Hồn thú 20.000 – 35.000 năm", "beasts": "tuyet_lang:2,bang_nguyen_cu_tuong:1,bang_vu_ung:1",
+      "trees": { "30": 3, "18": 1 }, "denseTrees": { "30": 2, "17": 1 }, "density": 0.05, "cluster": 0.6, "clusterDensity": 0.85,
+      "leaf": 0.64, "moss": 0.8, "rock": 0.004, "log": 0.001 },
+    { "name": "Băng hà nứt", "years": "30000-50000", "hint": "Hồn thú 30.000 – 50.000 năm", "beasts": "bang_giap_cu_quy:1,tuyet_vi_yeu_ho:1,bang_tinh_hat:1",
+      "trees": { "18": 2, "30": 1 }, "denseTrees": { "17": 2, "30": 1 }, "density": 0.04, "cluster": 0.62, "clusterDensity": 0.8,
+      "ground": { "grass": [26, 2] }, "leaf": 0.6, "moss": 0.7, "rock": 0.008, "log": 0.001 },
+    { "name": "Băng Phong Cốc", "years": "45000-65000", "hint": "Hồn thú 45.000 – 65.000 năm", "beasts": "han_bang_dia_long:1,bang_phong_bach_hung:1,han_nguyet_ung:1",
+      "trees": { "17": 2, "19": 1 }, "denseTrees": { "19": 2, "17": 1 }, "density": 0.06, "cluster": 0.58, "clusterDensity": 0.85,
+      "ground": { "grass": [25, 2] }, "leaf": 0.62, "moss": 0.68, "rock": 0.01, "log": 0.001 },
+    { "name": "Cực Bắc Băng Uyên", "years": "60000-80000", "hint": "Cẩn thận: hồn thú 60.000 – 80.000 năm", "beasts": "bang_bich_hat:1,huyen_minh_bang_tam:1,tuyet_ma_vien:1",
+      "trees": { "19": 2, "20": 1 }, "denseTrees": { "20": 2, "19": 1 }, "density": 0.07, "cluster": 0.56, "clusterDensity": 0.88,
+      "ground": { "grass": [26, 5] }, "leaf": 0.66, "moss": 0.6, "rock": 0.008, "log": 0.001, "path": "pathDark" }
+  ],
+  "zones": [
+    { "name": "Tuyết Lang Nguyên", "tier": 0, "hint": "Bầy Tuyết Lang · hồn thú 20.000 – 35.000 năm", "beasts": "tuyet_lang:4,bang_nguyen_cu_tuong:1,bang_vu_ung:1",
+      "poly": [[0, 206], [70, 202], [74, 272], [0, 272]] },
+    { "name": "Tuyết nguyên", "tier": 0, "poly": [[70, 202], [140, 208], [204, 202], [204, 272], [74, 272]] },
+    { "name": "Băng hà nứt", "tier": 1, "poly": [[0, 136], [70, 140], [130, 134], [134, 207], [70, 202], [0, 206]] },
+    { "name": "Vạn Liệt Băng Hà", "tier": 1, "hint": "Khe băng chằng chịt · hồn thú 30.000 – 50.000 năm", "beasts": "bang_tinh_hat:2,bang_giap_cu_quy:1,tuyet_vi_yeu_ho:1",
+      "poly": [[130, 134], [204, 138], [204, 202], [140, 208], [134, 207]] },
+    { "name": "Băng Phong Cốc", "tier": 2, "poly": [[0, 66], [72, 70], [128, 66], [130, 134], [70, 140], [0, 136]] },
+    { "name": "Hàn Nguyệt Nhai", "tier": 2, "hint": "Vách băng dưới trăng · hồn thú 45.000 – 65.000 năm", "beasts": "han_nguyet_ung:2,han_bang_dia_long:1,bang_phong_bach_hung:1",
+      "poly": [[128, 66], [204, 70], [204, 138], [130, 134]] },
+    { "name": "Cực Bắc Băng Uyên", "tier": 3, "poly": [[0, 0], [70, 0], [72, 70], [0, 66]] },
+    { "name": "Huyền Minh Băng Động", "tier": 3, "hint": "Lãnh địa Huyền Minh Băng Giao · cẩn thận: hồn thú 60.000 – 80.000 năm", "beasts": "huyen_minh_bang_tam:2,bang_bich_hat:1,tuyet_ma_vien:1",
+      "poly": [[70, 0], [204, 0], [204, 70], [128, 66], [72, 70]] }
+  ],
+  "points": {
+    "camp_n": [102, 250], "tn": [96, 224], "bh": [104, 172], "bp": [100, 100], "bu": [104, 50], "dong": [102, 38],
+    "lang": [34, 236], "bh_tay": [36, 168], "bp_tay": [30, 102], "bu_tay": [34, 30],
+    "ho_dong": [160, 238], "bh_dong": [168, 170], "nhai": [166, 102], "bu_dong": [168, 40]
+  },
+  "features": [
+    { "type": "area", "name": "Hồ băng tây", "ground": "ford", "circle": [44, 228, 13], "edge": 5, "on": ["grass"], "clear": true },
+    { "type": "area", "name": "Hồ băng đông", "ground": "ford", "circle": [164, 230, 10], "edge": 5, "on": ["grass"], "clear": true },
+    { "type": "area", "name": "Hồ băng cốc", "ground": "ford", "circle": [100, 118, 8], "edge": 4, "on": ["grass"], "clear": true },
+    { "type": "river", "name": "Khe băng nam", "pts": [[0, 196], [36, 190], [72, 198], [112, 190], [150, 198], [204, 192]], "width": 1.8, "wobble": 0.6, "bank": 1,
+      "fords": [[36, 190, 2.2], [150, 198, 2.2]] },
+    { "type": "river", "name": "Khe băng giữa", "pts": [[0, 160], [30, 164], [60, 156], [90, 162], [124, 152]], "width": 1.6, "wobble": 0.5, "bank": 1,
+      "fords": [[60, 156, 2]] },
+    { "type": "river", "name": "Khe băng đông", "pts": [[204, 150], [180, 156], [150, 148], [132, 158], [118, 176]], "width": 1.6, "wobble": 0.5, "bank": 1,
+      "fords": [[180, 156, 2]] },
+    { "type": "river", "name": "Khe băng xiên", "pts": [[14, 140], [26, 176], [20, 200]], "width": 1.4, "wobble": 0.4, "bank": 1 },
+    { "type": "cliff", "pts": [[62, 74], [70, 92], [64, 110], [72, 128]], "rows": 3, "spacing": 3, "gap": 16, "gapLen": 3, "side": -1 },
+    { "type": "cliff", "pts": [[140, 74], [132, 92], [140, 110], [134, 128]], "rows": 3, "spacing": 3, "gap": 16, "gapLen": 3, "side": -1 },
+    { "type": "cliff", "pts": [[150, 80], [176, 74], [200, 82]], "rows": 2, "spacing": 3, "gap": 12, "gapLen": 3 },
+    { "type": "area", "name": "Vực băng", "ground": "deep", "circle": [44, 40, 11], "edge": 4 },
+    { "type": "area", "name": "Vực băng nhỏ", "ground": "deep", "circle": [176, 52, 6], "edge": 3 },
+    { "type": "ancient", "at": [34, 14], "r": 8, "plants": 0 },
+    { "type": "ruins", "rect": [150, 106, 24, 16], "gates": [[162, 106], [150, 114]], "steles": [[162, 113]], "arches": [[156, 110], [168, 110]], "broken": 0.3 },
+    { "type": "clearing", "at": [40, 246], "r": 7 },
+    { "type": "clearing", "at": [96, 174], "r": 7 },
+    { "type": "clearing", "at": [100, 96], "r": 8 },
+    { "type": "clearing", "at": [150, 24], "r": 7 },
+    { "type": "scatter", "kind": "rock", "poly": [[0, 0], [204, 0], [204, 136], [0, 136]], "p": 0.006 },
+    { "type": "scatter", "kind": "cliff", "poly": [[0, 136], [204, 136], [204, 206], [0, 206]], "p": 0.004 },
+    { "type": "camp", "rect": [92, 252, 20, 16], "tents": [[94, 254], [109, 254], [95, 265]], "fires": [[104, 262]], "logs": [[106, 263]] },
+    { "type": "lair", "at": [102, 24], "rx": 10, "ry": 7, "entrance": "s", "wall": "cliff", "door": 4, "skulls": [[95, 21], [109, 27]] }
+  ],
+  "roads": [
+    { "via": ["camp_n", "tn", "bh", "bp", "bu", "dong"], "width": 3 },
+    { "via": ["camp_n", "lang", "bh_tay", "bp_tay", "bu_tay"], "width": 2 },
+    { "via": ["camp_n", "ho_dong", "bh_dong", "nhai", "bu_dong"], "width": 2 },
+    { "via": ["bh_tay", "bh", "bh_dong"], "width": 2 },
+    { "via": ["bp_tay", "bp", "nhai"], "width": 2 },
+    { "via": ["bu_tay", "bu", "bu_dong"], "width": 2 }
+  ],
+  "spawn": { "name": "Trại cổng Cực Bắc", "rect": [94, 254, 16, 12] },
+  "portals": [
+    { "name": "Về Thiên Đấu Thành", "rect": [100, 268, 4, 3], "to": "thien_dau_thanh", "arrive": "tu_cuc_bac_chi_dia" }
+  ],
+  "arrives": [
+    { "name": "tu_thien_dau_thanh", "at": [102, 263.5] }
+  ],
+  "waypoints": [
+    { "name": "trai_cong", "label": "Trại cổng Cực Bắc", "at": [107, 256] },
+    { "name": "bang_ha", "label": "Băng hà nứt", "at": [99, 170], "ground": "path" },
+    { "name": "bang_phong", "label": "Băng Phong Cốc", "at": [99, 92], "ground": "path" }
+  ],
+  "elites": [
+    { "name": "Ngân Nguyệt Tuyết Lang Vương", "boss": "ngan_nguyet_tuyet_lang_vuong", "rect": [124, 236, 9, 7] },
+    { "name": "Lục Vĩ Băng Hồ", "boss": "luc_vi_bang_ho", "rect": [32, 170, 10, 6] },
+    { "name": "Huyền Băng Tỏa Liên Mãng", "boss": "huyen_bang_toa_lien_mang", "rect": [24, 100, 12, 6] },
+    { "name": "Băng Bích Hạt Vương", "boss": "bang_bich_hat_vuong", "rect": [26, 52, 10, 8] }
+  ],
+  "lair": { "name": "Hang Huyền Minh", "boss": "huyen_minh_bang_giao", "at": [102, 24], "rx": 10, "ry": 7 }
+}

@@ -32,8 +32,9 @@
 //      <out>/{body,outfit,hair}_<tên>.png (3 lớp xám để client hoán màu như phương án (b) mục 5.11), kèm
 //      <out>/<tên>_mau.png đã tô màu tóc / áo / da (xem thử).
 //   6. Ghi công: mỗi file LPC đã đọc tra đúng mục của nó trong CREDITS.csv (tác giả, giấy phép, URL; file màu
-//      `<thư mục>/<animation>/<màu>.png` tra `<thư mục>/<animation>.png`), không có thì dừng. Chỉ nhận lớp có ít nhất một
-//      giấy phép CC0 / CC-BY / OGA-BY (lớp chỉ có CC-BY-SA / GPL, giấy phép lạ thì dừng). Ghi bảng vào
+//      `<thư mục>/<animation>/<màu>.png` tra `<thư mục>/<animation>.png`), không có thì dừng. Nhận mọi giấy phép đã biết
+//      (LICENSE_KNOWN của lib.mjs; giấy phép lạ / trống thì dừng). Lớp nhiều giấy phép thì game dùng theo nhóm ít ràng buộc
+//      nhất (licenseUse); lớp chỉ có SA / GPL / NC thì gắn cờ, sheet ghép có lớp SA / GPL thì cả file theo giấy phép đó. Ghi bảng vào
 //      <out>/CREDITS-LPC.md, hoặc vào mục LPC giữa hai dấu `<!-- lpc:start -->` / `<!-- lpc:end -->` của file `--credits`
 //      (ví dụ art/CREDITS.md khi đưa ảnh vào game; thiếu / thừa dấu thì dừng trước khi ghi).
 //   7. --game (NPC phụ / dân thường vào game, mục 5.11 "NPC phụ và dân thường"): NPC phụ không đổi màu theo người chơi nên
@@ -54,7 +55,7 @@ import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, SPRITES, MANIFEST, readPng, encodePng, Img, hex, toHex, readGplNamed, GRAY_RAMP, OUTLINE, HS_LAYERS, ISO_DIRS, ISO_HS_FRAME, ISO_HS_ORIGIN } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, readPng, encodePng, Img, hex, toHex, readGplNamed, GRAY_RAMP, OUTLINE, HS_LAYERS, ISO_DIRS, ISO_HS_FRAME, ISO_HS_ORIGIN, LICENSE_KNOWN, licenseUse } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -85,10 +86,6 @@ const LPC_FRAMES = {
   hurt: { file: "hurt", frames: [1, 2], only: "s", row: 0 },
   die: { file: "hurt", frames: [2, 3, 4, 5], only: "s", row: 0 },
 };
-/** Giấy phép biết được (mục 5.11 / art/CREDITS.md); giấy phép lạ thì dừng. */
-const LICENSE_KNOWN = /^(CC0|CC-BY(-SA)? \d(\.\d)?\+?|OGA-BY \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
-/** Giấy phép game dùng cho lớp LPC: không bắt ảnh dẫn xuất chia sẻ tương tự. Lớp phải có ít nhất một giấy phép này. */
-const LICENSE_USE = /^(CC0|CC-BY \d|OGA-BY \d)/;
 /** Giảm bão hòa mặc định cho màu giữ nguyên (lớp `keep`): LPC màu tươi, NPC phụ không được nổi hơn hồn sư. */
 const DESAT_DEFAULT = 0.5;
 
@@ -137,7 +134,7 @@ const OUTFIT = {
     { dir: "torso/waist/obi/thin/", z: 65, group: "outfit", variant: "charcoal", ramp: [0, 1] },
   ],
 };
-/** NPC phụ thử (looks lấy theo NPCS: Lão Kiệt Khắc, Thương nhân, Thợ rèn; lính gác chưa có trong NPCS). Tóc chỉ lấy lớp có CC0 / CC-BY / OGA-BY. */
+/** NPC phụ thử (looks lấy theo NPCS: Lão Kiệt Khắc, Thương nhân, Thợ rèn; lính gác chưa có trong NPCS). Tóc chọn lớp không cờ (có CC0 / CC-BY / OGA-BY). */
 const RECIPES = {
   truong_thon: { sex: "male", hairCol: 3, outfitCol: 2, layers: [...base("male"), ...OUTFIT.male,
     { dir: "head/heads/human/male_elderly/", z: 101, group: "body" }, { dir: "hair/balding/adult/", z: 120, group: "hair" },
@@ -209,8 +206,7 @@ function creditOf(rel, dir, anim) {
   const plain = `${dir}${anim}.png`, c = credits.get(rel) ?? credits.get(plain);
   if (!c) fail(`[lpc] ${rel}: CREDITS.csv không có mục ${rel === plain ? rel : `${rel} hay ${plain}`}, không rõ tác giả / giấy phép nên không dùng được`);
   const bad = c.licenses.filter((l) => !LICENSE_KNOWN.test(l));
-  if (!c.licenses.length || bad.length) fail(`[lpc] ${rel}: giấy phép ${c.licenses.join(", ") || "(trống)"} ngoài CC0 / CC-BY / CC-BY-SA / OGA-BY / GPL`);
-  if (!c.licenses.some((l) => LICENSE_USE.test(l))) fail(`[lpc] ${rel}: chỉ có ${c.licenses.join(", ")} (bắt ảnh dẫn xuất chia sẻ tương tự), cần lớp có CC0 / CC-BY / OGA-BY`);
+  if (!c.licenses.length || bad.length) fail(`[lpc] ${rel}: không đọc được giấy phép ${c.licenses.join(", ") || "(trống)"} (ngoài CC0 / CC-BY / CC-BY-SA / CC-BY-NC / OGA-BY / OGA-SA / GPL), chọn lớp khác`);
   return c;
 }
 const cache = new Map();
@@ -379,11 +375,23 @@ for (const { dir, variant, c } of used.values()) {
   if (!groups.has(key)) groups.set(key, { dir: variant ? `${dir}*/${variant}.png` : dir, c });
 }
 const cell = (s) => s.replace(/\|/g, "\\|");
+const flagged = new Set(); // cờ SA / GPL / NC của các lớp đã ghép
+const useCell = (c) => {
+  const { use, flags } = licenseUse(c.licenses);
+  flags.forEach((f) => flagged.add(f));
+  return cell(use.join(", ")) + (flags.length ? ` (cờ ${flags.join(", ")})` : "");
+};
 const rowsMd = [...groups.values()].map(({ dir, c }) =>
-  `| \`${cell(dir)}\` | ${cell(c.authors.split(",").map((s) => s.trim()).join(", "))} | ${cell(c.licenses.join(", "))} | ${cell(c.licenses.filter((l) => LICENSE_USE.test(l)).join(", "))} | ${c.urls.split(",").map((u) => u.trim()).filter(Boolean).map((u) => `<${u}>`).join(" ")} |`);
-const section = (title, rows) => [`### ${title}`, "", "| Lớp LPC (`spritesheets/`) | Tác giả | Giấy phép | Game dùng theo | Nguồn |", "|---|---|---|---|---|", ...rows, ""].join("\n");
+  `| \`${cell(dir)}\` | ${cell(c.authors.split(",").map((s) => s.trim()).join(", "))} | ${cell(c.licenses.join(", "))} | ${useCell(c)} | ${c.urls.split(",").map((u) => u.trim()).filter(Boolean).map((u) => `<${u}>`).join(" ")} |`);
+// Sheet là một file ghép mọi lớp: có lớp SA / GPL thì cả file theo giấy phép đó; có lớp NC thì phải thay khi thương mại hóa.
+const shareAlike = ["SA", "GPL"].filter((f) => flagged.has(f));
+const flagNotes = [
+  shareAlike.length && `**Cờ ${shareAlike.join(" / ")}:** cả sheet \`lpc_${name}\` (kèm \`_n.png\`) ghép từ lớp có cờ nên theo đúng giấy phép ${shareAlike.join(" / ")} của lớp đó.`,
+  flagged.has("NC") && "**Cờ NC:** chỉ dùng khi game phi thương mại; thương mại hóa thì thay lớp có cờ.",
+].filter(Boolean);
+const section = (title, rows) => [`### ${title}`, "", "| Lớp LPC (`spritesheets/`) | Tác giả | Giấy phép | Game dùng theo | Nguồn |", "|---|---|---|---|---|", ...rows, ...(flagNotes.length ? ["", ...flagNotes] : []), ""].join("\n");
 const block = section(`${name} (lpc-compose.mjs)`, rowsMd);
-const header = "## Asset LPC (Universal LPC Spritesheet Character Generator)\n\nNPC phụ ghép bằng `tools/assets/lpc-compose.mjs` từ <https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>; tác giả, giấy phép, nguồn lấy từ `CREDITS.csv` của repo đó cho đúng từng file đã dùng. Chỉ dùng lớp có CC0 / CC-BY / OGA-BY; ảnh đã sửa (ghép lớp, đổi màu, chọn khung) dùng theo giấy phép ở cột \"Game dùng theo\".\n";
+const header = "## Asset LPC (Universal LPC Spritesheet Character Generator)\n\nNPC phụ ghép bằng `tools/assets/lpc-compose.mjs` từ <https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator>; tác giả, giấy phép, nguồn lấy từ `CREDITS.csv` của repo đó cho đúng từng file đã dùng. Nhận mọi giấy phép đã biết; lớp nhiều giấy phép thì dùng theo nhóm ít ràng buộc nhất. Ảnh đã sửa (ghép lớp, đổi màu, chọn khung) dùng theo giấy phép ở cột \"Game dùng theo\"; cờ SA / GPL / NC theo `GAME_DESIGN.md` mục 5.11.\n";
 let doc = creditsDoc;
 if (!doc.includes(START)) doc = `${doc}${doc && !doc.endsWith("\n") ? "\n" : ""}\n${header}\n${START}\n${END}\n`;
 const [pre, rest] = doc.split(START), [mid, post] = rest.split(END);

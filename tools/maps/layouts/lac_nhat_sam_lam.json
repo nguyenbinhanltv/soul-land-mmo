@@ -1,0 +1,117 @@
+{
+  "_": "Lạc Nhật Sâm Lâm ×8 diện tích (11.5). Tây → đông: trại cổng về Thiên Đấu Thành, Rừng hoa độc (Hoa Cốc Mạn Đà, cổ thụ hoa), Đầm Bích Lân (Lân Quang Trạch), Băng Hỏa Tuyền (bắc băng, nam Hỏa Diễm Nham), Lưỡng Nghi Nhãn: suối đôi Băng Hỏa (hồ băng cạnh hồ lửa) và Cổ Đằng Lâm (hang Lưỡng Nghi Thủ Hộ Xà). Định dạng: tools/maps/README.md.",
+  "map": "lac_nhat_sam_lam",
+  "out": "lac_nhat_sam_lam.v2.json",
+  "size": [255, 170],
+  "seed": 20261102,
+  "zoneCell": 8,
+  "blend": 5,
+  "gids": {
+    "ground": {
+      "grass": [1, 2], "leaf": 3, "moss": 5, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
+      "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
+    },
+    "objects": {
+      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28
+    },
+    "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
+  },
+  "tiers": [
+    { "name": "Rừng hoa độc", "years": "5000-10000", "hint": "Hồn thú 5.000 – 10.000 năm", "beasts": "thuc_nhan_hoa:1,cuc_yeu_hoa_linh:1,doc_cuc_dang:1",
+      "trees": { "17": 3, "18": 1 }, "denseTrees": { "17": 1, "18": 1 }, "density": 0.09, "cluster": 0.56, "clusterDensity": 0.9,
+      "leaf": 0.7, "moss": 0.7, "rock": 0.003, "log": 0.002, "plant": 0.03 },
+    { "name": "Đầm Bích Lân", "years": "10000-18000", "hint": "Hồn thú 10.000 – 18.000 năm", "beasts": "bich_lan_xa:1,doc_vu_thiem:1,hac_thuy_mang:1",
+      "trees": { "18": 2, "19": 1 }, "denseTrees": { "19": 2, "18": 1 }, "density": 0.08, "cluster": 0.57, "clusterDensity": 0.88,
+      "ground": { "grass": [2, 3] }, "leaf": 0.72, "moss": 0.66, "rock": 0.002, "log": 0.005, "plant": 0.014 },
+    { "name": "Băng Hỏa Tuyền", "years": "16000-25000", "hint": "Hồn thú 16.000 – 25.000 năm", "beasts": "liet_hoa_tich_dich:1,huyen_bang_thiem:1,hoa_linh_diep:1",
+      "trees": { "19": 2, "18": 1 }, "denseTrees": { "19": 2, "20": 1 }, "density": 0.07, "cluster": 0.58, "clusterDensity": 0.86,
+      "ground": { "grass": [1, 10] }, "leaf": 0.66, "moss": 0.72, "rock": 0.008, "log": 0.002, "plant": 0.006 },
+    { "name": "Lưỡng Nghi Nhãn", "years": "22000-30000", "hint": "Cẩn thận: hồn thú 22.000 – 30.000 năm", "beasts": "co_moc_thu_nhan:1,y_la_hoa_yeu:1,thanh_lan_doc_co:1",
+      "trees": { "20": 3, "19": 1 }, "denseTrees": { "20": 1 }, "density": 0.15, "cluster": 0.52, "clusterDensity": 0.94,
+      "ground": { "grass": [4, 6] }, "leaf": 0.66, "moss": 0.64, "rock": 0.005, "log": 0.004, "plant": 0.012, "path": "pathDark" }
+  ],
+  "zones": [
+    { "name": "Hoa Cốc Mạn Đà", "tier": 0, "hint": "Thung lũng hoa độc · hồn thú 5.000 – 10.000 năm", "beasts": "cuc_yeu_hoa_linh:3,thuc_nhan_hoa:1,doc_cuc_dang:1",
+      "poly": [[0, 0], [62, 0], [60, 62], [0, 66]] },
+    { "name": "Rừng hoa độc", "tier": 0, "poly": [[0, 66], [60, 62], [58, 108], [62, 170], [0, 170]] },
+    { "name": "Đầm Bích Lân", "tier": 1, "poly": [[62, 0], [128, 0], [124, 100], [58, 108], [60, 62]] },
+    { "name": "Lân Quang Trạch", "tier": 1, "hint": "Đầm lân quang · hồn thú 10.000 – 18.000 năm", "beasts": "hac_thuy_mang:2,bich_lan_xa:1,doc_vu_thiem:1",
+      "poly": [[58, 108], [124, 100], [130, 170], [62, 170]] },
+    { "name": "Băng Hỏa Tuyền", "tier": 2, "poly": [[128, 0], [194, 0], [190, 96], [125, 96], [124, 100]] },
+    { "name": "Hỏa Diễm Nham", "tier": 2, "hint": "Nham thạch cháy xém · hồn thú 16.000 – 25.000 năm", "beasts": "liet_hoa_tich_dich:2,hoa_linh_diep:1,huyen_bang_thiem:1",
+      "poly": [[125, 96], [190, 96], [196, 170], [130, 170]] },
+    { "name": "Lưỡng Nghi Nhãn", "tier": 3, "poly": [[194, 0], [255, 0], [255, 114], [191, 110], [190, 96]] },
+    { "name": "Cổ Đằng Lâm", "tier": 3, "hint": "Rừng dây leo cổ, hang Lưỡng Nghi Thủ Hộ Xà · cẩn thận: hồn thú 22.000 – 30.000 năm", "beasts": "co_moc_thu_nhan:2,y_la_hoa_yeu:1,thanh_lan_doc_co:1",
+      "poly": [[191, 110], [255, 114], [255, 170], [196, 170]] }
+  ],
+  "points": {
+    "camp_e": [21, 85], "camp_n": [14, 76], "hoa_lo": [44, 88], "dam": [94, 84], "bang_hoa": [158, 72], "nghi_tay": [200, 72], "nghi": [222, 74],
+    "hoa_coc": [30, 30], "dam_bac": [96, 30], "bang_bac": [160, 26], "nghi_bac": [228, 30], "co_thu": [36, 128], "lan_quang": [96, 136],
+    "hoa_diem": [160, 132], "co_dang": [222, 134], "nghi_nam": [214, 96]
+  },
+  "features": [
+    { "type": "pond", "at": [76, 50], "r": 4.5 },
+    { "type": "pond", "at": [108, 64], "r": 4 },
+    { "type": "pond", "at": [80, 110], "r": 3.5 },
+    { "type": "pond", "at": [112, 18], "r": 3.5 },
+    { "type": "pond", "at": [96, 148], "r": 6 },
+    { "type": "pond", "at": [118, 122], "r": 3.5 },
+    { "type": "pond", "at": [28, 110], "r": 2.5 },
+    { "type": "area", "name": "Đầm nông bắc", "ground": "ford", "circle": [90, 56, 11], "edge": 4, "on": ["grass"] },
+    { "type": "area", "name": "Đầm nông nam", "ground": "ford", "circle": [104, 140, 10], "edge": 4, "on": ["grass"] },
+    { "type": "river", "name": "Suối Bích Lân", "pts": [[150, 0], [140, 24], [122, 40], [104, 64], [90, 84], [84, 110], [96, 148]], "width": 2.4, "wobble": 0.6, "bank": 1,
+      "fords": [[90, 84, 2.4]] },
+    { "type": "area", "name": "Băng nguyên tây", "ground": "stony", "gid": 29, "circle": [146, 22, 13], "edge": 6, "on": ["grass"] },
+    { "type": "area", "name": "Băng nguyên đông", "ground": "stony", "gid": 29, "circle": [176, 40, 11], "edge": 6, "on": ["grass"] },
+    { "type": "area", "name": "Đất cháy tây", "ground": "path", "gid": 8, "circle": [150, 140, 12], "edge": 6, "on": ["grass"] },
+    { "type": "area", "name": "Đất cháy đông", "ground": "path", "gid": 8, "circle": [178, 122, 10], "edge": 6, "on": ["grass"] },
+    { "type": "scatter", "kind": "stele", "circle": [146, 22, 13], "p": 0.03, "on": ["stony"] },
+    { "type": "scatter", "kind": "stele", "circle": [176, 40, 11], "p": 0.03, "on": ["stony"] },
+    { "type": "scatter", "kind": "arch", "circle": [150, 140, 12], "p": 0.025, "on": ["path"] },
+    { "type": "scatter", "kind": "arch", "circle": [178, 122, 10], "p": 0.025, "on": ["path"] },
+    { "type": "cliff", "pts": [[132, 84], [150, 90], [170, 84], [188, 90]], "rows": 2, "spacing": 3, "gap": 14, "gapLen": 3 },
+    { "type": "clearing", "at": [222, 64], "r": 16, "ground": "glow" },
+    { "type": "area", "name": "Băng quanh suối", "ground": "stony", "gid": 29, "circle": [216, 60, 8], "edge": 2, "on": ["glow", "grass"] },
+    { "type": "area", "name": "Lửa quanh suối", "ground": "path", "gid": 8, "circle": [228, 68, 8], "edge": 2, "on": ["glow", "grass"] },
+    { "type": "area", "name": "Suối Băng", "ground": "deep", "gid": 27, "circle": [217, 61, 4.5], "edge": 1 },
+    { "type": "area", "name": "Suối Hỏa", "ground": "deep", "gid": 31, "circle": [227, 67, 4.5], "edge": 1 },
+    { "type": "objects", "kind": "stele", "at": [[208, 52], [210, 64], [214, 50]] },
+    { "type": "objects", "kind": "arch", "at": [[236, 74], [234, 62], [230, 78]] },
+    { "type": "clearing", "at": [30, 30], "r": 7 },
+    { "type": "clearing", "at": [96, 30], "r": 6 },
+    { "type": "clearing", "at": [160, 26], "r": 6 },
+    { "type": "clearing", "at": [236, 30], "r": 6 },
+    { "type": "clearing", "at": [160, 132], "r": 6 },
+    { "type": "scatter", "kind": "plant", "circle": [30, 30, 12], "p": 0.12 },
+    { "type": "camp", "rect": [4, 76, 16, 18], "tents": [[6, 78], [9, 77], [17, 91]], "fires": [[10, 88]], "logs": [[12, 89]] },
+    { "type": "ancient", "at": [36, 120], "r": 9 },
+    { "type": "ruins", "rect": [148, 64, 20, 14], "gates": [[158, 64], [167, 71], [158, 77]], "steles": [[152, 67]], "arches": [[163, 74]], "broken": 0.4 },
+    { "type": "lair", "at": [222, 150], "rx": 8, "ry": 6, "entrance": "n", "wall": "tree", "door": 4 }
+  ],
+  "roads": [
+    { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 3 },
+    { "via": ["camp_n", "hoa_coc", "dam_bac", "bang_bac", "nghi_bac", "nghi"], "width": 2 },
+    { "via": ["hoa_lo", "co_thu", "lan_quang", "hoa_diem", "co_dang"], "width": 2 },
+    { "via": ["nghi_tay", "nghi_nam", "co_dang"], "width": 2 },
+    { "via": ["dam", "dam_bac"], "width": 2 }
+  ],
+  "spawn": { "name": "Trại cổng Lạc Nhật", "rect": [5, 77, 13, 16] },
+  "portals": [
+    { "name": "Về Thiên Đấu Thành", "rect": [1, 82, 2, 6], "to": "thien_dau_thanh", "arrive": "tu_lac_nhat_sam_lam" }
+  ],
+  "arrives": [
+    { "name": "tu_thien_dau_thanh", "at": [6.5, 85] }
+  ],
+  "waypoints": [
+    { "name": "trai_cong", "label": "Trại cổng Lạc Nhật", "at": [15, 79] },
+    { "name": "bang_hoa", "label": "Băng Hỏa Tuyền", "at": [157, 69], "ground": "pave" },
+    { "name": "luong_nghi", "label": "Suối Lưỡng Nghi", "at": [214, 68], "ground": "glow" }
+  ],
+  "elites": [
+    { "name": "Huyết Mạn Thực Nhân Hoa", "boss": "huyet_man_thuc_nhan_hoa", "rect": [32, 132, 8, 6] },
+    { "name": "Song Đầu Bích Lân Xà", "boss": "song_dau_bich_lan_xa", "rect": [92, 27, 8, 6] },
+    { "name": "Băng Hỏa Song Sắc Mãng", "boss": "bang_hoa_song_sac_mang", "rect": [156, 23, 8, 6] },
+    { "name": "Khô Đằng Thụ Vương", "boss": "kho_dang_thu_vuong", "rect": [232, 27, 8, 6] }
+  ],
+  "lair": { "name": "Hang Lưỡng Nghi", "boss": "luong_nghi_thu_ho_xa", "at": [222, 150], "rx": 8, "ry": 6 }
+}

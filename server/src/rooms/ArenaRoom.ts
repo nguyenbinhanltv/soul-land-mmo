@@ -26,7 +26,7 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
  * chỉ số hai bên cố định suốt trận và trận không làm đổi đồ ngoài phần thưởng. Đăng ký lại đè handler của MapRoom (message chưa đăng
  * ký làm Colyseus ngắt kết nối client, nên không bỏ hẳn).
  */
-const BLOCKED = ["absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
+const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
   "unequipcore", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "loadout"];
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };
 /** Mã đóng kết nối khi trận đã xong và hết ARENA.endSecs: client tự quay về bản đồ cũ. */
@@ -144,6 +144,8 @@ export class ArenaRoom extends MapRoom {
     super.chanThan(c);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }
+  /** Đấu hồn là 1v1 (7.1): không lan hiệu ứng tổ đội, kể cả khi đối thủ cùng tổ đội. */
+  partyBuffNear(_id: string): string[] { return []; }
   /** Trong sân không mời / nhận lời mời tổ đội (đấu hồn là 1v1, 7.1); xem khung tổ đội, từ chối, rời đội vẫn được. */
   partyAction(id: string, m: unknown) {
     const op = (m as { op?: unknown } | null)?.op;

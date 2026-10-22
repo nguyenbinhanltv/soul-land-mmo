@@ -5,12 +5,17 @@
 //
 // Gói thú tải về NGOÀI repo game (thư mục artifact), mỗi gói một thư mục con của --src đúng như đường dẫn `file` trong SPECIES
 // (zip giải nén tại chỗ). Chỉ đọc PNG, không chạy gì trong gói. Giấy phép, tác giả, lời ghi công của từng gói lấy từ trang
-// OpenGameArt (PACKS, đã soát 2026-10-21); gói chỉ có CC-BY-SA / GPL thì không có mặt ở đây (rắn LPC, LPC Monsters, bò…).
+// OpenGameArt (PACKS, đã soát 2026-10-21). Nhận mọi giấy phép đã biết (LICENSE_KNOWN của lib.mjs; giấy phép lạ / trống thì
+// dừng); gói nhiều giấy phép thì game dùng theo giấy phép ít ràng buộc nhất (licenseUse), gói chỉ có SA / GPL / NC thì ghi
+// công kèm cờ (mục 5.11).
 //
 // Các bước cho mỗi loài:
 //   1. Cắt khung theo lưới của sheet nguồn (`grids`: cỡ khung, góc trên trái; sói có hai lưới: nhìn dọc 32×64, nhìn ngang 64×32).
+//      Lưới có `file` riêng khi animation nằm ở file khác (Plant Ent: attack ở "throwing", die ở "withering"); ô có thể là danh
+//      sách cặp [hàng, cột] khi sheet xếp khung nối tiếp qua nhiều hàng; `key` (mã màu) là nền phẳng cần bỏ.
 //   2. Ánh xạ 4 hướng LPC → 5 hướng vẽ (như NPC phụ, lpc-compose.mjs LPC_DIR_ROW): s = xuống, n = lên, se / e / ne = phải;
-//      sw / w / nw do client lật. Gói chỉ có hàng "trái" thì lật ngang thành "phải" (`flip`).
+//      sw / w / nw do client lật. Gói chỉ có hàng "trái" thì lật ngang thành "phải" (`flip`); sprite nhìn thẳng từ trên chỉ một
+//      hướng thì lật dọc (`vflip`) hoặc xoay phải 90° (`rot90`) ra hướng còn thiếu.
 //   3. Animation của bố cục hồn thú (ISO_BEAST_ANIMS: idle 4, walk 6, attack 4, hurt 2, die 4): có trong gói thì chọn khung theo
 //      thứ tự (thiếu thì lặp, thừa thì chọn đều, khung đầu attack là tư thế báo trước); thiếu thì vẽ bằng code từ khung đứng:
 //      idle thở (phần trên dòng lưng nhích 1 pixel), attack lùi 1 rồi lao 3 pixel theo hướng nhìn, hurt lùi 1 / 2 pixel,
@@ -31,7 +36,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, readPng, encodePng, Img, hex, toHex, readGplNamed, OUTLINE, ISO_DIRS, ISO_BEAST_SIZES, ISO_BEAST_FOOT, ISO_BEAST_ANIMS } from "./lib.mjs";
+import { ROOT, readPng, encodePng, Img, hex, toHex, readGplNamed, OUTLINE, ISO_DIRS, ISO_BEAST_SIZES, ISO_BEAST_FOOT, ISO_BEAST_ANIMS, LICENSE_KNOWN, licenseUse } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -41,8 +46,6 @@ const creditsOpt = opt("--credits", ""), list = flag("--list");
 const fail = (m) => { console.error(m); process.exit(1); };
 if (args.length) fail(`tham số lạ: ${args.join(" ")}`);
 
-/** Giấy phép game dùng được (như lpc-compose.mjs): không bắt ảnh dẫn xuất chia sẻ tương tự. Gói phải có ít nhất một giấy phép này. */
-const LICENSE_USE = /^(CC0|CC-BY \d|OGA-BY \d)/;
 /** Giảm bão hòa mặc định: LPC tươi hơn nền trầm của game (phong cách A, mục 5.11); hồn thú vẫn nổi hơn nền. */
 const DESAT_DEFAULT = 0.3;
 /** Khung lớn nhất cho hình tạm: thú vương (160) / boss thế giới (192) không dùng LPC. */
@@ -70,15 +73,55 @@ const PACKS = {
     licenses: ["OGA-BY 3.0"], note: '"[LPC] Bat extended" by bagzie and bluecarrot16; gốc https://opengameart.org/content/bat-sprite' },
   birds: { title: "[LPC] Birds", url: "https://opengameart.org/content/lpc-birds", by: "bluecarrot16 (đặt vẽ: castelonia)",
     licenses: ["CC-BY 4.0", "CC-BY 3.0", "CC-BY-SA 4.0", "CC-BY-SA 3.0", "GPL 3.0", "GPL 2.0", "OGA-BY 3.0"] },
+  // Soát 2026-10-22 (catalog LPC, issue #201)
+  monsters: { title: "[LPC] Monsters", url: "https://opengameart.org/content/lpc-monsters", by: "Charles Sanchez (CharlesGabriel), bagzie, bluecarrot16",
+    licenses: ["CC-BY-SA 3.0", "GPL 3.0"], note: "đặt vẽ: Pierre Vigier (pvigier); gốc https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles" },
+  stendhal_animals: { title: "Stendhal Animals", url: "https://opengameart.org/content/stendhal-animals", by: "Kimmo Rundelin (kiheru), đăng: StendhalGame",
+    licenses: ["CC-BY-SA 3.0"] },
+  ents: { title: "Ents", url: "https://opengameart.org/content/ents", by: "Matthew Ashworth (đặt vẽ: macmanmatty)", licenses: ["CC-BY 4.0"] },
+  stingray: { title: "Stingray Sprite animated 4-directional", url: "https://opengameart.org/content/stingray-sprite-animated-4-directional", by: "Sevarihk",
+    licenses: ["CC-BY 4.0"] },
+  jellyfish: { title: "Jellyfish", url: "https://opengameart.org/content/jellyfish-0", by: "Diligent Dodo (soniccuz), đăng: StendhalGame",
+    licenses: ["CC-BY-SA 4.0", "CC-BY-SA 3.0"] },
 };
-for (const [k, p] of Object.entries(PACKS)) if (!p.licenses.some((l) => LICENSE_USE.test(l))) fail(`gói ${k}: chỉ có ${p.licenses.join(", ")}, cần CC0 / CC-BY / OGA-BY`);
+for (const [k, p] of Object.entries(PACKS))
+  if (!p.licenses.length || p.licenses.some((l) => !LICENSE_KNOWN.test(l))) fail(`gói ${k}: không đọc được giấy phép ${p.licenses.join(", ") || "(trống)"}, đọc lại trang OGA`);
+/** Giấy phép game dùng theo của gói, kèm cờ SA / GPL / NC nếu có. */
+const packUse = (p) => { const { use, flags } = licenseUse(p.licenses); return { pick: use[0], flags }; };
+const licenseLabel = (ls) => { const { use, flags } = licenseUse(ls); return use.join(" / ") + (flags.length ? ` (cờ ${flags.join(", ")})` : ""); };
 
 // ---------- Loài ↔ mẫu LPC ----------
-// Ô khung: [lưới, hàng, [cột…], "flip"?]. Hướng LPC: down / right / up (thiếu right thì ghi left kèm "flip").
+// Ô khung: [lưới, hàng, [cột…], biến đổi?] hoặc [lưới, [[hàng, cột]…], null, biến đổi?]; biến đổi "flip" | "vflip" | "rot90".
+// Hướng LPC: down / right / up (thiếu right thì ghi left kèm "flip").
 // `stand`: khung đứng mỗi hướng (đặt chân, idle, khung gốc cho animation vẽ bằng code). `tint`: { hue: màu đích, amount 0…1,
 // sat, light: hệ số }. `size`: khung theo bậc của vùng sinh (ISO_BEAST_TIER), `scale` 1 | 2, `hover`: thú bay nâng khỏi gốc.
 const A22 = "animals2022/lpc animals 2022 v1.1/individual creature spritesheets/";
 const range = (a, b) => Array.from({ length: b - a }, (_, i) => a + i);
+// Bố cục dùng chung của vài họ sheet
+/** Sói LPC (wolfsheet*): hai lưới, nhìn dọc 32×64 và nhìn ngang 64×32. */
+const WOLF = { grids: { v: { fw: 32, fh: 64 }, h: { fw: 64, fh: 32, x0: 320 } }, eyes: ["#96f0de", "#9cf3d9", "#3fe4a9"], // mắt wolfsheet6 / 1 / 2
+  stand: { down: ["v", 2, [0]], right: ["h", 3, [0]], up: ["v", 2, [5]] },
+  anims: { walk: { down: ["v", 2, range(0, 4)], right: ["h", 3, range(0, 5)], up: ["v", 2, range(5, 9)] },
+    attack: { down: ["v", 4, range(0, 5)], right: ["h", 5, range(0, 5)], up: ["v", 4, range(5, 10)] },
+    die: { down: ["v", 1, range(0, 4)], right: ["h", 0, range(0, 4)], up: ["v", 1, range(5, 9)] } } };
+/** Gấu tapatilorenzo (64×64): walk, attack, die đủ 3 hướng. */
+const BEAR = { grids: { g: { fw: 64, fh: 64 } },
+  stand: { down: ["g", 3, [0]], right: ["g", 1, [0]], up: ["g", 0, [0]] },
+  anims: { walk: { down: ["g", 3, range(0, 4)], right: ["g", 1, range(0, 5)], up: ["g", 0, range(0, 4)] },
+    attack: { down: ["g", 7, range(0, 4)], right: ["g", 5, [0, 1, 2, 2]], up: ["g", 4, range(0, 4)] },
+    die: { down: ["g", 11, range(0, 4)], right: ["g", 9, range(0, 4)], up: ["g", 8, range(0, 4)] } } };
+/** Stendhal: hàng lên, phải, xuống, trái; 3 cột, cột giữa là đứng. */
+const nesw = (fw, fh) => ({ grids: { g: { fw, fh } }, stand: { down: ["g", 2, [1]], right: ["g", 1, [1]], up: ["g", 0, [1]] },
+  anims: { walk: { down: ["g", 2, [0, 1, 2, 1]], right: ["g", 1, [0, 1, 2, 1]], up: ["g", 0, [0, 1, 2, 1]] } } });
+/** RPG Maker: hàng xuống, trái, phải, lên; mặc định 3 cột (cột 1 là đứng); `walk` / `st` ghi đè cột đi / cột đứng. */
+const rpgMaker = (fw, fh, grids = {}, anims = {}, walk = [0, 1, 2, 1], st = 1) => ({ grids: { g: { fw, fh }, ...grids },
+  stand: { down: ["g", 0, [st]], right: ["g", 2, [st]], up: ["g", 3, [st]] },
+  anims: { walk: { down: ["g", 0, walk], right: ["g", 2, walk], up: ["g", 3, walk] }, ...anims } });
+/** LPC chuẩn: hàng lên, trái, xuống, phải; `walk` / `attack` là các cột. */
+const lpcRows = (fw, walk, attack) => ({ grids: { g: { fw, fh: fw } },
+  stand: { down: ["g", 2, [walk[0]]], right: ["g", 3, [walk[0]]], up: ["g", 0, [walk[0]]] },
+  anims: { walk: { down: ["g", 2, walk], right: ["g", 3, walk], up: ["g", 0, walk] },
+    attack: { down: ["g", 2, attack], right: ["g", 3, attack], up: ["g", 0, attack] } } });
 const SPECIES = {
   // Thánh Hồn Thôn (10–450 năm, khung 64)
   nhu_cot_tho_hoang: { pack: "rabbit", file: "rabbit/rabbit_2.png", map: "thanh_hon_thon", size: 64, scale: 1,
@@ -132,12 +175,50 @@ const SPECIES = {
     anims: { walk: { down: ["g", 3, range(0, 4)], right: ["g", 1, range(0, 5)], up: ["g", 0, range(0, 4)] },
       attack: { down: ["g", 7, range(0, 4)], right: ["g", 5, [0, 1, 2, 2]], up: ["g", 4, range(0, 4)] },
       die: { down: ["g", 11, range(0, 4)], right: ["g", 9, range(0, 4)], up: ["g", 8, range(0, 4)] } } },
+  // Plant Ent 112×112 cao 106: không vừa khung 96 của bậc Tím, chủ repo duyệt khung 128 (#201).
+  quy_dang: { pack: "ents", file: "ents/$Plant Ent.png", map: "tinh_dau_ngoai_vi", size: 128, scale: 1, tint: { hue: "#4a6a3a", amount: 0.4, sat: 0.8 },
+    ...rpgMaker(112, 112, { t: { fw: 112, fh: 112, file: "ents/$Plant Ent throwing.png" }, d: { fw: 112, fh: 112, file: "ents/$Plant Ent withering.png" } }, {
+      attack: { down: ["t", 0, [0, 1, 2, 2]], right: ["t", 2, [0, 1, 2, 2]], up: ["t", 3, [0, 1, 2, 2]] },
+      // Héo chỉ có một chuỗi nhìn xuống, xếp nối tiếp (0,0) (0,1) (0,2) (1,1): dùng cho mọi hướng.
+      die: { all: ["d", [[0, 0], [0, 1], [0, 2], [1, 1]], null] } }) },
+  quy_ho: { pack: "stendhal_animals", file: "stendhal_animals/tiger.png", map: "tinh_dau_ngoai_vi", size: 96, scale: 1,
+    tint: { hue: "#5d4380", amount: 0.35, sat: 0.75, light: 0.85 }, ...nesw(64, 64) },
+  // Tinh Đấu Nội địa (1.500–25.000 năm, khung 96)
+  u_minh_lang: { pack: "wolf", file: "wolf/wolfsheet1_0.png", map: "tinh_dau_noi_dia", size: 96, scale: 1,
+    tint: { hue: "#3a3a6a", amount: 0.7, sat: 0.6, light: 0.75 }, ...WOLF },
+  am_kim_khung_trao_hung: { pack: "animals2022", file: A22 + "bear, black.png", map: "tinh_dau_noi_dia", size: 96, scale: 1,
+    tint: { hue: "#5a4a20", amount: 0.3 }, ...BEAR },
+  hac_vu_bien_buc: { pack: "bat", file: "bat/bat_2.png", map: "tinh_dau_noi_dia", size: 96, scale: 2, hover: 10, grids: { g: { fw: 32, fh: 32 } },
+    tint: { hue: "#3a2a4a", amount: 0.3 },
+    stand: { down: ["g", 2, [0]], right: ["g", 3, [0]], up: ["g", 0, [0]] },
+    anims: { walk: { down: ["g", 2, range(0, 4)], right: ["g", 3, range(0, 4)], up: ["g", 0, range(0, 4)] },
+      attack: { down: ["g", 6, [0, 1, 2, 1]], right: ["g", 7, [0, 1, 2, 1]], up: ["g", 4, [0, 1, 2, 1]] } } },
+  // Thánh Hồn Thôn Hậu Sơn (200–450 năm, khung 64): rắn LPC gốc, nhỏ đúng cỡ LPC
+  thanh_lan_xa: { pack: "monsters", file: "monsters/lpc-monsters/snake.png", map: "thanh_hon_thon", size: 64, scale: 1,
+    tint: { hue: "#3a8a7a", amount: 0.45 }, ...lpcRows(64, [0, 1, 2, 3], [4, 5, 6]) },
+  // Lạc Nhật Sâm Lâm Rừng hoa độc (5.000–10.000 năm, khung 96)
+  thuc_nhan_hoa: { pack: "monsters", file: "monsters/lpc-monsters/man_eater_flower.png", map: "lac_nhat_sam_lam", size: 96, scale: 1,
+    tint: { hue: "#a8303a", amount: 0.6 }, ...lpcRows(128, [0, 1, 2], [3, 4, 5]) },
+  // Cực Bắc Chi Địa (20.000–80.000 năm, khung 96)
+  tuyet_lang: { pack: "wolf", file: "wolf/wolfsheet2_0.png", map: "cuc_bac_chi_dia", size: 96, scale: 1,
+    tint: { hue: "#c8d4e0", amount: 0.9, sat: 0.25, light: 2.1 }, ...WOLF },
+  tuyet_vi_yeu_ho: { pack: "animals2022", file: A22 + "fox, arctic.png", map: "cuc_bac_chi_dia", size: 96, scale: 1,
+    grids: { g: { fw: 64, fh: 64 } }, tint: { hue: "#c8d4e0", amount: 0.3 },
+    stand: { down: ["g", 0, [0]], right: ["g", 1, [0]], up: ["g", 3, [0]] },
+    anims: { walk: { down: ["g", 0, range(0, 4)], right: ["g", 1, range(0, 4)], up: ["g", 3, range(0, 4)] } } },
+  bang_phong_bach_hung: { pack: "animals2022", file: A22 + "bear, polar.png", map: "cuc_bac_chi_dia", size: 96, scale: 1,
+    tint: { hue: "#c8d4e0", amount: 0.2 }, ...BEAR },
+  // Hải Thần Đảo (50.000–100.000 năm, khung 96)
+  loi_quang_hai_dieu: { pack: "stingray", file: "stingray/rochen_0.png", map: "hai_than_dao", size: 96, scale: 1, tint: { hue: "#3a6ab0", amount: 0.4 },
+    ...rpgMaker(98, 94, {}, {}, range(0, 4), 0) },
+  u_linh_hai_mau: { pack: "jellyfish", file: "jellyfish_stendhal/jellyfish.png", map: "hai_than_dao", size: 96, scale: 1, hover: 8,
+    tint: { hue: "#8a6ab0", amount: 0.3 }, ...nesw(48, 64) },
 };
 
 if (list) {
   for (const [id, s] of Object.entries(SPECIES)) {
     const p = PACKS[s.pack];
-    console.log(`${id.padEnd(22)} ← ${p.title} (${s.file.split("/").pop()}), ${s.size}×${s.size} ×${s.scale}, ${p.licenses.filter((l) => LICENSE_USE.test(l)).join(" / ")}`);
+    console.log(`${id.padEnd(22)} ← ${p.title} (${s.file.split("/").pop()}), ${s.size}×${s.size} ×${s.scale}, ${licenseLabel(p.licenses)}`);
   }
   process.exit(0);
 }
@@ -207,15 +288,29 @@ function sheetOf(file) {
   }
   return sheetCache.get(file);
 }
-/** Các khung của một ô `[lưới, hàng, [cột…], "flip"?]`; điểm nửa trong suốt bỏ (alpha 0 / 255). */
+/** File nguồn đã đọc của từng loài (ghi công đúng từng file). */
+const filesRead = new Map();
+/**
+ * Các khung của một ô `[lưới, hàng, [cột…], biến đổi?]` hoặc `[lưới, [[hàng, cột]…], null, biến đổi?]`; điểm nửa trong suốt
+ * bỏ (alpha 0 / 255), điểm gần màu nền `s.key` bỏ. Biến đổi: "flip" lật ngang, "vflip" lật dọc, "rot90" xoay phải 90°.
+ */
 function cells(s, spec) {
-  const [g, row, cols, flipTag] = spec, G = s.grids[g] ?? fail(`lưới ${g} không có`), sheet = sheetOf(s.file);
-  return cols.map((c) => {
-    const img = new Img(G.fw, G.fh), x0 = (G.x0 ?? 0) + c * G.fw, y0 = (G.y0 ?? 0) + row * G.fh;
-    if (x0 + G.fw > sheet.w || y0 + G.fh > sheet.h) fail(`${s.file}: ô ${g}[${row}, ${c}] ra ngoài sheet ${sheet.w}×${sheet.h}`);
+  const [g, row, cols, flipTag] = spec, G = s.grids[g] ?? fail(`lưới ${g} không có`), file = G.file ?? s.file, sheet = sheetOf(file);
+  if (flipTag && !["flip", "vflip", "rot90"].includes(flipTag)) fail(`${file}: biến đổi lạ ${flipTag}`);
+  filesRead.get(s)?.add(file);
+  const key = s.key ? hex(s.key) : null, rot = flipTag === "rot90";
+  const pairs = Array.isArray(row) ? row : cols.map((c) => [row, c]);
+  return pairs.map(([r, c]) => {
+    const img = new Img(rot ? G.fh : G.fw, rot ? G.fw : G.fh), x0 = (G.x0 ?? 0) + c * G.fw, y0 = (G.y0 ?? 0) + r * G.fh;
+    if (x0 + G.fw > sheet.w || y0 + G.fh > sheet.h) fail(`${file}: ô ${g}[${r}, ${c}] ra ngoài sheet ${sheet.w}×${sheet.h}`);
     for (let y = 0; y < G.fh; y++) for (let x = 0; x < G.fw; x++) {
       const p = sheet.get(x0 + x, y0 + y);
-      if (p[3] >= 128) img.set(flipTag === "flip" ? G.fw - 1 - x : x, y, [p[0], p[1], p[2], 255]);
+      if (p[3] < 128 || (key && Math.abs(p[0] - key[0]) + Math.abs(p[1] - key[1]) + Math.abs(p[2] - key[2]) < 24)) continue;
+      const q = [p[0], p[1], p[2], 255];
+      if (flipTag === "flip") img.set(G.fw - 1 - x, y, q);
+      else if (flipTag === "vflip") img.set(x, G.fh - 1 - y, q);
+      else if (rot) img.set(G.fh - 1 - y, x, q);
+      else img.set(x, y, q);
     }
     return img;
   });
@@ -257,9 +352,10 @@ const pickN = (list, n) => Array.from({ length: n }, (_, i) => list[list.length 
 // ---------- Từng loài ----------
 mkdirSync(out, { recursive: true });
 const PACK_MJS = path.join(path.dirname(fileURLToPath(import.meta.url)), "pack.mjs");
-const used = []; // { id, pack, file }
+const used = []; // { id, pack, files }
 for (const id of ids) {
   const s = SPECIES[id], size = s.size, foot = size - ISO_BEAST_FOOT - (s.hover ?? 0), cx = size >> 1;
+  filesRead.set(s, new Set());
   const pal = paletteOf(s.map), snap = nearestIn(pal), desat = desatGlobal ?? s.desat ?? DESAT_DEFAULT;
   const eyes = new Set((s.eyes ?? []).map((c) => c.toLowerCase()));
   const t = s.tint ?? {}, H = t.hue ? rgb2hsl(hex(t.hue))[0] : null;
@@ -333,15 +429,16 @@ for (const id of ids) {
   writeFileSync(path.join(out, `${id}.json`), `${meta.slice(0, -2)},\n "eyes": ${JSON.stringify(eyePts)}\n}\n`);
   // Số điểm mắt mỗi hướng để soát (loài không khai `eyes` phải là 0).
   console.log(`[lpc-beast] ${id}: điểm mắt ${ISO_DIRS.map((d) => `${d} ${eyePts[d].length}`).join(", ")}`);
-  used.push({ id, pack: s.pack, file: s.file });
+  used.push({ id, pack: s.pack, files: [...filesRead.get(s)] });
 }
 
 // ---------- Ghi công ----------
 const START = "<!-- lpc-beast:start -->", END = "<!-- lpc-beast:end -->";
 const HEAD = ["| Key | Tác giả | Giấy phép của gói (game dùng giấy phép in đậm) | Nguồn, thay đổi |", "|---|---|---|---|"];
-const rows = used.map(({ id, pack, file }) => {
-  const p = PACKS[pack], pick = p.licenses.find((l) => LICENSE_USE.test(l));
-  return `| \`beast_${id}\` (hình tạm) | ${p.by} | ${p.licenses.map((l) => (l === pick ? `**${l}**` : l)).join(", ")} | [${p.title}](${p.url}), file \`${file.split("/").pop()}\`; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric${p.note ? `; ${p.note}` : ""} |`;
+const rows = used.map(({ id, pack, files }) => {
+  const p = PACKS[pack], { pick, flags } = packUse(p);
+  // Cờ SA / GPL: sheet đã sửa (đổi màu, xếp lại) theo đúng giấy phép đó; NC: thay khi thương mại hóa (mục 5.11).
+  return `| \`beast_${id}\` (hình tạm) | ${p.by} | ${p.licenses.map((l) => (l === pick ? `**${l}**` : l)).join(", ")}${flags.length ? ` (cờ ${flags.join(", ")})` : ""} | [${p.title}](${p.url}), file ${files.map((f) => `\`${f.split("/").pop()}\``).join(", ")}; đổi màu, giảm bão hòa, viền, xếp lại 5 hướng isometric${p.note ? `; ${p.note}` : ""} |`;
 });
 const target = creditsOpt || path.join(out, "CREDITS-LPC-BEASTS.md");
 let doc = existsSync(target) ? readFileSync(target, "utf8") : "";

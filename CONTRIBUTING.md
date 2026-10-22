@@ -82,7 +82,7 @@ Nhiều việc cùng sửa các file sau. Sửa đúng chỗ cần, **không for
 | `server/src/rooms/MapRoom.ts` | Tách logic mới thành hàm / file riêng khi được, chỉ thêm lời gọi ngắn trong `MapRoom`. |
 | `shared/assets/sprites/manifest.json` | Sinh bằng dây chuyền `tools/assets`, không sửa tay; xung đột thì lấy bản `main` rồi chạy lại công cụ. |
 | `GAME_DESIGN.md` | Chỉ sửa đúng mục của luật đổi và dòng của mình ở mục 7. |
-| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. |
+| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. Asset ngoài nào cũng một dòng (tác giả, URL, giấy phép, file, có sửa gì), SA / GPL / NC ghi cờ (luật ở `GAME_DESIGN.md` 5.11). |
 
 Các file này có chủ repo trong `.github/CODEOWNERS`.
 
@@ -90,8 +90,8 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 1. Chạy và ghi kết quả vào mô tả PR (mẫu PR có sẵn ô đánh dấu):
    - `npm run check` và `npm run build`;
-   - bot với server `GAME_TEST=1` ở chế độ RAM (`CLAUDE.md` phần Lệnh);
-   - PR đổi `server/` hoặc `shared/`: thêm lượt bot với **PostgreSQL** (bắt buộc khi đổi SQL / `db.ts`; server chạy hai lần liên tiếp);
+   - bot với server `GAME_TEST=1` ở chế độ RAM: job CI `bot-ram` tự chạy mỗi lần push (mục Merge), ghi kết quả của head cuối vào PR; tự chạy ở máy khi gỡ lỗi hoặc thêm luồng bot mới, **chỉ bằng `npm run bot:local -- --only <nhóm>`** (hoặc `--part 1|2|3`, `--channels`; `CLAUDE.md` phần Lệnh): công cụ tự bật server nhẹ ở cổng trống, tự dọn, và giới hạn tối đa 2 lượt bot cùng lúc trên cả máy. Agent không tự bật server rời hay embedded-postgres riêng để chạy bot;
+   - PR đổi `server/` hoặc `shared/`: thêm lượt bot với **PostgreSQL** (bắt buộc khi đổi SQL / `db.ts`): `npm run bot:local -- --only <nhóm> --pg` (PostgreSQL chung của máy, database riêng mỗi lượt, server bật hai lần liên tiếp rồi bot);
    - đổi giao diện / ảnh: ảnh chụp trong game.
 2. `git merge origin/main` lần cuối, chạy lại `npm run check`.
 3. **Tự review PR của mình:** chạy reviewer (AO review nếu có, hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận. Comment bắt buộc có dòng (SHA đủ 40 ký tự, lấy bằng `git rev-parse HEAD`):
@@ -103,8 +103,12 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Merge
 
-- **CI** (`.github/workflows/check.yml`) chạy `npm ci` (server + client, cài đúng lockfile), `npm run check`, `npm run build` trên mọi PR vào `main` và mỗi push vào `main`. CI **chỉ để tham khảo**, chưa là status check bắt buộc trong bảo vệ nhánh `main`. Tên job / status check: `check-build`. CI đỏ thì đọc log: lỗi do PR thì sửa, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
-- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
+- **CI** (`.github/workflows/check.yml`) chạy trên mọi PR vào `main` và mỗi push vào `main`, hai job / status check:
+  - `check-build` (ubuntu + Windows): `npm ci` (server + client, cài đúng lockfile), bài âm thanh, `npm run check`, `npm run build`.
+  - `bot-ram` (ubuntu): bot trên server mới bật `GAME_TEST=1` chế độ RAM, chia 3 job song song `bot-ram (nhóm 1|2|3)` theo `BOT_PART` (bot đầy đủ ~17,5 phút; nhóm nào chạy đoạn nào ghi ở đầu phần `BOT_PART` trong `client/scripts/bot-test.mjs`); nhóm 1 chạy thêm `test:predict`, `test:ratelimit`, `test:accounts` và lượt nhiều kênh (`CHANNEL_MAX=2`). Job `bot-ram` gộp kết quả 3 nhóm. Mỗi lượt qua `tools/ci/bot-run.sh` (chạy được ở máy Linux / macOS: `BOT_PART=2 bash tools/ci/bot-run.sh nhom-2`). Bot trượt thì in log server, log đầy đủ ở artifact `bot-logs-<nhóm>` của lượt chạy.
+  - CI **chỉ để tham khảo**, không là status check bắt buộc trong bảo vệ nhánh `main` (chủ repo chốt, không đổi ruleset). CI đỏ thì đọc log: lỗi do PR thì sửa, bot chập chờn thì xử lý theo skill `bot-flakiness`, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
+  - **Reviewer dùng kết quả CI cho bot RAM**, không tự chạy lại bot RAM: `gh pr checks <PR>` (`bot-ram` và 3 nhóm của đúng head đang review), `gh run view <run-id>` in annotation số dòng ✓ / ✗ / ⚠ của từng nhóm và các dòng ✗ (bảng đầy đủ kèm dòng ⚠ ở trang lượt chạy, mục Summary), đỏ thì `gh run view <run-id> --log-failed`. Head chưa có lượt `bot-ram` xong (đang chạy, bị hủy) thì chờ lượt mới. Lượt **PostgreSQL** CI chưa có: PR đổi SQL / `db.ts` thì reviewer vẫn tự chạy bằng `npm run bot:local -- --only <nhóm> --pg` (mục Xin review).
+- PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build`, `bot-ram` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
 - PR của người cộng tác: orchestrator AO của chủ repo kiểm tra lại PR có `cho-review` và comment `Review: đạt` (review độc lập, chạy check / bot nếu cần). Đạt thì orchestrator merge vào `main`; chưa đạt thì comment góp ý trên PR. Người cộng tác **không tự merge**.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
 - Sau khi merge: đánh dấu bước ở `GAME_DESIGN.md` mục 7 (nếu PR chưa làm), xóa nhánh.

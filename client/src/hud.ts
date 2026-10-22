@@ -3,22 +3,24 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, starSkillMult, starCdMult, starTienCoMult, starRing, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
+  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, BAG_PAGE, type BoneStat,
   CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
+  AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
+import { autoTimeText } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -98,7 +100,7 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
     if (w.weak) chip(`Điểm yếu: ${HE[w.weak].name} ×${String(WORLD.weakMult).replace(".", ",")}${weakT > 0 ? ` (${Math.ceil(weakT)} giây)` : ""} · ${w.myHe === w.weak ? "võ hồn của bạn đúng hệ" : `đổi sang võ hồn ${HE[w.weak].name}!`}`, w.myHe === w.weak ? "ok" : "bad");
     if (w.shield && w.armorHe) chip(`Bá Thể: võ hồn ${HE[w.armorHe].name} phá khiên nhanh gấp 3${w.myHe === w.armorHe ? "" : " – đổi võ hồn!"}`, w.myHe === w.armorHe ? "ok" : "bad");
     if (w.charging && w.need) chip(`Tích lực: ngắt ${w.brk}/${w.need} bằng khống chế của võ hồn Khống chế${w.myHe === "khong_che" ? "" : " – đổi võ hồn!"}`, w.myHe === "khong_che" ? "ok" : "bad");
-    if (w.dive) chip("Đang lặn xuống hồ: không nhận sát thương, chờ nổi lên (mẫn công lướt tới đánh điểm yếu)");
+    if (w.dive) chip("Đang lặn giữa hồ: không nhận sát thương, sẽ nổi lên ở vòng sóng xanh (mẫn công đứng chờ đánh điểm yếu)");
     if (!wl.childElementCount) wl.hidden = true;
   }
   // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
@@ -943,7 +945,7 @@ const enhText = (it: BagItem) => (it.enhance >= BONE_MAX_ENHANCE ? `+${BONE_MAX_
 function enhancePicker(target: BagItem & { years: number }, items: BagItem[], act: { enhance(t: string, m: string[]): void; combat(): boolean }, again: () => void) {
   const tb = boneOf(target)!, xp0 = boneXp(target.stats), lv0 = target.enhance;
   const box = document.createElement("div"); box.className = "apick epick";
-  const loose = items.filter((i) => i.vohon === null && i.id !== target.id && boneOf(i)) as (BagItem & { years: number })[];
+  const loose = items.filter((i) => i.vohon === null && !i.lock && i.id !== target.id && boneOf(i)) as (BagItem & { years: number })[];
   for (const id of [...enhMats]) if (!loose.some((i) => i.id === id)) enhMats.delete(id); // nguyên liệu đã mất / đã gắn
   const matOf = (i: BagItem & { years: number }) => ({ slot: boneOf(i)!.slot, years: i.years, xp: boneXp(i.stats) });
   const head = document.createElement("small");
@@ -1033,7 +1035,7 @@ const CORE_SUB_MARKS = Array.from({ length: Math.floor(CORE_MAX_ENHANCE / CORE_S
 function corePicker(target: BagItem, items: BagItem[], act: { enhanceCore(t: string, m: string[]): void; combat(): boolean }, again: () => void) {
   const tc = coreOf(target)!, xp0 = coreXp(target.stats), lv0 = target.enhance, stars = target.stars ?? 1, cs = coreSet(tc.set);
   const box = document.createElement("div"); box.className = "apick epick";
-  const loose = items.filter((i) => i.vohon === null && i.id !== target.id && coreOf(i));
+  const loose = items.filter((i) => i.vohon === null && !i.lock && i.id !== target.id && coreOf(i));
   for (const id of [...enhMats]) if (!loose.some((i) => i.id === id)) enhMats.delete(id); // nguyên liệu đã mất / đã gắn
   const matOf = (i: BagItem) => ({ set: coreOf(i)!.set, stars: i.stars ?? 1, xp: coreXp(i.stats) });
   const mainAt = (lv: number) => coreStatText(tc.main, coreMainValue(tc.main, stars, lv));
@@ -1325,8 +1327,10 @@ function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
   if (bone) { const u = tintedUrl(`item_hon_cot_${bone.slot}`, ringColor(tierOfYears(it.years!))); return u ? `<img class="ico art" src="${u}" alt="" draggable="false">` : ""; }
   const def = itemDef(it.code), kind = def?.kind;
-  // Hồn hoàn tô theo màu niên hạn, mảnh võ hồn theo màu võ hồn (ảnh màu chung của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu).
-  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years)) : kind === "manh_vo_hon" ? def!.col : null;
+  // Hồn hoàn tô theo màu niên hạn; mảnh võ hồn, rương (màu hào quang thú vương / boss), tiên thảo theo `col` của món (ảnh chung
+  // của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu; rương và tiên thảo là bản xám, #170).
+  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years))
+    : kind === "manh_vo_hon" || kind === "ruong" || kind === "tien_thao" ? def!.col : null;
   if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }
   return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
 }
@@ -1350,6 +1354,8 @@ export interface HerbOption { rowId: number; name: string; col: string; level: n
  */
 export interface BagActions {
   use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void; open(id: string): void;
+  sort(): void; // sắp xếp + gộp chồng cả túi (#215), server làm
+  lock(id: string): void; autoSell(cfg: SellSettings): void; // khoá / mở khoá ô, bộ lọc tự bán (#216)
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
@@ -1445,12 +1451,14 @@ function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again:
   return box;
 }
 
-/**
- * Bảng túi đồ: Hồn Tệ, lưới BAG_SLOTS ô (số lượng ở góc ô, đồ cùng loại đã được server gộp), chi tiết ô đang chọn và nút "Dùng".
- * Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
- */
 /** Số ô túi của tài khoản theo tin "bag" gần nhất (từ 9.8 mở rộng được; trước tin đầu tiên là mức khởi đầu). */
 let bagCap = BAG_SLOTS;
+let bagPage = 0; // trang túi đang xem (#215: mỗi trang BAG_PAGE ô)
+/**
+ * Bảng túi đồ: Hồn Tệ, các trang BAG_PAGE ô (#215; tab trang có vạch mức đầy, trang đầy viền đỏ), lưới ô của trang đang xem (số
+ * lượng ở góc ô, đồ cùng loại đã được server gộp), nút "Sắp xếp" (server sắp và gộp chồng trên cả túi), chi tiết ô đang chọn và nút
+ * "Dùng". Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
+ */
 export function renderBag(bag: BagMsg, act: BagActions) {
   bagCap = bag.slots;
   bagCdEnd = performance.now() + Math.max(0, bag.cd) * 1000;
@@ -1469,8 +1477,33 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
   el.appendChild(coin);
 
+  const pages = Math.max(1, Math.ceil(bag.slots / BAG_PAGE));
+  bagPage = Math.max(0, Math.min(pages - 1, bagPage));
+  const bar = document.createElement("div"); bar.className = "bpages";
+  for (let p = 0; p < pages; p++) {
+    const cap = Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, items.length - p * BAG_PAGE));
+    const b = document.createElement("button"); b.className = "bpg" + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
+    b.innerHTML = `<b>${p + 1}</b><i style="--f:${n / cap}"></i>`;
+    b.title = `Trang ${p + 1}: ${n}/${cap} ô${n >= cap ? " (đầy)" : ""}`; b.setAttribute("aria-label", b.title);
+    b.setAttribute("aria-pressed", String(p === bagPage));
+    b.addEventListener("click", () => { b.blur(); bagPage = p; again(); });
+    bar.appendChild(b);
+  }
+  // Tự bán từ xa (#216): nút mở bộ lọc (thay chỗ chi tiết ô), chữ ghi đang bật hay tắt.
+  const sell = { ...SELL_DEFAULTS, ...(bag.sell ?? {}) }, sb = document.createElement("button");
+  sb.className = "buse bsellbtn" + (sell.on ? " on" : ""); sb.textContent = sell.on ? "Tự bán: bật" : "Tự bán: tắt";
+  sb.title = "Bộ lọc tự bán từ xa khi túi gần đầy"; sb.setAttribute("aria-pressed", String(sellOpen));
+  sb.addEventListener("click", () => { sb.blur(); sellOpen = !sellOpen; if (sellOpen) bagSel = null; again(); });
+  bar.appendChild(sb);
+  const sort = document.createElement("button"); sort.className = "buse bsort"; sort.textContent = "Sắp xếp";
+  sort.title = "Gộp đồ cùng loại chưa đầy ô và xếp lại cả túi (mọi trang) theo loại, số năm, sao.";
+  sort.disabled = items.length < 2;
+  sort.addEventListener("click", () => { sort.blur(); act.sort(); });
+  bar.appendChild(sort);
+  el.appendChild(bar);
+
   const grid = document.createElement("div"); grid.className = "bgrid";
-  for (let k = 0; k < bag.slots; k++) {
+  for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = items[k], b = document.createElement("button");
     b.className = "bslot" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
     if (it) {
@@ -1479,20 +1512,22 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.style.setProperty("--c", itemColor(it));
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : it.qty > 1 ? String(it.qty) : "";
       const bone = boneOf(it), icon = itemArt(it) || (bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
-      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}<div class="cd"></div>`;
-      b.setAttribute("aria-label", hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`);
-      b.title = itemName(it);
-      b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; enhClose(); again(); });
+      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
+      b.setAttribute("aria-label", (hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
+        + (it.lock ? ", đang khoá" : ""));
+      b.title = itemName(it) + (it.lock ? " (khoá)" : "");
+      b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
     grid.appendChild(b);
   }
   el.appendChild(grid);
 
+  if (sellOpen) { el.appendChild(sellBox(bag, sell, act)); return finishBag(el); }
   const info = document.createElement("div"); info.className = "binfo";
   const sel = items.find((i) => i.id === bagSel), def = sel && itemDef(sel.code);
   if (sel) {
     info.innerHTML = `<b></b><small></small><p></p>`;
-    info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}`;
+    info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}${sel.lock ? " · đang khoá" : ""}`;
     info.querySelector("b")!.style.color = def ? itemColor(sel) : "";
     const band = hasYears(sel) ? tierBand(tierOfYears(sel.years)) : null, bone = boneOf(sel), slot = bone ? BONE_SLOTS[boneSlotIndex(bone.slot)] : null;
     const core = coreOf(sel), cset = core ? coreSet(core.set) : undefined;
@@ -1536,6 +1571,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     };
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
     if (def?.recall) btn("Dùng", "absorb", () => { act.use(sel.id); toggleBag(false); }); // Hồi Thành Phù (11.2): niệm rồi về thành
+    if (def?.auto) btn("Dùng", "absorb", () => act.use(sel.id)); // Ủy Thác Lệnh (Auto 2): cộng giờ treo tự săn
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
@@ -1548,7 +1584,9 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (core && enhTarget === sel.id) { info.appendChild(corePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
     if (core) btn("Gắn…", "use", () => openCores(sel.id)); // hồn hạch (5.2): gắn ở bảng đội hình
     if (core && sel.enhance < CORE_MAX_ENHANCE) btn("Nâng cấp…", "use", () => { enhOpen(sel.id); again(); }); // 5.3
-    btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
+    // Khoá (#216): món khoá không bị bán (tay hay tự bán), bỏ, làm nguyên liệu; server kiểm tra lại.
+    btn(sel.lock ? "Mở khoá" : "Khoá", "use", () => act.lock(sel.id)).title = sel.lock ? "Mở khoá để bán / bỏ được" : "Khoá: không bán, bỏ hay làm nguyên liệu";
+    if (!sel.lock) btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
       if (bagConfirm === sel.id) { bagConfirm = null; act.discard(sel.id); } else { bagConfirm = sel.id; again(); }
     });
     info.appendChild(row);
@@ -1557,9 +1595,60 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   finishBag(el);
 }
 
+let sellOpen = false; // đang mở bộ lọc tự bán thay cho chi tiết ô (#216)
+/** Mức chọn của bộ lọc tự bán (chỉ là lựa chọn giao diện; server kẹp bằng parseSell). */
+const SELL_RING: [number, string][] = [[0, "Không bán"], [100, "Dưới 100 năm"], [1000, "Dưới 1.000 năm"], [10000, "Dưới 10.000 năm"],
+  [100000, "Dưới 100.000 năm"], [MAX_YEARS + 1, "Mọi niên hạn"]];
+const SELL_BONE: [number, string][] = [[0, "Không bán"], [1, "Chưa cường hóa (+0)"], [5, "Dưới +5"], [10, "Dưới +10"]];
+const SELL_CORE: [number, string][] = [[1, "Không bán"],
+  ...Array.from({ length: MAX_CORE_STARS - 2 }, (_, i): [number, string] => [i + 2, i ? `1★ – ${i + 1}★` : "1★"])];
+/**
+ * Bộ lọc tự bán từ xa (#216, mục 5.7 "Tự bán"): bật / tắt, hồn hoàn dưới X năm, cho bán vạn năm, hồn cốt dưới mức cường hóa, hồn hạch
+ * dưới N sao, mảnh võ hồn; xem trước số ô đang hợp bộ lọc (autoSellable, chỉ để hiển thị). Đổi gì thì gửi ngay `autosell {cfg}`.
+ */
+function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
+  const box = document.createElement("div"); box.className = "binfo bsell";
+  const send = (patch: Partial<SellSettings>) => act.autoSell({ ...cfg, ...patch });
+  const head = document.createElement("b"); head.textContent = "Tự bán từ xa"; box.appendChild(head);
+  const tg = document.createElement("button"); tg.type = "button"; tg.className = "buse " + (cfg.on ? "drop" : "absorb");
+  tg.textContent = cfg.on ? "Tắt tự bán" : "Bật tự bán"; tg.setAttribute("aria-pressed", String(cfg.on));
+  tg.addEventListener("click", () => { tg.blur(); send({ on: !cfg.on }); });
+  box.appendChild(tg);
+  const pick = (label: string, list: [number, string][], v: number, key: "ring" | "bone" | "core") => {
+    const l = document.createElement("label"); l.className = "achk"; l.textContent = label + " ";
+    const s = document.createElement("select");
+    for (const [n, t] of list) { const o = document.createElement("option"); o.value = String(n); o.textContent = t; o.selected = n === v; s.appendChild(o); }
+    if (!list.some(([n]) => n === v)) { const o = document.createElement("option"); o.value = String(v); o.textContent = `(${v})`; o.selected = true; s.appendChild(o); }
+    s.addEventListener("change", () => send({ [key]: Number(s.value) }));
+    l.appendChild(s); box.appendChild(l);
+  };
+  const check = (label: string, v: boolean, key: "high" | "shard") => {
+    const l = document.createElement("label"); l.className = "achk";
+    const c = document.createElement("input"); c.type = "checkbox"; c.checked = v;
+    c.addEventListener("change", () => { c.blur(); send({ [key]: c.checked }); });
+    l.append(c, ` ${label}`); box.appendChild(l);
+  };
+  pick("Hồn hoàn", SELL_RING, cfg.ring, "ring");
+  pick("Hồn cốt", SELL_BONE, cfg.bone, "bone");
+  pick("Hồn hạch chưa nâng cấp", SELL_CORE, cfg.core, "core");
+  check("Mảnh võ hồn", cfg.shard, "shard");
+  check(`Cho bán cả hồn hoàn, hồn cốt từ ${AUTO_SELL_GUARD.toLocaleString("vi-VN")} năm (vạn năm) trở lên`, cfg.high, "high");
+  const now = bag.items.filter((i) => autoSellable({ ...i, locked: i.lock }, cfg));
+  const gain = now.reduce((a, i) => a + (sellPrice(i) ?? 0) * i.qty, 0);
+  const pv = document.createElement("small");
+  pv.textContent = now.length ? `Lúc này túi có ${now.length} ô hợp bộ lọc (≈ +${formatHonTe(gain)}).` : "Lúc này không có ô nào hợp bộ lọc.";
+  box.appendChild(pv);
+  const n = document.createElement("small");
+  n.textContent = `Bật thì khi túi còn dưới ${AUTO_SELL_FREE} ô trống (hoặc tự săn thấy túi đầy), đồ hợp bộ lọc được bán từ xa đúng giá thương nhân trong thành. `
+    + "Không bao giờ bán món khoá, món đang gắn, hồn hoàn đang hấp thụ. Đan, phù chú, lệnh bài, rương, tiên thảo thương nhân không mua nên không bán. "
+    + `${AUTO_SELL_BUYBACK} món tự bán gần nhất mua lại được đúng giá ở thương nhân (về túi ở trạng thái khoá). Ủy thác offline không tự bán.`;
+  box.appendChild(n);
+  return box;
+}
+
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
+  note.textContent = `Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Mỗi trang ${BAG_PAGE} ô, mở rộng túi ở thương nhân trong thành. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.`;
   el.appendChild(note);
   updateBag();
 }
@@ -1688,8 +1777,9 @@ function renderNpc() {
       btn(`Khảo hạch hằng ngày (${done}/${dailyMsg.list.length})${m === "offer" ? " !" : m === "ready" ? " ?" : ""}`, "absorb", () => go("daily"));
     }
     if (def.role === "shop") {
-      btn("Mua đan dược, mở rộng túi", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
-      btn(`Mua lại đồ đã bán (${bag?.buyback?.length ?? 0})`, "absorb", () => go("buyback"), !bag); // 9.8
+      btn(shopExpands(def.id) ? "Mua đan dược, mở rộng túi" : "Mua đan dược, phù chú", "absorb", () => go("buy"), !bag); // #111: trại cổng không mở rộng túi
+      btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
+      btn(`Mua lại đồ đã bán (${(bag?.buyback?.length ?? 0) + (bag?.sold?.length ?? 0)})`, "absorb", () => go("buyback"), !bag); // 9.8, đồ tự bán #216
     }
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
@@ -1704,7 +1794,7 @@ function renderNpc() {
     if (NPC_ROLE_NOTE[def.role]) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = NPC_ROLE_NOTE[def.role]; el.appendChild(k); }
     return;
   }
-  if (npcPage === "buy") renderShopBuy(el, bag, act);
+  if (npcPage === "buy") renderShopBuy(el, bag, act, def.id);
   else if (npcPage === "sell") renderShopSell(el, bag, act);
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
@@ -1712,10 +1802,13 @@ function renderNpc() {
   el.appendChild(row);
 }
 
-/** Cửa hàng: mỗi món trong SHOP một dòng (giá, đang có), nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). */
-function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const used = bag.items.filter((i) => i.vohon === null).length;
-  for (const r of SHOP) {
+/**
+ * Cửa hàng của thương nhân `npcId`: mỗi món trong bảng hàng (shopOf: SHOP trong thành, CAMP_SHOP ở trại cổng) một dòng (giá, đang có),
+ * nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). Mở rộng túi chỉ ở thương nhân trong thành (shopExpands).
+ */
+function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
+  const used = bag.items.filter((i) => i.vohon === null).length, shop = shopOf(npcId);
+  for (const r of shop) {
     const def = itemDef(r.code); if (!def) continue;
     const have = bag.items.filter((i) => i.code === r.code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", def.col);
@@ -1734,26 +1827,29 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     el.appendChild(o);
   }
   // Mở rộng túi (9.8): +BAG_EXPAND ô mỗi lần tới BAG_MAX_SLOTS, giá tăng dần (bagExpandCost); bấm hai lần. Server kiểm tra lại.
-  const cost = bagExpandCost(bag.slots);
-  const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
-  o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
-  o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
-    : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
-  if (cost !== null) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
-    b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
-    b.disabled = bag.honTe < cost;
-    b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
-    b.addEventListener("click", () => {
-      b.blur();
-      if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
-      sellConfirm = null; act.expand();
-    });
-    o.querySelector(".brow")!.appendChild(b);
+  if (shopExpands(npcId)) {
+    const cost = bagExpandCost(bag.slots);
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
+    o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
+    o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
+      : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
+    if (cost !== null) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
+      b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
+      b.disabled = bag.honTe < cost;
+      b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
+      b.addEventListener("click", () => {
+        b.blur();
+        if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
+        sellConfirm = null; act.expand();
+      });
+      o.querySelector(".brow")!.appendChild(b);
+    }
+    el.appendChild(o);
   }
-  el.appendChild(o);
   const n = document.createElement("small"); n.className = "rnote";
-  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(SHOP[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`;
+  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(shop[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`
+    + (shopExpands(npcId) ? "" : " Mở rộng túi, đan lớn: về thương nhân trong thành.");
   el.appendChild(n);
 }
 
@@ -1762,11 +1858,24 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * hóa). Thiếu Hồn Tệ thì mờ nút; server kiểm tra lại tiền và chỗ trống.
  */
 function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const list = bag.buyback ?? [];
-  if (!list.length) {
+  const list = bag.buyback ?? [], sold = bag.sold ?? [];
+  if (!list.length && !sold.length) {
     const p = document.createElement("p"); p.className = "nline"; p.textContent = "Ngươi chưa bán gì cho ta từ lúc tới đây. Bán nhầm thì quay lại, ta trả lại đúng món, đúng giá.";
     el.appendChild(p);
   }
+  buybackRows(el, bag, act, list);
+  const n = document.createElement("small"); n.className = "rnote";
+  n.textContent = `Thương nhân giữ ${BUYBACK_MAX} món bán gần nhất (cả hai thành), mua lại đúng giá đã bán; rời game thì mất. Cần ô trống trong túi.`;
+  el.appendChild(n);
+  // Đồ tự bán từ xa (#216): AUTO_SELL_BUYBACK món gần nhất, lưu theo tài khoản (không mất khi rời game), cùng nút mua lại.
+  if (!sold.length) return;
+  const h = document.createElement("p"); h.className = "nline"; h.textContent = `Đồ tự bán gần đây (${sold.length}/${AUTO_SELL_BUYBACK}):`;
+  el.appendChild(h);
+  buybackRows(el, bag, act, sold);
+}
+
+/** Các dòng mua lại (đồ bán tay hoặc đồ tự bán): tên, giá đã bán, nút "Mua lại" (thiếu Hồn Tệ thì mờ). */
+function buybackRows(el: HTMLElement, bag: BagMsg, act: NpcActions, list: BuybackItem[]) {
   for (const e of list) {
     const it: BagItem = { ...e, id: e.key, vohon: null }, def = itemDef(e.code), cost = e.price * e.qty;
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", itemColor(it));
@@ -1780,9 +1889,6 @@ function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     o.querySelector(".brow")!.appendChild(b);
     el.appendChild(o);
   }
-  const n = document.createElement("small"); n.className = "rnote";
-  n.textContent = `Thương nhân giữ ${BUYBACK_MAX} món bán gần nhất (cả hai thành), mua lại đúng giá đã bán; rời game thì mất. Cần ô trống trong túi.`;
-  el.appendChild(n);
 }
 
 /**
@@ -1790,7 +1896,7 @@ function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * / sao / độ hiếm (chỉ để hiển thị, server tính lại). Đồ đang gắn không nằm trong danh sách. Món giá trị phải bấm hai lần.
  */
 function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const list = bag.items.filter((i) => i.vohon === null && sellPrice(i) !== null);
+  const list = bag.items.filter((i) => i.vohon === null && !i.lock && sellPrice(i) !== null); // món khoá (#216) không bán
   const kindOrder = ["hon_hoan", "hon_cot", "hon_hach", "manh_vo_hon"];
   list.sort((a, b) => kindOrder.indexOf(itemDef(a.code)?.kind ?? "") - kindOrder.indexOf(itemDef(b.code)?.kind ?? "") || (sellPrice(b) ?? 0) - (sellPrice(a) ?? 0));
   if (!list.length) {
@@ -1819,9 +1925,10 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     if (it.qty > 1) { sell(1, "Bán 1"); sell(it.qty, "Bán hết"); } else sell(1, "Bán");
     el.appendChild(o);
   }
-  const worn = bag.items.filter((i) => i.vohon !== null).length;
+  const worn = bag.items.filter((i) => i.vohon !== null).length, locked = bag.items.filter((i) => i.vohon === null && i.lock).length;
   const n = document.createElement("small"); n.className = "rnote";
   n.textContent = (worn ? `${worn} món đang gắn trên võ hồn không hiện ở đây (tháo ra trước mới bán được). ` : "")
+    + (locked ? `${locked} ô đang khoá không hiện ở đây (mở khoá ở túi đồ). ` : "")
     + `Thương nhân không mua đan dược và rương. Bán nhầm thì mua lại được đúng giá (${BUYBACK_MAX} món gần nhất, mất khi rời game).`;
   el.appendChild(n);
 }
@@ -2403,6 +2510,16 @@ export function showWaypoint(label: string | null, open: () => void) {
 
 /** Niệm truyền tống / Hồi Thành Phù đang chạy (tin riêng `recall`): chữ trên thanh niệm (dùng chung chỗ thanh hấp thụ), tổng giây, lúc bắt đầu. */
 let recall: { label: string; secs: number; t0: number } | null = null;
+/**
+ * Nút "Tự động" (mục 5.13): sáng khi đang tự săn theo tin riêng `auto` của server, chú thích giờ treo còn lại. Bấm thì mở bảng Tự
+ * động (client/src/autoPanel.ts, Auto 2); lý do dừng server báo bằng dòng log và bảng tổng kết.
+ */
+export function setAuto(m: AutoMsg) {
+  const b = $("#autoBtn"); if (!b) return;
+  b.setAttribute("aria-pressed", String(m.on));
+  b.firstChild!.textContent = m.on ? "Đang tự động " : "Tự động ";
+  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
+}
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
 /** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */
 function drawRecall(ch: HTMLElement) {

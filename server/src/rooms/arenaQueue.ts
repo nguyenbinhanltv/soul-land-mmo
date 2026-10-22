@@ -5,7 +5,7 @@
 // Chạy nhiều tiến trình thì hàng chờ phải chuyển sang presence (Redis), như lịch boss.
 import { matchMaker } from "colyseus";
 import { randomUUID } from "node:crypto";
-import { arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
+import { ARENA, arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
 
 /** Một người đang xếp hàng. Hàm `ready` / `found` do phòng bản đồ của người đó cung cấp. */
 export interface ArenaEntry {
@@ -46,6 +46,49 @@ export function arenaDequeue(accountId: number) {
   if (!queue.size && timer) { clearInterval(timer); timer = null; }
   return had;
 }
+
+/**
+ * Lần xếp hàng có đọc Elo từ DB gần nhất của mỗi tài khoản (ms, #208): hai lần đọc cách nhau ít nhất ARENA.queueCd giây, kể cả khi đổi
+ * kênh / bản đồ giữa chừng (như channelSwitchAt của MapRoom). Mỗi lần gọi dọn các mốc đã hết nhịp nên Map chỉ giữ người vừa xếp hàng.
+ */
+const queueReadAt = new Map<number, number>();
+/** Hết nhịp thì ghi mốc lúc `now` và trả true (được đọc Elo từ DB); còn trong nhịp thì false (xếp hàng quá nhanh). */
+export function arenaQueueSlot(accountId: number, now = Date.now()) {
+  for (const [id, t] of queueReadAt) if (now - t >= ARENA.queueCd * 1000) queueReadAt.delete(id);
+  if (queueReadAt.has(accountId)) return false;
+  queueReadAt.set(accountId, now);
+  return true;
+}
+
+/**
+ * Lần đọc Elo đang chạy của mỗi tài khoản (#225): `cancel` tới trong lúc chờ DB thì đánh dấu đã hủy, đọc xong không xếp hàng. Theo tài
+ * khoản như queueReadAt. `slow`: hook test `aslow` (chỉ GAME_TEST=1) làm chậm lần đọc kế tiếp thêm số mili giây.
+ */
+const reads = new Map<number, { cancelled: boolean }>();
+const slow = new Map<number, number>();
+/** Đọc Elo để xếp hàng bằng `read`; trả null nếu người chơi đã hủy trong lúc đọc (đọc lỗi sau khi hủy cũng chỉ ghi log, không ném). */
+export async function arenaReadElo(accountId: number, read: () => Promise<ArenaRecord>): Promise<ArenaRecord | null> {
+  const r = { cancelled: false }, ms = slow.get(accountId) ?? 0;
+  reads.set(accountId, r); slow.delete(accountId);
+  try {
+    const rec = await read();
+    if (ms) await new Promise((res) => setTimeout(res, ms));
+    return r.cancelled ? null : rec;
+  } catch (e) {
+    if (!r.cancelled) throw e;
+    console.error(`Không đọc được Elo của tài khoản #${accountId} (đã hủy xếp hàng)`, e);
+    return null;
+  } finally { if (reads.get(accountId) === r) reads.delete(accountId); }
+}
+/** Hủy lần đọc Elo đang chạy; true nếu có lần đọc chưa bị hủy. */
+export function arenaReadCancel(accountId: number) {
+  const r = reads.get(accountId); if (!r || r.cancelled) return false;
+  r.cancelled = true; return true;
+}
+/** Lần đọc Elo đang chạy đã bị hủy chưa. */
+export const arenaReadCancelled = (accountId: number) => reads.get(accountId)?.cancelled === true;
+/** Hook test `aslow {ms}`: lần đọc Elo kế tiếp của tài khoản chậm thêm `ms` mili giây (0 bỏ). */
+export function arenaTestSlow(accountId: number, ms: number) { if (ms > 0) slow.set(accountId, ms); else slow.delete(accountId); }
 
 /**
  * Một lượt ghép: cặp theo arenaPairs (chờ lâu nhất trước, Elo gần nhất trong cửa sổ nới dần, 9.7: tránh ghép lại đối thủ vừa đấu),

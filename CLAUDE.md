@@ -20,13 +20,16 @@ npm run check                  # typecheck server + client, validate sprite, ki�
 npm run build                  # build client (tsc + vite)
 npm run dev:server             # server http://localhost:2567 (không có DATABASE_URL thì lưu RAM)
 npm run dev:client             # client http://localhost:5173
-npm run bot --prefix client    # bot kiểm thử, chạy khi server đang bật (SERVER_URL=… nếu khác cổng)
+npm run bot:local -- --only <nhóm> [--pg]   # bot ở máy: tự bật server GAME_TEST=1 cổng trống, chạy một nhóm, tự dọn
+npm run bot --prefix client    # bot thô, chạy khi server đang bật (SERVER_URL=… nếu khác cổng); agent dùng bot:local
 ```
-- **Bot cần server bật `GAME_TEST=1`** (hook `test`; thiếu thì bot báo bỏ qua phần lớn kiểm tra). Chạy trên **server mới bật** (state sạch), từng lượt một: `GAME_TEST=1 PORT=2600 npm run dev:server` rồi `SERVER_URL=http://localhost:2600 npm run bot --prefix client`. Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam trừ khi đặt `BOSS_CLOCK=HH:MM` hoặc `real`. Phần nhiều kênh chạy riêng với server `CHANNEL_MAX=2 GAME_TEST=1`.
+- **Agent chạy bot ở máy bằng `npm run bot:local`** (`tools/bot-local.mjs`, #228), **không** tự bật server rời hay embedded-postgres riêng: công cụ build server một lần (esbuild, cache theo hash nguồn) rồi chạy `node` với trần heap 768 MB, `GAME_TEST=1`, cổng trống, state sạch; chạy đúng một nhóm (`--only <nhóm>` BOT_ONLY, `--part 1|2|3` BOT_PART, `--channels` lượt nhiều kênh `CHANNEL_MAX=2`; `--help` liệt kê nhóm); chỉ tắt tiến trình con của mình (kể cả Ctrl+C / lỗi) và in RAM đỉnh. **Tối đa 2 lượt bot cùng lúc trên cả máy** (khoá ở `%TEMP%/soul-bot-slots`), lượt thứ 3 tự chờ. Bot đầy đủ (`--full`, ~25 phút) để job CI `bot-ram` chạy. Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam trừ khi đặt `--env BOSS_CLOCK=HH:MM` (hoặc `real`).
+- Bot cần server bật `GAME_TEST=1` (hook `test`; thiếu thì bot báo bỏ qua phần lớn kiểm tra) và **server mới bật**. Người chạy tay (gỡ lỗi kèm trình duyệt): `GAME_TEST=1 PORT=2600 npm run dev:server` rồi `SERVER_URL=http://localhost:2600 npm run bot --prefix client`.
+- CI (`.github/workflows/check.yml`, chỉ tham khảo) có job `bot-ram`: bài nhanh + bot RAM + lượt nhiều kênh trên mỗi push vào PR. Review đọc kết quả CI (`gh pr checks`, `gh run view <id>` in số ✓ / ✗ / ⚠ từng nhóm và các dòng ✗) thay vì tự chạy bot RAM; lượt PostgreSQL vẫn tự chạy.
 - Bot không assert mọi thứ: đọc output (dòng ✗ là lỗi, ⚠ là bị bỏ qua) và log server. Luồng mới thì thêm vào `client/scripts/bot-test.mjs`.
-- Kiểm thử khác: `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
-- **Đổi SQL / `db.ts` thì thử thêm với PostgreSQL**, sau lượt bot ở chế độ RAM: có Docker thì `docker compose up -d` và `cp .env.example server/.env`. Không có Docker thì dùng gói `embedded-postgres` cài trong thư mục tạm **ngoài repo**, cổng riêng, tạo DB `CREATE DATABASE … ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'` (cluster mặc định trên Windows không phải UTF8), rồi `DATABASE_URL=postgres://…@localhost:<cổng>/<db> PGSSL=false GAME_TEST=1 npm run dev:server`. Chạy server **hai lần liên tiếp** (migration phải chạy lại an toàn) rồi chạy bot.
-- Chạy song song nhiều phiên: dùng cổng server / PostgreSQL riêng và chỉ tắt đúng tiến trình mình bật.
+- Kiểm thử khác: `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:audio --prefix client` (SFX, nhạc nền), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
+- **Đổi SQL / `db.ts` thì thử thêm với PostgreSQL**, sau lượt bot ở chế độ RAM: `npm run bot:local -- --only <nhóm> --pg`. Công cụ dùng **một PostgreSQL chung cho cả máy** (binary `embedded-postgres` trong `node_modules`, cổng `BOT_PG_PORT` 5433, dữ liệu `BOT_PG_DIR` mặc định `D:/soul-pg-shared`; chưa chạy thì tự bật, đang chạy thì dùng lại), mỗi lượt một database riêng UTF8 (`soulbot_<phiên>_<pid>`, có dấu `COMMENT ON DATABASE`; công cụ chỉ dọn database có dấu đó), bật server **hai lần liên tiếp** (migration phải chạy lại an toàn) rồi chạy bot, xoá database khi xong. Có PostgreSQL cài sẵn thì đặt `BOT_PG_URL`. Xem / tắt instance chung: `npm run bot:local -- --pg-status` / `--pg-stop`. Người chạy server dev với PostgreSQL: `docker compose up -d` và `cp .env.example server/.env`.
+- Chạy song song nhiều phiên: `bot:local` tự chọn cổng và giới hạn số lượt; tự bật tiến trình khác (server dev, Chrome) thì dùng cổng riêng và chỉ tắt đúng PID mình bật, không tắt theo cổng hay theo tên.
 
 ## Quy trình nhận việc (nhiều người)
 Repo có nhiều người và agent cùng làm; mọi việc đi qua issue GitHub, chi tiết ở `CONTRIBUTING.md`.
@@ -52,3 +55,9 @@ Skill trong `.claude/skills/`:
 - `db-migration`: file SQL mới và lớp lưu trữ `db.ts`.
 - `balance-data`: mọi con số cân bằng trong `shared/data.ts`.
 - `asset-gen`: làm ảnh (PixelLab, Gemini, LPC, vẽ tay) và dây chuyền `tools/assets`.
+- `balance-review`: soát cân bằng, kinh tế Hồn Tệ, tỉ lệ rơi, Elo (phân tích; đặt số vẫn theo `balance-data`).
+- `anti-cheat-audit`: soát server-authoritative theo cách gian lận (message, API, nhân bản đồ, hook test).
+- `soak-perf`: chạy dài nhiều bot trên bản đồ ×8, đo tick / bản vá / băng thông / bộ nhớ, tìm rò.
+- `bot-flakiness`: xử lý bài bot chập chờn (tái hiện N lượt, đối chứng main, chờ theo state).
+- `playtest-triage`: phân loại phản hồi chơi thử thành issue đúng mẫu, nhãn, Project 3.
+- Năm skill trên phỏng theo [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho repo này.

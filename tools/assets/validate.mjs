@@ -10,7 +10,8 @@
 //       lớp thân thiếu khung bắt buộc, bộ hồn sư giới × kiểu tóc thiếu lớp (phải đủ hs_body/outfit/hair_{giới}_{kiểu}),
 //       phụ thể vẽ vào cột 12–15 hoặc hàng 3, hồn thú thiếu khung; chân dung (portrait_{id}) quá PORTRAIT_MAX_COLORS màu
 //       (chân dung không theo bảng chung), vật đứng (prop_{vật}) cạnh không chia hết cho ISO_PROP_STEP hoặc màu ngoài
-//       bảng chung + bảng nhấn art/palettes/*.gpl; chân dung NPC (npc_{mã}) / biểu tượng vật phẩm (item_{mã}) mã không có trong NPCS / ITEMS. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
+//       bảng chung + bảng nhấn art/palettes/*.gpl; hiệu ứng (fx_{tên}) không phải dải một hàng, có khung trống hoặc quá
+//       PORTRAIT_MAX_COLORS màu; chân dung NPC (npc_{mã}) / biểu tượng vật phẩm (item_{mã}) mã không có trong NPCS / ITEMS. Key isometric (sheetSpec có iso) ghi "iso": true trong manifest.
 // Cảnh báo: khung chép tạm (trùng idle khung đầu, do pack --fill); lớp áo/tóc trống khung (bị lớp khác che);
 //       chân hồn sư (gộp 3 lớp cùng bộ, idle khung đầu mỗi hướng) không chạm dòng gốc (y = 30; isometric y = 58);
 //       isometric: idle cả 4 khung giống nhau (chưa --breathe), chân hồn thú không chạm dòng gốc.
@@ -70,6 +71,8 @@ function check(key, frame, iso = false, map = "", nine = 0) {
 
   // Màu và alpha.
   const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
+  // Chân dung / biểu tượng và hiệu ứng fx_* (màu gốc của gói LPC) không theo bảng chung, chỉ giới hạn số màu.
+  const free = spec.kind === "portrait" || spec.kind === "fx";
   const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
@@ -77,10 +80,10 @@ function check(key, frame, iso = false, map = "", nine = 0) {
     if (p[3] !== 255) semi++;
     const c = toHex(p);
     used.add(c);
-    if (spec.kind !== "portrait" && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
+    if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
-  if (spec.kind === "portrait" && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, chân dung tối đa ${PORTRAIT_MAX_COLORS}`);
+  if (free && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : "chân dung"} tối đa ${PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.he && !(heIds_ ??= heIds()).has(spec.he)) err(key, `không có hệ "${spec.he}" trong HE_IDS (shared/data.ts)`);
@@ -121,7 +124,8 @@ function check(key, frame, iso = false, map = "", nine = 0) {
     for (let r = 0; r < 4; r++) for (let c = 0; c < SHEET_COLS; c++) if ((r === 3 || c >= 12) && !cellEmpty(img, ...at(r, c), fw, fh)) stray.push([r, c]);
     if (stray.length) err(key, `phụ thể vẽ vào ô client không đọc (cột 12–15 hoặc hàng 3): ` + stray.map(([r, c]) => `(${r},${c})`).join(" "));
     if (cellEmpty(img, 0, 0, img.w, img.h)) warn(key, "sheet trống hoàn toàn");
-  } else if (spec.kind === "beast") {
+  } else if (spec.kind === "beast" || spec.kind === "fx") {
+    if (spec.kind === "fx" && img.h !== fh) err(key, `hiệu ứng phải là dải một hàng khung ${fw}×${fh}`);
     const empty = [];
     for (let c = 0; c < img.w / fw; c++) if (cellEmpty(img, c * fw, 0, fw, fh)) empty.push(c);
     if (empty.length) err(key, `thiếu khung: cột ${empty.join(", ")}`);
