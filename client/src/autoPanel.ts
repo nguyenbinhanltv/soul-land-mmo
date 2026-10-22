@@ -60,7 +60,12 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
         <input type="range" min="${AUTO_RADIUS_MIN / TILE}" max="${AUTO_RADIUS / TILE}" step="1" data-k="radius"></label>
       <div class="aline">Niên hạn hồn thú từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y0"> đến
         <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y1"> năm</div>
-      <small>Bỏ qua tinh anh, thú vương, boss thế giới và hồn thú người khác đang đánh. Hồn thú đánh mình thì luôn đánh trả.</small></section>
+      <small>Bỏ qua hồn thú người khác đang đánh. Hồn thú đánh mình thì luôn đánh trả.</small></section>
+    <section class="asec"><b>Tinh anh, thú vương, boss</b>
+      <label class="achk"><input type="checkbox" data-k="elite"> Tinh anh</label>
+      <label class="achk"><input type="checkbox" data-k="king"> Tà hóa thú vương</label>
+      <label class="achk"><input type="checkbox" data-k="world"> Boss thế giới</label>
+      <small>Xuất hiện trên bản đồ đang đứng thì tới đánh cùng mọi người (đóng góp theo tài khoản), chỉ khi còn nhận được thưởng. Né vùng báo trước, vùng độc; đổi võ hồn khống chế ngắt tích lực, phụ trợ thanh tẩy; ít máu thì lùi ra uống đan.</small></section>
     <section class="asec"><b>Hồn kỹ ưu tiên</b><small>Ô trên cùng tung trước; bỏ chọn thì không tung.</small><ol class="aorder" data-list="skills"></ol>
       <label class="arange">Chừa hồn lực <output data-o="mpKeep"></output><input type="range" min="0" max="0.9" step="0.05" data-k="mpKeep"></label></section>
     <section class="asec"><b>Võ hồn đổi tay</b>
@@ -123,7 +128,7 @@ function read(el: HTMLElement): AutoSettings | null {
     skills: picked("skills"), slots: picked("slots"), ring: v("ringOn").checked ? num("ring") : -1, bone: v("bone").checked,
     core: v("core").checked, coreStar: Number($<HTMLSelectElement>("[data-k=coreStar]", el)!.value) || 1,
     kinds: AUTO_LOOT_KINDS.filter((k) => $<HTMLInputElement>(`[data-kind=${k}]`, el)?.checked),
-    stopNoPot: v("stopNoPot").checked, tienCo: v("tienCo").checked };
+    stopNoPot: v("stopNoPot").checked, tienCo: v("tienCo").checked, elite: v("elite").checked, king: v("king").checked, world: v("world").checked };
 }
 
 /** Ghi trạng thái và cài đặt từ tin `auto` lên bảng (không dựng lại các ô nhập để không mất tiêu điểm). */
@@ -143,7 +148,7 @@ function fill(m: AutoMsg) {
   for (const i of el.querySelectorAll<HTMLInputElement>("input[data-scope]")) i.checked = i.value === c.scope;
   // Bán kính chỉ dùng khi săn quanh chỗ đứng.
   set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
-  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot);
+  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world);
   set("ringOn", c.ring >= 0); set("ring", Math.max(0, c.ring)); set("bone", c.bone); set("core", c.core);
   $<HTMLSelectElement>("[data-k=coreStar]", el)!.value = String(c.coreStar);
   for (const k of AUTO_LOOT_KINDS) { const i = $<HTMLInputElement>(`[data-kind=${k}]`, el); if (i) i.checked = c.kinds.includes(k); }
