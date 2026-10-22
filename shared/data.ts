@@ -3840,7 +3840,8 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
  * có mặt ở bản đồ `map`. `have`: đã đạt sẵn lúc nhận nhiệm vụ (có võ hồn đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang đứng ở
  * bản đồ đó) thì tính xong ngay, để tài khoản cũ không phải làm lại.
  */
-export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king" | "world";
+export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "equip" | "map" | "arena" | "give" | "elite" | "king" | "world"
+  | "fusion" | "tong";
 /**
  * Từ nhiệm vụ hằng ngày (DAILY_POOL): `kill` thêm `fit` (chỉ hồn thú hợp cấp, fitBeast); `arena` đánh xong một trận Đại Đấu Hồn
  * Trường (thắng / thua / hòa, không tính bỏ trận hay đối thủ không vào sân); `give` nộp `n` món mã `item` lúc trả bài (số đếm là số
@@ -3849,6 +3850,8 @@ export type QuestGoalKind = "talk" | "kill" | "switch" | "tienco" | "absorb" | "
  * thú vương bị hạ (kể cả boss thế giới); `party` (trên `kill`) chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm.
  * Từ chương 3 (QUEST_CH3): `world` có đóng góp khi một boss thế giới bị hạ; `talk`, `elite`, `king`, `world` cũng lọc được theo `map`
  * (bản đồ của phòng nơi sự kiện xảy ra).
+ * Từ chương 3 phần 3 (#286): `fusion` tung thành công một Võ Hồn Dung Hợp Kỹ (tính cho cả người mời lẫn người hưởng ứng); `tong` gia
+ * nhập hoặc đổi sang một tông môn (`have`: đang thuộc một tông lúc nhận thì xong ngay).
  */
 export interface QuestGoal {
   k: QuestGoalKind; n: number; text: string; npc?: string; map?: string; zone?: string; have?: boolean; fit?: boolean; party?: boolean; item?: string; near?: string;
@@ -3883,7 +3886,7 @@ export const QUEST_CH3 = "hai_than";
 export const QUEST_CH3_AFTER = QUEST_CH2;
 /** Chuỗi cố định mở sau khi xong chuỗi `after` (không có = mở ngay). */
 export const QUEST_AFTER: Record<string, string> = { [QUEST_CH2]: QUEST_CH2_AFTER, [QUEST_CH3]: QUEST_CH3_AFTER };
-/** Thâm Hải Ma Kình Vương (thú vương Hải Thần Đảo): loài và niên hạn hồn cốt thưởng ở bài cuối chương 3 (#285). */
+/** Thâm Hải Ma Kình Vương (thú vương Hải Thần Đảo): loài và niên hạn hồn cốt thưởng ở bài 8 chương 3 (#285). */
 const MA_KINH_VUONG = BOSSES[bossIndex("tham_hai_ma_kinh_vuong")];
 const BAI_TAP = "Bãi tập hồn sư"; // tên vùng săn trong thanh_hon_thon.json (tools/gen-map.mjs)
 export const QUESTS: QuestChain[] = [
@@ -3998,7 +4001,7 @@ export const QUESTS: QuestChain[] = [
     ] },
   // Chương 3 (#284, #191): giao bài ở Bến Hải Thần, mục tiêu theo bản đồ. Phỏng theo truyện: truyện là chuỗi "Hải Thần Cửu Khảo", game
   // rút gọn và không dùng con số; thứ tự khảo hạch, việc săn Thâm Hải Ma Kình Vương, bài hai thủ hộ của Tiểu Vũ và lời thoại là phỏng
-  // theo. Không thưởng mảnh UR (mục 5.3). Bài cuối thưởng thêm một hồn cốt Thâm Hải Ma Kình (#285) đúng niên hạn của Thâm Hải Ma Kình
+  // theo. Không thưởng mảnh UR (mục 5.3). Bài 8 thưởng thêm một hồn cốt Thâm Hải Ma Kình (#285) đúng niên hạn của Thâm Hải Ma Kình
 // Vương (BossDef.years), thấp hơn hồn cốt 100.000 năm của rương boss thế giới; thưởng hồn cốt cho người vượt khảo hạch là phỏng theo.
   { id: QUEST_CH3, name: "Hải Thần Đảo", giver: "hai_ma_dau_la", map: "hai_than_dao",
     finale: "Khảo hạch của Thánh Trụ ngươi đã qua hết. Hải Thần Đảo từ nay mở cửa cho ngươi; phần còn lại của khảo hạch Hải Thần, Đại Cung Phụng sẽ tự định đoạt.",
@@ -4047,11 +4050,24 @@ export const QUESTS: QuestChain[] = [
         done: ["Đối mặt hai thủ hộ của Tiểu Vũ mà còn trở về được, ở đất liền chẳng mấy hồn sư làm nổi."],
         reward: { honTe: 3000, items: [{ code: "dai_hoi_huyet_dan", qty: 5 }, { code: "dai_hoi_hon_dan", qty: 5 }] } },
       { id: "tam_xoa_kich", name: "Hải Thần Tam Xoa Kích", desc: "Tới Thánh địa Hải Thần trước đền Hải Thần, gặp Ba Tái Tây.",
-        offer: ["Bài cuối: Đại Cung Phụng Ba Tái Tây muốn gặp ngươi. Bà ở Thánh địa Hải Thần, sân trước đền Hải Thần giữa đảo.",
+        offer: ["Bài thứ tám: Đại Cung Phụng Ba Tái Tây muốn gặp ngươi. Bà ở Thánh địa Hải Thần, sân trước đền Hải Thần giữa đảo.",
           "Hải Thần Tam Xoa Kích, thần khí của Hải Thần, được thờ ở đó. Đi đi, rồi quay lại báo ta bà nói gì."],
         goals: [{ k: "talk", npc: "ba_tai_tay", n: 1, text: "Nói chuyện với Ba Tái Tây ở Thánh địa Hải Thần" }],
         done: ["Đại Cung Phụng đã gặp ngươi. Tam Xoa Kích không phải thứ ngươi cầm được hôm nay, nhưng con đường tới nó đã mở."],
         reward: { honTe: 5000, items: [{ code: shardCode("nhu_cot_tho"), qty: 25 }], bones: [{ beast: MA_KINH_VUONG.species, years: MA_KINH_VUONG.years! }] } },
+      // #286: hai bài nối thêm vào cuối (tiến độ lưu theo chỉ số bước nên không chèn giữa; người đã xong 8 bài thấy bài 9 ở Hải Mã Đấu La).
+      { id: "song_hon_dung_hop", name: "Song hồn dung hợp", desc: "Tung thành công một Võ Hồn Dung Hợp Kỹ cùng đồng đội tổ đội.",
+        offer: ["Đại Cung Phụng còn dặn thêm hai việc. Việc thứ nhất: năm xưa Đường Tam và Tiểu Vũ hợp hai võ hồn làm một, Hạo Thiên Chùy và Nhu Cốt Thố cùng phát một chiêu.",
+          "Võ hồn tương hợp, lòng lại ăn ý, mới dung hợp được. Cùng một đồng đội tổ đội tung thành công một Võ Hồn Dung Hợp Kỹ rồi về đây."],
+        goals: [{ k: "fusion", n: 1, text: "Tung thành công Võ Hồn Dung Hợp Kỹ cùng đồng đội" }],
+        done: ["Hai võ hồn thành một chiêu. Thứ ăn ý ấy, khảo hạch nào cũng không dạy được."],
+        reward: { honTe: 2000, items: [{ code: shardCode("u_minh_linh_mieu"), qty: 10 }] } },
+      { id: "thuong_tam_tong", name: "Thượng Tam Tông", desc: "Gia nhập một tông môn.",
+        offer: ["Việc thứ hai: trên đất liền có Thượng Tam Tông, Hạo Thiên, Lam Điện Bá Vương Long và Thất Bảo Lưu Ly. Hồn sư một mình đi được xa, nhưng có tông môn sau lưng mới đi được lâu.",
+          "Gia nhập một tông môn, sứ giả các tông ở Thiên Đấu Thành. Đã có tông rồi thì bài này coi như xong."],
+        goals: [{ k: "tong", n: 1, have: true, text: "Thuộc một tông môn" }],
+        done: ["Có tông môn rồi. Hải Thần Đảo nhớ tên ngươi, tông môn của ngươi cũng vậy."],
+        reward: { honTe: 2000, items: [{ code: shardCode("lam_dien_ba_vuong_long"), qty: 10 }] } },
     ] },
 ];
 const QUEST_INDEX = new Map(QUESTS.map((q) => [q.id, q]));
