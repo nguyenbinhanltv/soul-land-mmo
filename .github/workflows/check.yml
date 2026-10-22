@@ -1,5 +1,5 @@
-# CI: typecheck server + client, validate sprite / tiles.json, build client cho mọi PR vào main và mỗi push vào main.
-# Status check: check-build, chỉ để tham khảo, chưa bắt buộc (xem CONTRIBUTING.md).
+# CI: typecheck server + client, validate sprite / tiles.json, build client (check-build); bot RAM và bài thử nhanh (bot-ram, #171)
+# cho mọi PR vào main và mỗi push vào main. Status check check-build, bot-ram: chỉ để tham khảo, không bắt buộc (xem CONTRIBUTING.md).
 name: CI
 
 on:
@@ -38,9 +38,97 @@ jobs:
             server/package-lock.json
             client/package-lock.json
       # Cài root trước để các công cụ audio (ffmpeg-static) sẵn sàng cho test/validate.
-      - run: npm ci
-      - run: npm ci --prefix server && npm ci --prefix client
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
       - run: npm run test:audio
+      - run: npm run test:audio --prefix client # AudioManager, nhạc nền (client/scripts/*-test.mjs, Node chạy thẳng .ts)
       - run: npm run audio:validate
       - run: npm run check
       - run: npm run build
+
+  # Bot RAM và các bài thử nhanh (#171), chỉ ubuntu. Chỉ để tham khảo như check-build (không bắt buộc trong bảo vệ nhánh).
+  # Bot đầy đủ chạy ~25 phút trên runner nên chia 4 nhóm song song (BOT_PART; phần nào thuộc nhóm nào khai báo ở INLINE / STANDALONE
+  # trong client/scripts/bot-test.mjs, #236), mỗi nhóm một server mới bật, ~7 phút (runner chậm ~9). Thêm / bớt nhóm thì sửa cả BOT_PARTS
+  # (bot báo ✗ khi matrix lệch). Nhóm 1 chạy thêm các bài nhanh và lượt nhiều kênh. Job bot-ram (cuối file) gộp kết quả thành một status check.
+  bot-ram-part:
+    name: bot-ram (nhóm ${{ matrix.part }})
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    # Lề cho npm ci chậm khi không trúng cache; bot treo thì bước bot tự dừng ở timeout riêng (dưới) để còn log và artifact.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      # node_modules theo hash lockfile: trúng cache thì bỏ npm ci (có lượt npm ci mất 7–11 phút vì registry / audit chậm, #236).
+      - id: nm
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            server/node_modules
+            client/node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('server/package-lock.json', 'client/package-lock.json') }}
+      - id: deps
+        env:
+          HIT: ${{ steps.nm.outputs.cache-hit }}
+        run: |
+          if [ "$HIT" = true ]; then echo "node_modules lấy từ cache"; exit 0; fi
+          npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
+      # Các bài sau chạy độc lập (một bài đỏ vẫn chạy bài khác) miễn là đã cài xong thư viện.
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:predict --prefix client
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:ratelimit --prefix server
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:accounts --prefix server
+      # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server. Số ✓ / ✗ / ⚠ in thành annotation (gh run view) và bảng ở trang lượt chạy.
+      # Bình thường ~7 phút; quá 12 phút là treo (hoặc nhóm lệch, xem dòng ⏱ để chia lại).
+      - name: bot nhóm ${{ matrix.part }} (server GAME_TEST=1, RAM)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        timeout-minutes: 12
+        env:
+          BOT_PART: ${{ matrix.part }}
+          BOT_PARTS_CI: ${{ strategy.job-total }}
+        run: bash tools/ci/bot-run.sh "nhom-$BOT_PART"
+      - name: bot nhiều kênh (CHANNEL_MAX=2)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        timeout-minutes: 3
+        run: bash tools/ci/bot-run.sh channel CHANNEL_MAX=2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: bot-logs-${{ matrix.part }}
+          path: ci-logs/
+          retention-days: 7
+
+  # Một status check bot-ram cho cả 4 nhóm: đỏ khi có nhóm trượt / bị hủy / hết giờ.
+  bot-ram:
+    name: bot-ram
+    needs: bot-ram-part
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULT: ${{ needs.bot-ram-part.result }}
+        # Phân biệt "có dòng ✗ / bước bot quá 12 phút" (failure) với "job bị hủy / hết 20 phút" (cancelled) để người đọc khỏi nhầm.
+        run: |
+          echo "bot-ram (4 nhóm): $RESULT"
+          case "$RESULT" in
+            success) ;;
+            failure) echo "::error title=bot-ram::có nhóm trượt (dòng ✗) hoặc bước bot quá 12 phút (treo): xem annotation từng nhóm" ;;
+            cancelled) echo "::error title=bot-ram::có nhóm bị hủy hoặc hết giờ job (thường do runner / npm ci chậm, chưa chắc là lỗi bot)" ;;
+            *) echo "::error title=bot-ram::kết quả $RESULT" ;;
+          esac
+          [ "$RESULT" = success ]

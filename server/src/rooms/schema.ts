@@ -41,10 +41,14 @@ export class PlayerState extends Schema {
   @type("float32") avaCd: number = 0;   // từ 8.1a: hồi chiêu Chân Thân còn lại của võ hồn ra trận (nút R của chính mình)
   @type("float32") ctCd: number = 0;    // từ 9.6: hồi chiêu hồn kỹ Chân Thân (ô P khi đang Chân Thân, CHAN_THAN_SKILL_CD); hồi chiêu ô P cũ vẫn ở cds
   @type("uint16") st: number = 0;       // từ 3.5: trạng thái trên hồn sư do chiêu báo trước của hồn thú gây (bit theo STATUS_IDS, PLAYER_STATUS)
+  // #175: Che tầm nhìn (`ink`) là bit 15, bit cuối của uint16; thêm trạng thái nữa thì đổi `st` ở đây và ở BeastState sang uint32.
+  @type("uint8") han: number = 0;       // từ #163: số tầng Hàn (Cực Hàn, STATUS.chill); ai cũng thấy chấm tầng dưới biểu tượng trên đầu
   @type("float32") absorb: number = 0;   // tiến độ hấp thụ 0..1 (0 = không hấp thụ)
   @type("uint8") absorbTier: number = 0;
   @type("boolean") dead: boolean = false;
   @type("uint32") kills: number = 0;
+  @type("boolean") auto: boolean = false; // Auto 1 (mục 5.13): đang tự săn; ai cũng thấy chữ "Tự động" trên đầu
+  @type("uint8") tong: number = 0;        // #196 (mục 5.14): tông môn, chỉ số trong TONG_MON + 1 (0 = không); tên tông màu riêng dưới tên
 }
 
 export class BeastState extends Schema {
@@ -78,6 +82,12 @@ export class BeastState extends Schema {
   @type("boolean") chg: boolean = false;
   @type("uint8") brk: number = 0;
   @type("boolean") dive: boolean = false;
+  // Từ #162: bọc trứng (Vạn Chu Phệ, EggDef): số phần mười giây còn lại trước khi nở; 0 = không phải bọc trứng (eggs.ts).
+  @type("uint8") egg: number = 0;
+  // Từ #173: hồn thú đổi dạng (BossDef.forms, tinh anh Song Sắc Mãng): 1 + chỉ số dạng đang có (0 = không đổi dạng) và đang báo trước
+  // đổi dạng (`warn` giây cuối của dạng): client tô aura theo màu dạng, nhấp nháy màu dạng sắp tới.
+  @type("uint8") form: number = 0;
+  @type("boolean") formWarn: boolean = false;
 }
 
 export class DropState extends Schema {
@@ -102,6 +112,25 @@ export class DropState extends Schema {
   @type("float32") ttl: number = 0;
 }
 
+/**
+ * Vùng lưu lại trên mặt đất (#161, mục 5.3: vũng độc, sương độc) do chiêu hồn thú có `ground` để lại. Hình như vùng báo trước (`Tele`):
+ * `shape` là chỉ số trong TELE_SHAPES, `kind` chỉ số trong GROUND_KINDS (shared/data.ts). `ttl` giây còn lại làm tròn lên giây nguyên
+ * (một bản vá mỗi giây; client tự đếm giữa hai lần đổi để mờ dần lúc sắp hết). Luật (nhịp gây trạng thái, hồn thú gây ra) chỉ server biết (`ground.ts`).
+ */
+export class GroundState extends Schema {
+  @type("uint8") kind: number = 0;
+  @type("uint8") shape: number = 0;
+  @type("float32") x: number = 0;
+  @type("float32") y: number = 0;
+  @type("float32") ang: number = 0;
+  @type("uint16") r: number = 0;
+  @type("uint16") w: number = 0;
+  @type("uint16") arc: number = 0;
+  @type("uint16") ttl: number = 0;
+  // Từ #174: giây báo trước còn lại (làm tròn lên, 0 = vùng đã có tác dụng; GroundDef.warn): client vẽ dạng nước sắp dâng.
+  @type("uint8") wait: number = 0;
+}
+
 export class MapState extends Schema {
   @type("string") mapId: string = "";  // mã bản đồ trong MAPS; client tải shared/assets/<mapId>.json
   @type("uint16") channel = 0;          // số kênh của phòng trong bản đồ (1, 2, 3…; mục 6 "Nhiều kênh")
@@ -112,6 +141,8 @@ export class MapState extends Schema {
   @view() @type({ map: DropState }) drops = new MapSchema<DropState>();
   @type("uint16") online = 0;
   @type("string") mapFile: string = ""; // 11.3: tên file Tiled khác `<mapId>` (bản dựng bằng tools/maps `<mapId>.v2`, mặc định trừ khi MAP_V1); rỗng = `<mapId>`
+  // Từ #161: vùng lưu lại trên mặt đất, cũng chỉ đồng bộ cho client ở gần (interest.ts, theo khoảng cách tới gốc vùng trừ `r`).
+  @view() @type({ map: GroundState }) grounds = new MapSchema<GroundState>();
 }
 
 /**

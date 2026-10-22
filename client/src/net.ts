@@ -1,4 +1,5 @@
-import type { Looks, QuestProgress, QuestStatus } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus, ResEffect, AutoSettings, AutoSummary, SellSettings } from "../../shared/data.ts";
+import type { BagDelta } from "../../shared/bagSync.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
 // Khi deploy chung một link, client và server cùng địa chỉ.
@@ -25,6 +26,11 @@ export interface WorldMsg {
   map: string; cur: string; honTe: number; links: [string, string][];
   list: { key: string; map: string; label: string; open: boolean; fee: number | null }[];
 }
+/**
+ * Tin riêng "auto" (mục 5.13): đang tự săn không, giây treo còn lại (phần còn của hôm nay cộng quỹ Ủy Thác Lệnh `bonus`), giây miễn
+ * phí mỗi ngày, cài đặt (AutoSettings), lý do vừa dừng hoặc từ chối bật, tổng kết lượt vừa dừng (Auto 2).
+ */
+export interface AutoMsg { on: boolean; left: number; max: number; bonus: number; cfg: AutoSettings; why?: string; sum?: AutoSummary; }
 export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô
@@ -36,15 +42,27 @@ export interface OwnedVohons { active: number; team: number[]; list: { rowId: nu
  */
 export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number; en: number }[]; }
 
-/** Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi). */
-export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; }
+/**
+ * Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi), `lock`:
+ * người chơi đã khoá (#216: không bán, bỏ, làm nguyên liệu).
+ */
+export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; lock?: boolean; }
 /** Một món thương nhân còn giữ để mua lại (9.8): `key` gửi lại trong `buyback {key}`, `price` là giá mỗi món đã nhận lúc bán. */
 export interface BuybackItem { key: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; price: number; }
+/** Một món đã tự bán (#216, lưu DB, AUTO_SELL_BUYBACK món mới nhất trước): mua lại như BuybackItem; `at` = lúc bán (ms). */
+export interface SoldItem extends BuybackItem { at: number; }
 /**
  * Tin nhắn riêng "bag": túi đồ, số ô tối đa (từ 9.8 theo tài khoản, mở rộng ở thương nhân), Hồn Tệ (đồng), số giây còn lại của hồi
- * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước).
+ * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước). Từ #216 bộ lọc tự bán `sell` và đồ tự bán gần nhất `sold`.
  */
-export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; }
+export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
+/**
+ * Tin riêng "bagd" (#215): túi đổi so với lần gửi trước (shared/bagSync.ts, áp bằng applyBagDelta lên tin "bag" đang có); số ô, Hồn
+ * Tệ, hồi chiêu luôn có, danh sách mua lại chỉ khi đổi; bộ lọc tự bán và đồ tự bán (#216) cũng chỉ khi đổi (đi cùng nhau).
+ */
+export interface BagDeltaMsg extends BagDelta<BagItem> { slots: number; honTe: number; cd: number; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
+/** Tin riêng "autosold" (#216): vừa tự bán `n` món (`slots` ô) được `coins` đồng. */
+export interface AutoSoldMsg { n: number; coins: number; slots: number; }
 /**
  * Tin nhắn riêng "quest" (6.2): tiến độ chuỗi tân thủ và trạng thái; `ev` = vừa nhận / vừa đủ mục tiêu / vừa trả (`done` = mã bước
  * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.
@@ -62,7 +80,13 @@ export interface DailyMsg {
  * Tin nhắn riêng "resonance" (cộng minh, bước 8.2): tiến độ `prog` và số mốc đã đạt `lv` từng trụ cột (thứ tự RESONANCE), tổng %
  * đang cộng cho mọi võ hồn. `ev`: mốc vừa đạt (`up`) hoặc vừa mất (tháo đồ), chỉ có khi đổi.
  */
-export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<"hp" | "mp" | "atk", number>; ev?: { pillar: number; step: number; up: boolean }[]; }
+export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<ResEffect, number>; ev?: { pillar: number; step: number; up: boolean }[]; }
+/** Bảng xếp hạng công khai: không có accountId; `me` chỉ là dòng của chính mình. */
+export interface ResonanceTopMsg {
+  page: number; pageSize: number; total: number; hasNext: boolean;
+  list: { name: string; score: number; milestones: number; me: boolean }[];
+  me: { rank: number; score: number; milestones: number; progressBp: number; extraStars: number } | null;
+}
 
 /**
  * Tin nhắn riêng "party" (tổ đội người chơi, bước 7.1): `id` tổ đội (0 = chưa có; so với DropState.party để biết đồ rơi của đội),
@@ -72,6 +96,11 @@ export interface ResonanceMsg { prog: number[]; lv: number[]; bonus: Record<"hp"
 export interface PartyMember { name: string; leader: boolean; me: boolean; sid: string; map: string; ch: number; level: number; vh: number; hp: number; maxHp: number; dead: boolean; off: boolean; }
 /** Tin riêng "channels" (mục 6 "Nhiều kênh"): kênh hiện tại và các kênh đang mở của bản đồ (số người, tối đa, đầy chưa). */
 export interface ChannelsMsg { cur: number; list: { ch: number; n: number; max: number; full: boolean }[]; }
+/**
+ * Tin "chat" (#188): `ch` thiếu = chat bản đồ (cả thông báo "Hệ thống"); "party" / "world": `name` là người gửi; "whisper": `name`
+ * là người gửi, `to` là người nhận (người gửi cũng nhận một bản).
+ */
+export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world"; to?: string; }
 export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {

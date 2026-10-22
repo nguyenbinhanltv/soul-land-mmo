@@ -1,0 +1,206 @@
+// Bảng Tự động (Auto 2, mục 5.13): cài đặt tự săn, nút bật / tắt, giờ treo còn lại, và bảng tổng kết khi tự săn dừng. Client chỉ
+// gửi ý định (`auto {op: "set", cfg}` / `on` / `off`); server kẹp lại bằng parseAuto, lưu theo tài khoản và trả tin `auto`.
+import { AUTO_DEFAULTS, AUTO_LOOT_KINDS, AUTO_RADIUS, AUTO_RADIUS_MIN, ITEM_KINDS, MAX_CORE_STARS, MAX_YEARS, TILE,
+  autoTimeText, formatHonTe, type AutoSettings, type AutoSummary } from "../../shared/data.ts";
+import type { AutoMsg } from "./net.ts";
+
+/** GameScene cung cấp: gửi tin `auto`, tên ô đội hình (theo tin `vohons`) và tên hồn kỹ ở 4 ô của võ hồn đang ra trận. */
+export interface AutoPanelCtx {
+  send(op: "on" | "off" | "set", cfg?: AutoSettings): void;
+  slotName(i: number): string;
+  skillName(i: number): string;
+}
+
+const SKILL_KEYS = ["U", "I", "O", "P"];
+const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector<T>(sel);
+const pct = (v: number) => `${Math.round(v * 100)}%`;
+/** Thời gian treo để hiển thị: dưới một phút thì ghi giây. */
+const dur = (secs: number) => (secs < 60 ? `${Math.max(0, Math.round(secs))} giây` : autoTimeText(secs));
+
+let ctx: AutoPanelCtx | null = null;
+let last: AutoMsg | null = null;
+/** Tổng kết lượt gần nhất (mục "Lượt vừa rồi", kèm giờ treo còn lại lúc dừng): chỉ thay khi tin mới có `sum`, xóa khi bật lại. */
+let lastSum: { sum: AutoSummary; left: number } | null = null;
+/** Thứ tự đầy đủ đang hiển thị của hai danh sách (ô bật trước theo thứ tự ưu tiên, ô tắt sau) và ô đang bật. */
+const lists = { skills: { order: [0, 1, 2, 3], on: new Set<number>() }, slots: { order: [0, 1, 2, 3], on: new Set<number>() } };
+
+const panel = () => document.getElementById("autoPanel");
+const sumBox = () => document.getElementById("autoSum");
+
+export function closeAutoPanel() {
+  const el = panel(); if (el) el.hidden = true;
+  document.getElementById("autoBtn")?.setAttribute("aria-expanded", "false");
+}
+/** Mở / đóng bảng Tự động (nút "Tự động"); mở thì đóng các bảng giữa màn hình khác. Trả về true nếu vừa mở. */
+export function toggleAutoPanel(open = !!panel()?.hidden) {
+  const el = panel(); if (!el) return false;
+  if (!open) { closeAutoPanel(); return false; }
+  for (const id of ["roster", "bag", "reso", "npc", "world", "pmenu", "audio"]) document.getElementById(id)?.setAttribute("hidden", "");
+  el.hidden = false;
+  document.getElementById("autoBtn")?.setAttribute("aria-expanded", "true");
+  if (last) fill(last); // tên võ hồn / hồn kỹ có thể đã đổi từ lần trước
+  return true;
+}
+export function closeAutoSum() { const el = sumBox(); if (el) el.hidden = true; }
+
+/** Dựng bảng một lần cho mỗi phòng (GameScene.create); bộ nghe gỡ theo `signal` khi đổi bản đồ. */
+export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
+  ctx = c;
+  const el = panel(); if (!el) return;
+  const kinds = AUTO_LOOT_KINDS.map((k) => `<label class="achk"><input type="checkbox" data-kind="${k}"> ${ITEM_KINDS[k].name}</label>`).join("");
+  const stars = Array.from({ length: MAX_CORE_STARS }, (_, i) => `<option value="${i + 1}">${i + 1}★</option>`).join("");
+  el.innerHTML = `
+    <div class="rhead"><b>Tự động</b><button class="x" type="button" data-a="close" aria-label="Đóng bảng Tự động">×</button></div>
+    <small class="anote" data-a="status"></small>
+    <button class="buse absorb atoggle" type="button" data-a="toggle"></button>
+    <section class="asec"><b>Vùng săn</b>
+      <label class="achk"><input type="radio" name="ascope" value="map" data-scope> Toàn bản đồ (tự đi tới hồn thú gần nhất, không qua cổng)</label>
+      <label class="achk"><input type="radio" name="ascope" value="near" data-scope> Chỉ quanh chỗ đứng</label>
+      <label class="arange">Bán kính quanh chỗ bật <output data-o="radius"></output>
+        <input type="range" min="${AUTO_RADIUS_MIN / TILE}" max="${AUTO_RADIUS / TILE}" step="1" data-k="radius"></label>
+      <div class="aline">Niên hạn hồn thú từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y0"> đến
+        <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y1"> năm</div>
+      <small>Bỏ qua hồn thú người khác đang đánh. Hồn thú đánh mình thì luôn đánh trả.</small></section>
+    <section class="asec"><b>Tinh anh, thú vương, boss</b>
+      <label class="achk"><input type="checkbox" data-k="elite"> Tinh anh</label>
+      <label class="achk"><input type="checkbox" data-k="king"> Tà hóa thú vương</label>
+      <label class="achk"><input type="checkbox" data-k="world"> Boss thế giới</label>
+      <small>Xuất hiện trên bản đồ đang đứng thì tới đánh cùng mọi người (đóng góp theo tài khoản), chỉ khi còn nhận được thưởng. Né vùng báo trước, vùng độc; đổi võ hồn khống chế ngắt tích lực, phụ trợ thanh tẩy; ít máu thì lùi ra uống đan.</small></section>
+    <section class="asec"><b>Hồn kỹ ưu tiên</b><small>Ô trên cùng tung trước; bỏ chọn thì không tung.</small><ol class="aorder" data-list="skills"></ol>
+      <label class="arange">Chừa hồn lực <output data-o="mpKeep"></output><input type="range" min="0" max="0.9" step="0.05" data-k="mpKeep"></label></section>
+    <section class="asec"><b>Võ hồn đổi tay</b>
+      <label class="achk"><input type="checkbox" data-k="tienCo"> Võ hồn khác đầy năng lượng tiên cơ thì đổi tay vào tung, xong về võ hồn chính</label>
+      <ol class="aorder" data-list="slots"></ol></section>
+    <section class="asec"><b>Đan dược</b>
+      <label class="arange">Uống đan hồi sinh lực khi dưới <output data-o="hp"></output><input type="range" min="0" max="0.95" step="0.05" data-k="hp"></label>
+      <label class="arange">Uống đan hồi hồn lực khi dưới <output data-o="mp"></output><input type="range" min="0" max="0.95" step="0.05" data-k="mp"></label>
+      <label class="achk"><input type="checkbox" data-k="stopNoPot"> Hết đan hồi sinh lực thì dừng</label></section>
+    <section class="asec"><b>Nhặt đồ</b>
+      <label class="achk"><input type="checkbox" data-k="ringOn"> Hồn hoàn từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="ring"> năm</label>
+      <label class="achk"><input type="checkbox" data-k="bone"> Hồn cốt</label>
+      <label class="achk"><input type="checkbox" data-k="core"> Hồn hạch từ <select data-k="coreStar">${stars}</select></label>
+      ${kinds}
+      <small>Hồn Tệ luôn vào thẳng túi. Không tự hấp thụ hồn hoàn.</small></section>
+    <div class="brow"><button class="buse" type="button" data-a="reset">Về mặc định</button></div>
+    <section class="asec" data-a="last" hidden><b>Lượt vừa rồi</b><div class="asum"></div></section>`;
+  const on = { signal };
+  $("[data-a=close]", el)!.addEventListener("click", closeAutoPanel, on);
+  $("[data-a=toggle]", el)!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); ctx?.send(last?.on ? "off" : "on"); }, on);
+  $("[data-a=reset]", el)!.addEventListener("click", () => ctx?.send("set", structuredClone(AUTO_DEFAULTS)), on);
+  // Kéo thanh trượt: chỉ đổi số hiển thị; thả ra (change) thì gửi cài đặt.
+  el.addEventListener("input", (e) => { const t = e.target as HTMLInputElement; if (t.type === "range") showRange(el, t); }, on);
+  // Ô đánh dấu / chọn / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
+  el.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement; if (t.type === "checkbox" || t.type === "radio" || t.type === "range") t.blur();
+    const cfg = read(el); if (cfg) ctx?.send("set", cfg);
+  }, on);
+  for (const key of ["skills", "slots"] as const) {
+    $(`[data-list=${key}]`, el)!.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-mv]"); if (!b) return;
+      const l = lists[key], i = Number(b.dataset.i), j = i + Number(b.dataset.mv);
+      if (j < 0 || j >= l.order.length) return;
+      [l.order[i], l.order[j]] = [l.order[j], l.order[i]];
+      const cfg = read(el); if (cfg) ctx?.send("set", cfg);
+    }, on);
+  }
+  const sum = sumBox();
+  if (sum) sum.hidden = true;
+  if (last) fill(last);
+}
+
+function showRange(el: HTMLElement, t: HTMLInputElement) {
+  const o = $<HTMLOutputElement>(`[data-o=${t.dataset.k}]`, el); if (!o) return;
+  o.value = t.dataset.k === "radius" ? `${t.value} ô` : pct(Number(t.value));
+}
+
+/** Đọc bảng thành cài đặt (server kẹp lại bằng parseAuto). */
+function read(el: HTMLElement): AutoSettings | null {
+  if (!last) return null;
+  const v = (k: string) => $<HTMLInputElement>(`[data-k=${k}]`, el)!;
+  const num = (k: string) => Number(v(k).value) || 0;
+  const picked = (key: "skills" | "slots") => {
+    const l = lists[key], box = $(`[data-list=${key}]`, el)!;
+    l.on = new Set(l.order.filter((i) => $<HTMLInputElement>(`input[data-on="${i}"]`, box)?.checked));
+    return l.order.filter((i) => l.on.has(i));
+  };
+  const scope = $<HTMLInputElement>("input[data-scope]:checked", el)?.value === "near" ? "near" : "map";
+  return { scope, radius: num("radius"), years: [num("y0"), num("y1")], hp: num("hp"), mp: num("mp"), mpKeep: num("mpKeep"),
+    skills: picked("skills"), slots: picked("slots"), ring: v("ringOn").checked ? num("ring") : -1, bone: v("bone").checked,
+    core: v("core").checked, coreStar: Number($<HTMLSelectElement>("[data-k=coreStar]", el)!.value) || 1,
+    kinds: AUTO_LOOT_KINDS.filter((k) => $<HTMLInputElement>(`[data-kind=${k}]`, el)?.checked),
+    stopNoPot: v("stopNoPot").checked, tienCo: v("tienCo").checked, elite: v("elite").checked, king: v("king").checked, world: v("world").checked };
+}
+
+/** Ghi trạng thái và cài đặt từ tin `auto` lên bảng (không dựng lại các ô nhập để không mất tiêu điểm). */
+function fill(m: AutoMsg) {
+  const el = panel(); if (!el || !$("[data-a=status]", el)) return;
+  const c = m.cfg;
+  $("[data-a=status]", el)!.textContent = `${m.on ? "Đang tự săn" : "Đang tắt"} · còn ${dur(m.left)} treo`
+    + (m.bonus > 0 ? ` (trong đó ${dur(m.bonus)} từ Ủy Thác Lệnh)` : "") + `. Mỗi ngày ${autoTimeText(m.max)} miễn phí.`;
+  const t = $("[data-a=toggle]", el)!;
+  t.innerHTML = `${m.on ? "Tắt tự động" : "Bật tự động tại đây"} <kbd>T</kbd>`;
+  t.classList.toggle("absorb", !m.on);
+  const set = (k: string, val: string | number | boolean) => {
+    const i = $<HTMLInputElement>(`[data-k=${k}]`, el)!;
+    if (typeof val === "boolean") i.checked = val; else i.value = String(val);
+    if (i.type === "range") showRange(el, i);
+  };
+  for (const i of el.querySelectorAll<HTMLInputElement>("input[data-scope]")) i.checked = i.value === c.scope;
+  // Bán kính chỉ dùng khi săn quanh chỗ đứng.
+  set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
+  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world);
+  set("ringOn", c.ring >= 0); set("ring", Math.max(0, c.ring)); set("bone", c.bone); set("core", c.core);
+  $<HTMLSelectElement>("[data-k=coreStar]", el)!.value = String(c.coreStar);
+  for (const k of AUTO_LOOT_KINDS) { const i = $<HTMLInputElement>(`[data-kind=${k}]`, el); if (i) i.checked = c.kinds.includes(k); }
+  order(el, "skills", c.skills, (i) => `${SKILL_KEYS[i]} · ${ctx?.skillName(i) || "chưa có hồn kỹ"}`);
+  order(el, "slots", c.slots, (i) => `Ô ${i + 1} · ${ctx?.slotName(i) || "trống"}`);
+  const box = $("[data-a=last]", el)!;
+  box.hidden = !lastSum;
+  if (lastSum) renderSum($(".asum", box)!, lastSum.sum, lastSum.left);
+}
+
+/** Danh sách thứ tự: ô bật theo thứ tự ưu tiên, ô tắt ở sau; mỗi dòng một ô chọn và hai nút lên / xuống. */
+function order(el: HTMLElement, key: "skills" | "slots", picked: number[], label: (i: number) => string) {
+  const l = lists[key];
+  l.on = new Set(picked);
+  l.order = [...picked, ...[0, 1, 2, 3].filter((i) => !l.on.has(i))];
+  const box = $(`[data-list=${key}]`, el)!; box.innerHTML = "";
+  l.order.forEach((i, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<label class="achk"><input type="checkbox" data-on="${i}"><span></span></label>`
+      + `<button type="button" class="rlink" data-mv="-1" data-i="${k}" aria-label="Lên">▲</button>`
+      + `<button type="button" class="rlink" data-mv="1" data-i="${k}" aria-label="Xuống">▼</button>`;
+    $<HTMLInputElement>("input", li)!.checked = l.on.has(i);
+    $("span", li)!.textContent = label(i);
+    box.appendChild(li);
+  });
+}
+
+function renderSum(box: HTMLElement, s: AutoSummary, left: number) {
+  const rows: [string, string][] = [["Thời gian", dur(s.secs)], ["Hồn thú đã hạ", s.kills.toLocaleString("vi-VN")],
+    ["Kinh nghiệm", s.xp.toLocaleString("vi-VN")], ["Hồn Tệ", s.coins ? formatHonTe(s.coins) : "0"],
+    ["Đồ nhặt", s.loot.length ? s.loot.map(([n, q]) => `${n} ×${q}`).join(", ") : "Không có"], ["Giờ treo còn lại", dur(left)]];
+  // Tự bán từ xa trong lượt (#216): Hồn Tệ đã tính trong dòng "Hồn Tệ"; đồ đã bán không còn trong "Đồ nhặt".
+  if (s.sold) rows.splice(4, 0, ["Đã tự bán", `${s.sold[0].toLocaleString("vi-VN")} món, +${formatHonTe(s.sold[1])}`]);
+  box.innerHTML = "";
+  for (const [k, v] of rows) {
+    const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; box.append(a, b);
+  }
+}
+
+/** Tin `auto` mới: cập nhật bảng; có tổng kết (tự săn vừa dừng, đã treo ít nhất 1 giây) thì mở bảng tổng kết kèm lý do dừng. */
+export function setAutoMsg(m: AutoMsg) {
+  last = m;
+  // Tin `auto` không kèm `sum` (đổi cài đặt, từ chối bật…) không xóa mục "Lượt vừa rồi".
+  if (m.on) lastSum = null; else if (m.sum) lastSum = { sum: m.sum, left: m.left };
+  fill(m);
+  const el = sumBox(); if (!el) return;
+  if (m.on) { el.hidden = true; return; }
+  if (!m.sum || m.sum.secs < 1) return;
+  el.innerHTML = `<div class="rhead"><b>Tổng kết tự động</b><button class="x" type="button" aria-label="Đóng tổng kết">×</button></div>`
+    + `<small class="anote"></small><div class="asum"></div>`;
+  $("small", el)!.textContent = m.why ? `Đã dừng: ${m.why}` : "Đã dừng.";
+  renderSum($(".asum", el)!, m.sum, m.left);
+  $("button", el)!.addEventListener("click", closeAutoSum);
+  el.hidden = false;
+}

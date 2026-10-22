@@ -11,7 +11,12 @@ CHẾ ĐỘ LÀM VIỆC LIÊN TỤC — soul-land-mmo. Tôi là <tên> (nhãn ag
 Mỗi NHỊP (~30 phút) làm đúng thứ tự, dừng ở bước đầu tiên có việc:
 1. PR của tôi có góp ý review / CONFLICTING / CI đỏ → sửa (merge origin/main, không rebase, không force push), push, trả lời thread.
 2. Đang có issue dang-lam của tôi chưa xong → đọc comment "Tiến độ" mới nhất trong issue rồi làm tiếp từ đó.
-3. Issue của tôi đã xong (kiểm thử qua theo CONTRIBUTING.md "Xin review": check + build + bot RAM; thêm bot PostgreSQL khi đổi server/ hoặc shared/, bắt buộc khi đổi SQL / db.ts) → TỰ chạy reviewer cho PR của mình (AO review nếu có, hoặc reviewer của agent, vd /code-review), sửa hết góp ý, review lại tới khi đạt; ghi một comment PR tiêu đề "Review: đạt" (công cụ review, kết luận, bắt buộc dòng "**Head đã review:** `<SHA 40 ký tự>`"); rồi gh pr ready, đổi nhãn sang cho-review, Project Status = Đang review. Orchestrator AO của chủ repo kiểm tra lại và merge nếu đạt, không đạt thì comment góp ý (xử lý ở bước 1, xong review lại và cập nhật SHA trong "Review: đạt": sửa comment cũ hoặc ghi mới).
+3. Issue của tôi đã xong → kiểm thử theo CONTRIBUTING.md "Xin review" và "Merge":
+   - tự chạy check + build; bot PostgreSQL VẪN tự chạy khi đổi server/ hoặc shared/ (bắt buộc khi đổi SQL / db.ts): npm run bot:local -- --only <nhóm> --pg;
+   - bot RAM do job CI bot-ram tự chạy mỗi push (CI chỉ tham khảo), chỉ tự chạy ở máy khi gỡ lỗi / thêm bài mới: npm run bot:local -- --only <nhóm> (hoặc --part 1..4); bài bot mới gắn đúng một nhóm BOT_PART (bài tự tạo bot: thêm vào STANDALONE trong bot-test.mjs, chọn nhóm nhẹ theo dòng ⏱ ở CI);
+   - bot ở máy CHỈ chạy bằng npm run bot:local (tự bật server nhẹ cổng trống, PostgreSQL chung của máy, tự dọn, tối đa 2 lượt bot cùng lúc trên cả máy, lượt thừa tự chờ); KHÔNG tự bật server rời (npm run dev:server) hay embedded-postgres riêng để chạy bot;
+   - chờ CI của đúng head xong rồi đọc: gh pr checks <PR>, gh run view <run-id> (✓ / ✗ / ⚠ từng nhóm), đỏ thì gh run view <run-id> --log-failed. Đỏ do PR thì sửa trước khi xin review; đỏ do bài chập chờn có sẵn (vd #185) thì ghi rõ trong PR kèm lượt chạy lại.
+   → TỰ chạy reviewer cho PR của mình (AO review nếu có, hoặc reviewer của agent, vd /code-review), sửa hết góp ý, review lại tới khi đạt; ghi một comment PR tiêu đề "Review: đạt" (công cụ review, kết luận, dòng Bot: RAM theo CI — link lượt chạy, ✓ / ✗ từng nhóm — và PG nếu có; bắt buộc dòng "**Head đã review:** `<SHA 40 ký tự>`"); rồi gh pr ready, đổi nhãn sang cho-review, Project Status = Đang review. Orchestrator AO của chủ repo kiểm tra lại và merge nếu đạt, không đạt thì comment góp ý (xử lý ở bước 1, xong review lại và cập nhật SHA trong "Review: đạt": sửa comment cũ hoặc ghi mới).
 4. Chưa có việc → nhận issue mới theo CONTRIBUTING.md: san-sang, chưa ai nhận, không dang-lam/chan/can-pixellab; mỗi lúc TỐI ĐA 1 issue đang làm + 2 PR chờ review; khai số SQL trong issue nếu cần; PR nháp ngay "Closes #N" (gh pr create --draft --base main --label agent:<tên>; nhãn agent:<tên> trên cả issue lẫn PR); Project Status = Đang làm, Chủ = tôi.
 5. Không còn issue phù hợp → ghi "hết việc" và nghỉ tới nhịp sau.
 Sau MỖI nhịp có thay đổi: cập nhật một comment "Tiến độ" trong issue (đã làm gì, đang ở bước nào, lệnh tiếp theo, PR/nhánh; không sửa được bảng Project thì ghi trạng thái cần đổi để orchestrator đồng bộ hộ). Đây là bộ nhớ để làm tiếp sau khi hết quota hoặc mất ngữ cảnh — KHÔNG dựa vào trí nhớ hội thoại.
@@ -101,6 +106,6 @@ done
 Hai loại này không chạy nền được. Hãy dùng script ở trên với CLI tương ứng, hoặc chỉ làm ban ngày.
 
 ## 3. Buổi sáng (chủ repo hoặc collaborator)
-- Xem bảng Project, cột **Đang review**. Orchestrator AO của chủ repo kiểm tra lại các PR có comment "Review: đạt" (review độc lập, chạy check / bot nếu cần), merge PR đạt, comment góp ý vào PR chưa đạt.
+- Xem bảng Project, cột **Đang review**. Orchestrator AO của chủ repo kiểm tra lại các PR có comment "Review: đạt" (review độc lập; bot RAM đọc từ CI `bot-ram`, tự chạy bot PostgreSQL khi PR đổi SQL / `db.ts`), merge PR đạt, comment góp ý vào PR chưa đạt.
 - Collaborator: xử lý góp ý mới trên PR của mình (bước 1 của nhịp), review lại rồi cập nhật comment "Review: đạt".
 - Issue có nhãn `chan`: trả lời câu hỏi trong comment, gỡ nhãn `chan`.

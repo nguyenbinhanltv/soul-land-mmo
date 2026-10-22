@@ -1,7 +1,7 @@
 // Phòng của một bản đồ (mapId): toàn bộ logic game chạy ở đây (server-authoritative).
 // Mỗi bản đồ có thể có nhiều phòng (kênh); mọi phòng dùng chung một lớp, khác nhau ở dữ liệu bản đồ.
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
-import { Room, Client, ServerError, matchMaker } from "colyseus";
+import { Room, Client, ServerError, matchMaker, OnMessageException, type RoomException } from "colyseus";
 import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
@@ -9,38 +9,52 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
-  itemDef, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
+  itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
-  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, type CoreFx,
+  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
-  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
+  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS,
+  PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS, FUSION, FUSIONS, fusionIndex, fusionsOf,
   ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
-  beastSkillOf, teleHits, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
+  beastSkillOf, teleHits, teleSafe, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
   teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
-  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef,
+  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef, type FormDef,
   WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
-  npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, type NpcRole,
-  QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
+  npcDef, NPC_RANGE, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
+  QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds, isDaily, fitBeast,
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
-  RESONANCE, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResStat,
+  RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, SYNC_VIEW } from "../../../shared/data.ts";
+  ARENA, arenaTeamElo, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
+  BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
+  BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
+  AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
+import { ASK_CD } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
+import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
-import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot } from "../map.ts";
+import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
-import { store, Character, type AccountLooks, type Location, type Item, type Bag } from "../db.ts";
-import { chatCheck, inviteCheck, inviteReset } from "../ratelimit.ts";
+import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow } from "../db.ts";
+import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, type ChatChannel } from "../ratelimit.ts";
+import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
+import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
-import { arenaEnqueue, arenaDequeue, arenaQueued, type ArenaEntry } from "./arenaQueue.ts";
+import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
+import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
+import { AutoHunter } from "./autoHunt.ts";
+import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
+import { Grounds } from "./ground.ts";
+import { ColdStacks } from "./cold.ts";
+import { Tide } from "./tide.ts";
+import { LairSplit } from "./split.ts";
 
 export interface PData {
   accountId: number;
@@ -54,12 +68,12 @@ export interface PData {
   // Hấp thụ hồn hoàn trong túi (từ 3.2) vào võ hồn `rowId` (từ 3.3 chọn được võ hồn bất kỳ đang ở bình cảnh), vòng thứ `slot`.
   absorbing: { itemId: string; rowId: number; slot: number; years: number; t: number; dur: number; fail: number } | null;
   testRoll: number | null; // hook test `roll` (chỉ khi GAME_TEST=1): cố định số ngẫu nhiên 0..1 cho lần quyết định hấp thụ
-  testFile?: string; // hook test `oldfile` (11.5): ghi vị trí kèm tên file này thay cho file đang dùng, như tài khoản lưu ở bản cũ
   testShard: { r: number; i: number } | null; // hook test `shard`: cố định số ngẫu nhiên rơi mảnh (0..1) và võ hồn được chọn (-1 = ngẫu nhiên)
   testBone: { r: number; s: number } | null;   // hook test `bone` (4.1): cố định số ngẫu nhiên rơi hồn cốt (0..1) và vị trí (-1 = ngẫu nhiên)
   // hook test `core` (5.1): cố định số ngẫu nhiên rơi hồn hạch (0..1), sao (0 = ngẫu nhiên trong khoảng) và bộ (-1 = ngẫu nhiên)
   testCore: { r: number; stars: number; set: number } | null;
   testHerb: { r: number; i: number } | null; // hook test `herb` (BĐ6b): cố định số ngẫu nhiên rơi tiên thảo (0..1) và loại (-1 = ngẫu nhiên)
+  testLocFile?: string | null; // hook test `locfile` (11.5): file Tiled ghi kèm vị trí thay cho file đang dùng (null = như dòng trước 11.5)
   shardBusy: boolean;   // đang chờ DB mở võ hồn bằng mảnh (bước 3.4): chặn lần mở thứ hai cho tới khi xong
   mpF: number; hpF: number; // hpF: sinh lực của võ hồn ra trận
   benchHp: Map<number, number>; // sinh lực các võ hồn khác (rowId -> sinh lực; không có = đầy). Không lưu DB: vào lại thì hồi đầy
@@ -71,6 +85,7 @@ export interface PData {
   saving: Promise<void>;
   teamQueued: boolean;  // đã có một lần lưu đội hình đang chờ trong chuỗi (lần đó ghi bản mới nhất lúc chạy)
   tradeQueued: boolean; // đã có một lần lưu sau mua / bán ở thương nhân đang chờ trong chuỗi (6.1; lần đó chụp túi mới nhất lúc chạy)
+  latest: Map<string, () => unknown>; // lần ghi gộp đang chờ trong chuỗi theo khóa (chainLatest, #164): hàm ghi mới nhất của khóa đó
   portalKey: string;    // hộp đi cổng đã gửi cho client ("" = không đứng ở cổng)
   // Đang niệm đi qua cổng (TRAVEL_CAST giây, bến thuyền BOAT_CAST; bị đánh thì hủy). Từ 11.2 cũng là niệm truyền tống / Hồi Thành Phù
   // (`wp`, WAYPOINT_CAST giây; di chuyển hoặc bị đánh thì hủy): `portal` là cổng ẩn tới đích, mọi chỗ chặn "đang đi cổng" áp như nhau.
@@ -80,7 +95,9 @@ export interface PData {
   travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
+  bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
+  askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
   buffs: Map<BuffId, { t: number; v: number }>; // hiệu ứng có lợi của hồn sư (hồn kỹ phụ trợ): giây còn lại, độ lớn; đổi võ hồn vẫn còn
@@ -93,14 +110,25 @@ export interface PData {
   honTe: number;        // Hồn Tệ (đồng)
   bagSlots: number;     // số ô túi của tài khoản (khởi đầu BAG_SLOTS, mở rộng ở thương nhân từ 9.8; accounts.bag_slots)
   bagDirty: boolean;    // túi hoặc Hồn Tệ đổi từ lần lưu trước
+  // Bản túi đã gửi cho client (#215, shared/bagSync.ts): null = lần gửi tới là cả túi (tin "bag"), sau đó chỉ gửi thay đổi (tin "bagd").
+  bagSent: BagSent | null; bagBuyback: string;
+  // Tự bán từ xa (#216, mục 5.7 "Tự bán"): bộ lọc, AUTO_SELL_BUYBACK món tự bán gần nhất (mới nhất trước; cả hai lưu cùng túi đồ),
+  // cờ cần xét tự bán ở nhịp tới (đặt khi túi đổi), chuỗi JSON bộ lọc + danh sách đã gửi client, tổng số món / Hồn Tệ đã tự bán trong
+  // phiên và mốc lúc bật tự săn (tổng kết Auto 2).
+  sellCfg: SellSettings; sold: SoldRow[]; sellCheck: boolean; sellSent: string; soldN: number; soldCoins: number; autoSold0: [number, number];
   danCd: number;        // giây còn lại của hồi chiêu chung các đan (DAN_CD)
   starterNote: boolean; // vừa nhận vật phẩm khởi đầu: báo một lần khi client xin túi đồ
   // Trạng thái trên hồn sư (từ 3.5, PLAYER_STATUS): do chiêu báo trước của hồn thú gây; `src` là mã hồn thú. Không lưu DB.
   st: Map<StatusId, SInst>; dotT: number;
+  hanT: number; // #163 Cực Hàn: số giây đã tích về tầng Hàn kế tiếp (cold.ts); thanh tẩy / clearPStatus đặt về 0
+  // Mê hoặc trên hồn sư (#116, PLAYER_CHARM): chỗ bị Mê hoặc (ox, oy), điểm đang đi tới (tx, ty), giây còn lại trước khi đổi điểm.
+  charm: { ox: number; oy: number; tx: number; ty: number; t: number } | null;
   // Lượt nhận rương thú vương hôm nay (BĐ5, bảng boss_claims; `day` theo giờ Việt Nam): nạp lúc vào phòng, DB là nguồn chính khi nhận.
   claims: { day: string; n: number };
   wclaims: { day: string; n: number }; // lượt nhận thưởng boss thế giới hôm nay (BĐ6e, loại BOSS_CLAIM_WORLD), như `claims`
-  claimBusy: number;    // số lần nhận rương đang chờ DB: chặn mở / bỏ rương cho tới khi xong
+  claimBusy: number;    // số lần nhận phần thưởng boss đang chờ DB: chặn mở rương, bán / bỏ / hấp thụ / nộp đồ cho tới khi xong (#165)
+  testClaimHold: boolean; // hook test `claimhold` (#165): như đang chờ DB ghi phần thưởng boss, cờ riêng để không đụng bộ đếm claimBusy thật
+  testTravelLost: boolean; // hook test `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi, như mất phản hồi sau COMMIT
   testChest: { bone: number; ur: number; i: number; n: number; s: number } | null; // hook test `chest`: cố định số ngẫu nhiên khi mở rương (−1 = ngẫu nhiên)
   // Kỹ năng bị động của hồn cốt thân / chân trên võ hồn ra trận (từ 4.3, bonePassive): tính lại trong recalc. Không lưu DB.
   passive: BonePassive;
@@ -111,46 +139,64 @@ export interface PData {
   partyKey: string;     // khung tổ đội (tin riêng "party", 7.1) lần gửi trước: chỉ gửi lại khi đổi
   // Nhiệm vụ tân thủ (6.2, chuỗi QUEST_STARTER): chỉ gửi riêng cho chính chủ (tin "quest"); lưu cùng túi đồ (bagSnapshot, bảng quests).
   quest: QuestProgress;
+  // Chuỗi cố định khác chuỗi tân thủ (QUESTS, chương 2 trở đi; #189): tiến độ từng chuỗi, tin riêng "quest" kèm mã chuỗi.
+  chains: QuestProgress[];
   // Khảo hạch hằng ngày của Phất Lan Đức (DAILY): DAILY.count bài của ngày `dailyDay` (vnDay), tin riêng "daily"; lưu cùng túi đồ như `quest`.
   daily: QuestProgress[]; dailyDay: string;
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
-  arenaBusy: boolean; arenaTopAt: number;
+  arenaBusy: boolean; arenaTopAt: number; resonanceTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
   // Võ Hồn Chân Thân (vòng 7, từ 8.1a): võ hồn đang biến hình (`row`), giây còn lại, chỉ số đang cộng (chanThanStats, đọc trong buffV
   // và recalc); `avaCd`: hồi chiêu Chân Thân còn lại của từng võ hồn (rowId -> giây). Không lưu DB.
   ava: { row: number; t: number; stats: Partial<Record<ChanThanStat, number>> } | null;
   avaCd: Map<number, number>;
+  // Võ Hồn Dung Hợp Kỹ (#192, FUSION): lời mời đang chờ: đồng đội `with`, giây còn lại `t`, `init` = mình là người mời (A), chỉ số cặp
+  // `fi` trong FUSIONS. Hồi chiêu ở `fusionReady` (theo tài khoản, mức tiến trình). Không lưu DB.
+  fus: { with: string; t: number; init: boolean; fi: number } | null;
   // Hồi chiêu còn lại theo hồn kỹ (`rowId:vòng`, từ 8.1a): hồi chiêu đồng bộ vẫn theo ô (`p.cds`), nhưng khi xếp lại ô hay đổi võ hồn
   // thì ô mang hồn kỹ đó nhận ít nhất phần còn lại này, để bỏ ra rồi xếp lại (hoặc sửa ô của võ hồn đang nghỉ) không làm mới hồi chiêu.
   skCd: Map<string, number>;
   // Cộng minh (8.2, mục 5.10): tiến độ và số mốc đã đạt từng trụ cột (thứ tự RESONANCE), tổng % cộng cho mọi võ hồn. Không lưu DB:
   // tính lại từ võ hồn và đồ đang gắn (resCheck) khi nạp tài khoản và mỗi khi dữ liệu liên quan đổi. `resKey`: tin "resonance" lần trước.
-  res: { prog: number[]; lv: number[]; bonus: Record<ResStat, number> }; resKey: string;
+  res: { prog: number[]; lv: number[]; bonus: Record<ResEffect, number> }; resKey: string;
+  // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
+  // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
+  // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean;
+  // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
+  // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
+  offMsg: Record<string, unknown> | null; offAsk: boolean;
+  tong: string | null; tongAt: number | null; // #196: tông môn (mã trong TONG_MON) và lúc gia nhập gần nhất (ms; giữ khi rời); bảng accounts
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
 interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
 export interface AuthData { accountId: number; ch: Character; owned: Character[]; team: number[]; looks: Looks; loc: Location; bag: Bag; starter: boolean;
-  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; }
+  claims: { day: string; n: number }; wclaims: { day: string; n: number }; wps: string[]; auto: AutoRow; tong: TongRow; }
 /**
  * Niệm truyền tống (11.2): tên nơi đến, phí (đồng, trừ lúc dịch chuyển), ô Hồi Thành Phù sẽ dùng (không có = truyền tống trận), chỗ
  * đứng lúc bắt đầu (lệch quá 2 pixel thì hủy: di chuyển, bị đẩy / kéo), tổng số giây (thanh niệm của client).
  */
 interface RecallCast { label: string; fee: number; itemId?: string; x0: number; y0: number; dur: number; }
 /** Một trạng thái trên hồn thú: giây còn lại, số tầng, độ lớn mỗi tầng (sát thương mỗi giây hoặc tỉ lệ), người gây. */
-interface SInst { t: number; n: number; v: number; src: string; }
-interface BData {
+interface SInst { t: number; n: number; v: number; src: string; pair?: string; } // pair (#192): đồng đội dung hợp chia đôi đóng góp
+export interface BData {
   zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number;
   ret: number;              // 11.1: > 0 là đang bỏ đuổi, chạy về chỗ sinh (còn ngần ấy giây, BEAST_LEASH)
+  rooted: boolean;          // #116: thú thực vật đứng yên (BEAST_ROOTED): không đi, không bị đẩy / kéo
+  reach: number;            // #116: tầm với của thú đứng yên (rootedReach): nhận / giữ mục tiêu trong tầm này; 0 với hồn thú khác
   st: Map<StatusId, SInst>; // trạng thái dùng chung (mục 5.1) đang có
   dotT: number;             // đếm giờ tới lần gây sát thương theo thời gian kế tiếp (STATUS_TICK)
   calm: number;             // số giây kể từ lần cuối bị đánh (hồi máu khi không có mục tiêu, BEAST_REGEN)
   regen: number;            // phần lẻ sinh lực hồi chưa cộng (sinh lực đồng bộ là số nguyên)
   dmg: number;              // sát thương đòn thường theo số năm (beastStats, bước 3.2)
+  def: number;              // #116: thủ (BEAST_DEF, beastDef theo loài gốc và số năm): phần sát thương đòn trực tiếp đỡ được
   // Chiêu báo trước (bước 3.5): hồn thú thường từ 1.000 năm có 1 chiêu (beastSkillOf), tinh anh (BĐ4) có 2 (BOSSES). `cd` từng chiêu,
   // `skT`: chờ trước lần tung kế tiếp (mọi chiêu); `cast`: chiêu đang báo trước (các vùng đã khóa, còn `t` giây).
   skills: { def: BeastSkillDef; cd: number }[];
   skT: number;
-  cast: { def: BeastSkillDef; teles: Tele[]; t: number; target: string; charge?: boolean } | null; // charge: tích lực phải ngắt (BĐ6e)
+  // charge: tích lực phải ngắt (BĐ6e); safe: vòng an toàn của chiêu toàn sàn (BeastSkillDef.safe, #118)
+  // status (#173): trạng thái theo dạng lúc bắt đầu báo trước (BeastSkillDef.forms), thay cho def.status
+  cast: { def: BeastSkillDef; teles: Tele[]; t: number; target: string; charge?: boolean; safe?: Tele[]; status?: StatusApply[] } | null;
   buffs: Map<BeastBuffId, number>; // từ BĐ4: hiệu ứng có lợi của hồn thú (giây còn lại), ví dụ Cuồng nộ của tinh anh
   minions: Set<string>;     // hồn thú do chiêu gọi bầy (BeastSkillDef.summon) của con này gọi ra
   elite: EliteData | null;  // tinh anh (BĐ4); null với hồn thú thường
@@ -160,10 +206,13 @@ interface BData {
  * `parts`: người tham gia -> số giây liên tục ở ngoài bán kính ELITE.radius; `lonely`: số giây không còn người tham gia nào trong
  * bán kính; `dropT`: chờ trước lần giảm `n` kế tiếp; `dmgBy`: sát thương đã gây; `supBy` (9.2): sinh lực hồi thực / khiên tạo cho
  * người tham gia khác (đóng góp tổng = dmgBy + supBy × SUPPORT_CONTRIB, `contribOf`); `rageCd`: chờ trước lần Cuồng nộ kế tiếp.
+ * `acc` (#119): sessionId -> accountId của mọi người có đóng góp hoặc đã là người tham gia; cùng tài khoản vào lại phòng (thoát rồi vào lại, đổi kênh rồi quay về)
+ * thì đóng góp chuyển sang phiên mới (`rebindContrib`), nên đóng góp gắn theo tài khoản.
  */
 interface EliteData {
   base: number; n: number; engaged: boolean; parts: Map<string, number>; lonely: number; dropT: number;
-  dmgBy: Map<string, number>; supBy: Map<string, number>; rageCd: number;
+  dmgBy: Map<string, number>; supBy: Map<string, number>; acc: Map<string, number>; rageCd: number;
+  form: number; formT: number; // #173: dạng đang có (chỉ số trong BossDef.forms) và giây còn lại của dạng; không đổi dạng thì 0
   king: KingData | null; // tà hóa thú vương (BĐ5): cùng bộ máy người tham gia / máu theo số người, bán kính là cả hang
 }
 /**
@@ -178,26 +227,30 @@ interface KingData { def: BossDef; slot: number; life: number; phase: 1 | 2; roa
  * Boss thế giới (mục 5.4, BĐ6e): `rage` đã nổi giận (sau WORLD.enrageSecs), `slamT` chờ trước Bạo Nộ kế tiếp; `weakNext` mốc máu
  * WORLD.weakAt kế tiếp, `weak` / `weakT` điểm yếu hệ đang hiện và giây còn lại; `chargeT` / `armorT` / `miasmaT` / `diveT` chờ trước
  * lần cơ chế kế tiếp (BossDef.world); `brk` số lần khống chế đã trúng khi đang tích lực, `brkAt` lần tính gần nhất theo người (một
- * hồn kỹ gây nhiều khống chế chỉ tính một lần); `shield` / `shieldT` khiên Bá Thể; `dive` giây lặn còn lại (> 0 = đang lặn).
+ * hồn kỹ gây nhiều khống chế chỉ tính một lần); `shield` / `shieldT` khiên Bá Thể; `dive` giây lặn còn lại (> 0 = đang lặn), `surf` chỗ
+ * nổi lên đã báo trước (#118).
  */
 interface WorldData {
   rage: boolean; slamT: number; weakNext: number; weak: He | null; weakT: number;
   chargeT: number; armorT: number; miasmaT: number; diveT: number;
-  brk: number; brkAt: Map<string, number>; shield: number; shieldT: number; dive: number;
+  brk: number; brkAt: Map<string, number>; shield: number; shieldT: number; dive: number; surf: { x: number; y: number } | null;
 }
 /** Trạng thái boss thế giới lúc mới sinh / bỏ giao chiến: các cơ chế chờ `every` × WORLD.firstMech giây mới chạy lần đầu. */
 function newWorld(def: BossDef): WorldData {
   const m = def.world ?? {}, first = (e?: number) => (e ?? 0) * WORLD.firstMech;
   return { rage: false, slamT: WORLD.slamEvery, weakNext: 0, weak: null, weakT: 0, chargeT: first(m.charge?.every), armorT: first(m.armor?.every),
-    miasmaT: first(m.miasma?.every), diveT: first(m.dive?.every), brk: 0, brkAt: new Map(), shield: 0, shieldT: 0, dive: 0 };
+    miasmaT: first(m.miasma?.every), diveT: first(m.dive?.every), brk: 0, brkAt: new Map(), shield: 0, shieldT: 0, dive: 0, surf: null };
 }
 /** Bộ hằng số theo bậc của boss có lịch: thú vương KING, boss thế giới WORLD (người tham gia, thưởng, lượt mỗi ngày). */
 const bossK = (k: KingData | null | undefined) => (k?.world ? WORLD : KING);
 /** Mũi hồn kỹ đang bay của hồn sư `owner`: chạm hồn thú đầu tiên thì gọi `fire` (sát thương và trạng thái của hồn kỹ). */
 interface Proj { x: number; y: number; vx: number; vy: number; life: number; owner: string; fire: (bid: string) => void; foe?: (pid: string) => void; } // foe: trúng đối thủ (7.2)
 /** Tùy chọn của một lần gây sát thương lên hồn thú. `direct` = false: sát thương theo thời gian (không chí mạng, không đẩy lùi,
- *  không tính Phá giáp, không lan Cảm điện). `chain`: sát thương lan của Cảm điện (không chí mạng, không lan tiếp). */
-interface DmgOpt { crit?: number; lifesteal?: number; direct?: boolean; chain?: boolean; }
+ *  không tính Phá giáp, không lan Cảm điện). `chain`: sát thương lan của Cảm điện (không chí mạng, không lan tiếp).
+ *  `pair` (#192): đòn của Võ Hồn Dung Hợp Kỹ, phiên đồng đội dung hợp: không nhận ràng buộc, đóng góp tinh anh / thú vương / boss chia đôi. */
+interface DmgOpt { crit?: number; lifesteal?: number; direct?: boolean; chain?: boolean; pair?: string; }
+/** Một đòn của Võ Hồn Dung Hợp Kỹ (#192): đồng đội dung hợp và công trung bình của hai người (không ràng buộc). */
+interface FusHit { pair: string; atk: number; }
 
 let nextId = 1;
 const uid = (p: string) => p + (nextId++).toString(36);
@@ -205,8 +258,30 @@ const uid = (p: string) => p + (nextId++).toString(36);
 // ---------- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên") ----------
 /** Hash presence: accountId -> sessionId của phiên đang giữ tài khoản, từ onJoin tới khi lần ghi DB cuối của phiên đó xong. */
 const HOLD = "accountHold";
+/**
+ * Chat xuyên phòng (#188, mục 6 "Xã hội"): tổ đội, tin riêng, thế giới phát lên chủ đề presence này; mọi phòng nghe và gửi tin
+ * `chat` cho người chơi của mình có trong `to` (không có `to`: mọi người, kênh thế giới). Không lưu lịch sử.
+ */
+const CHAT_TOPIC = "chatx";
+interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
+/** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
+const CLAIM_BUSY = "Đang nhận phần thưởng boss, đợi một chút.";
+/** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
+const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
 const HOLD_WAIT_MS = 8000;
+
+// ---------- Giá trị client gửi (mục 6 "Mỗi message: ép kiểu và kẹp giá trị", #164) ----------
+// Chỉ kiểm `typeof`, không Number() / String() / phép so sánh trên giá trị thô: msgpack giải ra object tùy ý, đổi kiểu một object
+// có thể ném lỗi.
+/** Số hữu hạn client gửi; khác (chuỗi, object, NaN, Infinity…) thì 0. */
+const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+/** Số nguyên client gửi; khác thì NaN (hàm nhận tự từ chối). */
+const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : NaN);
+/** Chuỗi client gửi; khác thì "". */
+const strIn = (v: unknown) => (typeof v === "string" ? v : "");
+/** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
+const ERR_LOG_MS = 10_000;
 
 // ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
 /**
@@ -225,6 +300,33 @@ const kingSeats = new Map<string, Map<number, KingSlot>>();
  * (`claimed`): đổi kênh rồi hạ thú vương của kênh khác trong cùng khung thì không nhận thêm rương (mục 6 "Nhiều kênh").
  */
 interface KingSlot { slot: number; until: number; seats: KingSeat[]; claimed: Set<number>; boss: string; } // boss: mã BOSSES của khung (BĐ6e: boss thế giới luân phiên)
+// ---------- Giới hạn săn tinh anh nhiều kênh, mức tiến trình (mục 5.4; #119) ----------
+/**
+ * `${mapId}|${mã tinh anh}` -> accountId -> lúc (ms) được nhận lại thưởng tinh anh đó (ELITE.lock giây sau lần nhận). Theo bản đồ, không
+ * theo phòng: mỗi kênh có tinh anh hồi sinh riêng, nên đổi kênh liên tục không nhân thưởng. Mất khi khởi động lại server (lâu nhất
+ * ELITE.lock giây, chấp nhận được). Chạy nhiều tiến trình thì phải chuyển sang presence (Redis), như kingSeats.
+ */
+const eliteLocks = new Map<string, Map<number, number>>();
+/**
+ * Hồi chiêu Võ Hồn Dung Hợp Kỹ (#192, FUSION.cd) theo tài khoản, mức tiến trình: accountId -> lúc (ms) dùng lại được. Thuộc hồn sư nên đổi
+ * võ hồn, đổi kênh, đi cổng, thoát vào lại đều không làm mới. Mất khi khởi động lại server; nhiều tiến trình thì chuyển sang presence (#120).
+ */
+const fusionReady = new Map<number, number>();
+/** Số giây hồi chiêu dung hợp kỹ còn lại của tài khoản `acc` (0 = dùng được); bỏ mục đã hết hạn. */
+function fusionCdLeft(acc: number) {
+  const t = fusionReady.get(acc); if (t === undefined) return 0;
+  const left = (t - Date.now()) / 1000; if (left <= 0) fusionReady.delete(acc);
+  return Math.max(0, left);
+}
+/** Khóa nhận thưởng của tinh anh `b` trên bản đồ `mapId` (khóa của eliteLocks): theo loài tinh anh (mã BOSSES). */
+const eliteKey = (mapId: string, b: BeastState) => `${mapId}|${BOSSES[b.species]?.id ?? b.species}`;
+/** Số giây còn lại trước khi tài khoản `acc` nhận lại thưởng tinh anh `key` (0 = nhận được); bỏ các mục đã hết hạn của `key`. */
+function eliteLockLeft(key: string, acc: number, now = Date.now()): number {
+  const m = eliteLocks.get(key); if (!m) return 0;
+  for (const [a, until] of m) if (until <= now) m.delete(a);
+  if (!m.size) eliteLocks.delete(key);
+  return Math.max(0, ((m.get(acc) ?? now) - now) / 1000);
+}
 /** Các khung còn hạn của bản đồ `mapId` (bỏ khung đã hết). */
 function kingRecs(mapId: string, now: number) {
   let recs = kingSeats.get(mapId);
@@ -285,13 +387,20 @@ function takeChannel(mapId: string) {
 /** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
 const channelSwitchAt = new Map<number, number>();
 /**
- * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; đi cổng / đổi kênh đã commit thì không ghi): trong
+ * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; onLeave không ghi khi đi cổng / đổi kênh đã commit): trong
  * CHANNEL_CD giây tài khoản chỉ được vào lại đúng kênh đó của bản đồ (onAuth từ chối kênh khác khi kênh cũ còn mở và còn chỗ;
  * pickChannel đưa về kênh cũ). Không có lớp này thì client tự rời rồi joinById kênh khác là né được luật đổi kênh (giao chiến, chờ).
+ * Từ #164 (`travel`): đi cổng / đổi kênh / truyền tống sang bản đồ khác commit xong cũng ghi kênh server đã chọn ở bản đồ đích, để
+ * client vào đúng kênh đó (mục 6: client không chọn kênh đích) chứ không tự joinById kênh khác.
  */
-const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number }>();
+const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 const testNoLeaveLock = new Set<number>();
+/**
+ * Hook test `offline {ago}` (Auto 3, chỉ GAME_TEST): lần ủy thác offline kế tiếp của tài khoản ghi thời điểm bắt đầu lùi `ago` giây,
+ * như đã thoát từ `ago` giây trước (giả lập thời gian trôi: bot vào lại ngay mà vẫn nhận thưởng theo quãng vắng mặt đó).
+ */
+const testOfflineAgo = new Map<number, number>();
 /** Kênh vừa rời của tài khoản ở bản đồ `mapId` nếu còn khóa và kênh đó còn mở, còn chỗ (trong `list`). */
 function leftLock(accountId: number, mapId: string, list: ChannelInfo[]) {
   const l = leftRoom.get(accountId);
@@ -317,6 +426,78 @@ export async function pickChannel(accountId: number, mapId: string): Promise<Cha
   const open = list.filter((c) => !c.full), mates = party.mateRooms(accountId, mapId);
   open.sort((a, b) => (mates.get(b.roomId) ?? 0) - (mates.get(a.roomId) ?? 0) || a.n - b.n || a.ch - b.ch);
   return open[0] ?? null;
+}
+
+// ---------- Giữ chỗ khi vào phòng (matchmake HTTP, #235) ----------
+/**
+ * Colyseus giữ chỗ (tính vào maxClients, khóa kênh khi đủ) và joinOrCreate mở kênh mới ngay ở bước HTTP, trước khi client mở WebSocket
+ * và onAuth của phòng chạy. Vì vậy `static onAuth` (chạy trước khi tìm / mở phòng và giữ chỗ) kiểm token và các điều kiện rẻ, rồi
+ * trả SeatPass; `_reserveSeat` của phòng bỏ SeatPass đi để onAuth của phòng vẫn chạy lúc mở WebSocket (nạp DB sau waitOldSession).
+ * `mapId`: bản đồ đã kiểm (null: sân đấu, không theo bản đồ); `key`: chỗ tạm trong seatPending, ghi ngay khi kiểm xong để các request
+ * chạy song song của cùng tài khoản không cùng lọt qua giới hạn; `_reserveSeat` đổi thành sessionId, không tới được thì tự hết hạn.
+ */
+export interface SeatPass { seatFor: number; mapId: string | null; key: string; }
+/** Mỗi tài khoản giữ tối đa bấy nhiêu chỗ chưa dùng cùng lúc (client thật: một, thêm lần dự phòng joinOrCreate / tab khác). */
+const SEAT_PENDING_MAX = 3;
+/** Chỗ tạm (SeatPass.key) sống tối đa bấy nhiêu mili giây nếu matchmake không tới được bước giữ chỗ (bằng seatReservationTime mặc định). */
+const SEAT_PASS_MS = 15_000;
+/**
+ * Chỗ đã giữ chưa dùng của mỗi tài khoản (một tiến trình, LocalPresence): sessionId (hoặc chỗ tạm SeatPass.key) -> hết hạn (ms). onAuth
+ * của phòng xóa khi dùng.
+ */
+const seatPending = new Map<number, Map<string, number>>();
+function seatsPending(accountId: number) {
+  const m = seatPending.get(accountId), now = Date.now();
+  if (!m) return 0;
+  for (const [sid, until] of m) if (until <= now) m.delete(sid);
+  if (!m.size) seatPending.delete(accountId);
+  return m.size;
+}
+function seatAdd(accountId: number, key: string, until: number) {
+  let m = seatPending.get(accountId);
+  if (!m) { m = new Map(); seatPending.set(accountId, m); }
+  m.set(key, until);
+}
+function seatUsed(accountId: number, sessionId: string) {
+  const m = seatPending.get(accountId);
+  if (m?.delete(sessionId) && !m.size) seatPending.delete(accountId);
+}
+/**
+ * Bước kiểm chung của `static onAuth` (MapRoom, ArenaRoom): token hợp lệ và tài khoản chưa giữ quá SEAT_PENDING_MAX chỗ. Lỗi bất ngờ
+ * (DB…) trả câu chung: Colyseus gửi nguyên `message` của lỗi về client.
+ */
+export async function seatAccount(token: unknown, mapId: string | null, check?: (accountId: number) => Promise<unknown>): Promise<SeatPass> {
+  const full = new ServerError(429, "Đang vào phòng ở nơi khác, hãy thử lại sau giây lát.");
+  try {
+    const acc = await store.accountFromToken(token);
+    if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
+    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
+    await check?.(acc.accountId);
+    // Kiểm lại và ghi chỗ tạm cùng một nhịp (không await ở giữa).
+    if (seatsPending(acc.accountId) >= SEAT_PENDING_MAX) throw full;
+    const key = `pass:${randomUUID()}`;
+    seatAdd(acc.accountId, key, Date.now() + SEAT_PASS_MS);
+    return { seatFor: acc.accountId, mapId, key };
+  } catch (e) {
+    if (e instanceof ServerError) throw e;
+    console.error("Lỗi kiểm tra trước khi giữ chỗ (matchmake):", e);
+    throw new ServerError(500, "Máy chủ gặp lỗi, vui lòng thử lại sau.");
+  }
+}
+/** Tài khoản vào được bản đồ `mapId` không: đã tạo nhân vật, đã thức tỉnh, đang đứng ở bản đồ đó (DB). */
+async function joinableMap(accountId: number, mapId: string) {
+  const [ch, looks, loc] = await Promise.all([store.getCharacter(accountId), store.getLooks(accountId), store.getLocation(accountId)]);
+  // Tạo nhân vật trước (tài khoản cũ cũng phải chọn một lần), rồi mới đến lễ thức tỉnh.
+  if (!looks.chosen) throw new ServerError(403, "Chưa tạo nhân vật.");
+  if (!ch) throw new ServerError(403, "Chưa thức tỉnh võ hồn.");
+  // Chỉ vào được phòng của bản đồ đang lưu trong DB; sai thì client hỏi lại /api/me (trả mapId) rồi vào đúng phòng.
+  if (loc.mapId !== mapId) throw new ServerError(409, `Sai bản đồ: hồn sư đang ở ${MAPS[loc.mapId].name}.`);
+  return { ch, looks, loc };
+}
+/** mapId client gửi khi vào phòng bản đồ (thiếu thì bản đồ mặc định); không phải bản đồ thường thì null. */
+function mapIdIn(v: unknown) {
+  const mapId = v ?? DEFAULT_MAP;
+  return typeof mapId === "string" && Object.hasOwn(MAPS, mapId) && MAPS[mapId].kind !== "arena" ? mapId : null;
 }
 
 /**
@@ -346,6 +527,8 @@ function itemStacks(code: string, qty: number): Item[] {
 }
 /** Số ô túi đang dùng: món đang gắn vào võ hồn không tính. */
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
+/** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
+const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
 
 /** Hook test `daily {shift}`: lệch ngày của khảo hạch hằng ngày cho cả tiến trình (MapRoom.dailyDay); chỉ đổi khi GAME_TEST=1. */
 let dailyShift = 0;
@@ -356,16 +539,36 @@ export class MapRoom extends Room<MapState> {
   map!: GameMap;
   pdata = new Map<string, PData>();
   bdata = new Map<string, BData>();
+  /** Bọc trứng của chiêu có `eggs` (#162, Vạn Chu Phệ; eggs.ts). */
+  eggs = new SpiderEggs(this);
   /** Hồn hạch đang nằm dưới đất (bước 5.1): id đồ rơi -> sao và chỉ số đã tung lúc rơi (DropState chỉ đồng bộ sao và bộ). */
   coreDrops = new Map<string, { stars: number; data: CoreData }>();
   projs: Proj[] = [];
   timers: { t: number; fn: () => void }[] = []; // việc hẹn giờ (các nhát của hồn kỹ liên hoàn), chạy trong tick
   /** Lưới không gian và lọc đồng bộ theo vùng gần (11.4, interest.ts). */
   interest!: Interest;
+  /** Vùng lưu lại trên mặt đất do chiêu hồn thú để lại (#161, ground.ts). */
+  grounds = new Grounds(this);
+  /** Hồn thú có thể đang báo trước chiêu (thêm ở beginCast; activeCasts bỏ dần mục đã tung / bị ngắt / hồn thú đã mất). Tự săn né (#218). */
+  casting = new Set<string>();
+  /** Tầng Hàn của Cực Hàn và Hỏa Đàn (#163, cold.ts). */
+  cold = new ColdStacks(this);
+  /** Vùng ngập luân phiên và xoáy nước của Thủy Triều Dâng (#174, tide.ts; vùng là vùng lưu lại của ground.ts). */
+  tide = new Tide(this);
+  /** Hang chia phần luân phiên của Lưỡng Nghi Luân Chuyển / tơ Vạn Chu Phệ (#173, split.ts; phần đang hóa là vùng lưu lại của ground.ts). */
+  split = new LairSplit(this);
   /** Giây tới lần gửi tin `mini` (bản đồ nhỏ, SYNC_VIEW.mini) kế tiếp. */
   miniT = 0;
   /** PERF_LOG=1: đo thời gian tick / bản vá, ghi log mỗi 10 giây (đo hiệu năng 11.4). */
   perf = { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() };
+  /**
+   * PERF_LOG=1: cộng dồn như `perf` từ lần đặt lại gần nhất của hook test `perf` (#218: bot đo từng pha); `auto`: phần trong AutoHunter.tick
+   * (gồm cả lệnh đánh / hồn kỹ nó phát, như người chơi bấm).
+   */
+  perfAll = { n: 0, tick: 0, patch: 0, max: 0, auto: 0 };
+  perfOn = !!process.env.PERF_LOG;
+  /** Lần ghi log gần nhất của mỗi chỗ + lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
+  errLog = new Map<string, { at: number; n: number }>();
   spawnT = 0;
   testRed: number | null = null; // hook test `red` (BĐ6d): cố định số ngẫu nhiên ra hồn thú MAX_YEARS năm ở vùng có mức trên MAX_YEARS
   saveT = 0;
@@ -389,6 +592,12 @@ export class MapRoom extends Room<MapState> {
   /** Đá phiên trùng tài khoản ở mọi phòng (presence, mục 6). */
   /** Tổ đội người chơi (presence PARTY_TOPIC, 7.1): gửi lại khung tổ đội và thông báo cho người của phòng này có trong `to`. */
   partySub = (n: party.PartyNote) => this.partyNote(n);
+  /** Chat xuyên phòng (presence CHAT_TOPIC, #188): gửi tin cho người của phòng này có trong `to` (không có `to` thì mọi người). */
+  chatSub = (r: ChatRoute) => {
+    if (!r?.msg) return;
+    if (!Array.isArray(r.to)) return this.broadcast("chat", r.msg);
+    for (const [id, d] of this.pdata) if (r.to.includes(d.accountId)) this.clients.getById(id)?.send("chat", r.msg);
+  };
   partyT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
@@ -417,30 +626,65 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Đọc võ hồn ra trận, ngoại hình, vị trí; từ chối nếu chưa được vào phòng này. */
-  async checkJoin(accountId: number) {
-    const [ch, looks, loc] = await Promise.all([store.getCharacter(accountId), store.getLooks(accountId), store.getLocation(accountId)]);
-    // Tạo nhân vật trước (tài khoản cũ cũng phải chọn một lần), rồi mới đến lễ thức tỉnh.
-    if (!looks.chosen) throw new ServerError(403, "Chưa tạo nhân vật.");
-    if (!ch) throw new ServerError(403, "Chưa thức tỉnh võ hồn.");
-    // Chỉ vào được phòng của bản đồ đang lưu trong DB; sai thì client hỏi lại /api/me (trả mapId) rồi vào đúng phòng.
-    if (loc.mapId !== this.state.mapId) throw new ServerError(409, `Sai bản đồ: hồn sư đang ở ${MAPS[loc.mapId].name}.`);
-    return { ch, looks, loc };
+  checkJoin(accountId: number) { return joinableMap(accountId, this.state.mapId); }
+
+  /**
+   * Trước khi Colyseus tìm / mở kênh và giữ chỗ (joinOrCreate, joinById; #235): token hợp lệ, chưa giữ quá SEAT_PENDING_MAX chỗ, bản đồ
+   * xin vào có thật và đúng bản đồ đang lưu, đã có hồn sư. Client chưa xác thực không chiếm chỗ, không mở được kênh mới. onAuth của
+   * phòng vẫn kiểm lại tất cả lúc mở WebSocket (token có thể vừa hết hạn, phiên cũ vừa đi cổng).
+   */
+  static async onAuth(_token: string, options: { token?: unknown; mapId?: unknown }) {
+    const mapId = mapIdIn(options?.mapId);
+    return seatAccount(options?.token, mapId, (id) => {
+      if (!mapId) throw new ServerError(400, "Bản đồ không tồn tại.");
+      return joinableMap(id, mapId);
+    });
+  }
+
+  /**
+   * SeatPass được giữ chỗ ở phòng này không: bản đồ đã kiểm ở static onAuth phải là bản đồ của phòng (joinById vào kênh bản đồ khác thì
+   * không). ArenaRoom: chỉ thành viên của trận.
+   */
+  seatAllowed(pass: SeatPass) { return pass.mapId === this.state.mapId; }
+
+  /**
+   * Giữ chỗ từ matchmake: bỏ SeatPass (authData của static onAuth) để onAuth của phòng chạy lúc mở WebSocket (Colyseus bỏ qua onAuth của
+   * phòng khi chỗ giữ có authData), và đổi chỗ tạm của SeatPass thành sessionId trong seatPending (giữ không được thì bỏ cả hai).
+   */
+  protected override async _reserveSeat(sessionId: string, joinOptions?: unknown, authData?: unknown, seconds = this.seatReservationTime,
+    allowReconnection?: boolean, devModeReconnection?: boolean) {
+    const pass = authData as Partial<SeatPass> | undefined;
+    if (typeof pass?.seatFor !== "number" || typeof pass.key !== "string") {
+      return super._reserveSeat(sessionId, joinOptions, authData, seconds, allowReconnection, devModeReconnection);
+    }
+    const acc = pass.seatFor;
+    seatUsed(acc, pass.key);
+    if (!this.seatAllowed(pass as SeatPass)) return false;
+    seatAdd(acc, sessionId, Date.now() + seconds * 1000);
+    const ok = await super._reserveSeat(sessionId, joinOptions, undefined, seconds, allowReconnection, devModeReconnection);
+    if (!ok) seatUsed(acc, sessionId);
+    return ok;
   }
 
   async onAuth(client: Client, options: { token?: string }) {
     const acc = options?.token ? await store.accountFromToken(options.token) : null;
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
+    seatUsed(acc.accountId, client.sessionId);
     // Kiểm tra trước khi đá phiên cũ: lần vào bị từ chối không được đá phiên đang chơi. Chờ xong thì đọc và kiểm tra lại
     // (phiên cũ có thể vừa đi cổng xong, đổi map_id).
     await this.checkJoin(acc.accountId);
     await this.waitOldSession(acc.accountId, client.sessionId);
     const [{ ch, looks, loc }, owned] = await Promise.all([this.checkJoin(acc.accountId), store.listVohons(acc.accountId)]);
-    // Vừa tự rời một kênh khác của bản đồ này (không qua đổi kênh): chỉ được vào lại kênh đó tới hết CHANNEL_CD giây (leftRoom).
+    // Vừa tự rời một kênh khác của bản đồ này (không qua đổi kênh), hoặc vừa đi cổng / đổi kênh tới kênh server chọn: chỉ được vào kênh
+    // đó tới hết CHANNEL_CD giây (leftRoom).
     const back = this.state.channel ? leftLock(acc.accountId, this.state.mapId, await listChannels(this.state.mapId)) : null;
-    if (back && back.roomId !== this.roomId)
-      throw new ServerError(409, `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${Math.ceil((leftRoom.get(acc.accountId)!.until - Date.now()) / 1000)} giây.`);
+    if (back && back.roomId !== this.roomId) {
+      const l = leftRoom.get(acc.accountId)!, wait = Math.ceil((l.until - Date.now()) / 1000);
+      throw new ServerError(409, l.travel ? `Hãy vào kênh ${back.ch} (kênh server đã chọn) hoặc chờ ${wait} giây.` : `Vừa rời kênh ${back.ch}: vào lại kênh ${back.ch} hoặc chờ ${wait} giây.`);
+    }
     const auth: AuthData = { accountId: acc.accountId, ch: owned.find((v) => v.rowId === ch.rowId) ?? ch, owned, team: [], looks, loc,
-      bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [] };
+      bag: { items: [], honTe: 0 }, starter: false, claims: { day: this.today(), n: 0 }, wclaims: { day: this.today(), n: 0 }, wps: [],
+      auto: { settings: null, day: "", used: 0, bonus: 0 }, tong: { tong: null, at: null } };
     if (!owned.includes(auth.ch)) owned.push(auth.ch);
     // Đội hình (tài khoản cũ được tự xếp trong store). Bỏ ô trỏ tới võ hồn không còn sở hữu; võ hồn ra trận luôn nằm trong đội.
     const team = (await store.getTeam(acc.accountId)).map((r) => (owned.some((v) => v.rowId === r) ? r : 0));
@@ -456,19 +700,40 @@ export class MapRoom extends Room<MapState> {
     auth.claims.n = await store.bossClaims(acc.accountId, auth.claims.day, BOSS_CLAIM_KING);
     auth.wclaims.n = await store.bossClaims(acc.accountId, auth.wclaims.day, BOSS_CLAIM_WORLD); // boss thế giới (BĐ6e)
     auth.wps = await store.getWaypoints(acc.accountId); // truyền tống trận đã mở (11.2)
+    auth.auto = await store.getAuto(acc.accountId); // cài đặt và giờ treo tự săn (Auto 1)
+    auth.tong = await store.getTong(acc.accountId); // tông môn (#196)
     return auth;
   }
 
   onCreate(options: { mapId?: unknown }) {
     // Client gửi mapId lấy từ /api/me (bản đồ đang lưu); thiếu thì dùng bản đồ mặc định. onAuth đối chiếu với DB.
     // Sân Đại Đấu Hồn Trường (kind `arena`, 7.2) chỉ phòng ArenaRoom mở.
-    const mapId = options?.mapId ?? DEFAULT_MAP;
-    if (typeof mapId !== "string" || !Object.hasOwn(MAPS, mapId) || MAPS[mapId].kind === "arena") throw new ServerError(400, "Bản đồ không tồn tại.");
+    const mapId = mapIdIn(options?.mapId);
+    if (!mapId) throw new ServerError(400, "Bản đồ không tồn tại.");
     // Số kênh (1, 2, 3…) của phòng trong bản đồ: đồng bộ cho client ("Kênh N") và ghi vào metadata để liệt kê / chọn kênh. Chỉ phòng
     // bản đồ mới là kênh; sân Đại Đấu Hồn Trường (ArenaRoom, gọi thẳng setup) giữ `channel` = 0: không chia kênh, không khóa kênh.
     this.state.channel = takeChannel(mapId);
     this.setMetadata({ channel: this.state.channel });
     this.setup(mapId);
+  }
+
+  /**
+   * Lỗi bất ngờ trong handler message, hẹn giờ của clock, vòng tick, onAuth / onJoin / onLeave (Colyseus tự bọc khi phòng có hàm
+   * này): chỉ ghi log, không để lỗi lọt ra uncaughtException của tiến trình (@pm2/io, phụ thuộc gián tiếp của @colyseus/core, thoát
+   * tiến trình khi có lỗi đó; #164). Từ chối bằng ServerError (onAuth / onCreate) là bình thường, không ghi. Cùng một chỗ, cùng dòng
+   * mã ném lỗi chỉ ghi tối đa một lần mỗi ERR_LOG_MS (lỗi lặp lại không làm ngập log).
+   */
+  onUncaughtException(err: RoomException, method: string) {
+    if (err.cause instanceof ServerError) return;
+    const where = err instanceof OnMessageException ? `${method} "${err.type}"` : method, now = Date.now();
+    // Cùng chỗ, cùng dòng mã ném lỗi (khung đầu của stack; nội dung lỗi có thể chứa giá trị thay đổi theo từng lần).
+    const frame = (err.cause instanceof Error ? err.cause : err).stack?.split("\n")[1]?.trim() ?? err.message;
+    const key = `${where}|${frame}`, last = this.errLog.get(key);
+    if (last && now - last.at < ERR_LOG_MS) { last.n++; return; }
+    if (this.errLog.size >= 100) this.errLog.clear(); // không để Map lớn dần theo số loại lỗi
+    this.errLog.set(key, { at: now, n: 0 });
+    const who = err instanceof OnMessageException ? ` từ ${err.client.sessionId}` : "";
+    console.error(`Lỗi ở ${where}${who} (phòng ${this.roomId}${last?.n ? `, bỏ ${last.n} lần ghi trước` : ""}):`, err.cause ?? err);
   }
 
   /** Nạp bản đồ, sinh hồn thú / tinh anh / thú vương, bật vòng lặp, nghe presence và đăng ký message (ArenaRoom dùng lại, 7.2). */
@@ -500,6 +765,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe(BOSS_TOPIC, this.bossSub);
     this.presence.subscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
+    this.presence.subscribe(CHAT_TOPIC, this.chatSub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
     // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
     const now = Date.now(), active = kingSlotNow(mapId, now);
@@ -519,30 +785,46 @@ export class MapRoom extends Room<MapState> {
 
     this.onMessage("input", (c, m: { x: number; y: number; s?: number; w?: unknown }) => {
       const d = this.pdata.get(c.sessionId); if (!d || d.travelling) return;
-      const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
-      d.input = clampDir(num(m?.x), num(m?.y));
-      d.walk = !!m?.w; // 11.1: giữ Shift thì đi bộ cả khi ngoài giao chiến
+      const x = numIn(m?.x), y = numIn(m?.y);
+      // Tự săn (mục 5.13): tay luôn được ưu tiên, bấm đi thì tắt tự động; hướng 0 (nhả phím, client gửi lại) thì bỏ qua để tự săn đi tiếp.
+      if (d.auto && Math.hypot(x, y) > MOVE_DEAD) this.autoStop(c.sessionId, "bạn tự di chuyển.");
+      if (!d.auto) this.applyInput(d, x, y, !!m?.w); // 11.1: giữ Shift thì đi bộ cả khi ngoài giao chiến
       // Số thứ tự input của client đang dự đoán chuyển động (mục 6): chỉ để client đối chiếu, vị trí vẫn do tick() tính.
-      const p = this.state.players.get(c.sessionId), s = Math.floor(num(m?.s));
+      const p = this.state.players.get(c.sessionId), s = Math.floor(numIn(m?.s));
       if (p) { if (s > 0 && s <= 0xffffffff) p.seq = s; p.seqT = 0; }
     });
-    this.onMessage("attack", (c) => this.attack(c.sessionId));
-    this.onMessage("skill", (c, m: { i: number }) => this.skill(c, Number(m?.i)));
-    this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, Number(m?.rowId), m?.skills)); // 8.1a
-    this.onMessage("chanthan", (c) => this.chanThan(c)); // 8.1a: Võ Hồn Chân Thân (phím R)
-    this.onMessage("boneskill", (c, m: { i: number }) => this.boneSkill(c, Number(m?.i)));
+    // Đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt do người chơi tự bấm thì tắt tự săn trước (tay ưu tiên); tự săn gọi thẳng các hàm này.
+    this.onMessage("attack", (c) => { this.autoHand(c.sessionId); this.attack(c.sessionId); });
+    this.onMessage("skill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.skill(c, intIn(m?.i)); });
+    this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, intIn(m?.rowId), m?.skills)); // 8.1a
+    this.onMessage("chanthan", (c) => { this.autoHand(c.sessionId); this.chanThan(c); }); // 8.1a: Võ Hồn Chân Thân (phím R)
+    this.onMessage("boneskill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.boneSkill(c, intIn(m?.i)); });
+    this.onMessage("fusion", (c, m: { op: unknown }) => { this.autoHand(c.sessionId); this.fusionAction(c.sessionId, strIn(m?.op)); }); // Võ Hồn Dung Hợp Kỹ (#192)
+    this.onMessage("auto", (c, m: { op?: unknown; cfg?: unknown }) => this.autoAction(c.sessionId, m?.op, m?.cfg)); // tự săn (Auto 1)
+    this.onMessage("offline", (c) => { const d = this.pdata.get(c.sessionId); if (d) { d.offAsk = true; this.sendOffline(c.sessionId); } }); // Auto 3
     this.onMessage("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onMessage("pickup", (c) => this.pickup(c.sessionId));
     this.onMessage("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
-    this.onMessage("vohons", (c) => this.sendVohons(c));
+    this.onMessage("sortbag", (c) => this.sortBag(c.sessionId)); // sắp xếp + gộp chồng cả túi (#215)
+    this.onMessage("lock", (c, m: { id: unknown }) => this.lockItem(c.sessionId, m?.id)); // khoá / mở khoá một ô (#216)
+    this.onMessage("autosell", (c, m: { cfg: unknown }) => this.setAutoSell(c.sessionId, m?.cfg)); // bộ lọc tự bán (#216)
+    this.onMessage("vohons", (c) => this.ask(c.sessionId, "vohons", () => this.sendVohons(c)));
+    this.onMessage("boss", (c) => { // #118: client xin tin boss lúc vào phòng (sau khi đã nghe tin); tối đa 1 lần / giây, xin dồn thì bỏ
+      const d = this.pdata.get(c.sessionId), now = Date.now();
+      if (!d || now - d.bossAskAt < 1000) return;
+      d.bossAskAt = now; this.sendBossJoin(c);
+    });
     this.onMessage("team", (c, m: { slots: unknown }) => this.setTeam(c, m?.slots));
-    this.onMessage("switch", (c, m: { slot: number }) => this.switchSlot(c, Number(m?.slot)));
+    this.onMessage("switch", (c, m: { slot: number }) => { // tự đổi võ hồn khi đang tự săn: tự săn thôi đổi về võ hồn cũ
+      const a = this.pdata.get(c.sessionId)?.auto; if (a) a.home = null;
+      this.switchSlot(c, intIn(m?.slot));
+    });
     this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
-    this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, String(m?.portal ?? "")));
+    this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, strIn(m?.portal)));
     this.onMessage("wp", (c, m: { op: unknown; key: unknown }) => this.waypointAction(c.sessionId, m?.op, m?.key)); // truyền tống trận (11.2)
     this.onMessage("channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
     this.onMessage("channel", (c, m: { ch: unknown }) => this.switchChannel(c, m?.ch)); // đổi kênh trong cùng bản đồ
-    this.onMessage("bag", (c) => this.sendBag(c.sessionId));
+    this.onMessage("bag", (c) => this.ask(c.sessionId, "bag", () => this.sendBag(c.sessionId, true))); // client xin: cả túi, theo nhịp ASK_CD (#165)
     this.onMessage("use", (c, m: { id: unknown; vohonId?: unknown }) => this.useItem(c.sessionId, m?.id, m?.vohonId));
     this.onMessage("open", (c, m: { id: unknown }) => this.openChest(c.sessionId, m?.id)); // mở rương thú vương (BĐ5)
     this.onMessage("unlock", (c, m: { vohon: unknown }) => this.unlockVohon(c.sessionId, m?.vohon));
@@ -554,22 +836,20 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
-    this.onMessage("buy", (c, m: { code: unknown; qty: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty));
-    this.onMessage("sell", (c, m: { id: unknown; qty: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty));
-    this.onMessage("buyback", (c, m: { key: unknown }) => this.buybackItem(c.sessionId, m?.key)); // mua lại đồ vừa bán (9.8)
-    this.onMessage("expand", (c) => this.expandBag(c.sessionId)); // mở rộng túi (9.8)
+    this.onMessage("tong", (c, m: { op: unknown; tong: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong)); // tông môn (#196)
+    // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
+    this.onMessage("buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
+    this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
+    this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => this.buybackItem(c.sessionId, m?.key, m?.npc)); // mua lại đồ vừa bán (9.8)
+    this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => this.partyAction(c.sessionId, m)); // tổ đội người chơi (7.1)
     this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
     this.onMessage("arena", (c, m: { op: unknown }) => this.arenaAction(c.sessionId, m?.op)); // Đại Đấu Hồn Trường (7.2)
-    this.onMessage("resonance", (c) => this.sendRes(c.sessionId, [], true)); // cộng minh (8.2): xin bảng tiến độ
-    this.onMessage("chat", (c, m: { text: string }) => {
-      // Chống spam (server/src/ratelimit.ts): tin vượt giới hạn bị bỏ, chỉ báo riêng cho người gửi.
-      const p = this.state.players.get(c.sessionId); if (!p) return;
-      const r = chatCheck((c.auth as AuthData)?.accountId ?? c.sessionId, m?.text);
-      if (!r) return;
-      if ("error" in r) return this.log(c.sessionId, r.error, "#ffb35c");
-      this.broadcast("chat", { name: p.name, text: r.text });
-    });
+    this.onMessage("resonance", (c, m: { op?: unknown; page?: unknown; pageSize?: unknown }) => {
+      if (m?.op === "top") return this.resonanceTop(c.sessionId, m.page, m.pageSize);
+      this.sendRes(c.sessionId, [], true);
+    }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
+    this.onMessage("chat", (c, m: unknown) => this.chatAction(c.sessionId, m)); // chat bản đồ / tổ đội / riêng / thế giới (#188)
   }
 
   onJoin(client: Client, _o: unknown, auth: AuthData) {
@@ -589,32 +869,54 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false,
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false, bossAskAt: 0, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "",
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
-      bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0,
-      claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testChest: null, passive: { buff: {}, resist: {} },
+      bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
+      sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
+      claims: auth.claims, wclaims: auth.wclaims, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
-      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER), ...this.dailyOf(bag.quests),
-      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaGone: false };
+      quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
+      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests),
+      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, resonanceTopAt: 0, arenaGone: false,
+      auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
+      autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
+      tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
+    p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
     this.state.players.set(client.sessionId, p);
     this.state.online = this.state.players.size;
+    this.rebindContrib(client.sessionId, auth.accountId); // #119: đóng góp boss theo tài khoản, vào lại không mất
     this.interest.join(client, p); // 11.4: view riêng, chỉ thực thể ở gần (state đầy đủ đầu tiên gửi sau onJoin)
+    const filled = this.fillBoneSubs(d); // #187: tung bù dòng phụ hồn cốt cũ một lần (trước khi tính chỉ số)
     this.resCheck(client.sessionId, false); // cộng minh (8.2) tính trước chỉ số ban đầu, không báo mốc
     this.recalc(client.sessionId, true);
+    if (filled) this.save(client.sessionId); // ghi ngay qua chuỗi lưu để lần vào sau không tung lại
+    this.chain(d, () => this.claimOffline(client.sessionId)); // ủy thác offline (Auto 3): nhận thưởng thời gian vắng mặt
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
     // Tổ đội (7.1): có mặt trong game (tổ đội giữ nguyên khi đi cổng); đồng đội ở mọi bản đồ thấy đổi bản đồ / vào lại.
     this.partyPublish(party.goOnline({ acc: auth.accountId, name: p.name, sid: client.sessionId, mapId: this.state.mapId, roomId: this.roomId,
       ch: this.state.channel, level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead }));
     this.sendParty(client.sessionId, true);
-    // Thú vương (BĐ5): người vào giữa lúc chờ thì nhận đếm ngược còn lại; thú vương đang ở bản đồ này thì nhận thời gian trước khi rút đi.
+  }
+
+  /**
+   * Boss cho người vừa vào (BĐ5, #118): client xin bằng tin `boss` sau khi dựng cảnh (tin gửi ngay lúc onJoin tới trước khi client nghe
+   * nên bị bỏ). Người vào giữa lúc chờ thì nhận đếm ngược còn lại (`join`: client không lặp log / banner); thú vương / boss thế giới
+   * đang ở bản đồ này thì nhận thời gian trước khi rút đi, đồng hồ nổi giận, điểm yếu, chỗ nổi lên của Du Thủy và chiêu toàn sàn đang
+   * báo trước (`t` giây còn lại, `warn` cả chiêu).
+   */
+  sendBossJoin(client: Client) {
     const w = this.bossWarn;
-    if (w && w.at > Date.now()) client.send("boss", this.bossMsg(w, "warn", (w.at - Date.now()) / 1000));
-    const kb = this.king?.bid ? this.state.beasts.get(this.king.bid) : undefined, kd = this.king?.bid ? this.bdata.get(this.king.bid)?.elite?.king : undefined;
-    if (kb && kd) client.send("boss", { k: "here", name: beastName(kb.rank, kb.species), mapId: this.state.mapId, mapName: MAPS[this.state.mapId].name, life: kd.life,
+    if (w && w.at > Date.now()) client.send("boss", { ...this.bossMsg(w, "warn", (w.at - Date.now()) / 1000), join: true });
+    const bid = this.king?.bid, kb = bid ? this.state.beasts.get(bid) : undefined, bd = bid ? this.bdata.get(bid) : undefined, kd = bd?.elite?.king;
+    // `here`: client chỉ đặt đồng hồ / điểm yếu / chỗ nổi lên của Du Thủy khi có cờ này (như tin "spawn" ở đúng bản đồ).
+    if (kb && kd) client.send("boss", { k: "here", here: true, bid, name: beastName(kb.rank, kb.species), mapId: this.state.mapId, mapName: MAPS[this.state.mapId].name, life: kd.life,
       phase: kd.phase, title: kd.phase === 2 ? (kd.world ? "Nổi giận" : kd.def.phase2?.name) : "", ...this.worldInfo(kd) });
+    // Chiêu toàn sàn đang báo trước (#118): người vừa vào cũng thấy vùng và vòng an toàn (thời gian còn lại) để kịp né.
+    const kc = kb && kd?.world ? bd?.cast : undefined;
+    if (kc?.def.floor) client.send("fx", { k: "tele", bid, name: kc.def.name, ...kc.teles[0], parts: kc.teles.slice(1), t: kc.t, warn: kc.def.warn, ...(kc.safe ? { safe: kc.safe } : {}) });
   }
 
   async onLeave(client: Client) {
@@ -624,12 +926,21 @@ export class MapRoom extends Room<MapState> {
       // Client đã đi: dừng mọi tiến độ ngay (hấp thụ dở bị hủy). Không dừng thì trong lúc chờ ghi DB, tick vẫn có thể hấp thụ
       // xong hay đạn còn bay hạ hồn thú, cộng vào nhân vật sau khi write() đã chụp dữ liệu, rồi mất khi pdata bị xóa.
       if (d.absorbing) { d.absorbing = null; p.absorb = 0; }
+      const zone = this.offlineZone(id); // ủy thác offline (Auto 3): chụp chỗ đứng trước khi freeze
       this.freeze(id);
       // Tổ đội (7.1): vẫn trong đội PARTY_OFFLINE_SECS giây (đi cổng, vào lại); quá thì party.sweep cho ra khỏi đội.
       this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
       // không ghi gì nữa; transaction lỗi hoặc chưa đi cổng thì lưu như thường (có lớp chặn WHERE map_id).
-      await this.chain(d, () => (d.travelled ? undefined : this.write(id, true)));
+      await this.chain(d, async () => {
+        if (d.travelled) return;
+        await this.write(id, true);
+        // Ủy thác offline (Auto 3, mục 5.13): rời game (không qua cổng / đổi kênh / vào sân đấu) khi đứng trong vùng săn thì ghi vùng và
+        // thời điểm (đồng hồ server; hook test `offline` lùi thời điểm), sau lần ghi cuối để giờ treo trong ngày đã lưu.
+        if (!zone || d.arenaGone) return;
+        const ago = testOfflineAgo.get(d.accountId) ?? 0; testOfflineAgo.delete(d.accountId);
+        await store.startOffline(d.accountId, { mapId: this.state.mapId, zone: zone.name, at: Date.now() - ago * 1000, day: d.autoDay, used: d.autoUsed });
+      });
       if (!d.travelled) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã rời ${MAPS[this.state.mapId].name}.` });
       if (!d.travelled && !d.arenaGone) this.forgetBuyback(d.accountId); // rời game: thương nhân quên đồ vừa bán (9.8)
       // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
@@ -649,6 +960,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(BOSS_TOPIC, this.bossSub);
     this.presence.unsubscribe(ANNOUNCE_TOPIC, this.announceSub);
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
+    this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
     if (this.state.channel) channelsInUse.get(this.state.mapId)?.delete(this.state.channel);
     for (const [id, d] of this.pdata) this.partyPublish(party.goOffline(d.accountId, id, Date.now()));
     // Trả suất thú vương (BĐ5): phòng mở lại trong cùng khung giờ nhận lại đúng trạng thái (đã hạ / rút đi / còn sống tới lúc rút đi).
@@ -709,6 +1021,17 @@ export class MapRoom extends Room<MapState> {
     return d.saving;
   }
 
+  /**
+   * Như chain, nhưng gộp theo khóa `key`: đã có một lần ghi `key` đang chờ trong chuỗi thì chỉ thay hàm của nó bằng `fn` mới nhất,
+   * không nối thêm. Message gửi dồn (xếp ô hồn kỹ, đổi võ hồn ra trận qua đội hình) không làm chuỗi lưu và số lần ghi DB tăng theo
+   * số message (#164).
+   */
+  chainLatest(d: PData, key: string, fn: () => unknown) {
+    const queued = d.latest.has(key);
+    d.latest.set(key, fn);
+    if (!queued) this.chain(d, () => { const f = d.latest.get(key)!; d.latest.delete(key); return f(); });
+  }
+
   /** Lưu định kỳ / sau sự kiện quan trọng: xếp vào chuỗi lưu, chụp dữ liệu lúc tới lượt. */
   save(id: string) {
     const d = this.pdata.get(id); if (!d) return Promise.resolve();
@@ -733,7 +1056,8 @@ export class MapRoom extends Room<MapState> {
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
     return { honTe: d.honTe, slots: d.bagSlots, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
-      quests: [d.quest, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })) };
+      quests: [d.quest, ...d.chains, ...d.daily].map((q) => ({ ...q, prog: [...q.prog] })),
+      sell: { ...d.sellCfg }, sold: d.sold.map((r) => ({ ...r, item: { ...r.item, stats: r.item.stats == null ? null : structuredClone(r.item.stats) } })) };
   }
 
   /**
@@ -743,7 +1067,9 @@ export class MapRoom extends Room<MapState> {
    * "đăng xuất" ở đây thì ghi như đi cổng (một transaction saveTravel) về điểm `arrive` của cổng tới bản đồ `exit`, lần sau vào ở đó.
    */
   async write(id: string, final = false) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    // Đã đi cổng / đổi kênh (transaction đi cổng là lần ghi cuối của phòng này): không ghi gì nữa.
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled) return;
+    await this.flushAuto(d);
     const exit = final ? MAPS[this.state.mapId].exit : undefined, out = exit ? this.map.portals.find((q) => q.to === exit) : undefined;
     if (out) {
       const list = this.unsaved(id), bag = this.unsavedBag(d);
@@ -751,13 +1077,17 @@ export class MapRoom extends Room<MapState> {
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
       return;
     }
+    // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
     const list = this.unsaved(id), x = p.x, y = p.y, bag = this.unsavedBag(d);
-    try {
-      await Promise.all(list.map((v) => store.saveCharacter(v)
-        .catch((e) => { if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); throw e; })));
-      await store.saveLocation(d.accountId, this.state.mapId, x, y, d.testFile);
-      if (bag) await store.saveBag(d.accountId, bag);
-    } catch (e) { if (bag) d.bagDirty = true; throw e; }
+    let saved: boolean;
+    try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
+    catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
+    if (saved) return;
+    // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
+    // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
+    console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${this.state.mapId}; ngắt kết nối để vào lại.`);
+    this.log(id, "Dữ liệu nhân vật đã ở bản đồ khác: hãy vào lại game.", "#ff8a8a");
+    this.clients.getById(id)?.leave(4003);
   }
 
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
@@ -767,7 +1097,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
-   * Cộng minh (bước 8.2, mục 5.10): tính lại tiến độ 4 trụ cột từ dữ liệu sẵn có của tài khoản (mọi võ hồn sở hữu: cấp, số hồn
+   * Cộng minh (bước 8.2, mục 5.10): tính lại tiến độ 5 trụ cột từ dữ liệu sẵn có của tài khoản (mọi võ hồn sở hữu: cấp, số hồn
    * hoàn; hồn cốt / hồn hạch đang gắn trên võ hồn của mình). Võ hồn ra trận đọc tiến độ đang chơi (p.level, d.ringYears). Số mốc
    * đổi thì tính lại chỉ số võ hồn ra trận (võ hồn khác tính khi cần qua maxHpOf / calcStats nên đổi vào sau cũng đúng), gửi lại
    * sinh lực đội; `announce` thì báo từng mốc mới đạt (log + `ev` trong tin riêng "resonance") và mốc bị mất (tháo đồ). Tiến độ đổi
@@ -778,7 +1108,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
     const mine = new Set(d.owned.map((v) => v.rowId)), worn = d.bag.filter((i) => i.vohonId !== null && mine.has(i.vohonId));
     const prog = resonanceProgress({
-      vohons: d.owned.map((v) => (v === d.ch ? { level: p.level, rings: d.ringYears.length } : { level: v.level, rings: v.rings.length })),
+      vohons: d.owned.map((v) => (v === d.ch ? { level: p.level, rings: d.ringYears.length, stars: v.stars } : { level: v.level, rings: v.rings.length, stars: v.stars })),
       bones: worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
       cores: worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })) });
     const lv = resonanceLevels(prog), old = d.res.lv, changed = lv.some((x, i) => x !== (old[i] ?? 0));
@@ -808,6 +1138,22 @@ export class MapRoom extends Room<MapState> {
     if (!force && !ev.length && key === d.resKey) return;
     d.resKey = key;
     this.clients.getById(id)?.send("resonance", ev.length ? { ...msg, ev } : msg);
+  }
+
+  /** Tin riêng "resonanceTop": xếp hạng công khai chỉ có tên hiển thị / điểm; chi tiết tiến độ và hiệu ứng chỉ trả ở `me`. */
+  resonanceTop(id: string, rawPage: unknown, rawPageSize: unknown) {
+    const d = this.pdata.get(id); if (!d) return;
+    const now = Date.now(); if (now - d.resonanceTopAt < RESONANCE_RANK_CD * 1000) return;
+    d.resonanceTopAt = now;
+    const page = Math.max(1, intIn(rawPage) || 1);
+    const pageSize = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, intIn(rawPageSize) || RESONANCE_RANK_PAGE_SIZE));
+    store.resonanceTop(page, pageSize, d.accountId).then((t) => {
+      this.clients.getById(id)?.send("resonanceTop", {
+        page: t.page, pageSize: t.pageSize, total: t.total, hasNext: t.hasNext,
+        list: t.list.map((r) => ({ name: r.name, score: r.score, milestones: r.milestones, me: r.accountId === d.accountId })),
+        me: t.me,
+      });
+    }, (e) => console.error("Không đọc được bảng xếp hạng cộng minh", e));
   }
 
   // ---------- Võ hồn sở hữu và đội hình ----------
@@ -877,12 +1223,14 @@ export class MapRoom extends Room<MapState> {
     p.swCd = SWITCH_CD;
     if (d.fight < TEAM_COMBAT_SECS) this.questEvent(id, { k: "switch" }); // 6.2: đổi tay khi đang giao chiến
     // Bộ hồn hạch Lưu Ly 4 món (5.2): đổi tay võ hồn mang bộ vào thì cả đội tăng công (hiệu ứng có lợi của hồn sư) một lúc.
-    const sa = d.coreFx.swapAtk;
+    // Đọc lại bộ của võ hồn vừa vào trận để hiệu ứng vẫn đúng ngay cả khi recalc trước đó chưa cập nhật cache coreFx.
+    const sa = coreFx(this.coresOn(d, next.rowId)).swapAtk;
     if (sa) {
       const cur = d.buffs.get("atk"), col = CORE_SETS[coreSetIndex("luu_ly")].col;
       d.buffs.set("atk", { t: Math.max(cur?.t ?? 0, CORE_FX_RULE.swapSecs), v: Math.max(cur?.v ?? 0, sa) });
       this.syncBuffs(p, d); this.broadcast("fx", { k: "buff", id, col });
       this.log(id, `Bộ Lưu Ly: cả đội tăng ${Math.round(sa * 100)}% công trong ${CORE_FX_RULE.swapSecs} giây.`, col);
+      if (!this.map.inSafe(p.x, p.y)) this.partyShare(id, { buff: { atk: sa }, secs: CORE_FX_RULE.swapSecs }, 1, 1, col, d.ch.vohon);
     }
     // Đủ năng lượng thì tung chiêu tiên cơ ngay lúc xuất hiện (chỉ khi đổi tay; tự đổi lúc gục thì giữ năng lượng).
     // Vùng an toàn không giao chiến (mục 5.3): đổi vẫn được nhưng không tung, giữ năng lượng.
@@ -914,7 +1262,7 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 34, col: VOHON[p.vh].col });
     this.log(id, text ?? `${VOHON[p.vh].name} ra trận (cấp ${p.level}, ${p.rings.length} hồn hoàn).`, VOHON[p.vh].col);
     const old = { ...prev, rings: [...prev.rings] };
-    this.chain(d, () => store.saveCharacter(old));
+    this.chainLatest(d, `ch:${old.rowId}`, () => store.saveCharacter(old)); // đổi qua lại dồn dập (đội hình): ghi một lần, bản mới nhất
   }
 
   /** Lưu đội hình cùng võ hồn ra trận qua chuỗi lưu. Đổi dồn dập thì không ghi chồng: đã có một lần chờ thì lần đó ghi bản mới nhất. */
@@ -926,6 +1274,226 @@ export class MapRoom extends Room<MapState> {
       const ok = await store.saveTeam(d.accountId, [...d.team], d.ch.rowId);
       if (!ok) console.error(`Đội hình của tài khoản #${d.accountId} không hợp lệ, không lưu:`, d.team, d.ch.rowId);
     });
+  }
+
+  // ---------- Tự săn (Auto 1, mục 5.13; quyết định ở autoHunt.ts) ----------
+  /** Hướng đi của hồn sư như tin `input` (người chơi gửi, hoặc tự săn đặt): kẹp độ dài, cờ đi bộ. Vị trí vẫn do tick() tính. */
+  applyInput(d: PData, x: number, y: number, walk: boolean) { d.input = clampDir(x, y); d.walk = walk; }
+
+  /** Người chơi tự bấm đánh / hồn kỹ / Chân Thân / kỹ năng hồn cốt: tay luôn được ưu tiên, tắt tự săn trước. */
+  autoHand(id: string) { if (this.pdata.get(id)?.auto) this.autoStop(id, "bạn tự ra đòn."); }
+
+  /**
+   * Tin `auto {op, cfg}`: `on` bật với điểm neo là chỗ đang đứng, `off` tắt, `set` đổi cài đặt (kẹp bằng parseAuto), `get` xin trạng
+   * thái. Chỉ ở bản đồ săn, ngoài vùng an toàn, không gục / hấp thụ / đi cổng, còn giờ treo hôm nay, túi còn chỗ, ô lưới chưa đủ
+   * AUTO_MAX_PER_CELL người treo. Luôn trả tin riêng `auto`.
+   */
+  autoAction(id: string, op: unknown, cfg: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; d.autoDirty = true; }
+    if (op === "off") { if (d.auto) this.autoStop(id, "đã tắt."); else this.sendAuto(id); return; }
+    if (op === "set") {
+      d.autoCfg = parseAuto(cfg); if (d.auto) d.auto.cfg = d.autoCfg;
+      d.autoDirty = true; this.chainLatest(d, "auto", () => this.flushAuto(d)); // gửi dồn: ghi một lần (#164)
+      return this.sendAuto(id);
+    }
+    if (op !== "on" || d.auto) return this.sendAuto(id);
+    const deny = (t: string) => { this.log(id, `Không bật được tự động: ${t}`, "#ffb35c"); this.sendAuto(id, t); };
+    // #218: cả bản đồ boss (Lõi Tinh Đấu: không có hồn thú thường, tự săn chỉ để đánh boss thế giới).
+    if (this.map.kind !== "hunt" && this.map.kind !== "boss") return deny("chỉ tự săn được ở bản đồ săn hoặc bản đồ boss.");
+    if (p.dead) return deny("đã gục ngã.");
+    if (d.absorbing) return deny("đang hấp thụ hồn hoàn.");
+    if (d.travelCast) return deny("đang đi cổng / truyền tống.");
+    if (this.map.inSafe(p.x, p.y)) return deny("đang ở vùng an toàn, ra bãi săn rồi bật.");
+    if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
+    if (bagUsed(d.bag) >= d.bagSlots && !this.autoSell(id)) return deny(`túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`);
+    const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
+    let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
+    if (n >= AUTO_MAX_PER_CELL) return deny(`chỗ này đã có ${n} người treo, hãy sang chỗ khác.`);
+    d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true; d.autoSold0 = [d.soldN, d.soldCoins];
+    // Đang giữ phím đi thì bỏ hướng đó và tăng `seq` (như hook goto) để client đang dự đoán biết input của nó đã bị bỏ và gửi lại;
+    // gửi lại hướng khác 0 là tự di chuyển nên tự săn tắt ngay (tay ưu tiên).
+    if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) { p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
+    this.applyInput(d, 0, 0, false);
+    const where = d.autoCfg.scope === "near" ? `quanh đây (${d.autoCfg.radius} ô)` : "khắp bản đồ";
+    this.log(id, `Bật tự động: săn ${where}, còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))} treo. Tự đi / đánh hoặc phím T để tắt.`, "#86e0b0");
+    // #218: bản đồ boss không có hồn thú thường: chưa có boss thì chỉ đi dạo chờ, vẫn tính giờ treo.
+    if (this.map.kind === "boss" && !this.autoBosses().length)
+      this.log(id, "Bản đồ này chưa có boss: tự động chỉ đi dạo chờ boss xuất hiện, vẫn tính giờ treo.", "#ffb35c");
+    this.sendAuto(id);
+  }
+
+  /** Dừng tự săn của `id` (nếu đang chạy) với lý do `why`: đứng yên, lưu giờ treo trong chuỗi lưu, báo người chơi kèm tổng kết (Auto 2). */
+  autoStop(id: string, why: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!d?.auto) return;
+    const sum = d.auto.summary(d), sold: [number, number] = [d.soldN - d.autoSold0[0], d.soldCoins - d.autoSold0[1]];
+    if (sold[0] > 0) sum.sold = sold; // tự bán trong lượt (#216); Hồn Tệ đã nằm trong sum.coins
+    d.auto = null; if (p) p.auto = false;
+    this.applyInput(d, 0, 0, false);
+    d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
+    this.log(id, `Đã dừng tự động: ${why}`, "#ffb35c");
+    this.sendAuto(id, why, sum);
+  }
+
+  /**
+   * Tin riêng `auto`: đang bật không, giây treo còn lại (phần còn của hôm nay cộng quỹ Ủy Thác Lệnh), tối đa mỗi ngày, quỹ cộng thêm,
+   * cài đặt, lý do vừa dừng / từ chối và tổng kết lượt vừa dừng (nếu có).
+   */
+  sendAuto(id: string, why?: string, sum?: AutoSummary) {
+    const d = this.pdata.get(id); if (!d) return;
+    this.clients.getById(id)?.send("auto", { on: !!d.auto, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus),
+      cfg: d.autoCfg, ...(why ? { why } : {}), ...(sum ? { sum } : {}) });
+  }
+
+  /** Dòng tự săn để lưu (cài đặt, ngày, giờ đã treo, quỹ cộng thêm; làm tròn 0,1 giây). */
+  autoRow(d: PData): AutoRow {
+    return { settings: d.autoCfg, day: d.autoDay, used: Math.round(d.autoUsed * 10) / 10, bonus: Math.round(d.autoBonus * 10) / 10 };
+  }
+
+  /**
+   * Dùng Ủy Thác Lệnh (Auto 2): cộng `def.auto` giây vào quỹ giờ treo cộng thêm, tối đa AUTO_BONUS_MAX (đầy thì không dùng, lệnh còn).
+   * Túi đã bớt lệnh và quỹ mới ghi cùng một transaction (saveAutoBag) trong chuỗi lưu.
+   */
+  useAutoToken(id: string, d: PData, it: Item, def: ItemDef) {
+    const add = def.auto ?? 0;
+    if (d.autoBonus + add > AUTO_BONUS_MAX)
+      return this.log(id, `Giờ treo cộng thêm đã có ${autoTimeText(d.autoBonus)}, tối đa ${autoTimeText(AUTO_BONUS_MAX)}: dùng bớt rồi hãy dùng ${def.name}.`, "#ffb35c");
+    const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; }
+    this.takeItem(d, it, 1);
+    d.autoBonus += add;
+    const p = this.state.players.get(id);
+    if (p) this.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 22, col: def.col });
+    this.log(id, `Dùng ${def.name}: +${autoTimeText(add)} treo tự săn (cộng thêm còn ${autoTimeText(d.autoBonus)}; tổng còn ${autoTimeText(autoLeft(d.autoUsed, d.autoBonus))}).`, def.col);
+    this.sendBag(id); this.sendAuto(id);
+    this.chain(d, async () => {
+      d.autoDirty = false;
+      try { await store.saveAutoBag(d.accountId, this.autoRow(d), this.bagSnapshot(d)); }
+      catch (e) { d.autoDirty = true; d.bagDirty = true; throw e; }
+    });
+  }
+
+  /** Ghi cài đặt và giờ treo tự săn nếu đổi từ lần trước (chỉ gọi trong chuỗi lưu). Lỗi thì ghi log, đánh dấu để lần sau ghi lại. */
+  async flushAuto(d: PData) {
+    if (!d.autoDirty) return;
+    d.autoDirty = false;
+    try { await store.saveAuto(d.accountId, this.autoRow(d)); }
+    catch (e) { d.autoDirty = true; console.error(`Lưu tự săn của tài khoản #${d.accountId} thất bại`, e); }
+  }
+
+  // ---------- Ủy thác offline (Auto 3, mục 5.13 "Ủy thác offline"; công thức ở shared/data.ts, mục "Ủy thác offline") ----------
+  /** Vùng săn nơi hồn sư `id` đang đứng, nếu thoát ở đây thì được ủy thác: bản đồ săn, ngoài vùng an toàn, không gục, vùng có hồn thú. */
+  offlineZone(id: string): Zone | null {
+    const p = this.state.players.get(id); if (!p || p.dead || this.map.kind !== "hunt" || this.map.inSafe(p.x, p.y)) return null;
+    return this.map.zones.find((z) => z.count > 0 && p.x >= z.x0 && p.x < z.x1 && p.y >= z.y0 && p.y < z.y1) ?? null;
+  }
+
+  /**
+   * Vào game: lấy và xóa lần ủy thác offline của tài khoản (store.takeOffline, nên một lần thoát chỉ nhận một lần), rồi tính thưởng
+   * theo thời gian vắng mặt (đồng hồ server) bằng công thức, không đụng thế giới: giây được tính chia theo ngày giờ Việt Nam, mỗi ngày
+   * trong phần còn lại của quỹ AUTO_DAILY_SECS (chung với tự săn online), hết thì dùng tiếp quỹ giờ cộng thêm của Ủy Thác Lệnh (Auto 2),
+   * tổng tối đa OFFLINE.maxSecs (offlineSplit). Mỗi con: niên hạn và
+   * loài tung như hồn thú của vùng, thời gian hạ theo offlineFight (chỉ số võ hồn ra trận lúc vào); kinh nghiệm, Hồn Tệ, mảnh, tiên thảo,
+   * hồn cốt / hồn hạch (theo bộ lọc tự săn `bone` / `core`), hồn hoàn (từ `ring` năm, tối đa OFFLINE.rings) như hạ tay. Túi đầy thì dừng
+   * như tự săn; quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
+   * `offline` (bảng nhận thưởng). Vắng dưới OFFLINE.minSecs hoặc vùng không còn (đổi bản đồ) thì bỏ.
+   */
+  async claimOffline(id: string) {
+    const d0 = this.pdata.get(id); if (!d0 || this.map.kind === "arena") return;
+    const row = await store.takeOffline(d0.accountId);
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!row || !p || !d) return;
+    const away = Math.max(0, Math.floor((Date.now() - row.at) / 1000)), def = MAPS[row.mapId];
+    const zone = def?.kind === "hunt" ? loadMap(row.mapId).zones.find((z) => z.name === row.zone && z.count > 0) : undefined;
+    if (away < OFFLINE.minSecs || !zone) return;
+    const today = this.today(); if (today !== d.autoDay) { d.autoDay = today; d.autoUsed = 0; d.autoDirty = true; }
+    // Auto 2: hết quỹ miễn phí của ngày thì dùng tiếp quỹ giờ cộng thêm (Ủy Thác Lệnh) còn lại lúc nhận (đã trừ phần tự săn online tiêu).
+    const parts = offlineSplit(bossNow() + this.dayShift * 86400000, away, row.day, row.used, d.autoBonus);
+    const secs = Math.floor(parts.reduce((a, x) => a + x.secs, 0));
+    const pw = this.offlinePower(d, p);
+    const cfg = d.autoCfg, lv = p.level, got = new Map<string, number>(), rings: number[] = [];
+    const add = (name: string, n: number) => got.set(name, (got.get(name) ?? 0) + n);
+    let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false;
+    // Mỗi vòng một con; mỗi con tốn ít nhất OFFLINE.seek giây nên vòng lặp tối đa secs / seek lần.
+    while (!full) {
+      const years = this.offlineYears(zone), species = this.offlineSpecies(zone), beast = BEASTS[species]?.id ?? "";
+      const f = offlineFight(pw, years, beast);
+      if (t + f.secs > secs) break;
+      t += f.secs;
+      if (!f.ok) { weak++; continue; }
+      kills++;
+      xp += beastStats(years).xp * xpLevelScale(lv, beastLevel(years));
+      const [lo, hi] = BEAST_COIN[tierOfYears(years)] ?? BEAST_COIN[0]; coins += lo + Math.floor(Math.random() * (hi - lo + 1));
+      // Mảnh, tiên thảo vào thẳng túi như khi hạ tay; hồn cốt, hồn hạch, hồn hoàn theo bộ lọc nhặt của tự săn.
+      if (def.shards.length && Math.random() < shardChance(years)) {
+        const code = shardCode(def.shards[Math.floor(Math.random() * def.shards.length)]), n = this.addItem(d, code, SHARD_QTY);
+        if (n) add(itemDef(code)?.name ?? code, n);
+        if (n < SHARD_QTY) full = true;
+      }
+      const hc = herbChance(row.mapId, zone.name);
+      if (hc > 0 && Math.random() < hc) {
+        const h = HERBS[Math.floor(Math.random() * HERBS.length)];
+        if (this.addItem(d, h.id, 1)) add(h.name, 1); else full = true;
+      }
+      if (cfg.bone && Math.random() < boneChance(years)) {
+        const it = this.addBone(d, years, beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
+        if (it) add(this.itemLabel(it), 1); else full = true;
+      }
+      if (cfg.core && Math.random() < coreChance(years)) {
+        const c = rollCore(years, def.cores, Math.random);
+        if (c.stars >= cfg.coreStar) { const it = this.addCore(d, c.stars, c.data); if (it) add(this.itemLabel(it), 1); else full = true; } // Auto 2: lọc theo sao
+      }
+      if (cfg.ring >= 0 && years >= cfg.ring && rings.length < OFFLINE.rings) { if (this.addRing(d, years)) rings.push(years); else full = true; }
+    }
+    // Trừ đúng phần đã săn theo thứ tự thời gian (offlineSplit xếp từ cũ tới mới): phần miễn phí của hôm nay vào quỹ hôm nay (quỹ các
+    // ngày trước không còn dùng), phần lấy từ quỹ cộng thêm (Auto 2) vào quỹ cộng thêm; dừng sớm thì trừ ít hơn.
+    let rest = t, charge = 0, bonusUsed = 0;
+    for (const x of parts) {
+      const n = Math.max(0, Math.min(x.secs, rest)); rest -= n;
+      if (x.bonus) bonusUsed += n; else if (x.day === today) charge += n;
+    }
+    if (charge > 0) { d.autoUsed = Math.min(AUTO_DAILY_SECS, d.autoUsed + charge); d.autoDirty = true; }
+    if (bonusUsed > 0) { d.autoBonus = Math.max(0, d.autoBonus - bonusUsed); d.autoDirty = true; }
+    if (coins) this.addCoin(d, coins);
+    p.kills += kills;
+    // Kinh nghiệm chia cho đội như rewardKill (so cấp lúc vào, một lần cho cả quãng); bình cảnh thì dừng như khi săn tay.
+    if (xp > 0) for (const r of d.team) {
+      const v = d.owned.find((o) => o.rowId === r); if (!v) continue;
+      if (v === d.ch) this.addXp(id, Math.round(xp * XP_SHARE_ACTIVE)); else this.benchXp(id, v, Math.round(xp * XP_SHARE_BENCH));
+    }
+    const items = [...(rings.length ? [{ name: `Hồn hoàn (cao nhất ${formatYears(Math.max(...rings))})`, qty: rings.length }] : []),
+      ...[...got].map(([name, qty]) => ({ name, qty }))];
+    const stop = full ? "túi đầy" : !kills && weak ? "vùng quá sức" : !secs ? "hết giờ treo" : undefined;
+    await this.write(id);
+    const c = this.clients.getById(id); if (!c) return;
+    this.sendBag(id); this.sendVohons(c); this.sendSquad(id, true); this.sendAuto(id);
+    d.offMsg = { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
+      items, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus), bonusUsed: Math.round(bonusUsed),
+      ...(stop ? { stop } : {}) };
+    this.sendOffline(id);
+    this.log(id, `Ủy thác ở ${zone.name} (${def.name}): vắng ${autoTimeText(away)}, tính ${autoTimeText(secs)}, hạ ${kills} hồn thú, ` +
+      `${formatHonTe(coins)} Hồn Tệ${stop ? ` (dừng: ${stop})` : ""}.`, "#86e0b0");
+  }
+
+  /** Gửi bảng nhận thưởng ủy thác (tin riêng `offline`) một lần, khi đã tính xong và client đã xin. */
+  sendOffline(id: string) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d?.offMsg || !d.offAsk || !c) return;
+    c.send("offline", d.offMsg); d.offMsg = null;
+  }
+
+  /** Niên hạn một hồn thú thường của vùng `z` khi ủy thác (như spawnBeast, không có hồn thú 10 vạn năm). */
+  offlineYears(z: Zone) {
+    if (z.years) return rollYears(z.years[0], Math.max(z.years[0], Math.min(z.years[1], MAX_YEARS - 1)), Math.random());
+    let r = Math.random(), tier = 0;
+    for (let i = 0; i < z.weights.length; i++) { r -= z.weights[i]; if (r <= 0) { tier = i; break; } }
+    const [lo, hi] = tierBand(Math.min(tier, TIERS.length - 2));
+    return rollYears(lo, hi, Math.random());
+  }
+
+  /** Loài (chỉ số BEASTS) một hồn thú của vùng `z` theo trọng số `beasts` (như pickSpecies). */
+  offlineSpecies(z: Zone) {
+    const list = z.beasts.length ? z.beasts : BEASTS.map((_, i) => ({ species: i, w: 1 }));
+    let r = Math.random() * list.reduce((a, b) => a + b.w, 0);
+    for (const b of list) { r -= b.w; if (r <= 0) return b.species; }
+    return list[list.length - 1].species;
   }
 
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
@@ -953,6 +1521,7 @@ export class MapRoom extends Room<MapState> {
     if (this.map.portalAt(p.x, p.y) !== portal) return "Hãy đứng trong cổng rồi mới đi qua được.";
     if (p.dead) return "Đã gục ngã, không thể đi qua cổng.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không thể đi qua cổng.";
+    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d, true)}: không thể đi qua cổng.`; // #116
     return null;
   }
 
@@ -974,8 +1543,21 @@ export class MapRoom extends Room<MapState> {
    */
   freeze(id: string) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
+    this.autoStop(id, "rời bản đồ."); // tự săn (Auto 1): đi cổng, truyền tống sang bản đồ khác, vào sân đấu, mất kết nối
     d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
-    arenaDequeue(d.accountId); // rời bản đồ / đi cổng thì ra khỏi hàng chờ Đại Đấu Hồn Trường (7.2)
+    // Rời bản đồ thì bỏ cả bên. Báo cho thành viên còn ở phòng để ô hàng chờ và khóa tổ đội không bị treo.
+    const q = arenaQueued(d.accountId);
+    if (q && arenaDequeue(d.accountId)) {
+      for (const member of q.members) {
+        const row = [...this.pdata.entries()].find(([, x]) => x.accountId === member.accountId);
+        if (!row) continue;
+        this.sendArenaQueue(row[0]);
+        if (row[0] !== id) this.log(row[0], "Đồng đội đã rời phòng, hàng chờ Đại Đấu Hồn Trường đã hủy.", "#ffb35c");
+      }
+    }
+    // Nếu còn ở pha đọc Elo, đánh dấu hủy nhưng giữ arenaBusy tới khi Promise kết thúc (#225/#227).
+    const accounts = party.partyIdOf(d.accountId) ? party.partyMembers(d.accountId) : [d.accountId];
+    accounts.forEach((acc) => arenaReadCancel(acc));
     this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
     this.projs = this.projs.filter((pr) => pr.owner !== id);
   }
@@ -983,31 +1565,49 @@ export class MapRoom extends Room<MapState> {
   /**
    * Bước 2–4 của mục 6: đánh dấu đang chuyển bản đồ, nối transaction đi cổng vào chuỗi lưu (chờ mọi lần ghi trước xong rồi
    * mới chụp dữ liệu), commit xong mới gửi riêng `travel {mapId, roomId}`. Lỗi thì bỏ cờ, người chơi ở lại.
-   * `roomId`: phòng (kênh) đích khi đổi kênh; đi cổng thì chọn lúc commit (pickChannel: kênh có đồng đội, không thì ít người nhất
+   * `to`: phòng (kênh) đích khi đổi kênh; đi cổng thì chọn lúc commit (pickChannel: kênh có đồng đội, không thì ít người nhất
    * còn chỗ; null = mọi kênh đầy, client joinOrCreate để mở kênh mới). `undo`: hoàn tác phần đã trừ trước khi đi (phí truyền tống,
    * Hồi Thành Phù) khi transaction lỗi.
    */
-  beginTravel(id: string, portal: Portal, roomId?: string, undo?: () => void) {
+  beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
     this.endAva(id, "");
     this.freeze(id);
     this.portalHint(id, p, d);
+    let dest: { roomId: string; ch: number } | null = null;
     this.chain(d, async () => {
       // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
+      await this.flushAuto(d); // giờ treo tự săn (Auto 1): ghi trước, transaction đi cổng là lần ghi cuối của phòng này
       const list = this.unsaved(id), bag = this.unsavedBag(d);
-      try { await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag); }
-      // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
-      catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; undo?.(); throw e; }
+      try {
+        await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag);
+        if (d.testTravelLost) { d.testTravelLost = false; throw new Error("hook travellost: giả lập mất phản hồi sau COMMIT"); }
+      } catch (e) {
+        // #165: lỗi có thể tới sau khi COMMIT đã xong (mất phản hồi). DB đã ở bản đồ đích thì coi như đã đi (không hoàn phí / phù): ở lại
+        // thì mọi lần lưu sau của phòng này bị lớp chặn WHERE map_id bỏ. Đổi kênh (cùng bản đồ) không đổi map_id nên xử như lỗi thường.
+        if (portal.to !== from && (await store.getLocation(d.accountId).catch(() => null))?.mapId === portal.to) {
+          console.error(`Đi cổng của tài khoản #${d.accountId} báo lỗi nhưng DB đã ở ${portal.to}: coi như đã đi.`, e);
+          d.travelled = true;
+          return;
+        }
+        // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
+        for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId);
+        if (bag) d.bagDirty = true;
+        undo?.(); throw e;
+      }
       d.travelled = true;
-    }).then(async () => {
-      if (!this.clients.getById(id)) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
+      // Kênh đích chọn ngay trong chuỗi, trước khi phiên này nhả tài khoản (onLeave nối sau): client, kể cả vừa mất kết nối rồi vào
+      // lại, chỉ vào được kênh này CHANNEL_CD giây khi nó còn mở, còn chỗ (leftRoom cờ `travel`; mục 6: client không chọn kênh đích, #164).
+      dest = to ?? (await pickChannel(d.accountId, portal.to).catch(() => null));
+      if (dest) leftRoom.set(d.accountId, { mapId: portal.to, roomId: dest.roomId, ch: dest.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true });
+      else leftRoom.delete(d.accountId);
+    }).then(() => {
+      const c = this.clients.getById(id); if (!c) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
       if (!d.travelled) {
         d.travelling = false;
         return this.log(id, "Không chuyển được bản đồ, thử lại.", "#ff8a8a");
       }
-      const room = roomId ?? (await pickChannel(d.accountId, portal.to).catch(() => null))?.roomId ?? null;
-      const c = this.clients.getById(id); if (!c) return;
-      c.send("travel", { mapId: portal.to, roomId: room });
+      c.send("travel", { mapId: portal.to, roomId: dest?.roomId ?? null });
       // Client phải tự rời phòng cũ và vào phòng mới; quá TRAVEL_LEAVE_SECS giây thì server ngắt kết nối.
       this.clock.setTimeout(() => { if (this.clients.getById(id)) c.leave(4003); }, TRAVEL_LEAVE_SECS * 1000);
     });
@@ -1055,7 +1655,7 @@ export class MapRoom extends Room<MapState> {
     if (!this.state.channel) return warn("Ở đây không có kênh để đổi."); // sân đấu (7.2)
     let why = deny();
     if (why !== null) { if (why) warn(why); return; }
-    const d = this.pdata.get(id)!, ch = Number(raw);
+    const d = this.pdata.get(id)!, ch = intIn(raw);
     if (!Number.isInteger(ch) || ch < 1) return warn("Kênh không hợp lệ.");
     if (ch === this.state.channel) return warn(`Đang ở kênh ${ch}.`);
     const left = (channelSwitchAt.get(d.accountId) ?? 0) + CHANNEL_CD * 1000 - Date.now();
@@ -1070,7 +1670,7 @@ export class MapRoom extends Room<MapState> {
     channelSwitchAt.set(d.accountId, Date.now());
     const p = this.state.players.get(id)!;
     this.log(id, `Đang chuyển sang kênh ${ch}…`);
-    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to.roomId);
+    this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to);
   }
 
   // ---------- Truyền tống trận, bản đồ thế giới, Hồi Thành Phù (mục 5.3 "Truyền tống trận", bước 11.2) ----------
@@ -1092,7 +1692,7 @@ export class MapRoom extends Room<MapState> {
   /** `wp {op}`: `list` gửi bản đồ thế giới, `go {key}` niệm truyền tống tới trận `key`, `cancel` thôi niệm. */
   waypointAction(id: string, op: unknown, key: unknown) {
     if (op === "list") return this.sendWorld(id);
-    if (op === "go") return this.startWaypoint(id, String(key ?? ""));
+    if (op === "go") return this.startWaypoint(id, strIn(key));
     if (op === "cancel" && this.pdata.get(id)?.travelCast?.wp) return this.stopCast(id, "Đã thôi truyền tống.");
   }
 
@@ -1114,6 +1714,7 @@ export class MapRoom extends Room<MapState> {
     if (d.travelCast) return d.travelCast.wp ? "Đang niệm truyền tống." : "Đang đi qua cổng.";
     if (p.dead) return "Đã gục ngã, không truyền tống được.";
     if (d.absorbing) return "Đang hấp thụ hồn hoàn, không truyền tống được.";
+    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d, true)}: không truyền tống được.`; // #116
     if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới truyền tống được.`;
     return null;
   }
@@ -1198,24 +1799,61 @@ export class MapRoom extends Room<MapState> {
       return;
     }
     this.beginTravel(id, dest, undefined, () => {
-      d.honTe += wp.fee; d.bagDirty = true;
+      this.addCoin(d, wp.fee);
       if (code) this.addItem(d, code, 1);
       this.sendBag(id);
     });
   }
 
+  // ---------- Tin client xin lại dữ liệu riêng (#165) ----------
+  /**
+   * Client xin lại dữ liệu riêng loại `kind` (`bag`, `vohons`, `quest`): gửi ngay nếu lần trước cách ASK_CD giây; xin dồn trong khoảng đó
+   * thì hẹn đúng một lần gửi khi hết khoảng (như `channels`), để gửi dồn không làm tốn CPU / băng thông. Lần server tự gửi khi dữ liệu
+   * đổi không qua đây.
+   */
+  ask(id: string, kind: string, send: () => void) {
+    const d = this.pdata.get(id); if (!d) return;
+    const now = Date.now(), wait = (d.askAt.get(kind) ?? 0) + ASK_CD * 1000 - now;
+    if (wait <= 0) { d.askAt.set(kind, now); return send(); }
+    if (d.askQueued.has(kind)) return;
+    d.askQueued.add(kind);
+    this.clock.setTimeout(() => {
+      d.askQueued.delete(kind);
+      if (this.pdata.get(id) !== d) return;
+      d.askAt.set(kind, Date.now()); send();
+    }, wait);
+  }
+  /** `quest {op: "get"}`: tiến độ chuỗi tân thủ và khảo hạch hằng ngày, theo nhịp `ask`. */
+  askQuest(id: string) { this.ask(id, "quest", () => { for (const c of [QUEST_STARTER, ...this.pdata.get(id)?.chains.map((q) => q.chain) ?? []]) this.sendQuest(id, undefined, undefined, c); this.sendDaily(id); }); }
+
   // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1) ----------
   /**
    * Tin riêng "bag": mọi ô túi đồ, số ô tối đa, Hồn Tệ (đồng) và giây còn lại của hồi chiêu chung đan. Chỉ gửi cho chính chủ
-   * (mục 6), không nằm trong state đồng bộ. Gửi khi client xin và mỗi khi túi đổi.
+   * (mục 6), không nằm trong state đồng bộ. Gửi khi client xin (`full`) và mỗi khi túi đổi; từ #215 lần đổi chỉ gửi tin "bagd" gồm
+   * số ô, Hồn Tệ, hồi chiêu và phần túi đổi so với bản đã gửi (bagDiff), danh sách mua lại chỉ khi đổi.
    */
-  sendBag(id: string) {
+  sendBag(id: string, full = false) {
     const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
-    c.send("bag", { slots: d.bagSlots, honTe: d.honTe, cd: d.danCd,
-      items: d.bag.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars, enhance: i.enhance, stats: i.stats, vohon: i.vohonId })),
-      // Đồ vừa bán cho thương nhân, mua lại được (9.8): `price` là giá mỗi món đã nhận lúc bán.
-      buyback: (buybacks.get(d.accountId) ?? []).map(({ key, item: i, price }) => ({ key, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-        enhance: i.enhance, stats: i.stats, price })) });
+    const items = d.bag.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars, enhance: i.enhance, stats: i.stats, vohon: i.vohonId,
+      ...(i.locked ? { lock: true } : {}) }));
+    // Đồ vừa bán cho thương nhân, mua lại được (9.8): `price` là giá mỗi món đã nhận lúc bán.
+    const buyback = (buybacks.get(d.accountId) ?? []).map(({ key, item: i, price }) => ({ key, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
+      enhance: i.enhance, stats: i.stats, price }));
+    const head = { slots: d.bagSlots, honTe: d.honTe, cd: d.danCd }, bb = JSON.stringify(buyback);
+    // Tự bán (#216): bộ lọc và các món tự bán gần nhất (mua lại ở thương nhân), chỉ gửi khi đổi như danh sách mua lại.
+    const sold = d.sold.map(({ key, item: i, price, at }) => ({ key, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
+      enhance: i.enhance, stats: i.stats, price, at }));
+    const auto = { sell: d.sellCfg, sold }, as = JSON.stringify(auto);
+    if (full || !d.bagSent) {
+      c.send("bag", { ...head, items, buyback, ...auto });
+      d.bagSent = bagDiff(new Map(), items).next;
+    } else {
+      const { delta, next } = bagDiff(d.bagSent, items);
+      c.send("bagd", { ...head, ...delta, ...(bb !== d.bagBuyback ? { buyback } : {}), ...(as !== d.sellSent ? auto : {}) });
+      d.bagSent = next;
+    }
+    d.bagBuyback = bb; d.sellSent = as;
+    if (d.sellCfg.on) d.sellCheck = true; // túi vừa đổi: nhịp tới xét tự bán (autoSell)
     if (d.starterNote) {
       d.starterNote = false;
       const gift = STARTER_ITEMS.map((s) => `${s.qty} ${itemDef(s.code)?.name ?? s.code}`).join(", ");
@@ -1227,16 +1865,20 @@ export class MapRoom extends Room<MapState> {
   /**
    * Thêm `qty` món mã `code` vào túi: gộp vào ô cùng mã chưa đầy trước (đồ gộp được), rồi mở ô mới khi còn chỗ (`d.bagSlots`, từ 9.8 theo tài khoản).
    * Trả về số món đã nhận; phần dư khi túi đầy thì không nhận (nơi gọi quyết định báo gì). Không tự gửi tin "bag".
+   * `locked` (#216): chỉ gộp vào ô cùng trạng thái khoá, ô mới mang trạng thái đó (đồ mới nhặt không gộp vào ô người chơi đã khoá).
    */
-  addItem(d: PData, code: string, qty: number) {
+  addItem(d: PData, code: string, qty: number, locked = false) {
     const def = itemDef(code); if (!def || !(qty > 0)) return 0;
     let left = qty;
     for (const it of d.bag) {
       if (left <= 0) break;
-      if (it.code !== code || it.vohonId !== null || it.qty >= def.stack) continue;
+      if (it.code !== code || it.vohonId !== null || it.qty >= def.stack || !!it.locked !== locked) continue;
       const n = Math.min(left, def.stack - it.qty); it.qty += n; left -= n;
     }
-    while (left > 0 && bagUsed(d.bag) < d.bagSlots) { const n = Math.min(left, def.stack); d.bag.push(newItem(def, n)); left -= n; }
+    while (left > 0 && bagUsed(d.bag) < d.bagSlots) {
+      const n = Math.min(left, def.stack), it = newItem(def, n); if (locked) it.locked = true;
+      d.bag.push(it); left -= n;
+    }
     if (left < qty) d.bagDirty = true;
     return qty - left;
   }
@@ -1292,15 +1934,19 @@ export class MapRoom extends Room<MapState> {
    * người hạ hồn thú nhặt được; túi đầy thì báo và hồn hoàn ở lại dưới đất. Client chỉ gửi ý định, server chọn theo vị trí.
    * Đồ rơi chồng nhau thì chọn món gần nhất mà người này được nhặt (của mình hoặc đã hết ưu tiên), để đồ của người khác nằm
    * trên không chặn đồ của mình; không có món nào được nhặt thì báo theo món gần nhất.
+   * `only` (tự săn, mục 5.13): chỉ xét đúng món đó (vẫn kiểm PICKUP_RANGE, quyền nhặt, túi đầy như trên), để món bị bộ lọc nhặt bỏ qua
+   * nằm gần hơn không bị nhặt thay. Tin `pickup` của người chơi không có `did`.
    */
-  pickup(id: string) {
+  pickup(id: string, only?: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     const mine = (dr: DropState) => this.canLoot(dr, id);
     // Chưa được nhặt: còn bao lâu, của ai (người hạ hay tổ đội của người hạ, 7.1).
     const lock = (dr: DropState, what: string) => `${what} thuộc về ${dr.party ? "tổ đội của " : ""}người hạ hồn thú: còn ${Math.ceil(dr.ownerTtl)} giây nữa mới nhặt được.`;
     let best: [string, DropState] | undefined, bd = PICKUP_RANGE;
-    for (const [did, dr] of this.state.drops.entries()) {
+    const pool: Iterable<[string, DropState]> = only === undefined ? this.state.drops.entries()
+      : this.state.drops.has(only) ? [[only, this.state.drops.get(only)!]] : [];
+    for (const [did, dr] of pool) {
       const dd = Math.hypot(dr.x - p.x, dr.y - p.y);
       if (dd < PICKUP_RANGE && (!best || (mine(dr) && !mine(best[1])) || (mine(dr) === mine(best[1]) && dd < bd))) { bd = dd; best = [did, dr]; }
     }
@@ -1345,15 +1991,58 @@ export class MapRoom extends Room<MapState> {
     this.sendBag(id);
   }
 
-  /** Bỏ hẳn một ô trong túi (cả chồng), ví dụ hồn hoàn không dùng tới để nhường chỗ. Không bỏ được hồn hoàn đang hấp thụ. */
+  /**
+   * Bỏ hẳn một ô trong túi (cả chồng), ví dụ hồn hoàn không dùng tới để nhường chỗ. Không bỏ được hồn hoàn đang hấp thụ, và không bỏ
+   * gì trong lúc đang ghi phần thưởng boss (claimBusy, #165: phần thưởng vào túi trước khi DB xác nhận lượt, lỗi thì lấy lại).
+   */
   discardItem(id: string, raw: unknown) {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
     const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw && i.vohonId === null) : undefined;
     if (!it) return this.log(id, "Không có vật phẩm này trong túi đồ.", "#ffb35c");
     if (d.absorbing?.itemId === it.id) return this.log(id, "Đang hấp thụ hồn hoàn này, không bỏ được.", "#ffb35c");
-    if (d.claimBusy && itemDef(it.code)?.kind === "ruong") return this.log(id, "Đang nhận rương thú vương, đợi một chút.", "#ffb35c");
+    if (it.locked) return this.log(id, `${this.itemLabel(it)} đang khoá: mở khoá rồi mới bỏ được.`, "#ffb35c");
+    if (claimHeld(d)) return this.log(id, CLAIM_BUSY, "#ffb35c");
     this.takeItem(d, it, it.qty);
     this.log(id, `Đã bỏ ${this.itemLabel(it)}.`);
+    this.sendBag(id);
+  }
+
+  /** Cộng `n` đồng Hồn Tệ vào túi của `d`, kẹp ở Number.MAX_SAFE_INTEGER (bagOk trong db.ts từ chối số lớn hơn); mọi chỗ cộng tiền đi qua đây (#165). */
+  addCoin(d: PData, n: number) {
+    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + n); d.bagDirty = true;
+  }
+
+  /**
+   * Sắp xếp túi (#215, nút "Sắp xếp" trên cả túi, mọi trang): gộp các ô gộp được (ItemDef.stack) cùng loại chưa đầy vào các ô đầu, ô
+   * thừa bỏ đi; rồi xếp theo nhóm (ITEM_KINDS), loại (ITEMS), số năm / sao / cường hóa giảm dần. Món đang gắn vào võ hồn không đổi.
+   * Thứ tự lưu DB bằng `created` (nạp túi theo items.created_at): các ô nhận lại chính các mốc thời gian cũ theo thứ tự mới.
+   */
+  sortBag(id: string) {
+    const d = this.pdata.get(id); if (!d || d.travelling) return;
+    if (claimHeld(d) || d.shardBusy) return this.log(id, "Đang xử lý vật phẩm, đợi một chút rồi sắp xếp.", "#ffb35c");
+    const loose = d.bag.filter((i) => i.vohonId === null), worn = d.bag.filter((i) => i.vohonId !== null);
+    const times = loose.map((i) => i.created).sort((a, b) => a - b);
+    const groups = new Map<string, Item[]>();
+    for (const it of loose) {
+      if ((itemDef(it.code)?.stack ?? 1) <= 1 || d.absorbing?.itemId === it.id) continue;
+      const k = [it.code, it.years, it.stars, it.enhance, JSON.stringify(it.stats), !!it.locked].join("|"); // ô khoá (#216) không gộp với ô thường
+      groups.set(k, [...(groups.get(k) ?? []), it]);
+    }
+    const gone = new Set<Item>();
+    for (const list of groups.values()) {
+      if (list.length < 2) continue;
+      const stack = itemDef(list[0].code)!.stack;
+      let left = list.reduce((a, i) => a + i.qty, 0);
+      for (const it of list) { if (left > 0) { it.qty = Math.min(stack, left); left -= it.qty; } else gone.add(it); }
+    }
+    const rank = (it: Item) => { const def = itemDef(it.code); return def ? KIND_ORDER.indexOf(def.kind) * 1e4 + (ITEM_ORDER.get(def.id) ?? 0) : 1e9; };
+    const kept = loose.filter((i) => !gone.has(i)).sort((a, b) => rank(a) - rank(b) || (b.years ?? 0) - (a.years ?? 0) || (b.stars ?? 0) - (a.stars ?? 0)
+      || b.enhance - a.enhance || b.qty - a.qty || a.created - b.created);
+    let prev = -Infinity;
+    kept.forEach((it, k) => { it.created = prev = Math.max(times[k], prev + 1); });
+    itemClock = Math.max(itemClock, prev);
+    d.bag = [...kept, ...worn]; d.bagDirty = true;
+    this.log(id, `Đã sắp xếp túi đồ${gone.size ? `, gộp bớt ${gone.size} ô` : ""}.`);
     this.sendBag(id);
   }
 
@@ -1361,7 +2050,7 @@ export class MapRoom extends Room<MapState> {
   rewardCoin(id: string, tier: number) {
     const d = this.pdata.get(id); if (!d) return 0;
     const [lo, hi] = BEAST_COIN[tier] ?? BEAST_COIN[0], n = lo + Math.floor(Math.random() * (hi - lo + 1));
-    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + n); d.bagDirty = true;
+    this.addCoin(d, n);
     this.sendBag(id);
     return n;
   }
@@ -1379,6 +2068,7 @@ export class MapRoom extends Room<MapState> {
     const def = itemDef(it.code);
     if (def?.kind === "tien_thao") return this.useHerb(id, d, it, vohonId);
     if (def?.recall) return this.useRecall(id, it); // Hồi Thành Phù (11.2)
+    if (def?.auto) return this.useAutoToken(id, d, it, def); // Ủy Thác Lệnh (Auto 2)
     if (!def || !(def.hp || def.mp)) return warn(`${def?.name ?? "Vật phẩm này"} không dùng trực tiếp được.`);
     if (p.dead) return warn("Đã gục ngã, không thể dùng đan dược.");
     if (d.absorbing) return warn("Đang hấp thụ hồn hoàn, không thể dùng đan dược.");
@@ -1420,7 +2110,65 @@ export class MapRoom extends Room<MapState> {
     if (p.dead) return this.log(id, "Đã gục ngã, không thể nói chuyện.", "#ffb35c");
     if (!this.npcNear(id, { id: def.id })) return this.log(id, `Hãy lại gần ${def.name} hơn để nói chuyện.`, "#ffb35c");
     this.questEvent(id, { k: "talk", npc: def.id }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
+    if (def.role === "tong") this.sendTong(id); // #196: trước tin npc để hộp thoại có trạng thái tông
     this.clients.getById(id)?.send("npc", { id: def.id });
+  }
+
+  // ---------- Tông môn (#196, mục 5.14) ----------
+  /** Tin riêng `tong {tong, wait}`: tông đang thuộc ("" = không) và số giây còn phải chờ mới gia nhập / đổi được (0 = được). */
+  sendTong(id: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    const wait = d.tongAt === null ? 0 : Math.max(0, Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - Date.now()) / 1000));
+    this.clients.getById(id)?.send("tong", { tong: d.tong ?? "", wait });
+  }
+
+  /**
+   * Tin client `tong {op, tong}`: `join` gia nhập hoặc đổi sang tông `tong` (đứng gần sứ giả của tông đó; xong chuỗi tân thủ, võ hồn
+   * cao nhất từ TONG_MIN_LEVEL, từ lần gia nhập trước đủ TONG_SWITCH_DAYS ngày; xoá điểm tuần hiện tại), `leave` rời tông (đứng gần
+   * một sứ giả; giữ `tongAt` nên không rời rồi vào tông khác để lách thời gian chờ). Ghi DB qua chuỗi lưu.
+   */
+  tongAction(id: string, op: unknown, raw: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendTong(id); };
+    if (op !== "join" && op !== "leave") return warn("Thao tác tông môn không hợp lệ.");
+    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
+    if (op === "leave") {
+      if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào.");
+      if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để rời tông.");
+      const old = tongDef(d.tong)!;
+      d.tong = null; p.tong = 0;
+      this.chain(d, () => store.setTong(d.accountId, null, null));
+      this.log(id, `Ngươi đã rời ${old.name}.`, old.col);
+      return this.sendTong(id);
+    }
+    const t = tongDef(raw);
+    if (!t) return warn("Tông môn không tồn tại.");
+    const npc = npcDef(t.npc)!;
+    if (!this.npcNear(id, { id: t.npc })) return warn(`Hãy lại gần ${npc.name} hơn để gia nhập.`);
+    if (d.tong === t.id) return warn(`Ngươi đã là người của ${t.name}.`);
+    if (questStatus(d.quest) !== "done") return warn(`Hãy hoàn thành chuỗi "Bài học của Đại Sư" trước khi gia nhập tông môn.`);
+    if (Math.max(p.level, ...d.owned.map((v) => v.level)) < TONG_MIN_LEVEL) return warn(`Cần võ hồn cấp ${TONG_MIN_LEVEL} trở lên để gia nhập tông môn.`);
+    const now = Date.now();
+    if (d.tongAt !== null && now < d.tongAt + TONG_SWITCH_DAYS * 86400000)
+      return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
+    const from = d.tong ? tongDef(d.tong) : null;
+    d.tong = t.id; d.tongAt = now; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
+    this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(now)));
+    this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
+    this.sendTong(id);
+  }
+
+  /**
+   * Thương nhân để mua / bán / mua lại / mở rộng túi (#111): `rawNpc` là mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân
+   * gần nhất, như bot / client cũ), phải là thương nhân và đứng trong NPC_RANGE. Thương nhân lưu động đứng ở trại cổng (không phải vùng
+   * an toàn) nên ngoài vùng an toàn, đang giao chiến thì không giao dịch. Trả NPC, hoặc lý do từ chối (`verb`: "mua", "bán"…).
+   */
+  shopFor(id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string {
+    const p = this.state.players.get(id);
+    const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "shop" });
+    if (!p || !npc || npcDef(npc.id)?.role !== "shop") return `Hãy đứng cạnh thương nhân rồi mới ${verb} được.`;
+    if (!this.map.inSafe(p.x, p.y) && d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới ${verb} được.`;
+    return npc;
   }
 
   // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
@@ -1429,10 +2177,14 @@ export class MapRoom extends Room<MapState> {
    * tiêu, phần thưởng client đọc từ QUESTS. `ev`: vừa nhận (`accept`), vừa đủ mục tiêu (`ready`), vừa trả (`reward`, kèm `done` = mã
    * bước vừa trả), vừa xong cả chuỗi (`finish`); client hiện thông báo theo `ev`.
    */
-  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    this.clients.getById(id)?.send("quest", { ...d.quest, prog: [...d.quest.prog], status: questStatus(d.quest), ev, done });
+  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string, chain = QUEST_STARTER) {
+    const d = this.pdata.get(id), q = d && this.fixedQuest(d, chain); if (!q) return;
+    this.clients.getById(id)?.send("quest", { ...q, prog: [...q.prog], status: questStatus(q), ev, done });
   }
+  /** Tiến độ chuỗi cố định `chain` (tân thủ hoặc chương sau) của người chơi; undefined nếu không phải chuỗi cố định. */
+  fixedQuest(d: PData, chain: string) { return d.quest.chain === chain ? d.quest : d.chains.find((q) => q.chain === chain); }
+  /** Chuỗi `chain` đã mở cho người chơi chưa: chuỗi không có điều kiện, hoặc chuỗi `QUEST_AFTER` của nó đã xong. */
+  questOpen(d: PData, chain: string) { const a = QUEST_AFTER[chain]; return !a || questStatus(this.fixedQuest(d, a) ?? questStart(a)) === "done"; }
 
   /** Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó. */
   questHave(d: PData, g: QuestGoal) {
@@ -1450,11 +2202,12 @@ export class MapRoom extends Room<MapState> {
    */
   questEvent(id: string, ev: QuestEvent) {
     const d = this.pdata.get(id); if (!d || d.travelling) return;
-    const r = this.questBump(d.quest, ev), chain = questChain(d.quest.chain);
-    if (r && chain) {
+    for (const q of [d.quest, ...d.chains]) {
+      const r = this.questBump(q, ev), chain = questChain(q.chain);
+      if (!r || !chain) continue;
       d.bagDirty = true;
-      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[d.quest.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, r === "ready" ? "ready" : undefined);
+      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[q.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
+      this.sendQuest(id, r === "ready" ? "ready" : undefined, undefined, q.chain);
     }
     // Khảo hạch hằng ngày: cùng sự kiện, từng bài đã nhận (sang ngày mới thì bộ bài cũ bỏ trước).
     if (this.dailyFresh(d)) this.sendDaily(id, "reset");
@@ -1477,14 +2230,14 @@ export class MapRoom extends Room<MapState> {
     return !hit ? null : was !== "ready" && questStatus(q) === "ready" ? "ready" : "hit";
   }
 
-  /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy trước, rồi mở ô mới như addItem). */
+  /** Túi còn đủ chỗ cho mọi vật phẩm `items` cùng lúc không (gộp vào ô cùng mã chưa đầy, không khoá, trước, rồi mở ô mới như addItem). */
   bagFits(d: PData, items: { code: string; qty: number }[]) {
     const need = new Map<string, number>();
     for (const it of items) need.set(it.code, (need.get(it.code) ?? 0) + it.qty);
     let slots = 0;
     for (const [code, qty] of need) {
       const def = itemDef(code); if (!def) return false;
-      const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null ? Math.max(0, def.stack - it.qty) : 0), 0);
+      const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null && !it.locked ? Math.max(0, def.stack - it.qty) : 0), 0);
       slots += Math.ceil(Math.max(0, qty - part) / def.stack);
     }
     return bagUsed(d.bag) + slots <= d.bagSlots;
@@ -1498,41 +2251,42 @@ export class MapRoom extends Room<MapState> {
    */
   questAction(id: string, op: unknown, chainId?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    if (op === "get") { this.sendQuest(id); this.sendDaily(id); return; }
+    if (op === "get") return this.askQuest(id);
     if (typeof chainId === "string" && isDaily(chainId)) return this.dailyAction(id, op, chainId);
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id); };
-    const chain = questChain(d.quest.chain); if (!chain) return;
+    const q = this.fixedQuest(d, typeof chainId === "string" ? chainId : QUEST_STARTER), chain = q && questChain(q.chain); if (!q || !chain) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id, undefined, undefined, q.chain); };
     if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
     const giver = npcDef(chain.giver)!, verb = op === "accept" ? "nhận" : "trả";
     if (!this.map.npcs.some((n) => n.id === chain.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[chain.map].name} để ${verb} nhiệm vụ.`);
     if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
     if (!this.npcNear(id, { id: chain.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} nhiệm vụ.`);
-    const st = questStatus(d.quest), step = chain.steps[d.quest.step];
+    const st = questStatus(q), step = chain.steps[q.step];
     if (st === "done") return warn(`Đã học xong cả chuỗi "${chain.name}".`);
+    if (!this.questOpen(d, chain.id)) return warn(`Chưa mở chuỗi "${chain.name}": hoàn thành chuỗi "${questChain(QUEST_AFTER[chain.id])?.name}" trước.`);
     if (op === "accept") {
       if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả nhiệm vụ.`);
-      d.quest = { chain: chain.id, step: d.quest.step, accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) };
+      Object.assign(q, { accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) });
       d.bagDirty = true;
-      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${d.quest.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
-      const ready = questStatus(d.quest) === "ready";
+      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${q.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
+      const ready = questStatus(q) === "ready";
       if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả nhiệm vụ ngay để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, ready ? "ready" : "accept");
+      this.sendQuest(id, ready ? "ready" : "accept", undefined, q.chain);
       this.saveTrade(id, d);
       return;
     }
     if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
-    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${d.quest.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
+    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${q.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
     if (!this.bagFits(d, step.reward.items))
       return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
-    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + step.reward.honTe);
+    this.addCoin(d, step.reward.honTe);
     for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
-    d.quest = { chain: chain.id, step: d.quest.step + 1, accepted: false, prog: [] };
+    Object.assign(q, { step: q.step + 1, accepted: false, prog: [] });
     d.bagDirty = true;
     this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${questRewardText(step.reward)}.`, "#f2c84b");
-    const finish = questStatus(d.quest) === "done";
+    const finish = questStatus(q) === "done";
     if (finish) this.log(id, `Hoàn thành chuỗi nhiệm vụ "${chain.name}"!`, giver.col);
     this.sendBag(id);
-    this.sendQuest(id, finish ? "finish" : "reward", step.id);
+    this.sendQuest(id, finish ? "finish" : "reward", step.id, q.chain);
     this.save(id); // phần thưởng và bước mới ghi ngay, cùng một lần ghi túi đồ
   }
 
@@ -1556,9 +2310,12 @@ export class MapRoom extends Room<MapState> {
     d.bagDirty = true;
     return true;
   }
-  /** Các món mã `code` nộp được cho mục tiêu `give`: nằm trong túi (không gắn), chưa cường hóa / nâng cấp; rẻ nhất trước. */
+  /**
+   * Các món mã `code` nộp được cho mục tiêu `give`: nằm trong túi (không gắn), chưa cường hóa / nâng cấp, không phải hồn hoàn đang hấp
+   * thụ (#165: đồ đang dùng không làm nguyên liệu đồng thời); rẻ nhất trước.
+   */
   giveItems(d: PData, code: string) {
-    return d.bag.filter((it) => it.code === code && it.vohonId === null && !(it.enhance > 0))
+    return d.bag.filter((it) => it.code === code && it.vohonId === null && !(it.enhance > 0) && it.id !== d.absorbing?.itemId)
       .sort((a, b) => (sellPrice(a) ?? 0) - (sellPrice(b) ?? 0));
   }
   /**
@@ -1631,9 +2388,12 @@ export class MapRoom extends Room<MapState> {
     }
     if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
     if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, k) => `${g.text} ${d.daily[i].prog[k] ?? 0}/${g.n}`).join(", ")}.`);
-    // Nộp vật phẩm trên bản sao túi: túi không đủ chỗ cho phần thưởng thì trả lại túi cũ.
+    const gives = step.goals.some((g) => g.k === "give");
+    if (gives && claimHeld(d)) return warn(CLAIM_BUSY); // #165: như bán / bỏ đồ
+    // Nộp vật phẩm trên bản sao túi: túi không đủ chỗ cho phần thưởng thì trả lại túi cũ. Bài không nộp đồ thì không chép túi (#165:
+    // các món đang chờ DB xác nhận, như phần thưởng boss, giữ nguyên đối tượng).
     const keep = d.bag, dirty = d.bagDirty;
-    d.bag = d.bag.map((it) => ({ ...it }));
+    if (gives) d.bag = d.bag.map((it) => ({ ...it }));
     for (const g of step.goals) {
       if (g.k !== "give" || !g.item) continue;
       let left = g.n;
@@ -1643,7 +2403,7 @@ export class MapRoom extends Room<MapState> {
       d.bag = keep; d.bagDirty = dirty;
       return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
     }
-    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + step.reward.honTe);
+    this.addCoin(d, step.reward.honTe);
     for (const it of step.reward.items) this.addItem(d, it.code, it.qty);
     d.daily[i] = { chain: chainId, step: 1, accepted: false, prog: [] };
     d.bagDirty = true;
@@ -1656,71 +2416,144 @@ export class MapRoom extends Room<MapState> {
 
   // ---------- Đại Đấu Hồn Trường: xếp hàng ở NPC, bảng xếp hạng (mục 5.9, bước 7.2; trận đấu ở ArenaRoom) ----------
   /**
-   * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến, đang trong
-   * tổ đội người chơi (7.1; đấu hồn là 1v1, rời tổ đội rồi mới xếp hàng). Người đang xếp hàng mà rơi vào một trong các trạng thái này
-   * thì vòng ghép bỏ qua (vẫn giữ chỗ).
+   * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến,
+   * hoặc tổ đội chưa đủ điều kiện 2 người cùng phòng. Người đang xếp hàng mà rơi vào một trạng thái này thì vòng ghép bỏ qua
+   * (vẫn giữ chỗ), trừ khi rời phòng thì cả bên bị bỏ khỏi hàng.
    */
+  arenaAccounts(accountId: number) {
+    const members = party.partyMembers(accountId);
+    return members.length ? [...members] : [accountId];
+  }
+
   arenaBusy(id: string): string {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return "Không có hồn sư.";
-    if (d.travelling) return "Đang chuyển bản đồ.";
-    if (d.travelCast) return "Đang đi qua cổng.";
-    if (p.dead) return "Đã gục ngã.";
-    if (d.absorbing) return "Đang hấp thụ hồn hoàn.";
-    if (d.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
-    if (party.partyIdOf(d.accountId)) return "Đang trong tổ đội: rời tổ đội rồi mới đấu hồn 1v1.";
+    const one = (q: PlayerState, x: PData) => {
+      if (x.travelling) return "Đang chuyển bản đồ.";
+      if (x.travelCast) return "Đang đi qua cổng.";
+      if (q.dead) return "Đã gục ngã.";
+      if (x.absorbing) return "Đang hấp thụ hồn hoàn.";
+      if (x.fight < TEAM_COMBAT_SECS) return "Đang giao chiến.";
+      return "";
+    };
+    const own = one(p, d); if (own) return own;
+    const pid = party.partyIdOf(d.accountId); if (!pid) return "";
+    const members = party.partyMembers(d.accountId);
+    if (members.length !== 2) return "Tổ đội Đại Đấu Hồn Trường cần đúng 2 người.";
+    if (party.partyLeader(d.accountId) !== d.accountId) return "Chỉ trưởng nhóm được xếp hàng cho tổ đội.";
+    if (!party.partyInRoom(d.accountId, this.roomId)) return "Hai thành viên phải ở cùng kênh bản đồ.";
+    for (const acc of members) {
+      const row = [...this.pdata.entries()].find(([, x]) => x.accountId === acc);
+      if (!row) return "Cả hai thành viên phải đang ở cùng kênh bản đồ.";
+      const q = this.state.players.get(row[0]); if (!q) return "Cả hai thành viên phải đang ở cùng kênh bản đồ.";
+      const why = one(q, row[1]); if (why) return `${why} (thành viên tổ đội).`;
+    }
     return "";
+  }
+
+  /** Kiểm tra phiên của cả bên còn nguyên trước khi mở phòng riêng, tránh tạo trận thiếu thành viên. */
+  arenaCanFound(rows: [string, PData][]) {
+    return rows.every(([sid, d]) => this.clients.getById(sid) && this.state.players.get(sid) && this.pdata.get(sid) === d && !d.travelling);
+  }
+
+  /** Báo và đưa bên còn nguyên về hàng khi đối thủ rời đúng lúc vòng ghép mở phòng. */
+  arenaQueueRetry(rows: [string, PData][]) {
+    for (const [sid] of rows) {
+      if (!this.pdata.has(sid)) continue;
+      this.log(sid, "Đối thủ vừa rời hàng chờ, tiếp tục tìm trận.", "#ff9a8a");
+      this.sendArenaQueue(sid);
+    }
+  }
+
+  /** Báo cho phiên còn lại rằng mục hàng đã hủy vì bên này không còn đủ người vào sân. */
+  arenaQueueAbort(rows: [string, PData][]) {
+    for (const [sid] of rows) {
+      if (!this.pdata.has(sid)) continue;
+      this.log(sid, "Không thể vào sân Đại Đấu Hồn Trường, hàng chờ đã hủy.", "#ffb35c");
+      this.sendArenaQueue(sid);
+    }
   }
 
   /** Tin riêng "arena" k = "queue": đang xếp hàng hay không (client hiện / ẩn ô "Đang tìm trận"). */
   sendArenaQueue(id: string) {
     const d = this.pdata.get(id), q = d && arenaQueued(d.accountId);
-    this.clients.getById(id)?.send("arena", q ? { k: "queue", on: true, elo: q.rec.elo, secs: (Date.now() - q.since) / 1000 } : { k: "queue", on: false });
+    this.clients.getById(id)?.send("arena", q ? { k: "queue", on: true, elo: q.elo, members: q.members.map((m) => m.name), secs: (Date.now() - q.since) / 1000 } : { k: "queue", on: false });
   }
 
   /**
    * `arena {op}` (7.2): `queue` xếp hàng (phải đứng cạnh NPC Đại Đấu Hồn Trường, NPC_RANGE; không gục, không đi cổng, không hấp thụ,
    * không giao chiến), `cancel` hủy xếp hàng, `top` xin bảng xếp hạng kèm thành tích của mình (ở đâu cũng xem được, cách nhau ARENA.topCd
-   * giây). Elo đọc từ DB lúc xếp hàng; ghép trận ở arenaQueue.ts, trận đấu ở ArenaRoom.
+   * giây). Elo đọc từ DB lúc xếp hàng, hai lần đọc của một tài khoản cách nhau ít nhất ARENA.queueCd giây (arenaQueueSlots; cả bên ghi
+   * mốc nguyên tử, xếp rồi hủy
+   * liên tục không tạo tải DB đều đặn); `cancel` trong lúc đang đọc thì đọc xong không xếp hàng (#225). Ghép trận ở arenaQueue.ts, trận
+   * đấu ở ArenaRoom.
    */
   arenaAction(id: string, raw: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const op = String(raw ?? ""), warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendArenaQueue(id); };
+    const op = strIn(raw), warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendArenaQueue(id); };
     if (op === "top") return this.arenaTop(id);
     if (op === "cancel") {
-      if (arenaDequeue(d.accountId)) this.log(id, "Đã hủy xếp hàng Đại Đấu Hồn Trường.");
+      const accounts = this.arenaAccounts(d.accountId), removed = arenaDequeue(d.accountId), cancelled = accounts.some((acc) => arenaReadCancel(acc));
+      if (removed || cancelled) {
+        // Hủy mục đã vào queue thì mở khóa ngay; hủy lúc đọc Elo chỉ đánh dấu, Promise phải tự hạ cờ khi kết thúc.
+        for (const acc of accounts) {
+          const row = [...this.pdata.entries()].find(([, x]) => x.accountId === acc);
+          if (row) { if (removed) row[1].arenaBusy = false; this.sendArenaQueue(row[0]); }
+        }
+        this.log(id, "Đã hủy xếp hàng Đại Đấu Hồn Trường.");
+      }
       return this.sendArenaQueue(id);
     }
     if (op !== "queue") return warn("Thao tác Đại Đấu Hồn Trường không hợp lệ.");
+    if (d.arenaBusy && arenaReadCancelled(d.accountId)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     if (arenaQueued(d.accountId) || d.arenaBusy) return warn("Đang tìm đối thủ rồi.");
-    if (!this.npcNear(id, { role: "arena" })) return warn("Hãy lại gần Đại Đấu Hồn Trường để xếp hàng.");
     const why = this.arenaBusy(id); if (why) return warn(`${why} Chưa xếp hàng được.`);
-    d.arenaBusy = true;
-    store.getArena(d.accountId, ARENA.startElo).then((rec) => {
-      d.arenaBusy = false;
-      if (this.pdata.get(id) !== d) return; // đã rời phòng trong lúc chờ DB
+    const accounts = this.arenaAccounts(d.accountId);
+    const rows = accounts.map((acc) => [...this.pdata.entries()].find(([, x]) => x.accountId === acc)).filter((x): x is [string, PData] => !!x);
+    if (rows.length !== accounts.length) return warn("Cả hai thành viên phải đang ở cùng kênh bản đồ.");
+    if (!rows.every(([sid]) => this.npcNear(sid, { role: "arena" }))) return warn("Cả hai thành viên phải lại gần Đại Đấu Hồn Trường.");
+    if (!arenaQueueSlots(accounts)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
+    rows.forEach(([, x]) => { x.arenaBusy = true; });
+    Promise.all(rows.map(([, x]) => arenaReadElo(x.accountId, () => store.getArena(x.accountId, ARENA.startElo)))).then((recs) => {
+      rows.forEach(([, x]) => { x.arenaBusy = false; });
+      if (rows.some(([sid, x]) => this.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return;
+      const current = this.arenaAccounts(d.accountId);
+      if (current.length !== accounts.length || current.some((acc) => !accounts.includes(acc))) return;
       const late = this.arenaBusy(id); if (late) return warn(`${late} Chưa xếp hàng được.`);
-      const e: ArenaEntry = { accountId: d.accountId, name: p.name, rec, since: Date.now(),
-        ready: () => this.pdata.get(id) === d && !this.arenaBusy(id), found: (roomId, foe) => this.arenaFound(id, d, roomId, foe) };
+      const e: ArenaTeamEntry = { id: party.partyIdOf(d.accountId) ? `party:${party.partyIdOf(d.accountId)}` : `solo:${d.accountId}`,
+        members: rows.map(([, x], i) => ({ accountId: x.accountId, name: this.state.players.get(rows[i][0])!.name, rec: recs[i]! })),
+        elo: arenaTeamElo(recs.map((rec) => rec!.elo)), since: Date.now(),
+        ready: () => this.pdata.get(id) === d && this.arenaAccounts(d.accountId).length === accounts.length
+          && this.arenaAccounts(d.accountId).every((acc) => accounts.includes(acc)) && !this.arenaBusy(id),
+        canFound: () => this.arenaCanFound(rows), found: (roomId, foe) => this.arenaFound(rows, roomId, foe),
+        requeue: () => this.arenaQueueRetry(rows), abort: () => this.arenaQueueAbort(rows), rollback: () => this.arenaFoundRollback(rows) };
       arenaEnqueue(e);
-      this.log(id, `Đang tìm đối thủ (Elo ${rec.elo}): ghép người Elo gần nhất, chờ càng lâu càng nới rộng.`, "#ff9a8a");
-      this.sendArenaQueue(id);
-    }, (e) => { d.arenaBusy = false; console.error(`Không đọc được Elo của tài khoản #${d.accountId}`, e); warn("Không xếp hàng được, thử lại."); });
+      for (const [sid, x] of rows) { this.log(sid, `Đang tìm đối thủ (Elo đội ${e.elo}): ghép đội Elo gần nhất, chờ càng lâu càng nới rộng.`, "#ff9a8a"); this.sendArenaQueue(sid); }
+    }, (e) => { rows.forEach(([, x]) => { x.arenaBusy = false; }); console.error(`Không đọc được Elo đội Đại Đấu Hồn Trường`, e); warn("Không xếp hàng được, thử lại."); });
   }
 
   /**
    * Đã ghép trận (arenaQueue.ts): dừng mọi hành động như lúc đi cổng (freeze), báo client vào phòng ArenaRoom `roomId`. Client rời
    * phòng này (onLeave lưu vị trí như thường: sau trận quay về đúng chỗ cũ); không rời trong ARENA.joinSecs giây thì server ngắt kết
-   * nối. Trả false nếu người chơi đã rời phòng (trận sẽ xử như bỏ trận).
+   * nối. Trả false nếu một thành viên đã rời phòng; arenaQueue sẽ hủy trận và trả bên còn nguyên về hàng.
    */
-  arenaFound(id: string, d: PData, roomId: string, foe: ArenaEntry) {
-    const c = this.clients.getById(id), p = this.state.players.get(id);
-    if (!c || !p || this.pdata.get(id) !== d || d.travelling) return false;
-    this.freeze(id);
-    this.portalHint(id, p, d);
-    d.arenaGone = true;
-    c.send("arena", { k: "found", roomId, foe: foe.name, elo: foe.rec.elo });
-    this.clock.setTimeout(() => { if (this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+  arenaFound(rows: [string, PData][], roomId: string, foe: ArenaTeamEntry) {
+    if (!this.arenaCanFound(rows)) return false;
+    for (const [id, d] of rows) {
+      const c = this.clients.getById(id)!, p = this.state.players.get(id)!;
+      this.freeze(id); this.portalHint(id, p, d); d.arenaGone = true;
+      c.send("arena", { k: "found", roomId, foe: foe.members.map((m) => m.name).join(" / "), elo: foe.elo, members: foe.members.map((m) => m.name) });
+      this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+    }
     return true;
+  }
+
+  /** Hoàn tác freeze nếu bên kia mất phiên ngay sau khi matchMaker mở phòng nhưng trước khi cả hai nhận mã. */
+  arenaFoundRollback(rows: [string, PData][]) {
+    for (const [sid, d] of rows) {
+      const p = this.state.players.get(sid);
+      if (!p || this.pdata.get(sid) !== d) continue;
+      d.travelling = false; d.arenaGone = false; this.portalHint(sid, p, d);
+    }
   }
 
   /** Tin riêng "arenaTop": ARENA.topN dòng đầu bảng xếp hạng (dòng của mình có `me`), hạng / thành tích của mình, lượt thắng có thưởng còn lại hôm nay. */
@@ -1741,22 +2574,24 @@ export class MapRoom extends Room<MapState> {
     this.chain(d, () => { d.tradeQueued = false; return this.write(id); });
   }
 
-  /** Số món mã `code` túi còn nhận được: chỗ trống trong ô cùng mã chưa đầy và các ô trống (như addItem). */
-  bagRoom(d: PData, code: string) {
+  /** Số món mã `code` túi còn nhận được: chỗ trống trong ô cùng mã (cùng trạng thái khoá `locked`) chưa đầy và các ô trống (như addItem). */
+  bagRoom(d: PData, code: string, locked = false) {
     const def = itemDef(code); if (!def) return 0;
-    const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null ? Math.max(0, def.stack - it.qty) : 0), 0);
+    const part = d.bag.reduce((a, it) => a + (it.code === code && it.vohonId === null && !!it.locked === locked ? Math.max(0, def.stack - it.qty) : 0), 0);
     return part + Math.max(0, d.bagSlots - bagUsed(d.bag)) * def.stack;
   }
 
   /**
-   * Mua `rawQty` món `rawCode` ở thương nhân (SHOP, giá đồng mỗi món): phải đứng gần thương nhân, mã có trong SHOP, 1..SHOP_MAX_QTY
-   * món, đủ Hồn Tệ và túi đủ chỗ cho cả số món đó (thiếu thì từ chối hết, không trừ tiền). Server tính giá; ghi DB qua chuỗi lưu.
+   * Mua `rawQty` món `rawCode` ở thương nhân (giá đồng mỗi món theo bảng hàng của thương nhân đứng gần, shopOf: SHOP trong thành,
+   * CAMP_SHOP ở trại cổng): phải đứng gần thương nhân, mã có trong bảng hàng đó, 1..SHOP_MAX_QTY món, đủ Hồn Tệ và túi đủ chỗ cho cả
+   * số món đó (thiếu thì từ chối hết, không trừ tiền). Server tính giá; ghi DB qua chuỗi lưu.
    */
-  buyItem(id: string, rawCode: unknown, rawQty: unknown) {
+  buyItem(id: string, rawCode: unknown, rawQty: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới mua được.");
-    const row = SHOP.find((s) => s.code === rawCode), def = row && itemDef(row.code);
+    const npc = this.shopFor(id, d, rawNpc, "mua");
+    if (typeof npc === "string") return warn(npc);
+    const row = shopOf(npc.id).find((s) => s.code === rawCode), def = row && itemDef(row.code);
     if (!row || !def) return warn("Thương nhân không bán món này.");
     const qty = Number.isInteger(rawQty) ? (rawQty as number) : 0;
     if (qty < 1 || qty > SHOP_MAX_QTY) return warn(`Mỗi lần mua từ 1 đến ${SHOP_MAX_QTY} món.`);
@@ -1775,14 +2610,17 @@ export class MapRoom extends Room<MapState> {
    * đồ đang gắn trên võ hồn (hồn cốt, hồn hạch), hồn hoàn đang hấp thụ, đan và rương (sellPrice null). Giá do
    * server tính (sellPrice theo niên hạn / sao / độ hiếm); ghi DB qua chuỗi lưu.
    */
-  sellItem(id: string, rawId: unknown, rawQty: unknown) {
+  sellItem(id: string, rawId: unknown, rawQty: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới bán được.");
+    const npc = this.shopFor(id, d, rawNpc, "bán");
+    if (typeof npc === "string") return warn(npc);
     const it = typeof rawId === "string" ? d.bag.find((i) => i.id === rawId) : undefined;
     if (!it) return warn("Không có vật phẩm này trong túi đồ.");
     if (it.vohonId !== null) return warn(`${this.itemLabel(it)} đang gắn trên võ hồn: tháo ra trước mới bán được.`);
+    if (it.locked) return warn(`${this.itemLabel(it)} đang khoá: mở khoá ở túi đồ rồi mới bán được.`);
     if (d.absorbing?.itemId === it.id) return warn("Đang hấp thụ hồn hoàn này, không bán được.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #165: phần thưởng boss đang chờ DB xác nhận lượt
     const price = sellPrice(it);
     if (price === null) return warn(`Thương nhân không mua ${itemDef(it.code)?.name ?? "vật phẩm lạ"}.`);
     const qty = rawQty === undefined || rawQty === null ? it.qty : Number.isInteger(rawQty) ? (rawQty as number) : 0;
@@ -1793,7 +2631,7 @@ export class MapRoom extends Room<MapState> {
     list.unshift({ key: randomUUID(), item: { ...it, qty, vohonId: null, stats: it.stats == null ? null : structuredClone(it.stats) }, price });
     buybacks.set(d.accountId, list.slice(0, BUYBACK_MAX));
     this.takeItem(d, it, qty);
-    d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + gain); d.bagDirty = true;
+    this.addCoin(d, gain);
     this.log(id, `Bán ${label}: +${formatHonTe(gain)} (còn ${formatHonTe(d.honTe)}).`, "#f2c84b");
     this.sendBag(id);
     this.saveTrade(id, d);
@@ -1802,28 +2640,34 @@ export class MapRoom extends Room<MapState> {
   /**
    * Mua lại đồ vừa bán nhầm (bước 9.8): món `rawKey` trong danh sách mua lại của chính tài khoản (buybacks), phải đứng gần thương
    * nhân, đủ Hồn Tệ cho đúng giá đã bán và túi đủ chỗ (đồ không gộp cần một ô trống). Món về túi đúng như lúc bán (chỉ số, cấp
-   * cường hóa) với id mới; ghi DB qua chuỗi lưu như mua / bán.
+   * cường hóa) với id mới; ghi DB qua chuỗi lưu như mua / bán. Tự bán đang bật mà bộ lọc sẽ bán món này thì món về túi ở trạng thái
+   * khoá (#216), để nhịp sau không tự bán lại ngay khi túi vẫn dưới AUTO_SELL_FREE ô trống.
    */
-  buybackItem(id: string, rawKey: unknown) {
+  buybackItem(id: string, rawKey: unknown, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới mua lại được.");
-    const list = buybacks.get(d.accountId) ?? [], e = typeof rawKey === "string" ? list.find((x) => x.key === rawKey) : undefined;
-    if (!e) return warn(`Thương nhân không còn giữ món này (chỉ giữ ${BUYBACK_MAX} món bán gần nhất, mất khi rời game).`);
+    const npc = this.shopFor(id, d, rawNpc, "mua lại");
+    if (typeof npc === "string") return warn(npc);
+    // Đồ bán tay (RAM, BUYBACK_MAX món) hoặc đồ tự bán (#216, lưu DB, AUTO_SELL_BUYBACK món): cùng một nút mua lại, cùng giá đã nhận.
+    const list = buybacks.get(d.accountId) ?? [], key = typeof rawKey === "string" ? rawKey : undefined;
+    const e = key === undefined ? undefined : list.find((x) => x.key === key) ?? d.sold.find((x) => x.key === key);
+    if (!e) return warn(`Thương nhân không còn giữ món này (chỉ giữ ${BUYBACK_MAX} món bán gần nhất, mất khi rời game; ${AUTO_SELL_BUYBACK} món tự bán gần nhất).`);
     const def = itemDef(e.item.code), label = this.itemLabel(e.item), cost = e.price * e.item.qty;
     if (!def) return warn("Vật phẩm không tồn tại.");
     if (d.honTe < cost) return warn(`Không đủ Hồn Tệ: mua lại ${label} giá ${formatHonTe(cost)}, đang có ${formatHonTe(d.honTe)}.`);
-    if (def.stack > 1 ? this.bagRoom(d, def.id) < e.item.qty : bagUsed(d.bag) >= d.bagSlots)
+    const lock = d.sellCfg.on && autoSellable({ ...e.item, locked: false, vohon: null }, d.sellCfg);
+    if (def.stack > 1 ? this.bagRoom(d, def.id, lock) < e.item.qty : bagUsed(d.bag) >= d.bagSlots)
       return warn(`Túi đồ không đủ chỗ để mua lại ${label} (${d.bagSlots} ô): bỏ hoặc bán bớt đồ trước.`);
-    buybacks.set(d.accountId, list.filter((x) => x !== e));
+    buybacks.set(d.accountId, list.filter((x) => x !== e)); d.sold = d.sold.filter((x) => x !== e);
     d.honTe -= cost; d.bagDirty = true;
-    if (def.stack > 1) this.addItem(d, def.id, e.item.qty);
+    if (def.stack > 1) this.addItem(d, def.id, e.item.qty, lock);
     else {
       const it = newItem(def, 1, e.item.years);
       it.stars = e.item.stars; it.enhance = e.item.enhance; it.stats = e.item.stats == null ? null : structuredClone(e.item.stats);
+      if (lock) it.locked = true;
       d.bag.push(it);
     }
-    this.log(id, `Mua lại ${label}: −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)}).`, def.col);
+    this.log(id, `Mua lại ${label}: −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)})${lock ? ", đã khoá để không bị tự bán lại" : ""}.`, def.col);
     this.sendBag(id);
     this.saveTrade(id, d);
   }
@@ -1831,14 +2675,71 @@ export class MapRoom extends Room<MapState> {
   /** Xóa danh sách mua lại của tài khoản khi rời game (9.8). ArenaRoom không xóa: rời sân là về bản đồ cũ. */
   forgetBuyback(accountId: number) { buybacks.delete(accountId); }
 
+  // ---------- Tự bán từ xa (#216, mục 5.7 "Tự bán") ----------
+  /** Khoá / mở khoá một ô trong túi của chính người gửi: món khoá không bị bán (tay hay tự bán), bỏ, hay làm nguyên liệu. */
+  lockItem(id: string, raw: unknown) {
+    const d = this.pdata.get(id); if (!d || d.travelling) return; // #165: như mọi thao tác túi đồ, không đổi sau khi đã chụp túi để đi cổng
+    const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw) : undefined;
+    if (!it) return this.log(id, "Không có vật phẩm này trong túi đồ.", "#ffb35c");
+    it.locked = !it.locked; d.bagDirty = true;
+    this.log(id, `${it.locked ? "Đã khoá" : "Đã mở khoá"} ${this.itemLabel(it)}${it.locked ? ": không bán, bỏ hay làm nguyên liệu được" : ""}.`);
+    this.sendBag(id);
+    this.saveTrade(id, d);
+  }
+
+  /** Bộ lọc tự bán (bảng Túi đồ): server kẹp bằng parseSell, lưu cùng túi đồ qua chuỗi lưu; bật thì xét tự bán ngay ở nhịp tới. */
+  setAutoSell(id: string, raw: unknown) {
+    const d = this.pdata.get(id); if (!d || d.travelling) return;
+    const was = d.sellCfg.on;
+    d.sellCfg = parseSell(raw); d.bagDirty = true;
+    if (was !== d.sellCfg.on) this.log(id, d.sellCfg.on
+      ? `Bật tự bán: túi còn dưới ${AUTO_SELL_FREE} ô trống thì bán từ xa đồ hợp bộ lọc, đúng giá thương nhân trong thành.` : "Tắt tự bán.", "#86e0b0");
+    this.sendBag(id);
+    this.saveTrade(id, d);
+  }
+
+  /**
+   * Tự bán từ xa (#216): bật tự bán và túi còn dưới AUTO_SELL_FREE ô trống thì bán mọi món hợp bộ lọc
+   * (autoSellable) với đúng giá thương nhân trong thành (sellPrice, 100%), không cần đứng gần thương nhân. Không bán khi đang đi cổng /
+   * truyền tống, đang hấp thụ, đang chờ DB xử lý vật phẩm, trong sân đấu. Món đã bán vào danh sách mua lại AUTO_SELL_BUYBACK món (lưu DB
+   * cùng túi). Trả về số ô đã giải phóng.
+   */
+  autoSell(id: string) {
+    const d = this.pdata.get(id); if (!d || !d.sellCfg.on || d.travelling || d.travelCast || d.absorbing || claimHeld(d) || d.shardBusy) return 0;
+    if (this.map.kind === "arena" || d.bagSlots - bagUsed(d.bag) >= AUTO_SELL_FREE) return 0;
+    const sold: SoldRow[] = [];
+    let coins = 0, n = 0;
+    for (const it of d.bag) {
+      if (!autoSellable({ ...it, vohon: it.vohonId }, d.sellCfg)) continue;
+      const price = sellPrice(it)!;
+      sold.push({ key: randomUUID(), item: { ...it, vohonId: null, locked: false, stats: it.stats == null ? null : structuredClone(it.stats) }, price, at: Date.now() });
+      coins += price * it.qty; n += it.qty;
+    }
+    if (!sold.length) return 0;
+    const gone = new Set(sold.map((r) => r.item.id));
+    d.bag = d.bag.filter((i) => !gone.has(i.id));
+    d.sold = [...sold.reverse(), ...d.sold].slice(0, AUTO_SELL_BUYBACK);
+    this.addCoin(d, coins);
+    d.soldN += n; d.soldCoins += coins;
+    console.log(`[tự bán] tài khoản #${d.accountId} ở ${this.state.mapId}: ${n} món (${gone.size} ô), +${coins} đồng`);
+    const text = `Đã tự bán ${n.toLocaleString("vi-VN")} món, +${formatHonTe(coins)}`;
+    this.log(id, `${text} (còn ${formatHonTe(d.honTe)}). Mua lại ${AUTO_SELL_BUYBACK} món gần nhất ở thương nhân.`, "#f2c84b");
+    this.clients.getById(id)?.send("autosold", { n, coins, slots: gone.size });
+    this.sendBag(id);
+    this.saveTrade(id, d);
+    return gone.size;
+  }
+
   /**
    * Mở rộng túi ở thương nhân (bước 9.8): +BAG_EXPAND ô, tối đa BAG_MAX_SLOTS, giá theo lần mở (bagExpandCost). Phải đứng gần thương
-   * nhân và đủ Hồn Tệ. Số ô lưu cùng túi đồ (`accounts.bag_slots`) qua chuỗi lưu.
+   * nhân trong thành (shopExpands: thương nhân lưu động ở trại cổng không mở rộng túi) và đủ Hồn Tệ. Số ô lưu cùng túi đồ (`accounts.bag_slots`) qua chuỗi lưu.
    */
-  expandBag(id: string) {
+  expandBag(id: string, rawNpc?: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
-    if (!this.npcNear(id, { role: "shop" })) return warn("Hãy đứng cạnh thương nhân rồi mới mở rộng túi được.");
+    const npc = this.shopFor(id, d, rawNpc, "mở rộng túi");
+    if (typeof npc === "string") return warn(npc);
+    if (!shopExpands(npc.id)) return warn(`${npcDef(npc.id)?.name ?? "Thương nhân"} không mở rộng túi: về thương nhân trong thành.`);
     const cost = bagExpandCost(d.bagSlots);
     if (cost === null) return warn(`Túi đồ đã mở rộng tối đa (${BAG_MAX_SLOTS} ô).`);
     if (d.honTe < cost) return warn(`Không đủ Hồn Tệ: mở rộng túi giá ${formatHonTe(cost)}, đang có ${formatHonTe(d.honTe)}.`);
@@ -1876,9 +2777,10 @@ export class MapRoom extends Room<MapState> {
    * được chọn (chỉ số i trong MAPS[bản đồ].shards, −1 ngẫu nhiên); `give` nhận cả mã mảnh (shardCode).
    * Từ 3.5: `spawn` nhận `species` (mã loài); `tele {i}` hồn thú gần nhất báo trước chiêu thứ i nhắm người gọi ngay (trả `bid`, `name`);
    * `pst {s, n, secs}` gây trạng thái lên chính người gọi (PLAYER_STATUS). Hồn thú của `beast` không có chiêu báo trước.
-   * Từ BĐ4: `elite` trả mọi ô tinh anh của phòng (vị trí, vùng, chỉ số, người tham gia, Cuồng nộ, giây chờ hồi sinh); `etick {s}` chạy
+   * Từ BĐ4: `elite` trả mọi ô tinh anh của phòng (vị trí, vùng, chỉ số, người tham gia, Cuồng nộ, giây chờ hồi sinh; từ #119 `dmgBy` / `supBy`); `etick {s}` chạy
    * luật tinh anh như đã trôi `s` giây (loại người ở ngoài bán kính, giảm số người, bỏ giao chiến, Cuồng nộ hết giờ); `erespawn {s}`
-   * rút thời gian chờ hồi sinh của mọi tinh anh đã bị hạ xuống còn `s` giây; `clear {keep}` giữ lại tinh anh; `beast` nhận `boss`
+   * rút thời gian chờ hồi sinh của mọi tinh anh đã bị hạ xuống còn `s` giây; từ #119 `elock {s}` xem / đặt lại khóa nhận thưởng tinh anh
+   * nhiều kênh của chính mình (ELITE.lock); `clear {keep}` giữ lại tinh anh; `beast` nhận `boss`
    * (mã trong BOSSES): tinh anh 1 máu, không thuộc ô tinh anh nào (không hồi sinh), để thử thưởng khi hạ (hồn cốt x ELITE.bone).
    * Từ 4.1: `bone {r, s}` cố định số ngẫu nhiên rơi hồn cốt (r: 0..100, rơi khi r/100 < boneChance; −1 bỏ) và vị trí (chỉ số s
    * trong BONE_SLOTS, −1 ngẫu nhiên); `beast` nhận `species` (mã loài trong BEASTS); `give` hồn cốt (BONE_ITEM) nhận `years`,
@@ -1890,10 +2792,19 @@ export class MapRoom extends Room<MapState> {
    * `live` chỉ số đang dùng nếu là võ hồn ra trận).
    * Nhiều kênh: `chan {reset, nolock}` trả `chMax` (người tối đa mỗi kênh: CHANNEL_MAX, hoặc biến môi trường CHANNEL_MAX khi
    * GAME_TEST=1), `channel`, `roomId`; `reset` bỏ thời gian chờ đổi kênh; `nolock` lần rời phòng kế tiếp không khóa kênh.
+   * Từ #116: hồn thú do `spawn` / `beast` sinh có thủ chuẩn (BEAST_DEF.ref) trừ khi có `realDef`; `bst` trả thêm `def`; `bdmg {v}` gây đúng `v`
+   * sát thương đòn trực tiếp (không chí mạng) lên hồn thú gần nhất / `bid`, trả `dealt`.
+   * Từ #161: `ground {ttl}` trả các vùng lưu lại của phòng (`grounds`) và trạng thái trên người gọi (`st`: số tầng, giây còn lại); `ttl`
+   * đặt mọi vùng còn đúng ngần ấy giây.
+   * Từ #218: `bmax {bid, x}` nhân máu tối đa hồn thú (cả máu gốc tinh anh / boss) và hồi đầy; `elock {key, s}` đặt khóa thưởng tinh anh `key`
+   * cho chính mình; `auto {kn, wn}` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ, trả thêm trạng thái trận boss
+   * của tự săn; `perf {reset}` thời gian tick / bản vá (server PERF_LOG=1).
+   * Từ #164: `throw` ném lỗi ngay trong handler (không trả lời): thử lớp chặn chung onUncaughtException giữ server sống.
    */
   testHook(c: Client, m: unknown) {
-    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     if (process.env.GAME_TEST !== "1") return c.send("test", { op, enabled: false });
+    if (op === "throw") throw new Error("hook test: lỗi cố ý (#164)");
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
     const int = (x: unknown, lo: number, hi: number, def: number) => (Number.isInteger(x) ? Math.max(lo, Math.min(hi, x as number)) : def);
     if ((op === "down" || op === "hurt") && d.buffs.delete("inv")) this.syncBuffs(p, d);
@@ -1902,6 +2813,8 @@ export class MapRoom extends Room<MapState> {
       const bid = typeof o.bid === "string" && this.state.beasts.has(o.bid) ? o.bid : this.nearestBeast(p, 160);
       return bid ? { bid, b: this.state.beasts.get(bid)!, bd: this.bdata.get(bid)! } : null;
     };
+    /** Trạng thái trên người gọi (số tầng, giây còn lại) cho hook `ground` / `cold`. */
+    const pst = () => Object.fromEntries([...d.st].map(([s, x]) => [s, { n: x.n, t: x.t }]));
     let out: Record<string, unknown> = {};
     const yearsOf = (tier: number) => int(o.years, TIERS[0].years, MAX_YEARS, TIERS[tier].years);
     if (op === "down" && !p.dead) { d.inv = 0; d.shield = 0; this.hurtPlayer(id, d.hpF / VOHON[p.vh].def + 1); }
@@ -1912,7 +2825,12 @@ export class MapRoom extends Room<MapState> {
       const sp = typeof o.species === "string" ? Math.max(0, beastIndex(o.species)) : 0; // từ 4.1: loài theo mã (hồn cốt mang tên loài)
       const boss = typeof o.boss === "string" ? bossIndex(o.boss) : -1; // từ BĐ4: tinh anh theo mã BOSSES (không thuộc ô tinh anh nào)
       const bid = this.addBeast(0, yearsOf(0), boss >= 0 ? boss : sp, p.x + int(o.dx, -200, 200, 0), p.y + int(o.dy, -200, 200, 0), boss >= 0 ? 1 : 0);
-      this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; this.bdata.get(bid)!.skills = []; // không tung chiêu báo trước
+      // Không tung chiêu báo trước; `skills` (#173): giữ chiêu (chỉ tung khi bot gọi `tele`, Song Sắc Mãng đổi dạng).
+      this.state.beasts.get(bid)!.hp = 1; this.bdata.get(bid)!.wt = 1e9; if (o.skills) this.bdata.get(bid)!.skT = 1e9; else this.bdata.get(bid)!.skills = [];
+      if (!o.realDef) this.bdata.get(bid)!.def = BEAST_DEF.ref; // #116: thủ chuẩn như `spawn`
+      // #192 `hpx`: tinh anh đầy máu, máu gốc × hpx (eliteScale tính lại theo máu gốc) để bot đọc đóng góp sau một chiêu mạnh.
+      const e = this.bdata.get(bid)!.elite, hb = this.state.beasts.get(bid)!, hpx = int(o.hpx, 1, 1000, 1);
+      if (e && hpx > 1) { e.base *= hpx; hb.maxHp = hb.hp = Math.round(e.base * bossHpMult(e.n)); }
       out = { bid }; // bot nhận ra đúng con này (hồn thú hoang có thể sinh cùng lúc)
     }
     else if (op === "chan") {
@@ -1928,6 +2846,7 @@ export class MapRoom extends Room<MapState> {
       const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
+    else if (op === "chat") { if (o.cop === "rlreset") chatReset(d.accountId); } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
     else if (op === "party") {
       // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
       // mọi `pop` trả khung tổ đội của người gọi.
@@ -1961,10 +2880,12 @@ export class MapRoom extends Room<MapState> {
       if (d.lastSkill) d.lastSkill.t -= s * 1000; // hồn kỹ gần nhất cũng cũ đi (cửa sổ Phục Chế COPY_WINDOW, 9.3)
       this.syncBuffs(p, d);
       this.tickAva(id, s); // Võ Hồn Chân Thân và hồi chiêu của nó (8.1a)
+      this.tickFusion(id, s); // lời mời dung hợp kỹ đang chờ (#192); hồi chiêu theo tài khoản cũng trôi `s` giây
+      const fu = fusionReady.get(d.accountId); if (fu !== undefined) fusionReady.set(d.accountId, fu - s * 1000);
       d.danCd = Math.max(0, d.danCd - s); this.sendBag(id);
     }
     else if (op === "give") {
-      const code = String(o.code ?? ""), qty = int(o.qty, 1, 10000, 1);
+      const code = String(o.code ?? ""), qty = int(o.qty, 1, 1e6, 1); // đủ lấp túi BAG_MAX_SLOTS ô đồ gộp (#215)
       let got = 0;
       if (code === RING_ITEM) while (got < qty && this.addRing(d, yearsOf(0))) got++;
       else if (code === BONE_ITEM) {
@@ -1984,10 +2905,6 @@ export class MapRoom extends Room<MapState> {
       if (got < qty) this.log(id, itemDef(code) ? `Túi đồ đã đầy (${d.bagSlots} ô): ${qty - got} món không nhận được.` : "Vật phẩm không tồn tại.", "#ffb35c");
       this.sendBag(id);
     }
-    else if (op === "oldfile") {
-      // 11.5: từ giờ phiên này ghi vị trí kèm tên file bản cũ `<mapId>` (như lưu trước khi bản ×8 thành mặc định); vào lại thì ở `spawn`.
-      d.testFile = this.state.mapId; out = { file: mapFile(this.state.mapId) };
-    }
     else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; this.sendBag(id); }
     else if (op === "shard") {
       const r = int(o.r, -1, 100, -1);
@@ -2005,6 +2922,11 @@ export class MapRoom extends Room<MapState> {
       out = { years, reds: [...this.state.beasts.values()].filter((b) => !b.rank && b.years >= MAX_YEARS).length,
         elites: [...this.state.beasts.values()].filter((b) => b.rank && b.years >= MAX_YEARS).length };
     }
+    else if (op === "locfile") {
+      // 11.5: các lần ghi vị trí sau (kể cả lần cuối khi rời phòng) ghi kèm file Tiled `file` thay cho file đang dùng, giả vị trí lưu
+      // ở bản đồ phiên bản khác (`file` rỗng = NULL như dòng ghi trước 11.5); bỏ `file` thì ghi như thường.
+      d.testLocFile = o.file === undefined ? undefined : String(o.file).slice(0, 64) || null;
+    }
     else if (op === "herb") {
       // BĐ6b: cố định số ngẫu nhiên rơi tiên thảo (r: 0..100, rơi khi r/100 < herbChance; −1 bỏ) và loại (chỉ số i trong HERBS).
       const r = int(o.r, -1, 100, -1);
@@ -2018,6 +2940,10 @@ export class MapRoom extends Room<MapState> {
       const r = int(o.r, -1, 100, -1);
       d.testCore = r < 0 ? null : { r: Math.min(0.9999, r / 100), stars: int(o.stars, 0, MAX_CORE_STARS, 0), set: int(o.set, -1, CORE_SETS.length - 1, -1) };
     }
+    // #165: `claimhold {on}` bật / tắt cờ riêng như đang chờ DB ghi phần thưởng boss (MemoryStore ghi xong ngay nên bot không bắt được lúc
+    // đó; không đụng bộ đếm claimBusy thật); trả có đang giữ không. `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi.
+    else if (op === "claimhold") { d.testClaimHold = o.on === true; out = { busy: claimHeld(d) }; }
+    else if (op === "travellost") { d.testTravelLost = true; }
     else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
@@ -2034,6 +2960,9 @@ export class MapRoom extends Room<MapState> {
       const bid = this.addBeast(zi, years, sp >= 0 ? sp : this.map.zones[zi]?.beasts[0]?.species ?? 0, x, y);
       // `hpx` (8.1a): nhân sinh lực hồn thú vừa sinh để bot đếm đủ các nhát của tuyệt kỹ nhiều nhát (không ảnh hưởng luật chơi thật).
       const hb = this.state.beasts.get(bid), hpx = int(o.hpx, 1, 1000, 1); if (hb && hpx > 1) hb.hp = hb.maxHp = hb.maxHp * hpx;
+      // #116: hồn thú thử mặc định có thủ chuẩn (BEAST_DEF.ref) để các bài so sát thương đúng công thức không phụ thuộc loài / niên hạn;
+      // `realDef` giữ thủ thật theo loài và số năm.
+      if (!o.realDef) this.bdata.get(bid)!.def = BEAST_DEF.ref;
       out = { bid }; // bot nhận ra con vừa sinh theo id (hồn thú bậc cao lao về phía người gọi trước bản vá state kế tiếp)
     }
     else if (op === "tele") {
@@ -2042,6 +2971,38 @@ export class MapRoom extends Room<MapState> {
       const x = nearB(), s = x?.bd.skills[int(o.i, 0, 9, 0)];
       if (x && s && o.cancel) this.cancelCast(x.bid, x.b, x.bd);
       if (x && s && !x.bd.cast) { x.bd.target = id; x.b.aggro = true; this.beginCast(x.bid, x.b, x.bd, s, id, p); out = { bid: x.bid, name: s.def.name }; }
+    }
+    else if (op === "ground") {
+      // #161: các vùng lưu lại của phòng (id, kiểu, hồn thú gây ra, tâm, bán kính, giây còn lại) và trạng thái trên người gọi (số tầng,
+      // giây còn lại) để bot đếm Trúng độc theo nhịp. `ttl {s}`: mọi vùng còn đúng s giây (bot không phụ thuộc thời gian thật của vùng).
+      if (typeof o.ttl === "number" && o.ttl >= 0) this.grounds.setTtl(Math.min(60, o.ttl));
+      out = { grounds: this.grounds.info(), st: pst() };
+    }
+    else if (op === "cold") {
+      // #163: Hỏa Đàn, Cực Hàn đang chạy không, số giây đã tích của người gọi và tầng Hàn / Đóng băng trên người gọi; `acc {s}` đặt số
+      // giây đã tích (bot không phải chờ đủ nhịp thật).
+      out = { ...this.cold.info(id, typeof o.acc === "number" && o.acc >= 0 ? Math.min(60, o.acc) : undefined), st: pst() };
+    }
+    else if (op === "tide") {
+      // #174: Thủy Triều Dâng đang chạy không, giây tới đợt kế tiếp, id vùng / tâm vùng ngập của đợt gần nhất, mức Làm chậm của người gọi
+      // (đã cộng mọi trạng thái, tối đa SLOW_CAP) và trạng thái trên người gọi. `next {s}`: 0 = dâng một đợt ngay, > 0 = đặt giây chờ.
+      const t = this.tide.info(typeof o.next === "number" && o.next >= 0 ? Math.min(600, o.next) : undefined);
+      out = { ...t, grounds: this.grounds.info(), slow: d ? this.pctl(d).slow : 0, st: pst() };
+    }
+    else if (op === "split") {
+      // #173: hang chia phần đang chạy không, giây tới lần đổi kế tiếp, phần đang hóa, các phần của hang, vùng lưu lại và trạng thái trên
+      // người gọi. `next {s}`: 0 = đổi phần ngay, > 0 = đặt giây chờ.
+      const t = this.split.info(typeof o.next === "number" && o.next >= 0 ? Math.min(600, o.next) : undefined);
+      out = { ...t, grounds: this.grounds.info(), slow: this.pctl(d).slow, st: pst() };
+    }
+    else if (op === "form") {
+      // #173: dạng của hồn thú đổi dạng (`bid` hoặc gần nhất; BossDef.forms): chỉ số dạng, giây còn lại. `next {s}`: 0 = đổi ngay, > 0 = đặt giây.
+      const x = nearB(), e = x?.bd.elite, fd = x && x.b.rank ? BOSSES[x.b.species]?.forms : undefined;
+      if (x && e && fd) {
+        if (o.next === 0) e.formT = 0; else if (typeof o.next === "number" && o.next > 0) e.formT = Math.min(600, o.next);
+        if (o.next === 0) this.tickForm(x.bid, x.b, e, fd, 0);
+        out = { bid: x.bid, form: e.form, t: e.formT, name: fd.forms[e.form]?.name, sync: x.b.form, warn: x.b.formWarn };
+      }
     }
     else if (op === "pst") {
       // Trạng thái lên chính người gọi như do hồn thú gần nhất gây (sát thương đòn thường của nó cho Trúng độc / Thiêu đốt).
@@ -2059,7 +3020,17 @@ export class MapRoom extends Room<MapState> {
     else if (op === "bst") {
       // Trạng thái trên hồn thú gần nhất (5.2): giây còn lại, số tầng, độ lớn, có phải do người gọi gây không.
       const x = nearB();
-      out = x ? { bid: x.bid, st: Object.fromEntries([...x.bd.st].map(([s, i]) => [s, { t: i.t, n: i.n, v: i.v, mine: i.src === id }])) } : {};
+      out = x ? { bid: x.bid, def: x.bd.def, st: Object.fromEntries([...x.bd.st].map(([s, i]) => [s, { t: i.t, n: i.n, v: i.v, mine: i.src === id }])) } : {};
+    }
+    else if (op === "bdmg") {
+      // #116: đòn trực tiếp đúng `v` (không chí mạng) lên hồn thú gần nhất / `bid`, đi qua damageBeast (thủ, Phá giáp, xuyên thủ); trả `dealt`.
+      const x = nearB(); if (x) out = { dealt: this.damageBeast(x.bid, int(o.v, 1, 1e8, 1), id, "#ffffff", undefined, { crit: -9 }) };
+    }
+    else if (op === "bmax") {
+      // #218: nhân máu tối đa hồn thú gần nhất / `bid` lên `x` lần và hồi đầy (tinh anh / thú vương / boss: cả máu gốc theo 1 người), để bot
+      // đánh đủ lâu mà kiểm tra giữa trận.
+      const x = nearB(), k = int(o.x, 1, 10000, 1);
+      if (x) { if (x.bd.elite) x.bd.elite.base *= k; x.b.maxHp *= k; x.b.hp = x.b.maxHp; out = { bid: x.bid, hp: x.b.hp }; }
     }
     else if (op === "bhp") { const x = nearB(); if (x) { x.b.hp = Math.max(1, Math.round(x.b.maxHp * int(o.pct, 1, 100, 100) / 100)); x.bd.calm = 0; x.bd.regen = 0; } }
     else if (op === "regen") { const x = nearB(); if (x) { const h0 = x.b.hp; this.regenBeast(x.b, x.bd, int(o.s, 0, 60, 0)); out = { gain: x.b.hp - h0 }; } }
@@ -2069,7 +3040,7 @@ export class MapRoom extends Room<MapState> {
       const h0 = d.hpF, m0 = d.mpF, safe = this.regenPlayer(p, d, int(o.s, 0, 60, 0)); // kể cả võ hồn ngoài sân (benchHp)
       out = { safe, hp: d.hpF - h0, mp: d.mpF - m0, hp0: h0, mp0: m0, maxHp: p.maxHp, maxMp: p.maxMp, level: p.level, vh: p.vh };
     }
-    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
+    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; fusionReady.delete(d.accountId); p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
       const vohon = String(o.vohon ?? "");
       if (vohonIndex(vohon) >= 0) {
@@ -2114,13 +3085,18 @@ export class MapRoom extends Room<MapState> {
           buffs: Object.fromEntries([...d.buffs].map(([k, x]) => [k, { t: x.t, v: x.v }])), shield: d.shield, shieldT: d.shieldT } : null,
         skills: loadoutOf(v.vohon, v.skills), saved: [...v.skills] };
     }
-    else if (op === "elite") out = { list: this.elites.map((slot) => {
+    else if (op === "elite") out = { ...(() => {
+      // #119 `bid`: thêm `one` là tinh anh đó (kể cả tinh anh do hook `beast {boss}` sinh, không thuộc ô nào): giao chiến, người tham gia, đóng góp.
+      const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined, e = bd?.elite, b = e && this.state.beasts.get(o.bid as string);
+      return e && b ? { one: { bid: o.bid, hp: b.hp, maxHp: b.maxHp, engaged: e.engaged, n: e.n, parts: [...e.parts.keys()], dmgBy: Object.fromEntries(e.dmgBy),
+        supBy: Object.fromEntries(e.supBy) } } : {};
+    })(), list: this.elites.map((slot) => {
       const b = slot.bid ? this.state.beasts.get(slot.bid) : undefined, bd = slot.bid ? this.bdata.get(slot.bid) : undefined, e = bd?.elite;
       const { spot } = slot, def = BOSSES[spot.boss];
       return { boss: def.id, name: beastName(1, spot.boss), zone: this.map.zones[spot.zone].name, zi: spot.zone,
         rect: { x: spot.x, y: spot.y, w: spot.w, h: spot.h }, bid: slot.bid, respawn: slot.bid ? 0 : slot.t,
         ...(b && bd && e ? { x: b.x, y: b.y, hx: bd.hx, hy: bd.hy, years: b.years, hp: b.hp, maxHp: b.maxHp, base: e.base, dmg: bd.dmg, n: e.n, engaged: e.engaged,
-          parts: [...e.parts.keys()], rage: bd.buffs.get("rage") ?? 0, rageCd: e.rageCd, skills: bd.skills.map((x) => x.def.name), minions: bd.minions.size } : {}) };
+          parts: [...e.parts.keys()], dmgBy: Object.fromEntries(e.dmgBy), supBy: Object.fromEntries(e.supBy), rage: bd.buffs.get("rage") ?? 0, rageCd: e.rageCd, skills: bd.skills.map((x) => x.def.name), minions: bd.minions.size } : {}) };
     }) };
     else if (op === "etick") {
       // Từ BĐ5 chạy cả luật thú vương (người tham gia trong hang, bỏ giao chiến, rút đi khi hết giờ).
@@ -2144,7 +3120,7 @@ export class MapRoom extends Room<MapState> {
         dmg: bd.dmg, engaged: e.engaged, parts: [...e.parts.keys()], phase: k.phase, roar: k.roar, spd: k.spd, life: k.life, rank: b.rank, boss: k.def.id, now: this.beastDmg(bd),
         skills: bd.skills.map((x) => x.def.name), st: [...bd.st.keys()], cast: bd.cast?.def.name ?? "", charge: !!bd.cast?.charge, ...this.kingRank(e),
         dmgBy: Object.fromEntries(e.dmgBy), supBy: Object.fromEntries(e.supBy), // 9.2: sát thương / hỗ trợ thô theo người
-        ...(w ? { world: { rage: w.rage, weak: w.weak, weakT: w.weakT, weakNext: w.weakNext, shield: w.shield, shieldT: w.shieldT, brk: w.brk, dive: w.dive,
+        ...(w ? { world: { rage: w.rage, weak: w.weak, weakT: w.weakT, weakNext: w.weakNext, shield: w.shield, shieldT: w.shieldT, brk: w.brk, dive: w.dive, surf: w.surf,
           chargeT: w.chargeT, armorT: w.armorT, miasmaT: w.miasmaT, diveT: w.diveT, slamT: w.slamT } } : {}) } : {}) };
     }
     else if (op === "wmech") {
@@ -2153,13 +3129,14 @@ export class MapRoom extends Room<MapState> {
       // hold {secs} (giữ boss đứng yên để bot đứng cạnh thử luật; 0 = thả).
       const bid = this.king?.bid, b = bid ? this.state.beasts.get(bid) : undefined, bd = bid ? this.bdata.get(bid) : undefined, k = bd?.elite?.king, w = k?.world, mm = k?.def.world ?? {};
       if (bid && b && bd && k && w) {
-        const m = String(o.m ?? ""), he = HE_IDS.find((x) => x === o.he) ?? null;
+        // Đang lặn (Du Thủy) thì không chạy cơ chế khác / lặn chồng (như tickWorld).
+        const m = String(o.m ?? ""), he = HE_IDS.find((x) => x === o.he) ?? null, up = w.dive <= 0;
         if (m === "weak") this.worldWeak(bid, b, w, he, int(o.secs, 1, 600, WORLD.weakSecs));
-        else if (m === "charge" && mm.charge) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.charge.skill, true); }
-        else if (m === "miasma" && mm.miasma) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.miasma.skill, false); }
-        else if (m === "slam") { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, WORLD_SLAM, false); }
-        else if (m === "armor" && mm.armor) this.worldArmor(bid, b, w, mm.armor);
-        else if (m === "dive" && mm.dive) this.worldDive(bid, b, bd, w, mm.dive);
+        else if (m === "charge" && mm.charge && up) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.charge.skill, true); }
+        else if (m === "miasma" && mm.miasma && up) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, mm.miasma.skill, false); }
+        else if (m === "slam" && up) { this.cancelCast(bid, b, bd); this.worldCast(bid, b, bd, WORLD_SLAM, false); }
+        else if (m === "armor" && mm.armor && up) this.worldArmor(bid, b, w, mm.armor);
+        else if (m === "dive" && mm.dive && up) this.worldDive(bid, b, bd, w, mm.dive);
         else if (m === "surface" && w.dive > 0) this.worldSurface(bid, b, bd, k, w);
         else if (m === "rage") k.life = Math.min(k.life, WORLD.lifeSecs - WORLD.enrageSecs);
         else if (m === "hold") { // giữ boss đứng yên (Choáng đặt thẳng, bỏ qua miễn khống chế) `secs` giây; 0 = bỏ
@@ -2168,12 +3145,19 @@ export class MapRoom extends Room<MapState> {
           this.syncStatus(b, bd);
         }
         else if (m === "timers") { w.chargeT = w.armorT = w.miasmaT = w.diveT = w.slamT = 999; w.weakNext = int(o.weakNext, 0, WORLD.weakAt.length, WORLD.weakAt.length); }
-        out = { ok: m, weak: w.weak, shield: w.shield, dive: w.dive, cast: bd.cast?.def.name ?? "", charge: !!bd.cast?.charge, life: k.life };
+        out = { ok: m, weak: w.weak, shield: w.shield, dive: w.dive, surf: w.surf, cast: bd.cast?.def.name ?? "", charge: !!bd.cast?.charge, life: k.life,
+          safe: bd.cast?.safe ?? [], x: b.x, y: b.y };
       }
+    }
+    else if (op === "egg") {
+      // #162: bọc trứng của phòng (eggs.info) và số hồn thú do thú vương gọi ra còn sống; `t {s}` đặt mọi bọc còn đúng s giây trước khi nở (tối đa 25: `BeastState.egg` là uint8).
+      const t = typeof o.t === "number" && o.t >= 0 ? Math.min(25, o.t) : undefined, kd = this.king?.bid ? this.bdata.get(this.king.bid) : undefined;
+      out = { eggs: this.eggs.info(t), minions: kd ? [...kd.minions].filter((m) => this.state.beasts.has(m)) : [] };
     }
     else if (op === "kdmg") {
       // BĐ5: gây đúng `v` sát thương lên thú vương của phòng (không chí mạng, đi qua damageBeast: thành người tham gia, ghi đóng góp).
-      const bid = this.king?.bid; if (bid) out = { dealt: this.damageBeast(bid, int(o.v, 1, 1e8, 1), id, "#ffffff", undefined, { direct: false }) };
+      // Từ #119 `bid`: lên hồn thú đó (tinh anh, dù ở xa).
+      const bid = typeof o.bid === "string" && this.state.beasts.has(o.bid) ? o.bid : this.king?.bid; if (bid) out = { dealt: this.damageBeast(bid, int(o.v, 1, 1e8, 1), id, "#ffffff", undefined, { direct: false }) };
     }
     else if (op === "chest") {
       // BĐ5: cố định số ngẫu nhiên khi mở rương: hồn cốt / mảnh UR (0..100, rơi khi r/100 < tỉ lệ), võ hồn i trong kingShardPool, số mảnh n,
@@ -2198,9 +3182,11 @@ export class MapRoom extends Room<MapState> {
       out = { day: d.dailyDay, daily: d.daily.map((x) => ({ ...x, status: questStatus(x) })) };
     }
     else if (op === "quest") {
-      // 6.2: đặt tiến độ chuỗi tân thủ (bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi; trả tiến độ hiện tại.
-      if (Number.isInteger(o.step)) { d.quest = parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, QUEST_STARTER); d.bagDirty = true; this.sendQuest(id); }
-      out = { quest: { ...d.quest, status: questStatus(d.quest) } };
+      // 6.2: đặt tiến độ chuỗi cố định `chain` (mặc định tân thủ; bước, đã nhận, số đếm; kẹp như khi nạp DB) như tài khoản đang ở giữa chuỗi;
+      // trả tiến độ hiện tại.
+      const q = this.fixedQuest(d, typeof o.chain === "string" ? o.chain : QUEST_STARTER);
+      if (q && Number.isInteger(o.step)) { Object.assign(q, parseQuest({ step: o.step, accepted: o.accepted === true, prog: o.prog }, q.chain)); d.bagDirty = true; this.sendQuest(id, undefined, undefined, q.chain); }
+      out = { quest: q && { ...q, status: questStatus(q) } };
     }
     else if (op === "warp") {
       // 6.2: chuyển sang bản đồ `mapId` tại (x, y) qua đúng transaction đi cổng (beginTravel, như một cổng ẩn); client nhận `travel`
@@ -2220,6 +3206,7 @@ export class MapRoom extends Room<MapState> {
       }).then(() => { this.sendVohons(c); c.send("test", { op, enabled: true, rec }); });
       return;
     }
+    else if (op === "aslow") arenaTestSlow(d.accountId, int(o.ms, 0, 10000, 0)); // #225: lần đọc Elo kế tiếp lúc xếp hàng chậm thêm `ms` mili giây
     else if (op === "claims") {
       // BĐ5: lượt nhận rương thú vương hôm nay trong bộ nhớ và trong DB (đọc sau khi chuỗi lưu xong).
       this.chain(d, async () => {
@@ -2228,9 +3215,66 @@ export class MapRoom extends Room<MapState> {
       });
       return;
     }
+    else if (op === "auto") {
+      // Auto 1: `used` đặt số giây đã treo hôm nay (thử hết giờ); `pvp` một đòn như của người chơi khác (hurtPlayer với `pvp`, phòng bản
+      // đồ không có PvP thật); trả trạng thái tự săn (mục tiêu, đồ đang nhặt, điểm neo, võ hồn chính khi đổi tay tiên cơ).
+      if (typeof o.used === "number" && Number.isFinite(o.used)) { d.autoUsed = Math.max(0, Math.min(AUTO_DAILY_SECS, o.used)); d.autoDay = this.today(); d.autoDirty = true; this.sendAuto(id); }
+      // Auto 2: `bonus` đặt quỹ giờ treo cộng thêm (giây, 0..AUTO_BONUS_MAX).
+      if (typeof o.bonus === "number" && Number.isFinite(o.bonus)) { d.autoBonus = Math.max(0, Math.min(AUTO_BONUS_MAX, o.bonus)); d.autoDirty = true; this.sendAuto(id); }
+      if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
+      const a = d.auto;
+      // #213: `pace` đặt nợ nhịp (giây) của lượt tự săn đang chạy (thử trần tốc độ AUTO_PACE).
+      if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
+      // #218: `kn` / `wn` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ (thử tự săn bỏ boss khi hết lượt; DB vẫn
+      // là nguồn chính lúc nhận, claimBoss).
+      if (typeof o.kn === "number") Object.assign(d.claims, { day: this.today(), n: int(o.kn, 0, KING.daily, 0) });
+      if (typeof o.wn === "number") Object.assign(d.wclaims, { day: this.today(), n: int(o.wn, 0, WORLD.daily, 0) });
+      const bd = typeof o.bid === "string" ? this.bdata.get(o.bid) : undefined; // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất
+      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
+        drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
+        // #218: mục tiêu là boss, số lần bắt đầu né, chỗ né đang đi tới, đang lùi vì ít máu, hệ võ hồn cơ chế đang cần.
+        boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
+        ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm } } : {}) };
+    }
+    else if (op === "tong") {
+      // #196: `back` (số ngày) lùi lúc gia nhập tông về trước (giả lập thời gian trôi, ghi DB); trả tông, lúc gia nhập, số giây còn chờ.
+      if (d.tongAt !== null && typeof o.back === "number" && Number.isFinite(o.back)) {
+        d.tongAt -= Math.max(0, Math.min(365, o.back)) * 86400000;
+        const at = d.tongAt; this.chain(d, () => store.setTong(d.accountId, d.tong, at));
+      }
+      out = { tong: d.tong, at: d.tongAt, ptong: p.tong };
+    }
+    else if (op === "perf") {
+      // #218: thời gian tick / bản vá trung bình và lớn nhất (ms) của phòng từ lần đặt lại trước (chỉ đo khi server bật PERF_LOG=1);
+      // `reset` đặt lại sau khi đọc.
+      const a = this.perfAll, n = Math.max(1, a.n);
+      out = { on: this.perfOn, n: a.n, tick: a.tick / n, patch: a.patch / n, max: a.max, auto: a.auto / n, players: this.state.players.size, beasts: this.state.beasts.size };
+      if (o.reset) Object.assign(a, { n: 0, tick: 0, patch: 0, max: 0, auto: 0 });
+    }
+    else if (op === "offline") {
+      // Auto 3: `ago` (giây, 0–7 ngày) lùi thời điểm của lần ủy thác offline kế tiếp (giả lập thời gian trôi); trả vùng săn chỗ đang
+      // đứng nếu thoát ở đây thì được ủy thác (null = không), `ago` đang đặt, chế độ và giờ của đồng hồ lịch (chia quỹ theo ngày).
+      if (typeof o.ago === "number" && Number.isFinite(o.ago)) testOfflineAgo.set(d.accountId, Math.max(0, Math.min(7 * 86400, o.ago)));
+      out = { zone: this.offlineZone(id)?.name ?? null, ago: testOfflineAgo.get(d.accountId) ?? 0, clock: bossClockMode(),
+        now: bossNow() + this.dayShift * 86400000, day: this.today() };
+    }
+    else if (op === "elock") {
+      // #119: khóa nhận thưởng tinh anh của chính mình (mọi bản đồ): `s` (>= 0) đặt mọi khóa đang có còn `s` giây (0 = bỏ khóa);
+      // trả `locks` (`${mapId}|${mã tinh anh}` -> giây còn lại).
+      const now = Date.now(), sv = o.s === undefined ? -1 : Math.max(0, Number(o.s) || 0), locks: Record<string, number> = {};
+      // #218: `key` (`${mapId}|${mã tinh anh}`) với `s` > 0: đặt khóa mới cho chính mình (thử tự săn bỏ tinh anh đang khóa).
+      if (typeof o.key === "string" && sv > 0) { let m = eliteLocks.get(o.key); if (!m) eliteLocks.set(o.key, m = new Map()); m.set(d.accountId, now + sv * 1000); }
+      for (const [key, m] of eliteLocks) {
+        if (!m.has(d.accountId)) continue;
+        if (sv === 0) m.delete(d.accountId); else if (sv > 0) m.set(d.accountId, now + sv * 1000);
+        const l = eliteLockLeft(key, d.accountId, now); if (l > 0) locks[key] = l;
+      }
+      out = { locks };
+    }
     else if (op === "erespawn") { const s = Math.max(0, Number(o.s) || 0); for (const slot of this.elites) if (!slot.bid) slot.t = Math.min(slot.t, s); }
     else if (op === "clear") this.state.beasts.forEach((b, bid) => { // `keep`: giữ tinh anh (BĐ4); `all`: cả bản đồ, không chỉ quanh người gọi (BĐ6d)
-      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
+      // `but` (#213): giữ hồn thú có id này / trong danh sách này (bài tự săn dọn hồn thú tự nhiên quanh mình mà không xóa mục tiêu đang thử).
+      if ((o.all || Math.hypot(b.x - p.x, b.y - p.y) < 160) && !(o.keep && b.rank) && !(Array.isArray(o.but) ? o.but.includes(bid) : bid === o.but)) { this.state.beasts.delete(bid); this.bdata.delete(bid); }
     });
     else if (op === "set") {
       const v = d.owned.find((x) => x.rowId === o.rowId);
@@ -2308,6 +3352,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!, direct = !o.dot && !o.chain;
     if ((direct && d.inv > 0) || p.dead || d.travelling) return false; // trong vùng an toàn hồn thú đã bỏ mục tiêu (tick) nên không đánh tới
     if (d.travelCast) this.stopCast(id, d.travelCast.wp ? "Bị tấn công: đã hủy truyền tống." : "Bị tấn công: đã hủy đi qua cổng.");
+    if (o.pvp) this.autoStop(id, "bị người chơi tấn công."); // tự săn (mục 5.13)
     // Miễn sát thương (Vô Địch Thần Quang): không mất gì nhưng vẫn tính là bị đánh (giao chiến), hiện chữ "Miễn".
     // Đòn của đối thủ (Đại Đấu Hồn Trường, `pvp`, 7.2) không đặt khung bất tử 0,45 giây (hồn kỹ nhiều nhát vẫn trúng đủ) và không lan Cảm điện;
     // bất tử do hồn kỹ / lúc vào sân vẫn chặn.
@@ -2356,6 +3401,7 @@ export class MapRoom extends Room<MapState> {
       if (c) this.sendVohons(c);
     } else {
       p.dead = true; d.deadT = RESPAWN_SECS; this.clearPStatus(p, d); this.endAva(id, "");
+      this.autoStop(id, "cả đội đã gục."); // tự săn (mục 5.13)
       this.log(id, `${name} đã gục, cả đội đều đã gục. Đang trở về doanh trại… (không mất kinh nghiệm hay đồ)`, "#ff8a8a");
       c?.send("ko", { fallen: fallen.vohon, next: null });
       this.sendSquad(id, true);
@@ -2391,16 +3437,19 @@ export class MapRoom extends Room<MapState> {
       d.combo = near.length || foes.length ? (d.comboT <= CORE_FX_RULE.comboGap ? d.combo + 1 : 1) : 0; d.comboT = 0;
       if (d.combo >= CORE_FX_RULE.comboN) { d.combo = 0; mult += d.coreFx.combo; this.broadcast("fx", { k: "combo", id, col: CORE_SETS[coreSetIndex("hao_thien")].col }); }
     }
-    for (const [bid] of near) this.damageBeast(bid, this.atkOf(d) * mult * (0.85 + Math.random() * 0.3), id, VOHON[p.vh].col, hit);
-    for (const f of foes) this.damageFoe(f, this.atkOf(d) * mult * (0.85 + Math.random() * 0.3), id, VOHON[p.vh].col, hit);
+    for (const [bid] of near) this.damageBeast(bid, this.atkOf(d) * mult * atkRoll(Math.random()), id, VOHON[p.vh].col, hit);
+    for (const f of foes) this.damageFoe(f, this.atkOf(d) * mult * atkRoll(Math.random()), id, VOHON[p.vh].col, hit);
   }
 
   /** Độ lớn hiệu ứng có lợi `b` đang có trên hồn sư (0 = không có), cộng cả bị động hồn cốt cùng tên (4.3) của võ hồn ra trận. */
   buffV(d: PData, b: BuffId) {
-    return (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0) + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + Chân Thân (8.1a)
+    const resonance = b === "def" ? (d.res.bonus.def ?? 0) / 100 : 0;
+    return resonance + (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0) + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + cộng minh Sao võ hồn và Chân Thân (8.1a)
   }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
-  atkOf(d: PData) { return d.atk * (1 + this.buffV(d, "atk") + this.bondV(d, "atk")); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4)
+  atkOf(d: PData, bond = true) { return d.atk * (1 + this.buffV(d, "atk") + (bond ? this.bondV(d, "atk") : 0)); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4); dung hợp kỹ không nhận (#192)
+  /** Chỉ số võ hồn ra trận cho công thức tự đánh (offlineFight): ủy thác offline và trần tốc độ tự săn (AUTO_PACE). */
+  offlinePower(d: PData, p: PlayerState): OfflinePower { return { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def }; }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
   /**
@@ -2448,7 +3497,7 @@ export class MapRoom extends Room<MapState> {
 
   /** Kéo hồn thú về sát hồn sư (gom quái), từng bước nhỏ để không xuyên vật cản. */
   pullBeast(bid: string, p: PlayerState) {
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd) return;
+    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || bd.rooted) return; // thú thực vật cắm rễ (#116)
     const hw = Math.max(3, TIERS[b.tier].size / 3);
     for (let k = 0; k < 40; k++) {
       const dx = p.x - b.x, dy = p.y - b.y, dd = Math.hypot(dx, dy), stop = TIERS[b.tier].size / 2 + 8;
@@ -2462,10 +3511,10 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Đẩy lùi hồn thú ra xa hồn sư `dist` pixel (nhân CC_TIER_MULT theo bậc), từng bước nhỏ để không xuyên vật cản. Hồn thú đang
-   * Choáng / Trói không bị đẩy (mục 5.1), và không bị đẩy vào vùng an toàn (moveBeast).
+   * Choáng / Trói và thú thực vật đứng yên (#116) không bị đẩy (mục 5.1), và không bị đẩy vào vùng an toàn (moveBeast).
    */
   pushBeast(bid: string, p: PlayerState, dist: number) {
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || bd.st.has("stun") || bd.st.has("root")) return;
+    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || bd.st.has("stun") || bd.st.has("root") || bd.rooted) return;
     const hw = Math.max(3, TIERS[b.tier].size / 3), dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1;
     let left = dist * (CC_TIER_MULT[b.tier] ?? 1);
     while (left > 0) {
@@ -2535,7 +3584,7 @@ export class MapRoom extends Room<MapState> {
    * Lan hiệu ứng lên bản thân `e` của người tung `id` cho đồng đội đứng gần (9.1), mức × PARTY_BUFF_MULT: hiệu ứng có lợi (trừ
    * PARTY_BUFF_SKIP; tàng hình chỉ khi võ hồn gốc `src` là Phụ trợ), hồi sinh lực và khiên theo sinh lực tối đa của võ hồn đang ra trận
    * của đồng đội (`hm`: hệ số hồi máu / khiên của người tung), hồn lực. Cùng hiệu ứng thì lấy mức mạnh hơn và thời gian dài hơn.
-   * Thanh tẩy không lan. Đồng đội thấy số hồi / khiên trên đầu và một dòng "<tên> … cho bạn".
+   * Thanh tẩy lan tới đồng đội hợp lệ nhưng không nhân hệ số. Đồng đội thấy số hồi / khiên trên đầu và một dòng "<tên> … cho bạn".
    */
   partyShare(id: string, e: NonNullable<SkillDef["self"]>, bpow: number, hm: number, col: string, src: string) {
     const p = this.state.players.get(id); if (!p) return;
@@ -2566,6 +3615,11 @@ export class MapRoom extends Room<MapState> {
         const add = Math.min(q.maxMp - o.mpF, q.maxMp * e.mp * bpow * m);
         if (add > 0) { o.mpF += add; q.mp = Math.floor(o.mpF); said.push(`hồi ${Math.round(add)} hồn lực`); }
       }
+      if (e.cleanse) {
+        const hadStatus = o.st.size > 0;
+        this.clearPStatus(q, o);
+        if (hadStatus) said.push("thanh tẩy");
+      }
       if (said.length) this.log(qid, `${p.name} ${said.join(", ")} cho bạn.`, col);
       if (sup > 0) this.supportCredit(id, qid, sup);
     }
@@ -2582,8 +3636,31 @@ export class MapRoom extends Room<MapState> {
     for (const [bid, bd] of this.bdata) {
       const e = bd.elite, b = this.state.beasts.get(bid);
       if (!e || !b || b.hp <= 0 || !e.engaged || !e.parts.has(qid)) continue;
-      e.supBy.set(id, (e.supBy.get(id) ?? 0) + v);
+      this.credit(e, "supBy", id, v);
       this.joinFight(e, id); this.eliteScale(b, e);
+    }
+  }
+
+  /** Cộng `v` vào đóng góp `kind` của `pid` và ghi tài khoản của phiên (#119, `EliteData.acc`). */
+  credit(e: EliteData, kind: "dmgBy" | "supBy", pid: string, v: number) {
+    e[kind].set(pid, (e[kind].get(pid) ?? 0) + v);
+    const d = this.pdata.get(pid); if (d) e.acc.set(pid, d.accountId);
+  }
+
+  /**
+   * Đóng góp theo tài khoản (mục 5.4, #119): tài khoản `acc` vừa vào phòng với phiên `sid`; mọi tinh anh / thú vương / boss thế giới
+   * còn giữ đóng góp của phiên cũ cùng tài khoản (thoát rồi vào lại, đổi kênh rồi quay về khi boss chưa bỏ giao chiến) thì chuyển đóng
+   * góp và lần nhắc hết lượt sang phiên mới. Không thành người tham gia lại: phải đánh / hỗ trợ lại như người vào giữa trận.
+   */
+  rebindContrib(sid: string, acc: number) {
+    for (const bd of this.bdata.values()) {
+      const e = bd.elite; if (!e) continue;
+      for (const [old, a] of [...e.acc]) {
+        if (a !== acc || old === sid) continue;
+        for (const m of [e.dmgBy, e.supBy]) { const v = m.get(old); m.delete(old); if (v !== undefined) m.set(sid, (m.get(sid) ?? 0) + v); }
+        e.acc.delete(old); e.acc.set(sid, acc);
+        if (e.king?.noted.delete(old)) e.king.noted.add(sid);
+      }
     }
   }
 
@@ -2593,12 +3670,16 @@ export class MapRoom extends Room<MapState> {
   contributors(e: EliteData) { return [...new Set([...e.dmgBy.keys(), ...e.supBy.keys()])]; }
   /**
    * Người đóng góp nhiều nhất còn trong phòng (không thì `by`): ưu tiên hồn hoàn của tinh anh / thú vương theo đóng góp tổng;
-   * `dmgOnly` (hồn hoàn đỏ boss thế giới, 9.2) chỉ xếp theo sát thương.
+   * `dmgOnly` (hồn hoàn đỏ boss thế giới, 9.2) chỉ xếp theo sát thương. `ok` (#119): chỉ xét người thỏa (tinh anh: chưa bị khóa nhận
+   * thưởng); không ai thỏa thì null.
    */
-  topContrib(e: EliteData, by: string, dmgOnly = false) {
+  topContrib(e: EliteData, by: string, dmgOnly?: boolean): string;
+  topContrib(e: EliteData, by: string, dmgOnly: boolean, ok: (pid: string) => boolean): string | null;
+  topContrib(e: EliteData, by: string, dmgOnly = false, ok: (pid: string) => boolean = () => true) {
     const val = (pid: string) => (dmgOnly ? e.dmgBy.get(pid) ?? 0 : this.contribOf(e, pid));
-    let owner = by;
-    for (const pid of dmgOnly ? e.dmgBy.keys() : this.contributors(e)) if (this.state.players.has(pid) && val(pid) > val(owner)) owner = pid;
+    let owner: string | null = ok(by) ? by : null;
+    for (const pid of dmgOnly ? e.dmgBy.keys() : this.contributors(e))
+      if (this.state.players.has(pid) && ok(pid) && (owner === null || val(pid) > val(owner))) owner = pid;
     return owner;
   }
 
@@ -2607,10 +3688,12 @@ export class MapRoom extends Room<MapState> {
    * `power`: sức mạnh (skillPower theo số năm hồn hoàn của vòng, hoặc tienCoDmgMult cho tiên cơ); `bpow`: hệ số hiệu ứng lên
    * bản thân (buffPower). `hit`: đòn tạo năng lượng tiên cơ (bỏ trống với tiên cơ). Vùng "target" không có mục tiêu thì
    * lướt theo hướng nhìn nếu có `dash` (người gọi đã kiểm tra trước với hồn kỹ thường). `share` (9.1): mã võ hồn gốc khi hiệu ứng lên
-   * bản thân lan cho tổ đội (shareOf), bỏ trống thì không lan.
+   * bản thân lan cho tổ đội (shareOf), bỏ trống thì không lan. `fus` (#192, Võ Hồn Dung Hợp Kỹ): vùng "around" đặt cố định ở `at`;
+   * `atk` là công dùng thay công của `id` (cả sát thương theo thời gian); `pair` là đồng đội dung hợp: không nhận ràng buộc, đóng góp tinh
+   * anh / thú vương / boss chia đôi.
    */
-  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, atk = this.atkOf(d) * power;
+  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: FusHit & { at: { x: number; y: number } }) {
+    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, atk = (fus ? fus.atk : this.atkOf(d)) * power, pair = fus?.pair;
     /** Một nhát trúng hồn thú `bid`: sát thương (kèm % sinh lực, theo tầng trạng thái) rồi gây trạng thái. */
     const strike = (bid: string, last: boolean) => {
       const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || b.hp <= 0) return;
@@ -2618,16 +3701,17 @@ export class MapRoom extends Room<MapState> {
       if (sk.pctHp) dmg += Math.min(b.maxHp * sk.pctHp, atk * PCT_HP_CAP);
       if (sk.perStack) dmg += atk * sk.perStack.dmg * (bd.st.get(sk.perStack.s)?.n ?? 0);
       if (sk.lowHp) dmg *= 1 + sk.lowHp * (1 - b.hp / Math.max(1, b.maxHp)); // hạ mục tiêu yếu máu (Nguyệt Nhận)
-      if (dmg > 0) this.damageBeast(bid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal });
+      if (sk.vsSt && sk.vsSt.s.some((s) => bd.st.has(s))) dmg *= 1 + sk.vsSt.v; // mục tiêu đang có trạng thái (Băng Hỏa Lưỡng Nghi, #192)
+      if (dmg > 0) this.damageBeast(bid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal, pair });
       if (!this.state.beasts.has(bid)) return;
       if (sk.dispel) this.dispelBeast(bid, id); // xóa buff địch (Thiên Càn Trấn Áp, BĐ4)
       if (sk.push) this.pushBeast(bid, p, sk.push);
       // Viêm bạo (Hỏa Long): kích nổ mọi tầng Thiêu đốt rồi đặt lại `keep` tầng. Từ 8.1b `boom.last`: chỉ nhát cuối kích nổ, `mult` nổ mạnh thêm.
       if (sk.boom && (!sk.boom.last || last)) {
         this.detonateBurn(bid, id, sk.boom.mult);
-        if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power);
+        if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power, fus);
       }
-      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power);
+      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power, fus);
     };
     /**
      * Một nhát trúng đối thủ `fid` (Đại Đấu Hồn Trường, 7.2): cùng công thức sát thương như lên hồn thú (damageFoe nhân ARENA.dmgMult),
@@ -2639,9 +3723,11 @@ export class MapRoom extends Room<MapState> {
       if (sk.pctHp) dmg += Math.min(f.maxHp * sk.pctHp, atk * PCT_HP_CAP);
       if (sk.perStack) dmg += atk * sk.perStack.dmg * (fd.st.get(sk.perStack.s)?.n ?? 0);
       if (sk.lowHp) dmg *= 1 + sk.lowHp * (1 - f.hp / Math.max(1, f.maxHp));
+      if (sk.vsSt && sk.vsSt.s.some((s) => fd.st.has(s))) dmg *= 1 + sk.vsSt.v;
       const landed = dmg > 0 ? this.damageFoe(fid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal }) : !this.buffV(fd, "inv");
       if (!landed) return;
-      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyPStatus(fid, a, atk * ARENA.dmgMult);
+      // Mê hoặc / Đóng băng trên hồn sư chỉ do hồn thú gây (PLAYER_STATUS_PVE, #116).
+      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) if (!PLAYER_STATUS_PVE.includes(a.s)) this.applyPStatus(fid, a, atk * ARENA.dmgMult);
     };
     const near = (r: number, x = p.x, y = p.y) => this.beastsNear(x, y, r).filter(([, b]) => Math.hypot(b.x - x, b.y - y) < r).map(([bid]) => bid);
     if (sk.fly) this.broadcast("fx", { k: "fly", id, t: sk.fly, col });
@@ -2649,8 +3735,8 @@ export class MapRoom extends Room<MapState> {
       // `n` > 1: nhiều nhát quanh vị trí hiện tại của hồn sư cách nhau `every` giây (cánh hoa xoay); nhát cuối mới gây `finisher`.
       // Từ 2.5c: `at` đặt vùng cố định tại hồn thú gần nhất (bay tới nếu có `dash`), `fixed` cố định ở chỗ hồn sư đứng lúc tung.
       const n = sk.n ?? 1;
-      let at: { x: number; y: number } | null = sk.fixed ? { x: p.x, y: p.y } : null;
-      if (sk.at) {
+      let at: { x: number; y: number } | null = fus ? fus.at : sk.fixed ? { x: p.x, y: p.y } : null;
+      if (sk.at && !fus) {
         // Không có hồn thú trong tầm thì đặt vào đối thủ gần nhất (7.2).
         const bid = this.nearestBeast(p, sk.at), b = bid ? this.state.beasts.get(bid) : undefined;
         const fid = b ? undefined : this.nearestFoe(id, sk.at), t = b ?? (fid ? this.state.players.get(fid) : undefined);
@@ -2745,8 +3831,11 @@ export class MapRoom extends Room<MapState> {
   /**
    * Gây trạng thái `a` lên hồn thú `bid`, người gây `by`, sức mạnh hồn kỹ `power`. Cộng dồn tầng tới STATUS.max, thời gian lấy
    * phần còn lại dài hơn, độ lớn lấy giá trị mạnh hơn. Khống chế ngắn hơn với hồn thú bậc cao (CC_TIER_MULT).
+   * `fus` (#192): gây bởi Võ Hồn Dung Hợp Kỹ: công `fus.atk` thay công của `by`, không nhận ràng buộc, sát thương theo thời gian chia
+   * đôi đóng góp với đồng đội `fus.pair`.
    */
-  applyStatus(bid: string, a: StatusApply, by: string, power = 1) {
+  applyStatus(bid: string, a: StatusApply, by: string, power = 1, fus?: FusHit) {
+    const pair = fus?.pair;
     const b = this.state.beasts.get(bid), bd = this.bdata.get(bid), pd = this.pdata.get(by), p = this.state.players.get(by);
     // Như damageBeast: đang chuyển bản đồ hoặc đứng trong vùng an toàn thì không gây trạng thái.
     if (!b || !bd || b.hp <= 0 || !pd || !p || pd.travelling || this.map.inSafe(p.x, p.y)) return;
@@ -2760,18 +3849,18 @@ export class MapRoom extends Room<MapState> {
     const secs = (a.secs ?? def.secs) * (def.noMove || def.noAtk ? CC_TIER_MULT[b.tier] ?? 1 : 1) * (isCcStatus(a.s) ? 1 + (fx.cc ?? 0) : 1);
     // Ràng buộc Tà Hỏa – Hỏa Ảnh (2.5d), bộ hồn hạch Phượng Hoàng / Xà Hoàng 2 món (5.2): Thiêu đốt / Trúng độc của hồn sư mạnh
     // thêm, tính lúc gây như tăng công.
-    const amp = a.s === "burn" ? this.bondV(pd, "burn") + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
-    const v = def.dot ? this.atkOf(pd) * def.dot * power * (1 + amp) : def.amp;
+    const amp = a.s === "burn" ? (pair ? 0 : this.bondV(pd, "burn")) + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
+    const v = def.dot ? (fus ? fus.atk : this.atkOf(pd)) * def.dot * power * (1 + amp) : def.amp;
     // Bộ Phượng Hoàng 4 món: Thiêu đốt của hồn sư thêm tầng tối đa (người khác gây tiếp không làm giảm số tầng đang có).
     const max = def.max + (a.s === "burn" ? fx.burnMax ?? 0 : 0);
     const cur = bd.st.get(a.s), n = a.n ?? 1;
-    if (cur) { cur.n = Math.max(cur.n, Math.min(max, cur.n + n)); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); cur.src = by; }
-    else bd.st.set(a.s, { t: secs, n: Math.min(max, n), v, src: by });
+    if (cur) { cur.n = Math.max(cur.n, Math.min(max, cur.n + n)); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); cur.src = by; cur.pair = pair; }
+    else bd.st.set(a.s, { t: secs, n: Math.min(max, n), v, src: by, pair });
     if (def.noMove) { bd.kx = 0; bd.ky = 0; }
     // Đủ tầng thì bùng phát (2.5c): Mị hoặc thành Mê hoặc, Phong ấn thành Dễ thương 6,8 giây; tầng về 0.
     if (def.burst && bd.st.get(a.s)!.n >= def.max) {
       bd.st.delete(a.s);
-      this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power);
+      this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power, fus);
       if (STATUS[def.burst.s].wander) { bd.target = null; b.aggro = false; }
     }
     this.syncStatus(b, bd);
@@ -2793,7 +3882,7 @@ export class MapRoom extends Room<MapState> {
     const bd = this.bdata.get(bid), s = bd?.st.get("burn"); if (!bd || !s) return;
     bd.st.delete("burn"); this.syncStatus(this.state.beasts.get(bid)!, bd);
     const boom = 1 + (this.pdata.get(by ?? s.src)?.coreFx.boom ?? 0) + extra;
-    this.damageBeast(bid, s.v * s.n * s.t * STATUS.burn.boom * boom, s.src, STATUS.burn.col, undefined, { direct: false });
+    this.damageBeast(bid, s.v * s.n * s.t * STATUS.burn.boom * boom, s.src, STATUS.burn.col, undefined, { direct: false, pair: s.pair });
   }
 
   /** Mỗi tick: trạng thái hết giờ thì bỏ; mỗi STATUS_TICK giây Thiêu đốt / Trúng độc gây sát thương (người gây đã rời thì bỏ). */
@@ -2808,7 +3897,7 @@ export class MapRoom extends Room<MapState> {
     for (const [s, x] of dots) {
       if (!this.state.players.has(x.src)) { bd.st.delete(s); this.syncStatus(b, bd); continue; }
       if (!this.state.beasts.has(bid)) return;
-      this.damageBeast(bid, x.v * x.n, x.src, STATUS[s].col, undefined, { direct: false });
+      this.damageBeast(bid, x.v * x.n, x.src, STATUS[s].col, undefined, { direct: false, pair: x.pair });
     }
     if (!bd.st.size) bd.dotT = 0;
   }
@@ -2847,19 +3936,28 @@ export class MapRoom extends Room<MapState> {
     // Từ BĐ4 một chiêu có thể có nhiều vùng (teleZones); fx gửi vùng đầu như 3.5, các vùng còn lại trong `parts`.
     // Từ BĐ5 vòng rơi ngẫu nhiên (`scatter`, Độc Châm Vũ) do server tung.
     const teles = def.floor ? this.floorTeles() : teleZones(def, b.x, b.y, tgt.x, tgt.y, Math.random);
-    bd.cast = { def, teles, t: def.warn, target: pid };
+    // Chiêu toàn sàn né được (#118): vòng an toàn rải trong sàn, khóa cùng lúc với vùng.
+    const safe = def.floor && def.safe ? floorSafeZones(this.map, { x: bd.hx, y: bd.hy }, def.safe.n, def.safe.r, Math.random) : undefined;
+    // Hồn thú đổi dạng (#173): trạng thái theo dạng lúc này (đổi dạng giữa lúc báo trước không đổi chiêu đang tung).
+    const status = def.forms && bd.elite ? def.forms[bd.elite.form] : undefined;
+    bd.cast = { def, teles, t: def.warn, target: pid, safe, status }; this.casting.add(bid);
     s.cd = def.cd * (0.8 + Math.random() * 0.4) * (bd.elite?.king?.world?.rage ? WORLD.rageCd : 1); // boss thế giới nổi giận: hồi chiêu nhanh hơn
     b.cast = true; b.moving = false; if (Math.abs(Math.cos(ang)) > 0.1) b.face = Math.cos(ang) > 0 ? 1 : -1;
-    this.broadcast("fx", { k: "tele", bid, name: def.name, ...teles[0], parts: teles.slice(1), t: def.warn });
+    this.broadcast("fx", { k: "tele", bid, name: def.name, ...teles[0], parts: teles.slice(1), t: def.warn, ...(safe ? { safe } : {}) });
   }
 
   /**
    * Vùng của chiêu toàn sàn (BeastSkillDef.floor, BĐ6e): một dải phủ đúng chữ nhật sàn đấu (object `boss`), nên teleHits trúng đúng
-   * người đứng trong sàn và client vẽ như mọi vệt.
+   * người đứng trong sàn và client vẽ như mọi vệt. Vòng an toàn (BeastSkillDef.safe, #118) ở `cast.safe`, chọn trong beginCast.
    */
   floorTeles(): Tele[] {
     const l = this.map.lair; if (!l) return [];
     return [{ shape: "line", x: l.x, y: l.y + l.h / 2, ang: 0, r: l.w, w: l.h, arc: 0 }];
+  }
+
+  /** Các chiêu đang báo trước của phòng (vùng đã khóa, giây còn lại, vòng an toàn): tự săn đọc để né (#218). */
+  *activeCasts() {
+    for (const bid of this.casting) { const c = this.bdata.get(bid)?.cast; if (c) yield c; else this.casting.delete(bid); }
   }
 
   /** Bỏ chiêu đang báo trước (hồn thú bị Choáng / Câm lặng / Mê hoặc: "ngắt chiêu"); client xóa vùng cảnh báo. */
@@ -2871,8 +3969,9 @@ export class MapRoom extends Room<MapState> {
 
   /**
    * Hết thời gian báo trước: tính trúng theo vị trí THẬT của mọi hồn sư lúc này (teleHits). Không trúng người đã gục, đang chuyển
-   * bản đồ hay đứng trong vùng an toàn (mục 5.3); hurtPlayer bỏ qua người đang bất tử / miễn sát thương (khi đó cũng không dính
-   * trạng thái). Có `dash` thì hồn thú lao tới cuối vệt / tâm vòng (dừng khi vướng, không vào vùng an toàn).
+   * bản đồ hay đứng trong vùng an toàn (mục 5.3), hay đứng trong vòng an toàn của chiêu toàn sàn (teleSafe, #118); hurtPlayer bỏ qua
+   * người đang bất tử / miễn sát thương (khi đó cũng không dính trạng thái). Có `dash` thì hồn thú lao tới cuối vệt / tâm vòng (dừng
+   * khi vướng, không vào vùng an toàn).
    */
   fireCast(bid: string, b: BeastState, bd: BData) {
     const c = bd.cast!, def = c.def, x0 = b.x, y0 = b.y, main = c.teles[Math.floor(c.teles.length / 2)], base = this.beastDmg(bd);
@@ -2882,36 +3981,49 @@ export class MapRoom extends Room<MapState> {
     const hit: string[] = [];
     this.state.players.forEach((p, pid) => {
       const d = this.pdata.get(pid);
-      if (d && !p.dead && !d.travelling && !this.map.inSafe(p.x, p.y) && c.teles.some((t) => teleHits(t, p.x, p.y))) hit.push(pid);
+      if (d && !p.dead && !d.travelling && !this.map.inSafe(p.x, p.y) && c.teles.some((t) => teleHits(t, p.x, p.y))
+        && !c.safe?.some((t) => teleSafe(t, p.x, p.y))) hit.push(pid);
     });
-    if (def.dash) {
+    if (def.dash && !bd.rooted) {
       // Nhiều vùng (BĐ4): lao theo vùng giữa.
       const tx = def.shape === "line" ? main.x + Math.cos(main.ang) * def.r : main.x, ty = def.shape === "line" ? main.y + Math.sin(main.ang) * def.r : main.y;
       const hw = Math.max(3, TIERS[b.tier].size / 3), n = Math.ceil(Math.hypot(tx - b.x, ty - b.y) / 6);
       for (let k = 0; k < n; k++) this.moveBeast(b, (tx - x0) / n, (ty - y0) / n, hw);
     }
-    this.broadcast("fx", { k: "teleHit", bid, name: def.name, ...c.teles[0], parts: c.teles.slice(1), hit, x0, y0, x1: b.x, y1: b.y });
+    this.broadcast("fx", { k: "teleHit", bid, name: def.name, ...c.teles[0], parts: c.teles.slice(1), hit, x0, y0, x1: b.x, y1: b.y, ...(c.safe ? { safe: c.safe } : {}) });
     for (const pid of hit) {
       const rooted = !!def.drain && !!this.pdata.get(pid)?.st.has("root"); // BĐ6b Hút Sinh: xét Trói trước khi chiêu gây trạng thái mới
       if (!this.hurtPlayer(pid, base * def.dmg * (0.9 + Math.random() * 0.2))) continue;
-      for (const a of def.status ?? []) this.applyPStatus(pid, a, base);
+      for (const a of c.status ?? def.status ?? []) this.applyPStatus(pid, a, base);
       if (def.pull) this.pullPlayer(pid, b, def.pull);
       if (rooted && b.hp > 0) {
         const add = Math.min(b.maxHp - b.hp, Math.ceil(b.maxHp * def.drain!));
         if (add > 0) { b.hp += add; this.broadcast("dmg", { x: b.x, y: b.y - 10, v: add, c: "#7dff8a" }); } // số xanh: hồi máu
       }
     }
+    if (def.eggs) this.eggs.lay(bid, b, def.eggs); // #162: đẻ bọc trứng, phá kịp thì không nở
     if (def.summon) this.summonPack(b, bd, def.summon, c.target);
+    if (def.ground) this.grounds.add(bid, def.ground, c.teles, base); // #161: vũng / sương độc lưu lại
   }
 
   /** Kéo hồn sư `id` về phía hồn thú `b` tối đa `dist` pixel (Quấn Kéo, Lưỡi Quất; BĐ4): dừng khi vướng, sát hồn thú hoặc sắp vào vùng an toàn. */
   pullPlayer(id: string, b: BeastState, dist: number) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return;
-    const dd = Math.hypot(b.x - p.x, b.y - p.y), go = Math.min(dist, dd - TIERS[b.tier].size / 2 - 8); if (go <= 0) return;
-    const ux = (b.x - p.x) / dd, uy = (b.y - p.y) / dd;
+    const p = this.state.players.get(id); if (!p) return;
+    this.dragPlayer(id, b.x, b.y, Math.min(dist, Math.hypot(b.x - p.x, b.y - p.y) - TIERS[b.tier].size / 2 - 8));
+  }
+
+  /**
+   * Kéo hồn sư `id` thẳng về phía (tx, ty) tối đa `dist` pixel, không quá điểm đó (bước tối đa 2 pixel): dừng khi vướng hoặc sắp vào vùng
+   * an toàn; không kéo người đã gục / đang đi cổng / đang đứng trong vùng an toàn. Dùng cho chiêu có `pull` (pullPlayer) và xoáy nước
+   * (GroundDef.pull, #174).
+   */
+  dragPlayer(id: string, tx: number, ty: number, dist: number) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y)) return;
+    const dd = Math.hypot(tx - p.x, ty - p.y), go = Math.min(dist, dd); if (go <= 0) return;
+    const ux = (tx - p.x) / dd, uy = (ty - p.y) / dd;
     for (let moved = 0; moved < go; moved += 2) {
-      const ox = p.x, oy = p.y;
-      this.map.moveEnt(p, ux * 2, uy * 2, 5, 4);
+      const ox = p.x, oy = p.y, st = Math.min(2, go - moved);
+      this.map.moveEnt(p, ux * st, uy * st, PLAYER_HW, PLAYER_HH);
       if (this.map.inSafe(p.x, p.y)) { p.x = ox; p.y = oy; break; }
       if (p.x === ox && p.y === oy) break;
     }
@@ -2949,22 +4061,51 @@ export class MapRoom extends Room<MapState> {
    * Gây trạng thái `a` lên hồn sư `id` (do chiêu báo trước, `base`: sát thương đòn thường của hồn thú, nhân `dot` thành sát thương
    * mỗi giây mỗi tầng). Cùng luật cộng tầng với hồn thú (applyStatus). Không gây cho người đã gục, đang chuyển bản đồ, trong vùng an toàn.
    */
-  applyPStatus(id: string, a: StatusApply, base: number) {
+  applyPStatus(id: string, a: StatusApply, base: number): void {
     const p = this.state.players.get(id), d = this.pdata.get(id);
     if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y) || !PLAYER_STATUS.includes(a.s)) return;
     // Kháng trạng thái của bị động hồn cốt (4.3): thời gian ngắn đi theo tỉ lệ.
-    const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - (d.passive.resist[a.s] ?? 0)), v = def.dot ? base * def.dot : def.amp, cur = d.st.get(a.s), n = a.n ?? 1;
+    // Đóng băng / Mê hoặc (#116) dùng kháng Choáng khi bị động không ghi riêng (RESIST_AS).
+    const res = d.passive.resist[a.s] ?? (RESIST_AS[a.s] ? d.passive.resist[RESIST_AS[a.s]!] ?? 0 : 0);
+    const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - res), v = def.dot ? base * def.dot : def.amp, cur = d.st.get(a.s), n = a.n ?? 1;
     if (cur) { cur.n = Math.min(def.max, cur.n + n); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); }
     else d.st.set(a.s, { t: secs, n: Math.min(def.max, n), v, src: "" });
+    if (def.wander) d.charm = null; // Mê hoặc mới (#116): đi lung tung quanh chỗ đang đứng lúc trúng
+    // Đủ tầng thì bùng phát (#163, tầng Hàn thành Đóng băng): bỏ trạng thái này, gây trạng thái `burst.s` (qua kháng như mọi lần gây).
+    if (def.burst && d.st.get(a.s)!.n >= def.max) {
+      d.st.delete(a.s); this.syncPStatus(p, d);
+      return this.applyPStatus(id, { s: def.burst.s, secs: def.burst.secs }, base);
+    }
     this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
   }
-  syncPStatus(p: PlayerState, d: PData) { let m = 0; for (const s of d.st.keys()) m |= statusBit(s); p.st = m; }
-  clearPStatus(p: PlayerState, d: PData) { if (d.st.size) { d.st.clear(); d.dotT = 0; this.syncPStatus(p, d); } }
-  /** Khống chế đang có trên hồn sư: không đi (Choáng, Trói), không đánh (Choáng), không dùng hồn kỹ (Choáng, Câm lặng), làm chậm. */
+  syncPStatus(p: PlayerState, d: PData) { let m = 0; for (const s of d.st.keys()) m |= statusBit(s); p.st = m; p.han = d.st.get("chill")?.n ?? 0; }
+  clearPStatus(p: PlayerState, d: PData) { d.hanT = 0; if (d.st.size) { d.st.clear(); d.dotT = 0; d.charm = null; this.syncPStatus(p, d); } }
+  /**
+   * Khống chế đang có trên hồn sư: không đi (Choáng, Đóng băng, Trói), không đánh (Choáng, Đóng băng, Mê hoặc), không dùng hồn kỹ (thêm
+   * Câm lặng), đi lung tung (Mê hoặc, #116), làm chậm.
+   */
   pctl(d: PData) {
-    let noMove = false, noAtk = false, noSkill = false, slow = 0;
-    for (const [s, x] of d.st) { const def = STATUS[s]; noMove ||= def.noMove; noAtk ||= def.noAtk; noSkill ||= def.noAtk || def.noSkill; slow += def.slow * x.n; }
-    return { noMove, noAtk, noSkill, slow: Math.min(SLOW_CAP, slow) };
+    let noMove = false, noAtk = false, noSkill = false, wander = false, slow = 0;
+    for (const [s, x] of d.st) { const def = STATUS[s]; noMove ||= def.noMove; noAtk ||= def.noAtk; noSkill ||= def.noAtk || def.noSkill; wander ||= def.wander; slow += def.slow * x.n; }
+    return { noMove, noAtk, noSkill, wander, slow: Math.min(SLOW_CAP, slow) };
+  }
+  /** Tên khống chế đang chặn hồn kỹ (`move`: đang chặn đi, cho đi cổng / truyền tống) của hồn sư, cho tin từ chối. */
+  ccName(d: PData, move = false) {
+    const order = move ? (["freeze", "stun", "charm", "root"] as const) : (["freeze", "stun", "charm", "silence"] as const);
+    return STATUS[order.find((s) => d.st.has(s)) ?? order[order.length - 1]].name;
+  }
+  /**
+   * Hồn sư đang Mê hoặc (#116, PLAYER_CHARM): hướng đi server tự chọn tới một điểm ngẫu nhiên quanh chỗ bị Mê hoặc, đổi điểm mỗi
+   * `turn` giây; tới nơi thì đứng.
+   */
+  charmDir(p: PlayerState, d: PData, dt: number) {
+    const c = d.charm ??= { ox: p.x, oy: p.y, tx: p.x, ty: p.y, t: 0 }, [t0, t1] = PLAYER_CHARM.turn;
+    if ((c.t -= dt) <= 0) {
+      c.t = t0 + Math.random() * (t1 - t0);
+      c.tx = c.ox + (Math.random() * 2 - 1) * PLAYER_CHARM.r; c.ty = c.oy + (Math.random() * 2 - 1) * PLAYER_CHARM.r;
+    }
+    const dx = c.tx - p.x, dy = c.ty - p.y, dd = Math.hypot(dx, dy);
+    return dd > 2 ? { x: dx / dd, y: dy / dd } : { x: 0, y: 0 };
   }
   /** Mỗi tick: vào vùng an toàn thì hết mọi trạng thái; hết giờ thì bỏ; mỗi STATUS_TICK giây Trúng độc / Thiêu đốt gây sát thương. */
   tickPStatus(id: string, p: PlayerState, d: PData, dt: number) {
@@ -2997,7 +4138,7 @@ export class MapRoom extends Room<MapState> {
     if (r < 0) return this.log(id, `Ô ${i + 1} chưa mang hồn kỹ: chọn ở bảng đội hình (V).`);
     if (r >= p.rings.length) return this.log(id, `Hồn kỹ vòng ${r + 1} cần hồn hoàn thứ ${r + 1}.`);
     if (ct ? p.ctCd > 0 : p.cds[i] > 0) return;
-    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không dùng được hồn kỹ.`, "#ffb35c");
+    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${this.ccName(d)}: không dùng được hồn kỹ.`, "#ffb35c");
     const set = skillsOf(VOHON[p.vh].id), sk = ct ?? ringSkill(d.ch.vohon, r)!, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
     // Phục Chế (Xúc Xích, 2.5c; 9.3): tung lại hồn kỹ gần nhất của võ hồn khác trong đội hoặc đồng đội tổ đội đứng gần; chưa có thì không tung.
     const src = sk.copy ? this.copySource(id) : null;
@@ -3086,10 +4227,141 @@ export class MapRoom extends Room<MapState> {
       next.forEach((r, i) => { const from = prev.indexOf(r);
         p.cds[i] = r < 0 ? 0 : Math.max(from >= 0 ? old[from] : 0, d.skCd.get(`${v.rowId}:${r}`) ?? 0); });
     }
-    this.chain(d, () => store.saveSkills(d.accountId, v.rowId, [...next]));
+    this.chainLatest(d, `skills:${v.rowId}`, () => store.saveSkills(d.accountId, v.rowId, [...next])); // gửi dồn: ghi một lần, bản mới nhất
     const keys = ["U", "I", "O", "P"];
     this.log(id, `${name} mang theo: ${next.map((r, i) => `${keys[i]} ${r < 0 ? "trống" : ringSkill(v.vohon, r)!.name}`).join(", ")}.`, VOHON[vi].col);
     this.sendVohons(c);
+  }
+
+  // ---------- Võ Hồn Dung Hợp Kỹ (#192, mục 5.9; FUSION, FUSIONS) ----------
+  /** Message `fusion {op}`: "start" (A mời đồng đội gần nhất hợp lệ), "join" (B hưởng ứng lời mời đang chờ). */
+  fusionAction(id: string, op: string) {
+    if (op === "start") this.fusionStart(id);
+    else if (op === "join") this.fusionJoin(id);
+  }
+
+  /**
+   * Lý do hồn sư `id` không tham gia dung hợp kỹ được lúc này ("" = được): bị chặn như hồn kỹ (gục, hấp thụ, đi cổng / truyền tống,
+   * vùng an toàn, Choáng / Câm lặng…), còn hồi chiêu dung hợp, võ hồn ra trận thiếu hồn hoàn (FUSION.minRings), thiếu hồn lực.
+   * Câu trả về ghép sau tên người ("bạn …" / "<tên> …").
+   */
+  fusionBlock(id: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id);
+    if (!p || !d || d.travelling) return "không còn ở bản đồ này";
+    if (p.dead) return "đã gục";
+    if (d.absorbing) return "đang hấp thụ hồn hoàn";
+    if (d.travelCast) return "đang đi cổng / truyền tống";
+    if (this.map.inSafe(p.x, p.y)) return "đang ở vùng an toàn";
+    if (this.pctl(d).noSkill) return `đang bị ${this.ccName(d)}`;
+    const cd = fusionCdLeft(d.accountId); if (cd > 0) return `còn hồi chiêu dung hợp ${Math.ceil(cd)} giây`;
+    if (p.rings.length < FUSION.minRings) return `chỉ có ${p.rings.length} hồn hoàn trên ${VOHON[p.vh].name} (cần ${FUSION.minRings})`;
+    if (d.mpF < FUSION.cost) return `không đủ hồn lực (cần ${FUSION.cost})`;
+    return "";
+  }
+
+  /**
+   * Lý do cặp A (`a`) – B (`b`) không dung hợp được ("" = được): võ hồn ra trận không ghép thành cặp `fi` của FUSIONS (fi < 0: cặp bất
+   * kỳ), cách nhau từ FUSION.r trở lên, một trong hai bị chặn (fusionBlock). Câu trả về là cả câu, không có dấu chấm cuối.
+   */
+  fusionCheck(a: string, b: string, fi = -1) {
+    const pa = this.state.players.get(a), da = this.pdata.get(a), pb = this.state.players.get(b), db = this.pdata.get(b);
+    if (!pa || !da || !pb || !db) return "đồng đội đã rời bản đồ";
+    const pid = party.partyIdOf(da.accountId);
+    if (!pid || party.partyIdOf(db.accountId) !== pid) return `${pb.name} không còn cùng tổ đội`;
+    const k = fusionIndex(da.ch.vohon, db.ch.vohon);
+    if (k < 0 || (fi >= 0 && k !== fi)) return `${VOHON[pa.vh].name} và ${VOHON[pb.vh].name} của ${pb.name} không ghép thành cặp dung hợp`;
+    const wa = this.fusionBlock(a); if (wa) return `${pa.name} ${wa}`;
+    const wb = this.fusionBlock(b); if (wb) return `${pb.name} ${wb}`;
+    const dist = Math.hypot(pa.x - pb.x, pa.y - pb.y);
+    if (dist >= FUSION.r) return `${pb.name} đứng xa (${Math.round(dist)} pixel, cần dưới ${FUSION.r})`;
+    return "";
+  }
+
+  /**
+   * A gửi `fusion {op: "start"}` (#192): server tìm đồng đội tổ đội cùng phòng gần nhất hợp lệ (fusionCheck, không đang có lời mời khác),
+   * gửi B tin riêng `fusion {k: "ask"}` nhắc hưởng ứng trong FUSION.window giây, A nhận `fusion {k: "wait"}`. Không có ai thì báo lý do
+   * của đồng đội gần nhất cầm võ hồn ghép cặp (không có thì báo cặp cần có). Cấm trong sân đấu (ArenaRoom BLOCKED; có đối thủ thì cũng từ chối).
+   */
+  fusionStart(id: string) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const say = (t: string) => this.log(id, `Dung hợp kỹ: ${t}.`, "#ffb35c");
+    if (this.map.kind === "arena" || this.foesOf(id).length) return say("không dùng được ở Đại Đấu Hồn Trường");
+    if (d.fus) return say(d.fus.init ? `đang chờ ${this.state.players.get(d.fus.with)?.name ?? "đồng đội"} hưởng ứng`
+      : `${this.state.players.get(d.fus.with)?.name ?? "đồng đội"} đang mời bạn, hãy hưởng ứng`);
+    const pairs = fusionsOf(d.ch.vohon);
+    if (!pairs.length) return say(`${VOHON[p.vh].name} không có dung hợp kỹ`);
+    const why = this.fusionBlock(id); if (why) return say(`bạn ${why}`);
+    const pid = party.partyIdOf(d.accountId);
+    if (!pid) return say("cần ở trong tổ đội với đồng đội cầm võ hồn ghép cặp");
+    const mates = [...this.pdata].filter(([q, o]) => q !== id && party.partyIdOf(o.accountId) === pid && this.state.players.has(q)).map(([q]) => q);
+    if (!mates.length) return say("không có đồng đội tổ đội nào cùng bản đồ, cùng kênh");
+    const dist = (q: string) => { const t = this.state.players.get(q)!; return Math.hypot(t.x - p.x, t.y - p.y); };
+    mates.sort((x, y) => dist(x) - dist(y));
+    let first = "";
+    for (const q of mates) {
+      const o = this.pdata.get(q)!, fi = fusionIndex(d.ch.vohon, o.ch.vohon); if (fi < 0) continue;
+      const w = o.fus ? `${this.state.players.get(q)!.name} đang chờ một dung hợp khác` : this.fusionCheck(id, q, fi);
+      if (w) { first ||= w; continue; }
+      const def = FUSIONS[fi], qn = this.state.players.get(q)!.name;
+      d.fus = { with: q, t: FUSION.window, init: true, fi }; o.fus = { with: id, t: FUSION.window, init: false, fi };
+      this.clients.getById(q)?.send("fusion", { k: "ask", by: p.name, i: fi, t: FUSION.window });
+      this.clients.getById(id)?.send("fusion", { k: "wait", to: qn, i: fi, t: FUSION.window });
+      this.log(q, `${p.name} mời Võ Hồn Dung Hợp Kỹ ${def.name} [G]: hưởng ứng trong ${FUSION.window} giây.`, VOHON[p.vh].col);
+      this.log(id, `Dung hợp kỹ ${def.name}: chờ ${qn} hưởng ứng trong ${FUSION.window} giây.`, VOHON[p.vh].col);
+      return;
+    }
+    say(first || `không đồng đội nào ra trận ${pairs.map((f) => VOHON[Math.max(0, vohonIndex(f.pair[0] === d.ch.vohon ? f.pair[1] : f.pair[0]))].name).join(" / ")} để ghép cặp với ${VOHON[p.vh].name}`);
+  }
+
+  /** B gửi `fusion {op: "join"}` (#192): kiểm lại cả hai (fusionCheck với đúng cặp đã mời); hợp lệ thì tung, không thì hủy không tốn gì. */
+  fusionJoin(id: string) {
+    const d = this.pdata.get(id), f = d?.fus; if (!d) return;
+    if (!f || f.init) return this.log(id, "Dung hợp kỹ: chưa có lời mời dung hợp nào.", "#ffb35c");
+    const why = this.fusionCheck(f.with, id, f.fi);
+    if (why) return this.fusionCancel(id, `Dung hợp kỹ đã hủy: ${why} (không tốn gì).`);
+    this.fusionFire(f.with, id, f.fi);
+  }
+
+  /** Hủy lời mời đang chờ của `id` và của đồng đội trong lời mời đó, báo cả hai `why`; không tốn gì. */
+  fusionCancel(id: string, why: string) {
+    const d = this.pdata.get(id), f = d?.fus; if (!d || !f) return;
+    d.fus = null;
+    const o = this.pdata.get(f.with); if (o?.fus?.with === id) o.fus = null;
+    for (const q of [id, f.with]) { this.clients.getById(q)?.send("fusion", { k: "cancel" }); this.log(q, why, "#ffb35c"); }
+  }
+
+  /**
+   * Tung dung hợp kỹ `fi` của A (`a`, người mời, là người gây đòn) và B (`b`): mỗi người tốn FUSION.cost hồn lực, vào hồi chiêu FUSION.cd
+   * của hồn sư. Sức mạnh: công = trung bình công võ hồn ra trận hai người (kể cả tăng công, không ràng buộc) × skillPower theo hồn hoàn
+   * năm cao nhất thấp hơn giữa hai võ hồn; không sao, không Phục Chế, không năng lượng tiên cơ (runSkill không có `hit`). Các phần nổ ở
+   * điểm giữa hai người (phần có `side` dời về phía người cầm võ hồn đó); đóng góp chia đôi (DmgOpt.pair). `fx fusion` công khai.
+   */
+  fusionFire(a: string, b: string, fi: number) {
+    const pa = this.state.players.get(a)!, da = this.pdata.get(a)!, pb = this.state.players.get(b)!, db = this.pdata.get(b)!, def = FUSIONS[fi];
+    da.fus = null; db.fus = null;
+    const now = Date.now(); for (const [k, t] of fusionReady) if (t <= now) fusionReady.delete(k); // dọn hồi chiêu đã hết của mọi tài khoản
+    for (const [q, p, d] of [[a, pa, da], [b, pb, db]] as const) {
+      d.mpF -= FUSION.cost; p.mp = Math.floor(d.mpF); fusionReady.set(d.accountId, Date.now() + FUSION.cd * 1000); this.unhide(p, d);
+      this.clients.getById(q)?.send("fusion", { k: "done", i: fi, cd: FUSION.cd });
+    }
+    const top = (d: PData) => Math.max(TIERS[0].years, ...d.ringYears), years = Math.min(top(da), top(db));
+    const atk = (this.atkOf(da, false) + this.atkOf(db, false)) / 2, power = skillPower(years); // công trung bình, không ràng buộc
+    const mid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 }, col = TIERS[tierOfYears(years)].glow;
+    this.broadcast("fx", { k: "fusion", id: a, to: b, x: Math.round(mid.x), y: Math.round(mid.y), i: fi, col });
+    for (const part of def.parts) {
+      const h = part.side === undefined ? null : da.ch.vohon === def.pair[part.side] ? pa : pb;
+      const at = h ? { x: (mid.x + h.x) / 2, y: (mid.y + h.y) / 2 } : mid;
+      this.runSkill(a, part, power, 1, col, undefined, undefined, { at, pair: b, atk });
+    }
+    this.log(a, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pb.name}!`, col);
+    this.log(b, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pa.name}!`, col);
+  }
+
+  /** Trôi `dt` giây cho lời mời đang chờ (tick, hook `rest`): người mời hết giờ hoặc đồng đội đã rời thì hủy. */
+  tickFusion(id: string, dt: number) {
+    const d = this.pdata.get(id), f = d?.fus; if (!d || !f) return;
+    if (!this.pdata.has(f.with)) return this.fusionCancel(id, "Dung hợp kỹ đã hủy: đồng đội đã rời bản đồ (không tốn gì).");
+    if ((f.t -= dt) <= 0 && f.init) this.fusionCancel(id, `Dung hợp kỹ đã hủy: hết ${FUSION.window} giây chờ hưởng ứng (không tốn gì).`);
   }
 
   /**
@@ -3107,7 +4379,7 @@ export class MapRoom extends Room<MapState> {
     if (d.ava) return this.log(id, `${def.name} còn ${Math.ceil(d.ava.t)} giây.`);
     if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
     if ((d.avaCd.get(d.ch.rowId) ?? 0) > 0) return;
-    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không biến hình được.`, "#ffb35c");
+    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${this.ccName(d)}: không biến hình được.`, "#ffb35c");
     const cost = def.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
     if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
     d.mpF -= cost; p.mp = Math.floor(d.mpF);
@@ -3155,7 +4427,7 @@ export class MapRoom extends Room<MapState> {
    */
   boneSkill(c: Client, i: number) {
     const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || p.dead || d.absorbing || d.travelling || !(i >= 0 && i < BONE_ACTIVE_SLOTS.length)) return;
+    if (!p || !d || p.dead || d.absorbing || d.travelling || !(Number.isInteger(i) && i >= 0 && i < BONE_ACTIVE_SLOTS.length)) return;
     const slot = BONE_SLOTS[boneSlotIndex(BONE_ACTIVE_SLOTS[i])];
     const bone = this.bonesOn(d, d.ch.rowId).find((b) => b.slot === slot.id);
     const k = bone ? boneSkillOf(bone.beast, bone.slot) : null;
@@ -3163,7 +4435,7 @@ export class MapRoom extends Room<MapState> {
     if (d.travelCast) return this.log(id, "Đang đi qua cổng: không dùng được kỹ năng hồn cốt.", "#ffb35c");
     if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
     if (p.bcds[i] > 0) return;
-    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${d.st.has("stun") ? STATUS.stun.name : STATUS.silence.name}: không dùng được kỹ năng hồn cốt.`, "#ffb35c");
+    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${this.ccName(d)}: không dùng được kỹ năng hồn cốt.`, "#ffb35c");
     const sk = k.sk, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
     if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
     const reach = sk.area === "target" ? sk.r : sk.at;
@@ -3175,7 +4447,7 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("fx", { k: "bone", id, i, sp: beastIndex(bone.beast), tier });
     // Mốc cường hóa +5 / +10 / +15 / +20 nâng kỹ năng (4.4): sức mạnh và hiệu ứng lên bản thân nhân boneSkillMult.
     const em = boneSkillMult(bone.enhance);
-    this.runSkill(id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false });
+    this.runSkill(id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false }, sk.self ? d.ch.vohon : undefined);
   }
 
   /**
@@ -3193,21 +4465,28 @@ export class MapRoom extends Room<MapState> {
     if (w && w.dive > 0) return 0; // boss thế giới đang lặn (Du Thủy, BĐ6e): không nhận sát thương
     const direct = o.direct !== false && !o.chain, fx = pd.coreFx;
     const vuln = bd.st.get("vuln"), armor = bd.st.get("armor"), poison = bd.st.get("poison"), shocked = bd.st.has("shock");
-    // Bộ hồn hạch Xà Hoàng 4 món (5.2): Trúng độc đủ tầng do người mang bộ gây thì như Dễ thương thêm (mọi nguồn). Thất Sát 2 món:
-    // "xuyên thủ" tạm quy thành thêm sát thương đòn trực tiếp (hồn thú chưa có thủ).
+    // Bộ hồn hạch Xà Hoàng 4 món (5.2): Trúng độc đủ tầng do người mang bộ gây thì như Dễ thương thêm (mọi nguồn).
     const pv = poison && poison.n >= CORE_FX_RULE.poisonStacks ? this.pdata.get(poison.src)?.coreFx.poisonVuln ?? 0 : 0;
     // Ràng buộc Băng Hỏa Lưỡng Nghi (9.4): hồn thú đang Choáng hoặc Thiêu đốt nhận thêm sát thương của hồn sư (mọi nguồn, như Dễ thương).
-    const sb = bd.st.has("stun") || bd.st.has("burn") ? this.bondV(pd, "stunBurn") : 0;
-    dmg *= 1 + (vuln ? vuln.v : 0) + pv + sb + (direct ? (armor ? armor.v * armor.n : 0) + (fx.pierce ?? 0) : 0) + this.phoenixAmp(b);
+    const sb = (bd.st.has("stun") || bd.st.has("burn")) && !o.pair ? this.bondV(pd, "stunBurn") : 0; // dung hợp kỹ không nhận ràng buộc (#192)
+    // Thủ (#116, BEAST_DEF): đòn trực tiếp nhân defMult; Phá giáp (STATUS.armor.shred mỗi tầng) và xuyên thủ của bộ Thất Sát 2 món giảm
+    // thủ, tối đa hết thủ. Phần chênh so với hồn thú thủ chuẩn cộng như các hệ số khác.
+    const thu = direct ? defMult(bd.def, (armor ? STATUS.armor.shred * armor.n : 0) + (fx.pierce ?? 0)) - 1 : 0;
+    dmg *= 1 + (vuln ? vuln.v : 0) + pv + sb + thu + this.phoenixAmp(b);
     // Chí mạng theo võ hồn ra trận (CRIT cộng hồn hạch, 5.2); bộ Thất Sát 4 món thêm tỉ lệ lên hồn thú Phá giáp.
-    const crit = direct && Math.random() < pd.crit + (o.crit ?? 0) + this.buffV(pd, "crit") + this.bondV(pd, "crit") + (armor ? fx.armorCrit ?? 0 : 0);
+    const crit = direct && Math.random() < pd.crit + (o.crit ?? 0) + this.buffV(pd, "crit") + (o.pair ? 0 : this.bondV(pd, "crit")) + (armor ? fx.armorCrit ?? 0 : 0);
     if (crit) dmg *= pd.critMult;
     if (crit && fx.haste) pd.haste = CORE_FX_RULE.hasteSecs; // bộ Linh Miêu 4 món: chí mạng thì tăng tốc đánh một lúc
     // Điểm yếu hệ của boss thế giới (BĐ6e): võ hồn ra trận đúng hệ gây x WORLD.weakMult, hệ khác x WORLD.offMult.
     if (w?.weak) dmg *= he === w.weak ? WORLD.weakMult : WORLD.offMult;
     dmg = Math.max(1, Math.round(dmg));
     // Tinh anh (BĐ4): người gây sát thương thành người tham gia trước (máu tối đa tăng theo số người, giữ tỉ lệ), rồi mới trừ máu.
-    if (bd.elite) this.eliteJoin(b, bd, by);
+    // Dung hợp kỹ (#192): đồng đội dung hợp còn trong phòng cũng thành người tham gia và nhận nửa đóng góp.
+    // Đồng đội đã rời, đang đi cổng, đã gục hay đứng trong vùng an toàn (độc / lửa của chiêu còn cháy) thì không nhận phần, A nhận cả.
+    const mp = o.pair && o.pair !== by ? this.state.players.get(o.pair) : undefined, md = mp && this.pdata.get(o.pair!);
+    // Tinh anh / thú vương: B phải đang trong bán kính giao chiến (hang) như người tham gia khác (inFight).
+    const mate = mp && md && !md.travelling && !mp.dead && !this.map.inSafe(mp.x, mp.y) && (!bd.elite || this.inFight(b, bd.elite, mp)) ? o.pair : undefined;
+    if (bd.elite) { if (mate) this.joinFight(bd.elite, mate); this.eliteJoin(b, bd, by); } // eliteJoin tính lại máu theo số người
     // Khiên Bá Thể (BĐ6e) đỡ trước; võ hồn hệ của khiên phá nhanh gấp `mult`. Phần đánh vào khiên vẫn tính đóng góp.
     let hpDmg = dmg, credit = Math.min(dmg, b.hp);
     const ar = w && w.shield > 0 ? bd.elite!.king!.def.world?.armor : undefined;
@@ -3218,17 +4497,18 @@ export class MapRoom extends Room<MapState> {
       if (w.shield <= 0) { w.shield = 0; w.shieldT = 0; b.shield = 0; this.broadcast("boss", { k: "armorBreak", bid, name: ar.name, by: p.name }); }
       this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size - 8, v: Math.round(used), c: "#9ad8ff", bid });
     }
-    if (bd.elite) bd.elite.dmgBy.set(by, (bd.elite.dmgBy.get(by) ?? 0) + credit);
+    if (bd.elite && mate) { this.credit(bd.elite, "dmgBy", by, credit / 2); this.credit(bd.elite, "dmgBy", mate, credit / 2); }
+    else if (bd.elite) this.credit(bd.elite, "dmgBy", by, credit);
     // Khiên đỡ hết đòn: vẫn là một đòn trúng (năng lượng tiên cơ, tích Lôi, onHit như đòn trúng máu), chỉ không trừ máu.
     if (hpDmg <= 0) {
-      b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0; if (o.direct !== false) pd.fight = 0;
+      b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0; if (o.direct !== false) { pd.fight = 0; if (mate) this.pdata.get(mate)!.fight = 0; }
       if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, bd.st.has("shock")); hit.onHit?.(); }
       return dmg;
     }
     dmg = hpDmg;
     b.hp = Math.max(0, b.hp - dmg); b.aggro = true; bd.target = by; bd.hitBy = by; bd.calm = 0;
-    if (o.direct !== false) pd.fight = 0; // sát thương theo thời gian không giữ hồn sư trong giao chiến
-    if (direct && !bd.st.has("stun") && !bd.st.has("root")) {
+    if (o.direct !== false) { pd.fight = 0; if (mate) this.pdata.get(mate)!.fight = 0; } // sát thương theo thời gian không giữ hồn sư trong giao chiến; dung hợp kỹ: cả đồng đội
+    if (direct && !bd.st.has("stun") && !bd.st.has("root") && !bd.rooted) { // thú thực vật đứng yên không bị đẩy lùi (#116)
       const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1, kb = b.rank >= 2 ? 0 : b.tier >= 3 ? 40 : 110; // thú vương không bị đẩy lùi
       bd.kx = (dx / dd) * kb; bd.ky = (dy / dd) * kb;
     }
@@ -3247,7 +4527,7 @@ export class MapRoom extends Room<MapState> {
       const sh = STATUS.shock;
       for (const [oid, ob] of this.beastsNear(b.x, b.y, sh.chainR))
         if (oid !== bid && this.bdata.get(oid)?.st.has("shock") && Math.hypot(ob.x - b.x, ob.y - b.y) < sh.chainR)
-          this.damageBeast(oid, dmg * sh.chain * (1 + (fx.chain ?? 0)), by, sh.col, undefined, { chain: true });
+          this.damageBeast(oid, dmg * sh.chain * (1 + (fx.chain ?? 0)), by, sh.col, undefined, { chain: true, pair: o.pair });
     }
     if (b.hp <= 0) this.killBeast(bid, by);
     return dmg;
@@ -3418,6 +4698,7 @@ export class MapRoom extends Room<MapState> {
    * vào túi vẫn chỉ của người hạ. Đồ rơi ưu tiên cả tổ đội của người được ưu tiên (newDrop chụp id tổ đội).
    */
   killBeast(bid: string, by: string) {
+    if (this.eggs.has(bid)) return this.eggs.broke(bid, by); // bọc trứng (#162): vỡ, không nở, không thưởng
     const b = this.state.beasts.get(bid)!, e = this.bdata.get(bid)?.elite;
     const td = TIERS[b.tier], name = beastName(b.rank, b.species), age = formatYears(b.years);
     this.state.beasts.delete(bid); this.bdata.delete(bid);
@@ -3427,8 +4708,35 @@ export class MapRoom extends Room<MapState> {
     this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by) });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
+    const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? ""); // trần tốc độ tự săn
     const team = this.partyNear(by, b.x, b.y), share = partyXpShare(team.length);
-    for (const pid of team) this.rewardKill(pid, b.years, (e ? ELITE.xp : 1) * share);
+    // Giới hạn săn tinh anh nhiều kênh (#119, mục 5.4): tài khoản đã nhận thưởng loài tinh anh này trên bản đồ này trong ELITE.lock giây
+    // (ở bất kỳ kênh nào) thì lần này chỉ nhận như hồn thú thường; ai nhận thưởng tinh anh lần này thì bị khóa ELITE.lock giây.
+    const now = Date.now(), lockKey = e ? eliteKey(this.state.mapId, b) : "";
+    const accOf = (pid: string) => this.pdata.get(pid)?.accountId ?? -1;
+    const left = new Map<string, number>(); // chụp trước khi ghi khóa của lần này
+    const lockLeft = (pid: string) => { if (!e) return 0; let v = left.get(pid); if (v === undefined) left.set(pid, v = eliteLockLeft(lockKey, accOf(pid), now)); return v; };
+    const free = (pid: string) => !lockLeft(pid);
+    const owner = e ? this.topContrib(e, by, false, free) : by; // 9.2: đóng góp tổng (sát thương + hỗ trợ); #119: người chưa bị khóa
+    const byFree = free(by); // chụp trước khi ghi khóa của lần này
+    // Người đứng đầu đóng góp bị khóa thì quyền ưu tiên sang người kế tiếp: câu báo không được nói "đóng góp nhiều nhất".
+    const why = e && owner && owner !== this.topContrib(e, by) ? "đóng góp nhiều nhất trong số người chưa bị khóa thưởng tinh anh" : "đóng góp nhiều nhất";
+    const got = new Set<string>(); // người nhận thưởng tinh anh lần này (kinh nghiệm x ELITE.xp, quyền ưu tiên đồ rơi tinh anh)
+    for (const pid of team) {
+      const full = !!e && free(pid); if (full) got.add(pid);
+      this.rewardKill(pid, b.years, (full ? ELITE.xp : 1) * share);
+    }
+    if (owner) got.add(owner);
+    if (e) {
+      const notice = new Set([...team, ...this.contributors(e).filter((pid) => this.state.players.has(pid))]);
+      for (const pid of notice) {
+        const l = lockLeft(pid); if (!l || got.has(pid)) continue;
+        this.log(pid, `Đã nhận thưởng ${name} trên bản đồ này chưa lâu (kênh nào cũng tính): còn ${Math.ceil(l / 60)} phút mới nhận lại; lần này chỉ thưởng như hồn thú thường.`, "#ffb35c");
+      }
+      let m = eliteLocks.get(lockKey); if (!m) { m = new Map(); eliteLocks.set(lockKey, m); }
+      for (const pid of got) m.set(accOf(pid), now + ELITE.lock * 1000);
+    }
+    const elite = !!e && !!owner, drOwner = owner ?? by; // elite: còn người nhận đồ rơi tinh anh (hồn cốt x ELITE.bone, chắc chắn hồn hạch)
     // 6.2 + 7.1: đồng đội cùng chia kinh nghiệm (cùng phòng, trong PARTY_XP_RANGE) cũng được tính mục tiêu hạ hồn thú của nhiệm vụ.
     for (const pid of team) if (pid !== by) this.questEvent(pid, { k: "kill", map: this.state.mapId, zone, fit: fit(pid) });
     if (team.length > 1) {
@@ -3436,19 +4744,18 @@ export class MapRoom extends Room<MapState> {
       for (const pid of team) this.log(pid, `Tổ đội ${team.length} người chia kinh nghiệm hạ ${name} (${names}): mỗi người ${(share * 100).toFixed(1).replace(".", ",")}% phần gốc.`, "#7dff8a");
     }
     const coin = this.rewardCoin(by, b.tier);
-    const owner = e ? this.topContrib(e, by) : by; // 9.2: đóng góp tổng (sát thương + hỗ trợ)
-    const drop = this.newDrop(b.x, b.y, owner);
+    const drop = this.newDrop(b.x, b.y, drOwner);
     drop.tier = b.tier; drop.years = b.years;
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: td.size + 10, col: td.glow });
-    this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${this.lootNote(owner, by)}`, td.glow);
-    if (owner !== by) this.log(owner, `Bạn đóng góp nhiều nhất khi hạ ${name}: hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).`, td.glow);
+    this.log(by, `Hạ ${name} (${age}), nhận ${formatHonTe(coin)} Hồn Tệ. Hồn hoàn ${age} rơi xuống đất: ${this.lootNote(drOwner, by, why)}`, td.glow);
+    if (drOwner !== by) this.log(drOwner, `Bạn ${why} khi hạ ${name}: hồn hoàn ${age} ưu tiên bạn nhặt ${DROP_OWNER_SECS} giây đầu (phím E).`, td.glow);
     if (e) this.broadcast("elite", { k: "down", name, by: p.name, col: BOSSES[b.species]?.aura });
     this.rollShard(by, b.years, b.x, b.y);
-    this.rollHerb(by, zone, b.x, b.y, !!e);
+    this.rollHerb(by, zone, b.x, b.y, !!e && byFree);
     const base = e ? Math.max(0, beastIndex(BOSSES[b.species]?.species ?? "")) : b.species;
-    this.rollBone(by, owner, base, b.years, b.tier, b.x, b.y, e ? ELITE.bone : 1);
-    this.rollCoreDrop(by, owner, b.years, b.x, b.y, !!e);
+    this.rollBone(by, drOwner, base, b.years, b.tier, b.x, b.y, elite ? ELITE.bone : 1, why);
+    this.rollCoreDrop(by, drOwner, b.years, b.x, b.y, elite, why);
   }
 
   /**
@@ -3458,7 +4765,7 @@ export class MapRoom extends Room<MapState> {
    * túi đầy thì báo. Hook test `core` của người hạ `id` cố định được số ngẫu nhiên, sao và bộ.
    * Rương tà hóa thú vương (BĐ5, openChest) cho hồn hạch thẳng vào túi bằng `rollCore(..., { high: true })` rồi `addCore`.
    */
-  rollCoreDrop(id: string, owner: string, years: number, x: number, y: number, sure = false) {
+  rollCoreDrop(id: string, owner: string, years: number, x: number, y: number, sure = false, why?: string) {
     const d = this.pdata.get(id); if (!d) return;
     const t = d.testCore;
     if ((t ? t.r : Math.random()) >= (sure ? 1 : coreChance(years))) return;
@@ -3473,7 +4780,7 @@ export class MapRoom extends Room<MapState> {
     this.coreDrops.set(did, core); this.state.drops.set(did, drop);
     this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col });
     const msg = `${coreName(core.data.set, core.stars)} rơi xuống đất!`;
-    this.log(id, `${msg} ${this.lootNote(owner, id)}`, col);
+    this.log(id, `${msg} ${this.lootNote(owner, id, why)}`, col);
     if (owner !== id) this.log(owner, `${msg} ${this.lootNote(owner, owner)}`, col);
   }
 
@@ -3483,7 +4790,7 @@ export class MapRoom extends Room<MapState> {
    * giây, nhặt (E) vào túi, túi đầy thì báo. Hook test `bone` của người hạ `id` cố định được số ngẫu nhiên và vị trí.
    * Tinh anh (BĐ4): `mult` = ELITE.bone, quyền ưu tiên thuộc `owner` (người đóng góp nhiều nhất, như hồn hoàn).
    */
-  rollBone(id: string, owner: string, species: number, years: number, tier: number, x: number, y: number, mult = 1) {
+  rollBone(id: string, owner: string, species: number, years: number, tier: number, x: number, y: number, mult = 1, why?: string) {
     const d = this.pdata.get(id); if (!d) return;
     const t = d.testBone;
     if ((t ? t.r : Math.random()) >= boneChance(years, mult)) return;
@@ -3493,7 +4800,7 @@ export class MapRoom extends Room<MapState> {
     this.state.drops.set(uid("d"), drop);
     this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col: TIERS[tier].glow });
     const bone = `Hồn cốt ${boneName(BEASTS[species]?.id ?? "", BONE_SLOTS[slot].id, years)} rơi xuống đất!`;
-    this.log(id, `${bone} ${this.lootNote(owner, id)}`, TIERS[tier].glow);
+    this.log(id, `${bone} ${this.lootNote(owner, id, why)}`, TIERS[tier].glow);
     if (owner !== id) this.log(owner, `${bone} ${this.lootNote(owner, owner)}`, TIERS[tier].glow);
   }
 
@@ -3658,6 +4965,7 @@ export class MapRoom extends Room<MapState> {
     if (have < cost) return warn(`Cần ${cost} Mảnh ${name} để lên ${v.stars + 1}★, mới có ${have}.`);
     this.takeShards(d, code, cost);
     v.stars++;
+    this.resCheck(id); // cộng minh (8.2): mốc Sao phải cập nhật ngay theo đường starup thật
     if (v === d.ch) this.recalc(id, false); else d.dirty.add(v.rowId);
     this.log(id, `${name} lên ${v.stars}★! Chỉ số gốc tăng.`, VOHON[vi].col);
     const c = this.clients.getById(id); if (c) this.sendVohons(c);
@@ -3678,8 +4986,23 @@ export class MapRoom extends Room<MapState> {
       return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years!, enhance: it.enhance }] : [];
     });
   }
-  /** Tổng chỉ số gốc hồn cốt đang gắn trên võ hồn `rowId` (boneBonus), cộng vào calcStats. */
-  boneBonusOf(d: PData, rowId: number) { return boneBonus(this.bonesOn(d, rowId)); }
+  /** Tổng chỉ số hồn cốt đang gắn trên võ hồn `rowId` (boneBonus: chỉ số chính và dòng phụ), cộng vào calcStats. */
+  boneBonusOf(d: PData, rowId: number) { return boneBonus(this.bonesOn(d, rowId).map((b) => ({ ...b, subs: parseBoneSubs(b.it.stats) }))); }
+  /**
+   * Tung bù dòng phụ hồn cốt (#187) khi nạp túi đồ lúc vào phòng: hồn cốt +N có ít dòng hơn số mốc đã đạt (cường hóa trước khi có
+   * dòng phụ, hoặc tạo bằng hook test) được tung phần còn thiếu (boneAddSubs), đánh dấu `bagDirty`; nơi gọi ghi ngay qua chuỗi lưu.
+   * Đã đủ dòng thì lần vào sau không tung thêm. Trả số dòng đã thêm.
+   */
+  fillBoneSubs(d: PData) {
+    let n = 0;
+    for (const it of d.bag) {
+      const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null; if (!bone) continue;
+      const r = boneAddSubs(bone.slot, it.years!, it.enhance, parseBoneSubs(it.stats), Math.random);
+      if (r.added.length) { it.stats = { ...(it.stats as object), subs: r.subs }; n += r.added.length; }
+    }
+    if (n) d.bagDirty = true;
+    return n;
+  }
 
   /** Luật chung khi gắn / tháo hồn cốt (từ 5.2 cả hồn hạch: `what`), như xếp đội hình: không gục, không hấp thụ, ngoài giao chiến. "" = được. */
   boneLock(p: PlayerState, d: PData, what = "hồn cốt") {
@@ -3738,7 +5061,8 @@ export class MapRoom extends Room<MapState> {
    * Cường hóa hồn cốt `rawTarget` (id ô của chính người gửi, trong túi hoặc đang gắn) bằng các hồn cốt nguyên liệu `rawMats` (mục
    * 5.5, bước 4.4): nguyên liệu phải là hồn cốt nằm trong túi (không đang gắn), không phải chính nó, không trùng, tối đa
    * BONE_FEED_MAX món. Điểm tính bằng boneEnhancePreview (niên hạn, cùng vị trí +50%, trả lại phần điểm đã nạp vào nguyên liệu),
-   * cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +20, điểm dư bị bỏ). Luôn thành công, nguyên liệu bị xóa khỏi túi. Cùng
+   * cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +20, điểm dư bị bỏ). Mỗi mốc BONE_ENHANCE_MILESTONES vượt qua thêm 1 dòng
+   * phụ ngẫu nhiên (#187, boneAddSubs, ghi vào `stats.subs`). Luôn thành công, nguyên liệu bị xóa khỏi túi. Cùng
    * luật như gắn / tháo (boneLock: ngoài giao chiến, không gục, không hấp thụ), không đang chuyển bản đồ. Hồn cốt đang gắn thì chỉ
    * số / kỹ năng đổi ngay (afterBones). Ghi DB qua chuỗi lưu (save) như các thay đổi túi đồ khác; transaction đi cổng cũng mang
    * theo nếu lần lưu này chưa kịp chạy. Lò rèn ở Nặc Đinh Thành (6.1) sẽ mở cùng message này.
@@ -3759,18 +5083,22 @@ export class MapRoom extends Room<MapState> {
       const m = typeof raw === "string" ? d.bag.find((i) => i.id === raw) : undefined;
       if (!m || !boneIn(m)) return warn("Nguyên liệu phải là hồn cốt trong túi đồ.");
       if (m.vohonId !== null) return warn(`${this.itemLabel(m)} đang gắn trên võ hồn: tháo ra trước mới dùng làm nguyên liệu được.`);
+      if (m.locked) return warn(`${this.itemLabel(m)} đang khoá: mở khoá rồi mới dùng làm nguyên liệu được.`);
       mats.push(m);
     }
     const lock = this.boneLock(p, d); if (lock) return warn(lock.replace("gắn / tháo", "cường hóa"));
     const r = boneEnhancePreview({ slot: bone.slot, xp: boneXp(it.stats) },
       mats.map((m) => ({ slot: parseBone(m.stats)!.slot, years: m.years!, xp: boneXp(m.stats) })));
+    const sub = boneAddSubs(bone.slot, it.years!, r.level, parseBoneSubs(it.stats), Math.random); // #187: dòng phụ ở mốc
     const drop = new Set(mats);
     d.bag = d.bag.filter((x) => !drop.has(x));
-    it.stats = { ...(it.stats as object), xp: r.xp }; it.enhance = r.level; d.bagDirty = true;
+    it.stats = { ...(it.stats as object), xp: r.xp, ...(sub.added.length ? { subs: sub.subs } : {}) }; it.enhance = r.level; d.bagDirty = true;
     const up = r.level > r.from ? ` lên +${r.level}` : ` (vẫn +${r.level})`;
     this.log(id, `Cường hóa ${this.itemLabel(it)}${up}: ${mats.length} nguyên liệu, +${r.gain.toLocaleString("vi-VN")} điểm`
-      + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "") + ".", TIERS[tierOfYears(it.years!)].glow);
-    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length });
+      + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "")
+      + sub.added.map(([k, v]) => `; thêm dòng phụ ${coreStatText(k, v)}`).join("") + ".", TIERS[tierOfYears(it.years!)].glow);
+    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length,
+      subs: sub.added.map(([k, v]) => ({ k, v })) });
     const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
     if (v) this.afterBones(id, v); else this.sendBag(id);
     this.save(id); // nguyên liệu đã mất: ghi ngay qua chuỗi lưu
@@ -3889,6 +5217,7 @@ export class MapRoom extends Room<MapState> {
       const m = typeof raw === "string" ? d.bag.find((i) => i.id === raw) : undefined;
       if (!m || !coreIn(m)) return warn("Nguyên liệu phải là hồn hạch trong túi đồ.");
       if (m.vohonId !== null) return warn(`${this.itemLabel(m)} đang gắn trên võ hồn: tháo ra trước mới dùng làm nguyên liệu được.`);
+      if (m.locked) return warn(`${this.itemLabel(m)} đang khoá: mở khoá rồi mới dùng làm nguyên liệu được.`);
       mats.push(m);
     }
     const lock = this.boneLock(p, d, "hồn hạch"); if (lock) return warn(lock.replace("gắn / tháo", "nâng cấp"));
@@ -3923,6 +5252,7 @@ export class MapRoom extends Room<MapState> {
     if (!p || !d || p.dead || d.absorbing || d.travelling) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c");
     if (d.travelCast) return warn("Đang đi qua cổng, không thể hấp thụ.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY); // #165: hồn hoàn boss thế giới vào túi trước khi DB xác nhận lượt
     const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw && i.vohonId === null) : undefined;
     if (!it || it.code !== RING_ITEM || it.years === null) return warn("Hãy chọn một hồn hoàn trong túi đồ để hấp thụ (phím B).");
     const v = rawVohon === undefined || rawVohon === null ? d.ch : d.owned.find((x) => x.rowId === rawVohon);
@@ -3941,6 +5271,7 @@ export class MapRoom extends Room<MapState> {
     const secs = `${String(dur).replace(".", ",")} giây`;
     if (ch.fail) this.log(id, `Bắt đầu hấp thụ hồn hoàn ${formatYears(years)} vào ${name}: vượt giới hạn ${ch.over}%, ${Math.round(ch.fail * 100)}% thất bại (mất hồn hoàn). Cần ${secs}.`, "#ffb35c");
     else this.log(id, `Bắt đầu hấp thụ hồn hoàn ${formatYears(years)} vào ${name} (${secs}). Đừng di chuyển và đừng để bị tấn công.`);
+    this.dailyBag(id); // #165: hồn hoàn đang hấp thụ không còn tính cho bài khảo hạch nộp hồn hoàn
   }
 
   /** Hủy hấp thụ (di chuyển, bị đánh): không mất gì, hồn hoàn vẫn trong túi. */
@@ -3949,6 +5280,7 @@ export class MapRoom extends Room<MapState> {
     const a = d.absorbing; d.absorbing = null; p.absorb = 0;
     this.clients.getById(id)?.send("absorbing", { on: false, result: "cancel", rowId: a.rowId, years: a.years });
     this.log(id, text, "#ffb35c");
+    this.dailyBag(id); // hồn hoàn lại tính cho bài khảo hạch nộp hồn hoàn
   }
 
   /**
@@ -3964,6 +5296,7 @@ export class MapRoom extends Room<MapState> {
     // Hồn hoàn hoặc võ hồn không còn đúng như lúc bắt đầu: bỏ qua, không mất gì.
     if (!it || it.years !== a.years || !v || v.rings.length + 1 !== a.slot || !atBottleneck(v.level, v.rings.length)) {
       c?.send("absorbing", { on: false, result: "cancel", rowId: a.rowId, years: a.years });
+      this.dailyBag(id);
       return;
     }
     const years = a.years, tier = tierOfYears(years), age = formatYears(years), name = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
@@ -4052,12 +5385,15 @@ export class MapRoom extends Room<MapState> {
     b.phase = king ? 1 : 0; b.parts = boss ? 1 : 0;
     const id = uid("b"); this.state.beasts.set(id, b); this.interest.beasts.put(id, x, y);
     const sk = boss ? null : beastSkillOf(BEASTS[species]?.id ?? "", years);
-    this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0,
-      st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg),
+    this.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0, rooted: isRooted(b.rank, species), reach: 0,
+      st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg), def: beastDefOf(b.rank, species, years),
       skills: boss ? boss.skills.map((def) => ({ def, cd: 0 })) : sk ? [{ def: sk, cd: 0 }] : [], skT: 0, cast: null,
       buffs: new Map(), minions: new Set(),
-      elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), rageCd: 0,
+      elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), acc: new Map(), rageCd: 0,
+        form: boss.forms ? Math.floor(Math.random() * boss.forms.forms.length) : 0, formT: boss.forms?.every ?? 0,
         king: king ? { def: boss, slot, life, phase: 1, roar: 0, spd: 1, noted: new Set(), rankT: 0, world: world ? newWorld(boss) : null } : null } : null });
+    const bd = this.bdata.get(id)!; if (bd.rooted) bd.reach = rootedReach(b.tier, bd.skills.map((s) => s.def));
+    if (boss?.forms) b.form = bd.elite!.form + 1;
     return id;
   }
 
@@ -4111,7 +5447,7 @@ export class MapRoom extends Room<MapState> {
   joinFight(e: EliteData, pid: string) {
     if (e.parts.has(pid)) return;
     e.parts.set(pid, 0);
-    const d = this.pdata.get(pid);
+    const d = this.pdata.get(pid); if (d) e.acc.set(pid, d.accountId); // #119: vào lại thì lần nhắc hết lượt (noted) cũng chuyển sang phiên mới
     const world = !!e.king?.world, K = bossK(e.king), what = world ? "boss thế giới" : "thú vương";
     if (e.king && d && !e.king.noted.has(pid) && this.claimsToday(d, world) >= K.daily) {
       e.king.noted.add(pid);
@@ -4135,10 +5471,24 @@ export class MapRoom extends Room<MapState> {
    * Mỗi tick của tinh anh: Cuồng nộ (máu dưới ELITE_RAGE.hp), loại người tham gia đã rời phòng / ở ngoài bán kính ELITE.outSecs giây
    * liên tục, bỏ giao chiến sau ELITE.idleSecs giây không còn người tham gia nào trong bán kính. Hook test `etick` gọi với `dt` lớn.
    */
+  /**
+   * Đổi dạng (#173, BossDef.forms; tinh anh Song Sắc Mãng): mỗi `every` giây sang dạng kế tiếp (báo cả vùng gần bằng `fx form`), `warn`
+   * giây cuối của dạng thì `formWarn` (client nhấp nháy màu dạng sắp tới). Chạy cả khi chưa giao chiến để người tới gần thấy dạng thật.
+   */
+  tickForm(bid: string, b: BeastState, e: EliteData, fd: FormDef, dt: number) {
+    if ((e.formT -= dt) <= 0) {
+      e.form = (e.form + 1) % fd.forms.length; e.formT += fd.every; if (e.formT <= 0) e.formT = fd.every;
+      b.form = e.form + 1;
+      const f = fd.forms[e.form]; this.broadcast("fx", { k: "form", bid, name: f.name, col: f.col, x: b.x, y: b.y });
+    }
+    const warn = e.formT <= fd.warn; if (b.formWarn !== warn) b.formWarn = warn;
+  }
+
   tickElite(bid: string, b: BeastState, bd: BData, dt: number) {
     const e = bd.elite!, k = e.king;
     e.rageCd = Math.max(0, e.rageCd - dt); e.dropT = Math.max(0, e.dropT - dt);
-    const rage = bd.buffs.get("rage");
+    const rage = bd.buffs.get("rage"), forms = BOSSES[b.species]?.forms;
+    if (forms) this.tickForm(bid, b, e, forms, dt);
     if (k) { if (this.tickKing(bid, b, bd, k, dt)) return; } // thú vương: rút đi, giai đoạn 2 (không có Cuồng nộ)
     else if (rage !== undefined) {
       if (rage - dt <= 0) { bd.buffs.delete("rage"); e.rageCd = ELITE_RAGE.cd; this.syncBeastBuff(b, bd); } else bd.buffs.set("rage", rage - dt);
@@ -4171,7 +5521,7 @@ export class MapRoom extends Room<MapState> {
   eliteReset(bid: string, b: BeastState, bd: BData) {
     const e = bd.elite!;
     this.cancelCast(bid, b, bd);
-    e.engaged = false; e.parts.clear(); e.dmgBy.clear(); e.supBy.clear(); e.lonely = 0; e.n = 1; b.parts = 1; e.dropT = 0; e.rageCd = 0;
+    e.engaged = false; e.parts.clear(); e.dmgBy.clear(); e.supBy.clear(); e.acc.clear(); e.lonely = 0; e.n = 1; b.parts = 1; e.dropT = 0; e.rageCd = 0;
     bd.st.clear(); bd.buffs.clear(); this.syncStatus(b, bd); this.syncBeastBuff(b, bd);
     // Thú vương (BĐ5): về giai đoạn 1, bỏ chiêu giai đoạn 2; cả phòng được báo (thanh máu và bảng xếp hạng đặt lại).
     if (e.king) {
@@ -4202,6 +5552,23 @@ export class MapRoom extends Room<MapState> {
   // ---------- Tà hóa thú vương (mục 5.4, 6; bước BĐ5) ----------
   /** Ngày nhận thưởng boss theo giờ Việt Nam (đổi lúc 00:00; hook test `day` lệch được để thử đặt lại lượt). */
   today() { return vnDay(bossNow() + this.dayShift * 86400000); }
+  /** Tinh anh (theo ô tinh anh) và thú vương / boss thế giới đang sống của phòng: mục tiêu chung của tự săn (#218). */
+  autoBosses(): [string, BeastState][] {
+    const out: [string, BeastState][] = [];
+    for (const bid of [...this.elites.map((s) => s.bid), this.king?.bid]) { const b = bid ? this.state.beasts.get(bid) : undefined; if (b && b.hp > 0) out.push([bid!, b]); }
+    return out;
+  }
+  /**
+   * Tài khoản của `d` còn nhận được thưởng của tinh anh / thú vương / boss thế giới `b` không (#218, mục 5.4): tinh anh chưa bị khóa
+   * ELITE.lock; thú vương / boss thế giới còn lượt hôm nay và chưa nhận rương của khung giờ này ở kênh nào. Tự săn chỉ nhắm con còn nhận
+   * được thưởng (người hết lượt vào đánh chỉ làm boss nhiều máu hơn cho người khác).
+   */
+  autoBossOk(d: PData, b: BeastState) {
+    if (b.rank === 1) return eliteLockLeft(eliteKey(this.state.mapId, b), d.accountId) <= 0;
+    const world = b.rank === 3;
+    return this.claimsToday(d, world) < (world ? WORLD : KING).daily && !this.king?.claimed.has(d.accountId);
+  }
+
   /** Lượt nhận rương thú vương (hoặc boss thế giới khi `world`, BĐ6e) hôm nay của người chơi (sang ngày mới thì về 0). */
   claimsToday(d: PData, world = false) {
     const c = world ? d.wclaims : d.claims;
@@ -4253,7 +5620,7 @@ export class MapRoom extends Room<MapState> {
     life = (seat.leaveAt - now) / 1000;
     const cx = lair.x + lair.w / 2, cy = lair.y + lair.h / 2;
     let x = cx, y = cy;
-    for (let k = 0; k < 40 && this.map.hits(x, y, 8, 4); k++) { x = cx + (Math.random() - 0.5) * lair.w * 0.6; y = cy + (Math.random() - 0.5) * lair.h * 0.6; }
+    for (let k = 0; k < 40 && this.map.hits(x, y, BOSS_BOX.hw, BOSS_BOX.hh); k++) { x = cx + (Math.random() - 0.5) * lair.w * 0.6; y = cy + (Math.random() - 0.5) * lair.h * 0.6; }
     const bi = bossIndex(boss);
     this.king.bid = this.addBeast(lair.zone, years, bi, x, y, BOSSES[bi].rank, slot, life);
   }
@@ -4347,23 +5714,25 @@ export class MapRoom extends Room<MapState> {
     this.broadcast("boss", { k: "armor", bid, name: a.name, he: a.he, mult: a.mult, secs: a.secs, shield: w.shield });
   }
 
-  /** Du Thủy (Thiên Thanh Ngưu Mãng): lặn xuống hồ `secs` giây (không nhận sát thương, không đánh, bỏ chiêu đang báo trước). */
+  /**
+   * Du Thủy (Thiên Thanh Ngưu Mãng): lặn ra giữa hồ (object `lake`; bản đồ không có thì lặn tại chỗ) `secs` giây (không nhận sát thương,
+   * không đánh, bỏ chiêu đang báo trước). Chỗ nổi lên (cách chỗ lặn ít nhất `away` pixel) chọn ngay và báo trước cho cả phòng (#118).
+   */
   worldDive(bid: string, b: BeastState, bd: BData, w: WorldData, dv: NonNullable<NonNullable<BossDef["world"]>["dive"]>) {
     this.cancelCast(bid, b, bd);
-    w.dive = dv.secs; b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
+    // Sàn không tìm được chỗ nổi lên thì nổi lại đúng chỗ lặn (trong sàn), không kẹt lại giữa hồ.
+    w.dive = dv.secs; w.surf = surfaceSpot(this.map, { x: bd.hx, y: bd.hy }, b.x, b.y, dv.away, Math.random) ?? { x: b.x, y: b.y }; b.dive = true; b.moving = false; bd.kx = 0; bd.ky = 0;
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" });
-    this.broadcast("boss", { k: "dive", bid, name: dv.name, secs: dv.secs });
+    const lake = this.map.lake;
+    if (lake) { b.x = lake.x; b.y = lake.y; this.interest.beasts.put(bid, b.x, b.y); this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 50, col: "#4ab0ff" }); }
+    this.broadcast("boss", { k: "dive", bid, name: dv.name, secs: dv.secs, sx: w.surf.x, sy: w.surf.y });
   }
 
-  /** Nổi lên ở chỗ khác trong sàn (cách chỗ lặn ít nhất 80 pixel nếu được), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
+  /** Nổi lên đúng chỗ đã báo trước lúc lặn (WorldData.surf), lộ điểm yếu hệ của Du Thủy `weakSecs` giây. */
   worldSurface(bid: string, b: BeastState, bd: BData, k: KingData, w: WorldData) {
-    const dv = k.def.world?.dive, l = this.map.lair;
-    w.dive = 0; b.dive = false;
-    if (l) for (let i = 0; i < 40; i++) {
-      const x = l.x + 16 + Math.random() * (l.w - 32), y = l.y + 16 + Math.random() * (l.h - 32);
-      if (this.map.hits(x, y, 8, 4) || (i < 30 && Math.hypot(x - b.x, y - b.y) < 80)) continue;
-      b.x = x; b.y = y; break;
-    }
+    const dv = k.def.world?.dive;
+    if (w.surf) { b.x = w.surf.x; b.y = w.surf.y; this.interest.beasts.put(bid, b.x, b.y); } // dời xa hơn lề lưới (11.4): cập nhật ngay
+    w.dive = 0; w.surf = null; b.dive = false;
     bd.skT = Math.max(bd.skT, 1);
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: 60, col: "#4ab0ff" });
     if (dv) this.worldWeak(bid, b, w, dv.he, dv.weakSecs);
@@ -4373,7 +5742,8 @@ export class MapRoom extends Room<MapState> {
   /** Thông tin boss thế giới gửi kèm tin "boss" k = "here" cho người mới vào (đồng hồ nổi giận, điểm yếu đang hiện). */
   worldInfo(k: KingData) {
     const w = k.world; if (!w) return {};
-    return { world: true, rageIn: Math.max(0, k.life - (WORLD.lifeSecs - WORLD.enrageSecs)), rage: w.rage, weak: w.weak, weakT: w.weakT };
+    return { world: true, rageIn: Math.max(0, k.life - (WORLD.lifeSecs - WORLD.enrageSecs)), rage: w.rage, weak: w.weak, weakT: w.weakT,
+      ...(w.dive > 0 && w.surf ? { dive: w.dive, diveSecs: k.def.world?.dive?.secs ?? w.dive, sx: w.surf.x, sy: w.surf.y } : {}) }; // đang lặn (#118): chỗ nổi lên đã báo
   }
 
   /**
@@ -4488,7 +5858,9 @@ export class MapRoom extends Room<MapState> {
     let ring: Item | null = null;
     const takeBack = () => {
       const x = d.bag.find((i) => i.code === it.id && i.vohonId === null); if (x) this.takeItem(d, x, 1);
-      if (ring && d.bag.includes(ring)) { d.bag.splice(d.bag.indexOf(ring), 1); d.bagDirty = true; }
+      // Theo id (#165): túi có thể đã được chép sang đối tượng mới trong lúc chờ DB.
+      const ri = ring ? d.bag.findIndex((i) => i.id === ring!.id) : -1;
+      if (ri >= 0) { d.bag.splice(ri, 1); d.bagDirty = true; }
       claimed?.delete(d.accountId);
     };
     claimed?.add(d.accountId);
@@ -4523,7 +5895,7 @@ export class MapRoom extends Room<MapState> {
     if (!it || !def) return warn("Không có vật phẩm này trong túi đồ.");
     const boss = BOSSES[bossIndex(def.boss ?? "")];
     if (def.kind !== "ruong" || !boss) return warn(`${def.name} không mở được.`);
-    if (d.claimBusy) return warn("Đang nhận rương, đợi một chút.");
+    if (claimHeld(d)) return warn("Đang nhận rương, đợi một chút.");
     if (boss.rank === 3) return this.openWorldChest(id, p, d, it, def, boss);
     if (d.bagSlots - bagUsed(d.bag) < KING_CHEST.slots) return warn(`Cần ${KING_CHEST.slots} ô trống trong túi đồ để mở ${def.name}.`);
     const mapId = Object.values(MAPS).find((m) => m.king === boss.id)?.id ?? this.state.mapId, years = kingYears(mapId) ?? TIERS[0].years;
@@ -4602,6 +5974,45 @@ export class MapRoom extends Room<MapState> {
     if (done.length) this.revive(id, done, "sau khi nghỉ ngoài trận");
   }
 
+  // ---------- Chat (mục 4 "Lệnh chat", #188) ----------
+  /**
+   * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =
+   * hồn sư tên `to` đang trong game (kèm bản sao cho người gửi); "world" = mọi phòng, từ cấp WORLD_CHAT.minLevel, 1 tin /
+   * WORLD_CHAT.cdSecs giây. Tổ đội / riêng / thế giới đi qua presence CHAT_TOPIC tới phòng đang giữ người nhận (có thể ở bản đồ /
+   * kênh khác). Kiểm luật kênh trước, rồi mới tính lượt chống spam (riêng từng kênh, ratelimit.chatCheck). Lỗi báo riêng người gửi.
+   */
+  chatAction(id: string, m: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
+    const ch = o.ch === undefined ? "map" : strIn(o.ch);
+    if (ch !== "map" && ch !== "party" && ch !== "whisper" && ch !== "world") return;
+    if (!chatText(o.text)) return;
+    const warn = (text: string) => this.log(id, text, "#ffb35c"), acc = d.accountId, now = Date.now();
+    let to: number[] | undefined, toName: string | undefined;
+    if (ch === "party") {
+      to = party.partyMembers(acc);
+      if (!to.length) return warn("Bạn không ở trong tổ đội nào: mời bằng /moi <tên> trước.");
+    } else if (ch === "whisper") {
+      const name = chatText(o.to).slice(0, 40);
+      if (!name) return warn("Gõ /t <tên> <tin> để nhắn riêng.");
+      const t = party.onlineByName(name);
+      if (!t) return warn(`${name} không trong game: tin không được gửi.`);
+      if (t.acc === acc) return warn("Không thể tự nhắn riêng cho chính mình.");
+      to = [acc, t.acc]; toName = t.name;
+    } else if (ch === "world") {
+      if (p.level < WORLD_CHAT.minLevel) return warn(`Kênh thế giới mở từ cấp ${WORLD_CHAT.minLevel}.`);
+      const wait = worldWait(acc, now);
+      if (wait) return warn(`Kênh thế giới: mỗi ${WORLD_CHAT.cdSecs} giây một tin, đợi ${wait} giây.`);
+    }
+    const r = chatCheck(acc, o.text, now, ch);
+    if (!r) return;
+    if ("error" in r) return warn(r.error);
+    if (ch === "map") return this.broadcast("chat", { name: p.name, text: r.text });
+    if (ch === "world") worldMark(acc, now);
+    const route: ChatRoute = { ...(to ? { to } : {}), msg: { ch, name: p.name, text: r.text, ...(toName ? { to: toName } : {}) } };
+    this.presence.publish(CHAT_TOPIC, route);
+  }
+
   // ---------- Tổ đội người chơi (mục 5.9, bước 7.1; trạng thái và luật ở server/src/party.ts) ----------
   /** Phát các thông báo tổ đội lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại khung tổ đội và dòng log. */
   partyPublish(notes: party.PartyNote[]) { for (const n of notes) this.presence.publish(party.PARTY_TOPIC, n); }
@@ -4632,16 +6043,21 @@ export class MapRoom extends Room<MapState> {
    */
   partyAction(id: string, m: unknown) {
     const d = this.pdata.get(id); if (!d) return;
-    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = String(o.op ?? "");
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     const warn = (text: string) => this.log(id, text, "#ffb35c");
-    let name = String(o.name ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
+    let name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40);
     const now = Date.now(), acc = d.accountId;
+    if (["invite", "accept", "leave", "kick", "lead"].includes(op)) {
+      const locked = arenaQueueLocked(acc) || party.partyMembers(acc).some((member) => arenaQueueLocked(member));
+      if (locked || d.arenaBusy) return warn("Tổ đội đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
+    }
     let r: party.PartyResult;
     if (op === "get") return this.sendParty(id, true);
     if (op === "invite") {
       if (typeof o.sid === "string" && o.sid) {
+        // Chỉ hồn sư client đang thấy (bấm vào trên màn hình): `sid` ở xa (lấy từ tin `mini`) không được đổi ra tên (11.4).
         const t = this.state.players.get(o.sid);
-        if (!t) return warn("Hồn sư này không còn ở đây.");
+        if (!t || !this.interest.sees(id, "p", o.sid)) return warn("Hồn sư này không còn ở đây.");
         name = t.name;
       }
       if (!name) return warn("Gõ tên hồn sư muốn mời, ví dụ /moi Đường Tam.");
@@ -4651,7 +6067,12 @@ export class MapRoom extends Room<MapState> {
       if (rl) return warn(rl.error);
       r = { notes: party.addInvite(acc, ok.target, now) };
     }
-    else if (op === "accept") r = party.accept(acc, name, now);
+    else if (op === "accept") {
+      // Lời mời được tạo trước khi người mời xếp đơn cũng phải bị chặn; nếu không tổ đội mới sẽ làm mục solo cũ sai thành phần.
+      const inviter = party.inviteFrom(acc, name, now);
+      if (inviter !== null && (arenaQueueLocked(inviter) || arenaReadActive(inviter))) return warn("Người mời đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
+      r = party.accept(acc, name, now);
+    }
     else if (op === "decline") r = party.decline(acc, name, now);
     else if (op === "leave") r = party.leave(acc);
     else if (op === "kick") r = party.kick(acc, name);
@@ -4684,11 +6105,14 @@ export class MapRoom extends Room<MapState> {
     return !!dr.party && !!d && party.partyIdOf(d.accountId) === dr.party;
   }
 
-  /** Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). */
-  lootNote(owner: string, id: string) {
+  /**
+   * Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). `why`: vì sao `owner` được ưu tiên
+   * (#119: tinh anh mà người đứng đầu bị khóa thưởng thì là người đóng góp nhiều nhất chưa bị khóa).
+   */
+  lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") {
     const d = this.pdata.get(owner), team = d && party.partyIdOf(d.accountId) ? "tổ đội " : "";
     if (owner === id) return `${DROP_OWNER_SECS} giây đầu chỉ ${team ? "tổ đội của bạn" : "bạn"} nhặt được (phím E).`;
-    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (đóng góp nhiều nhất).`;
+    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (${why}).`;
   }
 
   // ---------- Vòng lặp ----------
@@ -4744,6 +6168,7 @@ export class MapRoom extends Room<MapState> {
   perfLog(t0: number, t1: number, t2: number) {
     const f = this.perf;
     f.n++; f.tick += t1 - t0; f.patch += t2 - t1; f.max = Math.max(f.max, t2 - t0);
+    const a = this.perfAll; a.n++; a.tick += t1 - t0; a.patch += t2 - t1; a.max = Math.max(a.max, t2 - t0);
     if (Date.now() - f.at < 10000) return;
     let awake = 0; this.state.beasts.forEach((b) => { if (this.interest.awake(b.x, b.y)) awake++; });
     console.log(`[perf] ${this.state.mapId}#${this.state.channel} tick ${(f.tick / f.n).toFixed(3)} ms, patch ${(f.patch / f.n).toFixed(3)} ms, ` +
@@ -4785,6 +6210,7 @@ export class MapRoom extends Room<MapState> {
       for (let i = 0; i < 4; i++) if (p.cds[i] > 0) p.cds[i] = Math.max(0, p.cds[i] - dt);
       if (p.ctCd > 0) p.ctCd = Math.max(0, p.ctCd - dt); // hồn kỹ Chân Thân (9.6)
       if (d.ava || d.avaCd.size) this.tickAva(id, dt);
+      if (d.fus) this.tickFusion(id, dt); // lời mời Võ Hồn Dung Hợp Kỹ đang chờ (#192)
       for (const [k, t] of d.skCd) if (t - dt <= 0) d.skCd.delete(k); else d.skCd.set(k, t - dt);
       for (let i = 0; i < p.bcds.length; i++) if (p.bcds[i] > 0) p.bcds[i] = Math.max(0, p.bcds[i] - dt);
       if (p.swCd > 0) p.swCd = Math.max(0, p.swCd - dt);
@@ -4797,6 +6223,8 @@ export class MapRoom extends Room<MapState> {
       }
       if (d.travelling) { p.moving = false; return; } // đang chuyển bản đồ: đứng yên chờ client rời phòng
       this.tickPStatus(id, p, d, dt);
+      // Tự bán từ xa (#216): túi vừa đổi (sendBag đặt cờ) thì xét một lần, không quét túi mỗi nhịp.
+      if (d.sellCheck) { d.sellCheck = false; this.autoSell(id); }
       if (p.dead) {
         d.deadT -= dt;
         if (d.deadT <= 0) {
@@ -4808,12 +6236,18 @@ export class MapRoom extends Room<MapState> {
         }
         return;
       }
-      // Choáng / Trói (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc.
-      const ctl = this.pctl(d), { x: ix, y: iy } = ctl.noMove ? { x: 0, y: 0 } : d.input; const il = Math.hypot(ix, iy);
+      // Tự săn (Auto 1): quyết định và đặt hướng đi như input của người chơi, trước bước di chuyển dưới đây.
+      if (d.auto) { if (this.perfOn) { const t = performance.now(); d.auto.tick(dt); this.perfAll.auto += performance.now() - t; } else d.auto.tick(dt); }
+      // Choáng / Trói / Đóng băng (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc. Mê hoặc (#116): bỏ qua phím,
+      // server tự đi lung tung (charmDir).
+      const ctl = this.pctl(d), cm = ctl.wander && !ctl.noMove ? this.charmDir(p, d, dt) : null;
+      if (!ctl.wander) d.charm = null;
+      const { x: ix, y: iy } = cm ?? (ctl.noMove || ctl.wander ? { x: 0, y: 0 } : d.input); const il = Math.hypot(ix, iy);
       // 11.1: ngoài giao chiến tự chạy (× RUN_MULT) trừ khi giữ Shift; giao chiến thì đi bộ. Tăng tốc, Làm chậm vẫn nhân như cũ.
       p.calm = d.fight >= TEAM_COMBAT_SECS; p.walk = d.walk;
-      const sp = ctl.noMove ? 0 : d.speed * (1 + this.buffV(d, "spd")) * (1 - ctl.slow) * (p.calm && !d.walk ? RUN_MULT : 1);
-      p.spd = sp; // client dự đoán chuyển động bằng đúng tốc độ này
+      const sp = cm ? d.speed * PLAYER_CHARM.spd * (1 - ctl.slow)
+        : ctl.noMove ? 0 : d.speed * (1 + this.buffV(d, "spd")) * (1 - ctl.slow) * (p.calm && !d.walk ? RUN_MULT : 1);
+      p.spd = cm ? 0 : sp; // client dự đoán chuyển động bằng đúng tốc độ này; đang Mê hoặc thì không dự đoán (server tự đi)
       p.moving = il > MOVE_DEAD;
       if (p.moving) {
         if (d.absorbing) this.cancelAbsorb(id, "Di chuyển: đã hủy hấp thụ, hồn hoàn vẫn còn trong túi.");
@@ -4850,6 +6284,9 @@ export class MapRoom extends Room<MapState> {
     for (const bid of [...this.state.beasts.keys()]) this.tickStatus(bid, dt);
     this.state.beasts.forEach((b, id) => {
       const bd = this.bdata.get(id)!, td = TIERS[b.tier];
+      // Bọc trứng (#162): không đi, không đánh, không hồi máu; đếm giờ nở ở eggs.tick. Không giữ mục tiêu / hung hăng sau khi bị đánh
+      // (tự săn thấy bọc như hồn thú thường vừa bị đánh: `hitBy` / `calm` vẫn đếm như hồn thú khác).
+      if (b.egg) { bd.calm += dt; bd.target = null; if (b.aggro) b.aggro = false; return; }
       bd.cd -= dt; bd.anim += dt; bd.calm += dt;
       // 11.4: hồn thú thường không mục tiêu, không đang về chỗ sinh / niệm chiêu / bị đẩy, cách mọi hồn sư quá SYNC_VIEW.wake thì ngủ:
       // không lang thang, không tìm mục tiêu (không ai trong tầm phát hiện), chỉ hồi máu và đếm hồi chiêu như khi thức.
@@ -4875,13 +6312,15 @@ export class MapRoom extends Room<MapState> {
       // thì bỏ mục tiêu và chạy về chỗ sinh (11.1); đang về thì không nhận mục tiêu, kể cả người vừa đánh nó.
       const far = !king && Math.hypot(b.x - bd.hx, b.y - bd.hy) > BEAST_LEASH.r;
       if (tgt && (off(tgt, bd.target!) || (king && !this.map.inLair(tgt.x, tgt.y)))) { bd.target = null; tgt = undefined; }
+      // Thú thực vật đứng yên (#116): mục tiêu ra ngoài tầm với thì bỏ (không đuổi theo được).
+      if (tgt && bd.rooted && Math.hypot(tgt.x - b.x, tgt.y - b.y) > bd.reach) { bd.target = null; tgt = undefined; }
       if (tgt && far && !bd.ret) bd.ret = BEAST_LEASH.secs;
       if (bd.ret > 0) {
         bd.target = null; tgt = undefined;
         if ((bd.ret -= dt) <= 0 || Math.hypot(b.x - bd.hx, b.y - bd.hy) < BEAST_LEASH.near) { bd.ret = 0; bd.wt = 0; }
       }
       if (!tgt && !bd.ret && (b.tier >= 1 || king) && !charm) {
-        let best = king ? Infinity : BEAST_AGGRO_R;
+        let best = king ? Infinity : bd.rooted ? Math.min(BEAST_AGGRO_R, bd.reach) : BEAST_AGGRO_R; // thú đứng yên: trong tầm với
         const look = (p: PlayerState | undefined, pid: string) => {
           if (!p || off(p, pid) || (king && !this.map.inLair(p.x, p.y))) return;
           const dd = Math.hypot(p.x - b.x, p.y - b.y); if (dd < best) { best = dd; bd.target = pid; tgt = p; }
@@ -4927,8 +6366,9 @@ export class MapRoom extends Room<MapState> {
           const m = s.def.mark ? this.markTarget(b, bd, s.def.range) : s.def.weak ? this.markTarget(b, bd, s.def.range, true) ?? near : near;
           if (m) { this.beginCast(id, b, bd, s, m[0], m[1]); return; }
         }
-        if (dd > td.size / 2 + 6) { if (!noMove) { mx = dx / dd; my = dy / dd; } }
-        else if (bd.cd <= 0 && !noAtk) { bd.cd = 1.1; this.hurtPlayer(bd.target!, this.beastDmg(bd) * (0.85 + Math.random() * 0.3)); }
+        if (bd.rooted) { if (Math.abs(dx) > 1) b.face = dx > 0 ? 1 : -1; } // đứng yên: chỉ quay mặt về mục tiêu (#116)
+        if (dd > beastMelee(b.tier, bd.rooted)) { if (!noMove && !bd.rooted) { mx = dx / dd; my = dy / dd; } }
+        else if (bd.cd <= 0 && !noAtk) { bd.cd = BEAST_ATK_CD; this.hurtPlayer(bd.target!, this.beastDmg(bd) * atkRoll(Math.random())); }
       } else {
         bd.wt -= dt;
         // Mê hoặc: đổi hướng liên tục quanh chỗ đang đứng, đi nhanh hơn lúc lang thang thường.
@@ -4938,12 +6378,20 @@ export class MapRoom extends Room<MapState> {
           bd.wt = charm ? 0.4 + Math.random() * 0.3 : 2 + Math.random() * 3; bd.tx = ox + (Math.random() - 0.5) * w; bd.ty = oy + (Math.random() - 0.5) * w;
         }
         const ex = bd.tx - b.x, ey = bd.ty - b.y, ed = Math.hypot(ex, ey);
-        if (ed > 4 && !noMove) { mx = ex / ed; my = ey / ed; sp *= charm ? BEAST_GAIT.charm : BEAST_GAIT.wander; }
+        if (ed > 4 && !noMove && !bd.rooted) { mx = ex / ed; my = ey / ed; sp *= charm ? BEAST_GAIT.charm : BEAST_GAIT.wander; }
       }
       b.moving = !!(mx || my);
       if (b.moving) { this.moveBeast(b, mx * sp * dt, my * sp * dt, hw); if (Math.abs(mx) > 0.1) b.face = mx > 0 ? 1 : -1; }
     });
 
+    // #161: vùng lưu lại trên mặt đất (sau vòng hồn thú: vùng vừa để lại gây nhịp đầu ngay trong nhịp này).
+    this.grounds.tick(dt);
+    // #163: Cực Hàn tích tầng Hàn cho người tham gia trong hang, Hỏa Đàn xả tầng.
+    this.cold.tick(dt);
+    // #174: Thủy Triều Dâng dâng đợt nước mới (vùng có tác dụng từ nhịp sau, sau báo trước).
+    this.tide.tick(dt);
+    // #173: hang chia phần luân phiên đổi phần đang hóa (vùng có tác dụng sau báo trước).
+    this.split.tick(dt);
     // 11.4: lưới hồn thú / đồ rơi theo vị trí sau khi di chuyển (đạn, hồn kỹ, lọc đồng bộ dùng tới nhịp sau).
     this.interest.syncEntities();
     // đạn hồn kỹ
@@ -4958,6 +6406,9 @@ export class MapRoom extends Room<MapState> {
       }
       return true;
     });
+
+    // #162: bọc trứng đếm giờ nở, hết giờ thì nở nhện con
+    this.eggs.tick(dt);
 
     // hồn hoàn rơi dưới đất: hết DROP_TTL_SECS giây thì biến mất (từ 3.2 hấp thụ từ túi, không còn ai "đang hấp thụ" hồn hoàn dưới đất)
     this.state.drops.forEach((dr, id) => {

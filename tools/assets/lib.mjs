@@ -130,6 +130,25 @@ export const ISO_CARD = [96, 152];
 /** Vật đứng isometric: khung bội của ISO_PROP_STEP (nửa thoi ô logic), chân giữa đáy cách mép dưới ISO_PROP_FOOT. */
 export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 
+// ---------- Giấy phép asset ngoài (GAME_DESIGN.md mục 5.11 "Nguồn và giấy phép") ----------
+/**
+ * Giấy phép đã biết, ghi như CREDITS.csv của LPC / trang OpenGameArt ("CC0", "CC-BY 4.0", "CC-BY-SA 3.0", "OGA-BY 3.0+",
+ * "GPL 3.0", "CC-BY-NC 4.0", "OGA-SA 3.0"…). Mọi giấy phép đã biết đều dùng được; giấy phép lạ, trống, ND (cấm sửa, mà công cụ
+ * luôn sửa ảnh) thì công cụ dừng. OGA-SA (OpenGameArt Share-Alike, lớp LPC `neck/scarf`, `torso/clothes/corset`) gắn cờ SA.
+ */
+export const LICENSE_KNOWN = /^(CC0|CC-BY(-NC)?(-SA)? \d(\.\d)?\+?|OGA-(BY|SA) \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
+/** Cờ nghĩa vụ của một giấy phép: SA / GPL (bản đã sửa theo đúng giấy phép đó), NC (chỉ dùng khi game phi thương mại). */
+export const licenseFlags = (l) => [/-SA\b/.test(l) && "SA", /^GPL\b/.test(l) && "GPL", /-NC\b/.test(l) && "NC"].filter(Boolean);
+const licenseRank = (l) => { const f = licenseFlags(l); return (f.includes("NC") ? 3 : 0) + (f.includes("SA") ? 1 : 0) + (f.includes("GPL") ? 2 : 0); };
+/**
+ * Asset có nhiều giấy phép (ví dụ "OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0") thì game dùng theo nhóm ít ràng buộc nhất:
+ * CC0 / CC-BY / OGA-BY < CC-BY-SA < GPL < NC. Trả { use: giấy phép game dùng theo, flags: cờ của nhóm đó }.
+ */
+export function licenseUse(licenses) {
+  const min = Math.min(...licenses.map(licenseRank)), use = licenses.filter((l) => licenseRank(l) === min);
+  return { use, flags: [...new Set(use.flatMap(licenseFlags))] };
+}
+
 // ---------- Màu ----------
 export const hex = (c) => { const n = parseInt(c.replace("#", ""), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
 export const toHex = ([r, g, b]) => "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
@@ -336,7 +355,8 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * Hồn sư thêm `set` = "{giới}_{kiểu tóc}" (ví dụ "f_2").
  * `iso` (manifest ghi `"iso": true`): hồn sư, phụ thể, hồn thú theo bố cục isometric của isoLayout, kèm `layout` (hồn thú theo
  * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*`, trạng thái `status_*`,
- * huy hiệu hệ `he_*`, mảnh giao diện `ui_*` và khung thẻ `card_*` chỉ có dạng isometric. `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
+ * huy hiệu hệ `he_*`, mảnh giao diện `ui_*`, khung thẻ `card_*` và hiệu ứng `fx_*` (cần `frame` vuông) chỉ có dạng isometric.
+ * `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
  */
 export function sheetSpec(key, frame, iso = false) {
   let m;
@@ -348,6 +368,8 @@ export function sheetSpec(key, frame, iso = false) {
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
     // NPC phụ / dân thường ghép từ LPC (lpc-compose --game): bố cục sheet hồn sư 24 × 6, đã tô màu (không hoán màu), một lớp.
     if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return spec(`iso/lpc/${m[1]}.png`, isoLayout("honsu"), { kind: "lpc" });
+    // Hiệu ứng (lpc-item.mjs): dải một hàng khung vuông `frame` (manifest ghi), giữ màu gốc của gói như chân dung.
+    if ((m = key.match(/^fx_([a-z_]+)$/)) && frame && frame[0] === frame[1]) return { file: `iso/fx/${m[1]}.png`, frame, kind: "fx", iso: true };
     if (!/^(portrait|prop|npc|item|status|he|ui|card)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, hệ, giao diện: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };

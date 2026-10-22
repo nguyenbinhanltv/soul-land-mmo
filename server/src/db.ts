@@ -2,10 +2,14 @@
 // Có DATABASE_URL -> dùng PostgreSQL/Supabase. Không có -> lưu trong RAM (mất khi tắt server, chỉ để thử nhanh).
 import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS, type Looks, type QuestProgress, type ArenaRecord } from "../../shared/data.ts";
+import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
+  BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
+  type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -22,7 +26,10 @@ export interface Character {
 /** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; }
 
-/** Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí (vào ở `spawn`). */
+/**
+ * Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí hoặc vị trí ghi trên file Tiled khác file server
+ * đang dùng cho bản đồ đó (vào ở `spawn`).
+ */
 export interface Location { mapId: string; x: number | null; y: number | null; }
 /**
  * Ánh xạ `accounts.map_id` sang bản đồ đang có: mã cũ đã bỏ (MAP_MOVED, ví dụ `tinh_dau` từ BĐ3) thì sang bản đồ thay thế;
@@ -30,12 +37,12 @@ export interface Location { mapId: string; x: number | null; y: number | null; }
  */
 export const resolveMap = (raw: string | null | undefined) =>
   (raw && Object.hasOwn(MAPS, raw) ? raw : raw && Object.hasOwn(MAP_MOVED, raw) ? MAP_MOVED[raw] : DEFAULT_MAP);
-const toLocation = (raw: string | null | undefined, x: unknown, y: unknown, file?: string | null): Location => {
+const toLocation = (raw: string | null | undefined, x: unknown, y: unknown, file: string | null | undefined): Location => {
   const mapId = resolveMap(raw);
-  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới. Vị trí lưu trên file Tiled khác file đang dùng (bản cũ
-  // `<mapId>` trước 11.5 / đường lùi MAP_V1 và bản ×8 `<mapId>.v2`, cột `map_file`; NULL = bản cũ) cũng vậy: tọa độ không cùng nghĩa.
-  const sameFile = (file ?? raw) === mapFile(mapId);
-  return mapId === raw && sameFile && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
+  // Bản đồ bị ánh xạ thì vị trí cũ vô nghĩa: vào ở `spawn` của bản đồ mới. Tọa độ chỉ có nghĩa trên đúng file Tiled lúc ghi
+  // (`accounts.map_file`, 11.5; NULL = ghi trước 11.5, bản cũ `<mapId>`): bản ×8 thành mặc định hoặc đổi qua lại bằng MAP_V1 thì về `spawn`.
+  const same = mapId === raw && (file ?? raw) === mapFile(mapId);
+  return same && x !== null && y !== null && x !== undefined && y !== undefined ? { mapId, x: Number(x), y: Number(y) } : { mapId, x: null, y: null };
 };
 
 /** Một ô trong túi đồ (một dòng bảng `items`, mục 5.7). `id` do server sinh (UUID) ngay khi món đồ xuất hiện. */
@@ -47,18 +54,46 @@ export interface Item {
   stats: unknown;              // dòng chỉ số (JSON) hoặc null
   vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
   created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
+  locked?: boolean;            // người chơi khoá (#216, items.locked): không bán / bỏ / làm nguyên liệu
 }
 /**
  * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
  * mỗi chuỗi một dòng): ghi trong cùng transaction với túi để phần thưởng và bước mới không bao giờ lệch nhau. Thiếu `quests` khi
  * ghi thì giữ nguyên tiến độ đang lưu. Từ 9.8 `slots`: số ô túi (cột `accounts.bag_slots`, mở rộng ở thương nhân); thiếu khi ghi thì
- * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua).
+ * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua). Từ #216 `sell`: bộ lọc tự bán (JSON thô, room kiểm lại bằng
+ * parseSell; `accounts.auto_sell`), `sold`: các món tự bán gần nhất để mua lại (`accounts.auto_sold`); thiếu khi ghi thì giữ nguyên.
  */
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; }
+/** Tông môn của tài khoản (#196). */
+export interface TongRow { tong: string | null; at: number | null; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
+/** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
+export interface SoldRow { key: string; item: Item; price: number; at: number; }
+/**
+ * Tự săn (Auto 1, bảng `auto_hunt`, mục 5.13): cài đặt (JSON thô, room kiểm lại bằng parseAuto) và số giây đã treo trong ngày `day`
+ * (giờ Việt Nam), `bonus`: giây treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2, 021_auto_bonus.sql; không đặt lại theo ngày).
+ * Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
+ */
+export interface AutoRow { settings: unknown; day: string; used: number; bonus: number; }
+/** Giờ treo đã dùng / cộng thêm phải là số hữu hạn không âm (lưu của cả hai store kiểm trước khi ghi). */
+function checkAutoRow(row: AutoRow) {
+  if (!Number.isFinite(row.used) || row.used < 0 || !Number.isFinite(row.bonus) || row.bonus < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
+}
+/**
+ * Ủy thác offline (Auto 3, bảng `auto_offline`, mục 5.13): thoát ở vùng săn `zone` của bản đồ `mapId` lúc `at` (ms, đồng hồ server);
+ * `day` / `used`: ngày giờ Việt Nam và giây tự săn đã treo trong ngày đó lúc thoát.
+ */
+export interface OfflineRow { mapId: string; zone: string; at: number; day: string; used: number; }
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
+const copySold = (r: SoldRow): SoldRow => ({ ...r, item: copyItem(r.item) });
 const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}),
-  ...(b.slots !== undefined ? { slots: b.slots } : {}) });
+  ...(b.slots !== undefined ? { slots: b.slots } : {}), ...(b.sell !== undefined ? { sell: structuredClone(b.sell) } : {}),
+  ...(b.sold ? { sold: b.sold.map(copySold) } : {}) });
+/** Danh sách tự bán đọc từ DB (#216): bỏ dòng hỏng (thiếu khóa, món, giá). */
+const parseSold = (raw: unknown): SoldRow[] => (Array.isArray(raw) ? raw : []).filter((r): r is SoldRow =>
+  !!r && typeof r.key === "string" && !!r.item && typeof r.item.code === "string" && Number.isInteger(r.item.qty) && r.item.qty >= 1
+  && Number.isSafeInteger(r.price) && r.price >= 0).map((r) => ({ key: r.key, item: { ...r.item, stats: r.item.stats ?? null, vohonId: null, locked: false },
+  price: r.price, at: Number(r.at) || 0 }));
 /** Kiểm tra chung cho cả hai store trước khi ghi túi: id không trùng, số lượng và Hồn Tệ là số nguyên hợp lệ. */
 function bagOk(b: Bag) {
   const ids = new Set(b.items.map((i) => i.id));
@@ -66,6 +101,7 @@ function bagOk(b: Bag) {
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
   if (b.slots !== undefined && (!Number.isInteger(b.slots) || b.slots < BAG_SLOTS || b.slots > BAG_MAX_SLOTS)) throw new Error(`Số ô túi không hợp lệ: ${b.slots}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+  for (const r of b.sold ?? []) if (!Number.isInteger(r.item.qty) || r.item.qty < 1 || !Number.isSafeInteger(r.price) || r.price < 0) throw new Error(`Món tự bán ${r.key} không hợp lệ.`);
   const chains = new Set((b.quests ?? []).map((q) => q.chain));
   if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
 }
@@ -73,9 +109,12 @@ function bagOk(b: Bag) {
 // Nguyên tắc: không bao giờ mất võ hồn. Store không có hàm xóa võ hồn.
 export interface Store {
   init(): Promise<void>;
-  /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. */
-  login(name: string, password: string): Promise<{ token: string; accountId: number } | { error: string }>;
-  accountFromToken(token: string): Promise<{ accountId: number; name: string } | null>;
+  /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. `created`: lần này vừa tạo tài khoản (giới
+   *  hạn tạo tài khoản mới theo IP, #207). `create` false (IP hết lượt tạo): tên chưa có thì không tạo, trả lỗi kèm `noCreate`. */
+  login(name: string, password: string, create?: boolean):
+    Promise<{ token: string; accountId: number; created: boolean } | { error: string; noCreate?: true }>;
+  /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
+  accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
   getCharacter(accountId: number): Promise<Character | null>;
   /** Mọi võ hồn tài khoản sở hữu, theo thứ tự nhận được. */
@@ -106,15 +145,22 @@ export interface Store {
   getLocation(accountId: number): Promise<Location>;
   /**
    * Lưu vị trí theo chu kỳ hoặc khi rời phòng (không phải lúc đi cổng). Chỉ ghi khi bản đồ đang lưu (đã ánh xạ) vẫn là
-   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi. Ghi kèm tên file Tiled `file` (mặc định
-   * `mapFile(mapId)`, 11.5; hook thử `oldfile` ghi tên bản cũ) để lần vào sau biết tọa độ thuộc file nào.
+   * `mapId` của phòng gọi (lớp chặn `WHERE map_id`, mục 6). false nếu không ghi. Ghi kèm `file`: file Tiled của tọa độ, mặc định
+   * file server đang dùng (`mapFile`, 11.5); null = như dòng ghi trước 11.5 (chỉ hook test truyền khác mặc định).
    */
-  saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string): Promise<boolean>;
+  saveLocation(accountId: number, mapId: string, x: number, y: number, file?: string | null): Promise<boolean>;
+  /**
+   * Lưu định kỳ / khi rời phòng (MapRoom.write, #165): trong MỘT transaction ghi vị trí như saveLocation (cùng lớp chặn `WHERE map_id`),
+   * các võ hồn `chars` (như saveTravel) và túi `bag` nếu có (như saveBag). Lớp chặn không khớp (DB đã ở bản đồ khác, vd transaction đi
+   * cổng đã commit dù phòng nhận lỗi) thì không ghi gì, kể cả túi, và trả false. Lỗi khác thì rollback rồi ném lỗi.
+   */
+  saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file?: string | null, bag?: Bag): Promise<boolean>;
   /**
    * Đi qua cổng (mục 6, bước 3): trong MỘT transaction lưu các võ hồn có tiến độ chưa lưu (võ hồn ra trận và võ hồn vừa
    * nhận kinh nghiệm chia cho đội) và đổi bản đồ sang `to` tại (x, y). Hoặc ghi hết, hoặc không ghi gì: lỗi (kể cả khi
    * tài khoản không còn ở bản đồ `from` hoặc có võ hồn không thuộc tài khoản) thì rollback rồi ném lỗi.
-   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag.
+   * Từ bước 3.1 có `bag` (túi đồ và Hồn Tệ chưa lưu) thì ghi luôn trong cùng transaction, như saveBag. (x, y) ghi kèm file Tiled
+   * server đang dùng cho `to` (`mapFile`, 11.5) như saveLocation.
    */
   saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag): Promise<void>;
   /**
@@ -144,6 +190,26 @@ export interface Store {
   getWaypoints(accountId: number): Promise<string[]>;
   /** Mở khóa truyền tống trận `wp` (đã có thì thôi, chạy lại an toàn). */
   unlockWaypoint(accountId: number, wp: string): Promise<void>;
+  /** Tông môn của tài khoản (#196, cột `accounts.tong` / `tong_at`): `tong` mã trong TONG_MON (null = không), `at` ms gia nhập gần nhất (null = chưa từng). */
+  getTong(accountId: number): Promise<TongRow>;
+  /**
+   * Đặt tông (null = rời) và lúc gia nhập `at` (null = giữ nguyên). `week` (tongWeek): xoá điểm tuần đó của tài khoản (bảng `tong_points`)
+   * trong cùng transaction; thiếu thì không xoá. Gọi qua chuỗi lưu của người chơi.
+   */
+  setTong(accountId: number, tong: string | null, at: number | null, week?: number): Promise<void>;
+  /** Cài đặt và giờ treo tự săn của tài khoản (bảng `auto_hunt`, Auto 1). */
+  getAuto(accountId: number): Promise<AutoRow>;
+  /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
+  saveAuto(accountId: number, row: AutoRow): Promise<void>;
+  /**
+   * Dùng Ủy Thác Lệnh (Auto 2): trong MỘT transaction ghi dòng tự săn `row` (quỹ giờ đã cộng) và cả túi `bag` (đã bớt lệnh), như
+   * saveAuto + saveBag. Hoặc ghi hết, hoặc không ghi gì (không mất lệnh mà không có giờ, không có giờ mà lệnh còn).
+   */
+  saveAutoBag(accountId: number, row: AutoRow, bag: Bag): Promise<void>;
+  /** Ghi (đè) lần ủy thác offline của tài khoản (bảng `auto_offline`, Auto 3); chỉ gọi trong chuỗi lưu của người chơi. */
+  startOffline(accountId: number, row: OfflineRow): Promise<void>;
+  /** Lấy và xóa lần ủy thác offline (một lệnh, nên không nhận hai lần); không có thì null. */
+  takeOffline(accountId: number): Promise<OfflineRow | null>;
   /** Số lần tài khoản đã nhận thưởng boss loại `kind` trong ngày `day` (giờ Việt Nam, "YYYY-MM-DD"; bảng `boss_claims`, BĐ5). */
   bossClaims(accountId: number, day: string, kind: string): Promise<number>;
   /**
@@ -166,6 +232,8 @@ export interface Store {
    * hạng và thành tích của `accountId` (null = chưa đấu trận nào).
    */
   arenaTop(n: number, accountId: number): Promise<{ list: (ArenaRecord & { accountId: number; name: string })[]; me: (ArenaRecord & { rank: number }) | null }>;
+  /** Bảng xếp hạng cộng minh, tính lại từ võ hồn và đồ đang gắn; không có bảng tóm tắt riêng. */
+  resonanceTop(page: number, pageSize: number, accountId: number): Promise<ResonanceTopResult>;
   /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
   arenaPairCount(day: string, a: number, b: number): Promise<number>;
   /**
@@ -175,16 +243,20 @@ export interface Store {
   arenaPairAdd(day: string, a: number, b: number): Promise<number>;
 }
 
-function hashPass(pw: string) {
+// scrypt bất đồng bộ (threadpool của libuv): bản Sync mất vài chục ms mỗi lần trên luồng chính, đăng nhập dồn dập làm đứng tick mọi phòng.
+const scryptAsync = promisify(scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
+async function hashPass(pw: string) {
   const salt = randomBytes(16).toString("hex");
-  return `${salt}:${scryptSync(pw, salt, 32).toString("hex")}`;
+  return `${salt}:${(await scryptAsync(pw, salt, 32)).toString("hex")}`;
 }
-function checkPass(pw: string, stored: string) {
+async function checkPass(pw: string, stored: string) {
   const [salt, hex] = stored.split(":");
-  const a = Buffer.from(hex, "hex"), b = scryptSync(pw, salt, 32);
+  const a = Buffer.from(hex, "hex"), b = await scryptAsync(pw, salt, 32);
   return a.length === b.length && timingSafeEqual(a, b);
 }
 const newToken = () => randomBytes(24).toString("base64url");
+/** Token đúng dạng newToken (base64url). Chặn trước khi hỏi DB: chuỗi lạ (ký tự NUL…) làm PostgreSQL báo lỗi mã hóa. */
+const tokenOk = (t: unknown): t is string => typeof t === "string" && /^[A-Za-z0-9_-]{32}$/.test(t);
 const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills], herbs: { ...c.herbs } });
 /** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
@@ -198,6 +270,31 @@ function arenaOk(r: ArenaRecord) {
 const pairKey = (day: string, a: number, b: number) => `${day}|${Math.min(a, b)}|${Math.max(a, b)}`;
 const arenaRow = (x: any): ArenaRecord => ({ elo: Number(x.elo), wins: Number(x.wins), losses: Number(x.losses), draws: Number(x.draws) });
 
+export interface ResonanceTopEntry extends ResonanceRankRow { name: string; }
+export interface ResonanceTopResult {
+  page: number; pageSize: number; total: number; hasNext: boolean;
+  list: ResonanceTopEntry[];
+  me: (ResonanceRankValue & { rank: number }) | null;
+}
+function resonanceEntry(accountId: number, name: string, vohons: { level: number; rings: number; stars: number }[], bones: { enhance: number }[], cores: { stars: number }[]): ResonanceTopEntry | null {
+  const prog = resonanceProgress({ vohons, bones, cores }), levels = resonanceLevels(prog);
+  const value = resonanceRankValue(prog, levels, vohons.reduce((s, v) => s + Math.max(0, Math.floor(v.stars) - 1), 0));
+  return value.score ? { accountId, name, ...value } : null;
+}
+// Bảng đã sắp xếp dùng chung mọi phòng / cả hai Store, hết hạn sau RESONANCE_RANK_CACHE giây; yêu cầu đến lúc đang tính dùng chung một Promise.
+let resonanceCache: { at: number; all: ResonanceTopEntry[] } | null = null, resonanceBusy: Promise<ResonanceTopEntry[]> | null = null;
+async function resonanceRanking(compute: () => Promise<ResonanceTopEntry[]>): Promise<ResonanceTopEntry[]> {
+  if (resonanceCache && Date.now() - resonanceCache.at < RESONANCE_RANK_CACHE * 1000) return resonanceCache.all;
+  resonanceBusy ??= compute().then((all) => { all.sort(resonanceRankCompare); resonanceCache = { at: Date.now(), all }; return all; }).finally(() => { resonanceBusy = null; });
+  return resonanceBusy;
+}
+function resonancePage(all: ResonanceTopEntry[], page: number, pageSize: number, accountId: number): ResonanceTopResult {
+  const p = Math.max(1, Math.floor(page) || 1), size = Math.max(1, Math.min(RESONANCE_RANK_PAGE_MAX, Math.floor(pageSize) || RESONANCE_RANK_PAGE_SIZE));
+  const at = all.findIndex((x) => x.accountId === accountId), start = (p - 1) * size;
+  const me = at < 0 ? null : { score: all[at].score, milestones: all[at].milestones, progressBp: all[at].progressBp, extraStars: all[at].extraStars, rank: at + 1 };
+  return { page: p, pageSize: size, total: all.length, hasNext: start + size < all.length, list: all.slice(start, start + size), me };
+}
+
 export class MemoryStore implements Store {
   accounts = new Map<string, { id: number; pass: string }>();  // nameKey(tên) -> tài khoản
   names = new Map<number, string>();
@@ -206,7 +303,7 @@ export class MemoryStore implements Store {
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
-  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file?: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
+  locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
   starter = new Set<number>();          // accountId đã nhận vật phẩm khởi đầu (accounts.starter_items)
   claims = new Map<string, number>();   // "accountId|day|kind" -> số lần nhận thưởng boss (bảng boss_claims, BĐ5)
@@ -214,19 +311,28 @@ export class MemoryStore implements Store {
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
+  tongs = new Map<number, TongRow>(); // accountId -> tông môn (accounts.tong / tong_at, #196)
+  autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
+  offline = new Map<number, OfflineRow>(); // accountId -> lần ủy thác offline chưa nhận (bảng auto_offline, Auto 3)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
-  async login(name: string, password: string) {
+  async login(name: string, password: string, create = true) {
     const key = nameKey(name);
-    let acc = this.accounts.get(key);
-    if (!acc) { acc = { id: this.seq++, pass: hashPass(password) }; this.accounts.set(key, acc); this.names.set(acc.id, name); }
-    else if (!checkPass(password, acc.pass)) return { error: "Sai mật khẩu." };
+    let acc = this.accounts.get(key), created = false;
+    if (!acc && !create) return { error: "Chưa có tài khoản.", noCreate: true as const };
+    if (!acc) {
+      const pass = await hashPass(password);
+      // Trong lúc băm có yêu cầu khác cùng tên vừa tạo tài khoản: kiểm mật khẩu như tài khoản có sẵn.
+      acc = this.accounts.get(key);
+      if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); created = true; }
+    }
+    if (!created && !(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
     const token = newToken(); this.sessions.set(token, acc.id);
-    return { token, accountId: acc.id };
+    return { token, accountId: acc.id, created };
   }
-  async accountFromToken(token: string) {
-    const id = this.sessions.get(token); return id ? { accountId: id, name: this.names.get(id)! } : null;
+  async accountFromToken(token: unknown) {
+    const id = tokenOk(token) ? this.sessions.get(token) : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
   }
   owned(accountId: number) { return [...this.rows.values()].filter((c) => c.accountId === accountId).sort((a, b) => a.rowId - b.rowId); }
   async getCharacter(accountId: number) {
@@ -283,9 +389,20 @@ export class MemoryStore implements Store {
     const l = this.locs.get(accountId);
     return toLocation(l?.mapId, l?.x, l?.y, l?.file);
   }
-  async saveLocation(accountId: number, mapId: string, x: number, y: number, file = mapFile(mapId)) {
+  async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
     this.locs.set(accountId, { mapId, x, y, file }); return true;
+  }
+  async saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file: string | null = mapFile(mapId), bag?: Bag) {
+    // Như saveTravel: kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ.
+    if (resolveMap(this.locs.get(accountId)?.mapId) !== mapId) return false;
+    for (const c of chars)
+      if (c.accountId !== accountId || this.rows.get(c.rowId)?.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+    if (bag) this.checkBag(accountId, bag);
+    for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
+    this.locs.set(accountId, { mapId, x, y, file });
+    if (bag) this.putBag(accountId, bag);
+    return true;
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     // Kiểm tra xong mới gán mọi trường trong cùng một đoạn đồng bộ (không có await xen giữa): ghi hết hoặc không ghi gì.
@@ -302,9 +419,11 @@ export class MemoryStore implements Store {
    * có bài khảo hạch hằng ngày thì bỏ bài của các ngày khác.
    */
   putBag(accountId: number, bag: Bag) {
-    const { quests, slots, ...rest } = copyBag(bag);
-    const old = this.bags.get(accountId)?.slots;
-    this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}) });
+    const { quests, slots, sell, sold, ...rest } = copyBag(bag), prev = this.bags.get(accountId), old = prev?.slots;
+    // Bộ lọc / danh sách tự bán (#216): thiếu khi ghi thì giữ bản đang lưu, như writeBag.
+    const keepSell = sell !== undefined ? sell : prev?.sell, keepSold = sold ?? prev?.sold;
+    this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}),
+      ...(keepSell !== undefined ? { sell: keepSell } : {}), ...(keepSold ? { sold: keepSold } : {}) });
     if (quests) {
       const daily = quests.some((x) => isDaily(x.chain));
       const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain) && !(daily && isDaily(q.chain)));
@@ -353,6 +472,28 @@ export class MemoryStore implements Store {
     if (!set) this.wps.set(accountId, (set = new Set()));
     set.add(wp);
   }
+  async getTong(accountId: number) { return { ...(this.tongs.get(accountId) ?? { tong: null, at: null }) }; }
+  async setTong(accountId: number, tong: string | null, at: number | null) { // chưa có điểm tuần trong RAM (#197) nên bỏ qua `week`
+    this.tongs.set(accountId, { tong, at: at ?? this.tongs.get(accountId)?.at ?? null });
+  }
+  async getAuto(accountId: number): Promise<AutoRow> {
+    const r = this.autos.get(accountId);
+    return r ? { settings: structuredClone(r.settings), day: r.day, used: r.used, bonus: r.bonus } : { settings: null, day: "", used: 0, bonus: 0 };
+  }
+  async saveAuto(accountId: number, row: AutoRow) {
+    checkAutoRow(row);
+    this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used, bonus: row.bonus });
+  }
+  async saveAutoBag(accountId: number, row: AutoRow, bag: Bag) {
+    checkAutoRow(row); this.checkBag(accountId, bag);
+    await this.saveAuto(accountId, row);
+    this.putBag(accountId, bag);
+  }
+  async startOffline(accountId: number, row: OfflineRow) { this.offline.set(accountId, { ...row }); }
+  async takeOffline(accountId: number) {
+    const r = this.offline.get(accountId); this.offline.delete(accountId);
+    return r ? { ...r } : null;
+  }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag) {
     const key = `${accountId}|${day}|${kind}`, n = this.claims.get(key) ?? 0;
@@ -384,6 +525,15 @@ export class MemoryStore implements Store {
     const rec = ([id, r]: [number, ArenaRecord & { t: number }]) => ({ accountId: id, name: this.names.get(id) ?? "?", elo: r.elo, wins: r.wins, losses: r.losses, draws: r.draws });
     const at = all.findIndex(([id]) => id === accountId), mine = at >= 0 ? all[at][1] : null;
     return { list: all.slice(0, n).map(rec), me: mine ? { elo: mine.elo, wins: mine.wins, losses: mine.losses, draws: mine.draws, rank: at + 1 } : null };
+  }
+  async resonanceTop(page: number, pageSize: number, accountId: number) {
+    const all = await resonanceRanking(async () => [...this.names].map(([id, name]) => {
+      const vohons = this.owned(id).map((v) => ({ level: v.level, rings: v.rings.length, stars: v.stars }));
+      const worn = (this.bags.get(id)?.items ?? []).filter((i) => i.vohonId !== null);
+      return resonanceEntry(id, name, vohons, worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
+        worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
+    }).filter((x): x is ResonanceTopEntry => !!x));
+    return resonancePage(all, page, pageSize, accountId);
   }
   async arenaPairCount(day: string, a: number, b: number) { return this.pairs.get(pairKey(day, a, b)) ?? 0; }
   async arenaPairAdd(day: string, a: number, b: number) {
@@ -438,32 +588,35 @@ export class PgStore implements Store {
         + `sau khi chuẩn hóa. Giữ nguyên dữ liệu; chủ #${a.id} vẫn vào được bằng mật khẩu riêng. Nên đổi tên #${a.id}.`);
     }
   }
-  async login(name: string, password: string) {
+  async login(name: string, password: string, create = true) {
     const key = nameKey(name);
     const find = async () => (await this.pool.query("SELECT id, pass_hash FROM accounts WHERE name_key=$1", [key])).rows[0];
     let acc = await find(), created = false;
+    if (!acc && !create) return { error: "Chưa có tài khoản.", noCreate: true as const };
     if (!acc) {
       const ins = await this.pool.query(
-        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, hashPass(password)]);
+        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, await hashPass(password)]);
       created = !!ins.rowCount;
       // Hai yêu cầu tạo cùng tên một lúc: yêu cầu thua bị chỉ mục duy nhất chặn, lấy tài khoản vừa tạo và kiểm tra mật khẩu như thường.
       acc = created ? ins.rows[0] : await find();
       // Không tìm thấy dù chèn bị chặn: tên trùng y hệt một tài khoản cũ bị loại khi điền name_key (xem backfillNameKeys).
       if (!acc) return { error: "Tên này đã có người dùng." };
     }
-    if (!created && !checkPass(password, acc.pass_hash)) {
+    if (!created && !(await checkPass(password, acc.pass_hash))) {
       // Tài khoản cũ trùng tên bị loại khi điền name_key (backfillNameKeys) vẫn đăng nhập được bằng mật khẩu của chính nó.
-      const legacy = (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows
-        .find((r) => nameKey(r.name) === key && checkPass(password, r.pass_hash));
+      let legacy = null;
+      for (const r of (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows)
+        if (nameKey(r.name) === key && await checkPass(password, r.pass_hash)) { legacy = r; break; }
       if (!legacy) return { error: "Sai mật khẩu." };
       acc = legacy;
     }
     const id = Number(acc.id);
     const token = newToken();
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
-    return { token, accountId: id };
+    return { token, accountId: id, created };
   }
-  async accountFromToken(token: string) {
+  async accountFromToken(token: unknown) {
+    if (!tokenOk(token)) return null;
     const r = await this.pool.query(
       "SELECT a.id, a.name FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token=$1 AND s.created_at > now() - interval '30 days'", [token]);
     return r.rowCount ? { accountId: Number(r.rows[0].id), name: r.rows[0].name as string } : null;
@@ -580,10 +733,32 @@ export class PgStore implements Store {
     const x = (await this.pool.query("SELECT map_id, pos_x, pos_y, map_file FROM accounts WHERE id=$1", [accountId])).rows[0];
     return toLocation(x?.map_id, x?.pos_x, x?.pos_y, x?.map_file);
   }
-  async saveLocation(accountId: number, mapId: string, x: number, y: number, file = mapFile(mapId)) {
+  async saveLocation(accountId: number, mapId: string, x: number, y: number, file: string | null = mapFile(mapId)) {
     const m = this.mapExpr(6);
     const r = await this.pool.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
     return (r.rowCount ?? 0) > 0;
+  }
+  async saveProgress(accountId: number, chars: Character[], mapId: string, x: number, y: number, file: string | null = mapFile(mapId), bag?: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Câu UPDATE accounts đầu tiên vừa là lớp chặn WHERE map_id vừa khóa dòng tài khoản (như writeBag).
+      const m = this.mapExpr(6);
+      const a = await db.query(`UPDATE accounts SET map_id=$2, pos_x=$3, pos_y=$4, map_file=$5 WHERE id=$1 AND ${m.sql} = $2`, [accountId, mapId, x, y, file, ...m.args]);
+      if (a.rowCount !== 1) { await db.query("ROLLBACK"); return false; }
+      for (const c of chars) {
+        const v = await db.query(
+          "UPDATE vohons SET level=$3, xp=$4, stars=$5, rings=$6, kills=$7, herbs=$8::jsonb, updated_at=now() WHERE id=$1 AND account_id=$2",
+          [c.rowId, accountId, c.level, c.xp, c.stars, c.rings, c.kills, JSON.stringify(parseHerbs(c.herbs))]);
+        if (v.rowCount !== 1 || c.accountId !== accountId) throw new Error(`Võ hồn #${c.rowId} không thuộc tài khoản #${accountId}.`);
+      }
+      if (bag) await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return true;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async saveTravel(accountId: number, chars: Character[], from: string, to: string, x: number, y: number, bag?: Bag) {
     const db = await this.pool.connect();
@@ -607,20 +782,22 @@ export class PgStore implements Store {
   }
   itemRow(x: any): Item {
     return { id: x.id, kind: x.kind, code: x.code, qty: x.qty, years: x.years, stars: x.stars, enhance: x.enhance, stats: x.stats ?? null,
-      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime() };
+      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}) };
   }
   /** Thêm hoặc sửa các ô `items` (chỉ ô của chính tài khoản; id thuộc tài khoản khác thì ném lỗi). Gọi trong transaction. */
   async upsertItems(db: pg.PoolClient, accountId: number, items: Item[]) {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString() })));
+      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked })));
     const r = await db.query(
-      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at)
-       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created
+      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked)
+       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,
-         stats jsonb, vohon_id bigint, created timestamptz)
+         stats jsonb, vohon_id bigint, created timestamptz, locked boolean)
        ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind, code=EXCLUDED.code, qty=EXCLUDED.qty, years=EXCLUDED.years, stars=EXCLUDED.stars,
-         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id
+         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked,
+         -- Thứ tự ô (#215 "Sắp xếp" đặt lại created); cùng mili giây thì giữ giá trị cũ (Item.created chỉ có mili giây).
+         created_at=CASE WHEN date_trunc('milliseconds', items.created_at) = EXCLUDED.created_at THEN items.created_at ELSE EXCLUDED.created_at END
        WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
     if (r.rowCount !== items.length) throw new Error("Id món đồ thuộc tài khoản khác.");
   }
@@ -628,8 +805,10 @@ export class PgStore implements Store {
   async writeBag(db: pg.PoolClient, accountId: number, bag: Bag) {
     bagOk(bag);
     // Số ô túi (9.8) chỉ tăng: lần ghi nào cũng không làm mất ô đã mua.
-    const a = await db.query("UPDATE accounts SET hon_te=$2, bag_slots=CASE WHEN $3::int IS NULL THEN bag_slots ELSE GREATEST(COALESCE(bag_slots, 0), $3::int) END WHERE id=$1",
-      [accountId, bag.honTe, bag.slots ?? null]);
+    // Bộ lọc và danh sách tự bán (#216): thiếu thì giữ nguyên (COALESCE); ghi cùng transaction để mua lại không lệch với túi / Hồn Tệ.
+    const a = await db.query(`UPDATE accounts SET hon_te=$2, bag_slots=CASE WHEN $3::int IS NULL THEN bag_slots ELSE GREATEST(COALESCE(bag_slots, 0), $3::int) END,
+      auto_sell=COALESCE($4::jsonb, auto_sell), auto_sold=COALESCE($5::jsonb, auto_sold) WHERE id=$1`,
+      [accountId, bag.honTe, bag.slots ?? null, bag.sell === undefined ? null : JSON.stringify(bag.sell), bag.sold ? JSON.stringify(bag.sold) : null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
     await this.upsertItems(db, accountId, bag.items);
@@ -649,7 +828,7 @@ export class PgStore implements Store {
     try {
       await db.query("BEGIN");
       // Khóa dòng tài khoản: hai phiên vào cùng lúc không thể cùng nhận vật phẩm khởi đầu.
-      const a = await db.query("SELECT hon_te, starter_items, bag_slots FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+      const a = await db.query("SELECT hon_te, starter_items, bag_slots, auto_sell, auto_sold FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
       if (!a.rowCount) throw new Error(`Không có tài khoản #${accountId}.`);
       const fresh = !a.rows[0].starter_items;
       if (fresh) {
@@ -660,6 +839,7 @@ export class PgStore implements Store {
       const q = await db.query("SELECT chain, step, accepted, prog FROM quests WHERE account_id=$1", [accountId]);
       await db.query("COMMIT");
       return { bag: { honTe: Number(a.rows[0].hon_te), slots: bagSlotsOf(a.rows[0].bag_slots), items: r.rows.map((x) => this.itemRow(x)),
+        sell: a.rows[0].auto_sell ?? undefined, sold: parseSold(a.rows[0].auto_sold),
         quests: q.rows.map((x) => parseQuest({ step: Number(x.step), accepted: x.accepted, prog: x.prog }, x.chain)) }, starter: fresh };
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
@@ -714,6 +894,62 @@ export class PgStore implements Store {
   }
   async unlockWaypoint(accountId: number, wp: string) {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
+  }
+  async getTong(accountId: number) {
+    const r = await this.pool.query("SELECT tong, tong_at FROM accounts WHERE id=$1", [accountId]);
+    const x = r.rows[0];
+    return { tong: x?.tong ?? null, at: x?.tong_at == null ? null : Number(x.tong_at) };
+  }
+  async setTong(accountId: number, tong: string | null, at: number | null, week?: number) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await db.query("UPDATE accounts SET tong=$2, tong_at=COALESCE($3, tong_at) WHERE id=$1", [accountId, tong, at]);
+      if (week !== undefined) await db.query("DELETE FROM tong_points WHERE account_id=$1 AND week=$2", [accountId, week]);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async getAuto(accountId: number): Promise<AutoRow> {
+    const r = await this.pool.query("SELECT settings, day, used_secs, bonus_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
+    if (!r.rowCount) return { settings: null, day: "", used: 0, bonus: 0 };
+    return { settings: r.rows[0].settings, day: String(r.rows[0].day), used: Number(r.rows[0].used_secs) || 0, bonus: Number(r.rows[0].bonus_secs) || 0 };
+  }
+  async saveAuto(accountId: number, row: AutoRow, db: pg.Pool | pg.PoolClient = this.pool) {
+    checkAutoRow(row);
+    await db.query(
+      `INSERT INTO auto_hunt (account_id, settings, day, used_secs, bonus_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, $5, now())
+       ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs,
+         bonus_secs=EXCLUDED.bonus_secs, updated_at=now()`,
+      [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used, row.bonus]);
+  }
+  async saveAutoBag(accountId: number, row: AutoRow, bag: Bag) {
+    checkAutoRow(row);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await this.saveAuto(accountId, row, db);
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async startOffline(accountId: number, row: OfflineRow) {
+    await this.pool.query(
+      `INSERT INTO auto_offline (account_id, map_id, zone, started_at, day, used_secs) VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (account_id) DO UPDATE SET map_id=EXCLUDED.map_id, zone=EXCLUDED.zone, started_at=EXCLUDED.started_at,
+         day=EXCLUDED.day, used_secs=EXCLUDED.used_secs`,
+      [accountId, row.mapId, row.zone, new Date(row.at), row.day, row.used]);
+  }
+  async takeOffline(accountId: number): Promise<OfflineRow | null> {
+    const r = await this.pool.query("DELETE FROM auto_offline WHERE account_id=$1 RETURNING map_id, zone, started_at, day, used_secs", [accountId]);
+    if (!r.rowCount) return null;
+    const o = r.rows[0];
+    return { mapId: String(o.map_id), zone: String(o.zone), at: new Date(o.started_at).getTime(), day: String(o.day), used: Number(o.used_secs) || 0 };
   }
   async bossClaims(accountId: number, day: string, kind: string) {
     const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);
@@ -778,6 +1014,32 @@ export class PgStore implements Store {
     ]);
     return { list: top.rows.map((x) => ({ accountId: Number(x.account_id), name: x.name as string, ...arenaRow(x) })),
       me: me.rowCount ? { ...arenaRow(me.rows[0]), rank: Number(me.rows[0].rank) } : null };
+  }
+  async resonanceTop(page: number, pageSize: number, accountId: number) {
+    const all = await resonanceRanking(() => this.resonanceAll());
+    return resonancePage(all, page, pageSize, accountId);
+  }
+  private async resonanceAll(): Promise<ResonanceTopEntry[]> {
+    const [accounts, vohons, items] = await Promise.all([
+      this.pool.query("SELECT id, name FROM accounts ORDER BY id"),
+      this.pool.query("SELECT account_id, level, rings, stars FROM vohons ORDER BY id"),
+      this.pool.query("SELECT account_id, code, enhance, stars FROM items WHERE vohon_id IS NOT NULL AND code = ANY($1::text[])", [[BONE_ITEM, CORE_ITEM]]),
+    ]);
+    const byVohon = new Map<number, { level: number; rings: number; stars: number }[]>(), byItem = new Map<number, { code: string; enhance: number; stars: number | null }[]>();
+    for (const v of vohons.rows) {
+      const id = Number(v.account_id), list = byVohon.get(id) ?? [];
+      list.push({ level: Number(v.level), rings: Array.isArray(v.rings) ? v.rings.length : 0, stars: Number(v.stars ?? 1) }); byVohon.set(id, list);
+    }
+    for (const i of items.rows) {
+      const id = Number(i.account_id), list = byItem.get(id) ?? [];
+      list.push({ code: String(i.code), enhance: Number(i.enhance ?? 0), stars: i.stars == null ? null : Number(i.stars) }); byItem.set(id, list);
+    }
+    return accounts.rows.map((a) => {
+      const worn = byItem.get(Number(a.id)) ?? [];
+      return resonanceEntry(Number(a.id), String(a.name), byVohon.get(Number(a.id)) ?? [],
+        worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
+        worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
+    }).filter((x): x is ResonanceTopEntry => !!x);
   }
   async arenaPairCount(day: string, a: number, b: number) {
     const r = await this.pool.query("SELECT n FROM arena_pairs WHERE day=$1::date AND a=$2 AND b=$3", [day, Math.min(a, b), Math.max(a, b)]);

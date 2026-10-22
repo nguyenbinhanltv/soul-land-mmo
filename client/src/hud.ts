@@ -3,22 +3,24 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, starSkillMult, starCdMult, starTienCoMult, starRing, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, type BoneStat,
+  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, BAG_PAGE, type BoneStat, type CoreStat,
   CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, SHOP, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
-  QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, resonanceText,
+  QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
+  AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg } from "./net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
+import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -27,14 +29,121 @@ export const SKILL_KEYS = ["U", "I", "O", "P"];
 /** Phím kỹ năng hồn cốt chủ động (từ 4.3, chờ chốt) theo BONE_ACTIVE_SLOTS: Z đầu, X tay trái, C tay phải. */
 export const BONE_SKILL_KEYS = ["Z", "X", "C"];
 
-export function log(text: string, col?: string, who?: string) {
-  const el = $("#log"), d = document.createElement("div");
-  if (who) { const b = document.createElement("b"); b.textContent = who + ":"; d.appendChild(b); }
-  d.appendChild(document.createTextNode(text));
-  if (col) d.style.borderLeftColor = col;
-  el.appendChild(d);
-  while (el.children.length > 6) el.firstElementChild!.remove();
-  setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 700); }, 9000);
+/** Dòng thông báo riêng cho mình (lỗi, đồ rơi, tổ đội…): hiện ở mọi tab của ô chat. */
+export function log(text: string, col?: string, who?: string) { chatLine("sys", text, col, who); }
+
+// ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Thế giới, lịch sử chỉ trong phiên ----------
+/** Kênh của một dòng: `sys` = thông báo riêng cho mình (tab nào cũng hiện). */
+export type ChatCh = "sys" | "map" | "party" | "whisper" | "world";
+export type ChatTab = "all" | "map" | "party" | "whisper" | "world";
+/** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng. */
+export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2", party: "#7dff8a", whisper: "#c58cff", world: "#e9c45a" };
+const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]" };
+const CHAT_TABS: { id: ChatTab; name: string }[] = [
+  { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "world", name: "Thế giới" }];
+/** Số dòng hiện lúc ô chat đóng (mờ dần sau CHAT_FADE_MS như trước) và lúc mở (không mờ, cuộn được); số dòng giữ trong phiên. */
+const CHAT_SHOW = 6, CHAT_SHOW_OPEN = 40, CHAT_FADE_MS = 9000, CHAT_KEEP = 200;
+interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; }
+const chatHist: ChatLine[] = [];
+let chatTab: ChatTab = "all", chatPinned = false, chatTyping = false;
+/** Người gần nhất nhắn riêng cho mình (`/r`) và người gần nhất mình trò chuyện riêng (tin thường ở tab Riêng gửi cho người này). */
+let replyTo = "", whisperTo = "";
+
+const tabShows = (tab: ChatTab, ch: ChatCh) => tab === "all" || ch === "sys" || ch === tab;
+const chatOpen = () => chatPinned || chatTyping;
+
+function chatEl(l: ChatLine, fade: boolean) {
+  const d = document.createElement("div");
+  const tag = chatTab === "all" ? CHAT_TAG[l.ch] : undefined;
+  if (tag) { const t = document.createElement("i"); t.textContent = tag; t.style.color = l.col ?? ""; d.appendChild(t); }
+  if (l.who) { const b = document.createElement("b"); b.textContent = l.who + ":"; if (tag) b.style.color = l.col ?? ""; d.appendChild(b); }
+  d.appendChild(document.createTextNode(l.text));
+  if (l.col) d.style.borderLeftColor = l.col;
+  if (fade) setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 700); }, Math.max(0, CHAT_FADE_MS - (Date.now() - l.at)));
+  return d;
+}
+
+/** Vẽ lại khung log theo tab và trạng thái mở / đóng. */
+function renderChat() {
+  const el = $("#log"); if (!el) return;
+  const open = chatOpen(), now = Date.now();
+  const lines = chatHist.filter((l) => tabShows(chatTab, l.ch) && (open || now - l.at < CHAT_FADE_MS)).slice(-(open ? CHAT_SHOW_OPEN : CHAT_SHOW));
+  el.replaceChildren(...lines.map((l) => chatEl(l, !open)));
+  $("#chatbox")?.classList.toggle("open", open);
+  if (open) el.scrollTop = el.scrollHeight;
+  for (const b of document.querySelectorAll<HTMLElement>("#chattabs button")) {
+    const on = b.dataset.tab === chatTab;
+    b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on));
+    if (on) b.classList.remove("new");
+  }
+  chatPlaceholder();
+}
+
+/** Thêm một dòng vào lịch sử ô chat (chỉ trong phiên, không lưu). Tab khác có tin mới thì hiện chấm. */
+export function chatLine(ch: ChatCh, text: string, col?: string, who?: string) {
+  const l: ChatLine = { ch, text, col, who, at: Date.now() };
+  chatHist.push(l); if (chatHist.length > CHAT_KEEP) chatHist.shift();
+  const el = $("#log"); if (!el) return;
+  if (ch !== "sys" && ch !== chatTab) document.querySelector(`#chattabs button[data-tab="${ch}"]`)?.classList.add("new");
+  if (!tabShows(chatTab, ch)) return;
+  const open = chatOpen();
+  el.appendChild(chatEl(l, !open));
+  while (el.children.length > (open ? CHAT_SHOW_OPEN : CHAT_SHOW)) el.firstElementChild!.remove();
+  if (open) el.scrollTop = el.scrollHeight;
+}
+
+/** Tin riêng đến / đi: nhớ người để `/r` và tab Riêng gửi tiếp. `mine`: mình gửi, `other` là người nhận; không thì `other` là người gửi. */
+export function chatWhisper(other: string, mine: boolean, text: string) {
+  if (!mine) replyTo = other;
+  whisperTo = other;
+  chatLine("whisper", text, CHAT_COL.whisper, mine ? `Tới ${other}` : `Từ ${other}`);
+  chatPlaceholder();
+}
+/** Người để `/r` trả lời ("" = chưa ai nhắn riêng cho mình trong phiên). */
+export const chatReplyTo = () => replyTo;
+/** Kênh gửi của tin thường (không phải lệnh) theo tab đang chọn; tab Riêng gửi cho người trò chuyện riêng gần nhất. */
+export function chatSendCh(): { ch: "map" | "party" | "whisper" | "world"; to?: string } {
+  if (chatTab === "party" || chatTab === "world") return { ch: chatTab };
+  if (chatTab === "whisper") return { ch: "whisper", to: whisperTo };
+  return { ch: "map" };
+}
+
+function chatPlaceholder() {
+  const inp = $<HTMLInputElement>("#chat"); if (!inp) return;
+  inp.placeholder = chatTab === "party" ? "Tổ đội: Enter để gửi (/d)"
+    : chatTab === "whisper" ? (whisperTo ? `Riêng tới ${whisperTo}: Enter để gửi` : "Riêng: /t <tên> <tin>")
+    : chatTab === "world" ? `Thế giới (từ cấp ${WORLD_CHAT.minLevel}, ${WORLD_CHAT.cdSecs} giây một tin): /tg`
+    : "Nhấn Enter để chat (/d, /t, /r, /tg)";
+  if (chatTab === "all" || chatTab === "map") inp.style.removeProperty("--c"); else inp.style.setProperty("--c", CHAT_COL[chatTab]);
+}
+
+/** Chọn tab và mở khung log để đọc lịch sử; bấm lại tab đang mở thì đóng. */
+export function chatSetTab(tab: ChatTab, toggle = false) {
+  if (toggle && tab === chatTab && chatPinned) chatPinned = false;
+  else { chatTab = tab; chatPinned = true; }
+  renderChat();
+}
+/** Nhắn riêng `name` (nút ở menu hồn sư): sang tab Riêng, đặt người nhận, mở ô gõ. */
+export function chatWhisperTo(name: string) {
+  whisperTo = name; chatTab = "whisper"; chatPinned = true; renderChat();
+  $<HTMLInputElement>("#chat")?.focus();
+}
+/** Ô gõ được / mất tiêu điểm: khung log mở rộng khi đang gõ. */
+export function chatFocus(on: boolean) { chatTyping = on; renderChat(); }
+/** Đóng khung log mở rộng (Esc); trả true nếu vừa đóng. */
+export function chatClose() { if (!chatPinned) return false; chatPinned = false; renderChat(); return true; }
+
+/** Dựng thanh tab của ô chat (một lần; chuột hoặc chạm, `pointerdown` không lấy mất tiêu điểm của ô gõ). */
+export function buildChatTabs() {
+  const bar = $("#chattabs"); if (!bar) return;
+  if (!bar.childElementCount) for (const t of CHAT_TABS) {
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.tab = t.id; b.textContent = t.name; b.setAttribute("role", "tab");
+    if (t.id !== "all") b.style.setProperty("--c", CHAT_COL[t.id]);
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); chatSetTab(t.id, true); });
+    bar.appendChild(b);
+  }
+  renderChat();
 }
 
 // ---------- Tà hóa thú vương (BĐ5, mục 5.4): đếm ngược, thanh máu lớn, bảng xếp hạng sát thương ----------
@@ -98,7 +207,7 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
     if (w.weak) chip(`Điểm yếu: ${HE[w.weak].name} ×${String(WORLD.weakMult).replace(".", ",")}${weakT > 0 ? ` (${Math.ceil(weakT)} giây)` : ""} · ${w.myHe === w.weak ? "võ hồn của bạn đúng hệ" : `đổi sang võ hồn ${HE[w.weak].name}!`}`, w.myHe === w.weak ? "ok" : "bad");
     if (w.shield && w.armorHe) chip(`Bá Thể: võ hồn ${HE[w.armorHe].name} phá khiên nhanh gấp 3${w.myHe === w.armorHe ? "" : " – đổi võ hồn!"}`, w.myHe === w.armorHe ? "ok" : "bad");
     if (w.charging && w.need) chip(`Tích lực: ngắt ${w.brk}/${w.need} bằng khống chế của võ hồn Khống chế${w.myHe === "khong_che" ? "" : " – đổi võ hồn!"}`, w.myHe === "khong_che" ? "ok" : "bad");
-    if (w.dive) chip("Đang lặn xuống hồ: không nhận sát thương, chờ nổi lên (mẫn công lướt tới đánh điểm yếu)");
+    if (w.dive) chip("Đang lặn giữa hồ: không nhận sát thương, sẽ nổi lên ở vòng sóng xanh (mẫn công đứng chờ đánh điểm yếu)");
     if (!wl.childElementCount) wl.hidden = true;
   }
   // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
@@ -312,11 +421,13 @@ export function updateStats(p: any) {
     el.appendChild(s);
   }
   // Hiệu ứng có lợi, rồi trạng thái bất lợi do chiêu báo trước của hồn thú gây (từ 3.5, viền đỏ).
-  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st;
+  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st + "|" + (p.han ?? 0);
   if (buffs !== buffKey) {
     buffKey = buffs; const el = $("#buffs"); el.innerHTML = "";
     for (const b of BUFF_IDS) if (p.buff & buffBit(b)) el.appendChild(statusChip(b, BUFFS[b].name, BUFFS[b].col));
-    for (const s of PLAYER_STATUS) if (p.st & statusBit(s)) el.appendChild(statusChip(s, STATUS[s].name, STATUS[s].col, "debuff"));
+    // Tầng Hàn (#163, Cực Hàn): ô ghi số tầng / số tầng thì đóng băng.
+    for (const s of PLAYER_STATUS) if (p.st & statusBit(s))
+      el.appendChild(statusChip(s, s === "chill" ? `${STATUS[s].name} ${p.han ?? 0}/${STATUS[s].max}` : STATUS[s].name, STATUS[s].col, "debuff"));
   }
   // Hồn kỹ Chân Thân (9.6): đang biến hình thì nút P mang hồn kỹ Chân Thân, hồi chiêu riêng `ctCd`; hết thì trả nút P cũ.
   const pb = document.querySelector<HTMLElement>(`.sk[data-i="${CHAN_THAN_SKILL_SLOT}"]`), ctOn = !!ctSlot && p.ava > 0;
@@ -685,7 +796,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     if (kname) b.querySelector("em")!.textContent = kname;
     b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}${kname ? `, kỹ năng ${kname}` : ""}`);
     b.setAttribute("aria-pressed", String(boneCell === s.id));
-    b.title = it && kb ? `${itemName(it)} (${boneStatText(s.id, it.years, it.enhance)})\n${boneSkillText(kb.beast, s.id, it.years, it.enhance)}` : `Ô ${s.name} trống`;
+    b.title = it && kb ? `${itemName(it)} (${boneFullText(it)})\n${boneSkillText(kb.beast, s.id, it.years, it.enhance)}` : `Ô ${s.name} trống`;
     b.addEventListener("click", () => { b.blur(); boneCell = boneCell === s.id ? null : s.id; enhClose(); again(); });
     // Kéo-thả bằng chuột: thả hồn cốt trong túi vào ô, gửi kèm ô được thả để server kiểm tra đúng vị trí.
     b.addEventListener("dragover", (e) => { e.preventDefault(); b.classList.add("over"); });
@@ -699,15 +810,17 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   el.appendChild(fig);
 
   // Chỉ số của võ hồn kèm phần hồn cốt cộng thêm (calcStats của shared/data.ts, chỉ để hiển thị; server tự tính).
-  const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance })));
+  const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance, subs: parseBoneSubs(it.stats) })));
   const st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, bonus,
     coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId))), resMsg?.bonus, herbBonus(v.herbs)); // từ 5.2 cả hồn hạch đang gắn, từ 8.2 cộng minh, BĐ6b tiên thảo
   const hb = herbBonus(v.herbs);
   const sum = document.createElement("div"); sum.className = "bsum";
   sum.innerHTML = (["hp", "mp", "atk"] as BoneStat[]).map((k) => {
     const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk), rp = resMsg?.bonus[k] ?? 0;
-    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}${hb[k] ? `<em>+${hb[k]}% tiên thảo</em>` : ""}</b>`;
-  }).join("");
+    const bp = bonus[`${k}_pct`]; // dòng phụ % của hồn cốt (#187)
+    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${bp ? `<em>+${bp.toLocaleString("vi-VN")}% hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}${hb[k] ? `<em>+${hb[k]}% tiên thảo</em>` : ""}</b>`;
+  }).join("") + (bonus.crit || bonus.crit_dmg ? `<span>Chí mạng</span><b>${(st.crit * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}%`
+    + `${bonus.crit ? `<em>+${bonus.crit.toLocaleString("vi-VN")}% tỉ lệ hồn cốt</em>` : ""}${bonus.crit_dmg ? `<em>+${bonus.crit_dmg.toLocaleString("vi-VN")}% sát thương hồn cốt</em>` : ""}</b>` : ""); // dòng phụ chí mạng (#187)
   el.appendChild(sum);
 
   const info = document.createElement("div"); info.className = "binfo bpick";
@@ -715,7 +828,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   if (cur && cs) {
     const t = document.createElement("b"); t.textContent = itemName(cur); t.style.color = itemColor(cur);
     const d = document.createElement("small"); d.textContent = `Đang gắn ở ô ${cs.name} · kỹ năng ${cs.active ? `chủ động (phím ${BONE_SKILL_KEYS[BONE_ACTIVE_SLOTS.indexOf(cs.id)]} khi võ hồn này ra trận)` : "bị động khi võ hồn này ra trận"} · cường hóa ${enhText(cur)}`;
-    const p = document.createElement("p"); p.textContent = `Cộng: ${boneStatText(cs.id, cur.years, cur.enhance)}.`;
+    const p = document.createElement("p"); p.textContent = `Cộng: ${boneFullText(cur)}.`;
     const kb = boneOf(cur), ks = document.createElement("p"); ks.className = "bskill"; ks.textContent = kb ? boneSkillText(kb.beast, cs.id, cur.years, cur.enhance) : "";
     info.append(t, d, p, ks);
     // Cường hóa (4.4): hồn cốt đang gắn cũng cường hóa được, chỉ số / kỹ năng đổi ngay.
@@ -750,8 +863,9 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     row.innerHTML = `${boneIcon(b.slot, itemColor(it))}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
     row.querySelector("b")!.textContent = itemName(it);
     const kn = boneSkillOf(b.beast, b.slot);
-    row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years, it.enhance)}${kn ? ` · ${kn.active ? kn.sk.name : kn.ps.name}` : ""}`;
-    row.title = boneSkillText(b.beast, b.slot, it.years, it.enhance);
+    const ns = parseBoneSubs(it.stats).length;
+    row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years, it.enhance)}${ns ? ` · ${ns} dòng phụ` : ""}${kn ? ` · ${kn.active ? kn.sk.name : kn.ps.name}` : ""}`;
+    row.title = `${boneFullText(it)}\n${boneSkillText(b.beast, b.slot, it.years, it.enhance)}`;
     const go = row.querySelector("button")!;
     go.setAttribute("aria-label", `Gắn ${itemName(it)} vào ô ${s.name} của ${def.name}`);
     go.addEventListener("click", () => { go.blur(); boneCell = b.slot; boneFocus = null; act.equip(it.id, v.rowId); });
@@ -936,14 +1050,14 @@ const enhText = (it: BagItem) => (it.enhance >= BONE_MAX_ENHANCE ? `+${BONE_MAX_
 
 /**
  * Bảng cường hóa hồn cốt `target` (mục 5.5): chọn nhiều hồn cốt trong túi làm nguyên liệu (chạm / bấm để chọn, cùng vị trí được
- * thêm 50%), xem trước điểm, cấp, chỉ số chính và mốc nâng kỹ năng sẽ đạt (boneEnhancePreview của shared/data.ts, chỉ để hiển
+ * thêm 50%), xem trước điểm, cấp, chỉ số chính, mốc nâng kỹ năng và dòng phụ sẽ thêm (#187) (boneEnhancePreview của shared/data.ts, chỉ để hiển
  * thị), rồi xác nhận vì nguyên liệu mất hẳn. Server kiểm tra và tính lại. Mở từ NPC Thợ rèn ở Nặc Đinh Thành (6.1, renderForge),
  * và vẫn mở được bằng nút "Cường hóa…" ở túi đồ và bảng hồn cốt (chờ chốt: có giới hạn ở lò rèn không, mục 8).
  */
 function enhancePicker(target: BagItem & { years: number }, items: BagItem[], act: { enhance(t: string, m: string[]): void; combat(): boolean }, again: () => void) {
   const tb = boneOf(target)!, xp0 = boneXp(target.stats), lv0 = target.enhance;
   const box = document.createElement("div"); box.className = "apick epick";
-  const loose = items.filter((i) => i.vohon === null && i.id !== target.id && boneOf(i)) as (BagItem & { years: number })[];
+  const loose = items.filter((i) => i.vohon === null && !i.lock && i.id !== target.id && boneOf(i)) as (BagItem & { years: number })[];
   for (const id of [...enhMats]) if (!loose.some((i) => i.id === id)) enhMats.delete(id); // nguyên liệu đã mất / đã gắn
   const matOf = (i: BagItem & { years: number }) => ({ slot: boneOf(i)!.slot, years: i.years, xp: boneXp(i.stats) });
   const head = document.createElement("small");
@@ -954,6 +1068,13 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
   (head.querySelector(".sbar i") as HTMLElement).style.width = (lv0 >= BONE_MAX_ENHANCE ? 1 : (xp0 - lo) / Math.max(1, hi - lo)) * 100 + "%";
   head.style.setProperty("--c", itemColor(target));
   box.appendChild(head);
+  // Dòng phụ (#187): các dòng đã có và mốc kế tiếp; dòng mới do server tung trong bộ của vị trí (BONE_SUB_POOL).
+  const subs0 = parseBoneSubs(target.stats), main0 = BONE_SLOTS[boneSlotIndex(tb.slot)]?.stat;
+  const pool = BONE_SUB_POOL[tb.slot].filter((k) => k !== main0 && !subs0.some(([x]) => x === k)), next0 = BONE_ENHANCE_MILESTONES.find((x) => x > lv0);
+  const sl = document.createElement("small");
+  sl.textContent = `Dòng phụ ${subs0.length}/${BONE_MAX_SUBS}${subs0.length ? `: ${subs0.map(([k, v]) => coreStatText(k, v)).join(", ")}` : ""}.`
+    + (next0 ? ` Mốc kế tiếp +${next0}: nâng kỹ năng và 1 dòng phụ ngẫu nhiên${pool.length ? ` (${pool.map(subName).join(" / ")})` : ""}.` : "");
+  box.appendChild(sl);
   const row = document.createElement("div"); row.className = "brow";
   const btn = (text: string, cls: string, fn: () => void) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text;
@@ -991,9 +1112,12 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
       sm[0].textContent = `+${num(r.gain)} điểm từ ${mats.length} nguyên liệu · ${enhProgress(r.xp, r.level)}`
         + (r.waste ? ` · dư ${num(r.waste)} điểm bị bỏ (đã tối đa)` : "");
       const reach = BONE_ENHANCE_MILESTONES.filter((x) => x > lv0 && x <= r.level);
+      const adds = Math.max(0, boneSubsDue(r.level) - subs0.length), next = BONE_ENHANCE_MILESTONES.find((x) => x > r.level);
+      const addTxt = adds ? `thêm ${adds} dòng phụ ngẫu nhiên (${subs0.length + adds}/${BONE_MAX_SUBS} dòng)` : "";
       sm[1].textContent = reach.length
-        ? `Đạt mốc ${reach.map((x) => `+${x}`).join(", ")}: kỹ năng hồn cốt mạnh ×${pow2(boneSkillMult(r.level))} (trước ×${pow2(boneSkillMult(lv0))}).`
-        : `Mốc kế tiếp ${BONE_ENHANCE_MILESTONES.find((x) => x > r.level) ? `+${BONE_ENHANCE_MILESTONES.find((x) => x > r.level)}` : "đã đủ"}: mỗi mốc nâng kỹ năng hồn cốt (đang ×${pow2(boneSkillMult(r.level))}, ${boneMilestones(r.level)}/${BONE_ENHANCE_MILESTONES.length} mốc).`;
+        ? `Đạt mốc ${reach.map((x) => `+${x}`).join(", ")}: kỹ năng hồn cốt mạnh ×${pow2(boneSkillMult(r.level))} (trước ×${pow2(boneSkillMult(lv0))})${addTxt ? ` và ${addTxt}` : ""}.`
+        : `Mốc kế tiếp ${next ? `+${next}` : "đã đủ"}: mỗi mốc nâng kỹ năng và 1 dòng phụ ngẫu nhiên (đang ×${pow2(boneSkillMult(r.level))}, ${boneMilestones(r.level)}/${BONE_ENHANCE_MILESTONES.length} mốc, ${subs0.length}/${BONE_MAX_SUBS} dòng phụ).`
+          + (addTxt ? ` Bù dòng còn thiếu: ${addTxt}.` : "");
       const rare = mats.filter((i) => i.enhance > 0 || tierOfYears(i.years) >= 3).length;
       sm[2].textContent = `⚠ ${mats.length} hồn cốt nguyên liệu sẽ bị tiêu hao (mất hẳn)${rare ? `, trong đó ${rare} món đã cường hóa hoặc từ 10.000 năm` : ""}. Cường hóa không bao giờ thất bại.`
         + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi mới cường hóa được." : "");
@@ -1007,7 +1131,7 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
   btn("Đóng", "drop", () => { enhClose(); again(); });
   box.appendChild(row);
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt. Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành và Thiên Đấu Thành cũng mở bảng này.`;
+  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt và thêm 1 dòng phụ ngẫu nhiên theo vị trí (tối đa ${BONE_MAX_SUBS} dòng). Tháo ra vẫn giữ cấp và dòng phụ. Thợ rèn ở Nặc Đinh Thành và Thiên Đấu Thành cũng mở bảng này.`;
   box.appendChild(note);
   if (enhJump) { enhJump = false; requestAnimationFrame(() => head.scrollIntoView({ block: "nearest" })); }
   return box;
@@ -1033,7 +1157,7 @@ const CORE_SUB_MARKS = Array.from({ length: Math.floor(CORE_MAX_ENHANCE / CORE_S
 function corePicker(target: BagItem, items: BagItem[], act: { enhanceCore(t: string, m: string[]): void; combat(): boolean }, again: () => void) {
   const tc = coreOf(target)!, xp0 = coreXp(target.stats), lv0 = target.enhance, stars = target.stars ?? 1, cs = coreSet(tc.set);
   const box = document.createElement("div"); box.className = "apick epick";
-  const loose = items.filter((i) => i.vohon === null && i.id !== target.id && coreOf(i));
+  const loose = items.filter((i) => i.vohon === null && !i.lock && i.id !== target.id && coreOf(i));
   for (const id of [...enhMats]) if (!loose.some((i) => i.id === id)) enhMats.delete(id); // nguyên liệu đã mất / đã gắn
   const matOf = (i: BagItem) => ({ set: coreOf(i)!.set, stars: i.stars ?? 1, xp: coreXp(i.stats) });
   const mainAt = (lv: number) => coreStatText(tc.main, coreMainValue(tc.main, stars, lv));
@@ -1271,6 +1395,7 @@ export function showPlayerMenu(t: { sid: string; name: string; level: number } |
   else if (me?.leader) btns.append(pbtn("Nhường trưởng nhóm", "", () => { act.send("lead", t.name); close(); }),
     pbtn("Mời ra khỏi đội", "warn", () => { act.send("kick", t.name); close(); }));
   else btns.append(el("small", "phint", "Đồng đội trong tổ đội của bạn."));
+  btns.append(pbtn("Nhắn riêng", "", () => { close(); chatWhisperTo(t.name); }, `Nhắn riêng cho ${t.name} (/t)`));
   box.append(head, btns);
   box.hidden = false;
 }
@@ -1310,6 +1435,13 @@ const hasYears = (it: BagItem): it is BagItem & { years: number } => (it.code ==
 /** "Công +30", "Sinh lực +316": chỉ số chính của hồn cốt (boneStats, kèm cường hóa từ 4.4). */
 const boneStatText = (slot: string, years: number, enhance = 0) =>
   Object.entries(boneStats(slot, years, enhance)).map(([k, v]) => `${BONE_STAT_NAMES[k as BoneStat]} +${v}`).join(", ");
+/** Chỉ số chính kèm các dòng phụ đã tung của một hồn cốt (#187, `stats.subs` do server tung): "Công +30, Chí mạng +2,1%". */
+const boneFullText = (it: BagItem & { years: number }) => {
+  const b = boneOf(it); if (!b) return "";
+  return [boneStatText(b.slot, it.years, it.enhance), ...parseBoneSubs(it.stats).map(([k, v]) => coreStatText(k, v))].join(", ");
+};
+/** Tên một mã dòng phụ trong danh sách có thể tung: dòng % ghi thêm "%" ("Công %"), để phân biệt với dòng phẳng cùng tên. */
+const subName = (k: CoreStat) => `${CORE_STATS[k].name}${CORE_STATS[k].pct && k.endsWith("_pct") ? " %" : ""}`;
 /** Số năm gọn để ghi ở góc ô: "437", "1.760", "2,5v" (vạn năm). */
 const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
 /** Màu một ô: hồn hoàn, hồn cốt theo số năm; hồn hạch theo bộ; vật phẩm khác theo ITEMS. */
@@ -1325,8 +1457,10 @@ function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
   if (bone) { const u = tintedUrl(`item_hon_cot_${bone.slot}`, ringColor(tierOfYears(it.years!))); return u ? `<img class="ico art" src="${u}" alt="" draggable="false">` : ""; }
   const def = itemDef(it.code), kind = def?.kind;
-  // Hồn hoàn tô theo màu niên hạn, mảnh võ hồn theo màu võ hồn (ảnh màu chung của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu).
-  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years)) : kind === "manh_vo_hon" ? def!.col : null;
+  // Hồn hoàn tô theo màu niên hạn; mảnh võ hồn, rương (màu hào quang thú vương / boss), tiên thảo theo `col` của món (ảnh chung
+  // của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu; rương và tiên thảo là bản xám, #170).
+  const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years))
+    : kind === "manh_vo_hon" || kind === "ruong" || kind === "tien_thao" ? def!.col : null;
   if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }
   return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
 }
@@ -1350,6 +1484,8 @@ export interface HerbOption { rowId: number; name: string; col: string; level: n
  */
 export interface BagActions {
   use(id: string): void; absorb(id: string, vohonId: number): void; discard(id: string): void; open(id: string): void;
+  sort(): void; // sắp xếp + gộp chồng cả túi (#215), server làm
+  lock(id: string): void; autoSell(cfg: SellSettings): void; // khoá / mở khoá ô, bộ lọc tự bán (#216)
   absorbOptions(years: number): AbsorbOption[]; combat(): boolean; refresh(): void;
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
@@ -1445,12 +1581,14 @@ function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again:
   return box;
 }
 
-/**
- * Bảng túi đồ: Hồn Tệ, lưới BAG_SLOTS ô (số lượng ở góc ô, đồ cùng loại đã được server gộp), chi tiết ô đang chọn và nút "Dùng".
- * Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
- */
 /** Số ô túi của tài khoản theo tin "bag" gần nhất (từ 9.8 mở rộng được; trước tin đầu tiên là mức khởi đầu). */
 let bagCap = BAG_SLOTS;
+let bagPage = 0; // trang túi đang xem (#215: mỗi trang BAG_PAGE ô)
+/**
+ * Bảng túi đồ: Hồn Tệ, các trang BAG_PAGE ô (#215; tab trang có vạch mức đầy, trang đầy viền đỏ), lưới ô của trang đang xem (số
+ * lượng ở góc ô, đồ cùng loại đã được server gộp), nút "Sắp xếp" (server sắp và gộp chồng trên cả túi), chi tiết ô đang chọn và nút
+ * "Dùng". Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
+ */
 export function renderBag(bag: BagMsg, act: BagActions) {
   bagCap = bag.slots;
   bagCdEnd = performance.now() + Math.max(0, bag.cd) * 1000;
@@ -1469,8 +1607,33 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
   el.appendChild(coin);
 
+  const pages = Math.max(1, Math.ceil(bag.slots / BAG_PAGE));
+  bagPage = Math.max(0, Math.min(pages - 1, bagPage));
+  const bar = document.createElement("div"); bar.className = "bpages";
+  for (let p = 0; p < pages; p++) {
+    const cap = Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, items.length - p * BAG_PAGE));
+    const b = document.createElement("button"); b.className = "bpg" + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
+    b.innerHTML = `<b>${p + 1}</b><i style="--f:${n / cap}"></i>`;
+    b.title = `Trang ${p + 1}: ${n}/${cap} ô${n >= cap ? " (đầy)" : ""}`; b.setAttribute("aria-label", b.title);
+    b.setAttribute("aria-pressed", String(p === bagPage));
+    b.addEventListener("click", () => { b.blur(); bagPage = p; again(); });
+    bar.appendChild(b);
+  }
+  // Tự bán từ xa (#216): nút mở bộ lọc (thay chỗ chi tiết ô), chữ ghi đang bật hay tắt.
+  const sell = { ...SELL_DEFAULTS, ...(bag.sell ?? {}) }, sb = document.createElement("button");
+  sb.className = "buse bsellbtn" + (sell.on ? " on" : ""); sb.textContent = sell.on ? "Tự bán: bật" : "Tự bán: tắt";
+  sb.title = "Bộ lọc tự bán từ xa khi túi gần đầy"; sb.setAttribute("aria-pressed", String(sellOpen));
+  sb.addEventListener("click", () => { sb.blur(); sellOpen = !sellOpen; if (sellOpen) bagSel = null; again(); });
+  bar.appendChild(sb);
+  const sort = document.createElement("button"); sort.className = "buse bsort"; sort.textContent = "Sắp xếp";
+  sort.title = "Gộp đồ cùng loại chưa đầy ô và xếp lại cả túi (mọi trang) theo loại, số năm, sao.";
+  sort.disabled = items.length < 2;
+  sort.addEventListener("click", () => { sort.blur(); act.sort(); });
+  bar.appendChild(sort);
+  el.appendChild(bar);
+
   const grid = document.createElement("div"); grid.className = "bgrid";
-  for (let k = 0; k < bag.slots; k++) {
+  for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = items[k], b = document.createElement("button");
     b.className = "bslot" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
     if (it) {
@@ -1479,20 +1642,22 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.style.setProperty("--c", itemColor(it));
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : it.qty > 1 ? String(it.qty) : "";
       const bone = boneOf(it), icon = itemArt(it) || (bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
-      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}<div class="cd"></div>`;
-      b.setAttribute("aria-label", hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`);
-      b.title = itemName(it);
-      b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; enhClose(); again(); });
+      b.innerHTML = `${icon}${corner ? `<small>${corner}</small>` : ""}${(bone || core) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
+      b.setAttribute("aria-label", (hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
+        + (it.lock ? ", đang khoá" : ""));
+      b.title = itemName(it) + (it.lock ? " (khoá)" : "");
+      b.addEventListener("click", () => { b.blur(); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
     grid.appendChild(b);
   }
   el.appendChild(grid);
 
+  if (sellOpen) { el.appendChild(sellBox(bag, sell, act)); return finishBag(el); }
   const info = document.createElement("div"); info.className = "binfo";
   const sel = items.find((i) => i.id === bagSel), def = sel && itemDef(sel.code);
   if (sel) {
     info.innerHTML = `<b></b><small></small><p></p>`;
-    info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}`;
+    info.querySelector("b")!.textContent = `${itemName(sel)}${sel.qty > 1 ? ` ×${sel.qty}` : ""}${sel.lock ? " · đang khoá" : ""}`;
     info.querySelector("b")!.style.color = def ? itemColor(sel) : "";
     const band = hasYears(sel) ? tierBand(tierOfYears(sel.years)) : null, bone = boneOf(sel), slot = bone ? BONE_SLOTS[boneSlotIndex(bone.slot)] : null;
     const core = coreOf(sel), cset = core ? coreSet(core.set) : undefined;
@@ -1501,13 +1666,14 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       + (core ? ` · Bộ ${cset ? `${cset.name} (${cset.tag})` : "lạ"}` : "")
       + (hasYears(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
       + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "");
-    // Hồn cốt (4.1): chỉ số gốc theo số năm, cấp cường hóa, đang gắn hay chưa.
+    // Hồn cốt (4.1): chỉ số gốc theo số năm, dòng phụ đã tung ở các mốc (#187), cấp cường hóa, đang gắn hay chưa.
     if (bone && slot) {
-      const st = document.createElement("div"); st.className = "bstat";
-      st.innerHTML = `<span>Chỉ số chính</span><b></b><span>Kỹ năng</span><b></b><span>Cường hóa</span><b></b><span>Đang gắn</span><b>Chưa gắn</b>`;
-      const bs = st.querySelectorAll("b"); bs[0].textContent = boneStatText(bone.slot, sel.years!, sel.enhance);
-      bs[1].textContent = boneSkillText(bone.beast, bone.slot, sel.years!, sel.enhance) || "Không có";
-      bs[2].textContent = enhText(sel);
+      const st = document.createElement("div"), subs = parseBoneSubs(sel.stats); st.className = "bstat";
+      const rows: [string, string][] = [["Chỉ số chính", boneStatText(bone.slot, sel.years!, sel.enhance)]];
+      subs.forEach(([k, v], i) => rows.push([`Dòng phụ ${i + 1}`, coreStatText(k, v)]));
+      if (!subs.length) rows.push(["Dòng phụ", `Chưa có: mỗi mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} thêm 1 dòng ngẫu nhiên`]);
+      rows.push(["Kỹ năng", boneSkillText(bone.beast, bone.slot, sel.years!, sel.enhance) || "Không có"], ["Cường hóa", enhText(sel)], ["Đang gắn", "Chưa gắn"]);
+      for (const [k, v] of rows) { const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; st.append(a, b); }
       info.insertBefore(st, info.querySelector("p"));
     }
     // Hồn hạch (5.1): sao, chỉ số chính (theo sao), dòng phụ đã tung, nâng cấp, đang gắn hay chưa, hiệu ứng bộ (có tác dụng từ 5.2,
@@ -1536,6 +1702,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     };
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
     if (def?.recall) btn("Dùng", "absorb", () => { act.use(sel.id); toggleBag(false); }); // Hồi Thành Phù (11.2): niệm rồi về thành
+    if (def?.auto) btn("Dùng", "absorb", () => act.use(sel.id)); // Ủy Thác Lệnh (Auto 2): cộng giờ treo tự săn
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
@@ -1548,7 +1715,9 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (core && enhTarget === sel.id) { info.appendChild(corePicker(sel, bag.items, act, again)); el.appendChild(info); return finishBag(el); }
     if (core) btn("Gắn…", "use", () => openCores(sel.id)); // hồn hạch (5.2): gắn ở bảng đội hình
     if (core && sel.enhance < CORE_MAX_ENHANCE) btn("Nâng cấp…", "use", () => { enhOpen(sel.id); again(); }); // 5.3
-    btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
+    // Khoá (#216): món khoá không bị bán (tay hay tự bán), bỏ, làm nguyên liệu; server kiểm tra lại.
+    btn(sel.lock ? "Mở khoá" : "Khoá", "use", () => act.lock(sel.id)).title = sel.lock ? "Mở khoá để bán / bỏ được" : "Khoá: không bán, bỏ hay làm nguyên liệu";
+    if (!sel.lock) btn(bagConfirm === sel.id ? "Bỏ hẳn?" : "Bỏ", "drop", () => {
       if (bagConfirm === sel.id) { bagConfirm = null; act.discard(sel.id); } else { bagConfirm = sel.id; again(); }
     });
     info.appendChild(row);
@@ -1557,9 +1726,60 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   finishBag(el);
 }
 
+let sellOpen = false; // đang mở bộ lọc tự bán thay cho chi tiết ô (#216)
+/** Mức chọn của bộ lọc tự bán (chỉ là lựa chọn giao diện; server kẹp bằng parseSell). */
+const SELL_RING: [number, string][] = [[0, "Không bán"], [100, "Dưới 100 năm"], [1000, "Dưới 1.000 năm"], [10000, "Dưới 10.000 năm"],
+  [100000, "Dưới 100.000 năm"], [MAX_YEARS + 1, "Mọi niên hạn"]];
+const SELL_BONE: [number, string][] = [[0, "Không bán"], [1, "Chưa cường hóa (+0)"], [5, "Dưới +5"], [10, "Dưới +10"]];
+const SELL_CORE: [number, string][] = [[1, "Không bán"],
+  ...Array.from({ length: MAX_CORE_STARS - 2 }, (_, i): [number, string] => [i + 2, i ? `1★ – ${i + 1}★` : "1★"])];
+/**
+ * Bộ lọc tự bán từ xa (#216, mục 5.7 "Tự bán"): bật / tắt, hồn hoàn dưới X năm, cho bán vạn năm, hồn cốt dưới mức cường hóa, hồn hạch
+ * dưới N sao, mảnh võ hồn; xem trước số ô đang hợp bộ lọc (autoSellable, chỉ để hiển thị). Đổi gì thì gửi ngay `autosell {cfg}`.
+ */
+function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
+  const box = document.createElement("div"); box.className = "binfo bsell";
+  const send = (patch: Partial<SellSettings>) => act.autoSell({ ...cfg, ...patch });
+  const head = document.createElement("b"); head.textContent = "Tự bán từ xa"; box.appendChild(head);
+  const tg = document.createElement("button"); tg.type = "button"; tg.className = "buse " + (cfg.on ? "drop" : "absorb");
+  tg.textContent = cfg.on ? "Tắt tự bán" : "Bật tự bán"; tg.setAttribute("aria-pressed", String(cfg.on));
+  tg.addEventListener("click", () => { tg.blur(); send({ on: !cfg.on }); });
+  box.appendChild(tg);
+  const pick = (label: string, list: [number, string][], v: number, key: "ring" | "bone" | "core") => {
+    const l = document.createElement("label"); l.className = "achk"; l.textContent = label + " ";
+    const s = document.createElement("select");
+    for (const [n, t] of list) { const o = document.createElement("option"); o.value = String(n); o.textContent = t; o.selected = n === v; s.appendChild(o); }
+    if (!list.some(([n]) => n === v)) { const o = document.createElement("option"); o.value = String(v); o.textContent = `(${v})`; o.selected = true; s.appendChild(o); }
+    s.addEventListener("change", () => send({ [key]: Number(s.value) }));
+    l.appendChild(s); box.appendChild(l);
+  };
+  const check = (label: string, v: boolean, key: "high" | "shard") => {
+    const l = document.createElement("label"); l.className = "achk";
+    const c = document.createElement("input"); c.type = "checkbox"; c.checked = v;
+    c.addEventListener("change", () => { c.blur(); send({ [key]: c.checked }); });
+    l.append(c, ` ${label}`); box.appendChild(l);
+  };
+  pick("Hồn hoàn", SELL_RING, cfg.ring, "ring");
+  pick("Hồn cốt", SELL_BONE, cfg.bone, "bone");
+  pick("Hồn hạch chưa nâng cấp", SELL_CORE, cfg.core, "core");
+  check("Mảnh võ hồn", cfg.shard, "shard");
+  check(`Cho bán cả hồn hoàn, hồn cốt từ ${AUTO_SELL_GUARD.toLocaleString("vi-VN")} năm (vạn năm) trở lên`, cfg.high, "high");
+  const now = bag.items.filter((i) => autoSellable({ ...i, locked: i.lock }, cfg));
+  const gain = now.reduce((a, i) => a + (sellPrice(i) ?? 0) * i.qty, 0);
+  const pv = document.createElement("small");
+  pv.textContent = now.length ? `Lúc này túi có ${now.length} ô hợp bộ lọc (≈ +${formatHonTe(gain)}).` : "Lúc này không có ô nào hợp bộ lọc.";
+  box.appendChild(pv);
+  const n = document.createElement("small");
+  n.textContent = `Bật thì khi túi còn dưới ${AUTO_SELL_FREE} ô trống (hoặc tự săn thấy túi đầy), đồ hợp bộ lọc được bán từ xa đúng giá thương nhân trong thành. `
+    + "Không bao giờ bán món khoá, món đang gắn, hồn hoàn đang hấp thụ. Đan, phù chú, lệnh bài, rương, tiên thảo thương nhân không mua nên không bán. "
+    + `${AUTO_SELL_BUYBACK} món tự bán gần nhất mua lại được đúng giá ở thương nhân (về túi ở trạng thái khoá). Ủy thác offline không tự bán.`;
+  box.appendChild(n);
+  return box;
+}
+
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = "Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.";
+  note.textContent = `Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Mỗi trang ${BAG_PAGE} ô, mở rộng túi ở thương nhân trong thành. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B để mở/đóng.`;
   el.appendChild(note);
   updateBag();
 }
@@ -1600,6 +1820,7 @@ export interface NpcActions {
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
+  tong(op: "join" | "leave", tong?: string): void; // tông môn (#196): gia nhập / đổi sang `tong`, rời tông
 }
 type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
@@ -1611,7 +1832,11 @@ let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" 
 /** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
 const SELL_CONFIRM_DONG = 100;
 const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
-  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì." };
+  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
+  tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
+let tongMsg: { tong: string; wait: number } | null = null; // tin "tong" gần nhất: tông đang thuộc ("" = không), giây còn chờ
+/** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
+export function setTong(m: { tong: string; wait: number }) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 
 /** NPC đang mở hộp thoại (null = đóng). */
 export const npcOpenId = () => npcDefOpen?.id ?? null;
@@ -1688,8 +1913,9 @@ function renderNpc() {
       btn(`Khảo hạch hằng ngày (${done}/${dailyMsg.list.length})${m === "offer" ? " !" : m === "ready" ? " ?" : ""}`, "absorb", () => go("daily"));
     }
     if (def.role === "shop") {
-      btn("Mua đan dược, mở rộng túi", "absorb", () => go("buy"), !bag); btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
-      btn(`Mua lại đồ đã bán (${bag?.buyback?.length ?? 0})`, "absorb", () => go("buyback"), !bag); // 9.8
+      btn(shopExpands(def.id) ? "Mua đan dược, mở rộng túi" : "Mua đan dược, phù chú", "absorb", () => go("buy"), !bag); // #111: trại cổng không mở rộng túi
+      btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
+      btn(`Mua lại đồ đã bán (${(bag?.buyback?.length ?? 0) + (bag?.sold?.length ?? 0)})`, "absorb", () => go("buyback"), !bag); // 9.8, đồ tự bán #216
     }
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
@@ -1699,12 +1925,19 @@ function renderNpc() {
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
       btn("Bảng xếp hạng", "absorb", () => { act.arena("top"); go("rank"); });
     }
+    if (def.role === "tong") {
+      const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
+      if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true);
+      else if (t) btn(cur ? `Đổi sang ${t.name}` : `Gia nhập ${t.name}`, "absorb", () => act.tong("join", t.id));
+      if (cur) btn(`Rời ${cur.name}`, "drop", () => act.tong("leave"));
+      if (tongMsg && tongMsg.wait > 0) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Còn ${Math.ceil(tongMsg.wait / 86400)} ngày nữa mới đổi được tông.`; el.appendChild(k); }
+    }
     btn("Tạm biệt", "drop", () => closeNpc());
     el.appendChild(row);
     if (NPC_ROLE_NOTE[def.role]) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = NPC_ROLE_NOTE[def.role]; el.appendChild(k); }
     return;
   }
-  if (npcPage === "buy") renderShopBuy(el, bag, act);
+  if (npcPage === "buy") renderShopBuy(el, bag, act, def.id);
   else if (npcPage === "sell") renderShopSell(el, bag, act);
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
@@ -1712,10 +1945,13 @@ function renderNpc() {
   el.appendChild(row);
 }
 
-/** Cửa hàng: mỗi món trong SHOP một dòng (giá, đang có), nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). */
-function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const used = bag.items.filter((i) => i.vohon === null).length;
-  for (const r of SHOP) {
+/**
+ * Cửa hàng của thương nhân `npcId`: mỗi món trong bảng hàng (shopOf: SHOP trong thành, CAMP_SHOP ở trại cổng) một dòng (giá, đang có),
+ * nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). Mở rộng túi chỉ ở thương nhân trong thành (shopExpands).
+ */
+function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
+  const used = bag.items.filter((i) => i.vohon === null).length, shop = shopOf(npcId);
+  for (const r of shop) {
     const def = itemDef(r.code); if (!def) continue;
     const have = bag.items.filter((i) => i.code === r.code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", def.col);
@@ -1734,26 +1970,29 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     el.appendChild(o);
   }
   // Mở rộng túi (9.8): +BAG_EXPAND ô mỗi lần tới BAG_MAX_SLOTS, giá tăng dần (bagExpandCost); bấm hai lần. Server kiểm tra lại.
-  const cost = bagExpandCost(bag.slots);
-  const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
-  o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
-  o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
-    : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
-  if (cost !== null) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
-    b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
-    b.disabled = bag.honTe < cost;
-    b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
-    b.addEventListener("click", () => {
-      b.blur();
-      if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
-      sellConfirm = null; act.expand();
-    });
-    o.querySelector(".brow")!.appendChild(b);
+  if (shopExpands(npcId)) {
+    const cost = bagExpandCost(bag.slots);
+    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", "#f2c84b");
+    o.innerHTML = `<i class="ico ruong"></i><div><b>Mở rộng túi</b><small></small></div><div class="brow"></div>`;
+    o.querySelector("small")!.textContent = cost === null ? `Túi đã tối đa ${BAG_MAX_SLOTS} ô.`
+      : `+${BAG_EXPAND} ô (${bag.slots} → ${Math.min(BAG_MAX_SLOTS, bag.slots + BAG_EXPAND)} ô), tối đa ${BAG_MAX_SLOTS} ô · ${formatHonTe(cost)}`;
+    if (cost !== null) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === "expand" ? "eok" : "use");
+      b.textContent = sellConfirm === "expand" ? `Mở rộng thật? −${formatHonTe(cost)}` : `Mở rộng · ${formatHonTe(cost)}`;
+      b.disabled = bag.honTe < cost;
+      b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
+      b.addEventListener("click", () => {
+        b.blur();
+        if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
+        sellConfirm = null; act.expand();
+      });
+      o.querySelector(".brow")!.appendChild(b);
+    }
+    el.appendChild(o);
   }
-  el.appendChild(o);
   const n = document.createElement("small"); n.className = "rnote";
-  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(SHOP[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`;
+  n.textContent = `Túi đồ ${used}/${bag.slots} ô; đan cùng loại tự gộp tối đa ${itemDef(shop[0]?.code ?? "")?.stack ?? 99} viên một ô. Túi không đủ chỗ hoặc thiếu Hồn Tệ thì không mua được.`
+    + (shopExpands(npcId) ? "" : " Mở rộng túi, đan lớn: về thương nhân trong thành.");
   el.appendChild(n);
 }
 
@@ -1762,11 +2001,24 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * hóa). Thiếu Hồn Tệ thì mờ nút; server kiểm tra lại tiền và chỗ trống.
  */
 function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const list = bag.buyback ?? [];
-  if (!list.length) {
+  const list = bag.buyback ?? [], sold = bag.sold ?? [];
+  if (!list.length && !sold.length) {
     const p = document.createElement("p"); p.className = "nline"; p.textContent = "Ngươi chưa bán gì cho ta từ lúc tới đây. Bán nhầm thì quay lại, ta trả lại đúng món, đúng giá.";
     el.appendChild(p);
   }
+  buybackRows(el, bag, act, list);
+  const n = document.createElement("small"); n.className = "rnote";
+  n.textContent = `Thương nhân giữ ${BUYBACK_MAX} món bán gần nhất (cả hai thành), mua lại đúng giá đã bán; rời game thì mất. Cần ô trống trong túi.`;
+  el.appendChild(n);
+  // Đồ tự bán từ xa (#216): AUTO_SELL_BUYBACK món gần nhất, lưu theo tài khoản (không mất khi rời game), cùng nút mua lại.
+  if (!sold.length) return;
+  const h = document.createElement("p"); h.className = "nline"; h.textContent = `Đồ tự bán gần đây (${sold.length}/${AUTO_SELL_BUYBACK}):`;
+  el.appendChild(h);
+  buybackRows(el, bag, act, sold);
+}
+
+/** Các dòng mua lại (đồ bán tay hoặc đồ tự bán): tên, giá đã bán, nút "Mua lại" (thiếu Hồn Tệ thì mờ). */
+function buybackRows(el: HTMLElement, bag: BagMsg, act: NpcActions, list: BuybackItem[]) {
   for (const e of list) {
     const it: BagItem = { ...e, id: e.key, vohon: null }, def = itemDef(e.code), cost = e.price * e.qty;
     const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", itemColor(it));
@@ -1780,9 +2032,6 @@ function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     o.querySelector(".brow")!.appendChild(b);
     el.appendChild(o);
   }
-  const n = document.createElement("small"); n.className = "rnote";
-  n.textContent = `Thương nhân giữ ${BUYBACK_MAX} món bán gần nhất (cả hai thành), mua lại đúng giá đã bán; rời game thì mất. Cần ô trống trong túi.`;
-  el.appendChild(n);
 }
 
 /**
@@ -1790,7 +2039,7 @@ function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * / sao / độ hiếm (chỉ để hiển thị, server tính lại). Đồ đang gắn không nằm trong danh sách. Món giá trị phải bấm hai lần.
  */
 function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const list = bag.items.filter((i) => i.vohon === null && sellPrice(i) !== null);
+  const list = bag.items.filter((i) => i.vohon === null && !i.lock && sellPrice(i) !== null); // món khoá (#216) không bán
   const kindOrder = ["hon_hoan", "hon_cot", "hon_hach", "manh_vo_hon"];
   list.sort((a, b) => kindOrder.indexOf(itemDef(a.code)?.kind ?? "") - kindOrder.indexOf(itemDef(b.code)?.kind ?? "") || (sellPrice(b) ?? 0) - (sellPrice(a) ?? 0));
   if (!list.length) {
@@ -1819,9 +2068,10 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     if (it.qty > 1) { sell(1, "Bán 1"); sell(it.qty, "Bán hết"); } else sell(1, "Bán");
     el.appendChild(o);
   }
-  const worn = bag.items.filter((i) => i.vohon !== null).length;
+  const worn = bag.items.filter((i) => i.vohon !== null).length, locked = bag.items.filter((i) => i.vohon === null && i.lock).length;
   const n = document.createElement("small"); n.className = "rnote";
   n.textContent = (worn ? `${worn} món đang gắn trên võ hồn không hiện ở đây (tháo ra trước mới bán được). ` : "")
+    + (locked ? `${locked} ô đang khoá không hiện ở đây (mở khoá ở túi đồ). ` : "")
     + `Thương nhân không mua đan dược và rương. Bán nhầm thì mua lại được đúng giá (${BUYBACK_MAX} món gần nhất, mất khi rời game).`;
   el.appendChild(n);
 }
@@ -1883,15 +2133,20 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
 }
 
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
-let questMsg: QuestMsg | null = null; // tin "quest" gần nhất (tiến độ do server giữ)
+let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ; khung theo dõi chỉ vẽ chuỗi này, chương 2 ở #190)
+const questMsgs = new Map<string, QuestMsg>(); // tin "quest" gần nhất của từng chuỗi cố định (kể cả tân thủ)
 let questFold = false;                // khung theo dõi đang thu gọn
 let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
 let dailyFold = false;
-/** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ hoặc chưa nhận tin "quest"). */
-export const questOf = (id: string) => (questMsg && questChain(questMsg.chain)?.giver === id ? questMsg : null);
+/** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ, chưa nhận tin "quest", hoặc chuỗi chưa mở theo QUEST_AFTER). */
+export const questOf = (id: string) => {
+  const q = [...questMsgs.values()].find((m) => questChain(m.chain)?.giver === id), after = q && QUEST_AFTER[q.chain];
+  return q && (!after || questMsgs.get(after)?.status === "done") ? q : null;
+};
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
 export function setQuest(q: QuestMsg) {
-  questMsg = q;
+  questMsgs.set(q.chain, q);
+  if (q.chain === QUEST_STARTER) questMsg = q;
   renderQuestTracker();
   if (npcDefOpen && questOf(npcDefOpen.id)) renderNpc();
 }
@@ -1958,7 +2213,7 @@ function renderQuestPage(el: HTMLElement, act: NpcActions) {
   const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
   b.textContent = q.status === "offer" ? "Nhận nhiệm vụ" : q.status === "ready" ? "Trả nhiệm vụ, nhận thưởng" : "Đang làm…";
   b.disabled = q.status === "active";
-  b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin"); });
+  b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain === QUEST_STARTER ? undefined : q.chain); });
   row.appendChild(b); el.appendChild(row);
 }
 /** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu), kể cả người ra khảo hạch hằng ngày. */
@@ -2142,8 +2397,9 @@ export function showArena(a: { phase: string; time: number; me: string; friendly
   el.hidden = false; el.dataset.phase = a.phase;
   a.sides.forEach((s, i) => {
     const box = el.querySelector(`.a${i}`) as HTMLElement; if (!box) return;
-    box.classList.toggle("me", s.sid === a.me);
-    const name = `${s.name || "…"}${s.sid === a.me ? " (bạn)" : ""}`;
+    const me = s.sid.split(",").includes(a.me);
+    box.classList.toggle("me", me);
+    const name = `${s.name || "…"}${me ? " (đội của bạn)" : ""}`;
     if (box.querySelector("b")!.textContent !== name) box.querySelector("b")!.textContent = name;
     box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}`;
     (box.querySelector(".bar i") as HTMLElement).style.width = `${Math.round(s.pct * 1000) / 10}%`;
@@ -2199,15 +2455,20 @@ export function updateArenaEnd() {
 }
 // ---------- Cộng minh (mục 5.10, bước 8.2): chỉ hiển thị số server gửi (tin riêng "resonance") ----------
 let resMsg: ResonanceMsg | null = null;
+let resTopMsg: ResonanceTopMsg | null = null;
+let resTopRequest: (page: number, pageSize: number) => void = () => {};
 /** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
 export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidden) renderReso(); }
+/** Tin "resonanceTop" mới: bảng công khai chỉ hiển thị tên / điểm và dòng riêng của mình. */
+export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; if (!$("#reso").hidden) renderReso(); }
+export function onResonanceTop(fn: (page: number, pageSize: number) => void) { resTopRequest = fn; }
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
   $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
   if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); renderReso(); }
 }
 /**
- * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 4 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
+ * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 5 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
  * sáng màu trụ cột, chưa đạt mờ) và phần cộng của từng mốc.
  */
 function renderReso() {
@@ -2221,6 +2482,35 @@ function renderReso() {
   const txt = resMsg ? resonanceText(resMsg.bonus) : "";
   total.textContent = !resMsg ? "Đang tải…" : txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào.";
   el.append(head, note, total);
+  const rank = document.createElement("section"); rank.className = "resrank";
+  const rankHead = document.createElement("div"); rankHead.className = "resrankhead";
+  const rankTitle = document.createElement("b"); rankTitle.textContent = "Bảng xếp hạng cộng minh";
+  const rankBtn = document.createElement("button"); rankBtn.type = "button"; rankBtn.textContent = resTopMsg ? "Làm mới" : "Xem bảng";
+  rankBtn.addEventListener("click", () => resTopRequest(1, resTopMsg?.pageSize ?? RESONANCE_RANK_PAGE_SIZE));
+  rankHead.append(rankTitle, rankBtn); rank.appendChild(rankHead);
+  if (!resTopMsg) {
+    const hint = document.createElement("small"); hint.textContent = "Chỉ tài khoản đã đạt ít nhất một mốc được xếp hạng."; rank.appendChild(hint);
+  } else {
+    const mine = document.createElement("small");
+    mine.textContent = resTopMsg.me ? `Hạng ${resTopMsg.me.rank} · ${resTopMsg.me.score} điểm · ${resTopMsg.me.milestones} mốc · tiến độ ${Math.floor(resTopMsg.me.progressBp / 100)}% · sao thêm ${resTopMsg.me.extraStars}` : "Chưa đạt mốc để xếp hạng.";
+    rank.appendChild(mine);
+    const table = document.createElement("div"); table.className = "resranktable";
+    resTopMsg.list.forEach((r, i) => { const row = document.createElement("div"); row.className = "resrankrow" + (r.me ? " me" : "");
+      const n = document.createElement("span"); n.textContent = `#${(resTopMsg!.page - 1) * resTopMsg!.pageSize + i + 1}`;
+      const name = document.createElement("em"); name.textContent = r.name;
+      const score = document.createElement("i"); score.textContent = `${r.score} điểm · ${r.milestones} mốc`;
+      row.append(n, name, score); table.appendChild(row); });
+    if (!resTopMsg.list.length) { const empty = document.createElement("small"); empty.textContent = "Chưa có tài khoản đạt mốc."; table.appendChild(empty); }
+    rank.appendChild(table);
+    const pages = document.createElement("div"); pages.className = "respages";
+    const prev = document.createElement("button"); prev.type = "button"; prev.textContent = "‹ Trước"; prev.disabled = resTopMsg.page <= 1;
+    prev.addEventListener("click", () => resTopRequest(resTopMsg!.page - 1, resTopMsg!.pageSize));
+    const page = document.createElement("span"); page.textContent = `Trang ${resTopMsg.page}`;
+    const next = document.createElement("button"); next.type = "button"; next.textContent = "Sau ›"; next.disabled = !resTopMsg.hasNext;
+    next.addEventListener("click", () => resTopRequest(resTopMsg!.page + 1, resTopMsg!.pageSize));
+    pages.append(prev, page, next); rank.appendChild(pages);
+  }
+  el.appendChild(rank);
   RESONANCE.forEach((r, i) => {
     const have = resMsg?.prog[i] ?? 0, lv = resMsg?.lv[i] ?? 0, next = r.steps[lv];
     const box = document.createElement("section"); box.className = "respil"; box.style.setProperty("--c", r.col);
@@ -2403,6 +2693,16 @@ export function showWaypoint(label: string | null, open: () => void) {
 
 /** Niệm truyền tống / Hồi Thành Phù đang chạy (tin riêng `recall`): chữ trên thanh niệm (dùng chung chỗ thanh hấp thụ), tổng giây, lúc bắt đầu. */
 let recall: { label: string; secs: number; t0: number } | null = null;
+/**
+ * Nút "Tự động" (mục 5.13): sáng khi đang tự săn theo tin riêng `auto` của server, chú thích giờ treo còn lại. Bấm thì mở bảng Tự
+ * động (client/src/autoPanel.ts, Auto 2); lý do dừng server báo bằng dòng log và bảng tổng kết.
+ */
+export function setAuto(m: AutoMsg) {
+  const b = $("#autoBtn"); if (!b) return;
+  b.setAttribute("aria-pressed", String(m.on));
+  b.firstChild!.textContent = m.on ? "Đang tự động " : "Tự động ";
+  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
+}
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
 /** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */
 function drawRecall(ch: HTMLElement) {

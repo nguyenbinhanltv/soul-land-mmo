@@ -440,7 +440,7 @@ function haiThanDao() {
 // ---------- Lõi Tinh Đấu (BĐ6e, mục 5.3, 5.4): hồ trung tâm Tinh Đấu Đại Sâm Lâm, chỉ có boss thế giới ----------
 /**
  * 64×44 ô, rừng già tối bao quanh. Hồ trung tâm (nước) ở phía đông; sàn đấu boss thế giới là bãi trống hình bầu dục bên bờ tây của
- * hồ (vây vòng cây, chừa lối vào phía tây; phía đông là bờ nước, boss Du Thủy lặn xuống hồ ở đây). Trại cổng ở mép tây (điểm hồi sinh,
+ * hồ (vây vòng cây, chừa lối vào phía tây; phía đông là bờ nước, boss Du Thủy lặn ra giữa hồ: điểm `lake`). Trại cổng ở mép tây (điểm hồi sinh,
  * cổng về bờ hồ Nội địa), đường mòn nối trại với lối vào sàn. Object `boss` phủ sàn đấu (bán kính giao chiến, chiêu toàn sàn); một
  * vùng `zone` phủ cả bản đồ, `count` 0 (không sinh hồn thú thường; tên vùng hiện trên HUD).
  */
@@ -473,6 +473,8 @@ function loiTinhDau() {
   const o = objects();
   o.zone("Hồ trung tâm", "Boss thế giới 100.000 năm – 21:00 mỗi ngày", 0, 0, MW, MH, [1], 0, "thai_than_cu_vien:1,thien_thanh_nguu_mang:1", "100000-100000");
   o.boss("Sàn đấu hồ trung tâm", "thai_than_cu_vien", LOI.lair.x, LOI.lair.y, LOI.lair.w, LOI.lair.h);
+  // #118: giữa hồ (object `lake`, điểm): boss Du Thủy lặn ra đây rồi nổi lên ở chỗ đã báo trước trong sàn.
+  o.point("lake", "Giữa hồ", LOI.lake.cx + 0.5, LOI.lake.cy + 0.5);
   o.rect("spawn", "Trại cổng Lõi Tinh Đấu", 3, 17, 6, 11);
   o.portal("Về Tinh Đấu Nội địa", 1, 20, 2, 4, "tinh_dau_noi_dia", "tu_loi_tinh_dau");
   o.point("arrive", "tu_tinh_dau_noi_dia", 5.5, 22.5);
@@ -638,8 +640,14 @@ function thienDauThanh() {
   o.point("arrive", "tu_nac_dinh_thanh", 40, MH - 6.5);
   o.point("npc", "Đại Đấu Hồn Trường", 57, 48, [prop("npc", "string", "dau_hon_truong")]);
   o.point("npc", "Phất Lan Đức", 15, 47, [prop("npc", "string", "phat_lan_duc")]);
+  o.point("npc", "Triệu Vô Cực", 17, 47, [prop("npc", "string", "trieu_vo_cuc")]);
   o.point("npc", "Thương nhân Thiên Đấu", 51, 15, [prop("npc", "string", "thuong_nhan_thien_dau")]);
   o.point("npc", "Thợ rèn Thiên Đấu", 64, 15, [prop("npc", "string", "lo_ren_thien_dau")]);
+  // #196: sứ giả bốn tông môn ở hàng phía bắc quảng trường.
+  o.point("npc", "Sứ giả Hạo Thiên Tông", 34, 21, [prop("npc", "string", "su_gia_hao_thien")]);
+  o.point("npc", "Ninh Phong Trí", 40, 21, [prop("npc", "string", "ninh_phong_tri")]);
+  o.point("npc", "Sứ giả Lam Điện Bá Vương Long Tông", 46, 21, [prop("npc", "string", "su_gia_lam_dien")]);
+  o.point("npc", "Chủ giáo Vũ Hồn Điện", 52, 21, [prop("npc", "string", "chu_giao_vu_hon_dien")]);
   // BĐ6b: cổng tây (thay biển "sắp mở" `cong_lac_nhat`); chặn mềm theo cấp đề xuất của Lạc Nhật.
   o.portal("Đi Lạc Nhật Sâm Lâm", 0, 26, 2, 4, "lac_nhat_sam_lam", "tu_thien_dau_thanh", "40-70");
   o.point("arrive", "tu_lac_nhat_sam_lam", 5, 28);

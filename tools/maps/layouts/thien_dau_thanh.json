@@ -94,7 +94,12 @@
   "npcs": [
     { "name": "Đại Đấu Hồn Trường", "npc": "dau_hon_truong", "at": [155, 131] },
     { "name": "Phất Lan Đức", "npc": "phat_lan_duc", "at": [40, 130] },
+    { "name": "Triệu Vô Cực", "npc": "trieu_vo_cuc", "at": [46, 130] },
     { "name": "Thương nhân Thiên Đấu", "npc": "thuong_nhan_thien_dau", "at": [140, 33] },
-    { "name": "Thợ rèn Thiên Đấu", "npc": "lo_ren_thien_dau", "at": [174, 31] }
+    { "name": "Thợ rèn Thiên Đấu", "npc": "lo_ren_thien_dau", "at": [174, 31] },
+    { "name": "Sứ giả Hạo Thiên Tông", "npc": "su_gia_hao_thien", "at": [80, 61] },
+    { "name": "Ninh Phong Trí", "npc": "ninh_phong_tri", "at": [86, 61] },
+    { "name": "Sứ giả Lam Điện Bá Vương Long Tông", "npc": "su_gia_lam_dien", "at": [92, 61] },
+    { "name": "Chủ giáo Vũ Hồn Điện", "npc": "chu_giao_vu_hon_dien", "at": [98, 61] }
   ]
 }

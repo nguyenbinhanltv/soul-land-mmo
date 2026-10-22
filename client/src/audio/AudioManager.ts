@@ -2,6 +2,7 @@ import { AUDIO_STORAGE_KEY, DEFAULT_AUDIO_SETTINGS, loadAudioSettings, saveAudio
 import { spatialMix, type AudioPoint } from "./spatial.ts";
 import { SFX_PARAMS, type SfxId } from "./sfxData.ts";
 import { createZzFxBuffer } from "./zzfx.ts";
+import { musicPlayerFor, type MusicPlayer } from "./music.ts";
 
 interface SoundManagerHost {
   context?: AudioContext;
@@ -41,7 +42,7 @@ const eventSfx: Readonly<Record<string, SfxId>> = {
   slash: "combat_attack", trail: "combat_attack", arc: "combat_attack", claw: "combat_attack", burst: "combat_hit", wave: "skill_neutral",
   soulring: "skill_neutral", ult: "skill_neutral", avatar: "skill_neutral", bone: "skill_neutral", combo: "combat_crit", pull: "combat_status",
   buff: "combat_shield", fly: "skill_wind", zone: "skill_neutral", bolt: "skill_lightning", zap: "skill_lightning", rage: "boss_warn",
-  dispel: "combat_status", roar: "boss_warn", tienco: "skill_neutral", absorbed: "ring_absorb_success",
+  dispel: "combat_status", roar: "boss_warn", tienco: "skill_neutral", absorbed: "ring_absorb_success", egg: "combat_hit",
 };
 
 const skillSfxByHe: Readonly<Record<string, SfxId>> = {
@@ -58,12 +59,15 @@ export class AudioManager {
   private readonly active = new Set<AudioBufferSourceNode>();
   private readonly bufferCache = new Map<SfxId, AudioBuffer>();
   private readonly lastPlayedAt = new Map<SfxId, number>();
+  /** Nhạc nền / khúc ngắn (music.ts): sống theo AudioContext, không theo scene; null khi không có WebAudio (bot, headless). */
+  readonly music: MusicPlayer | null;
 
   constructor(scene: { sound: unknown }, listener: () => AudioPoint | null, sourceResolver: AudioSourceResolver = () => null) {
     this.host = scene.sound as SoundManagerHost;
     this.context = this.host.context ?? null;
     this.sfxBus = this.context ? this.context.createGain() : null;
     if (this.context && this.sfxBus) this.sfxBus.connect(this.context.destination);
+    this.music = musicPlayerFor(this.context);
     this.listener = listener;
     this.sourceResolver = sourceResolver;
     this.settings = loadAudioSettings(storage());
@@ -152,6 +156,8 @@ export class AudioManager {
     this.host.setMute(this.settings.muted);
     this.host.setVolume(this.settings.muted ? 0 : this.settings.master * this.settings.music);
     if (this.sfxBus) this.sfxBus.gain.value = this.settings.muted ? 0 : this.settings.master * this.settings.sfx;
+    // Bus nhạc thật nằm ở MusicPlayer (nối thẳng vào loa, không qua Phaser); volume Phaser ở trên giữ cho tiếng Phaser nếu có.
+    this.music?.setVolume(this.settings.muted ? 0 : this.settings.master * this.settings.music);
   }
 }
 

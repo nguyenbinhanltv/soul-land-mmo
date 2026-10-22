@@ -1,5 +1,7 @@
 # Rừng Săn Hồn Online
 
+> **Người mới vào chơi:** đọc [Hướng dẫn chơi](docs/huong-dan-choi.md) (điều khiển, đội hình, hồn hoàn, bản đồ, boss, đấu trường).
+
 MMO săn hồn thế giới mở chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
 săn hồn thú lấy hồn hoàn, hồn cốt, hồn hạch, đánh boss cùng bạn bè và đấu xếp hạng ở Đại Đấu Hồn Trường.
 Đồ họa pixel art **isometric** kiểu Ultima Online (ô thoi 2:1, nhân vật 8 hướng), giao diện thủy mặc.
@@ -54,6 +56,7 @@ Gói miễn phí của Supabase tạm dừng project sau khoảng 1 tuần khôn
 npm run check                         # typecheck server + client, kiểm tra sprite (bắt buộc trước khi commit)
 GAME_TEST=1 npm run dev:server        # server bật hook kiểm thử (Git Bash / Linux / macOS)
 npm run bot --prefix client           # terminal khác: bot tự chơi và kiểm tra hầu hết luật chơi
+npm run bot:local -- --only bag       # hoặc: một lượt bot trọn gói (tự bật server, chạy một nhóm, tự dọn), xem dưới
 npm run test:predict --prefix client  # dự đoán chuyển động, không cần server
 npm run test:ratelimit --prefix server
 npm run test:accounts --prefix server
@@ -62,8 +65,24 @@ npm run test:accounts --prefix server
 - Bot cần server bật `GAME_TEST=1`; thiếu thì nhiều phần bị bỏ qua (có dòng ⚠). Server ở cổng khác thì đặt `SERVER_URL=http://localhost:<cổng>` cho bot.
 - Phần nhiều kênh chạy riêng: server `CHANNEL_MAX=2 GAME_TEST=1 npm run dev:server`, rồi chạy bot lần nữa.
 - Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam; `BOSS_CLOCK=HH:MM` chạy từ giờ đó, `BOSS_CLOCK=real` dùng giờ thật.
+- CI (`.github/workflows/check.yml`, chỉ để tham khảo) chạy `check-build` và `bot-ram` (các bài trên cùng bot RAM chia 3 nhóm song song theo `BOT_PART`, nhiều kênh) trên mọi PR vào `main`; xem `CONTRIBUTING.md` mục Merge.
 - Bật git pre-commit hook một lần sau khi clone: `npm run hooks` (typecheck các file đã stage).
-- Bot chạy trên server mới bật (state sạch). Đổi SQL / `server/src/db.ts` thì chạy thêm bot với PostgreSQL, server bật hai lần liên tiếp để chắc migration chạy lại an toàn (cách dựng PostgreSQL không cần Docker ở `CLAUDE.md`).
+- Bot chạy trên server mới bật (state sạch). Đổi SQL / `server/src/db.ts` thì chạy thêm bot với PostgreSQL, server bật hai lần liên tiếp để chắc migration chạy lại an toàn.
+
+**Bot ở máy: `npm run bot:local`** (`tools/bot-local.mjs`, cách agent chạy bot ở máy)
+
+```bash
+npm run bot:local -- --help                 # danh sách nhóm và tham số
+npm run bot:local -- --only bag             # một nhóm BOT_ONLY, chế độ RAM
+npm run bot:local -- --part 2               # một nhóm BOT_PART như CI
+npm run bot:local -- --channels             # lượt nhiều kênh (CHANNEL_MAX=2)
+npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, server bật hai lần, xoá database khi xong
+```
+
+- Server build một lần bằng esbuild (`server/dist/bot-<hash>.mjs`, build lại khi nguồn đổi) rồi chạy `node` (không qua npm / tsx), trần heap 768 MB (`--heap`), cổng trống, `GAME_TEST=1`; không đọc `server/.env`. Biến thêm cho server: `--env BOSS_CLOCK=20:00`.
+- Tối đa 2 lượt cùng lúc trên cả máy (`BOT_LOCAL_MAX`), lượt thừa chờ. Chỉ tắt tiến trình con của chính nó; bị tắt cứng thì server / bot tự thoát, lượt sau gỡ khoá và database còn sót. Cuối lượt in số ✓ / ✗ / ⚠, thời gian, RAM đỉnh; log ở `ci-logs/local-*`.
+- `--pg` dùng **một PostgreSQL chung cho cả máy**: binary `embedded-postgres` trong `node_modules` (devDependency ở thư mục gốc, không cần cài thêm hay quyền admin), cổng `BOT_PG_PORT` (mặc định 5433), dữ liệu `BOT_PG_DIR` (mặc định `D:/soul-pg-shared` nếu có ổ D, không thì thư mục tạm). Lần đầu tự `initdb` (UTF8), sau đó dùng lại; instance chạy tiếp sau khi lượt bot xong. Có PostgreSQL cài sẵn thì trỏ vào bằng `BOT_PG_URL=postgres://user:pass@localhost:5432/postgres`.
+- **Tắt PostgreSQL chung:** `npm run bot:local -- --pg-stop` (từ chối khi còn lượt bot đang chạy; `--force` để tắt luôn). Xem trạng thái: `--pg-status`. Xoá hẳn: tắt rồi xoá thư mục `BOT_PG_DIR`.
 
 ## Cấu trúc thư mục
 
@@ -113,8 +132,8 @@ npm run test:accounts --prefix server
 
 Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
 Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
-chỉ lớp CC0 / CC-BY / OGA-BY, chỉ cho NPC phụ và dân thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
-Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
+chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
+Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled
 
@@ -140,7 +159,9 @@ Muốn để client ở chỗ khác (Vercel, Netlify…): build client với `VI
 
 Repo có cấu hình chung trong `.claude/settings.json`: plugin từ marketplace `claude-plugins-official` (`typescript-lsp`, `context7`,
 `security-guidance`, `feature-dev`, `pr-review-toolkit`, `code-simplifier`), hook tự typecheck sau mỗi lần AI sửa file (`node tools/check.mjs --hook`)
-và skill dự án trong `.claude/skills/` (`roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`, `asset-gen`).
+và skill dự án trong `.claude/skills/` (`roadmap-step`, `server-feature`, `client-ui`, `db-migration`, `balance-data`, `asset-gen`;
+soát chất lượng: `balance-review`, `anti-cheat-audit`, `soak-perf`, `bot-flakiness`, `playtest-triage`, phỏng theo
+[Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios), MIT).
 AI đọc `CLAUDE.md` và `GAME_DESIGN.md`; giao từng việc nhỏ theo mục Lộ trình.
 Nhiều người / agent cùng làm: nhận việc qua issue GitHub theo `CONTRIBUTING.md` (agent khác Claude đọc `AGENTS.md`).
 
