@@ -1106,6 +1106,18 @@
       "iso": true
     },
     {
+      "key": "thu_loi_van_hau",
+      "iso": true
+    },
+    {
+      "key": "thu_phong_lang",
+      "iso": true
+    },
+    {
+      "key": "thu_thiet_giap_xuyen_son_giap",
+      "iso": true
+    },
+    {
       "key": "ui_an_trien_lon",
       "iso": true
     },
