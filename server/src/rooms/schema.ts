@@ -105,8 +105,8 @@ export class DropState extends Schema {
 
 /**
  * Vùng lưu lại trên mặt đất (#161, mục 5.3: vũng độc, sương độc) do chiêu hồn thú có `ground` để lại. Hình như vùng báo trước (`Tele`):
- * `shape` là chỉ số trong TELE_SHAPES, `kind` chỉ số trong GROUND_KINDS (shared/data.ts). `ttl` giây còn lại, `secs` tổng thời gian
- * (client mờ dần lúc sắp hết). Luật (nhịp gây trạng thái, hồn thú gây ra) chỉ server biết (`ground.ts`).
+ * `shape` là chỉ số trong TELE_SHAPES, `kind` chỉ số trong GROUND_KINDS (shared/data.ts). `ttl` giây còn lại làm tròn lên giây nguyên
+ * (một bản vá mỗi giây; client tự đếm giữa hai lần đổi để mờ dần lúc sắp hết). Luật (nhịp gây trạng thái, hồn thú gây ra) chỉ server biết (`ground.ts`).
  */
 export class GroundState extends Schema {
   @type("uint8") kind: number = 0;
@@ -117,8 +117,7 @@ export class GroundState extends Schema {
   @type("uint16") r: number = 0;
   @type("uint16") w: number = 0;
   @type("uint16") arc: number = 0;
-  @type("float32") ttl: number = 0;
-  @type("float32") secs: number = 0;
+  @type("uint16") ttl: number = 0;
 }
 
 export class MapState extends Schema {

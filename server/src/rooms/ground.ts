@@ -5,6 +5,8 @@ import { GROUND_KINDS, GROUND_MAX, GROUND_TICK, TELE_SHAPES, teleHits, type Grou
 import type { MapRoom } from "./MapRoom.ts";
 import { GroundState } from "./schema.ts";
 
+/** Lề sai số khi đếm thời gian theo dt (giây). */
+const EPS = 1e-6;
 /** Một vùng đang có: hình (vùng báo trước đã khóa), luật, hồn thú gây ra, sát thương đòn thường của nó (Trúng độc tính theo số này). */
 interface Ground { tele: Tele; def: GroundDef; src: string; base: number; t: number; next: number }
 
@@ -25,7 +27,7 @@ export class Grounds {
       const id = `g${++this.seq}`, g = new GroundState();
       g.kind = Math.max(0, GROUND_KINDS.findIndex((k) => k.id === def.kind)); g.shape = TELE_SHAPES.indexOf(tele.shape);
       g.x = tele.x; g.y = tele.y; g.ang = tele.ang; g.r = Math.round(tele.r); g.w = Math.round(tele.w); g.arc = Math.round(tele.arc);
-      g.ttl = g.secs = def.secs;
+      g.ttl = Math.ceil(def.secs);
       grounds.set(id, g);
       this.list.set(id, { tele, def, src, base, t: def.secs, next: 0 });
     }
@@ -34,8 +36,10 @@ export class Grounds {
   /**
    * Mỗi nhịp: vùng hết giờ hoặc hồn thú gây ra không còn (bị hạ, rút đi, bị xóa) thì mất; tới nhịp thì gây trạng thái cho hồn sư đứng
    * trong vùng (ứng viên lấy từ lưới hồn sư của interest.ts). Người đã gục, đang đi cổng, trong vùng an toàn: applyPStatus không gây;
-   * người đang miễn sát thương (Vô Địch Thần Quang) cũng không dính, như khi chiêu báo trước trúng (hurtPlayer trả false).
-   * `ttl` đồng bộ theo bậc 0,25 giây (client chỉ dùng để mờ dần), không ghi mỗi nhịp.
+   * người đang miễn sát thương (Vô Địch Thần Quang) cũng không dính, như khi chiêu báo trước trúng (hurtPlayer trả false). Khung
+   * bất tử ngắn sau mỗi đòn (`d.inv`) không chặn, như sát thương theo thời gian của Trúng độc.
+   * `ttl` đồng bộ theo giây nguyên (một bản vá mỗi giây; client tự đếm giữa hai lần đổi để mờ dần). Hết giờ xét với lề EPS để số nhịp
+   * gây trạng thái luôn là secs / every (không thêm một nhịp do sai số cộng dồn dt).
    */
   tick(dt: number) {
     if (!this.list.size) return;
@@ -43,8 +47,8 @@ export class Grounds {
     for (const [id, z] of this.list) {
       const g = grounds.get(id), b = beasts.get(z.src);
       z.t -= dt;
-      if (!g || z.t <= 0 || !b || b.hp <= 0) { this.list.delete(id); grounds.delete(id); continue; }
-      const ttl = Math.ceil(z.t * 4) / 4; if (g.ttl !== ttl) g.ttl = ttl;
+      if (!g || z.t <= EPS || !b || b.hp <= 0) { this.list.delete(id); grounds.delete(id); continue; }
+      const ttl = Math.ceil(z.t - EPS); if (g.ttl !== ttl) g.ttl = ttl;
       if ((z.next -= dt) > 0) continue;
       z.next += z.def.every ?? GROUND_TICK;
       // Vệt / nón tính từ gốc: tầm với là chiều dài cộng bề rộng (Grid.near đã cộng lề).
@@ -58,11 +62,11 @@ export class Grounds {
 
   /** Hook kiểm thử `ground {ttl}`: mọi vùng còn đúng `s` giây. */
   setTtl(s: number) {
-    for (const [id, z] of this.list) { z.t = s; const g = this.room.state.grounds.get(id); if (g) { g.secs = Math.max(g.secs, s); g.ttl = s; } }
+    for (const [id, z] of this.list) { z.t = s; const g = this.room.state.grounds.get(id); if (g) g.ttl = Math.ceil(s); }
   }
 
-  /** Các vùng đang có (hook kiểm thử `ground`). */
+  /** Các vùng đang có (hook kiểm thử `ground`); vùng có hồn thú gây ra vừa mất (xóa ở nhịp sau) không tính. */
   info() {
-    return [...this.list].map(([id, z]) => ({ id, kind: z.def.kind, src: z.src, x: z.tele.x, y: z.tele.y, r: z.tele.r, shape: z.tele.shape, ttl: z.t }));
+    return [...this.list].filter(([, z]) => this.room.state.beasts.get(z.src)?.hp).map(([id, z]) => ({ id, kind: z.def.kind, src: z.src, x: z.tele.x, y: z.tele.y, r: z.tele.r, shape: z.tele.shape, ttl: z.t }));
   }
 }

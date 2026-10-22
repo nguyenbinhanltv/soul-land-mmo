@@ -143,6 +143,8 @@ export class GameScene extends Phaser.Scene {
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
   bossList: { id: string; name: string; pct: number }[] | null = null;
   teleG!: Phaser.GameObjects.Graphics;
+  /** Đồng hồ phía client của vùng lưu lại (#161, drawGrounds): `ttl` lần đổi gần nhất, lúc đổi, lúc thấy lần đầu (ms của scene). */
+  groundClock = new Map<string, { v: number; at: number; seen: number }>();
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
   /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
@@ -1188,10 +1190,17 @@ export class GameScene extends Phaser.Scene {
    * nước sẫm, viền sáng, bọt nổi lên rồi vỡ; sương độc: các làn sương mờ trôi chậm quanh tâm. Hiện dần lúc mới có, mờ dần giây cuối.
    */
   drawGrounds(g: Phaser.GameObjects.Graphics, time: number) {
-    this.room.state.grounds?.forEach((z: any, id: string) => {
+    const grounds = this.room.state.grounds; if (!grounds) return;
+    // Server đồng bộ `ttl` theo giây nguyên: neo lại mỗi lần đổi (lúc đó còn đúng `ttl` giây) rồi tự đếm; `seen`: lúc thấy vùng lần đầu.
+    for (const id of this.groundClock.keys()) if (!grounds.has(id)) this.groundClock.delete(id);
+    grounds.forEach((z: any, id: string) => {
+      let ck = this.groundClock.get(id);
+      if (!ck) this.groundClock.set(id, ck = { v: z.ttl, at: time, seen: time });
+      else if (ck.v !== z.ttl) { ck.v = z.ttl; ck.at = time; }
+      const left = ck.v - (time - ck.at) / 1000;
       const kind = GROUND_KINDS[z.kind] ?? GROUND_KINDS[0], c = hex(kind.col), seed = parseInt(id.slice(1), 10) || 0;
       const t: Tele = { shape: TELE_SHAPES[z.shape] ?? "circle", x: z.x, y: z.y, ang: z.ang, r: z.r, w: z.w, arc: z.arc };
-      const fade = Math.max(0, Math.min(1, z.ttl, (z.secs - z.ttl) / 0.3 + 0.2)), pulse = 0.5 + 0.5 * Math.sin(time / 420 + seed);
+      const fade = Math.max(0, Math.min(1, left, (time - ck.seen) / 300)), pulse = 0.5 + 0.5 * Math.sin(time / 420 + seed);
       const circle = t.shape === "circle";
       if (kind.id === "mist") {
         // Sương: nền mờ cả vùng và 4 làn sương lệch tâm xoay chậm (vòng tròn); hình khác chỉ tô nền nhạt hơn.

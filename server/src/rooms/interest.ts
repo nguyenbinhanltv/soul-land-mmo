@@ -138,10 +138,10 @@ export class Interest {
     for (const id of s.g) {
       const g = this.state.grounds.get(id);
       if (!g) s.g.delete(id);
-      else if (!s.all && Math.sqrt(d2(g)) - g.r > out) { v.remove(g); s.g.delete(id); }
+      else if (!s.all && d2(g) > (out + g.r) ** 2) { v.remove(g); s.g.delete(id); }
     }
     this.state.grounds.forEach((g, id) => {
-      if (!s.g.has(id) && (s.all || Math.sqrt(d2(g)) - g.r <= r)) { v.add(g); s.g.add(id); }
+      if (!s.g.has(id) && (s.all || d2(g) <= (r + g.r) ** 2)) { v.add(g); s.g.add(id); }
     });
   }
 

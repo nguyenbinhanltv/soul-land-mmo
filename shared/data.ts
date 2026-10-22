@@ -785,7 +785,7 @@ export interface BeastSkillDef {
  * Vùng lưu lại trên mặt đất (#161, mục 5.3; vũng độc, sương độc; #173, #174 dùng lại): chiêu có `ground` tung xong thì để lại vùng đúng
  * hình các vùng báo trước của lần tung đó, tồn tại `secs` giây. Mỗi `every` giây (mặc định GROUND_TICK; nhịp đầu ngay lúc tung) hồn sư
  * đứng trong vùng (teleHits) bị gây `status`; ra khỏi vùng thì thôi nhận. Không gây cho người đã gục, đang đi cổng, đứng trong vùng an
- * toàn. Vùng mất khi hết giờ hoặc khi hồn thú gây ra bị hạ / rời bản đồ. `kind`: kiểu vùng (GROUND_KINDS: tên, màu client vẽ; không
+ * toàn, đang miễn sát thương. Vùng mất khi hết giờ hoặc khi hồn thú gây ra bị hạ / rời bản đồ. `kind`: kiểu vùng (GROUND_KINDS: tên, màu client vẽ; không
  * dùng đỏ vì đỏ dành cho vùng báo trước).
  */
 export type GroundKind = "pool" | "mist";
