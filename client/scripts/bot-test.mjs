@@ -4798,7 +4798,8 @@ async function autoTest(){
   let info=await test(A,"auto");
   ok(m?.on&&far&&A.room.state.beasts.has(far)&&info?.target!==far,`bán kính ${AUTO_RADIUS_MIN/16} ô: không nhắm hồn thú cách điểm neo 180 pixel (mục tiêu ${info?.target})`);
   const act1=A.owned.active; await test(A,"energy",{v:TIEN_CO_MAX});
-  sp=await test(A,"spawn",{tier:0,dx:36,dy:0,years:15,hpx:20}); const near=sp?.bid;
+  // Hook spawn đặt theo chỗ người chơi (đã đi dạo trong vùng neo): tính lại để hồn thú cách ĐIỂM NEO 36 pixel, trong bán kính 80 pixel.
+  sp=await test(A,"spawn",{tier:0,dx:Math.round(home.x+36-me(A).x),dy:Math.round(home.y-me(A).y),years:15,hpx:20}); const near=sp?.bid;
   ok(near&&await waitFor(()=>(A.room.state.beasts.get(near)?.hp??0)<(A.room.state.beasts.get(near)?.maxHp??1),8000),"hồn thú trong bán kính: tự đi tới đánh");
   await sleep(1500);
   ok(A.owned.active===act1,"thứ tự ô đội rỗng: đầy năng lượng tiên cơ cũng không đổi tay");
@@ -4927,6 +4928,13 @@ async function offlineTest(){
   ok(same(sp,[{day:"2026-10-21",secs:H},{day:"2026-10-22",secs:12*H}]),`offlineSplit: vắng 13 giờ qua 00:00 thì chia hai ngày, mỗi ngày một quỹ (${JSON.stringify(sp)})`);
   sp=offlineSplit(noon,40*H,"2026-10-20",D);
   ok(tot(sp)===OFFLINE.maxSecs&&sp[0].day==="2026-10-21",`offlineSplit: vắng 40 giờ, ngày đầu đã hết quỹ, tối đa ${OFFLINE.maxSecs/H} giờ một lần (${JSON.stringify(sp)})`);
+  // Auto 2: hết quỹ miễn phí của ngày thì lấy tiếp quỹ giờ cộng thêm (Ủy Thác Lệnh), vẫn trong trần OFFLINE.maxSecs.
+  sp=offlineSplit(noon,3*H,"2026-10-22",D,2*H);
+  ok(same(sp,[{day:"2026-10-22",secs:2*H,bonus:true}]),`offlineSplit: hết giờ miễn phí, quỹ Ủy Thác Lệnh 2 giờ, vắng 3 giờ thì tính 2 giờ từ quỹ (${JSON.stringify(sp)})`);
+  sp=offlineSplit(noon,2*H,"2026-10-22",D-600,H);
+  ok(same(sp,[{day:"2026-10-22",secs:600},{day:"2026-10-22",secs:H,bonus:true}]),`offlineSplit: còn 10 phút miễn phí rồi 1 giờ từ quỹ (${JSON.stringify(sp)})`);
+  sp=offlineSplit(noon,40*H,"2026-10-20",0,24*H);
+  ok(tot(sp)===OFFLINE.maxSecs,`offlineSplit: có quỹ cộng thêm vẫn tối đa ${OFFLINE.maxSecs/H} giờ một lần (${tot(sp)/H} giờ)`);
   const f1=offlineFight({atk:200,crit:0.12,critMult:1.8,maxHp:2000,def:1},100,"phong_lang"), f2=offlineFight({atk:5,crit:0.12,critMult:1.8,maxHp:60,def:1},50000,"phong_lang");
   ok(f1.ok&&f1.secs>OFFLINE.seek&&!f2.ok&&f2.secs===OFFLINE.seek,`offlineFight: mạnh hạ được (${f1.secs.toFixed(1)} giây/con), yếu thì quá sức (${f2.secs} giây bỏ qua)`);
 
@@ -4989,6 +4997,13 @@ async function offlineTest(){
   await test(A,"auto",{used:D});
   m=await away(1800);
   ok(m&&m.secs===0&&m.kills===0&&m.stop==="hết giờ treo",`hết giờ treo hôm nay: không tính giây nào (${m?.stop})`);
+  // Auto 2: hết giờ miễn phí nhưng còn quỹ Ủy Thác Lệnh 30 phút, vắng 1 giờ: tính 30 phút từ quỹ, quỹ trừ đúng phần đã săn.
+  await test(A,"auto",{used:D,bonus:1800});
+  m=await away(H); await waitFor(()=>A.autoMsg&&Math.abs(A.autoMsg.bonus-(m?.bonus??-9))<=1,2000);
+  const info=await test(A,"auto");
+  ok(m&&(frozen?m.secs===1800:m.secs<=1800)&&m.kills>0&&Math.abs(m.bonusUsed-m.used)<=1&&Math.abs(info?.bonus-(1800-m.used))<=1&&info?.used>=D&&Math.abs(m.left-info.bonus)<=1,
+    `hết giờ miễn phí, quỹ Ủy Thác Lệnh 30 phút, vắng 1 giờ: tính ${m?.secs} giây, dùng ${m?.bonusUsed} giây từ quỹ, quỹ còn ${info?.bonus?.toFixed(0)} giây`);
+  await test(A,"auto",{bonus:0});
 
   // ---- Qua 00:00 (đồng hồ lịch đứng yên 12:00 của GAME_TEST): mỗi ngày một quỹ; không nhặt hồn hoàn / hồn cốt / hồn hạch ----
   if(frozen){

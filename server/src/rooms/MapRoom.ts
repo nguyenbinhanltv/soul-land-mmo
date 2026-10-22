@@ -1120,7 +1120,8 @@ export class MapRoom extends Room<MapState> {
   /**
    * Vào game: lấy và xóa lần ủy thác offline của tài khoản (store.takeOffline, nên một lần thoát chỉ nhận một lần), rồi tính thưởng
    * theo thời gian vắng mặt (đồng hồ server) bằng công thức, không đụng thế giới: giây được tính chia theo ngày giờ Việt Nam, mỗi ngày
-   * trong phần còn lại của quỹ AUTO_DAILY_SECS (chung với tự săn online), tối đa OFFLINE.maxSecs (offlineSplit). Mỗi con: niên hạn và
+   * trong phần còn lại của quỹ AUTO_DAILY_SECS (chung với tự săn online), hết thì dùng tiếp quỹ giờ cộng thêm của Ủy Thác Lệnh (Auto 2),
+   * tổng tối đa OFFLINE.maxSecs (offlineSplit). Mỗi con: niên hạn và
    * loài tung như hồn thú của vùng, thời gian hạ theo offlineFight (chỉ số võ hồn ra trận lúc vào); kinh nghiệm, Hồn Tệ, mảnh, tiên thảo,
    * hồn cốt / hồn hạch (theo bộ lọc tự săn `bone` / `core`), hồn hoàn (từ `ring` năm, tối đa OFFLINE.rings) như hạ tay. Túi đầy thì dừng
    * như tự săn; quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
@@ -1134,7 +1135,8 @@ export class MapRoom extends Room<MapState> {
     const zone = def?.kind === "hunt" ? loadMap(row.mapId).zones.find((z) => z.name === row.zone && z.count > 0) : undefined;
     if (away < OFFLINE.minSecs || !zone) return;
     const today = this.today(); if (today !== d.autoDay) { d.autoDay = today; d.autoUsed = 0; d.autoDirty = true; }
-    const parts = offlineSplit(bossNow() + this.dayShift * 86400000, away, row.day, row.used);
+    // Auto 2: hết quỹ miễn phí của ngày thì dùng tiếp quỹ giờ cộng thêm (Ủy Thác Lệnh) còn lại lúc nhận (đã trừ phần tự săn online tiêu).
+    const parts = offlineSplit(bossNow() + this.dayShift * 86400000, away, row.day, row.used, d.autoBonus);
     const secs = Math.floor(parts.reduce((a, x) => a + x.secs, 0));
     const pw: OfflinePower = { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def };
     const cfg = d.autoCfg, lv = p.level, got = new Map<string, number>(), rings: number[] = [];
@@ -1171,10 +1173,15 @@ export class MapRoom extends Room<MapState> {
       }
       if (cfg.ring >= 0 && years >= cfg.ring && rings.length < OFFLINE.rings) { if (this.addRing(d, years)) rings.push(years); else full = true; }
     }
-    // Quỹ hôm nay chỉ trừ phần đã săn rơi vào hôm nay (quỹ các ngày trước dùng trước: offlineSplit xếp từ cũ tới mới).
-    const last = parts.at(-1), before = parts.slice(0, -1).reduce((a, x) => a + x.secs, 0);
-    const charge = last?.day === today ? Math.max(0, Math.min(last.secs, t - before)) : 0;
+    // Trừ đúng phần đã săn theo thứ tự thời gian (offlineSplit xếp từ cũ tới mới): phần miễn phí của hôm nay vào quỹ hôm nay (quỹ các
+    // ngày trước không còn dùng), phần lấy từ quỹ cộng thêm (Auto 2) vào quỹ cộng thêm; dừng sớm thì trừ ít hơn.
+    let rest = t, charge = 0, bonusUsed = 0;
+    for (const x of parts) {
+      const n = Math.max(0, Math.min(x.secs, rest)); rest -= n;
+      if (x.bonus) bonusUsed += n; else if (x.day === today) charge += n;
+    }
     if (charge > 0) { d.autoUsed = Math.min(AUTO_DAILY_SECS, d.autoUsed + charge); d.autoDirty = true; }
+    if (bonusUsed > 0) { d.autoBonus = Math.max(0, d.autoBonus - bonusUsed); d.autoDirty = true; }
     if (coins) { d.honTe = Math.min(Number.MAX_SAFE_INTEGER, d.honTe + coins); d.bagDirty = true; }
     p.kills += kills;
     // Kinh nghiệm chia cho đội như rewardKill (so cấp lúc vào, một lần cho cả quãng); bình cảnh thì dừng như khi săn tay.
@@ -1189,7 +1196,8 @@ export class MapRoom extends Room<MapState> {
     const c = this.clients.getById(id); if (!c) return;
     this.sendBag(id); this.sendVohons(c); this.sendSquad(id, true); this.sendAuto(id);
     d.offMsg = { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
-      items, left: autoLeft(d.autoUsed), max: AUTO_DAILY_SECS, ...(stop ? { stop } : {}) };
+      items, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus), bonusUsed: Math.round(bonusUsed),
+      ...(stop ? { stop } : {}) };
     this.sendOffline(id);
     this.log(id, `Ủy thác ở ${zone.name} (${def.name}): vắng ${autoTimeText(away)}, tính ${autoTimeText(secs)}, hạ ${kills} hồn thú, ` +
       `${formatHonTe(coins)} Hồn Tệ${stop ? ` (dừng: ${stop})` : ""}.`, "#86e0b0");

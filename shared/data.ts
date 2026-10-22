@@ -3890,15 +3890,19 @@ export function offlineFight(pw: OfflinePower, years: number, species: string) {
 /**
  * Chia quãng vắng mặt `secs` giây kết thúc lúc `endMs` (đồng hồ lịch boss, bossNow) theo ngày giờ Việt Nam: mỗi ngày tính tối đa phần
  * quỹ AUTO_DAILY_SECS còn lại (ngày `usedDay` đã treo `used` giây, ngày khác chưa treo), cộng dồn từ ngày cũ tới ngày mới tới trần
- * OFFLINE.maxSecs. Trả các phần được tính [{ day, secs }] theo thứ tự thời gian.
+ * OFFLINE.maxSecs. Auto 2: phần thời gian trong ngày vượt quỹ miễn phí thì lấy tiếp từ quỹ giờ cộng thêm `bonus` (Ủy Thác Lệnh, không
+ * theo ngày) tới khi hết quỹ, vẫn trong trần OFFLINE.maxSecs. Trả các phần được tính [{ day, secs, bonus? }] theo thứ tự thời gian
+ * (`bonus`: phần lấy từ quỹ cộng thêm, trong một ngày luôn sau phần miễn phí).
  */
-export function offlineSplit(endMs: number, secs: number, usedDay: string, used: number) {
-  const out: { day: string; secs: number }[] = [];
-  let t = endMs - Math.max(0, secs) * 1000, total = 0;
+export function offlineSplit(endMs: number, secs: number, usedDay: string, used: number, bonus = 0) {
+  const out: { day: string; secs: number; bonus?: true }[] = [];
+  let t = endMs - Math.max(0, secs) * 1000, total = 0, extra = Math.max(0, bonus);
   while (t < endMs && total < OFFLINE.maxSecs) {
-    const day = vnDay(t), next = Math.min(endMs, vnAt(t, "00:00", 1));
-    const n = Math.min((next - t) / 1000, autoLeft(day === usedDay ? used : 0), OFFLINE.maxSecs - total);
+    const day = vnDay(t), next = Math.min(endMs, vnAt(t, "00:00", 1)), span = (next - t) / 1000;
+    const n = Math.min(span, autoLeft(day === usedDay ? used : 0), OFFLINE.maxSecs - total);
     if (n > 0) { out.push({ day, secs: n }); total += n; }
+    const b = Math.min(span - Math.max(0, n), extra, OFFLINE.maxSecs - total);
+    if (b > 0) { out.push({ day, secs: b, bonus: true }); total += b; extra -= b; }
     t = next;
   }
   return out;
