@@ -8,22 +8,30 @@ import { PLAYER_BOX, lairSpot, type Anchor } from "./worldBoss.ts";
 
 type Pt = { x: number; y: number };
 
+/** Số lần thử chọn cả một đợt nước ở chỗ mới (tideSpots) trước khi chấp nhận chỗ gần đợt trước. */
+const WAVE_TRIES = 8;
+
 /**
- * `n` chỗ (tâm vùng ngập bán kính `r`) trong hang, mỗi chỗ một dải cột theo bề ngang hang (rải đều), đi thẳng tới được từ chỗ sinh của
- * thú vương `at`, phần lớn vùng đứng được (8 hướng cách tâm LAIR_SPOT.open × bán kính), ngoài vùng an toàn, hai tâm cách nhau ít nhất
- * 1,5 × `r`; cố cách mọi tâm của đợt trước `prev` ít nhất `r` (nước chuyển chỗ), không được thì bỏ điều kiện này. Thiếu chỗ thì ít vùng hơn.
+ * `n` chỗ (tâm vùng ngập bán kính `r`) trong hang, mỗi chỗ một dải cột theo bề ngang hang (rải đều; không được thì cả bề ngang), đi thẳng
+ * tới được từ chỗ sinh của thú vương `at`, phần lớn vùng đứng được (8 hướng cách tâm LAIR_SPOT.open × bán kính), ngoài vùng an toàn, hai
+ * tâm cách nhau ít nhất 1,5 × `r`, và cách mọi tâm của đợt trước `prev` ít nhất `r` (nước chuyển chỗ). Thử cả đợt WAVE_TRIES lần; vẫn
+ * không đủ chỗ thì bỏ điều kiện cách đợt trước. Thiếu chỗ thì ít vùng hơn.
  */
 export function tideSpots(map: GameMap, at: Anchor, n: number, r: number, prev: Pt[], rnd: () => number): Pt[] {
-  const out: Pt[] = [], ring = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => [Math.cos((k * Math.PI) / 4) * r * LAIR_SPOT.open, Math.sin((k * Math.PI) / 4) * r * LAIR_SPOT.open]);
-  const ok = (x: number, y: number) => !map.inSafe(x, y) && out.every((s) => Math.hypot(x - s.x, y - s.y) >= 1.5 * r)
-    && ring.every(([dx, dy]) => !map.hits(x + dx, y + dy, PLAYER_BOX.hw, PLAYER_BOX.hh));
-  const moved = (x: number, y: number) => ok(x, y) && prev.every((s) => Math.hypot(x - s.x, y - s.y) >= r);
-  for (let k = 0; k < n; k++) {
-    const p = lairSpot(map, rnd, at, k, n, r, PLAYER_BOX, moved) ?? lairSpot(map, rnd, at, 0, 1, r, PLAYER_BOX, moved)
-      ?? lairSpot(map, rnd, at, 0, 1, r, PLAYER_BOX, ok);
-    if (p) out.push(p);
-  }
-  return out;
+  const ring = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => [Math.cos((k * Math.PI) / 4) * r * LAIR_SPOT.open, Math.sin((k * Math.PI) / 4) * r * LAIR_SPOT.open]);
+  const wave = (moved: boolean) => {
+    const out: Pt[] = [];
+    const ok = (x: number, y: number) => !map.inSafe(x, y) && out.every((s) => Math.hypot(x - s.x, y - s.y) >= 1.5 * r)
+      && (!moved || prev.every((s) => Math.hypot(x - s.x, y - s.y) >= r))
+      && ring.every(([dx, dy]) => !map.hits(x + dx, y + dy, PLAYER_BOX.hw, PLAYER_BOX.hh));
+    for (let k = 0; k < n; k++) {
+      const p = lairSpot(map, rnd, at, k, n, r, PLAYER_BOX, ok) ?? lairSpot(map, rnd, at, 0, 1, r, PLAYER_BOX, ok);
+      if (p) out.push(p);
+    }
+    return out;
+  };
+  for (let i = 0; i < WAVE_TRIES; i++) { const s = wave(true); if (s.length === n) return s; }
+  return wave(false);
 }
 
 const circle = (p: Pt, r: number): Tele => ({ shape: "circle", x: p.x, y: p.y, ang: 0, r, w: 0, arc: 0 });
