@@ -153,6 +153,18 @@ export function makeTextures(scene: Phaser.Scene) {
     R(-1, -11, 2, 1, "#ffffff"); R(-2, -10, 4, 2, "#ffffff"); R(-3, -8, 6, 3, "#e8e8e8"); R(-4, -5, 8, 2, "#d0d0d0");
     R(-3, -3, 6, 2, "#b8b8b8"); R(-2, -1, 4, 1, "#a0a0a0"); R(-1, -9, 1, 4, "#ffffff");
   });
+  // Bọc trứng nhện (#162, Vạn Chu Phệ): kén tơ trắng ngà quấn chéo, bóng nhện con xanh độc bên trong; cùng khung 48×32, gốc chân
+  // (24,28) như hồn thú để dùng chung BEAST_ORIGIN.
+  draw(scene, "spider_egg", 48, 32, 24, 28, (R) => {
+    R(-9, -1, 18, 2, "#1a2414"); // bóng đổ
+    const rows: [number, number][] = [[-16, 3], [-15, 5], [-14, 6], [-13, 7], [-12, 7], [-11, 8], [-10, 8], [-9, 8], [-8, 8], [-7, 8], [-6, 8], [-5, 7], [-4, 7], [-3, 6], [-2, 5]];
+    for (const [y, h] of rows) { R(-h, y, h * 2, 1, "#d6e2c4"); R(h - 3, y, 3, 1, "#a9bd96"); R(-h, y, 1, 1, "#eef6e4"); }
+    R(-4, -14, 3, 2, "#f8fdf2"); R(-6, -12, 2, 3, "#f8fdf2"); // ánh sáng mép trên trái
+    for (let k = 0; k < 6; k++) { R(-6 + k * 2, -13 + k * 2, 2, 1, "#ffffff"); R(5 - k * 2, -12 + k * 2, 2, 1, "#c7d6b4"); } // tơ quấn chéo
+    R(-3, -9, 3, 3, "#557d3c"); R(2, -7, 3, 3, "#4a6e34"); R(-1, -5, 2, 2, "#3e5c2c"); // bóng nhện con
+    R(-2, -8, 1, 1, "#7bff5a"); R(3, -6, 1, 1, "#7bff5a"); // mắt độc
+    R(-7, -3, 2, 1, "#eef6e4"); R(5, -3, 2, 1, "#eef6e4"); R(-8, -2, 1, 2, "#eef6e4"); R(7, -2, 1, 2, "#eef6e4"); // sợi tơ bám đất
+  });
   boneTextures(scene); // hồn cốt rơi dưới đất (bước 4.1): `bone_<vị trí>`, tô màu niên hạn bằng setTint
   coreTextures(scene); // hồn hạch rơi dưới đất (bước 5.1): `core_<bộ>`, màu bộ vẽ sẵn
 }

@@ -1,4 +1,4 @@
-import type { Looks, QuestProgress, QuestStatus, AutoSettings, AutoSummary } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus, AutoSettings, AutoSummary, SellSettings } from "../../shared/data.ts";
 import type { BagDelta } from "../../shared/bagSync.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
@@ -42,20 +42,27 @@ export interface OwnedVohons { active: number; team: number[]; list: { rowId: nu
  */
 export interface Squad { combat: boolean; list: { rowId: number; hp: number; maxHp: number; down: number; en: number }[]; }
 
-/** Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi). */
-export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; }
+/**
+ * Một ô túi đồ trong tin "bag": `code` là mã trong ITEMS, `vohon` = vohons.id nếu đang gắn vào võ hồn (không chiếm ô túi), `lock`:
+ * người chơi đã khoá (#216: không bán, bỏ, làm nguyên liệu).
+ */
+export interface BagItem { id: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; vohon: number | null; lock?: boolean; }
 /** Một món thương nhân còn giữ để mua lại (9.8): `key` gửi lại trong `buyback {key}`, `price` là giá mỗi món đã nhận lúc bán. */
 export interface BuybackItem { key: string; kind: string; code: string; qty: number; years: number | null; stars: number | null; enhance: number; stats: unknown; price: number; }
+/** Một món đã tự bán (#216, lưu DB, AUTO_SELL_BUYBACK món mới nhất trước): mua lại như BuybackItem; `at` = lúc bán (ms). */
+export interface SoldItem extends BuybackItem { at: number; }
 /**
  * Tin nhắn riêng "bag": túi đồ, số ô tối đa (từ 9.8 theo tài khoản, mở rộng ở thương nhân), Hồn Tệ (đồng), số giây còn lại của hồi
- * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước).
+ * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước). Từ #216 bộ lọc tự bán `sell` và đồ tự bán gần nhất `sold`.
  */
-export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; }
+export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
 /**
  * Tin riêng "bagd" (#215): túi đổi so với lần gửi trước (shared/bagSync.ts, áp bằng applyBagDelta lên tin "bag" đang có); số ô, Hồn
- * Tệ, hồi chiêu luôn có, danh sách mua lại chỉ khi đổi.
+ * Tệ, hồi chiêu luôn có, danh sách mua lại chỉ khi đổi; bộ lọc tự bán và đồ tự bán (#216) cũng chỉ khi đổi (đi cùng nhau).
  */
-export interface BagDeltaMsg extends BagDelta<BagItem> { slots: number; honTe: number; cd: number; buyback?: BuybackItem[]; }
+export interface BagDeltaMsg extends BagDelta<BagItem> { slots: number; honTe: number; cd: number; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
+/** Tin riêng "autosold" (#216): vừa tự bán `n` món (`slots` ô) được `coins` đồng. */
+export interface AutoSoldMsg { n: number; coins: number; slots: number; }
 /**
  * Tin nhắn riêng "quest" (6.2): tiến độ chuỗi tân thủ và trạng thái; `ev` = vừa nhận / vừa đủ mục tiêu / vừa trả (`done` = mã bước
  * vừa trả) / vừa xong cả chuỗi. Nội dung bài và phần thưởng đọc từ QUESTS.

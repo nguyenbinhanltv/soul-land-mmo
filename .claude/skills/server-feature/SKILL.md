@@ -48,4 +48,4 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 - Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên"): `onAuth` gọi `waitOldSession` **trước** mọi lần đọc DB nhân vật; `onLeave` gọi `freeze` trước khi nối lần ghi cuối, rồi `releaseAccount`. Tiến độ chạy theo thời gian (như hấp thụ) phải dừng khi `d.travelling`.
 
 ## Xong thì
-`npm run check`, bật server `GAME_TEST=1` rồi `npm run bot --prefix client` (skill `roadmap-step`).
+`npm run check`, rồi bot ở máy bằng `npm run bot:local -- --only <nhóm>` (thêm `--pg` khi đổi lưu trữ; skill `roadmap-step`).
