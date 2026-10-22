@@ -110,7 +110,7 @@ body.touch #talk kbd{display:none}
 #chatbox.open #log div{background:rgba(26,16,32,.9)} /* mở rộng thì đè lên bảng tổ đội: nền đậm để không lẫn chữ */
 #chattabs{display:flex;gap:2px;margin-top:3px}
 #chattabs button{flex:1;position:relative;font:inherit;font-size:12px;font-family:var(--f12);padding:3px 2px;background:rgba(26,16,32,.9);color:var(--ink-text);
-  border:0;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+  border:0;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis} /* 6 tab (#198): màn hẹp thì co, cắt chữ */
 #chattabs button:not(.on){color:color-mix(in srgb,var(--ink-text) 70%,transparent)}
 #chattabs button.on{border-bottom-color:var(--c,var(--son));color:var(--c,var(--ink-text));text-shadow:var(--stroke)}
 #chattabs button.new::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;background:var(--c,var(--son))}
