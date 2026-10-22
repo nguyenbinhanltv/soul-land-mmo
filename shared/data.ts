@@ -759,6 +759,7 @@ export const TELE_SHAPES: readonly TeleShape[] = ["line", "cone", "circle"];
  *   server tung (tham số `rnd` của teleZones).
  * - `mark`: đánh dấu một người tham gia ngẫu nhiên trong tầm (không nhất thiết là mục tiêu đang đuổi) rồi tung vào người đó (Huyết Cuồng).
  * - `summon.years`: tuổi hồn thú gọi ra (mặc định theo `years` của vùng).
+ * - `eggs` (#162): tung xong đẻ bọc trứng quanh thân (Vạn Chu Phệ, EggDef), phá kịp thì không nở.
  * Từ BĐ6b:
  * - `drain`: mỗi người trúng chiêu mà đang bị Trói (trước khi chiêu gây trạng thái mới) thì hồn thú hồi ngần ấy phần máu tối đa (Hút
  *   Sinh của Khô Đằng Thụ Vương: "hồi máu từ người đang bị trói").
@@ -779,7 +780,7 @@ export interface BeastSkillDef {
   warn: number; cd: number; dmg: number;
   status?: StatusApply[]; dash?: boolean; years?: number;
   count?: number; spread?: number; step?: number;
-  summon?: { species: string; n: number; years?: [number, number] }; pull?: number;
+  summon?: { species: string; n: number; years?: [number, number] }; pull?: number; eggs?: EggDef;
   scatter?: number; mark?: boolean;
   drain?: number;
   weak?: boolean;
@@ -787,6 +788,15 @@ export interface BeastSkillDef {
   safe?: { n: number; r: number };
   ground?: GroundDef;
 }
+/**
+ * Bọc trứng (#162, Vạn Chu Phệ của Tà hóa Thiên Độc Chu Hoàng, mục 5.4; số theo thiết kế gốc đã chốt): chiêu có `eggs` tung xong đẻ bọc
+ * trứng quanh thân cho tới khi có `n` bọc do hồn thú này đẻ còn nguyên, nhưng không quá mức để nhện con còn sống do nó gọi cộng số nhện
+ * sẽ nở từ các bọc vượt `n` × `per`. Bọc trứng là hồn thú đứng yên của loài `species` (không đi, không đánh, không tung chiêu, không bị
+ * đẩy / kéo), tuổi tung trong `years`, máu bằng `hp` lần máu hồn thú loài đó cùng số năm; đánh được bằng mọi đòn như hồn thú. Còn nguyên
+ * sau `secs` giây thì nở `per` con loài `species` cùng số năm tại chỗ (hồn thú do thú vương gọi ra như `summon`), lao vào mục tiêu của
+ * thú vương; bị phá trước đó thì không nở. Thú vương bị hạ / rút đi thì bọc trứng của nó tan, không nở.
+ */
+export interface EggDef { species: string; n: number; per: number; secs: number; hp: number; years: [number, number]; }
 /**
  * Vùng lưu lại trên mặt đất (#161, mục 5.3; vũng độc, sương độc; #173, #174 dùng lại): chiêu có `ground` tung xong thì để lại vùng đúng
  * hình các vùng báo trước của lần tung đó, tồn tại `secs` giây. Mỗi `every` giây (mặc định GROUND_TICK; nhịp đầu ngay lúc tung) hồn sư
@@ -1051,8 +1061,9 @@ export const BOSSES: BossDef[] = [
     bs("Ám Kim Liệt Địa", "line", 110, { w: 14, count: 3, spread: 50, dmg: 1.8 }),
     bs("Cuồng Bạo Vỗ", "circle", 56, { dmg: 2.6, status: [{ s: "stun", secs: 0.6 }] })] },
   // Tà hóa thú vương (BĐ5, bảng 5.3; mọi số đã chốt). Báo trước 1–2 giây (dài hơn hồn thú thường): vòng quanh thân ≤ 64 để chạy
-  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt; bọc trứng của Vạn Chu
-  // Phệ thay bằng gọi thẳng nhện con; "tơ phủ 1/3 hang luân phiên" thay bằng một dải tơ rộng báo trước 2 giây nhắm người chơi.
+  // kịp ra (58 pixel/giây × 1,2 giây ≈ 70). Bản tối thiểu: "3 nón liên tiếp, xoay dần" tung cùng lúc thành quạt; "tơ phủ 1/3 hang
+  // luân phiên" thay bằng một dải tơ rộng báo trước 2 giây nhắm người chơi. Vạn Chu Phệ đẻ bọc trứng (EggDef, #162): máu bọc bằng nửa
+  // nhện con cùng số năm để một người tập trung phá kịp cả 3 bọc trong thời gian nở.
   { id: "huyet_nguyet_lang_vuong", name: "Huyết Nguyệt Lang Vương", rank: 2, species: "phong_lang", aura: "#ff2a4a", hp: 6, skills: [
     bs("Huyết Nguyệt Hú", "circle", 60, { warn: 1.2, dmg: 1, cd: 14, summon: { species: "phong_lang", n: 4 } }),
     bs("Liệt Phong Trảo", "cone", 58, { arc: 60, count: 3, spread: 130, warn: 1, dmg: 1.4, cd: 8 })],
@@ -1062,8 +1073,9 @@ export const BOSSES: BossDef[] = [
     bs("Thiên La Võng", "circle", 64, { warn: 1.3, dmg: 0.9, cd: 12, status: [{ s: "root", secs: 2 }] }),
     bs("Độc Châm Vũ", "circle", 22, { at: "target", range: 150, count: 6, scatter: 70, warn: 1.2, dmg: 1, cd: 8,
       status: [{ s: "poison", n: 2, secs: 5 }] })],
-    phase2: { name: "Vạn Chu Phệ", desc: "gọi nhện con, giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
-      bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16, summon: { species: "nhan_dien_ma_chu_non", n: 4, years: [4000, 8000] } }),
+    phase2: { name: "Vạn Chu Phệ", desc: "đẻ bọc trứng (không phá kịp thì nở nhện con), giăng dải tơ rộng (báo trước 2 giây), tốc độ +25%", spd: 1.25, skills: [
+      bs("Vạn Chu Phệ", "circle", 40, { warn: 1, dmg: 0.6, cd: 16,
+        eggs: { species: "nhan_dien_ma_chu_non", n: 3, per: 2, secs: 8, hp: 0.5, years: [4000, 8000] } }),
       bs("Chu Ti Phong Tỏa", "line", 190, { w: 64, range: 180, warn: 2, dmg: 1.2, cd: 12, status: [{ s: "slow", secs: 3 }] })] } },
   // Lạc Nhật Sâm Lâm (BĐ6b, 5.000–30.000 năm; bảng 5.3, mọi số đã chốt). Bản tối thiểu: "giữ 2 giây" của Nuốt Chửng là Trói 2 giây
   // sau khi kéo; Mê hoặc trên hồn sư như loài thường (CHARM_P, #116); Song Sắc Mãng không đổi băng / hỏa theo 10 giây, mỗi chiêu

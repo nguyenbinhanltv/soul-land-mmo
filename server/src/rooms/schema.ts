@@ -80,6 +80,8 @@ export class BeastState extends Schema {
   @type("boolean") chg: boolean = false;
   @type("uint8") brk: number = 0;
   @type("boolean") dive: boolean = false;
+  // Từ #162: bọc trứng (Vạn Chu Phệ, EggDef): số phần mười giây còn lại trước khi nở; 0 = không phải bọc trứng (eggs.ts).
+  @type("uint8") egg: number = 0;
 }
 
 export class DropState extends Schema {
