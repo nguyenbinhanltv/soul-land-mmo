@@ -48,6 +48,7 @@ Mỗi 5–10 phút ghi một dòng: phút, dòng `[perf]` gần nhất (`tick`, 
 4. Tìm thấy rò: tái hiện bằng kịch bản Vào ra ngắn nhất có thể, sửa (skill `server-feature`), chạy lại cùng kịch bản để so trước / sau.
 
 ## 5. Tìm điểm nóng tick
+- Nhịp chậm (`max` > 50 ms, trường `slow` của dòng `[perf]`): đọc dòng `[perf-slow]` cùng lúc. CPU luồng chính nhỏ hơn nhiều so với `wall` là máy đo bị chiếm CPU (nhiễu, không phải server); `gc` lớn là GC; CPU gần bằng `wall` thì xem đoạn nào lớn nhất (người = tự săn / người chơi, thú, thế giới, cuối = sinh lại / bản đồ nhỏ / lưu định kỳ, view, vá). `gap` lớn mà nhịp nhanh là việc ngoài tick (tin nhắn, chuỗi lưu, phòng khác) chặn vòng lặp sự kiện. Ghi kèm CPU / RAM toàn máy lúc đo.
 - So `tick` với `patch`: `patch` cao là đồng bộ (trường mới trong `schema.ts`, lọc view `interest.ts`); `tick` cao là luật chơi.
 - Profile CPU qua `--inspect` (Chrome → Performance / Profiler) trong 30 giây có tải. Nghi trước: vòng lặp duyệt mọi hồn thú / hồn sư thay vì `beastsNear` / lưới không gian; hồn thú không ngủ (`awake` gần bằng `beasts` khi người chơi tụ một chỗ là bất thường); cấp phát mảng / object mới mỗi nhịp; `JSON.stringify` / `structuredClone` trong `tick`.
 
