@@ -526,6 +526,16 @@ export class AutoHunter {
     return this.room.grounds.hits(x, y);
   }
   /**
+   * Chỗ né được (#292): (x, y) và 8 điểm cách nó AUTO_BOSS.dodge.pad pixel đều ngoài nguy hiểm. move() dừng khi còn cách đích dưới 1 pixel;
+   * chỗ chỉ vừa lọt mép vòng an toàn thì hồn sư có lúc đứng lại ngay ngoài mép, vẫn trúng mà escape() giữ chỗ đó (chỗ né vẫn "an toàn").
+   */
+  dodgeOk(x: number, y: number) {
+    if (this.inDanger(x, y)) return false;
+    const r = AUTO_BOSS.dodge.pad;
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; if (this.inDanger(x + Math.cos(a) * r, y + Math.sin(a) * r)) return false; }
+    return true;
+  }
+  /**
    * Chỗ gần mình nhất thỏa `ok`, đứng được, ngoài vùng an toàn (vào là tự săn dừng), đi thẳng tới được: xét các điểm `extra` (tâm vòng
    * an toàn) rồi AUTO_BOSS.dodge.dirs hướng, mỗi `step` pixel tới `max` pixel. `straight` = false: cùng vùng liên thông của đồ thị dẫn
    * đường (đi theo A*), xa tới 2 lần `max`. Không có thì null.
@@ -549,12 +559,12 @@ export class AutoHunter {
    */
   escape(p: PlayerState, dt: number): Pt | null {
     if (!this.inDanger(p.x, p.y)) { this.dodge = null; return null; }
-    if (this.dodge && !this.inDanger(this.dodge.x, this.dodge.y)) return this.dodge;
+    if (this.dodge && this.dodgeOk(this.dodge.x, this.dodge.y)) return this.dodge;
     if ((this.dodgeT -= dt) > 0) return this.dodge;
     this.dodgeT = 1 / AUTO_HZ;
     const safe: Pt[] = [];
     for (const c of this.room.activeCasts()) for (const s of c.safe ?? []) safe.push(s);
-    this.dodge = this.spot(p, (x, y) => !this.inDanger(x, y), safe);
+    this.dodge = this.spot(p, (x, y) => this.dodgeOk(x, y), safe);
     if (this.dodge) this.dodges++;
     return this.dodge;
   }
