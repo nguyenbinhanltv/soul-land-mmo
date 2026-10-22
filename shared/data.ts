@@ -147,6 +147,7 @@ export const MAP_MOVED: Record<string, string> = { tinh_dau: "tinh_dau_ngoai_vi"
 export const BEAST_DENSITY: Record<string, number[]> = {
   thanh_hon_thon: [10.5, 10.0, 25.2], tinh_dau_ngoai_vi: [21.5, 12.1, 10.7, 10.4], tinh_dau_noi_dia: [18.5, 11.2, 11.7, 9.4], lac_nhat_sam_lam: [17.4, 10.5, 9.4, 9.8],
   cuc_bac_chi_dia: [8.3, 8.2, 8.8, 5.7], hai_than_dao: [16.9, 9.6, 10.4, 10.9],
+  loi_tinh_dau: [0], // vùng "Hồ trung tâm" chỉ có boss thế giới, không hồn thú thường
 };
 /** Bản đồ khởi đầu: tài khoản mới, và tài khoản cũ chưa lưu bản đồ (từ BĐ2), bắt đầu ở đây (mục 5.3). */
 export const DEFAULT_MAP = "thanh_hon_thon";

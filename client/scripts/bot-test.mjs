@@ -973,8 +973,14 @@ if((await test(A,"ping"))?.enabled){
   const grid=solidGrid(JSON.parse(readFileSync(mapUrl(st.mapId),"utf8"))); // file Tiled đang dùng (bản ×8 hoặc bản cũ khi MAP_V1)
   const walkSpd=PLAYER_SPEED*VOHON[p.vh].spd, near=(a,b)=>Math.abs(a-b)<0.05*b;
   const gait=async(msg,want)=>{ A.room.send("input",msg); return waitFor(()=>p.moving&&want(),1500); };
+  // Vừa ra khỏi làng là Bãi tập: hồn thú 100 năm hung hăng đánh trúng A ngay sau lúc nghỉ thì A vào giao chiến lại (đi bộ), bài đo nhầm
+  // tốc độ giao chiến (#297). Dọn hồn thú quanh A trước khi nghỉ; dòng ✗ in sinh lực A và hồn thú đang nhắm A ở gần.
+  await test(A,"clear");
   await test(A,"rest",{s:TEAM_COMBAT_SECS+1});
-  ok(await gait({x:1,y:0},()=>p.calm&&!p.walk&&near(p.spd,walkSpd*RUN_MULT)),`ngoài giao chiến: tự chạy ${p.spd.toFixed(1)} ≈ ${(walkSpd*RUN_MULT).toFixed(1)} px/giây (calm ${p.calm})`);
+  const runOk=await gait({x:1,y:0},()=>p.calm&&!p.walk&&near(p.spd,walkSpd*RUN_MULT));
+  const foes=()=>[...st.beasts.values()].filter(b=>b.aggro&&Math.hypot(b.x-p.x,b.y-p.y)<2*BEAST_AGGRO_R).map(b=>`${b.x.toFixed(0)},${b.y.toFixed(0)}`).join(" ")||"không";
+  ok(runOk,`ngoài giao chiến: tự chạy ${p.spd.toFixed(1)} ≈ ${(walkSpd*RUN_MULT).toFixed(1)} px/giây (calm ${p.calm})`
+    +(runOk?"":` [A ${p.x.toFixed(0)},${p.y.toFixed(0)}, sinh lực ${p.hp}/${p.maxHp}, hồn thú hung hăng gần: ${foes()}; log ${A.logs.slice(-2).join(" | ")}]`));
   ok(await gait({x:-1,y:0,w:1},()=>p.walk&&near(p.spd,walkSpd)),`giữ Shift (w): đi bộ ${p.spd.toFixed(1)} ≈ ${walkSpd.toFixed(1)} px/giây`);
   A.room.send("input",{x:0,y:0}); await test(A,"hurt",{pct:1});
   ok(await gait({x:1,y:0},()=>!p.calm&&!p.walk&&near(p.spd,walkSpd)),`vừa bị đánh (giao chiến): đi bộ ${p.spd.toFixed(1)} px/giây dù không giữ Shift`);
@@ -5239,7 +5245,11 @@ async function autoTest(){
   const act1=A.owned.active; await test(A,"energy",{v:TIEN_CO_MAX});
   // Hook spawn đặt theo chỗ người chơi (đã đi dạo trong vùng neo): tính lại để hồn thú cách ĐIỂM NEO 36 pixel, trong bán kính 80 pixel.
   sp=await test(A,"spawn",{tier:0,dx:Math.round(home.x+36-me(A).x),dy:Math.round(home.y-me(A).y),years:15,hpx:20}); const near=sp?.bid;
-  ok(near&&await waitFor(()=>(A.room.state.beasts.get(near)?.hp??0)<(A.room.state.beasts.get(near)?.maxHp??1),8000),"hồn thú trong bán kính: tự đi tới đánh");
+  const hitN=near&&await waitFor(()=>(A.room.state.beasts.get(near)?.hp??0)<(A.room.state.beasts.get(near)?.maxHp??1),8000);
+  // Chẩn đoán khi trượt: chỗ A / hồn thú, mục tiêu, đích, đường đi của tự săn, hồn thú đó nhắm ai / bị bỏ qua.
+  const whyN=hitN?"":await (async()=>{ const st=await test(A,"auto",{bid:near}), b=A.room.state.beasts.get(near);
+    return ` [A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} chết ${me(A).dead}; ${near} ${b?`${b.x.toFixed(0)},${b.y.toFixed(0)} ${b.hp}/${b.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`; })();
+  ok(hitN,`hồn thú trong bán kính: tự đi tới đánh${whyN}`);
   await sleep(1500);
   ok(A.owned.active===act1,"thứ tự ô đội rỗng: đầy năng lượng tiên cơ cũng không đổi tay");
   await autoOp(A,"off"); await test(A,"slay",{bid:near}); await test(A,"slay",{bid:far}); await test(A,"energy",{v:0});
@@ -5258,7 +5268,8 @@ async function autoTest(){
     if(!F) console.log("  ⚠ bỏ qua tự săn toàn bản đồ: không tìm được chỗ đứng xa điểm neo");
     else{
       await test(A,"clear");
-      sp=await test(A,"spawn",{tier:0,dx:0,dy:0,years:15,hpx:3}); const fb=sp?.bid;
+      // Loài cắm rễ (BEAST_ROOTED): không lang thang về phía điểm neo, nên lúc hạ A luôn ở xa điểm neo hơn khung A* (#325).
+      sp=await test(A,"spawn",{tier:0,dx:0,dy:0,years:15,hpx:3,species:BEAST_ROOTED.ids[0]}); const fb=sp?.bid;
       await test(A,"goto",home); await test(A,"clear");
       await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
       m=await autoOp(A,"on"); await sleep(2500);
@@ -5269,7 +5280,9 @@ async function autoTest(){
       // Đường 30 ô đi qua bãi hồn thú 600 năm trở lên hung hăng (tự săn đánh trả trước): võ hồn cấp 60 để không mất cả phút đánh trả.
       await test(A,"set",{rowId:act,level:60});
       const k1=me(A).kills, l1=A.logs.length;
-      await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[]}});
+      // Tắt đánh tinh anh / thú vương / boss thế giới (#218: có trên bản đồ thì tới đánh trước mọi việc khác): không thì A đi lần lượt tới
+      // từng tinh anh khắp Ngoại vi (hơn 200 ô, vòng dọn bên dưới xóa con đó khi tới gần) rồi mới về hồn thú thử, sát 90 giây chờ (#325).
+      await autoOp(A,"set",{cfg:{...AUTO_DEFAULTS,years:[10,200],slots:[],elite:false,king:false,world:false}});
       m=await autoOp(A,"on");
       ok(m?.on&&A.logs.slice(l1).some(t=>/khắp bản đồ/.test(t)),`"Toàn bản đồ" (mặc định): bật, báo săn khắp bản đồ`);
       await waitFor(()=>me(A).auto,2000); // tin riêng `auto` có thể về trước bản vá state mang cờ auto
@@ -5282,6 +5295,56 @@ async function autoTest(){
       ok(me(A).auto&&!A.logs.slice(l1).some(t=>/Đã dừng/.test(t)),`vẫn tự săn sau khi đi xa (đường dài không vào vùng an toàn)${me(A).auto?"":`: ${A.autoMsg?.why}`}`);
       await autoOp(A,"off"); if(!gone) await test(A,"slay",{bid:fb});
       await test(A,"set",{rowId:act,level:21}); await autoOp(A,"set",{cfg:NEAR});
+    }
+  }
+
+  // ---- #324: hồn thú sau lưng, cùng ô với mình, sát ô chặn: đường thẳng vướng mà A* trả đường rỗng (không có ô nào để đi). Tự săn phải
+  // quay lại đánh, không coi là không tới được rồi bỏ qua nó AUTO_MOVE.skip giây (quanh điểm neo có nhiều ô chặn lẻ; bài nợ nhịp bên dưới
+  // từng trượt vì vậy: hồn thú thử bị bỏ qua đúng 10 giây chờ). Chỗ thử chọn theo lưới ô chặn của file Tiled đang dùng.
+  {
+    const g=solidGrid(JSON.parse(readFileSync(mapUrl(NV),"utf8"))), s=TIERS[0].size, F=[[1,0],[-1,0],[0,1],[0,-1]];
+    const reach=(P,f,Q)=>Math.hypot(Q.x-(P.x+f[0]*10),Q.y-s/2-(P.y-6+f[1]*10))<18+s/2-2; // hình đòn thường (AutoHunter.inReach)
+    /** Độ dời nguyên tới chỗ hồn thú sau lưng P (mặt hướng f): cùng ô, ngoài tầm đánh, đường thẳng vướng, A* rỗng; không có thì null. */
+    const behind=(P,f)=>{
+      const tx=Math.floor(P.x/16), ty=Math.floor(P.y/16);
+      for(let dy=-15;dy<=15;dy++) for(let dx=-15;dx<=15;dx++){
+        const Q={x:P.x+dx,y:P.y+dy};
+        if(Math.floor(Q.x/16)!==tx||Math.floor(Q.y/16)!==ty||Math.hypot(dx,dy)<=8||dx*f[0]+dy*f[1]>0) continue;
+        if(hits(g,Q.x,Q.y,3,3)||reach(P,f,Q)||clearLine(g,P,Q)||findPath(g,P,Q,AUTO_MOVE.path).length) continue;
+        return {dx,dy};
+      }
+      return null;
+    };
+    // Chỗ đứng S gần điểm neo: bước một chút theo f (quay mặt) từ S thì chỗ mới vẫn có hồn thú sau lưng như trên.
+    let spot=null;
+    for(let r=0;r<=4&&!spot;r++) for(let ty=Math.floor(home.y/16)-r;ty<=Math.floor(home.y/16)+r&&!spot;ty++) for(let tx=Math.floor(home.x/16)-r;tx<=Math.floor(home.x/16)+r&&!spot;tx++){
+      if(Math.max(Math.abs(tx-Math.floor(home.x/16)),Math.abs(ty-Math.floor(home.y/16)))!==r) continue;
+      for(let oy=2;oy<=14&&!spot;oy+=2) for(let ox=2;ox<=14&&!spot;ox+=2) for(const f of F){
+        const S={x:tx*16+ox,y:ty*16+oy};
+        if(hits(g,S.x,S.y,PLAYER_HW,PLAYER_HH)||inCamp(S.x,S.y)) continue;
+        let all=true; for(let k=1;k<=8&&all;k++){ const P={x:S.x+f[0]*k,y:S.y+f[1]*k}; all=!hits(g,P.x,P.y,PLAYER_HW,PLAYER_HH)&&!!behind(P,f); }
+        if(!all) continue;
+        await test(A,"goto",S); if(Math.hypot(me(A).x-S.x,me(A).y-S.y)>=1) continue;
+        await step(A,f[0],f[1]);
+        const P={x:me(A).x,y:me(A).y}, q=behind(P,f); if(q){ spot={P,f,q}; break; }
+      }
+    }
+    if(!spot) console.log("  ⚠ bỏ qua #324 (hồn thú sau lưng cùng ô): không tìm được chỗ thử quanh điểm neo");
+    else{
+      // Bãi quanh điểm neo có hồn thú hoang hung hăng hồi sinh liên tục: một con đánh A thì tự săn đánh trả trước và kéo A đi (#360). Dọn cả
+      // bản đồ (giữ tinh anh) trước khi sinh, rồi dọn quanh A mỗi 250 ms trong lúc chờ (giữ hồn thú thử), như bài nợ nhịp.
+      await test(A,"clear",{all:true,keep:true});
+      // Loài cắm rễ (BEAST_ROOTED): không lang thang, không bị đẩy lùi, chỗ đứng giữ đúng như đã chọn. Không hồn kỹ / tiên cơ (trúng từ xa).
+      const bid=(await test(A,"spawn",{tier:0,dx:spot.q.dx,dy:spot.q.dy,years:15,species:BEAST_ROOTED.ids[0],hpx:50}))?.bid, bb=()=>A.room.state.beasts.get(bid);
+      await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[],skills:[],tienCo:false}});
+      m=await autoOp(A,"on");
+      let hit=false;
+      for(const t0=Date.now();m?.on&&bid&&!hit&&Date.now()-t0<4000;){ hit=await waitFor(()=>bb()&&bb().hp<bb().maxHp,250); if(!hit) await test(A,"clear",{but:[bid]}); }
+      const st=await test(A,"auto",{bid});
+      ok(hit&&st?.beast?.skip==null,`#324: hồn thú sau lưng cùng ô, sát ô chặn (đứng ${spot.P.x.toFixed(1)},${spot.P.y.toFixed(1)} mặt ${spot.f}, hồn thú +${spot.q.dx},+${spot.q.dy}): quay lại đánh, không bỏ qua`
+        +(hit&&st?.beast?.skip==null?"":` [A ${me(A).x.toFixed(1)},${me(A).y.toFixed(1)}; hồn thú thử ${bid}, mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`));
+      await autoOp(A,"off"); if(bid) await test(A,"slay",{bid});
+      await autoOp(A,"set",{cfg:NEAR});
     }
   }
 
@@ -5872,7 +5935,9 @@ async function bigMapTest(){
   const gateKey=o=>[o.type,o.name,pr(o,"to")??"",pr(o,"arrive")??"",pr(o,"level")??"",pr(o,"boat")??""].join("|");
   for(const NV of BIG){
     const raw=fileOf(NV), old=oldOf(NV), objs=objsOf(raw), oldObjs=objsOf(old), k=raw.width*raw.height/(old.width*old.height), nm=MAPS[NV].name;
-    ok(k>=7.5&&k<=8.5,`${nm}: diện tích ×${k.toFixed(2)}: ${raw.width}×${raw.height} ô (bản cũ ${old.width}×${old.height})`);
+    // Lõi Tinh Đấu, Đại Đấu Hồn Trường giữ cỡ hợp lối chơi (chỉ làm đẹp, 11.5); bản đồ săn và thành trấn ×8.
+    if(["boss","arena"].includes(MAPS[NV].kind)) ok(raw.width===old.width&&raw.height===old.height,`${nm}: giữ cỡ ${raw.width}×${raw.height} ô như bản cũ`);
+    else ok(k>=7.5&&k<=8.5,`${nm}: diện tích ×${k.toFixed(2)}: ${raw.width}×${raw.height} ô (bản cũ ${old.width}×${old.height})`);
     const zs=objs.filter(o=>o.type==="zone"), zn=zonesByName(objs), oldZn=zonesByName(oldObjs), [ylo,yhi]=MAPS[NV].years??[0,0]; // thành trấn: không vùng hồn thú
     const total=sum(zs), oldTotal=sum(oldObjs.filter(o=>o.type==="zone")), tiersOf=m=>new Set([...m.values()].map(z=>z.years)).size;
     ok(zs.every(z=>{ const y=parseLevelRange(pr(z,"years")); return y&&y[0]>=ylo&&y[1]<=yhi; })&&[...oldZn.values()].every(o=>zn.get(o.name)?.years===o.years)
@@ -5884,9 +5949,12 @@ async function bigMapTest(){
       &&(!MAPS[NV].king||pr(lair,"boss")===MAPS[NV].king&&zs.some(z=>inR(z,lair.x+lair.width/2,lair.y+lair.height/2))),
       `${nm}: ${es.length} tinh anh như bản cũ${lair?` và hang ${lair.name}`:""} nằm trong vùng`);
     const wp=objs.filter(o=>o.type==="waypoint").map(o=>o.name), oldWp=oldObjs.filter(o=>o.type==="waypoint").map(o=>o.name);
-    ok(oldWp.every(n=>wp.includes(n))&&wp.length>=1&&wp.length<=3,`${nm}: truyền tống trận ${wp.join(", ")} (giữ mã cũ ${oldWp.join(", ")}, mã lưu DB không đổi)`);
+    ok(oldWp.every(n=>wp.includes(n))&&(MAPS[NV].kind==="arena"?!wp.length:wp.length>=1&&wp.length<=3),`${nm}: truyền tống trận ${wp.join(", ")} (giữ mã cũ ${oldWp.join(", ")}, mã lưu DB không đổi)`);
     const gates=objs.filter(o=>o.type==="portal"||o.type==="arrive").map(gateKey).sort(), oldGates=oldObjs.filter(o=>o.type==="portal"||o.type==="arrive").map(gateKey).sort();
     ok(same(gates,oldGates),`${nm}: giữ đúng cổng và điểm đến của bản cũ (${objs.filter(o=>o.type==="portal").map(o=>o.name).join(", ")})`);
+    // Điểm giữa hồ (`lake`, #118): Du Thủy của boss thế giới lặn ra đây; bản ×8 phải giữ, nằm trên nền nước.
+    { const ol=oldObjs.find(o=>o.type==="lake"), lk=objs.find(o=>o.type==="lake"), gd=raw.layers.find(l=>l.name==="ground")?.data, wet=new Set([9,34,35]);
+      if(ol) ok(lk&&wet.has(gd?.[Math.floor(lk.y/16)*raw.width+Math.floor(lk.x/16)]),`${nm}: giữ điểm giữa hồ "${ol.name}" (${lk?`${lk.x/16}, ${lk.y/16}, nền gid ${gd?.[Math.floor(lk.y/16)*raw.width+Math.floor(lk.x/16)]}`:"thiếu"})`); }
   }
   const B=await bot("Rừng lớn","kim_vu_mieu_ung",{sex:0,hair:2,hairCol:1,outfitCol:3});
   if(!(await test(B,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần đi trên bản đồ ×8 (cần hook warp, goto): bật server bằng GAME_TEST=1"); await B.room.leave(); return; }
@@ -5902,6 +5970,7 @@ async function bigMapTest(){
     ok(went&&B.room.state.mapId===to&&Math.hypot(bme().x-ar.x,bme().y-ar.y)<1,`cổng "${name}" -> ${MAPS[to].name}, xuất hiện ở ${ar?.name} (${bme()?.x},${bme()?.y})`);
   }
   for(const NV of BIG){
+    if(MAPS[NV].kind==="arena") continue; // sân đấu chỉ ArenaRoom mở (bài arenaTest), không cổng / điểm đến
     const objs=objsOf(fileOf(NV)), nm=MAPS[NV].name, total=sum(objs.filter(o=>o.type==="zone")), a0=objs.find(o=>o.type==="arrive");
     await warp(NV,a0.x,a0.y);
     ok(B.room.state.mapId===NV&&B.room.state.mapFile===mapFileOf(NV),`${nm}: phòng báo file bản đồ ${B.room.state.mapFile} (client tải đúng file này)`);
