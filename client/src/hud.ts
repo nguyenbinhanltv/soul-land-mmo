@@ -14,7 +14,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings,
 
-  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
+  ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
@@ -280,9 +280,10 @@ function setCtSlot(b: HTMLElement, on: boolean) {
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
  * Hồn Chân Thân (8.1a, chỉ khi võ hồn có dữ liệu; khóa tới vòng 7), hấp thụ. `years`: số năm từng hồn hoàn (tin riêng "vohons");
- * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4).
+ * chưa có thì lấy mốc của bậc. `stars`: sao võ hồn ra trận (9.5: sức mạnh và hồi chiêu vòng 1–4). Nút G Võ Hồn Dung Hợp Kỹ (#193)
+ * khi võ hồn ra trận có cặp trong FUSIONS và `fusion` (sân đấu cấm dung hợp nên không hiện).
  */
-export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1) {
+export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1, fusion = true) {
   const el = $("#skills"); el.innerHTML = ""; slotCd = [];
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip = "") => {
     const b = document.createElement("button"); b.className = "sk" + (locked ? " locked" : "");
@@ -318,7 +319,67 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
       tip: `Hồn kỹ Chân Thân (thay ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} khi biến hình) – ${s.name}: ${s.desc}. Tốn ${s.cost} hồn lực, hồi ${cdText(s.cd)} giây.`
         + (has ? ` Sức mạnh ×${skillPower(y).toFixed(2).replace(".", ",")} (hồn hoàn vòng ${CHAN_THAN_RING} ${y.toLocaleString("vi-VN")} năm).` : "") };
   } else ctSlot = null;
+  // Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): mời đồng đội gần nhất, hoặc hưởng ứng khi được mời; server chọn người và kiểm mọi điều kiện.
+  const fus = fusion ? fusionsOf(id) : [];
+  el.classList.toggle("fus", fus.length > 0);
+  if (fus.length) {
+    const has = rings.length >= FUSION.minRings, mate = (f: (typeof FUSIONS)[number]) => VOHON[vohonIndex(f.pair[0] === id ? f.pair[1] : f.pair[0])]?.name ?? "";
+    const tip = `Võ Hồn Dung Hợp Kỹ (phím ${FUSION_KEY}): ` + fus.map((f) => `${f.name} cùng đồng đội tổ đội ra trận ${mate(f)}: ${f.desc}`).join("; ")
+      + `. Bấm để mời đồng đội gần nhất; đồng đội bấm ${FUSION_KEY} trong ${cdText(FUSION.window)} giây thì chiêu nổ ở điểm giữa hai người.`
+      + ` Đứng cách nhau dưới ${FUSION.r} pixel, mỗi người tốn ${FUSION.cost} hồn lực, hồi ${FUSION.cd} giây (của hồn sư: đổi võ hồn không làm mới).`
+      + (has ? "" : ` Cần ít nhất ${FUSION.minRings} hồn hoàn.`);
+    mk(FUSION_KEY, `Võ Hồn Dung Hợp Kỹ: ${fus.map((f) => f.name).join(" / ")}${has ? "" : " (khóa)"}`, has ? "Dung hợp" : "Khóa",
+      has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, tip);
+    el.lastElementChild!.classList.add("fus");
+  }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
+}
+
+// ---------- Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): nút G, lời nhắc có đếm ngược, ô hồi chiêu ----------
+/** Phím Võ Hồn Dung Hợp Kỹ: mời, hoặc hưởng ứng khi đang được mời. */
+export const FUSION_KEY = "G";
+let fusCdEnd = 0; // performance.now() lúc hết hồi chiêu dung hợp của hồn sư (theo tin riêng `fusion done` / `vohons.fcd`)
+/** Lời mời đang chờ: `ask` = mình được mời (B), `wait` = mình mời, chờ đồng đội; `i` cặp trong FUSIONS, `who` tên người kia. */
+let fusPend: { k: "ask" | "wait"; i: number; who: string; end: number; ms: number } | null = null;
+let fusTxt = "";
+/** Hồi chiêu dung hợp còn `secs` giây (server gửi; đổi võ hồn không làm mới vì thuộc hồn sư). */
+export function setFusionCd(secs: number) { fusCdEnd = performance.now() + Math.max(0, secs) * 1000; }
+/** Có đang được mời không (phím G / nút gửi `join` thay vì `start`). Server vẫn kiểm lại và báo lý do. */
+export const fusionAsked = () => fusPend?.k === "ask";
+/**
+ * Khung nhắc dung hợp kỹ (tin riêng `fusion`): B thấy "Dung hợp [G]" kèm đếm ngược `t` giây và nút chạm được (gọi `join`); A thấy
+ * đang chờ ai hưởng ứng. `null` thì ẩn (xong, hủy, đổi bản đồ). Tên người chơi gán bằng textContent.
+ */
+export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string; t: number } | null, join: () => void) {
+  const el = $("#fusion"); fusTxt = "";
+  fusPend = p && FUSIONS[p.i] ? { k: p.k, i: p.i, who: p.who, end: performance.now() + p.t * 1000, ms: Math.max(1, p.t * 1000) } : null;
+  if (!fusPend) { el.hidden = true; el.innerHTML = ""; return; }
+  const ask = fusPend.k === "ask";
+  el.classList.toggle("ask", ask);
+  el.innerHTML = `<div class="ft"></div><small></small><div class="bar"><i></i></div>${ask ? `<button type="button">Dung hợp<kbd>${FUSION_KEY}</kbd></button>` : ""}`;
+  const f = FUSIONS[fusPend.i];
+  el.querySelector(".ft")!.textContent = `${f.icon} Dung hợp kỹ ${f.name}`;
+  el.querySelector("button")?.addEventListener("pointerdown", (e) => { e.preventDefault(); join(); });
+  el.hidden = false;
+  updateFusion();
+}
+/** Mỗi khung hình: đếm ngược lời nhắc, ô hồi chiêu và nhãn của nút G. */
+export function updateFusion() {
+  const now = performance.now(), b = document.querySelector<HTMLElement>(".sk.fus");
+  if (b) {
+    const locked = b.classList.contains("locked"), cd = Math.max(0, fusCdEnd - now) / 1000;
+    (b.querySelector(".cd") as HTMLElement).style.height = (locked ? 0 : Math.min(1, cd / FUSION.cd) * 100) + "%";
+    b.classList.toggle("ask", !locked && fusPend?.k === "ask");
+    const label = b.querySelectorAll("span")[1], txt = locked ? "Khóa" : fusPend?.k === "ask" ? "Hưởng ứng" : fusPend ? "Đang chờ" : "Dung hợp";
+    if (label.textContent !== txt) label.textContent = txt;
+  }
+  if (!fusPend) return;
+  const left = Math.max(0, fusPend.end - now), sec = (left / 1000).toFixed(1).replace(".", ",");
+  const txt = fusPend.k === "ask" ? `${fusPend.who} mời hưởng ứng · còn ${sec} giây` : `Chờ ${fusPend.who} hưởng ứng · còn ${sec} giây`;
+  if (txt === fusTxt) return;
+  fusTxt = txt; const el = $("#fusion");
+  el.querySelector("small")!.textContent = txt;
+  (el.querySelector(".bar i") as HTMLElement).style.width = (left / fusPend.ms) * 100 + "%";
 }
 /** Phím Võ Hồn Chân Thân (8.1a, chờ chốt): R, không trùng phím nào đang dùng. */
 export const AVA_KEY = "R";

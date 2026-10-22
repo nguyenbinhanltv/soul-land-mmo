@@ -251,6 +251,7 @@ export class GameScene extends Phaser.Scene {
     const off = () => {
       this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
+      hud.setFusionPending(null, () => {}); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời)
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);
@@ -622,6 +623,7 @@ export class GameScene extends Phaser.Scene {
       const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
       const bk = hud.BONE_SKILL_KEYS.findIndex((k) => e.code === "Key" + k); // kỹ năng hồn cốt Z / X / C (4.3)
       if (e.code === "Key" + hud.AVA_KEY) return this.act("chanthan"); // Võ Hồn Chân Thân (8.1a)
+      if (e.code === "Key" + hud.FUSION_KEY) return this.act("fusion"); // Võ Hồn Dung Hợp Kỹ: mời / hưởng ứng (#193)
       const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
       else if (e.code === "KeyE") this.act("pickup");
@@ -746,6 +748,8 @@ export class GameScene extends Phaser.Scene {
     else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
     else if (a === "chanthan") this.room.send("chanthan");
+    // Võ Hồn Dung Hợp Kỹ (#193): đang được mời thì hưởng ứng, không thì mời; server chọn đồng đội và kiểm mọi điều kiện.
+    else if (a === "fusion") this.room.send("fusion", { op: hud.fusionAsked() ? "join" : "start" });
   }
 
   /**
@@ -887,9 +891,16 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("auto", (m: AutoMsg) => { hud.setAuto(m); setAutoMsg(m); }); // bảng Tự động, tổng kết khi dừng (Auto 2)
     // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
     this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
-    // Võ Hồn Dung Hợp Kỹ (#192): tin riêng ask / wait / done / cancel; lời nhắc và lý do đã có ở dòng log. Phím G, nút chạm, hiệu ứng: #193.
-    this.room.onMessage("fusion", (m: { k: string; by?: string; i?: number }) => {
-      if (m?.k === "ask") hud.banner(`Dung hợp kỹ ${FUSIONS[m.i ?? -1]?.name ?? ""}`, `${m.by ?? ""} mời hưởng ứng`);
+    // Võ Hồn Dung Hợp Kỹ (#192, #193): tin riêng ask / wait / done / cancel. B thấy khung "Dung hợp [G]" đếm ngược (chạm được), A thấy
+    // đang chờ; xong thì ô G vào hồi chiêu `cd`. Lý do từ chối / hủy server gửi bằng dòng log (khung tin).
+    this.room.onMessage("fusion", (m: { k: string; by?: string; to?: string; i?: number; t?: number; cd?: number }) => {
+      const join = () => this.act("fusion");
+      if (m?.k === "ask" || m?.k === "wait") {
+        const i = m.i ?? -1, f = FUSIONS[i]; if (!f) return;
+        hud.setFusionPending({ k: m.k, i, who: (m.k === "ask" ? m.by : m.to) ?? "", t: m.t ?? 0 }, join);
+        if (m.k === "ask") hud.banner(`Dung hợp kỹ ${f.name}`, `${m.by ?? ""} mời hưởng ứng · phím ${hud.FUSION_KEY}`);
+      } else if (m?.k === "done") { hud.setFusionPending(null, join); hud.setFusionCd(m.cd ?? 0); }
+      else if (m?.k === "cancel") hud.setFusionPending(null, join);
     });
     if (!this.isArena) this.room.send("offline");
     if (!this.isArena) this.room.send("auto", { op: "get" });
@@ -989,6 +1000,7 @@ export class GameScene extends Phaser.Scene {
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
+      hud.setFusionCd(m.fcd ?? 0); // hồi chiêu dung hợp kỹ của hồn sư (#193): đúng cả sau khi đổi kênh / đi cổng / vào lại
       this.renderBag(); // bảng chọn võ hồn để hấp thụ dùng cấp / số hồn hoàn mới nhất
       this.renderRoster();
       hud.buildTeam(m, (slot) => this.act("switch" + slot));
@@ -1307,6 +1319,7 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.shake(400, 0.006);
     }
     else if (m.k === "tienco") this.tienCoFx(m);
+    else if (m.k === "fusion") this.fusionFx(m); // Võ Hồn Dung Hợp Kỹ (#193)
     else if (m.k === "absorbed") {
       const v = this.players.get(m.id); if (!v) return; const t = TIERS[m.tier];
       for (let k = 0; k < 3; k++) this.ringFx(this.feet(v), 4 + k * 6, 60 + k * 20, t.glow, 700, k * 120);
@@ -1553,6 +1566,63 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Chiêu tiên cơ (bước 2.4): hiệu ứng chung theo hệ và chữ "Tiên cơ" bay lên trên đầu hồn sư. */
+  /**
+   * Võ Hồn Dung Hợp Kỹ (#193, `fx fusion` công khai cho người ở gần): hai luồng sáng màu võ hồn (`VOHON.col`) từ ngực người mời `id` và
+   * người hưởng ứng `to` vòng cung nhập vào điểm giữa (x, y); nhập xong thì đóa kính lưu ly nở trên mặt đất (phong cách D "Lưu Ly Bảo
+   * Quang", mục 5.11: mảnh kính hai màu võ hồn và lam / ngọc / tím lưu ly, đường chì, viền vàng kim), vòng sáng màu niên hạn `col`, tên
+   * chiêu lớn bay lên như tuyệt kỹ. Người nào ngoài vùng đồng bộ (11.4) thì bỏ luồng của người đó. Chỉ hình ảnh: sát thương do server.
+   */
+  fusionFx(m: { id: string; to: string; x: number; y: number; i: number; col?: string }) {
+    const f = FUSIONS[m.i]; if (!f) return;
+    const k = SPR, c = W2S(m.x, m.y), cy = c.y - 12 * k, col = m.col ?? "#ffe08a", MERGE = 420;
+    const R = Math.max(40, ...f.parts.map((p) => p.r ?? 0)), cols: number[] = [];
+    for (const id of [m.id, m.to]) {
+      const v = this.players.get(id), vc = hex(VOHON[this.room.state.players.get(id)?.vh ?? -1]?.col ?? col); cols.push(vc);
+      if (!v) continue;
+      this.playAct(id, "cast");
+      const x0 = v.root.x, y0 = v.root.y - 14 * k, g = this.add.graphics().setDepth(99981), o = { t: 0 };
+      const at = (t: number) => ({ x: x0 + (c.x - x0) * t, y: y0 + (cy - y0) * t - Math.sin(t * Math.PI) * 14 * k }); // cung nhẹ lên trên
+      this.tweens.add({ targets: o, t: 1, duration: MERGE, ease: "Sine.easeIn", onUpdate: () => {
+        const t0 = Math.max(0, o.t - 0.45), pts = Array.from({ length: 8 }, (_, j) => at(t0 + ((o.t - t0) * j) / 7)), h = pts[7];
+        g.clear();
+        g.lineStyle(7 * k, vc, 0.25).strokePoints(pts); g.lineStyle(3 * k, vc, 0.9).strokePoints(pts); g.lineStyle(k, 0xffffff, 0.9).strokePoints(pts);
+        g.fillStyle(vc, 0.5).fillCircle(h.x, h.y, 5 * k); g.fillStyle(0xffffff, 1).fillCircle(h.x, h.y, 2.5 * k);
+      }, onComplete: () => this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() }) });
+    }
+    this.time.delayedCall(MERGE, () => {
+      // Đóa kính lưu ly: vòng trong là mảnh tam giác xen hai màu võ hồn, vòng ngoài là mảnh lam / ngọc / tím lưu ly (_luu_ly.gpl),
+      // mọi mảnh viền chì sẫm, mép ngoài viền vàng kim; nở ra rồi mờ dần.
+      const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };
+      const draw = () => {
+        const r1 = R * o.s, r0 = r1 * 0.45, P = (r: number, j: number) => groundAt(m.x, m.y, r, (j / N) * Math.PI * 2);
+        g.clear();
+        for (let j = 0; j < N; j++) {
+          const inner = [c, P(r0, j), P(r0, j + 1)], outer = [P(r0, j), P(r1, j), P(r1, j + 1), P(r0, j + 1)];
+          g.fillStyle(cols[j % cols.length] ?? hex(col), 0.5 * o.a).fillPoints(inner, true);
+          g.fillStyle(glass[j % glass.length], 0.42 * o.a).fillPoints(outer, true);
+          g.lineStyle(1.5 * k, 0x1a1020, 0.8 * o.a).strokePoints(inner, true).strokePoints(outer, true);
+        }
+        g.lineStyle(2 * k, 0xffe08a, o.a).strokeEllipse(c.x, c.y, 2 * RX * r1, 2 * RY * r1);
+        g.fillStyle(0xe8f8ff, 0.8 * o.a).fillCircle(c.x, c.y, 3 * k);
+      };
+      this.tweens.add({ targets: o, s: 1, duration: 480, ease: "Back.easeOut", onUpdate: draw, onComplete: () =>
+        this.tweens.add({ targets: o, a: 0, duration: 650, delay: 250, onUpdate: draw, onComplete: () => g.destroy() }) });
+      this.ringFx(c, 6, R, col, 650); this.ringFx(c, 4, R * 0.7, "#ffffff", 550, 120);
+      this.light.flash(c.x, cy, "#ffe08a", R * RX + 30, 900, 1.4);
+      // Tên chiêu lớn bay lên ở điểm giữa (ai ở gần cũng thấy, như tuyệt kỹ); hai người dung hợp thêm banner.
+      const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
+        .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
+      this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
+      this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+      const me = this.players.get(this.me);
+      if (me && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) {
+        const cc = Phaser.Display.Color.ValueToColor(hex(col));
+        this.cameras.main.flash(260, cc.red, cc.green, cc.blue); this.cameras.main.shake(320, 0.006);
+      }
+      if (this.me === m.id || this.me === m.to) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
+    });
+  }
+
   tienCoFx(m: { id: string; he: He; col: string; x: number; y: number; r?: number; x0?: number; y0?: number; vh?: number; own?: boolean }) {
     const c = hex(m.col), gold = 0xffe08a, at = this.lifted(m.x, m.y), k = SPR;
     this.playAct(m.id, "cast");
@@ -2370,7 +2440,7 @@ export class GameScene extends Phaser.Scene {
     // 9.5: sao võ hồn ra trận đổi sức mạnh / hồi chiêu hồn kỹ vòng 1–4 trong chú thích.
     const stars = own && VOHON[me.vh]?.id === own.vohon ? own.stars : 1;
     const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}|${loadout.join(",")}|${stars}`;
-    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a), stars); }
+    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a), stars, !this.isArena); }
     // Kỹ năng hồn cốt (4.3): hồn cốt đang gắn trên võ hồn ra trận, lấy từ tin riêng "bag" (trường `vohon`) khi đúng võ hồn ra trận.
     const worn: hud.WornBone[] = own && VOHON[me.vh]?.id === own.vohon ? (this.bag?.items ?? []).flatMap((it) => {
       const b = it.vohon === own.rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
@@ -2379,6 +2449,7 @@ export class GameScene extends Phaser.Scene {
     const bKey = JSON.stringify(worn);
     if (bKey !== this.boneSkKey) { this.boneSkKey = bKey; hud.buildBoneSkills(worn, (a) => this.act(a)); }
     hud.updateStats(me);
+    hud.updateFusion();
     hud.updateTeam(me);
     hud.updateBag();
     hud.updateParty();
