@@ -436,6 +436,13 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 - Trả bài cần đủ mục tiêu và túi đủ chỗ cho **cả** phần thưởng (thiếu thì từ chối, giữ tiến độ). Khung theo dõi dưới bản đồ nhỏ (thu gọn được), thông báo lớn khi nhận / đủ / trả.
 - Tiến độ lưu ở bảng `quests`, ghi cùng transaction với túi đồ. Mọi tài khoản bắt đầu ở bài 1.
 
+**Nhiệm vụ chương 2** (`QUESTS`, chuỗi "Sử Lai Khắc Thất Quái", `QUEST_CH2`; số bài, mục tiêu, phần thưởng ở dữ liệu): 9 bài nhận và trả từng bài với **Triệu Vô Cực** ở Thiên Đấu Thành (NPC riêng, đứng cạnh Phất Lan Đức; Phất Lan Đức vẫn giữ khảo hạch hằng ngày).
+- **Mở sau chuỗi tân thủ** (`QUEST_AFTER`: chuỗi `QUEST_CH2_AFTER` phải xong), không chặn theo cấp; chặn mềm bằng mục tiêu và cổng như các bài khác. Cùng luật nhận / trả, đứng gần, gục, túi đủ chỗ như nhiệm vụ tân thủ.
+- **Server giữ tiến độ nhiều chuỗi cố định** (tân thủ ở `quest`, các chuỗi sau ở `chains`; mỗi chuỗi một dòng bảng `quests`, không cần SQL); tin riêng `quest` kèm mã chuỗi, `questAction` nhận `chain`.
+- **Mục tiêu theo bản đồ, không theo vùng.** Kiểu mới: `elite` (tham gia hạ một tinh anh), `king` (có đóng góp khi một thú vương bị hạ), cờ `party` trên `kill` (chỉ tính lần hạ có từ 2 người tổ đội cùng chia kinh nghiệm). Đấu trường tính cả trận thua và giao hữu như khảo hạch hằng ngày.
+- Không thưởng mảnh UR (mảnh UR chỉ trong rương boss thế giới, mục 5.3).
+- Hộp thoại nhận / trả có ở Triệu Vô Cực; khung theo dõi, dấu "!" / "?" và chỉ đường cho chương 2 chờ #190; phát sự kiện `elite` / `king` / `party` chờ #256 (đến lúc đó ba bài tương ứng chưa tiến được).
+
 **Nhiệm vụ hằng ngày** ("Khảo hạch Sử Lai Khắc", `DAILY`, `DAILY_POOL`; số bài, mục tiêu, phần thưởng ở dữ liệu): mỗi ngày `DAILY.count` bài, nhận và trả từng bài với Phất Lan Đức ở Thiên Đấu Thành (cùng luật đứng gần, gục, túi đủ chỗ như nhiệm vụ tân thủ), không cần xong chuỗi tân thủ.
 - **Đặt lại lúc 00:00 giờ Việt Nam** (như lượt thưởng boss, `vnDay`): bộ bài mới chưa nhận, bài hôm qua dở dang bỏ luôn, không trả được. Người đang chơi được báo ngay lúc qua ngày.
 - **Bộ bài chọn ổn định theo ngày** (mọi người cùng bộ, `dailyPicks`): bài 1 luôn là bài săn (nhóm `hunt`), các bài sau lấy không trùng trong nhóm `misc`; mỗi bài thưởng Hồn Tệ của mẫu và mảnh một võ hồn SR / SSR (`ARENA_SHARDS`) bốc theo ngày.
@@ -821,6 +828,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Việc để sau** (chưa có bước cụ thể; nhận việc thì tách thành bước nhỏ)
 - [x] Nhiệm vụ hằng ngày ở Sử Lai Khắc Học Viện (Phất Lan Đức; dùng lại bảng `quests` với mã chuỗi mới, đặt lại theo ngày); chỉ đường / chấm nhiệm vụ trên bản đồ nhỏ (mục 5.8 "Nhiệm vụ hằng ngày").
+- [ ] #189 Chương 2 "Sử Lai Khắc Thất Quái": **phần 1 đã có** (dữ liệu 9 bài, NPC Triệu Vô Cực, server nhiều chuỗi cố định, nhận / trả bài; mục 5.8). **Còn phần 2** (#256): phát sự kiện `elite` / `king` / `party`, bài bot đủ 9 bài. Khung theo dõi / dấu NPC ở #190.
 - [x] Thương nhân lưu động ở trại cổng bản đồ săn (#111; mục 5.7, 5.8).
 - [x] Túi đồ chia trang, mở rộng theo trang, nút sắp xếp, gửi túi theo thay đổi; tài khoản cũ giữ số lần đã mở rộng (#215; mục 5.7, 6).
 - [x] Tự bán từ xa khi túi gần đầy theo bộ lọc (100% giá trong thành, mặc định tắt), khoá món, mua lại `AUTO_SELL_BUYBACK` món tự bán ở thương nhân, tự săn bán thay vì dừng; cột `items.locked`, `accounts.auto_sell` / `auto_sold` (#216; mục 5.7, 5.13).

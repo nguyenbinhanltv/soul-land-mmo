@@ -640,6 +640,7 @@ function thienDauThanh() {
   o.point("arrive", "tu_nac_dinh_thanh", 40, MH - 6.5);
   o.point("npc", "Đại Đấu Hồn Trường", 57, 48, [prop("npc", "string", "dau_hon_truong")]);
   o.point("npc", "Phất Lan Đức", 15, 47, [prop("npc", "string", "phat_lan_duc")]);
+  o.point("npc", "Triệu Vô Cực", 17, 47, [prop("npc", "string", "trieu_vo_cuc")]);
   o.point("npc", "Thương nhân Thiên Đấu", 51, 15, [prop("npc", "string", "thuong_nhan_thien_dau")]);
   o.point("npc", "Thợ rèn Thiên Đấu", 64, 15, [prop("npc", "string", "lo_ren_thien_dau")]);
   // BĐ6b: cổng tây (thay biển "sắp mở" `cong_lac_nhat`); chặn mềm theo cấp đề xuất của Lạc Nhật.

@@ -6,7 +6,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
-  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
+  npcDef, NPC_RANGE, type NpcDef, QUEST_STARTER, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
@@ -856,7 +856,8 @@ export class GameScene extends Phaser.Scene {
     // Nhiệm vụ tân thủ (6.2): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu trên đầu NPC và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
-      this.quest = m; hud.setQuest(m); this.updateQuestMarks();
+      if (m.chain === QUEST_STARTER) this.quest = m;
+      hud.setQuest(m); this.updateQuestMarks();
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
       if (m.ev === "accept" && s) hud.banner(`Nhận nhiệm vụ: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
