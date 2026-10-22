@@ -7630,8 +7630,8 @@ async function arenaTest(){
     ok(K.room.state.phase==="wait","2v2 rời khi chờ: mới có một người mỗi bên thì vẫn chờ");
     await K.room.leave();
     ok(await waitFor(()=>M.arena.slice(nM2).some(m=>m.k==="end"),3000),"2v2 rời khi chờ: bên còn lại nhận kết quả ngay");
-    const leftWait=endOf(M);
-    ok(leftWait?.reason==="leave"&&M.room.state.phase==="end","2v2 rời khi chờ: bên rời thua leave, không vào pha giao đấu");
+    const leftWait=()=>M.arena.slice(nM2).filter(m=>m.k==="end").at(-1);
+    ok(await waitFor(()=>M.room.state.phase==="end"&&leftWait()?.reason==="leave",1000),"2v2 rời khi chờ: bên rời thua leave, không vào pha giao đấu");
     await back(K);
     if(M.room.state.phase==="end") await kickBack(M);
     else { await test(M,"afast",{s:0}); await M.room.leave().catch(()=>{}); await sleep(300); await back(M); }
