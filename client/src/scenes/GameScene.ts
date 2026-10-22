@@ -7,7 +7,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -27,7 +27,7 @@ import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -892,8 +892,11 @@ export class GameScene extends Phaser.Scene {
     const onBag = (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
-      if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback });
+      if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
+        sell: m.sell ?? this.bag.sell, sold: m.sold ?? this.bag.sold });
     });
+    // Tự bán từ xa (#216): server vừa bán đồ hợp bộ lọc; túi mới đến bằng tin "bagd", dòng log chi tiết đến cùng lúc.
+    this.room.onMessage("autosold", (m: AutoSoldMsg) => hud.banner(`Đã tự bán ${m.n.toLocaleString("vi-VN")} món`, `+${formatHonTe(m.coins)} · mua lại ở thương nhân`));
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
@@ -2014,6 +2017,8 @@ export class GameScene extends Phaser.Scene {
       absorb: (id, vohonId) => this.room.send("absorb", { itemId: id, vohonId }),
       discard: (id) => this.room.send("discard", { id }),
       sort: () => this.room.send("sortbag"),
+      lock: (id) => this.room.send("lock", { id }), // khoá / mở khoá ô (#216)
+      autoSell: (cfg) => this.room.send("autosell", { cfg }), // bộ lọc tự bán (#216)
       open: (id) => this.room.send("open", { id }), // rương thú vương (BĐ5): server tung phần thưởng
       absorbOptions: (years) => this.absorbOptions(years),
       herb: (id, vohonId) => this.room.send("use", { id, vohonId }), // tiên thảo (BĐ6b): dùng cho võ hồn đã chọn
