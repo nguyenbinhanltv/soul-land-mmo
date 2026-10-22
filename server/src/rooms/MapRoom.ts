@@ -262,11 +262,12 @@ const uid = (p: string) => p + (nextId++).toString(36);
 /** Hash presence: accountId -> sessionId của phiên đang giữ tài khoản, từ onJoin tới khi lần ghi DB cuối của phiên đó xong. */
 const HOLD = "accountHold";
 /**
- * Chat xuyên phòng (#188, mục 6 "Xã hội"): tổ đội, tin riêng, thế giới phát lên chủ đề presence này; mọi phòng nghe và gửi tin
- * `chat` cho người chơi của mình có trong `to` (không có `to`: mọi người, kênh thế giới). Không lưu lịch sử.
+ * Chat xuyên phòng (#188, mục 6 "Xã hội"): tổ đội, tin riêng, thế giới, tông môn phát lên chủ đề presence này; mọi phòng nghe và gửi
+ * tin `chat` cho người chơi của mình có trong `to`, hoặc thuộc tông `tong` (#198); không có cả hai: mọi người (kênh thế giới). Không
+ * lưu lịch sử.
  */
 const CHAT_TOPIC = "chatx";
-interface ChatRoute { to?: number[]; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
+interface ChatRoute { to?: number[]; tong?: string; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
@@ -600,13 +601,26 @@ export class MapRoom extends Room<MapState> {
   /** Đá phiên trùng tài khoản ở mọi phòng (presence, mục 6). */
   /** Tổ đội người chơi (presence PARTY_TOPIC, 7.1): gửi lại khung tổ đội và thông báo cho người của phòng này có trong `to`. */
   partySub = (n: party.PartyNote) => this.partyNote(n);
-  /** Chat xuyên phòng (presence CHAT_TOPIC, #188): gửi tin cho người của phòng này có trong `to` (không có `to` thì mọi người). */
+  /**
+   * Chat xuyên phòng (presence CHAT_TOPIC, #188): gửi tin cho người của phòng này có trong `to`, hoặc đang thuộc tông `tong` (#198,
+   * đọc tông lúc nhận nên vừa rời / đổi tông là thôi nhận); không có cả hai thì mọi người. Lọc chặn (#195) đặt ở đây cho mọi kênh.
+   */
   chatSub = (r: ChatRoute) => {
     if (!r?.msg) return;
+    if (typeof r.tong === "string") {
+      for (const c of this.clients) if (this.chatTong(c) === r.tong) c.send("chat", r.msg);
+      return;
+    }
     if (!Array.isArray(r.to)) return this.broadcast("chat", r.msg);
     // Theo tài khoản của phiên (client.auth): cả người xem trận (#278, không có pdata) vẫn nhận tin riêng / tổ đội.
     for (const c of this.clients) { const acc = (c.auth as { accountId?: number } | undefined)?.accountId; if (acc !== undefined && r.to.includes(acc)) c.send("chat", r.msg); }
   };
+  /** Tông môn của phiên `c` cho chat tông (#198): hồn sư trong phòng đọc `pdata` (đổi tông có hiệu lực ngay); người xem trận không có
+   *  pdata (#278) thì theo tông lúc vào phòng (client.auth). */
+  chatTong(c: Client): string | null {
+    const d = this.pdata.get(c.sessionId);
+    return d ? d.tong : tongDef((c.auth as AuthData | undefined)?.tong?.tong)?.id ?? null;
+  }
   partyT = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
@@ -3403,6 +3417,15 @@ export class MapRoom extends Room<MapState> {
     }
     else if (op === "tong") {
       // #196: `back` (số ngày) lùi lúc gia nhập tông về trước (giả lập thời gian trôi, ghi DB); trả tông, lúc gia nhập, số giây còn chờ.
+      // #198: `set` = mã tông (hoặc "" / null để rời) đặt thẳng, bỏ qua điều kiện sứ giả / cấp / chờ đổi (bài chat tông); ghi DB như gia nhập.
+      if ("set" in o) {
+        const t = tongDef(o.set), now = Date.now();
+        d.tong = t?.id ?? null; p.tong = t ? TONG_MON.findIndex((x) => x.id === t.id) + 1 : 0;
+        if (t) d.tongAt = now;
+        // Như tongAction: gia nhập xoá điểm tuần (week), rời thì không; tong_at giữ (COALESCE ở PgStore).
+        const id2 = d.tong, at = t ? now : null; this.chain(d, () => t ? store.setTong(d.accountId, id2, at, tongWeek(now)) : store.setTong(d.accountId, null, null));
+        this.sendTong(id);
+      }
       if (d.tongAt !== null && typeof o.back === "number" && Number.isFinite(o.back)) {
         d.tongAt -= Math.max(0, Math.min(365, o.back)) * 86400000;
         const at = d.tongAt; this.chain(d, () => store.setTong(d.accountId, d.tong, at));
@@ -6171,14 +6194,15 @@ export class MapRoom extends Room<MapState> {
   /**
    * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =
    * hồn sư tên `to` đang trong game (kèm bản sao cho người gửi); "world" = mọi phòng, từ cấp WORLD_CHAT.minLevel, 1 tin /
-   * WORLD_CHAT.cdSecs giây. Tổ đội / riêng / thế giới đi qua presence CHAT_TOPIC tới phòng đang giữ người nhận (có thể ở bản đồ /
-   * kênh khác). Kiểm luật kênh trước, rồi mới tính lượt chống spam (riêng từng kênh, ratelimit.chatCheck). Lỗi báo riêng người gửi.
+   * WORLD_CHAT.cdSecs giây; "tong" (#198) = mọi thành viên cùng tông đang trong game (chưa thuộc tông thì báo). Tổ đội / riêng / thế
+   * giới / tông đi qua presence CHAT_TOPIC tới phòng đang giữ người nhận (có thể ở bản đồ / kênh khác). Kiểm luật kênh trước, rồi mới
+   * tính lượt chống spam (riêng từng kênh, ratelimit.chatCheck). Lỗi báo riêng người gửi.
    */
   chatAction(id: string, m: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
     const ch = o.ch === undefined ? "map" : strIn(o.ch);
-    if (ch !== "map" && ch !== "party" && ch !== "whisper" && ch !== "world") return;
+    if (ch !== "map" && ch !== "party" && ch !== "whisper" && ch !== "world" && ch !== "tong") return;
     if (!chatText(o.text)) return;
     const warn = (text: string) => this.log(id, text, "#ffb35c"), acc = d.accountId, now = Date.now();
     let to: number[] | undefined, toName: string | undefined;
@@ -6196,13 +6220,15 @@ export class MapRoom extends Room<MapState> {
       if (p.level < WORLD_CHAT.minLevel) return warn(`Kênh thế giới mở từ cấp ${WORLD_CHAT.minLevel}.`);
       const wait = worldWait(acc, now);
       if (wait) return warn(`Kênh thế giới: mỗi ${WORLD_CHAT.cdSecs} giây một tin, đợi ${wait} giây.`);
+    } else if (ch === "tong") {
+      if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào: gia nhập ở sứ giả tông môn (Thiên Đấu Thành) rồi mới chat tông (/tm).");
     }
     const r = chatCheck(acc, o.text, now, ch);
     if (!r) return;
     if ("error" in r) return warn(r.error);
     if (ch === "map") return this.broadcast("chat", { name: p.name, text: r.text });
     if (ch === "world") worldMark(acc, now);
-    const route: ChatRoute = { ...(to ? { to } : {}), msg: { ch, name: p.name, text: r.text, ...(toName ? { to: toName } : {}) } };
+    const route: ChatRoute = { ...(to ? { to } : {}), ...(ch === "tong" ? { tong: d.tong! } : {}), msg: { ch, name: p.name, text: r.text, ...(toName ? { to: toName } : {}) } };
     this.presence.publish(CHAT_TOPIC, route);
   }
 
