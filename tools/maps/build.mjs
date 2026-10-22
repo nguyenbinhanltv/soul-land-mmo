@@ -481,6 +481,15 @@ export function build(L, hand = null, seedOverride = null) {
     if (boss !== MAPS[mapId].king) throw new Error(`${mapId}: hang "${name}": MAPS.${mapId}.king là ${MAPS[mapId].king}`);
     rectObj("boss", name, cx - rx, cy - ry, rx * 2, ry * 2, [prop("boss", "string", boss)]);
   }
+  // Sàn đấu boss thế giới (Lõi Tinh Đấu): object `boss` với mã trong MAPS.world (không phải thú vương).
+  if (L.worldBoss) {
+    const { name, boss, rect } = L.worldBoss;
+    if (!(MAPS[mapId].world ?? []).includes(boss)) throw new Error(`${mapId}: sàn "${name}": ${boss} không có trong MAPS.${mapId}.world`);
+    rectObj("boss", name, ...rect, [prop("boss", "string", boss)]);
+  }
+  // Giữa hồ (object `lake`, điểm): boss thế giới có Du Thủy lặn ra đây; thiếu thì server cảnh báo và boss lặn tại chỗ, nên báo lỗi luôn.
+  if (L.lake) pointObj("lake", L.lake.name, ...L.lake.at);
+  else if ((MAPS[mapId].world ?? []).some((id) => BOSSES[bossIndex(id)]?.world?.dive)) throw new Error(`${mapId}: boss thế giới có Du Thủy nhưng bố cục thiếu \`lake\` (giữa hồ)`);
   for (const n of L.npcs ?? []) {
     // Người chơi đứng cạnh NPC để nói chuyện (thường ngay phía nam): ô NPC và ô phía nam phải đi tới được.
     if (!reachable(n.at[0], n.at[1]) || !reachable(n.at[0], n.at[1] + 1)) throw new Error(`${mapId}: NPC "${n.name}" ${n.at}: ô đứng hoặc ô phía nam không tới được`);
