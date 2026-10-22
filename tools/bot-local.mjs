@@ -182,11 +182,14 @@ async function ensurePg() {
   });
 }
 const qid = (s) => `"${s.replace(/"/g, '""')}"`;
-/** Xoá database của lượt đã chết (tên soul_<phiên>_<pid>, chỉ với PostgreSQL ở máy này). */
+// Database của công cụ: tên `soulbot_<phiên>_<pid>` và dấu COMMENT ON DATABASE lúc tạo. Chỉ dọn database có đủ cả hai, để không bao giờ
+// đụng database thật trên PostgreSQL cài sẵn (BOT_PG_URL) chỉ vì tên na ná.
+const DB_PREFIX = "soulbot_", DB_MARK = "tools/bot-local.mjs";
+const ownDbs = async (c) => (await c.query(String.raw`SELECT datname FROM pg_database WHERE datname LIKE 'soulbot\_%' AND shobj_description(oid, 'pg_database') = $1 ORDER BY 1`, [DB_MARK])).rows.map((x) => x.datname);
+/** Xoá database của lượt đã chết (chỉ database có dấu của công cụ, chỉ với PostgreSQL ở máy này). */
 async function dropStale(c) {
   if (!pgLocal) return;
-  const r = await c.query(String.raw`SELECT datname FROM pg_database WHERE datname LIKE 'soul\_%'`);
-  for (const { datname } of r.rows) {
+  for (const datname of await ownDbs(c)) {
     const pid = Number(/_(\d+)$/.exec(datname)?.[1]);
     if (pid && pid !== process.pid && !alive(pid)) {
       await c.query(`DROP DATABASE IF EXISTS ${qid(datname)} WITH (FORCE)`).then(() => console.log(`(xoá database cũ ${datname})`), () => {});
@@ -195,12 +198,15 @@ async function dropStale(c) {
 }
 async function createDb() {
   const session = (process.env.AO_SESSION_ID || "local").toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 30);
-  const name = `soul_${session}_${process.pid}`;
+  const name = `${DB_PREFIX}${session}_${process.pid}`;
   const c = await pgConnect(adminUrl, false);
   try {
     await dropStale(c);
-    await c.query(`DROP DATABASE IF EXISTS ${qid(name)} WITH (FORCE)`);
+    const r = await c.query("SELECT shobj_description(oid, 'pg_database') AS mark FROM pg_database WHERE datname = $1", [name]);
+    if (r.rows.length && r.rows[0].mark !== DB_MARK) throw new Error(`đã có database ${name} không phải của công cụ, không đụng tới; đổi BOT_PG_URL`);
+    if (r.rows.length) await c.query(`DROP DATABASE ${qid(name)} WITH (FORCE)`);
     await c.query(`CREATE DATABASE ${qid(name)} ENCODING 'UTF8' TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'`);
+    await c.query(`COMMENT ON DATABASE ${qid(name)} IS '${DB_MARK}'`);
   } finally { await c.end(); }
   const u = new URL(adminUrl); u.pathname = `/${name}`;
   return { name, url: u.href };
@@ -218,8 +224,7 @@ if (pgCmd) {
   const c = await pgConnect(adminUrl);
   const running = !c.error;
   if (running) {
-    const r = await c.query(String.raw`SELECT datname FROM pg_database WHERE datname LIKE 'soul\_%' ORDER BY 1`);
-    console.log(`PostgreSQL chung: đang chạy, cổng ${pgPort}, dữ liệu ${pgData}; database của lượt bot: ${r.rows.map((x) => x.datname).join(", ") || "(không)"}`);
+    console.log(`PostgreSQL chung: đang chạy, cổng ${pgPort}, dữ liệu ${pgData}; database của lượt bot: ${(await ownDbs(c)).join(", ") || "(không)"}`);
     await c.end();
   } else console.log(`PostgreSQL chung: không chạy (cổng ${pgPort}, dữ liệu ${pgData})`);
   if (pgCmd === "--pg-stop" && running) {
