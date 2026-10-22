@@ -42,7 +42,7 @@ const eventSfx: Readonly<Record<string, SfxId>> = {
   slash: "combat_attack", trail: "combat_attack", arc: "combat_attack", claw: "combat_attack", burst: "combat_hit", wave: "skill_neutral",
   soulring: "skill_neutral", ult: "skill_neutral", avatar: "skill_neutral", bone: "skill_neutral", combo: "combat_crit", pull: "combat_status",
   buff: "combat_shield", fly: "skill_wind", zone: "skill_neutral", bolt: "skill_lightning", zap: "skill_lightning", rage: "boss_warn",
-  dispel: "combat_status", roar: "boss_warn", tienco: "skill_neutral", absorbed: "ring_absorb_success",
+  dispel: "combat_status", roar: "boss_warn", tienco: "skill_neutral", absorbed: "ring_absorb_success", egg: "combat_hit",
 };
 
 const skillSfxByHe: Readonly<Record<string, SfxId>> = {
