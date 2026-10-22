@@ -16,7 +16,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
-  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed,
+  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
   STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
   PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS,
@@ -726,8 +726,10 @@ export class MapRoom extends Room<MapState> {
     this.state.online = this.state.players.size;
     this.rebindContrib(client.sessionId, auth.accountId); // #119: đóng góp boss theo tài khoản, vào lại không mất
     this.interest.join(client, p); // 11.4: view riêng, chỉ thực thể ở gần (state đầy đủ đầu tiên gửi sau onJoin)
+    const filled = this.fillBoneSubs(d); // #187: tung bù dòng phụ hồn cốt cũ một lần (trước khi tính chỉ số)
     this.resCheck(client.sessionId, false); // cộng minh (8.2) tính trước chỉ số ban đầu, không báo mốc
     this.recalc(client.sessionId, true);
+    if (filled) this.save(client.sessionId); // ghi ngay qua chuỗi lưu để lần vào sau không tung lại
     this.chain(d, () => this.claimOffline(client.sessionId)); // ủy thác offline (Auto 3): nhận thưởng thời gian vắng mặt
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
@@ -4401,8 +4403,23 @@ export class MapRoom extends Room<MapState> {
       return b ? [{ it, beast: b.beast, slot: b.slot, years: it.years!, enhance: it.enhance }] : [];
     });
   }
-  /** Tổng chỉ số gốc hồn cốt đang gắn trên võ hồn `rowId` (boneBonus), cộng vào calcStats. */
-  boneBonusOf(d: PData, rowId: number) { return boneBonus(this.bonesOn(d, rowId)); }
+  /** Tổng chỉ số hồn cốt đang gắn trên võ hồn `rowId` (boneBonus: chỉ số chính và dòng phụ), cộng vào calcStats. */
+  boneBonusOf(d: PData, rowId: number) { return boneBonus(this.bonesOn(d, rowId).map((b) => ({ ...b, subs: parseBoneSubs(b.it.stats) }))); }
+  /**
+   * Tung bù dòng phụ hồn cốt (#187) khi nạp túi đồ lúc vào phòng: hồn cốt +N có ít dòng hơn số mốc đã đạt (cường hóa trước khi có
+   * dòng phụ, hoặc tạo bằng hook test) được tung phần còn thiếu (boneAddSubs), đánh dấu `bagDirty`; nơi gọi ghi ngay qua chuỗi lưu.
+   * Đã đủ dòng thì lần vào sau không tung thêm. Trả số dòng đã thêm.
+   */
+  fillBoneSubs(d: PData) {
+    let n = 0;
+    for (const it of d.bag) {
+      const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null; if (!bone) continue;
+      const r = boneAddSubs(bone.slot, it.years!, it.enhance, parseBoneSubs(it.stats), Math.random);
+      if (r.added.length) { it.stats = { ...(it.stats as object), subs: r.subs }; n += r.added.length; }
+    }
+    if (n) d.bagDirty = true;
+    return n;
+  }
 
   /** Luật chung khi gắn / tháo hồn cốt (từ 5.2 cả hồn hạch: `what`), như xếp đội hình: không gục, không hấp thụ, ngoài giao chiến. "" = được. */
   boneLock(p: PlayerState, d: PData, what = "hồn cốt") {
@@ -4461,7 +4478,8 @@ export class MapRoom extends Room<MapState> {
    * Cường hóa hồn cốt `rawTarget` (id ô của chính người gửi, trong túi hoặc đang gắn) bằng các hồn cốt nguyên liệu `rawMats` (mục
    * 5.5, bước 4.4): nguyên liệu phải là hồn cốt nằm trong túi (không đang gắn), không phải chính nó, không trùng, tối đa
    * BONE_FEED_MAX món. Điểm tính bằng boneEnhancePreview (niên hạn, cùng vị trí +50%, trả lại phần điểm đã nạp vào nguyên liệu),
-   * cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +20, điểm dư bị bỏ). Luôn thành công, nguyên liệu bị xóa khỏi túi. Cùng
+   * cộng dồn vào `stats.xp`, cấp ở `items.enhance` (tối đa +20, điểm dư bị bỏ). Mỗi mốc BONE_ENHANCE_MILESTONES vượt qua thêm 1 dòng
+   * phụ ngẫu nhiên (#187, boneAddSubs, ghi vào `stats.subs`). Luôn thành công, nguyên liệu bị xóa khỏi túi. Cùng
    * luật như gắn / tháo (boneLock: ngoài giao chiến, không gục, không hấp thụ), không đang chuyển bản đồ. Hồn cốt đang gắn thì chỉ
    * số / kỹ năng đổi ngay (afterBones). Ghi DB qua chuỗi lưu (save) như các thay đổi túi đồ khác; transaction đi cổng cũng mang
    * theo nếu lần lưu này chưa kịp chạy. Lò rèn ở Nặc Đinh Thành (6.1) sẽ mở cùng message này.
@@ -4488,13 +4506,16 @@ export class MapRoom extends Room<MapState> {
     const lock = this.boneLock(p, d); if (lock) return warn(lock.replace("gắn / tháo", "cường hóa"));
     const r = boneEnhancePreview({ slot: bone.slot, xp: boneXp(it.stats) },
       mats.map((m) => ({ slot: parseBone(m.stats)!.slot, years: m.years!, xp: boneXp(m.stats) })));
+    const sub = boneAddSubs(bone.slot, it.years!, r.level, parseBoneSubs(it.stats), Math.random); // #187: dòng phụ ở mốc
     const drop = new Set(mats);
     d.bag = d.bag.filter((x) => !drop.has(x));
-    it.stats = { ...(it.stats as object), xp: r.xp }; it.enhance = r.level; d.bagDirty = true;
+    it.stats = { ...(it.stats as object), xp: r.xp, ...(sub.added.length ? { subs: sub.subs } : {}) }; it.enhance = r.level; d.bagDirty = true;
     const up = r.level > r.from ? ` lên +${r.level}` : ` (vẫn +${r.level})`;
     this.log(id, `Cường hóa ${this.itemLabel(it)}${up}: ${mats.length} nguyên liệu, +${r.gain.toLocaleString("vi-VN")} điểm`
-      + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "") + ".", TIERS[tierOfYears(it.years!)].glow);
-    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length });
+      + (r.waste ? ` (dư ${r.waste.toLocaleString("vi-VN")} điểm bị bỏ vì đã tối đa)` : "")
+      + sub.added.map(([k, v]) => `; thêm dòng phụ ${coreStatText(k, v)}`).join("") + ".", TIERS[tierOfYears(it.years!)].glow);
+    this.clients.getById(id)?.send("enhanced", { id: it.id, from: r.from, to: r.level, gain: r.gain, xp: r.xp, used: mats.length,
+      subs: sub.added.map(([k, v]) => ({ k, v })) });
     const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
     if (v) this.afterBones(id, v); else this.sendBag(id);
     this.save(id); // nguyên liệu đã mất: ghi ngay qua chuỗi lưu
