@@ -2,7 +2,8 @@
 // Có DATABASE_URL -> dùng PostgreSQL/Supabase. Không có -> lưu trong RAM (mất khi tắt server, chỉ để thử nhanh).
 import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
@@ -53,19 +54,28 @@ export interface Item {
   stats: unknown;              // dòng chỉ số (JSON) hoặc null
   vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
   created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
+  locked?: boolean;            // người chơi khoá (#216, items.locked): không bán / bỏ / làm nguyên liệu
 }
 /**
  * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
  * mỗi chuỗi một dòng): ghi trong cùng transaction với túi để phần thưởng và bước mới không bao giờ lệch nhau. Thiếu `quests` khi
  * ghi thì giữ nguyên tiến độ đang lưu. Từ 9.8 `slots`: số ô túi (cột `accounts.bag_slots`, mở rộng ở thương nhân); thiếu khi ghi thì
- * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua).
+ * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua). Từ #216 `sell`: bộ lọc tự bán (JSON thô, room kiểm lại bằng
+ * parseSell; `accounts.auto_sell`), `sold`: các món tự bán gần nhất để mua lại (`accounts.auto_sold`); thiếu khi ghi thì giữ nguyên.
  */
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
+/** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
+export interface SoldRow { key: string; item: Item; price: number; at: number; }
 /**
  * Tự săn (Auto 1, bảng `auto_hunt`, mục 5.13): cài đặt (JSON thô, room kiểm lại bằng parseAuto) và số giây đã treo trong ngày `day`
- * (giờ Việt Nam). Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
+ * (giờ Việt Nam), `bonus`: giây treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2, 021_auto_bonus.sql; không đặt lại theo ngày).
+ * Tài khoản chưa có dòng: cài đặt null, `day` rỗng, 0 giây.
  */
-export interface AutoRow { settings: unknown; day: string; used: number; }
+export interface AutoRow { settings: unknown; day: string; used: number; bonus: number; }
+/** Giờ treo đã dùng / cộng thêm phải là số hữu hạn không âm (lưu của cả hai store kiểm trước khi ghi). */
+function checkAutoRow(row: AutoRow) {
+  if (!Number.isFinite(row.used) || row.used < 0 || !Number.isFinite(row.bonus) || row.bonus < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
+}
 /**
  * Ủy thác offline (Auto 3, bảng `auto_offline`, mục 5.13): thoát ở vùng săn `zone` của bản đồ `mapId` lúc `at` (ms, đồng hồ server);
  * `day` / `used`: ngày giờ Việt Nam và giây tự săn đã treo trong ngày đó lúc thoát.
@@ -73,8 +83,15 @@ export interface AutoRow { settings: unknown; day: string; used: number; }
 export interface OfflineRow { mapId: string; zone: string; at: number; day: string; used: number; }
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
+const copySold = (r: SoldRow): SoldRow => ({ ...r, item: copyItem(r.item) });
 const copyBag = (b: Bag): Bag => ({ honTe: b.honTe, items: b.items.map(copyItem), ...(b.quests ? { quests: b.quests.map(copyQuest) } : {}),
-  ...(b.slots !== undefined ? { slots: b.slots } : {}) });
+  ...(b.slots !== undefined ? { slots: b.slots } : {}), ...(b.sell !== undefined ? { sell: structuredClone(b.sell) } : {}),
+  ...(b.sold ? { sold: b.sold.map(copySold) } : {}) });
+/** Danh sách tự bán đọc từ DB (#216): bỏ dòng hỏng (thiếu khóa, món, giá). */
+const parseSold = (raw: unknown): SoldRow[] => (Array.isArray(raw) ? raw : []).filter((r): r is SoldRow =>
+  !!r && typeof r.key === "string" && !!r.item && typeof r.item.code === "string" && Number.isInteger(r.item.qty) && r.item.qty >= 1
+  && Number.isSafeInteger(r.price) && r.price >= 0).map((r) => ({ key: r.key, item: { ...r.item, stats: r.item.stats ?? null, vohonId: null, locked: false },
+  price: r.price, at: Number(r.at) || 0 }));
 /** Kiểm tra chung cho cả hai store trước khi ghi túi: id không trùng, số lượng và Hồn Tệ là số nguyên hợp lệ. */
 function bagOk(b: Bag) {
   const ids = new Set(b.items.map((i) => i.id));
@@ -82,6 +99,7 @@ function bagOk(b: Bag) {
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
   if (b.slots !== undefined && (!Number.isInteger(b.slots) || b.slots < BAG_SLOTS || b.slots > BAG_MAX_SLOTS)) throw new Error(`Số ô túi không hợp lệ: ${b.slots}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+  for (const r of b.sold ?? []) if (!Number.isInteger(r.item.qty) || r.item.qty < 1 || !Number.isSafeInteger(r.price) || r.price < 0) throw new Error(`Món tự bán ${r.key} không hợp lệ.`);
   const chains = new Set((b.quests ?? []).map((q) => q.chain));
   if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
 }
@@ -91,7 +109,8 @@ export interface Store {
   init(): Promise<void>;
   /** Tìm tài khoản theo nameKey(name) (names.ts), chưa có thì tạo với tên hiển thị `name`. */
   login(name: string, password: string): Promise<{ token: string; accountId: number } | { error: string }>;
-  accountFromToken(token: string): Promise<{ accountId: number; name: string } | null>;
+  /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
+  accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
   getCharacter(accountId: number): Promise<Character | null>;
   /** Mọi võ hồn tài khoản sở hữu, theo thứ tự nhận được. */
@@ -165,6 +184,11 @@ export interface Store {
   getAuto(accountId: number): Promise<AutoRow>;
   /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
   saveAuto(accountId: number, row: AutoRow): Promise<void>;
+  /**
+   * Dùng Ủy Thác Lệnh (Auto 2): trong MỘT transaction ghi dòng tự săn `row` (quỹ giờ đã cộng) và cả túi `bag` (đã bớt lệnh), như
+   * saveAuto + saveBag. Hoặc ghi hết, hoặc không ghi gì (không mất lệnh mà không có giờ, không có giờ mà lệnh còn).
+   */
+  saveAutoBag(accountId: number, row: AutoRow, bag: Bag): Promise<void>;
   /** Ghi (đè) lần ủy thác offline của tài khoản (bảng `auto_offline`, Auto 3); chỉ gọi trong chuỗi lưu của người chơi. */
   startOffline(accountId: number, row: OfflineRow): Promise<void>;
   /** Lấy và xóa lần ủy thác offline (một lệnh, nên không nhận hai lần); không có thì null. */
@@ -202,16 +226,20 @@ export interface Store {
   arenaPairAdd(day: string, a: number, b: number): Promise<number>;
 }
 
-function hashPass(pw: string) {
+// scrypt bất đồng bộ (threadpool của libuv): bản Sync mất vài chục ms mỗi lần trên luồng chính, đăng nhập dồn dập làm đứng tick mọi phòng.
+const scryptAsync = promisify(scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
+async function hashPass(pw: string) {
   const salt = randomBytes(16).toString("hex");
-  return `${salt}:${scryptSync(pw, salt, 32).toString("hex")}`;
+  return `${salt}:${(await scryptAsync(pw, salt, 32)).toString("hex")}`;
 }
-function checkPass(pw: string, stored: string) {
+async function checkPass(pw: string, stored: string) {
   const [salt, hex] = stored.split(":");
-  const a = Buffer.from(hex, "hex"), b = scryptSync(pw, salt, 32);
+  const a = Buffer.from(hex, "hex"), b = await scryptAsync(pw, salt, 32);
   return a.length === b.length && timingSafeEqual(a, b);
 }
 const newToken = () => randomBytes(24).toString("base64url");
+/** Token đúng dạng newToken (base64url). Chặn trước khi hỏi DB: chuỗi lạ (ký tự NUL…) làm PostgreSQL báo lỗi mã hóa. */
+const tokenOk = (t: unknown): t is string => typeof t === "string" && /^[A-Za-z0-9_-]{32}$/.test(t);
 const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills], herbs: { ...c.herbs } });
 /** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
@@ -267,14 +295,19 @@ export class MemoryStore implements Store {
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async login(name: string, password: string) {
     const key = nameKey(name);
-    let acc = this.accounts.get(key);
-    if (!acc) { acc = { id: this.seq++, pass: hashPass(password) }; this.accounts.set(key, acc); this.names.set(acc.id, name); }
-    else if (!checkPass(password, acc.pass)) return { error: "Sai mật khẩu." };
+    let acc = this.accounts.get(key), created = false;
+    if (!acc) {
+      const pass = await hashPass(password);
+      // Trong lúc băm có yêu cầu khác cùng tên vừa tạo tài khoản: kiểm mật khẩu như tài khoản có sẵn.
+      acc = this.accounts.get(key);
+      if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); created = true; }
+    }
+    if (!created && !(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
     const token = newToken(); this.sessions.set(token, acc.id);
     return { token, accountId: acc.id };
   }
-  async accountFromToken(token: string) {
-    const id = this.sessions.get(token); return id ? { accountId: id, name: this.names.get(id)! } : null;
+  async accountFromToken(token: unknown) {
+    const id = tokenOk(token) ? this.sessions.get(token) : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
   }
   owned(accountId: number) { return [...this.rows.values()].filter((c) => c.accountId === accountId).sort((a, b) => a.rowId - b.rowId); }
   async getCharacter(accountId: number) {
@@ -350,9 +383,11 @@ export class MemoryStore implements Store {
    * có bài khảo hạch hằng ngày thì bỏ bài của các ngày khác.
    */
   putBag(accountId: number, bag: Bag) {
-    const { quests, slots, ...rest } = copyBag(bag);
-    const old = this.bags.get(accountId)?.slots;
-    this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}) });
+    const { quests, slots, sell, sold, ...rest } = copyBag(bag), prev = this.bags.get(accountId), old = prev?.slots;
+    // Bộ lọc / danh sách tự bán (#216): thiếu khi ghi thì giữ bản đang lưu, như writeBag.
+    const keepSell = sell !== undefined ? sell : prev?.sell, keepSold = sold ?? prev?.sold;
+    this.bags.set(accountId, { ...rest, ...(slots !== undefined || old !== undefined ? { slots: Math.max(slots ?? 0, old ?? 0) } : {}),
+      ...(keepSell !== undefined ? { sell: keepSell } : {}), ...(keepSold ? { sold: keepSold } : {}) });
     if (quests) {
       const daily = quests.some((x) => isDaily(x.chain));
       const keep = (this.quests.get(accountId) ?? []).filter((q) => !quests.some((x) => x.chain === q.chain) && !(daily && isDaily(q.chain)));
@@ -403,11 +438,16 @@ export class MemoryStore implements Store {
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = this.autos.get(accountId);
-    return r ? { settings: structuredClone(r.settings), day: r.day, used: r.used } : { settings: null, day: "", used: 0 };
+    return r ? { settings: structuredClone(r.settings), day: r.day, used: r.used, bonus: r.bonus } : { settings: null, day: "", used: 0, bonus: 0 };
   }
   async saveAuto(accountId: number, row: AutoRow) {
-    if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
-    this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used });
+    checkAutoRow(row);
+    this.autos.set(accountId, { settings: structuredClone(row.settings), day: row.day, used: row.used, bonus: row.bonus });
+  }
+  async saveAutoBag(accountId: number, row: AutoRow, bag: Bag) {
+    checkAutoRow(row); this.checkBag(accountId, bag);
+    await this.saveAuto(accountId, row);
+    this.putBag(accountId, bag);
   }
   async startOffline(accountId: number, row: OfflineRow) { this.offline.set(accountId, { ...row }); }
   async takeOffline(accountId: number) {
@@ -514,17 +554,18 @@ export class PgStore implements Store {
     let acc = await find(), created = false;
     if (!acc) {
       const ins = await this.pool.query(
-        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, hashPass(password)]);
+        "INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, key, await hashPass(password)]);
       created = !!ins.rowCount;
       // Hai yêu cầu tạo cùng tên một lúc: yêu cầu thua bị chỉ mục duy nhất chặn, lấy tài khoản vừa tạo và kiểm tra mật khẩu như thường.
       acc = created ? ins.rows[0] : await find();
       // Không tìm thấy dù chèn bị chặn: tên trùng y hệt một tài khoản cũ bị loại khi điền name_key (xem backfillNameKeys).
       if (!acc) return { error: "Tên này đã có người dùng." };
     }
-    if (!created && !checkPass(password, acc.pass_hash)) {
+    if (!created && !(await checkPass(password, acc.pass_hash))) {
       // Tài khoản cũ trùng tên bị loại khi điền name_key (backfillNameKeys) vẫn đăng nhập được bằng mật khẩu của chính nó.
-      const legacy = (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows
-        .find((r) => nameKey(r.name) === key && checkPass(password, r.pass_hash));
+      let legacy = null;
+      for (const r of (await this.pool.query("SELECT id, name, pass_hash FROM accounts WHERE name_key IS NULL ORDER BY id")).rows)
+        if (nameKey(r.name) === key && await checkPass(password, r.pass_hash)) { legacy = r; break; }
       if (!legacy) return { error: "Sai mật khẩu." };
       acc = legacy;
     }
@@ -533,7 +574,8 @@ export class PgStore implements Store {
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
     return { token, accountId: id };
   }
-  async accountFromToken(token: string) {
+  async accountFromToken(token: unknown) {
+    if (!tokenOk(token)) return null;
     const r = await this.pool.query(
       "SELECT a.id, a.name FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token=$1 AND s.created_at > now() - interval '30 days'", [token]);
     return r.rowCount ? { accountId: Number(r.rows[0].id), name: r.rows[0].name as string } : null;
@@ -677,20 +719,22 @@ export class PgStore implements Store {
   }
   itemRow(x: any): Item {
     return { id: x.id, kind: x.kind, code: x.code, qty: x.qty, years: x.years, stars: x.stars, enhance: x.enhance, stats: x.stats ?? null,
-      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime() };
+      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}) };
   }
   /** Thêm hoặc sửa các ô `items` (chỉ ô của chính tài khoản; id thuộc tài khoản khác thì ném lỗi). Gọi trong transaction. */
   async upsertItems(db: pg.PoolClient, accountId: number, items: Item[]) {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString() })));
+      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked })));
     const r = await db.query(
-      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at)
-       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created
+      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked)
+       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,
-         stats jsonb, vohon_id bigint, created timestamptz)
+         stats jsonb, vohon_id bigint, created timestamptz, locked boolean)
        ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind, code=EXCLUDED.code, qty=EXCLUDED.qty, years=EXCLUDED.years, stars=EXCLUDED.stars,
-         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id
+         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked,
+         -- Thứ tự ô (#215 "Sắp xếp" đặt lại created); cùng mili giây thì giữ giá trị cũ (Item.created chỉ có mili giây).
+         created_at=CASE WHEN date_trunc('milliseconds', items.created_at) = EXCLUDED.created_at THEN items.created_at ELSE EXCLUDED.created_at END
        WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
     if (r.rowCount !== items.length) throw new Error("Id món đồ thuộc tài khoản khác.");
   }
@@ -698,8 +742,10 @@ export class PgStore implements Store {
   async writeBag(db: pg.PoolClient, accountId: number, bag: Bag) {
     bagOk(bag);
     // Số ô túi (9.8) chỉ tăng: lần ghi nào cũng không làm mất ô đã mua.
-    const a = await db.query("UPDATE accounts SET hon_te=$2, bag_slots=CASE WHEN $3::int IS NULL THEN bag_slots ELSE GREATEST(COALESCE(bag_slots, 0), $3::int) END WHERE id=$1",
-      [accountId, bag.honTe, bag.slots ?? null]);
+    // Bộ lọc và danh sách tự bán (#216): thiếu thì giữ nguyên (COALESCE); ghi cùng transaction để mua lại không lệch với túi / Hồn Tệ.
+    const a = await db.query(`UPDATE accounts SET hon_te=$2, bag_slots=CASE WHEN $3::int IS NULL THEN bag_slots ELSE GREATEST(COALESCE(bag_slots, 0), $3::int) END,
+      auto_sell=COALESCE($4::jsonb, auto_sell), auto_sold=COALESCE($5::jsonb, auto_sold) WHERE id=$1`,
+      [accountId, bag.honTe, bag.slots ?? null, bag.sell === undefined ? null : JSON.stringify(bag.sell), bag.sold ? JSON.stringify(bag.sold) : null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
     await this.upsertItems(db, accountId, bag.items);
@@ -719,7 +765,7 @@ export class PgStore implements Store {
     try {
       await db.query("BEGIN");
       // Khóa dòng tài khoản: hai phiên vào cùng lúc không thể cùng nhận vật phẩm khởi đầu.
-      const a = await db.query("SELECT hon_te, starter_items, bag_slots FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+      const a = await db.query("SELECT hon_te, starter_items, bag_slots, auto_sell, auto_sold FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
       if (!a.rowCount) throw new Error(`Không có tài khoản #${accountId}.`);
       const fresh = !a.rows[0].starter_items;
       if (fresh) {
@@ -730,6 +776,7 @@ export class PgStore implements Store {
       const q = await db.query("SELECT chain, step, accepted, prog FROM quests WHERE account_id=$1", [accountId]);
       await db.query("COMMIT");
       return { bag: { honTe: Number(a.rows[0].hon_te), slots: bagSlotsOf(a.rows[0].bag_slots), items: r.rows.map((x) => this.itemRow(x)),
+        sell: a.rows[0].auto_sell ?? undefined, sold: parseSold(a.rows[0].auto_sold),
         quests: q.rows.map((x) => parseQuest({ step: Number(x.step), accepted: x.accepted, prog: x.prog }, x.chain)) }, starter: fresh };
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
@@ -786,16 +833,30 @@ export class PgStore implements Store {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
   }
   async getAuto(accountId: number): Promise<AutoRow> {
-    const r = await this.pool.query("SELECT settings, day, used_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
-    if (!r.rowCount) return { settings: null, day: "", used: 0 };
-    return { settings: r.rows[0].settings, day: String(r.rows[0].day), used: Number(r.rows[0].used_secs) || 0 };
+    const r = await this.pool.query("SELECT settings, day, used_secs, bonus_secs FROM auto_hunt WHERE account_id=$1", [accountId]);
+    if (!r.rowCount) return { settings: null, day: "", used: 0, bonus: 0 };
+    return { settings: r.rows[0].settings, day: String(r.rows[0].day), used: Number(r.rows[0].used_secs) || 0, bonus: Number(r.rows[0].bonus_secs) || 0 };
   }
-  async saveAuto(accountId: number, row: AutoRow) {
-    if (!Number.isFinite(row.used) || row.used < 0) throw new Error("Giờ treo tự săn không hợp lệ.");
-    await this.pool.query(
-      `INSERT INTO auto_hunt (account_id, settings, day, used_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, now())
-       ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs, updated_at=now()`,
-      [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used]);
+  async saveAuto(accountId: number, row: AutoRow, db: pg.Pool | pg.PoolClient = this.pool) {
+    checkAutoRow(row);
+    await db.query(
+      `INSERT INTO auto_hunt (account_id, settings, day, used_secs, bonus_secs, updated_at) VALUES ($1, $2::jsonb, $3, $4, $5, now())
+       ON CONFLICT (account_id) DO UPDATE SET settings=EXCLUDED.settings, day=EXCLUDED.day, used_secs=EXCLUDED.used_secs,
+         bonus_secs=EXCLUDED.bonus_secs, updated_at=now()`,
+      [accountId, JSON.stringify(row.settings ?? {}), row.day, row.used, row.bonus]);
+  }
+  async saveAutoBag(accountId: number, row: AutoRow, bag: Bag) {
+    checkAutoRow(row);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await this.saveAuto(accountId, row, db);
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async startOffline(accountId: number, row: OfflineRow) {
     await this.pool.query(

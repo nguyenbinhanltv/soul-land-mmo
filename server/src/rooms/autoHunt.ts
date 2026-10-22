@@ -3,9 +3,9 @@
 // cũ (hồi chiêu, hồn lực, Câm lặng / Choáng, vùng an toàn, quyền nhặt, túi đầy…) vẫn áp như khi người chơi tự bấm. Không đường tắt.
 // Quyết định chạy AUTO_HZ lần mỗi giây; giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi mục tiêu trong tầm.
 import type { Client } from "colyseus";
-import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TEAM_SIZE, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
-  AUTO_HZ, AUTO_RADIUS, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, loadoutOf, ringSkill, chanThanOf, autoTimeText,
-  type AutoSettings, type SkillDef, type ItemDef } from "../../../shared/data.ts";
+import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
+  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, loadoutOf, ringSkill, chanThanOf, autoTimeText, itemDef, xpNeed, formatYears,
+  type AutoSettings, type AutoSummary, type SkillDef, type ItemDef } from "../../../shared/data.ts";
 import { MOVE_DEAD } from "../../../shared/move.ts";
 import { findPath, clearLine, type Pt } from "../../../shared/path.ts";
 import * as party from "../party.ts";
@@ -17,6 +17,22 @@ const HP_POTS = ITEMS.filter((d) => d.hp), MP_POTS = ITEMS.filter((d) => d.mp);
 /** Nửa cỡ hồn thú lớn nhất: cộng vào bán kính khi lấy ứng viên từ lưới không gian (như BEAST_HALF của MapRoom). */
 const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
+/** Kinh nghiệm tích lũy của một võ hồn (mọi cấp đã qua cộng phần của cấp đang có): hiệu hai lần chụp là kinh nghiệm nhận được. */
+const xpTotal = (level: number, xp: number) => { let n = xp; for (let l = 1; l < level; l++) n += xpNeed(l); return n; };
+
+/** Ảnh chụp để tính tổng kết (Auto 2): hồn thú đã hạ và kinh nghiệm cộng mọi võ hồn, Hồn Tệ, số món trong túi theo nhãn. */
+interface AutoSnap { kills: number; xp: number; coins: number; bag: Map<string, number>; }
+function snap(room: MapRoom, id: string, d: PData): AutoSnap {
+  room.syncCh(id); // võ hồn ra trận: cấp / kinh nghiệm / số hồn thú đã hạ đang ở state, chép vào d.ch trước khi cộng
+  const bag = new Map<string, number>();
+  for (const it of d.bag) {
+    if (it.vohonId !== null) continue;
+    const name = it.code === RING_ITEM ? `Hồn hoàn ${formatYears(it.years ?? 0)}` : it.code === CORE_ITEM ? `Hồn hạch ${it.stars ?? 1}★`
+      : itemDef(it.code)?.name ?? "Vật phẩm lạ";
+    bag.set(name, (bag.get(name) ?? 0) + it.qty);
+  }
+  return { kills: d.owned.reduce((n, v) => n + v.kills, 0), xp: d.owned.reduce((n, v) => n + xpTotal(v.level, v.xp), 0), coins: d.honTe, bag };
+}
 
 export class AutoHunter {
   /** Hồn thú đang nhắm; `hit`: mình đã đánh trúng nó (thấy `hitBy` là mình) nên người khác đánh sau không làm mình bỏ. */
@@ -40,7 +56,23 @@ export class AutoHunter {
   /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
   los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
 
-  constructor(private room: MapRoom, readonly id: string, readonly anchor: Pt, public cfg: AutoSettings) {}
+  /** Tổng kết: giây đã treo lượt này và ảnh chụp lúc bật. */
+  secs = 0; start: AutoSnap;
+
+  constructor(private room: MapRoom, readonly id: string, readonly anchor: Pt, public cfg: AutoSettings) {
+    this.start = snap(room, id, room.pdata.get(id)!);
+  }
+  /** Bán kính vùng neo (pixel) theo cài đặt. */
+  get R() { return this.cfg.radius * TILE; }
+
+  /** Tổng kết lượt tự săn (Auto 2): so ảnh chụp lúc bật với bây giờ; đồ nhặt là các món tăng trong túi, nhiều nhất trước. */
+  summary(d: PData): AutoSummary {
+    const now = snap(this.room, this.id, d), loot: [string, number][] = [];
+    for (const [k, n] of now.bag) { const g = n - (this.start.bag.get(k) ?? 0); if (g > 0) loot.push([k, g]); }
+    loot.sort((a, b) => b[1] - a[1]);
+    return { secs: Math.round(this.secs), kills: Math.max(0, now.kills - this.start.kills), xp: Math.max(0, now.xp - this.start.xp),
+      coins: Math.max(0, now.coins - this.start.coins), loot: loot.slice(0, AUTO_SUM_LOOT) };
+  }
 
   /**
    * Mỗi nhịp của phòng (trước bước di chuyển của người chơi): tính giờ treo, quyết định AUTO_HZ lần mỗi giây, lái hướng đi và đánh
@@ -49,8 +81,10 @@ export class AutoHunter {
   tick(dt: number) {
     const room = this.room, p = room.state.players.get(this.id), d = room.pdata.get(this.id), c = room.clients.getById(this.id);
     if (!p || !d || !c) return room.autoStop(this.id, "mất kết nối.");
-    this.clock += dt;
-    d.autoUsed += dt; d.autoDirty = true;
+    this.clock += dt; this.secs += dt;
+    // Giờ miễn phí của hôm nay trước, hết thì tiêu quỹ cộng thêm từ Ủy Thác Lệnh (Auto 2).
+    if (d.autoUsed < AUTO_DAILY_SECS) d.autoUsed += dt; else d.autoBonus = Math.max(0, d.autoBonus - dt);
+    d.autoDirty = true;
     const why = this.stopReason(p, d);
     if (why) return room.autoStop(this.id, why);
     if ((this.decT -= dt) <= 0) { this.decT = 1 / AUTO_HZ; this.decide(p, d, c, 1 / AUTO_HZ); }
@@ -81,15 +115,19 @@ export class AutoHunter {
     return false;
   }
 
-  /** Điều kiện dừng kiểm mỗi nhịp (mục 5.13): gục, vùng an toàn, đi cổng / truyền tống, hấp thụ, hết giờ trong ngày, túi đầy. */
+  /**
+   * Điều kiện dừng kiểm mỗi nhịp (mục 5.13): gục, vùng an toàn, đi cổng / truyền tống, hấp thụ, hết giờ trong ngày, túi đầy (đã bật tự
+   * bán thì bán từ xa theo bộ lọc trước, #216; vẫn đầy mới dừng).
+   */
   stopReason(p: PlayerState, d: PData): string | null {
     if (p.dead) return "cả đội đã gục.";
     if (d.travelling) return "rời bản đồ.";
     if (d.travelCast) return "đang đi cổng / truyền tống.";
     if (this.room.map.inSafe(p.x, p.y)) return "vào vùng an toàn.";
     if (d.absorbing) return "đang hấp thụ hồn hoàn.";
-    if (d.autoUsed >= AUTO_DAILY_SECS) return `đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)} hôm nay.`;
-    if (d.bag.filter((i) => i.vohonId === null).length >= d.bagSlots) return `túi đồ đã đầy (${d.bagSlots} ô).`;
+    if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return `đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)} hôm nay.`;
+    if (d.bag.filter((i) => i.vohonId === null).length >= d.bagSlots && !this.room.autoSell(this.id))
+      return `túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`;
     return null;
   }
 
@@ -127,7 +165,7 @@ export class AutoHunter {
     }
     const t = this.findTarget(p);
     if (t) { this.setTarget(t); return; }
-    const far = Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > AUTO_RADIUS;
+    const far = Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > this.R;
     if (far) { this.patrol = null; this.go(this.anchor); return; }
     if (!this.patrol || (this.patrolT -= dt) <= 0 || Math.hypot(this.patrol.x - p.x, this.patrol.y - p.y) < 6) {
       this.patrol = this.patrolPoint(); this.patrolT = rand(AUTO_MOVE.patrol[0], AUTO_MOVE.patrol[1]);
@@ -163,8 +201,8 @@ export class AutoHunter {
     const b = this.room.state.beasts.get(bid), bd = this.room.bdata.get(bid);
     if (!b || !bd || b.hp <= 0 || b.rank || bd.ret > 0 || this.skip.has(bid)) return false;
     if (bd.hitBy === this.id) this.hit = true;
-    if (bd.target === this.id) return Math.hypot(b.x - p.x, b.y - p.y) < AUTO_RADIUS * 2;
-    if (Math.hypot(b.x - this.anchor.x, b.y - this.anchor.y) > AUTO_RADIUS + 2 * TILE) return false;
+    if (bd.target === this.id) return Math.hypot(b.x - p.x, b.y - p.y) < this.R * 2;
+    if (Math.hypot(b.x - this.anchor.x, b.y - this.anchor.y) > this.R + 2 * TILE) return false;
     return !(this.taken(bid) && !(this.hit && bd.hitBy === this.id));
   }
   /** Hồn thú thường đang đánh mình ở gần (gần nhất). */
@@ -179,7 +217,7 @@ export class AutoHunter {
   }
   /** Mục tiêu mới: hồn thú thường trong vùng neo, đúng khoảng niên hạn, chưa ai giành, gần mình nhất. */
   findTarget(p: PlayerState) {
-    const [y0, y1] = this.cfg.years, R = AUTO_RADIUS;
+    const [y0, y1] = this.cfg.years, R = this.R;
     let best: string | null = null, bdist = Infinity;
     for (const [bid, b] of this.room.beastsNear(this.anchor.x, this.anchor.y, R)) {
       if (b.rank || b.hp <= 0 || b.years < y0 || b.years > y1 || this.skip.has(bid)) continue;
@@ -191,21 +229,22 @@ export class AutoHunter {
   }
 
   // ---------- Nhặt ----------
-  /** Đồ rơi qua bộ lọc cài đặt: hồn hoàn từ `ring` năm, hồn cốt, hồn hạch, vật phẩm khác. */
+  /** Đồ rơi qua bộ lọc cài đặt: hồn hoàn từ `ring` năm, hồn cốt, hồn hạch từ `coreStar` sao, vật phẩm khác theo loại (`kinds`). */
   wanted(dr: DropState) {
     if (dr.item === "") return this.cfg.ring >= 0 && dr.years >= this.cfg.ring;
     if (dr.item === BONE_ITEM) return this.cfg.bone;
-    if (dr.item === CORE_ITEM) return this.cfg.core;
-    return this.cfg.item;
+    if (dr.item === CORE_ITEM) return this.cfg.core && dr.stars >= this.cfg.coreStar;
+    const kind = itemDef(dr.item)?.kind;
+    return !!kind && this.cfg.kinds.includes(kind);
   }
   lootable(did: string) {
     const dr = this.room.state.drops.get(did);
     return !!dr && !this.skip.has(did) && this.wanted(dr) && this.room.canLoot(dr, this.id)
-      && Math.hypot(dr.x - this.anchor.x, dr.y - this.anchor.y) <= AUTO_RADIUS + 2 * TILE;
+      && Math.hypot(dr.x - this.anchor.x, dr.y - this.anchor.y) <= this.R + 2 * TILE;
   }
   findLoot(p: PlayerState) {
     let best: string | null = null, bdist = Infinity;
-    for (const did of this.room.interest.drops.near(this.anchor.x, this.anchor.y, AUTO_RADIUS)) {
+    for (const did of this.room.interest.drops.near(this.anchor.x, this.anchor.y, this.R)) {
       if (!this.lootable(did)) continue;
       const dr = this.room.state.drops.get(did)!, dd = Math.hypot(dr.x - p.x, dr.y - p.y);
       if (dd < bdist) { bdist = dd; best = did; }
@@ -228,13 +267,13 @@ export class AutoHunter {
 
   /**
    * Đổi tay tung tiên cơ (cài đặt `tienCo`): đang đánh mà võ hồn khác trong đội (chưa gục) đầy năng lượng thì đổi vào (switchSlot tự
-   * tung); hết hồi chiêu đổi thì về võ hồn chính. Trả về true nếu vừa đổi.
+   * tung), xét các ô theo thứ tự ưu tiên `slots`; hết hồi chiêu đổi thì về võ hồn chính. Trả về true nếu vừa đổi.
    */
   tienCo(p: PlayerState, d: PData, c: Client) {
     if (!this.cfg.tienCo || p.swCd > 0) return false;
     if (this.home !== null && (!d.team.includes(this.home) || d.down.has(this.home))) this.home = null;
     if (this.target) {
-      for (let s = 0; s < TEAM_SIZE; s++) {
+      for (const s of this.cfg.slots) {
         const r = d.team[s];
         if (!r || r === d.ch.rowId || d.down.has(r) || (d.energy.get(r) ?? 0) < TIEN_CO_MAX) continue;
         const from = d.ch.rowId;
@@ -354,7 +393,7 @@ export class AutoHunter {
   patrolPoint(): Pt {
     const map = this.room.map;
     for (let k = 0; k < 12; k++) {
-      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * AUTO_RADIUS * 0.85;
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * this.R * 0.85;
       const x = this.anchor.x + Math.cos(a) * r, y = this.anchor.y + Math.sin(a) * r;
       if (map.standable(x, y) && !map.inSafe(x, y)) return { x, y };
     }

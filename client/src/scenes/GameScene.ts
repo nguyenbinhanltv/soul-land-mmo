@@ -1,13 +1,13 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  ringSkill, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
+  ringSkill, loadoutOf, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
-  itemDef, PLAYER_STATUS, type Tele, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
+  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -24,9 +24,11 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { AudioManager, type AudioEvent } from "../audio/AudioManager.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
+import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -109,6 +111,11 @@ const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
 const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
 const TELE_COL = 0xff3b3b;
+/** Thời gian nở của bọc trứng theo mã loài (EggDef trong chiêu thú vương, #162): đồng hồ nở vẽ theo phần còn lại. */
+const EGG_SECS = new Map(BOSSES.flatMap((d) => [...d.skills, ...(d.phase2?.skills ?? [])]).flatMap((x) => (x.eggs ? [[x.eggs.species, x.eggs.secs] as const] : [])));
+const eggLeft = (b: any) => (b.egg / 10).toFixed(1).replace(".", ",");
+/** Bọc trứng còn dưới ngần này (phần mười giây, như BeastState.egg) thì coi là sắp nở: phập phồng nhanh, đồng hồ đỏ. */
+const EGG_SOON = 30;
 /** Vòng an toàn của chiêu toàn sàn boss thế giới (#118) và vòng sóng chỗ Du Thủy sắp nổi lên. */
 const SAFE_COL = 0x7fe0c0, DIVE_COL = 0x4ab0ff;
 /**
@@ -143,6 +150,8 @@ export class GameScene extends Phaser.Scene {
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
   bossList: { id: string; name: string; pct: number }[] | null = null;
   teleG!: Phaser.GameObjects.Graphics;
+  /** Đồng hồ phía client của vùng lưu lại (#161, drawGrounds): `ttl` lần đổi gần nhất, lúc đổi, lúc thấy lần đầu (ms của scene). */
+  groundClock = new Map<string, { v: number; at: number; seen: number }>();
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
   /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
@@ -219,7 +228,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
-      this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
+      this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
@@ -314,6 +323,17 @@ export class GameScene extends Phaser.Scene {
     this.audio.bindUnlock(this.ac.signal);
     this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
+    // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
+    const ownedAt = (rowId: number | undefined) => this.owned?.list.find((v) => v.rowId === rowId);
+    bindAutoPanel({
+      send: (op, cfg) => this.room.send("auto", cfg ? { op, cfg } : { op }),
+      slotName: (i) => { const v = ownedAt(this.owned?.team[i]); return v ? `${VOHON[Math.max(0, vohonIndex(v.vohon))].name} cấp ${v.level}` : ""; },
+      skillName: (i) => {
+        const v = ownedAt(this.owned?.active); if (!v) return "";
+        const r = loadoutOf(v.vohon, v.skills)[i];
+        return r >= 0 && r < v.rings.length ? ringSkill(v.vohon, r)?.name ?? "" : "";
+      },
+    }, this.ac.signal);
     this.setupInput();
     this.setupMessages();
     document.getElementById("hud")!.hidden = false;
@@ -511,6 +531,10 @@ export class GameScene extends Phaser.Scene {
   setupInput() {
     const chat = document.getElementById("chat") as HTMLInputElement;
     const typing = () => document.activeElement === chat;
+    // Ô nhập khác trên HUD (niên hạn, sao hồn hạch ở bảng Tự động, ô mời tổ đội): phím thuộc về ô, không phải phím tắt game.
+    // Ô đánh dấu / thanh trượt / nút không tính (bảng tự bỏ tiêu điểm sau khi đổi).
+    const field = (t: EventTarget | null) => t instanceof HTMLSelectElement || t instanceof HTMLTextAreaElement ||
+      (t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button"].includes(t.type));
     const on = { signal: this.ac.signal };
     addEventListener("keydown", (e) => {
       if (typing()) {
@@ -518,12 +542,14 @@ export class GameScene extends Phaser.Scene {
         if (e.key === "Escape") chat.blur();
         return;
       }
+      const f = document.activeElement;
+      if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
-      if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); hud.toggleRoster(); return; }
-      if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); hud.toggleBag(); return; }
-      if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
-      if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
-      if (e.code === "Escape") { closeAudioPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); return; }
+      if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
+      if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
+      if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
@@ -543,11 +569,13 @@ export class GameScene extends Phaser.Scene {
     addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
     addEventListener("blur", () => { this.keys = {}; }, on);
     chat.addEventListener("focus", () => { this.keys = {}; }, on);
-    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleRoster(); }, on);
-    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleBag(); }, on);
-    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); hud.toggleReso(); }, on);
-    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); this.openWorld(); }, on);
-    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.toggleAuto(); }, on);
+    addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
+    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
+    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
+    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
+    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); this.openWorld(); }, on);
+    // Nút "Tự động" mở bảng cài đặt (Auto 2); phím T vẫn bật / tắt ngay.
+    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); toggleAutoPanel(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     hud.onResonanceTop((page, pageSize) => this.room.send("resonance", { op: "top", page, pageSize }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
@@ -605,7 +633,7 @@ export class GameScene extends Phaser.Scene {
   /** Xin đi qua cổng đang đứng: chỉ gửi tên cổng, server kiểm tra vị trí và chọn bản đồ đích. */
   goPortal() { if (this.portal?.name) this.room.send("travel", { portal: this.portal.name }); }
 
-  /** Bật / tắt tự săn (phím T, nút "Tự động"; Auto 1): chỉ gửi ý định, server kiểm tra và trả tin `auto`. */
+  /** Bật / tắt tự săn (phím T, nút trong bảng Tự động): chỉ gửi ý định, server kiểm tra và trả tin `auto`. */
   toggleAuto() { this.room.send("auto", { op: this.room.state.players.get(this.me)?.auto ? "off" : "on" }); }
 
   act(a: string) {
@@ -745,7 +773,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.room.onMessage("recall", (m: { on: boolean; label?: string; secs?: number }) => hud.setRecall(m?.on ? { label: m.label ?? "", secs: m.secs ?? 1 } : null));
     // Tự săn (Auto 1): trạng thái nút và giờ treo còn lại; server báo lý do dừng / từ chối bằng dòng log.
-    this.room.onMessage("auto", (m: AutoMsg) => hud.setAuto(m));
+    this.room.onMessage("auto", (m: AutoMsg) => { hud.setAuto(m); setAutoMsg(m); }); // bảng Tự động, tổng kết khi dừng (Auto 2)
     // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
     this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
     if (!this.isArena) this.room.send("offline");
@@ -864,7 +892,15 @@ export class GameScene extends Phaser.Scene {
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
-    this.room.onMessage("bag", (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); });
+    // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
+    const onBag = (m: BagMsg) => { this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    this.room.onMessage("bag", onBag);
+    this.room.onMessage("bagd", (m: BagDeltaMsg) => {
+      if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
+        sell: m.sell ?? this.bag.sell, sold: m.sold ?? this.bag.sold });
+    });
+    // Tự bán từ xa (#216): server vừa bán đồ hợp bộ lọc; túi mới đến bằng tin "bagd", dòng log chi tiết đến cùng lúc.
+    this.room.onMessage("autosold", (m: AutoSoldMsg) => hud.banner(`Đã tự bán ${m.n.toLocaleString("vi-VN")} món`, `+${formatHonTe(m.coins)} · mua lại ở thương nhân`));
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number }) => {
       if (m.to > m.from) this.audio.play("breakthrough");
@@ -928,6 +964,27 @@ export class GameScene extends Phaser.Scene {
       const r = r0 + (r1 - r0) * o.k; g.clear(); g.lineStyle(2, hex(col), 1 - o.k); g.strokeEllipse(c.x, c.y, 2 * RX * r, 2 * RY * r);
     }, onComplete: () => g.destroy() });
   }
+  /**
+   * Bọc trứng (#162): `lay` sợi tơ từ thú vương tới chỗ đẻ và vòng nhỏ; `hatch` vòng lan màu hào quang, chữ "Nở!"; `break` mảnh kén văng
+   * ra và vòng trắng; `fade` (thú vương không còn) chỉ mảnh kén.
+   */
+  eggFx(m: any) {
+    const c = W2S(m.x, m.y), col = m.col ?? "#c8f5b4";
+    if (m.s === "lay") {
+      const o = W2S(m.x0, m.y0), g = this.add.graphics().setDepth(99980);
+      g.lineStyle(1, 0xeef6e4, 0.9).lineBetween(o.x, o.y - 10 * SPR, c.x, c.y - 6 * SPR);
+      this.tweens.add({ targets: g, alpha: 0, duration: 450, onComplete: () => g.destroy() });
+      this.ringFx(c, 2, 12, col, 400);
+      return;
+    }
+    if (m.s === "hatch") { this.ringFx(c, 4, 28, col, 550); this.ringFx(c, 2, 16, "#ffffff", 400, 120); this.floatText(c.x, c.y - 22 * SPR, "Nở!", "#ff6b6b"); }
+    if (m.s === "break") this.ringFx(c, 2, 16, "#ffffff", 350);
+    for (let k = 0; k < 7; k++) {
+      const a = (k / 7) * Math.PI * 2 + Math.random() * 0.5, d = (10 + Math.random() * 8) * SPR;
+      const r = this.add.rectangle(c.x, c.y - 8 * SPR, 2 * SPR, 2 * SPR, k % 2 ? 0xeef6e4 : 0xa9bd96).setDepth(99980);
+      this.tweens.add({ targets: r, x: c.x + Math.cos(a) * d, y: c.y - 8 * SPR + Math.sin(a) * d * 0.6 + 6 * SPR, alpha: 0, duration: 450, onComplete: () => r.destroy() });
+    }
+  }
   /** Chân hồn sư `id` trên màn hình (điểm gốc của hình đang vẽ). */
   feet(v: PView): Pt { return { x: v.root.x, y: v.root.y }; }
 
@@ -958,6 +1015,7 @@ export class GameScene extends Phaser.Scene {
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
     if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.cameras.main.shake(300, 0.004); }
+    else if (m.k === "egg") this.eggFx(m);
     // Truyền tống trận (11.2): mở khóa (vòng lan rộng), bắt đầu / thôi niệm (cột sáng), lúc đi và lúc tới (chớp sáng).
     else if (m.k === "wpopen") { const c = W2S(m.x, m.y); this.ringFx(c, 4, 40, "#8fe0ff", 900); this.ringFx(c, 2, 26, "#e8fbff", 700, 150); }
     else if (m.k === "wpcast") { if (m.t > 0) this.wpCasts.set(m.id, { t0: this.time.now, ms: m.t * 1000 }); else this.wpCasts.delete(m.id); }
@@ -1151,6 +1209,7 @@ export class GameScene extends Phaser.Scene {
   /** Mọi vùng cảnh báo đang hiện: nền đỏ mờ cả vùng, phần đỏ đậm đầy dần theo thời gian, viền nhấp nháy nhanh dần lúc sắp tung. */
   drawTeles(time: number) {
     const g = this.teleG; g.clear();
+    this.drawGrounds(g, time); // vùng lưu lại nằm dưới vùng cảnh báo
     for (const [bid, x] of this.teles) {
       const k = Math.min(1, (time - x.t0) / x.ms);
       // Hồn thú đã bị hạ hoặc server không gửi kết quả (mất gói): bỏ vùng.
@@ -1184,6 +1243,45 @@ export class GameScene extends Phaser.Scene {
     g.lineStyle(2, DIVE_COL, 0.6 + 0.4 * pulse); strokeGround(g, dm.x, dm.y, R);
     for (let j = 0; j < 2; j++) { const f = (time / 900 + j / 2) % 1; g.lineStyle(1, 0xd8f0ff, 1 - f); strokeGround(g, dm.x, dm.y, R * (0.3 + 0.7 * f)); }
     if (b?.dive) for (let j = 0; j < 3; j++) { const f = (time / 1100 + j / 3) % 1; g.lineStyle(1, 0xd8f0ff, 0.8 * (1 - f)); strokeGround(g, b.x, b.y, 12 + (DIVE_MARK.ripple - 12) * f); }
+  }
+  /**
+   * Vùng lưu lại trên mặt đất (#161, `state.grounds`, server chỉ đồng bộ vùng ở gần nên người mới vào tầm vẫn thấy): vẽ bằng code theo
+   * phép chiếu (elip isometric, cả `?view=topdown`), màu theo GROUND_KINDS (độc: lục, không dùng đỏ của vùng cảnh báo). Vũng độc: mặt
+   * nước sẫm, viền sáng, bọt nổi lên rồi vỡ; sương độc: các làn sương mờ trôi chậm quanh tâm. Hiện dần lúc mới có, mờ dần giây cuối.
+   */
+  drawGrounds(g: Phaser.GameObjects.Graphics, time: number) {
+    const grounds = this.room.state.grounds; if (!grounds) return;
+    // Server đồng bộ `ttl` theo giây nguyên: neo lại mỗi lần đổi (lúc đó còn đúng `ttl` giây) rồi tự đếm; `seen`: lúc thấy vùng lần đầu.
+    for (const id of this.groundClock.keys()) if (!grounds.has(id)) this.groundClock.delete(id);
+    grounds.forEach((z: any, id: string) => {
+      let ck = this.groundClock.get(id);
+      if (!ck) this.groundClock.set(id, ck = { v: z.ttl, at: time, seen: time });
+      else if (ck.v !== z.ttl) { ck.v = z.ttl; ck.at = time; }
+      const left = ck.v - (time - ck.at) / 1000;
+      const kind = GROUND_KINDS[z.kind] ?? GROUND_KINDS[0], c = hex(kind.col), seed = parseInt(id.slice(1), 10) || 0;
+      const t: Tele = { shape: TELE_SHAPES[z.shape] ?? "circle", x: z.x, y: z.y, ang: z.ang, r: z.r, w: z.w, arc: z.arc };
+      const fade = Math.max(0, Math.min(1, left, (time - ck.seen) / 300)), pulse = 0.5 + 0.5 * Math.sin(time / 420 + seed);
+      const circle = t.shape === "circle";
+      if (kind.id === "mist") {
+        // Sương: nền mờ cả vùng và 4 làn sương lệch tâm xoay chậm (vòng tròn); hình khác chỉ tô nền nhạt hơn.
+        g.fillStyle(c, 0.22 * fade); this.teleShape(g, t, 1);
+        if (circle) for (let k = 0; k < 4; k++) {
+          const a = time / 2600 + seed + (k * Math.PI) / 2, d = t.r * 0.35;
+          g.fillStyle(c, (0.16 + 0.07 * Math.sin(time / 700 + k)) * fade);
+          fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, t.r * 0.55, 3 + 2 * Math.sin(time / 900 + k));
+        }
+        g.lineStyle(1, c, (0.4 + 0.25 * pulse) * fade); this.teleOutline(g, t);
+        return;
+      }
+      // Vũng: nền sẫm, lõi đậm hơn, viền sáng đập nhẹ, bọt nổi (vị trí theo id vùng để mỗi vũng một kiểu).
+      g.fillStyle(0x10260c, 0.55 * fade); this.teleShape(g, t, 1);
+      g.fillStyle(c, (0.3 + 0.1 * pulse) * fade); this.teleShape(g, t, circle ? 0.72 : 1);
+      g.lineStyle(2, c, (0.6 + 0.3 * pulse) * fade); this.teleOutline(g, t);
+      if (circle) for (let k = 0; k < 5; k++) {
+        const ph = ((time / 1100 + k * 0.37 + seed * 0.13) % 1), a = seed * 1.7 + k * 2.4, d = t.r * (0.2 + 0.55 * ((k * 0.61 + seed * 0.29) % 1));
+        g.fillStyle(0xe8ffb8, (1 - ph) * 0.9 * fade); fillGround(g, t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, 1 + ph * 2.2);
+      }
+    });
   }
   /**
    * Aura tinh anh (BĐ4, mục 5.4 / 5.11, vẽ bằng code): vầng sáng màu riêng dưới chân (lớp mặt đất `teleG`, vẽ sau vùng cảnh báo) và
@@ -1633,8 +1731,12 @@ export class GameScene extends Phaser.Scene {
       // Báo trước chiêu (3.5): sheet theo loài giữ khung đầu `attack`; sprite vẽ bằng code thì phồng lên co lại.
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
       // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
-      const k = rankScale(b.rank), spr = syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
-      if (!spr) {
+      // Bọc trứng (#162): kén vẽ bằng code, phập phồng nhanh dần khi sắp nở (đồng hồ nở vẽ ở lớp phủ bên dưới).
+      const egg = b.egg > 0, k = rankScale(b.rank), spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
+      if (egg) {
+        if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
+        s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
+      } else if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
       } else {
@@ -1654,15 +1756,15 @@ export class GameScene extends Phaser.Scene {
       const dsx = s.x - ox;
       if (spr !== "iso") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
       s.setDepth(s.y);
-      if (b.rank) {
+      if (b.rank || egg) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
-          lb = this.add.text(s.x, s.y, beastName(b.rank, b.species), { fontFamily: FONT, fontSize: b.rank >= 2 ? "9px" : "7px", fontStyle: "800",
-            color: BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
+          lb = this.add.text(s.x, s.y, "", { fontFamily: FONT, fontSize: b.rank >= 2 ? "9px" : "7px", fontStyle: "800",
+            color: egg ? "#c8f5b4" : BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984).setScale(this.txtK);
       }
@@ -1703,7 +1805,14 @@ export class GameScene extends Phaser.Scene {
     const g = this.ov; g.clear();
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id)!, t = TIERS[b.tier];
-      if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, (t.size + 6) * SPR, 6 * SPR); }
+      if (b.egg) {
+        // Đồng hồ nở (#162): cung trên mặt đất quanh bọc, ngắn dần theo thời gian còn lại; dưới 3 giây thì đỏ.
+        const f = Math.min(1, b.egg / 10 / (EGG_SECS.get(BEASTS[b.species]?.id ?? "") ?? b.egg / 10)), n = Math.max(2, Math.ceil(f * 32)), pts: Pt[] = [];
+        for (let i = 0; i <= n; i++) { const a = -Math.PI / 2 + (f * 2 * Math.PI * i) / n; pts.push({ x: s.x + Math.cos(a) * RX * 14, y: s.y + Math.sin(a) * RY * 14 }); }
+        g.lineStyle(1, 0x000000, 0.5).strokeEllipse(s.x, s.y, 2 * RX * 14, 2 * RY * 14);
+        g.lineStyle(2, b.egg < EGG_SOON ? 0xff5a3a : 0x9be23a, 0.95).strokePoints(pts);
+      }
+      else if (b.tier >= 1) { g.lineStyle(1, hex(t.glow), 0.4 + 0.2 * Math.sin(time / 300)); g.strokeEllipse(s.x, s.y, (t.size + 6) * SPR, 6 * SPR); }
       if (b.hp < b.maxHp) {
         const w = Math.max(14, t.size + 4) * SPR;
         const y = beastTop(s, b.tier) - 2;
@@ -1911,6 +2020,9 @@ export class GameScene extends Phaser.Scene {
       use: (id) => this.room.send("use", { id }),
       absorb: (id, vohonId) => this.room.send("absorb", { itemId: id, vohonId }),
       discard: (id) => this.room.send("discard", { id }),
+      sort: () => this.room.send("sortbag"),
+      lock: (id) => this.room.send("lock", { id }), // khoá / mở khoá ô (#216)
+      autoSell: (cfg) => this.room.send("autosell", { cfg }), // bộ lọc tự bán (#216)
       open: (id) => this.room.send("open", { id }), // rương thú vương (BĐ5): server tung phần thưởng
       absorbOptions: (years) => this.absorbOptions(years),
       herb: (id, vohonId) => this.room.send("use", { id, vohonId }), // tiên thảo (BĐ6b): dùng cho võ hồn đã chọn
@@ -2060,7 +2172,9 @@ export class GameScene extends Phaser.Scene {
     // Cấp tương đương theo số năm (BĐ3) và mức kinh nghiệm còn nhận khi hồn thú thấp hơn võ hồn ra trận (mục 5.3).
     const tLv = tb ? beastLevel(tb.years) : 0, xpk = tb ? xpLevelScale(me.level, tLv) : 1;
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
-    hud.showTarget(tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+    // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
+    hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
+      : tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
     let dr: any = null, dd = PICKUP_RANGE;
