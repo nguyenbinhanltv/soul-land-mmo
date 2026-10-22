@@ -81,6 +81,12 @@ export class Grounds {
     }
   }
 
+  /** Điểm (x, y) đứng trong một vùng đang có không (tự săn né vùng độc, #218; cùng cách tính trúng với `tick`). */
+  hits(x: number, y: number) {
+    for (const z of this.list.values()) if (teleHits(z.tele, x, y)) return true;
+    return false;
+  }
+
   /** Hook kiểm thử `ground {ttl}`: mọi vùng còn đúng `s` giây. */
   setTtl(s: number) {
     for (const [id, z] of this.list) { z.t = s; const g = this.room.state.grounds.get(id); if (g) g.ttl = Math.ceil(s); }
