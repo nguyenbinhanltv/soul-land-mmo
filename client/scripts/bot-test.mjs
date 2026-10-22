@@ -67,6 +67,8 @@
 // nhận thưởng đúng số giây / Hồn Tệ / hồn hoàn tối đa, quỹ giờ treo chung với tự săn, chia theo ngày, quá sức, túi đầy, vùng an toàn.
 // Chống gian lận 2 (#165; cheatBagTest, BOT_ONLY=cheat2): tin xin lại bag / vohons / quest theo nhịp ASK_CD, hồn hoàn đang hấp thụ không
 // tính cho khảo hạch nộp hồn hoàn, đang ghi phần thưởng boss (hook claimhold) thì không bán / bỏ / hấp thụ.
+// Tông môn (#196, tongTest, nhóm 3 của BOT_PART; BOT_ONLY=tong): điều kiện gia nhập (xong tân thủ, cấp, đứng gần sứ giả), đổi tông chờ TONG_SWITCH_DAYS
+// ngày (hook tong lùi giờ), rời tông không lách được thời gian chờ, tên tông hiện cho người ở gần, lưu DB qua lần vào lại.
 // Tự bán từ xa (#216, sellTest; BOT_ONLY=sell): bộ lọc, khoá món, bán khi túi gần đầy, lưu qua lần vào lại, mua lại ở thương nhân, tự săn bán thay vì dừng.
 // Chống gian lận 1 (#164, cheatTest, nhóm 1 của BOT_PART; BOT_ONLY=cheat): message di chuyển / chiến đấu / cổng / kênh mang giá trị lạ bị bỏ qua
 // (không đổi vị trí / hồi chiêu / đội), gửi dồn chỉ ra một lần, client không tự mở phòng, xếp ô / đội gửi dồn lưu đúng lần cuối.
@@ -105,7 +107,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
   ITEMS, ITEM_KINDS, NPCS, npcDef, NPC_RANGE, SHOP, SHOP_MAX_QTY, sellPrice, ringSellPrice, RING_SELL, BONE_SELL, BONE_SELL_ENH, CORE_SELL, SHARD_SELL,
   BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX,
-  QUEST_STARTER, QUEST_CH2, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, SWITCH_CD,
+  QUEST_STARTER, QUEST_CH2, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, SWITCH_CD, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek,
   DAILY, DAILY_POOL, dailyIds, dailyKey, dailyPicks, isDaily, fitBeast, fitMaps,
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
@@ -192,6 +194,7 @@ async function enter(b,roomId){
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
+  b.tong=null; b.tongN=0; b.room.onMessage("tong",m=>{b.tong=m; b.tongN++;}); // tông môn (#196)
   b.top=null; b.topN=0; b.room.onMessage("arenaTop",m=>{b.top=m; b.topN++;});
   b.room.onMessage("log",m=>b.logs.push(m.text)); b.chats=[]; b.room.onMessage("chat",m=>{b.chats.push(m); if(b.chats.length>200) b.chats.shift();});
   b.fx=[]; b.fxs=[]; b.dmgs=[]; b.hurts=[]; b.gifts=[];
@@ -293,6 +296,7 @@ if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ 
 if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -4679,6 +4683,7 @@ await npcTown();
 bagSyncPure();
 await shopBuybackTest();
 await sellTest();
+if(inPart(3)) await tongTest(); // #196
 await waypointTest();
 await campTest();
 await bigMapTest();
@@ -5701,6 +5706,59 @@ function bagSyncPure(){
  */
 // Tự bán từ xa (#216, mục 5.7 "Tự bán"; BOT_ONLY=sell): bộ lọc, khoá món, bán khi túi còn dưới AUTO_SELL_FREE ô trống, lưu qua lần vào
 // lại, mua lại ở thương nhân, tự săn bán thay vì dừng khi túi đầy (tổng kết có dòng đã tự bán).
+async function tongTest(){
+  console.log("[#196] Tông môn");
+  const noon=Date.UTC(2026,9,22,5,0), mon=Date.UTC(2026,9,19)/86400000;
+  ok(TONG_MON.length===4&&new Set(TONG_MON.map(t=>t.id)).size===4&&TONG_MON.every(t=>npcDef(t.npc)?.role==="tong"&&tongDef(t.id)===t)&&!tongDef("x"),"TONG_MON: 4 tông, mỗi tông một sứ giả role tong");
+  ok(tongWeek(noon)===mon&&tongWeek(Date.UTC(2026,9,18,18,0))===mon&&tongWeek(Date.UTC(2026,9,18,16,0))===mon-7,
+    `tongWeek: thứ Hai giờ Việt Nam (${tongWeek(noon)})`);
+  const S=await bot("Tông môn","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2}), O=await bot("Tông quan sát","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tông môn (cần hook test): bật server bằng GAME_TEST=1"); await S.room.leave(); await O.room.leave(); return; }
+  try{
+  const MAP="thien_dau_thanh", spot=id=>npcSpot(MAP,id), nsteps=questChain(QUEST_STARTER).steps.length;
+  const me=b=>b.room.state.players?.get(b.room.sessionId), seen=()=>O.room.state.players?.get(S.room.sessionId);
+  async function rejoin(b){ await b.room.leave(); await sleep(400); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag,3000); }
+  async function toThienDau(b,id){ b.travel=null; b.room.send("test",{op:"warp",mapId:MAP,x:spot(id).x,y:spot(id).y+16});
+    ok(await waitFor(()=>b.travel?.mapId===MAP,4000),`${b.name}: tới Thiên Đấu Thành`); await rejoin(b); await test(b,"goto",{x:spot(id).x,y:spot(id).y+16}); }
+  async function near(b,id){ await test(b,"goto",{x:spot(id).x,y:spot(id).y+16}); }
+  async function act(b,op,tong){ const l=b.logs.length, n=b.tongN; b.room.send("tong",{op,tong}); await waitFor(()=>b.tongN>n,1500); await sleep(150); return b.logs.slice(l).join(" | "); } // 150 ms: bản vá state tới sau tin riêng
+  const H=TONG_MON[0], T=TONG_MON[1], L=TONG_MON[2];
+  await toThienDau(S,H.npc); await toThienDau(O,H.npc);
+  ok(await talk(S,H.npc)===H.npc&&S.tong?.tong===""&&S.tong.wait===0&&me(S).tong===0,"nói chuyện với sứ giả: chưa thuộc tông nào, không phải chờ");
+  let t=await act(S,"join",H.id); ok(/chuỗi/.test(t)&&me(S).tong===0,`chưa xong chuỗi tân thủ: từ chối (${t})`);
+  await test(S,"quest",{step:nsteps,accepted:false}); await test(S,"set",{rowId:S.owned.active,level:TONG_MIN_LEVEL-1,xp:0});
+  t=await act(S,"join",H.id); ok(new RegExp(`cấp ${TONG_MIN_LEVEL}`).test(t)&&me(S).tong===0,`võ hồn cấp ${TONG_MIN_LEVEL-1}: từ chối (${t})`);
+  await test(S,"set",{rowId:S.owned.active,level:TONG_MIN_LEVEL,xp:0});
+  t=await act(S,"join",T.id); ok(/lại gần/.test(t)&&me(S).tong===0,`đứng xa sứ giả ${T.name}: từ chối (${t})`);
+  t=await act(S,"join","khong_co"); ok(/không tồn tại/.test(t)&&me(S).tong===0,`mã tông lạ: từ chối (${t})`);
+  t=await act(S,"leave"); ok(/chưa thuộc/.test(t),`rời khi chưa có tông: từ chối (${t})`);
+  t=await act(S,"join",H.id); ok(S.tong.tong===H.id&&me(S).tong===1&&/gia nhập/.test(t),`đủ điều kiện: gia nhập ${H.name} (${t})`);
+  ok(await waitFor(()=>seen()?.tong===1,2000),"người ở gần thấy PlayerState.tong của hồn sư");
+  ok(S.tong.wait>TONG_SWITCH_DAYS*86400-30&&S.tong.wait<=TONG_SWITCH_DAYS*86400,`thời gian chờ đổi tông ~${TONG_SWITCH_DAYS} ngày (${S.tong.wait} giây)`);
+  t=await act(S,"join",H.id); ok(/đã là người/.test(t),`gia nhập đúng tông đang thuộc: từ chối (${t})`);
+  await near(S,T.npc); t=await act(S,"join",T.id); ok(/ngày nữa/.test(t)&&me(S).tong===1,`đổi tông trước hạn: từ chối (${t})`);
+  // Lưu DB: vào lại vẫn đúng tông, tân thủ và cấp còn nguyên.
+  await rejoin(S); await test(S,"goto",{x:spot(H.npc).x,y:spot(H.npc).y+16});
+  ok(me(S).tong===1&&await talk(S,H.npc)===H.npc&&S.tong?.tong===H.id&&S.tong.wait>0,"vào lại: vẫn thuộc tông cũ, vẫn còn thời gian chờ (lưu DB)");
+  ok(await waitFor(()=>seen()?.tong===1,2000),"người quan sát vẫn thấy tên tông sau khi vào lại");
+  // Đổi tông sau thời gian chờ.
+  let h=await test(S,"tong",{back:TONG_SWITCH_DAYS+1}); ok(h.tong===H.id,"hook tong lùi giờ gia nhập");
+  await near(S,T.npc); await talk(S,T.npc);
+  ok(S.tong.wait===0,"sau thời gian chờ: không còn phải chờ");
+  t=await act(S,"join",T.id); ok(S.tong.tong===T.id&&me(S).tong===2&&/rời .* gia nhập/.test(t),`đổi sang ${T.name} (${t})`);
+  ok(await waitFor(()=>seen()?.tong===2,2000),"người quan sát thấy tông mới");
+  // Rời tông: cần đứng gần sứ giả; rời rồi vào ngay tông khác vẫn phải chờ (không lách thời gian chờ).
+  await near(S,"phat_lan_duc");
+  t=await act(S,"leave"); ok(/lại gần/.test(t)&&me(S).tong===2,`rời tông khi đứng xa: từ chối (${t})`);
+  await near(S,L.npc); t=await act(S,"leave"); ok(S.tong.tong===""&&me(S).tong===0&&/rời/.test(t),`rời ${T.name} (${t})`);
+  ok(await waitFor(()=>seen()?.tong===0,2000),"người quan sát thấy hồn sư không còn tên tông");
+  t=await act(S,"join",L.id); ok(/ngày nữa/.test(t)&&me(S).tong===0,`rời rồi vào tông khác ngay: vẫn phải chờ (${t})`);
+  await test(S,"tong",{back:TONG_SWITCH_DAYS+1}); await rejoin(S); await test(S,"goto",{x:spot(L.npc).x,y:spot(L.npc).y+16});
+  ok(me(S).tong===0&&await talk(S,L.npc)===L.npc&&S.tong?.tong==="","vào lại: vẫn không thuộc tông (rời đã lưu)");
+  t=await act(S,"join",L.id); ok(S.tong.tong===L.id&&me(S).tong===3&&/Chúc mừng/.test(t),`hết thời gian chờ: gia nhập ${L.name} (${t})`);
+  t=await act(S,"leave"); ok(S.tong.tong==="","rời tông cuối"); 
+  }finally{ await S.room.leave().catch(()=>{}); await O.room.leave().catch(()=>{}); }
+}
 async function sellTest(){
   console.log("[#216] Tự bán từ xa khi túi đầy");
   const D=SELL_DEFAULTS, ps=parseSell({on:1,ring:-5,bone:99,core:0,shard:"x",high:true});

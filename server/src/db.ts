@@ -63,6 +63,8 @@ export interface Item {
  * giữ nguyên, ghi thì chỉ tăng (không bao giờ giảm số ô đã mua). Từ #216 `sell`: bộ lọc tự bán (JSON thô, room kiểm lại bằng
  * parseSell; `accounts.auto_sell`), `sold`: các món tự bán gần nhất để mua lại (`accounts.auto_sold`); thiếu khi ghi thì giữ nguyên.
  */
+/** Tông môn của tài khoản (#196). */
+export interface TongRow { tong: string | null; at: number | null; }
 export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
 /** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
 export interface SoldRow { key: string; item: Item; price: number; at: number; }
@@ -186,6 +188,13 @@ export interface Store {
   getWaypoints(accountId: number): Promise<string[]>;
   /** Mở khóa truyền tống trận `wp` (đã có thì thôi, chạy lại an toàn). */
   unlockWaypoint(accountId: number, wp: string): Promise<void>;
+  /** Tông môn của tài khoản (#196, cột `accounts.tong` / `tong_at`): `tong` mã trong TONG_MON (null = không), `at` ms gia nhập gần nhất (null = chưa từng). */
+  getTong(accountId: number): Promise<TongRow>;
+  /**
+   * Đặt tông (null = rời) và lúc gia nhập `at` (null = giữ nguyên). `week` (tongWeek): xoá điểm tuần đó của tài khoản (bảng `tong_points`)
+   * trong cùng transaction; thiếu thì không xoá. Gọi qua chuỗi lưu của người chơi.
+   */
+  setTong(accountId: number, tong: string | null, at: number | null, week?: number): Promise<void>;
   /** Cài đặt và giờ treo tự săn của tài khoản (bảng `auto_hunt`, Auto 1). */
   getAuto(accountId: number): Promise<AutoRow>;
   /** Ghi đè cài đặt và giờ treo tự săn (thêm dòng nếu chưa có); chỉ gọi trong chuỗi lưu của người chơi. */
@@ -300,6 +309,7 @@ export class MemoryStore implements Store {
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
+  tongs = new Map<number, TongRow>(); // accountId -> tông môn (accounts.tong / tong_at, #196)
   autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
   offline = new Map<number, OfflineRow>(); // accountId -> lần ủy thác offline chưa nhận (bảng auto_offline, Auto 3)
   arenaT = 0;
@@ -458,6 +468,10 @@ export class MemoryStore implements Store {
     let set = this.wps.get(accountId);
     if (!set) this.wps.set(accountId, (set = new Set()));
     set.add(wp);
+  }
+  async getTong(accountId: number) { return { ...(this.tongs.get(accountId) ?? { tong: null, at: null }) }; }
+  async setTong(accountId: number, tong: string | null, at: number | null) { // chưa có điểm tuần trong RAM (#197) nên bỏ qua `week`
+    this.tongs.set(accountId, { tong, at: at ?? this.tongs.get(accountId)?.at ?? null });
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = this.autos.get(accountId);
@@ -876,6 +890,23 @@ export class PgStore implements Store {
   }
   async unlockWaypoint(accountId: number, wp: string) {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
+  }
+  async getTong(accountId: number) {
+    const r = await this.pool.query("SELECT tong, tong_at FROM accounts WHERE id=$1", [accountId]);
+    const x = r.rows[0];
+    return { tong: x?.tong ?? null, at: x?.tong_at == null ? null : Number(x.tong_at) };
+  }
+  async setTong(accountId: number, tong: string | null, at: number | null, week?: number) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await db.query("UPDATE accounts SET tong=$2, tong_at=COALESCE($3, tong_at) WHERE id=$1", [accountId, tong, at]);
+      if (week !== undefined) await db.query("DELETE FROM tong_points WHERE account_id=$1 AND week=$2", [accountId, week]);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = await this.pool.query("SELECT settings, day, used_secs, bonus_secs FROM auto_hunt WHERE account_id=$1", [accountId]);

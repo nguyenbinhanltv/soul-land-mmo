@@ -20,7 +20,7 @@ import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "./net.ts";
-import { autoTimeText } from "../../shared/data.ts";
+import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS } from "../../shared/data.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -1712,6 +1712,7 @@ export interface NpcActions {
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
+  tong(op: "join" | "leave", tong?: string): void; // tông môn (#196): gia nhập / đổi sang `tong`, rời tông
 }
 type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
@@ -1723,7 +1724,11 @@ let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" 
 /** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
 const SELL_CONFIRM_DONG = 100;
 const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
-  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì." };
+  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
+  tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
+let tongMsg: { tong: string; wait: number } | null = null; // tin "tong" gần nhất: tông đang thuộc ("" = không), giây còn chờ
+/** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
+export function setTong(m: { tong: string; wait: number }) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 
 /** NPC đang mở hộp thoại (null = đóng). */
 export const npcOpenId = () => npcDefOpen?.id ?? null;
@@ -1811,6 +1816,13 @@ function renderNpc() {
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
       btn("Bảng xếp hạng", "absorb", () => { act.arena("top"); go("rank"); });
+    }
+    if (def.role === "tong") {
+      const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
+      if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true);
+      else if (t) btn(cur ? `Đổi sang ${t.name}` : `Gia nhập ${t.name}`, "absorb", () => act.tong("join", t.id));
+      if (cur) btn(`Rời ${cur.name}`, "drop", () => act.tong("leave"));
+      if (tongMsg && tongMsg.wait > 0) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Còn ${Math.ceil(tongMsg.wait / 86400)} ngày nữa mới đổi được tông.`; el.appendChild(k); }
     }
     btn("Tạm biệt", "drop", () => closeNpc());
     el.appendChild(row);
