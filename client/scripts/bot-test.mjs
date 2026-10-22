@@ -4116,9 +4116,12 @@ else {
       ok(tgi.enhance===BONE_MAX_ENHANCE&&tgi.stats.xp===boneEnhanceNeed(BONE_MAX_ENHANCE)&&/dư .* điểm bị bỏ/.test(t)&&mats.every(id=>!itemOf(id)),`5 nguyên liệu 100.000 năm: +${tgi.enhance} tối đa, điểm dư bị bỏ (${t})`);
       ok(Math.abs(s20.live.passive.buff.def-def20)<1e-4&&Math.abs(def20-Math.min(BONE_PASSIVE_CAP.def,def0*boneSkillMult(20)))<1e-3&&def20>def0,
         `mốc +20 nâng bị động ${BONE_SKILLS[TG].passive.name}: giảm sát thương ${def0} -> ${s20.live.passive.buff.def} (×${boneSkillMult(20)})`);
-      // Từ #187 mốc còn thêm dòng phụ (Thân có thể ra % sinh lực), nên sinh lực tối đa tăng ít nhất phần chỉ số chính.
-      ok(s20.bones.hp===boneStats("than",12000,20).hp&&await waitFor(()=>p.maxHp===s20.live.maxHp)&&s20.live.maxHp===s20.stats.maxHp&&p.maxHp>=hp0+dHp,
-        `sinh lực tối đa ${hp0} -> ${p.maxHp} (chỉ số chính +${dHp}${s20.bones.hp_pct?`, dòng phụ +${s20.bones.hp_pct}%`:""}) ngay khi đang gắn`);
+      // Từ #187 mốc còn thêm dòng phụ ngẫu nhiên: Thân có thể ra % sinh lực, Tay phải +5 đang gắn có thể ra sinh lực cố định. Phần
+      // hồn cốt khớp boneBonus mọi hồn cốt đang gắn (dòng phụ đọc từ túi), sinh lực tối đa tăng ít nhất phần chỉ số chính.
+      const wantB=boneBonus(bonesOf(A).filter(i=>i.vohon===act).map(i=>({slot:i.stats.slot,years:i.years,enhance:i.enhance,subs:parseBoneSubs(i.stats)})));
+      ok(CORE_STAT_IDS.every(k=>Math.abs(s20.bones[k]-wantB[k])<1e-9)&&parseBoneSubs(tgi.stats).length===boneSubsDue(BONE_MAX_ENHANCE)
+        &&await waitFor(()=>p.maxHp===s20.live.maxHp)&&s20.live.maxHp===s20.stats.maxHp&&p.maxHp>=hp0+dHp,
+        `sinh lực tối đa ${hp0} -> ${p.maxHp} (chỉ số chính +${dHp}${s20.bones.hp_pct?`, dòng phụ +${s20.bones.hp_pct}%`:""}${s20.bones.hp>boneStats("than",12000,20).hp?`, dòng phụ +${s20.bones.hp-boneStats("than",12000,20).hp} sinh lực`:""}) ngay khi đang gắn`);
       const m5=await give(1000,"than",TG); t=await enh(tg.id,[m5.id]); ok(/tối đa \+20/.test(t)&&itemOf(m5.id),`đã +20: từ chối, nguyên liệu còn nguyên (${t})`);
       // Hồn cốt trong túi (không gắn) cũng cường hóa được; hồn cốt đã cường hóa làm nguyên liệu trả lại 80% điểm.
       const m6=await give(2000,"than",TG); t=await enh(m5.id,[m6.id]);
