@@ -5287,11 +5287,20 @@ async function autoTest(){
       `trận dài ${LF.toFixed(0)} giây (ước lượng tự đánh ${info?.est?.toFixed(1)} giây): sau khi hạ nợ ${info?.pace?.toFixed(1)} giây, không tính trận hai lần`);
     // Sáu hồn thú yếu quanh mình (cách nhau ~60 pixel), bắt đầu từ nợ 0: trong T giây nhắm tối đa 1 + T / OFFLINE.seek con, cộng một con
     // hồn kỹ diện rộng có thể hạ lan (không trần thì hạ hết cả sáu).
-    await test(A,"clear"); await test(A,"auto",{pace:0});
+    // T giây đo theo giờ server (`secs` của lượt tự săn, cùng đồng hồ với nợ nhịp) tính từ lúc đặt nợ 0, không theo số vòng chờ: mỗi vòng
+    // còn một lần gọi hook, cộng 6 lần sinh hồn thú, máy tải thì thời gian thật dài hơn T (#328: 12 giây thật hạ 5/6).
+    await test(A,"clear"); const s0=(await test(A,"auto",{pace:0}))?.secs, w0=Date.now();
     const six=[]; for(let k=0;k<6;k++) six.push((await test(A,"spawn",{tier:0,dx:Math.round(60*Math.cos(k*Math.PI/3)),dy:Math.round(60*Math.sin(k*Math.PI/3)),years:15}))?.bid);
-    const T=10, cap=2+Math.floor(T/OFFLINE.seek); await quiet(()=>false,T*1000,six);
-    const dead=six.filter(b=>b&&!A.room.state.beasts.has(b)).length;
-    ok(me(A).auto&&dead>=1&&dead<=cap&&dead<6,`trần tốc độ: ${T} giây hạ ${dead}/6 hồn thú yếu sát bên (tối đa ${cap})`);
+    const T=10, cap=2+Math.floor(T/OFFLINE.seek), downs=()=>six.filter(b=>b&&!A.room.state.beasts.has(b)).length;
+    // Số con đã hạ ở lần đọc cuối còn trong T giây (bản vá state tới sau lời hook); lần đọc thưa dần về 50 ms khi gần hết T.
+    let dead=0, el=0, st=null;
+    while(Date.now()-w0<T*4000){
+      await test(A,"clear",{but:six}); st=await test(A,"auto"); el=(st?.secs??NaN)-s0;
+      if(!(el<=T)) break;
+      dead=downs(); await sleep(Math.max(50,Math.min(500,(T-el)*1000)));
+    }
+    ok(me(A).auto&&dead>=1&&dead<=cap&&dead<6,`trần tốc độ: ${T} giây hạ ${dead}/6 hồn thú yếu sát bên (tối đa ${cap})`
+      +(me(A).auto&&dead>=1&&dead<=cap&&dead<6?"":` [giờ server ${el?.toFixed?.(1)} giây, thật ${((Date.now()-w0)/1000).toFixed(1)} giây, nợ ${st?.pace?.toFixed?.(1)}, ước lượng ${st?.est?.toFixed?.(1)}, mục tiêu ${st?.target}, đã hạ lúc dừng ${downs()}]`));
     await autoOp(A,"off"); for(const b of six) if(b) await test(A,"slay",{bid:b});
     await autoOp(A,"set",{cfg:NEAR});
   }
@@ -9656,8 +9665,11 @@ async function autoBossTest(){
     ok(tl?.bid===P&&fired&&!th.hit.includes(sid)&&ai.dodges>d0,`${tt.name} nhắm A: tự săn né ra khỏi vùng trước khi nổ (không trúng; ${ai.dodges-d0} lần né; `
       +`tâm vùng ${th?.x?.toFixed(0)},${th?.y?.toFixed(0)}, A lúc nổ ${at.x.toFixed(0)},${at.y.toFixed(0)}, trúng ${JSON.stringify(th?.hit)})`);
     const pool=(await test(A,"ground",{ttl:30}))?.grounds?.find(z=>z.src===P);
-    let inPool=0; for(let k=0;k<15;k++){ if(pool&&Math.hypot(me().x-pool.x,me().y-pool.y)<=pool.r+TELE_PAD) inPool++; await sleep(200); }
-    ok(pool&&inPool===0&&me().auto,`vũng độc còn ${pool?.ttl?.toFixed(0)} giây: tự săn đánh tiếp mà không bước vào vũng (3 giây)`);
+    // Chẩn đoán (#328): lề nhỏ nhất (khoảng cách tới tâm trừ r + TELE_PAD) và chỗ A / P lúc đó.
+    let inPool=0, low=null; for(let k=0;k<15;k++){ if(pool){ const g=Math.hypot(me().x-pool.x,me().y-pool.y)-pool.r-TELE_PAD; if(g<=0) inPool++;
+      if(!low||g<low.g) low={g,a:[me().x.toFixed(1),me().y.toFixed(1)],p:pb()?[pb().x.toFixed(0),pb().y.toFixed(0)]:null,k}; } await sleep(200); }
+    ok(pool&&inPool===0&&me().auto,`vũng độc còn ${pool?.ttl?.toFixed(0)} giây: tự săn đánh tiếp mà không bước vào vũng (3 giây)`
+      +(pool&&inPool===0&&me().auto?"":` [vũng ${pool?`${pool.x.toFixed(0)},${pool.y.toFixed(0)} r${pool.r}`:"không có"}, ${inPool}/15 lần trong vũng, lề nhỏ nhất ${low?.g?.toFixed(2)} ở lần ${low?.k} (A ${low?.a}, P ${low?.p}), tự săn ${me().auto?"bật":`dừng: ${A.autoMsg?.why}`}, ${JSON.stringify(await info().then(x=>({target:x.target,dodge:x.dodge,dodges:x.dodges})))}]`));
     // Bật tự săn khi đang đứng trong vũng: ra khỏi vũng ngay.
     await autoOp("off"); await test(A,"goto",{x:Math.round(pool.x),y:Math.round(pool.y)});
     const d1=(await info()).dodges; m=await autoOp("on");
@@ -9764,12 +9776,14 @@ async function autoBossTest(){
       +`${ai.dodges-dS} lần chọn chỗ né, trúng ${JSON.stringify(sl?.hit)})`);
     await test(A,"wmech",{m:"hold",secs:300});
     // Vết thương sâu (trạng thái xấu còn lâu): đổi sang Xúc Xích (phụ trợ), tung hồn kỹ thanh tẩy, rồi về võ hồn chính.
-    const armorBit=statusBit("armor"); await waitFor(()=>A.owned.active===main&&!(me().swCd>0),SWITCH_CD*2000+3000); await test(A,"ready");
+    const armorBit=statusBit("armor"), onMain=await waitFor(()=>A.owned.active===main&&!(me().swCd>0),SWITCH_CD*2000+3000); await test(A,"ready");
     await test(A,"pst",{s:"armor",n:3,secs:30});
     // Đổi tay và thanh tẩy có thể xong trong cùng một nhịp server (bản vá không kịp mang trạng thái): xét kết quả, không xét lúc có trạng thái.
     const vh2=new Set(), cleaned=await waitFor(()=>{ vh2.add(VOHON[me().vh].id); return vh2.has("xuc_xich")&&!(me().st&armorBit); },8000);
-    if(!cleaned){ const g=await test(A,"ground"), i3=await info(); console.log(`  (thanh tẩy: st ${JSON.stringify(g?.st)}, cleanse ${i3.cleanse}, đội ${JSON.stringify(A.squad?.list?.map(x=>[x.rowId,x.hp,x.down]))}, ra trận ${A.owned.active}, Xúc Xích ${XUC})`); }
-    ok(cleaned,`${STATUS.armor.name} 30 giây: đổi sang Xúc Xích, thanh tẩy (${ringSkill("xuc_xich",cr)?.name}; võ hồn ra trận ${[...vh2].join(" → ")}, `
+    // Chẩn đoán (#328): trượt kèm đội không có Xúc Xích là dây chuyền của dòng "boss thế giới: đội có lại Xúc Xích" ở trên.
+    if(!cleaned){ const g=await test(A,"ground"), i3=await info(); console.log(`  (thanh tẩy: st ${JSON.stringify(g?.st)}, cleanse ${i3.cleanse}, đội ${JSON.stringify(A.owned.team)} ${JSON.stringify(A.squad?.list?.map(x=>[x.rowId,x.hp,x.down]))}, ra trận ${A.owned.active}, Xúc Xích ${XUC}, `
+      +`đã về võ hồn chính trước khi gây ${onMain}, hồi đổi ${me().swCd}, hồn lực ${me().mp}/${me().maxMp}, mục tiêu ${i3.target} (boss ${i3.boss}), lùi ${i3.away}, vai ${i3.role})`); }
+    ok(cleaned,`${A.owned.team.includes(XUC)?"":"(đội không có Xúc Xích) "}${STATUS.armor.name} 30 giây: đổi sang Xúc Xích, thanh tẩy (${ringSkill("xuc_xich",cr)?.name}; võ hồn ra trận ${[...vh2].join(" → ")}, `
       +`còn ${Object.keys(STATUS).filter(s=>me().st&statusBit(s)).join(", ")||"không trạng thái"}; tự săn ${JSON.stringify(await info().then(x=>({role:x.role,target:x.target,away:x.away})))})`);
     const mainDown=()=>A.squad?.list?.find(x=>x.rowId===main)?.down>0;
     const back=await waitFor(()=>A.owned.active===main||mainDown(),SWITCH_CD*1000+3000); ai=await info();
