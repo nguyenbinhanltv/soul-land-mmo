@@ -132,7 +132,7 @@ export class AudioManager {
   handleFx(message: AudioEvent, he?: string): void {
     const source = this.resolveSource(message);
     if (!source) return;
-    if (message.k === "soulring" || message.k === "ult" || message.k === "avatar" || message.k === "zone" || message.k === "tienco") {
+    if (message.k === "soulring" || message.k === "ult" || message.k === "avatar" || message.k === "zone" || message.k === "tienco" || message.k === "fusion") {
       this.play(skillSfxByHe[he ?? ""] ?? "skill_neutral", source);
       return;
     }
