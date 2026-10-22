@@ -2451,16 +2451,17 @@ export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.len
 
 /**
  * Chỉ số của võ hồn `vh` (chỉ số trong VOHON) ở `level`, hồn hoàn theo bậc `rings`, sao `stars` (1–6, bước 3.4: starMult).
- * `bones` (bước 4.2): tổng chỉ số gốc các hồn cốt đang gắn (boneBonus), cộng thẳng sau hệ số hệ và sao: hồn cốt +118 hồn lực
- * thì võ hồn nào cũng +118.
+ * `bones` (bước 4.2): tổng chỉ số các hồn cốt đang gắn (boneBonus), cộng thẳng sau hệ số hệ và sao: hồn cốt +118 hồn lực
+ * thì võ hồn nào cũng +118. Từ #187 kèm dòng phụ hồn cốt (mã CORE_STATS), tính như dòng cùng mã của hồn hạch (`cores`).
  * `cores` (bước 5.2, **đã chốt**): tổng chỉ số hồn hạch đang gắn (coreBonus): dòng % nhân phần gốc (sau hệ số hệ và sao, trước
  * hồn cốt), dòng phẳng cộng thẳng như hồn cốt; chí mạng cộng vào `crit` / `critMult`.
  * `res` (bước 8.2, **đã chốt**): % cộng minh của tài khoản (resonanceBonus), cộng chung với dòng % của hồn hạch, áp cho mọi võ hồn.
  * `herbs` (bước BĐ6b, **đã chốt**): % tiên thảo đã dùng trên chính võ hồn này (herbBonus), cộng chung như `res`.
  */
-export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<BoneStat, number>> = {},
+export function calcStats(vh: number, level: number, rings: number[], stars = 1, bones: Partial<Record<CoreStat, number>> = {},
   cores: Partial<Record<CoreStat, number>> = {}, res: Partial<Record<ResStat, number>> = {}, herbs: Partial<Record<ResStat, number>> = {}) {
-  const v = VOHON[vh], k = starMult(stars), pc = (x: CoreStat, r: ResStat) => 1 + ((cores[x] ?? 0) + (res[r] ?? 0) + (herbs[r] ?? 0)) / 100;
+  const v = VOHON[vh], k = starMult(stars);
+  const pc = (x: CoreStat, r: ResStat) => 1 + ((cores[x] ?? 0) + (bones[x] ?? 0) + (res[r] ?? 0) + (herbs[r] ?? 0)) / 100;
   let hpB = 0, atkB = 0;
   for (const t of rings) { hpB += TIERS[t].hpb; atkB += TIERS[t].atkb; }
   return {
@@ -2469,8 +2470,8 @@ export function calcStats(vh: number, level: number, rings: number[], stars = 1,
     atk: (6 + level * 1.6 + atkB) * v.atk * k * pc("atk_pct", "atk") + (bones.atk ?? 0) + (cores.atk ?? 0),
     speed: PLAYER_SPEED * v.spd, // tốc độ đi bộ; ngoài giao chiến chạy × RUN_MULT (MapRoom.tick)
     // Từ 5.2: tỉ lệ và hệ số chí mạng của đòn đánh vào hồn thú (CRIT cộng hồn hạch).
-    crit: CRIT.chance + (cores.crit ?? 0) / 100,
-    critMult: CRIT.mult + (cores.crit_dmg ?? 0) / 100,
+    crit: CRIT.chance + ((cores.crit ?? 0) + (bones.crit ?? 0)) / 100,
+    critMult: CRIT.mult + ((cores.crit_dmg ?? 0) + (bones.crit_dmg ?? 0)) / 100,
   };
 }
 
@@ -2568,12 +2569,17 @@ export function boneStats(slot: unknown, years: number, enhance = 0): Partial<Re
   return { [s.stat]: base + Math.max(e, Math.round(base * BONE_ENHANCE_STAT * e)) };
 }
 /**
- * Tổng chỉ số chính của các hồn cốt đang gắn trên một võ hồn (bước 4.2, kèm cấp cường hóa từ 4.4), đưa vào calcStats. Mỗi vị trí
- * tối đa một hồn cốt (server kiểm tra khi gắn).
+ * Tổng chỉ số của các hồn cốt đang gắn trên một võ hồn, đưa vào calcStats: chỉ số chính (bước 4.2, kèm cấp cường hóa từ 4.4) vào
+ * `hp` / `mp` / `atk`, cộng các dòng phụ (`subs`, #187; mã CORE_STATS, cùng đơn vị với coreBonus). Mỗi vị trí tối đa một hồn cốt
+ * (server kiểm tra khi gắn).
  */
-export function boneBonus(bones: { slot: unknown; years: number; enhance?: number }[]): Record<BoneStat, number> {
-  const out: Record<BoneStat, number> = { hp: 0, mp: 0, atk: 0 };
-  for (const b of bones) for (const [k, v] of Object.entries(boneStats(b.slot, b.years, b.enhance ?? 0))) out[k as BoneStat] += v;
+export function boneBonus(bones: { slot: unknown; years: number; enhance?: number; subs?: readonly [CoreStat, number][] }[]): Record<CoreStat, number> {
+  const out = Object.fromEntries(CORE_STAT_IDS.map((k) => [k, 0])) as Record<CoreStat, number>;
+  for (const b of bones) {
+    for (const [k, v] of Object.entries(boneStats(b.slot, b.years, b.enhance ?? 0))) out[k as BoneStat] += v;
+    for (const [k, v] of b.subs ?? []) out[k] += v;
+  }
+  for (const k of CORE_STAT_IDS) out[k] = Math.round(out[k] * 10) / 10;
   return out;
 }
 /** Loài và vị trí của một hồn cốt (`items.stats`); dữ liệu hỏng thì null. */
@@ -2610,9 +2616,9 @@ export const BONE_FEED_MAX = 20;
 /** **(đã chốt)** Mỗi cấp cường hóa cộng thêm ngần này phần chỉ số chính gốc (+20 = gấp đôi chỉ số gốc), ít nhất +1 mỗi cấp. */
 export const BONE_ENHANCE_STAT = 0.05;
 /**
- * **(đã chốt)** Mốc cường hóa (mục 5.5 "mở thêm một dòng chỉ số phụ hoặc nâng kỹ năng"): bước 4.4 chọn **nâng kỹ năng**. Mỗi
- * mốc đã đạt làm kỹ năng của hồn cốt mạnh thêm BONE_MILESTONE_SKILL (chủ động: sức mạnh và hiệu ứng lên bản thân; bị động: mức
- * cộng, vẫn kẹp BONE_PASSIVE_CAP). Dòng chỉ số phụ ngẫu nhiên để sau (cần bảng dòng phụ, như hồn hạch GĐ5).
+ * **(đã chốt)** Mốc cường hóa (mục 5.5): mỗi mốc đã đạt làm kỹ năng của hồn cốt mạnh thêm BONE_MILESTONE_SKILL (chủ động: sức
+ * mạnh và hiệu ứng lên bản thân; bị động: mức cộng, vẫn kẹp BONE_PASSIVE_CAP), **và** thêm 1 dòng chỉ số phụ ngẫu nhiên (#187,
+ * chủ repo duyệt 2026-10-22 ở #181; BONE_SUB_POOL, boneAddSubs).
  */
 export const BONE_ENHANCE_MILESTONES = [5, 10, 15, 20];
 export const BONE_MILESTONE_SKILL = 0.1;
@@ -2971,6 +2977,58 @@ export function coreUpgradeSubs(data: CoreData, stars: number, rolls: number, rn
   return { data: { ...data, subs }, ups };
 }
 
+// ---------- Dòng phụ hồn cốt (mục 5.5, #187; chủ repo duyệt 2026-10-22 ở #181) ----------
+/** Tối đa ngần này dòng phụ trên một hồn cốt: mỗi mốc BONE_ENHANCE_MILESTONES thêm 1 dòng, đủ ở mốc cuối. */
+export const BONE_MAX_SUBS = 4;
+/**
+ * **(đã chốt)** Hệ số mức dòng phụ theo bậc niên hạn của hồn cốt (chỉ số trong TIERS: trắng, vàng, tím, đen, đỏ). Mức lớn nhất
+ * một dòng = CORE_STATS[mã].sub × hệ số này (đỏ ngang dòng phụ hồn hạch 6★), giá trị tung đều trong CORE_SUB_ROLL × mức đó.
+ */
+export const BONE_SUB_K = [0.25, 0.4, 0.55, 0.75, 1];
+/**
+ * **(đã chốt)** Bộ dòng phụ có thể tung theo vị trí (mã CORE_STATS, không gồm chỉ số chính của vị trí). Hồn cốt giữ vai "kỹ năng
+ * là chính": dòng phụ chỉ thêm ở mốc, không tăng thêm dòng có sẵn như hồn hạch.
+ */
+export const BONE_SUB_POOL: Record<BoneSlot, CoreStat[]> = {
+  dau:       ["mp_pct", "hp_pct", "crit_dmg", "atk_pct"],
+  than:      ["hp_pct", "mp", "mp_pct", "atk_pct"],
+  tay_trai:  ["atk_pct", "crit", "crit_dmg", "hp"],
+  tay_phai:  ["atk_pct", "crit", "crit_dmg", "hp"],
+  chan_trai: ["hp_pct", "atk", "crit", "mp_pct"],
+  chan_phai: ["hp_pct", "atk", "crit", "mp_pct"],
+};
+/** Mức lớn nhất của dòng phụ `k` trên hồn cốt `years` năm (giá trị tung trong CORE_SUB_ROLL × mức này, đã làm tròn). */
+export const boneSubMax = (k: CoreStat, years: number) => CORE_STATS[k].sub * BONE_SUB_K[tierOfYears(years)];
+/** Số dòng phụ hồn cốt +`enhance` phải có: một dòng mỗi mốc đã đạt, tối đa BONE_MAX_SUBS. */
+export const boneSubsDue = (enhance: number) => Math.min(BONE_MAX_SUBS, boneMilestones(enhance));
+/** Dòng phụ của một hồn cốt (`items.stats.subs`, như hồn hạch): bỏ mục hỏng / trùng mã, tối đa BONE_MAX_SUBS; thiếu thì []. */
+export function parseBoneSubs(stats: unknown): [CoreStat, number][] {
+  const raw = (stats as { subs?: unknown } | null)?.subs, out: [CoreStat, number][] = [];
+  if (!Array.isArray(raw)) return out;
+  for (const x of raw)
+    if (Array.isArray(x) && CORE_STAT_IDS.includes(x[0]) && typeof x[1] === "number" && Number.isFinite(x[1]) && !out.some(([k]) => k === x[0]))
+      out.push([x[0], x[1]]);
+  return out.slice(0, BONE_MAX_SUBS);
+}
+/**
+ * Thêm dòng phụ cho hồn cốt vị trí `slot`, `years` năm, đang có `subs`, tới đủ boneSubsDue(`enhance`) dòng (cường hóa qua mốc, hay
+ * tung bù cho hồn cốt cũ): mỗi dòng mới chọn đều trong BONE_SUB_POOL của vị trí, không trùng dòng đã có và chỉ số chính, giá trị
+ * CORE_SUB_ROLL × boneSubMax. Trả danh sách mới (không sửa `subs`) và các dòng vừa thêm (rỗng nếu đã đủ). Số ngẫu nhiên lấy từ
+ * `rnd` (server truyền Math.random), nên hàm vẫn thuần.
+ */
+export function boneAddSubs(slot: unknown, years: number, enhance: number, subs: readonly [CoreStat, number][], rnd: () => number) {
+  const s = BONE_SLOTS[boneSlotIndex(slot)], out = subs.map(([k, v]) => [k, v] as [CoreStat, number]), added: [CoreStat, number][] = [];
+  if (!s) return { subs: out, added };
+  for (let n = boneSubsDue(enhance) - out.length; n > 0; n--) {
+    const free = BONE_SUB_POOL[s.id].filter((k) => k !== s.stat && !out.some(([x]) => x === k));
+    if (!free.length) break;
+    const k = free[Math.min(free.length - 1, Math.floor(rnd() * free.length))];
+    const v = coreRound(k, boneSubMax(k, years) * (CORE_SUB_ROLL[0] + rnd() * (CORE_SUB_ROLL[1] - CORE_SUB_ROLL[0])));
+    out.push([k, v]); added.push([k, v]);
+  }
+  return { subs: out, added };
+}
+
 // ---------- Kỹ năng hồn cốt (mục 5.5, bước 4.3; mọi số đã chốt) ----------
 /** Hiệu ứng có lợi mà kỹ năng bị động cộng thường trực (cùng nghĩa với BUFFS: atk/spd/def/crit/mp/leech). */
 export type PassiveBuff = "atk" | "spd" | "def" | "crit" | "mp" | "leech";
@@ -3256,7 +3314,7 @@ export const ITEMS: ItemDef[] = [
   // Hồn cốt (bước 4.1): mỗi món một ô; số năm ở `items.years`, loài và vị trí ở `items.stats`, cấp cường hóa ở `items.enhance`.
   // Màu theo số năm (TIERS) như hồn hoàn. Gắn vào võ hồn từ bước 4.2 (`items.vohon_id`, không chiếm ô túi).
   { id: BONE_ITEM, kind: "hon_cot", name: "Hồn cốt", col: "#e8dcc0", stack: 1,
-    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số. Cường hóa bằng hồn cốt dư (nút Cường hóa…): mỗi cấp tăng chỉ số chính, mốc +5 / +10 / +15 / +20 nâng kỹ năng. Tháo ra vẫn giữ cấp cường hóa." },
+    desc: "Gắn vào ô cùng vị trí trong 6 ô hồn cốt của một võ hồn (bảng đội hình, phím V) để cộng chỉ số. Cường hóa bằng hồn cốt dư (nút Cường hóa…): mỗi cấp tăng chỉ số chính, mốc +5 / +10 / +15 / +20 nâng kỹ năng và thêm 1 dòng phụ ngẫu nhiên. Tháo ra vẫn giữ cấp cường hóa và dòng phụ." },
   // Hồn hạch (bước 5.1): mỗi món một ô; sao ở `items.stars`, bộ / chỉ số ở `items.stats`. Màu theo bộ (CORE_SETS), `col` chỉ là mặc định.
   { id: CORE_ITEM, kind: "hon_hach", name: "Hồn hạch", col: "#d9b8ff", stack: 1,
     desc: "Mỗi võ hồn có 6 ô hồn hạch: bấm \"Gắn…\" để gắn vào võ hồn (bảng đội hình). Gắn 2 hoặc 4 món cùng bộ trên võ hồn ra trận thì nhận hiệu ứng bộ." },
