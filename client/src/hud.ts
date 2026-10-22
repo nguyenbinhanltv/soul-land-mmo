@@ -3,12 +3,12 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears,
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, starSkillMult, starCdMult, starTienCoMult, starRing, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
-  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, BAG_PAGE, type BoneStat,
+  BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, BAG_PAGE, type BoneStat, type CoreStat,
   CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, WAYPOINT_CAST, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, questChain, questRewardText, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
@@ -314,11 +314,13 @@ export function updateStats(p: any) {
     el.appendChild(s);
   }
   // Hiệu ứng có lợi, rồi trạng thái bất lợi do chiêu báo trước của hồn thú gây (từ 3.5, viền đỏ).
-  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st;
+  const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st + "|" + (p.han ?? 0);
   if (buffs !== buffKey) {
     buffKey = buffs; const el = $("#buffs"); el.innerHTML = "";
     for (const b of BUFF_IDS) if (p.buff & buffBit(b)) el.appendChild(statusChip(b, BUFFS[b].name, BUFFS[b].col));
-    for (const s of PLAYER_STATUS) if (p.st & statusBit(s)) el.appendChild(statusChip(s, STATUS[s].name, STATUS[s].col, "debuff"));
+    // Tầng Hàn (#163, Cực Hàn): ô ghi số tầng / số tầng thì đóng băng.
+    for (const s of PLAYER_STATUS) if (p.st & statusBit(s))
+      el.appendChild(statusChip(s, s === "chill" ? `${STATUS[s].name} ${p.han ?? 0}/${STATUS[s].max}` : STATUS[s].name, STATUS[s].col, "debuff"));
   }
   // Hồn kỹ Chân Thân (9.6): đang biến hình thì nút P mang hồn kỹ Chân Thân, hồi chiêu riêng `ctCd`; hết thì trả nút P cũ.
   const pb = document.querySelector<HTMLElement>(`.sk[data-i="${CHAN_THAN_SKILL_SLOT}"]`), ctOn = !!ctSlot && p.ava > 0;
@@ -687,7 +689,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     if (kname) b.querySelector("em")!.textContent = kname;
     b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}${kname ? `, kỹ năng ${kname}` : ""}`);
     b.setAttribute("aria-pressed", String(boneCell === s.id));
-    b.title = it && kb ? `${itemName(it)} (${boneStatText(s.id, it.years, it.enhance)})\n${boneSkillText(kb.beast, s.id, it.years, it.enhance)}` : `Ô ${s.name} trống`;
+    b.title = it && kb ? `${itemName(it)} (${boneFullText(it)})\n${boneSkillText(kb.beast, s.id, it.years, it.enhance)}` : `Ô ${s.name} trống`;
     b.addEventListener("click", () => { b.blur(); boneCell = boneCell === s.id ? null : s.id; enhClose(); again(); });
     // Kéo-thả bằng chuột: thả hồn cốt trong túi vào ô, gửi kèm ô được thả để server kiểm tra đúng vị trí.
     b.addEventListener("dragover", (e) => { e.preventDefault(); b.classList.add("over"); });
@@ -701,15 +703,17 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   el.appendChild(fig);
 
   // Chỉ số của võ hồn kèm phần hồn cốt cộng thêm (calcStats của shared/data.ts, chỉ để hiển thị; server tự tính).
-  const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance })));
+  const bonus = boneBonus([...worn.entries()].map(([slot, it]) => ({ slot, years: it.years, enhance: it.enhance, subs: parseBoneSubs(it.stats) })));
   const st = calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, bonus,
     coreBonus(wornCores(items.filter((i) => i.vohon === v.rowId))), resMsg?.bonus, herbBonus(v.herbs)); // từ 5.2 cả hồn hạch đang gắn, từ 8.2 cộng minh, BĐ6b tiên thảo
   const hb = herbBonus(v.herbs);
   const sum = document.createElement("div"); sum.className = "bsum";
   sum.innerHTML = (["hp", "mp", "atk"] as BoneStat[]).map((k) => {
     const val = k === "hp" ? st.maxHp : k === "mp" ? st.maxMp : Math.round(st.atk), rp = resMsg?.bonus[k] ?? 0;
-    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}${hb[k] ? `<em>+${hb[k]}% tiên thảo</em>` : ""}</b>`;
-  }).join("");
+    const bp = bonus[`${k}_pct`]; // dòng phụ % của hồn cốt (#187)
+    return `<span>${BONE_STAT_NAMES[k]}</span><b>${val.toLocaleString("vi-VN")}${bonus[k] ? `<em>+${bonus[k]} hồn cốt</em>` : ""}${bp ? `<em>+${bp.toLocaleString("vi-VN")}% hồn cốt</em>` : ""}${rp ? `<em>+${rp}% cộng minh</em>` : ""}${hb[k] ? `<em>+${hb[k]}% tiên thảo</em>` : ""}</b>`;
+  }).join("") + (bonus.crit || bonus.crit_dmg ? `<span>Chí mạng</span><b>${(st.crit * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}%`
+    + `${bonus.crit ? `<em>+${bonus.crit.toLocaleString("vi-VN")}% tỉ lệ hồn cốt</em>` : ""}${bonus.crit_dmg ? `<em>+${bonus.crit_dmg.toLocaleString("vi-VN")}% sát thương hồn cốt</em>` : ""}</b>` : ""); // dòng phụ chí mạng (#187)
   el.appendChild(sum);
 
   const info = document.createElement("div"); info.className = "binfo bpick";
@@ -717,7 +721,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   if (cur && cs) {
     const t = document.createElement("b"); t.textContent = itemName(cur); t.style.color = itemColor(cur);
     const d = document.createElement("small"); d.textContent = `Đang gắn ở ô ${cs.name} · kỹ năng ${cs.active ? `chủ động (phím ${BONE_SKILL_KEYS[BONE_ACTIVE_SLOTS.indexOf(cs.id)]} khi võ hồn này ra trận)` : "bị động khi võ hồn này ra trận"} · cường hóa ${enhText(cur)}`;
-    const p = document.createElement("p"); p.textContent = `Cộng: ${boneStatText(cs.id, cur.years, cur.enhance)}.`;
+    const p = document.createElement("p"); p.textContent = `Cộng: ${boneFullText(cur)}.`;
     const kb = boneOf(cur), ks = document.createElement("p"); ks.className = "bskill"; ks.textContent = kb ? boneSkillText(kb.beast, cs.id, cur.years, cur.enhance) : "";
     info.append(t, d, p, ks);
     // Cường hóa (4.4): hồn cốt đang gắn cũng cường hóa được, chỉ số / kỹ năng đổi ngay.
@@ -752,8 +756,9 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     row.innerHTML = `${boneIcon(b.slot, itemColor(it))}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
     row.querySelector("b")!.textContent = itemName(it);
     const kn = boneSkillOf(b.beast, b.slot);
-    row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years, it.enhance)}${kn ? ` · ${kn.active ? kn.sk.name : kn.ps.name}` : ""}`;
-    row.title = boneSkillText(b.beast, b.slot, it.years, it.enhance);
+    const ns = parseBoneSubs(it.stats).length;
+    row.querySelector("small")!.textContent = `${s.name} · ${boneStatText(b.slot, it.years, it.enhance)}${ns ? ` · ${ns} dòng phụ` : ""}${kn ? ` · ${kn.active ? kn.sk.name : kn.ps.name}` : ""}`;
+    row.title = `${boneFullText(it)}\n${boneSkillText(b.beast, b.slot, it.years, it.enhance)}`;
     const go = row.querySelector("button")!;
     go.setAttribute("aria-label", `Gắn ${itemName(it)} vào ô ${s.name} của ${def.name}`);
     go.addEventListener("click", () => { go.blur(); boneCell = b.slot; boneFocus = null; act.equip(it.id, v.rowId); });
@@ -938,7 +943,7 @@ const enhText = (it: BagItem) => (it.enhance >= BONE_MAX_ENHANCE ? `+${BONE_MAX_
 
 /**
  * Bảng cường hóa hồn cốt `target` (mục 5.5): chọn nhiều hồn cốt trong túi làm nguyên liệu (chạm / bấm để chọn, cùng vị trí được
- * thêm 50%), xem trước điểm, cấp, chỉ số chính và mốc nâng kỹ năng sẽ đạt (boneEnhancePreview của shared/data.ts, chỉ để hiển
+ * thêm 50%), xem trước điểm, cấp, chỉ số chính, mốc nâng kỹ năng và dòng phụ sẽ thêm (#187) (boneEnhancePreview của shared/data.ts, chỉ để hiển
  * thị), rồi xác nhận vì nguyên liệu mất hẳn. Server kiểm tra và tính lại. Mở từ NPC Thợ rèn ở Nặc Đinh Thành (6.1, renderForge),
  * và vẫn mở được bằng nút "Cường hóa…" ở túi đồ và bảng hồn cốt (chờ chốt: có giới hạn ở lò rèn không, mục 8).
  */
@@ -956,6 +961,13 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
   (head.querySelector(".sbar i") as HTMLElement).style.width = (lv0 >= BONE_MAX_ENHANCE ? 1 : (xp0 - lo) / Math.max(1, hi - lo)) * 100 + "%";
   head.style.setProperty("--c", itemColor(target));
   box.appendChild(head);
+  // Dòng phụ (#187): các dòng đã có và mốc kế tiếp; dòng mới do server tung trong bộ của vị trí (BONE_SUB_POOL).
+  const subs0 = parseBoneSubs(target.stats), main0 = BONE_SLOTS[boneSlotIndex(tb.slot)]?.stat;
+  const pool = BONE_SUB_POOL[tb.slot].filter((k) => k !== main0 && !subs0.some(([x]) => x === k)), next0 = BONE_ENHANCE_MILESTONES.find((x) => x > lv0);
+  const sl = document.createElement("small");
+  sl.textContent = `Dòng phụ ${subs0.length}/${BONE_MAX_SUBS}${subs0.length ? `: ${subs0.map(([k, v]) => coreStatText(k, v)).join(", ")}` : ""}.`
+    + (next0 ? ` Mốc kế tiếp +${next0}: nâng kỹ năng và 1 dòng phụ ngẫu nhiên${pool.length ? ` (${pool.map(subName).join(" / ")})` : ""}.` : "");
+  box.appendChild(sl);
   const row = document.createElement("div"); row.className = "brow";
   const btn = (text: string, cls: string, fn: () => void) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text;
@@ -993,9 +1005,12 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
       sm[0].textContent = `+${num(r.gain)} điểm từ ${mats.length} nguyên liệu · ${enhProgress(r.xp, r.level)}`
         + (r.waste ? ` · dư ${num(r.waste)} điểm bị bỏ (đã tối đa)` : "");
       const reach = BONE_ENHANCE_MILESTONES.filter((x) => x > lv0 && x <= r.level);
+      const adds = Math.max(0, boneSubsDue(r.level) - subs0.length), next = BONE_ENHANCE_MILESTONES.find((x) => x > r.level);
+      const addTxt = adds ? `thêm ${adds} dòng phụ ngẫu nhiên (${subs0.length + adds}/${BONE_MAX_SUBS} dòng)` : "";
       sm[1].textContent = reach.length
-        ? `Đạt mốc ${reach.map((x) => `+${x}`).join(", ")}: kỹ năng hồn cốt mạnh ×${pow2(boneSkillMult(r.level))} (trước ×${pow2(boneSkillMult(lv0))}).`
-        : `Mốc kế tiếp ${BONE_ENHANCE_MILESTONES.find((x) => x > r.level) ? `+${BONE_ENHANCE_MILESTONES.find((x) => x > r.level)}` : "đã đủ"}: mỗi mốc nâng kỹ năng hồn cốt (đang ×${pow2(boneSkillMult(r.level))}, ${boneMilestones(r.level)}/${BONE_ENHANCE_MILESTONES.length} mốc).`;
+        ? `Đạt mốc ${reach.map((x) => `+${x}`).join(", ")}: kỹ năng hồn cốt mạnh ×${pow2(boneSkillMult(r.level))} (trước ×${pow2(boneSkillMult(lv0))})${addTxt ? ` và ${addTxt}` : ""}.`
+        : `Mốc kế tiếp ${next ? `+${next}` : "đã đủ"}: mỗi mốc nâng kỹ năng và 1 dòng phụ ngẫu nhiên (đang ×${pow2(boneSkillMult(r.level))}, ${boneMilestones(r.level)}/${BONE_ENHANCE_MILESTONES.length} mốc, ${subs0.length}/${BONE_MAX_SUBS} dòng phụ).`
+          + (addTxt ? ` Bù dòng còn thiếu: ${addTxt}.` : "");
       const rare = mats.filter((i) => i.enhance > 0 || tierOfYears(i.years) >= 3).length;
       sm[2].textContent = `⚠ ${mats.length} hồn cốt nguyên liệu sẽ bị tiêu hao (mất hẳn)${rare ? `, trong đó ${rare} món đã cường hóa hoặc từ 10.000 năm` : ""}. Cường hóa không bao giờ thất bại.`
         + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi mới cường hóa được." : "");
@@ -1009,7 +1024,7 @@ function enhancePicker(target: BagItem & { years: number }, items: BagItem[], ac
   btn("Đóng", "drop", () => { enhClose(); again(); });
   box.appendChild(row);
   const note = document.createElement("small"); note.className = "rnote";
-  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt. Tháo ra vẫn giữ cấp. Thợ rèn ở Nặc Đinh Thành và Thiên Đấu Thành cũng mở bảng này.`;
+  note.textContent = `Cấp +0 đến +${BONE_MAX_ENHANCE}: mỗi cấp tăng chỉ số chính; mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} nâng kỹ năng hồn cốt và thêm 1 dòng phụ ngẫu nhiên theo vị trí (tối đa ${BONE_MAX_SUBS} dòng). Tháo ra vẫn giữ cấp và dòng phụ. Thợ rèn ở Nặc Đinh Thành và Thiên Đấu Thành cũng mở bảng này.`;
   box.appendChild(note);
   if (enhJump) { enhJump = false; requestAnimationFrame(() => head.scrollIntoView({ block: "nearest" })); }
   return box;
@@ -1312,6 +1327,13 @@ const hasYears = (it: BagItem): it is BagItem & { years: number } => (it.code ==
 /** "Công +30", "Sinh lực +316": chỉ số chính của hồn cốt (boneStats, kèm cường hóa từ 4.4). */
 const boneStatText = (slot: string, years: number, enhance = 0) =>
   Object.entries(boneStats(slot, years, enhance)).map(([k, v]) => `${BONE_STAT_NAMES[k as BoneStat]} +${v}`).join(", ");
+/** Chỉ số chính kèm các dòng phụ đã tung của một hồn cốt (#187, `stats.subs` do server tung): "Công +30, Chí mạng +2,1%". */
+const boneFullText = (it: BagItem & { years: number }) => {
+  const b = boneOf(it); if (!b) return "";
+  return [boneStatText(b.slot, it.years, it.enhance), ...parseBoneSubs(it.stats).map(([k, v]) => coreStatText(k, v))].join(", ");
+};
+/** Tên một mã dòng phụ trong danh sách có thể tung: dòng % ghi thêm "%" ("Công %"), để phân biệt với dòng phẳng cùng tên. */
+const subName = (k: CoreStat) => `${CORE_STATS[k].name}${CORE_STATS[k].pct && k.endsWith("_pct") ? " %" : ""}`;
 /** Số năm gọn để ghi ở góc ô: "437", "1.760", "2,5v" (vạn năm). */
 const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
 /** Màu một ô: hồn hoàn, hồn cốt theo số năm; hồn hạch theo bộ; vật phẩm khác theo ITEMS. */
@@ -1536,13 +1558,14 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       + (core ? ` · Bộ ${cset ? `${cset.name} (${cset.tag})` : "lạ"}` : "")
       + (hasYears(sel) && band ? ` · ${TIERS[tierOfYears(sel.years)].color} (${band[0].toLocaleString("vi-VN")} – ${band[1].toLocaleString("vi-VN")} năm)` : "")
       + (def.cd ? ` · hồi chiêu chung ${DAN_CD} giây` : "");
-    // Hồn cốt (4.1): chỉ số gốc theo số năm, cấp cường hóa, đang gắn hay chưa.
+    // Hồn cốt (4.1): chỉ số gốc theo số năm, dòng phụ đã tung ở các mốc (#187), cấp cường hóa, đang gắn hay chưa.
     if (bone && slot) {
-      const st = document.createElement("div"); st.className = "bstat";
-      st.innerHTML = `<span>Chỉ số chính</span><b></b><span>Kỹ năng</span><b></b><span>Cường hóa</span><b></b><span>Đang gắn</span><b>Chưa gắn</b>`;
-      const bs = st.querySelectorAll("b"); bs[0].textContent = boneStatText(bone.slot, sel.years!, sel.enhance);
-      bs[1].textContent = boneSkillText(bone.beast, bone.slot, sel.years!, sel.enhance) || "Không có";
-      bs[2].textContent = enhText(sel);
+      const st = document.createElement("div"), subs = parseBoneSubs(sel.stats); st.className = "bstat";
+      const rows: [string, string][] = [["Chỉ số chính", boneStatText(bone.slot, sel.years!, sel.enhance)]];
+      subs.forEach(([k, v], i) => rows.push([`Dòng phụ ${i + 1}`, coreStatText(k, v)]));
+      if (!subs.length) rows.push(["Dòng phụ", `Chưa có: mỗi mốc ${BONE_ENHANCE_MILESTONES.map((x) => `+${x}`).join(", ")} thêm 1 dòng ngẫu nhiên`]);
+      rows.push(["Kỹ năng", boneSkillText(bone.beast, bone.slot, sel.years!, sel.enhance) || "Không có"], ["Cường hóa", enhText(sel)], ["Đang gắn", "Chưa gắn"]);
+      for (const [k, v] of rows) { const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; st.append(a, b); }
       info.insertBefore(st, info.querySelector("p"));
     }
     // Hồn hạch (5.1): sao, chỉ số chính (theo sao), dòng phụ đã tung, nâng cấp, đang gắn hay chưa, hiệu ứng bộ (có tác dụng từ 5.2,
