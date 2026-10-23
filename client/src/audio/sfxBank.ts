@@ -11,13 +11,16 @@ export const SFX_MANIFEST_URL = "audio/sfx/manifest.json";
 /** Gói tải lỗi (mạng chập): chờ chừng này ms rồi mới thử lại, tránh gọi lại mỗi tiếng. */
 export const SFX_RETRY_MS = 15_000;
 
-/** Tiền tố nhóm → gói (nhóm bước chân / hồn hoàn nhỏ và tải ngay; thú, kỹ năng tải khi cần dùng lần đầu). */
+/** Tiền tố nhóm → gói (nhóm bước chân / hồn hoàn / giao diện nhỏ và tải ngay; thú, kỹ năng, môi trường, PK tải khi cần dùng lần đầu). */
 export function packOfGroup(group: string): string | null {
   if (/^(swing|hit)-/.test(group)) return "combat";
   if (group.startsWith("skill-")) return "skill";
   if (group.startsWith("beast-")) return "beast";
   if (group.startsWith("ring-")) return "world";
   if (group.startsWith("step-")) return "steps";
+  if (group.startsWith("amb-")) return "amb";
+  if (group.startsWith("ui-")) return "ui";
+  if (group.startsWith("pk-")) return "pk";
   return null;
 }
 

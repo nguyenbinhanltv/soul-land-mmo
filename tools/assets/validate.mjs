@@ -168,13 +168,15 @@ function upsertCredits(key, file) {
   let md = readFileSync(credits, "utf8");
   const eol = md.includes("\r\n") ? "\r\n" : "\n";
   md = md.replace(/\r\n/g, "\n");
-  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" thì ghi vào mục đó, còn lại mục PixelLab.
-  const comfy = /comfyui/i.test(tool), gemini = !comfy && /gemini/i.test(tool);
-  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
+  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" / "ChatGPT" thì ghi vào mục đó, còn lại mục PixelLab.
+  const comfy = /comfyui/i.test(tool), chatgpt = !comfy && /chatgpt/i.test(tool), gemini = !comfy && !chatgpt && /gemini/i.test(tool);
+  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : chatgpt ? "## Asset tạo bằng AI (ChatGPT)" : "## Asset tạo bằng AI (PixelLab)";
   const intro = comfy
     ? "Ảnh AI tạo bằng ComfyUI tự host (SDXL base 1.0, CreativeML Open RAIL++-M + LoRA pixel-art-xl, CreativeML OpenRAIL-M; VAE sdxl-vae-fp16-fix, MIT), tách nền bằng `tools/assets/comfy-key.mjs`, nhập bằng `gemini-import.mjs` và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : gemini
     ? "Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
+    : chatgpt
+    ? "Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), rồi nhập bằng `tools/assets/equip-import.mjs` / `gemini-import.mjs` (ngưỡng alpha, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : "Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.";
   if (!md.includes(head)) {
     md = md.replace("## Asset bên ngoài", `${head}\n\n${intro}\n\n` +

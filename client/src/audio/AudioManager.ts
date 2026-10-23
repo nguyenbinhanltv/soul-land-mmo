@@ -4,7 +4,8 @@ import { SFX_PARAMS, type SfxId } from "./sfxData.ts";
 import { createZzFxBuffer } from "./zzfx.ts";
 import { musicPlayerFor, type MusicPlayer } from "./music.ts";
 import { SfxBank, type SfxBankOptions } from "./sfxBank.ts";
-import { LOUD_FX, SKILL_PHASE_OF_FX, SWING_FX, ringGlowMix, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
+import { AmbientLayers, type AmbientInput, type AmbientKind } from "./ambientLayers.ts";
+import { LOUD_FX, SKILL_PHASE_OF_FX, SWING_FX, UI_GROUP, heartbeatInterval, LOW_HP_RATIO, ringGlowMix, type UiSound, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
 
 interface SoundManagerHost {
   context?: AudioContext;
@@ -45,6 +46,8 @@ export interface SampleOptions {
   range?: number;
   /** Mức đưa vào vang (0 – 1). */
   wet?: number;
+  /** Lệch trái / phải −1..1 (mặc định theo khoảng cách tới người nghe, hoặc 0 khi không có nguồn). */
+  pan?: number;
   /** Hạ nhạc nền còn tỉ lệ này một lúc (tiếng lớn). */
   duck?: number;
   duckMs?: number;
@@ -102,6 +105,9 @@ export class AudioManager {
   readonly music: MusicPlayer | null;
   /** Kho tiếng mẫu CC0 (G2, #393); null khi không có WebAudio. Chưa tải xong thì các nhóm mẫu lùi về tiếng tổng hợp. */
   readonly bank: SfxBank | null;
+  /** Môi trường lớp chồng (gió, sóng, chim, côn trùng, lửa, chuông): GameScene gọi `updateAmbient`. */
+  readonly ambient: AmbientLayers;
+  private heartbeatAt = 0;
 
   constructor(scene: { sound: unknown }, listener: () => AudioPoint | null, sourceResolver: AudioSourceResolver = () => null,
     options: { bank?: SfxBankOptions; random?: () => number } = {}) {
@@ -114,6 +120,7 @@ export class AudioManager {
     this.music = musicPlayerFor(this.context);
     this.bank = this.context ? new SfxBank(this.context, options.bank) : null;
     this.random = options.random ?? Math.random;
+    this.ambient = new AmbientLayers((kind, volume, pan) => this.playAmbient(kind, volume, pan), this.random);
     this.listener = listener;
     this.sourceResolver = sourceResolver;
     this.settings = loadAudioSettings(storage());
@@ -141,7 +148,7 @@ export class AudioManager {
     if (!this.context) return;
     try { await this.context.resume(); } catch { /* trình duyệt có thể vẫn chặn tự phát */ }
     // Gói nhỏ và dùng ngay (đánh, trúng, bước chân, hồn hoàn) tải sẵn; gói kỹ năng và hồn thú tải khi dùng lần đầu.
-    for (const pack of ["combat", "steps", "world"]) void this.bank?.ensure(pack);
+    for (const pack of ["combat", "steps", "world", "ui"]) void this.bank?.ensure(pack);
   }
 
   /** Tiếng tổng hợp (zzfx): giao diện và tiếng nhỏ chưa có mẫu. Tiếng `ui_*` đi kênh Giao diện, còn lại kênh Hiệu ứng. */
@@ -198,6 +205,55 @@ export class AudioManager {
     if (!context || !pick || context.state !== "running" || this.settings.muted) return false;
     this.startSample(pick, { volume: 1, pan: 0 }, { ...opts, priority: opts.priority ?? 9 }, false);
     return true;
+  }
+
+  /** Tiếng giao diện (G5, #396): mở / đóng panel, kéo thả, trang bị, cường hóa thành / bại, nhận đồ hiếm. Kênh Giao diện; chưa có mẫu thì im (không lùi về zzfx). */
+  playUi(kind: UiSound): boolean {
+    return this.playGroup(UI_GROUP[kind], null, { channel: "ui", priority: 4, ...(kind === "rare" ? { gain: 1.1 } : {}) });
+  }
+
+  /** Môi trường lớp chồng: gọi mỗi vài khung với bản đồ, mức đêm, khoảng cách tới lửa gần nhất (ambientLayers.ts). */
+  updateAmbient(nowMs: number, input: AmbientInput): void { this.ambient.update(nowMs, input); }
+
+  private playAmbient(kind: AmbientKind, volume: number, pan: number): void {
+    const gain = { wind: 0.7, wave: 0.8, bird: 0.7, cricket: 0.55, fire: 0.9, bell: 0.7 }[kind];
+    this.playGroup(`amb-${kind}`, null, { channel: "ambient", priority: 0.25, gain: gain * volume, pan, ...(kind === "bell" ? { wet: 0.5 } : {}) });
+  }
+
+  // ---- PK (G5, #396): chỉ tiếng + hàm phát; trận đấu trường gọi ở G6 (#397). ----
+
+  /** Tải sẵn gói tiếng PK (gọi khi vào hàng chờ / phòng đấu) để tiếng đầu không bị lỡ. */
+  preloadPk(): void { void this.bank?.ensure("pk"); }
+
+  /** Trống mở trận: trống chiến + chiêng, hạ nhạc nền một lúc. */
+  playPkOpen(): boolean {
+    this.preloadPk();
+    return this.playGroup("pk-open", null, { channel: "ui", priority: 5, duck: 0.45, duckMs: 2500 });
+  }
+
+  /** Đếm ngược: `n` = số giây còn lại (3, 2, 1 mõ gỗ thấp dần lên cao); 0 = vào trận (chuông / chiêng nặng). */
+  playPkCountdown(n: number): boolean {
+    this.preloadPk();
+    if (n <= 0) return this.playGroup("pk-go", null, { channel: "ui", priority: 5, duck: 0.5, duckMs: 1500 }) || (this.play("ui_confirm"), true);
+    return this.playGroup("pk-count", null, { channel: "ui", priority: 5, rate: 1 + (3 - Math.min(3, n)) * 0.12 }) || (this.play("ui_click"), true);
+  }
+
+  /** Kết liễu: nhát chốt hạ ở `source` (null = ngay tai người nghe), hạ nhạc nền ngắn. */
+  playPkKill(source: AudioPoint | null = null): boolean {
+    this.preloadPk();
+    return this.playGroup("pk-kill", source, { priority: 4, gain: 1.15, wet: 0.25, duck: 0.6, duckMs: 900 });
+  }
+
+  /**
+   * Nhịp tim máu thấp: gọi mỗi khung với tỉ lệ sinh lực của mình (0..1); từ LOW_HP_RATIO trở xuống thì đập (chậm → dồn khi máu càng thấp),
+   * trên ngưỡng hoặc đã chết (≤ 0) thì im. Tự giữ nhịp, không cần gọi đúng lúc.
+   */
+  updateLowHpHeartbeat(hpRatio: number, nowMs: number = Date.now()): void {
+    if (!(hpRatio > 0) || hpRatio > LOW_HP_RATIO) { this.heartbeatAt = 0; return; }
+    if (nowMs < this.heartbeatAt) return;
+    this.heartbeatAt = nowMs + heartbeatInterval(hpRatio);
+    this.preloadPk();
+    this.playClip(hpRatio < LOW_HP_RATIO / 2 ? "pk-heartbeat-2" : "pk-heartbeat-1", { channel: "sfx", gain: 0.9 });
   }
 
   handleDamage(message: AudioEvent, material: Material = "thit"): void {
@@ -296,7 +352,7 @@ export class AudioManager {
     node.buffer = pick.buffer;
     const rate = v.rate * (opts.rate ?? 1);
     if (node.playbackRate) node.playbackRate.value = rate;
-    this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1), mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, opts.wet);
+    this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1), opts.pan ?? mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, opts.wet);
     node.start(0, pick.start, pick.duration + 0.01);
     if (opts.duck) this.music?.duckFor(opts.duck, opts.duckMs ?? LOUD_DUCK.ms);
   }
