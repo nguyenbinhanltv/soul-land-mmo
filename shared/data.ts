@@ -3604,7 +3604,7 @@ export const EQUIP_LUCK_UP = [1, 0.8, 0.6, 0.45, 0.3, 0.2, 0.12, 0.08, 0.05];
  * Rơi trang bị (hàm thuần, server truyền RNG và hệ số). `ranks[bậc hồn thú 0–3]`: `chance` có rơi lượt nào không, `rolls` số lượt [lo, hi],
  * `p` xác suất mỗi lượt ra [đồ tạp = Đá Cường Hóa, T0–T1, T2–T3, T4–T5] (chưa chuẩn hoá), `t5` tỉ lệ T5 trong nhóm T4–T5, `qty` nhân số đá,
  * `charm` tỉ lệ rơi (vào rương) Bùa Hộ Mệnh mỗi lần hạ (thú vương / boss thế giới). `tierW`: trọng số hai bậc trong nhóm T0–T1 và T2–T3.
- * `rateCap`: trần hệ số (1 + rate máy chủ + rate người chơi) nhân vào xác suất ra trang bị (không nhân đồ tạp, không có Rate VIP, không nạp tiền).
+ * `rateCap`: trần hệ số (1 + rate máy chủ + rate người chơi) nhân vào xác suất ra trang bị trong mỗi lượt (không nhân đồ tạp, không nhân số lượt rơi, không có Rate VIP, không nạp tiền).
  * `luck`: tỉ lệ ô may mắn ra sẵn +1. Thú vương / boss thế giới: kết quả đi vào rương theo đóng góp, không rải xuống đất (mục 5.15).
  */
 export const EQUIP_DROP = {
@@ -3649,26 +3649,33 @@ export function rollEquip(tpl: EquipTemplate, ilvl: number, rnd: () => number): 
 }
 /**
  * Các món rơi khi hạ một hồn thú bậc `rank` (0–3) ở bản đồ `mapId`. `rate`: tổng hệ số cộng thêm (sự kiện máy chủ + người chơi), xác suất
- * trang bị nhân (1 + rate) kẹp 0..rateCap; tổng trọng số 0 thì bỏ lượt (không chia 0). Bản đồ / bậc lạ: không rơi gì.
+ * trang bị mỗi lượt nhân (1 + rate) kẹp 0..rateCap (xác suất đá và cổng lượt rơi không đổi nên P(trang bị mỗi lần hạ) ≤ rateCap × giá trị gốc); tổng trọng số 0 thì bỏ lượt (không chia 0). Bản đồ / bậc lạ: không rơi gì.
  */
 export function rollEquipDrop(rank: number, mapId: string, rnd: () => number, rate = 0): EquipDrop[] {
   const cfg = EQUIP_DROP.ranks[rank], map = EQUIP_MAPS[mapId], out: EquipDrop[] = [];
   if (!cfg || !map) return out;
   const mult = Math.max(0, Math.min(EQUIP_DROP.rateCap, 1 + (Number.isFinite(rate) ? rate : 0)));
-  if (!(rnd() < Math.min(1, cfg.chance * (cfg.chance < 1 ? mult : 1)))) return out;
-  const rolls = cfg.rolls[0] + Math.floor(rnd() * (cfg.rolls[1] - cfg.rolls[0] + 1));
-  for (let i = 0; i < rolls; i++) {
-    const g = pickIdx([cfg.p[0], cfg.p[1] * mult, cfg.p[2] * mult, cfg.p[3] * mult], rnd);
-    if (g < 0) continue;
-    if (g === 0) {
-      const si = pickIdx(map.stones, rnd); if (si < 0) continue;
-      const [lo, hi] = EQUIP_STONES[si].drop;
-      out.push({ kind: "stone", code: EQUIP_STONES[si].id, qty: Math.max(1, Math.round((lo + Math.floor(rnd() * (hi - lo + 1))) * cfg.qty)) });
-      continue;
-    }
+  if (!(rnd() < cfg.chance)) return out; // cổng "có lượt rơi không" không nhân hệ số: rate chỉ nhân xác suất ra TRANG BỊ trong từng lượt
+  const rolls = cfg.rolls[0] + Math.floor(rnd() * (cfg.rolls[1] - cfg.rolls[0] + 1)), total = cfg.p.reduce((x, y) => x + y, 0), eq = cfg.p[1] + cfg.p[2] + cfg.p[3];
+  const equipDrop = () => {
+    const g = pickIdx([0, cfg.p[1], cfg.p[2], cfg.p[3]], rnd); // nhóm trang bị theo trọng số gốc
+    if (g < 0) return;
     const tier = Math.min(map.maxTier, g === 3 ? (rnd() < cfg.t5 ? 5 : 4) : (g - 1) * 2 + pickIdx(EQUIP_DROP.tierW[g - 1], rnd));
     const list = EQUIP_TEMPLATES.filter((x) => x.tier === tier), tpl = list[pickIdx(list.map((x) => x.w), rnd)];
     if (tpl) out.push({ kind: "equip", item: rollEquip(tpl, map.ilvl, rnd) });
+  };
+  for (let i = 0; i < rolls && total > 0; i++) {
+    // Phân loại gốc (không phụ thuộc rate): đá, trang bị hoặc không gì. Rate chỉ tác động lên TRANG BỊ: mult < 1 bỏ bớt, mult > 1 thêm
+    // một món phụ với xác suất (mult − 1) × pTrangBị; nên kỳ vọng trang bị mỗi lượt đúng × mult, còn đá và số lượt rơi không đổi.
+    const u = rnd(), pStone = cfg.p[0] / total, pEq = eq / total;
+    if (u < pStone) {
+      const si = pickIdx(map.stones, rnd);
+      if (si >= 0) {
+        const [lo, hi] = EQUIP_STONES[si].drop;
+        out.push({ kind: "stone", code: EQUIP_STONES[si].id, qty: Math.max(1, Math.round((lo + Math.floor(rnd() * (hi - lo + 1))) * cfg.qty)) });
+      }
+    } else if (u < pStone + pEq && (mult >= 1 || rnd() < mult)) equipDrop();
+    if (mult > 1) { const x = (mult - 1) * pEq; for (let k = Math.floor(x) + (rnd() < x - Math.floor(x) ? 1 : 0); k > 0; k--) equipDrop(); }
   }
   return out;
 }

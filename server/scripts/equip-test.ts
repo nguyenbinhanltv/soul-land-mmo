@@ -170,3 +170,18 @@ test("Khóa ảnh: 76 khóa duy nhất (60 mẫu + 10 hình ô + 6 khung), chu�
   assert.deepEqual(equipIconChain("mu_tu_kim"), ["item_equip_mu_tu_kim", "item_equip_slot_mu", "item_trang_bi"]);
   assert.deepEqual(equipIconChain("khong_co"), ["item_trang_bi"]); assert.equal(equipFrameKey(5), "item_equip_frame_chi_bao");
 });
+
+test("Rate: xác suất trang bị mỗi lần hạ ≤ rateCap × gốc, đá mỗi lần hạ và số lượt rơi không đổi theo rate (mọi bậc hồn thú)", () => {
+  const n = 300000;
+  for (const rank of [0, 1, 2, 3]) {
+    const base = dist(rank, "hai_than_dao", n, 70 + rank, 0), hi = dist(rank, "hai_than_dao", n, 70 + rank, 99), mid = dist(rank, "hai_than_dao", n, 70 + rank, 1);
+    const cfg = EQUIP_DROP.ranks[rank], eqBase = base.equips / n, stoneBase = base.rollsStone / n;
+    assert.ok(hi.equips / n <= eqBase * EQUIP_DROP.rateCap * 1.03 + 0.001, `bậc ${rank}: rate ở trần ${hi.equips / n} vượt ${EQUIP_DROP.rateCap} × ${eqBase}`);
+    assert.ok(hi.equips >= base.equips && mid.equips >= base.equips, "rate không làm giảm trang bị");
+    near(hi.rollsStone / n, stoneBase, Math.max(0.003, stoneBase * 0.03), `bậc ${rank}: số lần rơi đá đổi theo rate`);
+    near(mid.rollsStone / n, stoneBase, Math.max(0.003, stoneBase * 0.03), `bậc ${rank}: số lần rơi đá đổi theo rate (1)`);
+    void cfg;
+  }
+  const t = dist(0, "hai_than_dao", 1_000_000, 90, 2), t0 = dist(0, "hai_than_dao", 1_000_000, 90, 0);
+  near(t.equips / t0.equips, 3, 0.15, "hồn thú thường, rate = 2 (mult 3): đúng ×3, không ×4,3");
+});
