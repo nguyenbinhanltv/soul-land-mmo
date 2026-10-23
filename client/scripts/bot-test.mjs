@@ -5685,9 +5685,19 @@ async function offlineTest(){
   m=await away(H);
   ok(h&&m&&m.kills===0&&m.weak>0&&m.stop==="vùng quá sức",`cấp 1 ở ${deep.name} (${zy(deep).join("–")} năm): không hạ được con nào (${m?.weak} con quá sức, ${m?.stop})`);
 
+  // ---- E2 (#413): túi đầy chỉ vì trang bị rơi thì bỏ món đó, vẫn săn tiếp (không dừng "túi đầy"), báo số món bỏ ----
+  await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
+  await autoOp(A,"set",{cfg:{ring:-1,bone:false,core:false}});
+  const free=()=>A.bag.slots-looseOf(A).length;
+  for(let i=0;i<free()-6;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
+  await waitFor(()=>free()<=6,3000);
+  await test(A,"auto",{used:0});
+  m=await away(H);
+  ok(m&&m.stop!=="túi đầy"&&m.kills>0&&m.used>m.secs-120&&m.equipLost>0,`túi đầy vì trang bị: vẫn săn đủ ${m?.used}/${m?.secs} giây (${m?.kills} con), bỏ ${m?.equipLost} món (dừng: ${m?.stop})`);
+  await test(A,"gear",{clear:true}); await autoOp(A,"set",{cfg:{}}); await waitFor(()=>free()>6,2000);
+
   // ---- Túi đầy: dừng sớm, chỉ trừ quỹ phần đã săn ----
   await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
-  const free=()=>A.bag.slots-looseOf(A).length;
   await test(A,"give",{code:RING_ITEM,qty:Math.max(0,free()-1),years:20}); await waitFor(()=>free()===1,2000);
   await test(A,"auto",{used:0});
   m=await away(H);
