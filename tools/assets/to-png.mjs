@@ -1,6 +1,6 @@
 // Đổi ảnh WebP / JPEG (đuôi .png nhưng không phải PNG: Microsoft Copilot, một số dịch vụ khác lưu WebP) sang PNG thật bằng Chrome headless.
 //   node tools/assets/to-png.mjs <ảnh-vào> [<ảnh-ra.png>]       (ra mặc định: <tên>.png cạnh ảnh vào, ghi đè nếu đã là .png giả; ảnh gốc giữ ở <tên>.orig)
-// Chrome tự giải mã; chụp đúng cỡ gốc 1:1 (tỉ lệ thiết bị 1, tắt tiếng, cổng gỡ lỗi ngẫu nhiên, không đụng cổng của phiên khác).
+// Chrome tự giải mã; chụp đúng cỡ gốc 1:1 (tỉ lệ thiết bị 1, tắt tiếng, cổng gỡ lỗi ngẫu nhiên, không đụng cổng của phiên khác) trên nền TRONG SUỐT: ảnh có alpha giữ alpha.
 // Ảnh WebP lossy có nhiễu nén (màu nền #FF00FF lệch vài đơn vị, viền mờ): gemini-import xử lý được nhưng nên đặt --tol lớn hơn và --fringe 6 nếu còn viền hồng.
 import { spawn } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
@@ -28,13 +28,15 @@ try {
   let seq = 0; const pending = new Map();
   ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } });
   const cdp = (method, params = {}) => new Promise((res) => { const id = ++seq; pending.set(id, res); ws.send(JSON.stringify({ id, method, params })); });
-  const html = `<!doctype html><body style="margin:0;background:#fff"><img id="i" src="file:///${path.resolve(src).replace(/\\/g, "/")}" style="display:block;image-rendering:pixelated">`;
+  const html = `<!doctype html><body style="margin:0;background:transparent"><img id="i" src="file:///${path.resolve(src).replace(/\\/g, "/")}" style="display:block;image-rendering:pixelated">`;
   const page = path.join(tmp, "p.html"); writeFileSync(page, html);
   await cdp("Page.enable"); await cdp("Page.navigate", { url: "file:///" + page.replace(/\\/g, "/") });
   let w = 0, h = 0;
   for (let i = 0; i < 100 && !w; i++) { await sleep(100); const r = await cdp("Runtime.evaluate", { expression: "(()=>{const i=document.getElementById('i');return i&&i.complete?[i.naturalWidth,i.naturalHeight]:[0,0]})()", returnByValue: true }); [w, h] = r.result?.result?.value ?? [0, 0]; }
   if (!w) throw new Error("Chrome không giải mã được ảnh");
   await cdp("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: false });
+  // Nền trang trong suốt (kể cả nền mặc định của Chrome) để WebP có kênh alpha giữ nguyên alpha khi chụp PNG.
+  await cdp("Emulation.setDefaultBackgroundColorOverride", { color: { r: 0, g: 0, b: 0, a: 0 } });
   await sleep(200);
   const shot = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, clip: { x: 0, y: 0, width: w, height: h, scale: 1 } });
   if (path.resolve(out) === path.resolve(src)) renameSync(src, src.replace(/\.[^.]+$/, "") + ".orig");
