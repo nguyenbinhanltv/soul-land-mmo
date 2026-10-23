@@ -1,0 +1,10 @@
+{
+  "attach": "feet",
+  "dirs": {
+    "s":  [{ "img": "can_khon_hon_nguyen_toa_s.png", "pivot": [28,16], "off": [0,-4], "layer": {"split": 68} }],
+    "se": [{ "img": "can_khon_hon_nguyen_toa_s.png", "pivot": [28,16], "off": [0,-4], "layer": {"split": 68} }],
+    "e":  [{ "img": "can_khon_hon_nguyen_toa_s.png", "pivot": [28,16], "off": [0,-4], "layer": {"split": 68} }],
+    "ne": [{ "img": "can_khon_hon_nguyen_toa_s.png", "pivot": [28,16], "off": [0,-4], "layer": {"split": 68} }],
+    "n":  [{ "img": "can_khon_hon_nguyen_toa_s.png", "pivot": [28,16], "off": [0,-4], "layer": {"split": 68} }]
+  }
+}

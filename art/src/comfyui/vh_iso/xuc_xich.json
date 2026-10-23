@@ -1,0 +1,10 @@
+{
+  "attach": "hand",
+  "dirs": {
+    "s":  [{ "img": "xuc_xich_s.png", "pivot": [16,22], "off": [9,-1], "hand": "right", "layer": "f" }],
+    "se": [{ "img": "xuc_xich_s.png", "pivot": [16,22], "off": [9,-1], "hand": "right", "layer": "f" }],
+    "e":  [{ "img": "xuc_xich_s.png", "pivot": [16,22], "off": [9,-1], "hand": "right", "layer": "f" }],
+    "ne": [{ "img": "xuc_xich_s.png", "pivot": [16,22], "off": [9,-1], "hand": "right", "layer": "b" }],
+    "n":  [{ "img": "xuc_xich_s.png", "pivot": [16,22], "off": [9,-1], "hand": "right", "layer": "b" }]
+  }
+}
