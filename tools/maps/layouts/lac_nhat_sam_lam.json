@@ -13,7 +13,7 @@
       "grass": [1, 2], "leaf": 3, "moss": 5, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
       "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
     },
-    "objects": {
+    "objects": { "roof": 14, "wall": 15,
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28,
       "burnt_tree": 41, "poison_flower": 42, "ice_fire_rock": 43
     },
@@ -96,7 +96,9 @@
     { "type": "scatter", "kind": "poison_flower", "circle": [90, 56, 16], "p": 0.05, "on": ["grass"] },
     { "type": "scatter", "kind": "poison_flower", "rect": [60, 20, 70, 50], "p": 0.012, "on": ["grass"] },
     { "type": "scatter", "kind": "ice_fire_rock", "circle": [217, 61, 11], "p": 0.04, "on": ["stony", "glow"] },
-    { "type": "scatter", "kind": "ice_fire_rock", "circle": [227, 67, 11], "p": 0.04, "on": ["path", "glow"] }
+    { "type": "scatter", "kind": "ice_fire_rock", "circle": [227, 67, 11], "p": 0.04, "on": ["path", "glow"] },
+    { "type": "house", "rect": [100, 24, 6, 5], "margin": 1 },
+    { "type": "house", "rect": [34, 24, 5, 4], "margin": 1 }
   ],
   "roads": [
     { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 3 },

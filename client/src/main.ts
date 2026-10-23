@@ -13,6 +13,7 @@ import { loadUiArt } from "./uiArt.ts";
 import { initTips } from "./tooltip.ts";
 import { vohonCard } from "./cards.ts";
 import { fontTestScreen } from "./fontTest.ts";
+import { audioTestScreen } from "./audioTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
@@ -316,11 +317,13 @@ function play(room: Room, roomMap: string, watch = false) {
 }
 
 // Có phiên cũ -> thử tải nhân vật luôn. Trước đó đọc manifest cho ảnh giao diện (10.8; lỗi thì giao diện vẽ bằng CSS như cũ).
-// `?thu=font`: trang thử font tiếng Việt và bộ giao diện thủy mặc / thẻ võ hồn (không cần đăng nhập).
+// `?thu=font`: trang thử font tiếng Việt và bộ giao diện thủy mặc / thẻ võ hồn; `?thu=am`: trang nghe thử âm thanh (không cần đăng nhập).
 (async () => {
   initTips(); // chú thích dùng chung (UI-0): ủy quyền `title` của mọi phần tử HUD / bảng
   await loadUiArt();
-  if (new URLSearchParams(location.search).get("thu") === "font") return fontTestScreen(card, overlay);
+  const thu = new URLSearchParams(location.search).get("thu");
+  if (thu === "font") return fontTestScreen(card, overlay);
+  if (thu === "am") return audioTestScreen(card, overlay); // `?thu=am`: nghe thử tiếng mẫu CC0 (G2, #393)
   if (!token) return loginScreen();
   await resume();
 })();

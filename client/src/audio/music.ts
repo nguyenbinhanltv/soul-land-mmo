@@ -48,6 +48,9 @@ export const MUSIC_FADE_S = 1.5;
 export const MUSIC_DUCK_GAIN = 0.3;
 export const MUSIC_DUCK_ATTACK_S = 0.15;
 export const MUSIC_DUCK_RELEASE_S = 0.8;
+/** Hạ nhạc nền vì tiếng hiệu ứng lớn (`MusicPlayer.duckFor`): hạ nhanh, trả lại chậm hơn một chút. */
+export const MUSIC_LOUD_ATTACK_S = 0.06;
+export const MUSIC_LOUD_RELEASE_S = 0.5;
 /** Hết giao chiến boss bao lâu (ms) mới mờ về nhạc bản đồ, để đánh giật cục không đổi bài liên tục. */
 export const MUSIC_BATTLE_HOLD_MS = 4000;
 /** Boss / thú vương trong tầm này (pixel thế giới) mới tính là đang giao chiến. */
@@ -82,7 +85,7 @@ export function musicLoopSeconds(seconds: number): number {
   return (Math.round((seconds * MUSIC_RENDER_RATE) / MUSIC_LOOP_BLOCK) * MUSIC_LOOP_BLOCK) / MUSIC_RENDER_RATE;
 }
 
-function browserMusicFormat(): MusicFormat {
+export function browserMusicFormat(): MusicFormat {
   try {
     const el = document.createElement("audio");
     return pickMusicFormat(navigator, (type) => el.canPlayType(type));
@@ -103,14 +106,14 @@ export function bossEngaged(beasts: { forEach(cb: (b: MusicBeast) => void): void
   return on;
 }
 
-async function fetchBytes(url: string): Promise<ArrayBuffer> {
+export async function fetchBytes(url: string): Promise<ArrayBuffer> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.arrayBuffer();
 }
 
 /** decodeAudioData dạng promise; Safari cũ chỉ có dạng callback. */
-function decodeAudio(context: BaseAudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
+export function decodeAudio(context: BaseAudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
   return new Promise((resolve, reject) => {
     const p = context.decodeAudioData(data, resolve, reject) as Promise<AudioBuffer> | undefined;
     if (p && typeof p.then === "function") p.then(resolve, reject);
@@ -136,6 +139,8 @@ export class MusicPlayer {
   private readonly context: AudioContext;
   private readonly bus: GainNode;
   private readonly duck: GainNode;
+  /** Hạ nhạc nền khi có tiếng lớn (`duckFor`); nối sau `duck` nên không đụng khúc ngắn. */
+  private readonly loud: GainNode;
   private readonly load: (url: string) => Promise<ArrayBuffer>;
   private readonly now: () => number;
   private readonly log: (text: string) => void;
@@ -165,8 +170,10 @@ export class MusicPlayer {
     this.fmt = options.format ?? browserMusicFormat();
     this.bus = context.createGain();
     this.duck = context.createGain();
+    this.loud = context.createGain();
     this.bus.gain.value = 0;
-    this.duck.connect(this.bus);
+    this.duck.connect(this.loud);
+    this.loud.connect(this.bus);
     this.bus.connect(context.destination);
   }
 
@@ -194,6 +201,17 @@ export class MusicPlayer {
     this.bus.gain.cancelScheduledValues(t);
     this.bus.gain.setValueAtTime(v, t);
     if (wasSilent !== v <= 0) this.sync();
+  }
+
+  /** Tiếng lớn (gầm boss, hồn kỹ vòng cao): hạ nhạc nền còn `depth` rồi giữ `holdMs`, sau đó trả lại. Nhạc im thì bỏ. */
+  duckFor(depth: number, holdMs: number): void {
+    if (!this.audible()) return;
+    const g = this.loud.gain, t = this.context.currentTime, end = t + holdMs / 1000, d = Math.min(1, Math.max(0, depth));
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(d, t + MUSIC_LOUD_ATTACK_S);
+    g.setValueAtTime(d, Math.max(end, t + MUSIC_LOUD_ATTACK_S));
+    g.linearRampToValueAtTime(1, Math.max(end, t + MUSIC_LOUD_ATTACK_S) + MUSIC_LOUD_RELEASE_S);
   }
 
   /** Bản đồ đang đứng (`mapId` trong state); null = ngừng nhạc nền. Sang bản đồ khác là hết giao chiến ngay, không chờ giữ. */

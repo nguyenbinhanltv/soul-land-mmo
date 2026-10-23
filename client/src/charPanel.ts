@@ -5,6 +5,7 @@ import { TIERS, VOHON, BONE_SLOTS, CORE_SLOTS, CORE_SET_2, CORE_SET_4, MAX_RINGS
   ringSkill, loadoutOf, formatYears, coreSetCounts, coreSetIndex, coreSlotOf, boneSkillOf } from "../../shared/data.ts";
 import type { OwnedVohons, BagItem } from "./net.ts";
 import { boneSvg } from "./boneIcons.ts";
+import { skillImg } from "./uiArt.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { setTip, type TipSpec, type TipLine } from "./tooltip.ts";
 import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
@@ -159,7 +160,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     b.type = "button";
     if (open) b.dataset.tier = String(rings[r]);
     let need = 1; while (!atBottleneck(need, r)) need++; // cấp bình cảnh mở vòng thứ r + 1 (cùng hàm server dùng)
-    b.innerHTML = `<i class="rdot"></i><span></span><em></em>`;
+    b.innerHTML = `<i class="rdot"></i>${sk && open ? skillImg(v.vohon, r, "sico") : ""}<span></span><em></em>`;
     b.querySelector("span")!.textContent = open ? `${r + 1}. ${sk?.name ?? TIERS[rings[r]].color}` : `${r + 1}. Chưa mở`;
     b.querySelector("em")!.textContent = open ? (at >= 0 ? SKILL_KEYS[at] : "") : `Cấp ${need}`;
     b.setAttribute("aria-label", open ? `Vòng ${r + 1}: ${TIERS[rings[r]].color}, ${formatYears(v.rings[r])}${sk ? `, hồn kỹ ${sk.name}` : ""}` : `Vòng ${r + 1}: chưa mở, mở ở cấp ${need}`);

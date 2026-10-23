@@ -12,12 +12,13 @@
     "map": "node tools/gen-map.mjs",
     "map:build": "node tools/maps/build.mjs",
     "map:preview": "node tools/maps/preview.mjs",
-    "check": "node tools/check.mjs && node tools/assets/validate.mjs && node tools/audio/compose/validate.mjs && node tools/maps/build.mjs --check",
+    "check": "node tools/check.mjs && node tools/assets/validate.mjs && node tools/audio/compose/validate.mjs && node tools/maps/build.mjs --check && node tools/audio/validate-sfx.mjs",
     "hooks": "git config core.hooksPath .githooks",
-    "test:audio": "node --test tools/audio/audio.test.mjs",
+    "test:audio": "node --test tools/audio/audio.test.mjs tools/audio/sfx.test.mjs",
     "audio:process": "node tools/audio/process.mjs",
     "audio:validate": "node tools/audio/validate.mjs",
-    "audio:preview": "node tools/audio/preview.mjs"
+    "audio:preview": "node tools/audio/preview.mjs",
+    "audio:sfx": "node tools/audio/process-sfx.mjs"
   },
   "devDependencies": {
     "embedded-postgres": "18.4.0-beta.17",

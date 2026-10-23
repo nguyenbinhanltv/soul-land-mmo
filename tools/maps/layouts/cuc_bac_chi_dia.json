@@ -12,7 +12,7 @@
       "grass": [25, 26], "leaf": 2, "moss": 3, "path": 29, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 28, "ford": 27,
       "bank": 5, "deep": 35, "stony": 4, "glow": 6, "bridge": 7
     },
-    "objects": {
+    "objects": { "roof": 14, "wall": 15,
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 1, "tent": 11, "fire": 12, "skull": 33, "ice_spire": 41
     },
     "canopy": { "30": 31 }
@@ -78,7 +78,9 @@
     { "type": "lair", "at": [102, 24], "rx": 10, "ry": 7, "entrance": "s", "wall": "cliff", "door": 4, "skulls": [[95, 21], [109, 27]] },
     { "type": "scatter", "kind": "ice_spire", "circle": [20, 176, 30], "p": 0.012, "on": ["stony", "grass"] },
     { "type": "scatter", "kind": "ice_spire", "circle": [36, 192, 22], "p": 0.012, "on": ["stony", "grass"] },
-    { "type": "scatter", "kind": "ice_spire", "circle": [180, 154, 22], "p": 0.012, "on": ["stony", "grass"] }
+    { "type": "scatter", "kind": "ice_spire", "circle": [180, 154, 22], "p": 0.012, "on": ["stony", "grass"] },
+    { "type": "house", "rect": [147, 20, 6, 5], "margin": 1 },
+    { "type": "house", "rect": [37, 243, 5, 4], "margin": 1 }
   ],
   "roads": [
     { "via": ["camp_n", "tn", "bh", "bp", "bu", "dong"], "width": 3 },
