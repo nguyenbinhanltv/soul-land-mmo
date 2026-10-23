@@ -141,6 +141,7 @@ Client chiếu từng điểm của hình server gửi (`client/src/iso.ts`): v�
 | `portrait_{id}` | 64×64 (`ISO_PORTRAIT`) | Chính võ hồn trên nền tối có quầng màu, cắt 1:1, không viền ngoài, ≤ `PORTRAIT_MAX_COLORS` màu |
 | `npc_{mã NPCS}` | 112×112 (`ISO_NPC_PORTRAIT`) | Bán thân nhìn thẳng trên nền tối |
 | `thu_{mã BEASTS}` | 64×64 (`ISO_BEAST_PORTRAIT`) | Chân dung hồn thú ở khung mục tiêu (#339): bán thân (đầu + vai, mặt to, nhìn sang phải về phía chữ), nền trong suốt, viền `#1a1020`, ≤ `PORTRAIT_MAX_COLORS` màu, không mắt phát sáng / hào quang; tinh anh, thú vương dùng chân dung loài gốc. Thư mục `iso/thu/` |
+| `skill_{mã võ hồn \| chung}_{vòng 0..9}` | 32×32 (`ISO_SKILL_ICON`) | Biểu tượng hồn kỹ (#384) ở thanh kỹ năng, bảng đội hình, bảng nhân vật: hình chính từ ảnh ComfyUI trong khung TRÒN màu `col` của võ hồn (hồn kỹ chung: xám xanh trung tính), nền ngoài khung trong suốt; `tools/assets/skill-icon.mjs` tách nền, giảm màu và ghép khung (đồng nhất cả ~280 biểu tượng). Số cuối là chỉ số vòng của hồn kỹ (`ringSkill`); chưa có ảnh thì client giữ ký tự `icon`. Thư mục `iso/skill/` |
 | `card_{sr,ssr,ur}` | 96×152 (`ISO_CARD`) | Khung lưu ly, cửa sổ chân dung trong suốt; tên tối đa 2 dòng font 10 px; tấm biển đáy ghi cấp trên nền tối |
 | `he_{mã HE_IDS}` | 24×24 (`ISO_HE_ICON`) | Biểu tượng trắng trên tròn màu hệ, viền vàng kim: Cường công kiếm / đỏ, Mẫn công 3 vết cào / lục, Khống chế mắt xích / tím, Phụ trợ hoa sen / vàng |
 | `status_{mã}` | 24×24 (`ISO_STATUS_ICON`) | Theo `STATUS_IDS` / `BUFF_IDS` / `BEAST_BUFF_IDS`; 16 px mất hình nên không dùng |
