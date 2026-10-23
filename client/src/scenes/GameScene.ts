@@ -27,11 +27,13 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioManager.ts";
-import { STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
+import { RARE_LOOT_MIN, STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
+import { bindUiSounds } from "../audio/uiSounds.ts";
+import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
-import { bossEngaged } from "../audio/music.ts";
+import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
@@ -388,6 +390,7 @@ export class GameScene extends Phaser.Scene {
       return source && Number.isFinite(source.x) && Number.isFinite(source.y) ? { x: source.x, y: source.y } : null;
     });
     this.audio.bindUnlock(this.ac.signal);
+    bindUiSounds(this.audio, this.ac.signal); // mở / đóng panel, kéo thả (G5, #396)
     this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
     // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
@@ -859,7 +862,7 @@ export class GameScene extends Phaser.Scene {
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
     this.room.onMessage("boss", (m: any) => {
       if (m.k === "warn" && !m.join) { this.audio.play("boss_warn"); this.audio.playBeast("boss", null); } // tin xin lại lúc vào phòng (#118, `join`) không kêu lại
-      else if (m.k === "down") this.audio.play("boss_down");
+      else if (m.k === "down") { this.audio.play("boss_down"); this.audio.music?.jingle("boss_down"); }
       const col = m.col ?? "#ff5a5a";
       if (this.worldBossMsg(m, col)) return; // boss thế giới (BĐ6e): cơ chế riêng
       if (m.k === "warn") {
@@ -908,6 +911,9 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; bid?: string; kill?: boolean; by?: string; dot?: boolean; immune?: boolean; heal?: boolean; shield?: boolean }) => {
       if (m.kill && m.bid && this.beasts.has(m.bid)) this.beastKilled.set(m.bid, this.time.now); // đòn kết liễu: bản vá kế tiếp chỉ có lệnh xoá hồn thú (bóng ngã mờ dần, fadeBeastGhost); chỉ ghi hồn thú đang hiện (tin dmg tới cả phòng, hồn thú ở xa không có sprite nên mục không bao giờ được dọn)
       this.audio.handleDamage(m, this.hitMaterial(m));
+      const hit = combatHit(m, this.room.state.players.get(this.me)); // nhạc động (G5, #396): đánh nhau gần mình thì lớp giao chiến lên
+      if (hit.combat) this.audio.music?.combatPulse();
+      if (hit.bigCrit) this.audio.music?.jingle("crit_big");
       this.hitFeel(m);
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
@@ -1083,7 +1089,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { lootToasts(this.bag?.items ?? null, m.items); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
       if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
@@ -1094,13 +1100,14 @@ export class GameScene extends Phaser.Scene {
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag". Từ #187 kèm
     // các dòng phụ server vừa tung ở mốc (`subs`).
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; fee?: number; subs?: { k: CoreStat; v: number }[] }) => {
-      if (m.to > m.from) this.audio.play("breakthrough");
+      if (m.to > m.from) { this.audio.play("breakthrough"); this.audio.playUi("enhanceOk"); } else this.audio.playUi("enhanceFail"); // chưa đủ lên cấp = chưa thành (G5)
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu${m.fee ? `, phí ${formatHonTe(m.fee)}` : ""}`; // phí #281
       const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
       toast("info", `Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
     });
     // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; fee?: number; subs: CoreSubUp[] }) => {
+      this.audio.playUi(m.to > m.from ? "enhanceOk" : "enhanceFail");
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`, fee = m.fee ? ` · phí ${formatHonTe(m.fee)}` : ""; // phí #281
       const subs = m.subs.map((u) => (u.add ? `dòng phụ mới ${coreStatText(u.k, u.v)}` : `${coreStatText(u.k, u.to)} (tăng)`)).join(" · ");
       toast("info", `Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}${fee}` : `${pts}, chưa đủ lên cấp`);
@@ -2439,7 +2446,9 @@ export class GameScene extends Phaser.Scene {
 
     // Ánh sáng (10.7): nguồn sáng hồn lực trong khung này, cộng vật phát sáng IsoMap báo; rồi thời tiết, hạt bay.
     const me = st.players.get(this.me), cam = this.cameras.main;
-    this.light.update(time, cam, this.lightSources(st, time), this.isoMap.glows());
+    const glows = this.isoMap.glows();
+    this.light.update(time, cam, this.lightSources(st, time), glows);
+    this.ambientSound(time, mv, glows);
     const zone = me ? this.zones.find((z) => inRect(z, me.x, me.y))?.name ?? "" : "";
     let boss = false;
     if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
@@ -2447,7 +2456,10 @@ export class GameScene extends Phaser.Scene {
     // Che tầm nhìn (#175): chỉ màn hình của chính người trúng phủ mực, vòng hở quanh thân mình.
     this.ink.update(!!me && (me.st & statusBit("ink")) !== 0, mv ? { x: mv.root.x, y: mv.root.y - HEAD / 2 } : null, delta, cam);
     // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
-    this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
+    const bossLevel = me ? bossPhase(st.beasts, me) : 0;
+    this.audio.music?.setBattle(bossLevel > 0);
+    this.audio.music?.setBossPhase(bossLevel); // pha 2 (nổi giận): nhạc giao chiến boss lên một nấc
+    this.audio.music?.tick();
     if (me) {
       if (me.vh === this.lvVh && me.level > this.lvSeen) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); toast("level", `Cấp ${me.level}`, VOHON[me.vh]?.name ?? "", "#ffe08a"); }
       this.lvVh = me.vh; this.lvSeen = me.level;
@@ -2570,9 +2582,9 @@ export class GameScene extends Phaser.Scene {
       setTeam: (slots) => this.room.send("team", { slots }),
       unlock: (vohon) => this.room.send("unlock", { vohon }),
       starUp: (vohon) => this.room.send("starup", { vohon }),
-      equip: (itemId, vohonId, slot) => this.room.send("equip", { itemId, vohonId, slot }),
+      equip: (itemId, vohonId, slot) => { this.audio.playUi("equip"); this.room.send("equip", { itemId, vohonId, slot }); },
       unequip: (itemId) => this.room.send("unequip", { itemId }),
-      equipCore: (itemId, vohonId, slot) => this.room.send("equipcore", { itemId, vohonId, slot }),
+      equipCore: (itemId, vohonId, slot) => { this.audio.playUi("equip"); this.room.send("equipcore", { itemId, vohonId, slot }); },
       unequipCore: (itemId) => this.room.send("unequipcore", { itemId }),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
@@ -2635,8 +2647,8 @@ export class GameScene extends Phaser.Scene {
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
       // UI-1: gắn nhanh cho võ hồn đang ra trận (cùng lệnh với bảng đội hình; server kiểm tra vị trí, giao chiến, túi đầy)
       active: () => this.owned?.active ?? null,
-      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equip", { itemId, vohonId, slot }); },
-      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId, slot }); },
+      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) { this.audio.playUi("equip"); this.room.send("equip", { itemId, vohonId, slot }); } },
+      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) { this.audio.playUi("equip"); this.room.send("equipcore", { itemId, vohonId, slot }); } },
     });
   }
 
@@ -2659,6 +2671,20 @@ export class GameScene extends Phaser.Scene {
 
   /** Bản đồ đang đứng có boss thế giới (Lõi Tinh Đấu, BĐ6e). */
   worldBossHere() { return !!MAPS[this.room.state.mapId]?.world?.length; }
+
+  private ambientAt = 0;
+  /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy gần nhất; ambientLayers.ts tự hẹn giờ. */
+  private ambientSound(time: number, mv: { root: { x: number; y: number } } | undefined, glows: ReadonlyArray<{ x: number; y: number; kind: string }>) {
+    if (time < this.ambientAt) return;
+    this.ambientAt = time + 250;
+    let fireDist: number | null = null;
+    if (mv) for (const g of glows) {
+      if (!AMBIENT_FIRE_PROPS.has(g.kind)) continue;
+      const d = Math.hypot(g.x - mv.root.x, g.y - mv.root.y);
+      if (fireDist === null || d < fireDist) fireDist = d;
+    }
+    this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist });
+  }
 
   /**
    * Tin "boss" riêng của boss thế giới (BĐ6e): báo trước / bị hạ toàn server có chữ "Boss thế giới"; trong Lõi Tinh Đấu thêm các cơ chế

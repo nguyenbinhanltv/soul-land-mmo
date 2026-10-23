@@ -23,6 +23,10 @@ Pipeline tạo `.ogg` và `.m4a` AAC, chuẩn hóa bằng `loudnorm`, cắt kho�
 
 Catalog hiện bao phủ rừng, suối, gió núi, thành trấn/đám đông, chim, sói, rắn, gấu, côn trùng và chuông. Các nhóm bổ sung dùng OGA CC0 đã ghi provenance từng file trong catalog và `art/CREDITS.md`.
 
+## Hiệu ứng lô 2 (G5, #396)
+
+`sfx-catalog.json` thêm ba gói: `amb` (môi trường: gió, sóng, chim, côn trùng, lửa, chuông chùa), `ui` (giao diện) và `pk` (trống mở trận, đếm ngược, kết liễu, nhịp tim). Clip lấy đoạn giữa bản thu dài bằng `startSeconds` / `maxSeconds`, mờ vào / ra bằng `fadeIn` / `fadeOut` (môi trường dài hơn 0,5 s); còn lại như lô 1. Nguồn tải về thư mục tạm ngoài repo (mỗi nguồn một thư mục con theo `sourceId`), chạy `npm run audio:sfx -- --source-root <thư mục>`.
+
 ## License và provenance
 
 - Audio đầu vào nhận mọi giấy phép đã biết (`ALLOWED_LICENSES` trong `lib.mjs`, mã SPDX: CC0, CC-BY, CC-BY-SA, CC-BY-NC, OGA-BY, GPL; luật ở `GAME_DESIGN.md` mục 5.11); giấy phép lạ, trống hay ND thì validator dừng. Bảng ghi công gắn cờ SA / GPL / NC cạnh giấy phép: tệp output (kể cả audio sprite ghép nhiều nguồn) có nguồn SA / GPL thì cả tệp theo giấy phép đó, nên tách nguồn SA / GPL ra sprite riêng khi được; NC thì thay nếu thương mại hóa. Kenney (CC0) được ưu tiên; OGA gap-fill sau khi kiểm tra trang nguồn từng gói.
