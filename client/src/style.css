@@ -1051,3 +1051,46 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 #target .tn .tl{color:var(--muted)}
 #target .thp{width:100%;min-width:200px;margin-top:var(--sp-2)}
 #target .thp>i{transition:width .12s linear}
+
+/* ===== UI-2 (#352): bảng nhân vật "Hồn sư" (client/src/charPanel.ts). Búp bê dùng lại .bfig / .bcell / .bmid, bộ hồn hạch dùng lại .csets. ===== */
+#char{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(640px,96vw);max-height:84%;overflow-y:auto;z-index:4;
+  padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:6px}
+.thuymac #char{border-width:16px 10px;border-image:var(--frame-scroll) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
+  scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
+:is(#roster,#bag,#reso,#friends,#world):not([hidden]) ~ #talk,#char:not([hidden]) ~ #talk{display:none}
+#char .ctabs{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+#char .cbody{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,1.15fr);gap:var(--sp-4);align-items:start}
+#char .ccolL,#char .ccolM,#char .ccolR{display:flex;flex-direction:column;gap:var(--sp-3);min-width:0}
+@media (max-width:560px){#char .cbody{grid-template-columns:minmax(0,1fr)}}
+#char .cdoll{width:100%}
+#char .bcell{min-height:64px}
+#char .cstar{font-size:10px;font-family:var(--f10);color:var(--accent)}
+#char .cshead{font:var(--fs-m) var(--f12);color:var(--muted);border-bottom:var(--bd-fine) solid var(--line);padding-bottom:var(--sp-1)}
+#char .crow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--sp-2)}
+#char .ccell{min-height:40px;padding:2px}
+#char .ccell svg.ico.core{width:24px;height:24px;transform:none}
+#char .crings{display:flex;flex-direction:column;gap:var(--sp-2)}
+#char .cring{display:flex;align-items:center;gap:var(--sp-3);padding:2px var(--sp-3);font:var(--fs-s) var(--f10);color:var(--text);background:var(--wash);
+  border:var(--bd) solid var(--c);cursor:help;text-align:left;min-height:24px}
+#char .cring.empty{border-style:dashed;border-color:var(--line);color:var(--muted)}
+#char .cring .rdot{flex:none;width:12px;height:12px;border-radius:50%;border:3px solid var(--c);background:color-mix(in srgb,var(--c) 30%,transparent);
+  box-shadow:0 0 5px color-mix(in srgb,var(--c) 70%,transparent)}
+#char .cring.empty .rdot{border-style:dashed;background:none;box-shadow:none}
+#char .cring>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#char .cring>em{flex:none;font-style:normal;color:var(--muted)}
+#char .cring:focus-visible,#char .cstat:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#char .cstats{display:flex;flex-direction:column;gap:var(--sp-1)}
+#char .cgroup{font:var(--fs-s) var(--f10);color:var(--muted);margin-top:var(--sp-2)}
+#char .cstat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 var(--sp-4);cursor:help}
+#char .cstat span{font:var(--fs-m) var(--f12);color:var(--muted)}
+#char .cstat b{font:var(--fs-m) var(--f12);font-weight:normal;text-align:right;font-variant-numeric:tabular-nums}
+#char .cstat em{grid-column:1 / -1;justify-self:end;font:var(--fs-s) var(--f10);font-style:normal;color:var(--good)}
+#char .bfig{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-2)}
+#char .bcell{min-height:56px;min-width:0;overflow:hidden}
+#char .bcell em{display:none}
+#char .bmid{min-width:0}
+#char .bmid img{width:64px;height:64px;margin:-6px 0 -8px}
+#char .bmid small{font-size:10px;font-family:var(--f10)}
+#char .cstat span{overflow-wrap:anywhere}
+#char .cset small,#char .cset b{font-size:10px;font-family:var(--f10)}
+#char .cset{padding:3px 5px}
