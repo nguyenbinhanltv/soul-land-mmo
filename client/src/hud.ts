@@ -2197,13 +2197,13 @@ export interface NpcActions {
   enhance(targetId: string, materialIds: string[]): void;
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
-  arena(op: "queue" | "cancel" | "top"): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng
+  arena(op: "queue" | "cancel" | "top" | "live" | "watch", roomId?: string): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng; xem trận (#280): danh sách, vào xem
   // Tông môn (#196): gia nhập / đổi sang `tong`, rời tông; #197: nhận / trả tông vụ `chain`, xin bảng tông tuần, nhận thưởng tuần.
   tong(op: "join" | "leave" | "accept" | "turnin" | "board" | "claim", tong?: string, chain?: string): void;
   shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -2285,6 +2285,14 @@ function renderNpc() {
     el.appendChild(row);
     return;
   }
+  if (npcPage === "live") { // #280: danh sách trận đang diễn ra
+    el.appendChild(arenaLiveEl(act));
+    const rf = btn("Làm mới", "use", () => { arenaLiveAsk(act); renderNpc(); }, performance.now() - arenaLiveAt < ARENA.topCd * 1000);
+    if (rf.disabled) setTimeout(() => { if (npcDefOpen && npcPage === "live") renderNpc(); }, ARENA.topCd * 1000);
+    btn("‹ Quay lại", "drop", () => go("talk"));
+    el.appendChild(row);
+    return;
+  }
   if (npcPage === "rank") { // bảng xếp hạng Đại Đấu Hồn Trường (7.2)
     el.appendChild(arenaRankEl(arenaTopMsg));
     btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
@@ -2325,6 +2333,7 @@ function renderNpc() {
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
       btn("Bảng xếp hạng", "absorb", () => { act.arena("top"); go("rank"); });
+      btn("Trận đang diễn ra", "absorb", () => { arenaLiveAsk(act); go("live"); });
     }
     if (def.role === "tong") {
       const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
@@ -2894,6 +2903,46 @@ export function updateArenaQueue() {
   if (s.textContent !== txt) s.textContent = txt;
 }
 
+/** Tin "arena" k = "live" (#280): trận đang đếm ngược / giao đấu; `secs` tính lúc server trả lời. */
+export interface ArenaLiveMsg {
+  list: { roomId: string; mode: string; sides: { name: string; elo: number }[]; phase: string; secs: number; watchers: number; max: number }[];
+}
+let arenaLiveMsg: (ArenaLiveMsg & { t0: number }) | null = null;
+let arenaLiveAt = -1e9;                                 // lần xin danh sách gần nhất (performance.now), server chỉ trả mỗi ARENA.topCd giây
+function arenaLiveAsk(act: NpcActions) { arenaLiveAt = performance.now(); act.arena("live"); }
+/** Tin "arena" k = "live": lưu và vẽ lại trang danh sách nếu đang mở. */
+export function setArenaLive(m: ArenaLiveMsg) {
+  arenaLiveMsg = { list: Array.isArray(m.list) ? m.list : [], t0: performance.now() };
+  if (npcDefOpen?.role === "arena" && npcPage === "live") renderNpc();
+}
+const liveSecs = (l: ArenaLiveMsg["list"][number], t0: number) => Math.max(0, l.secs - Math.floor((performance.now() - t0) / 1000));
+const liveClock = (l: ArenaLiveMsg["list"][number], t0: number) => `${l.phase === "ready" ? "đếm ngược" : "còn"} ${mmss(liveSecs(l, t0))}`;
+function arenaLiveEl(act: NpcActions) {
+  const box = document.createElement("div"); box.className = "alive";
+  const m = arenaLiveMsg;
+  if (!m) { const p = document.createElement("div"); p.className = "rnote"; p.textContent = "Đang xin danh sách…"; box.appendChild(p); return box; }
+  if (!m.list.length) { const p = document.createElement("div"); p.className = "rnote"; p.textContent = "Chưa có trận nào đang diễn ra."; box.appendChild(p); return box; }
+  for (const l of m.list) {
+    const row = document.createElement("div"); row.className = "arow";
+    const info = document.createElement("div"); info.className = "ainfo";
+    const t = document.createElement("b"); t.textContent = `${l.mode} · ${l.sides.map((x) => `${x.name} (${x.elo})`).join("  ⚔  ")}`;
+    const s = document.createElement("small"); s.textContent = `${l.phase === "ready" ? "Chuẩn bị" : "Giao đấu"} · `;
+    const c = document.createElement("span"); c.className = "alvc"; c.dataset.i = String(m.list.indexOf(l)); c.textContent = liveClock(l, m.t0);
+    s.append(c, ` · ${l.watchers}/${l.max} người xem`);
+    info.append(t, s);
+    const b = document.createElement("button"); b.type = "button"; b.className = "buse absorb"; b.textContent = "Xem"; b.disabled = l.watchers >= l.max;
+    b.addEventListener("click", () => { b.blur(); act.arena("watch", l.roomId); });
+    row.append(info, b); box.appendChild(row);
+  }
+  return box;
+}
+/** Mỗi lần cập nhật HUD: đồng hồ từng dòng của danh sách xem trận chạy tiếp giữa hai lần làm mới. */
+export function updateArenaLive() {
+  const m = arenaLiveMsg; if (!m || !$("#npc") || $("#npc").hidden) return;
+  $("#npc").querySelectorAll<HTMLElement>(".alvc").forEach((e) => {
+    const l = m.list[Number(e.dataset.i)], txt = l && liveClock(l, m.t0); if (txt && e.textContent !== txt) e.textContent = txt;
+  });
+}
 /** Bảng xếp hạng (top ARENA.topN, dòng của mình sáng) kèm hạng / thành tích của mình và lượt thắng có thưởng còn lại. */
 function arenaRankEl(m: ArenaTopMsg | null) {
   const box = document.createElement("div"); box.className = "arank";
@@ -2928,29 +2977,34 @@ export function setArenaTop(m: ArenaTopMsg) {
  * Thanh trận đấu ở đầu màn hình (phòng ArenaRoom): hai bên (tên, Elo, sinh lực cả đội theo %, số võ hồn còn đứng), đồng hồ của pha
  * (chờ vào sân, chuẩn bị, giao đấu), nút "Rời sân" (giữa trận bấm hai lần: rời = thua). null = ẩn.
  */
-export function showArena(a: { phase: string; time: number; me: string; friendly: boolean; sides: { sid: string; name: string; elo: number; pct: number; alive: number; total: number }[] } | null,
+export function showArena(a: { phase: string; time: number; me: string; friendly: boolean; watchers: number; sides: { sid: string; name: string; elo: number; pct: number; alive: number; total: number }[];
+    watch?: { follow: number; who: string; winner: number; pick(side: number): void } } | null,
   leave: () => void) {
   const el = $("#arenaBar"); document.body.classList.toggle("arena", !!a);
-  if (!a) { el.hidden = true; el.innerHTML = ""; return; }
+  if (!a) { el.hidden = true; el.innerHTML = ""; document.body.classList.remove("watching"); return; }
   if (!el.firstChild) {
     el.innerHTML = `<div class="aside a0"><b></b><small></small><div class="bar"><i></i><span></span></div></div>
-      <div class="aclock"><b></b><small></small><button type="button" class="aleave">Rời sân</button></div>
+      <div class="aclock"><b></b><small></small><em class="awatch" hidden></em><button type="button" class="aleave">Rời sân</button></div>
       <div class="aside a1"><b></b><small></small><div class="bar"><i></i><span></span></div></div>`;
     el.querySelector(".aleave")!.addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      if (el.classList.contains("watching")) return leave();
       const fight = el.dataset.phase === "fight" || el.dataset.phase === "ready";
       if (fight && performance.now() - arenaLeaveAt > 3000) { arenaLeaveAt = performance.now(); el.querySelector(".aleave")!.textContent = "Rời = thua?"; return; }
       leave();
     });
   }
   el.hidden = false; el.dataset.phase = a.phase;
+  const w = a.watch; el.classList.toggle("watching", !!w); document.body.classList.toggle("watching", !!w);
   a.sides.forEach((s, i) => {
     const box = el.querySelector(`.a${i}`) as HTMLElement; if (!box) return;
-    const me = s.sid.split(",").includes(a.me);
+    const me = !w && s.sid.split(",").includes(a.me);
     box.classList.toggle("me", me);
+    box.classList.toggle("follow", !!w && w.follow === i);
+    if (w && !(box as HTMLElement & { _p?: boolean })._p) { (box as HTMLElement & { _p?: boolean })._p = true; box.addEventListener("pointerdown", (e) => { e.preventDefault(); arenaPick(i); }); }
     const name = `${s.name || "…"}${me ? " (đội của bạn)" : ""}`;
     if (box.querySelector("b")!.textContent !== name) box.querySelector("b")!.textContent = name;
-    box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}`;
+    box.querySelector("small")!.textContent = `Elo ${s.elo}${s.sid ? "" : " · chưa vào sân"}${w && w.follow === i && w.who ? ` · theo dõi ${w.who}` : ""}`;
     (box.querySelector(".bar i") as HTMLElement).style.width = `${Math.round(s.pct * 1000) / 10}%`;
     box.querySelector(".bar span")!.textContent = `${Math.round(s.pct * 100)}% · ${s.alive}/${s.total} võ hồn`;
   });
@@ -2959,14 +3013,40 @@ export function showArena(a: { phase: string; time: number; me: string; friendly
   el.querySelector(".aclock small")!.textContent = a.friendly ? `${ph} · giao hữu` : ph;
   el.classList.toggle("friendly", a.friendly);
   el.title = a.friendly ? `Giao hữu: hai bạn đã đấu đủ ${ARENA.pairDaily} trận tính Elo hôm nay, trận này không đổi Elo, không thưởng.` : "";
-  const lb = el.querySelector(".aleave")!;
+  const lb = el.querySelector(".aleave")!, aw = el.querySelector(".awatch") as HTMLElement;
+  aw.hidden = !w && !a.watchers; aw.textContent = w ? `Đang xem · ${a.watchers} người xem` : `${a.watchers} người xem`;
+  arenaPick = w?.pick ?? (() => {});
+  el.title = w ? "Bấm tên một bên để đổi người theo dõi (bên có hai người thì bấm lần nữa để đổi sang đồng đội)." : el.title;
+  if (w) { lb.textContent = "Rời xem"; renderWatchEnd(a.phase === "end" ? a : null, a.sides, w.winner, leave); return; }
+  renderWatchEnd(null, a.sides, -1, leave);
   if (performance.now() - arenaLeaveAt > 3000 && lb.textContent !== "Rời sân") lb.textContent = "Rời sân";
+}
+let arenaPick: (side: number) => void = () => {};
+/** Bảng kết quả của người xem (không có dòng Elo / thưởng của mình): bên thắng, sinh lực / số võ hồn còn đứng mỗi bên, nút về bản đồ cũ. null = ẩn. */
+function renderWatchEnd(a: { time: number } | null, sides: { name: string; elo: number; pct: number; alive: number; total: number }[], winner: number, back: () => void) {
+  const el = $("#arenaEnd");
+  if (!a) { if (el.dataset.w) { el.dataset.w = ""; el.hidden = true; el.innerHTML = ""; } return; }
+  if (!el.dataset.w) {
+    el.dataset.w = "1"; el.hidden = false; el.className = "panel watchend"; el.innerHTML = "";
+    const h = document.createElement("h2"); el.appendChild(h);
+    for (let i = 0; i < 2; i++) { const l = document.createElement("div"); l.className = "aline"; el.appendChild(l); }
+    const row = document.createElement("div"); row.className = "brow";
+    const b = document.createElement("button"); b.type = "button"; b.className = "buse absorb"; b.textContent = "Về bản đồ cũ";
+    b.addEventListener("click", () => { b.blur(); back(); }); row.appendChild(b); el.appendChild(row);
+    const k = document.createElement("small"); k.className = "rnote"; el.appendChild(k);
+  }
+  const set = (e: Element | null, t: string) => { if (e && e.textContent !== t) e.textContent = t; };
+  const win = winner === 0 || winner === 1 ? sides[winner] : null;
+  set(el.querySelector("h2"), win ? `${win.name} thắng` : "Hòa");
+  el.querySelectorAll(".aline").forEach((l, i) => { const s = sides[i]; if (s) set(l, `${s.name} (Elo ${s.elo}): ${Math.round(s.pct * 100)}% sinh lực · ${s.alive}/${s.total} võ hồn còn đứng`); });
+  set(el.querySelector("small"), `Tự về bản đồ cũ sau ${Math.max(0, Math.ceil(a.time))} giây.`);
 }
 
 /** Bảng kết quả trận (tin "arena" k = "end"): thắng / thua / hòa, lý do, Elo trước → sau, phần thưởng, bảng xếp hạng, nút về bản đồ. */
 export function arenaEnd(m: ArenaEndMsg | null, act: { back(): void; top(): void }) {
   arenaEndMsg = m ? { ...m, end: performance.now() + m.secs * 1000, act } : null;
-  if (!m) { const el = $("#arenaEnd"); el.hidden = true; el.innerHTML = ""; return; }
+  if (!m) { const el = $("#arenaEnd"); el.hidden = true; el.innerHTML = ""; el.dataset.w = ""; return; }
+  $("#arenaEnd").dataset.w = "";
   renderArenaEnd();
 }
 function renderArenaEnd() {
