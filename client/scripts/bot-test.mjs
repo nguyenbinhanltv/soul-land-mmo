@@ -106,7 +106,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   BONE_SKILLS, BONE_ACTIVE_SLOTS, BONE_PASSIVE_CAP, boneSkillOf, bonePassive,
   BONE_MAX_ENHANCE, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, boneFeedXp, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee,
   boneEnhancePreview, BONE_MAX_SUBS, BONE_SUB_K, BONE_SUB_POOL, BONE_ENHANCE_MILESTONES, boneSubMax, boneSubsDue, parseBoneSubs, boneAddSubs,
-  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreChance, coreStarBand, rollCore, rollCoreStats,
+  CORE_ITEM, CORE_SETS, CORE_SUBS, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, CORE_STAR_K, CORE_MAP_SET, MAX_CORE_STARS, coreResetFee, coreChance, coreStarBand, rollCore, rollCoreStats,
   coreSubMax, coreSetIndex, coreName, coreStatText, coreMainValue, CORE_SLOTS, CORE_SET_FX, coreBonus, coreFx,
   CORE_MAX_ENHANCE, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, CORE_ENHANCE_MAIN, CORE_MAX_SUBS, coreFeedXp, coreEnhanceLevel, coreEnhanceNeed,
   coreEnhancePreview, coreUpgradeSubs, coreSubRolls,
@@ -5056,6 +5056,27 @@ async function npcTown(){
     const cu=C.bag.items.find(i=>i.id===ct?.id);
     ok(ct&&cm.length===2&&C.coreUp?.to===cl&&cu?.enhance===cl&&cu.stats.subs.length===CORE_SUBS[1]+1&&!cm.some(id=>C.bag.items.some(i=>i.id===id)),
       `lò rèn: nâng cấp hồn hạch Lam Ngân 2★ lên +${cu?.enhance} (${cu?.stats.subs.length} dòng phụ), 2 nguyên liệu đã mất`); }
+  // #283: đổi bộ hồn hạch ở Thợ rèn (message coreset): giữ sao / cấp / chỉ số / dòng phụ, phí theo sao, bị từ chối thì không trừ gì.
+  { const had=new Set(C.bag.items.map(i=>i.id)), coin=async n=>{ await test(C,"coin",{n}); return waitFor(()=>C.bag.honTe===n,1500); };
+    await test(C,"give",{code:CORE_ITEM,stars:2,set:"lam_ngan"}); await test(C,"give",{code:CORE_ITEM,stars:5,set:"hao_thien"});
+    const fresh=C.bag.items.filter(i=>!had.has(i.id)), c2=fresh.find(i=>i.stars===2), c5=fresh.find(i=>i.stars===5), before=JSON.stringify(c2?.stats);
+    const set=async(id,to,npc="lo_ren")=>{ const l=C.logs.length, n=C.bagMsgs??0; C.room.send("coreset",{id,set:to,npc}); await waitFor(()=>(C.bagMsgs??0)>n&&C.logs.length>l,1500); return C.logs.at(-1); };
+    const cur=id=>C.bag.items.find(i=>i.id===id);
+    ok(!!c2&&!!c5,"đổi bộ: có hồn hạch 2★ Lam Ngân và 5★ Hạo Thiên để thử"); await coin(coreResetFee(2)-1);
+    let t=await set(c2.id,"hao_thien"); ok(/Không đủ Hồn Tệ/.test(t)&&cur(c2.id).stats.set==="lam_ngan"&&C.bag.honTe===coreResetFee(2)-1,`đổi bộ thiếu Hồn Tệ bị từ chối, không trừ gì: ${t}`);
+    await coin(coreResetFee(2)+coreResetFee(5)+7);
+    t=await set(c2.id,"lam_ngan"); ok(/đã thuộc/.test(t)&&C.bag.honTe===coreResetFee(2)+coreResetFee(5)+7,`đổi sang đúng bộ hiện tại bị từ chối: ${t}`);
+    t=await set(c2.id,"khong_co_bo"); ok(/không hợp lệ/.test(t)&&cur(c2.id).stats.set==="lam_ngan","bộ lạ bị từ chối");
+    t=await set("khong-co","hao_thien"); ok(/Không có hồn hạch/.test(t),"món lạ (của người khác) bị từ chối");
+    t=await set(c2.id,"hao_thien","dai_su"); ok(/Thợ rèn/.test(t)&&cur(c2.id).stats.set==="lam_ngan","NPC không phải Thợ rèn bị từ chối");
+    await test(C,"goto",{x:ds.x,y:ds.y+16}); t=await set(c2.id,"hao_thien"); ok(/lại gần Thợ rèn/.test(t)&&cur(c2.id).stats.set==="lam_ngan","đứng xa Thợ rèn: bị từ chối");
+    await test(C,"goto",{x:lr.x,y:lr.y+16});
+    t=await set(c2.id,"hao_thien"); const u=cur(c2.id), o=JSON.parse(before);
+    ok(u.stats.set==="hao_thien"&&u.stars===2&&u.stats.main===o.main&&JSON.stringify(u.stats.subs)===JSON.stringify(o.subs)&&C.bag.honTe===coreResetFee(5)+7,`đổi bộ 2★ Lam Ngân → Hạo Thiên: phí ${coreResetFee(2)} đồng, giữ sao / chỉ số chính / dòng phụ (${t})`);
+    await waitFor(()=>C.owned,2000); const vid=C.owned?.active;
+    C.room.send("equipcore",{itemId:c5.id,vohonId:vid}); await waitFor(()=>cur(c5.id)?.vohon===vid,2000);
+    t=await set(c5.id,"lam_ngan"); ok(cur(c5.id).stats.set==="lam_ngan"&&cur(c5.id).vohon===vid&&cur(c5.id).stars===5&&C.bag.honTe===7,`đổi bộ món đang gắn (5★, ${coreResetFee(5)} đồng): vẫn gắn, đã sang Lam Ngân (${t})`);
+    globalThis.__coreSetIds=[c2.id,c5.id]; }
   // Đại Sư và sứ giả Đại Đấu Hồn Trường (BĐ6a, chỗ của lối vào tạm 7.2): chỉ có lời thoại (nhiệm vụ ở 6.2); đứng cạnh Thợ rèn thì Đại Sư ở xa.
   ok(await talk(C,"dai_su")===null&&/lại gần Ngọc Tiểu Cương/.test(C.logs.at(-1)),"đứng ở lò rèn: Đại Sư ở xa, chưa nói chuyện");
   await test(C,"goto",{x:ds.x,y:ds.y+16}); ok(await talk(C,"dai_su")==="dai_su","đứng cạnh Ngọc Tiểu Cương (Đại Sư): mở hộp thoại");
@@ -5068,6 +5089,10 @@ async function npcTown(){
   const bk=bagKey(C); await C.room.leave(); await sleep(400);
   await enter(C); await waitFor(()=>me()&&C.bag);
   ok(bagKey(C)===bk,`vào lại: túi và Hồn Tệ sau mua / bán đã lưu (${formatHonTe(C.bag?.honTe??0)}, ${looseOf(C).length} ô)`);
+  { const [i2,i5]=globalThis.__coreSetIds, g=id=>C.bag.items.find(i=>i.id===id);
+    ok(g(i2)?.stats.set==="hao_thien"&&g(i5)?.stats.set==="lam_ngan"&&g(i5)?.vohon!==null,"vào lại: bộ hồn hạch đã đổi (trong túi và đang gắn) vẫn đúng")
+    C.room.send("unequipcore",{itemId:i5}); await waitFor(()=>g(i5)?.vohon===null,2000);
+    for(const id of [i2,i5]) C.room.send("discard",{id}); await waitFor(()=>!g(i2)&&!g(i5),2000); } // dọn: bài sau cần túi còn chỗ
 }
 
 /**
@@ -5202,12 +5227,24 @@ async function autoTest(){
     // Bãi 300 năm trở lên: hồn thú hoang hung hăng hồi sinh liên tục, đánh A thì tự săn đánh trả trước rồi mới tới Y. Dọn quanh A trong
     // lúc chờ (giữ X, Y), như các bài tự săn khác; vẫn chờ 15 giây.
     await test(A,"clear",{but:[X]});
-    sp=await test(A,"spawn",{tier:0,dx:-50,dy:0,years:150}); const Y=sp?.bid;
-    let downY=false;
-    for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){ downY=await waitFor(()=>!A.room.state.beasts.has(Y),500); if(!downY) await test(A,"clear",{but:[X,Y]}); }
+    // Y sinh xa cả B lẫn X (hơn tầm aggro BEAST_AGGRO_R), vẫn trong vùng neo: tự săn dắt A đi dạo khắp quanh đó nên A có thể đang đứng sát B,
+    // Y sinh trong tầm B thì nhắm B (người gần nhất), tự săn không cướp quái người khác nên A không đánh Y (#305: CI trượt, Y cạnh B, nhắm B,
+    // 15 giây không ai đánh). Đánh A–Y xa X để đòn của A không trúng lan sang X.
+    const yCand=[...Array(24).keys()].flatMap(k=>[100,80].map(r=>{ const a=k*Math.PI/12, dx=Math.round(Math.cos(a)*r), dy=Math.round(Math.sin(a)*r), x=me(A).x+dx, y=me(A).y+dy;
+      return {dx,dy,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
+    const yAt=yCand.filter(c=>!c.solid&&!c.far).sort((u,v)=>v.away-u.away)[0];
+    // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
+    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    const ySite=`chỗ sinh Y ${yAt?`dx,dy ${yAt.dx},${yAt.dy}, cách B / X ${yAt.away.toFixed(0)} pixel`:"đường lùi dx,dy -50,0 (không có chỗ hợp lệ)"}`;
+    sp=await test(A,"spawn",{tier:0,dx:yAt?.dx??-50,dy:yAt?.dy??0,years:150}); const Y=sp?.bid;
+    let downY=false; const yTrack=[];
+    for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){
+      downY=await waitFor(()=>!A.room.state.beasts.has(Y),500);
+      if(!downY){ const yb=A.room.state.beasts.get(Y), st=await test(A,"auto",{bid:Y}); yTrack.push(`${((Date.now()-t0)/1000).toFixed(1)}s Y ${yb?.x.toFixed(0)},${yb?.y.toFixed(0)} nhắm ${st?.beast?.target} A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}`); await test(A,"clear",{but:[X,Y]}); }
+    }
     // Chẩn đoán khi trượt (#305): chỗ A / B / X / Y, sinh lực Y, mục tiêu / đích / đường của tự săn, Y nhắm ai / bị bỏ qua.
     const whyY=downY&&xb()?.hp>=hx?"":await (async()=>{ const st=await test(A,"auto",{bid:Y}), yb=A.room.state.beasts.get(Y), at=o=>o?`${o.x.toFixed(0)},${o.y.toFixed(0)}`:"-";
-      return ` [A ${at(me(A))}, B ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`; })();
+      return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
     ok(Y&&downY&&xb()?.hp>=hx,`A hạ hồn thú Y không ai giành, X không mất sinh lực (${hx} → ${xb()?.hp})${whyY}`);
     await autoOp(A,"off"); await test(B,"slay",{bid:X});
     // Các bài sau không dùng B tới bài nợ nhịp: về điểm vào trại cổng (hồn thú hoang không lang thang tới), không kéo hồn thú hoang tới A.

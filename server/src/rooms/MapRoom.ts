@@ -13,7 +13,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
-  CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, MAX_CORE_STARS, type CoreData,
+  CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
@@ -723,6 +723,9 @@ export class MapRoom extends Room<MapState> {
   perfT = [0, 0, 0, 0, 0, 0];
   perfPrev = { t0: 0, t2: 0, c2: 0 };
   perfSlowN = 0;
+  /** Nhịp hiện tại (#375): từng lần AutoHunter.tick `[người, ms]` và từng lần tìm đường `[người, ms, số nút/loại]`. */
+  perfAuto: [string, number][] = [];
+  perfPlan: [string, number, string][] = [];
   /** Nhịp chậm chờ in (cần bản ghi GC của chính nhịp đó). */
   perfPend: { at: string; t0: number; t2: number; wall: number; cpu: number; parts: string; gap: number; gapCpu: number }[] = [];
   /** Lần ghi log gần nhất của mỗi chỗ + lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
@@ -1045,6 +1048,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("unequipcore", (c, m: { itemId: unknown }) => this.unequipCore(c.sessionId, m?.itemId));
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onMessage("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
+    this.onMessage("coreset", (c, m: { id: unknown; set: unknown; npc: unknown }) => this.resetCoreSet(c.sessionId, m?.id, m?.set, m?.npc));
     this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
     this.onMessage("tong", (c, m: { op: unknown; tong: unknown; chain?: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong, m?.chain)); // tông môn (#196, #197)
     // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
@@ -5895,6 +5899,33 @@ export class MapRoom extends Room<MapState> {
     this.save(id); // nguyên liệu đã mất: ghi ngay qua chuỗi lưu
   }
 
+  /**
+   * Đổi bộ hồn hạch `rawItem` (id ô của chính người gửi, trong túi hoặc đang gắn) sang bộ `rawSet` ở Thợ rèn (mục 5.6 "Đổi bộ",
+   * #283): phải đứng trong NPC_RANGE của Thợ rèn (`rawNpc` = mã Thợ rèn đang mở hộp thoại, thiếu thì Thợ rèn gần nhất), ngoài giao
+   * chiến (boneLock); bộ đích phải có trong CORE_SETS và khác bộ hiện tại; phí coreResetFee(sao) mỗi lần, thiếu thì từ chối.
+   * Chỉ đổi `stats.set` (giữ sao, cấp, điểm, chỉ số chính, dòng phụ, khoá). Đang gắn thì tính lại hiệu ứng bộ ngay (afterBones).
+   * Ghi món và Hồn Tệ cùng một lần qua chuỗi lưu (save).
+   */
+  resetCoreSet(id: string, rawItem: unknown, rawSet: unknown, rawNpc: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
+    const it = typeof rawItem === "string" ? d.bag.find((i) => i.id === rawItem) : undefined, core = it && it.code === CORE_ITEM ? parseCore(it.stats) : null;
+    if (!it || !core) return warn("Không có hồn hạch này để đổi bộ.");
+    const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "forge" });
+    if (!npc || npcDef(npc.id)?.role !== "forge") return warn("Hãy lại gần Thợ rèn hơn để đổi bộ hồn hạch.");
+    const lock = this.boneLock(p, d, "hồn hạch"); if (lock) return warn(lock.replace("gắn / tháo", "đổi bộ"));
+    if (typeof rawSet !== "string" || coreSetIndex(rawSet) < 0) return warn("Bộ hồn hạch không hợp lệ.");
+    if (rawSet === core.set) return warn(`${this.itemLabel(it)} đã thuộc ${coreSetName(rawSet)}.`);
+    const fee = coreResetFee(it.stars ?? 1);
+    if (d.honTe < fee) return warn(`Không đủ Hồn Tệ: đổi bộ cần phí ${formatHonTe(fee)}, đang có ${formatHonTe(d.honTe)}.`);
+    const from = coreSetName(core.set), label = this.itemLabel(it);
+    it.stats = { ...(it.stats as object), set: rawSet }; d.honTe -= fee; d.bagDirty = true;
+    this.log(id, `Đổi bộ ${label}: ${from} → ${coreSetName(rawSet)}, phí −${formatHonTe(fee)} (còn ${formatHonTe(d.honTe)}).`, CORE_SETS[coreSetIndex(rawSet)].col);
+    const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
+    if (v) this.afterBones(id, v); else this.sendBag(id);
+    this.save(id);
+  }
+
   // ---------- Hồn hoàn ----------
   /**
    * Hấp thụ hồn hoàn trong túi vào một võ hồn (mục 5.2 "Hấp thụ", bước 3.3). Client gửi id ô và `vohonId` (vohons.id; thiếu thì
@@ -6959,8 +6990,11 @@ export class MapRoom extends Room<MapState> {
     if (wall > PERF_SLOW_MS || gap > PERF_GAP_MS) {
       this.perfSlowN++;
       const d = (i: number) => (T[i + 1] - T[i]).toFixed(1);
+      const A = this.perfAuto, top = A.slice().sort((x, y) => y[1] - x[1]).slice(0, 3).map(([i, ms]) => `${i.slice(0, 4)} ${ms.toFixed(1)}`).join(", ");
+      const plans = this.perfPlan.map(([i, ms, w]) => `${i.slice(0, 4)} ${ms.toFixed(1)} ms ${w}`).join(", ");
       this.perfPend.push({ at: clock(), t0, t2, wall, cpu: c2 - c0, gap, gapCpu: pv.t2 ? c0 - pv.c2 : 0,
-        parts: `tick ${(ti - t0).toFixed(1)} (đầu ${d(0)}, người ${d(1)}, thú ${d(2)}, thế giới ${d(3)}, cuối ${d(4)}), view ${(t1 - ti).toFixed(1)}, vá ${(t2 - t1).toFixed(1)}` });
+        parts: `auto ${A.length} người ${A.reduce((a, x) => a + x[1], 0).toFixed(1)} ms (lớn nhất ${top || "-"}), tìm đường ${this.perfPlan.length} lần (${plans || "-"}) | ` +
+        `tick ${(ti - t0).toFixed(1)} (đầu ${d(0)}, người ${d(1)}, thú ${d(2)}, thế giới ${d(3)}, cuối ${d(4)}), view ${(t1 - ti).toFixed(1)}, vá ${(t2 - t1).toFixed(1)}` });
     }
     Object.assign(pv, { t0, t2, c2 });
     if (Date.now() - f.at < 10000) return;
@@ -6985,7 +7019,7 @@ export class MapRoom extends Room<MapState> {
       }).catch((e) => { console.error(`Không gia hạn được phiên giữ tài khoản #${d.accountId}`, e); this.clients.getById(id)?.leave(1011); });
     }
     const pt = this.perfOn ? this.perfT : null; // #273: mốc đoạn của tick (PERF_LOG=1)
-    if (pt) pt[0] = performance.now();
+    if (pt) { pt[0] = performance.now(); this.perfAuto.length = 0; this.perfPlan.length = 0; }
     // Khảo hạch hằng ngày: qua 00:00 giờ Việt Nam thì mỗi giây kiểm tra một lần, đặt lại bộ bài và báo người đang chơi.
     if ((this.dayT -= dt) <= 0) {
       this.dayT = 1;
@@ -7048,7 +7082,7 @@ export class MapRoom extends Room<MapState> {
         return;
       }
       // Tự săn (Auto 1): quyết định và đặt hướng đi như input của người chơi, trước bước di chuyển dưới đây.
-      if (d.auto) { if (this.perfOn) { const t = performance.now(); d.auto.tick(dt); this.perfAll.auto += performance.now() - t; } else d.auto.tick(dt); }
+      if (d.auto) { if (this.perfOn) { const t = performance.now(); d.auto.tick(dt); const ms = performance.now() - t; this.perfAll.auto += ms; this.perfAuto.push([id, ms]); } else d.auto.tick(dt); }
       // Choáng / Trói / Đóng băng (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc. Mê hoặc (#116): bỏ qua phím,
       // server tự đi lung tung (charmDir).
       const ctl = this.pctl(d), cm = ctl.wander && !ctl.noMove ? this.charmDir(p, d, dt) : null;

@@ -78,8 +78,30 @@ Không có hàm game nào nổi bật. `vnClock` (`Intl.DateTimeFormat`, gọi t
 | Giữ nhịp 50 ms, 40 người một kênh ×8 (tự săn) | **Đạt**: p50 7,7 ms, p95 12 ms (mốc 11.4 ~7 ms khi đi lang thang) |
 | 40 người trộn vai trên 6 phòng | **Đạt**: mỗi phòng 1,5–2 ms (p50), cả tiến trình 8–10 ms mỗi nhịp |
 | 60 người một kênh | **Cảnh báo**: p50 6,8–10,9 ms, p95 10–17 ms. Vượt ngưỡng báo động ~10 ms của skill ở một lượt, nhưng vẫn còn xa 50 ms |
-| Nhịp chậm > 50 ms (`max`) | **Chưa rõ**: đỉnh 75–90 ms ở p95 của các cửa sổ 10 giây, lớn nhất 200 ms khi 40–60 người một kênh. Profile không chỉ ra hàm game nào, GC chỉ 0,2 %. Nghi do máy đo bị nhiễu (3 phiên agent khác và Chrome chạy cùng); cần đo lại trên máy rảnh / Linux (#273) |
+| Nhịp chậm > 50 ms (`max`) | **Có, hiếm, chưa rõ nguyên nhân**: đo lại ở mục 6 (#273), theo dõi nguyên nhân ở #375. Phần lớn là nhiễu máy (wall ≫ cpu); còn lại là vài nhịp 50–65 ms ở vòng người chơi, chưa thấy tăng theo số người (một lượt 5 phút mỗi mức) |
 | Băng thông mỗi client | **Đạt**: 5–8 KB/s (mốc 7–8), 9–12 KB/s cạnh thú vương, ~0,5 KB/s trong thành |
 | Phòng trống tự hủy, heap về gần mức đầu | **Đạt** |
 | Rò bộ nhớ | **Không thấy**: heap tăng do túi đồ đầy dần (có trần), dừng tăng khi túi đầy |
 | Kịch bản Dài 1–2 giờ | **Chưa đo**: máy dùng chung, mỗi lượt giới hạn 30 phút. Đã thay bằng 3 lượt 20–28 phút liên tiếp, không thấy xu hướng tăng ngoài túi đồ |
+
+## 6. Đo lại nhịp chậm (#273)
+Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng chính, #311). macOS, 10 luồng, tải nền ~3 (có các phiên khác chạy cùng). Server `node --import tsx`, `GAME_TEST=1 PERF_LOG=1`, lưu RAM (`env -u DATABASE_URL`, log in `Chưa có DATABASE_URL`), bản đồ ×8. Bot: `N=40|60 SECS=300 node client/scripts/auto-soak.mjs`, một kênh Tinh Đấu Ngoại vi, mỗi mức một server mới. Chỉ tính cửa sổ 10 giây có đủ người.
+
+| Bot | tick + vá p50 / p95 (ms) | max p50 / p95 / lớn nhất (ms) | nhịp > 50 ms | KB/s mỗi client |
+|---|---|---|---|---|
+| 40 | 7,0 / 9,7 | 17,6 / 66,6 / 117,9 | 4 trong 5 phút (0,8 / phút) | 8,5 |
+| 60 | 8,3 / 9,0 | 20,7 / 26,3 / 46,0 | 0 | 8,2 |
+
+- Lượt 40 bot, 4 dòng `[perf-slow]` (wall / cpu ms, đoạn nặng): 70 / 68 (người 63), 67 / 27 (người 49), 118 / 22 (nhiễu: wall ≫ cpu), 13 / 10 (trễ nhịp trước). Chỉ nhịp đầu là việc thật của luồng; nhịp thứ hai nửa thật nửa bị hệ điều hành giành CPU.
+- Lượt 60 bot không có nhịp nào vượt 50 ms, nên **chưa thấy** đỉnh tăng theo số người (chỉ một lượt 5 phút mỗi mức; với ~0,4 nhịp thật / phút ở lượt 40, xác suất lượt 60 không gặp nhịp nào do ngẫu nhiên vẫn ~13 %, chưa đủ để kết luận). Có vẻ là biến cố rời rạc (nghi `AutoHunter` tìm đường A* một lần nặng khi mục tiêu xa / không tới được), chưa chứng minh vì `[perf-slow]` chỉ chia tới đoạn "người".
+- Lượt đo trước (cổng DB thật, bỏ) cho thấy nhiễu máy thật sự gây nhịp tới 25 giây (wall 25 000 ms, cpu 7 ms: cả tiến trình bị treo), không liên quan code game.
+- Kết luận: với 40–60 người tự săn một kênh ×8, nhịp trung bình 7–8 ms, nhịp > 50 ms hiếm (≤ 1 / phút) và không có nguyên nhân rõ trong code nên **không sửa code**. Chốt nguyên nhân (đo từng lần gọi `AutoHunter.tick`, đoạn "người", khi nhịp vượt ngưỡng) tách sang #375.
+
+## 7. Nhịp chậm ở vòng người chơi khi 40 người tự săn: đo từng lần `AutoHunter.tick` (#375, từ #273)
+**Cách đo.** Server `PERF_LOG=1` bật thì mỗi dòng `[perf-slow]` thêm: số `AutoHunter.tick` và tổng ms, ba người tốn nhất, và từng lần `plan()` (A*) kèm thời gian, loại (thường / dài), số điểm (`perfAuto` / `perfPlan` ở `MapRoom`, xóa đầu mỗi tick; tắt `PERF_LOG` thì không đo gì). Lượt đo: server `env -u DATABASE_URL GAME_TEST=1 PERF_LOG=1` (log xác nhận "chỉ lưu trong RAM"), `N=40 node client/scripts/auto-soak.mjs` trên Tinh Đấu Ngoại vi ×8: 10 phút rồi 25 phút (macOS, máy có phiên khác chạy).
+**Kết quả.**
+- Lượt 10 phút: 0 nhịp chậm, `max` mỗi 10 giây ≤ 39 ms.
+- Lượt 25 phút: chỉ **một cụm** nhịp thật vượt 50 ms, lúc 40 bot vừa vào phòng (3 nhịp trong 0,5 giây: 84 / 209 / 36 ms). Ở nhịp 84 ms: `AutoHunter` của một người mất 36,4 ms mà **không có lần tìm đường nào** (`tìm đường 0 lần`), nhịp 209 ms là `vá` 205 ms (đợt người vào, state đầy). Sau đó không còn nhịp nào vượt 50 ms; `AutoHunter.tick` cả 40 người ≤ 2,2 ms, mỗi lần A* ≤ 0,1 ms.
+- Microbench `findPath` / `findLongPath` (4000 cặp điểm ngẫu nhiên, bản đồ ×8): thường p99 0,66 ms, lớn nhất 0,73 ms; dài p99 1,4 ms, lớn nhất 2,9 ms. **A* không thể gây nhịp 50–65 ms.**
+- Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Không nằm trong tick, chưa rõ nguồn; xem phần để sau.
+**Kết luận.** Giả thuyết "A* một lần nặng" bị bác bỏ; nhịp 50–65 ms ở vòng người chơi là nhiễu lúc người vào đông (một `AutoHunter` quyết định lần đầu 36 ms, chưa rõ chỗ, chỉ gặp một lần). Không sửa code luật. Để sau: nhịp trễ định kỳ do CPU ngoài tick tăng dần khi túi đầy (chưa chứng minh nguồn).
