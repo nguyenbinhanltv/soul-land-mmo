@@ -4,7 +4,7 @@
 // - mảnh `ui_*` thành biến CSS `--ui-<tên>` (ảnh) và `--nine-<tên>` (số điểm giữ nguyên ở mỗi mép khi kéo giãn 9 lát, theo "nine");
 // - hồn cốt là bản xám: tô theo màu niên hạn bằng canvas (nhân màu từng điểm ảnh), giữ nguyên điểm ảnh;
 // - tỉ lệ giao diện `--u` theo cài đặt Cỡ giao diện (tự động hoặc 75–150%) và các lớp `ui-w*` / `ui-h*` theo kích thước logic.
-import { TIERS } from "../../shared/data.ts";
+import { TIERS, VOHON_SKILLS } from "../../shared/data.ts";
 
 const BASE = "sprites/";
 interface Entry { key: string; iso?: boolean; nine?: number }
@@ -12,14 +12,21 @@ const keys = new Map<string, Entry>();
 
 /** Đường dẫn ảnh theo key isometric của giao diện (mục 5.11 "Tên file"); key lạ thì null. */
 function pathOf(key: string) {
-  const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu)_([a-z0-9_]+)$/); if (!m) return null;
-  const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu" }[m[1]];
+  const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu|skill)_([a-z0-9_]+)$/); if (!m) return null;
+  const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu", skill: "skill" }[m[1]];
   return `${BASE}iso/${dir}/${m[1] === "card" ? "the_" : ""}${m[2]}.png`;
 }
 
 /** URL ảnh của key nếu manifest có (key "iso"); không có thì null để nơi gọi dùng kiểu cũ. */
 export function artUrl(key: string) {
   return keys.get(key)?.iso ? pathOf(key) : null;
+}
+/**
+ * Biểu tượng hồn kỹ vòng `ring` (chỉ số 0..9) của võ hồn `vohonId` (#384): key `skill_<mã võ hồn>_<ring>`, võ hồn dùng bảng chung SKILLS thì
+ * `skill_chung_<ring>`. Chưa có ảnh thì "" để nơi gọi giữ ký tự `icon` của hồn kỹ.
+ */
+export function skillImg(vohonId: string, ring: number, cls = "") {
+  return artImg(`skill_${VOHON_SKILLS[vohonId] ? vohonId : "chung"}_${ring}`, cls);
 }
 /** `<img>` điểm ảnh của key (alt rỗng: chỉ để trang trí, nghĩa nằm ở nhãn của phần tử chứa); không có ảnh thì "". */
 export function artImg(key: string, cls = "") {
