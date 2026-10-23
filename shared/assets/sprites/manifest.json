@@ -192,6 +192,16 @@
       "map": "tinh_dau_ngoai_vi"
     },
     {
+      "key": "beast_thai_than_cu_vien",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
+    },
+    {
       "key": "beast_thanh_lan_ngac",
       "frame": [
         96,
@@ -210,6 +220,16 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_thien_thanh_nguu_mang",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
     },
     {
       "key": "beast_thiet_giap_te_nguu",
@@ -1869,6 +1889,42 @@
       "iso": true
     },
     {
+      "key": "skill_hao_thien_chuy_0",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_1",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_2",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_3",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_4",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_5",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_7",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_8",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_9",
+      "iso": true
+    },
+    {
       "key": "skill_ky_nhung_thong_thien_cuc_0",
       "iso": true
     },
@@ -1941,42 +1997,6 @@
       "iso": true
     },
     {
-      "key": "skill_hao_thien_chuy_0",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_1",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_2",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_3",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_4",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_5",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_7",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_8",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_9",
-      "iso": true
-    },
-    {
       "key": "skill_lam_ngan_thao_0",
       "iso": true
     },
@@ -1990,6 +2010,26 @@
     },
     {
       "key": "skill_lam_ngan_thao_3",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_4",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_5",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_7",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_8",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_9",
       "iso": true
     },
     {
@@ -2062,26 +2102,6 @@
     },
     {
       "key": "skill_ta_hoa_phuong_hoang_9",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_4",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_5",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_7",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_8",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_9",
       "iso": true
     },
     {
