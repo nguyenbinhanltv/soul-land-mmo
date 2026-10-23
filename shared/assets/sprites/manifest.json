@@ -1155,6 +1155,30 @@
       "iso": true
     },
     {
+      "key": "thu_bang_bich_hat",
+      "iso": true
+    },
+    {
+      "key": "thu_bang_giap_cu_quy",
+      "iso": true
+    },
+    {
+      "key": "thu_bang_nguyen_cu_tuong",
+      "iso": true
+    },
+    {
+      "key": "thu_bang_phong_bach_hung",
+      "iso": true
+    },
+    {
+      "key": "thu_bang_tinh_hat",
+      "iso": true
+    },
+    {
+      "key": "thu_bang_vu_ung",
+      "iso": true
+    },
+    {
       "key": "thu_bich_lan_xa",
       "iso": true
     },
@@ -1195,6 +1219,14 @@
       "iso": true
     },
     {
+      "key": "thu_han_bang_dia_long",
+      "iso": true
+    },
+    {
+      "key": "thu_han_nguyet_ung",
+      "iso": true
+    },
+    {
       "key": "thu_hoa_linh_diep",
       "iso": true
     },
@@ -1207,11 +1239,31 @@
       "iso": true
     },
     {
+      "key": "thu_huyen_minh_bang_tam",
+      "iso": true
+    },
+    {
+      "key": "thu_huyet_nha_cu_sa",
+      "iso": true
+    },
+    {
+      "key": "thu_kiem_ngu",
+      "iso": true
+    },
+    {
       "key": "thu_kiem_vi_hat",
       "iso": true
     },
     {
+      "key": "thu_kim_lan_long_quy",
+      "iso": true
+    },
+    {
       "key": "thu_kim_linh_ung",
+      "iso": true
+    },
+    {
+      "key": "thu_lam_lan_hai_xa",
       "iso": true
     },
     {
@@ -1228,6 +1280,14 @@
     },
     {
       "key": "thu_loi_duc_ung",
+      "iso": true
+    },
+    {
+      "key": "thu_loi_quang_hai_dieu",
+      "iso": true
+    },
+    {
+      "key": "thu_loi_van_hai_ung",
       "iso": true
     },
     {
@@ -1271,7 +1331,23 @@
       "iso": true
     },
     {
+      "key": "thu_quy_dien_hai_yeu",
+      "iso": true
+    },
+    {
       "key": "thu_quy_ho",
+      "iso": true
+    },
+    {
+      "key": "thu_thai_than_cu_vien",
+      "iso": true
+    },
+    {
+      "key": "thu_tham_hai_ma_chuong",
+      "iso": true
+    },
+    {
+      "key": "thu_tham_hai_ma_kinh",
       "iso": true
     },
     {
@@ -1291,6 +1367,14 @@
       "iso": true
     },
     {
+      "key": "thu_thien_thanh_nguu_mang",
+      "iso": true
+    },
+    {
+      "key": "thu_thiet_giap_cu_giai",
+      "iso": true
+    },
+    {
       "key": "thu_thiet_giap_te_nguu",
       "iso": true
     },
@@ -1304,6 +1388,22 @@
     },
     {
       "key": "thu_tu_van_bao",
+      "iso": true
+    },
+    {
+      "key": "thu_tuyet_lang",
+      "iso": true
+    },
+    {
+      "key": "thu_tuyet_ma_vien",
+      "iso": true
+    },
+    {
+      "key": "thu_tuyet_vi_yeu_ho",
+      "iso": true
+    },
+    {
+      "key": "thu_u_linh_hai_mau",
       "iso": true
     },
     {
