@@ -3486,6 +3486,19 @@ export const equipTemplate = (id: unknown) => EQUIP_TPL_INDEX.get(id as string);
 /** Tên đầy đủ trong túi: "+7 Tử Kim Hộ Uyển". */
 export const equipName = (tpl: unknown, enhance = 0) => { const t = equipTemplate(tpl); return t ? `${enhance > 0 ? `+${enhance} ` : ""}${t.name}` : "Trang bị lạ"; };
 
+/**
+ * Khóa ảnh của trang bị (quy ước cho E5 / E6; ảnh 32×32 `item_*` theo tools/assets/README.md). Mã mẫu là khóa ổn định: thay ảnh tạm bằng ảnh
+ * thật chỉ cần đặt đúng tên file, không sửa code. Thứ tự tra của client (equipIconChain): ảnh của mẫu `item_equip_<mẫu>` → hình ô
+ * `item_equip_slot_<ô>` (bóng ô, cũng dùng cho ô trống trên búp bê) → `item_trang_bi`. Khung viền theo bậc `item_equip_frame_<bậc>` vẽ chồng
+ * lên ảnh; chưa có ảnh khung thì client vẽ viền CSS bằng `EquipTierDef.col`. Nguyên liệu (đá, bùa…) theo quy ước chung `item_<mã>`.
+ */
+export const equipIconKey = (tpl: string) => `item_equip_${tpl}`;
+export const equipSlotIconKey = (slot: EquipSlot) => `item_equip_slot_${slot}`;
+export const equipFrameKey = (tier: number) => `item_equip_frame_${EQUIP_TIERS[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))].id}`;
+export const equipIconChain = (tpl: unknown) => { const t = equipTemplate(tpl); return t ? [equipIconKey(t.id), equipSlotIconKey(t.slot), `item_${EQUIP_ITEM}`] : [`item_${EQUIP_ITEM}`]; };
+/** Mọi khóa ảnh trang bị cần làm ở E6: 60 ảnh mẫu + 10 hình ô + 6 khung bậc = 76. */
+export const equipIconKeys = () => [...EQUIP_TEMPLATES.map((t) => equipIconKey(t.id)), ...EQUIP_SLOTS.map((x) => equipSlotIconKey(x.id)), ...EQUIP_TIERS.map((_, i) => equipFrameKey(i))];
+
 /** May mắn (vũ khí + dây chuyền): tổng tối đa EQUIP_LUCK_MAX; từ mức đó đòn vũ khí luôn ra công tối đa. */
 export const EQUIP_LUCK_MAX = 9;
 

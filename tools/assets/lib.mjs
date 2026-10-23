@@ -222,6 +222,13 @@ export function itemIconIds() {
   for (const m of kinds.matchAll(/^\s*([a-z_]+): \{/gm)) ids.add(m[1]);
   const start = src.indexOf("export const BONE_SLOTS"), bones = src.slice(start, src.indexOf("];", start));
   for (const m of bones.matchAll(/\bid: "([a-z_]+)"/g)) ids.add(`hon_cot_${m[1]}`);
+  // Trang bị hồn sư (E0, mục 5.15): `equip_<mẫu>`, `equip_slot_<ô>`, `equip_frame_<bậc>`; nguyên liệu (EQUIP_STONES, EQUIP_CHARM…) theo mã.
+  const block = (name, end) => { const i = src.indexOf(`export const ${name}`); return i < 0 ? "" : src.slice(i, src.indexOf(end, i)); };
+  const slots = [...block("EQUIP_SLOTS", "\n];").matchAll(/\bid: "([a-z_]+)"/g)].map((m) => m[1]), tiers = [...block("EQUIP_TIERS", "\n];").matchAll(/\bid: "([a-z_]+)"/g)].map((m) => m[1]);
+  for (const s of slots) { ids.add(`equip_slot_${s}`); for (const t of tiers) ids.add(`equip_${s}_${t}`); }
+  for (const t of tiers) ids.add(`equip_frame_${t}`);
+  for (const m of block("EQUIP_STONES", "\n];").matchAll(/\bid: "([a-z_0-9]+)"/g)) ids.add(m[1]);
+  for (const c of ["EQUIP_CHARM", "EQUIP_ESSENCE", "EQUIP_SOUL"]) { const m = src.match(new RegExp(`export const ${c} = "([a-z_]+)"`)); if (m) ids.add(m[1]); }
   return ids;
 }
 

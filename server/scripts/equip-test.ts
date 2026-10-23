@@ -5,7 +5,7 @@ import {
   EQUIP_SLOTS, EQUIP_TIERS, EQUIP_TEMPLATES, EQUIP_DROP, EQUIP_MAPS, EQUIP_ENHANCE, EQUIP_SYNTH, EQUIP_MATERIALS, EQUIP_STONES, EQUIP_SALVAGE,
   EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ITEM, EQUIP_CHARM, BONE_PASSIVE_CAP, CORE_STATS, MAPS, ITEMS, ITEM_KINDS,
   equipTemplate, equipEnhanceMult, equipEnhanceStep, equipEnhanceResult, equipWeaponRoll, equipStats, equipDefTotal, equipSalvage,
-  rollEquip, rollEquipDrop, rollEquipCharm, itemDef,
+  rollEquip, rollEquipDrop, rollEquipCharm, itemDef, equipIconKeys, equipIconChain, equipFrameKey,
 } from "../../shared/data.ts";
 
 function rng(seed: number) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -163,4 +163,10 @@ test("Cân bằng: bậc cao hơn luôn mạnh hơn bậc dưới ở cùng cấ
   for (let t = 1; t < 6; t++) assert.ok(a(t) > a(t - 1));
   for (let il = 2; il <= 7; il++) assert.ok(a(3, il) >= a(3, il - 1));
   assert.ok(a(2, 4, 10) < a(4, 4, 0) * 1.3, "Hàn Ngọc +10 không vượt xa Thần Khí +0");
+});
+
+test("Khóa ảnh: 76 khóa duy nhất (60 mẫu + 10 hình ô + 6 khung), chuỗi tra mẫu → ô → nhóm; mã lạ về ảnh nhóm", () => {
+  const k = equipIconKeys(); assert.equal(k.length, 76); assert.equal(new Set(k).size, 76);
+  assert.deepEqual(equipIconChain("mu_tu_kim"), ["item_equip_mu_tu_kim", "item_equip_slot_mu", "item_trang_bi"]);
+  assert.deepEqual(equipIconChain("khong_co"), ["item_trang_bi"]); assert.equal(equipFrameKey(5), "item_equip_frame_chi_bao");
 });
