@@ -107,7 +107,7 @@ export const MAPS: Record<string, MapDef> = {
   tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000],
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
-    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
+    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem", "bach_ho"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
   // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b, cổng bắc đi Cực Bắc Chi Địa
   // từ BĐ6c, bến thuyền đi Hải Thần Đảo từ BĐ6d.
   thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
@@ -377,6 +377,9 @@ export const VOHON: VoHonDef[] = [
     "#ff7a3a", "#4a3a3a", "Sói lửa lao vồ, cắn xé liên hoàn chồng Thiêu đốt; tiếng tru tăng tốc."),
   vh("bang_phuong_hoang", "Băng Phượng Hoàng", "khong_che", "SSR", "Thủy Băng Nhi", ["Băng phong"],
     "#a8e8ff", "#2a5a8a", "Bay, băng phong diện rộng: đóng băng (Choáng), Làm chậm, gây Dễ thương."),
+  // #194: võ hồn thêm sau 8.3, chỉ mở bằng mảnh (SHARD_ONLY_VOHON); cặp dung hợp U Minh Bạch Hổ với U Minh Linh Miêu (FUSIONS).
+  vh("bach_ho", "Bạch Hổ", "cuong_cong", "SSR", "Đái Mộc Bạch", ["Chấn đãng"],
+    "#f2f2f6", "#3a3a4c", "Hộ thân rồi vồ: Liệt Quang Ba hất lùi, Kim Cương Biến tăng công thủ; tuyệt kỹ chấn cả vùng."),
 ];
 
 const VOHON_INDEX = new Map(VOHON.map((v, i) => [v.id, i]));
@@ -391,8 +394,10 @@ export const AWAKEN_GIFT = "lam_ngan_thao";
  * không vào lựa chọn thức tỉnh dù có độ hiếm SSR.
  */
 export const EXTRA_VOHON = ["pha_hon_thuong", "a_ngan", "liet_hoa_thuong_lang", "bang_phuong_hoang"];
-/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản (17 võ hồn, không gồm EXTRA_VOHON). */
-export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR" && !EXTRA_VOHON.includes(v.id));
+/** Võ hồn chỉ mở bằng mảnh: EXTRA_VOHON (8.3) và Bạch Hổ (#194, thêm sau, nên không chung nhóm "4 võ hồn của 8.3"). */
+export const SHARD_ONLY_VOHON = [...EXTRA_VOHON, "bach_ho"];
+/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản (17 võ hồn, không gồm SHARD_ONLY_VOHON). */
+export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR" && !SHARD_ONLY_VOHON.includes(v.id));
 /** Số ô của đội hình võ hồn (mục 3, 5.1). Bảng `teams` lưu ô 0..TEAM_SIZE-1. */
 export const TEAM_SIZE = 4;
 /** Hồi chiêu sau mỗi lần đổi võ hồn trong đội khi đang đánh (giây, mục 5.1 "Trong trận"). */
@@ -1834,6 +1839,18 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Băng Phượng Phong Ấn", desc: "Bay lên rồi giáng băng quanh thân: đóng băng (Choáng 2 giây), Dễ thương 5 giây", icon: "✾", cost: 40, cd: 14,
       area: "around", r: 100, dmg: 2.4, fly: 0.5, glow: true, shake: true, status: [{ s: "stun", secs: 2 }, { s: "vuln" }] },
   ],
+  // #194, Đái Mộc Bạch (cường công, chấn đãng): hộ thân rồi vồ, luồng quang hất lùi, Kim Cương Biến tăng công thủ. Tên vòng 1–3 theo truyện;
+  // vòng 4 và các vòng sau là tên phỏng theo (chưa kiểm được thứ tự và tên gốc).
+  bach_ho: [
+    { name: "Bạch Hổ Hộ Thân Chướng", desc: "Hộ thể Bạch Hổ bùng quanh thân: sát thương nhận giảm 20%, khiên 8% sinh lực trong 6 giây", icon: "◈", cost: 12, cd: 6,
+      area: "around", r: 44, dmg: 1.4, self: { buff: { def: 0.2 }, secs: 6, shield: 0.08 } },
+    { name: "Bạch Hổ Liệt Quang Ba", desc: "Luồng quang Bạch Hổ quét nửa trước mặt: hất lùi", icon: "✺", cost: 16, cd: 5,
+      area: "front", r: 70, dmg: 2.6, push: 40 },
+    { name: "Bạch Hổ Kim Cương Biến", desc: "Kim cương thân: công +15%, sát thương nhận giảm 25% trong 10 giây", icon: "✪", cost: 20, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.15, def: 0.25 }, secs: 10 } },
+    { name: "Bạch Hổ Phục Ma Trảo (phỏng theo)", desc: "Lao tới mục tiêu, vồ 3 nhát; nhát cuối hất tung (Choáng 1 giây)", icon: "≋", cost: 40, cd: 14,
+      area: "target", r: 80, dash: 60, n: 3, every: 0.15, dmg: 1.3, crit: 0.15, inv: 0.3, finisher: [{ s: "stun", secs: 1 }] },
+  ],
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
 export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
@@ -2190,6 +2207,20 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       area: "around", r: 170, dmg: 5.5, fly: 0.6, inv: 1, glow: true, shake: true, ult: true,
       status: [{ s: "stun", secs: 3.5 }, { s: "vuln", secs: 8 }, { s: "slow", secs: 4 }] },
   ],
+  // #194: cường công chấn đãng; tuyệt kỹ chấn cả vùng, ngang Kiếm Trảm Sơn Hà. Tên phỏng theo truyện.
+  bach_ho: [
+    { name: "Liệt Quang Ba · Cường Hóa (phỏng theo)", desc: "Luồng quang Bạch Hổ mạnh hơn quét nửa trước mặt: hất lùi, Phá giáp 1 tầng", icon: "✺", cost: 45, cd: 9,
+      area: "front", r: 80, dmg: 3.2, push: 50, status: [{ s: "armor" }] },
+    { name: "Bạch Hổ Kim Cương Thân (phỏng theo)", desc: "Kim thân mạnh hơn: công +20%, tốc độ +10%, sát thương nhận giảm 25%, khiên 12% sinh lực trong 12 giây", icon: "✪", cost: 50, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.2, spd: 0.1, def: 0.25 }, secs: 12, shield: 0.12 } },
+    { name: "Bạch Hổ Lưu Tinh Vũ (phỏng theo)", desc: "14 luồng quang bắn ra bốn phía, mỗi luồng Phá giáp 1 tầng", icon: "✶", cost: 60, cd: 16,
+      area: "proj", r: 170, n: 14, spread: 360, dmg: 1.4, glow: true, status: [{ s: "armor" }] },
+    { name: "Bạch Hổ Phục Ma Chấn (phỏng theo)", desc: "Chấn đất quanh thân: hất tung (Choáng 1,5 giây), Phá giáp 2 tầng", icon: "▲", cost: 70, cd: 20,
+      area: "around", r: 110, dmg: 6, glow: true, shake: true, status: [{ s: "stun", secs: 1.5 }, { s: "armor", n: 2 }] },
+    { name: "Bạch Hổ · Thiên Hổ Chấn Thế (phỏng theo)", desc: "Tuyệt kỹ: Bạch Hổ gầm chấn cả vùng: Choáng 2 giây, Phá giáp đủ 3 tầng; công +25%, sát thương nhận giảm 20% trong 10 giây, bất tử 0,6 giây", icon: "◉", cost: 100, cd: 45,
+      area: "around", r: 160, dmg: 7, inv: 0.6, glow: true, shake: true, ult: true, status: [{ s: "stun", secs: 2 }, { s: "armor", n: 3 }],
+      self: { buff: { atk: 0.25, def: 0.2 }, secs: 10 } },
+  ],
 };
 /**
  * Hồn kỹ của vòng có chỉ số `ring` (0..MAX_RINGS − 1) của võ hồn: vòng 1–4 từ skillsOf, vòng 5, 6, 8, 9, 10 từ VOHON_SKILLS_HIGH; null nếu
@@ -2370,6 +2401,11 @@ export const CHAN_THAN: Record<string, ChanThanDef> = {
     skill: ctSkill("Băng Phượng Cực Hàn Vực", "Băng vực phượng hoàng quanh thân: đóng băng (Choáng 2,5 giây), Làm chậm 3 giây, Dễ thương 6 giây", "❄",
       { area: "around", r: 140, dmg: 4.3, glow: true, status: [{ s: "stun", secs: 2.5 }, { s: "slow", secs: 3 }, { s: "vuln", secs: 6 }] }),
     burst: ctBurst("Băng Phượng Hoàng Chân Thân", { r: 110, dmg: 1.8, fly: 0.5, status: [{ s: "stun", secs: 1.5 }, { s: "slow", secs: 3 }] }) },
+  bach_ho: { name: "Bạch Hổ Chân Thân", desc: "Hóa thân Bạch Hổ: chấn quanh thân (hất lùi, Phá giáp 2 tầng); công +30%, sát thương nhận giảm 20%, sinh lực tối đa +15%",
+    icon: "◉", cost: 80, cd: 90, secs: 15, stats: { atk: 0.3, def: 0.2, hp: 0.15 },
+    skill: ctSkill("Bạch Hổ Phá Thiên Trảo", "Lao tới một mục tiêu, vồ bằng cả sức Bạch Hổ: hất tung (Choáng 1 giây), Phá giáp 2 tầng", "◉",
+      { area: "target", r: 120, dash: 100, dmg: 7.2, glow: true, shake: true, status: [{ s: "stun", secs: 1 }, { s: "armor", n: 2 }] }),
+    burst: ctBurst("Bạch Hổ Chân Thân", { r: 100, dmg: 2.2, push: 40, shake: true, status: [{ s: "armor", n: 2 }] }) },
 };
 export const chanThanOf = (vohonId: string): ChanThanDef | null => CHAN_THAN[vohonId] ?? null;
 /** Bán kính lãnh vực phượng hoàng của hồn sư có võ hồn ra trận `vohonId`, `ava` = đang Chân Thân (8.1b; server tính trúng, client vẽ). */
@@ -2439,6 +2475,8 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
     area: "target", r: 110, dash: 90, n: 3, every: 0.1, dmg: 1.2, inv: 0.35, status: [{ s: "burn" }] },
   bang_phuong_hoang: { name: "Băng Phượng Lâm Thế", desc: "bay lên rồi giáng băng quanh thân: đóng băng (Choáng 1,5 giây), Làm chậm 3 giây", icon: "❄", cost: 0, cd: 0,
     area: "around", r: 90, dmg: 1.2, fly: 0.5, status: [{ s: "stun" }, { s: "slow", secs: 3 }] },
+  bach_ho: { name: "Bạch Hổ Chấn Thiên", desc: "luồng quang nửa trước mặt, hất lùi, Phá giáp 2 tầng", icon: "◉", cost: 0, cd: 0,
+    area: "front", r: 80, dmg: 2.6, push: 40, shake: true, status: [{ s: "armor", n: 2 }] },
 };
 
 /**
@@ -2513,6 +2551,14 @@ export const FUSIONS: FusionDef[] = [
       { name: "Hỏa", desc: "", icon: "✹", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 1, status: [{ s: "burn", n: 3 }] },
       { name: "Lưỡng Nghi", desc: "", icon: "☯", cost: 0, cd: 0, area: "around", r: 110, dmg: 1.6, vsSt: { s: ["stun", "burn"], v: 0.5 },
         glow: true, shake: true },
+    ] },
+  // Đái Mộc Bạch và Chu Trúc Thanh: dung hợp kỹ nổi tiếng nhất truyện (#194). Mô tả hiệu ứng là phỏng theo: bóng U Minh phủ lên Bạch Hổ.
+  { name: "U Minh Bạch Hổ", pair: ["bach_ho", "u_minh_linh_mieu"], icon: "☾",
+    desc: "Nửa vùng phía Bạch Hổ: luồng quang chấn lùi, Phá giáp 2 tầng; nửa phía U Minh Linh Miêu: 3 nhát cào bóng tối, +30% chí mạng, mỗi nhát Phá giáp 1 tầng; rồi hổ ảnh U Minh phủ cả vùng, hồn thú đang Phá giáp chịu thêm 50%",
+    parts: [
+      { name: "Bạch Hổ", desc: "", icon: "◉", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 0, push: 30, status: [{ s: "armor", n: 2 }] },
+      { name: "U Minh", desc: "", icon: "☾", cost: 0, cd: 0, area: "around", r: 80, n: 3, every: 0.2, dmg: 0.9, crit: 0.3, side: 1, status: [{ s: "armor" }] },
+      { name: "U Minh Bạch Hổ", desc: "", icon: "✥", cost: 0, cd: 0, area: "around", r: 110, dmg: 1.6, vsSt: { s: ["armor"], v: 0.5 }, glow: true, shake: true },
     ] },
 ];
 /** Chỉ số cặp dung hợp của hai võ hồn (mã), bất kể thứ tự; -1 nếu không ghép được. */
