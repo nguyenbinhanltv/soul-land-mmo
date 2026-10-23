@@ -1,11 +1,11 @@
-// Nhập biểu tượng trang bị hồn sư (GAME_DESIGN 5.15, #417) từ ảnh lưới do ChatGPT vẽ trên nền trong suốt thật (hoặc nền #FF00FF).
+// Nhập biểu tượng trang bị hồn sư (GAME_DESIGN 5.15, #417) từ ảnh lưới nền trong suốt thật (ChatGPT, bậc 0–4) hoặc nền #FF00FF phẳng (Gemini, từ bậc 5): tự nhận, logo Gemini ở góc tự gỡ.
 //   node tools/assets/equip-import.mjs --in <thư mục ảnh> --out <thư mục ra> [--only b0,b1,o,k] [--key #FF00FF] [--cell <mã>=<cỡ>]...
 //
 // Ảnh vào (tên theo bộ prompt `trangbi-*`, tìm trong --in, kể cả thư mục con `trang-bi/`):
 //   trangbi-b0 … trangbi-b5   lưới 5×2, 10 ô × một bậc (EQUIP_TIERS theo thứ tự) → item_equip_<ô>_<bậc>
 //   trangbi-o                 lưới 5×2, 10 bóng ô                                 → item_equip_slot_<ô>
 //   trangbi-k                 lưới 3×2, 6 khung viền theo bậc (phủ kín 32×32)     → item_equip_frame_<bậc>
-//   Bản dự phòng nền #FF00FF: tên có hậu tố `-magenta` (trangbi-b2-magenta.png), dùng --key #FF00FF.
+//   Nền #FF00FF: nộp thẳng (màu nền tự dò ở góc); tên hậu tố `-magenta` (trangbi-b2-magenta.png) hoặc --key #FF00FF cũng được.
 // Thứ tự trong lưới: hàng trên rồi hàng dưới, ô theo EQUIP_SLOTS (vũ khí, mũ, áo, đai, giày / dây chuyền, vòng trái, vòng phải, nhẫn trái, nhẫn phải).
 // --cell <mã>=<cỡ>: cỡ khối điểm ảnh thật của ảnh đó (px của ảnh gốc) khi tự dò sai; dò thấy một nửa chu kỳ thì ra biểu tượng nát.
 //   Khung `k` (viền 2 khối + 2 nét viền) hay bị dò gấp đôi: dùng `--cell k=10.4` (ảnh ChatGPT 1536×1024, khối ~10,4 px).
@@ -48,7 +48,7 @@ for (const job of JOBS) {
   const src = find(inDir, job.code);
   if (!src) { console.warn(`[equip] chưa có trangbi-${job.code}, bỏ qua`); continue; }
   const work = path.join(outDir, "_work", job.code);
-  const run = ["--kind", "item", "--icon", ...(job.frame ? ["--frame"] : []), "--cell", cells[job.code] ?? "auto", "--logo", "off", "--grid", job.grid, "--names", job.names.join(","), "--out", work, ...(src.magenta || key ? ["--key", key || "#FF00FF"] : []), src.file];
+  const run = ["--kind", "item", "--icon", ...(job.frame ? ["--frame"] : []), "--cell", cells[job.code] ?? "auto", "--logo", "auto", "--grid", job.grid, "--names", job.names.join(","), "--out", work, ...(src.magenta || key ? ["--key", key || "#FF00FF"] : []), src.file];
   console.log(`[equip] ${job.code}: ${src.file}`);
   execFileSync(process.execPath, [gem, ...run], { stdio: "inherit" });
   for (const n of job.names) { copyFileSync(path.join(work, `${n}.png`), path.join(outDir, `${job.key(n)}.png`)); made.add(job.key(n)); }

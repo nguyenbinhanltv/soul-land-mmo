@@ -936,7 +936,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] 10.4b 6 bộ hồn sư còn lại (chờ #335; chia PR theo giới): như 10.4a (8 hướng + `walk`, `attack`, `cast` cho 5 hướng; `idle` thở và `hurt` / `die` / `absorb` vẽ bằng code). Sau đó `hurt`, `die` thật khi có cách làm (#100).
 - [ ] 10.5 Phụ thể 20 võ hồn còn lại (chờ #335): phụ thể tĩnh 5 hướng ghép theo điểm neo (#102).
   - [ ] 10.5b Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp (cần vẽ lại đúng cỡ: thu nhỏ bằng code bị nhòe); dây Lam Ngân quấn tay; hướng riêng cho hư ảnh thú (Linh Miêu nhìn nghiêng / quay lưng) khi có cách làm (#101).
-- [ ] 10.6 Hồn thú và boss (chờ #335: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103). **Giải pháp lai (#386, người dùng chốt 2026-10-23):** ảnh tĩnh 3 hướng ComfyUI + chuyển động bằng code (mục 5.11 "Hồn thú lai"); xong Thánh Hồn Thôn (#386) và Tinh Đấu Ngoại vi (#395); các bản đồ còn lại làm tiếp, mỗi bản đồ một PR.
+- [ ] 10.6 Hồn thú và boss (chờ #335: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103). **Giải pháp lai (#386, người dùng chốt 2026-10-23):** ảnh tĩnh 3 hướng ComfyUI + chuyển động bằng code (mục 5.11 "Hồn thú lai"); xong Thánh Hồn Thôn (#386), Tinh Đấu Ngoại vi và Nội địa (#395); các bản đồ còn lại làm tiếp, mỗi bản đồ một PR.
 - [ ] Thú LPC làm hình tạm cho các loài hồn thú chưa có sprite isometric, tới khi 10.6 thay (#105; 19 loài đã có, thêm 13 loài ở #201; loài còn lại không có mẫu LPC hợp; 4 loài Thánh Hồn Thôn đã thay bằng hồn thú lai ở #386).
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b (#104).
 - Ảnh tĩnh bằng ComfyUI (skill `asset-gen` mục 10, #331), không tốn lượt PixelLab:
@@ -1010,7 +1010,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] E3 Thợ rèn cường hóa +15 theo bảng rủi ro, Bùa Hộ Mệnh, chuỗi lưu / transaction / `ver`, bài bot dồn 20 lệnh một lúc (#414).
 - [ ] E4 Hợp thành 3 → 1, phân giải hàng loạt, Tự bán / tự phân giải tùy chọn (#415).
 - [ ] E5 Giao diện: tab trang bị ở bảng nhân vật, nhóm lọc trong túi, ba trang Thợ rèn (#416).
-- [ ] E6 Biểu tượng ~60 mẫu, khung theo bậc (#417). Phần 1 (làm tay bằng ChatGPT, nhập bằng `tools/assets/equip-import.mjs`): 66/76 khóa `equipIconKeys()` (5 bậc đầu, 10 ô trống, 6 khung); còn thiếu 10 ảnh bậc Đường Môn Chí Bảo.
+- [x] E6 Biểu tượng trang bị, khung theo bậc (#417): đủ 76/76 khóa `equipIconKeys()` (60 mẫu, 10 hình ô, 6 khung), làm tay bằng ChatGPT, nhập bằng `tools/assets/equip-import.mjs` (bậc Chí Bảo: ảnh nền trắng, `--key #ffffff`).
 - [ ] E7 Cân bằng: giả lập kinh tế (thời gian lên +10 / +15, Hồn Tệ vào / ra), đấu trường, chạy dài `soak-perf` (#418).
 - [ ] Khóa Redis `lock:item:<id>` khi bật nhiều tiến trình (cùng việc #120).
 
