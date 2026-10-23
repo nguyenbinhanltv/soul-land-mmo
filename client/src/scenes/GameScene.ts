@@ -28,7 +28,7 @@ import { Weather } from "../weather.ts";
 import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioManager.ts";
 import { RARE_LOOT_MIN, STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
-import { ParticleLayer, HIT_SPARK, SHAKE_TIER, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
+import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
 import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
@@ -1203,6 +1203,9 @@ export class GameScene extends Phaser.Scene {
   /** Rung màn hình theo mức hiệu ứng (Thấp / Giảm chuyển động: không rung). */
   shake(ms: number, intensity: number) { const k = shakeK(); if (k > 0) this.cameras.main.shake(ms, intensity * k); }
   flash(ms: number, r: number, g: number, b: number) { if (flashOn()) this.cameras.main.flash(ms, r, g, b); }
+  nearMe(x: number, y: number, r: number) { const me = this.players.get(this.me); return !!me && Math.hypot(me.wx - x, me.wy - y) < r; }
+  /** Mình đang tự săn (tắt mọi rung / zoom / dừng hình khi đánh hồn thú thường). */
+  autoOn() { return !!this.room.state.players.get(this.me)?.auto; }
   /** Rung theo cấp 1–3 (SHAKE_TIER). */
   shakeTier(t: number) { const [ms, i] = SHAKE_TIER[t] ?? SHAKE_TIER[0]; if (ms) this.shake(ms, i); }
   /** Dừng hình `ms` mili giây: chỉ làm chậm tween / animation cục bộ, vòng nội suy và gửi tin vẫn chạy nên không đụng nhịp mạng, dự đoán. */
@@ -1247,7 +1250,7 @@ export class GameScene extends Phaser.Scene {
     const ratio = m.v / Math.max(1, b.maxHp);
     const he: He | undefined = pv ? VOHON[pv.vh]?.he : undefined, sp = he ? HIT_SPARK[he] : null, top = s.y - (s.displayHeight || 20) * 0.5;
     if (fxPrefs.level !== "low") this.fxp.burst(s.x, top, sp ? sp.col : hex(m.c), sp ? sp.n : 6, (sp?.speed ?? 80) * SPR / 2, (sp?.size ?? 2) * (m.crit ? 1.5 : 1));
-    if (!mine) return;
+    if (!mine || !beastJerk(b.rank, this.autoOn())) return; // #437: hồn thú thường / đang tự săn: giữ nháy, tia, bụi, số, âm thanh; không dừng hình, rung, zoom
     this.hitstop(hitstopMs(ratio, !!m.crit, b.hp <= m.v)); // đòn kết liễu: một lần dừng hình dài nhất (80 ms), không để khoảng nghỉ chặn lần sau
     if (b.rank >= 2) this.shakeTier(ratio > 0.02 || m.crit ? 2 : 1); // thú vương / boss: trúng mạnh rung vừa
     else if (m.crit) this.shakeTier(1);
@@ -1318,7 +1321,7 @@ export class GameScene extends Phaser.Scene {
     this.audio.handleFx(m, this.fxSound(m, actor));
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
-    if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.shake(300, 0.004); }
+    if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake && !this.autoOn() && this.nearMe(m.x, m.y, 220)) this.shake(300, 0.004); }
     else if (m.k === "egg") this.eggFx(m);
     // Truyền tống trận (11.2): mở khóa (vòng lan rộng), bắt đầu / thôi niệm (cột sáng), lúc đi và lúc tới (chớp sáng).
     else if (m.k === "wpopen") { const c = W2S(m.x, m.y); this.ringFx(c, 4, 40, "#8fe0ff", 900); this.ringFx(c, 2, 26, "#e8fbff", 700, 150); }
@@ -1804,7 +1807,7 @@ export class GameScene extends Phaser.Scene {
     this.playAct(m.id, "cast");
     if (m.own) {
       // Tiên cơ riêng (bước 2.5a): hiệu ứng vùng do server gửi riêng (wave, pull, claw, buff…); ở đây thêm vòng vàng và rung nhẹ.
-      this.ringFx(at, 4, 36, "#ffe08a", 420); this.shake(160, 0.004);
+      this.ringFx(at, 4, 36, "#ffe08a", 420); if (m.id === this.me && !this.autoOn()) this.shake(160, 0.004);
     } else if (m.he === "cuong_cong") {
       // Nổ diện rộng: hai vòng sóng, chớp sáng trên mặt đất, quả nổ LPC (fx_no, #201; phóng nguyên lần theo bán kính), rung màn hình.
       const r = m.r ?? 56;
@@ -1812,7 +1815,7 @@ export class GameScene extends Phaser.Scene {
       const f = this.add.ellipse(at.x, at.y, 2 * RX * r, 2 * RY * r, c, 0.35).setDepth(99979);
       this.tweens.add({ targets: f, alpha: 0, duration: 320, onComplete: () => f.destroy() });
       playFx(this, "fx_no", at.x, at.y - 10 * k, Math.max(1, Math.round((1.4 * RX * r) / 32)), 99981);
-      this.shake(260, 0.006);
+      if (m.id === this.me && !this.autoOn()) this.shake(260, 0.006); // #437: chỉ người tung chiêu thấy rung
     } else if (m.he === "man_cong") {
       // Lướt: vệt dài từ chỗ cũ, rồi dấu chém chữ X ở chỗ dừng (ngang ngực).
       const g = this.add.graphics().setDepth(99980), [a, b] = ptsToScreen([{ x: m.x0 ?? at.wx, y: m.y0 ?? at.wy }, { x: at.wx, y: at.wy }], 6 * k);
@@ -1820,7 +1823,7 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(2, gold, 1).lineBetween(a.x, a.y, b.x, b.y);
       for (const q of [0.8, -0.8]) g.lineStyle(3, gold, 1).lineBetween(b.x - 14 * k * Math.cos(q), b.y - 14 * k * Math.sin(q), b.x + 14 * k * Math.cos(q), b.y + 14 * k * Math.sin(q));
       this.tweens.add({ targets: g, alpha: 0, duration: 420, delay: 80, onComplete: () => g.destroy() });
-      this.shake(140, 0.004);
+      if (m.id === this.me && !this.autoOn()) this.shake(140, 0.004);
     } else if (m.he === "khong_che") {
       // Phong tỏa: vòng thu hẹp lại và các mắt xích quay quanh trên mặt đất.
       const r = m.r ?? 64;
