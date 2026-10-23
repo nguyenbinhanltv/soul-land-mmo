@@ -4994,3 +4994,67 @@ export function offlineSplit(endMs: number, secs: number, usedDay: string, used:
   }
   return out;
 }
+
+// ---------- Radar và bản đồ khu vực (GAME_DESIGN.md mục 5.16, theo dõi #426) ----------
+// Đơn vị: `r`, `far`, `sight` tính bằng ô lưới (TILE pixel thế giới); kích thước hiển thị tính bằng pixel màn hình / CSS.
+
+/** Một mức ưu tiên của chấm radar: số cao vẽ sau (đè lên); `arrow`: ngoài tầm thì có mũi tên ở mép. `col` rỗng: màu theo ngữ cảnh (niên hạn, aura loài). */
+export interface RadarLevel { prio: number; id: string; name: string; col: string; size: number; blink: boolean; arrow: boolean }
+
+export const RADAR = {
+  /** Bán kính mặc định (ô) và ba mức thu phóng (ô, nhỏ = gần hơn); `zoomDefault` là chỉ số trong `zooms`. */
+  r: 40, zooms: [25, 40, 70] as number[], zoomDefault: 1,
+  /** Bán kính (ô) quanh từng người trong đó server mới gửi hồn sư lạ trong tin `mini` (R5); đồng đội, cùng tông, boss luôn gửi. */
+  far: 120,
+  /** Đường kính vòng radar (pixel CSS): máy tính / điện thoại ngang. */
+  size: { desktop: 168, mobile: 120 },
+  /** Số lần vẽ lại mỗi giây (không vẽ mỗi khung hình). */
+  hz: 10,
+  /** Mũi tên ở mép lùi vào trong viền chừng này pixel; ghi kèm khoảng cách theo ô. */
+  arrowInset: 6,
+  /** 7 mức ưu tiên (thấp → cao), biểu tượng 5–9 px vẽ bằng code. Bảng ở GAME_DESIGN.md mục 5.16. */
+  levels: [
+    { prio: 1, id: "beast",  name: "Hồn thú",                   col: "",        size: 5, blink: false, arrow: false },
+    { prio: 2, id: "player", name: "Hồn sư khác",               col: "#5aa0ff", size: 6, blink: false, arrow: false },
+    { prio: 3, id: "poi",    name: "NPC, cổng, truyền tống",    col: "#f2c84b", size: 6, blink: false, arrow: false },
+    { prio: 4, id: "quest",  name: "Mục tiêu nhiệm vụ, đồ quý", col: "#ffd23f", size: 8, blink: false, arrow: true },
+    { prio: 5, id: "ally",   name: "Đồng đội, cùng tông môn",   col: "#5ee06a", size: 7, blink: false, arrow: true },
+    { prio: 6, id: "elite",  name: "Tinh anh",                  col: "",        size: 8, blink: true,  arrow: false },
+    { prio: 7, id: "boss",   name: "Thú vương, boss thế giới",  col: "#e0303a", size: 9, blink: true,  arrow: true },
+  ] as RadarLevel[],
+  /** Màu viền chấm cùng tông môn (đồng đội tổ đội dùng màu của mức `ally`). */
+  tongCol: "#3fd0b0",
+  /** Cờ người chơi đặt trên bản đồ khu vực (R3 / R4) vẽ như mức nhiệm vụ. */
+  flagCol: "#ff9a3c",
+};
+
+/**
+ * Khóa ảnh giao diện cho R7 (#434) và cỡ đích (pixel). Chưa có ảnh trong manifest thì client dùng CSS tạm; có ảnh thì thay mà không sửa code.
+ * - `frame`: khung gỗ sơn mài tròn, vuông `w`×`h`, lòng tròn đường kính `RADAR.size.desktop` nằm giữa (điện thoại thu theo tỉ lệ);
+ * - `compass`: la bàn 4 hướng vuông, tâm trùng tâm radar, vẽ xoay theo `radarCompassRotation` (shared/radar.ts); mũi Bắc không dài hơn
+ *   mũi Nam, nên client tô đỏ đầu mũi Bắc và vẽ chữ "B" bằng code (ảnh không có chữ);
+ * - `paper`: nền giấy bản đồ khu vực, kéo giãn 9 lát (`nine`).
+ */
+export const RADAR_ART = {
+  frame:   { key: "ui_radar_frame",   w: 192, h: 192 },
+  compass: { key: "ui_radar_compass", w: 160, h: 160 },
+  paper:   { key: "ui_mapview_paper", w: 256, h: 256, nine: 24 },
+};
+
+/** Bản đồ khu vực toàn màn hình (phím N): giới hạn phóng (pixel màn hình mỗi ô lưới) và các lớp lọc, mặc định bật hết. */
+export const MAPVIEW = {
+  zoomMin: 1, zoomMax: 8, zoomDefault: 3, zoomStep: 1.25,
+  layers: [
+    { id: "beast",  name: "Hồn thú" },
+    { id: "drop",   name: "Đồ rơi" },
+    { id: "npc",    name: "NPC, cổng" },
+    { id: "player", name: "Người chơi" },
+    { id: "quest",  name: "Nhiệm vụ" },
+  ] as { id: string; name: string }[],
+};
+
+/** Sương mù khám phá (R8): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường). */
+export const FOG = {
+  cell: 8, sight: 12,
+  open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
+};
