@@ -2318,17 +2318,17 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /**
-   * Bảng đội hình kèm hồn cốt (bước 4.2), hồn hạch (bước 5.2) và mảnh võ hồn (bước 3.4): số mảnh, hồn cốt và hồn hạch (đang gắn /
-   * trong túi) từ tin riêng "bag",
-   * võ hồn từ tin riêng "vohons".
-   */
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */
   askStats() { this.room.send("stats", { rowId: charViewRow() }); }
   renderChar() {
     if (!this.owned || !isCharOpen()) return;
     renderChar(this.owned, this.bag?.items ?? [], this.charStats, { portrait: (vohon) => this.portrait(vohon), ask: (rowId) => this.room.send("stats", { rowId }) });
   }
+  /**
+   * Bảng đội hình kèm hồn cốt (bước 4.2), hồn hạch (bước 5.2) và mảnh võ hồn (bước 3.4): số mảnh, hồn cốt và hồn hạch (đang gắn /
+   * trong túi) từ tin riêng "bag",
+   * võ hồn từ tin riêng "vohons".
+   */
   renderRoster() {
     if (isCharOpen()) { this.askStats(); this.renderChar(); } // vohons / bag / cộng minh đổi: chỉ số và ô trên bảng nhân vật cũng đổi
     if (!this.owned) return;
