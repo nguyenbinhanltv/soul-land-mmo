@@ -839,6 +839,54 @@
       "pack": "steps",
       "sourceId": "oga-100-cc0-sfx",
       "start": 4.4
+    },
+    {
+      "duration": 1.6,
+      "group": "arena-drum",
+      "id": "arena-drum-1",
+      "pack": "arena",
+      "sourceId": "oga-horde-war-drums",
+      "start": 0
+    },
+    {
+      "duration": 1.6,
+      "group": "arena-drum",
+      "id": "arena-drum-2",
+      "pack": "arena",
+      "sourceId": "oga-horde-war-drums",
+      "start": 1.65
+    },
+    {
+      "duration": 0.07,
+      "group": "arena-tick",
+      "id": "arena-tick-1",
+      "pack": "arena",
+      "sourceId": "kenney-ui-audio",
+      "start": 3.3
+    },
+    {
+      "duration": 1.74,
+      "group": "arena-gong",
+      "id": "arena-gong-1",
+      "pack": "arena",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 3.42
+    },
+    {
+      "duration": 1.42,
+      "group": "arena-gong",
+      "id": "arena-gong-2",
+      "pack": "arena",
+      "sourceId": "kenney-impact-sounds",
+      "start": 5.21
+    },
+    {
+      "duration": 1,
+      "group": "arena-heart",
+      "id": "arena-heart-1",
+      "pack": "arena",
+      "sourceId": "oga-heartbeat-single",
+      "start": 6.68
     }
   ],
   "generatedAt": "2026-10-23T00:00:00.000Z",
@@ -905,6 +953,19 @@
         "ogg": {
           "bytes": 46020,
           "path": "sfx/world.ogg"
+        }
+      }
+    },
+    "arena": {
+      "duration": 7.73,
+      "files": {
+        "m4a": {
+          "bytes": 68534,
+          "path": "sfx/arena.m4a"
+        },
+        "ogg": {
+          "bytes": 60085,
+          "path": "sfx/arena.ogg"
         }
       }
     }
@@ -974,6 +1035,33 @@
       "retrievedAt": "2026-10-23",
       "title": "80 CC0 creature SFX",
       "url": "https://opengameart.org/content/80-cc0-creature-sfx"
+    },
+    {
+      "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "author": "William Hector",
+      "id": "oga-horde-war-drums",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Horde War Drums loop",
+      "url": "https://opengameart.org/node/176112"
+    },
+    {
+      "archiveSha256": "7fe0850daa5c92c6a204fbb0a719ee8f8d2979e3416033d796abd6e30f3c118a",
+      "author": "Independent.nu (qubodup)",
+      "id": "oga-heartbeat-single",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "heartbeat single sound",
+      "url": "https://opengameart.org/content/heartbeat-single-sound"
+    },
+    {
+      "archiveSha256": "946fc23a63d535d693eb31b2eabb80c8c28d6351e2186b344ceb71b2cb1d5eb6",
+      "author": "Kenney",
+      "id": "kenney-ui-audio",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "UI Audio",
+      "url": "https://kenney.nl/assets/ui-audio"
     }
   ]
 }

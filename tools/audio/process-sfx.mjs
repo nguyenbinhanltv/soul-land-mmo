@@ -38,6 +38,7 @@ const probe = async (file) => {
 const trim = "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.005";
 function chain(c) {
   const f = [`aresample=${RATE}`];
+  if (c.startSeconds) f.push(`atrim=start=${c.startSeconds}`, "asetpts=PTS-STARTPTS");
   if (c.pitch) f.push(`asetrate=${Math.round(RATE * c.pitch)}`, `aresample=${RATE}`);
   if (c.highpass) f.push(`highpass=f=${c.highpass}`);
   if (c.lowpass) f.push(`lowpass=f=${c.lowpass}`);

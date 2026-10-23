@@ -62,6 +62,33 @@
       "license": "CC0-1.0",
       "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
       "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-horde-war-drums",
+      "title": "Horde War Drums loop",
+      "author": "William Hector",
+      "url": "https://opengameart.org/node/176112",
+      "license": "CC0-1.0",
+      "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-heartbeat-single",
+      "title": "heartbeat single sound",
+      "author": "Independent.nu (qubodup)",
+      "url": "https://opengameart.org/content/heartbeat-single-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "7fe0850daa5c92c6a204fbb0a719ee8f8d2979e3416033d796abd6e30f3c118a",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "kenney-ui-audio",
+      "title": "UI Audio",
+      "author": "Kenney",
+      "url": "https://kenney.nl/assets/ui-audio",
+      "license": "CC0-1.0",
+      "archiveSha256": "946fc23a63d535d693eb31b2eabb80c8c28d6351e2186b344ceb71b2cb1d5eb6",
+      "retrievedAt": "2026-10-23"
     }
   ],
   "clips": [
@@ -1067,6 +1094,69 @@
       "inputSha256": "b4cbe7e0c49ad1caf2dc02dc218897bdf9b5bce2e5d11b3b87861dd5269c1749",
       "gainDb": -14,
       "maxSeconds": 0.45
+    },
+    {
+      "id": "arena-drum-1",
+      "group": "arena-drum",
+      "pack": "arena",
+      "sourceId": "oga-horde-war-drums",
+      "input": "oga-horde-war-drums/horde_war_drums_by_william_hector.wav",
+      "inputSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "gainDb": 0,
+      "maxSeconds": 1.6
+    },
+    {
+      "id": "arena-drum-2",
+      "group": "arena-drum",
+      "pack": "arena",
+      "sourceId": "oga-horde-war-drums",
+      "input": "oga-horde-war-drums/horde_war_drums_by_william_hector.wav",
+      "inputSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "gainDb": 0,
+      "startSeconds": 3.7,
+      "maxSeconds": 1.6
+    },
+    {
+      "id": "arena-tick-1",
+      "group": "arena-tick",
+      "pack": "arena",
+      "sourceId": "kenney-ui-audio",
+      "input": "kenney-ui-audio/click2.ogg",
+      "inputSha256": "c394b46bc6737f7f7edfbfa3031ce621b7a43d498d456d6198364eee9cd3e306",
+      "gainDb": -2,
+      "pitch": 0.8
+    },
+    {
+      "id": "arena-gong-1",
+      "group": "arena-gong",
+      "pack": "arena",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/gong_01.ogg",
+      "inputSha256": "4780a38e91688b59899b3679cf3534b4b75654b45a177af9d9fb681c447f7f9a",
+      "gainDb": 0,
+      "pitch": 0.75,
+      "maxSeconds": 2.2
+    },
+    {
+      "id": "arena-gong-2",
+      "group": "arena-gong",
+      "pack": "arena",
+      "sourceId": "kenney-impact-sounds",
+      "input": "kenney-impact-sounds/impactBell_heavy_000.ogg",
+      "inputSha256": "94b8bb5f2d43ab65e4bcc32b28562416e9bc2c51d9fd4be1e333660ee52f977f",
+      "gainDb": 0,
+      "pitch": 0.8,
+      "maxSeconds": 2.2
+    },
+    {
+      "id": "arena-heart-1",
+      "group": "arena-heart",
+      "pack": "arena",
+      "sourceId": "oga-heartbeat-single",
+      "input": "oga-heartbeat-single/heartbeat.flac",
+      "inputSha256": "7fe0850daa5c92c6a204fbb0a719ee8f8d2979e3416033d796abd6e30f3c118a",
+      "gainDb": -1,
+      "maxSeconds": 1.0
     }
   ]
 }

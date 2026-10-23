@@ -5,13 +5,14 @@ export const SFX_FORMATS = ["ogg", "m4a"];
 export const SFX_MAX_TOTAL_BYTES = 8 * 1024 * 1024;
 export const SFX_CREDITS_START = "<!-- audio-sfx-g2:start -->";
 export const SFX_CREDITS_END = "<!-- audio-sfx-g2:end -->";
-export const SFX_PACKS = ["combat", "skill", "beast", "world", "steps"];
+export const SFX_PACKS = ["combat", "skill", "beast", "world", "steps", "arena"];
 /** Nhóm bắt buộc có trong catalog (tên nhóm = id phát ở client, client/src/audio/soundMap.ts). Mỗi nhóm đủ số biến thể tối thiểu. */
 export const SFX_REQUIRED = {
   ...Object.fromEntries(["kiem", "chuy", "thuong", "trao", "quyen"].map((k) => [`swing-${k}`, 3])),
   ...Object.fromEntries(["thit", "giap", "bang", "go"].map((k) => [`hit-${k}`, 3])),
   ...Object.fromEntries(["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"].flatMap((e) => ["start", "fly", "boom"].map((p) => [`skill-${e}-${p}`, 1]))),
   "ring-glow": 2, "ring-absorb": 2, "ring-drop": 2,
+  "arena-drum": 2, "arena-tick": 1, "arena-gong": 2, "arena-heart": 1,
   ...Object.fromEntries(["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"].map((f) => [`beast-${f}`, 2])),
   "beast-boss": 3, "beast-die": 3,
   ...Object.fromEntries(["co", "dat", "da", "tuyet", "go", "nuoc"].map((s) => [`step-${s}`, 3])),
@@ -41,7 +42,7 @@ export function validateSfxCatalog(catalog) {
     if (!sources.has(c.sourceId)) fail(`clip ${c.id}: nguồn ${c.sourceId} không có trong catalog`);
     if (!c.input || c.input.startsWith("/") || c.input.split(/[\\/]/).includes("..")) fail(`clip ${c.id}: đường dẫn nguồn không an toàn`);
     if (!/^[a-f0-9]{64}$/.test(c.inputSha256 ?? "")) fail(`clip ${c.id} thiếu SHA-256 tệp nguồn`);
-    for (const f of ["gainDb", "pitch", "lowpass", "highpass", "echoMs", "maxSeconds"]) if (c[f] !== undefined && !Number.isFinite(c[f])) fail(`clip ${c.id}: ${f} không phải số`);
+    for (const f of ["gainDb", "pitch", "lowpass", "highpass", "echoMs", "maxSeconds", "startSeconds"]) if (c[f] !== undefined && !Number.isFinite(c[f])) fail(`clip ${c.id}: ${f} không phải số`);
     if (c.pitch !== undefined && (c.pitch < 0.25 || c.pitch > 4)) fail(`clip ${c.id}: pitch ngoài 0.25–4`);
     perGroup.set(c.group, (perGroup.get(c.group) ?? 0) + 1);
   }
