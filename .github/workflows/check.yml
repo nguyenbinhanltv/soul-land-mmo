@@ -89,6 +89,8 @@ jobs:
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:predict --prefix client
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:charbag --prefix client
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:ratelimit --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:accounts --prefix server

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bản phác giao diện Nhân vật + Túi (NV0, #454)</title>
+<!--
+  Bản phác TĨNH cho chủ repo duyệt bố cục trước NV1 (#453). KHÔNG phải mã giao diện thật: chỉ HTML + CSS + một ít JS để đổi tab / cỡ màn / trạng thái.
+  Màu theo token của client/src/style.css (giấy, mực, son). Số, tên ô, tên võ hồn lấy đúng game (EQUIP_SLOTS 10, BONE_SLOTS 6, CORE_SLOTS 6, TEAM_SIZE 4, MAX_RINGS 10).
+  Mở bằng URL: index.html#tab=equip|bone|core|vohon & vp=desk|phone|narrow & st=none|drag|card|cmp & wnd=dual|char|bag
+-->
+<style>
+:root{--paper:#ece2c8;--paper2:#d8caa8;--paper3:#b8a888;--ink:#2a2230;--ink2:#3a3440;--inkl:#544f58;--son:#942823;--son-l:#d84a3a;--wood:#5a3b22;--bg:#1a1020;
+  --line:#9a8a6c;--good:#245a46;--bad:#942823;--gem:#8a6bff;--track:#3a3440;--cell:44px;
+  --t0:#c9c9c9;--t1:#5aa85a;--t2:#4a86d0;--t3:#9a5ad0;--t4:#e08a2a;--t5:#d84a3a}
+*{box-sizing:border-box}
+body{margin:0;background:#120a18;color:#e9dfc6;font:13px/1.45 "Be Vietnam Pro",system-ui,sans-serif}
+header.top{padding:14px 20px;border-bottom:1px solid #3a3440}
+header.top h1{margin:0 0 4px;font-size:18px}
+header.top p{margin:0;color:#b9afa0;max-width:1100px}
+.bar{display:flex;flex-wrap:wrap;gap:6px 18px;padding:10px 20px;background:#1a1020;border-bottom:1px solid #3a3440;position:sticky;top:0;z-index:50}
+.bar b{color:#b9afa0;font-weight:600;margin-right:4px}
+.bar button{font:inherit;background:#2a2230;color:#ece2c8;border:1px solid #544f58;padding:3px 10px;cursor:pointer}
+.bar button[aria-pressed=true]{background:var(--son);border-color:var(--son-l);color:#fff}
+.wrap{padding:18px 20px;display:flex;flex-direction:column;gap:18px}
+/* ===== khung màn hình giả lập ===== */
+.screen{position:relative;margin:0 auto;background:linear-gradient(#2c3a34,#1b2622 60%,#14201a);border:2px solid #000;overflow:hidden;color:var(--ink)}
+.screen[data-vp=desk]{width:1280px;height:720px}
+.screen[data-vp=phone]{width:740px;height:360px;--cell:34px;font-size:10px}
+.screen[data-vp=narrow]{width:520px;height:360px;--cell:34px;font-size:10px}
+.screen .scene{position:absolute;inset:0;display:grid;place-items:end center;color:#415a4d;font-size:44px;opacity:.35;padding-bottom:20px;letter-spacing:6px}
+.hudbar{position:absolute;left:0;right:0;bottom:0;height:34px;background:rgba(26,16,32,.85);display:flex;gap:6px;align-items:center;padding:0 8px;color:#ece2c8;font-size:11px}
+.hudbar i{font-style:normal;border:1px solid #544f58;padding:1px 6px}
+.hudbar i.on{background:var(--son);border-color:var(--son-l)}
+/* ===== cửa sổ ===== */
+.win{position:absolute;top:4%;bottom:12%;background:var(--paper);border:3px solid var(--wood);box-shadow:0 0 0 1px #000,0 6px 0 rgba(0,0,0,.4);display:flex;flex-direction:column;min-width:0}
+.win.front{z-index:3}.win.back{z-index:2;filter:brightness(.96)}
+.win>.rhead{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:var(--ink2);color:var(--paper);font-weight:700}
+.win>.rhead .btns{display:flex;gap:4px}
+.win>.rhead button{font:inherit;background:#544f58;color:#ece2c8;border:1px solid #1a1020;padding:0 7px;cursor:default}
+.win>.rhead button.swap{background:var(--son)}
+.win>.body{flex:1;overflow:hidden;padding:6px;display:flex;flex-direction:column;gap:6px;min-height:0}
+.win>.foot{padding:3px 8px;font-size:.9em;color:var(--inkl);border-top:1px solid var(--line)}
+/* khe giữa: vùng thả trống */
+.gap{position:absolute;top:4%;bottom:12%;border:2px dashed rgba(236,226,200,.25);display:grid;place-items:center;color:rgba(236,226,200,.5);text-align:center;font-size:.9em;padding:2px}
+[data-vp=desk][data-wnd=dual] #winChar{left:5%;width:43%}
+[data-vp=desk][data-wnd=dual] #winBag{left:52%;width:43%}
+[data-vp=desk][data-wnd=dual] .gap{left:48%;width:4%}
+[data-vp=phone][data-wnd=dual] #winChar{left:1%;width:48.5%;top:2%;bottom:11%}
+[data-vp=phone][data-wnd=dual] #winBag{left:50.5%;width:48.5%;top:2%;bottom:11%}
+[data-vp=phone][data-wnd=dual] .gap{left:49.5%;width:1%;top:2%;bottom:11%;font-size:0;border-style:dotted}
+[data-vp=desk]:not([data-wnd=dual]) .win,[data-vp=phone]:not([data-wnd=dual]) .win{left:22%;width:56%}
+[data-vp=narrow] .win{left:2%;width:96%;top:2%;bottom:11%}
+[data-wnd=char] #winBag,[data-wnd=bag] #winChar{display:none}
+[data-wnd=dual] .gap{display:grid}[data-wnd=char] .gap,[data-wnd=bag] .gap{display:none}
+[data-vp=narrow][data-wnd=dual] #winChar,[data-vp=narrow][data-wnd=dual] #winBag{display:none}
+[data-vp=narrow][data-wnd=dual][data-pick=char] #winChar,[data-vp=narrow][data-wnd=dual][data-pick=bag] #winBag{display:flex}
+[data-vp=narrow] .quick{display:flex}.quick{display:none;gap:0;background:var(--ink2);padding:2px 4px}
+.quick span{flex:1;text-align:center;color:#b9afa0;padding:2px;border:1px solid #544f58}.quick span.on{background:var(--son);color:#fff}
+/* ===== dải võ hồn + tab ===== */
+.strip{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.chip{border:2px solid var(--ink2);border-left-width:6px;background:var(--paper2);padding:1px 7px;color:var(--ink);white-space:nowrap}
+.chip[aria-selected=true]{background:#fff6d8;box-shadow:0 0 0 1px var(--son)}
+.chip.go{margin-left:auto;background:var(--son);color:#fff;border-color:var(--son)}
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--ink2)}
+.tabs a{padding:3px 9px;background:var(--paper3);border:2px solid var(--ink2);border-bottom:none;color:var(--ink);cursor:pointer;text-decoration:none}
+.tabs a[aria-selected=true]{background:var(--paper);font-weight:700;position:relative;top:2px}
+.tabs a small{color:var(--inkl)}
+.dollrow{display:flex;gap:8px;flex:1;min-height:0}
+.dollrow>.doll{flex:1.25;min-width:0;position:relative;display:flex;flex-direction:column;gap:4px}
+.dollrow>.side{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+[data-vp=narrow] .dollrow{flex-direction:column}
+.cap{font-size:.9em;color:var(--inkl);margin:0}
+.h{font-weight:700;margin:2px 0 0;border-bottom:1px solid var(--line)}
+/* ===== ô ===== */
+.cell{width:var(--cell);height:var(--cell);border:2px solid var(--ink2);background:#d4c6a2 ;position:relative;display:grid;place-items:center;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);flex:none}
+.cell.empty{background:repeating-linear-gradient(45deg,#cfc19c,#cfc19c 4px,#c6b78f 4px,#c6b78f 8px);color:#8a7c5c}
+.cell .g{font-size:calc(var(--cell) * .5);line-height:1}
+.cell .n{position:absolute;left:1px;bottom:0;font-size:9px;color:var(--ink)}
+.cell .e{position:absolute;right:1px;top:0;font-size:9px;font-weight:700;color:var(--son)}
+.cell .l{position:absolute;left:0;right:0;bottom:-1px;text-align:center;font-size:8px;color:var(--inkl);background:rgba(236,226,200,.85)}
+.cell[data-t="0"]{border-color:var(--t0)}.cell[data-t="1"]{border-color:var(--t1)}.cell[data-t="2"]{border-color:var(--t2)}.cell[data-t="3"]{border-color:var(--t3)}.cell[data-t="4"]{border-color:var(--t4)}.cell[data-t="5"]{border-color:var(--t5)}
+.cell.ok{outline:3px solid #2fbf6a;outline-offset:1px}
+.cell.no{outline:3px solid #d8382a;outline-offset:1px}
+.cell.hint{box-shadow:0 0 0 2px #f2d060,0 0 8px #f2d060}
+.cell.sel{box-shadow:0 0 0 2px var(--son)}
+.cell.lock::after{content:"🔒";position:absolute;right:0;bottom:0;font-size:9px}
+.cell.dim{opacity:.4}
+.ghost{position:absolute;z-index:20;pointer-events:none;opacity:.8;transform:rotate(-4deg)}
+.ann{position:absolute;z-index:21;background:#1a1020;color:#ece2c8;border:1px solid #f2d060;padding:1px 6px;font-size:.95em;white-space:nowrap;pointer-events:none}
+/* ===== búp bê: trang bị ===== */
+.eq{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:start;justify-items:center;flex:1}
+.eq .col{display:flex;flex-direction:column;gap:5px}
+.eq .fig{position:relative;width:100%;max-width:150px;aspect-ratio:3/4;background:radial-gradient(#e7dcbf,#cdbf9a);border:2px solid var(--ink2);display:grid;place-items:center;color:#8a7c5c;font-size:calc(var(--cell) * 1.4)}
+.eq .fig .body{opacity:.5}
+.eq .fig .ao{position:absolute;left:50%;bottom:22%;transform:translateX(-50%)}
+.eq .fig small{position:absolute;top:2px;left:0;right:0;text-align:center;font-size:9px;color:var(--inkl)}
+/* ===== hồn cốt: lục giác ===== */
+.hex{display:grid;grid-template:repeat(3,auto)/repeat(3,auto);gap:6px;justify-content:center;align-content:center;flex:1}
+.hex .mid{grid-area:2/2;width:calc(var(--cell) * 1.7);display:grid;place-items:center;text-align:center;font-size:.9em;background:radial-gradient(#e7dcbf,#cdbf9a);border:2px solid var(--ink2);padding:3px}
+.hex .mid .g{font-size:calc(var(--cell) * .9)}
+/* ===== hồn hạch: vòng đan điền ===== */
+.ring{position:relative;width:calc(var(--cell) * 4.2);height:calc(var(--cell) * 4.2);margin:auto;border:2px dashed var(--line);border-radius:50%}
+.ring .mid{position:absolute;inset:32%;border-radius:50%;background:radial-gradient(#f3e8c8,#cdbf9a);border:2px solid var(--ink2);display:grid;place-items:center;text-align:center;font-size:.85em}
+.ring .cell{position:absolute;transform:translate(-50%,-50%)}
+/* ===== võ hồn: đội + 10 vòng ===== */
+.team{display:flex;gap:5px;flex-wrap:wrap}
+.vh{width:calc(var(--cell) * 1.5);border:2px solid var(--ink2);background:var(--paper2);text-align:center;padding:2px;font-size:.9em;position:relative}
+.vh .g{font-size:calc(var(--cell) * .6);display:block}
+.vh.act{box-shadow:0 0 0 2px var(--son);background:#fff6d8}
+.vh .c{position:absolute;top:-1px;left:1px;color:var(--son)}
+.rings{display:grid;grid-template-columns:repeat(2,1fr);gap:3px}
+.rg{border:2px solid var(--ink2);padding:1px 3px;display:flex;align-items:center;gap:4px;background:var(--paper2);font-size:.9em;white-space:nowrap;overflow:hidden}
+.rg i{width:10px;height:10px;border-radius:50%;flex:none;border:1px solid #000}
+.rg.lk{opacity:.5}
+/* ===== chỉ số ===== */
+.stats{display:grid;grid-template-columns:1fr auto auto;column-gap:6px;font-size:.95em}
+.stats .gr{grid-column:1/-1;color:var(--inkl);border-bottom:1px solid var(--line);margin-top:2px}
+.stats b{text-align:right}.stats em{font-style:normal;color:var(--good);min-width:34px;text-align:right}.stats em.d{color:var(--bad)}
+.sets{font-size:.9em;color:var(--inkl);border:1px solid var(--line);padding:2px 4px}
+.sets .on{color:var(--good);font-weight:700}
+/* ===== túi ===== */
+.chips{display:flex;gap:3px;flex-wrap:wrap}
+.chips span{border:2px solid var(--ink2);padding:0 6px;background:var(--paper2)}
+.chips span.on{background:var(--ink2);color:var(--paper)}
+.grid{display:grid;grid-template-columns:repeat(10,var(--cell));gap:3px;justify-content:center;align-content:start;flex:1;overflow:hidden}
+[data-vp=phone] .grid,[data-vp=narrow] .grid{grid-template-columns:repeat(6,var(--cell))}
+[data-vp=narrow] .grid{grid-template-columns:repeat(10,var(--cell))}
+.pages{display:flex;gap:3px;align-items:center}
+.pages span{border:2px solid var(--ink2);padding:0 6px;background:var(--paper2)}.pages span.on{background:var(--ink2);color:var(--paper)}
+.coin{margin-left:auto;font-weight:700}
+.coin .k{color:#a8780e}.coin .n{color:#4a6070}.coin .d{color:#8a4a22}
+/* ===== thẻ thao tác nhanh + so sánh ===== */
+.card{position:absolute;z-index:22;background:var(--plate,#1a1020);color:#ece2c8;border:2px solid #f2d060;padding:6px 8px;width:230px;font-size:11px}
+.card h4{margin:0 0 3px;font-size:12px;color:#c9a0ff}
+.card .row{display:flex;justify-content:space-between}.card .up{color:#6fd49a}.card .dn{color:#ff8a7a}.card .eqv{color:#b9afa0}
+.card .acts{display:flex;gap:4px;margin-top:5px}.card .acts span{flex:1;text-align:center;border:1px solid #9a8a6c;padding:2px 0;background:#2a2230}.card .acts span:first-child{background:var(--son);border-color:var(--son-l)}
+.cmp{width:340px}.cmp .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cmp .two>div{border:1px solid #544f58;padding:3px 5px}
+.cmp .two h5{margin:0 0 2px;color:#b9afa0;font-weight:600}
+[data-vp=phone] .card,[data-vp=narrow] .card{width:180px;font-size:9px}[data-vp=phone] .cmp,[data-vp=narrow] .cmp{width:250px}
+/* ===== lưu ý ngoài khung ===== */
+section.notes{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+section.notes>div{background:#1a1020;border:1px solid #3a3440;padding:10px 14px}
+section.notes h3{margin:0 0 6px;font-size:14px;color:#f2d060}
+section.notes ul{margin:0;padding-left:18px}section.notes li{margin:3px 0}
+section.notes code{background:#2a2230;padding:0 4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;color:#b9afa0}
+.legend i{display:inline-block;width:14px;height:14px;vertical-align:-3px;margin-right:4px;border:2px solid #2fbf6a}.legend i.r{border-color:#d8382a}.legend i.h{border-color:#f2d060}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Bản phác: Nhân vật + Túi đồ hai cửa sổ, búp bê 4 tab <small style="font-weight:400;color:#b9afa0">(NV0 · #454 · theo dõi #453)</small></h1>
+  <p><b>Cần chủ repo duyệt bố cục trước NV1.</b> Đây là bản phác tĩnh, không đổi hành vi giao diện hiện tại. Đổi tab, cỡ màn và trạng thái bằng các nút bên dưới; ảnh chụp từng cảnh ở <code>docs/ban-phac-nhan-vat-tui/anh/</code>.</p>
+</header>
+<div class="bar" id="bar"></div>
+<div class="wrap">
+  <div class="legend"><span><i></i>ô hợp lệ khi kéo (xanh)</span><span><i class="r"></i>ô không hợp lệ (đỏ, kèm lý do)</span><span><i class="h"></i>ô / món gợi ý (vàng)</span></div>
+  <div class="screen" id="screen"></div>
+  <section class="notes" id="notes"></section>
+</div>
+
+<script>
+// ----- dữ liệu mẫu (tên đúng game; số chỉ để minh hoạ, không phải số cân bằng) -----
+const P = new URLSearchParams(location.hash.slice(1).replace(/&/g,"&"));
+const S = { tab: P.get("tab") || "equip", vp: P.get("vp") || "desk", st: P.get("st") || "none", wnd: P.get("wnd") || "dual", pick: P.get("pick") || "char" };
+const TIER_COL = ["#c9c9c9", "#5aa85a", "#4a86d0", "#9a5ad0", "#e08a2a", "#d84a3a"];
+const EQ_L = [["vu_khi","Vũ khí","🗡"],["vong_trai","Vòng tay trái","◯"],["nhan_trai","Nhẫn trái","◎"],["dai","Đai","▭"]];
+const EQ_R = [["mu","Mũ","♛"],["day_chuyen","Dây chuyền","⌒"],["vong_phai","Vòng tay phải","◯"],["nhan_phai","Nhẫn phải","◎"],["giay","Giày","⌂"]];
+const WORN = { vu_khi: [3, 7], mu: [2, 0], ao: [4, 5], dai: [1, 0], day_chuyen: [3, 2], vong_trai: [2, 3], nhan_phai: [5, 9] }; // [bậc 0–5, +N]
+const BONE = [["dau","Đầu","◔","1 / 2"],["tay_trai","Tay trái","✋","2 / 1"],["tay_phai","Tay phải","✋","2 / 3"],["than","Thân","▣","3 / 2"],["chan_trai","Chân trái","⛸","3 / 1"],["chan_phai","Chân phải","⛸","3 / 3"]];
+const BONE_WORN = { dau: [3, "42k"], than: [2, "8k"], tay_phai: [4, "120k"] };
+const CORE_ANG = [-90, -30, 30, 90, 150, 210];
+const CORE_WORN = [[3, "4★", 3], null, [2, "3★", 3], [1, "2★", 0], null, null];
+const TEAM = [["Lam Ngân Thảo", "#3a8a5a", "🌿", true], ["Hạo Thiên Chùy", "#8a6a3a", "🔨", false], ["Hỏa Long", "#c0392b", "🔥", false], [null]];
+const RINGS = [0,0,1,1,2,2,3,3,null,null];
+
+const h = (t, a = "", inner = "") => `<${t} ${a}>${inner}</${t}>`;
+function cell({ g = "", cls = "", t = null, n = "", e = "", l = "", st = "" } = {}) {
+  return `<div class="cell ${cls}" ${t !== null ? `data-t="${t}"` : ""} style="${st}">${g ? `<span class="g">${g}</span>` : ""}${n ? `<span class="n">${n}</span>` : ""}${e ? `<span class="e">${e}</span>` : ""}${l ? `<span class="l">${l}</span>` : ""}</div>`;
+}
+const ID = {}; // vị trí ô để đặt chú thích / bóng kéo (đo sau khi vẽ)
+
+function eqCell(id, name, glyph) {
+  const w = WORN[id]; let cls = w ? "" : "empty", extra = "";
+  if (S.st === "drag") { if (id === "mu") cls += " ok"; if (id === "dai") cls += " no"; }
+  return cell({ g: glyph, cls, t: w ? w[0] : null, e: w && w[1] ? `+${w[1]}` : "", l: name }).replace('class="cell', `data-id="${id}" class="cell`);
+}
+function tabEquip() {
+  const L = EQ_L.map((x) => eqCell(...x)).join(""), R = EQ_R.map((x) => eqCell(...x)).join("");
+  return `<p class="cap">Thuộc hồn sư, dùng chung cho cả đội (không phụ thuộc võ hồn đang xem). 10 ô kiểu Mir2.</p>
+  <div class="eq"><div class="col">${L}</div>
+  <div class="fig"><small>hồn sư</small><span class="body">🧍</span><div class="ao">${eqCell("ao", "Áo", "◈")}</div></div>
+  <div class="col">${R}</div></div>`;
+}
+function tabBone() {
+  const cells = BONE.map(([id, name, g, area]) => {
+    const w = BONE_WORN[id]; let cls = w ? "" : "empty";
+    if (S.st === "drag") { if (id === "tay_trai") cls += " ok"; if (id === "chan_phai") cls += " no"; }
+    return cell({ g, cls, t: w ? w[0] : null, n: w ? w[1] : "", l: name, st: `grid-area:${area}` }).replace('class="cell', `data-id="${id}" class="cell`);
+  }).join("");
+  return `<p class="cap">Hồn cốt thuộc từng võ hồn (dải thẻ phía trên chọn võ hồn nhận). Bấm ô trống: túi tô vàng các món hợp ô.</p>
+  <div class="hex">${cells}<div class="mid"><span class="g">🌿</span><b>Lam Ngân Thảo</b><span>3★ · cấp 54</span></div></div>`;
+}
+function tabCore() {
+  const ring = CORE_ANG.map((a, i) => {
+    const w = CORE_WORN[i], x = 50 + 46 * Math.cos(a * Math.PI / 180), y = 50 + 46 * Math.sin(a * Math.PI / 180);
+    let cls = w ? "" : "empty"; if (S.st === "drag" && i === 1) cls += " ok";
+    return cell({ g: "✺", cls, t: w ? w[0] : null, n: w ? w[1] : "", e: w && w[2] ? `+${w[2]}` : "", st: `left:${x}%;top:${y}%` }).replace('class="cell', `data-id="core${i}" class="cell`);
+  }).join("");
+  return `<p class="cap">6 ô quanh tâm đan điền; bộ 2 / 4 món sáng theo màu bộ.</p><div class="ring">${ring}<div class="mid"><b>Hạo Thiên</b><span>2 / 2 món ✓</span></div></div>`;
+}
+function tabVohon() {
+  const team = TEAM.map(([n, c, g, act], i) => n ? `<div class="vh ${act ? "act" : ""}" style="border-color:${c}">${act ? '<span class="c">◆</span>' : ""}<span class="g">${g}</span>${n}<br><small>${act ? "ra trận" : "3★ · cấp " + (40 - i * 6)}</small></div>`
+    : `<div class="vh" style="opacity:.5">+<br><small>ô đội trống</small></div>`).join("");
+  const rg = RINGS.map((t, i) => t === null ? `<div class="rg lk"><i style="background:#888"></i>${i + 1}. Chưa mở</div>` : `<div class="rg"><i style="background:${TIER_COL[t]}"></i>${i + 1}. ${["Hồn kỹ", "Hồn kỹ", "Hồn kỹ", "Hồn kỹ"][t]}</div>`).join("");
+  return `<p class="cap">Đội 4 ô (kéo đổi chỗ), ra trận, 10 vòng màu niên hạn. Thức tỉnh / dung hợp / danh sách võ hồn: bảng Đội hình (V).</p>
+  <div class="team">${team}</div><span class="chip go" style="margin:2px 0;align-self:flex-start">Ra trận: Hạo Thiên Chùy</span>
+  <div class="h">Hồn hoàn (8 / 10)</div><div class="rings">${rg}</div><span class="cap">▸ Đội hình (V): thức tỉnh, dung hợp…</span>`;
+}
+const TABS = [["equip", "Trang bị", "10"], ["bone", "Hồn cốt", "3/6"], ["core", "Hồn hạch", "4/6"], ["vohon", "Võ hồn", "3/4"]];
+function statsCol() {
+  const cmpOn = S.st === "cmp";
+  return `<div class="h">Chỉ số (server tính)</div><div class="stats">
+    <div class="gr">Chính</div><span>Sinh lực</span><b>12.480</b><em>+1.560${cmpOn ? " ▲" : ""}</em>
+    <span>Hồn lực</span><b>6.200</b><em>+400</em><span>Công</span><b>2.310</b><em>+540${cmpOn ? " ▲ +96" : ""}</em>
+    <div class="gr">Phụ</div><span>Tốc độ</span><b>100</b><em></em><span>Chí mạng</span><b>12%</b><em>+3%</em><span>ST chí mạng</span><b>×1,6</b><em></em>
+    <span>Giảm ST nhận</span><b>6,5%</b><em>${cmpOn ? "▼ −1%" : ""}</em></div>
+    <div class="h">Bộ hồn hạch</div><div class="sets"><span class="on">✓ Hạo Thiên 2 món:</span> +công. <br>1/4 món: chưa đủ.</div>`;
+}
+function charWin() {
+  const chips = `<div class="strip">${TEAM.filter((t) => t[0]).map(([n, c, g, a], i) => `<span class="chip" role="tab" aria-selected="${i === 0}" style="border-left-color:${c}">${n}${a ? " ◆" : ""}</span>`).join("")}<span class="chip go">Ra trận</span></div>`;
+  const tabs = `<div class="tabs">${TABS.map(([id, n, c]) => `<a data-tab="${id}" aria-selected="${S.tab === id}">${n} <small>${c}</small></a>`).join("")}</div>`;
+  const doll = { equip: tabEquip, bone: tabBone, core: tabCore, vohon: tabVohon }[S.tab]();
+  return `<div class="rhead"><span>Hồn sư</span><span class="btns"><button class="swap" title="Mở cả hai (B + C)">⇆</button><button>×</button></span></div>
+  <div class="body">${chips}${tabs}<div class="dollrow"><div class="doll">${doll}</div><div class="side">${statsCol()}</div></div></div>
+  <div class="foot">Số do máy chủ tính. C / H mở · Esc đóng · Tab qua ô · Enter thẻ · Shift+Enter mặc nhanh.</div>`;
+}
+const ITEMS = (() => {
+  const a = [];
+  const mk = (g, t, n, e, cls = "") => a.push({ g, t, n, e, cls });
+  mk("◔", 3, "30k"); mk("✺", 2, "3★"); mk("🪙", 1, "", ""); mk("◈", 4, "", "+2"); mk("✋", 4, "90k"); mk("◎", 2, "", "+5"); mk("✺", 4, "5★"); mk("▭", 1, "");
+  mk("⌂", 3, "", "+1"); mk("◯", 5, "", "+0"); mk("⛸", 2, "5k"); mk("♛", 2, "", "+3"); mk("✺", 3, "4★"); mk("▣", 3, "20k"); mk("⌒", 0, ""); mk("🗡", 2, "", "+4");
+  mk("✺", 1, "2★"); mk("◎", 4, "", "+6"); mk("🌿", 1, "×12"); mk("💊", 0, "×9"); mk("📜", 2, "×3"); mk("◯", 3, "", "+0");
+  return a;
+})();
+function bagWin() {
+  const items = ITEMS.map((x, i) => {
+    let cls = x.cls;
+    if (S.st === "drag") { if (i === 3) cls += " sel"; }
+    if (S.tab === "bone" && S.st === "none" && (x.g === "◔" || x.g === "✋" || x.g === "▣" || x.g === "⛸")) cls += " hint";
+    if (S.tab === "core" && S.st === "none" && x.g === "✺") cls += " hint";
+    return cell({ g: x.g, cls: cls + ` it${i}`, t: x.t, n: x.n, e: x.e });
+  }).join("");
+  const blanks = Array.from({ length: 78 }, () => cell({ cls: "empty" })).join("");
+  const groups = ["Tất cả", "Trang bị", "Hồn hoàn", "Hồn cốt", "Hồn hạch", "Vật liệu", "Tiêu hao"];
+  const on = S.tab === "bone" && S.st === "none" ? 3 : S.tab === "core" && S.st === "none" ? 4 : S.tab === "equip" && S.st === "none" ? 1 : 0;
+  return `<div class="rhead"><span>Túi đồ</span><span class="btns"><button class="swap" title="Mở cả hai (B + C)">⇆</button><button>×</button></span></div>
+  <div class="body"><div class="chips">${groups.map((g, i) => `<span class="${i === on ? "on" : ""}">${g}</span>`).join("")}<span style="margin-left:auto">Sắp xếp ▾</span></div>
+  <div class="grid">${items}${blanks}</div>
+  <div class="pages"><span class="on">1</span><span>2</span><span>3</span><span style="font-size:.85em">22 / 250</span><span class="coin"><span class="k">3 kim</span> <span class="n">42 ngân</span> <span class="d">7 đồng</span></span></div></div>
+  <div class="foot">Bấm một lần: thẻ nhanh · bấm đúp: mặc thông minh · kéo: thả vào ô búp bê · kéo ra ngoài: về ô cũ.</div>`;
+}
+function render() {
+  const scr = document.getElementById("screen");
+  scr.dataset.vp = S.vp; scr.dataset.wnd = S.wnd; scr.dataset.pick = S.pick;
+  const quick = S.wnd === "dual" ? `<div class="quick"><span class="${S.pick === "char" ? "on" : ""}">Nhân vật</span><span class="${S.pick === "bag" ? "on" : ""}">Túi</span></div>` : "";
+  const gapTxt = S.vp === "desk" ? "thả đồ xuống khe = về ô cũ" : "";
+  scr.innerHTML = `<div class="scene">RỪNG SĂN HỒN</div>
+    <div class="win ${S.wnd === "bag" ? "front" : "back"}" id="winChar">${quick}${charWin()}</div>
+    <div class="gap">${gapTxt}</div>
+    <div class="win front" id="winBag">${quick}${bagWin()}</div>
+    <div class="hudbar"><i class="${S.wnd !== "bag" ? "on" : ""}">C Hồn sư</i><i class="${S.wnd !== "char" ? "on" : ""}">B Túi đồ</i><i>V Đội hình</i><i>M Bản đồ</i><span style="margin-left:auto">Thế Giới 3 · 1.248 ms</span></div>`;
+  scr.querySelectorAll("[data-tab]").forEach((a) => a.onclick = () => { S.tab = a.dataset.tab; sync(); });
+  annotate(scr);
+}
+function pos(scr, el) { const a = scr.getBoundingClientRect(), b = el.getBoundingClientRect(); return { x: b.left - a.left, y: b.top - a.top, w: b.width, h: b.height }; }
+function annotate(scr) {
+  if (S.wnd !== "dual" && S.st === "drag") return;
+  const add = (html) => scr.insertAdjacentHTML("beforeend", html);
+  const q = (s) => scr.querySelector(s);
+  if (S.st === "drag") {
+    const src = q(".it3"), tgt = q(S.tab === "equip" ? '[data-id=mu]' : S.tab === "bone" ? '[data-id=tay_trai]' : S.tab === "core" ? '[data-id=core1]' : '.vh');
+    if (!src || !tgt) return;
+    const a = pos(scr, src), b = pos(scr, tgt), bad = q(S.tab === "equip" ? '[data-id=dai]' : S.tab === "bone" ? '[data-id=chan_phai]' : '[data-id=core0]');
+    add(`<div class="ghost" style="left:${(a.x + b.x) / 2 + 10}px;top:${(a.y + b.y) / 2}px">${cell({ g: ITEMS[3].g, t: ITEMS[3].t })}</div>`);
+    add(`<div class="ann" style="left:${b.x}px;top:${Math.max(0, b.y - 20)}px;border-color:#2fbf6a">✓ thả để gắn</div>`);
+    if (bad && S.tab !== "core") { const c = pos(scr, bad); add(`<div class="ann" style="left:${c.x}px;top:${c.y + c.h + 2}px;border-color:#d8382a">✗ ${S.tab === "equip" ? "Món này chỉ mặc ở ô Áo." : "Hồn cốt này chỉ gắn ô Tay trái."}</div>`); }
+    if (S.tab === "vohon") add(`<div class="ann" style="left:${b.x}px;top:${b.y + b.h + 2}px;border-color:#d8382a">✗ Ô đội nhận võ hồn, không nhận đồ.</div>`);
+  }
+  if (S.st === "card" || S.st === "cmp") {
+    const it = q(".it3"); if (!it) return; const a = pos(scr, it);
+    const left = Math.min(a.x + a.w + 6, scr.clientWidth - (S.st === "cmp" ? (S.vp === "desk" ? 350 : 260) : (S.vp === "desk" ? 240 : 190)));
+    const top = Math.min(a.y, scr.clientHeight - (S.vp === "desk" ? 190 : 130));
+    if (S.st === "card") add(`<div class="card" style="left:${left}px;top:${top}px"><h4>+2 Tử Kim Chiến Giáp</h4><div class="eqv">Áo · Thần Khí · cấp 4</div>
+      <div class="row"><span>Sinh lực</span><span class="up">1.410 → 1.680 ▲ +270</span></div><div class="acts"><span>Mặc</span><span>So sánh</span><span>Khóa</span><span>Bán</span></div></div>`);
+    else add(`<div class="card cmp" style="left:${left}px;top:${top}px"><h4>So sánh: Áo</h4><div class="two"><div><h5>Đang mặc</h5>Tử Kim Chiến Giáp +5<div class="row"><span>Sinh lực</span><span>1.410</span></div><div class="row"><span>Giảm ST</span><span>3,0%</span></div></div>
+      <div><h5>Món mới</h5>Thần Khí Hồn Giáp +2<div class="row"><span>Sinh lực</span><span class="up">1.680 ▲ +270</span></div><div class="row"><span>Giảm ST</span><span class="dn">2,0% ▼ −1,0</span></div></div></div><div class="acts"><span>Mặc</span><span>Đóng</span></div></div>`);
+  }
+}
+const NOTES = [
+  ["Bố cục (đã chốt ở #453 mục 5)", ["Giữ <b>10 ô trang bị, 6 hồn cốt, 6 hồn hạch</b>; không thêm ô / luật mới.", "Màn ngang ≥ 960 px: nhân vật trái (5–48%), túi phải (52–95%), khe giữa 4% là vùng thả: kéo xuống khe = về ô cũ.", "Điện thoại ngang thấp (≈ 740×360): hai bảng thu gọn cạnh nhau, ô 36 px (bản phác dùng 34), túi 6 cột.", "Màn hẹp hơn: một bảng một lúc, thẻ chuyển Nhân vật / Túi ở đầu bảng; ⇆ trên mỗi bảng mở cả hai khi đủ chỗ."]],
+  ["Kéo thả và thao tác", ["Kéo ra ngoài hai bảng: <b>trả về ô cũ</b>. Bán / phân giải chỉ bằng nút.", "Ô hợp lệ viền xanh; ô sai viền đỏ kèm lý do (sai loại, chưa có võ hồn…). Ô đội không nhận đồ.", "Bấm một lần: thẻ nhanh [Mặc] [So sánh] [Khóa / Bán]; bấm đúp: mặc thông minh (<code>smartTarget</code>).", "Server quyết định mọi thứ: bị từ chối thì hiện lý do, đồ về chỗ cũ (không đổi tạm phía client)."]],
+  ["Chỗ lệch với bản kế hoạch #453 (cần chủ repo biết)", ["Vòng tay / nhẫn trái và phải là <b>hai mẫu riêng</b> (<code>EQUIP_SLOTS</code>, chỉ số chính khác nhau; <code>equipgear {id}</code> không có tham số ô): <b>không đổi chéo trái ↔ phải</b>, và \"thay món yếu hơn ở ô đôi\" thành \"thay món ở đúng ô của mẫu\".", "Trang bị đang mặc <b>không nằm trong tin <code>bag</code></b> mà ở tin <code>gear</code> (E1 đã có): tab Trang bị đọc <code>gear</code>.", "Tab Trang bị không phụ thuộc võ hồn; hồn cốt / hồn hạch theo võ hồn đang xem ở dải thẻ."]],
+  ["Hợp đồng TS (client/src/charBagContract.ts)", ["Chỉ kiểu + hàm thuần: <code>WindowState, SlotRef, DropTarget, DragSession, acceptsItem, smartTarget, mountCommand, unmountCommand</code>; có kiểm thử <code>npm run test:charbag --prefix client</code>.", "Không nối vào giao diện nào: NV1+ mới dùng."]],
+];
+function notes() { document.getElementById("notes").innerHTML = NOTES.map(([t, l]) => `<div><h3>${t}</h3><ul>${l.map((x) => `<li>${x}</li>`).join("")}</ul></div>`).join(""); }
+function bar() {
+  const opt = (k, label, vals) => `<span><b>${label}</b>${vals.map(([v, n]) => `<button data-k="${k}" data-v="${v}" aria-pressed="${S[k] === v}">${n}</button>`).join(" ")}</span>`;
+  const el = document.getElementById("bar");
+  el.innerHTML = opt("tab", "Tab", TABS.map((t) => [t[0], t[1]])) + opt("vp", "Màn", [["desk", "Ngang ≥ 960 (1280×720)"], ["phone", "Điện thoại ngang (740×360)"], ["narrow", "Hẹp (520×360)"]])
+    + opt("st", "Trạng thái", [["none", "Thường"], ["drag", "Đang kéo"], ["card", "Thẻ nhanh"], ["cmp", "So sánh"]]) + opt("wnd", "Cửa sổ", [["dual", "Cả hai"], ["char", "Chỉ nhân vật"], ["bag", "Chỉ túi"]]);
+  el.querySelectorAll("button").forEach((b) => b.onclick = () => { S[b.dataset.k] = b.dataset.v; sync(); });
+}
+function sync() { location.hash = `tab=${S.tab}&vp=${S.vp}&st=${S.st}&wnd=${S.wnd}&pick=${S.pick}`; bar(); render(); }
+window.addEventListener("hashchange", () => { const p = new URLSearchParams(location.hash.slice(1)); for (const k of Object.keys(S)) if (p.get(k)) S[k] = p.get(k); bar(); render(); });
+bar(); render(); notes();
+</script>
+</body>
+</html>
