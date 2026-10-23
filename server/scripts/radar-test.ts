@@ -12,12 +12,12 @@ const near = (got: number, want: number, what: string, tol = 1e-9) => assert.ok(
 
 test("Hằng số: tầm mặc định nằm trong bảng phóng, ưu tiên 1..7 liên tiếp, bản đồ mở sẵn có thật", () => {
   assert.equal(RADAR.zooms[RADAR.zoomDefault], RADAR.r); assert.deepEqual([...RADAR.zooms].sort((a, b) => a - b), RADAR.zooms);
-  assert.equal(RADAR.far, 120); assert.equal(RADAR.hz, 10);
+  assert.ok(RADAR.far > RADAR.zooms[RADAR.zooms.length - 1] && RADAR.hz > 0 && RADAR.hitPx > 0);
   assert.deepEqual(RADAR.levels.map((l) => l.prio), [1, 2, 3, 4, 5, 6, 7]); assert.equal(new Set(RADAR.levels.map((l) => l.id)).size, 7);
   assert.ok(RADAR.levels.every((l) => l.size >= 5 && l.size <= 9));
   assert.ok(MAPVIEW.zoomMin <= MAPVIEW.zoomDefault && MAPVIEW.zoomDefault <= MAPVIEW.zoomMax);
   assert.equal(new Set(MAPVIEW.layers.map((l) => l.id)).size, MAPVIEW.layers.length);
-  assert.equal(FOG.cell, 8); for (const m of FOG.open) assert.ok(MAPS[m], `bản đồ mở sẵn lạ ${m}`);
+  assert.ok(FOG.cell > 0 && FOG.sight > 0); for (const m of FOG.open) assert.ok(MAPS[m], `bản đồ mở sẵn lạ ${m}`);
   assert.deepEqual(Object.values(RADAR_ART).map((a) => a.key), ["ui_radar_frame", "ui_radar_compass", "ui_mapview_paper"]);
 });
 

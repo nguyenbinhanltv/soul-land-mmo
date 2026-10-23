@@ -46,6 +46,7 @@ export interface RadarPlace {
  * radar (pixel). Trong tầm: chiếu tỉ lệ `rPx / (rTiles·TILE)`. Ngoài tầm: kẹp vào mép, lùi `inset` pixel (mặc định `RADAR.arrowInset`).
  */
 export function radarPlace(dx: number, dy: number, mode: RadarMode, rTiles: number, rPx: number, inset = RADAR.arrowInset): RadarPlace {
+  if (rTiles <= 0) rTiles = 1e-9;
   const v = radarRotate(dx, dy, mode), len = Math.hypot(v.x, v.y);
   const tiles = len / TILE, angle = len < 1e-9 ? 0 : Math.atan2(v.y, v.x);
   if (tiles <= rTiles) { const k = rPx / (rTiles * TILE); return { x: v.x * k, y: v.y * k, outside: false, tiles, angle }; }
@@ -77,7 +78,7 @@ export function radarSortDots<T extends { prio: number }>(dots: readonly T[]): T
 }
 
 /** Chấm để hiện tên khi rê chuột / chạm: trong `hitPx` pixel của (x, y), ưu tiên cao nhất rồi gần nhất; không có thì undefined. */
-export function radarPick<T extends RadarPt & { prio: number }>(dots: readonly T[], x: number, y: number, hitPx = 6): T | undefined {
+export function radarPick<T extends RadarPt & { prio: number }>(dots: readonly T[], x: number, y: number, hitPx = RADAR.hitPx): T | undefined {
   let best: T | undefined, bd = Infinity;
   for (const d of dots) {
     const dist = Math.hypot(d.x - x, d.y - y); if (dist > hitPx) continue;

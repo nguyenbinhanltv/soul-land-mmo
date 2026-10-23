@@ -5012,6 +5012,8 @@ export const RADAR = {
   hz: 10,
   /** Mũi tên ở mép lùi vào trong viền chừng này pixel; ghi kèm khoảng cách theo ô. */
   arrowInset: 6,
+  /** Bán kính bắt chấm khi rê chuột / chạm (pixel). */
+  hitPx: 6,
   /** 7 mức ưu tiên (thấp → cao), biểu tượng 5–9 px vẽ bằng code. Bảng ở GAME_DESIGN.md mục 5.16. */
   levels: [
     { prio: 1, id: "beast",  name: "Hồn thú",                   col: "",        size: 5, blink: false, arrow: false },
