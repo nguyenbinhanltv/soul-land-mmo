@@ -4995,7 +4995,7 @@ export function offlineSplit(endMs: number, secs: number, usedDay: string, used:
   return out;
 }
 
-// ---------- Radar và bản đồ khu vực (GAME_DESIGN.md mục 5.16, theo dõi #426) ----------
+// ---------- Radar và bản đồ khu vực (GAME_DESIGN.md mục 5.17, theo dõi #426) ----------
 // Đơn vị: `r`, `far`, `sight` tính bằng ô lưới (TILE pixel thế giới); kích thước hiển thị tính bằng pixel màn hình / CSS.
 
 /** Một mức ưu tiên của chấm radar: số cao vẽ sau (đè lên); `arrow`: ngoài tầm thì có mũi tên ở mép. `col` rỗng: màu theo ngữ cảnh (niên hạn, aura loài). */
@@ -5014,7 +5014,7 @@ export const RADAR = {
   arrowInset: 6,
   /** Bán kính bắt chấm khi rê chuột / chạm (pixel). */
   hitPx: 6,
-  /** 7 mức ưu tiên (thấp → cao), biểu tượng 5–9 px vẽ bằng code. Bảng ở GAME_DESIGN.md mục 5.16. */
+  /** 7 mức ưu tiên (thấp → cao), biểu tượng 5–9 px vẽ bằng code. Bảng ở GAME_DESIGN.md mục 5.17. */
   levels: [
     { prio: 1, id: "beast",  name: "Hồn thú",                   col: "",        size: 5, blink: false, arrow: false },
     { prio: 2, id: "player", name: "Hồn sư khác",               col: "#5aa0ff", size: 6, blink: false, arrow: false },

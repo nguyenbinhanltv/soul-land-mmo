@@ -1,4 +1,4 @@
-// Kiểm thử hàm thuần radar (shared/radar.ts, hằng RADAR / MAPVIEW / FOG ở shared/data.ts, mục 5.16): không cần bật server.
+// Kiểm thử hàm thuần radar (shared/radar.ts, hằng RADAR / MAPVIEW / FOG ở shared/data.ts, mục 5.17): không cần bật server.
 // Chạy: npm run test:radar --prefix server
 import assert from "node:assert/strict";
 import { RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE } from "../../shared/data.ts";

@@ -1,4 +1,4 @@
-// Hàm thuần của radar và bản đồ khu vực (GAME_DESIGN.md mục 5.16): chiếu thế giới → radar, kẹp mũi tên vào mép tròn, xếp chấm theo
+// Hàm thuần của radar và bản đồ khu vực (GAME_DESIGN.md mục 5.17): chiếu thế giới → radar, kẹp mũi tên vào mép tròn, xếp chấm theo
 // ưu tiên. Dùng chung client (vẽ) và kiểm thử; không phụ thuộc Phaser / DOM. Số liệu ở `RADAR` (data.ts).
 import { RADAR, TILE } from "./data.ts";
 
