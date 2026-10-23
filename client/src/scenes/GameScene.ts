@@ -12,6 +12,7 @@ import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soul
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
+import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath } from "../../../shared/path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
@@ -111,6 +112,12 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
     ground: { 4: "#6a9a48", 7: "#8aa0b8", 8: "#7a88a0", 10: "#c8c0b0", 16: "#c8c0b0", 25: "#a8a090", 26: "#8a8478", 33: "#b8b0a0" },
     obj: { 12: "#ff9a3c", 19: "#e8a0b8", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#d8b040" },
   },
+  // Lõi Tinh Đấu, Đại Đấu Hồn Trường (11.5, giữ cỡ): rêu phát quang, sàn đá, rìa nước nông, lòng Hồ Sinh Mệnh; cột tinh thể, cổ thụ.
+  loi_tinh_dau: {
+    ground: { 5: "#4ab8b0", 7: "#7a7a90", 13: "#9aa2c0", 16: "#8a92b0", 25: "#8a98b8", 26: "#8a90a8", 33: "#9aa2c0", 34: "#6ab8d8", 35: "#2a5a8a" },
+    obj: { 27: "#c8d0e0", 28: "#4a9a8a", 30: "#4ab8b0", 36: "#6a7088", 38: "#a8d0ff", 39: "#8a90a8", 40: "#4a3a3a" },
+  },
+  dai_dau_hon_truong: { ground: { 16: "#c8a868" }, obj: { 12: "#ff9a3c", 37: "#c8a040", 38: "#d8b040" } },
   hai_than_dao: {
     // cỏ đảo, hoa, cát ướt tối, nước biển, bãi trại, sân đá đền, cầu tàu / đường đá, đá cuội
     ground: { 3: "#5a7a4a", 5: "#8a9a5a", 6: "#6a9a50", 8: "#a08a63", 9: "#3a6a90", 10: "#e8dcc0", 13: "#d8d0c0", 16: "#b8b0a0", 25: "#8a7a60", 26: "#9a9280" },
@@ -239,6 +246,7 @@ export class GameScene extends Phaser.Scene {
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
   bagKey = "";
+  charStats: StatsMsg | null = null; // tin riêng "stats" gần nhất (bảng nhân vật)
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
@@ -612,13 +620,14 @@ export class GameScene extends Phaser.Scene {
       const f = document.activeElement;
       if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
+      if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2)
       if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
-      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
+      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); toggleChar(false); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
@@ -642,6 +651,7 @@ export class GameScene extends Phaser.Scene {
     chat.addEventListener("blur", () => hud.chatFocus(false), on);
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
+    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); toggleChar(); }, on);
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
@@ -1019,6 +1029,9 @@ export class GameScene extends Phaser.Scene {
     // Bạn bè và chặn (#195): bảng bạn bè và lời "đã thêm bạn", chỉ gửi riêng cho mình.
     hud.bindFriends((op, name) => this.room.send("friend", { op, ...(name ? { name } : {}) }), (name) => this.partySend("invite", name));
     this.room.onMessage("friends", (m: FriendsMsg) => { if (m && Array.isArray(m.list) && Array.isArray(m.blocks)) hud.setFriends(m); });
+    // Bảng nhân vật (UI-2): chỉ số tổng hợp do server tính (tin riêng "stats"), client chỉ hiển thị.
+    this.room.onMessage("stats", (m: StatsMsg) => { if (m && m.total && m.base) { this.charStats = m; this.renderChar(); } });
+    onCharOpen(() => this.askStats());
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
@@ -2322,12 +2335,19 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */
+  askStats() { this.room.send("stats", { rowId: charViewRow() }); }
+  renderChar() {
+    if (!this.owned || !isCharOpen()) return;
+    renderChar(this.owned, this.bag?.items ?? [], this.charStats, { portrait: (vohon) => this.portrait(vohon), ask: (rowId) => this.room.send("stats", { rowId }) });
+  }
   /**
    * Bảng đội hình kèm hồn cốt (bước 4.2), hồn hạch (bước 5.2) và mảnh võ hồn (bước 3.4): số mảnh, hồn cốt và hồn hạch (đang gắn /
    * trong túi) từ tin riêng "bag",
    * võ hồn từ tin riêng "vohons".
    */
   renderRoster() {
+    if (isCharOpen()) { this.askStats(); this.renderChar(); } // vohons / bag / cộng minh đổi: chỉ số và ô trên bảng nhân vật cũng đổi
     if (!this.owned) return;
     const shards = new Map<string, number>();
     for (const it of this.bag?.items ?? []) {
@@ -2401,6 +2421,10 @@ export class GameScene extends Phaser.Scene {
       refresh: () => this.room.send("vohons"),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
+      // UI-1: gắn nhanh cho võ hồn đang ra trận (cùng lệnh với bảng đội hình; server kiểm tra vị trí, giao chiến, túi đầy)
+      active: () => this.owned?.active ?? null,
+      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equip", { itemId, vohonId, slot }); },
+      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId, slot }); },
     });
   }
 
@@ -2563,7 +2587,8 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastName(tb.rank, tb.species), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
+        beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
     let dr: any = null, dd = PICKUP_RANGE;

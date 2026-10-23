@@ -595,7 +595,9 @@ export class AutoHunter {
       if (l.ok) { this.path = []; this.goal = null; to = { x: b.x, y: b.y }; }
       else {
         this.pathT += dt;
-        if (!this.goal || Math.hypot(this.goal.x - b.x, this.goal.y - b.y) > 2 * TILE) { this.goal = { x: b.x, y: b.y }; this.path = []; }
+        // Đích đổi khi mục tiêu dời quá 2 ô, hoặc khi đã đi hết đường tới đích cũ mà mục tiêu chưa trong tầm (nó dời ít hơn 2 ô, #325).
+        if (!this.goal || Math.hypot(this.goal.x - b.x, this.goal.y - b.y) > 2 * TILE
+          || (!this.path.length && Math.hypot(this.goal.x - p.x, this.goal.y - p.y) < 2 * TILE)) { this.goal = { x: b.x, y: b.y }; this.path = []; }
         if (!this.path.length && this.pathT >= AUTO_MOVE.repath) this.plan(p);
         to = this.path[0] ?? null;
       }
@@ -605,6 +607,9 @@ export class AutoHunter {
       to = this.path[0] ?? null;
     }
     while (to && this.path.length && Math.hypot(to.x - p.x, to.y - p.y) < Math.max(3, p.spd * dt)) { this.path.shift(); to = this.path[0] ?? null; }
+    // Mục tiêu sát bên (trong 2 ô) mà chưa trong tầm và không còn bước nào (điểm cuối của đường chỉ còn trong một bước nên đã bỏ, hoặc
+    // đang chờ tìm lại đường): đi thẳng tới (bước này quay mặt), không đứng yên ngoài tầm mãi; vướng thật thì checkStuck bỏ (#325).
+    if (!to && b && Math.hypot(b.x - p.x, b.y - p.y) < 2 * TILE) to = { x: b.x, y: b.y };
     if (!to) return room.applyInput(d, 0, 0, false);
     this.move(p, d, to, dt, !b && this.path.length <= 1, true);
   }
@@ -616,9 +621,12 @@ export class AutoHunter {
   move(p: PlayerState, d: PData, to: Pt, dt: number, last: boolean, wary = false) {
     const room = this.room, dx = to.x - p.x, dy = to.y - p.y, dd = Math.hypot(dx, dy);
     if (dd < 1) return room.applyInput(d, 0, 0, false);
-    const look = Math.max(10, p.spd * 0.3);
-    if (wary && this.inDanger(p.x + (dx / dd) * look, p.y + (dy / dd) * look)) return room.applyInput(d, 0, 0, false);
     const k = last ? Math.max(MOVE_DEAD * 1.5, Math.min(1, dd / Math.max(1, 2 * p.spd * dt))) : 1;
+    // Xét cả điểm nhìn trước lẫn đúng chỗ đứng sau bước này (k × tốc độ × dt, như bước di chuyển của phòng): đi xiên sát mép vùng tròn
+    // thì điểm nhìn trước ở ngoài mà bước kế tiếp đã lấn vào dây cung (#328).
+    const look = Math.max(10, p.spd * 0.3), step = Math.min(dd, k * p.spd * dt);
+    if (wary && (this.inDanger(p.x + (dx / dd) * look, p.y + (dy / dd) * look) || this.inDanger(p.x + (dx / dd) * step, p.y + (dy / dd) * step)))
+      return room.applyInput(d, 0, 0, false);
     room.applyInput(d, (k * dx) / dd, (k * dy) / dd, false);
   }
 
@@ -632,6 +640,10 @@ export class AutoHunter {
     const { grid, nav } = navOf(this.room.map), M = AUTO_MOVE.path;
     const far = Math.max(Math.abs(this.goal.x - p.x), Math.abs(this.goal.y - p.y)) > (M.maxTiles - 2) * TILE;
     this.path = far ? findLongPath(grid, nav, p, this.goal, AUTO_MOVE.nav.look, M) : findPath(grid, p, this.goal, M);
+    // Đích cùng ô với mình mà đường thẳng vướng (ví dụ hồn thú đứng sau lưng, sát ô chặn): A* không có ô nào để đi nên trả đường rỗng,
+    // không phải không tới được; đi thẳng tới (bước này quay mặt), vướng thật thì checkStuck bỏ sau AUTO_MOVE.stuck giây (#324).
+    if (!this.path.length && Math.floor(p.x / TILE) === Math.floor(this.goal.x / TILE) && Math.floor(p.y / TILE) === Math.floor(this.goal.y / TILE))
+      this.path = [{ x: this.goal.x, y: this.goal.y }];
     // Không tới gần được; hoặc không còn bước nào mà chưa tới đích (đích sát ô chặn / vùng an toàn: đã đứng ở ô tới được gần nhất, ví dụ
     // đồ rơi ngoài tầm nhặt), không thì đứng yên mãi mà không tính là kẹt.
     const end = this.path.at(-1) ?? p;

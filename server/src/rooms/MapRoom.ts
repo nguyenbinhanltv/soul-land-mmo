@@ -47,7 +47,7 @@ import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, invi
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
-import * as friends from "../friends.ts";
+import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
 import { arenaLive, arenaWatchMax, arenaWatchUsed, arenaWatchingAny, setTestWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
@@ -104,7 +104,7 @@ export interface PData {
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
-  askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
+  statsRow: unknown; askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
   buffs: Map<BuffId, { t: number; v: number }>; // hiệu ứng có lợi của hồn sư (hồn kỹ phụ trợ): giây còn lại, độ lớn; đổi võ hồn vẫn còn
@@ -775,7 +775,7 @@ export class MapRoom extends Room<MapState> {
     }
   };
   /** Bạn bè (presence FRIEND_TOPIC, #195): gửi lại bảng bạn bè và thông báo cho người của phòng này có trong `to`. */
-  friendSub = (n: friends.FriendNote) => this.friendNote(n);
+  friendSub = (n: FriendNote) => this.friendNote(n);
   /** Tông môn của phiên `c` cho chat tông (#198): hồn sư trong phòng đọc `pdata` (đổi tông có hiệu lực ngay); người xem trận không có
    *  pdata (#278) thì theo tông lúc vào phòng (client.auth). */
   chatTong(c: Client): string | null {
@@ -972,7 +972,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.subscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
     this.presence.subscribe(CHAT_TOPIC, this.chatSub);
-    this.presence.subscribe(friends.FRIEND_TOPIC, this.friendSub);
+    this.presence.subscribe(FRIEND_TOPIC, this.friendSub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
     // con mới; còn sống thì về với thời gian còn lại), không thì sinh con mới với thời gian còn lại của khung.
     const now = Date.now(), active = kingSlotNow(mapId, now);
@@ -1018,6 +1018,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("lock", (c, m: { id: unknown }) => this.lockItem(c.sessionId, m?.id)); // khoá / mở khoá một ô (#216)
     this.onMessage("autosell", (c, m: { cfg: unknown }) => this.setAutoSell(c.sessionId, m?.cfg)); // bộ lọc tự bán (#216)
     this.onMessage("vohons", (c) => this.ask(c.sessionId, "vohons", () => this.sendVohons(c)));
+    this.onMessage("stats", (c, m: { rowId?: unknown }) => { const d = this.pdata.get(c.sessionId); if (d) d.statsRow = m?.rowId; this.ask(c.sessionId, "stats", () => this.sendStats(c.sessionId, this.pdata.get(c.sessionId)?.statsRow)); }); // lần xin dồn trong ASK_CD: gửi võ hồn xin gần nhất // bảng nhân vật (UI-2): chỉ số tổng hợp do server tính
     this.onMessage("boss", (c) => { // #118: client xin tin boss lúc vào phòng (sau khi đã nghe tin); tối đa 1 lần / giây, xin dồn thì bỏ
       const d = this.pdata.get(c.sessionId), now = Date.now();
       if (!d || now - d.bossAskAt < 1000) return;
@@ -1086,7 +1087,7 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false, bossAskAt: 0, askAt: new Map(), askQueued: new Set(),
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false, bossAskAt: 0, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "",
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
@@ -1192,7 +1193,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.unsubscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
     this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
-    this.presence.unsubscribe(friends.FRIEND_TOPIC, this.friendSub);
+    this.presence.unsubscribe(FRIEND_TOPIC, this.friendSub);
     // Redis lỗi không được bỏ qua lần ghi DB cuối của người còn trong phòng: lỗi presence chỉ ghi log.
     if (this.state.channel) await releaseChannel(this.state.mapId, this.roomId, this.state.channel).catch((e) => console.error("Không trả kênh trong presence", e));
     for (const [id, d] of this.pdata) { const offline = party.goOffline(d.accountId, id, Date.now()); this.partyPublish(offline); this.friendAfter(offline, d.accountId, id); }
@@ -1324,6 +1325,22 @@ export class MapRoom extends Room<MapState> {
     this.log(id, "Dữ liệu nhân vật đã ở bản đồ khác: hãy vào lại game.", "#ff8a8a");
     this.clients.getById(id)?.leave(4003);
     return false;
+  }
+
+  /**
+   * Tin riêng "stats" (bảng nhân vật, UI-2): chỉ số tổng hợp của võ hồn `rowId` của mình (thiếu / lạ: võ hồn ra trận), đúng công thức
+   * server dùng khi đánh (calcStats với hồn cốt, hồn hạch, cộng minh, tiên thảo gắn trên võ hồn đó; võ hồn ra trận đang hóa Chân Thân
+   * thì sinh lực nhân thêm như recalc). `base`: chỉ số khi không gắn hồn cốt / hồn hạch, để client hiện phần cộng thêm. Client chỉ hiển thị.
+   */
+  sendStats(id: string, rowId: unknown) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    const v = d.owned.find((x) => x.rowId === rowId) ?? d.ch;
+    if (v === d.ch) this.syncCh(id);
+    const vh = Math.max(0, vohonIndex(v.vohon)), rings = v.rings.map(tierOfYears), herbs = herbBonus(v.herbs);
+    const total = calcStats(vh, v.level, rings, v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId), d.res.bonus, herbs);
+    const base = calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus, herbs);
+    if (d.ava?.row === v.rowId) total.maxHp = Math.round(total.maxHp * (1 + (d.ava.stats.hp ?? 0))); // như recalc
+    c.send("stats", { rowId: v.rowId, total, base });
   }
 
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
@@ -3826,7 +3843,8 @@ export class MapRoom extends Room<MapState> {
       // AutoHunter.claimed: tự săn của mình không nhắm theo).
       const bid = typeof o.bid === "string" ? o.bid : "", bd = bid ? this.bdata.get(bid) : undefined, skipTo = a?.skip.get(bid);
       const claim: string[] = []; if (bd) for (const [sid, x] of this.pdata) if (x.auto && x.auto !== a && x.auto.target === bid && !a?.ally(sid)) claim.push(sid);
-      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
+      // `secs`: giây đã treo lượt này theo nhịp server (cùng đồng hồ với nợ nhịp; bot đo cửa sổ trần tốc độ bằng nó, #328).
+      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, secs: a?.secs ?? null, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
         drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         // #218: mục tiêu là boss, số lần bắt đầu né, chỗ né đang đi tới, đang lùi vì ít máu, hệ võ hồn cơ chế đang cần.
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
@@ -6694,10 +6712,10 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Phát các thông báo bạn bè lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại bảng bạn bè và dòng log. */
-  friendPublish(notes: friends.FriendNote[]) { for (const n of notes) if (n.to.length) this.presence.publish(friends.FRIEND_TOPIC, n); }
+  friendPublish(notes: FriendNote[]) { for (const n of notes) if (n.to.length) this.presence.publish(FRIEND_TOPIC, n); }
 
   /** Thông báo bạn bè trên presence: người của phòng này có trong `to` nhận dòng log (nếu có) và bảng bạn bè mới. */
-  friendNote(n: friends.FriendNote) {
+  friendNote(n: FriendNote) {
     if (!Array.isArray(n?.to)) return;
     for (const [id, d] of this.pdata) {
       if (!n.to.includes(d.accountId)) continue;
@@ -6733,7 +6751,7 @@ export class MapRoom extends Room<MapState> {
     const name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40), acc = d.accountId;
     if (!name) return warn("Gõ tên hồn sư.");
     const rl = friendCheck(acc, Date.now()); if (rl) return warn(rl.error);
-    let r: friends.FriendResult;
+    let r: FriendResult;
     if (op === "remove") r = friends.remove(acc, name);
     else if (op === "unblock") r = friends.unblock(acc, name);
     else {

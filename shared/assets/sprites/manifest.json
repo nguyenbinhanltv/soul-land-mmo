@@ -1106,6 +1106,86 @@
       "iso": true
     },
     {
+      "key": "thu_dien_thu",
+      "iso": true
+    },
+    {
+      "key": "thu_doc_cham_phong",
+      "iso": true
+    },
+    {
+      "key": "thu_hac_boi_da_tru",
+      "iso": true
+    },
+    {
+      "key": "thu_hoi_vu_tuoc",
+      "iso": true
+    },
+    {
+      "key": "thu_kim_linh_ung",
+      "iso": true
+    },
+    {
+      "key": "thu_liet_trao_hung",
+      "iso": true
+    },
+    {
+      "key": "thu_loi_van_hau",
+      "iso": true
+    },
+    {
+      "key": "thu_man_da_la_xa",
+      "iso": true
+    },
+    {
+      "key": "thu_nhan_dien_ma_chu_non",
+      "iso": true
+    },
+    {
+      "key": "thu_nhu_cot_tho_hoang",
+      "iso": true
+    },
+    {
+      "key": "thu_phong_lang",
+      "iso": true
+    },
+    {
+      "key": "thu_phong_lang_con",
+      "iso": true
+    },
+    {
+      "key": "thu_quy_dang",
+      "iso": true
+    },
+    {
+      "key": "thu_quy_dang_non",
+      "iso": true
+    },
+    {
+      "key": "thu_quy_ho",
+      "iso": true
+    },
+    {
+      "key": "thu_thanh_lan_ngac",
+      "iso": true
+    },
+    {
+      "key": "thu_thanh_lan_xa",
+      "iso": true
+    },
+    {
+      "key": "thu_thiet_giap_te_nguu",
+      "iso": true
+    },
+    {
+      "key": "thu_thiet_giap_xuyen_son_giap",
+      "iso": true
+    },
+    {
+      "key": "thu_tu_van_bao",
+      "iso": true
+    },
+    {
       "key": "ui_an_trien_lon",
       "iso": true
     },
@@ -1120,7 +1200,7 @@
     {
       "key": "ui_cuon_giay",
       "iso": true,
-      "nine": 20
+      "nine": 14
     },
     {
       "key": "ui_goc_duoi_phai",
@@ -1141,7 +1221,7 @@
     {
       "key": "ui_hop_thoai",
       "iso": true,
-      "nine": 18
+      "nine": 14
     },
     {
       "key": "ui_nut_nhan",
@@ -1154,9 +1234,24 @@
       "nine": 6
     },
     {
+      "key": "ui_nut_tat",
+      "iso": true,
+      "nine": 6
+    },
+    {
       "key": "ui_nut_thuong",
       "iso": true,
       "nine": 6
+    },
+    {
+      "key": "ui_o",
+      "iso": true,
+      "nine": 4
+    },
+    {
+      "key": "ui_o_chon",
+      "iso": true,
+      "nine": 4
     },
     {
       "key": "ui_thanh_hon_luc",

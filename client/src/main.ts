@@ -10,6 +10,7 @@ import { ringColor } from "./hud.ts";
 import { paintHonsuPreview } from "./honsuArt.ts";
 import { MAX_LIGHTS } from "./lighting.ts";
 import { loadUiArt } from "./uiArt.ts";
+import { initTips } from "./tooltip.ts";
 import { vohonCard } from "./cards.ts";
 import { fontTestScreen } from "./fontTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
@@ -317,6 +318,7 @@ function play(room: Room, roomMap: string, watch = false) {
 // Có phiên cũ -> thử tải nhân vật luôn. Trước đó đọc manifest cho ảnh giao diện (10.8; lỗi thì giao diện vẽ bằng CSS như cũ).
 // `?thu=font`: trang thử font tiếng Việt và bộ giao diện thủy mặc / thẻ võ hồn (không cần đăng nhập).
 (async () => {
+  initTips(); // chú thích dùng chung (UI-0): ủy quyền `title` của mọi phần tử HUD / bảng
   await loadUiArt();
   if (new URLSearchParams(location.search).get("thu") === "font") return fontTestScreen(card, overlay);
   if (!token) return loginScreen();
