@@ -53,6 +53,7 @@
 //                          giữa như biểu tượng (renderIcon; phóng tối đa ICON_MAX_UP = 1,5 để các lưới / bậc đồng cỡ, vật nhỏ
 //                          trong lưới không thành chấm), thay vì đặt chân xuống đáy như sprite. Ảnh nền trong suốt thật
 //                          (ChatGPT; điểm alpha ≥ 128 là vật, alpha thấp là nhiễu) tự nhận, không cần --key.
+//   --key #ffffff          nền TRẮNG đặc (không alpha): điểm gần trắng (--white-min 238) → #FF00FF rồi nhập như nền magenta.
 //   --frame                (item, kèm --icon) vật là khung viền phủ kín ô (khung bậc trang bị): hộp bao vừa khít cả khung đích
 //                          bằng cách bớt (hoặc nhân) các cột / hàng chính giữa (lòng khung trong suốt, cạnh thẳng) nên viền và
 //                          góc giữ nguyên từng điểm, không lấy mẫu lại; không chừa lề, không thêm viền ngoài. Khung gồm viền 2
@@ -112,9 +113,20 @@ const maxDiff = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]),
 const OUT_RGB = hex(OUTLINE);
 
 // ---------- 1. Logo ----------
+/**
+ * Nền TRẮNG (--key #ffffff; ảnh ChatGPT / Gemini vẽ nền trắng đặc, không alpha, không magenta): điểm gần trắng (kênh nhỏ nhất ≥ --white-min 238 và
+ * ba kênh lệch nhau ≤ 14) thành #FF00FF trước khi xóa nền. Vật có viền #1a1020 nên không ăn vào vật; vùng trắng kín trong vật (lỗ vòng, lỗ nhẫn) cũng được xóa.
+ */
+const isWhiteKey = () => !!keyOpt && hex(keyOpt).every((v) => v >= 240);
+function whiteToKey(img) {
+  if (!isWhiteKey()) return img;
+  const T = +opt("--white-min", "238");
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const p = img.get(x, y), mn = Math.min(p[0], p[1], p[2]); if (mn >= T && Math.max(p[0], p[1], p[2]) - mn <= 14) img.set(x, y, [255, 0, 255, 255]); }
+  return img;
+}
 /** Màu nền: màu nhiều nhất trong 4 ô 8×8 ở góc ảnh. */
 function keyColor(img) {
-  if (keyOpt) return hex(keyOpt);
+  if (keyOpt) return isWhiteKey() ? [255, 0, 255] : hex(keyOpt);
   const votes = new Map();
   for (const [x0, y0] of [[0, 0], [img.w - 8, 0], [0, img.h - 8], [img.w - 8, img.h - 8]])
     for (let y = y0; y < y0 + 8; y++) for (let x = x0; x < x0 + 8; x++) { const p = img.get(x, y), k = `${p[0] >> 3},${p[1] >> 3},${p[2] >> 3}`; votes.set(k, [...(votes.get(k) ?? []), p]); }
@@ -918,7 +930,7 @@ function contactSheet(imgs, scale) {
 }
 
 // ---------- Chạy ----------
-const raw = decodePng(readFileSync(file));
+const raw = whiteToKey(decodePng(readFileSync(file)));
 const K = keyColor(raw);
 const logo = removeLogo(raw, K);
 const clean = removeBackground(raw, K);
