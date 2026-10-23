@@ -35,8 +35,7 @@ echo "$CHK" | "$PY" -c "
 import json,sys
 c=json.load(sys.stdin)
 bad=[x['name']+': '+x['bucket'] for x in c if x['bucket'] not in ('pass','skipping')]
-print('
-'.join(bad))
+print(*bad, sep=chr(10))
 sys.exit(0 if c and not bad else 1)" || { echo "#$P NOT-MERGED"; exit 0; }
 
 # 3. Merge đúng bản đã review.
