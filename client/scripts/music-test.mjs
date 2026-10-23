@@ -2,8 +2,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  MUSIC_BATTLE_HOLD_MS, MUSIC_BATTLE_RANGE, MUSIC_CACHE_TRACKS, MUSIC_DUCK_GAIN, MUSIC_FADE_S, MUSIC_MANIFEST_URL, MUSIC_RETRY_MAX, MUSIC_RETRY_MS,
-  MusicPlayer, bossEngaged, musicLoopSeconds, musicPlayerFor, pickMusicFormat,
+  MUSIC_BATTLE_HOLD_MS, MUSIC_BATTLE_RANGE, MUSIC_BIG_CRIT_FRACTION, MUSIC_CACHE_TRACKS, MUSIC_COMBAT_BASE_GAIN, MUSIC_COMBAT_FADE_S, MUSIC_COMBAT_HOLD_MS,
+  MUSIC_COMBAT_RANGE, MUSIC_DUCK_GAIN, MUSIC_EVENT_COOLDOWN_MS, MUSIC_EVENT_DUCK, MUSIC_FADE_S, MUSIC_MANIFEST_URL, MUSIC_RETRY_MAX, MUSIC_RETRY_MS,
+  MusicPlayer, bossEngaged, bossPhase, combatHit, musicLoopSeconds, musicPlayerFor, pickMusicFormat,
 } from "../src/audio/music.ts";
 import { AudioManager } from "../src/audio/AudioManager.ts";
 import { DEFAULT_AUDIO_SETTINGS } from "../src/audio/settings.ts";
@@ -13,6 +14,7 @@ const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
 const enc = (text) => new TextEncoder().encode(text).buffer;
 const mapTrack = (mapId) => manifest.tracks.find((t) => t.kind === "map" && t.maps.includes(mapId));
 const battleTrack = manifest.tracks.find((t) => t.kind === "battle");
+const stemTrack = (of) => manifest.tracks.find((t) => t.kind === "stem" && t.of === of);
 const jingleTrack = (event) => manifest.tracks.find((t) => t.kind === "jingle" && t.event === event);
 
 // Chọn định dạng: Safari / iOS dùng m4a, trình duyệt khác ogg nếu phát được Vorbis.
@@ -67,7 +69,7 @@ function makeContext() {
         buffer: null, loop: false, loopStart: -1, loopEnd: -1, started: null, stopped: null, connections: [], listeners: {},
         connect(n) { this.connections.push(n); }, disconnect() {},
         addEventListener(k, f) { this.listeners[k] = f; },
-        start(t) { this.started = t; }, stop(t) { this.stopped = t ?? ctx.currentTime; },
+        start(t, offset) { this.started = t; this.offset = offset; }, stop(t) { this.stopped = t ?? ctx.currentTime; },
       };
       ctx.sources.push(s);
       return s;
@@ -81,14 +83,19 @@ function makeContext() {
   return ctx;
 }
 
+/** Nguồn của bài chính (không tính lớp giao chiến) theo thứ tự tạo; lớp giao chiến nhận biết qua mã bài trong buffer. */
+const isStemSource = (s) => /(_chien|_nang).(ogg|m4a)/.test(s.buffer?.tag ?? "");
+const mains = (ctx) => ctx.sources.filter((s) => !isStemSource(s) && s.loop);
+const stemLoads = [];
 function makeLoader({ badOgg = false, pad = 0, fail = () => false } = {}) {
   const loads = [];
   const load = async (url) => {
-    loads.push(url);
+    if (!/(_chien|_nang).(ogg|m4a)/.test(url)) loads.push(url);
     if (fail(url)) throw new Error(`mạng lỗi ${url}`); // `fail`: mạng chập với url này
     if (url === MUSIC_MANIFEST_URL) return manifestBytes.slice().buffer;
     const track = manifest.tracks.find((t) => Object.values(t.files).some((f) => f.path === url));
     if (!track) throw new Error(`404 ${url}`);
+    if (track.kind === "stem") stemLoads.push(url);
     if (badOgg && url.endsWith(".ogg")) return enc("hỏng");
     return enc(`${url}|${(track.loop ? musicLoopSeconds(track.seconds) : track.seconds) + pad}`); // `pad`: bộ giải mã đệm thêm ở cuối
   };
@@ -118,7 +125,7 @@ const now = () => clock;
   const thth = mapTrack("thanh_hon_thon");
   assert.deepEqual(loads, [MUSIC_MANIFEST_URL, thth.files.ogg.path]);
   assert.equal(music.status().playing, thth.id);
-  const s1 = ctx.sources[0], g1 = s1.connections[0];
+  const s1 = mains(ctx)[0], g1 = s1.connections[0].connections[0];
   assert.equal(s1.loop, true, "bài nền lặp");
   assert.equal(s1.loopStart, 0);
   assert.equal(s1.loopEnd, 0, "điểm lặp là cả file (loopEnd 0 = hết buffer), không cắt theo `seconds` đã làm tròn");
@@ -130,7 +137,7 @@ const now = () => clock;
   ctx.currentTime = 20;
   music.setMap("tinh_dau_ngoai_vi");
   await music.whenIdle();
-  const ngoai = mapTrack("tinh_dau_ngoai_vi"), s2 = ctx.sources[1], g2 = s2.connections[0];
+  const ngoai = mapTrack("tinh_dau_ngoai_vi"), s2 = mains(ctx)[1], g2 = s2.connections[0].connections[0];
   assert.equal(loads.at(-1), ngoai.files.ogg.path);
   assert.equal(loads.filter((u) => u === MUSIC_MANIFEST_URL).length, 1, "manifest tải một lần");
   assert.deepEqual(lastRamp(g1.gain), ["ramp", 0, 20 + MUSIC_FADE_S], "bài cũ mờ ra");
@@ -202,11 +209,11 @@ const now = () => clock;
   ctx.state = "running";
 
   // Tắt tiếng: mờ bài đang phát; đổi bản đồ lúc im thì không tải; bật lại thì phát bài bản đồ hiện tại.
-  const before = loads.length, cur = ctx.sources.filter((x) => x.loop).at(-1);
+  const before = loads.length, cur = mains(ctx).at(-1);
   music.setVolume(0);
   await music.whenIdle();
   assert.equal(music.status().playing, null);
-  assert.deepEqual(lastRamp(cur.connections[0].gain).slice(0, 2), ["ramp", 0], "tắt tiếng: bài đang phát mờ ra");
+  assert.deepEqual(lastRamp(cur.connections[0].connections[0].gain).slice(0, 2), ["ramp", 0], "tắt tiếng: bài đang phát mờ ra");
   music.setMap("nac_dinh_thanh");
   await music.whenIdle();
   assert.equal(loads.length, before, "im thì không tải bài mới");
@@ -235,6 +242,141 @@ const now = () => clock;
   assert.equal(music.status().map, null);
 }
 
+// Nhạc động (G5, #396): lớp giao chiến cùng nhịp, chuyển dần 1,5 s, ra giao chiến 8 s thì về; boss pha 2 lên một nấc; stinger.
+{
+  clock = 5000;
+  const ctx = makeContext(), { loads, load } = makeLoader();
+  const music = new MusicPlayer(ctx, { load, format: "ogg", now });
+  music.setVolume(1);
+  music.setMap("tinh_dau_noi_dia");
+  await music.whenIdle();
+  const base = manifest.tracks.find((t) => t.kind === "map" && t.maps.includes("tinh_dau_noi_dia")), stem = stemTrack(base.id);
+  assert.ok(stem, "bản đồ săn có lớp giao chiến");
+  assert.equal(stem.seconds, base.seconds, "lớp giao chiến cùng độ dài vòng với bài nền");
+  assert.ok(stemLoads.includes(stem.files.ogg.path), "lớp giao chiến tải nền sau khi bài chính phát");
+  assert.equal(music.status().stem, stem.id);
+  const main = mains(ctx)[0], stemSrc = ctx.sources.find(isStemSource);
+  assert.equal(stemSrc.started, ctx.currentTime, "vào ngay khi gắn");
+  assert.equal(stemSrc.offset, 0, "gắn cùng lúc với bài chính nên đúng pha 0");
+  const baseLevel = main.connections[0], stemLevel = stemSrc.connections[0];
+  assert.equal(baseLevel.gain.value, 1);
+  assert.equal(stemLevel.gain.value, 0, "chưa giao chiến: lớp giao chiến im");
+  assert.deepEqual(stemLevel.connections, [baseLevel.connections[0]], "cùng đường mờ vào / ra với bài chính");
+
+  // Vào giao chiến: chuyển dần MUSIC_COMBAT_FADE_S; bài chính hạ nhẹ.
+  ctx.currentTime = 30;
+  music.combatPulse();
+  assert.equal(music.status().combat, true);
+  assert.deepEqual(lastRamp(stemLevel.gain), ["ramp", 1, 30 + MUSIC_COMBAT_FADE_S]);
+  assert.deepEqual(lastRamp(baseLevel.gain), ["ramp", MUSIC_COMBAT_BASE_GAIN, 30 + MUSIC_COMBAT_FADE_S]);
+  // Còn đánh thì giữ; hết MUSIC_COMBAT_HOLD_MS sau lần cuối mới về.
+  clock += MUSIC_COMBAT_HOLD_MS - 1;
+  music.combatPulse();
+  clock += MUSIC_COMBAT_HOLD_MS - 1;
+  music.tick();
+  assert.equal(music.status().combat, true, "chưa đủ 8 s kể từ lần đánh cuối");
+  ctx.currentTime = 50;
+  clock += 2;
+  music.tick();
+  assert.equal(music.status().combat, false);
+  assert.deepEqual(lastRamp(stemLevel.gain), ["ramp", 0, 50 + MUSIC_COMBAT_FADE_S]);
+  assert.deepEqual(lastRamp(baseLevel.gain), ["ramp", 1, 50 + MUSIC_COMBAT_FADE_S]);
+
+  // Lớp giao chiến tới muộn thì vào đúng pha vòng lặp; đang giao chiến lúc vào thì lên dần luôn.
+  const ctx2 = makeContext(), l2 = makeLoader();
+  const m2 = new MusicPlayer(ctx2, { load: l2.load, format: "ogg", now });
+  m2.setVolume(1);
+  ctx2.currentTime = 100;
+  m2.setMap("hai_than_dao");
+  m2.combatPulse();
+  await m2.whenIdle();
+  const st2 = ctx2.sources.find(isStemSource), loop2 = musicLoopSeconds(mapTrack("hai_than_dao").seconds);
+  assert.equal(m2.status().stem, stemTrack(mapTrack("hai_than_dao").id).id);
+  assert.ok(Math.abs(st2.offset - ((st2.started - 100) % loop2)) < 1e-9, "pha vòng lặp khớp bài chính");
+  assert.equal(m2.status().combat, true);
+  assert.deepEqual(lastRamp(st2.connections[0].gain)?.slice(0, 2), ["ramp", 1], "đang đánh lúc lớp tới: lên dần");
+
+  // Bản đồ thành không có lớp giao chiến: không lỗi, không gắn gì.
+  const ctx3 = makeContext(), l3 = makeLoader();
+  const m3 = new MusicPlayer(ctx3, { load: l3.load, format: "ogg", now });
+  m3.setVolume(1);
+  m3.setMap("nac_dinh_thanh");
+  m3.combatPulse();
+  await m3.whenIdle();
+  assert.equal(m3.status().stem, null);
+  assert.equal(ctx3.sources.filter(isStemSource).length, 0);
+
+  // Đổi bản đồ: hết giao chiến ngay.
+  m2.setMap("loi_tinh_dau");
+  assert.equal(m2.status().combat, false);
+
+  // Boss: bài giao chiến boss + lớp nâng cấp chỉ lên khi pha ≥ 2.
+  const ctx4 = makeContext(), l4 = makeLoader();
+  const m4 = new MusicPlayer(ctx4, { load: l4.load, format: "ogg", now });
+  m4.setVolume(1);
+  m4.setMap("loi_tinh_dau");
+  m4.setBattle(true);
+  m4.setBossPhase(1);
+  await m4.whenIdle();
+  assert.equal(m4.status().playing, battleTrack.id);
+  const boost = stemTrack(battleTrack.id);
+  assert.equal(m4.status().stem, boost.id);
+  const bs = ctx4.sources.find(isStemSource), bLevel = bs.connections[0];
+  assert.equal(bLevel.gain.value, 0, "pha 1: chưa nâng");
+  ctx4.currentTime = 200;
+  m4.setBossPhase(2);
+  assert.deepEqual(lastRamp(bLevel.gain), ["ramp", 1, 200 + MUSIC_COMBAT_FADE_S], "pha 2 (nổi giận): lên một nấc");
+  m4.setBossPhase(0);
+  assert.deepEqual(lastRamp(bLevel.gain), ["ramp", 0, 200 + MUSIC_COMBAT_FADE_S]);
+
+  // Stinger: ưu tiên, độ hạ riêng, hạn chế dội liên tục (chí mạng lớn).
+  const ctx5 = makeContext(), l5 = makeLoader();
+  const m5 = new MusicPlayer(ctx5, { load: l5.load, format: "ogg", now });
+  const duck5 = ctx5.gains[1];
+  m5.setVolume(1);
+  m5.setMap("tinh_dau_ngoai_vi");
+  await m5.whenIdle();
+  clock = 100_000;
+  m5.jingle("crit_big");
+  await m5.whenIdle();
+  assert.equal(m5.status().jingle, "crit_big");
+  assert.ok(duck5.gain.events.some((e) => e[0] === "ramp" && e[1] === MUSIC_EVENT_DUCK.crit_big), "stinger chí mạng hạ nhẹ hơn khúc thường");
+  ctx5.sources.at(-1).listeners.ended();
+  clock += MUSIC_EVENT_COOLDOWN_MS.crit_big - 1;
+  const n5 = ctx5.sources.length;
+  m5.jingle("crit_big");
+  await m5.whenIdle();
+  assert.equal(ctx5.sources.length, n5, "trong thời gian chờ: bỏ");
+  clock += 2;
+  m5.jingle("crit_big");
+  await m5.whenIdle();
+  assert.equal(ctx5.sources.length, n5 + 1, "hết thời gian chờ: phát lại");
+  ctx5.sources.at(-1).listeners.ended();
+  m5.jingle("boss_down");
+  await m5.whenIdle();
+  assert.equal(m5.status().jingle, "boss_down");
+  m5.jingle("crit_big");
+  await m5.whenIdle();
+  assert.equal(m5.status().jingle, "boss_down", "chí mạng không cắt hạ boss");
+  assert.ok(jingleTrack("crit_big") && jingleTrack("boss_down") && jingleTrack("level_up"), "manifest có đủ stinger");
+}
+
+// Đánh nhau gần mình (nhạc động) và chí mạng lớn.
+{
+  const meHp = { x: 0, y: 0, maxHp: 1000 };
+  assert.deepEqual(combatHit({ x: 50, y: 0, v: 10 }, meHp), { combat: true, bigCrit: false });
+  assert.deepEqual(combatHit({ x: 50, y: 0, v: 10, crit: true }, meHp), { combat: true, bigCrit: false }, "chí mạng nhỏ không có stinger");
+  assert.equal(combatHit({ x: 50, y: 0, v: 1000 * MUSIC_BIG_CRIT_FRACTION, crit: true }, meHp).bigCrit, true);
+  assert.equal(combatHit({ x: 50, y: 0, v: 5000 }, meHp).bigCrit, false, "đòn thường dù to cũng không phải chí mạng");
+  assert.equal(combatHit({ x: MUSIC_COMBAT_RANGE + 1, y: 0, v: 99 }, meHp).combat, false, "ở xa không tính");
+  for (const k of ["heal", "shield", "immune"]) assert.equal(combatHit({ x: 1, y: 0, v: 9, [k]: true }, meHp).combat, false, `${k} không phải giao chiến`);
+  assert.equal(combatHit({ x: 1, y: 0, v: 9 }, undefined).combat, false);
+  // Pha boss: lấy pha cao nhất trong boss đang giao chiến.
+  assert.equal(bossPhase([beast({ phase: 2 }), beast({ phase: 1 })], me), 2);
+  assert.equal(bossPhase([beast({})], me), 1, "boss không có phase vẫn tính pha 1");
+  assert.equal(bossPhase([beast({ aggro: false, phase: 2 })], me), 0);
+}
+
 // Độ dài vòng thật: `seconds` làm tròn tới ms, vòng là bội 1024 mẫu ở 44,1 kHz (109,714 s = 4 838 400 mẫu).
 for (const t of manifest.tracks.filter((x) => x.loop)) {
   const n = musicLoopSeconds(t.seconds) * 44100;
@@ -248,7 +390,7 @@ assert.equal(Math.round(musicLoopSeconds(109.714) * 44100), 4838400);
   music.setVolume(1);
   music.setMap("tinh_dau_ngoai_vi");
   await music.whenIdle();
-  assert.equal(ctx.sources[0].loopEnd, musicLoopSeconds(mapTrack("tinh_dau_ngoai_vi").seconds));
+  assert.equal(mains(ctx)[0].loopEnd, musicLoopSeconds(mapTrack("tinh_dau_ngoai_vi").seconds));
 }
 
 // ogg không giải mã được: thử m4a của cùng bài và dùng m4a từ đó.
@@ -373,4 +515,4 @@ assert.equal(musicPlayerFor(undefined), null);
   b.dispose();
 }
 
-console.log(`music-test: ${manifest.tracks.length} bài, chọn định dạng, tải lười, mờ chéo, giao chiến, khúc ngắn, tắt tiếng, tải lỗi thử lại đều đạt`);
+console.log(`music-test: ${manifest.tracks.length} bài, chọn định dạng, tải lười, mờ chéo, giao chiến, nhạc động (lớp giao chiến, pha boss, stinger), khúc ngắn, tắt tiếng, tải lỗi thử lại đều đạt`);

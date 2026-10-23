@@ -5,7 +5,9 @@ import { AudioManager, LOUD_DUCK, type AudioChannel } from "./audio/AudioManager
 import { sharedAudioContext } from "./audio/music.ts";
 import { SFX_IDS } from "./audio/sfxData.ts";
 import type { SfxClip } from "./audio/sfxBank.ts";
-import { BEAST_FAMILIES, ELEMENTS, MATERIALS, SKILL_PHASES, SURFACES, WEAPONS } from "./audio/soundMap.ts";
+import { BEAST_FAMILIES, ELEMENTS, MATERIALS, SKILL_PHASES, SURFACES, UI_GROUP, WEAPONS, type UiSound } from "./audio/soundMap.ts";
+import { AMBIENT_PROFILES } from "./audio/ambientLayers.ts";
+import { MAPS } from "../../shared/data.ts";
 
 const NAME: Record<string, string> = {
   kiem: "Kiếm", chuy: "Chùy", thuong: "Thương", trao: "Trảo", quyen: "Quyền",
@@ -14,6 +16,8 @@ const NAME: Record<string, string> = {
   start: "bắt đầu", fly: "bay", boom: "nổ",
   lang: "Sói", hung: "Gấu / tê / giáp", bao: "Báo / hổ / thỏ", xa: "Rắn / mãng", chim: "Chim", trung: "Côn trùng", thiem: "Cóc / nhớt", thuc: "Thực vật",
   co: "Cỏ", dat: "Đất", da: "Đá", tuyet: "Tuyết", nuoc: "Nước nông",
+  open: "Mở panel", close: "Đóng panel", drag: "Nhấc đồ (kéo)", drop: "Thả đồ", equip: "Trang bị", enhanceOk: "Cường hóa thành công", enhanceFail: "Cường hóa chưa thành", rare: "Nhận đồ hiếm",
+  wave: "Sóng", bird: "Chim (ngày)", cricket: "Côn trùng (đêm)", bell: "Chuông chùa",
 };
 const label = (key: string) => NAME[key] ?? key;
 const ch = (c: AudioChannel) => ({ sfx: "Hiệu ứng", ui: "Giao diện", ambient: "Môi trường" })[c];
@@ -32,6 +36,13 @@ function sections(): { title: string; hint: string; rows: Row[] }[] {
       ...BEAST_FAMILIES.map((f) => ({ title: label(f), group: `beast-${f}`, channel: "sfx" as AudioChannel })),
       { title: "Boss gầm", group: "beast-boss", channel: "sfx", note: "hạ nhạc nền" }, { title: "Thú chết", group: "beast-die", channel: "sfx" }] },
     { title: "Bước chân theo địa hình", hint: "kênh Môi trường", rows: SURFACES.map((s) => ({ title: label(s), group: `step-${s}`, channel: "ambient" as AudioChannel })) },
+    { title: "Giao diện (lô 2)", hint: "tự phát khi mở / đóng panel, kéo thả, trang bị, cường hóa, nhận đồ hiếm; kênh Giao diện",
+      rows: (Object.keys(UI_GROUP) as UiSound[]).map((k) => ({ title: label(k), group: UI_GROUP[k], channel: "ui" as AudioChannel })) },
+    { title: "Môi trường lớp chồng (lô 2)", hint: "phát ngẫu nhiên theo bản đồ và ngày đêm (nút chạy thử ở trên); kênh Môi trường",
+      rows: (["wind", "wave", "bird", "cricket", "fire", "bell"] as const).map((k) => ({ title: ({ wind: "Gió", fire: "Lửa trại" } as Record<string, string>)[k] ?? label(k), group: `amb-${k}`, channel: "ambient" as AudioChannel })) },
+    { title: "PK (lô 2): chỉ tiếng + hàm phát, G6 (#397) gọi", hint: "audio.playPkOpen / playPkCountdown(n) / playPkKill(nguồn) / updateLowHpHeartbeat(tỉ lệ máu)",
+      rows: [{ title: "Trống mở trận", group: "pk-open", channel: "ui" }, { title: "Đếm ngược (mõ)", group: "pk-count", channel: "ui" }, { title: "Vào trận (chuông / chiêng)", group: "pk-go", channel: "ui" },
+        { title: "Kết liễu", group: "pk-kill", channel: "sfx" }, { title: "Nhịp tim máu thấp (1 chậm, 2 nhanh)", group: "pk-heartbeat", channel: "sfx" }] },
   ];
 }
 
@@ -50,8 +61,22 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   <p>Mọi tiếng đều từ thư viện CC0 (Kenney, OpenGameArt), không có tiếng hô. Bấm một nút trước để trình duyệt cho phép phát. Kênh trộn: Tổng, Nhạc, Hiệu ứng, Giao diện, Môi trường.</p>
   <div class="at-mix" id="atMix"></div>
   <h2>Thử trộn</h2>
-  <div class="at-row"><button type="button" id="atMusic">Bật / tắt nhạc nền thử</button><button type="button" id="atBoss">Boss gầm (nhạc tự hạ)</button>
+  <div class="at-row"><button type="button" id="atBoss">Boss gầm (nhạc tự hạ)</button>
     <button type="button" id="atCrowd">Chồng 40 tiếng ở xa gần khác nhau</button><small id="atVoices"></small></div>
+  <h2>Nhạc động</h2>
+  <div class="at-row"><b>Bản đồ</b><select id="atMap">${Object.values(MAPS).map((m) => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
+    <button type="button" id="atMusic">Bật / tắt nhạc</button><small id="atMusicState"></small></div>
+  <div class="at-row"><b>Giao chiến</b><button type="button" id="atCombat">Vào giao chiến (giữ 8 s sau lần bấm cuối)</button>
+    <button type="button" id="atBattle">Boss: nhạc giao chiến</button><button type="button" id="atPhase">Boss pha 2 (nổi giận)</button><button type="button" id="atPhaseOff">Hết boss</button></div>
+  <div class="at-row"><b>Stinger</b><button type="button" data-jingle="crit_big">Chí mạng lớn</button><button type="button" data-jingle="boss_down">Hạ boss</button><button type="button" data-jingle="level_up">Lên cấp</button>
+    <button type="button" data-jingle="ring_absorb">Hấp thụ hồn hoàn</button><button type="button" data-jingle="arena_win">Thắng</button><button type="button" data-jingle="arena_lose">Thua</button></div>
+  <h2>Môi trường tự động</h2>
+  <div class="at-row"><button type="button" id="atAmbient">Chạy / dừng môi trường của bản đồ đang chọn</button>
+    <label><input type="radio" name="atDn" value="0" checked> ngày</label><label><input type="radio" name="atDn" value="1"> đêm</label><label><input type="checkbox" id="atFire"> đứng cạnh lửa</label></div>
+  <h2>PK (hàm phát cho G6)</h2>
+  <div class="at-row"><button type="button" id="atPkOpen">playPkOpen()</button><button type="button" data-pkn="3">Đếm 3</button><button type="button" data-pkn="2">Đếm 2</button><button type="button" data-pkn="1">Đếm 1</button>
+    <button type="button" data-pkn="0">Vào trận (0)</button><button type="button" id="atPkKill">playPkKill()</button>
+    <button type="button" id="atHp25">Nhịp tim: máu 25%</button><button type="button" id="atHp08">máu 8%</button><button type="button" id="atHpOff">hết nhịp tim</button></div>
   <div class="at-row"><b>Hồn hoàn sáng theo niên hạn</b>${TIERS.map((t, i) => `<button type="button" data-tier="${i}" style="border-color:${t.glow}">${t.age}</button>`).join("")}</div>
   <div id="atList"></div>
   <h2>Giao diện (tiếng tổng hợp)</h2><div class="at-row" id="atUi"></div>
@@ -70,7 +95,7 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   const unlock = () => audio.unlock();
   card.addEventListener("pointerdown", unlock, { once: true });
   card.addEventListener("keydown", unlock, { once: true });
-  const ensureAll = async () => { await audio.bank?.loadManifest(); await Promise.all(["combat", "skill", "beast", "world", "steps"].map((p) => audio.bank?.ensure(p))); };
+  const ensureAll = async () => { await audio.bank?.loadManifest(); await Promise.all(["combat", "skill", "beast", "world", "steps", "amb", "ui", "pk"].map((p) => audio.bank?.ensure(p))); };
   const voices = () => { $("atVoices").textContent = `đang phát ${audio.activeVoices} tiếng`; };
   const timer = setInterval(voices, 250);
   addEventListener("pagehide", () => clearInterval(timer), { once: true });
@@ -103,8 +128,36 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   });
 
   $("atUi").innerHTML = SFX_IDS.filter((id) => id.startsWith("ui_")).map((id) => `<button type="button" data-sfx="${id}">${id.slice(3)}</button>`).join("");
-  let musicOn = false;
-  $("atMusic").addEventListener("click", () => { musicOn = !musicOn; audio.music?.setMap(musicOn ? "thien_dau_thanh" : null); });
+  let musicOn = false, hp = 0, ambient = false;
+  const mapSel = $<HTMLSelectElement>("atMap"), music = audio.music;
+  const musicState = () => {
+    const st = music?.status();
+    $("atMusicState").textContent = st ? `đang phát: ${st.playing ?? "(im)"} · lớp giao chiến: ${st.stem ?? "chưa có"} · ${st.combat ? "GIAO CHIẾN" : "thám hiểm"} · pha boss ${st.bossPhase}` : "không có WebAudio";
+  };
+  const tickTimer = setInterval(() => {
+    music?.tick(); musicState();
+    if (hp > 0) audio.updateLowHpHeartbeat(hp);
+    if (ambient) audio.updateAmbient(performance.now(), { mapId: mapSel.value, night: Number(card.querySelector<HTMLInputElement>("input[name=atDn]:checked")?.value ?? 0), fireDist: $<HTMLInputElement>("atFire").checked ? 30 : null });
+  }, 200);
+  addEventListener("pagehide", () => clearInterval(tickTimer), { once: true });
+  const withAudio = (fn: () => void) => () => { void audio.unlock().then(fn); };
+  $("atMusic").addEventListener("click", withAudio(() => { musicOn = !musicOn; music?.setMap(musicOn ? mapSel.value : null); }));
+  mapSel.addEventListener("change", () => { if (musicOn) music?.setMap(mapSel.value); });
+  $("atCombat").addEventListener("click", withAudio(() => music?.combatPulse()));
+  $("atBattle").addEventListener("click", withAudio(() => music?.setBattle(true)));
+  $("atPhase").addEventListener("click", withAudio(() => { music?.setBattle(true); music?.setBossPhase(2); }));
+  $("atPhaseOff").addEventListener("click", withAudio(() => { music?.setBossPhase(0); music?.setBattle(false); }));
+  card.querySelectorAll<HTMLButtonElement>("button[data-jingle]").forEach((b) => b.addEventListener("click", withAudio(() => music?.jingle(b.dataset.jingle as "level_up"))));
+  $("atAmbient").addEventListener("click", withAudio(() => {
+    ambient = !ambient;
+    $("atAmbient").textContent = ambient ? `Đang chạy (${Object.keys(AMBIENT_PROFILES[mapSel.value] ?? {}).join(", ") || "bản đồ này không có"}), bấm để dừng` : "Chạy / dừng môi trường của bản đồ đang chọn";
+  }));
+  $("atPkOpen").addEventListener("click", withAudio(() => audio.playPkOpen()));
+  card.querySelectorAll<HTMLButtonElement>("button[data-pkn]").forEach((b) => b.addEventListener("click", withAudio(() => audio.playPkCountdown(Number(b.dataset.pkn)))));
+  $("atPkKill").addEventListener("click", withAudio(() => audio.playPkKill()));
+  $("atHp25").addEventListener("click", withAudio(() => { hp = 0.25; }));
+  $("atHp08").addEventListener("click", withAudio(() => { hp = 0.08; }));
+  $("atHpOff").addEventListener("click", () => { hp = 0; audio.updateLowHpHeartbeat(1); });
   $("atBoss").addEventListener("click", () => { void audio.unlock().then(() => audio.playBeast("boss", null)); });
   $("atCrowd").addEventListener("click", () => {
     void audio.unlock().then(() => {

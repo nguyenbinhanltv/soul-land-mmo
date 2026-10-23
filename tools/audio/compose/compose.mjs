@@ -69,7 +69,7 @@ try {
     const files = {};
     for (const format of ["ogg", "m4a"]) {
       const file = path.join(out, `${song.id}.${format}`);
-      encode(wav, file, format, args.bitrate);
+      encode(wav, file, format, song.bitrate ?? args.bitrate, song.mono);
       files[format] = { path: rel(file), bytes: statSync(file).size };
     }
     const samples = audio.left.length;
@@ -85,6 +85,8 @@ try {
       kind: song.kind,
       ...(song.maps ? { maps: song.maps } : {}),
       ...(song.event ? { event: song.event } : {}),
+      ...(song.of ? { of: song.of } : {}),
+      ...(song.phase ? { phase: song.phase } : {}),
       loop,
       seconds: Number((samples / SAMPLE_RATE).toFixed(3)),
       files,

@@ -49,6 +49,21 @@
 //                          sai khác màu (khoảng cách RGB có trọng số) để coi một điểm mặt trên là đất của đế.
 //   --gray a,b|all         (sprite) ghi bản xám (độ sáng giữ nguyên) để client tô màu, ví dụ hồn cốt theo niên hạn.
 //   --bg-tol 3500          (item) sai khác màu để coi một điểm là nền khung tối khi làm trong suốt.
+//   --icon                 (item) vật vẽ trên nền màu khóa / trong suốt (không có khung nền tối): mỗi món vừa khung riêng và căn
+//                          giữa như biểu tượng (renderIcon; phóng tối đa ICON_MAX_UP = 1,5 để các lưới / bậc đồng cỡ, vật nhỏ
+//                          trong lưới không thành chấm), thay vì đặt chân xuống đáy như sprite. Ảnh nền trong suốt thật
+//                          (ChatGPT; điểm alpha ≥ 128 là vật, alpha thấp là nhiễu) tự nhận, không cần --key.
+//   --key #ffffff          nền TRẮNG đặc (không alpha): điểm gần trắng (--white-min 238) → #FF00FF rồi nhập như nền magenta.
+//   --key2 #808080        (sprite, phụ thể võ hồn) ma-nơ-canh xám dùng làm khuôn: xóa nó (--key2-tol 18), căn chân và tâm ngang theo
+//                          ma-nơ-canh, hệ số thu chung = --man-h (mặc định 52 điểm, chiều cao người chơi) / chiều cao ma-nơ-canh (trung vị).
+//   --kind ui --size WxH   mảnh giao diện lớn (mặc định --grid 1x1: cả ảnh là MỘT mảnh, kể cả phần rời như tia / chữ ngoài vòng) (khung radar tròn, la bàn, nền giấy bản đồ): ảnh nền #FF00FF (tự dò ở góc) hoặc trong suốt thật → nền
+//                          trong suốt (lòng khung tròn cũng trong suốt vì xóa theo màu), về pixel thật, vừa khung đích giữ tỉ lệ, căn giữa, bảng màu
+//                          riêng (--colors 24), KHÔNG thêm viền. --opaque: ảnh tràn khung không nền (nền giấy), giữ nguyên mọi điểm; logo Gemini
+//                          trên nền cùng màu giấy không tự dò được: --logo star:<rộng-98>,<cao-98>,42 (ảnh 2400×1792; tỉ lệ theo cạnh dài).
+//   --frame                (item, kèm --icon) vật là khung viền phủ kín ô (khung bậc trang bị): hộp bao vừa khít cả khung đích
+//                          bằng cách bớt (hoặc nhân) các cột / hàng chính giữa (lòng khung trong suốt, cạnh thẳng) nên viền và
+//                          góc giữ nguyên từng điểm, không lấy mẫu lại; không chừa lề, không thêm viền ngoài. Khung gồm viền 2
+//                          khối + 2 nét viền hay bị dò chu kỳ gấp đôi: đặt --cell theo cỡ khối thật (ví dụ 10.4).
 //   --fringe 2             số lượt gỡ viền nhiễm màu nền (điểm ảnh gốc); quầng sáng vẽ đè lên nền thì tăng (10–20).
 //   --inset auto|<số>      (tile) số điểm ảnh gốc thu vào từ mép thoi để bỏ viền; auto: dò bề rộng dải mép khác màu
 //                          bên trong (viền đen, thành "hộp kính" của nước), tối thiểu 1,5, tối đa 12.
@@ -63,14 +78,16 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
-const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
-const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" || kind === "item" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? (kind === "item" ? "24" : "10") : "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
+const gridOpt = opt("--grid", kind === "ui" ? "1x1" : ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
+const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" || kind === "item" || kind === "ui" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? (kind === "item" || kind === "ui" ? "24" : "10") : "32"), logoOpt = opt("--logo", "auto");
+const keyOpt = opt("--key", ""), whiteMin = +opt("--white-min", "238"), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const scaleOpt = opt("--scale", ""), debug = flag("--debug"), faceOnly = flag("--face-only");
+const key2Opt = opt("--key2", ""), key2Tol = +opt("--key2-tol", "18"), manH = +opt("--man-h", "52"), key2 = key2Opt ? hex(key2Opt) : null;
+const opaqueMode = flag("--opaque"), frameMode = flag("--frame"), iconMode = flag("--icon") || frameMode, ICON_MAX_UP = 1.5;
 const cutBaseOpt = opt("--cut-base", ""), baseTol = +opt("--base-tol", "1500"), grayOpt = opt("--gray", ""), bgTol = +opt("--bg-tol", "3500");
 const file = args[0];
-const KINDS = ["tile", "tile-block", "honsu", "vohon", "beast", "object", "portrait", "item"];
+const KINDS = ["tile", "tile-block", "honsu", "vohon", "beast", "object", "portrait", "item", "ui"];
 if (!outDir || !file || !KINDS.includes(kind)) {
   console.error(`Cách dùng: gemini-import.mjs --kind ${KINDS.join("|")} --out <thư mục> <ảnh> [--names a,b] [--grid CxR] [--cell auto|N] [--size WxH] [--palette gpl|auto|auto-item|none]`);
   process.exit(1);
@@ -103,9 +120,20 @@ const maxDiff = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]),
 const OUT_RGB = hex(OUTLINE);
 
 // ---------- 1. Logo ----------
+/**
+ * Nền TRẮNG (--key #ffffff; ảnh ChatGPT / Gemini vẽ nền trắng đặc, không alpha, không magenta): điểm gần trắng (kênh nhỏ nhất ≥ --white-min 238 và
+ * ba kênh lệch nhau ≤ 14) thành #FF00FF trước khi xóa nền. Vật có viền #1a1020 nên không ăn vào vật; vùng trắng kín trong vật (lỗ vòng, lỗ nhẫn) cũng được xóa.
+ */
+const isWhiteKey = () => !!keyOpt && hex(keyOpt).every((v) => v >= 240);
+function whiteToKey(img) {
+  if (!isWhiteKey()) return img;
+  const T = whiteMin;
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const p = img.get(x, y), mn = Math.min(p[0], p[1], p[2]); if (mn >= T && Math.max(p[0], p[1], p[2]) - mn <= 14) img.set(x, y, [255, 0, 255, 255]); }
+  return img;
+}
 /** Màu nền: màu nhiều nhất trong 4 ô 8×8 ở góc ảnh. */
 function keyColor(img) {
-  if (keyOpt) return hex(keyOpt);
+  if (keyOpt) return isWhiteKey() ? [255, 0, 255] : hex(keyOpt);
   const votes = new Map();
   for (const [x0, y0] of [[0, 0], [img.w - 8, 0], [0, img.h - 8], [img.w - 8, img.h - 8]])
     for (let y = y0; y < y0 + 8; y++) for (let x = x0; x < x0 + 8; x++) { const p = img.get(x, y), k = `${p[0] >> 3},${p[1] >> 3},${p[2] >> 3}`; votes.set(k, [...(votes.get(k) ?? []), p]); }
@@ -838,13 +866,47 @@ function clearPanel(img) {
   for (let i = 0; i < W * H; i++) if (lab[i] >= 0 && (comps[lab[i]].n < 4 || frame(comps[lab[i]]))) out.data[i * 4 + 3] = 0;
   return out;
 }
-/** Biểu tượng: mỗi món vừa khung riêng (chừa 1 điểm mỗi bên), không phóng to, căn giữa, thêm viền #1a1020. */
+/** Biểu tượng: mỗi món vừa khung riêng (chừa 1 điểm mỗi bên), căn giữa, thêm viền #1a1020. Không phóng to (--icon: tối đa ICON_MAX_UP). */
 function renderIcon(nat) {
-  const b = bboxOf(nat), t = new Img(FW, FH), s = Math.min(1, (FW - 2) / b.w, (FH - 2) / b.h);
+  const b = bboxOf(nat), t = new Img(FW, FH), s = Math.min(iconMode ? ICON_MAX_UP : 1, (FW - 2) / b.w, (FH - 2) / b.h);
   const cx = (b.x0 + b.x1 + 1) / 2, cy = (b.y0 + b.y1 + 1) / 2, map = (u, v) => [cx + (u - FW / 2) / s, cy + (v - FH / 2) / s];
   for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) { const c = voteSample(nat, x, y, map, false); if (c) t.set(x, y, c); }
   addOutline(t);
   return { out: t, lost: false, mode: `×${s.toFixed(2)}` };
+}
+/**
+ * Khung viền phủ kín ô: hộp bao đưa về đúng FW×FH bằng cách bớt (hoặc nhân) các cột / hàng chính giữa, nơi lòng khung trong suốt và
+ * hai cạnh là đường thẳng: viền và góc giữ nguyên từng điểm (lấy mẫu lại thì viền 1–2 điểm bị đứt nét). Viền sẵn có nên không thêm.
+ */
+function renderFrame(nat) {
+  const b = bboxOf(nat), t = new Img(FW, FH), at = (i, n, F) => (i < F >> 1 ? i : n - (F - i));
+  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
+    const X = at(x, b.w, FW), Y = at(y, b.h, FH);
+    if (X >= 0 && Y >= 0 && X < b.w && Y < b.h && nat.alpha(b.x0 + X, b.y0 + Y)) t.set(x, y, nat.get(b.x0 + X, b.y0 + Y));
+  }
+  return { out: t, lost: false, mode: `khung ${b.w}×${b.h} → ${FW}×${FH}` };
+}
+/**
+ * Khóa kép (--key2): ma-nơ-canh xám phẳng đứng làm khuôn cho phụ thể vẽ quanh người. Điểm gần màu key2 (mọi kênh lệch ≤ --key2-tol) là
+ * ma-nơ-canh: xóa khỏi ảnh và trả hộp bao của chúng (chân, tâm ngang, chiều cao) để căn phụ thể theo người chơi.
+ */
+function takeMannequin(img) {
+  let x0 = img.w, y0 = img.h, x1 = -1, y1 = -1;
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
+    if (!img.alpha(x, y) || maxDiff(img.get(x, y), key2) > key2Tol) continue;
+    img.set(x, y, [0, 0, 0, 0]);
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  return x1 < 0 ? null : { x0, y0, x1, y1, h: y1 - y0 + 1 };
+}
+/**
+ * Mảnh giao diện (--kind ui, --size WxH): khung, la bàn, nền giấy. Hộp bao của ảnh (ảnh nền #FF00FF / trong suốt: hộp bao của vật; --opaque: cả ảnh)
+ * vừa khung đích, giữ tỉ lệ, căn giữa, lấy mẫu theo phiếu nhiều nhất (không nội suy), giữ alpha, không thêm viền (ảnh đã có viền).
+ */
+function renderUi(nat) {
+  const b = bboxOf(nat), t = new Img(FW, FH), s = Math.min(FW / b.w, FH / b.h), cx = (b.x0 + b.x1 + 1) / 2, cy = (b.y0 + b.y1 + 1) / 2, map = (u, v) => [cx + (u - FW / 2) / s, cy + (v - FH / 2) / s];
+  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) { const c = voteSample(nat, x, y, map, false); if (c) t.set(x, y, c); }
+  return { out: t, lost: false, mode: `×${s.toFixed(2)}`, ...(s > 1 ? { warning: "phóng to ảnh giả pixel: đặt --size nhỏ hơn hoặc bằng cỡ gốc" } : {}) };
 }
 /** Bản xám để client tô màu (hồn cốt theo niên hạn): độ sáng giữ nguyên, viền #1a1020 giữ nguyên. */
 function toGray(t) {
@@ -857,10 +919,11 @@ function toGray(t) {
   }
 }
 /** Sprite: chân (đáy hộp bao, giữa ngang) vào gốc, hệ số thu `s` chung cả lô; portrait căn giữa khung. */
-function renderSprite(nat, s) {
+function renderSprite(nat, s, man) {
   const b = bboxOf(nat), t = new Img(FW, FH);
   const portrait = kind === "portrait";
-  const cx = (b.x0 + b.x1 + 1) / 2, cy = portrait ? (b.y0 + b.y1 + 1) / 2 : b.y1 + 1, ax = portrait ? FW / 2 : AX, ay = portrait ? FH / 2 : AY + 1;
+  // Có ma-nơ-canh (--key2): chân và tâm ngang là của ma-nơ-canh (vị trí người chơi), không phải hộp bao của phụ thể.
+  const cx = man ? (man.x0 + man.x1 + 1) / 2 : (b.x0 + b.x1 + 1) / 2, cy = man ? man.y1 + 1 : portrait ? (b.y0 + b.y1 + 1) / 2 : b.y1 + 1, ax = portrait ? FW / 2 : AX, ay = portrait ? FH / 2 : AY + 1;
   const map = (u, v) => [cx + (u - ax) / s, cy + (v - ay) / s];
   for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) { const c = voteSample(nat, x, y, map, false); if (c) t.set(x, y, c); }
   addOutline(t);
@@ -897,12 +960,12 @@ function contactSheet(imgs, scale) {
 }
 
 // ---------- Chạy ----------
-const raw = decodePng(readFileSync(file));
+const raw = whiteToKey(decodePng(readFileSync(file)));
 const K = keyColor(raw);
 const logo = removeLogo(raw, K);
-const clean = removeBackground(raw, K);
+const clean = opaqueMode ? (() => { const o = new Img(raw.w, raw.h, Uint8Array.from(raw.data)); for (let i = 3; i < o.data.length; i += 4) o.data[i] = 255; return o; })() : removeBackground(raw, K);
 // Chân dung khung nền tối: thay mỗi vật bằng phần đặc của khung, cắt từ ảnh gốc.
-const items = splitItems(clean).map((it) => ((kind === "portrait" || kind === "item") && panelRect(it, raw)) || it);
+const items = splitItems(clean).map((it) => ((kind === "portrait" || kind === "item") && !iconMode && panelRect(it, raw)) || it);
 if (!items.length) { console.error(`${file}: không tìm thấy vật nào sau khi xóa nền`); process.exit(1); }
 if (names.length && names.length !== items.length) {
   // Gán tên theo chỉ số khi số vật lệch thì mọi ô phía sau mang tên sai mà không ai biết → dừng.
@@ -915,7 +978,9 @@ const P = cellOpt === "auto" ? commonPeriod(items.map((it) => it.img)) : +cellOp
 const cutNames = cutBaseOpt.split(",").filter(Boolean);
 const nat = items.map((it, i) => {
   const n = { ...it, ...defake(it.img, P) }, name = names[i] ?? `${kind}_${i}`;
+  if (key2) n.man = takeMannequin(n.img);
   if (kind === "item" && n.panel) return { ...n, img: clearPanel(n.img), panel: false, icon: true };
+  if (kind === "item" && iconMode) return { ...n, icon: true };
   return !isTile && (cutNames.includes("all") || cutNames.includes(name)) ? { ...n, ...cutBase(n.img), cut: true } : n;
 });
 const pals = buildPalettes(nat.map((n) => n.img));
@@ -926,6 +991,7 @@ const pal = [...new Map(pals.flat().filter(Boolean).map((c) => [toHex(c), c])).v
 // Sprite: hệ số thu chung = vừa vật lớn nhất (cao tới đỉnh khung trừ 2 điểm, rộng trừ 2 điểm mỗi bên); không phóng to.
 let s = 1;
 if (scaleOpt) s = +scaleOpt;
+else if (key2 && nat.some((n) => n.man)) s = manH / [...nat.filter((n) => n.man).map((n) => n.man.h)].sort((a, b) => a - b)[nat.filter((n) => n.man).length >> 1];
 else if (!isTile) {
   const bs = q.filter((_, n) => !nat[n].panel).map(bboxOf), maxW = Math.max(...bs.map((b) => b.w)), maxH = Math.max(...bs.map((b) => b.h));
   const room = kind === "portrait" ? FH - 4 : AY + 1 - 2;
@@ -956,9 +1022,10 @@ q.forEach((img, n) => {
     }
     line = `  mặt trên ${info.face.width}×${info.face.height} (tỉ lệ ${info.face.ratio}:1), dày ${info.face.thick}${kind === "tile" ? `, bỏ mép ${info.inset}` : ""}` + line;
   } else {
-    const res = nat[n].panel ? renderPanel(img) : nat[n].icon ? renderIcon(img) : renderSprite(img, s);
+    const res = kind === "ui" ? renderUi(img) : nat[n].panel ? renderPanel(img) : nat[n].icon ? (frameMode ? renderFrame(img) : renderIcon(img)) : renderSprite(img, s, nat[n].man);
     if (grayOpt.split(",").some((g) => g === "all" || g === name)) toGray(res.out);
     if (res.lost) info.warning = "hình tràn khung, bị cắt";
+    if (res.warning) info.warning = res.warning;
     if (res.mode) info.fit = res.mode;
     if (it.cut) info.base = it.base ?? "không dò được đế";
     save(outDir, name, res.out);
