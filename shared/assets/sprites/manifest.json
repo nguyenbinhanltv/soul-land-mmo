@@ -597,6 +597,11 @@
       "iso": true
     },
     {
+      "key": "prop_bia_tinh_van",
+      "iso": true,
+      "map": "loi_tinh_dau"
+    },
+    {
       "key": "prop_bien_chi_duong",
       "iso": true
     },
@@ -609,6 +614,11 @@
       "key": "prop_bui_gai",
       "iso": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_bui_hoa_doc",
+      "iso": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "prop_bui_hoa_nhiet_doi",
@@ -771,6 +781,11 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "prop_da_bang_hoa",
+      "iso": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "prop_da_ngam",
       "iso": true
     },
@@ -925,9 +940,19 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "prop_nhu_bang",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "prop_phong_do_lon",
       "iso": true,
       "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "prop_rao_tre",
+      "iso": true,
+      "map": "thanh_hon_thon"
     },
     {
       "key": "prop_re_cay_lon",
@@ -937,6 +962,11 @@
       "key": "prop_sap_cho",
       "iso": true,
       "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_sen_phat_sang",
+      "iso": true,
+      "map": "loi_tinh_dau"
     },
     {
       "key": "prop_so_thu_khong_lo",

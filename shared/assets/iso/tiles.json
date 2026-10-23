@@ -462,6 +462,10 @@
    "key": "prop_cum_san_ho",
    "foot": [40, 78]
   },
+  "bui_hoa_doc": {
+   "key": "prop_bui_hoa_doc",
+   "foot": [24, 60]
+  },
   "bui_gai": {
    "key": "prop_bui_gai",
    "foot": [48, 78]
@@ -474,9 +478,22 @@
    "key": "prop_tinh_the_tim",
    "foot": [24, 46]
   },
+  "rao_tre": {
+   "key": "prop_rao_tre",
+   "foot": [32, 28],
+   "flip": false
+  },
+  "sen_phat_sang": {
+   "key": "prop_sen_phat_sang",
+   "foot": [16, 28]
+  },
   "re_cay_lon": {
    "key": "prop_re_cay_lon",
    "foot": [48, 62]
+  },
+  "nhu_bang": {
+   "key": "prop_nhu_bang",
+   "foot": [24, 60]
   },
   "nam_khong_lo": {
    "key": "prop_nam_khong_lo",
@@ -509,6 +526,10 @@
   "tuong_do_reu": {
    "key": "prop_tuong_do_reu",
    "foot": [48, 78]
+  },
+  "bia_tinh_van": {
+   "key": "prop_bia_tinh_van",
+   "foot": [16, 60]
   },
   "bia_da_co": {
    "key": "prop_bia_da_co",
@@ -573,6 +594,10 @@
   "dinh_ngoc": {
    "key": "prop_dinh_ngoc",
    "foot": [48, 94]
+  },
+  "da_bang_hoa": {
+   "key": "prop_da_bang_hoa",
+   "foot": [24, 44]
   },
   "dai_phun_nuoc": {
    "key": "prop_dai_phun_nuoc",
@@ -953,7 +978,8 @@
     "45": "gieng_da",
     "46": "thung_go_chong",
     "47": "cau_go_ngang",
-    "48": "lau_say"
+    "48": "lau_say",
+    "49": "rao_tre"
    }
   },
   "nac_dinh_thanh": {
@@ -1291,7 +1317,9 @@
     "38": "cum_bang_tinh",
     "39": "tinh_the_tim~#ffa070",
     "40": ["khuc_go_rong~#c8a088", "re_cay_lon~#c0a090"],
-    "41": "cay_chay_than"
+    "41": "cay_chay_than",
+    "42": "bui_hoa_doc",
+    "43": "da_bang_hoa"
    }
   },
   "tinh_dau_ngoai_vi": {
@@ -1365,7 +1393,8 @@
     "40": ["khuc_go_rong~#a0a098", "re_cay_lon"],
     "41": "co_thu_lon~#b8c4c8",
     "42": "man_day_leo_sang",
-    "43": "cay_chet"
+    "43": "cay_chet",
+    "44": "bui_hoa_doc"
    }
   },
   "loi_tinh_dau": {
@@ -1396,7 +1425,9 @@
     "38": "tinh_the_tim~#a8d0ff",
     "39": "vom_da~#b0b8d0",
     "40": "re_cay_lon",
-    "41": "than_co_thu_rune"
+    "41": "than_co_thu_rune",
+    "42": "sen_phat_sang",
+    "43": "bia_tinh_van"
    }
   },
   "cuc_bac_chi_dia": {
@@ -1431,7 +1462,8 @@
     "37": "tuong_do_reu~#c8d0e0",
     "38": "bia_da_co~#d0d8e8",
     "39": "vom_da~#c8d0e0",
-    "40": "khuc_go_rong~#c0c8d8"
+    "40": "khuc_go_rong~#c0c8d8",
+    "41": "nhu_bang"
    }
   }
  }
