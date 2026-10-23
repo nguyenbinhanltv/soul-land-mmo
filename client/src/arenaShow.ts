@@ -90,7 +90,7 @@ export class ArenaShow {
 
   private kills(a: ArenaView, now: number) {
     const cur = a.sides.map((s) => s.alive);
-    if (this.alive && a.phase === "fight") a.sides.forEach((s, i) => {
+    if (this.alive && (a.phase === "fight" || a.phase === "end")) a.sides.forEach((s, i) => {
       if (cur[i] >= (this.alive![i] ?? cur[i])) return;
       const foe = a.sides[1 - i]; if (!foe) return;
       const hit = foe.sid.split(",").map((id) => this.skills.get(id)).filter((k) => k && now - k.t < SKILL_MS).sort((x, y) => y!.t - x!.t)[0];
