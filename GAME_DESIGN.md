@@ -906,6 +906,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
   - [ ] Đặt 42 vật đã có ảnh nhưng chưa dùng vào bản đồ (#333).
   - [x] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
   - [x] Công trình Nặc Đinh Thành: nhà chính học viện sơ cấp, đấu hồn trường, tửu lâu (#336).
+  - [x] Công trình điểm nhấn các vùng (#385): đền băng, lều thợ săn băng (Cực Bắc), miếu cổ, nhà hái thuốc (Lạc Nhật), trạm gác Vũ Hồn Điện (Tinh Đấu Ngoại vi), trại thợ săn (Nội địa), nhà ngư dân, tháp canh biển (Hải Thần Đảo); ảnh dẫn nhiều khối `comfy-shape.mjs`.
   - [x] Trọn bộ ô nền Lõi Tinh Đấu (#338): 7 ô riêng (cỏ, cỏ hoa, đất, sàn đá phiến có phù văn mờ, nước hồ gợn sáng, rêu phát quang, sỏi).
   - [x] Phụ thể tĩnh vũ khí / vật đối xứng (#342): Phá Hồn Thương, Thiên Càn Bạch Ngọc Đỉnh, Nguyệt Nhận, Xúc Xích, Càn Khôn Hỗn Nguyên Tỏa, Cửu Bảo Lưu Ly Tháp (ComfyUI, một ảnh tĩnh cho 5 hướng).
   - [x] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339, xong), lô 2 Nội địa, Lạc Nhật (#340, xong), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341, xong).
