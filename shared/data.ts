@@ -3630,6 +3630,17 @@ export interface EquipData {
   luck: number;
 }
 export const EQUIP_ROLL = 0.05;
+/** Đọc `items.stats` của một món trang bị (pg trả object, MemoryStore có thể trả chuỗi JSON); dữ liệu hỏng hoặc mẫu lạ thì null. Kẹp mọi số về khoảng hợp lệ. */
+export function parseEquip(stats: unknown): EquipData | null {
+  let o = stats as Record<string, unknown> | string | null;
+  if (typeof o === "string") { try { o = JSON.parse(o); } catch { return null; } }
+  if (!o || typeof o !== "object" || !equipTemplate(o.tpl)) return null;
+  const affixes = Array.isArray(o.affixes) ? o.affixes.filter((x): x is [CoreStat, number] => Array.isArray(x) && CORE_STAT_IDS.includes(x[0]) && typeof x[1] === "number" && Number.isFinite(x[1])) : [];
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  return { tpl: o.tpl as string, ilvl: Math.max(1, Math.min(EQUIP_ILVL_K.length, Math.floor(num(o.ilvl)) || 1)),
+    roll: Math.max(-EQUIP_ROLL, Math.min(EQUIP_ROLL, num(o.roll))), affixes: affixes.slice(0, Math.max(...EQUIP_TIERS.map((t) => t.lines))),
+    luck: Math.max(0, Math.min(EQUIP_LUCK_MAX, Math.floor(num(o.luck)))) };
+}
 export type EquipDrop = { kind: "equip"; item: EquipData } | { kind: "stone"; code: string; qty: number };
 
 const pickIdx = (w: readonly number[], rnd: () => number) => {

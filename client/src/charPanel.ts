@@ -14,7 +14,7 @@ import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, bon
 /** Bộ chỉ số server gửi (kết quả calcStats). */
 export interface StatBlock { maxHp: number; maxMp: number; atk: number; speed: number; crit: number; critMult: number; }
 /** Tin riêng "stats": `total` là chỉ số thật của võ hồn `rowId`, `base` là khi không gắn hồn cốt / hồn hạch. */
-export interface StatsMsg { rowId: number; total: StatBlock; base: StatBlock; }
+export interface StatsMsg { rowId: number; total: StatBlock; base: StatBlock; gear?: { red: number; luck: number; weapon: { min: number; max: number } | null }; }
 export interface CharActions { portrait(vohon: string): string; ask(rowId: number | null): void; }
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;

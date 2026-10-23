@@ -22,6 +22,8 @@ import { artImg, artUrl, skillImg, tintedUrl } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
+import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, equipName, equipTemplate, equipSlotDef, equipStats, parseEquip } from "../../shared/data.ts";
+import type { GearMsg } from "./net.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -1691,6 +1693,8 @@ export function itemName(it: BagItem) {
   if (bone) return boneName(bone.beast, bone.slot, it.years!, it.enhance);
   const core = coreOf(it);
   if (core) return coreName(core.set, it.stars ?? 1, it.enhance);
+  const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  if (eq) return equipName(eq.tpl, it.enhance);
   return (itemDef(it.code)?.name ?? "Vật phẩm lạ") + (it.years !== null ? ` ${formatYears(it.years)}` : "");
 }
 /** Hồn hoàn trong túi: có số năm thì màu theo số năm (bảng 5.2). */
@@ -1711,7 +1715,8 @@ const subName = (k: CoreStat) => `${CORE_STATS[k].name}${CORE_STATS[k].pct && k.
 export const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
 /** Màu một ô: hồn hoàn, hồn cốt theo số năm; hồn hạch theo bộ; vật phẩm khác theo ITEMS. */
 export const itemColor = (it: BagItem) => {
-  const core = coreOf(it);
+  const core = coreOf(it), eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  if (eq) return EQUIP_TIERS[equipTemplate(eq.tpl)!.tier].col;
   return hasYears(it) ? ringColor(tierOfYears(it.years)) : (core && coreSet(core.set)?.col) || (itemDef(it.code)?.col ?? "#9db3a2");
 };
 /**
@@ -1755,6 +1760,7 @@ export interface BagActions {
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
   active(): number | null; equipBone(id: string, slot?: string): void; equipCore(id: string, slot?: number): void; // UI-1: võ hồn ra trận, gắn nhanh (kéo thả / nút) cho võ hồn đó
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
+  equipGear(id: string): void; unequipGear(slot: number): void; gear(): GearMsg | null; // trang bị hồn sư (5.15, E1): giao diện tối thiểu, bản đẹp ở E5
 }
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
 let pickRing: string | null = null;   // id hồn hoàn đang mở bảng chọn võ hồn để hấp thụ
@@ -1905,6 +1911,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   bar.appendChild(sort);
   el.appendChild(bar);
   if (active !== null) el.appendChild(bagEquipStrip(bag.items, active, act));
+  const gear = act.gear(); if (gear?.items.length) el.appendChild(gearStrip(gear, act));
 
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
@@ -1997,6 +2004,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       st.classList.add("core");
       info.insertBefore(st, info.querySelector("p"));
     }
+    const eq = sel.code === EQUIP_ITEM ? parseEquip(sel.stats) : null;
+    if (eq) info.insertBefore(equipBox(sel, eq, act.gear()), info.querySelector("p"));
     const worn = wornFor(sel, bag.items, active), cmp = worn && compareLines(sel, worn, worn.cur ? itemName(worn.cur) : null);
     if (cmp) info.insertBefore(compareBox(cmp), info.querySelector("p"));
     const ready = isRing(sel) ? act.absorbOptions(sel.years).filter((o) => !o.reason).length : 0;
@@ -2013,6 +2022,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
+    if (eq) btn("Mặc", "absorb", () => act.equipGear(sel.id)); // trang bị hồn sư (5.15): ô theo mẫu, đổi chỗ nếu ô đã có món
     if (def?.kind === "ruong") btn("Mở rương", "absorb", () => act.open(sel.id)); // rương thú vương (BĐ5): server tung phần thưởng
     if (def?.kind === "tien_thao" && pickHerb === sel.id) { info.appendChild(herbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (def?.kind === "tien_thao") btn("Dùng cho…", "absorb", () => { pickHerb = sel.id; pickVh = null; act.refresh(); again(); }); // BĐ6b
@@ -2033,6 +2043,35 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   } else info.innerHTML = `<small>Chọn một ô để xem, dùng, hấp thụ hoặc bỏ vật phẩm.</small>`;
   el.appendChild(info);
   finishBag(el);
+}
+
+/** Dòng chỉ số của một món trang bị (E1, mục 5.15): ô, bậc, chỉ số chính / công vũ khí, dòng phụ, may mắn, kèm so với món đang mặc ở ô đó. */
+function equipBox(it: BagItem, eq: NonNullable<ReturnType<typeof parseEquip>>, gear: GearMsg | null) {
+  const tpl = equipTemplate(eq.tpl)!, slot = equipSlotDef(tpl.slot), st = equipStats([{ ...eq, enhance: it.enhance }]);
+  const box = document.createElement("div"); box.className = "bstat";
+  const rows: [string, string][] = [["Ô", slot.name], ["Bậc", `${EQUIP_TIERS[tpl.tier].name} (${EQUIP_TIERS[tpl.tier].color})`], ["Cấp vật phẩm", String(eq.ilvl)]];
+  if (st.weapon) rows.push(["Công mỗi đòn", `${st.weapon.min}–${st.weapon.max}`]);
+  for (const k of Object.keys(st.bonus) as CoreStat[]) if (st.bonus[k]) rows.push([CORE_STATS[k].name, coreStatText(k, st.bonus[k]).replace(/^.*? \+/, "+")]);
+  if (st.red) rows.push(["Giảm sát thương nhận", `${(st.red * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}%`]);
+  if (st.luck) rows.push(["May mắn", String(st.luck)]);
+  const cur = gear?.items.find((g) => g.slot === EQUIP_SLOTS.findIndex((s) => s.id === tpl.slot));
+  rows.push(["Đang mặc", cur ? equipName(parseEquip(cur.stats)?.tpl, cur.enhance) : "Ô trống"]);
+  for (const [k, v] of rows) { const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; box.append(a, b); }
+  return box;
+}
+
+/** Dải "Đang mặc" (E1): món trang bị hồn sư đang mặc, bấm một món để tháo về túi. Chưa có búp bê (E5). */
+function gearStrip(gear: GearMsg, act: BagActions) {
+  const box = document.createElement("div"); box.className = "bequip";
+  const lab = document.createElement("small"); lab.textContent = "Trang bị đang mặc (bấm để tháo):"; box.appendChild(lab);
+  for (const g of [...gear.items].sort((a, b) => a.slot - b.slot)) {
+    const e = parseEquip(g.stats), b = document.createElement("button"); b.type = "button"; b.className = "buse use";
+    b.textContent = `${EQUIP_SLOTS[g.slot]?.name ?? "?"}: ${e ? equipName(e.tpl, g.enhance) : "?"}`;
+    if (e) b.style.color = EQUIP_TIERS[equipTemplate(e.tpl)!.tier].col;
+    b.addEventListener("click", () => { b.blur(); act.unequipGear(g.slot); });
+    box.appendChild(b);
+  }
+  return box;
 }
 
 /** Ô gửi kèm khi gắn nhanh hồn hạch: đủ ô thì ô của món yếu nhất (đúng món bảng so sánh nói sẽ bị thay), còn ô trống thì để server chọn. */

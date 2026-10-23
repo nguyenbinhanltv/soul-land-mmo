@@ -56,6 +56,9 @@ export interface SoldItem extends BuybackItem { at: number; }
  * Tin nhắn riêng "bag": túi đồ, số ô tối đa (từ 9.8 theo tài khoản, mở rộng ở thương nhân), Hồn Tệ (đồng), số giây còn lại của hồi
  * chiêu chung đan và danh sách mua lại của thương nhân (9.8, mới nhất trước). Từ #216 bộ lọc tự bán `sell` và đồ tự bán gần nhất `sold`.
  */
+/** Tin riêng "gear" (trang bị hồn sư, mục 5.15): món đang mặc (`slot` = chỉ số ô trong EQUIP_SLOTS) và chỉ số tổng server tính (equipStats). */
+export interface GearItem { id: string; code: string; enhance: number; stats: unknown; slot: number; lock?: boolean; }
+export interface GearMsg { items: GearItem[]; st: { bonus: Record<string, number>; weapon: { min: number; max: number } | null; red: number; luck: number }; }
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
 /**
  * Tin riêng "bagd" (#215): túi đổi so với lần gửi trước (shared/bagSync.ts, áp bằng applyBagDelta lên tin "bag" đang có); số ô, Hồn
