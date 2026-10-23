@@ -105,3 +105,19 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 - Microbench `findPath` / `findLongPath` (4000 cặp điểm ngẫu nhiên, bản đồ ×8): thường p99 0,66 ms, lớn nhất 0,73 ms; dài p99 1,4 ms, lớn nhất 2,9 ms. **A* không thể gây nhịp 50–65 ms.**
 - Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Không nằm trong tick, chưa rõ nguồn; xem phần để sau.
 **Kết luận.** Giả thuyết "A* một lần nặng" bị bác bỏ; nhịp 50–65 ms ở vòng người chơi là nhiễu lúc người vào đông (một `AutoHunter` quyết định lần đầu 36 ms, chưa rõ chỗ, chỉ gặp một lần). Không sửa code luật. Để sau: nhịp trễ định kỳ do CPU ngoài tick tăng dần khi túi đầy (chưa chứng minh nguồn).
+
+## 8. Hiệu ứng hồn kỹ theo hệ khi 40–100 người cùng tung chiêu (G3, #394)
+**Cách đo.** Trang thử `?thu=fx&stress=<P>` (mỗi trong P người tung một hồn kỹ ngẫu nhiên, hệ / kiểu / niên hạn ngẫu nhiên, mỗi ~2,5 giây; không có server, chỉ phần vẽ). Chrome headless GPU thật (`d3d11`, vsync, `--mute-audio`) 1280×720, camera ×2, mỗi ô 10 giây sau 4 giây khởi động; số liệu từ CDP `Performance.getMetrics` (`ScriptDuration`, `TaskDuration` trên mỗi khung). Màn hình đo giới hạn 112 khung/giây.
+
+| Người (P) | Mức | Khung/giây | Script ms / khung | Tác vụ luồng chính ms / khung | Sprite tối đa | Hạt tối đa |
+|---|---|---|---|---|---|---|
+| 0 | Thấp / Vừa / Cao | 112 | 0,32 / 0,33 / 0,33 | 0,54 / 0,55 / 0,57 | 0 | 0 |
+| 40 | Thấp | 112 | 0,41 | 0,67 | 4 | 0 |
+| 40 | Vừa | 112 | 0,50 | 0,77 | 14 | 56 |
+| 40 | Cao | 112 | 0,44 | 0,66 | 19 | 140 |
+| 60 | Thấp | 112 | 0,38 | 0,59 | 4 | 0 |
+| 60 | Vừa | 112 | 0,49 | 0,74 | 14 | 56 |
+| 60 | Cao | 112 | 0,50 | 0,74 | 28 | 140 |
+| 100 | Thấp / Vừa / Cao | 112 | 0,46 / 0,59 / 0,57 | 0,73 / 0,90 / 0,85 | 4 / 14 / 30 | 0 / 56 / 140 |
+
+**Kết luận.** Hiệu ứng thêm khoảng 0,1–0,2 ms script mỗi khung ở mức Vừa / Cao khi 60 người cùng tung chiêu (0,5 ms trong ngân sách 16,7 ms của 60 khung/giây); sprite và hạt luôn nằm dưới trần theo mức nên chi phí không tăng theo số người. **Giới hạn của phép đo:** không có Chrome nào dựng cả 60 hồn sư, bản đồ và ánh sáng cùng lúc, nên con số này chỉ là phần hiệu ứng cộng thêm; cảnh thật (hồn sư, hồn thú, Light2D) chưa đo trong lượt này. Máy dùng chung với phiên khác.
