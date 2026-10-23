@@ -2562,10 +2562,6 @@ export class GameScene extends Phaser.Scene {
   /** Bản đồ đang đứng có boss thế giới (Lõi Tinh Đấu, BĐ6e). */
   worldBossHere() { return !!MAPS[this.room.state.mapId]?.world?.length; }
 
-  /**
-   * Tin "boss" riêng của boss thế giới (BĐ6e): báo trước / bị hạ toàn server có chữ "Boss thế giới"; trong Lõi Tinh Đấu thêm các cơ chế
-   * buộc đổi võ hồn (điểm yếu hệ, Bá Thể, tích lực phải ngắt, Du Thủy, độc toàn sàn, nổi giận). Trả true nếu đã xử lý xong tin này.
-   */
   private ambientAt = 0;
   /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy gần nhất; ambientLayers.ts tự hẹn giờ. */
   private ambientSound(time: number, mv: { root: { x: number; y: number } } | undefined, glows: ReadonlyArray<{ x: number; y: number; kind: string }>) {
@@ -2580,6 +2576,10 @@ export class GameScene extends Phaser.Scene {
     this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist });
   }
 
+  /**
+   * Tin "boss" riêng của boss thế giới (BĐ6e): báo trước / bị hạ toàn server có chữ "Boss thế giới"; trong Lõi Tinh Đấu thêm các cơ chế
+   * buộc đổi võ hồn (điểm yếu hệ, Bá Thể, tích lực phải ngắt, Du Thủy, độc toàn sàn, nổi giận). Trả true nếu đã xử lý xong tin này.
+   */
   worldBossMsg(m: any, col: string) {
     if (m.k === "warn" && m.world) {
       hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
