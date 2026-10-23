@@ -1422,6 +1422,7 @@ else {
     const ry=VILLAGE_RY, out=safe.x+safe.width+30, bid=await spawnNear(E,3,40), pc=STATUS.poison.col, ticks=()=>E.dmgs.filter(d=>d.bid===bid&&d.c===pc);
     await test(E,"status",{s:"stun",secs:30}); await test(E,"status",{s:"poison",n:2,secs:30});
     E.dmgs=[]; ok(await waitFor(()=>ticks().length,1500),`Trúng độc ngoài làng: mất ${ticks()[0]?.v} mỗi giây`);
+    ok(ticks().every(d=>d.dot===true&&d.by===E.room.sessionId),`Tin dmg của độc có cờ dot và by = người gây (${JSON.stringify(ticks()[0]?.by)}, dot ${ticks()[0]?.dot})`);
     await goTo(E,safe.x+safe.width-24,ry); ok(inSafeOf(E),"E vào làng");
     E.dmgs=[]; await test(E,"ready"); E.room.send("skill",{i:0}); ok(await lastLog(E,/Vùng an toàn/),"trong làng: không tung hồn kỹ");
     await sleep(2200); ok(!ticks().length,"trong làng: độc do mình gây tạm dừng, không gây sát thương");
