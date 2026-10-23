@@ -1,8 +1,10 @@
 import type { AudioManager } from "./AudioManager.ts";
 import type { AudioSettings } from "./settings.ts";
+import { fxPrefs, setFxPrefs, type FxLevel } from "../combatFx.ts";
 import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../uiArt.ts";
 
 const PANEL_ID = "audio";
+const FX_LEVELS: [FxLevel, string][] = [["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]];
 
 function panel(): HTMLElement | null { return document.getElementById(PANEL_ID); }
 
@@ -55,6 +57,10 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
     <button class="audio-mute" type="button" data-audio="muted" aria-pressed="false">Tắt tiếng</button>
     <div class="scale-set" role="group" aria-labelledby="scaleLbl"><span id="scaleLbl">Cỡ giao diện <output data-scale-out></output></span>
       <div class="scale-opts">${UI_SCALE_CHOICES.map((c) => `<button type="button" data-scale="${c.v}" aria-pressed="false">${c.label}</button>`).join("")}</div></div>
+    <div class="scale-set" role="group" aria-labelledby="fxLbl"><span id="fxLbl">Hiệu ứng hình ảnh</span>
+      <div class="scale-opts">${FX_LEVELS.map(([v, label]) => `<button type="button" data-fx="${v}" aria-pressed="false">${label}</button>`).join("")}
+        <button type="button" data-fx-reduce aria-pressed="false" title="Giảm chuyển động
+Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button></div></div>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
   const update = (key: "master" | "music" | "sfx", value: number) => {
     audio.updateSettings({ [key]: value });
@@ -83,6 +89,13 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
   el.querySelectorAll<HTMLButtonElement>("[data-scale]").forEach((b) => b.addEventListener("click", () => {
     setUiScalePref(b.dataset.scale as typeof UI_SCALE_CHOICES[number]["v"]); audio.play("ui_click"); renderScale();
   }, { signal }));
+  const renderFx = () => {
+    el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.fx === fxPrefs.level)));
+    el.querySelector("[data-fx-reduce]")!.setAttribute("aria-pressed", String(fxPrefs.reduce));
+  };
+  el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ level: b.dataset.fx as FxLevel }); audio.play("ui_click"); renderFx(); }, { signal }));
+  el.querySelector("[data-fx-reduce]")!.addEventListener("click", () => { setFxPrefs({ reduce: !fxPrefs.reduce }); audio.play("ui_click"); renderFx(); }, { signal });
+  renderFx();
   addEventListener("resize", renderScale, { signal });
   renderScale();
   render(audio.getSettings());
