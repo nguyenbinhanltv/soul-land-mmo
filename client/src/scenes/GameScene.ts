@@ -2613,7 +2613,16 @@ export class GameScene extends Phaser.Scene {
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
       () => this.watching ? this.room.send("arena", { op: "unwatch" }) : this.onBack());
     hud.updateArenaEnd();
-    this.show ??= new ArenaShow(this);
+    if (!this.show) {
+      const au = this.audio, play = (group: string, fallback: Parameters<AudioManager["play"]>[0] | null, o: Parameters<AudioManager["playGroup"]>[2] = {}) => { if (!au.playGroup(group, null, o) && fallback) au.play(fallback); };
+      void au.bank?.ensure("arena");
+      this.show = new ArenaShow(this, {
+        drum: () => play("arena-drum", "boss_warn", { priority: 5 }),
+        tick: (n) => play("arena-tick", "ui_click", { channel: "ui", rate: 1 + (3 - Math.min(3, n)) * 0.12, priority: 5 }),
+        finisher: () => play("arena-gong", "boss_down", { priority: 5 }),
+        heart: () => play("arena-heart", null, { gain: 0.8, priority: 4 }),
+      });
+    }
     this.show.update({ phase: st.phase, time: st.time, winner: st.winner,
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, alive: s.alive, total: s.total, pct: s.pct })), players: st.players }, this.me, this.watching);
   }

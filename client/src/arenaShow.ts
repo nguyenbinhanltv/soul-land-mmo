@@ -19,8 +19,10 @@ function prefs(): { level: Level; reduce: boolean } {
 const FEED_MAX = 4, FEED_MS = 6000, SLOW_MS = 500, SLOW_K = 0.3, LOW_HP = 0.25, SKILL_MS = 3000;
 const ZOOM: Record<Level, number> = { low: 1, mid: 1.12, high: 1.22 };
 const BEAT_S: Record<Level, number> = { low: 1.2, mid: 0.9, high: 0.65 };
+const BIG_HIT = 0.2, HIT_GAP_MS = 700, PUNCH_MS = 140; // đòn lớn = mất từ BIG_HIT máu tối đa trong một nhịp state
+const PUNCH: Record<Level, number> = { low: 0, mid: 1.05, high: 1.1 }, SHAKE: Record<Level, number> = { low: 0, mid: 0.004, high: 0.008 };
 
-/** Móc âm thanh (trống mở trận, đếm ngược, tiếng ngân kết liễu, nhịp tim): để rỗng cho tới khi G2 #393 / G5 #396 merge (chỉ CC0, ghi art/CREDITS.md). */
+/** Móc âm thanh (trống mở trận, đếm ngược, tiếng ngân kết liễu, nhịp tim): GameScene nối vào nhóm arena-* của kho tiếng CC0 (art/CREDITS.md). */
 export interface ArenaSfx { drum(): void; tick(n: number): void; finisher(): void; heart(): void }
 const NO_SFX: ArenaSfx = { drum() {}, tick() {}, finisher() {}, heart() {} };
 
@@ -33,6 +35,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 export class ArenaShow {
   private vs = el("avs"); private feed = el("afeed"); private big = el("abig"); private lowhp = el("alow");
   private phase = ""; private alive: number[] | null = null; private skills = new Map<string, { name: string; t: number }>();
+  private hp = new Map<string, number>(); private hitT = 0; private z0: number | null = null;
   private shown = false; private lastN = -1; private finished = false; private beatT = 0;
 
   constructor(private scene: Phaser.Scene, private sfx: ArenaSfx = NO_SFX) {
@@ -51,6 +54,7 @@ export class ArenaShow {
     this.phase = a.phase;
     if (a.phase === "ready") this.countdown(a, pf);
     this.kills(a, now);
+    this.bigHit(a, pf, now);
     this.lowHp(a, me, watching, pf);
     this.feed.querySelectorAll<HTMLElement>("[data-t]").forEach((e) => { if (now - Number(e.dataset.t) > FEED_MS) e.remove(); });
   }
@@ -100,6 +104,24 @@ export class ArenaShow {
     this.alive = a.phase === "wait" ? null : cur;
   }
 
+  /** Đòn lớn (một người mất >= BIG_HIT máu tối đa trong một lần cập nhật): rung nhẹ + nhấn zoom ngắn. Thấp / Giảm chuyển động tắt. */
+  private bigHit(a: ArenaView, pf: { level: Level; reduce: boolean }, now: number) {
+    let big = false;
+    a.players.forEach((p, id) => {
+      const prev = this.hp.get(id);
+      if (a.phase === "fight" && prev !== undefined && p.maxHp > 0 && (prev - p.hp) / p.maxHp >= BIG_HIT) big = true;
+      this.hp.set(id, p.hp);
+    });
+    if (!big || pf.reduce || pf.level === "low" || now - this.hitT < HIT_GAP_MS) return;
+    this.hitT = now;
+    const cam = this.scene.cameras.main;
+    cam.shake(PUNCH_MS * 1.5, SHAKE[pf.level]);
+    if (this.z0 === null) {
+      this.z0 = cam.zoom; cam.zoomTo(this.z0 * PUNCH[pf.level], PUNCH_MS);
+      window.setTimeout(() => { if (this.z0 !== null) cam.zoomTo(this.z0, PUNCH_MS * 2); this.z0 = null; }, PUNCH_MS);
+    }
+  }
+
   private lowHp(a: ArenaView, me: string, watching: boolean, pf: { level: Level; reduce: boolean }) {
     const p = a.players.get(me), on = !watching && a.phase === "fight" && !!p && !p.dead && p.maxHp > 0 && p.hp / p.maxHp < LOW_HP;
     this.lowhp.hidden = !on;
@@ -115,7 +137,7 @@ export class ArenaShow {
     const w = a.winner, cam = this.scene.cameras.main, fancy = !pf.reduce && pf.level !== "low";
     this.sfx.finisher();
     if (fancy) {
-      const z0 = cam.zoom, tw = this.scene.tweens;
+      const z0 = this.z0 ?? cam.zoom, tw = this.scene.tweens;
       tw.timeScale = SLOW_K;
       cam.zoomTo(z0 * ZOOM[pf.level], 250);
       window.setTimeout(() => { tw.timeScale = 1; cam.zoomTo(z0, 600); }, SLOW_MS);
