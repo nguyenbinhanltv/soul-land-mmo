@@ -29,7 +29,7 @@ body.touch #toasts{bottom:230px}
 #mapLegend{display:flex;flex-wrap:wrap;justify-content:center;gap:0 8px;margin-top:2px;font:var(--fs-s)/12px var(--f10);color:var(--ink2)}
 #mapLegend span::before{content:"";display:inline-block;width:6px;height:6px;margin-right:3px;background:var(--d);border:1px solid var(--plate);vertical-align:-1px}
 #mapLegend .lg-mate{--d:#7dff8a} #mapLegend .lg-npc{--d:#e9c45a} #mapLegend .lg-gate{--d:#86e0b0} #mapLegend .lg-boss{--d:#ff3b3b}
-@media (max-width:640px){#mapLegend{display:none}}
+:where(body.ui-w640) #mapLegend{display:none}
 
 /* ----- Hộp thoại NPC / cửa hàng: chân dung và biểu tượng hàng trong ô ui_o, chú thích bằng setTip ----- */
 .shoprow>.sicon{display:grid;place-items:center;width:40px;height:40px;box-sizing:border-box;background:var(--plate)}
