@@ -92,7 +92,9 @@
     { "type": "objects", "kind": "poseidon", "at": [[150, 70], [156, 70]] },
     { "type": "objects", "kind": "sea_lamp", "at": [[145, 72], [161, 72], [146, 79], [161, 80]] },
     { "type": "scatter", "kind": "shell", "rect": [0, 60, 60, 110], "p": 0.008, "on": ["grass"] },
-    { "type": "house", "rect": [30, 87, 4, 3], "margin": 1 }
+    { "type": "house", "rect": [30, 87, 4, 3], "margin": 1 },
+    { "type": "house", "rect": [40, 131, 5, 4], "margin": 1 },
+    { "type": "house", "rect": [97, 131, 5, 4], "margin": 1 }
   ],
   "roads": [
     { "via": ["ben", "san_ho", "mqh", "vach_chan", "vach", "uyen"], "width": 3, "waterCost": 6 },
