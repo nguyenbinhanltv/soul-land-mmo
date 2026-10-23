@@ -22,6 +22,36 @@
       "lpc": true
     },
     {
+      "key": "beast_bich_lan_xa",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_co_moc_thu_nhan",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_cuc_yeu_hoa_linh",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_dien_thu",
       "frame": [
         64,
@@ -42,6 +72,26 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_doc_cuc_dang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_doc_vu_thiem",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_hac_boi_da_tru",
       "frame": [
         64,
@@ -50,6 +100,16 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_hac_thuy_mang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_hac_vu_bien_buc",
@@ -62,6 +122,16 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_hoa_linh_diep",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_hoi_vu_tuoc",
       "frame": [
         64,
@@ -70,6 +140,16 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_huyen_bang_thiem",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_kiem_vi_hat",
@@ -100,6 +180,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_liet_hoa_tich_dich",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_liet_trao_hung",
@@ -242,6 +332,16 @@
       "map": "tinh_dau_ngoai_vi"
     },
     {
+      "key": "beast_thanh_lan_doc_co",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_thanh_lan_ngac",
       "frame": [
         96,
@@ -298,8 +398,8 @@
         96
       ],
       "iso": true,
-      "map": "lac_nhat_sam_lam",
-      "lpc": true
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_tu_van_bao",
@@ -360,6 +460,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_y_la_hoa_yeu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "card_sr",
