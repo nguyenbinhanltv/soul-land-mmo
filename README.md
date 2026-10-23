@@ -180,6 +180,7 @@ soát chất lượng: `balance-review`, `anti-cheat-audit`, `soak-perf`, `bot-f
 [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios), MIT).
 AI đọc `CLAUDE.md` và `GAME_DESIGN.md`; giao từng việc nhỏ theo mục Lộ trình.
 Nhiều người / agent cùng làm: nhận việc qua issue GitHub theo `CONTRIBUTING.md` (agent khác Claude đọc `AGENTS.md`).
+Quy trình orchestration (AO, collaborator, review, kiểm thử, skill, ảnh) và mẫu dùng lại cho dự án khác: thư mục [`workflows/`](workflows/README.md).
 
 Mỗi máy làm một lần:
 
