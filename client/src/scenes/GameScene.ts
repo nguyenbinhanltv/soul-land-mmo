@@ -1375,7 +1375,7 @@ export class GameScene extends Phaser.Scene {
       const sk = v && VOHON[m.vh] ? (m.ct ? chanThanOf(VOHON[m.vh].id)?.skill : ringSkill(VOHON[m.vh].id, m.i)) : undefined;
       if (v && sk) this.floatText(v.root.x, v.root.y - HEAD - 18, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
       if (sk) this.show?.noteSkill(m.id, sk.name);
-      if (v && sk) this.skillFx(m, v, sk);
+      if (v && sk && !m.av) this.skillFx(m, v, sk); // `av`: biến hình Chân Thân, cảnh lớn do tin `avatar` dựng với tên Chân Thân
     }
     else if (m.k === "ult" || m.k === "avatar") {
       // Tuyệt kỹ vòng 10 / Võ Hồn Chân Thân (8.1a): hai vòng sáng, chớp màn hình khi ở gần; chính mình thấy banner, người khác thấy tên lớn bay lên.
@@ -1394,6 +1394,7 @@ export class GameScene extends Phaser.Scene {
         this.flash(m.k === "ult" ? 260 : 180, c.red, c.green, c.blue); this.shake(300, m.k === "ult" ? 0.006 : 0.003);
       }
       if (m.id === this.me) hud.banner(m.name, m.k === "ult" ? "Tuyệt kỹ" : "Võ Hồn Chân Thân");
+      if (m.k === "avatar" && VOHON[v.vh] && cineAllowed(m.id === this.me, me ? Math.hypot(me.wx - v.wx, me.wy - v.wy) : 0)) this.cine.show(VOHON[v.vh].id, m.name, col, m.id === this.me);
     }
     else if (m.k === "bone") {
       // Kỹ năng hồn cốt chủ động (4.3): vòng sáng màu niên hạn hồn cốt, tên kỹ năng bay lên (tra theo loài và nút).

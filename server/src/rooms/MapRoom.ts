@@ -5040,7 +5040,8 @@ export class MapRoom extends Room<MapState> {
     this.unhide(p, d);
     this.recalc(id, false);
     d.hpF = Math.min(p.maxHp, d.hpF + Math.max(0, p.maxHp - hp0)); p.hp = Math.ceil(d.hpF);
-    this.broadcast("fx", { k: "soulring", id, tier, i: ri, vh: p.vh });
+    // av: chỉ cho client biết đây là biến hình Chân Thân (hiển thị), không phải tung hồn kỹ vòng 7 (G3, #394)
+    this.broadcast("fx", { k: "soulring", id, tier, i: ri, vh: p.vh, av: 1 });
     this.broadcast("fx", { k: "avatar", id, name: def.name, col, on: true });
     if (def.burst) this.runSkill(id, def.burst, skillPower(years), buffPower(years), TIERS[tier].glow, { kind: "skill", done: false }, this.shareOf(p, d.ch.vohon));
     this.log(id, `${def.name}: ${def.secs} giây.`, col);

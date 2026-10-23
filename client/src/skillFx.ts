@@ -162,7 +162,7 @@ export class SkillFx {
       for (let j = 0; j < m; j++) this.scene.time.delayedCall(j * (dur / (m + 1)) * 0.8, () => this.fxp.emit(o.x + (Math.random() - 0.5) * 18 * SPR, o.y - 2 * SPR, j % 3 ? c.main : tc, { vx: (Math.random() - 0.5) * 10, vy: -(34 + Math.random() * 40) * SPR / 2, life: 0.7, size: 2, gravity: -6 }));
     } else { // hit
       const dur = o.dur ?? 280, s = this.grab(tex);
-      if (s) { s.setScale(this.scaleFor(s, 22 * SPR)); s.setPosition(snap(o.x), snap(o.y - 8 * SPR)); this.run(s, dur, k => { s.setAlpha(1 - k); s.setScale(snap(s.scaleX * (k < 0.5 ? 1 : 0.999)) || SPR); }); }
+      if (s) { s.setScale(this.scaleFor(s, 22 * SPR)); s.setPosition(snap(o.x), snap(o.y - 8 * SPR)); this.run(s, dur, k => { s.setAlpha(1 - k); }); }
       this.halo(o.x, o.y - 8 * SPR, c.hi, 40 * SPR, dur);
       this.fxp.burst(o.x, o.y - 8 * SPR, c.main, n(10), 80 * SPR / 2, 2, 0.32, -4);
       if (pk > 0) this.fxp.burst(o.x, o.y - 8 * SPR, c.hi, n(4), 40 * SPR / 2, 2, 0.2);
