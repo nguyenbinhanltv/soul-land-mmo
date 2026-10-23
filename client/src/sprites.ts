@@ -139,24 +139,87 @@ export const STATIC_DIR_MAP: Record<Dir8, readonly [number, boolean]> = {
 const DIR_VEC: Record<Dir8, readonly [number, number]> = {
   s: [0, 1], se: [1, 0.5], e: [1, 0], ne: [1, -0.5], n: [0, -1], nw: [-1, -0.5], w: [-1, 0], sw: [-1, 0.5],
 };
+/** Họ hoạt ảnh của hồn thú lai (#395): quyết định kiểu đi, đứng, báo trước và ra đòn vẽ bằng code. Loài không ghi ở đây là thú bốn chân. */
+export type BeastFamily = "quad" | "bird" | "snake" | "insect" | "plant";
+const FAMILY_SPECIES: Record<Exclude<BeastFamily, "quad">, readonly string[]> = {
+  bird: ["hoi_vu_tuoc", "kim_linh_ung", "loi_duc_ung", "bang_vu_ung", "han_nguyet_ung", "loi_van_hai_ung", "hac_vu_bien_buc", "loi_quang_hai_dieu"],
+  snake: ["man_da_la_xa", "thanh_lan_xa", "xich_lan_mang", "bich_lan_xa", "hac_thuy_mang", "lam_lan_hai_xa", "thien_thanh_nguu_mang", "kiem_ngu", "tham_hai_ma_kinh", "huyet_nha_cu_sa", "quy_dien_hai_yeu"],
+  insect: ["doc_cham_phong", "nhan_dien_ma_chu", "nhan_dien_ma_chu_non", "kiem_vi_hat", "bang_tinh_hat", "bang_bich_hat", "huyen_minh_bang_tam", "hoa_linh_diep"],
+  plant: ["quy_dang", "quy_dang_non", "thuc_nhan_hoa", "cuc_yeu_hoa_linh", "doc_cuc_dang", "co_moc_thu_nhan", "y_la_hoa_yeu", "thanh_lan_doc_co", "tham_hai_ma_chuong", "u_linh_hai_mau"],
+};
+const FAMILY_OF = new Map<string, BeastFamily>();
+for (const [f, ids] of Object.entries(FAMILY_SPECIES)) for (const id of ids) FAMILY_OF.set(id, f as BeastFamily);
+export const beastFamily = (species: string | undefined): BeastFamily => FAMILY_OF.get(species ?? "") ?? "quad";
+
 /** Thời gian (giây) và biên độ chuyển động vẽ bằng code của hồn thú lai (pixel màn hình nội bộ, gốc ở chân). */
 export const STATIC_MOTION = {
-  breathe: { period: 1.6, sy: 0.02, sx: 0.01 },
-  walk: { period: 0.42, lift: 2, sy: 0.04, sx: 0.02, tilt: 0.052 },
-  windup: { ease: 0.25, sy: 0.06, sx: 0.03, lean: 0.14, back: 1.5 },
-  lunge: { sec: 0.22, dist: 7, rise: 2, lean: 0.17, sx: 0.08, ret: 0.38 },
   hurt: { sec: 0.25, shake: 2, flash: 16 },
   die: { sec: 0.7, turn: 1.35, sink: 4, sy: 0.3 },
+  /** Báo trước (giữ tới khi server tung chiêu): `ease` giây vào tư thế; co giãn, ngả ra sau, lùi `back`, nhấc `up` pixel. */
+  windup: {
+    quad: { ease: 0.25, sy: 0.06, sx: 0.03, lean: 0.14, back: 1.5, up: 0 },
+    bird: { ease: 0.25, sy: -0.06, sx: 0.02, lean: 0.2, back: 1, up: 5 },
+    snake: { ease: 0.2, sy: 0.1, sx: -0.1, lean: 0.12, back: 3, up: 0 },
+    insect: { ease: 0.2, sy: 0.02, sx: 0.02, lean: 0.1, back: 3, up: 1.5 },
+    plant: { ease: 0.3, sy: -0.08, sx: -0.03, lean: 0.3, back: 0, up: 0 },
+  },
+  /** Ra đòn khi `cast` tắt: lao `sec` giây tới `dist` pixel (nhảy vòng `arc`, nghiêng `lean`, giãn ngang `sx`) rồi về trong `ret` giây;
+   *  thực vật (`dist` 0) quất qua lại. Chim bổ nhào (arc lớn), rắn mổ (nhanh, giãn dài), côn trùng lao (nhanh, xa). */
+  strike: {
+    quad: { sec: 0.22, dist: 7, arc: 2, lean: 0.17, sx: 0.08, ret: 0.38 },
+    bird: { sec: 0.3, dist: 9, arc: 7, lean: 0.35, sx: -0.05, ret: 0.45 },
+    snake: { sec: 0.12, dist: 9, arc: 0, lean: 0.05, sx: 0.25, ret: 0.45 },
+    insect: { sec: 0.14, dist: 12, arc: 1, lean: 0.1, sx: 0.05, ret: 0.3 },
+    plant: { sec: 0.35, dist: 0, arc: 0, lean: 0.55, sx: 0, ret: 0.3 },
+  },
+  /** Đi: chu kỳ giây; nhấc `lift`, co giãn `sy` / `sx`, nghiêng `tilt`; `hover` giữ lơ lửng quanh mặt đất (côn trùng). */
+  walk: {
+    quad: { period: 0.42, lift: 2, sy: 0.04, sx: 0.02, tilt: 0.052, hover: 0 },
+    bird: { period: 0.3, lift: 3, sy: 0.05, sx: 0.02, tilt: 0.04, hover: 0 },
+    snake: { period: 0.5, lift: 0, sy: 0, sx: 0.07, tilt: 0.09, hover: 0 },
+    insect: { period: 0.25, lift: 1.2, sy: 0.02, sx: 0.04, tilt: 0.05, hover: 2.5 },
+    plant: { period: 0.8, lift: 0, sy: 0.03, sx: 0, tilt: 0.07, hover: 0 },
+  },
+  /** Đứng: thở / chao nhẹ chu kỳ giây (`tilt` cho rắn, cây); chim mổ đất mỗi `peck` giây; côn trùng lơ lửng. */
+  idle: {
+    quad: { period: 1.6, sy: 0.02, sx: 0.01, tilt: 0, peck: 0, hover: 0 },
+    bird: { period: 1.4, sy: 0.015, sx: 0.01, tilt: 0, peck: 2.4, hover: 0 },
+    snake: { period: 2, sy: 0.01, sx: 0.01, tilt: 0.035, peck: 0, hover: 0 },
+    insect: { period: 0.35, sy: 0.01, sx: 0.01, tilt: 0, peck: 0, hover: 2.5 },
+    plant: { period: 2.4, sy: 0.02, sx: 0, tilt: 0.045, peck: 0, hover: 0 },
+  },
 } as const;
 export interface StaticPose { dx: number; dy: number; sx: number; sy: number; rot: number; flash: boolean }
 interface StaticMotionState { cast: boolean; castAt: number; hp: number; atk: number; hit: number }
 
+/** Mức chuyển động của hồn thú lai theo tùy chọn hiệu ứng chung (khóa `soul-land-fx-v1`, G1 #392): Giảm chuyển động gần như tắt, Thấp / Vừa / Cao. */
+let motionAt = -1e9, motionVal = 1;
+function motionScale(nowMs: number): number {
+  if (nowMs - motionAt < 1000) return motionVal;
+  motionAt = nowMs; motionVal = 1;
+  try {
+    const r = JSON.parse(window.localStorage.getItem("soul-land-fx-v1") ?? "null") ?? {};
+    const reduce = typeof r.reduce === "boolean" ? r.reduce : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    motionVal = reduce ? 0.2 : r.level === "low" ? 0.6 : r.level === "high" ? 1.25 : 1;
+  } catch { /* hỏng thì mặc định Vừa */ }
+  return motionVal;
+}
+/** Mức chuyển động hiện tại (1 = Vừa); dưới 0,5 (Giảm chuyển động) thì GameScene bỏ vòng sóng xung kích. */
+export const beastMotionLevel = (nowMs: number) => motionScale(nowMs);
+/** Số giây từ lúc hồn thú tung đòn (cast tắt) tới `nowMs`, -1 nếu chưa tung hoặc không phải sprite tĩnh: để vẽ vòng sóng xung kích của tinh anh / thú vương / boss. */
+export function beastStrikeAge(s: Phaser.GameObjects.Sprite, nowMs: number): number {
+  const st: StaticMotionState | undefined = s.getData("sm");
+  return st && st.atk > 0 ? (nowMs - st.atk) / 1000 : -1;
+}
+
 /**
- * Chuyển động của sprite tĩnh (nhún khi đi, ngả ra sau rồi vồ khi đánh, lắc và nháy trắng khi trúng đòn): chỉ client, theo `moving`,
- * `cast` (giữ tư thế báo trước tới khi server tung chiêu) và máu giảm. Lúc cast tắt thì vồ `lunge.sec` giây rồi về chỗ. Dịch (dx, dy) tính theo pixel
- * màn hình nội bộ, xoay / co giãn quanh chân (gốc giữa đáy) nên sprite không trượt khỏi chỗ đứng.
+ * Chuyển động của sprite tĩnh theo họ (beastFamily): thở / nhún / lơ lửng / trườn khi đi và đứng, báo trước (giữ tư thế tới khi server tung
+ * chiêu), ra đòn (vồ, bổ nhào, mổ, lao, quất), lắc và nháy trắng khi mất máu: chỉ client, theo `moving`, `cast` và máu giảm. `power` > 1
+ * (tinh anh, thú vương, boss) báo trước mạnh và rung nhịp hơn, ra đòn xa hơn. Dịch (dx, dy) tính theo pixel màn hình nội bộ, xoay / co giãn
+ * quanh chân (gốc giữa đáy) nên sprite không trượt khỏi chỗ đứng.
  */
-export function staticBeastPose(s: Phaser.GameObjects.Sprite, nowMs: number, moving: boolean, cast: boolean, hp: number, face: Dir8): StaticPose {
+export function staticBeastPose(s: Phaser.GameObjects.Sprite, nowMs: number, moving: boolean, cast: boolean, hp: number, face: Dir8,
+  family: BeastFamily = "quad", power = 1): StaticPose {
   const st: StaticMotionState = s.getData("sm") ?? { cast, castAt: nowMs, hp, atk: -1e9, hit: -1e9 };
   if (st.cast && !cast) st.atk = nowMs;
   if (!st.cast && cast) st.castAt = nowMs;
@@ -165,26 +228,42 @@ export function staticBeastPose(s: Phaser.GameObjects.Sprite, nowMs: number, mov
   const [vx0, vy0] = DIR_VEC[face], n = Math.hypot(vx0, vy0), vx = vx0 / n, vy = vy0 / n, side = vx >= 0 ? 1 : -1;
   const P: StaticPose = { dx: 0, dy: 0, sx: 1, sy: 1, rot: 0, flash: false };
   const t = nowMs / 1000, M = STATIC_MOTION, since = (nowMs - st.atk) / 1000, hitT = (nowMs - st.hit) / 1000;
+  const W = M.windup[family], S = M.strike[family], K = M.walk[family], I = M.idle[family], elite = power > 1;
   if (cast) {
-    const k = Math.min(1, (nowMs - st.castAt) / 1000 / M.windup.ease);
-    P.sy = 1 - M.windup.sy * k; P.sx = 1 + M.windup.sx * k; P.rot = -M.windup.lean * k * side; P.dx = -vx * M.windup.back * k + Math.sin(t * 60) * 0.4 * k;
-  } else {
-    if (since >= 0 && since < M.lunge.sec + M.lunge.ret) {
-      const u = since < M.lunge.sec ? Math.sin((since / M.lunge.sec) * Math.PI / 2) : 1 - (since - M.lunge.sec) / M.lunge.ret;
-      P.dx = vx * M.lunge.dist * u; P.dy = vy * M.lunge.dist * 0.5 * u - M.lunge.rise * Math.sin(Math.min(1, since / M.lunge.sec) * Math.PI) * (since < M.lunge.sec ? 1 : 0);
-      P.rot = M.lunge.lean * side * u; P.sx = 1 + M.lunge.sx * u;
-    } else if (moving) {
-      const ph = (t * 2 * Math.PI) / M.walk.period;
-      P.dy = -Math.abs(Math.sin(ph / 2)) * M.walk.lift; P.sy = 1 + M.walk.sy * Math.cos(ph); P.sx = 1 - M.walk.sx * Math.cos(ph); P.rot = M.walk.tilt * Math.sin(ph / 2);
+    const k = Math.min(1, (nowMs - st.castAt) / 1000 / W.ease), pw = k * power, pulse = elite ? 1 + 0.03 * Math.sin(t * 14) * k : 1;
+    P.sy = (1 - W.sy * pw) * pulse; P.sx = (1 + W.sx * pw) * pulse; P.rot = -W.lean * pw * side;
+    P.dx = -vx * W.back * pw + Math.sin(t * 60) * 0.4 * pw; P.dy = -W.up * pw;
+    if (family === "plant") P.rot += Math.sin(t * 9) * 0.05 * pw; // cây run run như sắp quất
+  } else if (since >= 0 && since < S.sec + S.ret) {
+    const reach = S.dist * (1 + 0.3 * (power - 1)), k = Math.min(1, since / S.sec);
+    if (S.dist === 0) { // quất dây: quét qua rồi dội ngược, tắt dần trong `ret`
+      P.rot = S.lean * power * side * Math.sin(k * Math.PI * 1.5) * (since < S.sec ? 1 : Math.max(0, 1 - (since - S.sec) / S.ret));
+      P.sy = 1 + 0.12 * Math.sin(k * Math.PI);
     } else {
-      const ph = (t * 2 * Math.PI) / M.breathe.period;
-      P.sy = 1 + M.breathe.sy * Math.sin(ph); P.sx = 1 - M.breathe.sx * Math.sin(ph);
+      const u = since < S.sec ? Math.sin(k * Math.PI / 2) : 1 - (since - S.sec) / S.ret;
+      P.dx = vx * reach * u; P.dy = vy * reach * 0.5 * u - S.arc * Math.sin(k * Math.PI) * (since < S.sec ? 1 : 0);
+      P.rot = S.lean * side * u; P.sx = 1 + S.sx * u;
+      if (family === "bird") P.sy = 1 - S.sx * u * 0.5;
+    }
+  } else if (moving) {
+    const ph = (t * 2 * Math.PI) / K.period;
+    P.dy = -Math.abs(Math.sin(ph / 2)) * K.lift - K.hover - (K.hover ? Math.sin(ph) * 0.8 : 0);
+    P.sy = 1 + K.sy * Math.cos(ph); P.sx = 1 - K.sx * Math.cos(ph); P.rot = K.tilt * Math.sin(ph / 2);
+  } else {
+    const ph = (t * 2 * Math.PI) / I.period;
+    P.sy = 1 + I.sy * Math.sin(ph); P.sx = 1 - I.sx * Math.sin(ph); P.rot = I.tilt * Math.sin(ph);
+    P.dy = -I.hover - (I.hover ? Math.sin(ph * 2) * 0.8 : 0);
+    if (I.peck) { // chim cúi mổ đất ngắn mỗi `peck` giây (lệch pha theo sprite để cả đàn không mổ cùng lúc)
+      const q = (t + (s.x * 0.37 % I.peck)) % I.peck;
+      if (q < 0.18) { const w = Math.sin((q / 0.18) * Math.PI); P.sy = 1 - 0.1 * w; P.rot = 0.18 * side * w; P.dy += 1.2 * w; }
     }
   }
   if (hitT >= 0 && hitT < M.hurt.sec) {
     P.dx += Math.sin(hitT * 90) * M.hurt.shake * (1 - hitT / M.hurt.sec);
     P.flash = Math.floor(hitT * M.hurt.flash) % 2 === 0;
   }
+  const mk = motionScale(nowMs);
+  if (mk !== 1) { P.dx *= mk; P.dy *= mk; P.rot *= mk; P.sx = 1 + (P.sx - 1) * mk; P.sy = 1 + (P.sy - 1) * mk; }
   return P;
 }
 

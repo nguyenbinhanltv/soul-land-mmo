@@ -45,6 +45,18 @@ for (const t of tracks) {
     else events.set(t.event, t.id);
   }
 }
+// Lớp giao chiến (G5, #396): chồng lên đúng một bài nền / bài boss, cùng độ dài vòng để phát đồng bộ; mỗi bài nền có tối đa một lớp.
+const stemOf = new Map();
+for (const t of tracks.filter((x) => x.kind === "stem")) {
+  const base = tracks.find((x) => x.id === t.of);
+  if (!base || !["map", "battle"].includes(base.kind)) { fail(`${t.id}: lớp giao chiến chồng lên ${t.of} nhưng đó không phải bài nền / giao chiến`); continue; }
+  if (Math.abs(base.seconds - t.seconds) > 0.0005) fail(`${t.id}: dài ${t.seconds} s khác bài nền ${base.id} (${base.seconds} s), sẽ lệch nhịp`);
+  if (stemOf.has(base.id)) fail(`bài ${base.id} có hai lớp giao chiến (${stemOf.get(base.id)}, ${t.id})`);
+  stemOf.set(base.id, t.id);
+}
+for (const e of ["level_up", "ring_absorb", "arena_win", "arena_lose", "quest_accept", "quest_complete", "crit_big", "boss_down"]) if (!events.has(e)) fail(`thiếu khúc ngắn cho sự kiện ${e}`);
+const bossBattle = tracks.find((t) => t.kind === "battle");
+if (bossBattle && !stemOf.has(bossBattle.id)) fail(`bài giao chiến boss ${bossBattle.id} thiếu lớp nâng cấp pha 2`);
 for (const f of readdirSync(dir)) if (!used.has(f)) fail(`file thừa trong shared/assets/audio/music: ${f}`);
 
 // Mã bản đồ đọc thẳng từ khai báo MAPS (không import TypeScript).
@@ -63,4 +75,4 @@ if (errors.length) {
   for (const e of errors) console.error(`[nhạc] Lỗi: ${e}`);
   process.exit(1);
 }
-console.log(`[nhạc] ${tracks.length} bài (${tracks.filter((t) => t.kind === "map").length} bản đồ, ${events.size} khúc ngắn), ${mapIds.length} bản đồ đều có nhạc: OK`);
+console.log(`[nhạc] ${tracks.length} bài (${tracks.filter((t) => t.kind === "map").length} bản đồ, ${events.size} khúc ngắn, ${stemOf.size} lớp giao chiến), ${mapIds.length} bản đồ đều có nhạc: OK`);

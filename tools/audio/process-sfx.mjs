@@ -38,6 +38,7 @@ const probe = async (file) => {
 const trim = "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.005";
 function chain(c) {
   const f = [`aresample=${RATE}`];
+  if (c.startSeconds) f.push(`atrim=start=${c.startSeconds}`, "asetpts=PTS-STARTPTS"); // cắt đoạn giữa bản thu dài (môi trường)
   if (c.pitch) f.push(`asetrate=${Math.round(RATE * c.pitch)}`, `aresample=${RATE}`);
   if (c.highpass) f.push(`highpass=f=${c.highpass}`);
   if (c.lowpass) f.push(`lowpass=f=${c.lowpass}`);
@@ -65,8 +66,9 @@ async function main() {
       const m = await probe(rough);
       if (m.duration < 0.03 || !Number.isFinite(m.maxDb)) throw new Error(`Clip ${c.id} rỗng sau khi cắt`);
       const gain = (PEAK_DB + (c.gainDb ?? 0) - m.maxDb).toFixed(2);
-      const fadeStart = Math.max(0, m.duration - FADE).toFixed(4);
-      await run(["-hide_banner", "-loglevel", "error", "-y", "-i", rough, "-af", `volume=${gain}dB,afade=t=out:st=${fadeStart}:d=${FADE}`, ...stable, "-c:a", "pcm_s16le", done]);
+      const fadeOut = c.fadeOut ?? FADE, fadeStart = Math.max(0, m.duration - fadeOut).toFixed(4);
+      const fadeIn = c.fadeIn ? `afade=t=in:st=0:d=${c.fadeIn},` : "";
+      await run(["-hide_banner", "-loglevel", "error", "-y", "-i", rough, "-af", `volume=${gain}dB,${fadeIn}afade=t=out:st=${fadeStart}:d=${fadeOut}`, ...stable, "-c:a", "pcm_s16le", done]);
       byPack.get(c.pack).push({ clip: c, file: done, duration: (await probe(done)).duration });
     }
     const packs = {}, clips = [];
