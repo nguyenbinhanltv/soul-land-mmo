@@ -1,0 +1,10 @@
+{
+  "attach": "hand",
+  "dirs": {
+    "s":  [{ "img": "thien_can_bach_ngoc_dinh_s.png", "pivot": [7,11], "off": [12,-10], "hand": "right", "layer": "f" }],
+    "se": [{ "img": "thien_can_bach_ngoc_dinh_s.png", "pivot": [7,11], "off": [12,-10], "hand": "right", "layer": "f" }],
+    "e":  [{ "img": "thien_can_bach_ngoc_dinh_s.png", "pivot": [7,11], "off": [12,-10], "hand": "right", "layer": "f" }],
+    "ne": [{ "img": "thien_can_bach_ngoc_dinh_s.png", "pivot": [7,11], "off": [12,-10], "hand": "right", "layer": "b" }],
+    "n":  [{ "img": "thien_can_bach_ngoc_dinh_s.png", "pivot": [7,11], "off": [12,-10], "hand": "right", "layer": "b" }]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "attach": "hand",
+  "dirs": {
+    "s":  [{ "img": "pha_hon_thuong_s.png", "pivot": [16, 36], "hand": "right", "layer": "f" }],
+    "se": [{ "img": "pha_hon_thuong_s.png", "pivot": [16, 36], "hand": "right", "layer": "f" }],
+    "e":  [{ "img": "pha_hon_thuong_s.png", "pivot": [16, 36], "hand": "right", "layer": "f" }],
+    "ne": [{ "img": "pha_hon_thuong_s.png", "pivot": [16, 36], "hand": "right", "layer": "b" }],
+    "n":  [{ "img": "pha_hon_thuong_s.png", "pivot": [16, 36], "hand": "right", "layer": "b" }]
+  }
+}

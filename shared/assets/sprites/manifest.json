@@ -1500,8 +1500,22 @@
       "key": "ui_vach_but",
       "iso": true
     },
-    "vh_cuu_bao_luu_ly_thap_b",
-    "vh_cuu_bao_luu_ly_thap_f",
+    {
+      "key": "vh_can_khon_hon_nguyen_toa_b",
+      "iso": true
+    },
+    {
+      "key": "vh_can_khon_hon_nguyen_toa_f",
+      "iso": true
+    },
+    {
+      "key": "vh_cuu_bao_luu_ly_thap_b",
+      "iso": true
+    },
+    {
+      "key": "vh_cuu_bao_luu_ly_thap_f",
+      "iso": true
+    },
     {
       "key": "vh_cuu_tinh_that_sat_kiem_b",
       "iso": true
@@ -1527,11 +1541,43 @@
       "iso": true
     },
     {
+      "key": "vh_nguyet_nhan_b",
+      "iso": true
+    },
+    {
+      "key": "vh_nguyet_nhan_f",
+      "iso": true
+    },
+    {
+      "key": "vh_pha_hon_thuong_b",
+      "iso": true
+    },
+    {
+      "key": "vh_pha_hon_thuong_f",
+      "iso": true
+    },
+    {
+      "key": "vh_thien_can_bach_ngoc_dinh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_thien_can_bach_ngoc_dinh_f",
+      "iso": true
+    },
+    {
       "key": "vh_u_minh_linh_mieu_b",
       "iso": true
     },
     {
       "key": "vh_u_minh_linh_mieu_f",
+      "iso": true
+    },
+    {
+      "key": "vh_xuc_xich_b",
+      "iso": true
+    },
+    {
+      "key": "vh_xuc_xich_f",
       "iso": true
     }
   ]

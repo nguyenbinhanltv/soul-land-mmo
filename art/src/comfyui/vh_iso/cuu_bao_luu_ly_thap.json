@@ -1,0 +1,10 @@
+{
+  "attach": "hand",
+  "dirs": {
+    "s":  [{ "img": "cuu_bao_luu_ly_thap_s.png", "pivot": [5,29], "off": [12,-10], "hand": "right", "layer": "f" }],
+    "se": [{ "img": "cuu_bao_luu_ly_thap_s.png", "pivot": [5,29], "off": [12,-10], "hand": "right", "layer": "f" }],
+    "e":  [{ "img": "cuu_bao_luu_ly_thap_s.png", "pivot": [5,29], "off": [12,-10], "hand": "right", "layer": "f" }],
+    "ne": [{ "img": "cuu_bao_luu_ly_thap_s.png", "pivot": [5,29], "off": [12,-10], "hand": "right", "layer": "b" }],
+    "n":  [{ "img": "cuu_bao_luu_ly_thap_s.png", "pivot": [5,29], "off": [12,-10], "hand": "right", "layer": "b" }]
+  }
+}
