@@ -1,7 +1,7 @@
 // Nhập biểu tượng trang bị hồn sư (GAME_DESIGN 5.15, #417) từ ảnh lưới nền trong suốt thật (ChatGPT, bậc 0–4) hoặc nền #FF00FF phẳng (Gemini, từ bậc 5): tự nhận, logo Gemini ở góc tự gỡ.
 //   node tools/assets/equip-import.mjs --in <thư mục ảnh> --out <thư mục ra> [--only b0,b1,o,k] [--key #FF00FF] [--cell <mã>=<cỡ>]...
 //
-// Ảnh vào (tên theo bộ prompt `trangbi-*`, tìm trong --in, kể cả thư mục con `trang-bi/`):
+// Ảnh vào (tên theo bộ prompt `trangbi-*[-vN][-dịch-vụ]`, tìm trong --in kể cả thư mục con; hộp thư phẳng `anh-inbox/` cũng được; nhiều lần vẽ / dịch vụ thì lấy lần cao nhất, mới nhất):
 //   trangbi-b0 … trangbi-b5   lưới 5×2, 10 ô × một bậc (EQUIP_TIERS theo thứ tự) → item_equip_<ô>_<bậc>
 //   trangbi-o                 lưới 5×2, 10 bóng ô                                 → item_equip_slot_<ô>
 //   trangbi-k                 lưới 3×2, 6 khung viền theo bậc (phủ kín 32×32)     → item_equip_frame_<bậc>
@@ -26,13 +26,14 @@ const inDir = opt("--in"), outDir = opt("--out"), only = opt("--only").split(","
 if (!inDir || !outDir) { console.error("Cách dùng: equip-import.mjs --in <thư mục ảnh trangbi-*.png> --out <thư mục ra> [--only b0,b1,o,k] [--key #FF00FF]"); process.exit(1); }
 
 const { slots, tiers } = equipSlotTierIds();
+const SERVICE_SUFFIX = "copilot|qwen|leonardo|meta|grok|chatgpt";
+/** Tìm ảnh `trangbi-<mã>[-vN][-magenta][-dịch-vụ].png` trong thư mục (kể cả thư mục con): lần vẽ cao nhất, rồi file mới nhất. */
 const find = (dir, code) => {
-  for (const f of readdirSync(dir)) {
-    const p = path.join(dir, f);
-    if (statSync(p).isDirectory()) { const r = find(p, code); if (r) return r; continue; }
-    if (new RegExp(`^trangbi-${code}(-magenta)?\\.png$`).test(f)) return { file: p, magenta: f.includes("-magenta") };
-  }
-  return null;
+  const re = new RegExp(`^trangbi-${code}(?:-v(\\d+))?(-magenta)?(?:-(?:${SERVICE_SUFFIX}))?\\.png$`, "i"), found = [];
+  const walk = (d) => { for (const f of readdirSync(d)) { const p = path.join(d, f); if (statSync(p).isDirectory()) { walk(p); continue; } const m = re.exec(f); if (m) found.push({ file: p, magenta: !!m[2], version: m[1] ? +m[1] : 1, mtime: statSync(p).mtimeMs }); } };
+  walk(dir);
+  found.sort((x, y) => y.version - x.version || y.mtime - x.mtime);
+  return found[0] ?? null;
 };
 // Mã ảnh → lưới, tên vật (theo thứ tự đọc) và tiền tố khóa ra.
 const JOBS = [
