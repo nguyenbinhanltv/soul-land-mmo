@@ -904,10 +904,10 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): thêm chỉ số kiểu áo vào key lớp áo (mục 5.11), sau 10.4b (#104).
 - Ảnh tĩnh bằng ComfyUI (skill `asset-gen` mục 10, #331), không tốn lượt PixelLab:
   - [ ] Đặt 42 vật đã có ảnh nhưng chưa dùng vào bản đồ (#333).
+  - [x] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
   - [x] Công trình Nặc Đinh Thành: nhà chính học viện sơ cấp, đấu hồn trường, tửu lâu (#336).
-  - [ ] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
   - [x] Trọn bộ ô nền Lõi Tinh Đấu (#338): 7 ô riêng (cỏ, cỏ hoa, đất, sàn đá phiến có phù văn mờ, nước hồ gợn sáng, rêu phát quang, sỏi).
-  - [ ] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339), lô 2 Nội địa, Lạc Nhật (#340), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341).
+  - [ ] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339, xong), lô 2 Nội địa, Lạc Nhật (#340, xong), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341).
   - [ ] Phụ thể tĩnh vũ khí / vật đối xứng (#342).
   - [ ] Thử nghiệm hoạt ảnh 8 hướng bằng ComfyUI cho hồn sư, hồn thú, phụ thể hư ảnh thú (#335).
 

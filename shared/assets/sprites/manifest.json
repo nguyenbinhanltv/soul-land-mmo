@@ -597,6 +597,11 @@
       "iso": true
     },
     {
+      "key": "prop_bia_tinh_van",
+      "iso": true,
+      "map": "loi_tinh_dau"
+    },
+    {
       "key": "prop_bien_chi_duong",
       "iso": true
     },
@@ -609,6 +614,11 @@
       "key": "prop_bui_gai",
       "iso": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "prop_bui_hoa_doc",
+      "iso": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "prop_bui_hoa_nhiet_doi",
@@ -771,6 +781,11 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "prop_da_bang_hoa",
+      "iso": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "prop_da_ngam",
       "iso": true
     },
@@ -925,9 +940,19 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "prop_nhu_bang",
+      "iso": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "prop_phong_do_lon",
       "iso": true,
       "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "prop_rao_tre",
+      "iso": true,
+      "map": "thanh_hon_thon"
     },
     {
       "key": "prop_re_cay_lon",
@@ -937,6 +962,11 @@
       "key": "prop_sap_cho",
       "iso": true,
       "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_sen_phat_sang",
+      "iso": true,
+      "map": "loi_tinh_dau"
     },
     {
       "key": "prop_so_thu_khong_lo",
@@ -1121,6 +1151,10 @@
       "iso": true
     },
     {
+      "key": "thu_am_kim_khung_trao_hung",
+      "iso": true
+    },
+    {
       "key": "thu_bang_bich_hat",
       "iso": true
     },
@@ -1145,6 +1179,18 @@
       "iso": true
     },
     {
+      "key": "thu_bich_lan_xa",
+      "iso": true
+    },
+    {
+      "key": "thu_co_moc_thu_nhan",
+      "iso": true
+    },
+    {
+      "key": "thu_cuc_yeu_hoa_linh",
+      "iso": true
+    },
+    {
       "key": "thu_dien_thu",
       "iso": true
     },
@@ -1153,7 +1199,23 @@
       "iso": true
     },
     {
+      "key": "thu_doc_cuc_dang",
+      "iso": true
+    },
+    {
+      "key": "thu_doc_vu_thiem",
+      "iso": true
+    },
+    {
       "key": "thu_hac_boi_da_tru",
+      "iso": true
+    },
+    {
+      "key": "thu_hac_thuy_mang",
+      "iso": true
+    },
+    {
+      "key": "thu_hac_vu_bien_buc",
       "iso": true
     },
     {
@@ -1165,7 +1227,15 @@
       "iso": true
     },
     {
+      "key": "thu_hoa_linh_diep",
+      "iso": true
+    },
+    {
       "key": "thu_hoi_vu_tuoc",
+      "iso": true
+    },
+    {
+      "key": "thu_huyen_bang_thiem",
       "iso": true
     },
     {
@@ -1181,6 +1251,10 @@
       "iso": true
     },
     {
+      "key": "thu_kiem_vi_hat",
+      "iso": true
+    },
+    {
       "key": "thu_kim_lan_long_quy",
       "iso": true
     },
@@ -1193,7 +1267,19 @@
       "iso": true
     },
     {
+      "key": "thu_lam_loi_te_nguu",
+      "iso": true
+    },
+    {
+      "key": "thu_liet_hoa_tich_dich",
+      "iso": true
+    },
+    {
       "key": "thu_liet_trao_hung",
+      "iso": true
+    },
+    {
+      "key": "thu_loi_duc_ung",
       "iso": true
     },
     {
@@ -1213,6 +1299,10 @@
       "iso": true
     },
     {
+      "key": "thu_nhan_dien_ma_chu",
+      "iso": true
+    },
+    {
       "key": "thu_nhan_dien_ma_chu_non",
       "iso": true
     },
@@ -1226,6 +1316,10 @@
     },
     {
       "key": "thu_phong_lang_con",
+      "iso": true
+    },
+    {
+      "key": "thu_quy_anh_bao",
       "iso": true
     },
     {
@@ -1257,11 +1351,19 @@
       "iso": true
     },
     {
+      "key": "thu_thanh_lan_doc_co",
+      "iso": true
+    },
+    {
       "key": "thu_thanh_lan_ngac",
       "iso": true
     },
     {
       "key": "thu_thanh_lan_xa",
+      "iso": true
+    },
+    {
+      "key": "thu_that_tinh_doc_thiem",
       "iso": true
     },
     {
@@ -1278,6 +1380,10 @@
     },
     {
       "key": "thu_thiet_giap_xuyen_son_giap",
+      "iso": true
+    },
+    {
+      "key": "thu_thuc_nhan_hoa",
       "iso": true
     },
     {
@@ -1298,6 +1404,18 @@
     },
     {
       "key": "thu_u_linh_hai_mau",
+      "iso": true
+    },
+    {
+      "key": "thu_u_minh_lang",
+      "iso": true
+    },
+    {
+      "key": "thu_xich_lan_mang",
+      "iso": true
+    },
+    {
+      "key": "thu_y_la_hoa_yeu",
       "iso": true
     },
     {

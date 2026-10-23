@@ -8,13 +8,14 @@
   "zoneCell": 8,
   "blend": 5,
   "gids": {
+    "walk": ["poison_flower"],
     "ground": {
       "grass": [1, 2], "leaf": 3, "moss": 5, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
       "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
     },
     "objects": {
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28,
-      "burnt_tree": 41
+      "burnt_tree": 41, "poison_flower": 42, "ice_fire_rock": 43
     },
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
@@ -91,7 +92,11 @@
     { "type": "lair", "at": [222, 150], "rx": 8, "ry": 6, "entrance": "n", "wall": "tree", "door": 4 },
     { "type": "scatter", "kind": "burnt_tree", "rect": [138, 128, 24, 24], "p": 0.03, "on": ["path"] },
     { "type": "scatter", "kind": "burnt_tree", "rect": [168, 112, 20, 20], "p": 0.03, "on": ["path"] },
-    { "type": "scatter", "kind": "burnt_tree", "rect": [220, 60, 16, 16], "p": 0.02, "on": ["path"] }
+    { "type": "scatter", "kind": "burnt_tree", "rect": [220, 60, 16, 16], "p": 0.02, "on": ["path"] },
+    { "type": "scatter", "kind": "poison_flower", "circle": [90, 56, 16], "p": 0.05, "on": ["grass"] },
+    { "type": "scatter", "kind": "poison_flower", "rect": [60, 20, 70, 50], "p": 0.012, "on": ["grass"] },
+    { "type": "scatter", "kind": "ice_fire_rock", "circle": [217, 61, 11], "p": 0.04, "on": ["stony", "glow"] },
+    { "type": "scatter", "kind": "ice_fire_rock", "circle": [227, 67, 11], "p": 0.04, "on": ["path", "glow"] }
   ],
   "roads": [
     { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 3 },
