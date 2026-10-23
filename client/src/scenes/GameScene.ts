@@ -21,7 +21,7 @@ import { solidGrid, clampDir, type SolidGrid } from "../../../shared/move.ts";
 import { campMerchantSpot } from "../../../shared/camp.ts";
 import { hoaDanSpot } from "../../../shared/hoaDan.ts";
 import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDOWN, screenDirToWorld, dir8, DIR4_VEC, fillGround, strokeGround,
-  groundAt, ptsToScreen, arcPts, type Pt, type Dir8 } from "../iso.ts";
+  groundAt, ptsToScreen, arcPts, type Pt, type Dir8, DIRS8 } from "../iso.ts";
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
@@ -1212,7 +1212,7 @@ export class GameScene extends Phaser.Scene {
    */
   hitFeel(m: { x: number; y: number; v: number; crit?: boolean; c: string; bid?: string; by?: string; dot?: boolean; heal?: boolean; shield?: boolean }) {
     const b = m.bid ? this.room.state.beasts.get(m.bid) : null, s = m.bid ? this.beasts.get(m.bid) : null;
-    if (!m.bid || !b || !s || m.v <= 0 || m.heal || m.shield || m.c === "#9ad8ff") return; // #9ad8ff có bid: thú tạo khiên (không phải đòn trúng)
+    if (!m.bid || !b || !s || m.v <= 0 || m.heal || m.shield || m.c === "#9ad8ff") return; // #9ad8ff có bid = sát thương vào khiên Bá Thể của boss thế giới: cố ý không hiệu ứng (không nháy / tia / dừng hình)
     const now = this.time.now, who = m.dot ? undefined : m.by, mine = who === this.me, pv = who ? this.players.get(who) : undefined;
     this.lastHit.set(m.bid, { t: now, tier: b.tier, rank: b.rank, x: s.x, y: s.y, mine, lethal: b.hp <= m.v });
     if (m.dot) return; // sát thương theo thời gian (độc, lửa, lan Cảm điện): không nháy / tia / dừng hình / đẩy lùi mỗi nhịp
@@ -1225,17 +1225,17 @@ export class GameScene extends Phaser.Scene {
     const he: He | undefined = pv ? VOHON[pv.vh]?.he : undefined, sp = he ? HIT_SPARK[he] : null, top = s.y - (s.displayHeight || 20) * 0.5;
     if (fxPrefs.level !== "low") this.fxp.burst(s.x, top, sp ? sp.col : hex(m.c), sp ? sp.n : 6, (sp?.speed ?? 80) * SPR / 2, (sp?.size ?? 2) * (m.crit ? 1.5 : 1));
     if (!mine) return;
-    this.hitstop(hitstopMs(ratio, !!m.crit, false));
+    this.hitstop(hitstopMs(ratio, !!m.crit, b.hp <= m.v)); // đòn kết liễu: một lần dừng hình dài nhất (80 ms), không để khoảng nghỉ chặn lần sau
     if (b.rank >= 2) this.shakeTier(ratio > 0.02 || m.crit ? 2 : 1); // thú vương / boss: trúng mạnh rung vừa
     else if (m.crit) this.shakeTier(1);
     if (m.crit) this.zoomPunch();
   }
-  /** Hồn thú biến mất sau đòn vừa trúng mà sinh lực còn lại đã ≤ sát thương (chắc bị hạ, không phải ra ngoài vùng đồng bộ): tan thành bụi sáng màu niên hạn, dừng hình dài nhất và boss rung mạnh chỉ khi đòn cuối là của chính mình. */
+  /** Hồn thú biến mất sau đòn vừa trúng mà sinh lực còn lại đã ≤ sát thương (chắc bị hạ, không phải ra ngoài vùng đồng bộ): tan thành bụi sáng màu niên hạn, boss rung mạnh chỉ khi đòn cuối là của chính mình (dừng hình của đòn kết liễu đã tính ở `hitFeel`). */
   beastDown(s: Phaser.GameObjects.Sprite, h: { tier: number; rank: number; mine: boolean }) {
     const col = hex(TIERS[h.tier]?.glow ?? "#ffffff"), w = (s.displayWidth || 24) * 0.9, hh = s.displayHeight || 24;
     if (fxPrefs.level !== "low") this.fxp.dust(s.x, s.y, w, hh, col, fxPrefs.level === "high" ? 26 : 14);
     const me = this.players.get(this.me);
-    if (h.mine && me && Math.hypot(me.root.x - s.x, me.root.y - s.y) < 260 * SPR) { this.hitstop(80); if (h.rank >= 2) this.shakeTier(3); }
+    if (h.mine && me && h.rank >= 2 && Math.hypot(me.root.x - s.x, me.root.y - s.y) < 260 * SPR) this.shakeTier(3);
   }
   /** Hồn hoàn / vật phẩm quý mới rơi: vòng sáng màu niên hạn nở ra rồi bay lên. */
   dropGlint(at: Pt, col: string) {
@@ -2269,7 +2269,11 @@ export class GameScene extends Phaser.Scene {
       const dsx = s.x - ox;
       if (spr !== "iso") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
       // G1: đẩy lùi (chỉ hình, 110 ms) và nháy trắng 50 ms sau khi bị đánh; hết hạn thì trả màu cho nhánh tô màu của sprite.
-      const tl = this.teles.get(id); if (tl && !fxPrefs.reduce) s.x -= (b.face || 1) * Math.min(1, (time - tl.t0) / tl.ms) * 3 * SPR; // lấy đà: ngả ra sau khi báo trước
+      const tl = this.teles.get(id);
+      if (tl && !fxPrefs.reduce) { // lấy đà: ngả ra sau (ngược hướng nhìn trên màn hình isometric) khi báo trước
+        const a = Math.PI / 2 + DIRS8.indexOf(face) * Math.PI / 4, k = Math.min(1, (time - tl.t0) / tl.ms) * 3 * SPR;
+        s.x -= Math.cos(a) * k; s.y -= Math.sin(a) * k * 0.5;
+      }
       const kick = this.hitKick.get(id);
       if (kick) {
         const f = (time - kick.t0) / 110;
@@ -2292,7 +2296,7 @@ export class GameScene extends Phaser.Scene {
       }
     });
     for (const [id, s] of this.beasts) if (!seenB.has(id)) {
-      const h = this.lastHit.get(id); if (h && time - h.t < 900) { this.downAt.push({ x: s.x, y: s.y, t: time }); if (h.lethal) this.beastDown(s, h); } // vừa trúng đòn rồi biến mất: coi là hạ
+      const h = this.lastHit.get(id); if (h && time - h.t < 900) if (h.lethal) { this.downAt.push({ x: s.x, y: s.y, t: time }); this.beastDown(s, h); } // vừa trúng đòn rồi biến mất: coi là hạ
       // Hồn thú biến mất ngay gần mình là chết (ra khỏi tầm đồng bộ thì ở xa hơn nhiều, 11.4): kêu một tiếng tại chỗ.
       const w = this.bpos.get(id), me = st.players.get(this.me);
       if (w && me && !w.dive && Math.hypot(w.x - me.x, w.y - me.y) < 260) this.audio.playBeast("die", { x: w.x, y: w.y });
@@ -2323,7 +2327,7 @@ export class GameScene extends Phaser.Scene {
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(at.y - 1).setScale(this.txtK);
         v = { img, txt }; this.drops.set(id, v);
-        if (!it && !bone && !core && d.tier >= 1 && this.downAt.some(q => time - q.t < 2500 && Math.hypot(q.x - at.x, q.y - at.y) < 140 * SPR)) this.dropGlint(at, hud.ringColor(d.tier)); // hồn hoàn mới rơi: vòng sáng màu niên hạn bay lên
+        if (!it && !bone && !core && d.tier >= 1 && d.ttl >= DROP_TTL_SECS - 2 && this.downAt.some(q => time - q.t < 2500 && Math.hypot(q.x - at.x, q.y - at.y) < 140 * SPR)) this.dropGlint(at, hud.ringColor(d.tier)); // hồn hoàn mới rơi: vòng sáng màu niên hạn bay lên
         if (d.ttl >= DROP_TTL_SECS - 2) { // chỉ đồ vừa rơi (đồ nằm sẵn đi tới gần mới đồng bộ, 11.4, thì không kêu)
           this.audio.playGroup("ring-drop", { x: d.x, y: d.y }, { priority: 1.5 });
           if (!d.item && d.tier >= 2) this.audio.playRingGlow(d.tier, { x: d.x, y: d.y });
