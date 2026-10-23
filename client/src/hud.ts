@@ -18,7 +18,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
-import { artImg, artUrl, tintedUrl } from "./uiArt.ts";
+import { artImg, artUrl, skillImg, tintedUrl } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
@@ -331,13 +331,14 @@ function setCtSlot(b: HTMLElement, on: boolean) {
 export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1, fusion = true) {
   const el = $("#skills"); el.innerHTML = ""; slotCd = [];
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip: TipSpec | string = "",
-    tier = -1, cost = 0, cdFull = 0) => {
+    tier = -1, cost = 0, cdFull = 0, art = "") => {
     const b = document.createElement("button"); b.className = "sk ui-cell" + (locked ? " locked" : "");
     if (i !== undefined) b.dataset.i = String(i);
     if (tier >= 0 && !locked) b.dataset.tier = String(tier);   // viền theo màu hồn hoàn (--tier-N)
     b.dataset.cost = String(cost); b.dataset.cdfull = String(cdFull);
     b.innerHTML = `<b class="key">${key}</b><span class="ico" style="color:${col}"></span><span></span><div class="ui-cd"></div><em class="cdn"></em>`;
-    const sp = b.querySelectorAll("span"); sp[0].textContent = icon; sp[1].textContent = name;
+    const sp = b.querySelectorAll("span"); if (art) { sp[0].insertAdjacentHTML("afterbegin", art); sp[0].classList.add("skart"); } else sp[0].textContent = icon;
+    sp[1].textContent = name;
     b.setAttribute("aria-label", label);
     if (tip) setCellTip(b, tip);
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); act(action); });
@@ -350,7 +351,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     if (!s) return mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: trống`, "Trống", "#666", `skill${i}`, "", true, i, { title: `Ô hồn kỹ ${i + 1}: trống`, lines: ["Chọn hồn kỹ mang theo ở bảng đội hình (V)."] });
     const has = r < rings.length;
     mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: ${s.name} (vòng ${r + 1})${has ? "" : " (khóa)"}`, has ? s.name : `Vòng ${r + 1}`, has ? ringColor(rings[r]) : "#666",
-      `skill${i}`, s.icon, !has, i, skillSpec(s, r, rings, years, stars), has ? rings[r] : -1, s.cost, skillCd(s, r, stars));
+      `skill${i}`, s.icon, !has, i, skillSpec(s, r, rings, years, stars), has ? rings[r] : -1, s.cost, skillCd(s, r, stars), skillImg(id, r));
   });
   avaDef = chanThanOf(id); el.classList.toggle("ava", !!avaDef);
   if (avaDef) {
@@ -840,7 +841,8 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     const b = document.createElement("button"); b.type = "button"; b.className = "kcard" + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
     b.style.setProperty("--c", open ? ringColor(tiers[r]) : "#666");
     b.innerHTML = `<i class="ico"></i><span><b></b><small></small></span>`;
-    b.querySelector("i")!.textContent = (s ?? ct)!.icon;
+    const kart = s ? skillImg(id, r) : "";
+    if (kart) { b.querySelector("i")!.insertAdjacentHTML("afterbegin", kart); b.classList.add("skart"); } else b.querySelector("i")!.textContent = (s ?? ct)!.icon;
     b.querySelector("b")!.textContent = `${r + 1}. ${(s ?? ct)!.name}`;
     b.querySelector("small")!.textContent = ct ? `Võ Hồn Chân Thân · phím ${AVA_KEY}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`
       : `${s!.ult ? "Tuyệt kỹ · " : ""}${s!.cost} hồn lực · hồi ${cdText(skillCd(s!, r, v.stars))} giây${at >= 0 ? ` · ô ${SKILL_KEYS[at]}` : ""}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`;

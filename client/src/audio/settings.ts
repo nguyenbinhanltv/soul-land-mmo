@@ -2,11 +2,14 @@ export interface AudioSettings {
   master: number;
   music: number;
   sfx: number;
+  /** Kênh Giao diện (tiếng bấm, mở / đóng bảng, nhận thưởng) và kênh Môi trường (bước chân, tiếng nền địa hình). */
+  ui: number;
+  ambient: number;
   muted: boolean;
 }
 
 export const AUDIO_STORAGE_KEY = "soul-land-audio-v1";
-export const DEFAULT_AUDIO_SETTINGS: AudioSettings = { master: 0.9, music: 0.65, sfx: 0.8, muted: false };
+export const DEFAULT_AUDIO_SETTINGS: AudioSettings = { master: 0.9, music: 0.65, sfx: 0.8, ui: 0.8, ambient: 0.7, muted: false };
 
 const clamp01 = (value: unknown, fallback: number) => {
   const n = typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -20,6 +23,8 @@ export function normalizeAudioSettings(value: unknown): AudioSettings {
     master: clamp01(raw.master, DEFAULT_AUDIO_SETTINGS.master),
     music: clamp01(raw.music, DEFAULT_AUDIO_SETTINGS.music),
     sfx: clamp01(raw.sfx, DEFAULT_AUDIO_SETTINGS.sfx),
+    ui: clamp01(raw.ui, DEFAULT_AUDIO_SETTINGS.ui),
+    ambient: clamp01(raw.ambient, DEFAULT_AUDIO_SETTINGS.ambient),
     muted: raw.muted === true || (raw.muted as unknown) === 1,
   };
 }

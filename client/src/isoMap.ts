@@ -413,6 +413,12 @@ export class IsoMap {
     const fires = [...this.glowAt.values()].flat().filter((g) => GLOW_PROPS[g.kind]?.flicker).map((g) => ({ x: g.x, y: g.y - GLOW_PROPS[g.kind].h - 6 }));
     return [...this.roofs, ...fires];
   }
+  /** Tên loại ô nền (tiles.json) dưới điểm thế giới (wx, wy); rỗng nếu ngoài bản đồ hoặc ô vẽ code. Chọn tiếng bước chân (G2). */
+  groundNameAt(wx: number, wy: number): string {
+    const tx = Math.floor(wx / TILE), ty = Math.floor(wy / TILE);
+    if (tx < 0 || ty < 0 || tx >= this.MW || ty >= this.MH) return "";
+    return this.groundOf(ty * this.MW + tx)?.name ?? "";
+  }
   /** Điểm màn hình (x, y) nằm trên ô nước (bọt sóng, đom đóm biển). */
   isWater(sx: number, sy: number) {
     const w = screenToWorld(sx, sy), tx = Math.floor(w.x / TILE), ty = Math.floor(w.y / TILE);
