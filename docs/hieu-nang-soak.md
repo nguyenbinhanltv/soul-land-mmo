@@ -78,7 +78,7 @@ Không có hàm game nào nổi bật. `vnClock` (`Intl.DateTimeFormat`, gọi t
 | Giữ nhịp 50 ms, 40 người một kênh ×8 (tự săn) | **Đạt**: p50 7,7 ms, p95 12 ms (mốc 11.4 ~7 ms khi đi lang thang) |
 | 40 người trộn vai trên 6 phòng | **Đạt**: mỗi phòng 1,5–2 ms (p50), cả tiến trình 8–10 ms mỗi nhịp |
 | 60 người một kênh | **Cảnh báo**: p50 6,8–10,9 ms, p95 10–17 ms. Vượt ngưỡng báo động ~10 ms của skill ở một lượt, nhưng vẫn còn xa 50 ms |
-| Nhịp chậm > 50 ms (`max`) | **Có, hiếm, chưa rõ nguyên nhân**: đo lại ở mục 6 (#273). Phần lớn là nhiễu máy (wall ≫ cpu); còn lại là vài nhịp 50–65 ms ở vòng người chơi, không tăng theo số người |
+| Nhịp chậm > 50 ms (`max`) | **Có, hiếm, chưa rõ nguyên nhân**: đo lại ở mục 6 (#273), theo dõi nguyên nhân ở #375. Phần lớn là nhiễu máy (wall ≫ cpu); còn lại là vài nhịp 50–65 ms ở vòng người chơi, không tăng theo số người |
 | Băng thông mỗi client | **Đạt**: 5–8 KB/s (mốc 7–8), 9–12 KB/s cạnh thú vương, ~0,5 KB/s trong thành |
 | Phòng trống tự hủy, heap về gần mức đầu | **Đạt** |
 | Rò bộ nhớ | **Không thấy**: heap tăng do túi đồ đầy dần (có trần), dừng tăng khi túi đầy |
@@ -95,4 +95,4 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 - Lượt 40 bot, 4 dòng `[perf-slow]` (wall / cpu ms, đoạn nặng): 70 / 68 (người 63), 67 / 27 (người 49), 118 / 22 (nhiễu: wall ≫ cpu), 13 / 10 (trễ nhịp trước). Chỉ nhịp đầu là việc thật của luồng; nhịp thứ hai nửa thật nửa bị hệ điều hành giành CPU.
 - Lượt 60 bot không có nhịp nào vượt 50 ms, nên đỉnh **không tăng theo số người**: là biến cố rời rạc (nghi `AutoHunter` tìm đường A* một lần nặng khi mục tiêu xa / không tới được), chưa chứng minh vì `[perf-slow]` chỉ chia tới đoạn "người".
 - Lượt đo trước (cổng DB thật, bỏ) cho thấy nhiễu máy thật sự gây nhịp tới 25 giây (wall 25 000 ms, cpu 7 ms: cả tiến trình bị treo), không liên quan code game.
-- Kết luận: với 40–60 người tự săn một kênh ×8, nhịp trung bình 7–8 ms, nhịp > 50 ms hiếm (≤ 1 / phút) và không có nguyên nhân rõ trong code nên **không sửa code**. Muốn chốt nguyên nhân: đo thời gian từng lần gọi `AutoHunter.tick` (đoạn "người") khi nhịp vượt ngưỡng.
+- Kết luận: với 40–60 người tự săn một kênh ×8, nhịp trung bình 7–8 ms, nhịp > 50 ms hiếm (≤ 1 / phút) và không có nguyên nhân rõ trong code nên **không sửa code**. Chốt nguyên nhân (đo từng lần gọi `AutoHunter.tick`, đoạn "người", khi nhịp vượt ngưỡng) tách sang #375.
