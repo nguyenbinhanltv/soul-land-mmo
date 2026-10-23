@@ -168,7 +168,7 @@ export class GameScene extends Phaser.Scene {
   hitstopEnd = 0; hitstopNext = 0;
   hitFlash = new Map<string, number>();
   hitKick = new Map<string, { dx: number; dy: number; t0: number }>();
-  lastHit = new Map<string, { t: number; tier: number; rank: number; x: number; y: number }>();
+  lastHit = new Map<string, { t: number; tier: number; rank: number; x: number; y: number; mine: boolean; lethal: boolean }>();
   zoomFx: Phaser.Tweens.Tween | null = null;
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
   isoMap!: IsoMap;
@@ -1213,9 +1213,9 @@ export class GameScene extends Phaser.Scene {
    */
   hitFeel(m: { x: number; y: number; v: number; crit?: boolean; c: string; bid?: string; heal?: boolean; shield?: boolean }) {
     const b = m.bid ? this.room.state.beasts.get(m.bid) : null, s = m.bid ? this.beasts.get(m.bid) : null;
-    if (!m.bid || !b || !s || m.v <= 0 || m.heal || m.shield) return;
+    if (!m.bid || !b || !s || m.v <= 0 || m.heal || m.shield || m.c === "#9ad8ff") return; // #9ad8ff có bid: thú tạo khiên (không phải đòn trúng)
     const now = this.time.now, who = this.nearestPlayer(b.x, b.y), mine = who === this.me, pv = who ? this.players.get(who) : undefined;
-    this.lastHit.set(m.bid, { t: now, tier: b.tier, rank: b.rank, x: s.x, y: s.y });
+    this.lastHit.set(m.bid, { t: now, tier: b.tier, rank: b.rank, x: s.x, y: s.y, mine, lethal: b.hp <= m.v });
     if (flashOn()) this.hitFlash.set(m.bid, now + 50);
     if (pv && !fxPrefs.reduce) { // đẩy lùi: lệch khỏi người đánh vài pixel rồi trở về, chỉ cho sprite
       const dx = s.x - pv.root.x, dy = s.y - pv.root.y, d = Math.hypot(dx, dy) || 1;
@@ -1230,12 +1230,12 @@ export class GameScene extends Phaser.Scene {
     else if (m.crit) this.shakeTier(1);
     if (m.crit) this.zoomPunch();
   }
-  /** Hồn thú biến mất sau một đòn vừa trúng (không phải ra ngoài vùng đồng bộ): tan thành bụi sáng màu niên hạn, dừng hình dài nhất; boss rung mạnh. */
-  beastDown(s: Phaser.GameObjects.Sprite, h: { tier: number; rank: number }) {
+  /** Hồn thú biến mất sau đòn vừa trúng mà sinh lực còn lại đã ≤ sát thương (chắc bị hạ, không phải ra ngoài vùng đồng bộ): tan thành bụi sáng màu niên hạn, dừng hình dài nhất và boss rung mạnh chỉ khi đòn cuối là của chính mình. */
+  beastDown(s: Phaser.GameObjects.Sprite, h: { tier: number; rank: number; mine: boolean }) {
     const col = hex(TIERS[h.tier]?.glow ?? "#ffffff"), w = (s.displayWidth || 24) * 0.9, hh = s.displayHeight || 24;
     if (fxPrefs.level !== "low") this.fxp.dust(s.x, s.y, w, hh, col, fxPrefs.level === "high" ? 26 : 14);
     const me = this.players.get(this.me);
-    if (me && Math.hypot(me.root.x - s.x, me.root.y - s.y) < 260 * SPR) { this.hitstop(80); if (h.rank >= 2) this.shakeTier(3); }
+    if (h.mine && me && Math.hypot(me.root.x - s.x, me.root.y - s.y) < 260 * SPR) { this.hitstop(80); if (h.rank >= 2) this.shakeTier(3); }
   }
   /** Hồn hoàn / vật phẩm quý mới rơi: vòng sáng màu niên hạn nở ra rồi bay lên. */
   dropGlint(at: Pt, col: string) {
@@ -2266,7 +2266,7 @@ export class GameScene extends Phaser.Scene {
       }
     });
     for (const [id, s] of this.beasts) if (!seenB.has(id)) {
-      const h = this.lastHit.get(id); if (h && time - h.t < 900) this.beastDown(s, h); // vừa trúng đòn rồi biến mất: coi là hạ
+      const h = this.lastHit.get(id); if (h && h.lethal && time - h.t < 900) this.beastDown(s, h); // vừa trúng đòn rồi biến mất: coi là hạ
       s.destroy(); this.beasts.delete(id); this.bpos.delete(id); this.bface.delete(id); this.lastHit.delete(id); this.hitFlash.delete(id); this.hitKick.delete(id);
     }
     for (const [id, h] of this.lastHit) if (time - h.t > 5000) this.lastHit.delete(id);
