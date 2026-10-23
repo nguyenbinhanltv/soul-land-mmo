@@ -274,6 +274,84 @@ noListenerAudio.dispose();
     audio.playGroup("swing-t5", null, { duck: 0.5, duckMs: 700 });
     assert.deepEqual(ducks, [[0.5, 700]]);
   }
+
+  // Lô 2 (G5, #396): mọi nhóm giao diện / PK / môi trường có mẫu trong manifest thật và nằm đúng gói; hàm phát gọi đúng nhóm, đúng kênh.
+  {
+    const { UI_GROUP, heartbeatInterval, HEARTBEAT_MS, LOW_HP_RATIO, RARE_LOOT_MIN } = map;
+    assert.ok(RARE_LOOT_MIN >= 2 && RARE_LOOT_MIN <= 4, "đồ hiếm tính từ bậc giữa trở lên");
+    const amb = await import("../src/audio/ambientLayers.ts");
+    const groups = [...Object.values(UI_GROUP), "pk-open", "pk-count", "pk-go", "pk-kill", "pk-heartbeat", ...["wind", "wave", "bird", "cricket", "fire", "bell"].map((k) => `amb-${k}`)];
+    for (const g of groups) { assert.ok(have.get(g) >= 1, `thiếu mẫu cho nhóm ${g}`); assert.ok(real.packs[packOfGroup(g)], `nhóm ${g} không có gói`); }
+    assert.equal(packOfGroup("ui-open"), "ui");
+    assert.equal(packOfGroup("pk-kill"), "pk");
+    assert.equal(packOfGroup("amb-wind"), "amb");
+    assert.ok(have.get("pk-heartbeat") >= 2, "nhịp tim có bản chậm và nhanh");
+    assert.ok(heartbeatInterval(LOW_HP_RATIO) === HEARTBEAT_MS.slow && heartbeatInterval(0) === HEARTBEAT_MS.fast && heartbeatInterval(LOW_HP_RATIO / 2) < HEARTBEAT_MS.slow, "máu càng thấp nhịp càng dồn");
+
+    const { audio } = make();
+    const calls = [];
+    audio.playGroup = (g, s, o) => { calls.push([g, s, o]); return true; };
+    audio.playClip = (id, o) => { calls.push([id, "clip", o]); return true; };
+    audio.bank.ensure = (p) => { calls.push([`ensure:${p}`]); return Promise.resolve(); };
+    for (const kind of Object.keys(UI_GROUP)) { audio.playUi(kind); assert.deepEqual([calls.at(-1)[0], calls.at(-1)[2].channel], [UI_GROUP[kind], "ui"], `playUi(${kind})`); }
+    calls.length = 0;
+    audio.playPkOpen();
+    assert.deepEqual(calls.map((c) => c[0]), ["ensure:pk", "pk-open"], "mở trận: tải gói PK rồi phát");
+    assert.ok(calls.at(-1)[2].duck > 0, "trống mở trận hạ nhạc nền");
+    calls.length = 0;
+    audio.playPkCountdown(3); audio.playPkCountdown(2); audio.playPkCountdown(1);
+    const rates = calls.filter((c) => c[0] === "pk-count").map((c) => c[2].rate);
+    assert.equal(rates.length, 3);
+    assert.ok(rates[0] < rates[1] && rates[1] < rates[2], "đếm 3, 2, 1: cao dần");
+    audio.playPkCountdown(0);
+    assert.equal(calls.at(-1)[0], "pk-go");
+    audio.playPkKill({ x: 1, y: 2 });
+    assert.deepEqual([calls.at(-1)[0], calls.at(-1)[1]], ["pk-kill", { x: 1, y: 2 }]);
+
+    // nhịp tim: im khi máu trên ngưỡng hoặc đã chết; đập đều theo khoảng cách; máu rất thấp dùng nhịp nhanh
+    calls.length = 0;
+    audio.updateLowHpHeartbeat(0.9, 0); audio.updateLowHpHeartbeat(0, 0);
+    assert.equal(calls.filter((c) => String(c[0]).startsWith("pk-heartbeat")).length, 0);
+    audio.updateLowHpHeartbeat(0.25, 1000);
+    audio.updateLowHpHeartbeat(0.25, 1100);
+    assert.equal(calls.filter((c) => c[0] === "pk-heartbeat-1").length, 1, "chưa tới nhịp sau thì không đập lại");
+    audio.updateLowHpHeartbeat(0.25, 1000 + HEARTBEAT_MS.slow);
+    assert.equal(calls.filter((c) => c[0] === "pk-heartbeat-1").length, 2);
+    audio.updateLowHpHeartbeat(0.05, 9000);
+    assert.equal(calls.at(-1)[0], "pk-heartbeat-2", "máu rất thấp: nhịp nhanh");
+
+    // môi trường: theo bản đồ và ngày đêm
+    const played = [];
+    let r = 0.5;
+    const layers = new amb.AmbientLayers((kind, volume, pan) => played.push({ kind, volume, pan }), () => r);
+    const step = (from, to, input) => { for (let t = from; t <= to; t += 250) layers.update(t, input); };
+    const day = { mapId: "thanh_hon_thon", night: 0, fireDist: null }, night = { ...day, night: 1 };
+    step(0, 120_000, day);
+    const kindsDay = new Set(played.map((p) => p.kind));
+    assert.ok(kindsDay.has("bird") && kindsDay.has("wind") && kindsDay.has("bell"), "ban ngày: chim, gió, chuông chùa");
+    assert.ok(!kindsDay.has("cricket") && !kindsDay.has("fire") && !kindsDay.has("wave"), "ban ngày không côn trùng; xa lửa không có lửa; làng không có sóng");
+    played.length = 0;
+    step(120_000, 240_000, night);
+    const kindsNight = new Set(played.map((p) => p.kind));
+    assert.ok(kindsNight.has("cricket") && !kindsNight.has("bird"), "ban đêm: côn trùng, không chim");
+    played.length = 0;
+    step(240_000, 300_000, { ...day, fireDist: 40 });
+    const fires = played.filter((p) => p.kind === "fire");
+    assert.ok(fires.length > 0 && fires.every((p) => p.volume > 0.8), "đứng cạnh lửa thì nghe lửa, to");
+    played.length = 0;
+    step(300_000, 400_000, { mapId: "hai_than_dao", night: 0, fireDist: amb.AMBIENT_FIRE_RANGE + 50 });
+    assert.ok(played.some((p) => p.kind === "wave"), "đảo có sóng");
+    assert.ok(!played.some((p) => p.kind === "fire"), "lửa ngoài tầm: im");
+    played.length = 0;
+    step(400_000, 500_000, { mapId: "ban_do_la", night: 0, fireDist: null });
+    assert.equal(played.length, 0, "bản đồ không có hồ sơ môi trường thì im");
+    for (const id of ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "tinh_dau_ngoai_vi", "tinh_dau_noi_dia", "lac_nhat_sam_lam", "cuc_bac_chi_dia", "hai_than_dao", "loi_tinh_dau", "dai_dau_hon_truong"]) {
+      assert.ok(amb.AMBIENT_PROFILES[id], `bản đồ ${id} có hồ sơ môi trường`);
+    }
+    const spread = new Set(), ls = new amb.AmbientLayers((k, v, p) => spread.add(p), Math.random);
+    for (let t = 0; t < 600_000; t += 250) ls.update(t, { mapId: "cuc_bac_chi_dia", night: 0, fireDist: null });
+    assert.ok(spread.size > 3, "lệch trái / phải ngẫu nhiên");
+  }
 }
 
 console.log(`audio-test: ${SFX_IDS.length} SFX tổng hợp, tiếng mẫu CC0, kênh trộn, settings và spatial đều đạt`);

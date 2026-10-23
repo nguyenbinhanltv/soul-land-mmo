@@ -209,6 +209,7 @@ export class MusicPlayer {
   private jingleVoice: JingleVoice | null = null;
   private pending: Promise<void> = Promise.resolve();
   private jinglePending: Promise<void> = Promise.resolve();
+  private stemPending: Promise<void> = Promise.resolve();
   private retries = 0;
   private retryArmed = false;
 
@@ -239,9 +240,9 @@ export class MusicPlayer {
   /** Chờ các lượt đổi bài / khúc ngắn đang tải xong (bài thử chờ theo trạng thái, không ngủ cố định). */
   async whenIdle(): Promise<void> {
     for (;;) {
-      const p = this.pending, j = this.jinglePending;
-      await Promise.all([p, j]);
-      if (p === this.pending && j === this.jinglePending) return;
+      const p = this.pending, j = this.jinglePending, s = this.stemPending;
+      await Promise.all([p, j, s]);
+      if (p === this.pending && j === this.jinglePending && s === this.stemPending) return;
     }
   }
 
@@ -375,7 +376,10 @@ export class MusicPlayer {
     // Trong lúc tải đã đổi ý (đổi bản đồ tiếp, hết giao chiến): lượt sync sau trong chuỗi sẽ xử lý.
     if (m && (this.pick(m)?.id ?? null) !== (track?.id ?? null)) return;
     this.crossfade(track, buffer);
-    if (this.voice && m && track) void this.attachStem(this.voice, track, m);
+    if (this.voice && m && track) {
+      const voice = this.voice;
+      this.stemPending = this.stemPending.then(() => this.attachStem(voice, track, m)).catch((e) => this.log(`lỗi gắn lớp giao chiến: ${String(e)}`));
+    }
     if (track && !buffer) this.retryLater();
     else this.retries = 0;
   }
