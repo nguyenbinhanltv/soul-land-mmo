@@ -1096,7 +1096,7 @@ export class GameScene extends Phaser.Scene {
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
     const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
-    this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.audio.playUi("equip"); this.renderBag(); this.askStats(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
+    this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.askStats(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
       if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
         sell: m.sell ?? this.bag.sell, sold: m.sold ?? this.bag.sold });
@@ -2683,8 +2683,8 @@ export class GameScene extends Phaser.Scene {
       active: () => this.owned?.active ?? null,
       equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) { this.audio.playUi("equip"); this.room.send("equip", { itemId, vohonId, slot }); } },
       equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) { this.audio.playUi("equip"); this.room.send("equipcore", { itemId, vohonId, slot }); } },
-      equipGear: (id) => this.room.send("equipgear", { id }), // trang bị hồn sư (5.15)
-      unequipGear: (slot) => this.room.send("unequipgear", { slot }),
+      equipGear: (id) => { this.audio.playUi("equip"); this.room.send("equipgear", { id }); }, // trang bị hồn sư (5.15)
+      unequipGear: (slot) => { this.audio.playUi("equip"); this.room.send("unequipgear", { slot }); },
       gear: () => this.gear,
     });
   }
