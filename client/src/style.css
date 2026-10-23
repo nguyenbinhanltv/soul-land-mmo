@@ -173,6 +173,10 @@ body.touch #chattabs button{padding:7px 2px}
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-family:var(--f12);line-height:1;font-variant-emoji:text;text-shadow:0 0 4px #000}
 /* Tên hồn kỹ riêng có thể dài: tối đa 2 dòng, chữ nhỏ hơn để biểu tượng không bị đẩy ra ngoài. */
 .sk .ico+span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;font-family:var(--f10);line-height:normal;max-width:100%}
+/* Biểu tượng hồn kỹ bằng ảnh (#384): ảnh 32 px đã có khung tròn, thay vòng chữ; tên chỉ 1 dòng cho đủ chỗ (tên đủ ở chú giải). */
+.sk .ico.skart{width:32px;height:32px;border:0;border-radius:0;box-shadow:none;margin:auto 0 2px;text-shadow:none}
+.sk .ico.skart img,.kcard.skart .ico img,#char .cring .sico{width:100%;height:100%;display:block;image-rendering:pixelated}
+.sk .ico.skart+span{-webkit-line-clamp:1}
 .sk.locked{opacity:.4}
 /* Võ Hồn Chân Thân (8.1a, phím R): viền màu võ hồn; đang biến hình thì sáng nhấp nháy và ghi giây còn lại. */
 .sk.ava{border-style:double;border-width:3px}
@@ -255,6 +259,7 @@ body.touch #prompt{bottom:160px}
   display:flex;align-items:center;gap:8px;text-align:left;min-height:40px}
 .kcard .ico{font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid var(--c);color:var(--c);display:flex;align-items:center;
   justify-content:center;font-size:12px;font-family:var(--f12);flex-shrink:0;font-variant-emoji:text}
+.kcard.skart .ico{width:32px;height:32px;border:0;border-radius:0}
 .kcard span{display:flex;flex-direction:column;flex:1}
 .kcard b{font-size:12px;font-family:var(--f12)}
 .kcard small{color:var(--muted);font-size:12px;font-family:var(--f12)}
@@ -1092,6 +1097,8 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 #char .cring{display:flex;align-items:center;gap:var(--sp-3);padding:2px var(--sp-3);font:var(--fs-s) var(--f10);color:var(--text);background:var(--wash);
   border:var(--bd) solid var(--c);cursor:help;text-align:left;min-height:24px}
 #char .cring.empty{border-style:dashed;border-color:var(--line);color:var(--muted)}
+#char .cring .sico{flex:none;width:24px;height:24px;image-rendering:pixelated}
+#char .cring.locked .sico{opacity:.5}
 #char .cring .rdot{flex:none;width:12px;height:12px;border-radius:50%;border:3px solid var(--c);background:color-mix(in srgb,var(--c) 30%,transparent);
   box-shadow:0 0 5px color-mix(in srgb,var(--c) 70%,transparent)}
 #char .cring.empty .rdot{border-style:dashed;background:none;box-shadow:none}

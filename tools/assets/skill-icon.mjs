@@ -1,6 +1,8 @@
 // Biểu tượng hồn kỹ 32×32 từ ảnh ComfyUI 1024 (skill asset-gen mục ComfyUI, #384): tách nền (comfy-key), thu nhỏ hình chính,
 // giảm màu, ghép khung màu theo hệ / võ hồn. Nền ngoài khung trong suốt, trong khung là nền tối để đọc rõ ở ô 32–40 px.
 //   node tools/assets/skill-icon.mjs <1024.png> <ra.png> --col #4ab0ff [--frame round|square] [--fit 20] [--colors 14]
+//   --frame none: không ghép khung, chỉ tách nền + giảm màu + đặt giữa ô 32 (biểu tượng vật phẩm: --fit 28 --colors 24).
+//   --frame none: không ghép khung, chỉ tách nền + giảm màu + đặt giữa ô 32 (biểu tượng vật phẩm: --fit 28 --colors 24).
 //
 // Model hay tự vẽ khung / vòng hoa quanh vật dù prompt cấm, nên khung do công cụ ghép (đồng nhất cả ~280 biểu tượng):
 // ảnh ComfyUI chỉ cần cho hình chính. `--col` là màu khung (col của võ hồn trong VOHON, hồn kỹ chung dùng màu trung tính).
@@ -15,8 +17,8 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const col = opt("--col", "#9db3a2"), frame = opt("--frame", "round"), fit = +opt("--fit", 20), nCol = +opt("--colors", 14);
 const [src, out] = args;
-if (!src || !out || !/^#[0-9a-f]{6}$/i.test(col) || !["round", "square"].includes(frame)) {
-  console.error("Cách dùng: skill-icon.mjs <1024.png> <ra.png> --col #rrggbb [--frame round|square] [--fit 20] [--colors 14]");
+if (!src || !out || !/^#[0-9a-f]{6}$/i.test(col) || !["round", "square", "none"].includes(frame)) {
+  console.error("Cách dùng: skill-icon.mjs <1024.png> <ra.png> --col #rrggbb [--frame round|square|none] [--fit 20] [--colors 14]");
   process.exit(1);
 }
 
