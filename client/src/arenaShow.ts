@@ -67,11 +67,10 @@ export class ArenaShow {
       this.vs.innerHTML = `${this.face(a, a.sides[0])}<div class="avm"><span>VS</span><em></em></div>${this.face(a, a.sides[1])}`;
       this.vs.classList.toggle("calm", pf.reduce || pf.level === "low");
       this.vs.hidden = false; this.sfx.drum();
-    } else if (a.phase === "fight") {
+    } else if (a.phase !== "ready") {
       this.vs.hidden = true;
-      if (this.shown) this.flash("CHIẾN!", "go");
-    } else if (a.phase === "end" && this.phase === "fight" && !this.finished) {
-      this.finished = true; this.finisher(a, pf);
+      if (a.phase === "fight" && this.shown) this.flash("CHIẾN!", "go");
+      else if (a.phase === "end" && (this.phase === "fight" || this.phase === "ready") && !this.finished) { this.finished = true; this.finisher(a, pf); }
     }
   }
 
