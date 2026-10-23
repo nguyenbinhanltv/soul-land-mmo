@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
-  BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
+  BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
@@ -55,6 +55,7 @@ export interface Item {
   vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
   created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
   locked?: boolean;            // người chơi khoá (#216, items.locked): không bán / bỏ / làm nguyên liệu
+  equipSlot?: number;          // trang bị hồn sư đang mặc (E1, items.equip_slot): chỉ số ô trong EQUIP_SLOTS; thiếu = nằm trong túi
 }
 /**
  * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
@@ -109,6 +110,14 @@ function bagOk(b: Bag) {
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
   if (b.slots !== undefined && (!Number.isInteger(b.slots) || b.slots < BAG_SLOTS || b.slots > BAG_MAX_SLOTS)) throw new Error(`Số ô túi không hợp lệ: ${b.slots}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+  // Trang bị đang mặc (E1): ô có thật, đúng món trang bị, không gắn võ hồn, mỗi ô một món (khớp CHECK và chỉ mục duy nhất của 027_trang_bi.sql).
+  const worn = new Set<number>();
+  for (const i of b.items) {
+    if (i.equipSlot === undefined) continue;
+    if (!Number.isInteger(i.equipSlot) || i.equipSlot < 0 || i.equipSlot >= EQUIP_SLOTS.length || i.code !== EQUIP_ITEM || i.vohonId !== null || worn.has(i.equipSlot))
+      throw new Error(`Ô trang bị ${i.equipSlot} của ${i.id} không hợp lệ.`);
+    worn.add(i.equipSlot);
+  }
   for (const r of b.sold ?? []) if (!Number.isInteger(r.item.qty) || r.item.qty < 1 || !Number.isSafeInteger(r.price) || r.price < 0) throw new Error(`Món tự bán ${r.key} không hợp lệ.`);
   const chains = new Set((b.quests ?? []).map((q) => q.chain));
   if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
@@ -869,20 +878,24 @@ export class PgStore implements Store {
   }
   itemRow(x: any): Item {
     return { id: x.id, kind: x.kind, code: x.code, qty: x.qty, years: x.years, stars: x.stars, enhance: x.enhance, stats: x.stats ?? null,
-      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}) };
+      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}),
+      ...(x.equip_slot === null || x.equip_slot === undefined ? {} : { equipSlot: Number(x.equip_slot) }) };
   }
   /** Thêm hoặc sửa các ô `items` (chỉ ô của chính tài khoản; id thuộc tài khoản khác thì ném lỗi). Gọi trong transaction. */
   async upsertItems(db: pg.PoolClient, accountId: number, items: Item[]) {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked })));
+      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked, equip_slot: i.equipSlot ?? null })));
     const r = await db.query(
-      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked)
-       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked
+      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked, equip_slot)
+       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked, x.equip_slot
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,
-         stats jsonb, vohon_id bigint, created timestamptz, locked boolean)
+         stats jsonb, vohon_id bigint, created timestamptz, locked boolean, equip_slot smallint)
        ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind, code=EXCLUDED.code, qty=EXCLUDED.qty, years=EXCLUDED.years, stars=EXCLUDED.stars,
-         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked,
+         -- ver (027): tăng khi cấp cường hóa, chỉ số hoặc ô mặc của món đổi.
+         ver=CASE WHEN items.enhance IS DISTINCT FROM EXCLUDED.enhance OR items.stats IS DISTINCT FROM EXCLUDED.stats
+           OR items.equip_slot IS DISTINCT FROM EXCLUDED.equip_slot THEN items.ver + 1 ELSE items.ver END,
+         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked, equip_slot=EXCLUDED.equip_slot,
          -- Thứ tự ô (#215 "Sắp xếp" đặt lại created); cùng mili giây thì giữ giá trị cũ (Item.created chỉ có mili giây).
          created_at=CASE WHEN date_trunc('milliseconds', items.created_at) = EXCLUDED.created_at THEN items.created_at ELSE EXCLUDED.created_at END
        WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
@@ -898,6 +911,10 @@ export class PgStore implements Store {
       [accountId, bag.honTe, bag.slots ?? null, bag.sell === undefined ? null : JSON.stringify(bag.sell), bag.sold ? JSON.stringify(bag.sold) : null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
+    // Trang bị (027): món đổi ô / tháo ra thì nhả ô trước, để chỉ mục duy nhất (account_id, equip_slot) không vướng khi hai món đổi chỗ trong một câu upsert.
+    await db.query(`UPDATE items i SET equip_slot=NULL WHERE i.account_id=$1 AND i.equip_slot IS NOT NULL AND NOT EXISTS (
+      SELECT 1 FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, s smallint) WHERE x.id=i.id AND x.s=i.equip_slot)`,
+      [accountId, JSON.stringify(bag.items.filter((i) => i.equipSlot !== undefined).map((i) => ({ id: i.id, s: i.equipSlot })))]);
     await this.upsertItems(db, accountId, bag.items);
     for (const t of bag.tongPts ?? []) await this.addTongPointsTx(db, accountId, t.week, t.tong, t.n);
     if (bag.quests?.length) {
