@@ -9,7 +9,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { toast, lootToasts } from "../feedback.ts";
@@ -1713,6 +1713,12 @@ export class GameScene extends Phaser.Scene {
       this.teleG.fillStyle(c, 0.3 + 0.15 * pulse).fillEllipse(s.x, s.y, w + 12, (w + 12) * 0.4);
       this.teleG.fillStyle(c, 0.35).fillEllipse(s.x, s.y, w * 0.6, w * 0.24);
       this.teleG.lineStyle(2, c, 0.7 + 0.3 * pulse).strokeEllipse(s.x, s.y, w + 6 + pulse * 6, (w + 6 + pulse * 6) * 0.4);
+      // Sóng xung kích khi tinh anh / thú vương / boss tung đòn (hồn thú lai): vòng elip mở rộng và mờ dần trên mặt đất; tắt khi Giảm chuyển động.
+      const age = beastStrikeAge(s, time);
+      if (age >= 0 && age < 0.5 && beastMotionLevel(time) >= 0.5) {
+        const r = (14 + age * 150) * (0.8 + 0.2 * b.rank);
+        this.teleG.lineStyle(2, c, 0.8 * (1 - age / 0.5)).strokeEllipse(s.x, s.y, r * 2, r);
+      }
       const top = beastTop(s, b.tier), h = Math.max(8, s.y - top);
       for (let j = 0; j < 6; j++) {
         const f = ((time / (rage ? 500 : 900) + j / 6) % 1), x = s.x + Math.sin(j * 2.4 + time / 700) * w * 0.45;
@@ -2290,7 +2296,7 @@ export class GameScene extends Phaser.Scene {
       } else if (spr === "static") {
         // Hồn thú lai (#386): ảnh tĩnh 3 hướng, thở / nhún / ngả rồi vồ / lắc khi trúng đòn vẽ bằng code (staticBeastPose). Phép biến đổi
         // quanh chân; vị trí dịch cộng thêm sau khi đã đặt độ sâu theo điểm chân nên không đổi thứ tự vẽ.
-        const P = staticBeastPose(s, time, b.moving && !b.cast, b.cast, b.hp, face);
+        const P = staticBeastPose(s, time, b.moving && !b.cast, b.cast, b.hp, face, beastFamily(beastBase(b.rank, b.species)?.id), b.rank ? 1 + 0.35 * Math.min(b.rank, 3) : 1);
         s.setScale(k * P.sx, k * P.sy).setRotation(P.rot).setPosition(at.x + P.dx, at.y + P.dy);
         if (P.flash) s.setTintFill(0xffffff);
       } else {

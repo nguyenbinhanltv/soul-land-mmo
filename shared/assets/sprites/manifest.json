@@ -78,8 +78,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_liet_trao_hung",
@@ -88,8 +88,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_loi_quang_hai_dieu",
@@ -102,11 +102,24 @@
       "lpc": true
     },
     {
+      "key": "beast_loi_van_hau",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
       "key": "beast_man_da_la_xa",
       "frame": [
-        32,
-        32
-      ]
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_nhan_dien_ma_chu_non",
@@ -115,8 +128,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_nhu_cot_tho_hoang",
@@ -135,8 +148,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_phong_lang_con",
@@ -155,8 +168,8 @@
         128
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_quy_dang_non",
@@ -175,8 +188,18 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_thanh_lan_ngac",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_thanh_lan_xa",
@@ -187,6 +210,16 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_thiet_giap_te_nguu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_thiet_giap_xuyen_son_giap",
@@ -211,9 +244,12 @@
     {
       "key": "beast_tu_van_bao",
       "frame": [
-        32,
-        32
-      ]
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_tuyet_lang",

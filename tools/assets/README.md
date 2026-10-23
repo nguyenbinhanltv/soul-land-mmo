@@ -186,3 +186,4 @@ shared/assets/iso/
 ## Hồn thú lai: sheet tĩnh 3 hướng (#386)
 - Manifest `{ "key": "beast_<loài>", "frame": [64, 64], "iso": true, "static": true, "map": "<vùng>" }`; sheet `beast/<loài>.png` rộng 3 × khung, cao 1 khung: cột 0 nam (`s`), cột 1 đông (`e`), cột 2 bắc (`n`), gốc giữa đáy cách đáy `ISO_BEAST_FOOT`. `validate.mjs --static` (và `sheetSpec(key, frame, true, true)` trong `lib.mjs`) kiểm cỡ, đủ 3 khung, màu tự do như chân dung (mỗi hướng một bảng màu riêng, không giới hạn 32 màu, không so bảng chung); `normal.mjs --frame 64x64` sinh `_n.png`.
 - Client (`sprites.ts`): `isStaticBeast`, `STATIC_DIR_MAP` (hướng 8 → khung + lật), `staticBeastPose` / `STATIC_MOTION` (thở, nhún, ngả + vồ, lắc, nháy trắng; bóng ngã khi chết ở `GameScene.fadeBeastGhost`).
+- Họ hoạt ảnh (`beastFamily`, bảng `FAMILY_SPECIES`): thêm loài mới vào đúng họ (chim, rắn, côn trùng, cây / hoa; còn lại là thú bốn chân). Ảnh đông trong sheet phải nhìn sang phải.
