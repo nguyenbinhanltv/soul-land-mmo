@@ -1010,7 +1010,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] E3 Thợ rèn cường hóa +15 theo bảng rủi ro, Bùa Hộ Mệnh, chuỗi lưu / transaction / `ver`, bài bot dồn 20 lệnh một lúc (#414).
 - [ ] E4 Hợp thành 3 → 1, phân giải hàng loạt, Tự bán / tự phân giải tùy chọn (#415).
 - [ ] E5 Giao diện: tab trang bị ở bảng nhân vật, nhóm lọc trong túi, ba trang Thợ rèn (#416).
-- [ ] E6 Biểu tượng ~60 mẫu, khung theo bậc (#417). Phần 1 (làm tay bằng ChatGPT, nhập bằng `tools/assets/equip-import.mjs`): 66/76 khóa `equipIconKeys()` (5 bậc đầu, 10 ô trống, 6 khung); còn thiếu 10 ảnh bậc Đường Môn Chí Bảo.
+- [x] E6 Biểu tượng trang bị, khung theo bậc (#417): đủ 76/76 khóa `equipIconKeys()` (60 mẫu, 10 hình ô, 6 khung), làm tay bằng ChatGPT, nhập bằng `tools/assets/equip-import.mjs` (bậc Chí Bảo: ảnh nền trắng, `--key #ffffff`).
 - [ ] E7 Cân bằng: giả lập kinh tế (thời gian lên +10 / +15, Hồn Tệ vào / ra), đấu trường, chạy dài `soak-perf` (#418).
 - [ ] Khóa Redis `lock:item:<id>` khi bật nhiều tiến trình (cùng việc #120).
 

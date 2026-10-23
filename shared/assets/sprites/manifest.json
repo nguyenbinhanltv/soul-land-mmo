@@ -788,6 +788,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_ao_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_ao_han_ngoc",
       "iso": true
     },
@@ -808,6 +812,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_dai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_dai_han_ngoc",
       "iso": true
     },
@@ -825,6 +833,10 @@
     },
     {
       "key": "item_equip_dai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_chi_bao",
       "iso": true
     },
     {
@@ -872,6 +884,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_giay_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_giay_han_ngoc",
       "iso": true
     },
@@ -889,6 +905,10 @@
     },
     {
       "key": "item_equip_giay_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_chi_bao",
       "iso": true
     },
     {
@@ -912,6 +932,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_nhan_phai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_nhan_phai_han_ngoc",
       "iso": true
     },
@@ -929,6 +953,10 @@
     },
     {
       "key": "item_equip_nhan_phai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_chi_bao",
       "iso": true
     },
     {
@@ -992,6 +1020,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_vong_phai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_vong_phai_han_ngoc",
       "iso": true
     },
@@ -1012,6 +1044,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_vong_trai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_vong_trai_han_ngoc",
       "iso": true
     },
@@ -1029,6 +1065,10 @@
     },
     {
       "key": "item_equip_vong_trai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_chi_bao",
       "iso": true
     },
     {
