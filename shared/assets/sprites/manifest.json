@@ -1427,6 +1427,22 @@
       "iso": true
     },
     {
+      "key": "vh_pha_hon_thuong_b",
+      "iso": true
+    },
+    {
+      "key": "vh_pha_hon_thuong_f",
+      "iso": true
+    },
+    {
+      "key": "vh_thien_can_bach_ngoc_dinh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_thien_can_bach_ngoc_dinh_f",
+      "iso": true
+    },
+    {
       "key": "vh_u_minh_linh_mieu_b",
       "iso": true
     },
