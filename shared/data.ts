@@ -3407,9 +3407,301 @@ export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; re
     ...Object.entries(p.resist ?? {}).map(([k, v]) => `Kháng ${STATUS[k as StatusId].name}: thời gian −${pctTxt(v * mult)}`)].join(", ");
 }
 
+// ---------- Trang bị hồn sư (mục 5.15, bước E0; số đã soát ở docs/trang-bi-kinh-te.md, CHỜ NGƯỜI DÙNG DUYỆT trước khi bật) ----------
+/** Mã vật phẩm của một món trang bị (cột `items.code`, `kind` = `trang_bi`): mỗi món một ô; mẫu, cấp vật phẩm, dòng phụ… ở `items.stats`. */
+export const EQUIP_ITEM = "trang_bi";
+export type EquipSlot = "vu_khi" | "mu" | "ao" | "dai" | "giay" | "day_chuyen" | "vong_trai" | "vong_phai" | "nhan_trai" | "nhan_phai";
+/**
+ * 10 ô trang bị của hồn sư (thuộc hồn sư, cộng cho võ hồn đang ra trận). `main`: mã chỉ số chính (CORE_STATS); `w`: mức chỉ số chính so
+ * với một chỉ số chính hồn hạch 6★ +0 (CORE_STATS[main].main), sau đó nhân hệ số bậc, cấp vật phẩm và cường hóa. `red`: phần "giảm
+ * sát thương nhận" tối đa của ô ở bậc cao nhất (0 = không có). `luck`: ô mang may mắn. `weapon`: công cộng theo từng đòn, tung trong
+ * [min, max] = giữa × (1 − spread, 1 + spread). Thứ tự là chỉ số ô: thêm ô mới thì thêm vào cuối.
+ */
+export interface EquipSlotDef { id: EquipSlot; name: string; main: CoreStat; w: number; red: number; luck: boolean; weapon?: { spread: number } }
+export const EQUIP_SLOTS: EquipSlotDef[] = [
+  { id: "vu_khi",     name: "Vũ khí",         main: "atk",      w: 2,   red: 0,     luck: true, weapon: { spread: 0.25 } },
+  { id: "mu",         name: "Mũ",             main: "mp",       w: 0.6, red: 0.02,  luck: false },
+  { id: "ao",         name: "Áo",             main: "hp",       w: 1,   red: 0.03,  luck: false },
+  { id: "dai",        name: "Đai",            main: "hp_pct",   w: 0.4, red: 0.015, luck: false },
+  { id: "giay",       name: "Giày",           main: "hp",       w: 0.6, red: 0.015, luck: false },
+  { id: "day_chuyen", name: "Dây chuyền",     main: "crit",     w: 0.4, red: 0,     luck: true },
+  { id: "vong_trai",  name: "Vòng tay trái",  main: "atk",      w: 0.6, red: 0,     luck: false },
+  { id: "vong_phai",  name: "Vòng tay phải",  main: "atk_pct",  w: 0.3, red: 0,     luck: false },
+  { id: "nhan_trai",  name: "Nhẫn trái",      main: "crit_dmg", w: 0.3, red: 0,     luck: false },
+  { id: "nhan_phai",  name: "Nhẫn phải",      main: "mp_pct",   w: 0.3, red: 0,     luck: false },
+];
+export const equipSlotIndex = (slot: unknown) => EQUIP_SLOTS.findIndex((s) => s.id === slot);
+export const equipSlotDef = (slot: unknown) => EQUIP_SLOTS[equipSlotIndex(slot)];
+
+/**
+ * 6 bậc (tên đề xuất, người dùng đã chốt giữ cho tới khi đổi). `k`: hệ số chỉ số chính (nhân CORE_STATS[main].main × w); `lines`: số
+ * dòng phụ; `lineK`: mức dòng phụ lớn nhất so với CORE_STATS[mã].sub; `red`: tỉ lệ phần giảm sát thương tối đa của ô (EquipSlotDef.red).
+ * Chỉ số bậc cao nhất (Chí Bảo +15 cả bộ) cố ý dưới hồn hạch / hồn cốt đã cường hóa đủ: vòng chơi chính vẫn là hồn hoàn / hồn cốt / hồn hạch.
+ */
+export interface EquipTierDef { id: string; name: string; color: string; col: string; k: number; lines: number; lineK: number; red: number }
+export const EQUIP_TIERS: EquipTierDef[] = [
+  { id: "pham_khi",   name: "Phàm Khí",           color: "Trắng", col: "#e8e8e8", k: 0.08, lines: 0, lineK: 0,    red: 0.2 },
+  { id: "tinh_thiet", name: "Tinh Thiết",         color: "Lục",   col: "#6fd06f", k: 0.13, lines: 1, lineK: 0.1,  red: 0.35 },
+  { id: "han_ngoc",   name: "Hàn Ngọc",           color: "Lam",   col: "#4b9dff", k: 0.2,  lines: 1, lineK: 0.15, red: 0.5 },
+  { id: "tu_kim",     name: "Tử Kim",             color: "Tím",   col: "#b36bff", k: 0.3,  lines: 2, lineK: 0.2,  red: 0.7 },
+  { id: "than_khi",   name: "Thần Khí",           color: "Cam",   col: "#ff9a3c", k: 0.45, lines: 3, lineK: 0.25, red: 0.85 },
+  { id: "chi_bao",    name: "Đường Môn Chí Bảo",  color: "Đỏ",    col: "#ff4d4d", k: 0.65, lines: 4, lineK: 0.3,  red: 1 },
+];
+export const EQUIP_MAX_TIER = EQUIP_TIERS.length - 1;
+/**
+ * Cấp vật phẩm theo bản đồ nơi rơi (`ilvl` lưu trên món, 1–7): EQUIP_ILVL_K nhân chỉ số chính và dòng phụ (như niên hạn hồn hoàn: cùng bậc,
+ * bản đồ sâu ra món mạnh hơn). `EquipMapDef.maxTier`: bậc tối đa rơi ở bản đồ (tung vượt thì kẹp xuống); `stones`: trọng số rơi Đá Cường Hóa I–V.
+ */
+export interface EquipMapDef { ilvl: number; maxTier: number; stones: [number, number, number, number, number] }
+export const EQUIP_ILVL_K = [0.55, 0.65, 0.75, 0.82, 0.9, 1, 1.05];
+export const equipIlvlK = (ilvl: number) => EQUIP_ILVL_K[Math.max(1, Math.min(EQUIP_ILVL_K.length, Math.floor(ilvl) || 1)) - 1];
+export const EQUIP_MAPS: Record<string, EquipMapDef> = {
+  thanh_hon_thon:    { ilvl: 1, maxTier: 2, stones: [70, 30, 0, 0, 0] },
+  tinh_dau_ngoai_vi: { ilvl: 2, maxTier: 3, stones: [40, 45, 15, 0, 0] },
+  tinh_dau_noi_dia:  { ilvl: 3, maxTier: 3, stones: [15, 40, 35, 10, 0] },
+  lac_nhat_sam_lam:  { ilvl: 4, maxTier: 4, stones: [5, 25, 40, 25, 5] },
+  cuc_bac_chi_dia:   { ilvl: 5, maxTier: 4, stones: [0, 15, 35, 35, 15] },
+  hai_than_dao:      { ilvl: 6, maxTier: 5, stones: [0, 5, 25, 40, 30] },
+  loi_tinh_dau:      { ilvl: 7, maxTier: 5, stones: [0, 0, 10, 40, 50] },
+};
+
+/** Mẫu trang bị: mỗi (ô × bậc) một mẫu, mã `<ô>_<bậc>` (lưu DB, không đổi). `w`: trọng số chọn mẫu trong cùng bậc (mọi ô cân bằng nhau). */
+export interface EquipTemplate { id: string; name: string; slot: EquipSlot; tier: number; w: number }
+const EQUIP_NAMES: Record<EquipSlot, [string, string, string, string, string, string]> = {
+  vu_khi:     ["Phi Đao Phàm Thiết", "Tụ Tiễn Tinh Thiết", "Hàn Ngọc Phi Kiếm", "Tử Kim Đường Nỏ", "Thần Khí Liên Nỗ", "Phật Nộ Đường Liên"],
+  mu:         ["Khăn Vải Thôn Dân", "Mũ Sắt Tinh Thiết", "Hàn Ngọc Quan", "Tử Kim Phát Quan", "Thần Khí Kim Quan", "Đường Môn Chí Tôn Quan"],
+  ao:         ["Áo Vải Thô", "Giáp Da Tinh Thiết", "Hàn Ngọc Bào", "Tử Kim Chiến Giáp", "Thần Khí Hồn Giáp", "Đường Môn Thần Giáp"],
+  dai:        ["Dây Lưng Gai", "Đai Tinh Thiết", "Hàn Ngọc Yêu Đới", "Tử Kim Yêu Đới", "Thần Khí Yêu Đới", "Chí Bảo Long Đới"],
+  giay:       ["Giày Cỏ", "Ủng Tinh Thiết", "Hàn Ngọc Ngoa", "Tử Kim Chiến Ngoa", "Thần Khí Phi Ngoa", "Chí Bảo Phi Ngoa"],
+  day_chuyen: ["Dây Chuyền Đá Cuội", "Dây Chuyền Tinh Thiết", "Hàn Ngọc Mặt Dây", "Tử Kim Hạng Liên", "Thần Khí Hạng Liên", "Chí Bảo Hạng Liên"],
+  vong_trai:  ["Vòng Đồng Hộ Uyển", "Tinh Thiết Hộ Uyển", "Hàn Ngọc Hộ Uyển", "Tử Kim Hộ Uyển", "Thần Khí Hộ Uyển", "Chí Bảo Hộ Uyển"],
+  vong_phai:  ["Vòng Đồng Thủ Trạc", "Tinh Thiết Thủ Trạc", "Hàn Ngọc Thủ Trạc", "Tử Kim Thủ Trạc", "Thần Khí Thủ Trạc", "Chí Bảo Thủ Trạc"],
+  nhan_trai:  ["Nhẫn Đồng Trơn", "Nhẫn Tinh Thiết", "Hàn Ngọc Giới Chỉ", "Tử Kim Giới Chỉ", "Thần Khí Giới Chỉ", "Chí Bảo Giới Chỉ"],
+  nhan_phai:  ["Nhẫn Gỗ Mộc", "Nhẫn Tinh Thiết Khắc Văn", "Hàn Ngọc Chỉ Hoàn", "Tử Kim Chỉ Hoàn", "Thần Khí Chỉ Hoàn", "Chí Bảo Chỉ Hoàn"],
+};
+export const EQUIP_TEMPLATES: EquipTemplate[] = EQUIP_SLOTS.flatMap((s) =>
+  EQUIP_TIERS.map((t, i): EquipTemplate => ({ id: `${s.id}_${t.id}`, name: EQUIP_NAMES[s.id][i], slot: s.id, tier: i, w: 1 })));
+const EQUIP_TPL_INDEX = new Map(EQUIP_TEMPLATES.map((t) => [t.id, t]));
+export const equipTemplate = (id: unknown) => EQUIP_TPL_INDEX.get(id as string);
+/** Tên đầy đủ trong túi: "+7 Tử Kim Hộ Uyển". */
+export const equipName = (tpl: unknown, enhance = 0) => { const t = equipTemplate(tpl); return t ? `${enhance > 0 ? `+${enhance} ` : ""}${t.name}` : "Trang bị lạ"; };
+
+/** May mắn (vũ khí + dây chuyền): tổng tối đa EQUIP_LUCK_MAX; từ mức đó đòn vũ khí luôn ra công tối đa. */
+export const EQUIP_LUCK_MAX = 9;
+
+/**
+ * Cường hóa +1…+EQUIP_MAX_ENHANCE: chỉ số chính và công vũ khí × (1 + EQUIP_ENHANCE_STAT × cấp^1,5) (+5 ×1,18, +10 ×1,51, +15 ×1,93);
+ * không áp lên may mắn, giảm sát thương và dòng phụ. Bản kế hoạch ghi 8% × cấp^1,5 (+15 ×5,65): co lại vì +15 đã tốn rất nhiều.
+ */
+export const EQUIP_MAX_ENHANCE = 15;
+export const EQUIP_ENHANCE_STAT = 0.016;
+export const equipEnhanceClamp = (e: unknown) => Math.max(0, Math.min(EQUIP_MAX_ENHANCE, Math.floor(Number(e)) || 0));
+export const equipEnhanceMult = (enhance: number) => 1 + EQUIP_ENHANCE_STAT * Math.pow(equipEnhanceClamp(enhance), 1.5);
+
+/** Đá Cường Hóa I–V (`items.code`, gộp tối đa `stack`): `drop` = số đá mỗi lần rơi ở nhóm "đồ tạp" (EQUIP_DROP.ranks), `buy` = giá thương nhân (0 = không bán). */
+export const EQUIP_STONES: { id: string; name: string; col: string; stack: number; drop: [number, number]; buy: number }[] = [
+  { id: "da_cuong_hoa_1", name: "Đá Cường Hóa I",   col: "#b8c0c8", stack: 999, drop: [1, 3], buy: 40 },
+  { id: "da_cuong_hoa_2", name: "Đá Cường Hóa II",  col: "#7fd0a0", stack: 999, drop: [1, 2], buy: 150 },
+  { id: "da_cuong_hoa_3", name: "Đá Cường Hóa III", col: "#6aa8ff", stack: 999, drop: [1, 2], buy: 0 },
+  { id: "da_cuong_hoa_4", name: "Đá Cường Hóa IV",  col: "#c280ff", stack: 999, drop: [1, 1], buy: 0 },
+  { id: "da_cuong_hoa_5", name: "Đá Cường Hóa V",   col: "#ff9a3c", stack: 999, drop: [1, 1], buy: 0 },
+];
+/** Bùa Hộ Mệnh: chặn phá hủy khi cường hóa thất bại ở +13–15 (giữ cấp, mất 1 bùa); chỉ rơi từ thú vương / boss thế giới, không bán. */
+export const EQUIP_CHARM = "bua_ho_menh";
+/** Tinh Hoa Đường Môn (phân giải Thần Khí / Chí Bảo; chi phí hợp thành T4→T5) và Thần Hồn (phân giải Chí Bảo; khắc may mắn). */
+export const EQUIP_ESSENCE = "tinh_hoa_duong_mon";
+export const EQUIP_SOUL = "than_hon";
+export const EQUIP_MATERIALS: { id: string; name: string; col: string; stack: number; desc: string }[] = [
+  ...EQUIP_STONES.map((s, i) => ({ id: s.id, name: s.name, col: s.col, stack: s.stack, desc: `Nguyên liệu cường hóa trang bị hồn sư (nấc ${i + 1}). Rơi từ hồn thú, phân giải trang bị.` })),
+  { id: EQUIP_CHARM, name: "Bùa Hộ Mệnh", col: "#ffd45a", stack: 99, desc: "Cường hóa trang bị thất bại ở +13–15 mà có bùa thì món không bị phá hủy (giữ cấp, mất 1 bùa). Chỉ rơi từ thú vương và boss thế giới." },
+  { id: EQUIP_ESSENCE, name: "Tinh Hoa Đường Môn", col: "#ff6a5a", stack: 99, desc: "Tinh hoa từ trang bị Thần Khí / Chí Bảo phân giải. Dùng hợp thành Thần Khí lên Chí Bảo." },
+  { id: EQUIP_SOUL, name: "Thần Hồn", col: "#e8dcff", stack: 99, desc: "Hồn từ trang bị Chí Bảo phân giải. Khắc may mắn lên vũ khí / dây chuyền." },
+];
+
+/** Một nấc cường hóa. `to`: khoảng cấp ĐÍCH (+a … +b) dùng chung điều kiện; `fail`: keep giữ cấp, down tụt `n` cấp, reset về cấp `to` (nếu đang cao hơn), destroy phá hủy món (có Bùa Hộ Mệnh thì giữ cấp). */
+export interface EquipEnhanceStep { to: [number, number]; p: number; stone: number; qty: number; fee: number; fail: { kind: "keep" } | { kind: "down"; n: number } | { kind: "reset"; to: number } | { kind: "destroy" } }
+/**
+ * **(chờ duyệt)** Bảng cường hóa theo cấp đích (stone = chỉ số trong EQUIP_STONES). Mỗi lần cố đều trừ đá và `fee` đồng Hồn Tệ, kể cả khi
+ * thất bại. +13–15 thất bại không có bùa PHÁ HỦY món: ngoại lệ có chủ đích với nguyên tắc "cường hóa hồn cốt / hồn hạch không thất bại" (mục 5.15).
+ */
+export const EQUIP_ENHANCE: EquipEnhanceStep[] = [
+  { to: [1, 3],   p: 1,    stone: 0, qty: 1, fee: 200,   fail: { kind: "keep" } },
+  { to: [4, 6],   p: 0.75, stone: 1, qty: 2, fee: 800,   fail: { kind: "keep" } },
+  { to: [7, 9],   p: 0.5,  stone: 2, qty: 4, fee: 2500,  fail: { kind: "down", n: 1 } },
+  { to: [10, 12], p: 0.3,  stone: 3, qty: 5, fee: 8000,  fail: { kind: "down", n: 1 } },
+  { to: [13, 15], p: 0.1,  stone: 4, qty: 8, fee: 30000, fail: { kind: "destroy" } },
+];
+/** Nấc cường hóa để lên +(enhance + 1); null = đã tối đa. */
+export const equipEnhanceStep = (enhance: number) => { const e = equipEnhanceClamp(enhance); return e >= EQUIP_MAX_ENHANCE ? null : EQUIP_ENHANCE.find((s) => e + 1 >= s.to[0] && e + 1 <= s.to[1]) ?? null; };
+/**
+ * Kết quả một lần cường hóa từ +`enhance` (hàm thuần; server tung `ok` bằng `rnd() < step.p` rồi gọi): cấp mới, món có bị phá hủy không,
+ * có tiêu Bùa Hộ Mệnh không. `charm`: người chơi chọn dùng bùa (chỉ có tác dụng ở nấc phá hủy; không dùng thì thất bại là mất món).
+ */
+export function equipEnhanceResult(enhance: number, ok: boolean, charm: boolean): { enhance: number; destroyed: boolean; charmUsed: boolean } | null {
+  const e = equipEnhanceClamp(enhance), s = equipEnhanceStep(e); if (!s) return null;
+  if (ok) return { enhance: e + 1, destroyed: false, charmUsed: false };
+  switch (s.fail.kind) {
+    case "keep": return { enhance: e, destroyed: false, charmUsed: false };
+    case "down": return { enhance: Math.max(0, e - s.fail.n), destroyed: false, charmUsed: false };
+    case "reset": return { enhance: Math.min(e, s.fail.to), destroyed: false, charmUsed: false };
+    case "destroy": return charm ? { enhance: e, destroyed: false, charmUsed: true } : { enhance: 0, destroyed: true, charmUsed: false };
+  }
+}
+
+/**
+ * **(chờ duyệt)** Hợp thành 3 → 1 ở Thợ rèn (1 món chính + 2 món hiến tế cùng bậc, cùng ô, không khoá, không đang mặc) ra 1 món bậc kế,
+ * mẫu ngẫu nhiên cùng ô. `from`: bậc đầu vào; `p`: tỉ lệ; `fee`: Hồn Tệ (trừ cả khi thất bại); `essence`: Tinh Hoa Đường Môn tiêu hao;
+ * thất bại: luôn mất 2 hiến tế; `mainLoss`: món chính mất ngần này cấp cường hóa (T3→T4); `all`: mất cả món chính (T4→T5) và hoàn `refund`
+ * phần Tinh Hoa (làm tròn xuống). Thành công: món mới giữ EQUIP_SYNTH_KEEP phần cấp cường hóa của món chính (làm tròn xuống). Không có độ bền.
+ */
+export const EQUIP_SYNTH: { from: number; p: number; fee: number; essence: number; mainLoss: number; all: boolean; refund: number }[] = [
+  { from: 0, p: 1,    fee: 100,   essence: 0,  mainLoss: 0, all: false, refund: 0 },
+  { from: 1, p: 0.85, fee: 400,   essence: 0,  mainLoss: 0, all: false, refund: 0 },
+  { from: 2, p: 0.65, fee: 1500,  essence: 0,  mainLoss: 0, all: false, refund: 0 },
+  { from: 3, p: 0.4,  fee: 6000,  essence: 0,  mainLoss: 1, all: false, refund: 0 },
+  { from: 4, p: 0.2,  fee: 20000, essence: 10, mainLoss: 0, all: true,  refund: 0.3 },
+];
+export const EQUIP_SYNTH_KEEP = 0.5;
+export const equipSynthStep = (tier: number) => EQUIP_SYNTH.find((s) => s.from === tier) ?? null;
+
+/**
+ * **(chờ duyệt)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
+ * (mỗi dòng: xác suất `p`, số lượng [lo, hi]; mã trong EQUIP_MATERIALS). Cấp cường hóa chỉ tăng phần Hồn Tệ.
+ */
+export const EQUIP_SALVAGE: { coin: number; mats: { code: string; p: number; qty: [number, number] }[] }[] = [
+  { coin: 4,    mats: [{ code: "da_cuong_hoa_1", p: 1, qty: [1, 2] }] },
+  { coin: 12,   mats: [{ code: "da_cuong_hoa_1", p: 1, qty: [1, 2] }, { code: "da_cuong_hoa_2", p: 0.5, qty: [1, 1] }] },
+  { coin: 40,   mats: [{ code: "da_cuong_hoa_2", p: 1, qty: [1, 2] }, { code: "da_cuong_hoa_3", p: 0.5, qty: [1, 1] }] },
+  { coin: 120,  mats: [{ code: "da_cuong_hoa_3", p: 1, qty: [1, 2] }, { code: "da_cuong_hoa_4", p: 0.5, qty: [1, 1] }] },
+  { coin: 400,  mats: [{ code: "da_cuong_hoa_4", p: 1, qty: [1, 3] }, { code: "da_cuong_hoa_5", p: 0.5, qty: [1, 1] }, { code: EQUIP_ESSENCE, p: 0.5, qty: [1, 1] }] },
+  { coin: 1200, mats: [{ code: "da_cuong_hoa_5", p: 1, qty: [1, 2] }, { code: EQUIP_ESSENCE, p: 1, qty: [2, 3] }, { code: EQUIP_SOUL, p: 0.25, qty: [1, 1] }] },
+];
+export function equipSalvage(tier: number, enhance: number, rnd: () => number): { coin: number; items: { code: string; qty: number }[] } {
+  const t = EQUIP_SALVAGE[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))], items: { code: string; qty: number }[] = [];
+  for (const m of t.mats) if (rnd() < m.p) items.push({ code: m.code, qty: m.qty[0] + Math.floor(rnd() * (m.qty[1] - m.qty[0] + 1)) });
+  return { coin: Math.round(t.coin * (1 + equipEnhanceClamp(enhance) / 5)), items };
+}
+/**
+ * **(đề xuất, chờ duyệt)** Khắc may mắn: 1 Thần Hồn lên vũ khí / dây chuyền từ may mắn n lên n + 1 với tỉ lệ EQUIP_LUCK_UP[n]; thất bại mất
+ * Thần Hồn, may mắn giữ nguyên (không phá). Tổng may mắn hai ô tối đa EQUIP_LUCK_MAX.
+ */
+export const EQUIP_LUCK_UP = [1, 0.8, 0.6, 0.45, 0.3, 0.2, 0.12, 0.08, 0.05];
+
+/**
+ * Rơi trang bị (hàm thuần, server truyền RNG và hệ số). `ranks[bậc hồn thú 0–3]`: `chance` có rơi lượt nào không, `rolls` số lượt [lo, hi],
+ * `p` xác suất mỗi lượt ra [đồ tạp = Đá Cường Hóa, T0–T1, T2–T3, T4–T5] (chưa chuẩn hoá), `t5` tỉ lệ T5 trong nhóm T4–T5, `qty` nhân số đá,
+ * `charm` tỉ lệ rơi (vào rương) Bùa Hộ Mệnh mỗi lần hạ (thú vương / boss thế giới). `tierW`: trọng số hai bậc trong nhóm T0–T1 và T2–T3.
+ * `rateCap`: trần hệ số (1 + rate máy chủ + rate người chơi) nhân vào xác suất ra trang bị (không nhân đồ tạp, không có Rate VIP, không nạp tiền).
+ * `luck`: tỉ lệ ô may mắn ra sẵn +1. Thú vương / boss thế giới: kết quả đi vào rương theo đóng góp, không rải xuống đất (mục 5.15).
+ */
+export const EQUIP_DROP = {
+  ranks: [
+    { chance: 0.06, rolls: [1, 1], p: [0.45, 0.549, 0.001, 0], t5: 0, qty: 1, charm: 0 },
+    { chance: 1,    rolls: [1, 2], p: [0.2, 0.5, 0.28, 0.02], t5: 0, qty: 1, charm: 0 },
+    { chance: 1,    rolls: [3, 5], p: [0.12, 0.2, 0.6, 0.08], t5: 0.05, qty: 3, charm: 0.25 },
+    { chance: 1,    rolls: [5, 8], p: [0.05, 0.05, 0.4, 0.5], t5: 0.15, qty: 5, charm: 0.6 },
+  ] as { chance: number; rolls: [number, number]; p: [number, number, number, number]; t5: number; qty: number; charm: number }[],
+  tierW: [[7, 3], [6, 4]] as [number, number][],
+  rateCap: 3,
+  luck: 0.005,
+};
+
+/** Dữ liệu một món trang bị (`items.stats`; cấp cường hóa ở `items.enhance`): chỉ số cuối luôn tính lại từ mẫu + cấp vật phẩm + cấp cường hóa. */
+export interface EquipData {
+  tpl: string; ilvl: number;
+  /** Biến động chỉ số chính, đều trong ±EQUIP_ROLL. */
+  roll: number;
+  /** Dòng phụ: [mã CORE_STATS, mức tung trong CORE_SUB_ROLL]. Giá trị = equipAffixValue (CORE_STATS[mã].sub × lineK × cấp vật phẩm × mức). */
+  affixes: [CoreStat, number][];
+  /** May mắn 0–EQUIP_LUCK_MAX (chỉ ô `luck`). */
+  luck: number;
+}
+export const EQUIP_ROLL = 0.05;
+export type EquipDrop = { kind: "equip"; item: EquipData } | { kind: "stone"; code: string; qty: number };
+
+const pickIdx = (w: readonly number[], rnd: () => number) => {
+  const total = w.reduce((a, x) => a + x, 0); if (!(total > 0)) return -1;
+  let r = rnd() * total; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0 && w[i] > 0) return i; }
+  return w.findIndex((x) => x > 0);
+};
+/** Tạo một món mẫu `tpl` rơi ở cấp vật phẩm `ilvl`: biến động chính ±EQUIP_ROLL, dòng phụ theo bậc (khác nhau, khác chỉ số chính), may mắn +1 hiếm. */
+export function rollEquip(tpl: EquipTemplate, ilvl: number, rnd: () => number): EquipData {
+  const slot = equipSlotDef(tpl.slot), t = EQUIP_TIERS[tpl.tier], pool = CORE_STAT_IDS.filter((k) => k !== slot.main), affixes: [CoreStat, number][] = [];
+  for (let n = 0; n < t.lines && pool.length; n++) {
+    const k = pool.splice(Math.min(pool.length - 1, Math.floor(rnd() * pool.length)), 1)[0];
+    affixes.push([k, +(CORE_SUB_ROLL[0] + rnd() * (CORE_SUB_ROLL[1] - CORE_SUB_ROLL[0])).toFixed(3)]);
+  }
+  return { tpl: tpl.id, ilvl: Math.max(1, Math.min(EQUIP_ILVL_K.length, Math.floor(ilvl) || 1)), roll: +((rnd() * 2 - 1) * EQUIP_ROLL).toFixed(3),
+    affixes, luck: slot.luck && rnd() < EQUIP_DROP.luck ? 1 : 0 };
+}
+/**
+ * Các món rơi khi hạ một hồn thú bậc `rank` (0–3) ở bản đồ `mapId`. `rate`: tổng hệ số cộng thêm (sự kiện máy chủ + người chơi), xác suất
+ * trang bị nhân (1 + rate) kẹp 0..rateCap; tổng trọng số 0 thì bỏ lượt (không chia 0). Bản đồ / bậc lạ: không rơi gì.
+ */
+export function rollEquipDrop(rank: number, mapId: string, rnd: () => number, rate = 0): EquipDrop[] {
+  const cfg = EQUIP_DROP.ranks[rank], map = EQUIP_MAPS[mapId], out: EquipDrop[] = [];
+  if (!cfg || !map) return out;
+  const mult = Math.max(0, Math.min(EQUIP_DROP.rateCap, 1 + (Number.isFinite(rate) ? rate : 0)));
+  if (!(rnd() < Math.min(1, cfg.chance * (cfg.chance < 1 ? mult : 1)))) return out;
+  const rolls = cfg.rolls[0] + Math.floor(rnd() * (cfg.rolls[1] - cfg.rolls[0] + 1));
+  for (let i = 0; i < rolls; i++) {
+    const g = pickIdx([cfg.p[0], cfg.p[1] * mult, cfg.p[2] * mult, cfg.p[3] * mult], rnd);
+    if (g < 0) continue;
+    if (g === 0) {
+      const si = pickIdx(map.stones, rnd); if (si < 0) continue;
+      const [lo, hi] = EQUIP_STONES[si].drop;
+      out.push({ kind: "stone", code: EQUIP_STONES[si].id, qty: Math.max(1, Math.round((lo + Math.floor(rnd() * (hi - lo + 1))) * cfg.qty)) });
+      continue;
+    }
+    const tier = Math.min(map.maxTier, g === 3 ? (rnd() < cfg.t5 ? 5 : 4) : (g - 1) * 2 + pickIdx(EQUIP_DROP.tierW[g - 1], rnd));
+    const list = EQUIP_TEMPLATES.filter((x) => x.tier === tier), tpl = list[pickIdx(list.map((x) => x.w), rnd)];
+    if (tpl) out.push({ kind: "equip", item: rollEquip(tpl, map.ilvl, rnd) });
+  }
+  return out;
+}
+/** Số Bùa Hộ Mệnh vào rương khi hạ thú vương / boss thế giới (0 hoặc 1). */
+export const rollEquipCharm = (rank: number, rnd: () => number) => (rnd() < (EQUIP_DROP.ranks[rank]?.charm ?? 0) ? 1 : 0);
+
+/** Công vũ khí cho một đòn: tung đều trong [min, max]; may mắn L có xác suất L / EQUIP_LUCK_MAX ra đúng max, từ EQUIP_LUCK_MAX trở lên luôn max. */
+export function equipWeaponRoll(w: { min: number; max: number }, luck: number, rnd: () => number) {
+  const l = Math.max(0, Math.min(EQUIP_LUCK_MAX, Math.floor(luck) || 0));
+  return l >= EQUIP_LUCK_MAX || rnd() < l / EQUIP_LUCK_MAX ? w.max : w.min + rnd() * (w.max - w.min);
+}
+/** Chỉ số chính của món (cộng phẳng hoặc % theo CORE_STATS[main].pct); vũ khí: công giữa của khoảng [min, max]. */
+export function equipMainValue(slot: EquipSlotDef, tier: number, ilvl: number, enhance = 0, roll = 0) {
+  const t = EQUIP_TIERS[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))];
+  return coreRound(slot.main, CORE_STATS[slot.main].main * slot.w * t.k * equipIlvlK(ilvl) * equipEnhanceMult(enhance) * (1 + Math.max(-EQUIP_ROLL, Math.min(EQUIP_ROLL, roll))));
+}
+/** Giá trị một dòng phụ của món bậc `tier`, cấp vật phẩm `ilvl`, mức tung `roll`. */
+export const equipAffixValue = (k: CoreStat, tier: number, ilvl: number, roll: number) =>
+  coreRound(k, CORE_STATS[k].sub * EQUIP_TIERS[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))].lineK * equipIlvlK(ilvl) * Math.max(0, roll));
+export interface EquipInput { tpl: string; ilvl: number; enhance?: number; roll?: number; affixes?: readonly [CoreStat, number][]; luck?: number }
+/**
+ * Tổng chỉ số các món đang mặc (mỗi ô tối đa một món, server kiểm tra; mẫu lạ bỏ qua): `bonus` cùng dạng và đơn vị với coreBonus / boneBonus
+ * (công vũ khí KHÔNG nằm ở đây); `weapon`: khoảng công cộng theo từng đòn (null nếu chưa mặc vũ khí); `red`: tổng giảm sát thương nhận
+ * (gộp với bị động hồn cốt dưới BONE_PASSIVE_CAP.def: equipDefTotal); `luck`: tổng may mắn, tối đa EQUIP_LUCK_MAX.
+ */
+export function equipStats(items: readonly EquipInput[]): { bonus: Record<CoreStat, number>; weapon: { min: number; max: number } | null; red: number; luck: number } {
+  const bonus = Object.fromEntries(CORE_STAT_IDS.map((k) => [k, 0])) as Record<CoreStat, number>, seen = new Set<string>();
+  let weapon: { min: number; max: number } | null = null, red = 0, luck = 0;
+  for (const it of items) {
+    const tpl = equipTemplate(it.tpl); if (!tpl || seen.has(tpl.slot)) continue;
+    seen.add(tpl.slot);
+    const slot = equipSlotDef(tpl.slot), main = equipMainValue(slot, tpl.tier, it.ilvl, it.enhance ?? 0, it.roll ?? 0);
+    if (slot.weapon) weapon = { min: Math.max(1, Math.round(main * (1 - slot.weapon.spread))), max: Math.max(1, Math.round(main * (1 + slot.weapon.spread))) };
+    else bonus[slot.main] += main;
+    for (const [k, r] of it.affixes ?? []) if (k in CORE_STATS) bonus[k] += equipAffixValue(k, tpl.tier, it.ilvl, r);
+    red += slot.red * EQUIP_TIERS[tpl.tier].red;
+    if (slot.luck) luck += Math.max(0, Math.min(EQUIP_LUCK_MAX, Math.floor(it.luck ?? 0) || 0));
+  }
+  return { bonus, weapon, red, luck: Math.min(EQUIP_LUCK_MAX, luck) };
+}
+/** Giảm sát thương nhận tổng: bị động hồn cốt (buff `def`) cộng giảm sát thương trang bị, chung một trần BONE_PASSIVE_CAP.def. */
+export const equipDefTotal = (bonePassiveDef: number, equipRed: number) => Math.min(BONE_PASSIVE_CAP.def, Math.max(0, bonePassiveDef) + Math.max(0, equipRed));
+
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây đã chốt) ----------
 /** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5), tiên thảo (BĐ6b, HERBS). */
-export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu" | "lenh";
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu" | "lenh" | "trang_bi" | "nguyen_lieu";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
   hon_hoan: { name: "Hồn hoàn" },
@@ -3420,6 +3712,8 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   ruong: { name: "Rương" }, // BĐ5: rương tà hóa thú vương
   phu: { name: "Phù chú" }, // 11.2: Hồi Thành Phù
   lenh: { name: "Lệnh bài" }, // Auto 2: Ủy Thác Lệnh
+  trang_bi: { name: "Trang bị hồn sư" }, // E0, mục 5.15
+  nguyen_lieu: { name: "Nguyên liệu" }, // E0: đá cường hóa, bùa, tinh hoa, thần hồn
 };
 /**
  * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
@@ -3515,7 +3809,10 @@ export const ITEMS: ItemDef[] = [
     desc: `Niệm ${WAYPOINT_CAST} giây rồi về thành gần nhất (ngoài giao chiến; di chuyển hoặc bị đánh thì hủy, phù vẫn còn).` },
   // Ủy Thác Lệnh (Auto 2, mục 5.13): cộng giờ treo tự săn ngoài AUTO_DAILY_SECS mỗi ngày; thương nhân trong thành bán, không mua lại.
   { id: AUTO_TOKEN, kind: "lenh", name: "Ủy Thác Lệnh", col: "#86e0b0", stack: 99, auto: AUTO_TOKEN_SECS,
-    desc: `Dùng thì cộng ${AUTO_TOKEN_SECS / 3600} giờ treo tự săn (giữ qua ngày, chỉ tiêu sau khi đã treo hết giờ miễn phí của hôm nay; tích tối đa ${AUTO_BONUS_MAX / 3600} giờ).` },
+    desc: `Dùng thì cộng ${AUTO_TOKEN_SECS / 3600} giờ treo tự săn (giữ qua ngày, chỉ tiêu sau khi đã treo hết giờ miễn phí của hôm nay; tích tối đa ${AUTO_BONUS_MAX / 3600} giờ).` },  // Trang bị hồn sư (E0, mục 5.15): chưa rơi / chưa dùng được cho tới E1+; mỗi món một ô, dữ liệu ở `items.stats` (EquipData).
+  { id: EQUIP_ITEM, kind: "trang_bi", name: "Trang bị hồn sư", col: "#e8e8e8", stack: 1,
+    desc: "Mặc vào một trong 10 ô của hồn sư để cộng chỉ số cho võ hồn đang ra trận. Cường hóa, hợp thành, phân giải ở Thợ rèn." },
+  ...EQUIP_MATERIALS.map((m): ItemDef => ({ id: m.id, kind: "nguyen_lieu", name: m.name, col: m.col, stack: m.stack, desc: m.desc })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
