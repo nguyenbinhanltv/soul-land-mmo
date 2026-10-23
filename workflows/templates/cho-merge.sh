@@ -1,7 +1,8 @@
 #!/bin/bash
 # Dùng: cho-merge.sh <PR> <session-id>
 # Chờ AO review đạt ở đúng head hiện tại + CI xanh rồi squash merge. Chạy nền (run_in_background).
-# Thoát không merge khi: head đổi giữa chừng, review không đạt, CI đỏ / đang chạy / bị hủy.
+# Thoát không merge khi: head đổi giữa chừng, review không đạt, CI đỏ / đang chạy / bị hủy / không có check nào / gh lỗi.
+# Nên bật thêm required status checks ở ruleset để `gh pr merge` không lách được CI (nếu dự án chọn CI bắt buộc).
 # Cần: ao, gh, python3 (hoặc python). Đổi <ĐƯỜNG_DẪN_WORKTREE_ORCHESTRATOR> thành thư mục repo của orchestrator.
 P=$1; S=$2
 PY=$(command -v python3 || command -v python)
@@ -28,10 +29,15 @@ echo "#$P review: $v"
 # 2. Chờ CI xong, kiểm head chưa đổi và không có check đỏ / đang chạy.
 gh pr checks "$P" --watch --interval 60 >/dev/null 2>&1
 [ "$(gh pr view "$P" --json headRefOid --jq .headRefOid)" = "$H" ] || { echo "#$P head đổi"; exit 0; }
-if gh pr checks "$P" 2>&1 | cut -f2 | grep -qE 'fail|cancel|pending'; then
-  gh pr checks "$P" 2>&1 | cut -f1,2 | grep -vE 'pass'
-  echo "#$P NOT-MERGED"; exit 0
-fi
+# Fail-closed: gh lỗi, danh sách check rỗng, hoặc có check không phải pass / skipping thì KHÔNG merge.
+CHK=$(gh pr checks "$P" --json name,bucket 2>/dev/null) || { echo "#$P NOT-MERGED (gh pr checks lỗi)"; exit 0; }
+echo "$CHK" | "$PY" -c "
+import json,sys
+c=json.load(sys.stdin)
+bad=[x['name']+': '+x['bucket'] for x in c if x['bucket'] not in ('pass','skipping')]
+print('
+'.join(bad))
+sys.exit(0 if c and not bad else 1)" || { echo "#$P NOT-MERGED"; exit 0; }
 
 # 3. Merge đúng bản đã review.
 gh pr merge "$P" --squash --match-head-commit "$H" 2>&1 | tail -1
