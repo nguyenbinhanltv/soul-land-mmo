@@ -378,6 +378,270 @@
       "iso": true
     },
     {
+      "key": "item_equip_ao_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_ao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_dai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_day_chuyen",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_giay",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_mu",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_nhan_phai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_nhan_trai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_vong_phai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_vong_trai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_vu_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_tu_kim",
+      "iso": true
+    },
+    {
       "key": "item_hoi_hon_dan",
       "iso": true
     },
