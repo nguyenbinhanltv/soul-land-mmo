@@ -8,8 +8,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_noi_dia",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_bang_phong_bach_hung",
@@ -58,8 +58,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_noi_dia",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_hoi_vu_tuoc",
@@ -72,6 +72,16 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_kiem_vi_hat",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "beast_kim_linh_ung",
       "frame": [
         96,
@@ -82,6 +92,16 @@
       "map": "tinh_dau_ngoai_vi"
     },
     {
+      "key": "beast_lam_loi_te_nguu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "beast_liet_trao_hung",
       "frame": [
         96,
@@ -90,6 +110,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_loi_duc_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_loi_quang_hai_dieu",
@@ -120,6 +150,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_nhan_dien_ma_chu",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_nhan_dien_ma_chu_non",
@@ -160,6 +200,16 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_quy_anh_bao",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_quy_dang",
@@ -210,6 +260,16 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_that_tinh_doc_thiem",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_thiet_giap_te_nguu",
@@ -288,8 +348,18 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_noi_dia",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_xich_lan_mang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "card_sr",
@@ -698,6 +768,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_ao_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_ao_han_ngoc",
       "iso": true
     },
@@ -718,6 +792,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_dai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_dai_han_ngoc",
       "iso": true
     },
@@ -735,6 +813,10 @@
     },
     {
       "key": "item_equip_dai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_chi_bao",
       "iso": true
     },
     {
@@ -782,6 +864,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_giay_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_giay_han_ngoc",
       "iso": true
     },
@@ -799,6 +885,10 @@
     },
     {
       "key": "item_equip_giay_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_chi_bao",
       "iso": true
     },
     {
@@ -822,6 +912,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_nhan_phai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_nhan_phai_han_ngoc",
       "iso": true
     },
@@ -839,6 +933,10 @@
     },
     {
       "key": "item_equip_nhan_phai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_chi_bao",
       "iso": true
     },
     {
@@ -902,6 +1000,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_vong_phai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_vong_phai_han_ngoc",
       "iso": true
     },
@@ -922,6 +1024,10 @@
       "iso": true
     },
     {
+      "key": "item_equip_vong_trai_chi_bao",
+      "iso": true
+    },
+    {
       "key": "item_equip_vong_trai_han_ngoc",
       "iso": true
     },
@@ -939,6 +1045,10 @@
     },
     {
       "key": "item_equip_vong_trai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_chi_bao",
       "iso": true
     },
     {
@@ -1163,6 +1273,10 @@
     },
     {
       "key": "portrait_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "portrait_bach_ho",
       "iso": true
     },
     {

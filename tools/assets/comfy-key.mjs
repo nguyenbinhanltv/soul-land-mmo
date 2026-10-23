@@ -12,6 +12,7 @@
 //   --shadow       loang cả qua bóng đổ xám trên nền (gần như không màu, độ sáng ≥ --shadow-min × độ sáng nền), SDXL hay
 //                  vẽ dưới vật dù prompt cấm. Viền tối của vật chặn đường loang nên thân vật xám vẫn còn.
 //   --shadow-min 0.55  bóng đậm còn sót thì hạ; vật xám nhạt không viền bị ăn thì nâng (0,7).
+//   --shadow-sat 14  độ lệch kênh tối đa để coi là bóng "không màu"; bóng ngả màu vật (tím, be) thì nâng (40–60), vật cùng tông nền bị ăn thì hạ.
 //   --holes N      xóa thêm vùng nền kín (không nối mép, ví dụ khe giữa chân thú) có ít nhất N điểm và sát màu nền
 //                  (sai khác ≤ tol / 2); 0 = tắt (mặc định, vì vật có thể có mảng trắng thật).
 //   --fringe 1     số lượt gỡ điểm viền còn ánh nền (sai khác ≤ 3 × tol) nằm sát phần đã xóa.
@@ -29,7 +30,7 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const keyOpt = opt("--key", ""), tol = +opt("--tol", "24"), holes = +opt("--holes", "0"), fringe = +opt("--fringe", "1");
-const shadowMin = +opt("--shadow-min", "0.55"), shadow = flag("--shadow"), diamond = +opt("--diamond", "0"), fit = +opt("--fit", "0");
+const shadowMin = +opt("--shadow-min", "0.55"), shadowSat = +opt("--shadow-sat", "14"), shadow = flag("--shadow"), diamond = +opt("--diamond", "0"), fit = +opt("--fit", "0");
 const [inFile, outFile] = args;
 if (!inFile || !outFile) {
   console.error("Cách dùng: comfy-key.mjs <vào.png> <ra.png> [--tol 24] [--shadow] [--holes N] [--fringe 1] [--key #rrggbb]");
@@ -74,7 +75,7 @@ const isBg = (p) => {
   if (maxDiff(p, K) <= tol) return true;
   if (!shadow) return false;
   const mx = Math.max(p[0], p[1], p[2]), mn = Math.min(p[0], p[1], p[2]);
-  return mx >= shadowMin * Math.max(...K) && mx - mn <= 14;
+  return mx >= shadowMin * Math.max(...K) && mx - mn <= shadowSat;
 };
 
 // Loang từ vành ngoài.
