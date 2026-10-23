@@ -171,7 +171,7 @@ export class GameScene extends Phaser.Scene {
   bface = new Map<string, Dir8>();
   /** G1 (#392) cảm giác đánh: lớp hạt dùng chung, dừng hình, nháy trắng / đẩy lùi chỉ hình của hồn thú vừa bị đánh, lần đánh cuối để nhận ra hạ thú. */
   fxp!: ParticleLayer;
-  hitstopEnd = 0; hitstopNext = 0;
+  hitstopEnd = 0; hitstopNext = 0; slowmo = 1;
   hitFlash = new Map<string, number>();
   hitKick = new Map<string, { dx: number; dy: number; t0: number }>();
   downAt: { x: number; y: number; t: number }[] = []; // nơi hồn thú vừa bị hạ (màn hình): hồn hoàn rơi gần đó mới có vòng sáng
@@ -279,7 +279,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
-      this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
+      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
@@ -1203,11 +1203,18 @@ export class GameScene extends Phaser.Scene {
     const now = performance.now();
     if (!hitstopOn() || now < this.hitstopNext) return;
     this.hitstopEnd = now + ms; this.hitstopNext = now + ms + 140; // nghỉ 140 ms giữa hai lần để chuỗi đòn nhanh không bị đơ
-    this.tweens.timeScale = 0.06; this.anims.globalTimeScale = 0.06;
+    this.applyTimeScale();
   }
   endHitstop(now: number) {
     if (!this.hitstopEnd || now < this.hitstopEnd) return;
-    this.hitstopEnd = 0; this.tweens.timeScale = 1; this.anims.globalTimeScale = 1;
+    this.hitstopEnd = 0; this.applyTimeScale();
+  }
+  /** Hệ số chậm của trình diễn kết liễu đấu trường (G6, `ArenaShow`); dừng hình G1 chồng lên nhưng không đè (hết dừng hình thì trả về hệ số này). */
+  setSlowmo(k: number) { this.slowmo = k; this.applyTimeScale(); }
+  /** Hệ số thời gian thật của tween / animation: dừng hình nếu đang dừng, không thì theo slow-mo G6. */
+  applyTimeScale() {
+    this.tweens.timeScale = this.hitstopEnd ? 0.06 : this.slowmo;
+    this.anims.globalTimeScale = this.hitstopEnd ? 0.06 : 1;
   }
   /** Phóng 1,05 trong 150 ms (rồi trả về cỡ chuẩn của `fitZoom`) khi chí mạng của chính mình. */
   zoomPunch() {
@@ -2716,7 +2723,7 @@ export class GameScene extends Phaser.Scene {
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
       () => this.watching ? this.room.send("arena", { op: "unwatch" }) : this.onBack());
     hud.updateArenaEnd();
-    this.show ??= new ArenaShow(this);
+    this.show ??= new ArenaShow(this, undefined, k => this.setSlowmo(k));
     this.show.update({ phase: st.phase, time: st.time, winner: st.winner,
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, alive: s.alive, total: s.total, pct: s.pct })), players: st.players }, this.me, this.watching);
   }
