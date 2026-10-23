@@ -72,10 +72,13 @@ async function liveEdit<R>(edit: (book: LiveBook, now: number) => R): Promise<R>
   return out;
 }
 /** ArenaRoom mở trận (onCreate); `secs` là thời gian của pha hiện tại. */
-export const arenaLiveOpen = (l: Omit<LiveDoc, "owner" | "end" | "holds" | "watching"> & { secs: number }) => liveEdit((book, now) => {
-  const { secs, ...rest } = l;
-  book[l.roomId] = { ...rest, owner: presenceBackend.workerId, end: now + secs * 1000, holds: {}, watching: {} };
-});
+export const arenaLiveOpen = async (l: Omit<LiveDoc, "owner" | "end" | "holds" | "watching"> & { secs: number }) => {
+  await beat(); // lease của tiến trình này phải có trước khi ghi, kẻo tiến trình khác coi mục vừa ghi là của tiến trình chết
+  return liveEdit((book, now) => {
+    const { secs, ...rest } = l;
+    book[l.roomId] = { ...rest, owner: presenceBackend.workerId, end: now + secs * 1000, holds: {}, watching: {} };
+  });
+};
 /** ArenaRoom đổi pha. */
 export const arenaLivePhase = (roomId: string, phase: string, secs: number) => liveEdit((book, now) => {
   const d = book[roomId]; if (d) { d.phase = phase; d.end = now + secs * 1000; }
