@@ -2197,7 +2197,7 @@ export class GameScene extends Phaser.Scene {
       // (sheet isometric tự chọn hướng và lật trong syncBeastSprite).
       const dsx = s.x - ox;
       if (spr !== "iso" && spr !== "static") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
-      s.setDepth(s.y);
+      s.setDepth(spr === "static" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân, không theo độ nhún / vồ cộng thêm vào s.y
       if (b.rank || egg) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
