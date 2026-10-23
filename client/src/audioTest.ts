@@ -47,7 +47,7 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     .audiotest .at-mix input{flex:1}.audiotest .at-src{font-size:11px;line-height:1.5}.audiotest .at-dur{color:#889;font-size:11px}
   </style>
   <h1>Nghe thử âm thanh</h1>
-  <p>Mọi tiếng đều từ thư viện CC0 (Kenney, OpenGameArt), không có tiếng hô. Bấm một nút trước để trình duyệt cho phép phát. Chủ trộn: Tổng, Nhạc, Hiệu ứng, Giao diện, Môi trường.</p>
+  <p>Mọi tiếng đều từ thư viện CC0 (Kenney, OpenGameArt), không có tiếng hô. Bấm một nút trước để trình duyệt cho phép phát. Kênh trộn: Tổng, Nhạc, Hiệu ứng, Giao diện, Môi trường.</p>
   <div class="at-mix" id="atMix"></div>
   <h2>Thử trộn</h2>
   <div class="at-row"><button type="button" id="atMusic">Bật / tắt nhạc nền thử</button><button type="button" id="atBoss">Boss gầm (nhạc tự hạ)</button>
