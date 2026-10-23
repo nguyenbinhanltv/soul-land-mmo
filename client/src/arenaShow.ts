@@ -117,8 +117,11 @@ export class ArenaShow {
     const cam = this.scene.cameras.main;
     cam.shake(PUNCH_MS * 1.5, SHAKE[pf.level]);
     if (this.z0 === null) {
-      this.z0 = cam.zoom; cam.zoomTo(this.z0 * PUNCH[pf.level], PUNCH_MS);
-      window.setTimeout(() => { if (this.z0 !== null) cam.zoomTo(this.z0, PUNCH_MS * 2); this.z0 = null; }, PUNCH_MS);
+      const k = PUNCH[pf.level]; this.z0 = cam.zoom;
+      cam.zoomTo(this.z0 * k, PUNCH_MS, undefined, true, (_c: Phaser.Cameras.Scene2D.Camera, t: number) => {
+        if (t < 1) return;
+        cam.zoomTo(cam.zoom / k, PUNCH_MS * 2, undefined, true, (_c2: Phaser.Cameras.Scene2D.Camera, t2: number) => { if (t2 >= 1) this.z0 = null; });
+      });
     }
   }
 
@@ -139,8 +142,8 @@ export class ArenaShow {
     if (fancy) {
       const z0 = this.z0 ?? cam.zoom, tw = this.scene.tweens;
       tw.timeScale = SLOW_K;
-      cam.zoomTo(z0 * ZOOM[pf.level], 250);
-      window.setTimeout(() => { tw.timeScale = 1; cam.zoomTo(z0, 600); }, SLOW_MS);
+      cam.zoomTo(z0 * ZOOM[pf.level], 250, undefined, true);
+      window.setTimeout(() => { tw.timeScale = 1; cam.zoomTo(z0, 600, undefined, true); }, SLOW_MS);
     }
     window.setTimeout(() => this.flash(w === 0 || w === 1 ? `${a.sides[w]?.name ?? ""} thắng` : "Hòa", w === 0 || w === 1 ? "win" : "draw"), fancy ? SLOW_MS : 0);
   }
