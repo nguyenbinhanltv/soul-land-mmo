@@ -18,7 +18,7 @@ const TEX_PREFIX: Record<Element, string> = { fire: "lua", ice: "bang", lightnin
 const TEX_NAME: Record<FxKind, string> = { proj: "cau", zone: "phu", slash: "chem", aura: "ngon", hit: "tia" };
 export const fxTexKey = (el: Element, kind: FxKind) => `fx_${TEX_PREFIX[el]}_${TEX_NAME[kind]}`;
 /** Khóa texture cần tải theo manifest: hệ nào đã có ảnh. */
-export const FX_TEX_ELEMENTS: readonly Element[] = ["fire"];
+export const FX_TEX_ELEMENTS: readonly Element[] = ["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"];
 
 /** Màu hệ: chính, sáng (lõi / hạt), tối (viền khói). */
 export const ELEMENT_COL: Record<Element, { main: number; hi: number; lo: number }> = {
@@ -111,7 +111,7 @@ export class SkillFx {
   private halo(x: number, y: number, col: number, w: number, dur: number, follow?: (k: number) => { x: number; y: number }) {
     const s = this.grab(HALO_KEY); if (!s) return;
     s.setTint(col).setScale(Math.max(SPR, snap(w / 32))); s.setPosition(snap(x), snap(y));
-    this.run(s, dur, k => { if (follow) { const p = follow(k); s.setPosition(snap(p.x), snap(p.y)); } s.setAlpha((1 - k) * 0.9); });
+    this.run(s, dur, k => { if (follow) { const p = follow(k); s.setPosition(snap(p.x), snap(p.y)); } s.setAlpha((1 - k) * 0.75); });
   }
   /** Cỡ nguyên theo bội SPR sao cho ảnh rộng xấp xỉ `w` pixel màn hình. */
   private scaleFor(s: Phaser.GameObjects.Image, w: number) { return Math.max(1, Math.round(w / (s.width * SPR))) * SPR; }
@@ -138,7 +138,7 @@ export class SkillFx {
         const q = reduce ? 1 : 0.55 + 0.45 * Math.min(1, k * 3); // nở thành bậc (bám lưới)
         s.setScale(Math.max(SPR, snap(sc * q)), Math.max(SPR / 2, snap(sc * q) / 2)); s.setAlpha(k < 0.2 ? k / 0.2 : (1 - k) / 0.8);
       }); }
-      this.halo(o.x, o.y, c.main, 1.6 * r, dur * 0.8);
+      this.halo(o.x, o.y, c.main, 1.25 * r, dur * 0.8);
       const m = n(14);
       for (let j = 0; j < m; j++) this.scene.time.delayedCall(j * (dur / (m + 1)) * 0.7, () => {
         const t = Math.random() * Math.PI * 2, d = r * (0.2 + 0.8 * Math.random());

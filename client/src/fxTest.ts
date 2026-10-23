@@ -33,6 +33,14 @@ class FxTestScene extends Phaser.Scene {
     this.skfx = new SkillFx(this, this.fxp);
     this.hero = this.person(-70, 12, 0x9fb4e8); this.dummy = this.person(70, 12, 0xd8b090);
     this.events.on("update", (_t: number, dt: number) => this.fxp.update(dt / 1000));
+    // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/hieu-nang-soak.md).
+    const P = Number(q.get("stress") ?? 0);
+    if (P > 0) this.time.addEvent({ delay: 2500 / P, loop: true, callback: () => {
+      const el = ELEMENTS[(Math.random() * ELEMENTS.length) | 0], kind = FX_KINDS[(Math.random() * FX_KINDS.length) | 0];
+      const x = (Math.random() - 0.5) * 360, y = (Math.random() - 0.5) * 150, tc = parseInt(TIERS[(Math.random() * 5) | 0].glow.slice(1), 16);
+      this.skfx.play(kind, el, { x, y, ang: Math.random() * 6.28, r: 40 + Math.random() * 40, tierCol: tc, dist: 120 });
+    } });
+    (window as unknown as { __fx: object }).__fx = { fps: () => this.game.loop.actualFps, sprites: () => this.skfx.active, parts: () => this.fxp.count };
     if (q.get("auto") === "1") this.time.delayedCall(500, () => this.fire());
   }
   drawGround() {
@@ -49,6 +57,10 @@ class FxTestScene extends Phaser.Scene {
     // khung 64×64, chân ở (32, 58): dời lên cho chân trùng gốc container
     c.add(this.add.sprite(0, -26, "t_body", 0)); c.add(this.add.sprite(0, -26, "t_outfit", 0).setTint(tint)); c.add(this.add.sprite(0, -26, "t_hair", 0).setTint(0x6a4a3a));
     return c;
+  }
+  /** Phát lần lượt cả 5 kiểu của hệ đang chọn (xem nhanh một hệ). */
+  fireAll(el = this.el) {
+    FX_KINDS.forEach((k, i) => this.time.delayedCall([0, 250, 500, 800, 1100][i], () => this.fire(k, el)));
   }
   /** Phát một kiểu từ người trái sang mục tiêu phải, màu niên hạn theo `tier`. */
   fire(kind = this.kind, el = this.el) {
@@ -77,7 +89,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     <label>Hiệu ứng <select id="fl">${opt([["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]], fxPrefs.level)}</select></label>
     <label><input type="checkbox" id="fr"${fxPrefs.reduce ? " checked" : ""}> Giảm chuyển động</label>
     <label><input type="checkbox" id="fp"${q.get("lap") === "1" ? " checked" : ""}> Lặp</label>
-    <button id="fgo">Phát</button>
+    <button id="fgo">Phát</button> <button id="fa">Cả 5 kiểu</button>
     <label>Hồn kỹ <select id="fs"><option value="">— chọn hồn kỹ —</option>${opt(sks, "")}</select></label>
     <button id="fc">Cảnh vòng 7+</button> <span id="fn"></span>`;
   document.body.appendChild(bar);
@@ -94,6 +106,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("fr").onchange = () => setFxPrefs({ reduce: $<HTMLInputElement>("fr").checked });
   $("fp").onchange = () => setLoop($<HTMLInputElement>("fp").checked);
   $("fgo").onclick = () => sc().fire();
+  $("fa").onclick = () => sc().fireAll();
   $("fs").onchange = () => {
     const v = $<HTMLSelectElement>("fs").value; if (!v) return;
     const [id, r] = v.split(":"), ct = r === "ct", ring = ct ? 6 : +r, d = skillFxOf(id, ring, ct);
