@@ -143,9 +143,9 @@ const DIR_VEC: Record<Dir8, readonly [number, number]> = {
 export type BeastFamily = "quad" | "bird" | "snake" | "insect" | "plant";
 const FAMILY_SPECIES: Record<Exclude<BeastFamily, "quad">, readonly string[]> = {
   bird: ["hoi_vu_tuoc", "kim_linh_ung", "loi_duc_ung", "bang_vu_ung", "han_nguyet_ung", "loi_van_hai_ung", "hac_vu_bien_buc", "loi_quang_hai_dieu"],
-  snake: ["man_da_la_xa", "thanh_lan_xa", "xich_lan_mang", "bich_lan_xa", "hac_thuy_mang", "lam_lan_hai_xa", "thien_thanh_nguu_mang", "kiem_ngu", "tham_hai_ma_kinh", "huyet_nha_cu_sa", "quy_dien_hai_yeu"],
+  snake: ["man_da_la_xa", "thanh_lan_xa", "xich_lan_mang", "bich_lan_xa", "hac_thuy_mang", "lam_lan_hai_xa", "thien_thanh_nguu_mang", "kiem_ngu", "tham_hai_ma_kinh", "huyet_nha_cu_sa", "quy_dien_hai_yeu", "thanh_lan_doc_co"],
   insect: ["doc_cham_phong", "nhan_dien_ma_chu", "nhan_dien_ma_chu_non", "kiem_vi_hat", "bang_tinh_hat", "bang_bich_hat", "huyen_minh_bang_tam", "hoa_linh_diep"],
-  plant: ["quy_dang", "quy_dang_non", "thuc_nhan_hoa", "cuc_yeu_hoa_linh", "doc_cuc_dang", "co_moc_thu_nhan", "y_la_hoa_yeu", "thanh_lan_doc_co", "tham_hai_ma_chuong", "u_linh_hai_mau"],
+  plant: ["quy_dang", "quy_dang_non", "thuc_nhan_hoa", "cuc_yeu_hoa_linh", "doc_cuc_dang", "co_moc_thu_nhan", "y_la_hoa_yeu", "tham_hai_ma_chuong", "u_linh_hai_mau"],
 };
 const FAMILY_OF = new Map<string, BeastFamily>();
 for (const [f, ids] of Object.entries(FAMILY_SPECIES)) for (const id of ids) FAMILY_OF.set(id, f as BeastFamily);
