@@ -121,7 +121,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
-import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex } from "../../shared/data.ts"; // trang bị hồn sư (E1)
+import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
 import { PLAYER_STATUS } from "../../shared/data.ts";
@@ -312,7 +312,7 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư
+  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư; E3 cường hóa
   ["sell",3,sellTest],                        //   5 #216
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
@@ -391,7 +391,7 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -6531,6 +6531,99 @@ async function gearTest(){
   t=await op("equipgear",{id:A1}); ok(t===""&&worn(2)?.id===A1&&inBag(A2)&&free()===0,"túi đầy: đổi chỗ vẫn được (món cũ chiếm đúng ô món mới rời)");
   await test(S,"gear",{clear:true});
   ok(!(S.gear?.items.length)&&loose().every(i=>i.code!==EQUIP_ITEM)&&(await test(S,"stats")).stats.maxHp===base0.maxHp,"dọn: hết trang bị, sinh lực tối đa về gốc");
+  }finally{ await S.room.leave().catch(()=>{}); }
+}
+/**
+ * E3 (#414) Thợ rèn cường hóa trang bị hồn sư +1 → +15: bảng số (hàm thuần), thất bại ở nấc giữa tụt cấp, +13–15 không bùa phá hủy (món biến khỏi DB), có bùa giữ cấp
+ * và mất 1 bùa, bùa không trừ ở nấc không phá hủy, từ chối đúng (xa Thợ rèn, thiếu đá / Hồn Tệ, đã tối đa), món đang mặc cường hóa được (chỉ số tính lại),
+ * 20 lệnh dồn cùng lúc chỉ một lệnh được xử lý (hook enhslow giữ lệnh trong chuỗi lưu), lưu qua lần vào lại (với --pg: transaction thật).
+ */
+async function gearEnhanceTest(){
+  console.log("[E3] Thợ rèn: cường hóa trang bị hồn sư, phá hủy, Bùa Hộ Mệnh, chống nhân đồ");
+  const st=l=>equipEnhanceStep(l);
+  ok(EQUIP_ENHANCE.length===5&&st(0).stone===0&&st(15)===null&&st(14).fail.kind==="destroy"&&st(11).fail.kind==="down"&&st(5).fail.kind==="keep",
+    "bảng cường hóa: 5 nấc, +15 là tối đa, +13–15 thất bại phá hủy, +7–12 tụt cấp, thấp hơn giữ cấp");
+  ok(same(equipEnhanceResult(14,false,false),{enhance:0,destroyed:true,charmUsed:false})&&same(equipEnhanceResult(14,false,true),{enhance:14,destroyed:false,charmUsed:true})
+    &&same(equipEnhanceResult(10,false,true),{enhance:9,destroyed:false,charmUsed:false})&&equipEnhanceResult(15,true,false)===null,
+    "equipEnhanceResult: phá hủy / bùa giữ cấp / bùa không có tác dụng ở nấc tụt cấp / +15 không cường hóa nữa");
+  const S=await bot("Cuong hoa","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua cường hóa trang bị (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
+  const watch=()=>{ S.enhN=0; S.enhLast=null; S.room.onMessage("equipenhd",m=>{ S.enhLast=m; S.enhN++; }); S.room.onMessage("equipenhp",()=>{}); };
+  watch();
+  S.travel=null; S.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>S.travel,4000);
+  if(S.travel){ const t=S.travel; await S.room.leave(); await sleep(300); S.mapId=t.mapId; await enter(S,t.roomId??undefined); watch(); }
+  await waitFor(()=>me()&&S.bag&&S.gear,4000);
+  async function rejoin(){ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; await enter(S); watch(); await waitFor(()=>me()&&S.bag&&S.gear,4000); }
+  const lr=npcSpot("nac_dinh_thanh","lo_ren");
+  const have=code=>loose().filter(i=>i.code===code).reduce((n,i)=>n+i.qty,0);
+  const give=async(code,qty)=>{ const n=have(code); await test(S,"give",{code,qty}); await waitFor(()=>have(code)===n+qty,2000); };
+  const coin=async n=>{ await test(S,"coin",{n}); await waitFor(()=>S.bag.honTe===n,1500); };
+  const mk=async(tpl,enhance)=>{ const r=await test(S,"gear",{tpl,enhance,ilvl:3}); await waitFor(()=>loose().some(i=>i.id===r?.id),1500); return r?.id; };
+  /** Gửi equipenh; trả kết quả (tin equipenhd) hoặc null kèm dòng log từ chối. */
+  async function enh(id,charm=false){ const n=S.enhN, l=S.logs.length; S.room.send("equipenh",{id,charm}); await waitFor(()=>S.enhN>n||S.logs.length>l,2500); await sleep(150); return S.enhN>n?S.enhLast:null; }
+  const stone=l=>EQUIP_STONES[st(l).stone].id;
+  await test(S,"gear",{clear:true}); await test(S,"rest",{s:TEAM_COMBAT_SECS+1});
+
+  // ---- Từ chối ----
+  const A=await mk("vu_khi_pham_khi",3); await coin(1e6); await give(stone(3),20);
+  let r=await enh(A); ok(r===null&&/lại gần Thợ rèn/.test(S.logs.at(-1))&&find(A).enhance===3&&have(stone(3))===20&&S.bag.honTe===1e6,`xa Thợ rèn: bị từ chối, không trừ gì (${S.logs.at(-1)})`);
+  await test(S,"goto",{x:lr.x,y:lr.y+16});
+  await test(S,"enhroll",{r:0});
+  await coin(st(3).fee-1); r=await enh(A); ok(r===null&&/Không đủ Hồn Tệ/.test(S.logs.at(-1))&&find(A).enhance===3&&have(stone(3))===20,`thiếu Hồn Tệ: bị từ chối, đá còn nguyên (${S.logs.at(-1)})`);
+  await coin(1e6); S.room.send("discard",{id:loose().find(i=>i.code===stone(3))?.id}); await waitFor(()=>have(stone(3))===0,2000);
+  r=await enh(A); ok(r===null&&/Không đủ/.test(S.logs.at(-1))&&find(A).enhance===3&&S.bag.honTe===1e6,`thiếu đá: bị từ chối, Hồn Tệ còn nguyên (${S.logs.at(-1)})`);
+  r=await enh("khong-co-id"); ok(r===null&&/Không có trang bị/.test(S.logs.at(-1)),"id lạ: bị từ chối");
+
+  // ---- Thành công: +3 → +4 (nấc 4–6: đá II ×qty, phí), đá và phí trừ ----
+  const B=await mk("vu_khi_pham_khi",3); await give(stone(3),st(3).qty*3); await coin(1e6);
+  const s4=st(3); r=await enh(B);
+  ok(r?.ok===true&&r.to===4&&find(B).enhance===4&&have(stone(3))===st(3).qty*2&&S.bag.honTe===1e6-s4.fee,`tung thắng: +3 → +4, trừ ${s4.qty} đá và phí ${s4.fee}`);
+
+  // ---- Thất bại nấc giữa: +11 → thất bại tụt 1 cấp (+10), đá và phí vẫn trừ ----
+  await test(S,"enhroll",{r:99});
+  const M=await mk("vu_khi_pham_khi",11); await give(stone(11),st(11).qty); await coin(1e6);
+  r=await enh(M); ok(r&&!r.ok&&!r.destroyed&&r.to===10&&find(M).enhance===10&&have(stone(11))===0&&S.bag.honTe===1e6-st(11).fee,"+11 thất bại: tụt 1 cấp xuống +10, đá và phí đã trừ");
+  const K=await mk("vu_khi_pham_khi",5); await give(stone(5),st(5).qty); r=await enh(K,true);
+  ok(r&&!r.ok&&r.to===5&&!r.charmUsed&&find(K).enhance===5,"+5 thất bại: giữ cấp");
+
+  // ---- Phá hủy +14 không bùa; có bùa giữ cấp, mất 1 bùa; bùa không trừ ở nấc không phá hủy ----
+  const D=await mk("vu_khi_pham_khi",14), P=await mk("ao_pham_khi",14);
+  await give(stone(14),st(14).qty*3); await give(EQUIP_CHARM,2); await coin(1e6);
+  r=await enh(P,true); ok(r&&!r.ok&&!r.destroyed&&r.charmUsed&&r.to===14&&find(P).enhance===14&&have(EQUIP_CHARM)===1&&have(stone(14))===st(14).qty*2&&S.bag.honTe===1e6-st(14).fee,
+    "+14 thất bại có bùa: giữ +14, mất 1 Bùa Hộ Mệnh (còn 1), đá và phí vẫn trừ");
+  r=await enh(D,false); ok(r&&r.destroyed&&r.to===null&&!find(D)&&have(EQUIP_CHARM)===1,"+14 thất bại không bùa: món bị PHÁ HỦY, không trừ bùa");
+  await rejoin(); ok(!find(D)&&find(P)?.enhance===14&&have(EQUIP_CHARM)===1,"vào lại: món bị phá hủy đã biến mất khỏi DB, món có bùa vẫn +14, còn 1 bùa");
+  await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"enhroll",{r:99});
+  await give(stone(14),st(14).qty); await coin(1e6);
+  r=await enh(P,true); ok(r?.charmUsed&&have(EQUIP_CHARM)===0&&find(P).enhance===14,"dùng nốt bùa cuối: bùa về 0");
+  await give(stone(14),st(14).qty); const sk=have(stone(14)); r=await enh(P,true); ok(r===null&&/Không có Bùa Hộ Mệnh/.test(S.logs.at(-1))&&find(P).enhance===14&&have(stone(14))===sk,"chọn dùng bùa mà hết bùa: bị từ chối, không trừ đá, món còn nguyên");
+  await test(S,"enhroll",{r:0}); r=await enh(P,false); ok(r?.ok&&find(P).enhance===15,"+14 → +15 thành công");
+  r=await enh(P,false); ok(r===null&&/tối đa/.test(S.logs.at(-1)),"+15: đã tối đa, bị từ chối");
+
+  // ---- Món đang mặc cường hóa được, chỉ số tính lại ngay ----
+  const W=await mk("vu_khi_chi_bao",0); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); S.room.send("equipgear",{id:W}); await waitFor(()=>S.gear?.items.some(g=>g.id===W),2000);
+  const e0=S.gear.st.weapon; await give(stone(0),st(0).qty); await coin(1e6); r=await enh(W);
+  const eW=equipStats([{...parseEquip(find(W).stats),enhance:1}]);
+  ok(r?.ok&&find(W).enhance===1&&S.gear.items.find(g=>g.id===W).enhance===1&&same(S.gear.st.weapon,eW.weapon)&&S.gear.st.weapon.max>e0.max,"món đang mặc: cường hóa +1, công vũ khí tính lại ngay khớp equipStats");
+  await test(S,"enhroll",{r:99}); await test(S,"gear",{clear:true}); // món +14 mặc rồi bị phá hủy: ô trống, chỉ số về 0
+  const W2=await mk("vu_khi_chi_bao",14); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); S.room.send("equipgear",{id:W2}); await waitFor(()=>S.gear?.items.some(g=>g.id===W2),2000);
+  await give(stone(14),st(14).qty); r=await enh(W2); await sleep(200);
+  ok(r?.destroyed&&!find(W2)&&S.gear.items.length===0&&S.gear.st.weapon===null,"món đang mặc +14 thất bại không bùa: bị phá hủy, ô trống, hết công vũ khí");
+  await rejoin(); ok(!find(W2)&&S.gear.items.length===0,"vào lại: món mặc bị phá hủy không xuất hiện lại");
+
+  // ---- 20 lệnh dồn cùng lúc: một lệnh được xử lý, không nhân đồ ----
+  await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"enhroll",{r:0});
+  const T=await mk("day_chuyen_than_khi",0); await give(stone(0),30); await coin(1e6);
+  const stones0=have(stone(0)), coin0=S.bag.honTe, n0=S.enhN; await test(S,"enhslow",{ms:400});
+  for(let k=0;k<20;k++) S.room.send("equipenh",{id:T,charm:false});
+  await waitFor(()=>S.enhN>n0,3000); await sleep(900); await test(S,"enhslow",{ms:0});
+  ok(S.enhN===n0+1&&find(T).enhance===1&&have(stone(0))===stones0-st(0).qty&&S.bag.honTe===coin0-st(0).fee,
+    `20 lệnh dồn: đúng 1 lệnh được xử lý (+0 → +${find(T).enhance}), trừ ${stones0-have(stone(0))} đá và ${coin0-S.bag.honTe} Hồn Tệ`);
+  r=await enh(T); ok(r?.ok&&find(T).enhance===2,"sau khi xong, lệnh kế tiếp được nhận lại bình thường");
+  await rejoin(); ok(find(T)?.enhance===2,"vào lại: cấp cường hóa đã lưu");
+  await test(S,"enhroll",{r:-1}); await test(S,"gear",{clear:true});
   }finally{ await S.room.leave().catch(()=>{}); }
 }
 async function shopBuybackTest(){

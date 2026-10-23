@@ -70,7 +70,9 @@ export interface TongRow { tong: string | null; at: number | null; }
 export interface TongBoard { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]>; }
 export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[];
   /** Điểm tông tuần (#197, #320) cộng cùng transaction với túi: bài tông vụ đã xong thì điểm đi theo lần ghi túi, không mất một nửa. */
-  tongPts?: { week: number; tong: string; n: number }[]; }
+  tongPts?: { week: number; tong: string; n: number }[];
+  /** Khóa phiên bản (E3, cường hóa trang bị): các món sẽ bị sửa / xóa, kèm cấp cường hóa đang lưu mà phòng dựa vào để tung. Lệch thì ném lỗi, không ghi gì. */
+  lock?: { id: string; enhance: number }[]; }
 /** Một hồn sư trong danh sách bạn bè / chặn (#195). */
 export interface SocialPeer { id: number; name: string; }
 /** Bạn bè, chặn và người đã thêm mình của một tài khoản (#195; Store.getSocial). */
@@ -482,6 +484,7 @@ export class MemoryStore implements Store {
   /** Như các ràng buộc của bảng `items`: id không thuộc tài khoản khác, đồ chỉ gắn vào võ hồn của chính tài khoản. */
   checkBag(accountId: number, bag: Bag) {
     bagOk(bag);
+    for (const l of bag.lock ?? []) { const x = this.bags.get(accountId)?.items.find((i) => i.id === l.id); if (x && x.enhance !== l.enhance) throw new Error(`Món ${l.id} đã đổi cấp ở nơi khác.`); }
     for (const [acc, b] of this.bags)
       if (acc !== accountId && b.items.some((i) => bag.items.some((j) => j.id === i.id))) throw new Error("Id món đồ thuộc tài khoản khác.");
     for (const i of bag.items)
@@ -910,6 +913,10 @@ export class PgStore implements Store {
       auto_sell=COALESCE($4::jsonb, auto_sell), auto_sold=COALESCE($5::jsonb, auto_sold) WHERE id=$1`,
       [accountId, bag.honTe, bag.slots ?? null, bag.sell === undefined ? null : JSON.stringify(bag.sell), bag.sold ? JSON.stringify(bag.sold) : null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
+    if (bag.lock?.length) { // E3: khóa dòng món theo id tăng dần (sau dòng tài khoản), cấp lưu lệch cấp phòng dựa vào thì hủy cả transaction
+      const ids = bag.lock.map((l) => l.id).sort(), r = await db.query("SELECT id, enhance FROM items WHERE account_id=$1 AND id = ANY($2::uuid[]) ORDER BY id FOR UPDATE", [accountId, ids]);
+      for (const x of r.rows) if (Number(x.enhance) !== bag.lock.find((l) => l.id === x.id)!.enhance) throw new Error(`Món ${x.id} đã đổi cấp ở nơi khác.`);
+    }
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
     // Trang bị (027): món đổi ô / tháo ra thì nhả ô trước, để chỉ mục duy nhất (account_id, equip_slot) không vướng khi hai món đổi chỗ trong một câu upsert.
     await db.query(`UPDATE items i SET equip_slot=NULL WHERE i.account_id=$1 AND i.equip_slot IS NOT NULL AND NOT EXISTS (

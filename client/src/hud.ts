@@ -23,7 +23,8 @@ import { toggleChar } from "./charPanel.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, equipName, equipTemplate, equipSlotDef, equipStats, parseEquip } from "../../shared/data.ts";
-import type { GearMsg } from "./net.ts";
+import { toast } from "./feedback.ts";
+import type { GearMsg, EquipEnhPreview, EquipEnhDone } from "./net.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -2243,9 +2244,10 @@ export interface NpcActions {
   // Tông môn (#196): gia nhập / đổi sang `tong`, rời tông; #197: nhận / trả tông vụ `chain`, xin bảng tông tuần, nhận thưởng tuần.
   tong(op: "join" | "leave" | "accept" | "turnin" | "board" | "claim", tong?: string, chain?: string): void;
   shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
+  gear(): GearMsg | null; equipEnh(id: string, charm: boolean): void; equipEnhPreview(id: string): void; // Thợ rèn: cường hóa trang bị hồn sư (E3)
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -2372,6 +2374,7 @@ function renderNpc() {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
       btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
       btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag); // #283
+      btn("Cường hóa trang bị hồn sư", "absorb", () => { gearPick = null; gearConfirm = false; go("forgegear"); }, !bag); // E3
     }
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
@@ -2401,6 +2404,7 @@ function renderNpc() {
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else if (npcPage === "shard") renderShardShop(el, bag, act);
   else if (npcPage === "forgeset") renderForgeSets(el, bag, act);
+  else if (npcPage === "forgegear") renderForgeGear(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
   btn("‹ Quay lại", "drop", () => go("talk"));
   el.appendChild(row);
@@ -2636,6 +2640,73 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
     box.appendChild(b);
   }
   return box;
+}
+
+let gearPick: string | null = null; // trang bị đang chọn ở trang "Cường hóa trang bị hồn sư" của Thợ rèn (E3)
+let gearPrev: EquipEnhPreview | null = null; // tin xem trước gần nhất (server tính, client chỉ hiển thị)
+let gearCharm = false; // đang chọn dùng Bùa Hộ Mệnh
+let gearConfirm = false; // đã bấm nút đỏ lần đầu: bấm lần nữa mới gửi
+/** Tin "equipenhp" (E3): xem trước lần cường hóa tiếp theo. */
+export function equipEnhPreview(m: EquipEnhPreview) { if (m.id === gearPick) { gearPrev = m; if (npcDefOpen && npcPage === "forgegear") renderNpc(); } }
+/** Tin "equipenhd" (E3): xong một lần cường hóa; bỏ trạng thái xác nhận, món bị phá hủy thì về danh sách. */
+export function equipEnhDone(m: EquipEnhDone) {
+  gearConfirm = false; if (m.destroyed && m.id === gearPick) { gearPick = null; gearPrev = null; }
+  toast("info", m.destroyed ? "Trang bị bị phá hủy" : m.ok ? `Cường hóa thành công +${m.to}` : m.charmUsed ? `Thất bại, Bùa Hộ Mệnh giữ +${m.to}` : `Cường hóa thất bại (+${m.to})`);
+  if (npcDefOpen && npcPage === "forgegear") renderNpc();
+}
+/** Vẽ lại hộp thoại NPC khi trang bị đang mặc đổi (tin "gear"). */
+export function npcRefresh() { if (npcDefOpen) renderNpc(); }
+const failText = (f: EquipEnhPreview["fail"]) => !f ? "" : f.kind === "keep" ? "giữ nguyên cấp" : f.kind === "down" ? `tụt ${f.n} cấp` : f.kind === "reset" ? `về +${f.to}` : "món bị PHÁ HỦY (không có Bùa Hộ Mệnh)";
+/**
+ * Lò rèn, trang cường hóa trang bị hồn sư (E3; trang đẹp ở E5): chọn món (đang mặc hoặc trong túi), xem bảng xem trước do server tính (tỉ lệ, đá,
+ * phí, hậu quả thất bại), có thể dùng Bùa Hộ Mệnh. Nút chuyển ĐỎ và phải bấm hai lần khi thất bại có thể tụt cấp hoặc phá hủy.
+ */
+function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box);
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Cường hóa trang bị hồn sư"; box.appendChild(h);
+  const worn = (act.gear()?.items ?? []).map((g) => ({ id: g.id, name: equipName(parseEquip(g.stats)?.tpl, g.enhance), enhance: g.enhance, where: `đang mặc (${EQUIP_SLOTS[g.slot]?.name ?? "?"})`, stats: g.stats }));
+  const loose = bag.items.filter((i) => i.code === EQUIP_ITEM && i.vohon === null).map((i) => ({ id: i.id, name: itemName(i), enhance: i.enhance, where: "trong túi", stats: i.stats }));
+  const all = [...worn, ...loose], pick = gearPick ? all.find((x) => x.id === gearPick) : undefined;
+  if (!pick) {
+    gearPick = null; gearPrev = null;
+    if (!all.length) { const p = document.createElement("small"); p.textContent = "Chưa có trang bị hồn sư nào để cường hóa."; box.appendChild(p); }
+    for (const it of all) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", EQUIP_TIERS[equipTemplate(parseEquip(it.stats)?.tpl ?? "")?.tier ?? 0]?.col ?? "#9db3a2");
+      b.innerHTML = `<b></b><i></i><span></span>`;
+      b.querySelector("b")!.textContent = it.name; b.querySelector("i")!.textContent = it.where;
+      b.addEventListener("click", () => { b.blur(); gearPick = it.id; gearPrev = null; gearCharm = false; gearConfirm = false; act.equipEnhPreview(it.id); renderNpc(); });
+      box.appendChild(b);
+    }
+    return;
+  }
+  const info = document.createElement("small"); box.appendChild(info);
+  const back = document.createElement("button"); back.type = "button"; back.className = "aopt drop"; back.textContent = "Chọn trang bị khác";
+  back.addEventListener("click", () => { gearPick = null; gearPrev = null; gearConfirm = false; renderNpc(); });
+  const pv = gearPrev && gearPrev.id === pick.id ? gearPrev : null;
+  if (!pv) { info.textContent = `${pick.name}: đang tải bảng xem trước…`; box.appendChild(back); return; }
+  if (pv.to === null) { info.textContent = `${pick.name} đã cường hóa tối đa.`; box.appendChild(back); return; }
+  const stone = pv.stone ? itemDef(pv.stone)?.name ?? pv.stone : "";
+  const rows: [string, string][] = [["Món", `${pick.name} (${pick.where})`], ["Cấp", `+${pv.enhance} → +${pv.to}`], ["Tỉ lệ thành công", `${Math.round(pv.p * 100)}%`],
+    ["Đá cần", `${pv.qty} ${stone} (có ${pv.have})`], ["Phí", honTeParts(pv.fee).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ") || "0"],
+    ["Nếu thất bại", failText(pv.fail)], ["Đá và phí mất cả khi thất bại", ""]];
+  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  const destroy = pv.fail?.kind === "destroy";
+  if (destroy) {
+    const l = document.createElement("label"); l.className = "echarm"; const c = document.createElement("input"); c.type = "checkbox"; c.checked = gearCharm && pv.charm > 0; c.disabled = pv.charm <= 0;
+    c.addEventListener("change", () => { gearCharm = c.checked; gearConfirm = false; renderNpc(); });
+    l.appendChild(c); l.appendChild(document.createTextNode(` Dùng Bùa Hộ Mệnh (có ${pv.charm}): thất bại giữ nguyên cấp, mất 1 bùa`)); box.appendChild(l);
+  }
+  const risky = pv.fail?.kind === "down" || pv.fail?.kind === "reset" || (destroy && !(gearCharm && pv.charm > 0));
+  const poor = pv.have < pv.qty || pv.honTe < pv.fee, go = document.createElement("button"); go.type = "button";
+  go.className = `aopt ${risky ? "danger" : "absorb"}`; if (risky) go.style.background = "#a82a2a";
+  go.disabled = poor || pv.busy || act.combat();
+  go.textContent = poor ? "Không đủ đá hoặc Hồn Tệ" : act.combat() ? "Đang giao chiến" : risky ? (gearConfirm ? `Bấm lần nữa: ${destroy ? "có thể PHÁ HỦY" : "có thể tụt cấp"}` : `Cường hóa (${destroy ? "nguy cơ phá hủy" : "có thể tụt cấp"})`) : "Cường hóa";
+  go.addEventListener("click", () => {
+    go.blur();
+    if (risky && !gearConfirm) { gearConfirm = true; renderNpc(); return; }
+    gearConfirm = false; act.equipEnh(pick.id, destroy && gearCharm && pv.charm > 0);
+  });
+  box.appendChild(go); box.appendChild(back);
 }
 
 let setPick: string | null = null; // hồn hạch đang chọn ở trang "Đổi bộ hồn hạch" của Thợ rèn
