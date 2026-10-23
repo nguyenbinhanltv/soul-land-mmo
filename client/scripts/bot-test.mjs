@@ -5689,8 +5689,11 @@ async function offlineTest(){
   await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
   await autoOp(A,"set",{cfg:{ring:-1,bone:false,core:false}});
   const free=()=>A.bag.slots-looseOf(A).length;
-  for(let i=0;i<free()-6;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
-  await waitFor(()=>free()<=6,3000);
+  for(const i of looseOf(A).filter(i=>i.code===RING_ITEM).slice(0,Math.max(0,6-free()))) A.room.send("discard",{id:i.id});
+  await waitFor(()=>free()>=6,2000);
+  const fill=Math.max(0,free()-6);
+  for(let i=0;i<fill;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
+  ok(await waitFor(()=>free()<=6,3000),`làm đầy túi bằng ${fill} món trang bị: còn ${free()} ô trống (cần ≤ 6)`);
   await test(A,"auto",{used:0});
   m=await away(H);
   ok(m&&m.stop!=="túi đầy"&&m.kills>0&&m.used>m.secs-120&&m.equipLost>0,`túi đầy vì trang bị: vẫn săn đủ ${m?.used}/${m?.secs} giây (${m?.kills} con), bỏ ${m?.equipLost} món (dừng: ${m?.stop})`);
