@@ -2749,7 +2749,14 @@ export class GameScene extends Phaser.Scene {
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
       () => this.watching ? this.room.send("arena", { op: "unwatch" }) : this.onBack());
     hud.updateArenaEnd();
-    this.show ??= new ArenaShow(this, undefined, k => this.setSlowmo(k));
+    if (!this.show) {
+      const au = this.audio;
+      au.preloadPk();
+      this.show = new ArenaShow(this, {
+        drum: () => au.playPkOpen(), tick: (n) => au.playPkCountdown(n), finisher: () => au.playPkKill(),
+        heart: () => au.playClip("pk-heartbeat-1", { channel: "sfx", gain: 0.9 }),
+      }, k => this.setSlowmo(k));
+    }
     this.show.update({ phase: st.phase, time: st.time, winner: st.winner,
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, alive: s.alive, total: s.total, pct: s.pct })), players: st.players }, this.me, this.watching);
   }

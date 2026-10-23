@@ -9,6 +9,7 @@
     "test:ratelimit": "tsx scripts/ratelimit-test.ts",
     "test:accounts": "tsx scripts/accounts-test.ts",
     "test:presence": "tsx scripts/presence-test.ts",
+    "test:presence-kill": "tsx scripts/presence-kill-test.ts",
     "test:equip": "tsx scripts/equip-test.ts",
     "econ:equip": "tsx scripts/equip-econ.ts"
   },
