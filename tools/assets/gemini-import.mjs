@@ -53,6 +53,7 @@
 //                          giữa như biểu tượng (renderIcon; phóng tối đa ICON_MAX_UP = 1,5 để các lưới / bậc đồng cỡ, vật nhỏ
 //                          trong lưới không thành chấm), thay vì đặt chân xuống đáy như sprite. Ảnh nền trong suốt thật
 //                          (ChatGPT; điểm alpha ≥ 128 là vật, alpha thấp là nhiễu) tự nhận, không cần --key.
+//   --unline               gỡ vạch lưới tối mảnh Gemini kẻ giữa các ô (cột / hàng > 90% điểm khác nền, rộng ≤ 12 điểm) trước khi xóa nền / tách vật.
 //   --key #ffffff          nền TRẮNG đặc (không alpha): điểm gần trắng (--white-min 238) → #FF00FF rồi nhập như nền magenta.
 //   --key2 #808080        (sprite, phụ thể võ hồn) ma-nơ-canh xám dùng làm khuôn: xóa nó (--key2-tol 18), căn chân và tâm ngang theo
 //                          ma-nơ-canh, hệ số thu chung = --man-h (mặc định 52 điểm, chiều cao người chơi) / chiều cao ma-nơ-canh (trung vị).
@@ -80,7 +81,7 @@ const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i,
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
 const gridOpt = opt("--grid", kind === "ui" ? "1x1" : ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" || kind === "item" || kind === "ui" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? (kind === "item" || kind === "ui" ? "24" : "10") : "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), whiteMin = +opt("--white-min", "238"), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
+const unlineOpt = flag("--unline"), keyOpt = opt("--key", ""), whiteMin = +opt("--white-min", "238"), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const scaleOpt = opt("--scale", ""), debug = flag("--debug"), faceOnly = flag("--face-only");
 const key2Opt = opt("--key2", ""), key2Tol = +opt("--key2-tol", "18"), manH = +opt("--man-h", "52"), key2 = key2Opt ? hex(key2Opt) : null;
@@ -120,6 +121,26 @@ const maxDiff = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]),
 const OUT_RGB = hex(OUTLINE);
 
 // ---------- 1. Logo ----------
+/**
+ * Gỡ vạch lưới (--unline): Gemini hay kẻ vạch tối mảnh giữa các ô (dọc hoặc ngang, chạy suốt ảnh). Cột / hàng có > 90% điểm khác màu nền và
+ * bề rộng cả dải ≤ 12 điểm là vạch: tô về màu nền (cộng 2 điểm mỗi bên). Dải rộng hơn (vật chiếm cả chiều cao ảnh) bị bỏ qua, không đụng.
+ * Không gỡ thì `--grid` cắt lệch (vạch không chia đều) hoặc vạch thành một "vật" riêng khi tách theo thành phần liên thông.
+ */
+function unline(img) {
+  if (!unlineOpt) return img;
+  const K = keyColor(img), far = (p) => Math.max(Math.abs(p[0] - K[0]), Math.abs(p[1] - K[1]), Math.abs(p[2] - K[2])) > 60;
+  const runsOf = (len, count, at) => {
+    const q = Array.from({ length: len }, (_, i) => count(i) > at * 0.9), runs = [];
+    for (let i = 0; i < len; i++) if (q[i]) { let e = i; while (q[e + 1]) e++; if (e - i + 1 <= 12) runs.push([i, e]); i = e; }
+    return runs;
+  };
+  const cols = runsOf(img.w, (x) => { let n = 0; for (let y = 0; y < img.h; y++) if (far(img.get(x, y))) n++; return n; }, img.h);
+  const rows = runsOf(img.h, (y) => { let n = 0; for (let x = 0; x < img.w; x++) if (far(img.get(x, y))) n++; return n; }, img.w);
+  for (const [a, b] of cols) for (let x = Math.max(0, a - 2); x <= Math.min(img.w - 1, b + 2); x++) for (let y = 0; y < img.h; y++) img.set(x, y, [K[0], K[1], K[2], 255]);
+  for (const [a, b] of rows) for (let y = Math.max(0, a - 2); y <= Math.min(img.h - 1, b + 2); y++) for (let x = 0; x < img.w; x++) img.set(x, y, [K[0], K[1], K[2], 255]);
+  if (cols.length || rows.length) console.log(`[gemini] gỡ vạch lưới: ${cols.length} dọc (${cols.map((r) => r.join("-")).join(" ")}), ${rows.length} ngang`);
+  return img;
+}
 /**
  * Nền TRẮNG (--key #ffffff; ảnh ChatGPT / Gemini vẽ nền trắng đặc, không alpha, không magenta): điểm gần trắng (kênh nhỏ nhất ≥ --white-min 238 và
  * ba kênh lệch nhau ≤ 14) thành #FF00FF trước khi xóa nền. Vật có viền #1a1020 nên không ăn vào vật; vùng trắng kín trong vật (lỗ vòng, lỗ nhẫn) cũng được xóa.
@@ -960,7 +981,7 @@ function contactSheet(imgs, scale) {
 }
 
 // ---------- Chạy ----------
-const raw = whiteToKey(decodePng(readFileSync(file)));
+const raw = unline(whiteToKey(decodePng(readFileSync(file))));
 const K = keyColor(raw);
 const logo = removeLogo(raw, K);
 const clean = opaqueMode ? (() => { const o = new Img(raw.w, raw.h, Uint8Array.from(raw.data)); for (let i = 3; i < o.data.length; i += 4) o.data[i] = 255; return o; })() : removeBackground(raw, K);
