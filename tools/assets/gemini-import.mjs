@@ -55,7 +55,7 @@
 //                          (ChatGPT; điểm alpha ≥ 128 là vật, alpha thấp là nhiễu) tự nhận, không cần --key.
 //   --key2 #808080        (sprite, phụ thể võ hồn) ma-nơ-canh xám dùng làm khuôn: xóa nó (--key2-tol 18), căn chân và tâm ngang theo
 //                          ma-nơ-canh, hệ số thu chung = --man-h (mặc định 52 điểm, chiều cao người chơi) / chiều cao ma-nơ-canh (trung vị).
-//   --kind ui --size WxH   mảnh giao diện lớn (khung radar tròn, la bàn, nền giấy bản đồ): ảnh nền #FF00FF (tự dò ở góc) hoặc trong suốt thật → nền
+//   --kind ui --size WxH   mảnh giao diện lớn (mặc định --grid 1x1: cả ảnh là MỘT mảnh, kể cả phần rời như tia / chữ ngoài vòng) (khung radar tròn, la bàn, nền giấy bản đồ): ảnh nền #FF00FF (tự dò ở góc) hoặc trong suốt thật → nền
 //                          trong suốt (lòng khung tròn cũng trong suốt vì xóa theo màu), về pixel thật, vừa khung đích giữ tỉ lệ, căn giữa, bảng màu
 //                          riêng (--colors 24), KHÔNG thêm viền. --opaque: ảnh tràn khung không nền (nền giấy), giữ nguyên mọi điểm; logo Gemini
 //                          trên nền cùng màu giấy không tự dò được: --logo star:<rộng-98>,<cao-98>,42 (ảnh 2400×1792; tỉ lệ theo cạnh dài).
@@ -77,7 +77,7 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
-const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
+const gridOpt = opt("--grid", kind === "ui" ? "1x1" : ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" || kind === "item" || kind === "ui" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? (kind === "item" || kind === "ui" ? "24" : "10") : "32"), logoOpt = opt("--logo", "auto");
 const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
@@ -894,7 +894,7 @@ function takeMannequin(img) {
 function renderUi(nat) {
   const b = bboxOf(nat), t = new Img(FW, FH), s = Math.min(FW / b.w, FH / b.h), cx = (b.x0 + b.x1 + 1) / 2, cy = (b.y0 + b.y1 + 1) / 2, map = (u, v) => [cx + (u - FW / 2) / s, cy + (v - FH / 2) / s];
   for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) { const c = voteSample(nat, x, y, map, false); if (c) t.set(x, y, c); }
-  return { out: t, lost: false, mode: `×${s.toFixed(2)}` };
+  return { out: t, lost: false, mode: `×${s.toFixed(2)}`, ...(s > 1 ? { warning: "phóng to ảnh giả pixel: đặt --size nhỏ hơn hoặc bằng cỡ gốc" } : {}) };
 }
 /** Bản xám để client tô màu (hồn cốt theo niên hạn): độ sáng giữ nguyên, viền #1a1020 giữ nguyên. */
 function toGray(t) {
@@ -1013,6 +1013,7 @@ q.forEach((img, n) => {
     const res = kind === "ui" ? renderUi(img) : nat[n].panel ? renderPanel(img) : nat[n].icon ? (frameMode ? renderFrame(img) : renderIcon(img)) : renderSprite(img, s, nat[n].man);
     if (grayOpt.split(",").some((g) => g === "all" || g === name)) toGray(res.out);
     if (res.lost) info.warning = "hình tràn khung, bị cắt";
+    if (res.warning) info.warning = res.warning;
     if (res.mode) info.fit = res.mode;
     if (it.cut) info.base = it.base ?? "không dò được đế";
     save(outDir, name, res.out);
