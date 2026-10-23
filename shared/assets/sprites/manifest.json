@@ -304,7 +304,327 @@
       "iso": true
     },
     {
+      "key": "fx_am_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_cau",
+      "frame": [
+        24,
+        24
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_ngon",
+      "frame": [
+        28,
+        28
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_ngon",
+      "frame": [
+        24,
+        24
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
       "key": "fx_no",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_tia",
       "frame": [
         32,
         32
