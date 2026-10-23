@@ -642,7 +642,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 | Hồn sư, NPC phụ | 64×64, gốc (32, 58) | Người cao khoảng 50–54, thân rộng khoảng 1 thoi |
 | Phụ thể võ hồn | 96×96, gốc (48, 74) | Khung thân mở rộng 16 mỗi phía |
 | Hồn thú Trắng, Vàng / Tím, Đen / Đỏ | 64 / 96 / 128 | Gốc giữa đáy; tinh anh phóng sprite loài gốc |
-| Tà hóa thú vương / boss thế giới | 160 / 192 | Vẽ ở cỡ thật; chưa có thì phóng loài gốc |
+| Tà hóa thú vương / boss thế giới | 160 / 192 | Vẽ ở cỡ thật (client không phóng thêm theo bậc khi khung cao ≥ 160: `spriteRankScale`); chưa có thì phóng loài gốc |
 | Chân dung võ hồn / NPC | 64×64 / 112×112 | Tối đa `PORTRAIT_MAX_COLORS` màu |
 | Chân dung hồn thú (khung mục tiêu) | 64×64 | Nền trong suốt, tối đa `PORTRAIT_MAX_COLORS` màu |
 | Thẻ võ hồn | 96×152 | |

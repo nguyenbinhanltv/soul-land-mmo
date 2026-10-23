@@ -141,6 +141,13 @@ const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
   s.texture.key.startsWith("beast_") ? beastBody(s).top : s.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1) * SPR;
 /** Hệ số phóng sprite theo bậc hồn thú: tinh anh ELITE.scale (BĐ4), thú vương KING.scale (khoảng 96×96, BĐ5), boss thế giới WORLD.scale (BĐ6e). */
 const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
+/** Khung cao tối thiểu (pixel ảnh) của sheet thú vương / boss vẽ ở CỠ THẬT (mục 5.11 bảng "Cỡ khung": 160 / 192). */
+const FULL_SIZE_FRAME = 160;
+/**
+ * Hệ số phóng thực tế của sprite hồn thú: sheet của loài gốc (khung 64–128) phóng theo bậc (`rankScale`), còn sheet thú vương / boss đã vẽ đúng
+ * cỡ riêng (khung cao ≥ FULL_SIZE_FRAME) thì giữ nguyên 1: nhân thêm sẽ cao gấp 3–4 lần (boss 192 × WORLD.scale 4 = 768 điểm trên màn hình 640×360).
+ */
+const spriteRankScale = (s: Phaser.GameObjects.Sprite, rank: number) => (rank >= 2 && s.frame.realHeight >= FULL_SIZE_FRAME ? 1 : rankScale(rank));
 /** Màu vùng cảnh báo chiêu báo trước của hồn thú (3.5). */
 const TELE_COL = 0xff3b3b;
 /** Thời gian nở của bọc trứng theo mã loài (EggDef trong chiêu thú vương, #162): đồng hồ nở vẽ theo phần còn lại. */
@@ -2309,7 +2316,7 @@ export class GameScene extends Phaser.Scene {
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
       // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
       // Bọc trứng (#162): kén vẽ bằng code, phập phồng nhanh dần khi sắp nở (đồng hồ nở vẽ ở lớp phủ bên dưới).
-      const egg = b.egg > 0, k = rankScale(b.rank), spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face);
+      const egg = b.egg > 0, spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
       if (egg) {
         if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
         s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
@@ -2532,7 +2539,7 @@ export class GameScene extends Phaser.Scene {
     });
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id); if (!s || b.dive) return;
-      const top = beastTop(s, b.tier), dir = s.flipX ? -1 : 1, k = rankScale(b.rank);
+      const top = beastTop(s, b.tier), dir = s.flipX ? -1 : 1, k = spriteRankScale(s, b.rank);
       out.push({ x: s.x + dir * beastBody(s).w * 0.22, y: top + (s.y - top) * 0.3, col: hex(TIERS[b.tier].glow), r: (18 + 5 * b.tier) * Math.sqrt(k), i: 0.55 + 0.05 * b.tier, p: PRIO.beast });
     });
     // Truyền tống trận đã mở (11.2): ánh lam ngọc yếu, nhịp chậm, như vật phát sáng.
