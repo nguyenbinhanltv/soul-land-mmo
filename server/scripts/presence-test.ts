@@ -100,6 +100,8 @@ try {
   assert.deepEqual(await arenaLiveOpenList(), []);
   await presenceBackend.putJson("arena:live", { ma: { roomId: "ma", owner: "tiến-trình-chết", mode: "1v1", sides, phase: "fight", end: Date.now() + 60_000, holds: {}, watching: {} } });
   assert.deepEqual(await arenaLiveOpenList(), [], "trận của tiến trình hết lease không hiện");
+  await presenceBackend.putJson("arena:live", { qh: { roomId: "qh", owner: presenceBackend.workerId, mode: "1v1", sides, phase: "fight", end: Date.now() - 3_600_000, holds: {}, watching: {} } });
+  assert.deepEqual(await arenaLiveOpenList(), [], "trận quá hạn không hiện dù chủ còn sống");
   await arenaLiveOpen({ roomId: "r3", mode: "1v1", sides, phase: "fight", secs: 30 });
   assert.deepEqual(Object.keys((await presenceBackend.getJson<Record<string, unknown>>("arena:live")) ?? {}), ["r3"], "lần ghi dọn trận ma");
   await arenaLiveClose("r3");

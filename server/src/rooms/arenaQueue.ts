@@ -35,7 +35,7 @@ export const arenaMatches = new Map<string, ArenaMatch>();
 /**
  * Sổ trận mở cho người xem trực tiếp (#278, mục 5.9; #120): một tài liệu presence `arena:live` (mã phòng -> `LiveDoc`) ghi dưới khóa, để
  * `MapRoom` ở tiến trình này xem được trận do `ArenaRoom` ở tiến trình khác mở. `holds`: tài khoản được giữ chỗ xem (MapRoom `arena {op:
- * "watch"}`) -> hết hạn (ms); `watching`: phiên đang xem -> tài khoản. Trận của tiến trình chết (hết lease worker) bị dọn ở mọi lần ghi / đọc.
+ * "watch"}`) -> hết hạn (ms); `watching`: phiên đang xem -> tài khoản. Trận của tiến trình chết (hết lease worker) hoặc quá hạn pha cuối bị dọn ở mọi lần ghi / đọc.
  */
 export interface LiveDoc {
   roomId: string; owner: string; mode: string; sides: { name: string; elo: number }[];
@@ -56,7 +56,8 @@ async function liveClean(book: LiveBook, now: number) {
   const leases = await presenceBackend.getJsonMany<number>(others.map(workerKey));
   const alive = new Set(others.filter((_, i) => leases[i] !== null));
   for (const [id, d] of Object.entries(book)) {
-    if (d.owner !== presenceBackend.workerId && !alive.has(d.owner)) { delete book[id]; continue; }
+    // Mục quá hạn pha cuối + ân hạn: lần xóa / đổi pha bị lỗi (không khóa được) thì sổ tự lành, kể cả khi chủ còn sống.
+    if ((d.owner !== presenceBackend.workerId && !alive.has(d.owner)) || d.end + (ARENA.endSecs + 30) * 1000 < now) { delete book[id]; continue; }
     for (const [acc, until] of Object.entries(d.holds)) if (until <= now) delete d.holds[acc];
   }
   return book;
