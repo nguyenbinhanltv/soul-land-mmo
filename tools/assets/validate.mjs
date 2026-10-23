@@ -24,6 +24,7 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const register = opt("--register", ""), prompt = opt("--prompt", ""), tool = opt("--tool", "PixelLab MCP"), note = opt("--note", ""), frameOpt = opt("--frame", "");
 const nineOpt = +opt("--nine", "0"), mapOpt = opt("--map", ""), isoAt = args.indexOf("--iso"), isoOpt = isoAt >= 0 && !!args.splice(isoAt, 1);
+const staticAt = args.indexOf("--static"), staticOpt = staticAt >= 0 && !!args.splice(staticAt, 1); // hồn thú lai: sheet tĩnh 3 hướng (#386)
 
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 manifest.sprites ??= [];
@@ -56,8 +57,8 @@ function mapColors(key, map) {
   return readGpl(f);
 }
 
-function check(key, frame, iso = false, map = "", nine = 0) {
-  const spec = sheetSpec(key, frame, iso);
+function check(key, frame, iso = false, map = "", nine = 0, stat = false) {
+  const spec = sheetSpec(key, frame, iso, stat);
   if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
   if (!existsSync(file)) return err(key, `thiếu file ${path.relative(ROOT, file)}`);
@@ -72,7 +73,7 @@ function check(key, frame, iso = false, map = "", nine = 0) {
   // Màu và alpha.
   const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
   // Chân dung / biểu tượng và hiệu ứng fx_* (màu gốc của gói LPC) không theo bảng chung, chỉ giới hạn số màu.
-  const free = spec.kind === "portrait" || spec.kind === "fx";
+  const free = spec.kind === "portrait" || spec.kind === "fx" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
   const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
@@ -83,7 +84,7 @@ function check(key, frame, iso = false, map = "", nine = 0) {
     if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
-  if (free && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : "chân dung"} tối đa ${PORTRAIT_MAX_COLORS}`);
+  if (free && !spec.static && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : "chân dung"} tối đa ${PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
@@ -197,11 +198,11 @@ function upsertCredits(key, file) {
 if (register) {
   if (!prompt) { console.error("--register cần --prompt (ghi vào art/CREDITS.md)"); process.exit(1); }
   const frame = frameOpt ? frameOpt.split("x").map(Number) : undefined;
-  const spec = check(register, frame, isoOpt, mapOpt, nineOpt);
+  const spec = check(register, frame, isoOpt, mapOpt, nineOpt, staticOpt);
   if (errors) process.exit(1);
   const iso = isoOpt || !!spec.iso;
   // --nine N: mảnh giao diện kéo giãn 9 lát, giữ nguyên N điểm ở mỗi mép (hộp thoại, cuộn giấy, khung thanh).
-  const entry = frame || iso || mapOpt || nineOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(mapOpt ? { map: mapOpt } : {}), ...(nineOpt ? { nine: nineOpt } : {}) } : register;
+  const entry = frame || iso || mapOpt || nineOpt || staticOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(staticOpt ? { static: true } : {}), ...(mapOpt ? { map: mapOpt } : {}), ...(nineOpt ? { nine: nineOpt } : {}) } : register;
   const i = manifest.sprites.findIndex((e) => entryKey(e) === register);
   if (i < 0 || JSON.stringify(manifest.sprites[i]) !== JSON.stringify(entry)) {
     // Đăng ký lại một key (ví dụ bộ 32×32 cũ thay bằng bộ isometric) thì ghi đè dòng cũ.
@@ -221,7 +222,7 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0);
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.
