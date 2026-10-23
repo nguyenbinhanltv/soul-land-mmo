@@ -13,6 +13,7 @@
   <div id="stage">
     <div id="game"></div>
     <div id="hud" hidden>
+      <div id="lcol">
       <section class="panel stats">
         <div class="who"><span id="vhName">–</span><span id="lvl"></span></div>
         <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
@@ -32,6 +33,7 @@
         </div>
       </section>
       <section id="party" class="panel" aria-label="Tổ đội"></section>
+      </div>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
       <div id="char" class="panel" hidden role="dialog" aria-label="Bảng nhân vật Hồn sư"></div>
       <div id="roster" class="panel" hidden></div>
@@ -43,6 +45,7 @@
       <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
       <div id="npc" class="panel" hidden role="dialog" aria-label="Hộp thoại NPC"></div>
       <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
+      <div id="rcol">
       <section class="panel mapbox">
         <canvas id="mini"></canvas>
         <div id="zoneName"></div>
@@ -52,10 +55,11 @@
         <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
       </section>
+      <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
+      </div>
       <div id="bossbar" class="panel" hidden></div>
       <div id="bossCd" hidden></div>
       <div id="bossRank" class="panel" hidden></div>
-      <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
       <div id="target" class="panel"></div>
       <div id="prompt" class="panel"></div>
       <div id="portal" class="panel" hidden></div>
@@ -68,15 +72,19 @@
       <div id="offline" class="panel" hidden role="dialog" aria-label="Ủy thác offline"></div>
       <div id="channel"><div class="label">Đang hấp thụ hồn hoàn…</div><div class="bar"><i id="chFill"></i></div></div>
       <div id="banner"><b></b><span></span></div>
+      <div id="bottombar">
       <div id="chatbox">
         <div id="log" aria-live="polite"></div>
         <div id="chattabs" role="tablist" aria-label="Kênh chat"></div>
         <input id="chat" maxlength="120" placeholder="Nhấn Enter để chat" autocomplete="off">
       </div>
-      <div id="team" aria-label="Đội hình: nhấn 1–4 để đổi võ hồn"></div>
       <div id="actbar">
-        <div id="bskills" aria-label="Kỹ năng hồn cốt chủ động: Z, X, C"></div>
-        <div id="skills"></div>
+        <div id="team" aria-label="Đội hình: nhấn 1–4 để đổi võ hồn"></div>
+        <div id="actrow">
+          <div id="bskills" aria-label="Kỹ năng hồn cốt chủ động: Z, X, C"></div>
+          <div id="skills"></div>
+        </div>
+      </div>
       </div>
     </div>
     <div id="joy"><div id="knob"></div></div>

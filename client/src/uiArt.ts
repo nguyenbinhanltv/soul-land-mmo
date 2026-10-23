@@ -82,16 +82,15 @@ export function setUiScalePref(v: UiScalePref) {
 }
 
 /**
- * Tỉ lệ giao diện. Hệ số cố định thì dùng đúng hệ số. Tự động: cứ ~1,5 lần cỡ thiết kế 1280×720 (1080p → 1×, 1440p → 1×, 4K → 2×) mới
- * lên một bậc, làm tròn về bội số điểm ảnh thiết bị nguyên (màn thường: bậc 1; màn 2× dpi: bậc 0,5) nên ảnh giấy / font Galmuri vẫn
- * rơi đúng lưới điểm ảnh, HUD không phình gấp đôi ở 1440p. Tối thiểu 1.
+ * Tỉ lệ giao diện. Hệ số cố định thì dùng đúng hệ số. Tự động: bằng (cỡ cửa sổ / 1280×720) chia 1,5, làm tròn tới 0,5, tối thiểu 1
+ * (1080p → 1×, 1440p → 1,5×, 4K → 2×), không nhảy thẳng 1× → 2× như trước; bậc nửa vẫn rơi đúng điểm ảnh thiết bị trên màn 2× dpi,
+ * trên màn thường ảnh giấy / font Galmuri lệch lưới nhẹ ở bậc 1,5 (muốn sắc nét tuyệt đối thì chọn 100% / 150% hoặc 200% trên màn lớn).
  */
 export function uiScale() {
   const pref = getUiScalePref();
   if (pref !== "auto") return Number(pref);
-  const fit = Math.min(innerWidth / 1280, innerHeight / 720), dpr = devicePixelRatio || 1;
-  const step = dpr >= 2 ? 0.5 : 1;
-  return Math.max(1, Math.round(fit / 1.5 / step) * step);
+  const fit = Math.min(innerWidth / 1280, innerHeight / 720);
+  return Math.max(1, Math.round((fit / 1.5) * 2) / 2);
 }
 /**
  * Đặt `--u` và các lớp theo kích thước LOGIC (cỡ cửa sổ chia `--u`, vì HUD phóng bằng `zoom`): `ui-w640` / `ui-w560` / `ui-w520` / `ui-w420`
