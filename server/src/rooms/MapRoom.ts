@@ -49,7 +49,7 @@ import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
-import { arenaLive, arenaWatchMax, arenaWatchUsed, arenaWatchingAny, setTestWatchMax } from "./arenaQueue.ts";
+import { arenaLiveOpenList, arenaLiveHold, arenaLiveRelease, arenaWatchMax, setTestWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
@@ -845,7 +845,7 @@ export class MapRoom extends Room<MapState> {
    * SeatPass được giữ chỗ ở phòng này không: bản đồ đã kiểm ở static onAuth phải là bản đồ của phòng (joinById vào kênh bản đồ khác thì
    * không). ArenaRoom: chỉ thành viên của trận.
    */
-  seatAllowed(pass: SeatPass) { return pass.mapId === this.state.mapId; }
+  seatAllowed(pass: SeatPass): boolean | Promise<boolean> { return pass.mapId === this.state.mapId; }
 
   /**
    * Giữ chỗ từ matchmake: bỏ SeatPass (authData của static onAuth) để onAuth của phòng chạy lúc mở WebSocket (Colyseus bỏ qua onAuth của
@@ -859,7 +859,7 @@ export class MapRoom extends Room<MapState> {
     }
     const acc = pass.seatFor;
     await seatUsed(acc, pass.key);
-    if (!this.seatAllowed(pass as SeatPass)) return false;
+    if (!await this.seatAllowed(pass as SeatPass)) return false;
     await seatAdd(acc, sessionId, Date.now() + seconds * 1000);
     const ok = await super._reserveSeat(sessionId, joinOptions, undefined, seconds, allowReconnection, devModeReconnection);
     if (!ok) await seatUsed(acc, sessionId);
@@ -2999,10 +2999,11 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(id); if (!d) return;
     const now = Date.now(); if (now - d.arenaLiveAt < ARENA.topCd * 1000) return;
     d.arenaLiveAt = now;
-    const list = [...arenaLive.values()].filter((l) => l.phase() === "ready" || l.phase() === "fight")
-      .sort((a, b) => (a.phase() === "fight" ? 0 : 1) - (b.phase() === "fight" ? 0 : 1) || a.secs() - b.secs()).slice(0, ARENA.liveN)
-      .map((l) => ({ roomId: l.roomId, mode: l.mode, sides: l.sides, phase: l.phase(), secs: Math.ceil(l.secs()), watchers: l.watching.size, max: arenaWatchMax() }));
-    this.clients.getById(id)?.send("arena", { k: "live", list });
+    arenaLiveOpenList().then((all) => {
+      const list = all.sort((a, b) => (a.phase === "fight" ? 0 : 1) - (b.phase === "fight" ? 0 : 1) || a.secs - b.secs).slice(0, ARENA.liveN)
+        .map((l) => ({ ...l, secs: Math.ceil(l.secs), max: arenaWatchMax() }));
+      this.clients.getById(id)?.send("arena", { k: "live", list });
+    }, (e) => console.error("Không đọc được sổ xem trận", e));
   }
 
   /**
@@ -3016,14 +3017,20 @@ export class MapRoom extends Room<MapState> {
     if (!this.npcNear(id, { role: "arena" })) return no("Hãy lại gần Đại Đấu Hồn Trường.");
     const why = this.arenaBusyOne(p, d); if (why) return no(why);
     if (arenaQueued(d.accountId) || d.arenaBusy) return no("Đang xếp hàng: hủy hàng trước khi xem trận.");
-    if (arenaWatchingAny(d.accountId)) return no("Đang xem một trận khác.");
-    const l = arenaLive.get(roomId);
-    if (!l || (l.phase() !== "ready" && l.phase() !== "fight")) return no("Trận đấu không còn diễn ra.");
-    if (arenaWatchUsed(l) >= arenaWatchMax()) return no(`Trận đã đủ ${arenaWatchMax()} người xem.`);
-    l.holds.set(d.accountId, Date.now() + ARENA.joinSecs * 1000);
-    this.freeze(id); this.portalHint(id, p, d); d.arenaGone = true;
-    c.send("arena", { k: "watch", roomId, sides: l.sides });
-    this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+    const until = Date.now() + ARENA.joinSecs * 1000;
+    arenaLiveHold(roomId, d.accountId, until, arenaWatchMax()).then((r) => {
+      if (r === "other") return no("Đang xem một trận khác.");
+      if (r === "gone") return no("Trận đấu không còn diễn ra.");
+      if (r === "full") return no(`Trận đã đủ ${arenaWatchMax()} người xem.`);
+      const p2 = this.state.players.get(id);
+      // Trong lúc chờ sổ presence người chơi có thể đã rời / đi cổng / xếp hàng: nhả chỗ giữ, không freeze.
+      if (!p2 || this.pdata.get(id) !== d || d.travelling || arenaQueued(d.accountId) || d.arenaBusy || !this.clients.getById(id)) {
+        void arenaLiveRelease(roomId, d.accountId).catch((e) => console.error("Không nhả chỗ giữ xem trận", e)); return;
+      }
+      this.freeze(id); this.portalHint(id, p2, d); d.arenaGone = true;
+      c.send("arena", { k: "watch", roomId, sides: r.sides });
+      this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+    }, (e) => { console.error("Không giữ được chỗ xem trận", e); no("Hệ thống bận."); });
   }
 
   /** Hoàn tác freeze nếu bên kia mất phiên ngay sau khi matchMaker mở phòng nhưng trước khi cả hai nhận mã. */

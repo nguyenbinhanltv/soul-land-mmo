@@ -1,7 +1,7 @@
 // Hàng chờ Đại Đấu Hồn Trường (mục 5.9, bước 7.2): trạng thái mức tiến trình như suất thú vương (kingSeats) của MapRoom, dùng chung
 // cho mọi kênh bản đồ. MapRoom thêm / bỏ một bên (arenaAction, freeze); vòng ghép ở đây chỉ chọn cặp bằng hàm thuần arenaPairs
 // (shared/data.ts), mở phòng ArenaRoom rồi báo cho phòng bản đồ của từng thành viên. Luật trận đấu nằm trong ArenaRoom.
-// File riêng để hai phòng cùng import mà không vòng import lẫn nhau; chạy nhiều tiến trình thì hàng chờ phải chuyển sang presence.
+// File riêng để hai phòng cùng import mà không vòng import lẫn nhau; hàng chờ và sổ xem trận (`arenaLive*`) ghi vào presence để chạy nhiều tiến trình.
 import { matchMaker } from "colyseus";
 import { randomUUID } from "node:crypto";
 import { ARENA, arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
@@ -33,29 +33,84 @@ const queue = new Map<string, ArenaTeamEntry>();
 export const arenaMatches = new Map<string, ArenaMatch>();
 
 /**
- * Trận mở cho người xem trực tiếp (#278, mục 5.9): ArenaRoom ghi lúc mở phòng, xóa lúc hủy phòng. `holds`: tài khoản được giữ chỗ xem
- * (MapRoom `arena {op: "watch"}`) -> hết hạn (ms); `watching`: phiên đang xem -> tài khoản. Mức tiến trình như hàng chờ (nhiều tiến
- * trình thì chuyển sang presence, #120).
+ * Sổ trận mở cho người xem trực tiếp (#278, mục 5.9; #120): một tài liệu presence `arena:live` (mã phòng -> `LiveDoc`) ghi dưới khóa, để
+ * `MapRoom` ở tiến trình này xem được trận do `ArenaRoom` ở tiến trình khác mở. `holds`: tài khoản được giữ chỗ xem (MapRoom `arena {op:
+ * "watch"}`) -> hết hạn (ms); `watching`: phiên đang xem -> tài khoản. Trận của tiến trình chết (hết lease worker) bị dọn ở mọi lần ghi / đọc.
  */
-export interface ArenaLive {
-  roomId: string; mode: string; sides: { name: string; elo: number }[];
-  phase(): string; secs(): number;
-  holds: Map<number, number>; watching: Map<string, number>;
+export interface LiveDoc {
+  roomId: string; owner: string; mode: string; sides: { name: string; elo: number }[];
+  phase: string; end: number;
+  holds: Record<string, number>; watching: Record<string, number>;
 }
-export const arenaLive = new Map<string, ArenaLive>();
+type LiveBook = Record<string, LiveDoc>;
+const LIVE_KEY = "arena:live";
+const LIVE_TTL_MS = (ARENA.joinSecs + ARENA.readySecs + ARENA.fightSecs + ARENA.endSecs + 120) * 1000;
 /** Hook test `awatch {max}` (chỉ GAME_TEST): hạ số người xem tối đa mỗi trận để bot thử từ chối khi đầy; null = ARENA.watchMax. */
 let testWatchMax: number | null = null;
 export const arenaWatchMax = () => testWatchMax ?? ARENA.watchMax;
 export function setTestWatchMax(n: number | null) { testWatchMax = n; }
-/** Số chỗ xem đã dùng của trận: đang xem + giữ chỗ còn hạn (bỏ chỗ giữ đã hết hạn). */
-export function arenaWatchUsed(l: ArenaLive) {
-  const now = Date.now();
-  for (const [acc, until] of l.holds) if (until <= now) l.holds.delete(acc);
-  return l.watching.size + l.holds.size;
+const watchingAcc = (d: LiveDoc, acc: number) => d.holds[acc] !== undefined || Object.values(d.watching).includes(acc);
+/** Bỏ trận của tiến trình đã hết lease và chỗ giữ hết hạn; trả sổ đã lọc (không ghi). */
+async function liveClean(book: LiveBook, now: number) {
+  const others = [...new Set(Object.values(book).map((d) => d.owner).filter((o) => o !== presenceBackend.workerId))];
+  const leases = await presenceBackend.getJsonMany<number>(others.map(workerKey));
+  const alive = new Set(others.filter((_, i) => leases[i] !== null));
+  for (const [id, d] of Object.entries(book)) {
+    if (d.owner !== presenceBackend.workerId && !alive.has(d.owner)) { delete book[id]; continue; }
+    for (const [acc, until] of Object.entries(d.holds)) if (until <= now) delete d.holds[acc];
+  }
+  return book;
 }
-/** Tài khoản đang xem hoặc đang giữ chỗ xem một trận nào đó. */
-export const arenaWatchingAny = (accountId: number) =>
-  [...arenaLive.values()].some((l) => (l.holds.get(accountId) ?? 0) > Date.now() || [...l.watching.values()].includes(accountId));
+async function liveEdit<R>(edit: (book: LiveBook, now: number) => R): Promise<R> {
+  let out!: R;
+  const ok = await presenceBackend.withLock<LiveBook>(LIVE_KEY, `${presenceBackend.workerId}:arena-live`, 5000, async (old) => {
+    const now = Date.now(), book = await liveClean(old ?? {}, now);
+    out = edit(book, now);
+    return book;
+  }, LIVE_TTL_MS);
+  if (!ok) throw new Error("Không lấy được khóa sổ xem trận");
+  return out;
+}
+/** ArenaRoom mở trận (onCreate); `secs` là thời gian của pha hiện tại. */
+export const arenaLiveOpen = (l: Omit<LiveDoc, "owner" | "end" | "holds" | "watching"> & { secs: number }) => liveEdit((book, now) => {
+  const { secs, ...rest } = l;
+  book[l.roomId] = { ...rest, owner: presenceBackend.workerId, end: now + secs * 1000, holds: {}, watching: {} };
+});
+/** ArenaRoom đổi pha. */
+export const arenaLivePhase = (roomId: string, phase: string, secs: number) => liveEdit((book, now) => {
+  const d = book[roomId]; if (d) { d.phase = phase; d.end = now + secs * 1000; }
+});
+export const arenaLiveClose = (roomId: string) => liveEdit((book) => { delete book[roomId]; });
+/** Danh sách trận đang đếm ngược / giao đấu (đọc, không khóa): `secs` còn lại, `watchers` số phiên đang xem. */
+export async function arenaLiveOpenList() {
+  const now = Date.now(), book = await liveClean(await presenceBackend.getJson<LiveBook>(LIVE_KEY) ?? {}, now);
+  return Object.values(book).filter((d) => d.phase === "ready" || d.phase === "fight")
+    .map((d) => ({ roomId: d.roomId, mode: d.mode, sides: d.sides, phase: d.phase, secs: Math.max(0, (d.end - now) / 1000), watchers: Object.keys(d.watching).length }));
+}
+/**
+ * Giữ chỗ xem cho `acc` tới `until` trong một lần khóa: trận còn đếm ngược / giao đấu, tài khoản chưa xem / giữ chỗ trận nào, chỗ
+ * (đang xem + giữ chỗ còn hạn) dưới `max`. Trả `sides` nếu được, ngược lại mã lý do.
+ */
+export const arenaLiveHold = (roomId: string, acc: number, until: number, max: number) => liveEdit((book): { sides: LiveDoc["sides"] } | "other" | "gone" | "full" => {
+  if (Object.values(book).some((d) => watchingAcc(d, acc))) return "other";
+  const d = book[roomId];
+  if (!d || (d.phase !== "ready" && d.phase !== "fight")) return "gone";
+  if (Object.keys(d.watching).length + Object.keys(d.holds).length >= max) return "full";
+  d.holds[acc] = until;
+  return { sides: d.sides };
+});
+/** Bỏ chỗ giữ của `acc` (không vào được sân). */
+export const arenaLiveRelease = (roomId: string, acc: number) => liveEdit((book) => { delete book[roomId]?.holds[acc]; });
+/** Chỗ giữ xem của `acc` ở trận còn hạn (ArenaRoom.seatAllowed / onAuth). */
+export async function arenaLiveHeld(roomId: string, acc: number) {
+  const d = (await presenceBackend.getJson<LiveBook>(LIVE_KEY))?.[roomId];
+  return !!d && (d.holds[acc] ?? 0) > Date.now();
+}
+/** Phiên `sid` của `acc` vào xem: đổi chỗ giữ thành chỗ xem. */
+export const arenaLiveWatch = (roomId: string, sid: string, acc: number) => liveEdit((book) => {
+  const d = book[roomId]; if (d) { delete d.holds[acc]; d.watching[sid] = acc; }
+});
+export const arenaLiveUnwatch = (roomId: string, sid: string) => liveEdit((book) => { delete book[roomId]?.watching[sid]; });
 /** Bên đối thủ của trận ngay trước, giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. */
 const lastFoe = new Map<string, string>();
 const TICK_MS = 500;
