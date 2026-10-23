@@ -354,4 +354,30 @@ noListenerAudio.dispose();
   }
 }
 
+// Tiếng giao diện gắn vào DOM (G5, #396): đổi `hidden` của panel → mở / đóng, lần đầu chỉ ghi nhớ; kéo thả trong panel.
+{
+  const { bindUiSounds } = await import("../src/audio/uiSounds.ts");
+  const panelA = { hidden: true, closest: () => panelA }, panelB = { hidden: false, closest: () => panelB }, outside = { closest: () => null };
+  let callback = null;
+  const observed = [];
+  globalThis.MutationObserver = class { constructor(cb) { callback = cb; } observe(el) { observed.push(el); } disconnect() { observed.length = 0; } };
+  const listeners = {};
+  globalThis.document = { addEventListener(type, fn) { listeners[type] = fn; } };
+  const played = [];
+  const ac = new AbortController();
+  bindUiSounds({ playUi: (k) => played.push(k) }, ac.signal, { querySelectorAll: () => [panelA, panelB] });
+  assert.equal(observed.length, 2);
+  callback([{ target: panelA }]);
+  assert.deepEqual(played, [], "hidden không đổi so với lúc gắn: không phát");
+  panelA.hidden = false; callback([{ target: panelA }]);
+  panelB.hidden = true; callback([{ target: panelB }]);
+  panelB.hidden = true; callback([{ target: panelB }]);
+  assert.deepEqual(played, ["open", "close"], "mở rồi đóng; lặp trạng thái cũ không phát lại");
+  listeners.dragstart({ target: panelA }); listeners.drop({ target: panelA }); listeners.dragstart({ target: outside });
+  assert.deepEqual(played.slice(2), ["drag", "drop"], "kéo thả ngoài panel không có tiếng");
+  ac.abort();
+  assert.equal(observed.length, 0, "hủy signal thì gỡ quan sát");
+  delete globalThis.MutationObserver; delete globalThis.document;
+}
+
 console.log(`audio-test: ${SFX_IDS.length} SFX tổng hợp, tiếng mẫu CC0, kênh trộn, settings và spatial đều đạt`);
