@@ -2019,6 +2019,42 @@
       "iso": true
     },
     {
+      "key": "skill_can_khon_hon_nguyen_toa_0",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_1",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_2",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_3",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_4",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_5",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_7",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_8",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_9",
+      "iso": true
+    },
+    {
       "key": "skill_chung_0",
       "iso": true
     },
@@ -2104,6 +2140,42 @@
     },
     {
       "key": "skill_hao_thien_chuy_9",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_0",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_1",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_2",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_3",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_4",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_5",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_7",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_8",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_9",
       "iso": true
     },
     {
@@ -2287,6 +2359,42 @@
       "iso": true
     },
     {
+      "key": "skill_nguyet_nhan_0",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_1",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_2",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_3",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_4",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_5",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_7",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_8",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_9",
+      "iso": true
+    },
+    {
       "key": "skill_nhu_cot_tho_0",
       "iso": true
     },
@@ -2323,75 +2431,39 @@
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_0",
+      "key": "skill_quy_mi_0",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_1",
+      "key": "skill_quy_mi_1",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_2",
+      "key": "skill_quy_mi_2",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_3",
+      "key": "skill_quy_mi_3",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_4",
+      "key": "skill_quy_mi_4",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_5",
+      "key": "skill_quy_mi_5",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_7",
+      "key": "skill_quy_mi_7",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_8",
+      "key": "skill_quy_mi_8",
       "iso": true
     },
     {
-      "key": "skill_tu_vong_chu_hoang_9",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_0",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_1",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_2",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_3",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_4",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_5",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_7",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_8",
-      "iso": true
-    },
-    {
-      "key": "skill_nguyet_nhan_9",
+      "key": "skill_quy_mi_9",
       "iso": true
     },
     {
@@ -2431,6 +2503,78 @@
       "iso": true
     },
     {
+      "key": "skill_thien_can_bach_ngoc_dinh_0",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_1",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_2",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_3",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_4",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_5",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_7",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_8",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_9",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_9",
+      "iso": true
+    },
+    {
       "key": "skill_u_minh_linh_mieu_0",
       "iso": true
     },
@@ -2464,6 +2608,42 @@
     },
     {
       "key": "skill_u_minh_linh_mieu_9",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_0",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_1",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_2",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_3",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_4",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_5",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_7",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_8",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_9",
       "iso": true
     },
     {
