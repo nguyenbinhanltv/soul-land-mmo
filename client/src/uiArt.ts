@@ -3,8 +3,7 @@
 //   vẽ bằng CSS / SVG cũ, không 404);
 // - mảnh `ui_*` thành biến CSS `--ui-<tên>` (ảnh) và `--nine-<tên>` (số điểm giữ nguyên ở mỗi mép khi kéo giãn 9 lát, theo "nine");
 // - hồn cốt là bản xám: tô theo màu niên hạn bằng canvas (nhân màu từng điểm ảnh), giữ nguyên điểm ảnh;
-// - tỉ lệ giao diện `--u` (số nguyên) theo cỡ cửa sổ, như phóng số nguyên của cảnh 640×360.
-import { VIEW_W, VIEW_H } from "./iso.ts";
+// - tỉ lệ giao diện `--u` theo cài đặt Cỡ giao diện (tự động hoặc 75–150%) và các lớp `ui-w*` / `ui-h*` theo kích thước logic.
 import { TIERS } from "../../shared/data.ts";
 
 const BASE = "sprites/";
@@ -66,15 +65,46 @@ export function tintedUrl(key: string, col: string) {
   } catch { return u; }
 }
 
+/** Lựa chọn cỡ giao diện ở bảng Cài đặt: "auto" hoặc một hệ số cố định; lưu localStorage để lần sau giữ nguyên. */
+export const UI_SCALE_CHOICES = [
+  { v: "auto", label: "Tự động" }, { v: "0.75", label: "75%" }, { v: "1", label: "100%" }, { v: "1.25", label: "125%" }, { v: "1.5", label: "150%" },
+] as const;
+export type UiScalePref = (typeof UI_SCALE_CHOICES)[number]["v"];
+const SCALE_KEY = "shh-ui-scale";
+export function getUiScalePref(): UiScalePref {
+  try { const v = localStorage.getItem(SCALE_KEY); if (UI_SCALE_CHOICES.some((c) => c.v === v)) return v as UiScalePref; } catch { /* trình duyệt chặn lưu trữ */ }
+  return "auto";
+}
+export function setUiScalePref(v: UiScalePref) {
+  try { localStorage.setItem(SCALE_KEY, v); } catch { /* không lưu được thì chỉ áp dụng lượt này */ }
+  applyScale();
+}
+
 /**
- * Tỉ lệ giao diện: nửa mức phóng của cảnh, làm tròn xuống (720p, 1080p → 1; 1440p → 2; 4K → 3), tối thiểu 1, luôn là số nguyên. Nhờ đó
- * bố cục HUD luôn có ít nhất khoảng 1280×720 điểm giao diện như lúc thiết kế, điểm ảnh giấy / font không bị kéo lẻ.
+ * Tỉ lệ giao diện. Hệ số cố định thì dùng đúng hệ số. Tự động: bằng (cỡ cửa sổ / 1280×720) chia 1,5, làm tròn tới 0,5, tối thiểu 1
+ * (1080p → 1×, 1440p → 1,5×, 4K → 2×), không nhảy thẳng 1× → 2× như trước; bậc nửa vẫn rơi đúng điểm ảnh thiết bị trên màn 2× dpi,
+ * trên màn thường ảnh giấy / font Galmuri lệch lưới nhẹ ở bậc 1,5 (muốn sắc nét tuyệt đối thì chọn 100% / 150% hoặc 200% trên màn lớn).
  */
 export function uiScale() {
-  const z = Math.max(1, Math.floor(Math.min(innerWidth / VIEW_W, innerHeight / VIEW_H)));
-  return Math.max(1, Math.floor(z / 2));
+  const pref = getUiScalePref();
+  if (pref !== "auto") return Number(pref);
+  const fit = Math.min(innerWidth / 1280, innerHeight / 720);
+  return Math.max(1, Math.round((fit / 1.5) * 2) / 2);
 }
-function applyScale() { document.documentElement.style.setProperty("--u", String(uiScale())); }
+/**
+ * Đặt `--u` và các lớp theo kích thước LOGIC (cỡ cửa sổ chia `--u`, vì HUD phóng bằng `zoom`): `ui-w640` / `ui-w560` / `ui-w520` / `ui-w420`
+ * khi bề rộng logic ≤ số đó, `ui-h500` / `ui-h460` khi chiều cao logic ≤ số đó, `ui-portrait` khi cao hơn rộng. CSS dùng các lớp này thay
+ * `@media (max-width)` để chọn cỡ 150% trên màn 1280 cũng co bố cục đúng như màn hẹp.
+ */
+function applyScale() {
+  const u = uiScale(), root = document.documentElement;
+  root.style.setProperty("--u", String(u));
+  const w = innerWidth / u, h = innerHeight / u, cl = document.body?.classList;
+  if (!cl) return;
+  for (const n of [640, 560, 520, 420]) cl.toggle(`ui-w${n}`, w <= n);
+  for (const n of [500, 460]) cl.toggle(`ui-h${n}`, h <= n);
+  cl.toggle("ui-portrait", h > w);
+}
 
 /**
  * Token màu niên hạn / độ hiếm (UI-0): `--tier-N` (viền, chấm, vòng), `--tier-N-glow` (chữ trên tấm mực) và bí danh `--rare-N` cho độ hiếm

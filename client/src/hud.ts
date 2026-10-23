@@ -4,7 +4,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, MAX_STARS, SHARD_UNLOCK, starCost, starSkillMult, starCdMult, starTienCoMult, starRing, MAPS, bondsOf, PLAYER_STATUS,
   BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, boneBonus, calcStats, BAG_SLOTS, BAG_PAGE, type BoneStat, type CoreStat,
-  CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText,
+  CORE_ITEM, CORE_SETS, coreSetIndex, coreResetFee, parseCore, coreName, coreMainValue, coreStatText,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
@@ -2196,6 +2196,7 @@ export interface NpcActions {
   buyback(key: string): void; expand(): void; // mua lại đồ vừa bán, mở rộng túi (9.8)
   enhance(targetId: string, materialIds: string[]): void;
   enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
+  coreSet(id: string, set: string): void; // Thợ rèn: đổi bộ hồn hạch (#283)
   quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
   arena(op: "queue" | "cancel" | "top" | "live" | "watch", roomId?: string): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng; xem trận (#280): danh sách, vào xem
   // Tông môn (#196): gia nhập / đổi sang `tong`, rời tông; #197: nhận / trả tông vụ `chain`, xin bảng tông tuần, nhận thưởng tuần.
@@ -2203,7 +2204,7 @@ export interface NpcActions {
   shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -2329,6 +2330,7 @@ function renderNpc() {
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
       btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
+      btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag); // #283
     }
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
@@ -2357,6 +2359,7 @@ function renderNpc() {
   else if (npcPage === "sell") renderShopSell(el, bag, act);
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else if (npcPage === "shard") renderShardShop(el, bag, act);
+  else if (npcPage === "forgeset") renderForgeSets(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
   btn("‹ Quay lại", "drop", () => go("talk"));
   el.appendChild(row);
@@ -2592,6 +2595,50 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
     box.appendChild(b);
   }
   return box;
+}
+
+let setPick: string | null = null; // hồn hạch đang chọn ở trang "Đổi bộ hồn hạch" của Thợ rèn
+/**
+ * Lò rèn, trang đổi bộ hồn hạch (#283): chọn một hồn hạch rồi một bộ đích khác bộ hiện tại (message `coreset`); phí theo sao
+ * (coreResetFee), server kiểm tra lại khoảng cách, giao chiến và Hồn Tệ.
+ */
+function renderForgeSets(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box);
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Đổi bộ hồn hạch"; box.appendChild(h);
+  const target = setPick ? bag.items.find((i) => i.id === setPick) : undefined, tc = target && coreOf(target);
+  if (!target || !tc) {
+    setPick = null;
+    const cores = bag.items.filter((i) => coreOf(i));
+    cores.sort((a, b) => Number(b.vohon !== null) - Number(a.vohon !== null) || (b.stars ?? 1) - (a.stars ?? 1) || b.enhance - a.enhance);
+    if (!cores.length) { const p = document.createElement("small"); p.textContent = "Chưa có hồn hạch nào để đổi bộ."; box.appendChild(p); }
+    for (const it of cores) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", itemColor(it));
+      b.innerHTML = `<b></b><i></i><span></span>`;
+      b.querySelector("b")!.textContent = itemName(it);
+      b.querySelector("i")!.textContent = it.vohon !== null ? "đang gắn" : "trong túi";
+      b.querySelector("span")!.textContent = `Phí đổi bộ ${honTeParts(coreResetFee(it.stars ?? 1)).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ")}`;
+      b.addEventListener("click", () => { b.blur(); setPick = it.id; renderNpc(); });
+      box.appendChild(b);
+    }
+    return;
+  }
+  const fee = coreResetFee(target.stars ?? 1), poor = bag.honTe < fee;
+  const info = document.createElement("small");
+  info.textContent = `${itemName(target)} hiện thuộc ${coreSet(tc.set)?.name ?? "Bộ lạ"}. Giữ nguyên sao, cấp, điểm, chỉ số và dòng phụ; phí ${honTeParts(fee).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ")} mỗi lần đổi.`
+    + (poor ? " Không đủ Hồn Tệ." : "") + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi mới đổi được." : "");
+  box.appendChild(info);
+  for (const s of CORE_SETS) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", s.col);
+    b.innerHTML = `<b></b><i></i><span></span>`;
+    b.querySelector("b")!.textContent = s.name;
+    b.querySelector("i")!.textContent = s.id === tc.set ? "bộ hiện tại" : "";
+    b.querySelector("span")!.textContent = `2 món: ${s.set2} · 4 món: ${s.set4}`;
+    b.disabled = s.id === tc.set || poor;
+    b.addEventListener("click", () => { b.blur(); act.coreSet(target.id, s.id); });
+    box.appendChild(b);
+  }
+  const back = document.createElement("button"); back.type = "button"; back.className = "aopt drop"; back.textContent = "Chọn hồn hạch khác";
+  back.addEventListener("click", () => { setPick = null; renderNpc(); }); box.appendChild(back);
 }
 
 // ---------- Nhiệm vụ: chuỗi cố định (tân thủ của Ngọc Tiểu Cương, chương 2 của Triệu Vô Cực…; mục 5.8, bước 6.2, #190) ----------
