@@ -220,6 +220,7 @@ async function enter(b,roomId){
   b.offMsg=null; b.room.onMessage("offline",m=>{b.offMsg=m;}); b.room.send("offline"); // ủy thác offline (Auto 3): xin bảng nhận thưởng
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
   b.room.onMessage("squad",m=>{b.squad=m; b.squadMsgs=(b.squadMsgs??0)+1;});
+  b.room.onMessage("stats",m=>{b.charStats=m; b.charStatsMsgs=(b.charStatsMsgs??0)+1;}); // UI-2: chỉ số tổng hợp cho bảng nhân vật
   b.room.onMessage("ko",m=>{b.ko=m;});
   b.fus=[]; b.room.onMessage("fusion",m=>b.fus.push(m)); // Võ Hồn Dung Hợp Kỹ (#192): ask / wait / done / cancel
   // Bản vá state đi riêng với tin nhắn (máy bận thì tới sau cả trăm ms): đếm bản vá, test() chờ bản vá đầu tiên sau tin trả hook.
@@ -9461,6 +9462,19 @@ async function boneSubTest(){
       `+${BONE_MAX_ENHANCE}: đủ ${BONE_MAX_SUBS} dòng ${sub4.map(x=>coreStatText(...x)).join(", ")}`);
     const want=boneBonus([{slot:"tay_phai",years:32000,enhance:BONE_MAX_ENHANCE,subs:sub4}]);
     ok(CORE_STAT_IDS.every(k=>Math.abs(s4.bones[k]-want[k])<1e-9)&&liveOk(s4),"chỉ số trong trận khớp boneBonus kèm 4 dòng phụ");
+    // UI-2 (#352): tin riêng "stats" của bảng nhân vật = đúng chỉ số server dùng khi đánh (calcStats, kèm hồn cốt đang gắn), `base` là khi không gắn gì.
+    { const n0=S.charStatsMsgs??0; S.room.send("stats",{rowId:act}); await waitFor(()=>(S.charStatsMsgs??0)>n0,3000);
+      const cs=S.charStats, sameStat=(x,y)=>["maxHp","maxMp","speed","crit","critMult"].every(k=>Math.abs(x[k]-y[k])<1e-9)&&Math.abs(x.atk-y.atk)<1e-6;
+      ok(cs&&cs.rowId===act&&sameStat(cs.total,s4.stats)&&sameStat(cs.base,s4.base),"tin stats: chỉ số tổng hợp và gốc khớp số server tính (calcStats)");
+      ok(cs&&cs.total.maxHp===s4.live.maxHp&&cs.total.maxMp===s4.live.maxMp&&Math.abs(cs.total.atk-s4.live.atk)<1e-6&&Math.abs(cs.total.crit-s4.live.crit)<1e-9&&Math.abs(cs.total.critMult-s4.live.critMult)<1e-9,
+        "tin stats khớp chỉ số đang dùng khi đánh (live: sinh lực, hồn lực, công, chí mạng)");
+      ok(cs&&cs.total.atk>cs.base.atk&&cs.total.atk-cs.base.atk>=s4.bones.atk-1e-6,"tin stats: phần hồn cốt đang gắn cộng vào công (tổng > gốc)");
+      const n1=S.charStatsMsgs; S.room.send("stats",{rowId:-5}); S.room.send("stats",{rowId:"x"}); await waitFor(()=>(S.charStatsMsgs??0)>n1,3000);
+      ok(S.charStats.rowId===act,"tin stats với rowId lạ: trả võ hồn ra trận, không lỗi");
+      // Xin dồn trong một nhịp ASK_CD (bấm nhanh qua các thẻ): tin hẹn cuối phải là võ hồn xin sau cùng, không phải lần xin đầu.
+      await sleep(400); const other=S.owned.list.find(v=>v.rowId!==act)?.rowId, ids=other?[act,act,other]:[act,act,act], n2=S.charStatsMsgs??0;
+      for(const r of ids) S.room.send("stats",{rowId:r}); await sleep(900);
+      ok((S.charStatsMsgs??0)>n2&&S.charStats.rowId===ids[2],`xin stats dồn ${ids.join(", ")}: tin cuối là võ hồn xin sau cùng (${S.charStats.rowId})`); }
     // Tung bù: hồn cốt +N tạo bằng hook (như hồn cốt cường hóa trước #187) chưa có dòng phụ.
     const old=[[await give(12000,"than",12),2],[await give(MAX_YEARS,"dau",20),4],[await give(5000,"chan_trai",4),0]];
     await op("equip",{itemId:old[1][0].id,vohonId:act});
