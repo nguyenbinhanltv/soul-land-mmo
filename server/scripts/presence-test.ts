@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createPresenceBackend, presenceBackend } from "../src/presence.ts";
 import { claimBuyback, editBuyback } from "../src/rooms/MapRoom.ts";
-import { arenaDeliver, arenaEnqueue, arenaQueued } from "../src/rooms/arenaQueue.ts";
+import { arenaDeliver, arenaEnqueue, arenaQueued, arenaLiveOpen, arenaLivePhase, arenaLiveHold, arenaLiveHeld, arenaLiveWatch, arenaLiveUnwatch, arenaLiveOpenList, arenaLiveRelease, arenaLiveClose } from "../src/rooms/arenaQueue.ts";
 import { FriendHub, friends } from "../src/friends.ts";
 
 const backend = createPresenceBackend({ mode: "local" });
@@ -78,6 +78,34 @@ try {
   const [claimed] = await Promise.all([claimBuyback(8, "e"), editBuyback(8, (cur) => [sold, ...cur])]);
   assert.ok(claimed);
   assert.deepEqual((await presenceBackend.getJson<{ key: string }[]>("buyback:8"))?.map((x) => x.key), ["y"]);
+  const sides = [{ name: "A", elo: 1000 }, { name: "B", elo: 1000 }];
+  await arenaLiveOpen({ roomId: "r1", mode: "1v1", sides, phase: "wait", secs: 30 });
+  assert.deepEqual(await arenaLiveOpenList(), [], "pha chờ chưa mở cho người xem");
+  assert.equal(await arenaLiveHold("r1", 5, Date.now() + 60_000, 2), "gone");
+  await arenaLivePhase("r1", "fight", 90);
+  const [live] = await arenaLiveOpenList();
+  assert.ok(live.roomId === "r1" && live.watchers === 0 && live.secs > 80 && live.secs <= 90);
+  const holds = await Promise.all([5, 6, 7].map((acc) => arenaLiveHold("r1", acc, Date.now() + 60_000, 2)));
+  assert.equal(holds.filter((h) => typeof h === "object").length, 2, "chỗ xem tối đa 2 dù ba người giành cùng lúc");
+  assert.equal(holds.filter((h) => h === "full").length, 1);
+  await arenaLiveOpen({ roomId: "r2", mode: "2v2", sides, phase: "fight", secs: 30 });
+  assert.equal(await arenaLiveHold("r2", 5, Date.now() + 60_000, 2), "other", "một tài khoản chỉ xem một trận");
+  assert.equal(await arenaLiveHeld("r1", 5), true);
+  await arenaLiveWatch("r1", "sess-5", 5);
+  assert.equal((await arenaLiveOpenList()).find((l) => l.roomId === "r1")?.watchers, 1);
+  await arenaLiveUnwatch("r1", "sess-5");
+  await arenaLiveRelease("r1", 6);
+  assert.equal(await arenaLiveHeld("r1", 6), false);
+  await arenaLiveClose("r1"); await arenaLiveClose("r2");
+  assert.deepEqual(await arenaLiveOpenList(), []);
+  await presenceBackend.putJson("arena:live", { ma: { roomId: "ma", owner: "tiến-trình-chết", mode: "1v1", sides, phase: "fight", end: Date.now() + 60_000, holds: {}, watching: {} } });
+  assert.deepEqual(await arenaLiveOpenList(), [], "trận của tiến trình hết lease không hiện");
+  await presenceBackend.putJson("arena:live", { qh: { roomId: "qh", owner: presenceBackend.workerId, mode: "1v1", sides, phase: "fight", end: Date.now() - 3_600_000, holds: {}, watching: {} } });
+  assert.deepEqual(await arenaLiveOpenList(), [], "trận quá hạn không hiện dù chủ còn sống");
+  await arenaLiveOpen({ roomId: "r3", mode: "1v1", sides, phase: "fight", secs: 30 });
+  assert.deepEqual(Object.keys((await presenceBackend.getJson<Record<string, unknown>>("arena:live")) ?? {}), ["r3"], "lần ghi dọn trận ma");
+  await arenaLiveClose("r3");
+  console.log("✓ Sổ xem trận ở presence: pha, giữ chỗ nguyên tử, một trận mỗi tài khoản, dọn trận của tiến trình chết");
   console.log("✓ Mua lại: hai lần nhận cùng một món ở presence chỉ một lần được trao");
   console.log("✓ Hàng chờ đấu trường: tin found chỉ do tiến trình chủ của bên đó xử lý");
   console.log("✓ Hàng chờ đấu trường: bên cục bộ ghép trực tiếp được rollback khi đối thủ hủy");
@@ -144,7 +172,7 @@ try {
   assert.deepEqual(Object.keys(doc ?? {}), [String(A.id)]);
   // Tiến trình giữ D đã chết (mục cũ còn trong tài liệu); D vào rồi rời ở tiến trình 5: không rơi về bản sao cũ.
   const D = { id: 4, name: "Áo Tư Tạp" };
-  await backend.putJson("friend:state", { ...doc, [D.id]: { y1: { sid: "y1", v: 1, friends: [A.id], blocks: [A.id] } } });
+  await backend.putJson("friend:state", { ...doc, [D.id]: { y1: { sid: "y1", v: 1, friends: [A.id], blocks: [A.id], w: "tiến-trình-2" } } });
   const p5 = new FriendHub(backend, "tiến-trình-5"); await p5.ready;
   assert.equal(p5.blocked(D.id, A.id), true);
   p5.enter(D.id, "x1", D.name, row([], []));
@@ -155,7 +183,27 @@ try {
   assert.equal(p1.blocked(D.id, A.id), false);
   assert.deepEqual(Object.keys((await backend.getJson<Record<string, unknown>>("friend:state")) ?? {}), [String(A.id)]);
   console.log("✓ Vào lại sau khi tiến trình cũ chết: bản sao cũ của chính tài khoản kết thúc");
-  for (const h of [p1, p2, p3, p5]) h.close();
+  // Tiến trình giữ E bị kill (hết lease, mục còn trong tài liệu): tiến trình mở sau không nạp mục đó, lần ghi kế tiếp dọn nó khỏi tài liệu.
+  const E = { id: 5, name: "Ninh Vinh Vinh" };
+  await backend.putJson("friend:state", { ...(await backend.getJson<object>("friend:state")), [E.id]: { z1: { sid: "z1", v: 1, friends: [A.id], blocks: [A.id], w: "tiến-trình-chết" } } });
+  const p6 = new FriendHub(backend, "tiến-trình-6"); await p6.ready;
+  assert.equal(p6.blocked(E.id, A.id), false, "mục của tiến trình hết lease không nạp");
+  p6.enter(C.id, "sc2", C.name, row([], [])); online.add(C.id);
+  await p6.settled();
+  assert.deepEqual(Object.keys((await backend.getJson<Record<string, unknown>>("friend:state")) ?? {}).sort(), [String(A.id), String(C.id)]);
+  p6.leave(C.id, "sc2"); online.delete(C.id);
+  await p6.settled();
+  console.log("✓ Dọn presence: mục bạn bè / chặn của tiến trình chết không nạp và bị xóa khỏi tài liệu");
+  // Không khóa được tài liệu: ghi lại tối đa FLUSH_TRIES lần rồi bỏ, không lặp vô hạn.
+  await backend.acquireLease("friend:state:lock", "kẹt", 60_000);
+  const p7 = new FriendHub(backend, "tiến-trình-7"); await p7.ready;
+  p7.enter(C.id, "sc3", C.name, row([], []));
+  const t0 = Date.now(); await p7.settled();
+  assert.ok(Date.now() - t0 < 15_000, "vòng ghi lại có giới hạn");
+  await backend.releaseLease("friend:state:lock", "kẹt");
+  p7.leave(C.id, "sc3"); await p7.settled();
+  console.log("✓ Không khóa được tài liệu bạn bè / chặn: vòng ghi lại dừng sau số lần giới hạn");
+  for (const h of [p1, p2, p3, p5, p6, p7]) h.close();
   friends.enter(9, "s9", "Một tiến trình", row([], []));
   assert.equal(await presenceBackend.getJson("friend:state"), null, "không có Redis thì không ghi presence");
   console.log("✓ Rời game ở tiến trình khác: bản sao bỏ, tài liệu presence chỉ còn người đang trong game");
