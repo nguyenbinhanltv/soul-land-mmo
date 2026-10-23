@@ -74,7 +74,7 @@ const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i,
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
 const gridOpt = opt("--grid", ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" || kind === "item" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? (kind === "item" ? "24" : "10") : "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
+const keyOpt = opt("--key", ""), whiteMin = +opt("--white-min", "238"), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const scaleOpt = opt("--scale", ""), debug = flag("--debug"), faceOnly = flag("--face-only");
 const frameMode = flag("--frame"), iconMode = flag("--icon") || frameMode, ICON_MAX_UP = 1.5;
@@ -120,7 +120,7 @@ const OUT_RGB = hex(OUTLINE);
 const isWhiteKey = () => !!keyOpt && hex(keyOpt).every((v) => v >= 240);
 function whiteToKey(img) {
   if (!isWhiteKey()) return img;
-  const T = +opt("--white-min", "238");
+  const T = whiteMin;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const p = img.get(x, y), mn = Math.min(p[0], p[1], p[2]); if (mn >= T && Math.max(p[0], p[1], p[2]) - mn <= 14) img.set(x, y, [255, 0, 255, 255]); }
   return img;
 }
