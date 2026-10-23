@@ -4,17 +4,20 @@ import Phaser from "phaser";
 import type { He } from "../../shared/data.ts";
 
 export type FxLevel = "low" | "mid" | "high";
-export interface FxPrefs { level: FxLevel; reduce: boolean }
+/** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
+export type ShakeMode = "off" | "boss" | "full";
+export const SHAKE_MODES: [ShakeMode, string][] = [["off", "Tắt"], ["boss", "Chỉ boss"], ["full", "Đầy đủ"]];
+export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean }
 
 const KEY = "soul-land-fx-v1";
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 
 function load(): FxPrefs {
-  const def: FxPrefs = { level: "mid", reduce: prefersReduce() };
+  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true };
   try {
     const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce };
+    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true }; // bản lưu cũ không có `shake` → Chỉ boss
   } catch { /* hỏng thì dùng mặc định */ }
   return def;
 }
@@ -31,11 +34,19 @@ export const PARTICLE_CAP: Record<FxLevel, number> = { low: 0, mid: 56, high: 14
 /** Hệ số rung theo mức (Thấp: tắt). */
 const SHAKE_K: Record<FxLevel, number> = { low: 0, mid: 1, high: 1.6 };
 
-/** Rung màn hình đã nhân theo mức; 0 khi Thấp hoặc Giảm chuyển động. */
-export function shakeK(): number { return fxPrefs.reduce ? 0 : SHAKE_K[fxPrefs.level]; }
+/** Rung màn hình đã nhân theo mức; 0 khi Thấp, Rung màn hình Tắt hoặc Giảm chuyển động. */
+export function shakeK(): number { return fxPrefs.reduce || fxPrefs.shake === "off" ? 0 : SHAKE_K[fxPrefs.level]; }
 export const flashOn = () => !fxPrefs.reduce;
-export const zoomOn = () => !fxPrefs.reduce && fxPrefs.level !== "low";
-export const hitstopOn = () => !fxPrefs.reduce && fxPrefs.level !== "low";
+export const zoomOn = () => !fxPrefs.reduce && fxPrefs.level !== "low" && fxPrefs.shake !== "off";
+export const hitstopOn = () => !fxPrefs.reduce && fxPrefs.level !== "low" && fxPrefs.shake !== "off";
+/**
+ * Đòn của mình lên hồn thú bậc `rank` (0 thường, 1 tinh anh, 2 thú vương, 3 boss thế giới) có được rung / phóng to / dừng hình không (#437):
+ * hồn thú thường không (trừ "Đầy đủ"); đang tự săn chỉ còn thú vương / boss.
+ */
+export function beastJerk(rank: number, auto: boolean): boolean {
+  if (fxPrefs.shake === "off" || (auto && rank < 2)) return false;
+  return fxPrefs.shake === "full" || rank >= 1;
+}
 
 /**
  * Thời gian dừng hình (ms, 40–80): theo tỉ lệ sát thương / sinh lực tối đa của mục tiêu; chí mạng và kết liễu lâu hơn.
