@@ -1693,7 +1693,7 @@ export class GameScene extends Phaser.Scene {
     const label = m.immune ? "Miễn" : `${plus ? "+" : self ? "−" : ""}${Math.abs(m.v).toLocaleString("vi-VN")}${m.crit ? "!" : ""}`;
     const t = this.add.text(x, y, label, {
       fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: m.crit ? "24px" : "12px",
-      color: self ? "#ff4a4a" : m.c, stroke: "#1a1020", strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
+      color: self && m.c !== "#9ad8ff" ? "#ff4a4a" : m.c, // khiên đỡ (lam) thì giữ lam dù lên chính mình stroke: "#1a1020", strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
     }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
     const base = t.scaleX;
     if (self) {
@@ -2543,7 +2543,7 @@ export class GameScene extends Phaser.Scene {
     document.getElementById("zoneName")!.textContent = zname;
     if (zname !== this.lastZone) {
       if (!this.lastZone) toast("info", st.channel ? `${mapName} · Kênh ${st.channel}` : mapName, area && area.name !== mapName ? area.name : "");
-      else if (area) toast("info", area.name, area.hint);
+      else if (area && this.safes.includes(area)) toast("info", area.name, area.hint); // chỉ vùng an toàn; vùng săn đi qua liên tục thì không báo
       this.lastZone = zname;
     }
     document.getElementById("online")!.textContent = `${st.online || st.players.size} người ở ${mapName}`; // 11.4: players chỉ còn người ở gần

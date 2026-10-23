@@ -46,9 +46,9 @@ function dismiss(t: HTMLElement) {
   clearTimeout(Number(t.dataset.to)); t.classList.add("out"); window.setTimeout(() => t.remove(), FADE_MS);
 }
 
-const stackKey = (it: BagItem) => `${it.code}|${it.years ?? ""}|${it.stars ?? ""}|${it.enhance}`;
+const stackKey = (it: BagItem) => `${it.code}|${it.years ?? ""}|${it.stars ?? ""}`;
 /**
- * So túi mới với túi cũ và báo đồ nhận thêm (tối đa 3 dòng, còn lại gộp "+N món khác"). Cộng theo (mã, năm, sao, cường hóa) cả đồ đang
+ * So túi mới với túi cũ và báo đồ nhận thêm (tối đa 3 dòng, còn lại gộp "+N món khác"). Cộng theo (mã, năm, sao; không tính cường hóa, vì cường hóa / nâng cấp đổi cấp tại chỗ) cả đồ đang
  * mang lẫn trong túi, nên xếp lại túi, gắn / tháo, gộp ô không báo nhầm; mua, nhặt, nhận thưởng thì báo.
  */
 export function lootToasts(prev: BagItem[] | null, next: BagItem[]) {
