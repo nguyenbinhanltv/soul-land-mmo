@@ -38,12 +38,13 @@ export class ArenaShow {
   private hp = new Map<string, number>(); private hitT = 0; private z0: number | null = null; private undoPunch: (() => void) | null = null;
   private shown = false; private lastN = -1; private finished = false; private beatT = 0;
 
-  constructor(private scene: Phaser.Scene, private sfx: ArenaSfx = NO_SFX) {
+  /** `setSlow(k)`: đặt hệ số chậm của trình diễn (G6); cảnh có dừng hình G1 thì nhận hàm này để hai bên không đè timeScale của nhau. */
+  constructor(private scene: Phaser.Scene, private sfx: ArenaSfx = NO_SFX, private setSlow: (k: number) => void = k => { scene.tweens.timeScale = k; }) {
     for (const e of [this.vs, this.feed, this.big, this.lowhp]) { e.hidden = true; document.body.appendChild(e); }
     this.vs.setAttribute("aria-hidden", "true"); this.big.setAttribute("aria-hidden", "true"); this.lowhp.setAttribute("aria-hidden", "true");
   }
 
-  destroy() { this.undoPunch?.(); for (const e of [this.vs, this.feed, this.big, this.lowhp]) e.remove(); this.scene.tweens.timeScale = 1; }
+  destroy() { this.undoPunch?.(); for (const e of [this.vs, this.feed, this.big, this.lowhp]) e.remove(); this.setSlow(1); }
 
   /** Ghi lại tên hồn kỹ vừa tung (tin fx "soulring") để bảng hạ gục biết kẻ hạ gục dùng chiêu gì. */
   noteSkill(id: string, name: string) { this.skills.set(id, { name, t: performance.now() }); }
@@ -143,10 +144,10 @@ export class ArenaShow {
     this.sfx.finisher();
     const z = this.z0; this.undoPunch?.(); this.undoPunch = null; this.z0 = null;
     if (fancy) {
-      const z0 = z ?? cam.zoom, tw = this.scene.tweens;
-      tw.timeScale = SLOW_K;
+      const z0 = z ?? cam.zoom;
+      this.setSlow(SLOW_K);
       cam.zoomTo(z0 * ZOOM[pf.level], 250, undefined, true);
-      window.setTimeout(() => { tw.timeScale = 1; cam.zoomTo(z0, 600, undefined, true); }, SLOW_MS);
+      window.setTimeout(() => { this.setSlow(1); cam.zoomTo(z0, 600, undefined, true); }, SLOW_MS);
     }
     window.setTimeout(() => this.flash(w === 0 || w === 1 ? `${a.sides[w]?.name ?? ""} thắng` : "Hòa", w === 0 || w === 1 ? "win" : "draw"), fancy ? SLOW_MS : 0);
   }
