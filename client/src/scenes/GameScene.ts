@@ -892,7 +892,7 @@ export class GameScene extends Phaser.Scene {
     });
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; bid?: string; kill?: boolean; immune?: boolean; heal?: boolean; shield?: boolean }) => {
-      if (m.kill && m.bid) this.beastKilled.set(m.bid, this.time.now); // đòn kết liễu: bản vá kế tiếp chỉ có lệnh xoá hồn thú (bóng ngã mờ dần, fadeBeastGhost)
+      if (m.kill && m.bid && this.beasts.has(m.bid)) this.beastKilled.set(m.bid, this.time.now); // đòn kết liễu: bản vá kế tiếp chỉ có lệnh xoá hồn thú (bóng ngã mờ dần, fadeBeastGhost); chỉ ghi hồn thú đang hiện (tin dmg tới cả phòng, hồn thú ở xa không có sprite nên mục không bao giờ được dọn)
       this.audio.handleDamage(m, this.hitMaterial(m));
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
