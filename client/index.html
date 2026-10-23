@@ -13,6 +13,7 @@
   <div id="stage">
     <div id="game"></div>
     <div id="hud" hidden>
+      <div id="lcol">
       <section class="panel stats">
         <div class="who"><span id="vhName">–</span><span id="lvl"></span></div>
         <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
@@ -23,36 +24,42 @@
         <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
         <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
         <div class="minirow">
+          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false">Hồn sư <kbd>H</kbd></button>
           <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false">Đội hình <kbd>V</kbd></button>
           <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false">Túi đồ <kbd>B</kbd></button>
           <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false">Cộng minh <kbd>K</kbd></button>
-          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false">Âm thanh</button>
+          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false">Cài đặt</button>
           <button id="autoBtn" class="minibtn" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)">Tự động <kbd>T</kbd></button>
         </div>
       </section>
       <section id="party" class="panel" aria-label="Tổ đội"></section>
+      </div>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
+      <div id="char" class="panel" hidden role="dialog" aria-label="Bảng nhân vật Hồn sư"></div>
       <div id="roster" class="panel" hidden></div>
       <div id="bag" class="panel" hidden></div>
       <div id="reso" class="panel" hidden role="dialog" aria-label="Cộng minh"></div>
       <div id="friends" class="panel" hidden role="dialog" aria-label="Bạn bè"></div>
-      <div id="audio" class="panel" hidden role="dialog" aria-label="Âm thanh"></div>
+      <div id="audio" class="panel" hidden role="dialog" aria-label="Cài đặt"></div>
       <div id="autoPanel" class="panel" hidden role="dialog" aria-label="Tự động"></div>
       <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
       <div id="npc" class="panel" hidden role="dialog" aria-label="Hộp thoại NPC"></div>
       <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
+      <div id="rcol">
       <section class="panel mapbox">
         <canvas id="mini"></canvas>
         <div id="zoneName"></div>
+        <div id="mapLegend" aria-label="Chú giải bản đồ nhỏ"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
         <div id="online"></div>
         <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
         <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
       </section>
+      <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
+      </div>
       <div id="bossbar" class="panel" hidden></div>
       <div id="bossCd" hidden></div>
       <div id="bossRank" class="panel" hidden></div>
-      <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
       <div id="target" class="panel"></div>
       <div id="prompt" class="panel"></div>
       <div id="portal" class="panel" hidden></div>
@@ -65,15 +72,19 @@
       <div id="offline" class="panel" hidden role="dialog" aria-label="Ủy thác offline"></div>
       <div id="channel"><div class="label">Đang hấp thụ hồn hoàn…</div><div class="bar"><i id="chFill"></i></div></div>
       <div id="banner"><b></b><span></span></div>
+      <div id="bottombar">
       <div id="chatbox">
         <div id="log" aria-live="polite"></div>
         <div id="chattabs" role="tablist" aria-label="Kênh chat"></div>
         <input id="chat" maxlength="120" placeholder="Nhấn Enter để chat" autocomplete="off">
       </div>
-      <div id="team" aria-label="Đội hình: nhấn 1–4 để đổi võ hồn"></div>
       <div id="actbar">
-        <div id="bskills" aria-label="Kỹ năng hồn cốt chủ động: Z, X, C"></div>
-        <div id="skills"></div>
+        <div id="team" aria-label="Đội hình: nhấn 1–4 để đổi võ hồn"></div>
+        <div id="actrow">
+          <div id="bskills" aria-label="Kỹ năng hồn cốt chủ động: Z, X, C"></div>
+          <div id="skills"></div>
+        </div>
+      </div>
       </div>
     </div>
     <div id="joy"><div id="knob"></div></div>

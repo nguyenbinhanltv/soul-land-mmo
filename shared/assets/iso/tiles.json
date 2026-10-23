@@ -334,6 +334,55 @@
    "c": [16, 19],
    "cBig": [32, 37],
    "edge": 4
+  },
+  "co_loi": {
+   "img": ["ground/co_loi_0.png", "ground/co_loi_1.png"],
+   "big": ["ground/co_loi_0_lon.png", "ground/co_loi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "co_hoa_loi": {
+   "img": ["ground/co_hoa_loi_0.png", "ground/co_hoa_loi_1.png"],
+   "big": ["ground/co_hoa_loi_0_lon.png", "ground/co_hoa_loi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "dat_loi": {
+   "img": ["ground/dat_loi_0.png", "ground/dat_loi_1.png"],
+   "big": ["ground/dat_loi_0_lon.png", "ground/dat_loi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 3
+  },
+  "san_da_loi": {
+   "img": ["ground/san_da_loi_0.png", "ground/san_da_loi_1.png"],
+   "big": ["ground/san_da_loi_0_lon.png", "ground/san_da_loi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
+  },
+  "nuoc_ho_than": {
+   "img": ["ground/nuoc_ho_than_0.png", "ground/nuoc_ho_than_1.png"],
+   "big": ["ground/nuoc_ho_than_0_lon.png", "ground/nuoc_ho_than_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 0
+  },
+  "reu_phat_quang_loi": {
+   "img": ["ground/reu_phat_quang_loi_0.png", "ground/reu_phat_quang_loi_1.png"],
+   "big": ["ground/reu_phat_quang_loi_0_lon.png", "ground/reu_phat_quang_loi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 5
+  },
+  "da_cuoi_loi": {
+   "img": ["ground/da_cuoi_loi_0.png", "ground/da_cuoi_loi_1.png"],
+   "big": ["ground/da_cuoi_loi_0_lon.png", "ground/da_cuoi_loi_1_lon.png"],
+   "c": [16, 19],
+   "cBig": [32, 37],
+   "edge": 4
   }
  },
  "props": {
@@ -1288,21 +1337,21 @@
   },
   "loi_tinh_dau": {
    "ground": {
-    "3": "co~#a4b2c8",
-    "4": "co~#8a98b8",
-    "5": "reu_dom_sang",
-    "6": "co_hoa~#a8b4c8",
-    "7": "dat~#a0a0b8",
-    "8": "dat~#9898ac",
-    "9": "nuoc_ho",
-    "10": "san_da_co~#a0a8c0",
-    "13": "san_da_co~#c0c8e0",
-    "16": "san_da_co~#a8b0d0",
-    "25": "co~#b8c4d8",
-    "26": "da_cuoi~#a8b0c8",
-    "33": "san_da_co~#b8c0d8",
-    "34": "nuoc_ho~#c8e8ff",
-    "35": "nuoc_ho~x0.75"
+    "3": "co_loi~x1.3",
+    "4": "co_loi~x1.15",
+    "5": "reu_phat_quang_loi~x1.3",
+    "6": "co_hoa_loi~x1.3",
+    "7": "dat_loi~x1.35",
+    "8": "dat_loi~x1.2",
+    "9": "nuoc_ho_than~x1.6",
+    "10": "san_da_loi",
+    "13": "san_da_loi~x1.15",
+    "16": "san_da_loi~x1.05",
+    "25": "co_loi~x1.4",
+    "26": "da_cuoi_loi~x1.2",
+    "33": "san_da_loi~x1.1",
+    "34": "nuoc_ho_than~x1.8",
+    "35": "nuoc_ho_than~x1.25"
    },
    "props": {
     "19": "cay_rung_dem~x1.3",

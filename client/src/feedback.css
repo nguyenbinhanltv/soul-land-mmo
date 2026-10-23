@@ -1,0 +1,41 @@
+/* UI-4 (#354): toast, banner sự kiện lớn, chú giải bản đồ nhỏ, dòng hàng trong hộp thoại NPC. Dùng token UI-0 (--plate, --frame-*, --stroke);
+   nạp sau style.css (import ở feedback.ts) nên đè được kiểu cũ cùng độ ưu tiên. */
+
+/* ----- Toast: chồng ở góc dưới phải, không che giữa màn hình ----- */
+#toasts{position:absolute;right:10px;bottom:132px;z-index:2;display:flex;flex-direction:column;gap:4px;width:min(236px,60vw);pointer-events:none}
+body.touch #toasts{bottom:230px}
+.toast{--c:var(--paper3);pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:0 8px;
+  padding:4px 8px 5px 6px;background:var(--plate);color:var(--plate-text);border:1px solid var(--ink2);border-left:4px solid var(--c);
+  font:var(--fs-m)/12px var(--f12);animation:toastIn .22s steps(4) both;transition:opacity .4s,transform .4s}
+.toast[data-k="level"]{--c:#ffe08a} .toast[data-k="quest"]{--c:#6fd3e8} .toast[data-k="boss"]{--c:var(--son-l)}
+.toast .tk{font:normal var(--fs-s)/12px var(--f10);color:var(--c);text-shadow:var(--stroke);white-space:nowrap;align-self:start;padding-top:1px}
+.toast b{display:block;font-weight:normal;color:var(--paper);overflow-wrap:anywhere}
+.toast[data-k="loot"] b{color:var(--c);text-shadow:var(--stroke)}
+.toast small{display:block;font:var(--fs-s)/12px var(--f10);color:var(--paper3);overflow-wrap:anywhere}
+.toast .tn{font:normal var(--fs-s)/12px var(--f10);color:var(--paper2)}
+.toast.out{opacity:0;transform:translateX(18px);pointer-events:none}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none;transition:opacity .4s}}
+
+/* ----- Banner sự kiện lớn (boss, trận đấu, tuyệt kỹ): cùng kiểu tấm mực với toast, vạch son trên đầu ----- */
+#banner{background:var(--plate);border:1px solid var(--ink2);border-top:3px solid var(--son-l);padding:6px 28px 8px;min-width:240px;max-width:min(560px,90vw);pointer-events:none}
+#banner b{font-weight:normal;color:var(--paper)}
+#banner span{display:block;color:var(--paper2);margin-top:2px}
+#banner b:empty,#banner span:empty{display:none}
+
+/* ----- Bản đồ nhỏ: chú giải chấm ----- */
+#mini{outline:1px solid var(--plate)}
+#zoneName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+#mapLegend{display:flex;flex-wrap:wrap;justify-content:center;gap:0 8px;margin-top:2px;font:var(--fs-s)/12px var(--f10);color:var(--ink2)}
+#mapLegend span::before{content:"";display:inline-block;width:6px;height:6px;margin-right:3px;background:var(--d);border:1px solid var(--plate);vertical-align:-1px}
+#mapLegend .lg-mate{--d:#7dff8a} #mapLegend .lg-npc{--d:#e9c45a} #mapLegend .lg-gate{--d:#86e0b0} #mapLegend .lg-boss{--d:#ff3b3b}
+:where(body.ui-w640) #mapLegend{display:none}
+
+/* ----- Hộp thoại NPC / cửa hàng: chân dung và biểu tượng hàng trong ô ui_o, chú thích bằng setTip ----- */
+.shoprow>.sicon{display:grid;place-items:center;width:40px;height:40px;box-sizing:border-box;background:var(--plate)}
+.shoprow>.sicon .ico{width:24px;height:24px;margin:0}
+.shoprow:has(>.sicon){grid-template-columns:40px minmax(0,1fr)}
+.thuymac .shoprow>.sicon{border:4px solid transparent;background:none;border-image:var(--frame-cell) var(--nine-o) fill / calc(var(--nine-o) * 1px) stretch;
+  outline:2px solid color-mix(in srgb,var(--c) 80%,#1a1020);outline-offset:-3px}
+.thuymac #npc .nface{box-sizing:border-box;border:4px solid transparent;background:none;border-image:var(--frame-cell) var(--nine-o) fill / calc(var(--nine-o) * 1px) stretch;
+  image-rendering:pixelated;object-fit:contain}

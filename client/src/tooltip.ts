@@ -7,7 +7,7 @@
  * 2. Chú thích có cấu trúc (tiêu đề màu, dòng chỉ số, tăng / giảm): `setTip(el, { title, color, sub, lines, foot })`.
  *
  * Mọi chữ đi qua `textContent` (tên người chơi, tên vật phẩm không bao giờ vào `innerHTML`). Máy cảm ứng: chạm giữ ~0,4 giây; chú thích tự
- * tắt sau vài giây hoặc khi chạm chỗ khác. Chỉ hiển thị, không đổi trạng thái game.
+ * tắt sau vài giây (7 giây) hoặc khi chạm chỗ khác. Chỉ hiển thị, không đổi trạng thái game.
  */
 export type TipLine = string | { k?: string; v: string; tone?: "good" | "bad" | "muted" | "gem" };
 export interface TipSpec {
@@ -22,7 +22,7 @@ export interface TipSpec {
 }
 
 const specs = new WeakMap<Element, TipSpec>();
-const HOVER_MS = 250, LONG_MS = 400, TOUCH_SHOW_MS = 3000;
+const HOVER_MS = 250, LONG_MS = 400, TOUCH_SHOW_MS = 7000   /* chạm: giữ đủ lâu để đọc, tắt khi chạm chỗ khác */;
 let tipEl: HTMLElement | null = null, cur: Element | null = null, timer = 0, hideTimer = 0, longPressed = false;
 
 /** Gắn chú thích có cấu trúc (hoặc chữ thường) cho một phần tử; `null` gỡ. */
@@ -68,8 +68,8 @@ export function buildTip(spec: TipSpec): DocumentFragment {
   return f;
 }
 
-/** Tỉ lệ giao diện hiện tại (số nguyên, biến CSS --u do uiArt.ts đặt). */
-const uiU = () => Math.max(1, Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--u")) || 1);
+/** Tỉ lệ giao diện hiện tại (biến CSS --u do uiArt.ts đặt, 0,75–2…). */
+const uiU = () => Math.max(0.5, Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--u")) || 1);
 
 function place(target: Element) {
   const tip = tipEl!, u = uiU();
