@@ -5227,12 +5227,24 @@ async function autoTest(){
     // Bãi 300 năm trở lên: hồn thú hoang hung hăng hồi sinh liên tục, đánh A thì tự săn đánh trả trước rồi mới tới Y. Dọn quanh A trong
     // lúc chờ (giữ X, Y), như các bài tự săn khác; vẫn chờ 15 giây.
     await test(A,"clear",{but:[X]});
-    sp=await test(A,"spawn",{tier:0,dx:-50,dy:0,years:150}); const Y=sp?.bid;
-    let downY=false;
-    for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){ downY=await waitFor(()=>!A.room.state.beasts.has(Y),500); if(!downY) await test(A,"clear",{but:[X,Y]}); }
+    // Y sinh xa cả B lẫn X (hơn tầm aggro BEAST_AGGRO_R), vẫn trong vùng neo: tự săn dắt A đi dạo khắp quanh đó nên A có thể đang đứng sát B,
+    // Y sinh trong tầm B thì nhắm B (người gần nhất), tự săn không cướp quái người khác nên A không đánh Y (#305: CI trượt, Y cạnh B, nhắm B,
+    // 15 giây không ai đánh). Đánh A–Y xa X để đòn của A không trúng lan sang X.
+    const yCand=[...Array(24).keys()].flatMap(k=>[100,80].map(r=>{ const a=k*Math.PI/12, dx=Math.round(Math.cos(a)*r), dy=Math.round(Math.sin(a)*r), x=me(A).x+dx, y=me(A).y+dy;
+      return {dx,dy,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
+    const yAt=yCand.filter(c=>!c.solid&&!c.far).sort((u,v)=>v.away-u.away)[0];
+    // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
+    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    const ySite=`chỗ sinh Y ${yAt?`dx,dy ${yAt.dx},${yAt.dy}, cách B / X ${yAt.away.toFixed(0)} pixel`:"đường lùi dx,dy -50,0 (không có chỗ hợp lệ)"}`;
+    sp=await test(A,"spawn",{tier:0,dx:yAt?.dx??-50,dy:yAt?.dy??0,years:150}); const Y=sp?.bid;
+    let downY=false; const yTrack=[];
+    for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){
+      downY=await waitFor(()=>!A.room.state.beasts.has(Y),500);
+      if(!downY){ const yb=A.room.state.beasts.get(Y), st=await test(A,"auto",{bid:Y}); yTrack.push(`${((Date.now()-t0)/1000).toFixed(1)}s Y ${yb?.x.toFixed(0)},${yb?.y.toFixed(0)} nhắm ${st?.beast?.target} A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}`); await test(A,"clear",{but:[X,Y]}); }
+    }
     // Chẩn đoán khi trượt (#305): chỗ A / B / X / Y, sinh lực Y, mục tiêu / đích / đường của tự săn, Y nhắm ai / bị bỏ qua.
     const whyY=downY&&xb()?.hp>=hx?"":await (async()=>{ const st=await test(A,"auto",{bid:Y}), yb=A.room.state.beasts.get(Y), at=o=>o?`${o.x.toFixed(0)},${o.y.toFixed(0)}`:"-";
-      return ` [A ${at(me(A))}, B ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; log ${A.logs.slice(-3).join(" | ")}]`; })();
+      return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
     ok(Y&&downY&&xb()?.hp>=hx,`A hạ hồn thú Y không ai giành, X không mất sinh lực (${hx} → ${xb()?.hp})${whyY}`);
     await autoOp(A,"off"); await test(B,"slay",{bid:X});
     // Các bài sau không dùng B tới bài nợ nhịp: về điểm vào trại cổng (hồn thú hoang không lang thang tới), không kéo hồn thú hoang tới A.
