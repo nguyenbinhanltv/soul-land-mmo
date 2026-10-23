@@ -53,6 +53,7 @@
 //                          giữa như biểu tượng (renderIcon; phóng tối đa ICON_MAX_UP = 1,5 để các lưới / bậc đồng cỡ, vật nhỏ
 //                          trong lưới không thành chấm), thay vì đặt chân xuống đáy như sprite. Ảnh nền trong suốt thật
 //                          (ChatGPT; điểm alpha ≥ 128 là vật, alpha thấp là nhiễu) tự nhận, không cần --key.
+//   --key #ffffff          nền TRẮNG đặc (không alpha): điểm gần trắng (--white-min 238) → #FF00FF rồi nhập như nền magenta.
 //   --key2 #808080        (sprite, phụ thể võ hồn) ma-nơ-canh xám dùng làm khuôn: xóa nó (--key2-tol 18), căn chân và tâm ngang theo
 //                          ma-nơ-canh, hệ số thu chung = --man-h (mặc định 52 điểm, chiều cao người chơi) / chiều cao ma-nơ-canh (trung vị).
 //   --kind ui --size WxH   mảnh giao diện lớn (mặc định --grid 1x1: cả ảnh là MỘT mảnh, kể cả phần rời như tia / chữ ngoài vòng) (khung radar tròn, la bàn, nền giấy bản đồ): ảnh nền #FF00FF (tự dò ở góc) hoặc trong suốt thật → nền
@@ -79,7 +80,7 @@ const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? (args.splice(i,
 const kind = opt("--kind", "tile"), outDir = opt("--out", ""), names = opt("--names", "").split(",").filter(Boolean);
 const gridOpt = opt("--grid", kind === "ui" ? "1x1" : ""), cellOpt = opt("--cell", "auto"), sizeOpt = opt("--size", ""), anchorOpt = opt("--anchor", "");
 const paletteOpt = opt("--palette", kind === "tile" || kind === "tile-block" || kind === "portrait" || kind === "item" || kind === "ui" ? "auto-item" : "gpl"), nColors = +opt("--colors", paletteOpt === "auto-item" && kind !== "portrait" ? (kind === "item" || kind === "ui" ? "24" : "10") : "32"), logoOpt = opt("--logo", "auto");
-const keyOpt = opt("--key", ""), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
+const keyOpt = opt("--key", ""), whiteMin = +opt("--white-min", "238"), tol = +opt("--tol", "60"), insetOpt = opt("--inset", "auto"), fringe = +opt("--fringe", "2");
 const seamless = opt("--seamless", "on") === "on", seamBand = +opt("--seam-band", "0.3"), previewScale = +opt("--preview", "4");
 const scaleOpt = opt("--scale", ""), debug = flag("--debug"), faceOnly = flag("--face-only");
 const key2Opt = opt("--key2", ""), key2Tol = +opt("--key2-tol", "18"), manH = +opt("--man-h", "52"), key2 = key2Opt ? hex(key2Opt) : null;
@@ -119,9 +120,20 @@ const maxDiff = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]),
 const OUT_RGB = hex(OUTLINE);
 
 // ---------- 1. Logo ----------
+/**
+ * Nền TRẮNG (--key #ffffff; ảnh ChatGPT / Gemini vẽ nền trắng đặc, không alpha, không magenta): điểm gần trắng (kênh nhỏ nhất ≥ --white-min 238 và
+ * ba kênh lệch nhau ≤ 14) thành #FF00FF trước khi xóa nền. Vật có viền #1a1020 nên không ăn vào vật; vùng trắng kín trong vật (lỗ vòng, lỗ nhẫn) cũng được xóa.
+ */
+const isWhiteKey = () => !!keyOpt && hex(keyOpt).every((v) => v >= 240);
+function whiteToKey(img) {
+  if (!isWhiteKey()) return img;
+  const T = whiteMin;
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const p = img.get(x, y), mn = Math.min(p[0], p[1], p[2]); if (mn >= T && Math.max(p[0], p[1], p[2]) - mn <= 14) img.set(x, y, [255, 0, 255, 255]); }
+  return img;
+}
 /** Màu nền: màu nhiều nhất trong 4 ô 8×8 ở góc ảnh. */
 function keyColor(img) {
-  if (keyOpt) return hex(keyOpt);
+  if (keyOpt) return isWhiteKey() ? [255, 0, 255] : hex(keyOpt);
   const votes = new Map();
   for (const [x0, y0] of [[0, 0], [img.w - 8, 0], [0, img.h - 8], [img.w - 8, img.h - 8]])
     for (let y = y0; y < y0 + 8; y++) for (let x = x0; x < x0 + 8; x++) { const p = img.get(x, y), k = `${p[0] >> 3},${p[1] >> 3},${p[2] >> 3}`; votes.set(k, [...(votes.get(k) ?? []), p]); }
@@ -948,7 +960,7 @@ function contactSheet(imgs, scale) {
 }
 
 // ---------- Chạy ----------
-const raw = decodePng(readFileSync(file));
+const raw = whiteToKey(decodePng(readFileSync(file)));
 const K = keyColor(raw);
 const logo = removeLogo(raw, K);
 const clean = opaqueMode ? (() => { const o = new Img(raw.w, raw.h, Uint8Array.from(raw.data)); for (let i = 3; i < o.data.length; i += 4) o.data[i] = 255; return o; })() : removeBackground(raw, K);
