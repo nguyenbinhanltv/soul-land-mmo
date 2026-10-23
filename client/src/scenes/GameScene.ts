@@ -9,7 +9,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { toast, lootToasts } from "../feedback.ts";
@@ -60,6 +60,8 @@ const GOAL_NEAR = 3;
 const WALK_ANIM_SPEED = PLAYER_SPEED, WALK_ANIM_SCALE: [number, number] = [0.5, 1.8];
 /** Hồn thú có sheet theo loài: nhịp animation đi khi lang thang / khi đuổi (đuổi nhanh gấp BEAST_GAIT.chase / wander lần). */
 const BEAST_ANIM_SCALE = { wander: 0.7, chase: 1.4 };
+/** Tin `dmg` kết liễu chỉ có giá trị tới chừng này mili giây trước khi hồn thú bị xoá khỏi state (bản vá luôn tới trong vài khung). */
+const KILL_GHOST_MS = 3000;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
 const HEAD = 30 * SPR;
 /** Vòng thứ i bay lên ngang ngực, sáng rồi hạ về trong chừng này mili giây khi tung hồn kỹ của vòng đó (mục 5.11 "Vòng hồn hoàn"). */
@@ -166,6 +168,8 @@ export class GameScene extends Phaser.Scene {
   stepT = new Map<string, number>(); dropTtl = new Map<string, { ttl: number; x: number; y: number }>();
   /** Hướng nhìn 8 phía của hồn thú (sheet isometric): theo hướng trượt khi đi, theo vùng báo trước khi tung chiêu, đứng yên thì giữ. */
   bface = new Map<string, Dir8>();
+  /** Hồn thú vừa bị đòn kết liễu (id → thời điểm nhận tin `dmg` có `kill`), để biết lúc bị xoá khỏi state là chết thật. */
+  beastKilled = new Map<string, number>();
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
   isoMap!: IsoMap;
   /** Vùng cảnh báo chiêu báo trước đang hiện (3.5), theo mã hồn thú: hình đã khóa (từ BĐ4 có thể nhiều vùng), lúc bắt đầu, thời lượng (ms). */
@@ -891,7 +895,8 @@ export class GameScene extends Phaser.Scene {
       hud.chatLine("map", m.text, m.name === "Hệ thống" ? "#86e0b0" : hud.CHAT_COL.map, m.name);
     });
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
-    this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean; heal?: boolean; shield?: boolean }) => {
+    this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; bid?: string; kill?: boolean; immune?: boolean; heal?: boolean; shield?: boolean }) => {
+      if (m.kill && m.bid && this.beasts.has(m.bid)) this.beastKilled.set(m.bid, this.time.now); // đòn kết liễu: bản vá kế tiếp chỉ có lệnh xoá hồn thú (bóng ngã mờ dần, fadeBeastGhost); chỉ ghi hồn thú đang hiện (tin dmg tới cả phòng, hồn thú ở xa không có sprite nên mục không bao giờ được dọn)
       this.audio.handleDamage(m, this.hitMaterial(m));
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
@@ -1778,6 +1783,14 @@ export class GameScene extends Phaser.Scene {
    * Trạng thái: vòng khiên và hào quang hiệu ứng có lợi quanh hồn sư (Miễn sát thương là vòm sáng); trên hồn thú: biểu tượng
    * trạng thái dùng chung (mỗi tầng một chấm), màu phủ khi Thiêu đốt / Trúng độc / Cảm điện, dây trói dưới chân, sao choáng.
    */
+  /** Bóng ngã của hồn thú lai vừa biến mất (STATIC_MOTION.die): bản sao sprite ngã quanh chân, chìm, mờ dần rồi tự hủy (không giữ trong this.beasts). */
+  fadeBeastGhost(src: Phaser.GameObjects.Sprite) {
+    const D = STATIC_MOTION.die, side = src.flipX ? -1 : 1;
+    const g = this.add.sprite(src.x, src.y, src.texture.key, src.frame.name).setOrigin(src.originX, src.originY).setScale(src.scaleX, src.scaleY)
+      .setFlipX(src.flipX).setDepth(src.depth).setRotation(src.rotation);
+    this.tweens.add({ targets: g, rotation: D.turn * side, y: src.y + D.sink, scaleY: src.scaleY * (1 - D.sy), alpha: 0, duration: D.sec * 1000, ease: "Quad.easeIn", onComplete: () => g.destroy() });
+  }
+
   drawStatus(g: Phaser.GameObjects.Graphics, st: any, time: number) {
     const q = SPR; // hình gắn với thân hồn sư (sprite cũ phóng SPR) dùng pixel cũ × q; vòng trên mặt đất theo phép chiếu (RX, RY)
     st.players.forEach((p: any, id: string) => {
@@ -2171,6 +2184,12 @@ export class GameScene extends Phaser.Scene {
       } else if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
+      } else if (spr === "static") {
+        // Hồn thú lai (#386): ảnh tĩnh 3 hướng, thở / nhún / ngả rồi vồ / lắc khi trúng đòn vẽ bằng code (staticBeastPose). Phép biến đổi
+        // quanh chân; vị trí dịch cộng thêm sau khi đã đặt độ sâu theo điểm chân nên không đổi thứ tự vẽ.
+        const P = staticBeastPose(s, time, b.moving && !b.cast, b.cast, b.hp, face);
+        s.setScale(k * P.sx, k * P.sy).setRotation(P.rot).setPosition(at.x + P.dx, at.y + P.dy);
+        if (P.flash) s.setTintFill(0xffffff);
       } else {
         const ks = k * (spr === "iso" ? 1 : SPR);
         if (s.scale !== ks) s.setScale(ks);
@@ -2186,8 +2205,8 @@ export class GameScene extends Phaser.Scene {
       // Sprite một hàng chỉ vẽ hướng phải: đang đi thì lật theo hướng trượt trên màn hình, đứng yên thì theo `face` của server
       // (sheet isometric tự chọn hướng và lật trong syncBeastSprite).
       const dsx = s.x - ox;
-      if (spr !== "iso") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
-      s.setDepth(s.y);
+      if (spr !== "iso" && spr !== "static") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
+      s.setDepth(spr === "static" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân, không theo độ nhún / vồ cộng thêm vào s.y
       if (b.rank || egg) {
         let lb = this.eliteLabels.get(id);
         if (!lb) {
@@ -2202,6 +2221,11 @@ export class GameScene extends Phaser.Scene {
       }
     });
     for (const [id, s] of this.beasts) if (!seenB.has(id)) {
+      // Hồn thú lai vừa bị đòn kết liễu (tin `dmg` có `kill` trong vòng KILL_GHOST_MS) thì để lại bóng ngã, chìm, mờ dần (STATIC_MOTION.die);
+      // biến mất vì rời tầm đồng bộ / bị dọn thì không có hiệu ứng.
+      const killedAt = this.beastKilled.get(id);
+      if (killedAt !== undefined && this.time.now - killedAt < KILL_GHOST_MS && s.getData("sm") && this.cameras.main.worldView.contains(s.x, s.y)) this.fadeBeastGhost(s);
+      this.beastKilled.delete(id);
       // Hồn thú biến mất ngay gần mình là chết (ra khỏi tầm đồng bộ thì ở xa hơn nhiều, 11.4): kêu một tiếng tại chỗ.
       const w = this.bpos.get(id), me = st.players.get(this.me);
       if (w && me && !w.dive && Math.hypot(w.x - me.x, w.y - me.y) < 260) this.audio.playBeast("die", { x: w.x, y: w.y });
