@@ -9,7 +9,7 @@
 - **Trường đồng bộ mới:** khai báo trong `server/src/rooms/schema.ts`, đọc ở `client/src/scenes/GameScene.ts`. Dữ liệu riêng của chính chủ gửi bằng tin riêng, không đưa vào state công khai. Hồn sư / hồn thú / đồ rơi chỉ đồng bộ khi ở gần (11.4, `interest.ts`): client không được giả định state có thực thể ở xa (cần cả bản đồ thì dùng tin riêng như `mini`); truy vấn hồn thú theo vị trí ở server dùng `beastsNear`.
 - **Bảng / cột mới:** file `server/sql/00N_<tên>.sql` với N là số kế tiếp (xem `ls server/sql` trên `origin/main` mới nhất để không trùng số với nhánh khác), câu lệnh chạy lại an toàn (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) và bật RLS (không tạo policy). `PgStore.init()` (`server/src/db.ts`) chạy mọi file `.sql` theo tên mỗi lần khởi động. Luôn cập nhật cả `PgStore` lẫn `MemoryStore`. Không sửa file SQL cũ đã chạy.
 - **Ghi DB về một người chơi** luôn qua chuỗi lưu `this.chain(d, fn)` (mục 6 "Lưu của mỗi người chơi chạy nối tiếp").
-- **Ảnh / sprite:** quy tắc ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết ở `tools/assets/README.md`, thao tác ở skill `asset-gen`. Không ghi key PixelLab hay bí mật nào vào repo, log, PR.
+- **Ảnh / sprite:** quy tắc ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết ở `tools/assets/README.md`, thao tác ở skill `asset-gen`. Mọi ảnh mới làm bằng ComfyUI (PixelLab đã bỏ từ 2026-10-23, không gọi, không làm ảnh mới). Không ghi key hay bí mật nào vào repo, log, PR.
 - Làm từng việc nhỏ một. Luật chơi đổi thì sửa đúng mục trong `GAME_DESIGN.md` (mô tả luật hiện hành, không viết nhật ký tiến độ); xong bước Lộ trình thì đánh dấu ở mục 7.
 
 ## Lệnh
@@ -54,7 +54,7 @@ Skill trong `.claude/skills/`:
 - `client-ui`: hiển thị state, HUD thủy mặc, phím / chuột, điều khiển chạm, isometric phía client.
 - `db-migration`: file SQL mới và lớp lưu trữ `db.ts`.
 - `balance-data`: mọi con số cân bằng trong `shared/data.ts`.
-- `asset-gen`: làm ảnh (PixelLab, Gemini, LPC, vẽ tay) và dây chuyền `tools/assets`.
+- `asset-gen`: làm ảnh (ComfyUI là chính; Gemini, LPC, vẽ tay cho phần còn lại) và dây chuyền `tools/assets`.
 - `balance-review`: soát cân bằng, kinh tế Hồn Tệ, tỉ lệ rơi, Elo (phân tích; đặt số vẫn theo `balance-data`).
 - `anti-cheat-audit`: soát server-authoritative theo cách gian lận (message, API, nhân bản đồ, hook test).
 - `soak-perf`: chạy dài nhiều bot trên bản đồ ×8, đo tick / bản vá / băng thông / bộ nhớ, tìm rò.

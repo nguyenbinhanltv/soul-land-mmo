@@ -4,6 +4,7 @@
   "out": "nac_dinh_thanh.v2.json",
   "size": [170, 113],
   "seed": 20261111,
+  "tileRows": 6,
   "gids": {
     "ground": {
       "grass": [1, 2], "leaf": 3, "moss": 6, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
@@ -11,7 +12,8 @@
     },
     "objects": {
       "rock": 36, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28, "sign": 29,
-      "roof": 14, "wall": 15
+      "roof": 14, "wall": 15,
+      "practice_pillar": 41, "academy_gate": 42, "citywall": 43
     },
     "canopy": { "17": 21, "18": 22 }
   },
@@ -45,7 +47,7 @@
     { "type": "area", "name": "Sân lò rèn", "ground": "camp", "rect": [101, 24, 20, 8], "clear": true, "lock": true },
     { "type": "objects", "kind": "fire", "at": [[104, 26], [118, 26]] },
     { "type": "objects", "kind": "rock", "at": [[106, 29], [109, 29], [112, 29], [115, 29]] },
-    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [126, 3, 40, 46], "w": [4, 7], "h": [3, 5] },
+    { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [126, 3, 40, 31], "w": [4, 7], "h": [3, 5] },
     { "type": "district", "ground": "grass", "yard": "tree", "skip": 0.2, "rect": [92, 34, 32, 15], "w": [4, 6], "h": [3, 4] },
     { "type": "area", "name": "Chợ", "ground": "camp", "rect": [6, 65, 44, 26], "clear": true, "lock": true },
     { "type": "objects", "kind": "tent", "at": [[10, 70], [16, 70], [22, 70], [28, 70], [34, 70], [40, 70], [10, 80], [16, 80], [22, 80], [34, 80], [40, 80], [46, 80]] },
@@ -61,7 +63,11 @@
     { "type": "area", "name": "Vườn hoa tây bắc", "ground": "grass", "rect": [3, 3, 42, 6], "clear": true },
     { "type": "scatter", "kind": "tree", "rect": [3, 3, 42, 6], "p": 0.12 },
     { "type": "scatter", "kind": "plant", "rect": [3, 3, 42, 6], "p": 0.06 },
-    { "type": "fence", "rect": [0, 0, 170, 113], "gates": [[0.5, 56.5], [169.5, 56.5], [85, 0.5]], "gate": 7 }
+    { "type": "fence", "rect": [0, 0, 170, 113], "gates": [[0.5, 56.5], [169.5, 56.5], [85, 0.5]], "gate": 7 },
+    { "type": "objects", "kind": "academy_gate", "at": [[42, 34]] },
+    { "type": "objects", "kind": "practice_pillar", "at": [[20, 31], [38, 31], [20, 37], [38, 37]] },
+    { "type": "objects", "kind": "citywall", "at": [[78, 2], [92, 2]] },
+    { "type": "house", "rect": [130, 36, 16, 10], "margin": 1, "ground": "pave" }
   ],
   "spawn": { "name": "Quảng trường Nặc Đinh", "rect": [76, 50, 18, 14] },
   "portals": [

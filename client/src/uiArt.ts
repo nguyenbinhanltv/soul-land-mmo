@@ -5,6 +5,7 @@
 // - hồn cốt là bản xám: tô theo màu niên hạn bằng canvas (nhân màu từng điểm ảnh), giữ nguyên điểm ảnh;
 // - tỉ lệ giao diện `--u` (số nguyên) theo cỡ cửa sổ, như phóng số nguyên của cảnh 640×360.
 import { VIEW_W, VIEW_H } from "./iso.ts";
+import { TIERS } from "../../shared/data.ts";
 
 const BASE = "sprites/";
 interface Entry { key: string; iso?: boolean; nine?: number }
@@ -12,8 +13,8 @@ const keys = new Map<string, Entry>();
 
 /** Đường dẫn ảnh theo key isometric của giao diện (mục 5.11 "Tên file"); key lạ thì null. */
 function pathOf(key: string) {
-  const m = key.match(/^(ui|card|portrait|he|npc|item|status)_([a-z0-9_]+)$/); if (!m) return null;
-  const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status" }[m[1]];
+  const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu)_([a-z0-9_]+)$/); if (!m) return null;
+  const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu" }[m[1]];
   return `${BASE}iso/${dir}/${m[1] === "card" ? "the_" : ""}${m[2]}.png`;
 }
 
@@ -75,13 +76,26 @@ export function uiScale() {
 }
 function applyScale() { document.documentElement.style.setProperty("--u", String(uiScale())); }
 
+/**
+ * Token màu niên hạn / độ hiếm (UI-0): `--tier-N` (viền, chấm, vòng), `--tier-N-glow` (chữ trên tấm mực) và bí danh `--rare-N` cho độ hiếm
+ * vật phẩm, đọc từ TIERS (shared/data.ts) để CSS không chép số. Chữ màu niên hạn đặt trên tấm mực dùng glow (Tím 7,3 : 1, Đỏ 5,5 : 1),
+ * không đặt thẳng trên giấy.
+ */
+function applyTierTokens() {
+  const root = document.documentElement.style;
+  TIERS.forEach((t, i) => {
+    root.setProperty(`--tier-${i}`, t.col); root.setProperty(`--tier-${i}-glow`, t.glow);
+    root.setProperty(`--rare-${i}`, t.col); root.setProperty(`--rare-${i}-glow`, t.glow);
+  });
+}
+
 let ready: Promise<void> | null = null;
 /**
  * Gọi một lần lúc mở trang: đọc manifest, đặt biến CSS cho mảnh giao diện, tải trước ảnh xám hồn cốt, bật tỉ lệ giao diện. Lỗi mạng thì
  * giao diện vẫn chạy bằng kiểu CSS cũ.
  */
 export function loadUiArt() {
-  applyScale(); addEventListener("resize", applyScale);
+  applyScale(); applyTierTokens(); addEventListener("resize", applyScale);
   return ready ??= (async () => {
     try {
       // Quá 5 giây thì bỏ (giao diện vẽ bằng CSS cũ) để màn đăng nhập không treo trắng khi mạng chậm.

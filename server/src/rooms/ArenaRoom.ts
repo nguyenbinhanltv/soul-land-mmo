@@ -9,7 +9,7 @@ import { ArenaState, ArenaSide } from "./schema.ts";
 import { ARENA, ARENA_MAP, ARENA_SHARDS, PARTY_BUFF_R, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
 import { arenaMatches, arenaLive, type ArenaMatch } from "./arenaQueue.ts";
 import { store, type Item, type Bag, type SocialRow } from "../db.ts";
-import * as friends from "../friends.ts";
+import { friends } from "../friends.ts";
 
 type Phase = "wait" | "ready" | "fight" | "end";
 type Reason = "ko" | "time" | "leave" | "noshow";
