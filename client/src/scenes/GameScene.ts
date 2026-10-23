@@ -30,7 +30,7 @@ import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioM
 import { STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
-import { bossEngaged } from "../audio/music.ts";
+import { bossPhase, combatHit } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
@@ -841,7 +841,7 @@ export class GameScene extends Phaser.Scene {
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
     this.room.onMessage("boss", (m: any) => {
       if (m.k === "warn" && !m.join) { this.audio.play("boss_warn"); this.audio.playBeast("boss", null); } // tin xin lại lúc vào phòng (#118, `join`) không kêu lại
-      else if (m.k === "down") this.audio.play("boss_down");
+      else if (m.k === "down") { this.audio.play("boss_down"); this.audio.music?.jingle("boss_down"); }
       const col = m.col ?? "#ff5a5a";
       if (this.worldBossMsg(m, col)) return; // boss thế giới (BĐ6e): cơ chế riêng
       if (m.k === "warn") {
@@ -889,6 +889,9 @@ export class GameScene extends Phaser.Scene {
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; immune?: boolean; heal?: boolean; shield?: boolean }) => {
       this.audio.handleDamage(m, this.hitMaterial(m));
+      const hit = combatHit(m, this.room.state.players.get(this.me)); // nhạc động (G5, #396): đánh nhau gần mình thì lớp giao chiến lên
+      if (hit.combat) this.audio.music?.combatPulse();
+      if (hit.bigCrit) this.audio.music?.jingle("crit_big");
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
       this.damageText(at.x, at.y - at.lift, m);
@@ -2308,7 +2311,10 @@ export class GameScene extends Phaser.Scene {
     // Che tầm nhìn (#175): chỉ màn hình của chính người trúng phủ mực, vòng hở quanh thân mình.
     this.ink.update(!!me && (me.st & statusBit("ink")) !== 0, mv ? { x: mv.root.x, y: mv.root.y - HEAD / 2 } : null, delta, cam);
     // Nhạc (#134): giao chiến boss thế giới / thú vương thì đổi bài; cấp võ hồn ra trận tăng thì khúc ngắn lên cấp.
-    this.audio.music?.setBattle(!!me && bossEngaged(st.beasts, me));
+    const bossLevel = me ? bossPhase(st.beasts, me) : 0;
+    this.audio.music?.setBattle(bossLevel > 0);
+    this.audio.music?.setBossPhase(bossLevel); // pha 2 (nổi giận): nhạc giao chiến boss lên một nấc
+    this.audio.music?.tick();
     if (me) {
       if (me.vh === this.lvVh && me.level > this.lvSeen) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); toast("level", `Cấp ${me.level}`, VOHON[me.vh]?.name ?? "", "#ffe08a"); }
       this.lvVh = me.vh; this.lvSeen = me.level;
