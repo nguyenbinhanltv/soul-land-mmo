@@ -3829,7 +3829,8 @@ export const ITEMS: ItemDef[] = [
     desc: `Niệm ${WAYPOINT_CAST} giây rồi về thành gần nhất (ngoài giao chiến; di chuyển hoặc bị đánh thì hủy, phù vẫn còn).` },
   // Ủy Thác Lệnh (Auto 2, mục 5.13): cộng giờ treo tự săn ngoài AUTO_DAILY_SECS mỗi ngày; thương nhân trong thành bán, không mua lại.
   { id: AUTO_TOKEN, kind: "lenh", name: "Ủy Thác Lệnh", col: "#86e0b0", stack: 99, auto: AUTO_TOKEN_SECS,
-    desc: `Dùng thì cộng ${AUTO_TOKEN_SECS / 3600} giờ treo tự săn (giữ qua ngày, chỉ tiêu sau khi đã treo hết giờ miễn phí của hôm nay; tích tối đa ${AUTO_BONUS_MAX / 3600} giờ).` },  // Trang bị hồn sư (E0, mục 5.15): chưa rơi / chưa dùng được cho tới E1+; mỗi món một ô, dữ liệu ở `items.stats` (EquipData).
+    desc: `Dùng thì cộng ${AUTO_TOKEN_SECS / 3600} giờ treo tự săn (giữ qua ngày, chỉ tiêu sau khi đã treo hết giờ miễn phí của hôm nay; tích tối đa ${AUTO_BONUS_MAX / 3600} giờ).` },
+  // Trang bị hồn sư (E0, mục 5.15): chưa rơi / chưa dùng được cho tới E1+; mỗi món một ô, dữ liệu ở `items.stats` (EquipData).
   { id: EQUIP_ITEM, kind: "trang_bi", name: "Trang bị hồn sư", col: "#e8e8e8", stack: 1,
     desc: "Mặc vào một trong 10 ô của hồn sư để cộng chỉ số cho võ hồn đang ra trận. Cường hóa, hợp thành, phân giải ở Thợ rèn." },
   ...EQUIP_MATERIALS.map((m): ItemDef => ({ id: m.id, kind: "nguyen_lieu", name: m.name, col: m.col, stack: m.stack, desc: m.desc })),
