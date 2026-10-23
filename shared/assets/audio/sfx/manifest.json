@@ -1,0 +1,979 @@
+{
+  "clips": [
+    {
+      "duration": 0.21,
+      "group": "swing-kiem",
+      "id": "swing-kiem-1",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 0
+    },
+    {
+      "duration": 0.26,
+      "group": "swing-kiem",
+      "id": "swing-kiem-2",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 0.26
+    },
+    {
+      "duration": 0.25,
+      "group": "swing-kiem",
+      "id": "swing-kiem-3",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 0.57
+    },
+    {
+      "duration": 0.16,
+      "group": "swing-chuy",
+      "id": "swing-chuy-1",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 0.87
+    },
+    {
+      "duration": 0.17,
+      "group": "swing-chuy",
+      "id": "swing-chuy-2",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 1.08
+    },
+    {
+      "duration": 0.17,
+      "group": "swing-chuy",
+      "id": "swing-chuy-3",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 1.3
+    },
+    {
+      "duration": 0.11,
+      "group": "swing-thuong",
+      "id": "swing-thuong-1",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 1.52
+    },
+    {
+      "duration": 0.1,
+      "group": "swing-thuong",
+      "id": "swing-thuong-2",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 1.68
+    },
+    {
+      "duration": 0.1,
+      "group": "swing-thuong",
+      "id": "swing-thuong-3",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 1.83
+    },
+    {
+      "duration": 0.34,
+      "group": "swing-trao",
+      "id": "swing-trao-1",
+      "pack": "combat",
+      "sourceId": "kenney-rpg-audio",
+      "start": 1.98
+    },
+    {
+      "duration": 0.42,
+      "group": "swing-trao",
+      "id": "swing-trao-2",
+      "pack": "combat",
+      "sourceId": "kenney-rpg-audio",
+      "start": 2.37
+    },
+    {
+      "duration": 0.09,
+      "group": "swing-trao",
+      "id": "swing-trao-3",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 2.84
+    },
+    {
+      "duration": 0.09,
+      "group": "swing-quyen",
+      "id": "swing-quyen-1",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 2.98
+    },
+    {
+      "duration": 0.08,
+      "group": "swing-quyen",
+      "id": "swing-quyen-2",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 3.12
+    },
+    {
+      "duration": 0.08,
+      "group": "swing-quyen",
+      "id": "swing-quyen-3",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 3.25
+    },
+    {
+      "duration": 0.28,
+      "group": "hit-thit",
+      "id": "hit-thit-1",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 3.38
+    },
+    {
+      "duration": 0.27,
+      "group": "hit-thit",
+      "id": "hit-thit-2",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 3.71
+    },
+    {
+      "duration": 0.51,
+      "group": "hit-thit",
+      "id": "hit-thit-3",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 4.03
+    },
+    {
+      "duration": 0.51,
+      "group": "hit-giap",
+      "id": "hit-giap-1",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 4.59
+    },
+    {
+      "duration": 0.61,
+      "group": "hit-giap",
+      "id": "hit-giap-2",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 5.15
+    },
+    {
+      "duration": 0.5,
+      "group": "hit-giap",
+      "id": "hit-giap-3",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 5.81
+    },
+    {
+      "duration": 0.3,
+      "group": "hit-bang",
+      "id": "hit-bang-1",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 6.36
+    },
+    {
+      "duration": 0.3,
+      "group": "hit-bang",
+      "id": "hit-bang-2",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 6.71
+    },
+    {
+      "duration": 0.26,
+      "group": "hit-bang",
+      "id": "hit-bang-3",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 7.06
+    },
+    {
+      "duration": 0.33,
+      "group": "hit-go",
+      "id": "hit-go-1",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 7.37
+    },
+    {
+      "duration": 0.33,
+      "group": "hit-go",
+      "id": "hit-go-2",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 7.75
+    },
+    {
+      "duration": 0.33,
+      "group": "hit-go",
+      "id": "hit-go-3",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 8.13
+    },
+    {
+      "duration": 0.67,
+      "group": "skill-fire-start",
+      "id": "skill-fire-start-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 0
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-fire-fly",
+      "id": "skill-fire-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 0.72
+    },
+    {
+      "duration": 0.43,
+      "group": "skill-fire-boom",
+      "id": "skill-fire-boom-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 1.52
+    },
+    {
+      "duration": 0.11,
+      "group": "skill-ice-start",
+      "id": "skill-ice-start-1",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2
+    },
+    {
+      "duration": 0.1,
+      "group": "skill-ice-fly",
+      "id": "skill-ice-fly-1",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2.16
+    },
+    {
+      "duration": 0.24,
+      "group": "skill-ice-boom",
+      "id": "skill-ice-boom-1",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2.31
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-lightning-start",
+      "id": "skill-lightning-start-1",
+      "pack": "skill",
+      "sourceId": "oga-50-cc0-sci-fi-sfx",
+      "start": 2.6
+    },
+    {
+      "duration": 0.6,
+      "group": "skill-lightning-fly",
+      "id": "skill-lightning-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-50-cc0-sci-fi-sfx",
+      "start": 2.8
+    },
+    {
+      "duration": 0.87,
+      "group": "skill-lightning-boom",
+      "id": "skill-lightning-boom-1",
+      "pack": "skill",
+      "sourceId": "oga-50-cc0-sci-fi-sfx",
+      "start": 3.45
+    },
+    {
+      "duration": 0.51,
+      "group": "skill-poison-start",
+      "id": "skill-poison-start-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 4.37
+    },
+    {
+      "duration": 0.33,
+      "group": "skill-poison-fly",
+      "id": "skill-poison-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 4.93
+    },
+    {
+      "duration": 0.45,
+      "group": "skill-poison-boom",
+      "id": "skill-poison-boom-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 5.31
+    },
+    {
+      "duration": 0.51,
+      "group": "skill-light-start",
+      "id": "skill-light-start-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 5.81
+    },
+    {
+      "duration": 0.51,
+      "group": "skill-light-fly",
+      "id": "skill-light-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 6.37
+    },
+    {
+      "duration": 0.39,
+      "group": "skill-light-boom",
+      "id": "skill-light-boom-1",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 6.93
+    },
+    {
+      "duration": 0.56,
+      "group": "skill-dark-start",
+      "id": "skill-dark-start-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 7.37
+    },
+    {
+      "duration": 0.23,
+      "group": "skill-dark-fly",
+      "id": "skill-dark-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 7.98
+    },
+    {
+      "duration": 1.1,
+      "group": "skill-dark-boom",
+      "id": "skill-dark-boom-1",
+      "pack": "skill",
+      "sourceId": "oga-50-cc0-sci-fi-sfx",
+      "start": 8.26
+    },
+    {
+      "duration": 0.51,
+      "group": "skill-wood-start",
+      "id": "skill-wood-start-1",
+      "pack": "skill",
+      "sourceId": "kenney-rpg-audio",
+      "start": 9.41
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-wood-fly",
+      "id": "skill-wood-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 9.97
+    },
+    {
+      "duration": 0.31,
+      "group": "skill-wood-boom",
+      "id": "skill-wood-boom-1",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 10.17
+    },
+    {
+      "duration": 0.26,
+      "group": "skill-wind-start",
+      "id": "skill-wind-start-1",
+      "pack": "skill",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 10.53
+    },
+    {
+      "duration": 0.21,
+      "group": "skill-wind-fly",
+      "id": "skill-wind-fly-1",
+      "pack": "skill",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 10.84
+    },
+    {
+      "duration": 0.32,
+      "group": "skill-wind-boom",
+      "id": "skill-wind-boom-1",
+      "pack": "skill",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 11.1
+    },
+    {
+      "duration": 0.51,
+      "group": "beast-lang",
+      "id": "beast-lang-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 0
+    },
+    {
+      "duration": 0.27,
+      "group": "beast-lang",
+      "id": "beast-lang-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 0.56
+    },
+    {
+      "duration": 0.25,
+      "group": "beast-lang",
+      "id": "beast-lang-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 0.88
+    },
+    {
+      "duration": 0.65,
+      "group": "beast-hung",
+      "id": "beast-hung-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 1.18
+    },
+    {
+      "duration": 0.48,
+      "group": "beast-hung",
+      "id": "beast-hung-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 1.88
+    },
+    {
+      "duration": 0.56,
+      "group": "beast-hung",
+      "id": "beast-hung-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 2.41
+    },
+    {
+      "duration": 0.27,
+      "group": "beast-bao",
+      "id": "beast-bao-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 3.02
+    },
+    {
+      "duration": 0.31,
+      "group": "beast-bao",
+      "id": "beast-bao-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 3.34
+    },
+    {
+      "duration": 0.38,
+      "group": "beast-bao",
+      "id": "beast-bao-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 3.7
+    },
+    {
+      "duration": 0.32,
+      "group": "beast-xa",
+      "id": "beast-xa-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 4.13
+    },
+    {
+      "duration": 0.51,
+      "group": "beast-xa",
+      "id": "beast-xa-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 4.5
+    },
+    {
+      "duration": 0.35,
+      "group": "beast-xa",
+      "id": "beast-xa-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 5.06
+    },
+    {
+      "duration": 0.28,
+      "group": "beast-chim",
+      "id": "beast-chim-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 5.46
+    },
+    {
+      "duration": 0.29,
+      "group": "beast-chim",
+      "id": "beast-chim-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 5.79
+    },
+    {
+      "duration": 0.31,
+      "group": "beast-chim",
+      "id": "beast-chim-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 6.13
+    },
+    {
+      "duration": 0.17,
+      "group": "beast-trung",
+      "id": "beast-trung-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 6.49
+    },
+    {
+      "duration": 0.31,
+      "group": "beast-trung",
+      "id": "beast-trung-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 6.71
+    },
+    {
+      "duration": 0.32,
+      "group": "beast-trung",
+      "id": "beast-trung-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 7.07
+    },
+    {
+      "duration": 0.94,
+      "group": "beast-thiem",
+      "id": "beast-thiem-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 7.44
+    },
+    {
+      "duration": 0.68,
+      "group": "beast-thiem",
+      "id": "beast-thiem-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 8.43
+    },
+    {
+      "duration": 0.29,
+      "group": "beast-thiem",
+      "id": "beast-thiem-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 9.16
+    },
+    {
+      "duration": 0.72,
+      "group": "beast-thuc",
+      "id": "beast-thuc-1",
+      "pack": "beast",
+      "sourceId": "kenney-rpg-audio",
+      "start": 9.5
+    },
+    {
+      "duration": 0.26,
+      "group": "beast-thuc",
+      "id": "beast-thuc-2",
+      "pack": "beast",
+      "sourceId": "kenney-rpg-audio",
+      "start": 10.27
+    },
+    {
+      "duration": 0.34,
+      "group": "beast-thuc",
+      "id": "beast-thuc-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 10.58
+    },
+    {
+      "duration": 0.55,
+      "group": "beast-boss",
+      "id": "beast-boss-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 10.97
+    },
+    {
+      "duration": 0.87,
+      "group": "beast-boss",
+      "id": "beast-boss-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 11.57
+    },
+    {
+      "duration": 0.86,
+      "group": "beast-boss",
+      "id": "beast-boss-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 12.49
+    },
+    {
+      "duration": 0.71,
+      "group": "beast-die",
+      "id": "beast-die-1",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 13.4
+    },
+    {
+      "duration": 0.6,
+      "group": "beast-die",
+      "id": "beast-die-2",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 14.16
+    },
+    {
+      "duration": 0.33,
+      "group": "beast-die",
+      "id": "beast-die-3",
+      "pack": "beast",
+      "sourceId": "oga-80-cc0-creature-sfx",
+      "start": 14.81
+    },
+    {
+      "duration": 1.09,
+      "group": "ring-glow",
+      "id": "ring-glow-1",
+      "pack": "world",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 0
+    },
+    {
+      "duration": 1.18,
+      "group": "ring-glow",
+      "id": "ring-glow-2",
+      "pack": "world",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 1.14
+    },
+    {
+      "duration": 0.42,
+      "group": "ring-absorb",
+      "id": "ring-absorb-1",
+      "pack": "world",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 2.37
+    },
+    {
+      "duration": 1.31,
+      "group": "ring-absorb",
+      "id": "ring-absorb-2",
+      "pack": "world",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 2.84
+    },
+    {
+      "duration": 0.44,
+      "group": "ring-drop",
+      "id": "ring-drop-1",
+      "pack": "world",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 4.2
+    },
+    {
+      "duration": 1,
+      "group": "ring-drop",
+      "id": "ring-drop-2",
+      "pack": "world",
+      "sourceId": "kenney-impact-sounds",
+      "start": 4.69
+    },
+    {
+      "duration": 0.13,
+      "group": "step-co",
+      "id": "step-co-1",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 0
+    },
+    {
+      "duration": 0.14,
+      "group": "step-co",
+      "id": "step-co-2",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 0.18
+    },
+    {
+      "duration": 0.14,
+      "group": "step-co",
+      "id": "step-co-3",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 0.37
+    },
+    {
+      "duration": 0.21,
+      "group": "step-dat",
+      "id": "step-dat-1",
+      "pack": "steps",
+      "sourceId": "kenney-rpg-audio",
+      "start": 0.56
+    },
+    {
+      "duration": 0.22,
+      "group": "step-dat",
+      "id": "step-dat-2",
+      "pack": "steps",
+      "sourceId": "kenney-rpg-audio",
+      "start": 0.82
+    },
+    {
+      "duration": 0.21,
+      "group": "step-dat",
+      "id": "step-dat-3",
+      "pack": "steps",
+      "sourceId": "kenney-rpg-audio",
+      "start": 1.09
+    },
+    {
+      "duration": 0.1,
+      "group": "step-da",
+      "id": "step-da-1",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 1.35
+    },
+    {
+      "duration": 0.1,
+      "group": "step-da",
+      "id": "step-da-2",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 1.5
+    },
+    {
+      "duration": 0.11,
+      "group": "step-da",
+      "id": "step-da-3",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 1.65
+    },
+    {
+      "duration": 0.17,
+      "group": "step-tuyet",
+      "id": "step-tuyet-1",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 1.81
+    },
+    {
+      "duration": 0.18,
+      "group": "step-tuyet",
+      "id": "step-tuyet-2",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2.03
+    },
+    {
+      "duration": 0.19,
+      "group": "step-tuyet",
+      "id": "step-tuyet-3",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2.26
+    },
+    {
+      "duration": 0.25,
+      "group": "step-go",
+      "id": "step-go-1",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2.5
+    },
+    {
+      "duration": 0.25,
+      "group": "step-go",
+      "id": "step-go-2",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 2.8
+    },
+    {
+      "duration": 0.25,
+      "group": "step-go",
+      "id": "step-go-3",
+      "pack": "steps",
+      "sourceId": "kenney-impact-sounds",
+      "start": 3.1
+    },
+    {
+      "duration": 0.45,
+      "group": "step-nuoc",
+      "id": "step-nuoc-1",
+      "pack": "steps",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 3.4
+    },
+    {
+      "duration": 0.45,
+      "group": "step-nuoc",
+      "id": "step-nuoc-2",
+      "pack": "steps",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 3.9
+    },
+    {
+      "duration": 0.16,
+      "group": "step-nuoc",
+      "id": "step-nuoc-3",
+      "pack": "steps",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 4.4
+    }
+  ],
+  "generatedAt": "2026-10-23T00:00:00.000Z",
+  "packs": {
+    "beast": {
+      "duration": 15.19,
+      "files": {
+        "m4a": {
+          "bytes": 149501,
+          "path": "sfx/beast.m4a"
+        },
+        "ogg": {
+          "bytes": 119854,
+          "path": "sfx/beast.ogg"
+        }
+      }
+    },
+    "combat": {
+      "duration": 8.51,
+      "files": {
+        "m4a": {
+          "bytes": 85306,
+          "path": "sfx/combat.m4a"
+        },
+        "ogg": {
+          "bytes": 62562,
+          "path": "sfx/combat.ogg"
+        }
+      }
+    },
+    "skill": {
+      "duration": 11.47,
+      "files": {
+        "m4a": {
+          "bytes": 123803,
+          "path": "sfx/skill.m4a"
+        },
+        "ogg": {
+          "bytes": 91159,
+          "path": "sfx/skill.ogg"
+        }
+      }
+    },
+    "steps": {
+      "duration": 4.61,
+      "files": {
+        "m4a": {
+          "bytes": 48404,
+          "path": "sfx/steps.m4a"
+        },
+        "ogg": {
+          "bytes": 35297,
+          "path": "sfx/steps.ogg"
+        }
+      }
+    },
+    "world": {
+      "duration": 5.74,
+      "files": {
+        "m4a": {
+          "bytes": 54253,
+          "path": "sfx/world.m4a"
+        },
+        "ogg": {
+          "bytes": 46020,
+          "path": "sfx/world.ogg"
+        }
+      }
+    }
+  },
+  "pipeline": "tools/audio/process-sfx.mjs@1",
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "archiveSha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "author": "rubberduck",
+      "id": "oga-80-cc0-rpg-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "80 CC0 RPG SFX",
+      "url": "https://opengameart.org/content/80-cc0-rpg-sfx"
+    },
+    {
+      "archiveSha256": "7980215241b739a787dcf26f660ce510bb237900968789395a86911619795693",
+      "author": "artisticdude",
+      "id": "oga-swishes-sound-pack",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Swishes Sound Pack",
+      "url": "https://opengameart.org/content/swishes-sound-pack"
+    },
+    {
+      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "author": "Kenney",
+      "id": "kenney-rpg-audio",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "RPG Audio",
+      "url": "https://kenney.nl/assets/rpg-audio"
+    },
+    {
+      "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+      "author": "Kenney",
+      "id": "kenney-impact-sounds",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds"
+    },
+    {
+      "archiveSha256": "7824c08e54b5b68d6c70ced9d8fe9e47f86ce19c1d8d47d093e1dc1b579f78ec",
+      "author": "rubberduck",
+      "id": "oga-50-cc0-sci-fi-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "50 CC0 Sci-Fi SFX",
+      "url": "https://opengameart.org/content/50-cc0-sci-fi-sfx"
+    },
+    {
+      "archiveSha256": "a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706",
+      "author": "rubberduck",
+      "id": "oga-100-cc0-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "100 CC0 SFX",
+      "url": "https://opengameart.org/content/100-cc0-sfx"
+    },
+    {
+      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+      "author": "rubberduck",
+      "id": "oga-80-cc0-creature-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "80 CC0 creature SFX",
+      "url": "https://opengameart.org/content/80-cc0-creature-sfx"
+    }
+  ]
+}

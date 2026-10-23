@@ -28,7 +28,7 @@ export function toggleAudioPanel(): boolean {
 function render(settings: AudioSettings): void {
   const el = panel();
   if (!el) return;
-  for (const key of ["master", "music", "sfx"] as const) {
+  for (const key of ["master", "music", "sfx", "ui", "ambient"] as const) {
     const input = el.querySelector<HTMLInputElement>(`input[data-audio="${key}"]`);
     if (input) input.value = String(settings[key]);
     const output = el.querySelector<HTMLOutputElement>(`output[data-audio-output="${key}"]`);
@@ -52,16 +52,18 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
     <label>Âm lượng tổng <output data-audio-output="master"></output><input type="range" min="0" max="1" step="0.05" data-audio="master" aria-label="Âm lượng tổng"></label>
     <label>Nhạc <output data-audio-output="music"></output><input type="range" min="0" max="1" step="0.05" data-audio="music" aria-label="Nhạc"></label>
     <label>Hiệu ứng <output data-audio-output="sfx"></output><input type="range" min="0" max="1" step="0.05" data-audio="sfx" aria-label="Hiệu ứng"></label>
+    <label>Giao diện <output data-audio-output="ui"></output><input type="range" min="0" max="1" step="0.05" data-audio="ui" aria-label="Giao diện"></label>
+    <label>Môi trường <output data-audio-output="ambient"></output><input type="range" min="0" max="1" step="0.05" data-audio="ambient" aria-label="Môi trường"></label>
     <button class="audio-mute" type="button" data-audio="muted" aria-pressed="false">Tắt tiếng</button>
     <div class="scale-set" role="group" aria-labelledby="scaleLbl"><span id="scaleLbl">Cỡ giao diện <output data-scale-out></output></span>
       <div class="scale-opts">${UI_SCALE_CHOICES.map((c) => `<button type="button" data-scale="${c.v}" aria-pressed="false">${c.label}</button>`).join("")}</div></div>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
-  const update = (key: "master" | "music" | "sfx", value: number) => {
+  const update = (key: "master" | "music" | "sfx" | "ui" | "ambient", value: number) => {
     audio.updateSettings({ [key]: value });
     const output = el.querySelector<HTMLOutputElement>(`output[data-audio-output="${key}"]`);
     if (output) output.value = `${Math.round(value * 100)}%`;
   };
-  for (const key of ["master", "music", "sfx"] as const) {
+  for (const key of ["master", "music", "sfx", "ui", "ambient"] as const) {
     const input = el.querySelector<HTMLInputElement>(`input[data-audio="${key}"]`)!;
     input.addEventListener("input", () => update(key, Number(input.value)), { signal });
   }
