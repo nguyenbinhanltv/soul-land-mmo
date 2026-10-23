@@ -95,6 +95,24 @@ export function surfaceOfGround(name: string): Surface {
 /** Nhịp bước chân (ms giữa hai tiếng): chạy nhanh hơn đi bộ. */
 export const STEP_INTERVAL_MS = { run: 300, walk: 480 } as const;
 
+/** Tiếng giao diện (G5, #396) → nhóm mẫu trong gói `ui`. */
+export type UiSound = "open" | "close" | "drag" | "drop" | "equip" | "enhanceOk" | "enhanceFail" | "rare";
+export const UI_GROUP: Readonly<Record<UiSound, string>> = {
+  open: "ui-open", close: "ui-close", drag: "ui-drag", drop: "ui-drop", equip: "ui-equip",
+  enhanceOk: "ui-enhance-ok", enhanceFail: "ui-enhance-fail", rare: "ui-rare",
+};
+/** Nhận món có độ hiếm (bag.rarityOf, 0..4) từ mức này trở lên thì phát tiếng đồ hiếm. */
+export const RARE_LOOT_MIN = 3;
+
+/** Nhịp tim khi máu thấp (PK, G6): từ tỉ lệ sinh lực này trở xuống mới đập; càng thấp càng dồn (khoảng cách giữa hai nhịp, ms). */
+export const LOW_HP_RATIO = 0.3;
+export const HEARTBEAT_MS = { slow: 1150, fast: 640 } as const;
+/** Tỉ lệ sinh lực → khoảng cách nhịp (ms), tuyến tính từ LOW_HP_RATIO (chậm) về 0 (nhanh). */
+export function heartbeatInterval(hpRatio: number): number {
+  const k = Math.min(1, Math.max(0, hpRatio / LOW_HP_RATIO));
+  return HEARTBEAT_MS.fast + (HEARTBEAT_MS.slow - HEARTBEAT_MS.fast) * k;
+}
+
 /** Hồn hoàn sáng theo niên hạn: bậc càng cao càng trầm (hạ cao độ), vang (đưa vào reverb) và to hơn. */
 export function ringGlowMix(tier: number): { rate: number; wet: number; gain: number } {
   const k = Math.min(1, Math.max(0, tier / Math.max(1, TIERS.length - 1)));

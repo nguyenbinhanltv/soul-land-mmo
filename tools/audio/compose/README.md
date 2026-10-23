@@ -11,7 +11,8 @@ soundfont GeneralUser GS → xử lý tổng (EQ, độ to, limiter) → `shared
 |---|---|
 | Nhạc nền bản đồ (`kind: "map"`, `maps` là mã trong `MAPS` của `shared/data.ts`) | một bài lặp liền mạch 1–2 phút cho mỗi bản đồ, sắc thái theo vùng |
 | Giao chiến (`kind: "battle"`) | `giao_chien_boss`: phát thay nhạc bản đồ khi đánh boss thế giới / thú vương |
-| Khúc ngắn (`kind: "jingle"`, chơi một lần, có `event`) | `level_up`, `ring_absorb` (hấp thụ hồn hoàn / đột phá), `arena_win`, `arena_lose`, `quest_accept`, `quest_complete` |
+| Lớp giao chiến (`kind: "stem"`, `of` = id bài nền) | `<bản đồ>_chien` (mono, 40 kbps) chồng đồng bộ lên bài nền khi đang đánh nhau; `giao_chien_boss_nang` (`phase: 2`) chồng lên bài giao chiến boss khi boss nổi giận. Sinh tự động từ gốc hợp âm của bài nền ở `songs/stems.mjs` (cùng bpm / số ô nên cùng độ dài vòng) |
+| Khúc ngắn (`kind: "jingle"`, chơi một lần, có `event`) | `level_up`, `ring_absorb` (hấp thụ hồn hoàn / đột phá), `arena_win`, `arena_lose`, `quest_accept`, `quest_complete`, `crit_big` (stinger chí mạng lớn), `boss_down` (stinger hạ boss) |
 
 Danh mục ở `songs/index.mjs`. Mỗi file ghi ý đồ (thang âm, nhịp, nhạc cụ, khuôn đoạn) ở đầu.
 
@@ -28,7 +29,7 @@ node compose.mjs --soundfont … --midi /thư/mục/ngoài/repo                 
 node validate.mjs                                                         # cũng chạy trong npm run check, không cần npm install
 ```
 
-`validate.mjs` kiểm: mọi bài trong `songs/` đã render, file đúng số byte, mỗi file < 1,5 MB, không có file thừa,
+`validate.mjs` kiểm (thêm G5): mỗi lớp giao chiến chồng lên một bài nền / giao chiến có cùng độ dài vòng, bài giao chiến boss có lớp pha 2, đủ khúc ngắn cho mọi sự kiện; mọi bài trong `songs/` đã render, file đúng số byte, mỗi file < 1,5 MB, không có file thừa,
 mọi bản đồ trong `MAPS` có đúng một bài, có bài giao chiến, `event` của khúc ngắn không trùng. Thêm bản đồ mới thì phải
 thêm bài (hoặc thêm mã bản đồ vào `maps` của một bài có sẵn) rồi render lại.
 
