@@ -2235,7 +2235,15 @@
       "iso": true
     },
     {
+      "key": "status_allure",
+      "iso": true
+    },
+    {
       "key": "status_armor",
+      "iso": true
+    },
+    {
+      "key": "status_atk",
       "iso": true
     },
     {
@@ -2247,7 +2255,23 @@
       "iso": true
     },
     {
+      "key": "status_chill",
+      "iso": true
+    },
+    {
+      "key": "status_crit",
+      "iso": true
+    },
+    {
       "key": "status_def",
+      "iso": true
+    },
+    {
+      "key": "status_flood",
+      "iso": true
+    },
+    {
+      "key": "status_freeze",
       "iso": true
     },
     {
@@ -2255,11 +2279,31 @@
       "iso": true
     },
     {
+      "key": "status_ink",
+      "iso": true
+    },
+    {
+      "key": "status_inv",
+      "iso": true
+    },
+    {
       "key": "status_leech",
       "iso": true
     },
     {
+      "key": "status_lock",
+      "iso": true
+    },
+    {
+      "key": "status_mp",
+      "iso": true
+    },
+    {
       "key": "status_poison",
+      "iso": true
+    },
+    {
+      "key": "status_root",
       "iso": true
     },
     {
@@ -2272,6 +2316,10 @@
     },
     {
       "key": "status_slow",
+      "iso": true
+    },
+    {
+      "key": "status_spd",
       "iso": true
     },
     {
