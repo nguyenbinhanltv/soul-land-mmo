@@ -3,6 +3,7 @@
   "map": "cuc_bac_chi_dia",
   "out": "cuc_bac_chi_dia.v2.json",
   "size": [204, 272],
+  "tileRows": 6,
   "seed": 20261103,
   "zoneCell": 8,
   "blend": 6,
@@ -12,7 +13,7 @@
       "bank": 5, "deep": 35, "stony": 4, "glow": 6, "bridge": 7
     },
     "objects": {
-      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 1, "tent": 11, "fire": 12, "skull": 33
+      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 1, "tent": 11, "fire": 12, "skull": 33, "ice_spire": 41
     },
     "canopy": { "30": 31 }
   },
@@ -74,7 +75,10 @@
     { "type": "scatter", "kind": "rock", "poly": [[0, 0], [204, 0], [204, 136], [0, 136]], "p": 0.006 },
     { "type": "scatter", "kind": "cliff", "poly": [[0, 136], [204, 136], [204, 206], [0, 206]], "p": 0.004 },
     { "type": "camp", "rect": [92, 252, 20, 16], "tents": [[94, 254], [109, 254], [95, 265]], "fires": [[104, 262]], "logs": [[106, 263]] },
-    { "type": "lair", "at": [102, 24], "rx": 10, "ry": 7, "entrance": "s", "wall": "cliff", "door": 4, "skulls": [[95, 21], [109, 27]] }
+    { "type": "lair", "at": [102, 24], "rx": 10, "ry": 7, "entrance": "s", "wall": "cliff", "door": 4, "skulls": [[95, 21], [109, 27]] },
+    { "type": "scatter", "kind": "ice_spire", "circle": [20, 176, 30], "p": 0.012, "on": ["stony", "grass"] },
+    { "type": "scatter", "kind": "ice_spire", "circle": [36, 192, 22], "p": 0.012, "on": ["stony", "grass"] },
+    { "type": "scatter", "kind": "ice_spire", "circle": [180, 154, 22], "p": 0.012, "on": ["stony", "grass"] }
   ],
   "roads": [
     { "via": ["camp_n", "tn", "bh", "bp", "bu", "dong"], "width": 3 },

@@ -7,7 +7,7 @@
     153
   ],
   "seed": 20261113,
-  "tileRows": 6,
+  "tileRows": 7,
   "zoneCell": 8,
   "blend": 4,
   "gids": {
@@ -52,7 +52,8 @@
       "well": 45,
       "crates": 46,
       "plank_bridge": 47,
-      "reeds": 48
+      "reeds": 48,
+      "bamboo_fence": 49
     },
     "walk": [
       "lamngan",
@@ -2775,7 +2776,8 @@
           40
         ]
       ]
-    }
+    },
+    { "type": "row", "kind": "bamboo_fence", "from": [8, 42], "to": [56, 42], "step": 3 }
   ],
   "roads": [
     {
