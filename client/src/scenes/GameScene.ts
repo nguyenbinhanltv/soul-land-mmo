@@ -27,8 +27,10 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioManager.ts";
-import { STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
+import { RARE_LOOT_MIN, STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
+import { bindUiSounds } from "../audio/uiSounds.ts";
+import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
@@ -370,6 +372,7 @@ export class GameScene extends Phaser.Scene {
       return source && Number.isFinite(source.x) && Number.isFinite(source.y) ? { x: source.x, y: source.y } : null;
     });
     this.audio.bindUnlock(this.ac.signal);
+    bindUiSounds(this.audio, this.ac.signal); // mở / đóng panel, kéo thả (G5, #396)
     this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
     // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
@@ -1066,7 +1069,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { lootToasts(this.bag?.items ?? null, m.items); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
       if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
@@ -1077,13 +1080,14 @@ export class GameScene extends Phaser.Scene {
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag". Từ #187 kèm
     // các dòng phụ server vừa tung ở mốc (`subs`).
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; fee?: number; subs?: { k: CoreStat; v: number }[] }) => {
-      if (m.to > m.from) this.audio.play("breakthrough");
+      if (m.to > m.from) { this.audio.play("breakthrough"); this.audio.playUi("enhanceOk"); } else this.audio.playUi("enhanceFail"); // chưa đủ lên cấp = chưa thành (G5)
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu${m.fee ? `, phí ${formatHonTe(m.fee)}` : ""}`; // phí #281
       const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
       toast("info", `Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
     });
     // Nâng cấp hồn hạch (bước 5.3): kết quả và các dòng phụ vừa tăng do server tung; túi mới đến ngay sau bằng tin "bag".
     this.room.onMessage("enhancedcore", (m: { from: number; to: number; gain: number; used: number; fee?: number; subs: CoreSubUp[] }) => {
+      this.audio.playUi(m.to > m.from ? "enhanceOk" : "enhanceFail");
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu`, fee = m.fee ? ` · phí ${formatHonTe(m.fee)}` : ""; // phí #281
       const subs = m.subs.map((u) => (u.add ? `dòng phụ mới ${coreStatText(u.k, u.v)}` : `${coreStatText(u.k, u.to)} (tăng)`)).join(" · ");
       toast("info", `Nâng cấp hồn hạch +${m.to}`, m.to > m.from ? `+${m.from} → +${m.to} · ${subs || pts}${fee}` : `${pts}, chưa đủ lên cấp`);
@@ -2303,7 +2307,9 @@ export class GameScene extends Phaser.Scene {
 
     // Ánh sáng (10.7): nguồn sáng hồn lực trong khung này, cộng vật phát sáng IsoMap báo; rồi thời tiết, hạt bay.
     const me = st.players.get(this.me), cam = this.cameras.main;
-    this.light.update(time, cam, this.lightSources(st, time), this.isoMap.glows());
+    const glows = this.isoMap.glows();
+    this.light.update(time, cam, this.lightSources(st, time), glows);
+    this.ambientSound(time, mv, glows);
     const zone = me ? this.zones.find((z) => inRect(z, me.x, me.y))?.name ?? "" : "";
     let boss = false;
     if (me) st.beasts.forEach((b: any) => { if (b.rank >= 2 && Math.hypot(b.x - me.x, b.y - me.y) < 320) boss = true; });
@@ -2437,9 +2443,9 @@ export class GameScene extends Phaser.Scene {
       setTeam: (slots) => this.room.send("team", { slots }),
       unlock: (vohon) => this.room.send("unlock", { vohon }),
       starUp: (vohon) => this.room.send("starup", { vohon }),
-      equip: (itemId, vohonId, slot) => this.room.send("equip", { itemId, vohonId, slot }),
+      equip: (itemId, vohonId, slot) => { this.audio.playUi("equip"); this.room.send("equip", { itemId, vohonId, slot }); },
       unequip: (itemId) => this.room.send("unequip", { itemId }),
-      equipCore: (itemId, vohonId, slot) => this.room.send("equipcore", { itemId, vohonId, slot }),
+      equipCore: (itemId, vohonId, slot) => { this.audio.playUi("equip"); this.room.send("equipcore", { itemId, vohonId, slot }); },
       unequipCore: (itemId) => this.room.send("unequipcore", { itemId }),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
@@ -2502,8 +2508,8 @@ export class GameScene extends Phaser.Scene {
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
       // UI-1: gắn nhanh cho võ hồn đang ra trận (cùng lệnh với bảng đội hình; server kiểm tra vị trí, giao chiến, túi đầy)
       active: () => this.owned?.active ?? null,
-      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equip", { itemId, vohonId, slot }); },
-      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId, slot }); },
+      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) { this.audio.playUi("equip"); this.room.send("equip", { itemId, vohonId, slot }); } },
+      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) { this.audio.playUi("equip"); this.room.send("equipcore", { itemId, vohonId, slot }); } },
     });
   }
 
@@ -2531,6 +2537,20 @@ export class GameScene extends Phaser.Scene {
    * Tin "boss" riêng của boss thế giới (BĐ6e): báo trước / bị hạ toàn server có chữ "Boss thế giới"; trong Lõi Tinh Đấu thêm các cơ chế
    * buộc đổi võ hồn (điểm yếu hệ, Bá Thể, tích lực phải ngắt, Du Thủy, độc toàn sàn, nổi giận). Trả true nếu đã xử lý xong tin này.
    */
+  private ambientAt = 0;
+  /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy gần nhất; ambientLayers.ts tự hẹn giờ. */
+  private ambientSound(time: number, mv: { root: { x: number; y: number } } | undefined, glows: ReadonlyArray<{ x: number; y: number; kind: string }>) {
+    if (time < this.ambientAt) return;
+    this.ambientAt = time + 250;
+    let fireDist: number | null = null;
+    if (mv) for (const g of glows) {
+      if (!AMBIENT_FIRE_PROPS.has(g.kind)) continue;
+      const d = Math.hypot(g.x - mv.root.x, g.y - mv.root.y);
+      if (fireDist === null || d < fireDist) fireDist = d;
+    }
+    this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist });
+  }
+
   worldBossMsg(m: any, col: string) {
     if (m.k === "warn" && m.world) {
       hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
