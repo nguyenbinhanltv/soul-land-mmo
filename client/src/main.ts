@@ -14,6 +14,7 @@ import { initTips } from "./tooltip.ts";
 import { vohonCard } from "./cards.ts";
 import { fontTestScreen } from "./fontTest.ts";
 import { audioTestScreen } from "./audioTest.ts";
+import { fxTestScreen } from "./fxTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
@@ -324,6 +325,7 @@ function play(room: Room, roomMap: string, watch = false) {
   const thu = new URLSearchParams(location.search).get("thu");
   if (thu === "font") return fontTestScreen(card, overlay);
   if (thu === "am") return audioTestScreen(card, overlay); // `?thu=am`: nghe thử tiếng mẫu CC0 (G2, #393)
+  if (thu === "fx") return fxTestScreen(card, overlay); // `?thu=fx`: thử hiệu ứng hồn kỹ theo hệ (G3, #394)
   if (!token) return loginScreen();
   await resume();
 })();
