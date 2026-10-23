@@ -1,6 +1,6 @@
 import type { AudioManager } from "./AudioManager.ts";
 import type { AudioSettings } from "./settings.ts";
-import { fxPrefs, setFxPrefs, type FxLevel } from "../combatFx.ts";
+import { fxPrefs, setFxPrefs, SHAKE_MODES, type FxLevel, type ShakeMode } from "../combatFx.ts";
 import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../uiArt.ts";
 
 const PANEL_ID = "audio";
@@ -65,6 +65,8 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
 Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button>
         <button type="button" data-fx-cine aria-pressed="false" title="Cảnh hồn kỹ lớn
 Hồn kỹ vòng 7 trở lên: tối màn, chân dung võ hồn trượt ngang, tên chiêu chữ lớn.">Cảnh hồn kỹ lớn</button></div></div>
+    <div class="scale-set" role="group" aria-labelledby="shakeLbl"><span id="shakeLbl">Rung màn hình</span>
+      <div class="scale-opts">${SHAKE_MODES.map(([v, label]) => `<button type="button" data-shake="${v}" aria-pressed="false" title="${v === "off" ? "Không rung, không phóng to giật, không dừng hình khi đánh." : v === "boss" ? "Chỉ rung với tinh anh, thú vương, boss, khi bị chiêu mạnh và khi tung hồn kỹ lớn." : "Thêm rung khi chí mạng lên hồn thú thường (không áp dụng lúc tự săn)."}">${label}</button>`).join("")}</div></div>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
   const update = (key: "master" | "music" | "sfx" | "ui" | "ambient", value: number) => {
     audio.updateSettings({ [key]: value });
@@ -97,7 +99,9 @@ Hồn kỹ vòng 7 trở lên: tối màn, chân dung võ hồn trượt ngang, 
     el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.fx === fxPrefs.level)));
     el.querySelector("[data-fx-reduce]")!.setAttribute("aria-pressed", String(fxPrefs.reduce));
     el.querySelector("[data-fx-cine]")!.setAttribute("aria-pressed", String(fxPrefs.cine));
+    el.querySelectorAll<HTMLButtonElement>("[data-shake]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.shake === fxPrefs.shake)));
   };
+  el.querySelectorAll<HTMLButtonElement>("[data-shake]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ shake: b.dataset.shake as ShakeMode }); audio.play("ui_click"); renderFx(); }, { signal }));
   el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ level: b.dataset.fx as FxLevel }); audio.play("ui_click"); renderFx(); }, { signal }));
   el.querySelector("[data-fx-reduce]")!.addEventListener("click", () => { setFxPrefs({ reduce: !fxPrefs.reduce }); audio.play("ui_click"); renderFx(); }, { signal });
   el.querySelector("[data-fx-cine]")!.addEventListener("click", () => { setFxPrefs({ cine: !fxPrefs.cine }); audio.play("ui_click"); renderFx(); }, { signal });

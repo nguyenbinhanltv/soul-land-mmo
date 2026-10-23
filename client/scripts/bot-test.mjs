@@ -5237,15 +5237,19 @@ async function autoTest(){
     // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
     ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
     const ySite=`chỗ sinh Y ${yAt?`dx,dy ${yAt.dx},${yAt.dy}, cách B / X ${yAt.away.toFixed(0)} pixel`:"đường lùi dx,dy -50,0 (không có chỗ hợp lệ)"}`;
+    // Nợ nhịp (AUTO_PACE): A vừa hạ một hồn thú hoang đánh trả trong lúc chờ X thì còn nợ vài giây tới hơn chục giây, tự săn đứng nghỉ, không
+    // nhắm Y, không dạo (#305 lần 3: CI A đứng yên 15 giây, mục tiêu / đích rỗng, Y đầy máu cách 115 pixel). Bài này thử luật không cướp quái,
+    // không phải trần tốc độ (bài riêng bên dưới), nên xóa nợ trước và trong lúc chờ.
+    await test(A,"auto",{pace:0});
     sp=await test(A,"spawn",{tier:0,dx:yAt?.dx??-50,dy:yAt?.dy??0,years:150}); const Y=sp?.bid;
     let downY=false; const yTrack=[];
     for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){
       downY=await waitFor(()=>!A.room.state.beasts.has(Y),500);
-      if(!downY){ const yb=A.room.state.beasts.get(Y), st=await test(A,"auto",{bid:Y}); yTrack.push(`${((Date.now()-t0)/1000).toFixed(1)}s Y ${yb?.x.toFixed(0)},${yb?.y.toFixed(0)} nhắm ${st?.beast?.target} A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}`); await test(A,"clear",{but:[X,Y]}); }
+      if(!downY){ const yb=A.room.state.beasts.get(Y), st=await test(A,"auto",{bid:Y,pace:0}); yTrack.push(`${((Date.now()-t0)/1000).toFixed(1)}s Y ${yb?.x.toFixed(0)},${yb?.y.toFixed(0)} nhắm ${st?.beast?.target} A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} ${st?.on?"bật":"TẮT"} mục tiêu ${st?.target} nợ ${st?.pace?.toFixed?.(1)}`); await test(A,"clear",{but:[X,Y]}); }
     }
     // Chẩn đoán khi trượt (#305): chỗ A / B / X / Y, sinh lực Y, mục tiêu / đích / đường của tự săn, Y nhắm ai / bị bỏ qua.
     const whyY=downY&&xb()?.hp>=hx?"":await (async()=>{ const st=await test(A,"auto",{bid:Y}), yb=A.room.state.beasts.get(Y), at=o=>o?`${o.x.toFixed(0)},${o.y.toFixed(0)}`:"-";
-      return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
+      return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; tự săn ${st?.on?"bật":"TẮT"} (${A.autoMsg?.why??"-"}), mục tiêu ${st?.target}, nợ nhịp ${st?.pace?.toFixed?.(1)} (ước lượng ${st?.est?.toFixed?.(1)}), đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
     ok(Y&&downY&&xb()?.hp>=hx,`A hạ hồn thú Y không ai giành, X không mất sinh lực (${hx} → ${xb()?.hp})${whyY}`);
     await autoOp(A,"off"); await test(B,"slay",{bid:X});
     // Các bài sau không dùng B tới bài nợ nhịp: về điểm vào trại cổng (hồn thú hoang không lang thang tới), không kéo hồn thú hoang tới A.
@@ -6205,6 +6209,12 @@ async function tongWeekTest(){
     await pts(C,20); ok((await board(C)).me===20,"C có 20 điểm tuần mới");
     await test(C,"tong",{back:TONG_SWITCH_DAYS+1}); await near(C,H.npc); t=await op(C,{op:"join",tong:H.id});
     ok(C.tong.tong===H.id&&(await board(C)).me===0,`C đổi sang ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+    // Rời tông cũng xoá điểm tuần (#320): C có 60 điểm rồi rời, sang tuần sau không có thưởng tuần của tông cũ.
+    await pts(C,60); ok((await board(C)).me===60,"C có 60 điểm tuần");
+    await near(C,H.npc); t=await op(C,{op:"leave"});
+    ok(C.tong.tong===""&&(await board(C)).me===0&&/điểm tuần này đã bỏ/.test(t),`C rời ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+    await test(A,"tweek",{shift:84}); bd=await board(C);
+    ok(bd.last.reward==null&&!bd.last.claimed,`tuần sau: C đã rời, không có thưởng tuần của tông cũ (${bd.last.reward})`);
   }finally{
     await test(A,"tweek",{shift:0}).catch(()=>{});
     for(const b of [A,B,C]) await b.room.leave().catch(()=>{});
