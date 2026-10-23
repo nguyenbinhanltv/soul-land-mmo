@@ -365,14 +365,17 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * loài cần `frame` vuông); chân dung `portrait_*`, vật đứng `prop_*`, NPC `npc_*`, vật phẩm `item_*`, trạng thái `status_*`,
  * huy hiệu hệ `he_*`, mảnh giao diện `ui_*`, khung thẻ `card_*` và hiệu ứng `fx_*` (cần `frame` vuông) chỉ có dạng isometric.
  * `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
+ * `stat` (manifest ghi `"static": true`, chỉ với `beast_*` isometric): sheet tĩnh 3 khung (nam, đông, bắc) của hồn thú lai.
  */
-export function sheetSpec(key, frame, iso = false) {
+export function sheetSpec(key, frame, iso = false, stat = false) {
   let m;
   if (iso) {
     const spec = (file, layout, extra = {}) => ({ file, frame: layout.frame, size: [layout.frame[0] * layout.cols, layout.frame[1] * layout.rows], kind: layout.kind, layout, iso: true, ...extra });
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
+    // Hồn thú lai (#386): sheet tĩnh 3 khung nam / đông / bắc (ISO_STATIC_DIRS), chuyển động vẽ bằng code ở client; manifest ghi `"static": true`.
+    if (stat && (m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * 3, frame[1]], kind: "beast", iso: true, static: true };
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
     // NPC phụ / dân thường ghép từ LPC (lpc-compose --game): bố cục sheet hồn sư 24 × 6, đã tô màu (không hoán màu), một lớp.
     if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return spec(`iso/lpc/${m[1]}.png`, isoLayout("honsu"), { kind: "lpc" });

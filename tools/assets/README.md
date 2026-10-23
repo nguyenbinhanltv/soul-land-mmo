@@ -180,3 +180,7 @@ shared/assets/iso/
   ground/{loại}_{i}.png      ô nền 32×32; ô lớn {loại}_{i}_lon.png 64×64
 ```
 - Client đọc `manifest.json` trong `preload()`, chỉ tải key có trong danh sách, `makeTextures()` vẽ bằng code key còn thiếu. Giao diện HTML đọc manifest qua `client/src/uiArt.ts` (key `"iso": true` dùng ảnh, chưa có thì kiểu CSS / SVG). Ô và vật đứng do `isoMap.ts` tải theo `tiles.json`; `lpc_*` chỉ tải của bản đồ đang vào.
+
+## Hồn thú lai: sheet tĩnh 3 hướng (#386)
+- Manifest `{ "key": "beast_<loài>", "frame": [64, 64], "iso": true, "static": true, "map": "<vùng>" }`; sheet `beast/<loài>.png` rộng 3 × khung, cao 1 khung: cột 0 nam (`s`), cột 1 đông (`e`), cột 2 bắc (`n`), gốc giữa đáy cách đáy `ISO_BEAST_FOOT`. `validate.mjs --static` (và `sheetSpec(key, frame, true, true)` trong `lib.mjs`) kiểm cỡ, đủ 3 khung, màu tự do như chân dung (mỗi hướng một bảng màu riêng, không giới hạn 32 màu, không so bảng chung); `normal.mjs --frame 64x64` sinh `_n.png`.
+- Client (`sprites.ts`): `isStaticBeast`, `STATIC_DIR_MAP` (hướng 8 → khung + lật), `staticBeastPose` / `STATIC_MOTION` (thở, nhún, ngả + vồ, lắc, nháy trắng; bóng ngã khi chết ở `GameScene.fadeBeastGhost`).
