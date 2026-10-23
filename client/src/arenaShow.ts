@@ -35,7 +35,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 export class ArenaShow {
   private vs = el("avs"); private feed = el("afeed"); private big = el("abig"); private lowhp = el("alow");
   private phase = ""; private alive: number[] | null = null; private skills = new Map<string, { name: string; t: number }>();
-  private hp = new Map<string, number>(); private hitT = 0; private z0: number | null = null;
+  private hp = new Map<string, number>(); private hitT = 0; private z0: number | null = null; private undoPunch: (() => void) | null = null;
   private shown = false; private lastN = -1; private finished = false; private beatT = 0;
 
   constructor(private scene: Phaser.Scene, private sfx: ArenaSfx = NO_SFX) {
@@ -43,7 +43,7 @@ export class ArenaShow {
     this.vs.setAttribute("aria-hidden", "true"); this.big.setAttribute("aria-hidden", "true"); this.lowhp.setAttribute("aria-hidden", "true");
   }
 
-  destroy() { for (const e of [this.vs, this.feed, this.big, this.lowhp]) e.remove(); this.scene.tweens.timeScale = 1; }
+  destroy() { this.undoPunch?.(); for (const e of [this.vs, this.feed, this.big, this.lowhp]) e.remove(); this.scene.tweens.timeScale = 1; }
 
   /** Ghi lại tên hồn kỹ vừa tung (tin fx "soulring") để bảng hạ gục biết kẻ hạ gục dùng chiêu gì. */
   noteSkill(id: string, name: string) { this.skills.set(id, { name, t: performance.now() }); }
@@ -117,10 +117,12 @@ export class ArenaShow {
     const cam = this.scene.cameras.main;
     cam.shake(PUNCH_MS * 1.5, SHAKE[pf.level]);
     if (this.z0 === null) {
-      const k = PUNCH[pf.level]; this.z0 = cam.zoom;
-      cam.zoomTo(this.z0 * k, PUNCH_MS, undefined, true, (_c: Phaser.Cameras.Scene2D.Camera, t: number) => {
-        if (t < 1) return;
-        cam.zoomTo(cam.zoom / k, PUNCH_MS * 2, undefined, true, (_c2: Phaser.Cameras.Scene2D.Camera, t2: number) => { if (t2 >= 1) this.z0 = null; });
+      const k = PUNCH[pf.level], E = Phaser.Cameras.Scene2D.Events.ZOOM_COMPLETE;
+      this.z0 = cam.zoom; cam.zoomTo(this.z0 * k, PUNCH_MS, undefined, true);
+      this.undoPunch = () => cam.off(E);
+      cam.once(E, () => {
+        cam.zoomTo(cam.zoom / k, PUNCH_MS * 2, undefined, true);
+        cam.once(E, () => { this.z0 = null; this.undoPunch = null; });
       });
     }
   }
@@ -139,8 +141,9 @@ export class ArenaShow {
   private finisher(a: ArenaView, pf: { level: Level; reduce: boolean }) {
     const w = a.winner, cam = this.scene.cameras.main, fancy = !pf.reduce && pf.level !== "low";
     this.sfx.finisher();
+    const z = this.z0; this.undoPunch?.(); this.undoPunch = null; this.z0 = null;
     if (fancy) {
-      const z0 = this.z0 ?? cam.zoom, tw = this.scene.tweens;
+      const z0 = z ?? cam.zoom, tw = this.scene.tweens;
       tw.timeScale = SLOW_K;
       cam.zoomTo(z0 * ZOOM[pf.level], 250, undefined, true);
       window.setTimeout(() => { tw.timeScale = 1; cam.zoomTo(z0, 600, undefined, true); }, SLOW_MS);
