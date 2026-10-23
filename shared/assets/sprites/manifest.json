@@ -242,6 +242,16 @@
       "map": "tinh_dau_ngoai_vi"
     },
     {
+      "key": "beast_thai_than_cu_vien",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
+    },
+    {
       "key": "beast_thanh_lan_ngac",
       "frame": [
         96,
@@ -270,6 +280,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_thien_thanh_nguu_mang",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
     },
     {
       "key": "beast_thiet_giap_te_nguu",
