@@ -907,8 +907,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
   - [x] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
   - [x] Công trình Nặc Đinh Thành: nhà chính học viện sơ cấp, đấu hồn trường, tửu lâu (#336).
   - [x] Trọn bộ ô nền Lõi Tinh Đấu (#338): 7 ô riêng (cỏ, cỏ hoa, đất, sàn đá phiến có phù văn mờ, nước hồ gợn sáng, rêu phát quang, sỏi).
-  - [ ] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339, xong), lô 2 Nội địa, Lạc Nhật (#340, xong), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341).
   - [x] Phụ thể tĩnh vũ khí / vật đối xứng (#342): Phá Hồn Thương, Thiên Càn Bạch Ngọc Đỉnh, Nguyệt Nhận, Xúc Xích, Càn Khôn Hỗn Nguyên Tỏa, Cửu Bảo Lưu Ly Tháp (ComfyUI, một ảnh tĩnh cho 5 hướng).
+  - [x] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339, xong), lô 2 Nội địa, Lạc Nhật (#340, xong), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341, xong).
   - [ ] Thử nghiệm hoạt ảnh 8 hướng bằng ComfyUI cho hồn sư, hồn thú, phụ thể hư ảnh thú (#335).
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
