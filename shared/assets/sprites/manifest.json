@@ -1232,11 +1232,23 @@
       "iso": true
     },
     {
+      "key": "npc_ba_tai_tay",
+      "iso": true
+    },
+    {
+      "key": "npc_chu_giao_vu_hon_dien",
+      "iso": true
+    },
+    {
       "key": "npc_dai_su",
       "iso": true
     },
     {
       "key": "npc_dau_hon_truong",
+      "iso": true
+    },
+    {
+      "key": "npc_hai_ma_dau_la",
       "iso": true
     },
     {
@@ -1252,6 +1264,10 @@
       "iso": true
     },
     {
+      "key": "npc_ninh_phong_tri",
+      "iso": true
+    },
+    {
       "key": "npc_phat_lan_duc",
       "iso": true
     },
@@ -1260,7 +1276,19 @@
       "iso": true
     },
     {
+      "key": "npc_su_gia_hao_thien",
+      "iso": true
+    },
+    {
+      "key": "npc_su_gia_lam_dien",
+      "iso": true
+    },
+    {
       "key": "npc_thuong_nhan",
+      "iso": true
+    },
+    {
+      "key": "npc_thuong_nhan_luu_dong",
       "iso": true
     },
     {
@@ -1269,6 +1297,10 @@
     },
     {
       "key": "npc_to_van_dao",
+      "iso": true
+    },
+    {
+      "key": "npc_trieu_vo_cuc",
       "iso": true
     },
     {
