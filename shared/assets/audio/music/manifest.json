@@ -23,6 +23,24 @@
       }
     },
     {
+      "id": "cuc_bac_chi_dia_chien",
+      "title": "Cực Bắc Chi Địa (lớp giao chiến)",
+      "kind": "stem",
+      "of": "cuc_bac_chi_dia",
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/cuc_bac_chi_dia_chien.ogg",
+          "bytes": 420593
+        },
+        "m4a": {
+          "path": "audio/music/cuc_bac_chi_dia_chien.m4a",
+          "bytes": 572892
+        }
+      }
+    },
+    {
       "id": "dai_dau_hon_truong",
       "title": "Đại Đấu Hồn Trường",
       "kind": "map",
@@ -39,6 +57,24 @@
         "m4a": {
           "path": "audio/music/dai_dau_hon_truong.m4a",
           "bytes": 1048872
+        }
+      }
+    },
+    {
+      "id": "dai_dau_hon_truong_chien",
+      "title": "Đại Đấu Hồn Trường (lớp giao chiến)",
+      "kind": "stem",
+      "of": "dai_dau_hon_truong",
+      "loop": true,
+      "seconds": 85.333,
+      "files": {
+        "ogg": {
+          "path": "audio/music/dai_dau_hon_truong_chien.ogg",
+          "bytes": 355368
+        },
+        "m4a": {
+          "path": "audio/music/dai_dau_hon_truong_chien.m4a",
+          "bytes": 444044
         }
       }
     },
@@ -60,6 +96,25 @@
       }
     },
     {
+      "id": "giao_chien_boss_nang",
+      "title": "Giao chiến boss (pha 2, nâng một nấc)",
+      "kind": "stem",
+      "of": "giao_chien_boss",
+      "phase": 2,
+      "loop": true,
+      "seconds": 78.367,
+      "files": {
+        "ogg": {
+          "path": "audio/music/giao_chien_boss_nang.ogg",
+          "bytes": 327285
+        },
+        "m4a": {
+          "path": "audio/music/giao_chien_boss_nang.m4a",
+          "bytes": 408530
+        }
+      }
+    },
+    {
       "id": "hai_than_dao",
       "title": "Hải Thần Đảo",
       "kind": "map",
@@ -76,6 +131,24 @@
         "m4a": {
           "path": "audio/music/hai_than_dao.m4a",
           "bytes": 1342336
+        }
+      }
+    },
+    {
+      "id": "hai_than_dao_chien",
+      "title": "Hải Thần Đảo (lớp giao chiến)",
+      "kind": "stem",
+      "of": "hai_than_dao",
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/hai_than_dao_chien.ogg",
+          "bytes": 439173
+        },
+        "m4a": {
+          "path": "audio/music/hai_than_dao_chien.m4a",
+          "bytes": 568573
         }
       }
     },
@@ -208,6 +281,24 @@
       }
     },
     {
+      "id": "lac_nhat_sam_lam_chien",
+      "title": "Lạc Nhật Sâm Lâm (lớp giao chiến)",
+      "kind": "stem",
+      "of": "lac_nhat_sam_lam",
+      "loop": true,
+      "seconds": 85.333,
+      "files": {
+        "ogg": {
+          "path": "audio/music/lac_nhat_sam_lam_chien.ogg",
+          "bytes": 332589
+        },
+        "m4a": {
+          "path": "audio/music/lac_nhat_sam_lam_chien.m4a",
+          "bytes": 445333
+        }
+      }
+    },
+    {
       "id": "loi_tinh_dau",
       "title": "Lõi Tinh Đấu",
       "kind": "map",
@@ -224,6 +315,24 @@
         "m4a": {
           "path": "audio/music/loi_tinh_dau.m4a",
           "bytes": 961935
+        }
+      }
+    },
+    {
+      "id": "loi_tinh_dau_chien",
+      "title": "Lõi Tinh Đấu (lớp giao chiến)",
+      "kind": "stem",
+      "of": "loi_tinh_dau",
+      "loop": true,
+      "seconds": 78.367,
+      "files": {
+        "ogg": {
+          "path": "audio/music/loi_tinh_dau_chien.ogg",
+          "bytes": 304877
+        },
+        "m4a": {
+          "path": "audio/music/loi_tinh_dau_chien.m4a",
+          "bytes": 408266
         }
       }
     },
@@ -248,6 +357,42 @@
       }
     },
     {
+      "id": "stinger_chi_mang",
+      "title": "Chí mạng lớn",
+      "kind": "jingle",
+      "event": "crit_big",
+      "loop": false,
+      "seconds": 3.405,
+      "files": {
+        "ogg": {
+          "path": "audio/music/stinger_chi_mang.ogg",
+          "bytes": 37483
+        },
+        "m4a": {
+          "path": "audio/music/stinger_chi_mang.m4a",
+          "bytes": 42355
+        }
+      }
+    },
+    {
+      "id": "stinger_ha_boss",
+      "title": "Hạ boss",
+      "kind": "jingle",
+      "event": "boss_down",
+      "loop": false,
+      "seconds": 6.395,
+      "files": {
+        "ogg": {
+          "path": "audio/music/stinger_ha_boss.ogg",
+          "bytes": 64987
+        },
+        "m4a": {
+          "path": "audio/music/stinger_ha_boss.m4a",
+          "bytes": 78793
+        }
+      }
+    },
+    {
       "id": "thanh_hon_thon",
       "title": "Thánh Hồn Thôn",
       "kind": "map",
@@ -264,6 +409,24 @@
         "m4a": {
           "path": "audio/music/thanh_hon_thon.m4a",
           "bytes": 1046432
+        }
+      }
+    },
+    {
+      "id": "thanh_hon_thon_chien",
+      "title": "Thánh Hồn Thôn (lớp giao chiến)",
+      "kind": "stem",
+      "of": "thanh_hon_thon",
+      "loop": true,
+      "seconds": 85.333,
+      "files": {
+        "ogg": {
+          "path": "audio/music/thanh_hon_thon_chien.ogg",
+          "bytes": 330762
+        },
+        "m4a": {
+          "path": "audio/music/thanh_hon_thon_chien.m4a",
+          "bytes": 445942
         }
       }
     },
@@ -308,6 +471,24 @@
       }
     },
     {
+      "id": "tinh_dau_ngoai_vi_chien",
+      "title": "Tinh Đấu Ngoại vi (lớp giao chiến)",
+      "kind": "stem",
+      "of": "tinh_dau_ngoai_vi",
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/tinh_dau_ngoai_vi_chien.ogg",
+          "bytes": 419201
+        },
+        "m4a": {
+          "path": "audio/music/tinh_dau_ngoai_vi_chien.m4a",
+          "bytes": 572609
+        }
+      }
+    },
+    {
       "id": "tinh_dau_noi_dia",
       "title": "Tinh Đấu Nội địa",
       "kind": "map",
@@ -324,6 +505,24 @@
         "m4a": {
           "path": "audio/music/tinh_dau_noi_dia.m4a",
           "bytes": 1257174
+        }
+      }
+    },
+    {
+      "id": "tinh_dau_noi_dia_chien",
+      "title": "Tinh Đấu Nội địa (lớp giao chiến)",
+      "kind": "stem",
+      "of": "tinh_dau_noi_dia",
+      "loop": true,
+      "seconds": 102.4,
+      "files": {
+        "ogg": {
+          "path": "audio/music/tinh_dau_noi_dia_chien.ogg",
+          "bytes": 395063
+        },
+        "m4a": {
+          "path": "audio/music/tinh_dau_noi_dia_chien.m4a",
+          "bytes": 534271
         }
       }
     }

@@ -64,30 +64,120 @@
       "retrievedAt": "2026-10-23"
     },
     {
+      "id": "kenney-interface-sounds",
+      "title": "Interface Sounds",
+      "author": "Kenney",
+      "url": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-mild-wind",
+      "title": "Mild Wind Background Noise",
+      "author": "Bashar (Skirmish.io)",
+      "url": "https://opengameart.org/content/mild-wind-background-noise",
+      "license": "CC0-1.0",
+      "archiveSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-wave-01",
+      "title": "Beach Ocean Waves (wave 01)",
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-wave-02",
+      "title": "Beach Ocean Waves (wave 02)",
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-wave-03",
+      "title": "Beach Ocean Waves (wave 03)",
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-wave-04",
+      "title": "Beach Ocean Waves (wave 04)",
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-ambient-birds",
+      "title": "Ambient Bird Sounds",
+      "author": "isaiah658",
+      "url": "https://opengameart.org/content/ambient-bird-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-bird-chirping",
+      "title": "Bird chirping sounds",
+      "author": "syncopika",
+      "url": "https://opengameart.org/content/bird-chirping-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "bc6e28bd823b653b2abf3384d4147718603af6bcd98e26166345df71a61eeb08",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-crickets",
+      "title": "Crickets Ambient Noise - loopable",
+      "author": "Ted Kerr",
+      "url": "https://opengameart.org/content/crickets-ambient-noise-loopable",
+      "license": "CC0-1.0",
+      "archiveSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-fireplace",
+      "title": "Fireplace Sound loop",
+      "author": "OpenGameArt (trang không ghi tên tác giả)",
+      "url": "https://opengameart.org/content/fireplace-sound-loop",
+      "license": "CC0-1.0",
+      "archiveSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-heartbeat-slow",
+      "title": "Heartbeat sounds (slow)",
+      "author": "estevinho",
+      "url": "https://opengameart.org/content/heartbeat-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "ce5d2bbe4c9e2a8843fc76419070b9e88f71b2aa4ba7226a5f50a6b45d13be60",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-heartbeat-fast",
+      "title": "Heartbeat sounds (fast)",
+      "author": "estevinho",
+      "url": "https://opengameart.org/content/heartbeat-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "cda9235df232a5a06724a02798f7240e3e6eca96a992fa5560edd5b4b24823ce",
+      "retrievedAt": "2026-10-23"
+    },
+    {
       "id": "oga-horde-war-drums",
       "title": "Horde War Drums loop",
       "author": "William Hector",
-      "url": "https://opengameart.org/node/176112",
+      "url": "https://opengameart.org/content/horde-war-drums-loop",
       "license": "CC0-1.0",
       "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "oga-heartbeat-single",
-      "title": "heartbeat single sound",
-      "author": "Independent.nu (qubodup)",
-      "url": "https://opengameart.org/content/heartbeat-single-sound",
-      "license": "CC0-1.0",
-      "archiveSha256": "7fe0850daa5c92c6a204fbb0a719ee8f8d2979e3416033d796abd6e30f3c118a",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "kenney-ui-audio",
-      "title": "UI Audio",
-      "author": "Kenney",
-      "url": "https://kenney.nl/assets/ui-audio",
-      "license": "CC0-1.0",
-      "archiveSha256": "946fc23a63d535d693eb31b2eabb80c8c28d6351e2186b344ceb71b2cb1d5eb6",
       "retrievedAt": "2026-10-23"
     }
   ],
@@ -1096,67 +1186,650 @@
       "maxSeconds": 0.45
     },
     {
-      "id": "arena-drum-1",
-      "group": "arena-drum",
-      "pack": "arena",
-      "sourceId": "oga-horde-war-drums",
-      "input": "oga-horde-war-drums/horde_war_drums_by_william_hector.wav",
-      "inputSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
-      "gainDb": 0,
-      "maxSeconds": 1.6
+      "id": "amb-wind-1",
+      "group": "amb-wind",
+      "pack": "amb",
+      "sourceId": "oga-mild-wind",
+      "input": "oga-mild-wind/wind_background_noise_2.wav",
+      "inputSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 2,
+      "maxSeconds": 5,
+      "highpass": 70,
+      "gainDb": -3
     },
     {
-      "id": "arena-drum-2",
-      "group": "arena-drum",
-      "pack": "arena",
-      "sourceId": "oga-horde-war-drums",
-      "input": "oga-horde-war-drums/horde_war_drums_by_william_hector.wav",
-      "inputSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
-      "gainDb": 0,
-      "startSeconds": 3.7,
-      "maxSeconds": 1.6
+      "id": "amb-wind-2",
+      "group": "amb-wind",
+      "pack": "amb",
+      "sourceId": "oga-mild-wind",
+      "input": "oga-mild-wind/wind_background_noise_2.wav",
+      "inputSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 14,
+      "maxSeconds": 5,
+      "highpass": 70,
+      "gainDb": -3
     },
     {
-      "id": "arena-tick-1",
-      "group": "arena-tick",
-      "pack": "arena",
-      "sourceId": "kenney-ui-audio",
-      "input": "kenney-ui-audio/click2.ogg",
-      "inputSha256": "c394b46bc6737f7f7edfbfa3031ce621b7a43d498d456d6198364eee9cd3e306",
-      "gainDb": -2,
-      "pitch": 0.8
+      "id": "amb-wind-3",
+      "group": "amb-wind",
+      "pack": "amb",
+      "sourceId": "oga-mild-wind",
+      "input": "oga-mild-wind/wind_background_noise_2.wav",
+      "inputSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 27,
+      "maxSeconds": 5,
+      "highpass": 70,
+      "gainDb": -3
     },
     {
-      "id": "arena-gong-1",
-      "group": "arena-gong",
-      "pack": "arena",
+      "id": "amb-wind-4",
+      "group": "amb-wind",
+      "pack": "amb",
+      "sourceId": "oga-mild-wind",
+      "input": "oga-mild-wind/wind_background_noise_2.wav",
+      "inputSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 37,
+      "maxSeconds": 5,
+      "highpass": 70,
+      "gainDb": -3
+    },
+    {
+      "id": "amb-wave-1",
+      "group": "amb-wave",
+      "pack": "amb",
+      "sourceId": "oga-wave-01",
+      "input": "oga-wave-01/wave_01_cc0-18363__jasinski__alkaibeach.flac",
+      "inputSha256": "fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c",
+      "fadeIn": 0.3,
+      "fadeOut": 0.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-wave-2",
+      "group": "amb-wave",
+      "pack": "amb",
+      "sourceId": "oga-wave-02",
+      "input": "oga-wave-02/wave_02_cc0-18363__jasinski__alkaibeach.flac",
+      "inputSha256": "53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096",
+      "fadeIn": 0.3,
+      "fadeOut": 0.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-wave-3",
+      "group": "amb-wave",
+      "pack": "amb",
+      "sourceId": "oga-wave-03",
+      "input": "oga-wave-03/wave_03_cc0-18363__jasinski__alkaibeach.flac",
+      "inputSha256": "fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054",
+      "fadeIn": 0.3,
+      "fadeOut": 0.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-wave-4",
+      "group": "amb-wave",
+      "pack": "amb",
+      "sourceId": "oga-wave-04",
+      "input": "oga-wave-04/wave_04_cc0-18363__jasinski__alkaibeach.flac",
+      "inputSha256": "3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b",
+      "fadeIn": 0.3,
+      "fadeOut": 0.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-bird-1",
+      "group": "amb-bird",
+      "pack": "amb",
+      "sourceId": "oga-ambient-birds",
+      "input": "oga-ambient-birds/birds-isaiah658_0.ogg",
+      "inputSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 0,
+      "maxSeconds": 3.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-bird-2",
+      "group": "amb-bird",
+      "pack": "amb",
+      "sourceId": "oga-ambient-birds",
+      "input": "oga-ambient-birds/birds-isaiah658_0.ogg",
+      "inputSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 7,
+      "maxSeconds": 3.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-bird-3",
+      "group": "amb-bird",
+      "pack": "amb",
+      "sourceId": "oga-ambient-birds",
+      "input": "oga-ambient-birds/birds-isaiah658_0.ogg",
+      "inputSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 15,
+      "maxSeconds": 3.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-bird-4",
+      "group": "amb-bird",
+      "pack": "amb",
+      "sourceId": "oga-ambient-birds",
+      "input": "oga-ambient-birds/birds-isaiah658_0.ogg",
+      "inputSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 23,
+      "maxSeconds": 3.6,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-bird-5",
+      "group": "amb-bird",
+      "pack": "amb",
+      "sourceId": "oga-bird-chirping",
+      "input": "oga-bird-chirping/birdchirping071414.wav",
+      "inputSha256": "bc6e28bd823b653b2abf3384d4147718603af6bcd98e26166345df71a61eeb08",
+      "fadeIn": 0.1,
+      "fadeOut": 0.5,
+      "gainDb": -2
+    },
+    {
+      "id": "amb-cricket-1",
+      "group": "amb-cricket",
+      "pack": "amb",
+      "sourceId": "oga-crickets",
+      "input": "oga-crickets/crickets_1.mp3",
+      "inputSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 0,
+      "maxSeconds": 3.7,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-cricket-2",
+      "group": "amb-cricket",
+      "pack": "amb",
+      "sourceId": "oga-crickets",
+      "input": "oga-crickets/crickets_1.mp3",
+      "inputSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 3.8,
+      "maxSeconds": 3.7,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-cricket-3",
+      "group": "amb-cricket",
+      "pack": "amb",
+      "sourceId": "oga-crickets",
+      "input": "oga-crickets/crickets_1.mp3",
+      "inputSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 7.6,
+      "maxSeconds": 3.7,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-fire-1",
+      "group": "amb-fire",
+      "pack": "amb",
+      "sourceId": "oga-fireplace",
+      "input": "oga-fireplace/fire.wav",
+      "inputSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 2,
+      "maxSeconds": 4,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-fire-2",
+      "group": "amb-fire",
+      "pack": "amb",
+      "sourceId": "oga-fireplace",
+      "input": "oga-fireplace/fire.wav",
+      "inputSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 10,
+      "maxSeconds": 4,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-fire-3",
+      "group": "amb-fire",
+      "pack": "amb",
+      "sourceId": "oga-fireplace",
+      "input": "oga-fireplace/fire.wav",
+      "inputSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 18,
+      "maxSeconds": 4,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-fire-4",
+      "group": "amb-fire",
+      "pack": "amb",
+      "sourceId": "oga-fireplace",
+      "input": "oga-fireplace/fire.wav",
+      "inputSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
+      "fadeIn": 0.5,
+      "fadeOut": 0.7,
+      "startSeconds": 24,
+      "maxSeconds": 4,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-bell-1",
+      "group": "amb-bell",
+      "pack": "amb",
       "sourceId": "oga-100-cc0-sfx",
-      "input": "oga-100-cc0-sfx/gong_01.ogg",
-      "inputSha256": "4780a38e91688b59899b3679cf3534b4b75654b45a177af9d9fb681c447f7f9a",
-      "gainDb": 0,
-      "pitch": 0.75,
-      "maxSeconds": 2.2
+      "input": "oga-100-cc0-sfx/bell_01.ogg",
+      "inputSha256": "b29cf8f3885eb2a266a16455227288dd3e004ea0414d2823b1a8677915f862d1",
+      "pitch": 0.85,
+      "echoMs": 140,
+      "fadeOut": 0.6,
+      "lowpass": 5000,
+      "gainDb": -3
     },
     {
-      "id": "arena-gong-2",
-      "group": "arena-gong",
-      "pack": "arena",
+      "id": "amb-bell-2",
+      "group": "amb-bell",
+      "pack": "amb",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/bell_03.ogg",
+      "inputSha256": "9440896c5ffbc85d045b88953057d12019ddbf052f3694615216d83161a9e2d9",
+      "pitch": 0.8,
+      "echoMs": 160,
+      "fadeOut": 0.6,
+      "lowpass": 5000,
+      "gainDb": -3
+    },
+    {
+      "id": "amb-bell-3",
+      "group": "amb-bell",
+      "pack": "amb",
       "sourceId": "kenney-impact-sounds",
       "input": "kenney-impact-sounds/impactBell_heavy_000.ogg",
       "inputSha256": "94b8bb5f2d43ab65e4bcc32b28562416e9bc2c51d9fd4be1e333660ee52f977f",
-      "gainDb": 0,
-      "pitch": 0.8,
-      "maxSeconds": 2.2
+      "pitch": 0.75,
+      "echoMs": 180,
+      "fadeOut": 0.6,
+      "lowpass": 5000,
+      "gainDb": -3
     },
     {
-      "id": "arena-heart-1",
-      "group": "arena-heart",
-      "pack": "arena",
-      "sourceId": "oga-heartbeat-single",
-      "input": "oga-heartbeat-single/heartbeat.flac",
-      "inputSha256": "7fe0850daa5c92c6a204fbb0a719ee8f8d2979e3416033d796abd6e30f3c118a",
-      "gainDb": -1,
-      "maxSeconds": 1.0
+      "id": "ui-open-1",
+      "group": "ui-open",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/open_002.ogg",
+      "inputSha256": "24ff224fe2c09c6aed1b41249825382dc74cf324b887ff279d8494912ce2beee"
+    },
+    {
+      "id": "ui-open-2",
+      "group": "ui-open",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/open_003.ogg",
+      "inputSha256": "bcdca6b5c9c33aa15ca3fb18a1fa8d98a01b528b85be08c5a610e57c75fc022d"
+    },
+    {
+      "id": "ui-open-3",
+      "group": "ui-open",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/bookOpen.ogg",
+      "inputSha256": "953390534377222bee89ac8cd9e60a58fdc037c71a4d7c18c43cd647c7f34ba8",
+      "gainDb": -2
+    },
+    {
+      "id": "ui-close-1",
+      "group": "ui-close",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/close_001.ogg",
+      "inputSha256": "44af8249b933e0fd35ec957a638bb1a0b01f85b53fbe9674bf77bd3ca3168ef4"
+    },
+    {
+      "id": "ui-close-2",
+      "group": "ui-close",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/close_003.ogg",
+      "inputSha256": "39a1a7f3bc001766c1881841e9903c6b16f5a10b5666e0791d7f6444677d8b05"
+    },
+    {
+      "id": "ui-close-3",
+      "group": "ui-close",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/bookClose.ogg",
+      "inputSha256": "81e976532565f4372abd14e83d2684195fa548d0a28d345de221e56052454f32",
+      "gainDb": -2
+    },
+    {
+      "id": "ui-drag-1",
+      "group": "ui-drag",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/handleSmallLeather.ogg",
+      "inputSha256": "ae3cbf695aa0a8b98b5a80a835be5a3ccbd5446a24db2235cd4c3cd6fc92ed96",
+      "gainDb": -3
+    },
+    {
+      "id": "ui-drag-2",
+      "group": "ui-drag",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/handleSmallLeather2.ogg",
+      "inputSha256": "a66f6db5918ad016c28a9f2768f127a7f39b5fa04481e5a3b4e78ebe2a1c282d",
+      "gainDb": -3
+    },
+    {
+      "id": "ui-drag-3",
+      "group": "ui-drag",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/cloth2.ogg",
+      "inputSha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+      "gainDb": -3
+    },
+    {
+      "id": "ui-drop-1",
+      "group": "ui-drop",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/bookPlace1.ogg",
+      "inputSha256": "26f3ce60fbde85b678b0ad7f6624d80535fe540d88232ad1e38e47a96662d977",
+      "gainDb": -2
+    },
+    {
+      "id": "ui-drop-2",
+      "group": "ui-drop",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/bookPlace2.ogg",
+      "inputSha256": "831874e8fd142d4d0a03ff009f1f83966338a7878c0f6f38c613ae5b80dd731e",
+      "gainDb": -2
+    },
+    {
+      "id": "ui-drop-3",
+      "group": "ui-drop",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/bookPlace3.ogg",
+      "inputSha256": "b1afa711e1cabfe5b2c56e20e20e0f9d82142d067727447fa992ddc43dbdb06e",
+      "gainDb": -2
+    },
+    {
+      "id": "ui-equip-1",
+      "group": "ui-equip",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/metalLatch.ogg",
+      "inputSha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708"
+    },
+    {
+      "id": "ui-equip-2",
+      "group": "ui-equip",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/metalClick.ogg",
+      "inputSha256": "9851a69d0c613e13bceef08060ecc4148f098ef487927cbebe270d642398a3b3"
+    },
+    {
+      "id": "ui-equip-3",
+      "group": "ui-equip",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/beltHandle1.ogg",
+      "inputSha256": "2ef665bd8b65dbe669f4560be38a6d8f04a162e618b15a49e3e71b58e558aab0"
+    },
+    {
+      "id": "ui-equip-4",
+      "group": "ui-equip",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/clothBelt.ogg",
+      "inputSha256": "f29560a2aea95bbfeb643e1e8f56ec2b6f7e32f32ce4e140645a36db81de3253"
+    },
+    {
+      "id": "ui-enhance-ok-1",
+      "group": "ui-enhance-ok",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/confirmation_002.ogg",
+      "inputSha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c"
+    },
+    {
+      "id": "ui-enhance-ok-2",
+      "group": "ui-enhance-ok",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/confirmation_003.ogg",
+      "inputSha256": "3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022"
+    },
+    {
+      "id": "ui-enhance-ok-3",
+      "group": "ui-enhance-ok",
+      "pack": "ui",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/item_gem_01.ogg",
+      "inputSha256": "8a5d2964febb0c69cc4df2ee5257d173f2cae6960d9534df0001dbf356f27028"
+    },
+    {
+      "id": "ui-enhance-ok-4",
+      "group": "ui-enhance-ok",
+      "pack": "ui",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/item_gem_03.ogg",
+      "inputSha256": "7b29674b7c8fb0069814623d86fa56a3f370eedcde73d5ce1ecc7339be3a3cba"
+    },
+    {
+      "id": "ui-enhance-fail-1",
+      "group": "ui-enhance-fail",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/error_005.ogg",
+      "inputSha256": "3f75b11df5b06d68d2c25fbf0e9c9d9e7dd9250562a4007ee34856b8a309a2ae",
+      "gainDb": -2
+    },
+    {
+      "id": "ui-enhance-fail-2",
+      "group": "ui-enhance-fail",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/glitch_002.ogg",
+      "inputSha256": "1da06a2e63ce131f5e0316ca27c75fc0d672db7a8f9b986c70693f2bd992eabc",
+      "gainDb": -3
+    },
+    {
+      "id": "ui-enhance-fail-3",
+      "group": "ui-enhance-fail",
+      "pack": "ui",
+      "sourceId": "kenney-rpg-audio",
+      "input": "kenney-rpg-audio/metalPot1.ogg",
+      "inputSha256": "159def979e8e386c2c539f5e99cc30a080eb2dcb6c911fa2e4ccc0785b2522fd",
+      "lowpass": 4000
+    },
+    {
+      "id": "ui-rare-1",
+      "group": "ui-rare",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/glass_002.ogg",
+      "inputSha256": "08e972c73e53c91d6d310e107e80db60edce78ae47225889a028e628a6f3da49",
+      "echoMs": 90
+    },
+    {
+      "id": "ui-rare-2",
+      "group": "ui-rare",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/glass_004.ogg",
+      "inputSha256": "2379b58f953e3d86982aa8cddcae763022c6258e9820171bf905ce58b4e97766",
+      "echoMs": 90
+    },
+    {
+      "id": "ui-rare-3",
+      "group": "ui-rare",
+      "pack": "ui",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/item_gem_04.ogg",
+      "inputSha256": "e12eb95d0458675c2692831454ed09c7a680de966e7c705ce67a7e12560aa73a",
+      "pitch": 1.12,
+      "echoMs": 90
+    },
+    {
+      "id": "pk-open-1",
+      "group": "pk-open",
+      "pack": "pk",
+      "sourceId": "oga-horde-war-drums",
+      "input": "oga-horde-war-drums/horde_war_drums_by_william_hector.wav",
+      "inputSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "startSeconds": 0,
+      "maxSeconds": 3.69,
+      "fadeOut": 0.3,
+      "gainDb": -1
+    },
+    {
+      "id": "pk-open-2",
+      "group": "pk-open",
+      "pack": "pk",
+      "sourceId": "oga-horde-war-drums",
+      "input": "oga-horde-war-drums/horde_war_drums_by_william_hector.wav",
+      "inputSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "startSeconds": 7.38,
+      "maxSeconds": 3.69,
+      "fadeOut": 0.3,
+      "gainDb": -1
+    },
+    {
+      "id": "pk-open-3",
+      "group": "pk-open",
+      "pack": "pk",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/gong_02.ogg",
+      "inputSha256": "eb53bd74d92ed2422568ed5770615b177b0a4d281f55959e6aa263d756412524",
+      "pitch": 0.9,
+      "fadeOut": 0.5
+    },
+    {
+      "id": "pk-count-1",
+      "group": "pk-count",
+      "pack": "pk",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/wooden_01.ogg",
+      "inputSha256": "e7f7b1243ecd6ff3487eee1540de56f38fac606fe6218bdd49a91efc29ae1b9a",
+      "maxSeconds": 0.5
+    },
+    {
+      "id": "pk-count-2",
+      "group": "pk-count",
+      "pack": "pk",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/wooden_02.ogg",
+      "inputSha256": "a6f6edf91a63c5af9059f70df0ac4e3fcee2c57342dc41dd3a166810365392fd",
+      "maxSeconds": 0.5
+    },
+    {
+      "id": "pk-count-3",
+      "group": "pk-count",
+      "pack": "pk",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/wooden_03.ogg",
+      "inputSha256": "864c68b8622eaf900f2b9932d2998cc9840dc95b61a148e37550ddb382c92777",
+      "maxSeconds": 0.5
+    },
+    {
+      "id": "pk-go-1",
+      "group": "pk-go",
+      "pack": "pk",
+      "sourceId": "kenney-impact-sounds",
+      "input": "kenney-impact-sounds/impactBell_heavy_000.ogg",
+      "inputSha256": "94b8bb5f2d43ab65e4bcc32b28562416e9bc2c51d9fd4be1e333660ee52f977f",
+      "fadeOut": 0.3
+    },
+    {
+      "id": "pk-go-2",
+      "group": "pk-go",
+      "pack": "pk",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/gong_01.ogg",
+      "inputSha256": "4780a38e91688b59899b3679cf3534b4b75654b45a177af9d9fb681c447f7f9a",
+      "pitch": 1.1,
+      "fadeOut": 0.4
+    },
+    {
+      "id": "pk-kill-1",
+      "group": "pk-kill",
+      "pack": "pk",
+      "sourceId": "kenney-impact-sounds",
+      "input": "kenney-impact-sounds/impactPunch_medium_001.ogg",
+      "inputSha256": "e71d23abcc3f10d9d6bc9615b2a431fff70b12333a5fcdd9964457564ace4349",
+      "pitch": 0.8,
+      "echoMs": 90
+    },
+    {
+      "id": "pk-kill-2",
+      "group": "pk-kill",
+      "pack": "pk",
+      "sourceId": "kenney-impact-sounds",
+      "input": "kenney-impact-sounds/impactPlate_medium_001.ogg",
+      "inputSha256": "68ba7701b71ef620f498f3038e832157d71ac8db7ad59424545890b250ceb24e",
+      "pitch": 0.85,
+      "echoMs": 90
+    },
+    {
+      "id": "pk-kill-3",
+      "group": "pk-kill",
+      "pack": "pk",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/blade_03.ogg",
+      "inputSha256": "2cd9e6926f4602a4350e703eeae4df520053e290f358ab692632d651ad368a7c",
+      "echoMs": 120,
+      "gainDb": -1
+    },
+    {
+      "id": "pk-heartbeat-1",
+      "group": "pk-heartbeat",
+      "pack": "pk",
+      "sourceId": "oga-heartbeat-slow",
+      "input": "oga-heartbeat-slow/heartbeat_slow_0.wav",
+      "inputSha256": "ce5d2bbe4c9e2a8843fc76419070b9e88f71b2aa4ba7226a5f50a6b45d13be60",
+      "lowpass": 900,
+      "gainDb": -1
+    },
+    {
+      "id": "pk-heartbeat-2",
+      "group": "pk-heartbeat",
+      "pack": "pk",
+      "sourceId": "oga-heartbeat-fast",
+      "input": "oga-heartbeat-fast/heartbeat_fast_0.wav",
+      "inputSha256": "cda9235df232a5a06724a02798f7240e3e6eca96a992fa5560edd5b4b24823ce",
+      "lowpass": 900,
+      "gainDb": -1
     }
   ]
 }

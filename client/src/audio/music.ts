@@ -3,15 +3,19 @@ import { AUDIO_RANGE } from "./spatial.ts";
 /** Định dạng nhạc dựng sẵn (tools/audio/compose): Vorbis cho đa số trình duyệt, AAC cho Safari / iOS. */
 export type MusicFormat = "ogg" | "m4a";
 /** Sự kiện có khúc ngắn (`event` của bài `kind: "jingle"` trong manifest). */
-export type MusicEvent = "level_up" | "ring_absorb" | "arena_win" | "arena_lose" | "quest_accept" | "quest_complete";
+export type MusicEvent = "level_up" | "ring_absorb" | "arena_win" | "arena_lose" | "quest_accept" | "quest_complete" | "crit_big" | "boss_down";
 
 /** Một bài trong `shared/assets/audio/music/manifest.json` (do `tools/audio/compose/compose.mjs` ghi). */
 export interface MusicTrack {
   id: string;
   title: string;
-  kind: "map" | "battle" | "jingle";
+  kind: "map" | "battle" | "jingle" | "stem";
   maps?: string[];
   event?: string;
+  /** Chỉ `kind: "stem"`: id bài nền mà lớp này chồng lên (cùng nhịp, cùng độ dài vòng, mono). */
+  of?: string;
+  /** Chỉ stem của bài giao chiến boss: pha boss (2 = nổi giận) bật lớp này. */
+  phase?: number;
   loop: boolean;
   /** Độ dài file, làm tròn tới ms; điểm lặp là cả file (phát từ 0 tới hết rồi quay lại 0), độ dài đúng theo `musicLoopSeconds`. */
   seconds: number;
@@ -28,6 +32,11 @@ export interface MusicStatus {
   /** Bài đang phát (đã mờ vào hoặc đang mờ vào); null = im. */
   playing: string | null;
   jingle: MusicEvent | null;
+  /** Đang giao chiến (lớp giao chiến của bài nền bản đồ đang lên) / pha boss. */
+  combat: boolean;
+  bossPhase: number;
+  /** Stem đang gắn vào bài đang phát; null = chưa có hay bản đồ không có lớp giao chiến. */
+  stem: string | null;
   /** Các file đã tải (theo thứ tự), để thấy tải lười theo bản đồ. */
   fetched: string[];
 }
@@ -51,8 +60,21 @@ export const MUSIC_DUCK_RELEASE_S = 0.8;
 /** Hạ nhạc nền vì tiếng hiệu ứng lớn (`MusicPlayer.duckFor`): hạ nhanh, trả lại chậm hơn một chút. */
 export const MUSIC_LOUD_ATTACK_S = 0.06;
 export const MUSIC_LOUD_RELEASE_S = 0.5;
-/** Hết giao chiến boss bao lâu (ms) mới mờ về nhạc bản đồ, để đánh giật cục không đổi bài liên tục. */
-export const MUSIC_BATTLE_HOLD_MS = 4000;
+/** Hết giao chiến bao lâu (ms) mới mờ về nhạc thám hiểm / nhạc bản đồ, để đánh giật cục không đổi bài liên tục (G5, #396). */
+export const MUSIC_BATTLE_HOLD_MS = 8000;
+export const MUSIC_COMBAT_HOLD_MS = 8000;
+/** Chuyển dần giữa lớp thám hiểm và lớp giao chiến (cùng nhịp nên chồng đồng bộ, chỉ kéo âm lượng). */
+export const MUSIC_COMBAT_FADE_S = 1.5;
+/** Bài nền bản đồ hạ còn tỉ lệ này khi lớp giao chiến lên (lớp giao chiến lên 1). */
+export const MUSIC_COMBAT_BASE_GAIN = 0.55;
+/** Số lớp giao chiến đã giải mã giữ trong bộ nhớ (mono nên nhẹ, ~15 MB PCM mỗi lớp). */
+export const MUSIC_CACHE_STEMS = 3;
+/** Đánh nhau trong tầm này (pixel thế giới) quanh mình mới tính là giao chiến cho nhạc. */
+export const MUSIC_COMBAT_RANGE = AUDIO_RANGE;
+/** Chí mạng lớn: sát thương chí mạng ≥ tỉ lệ này của sinh lực tối đa của mình (stinger `crit_big`). */
+export const MUSIC_BIG_CRIT_FRACTION = 0.2;
+/** Pha boss từ đây trở lên (nổi giận) thì nhạc giao chiến boss lên một nấc. */
+export const MUSIC_BOSS_RAGE_PHASE = 2;
 /** Boss / thú vương trong tầm này (pixel thế giới) mới tính là đang giao chiến. */
 export const MUSIC_BATTLE_RANGE = AUDIO_RANGE;
 /** Số bài nền đã giải mã giữ trong bộ nhớ (mỗi bài ~30–40 MB PCM): bản đồ hiện tại, bài giao chiến, bản đồ vừa rời. */
@@ -65,8 +87,12 @@ export const MUSIC_RENDER_RATE = 44100;
 export const MUSIC_LOOP_BLOCK = 1024;
 /** Khúc ngắn ưu tiên cao hơn thì cắt khúc đang phát; bằng hoặc thấp hơn thì bỏ (hấp thụ hồn hoàn kéo theo lên cấp). */
 export const MUSIC_EVENT_PRIORITY: Readonly<Record<MusicEvent, number>> = {
-  arena_win: 5, arena_lose: 5, ring_absorb: 4, level_up: 3, quest_complete: 2, quest_accept: 1,
+  boss_down: 5, arena_win: 5, arena_lose: 5, ring_absorb: 4, level_up: 3, quest_complete: 2, quest_accept: 1, crit_big: 0.5,
 };
+/** Nhạc nền hạ còn tỉ lệ này lúc khúc ngắn phát (mặc định MUSIC_DUCK_GAIN); stinger chí mạng nhẹ tay hơn vì ngắn và hay gặp. */
+export const MUSIC_EVENT_DUCK: Readonly<Partial<Record<MusicEvent, number>>> = { crit_big: 0.6 };
+/** Cùng một khúc ngắn không phát lại trong chừng này ms (chí mạng lớn không được dội liên tục). */
+export const MUSIC_EVENT_COOLDOWN_MS: Readonly<Partial<Record<MusicEvent, number>>> = { crit_big: 12_000 };
 
 /**
  * Safari và mọi trình duyệt trên iOS / iPadOS (đều là WebKit) dùng m4a: giải mã Vorbis trong WebAudio ở đó không chắc chắn dù
@@ -92,18 +118,30 @@ export function browserMusicFormat(): MusicFormat {
   } catch { return "m4a"; }
 }
 
-export interface MusicBeast { x: number; y: number; rank: number; hp: number; aggro: boolean; parts: number; }
+export interface MusicBeast { x: number; y: number; rank: number; hp: number; aggro: boolean; parts: number; phase?: number; }
 
 /**
  * Đang giao chiến boss thế giới / thú vương (rank ≥ 2, mục 5.4): con còn sống trong MUSIC_BATTLE_RANGE đang hung hăng hoặc đã có
  * người góp sát thương. Chỉ đọc state server đã đồng bộ (hồn thú ở gần, 11.4).
  */
 export function bossEngaged(beasts: { forEach(cb: (b: MusicBeast) => void): void }, me: { x: number; y: number }): boolean {
-  let on = false;
+  return bossPhase(beasts, me) > 0;
+}
+
+/** Pha cao nhất (tối thiểu 1) trong các boss đang giao chiến như `bossEngaged`; 0 = không có boss giao chiến. */
+export function bossPhase(beasts: { forEach(cb: (b: MusicBeast) => void): void }, me: { x: number; y: number }): number {
+  let phase = 0;
   beasts.forEach((b) => {
-    if (!on && b.rank >= 2 && b.hp > 0 && (b.aggro || b.parts > 0) && Math.hypot(b.x - me.x, b.y - me.y) < MUSIC_BATTLE_RANGE) on = true;
+    if (b.rank >= 2 && b.hp > 0 && (b.aggro || b.parts > 0) && Math.hypot(b.x - me.x, b.y - me.y) < MUSIC_BATTLE_RANGE) phase = Math.max(phase, b.phase || 1);
   });
-  return on;
+  return phase;
+}
+
+/** Tin `dmg` có phải giao chiến quanh `me` (nhạc động) và có phải chí mạng lớn (stinger). Hồi máu, khiên, miễn nhiễm không tính. */
+export function combatHit(m: { x: number; y: number; v: number; crit?: boolean; heal?: boolean; shield?: boolean; immune?: boolean },
+  me: { x: number; y: number; maxHp: number } | undefined): { combat: boolean; bigCrit: boolean } {
+  if (!me || m.heal || m.shield || m.immune || Math.hypot(m.x - me.x, m.y - me.y) > MUSIC_COMBAT_RANGE) return { combat: false, bigCrit: false };
+  return { combat: true, bigCrit: !!m.crit && me.maxHp > 0 && m.v >= me.maxHp * MUSIC_BIG_CRIT_FRACTION };
 }
 
 export async function fetchBytes(url: string): Promise<ArrayBuffer> {
@@ -126,7 +164,15 @@ function fade(param: AudioParam, to: number, at: number, seconds: number): void 
   param.linearRampToValueAtTime(to, at + seconds);
 }
 
-interface Voice { id: string; source: AudioBufferSourceNode; gain: GainNode; }
+/**
+ * Bài nền đang phát: `gain` là đường mờ vào / ra khi đổi bài; sau nó là hai lớp cùng nhịp, cùng thời điểm bắt đầu:
+ * bài chính (`base`, hạ nhẹ khi giao chiến) và lớp giao chiến (`stem`, tải nền rồi vào đúng pha vòng lặp).
+ */
+interface Voice {
+  id: string; kind: MusicTrack["kind"]; source: AudioBufferSourceNode; gain: GainNode; base: GainNode;
+  startedAt: number; loop: number; stem: StemLayer | null;
+}
+interface StemLayer { id: string; source: AudioBufferSourceNode; level: GainNode; }
 interface JingleVoice { event: MusicEvent; source: AudioBufferSourceNode; }
 
 /**
@@ -149,15 +195,21 @@ export class MusicPlayer {
   private manifest: Promise<MusicManifest | null> | null = null;
   private readonly buffers = new Map<string, Promise<AudioBuffer | null>>();
   private readonly jingles = new Map<string, Promise<AudioBuffer | null>>();
+  private readonly stems = new Map<string, Promise<AudioBuffer | null>>();
+  private readonly jingleAt = new Map<MusicEvent, number>();
   private readonly fetched: string[] = [];
   private volume = 0;
   private map: string | null = null;
   private battleUntil = 0;
   private battle = false;
+  private combatUntil = 0;
+  private combat = false;
+  private bossLevel = 0;
   private voice: Voice | null = null;
   private jingleVoice: JingleVoice | null = null;
   private pending: Promise<void> = Promise.resolve();
   private jinglePending: Promise<void> = Promise.resolve();
+  private stemPending: Promise<void> = Promise.resolve();
   private retries = 0;
   private retryArmed = false;
 
@@ -181,15 +233,16 @@ export class MusicPlayer {
 
   status(): MusicStatus {
     return { format: this.fmt, state: this.context.state, volume: this.volume, map: this.map, battle: this.battle,
-      playing: this.voice?.id ?? null, jingle: this.jingleVoice?.event ?? null, fetched: [...this.fetched] };
+      playing: this.voice?.id ?? null, jingle: this.jingleVoice?.event ?? null, combat: this.combat, bossPhase: this.bossLevel,
+      stem: this.voice?.stem?.id ?? null, fetched: [...this.fetched] };
   }
 
   /** Chờ các lượt đổi bài / khúc ngắn đang tải xong (bài thử chờ theo trạng thái, không ngủ cố định). */
   async whenIdle(): Promise<void> {
     for (;;) {
-      const p = this.pending, j = this.jinglePending;
-      await Promise.all([p, j]);
-      if (p === this.pending && j === this.jinglePending) return;
+      const p = this.pending, j = this.jinglePending, s = this.stemPending;
+      await Promise.all([p, j, s]);
+      if (p === this.pending && j === this.jinglePending && s === this.stemPending) return;
     }
   }
 
@@ -221,7 +274,32 @@ export class MusicPlayer {
     this.retries = 0;
     this.battle = false;
     this.battleUntil = 0;
+    this.combat = false;
+    this.combatUntil = 0;
+    this.bossLevel = 0;
     this.sync();
+  }
+
+  /**
+   * Có giao chiến (đánh / bị đánh gần mình): lớp giao chiến của bài nền lên trong MUSIC_COMBAT_FADE_S, bài chính hạ nhẹ. Gọi mỗi lần
+   * có sự kiện; MUSIC_COMBAT_HOLD_MS sau lần cuối (kiểm trong `tick`) thì mờ về lớp thám hiểm. Bản đồ không có lớp giao chiến (thành) thì không đổi.
+   */
+  combatPulse(): void {
+    this.combatUntil = this.now() + MUSIC_COMBAT_HOLD_MS;
+    if (!this.combat) { this.combat = true; this.mixLayers(); }
+  }
+
+  /** Pha boss đang giao chiến (0 = không có, 1, 2 = nổi giận): pha ≥ MUSIC_BOSS_RAGE_PHASE thì nhạc giao chiến boss lên một nấc. Gọi mỗi khung. */
+  setBossPhase(phase: number): void {
+    const p = Number.isFinite(phase) ? Math.max(0, Math.floor(phase)) : 0;
+    if (p === this.bossLevel) return;
+    this.bossLevel = p;
+    this.mixLayers();
+  }
+
+  /** Gọi mỗi khung: hết MUSIC_COMBAT_HOLD_MS không có `combatPulse` thì về lớp thám hiểm. */
+  tick(): void {
+    if (this.combat && this.now() >= this.combatUntil) { this.combat = false; this.mixLayers(); }
   }
 
   /** Gọi mỗi khung: đang giao chiến boss / thú vương thì phát bài giao chiến; hết giao chiến MUSIC_BATTLE_HOLD_MS mới mờ về. */
@@ -239,6 +317,8 @@ export class MusicPlayer {
     if (!this.audible()) return;
     const cur = this.jingleVoice;
     if (cur && MUSIC_EVENT_PRIORITY[cur.event] >= MUSIC_EVENT_PRIORITY[event]) return;
+    const cooldown = MUSIC_EVENT_COOLDOWN_MS[event], last = this.jingleAt.get(event);
+    if (cooldown && last !== undefined && this.now() - last < cooldown) return;
     this.jinglePending = this.jinglePending.then(() => this.playJingle(event)).catch(() => {});
   }
 
@@ -296,6 +376,10 @@ export class MusicPlayer {
     // Trong lúc tải đã đổi ý (đổi bản đồ tiếp, hết giao chiến): lượt sync sau trong chuỗi sẽ xử lý.
     if (m && (this.pick(m)?.id ?? null) !== (track?.id ?? null)) return;
     this.crossfade(track, buffer);
+    if (this.voice && m && track) {
+      const voice = this.voice;
+      this.stemPending = this.stemPending.then(() => this.attachStem(voice, track, m)).catch((e) => this.log(`lỗi gắn lớp giao chiến: ${String(e)}`));
+    }
     if (track && !buffer) this.retryLater();
     else this.retries = 0;
   }
@@ -305,25 +389,64 @@ export class MusicPlayer {
     if (old) {
       fade(old.gain.gain, 0, t, MUSIC_FADE_S);
       try { old.source.stop(t + MUSIC_FADE_S + 0.05); } catch { /* đã dừng */ }
+      try { old.stem?.source.stop(t + MUSIC_FADE_S + 0.05); } catch { /* đã dừng */ }
     }
     this.voice = null;
     if (track && buffer) {
-      const source = context.createBufferSource(), gain = context.createGain();
-      source.buffer = buffer;
-      source.loop = true;
-      // Lặp cả buffer; chỉ khi bộ giải mã đệm thêm mẫu ở cuối (dài hơn vòng thật) mới cắt ở đúng độ dài vòng.
-      const loop = musicLoopSeconds(track.seconds);
-      source.loopStart = 0;
-      source.loopEnd = loop < buffer.duration - 1 / buffer.sampleRate ? loop : 0;
+      const source = this.loopSource(track, buffer), gain = context.createGain(), base = context.createGain();
       gain.gain.value = 0;
       fade(gain.gain, 1, t, MUSIC_FADE_S);
-      source.connect(gain);
+      base.gain.value = 1;
+      source.connect(base);
+      base.connect(gain);
       gain.connect(this.duck);
-      source.addEventListener("ended", () => { source.disconnect(); gain.disconnect(); }, { once: true });
+      source.addEventListener("ended", () => { source.disconnect(); base.disconnect(); gain.disconnect(); }, { once: true });
       source.start(t);
-      this.voice = { id: track.id, source, gain };
+      this.voice = { id: track.id, kind: track.kind, source, gain, base, startedAt: t, loop: musicLoopSeconds(track.seconds), stem: null };
+      this.mixLayers(true);
     }
     this.log(`${old?.id ?? "(im)"} → ${this.voice?.id ?? "(im)"} · bản đồ ${this.map ?? "-"}${this.battle ? " · giao chiến" : ""} · ${this.fmt} · context ${context.state}`);
+  }
+
+  /** Nguồn lặp cả buffer; chỉ khi bộ giải mã đệm thêm mẫu ở cuối (dài hơn vòng thật) mới cắt ở đúng độ dài vòng. */
+  private loopSource(track: MusicTrack, buffer: AudioBuffer): AudioBufferSourceNode {
+    const source = this.context.createBufferSource(), loop = musicLoopSeconds(track.seconds);
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = 0;
+    source.loopEnd = loop < buffer.duration - 1 / buffer.sampleRate ? loop : 0;
+    return source;
+  }
+
+  /** Mức hai lớp cần có lúc này: bài bản đồ giao chiến thì lớp giao chiến lên 1, bài chính hạ; bài boss thì lớp nâng cấp lên khi pha ≥ 2. */
+  private layerTargets(voice: Voice): { base: number; stem: number } {
+    if (voice.kind === "battle") return { base: 1, stem: this.bossLevel >= MUSIC_BOSS_RAGE_PHASE ? 1 : 0 };
+    return this.combat ? { base: MUSIC_COMBAT_BASE_GAIN, stem: 1 } : { base: 1, stem: 0 };
+  }
+
+  /** Kéo âm lượng hai lớp về mức cần có trong MUSIC_COMBAT_FADE_S (`instant`: đặt ngay, lúc vừa tạo bài). */
+  private mixLayers(instant = false): void {
+    const voice = this.voice;
+    if (!voice) return;
+    const t = this.context.currentTime, target = this.layerTargets(voice), seconds = instant ? 0 : MUSIC_COMBAT_FADE_S;
+    fade(voice.base.gain, target.base, t, seconds);
+    if (voice.stem) fade(voice.stem.level.gain, target.stem, t, seconds);
+  }
+
+  /** Tải lớp giao chiến của bài (nếu bài có) rồi vào đúng pha vòng lặp của bài chính; bài đã đổi trong lúc tải thì bỏ. */
+  private async attachStem(voice: Voice, track: MusicTrack, m: MusicManifest): Promise<void> {
+    const stemTrack = m.tracks.find((x) => x.kind === "stem" && x.of === track.id);
+    if (!stemTrack) return;
+    const buffer = await this.cached(this.stems, stemTrack, MUSIC_CACHE_STEMS);
+    if (!buffer || this.voice !== voice || voice.stem) return;
+    const context = this.context, t = context.currentTime, source = this.loopSource(stemTrack, buffer), level = context.createGain();
+    level.gain.value = 0;
+    source.connect(level);
+    level.connect(voice.gain);
+    source.addEventListener("ended", () => { source.disconnect(); level.disconnect(); }, { once: true });
+    source.start(t, Math.max(0, t - voice.startedAt) % voice.loop);
+    voice.stem = { id: stemTrack.id, source, level };
+    this.mixLayers();
   }
 
   private async playJingle(event: MusicEvent): Promise<void> {
@@ -339,13 +462,15 @@ export class MusicPlayer {
     source.buffer = buffer;
     source.connect(this.bus);
     const g = this.duck.gain;
-    fade(g, MUSIC_DUCK_GAIN, t, MUSIC_DUCK_ATTACK_S);
-    g.setValueAtTime(MUSIC_DUCK_GAIN, end);
+    const depth = MUSIC_EVENT_DUCK[event] ?? MUSIC_DUCK_GAIN;
+    this.jingleAt.set(event, this.now());
+    fade(g, depth, t, MUSIC_DUCK_ATTACK_S);
+    g.setValueAtTime(depth, end);
     g.linearRampToValueAtTime(1, end + MUSIC_DUCK_RELEASE_S);
     source.addEventListener("ended", () => { if (this.jingleVoice === voice) this.jingleVoice = null; source.disconnect(); }, { once: true });
     source.start(t);
     this.jingleVoice = voice;
-    this.log(`khúc ngắn ${event} (${track.id}), nhạc nền hạ còn ${MUSIC_DUCK_GAIN}`);
+    this.log(`khúc ngắn ${event} (${track.id}), nhạc nền hạ còn ${depth}`);
   }
 
   /**

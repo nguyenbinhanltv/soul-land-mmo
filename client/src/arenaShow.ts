@@ -22,7 +22,7 @@ const BEAT_S: Record<Level, number> = { low: 1.2, mid: 0.9, high: 0.65 };
 const BIG_HIT = 0.2, HIT_GAP_MS = 700, PUNCH_MS = 140; // đòn lớn = mất từ BIG_HIT máu tối đa trong một nhịp state
 const PUNCH: Record<Level, number> = { low: 0, mid: 1.05, high: 1.1 }, SHAKE: Record<Level, number> = { low: 0, mid: 0.004, high: 0.008 };
 
-/** Móc âm thanh (trống mở trận, đếm ngược, tiếng ngân kết liễu, nhịp tim): GameScene nối vào nhóm arena-* của kho tiếng CC0 (art/CREDITS.md). */
+/** Móc âm thanh (trống mở trận, đếm ngược, tiếng ngân kết liễu, nhịp tim): GameScene nối vào nhóm pk-* của kho tiếng CC0 (G5, art/CREDITS.md). */
 export interface ArenaSfx { drum(): void; tick(n: number): void; finisher(): void; heart(): void }
 const NO_SFX: ArenaSfx = { drum() {}, tick() {}, finisher() {}, heart() {} };
 
