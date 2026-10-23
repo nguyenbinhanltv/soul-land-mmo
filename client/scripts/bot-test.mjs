@@ -6209,6 +6209,12 @@ async function tongWeekTest(){
     await pts(C,20); ok((await board(C)).me===20,"C có 20 điểm tuần mới");
     await test(C,"tong",{back:TONG_SWITCH_DAYS+1}); await near(C,H.npc); t=await op(C,{op:"join",tong:H.id});
     ok(C.tong.tong===H.id&&(await board(C)).me===0,`C đổi sang ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+    // Rời tông cũng xoá điểm tuần (#320): C có 60 điểm rồi rời, sang tuần sau không có thưởng tuần của tông cũ.
+    await pts(C,60); ok((await board(C)).me===60,"C có 60 điểm tuần");
+    await near(C,H.npc); t=await op(C,{op:"leave"});
+    ok(C.tong.tong===""&&(await board(C)).me===0&&/điểm tuần này đã bỏ/.test(t),`C rời ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+    await test(A,"tweek",{shift:84}); bd=await board(C);
+    ok(bd.last.reward==null&&!bd.last.claimed,`tuần sau: C đã rời, không có thưởng tuần của tông cũ (${bd.last.reward})`);
   }finally{
     await test(A,"tweek",{shift:0}).catch(()=>{});
     for(const b of [A,B,C]) await b.room.leave().catch(()=>{});
