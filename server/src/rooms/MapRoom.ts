@@ -1672,7 +1672,7 @@ export class MapRoom extends Room<MapState> {
    * tổng tối đa OFFLINE.maxSecs (offlineSplit). Mỗi con: niên hạn và
    * loài tung như hồn thú của vùng, thời gian hạ theo offlineFight (chỉ số võ hồn ra trận lúc vào); kinh nghiệm, Hồn Tệ, mảnh, tiên thảo,
    * hồn cốt / hồn hạch (theo bộ lọc tự săn `bone` / `core`), hồn hoàn (từ `ring` năm, tối đa OFFLINE.rings) như hạ tay. Túi đầy thì dừng
-   * như tự săn; quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
+   * như tự săn (riêng trang bị rơi vào túi đầy thì bị bỏ, không dừng); quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
    * `offline` (bảng nhận thưởng). Vắng dưới OFFLINE.minSecs hoặc vùng không còn (đổi bản đồ) thì bỏ.
    */
   async claimOffline(id: string) {
@@ -1689,7 +1689,7 @@ export class MapRoom extends Room<MapState> {
     const pw = this.offlinePower(d, p);
     const cfg = d.autoCfg, lv = p.level, got = new Map<string, number>(), rings: number[] = [];
     const add = (name: string, n: number) => got.set(name, (got.get(name) ?? 0) + n);
-    let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false;
+    let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false, equipLost = 0;
     // Mỗi vòng một con; mỗi con tốn ít nhất OFFLINE.seek giây nên vòng lặp tối đa secs / seek lần.
     while (!full) {
       const years = this.offlineYears(zone), species = this.offlineSpecies(zone), beast = BEASTS[species]?.id ?? "";
@@ -1711,10 +1711,11 @@ export class MapRoom extends Room<MapState> {
         const h = HERBS[Math.floor(Math.random() * HERBS.length)];
         if (this.addItem(d, h.id, 1)) add(h.name, 1); else full = true;
       }
-      // E2: đá vào túi, trang bị vào túi (không rơi đất khi vắng mặt); túi đầy thì dừng như hồn cốt.
-      for (const e of rollEquipDrop(0, row.mapId, Math.random, 0)) {
+      // E2: đá vào túi (đầy thì dừng như mảnh), trang bị vào túi (không rơi đất khi vắng mặt); trang bị chưa có bộ lọc, bán hay phân giải
+      // nên túi đầy thì bỏ món đó (đếm ở `equipLost`), không dừng cả lượt săn.
+      for (const e of rollEquipDrop(0, row.mapId, this.equipRng(d), 0)) {
         if (e.kind === "stone") { const n = this.addItem(d, e.code, e.qty); if (n) add(itemDef(e.code)?.name ?? e.code, n); if (n < e.qty) full = true; }
-        else { const it = this.addEquip(d, e.item); if (it) add(this.itemLabel(it), 1); else full = true; }
+        else { const it = this.addEquip(d, e.item); if (it) add(this.itemLabel(it), 1); else equipLost++; }
       }
       if (cfg.bone && Math.random() < boneChance(years)) {
         const it = this.addBone(d, years, beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
@@ -1750,7 +1751,7 @@ export class MapRoom extends Room<MapState> {
     this.sendBag(id); this.sendVohons(c); this.sendSquad(id, true); this.sendAuto(id);
     d.offMsg = { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
       items, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus), bonusUsed: Math.round(bonusUsed),
-      ...(stop ? { stop } : {}) };
+      ...(equipLost ? { equipLost } : {}), ...(stop ? { stop } : {}) };
     this.sendOffline(id);
     this.log(id, `Ủy thác ở ${zone.name} (${def.name}): vắng ${autoTimeText(away)}, tính ${autoTimeText(secs)}, hạ ${kills} hồn thú, ` +
       `${formatHonTe(coins)} Hồn Tệ${stop ? ` (dừng: ${stop})` : ""}.`, "#86e0b0");
