@@ -5230,10 +5230,12 @@ async function autoTest(){
     // Y sinh xa cả B lẫn X (hơn tầm aggro BEAST_AGGRO_R), vẫn trong vùng neo: tự săn dắt A đi dạo khắp quanh đó nên A có thể đang đứng sát B,
     // Y sinh trong tầm B thì nhắm B (người gần nhất), tự săn không cướp quái người khác nên A không đánh Y (#305: CI trượt, Y cạnh B, nhắm B,
     // 15 giây không ai đánh). Đánh A–Y xa X để đòn của A không trúng lan sang X.
-    const yAt=[...Array(24).keys()].flatMap(k=>[100,80].map(r=>{ const a=k*Math.PI/12, dx=Math.round(Math.cos(a)*r), dy=Math.round(Math.sin(a)*r), x=me(A).x+dx, y=me(A).y+dy;
-      return {dx,dy,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),bad:hits(gNV,x,y,PLAYER_HW,PLAYER_HH)||inCamp(x,y)||Math.hypot(x-home.x,y-home.y)>200}; }))
-      .filter(c=>!c.bad).sort((u,v)=>v.away-u.away)[0]??{dx:-50,dy:0};
-    sp=await test(A,"spawn",{tier:0,dx:yAt.dx,dy:yAt.dy,years:150}); const Y=sp?.bid;
+    const yCand=[...Array(24).keys()].flatMap(k=>[100,80].map(r=>{ const a=k*Math.PI/12, dx=Math.round(Math.cos(a)*r), dy=Math.round(Math.sin(a)*r), x=me(A).x+dx, y=me(A).y+dy;
+      return {dx,dy,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
+    const yAt=yCand.filter(c=>!c.solid&&!c.far).sort((u,v)=>v.away-u.away)[0];
+    // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
+    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    sp=await test(A,"spawn",{tier:0,dx:yAt?.dx??-50,dy:yAt?.dy??0,years:150}); const Y=sp?.bid;
     let downY=false; const yTrack=[];
     for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){
       downY=await waitFor(()=>!A.room.state.beasts.has(Y),500);
