@@ -4,17 +4,17 @@ import Phaser from "phaser";
 import type { He } from "../../shared/data.ts";
 
 export type FxLevel = "low" | "mid" | "high";
-export interface FxPrefs { level: FxLevel; reduce: boolean }
+export interface FxPrefs { level: FxLevel; reduce: boolean; cine: boolean }
 
 const KEY = "soul-land-fx-v1";
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 
 function load(): FxPrefs {
-  const def: FxPrefs = { level: "mid", reduce: prefersReduce() };
+  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), cine: true };
   try {
     const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce };
+    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, cine: typeof raw.cine === "boolean" ? raw.cine : true };
   } catch { /* hỏng thì dùng mặc định */ }
   return def;
 }

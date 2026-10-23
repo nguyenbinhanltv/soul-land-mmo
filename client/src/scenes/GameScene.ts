@@ -7,7 +7,7 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -28,6 +28,8 @@ import { Weather } from "../weather.ts";
 import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioManager.ts";
 import { STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
+import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
+import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
@@ -171,6 +173,7 @@ export class GameScene extends Phaser.Scene {
   bface = new Map<string, Dir8>();
   /** G1 (#392) cảm giác đánh: lớp hạt dùng chung, dừng hình, nháy trắng / đẩy lùi chỉ hình của hồn thú vừa bị đánh, lần đánh cuối để nhận ra hạ thú. */
   fxp!: ParticleLayer;
+  skfx!: SkillFx; cine = new SkillCine();
   hitstopEnd = 0; hitstopNext = 0; slowmo = 1;
   hitFlash = new Map<string, number>();
   hitKick = new Map<string, { dx: number; dy: number; t0: number }>();
@@ -279,7 +282,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
-      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
+      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.cine.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
@@ -368,6 +371,7 @@ export class GameScene extends Phaser.Scene {
 
     this.ov = this.add.graphics().setDepth(99990);
     this.fxp = new ParticleLayer(this, 99979, SPR);
+    this.skfx = new SkillFx(this, this.fxp);
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
     const cam = this.cameras.main;
     const bb = this.isoMap.bounds();
@@ -1265,6 +1269,23 @@ export class GameScene extends Phaser.Scene {
     this.light.flash(at.x, at.y - 6, col, 60, 600, 1);
   }
 
+  /** G3 (#394): hiệu ứng theo hệ của hồn kỹ vừa tung (kiểu theo `area`, hệ theo bảng hiển thị ở skillFx.ts) + cảnh vòng 7+. Chỉ hình ảnh. */
+  skillFx(m: any, v: PView, sk: SkillDef) {
+    const fd = skillFxOf(VOHON[m.vh].id, m.i, !!m.ct), tc = hex(TIERS[m.tier]?.glow ?? "#ffffff"), r = sk.r * RX;
+    const a = Math.PI / 2 + DIRS8.indexOf(v.face) * (Math.PI / 4), at = this.feet(v);
+    const go = (kind: FxKind, o: { ang?: number; r?: number; dist?: number; x?: number; y?: number } = {}) =>
+      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, ...o });
+    if (sk.area === "proj") {
+      const n = Math.min(sk.n ?? 1, sk.spread && sk.spread >= 360 ? 6 : 3), sp = ((sk.spread ?? 0) * Math.PI) / 180;
+      for (let j = 0; j < n; j++) go("proj", { ang: sk.spread && sk.spread >= 360 ? (j / n) * Math.PI * 2 : a + (n > 1 ? (j / (n - 1) - 0.5) * sp : 0), dist: r * 0.9 });
+    } else if (sk.area === "around") go("zone");
+    else if (sk.area === "front" || sk.area === "dash") go("slash", { r: Math.max(r, 24 * SPR) });
+    else if (sk.area === "self") go("aura");
+    else go("hit", { x: at.x + Math.cos(a) * r * 0.5, y: at.y + Math.sin(a) * r * 0.25 });
+    const me = this.players.get(this.me), mine = m.id === this.me;
+    if (isCinematic(m.i, !!m.ct) && cineAllowed(mine, me ? Math.hypot(me.wx - v.wx, me.wy - v.wy) : 0)) this.cine.show(VOHON[m.vh].id, sk.name, TIERS[m.tier]?.glow ?? "#ffffff", mine);
+  }
+
   soulRingFx(id: string, tier: number, dur: number) {
     const v = this.players.get(id); if (!v) return;
     const g = this.add.graphics().setDepth(99981); const o = { k: 0 }, t = TIERS[tier];
@@ -1344,6 +1365,7 @@ export class GameScene extends Phaser.Scene {
       const sk = v && VOHON[m.vh] ? (m.ct ? chanThanOf(VOHON[m.vh].id)?.skill : ringSkill(VOHON[m.vh].id, m.i)) : undefined;
       if (v && sk) this.floatText(v.root.x, v.root.y - HEAD - 18, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
       if (sk) this.show?.noteSkill(m.id, sk.name);
+      if (v && sk) this.skillFx(m, v, sk);
     }
     else if (m.k === "ult" || m.k === "avatar") {
       // Tuyệt kỹ vòng 10 / Võ Hồn Chân Thân (8.1a): hai vòng sáng, chớp màn hình khi ở gần; chính mình thấy banner, người khác thấy tên lớn bay lên.

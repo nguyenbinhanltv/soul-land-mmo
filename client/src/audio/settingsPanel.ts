@@ -62,7 +62,9 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
     <div class="scale-set" role="group" aria-labelledby="fxLbl"><span id="fxLbl">Hiệu ứng hình ảnh</span>
       <div class="scale-opts">${FX_LEVELS.map(([v, label]) => `<button type="button" data-fx="${v}" aria-pressed="false">${label}</button>`).join("")}
         <button type="button" data-fx-reduce aria-pressed="false" title="Giảm chuyển động
-Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button></div></div>
+Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button>
+        <button type="button" data-fx-cine aria-pressed="false" title="Cảnh hồn kỹ lớn
+Hồn kỹ vòng 7 trở lên: tối màn, chân dung võ hồn trượt ngang, tên chiêu chữ lớn.">Cảnh hồn kỹ lớn</button></div></div>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
   const update = (key: "master" | "music" | "sfx" | "ui" | "ambient", value: number) => {
     audio.updateSettings({ [key]: value });
@@ -94,9 +96,11 @@ Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Gi
   const renderFx = () => {
     el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.fx === fxPrefs.level)));
     el.querySelector("[data-fx-reduce]")!.setAttribute("aria-pressed", String(fxPrefs.reduce));
+    el.querySelector("[data-fx-cine]")!.setAttribute("aria-pressed", String(fxPrefs.cine));
   };
   el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ level: b.dataset.fx as FxLevel }); audio.play("ui_click"); renderFx(); }, { signal }));
   el.querySelector("[data-fx-reduce]")!.addEventListener("click", () => { setFxPrefs({ reduce: !fxPrefs.reduce }); audio.play("ui_click"); renderFx(); }, { signal });
+  el.querySelector("[data-fx-cine]")!.addEventListener("click", () => { setFxPrefs({ cine: !fxPrefs.cine }); audio.play("ui_click"); renderFx(); }, { signal });
   renderFx();
   addEventListener("resize", renderScale, { signal });
   renderScale();
