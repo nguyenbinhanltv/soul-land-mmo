@@ -6,7 +6,8 @@ import { artUrl } from "./uiArt.ts";
 
 type Level = "low" | "mid" | "high";
 const FX_KEY = "soul-land-fx-v1"; // cùng khoá với tùy chọn hiệu ứng của G1 (#392)
-function prefs(): { level: Level; reduce: boolean; shakeOff?: boolean } {
+type Prefs = { level: Level; reduce: boolean; shakeOff?: boolean };
+function prefs(): Prefs {
   let reduce = false;
   try { reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { /* không có matchMedia */ }
   try {
@@ -66,7 +67,7 @@ export class ArenaShow {
     return `<div class="avf">${src ? `<img src="${esc(src)}" alt="">` : ""}<b>${esc(s.name || "…")}</b><small>Elo ${s.elo}</small></div>`;
   }
 
-  private onPhase(a: ArenaView, pf: { level: Level; reduce: boolean; shakeOff?: boolean }) {
+  private onPhase(a: ArenaView, pf: Prefs) {
     if (a.phase === "ready" && !this.shown && a.sides.length === 2) {
       this.shown = true; this.finished = false; this.lastN = -1;
       this.vs.innerHTML = `${this.face(a, a.sides[0])}<div class="avm"><span>VS</span><em></em></div>${this.face(a, a.sides[1])}`;
@@ -79,7 +80,7 @@ export class ArenaShow {
     }
   }
 
-  private countdown(a: ArenaView, pf: { level: Level; reduce: boolean; shakeOff?: boolean }) {
+  private countdown(a: ArenaView, pf: Prefs) {
     const n = Math.max(0, Math.ceil(a.time)), t = this.vs.querySelector("em");
     if (!t || n > 3 || n === this.lastN) return;
     this.lastN = n; t.textContent = n ? String(n) : "";
@@ -106,7 +107,7 @@ export class ArenaShow {
   }
 
   /** Đòn lớn (một người mất >= BIG_HIT máu tối đa trong một lần cập nhật): rung nhẹ + nhấn zoom ngắn. Thấp / Giảm chuyển động / Rung màn hình Tắt thì không. */
-  private bigHit(a: ArenaView, pf: { level: Level; reduce: boolean; shakeOff?: boolean }, now: number) {
+  private bigHit(a: ArenaView, pf: Prefs, now: number) {
     let big = false;
     a.players.forEach((p, id) => {
       const prev = this.hp.get(id);
@@ -128,7 +129,7 @@ export class ArenaShow {
     }
   }
 
-  private lowHp(a: ArenaView, me: string, watching: boolean, pf: { level: Level; reduce: boolean; shakeOff?: boolean }) {
+  private lowHp(a: ArenaView, me: string, watching: boolean, pf: Prefs) {
     const p = a.players.get(me), on = !watching && a.phase === "fight" && !!p && !p.dead && p.maxHp > 0 && p.hp / p.maxHp < LOW_HP;
     this.lowhp.hidden = !on;
     if (!on) return;
@@ -139,7 +140,7 @@ export class ArenaShow {
   }
 
   /** Đòn kết liễu: chậm 0,5 s + zoom vào bên thua + chữ thắng / thua lớn; Thấp / Giảm chuyển động chỉ hiện chữ. */
-  private finisher(a: ArenaView, pf: { level: Level; reduce: boolean; shakeOff?: boolean }) {
+  private finisher(a: ArenaView, pf: Prefs) {
     const w = a.winner, cam = this.scene.cameras.main, fancy = !pf.reduce && pf.level !== "low";
     this.sfx.finisher();
     const z = this.z0; this.undoPunch?.(); this.undoPunch = null; this.z0 = null;

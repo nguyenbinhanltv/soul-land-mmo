@@ -1807,7 +1807,7 @@ export class GameScene extends Phaser.Scene {
     this.playAct(m.id, "cast");
     if (m.own) {
       // Tiên cơ riêng (bước 2.5a): hiệu ứng vùng do server gửi riêng (wave, pull, claw, buff…); ở đây thêm vòng vàng và rung nhẹ.
-      this.ringFx(at, 4, 36, "#ffe08a", 420); if (!this.autoOn()) this.shake(160, 0.004);
+      this.ringFx(at, 4, 36, "#ffe08a", 420); if (m.id === this.me && !this.autoOn()) this.shake(160, 0.004);
     } else if (m.he === "cuong_cong") {
       // Nổ diện rộng: hai vòng sóng, chớp sáng trên mặt đất, quả nổ LPC (fx_no, #201; phóng nguyên lần theo bán kính), rung màn hình.
       const r = m.r ?? 56;
@@ -1815,7 +1815,7 @@ export class GameScene extends Phaser.Scene {
       const f = this.add.ellipse(at.x, at.y, 2 * RX * r, 2 * RY * r, c, 0.35).setDepth(99979);
       this.tweens.add({ targets: f, alpha: 0, duration: 320, onComplete: () => f.destroy() });
       playFx(this, "fx_no", at.x, at.y - 10 * k, Math.max(1, Math.round((1.4 * RX * r) / 32)), 99981);
-      if (m.id === this.me) this.shake(260, 0.006); // #437: chỉ người tung chiêu thấy rung
+      if (m.id === this.me && !this.autoOn()) this.shake(260, 0.006); // #437: chỉ người tung chiêu thấy rung
     } else if (m.he === "man_cong") {
       // Lướt: vệt dài từ chỗ cũ, rồi dấu chém chữ X ở chỗ dừng (ngang ngực).
       const g = this.add.graphics().setDepth(99980), [a, b] = ptsToScreen([{ x: m.x0 ?? at.wx, y: m.y0 ?? at.wy }, { x: at.wx, y: at.wy }], 6 * k);
@@ -1823,7 +1823,7 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(2, gold, 1).lineBetween(a.x, a.y, b.x, b.y);
       for (const q of [0.8, -0.8]) g.lineStyle(3, gold, 1).lineBetween(b.x - 14 * k * Math.cos(q), b.y - 14 * k * Math.sin(q), b.x + 14 * k * Math.cos(q), b.y + 14 * k * Math.sin(q));
       this.tweens.add({ targets: g, alpha: 0, duration: 420, delay: 80, onComplete: () => g.destroy() });
-      if (m.id === this.me) this.shake(140, 0.004);
+      if (m.id === this.me && !this.autoOn()) this.shake(140, 0.004);
     } else if (m.he === "khong_che") {
       // Phong tỏa: vòng thu hẹp lại và các mắt xích quay quanh trên mặt đất.
       const r = m.r ?? 64;
