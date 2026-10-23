@@ -4,7 +4,6 @@
 // - mảnh `ui_*` thành biến CSS `--ui-<tên>` (ảnh) và `--nine-<tên>` (số điểm giữ nguyên ở mỗi mép khi kéo giãn 9 lát, theo "nine");
 // - hồn cốt là bản xám: tô theo màu niên hạn bằng canvas (nhân màu từng điểm ảnh), giữ nguyên điểm ảnh;
 // - tỉ lệ giao diện `--u` theo cài đặt Cỡ giao diện (tự động hoặc 75–150%) và các lớp `ui-w*` / `ui-h*` theo kích thước logic.
-import { VIEW_W, VIEW_H } from "./iso.ts";
 import { TIERS } from "../../shared/data.ts";
 
 const BASE = "sprites/";

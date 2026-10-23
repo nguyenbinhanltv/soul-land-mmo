@@ -55,7 +55,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 /* Cột trái (khung chỉ số + tổ đội), cột phải (bản đồ nhỏ + nhiệm vụ), dải dưới (chat | đội hình + hồn kỹ) xếp theo dòng chảy: panel cao thêm
    thì đẩy panel kế bên dưới xuống, không chồng nhau (UI-6). */
 #lcol{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:8px;max-height:calc(100% - 20px)}
-#rcol{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-height:calc(100% - 330px)}
+#rcol{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-height:calc(100% - 200px)}
 #bottombar{position:absolute;left:10px;right:10px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
 .stats{width:232px;padding:10px 12px 12px}
 .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
@@ -581,7 +581,7 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 /* Nhiệm vụ (bước 6.2): khung theo dõi dưới bản đồ nhỏ (ẩn khi có bảng xếp hạng thú vương), trang nhiệm vụ trong hộp thoại NPC */
 #hud{--qgold:#6c4a08}
 #quest{width:212px;flex:0 1 auto;min-height:60px;overflow-y:auto;padding:6px 8px 7px;font-size:12px;font-family:var(--f12);pointer-events:auto;border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
-#bossRank:not([hidden]) ~ #quest{display:none}
+#hud:has(#bossRank:not([hidden])) #quest{display:none}
 #quest .qhead{display:flex;width:100%;align-items:baseline;gap:6px;padding:0;min-height:22px;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
 #quest .qhead b{flex:1;font-size:12px;font-family:var(--f12);color:var(--accent)}
 #quest .qhead i{font-style:normal;color:var(--muted);font-size:10px;font-family:var(--f10)}
@@ -627,7 +627,7 @@ body.arena #target{display:none!important}
 #arenaBar .aclock small{display:block;font-size:12px;font-family:var(--f12);color:var(--muted)}
 #arenaBar .aleave{margin-top:3px;font:inherit;font-size:12px;font-family:var(--f12);padding:2px 8px;min-height:26px;border:1px solid var(--line);background:var(--wash2);color:var(--muted);cursor:pointer}
 body.touch #arenaBar .aleave{min-height:34px;font-size:12px;font-family:var(--f12)}
-body.arena .mapbox{top:84px}
+body.arena #rcol{top:84px}
 body.arena #quest{display:none}
 #arenaEnd{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(400px,94vw);max-height:84%;overflow-y:auto;padding:12px 14px;pointer-events:auto;border-color:#ff6b6b}
 #arenaEnd h2{margin:0 0 6px;font-size:24px;font-family:var(--f12);text-align:center}
