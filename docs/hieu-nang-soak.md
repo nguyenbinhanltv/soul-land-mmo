@@ -83,3 +83,12 @@ Không có hàm game nào nổi bật. `vnClock` (`Intl.DateTimeFormat`, gọi t
 | Phòng trống tự hủy, heap về gần mức đầu | **Đạt** |
 | Rò bộ nhớ | **Không thấy**: heap tăng do túi đồ đầy dần (có trần), dừng tăng khi túi đầy |
 | Kịch bản Dài 1–2 giờ | **Chưa đo**: máy dùng chung, mỗi lượt giới hạn 30 phút. Đã thay bằng 3 lượt 20–28 phút liên tiếp, không thấy xu hướng tăng ngoài túi đồ |
+
+## 6. Nhịp chậm ở vòng người chơi khi 40 người tự săn: đo từng lần `AutoHunter.tick` (#375, từ #273)
+**Cách đo.** Server `PERF_LOG=1` bật thì mỗi dòng `[perf-slow]` thêm: số `AutoHunter.tick` và tổng ms, ba người tốn nhất, và từng lần `plan()` (A*) kèm thời gian, loại (thường / dài), số điểm (`perfAuto` / `perfPlan` ở `MapRoom`, xóa đầu mỗi tick; tắt `PERF_LOG` thì không đo gì). Lượt đo: server `env -u DATABASE_URL GAME_TEST=1 PERF_LOG=1` (log xác nhận "chỉ lưu trong RAM"), `N=40 node client/scripts/auto-soak.mjs` trên Tinh Đấu Ngoại vi ×8: 10 phút rồi 25 phút (macOS, máy có phiên khác chạy).
+**Kết quả.**
+- Lượt 10 phút: 0 nhịp chậm, `max` mỗi 10 giây ≤ 39 ms.
+- Lượt 25 phút: chỉ **một cụm** nhịp thật vượt 50 ms, lúc 40 bot vừa vào phòng (3 nhịp trong 0,5 giây: 84 / 209 / 36 ms). Ở nhịp 84 ms: `AutoHunter` của một người mất 36,4 ms mà **không có lần tìm đường nào** (`tìm đường 0 lần`), nhịp 209 ms là `vá` 205 ms (đợt người vào, state đầy). Sau đó không còn nhịp nào vượt 50 ms; `AutoHunter.tick` cả 40 người ≤ 2,2 ms, mỗi lần A* ≤ 0,1 ms.
+- Microbench `findPath` / `findLongPath` (4000 cặp điểm ngẫu nhiên, bản đồ ×8): thường p99 0,66 ms, lớn nhất 0,73 ms; dài p99 1,4 ms, lớn nhất 2,9 ms. **A* không thể gây nhịp 50–65 ms.**
+- Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Không nằm trong tick, chưa rõ nguồn; xem phần để sau.
+**Kết luận.** Giả thuyết "A* một lần nặng" bị bác bỏ; nhịp 50–65 ms ở vòng người chơi là nhiễu lúc người vào đông (một `AutoHunter` quyết định lần đầu 36 ms, chưa rõ chỗ, chỉ gặp một lần). Không sửa code luật. Để sau: nhịp trễ định kỳ do CPU ngoài tick tăng dần khi túi đầy (chưa chứng minh nguồn).

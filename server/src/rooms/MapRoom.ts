@@ -723,6 +723,9 @@ export class MapRoom extends Room<MapState> {
   perfT = [0, 0, 0, 0, 0, 0];
   perfPrev = { t0: 0, t2: 0, c2: 0 };
   perfSlowN = 0;
+  /** Nhịp hiện tại (#375): từng lần AutoHunter.tick `[người, ms]` và từng lần tìm đường `[người, ms, số nút/loại]`. */
+  perfAuto: [string, number][] = [];
+  perfPlan: [string, number, string][] = [];
   /** Nhịp chậm chờ in (cần bản ghi GC của chính nhịp đó). */
   perfPend: { at: string; t0: number; t2: number; wall: number; cpu: number; parts: string; gap: number; gapCpu: number }[] = [];
   /** Lần ghi log gần nhất của mỗi chỗ + lỗi bất ngờ và số lần đã bỏ qua từ đó (onUncaughtException). */
@@ -6959,8 +6962,11 @@ export class MapRoom extends Room<MapState> {
     if (wall > PERF_SLOW_MS || gap > PERF_GAP_MS) {
       this.perfSlowN++;
       const d = (i: number) => (T[i + 1] - T[i]).toFixed(1);
+      const A = this.perfAuto, top = A.slice().sort((x, y) => y[1] - x[1]).slice(0, 3).map(([i, ms]) => `${i.slice(0, 4)} ${ms.toFixed(1)}`).join(", ");
+      const plans = this.perfPlan.map(([i, ms, w]) => `${i.slice(0, 4)} ${ms.toFixed(1)} ms ${w}`).join(", ");
       this.perfPend.push({ at: clock(), t0, t2, wall, cpu: c2 - c0, gap, gapCpu: pv.t2 ? c0 - pv.c2 : 0,
-        parts: `tick ${(ti - t0).toFixed(1)} (đầu ${d(0)}, người ${d(1)}, thú ${d(2)}, thế giới ${d(3)}, cuối ${d(4)}), view ${(t1 - ti).toFixed(1)}, vá ${(t2 - t1).toFixed(1)}` });
+        parts: `auto ${A.length} người ${A.reduce((a, x) => a + x[1], 0).toFixed(1)} ms (lớn nhất ${top || "-"}), tìm đường ${this.perfPlan.length} lần (${plans || "-"}) | ` +
+        `tick ${(ti - t0).toFixed(1)} (đầu ${d(0)}, người ${d(1)}, thú ${d(2)}, thế giới ${d(3)}, cuối ${d(4)}), view ${(t1 - ti).toFixed(1)}, vá ${(t2 - t1).toFixed(1)}` });
     }
     Object.assign(pv, { t0, t2, c2 });
     if (Date.now() - f.at < 10000) return;
@@ -6985,7 +6991,7 @@ export class MapRoom extends Room<MapState> {
       }).catch((e) => { console.error(`Không gia hạn được phiên giữ tài khoản #${d.accountId}`, e); this.clients.getById(id)?.leave(1011); });
     }
     const pt = this.perfOn ? this.perfT : null; // #273: mốc đoạn của tick (PERF_LOG=1)
-    if (pt) pt[0] = performance.now();
+    if (pt) { pt[0] = performance.now(); this.perfAuto.length = 0; this.perfPlan.length = 0; }
     // Khảo hạch hằng ngày: qua 00:00 giờ Việt Nam thì mỗi giây kiểm tra một lần, đặt lại bộ bài và báo người đang chơi.
     if ((this.dayT -= dt) <= 0) {
       this.dayT = 1;
@@ -7048,7 +7054,7 @@ export class MapRoom extends Room<MapState> {
         return;
       }
       // Tự săn (Auto 1): quyết định và đặt hướng đi như input của người chơi, trước bước di chuyển dưới đây.
-      if (d.auto) { if (this.perfOn) { const t = performance.now(); d.auto.tick(dt); this.perfAll.auto += performance.now() - t; } else d.auto.tick(dt); }
+      if (d.auto) { if (this.perfOn) { const t = performance.now(); d.auto.tick(dt); const ms = performance.now() - t; this.perfAll.auto += ms; this.perfAuto.push([id, ms]); } else d.auto.tick(dt); }
       // Choáng / Trói / Đóng băng (từ 3.5, do chiêu báo trước của hồn thú): không đi; Làm chậm giảm tốc. Mê hoặc (#116): bỏ qua phím,
       // server tự đi lung tung (charmDir).
       const ctl = this.pctl(d), cm = ctl.wander && !ctl.noMove ? this.charmDir(p, d, dt) : null;
