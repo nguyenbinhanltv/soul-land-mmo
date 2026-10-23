@@ -2,7 +2,8 @@ import http from "node:http";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import express from "express";
-import { Server, LocalPresence, matchMaker } from "colyseus";
+import { Server, matchMaker } from "colyseus";
+import { RedisDriver } from "@colyseus/redis-driver";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP, saveStats } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
@@ -12,6 +13,10 @@ import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
+import { gamePresence, presenceBackend } from "./presence.ts";
+import { configurePresence as configurePartyPresence } from "./party.ts";
+
+configurePartyPresence(presenceBackend);
 
 const PORT = Number(process.env.PORT ?? 2567);
 const app = express();
@@ -119,10 +124,17 @@ const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
 if (existsSync(dist)) app.use(express.static(dist));
 
 const server = http.createServer(app);
-// Presence trong bộ nhớ (một tiến trình): đá phiên trùng, thông báo toàn server và lịch boss (mục 6). Nhiều tiến trình thì RedisPresence.
-const presence = new LocalPresence();
+// Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
+const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.REDIS_URL) : undefined;
+// PUBLIC_ADDRESS (mỗi tiến trình một địa chỉ client tới được, vd "game.example.com/2567"): phòng mở ở tiến trình khác thì chỗ giữ mang địa chỉ này để
+// client mở WebSocket đúng tiến trình giữ phòng (không đặt thì phòng ở tiến trình khác không vào được). Sân đấu luôn mở ở tiến trình ghép trận vì
+// `arenaMatches` (arenaQueue.ts) là bộ nhớ của tiến trình đó; phòng khác giữ cách chọn mặc định của Colyseus (tiến trình ít phòng nhất).
+const publicAddress = process.env.PUBLIC_ADDRESS?.trim() || undefined;
 // gracefullyShutdown: false: Colyseus không tự gắn uncaughtException / tín hiệu tắt; việc tắt server chỉ do `shutdown` dưới đây (#270).
-const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence, gracefullyShutdown: false });
+const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, gracefullyShutdown: false, ...(driver ? { driver } : {}), ...(publicAddress ? { publicAddress } : {}),
+  selectProcessIdToCreateRoom: async (roomName) => roomName === "arena"
+    ? matchMaker.processId
+    : (await matchMaker.stats.fetchAll()).sort((a, b) => a.roomCount > b.roomCount ? 1 : -1)[0]?.processId || matchMaker.processId });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
 // vào thẳng kênh do /api/channel hoặc tin `travel` chọn (joinById); joinOrCreate chỉ là dự phòng khi kênh đó vừa đầy / vừa đóng.
 // MapRoom / ArenaRoom có cả `static onAuth` (kiểm token trước khi giữ chỗ, #235) lẫn onAuth của phòng: Colyseus in dòng "onAuth() defined
@@ -201,5 +213,5 @@ process.on("unhandledRejection", (reason) => fatal("unhandledRejection", reason)
 for (const sig of ["SIGINT", "SIGTERM", "SIGUSR2"] as const) process.on(sig, () => shutdown(0, sig));
 await gameServer.listen(PORT);
 // Lịch tà hóa thú vương 20:00 / 22:00 giờ Việt Nam (BĐ5): báo toàn server trước 5 phút, phòng của bản đồ đó sinh thú vương.
-startSchedule(presence);
-console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT}`);
+startSchedule(gamePresence, presenceBackend);
+console.log(`🌲 Server Rừng Săn Hồn chạy tại http://localhost:${PORT} (${presenceBackend.mode === "redis" ? "RedisPresence" : "RAM presence"})`);
