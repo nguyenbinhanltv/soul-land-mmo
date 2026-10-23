@@ -639,7 +639,9 @@ export class AutoHunter {
     if (!this.goal) return;
     const { grid, nav } = navOf(this.room.map), M = AUTO_MOVE.path;
     const far = Math.max(Math.abs(this.goal.x - p.x), Math.abs(this.goal.y - p.y)) > (M.maxTiles - 2) * TILE;
+    const t0 = this.room.perfOn ? performance.now() : 0;
     this.path = far ? findLongPath(grid, nav, p, this.goal, AUTO_MOVE.nav.look, M) : findPath(grid, p, this.goal, M);
+    if (t0) this.room.perfPlan.push([this.id, performance.now() - t0, `${far ? "dài" : "thường"} ${this.path.length} điểm`]);
     // Đích cùng ô với mình mà đường thẳng vướng (ví dụ hồn thú đứng sau lưng, sát ô chặn): A* không có ô nào để đi nên trả đường rỗng,
     // không phải không tới được; đi thẳng tới (bước này quay mặt), vướng thật thì checkStuck bỏ sau AUTO_MOVE.stuck giây (#324).
     if (!this.path.length && Math.floor(p.x / TILE) === Math.floor(this.goal.x / TILE) && Math.floor(p.y / TILE) === Math.floor(this.goal.y / TILE))
