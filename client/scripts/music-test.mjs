@@ -100,9 +100,10 @@ const now = () => clock;
 {
   const ctx = makeContext(), { loads, load } = makeLoader();
   const music = new MusicPlayer(ctx, { load, format: "ogg", now });
-  const [bus, duck] = ctx.gains;
+  const [bus, duck, loud] = ctx.gains;
   assert.deepEqual(bus.connections, [ctx.destination]);
-  assert.deepEqual(duck.connections, [bus]);
+  assert.deepEqual(duck.connections, [loud], "duck → loud (hạ vì tiếng lớn, G2) → bus");
+  assert.deepEqual(loud.connections, [bus]);
 
   // Bus Nhạc im thì không tải gì (cả manifest).
   music.setMap("thanh_hon_thon");
