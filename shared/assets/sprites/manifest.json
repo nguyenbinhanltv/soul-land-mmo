@@ -805,6 +805,11 @@
       "map": "thien_dau_thanh"
     },
     {
+      "key": "prop_dau_hon_truong_nac_dinh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
       "key": "prop_dien_hai_than",
       "iso": true,
       "map": "hai_than_dao"
@@ -857,6 +862,11 @@
       "key": "prop_hoang_cung",
       "iso": true,
       "map": "thien_dau_thanh"
+    },
+    {
+      "key": "prop_hoc_vien_nac_dinh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
     },
     {
       "key": "prop_khan_dai",
@@ -1046,6 +1056,11 @@
     },
     {
       "key": "prop_tuong_thanh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_tuu_lau",
       "iso": true,
       "map": "nac_dinh_thanh"
     },
