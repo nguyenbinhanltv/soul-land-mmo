@@ -50,6 +50,8 @@ PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
 
 Mỗi tiến trình cần `PUBLIC_ADDRESS` là địa chỉ client mở WebSocket tới đúng tiến trình đó (ví dụ `PUBLIC_ADDRESS=localhost:2567` và `PUBLIC_ADDRESS=localhost:2568`, hoặc đường dẫn riêng sau proxy). Không đặt thì client chỉ vào được phòng nằm ở tiến trình đã nhận yêu cầu HTTP. Sân đấu luôn mở ở tiến trình ghép trận.
 
+Thử máy mình (Redis cục bộ cổng riêng, không dùng Redis của dịch vụ khác): `redis-server --port 6391 --save "" --appendonly no`, rồi `REDIS_URL=redis://127.0.0.1:6391 npm run test:presence-kill --prefix server` (tiến trình con ghi presence, bị kill, sau TTL dữ liệu phải được dọn) và `npm run bot:local -- --only arena --pg --procs 2 --env REDIS_URL=redis://127.0.0.1:6391` (hai server dùng chung Redis và PostgreSQL; cần `--pg` vì tài khoản RAM không chia sẻ giữa tiến trình).
+
 `RedisPresence` dùng pub/sub và RedisDriver để chia sẻ phòng, số kênh, khóa đổi kênh, phiên tài khoản, thú vương, khóa tinh anh, hàng chờ đấu trường và tổ đội. Lease có TTL 15 giây, heartbeat 5 giây; tiến trình chết không giữ tài khoản hoặc suất vô hạn. `REDIS_PREFIX` chỉ áp cho khóa ioredis của game; kênh pub/sub của `RedisPresence` và registry phòng của `RedisDriver` không có prefix, nên mỗi cụm vẫn cần Redis riêng. Khi không đặt `REDIS_URL`, server tự dùng LocalPresence và RAM như cũ, không cần chạy dịch vụ ngoài. Khi đã bật Redis mà Redis lỗi, server đóng phiên liên quan để tránh hai tiến trình cùng ghi dữ liệu.
 
 **Supabase**

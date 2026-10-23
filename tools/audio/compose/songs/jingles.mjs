@@ -113,4 +113,38 @@ const questComplete = {
   ],
 };
 
-export default [levelUp, ringAbsorb, arenaWin, arenaLose, questAccept, questComplete];
+// Stinger chí mạng lớn (G5, #396): một nhát taiko + kèn đồng chặt + chũm chọe, ngắn, dứt khoát.
+const critBig = {
+  id: "stinger_chi_mang", title: "Chí mạng lớn", kind: "jingle", event: "crit_big", bpm: 140, beatsPerBar: 4, bars: 1,
+  channels: [
+    { key: "brass", name: "Kèn đồng", channel: 1, program: 61, volume: 100, pan: 60, reverb: 60, expr: true },
+    { key: "taiko", name: "Taiko", channel: 2, program: 116, volume: 100, pan: 64, reverb: 70, humanTicks: 0 },
+    { key: "perc", name: "Chũm chọe", channel: 10, program: 0, volume: 90, pan: 70, reverb: 70, humanTicks: 0 },
+  ],
+  notes: [
+    ...chord(["A3", "E4", "A4"], { t: 0, d: 1.2, vel: 100 }).map((x) => ({ ...x, ch: "brass" })),
+    n("taiko", 0, 0.3, "A2", 110), n("taiko", 0.5, 0.3, "A2", 90),
+    ...tag("perc", grid("X.......", { pitch: 49, vel: 96 })),
+  ],
+};
+
+// Stinger hạ boss (G5, #396): kèn horn hiệu lệnh đi lên ngũ cung Rê, timpani cuộn, hợp xướng và chuông ngân hợp âm Rê.
+const bossDown = {
+  id: "stinger_ha_boss", title: "Hạ boss", kind: "jingle", event: "boss_down", bpm: 100, beatsPerBar: 4, bars: 2,
+  channels: [
+    { key: "horn", name: "Kèn horn", channel: 1, program: 60, volume: 100, pan: 46, reverb: 80, expr: true },
+    { key: "choir", name: "Hợp xướng", channel: 2, program: 52, volume: 92, pan: 64, reverb: 100, expr: true },
+    { key: "timp", name: "Timpani", channel: 3, program: 47, volume: 92, pan: 58, reverb: 70, humanTicks: 0 },
+    { key: "bell", name: "Chuông ống", channel: 4, program: 14, volume: 84, pan: 76, reverb: 110 },
+    { key: "taiko", name: "Taiko", channel: 5, program: 116, volume: 92, pan: 64, reverb: 75, humanTicks: 0 },
+  ],
+  notes: [
+    ...tag("horn", bars("D4:1 A4:1 D5:2 E5:2 F#5:2 | >A5:8", { vel: 92, legato: 0.95 })),
+    ...tag("choir", chord(["D3", "A3", "D4", "F#4"], { t: 4, d: 4, vel: 84 })),
+    ...grid("o.o.o.o.xxxxXXXX", { bar: 0, pitch: midi("D3"), vel: 70, d: 0.3 }).map((x) => ({ ...x, ch: "timp" })),
+    n("bell", 4, 4, "D5", 80),
+    n("taiko", 4, 0.5, "D2", 110),
+  ],
+};
+
+export default [levelUp, ringAbsorb, arenaWin, arenaLose, questAccept, questComplete, critBig, bossDown];

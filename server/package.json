@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test:ratelimit": "tsx scripts/ratelimit-test.ts",
     "test:accounts": "tsx scripts/accounts-test.ts",
-    "test:presence": "tsx scripts/presence-test.ts"
+    "test:presence": "tsx scripts/presence-test.ts",
+    "test:presence-kill": "tsx scripts/presence-kill-test.ts"
   },
   "dependencies": {
     "@colyseus/redis-driver": "0.16.1",

@@ -3,6 +3,7 @@
 import "./feedback.css";
 import type { BagItem } from "./net.ts";
 import { bagItemInfo } from "./hud.ts";
+import { rarityOf } from "./bag.ts";
 
 /** Loại toast: nhãn nhỏ ở đầu dòng và màu vạch trái (đặt ở CSS theo `data-k`, màu niên hạn của đồ rơi theo `--c`). */
 export type ToastKind = "loot" | "level" | "quest" | "boss" | "info";
@@ -51,11 +52,12 @@ const stackKey = (it: BagItem) => `${it.code}|${it.years ?? ""}|${it.stars ?? ""
  * So túi mới với túi cũ và báo đồ nhận thêm (tối đa 3 dòng, còn lại gộp "+N món khác"). Cộng theo (mã, năm, sao; không tính cường hóa, vì cường hóa / nâng cấp đổi cấp tại chỗ) cả đồ đang
  * mang lẫn trong túi, nên xếp lại túi, gắn / tháo, gộp ô không báo nhầm; mua, nhặt, nhận thưởng thì báo.
  */
-export function lootToasts(prev: BagItem[] | null, next: BagItem[]) {
-  if (!prev) return;
+export function lootToasts(prev: BagItem[] | null, next: BagItem[]): number {
+  if (!prev) return -1;
   const sum = (a: BagItem[]) => { const m = new Map<string, { it: BagItem; n: number }>(); for (const it of a) { const k = stackKey(it), e = m.get(k); if (e) e.n += it.qty; else m.set(k, { it, n: it.qty }); } return m; };
   const before = sum(prev), after = sum(next), gained: { it: BagItem; n: number }[] = [];
   for (const [k, e] of after) { const d = e.n - (before.get(k)?.n ?? 0); if (d > 0) gained.push({ it: e.it, n: d }); }
   gained.slice(0, 3).forEach(({ it, n }) => { const info = bagItemInfo(it); toast("loot", n > 1 ? `${info.name} ×${n}` : info.name, "", info.color); });
   if (gained.length > 3) toast("loot", `+${gained.length - 3} món khác`, "Xem trong túi đồ (phím B)");
+  return gained.reduce((best, g) => Math.max(best, rarityOf(g.it)), -1); // độ hiếm cao nhất vừa nhận, cho tiếng đồ hiếm
 }

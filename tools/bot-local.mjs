@@ -30,7 +30,7 @@ const secs = (t0) => `${((Date.now() - t0) / 1000).toFixed(1)} giây`;
 
 // ---------- Tham số ----------
 const argv = process.argv.slice(2);
-const opt = { only: "", part: "", pg: false, full: false, channels: false, fatal: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false };
+const opt = { only: "", part: "", pg: false, full: false, channels: false, fatal: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false, procs: 1 };
 const botSrc = readFileSync(path.join(clientDir, "scripts", "bot-test.mjs"), "utf8");
 const onlyNames = [...new Set([...botSrc.matchAll(/BOT_ONLY==="(\w+)"/g)].map((m) => m[1]))];
 const partCount = Number(botSrc.match(/^const BOT_PARTS=(\d+);/m)?.[1] ?? 0);
@@ -44,6 +44,8 @@ const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhó
   --pg       lưu PostgreSQL (database riêng trên instance chung, xoá khi xong); server bật hai lần liên tiếp (migration chạy lại
              an toàn) rồi mới chạy bot, --once để chỉ bật một lần
   --heap     trần heap của server và bot (mặc định 768, biến BOT_HEAP_MB)
+  --procs    số tiến trình server dùng chung Redis (#120, mặc định 1; bot chỉ nối tiến trình đầu, phòng mở ở tiến trình nào do server chọn):
+             cần --env REDIS_URL=redis://127.0.0.1:<cổng> trỏ tới redis-server cục bộ do bạn tự bật; REDIS_URL của shell không được dùng
   --env      biến thêm cho server, ví dụ --env BOSS_CLOCK=20:00 --env MAP_V1=all
   --pg-status / --pg-stop [--force]   xem / tắt PostgreSQL chung của máy
 Biến: BOT_LOCAL_MAX (số lượt cùng lúc, mặc định 2), BOT_PG_URL (PostgreSQL có sẵn, ví dụ postgres://user:pass@localhost:5432/postgres),
@@ -60,6 +62,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--channels") opt.channels = true;
   else if (a === "--fatal") opt.fatal = true;
   else if (a === "--heap") opt.heap = Number(val());
+  else if (a === "--procs") { opt.procs = Number(val()); if (!Number.isInteger(opt.procs) || opt.procs < 1 || opt.procs > 4) die("--procs là số nguyên 1..4"); }
   else if (a === "--env") { const e = val(); if (!/^[A-Z_][A-Z0-9_]*=/.test(e)) die(`--env cần dạng TÊN=giá trị: ${e}`); opt.env.push(e); }
   else if (a === "--pg-status" || a === "--pg-stop") pgCmd = a;
   else if (a === "--force") force = true;
@@ -407,10 +410,14 @@ try {
   const slog = path.join(logDir, `${stamp}-server.log`), blog = path.join(logDir, `${stamp}-bot.log`);
   const sstats = path.join(os.tmpdir(), `soul-bot-${process.pid}-server.json`), bstats = path.join(os.tmpdir(), `soul-bot-${process.pid}-bot.json`);
   const env = { ...process.env };
-  for (const k of ["DATABASE_URL", "PGSSL", "PORT", "CHANNEL_MAX", "BOT_ONLY", "BOT_PART", "SERVER_URL", "NODE_OPTIONS"]) delete env[k];
+  for (const k of ["DATABASE_URL", "PGSSL", "PORT", "CHANNEL_MAX", "BOT_ONLY", "BOT_PART", "SERVER_URL", "NODE_OPTIONS", "REDIS_URL", "REDIS_PREFIX", "PUBLIC_ADDRESS"]) delete env[k];
   const senv = { ...env, GAME_TEST: "1" };
   if (opt.channels) senv.CHANNEL_MAX = "2";
   for (const e of opt.env) { const i = e.indexOf("="); senv[e.slice(0, i)] = e.slice(i + 1); }
+  if (opt.procs > 1) {
+    if (!/^redis:\/\/(127\.0\.0\.1|localhost)[:/]/.test(senv.REDIS_URL ?? "")) die("--procs > 1 cần --env REDIS_URL=redis://127.0.0.1:<cổng> (Redis cục bộ)");
+    senv.REDIS_PREFIX = `soulbot:${process.pid}`;
+  }
   if (opt.pg) {
     const t0 = Date.now();
     await ensurePg();
@@ -420,6 +427,7 @@ try {
   }
   const port = await freePort();
   senv.PORT = String(port);
+  if (opt.procs > 1) senv.PUBLIC_ADDRESS = `localhost:${port}`;
   let server = await startServer(port, senv, slog, sstats);
   if (opt.pg && !opt.once) {
     // Migration phải chạy lại an toàn: tắt rồi bật lại trên cùng database (CLAUDE.md, mục Lệnh).
@@ -427,6 +435,13 @@ try {
     server = await startServer(port, senv, slog, sstats);
     console.log(`[bot-local ${label}] server bật lần 2 (migration chạy lại) sẵn sàng sau ${server.ms} ms, cổng ${port}`);
   } else console.log(`[bot-local ${label}] server sẵn sàng sau ${server.ms} ms, cổng ${port}`);
+
+  const extras = [];
+  for (let i = 1; i < opt.procs; i++) {
+    const xp = await freePort(), xlog = path.join(logDir, `${stamp}-server${i + 1}.log`), xstats = path.join(os.tmpdir(), `soul-bot-${process.pid}-server${i + 1}.json`);
+    extras.push({ ...(await startServer(xp, { ...senv, PORT: String(xp), PUBLIC_ADDRESS: `localhost:${xp}` }, xlog, xstats)), xstats });
+    console.log(`[bot-local ${label}] tiến trình server ${i + 1}/${opt.procs} cổng ${xp}, log ${path.relative(root, xlog)}`);
+  }
 
   if (opt.fatal) {
     const n = { "✓": 0, "✗": 0 };
@@ -449,6 +464,7 @@ try {
     code = await bot.done;
     if (serverDied) { code = 1; console.log(`---- log server (60 dòng cuối, đầy đủ ở ${slog}) ----\n${tail(slog, 60)}`); }
     await kill(server.p);
+    for (const x of extras) { await kill(x.p); rmSync(x.xstats, { force: true }); }
     const ss = readStats(sstats), bs = readStats(bstats);
     rmSync(sstats, { force: true }); rmSync(bstats, { force: true });
     console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : `TRƯỢT (mã ${code})`}: ✓ ${n["✓"]}, ✗ ${n["✗"]}, ⚠ ${n["⚠"]}; bot ${secs(tBot)}, tổng ${secs(tAll)}`);
