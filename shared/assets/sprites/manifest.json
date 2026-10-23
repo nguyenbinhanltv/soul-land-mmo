@@ -1869,6 +1869,42 @@
       "iso": true
     },
     {
+      "key": "skill_hao_thien_chuy_0",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_1",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_2",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_3",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_4",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_5",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_7",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_8",
+      "iso": true
+    },
+    {
+      "key": "skill_hao_thien_chuy_9",
+      "iso": true
+    },
+    {
       "key": "skill_ky_nhung_thong_thien_cuc_0",
       "iso": true
     },
@@ -1941,42 +1977,6 @@
       "iso": true
     },
     {
-      "key": "skill_hao_thien_chuy_0",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_1",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_2",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_3",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_4",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_5",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_7",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_8",
-      "iso": true
-    },
-    {
-      "key": "skill_hao_thien_chuy_9",
-      "iso": true
-    },
-    {
       "key": "skill_lam_ngan_thao_0",
       "iso": true
     },
@@ -1990,6 +1990,26 @@
     },
     {
       "key": "skill_lam_ngan_thao_3",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_4",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_5",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_7",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_8",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_ngan_thao_9",
       "iso": true
     },
     {
@@ -2065,26 +2085,6 @@
       "iso": true
     },
     {
-      "key": "skill_lam_ngan_thao_4",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_5",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_7",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_8",
-      "iso": true
-    },
-    {
-      "key": "skill_lam_ngan_thao_9",
-      "iso": true
-    },
-    {
       "key": "skill_u_minh_linh_mieu_0",
       "iso": true
     },
@@ -2121,7 +2121,15 @@
       "iso": true
     },
     {
+      "key": "status_allure",
+      "iso": true
+    },
+    {
       "key": "status_armor",
+      "iso": true
+    },
+    {
+      "key": "status_atk",
       "iso": true
     },
     {
@@ -2133,7 +2141,23 @@
       "iso": true
     },
     {
+      "key": "status_chill",
+      "iso": true
+    },
+    {
+      "key": "status_crit",
+      "iso": true
+    },
+    {
       "key": "status_def",
+      "iso": true
+    },
+    {
+      "key": "status_flood",
+      "iso": true
+    },
+    {
+      "key": "status_freeze",
       "iso": true
     },
     {
@@ -2141,11 +2165,31 @@
       "iso": true
     },
     {
+      "key": "status_ink",
+      "iso": true
+    },
+    {
+      "key": "status_inv",
+      "iso": true
+    },
+    {
       "key": "status_leech",
       "iso": true
     },
     {
+      "key": "status_lock",
+      "iso": true
+    },
+    {
+      "key": "status_mp",
+      "iso": true
+    },
+    {
       "key": "status_poison",
+      "iso": true
+    },
+    {
+      "key": "status_root",
       "iso": true
     },
     {
@@ -2158,6 +2202,10 @@
     },
     {
       "key": "status_slow",
+      "iso": true
+    },
+    {
+      "key": "status_spd",
       "iso": true
     },
     {
