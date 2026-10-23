@@ -1,7 +1,7 @@
 // Trang nghe thử âm thanh (G2, #393; mở bằng `?thu=am`, không cần đăng nhập): mọi tiếng mẫu CC0 theo nhóm, từng biến thể, kênh trộn,
 // hồn hoàn theo niên hạn, gầm boss hạ nhạc, chồng nhiều tiếng để nghe giới hạn số tiếng. Chỉ để chủ repo nghe; không đổi luật chơi.
 import { TIERS } from "../../shared/data.ts";
-import { AudioManager, type AudioChannel } from "./audio/AudioManager.ts";
+import { AudioManager, LOUD_DUCK, type AudioChannel } from "./audio/AudioManager.ts";
 import { sharedAudioContext } from "./audio/music.ts";
 import { SFX_IDS } from "./audio/sfxData.ts";
 import type { SfxClip } from "./audio/sfxBank.ts";
@@ -93,7 +93,7 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     if (!el) return;
     void audio.unlock().then(() => {
       const channel = (el.dataset.ch as AudioChannel | undefined) ?? "sfx";
-      if (el.dataset.clip) audio.playClip(el.dataset.clip, { channel, ...(el.dataset.clip.startsWith("beast-boss") ? { duck: 0.55, duckMs: 800 } : {}) });
+      if (el.dataset.clip) audio.playClip(el.dataset.clip, { channel, ...(el.dataset.clip.startsWith("beast-boss") ? { duck: LOUD_DUCK.depth, duckMs: LOUD_DUCK.ms } : {}) });
       else if (el.dataset.group === "beast-boss") audio.playBeast("boss", null);
       else if (el.dataset.group) audio.playGroup(el.dataset.group, null, { channel });
       else if (el.dataset.tier) audio.playRingGlow(Number(el.dataset.tier));

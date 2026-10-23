@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
-  tierOfYears, formatYears, PICKUP_RANGE, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
+  tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
@@ -161,8 +161,8 @@ export class GameScene extends Phaser.Scene {
   /** Vị trí vẽ (thế giới, nội suy) của từng hồn thú; sprite đặt ở hình chiếu (10.1). */
   /** Vị trí nội suy của hồn thú; `dive`: cờ lặn (BeastState.dive) đã thấy, đổi thì đặt thẳng vị trí (Du Thủy, #118). */
   bpos = new Map<string, Pt & { dive?: boolean }>();
-  /** Âm thanh (G2): giờ bước chân kế của từng hồn sư, giây sống còn lại và chỗ của đồ rơi lần thấy trước (phân biệt nhặt với hết hạn), đồ rơi đã báo lần đầu. */
-  stepT = new Map<string, number>(); dropTtl = new Map<string, { ttl: number; x: number; y: number }>(); dropsReady = false;
+  /** Âm thanh (G2): giờ bước chân kế của từng hồn sư, giây sống còn lại và chỗ của đồ rơi lần thấy trước (phân biệt nhặt với hết hạn). */
+  stepT = new Map<string, number>(); dropTtl = new Map<string, { ttl: number; x: number; y: number }>();
   /** Hướng nhìn 8 phía của hồn thú (sheet isometric): theo hướng trượt khi đi, theo vùng báo trước khi tung chiêu, đứng yên thì giữ. */
   bface = new Map<string, Dir8>();
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
@@ -2131,6 +2131,7 @@ export class GameScene extends Phaser.Scene {
       title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up - tu).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · Tự động` : titleOf(p.level));
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
+    if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
     for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); this.players.delete(id); }
     const meS = this.ghost && st.players.get(this.me);
     if (meS) { const s = W2S(meS.x, meS.y); this.ghost!.clear().lineStyle(1, 0xff4040, 1).strokeRect(s.x - 6 * SPR, s.y - 22 * SPR, 12 * SPR, 24 * SPR); }
@@ -2224,7 +2225,7 @@ export class GameScene extends Phaser.Scene {
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(at.y - 1).setScale(this.txtK);
         v = { img, txt }; this.drops.set(id, v);
-        if (this.dropsReady) { // đồ vừa rơi trước mắt (không tính cả loạt đồ đã nằm sẵn lúc vào vùng)
+        if (d.ttl >= DROP_TTL_SECS - 2) { // chỉ đồ vừa rơi (đồ nằm sẵn đi tới gần mới đồng bộ, 11.4, thì không kêu)
           this.audio.playGroup("ring-drop", { x: d.x, y: d.y }, { priority: 1.5 });
           if (!d.item && d.tier >= 2) this.audio.playRingGlow(d.tier, { x: d.x, y: d.y });
         }
@@ -2243,7 +2244,7 @@ export class GameScene extends Phaser.Scene {
       this.dropTtl.delete(id);
       v.img.destroy(); v.txt.destroy(); this.drops.delete(id);
     }
-    this.dropsReady = true;
+
 
     // vẽ phủ: thanh máu, vòng uy áp, hiệu ứng hấp thụ
     const g = this.ov; g.clear();

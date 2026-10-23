@@ -196,7 +196,7 @@ noListenerAudio.dispose();
     const started = [], nodes = [], gainNodes = [];
     const ctx = {
       state: "running", sampleRate: 44_100, destination: { kind: "dest" },
-      createGain() { const n = { gain: { value: 0, setValueAtTime(v) { this.value = v; }, linearRampToValueAtTime(v) { this.value = v; }, cancelScheduledValues() {} }, connect() {}, disconnect() {} }; gainNodes.push(n); return n; },
+      createGain() { const n = { gain: { value: 0, setValueAtTime(v) { this.value = v; }, linearRampToValueAtTime(v) { this.value = v; }, cancelScheduledValues() {} }, connections: [], connect(t) { this.connections.push(t); }, disconnect() { this.cut = true; } }; gainNodes.push(n); return n; },
       createBuffer(_c, length, rate) { return { length, sampleRate: rate, duration: length / rate, getChannelData: () => new Float32Array(length) }; },
       createBufferSource() { const n = { buffer: null, playbackRate: { value: 1 }, stopped: false, connect() {}, disconnect() {}, addEventListener() {}, start(...a) { this.args = a; started.push(this); }, stop() { this.stopped = true; } }; nodes.push(n); return n; },
       createStereoPanner() { return { pan: { value: 0 }, connect() {} }; },
@@ -249,6 +249,18 @@ noListenerAudio.dispose();
     audio.playGroup("swing-t17", { x: 100, y: 100 });
     assert.equal(started.length, AUDIO_MAX_ACTIVE + 1, "tiếng ở gần chen vào");
     assert.equal(started.filter((n) => n.stopped).length, 1, "đúng một tiếng xa bị cắt nhường chỗ");
+  }
+
+  // vang lấy sau âm lượng của tiếng (xa thì vang nhỏ), bị cắt thì vang cũng ngắt
+  {
+    const { audio, started, gainNodes } = make();
+    await audio.bank.ensure("combat");
+    audio.bank.pick = () => ({ buffer: {}, start: 0, duration: 1, id: "x" });
+    audio.playGroup("swing-t6", { x: 100 + 250, y: 100 }, { wet: 0.5 });
+    const send = gainNodes.at(-1);
+    assert.equal(started.length, 1);
+    assert.equal(send.gain.value, 0.5);
+    assert.ok(gainNodes.some((n) => n.connections.includes(send)), "nhánh vang nối từ gain của tiếng, không nối thẳng từ nguồn");
   }
 
   // nhạc tự hạ khi có tiếng lớn; tiếng thường thì không

@@ -82,7 +82,7 @@ const skillSfxByHe: Readonly<Record<string, SfxId>> = {
 /** Ưu tiên mặc định của tiếng tổng hợp theo nhóm: giao diện luôn nghe, tiếng chiến đấu hơn tiếng thường. */
 const synthPriority = (id: SfxId) => (id.startsWith("ui_") ? 4 : id.startsWith("boss_") ? 3 : id.startsWith("combat_") || id.startsWith("skill_") ? 1.2 : 1);
 
-interface Voice { node: AudioBufferSourceNode; gain: GainNode; score: number; }
+interface Voice { node: AudioBufferSourceNode; gain: GainNode; score: number; send: GainNode | null; }
 
 export class AudioManager {
   private readonly host: SoundManagerHost;
@@ -283,6 +283,7 @@ export class AudioManager {
     if (!weakest || score <= weakest.score) return false;
     this.voices.delete(weakest);
     try { weakest.gain.gain.value = 0; weakest.node.stop(); } catch { /* đã dừng */ }
+    weakest.send?.disconnect();
     return true;
   }
 
@@ -295,14 +296,13 @@ export class AudioManager {
     node.buffer = pick.buffer;
     const rate = v.rate * (opts.rate ?? 1);
     if (node.playbackRate) node.playbackRate.value = rate;
-    const wet = opts.wet ? this.sendToReverb(node, opts.wet) : null;
-    this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1), mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, wet);
+    this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1), mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, opts.wet);
     node.start(0, pick.start, pick.duration + 0.01);
     if (opts.duck) this.music?.duckFor(opts.duck, opts.duckMs ?? LOUD_DUCK.ms);
   }
 
-  /** Nhánh vang: tiếng → gain (mức wet) → ConvolverNode → bus Hiệu ứng. Không có WebAudio đủ thì bỏ vang. */
-  private sendToReverb(node: AudioBufferSourceNode, wet: number): GainNode | null {
+  /** Nhánh vang: gain của tiếng (đã nhân khoảng cách) → gain (mức wet) → ConvolverNode → bus Hiệu ứng, nên tiếng xa vang nhỏ theo. Không có WebAudio đủ thì bỏ vang. */
+  private sendToReverb(voiceGain: GainNode, wet: number): GainNode | null {
     const context = this.context!;
     if (typeof context.createConvolver !== "function") return null;
     if (!this.reverb) {
@@ -317,12 +317,12 @@ export class AudioManager {
     }
     const send = context.createGain();
     send.gain.value = Math.min(1, Math.max(0, wet));
-    node.connect(send);
+    voiceGain.connect(send);
     send.connect(this.reverb);
     return send;
   }
 
-  private startVoice(node: AudioBufferSourceNode, volume: number, pan: number, destination: AudioNode, score: number, wet: GainNode | null = null): void {
+  private startVoice(node: AudioBufferSourceNode, volume: number, pan: number, destination: AudioNode, score: number, wet = 0): void {
     const context = this.context!;
     const gain = context.createGain();
     const panner = typeof context.createStereoPanner === "function" ? context.createStereoPanner() : null;
@@ -330,9 +330,10 @@ export class AudioManager {
     node.connect(gain);
     if (panner) { panner.pan.value = pan; gain.connect(panner); panner.connect(destination); }
     else gain.connect(destination);
-    const voice: Voice = { node, gain, score };
+    const send = wet > 0 ? this.sendToReverb(gain, wet) : null;
+    const voice: Voice = { node, gain, score, send };
     this.voices.add(voice);
-    node.addEventListener("ended", () => { this.voices.delete(voice); wet?.disconnect(); }, { once: true });
+    node.addEventListener("ended", () => { this.voices.delete(voice); send?.disconnect(); }, { once: true });
   }
 
   private resolveSource(message: AudioEvent): AudioPoint | null {
