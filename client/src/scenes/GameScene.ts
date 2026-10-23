@@ -31,6 +31,7 @@ import { STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfB
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
+import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
@@ -222,6 +223,8 @@ export class GameScene extends Phaser.Scene {
   onBack: () => void = () => {};
   /** Đang ở sân Đại Đấu Hồn Trường (MAPS kind `arena`): vẽ thanh trận đấu, thanh máu trên đầu hai hồn sư. */
   isArena = false;
+  /** Trình diễn PK (G6 #397): băng rôn VS, bảng hạ gục, máu thấp, kết liễu; dựng lúc có state sân đấu đầu tiên. */
+  show?: ArenaShow;
   /** Người xem trận (#280): vào sân bằng chỗ giữ xem, không có hồn sư; HUD chỉ đọc, camera theo `followSid`. */
   watching = false; followSid = ""; followV: PView | null = null;
   /** Gỡ mọi bộ nghe gắn vào window/DOM khi scene bị hủy (đổi bản đồ thì tạo scene mới). */
@@ -265,6 +268,7 @@ export class GameScene extends Phaser.Scene {
     const off = () => {
       this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
+      this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
@@ -1245,6 +1249,7 @@ export class GameScene extends Phaser.Scene {
       // m.i: chỉ số vòng (từ 8.1a có vòng 5–10); m.ct: hồn kỹ Chân Thân (9.6, vòng 7)
       const sk = v && VOHON[m.vh] ? (m.ct ? chanThanOf(VOHON[m.vh].id)?.skill : ringSkill(VOHON[m.vh].id, m.i)) : undefined;
       if (v && sk) this.floatText(v.root.x, v.root.y - HEAD - 18, sk.name, TIERS[m.tier]?.glow ?? "#ffffff");
+      if (sk) this.show?.noteSkill(m.id, sk.name);
     }
     else if (m.k === "ult" || m.k === "avatar") {
       // Tuyệt kỹ vòng 10 / Võ Hồn Chân Thân (8.1a): hai vòng sáng, chớp màn hình khi ở gần; chính mình thấy banner, người khác thấy tên lớn bay lên.
@@ -2584,6 +2589,9 @@ export class GameScene extends Phaser.Scene {
       sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, pct: s.pct, alive: s.alive, total: s.total })) },
       () => this.watching ? this.room.send("arena", { op: "unwatch" }) : this.onBack());
     hud.updateArenaEnd();
+    this.show ??= new ArenaShow(this);
+    this.show.update({ phase: st.phase, time: st.time, winner: st.winner,
+      sides: [...st.sides].map((s: any) => ({ sid: s.sid, name: s.name, elo: s.elo, alive: s.alive, total: s.total, pct: s.pct })), players: st.players }, this.me, this.watching);
   }
 
   /**
