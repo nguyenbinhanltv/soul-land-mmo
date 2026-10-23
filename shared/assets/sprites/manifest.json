@@ -2351,6 +2351,10 @@
       "iso": true
     },
     {
+      "key": "status_phoenix",
+      "iso": true
+    },
+    {
       "key": "status_poison",
       "iso": true
     },
