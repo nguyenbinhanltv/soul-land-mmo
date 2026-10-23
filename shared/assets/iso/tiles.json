@@ -485,7 +485,7 @@
   },
   "sen_phat_sang": {
    "key": "prop_sen_phat_sang",
-   "foot": [24, 44]
+   "foot": [16, 28]
   },
   "re_cay_lon": {
    "key": "prop_re_cay_lon",
@@ -529,7 +529,7 @@
   },
   "bia_tinh_van": {
    "key": "prop_bia_tinh_van",
-   "foot": [24, 76]
+   "foot": [16, 60]
   },
   "bia_da_co": {
    "key": "prop_bia_da_co",
