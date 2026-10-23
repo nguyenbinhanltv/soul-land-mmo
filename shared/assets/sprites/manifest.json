@@ -1249,6 +1249,114 @@
       "iso": true
     },
     {
+      "key": "skill_cuu_tinh_that_sat_kiem_0",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_1",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_2",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_3",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_4",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_5",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_7",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_8",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_9",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_0",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_1",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_2",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_3",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_4",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_5",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_7",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_8",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_9",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_0",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_1",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_2",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_3",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_4",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_5",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_7",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_8",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_9",
+      "iso": true
+    },
+    {
       "key": "skill_hao_thien_chuy_0",
       "iso": true
     },
@@ -1298,6 +1406,78 @@
     },
     {
       "key": "skill_lam_ngan_thao_3",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_0",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_1",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_2",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_3",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_4",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_5",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_7",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_8",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_9",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_9",
       "iso": true
     },
     {
