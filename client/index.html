@@ -23,6 +23,7 @@
         <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
         <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
         <div class="minirow">
+          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false">Hồn sư <kbd>H</kbd></button>
           <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false">Đội hình <kbd>V</kbd></button>
           <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false">Túi đồ <kbd>B</kbd></button>
           <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false">Cộng minh <kbd>K</kbd></button>
@@ -32,9 +33,11 @@
       </section>
       <section id="party" class="panel" aria-label="Tổ đội"></section>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
+      <div id="char" class="panel" hidden role="dialog" aria-label="Bảng nhân vật Hồn sư"></div>
       <div id="roster" class="panel" hidden></div>
       <div id="bag" class="panel" hidden></div>
       <div id="reso" class="panel" hidden role="dialog" aria-label="Cộng minh"></div>
+      <div id="friends" class="panel" hidden role="dialog" aria-label="Bạn bè"></div>
       <div id="audio" class="panel" hidden role="dialog" aria-label="Âm thanh"></div>
       <div id="autoPanel" class="panel" hidden role="dialog" aria-label="Tự động"></div>
       <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
@@ -56,6 +59,7 @@
       <div id="prompt" class="panel"></div>
       <div id="portal" class="panel" hidden></div>
       <div id="wpbox" class="panel" hidden></div>
+      <div id="fusion" class="panel" hidden aria-live="polite" aria-label="Võ Hồn Dung Hợp Kỹ"></div>
       <div id="talk" class="panel" hidden></div>
       <div id="arenaQ" class="panel" hidden aria-live="polite"></div>
       <div id="arenaBar" class="panel" hidden aria-label="Trận Đại Đấu Hồn Trường"></div>

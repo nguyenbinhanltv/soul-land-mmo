@@ -6,12 +6,13 @@ import { TIERS, BEASTS, VOHON, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, voh
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, coreStatText, type CoreSubUp, type CoreStat, KING,
   WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
-  npcDef, NPC_RANGE, type NpcDef, QUEST_STARTER, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, FUSIONS } from "../../../shared/data.ts";
+  npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
+  type QuestProgress, type QuestStatus, formatHonTe, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
+import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath } from "../../../shared/path.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
@@ -29,7 +30,7 @@ import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
 import { bossEngaged } from "../audio/music.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -111,6 +112,12 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
     ground: { 4: "#6a9a48", 7: "#8aa0b8", 8: "#7a88a0", 10: "#c8c0b0", 16: "#c8c0b0", 25: "#a8a090", 26: "#8a8478", 33: "#b8b0a0" },
     obj: { 12: "#ff9a3c", 19: "#e8a0b8", 28: "#c06080", 29: "#a08a63", 30: "#a0c8e0", 36: "#6a4a2a", 37: "#c8a040", 38: "#c04030", 39: "#d8b040" },
   },
+  // Lõi Tinh Đấu, Đại Đấu Hồn Trường (11.5, giữ cỡ): rêu phát quang, sàn đá, rìa nước nông, lòng Hồ Sinh Mệnh; cột tinh thể, cổ thụ.
+  loi_tinh_dau: {
+    ground: { 5: "#4ab8b0", 7: "#7a7a90", 13: "#9aa2c0", 16: "#8a92b0", 25: "#8a98b8", 26: "#8a90a8", 33: "#9aa2c0", 34: "#6ab8d8", 35: "#2a5a8a" },
+    obj: { 27: "#c8d0e0", 28: "#4a9a8a", 30: "#4ab8b0", 36: "#6a7088", 38: "#a8d0ff", 39: "#8a90a8", 40: "#4a3a3a" },
+  },
+  dai_dau_hon_truong: { ground: { 16: "#c8a868" }, obj: { 12: "#ff9a3c", 37: "#c8a040", 38: "#d8b040" } },
   hai_than_dao: {
     // cỏ đảo, hoa, cát ướt tối, nước biển, bãi trại, sân đá đền, cầu tàu / đường đá, đá cuội
     ground: { 3: "#5a7a4a", 5: "#8a9a5a", 6: "#6a9a50", 8: "#a08a63", 9: "#3a6a90", 10: "#e8dcc0", 13: "#d8d0c0", 16: "#b8b0a0", 25: "#8a7a60", 26: "#9a9280" },
@@ -164,6 +171,7 @@ export class GameScene extends Phaser.Scene {
   eliteLabels = new Map<string, Phaser.GameObjects.Text>();
   /** Hang thú vương của bản đồ (object `boss`, BĐ5): vẽ trên bản đồ nhỏ. */
   lair: Rect | null = null;
+  eliteSpots: Pt[] = []; // chỗ sinh tinh anh của bản đồ (object `elite` trong Tiled), cho chỉ đường mục tiêu `elite` (#190)
   /** Hỏa Đàn trong hang (#163, Cực Hàn): chỗ đặt (shared/hoaDan.ts, như server), bán kính xả tầng Hàn, lớp vẽ đống lửa (độ sâu theo chân). */
   hoaDan: { x: number; y: number; r: number; g: Phaser.GameObjects.Graphics } | null = null;
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
@@ -199,7 +207,6 @@ export class GameScene extends Phaser.Scene {
    */
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null;
     qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
-  quest: QuestMsg | null = null; // tiến độ nhiệm vụ tân thủ (tin riêng "quest", 6.2)
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
   qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
@@ -237,6 +244,7 @@ export class GameScene extends Phaser.Scene {
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
   bagKey = "";
+  charStats: StatsMsg | null = null; // tin riêng "stats" gần nhất (bảng nhân vật)
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
@@ -251,6 +259,7 @@ export class GameScene extends Phaser.Scene {
     const off = () => {
       this.ac.abort(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
+      hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.events.once(Phaser.Scenes.Events.DESTROY, off);
@@ -289,6 +298,7 @@ export class GameScene extends Phaser.Scene {
       }
       if (o.type === "spawn") { this.campRect = r; this.campName = o.name; crowdMap.spawn = r; }
       if (o.type === "elite" && causesInk(String(prop("boss") ?? ""))) inkHere = true; // #175: bản đồ có Phun Mực
+      if (o.type === "elite") this.eliteSpots.push({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
       if (o.type === "safe") this.safes.push({ ...r, name: o.name, hint: "Vùng an toàn: không có hồn thú, không giao chiến" });
       if (o.type === "portal" && MAPS[prop("to")]) this.portals.push({ ...r, to: prop("to") });
       if (o.type === "portal") crowdMap.portals.push({ ...r, boat: !!prop("boat") });
@@ -607,12 +617,14 @@ export class GameScene extends Phaser.Scene {
       const f = document.activeElement;
       if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
+      if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2)
       if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
-      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
+      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); toggleChar(false); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
@@ -622,6 +634,7 @@ export class GameScene extends Phaser.Scene {
       const sk = hud.SKILL_KEYS.findIndex((k) => e.code === "Key" + k);
       const bk = hud.BONE_SKILL_KEYS.findIndex((k) => e.code === "Key" + k); // kỹ năng hồn cốt Z / X / C (4.3)
       if (e.code === "Key" + hud.AVA_KEY) return this.act("chanthan"); // Võ Hồn Chân Thân (8.1a)
+      if (e.code === "Key" + hud.FUSION_KEY) { if (!this.isArena) this.act("fusion"); return; } // Võ Hồn Dung Hợp Kỹ: mời / hưởng ứng (#193); sân đấu cấm
       const slot = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
       if (e.code === "KeyJ" || e.code === "Space") this.act("attack");
       else if (e.code === "KeyE") this.act("pickup");
@@ -635,6 +648,7 @@ export class GameScene extends Phaser.Scene {
     chat.addEventListener("blur", () => hud.chatFocus(false), on);
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
+    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); toggleChar(); }, on);
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
@@ -747,6 +761,8 @@ export class GameScene extends Phaser.Scene {
     else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
     else if (a === "chanthan") this.room.send("chanthan");
+    // Võ Hồn Dung Hợp Kỹ (#193): đang được mời thì hưởng ứng (một lần), không thì mời; server chọn đồng đội và kiểm mọi điều kiện.
+    else if (a === "fusion") { const op = hud.fusionOp(); if (op) this.room.send("fusion", { op }); }
   }
 
   /**
@@ -888,9 +904,16 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("auto", (m: AutoMsg) => { hud.setAuto(m); setAutoMsg(m); }); // bảng Tự động, tổng kết khi dừng (Auto 2)
     // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
     this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
-    // Võ Hồn Dung Hợp Kỹ (#192): tin riêng ask / wait / done / cancel; lời nhắc và lý do đã có ở dòng log. Phím G, nút chạm, hiệu ứng: #193.
-    this.room.onMessage("fusion", (m: { k: string; by?: string; i?: number }) => {
-      if (m?.k === "ask") hud.banner(`Dung hợp kỹ ${FUSIONS[m.i ?? -1]?.name ?? ""}`, `${m.by ?? ""} mời hưởng ứng`);
+    // Võ Hồn Dung Hợp Kỹ (#192, #193): tin riêng ask / wait / done / cancel. B thấy khung "Dung hợp [G]" đếm ngược (chạm được), A thấy
+    // đang chờ; xong thì ô G vào hồi chiêu `cd`. Lý do từ chối / hủy server gửi bằng dòng log (khung tin).
+    this.room.onMessage("fusion", (m: { k: string; by?: string; to?: string; i?: number; t?: number; cd?: number }) => {
+      if (m?.k === "ask" || m?.k === "wait") {
+        const i = m.i ?? -1, f = FUSIONS[i]; if (!f) return;
+        hud.setFusionPending({ k: m.k, i, who: (m.k === "ask" ? m.by : m.to) ?? "", t: m.t ?? 0 }, () => this.act("fusion"));
+        const how = document.body.classList.contains("touch") ? "chạm nút Dung hợp" : `phím ${hud.FUSION_KEY}`;
+        if (m.k === "ask") hud.banner(`Dung hợp kỹ ${f.name}`, `${m.by ?? ""} mời hưởng ứng · ${how}`);
+      } else if (m?.k === "done") { hud.setFusionPending(null); hud.setFusionCd(m.cd ?? 0); }
+      else if (m?.k === "cancel") hud.setFusionPending(null);
     });
     if (!this.isArena) this.room.send("offline");
     if (!this.isArena) this.room.send("auto", { op: "get" });
@@ -934,10 +957,10 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.room.onMessage("arenaTop", (m: hud.ArenaTopMsg) => { if (m && Array.isArray(m.list)) hud.setArenaTop(m); });
-    // Nhiệm vụ tân thủ (6.2): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu trên đầu NPC và thông báo.
+    // Nhiệm vụ chuỗi cố định (6.2, #190: tân thủ, chương 2…): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu
+    // trên đầu NPC giao bài, chỉ đường bản đồ nhỏ và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
-      if (m.chain === QUEST_STARTER) this.quest = m;
       hud.setQuest(m); this.updateQuestMarks();
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
@@ -989,9 +1012,16 @@ export class GameScene extends Phaser.Scene {
     });
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("party", (m: PartyView) => { this.party = m; hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
+    // Bạn bè và chặn (#195): bảng bạn bè và lời "đã thêm bạn", chỉ gửi riêng cho mình.
+    hud.bindFriends((op, name) => this.room.send("friend", { op, ...(name ? { name } : {}) }), (name) => this.partySend("invite", name));
+    this.room.onMessage("friends", (m: FriendsMsg) => { if (m && Array.isArray(m.list) && Array.isArray(m.blocks)) hud.setFriends(m); });
+    // Bảng nhân vật (UI-2): chỉ số tổng hợp do server tính (tin riêng "stats"), client chỉ hiển thị.
+    this.room.onMessage("stats", (m: StatsMsg) => { if (m && m.total && m.base) { this.charStats = m; this.renderChar(); } });
+    onCharOpen(() => this.askStats());
     // Võ hồn sở hữu và đội hình: server chỉ gửi riêng cho mình. Xin lần đầu sau khi đã đăng ký nhận.
     this.room.onMessage("vohons", (m: OwnedVohons) => {
       this.owned = m;
+      hud.setFusionCd(m.fcd ?? 0); // hồi chiêu dung hợp kỹ của hồn sư (#193): đúng cả sau khi đổi kênh / đi cổng / vào lại
       this.renderBag(); // bảng chọn võ hồn để hấp thụ dùng cấp / số hồn hoàn mới nhất
       this.renderRoster();
       hud.buildTeam(m, (slot) => this.act("switch" + slot));
@@ -1058,6 +1088,7 @@ export class GameScene extends Phaser.Scene {
     this.room.send("boss"); // #118: tin boss lúc vào phòng tới trước khi cảnh nghe tin, xin lại (đếm ngược, đồng hồ, chiêu đang báo trước)
     this.room.send("bag");
     this.room.send("party", { op: "get" });
+    this.room.send("friend", { op: "list" });
     this.room.send("quest", { op: "get" });
     this.room.send("resonance");
   }
@@ -1137,7 +1168,8 @@ export class GameScene extends Phaser.Scene {
 
   fx(m: any) {
     const actor = typeof m.id === "string" ? this.players.get(m.id) : undefined;
-    this.audio.handleFx(m, actor ? VOHON[actor.vh]?.he : undefined);
+    // Dung hợp kỹ (#193): hệ của người mời lấy từ `va` trong tin (người mời có thể ngoài vùng đồng bộ, 11.4).
+    this.audio.handleFx(m, m.k === "fusion" ? VOHON[m.va]?.he : actor ? VOHON[actor.vh]?.he : undefined);
     // Mọi tọa độ trong tin "fx" là tọa độ thế giới; vẽ ở hình chiếu (10.1). Vòng / vùng là hình trên mặt đất (elip theo phép chiếu),
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
     if (m.k === "wave") { this.ringFx(this.lifted(m.x, m.y), 4, m.r, m.col, 400); if (m.shake) this.cameras.main.shake(300, 0.004); }
@@ -1310,6 +1342,7 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.shake(400, 0.006);
     }
     else if (m.k === "tienco") this.tienCoFx(m);
+    else if (m.k === "fusion") this.fusionFx(m); // Võ Hồn Dung Hợp Kỹ (#193)
     else if (m.k === "absorbed") {
       const v = this.players.get(m.id); if (!v) return; const t = TIERS[m.tier];
       for (let k = 0; k < 3; k++) this.ringFx(this.feet(v), 4 + k * 6, 60 + k * 20, t.glow, 700, k * 120);
@@ -1553,6 +1586,66 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: tr, alpha: 0, duration: 300, onComplete: () => tr.destroy() });
     }
     if (m.hit.includes(this.me)) this.cameras.main.shake(180, 0.006);
+  }
+
+  /**
+   * Võ Hồn Dung Hợp Kỹ (#193, `fx fusion` công khai cho người ở gần): hai luồng sáng màu võ hồn (`VOHON.col` của `va` / `vb`) từ ngực
+   * người mời `id` và người hưởng ứng `to` vòng cung nhập vào điểm giữa (x, y); cùng lúc đóa kính lưu ly nở trên mặt đất (đòn của server
+   * tới ngay sau tin này nên hình không chờ luồng sáng tới nơi) (phong cách D "Lưu Ly Bảo
+   * Quang", mục 5.11: mảnh kính hai màu võ hồn và lam / ngọc / tím lưu ly, đường chì, viền vàng kim), vòng sáng màu niên hạn `col`, tên
+   * chiêu lớn bay lên như tuyệt kỹ. Người nào ngoài vùng đồng bộ (11.4) thì bỏ luồng của người đó. Chỉ hình ảnh: sát thương do server.
+   */
+  fusionFx(m: { id: string; to: string; x: number; y: number; i: number; col?: string; va?: number; vb?: number }) {
+    const f = FUSIONS[m.i]; if (!f) return;
+    const k = SPR, c = W2S(m.x, m.y), cy = c.y - 12 * k, col = m.col ?? "#ffe08a", MERGE = 280, BLOOM = 120;
+    const R = Math.max(40, ...f.parts.map((p) => p.r ?? 0)), cols: number[] = [];
+    for (const [id, vh] of [[m.id, m.va], [m.to, m.vb]] as const) {
+      const v = this.players.get(id), vc = hex(VOHON[vh ?? -1]?.col ?? col); cols.push(vc);
+      if (!v) continue;
+      this.playAct(id, "cast");
+      const x0 = v.root.x, y0 = v.root.y - 14 * k, g = this.add.graphics().setDepth(99981), o = { t: 0 };
+      const at = (t: number) => ({ x: x0 + (c.x - x0) * t, y: y0 + (cy - y0) * t - Math.sin(t * Math.PI) * 14 * k }); // cung nhẹ lên trên
+      this.tweens.add({ targets: o, t: 1, duration: MERGE, ease: "Sine.easeIn", onUpdate: () => {
+        const t0 = Math.max(0, o.t - 0.45), pts = Array.from({ length: 8 }, (_, j) => at(t0 + ((o.t - t0) * j) / 7)), h = pts[7];
+        g.clear();
+        g.lineStyle(7 * k, vc, 0.25).strokePoints(pts); g.lineStyle(3 * k, vc, 0.9).strokePoints(pts); g.lineStyle(k, 0xffffff, 0.9).strokePoints(pts);
+        g.fillStyle(vc, 0.5).fillCircle(h.x, h.y, 5 * k); g.fillStyle(0xffffff, 1).fillCircle(h.x, h.y, 2.5 * k);
+      }, onComplete: () => this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() }) });
+    }
+    this.time.delayedCall(BLOOM, () => {
+      // Đóa kính lưu ly: vòng trong là mảnh tam giác xen hai màu võ hồn, vòng ngoài là mảnh lam / ngọc / tím lưu ly (_luu_ly.gpl),
+      // mọi mảnh viền chì sẫm, mép ngoài viền vàng kim; nở ra rồi mờ dần.
+      const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };
+      const draw = () => {
+        const r1 = R * o.s, r0 = r1 * 0.45, P = (r: number, j: number) => groundAt(m.x, m.y, r, (j / N) * Math.PI * 2);
+        g.clear();
+        for (let j = 0; j < N; j++) {
+          const inner = [c, P(r0, j), P(r0, j + 1)], outer = [P(r0, j), P(r1, j), P(r1, j + 1), P(r0, j + 1)];
+          g.fillStyle(cols[j % cols.length] ?? hex(col), 0.5 * o.a).fillPoints(inner, true);
+          g.fillStyle(glass[j % glass.length], 0.42 * o.a).fillPoints(outer, true);
+          g.lineStyle(1.2 * k, 0x1a1020, 0.65 * o.a).strokePoints(inner, true).strokePoints(outer, true);
+        }
+        g.lineStyle(2 * k, 0xffe08a, o.a).strokeEllipse(c.x, c.y, 2 * RX * r1, 2 * RY * r1);
+        g.fillStyle(0xe8f8ff, 0.8 * o.a).fillCircle(c.x, c.y, 3 * k);
+      };
+      this.tweens.add({ targets: o, s: 1, duration: 480, ease: "Back.easeOut", onUpdate: draw, onComplete: () =>
+        this.tweens.add({ targets: o, a: 0, duration: 650, delay: 250, onUpdate: draw, onComplete: () => g.destroy() }) });
+      this.ringFx(c, 6, R, col, 650); this.ringFx(c, 4, R * 0.7, "#ffffff", 550, 120);
+      // Như tuyệt kỹ: hai người dung hợp thấy banner, người khác ở gần thấy tên chiêu lớn bay lên ở điểm giữa.
+      const own = this.me === m.id || this.me === m.to;
+      if (own) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
+      else {
+        const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
+          .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
+        this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
+        this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+      }
+      const me = this.players.get(this.me);
+      if (me && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) {
+        const cc = Phaser.Display.Color.ValueToColor(hex(col));
+        this.cameras.main.flash(260, cc.red, cc.green, cc.blue); this.cameras.main.shake(320, 0.006);
+      }
+    });
   }
 
   /** Chiêu tiên cơ (bước 2.4): hiệu ứng chung theo hệ và chữ "Tiên cơ" bay lên trên đầu hồn sư. */
@@ -1821,13 +1914,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Chỉ đường nhiệm vụ trên bản đồ nhỏ (chuỗi tân thủ đang làm và khảo hạch hằng ngày): mục tiêu ở bản đồ này thì chấm NPC / khung vùng
+   * Chỉ đường nhiệm vụ trên bản đồ nhỏ (mọi chuỗi cố định đang theo dõi, hud.questTracked: tân thủ, chương 2…, và khảo hạch hằng
+   * ngày; #190): mục tiêu ở bản đồ này thì chấm NPC / khung vùng
    * săn; ở bản đồ khác thì tô cổng đi tới bản đồ kề theo `route` của tin "daily" (server tính đường ít lần đi cổng nhất). Bài chờ trả
    * hoặc chưa nhận chỉ về NPC giao bài; mục tiêu hạ hồn thú hợp cấp (`fit`) và nộp hồn hạch / hồn hoàn chỉ về vùng săn hợp cấp
-   * (fitMaps, fitBeast theo cấp võ hồn ra trận). Tính lại khi tiến độ hoặc cấp đổi.
+   * (fitMaps, fitBeast theo cấp võ hồn ra trận). Mục tiêu tinh anh (`elite`) chấm các chỗ sinh tinh anh của bản đồ này, không có thì
+   * về bản đồ săn hợp cấp; thú vương (`king`) / boss thế giới (`world`) khung hang của bản đồ này, không có thì về các bản đồ có thú
+   * vương / bản đồ boss (ưu tiên hợp cấp); mục tiêu ghi `map` (chỉ tính ở bản đồ đó) thì ở bản đồ khác chỉ đường tới đúng bản đồ đó.
+   * Tính lại khi tiến độ hoặc cấp đổi.
    */
   questTargets(level: number) {
-    const daily = hud.dailyList(), key = [this.quest?.step, this.quest?.status, ...daily.map((q) => q.chain + q.status + q.prog.join()), level].join("|");
+    const fixed = hud.questTracked(), daily = hud.dailyList();
+    const key = [...[...fixed, ...daily].map((q) => q.chain + q.step + q.status + q.prog.join()), level, this.daily?.route ? 1 : 0].join("|");
     if (this.qt.key === key) return this.qt;
     const npcs: Pt[] = [], zones = new Set<Zone>(), maps = new Set<string>(), route = this.daily?.route ?? {};
     const toNpc = (id: string, mapId: string) => {
@@ -1845,13 +1943,30 @@ export class GameScene extends Phaser.Scene {
       if (g.k === "kill") return hunt(g.map, g.zone, !!g.fit);
       if (g.k === "map" && g.map) return void (g.map !== this.mapId && maps.add(g.map));
       if (g.k === "give" && (g.item === CORE_ITEM || g.item === RING_ITEM)) return hunt(undefined, undefined, true);
+      // Gia nhập tông (#286): chấm các sứ giả tông (TONG_MON.npc) ở bản đồ của họ; mục tiêu không ghi `map` vì sự kiện `tong` không có bản đồ.
+      if (g.k === "tong") return TONG_MON.forEach((t) => toNpc(t.npc, TONG_DAILY.map));
+      // Tinh anh / thú vương / boss thế giới: mục tiêu có `map` (chương 3: Hải Thần Đảo) chỉ tính ở đúng bản đồ đó (server lọc theo
+      // bản đồ, #284), nên ở bản đồ khác thì chỉ đường tới đó; đứng đúng bản đồ (hoặc mục tiêu không ghi bản đồ) mới chấm chỗ sinh / khung hang.
+      if (g.k === "elite" || g.k === "king" || g.k === "world") {
+        if (g.map && g.map !== this.mapId) return void maps.add(g.map);
+        if (g.k === "elite") {
+          if (this.eliteSpots.length) return void npcs.push(...this.eliteSpots);
+          if (!g.map) fitMaps(level).forEach((m) => maps.add(m));
+          return;
+        }
+        const here = g.k === "king" ? !!MAPS[this.mapId]?.king : MAPS[this.mapId]?.kind === "boss";
+        if (this.lair && here) return void zones.add({ ...this.lair, name: "", hint: "" });
+        if (g.map) return;
+        const all = Object.keys(MAPS).filter((m) => (g.k === "king" ? !!MAPS[m].king : MAPS[m].kind === "boss")), fit = all.filter((m) => fitMaps(level).includes(m));
+        return void (fit.length ? fit : all).forEach((m) => m !== this.mapId && maps.add(m));
+      }
     };
     const one = (q: QuestProgress & { status: QuestStatus }) => {
       const c = questChain(q.chain), s = c?.steps[q.step]; if (!c || !s || q.status === "done") return;
       if (q.status !== "active") return toNpc(c.giver, c.map);
       s.goals.forEach((g, i) => { if ((q.prog[i] ?? 0) < g.n) goal(g, c.map); });
     };
-    if (this.quest) one(this.quest);
+    fixed.forEach(one);
     daily.forEach(one);
     // Bản đồ khác: tô cổng đi tới bản đồ kề trên đường tới đó (một bản đồ đích có nhiều cổng thì tô cả).
     const next = new Set([...maps].map((m) => route[m]).filter(Boolean));
@@ -2204,12 +2319,19 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */
+  askStats() { this.room.send("stats", { rowId: charViewRow() }); }
+  renderChar() {
+    if (!this.owned || !isCharOpen()) return;
+    renderChar(this.owned, this.bag?.items ?? [], this.charStats, { portrait: (vohon) => this.portrait(vohon), ask: (rowId) => this.room.send("stats", { rowId }) });
+  }
   /**
    * Bảng đội hình kèm hồn cốt (bước 4.2), hồn hạch (bước 5.2) và mảnh võ hồn (bước 3.4): số mảnh, hồn cốt và hồn hạch (đang gắn /
    * trong túi) từ tin riêng "bag",
    * võ hồn từ tin riêng "vohons".
    */
   renderRoster() {
+    if (isCharOpen()) { this.askStats(); this.renderChar(); } // vohons / bag / cộng minh đổi: chỉ số và ô trên bảng nhân vật cũng đổi
     if (!this.owned) return;
     const shards = new Map<string, number>();
     for (const it of this.bag?.items ?? []) {
@@ -2283,6 +2405,10 @@ export class GameScene extends Phaser.Scene {
       refresh: () => this.room.send("vohons"),
       enhance: (targetId, materialIds) => this.room.send("enhance", { targetId, materialIds }),
       enhanceCore: (targetId, materialIds) => this.room.send("enhancecore", { targetId, materialIds }), // nâng cấp hồn hạch (5.3)
+      // UI-1: gắn nhanh cho võ hồn đang ra trận (cùng lệnh với bảng đội hình; server kiểm tra vị trí, giao chiến, túi đầy)
+      active: () => this.owned?.active ?? null,
+      equipBone: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equip", { itemId, vohonId, slot }); },
+      equipCore: (itemId, slot) => { const vohonId = this.owned?.active; if (vohonId) this.room.send("equipcore", { itemId, vohonId, slot }); },
     });
   }
 
@@ -2373,7 +2499,7 @@ export class GameScene extends Phaser.Scene {
     // 9.5: sao võ hồn ra trận đổi sức mạnh / hồi chiêu hồn kỹ vòng 1–4 trong chú thích.
     const stars = own && VOHON[me.vh]?.id === own.vohon ? own.stars : 1;
     const skKey = `${me.vh}|${me.rings.length}|${years?.join(",") ?? ""}|${loadout.join(",")}|${stars}`;
-    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a), stars); }
+    if (skKey !== this.skillsKey) { this.skillsKey = skKey; hud.buildSkills(me.vh, [...me.rings], years, loadout, (a) => this.act(a), stars, !this.isArena); }
     // Kỹ năng hồn cốt (4.3): hồn cốt đang gắn trên võ hồn ra trận, lấy từ tin riêng "bag" (trường `vohon`) khi đúng võ hồn ra trận.
     const worn: hud.WornBone[] = own && VOHON[me.vh]?.id === own.vohon ? (this.bag?.items ?? []).flatMap((it) => {
       const b = it.vohon === own.rowId && it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
@@ -2382,6 +2508,7 @@ export class GameScene extends Phaser.Scene {
     const bKey = JSON.stringify(worn);
     if (bKey !== this.boneSkKey) { this.boneSkKey = bKey; hud.buildBoneSkills(worn, (a) => this.act(a)); }
     hud.updateStats(me);
+    hud.updateFusion();
     hud.updateTeam(me);
     hud.updateBag();
     hud.updateParty();
@@ -2423,7 +2550,8 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? `<span class="dot" style="color:${hud.ringColor(tb.tier)}"></span>${beastName(tb.rank, tb.species)} · ${formatYears(tb.years)} · cấp ${tLv}${xpNote} – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "") : null);
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastName(tb.rank, tb.species), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
+        beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
     let dr: any = null, dd = PICKUP_RANGE;

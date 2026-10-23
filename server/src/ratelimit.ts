@@ -73,6 +73,14 @@ const INVITE_REFILL_MS = 10_000;
 /** Không mời lại cùng một người trong 30 giây (kể cả khi người đó vừa từ chối). */
 const INVITE_REPEAT_MS = 30_000;
 
+// ---------- Bạn bè và chặn (#195) ----------
+/** Token bucket: thêm / xóa / chặn / bỏ chặn liền tối đa 10 lần… */
+const FRIEND_BURST = 10;
+/** …sau đó hồi 1 lượt mỗi giây (thêm theo tên có thể phải tra DB). */
+const FRIEND_REFILL_MS = 1_000;
+/** Lời "X đã thêm bạn" từ cùng một người tới cùng một người: tối đa một lần mỗi 60 giây (xóa rồi thêm lại liên tục). */
+const FRIEND_NOTE_REPEAT_MS = 60_000;
+
 /** Dọn các mục cũ mỗi 5 phút để bộ nhớ không phình ra. */
 const SWEEP_MS = 5 * 60_000;
 
@@ -292,6 +300,38 @@ export function inviteCheck(key: number, target: number, now = Date.now()): { er
 /** Hook kiểm thử (`test {op: "party", pop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm lời mời của một tài khoản. */
 export function inviteReset(key: number) { invites.delete(key); }
 
+// ---------- Bạn bè và chặn ----------
+const friendOps = new Map<number, { tokens: number; at: number }>();
+
+/**
+ * Một thao tác bạn bè / chặn của tài khoản `key` (#195): chống spam (thêm theo tên có thể tra DB, mỗi lần ghi DB). Hợp lệ -> null
+ * (đã tính lượt). Hết lượt -> { error } để báo riêng người gửi.
+ */
+export function friendCheck(key: number, now = Date.now()): { error: string } | null {
+  let e = friendOps.get(key);
+  if (!e) { e = { tokens: FRIEND_BURST, at: now }; friendOps.set(key, e); }
+  e.tokens = Math.min(FRIEND_BURST, e.tokens + (now - e.at) / FRIEND_REFILL_MS); e.at = now;
+  if (e.tokens < 1) return { error: `Thao tác bạn bè quá nhanh. Đợi ${Math.ceil(((1 - e.tokens) * FRIEND_REFILL_MS) / 1000)} giây rồi thử lại.` };
+  e.tokens -= 1;
+  return null;
+}
+
+const friendNotes = new Map<string, number>(); // "người thêm|người được thêm" -> lúc gửi lời "đã thêm bạn" gần nhất
+
+/** Được gửi lời "đã thêm bạn" của `key` tới `target` lúc này không (#195); được thì ghi lại lúc gửi. */
+export function friendNoteOk(key: number, target: number, now = Date.now()) {
+  const k = `${key}|${target}`, at = friendNotes.get(k);
+  if (at !== undefined && now - at < FRIEND_NOTE_REPEAT_MS) return false;
+  friendNotes.set(k, now);
+  return true;
+}
+
+/** Hook kiểm thử (`test {op: "friend", fop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm thao tác bạn bè và lời "đã thêm bạn" của một tài khoản. */
+export function friendReset(key: number) {
+  friendOps.delete(key);
+  for (const k of friendNotes.keys()) if (k.startsWith(`${key}|`)) friendNotes.delete(k);
+}
+
 // ---------- Dọn dẹp ----------
 export function sweep(now = Date.now()) {
   byPair.sweep(now); byName.sweep(now); byIp.sweep(now);
@@ -302,8 +342,10 @@ export function sweep(now = Date.now()) {
     for (const [t, at] of e.last) if (now - at >= INVITE_REPEAT_MS) e.last.delete(t);
     if (!e.last.size && now - e.at > CHAT_FORGET_MS) invites.delete(k);
   }
+  for (const [k, e] of friendOps) if (now - e.at > CHAT_FORGET_MS) friendOps.delete(k);
+  for (const [k, at] of friendNotes) if (now - at >= FRIEND_NOTE_REPEAT_MS) friendNotes.delete(k);
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); }

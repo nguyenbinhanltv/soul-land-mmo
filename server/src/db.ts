@@ -68,6 +68,10 @@ export interface TongRow { tong: string | null; at: number | null; }
 /** Bảng tông tuần (#197): mỗi tông có điểm trong tuần (TongRank), và top cá nhân mỗi tông (tên, điểm; điểm > 0, cao trước). */
 export interface TongBoard { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]>; }
 export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
+/** Một hồn sư trong danh sách bạn bè / chặn (#195). */
+export interface SocialPeer { id: number; name: string; }
+/** Bạn bè, chặn và người đã thêm mình của một tài khoản (#195; Store.getSocial). */
+export interface SocialRow { friends: SocialPeer[]; blocks: SocialPeer[]; fans: number[]; }
 /** Một món đã tự bán (#216): bản sao món (số lượng đã bán), giá mỗi món đã nhận, lúc bán (ms); `key` gửi lại trong `buyback {key}`. */
 export interface SoldRow { key: string; item: Item; price: number; at: number; }
 /**
@@ -255,6 +259,20 @@ export interface Store {
    * Trả về số trận sau khi đếm (trận này là trận thứ mấy; arenaRanked quyết định có tính Elo không).
    */
   arenaPairAdd(day: string, a: number, b: number): Promise<number>;
+  /** Hồn sư tên `name` (so theo nameKey, đã thức tỉnh) có thật không, kể cả đang ngoại tuyến: tài khoản và tên đúng cách viết (#195). */
+  findAccount(name: string): Promise<SocialPeer | null>;
+  /**
+   * Bạn bè và chặn của tài khoản (#195, bảng `friends` / `blocks`, theo thứ tự thêm), cùng `fans`: tài khoản đã thêm tài khoản này
+   * vào danh sách của họ (biết hai bên đã thêm nhau khi người kia ngoại tuyến).
+   */
+  getSocial(accountId: number): Promise<SocialRow>;
+  /** Thêm (`on`) / bỏ `other` khỏi danh sách bạn bè của chính tài khoản (chạy lại an toàn). Chỉ gọi trong chuỗi lưu của người chơi. */
+  setFriend(accountId: number, other: number, on: boolean): Promise<void>;
+  /**
+   * Chặn (`on`, trong MỘT transaction bỏ luôn `other` khỏi danh sách bạn bè của chính tài khoản) / bỏ chặn (chạy lại an toàn). Chỉ
+   * ghi dòng của chính tài khoản; chỉ gọi trong chuỗi lưu của người chơi.
+   */
+  setBlock(accountId: number, other: number, on: boolean): Promise<void>;
 }
 
 // scrypt bất đồng bộ (threadpool của libuv): bản Sync mất vài chục ms mỗi lần trên luồng chính, đăng nhập dồn dập làm đứng tick mọi phòng.
@@ -329,6 +347,8 @@ export class MemoryStore implements Store {
   tongPts = new Map<string, { accountId: number; week: number; tong: string; points: number }>(); // `${accountId}|${week}|${tong}` -> điểm tông tuần (tong_points, #197)
   autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
   offline = new Map<number, OfflineRow>(); // accountId -> lần ủy thác offline chưa nhận (bảng auto_offline, Auto 3)
+  friends = new Map<number, Set<number>>(); // accountId -> tài khoản đã thêm làm bạn, theo thứ tự thêm (bảng friends, #195)
+  blocks = new Map<number, Set<number>>(); // accountId -> tài khoản đã chặn, theo thứ tự chặn (bảng blocks, #195)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
@@ -515,6 +535,27 @@ export class MemoryStore implements Store {
         .map((x) => ({ name: this.names.get(x.accountId) ?? "?", points: x.points }));
     }
     return { tongs, top };
+  }
+  async findAccount(name: string) {
+    const acc = this.accounts.get(nameKey(name));
+    return acc && this.owned(acc.id).length ? { id: acc.id, name: this.names.get(acc.id)! } : null;
+  }
+  async getSocial(accountId: number): Promise<SocialRow> {
+    const peers = (ids: Set<number> | undefined) => [...(ids ?? [])].map((id) => ({ id, name: this.names.get(id) ?? "?" }));
+    const fans = [...this.friends].filter(([a, set]) => a !== accountId && set.has(accountId)).map(([a]) => a);
+    return { friends: peers(this.friends.get(accountId)), blocks: peers(this.blocks.get(accountId)), fans };
+  }
+  /** Thêm / bỏ `other` trong tập của `accountId` ở `m` (giữ thứ tự thêm như created_at). */
+  private mark(m: Map<number, Set<number>>, accountId: number, other: number, on: boolean) {
+    if (on && (accountId === other || !this.names.has(other))) throw new Error(`Tài khoản #${other} không hợp lệ.`); // như CHECK / khóa ngoại khi thêm
+    let set = m.get(accountId);
+    if (!set) m.set(accountId, (set = new Set()));
+    if (on) set.add(other); else set.delete(other);
+  }
+  async setFriend(accountId: number, other: number, on: boolean) { this.mark(this.friends, accountId, other, on); }
+  async setBlock(accountId: number, other: number, on: boolean) {
+    this.mark(this.blocks, accountId, other, on); // thêm: kiểm như CHECK / khóa ngoại trước khi gán
+    if (on) this.friends.get(accountId)?.delete(other);
   }
   async getAuto(accountId: number): Promise<AutoRow> {
     const r = this.autos.get(accountId);
@@ -951,6 +992,37 @@ export class PgStore implements Store {
       await db.query("BEGIN");
       await db.query("UPDATE accounts SET tong=$2, tong_at=COALESCE($3, tong_at) WHERE id=$1", [accountId, tong, at]);
       if (week !== undefined) await db.query("DELETE FROM tong_points WHERE account_id=$1 AND week=$2", [accountId, week]);
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async findAccount(name: string) {
+    const r = await this.pool.query(
+      "SELECT a.id, a.name FROM accounts a WHERE a.name_key=$1 AND EXISTS (SELECT 1 FROM vohons v WHERE v.account_id=a.id)", [nameKey(name)]);
+    return r.rowCount ? { id: Number(r.rows[0].id), name: String(r.rows[0].name) } : null;
+  }
+  async getSocial(accountId: number): Promise<SocialRow> {
+    const [f, b, fans] = await Promise.all([
+      this.pool.query("SELECT f.friend_id AS id, a.name FROM friends f JOIN accounts a ON a.id=f.friend_id WHERE f.account_id=$1 ORDER BY f.created_at, f.friend_id", [accountId]),
+      this.pool.query("SELECT b.blocked_id AS id, a.name FROM blocks b JOIN accounts a ON a.id=b.blocked_id WHERE b.account_id=$1 ORDER BY b.created_at, b.blocked_id", [accountId]),
+      this.pool.query("SELECT account_id FROM friends WHERE friend_id=$1", [accountId]),
+    ]);
+    const peers = (rows: { id: unknown; name: unknown }[]) => rows.map((x) => ({ id: Number(x.id), name: String(x.name) }));
+    return { friends: peers(f.rows), blocks: peers(b.rows), fans: fans.rows.map((x) => Number(x.account_id)) };
+  }
+  async setFriend(accountId: number, other: number, on: boolean) {
+    if (on) await this.pool.query("INSERT INTO friends (account_id, friend_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, other]);
+    else await this.pool.query("DELETE FROM friends WHERE account_id=$1 AND friend_id=$2", [accountId, other]);
+  }
+  async setBlock(accountId: number, other: number, on: boolean) {
+    if (!on) { await this.pool.query("DELETE FROM blocks WHERE account_id=$1 AND blocked_id=$2", [accountId, other]); return; }
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await db.query("INSERT INTO blocks (account_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, other]);
+      await db.query("DELETE FROM friends WHERE account_id=$1 AND friend_id=$2", [accountId, other]);
       await db.query("COMMIT");
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});

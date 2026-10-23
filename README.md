@@ -37,6 +37,21 @@ cp .env.example server/.env      # đã có sẵn DATABASE_URL cho Postgres loca
 npm run dev:server
 ```
 
+**Nhiều tiến trình với RedisPresence**
+
+Chỉ bật khi chạy hai tiến trình cùng lúc. Dùng cùng `REDIS_URL` cho các tiến trình trong cùng một cụm; mỗi cụm / môi trường phải dùng Redis riêng, không dùng chung Redis của dịch vụ khác.
+
+```bash
+# terminal 1
+PORT=2567 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
+# terminal 2
+PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
+```
+
+Mỗi tiến trình cần `PUBLIC_ADDRESS` là địa chỉ client mở WebSocket tới đúng tiến trình đó (ví dụ `PUBLIC_ADDRESS=localhost:2567` và `PUBLIC_ADDRESS=localhost:2568`, hoặc đường dẫn riêng sau proxy). Không đặt thì client chỉ vào được phòng nằm ở tiến trình đã nhận yêu cầu HTTP. Sân đấu luôn mở ở tiến trình ghép trận.
+
+`RedisPresence` dùng pub/sub và RedisDriver để chia sẻ phòng, số kênh, khóa đổi kênh, phiên tài khoản, thú vương, khóa tinh anh, hàng chờ đấu trường và tổ đội. Lease có TTL 15 giây, heartbeat 5 giây; tiến trình chết không giữ tài khoản hoặc suất vô hạn. `REDIS_PREFIX` chỉ áp cho khóa ioredis của game; kênh pub/sub của `RedisPresence` và registry phòng của `RedisDriver` không có prefix, nên mỗi cụm vẫn cần Redis riêng. Khi không đặt `REDIS_URL`, server tự dùng LocalPresence và RAM như cũ, không cần chạy dịch vụ ngoài. Khi đã bật Redis mà Redis lỗi, server đóng phiên liên quan để tránh hai tiến trình cùng ghi dữ liệu.
+
 **Supabase**
 
 1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database, chọn region gần người chơi.
@@ -108,7 +123,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 │  ├─ src/scenes/GameScene.ts  # vẽ hồn sư, hồn thú, hiệu ứng; nhận state và message
 │  ├─ src/iso.ts, isoMap.ts, isoBuild.ts  # phép chiếu isometric, vẽ bản đồ thành ô thoi, nhà / tường thành dựng bằng code
 │  ├─ src/hud.ts           # giao diện HTML (chỉ số, hồn kỹ, đội hình, túi đồ, NPC, tổ đội, đấu trường…)
-│  ├─ src/uiArt.ts, cards.ts, fonts/  # ảnh giao diện thủy mặc, thẻ võ hồn, font Ark Pixel
+│  ├─ src/uiArt.ts, cards.ts, fonts/  # ảnh giao diện thủy mặc, thẻ võ hồn, font Galmuri
 │  ├─ src/crowd.ts         # dân thường, lính gác trang trí (chỉ phía client)
 │  ├─ src/predict.ts, net.ts   # dự đoán chuyển động, kiểu message
 │  ├─ src/sprites.ts, textures.ts, honsuArt.ts  # nạp sprite theo manifest, vẽ bằng code phần chưa có ảnh
@@ -120,7 +135,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 │  └─ assets/              # dây chuyền ảnh (README.md: quy cách chi tiết): normalize, pack, normal, preview, validate, iso-build,
 │                          #   gemini-import (nhập ảnh Gemini), lpc-compose (NPC phụ LPC), he-icons
 ├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
-│                          #   src/ (ảnh thô PixelLab / Gemini, công thức LPC), CREDITS.md
+│                          #   src/ (ảnh thô ComfyUI / Gemini / PixelLab cũ, công thức LPC), CREDITS.md
 ├─ GAME_DESIGN.md          # thiết kế luật chơi, mỹ thuật, kiến trúc, lộ trình (cho người và AI đọc)
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
 ├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
@@ -132,8 +147,8 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 ## Mỹ thuật và giấy phép
 
 Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
-Nguồn ảnh: **PixelLab** và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
-chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Ark Pixel và Be Vietnam Pro (OFL).
+Nguồn ảnh: **ComfyUI** tự host và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
+chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Galmuri (giao diện) và Be Vietnam Pro (OFL).
 Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled
