@@ -13,6 +13,8 @@
     "test:equip": "tsx scripts/equip-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
     "test:gm": "tsx scripts/gm-test.ts",
+    "test:seed": "tsx scripts/seed-test.ts",
+    "seed:test": "tsx scripts/seed-test-account.ts",
     "econ:equip": "tsx scripts/equip-econ.ts",
     "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --tsconfig=tsconfig.json --sourcemap --outfile=dist/index.mjs"
   },
