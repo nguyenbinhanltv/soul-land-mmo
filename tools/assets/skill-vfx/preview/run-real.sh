@@ -6,9 +6,11 @@ JOBS=$1; PORT=${PORT:-3346}; TAGS=${TAGS:-sau}; OUT=${OUT:?cần OUT}
 W=$(cd "$(dirname "$0")/../../../.." && pwd)
 if netstat -ano | grep -q ":$PORT .*LISTENING"; then echo "cổng $PORT bận"; exit 1; fi
 mkdir -p "$OUT"
-( cd "$W/server" && export GAME_TEST=1 PORT=$PORT && exec node --import tsx src/index.ts > "$OUT/server.log" 2>&1 ) &
+# KHÔNG BAO GIỜ nối DB thật: shell của agent có thể mang sẵn DATABASE_URL (Supabase); bỏ hẳn để server chạy MemoryStore, không Redis, không GM
+( cd "$W/server" && unset DATABASE_URL REDIS_URL ADMIN_ACCOUNTS PGHOST PGDATABASE PGUSER PGPASSWORD && export GAME_TEST=1 PORT=$PORT && exec node --import tsx src/index.ts > "$OUT/server.log" 2>&1 ) &
 BP=$!; sleep 1; WP=$(cat /proc/$BP/winpid 2>/dev/null); echo "winpid server $WP"
 for i in $(seq 1 60); do curl -s http://localhost:$PORT/health >/dev/null && break; sleep 1; done
+if grep -q "Đã kết nối PostgreSQL" "$OUT/server.log"; then echo "server nối PostgreSQL: DỪNG"; taskkill //PID $WP //T //F >/dev/null 2>&1; kill $BP 2>/dev/null; exit 1; fi
 for T in $TAGS; do GOTO=$GOTO node "$W/tools/assets/skill-vfx/preview/real.mjs" http://localhost:$PORT "$OUT/frames" "$(cygpath -w "$OUT/chrome-$T-$RANDOM")" $T "$JOBS"; done
 taskkill //PID $WP //T //F >/dev/null 2>&1; kill $BP 2>/dev/null
 echo done

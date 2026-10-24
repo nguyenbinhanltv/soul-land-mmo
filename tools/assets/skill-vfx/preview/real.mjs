@@ -59,9 +59,10 @@ try {
   let curId = "lam_dien_ba_vuong_long", curRow = rowId;
   const ensure = async (id) => {
     if (rows[id] === undefined) {
-      await hook("grant", { vohon: id }); await sleep(900);
-      const ow = JSON.parse(await ev(`JSON.stringify(window.__scene.owned)`));
-      const row = ow.list.find((r) => r.vohon === id)?.rowId; if (row === undefined) throw new Error("không thấy hàng " + id);
+      await hook("grant", { vohon: id });
+      let row; // chờ tin riêng "owned" về (máy bận thì lâu hơn 900 ms): thăm tối đa 10 giây
+      for (let i = 0; i < 20 && row === undefined; i++) { await sleep(500); row = JSON.parse(await ev(`JSON.stringify(window.__scene.owned)`)).list.find((r) => r.vohon === id)?.rowId; }
+      if (row === undefined) throw new Error("không thấy hàng " + id);
       await hook("set", { rowId: row, level: 70, stars: 3, rings: RINGS }); rows[id] = row;
     }
     return rows[id];
