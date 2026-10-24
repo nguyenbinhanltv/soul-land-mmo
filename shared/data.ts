@@ -5674,7 +5674,8 @@ export function presetToLpc(looks: Looks): LpcLooks {
   colors.skin = at(PRESET_SKIN_COL, looks.skin);
   const torso = parts.torso ? lpcPart(parts.torso) : undefined, outfit = at(PRESET_OUTFIT_COL, looks.outfitCol);
   if (torso && lpcSlotColors(torso).includes(outfit)) colors.torso = outfit;
-  return parseLpc({ v: 1, body: sex, parts, colors }) ?? structuredClone(base.lpc);
+  const lpc = parseLpc({ v: 1, body: sex, parts, colors }) ?? structuredClone(base.lpc);
+  return decodeLpc(encodeLpc(lpc))!; // thứ tự khóa chuẩn (như đọc lại từ DB), để kết quả trùng khít sau khi lưu rồi nạp lại
 }
 /**
  * Ngoại hình mới do người chơi gửi (tạo nhân vật, thợ may; HL2 #571): như parseLooks nhưng không còn tạo preset kiểu cũ nữa, preset
