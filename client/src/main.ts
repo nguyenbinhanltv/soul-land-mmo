@@ -6,7 +6,7 @@ import { addLag } from "./predict.ts";
 import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES,
   type He } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
-import { ringColor } from "./hud.ts";
+import { ringColor, closeLooks } from "./hud.ts";
 import { mountMaker } from "./looksMaker.ts";
 import { MAX_LIGHTS } from "./lighting.ts";
 import { loadUiArt } from "./uiArt.ts";
@@ -251,7 +251,7 @@ function play(room: Room, roomMap: string, watch = false) {
     left = true;
     if (travelling) return;
     if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
-    document.body.classList.remove("playing"); overlay.hidden = false; stopMusic();
+    closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic();
     const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
     card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
   });

@@ -2289,7 +2289,8 @@ export function setLooksInfo(m: { n: number; err?: string }) { looksMsg = m; loo
 function openLooksChange(def: NpcDef, act: NpcActions) {
   const n0 = looksMsg?.n ?? 0, cost = looksChangeCost(n0), have = npcBagMsg?.honTe ?? 0;
   closeNpc(); // màn đổi ngoại hình phủ lên game; xong thì nói chuyện lại với thợ may nếu muốn đổi tiếp
-  openLooksOverlay({
+  closeLooks();
+  looksClose = openLooksOverlay({
     title: "Đổi ngoại hình", current: act.looks(),
     intro: cost ? `Lần đổi này tốn <b>${formatHonTe(cost)}</b> Hồn Tệ (bạn có ${formatHonTe(have)}). Có thể đổi giữa Mẫu dựng sẵn và Tự tạo.`
       : `Lần đổi này <b>miễn phí</b>; các lần sau tốn ${formatHonTe(LOOKS_CHANGE.cost)} Hồn Tệ mỗi lần. Có thể đổi giữa Mẫu dựng sẵn và Tự tạo.`,
@@ -2302,9 +2303,14 @@ function openLooksChange(def: NpcDef, act: NpcActions) {
       };
       act.changeLooks(looks);
     }),
-    onClose: () => { looksWait = null; },
+    onClose: () => { looksWait = null; looksClose = null; },
   });
 }
+let looksClose: (() => void) | null = null; // đóng màn đổi ngoại hình đang mở
+/** Màn đổi ngoại hình (thợ may) đang mở: phím tắt game phải tắt trong lúc đó. */
+export const looksOpen = () => looksClose !== null;
+/** Đóng màn đổi ngoại hình nếu đang mở (Esc, đi cổng / đổi kênh / vào sân đấu, mất kết nối): dừng xem trước, trả #card về như cũ. */
+export function closeLooks() { looksClose?.(); looksClose = null; }
 /** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
 export function setTong(m: TongMsg) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 /** Tin "tongBoard" (#197): vẽ lại hộp thoại sứ giả nếu đang mở. */
