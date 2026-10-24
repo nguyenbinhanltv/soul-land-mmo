@@ -10,7 +10,7 @@ Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu, nguồn được
 ## 1. Quy cách tóm tắt (quy tắc: mục 5.11; chi tiết: `tools/assets/README.md`)
 | Asset | Khung, sheet | Gốc | Key |
 |---|---|---|---|
-| Hồn sư | 64×64, sheet 24 cột × 6 hàng | (32, 58) | `hs_{body,outfit,hair}_{m,f}_{0–3}`: một bộ giới × kiểu tóc đủ 3 lớp hoặc không lớp nào |
+| Hồn sư | 64×64, sheet 24 cột × 6 hàng | (32, 58) | Không còn key trong game (HL3 #572: hồn sư chỉ còn LPC ghép lúc chạy); `pack` / `normalize` vẫn dựng được sheet kiểu `hs_*` cho NPC `lpc_<mã>` |
 | Phụ thể võ hồn | 96×96, sheet 24 × 12 (nam hàng 0–4, nữ hàng 6–10) | (48, 74) | `vh_{id}_b` / `vh_{id}_f` |
 | Hồn thú | 64 (Trắng, Vàng) / 96 (Tím, Đen) / 128 (Đỏ) / 160 (thú vương) / 192 (boss thế giới), sheet 20 × 5 | giữa đáy, cách mép dưới khoảng 8 | `beast_{loài}` |
 | NPC phụ, dân thường | 64×64, sheet 24 × 6, một lớp đã tô màu | (32, 58) | `lpc_{tên}` |
@@ -194,7 +194,7 @@ Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú s
 
 ## 9. Phía client
 - `client/src/sprites.ts` (`preloadSprites`) tải key trong manifest (bố cục nhận theo bề ngang sheet, `fitHonsuLayer` đặt gốc / cỡ theo texture; `lpc_*` chỉ tải của bản đồ đang vào qua `lpcPreloader`); `textures.ts` / `honsuArt.ts` chỉ vẽ bằng code key **chưa có** ảnh, nên thêm key vào manifest là đủ. Giao diện HTML đọc ảnh qua `client/src/uiArt.ts`; ô và vật đứng qua `isoMap.ts` theo `tiles.json`.
-- Key hồn sư lấy bằng `honsuKey(lớp, giới, kiểu tóc)`; hoán màu bằng `recolor` (key `hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`); ánh xạ khung phụ thể `vohonFrame`, nửa sheet theo giới `vohonHalf`.
+- Thân hồn sư là texture LPC `lpcc_…` do `lpcRig.ts` ghép (không còn `honsuKey` / `recolor`); ánh xạ khung phụ thể `vohonFrame`, nửa sheet theo giới `vohonHalf`.
 
 ## 10. ComfyUI (tự host, công cụ chính; PixelLab đã bỏ)
 ComfyUI chạy trên MacBook M4 Pro của chủ repo trong LAN, cổng 8188. **IP Mac xem `MACBOOK_IP` trong `server.py`** (có thể đổi khi mạng cấp lại; đặt `MAC=$(sed -n 's/^MACBOOK_IP = "\([^"]*\)".*/\1/p' C:/mcp-servers/comfyui-pixel/server.py)` rồi dùng `http://$MAC:8188`). Gọi qua MCP `comfyui-pixel` (`server.py` và workflow `pixel_sprite_api.json` nằm ở máy người dùng, **ngoài repo**; cách dùng ở thư mục artifact của phiên dựng quy trình #330). Workflow: SDXL base 1.0 + LoRA pixel-art-xl (độ mạnh 1,1) + VAE sdxl-vae-fp16-fix, sinh 1024×1024, 28 bước `dpmpp_2m` / `karras`, rồi `ImageScale` nearest-exact về 128 px (×8: mỗi ô 8×8 của LoRA thành 1 điểm ảnh) và `ImageQuantize` không dither. Không tốn lượt hay tiền; giới hạn là máy.
