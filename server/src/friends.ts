@@ -79,7 +79,14 @@ export class FriendHub {
     if (!backend) { this.ready = Promise.resolve(); return; }
     void Promise.resolve(backend.presence.subscribe(FRIEND_STATE_TOPIC, this.sub));
     const beat = () => backend.putJson(workerKey(this.id), 1, PRESENCE_TTL_MS);
-    this.beatT = setInterval(() => { void beat().catch((e) => console.error("Không gia hạn lease worker bạn bè", e)); }, PRESENCE_HEARTBEAT_MS);
+    let failed = false;
+    this.beatT = setInterval(() => {
+      void beat().then(() => {
+        if (!failed) return;
+        failed = false;
+        for (const [acc, s] of this.social) this.share(acc, s);
+      }).catch((e) => { failed = true; console.error("Không gia hạn lease worker bạn bè", e); });
+    }, PRESENCE_HEARTBEAT_MS);
     this.beatT.unref();
     this.ready = beat().then(() => backend.getJson<StateDoc>(STATE_KEY)).then(async (doc) => {
       const alive = await this.aliveWorkers(Object.values(doc ?? {}).flatMap((ses) => Object.values(ses).map((e) => e.w)));

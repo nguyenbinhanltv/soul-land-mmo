@@ -62,9 +62,12 @@ async function liveClean(book: LiveBook, now: number) {
   }
   return book;
 }
+/** Trận do tiến trình này mở và còn mở: nguồn để ghi lại mục `arena:live` bị mất (lease hết hạn tạm thời, ghi pha lỗi). */
+const ownLive = new Map<string, LiveDoc>();
+const upsertOwn = (book: LiveBook, id: string) => { const o = ownLive.get(id); if (o && !book[id]) book[id] = { ...o, holds: {}, watching: {} }; };
 async function liveEdit<R>(edit: (book: LiveBook, now: number) => R): Promise<R> {
   let out!: R;
-  const ok = await presenceBackend.withLock<LiveBook>(LIVE_KEY, `${presenceBackend.workerId}:arena-live`, 5000, async (old) => {
+  const ok = await presenceBackend.withLock<LiveBook>(LIVE_KEY, `${presenceBackend.workerId}:arena-live:${randomUUID()}`, 5000, async (old) => {
     const now = Date.now(), book = await liveClean(old ?? {}, now);
     out = edit(book, now);
     return book;
@@ -77,14 +80,25 @@ export const arenaLiveOpen = async (l: Omit<LiveDoc, "owner" | "end" | "holds" |
   await beat(); // lease của tiến trình này phải có trước khi ghi, kẻo tiến trình khác coi mục vừa ghi là của tiến trình chết
   return liveEdit((book, now) => {
     const { secs, ...rest } = l;
-    book[l.roomId] = { ...rest, owner: presenceBackend.workerId, end: now + secs * 1000, holds: {}, watching: {} };
+    const d: LiveDoc = { ...rest, owner: presenceBackend.workerId, end: now + secs * 1000, holds: {}, watching: {} };
+    ownLive.set(l.roomId, d);
+    book[l.roomId] = d;
   });
 };
 /** ArenaRoom đổi pha. */
-export const arenaLivePhase = (roomId: string, phase: string, secs: number) => liveEdit((book, now) => {
-  const d = book[roomId]; if (d) { d.phase = phase; d.end = now + secs * 1000; }
-});
-export const arenaLiveClose = (roomId: string) => liveEdit((book) => { delete book[roomId]; });
+export async function arenaLivePhase(roomId: string, phase: string, secs: number) {
+  const o = ownLive.get(roomId); if (!o) return;
+  o.phase = phase; o.end = Date.now() + secs * 1000;
+  for (let i = 1; ; i++) {
+    try {
+      await liveEdit((book) => { upsertOwn(book, roomId); const d = book[roomId]; if (d) { d.phase = phase; d.end = o.end; } });
+      return;
+    } catch (err) { if (i >= 3 || !ownLive.has(roomId)) throw err; await new Promise((r) => setTimeout(r, 200 * i)); }
+  }
+}
+export const arenaLiveClose = (roomId: string) => { ownLive.delete(roomId); return liveEdit((book) => { delete book[roomId]; }); };
+/** Sau khi lease worker được gia hạn lại (từng mất): ghi lại các trận còn mở của tiến trình này mà sổ đã dọn. */
+const liveRestore = () => ownLive.size ? liveEdit((book) => { for (const id of ownLive.keys()) upsertOwn(book, id); }) : Promise.resolve();
 /** Danh sách trận đang đếm ngược / giao đấu (đọc, không khóa): `secs` còn lại, `watchers` số phiên đang xem. */
 export async function arenaLiveOpenList() {
   const now = Date.now(), book = await liveClean(await presenceBackend.getJson<LiveBook>(LIVE_KEY) ?? {}, now);
@@ -176,7 +190,14 @@ sub<{ id: string }>(T.abort, (m) => {
 const workerKey = (id: string) => `arena:worker:${id}`;
 // Lease sống của tiến trình này: mục hàng chờ của owner hết lease (crash / kill) bị coi là mục ma và bị dọn ở pass().
 const beat = () => presenceBackend.putJson(workerKey(presenceBackend.workerId), 1, PRESENCE_TTL_MS);
-setInterval(() => { void beat().catch((err) => console.error("Không gia hạn lease worker đấu trường", err)); }, PRESENCE_HEARTBEAT_MS).unref();
+let beatFailed = false;
+setInterval(() => {
+  void beat().then(async () => {
+    if (!beatFailed) return;
+    await liveRestore();
+    beatFailed = false;
+  }).catch((err) => { beatFailed = true; console.error("Không gia hạn lease worker đấu trường", err); });
+}, PRESENCE_HEARTBEAT_MS).unref();
 async function locked(update: (old: RemoteEntry[]) => RemoteEntry[]) {
   if (!await presenceBackend.withLock<RemoteEntry[]>(QUEUE_KEY, owner(), 5000, (old) => update(old ?? []), 0)) throw new Error("Không lấy được khóa hàng chờ đấu trường");
 }
