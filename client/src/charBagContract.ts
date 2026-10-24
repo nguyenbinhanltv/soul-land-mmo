@@ -3,7 +3,7 @@
 // Quyết định thật vẫn ở server: `accepts` / `smartTarget` chỉ để tô viền xanh / đỏ và chọn ô, server từ chối thì đồ về chỗ cũ.
 import { BONE_ITEM, BONE_SLOTS, CORE_ITEM, CORE_SLOTS, EQUIP_ITEM, coreSlotOf, equipSlotDef, equipSlotIndex, equipTemplate, parseBone, parseEquip } from "../../shared/data.ts";
 import type { BagItem, GearItem } from "./net.ts";
-import { wornFor } from "./bag.ts";
+import { comparable, wornFor } from "./bag.ts";
 
 /** Hai cửa sổ. */
 export type PanelId = "char" | "bag";
@@ -36,7 +36,9 @@ export type ServerCommand =
   | { msg: "equipgear"; data: { id: string } }
   | { msg: "unequip"; data: { itemId: string } }
   | { msg: "unequipcore"; data: { itemId: string } }
-  | { msg: "unequipgear"; data: { slot: number } };
+  | { msg: "unequipgear"; data: { slot: number } }
+  | { msg: "equipsalvage"; data: { ids: string[] } }
+  | { msg: "lock"; data: { id: string } };
 
 /** Món trang bị đang mặc dưới dạng `BagItem` (để dùng chung `accepts`, so sánh, chú thích); `vohon` null vì trang bị thuộc hồn sư. */
 export const gearAsBagItem = (g: GearItem): BagItem =>
@@ -118,3 +120,49 @@ export function unmountCommand(item: BagItem, from: SlotRef): ServerCommand | nu
 
 /** Hai ô cùng một chỗ (so sánh cả `rowId`): dùng khi thả lại đúng ô cũ thì không gửi gì. */
 export const sameSlot = (a: SlotRef, b: SlotRef) => a.tab === b.tab && a.slot === b.slot && a.rowId === b.rowId;
+
+/** Món đang gắn / mặc cùng chỗ mà `item` sẽ thay (cho so sánh hai cột): trang bị = món đang mặc ở ô của mẫu; hồn cốt, hồn hạch theo `wornFor`. */
+export function currentFor(item: BagItem, view: DollView): { cur: BagItem | null; full: boolean } | null {
+  if (item.code === EQUIP_ITEM) {
+    const tpl = equipTemplate(parseEquip(item.stats)?.tpl);
+    if (!tpl) return null;
+    const g = view.gear.find((x) => x.slot === equipSlotIndex(tpl.slot));
+    return { cur: g ? gearAsBagItem(g) : null, full: true };
+  }
+  return wornFor(item, view.bag as BagItem[], view.rowId);
+}
+
+/** Một nút của thẻ thao tác nhanh. `mount` = Mặc / Gắn (đúng ô theo `smartTarget`), `unmount` = Tháo (món đang gắn / mặc), `use` = nút Dùng riêng của loại món (nhãn do nơi gọi đặt). */
+export type CardActionId = "mount" | "unmount" | "use" | "compare" | "lock" | "unlock" | "salvage";
+export interface CardAction { id: CardActionId; label: string; primary?: boolean }
+export interface CardCtx { view: DollView; /** món đang nằm trên búp bê (đang gắn / mặc) */ worn?: boolean; /** nhãn nút Dùng của loại món (null = không có) */ useLabel?: string | null }
+
+/**
+ * Nút trên thẻ thao tác khi bấm một lần, theo loại món: [Mặc / Gắn / Dùng] [So sánh] [Khóa / Phân giải]. Món đang gắn trên búp bê chỉ có Tháo
+ * (và Khóa cho trang bị). Server vẫn quyết định: nút chỉ chọn lệnh gửi; "Bán" không có ở đây (bán cần đứng cạnh thương nhân, làm ở hộp thoại NPC).
+ */
+export function cardActions(item: BagItem, ctx: CardCtx): CardAction[] {
+  const out: CardAction[] = [], eq = item.code === EQUIP_ITEM;
+  const lockBtn: CardAction = { id: item.lock ? "unlock" : "lock", label: item.lock ? "Mở khóa" : "Khóa" };
+  if (ctx.worn) {
+    out.push({ id: "unmount", label: "Tháo", primary: true });
+    if (eq) out.push(lockBtn);
+    return out;
+  }
+  if (smartTarget(item, ctx.view)) out.push({ id: "mount", label: eq ? "Mặc" : "Gắn", primary: true });
+  if (ctx.useLabel) out.push({ id: "use", label: ctx.useLabel, primary: !out.length });
+  if (comparable(item) && currentFor(item, ctx.view)) out.push({ id: "compare", label: "So sánh" });
+  out.push(lockBtn);
+  if (eq && !item.lock) out.push({ id: "salvage", label: "Phân giải" });
+  return out;
+}
+
+/**
+ * Bấm đúp / Shift+Enter: lệnh của "mặc thông minh", hoặc (món đang gắn) lệnh tháo. null = không làm gì (món không mặc được, đã đúng chỗ…).
+ * `from`: nếu món đang ở một ô búp bê thì bấm đúp là tháo; ngược lại ô đúng của `smartTarget`.
+ */
+export function quickCommand(item: BagItem, view: DollView, from?: SlotRef): ServerCommand | null {
+  if (from) return unmountCommand(item, from);
+  const t = smartTarget(item, view);
+  return t ? mountCommand(item, t, view) : null;
+}

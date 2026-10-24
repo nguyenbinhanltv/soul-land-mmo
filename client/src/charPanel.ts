@@ -4,9 +4,11 @@
 // sẵn; server quyết định, client không đổi tạm: kết quả (kể cả lý do bị từ chối) lấy từ tin "log" (charLog) và state mới. Không nhảy sang Đội hình (V).
 import { TIERS, VOHON, BONE_SLOTS, CORE_SLOTS, CORE_SET_2, CORE_SET_4, MAX_RINGS, TEAM_SIZE, EQUIP_SLOTS, atBottleneck, tierOfYears, vohonIndex,
   ringSkill, loadoutOf, formatYears, coreSetCounts, coreSetIndex, coreSlotOf, boneSkillOf } from "../../shared/data.ts";
-import type { OwnedVohons, BagItem } from "./net.ts";
+import type { OwnedVohons, BagItem, GearItem } from "./net.ts";
 import { panelChanged, swapButton, raisePanel } from "./dualWindow.ts";
-import type { DollTab } from "./charBagContract.ts";
+import { type DollTab, type ServerCommand, type SlotRef, acceptsItem, cardActions, gearAsBagItem, mountCommand, sameSlot, unmountCommand } from "./charBagContract.ts";
+import { addZone, dragSource } from "./dragDrop.ts";
+import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { skillImg } from "./uiArt.ts";
@@ -25,6 +27,8 @@ export interface CharActions {
   equipBone(itemId: string, rowId: number, slot: string): void; unequipBone(itemId: string): void;
   equipCore(itemId: string, rowId: number, slot: number): void; unequipCore(itemId: string): void;
   switchTo(teamSlot: number): void; combat(): boolean;
+  /** NV3 (#457): gửi một lệnh gắn / tháo có sẵn (kéo thả, bấm đúp, thẻ thao tác); `gear`: trang bị hồn sư đang mặc (tin "gear"). Server quyết định, bảng không đổi tạm. */
+  send(cmd: ServerCommand): void; gear(): GearItem[];
 }
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
@@ -39,6 +43,10 @@ let selBone: string | null = null;    // ô hồn cốt đang chọn (mã vị t
 let selCore: number | null = null;    // ô hồn hạch đang chọn (0..CORE_SLOTS − 1)
 let notice: { text: string; bad: boolean } | null = null; // kết quả lệnh gắn / tháo vừa gửi (tin "log" của server)
 let lastAct = 0, noticeTimer = 0;
+let lastTap = { k: "", t: 0 };        // lần bấm ô búp bê gần nhất (nhận bấm đúp = tháo)
+const DBL_MS = 350;
+/** Bấm đúp cùng một ô (`key`) trong DBL_MS. Bấm lần đầu vẽ lại bảng nên không dùng sự kiện dblclick. */
+const isDouble = (key: string) => { const n = performance.now(), d = lastTap.k === key && n - lastTap.t < DBL_MS; lastTap = d ? { k: "", t: 0 } : { k: key, t: n }; return d; };
 const NOTICE_MS = 4000, WARN_COL = "#ffb35c"; // server báo từ chối bằng tin "log" màu này (MapRoom: warn / deny)
 
 /**
@@ -140,6 +148,24 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   if (prevRow !== charRow) { selBone = null; selCore = null; }
   const def = VOHON[Math.max(0, vohonIndex(v.vohon))], rings = v.rings.map(tierOfYears);
   const rerender = () => again?.();
+  // NV3 (#457): ô búp bê vừa nhận thả (xanh / đỏ theo acceptsItem), vừa là nguồn kéo khi đang có món (kéo ra Túi = tháo; ô cùng loại = đổi chỗ).
+  // Thả về chính ô cũ hoặc thả sai chỗ: không gửi gì, bóng bay về. Server từ chối thì lý do hiện ở thông báo trên bảng (charLog).
+  const rv = { rowId: v.rowId };
+  const wire = (b: HTMLElement, ref: SlotRef, worn: BagItem | undefined) => {
+    addZone({ el: b, kind: "slot",
+      test: (d) => ("bagIndex" in d.from || !sameSlot(d.from, ref) ? acceptsItem(ref, d.item, rv) : { ok: true }),
+      drop: (d) => { if (!("bagIndex" in d.from) && sameSlot(d.from, ref)) return; const c = mountCommand(d.item, ref, rv); if (c) send(() => act.send(c)); } });
+    if (worn) {
+      dragSource(b, () => ({ item: worn, from: ref }));
+      b.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.shiftKey) { e.preventDefault(); const c = unmountCommand(worn, ref); if (c) send(() => act.send(c)); } }); // Shift+Enter: tháo nhanh
+    }
+  };
+  /** Bấm đúp ô đang có món = tháo về túi (true nếu đã xử lý). */
+  const dblUnmount = (b: HTMLElement, ref: SlotRef, worn: BagItem | undefined) => {
+    if (!worn || !isDouble(`${ref.tab}:${ref.slot}:${ref.rowId}`)) return false;
+    const c = unmountCommand(worn, ref); if (c) send(() => act.send(c));
+    selBone = null; selCore = null; b.blur(); rerender(); return true;
+  };
   const pickTab = (t: DollTab) => { tab = t; selBone = null; selCore = null; notice = null; rerender(); };
 
   // Đầu bảng: tên, nút sang Đội hình (nâng cao: thức tỉnh, dung hợp, danh sách), đóng.
@@ -196,13 +222,28 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const counts6 = coreSetCounts(wornCores(mine));
 
   if (tab === "equip") {
-    // --- Trang bị: khung 10 ô kiểu Mir2 (chưa có nội dung: NV4 nối E1) ---
+    // --- Trang bị: khung 10 ô kiểu Mir2. NV3 (#457): ô nhận thả / kéo ra được ngay; phần trình bày đầy đủ của tab (so sánh, bộ, …) để NV4 (#458) ---
     left.appendChild(mk("small", "cshead", "Trang bị hồn sư (10 ô)"));
-    const fig = mk("div", "edoll");
+    const fig = mk("div", "edoll"), gearBy = new Map<string, GearItem>();
+    for (const g of act.gear()) { const sid = EQUIP_SLOTS[g.slot]?.id; if (sid) gearBy.set(sid, g); }
     const cell = (id: string) => {
-      const s = EQUIP_SLOTS.find((x) => x.id === id)!, b = mk("div", "bcell ecell empty"); b.dataset.slot = id;
-      b.appendChild(mk("span", "", s.name)); b.setAttribute("aria-label", `Ô ${s.name}: trống`);
-      setTip(b, { title: `Ô ${s.name} trống`, lines: ["Trang bị thuộc hồn sư, dùng chung cho cả đội."], foot: "Mặc / tháo ở Túi (nhóm Trang bị) cho tới bản sau" });
+      const s = EQUIP_SLOTS.find((x) => x.id === id)!, g = gearBy.get(id), it = g && gearAsBagItem(g), ref: SlotRef = { tab: "equip", slot: id, rowId: null };
+      const b = mk("button", "bcell ecell ui-cell" + (it ? "" : " empty")); b.type = "button"; b.dataset.slot = id;
+      if (it) {
+        b.style.setProperty("--c", itemColor(it));
+        b.append(mk("span", "", itemName(it)), ...(it.enhance ? [mk("b", "enh", `+${it.enhance}`)] : []));
+        b.setAttribute("aria-label", `Ô ${s.name}: ${itemName(it)}`);
+        setTip(b, { title: itemName(it), border: itemColor(it), sub: `Trang bị hồn sư · ${s.name}`, foot: "Bấm: thẻ thao tác · bấm đúp hoặc kéo ra Túi: tháo" });
+      } else {
+        b.appendChild(mk("span", "", s.name)); b.setAttribute("aria-label", `Ô ${s.name}: trống`);
+        setTip(b, { title: `Ô ${s.name} trống`, lines: ["Trang bị thuộc hồn sư, dùng chung cho cả đội."], foot: "Kéo món từ Túi thả vào, hoặc bấm đúp món trong Túi để mặc" });
+      }
+      wire(b, ref, it);
+      b.addEventListener("click", () => {
+        if (!it || dblUnmount(b, ref, it)) return;
+        showCard(b, itemName(it), itemColor(it), `Trang bị hồn sư · ${s.name}`, cardActions(it, { view: { rowId: v.rowId, bag: items, gear: act.gear() }, worn: true }),
+          (a) => { const c: ServerCommand | null = a === "unmount" ? unmountCommand(it, ref) : a === "lock" || a === "unlock" ? { msg: "lock", data: { id: it.id } } : null; if (c) send(() => act.send(c)); });
+      });
       return b;
     };
     const col = (ids: string[], cls: string) => { const c = mk("div", "ecol " + cls); for (const id of ids) c.appendChild(cell(id)); return c; };
@@ -211,7 +252,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     mid.appendChild(cell("ao")); // Áo đè lên thân hình hồn sư (Mir2)
     fig.append(col(EQUIP_LEFT, "l"), mid, col(EQUIP_RIGHT, "r"));
     left.appendChild(fig);
-    left.appendChild(mk("small", "rnote", "Trang bị thuộc hồn sư (không phụ thuộc võ hồn đang xem). Nội dung các ô làm ở bước sau của #453; hiện mặc / tháo ở Túi, nhóm Trang bị."));
+    left.appendChild(mk("small", "rnote", "Trang bị thuộc hồn sư (không phụ thuộc võ hồn đang xem). Kéo từ Túi thả vào ô (xanh = hợp, đỏ = sai ô), bấm đúp món trong Túi để mặc nhanh; kéo món đang mặc ra Túi hoặc bấm đúp để tháo."));
   } else if (tab === "bone") {
     // --- Hồn cốt: 6 ô quanh hình võ hồn ---
     const fig = mk("div", "bfig cdoll"); fig.style.setProperty("--c", def.col);
@@ -230,7 +271,9 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
       if (kname) b.querySelector("em")!.textContent = kname;
       b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}`); b.setAttribute("aria-pressed", String(selBone === s.id));
       setTip(b, it ? wornTip(it) : { title: `Ô ${s.name} trống`, lines: [`Hồn cốt ${s.name.toLowerCase()}, kỹ năng ${s.active ? "chủ động" : "bị động"}.`], foot: "Bấm để chọn món trong Túi" });
-      b.addEventListener("click", () => { b.blur(); selBone = selBone === s.id ? null : s.id; if (selBone) openBagFor(); rerender(); });
+      const ref: SlotRef = { tab: "bone", slot: s.id, rowId: v.rowId };
+      wire(b, ref, it);
+      b.addEventListener("click", () => { if (dblUnmount(b, ref, it)) return; b.blur(); selBone = selBone === s.id ? null : s.id; if (selBone) openBagFor(); rerender(); });
       fig.appendChild(b);
     }
     left.append(mk("small", "cshead", "Hồn cốt"), fig);
@@ -258,7 +301,9 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
       b.innerHTML = `${coreSvg(c?.set ?? "")}${it ? `<small>${it.stars ?? 1}★</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
       b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? itemName(it) : "trống"}${n >= CORE_SET_2 && cs ? `, bộ ${cs.name} đang kích hoạt` : ""}`); b.setAttribute("aria-pressed", String(selCore === s));
       setTip(b, it ? wornTip(it) : { title: `Ô hồn hạch ${s + 1} trống`, lines: ["Nhận mọi hồn hạch."], foot: "Bấm để chọn món trong Túi" });
-      b.addEventListener("click", () => { b.blur(); selCore = selCore === s ? null : s; if (selCore !== null) openBagFor(); rerender(); });
+      const ref: SlotRef = { tab: "core", slot: s, rowId: v.rowId };
+      wire(b, ref, it);
+      b.addEventListener("click", () => { if (dblUnmount(b, ref, it)) return; b.blur(); selCore = selCore === s ? null : s; if (selCore !== null) openBagFor(); rerender(); });
       ring.appendChild(b);
     }
     const mid = mk("div", "cmid"); if (topSet) mid.style.setProperty("--sc", topSet.col);
