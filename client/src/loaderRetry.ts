@@ -19,13 +19,14 @@ export function installLoaderRetry() {
     if (this.retryAttempts > 0 && xhr.readyState === 4 && (xhr.status >= 500 || xhr.status === 408 || xhr.status === 429)) this.onError();
     else onLoad.call(this, xhr, event);
   };
-  F.onError = function (this: typeof F & { loader: { nextFile(f: unknown, ok: boolean): void } }) {
+  F.onError = function (this: typeof F & { loader: { state: number; nextFile(f: unknown, ok: boolean): void } | null }) {
     this.resetXHR();
     if (this.retryAttempts > 0) {
       this.retryAttempts--;
       this.tries = (this.tries ?? 0) + 1;
-      setTimeout(() => load.call(this), retryDelay(this.tries - 1));
-    } else this.loader.nextFile(this, false);
+      // Đổi bản đồ trong lúc chờ backoff thì Game / loader đã huỷ: bỏ, không tải tiếp (nextFile trên loader đã huỷ ném lỗi).
+      setTimeout(() => { if (this.loader?.state === Phaser.Loader.LOADER_LOADING) load.call(this); }, retryDelay(this.tries - 1));
+    } else this.loader?.nextFile(this, false);
   };
 }
 
