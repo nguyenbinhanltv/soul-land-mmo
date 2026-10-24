@@ -716,18 +716,6 @@ function drawVohon(v: { id: string; col: string; robe: string }, P: Pose, L: VhL
       if (P.anim === "attack" && P.i === 1) for (let k = 0; k < 3; k++) line(HMfx, hm.x - 3 + k * 2, hm.y - 4, hm.x + k * 2, hm.y + 2, k === 1 ? "#ffe066" : C.l);
       break;
     }
-    case "bach_ho": {
-      // Hình vẽ tạm bằng code (5.11, ảnh thật ở #425): tai hổ trắng, đuôi hổ vằn đen, vuốt hai tay, vằn sáng chạy quanh người.
-      ears(L.front, R, C.b, 5);
-      const ty = 23 + bob, stripe = (b: Buf, x: number, y: number) => { b.set(x, y, R.d); b.set(x + 1, y + 1, R.d); };
-      if (side) tail(BK, [[12, ty], [7, ty + 1], [3, ty - 2], [1, ty - 6 + flap]], 2, 1.4, C, R.d);
-      else tail(BK, [[up ? 16 : 18, ty], [23, ty + 1], [27, ty - 3], [28, ty - 7 + flap]], 2, 1.4, C, R.d);
-      for (let k = 0; k < 3; k++) stripe(BK, (side ? 10 - k * 3 : 22 + k * 2), ty - k * 2 + (k % 2));
-      claws(HM, P.main, C, handDir(P.sm, P.main)); claws(HO, P.off, C, handDir(P.so, P.off));
-      for (const [h, b] of [[P.main, HMfx], [P.off, HOfx]] as [Hand, Buf][]) { b.set(h.x + (ph % 2), h.y - 2, "#ffffff"); b.set(h.x + 1 - (ph % 2), h.y - 3, C.l); }
-      if (P.anim === "attack" && P.i === 1) for (let k = 0; k < 3; k++) line(HMfx, hm.x - 3 + k * 2, hm.y - 4, hm.x + k * 2, hm.y + 2, k === 1 ? "#ffffff" : C.l);
-      break;
-    }
     case "bang_phuong_hoang": {
       // Đôi cánh băng phượng hoàng, mào băng trên đầu, tinh thể băng rơi quanh người.
       wings(BK, C, R, true);
