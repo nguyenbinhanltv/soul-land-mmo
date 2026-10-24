@@ -63,6 +63,10 @@ export interface EquipEnhPreview { id: string; enhance: number; to: number | nul
   stone: string | null; qty: number; have: number; fee: number; honTe: number; charm: number; busy: boolean; }
 /** Tin "equipenhd" (E3): kết quả một lần cường hóa (`to` null = món bị phá hủy). */
 export interface EquipEnhDone { id: string; from: number; to: number | null; ok: boolean; destroyed: boolean; charmUsed: boolean; stone: string; qty: number; fee: number; }
+/** Tin "equipsynd" (E4): kết quả hợp thành 3 → 1 (`made` = id món mới khi thành công; `enhance` = cấp món mới, hoặc cấp món chính còn lại khi thất bại, null = mất cả món chính). */
+export interface EquipSynDone { ok: boolean; from: number; main: string; made: string | null; enhance: number | null; fee: number; essence: number; refund: number; }
+/** Tin "equipsalvd" (E4): kết quả phân giải `n` món: Hồn Tệ và nguyên liệu nhận được (`auto` = tự phân giải). */
+export interface EquipSalvDone { n: number; coin: number; items: { code: string; qty: number }[]; auto: boolean; }
 export interface GearMsg { items: GearItem[]; st: { bonus: Record<string, number>; weapon: { min: number; max: number } | null; red: number; luck: number }; }
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
 /**

@@ -1376,9 +1376,9 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 (có boss thế giới, BĐ6e) bỏ: `ur` = 0,
  *   mảnh UR chỉ còn trong rương boss thế giới (WORLD_CHEST, mục 5.3 "Mảnh UR trước BĐ6").
  * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
- *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
+ *   đồ thú vương như hồn hạch rơi. `slots` = 10: 4 ô cho hồn cốt, mảnh, mảnh UR, hồn hạch (mỗi thứ có thể cần một ô mới) + 6 ô cho trang bị (E2: tối đa `EQUIP_DROP.ranks[2].rolls[1]` = 5 lượt rơi + 1 Bùa Hộ Mệnh; test `test:equip` kiểm hai số này khớp nhau).
  */
-export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
+export const KING_CHEST = { slots: 10, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
   fire: "ta_hoa_phuong_hoang", every: [] as string[], later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
     "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
 /** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa và `every` 2, bản đồ chưa mở 1. */
@@ -1437,8 +1437,9 @@ export const WORLD_RING = { top: 100000, red: 0.1, black: [80000, 99999] as [num
 /**
  * Rương boss thế giới (mục 5.3 "Rơi đặc trưng", 5.4): cần `slots` ô trống. Hồn cốt boneChance(100.000 năm, `bone`), loài gốc của boss;
  * `ur` [ít nhất, nhiều nhất] mảnh UR (một võ hồn trong KING_CHEST.urShards); luôn 1 hồn hạch sao trong `stars` của bộ bất kỳ (CORE_SETS).
+ * `slots` = 4 + 9 ô trang bị (E2: tối đa `EQUIP_DROP.ranks[3].rolls[1]` = 8 lượt rơi + 1 Bùa Hộ Mệnh).
  */
-export const WORLD_CHEST = { slots: 4, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
+export const WORLD_CHEST = { slots: 13, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -3622,6 +3623,18 @@ export const EQUIP_SYNTH: { from: number; p: number; fee: number; essence: numbe
 ];
 export const EQUIP_SYNTH_KEEP = 0.5;
 export const equipSynthStep = (tier: number) => EQUIP_SYNTH.find((s) => s.from === tier) ?? null;
+/**
+ * Kết quả hợp thành từ bậc `from` (hàm thuần; server tung `ok` bằng `rnd() < step.p`): thành công → món mới cấp cường hóa floor(món chính × EQUIP_SYNTH_KEEP);
+ * thất bại → `main` = cấp món chính sau đó (null = mất cả món chính), luôn mất 2 hiến tế, `refund` = Tinh Hoa hoàn lại (làm tròn xuống). Bậc không hợp thành được: null.
+ */
+export function equipSynthOutcome(from: number, mainEnhance: number, ok: boolean): { ok: true; enhance: number } | { ok: false; main: number | null; refund: number } | null {
+  const s = equipSynthStep(from); if (!s) return null;
+  const e = equipEnhanceClamp(mainEnhance);
+  if (ok) return { ok: true, enhance: Math.floor(e * EQUIP_SYNTH_KEEP) };
+  return { ok: false, main: s.all ? null : Math.max(0, e - s.mainLoss), refund: s.all ? Math.floor(s.essence * s.refund) : 0 };
+}
+/** Tối đa ngần này món trong một lệnh phân giải (cỡ một trang túi, BAG_PAGE). */
+export const EQUIP_SALVAGE_MAX = 50;
 
 /**
  * **(chờ duyệt)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
@@ -4188,16 +4201,19 @@ export interface SellSettings {
   bone: number;    // bán hồn cốt cường hóa dưới +bone (0 = không bán hồn cốt)
   core: number;    // bán hồn hạch chưa nâng cấp dưới bấy nhiêu sao (1 = không bán hồn hạch)
   shard: boolean;  // bán mảnh võ hồn (vật phẩm thường thương nhân mua; đan, phù chú, lệnh bài, rương, tiên thảo thì thương nhân không mua)
+  salv: number;    // tự phân giải trang bị hồn sư (E4) bậc dưới `salv` (0 = tắt, mặc định; tối đa EQUIP_MAX_TIER: Chí Bảo không bao giờ tự phân giải); độc lập với `on`
+  salvEnh: number; // chỉ tự phân giải món cường hóa dưới +salvEnh (1 = chỉ món +0)
 }
 /** Mặc định: tắt; khi bật chỉ bán đồ giá trị thấp (hồn hoàn dưới nghìn năm, hồn hạch 1–2 sao), giữ hồn cốt và mảnh võ hồn. */
-export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false };
+export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false, salv: 0, salvEnh: 1 };
 /** Bộ lọc từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định. */
 export function parseSell(raw: unknown): SellSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = SELL_DEFAULTS;
   const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v))) : def);
   const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
   return { on: bool(o.on, D.on), ring: num(o.ring, 0, MAX_YEARS + 1, D.ring), high: bool(o.high, D.high),
-    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard) };
+    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard),
+    salv: num(o.salv, 0, EQUIP_MAX_TIER, D.salv), salvEnh: num(o.salvEnh, 1, EQUIP_MAX_ENHANCE + 1, D.salvEnh) };
 }
 /**
  * Món `it` có bị tự bán theo bộ lọc `s` không (hàm thuần, client dùng để xem trước): không khoá, không gắn, thương nhân mua (sellPrice),
@@ -4213,6 +4229,13 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
   if (kind === "hon_hach") return it.enhance === 0 && (it.stars ?? 1) < s.core;
   if (kind === "manh_vo_hon") return s.shard;
   return false;
+}
+
+/** Món trang bị hồn sư `it` (trong túi) có bị tự phân giải theo bộ lọc `s` không (hàm thuần, client xem trước): không khoá, không mặc, bậc < `salv`, cấp cường hóa < `salvEnh`. */
+export function equipAutoSalvageable(it: { code: string; stats: unknown; enhance: number; locked?: boolean; vohon?: number | null; equipSlot?: number }, s: SellSettings): boolean {
+  if (s.salv <= 0 || it.code !== EQUIP_ITEM || it.locked || (it.vohon ?? null) !== null || it.equipSlot !== undefined) return false;
+  const e = parseEquip(it.stats), t = e ? equipTemplate(e.tpl) : undefined;
+  return !!t && t.tier < s.salv && it.enhance < s.salvEnh;
 }
 
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng đã chốt) ----------
@@ -5106,3 +5129,9 @@ export const FOG = {
   cell: 8, sight: 12,
   open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
 };
+
+/**
+ * Ảnh nền bản đồ nhỏ / khu vực (R1 #428): `tools/maps` sinh `shared/assets/<dir>/<mapId>.png`, `px` điểm ảnh mỗi ô logic (rộng = số ô × px).
+ * Client (R2) cắt ảnh này làm nền radar và bản đồ khu vực.
+ */
+export const MINI_BASE = { px: 2, dir: "mini" };
