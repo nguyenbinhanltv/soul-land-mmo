@@ -45,11 +45,12 @@ Người chơi **sưu tầm võ hồn**, lập đội võ hồn, vào rừng să
 | 1–4 | Đổi sang võ hồn ở ô tương ứng của đội (chạm ô trên thanh đội hình) |
 | E | Nhặt đồ rơi gần nhất |
 | F | Đi qua cổng đang đứng; đứng trên truyền tống trận thì mở bản đồ thế giới; không thì nói chuyện với NPC gần nhất |
-| V / B / K / H | Bảng đội hình / túi đồ / Cộng minh / Hồn sư (nhân vật) |
+| V / B / K / H | Bảng đội hình / túi đồ / Cộng minh / Hồn sư (nhân vật); B và H mở cạnh nhau được (mục 5.16). C **không** mở bảng (C là kỹ năng hồn cốt tay phải) |
+| [ / ] | Khi bảng Hồn sư đang mở: chuyển tab búp bê trước / sau (Trang bị, Hồn cốt, Hồn hạch, Võ hồn; vòng tròn); không làm gì khi bảng đóng hoặc đang kéo thả |
 | L | Bảng Bạn bè (nút "Bạn bè" ở khung tổ đội, mục 5.9) |
 | M | Bản đồ thế giới (chỉ xem khi không đứng trên truyền tống trận; nút "Thế giới" ở bản đồ nhỏ) |
 | T | Bật / tắt tự săn ngay (nút "Tự động" ở khung chỉ số mở bảng Tự động, mục 5.13) |
-| Enter / Esc | Chat / đóng bảng, hộp thoại |
+| Enter / Esc | Chat / đóng bảng, hộp thoại (Esc huỷ lần kéo thả hoặc thẻ thao tác trước, rồi mới đóng bảng) |
 
 Lệnh chat: `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>` tin riêng (tên có dấu cách thì để trong ngoặc kép, hoặc client khớp tên đang thấy / đồng đội), `/r <tin>` trả lời người vừa nhắn riêng, `/tm <tin>` tông môn, `/tg <tin>` kênh thế giới, `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/hat` bật / tắt hạt bay. Bấm / chạm vào hồn sư khác mở menu người chơi (mời tổ đội, nhắn riêng, kết bạn, chặn / bỏ chặn).
 
@@ -814,7 +815,7 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 
 ### 5.16 Giao diện Nhân vật + Túi (hai cửa sổ, búp bê 4 tab; theo dõi #453)
 Thiết kế đã chốt (chủ repo 2026-10-24), làm theo NV1–NV6 ở mục 7. **Chỉ phía client**: server quyết định mọi thứ, không đổi luật chơi và số cân bằng; chỉ gửi lệnh có sẵn. Bản phác bố cục: `docs/ban-phac-nhan-vat-tui/index.html` (kèm ảnh ở `anh/`); hợp đồng kiểu và hàm thuần: `client/src/charBagContract.ts` (kiểm thử `npm run test:charbag --prefix client`).
-- **Hai cửa sổ** (`client/src/dualWindow.ts`; trạng thái suy ra từ `hidden` của `#char` / `#bag`): `WindowState` = `bag` (B) / `char` (C, H) / `dual` (nút ⇆ trên mỗi bảng: một bảng thì mở thêm bảng kia, đang `dual` thì về chỉ bảng đó). Màn ngang ≥ 960 px: nhân vật trái (5–48%), túi phải (52–95%), khe giữa là vùng thả trống. Điện thoại ngang thấp: hai bảng thu gọn cạnh nhau (ô ~36 px, túi 6 cột). Màn hẹp (logic ≤ 560 px): một bảng một lúc, thẻ chuyển Nhân vật / Túi (`#dualTabs`) ở đầu màn hình. Bố cục theo lớp `dual-win` / `ui-wide` (≥ 960 px logic) / `ui-w560` trên `<body>`, không dùng `@media`. Bảng bấm vào thì nổi lên; không bảng nào chặn chuột của bảng kia; đóng bằng ×, Esc hoặc phím tắt. Bỏ luật "mở bảng này đóng bảng kia" **chỉ cho cặp Nhân vật / Túi**; Đội hình, Bạn bè, Thế giới… vẫn đóng như cũ.
+- **Hai cửa sổ** (`client/src/dualWindow.ts`; trạng thái suy ra từ `hidden` của `#char` / `#bag`): `WindowState` = `bag` (B) / `char` (H) / `dual` (nút ⇆ trên mỗi bảng: một bảng thì mở thêm bảng kia, đang `dual` thì về chỉ bảng đó). Màn ngang ≥ 960 px: nhân vật trái (5–48%), túi phải (52–95%), khe giữa là vùng thả trống. Điện thoại ngang thấp: hai bảng thu gọn cạnh nhau (ô ~36 px, túi 6 cột). Màn hẹp (logic ≤ 640 px, gồm điện thoại ngang 568×320 và điện thoại dọc): một bảng một lúc, thẻ chuyển Nhân vật / Túi (`#dualTabs`) ở đầu màn hình. Bố cục theo lớp `dual-win` / `ui-wide` (≥ 960 px logic) / `ui-w640` / `ui-h460` trên `<body>`, không dùng `@media`. Bảng bấm vào thì nổi lên; không bảng nào chặn chuột của bảng kia; đóng bằng ×, Esc hoặc phím tắt. Bỏ luật "mở bảng này đóng bảng kia" **chỉ cho cặp Nhân vật / Túi**; Đội hình, Bạn bè, Thế giới… vẫn đóng như cũ.
 - **Búp bê 4 tab** (đầu bảng: dải chọn võ hồn trong đội và nút "Ra trận"; cột chỉ số do server gửi bên cạnh, có chênh lệch khi xem trước đồ):
   - **Trang bị:** 10 ô (`EQUIP_SLOTS`) kiểu Mir2 quanh hình hồn sư (Áo đè lên thân), thuộc hồn sư nên không phụ thuộc võ hồn đang xem; viền theo bậc, "+N", ô trống có hình bóng. Đọc từ tin riêng `gear`; mặc / tháo bằng `equipgear {id}` / `unequipgear {slot}`.
   - **Hồn cốt:** 6 ô (`BONE_SLOTS`) quanh hình võ hồn đang xem; bấm ô trống thì túi tô vàng các món hợp ô.
@@ -832,7 +833,12 @@ Thiết kế đã chốt (chủ repo 2026-10-24), làm theo NV1–NV6 ở mục 
 - **Tab Trang bị trên búp bê (NV4, `client/src/charPanel.ts`):** 10 ô kiểu Mir2 theo `EQUIP_SLOTS`: cột trái Vũ khí, Vòng trái, Nhẫn trái, Đai; cột phải Mũ, Dây chuyền, Vòng phải, Nhẫn phải, Giày; giữa hình hồn sư, ô Áo đè lên thân. Ô có món vẽ ảnh mẫu (`equipIconChain`), khung viền theo bậc (`equipFrameKey`; hai bậc cao nhất, Thần Khí và Chí Bảo, có quầng sáng), "+N" cường hóa ở góc; ô trống là hình bóng mờ của ô (`equipSlotIconKey`). Số ô đang mặc hiện ở tiêu đề và nhãn tab. Chú thích ô: bậc, cấp vật phẩm và từng chỉ số lấy từ `compareRows` (không tính lại). Bấm ô trống thì ô sáng viền vàng, Túi lọc và sáng các món hợp ô, bấm món sáng là gửi `equipgear`; ô có món theo NV3 (thẻ thao tác, bấm đúp / kéo ra Túi = `unequipgear`). Cột chỉ số có khối "Từ trang bị hồn sư" (công mỗi đòn, giảm sát thương nhận, may mắn) lấy từ tin `stats` của server. Client không đổi tạm: ô chỉ đổi khi tin `gear` về.
 - **Ranh giới ô trang bị:** vòng tay / nhẫn trái và phải là **hai mẫu riêng** (chỉ số chính khác nhau, `equipgear` không có tham số ô), nên **không đổi chéo** trái ↔ phải và "ô đôi" không thay món theo chỉ số: món vào đúng ô của mẫu, ô đã có món thì server đổi chỗ, món cũ về túi. Ô đội không nhận đồ.
 - **Hợp đồng dữ liệu** (`client/src/charBagContract.ts`): `SlotRef {tab, slot, rowId}` (`rowId` là võ hồn nhận hồn cốt / hồn hạch, null ở trang bị và ô đội), `DropTarget`, `DragSession`, `WindowState`; hàm thuần `acceptsItem` (ô có nhận món không), `smartTarget(item, view)` (ô đúng của món, một chỗ duy nhất), `mountCommand` / `unmountCommand` (ánh xạ sang lệnh server `equip`, `equipcore`, `equipgear`, `unequip`, `unequipcore`, `unequipgear`). Không DOM, không đọc state toàn cục.
-- **Kiểm thử:** bot nhóm `bag`, `team`, `bone`, `core` vẫn phải qua; đổi giao diện thì chụp trước / sau (Chrome headless `--mute-audio`), thử màn ngang ≥ 960 px và điện thoại ngang.
+- **Hoàn thiện điện thoại, phím tắt, đo (NV5, #459):**
+  - **Màn thấp (`ui-h460`, điện thoại ngang 844×390 trở xuống):** đầu bảng gọn; dải chọn võ hồn và nhóm lọc của Túi một hàng cuộn ngang (không xuống dòng); bốn tab búp bê chia đều một hàng (tên trên, số ô dưới); nút chạm ≥ 36 px; dải "Gắn nhanh" tự xuống dòng nên Túi không tràn ngang ở 667 / 568 px. Từ 640 px logic trở xuống một bảng một lúc (trước là 560).
+  - **Chạm:** kéo thả (giữ `HOLD_MS` rồi kéo), bấm đúp, thẻ thao tác và gắn bằng "bấm ô rồi bấm món sáng" (Túi tự nổi lên, gắn xong về bảng Nhân vật) đều chạy bằng sự kiện chạm ở 844×390 và 360×640.
+  - **Phím:** H mở / đóng Nhân vật, B mở / đóng Túi, `[` / `]` chuyển tab búp bê, Esc đóng; ghi ở bảng phím mục 4. Bỏ phím C khỏi việc mở bảng Nhân vật vì đè mất kỹ năng hồn cốt tay phải (Z / X / C).
+  - **FPS khi kéo (Chrome headless, GPU thật, ghi lúc làm NV5):** nghỉ ~103 khung/giây; kéo bằng chuột 1280×720 và kéo bằng chạm 844×390 giữ ≥ 100 khung/giây, khung dài nhất ≤ 21 ms (con trỏ chỉ dời bóng bằng `transform`, bảng không vẽ lại giữa chừng).
+- **Kiểm thử:** bot nhóm `bag` (gồm `charbag`: lệnh `equip` / `unequip`, `equipcore` / `unequipcore`, `equipgear` / `unequipgear`, `team` / `switch` dựng từ `charBagContract`, server nhận đủ), `team`, `bone`, `core` vẫn phải qua; đổi giao diện thì chụp trước / sau (Chrome headless `--mute-audio`), thử màn ngang ≥ 960 px và điện thoại ngang.
 
 ### 5.17 Radar và bản đồ khu vực
 Thay bản đồ nhỏ 150×100 px (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nhìn thẳng trong khi màn chơi là isometric). **Từ bước R0 chỉ có hằng, hàm thuần và kiểm thử**; giao diện làm ở R1–R8 (mục 7, nhóm "Bản đồ khu vực"; kế hoạch và quyết định ở #426). Server vẫn quyết định mọi thứ; client chỉ hiển thị. Số liệu ở `shared/data.ts` (`RADAR`, `RADAR_ART`, `MAPVIEW`, `FOG`), hàm thuần ở `shared/radar.ts`, kiểm thử `npm run test:radar --prefix server`.
@@ -1117,7 +1123,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] NV2 Búp bê 4 tab; gắn / tháo hồn cốt, hồn hạch ngay trong bảng; tab Võ hồn (đội, ra trận, vòng) (#456).
 - [x] NV3 Kéo thả, bấm đúp mặc thông minh, thẻ thao tác nhanh, so sánh hai cột (#457).
 - [x] NV4 Tab Trang bị 10 ô dùng `equipgear` / `unequipgear` (thay phần giao diện bảng nhân vật của E5 #416; cần E1 #412, đã xong) (#458).
-- [ ] NV5 Hoàn thiện: điện thoại thật / màn hẹp, phím tắt, bot kiểm lệnh gắn / tháo, ảnh trước / sau, đo FPS khi kéo (#459).
+- [x] NV5 Hoàn thiện: điện thoại thật / màn hẹp, phím tắt, bot kiểm lệnh gắn / tháo, ảnh trước / sau, đo FPS khi kéo (#459).
 - [ ] NV6 Ảnh nền búp bê (hình hồn sư mờ, lục giác hồn cốt, vòng đan điền) nếu bản vẽ bằng code chưa đẹp (#460).
 
 **Nhóm Bản đồ khu vực: radar, bản đồ và sương mù** (mục 5.17; theo dõi #426; mỗi bước một PR).
