@@ -248,6 +248,8 @@ export class PhapTuongSystem {
       const sin = Math.sin(rot), cos = Math.cos(rot), pv = m.pivot;
       // quay quanh điểm cách gốc `pv` phía trên: gốc dịch (pv·sin, pv·(cos−1))
       ox += pv * sin; oy += pv * (cos - 1);
+      // Không nhân SPR: sprite pháp tướng nằm ngoài container `root` (SPR) và lớp thân isometric 64 px cũng vẽ ở 1/SPR trong đó (fitHonsuLayer),
+      // nên cả hai đều 1 pixel ảnh = 1 pixel màn hình nội bộ; dx / dy / bob / lunge / pivot cũng tính theo pixel nội bộ đó.
       const scl = s.def.scale * (1 + 0.06 * bur + 0.04 * (roar ? 1 : 0)) * (r.state === "in" && !calm ? 0.94 + 0.06 * rise : 1);
       const x = v.x + (s.def.dx + side * PT_DUO.dx) * sgn + ox, y = v.y + s.def.dy + oy;
       const depth = v.depth + (back ? -0.2 : 0.2) + i * 0.02;
