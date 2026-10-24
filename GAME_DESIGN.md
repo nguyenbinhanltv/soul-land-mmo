@@ -1090,7 +1090,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428, PR #473).
 - [x] R3 Bản đồ khu vực phím N, nhãn, bộ lọc, kéo / phóng / chụm (`client/src/mapview.ts`, #430; đặt cờ để R4).
 - [x] R4 Tự đi tới cờ xuyên bản đồ qua cổng thật, dừng khi bị đánh / tự di chuyển / kẹt (`client/src/autowalk.ts`, `shared/autowalk.ts`, #431).
-- [x] R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R8 Sương mù khám phá, SQL (#435).
+- [x] R5 Lọc tin `mini` theo bán kính (#432).
+- [ ] R6 Đánh dấu tổ đội (#433). R8 Sương mù khám phá, SQL (#435).
 
 **Nhóm Hình thái Võ Hồn Chân Thân: pháp tướng** (mục 5.18; theo dõi #482; mỗi bước một PR).
 - [x] H0 Bảng đặc tả 25 võ hồn và prompt PixelLab (#483, PR #492, `docs/phap-tuong.md`).
