@@ -1,0 +1,96 @@
+{
+  "id": "bach_ho",
+  "nhom": "T (hổ)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "lo": "P2 (#487)",
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượtMoiLan": 1,
+    "body": {
+      "description": "giant spectral white tiger with bold black stripes sitting majestically upright, chest forward, head raised high roaring, bold black wang king mark on the forehead, golden eyes, long striped tail curling beside the body, three-quarter view, no ground, no base, no pedestal, no text, pixel art",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 56
+    },
+    "ghiChu": "Bạch Hổ làm lại lần 2 (bản 1 seed 55: hổ cúi nhìn thẳng, bóng tròn như gấu; bản đứng 3/4 seed 57 không chọn)"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant white tiger with black stripes sitting upright, wang mark on forehead, striped tail, golden eyes",
+      "no_background": true
+    },
+    "dung": {
+      "s": 0,
+      "se": 1,
+      "e": 2,
+      "ne": 3,
+      "n": 4
+    },
+    "ghiChu": "thứ tự 8 ảnh xoay đổi theo con vật, chọn bằng mắt (pixellab-pt.mjs map)"
+  },
+  "luotThucTe": {
+    "concept": 3,
+    "xoay": 4,
+    "hoat anh": 20
+  },
+  "post": {
+    "despeckle": 3,
+    "anchor": "median",
+    "stabilize": 1.5,
+    "maxColors": 40,
+    "match": {
+      "idle": 1.0,
+      "attack": 0.5
+    },
+    "idleLoop": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      1
+    ],
+    "attackLoop": "peak"
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "dung": "khung 0–7",
+    "first_frame": "<hướng>.png",
+    "seed": "ngẫu nhiên (không ghi)"
+  }
+}

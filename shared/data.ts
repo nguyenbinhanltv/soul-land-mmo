@@ -2400,7 +2400,7 @@ const PT_BASE: Record<PtGroup, PtMotion> = {
 /** Sheet 80 khung dựng bằng `phaptuong-khi.mjs` (lô P4 và P5, H3 #487) đã có thở và đánh (nhấp nhô, xoay, lao tới, uốn ngọn cây cỏ, xoay cánh hoa, vệt, vòng sóng, hạt) nướng sẵn trong
  *  khung và trong lớp sáng `pt_<mã>_glow`; code chỉ thêm nhịp sáng `pulse`, không cộng thêm bob / lắc / vung / lao (sẽ nhân đôi chuyển động).
  *  Thông số gốc dùng khi dựng nằm ở `chuyenDong` của `art/src/pixellab/phap_tuong/<mã>/recipe.json`. Thở 8 khung, đánh 8 khung (ra đòn khung 3 hoặc 4, giữ khung 4).
- *  Lô P1 (Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng) dùng hoạt ảnh PixelLab qua `phaptuong.mjs` (cánh vỗ, thân uốn, bùng chiêu đã nằm trong khung). */
+ *  Lô P1 (Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng) và lô P2 (U Minh Linh Miêu, Nhu Cốt Thỏ, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ) dùng hoạt ảnh PixelLab qua `phaptuong.mjs` (cánh vỗ, thân uốn, bùng chiêu đã nằm trong khung). */
 const BAKED: Partial<PtMotion> = { bob: 0, sway: 0, spin: 0, swing: 0, lunge: 0 };
 const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: number; dy?: number; glow?: string; motion?: Partial<PtMotion> } = {}): [string, PhapTuongDef] =>
   [id, { sheet: `pt_${id}`, formula: group === "S" || group === "B" || group === "T" || group === "D" ? "sinh_vat" : "vat_the", group, hat,
@@ -2411,16 +2411,16 @@ export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("lam_dien_ba_vuong_long", "S", "dien"),
   pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.05, motion: { ...BAKED, pulse: 0.25 } }),
   pt("ta_hoa_phuong_hoang", "B", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
-  pt("u_minh_linh_mieu", "T", "khoi"),
+  pt("u_minh_linh_mieu", "T", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
   pt("hoa_long", "S", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
-  pt("nhu_cot_tho", "T", "hon", { motion: { lunge: 10 } }),
+  pt("nhu_cot_tho", "T", "hon", { motion: { ...BAKED, pulse: 0.1 } }),
   pt("kim_vu_mieu_ung", "B", "dien", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("tu_vong_chu_hoang", "T", "doc", { motion: { sway: 2.5 } }),
   pt("bich_lan_xa_hoang", "S", "doc", { motion: { sway: 3 } }),
   pt("can_khon_hon_nguyen_toa", "O", "hon", { dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
   pt("hoa_anh", "D", "lua"),
-  pt("yeu_ho", "T", "hon", { motion: { lag: 0.3 } }),
+  pt("yeu_ho", "T", "hon", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("xuc_xich", "O", "khoi", { scale: 1.1, dx: 10, dy: -6, motion: { ...BAKED, pulse: 0.2 } }),
   pt("quy_mi", "D", "khoi", { motion: { bob: 3 } }),
   pt("thien_can_bach_ngoc_dinh", "O", "khoi", { dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
@@ -2429,9 +2429,9 @@ export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("cuu_bao_luu_ly_thap", "V", "hon", { dy: -2, motion: { ...BAKED, pulse: 0.25 } }),
   pt("pha_hon_thuong", "V", "hon", { dx: 12, dy: -2, motion: { ...BAKED, pulse: 0.15 } }),
   pt("a_ngan", "P", "la", { motion: { ...BAKED, pulse: 0.2 } }),
-  pt("liet_hoa_thuong_lang", "T", "lua", { motion: { lunge: 9 } }),
+  pt("liet_hoa_thuong_lang", "T", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("bang_phuong_hoang", "B", "bang", { motion: { ...BAKED, pulse: 0.12 } }),
-  pt("bach_ho", "T", "hon", { motion: { lunge: 9 } }),
+  pt("bach_ho", "T", "hon", { motion: { ...BAKED, pulse: 0.1 } }),
 ]);
 export const phapTuongOf = (vohonId: string): PhapTuongDef | null => PHAP_TUONG[vohonId] ?? null;
 /**
