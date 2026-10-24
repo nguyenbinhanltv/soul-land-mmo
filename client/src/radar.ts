@@ -50,6 +50,19 @@ export function drawRadarIcon(ctx: CanvasRenderingContext2D, d: { id: string; x:
 export interface DotSink {
   dot(id: string, tx: number, ty: number, name: string, col?: string, ring?: string, layer?: string): void;
   rect(tx: number, ty: number, w: number, h: number, col: string): void;
+  /** Đường đi tới cờ (R4): dãy toạ độ ô phẳng [x0, y0, x1, y1, …] (không sao chép: nơi nhận chỉ giữ tham chiếu tới hết lượt vẽ). */
+  line(pts: number[], col: string): void;
+}
+
+/** Vẽ đường đi (toạ độ ô, đã áp phép chiếu của canvas): nét đứt màu `col` có viền mực cho dễ thấy trên mọi nền. `k` = pixel mỗi ô. */
+export function strokeRoute(ctx: CanvasRenderingContext2D, pts: number[], col: string, k: number) {
+  if (pts.length < 4) return;
+  ctx.save(); ctx.lineJoin = "round"; ctx.lineCap = "round";
+  for (const [w, c, dash] of [[3.5, DARK, false], [2, col, true]] as const) {
+    ctx.lineWidth = w / k; ctx.strokeStyle = c; ctx.setLineDash(dash ? [5 / k, 4 / k] : []);
+    ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i + 1 < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.stroke();
+  }
+  ctx.restore();
 }
 
 class Radar implements DotSink {
@@ -69,6 +82,7 @@ class Radar implements DotSink {
   zoom = (() => { const z = Number(ls.get(LS_ZOOM)); return Number.isInteger(z) && z >= 0 && z < RADAR.zooms.length ? z : RADAR.zoomDefault; })();
   private pool: Dot[] = []; private n = 0; private live: Dot[] = [];
   private boxes: Box[] = []; private nb = 0;
+  private route: number[] | null = null; private routeCol = "";
   private last = 0; private px = 0; private py = 0; private now = 0;
   private size = RADAR.size.desktop; private scale = 1;
   private hover: { x: number; y: number } | null = null; private tipTimer = 0;
@@ -109,7 +123,7 @@ class Radar implements DotSink {
   due(now: number) { return now - this.last >= 1000 / RADAR.hz; }
 
   /** Bắt đầu một lượt: tâm radar ở (tx, ty) tính theo ô (số thực). */
-  begin(tx: number, ty: number, now: number) { this.last = now; this.now = now; this.px = tx; this.py = ty; this.n = 0; this.nb = 0; }
+  begin(tx: number, ty: number, now: number) { this.last = now; this.now = now; this.px = tx; this.py = ty; this.n = 0; this.nb = 0; this.route = null; }
 
   /** Thêm một chấm mức `id` (RADAR.levels) ở vị trí ô (tx, ty). `col` / `ring` đè màu của mức. */
   dot(id: string, tx: number, ty: number, name: string, col = "", ring = "", _layer = "") {
@@ -122,6 +136,8 @@ class Radar implements DotSink {
     let b = this.boxes[this.nb]; if (!b) b = this.boxes[this.nb] = { x: 0, y: 0, w: 0, h: 0, col: "" };
     this.nb++; b.x = tx; b.y = ty; b.w = w; b.h = h; b.col = col;
   }
+
+  line(pts: number[], col: string) { this.route = pts; this.routeCol = col; }
 
   /** Vẽ lượt vừa gom; `info` là dòng "tên bản đồ · tọa độ · Kênh N". */
   end(info: string) {
@@ -140,6 +156,7 @@ class Radar implements DotSink {
     if (this.base) { const b = this.base as HTMLCanvasElement | HTMLImageElement; ctx.drawImage(b, 0, 0, b.width / this.baseScale, b.height / this.baseScale); }
     ctx.lineWidth = 1.5 / k;
     for (let i = 0; i < this.nb; i++) { const b = this.boxes[i]; ctx.strokeStyle = b.col; ctx.strokeRect(b.x, b.y, b.w, b.h); }
+    if (this.route) strokeRoute(ctx, this.route, this.routeCol, k);
     ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.arc(c, c, rPx, 0, Math.PI * 2); ctx.clip(); ctx.translate(c, c);
     this.drawCompass(ctx, rPx);

@@ -1,0 +1,194 @@
+{
+  "id": "nguyet_nhan",
+  "nhom": "V (vòng trăng khuyết sau lưng)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "troi",
+  "lift": 14,
+  "prescale": 1,
+  "clean": {
+    "minComp": 8
+  },
+  "display": {
+    "scale": 1.2,
+    "dx": 0,
+    "dy": -6,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_nguyet_nhan_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "nhan_c34",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, huge thin silver crescent blade like a sickle ring standing upright, both tips needle sharp and long, glowing cold edge, translucent ghost-like, main colors #e6e6f0 and #4a4a5e, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 34
+    },
+    "thuLai": "nhan_a (vầng trăng có mặt, đầu tù) và nhan_b / nhan_c21 bỏ; concept làm lại tốn thêm 3 lượt"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant thin silver crescent moon blade with needle sharp tips",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 6,
+      "se": 7,
+      "e": 0,
+      "ne": 2,
+      "n": 1
+    },
+    "ghiChu": "Lưỡi liềm mỏng: chỉ số 6, 7 là hai nghiêng đẹp (s, se), 0 là mặt cắt mỏng (e), 2 và 1 là mặt sau (ne, n); 3 và 5 bị rối lông, bỏ."
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bob": 2,
+      "rot": 4,
+      "pulse": 0.12
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "hit": 3,
+      "vet": [
+        2,
+        3,
+        4
+      ],
+      "vong": 12,
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          0,
+          -2,
+          1,
+          0.6,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          2,
+          0,
+          0.15,
+          1,
+          1.2,
+          null
+        ],
+        [
+          0,
+          8,
+          0,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          0,
+          10,
+          0,
+          0.2,
+          1,
+          1.5,
+          null
+        ],
+        [
+          0,
+          6,
+          0,
+          0.7,
+          1,
+          1.2,
+          null
+        ],
+        [
+          0,
+          2,
+          0,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "quay",
+        "n": 8,
+        "mau": [
+          "#ffffff",
+          "#e6e6f0"
+        ],
+        "e": 0.4,
+        "xa": 4,
+        "len": 0,
+        "seed": 5,
+        "s": 1
+      }
+    ]
+  }
+}

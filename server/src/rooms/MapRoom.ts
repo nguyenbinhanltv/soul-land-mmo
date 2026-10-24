@@ -57,7 +57,7 @@ import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
 import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend } from "../presence.ts";
+import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
@@ -298,7 +298,6 @@ const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đ�
 const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
 const HOLD_WAIT_MS = 8000;
-const accountLeaseKey = (accountId: number) => `accountHold:${accountId}`;
 
 // ---------- Giá trị client gửi (mục 6 "Mỗi message: ép kiểu và kẹp giá trị", #164) ----------
 // Chỉ kiểm `typeof`, không Number() / String() / phép so sánh trên giá trị thô: msgpack giải ra object tùy ý, đổi kiểu một object
@@ -3068,14 +3067,15 @@ export class MapRoom extends Room<MapState> {
     if (!rows.every(([sid]) => this.npcNear(sid, { role: "arena" }))) return warn("Cả hai thành viên phải lại gần Đại Đấu Hồn Trường.");
     if (!arenaQueueSlots(accounts)) return warn("Thao tác quá nhanh, chờ một chút rồi xếp hàng lại.");
     rows.forEach(([, x]) => { x.arenaBusy = true; });
-    Promise.all(rows.map(([, x]) => arenaReadElo(x.accountId, () => store.getArena(x.accountId, ARENA.startElo)))).then((recs) => {
+    Promise.all([Promise.all(rows.map(([, x]) => arenaReadElo(x.accountId, () => store.getArena(x.accountId, ARENA.startElo)))),
+      Promise.all(rows.map(([, x]) => store.isTestAccount(x.accountId)))]).then(([recs, tests]) => {
       rows.forEach(([, x]) => { x.arenaBusy = false; });
       if (rows.some(([sid, x]) => this.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return;
       const current = this.arenaAccounts(d.accountId);
       if (current.length !== accounts.length || current.some((acc) => !accounts.includes(acc))) return;
       const late = this.arenaBusy(id); if (late) return warn(`${late} Chưa xếp hàng được.`);
       const e: ArenaTeamEntry = { id: party.partyIdOf(d.accountId) ? `party:${party.partyIdOf(d.accountId)}` : `solo:${d.accountId}`,
-        members: rows.map(([, x], i) => ({ accountId: x.accountId, name: this.state.players.get(rows[i][0])!.name, rec: recs[i]! })),
+        members: rows.map(([, x], i) => ({ accountId: x.accountId, name: this.state.players.get(rows[i][0])!.name, rec: recs[i]!, ...(tests[i] ? { test: true } : {}) })),
         elo: arenaTeamElo(recs.map((rec) => rec!.elo)), since: Date.now(),
         ready: () => this.pdata.get(id) === d && this.arenaAccounts(d.accountId).length === accounts.length
           && this.arenaAccounts(d.accountId).every((acc) => accounts.includes(acc)) && !this.arenaBusy(id),

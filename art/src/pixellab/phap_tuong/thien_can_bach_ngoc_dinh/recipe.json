@@ -1,0 +1,189 @@
+{
+  "id": "thien_can_bach_ngoc_dinh",
+  "nhom": "O (đỉnh lơ lửng sau đầu)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "troi",
+  "lift": 12,
+  "prescale": 1,
+  "clean": {
+    "minComp": 6,
+    "nhuom": 0.65
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": -6,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_thien_can_bach_ngoc_dinh_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "dinh_b",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, giant spectral white jade ding cauldron with two ring handles and three legs, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 7
+    }
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant spectral white jade ding cauldron with two ring handles and three legs",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.9
+      ],
+      "bob": 2,
+      "rot": 1,
+      "pulse": 0.12
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.9
+      ],
+      "hit": 3,
+      "vong": 18,
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          -6,
+          0,
+          2,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          -14,
+          1,
+          3,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          -16,
+          2,
+          3,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          -16,
+          2,
+          3,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          4,
+          1,
+          -3,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          -2,
+          0,
+          0,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "tren",
+        "n": 7,
+        "mau": [
+          "#ffffff",
+          "#f0e8c0",
+          "#c8f0d8"
+        ],
+        "len": 28,
+        "rong": 0.5,
+        "troi": 4,
+        "seed": 3,
+        "s": 2
+      }
+    ]
+  }
+}

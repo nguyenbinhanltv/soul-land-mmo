@@ -35,7 +35,8 @@ ok(PHAP_TUONG.lam_dien_ba_vuong_long.formula === "sinh_vat" && PHAP_TUONG.hao_th
 
 // ---- ảnh thật trong manifest (`pt_<mã>`) khớp bảng: cỡ, độ lệch, lớp; sheet có mặt, đủ 16 × 5 khung
 const man = JSON.parse(readFileSync(new URL("../../shared/assets/sprites/manifest.json", import.meta.url), "utf8"));
-const pts = (man.sprites ?? []).filter((e) => typeof e !== "string" && /^pt_/.test(e.key));
+const entries = (man.sprites ?? []).filter((e) => typeof e !== "string" && /^pt_/.test(e.key));
+const pts = entries.filter((e) => !/_glow$/.test(e.key)), glows = entries.filter((e) => /_glow$/.test(e.key));
 const mis = [];
 for (const e of pts) {
   const id = e.key.slice(3), d = PHAP_TUONG[id];
@@ -47,7 +48,14 @@ for (const e of pts) {
   if (!existsSync(f)) mis.push(`${id}: thiếu sheet`);
   else { const b = readFileSync(f); if (b.readUInt32BE(16) !== 160 * 16 || b.readUInt32BE(20) !== 160 * 5) mis.push(`${id}: sheet không phải 2560×800`); }
 }
-ok(mis.length === 0, `${pts.length} pháp tướng thật trong manifest khớp bảng PHAP_TUONG${mis.length ? ": " + mis.join("; ") : ""}`);
+// lớp sáng riêng `pt_<mã>_glow` (cùng bố cục 2560×800) phải đi kèm một sheet thân cùng mã
+for (const e of glows) {
+  const id = e.key.slice(3, -5), f = new URL(`../../shared/assets/sprites/phaptuong/${id}_glow.png`, import.meta.url);
+  if (!pts.some((x) => x.key === `pt_${id}`)) mis.push(`${e.key}: không có sheet thân pt_${id}`);
+  else if (!existsSync(f)) mis.push(`${e.key}: thiếu file`);
+  else { const b = readFileSync(f); if (b.readUInt32BE(16) !== 160 * 16 || b.readUInt32BE(20) !== 160 * 5) mis.push(`${e.key}: không phải 2560×800`); }
+}
+ok(mis.length === 0, `${pts.length} pháp tướng thật + ${glows.length} lớp sáng trong manifest khớp bảng PHAP_TUONG${mis.length ? ": " + mis.join("; ") : ""}`);
 
 // ---- tiến hóa theo vòng
 ok(PT_STAGES.length === 4 && PT_STAGES.every((s, i) => s.rings === 7 + i), "4 bậc cho vòng 7..10");
