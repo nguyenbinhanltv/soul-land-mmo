@@ -1,0 +1,649 @@
+{
+ "_": "S3 lô A (#566): đặc tả sheet hiệu ứng chiêu cho 7 võ hồn + dung hợp Yêu Nguyệt, theo công thức chuẩn S2 (docs/ky-nang-cong-thuc.md). `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ: [viền, tối, chủ, nhấn, sáng] (xếp tăng dần theo độ sáng). Chạy: node tools/assets/skill-vfx/run.mjs --spec lo-a.json --out <nháp> [--only tên,...]",
+ "common": "Pixel art VFX for an isometric RPG skill, 3/4 top-down view, transparent background, no character, no text, dark outline, limited palette, white-hot core, centered.",
+ "vohon": {
+  "cs": {
+   "palette": [
+    "#1a1020",
+    "#3c4f70",
+    "#8fb4ff",
+    "#cfe3ff",
+    "#ffffff"
+   ],
+   "theme": "Silver sword qi, thin needle-like flying swords with small stars, cold white-blue, colors silver-blue #8fb4ff, pale #cfe3ff, dark #3c4f70, white."
+  },
+  "nn": {
+   "palette": [
+    "#1a1020",
+    "#4a4a5e",
+    "#ff5a6a",
+    "#e6e6f0",
+    "#ffffff"
+   ],
+   "theme": "Crescent moon blades, silver with blood-red edge glints, spinning arcs, colors silver #e6e6f0, red #ff5a6a, dark grey #4a4a5e, white."
+  },
+  "ck": {
+   "palette": [
+    "#1a1020",
+    "#5e4a18",
+    "#e0b04a",
+    "#ffe08a",
+    "#ffffff"
+   ],
+   "theme": "Golden chains and lock runes, glowing gold sigils, chain links and padlocks, colors gold #e0b04a, light gold #ffe08a, dark bronze #5e4a18, white."
+  },
+  "xx": {
+   "palette": [
+    "#1a1020",
+    "#6a3a22",
+    "#e8875a",
+    "#ffd9a0",
+    "#fff3c8"
+   ],
+   "theme": "Warm grilled sausage feast, appetizing steam, sparkles, small sausages, colors orange #e8875a, cream #ffd9a0, brown #6a3a22, white."
+  },
+  "td": {
+   "palette": [
+    "#1a1020",
+    "#6a5a2a",
+    "#f0e0a0",
+    "#fff6d0",
+    "#ffffff"
+   ],
+   "theme": "Sacred white jade cauldron, soft jade glow, drifting light motes, colors pale gold jade #f0e0a0, cream #fff6d0, dark olive #6a5a2a, white."
+  },
+  "cb": {
+   "palette": [
+    "#1a1020",
+    "#2a6a7a",
+    "#7ef0ff",
+    "#ffd0f0",
+    "#ffffff"
+   ],
+   "theme": "Seven-color glazed crystal pagoda, rainbow prismatic light, crystal shards, colors cyan #7ef0ff, pink #ffd0f0, deep teal #2a6a7a, white."
+  },
+  "ph": {
+   "palette": [
+    "#1a1020",
+    "#1f4a48",
+    "#7fe0d0",
+    "#c0fff4",
+    "#ffffff"
+   ],
+   "theme": "Jade spear thrusts, thin crisp piercing lines, jade sparks, colors jade teal #7fe0d0, pale mint #c0fff4, dark teal #1f4a48, white."
+  },
+  "yn": {
+   "palette": [
+    "#1a1020",
+    "#7a2a5a",
+    "#ff9ad5",
+    "#e6e6f0",
+    "#ffffff"
+   ],
+   "theme": "Fusion of pink fox tails with hearts and silver crescent moon blades with red edge, colors pink #ff9ad5, silver #e6e6f0, dark magenta #7a2a5a, white."
+  }
+ },
+ "sheets": [
+  {
+   "n": "cs_slash1",
+   "v": "cs",
+   "t": 1,
+   "f": 8,
+   "d": "Straight thin silver sword slash across, one clean line with a bright leading edge like a brush stroke, small afterimage, tiny silver sparks and star dots. Compact."
+  },
+  {
+   "n": "cs_proj2",
+   "v": "cs",
+   "t": 1,
+   "f": 6,
+   "d": "One thin needle-like silver flying sword pointing right with a bright tip, small star glints and a short sparkle trail behind, slightly pulsing. Compact."
+  },
+  {
+   "n": "cs_zone3",
+   "v": "cs",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: flat isometric seven-pointed star diagram drawn by sword-qi lines from the center, tiny swords orbit the rim, flares then fades. Compact."
+  },
+  {
+   "n": "cs_slash4",
+   "v": "cs",
+   "t": 1,
+   "f": 8,
+   "d": "Single sharp silver sword slash, longer and brighter than a plain cut, a faint thin second stroke trailing it, silver sparks and star dots. Compact."
+  },
+  {
+   "n": "cs_slash5",
+   "v": "cs",
+   "t": 2,
+   "f": 8,
+   "d": "Wide sweeping silver sword-qi slash, thin straight bright line with white leading edge, a thin cross-shaped cut flashes at the end, armor-like silver shards fly, fading afterimage. Large, clear."
+  },
+  {
+   "n": "cs_zone6",
+   "v": "cs",
+   "t": 2,
+   "f": 8,
+   "d": "Ground seven-star sword formation: flat isometric ring with a seven-pointed star of sword-qi lines, seven small swords orbit the rim, a bright pulse sweeps out, sparks. Large, clear pattern."
+  },
+  {
+   "n": "cs_proj8",
+   "v": "cs",
+   "t": 2,
+   "f": 8,
+   "d": "A bigger thin silver flying sword pointing right, trailing a comet tail of star sparkles and several faint ghost swords behind it, bright tip flare, fading. Large, clear."
+  },
+  {
+   "n": "cs_hit9",
+   "v": "cs",
+   "t": 2,
+   "f": 8,
+   "d": "Sword and wielder unite: targeting mark on the target, then a thin cross-shaped silver cut flashes, silver armor shards burst outward, star sparks. Large, clear."
+  },
+  {
+   "n": "cs_t3a",
+   "v": "cs",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate: a mountain-sized silver sword raised high, then a vertical white slash splits the whole scene in two in one frame, a wide ground crack and shockwave, silver sparks rain. Very large, dramatic."
+  },
+  {
+   "n": "cs_t3b",
+   "v": "cs",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation dive: a giant spectral sword turns tip-down, plunges like an arrow onto the target leaving a silver streak, huge cross cut burst, expanding rings, falling silver shards. Very large, dramatic."
+  },
+  {
+   "n": "cs_zone_tc",
+   "v": "cs",
+   "t": 2,
+   "f": 8,
+   "d": "Seven swords plunge into the ground in a ring around the caster, then burst into an expanding ring of sword-qi, flat isometric, silver sparks and star dots. Large."
+  },
+  {
+   "n": "nn_dash1",
+   "v": "nn",
+   "t": 1,
+   "f": 8,
+   "d": "Dash through enemies: a long crescent-moon streak trails behind a fast motion line, silver with red edge, afterimage fades, tiny red glints. Compact."
+  },
+  {
+   "n": "nn_hit2",
+   "v": "nn",
+   "t": 1,
+   "f": 6,
+   "d": "Targeting mark appears, then a diagonal silver crescent cut flashes across and red light drops spray out, small silver dust. Compact."
+  },
+  {
+   "n": "nn_slash3",
+   "v": "nn",
+   "t": 1,
+   "f": 8,
+   "d": "Two crescent-moon blades sweep across one after another, silver with blood-red rims, small afterimage, silver dust and red wisps. Compact."
+  },
+  {
+   "n": "nn_hit4",
+   "v": "nn",
+   "t": 1,
+   "f": 6,
+   "d": "Targeting mark, then a larger crossing crescent cut with a thin red edge, red light drops burst, silver dust. Compact."
+  },
+  {
+   "n": "nn_dash5",
+   "v": "nn",
+   "t": 2,
+   "f": 8,
+   "d": "Long crescent-moon dash streak, two curved silver blades trailing with blood-red edges, speed lines, fading afterimage, red glints. Large, clear."
+  },
+  {
+   "n": "nn_hit6",
+   "v": "nn",
+   "t": 2,
+   "f": 8,
+   "d": "Targeting mark, crescent slash crosses the target, red embers ignite and burn on it, red light drops spray, silver dust. Large, clear."
+  },
+  {
+   "n": "nn_slash8",
+   "v": "nn",
+   "t": 2,
+   "f": 8,
+   "d": "Two big crescent moons overlap and cross while sweeping forward, silver with crimson rims, bright flash where they cross, fading afterimage. Large, clear."
+  },
+  {
+   "n": "nn_hit9",
+   "v": "nn",
+   "t": 2,
+   "f": 8,
+   "d": "Rapid chain of crescent cuts on one target from many angles, targeting mark first, red light drops burst, a bright silver flash, lingering red wisps. Large, clear."
+  },
+  {
+   "n": "nn_t3a",
+   "v": "nn",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate Blood Moon: silver moon above the target turns deep crimson, splits into many crescent blades that fall and slash in sequence, red flashes, ground ripple of red light. Very large, dramatic."
+  },
+  {
+   "n": "nn_t3b",
+   "v": "nn",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation: one crescent moon splits into two spinning blades that cross-slash diagonally through the target, then merge back into one bright moon, ripples of silver and red. Very large, dramatic."
+  },
+  {
+   "n": "nn_hit_tc",
+   "v": "nn",
+   "t": 2,
+   "f": 8,
+   "d": "Crescent moon blade flashes and streaks across the target in one cut, thin red edge, a sharp silver flash, red light drops, silver dust. Large."
+  },
+  {
+   "n": "ck_hit1",
+   "v": "ck",
+   "t": 1,
+   "f": 6,
+   "d": "Golden chain links fly in and a glowing padlock rune appears on the target then snaps shut with a flash, gold sparks. Compact."
+  },
+  {
+   "n": "ck_zone2",
+   "v": "ck",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: flat isometric golden rune circle spins, six chains shoot out from it and lock, gold sparks. Compact."
+  },
+  {
+   "n": "ck_zone3",
+   "v": "ck",
+   "t": 1,
+   "f": 6,
+   "d": "Golden chains spiral inward on the ground, pulling toward the center, flat isometric rune ring contracts, gold sparks. Compact."
+  },
+  {
+   "n": "ck_zone4",
+   "v": "ck",
+   "t": 1,
+   "f": 8,
+   "d": "Larger flat isometric golden rune ring, eight chains shoot out to the rim and lock in turn, rune glyphs flare, gold sparks. Compact."
+  },
+  {
+   "n": "ck_hit5",
+   "v": "ck",
+   "t": 2,
+   "f": 8,
+   "d": "Golden chains wrap around the target, a large padlock rune slams shut with a heavy clunk flash, runes flare, gold sparks. Large, clear."
+  },
+  {
+   "n": "ck_zone6",
+   "v": "ck",
+   "t": 2,
+   "f": 8,
+   "d": "Golden prison: flat isometric rune circle on the ground, chains rise into a cage shape and lock, rune glyphs pulse, gold sparks. Large, clear pattern."
+  },
+  {
+   "n": "ck_zone8",
+   "v": "ck",
+   "t": 2,
+   "f": 8,
+   "d": "Golden chains spiral inward pulling everything to the center on a flat isometric rune ring, then a binding sigil flashes and freezes the spot, gold sparks. Large, clear."
+  },
+  {
+   "n": "ck_hit9",
+   "v": "ck",
+   "t": 2,
+   "f": 8,
+   "d": "Targeting mark, a heavy golden orb smashes the air above the target, cracks like broken glass spread in the air, chains snap outward, bright flash. Large, clear."
+  },
+  {
+   "n": "ck_t3a",
+   "v": "ck",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate Heaven-Earth Lock: a giant padlock hangs above a wide flat isometric ground ring, chains shoot down from four sides to lock the area, rune flash, then the padlock slams shut. Very large, dramatic."
+  },
+  {
+   "n": "ck_t3b",
+   "v": "ck",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation: a giant spectral chain-armored guardian coils golden chains in a circle around the area then tightens them, rune sigils flare, concentric rings of chains on the ground. Very large, dramatic."
+  },
+  {
+   "n": "ck_zone_tc",
+   "v": "ck",
+   "t": 2,
+   "f": 8,
+   "d": "Quick golden chain ring snaps shut around the caster on the ground, flat isometric, rune flash and chain links flying, gold sparks. Large."
+  },
+  {
+   "n": "xx_aura1",
+   "v": "xx",
+   "t": 1,
+   "f": 6,
+   "d": "Healing aura around the caster: warm glow ring, small sausage-shaped sparkles and warm steam rising up gently, sparkles. Compact."
+  },
+  {
+   "n": "xx_aura2",
+   "v": "xx",
+   "t": 1,
+   "f": 6,
+   "d": "Soul-power aura: tiny sausages orbit around the center in a swirl, steam trails, sparkles rising. Compact."
+  },
+  {
+   "n": "xx_aura3",
+   "v": "xx",
+   "t": 1,
+   "f": 6,
+   "d": "Flying aura: steam puffs like small wings sweep upward with streak lines and a sausage-shaped glint, sparkles. Compact."
+  },
+  {
+   "n": "xx_aura4",
+   "v": "xx",
+   "t": 1,
+   "f": 6,
+   "d": "Copy aura: a sausage splits into several ghost sausages that fan outward and fade, steam wisps, sparkles. Compact."
+  },
+  {
+   "n": "xx_aura5",
+   "v": "xx",
+   "t": 2,
+   "f": 8,
+   "d": "Big healing aura: warm glow dome rises around the caster, a ring of sausages and steam rising, soft shield ring, sparkles. Large, clear."
+  },
+  {
+   "n": "xx_proj6",
+   "v": "xx",
+   "t": 2,
+   "f": 8,
+   "d": "Electric sausage flying right and spinning, white steam trail and small bright electric arcs crackling around it, sparks. Large, clear."
+  },
+  {
+   "n": "xx_aura8",
+   "v": "xx",
+   "t": 2,
+   "f": 8,
+   "d": "Cleansing aura: warm steam ripples sweep outward in rings from the center, a clear light shimmer, small sausages dancing, sparkles. Large, clear."
+  },
+  {
+   "n": "xx_aura9",
+   "v": "xx",
+   "t": 2,
+   "f": 8,
+   "d": "Grand copy: sausages multiply in a ring around the center and spin, glowing trails and steam, bright flash at peak, sparkles. Large, clear."
+  },
+  {
+   "n": "xx_t3a",
+   "v": "xx",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate feast: a round banquet table of sausages appears around the area, aroma steam rises into a golden column of light, warm halo spreads outward. Very large, dramatic."
+  },
+  {
+   "n": "xx_t3b",
+   "v": "xx",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation: a giant sausage rises overhead then lowers, spreading a wide golden holy light ring over the area, steam and sparkles pour down. Very large, dramatic."
+  },
+  {
+   "n": "xx_aura_tc",
+   "v": "xx",
+   "t": 2,
+   "f": 8,
+   "d": "Gentle warm steam wafts out in a soft ring around the caster, tiny sausage glints and sparkles drifting up, soft glow. Large."
+  },
+  {
+   "n": "td_aura1",
+   "v": "td",
+   "t": 1,
+   "f": 6,
+   "d": "Healing aura: soft white jade light rises around the caster in streams, small jade light motes drift up, gentle glow ring. Compact."
+  },
+  {
+   "n": "td_aura2",
+   "v": "td",
+   "t": 1,
+   "f": 6,
+   "d": "Shield aura: a translucent jade bubble forms around the center, small jade glints on its surface, motes. Compact."
+  },
+  {
+   "n": "td_zone3",
+   "v": "td",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: flat isometric jade halo with three dots at the three feet of a small cauldron mouth tilting at the center, flares and fades. Compact."
+  },
+  {
+   "n": "td_aura4",
+   "v": "td",
+   "t": 1,
+   "f": 6,
+   "d": "Protecting aura: jade glow rises and a thin jade shield ring closes around the center, motes drifting, soft light. Compact."
+  },
+  {
+   "n": "td_zone5",
+   "v": "td",
+   "t": 2,
+   "f": 8,
+   "d": "Ground ring around the caster: a jade cauldron mouth tilts, a wide flat isometric jade halo with three feet dots pulses outward, light motes rise. Large, clear."
+  },
+  {
+   "n": "td_aura6",
+   "v": "td",
+   "t": 2,
+   "f": 8,
+   "d": "Strong healing aura: jade light pillars rise in a circle, a thick jade shield dome shimmers, cleansing light ripples, motes. Large, clear."
+  },
+  {
+   "n": "td_zone8",
+   "v": "td",
+   "t": 2,
+   "f": 8,
+   "d": "A jade cauldron drops onto the ground area and seals it, flat isometric jade halo ring with rune light flashing, evil shadows dissolve, motes. Large, clear."
+  },
+  {
+   "n": "td_aura9",
+   "v": "td",
+   "t": 2,
+   "f": 8,
+   "d": "Holy cauldron: a jade cauldron outline glows above the center and shines a halo of light down, soft rings spreading, motes. Large, clear."
+  },
+  {
+   "n": "td_t3a",
+   "v": "td",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate: a huge jade cauldron floats above a wide flat isometric area, tips its mouth and pours down jade light like rain, ripples of cleansing light spread on the ground. Very large, dramatic."
+  },
+  {
+   "n": "td_t3b",
+   "v": "td",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation: a giant jade cauldron flips upside down over the center and covers it with a dome of jade light, light rings radiate on the ground, motes. Very large, dramatic."
+  },
+  {
+   "n": "td_aura_tc",
+   "v": "td",
+   "t": 2,
+   "f": 8,
+   "d": "Soft jade holy light spreads in a gentle halo around the caster, thin ripples, small light motes drifting up. Large."
+  },
+  {
+   "n": "cb_aura1",
+   "v": "cb",
+   "t": 1,
+   "f": 6,
+   "d": "Power aura: rising chevron arrows of seven-color light around the caster, a small glazed crystal glint, prism sparkles. Compact."
+  },
+  {
+   "n": "cb_aura2",
+   "v": "cb",
+   "t": 1,
+   "f": 6,
+   "d": "Speed aura: seven-color light streak lines sweep past the center with wind curves, prism sparkles. Compact."
+  },
+  {
+   "n": "cb_aura3",
+   "v": "cb",
+   "t": 1,
+   "f": 6,
+   "d": "Soul aura: seven small colored orbs orbit the center in a ring, prism glints, soft glow. Compact."
+  },
+  {
+   "n": "cb_aura4",
+   "v": "cb",
+   "t": 1,
+   "f": 6,
+   "d": "Defense aura: a hexagonal glazed crystal shield forms around the center, rainbow glints on its edges, sparkles. Compact."
+  },
+  {
+   "n": "cb_zone5",
+   "v": "cb",
+   "t": 2,
+   "f": 8,
+   "d": "Ground ring around the caster: flat isometric seven-color glazed ring spins with a tiny pagoda at the center, bursts into crystal shards outward, prism light. Large, clear."
+  },
+  {
+   "n": "cb_aura6",
+   "v": "cb",
+   "t": 2,
+   "f": 8,
+   "d": "Mind aura: a glazed crystal eye symbol shines above the center, seven-color rings ripple outward, prism sparkles. Large, clear."
+  },
+  {
+   "n": "cb_aura8",
+   "v": "cb",
+   "t": 2,
+   "f": 8,
+   "d": "Holy glaze light: broad seven-color light beams rise from the ground around the center and spread into a soft dome, crystal shards, prism sparkles. Large, clear."
+  },
+  {
+   "n": "cb_aura9",
+   "v": "cb",
+   "t": 2,
+   "f": 8,
+   "d": "Nine treasures chime: nine small glowing orbs align in a ring and resonate with expanding seven-color ripples, bright flash, prism sparkles. Large, clear."
+  },
+  {
+   "n": "cb_t3a",
+   "v": "cb",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate: a nine-story glazed pagoda stands overhead, nine beams of seven-color light shoot down and wrap into a glowing invincible sphere, prism ripples spread on the ground. Very large, dramatic."
+  },
+  {
+   "n": "cb_t3b",
+   "v": "cb",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation: nine stories of a glazed pagoda light up one by one from bottom to top, radiating seven-color rays outward, crystal shards, rings of prism light. Very large, dramatic."
+  },
+  {
+   "n": "cb_aura_tc",
+   "v": "cb",
+   "t": 2,
+   "f": 8,
+   "d": "Thin glazed crystal shell forms around the caster and shimmers with seven colors, a soft ring pulse, tiny prism sparkles. Large."
+  },
+  {
+   "n": "ph_slash1",
+   "v": "ph",
+   "t": 1,
+   "f": 8,
+   "d": "Single straight spear thrust: one thin jade line stabs forward and flares into a bright burst at the tip, jade sparks, small afterimage. Compact."
+  },
+  {
+   "n": "ph_dash2",
+   "v": "ph",
+   "t": 1,
+   "f": 8,
+   "d": "Spear dash through enemies: a straight jade streak with speed lines, a bright spear tip at the front, afterimage fades, jade sparks. Compact."
+  },
+  {
+   "n": "ph_hit3",
+   "v": "ph",
+   "t": 1,
+   "f": 6,
+   "d": "Targeting mark, then a round piercing hole bursts with jade sparks, a short red tassel flutters away. Compact."
+  },
+  {
+   "n": "ph_slash4",
+   "v": "ph",
+   "t": 1,
+   "f": 8,
+   "d": "One long jade spear thrust and sweep forward, thin bright line with a flare at the end, faint second line, jade sparks. Compact."
+  },
+  {
+   "n": "ph_hit5",
+   "v": "ph",
+   "t": 2,
+   "f": 8,
+   "d": "Targeting mark, then several quick piercing hits leave round holes bursting jade rays, red tassels fly, a bright flash. Large, clear."
+  },
+  {
+   "n": "ph_proj6",
+   "v": "ph",
+   "t": 2,
+   "f": 8,
+   "d": "Spear-head shaped jade projectile flying right with a red tassel streaming behind, bright tip, jade spark trail and faint ghost copies. Large, clear."
+  },
+  {
+   "n": "ph_slash8",
+   "v": "ph",
+   "t": 2,
+   "f": 8,
+   "d": "Wide sweeping jade spear slash with a bright white edge and a flare at the end of the line, jade sparks, fading afterimage. Large, clear."
+  },
+  {
+   "n": "ph_dash9",
+   "v": "ph",
+   "t": 2,
+   "f": 8,
+   "d": "Long spear dash piercing through a line of enemies like cutting clouds, a straight jade streak with a ring burst at the end, red tassel, sparks. Large, clear."
+  },
+  {
+   "n": "ph_t3a",
+   "v": "ph",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate Heaven Spear: a giant spectral spear pierces across the whole scene in one line, many ghost spears follow and stab, a long jade streak mark left on the ground. Very large, dramatic."
+  },
+  {
+   "n": "ph_t3b",
+   "v": "ph",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation: a spear and its wielder merge into one jade streak that dashes through the target in a straight line, round burst holes, rings and jade sparks follow. Very large, dramatic."
+  },
+  {
+   "n": "ph_dash_tc",
+   "v": "ph",
+   "t": 2,
+   "f": 8,
+   "d": "Straight jade spear streak pierces right through the target heart, a ring of jade rays bursts, red tassel flutters, sparks. Large."
+  },
+  {
+   "n": "yn_t3",
+   "v": "yn",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Fusion ultimate: pink fox tails and a silver crescent moon rise together, crescent blades with pink edges spin around the center in three rings leaving small pink hearts that melt into petals, then a pink-silver full moon opens. Very large, dramatic."
+  }
+ ]
+}
