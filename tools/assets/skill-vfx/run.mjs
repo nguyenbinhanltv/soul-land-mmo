@@ -1,5 +1,5 @@
 // S2 (#548): chạy đặc tả pilot.json qua PixelLab /v2/vfx (pixellab-vfx.mjs), vài lệnh song song. Bỏ qua sheet đã có trong thư mục nháp.
-//   node tools/assets/skill-vfx/run.mjs --out <nháp> [--spec pilot.json] [--only a,b] [--conc 3]
+//   node tools/assets/skill-vfx/run.mjs [--spec lo-a.json] --out <nháp> [--only a,b] [--conc 3]
 import { readFileSync, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -7,9 +7,9 @@ import path from "node:path";
 
 const args = process.argv.slice(2);
 const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-const out = opt("--out"), only = opt("--only").split(",").filter(Boolean), conc = +opt("--conc", "3");
+const specName = opt("--spec", "pilot.json"), out = opt("--out"), only = opt("--only").split(",").filter(Boolean), conc = +opt("--conc", "3");
 if (!out) { console.error("cần --out"); process.exit(1); }
-const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, opt("--spec", "pilot.json")), "utf8"));
+const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, specName), "utf8"));
 const todo = spec.sheets.filter((s) => (!only.length || only.includes(s.n)) && !existsSync(path.join(out, `${s.n}.png`)));
 const tool = path.join(here, "..", "pixellab-vfx.mjs");
 const sizeNote = (s) => (s.big ? "The canvas is large, about 160x160." : s.t === 2 ? "The canvas is about 96x96." : "The canvas is small, about 64x64.");

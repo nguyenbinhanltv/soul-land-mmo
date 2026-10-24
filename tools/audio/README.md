@@ -21,6 +21,18 @@ Pipeline tạo `.ogg` và `.m4a` AAC, chuẩn hóa bằng `loudnorm`, cắt kho�
 
 `audio:process` tự sinh bảng provenance trong `art/CREDITS.md` giữa hai marker `audio-sfx:start` và `audio-sfx:end`; `audio:validate` báo lỗi nếu bảng này lệch manifest. Preview mặc định ghi vào thư mục tạm của hệ điều hành; dùng `--out` để tạo artifact cố định.
 
+## C4 — tiếng T3 riêng cho 25 võ hồn
+
+`sfx-catalog.json` có 175 clip T3 CC0: 75 pha tuyệt kỹ vòng 10, 75 pha hồn kỹ Chân Thân và 25 tiếng biến hình. Mỗi nhóm mang mã `skill-t3-<ult|ct|avatar>-<mã võ hồn>`; cờ `noVoice` bắt buộc để tránh tiếng hô. Các clip này dùng chung sprite `skill` để tải lười và không thay đổi luật game.
+
+Tạo trang nghe thử theo đúng offset từng clip:
+
+```sh
+npm run audio:preview-sfx -- --out /tmp/soul-land-sfx-preview/index.html
+```
+
+Trang nghe thử dùng fragment thời gian, nên nút của từng clip chỉ phát đúng đoạn tương ứng trong sprite.
+
 Catalog hiện bao phủ rừng, suối, gió núi, thành trấn/đám đông, chim, sói, rắn, gấu, côn trùng và chuông. Các nhóm bổ sung dùng OGA CC0 đã ghi provenance từng file trong catalog và `art/CREDITS.md`.
 
 ## Hiệu ứng lô 2 (G5, #396)
