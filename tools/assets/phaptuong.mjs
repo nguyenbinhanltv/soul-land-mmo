@@ -169,7 +169,8 @@ function quantize(t, max) {
     });
     if (bi < 0) break;
     const b = boxes[bi].sort((x, y) => x.p[axis] - y.p[axis]), half = b.reduce((m, x) => m + x.n, 0) / 2;
-    let acc = 0, cut = 1; for (let i = 0; i < b.length - 1; i++) { acc += b[i].n; if (acc >= half) { cut = i + 1; break; } }
+    // mốc cắt gần nửa số điểm nhất: màu nặng (nền trắng của thỏ, hổ) vượt nửa hộp thì tách riêng, không dính với các màu nhẹ bên dưới
+    let acc = 0, cut = 1; for (let i = 0; i < b.length - 1; i++) { acc += b[i].n; if (acc >= half) { cut = i > 0 && acc - half > half - (acc - b[i].n) ? i : i + 1; break; } }
     boxes.splice(bi, 1, b.slice(0, cut), b.slice(cut));
   }
   const map = new Map();
