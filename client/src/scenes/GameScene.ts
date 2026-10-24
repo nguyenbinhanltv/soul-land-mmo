@@ -38,7 +38,7 @@ import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPane
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -986,8 +986,13 @@ export class GameScene extends Phaser.Scene {
         shard: (vohon, qty) => this.room.send("shardbuy", { vohon, qty, npc: m.id }), // #282: Thương hội đổi mảnh võ hồn
         shardInfo: () => this.room.send("shardinfo"),
         owned: () => (this.owned?.list ?? []).map((v) => v.vohon),
+        gear: () => this.gear,
+        equipEnh: (id, charm) => this.room.send("equipenh", { id, charm }), // lò rèn: cường hóa trang bị hồn sư (E3)
+        equipEnhPreview: (id) => this.room.send("equipenhpreview", { id }),
       });
     });
+    this.room.onMessage("equipenhp", (m: EquipEnhPreview) => hud.equipEnhPreview(m));
+    this.room.onMessage("equipenhd", (m: EquipEnhDone) => hud.equipEnhDone(m));
     // Đại Đấu Hồn Trường (7.2): server báo đang xếp hàng, đã ghép trận (vào phòng sân đấu), các pha của trận và kết quả.
     this.room.onMessage("arena", (m: any) => {
       if (m?.k === "queue") hud.setArenaQueue(m.on ? { elo: m.elo, secs: m.secs } : null, () => this.room.send("arena", { op: "cancel" }));
@@ -1103,7 +1108,7 @@ export class GameScene extends Phaser.Scene {
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
     const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
-    this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.askStats(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
+    this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
       if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
         sell: m.sell ?? this.bag.sell, sold: m.sold ?? this.bag.sold });

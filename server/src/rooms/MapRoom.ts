@@ -14,7 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
@@ -139,6 +139,8 @@ export interface PData {
   // Trang bị hồn sư đang mặc (E1, mục 5.15; `items.equip_slot`): không nằm trong `bag` (không chiếm ô túi, không bán / bỏ), ghi DB cùng túi (bagSnapshot).
   // `gearSt` tính lại mỗi lần đổi (gearStats): cộng vào calcStats (recalc), công vũ khí theo đòn (atkOf), giảm sát thương (buffV "def").
   gear: Item[]; gearSt: GearStats;
+  enhBusy: boolean;     // đang xử lý một lệnh cường hóa trang bị (E3): lệnh tới sau bị từ chối ngay ("đang xử lý"), chống đua lệnh / nhân đồ
+  testEnh: number | null; testEnhSlow: number; // hook test `enhroll` (ép số tung 0..1) và `enhslow` (ms chờ trong chuỗi lưu, để bot dồn lệnh khi MemoryStore ghi xong ngay)
   claimBusy: number;    // số lần nhận phần thưởng boss đang chờ DB: chặn mở rương, bán / bỏ / hấp thụ / nộp đồ cho tới khi xong (#165)
   testClaimHold: boolean; // hook test `claimhold` (#165): như đang chờ DB ghi phần thưởng boss, cờ riêng để không đụng bộ đếm claimBusy thật
   testTravelLost: boolean; // hook test `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi, như mất phản hồi sau COMMIT
@@ -1054,6 +1056,8 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("unequip", (c, m: { itemId: unknown }) => this.unequipBone(c.sessionId, m?.itemId));
     this.onMessage("equipgear", (c, m: { id: unknown }) => this.equipGear(c.sessionId, m?.id));
     this.onMessage("unequipgear", (c, m: { slot: unknown }) => this.unequipGear(c.sessionId, m?.slot));
+    this.onMessage("equipenh", (c, m: { id: unknown; charm: unknown }) => this.equipEnhance(c.sessionId, m?.id, m?.charm === true)); // cường hóa trang bị ở Thợ rèn (E3)
+    this.onMessage("equipenhpreview", (c, m: { id: unknown }) => this.equipEnhancePreview(c.sessionId, m?.id));
     this.onMessage("equipcore", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipCore(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequipcore", (c, m: { itemId: unknown }) => this.unequipCore(c.sessionId, m?.itemId));
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
@@ -1106,7 +1110,7 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
-      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
+      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, enhBusy: false, testEnh: null, testEnhSlow: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
@@ -3555,6 +3559,9 @@ export class MapRoom extends Room<MapState> {
     // đó; không đụng bộ đếm claimBusy thật); trả có đang giữ không. `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi.
     else if (op === "claimhold") { d.testClaimHold = o.on === true; out = { busy: claimHeld(d) }; }
     else if (op === "travellost") { d.testTravelLost = true; }
+    // E3: `enhroll {r}` ép số tung cường hóa trang bị (0..100 → 0..1; r < 0 bỏ ép): r nhỏ hơn tỉ lệ nấc thì thành công. `enhslow {ms}` chờ trong chuỗi lưu để bot dồn lệnh.
+    else if (op === "enhroll") { const r = int(o.r, -1, 100, -1); d.testEnh = r < 0 ? null : Math.min(0.9999, r / 100); }
+    else if (op === "enhslow") { d.testEnhSlow = int(o.ms, 0, 5000, 0); }
     else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
@@ -5865,6 +5872,90 @@ export class MapRoom extends Room<MapState> {
     const [it] = d.gear.splice(gi, 1); delete it.equipSlot; d.bag.push(it);
     this.log(id, `Tháo ${equipName(parseEquip(it.stats)?.tpl, it.enhance)} về túi đồ.`);
     this.afterGear(id, d);
+  }
+
+  /** Món trang bị `raw` của chính chủ, trong túi hoặc đang mặc (undefined nếu không có / không phải trang bị). */
+  equipOf(d: PData, raw: unknown) {
+    if (typeof raw !== "string") return undefined;
+    const it = d.bag.find((i) => i.id === raw && i.vohonId === null && i.code === EQUIP_ITEM) ?? d.gear.find((i) => i.id === raw && i.code === EQUIP_ITEM);
+    return it && parseEquip(it.stats) ? it : undefined;
+  }
+  /** Số vật phẩm mã `code` trong túi (mọi ô gộp, kể cả ô khóa). */
+  countOf(d: PData, code: string) { return d.bag.reduce((n, i) => (i.code === code && i.vohonId === null ? n + i.qty : n), 0); }
+  /** Trừ `n` vật phẩm mã `code` (đã kiểm đủ); trả hàm hoàn lại đúng ô cũ, dùng khi transaction lưu thất bại (equipEnhance). */
+  spendItem(d: PData, code: string, n: number) {
+    const undo: { it: Item; n: number; at: number; gone: boolean }[] = [];
+    let left = n;
+    for (const it of [...d.bag]) {
+      if (left <= 0) break;
+      if (it.code !== code || it.vohonId !== null) continue;
+      const k = Math.min(left, it.qty), at = d.bag.indexOf(it);
+      undo.push({ it, n: k, at, gone: k >= it.qty }); this.takeItem(d, it, k); left -= k;
+    }
+    return () => { for (const u of undo.reverse()) { if (u.gone) { u.it.qty = u.n; d.bag.splice(Math.min(u.at, d.bag.length), 0, u.it); } else u.it.qty += u.n; } d.bagDirty = true; };
+  }
+
+  /**
+   * `equipenhpreview {id}` trả "equipenhp" cho bảng Thợ rèn: nấc cường hóa tiếp theo (tỉ lệ, đá, phí, hậu quả khi thất bại) và số đá / bùa /
+   * Hồn Tệ đang có. Chỉ đọc, không ghi gì.
+   */
+  equipEnhancePreview(id: string, rawId: unknown) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    const it = this.equipOf(d, rawId); if (!it) return;
+    const step = equipEnhanceStep(it.enhance), stone = step ? EQUIP_STONES[step.stone] : null;
+    c.send("equipenhp", { id: it.id, enhance: it.enhance, to: step ? it.enhance + 1 : null, p: step?.p ?? 0, fail: step?.fail ?? null,
+      stone: stone?.id ?? null, qty: step?.qty ?? 0, have: stone ? this.countOf(d, stone.id) : 0, fee: step?.fee ?? 0, honTe: d.honTe, charm: this.countOf(d, EQUIP_CHARM), busy: d.enhBusy });
+  }
+
+  /**
+   * Cường hóa trang bị `rawId` (E3, mục 5.15) ở Thợ rèn: +1 → +15 theo EQUIP_ENHANCE. Đá và phí trừ **trước** khi tung, cả khi thất bại;
+   * `charm` (người chơi chọn dùng Bùa Hộ Mệnh) chỉ trừ bùa khi nấc phá hủy và thất bại thật sự xảy ra. Server tung (`testEnh` chỉ có khi GAME_TEST).
+   * Chống nhân đồ / đua lệnh: một lệnh đang xử lý (`enhBusy`) thì lệnh tới sau bị từ chối ngay; lệnh chạy trong chuỗi lưu của tài khoản, đổi túi
+   * trong bộ nhớ rồi ghi MỘT transaction (saveBag: khóa dòng tài khoản, rồi dòng món theo id tăng dần kèm kiểm cấp lưu, `Bag.lock`); lỗi ghi thì
+   * hoàn lại đá, phí, bùa, món về như trước và gửi lại túi. Phá hủy: món bị xóa khỏi túi / ô mặc (DELETE trong transaction). `claimBusy` chặn bán / bỏ đồ
+   * trong lúc chờ DB. Món đang mặc cường hóa được, chỉ số tính lại ngay. Ngoài giao chiến và gần Thợ rèn (cùng luật coreset).
+   */
+  equipEnhance(id: string, rawId: unknown, charm: boolean) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    if (d.enhBusy) return this.log(id, "Đang xử lý lệnh cường hóa trước, đợi một chút.", "#ffb35c");
+    d.enhBusy = true; d.claimBusy++;
+    this.chain(d, async () => {
+      const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); this.equipEnhancePreview(id, rawId); };
+      if (d.testEnhSlow) await new Promise((r) => setTimeout(r, d.testEnhSlow));
+      const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return warn("Không có trang bị này để cường hóa.");
+      const npc = this.npcNear(id, { role: "forge" }); if (!npc) return warn("Hãy lại gần Thợ rèn hơn để cường hóa trang bị.");
+      const lock = this.boneLock(p, d, "trang bị"); if (lock) return warn(lock.replace("gắn / tháo", "cường hóa"));
+      const step = equipEnhanceStep(it.enhance); if (!step) return warn(`${this.itemLabel(it)} đã cường hóa tối đa +${EQUIP_MAX_ENHANCE}.`);
+      const stone = EQUIP_STONES[step.stone], label = this.itemLabel(it), from = it.enhance, wear = it.equipSlot !== undefined;
+      if (this.countOf(d, stone.id) < step.qty) return warn(`Không đủ ${stone.name}: lên +${from + 1} cần ${step.qty}, đang có ${this.countOf(d, stone.id)}.`);
+      if (d.honTe < step.fee) return warn(`Không đủ Hồn Tệ: lên +${from + 1} cần phí ${formatHonTe(step.fee)}, đang có ${formatHonTe(d.honTe)}.`);
+      if (charm && step.fail.kind === "destroy" && !this.countOf(d, EQUIP_CHARM)) return warn("Không có Bùa Hộ Mệnh trong túi đồ.");
+      const undoStone = this.spendItem(d, stone.id, step.qty);
+      d.honTe -= step.fee;
+      const ok = (d.testEnh ?? Math.random()) < step.p, res = equipEnhanceResult(from, ok, charm)!;
+      const undoCharm = res.charmUsed ? this.spendItem(d, EQUIP_CHARM, 1) : () => {};
+      const at = (wear ? d.gear : d.bag).indexOf(it);
+      if (res.destroyed) (wear ? d.gear : d.bag).splice(at, 1); else it.enhance = res.enhance;
+      d.bagDirty = true;
+      try { await store.saveBag(d.accountId, { ...this.bagSnapshot(d), lock: [{ id: it.id, enhance: from }] }); }
+      catch (err) {
+        // Hoàn lại trên d.bag / d.gear / d.honTe HIỆN TẠI (trong lúc chờ DB có thể nhặt thêm đồ / Hồn Tệ): cộng lại đúng phần đã trừ, không gán giá trị cũ.
+        undoCharm(); undoStone(); d.honTe += step.fee; it.enhance = from;
+        if (res.destroyed) { const home = wear ? d.gear : d.bag; home.splice(Math.min(at, home.length), 0, it); }
+        d.bagDirty = true;
+        if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+        this.sendBag(id);
+        warn("Không lưu được lần cường hóa, đã hoàn lại đá, phí và món đồ. Thử lại sau."); throw err;
+      }
+      const verb = res.destroyed ? `thất bại, ${label} đã bị PHÁ HỦY` : ok ? `thành công lên +${res.enhance}` : res.charmUsed ? `thất bại, Bùa Hộ Mệnh giữ nguyên +${res.enhance}`
+        : res.enhance < from ? `thất bại, tụt xuống +${res.enhance}` : `thất bại, giữ +${res.enhance}`;
+      this.log(id, `Cường hóa ${res.destroyed ? label : equipName(e.tpl, from)} → +${from + 1}: ${verb} (−${step.qty} ${stone.name}, phí −${formatHonTe(step.fee)}${res.charmUsed ? ", −1 Bùa Hộ Mệnh" : ""}).`,
+        ok ? "#9cff9c" : res.destroyed ? "#ff5a5a" : "#ffb35c");
+      this.clients.getById(id)?.send("equipenhd", { id: it.id, from, to: res.destroyed ? null : res.enhance, ok, destroyed: res.destroyed, charmUsed: res.charmUsed, stone: stone.id, qty: step.qty, fee: step.fee });
+      if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+      this.sendBag(id);
+      if (!res.destroyed) this.equipEnhancePreview(id, it.id);
+    }).then(() => { d.enhBusy = false; d.claimBusy--; });
   }
 
   // ---------- Gắn hồn hạch (mục 5.6, bước 5.2) ----------
