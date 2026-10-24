@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Img, encodePng, readPng } from "./lib.mjs";
-import { inspectPng, packAtlas, optimizePng, renderPreview } from "./quality.mjs";
+import { inspectPng, packAtlas, optimizePng, renderPreview, qualityCheck } from "./quality.mjs";
 
 function samplePng(w = 4, h = 3) {
   const img = new Img(w, h);
@@ -56,4 +56,12 @@ test("renderPreview tạo trang xem chung có key và thông tin chất lượng
   assert.match(html, /Preview asset/);
   assert.match(html, /sprites\/a\.png/);
   assert.match(html, /data-key="a"/);
+});
+
+test("qualityCheck báo origin manifest sai so với neo chuẩn của sheetSpec", () => {
+  const manifest = JSON.parse(readFileSync(path.join(process.cwd(), "shared/assets/sprites/manifest.json"), "utf8"));
+  const source = manifest.sprites.find((entry) => typeof entry !== "string" && entry.key === "hs_body_m_0");
+  const result = qualityCheck({ sprites: [{ ...source, origin: [0, 0] }] });
+  assert.match(result.errors.join("\n"), /hs_body_m_0: manifest\.origin lệch neo/);
+  assert.deepEqual(result.assets[0].expectedOrigin, [32, 58]);
 });

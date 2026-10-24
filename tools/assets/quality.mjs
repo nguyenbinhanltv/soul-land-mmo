@@ -34,7 +34,15 @@ function manifestEntries(manifest, root = ROOT) {
     const spec = sheetSpec(key, entry.frame, !!entry.iso, !!entry.static);
     if (!spec) { errors.push(`${key}: key không khớp sheetSpec`); continue; }
     const file = path.join(root, "shared", "assets", "sprites", spec.file);
-    entries.push({ key, entry, spec, file, url: `sprites/${spec.file}`, origin: entry.origin ?? spec.layout?.origin ?? null });
+    entries.push({
+      key,
+      entry,
+      spec,
+      file,
+      url: `sprites/${spec.file}`,
+      declaredOrigin: entry.origin ?? null,
+      expectedOrigin: spec.layout?.origin ?? null,
+    });
   }
   return { entries, errors };
 }
@@ -69,23 +77,23 @@ export function inspectPng(file, options = {}) {
   };
 }
 
-function qualityCheck(manifest, root = ROOT) {
+export function qualityCheck(manifest, root = ROOT) {
   const { entries, errors } = manifestEntries(manifest, root), warnings = [], assets = [];
-  for (const { key, entry, spec, file, url, origin } of entries) {
+  for (const { key, entry, spec, file, url, declaredOrigin, expectedOrigin } of entries) {
     if (!existsSync(file)) { errors.push(`${key}: thiếu ${rel(file, root)}`); continue; }
     let info;
-    try { info = inspectPng(file, { frame: spec.frame ?? entry.frame, origin, palette: expectedPalette(entry, spec) }); }
+    try { info = inspectPng(file, { frame: spec.frame ?? entry.frame, origin: expectedOrigin, palette: expectedPalette(entry, spec) }); }
     catch (error) { errors.push(`${key}: không đọc được PNG (${error.message})`); continue; }
     if (spec.size && info.size.some((n, i) => n !== spec.size[i])) errors.push(`${key}: cỡ ${info.size.join("×")}, cần ${spec.size.join("×")}`);
     if (info.semiTransparent) errors.push(`${key}: có ${info.semiTransparent} điểm alpha bán trong suốt`);
     if (info.badColors.length) errors.push(`${key}: màu ngoài bảng ${info.badColors.slice(0, 8).join(", ")}`);
     if (entry.frame && spec.frame && JSON.stringify(entry.frame) !== JSON.stringify(spec.frame)) errors.push(`${key}: manifest.frame lệch quy cách ${spec.frame.join("×")}`);
-    if (entry.origin && JSON.stringify(entry.origin) !== JSON.stringify(origin)) errors.push(`${key}: manifest.origin lệch neo ${origin.join(",")}`);
+    if (declaredOrigin && JSON.stringify(declaredOrigin) !== JSON.stringify(expectedOrigin)) errors.push(`${key}: manifest.origin lệch neo ${expectedOrigin?.join(",") ?? "không có"}`);
     if (entry.bytes !== undefined && entry.bytes !== info.bytes) errors.push(`${key}: manifest.bytes ${entry.bytes}, thực tế ${info.bytes}`);
     if (spec.kind === "honsu" || spec.kind === "vohon" || spec.kind === "beast" || spec.kind === "lpc" || spec.kind === "prop") {
       if (!info.hasOutline) warnings.push(`${key}: chưa thấy viền ${OUTLINE}`);
     }
-    assets.push({ key, url, ...info, frame: spec.frame ?? entry.frame, expectedFrame: spec.frame ?? null, expectedOrigin: origin, kind: spec.kind });
+    assets.push({ key, url, ...info, origin: expectedOrigin, declaredOrigin, expectedFrame: spec.frame ?? null, expectedOrigin, kind: spec.kind });
   }
   return { generatedAt: new Date().toISOString(), manifest: rel(path.join(root, "shared/assets/sprites/manifest.json"), root), total: assets.length, errors, warnings, assets };
 }
@@ -121,7 +129,7 @@ export function compressTree(inputDir, outputDir) {
 function atlasEntries(manifest, root) {
   const { entries } = manifestEntries(manifest, root), byFile = new Map();
   for (const item of entries) if (!byFile.has(item.file)) byFile.set(item.file, item);
-  return [...byFile.values()].map((item) => ({ key: item.key, file: item.file, url: item.url, frame: item.spec.frame, origin: item.origin }));
+  return [...byFile.values()].map((item) => ({ key: item.key, file: item.file, url: item.url, frame: item.spec.frame, origin: item.expectedOrigin }));
 }
 
 export function packAtlas(entries, options = {}) {
