@@ -59,16 +59,18 @@ try {
   let curId = "lam_dien_ba_vuong_long", curRow = rowId;
   const ensure = async (id) => {
     if (rows[id] === undefined) {
-      await hook("grant", { vohon: id }); await sleep(900);
-      const ow = JSON.parse(await ev(`JSON.stringify(window.__scene.owned)`));
-      const row = ow.list.find((r) => r.vohon === id)?.rowId; if (row === undefined) throw new Error("không thấy hàng " + id);
+      await hook("grant", { vohon: id });
+      let row; // máy đang tải thì tin chậm: chờ tới 10 giây thay vì đoán 900 ms
+      for (let t = 0; t < 10000 && row === undefined; t += 300) { await sleep(300); row = JSON.parse(await ev(`JSON.stringify(window.__scene.owned)`)).list.find((r) => r.vohon === id)?.rowId; }
+      if (row === undefined) throw new Error("không thấy hàng " + id);
       await hook("set", { rowId: row, level: 70, stars: 3, rings: RINGS }); rows[id] = row;
     }
     return rows[id];
   };
   const useVohon = async (id) => {
-    if (id === curId) return; const row = await ensure(id);
-    await send("team", { slots: [row, 0, 0, 0] }); await sleep(900); curId = id; curRow = row;
+    if (id === curId) return; const row = await ensure(id); await hook("clear"); await hook("rest", { s: 600 }); // vừa đánh xong thì chưa đổi đội hình được (TEAM_COMBAT_SECS)
+   
+    await send("team", { slots: [row, 0, 0, 0] }); await until(`window.__scene.owned.active === ${row}`, 10000, "đổi võ hồn " + id); await sleep(400); curId = id; curRow = row;
   };
   for (const j of jobs) {
     if (j.vohon) await useVohon(j.vohon);

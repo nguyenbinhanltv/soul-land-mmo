@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { decodePng, SPRITES } from "../lib.mjs";
 
-const args = process.argv.slice(2), oi = args.indexOf("--only"), only = oi >= 0 ? args[oi + 1].split(",") : [];
-const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, "pilot.json"), "utf8"));
+const args = process.argv.slice(2), oi = args.indexOf("--only"), only = oi >= 0 ? args[oi + 1].split(",") : [], si = args.indexOf("--spec"), specName = si >= 0 ? args[si + 1] : "pilot.json";
+const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, specName), "utf8"));
 const validate = path.join(here, "..", "validate.mjs");
 for (const s of spec.sheets) {
   if (only.length && !only.includes(s.n)) continue;
