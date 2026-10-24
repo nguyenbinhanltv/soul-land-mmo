@@ -5,7 +5,8 @@
 //
 // Ảnh nguồn vẽ quanh ma-nơ-canh nên đặt NGUYÊN VỊ TRÍ ở khung đứng: pivot của mỗi giới là điểm neo của thân mẫu ở khung đứng,
 // off [0, 0]; pack dời theo điểm neo từng khung thân (idle / walk / attack / cast). Nửa sau / trước theo hướng: LAYERS bên dưới.
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, existsSync } from "node:fs";
+import os from "node:os";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,7 +27,7 @@ const LAYERS = {
 const OVERRIDE = JSON.parse(existsSync(path.join(SPEC, "layers.json")) ? readFileSync(path.join(SPEC, "layers.json"), "utf8") : "{}");
 
 const [cmd, ...rest] = process.argv.slice(2);
-const ti = rest.indexOf("--tmp"), tmp = ti >= 0 ? rest.splice(ti, 2)[1] : path.join(ROOT, ".tmp-vohon5");
+const ti = rest.indexOf("--tmp"), tmp = ti >= 0 ? rest.splice(ti, 2)[1] : mkdtempSync(path.join(os.tmpdir(), "vohon5-"));
 const ids = rest.length ? rest : Object.keys(LAYERS);
 const bodyPath = (s) => ["body", "outfit", "hair"].map((l) => path.join(B, `${l}_${s}_0.png`));
 const node = (...a) => execFileSync(process.execPath, a, { cwd: ROOT, stdio: "inherit" });
