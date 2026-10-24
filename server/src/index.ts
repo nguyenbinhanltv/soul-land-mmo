@@ -13,7 +13,7 @@ import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
-import { gamePresence, presenceBackend, isRedisFailure } from "./presence.ts";
+import { gamePresence, presenceBackend, isRedisFailure, guardClient } from "./presence.ts";
 import { configurePresence as configurePartyPresence } from "./party.ts";
 
 configurePartyPresence(presenceBackend);
@@ -129,6 +129,7 @@ if (existsSync(dist)) app.use(express.static(dist));
 const server = http.createServer(app);
 // Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
 const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.REDIS_URL) : undefined;
+if (driver) guardClient("Redis (registry phòng)", (driver as unknown as { _client: Parameters<typeof guardClient>[1] })._client);
 // PUBLIC_ADDRESS (mỗi tiến trình một địa chỉ client tới được, vd "game.example.com/2567"): phòng mở ở tiến trình khác thì chỗ giữ mang địa chỉ này để
 // client mở WebSocket đúng tiến trình giữ phòng (không đặt thì phòng ở tiến trình khác không vào được). Sân đấu luôn mở ở tiến trình ghép trận vì
 // `arenaMatches` (arenaQueue.ts) là bộ nhớ của tiến trình đó; phòng khác giữ cách chọn mặc định của Colyseus (tiến trình ít phòng nhất).

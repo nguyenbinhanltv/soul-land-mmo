@@ -153,12 +153,12 @@ class RedisBackend implements PresenceBackend {
     this.prefix = prefix;
     this.watch("Redis (lệnh)", this.redis);
     // Hai kết nối pub / sub nội bộ của RedisPresence: gắn trình nghe lỗi (không có thì ioredis chỉ in "Unhandled error event") và theo dõi trạng thái.
-    for (const k of ["pub", "sub"] as const) { const c = (rp as unknown as Record<string, unknown>)[k]; if (c instanceof Redis) this.watch(`Redis (${k})`, c); }
+    for (const k of ["pub", "sub"] as const) { const c = (rp as unknown as Record<string, unknown>)[k]; if (isClient(c)) this.watch(`Redis (${k})`, c); }
   }
 
   /** Theo dõi một kết nối: mất thì ghi giờ, có lại thì báo log; lỗi kết nối chỉ ghi log có giới hạn. */
   private watch(label: string, c: Redis) {
-    c.on("error", (e) => logLimited(`${label}: lỗi kết nối`, e));
+    guardClient(label, c);
     c.on("close", () => {
       if (c !== this.redis || this.down !== null) return;
       this.down = Date.now();
@@ -238,6 +238,10 @@ class RedisBackend implements PresenceBackend {
     await Promise.allSettled([this.redis.quit(), Promise.resolve((this.presence as RedisPresence).shutdown())]);
   }
 }
+
+const isClient = (c: unknown): c is Redis => !!c && typeof (c as Redis).on === "function";
+/** Gắn trình nghe lỗi cho một kết nối ioredis (không có thì ioredis chỉ in "Unhandled error event" mỗi lần thử nối lại): ghi log có giới hạn. */
+export function guardClient(label: string, c: Redis) { c.on("error", (e) => logLimited(`${label}: lỗi kết nối`, e)); }
 
 /**
  * Bọc Presence của Colyseus: publish / subscribe / unsubscribe của RedisPresence trả promise mà nhiều chỗ gọi kiểu `this.presence.publish(…)`
