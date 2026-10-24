@@ -30,7 +30,11 @@ class Radar {
   readonly frame = document.getElementById("radarFrame") as HTMLImageElement;
   readonly modeBtn = document.getElementById("radarMode")!;
   readonly infoEl = document.getElementById("radarInfo")!;
-  base: HTMLCanvasElement | null = null;
+  base: CanvasImageSource | null = null;
+  /** Số điểm ảnh của nền trên mỗi ô (1 với nền vẽ từ ô, `MINI_BASE.px` với ảnh R1). */
+  baseScale = 1;
+  /** Bản đồ của nền hiện tại, để ảnh tải muộn của bản đồ cũ không đè nền bản đồ mới. */
+  baseKey = "";
   mode: RadarMode = ls.get(LS_MODE) === "flat" ? "flat" : "iso";
   zoom = (() => { const z = Number(ls.get(LS_ZOOM)); return Number.isInteger(z) && z >= 0 && z < RADAR.zooms.length ? z : RADAR.zoomDefault; })();
   private pool: Dot[] = []; private n = 0; private live: Dot[] = [];
@@ -53,7 +57,7 @@ class Radar {
     this.syncUi();
   }
 
-  setBase(base: HTMLCanvasElement) { this.base = base; this.last = 0; }
+  setBase(base: CanvasImageSource, scale = 1, key = this.baseKey) { this.base = base; this.baseScale = scale; this.baseKey = key; this.last = 0; }
   zoomBy(dir: 1 | -1) { this.zoom = radarZoomStep(this.zoom, dir); ls.set(LS_ZOOM, String(this.zoom)); this.syncUi(); this.last = 0; }
   setMode(m: RadarMode) { this.mode = m; ls.set(LS_MODE, m); this.syncUi(); this.last = 0; }
   private syncUi() {
@@ -95,9 +99,9 @@ class Radar {
     ctx.clearRect(0, 0, S, S);
     ctx.save(); ctx.beginPath(); ctx.arc(c, c, rPx, 0, Math.PI * 2); ctx.clip();
     ctx.fillStyle = "#10201a"; ctx.fillRect(0, 0, S, S);
-    // Nền: ảnh bản đồ 1 pixel / ô, tịnh tiến về tâm mình rồi xoay (iso: 45°, không ép dọc) và phóng.
+    // Nền: ảnh bản đồ (1 hoặc `baseScale` điểm / ô, vẽ về đơn vị ô), tịnh tiến về tâm mình rồi xoay (iso: 45°, không ép dọc) và phóng.
     ctx.translate(c, c); if (mode === "iso") ctx.rotate(Math.PI / 4); ctx.scale(k, k); ctx.translate(-this.px, -this.py);
-    if (this.base) ctx.drawImage(this.base, 0, 0);
+    if (this.base) { const b = this.base as HTMLCanvasElement | HTMLImageElement; ctx.drawImage(b, 0, 0, b.width / this.baseScale, b.height / this.baseScale); }
     ctx.lineWidth = 1.5 / k;
     for (let i = 0; i < this.nb; i++) { const b = this.boxes[i]; ctx.strokeStyle = b.col; ctx.strokeRect(b.x, b.y, b.w, b.h); }
     ctx.restore();
