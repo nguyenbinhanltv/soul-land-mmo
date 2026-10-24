@@ -237,6 +237,9 @@ async function looks2Test(){
     "parts là mảng":mut(c=>{c.parts=[];}),
     "quá nhiều ô":mut(c=>{for(let i=0;i<40;i++) c.parts["x"+i]="body.body";}),
     "mã quá dài":mut(c=>{c.parts.hair="hair."+"a".repeat(5000);}),
+    "màu khóa toString":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male"},"colors":{"toString":"x"}}'),
+    "màu khóa constructor":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male"},"colors":{"constructor":"x"}}'),
+    "màu khóa __proto__":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male"},"colors":{"__proto__":"x"}}'),
     "khóa __proto__":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male","__proto__":"x"},"colors":{}}'),
   };
   for(const [n,l] of Object.entries(bad)) ok(parseLpc(l)===null&&parseLooks(L(l))===null,`lpc sai (${n}) -> null`);

@@ -619,7 +619,7 @@ export function parseLpc(x: unknown): LpcLooks | null {
   }
   for (const k of Object.keys(x.colors)) {
     const c = ownStr(x.colors, k);
-    const allow = k === "skin" ? LPC_RAMPS.body.allow : k === "eye" ? LPC_RAMPS.eye.allow : parts[k] ? lpcSlotColors(lpcPart(parts[k])!) : [];
+    const allow = k === "skin" ? LPC_RAMPS.body.allow : k === "eye" ? LPC_RAMPS.eye.allow : Object.prototype.hasOwnProperty.call(parts, k) ? lpcSlotColors(lpcPart(parts[k])!) : [];
     if (c === null || !allow.includes(c)) return null;
     colors[k] = c;
   }
