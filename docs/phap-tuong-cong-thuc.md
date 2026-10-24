@@ -115,3 +115,14 @@ Thú bốn chân và thú ngồi dùng cùng `post` của lô P1, 119 lượt ch
 - **Sửa màu sau hoạt ảnh:** PixelLab đổi màu mắt Yêu Hồ sang xanh lam; đổi lại sang hồng bằng cách thay điểm xanh lam ở mọi khung trước khi dựng sheet (0 lượt, ghi `hauKy` ở recipe).
 - Hướng s của con đứng thẳng nhìn thẳng (báo, sói) hẹp khi thở; hoạt ảnh đánh mở rộng nên dùng được, không cần chỉnh `scale / dx / dy`.
 - Thỏ nhảy làm đáy hộp bao lệch tới 18 điểm lúc đánh (cho phép: chỉ idle phải ≤ 2).
+
+## 10. Bổ sung từ lô P3 (Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Quỷ Mị, Hỏa Ảnh)
+
+94 lượt cho 4 võ hồn (concept 6, xoay 8, hoạt ảnh 80), cùng `post` của lô P1. Điều mới:
+
+- **Thứ tự 8 ảnh xoay của dáng người.** Quỷ Mị và Hỏa Ảnh trả ảnh theo vòng s, se, e, ne, n, nw, w, sw (s = ảnh 0, se = 1, e = 2, ne = 3, n = 4); nhện và rắn theo H1 (ảnh 1 đến 5). Ghi vào `xoay.dung`.
+- **Bỏ đế tròn / vệt dẹt dưới chân** (concept hay kèm đĩa lửa hoặc khói): cắt ở ảnh hướng s / se / e / ne / n TRƯỚC khi làm hoạt ảnh (giới hạn bề ngang theo thân, thu dần), để PixelLab không vẽ đế vào hoạt ảnh; sau hoạt ảnh làm rách 7 hàng đáy mỗi khung (xóa điểm theo hash cố định) cho lửa / khói tan thay vì đáy phẳng. Hỏa Ảnh cao sát 128 điểm nên thu 94% quanh giữa-đáy, nếu không ngọn lửa chạm mép trên khung 160.
+- **`post.match` có thể làm hỏng.** Khớp biểu đồ màu về khung idle đầu làm thân đen của Hỏa Ảnh nhấp nháy sang nâu đỏ và mất độ sáng mặt người của nhện: đặt `match: { idle: 0, attack: 0 }` cho hai võ hồn này, xem sheet trước khi chốt.
+- Hướng n (nhìn từ sau) của nhện và rắn bành cổ đọc yếu hơn các hướng khác nhưng vẫn phân biệt được bằng bóng và màu.
+- Cộng cả bộ 25 võ hồn: ảnh pháp tướng đã đủ; việc còn lại là hiệu ứng riêng của tuyệt kỹ / hồn kỹ Chân Thân và hoàn thiện (#482).
+

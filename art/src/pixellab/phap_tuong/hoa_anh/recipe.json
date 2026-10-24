@@ -1,0 +1,108 @@
+{
+  "id": "hoa_anh",
+  "nhom": "D (bóng lửa)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "lo": "P3 (#487)",
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượtMoiLan": 1,
+    "body": {
+      "description": "giant humanoid shadow of living flame, dark crimson body with glowing orange fire outline, hands wrapped in flames, no ground, pixel art",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8
+    },
+    "ghiChu": "chọn bản v2 (concept làm 2 lần trước đó, worker trước)"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant crimson fire dragon, serpentine S-shaped body, flaming mane, golden horns",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 0,
+      "se": 1,
+      "e": 2,
+      "ne": 3,
+      "n": 4
+    },
+    "ghiChu": "dáng người: 8 ảnh theo vòng s,se,e,ne,n,nw,w,sw (ảnh 0..4), khác sinh vật; đế tròn dưới chân đã cắt (base_goc/ giữ bản gốc)"
+  },
+  "luotThucTe": {
+    "concept": 2,
+    "xoay": 2,
+    "hoat anh": 20
+  },
+  "post": {
+    "despeckle": 3,
+    "anchor": "median",
+    "stabilize": 1.5,
+    "maxColors": 40,
+    "match": {
+      "idle": 0,
+      "attack": 0
+    },
+    "idleLoop": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      1
+    ],
+    "attackLoop": "peak",
+    "ghiChu": "khung nguồn thu 94% và đáy rách (xem docs/phap-tuong-cong-thuc.md mục 10); match tắt"
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "dung": "khung 0–7",
+    "first_frame": "<hướng>.png",
+    "seed": "ngẫu nhiên (không ghi)",
+    "idle": "humanoid fire shadow, flames flickering and rising, body breathing slowly, fire on the hands burning brightly, looping idle",
+    "attack": "fire shadow draws back both flaming fists then slams forward, flames bursting outward, then returns"
+  }
+}
