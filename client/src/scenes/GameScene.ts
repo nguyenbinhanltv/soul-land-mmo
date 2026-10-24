@@ -7,10 +7,10 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
-import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
+import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
 import { radar, type DotSink } from "../radar.ts";
@@ -62,16 +62,16 @@ import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
-/** Hồn sư ghép lớp (mục 5.11). Thứ tự con của `root` là thứ tự vẽ: bóng, vòng sau, phụ thể sau, thân, áo, tóc, phụ thể trước, vòng trước. */
+/** Hồn sư ghép lớp (mục 5.11). Thứ tự con của `root` là thứ tự vẽ: bóng, vòng sau, phụ thể sau, thân LPC (áo, tóc đã nằm trong thân), phụ thể trước, vòng trước. */
 interface PView {
   root: Phaser.GameObjects.Container;
   wx: number; wy: number;                   // vị trí vẽ theo tọa độ thế giới (nội suy / dự đoán); root đặt ở hình chiếu của điểm này
-  face: Dir8;                               // hướng nhìn 8 phía trên màn hình (bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng, 10.1)
-  body: Sprite; outfit: Sprite; hair: Sprite; vb: Sprite; vf: Sprite;
+  face: Dir8;                               // hướng nhìn 8 phía trên màn hình theo hướng đi (10.1)
+  body: Sprite; vb: Sprite; vf: Sprite;
   ringsB: Phaser.GameObjects.Container; ringsF: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text; tongT: Phaser.GameObjects.Text; // tongT: tên tông môn dưới tên (#196)
   looks: string; vh: number; rings: string; playing: string;
-  lpcKey: string | null;                    // texture ghép của hồn sư chế độ Tự tạo (lpcRig.ts), null = chế độ Mẫu dựng sẵn
+  lpcKey: string;                           // texture LPC ghép lúc chạy của hồn sư (lpcRig.ts); "" khi chưa dựng
   lpcFace: { shown: Dir8 | null; pend: { d: Dir8; t0: number } | null }; // hướng LPC đang hiện và hướng mới đang chờ giữ đủ LPC_VIEW.dirHoldMs
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
@@ -185,26 +185,41 @@ const pSlow = (st: number) => Math.min(SLOW_CAP, PLAYER_STATUS.reduce((a, s) => 
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
 const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood", "ink"] as const;
 
-/** Chuỗi LPC để dựng thân: ngoại hình LPC đè áo / mũ trang bị đang mặc (`gearAo` / `gearMu`, HL4 #573; tuỳ chọn Ẩn mũ); "" = chế độ Mẫu dựng sẵn cũ. Nhớ kết quả theo bộ đầu vào. */
+/**
+ * Chuỗi LPC của một ngoại hình kiểu cũ (5 số; HL3 #572): server đã chuyển tài khoản cũ sang LPC lúc nạp (HL2) nên chỉ còn gặp khi dữ
+ * liệu lạ (preset sót, chuỗi `lpc` hỏng): đổi sang LPC gần nhất bằng presetToLpc rồi vẽ như người khác. Nhớ kết quả theo 5 số.
+ */
+const presetLpcMemo = new Map<string, string>();
+function presetLpcStr(p: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number }): string {
+  const key = `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}|${p.skin}`;
+  let out = presetLpcMemo.get(key);
+  if (out === undefined) {
+    out = encodeLpc(presetToLpc({ sex: p.sex, hair: p.hair, hairCol: p.hairCol, outfitCol: p.outfitCol, skin: p.skin, mode: "preset" }));
+    presetLpcMemo.set(key, out);
+  }
+  return out;
+}
+/** Chuỗi LPC để dựng thân: ngoại hình LPC đè áo / mũ trang bị đang mặc (`gearAo` / `gearMu`, HL4 #573; tuỳ chọn Ẩn mũ); thiếu / hỏng thì đổi từ preset cũ (presetLpcStr). Nhớ kết quả theo bộ đầu vào. */
 const gearLpcMemo = new Map<string, string>();
-function gearLpc(p: { lpc: string; gearAo: number; gearMu: number }): string {
-  if (!p.lpc || (!p.gearAo && !p.gearMu)) return p.lpc;
-  const key = `${p.lpc}#${p.gearAo}#${p.gearMu}#${fxPrefs.hideHat ? 1 : 0}`;
+function gearLpc(p: { lpc: string; sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; gearAo: number; gearMu: number }): string {
+  const key = `${p.lpc || presetLpcStr(p)}#${p.gearAo}#${p.gearMu}#${fxPrefs.hideHat ? 1 : 0}`;
   let out = gearLpcMemo.get(key);
   if (out === undefined) {
-    const l = decodeLpc(p.lpc);
-    out = l ? encodeLpc(lpcGearLooks(l, p.gearAo, p.gearMu, fxPrefs.hideHat)) : p.lpc;
+    const l = decodeLpc(p.lpc) ?? decodeLpc(presetLpcStr(p))!;
+    out = encodeLpc(p.gearAo || p.gearMu ? lpcGearLooks(l, p.gearAo, p.gearMu, fxPrefs.hideHat) : l);
     if (gearLpcMemo.size > 400) gearLpcMemo.clear();
     gearLpcMemo.set(key, out);
   }
   return out;
 }
-/** Ngoại hình đang mang của một hồn sư trong state (chế độ Tự tạo khi có chuỗi `lpc`); chuỗi hỏng thì null. */
+/** Ngoại hình đang mang của một hồn sư trong state (luôn LPC; preset sót đổi bằng presetToLpc). */
 function looksOf(p: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; lpc: string }): Looks | null {
-  if (!p.lpc) return { sex: p.sex, hair: p.hair, hairCol: p.hairCol, outfitCol: p.outfitCol, skin: p.skin, mode: "preset" };
-  const lpc = decodeLpc(p.lpc);
+  const lpc = decodeLpc(p.lpc) ?? decodeLpc(presetLpcStr(p));
   return lpc ? { sex: lpc.body, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "lpc", lpc } : null;
 }
+
+/** Chuỗi LPC của NPC theo `looks` trong NPCS (LPC dùng thẳng, preset kiểu cũ đổi bằng presetToLpc). */
+const npcLpcStr = (L: Looks): string => encodeLpc(L.mode === "lpc" && L.lpc ? L.lpc : presetToLpc(L));
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -272,10 +287,10 @@ export class GameScene extends Phaser.Scene {
   wpHere: string | null = null;
   wpCasts = new Map<string, { t0: number; ms: number }>();
   /**
-   * NPC của bản đồ (object `npc`, bước 6.1): chỗ đứng, định nghĩa trong NPCS (thiếu = mã lạ, chỉ vẽ biển tên), các lớp sprite hồn sư
-   * (thân, áo, tóc; null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
+   * NPC của bản đồ (object `npc`, bước 6.1): chỗ đứng, định nghĩa trong NPCS (thiếu = mã lạ, chỉ vẽ biển tên), sprite thân LPC
+   * (null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
    */
-  npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; clothes: Sprite[]; mark: Phaser.GameObjects.Text | null;
+  npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; mark: Phaser.GameObjects.Text | null;
     qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
@@ -415,10 +430,10 @@ export class GameScene extends Phaser.Scene {
     }
     makeTextures(this);
     createSheetAnims(this);
-    // Normal map hồn sư, phụ thể (10.7) và sheet hồn thú isometric.
-    for (const k of this.textures.getTextureKeys()) if (/^(hs_(body|outfit|hair)_[mf]_\d+|vh_[a-z_]+_[bf]|beast_[a-z_]+)$/.test(k) && !k.endsWith("_n")) attachNormal(this, k);
-    for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // sprite hồn sư của NPC cần texture / animation ở trên
+    // Normal map phụ thể (10.7) và sheet hồn thú isometric.
+    for (const k of this.textures.getTextureKeys()) if (/^(vh_[a-z_]+_[bf]|beast_[a-z_]+)$/.test(k) && !k.endsWith("_n")) attachNormal(this, k);
     this.lpc = new LpcRig(this);
+    for (const n of npcObjs) this.drawNpc(n.x, n.y, n.name, n.id); // NPC chưa có sheet `lpc_<mã>` dựng thân LPC từ `looks` qua lpcRig
     if (raw) this.crowd = new Crowd(this, this.mapId, solidGrid(raw), crowdMap);
     for (const p of this.crowd?.people ?? []) this.light.entity(p.spr); // dân thường cũng chịu ánh sáng thực thể (10.7)
 
@@ -574,20 +589,19 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * NPC (object `npc`, bước 6.1): NPC có sheet LPC `lpc_<mã>` (mục 5.11 "NPC phụ và dân thường") vẽ bằng sheet đó, không thì NPC có
-   * `looks` trong NPCS vẽ bằng sprite hồn sư; cả hai đứng yên nhìn xuống. Không có cả hai hoặc mã lạ thì vẽ biển hiệu. Tên (màu NPC)
+   * `looks` trong NPCS vẽ bằng thân LPC ghép lúc chạy (HL3 #572; preset kiểu cũ đổi bằng presetToLpc); cả hai đứng yên nhìn xuống.
+   * Không có cả hai hoặc mã lạ thì vẽ biển hiệu. Tên (màu NPC)
    * và chức danh trên đầu; bấm / chạm vào NPC để nói chuyện (server kiểm tra khoảng cách).
    */
   drawNpc(x: number, y: number, name: string, id: string) {
     const def = npcDef(id), w = W2S(x, y), sx = w.x, sy = w.y; // vị trí thế giới (x, y) chiếu ra màn hình (sx, sy)
-    let body: Sprite | null = null, clothes: Sprite[] = [], top = sy - 16 * SPR;
-    const lpc = def && this.textures.exists(`lpc_${def.id}`) ? `lpc_${def.id}` : null;
-    if (lpc || def?.looks) {
-      const mk = (k: string) => fitHonsuLayer(this.make.sprite({ key: k }, false));
-      if (lpc) body = mk(lpc);
-      else { const t = looksTextures(this, def!.looks!); body = mk(t.body); clothes = [mk(t.outfit), mk(t.hair)]; }
-      body.play(honsuAnimKey(this, lpc ?? bodyKey(def!.looks!), "idle", "s").key);
-      for (const s of [body, ...clothes]) this.light.entity(s); // Light2D thực thể (10.7)
-      this.add.container(sx, sy, [this.make.image({ key: "hs_shadow" }, false), body, ...clothes]).setDepth(sy).setScale(SPR);
+    let body: Sprite | null = null, top = sy - 16 * SPR;
+    const sheet = def && this.textures.exists(`lpc_${def.id}`) ? `lpc_${def.id}` : def?.looks ? this.lpc.acquire(npcLpcStr(def.looks)) : null; // thân LPC của NPC giữ suốt bản đồ (scene tắt thì lpc.destroy)
+    if (sheet) {
+      body = fitHonsuLayer(this.make.sprite({ key: sheet }, false));
+      body.play(honsuAnimKey(sheet, "idle", "s").key);
+      this.light.entity(body); // Light2D thực thể (10.7)
+      this.add.container(sx, sy, [this.make.image({ key: "hs_shadow" }, false), body]).setDepth(sy).setScale(SPR);
       top = sy - HEAD;
     } else {
       const g = this.add.graphics().setDepth(sy), k = SPR;
@@ -615,7 +629,7 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0.5, 1).setDepth(99987).setVisible(false);
       this.wtext(qmark, top, 25, { dy: 3, ms: 700 });
     }
-    this.npcs.push({ id, x, y, def, body, clothes, mark, qmark });
+    this.npcs.push({ id, x, y, def, body, mark, qmark });
     this.updateQuestMarks();
   }
 
@@ -1455,7 +1469,7 @@ export class GameScene extends Phaser.Scene {
   /** Tin `fx` có hướng đánh (dx, dy thế giới): hồn sư quay về phía đó suốt animation đánh, rồi lại theo hướng đi (10.1). */
   faceHit(id: string, dx: number, dy: number) {
     const v = this.players.get(id), d = dir8(Number(dx) || 0, Number(dy) || 0);
-    if (v && d) v.lock = { face: d, until: this.time.now + honsuAnimMs(this, v.body.texture.key, "attack") };
+    if (v && d) v.lock = { face: d, until: this.time.now + honsuAnimMs("attack") };
   }
 
   // ---------- G1 (#392): cảm giác đánh (chỉ hiển thị cục bộ) ----------
@@ -2552,12 +2566,12 @@ export class GameScene extends Phaser.Scene {
       seenP.add(id);
       let v = this.players.get(id);
       if (!v) {
-        // Gốc và hệ số phóng từng lớp đặt theo texture (fitHonsuLayer) mỗi khi đổi texture: bộ isometric 64×64 và bộ 32×32 cũ dùng chung khung chứa.
-        const layer = () => this.make.sprite({ key: "hs_body_m_0" }, false);
-        const vb = layer(), body = layer(), outfit = layer(), hair = layer(), vf = layer();
-        for (const s of [vb, body, outfit, hair, vf]) this.light.entity(s);
+        // Gốc và hệ số phóng từng lớp đặt theo texture (fitHonsuLayer) mỗi khi đổi texture (thân LPC 64×64, phụ thể 96×96 hoặc 48×48 vẽ bằng code).
+        const layer = () => this.make.sprite({ key: "hs_shadow" }, false);
+        const vb = layer(), body = layer(), vf = layer();
+        for (const s of [vb, body, vf]) this.light.entity(s);
         const ringsB = this.make.container({}, false), ringsF = this.make.container({}, false), at = W2S(p.x, p.y);
-        const root = this.add.container(at.x, at.y, [this.make.image({ key: "hs_shadow" }, false), ringsB, vb, body, outfit, hair, vf, ringsF]).setScale(SPR);
+        const root = this.add.container(at.x, at.y, [this.make.image({ key: "hs_shadow" }, false), ringsB, vb, body, vf, ringsF]).setScale(SPR);
         const label = this.add.text(at.x, at.y - HEAD, p.name, {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "7px", fontStyle: "600",
           color: id === this.me ? "#ffe9a0" : "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
@@ -2570,14 +2584,14 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "5.5px", fontStyle: "700",
           color: "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { root, wx: p.x, wy: p.y, face: "s", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, rings: "", playing: "", lpcKey: null, lpcFace: { shown: null, pend: null },
+        v = { root, wx: p.x, wy: p.y, face: "s", body, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, rings: "", playing: "", lpcKey: "", lpcFace: { shown: null, pend: null },
           act: null, hurtT: -1e9, lit: null, halo: null, ringY: [], fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
       const { root, label, title, tongT } = v;
       const mine = id === this.me && this.pred;
-      // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); bộ 32×32 cũ chọn hướng gần nhất trong 4 hướng (honsuAnimKey).
+      // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); thân LPC chỉ có 4 hướng nên hiện hướng gần nhất (lpcFace).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
       // Mê hoặc (#116): server tự đi (spd đồng bộ 0 để không dự đoán theo phím) nên chính mình cũng đi / quay mặt theo vị trí server.
       // Đang tự săn (Auto 1): server lái hồn sư, không có phím đang giữ, nên cũng đi / quay mặt theo chuyển động như người khác.
@@ -2589,26 +2603,20 @@ export class GameScene extends Phaser.Scene {
       const locked = !!v.lock && time < v.lock.until;
       if (locked) v.face = v.lock!.face; // đang đánh: quay về phía đòn đánh
       else if (d8) { v.lock = null; v.face = d8; }
-      if (v.lpcKey) this.lpcFace(v, locked || p.dead, time); // chế độ Tự tạo: hướng hiện (4 hướng LPC, có trễ) riêng, `v.face` giữ hướng 8 thật cho hướng hiệu ứng
+      if (v.lpcKey) this.lpcFace(v, locked || p.dead, time); // hướng hiện (4 hướng LPC, có trễ) riêng, `v.face` giữ hướng 8 thật cho hướng hiệu ứng
       if (mine) { const at = this.pred!.update(p, this.dir, dt, this.walk); v.wx = at.x; v.wy = at.y; }
       else if (Math.hypot(p.x - v.wx, p.y - v.wy) > 64) { v.wx = p.x; v.wy = p.y; }
       else { v.wx += (p.x - v.wx) * lerp; v.wy += (p.y - v.wy) * lerp; }
       const at = W2S(v.wx, v.wy);
       root.setPosition(at.x, at.y).setDepth(at.y);
-      // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol, skin) và võ hồn ra trận đồng bộ từ server, ai cũng thấy.
-      // Chế độ Tự tạo (L3 #510): chuỗi `lpc` thay cho năm số; thân là texture ghép lúc chạy, áo và tóc đã nằm trong đó.
+      // Ngoại hình hồn sư (chuỗi `lpc`, áo / mũ trang bị đè lên) và võ hồn ra trận đồng bộ từ server, ai cũng thấy; thân là texture ghép
+      // lúc chạy, áo và tóc đã nằm trong đó. Dữ liệu lạ (preset sót) được gearLpc đổi sang LPC (HL3 #572).
       const lpcStr = gearLpc(p);
-      const looks = lpcStr ? `L${lpcStr}` : `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}|${p.skin}`;
-      if (looks !== v.looks) {
-        v.looks = looks; v.playing = "";
-        if (v.lpcKey) { this.lpc.release(v.lpcKey); v.lpcKey = null; }
-        const lk = lpcStr ? this.lpc.acquire(lpcStr) : null;
-        if (lk) { v.lpcKey = lk; v.lpcFace = { shown: null, pend: null }; fitHonsuLayer(v.body.setTexture(lk)); v.outfit.setVisible(false); v.hair.setVisible(false); }
-        else {
-          const t = looksTextures(this, p);
-          v.outfit.setVisible(true); v.hair.setVisible(true);
-          fitHonsuLayer(v.outfit.setTexture(t.outfit)); fitHonsuLayer(v.hair.setTexture(t.hair));
-        }
+      if (lpcStr !== v.looks) {
+        v.looks = lpcStr; v.playing = "";
+        if (v.lpcKey) { this.lpc.release(v.lpcKey); v.lpcKey = ""; }
+        const lk = this.lpc.acquire(lpcStr);
+        if (lk) { v.lpcKey = lk; v.lpcFace = { shown: null, pend: null }; fitHonsuLayer(v.body.setTexture(lk)); }
       }
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       const rings = [...p.rings].join(",");
@@ -2623,7 +2631,7 @@ export class GameScene extends Phaser.Scene {
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); tongT.setAlpha(a); }
       // Võ Hồn Chân Thân: hồn sư giữ nguyên cỡ, sau lưng hiện pháp tướng (PhapTuongSystem, #486); hào quang vẽ trong drawStatus.
       const vhId = VOHON[p.vh]?.id ?? "";
-      this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.lpcKey ? v.lpcFace.shown ?? v.face : v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
+      this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.lpcFace.shown ?? v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
       const up = 0;
       if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); tongT.setScale(this.txtK); }
       // Tên tông (#196) ngay trên đầu, tên và danh hiệu dịch lên một dòng khi có tông.
@@ -2815,8 +2823,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.drawStatus(g, st, time);
-    for (const n of this.npcs) if (n.body) syncLayers(n.body, n.clothes, []); // NPC (6.1): áo, tóc theo khung thân
-    this.drawTeles(time);
+        this.drawTeles(time);
     this.paintWaypoints(this.teleG, time); // truyền tống trận (11.2): trên mặt đất, dưới hồn sư
     this.paintWpCasts(g, time);
     // Bóng đổ elip dưới chân hồn thú (hồn sư có sẵn bóng trong container), nằm trên mặt đất cùng lớp vùng cảnh báo.
@@ -2917,32 +2924,32 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * Chọn animation lớp thân theo state (gục > hấp thụ > đánh / tung hồn kỹ / bị đánh > đi / đứng) và hướng nhìn `v.face`,
-   * rồi đặt khung tương ứng cho áo, tóc, phụ thể (bảng ánh xạ 5.11) và vị trí các vòng hồn hoàn.
+   * rồi đặt khung tương ứng cho phụ thể (bảng ánh xạ 5.11) và vị trí các vòng hồn hoàn.
    * `moving`: đang đi (chính mình khi dự đoán: theo phím, không chờ cờ `moving` của server); `spd`: tốc độ đi (pixel/giây) để chọn nhịp
    * animation `walk` (11.1; các animation khác giữ nhịp vẽ vì thời lượng đòn đánh / hồn kỹ tính theo honsuAnimMs).
    */
   animatePlayer(id: string, v: PView, p: any, time: number, moving: boolean, spd = WALK_ANIM_SPEED) {
-    const sheet = v.lpcKey ?? bodyKey(p);
-    if (v.act && time >= v.act.t0 + honsuAnimMs(this, sheet, v.act.anim)) v.act = null;
+    const sheet = v.lpcKey; if (!sheet) return;
+    if (v.act && time >= v.act.t0 + honsuAnimMs(v.act.anim)) v.act = null;
     let anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
     // Hoạt ảnh LPC chưa ghép xong (lpcRig.step ghép dần): tạm đứng yên bằng idle, rồi tự chuyển khi xong.
     if (v.lpcKey && !this.lpc.ready(v.lpcKey, anim) && this.lpc.ready(v.lpcKey, "idle")) anim = "idle";
-    const { key, flip } = honsuAnimKey(this, sheet, anim, v.lpcKey ? v.lpcFace.shown ?? v.face : v.face);
+    const { key, flip } = honsuAnimKey(sheet, anim, v.lpcFace.shown ?? v.face);
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
     if (tag !== v.playing) { v.playing = tag; fitHonsuLayer(v.body.play(key)); }
     v.body.anims.timeScale = anim === "walk" ? Phaser.Math.Clamp(spd / WALK_ANIM_SPEED, WALK_ANIM_SCALE[0], WALK_ANIM_SCALE[1]) : 1;
     v.body.setFlipX(flip);
-    syncLayers(v.body, [v.outfit, v.hair], [v.vb, v.vf]);
+    syncLayers(v.body, [v.vb, v.vf]);
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
     const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
     const lift = fe < 1 ? -Math.round(Math.sin(Math.PI * Math.max(0, fe)) * 10) : 0;
-    for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf, v.ringsB, v.ringsF]) s.y = lift; // quầng (v.halo) đặt y trong animateRings
+    for (const s of [v.body, v.vb, v.vf, v.ringsB, v.ringsF]) s.y = lift; // quầng (v.halo) đặt y trong animateRings
     // Phụ thể của thân LPC (rộng hơn m1): lệch theo LPC_VIEW.vohon, dx đổi dấu khi lật ngang.
     const ox = v.lpcKey ? (flip ? -LPC_VIEW.vohon.dx : LPC_VIEW.vohon.dx) : 0, oy = v.lpcKey ? LPC_VIEW.vohon.dy : 0;
     v.vb.x = v.vf.x = ox; v.vb.y = v.vf.y = lift + oy;
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
-    for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
+    for (const s of [v.body, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
     // Vòng hồn hoàn (mục 5.11 "Vòng hồn hoàn", soulRings.ts): dưới chân, bay lên ngang ngực khi tung hồn kỹ; Chân Thân thì thành quầng sau lưng. Ẩn khi gục.
     animateRings(this, v, p, time, { mine: id === this.me, formAge: this.pt.formAge(id, time), lift, delta: this.game.loop.delta });
   }
@@ -3000,31 +3007,30 @@ export class GameScene extends Phaser.Scene {
   portraits = new Map<string, string>(); // ảnh võ hồn trong bảng hồn cốt theo mã võ hồn (data URL), của ngoại hình `portraitLooks`
   portraitLooks = "";
   /**
-   * Ảnh 48×48 hồn sư của mình phóng thích võ hồn `vohon` (khung đứng yên hướng xuống: phụ thể sau, thân, áo, tóc, phụ thể trước),
+   * Ảnh 48×48 hồn sư của mình phóng thích võ hồn `vohon` (khung đứng yên hướng xuống: phụ thể sau, thân LPC, phụ thể trước),
    * ghép từ đúng các texture trên bản đồ, cho khung hồn cốt (4.2). Chưa có hồn sư trong state thì "".
    */
   portrait(vohon: string) {
     const me = this.room.state.players.get(this.me); if (!me) return "";
-    const lk = this.players.get(this.me)?.lpcKey ?? null;
-    if (me.lpc && !(lk && this.lpc.ready(lk, "idle"))) return ""; // thân LPC chưa ghép xong: chưa có ảnh (không lưu đệm)
-    const looks = me.lpc ? `L${gearLpc(me)}` : `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}|${me.skin}`;
+    const lk = this.players.get(this.me)?.lpcKey;
+    if (!lk || !this.lpc.ready(lk, "idle")) return ""; // thân LPC chưa ghép xong: chưa có ảnh (không lưu đệm)
+    const looks = `L${gearLpc(me)}`;
     if (looks !== this.portraitLooks) { this.portraits.clear(); this.portraitLooks = looks; } // đổi ngoại hình: ảnh cũ bỏ đi
     const hit = this.portraits.get(vohon);
     if (hit) return hit;
-    const t = me.lpc && lk ? { body: lk, outfit: "", hair: "" } : looksTextures(this, me), [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
-    // Bộ 32×32 cũ: ảnh 48×48, chân ở (24, 40). Bộ isometric (10.4): ảnh 96×96 chân ở (48, 80), lớp 64×64 / 96×96 vẽ 1:1, lớp cũ
-    // (bộ 32×32, phụ thể 48×48 của võ hồn chưa có ảnh 10.5) phóng ×2; khung hồn cốt hiện ảnh ở 96 pixel nên hai cỡ trông như nhau.
-    // Phụ thể isometric lấy nửa sheet theo giới của thân (vohonHalf).
-    const k = isIsoSheet(this, t.body) ? 2 : 1, cv = document.createElement("canvas"); cv.width = cv.height = 48 * k;
+    const [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
+    // Thân LPC isometric (10.4): ảnh 96×96 chân ở (48, 80), lớp 64×64 / 96×96 vẽ 1:1, phụ thể 48×48 của võ hồn chưa có ảnh 10.5 phóng ×2;
+    // khung hồn cốt hiện ảnh ở 96 pixel nên hai cỡ trông như nhau. Phụ thể isometric lấy nửa sheet theo giới của thân (vohonHalf).
+    const k = 2, cv = document.createElement("canvas"); cv.width = cv.height = 48 * k;
     const ctx = cv.getContext("2d")!; ctx.imageSmoothingEnabled = false;
     const draw = (key: string, vohon = false) => {
       if (!this.textures.exists(key)) return;
-      const f = this.textures.getFrame(key, vohon ? vohonHalf(this, key, t.body) : 0), iso = isIsoSheet(this, key), s = iso ? 1 : k;
-      const o = iso ? (vohon ? ISO_VH_ORIGIN : ISO_HS_ORIGIN) : vohon ? VH_ORIGIN : HS_ORIGIN;
+      const f = this.textures.getFrame(key, vohon ? vohonHalf(this, key, lk) : 0), iso = isIsoSheet(this, key), s = iso ? 1 : k;
+      const o = iso ? (vohon ? ISO_VH_ORIGIN : ISO_HS_ORIGIN) : VH_ORIGIN;
       ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight,
         24 * k - f.cutWidth * s * o.x, 40 * k - f.cutHeight * s * o.y, f.cutWidth * s, f.cutHeight * s);
     };
-    draw(kb, true); draw(t.body); draw(t.outfit); draw(t.hair); draw(kf, true);
+    draw(kb, true); draw(lk); draw(kf, true);
     const url = cv.toDataURL();
     this.portraits.set(vohon, url);
     return url;

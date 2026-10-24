@@ -1,5 +1,5 @@
 {
-  "about": "Danh sách key đã có ảnh thật (GAME_DESIGN.md mục 5.11). Đường dẫn và khung suy ra từ key: hs_body_m_2 -> honsu/body_m_2.png (32x32; hồn sư theo bộ giới × kiểu tóc, mỗi bộ đủ 3 lớp body/outfit/hair), vh_{id}_b -> vohon/{id}_b.png (48x48), b{tier} -> beast/b{tier}.png, ring{tier}/halo{tier} -> ring/. Hồn thú theo loài ghi kèm khung: { \"key\": \"beast_{loài}\", \"frame\": [48, 32] }. Key theo quy cách isometric (mục 5.11, Giai đoạn 10) ghi thêm \"iso\": true (hồn sư 64x64 sheet 24x6 / phụ thể 96x96 sheet 24x12 hai nửa theo giới, hồn thú khung vuông theo bậc sheet 20x5; \"lpc\": true là hình tạm ghép từ thú LPC, client không dùng cho thú vương / boss; \"static\": true là hồn thú lai (#386): sheet tĩnh 3 khung nam / đông / bắc rộng gấp 3 cao, chuyển động vẽ bằng code ở client); \"map\": \"<mapId>\" cho phép thêm bảng nhấn art/palettes/<mapId>.gpl. Key không có ở đây thì client vẽ bằng code.",
+  "about": "Danh sách key đã có ảnh thật (GAME_DESIGN.md mục 5.11). Đường dẫn và khung suy ra từ key: vh_{id}_b -> vohon/{id}_b.png (48x48), b{tier} -> beast/b{tier}.png, ring{tier}/halo{tier} -> ring/. Hồn thú theo loài ghi kèm khung: { \"key\": \"beast_{loài}\", \"frame\": [48, 32] }. Key theo quy cách isometric (mục 5.11, Giai đoạn 10) ghi thêm \"iso\": true (phụ thể 96x96 sheet 24x12 hai nửa theo giới, hồn thú khung vuông theo bậc sheet 20x5; \"lpc\": true là hình tạm ghép từ thú LPC, client không dùng cho thú vương / boss; \"static\": true là hồn thú lai (#386): sheet tĩnh 3 khung nam / đông / bắc rộng gấp 3 cao, chuyển động vẽ bằng code ở client); \"map\": \"<mapId>\" cho phép thêm bảng nhấn art/palettes/<mapId>.gpl. Key không có ở đây thì client vẽ bằng code.",
   "sprites": [
     {
       "key": "beast_am_kim_khung_trao_hung",
@@ -2627,57 +2627,6 @@
       "key": "he_phu_tro",
       "iso": true
     },
-    {
-      "key": "hs_body_f_0",
-      "iso": true
-    },
-    "hs_body_f_1",
-    "hs_body_f_2",
-    "hs_body_f_3",
-    {
-      "key": "hs_body_m_0",
-      "iso": true
-    },
-    {
-      "key": "hs_body_m_1",
-      "iso": true
-    },
-    "hs_body_m_2",
-    "hs_body_m_3",
-    {
-      "key": "hs_hair_f_0",
-      "iso": true
-    },
-    "hs_hair_f_1",
-    "hs_hair_f_2",
-    "hs_hair_f_3",
-    {
-      "key": "hs_hair_m_0",
-      "iso": true
-    },
-    {
-      "key": "hs_hair_m_1",
-      "iso": true
-    },
-    "hs_hair_m_2",
-    "hs_hair_m_3",
-    {
-      "key": "hs_outfit_f_0",
-      "iso": true
-    },
-    "hs_outfit_f_1",
-    "hs_outfit_f_2",
-    "hs_outfit_f_3",
-    {
-      "key": "hs_outfit_m_0",
-      "iso": true
-    },
-    {
-      "key": "hs_outfit_m_1",
-      "iso": true
-    },
-    "hs_outfit_m_2",
-    "hs_outfit_m_3",
     {
       "key": "item_dai_hoi_hon_dan",
       "iso": true

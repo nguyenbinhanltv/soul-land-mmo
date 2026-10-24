@@ -1,6 +1,6 @@
 // Bộ ghép lớp lúc chạy cho hồn sư chế độ Tự tạo (L3 #510; GAME_DESIGN.md mục 5.11 "Hồn sư chế độ Tự tạo").
 // Mỗi tổ hợp món (chuỗi `PlayerState.lpc`) là MỘT texture đệm `lpcc_<m|f>_<n>` theo bố cục sheet hồn sư isometric (24 cột × 6 hàng
-// logic, khung 64), nên honsuAnimKey / createHonsuAnims / syncLayers dùng nguyên như thân preset và NPC LPC. Người cùng tổ hợp dùng
+// logic, khung 64), nên honsuAnimKey / createHonsuAnims / syncLayers dùng nguyên như NPC LPC. Người cùng tổ hợp dùng
 // chung; sheet từng món tải theo đường dẫn riêng (không qua loader của Phaser), tô màu theo dải LPC_RAMPS rồi dùng chung giữa các
 // tổ hợp (cùng sheet + cùng bảng đổi màu); ghép theo (tổ hợp, hoạt ảnh) khi có người cần; hết người dùng thì giải phóng sau LPC_VIEW.graceMs.
 // Không tạo texture mỗi khung: mọi việc nặng nằm trong `step`, mỗi khung hình chỉ chạy tới LPC_VIEW.budgetMs.
