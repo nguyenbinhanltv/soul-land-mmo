@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Img, encodePng, readPng } from "./lib.mjs";
-import { inspectPng, packAtlas, optimizePng, renderPreview, qualityCheck } from "./quality.mjs";
+import { inspectPng, packAtlas, optimizePng, renderPreview, preparePreview, qualityCheck } from "./quality.mjs";
 
 function samplePng(w = 4, h = 3) {
   const img = new Img(w, h);
@@ -56,6 +56,12 @@ test("renderPreview tạo trang xem chung có key và thông tin chất lượng
   assert.match(html, /Preview asset/);
   assert.match(html, /sprites\/a\.png/);
   assert.match(html, /data-key="a"/);
+});
+
+test("preparePreview tạo URL ảnh tương đối từ thư mục của file HTML", () => {
+  const outputFile = path.join(process.cwd(), "tools/assets/quality-preview.html");
+  const report = preparePreview({ assets: [{ key: "a", url: "sprites/iso/portrait/a.png" }] }, { outputFile });
+  assert.equal(report.assets[0].url, "../../shared/assets/sprites/iso/portrait/a.png");
 });
 
 test("qualityCheck báo origin manifest sai so với neo chuẩn của sheetSpec", () => {

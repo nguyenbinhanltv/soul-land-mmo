@@ -157,6 +157,18 @@ export function packAtlas(entries, options = {}) {
   return result;
 }
 
+export function preparePreview(report, options = {}) {
+  const root = options.root ?? ROOT, outputFile = path.resolve(options.outputFile ?? path.join(root, "tools/assets/quality-preview.html"));
+  const assets = (report.assets ?? []).map((asset) => {
+    if (!asset.url?.startsWith("sprites/")) return asset;
+    const source = path.join(root, "shared", "assets", asset.url);
+    let url = path.relative(path.dirname(outputFile), source).split(path.sep).join("/");
+    if (!url.startsWith(".")) url = `./${url}`;
+    return { ...asset, url };
+  });
+  return { ...report, assets };
+}
+
 export function renderPreview(report, options = {}) {
   const title = safe(options.title ?? "Preview asset Đấu La Đại Lục"), assets = report.assets ?? [];
   const cards = assets.map((a) => `<article data-key="${safe(a.key)}"><img src="${safe(a.url)}" alt=""><div><strong>${safe(a.key)}</strong><small>${safe(a.kind ?? "asset")} · ${a.size?.join("×") ?? "?"} · ${a.bytes ?? "?"} B · neo ${a.origin?.join(",") ?? "—"}</small></div></article>`).join("\n");
@@ -190,7 +202,7 @@ async function main() {
   }
   if (has("--preview")) {
     const report = qualityCheck(manifest), out = option("--out", path.join(ROOT, "tools/assets/quality-preview.html"));
-    writeFileSync(out, renderPreview(report));
+    writeFileSync(out, renderPreview(preparePreview(report, { outputFile: out })));
     console.log(`[quality] preview ${rel(out)}`);
     return;
   }
