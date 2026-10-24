@@ -821,6 +821,13 @@ Thay bản đồ nhỏ 150×100 px (vẽ cả bản đồ ×8 dưới 1 px mỗi
 - **Sương mù khám phá (R8, có bảng DB mới):** chưa tới thì mờ trên bản đồ khu vực và radar; bitset mỗi tài khoản × bản đồ, ô thô `FOG.cell`×`FOG.cell` ô lưới, server đánh dấu khi đi tới trong bán kính `FOG.sight` ô, gộp lần ghi vào chuỗi lưu sẵn có. Cổng, truyền tống trận, NPC đã biết và mục tiêu nhiệm vụ vẫn hiện qua sương mù; bản đồ trong `FOG.open` mở sẵn.
 - **Đánh dấu tổ đội (R6):** Alt + bấm (điện thoại: giữ lâu) gửi dấu "Tập trung ở đây" tới đồng đội cùng bản đồ; server chuyển tiếp và giới hạn số dấu theo thời gian.
 
+### 5.18 Võ Hồn Chân Thân: pháp tướng (theo dõi #482)
+Hình ảnh của Võ Hồn Chân Thân (vòng 7, luật ở mục 5.1) **không biến hồn sư thành sinh vật**: hồn sư giữ nguyên, **cả 25 võ hồn** hiện **pháp tướng**, hư ảnh võ hồn khổng lồ sau lưng. Chỉ là hình ảnh: server, giao thức và số cân bằng không đổi (client đã biết võ hồn và đang Chân Thân qua tin `fx` / `avatar`).
+- **Khung và hướng:** 160×160, nền trong suốt, hai lớp SAU / TRƯỚC thân hồn sư; 5 hướng vẽ thật `s`, `se`, `e`, `ne`, `n`, ba hướng còn lại lật gương. Gốc khung khớp gốc thân hồn sư 64×64 (điểm gắn, lớp theo hướng và nhóm bố cục ở `docs/phap-tuong.md`).
+- **Hoạt ảnh:** một vòng lặp "thở" cho đứng / đi và một động tác đánh / niệm; không có khung trúng đòn / gục riêng.
+- **Biến hình:** chuỗi 5 bước (vòng hồn hoàn 7 sáng, cột sáng màu võ hồn, cảnh cận, nở từ tâm + vỡ mảnh kính màu, tan thành bụi sáng khi hết) làm bằng code; mức Thấp / Giảm chuyển động chỉ còn chớp sáng và đổi hình.
+- **Nguồn ảnh:** concept và hoạt ảnh do PixelLab tạo riêng cho phần này (chủ repo cho phép trở lại cho pháp tướng, 2026-10-24; các loại ảnh khác vẫn theo mục 5.11), mỗi ảnh đưa vào game phải được chủ repo duyệt. Bảng 25 võ hồn (hình, màu, vị trí, chuyển động, hồn kỹ Chân Thân / tuyệt kỹ / tiên cơ, prompt) ở `docs/phap-tuong.md`.
+
 ## 6. Kiến trúc (bắt buộc giữ)
 **Server quyết định mọi thứ.** Client chỉ gửi ý định và hiển thị. Không bao giờ để client tự báo máu, sát thương, vị trí, tỉ lệ rơi, kết quả hấp thụ, bản đồ hay kênh đích. Ngẫu nhiên (`Math.random()`) chỉ ở server; hàm trong `shared/data.ts` là hàm thuần để client dùng khi hiển thị.
 
@@ -1062,6 +1069,9 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] R7 Ảnh khung / la bàn / nền giấy (#434, PR #472).
 - [x] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428, PR #473).
 - [ ] R2 Radar tròn (#429). R3 Bản đồ khu vực phím N (#430). R4 Tự đi tới cờ xuyên bản đồ (#431). R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R8 Sương mù khám phá, SQL (#435).
+
+**Nhóm Hình thái Võ Hồn Chân Thân: pháp tướng** (mục 5.18; theo dõi #482; mỗi bước một PR).
+- [ ] H0 Bảng đặc tả 25 võ hồn và prompt PixelLab (#483, `docs/phap-tuong.md`). H1 Thử pháp tướng Lam Điện Bá Vương Long + Hạo Thiên Chùy và chuỗi biến hình (#485). H2 Khung code dùng chung; H3 trở đi: làm đủ 25 pháp tướng, hiệu ứng riêng tuyệt kỹ / hồn kỹ Chân Thân, hoàn thiện (xem #482).
 
 ## 8. Câu hỏi còn mở
 1. **Ngân sách mỹ thuật isometric:** phần còn lại của Giai đoạn 10 (6 bộ hồn sư, 20 phụ thể, 67 loài hồn thú) phụ thuộc cách làm hoạt ảnh 8 hướng bằng ComfyUI (#335; PixelLab đã bỏ); cần chọn thứ tự ưu tiên hoặc chuyển bớt sang Gemini / LPC / vẽ tay.
