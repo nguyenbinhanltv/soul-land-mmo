@@ -6,7 +6,7 @@ import { ringSkill, chanThanOf } from "../../shared/data.ts";
 import type { Element } from "./audio/soundMap.ts";
 import { skillFxOf } from "./skillFx.ts";
 import { SheetFx, makeCodeSheet, type SheetPlay } from "./fxSheet.ts";
-import { fxPrefs } from "./combatFx.ts";
+import { fxPrefs, fxLevel } from "./combatFx.ts";
 import { SPR } from "./iso.ts";
 
 /** T1 nhẹ (vòng 1–4), T2 vừa (vòng 5, 6, 8, 9 + tiên cơ), T3 trình diễn (vòng 10, hồn kỹ Chân Thân). */
@@ -459,17 +459,17 @@ export class SkillVisualPlayer {
   /** Một lần phát: thân + lớp cộng sáng (không có ở bản nhẹ của người khác và mức Thấp). */
   private play1(s: VisualSheet, c: CastCtx, delay: number): boolean {
     const ok = this.sheets.play(this.mk(s, c, { delay }));
-    const ga = GLOW_ALPHA[fxPrefs.level];
+    const ga = GLOW_ALPHA[fxLevel()];
     if (ok && s.glow && c.mine && ga > 0 && !fxPrefs.reduce && this.sheets.has(s.glow)) this.sheets.play(this.mk({ ...s, key: s.glow, normal: false }, c, { delay, alpha: Math.min(1, ga * (s.glowMul ?? 1)) }));
     return ok;
   }
   /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
   cast(vis: SkillVisual, c: CastCtx): boolean {
     const s = vis.sheet; if (!s || !this.sheets.has(s.key)) return false;
-    const reps = vis.repeat && c.n && c.n > 1 ? Math.min(c.n, c.mine ? REPEAT_MAX[fxPrefs.level] : Math.min(2, REPEAT_MAX[fxPrefs.level])) : 1;
+    const reps = vis.repeat && c.n && c.n > 1 ? Math.min(c.n, c.mine ? REPEAT_MAX[fxLevel()] : Math.min(2, REPEAT_MAX[fxLevel()])) : 1;
     let ok = false;
     for (let i = 0; i < reps; i++) ok = this.play1(s, s.at === "travel" && reps > 1 && c.spread ? this.fan(c, i, reps) : c, i * (c.everyMs ?? 0)) || ok;
-    if (ok && c.mine && !fxPrefs.reduce && fxPrefs.level !== "low") {
+    if (ok && c.mine && !fxPrefs.reduce && fxLevel() !== "low") {
       const w = vis.windupSheet;
       if (w && this.sheets.has(w.key)) this.sheets.play(this.mk(w, { ...c, tx: c.x, ty: c.y }));
       if (vis.aftershock && this.sheets.has(vis.aftershock.sheet.key)) this.sheets.play(this.mk(vis.aftershock.sheet, c, { delay: vis.aftershock.delay }));

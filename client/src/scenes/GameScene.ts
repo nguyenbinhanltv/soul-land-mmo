@@ -49,7 +49,7 @@ const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
 import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
-import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
+import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
 import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
@@ -1524,7 +1524,7 @@ export class GameScene extends Phaser.Scene {
     }
     const ratio = m.v / Math.max(1, b.maxHp);
     const he: He | undefined = pv ? VOHON[pv.vh]?.he : undefined, sp = he ? HIT_SPARK[he] : null, top = s.y - (s.displayHeight || 20) * 0.5;
-    if (fxPrefs.level !== "low") this.fxp.burst(s.x, top, sp ? sp.col : hex(m.c), sp ? sp.n : 6, (sp?.speed ?? 80) * SPR / 2, (sp?.size ?? 2) * (m.crit ? 1.5 : 1));
+    if (fxLevel() !== "low") this.fxp.burst(s.x, top, sp ? sp.col : hex(m.c), sp ? sp.n : 6, (sp?.speed ?? 80) * SPR / 2, (sp?.size ?? 2) * (m.crit ? 1.5 : 1));
     const heavy = mine && now - this.castHeavy.t < 700 ? this.castHeavy.heavy : 0, w = hitWeight(ratio, !!m.crit, b.hp <= m.v, heavy);
     const mat = this.hitMaterial(m);
     materialSparks(this.fxp, mat, pv ? elementOfVohonIndex(pv.vh) : undefined, s.x, top, w, SPR); // tia lửa / mảnh vỡ theo chất liệu mục tiêu (mọi người đánh)
@@ -1538,13 +1538,13 @@ export class GameScene extends Phaser.Scene {
   /** Hồn thú biến mất sau đòn vừa trúng mà sinh lực còn lại đã ≤ sát thương (chắc bị hạ, không phải ra ngoài vùng đồng bộ): tan thành bụi sáng màu niên hạn, boss rung mạnh chỉ khi đòn cuối là của chính mình (dừng hình của đòn kết liễu đã tính ở `hitFeel`). */
   beastDown(s: Phaser.GameObjects.Sprite, h: { tier: number; rank: number; mine: boolean }) {
     const col = hex(TIERS[h.tier]?.glow ?? "#ffffff"), w = (s.displayWidth || 24) * 0.9, hh = s.displayHeight || 24;
-    if (fxPrefs.level !== "low") this.fxp.dust(s.x, s.y, w, hh, col, fxPrefs.level === "high" ? 26 : 14);
+    if (fxLevel() !== "low") this.fxp.dust(s.x, s.y, w, hh, col, fxLevel() === "high" ? 26 : 14);
     const me = this.players.get(this.me);
     if (h.mine && me && h.rank >= 2 && Math.hypot(me.root.x - s.x, me.root.y - s.y) < 260 * SPR) this.shakeTier(3);
   }
   /** Hồn hoàn / vật phẩm quý mới rơi: vòng sáng màu niên hạn nở ra rồi bay lên. */
   dropGlint(at: Pt, col: string) {
-    if (fxPrefs.level === "low") return;
+    if (fxLevel() === "low") return;
     const g = this.add.graphics().setDepth(99981), o = { k: 0 };
     this.tweens.add({ targets: o, k: 1, duration: 800, ease: "Sine.easeOut", onUpdate: () => {
       const y = at.y - o.k * 34 * SPR, r = (10 + o.k * 6) * SPR; g.clear();
@@ -1581,7 +1581,7 @@ export class GameScene extends Phaser.Scene {
     this.light.flash(v.root.x, v.root.y - 6, t.glow, 70, dur, 1.2);
     // G1: mọi vòng hồn hoàn dưới chân nháy sáng nối nhau rồi vòng của kỹ năng bay lên kèm tia sáng cùng màu niên hạn.
     this.ringFx(this.feet(v), 5, 22 + 3 * tier, t.glow, dur * 0.7);
-    if (fxPrefs.level !== "low") for (let j = 0; j < (fxPrefs.level === "high" ? 16 : 9); j++) this.time.delayedCall(j * 22, () => {
+    if (fxLevel() !== "low") for (let j = 0; j < (fxLevel() === "high" ? 16 : 9); j++) this.time.delayedCall(j * 22, () => {
       if (v.root.active) this.fxp.emit(v.root.x + (Math.random() - 0.5) * 22 * SPR, v.root.y - 4 * SPR, j % 3 ? hex(t.glow) : 0xffffff, { vx: (Math.random() - 0.5) * 18, vy: -(40 + Math.random() * 50) * SPR / 2, life: 0.55, size: 2, gravity: -6 });
     });
     this.tweens.add({ targets: o, k: 1, duration: dur, onUpdate: () => {
@@ -1617,7 +1617,7 @@ export class GameScene extends Phaser.Scene {
   }
   /** Bụi chân nhẹ theo đúng nhịp âm thanh bước; đổi hướng vẫn giữ nhịp, không tạo hạt ngoài mức cho phép. */
   stepDust(wx: number, wy: number, walking: boolean, mine: boolean) {
-    const n = footDustCount(fxPrefs.level, fxPrefs.reduce, mine); if (!n) return;
+    const n = footDustCount(fxLevel(), fxPrefs.reduce, mine); if (!n) return;
     const surface = surfaceOfGround(this.isoMap.groundNameAt(wx, wy));
     const col = ({ co: 0x9a8b68, dat: 0x9b7654, da: 0x989898, tuyet: 0xe8f6ff, go: 0xb07a4d, nuoc: 0x88cfe0 } as Record<string, number>)[surface] ?? 0x9a8b68;
     const at = W2S(wx, wy); this.fxp.footDust(at.x, at.y + 2 * SPR, col, n, walking);
@@ -1631,7 +1631,7 @@ export class GameScene extends Phaser.Scene {
     // vệt chém, mũi tên, tia sét là hình đứng nên nhấc lên theo chiều cao thân (pixel cũ × SPR).
     if (m.k === "wave") {
       const at = this.lifted(m.x, m.y); this.ringFx(at, 4, m.r, m.col, 400);
-      if (fxPrefs.level !== "low") this.fxp.dust(at.x, at.y + 2 * SPR, Math.min(28, m.r ?? 24) * SPR, 4 * SPR, hex(m.col), fxPrefs.level === "high" ? 8 : 4);
+      if (fxLevel() !== "low") this.fxp.dust(at.x, at.y + 2 * SPR, Math.min(28, m.r ?? 24) * SPR, 4 * SPR, hex(m.col), fxLevel() === "high" ? 8 : 4);
       if (m.shake && !this.autoOn() && this.nearMe(m.x, m.y, 220)) this.shake(300, 0.004);
     }
     else if (m.k === "egg") this.eggFx(m);
@@ -1649,7 +1649,7 @@ export class GameScene extends Phaser.Scene {
       const g = this.add.graphics().setDepth(99980), [p0, p1] = ptsToScreen([{ x: m.x0, y: m.y0 }, { x: m.x1, y: m.y1 }], 6 * SPR);
       g.lineStyle(4, hex(m.col), 1); g.lineBetween(p0.x, p0.y, p1.x, p1.y);
       this.tweens.add({ targets: g, alpha: 0, duration: 350, onComplete: () => g.destroy() });
-      if (fxPrefs.level !== "low") { this.fxp.dust(p0.x, p0.y, 12 * SPR, 3 * SPR, hex(m.col), fxPrefs.level === "high" ? 6 : 3); this.fxp.dust(p1.x, p1.y, 12 * SPR, 3 * SPR, hex(m.col), fxPrefs.level === "high" ? 6 : 3); }
+      if (fxLevel() !== "low") { this.fxp.dust(p0.x, p0.y, 12 * SPR, 3 * SPR, hex(m.col), fxLevel() === "high" ? 6 : 3); this.fxp.dust(p1.x, p1.y, 12 * SPR, 3 * SPR, hex(m.col), fxLevel() === "high" ? 6 : 3); }
     } else if (m.k === "burst") {
       // Vòng 10 mũi (Hồn Tiễn) hoặc `n` mũi tỏa `spread` độ quanh hướng a0 (hồn kỹ riêng); mũi bay song song mặt đất, ngang ngực.
       const n = m.n ?? 10, ring = !m.spread || m.spread >= 360, sp = ((m.spread ?? 0) * Math.PI) / 180, R = m.r ?? 110, c = this.lifted(m.x, m.y);
@@ -2298,10 +2298,10 @@ export class GameScene extends Phaser.Scene {
   /** Hình trạng thái nhỏ bám thân, lặp theo đồng hồ client; không đổi state và không rung màn. */
   attachedStatusFx(g: Phaser.GameObjects.Graphics, cx: number, feet: number, bits: number, time: number, mine: boolean, q: number) {
     const has = (x: keyof typeof STATUS) => (bits & statusBit(x)) !== 0;
-    const moving = !fxPrefs.reduce && fxPrefs.level !== "low";
+    const moving = !fxPrefs.reduce && fxLevel() !== "low";
     const alpha = mine ? 0.9 : 0.55, phase = moving ? time / 520 : 0;
     if (has("burn")) {
-      const n = fxPrefs.level === "high" ? 3 : 2;
+      const n = fxLevel() === "high" ? 3 : 2;
       for (let j = 0; j < n; j++) {
         const a = phase + j * 2.1, x = cx + Math.cos(a) * 8 * q, y = feet - (17 + (moving ? Math.sin(a * 1.7) * 2 : 0)) * q;
         g.fillStyle(0x1a1020, alpha).fillTriangle(x - 3 * q, y + 4 * q, x + 3 * q, y + 4 * q, x, y - 3 * q);
@@ -2314,7 +2314,7 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(1, 0xe8f6ff, alpha).lineBetween(x - 2 * q, y, x + q, y + 3 * q).lineBetween(x + q, y + 3 * q, x, y + 6 * q);
     }
     if (has("poison")) {
-      const n = fxPrefs.level === "high" ? 3 : 2;
+      const n = fxLevel() === "high" ? 3 : 2;
       for (let j = 0; j < n; j++) {
         const a = -phase * 0.7 + j * 2.4, x = cx + Math.cos(a) * 9 * q, y = feet - (8 + (j % 2) * 7) * q - (moving ? (time / 180 + j * 3) % 5 : 0) * q;
         g.fillStyle(0x1a1020, alpha).fillCircle(x, y, 2.5 * q); g.fillStyle(0x8ef08a, alpha).fillCircle(x, y, 1.5 * q);
@@ -2554,6 +2554,7 @@ export class GameScene extends Phaser.Scene {
   // ---------- Đồng bộ trạng thái mỗi khung hình ----------
   update(time: number, delta: number) {
     const dt = delta / 1000, st = this.room.state; if (!st?.players) return;
+    fxGov.feed(delta, fxPrefs.level);
     this.endHitstop(performance.now()); this.fxp.update(this.hitstopEnd ? dt * 0.06 : dt); this.svis.sheets.update(this.hitstopEnd ? delta * 0.06 : delta);
     this.sendInput();
     this.crowd?.update(dt);

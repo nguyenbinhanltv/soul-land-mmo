@@ -4,7 +4,7 @@ import type Phaser from "phaser";
 import type { He } from "../../shared/data.ts";
 import { COMBAT_MATERIALS, type Element, type Material } from "./audio/soundMap.ts";
 import { ELEMENT_COL } from "./skillFx.ts";
-import { fxPrefs, HIT_SPARK, type ParticleLayer } from "./combatFx.ts";
+import { fxPrefs, HIT_SPARK, type ParticleLayer, fxLevel } from "./combatFx.ts";
 import { makeCodeSheet, SheetFx } from "./fxSheet.ts";
 import { SPR } from "./iso.ts";
 import { damageTextStyle, HIT_HE_STYLE } from "./combatFeelRules.ts";
@@ -31,7 +31,7 @@ const SPARK_K = { low: 0, mid: 1, high: 1.6 } as const;
 
 /** Tia lửa theo chất liệu + hệ của đòn tại (x, y); độ nặng nhiều hơn thì nhiều và nhanh hơn. */
 export function materialSparks(fxp: ParticleLayer, mat: Material, el: Element | undefined, x: number, y: number, weight: number, px: number) {
-  const k = SPARK_K[fxPrefs.level]; if (k <= 0) return;
+  const k = SPARK_K[fxLevel()]; if (k <= 0) return;
   const m = MATERIAL_SPARK[mat], n = Math.round(m.n * k * (1 + weight * 0.35)), hi = el ? ELEMENT_COL[el].hi : 0xffffff;
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, s = m.speed * px / 2 * (0.5 + Math.random() * 0.6) * (1 + weight * 0.12);
@@ -92,7 +92,7 @@ export function registerHitFeelSheets(scene: Phaser.Scene): void {
 
 /** Phát sheet trúng đòn và lớp sáng; bản của người khác nhỏ, mờ hơn. */
 export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: number, y: number, mine: boolean, weight: number): void {
-  if (fxPrefs.level === "low") return;
+  if (fxLevel() === "low") return;
   const scale = (1 + Math.min(2, weight) * 0.15) * SPR;
   const common = { x, y, key: hitSheetKey(mat, he), scale, fps: HIT_HE_STYLE[he].fps, light: !mine } as const;
   sheets.play(common);
@@ -105,6 +105,6 @@ export function damageStyle(el: Element | undefined, crit: boolean, mine: boolea
   return {
     stroke: parseInt(visual.stroke.slice(1), 16),
     color: visual.color,
-    font: visual.font * (fxPrefs.level === "low" ? 0.92 : 1),
+    font: visual.font * (fxLevel() === "low" ? 0.92 : 1),
   };
 }
