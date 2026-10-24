@@ -1,0 +1,88 @@
+{
+  "id": "hao_thien_chuy",
+  "nhom": "V (vũ khí vác sau vai)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "display": {
+    "scale": 0.85,
+    "dx": 12,
+    "dy": -4,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượt": 1,
+    "body": {
+      "description": "giant black war hammer with huge square head and long handle, dark veins, gray glow, heavy and powerful, glowing runes, isometric game sprite, single object",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 5
+    }
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "seed": 1375534406,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant black war hammer with huge square head and long handle, dark veins",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "hoatAnh": {
+    "ghiChu": "Vật cứng: thở và đánh làm bằng code (tools/assets/phaptuong.mjs --code idle,attack), 0 lượt.",
+    "thuPixelLab": {
+      "hướng": "s",
+      "action": "giant hammer lifts up high then slams down hard to the ground with heavy impact, dust and cracks, then rests",
+      "lượt": 2,
+      "ketQua": "hỏng: búa đổ nằm ngang, không quay về (thu_danh_pixellab_hong.png)"
+    }
+  },
+  "luotThucTe": {
+    "concept": 1,
+    "xoay": 2,
+    "thử đánh hỏng": 2,
+    "hoạt ảnh dùng": 0,
+    "tong": 5
+  }
+}

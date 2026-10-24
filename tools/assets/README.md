@@ -84,6 +84,11 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | Băng Phượng Hoàng (`bang_phuong_hoang`) | Đôi cánh băng phượng hoàng, mào băng trên đầu | Lưng + đầu | Tinh thể băng hình chữ thập lấp lánh quanh người |
 | Bạch Hổ (`bach_ho`) | Tai hổ trắng, đuôi hổ vằn đen, vuốt hai tay (ảnh Gemini 5 hướng, ghép ở #425) | Đầu + lưng + tay | Vằn sáng và vệt cào trắng khi đánh |
 
+## Pháp tướng Võ Hồn Chân Thân
+- Sheet `phaptuong/<mã võ hồn>.png`, key `pt_<mã>` (`"iso": true` kèm `pt` trong manifest), khung 160×160, gốc (80, 124) trùng chân hồn sư (32, 58); 5 hàng hướng `s`, `se`, `e`, `ne`, `n` (sw / w / nw lật), 16 cột: `idle` 8 (cột 0–7), `attack` 8 (cột 8–15); 2560×800. Chỉ alpha 0 / 255, ≤ `PT_MAX_COLORS` (48) màu, khung không chạm mép trên / trái / phải. Hằng `PT_*` và `isoLayout("phaptuong")` ở `lib.mjs`.
+- Nguồn ảnh và `recipe.json` (prompt, seed, lượt, cách ghép) ở `art/src/pixellab/phap_tuong/<mã>/`; công cụ `pixellab-pt.mjs` (concept, xoay, hoạt ảnh bằng PixelLab) và `phaptuong.mjs` (hậu kỳ + sheet, thở / đánh bằng code cho vật cứng). Công thức chuẩn, lượt thực tế, bẫy: `docs/phap-tuong-cong-thuc.md`; đặc tả 25 võ hồn: `docs/phap-tuong.md`.
+- Client chưa tải sheet này (H2); độ đục hư ảnh, lớp sau / trước theo hướng, tỉ lệ và độ dời đọc từ `pt` của manifest.
+
 ## Hồn thú
 - Khung theo bậc: Trắng, Vàng 64×64 (thú nhỏ, cao 20–40); Tím, Đen 96×96 (dài khoảng 2–3 thoi); Đỏ 128×128; tà hóa thú vương 160×160; boss thế giới 192×192. Gốc giữa đáy, cách mép dưới khoảng 8 (`ISO_BEAST_FOOT`). Tinh anh không có khung riêng: client phóng sprite loài gốc theo `ELITE.scale` (`rankScale` trong `GameScene.ts`); thú vương / boss chưa có sprite riêng thì phóng theo `KING.scale` / `WORLD.scale`.
 - Animation: `idle` 4, `walk` 6, `attack` 4 (khung đầu là tư thế báo trước, client giữ khung này khi `BeastState.cast` bật rồi chạy 3 khung ra đòn), `hurt` 2, `die` 4. Sheet 20 cột × 5 hàng (hàng là `s`, `se`, `e`, `ne`, `n`; cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–15 `hurt`, 16–19 `die`); sheet lớn nhất 3840×960, dưới giới hạn texture 4096 của điện thoại.
