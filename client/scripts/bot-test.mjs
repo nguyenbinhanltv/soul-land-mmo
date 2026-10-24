@@ -126,7 +126,7 @@ import { LOOKS_CHANGE, looksChangeCost } from "../../shared/data.ts"; // L4 #511
 import { RADAR, RALLY, MAPS as RALLY_MAPS } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini; R6 (#433): dấu tập trung
 import { rallyUpsert, rallyPrune } from "../../shared/rally.ts";
 import { FOG } from "../../shared/data.ts"; import { fogDims, fogCount, fogGet, fogCellOf, fogBytes, fogValid } from "../../shared/fog.ts"; import { loadMap } from "../../server/src/map.ts"; // R8 (#435): sương mù khám phá
-import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
+import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS, LPC_PRESETS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
 import * as SD from "../../shared/data.ts"; // E2: rollEquipDrop, rollEquipCharm... (equipDropTest)
@@ -254,6 +254,16 @@ async function looks2Test(){
   ok(parseLooks(L(mut(c=>{c.body=1;}))).sex===1,"thân nữ -> sex 1");
   const ff=mut(c=>{c.body=1; c.parts.torso=fOnly.id; delete c.colors.torso; if(fOnly.colors.length) c.colors.torso=fOnly.colors[0];});
   ok(parseLooks(L(ff))!==null,`món chỉ nữ (${fOnly.id}) với thân nữ -> nhận`);
+  // Bộ LPC dựng sẵn (HL1 #565): mỗi bộ phải còn hợp lệ y nguyên (không bị chuẩn hóa đổi) khi LPC_PARTS / LPC_RAMPS thay đổi.
+  ok(LPC_PRESETS.length>=8&&LPC_PRESETS.length<=12,`LPC_PRESETS có ${LPC_PRESETS.length} bộ (8–12)`);
+  ok(new Set(LPC_PRESETS.map(p=>p.id)).size===LPC_PRESETS.length,"LPC_PRESETS: mã bộ không trùng");
+  const nPre=LPC_PRESETS.filter(p=>p.lpc.body===0).length;
+  ok(nPre>0&&Math.abs(nPre-(LPC_PRESETS.length-nPre))<=1,`LPC_PRESETS: nam ${nPre} / nữ ${LPC_PRESETS.length-nPre} cân bằng`);
+  for(const p of LPC_PRESETS){
+    const r=parseLpc(p.lpc);
+    ok(r!==null&&JSON.stringify(r)===JSON.stringify(p.lpc),`bộ ${p.id}: parseLpc nhận và không đổi gì`);
+    ok(r!==null&&encodeLpc(decodeLpc(encodeLpc(r)))===encodeLpc(r)&&parseLooks(L(p.lpc))?.mode==="lpc",`bộ ${p.id}: khứ hồi encode / decode, parseLooks nhận`);
+  }
 
   // /api/looks: ca sai không tạo nhân vật, ca đúng tạo được; nhận qua lần đăng nhập lại.
   const newAcc=async n=>{ const l=await post("/api/login",{name:`${n} ${RUN}`,password:PASS}); ok(!l.looks?.chosen&&l.looks?.mode!=="lpc"&&l.looks?.lpc===undefined,`${n}: tài khoản mới chưa chọn, mặc định là preset`); return l; };
@@ -264,6 +274,8 @@ async function looks2Test(){
   const ra=await post("/api/looks",{token:A.token,...L(good)});
   ok(ra.status===200&&ra.looks?.chosen&&ra.looks.mode==="lpc"&&ra.looks.sex===0&&JSON.stringify(ra.looks.lpc)===JSON.stringify(parseLpc(good)),"tạo lpc hợp lệ -> 200, trả đúng phần lpc");
   ok((await post("/api/looks",{token:A.token,...L(good)})).status===409,"đổi / tạo lại sau khi đã chọn -> 409 (luật hiện tại giữ nguyên)");
+  const P=await newAcc("L2 mau"), rp=await post("/api/looks",{token:P.token,...L(LPC_PRESETS[0].lpc)});
+  ok(rp.status===200&&rp.looks?.mode==="lpc"&&JSON.stringify(rp.looks.lpc)===JSON.stringify(LPC_PRESETS[0].lpc),`/api/looks nhận bộ dựng sẵn ${LPC_PRESETS[0].id} -> 200, giữ nguyên`);
   const A2=await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS});
   ok(A2.looks?.mode==="lpc"&&A2.looks.chosen&&encodeLpc(A2.looks.lpc)===enc,"đăng nhập lại: lpc lưu đúng (DB / RAM)");
   const rb=await post("/api/looks",{token:B.token,mode:"preset",sex:1,hair:2,hairCol:3,outfitCol:4,skin:1});
@@ -6793,6 +6805,14 @@ async function gearTest(){
     &&parseEquip({tpl:"khong_co"})===null&&parseEquip("{hỏng")===null&&parseEquip(null)===null&&parseEquip(7)===null,
     "parseEquip: nhận object / chuỗi JSON, kẹp ilvl, roll, may mắn, bỏ dòng phụ lạ, mẫu lạ hoặc dữ liệu hỏng thì null");
   ok(equipDefTotal(BONE_PASSIVE_CAP.def-0.01,0.5)===BONE_PASSIVE_CAP.def&&equipDefTotal(0,0.02)===0.02,"equipDefTotal: gộp với bị động hồn cốt dưới cùng một trần");
+  // HL4 (#573): lpcGearLooks đè đúng ô áo / mũ cho mọi bộ dựng sẵn x mọi bậc; không mặc / mã lạ giữ nguyên; Ẩn mũ bỏ mũ trang bị.
+  { let bad=0; const n=SD.EQUIP_TIERS.length;
+    for(const pr of SD.LPC_PRESETS){
+      for(let c=1;c<=n;c++){ const o=SD.lpcGearLooks(pr.lpc,c,c), g=SD.LPC_GEAR; if(o.parts.torso!==g.ao[c-1].m[0]||o.parts.hat!==g.mu[c-1].m[0]||!SD.decodeLpc(SD.encodeLpc(o))) bad++; }
+      const keep=SD.lpcGearLooks(pr.lpc,0,0), junk=SD.lpcGearLooks(pr.lpc,99,99), hid=SD.lpcGearLooks(pr.lpc,n,n,true);
+      if(SD.encodeLpc(keep)!==SD.encodeLpc(pr.lpc)||SD.encodeLpc(junk)!==SD.encodeLpc(pr.lpc)||hid.parts.hat!==pr.lpc.parts.hat||hid.parts.torso!==SD.LPC_GEAR.ao[n-1].m[0]) bad++;
+    }
+    ok(bad===0&&SD.lpcGearCode(0)===1&&SD.lpcGearCode(n)===0&&SD.lpcGearCode(null)===0&&SD.LPC_GEAR.ao.length===n&&SD.LPC_GEAR.mu.length===n,"lpcGearLooks: mọi bộ dựng sẵn x mọi bậc đè đúng áo / mũ và vẫn hợp lệ; không mặc / mã lạ giữ nguyên; Ẩn mũ bỏ mũ trang bị"); }
   const S=await bot("Trang bị","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
   if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trang bị (cần hook gear, hurt, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
@@ -6832,10 +6852,14 @@ async function gearTest(){
     `chỉ số vào calcStats: sinh lực tối đa ${base0.maxHp} -> ${s1.stats.maxHp} (+${e1.bonus.hp}), chí mạng +${e1.bonus.crit}%, giảm sát thương ${(e1.red*100).toFixed(1)}%`);
   ok(Math.abs(s1.live.def-s0.live.def-e1.red)<1e-9||s1.live.def===BONE_PASSIVE_CAP.def,`giảm sát thương nhận vào buff def: ${s0.live.def} -> ${s1.live.def}`);
   ok(me().maxHp===s1.stats.maxHp,"state công khai: sinh lực tối đa theo chỉ số mới");
+  // HL4 (#573): áo / mũ đang mặc đồng bộ công khai chỉ dưới dạng bậc + 1 (lpcGearCode), không lộ chỉ số.
+  await waitFor(()=>me().gearAo===equipTemplate("ao_tu_kim").tier+1,1500);
+  ok(me().gearAo===equipTemplate("ao_tu_kim").tier+1&&me().gearMu===0,`state công khai: mặc Áo Tử Kim -> gearAo = ${me().gearAo} (bậc + 1), chưa mặc mũ -> gearMu = 0`);
   // ---- Đổi chỗ: món cũ về túi đúng chỗ món mới rời ----
   const idx=loose().findIndex(i=>i.id===A2); t=await op("equipgear",{id:A2});
   ok(t===""&&worn(2)?.id===A2&&inBag(A1)&&!inBag(A2)&&loose().findIndex(i=>i.id===A1)===idx&&loose().length===n0-1,
     `đổi Áo: Áo Phàm Khí vào ô, Áo Tử Kim về túi đúng chỗ (số ô túi giữ nguyên ${loose().length})`);
+  ok(me().gearAo===1,"đổi sang Áo Phàm Khí: gearAo = 1");
   ok(same(S.gear.st,equipStats([eq("ao_pham_khi",1)]))&&(await test(S,"stats")).stats.maxHp===base0.maxHp+equipStats([eq("ao_pham_khi",1)]).bonus.hp,"chỉ số theo món mới, không cộng dồn món cũ");
   // ---- Vũ khí + dây chuyền + vòng: công mỗi đòn, may mắn cộng hai ô, cường hóa vào chỉ số ----
   await op("equipgear",{id:W2}); await op("equipgear",{id:W1}); await op("equipgear",{id:N2});
@@ -6856,6 +6880,7 @@ async function gearTest(){
   await rejoin();
   ok(same(S.gear.items.map(i=>`${i.slot}:${i.id}:${i.enhance}`).sort(),keep)&&[W1,N1,N2,A2].every(id=>!inBag(id))&&[W2,A1].every(inBag)&&loose().length===bagIds.size,
     `vào lại: ${S.gear.items.length} món vẫn mặc đúng ô, món trong túi còn nguyên (${loose().length} ô)`);
+  ok(me().gearAo===equipTemplate("ao_pham_khi").tier+1,`vào lại: gearAo đồng bộ lại từ trang bị đã mặc (${me().gearAo})`);
   const s2=await test(S,"stats"); ok(same(s2.gear.bonus,eAll.bonus)&&s2.gear.luck===EQUIP_LUCK_MAX&&s2.stats.maxHp===g.stats.maxHp,"chỉ số sau khi vào lại giống trước (tính lại từ dữ liệu đã lưu)");
   // Đổi chỗ vũ khí rồi vào lại: một lần ghi đổi ô cho hai món (chỉ mục duy nhất (tài khoản, ô) không vướng).
   await op("equipgear",{id:W2}); await rejoin();
@@ -6957,6 +6982,11 @@ async function gearEnhanceTest(){
   await give(stone(14),st(14).qty); r=await enh(W2); await sleep(200);
   ok(r?.destroyed&&!find(W2)&&S.gear.items.length===0&&S.gear.st.weapon===null,"món đang mặc +14 thất bại không bùa: bị phá hủy, ô trống, hết công vũ khí");
   await rejoin(); ok(!find(W2)&&S.gear.items.length===0,"vào lại: món mặc bị phá hủy không xuất hiện lại");
+
+  // HL4 (#573): áo đang mặc bị phá hủy khi cường hóa thì gearAo (state công khai) về 0, người khác không còn thấy áo đó.
+  { const pl=()=>S.room.state.players.get(S.room.sessionId), A=await mk("ao_tu_kim",14); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); S.room.send("equipgear",{id:A}); await waitFor(()=>pl()?.gearAo===4,2000);
+    const worn=pl()?.gearAo; await test(S,"enhroll",{r:99}); await give(stone(14),st(14).qty); await coin(1e6); r=await enh(A); await waitFor(()=>pl()?.gearAo===0,2000);
+    ok(worn===4&&r?.destroyed&&pl()?.gearAo===0,`áo đang mặc +14 bị phá hủy: gearAo ${worn} -> ${pl()?.gearAo} (hết hiện áo trên lớp LPC)`); }
 
   // ---- 20 lệnh dồn cùng lúc: một lệnh được xử lý, không nhân đồ ----
   await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"enhroll",{r:0});
