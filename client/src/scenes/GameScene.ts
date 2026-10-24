@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
-  ringSkill, loadoutOf, DEFAULT_LOADOUT, CHAN_THAN_SCALE, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
+  ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
@@ -31,6 +31,7 @@ import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioM
 import { RARE_LOOT_MIN, STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
+import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
@@ -182,7 +183,7 @@ export class GameScene extends Phaser.Scene {
   /** Hướng nhìn 8 phía của hồn thú (sheet isometric): theo hướng trượt khi đi, theo vùng báo trước khi tung chiêu, đứng yên thì giữ. */
   bface = new Map<string, Dir8>();
   /** G1 (#392) cảm giác đánh: lớp hạt dùng chung, dừng hình, nháy trắng / đẩy lùi chỉ hình của hồn thú vừa bị đánh, lần đánh cuối để nhận ra hạ thú. */
-  fxp!: ParticleLayer;
+  fxp!: ParticleLayer; pt!: PhapTuongSystem; ptCut = new PhapTuongCutIn();
   skfx!: SkillFx; cine = new SkillCine();
   hitstopEnd = 0; hitstopNext = 0; slowmo = 1;
   hitFlash = new Map<string, number>();
@@ -292,7 +293,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
-      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.cine.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
+      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
@@ -381,6 +382,7 @@ export class GameScene extends Phaser.Scene {
 
     this.ov = this.add.graphics().setDepth(99990);
     this.fxp = new ParticleLayer(this, 99979, SPR);
+    this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
     const cam = this.cameras.main;
@@ -1214,6 +1216,7 @@ export class GameScene extends Phaser.Scene {
   /** Animation chạy một lần của lớp thân (attack, cast, hurt); các lớp khác tự theo khung thân. */
   playAct(id: string, anim: HsAnim) {
     const v = this.players.get(id); if (v) v.act = { anim, t0: this.time.now };
+    if (v && (anim === "attack" || anim === "cast")) this.pt.strike(id, this.time.now); // pháp tướng ra đòn cùng hồn sư (không rung màn hình)
   }
   /** Tin `fx` có hướng đánh (dx, dy thế giới): hồn sư quay về phía đó suốt animation đánh, rồi lại theo hướng đi (10.1). */
   faceHit(id: string, dx: number, dy: number) {
@@ -1411,8 +1414,11 @@ export class GameScene extends Phaser.Scene {
         const c = Phaser.Display.Color.HexStringToColor(col);
         this.flash(m.k === "ult" ? 260 : 180, c.red, c.green, c.blue); this.shake(300, m.k === "ult" ? 0.006 : 0.003);
       }
+      if (m.k === "ult") this.pt.burst(m.id, this.time.now);
+      else this.pt.begin(m.id, this.time.now); // chuỗi biến hình ~1,2 s (vòng sáng, cột sáng, pháp tướng hiện từ dưới lên, gầm)
+      const cut = m.k === "avatar" && m.id === this.me && !!VOHON[v.vh] && this.ptCut.show(this, VOHON[v.vh].id, col); // cut-in 0,5 s, chỉ mình thấy
       if (m.id === this.me) hud.banner(m.name, m.k === "ult" ? "Tuyệt kỹ" : "Võ Hồn Chân Thân");
-      if (m.k === "avatar" && VOHON[v.vh] && cineAllowed(m.id === this.me, me ? Math.hypot(me.wx - v.wx, me.wy - v.wy) : 0)) this.cine.show(VOHON[v.vh].id, m.name, col, m.id === this.me);
+      if (m.k === "avatar" && VOHON[v.vh] && cineAllowed(m.id === this.me, me ? Math.hypot(me.wx - v.wx, me.wy - v.wy) : 0)) this.cine.show(VOHON[v.vh].id, m.name, col, m.id === this.me, cut);
     }
     else if (m.k === "bone") {
       // Kỹ năng hồn cốt chủ động (4.3): vòng sáng màu niên hạn hồn cốt, tên kỹ năng bay lên (tra theo loài và nút).
@@ -1945,16 +1951,8 @@ export class GameScene extends Phaser.Scene {
     st.players.forEach((p: any, id: string) => {
       const v = this.players.get(id); if (!v || p.dead) return;
       const { x: rx, y: ry } = v.root;
-      if (p.ava > 0) {
-        // Võ Hồn Chân Thân (8.1a): quầng sáng màu võ hồn, vòng dưới chân và hạt sáng bay lên (ai cũng thấy).
-        const c = hex(VOHON[p.vh]?.col ?? "#ffffff"), k = 0.5 + 0.5 * Math.sin(time / 150);
-        g.fillStyle(c, 0.1 + 0.08 * k).fillEllipse(rx, ry - 16 * q, 42 * q, 54 * q);
-        g.lineStyle(2, c, 0.55 + 0.35 * k).strokeEllipse(rx, ry, (38 + 4 * k) * q, 11 * q);
-        for (let j = 0; j < 8; j++) {
-          const a = time / 380 + j * 0.79, h = (time / 22 + j * 13) % 44;
-          g.fillStyle(j % 2 ? 0xffffff : c, 1 - h / 44).fillRect(rx + Math.cos(a) * 15 * q - q, ry - h * q, 2 * q, 2 * q);
-        }
-      }
+      // Võ Hồn Chân Thân: vòng dưới chân, cột sáng lúc biến hình, hào quang theo bậc vòng hồn hoàn (pháp tướng tự phát sáng và phát hạt).
+      this.pt.auraFx(g, id, rx, ry, p.rings.length, hex(VOHON[p.vh]?.col ?? "#ffffff"), id === this.me, time, q);
       if (p.shield > 0) { g.lineStyle(1, 0x9ad8ff, 0.55 + 0.25 * Math.sin(time / 200)); g.strokeEllipse(rx, ry - 12 * q, 26 * q, 30 * q); }
       if (p.lei > 0) {
         const k = p.lei / PHONG_LOI.max, n = 1 + Math.floor(k * 4);
@@ -2280,10 +2278,10 @@ export class GameScene extends Phaser.Scene {
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); tongT.setAlpha(a); }
-      // Võ Hồn Chân Thân (8.1a): phóng to dần (bộ sprite riêng làm sau, mục 5.11); hào quang vẽ trong drawStatus.
-      const sc = (p.ava > 0 && !p.dead ? CHAN_THAN_SCALE : 1) * SPR;
-      if (root.scale !== sc) root.setScale(Math.abs(sc - root.scale) < 0.01 ? sc : root.scale + (sc - root.scale) * lerp);
-      const up = (root.scale - SPR) * 30;
+      // Võ Hồn Chân Thân: hồn sư giữ nguyên cỡ, sau lưng hiện pháp tướng (PhapTuongSystem, #486); hào quang vẽ trong drawStatus.
+      const vhId = VOHON[p.vh]?.id ?? "";
+      this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
+      const up = 0;
       if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); tongT.setScale(this.txtK); }
       // Tên tông (#196) ngay trên đầu, tên và danh hiệu dịch lên một dòng khi có tông.
       const tg = tongByIndex(p.tong), tu = tg ? 7 * this.txtK : 0;
@@ -2298,7 +2296,7 @@ export class GameScene extends Phaser.Scene {
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
-    for (const [id, v] of this.players) if (!seenP.has(id)) { v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); this.players.delete(id); }
+    for (const [id, v] of this.players) if (!seenP.has(id)) { this.pt.drop(id); v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); this.players.delete(id); }
     const meS = this.ghost && st.players.get(this.me);
     if (meS) { const s = W2S(meS.x, meS.y); this.ghost!.clear().lineStyle(1, 0xff4040, 1).strokeRect(s.x - 6 * SPR, s.y - 22 * SPR, 12 * SPR, 24 * SPR); }
 

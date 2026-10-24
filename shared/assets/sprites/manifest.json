@@ -2282,6 +2282,48 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "pt_hao_thien_chuy",
+      "iso": true,
+      "pt": {
+        "scale": 0.85,
+        "dx": 12,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
+      "key": "pt_lam_dien_ba_vuong_long",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
       "key": "skill_a_ngan_0",
       "iso": true
     },
@@ -3661,6 +3703,38 @@
       "iso": true
     },
     {
+      "key": "vh_a_ngan_b",
+      "iso": true
+    },
+    {
+      "key": "vh_a_ngan_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bach_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bach_ho_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_f",
+      "iso": true
+    },
+    {
       "key": "vh_can_khon_hon_nguyen_toa_b",
       "iso": true
     },
@@ -3690,6 +3764,14 @@
     },
     {
       "key": "vh_hao_thien_chuy_f",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_anh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_anh_f",
       "iso": true
     },
     {
@@ -3749,6 +3831,14 @@
       "iso": true
     },
     {
+      "key": "vh_quy_mi_b",
+      "iso": true
+    },
+    {
+      "key": "vh_quy_mi_f",
+      "iso": true
+    },
+    {
       "key": "vh_ta_hoa_phuong_hoang_b",
       "iso": true
     },
@@ -3765,6 +3855,14 @@
       "iso": true
     },
     {
+      "key": "vh_tu_vong_chu_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_tu_vong_chu_hoang_f",
+      "iso": true
+    },
+    {
       "key": "vh_u_minh_linh_mieu_b",
       "iso": true
     },
@@ -3778,6 +3876,14 @@
     },
     {
       "key": "vh_xuc_xich_f",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_f",
       "iso": true
     }
   ]
