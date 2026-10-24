@@ -13,7 +13,7 @@ Tài liệu đặc tả hình ảnh. Luật chơi của Chân Thân (hồn lực
 
 ## 2. Điểm gắn và lớp
 
-Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
+Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Khi Chân Thân, thân hồn sư phóng `CHAN_THAN_SCALE`; khung pháp tướng **phóng theo cùng tỉ lệ quanh gốc** (đổi nếu thử ở H1 thấy hình quá lớn). Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
 
 Điểm gắn theo nhóm bố cục (cột "Nhóm" ở bảng chuyển động):
 
@@ -102,155 +102,208 @@ Cột "Hồn kỹ Chân Thân" là hồn kỹ ô P khi đang Chân Thân (`CHAN_
 
 ## 5. Prompt PixelLab (concept)
 
-Quy trình: tạo ảnh một lần ở hướng `s` (bản dựng "1 hình khối, nền trong suốt, nhìn chéo isometric"), duyệt, rồi xoay sang `se`, `e`, `ne`, `n` và tạo hoạt ảnh khung xương / văn bản (xem `tools/assets/README.md`). Prompt tiếng Anh, tả hình chung (không tên nhân vật hay thương hiệu có bản quyền); màu theo `col` / `robe` của từng võ hồn.
+Quy trình PixelLab (REST v2, key đọc từ file cấu hình máy, không ghi vào repo; đo `/v2/balance` trước và sau mỗi lệnh): (1) `create-image-pixflux` 128×128, nền trong suốt, nhìn chéo từ trên xuống hướng nam → concept `s`; (2) `generate-8-rotations-v3` từ concept → lấy 5 hướng `s`, `se`, `e`, `ne`, `n` (thứ tự trả về của 8 ảnh là `sw, s, se, e, ne, n, nw, w`); (3) `animate-with-text-v3` 8 khung cho từng hướng, hai lần: vòng "thở" và động tác đánh; (4) hậu kỳ về khung 160×160 trên nền trong suốt, gốc theo mục 2, tách lớp SAU / TRƯỚC, đưa qua `normalize` / `pack` / `validate` của `tools/assets` (xem README đó cho các bước chung). Ước ~23 lượt cho một võ hồn khi thử H1 (1 concept + 2 xoay + 10 hoạt ảnh × 2); kết quả thật ghi ở #485. Prompt tiếng Anh, không nhắc hồn sư (ảnh đơn lẻ, hướng nhìn quy định ở bước xoay), tả hình chung (không tên nhân vật hay thương hiệu có bản quyền); màu theo `col` / `robe` của từng võ hồn.
 
 **1. Cửu Tinh Thất Sát Kiếm** (`cuu_tinh_that_sat_kiem`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral silver greatsword floating diagonally, blade pointing down, seven glowing stars orbiting the blade, pale blue-white glow, translucent ghost-like, main colors #cfe3ff and #3c4f70, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral silver greatsword floating diagonally, blade pointing down, seven glowing stars orbiting the blade, pale blue-white glow, translucent ghost-like, main colors #cfe3ff and #3c4f70, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **2. Lam Điện Bá Vương Long** (`lam_dien_ba_vuong_long`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral azure thunder dragon coiling behind, horned head raised high, crackling blue lightning along the scales, translucent ghost-like, deep blue and cyan palette, main colors #5ab8ff and #1f3f8f, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral azure thunder dragon coiling, horned head raised high, crackling blue lightning along the scales, translucent ghost-like, deep blue and cyan palette, main colors #5ab8ff and #1f3f8f, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **3. Kỳ Nhung Thông Thiên Cúc** (`ky_nhung_thong_thien_cuc`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral golden-orange chrysanthemum bloom behind, many long layered petals radiating like a halo, glowing amber core, translucent ghost-like, main colors #ffb347 and #8a4a12, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral golden-orange chrysanthemum bloom, many long layered petals radiating like a halo, glowing amber core, translucent ghost-like, main colors #ffb347 and #8a4a12, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **4. Tà Hỏa Phượng Hoàng** (`ta_hoa_phuong_hoang`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral fire phoenix with wide spread wings behind, long flaming tail feathers, orange red and ember colors, translucent ghost-like, main colors #ff6a2a and #8f2a14, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral fire phoenix with wide spread wings, long flaming tail feathers, orange red and ember colors, translucent ghost-like, main colors #ff6a2a and #8f2a14, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **5. U Minh Linh Miêu** (`u_minh_linh_mieu`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral purple-black panther cat crouching behind, glowing violet eyes, long tail, sharp claws, translucent ghost-like, dark violet palette, main colors #b06bff and #3e2266, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral purple-black panther cat crouching, glowing violet eyes, long tail, sharp claws, translucent ghost-like, dark violet palette, main colors #b06bff and #3e2266, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **6. Nguyệt Nhận** (`nguyet_nhan`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral silver crescent moon blade ring standing upright behind, razor-sharp tips, cold pale light, translucent ghost-like, main colors #e6e6f0 and #4a4a5e, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral silver crescent moon blade ring standing upright, razor-sharp tips, cold pale light, translucent ghost-like, main colors #e6e6f0 and #4a4a5e, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **7. Hỏa Long** (`hoa_long`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral crimson fire dragon coiling behind, head resting above one shoulder, scales burning with flames, translucent ghost-like, red and orange palette, main colors #ff4a2a and #7a1c10, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral crimson fire dragon coiling, head resting above one shoulder, scales burning with flames, translucent ghost-like, red and orange palette, main colors #ff4a2a and #7a1c10, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **8. Nhu Cốt Thố** (`nhu_cot_tho`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral pink-white rabbit sitting behind, very long ears raised, glowing rose red eyes, fluffy tail, translucent ghost-like, soft pink palette, main colors #ffc2e2 and #c86a9a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral pink-white rabbit sitting, very long ears raised, glowing rose red eyes, fluffy tail, translucent ghost-like, soft pink palette, main colors #ffc2e2 and #c86a9a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **9. Kim Vũ Miêu Ưng** (`kim_vu_mieu_ung`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral golden owl-cat hawk with spread wings behind, tufted ears, feathers edged with yellow lightning, translucent ghost-like, gold palette, main colors #ffd54a and #7a5a12, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral golden owl-cat hawk with spread wings, tufted ears, feathers edged with yellow lightning, translucent ghost-like, gold palette, main colors #ffd54a and #7a5a12, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **10. Tử Vong Chu Hoàng** (`tu_vong_chu_hoang`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral violet-black spider behind, eight long legs spread, many glowing purple eyes, faint web strands, translucent ghost-like, main colors #9a4aff and #2a1240, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral violet-black spider, eight long legs spread, many glowing purple eyes, faint web strands, translucent ghost-like, main colors #9a4aff and #2a1240, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **11. Bích Lân Xà Hoàng** (`bich_lan_xa_hoang`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral emerald-green serpent coiling behind, crested head raised high, glowing scales, toxic green mist, translucent ghost-like, main colors #3ad98a and #145a38, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral emerald-green serpent coiling, crested head raised high, glowing scales, toxic green mist, translucent ghost-like, main colors #3ad98a and #145a38, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **12. Càn Khôn Hỗn Nguyên Tỏa** (`can_khon_hon_nguyen_toa`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral golden chain wheel with a huge ornate padlock floating behind, glowing rune symbols, hanging chain links, translucent ghost-like, gold and bronze palette, main colors #e0b04a and #5e4a18, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral golden chain wheel with a huge ornate padlock floating, glowing rune symbols, hanging chain links, translucent ghost-like, gold and bronze palette, main colors #e0b04a and #5e4a18, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **13. Hỏa Ảnh** (`hoa_anh`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral crimson fire shadow figure of a hulking humanoid behind, fists wrapped in flames, glowing eyes, translucent ghost-like, dark red palette, main colors #ff3a4a and #701822, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral crimson fire shadow figure of a hulking humanoid, fists wrapped in flames, glowing eyes, translucent ghost-like, dark red palette, main colors #ff3a4a and #701822, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **14. Yêu Hồ** (`yeu_ho`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral pink fox sitting behind, three fluffy tails fanned out, glowing magenta eyes, drifting sparkles, translucent ghost-like, pink and magenta palette, main colors #ff9ad5 and #7a2a5a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral pink fox sitting, three fluffy tails fanned out, glowing magenta eyes, drifting sparkles, translucent ghost-like, pink and magenta palette, main colors #ff9ad5 and #7a2a5a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **15. Xúc Xích** (`xuc_xich`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral grilled sausage floating diagonally behind, steam rising, a few small sausages orbiting, cute humorous, warm orange brown palette, translucent ghost-like, main colors #e8875a and #6a3a22, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral grilled sausage floating diagonally, steam rising, a few small sausages orbiting, cute humorous, warm orange brown palette, translucent ghost-like, main colors #e8875a and #6a3a22, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **16. Quỷ Mị** (`quy_mi`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral indigo wraith ghost with long arms, no legs, hazy demon face, drifting smoke, translucent ghost-like, indigo and purple palette, main colors #8a8aff and #22224a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral indigo wraith ghost with long arms, no legs, hazy demon face, drifting smoke, translucent ghost-like, indigo and purple palette, main colors #8a8aff and #22224a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **17. Thiên Càn Bạch Ngọc Đỉnh** (`thien_can_bach_ngoc_dinh`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral white jade three-legged ding cauldron floating behind, pale cream glow, jade smoke rising from the mouth, translucent ghost-like, main colors #f0e0a0 and #6a5a2a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral white jade three-legged ding cauldron floating, pale cream glow, jade smoke rising from the mouth, translucent ghost-like, main colors #f0e0a0 and #6a5a2a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **18. Lam Ngân Thảo** (`lam_ngan_thao`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral blue silver-grass plant growing behind, many long twisting vines, glowing blue particles, translucent ghost-like, blue palette, main colors #4ab0ff and #1f4a6b, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral blue silver-grass plant growing, many long twisting vines, glowing blue particles, translucent ghost-like, blue palette, main colors #4ab0ff and #1f4a6b, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **19. Hạo Thiên Chùy** (`hao_thien_chuy`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral black war hammer with huge head leaning diagonally behind, long handle, dark veins, gray glow, translucent ghost-like, heavy and powerful, main colors #9aa0b4 and #22222c, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral black war hammer with huge head leaning diagonally, long handle, dark veins, gray glow, translucent ghost-like, heavy and powerful, main colors #9aa0b4 and #22222c, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **20. Cửu Bảo Lưu Ly Tháp** (`cuu_bao_luu_ly_thap`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral nine-tier glazed pagoda tower standing behind, each tier a different jewel color, rainbow halo, translucent ghost-like, main colors #7ef0ff and #2a6a7a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral nine-tier glazed pagoda tower standing, each tier a different jewel color, rainbow halo, translucent ghost-like, main colors #7ef0ff and #2a6a7a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **21. Phá Hồn Thương** (`pha_hon_thuong`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral long spear standing upright behind, diamond-shaped teal blade, red tassel, glowing soul light, translucent ghost-like, main colors #7fe0d0 and #1f4a48, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral long spear standing upright, diamond-shaped teal blade, red tassel, glowing soul light, translucent ghost-like, main colors #7fe0d0 and #1f4a48, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **22. A Ngân** (`a_ngan`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral blue and gold flower with long vines behind, huge glowing bloom on a grass stalk, hanging golden threads, translucent ghost-like, azure and gold, main colors #7fd8ff and #24527a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral blue and gold flower with long vines, huge glowing bloom on a grass stalk, hanging golden threads, translucent ghost-like, azure and gold, main colors #7fd8ff and #24527a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **23. Liệt Hỏa Thương Lang** (`liet_hoa_thuong_lang`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral gray wolf with fire-tipped fur behind, large flaming tail tip, glowing amber eyes, translucent ghost-like, main colors #ff7a3a and #4a3a3a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral gray wolf with fire-tipped fur, large flaming tail tip, glowing amber eyes, translucent ghost-like, main colors #ff7a3a and #4a3a3a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **24. Băng Phượng Hoàng** (`bang_phuong_hoang`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral ice phoenix with crystalline spread wings behind, ice crest on the head, long ribbon-like tail, pale cyan and white, translucent ghost-like, main colors #a8e8ff and #2a5a8a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral ice phoenix with crystalline spread wings, ice crest on the head, long ribbon-like tail, pale cyan and white, translucent ghost-like, main colors #a8e8ff and #2a5a8a, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
 **25. Bạch Hổ** (`bach_ho`)
 
 ```
-pixel art, isometric RPG sprite, single subject, giant spectral white tiger with black stripes sitting majestically behind, golden eyes, long striped tail, translucent ghost-like, white and gray palette, main colors #f2f2f6 and #3a3a4c, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no humans, no text, no watermark
+pixel art, isometric RPG sprite, single subject, giant spectral white tiger with black stripes sitting majestically, golden eyes, long striped tail, translucent ghost-like, white and gray palette, main colors #f2f2f6 and #3a3a4c, clean dark outline, limited palette with 3-4 tones per color, soft inner glow, transparent background, no soul master character, no text, no watermark
 ```
 
+
+## 6. Nguồn LPC kết hợp (bổ sung theo yêu cầu chủ repo, 2026-10-24)
+
+Mục đích: dùng hiệu ứng / hoạt ảnh LPC (Liberated Pixel Cup) và gói OpenGameArt cùng phong cách để **tiết kiệm lượt PixelLab**; chỗ LPC không hợp thì dùng PixelLab hoặc code. Luật giấy phép theo `GAME_DESIGN.md` mục 5.11 "Asset bên ngoài": mọi giấy phép đã biết dùng được (CC0, CC-BY, CC-BY-SA, OGA-BY, GPL, NC); nhiều giấy phép thì dùng theo nhóm ít ràng buộc nhất (`licenseUse` trong `tools/assets/lib.mjs`); SA / GPL / NC ghi cờ ở `art/CREDITS.md`; gói không rõ giấy phép thì không tải. Công cụ: `lpc-item.mjs` (mục `fx`: dải khung vuông một hàng), `lpc-compose.mjs` (hồn sư / NPC), `lpc-beast.mjs` (hồn thú). Mỗi ảnh đưa vào game phải được chủ repo duyệt.
+
+**Đã soát trang gói (2026-10-24):** tác giả, giấy phép, khung / cỡ lấy từ trang OpenGameArt của từng gói. Cột "Chỉnh gì" là việc phải làm trước khi vào game.
+
+### 6.1 Bảng gói hiệu ứng
+
+| Gói (URL) | Tác giả | Giấy phép (game dùng) | Khung / cỡ | Dùng cho | Chỉnh gì cho hợp pixel art isometric của game |
+|---|---|---|---|---|---|
+| [Fireball spell](https://opengameart.org/content/fireball-spell) | Clint Bellanger | CC-BY 3.0 | 64×64, 8 khung × 8 hướng, đã isometric 2:1, nền trong suốt | Hệ Hỏa, kiểu "phóng" (Phượng Hoàng Hỏa Vũ, Hỏa Long Thôn Thiên, đạn lửa tiên cơ) | Ảnh dựng bằng Blender (mịn): thu 1:1, giảm còn 12–14 màu, bỏ điểm mờ (alpha 0/255), thêm viền `#1a1020`; nhuộm theo màu niên hạn nếu cần |
+| [Icicle spell](https://opengameart.org/content/icicle-spell) | Clint Bellanger | CC-BY 3.0 | 64×64, 8 khung × 8 hướng, isometric | Hệ Băng, kiểu "phóng" (Băng Phượng Hoàng) | như trên |
+| [Lightning shock spell](https://opengameart.org/content/lightning-shock-spell) | Clint Bellanger | CC-BY 3.0 | 64×64, 4 khung × 8 hướng | Hệ Lôi, kiểu "phóng" / "tia trúng" (Lam Điện Bá Vương Long, Kim Vũ Miêu Ưng) | như trên; sẫm màu xanh lam theo `col` Lam Điện `#5ab8ff` |
+| [Freeze spell](https://opengameart.org/content/freeze-spell) | Clint Bellanger | CC-BY 3.0 | 64×64, 4 khung × 3 biến thể (có bản lửa) | Hệ Băng, kiểu "vùng tròn" (tinh thể mọc lên: Băng Phượng Cực Hàn Vực); bản lửa cho Hỏa | như trên; rải nhiều tinh thể thành vòng bằng code (Phaser) |
+| [Quake spell](https://opengameart.org/content/quake-spell) | Clint Bellanger | CC-BY 3.0 | 256×128, 6 khung × 3 biến thể (đất / băng / lửa), isometric | Kiểu "vùng tròn" chấn đất: Hạo Thiên Diệt Thế Chùy, Bạch Hổ Phá Thiên Trảo, Hỏa Ảnh Thiên Phạt, tuyệt kỹ Hạo Thiên Phá Sơn | Thu 50%, bớt màu, viền; khớp vòng elip 2:1 của game nên ít phải chỉnh |
+| [Heal spell](https://opengameart.org/content/heal-spell) | Clint Bellanger | CC-BY 3.0 | 64×64, 6 khung | Kiểu "hào quang buff" hệ Mộc / Quang (A Ngân, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh) | giảm màu, viền; nhuộm vàng cho Quang |
+| [Shield spell](https://opengameart.org/content/shield-spell) | Clint Bellanger | CC-BY 3.0 | 128×128, 4 khung | Kiểu "hào quang buff" khiên (Cửu Bảo Lưu Ly Tháp, Càn Khôn, Thiên Càn) | Vòng mảnh, mờ: dùng làm lớp cộng sáng (additive), không thu pixel |
+| [Sparks (fire, ice, blood)](https://opengameart.org/content/sparks-fire-ice-blood) | Clint Bellanger | CC-BY 3.0 | 64×64, 4 khung × 3 kiểu × 2 biến thể | Kiểu "tia trúng": tia nảy khi đánh trúng (Hỏa, Băng) | dùng nguyên khung, viền; nhuộm đổi màu cho hệ khác |
+| [Extended LPC Magic pack](https://opengameart.org/content/extended-lpc-magic-pack) | daneeklu (Daniel Eddeland) | **CC-BY-SA 3.0**, GPL 3.0 (cờ SA) | 128×128, 16 khung (4×4); spikes 64×64 | `lightningclaw` (vuốt sét: U Minh Bách Trảo kiểu Lôi, Lam Điện vuốt rồng), `fire lion` 4 hướng (Hỏa Long, Liệt Hỏa Thương Lang), `snakebite` 3 hướng (Bích Lân Xà Hoàng, hệ Độc), `tornado` (hệ Phong), `icetacle` / `torrentacle` (Băng / Thủy vùng), `spikes` (Mộc / đất), `iceshield`, `turtleshell` (khiên) | Đã là pixel art, chỉ thu 50% (còn 64) hoặc giữ 128 cho vùng lớn, đổi bảng màu về `palette.gpl` của game, viền `#1a1020`; file đã sửa theo CC-BY-SA, ghi trong `CREDITS.md` |
+| [LPC Flames](https://opengameart.org/content/lpc-flames) | Sharm (nguồn LPC Fireplace), đóng gói William.Thompsonj | CC-BY 3.0 (cũng GPL 3.0 / 2.0) | 16×24, vài khung | Chuyển động phụ phụ thể (tàn lửa chóp đuôi Liệt Hỏa Thương Lang, tay Hỏa Ảnh, cánh Tà Hỏa Phượng Hoàng); pháp tướng lửa | Khung nhỏ, giữ nguyên; lặp nhiều bản dọc thân pháp tướng bằng code |
+| [LPC Explosions](https://opengameart.org/content/lpc-explosions) | theidiotmachine | CC0 | 32×32, 10 khung (đã dùng làm `fx_no`) | Kiểu "tia trúng" nổ nhỏ, tuyệt kỹ nổ | đã có công thức trong `art/src/lpc-item.json` |
+| [LPC Items and game effects](https://opengameart.org/content/lpc-items-and-game-effects) | Tuomo Untinen (Reemax) | **CC-BY-SA 3.0**, GPL 3.0, GPL 2.0 (cờ SA) | 32×32 | Biểu tượng và vài hiệu ứng nhỏ (đã dùng cho vật phẩm) | giữ như `lpc-item.mjs` |
+| [Smoke aura](https://opengameart.org/content/smoke-aura) | Beast | CC0 | 256×256, 15 / 30 / 45 khung (vòng lặp liền) | Hào quang hệ Ám / Độc: khói quanh pháp tướng Quỷ Mị, Hỏa Ảnh, Tử Vong Chu Hoàng, Bích Lân Xà Hoàng (đổi màu tím / lục) | Thu về 64–96, pixel hóa, giảm màu; chạy ngược để hút vào (biến hình) |
+| [Animated circular air blast](https://opengameart.org/content/animated-circular-air-blast-effect) | Julien (Julien Jorge) | **CC-BY-SA 3.0** (cờ SA) | chưa rõ (cần mở file để đo) | Hệ Phong, kiểu "vùng tròn" (sóng khí) | đo khung khi tải, pixel hóa; ứng viên hạng hai |
+| [Elemental absorption](https://opengameart.org/content/elemental-absorbtion-animation) | Sven Stamm (người đăng arakash) | **CC-BY-SA 3.0** (cờ SA) | chưa rõ | Hoạt ảnh hấp thụ (`absorb`) theo nguyên tố: lửa / nước / đất / dung nham | đo khung khi tải; ứng viên cho vòng hồn hoàn hấp thụ |
+
+**Khoảng trống (không tìm thấy gói LPC đủ giấy phép rõ):** hệ **Quang** (cột sáng, tia sáng) và hệ **Ám** (vuốt tối, mắt quỷ) không có gói LPC riêng: Quang dùng Heal / Shield nhuộm vàng và cột sáng vẽ bằng code (hoặc ComfyUI); Ám dùng Smoke aura nhuộm tím đen. Các bộ lớn như "Slash Effect Collection", "RPG Special Move Effects", "25 special effects" nằm trong bộ sưu tập OpenGameArt nhưng **chưa soát giấy phép từng gói** nên chưa liệt vào bảng; muốn dùng thì đọc trang gói trước, không rõ thì không tải.
+
+### 6.2 Ánh xạ sang các bước H5 / H6 / H7
+
+| Bước | Việc | Nguồn LPC đề nghị | Ghi chú |
+|---|---|---|---|
+| H5 tuyệt kỹ | Búa nện, hố nứt (Hạo Thiên) | Quake (đất) + Spikes | pháp tướng búa nện bằng PixelLab, mặt đất bằng LPC |
+| H5 | Rồng sét quét (Lôi Động Minh Thiên) | Lightning shock, `lightningclaw` | LPC chỉ là tia sét nền; thân rồng là pháp tướng |
+| H5 | Phượng Hoàng Niết Bàn, Hỏa Long Diệt Thế | Fireball, `fire lion`, Flames | lửa chồng nhiều lớp quanh pháp tướng |
+| H5 | Băng Phượng Phong Ấn / Băng Phong Thiên Địa | Icicle, Freeze, `icetacle` | |
+| H5 | Vạn Độc Bích Lân Vực, Tử Vong Thiên Võng | `snakebite`, Smoke aura (lục / tím) | |
+| H5 | Vô Địch Thần Quang, Tịnh Thế Lưu Ly | Shield, Heal nhuộm 7 màu | cột sáng 7 màu vẽ bằng code |
+| H5 | Quỷ Ảnh Trùng Trùng, Hỏa Ảnh Thiên Trọng | Smoke aura (Ám) | |
+| H6 hồn kỹ Chân Thân, vòng 8–9, tiên cơ | Biến thể mạnh của kiểu chung | Các gói Bellanger (CC-BY, nhẹ nhất về nghĩa vụ) | ưu tiên CC-BY / CC0 để tránh cờ SA |
+| H7 chuyển động phụ phụ thể | Cánh vỗ, đuôi vẫy, vũ khí sáng | Flames (tàn lửa), Sparks, `lightningclaw` (tia điện chạy dọc tay), Smoke aura thu nhỏ | chủ yếu bằng code; LPC chỉ thêm hạt |
+
+### 6.3 Hoạt ảnh hồn sư còn thiếu (từ Universal LPC Spritesheet Generator)
+
+- Bộ LPC có các hàng `spellcast` (7 khung), `slash` (6), `thrust` (8), `shoot` (13), `hurt` (6, chỉ nhìn xuống) và các hàng mở rộng (`idle`, `run`, `jump`, ...) tùy bản. `lpc-compose.mjs` đã ánh xạ `slash` → attack, `spellcast` → cast, `hurt` → hurt / die hướng `s`; các hướng khác của hurt / die và `absorb` vẽ bằng code.
+- `thrust` **chưa dùng**: hợp làm đòn đâm cho Phá Hồn Thương và Cửu Tinh Thất Sát Kiếm (nếu có thêm kiểu attack).
+- **Ràng buộc đã có:** `GAME_DESIGN.md` mục 5.11 chỉ cho LPC làm NPC phụ, dân thường, lính gác, **không** cho hồn sư người chơi vì phong cách lệch (đầu to, chiều cao 64, khác bộ hồn sư PixelLab). Vì vậy đề xuất: (1) **không** ghép khung LPC vào hồn sư người chơi; (2) dùng hàng LPC làm **tham chiếu tư thế** (số khung, nhịp, góc tay) để đặt khung xương khi PixelLab làm cast / hurt / die còn thiếu (`animate-with-skeleton-v3`); (3) nếu chủ repo muốn đổi luật thì thử một bộ ghép với `lpc-compose.mjs` và so với `m_0` ở trang xem trước trước khi quyết.
+- Giấy phép của hàng LPC: theo `CREDITS.csv` của repo generator cho đúng từng lớp (thường OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0); `lpc-compose.mjs` tự ghi và dừng khi không đọc được giấy phép.
+
+### 6.4 Ảnh thử
+
+Ảnh thử ghép (pixel hóa, viền, nhuộm màu) nằm trong trang xem trước H1 (bảng "LPC thử"): Fireball, Icicle, Shock, Heal, Shield, Quake, Freeze, Sparks và `lightningclaw` / `tornado` / `fire lion` / `iceshield` từ Extended LPC Magic pack, đặt cạnh pháp tướng PixelLab để xem có cùng độ phân giải và độ bão hòa không. Kết luận thử: gói pixel thật (Extended LPC Magic, LPC Flames, LPC Explosions) khớp ngay; gói dựng Blender của Bellanger khớp sau khi thu 50% với bảng màu ≤ 14 và viền `#1a1020`, riêng Shield / Shock cần làm lớp cộng sáng thay vì pixel hóa.
