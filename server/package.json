@@ -11,6 +11,7 @@
     "test:presence": "tsx scripts/presence-test.ts",
     "test:presence-kill": "tsx scripts/presence-kill-test.ts",
     "test:equip": "tsx scripts/equip-test.ts",
+    "test:radar": "tsx scripts/radar-test.ts",
     "econ:equip": "tsx scripts/equip-econ.ts"
   },
   "dependencies": {

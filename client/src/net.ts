@@ -58,6 +58,11 @@ export interface SoldItem extends BuybackItem { at: number; }
  */
 /** Tin riêng "gear" (trang bị hồn sư, mục 5.15): món đang mặc (`slot` = chỉ số ô trong EQUIP_SLOTS) và chỉ số tổng server tính (equipStats). */
 export interface GearItem { id: string; code: string; enhance: number; stats: unknown; slot: number; lock?: boolean; }
+/** Tin "equipenhp" (E3): xem trước lần cường hóa tiếp theo của một trang bị (số liệu từ EQUIP_ENHANCE do server gửi; `to` null = đã tối đa). */
+export interface EquipEnhPreview { id: string; enhance: number; to: number | null; p: number; fail: { kind: "keep" } | { kind: "down"; n: number } | { kind: "reset"; to: number } | { kind: "destroy" } | null;
+  stone: string | null; qty: number; have: number; fee: number; honTe: number; charm: number; busy: boolean; }
+/** Tin "equipenhd" (E3): kết quả một lần cường hóa (`to` null = món bị phá hủy). */
+export interface EquipEnhDone { id: string; from: number; to: number | null; ok: boolean; destroyed: boolean; charmUsed: boolean; stone: string; qty: number; fee: number; }
 export interface GearMsg { items: GearItem[]; st: { bonus: Record<string, number>; weapon: { min: number; max: number } | null; red: number; luck: number }; }
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
 /**
