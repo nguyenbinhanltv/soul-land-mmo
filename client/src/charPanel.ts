@@ -218,6 +218,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const dtabs = mk("div", "cdtabs"); dtabs.setAttribute("role", "tablist");
   const gearBy = new Map<string, GearItem>();
   for (const g of act.gear()) { const sid = EQUIP_SLOTS[g.slot]?.id; if (sid) gearBy.set(sid, g); }
+  if (selEquip && gearBy.has(selEquip)) selEquip = null; // ô đã có món (mặc bằng kéo thả / bấm đúp): bỏ chọn để viền, ghi chú, focus Túi khớp nhau
   const counts: Record<DollTab, string> = { equip: `${gearBy.size}/${EQUIP_SLOTS.length}`, bone: `${worn.size}/${BONE_SLOTS.length}`, core: `${bySlot.size}/${CORE_SLOTS}`, vohon: `${inTeam.length}/${TEAM_SIZE}` };
   for (const t of TABS) {
     const b = mk("button", "ui-tab"); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(tab === t.id)); b.dataset.tab = t.id;
