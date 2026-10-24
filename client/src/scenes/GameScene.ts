@@ -1204,7 +1204,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("equipenhp", (m: EquipEnhPreview) => hud.equipEnhPreview(m));
     this.room.onMessage("equipenhd", (m: EquipEnhDone) => { this.audio.playUi(m.ok ? "enhanceOk" : "enhanceFail"); hud.equipEnhDone(m); });
     this.room.onMessage("equipsynd", (m: EquipSynDone) => { this.audio.playUi(m.ok ? "enhanceOk" : "enhanceFail"); hud.equipSynDone(m); });
-    this.room.onMessage("equipsalvd", (m: EquipSalvDone) => { this.audio.playUi("drop"); hud.equipSalvDone(m); });
+    this.room.onMessage("equipsalvd", (m: EquipSalvDone) => { if (!m.auto) this.audio.playUi("drop"); hud.equipSalvDone(m); });
     // Đại Đấu Hồn Trường (7.2): server báo đang xếp hàng, đã ghép trận (vào phòng sân đấu), các pha của trận và kết quả.
     this.room.onMessage("arena", (m: any) => {
       if (m?.k === "queue") hud.setArenaQueue(m.on ? { elo: m.elo, secs: m.secs } : null, () => this.room.send("arena", { op: "cancel" }));

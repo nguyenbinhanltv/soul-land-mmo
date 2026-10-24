@@ -2771,8 +2771,16 @@ const equipIcon = (stats: BagItem["stats"]) => {
   const t = equipTemplate(parseEquip(stats)?.tpl);
   return `<span class="eico">${itemArt({ code: EQUIP_ITEM, years: null, stats })}${t ? artImg(equipFrameKey(t.tier), "efr") : ""}</span>`;
 };
-let forgeFx: "ok" | "fail" | "break" | null = null; // hiệu ứng lần vẽ Thợ rèn kế tiếp sau một kết quả (E5): xanh sáng / đỏ rung / vỡ
-const takeFx = (box: HTMLElement) => { if (forgeFx) { box.classList.add(`fx-${forgeFx}`); forgeFx = null; } };
+type ForgeFx = { kind: "ok" | "fail" | "break"; page: NpcPage; until: number; at: number };
+const FORGE_FX_MS = 900;
+let forgeFx: ForgeFx | null = null; // hiệu ứng kết quả của trang Thợ rèn (E5): xanh sáng / đỏ rung / vỡ; giữ qua các lần vẽ lại (tin bag / gear về ngay sau kết quả)
+/** Ghi hiệu ứng cho `page`, chỉ khi đúng trang đó đang mở (kết quả về lúc đã đóng / sang trang khác thì không bật lại lần sau). */
+const setFx = (kind: ForgeFx["kind"], page: NpcPage) => { const t = performance.now(); forgeFx = npcDefOpen && npcPage === page ? { kind, page, at: t, until: t + FORGE_FX_MS } : null; };
+/** Gắn lớp hiệu ứng lên hộp Thợ rèn vừa dựng; vẽ lại giữa chừng thì `animation-delay` âm để không chạy lại từ đầu. */
+const takeFx = (box: HTMLElement, page: NpcPage) => {
+  if (!forgeFx || forgeFx.page !== page || performance.now() >= forgeFx.until) { if (forgeFx && performance.now() >= forgeFx.until) forgeFx = null; return; }
+  box.classList.add(`fx-${forgeFx.kind}`); box.style.animationDelay = `-${((performance.now() - forgeFx.at) / 1000).toFixed(3)}s`;
+};
 let gearPick: string | null = null; // trang bị đang chọn ở trang "Cường hóa trang bị hồn sư" của Thợ rèn (E3)
 let gearPrev: EquipEnhPreview | null = null; // tin xem trước gần nhất (server tính, client chỉ hiển thị)
 let gearCharm = false; // đang chọn dùng Bùa Hộ Mệnh
@@ -2782,7 +2790,7 @@ export function equipEnhPreview(m: EquipEnhPreview) { if (m.id === gearPick) { g
 /** Tin "equipenhd" (E3): xong một lần cường hóa; bỏ trạng thái xác nhận, món bị phá hủy thì về danh sách. */
 export function equipEnhDone(m: EquipEnhDone) {
   gearConfirm = false; if (m.destroyed && m.id === gearPick) { gearPick = null; gearPrev = null; }
-  forgeFx = m.destroyed ? "break" : m.ok ? "ok" : "fail";
+  setFx(m.destroyed ? "break" : m.ok ? "ok" : "fail", "forgegear");
   toast("info", m.destroyed ? "Trang bị bị phá hủy" : m.ok ? `Cường hóa thành công +${m.to}` : m.charmUsed ? `Thất bại, Bùa Hộ Mệnh giữ +${m.to}` : `Cường hóa thất bại (+${m.to})`);
   if (npcDefOpen && npcPage === "forgegear") renderNpc();
 }
@@ -2794,7 +2802,7 @@ const failText = (f: EquipEnhPreview["fail"]) => !f ? "" : f.kind === "keep" ? "
  * phí, hậu quả thất bại), có thể dùng Bùa Hộ Mệnh. Nút chuyển ĐỎ và phải bấm hai lần khi thất bại có thể tụt cấp hoặc phá hủy.
  */
 function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box);
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgegear");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Cường hóa trang bị hồn sư"; box.appendChild(h);
   const worn = (act.gear()?.items ?? []).map((g) => ({ id: g.id, name: equipName(parseEquip(g.stats)?.tpl, g.enhance), enhance: g.enhance, where: `đang mặc (${EQUIP_SLOTS[g.slot]?.name ?? "?"})`, stats: g.stats }));
   const loose = bag.items.filter((i) => i.code === EQUIP_ITEM && i.vohon === null).map((i) => ({ id: i.id, name: itemName(i), enhance: i.enhance, where: "trong túi", stats: i.stats }));
@@ -2861,13 +2869,13 @@ const synFailText = (tier: number) => {
 };
 /** Tin "equipsynd" (E4): xong một lần hợp thành; bỏ chọn, báo kết quả. */
 export function equipSynDone(m: EquipSynDone) {
-  synMain = null; synSac = []; synConfirm = false; forgeFx = m.ok ? "ok" : m.enhance === null ? "break" : "fail";
+  synMain = null; synSac = []; synConfirm = false; setFx(m.ok ? "ok" : m.enhance === null ? "break" : "fail", "forgesynth");
   toast("info", m.ok ? `Hợp thành thành công: ${EQUIP_TIERS[m.from + 1].name}` : m.enhance === null ? "Hợp thành thất bại: mất cả 3 món" : "Hợp thành thất bại");
   if (npcDefOpen && npcPage === "forgesynth") renderNpc();
 }
 /** Tin "equipsalvd" (E4): xong phân giải; bỏ chọn, báo tổng nhận được. */
 export function equipSalvDone(m: EquipSalvDone) {
-  salvSel.clear(); salvConfirm = false; forgeFx = "ok";
+  salvSel.clear(); salvConfirm = false; if (!m.auto) setFx("ok", "forgesalv");
   toast("info", `${m.auto ? "Tự phân giải" : "Phân giải"} ${m.n} trang bị`, `+${honTeText(m.coin)}${m.items.map((x) => `, ${x.qty} ${itemDef(x.code)?.name ?? x.code}`).join("")}`);
   if (npcDefOpen && npcPage === "forgesalv") renderNpc();
 }
@@ -2876,7 +2884,7 @@ export function equipSalvDone(m: EquipSalvDone) {
  * EQUIP_SYNTH (chỉ hiển thị; server tính và kiểm lại). Nút chuyển đỏ, bấm hai lần vì thất bại luôn mất đồ.
  */
 function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box);
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgesynth");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Hợp thành trang bị (3 → 1)"; box.appendChild(h);
   const all = looseEquip(bag), main = synMain ? all.find((x) => x.it.id === synMain) : undefined;
   if (synMain && !main) { synMain = null; synSac = []; }
@@ -2912,7 +2920,7 @@ function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * EQUIP_SALVAGE (hiển thị số tối thiểu, chưa tính nguyên liệu ngẫu nhiên); không cho kinh nghiệm. Bấm hai lần; server kiểm lại và ghi một transaction.
  */
 function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
-  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box);
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgesalv");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Phân giải trang bị"; box.appendChild(h);
   const all = looseEquip(bag).sort((a, b) => a.tier - b.tier || a.it.enhance - b.it.enhance);
   for (const id of [...salvSel]) if (!all.some((x) => x.it.id === id)) salvSel.delete(id);
