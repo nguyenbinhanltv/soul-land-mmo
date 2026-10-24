@@ -77,7 +77,7 @@
    "n": -2
   }
  },
- "totalBytes": 1342896,
+ "totalBytes": 1352270,
  "sheets": {
   "lpcp_arms_bracers_f_70": {
    "part": "arms.bracers",
@@ -3696,6 +3696,20 @@
    "color": "white",
    "idle": false,
    "bytes": 4058
+  },
+  "lpcp_torso_formal_m_35": {
+   "part": "torso.formal",
+   "sex": "m",
+   "z": 35,
+   "idle": false,
+   "bytes": 4676
+  },
+  "lpcp_torso_formal_striped_m_35": {
+   "part": "torso.formal_striped",
+   "sex": "m",
+   "z": 35,
+   "idle": false,
+   "bytes": 4698
   },
   "lpcp_torso_jacket_iverness_m_55_black": {
    "part": "torso.jacket_iverness",

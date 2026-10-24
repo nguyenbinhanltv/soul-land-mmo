@@ -5480,7 +5480,7 @@ export const LPC_RAMPS: Record<string, { allow: string[]; ramps: Record<string, 
   } }
 };
 
-/** Danh mục 111 món (kết quả L0; mã = "<ô>.<tên>"). */
+/** Danh mục 113 món (kết quả L0; mã = "<ô>.<tên>"). */
 export const LPC_PARTS: LpcPart[] = [
   {"id":"body.body","slot":"body","vi":"Thân","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[10],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"head.male","slot":"head","vi":"Mặt nam","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
@@ -5530,6 +5530,8 @@ export const LPC_PARTS: LpcPart[] = [
   {"id":"torso.longsleeve2_cardigan","slot":"torso","vi":"Áo khoác mở","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.longsleeve2_vneck","slot":"torso","vi":"Áo cổ chữ V","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.shortsleeve","slot":"torso","vi":"Áo ngắn tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.formal","slot":"torso","vi":"Áo đồng phục học viện","style":"dong","sex":"m","idle":"","mats":["cloth:white"],"colors":[],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.formal_striped","slot":"torso","vi":"Áo đồng phục sọc","style":"dong","sex":"m","idle":"","mats":["cloth:white"],"colors":[],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.robe","slot":"torso","vi":"Áo bào","style":"dong","sex":"f","idle":"","mats":[],"colors":["brown","red","blue","purple"],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.tunic","slot":"torso","vi":"Áo túi (tunic)","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.tunic_sara","slot":"torso","vi":"Áo túi Sara","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},

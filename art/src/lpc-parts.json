@@ -47,6 +47,8 @@
  "torso.longsleeve2_cardigan": {"m":["torso/clothes/longsleeve/longsleeve2_cardigan/male/"],"f":["torso/clothes/longsleeve/longsleeve2_cardigan/female/"]},
  "torso.longsleeve2_vneck": {"m":["torso/clothes/longsleeve/longsleeve2_vneck/male/"],"f":["torso/clothes/longsleeve/longsleeve2_vneck/female/"]},
  "torso.shortsleeve": {"m":["torso/clothes/shortsleeve/shortsleeve/male/"],"f":["torso/clothes/shortsleeve/shortsleeve/female/"]},
+ "torso.formal": {"m":["torso/clothes/longsleeve/formal/male/"],"f":[null]},
+ "torso.formal_striped": {"m":["torso/clothes/longsleeve/formal_striped/male/"],"f":[null]},
  "torso.robe": {"m":[null],"f":["torso/clothes/robe/female/"]},
  "torso.tunic": {"m":[null],"f":["torso/clothes/tunic/female/"]},
  "torso.tunic_sara": {"m":[null],"f":["torso/clothes/tunic_sara/female/"]},
