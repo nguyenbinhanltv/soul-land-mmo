@@ -316,7 +316,7 @@ jobs:
       - name: test:presence-kill (Redis thật)
         timeout-minutes: 3
         env:
-          REDIS_PREFIX: soul-land-mmo:presence-test
+          REDIS_PREFIX: test:presence-kill
         run: npm run test:presence-kill --prefix server
       - name: bot arena hai tiến trình (--procs 2)
         if: ${{ !cancelled() }}

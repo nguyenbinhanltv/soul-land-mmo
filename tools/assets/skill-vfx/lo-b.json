@@ -1,0 +1,579 @@
+{
+ "_": "S3 lô B (#567): 6 thú võ hồn + 2 dung hợp (Hạo Thiên Nhu Cốt, U Minh Bạch Hổ), cùng công thức S2. `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ [viền, tối, chủ, nhấn, sáng]. Chạy: node tools/assets/skill-vfx/run.mjs --spec lo-b.json --out <nháp>",
+ "tag": "S3 lô B (#567)",
+ "common": "Pixel art VFX for an isometric RPG skill, 3/4 top-down view, transparent background, no character, no text, dark outline, limited palette, white-hot core, centered.",
+ "vohon": {
+  "um": {
+   "palette": [
+    "#1a1020",
+    "#3e2266",
+    "#b06bff",
+    "#d9b8ff",
+    "#ffffff"
+   ],
+   "theme": "Violet panther shadow magic, three-claw scratch marks, dark smoke wisps, glowing eyes, colors violet #b06bff, deep purple #3e2266, white."
+  },
+  "nc": {
+   "palette": [
+    "#1a1020",
+    "#b05a8a",
+    "#ff9acb",
+    "#ffc2e2",
+    "#ffffff"
+   ],
+   "theme": "Soft pink rabbit magic, whip-like long ears, round puffs, white fur tufts, colors pink #ffc2e2, rose #c86a9a, white."
+  },
+  "km": {
+   "palette": [
+    "#1a1020",
+    "#7a5a12",
+    "#ffd54a",
+    "#fff0a0",
+    "#ffffff"
+   ],
+   "theme": "Golden eagle-cat lightning magic, golden feathers wrapped in electricity, colors gold #ffd54a, brown #7a5a12, pale yellow, white."
+  },
+  "yh": {
+   "palette": [
+    "#1a1020",
+    "#7a2a5a",
+    "#ff9ad5",
+    "#ffd0ec",
+    "#ffffff"
+   ],
+   "theme": "Pink fox charm magic, three fox tails, heart shapes, flower petals, colors pink #ff9ad5, plum #7a2a5a, pale pink, white."
+  },
+  "lh": {
+   "palette": [
+    "#1a1020",
+    "#4a3a3a",
+    "#ff7a3a",
+    "#ffb347",
+    "#ffe08a"
+   ],
+   "theme": "Fiery wolf magic, flame wolf head and fangs, fire claw marks, embers, grey smoke, colors orange #ff7a3a, amber #ffb347, dark grey."
+  },
+  "bh": {
+   "palette": [
+    "#1a1020",
+    "#3a3a4c",
+    "#c8c8d8",
+    "#fff0b0",
+    "#ffffff"
+   ],
+   "theme": "White tiger magic, black tiger stripes, golden tiger eyes, paw prints, shockwave, colors white, silver, black #3a3a4c, gold accents."
+  },
+  "hn": {
+   "palette": [
+    "#1a1020",
+    "#5a5a70",
+    "#d070a8",
+    "#ffc2e2",
+    "#ffffff"
+   ],
+   "theme": "Fusion of black war hammer and soft pink rabbit: grey cracked ground and flying rocks with pink whip arcs and white fur puffs, colors grey #9aa0b4, pink #ffc2e2."
+  },
+  "ub": {
+   "palette": [
+    "#1a1020",
+    "#3a2a5c",
+    "#b06bff",
+    "#f2f2f6",
+    "#ffffff"
+   ],
+   "theme": "Fusion of white tiger and violet panther: white-gold tiger paw shockwave, violet claw slashes, striped violet-white tiger shadow, colors white #f2f2f6, violet #b06bff."
+  }
+ },
+ "sheets": [
+  {
+   "n": "um_slash1",
+   "v": "um",
+   "t": 1,
+   "f": 8,
+   "d": "Dash slash: three diagonal violet claw streaks cut across fast, tips dissolving into dark smoke trails, a few sparks. Compact."
+  },
+  {
+   "n": "um_hit2",
+   "v": "um",
+   "t": 1,
+   "f": 6,
+   "d": "Aim mark flashes on a ground point, then three violet claw scratches carve into it and fade into dark smoke with two glowing eyes. Compact."
+  },
+  {
+   "n": "um_aura3",
+   "v": "um",
+   "t": 1,
+   "f": 6,
+   "d": "Shadow aura: dark smoke curls rise around the feet in a ring, two violet eyes blink open, soft white glow, calm. Compact."
+  },
+  {
+   "n": "um_hit4",
+   "v": "um",
+   "t": 1,
+   "f": 6,
+   "d": "Rapid claw flurry: five crossing violet claw scratches in an X pattern carve into the point, fast, smoke puffs. Compact."
+  },
+  {
+   "n": "um_slash5",
+   "v": "um",
+   "t": 2,
+   "f": 8,
+   "d": "Big dash cut: three thick violet claw streaks sweep through with white edges, a panther shadow blur smears along the path, thick smoke afterimage. Large, clear."
+  },
+  {
+   "n": "um_hit6",
+   "v": "um",
+   "t": 2,
+   "f": 8,
+   "d": "Hunt lock: violet reticle tightens on the target, a panther shadow pounces, deep claw scratches carve in, white flash, smoke wisps. Large, clear."
+  },
+  {
+   "n": "um_zone8",
+   "v": "um",
+   "t": 2,
+   "f": 8,
+   "d": "Shadow clones: flat isometric ring where several panther silhouettes run in a circle leaving violet paw prints, claw arcs slash outward, smoke. Large."
+  },
+  {
+   "n": "um_hit9",
+   "v": "um",
+   "t": 2,
+   "f": 8,
+   "d": "Soul rake: claws rip violet soul wisps up out of the ground in a ghostly smoke spiral, three big claw marks, bright flash. Large, clear."
+  },
+  {
+   "n": "um_t3a",
+   "v": "um",
+   "t": 3,
+   "f": 12,
+   "d": "Ultimate flurry: faint reticle, then dozens of violet claw slashes from many angles carve a dense net over the target, panther shadows streak past, burst of dark smoke, aftershock wisps. Very large.",
+   "big": 1
+  },
+  {
+   "n": "um_t3b",
+   "v": "um",
+   "t": 3,
+   "f": 12,
+   "d": "Transformation pounce: a giant violet panther spirit leaps forward with a huge claw swipe, tripled claws leave long violet streaks, eyes flaring, smoke explosion. Very large, dramatic.",
+   "big": 1
+  },
+  {
+   "n": "um_hit_tc",
+   "v": "um",
+   "t": 2,
+   "f": 8,
+   "d": "Blink strike: dark smoke swallows the point, then three violet claw slashes appear behind it as a panther shadow vanishes with a flash. Large."
+  },
+  {
+   "n": "nc_hit1",
+   "v": "nc",
+   "t": 1,
+   "f": 6,
+   "d": "Pink pulse: a round soft ring compresses then bursts outward, white fur tufts and pink dots float, a rabbit-ear lash mark. Compact."
+  },
+  {
+   "n": "nc_slash2",
+   "v": "nc",
+   "t": 1,
+   "f": 8,
+   "d": "Teleport dash: a long curved pink ear-whip streak with white fur puffs trailing, soft flash at the end. Compact."
+  },
+  {
+   "n": "nc_aura3",
+   "v": "nc",
+   "t": 1,
+   "f": 6,
+   "d": "Pale gold aura: soft shimmer around the feet, tiny white fur strands standing up, a glowing pink ring, calm. Compact."
+  },
+  {
+   "n": "nc_hit4",
+   "v": "nc",
+   "t": 1,
+   "f": 6,
+   "d": "Throwing slam: a pink ring pulses three times, each bigger, white fur puffs, tiny rabbit paw prints. Compact."
+  },
+  {
+   "n": "nc_slash5",
+   "v": "nc",
+   "t": 2,
+   "f": 8,
+   "d": "Charm sweep: wide curved pink ear-whip crescent with a white edge, heart-shaped sparkles at the end, fur puffs. Large, clear."
+  },
+  {
+   "n": "nc_slash6",
+   "v": "nc",
+   "t": 2,
+   "f": 8,
+   "d": "Chain teleport dash: two long pink ear-whip streaks one after another, white afterimage blur, bunny paw prints, fur puffs. Large."
+  },
+  {
+   "n": "nc_hit8",
+   "v": "nc",
+   "t": 2,
+   "f": 8,
+   "d": "Rabbit throw combo: a pink ring compresses and bursts, a big ear-whip slams down on the point, white fur explosion, ripples. Large."
+  },
+  {
+   "n": "nc_aura9",
+   "v": "nc",
+   "t": 2,
+   "f": 8,
+   "d": "Indestructible shell: a gold-white diamond shimmer wraps rising around the feet, pink ring, fur tufts, strong steady glow. Large."
+  },
+  {
+   "n": "nc_t3a",
+   "v": "nc",
+   "t": 3,
+   "f": 12,
+   "d": "Ultimate combo: aim mark, then a giant pink ring slam bursts, huge pink rabbit-ear whips crash down repeatedly, white fur fountain, ripple rings. Very large.",
+   "big": 1
+  },
+  {
+   "n": "nc_t3b",
+   "v": "nc",
+   "t": 3,
+   "f": 12,
+   "d": "Transformation: a giant pink rabbit leaps high then slams down, huge pink shockwave rings spread across the ground, white fur and petals fly. Very large, dramatic.",
+   "big": 1
+  },
+  {
+   "n": "nc_hit_tc",
+   "v": "nc",
+   "t": 2,
+   "f": 8,
+   "d": "Behind strike: a rabbit shape vanishes in a pink pop, then a pink ear-whip slams from behind in a ring burst, white fur puffs. Large."
+  },
+  {
+   "n": "km_hit1",
+   "v": "km",
+   "t": 1,
+   "f": 6,
+   "d": "Lightning claw strike: golden feathers burst outward from the point, short yellow bolts jump between them. Compact."
+  },
+  {
+   "n": "km_hit2",
+   "v": "km",
+   "t": 1,
+   "f": 6,
+   "d": "Paralyzing claw: one bright golden claw mark with a lightning ring, small yellow bolts freeze in place, feather bursts. Compact."
+  },
+  {
+   "n": "km_slash3",
+   "v": "km",
+   "t": 1,
+   "f": 8,
+   "d": "Flying dash: two golden eagle-claw streaks sweep through with lightning sparks, feathers dropping. Compact."
+  },
+  {
+   "n": "km_zone4",
+   "v": "km",
+   "t": 1,
+   "f": 6,
+   "d": "Eagle domain: flat isometric ring of rotating golden feathers, small bolt bursts in the middle. Compact."
+  },
+  {
+   "n": "km_hit5",
+   "v": "km",
+   "t": 2,
+   "f": 8,
+   "d": "Lightning claw combo: target reticle, a golden eagle claw rakes three times, feather explosion, bolts jump outward, white flash. Large."
+  },
+  {
+   "n": "km_slash6",
+   "v": "km",
+   "t": 2,
+   "f": 8,
+   "d": "Eagle dive: two big golden claw streaks with lightning forks, bolts strike down along the whole path, feathers. Large, clear."
+  },
+  {
+   "n": "km_hit8",
+   "v": "km",
+   "t": 2,
+   "f": 8,
+   "d": "Chain shock claws: golden claw marks one after another, a yellow lightning web crackles around the point, stars, feather puffs. Large."
+  },
+  {
+   "n": "km_burst9",
+   "v": "km",
+   "t": 2,
+   "f": 8,
+   "d": "Feather storm: golden electric feathers fire out in all directions from the center, bolt trails, bursts at the tips. Large, clear."
+  },
+  {
+   "n": "km_t3a",
+   "v": "km",
+   "t": 3,
+   "f": 12,
+   "d": "Ultimate domain: a huge ring of spinning golden feathers, three pulses of lightning strikes crash inside, electric web, feather storm settles. Very large.",
+   "big": 1
+  },
+  {
+   "n": "km_t3b",
+   "v": "km",
+   "t": 3,
+   "f": 12,
+   "d": "Transformation: a giant golden eagle spreads its wings, a massive volley of lightning feathers bursts forward and outward, rings of bolts. Very large, dramatic.",
+   "big": 1
+  },
+  {
+   "n": "km_zone_tc",
+   "v": "km",
+   "t": 2,
+   "f": 8,
+   "d": "Descending bolts: golden lightning drops all around in a ring from above, feathers float, electric flash. Large."
+  },
+  {
+   "n": "yh_slash1",
+   "v": "yh",
+   "t": 1,
+   "f": 8,
+   "d": "Charm glance: three curved pink fox-tail swipes fan across, petals scatter, small sparkles. Compact."
+  },
+  {
+   "n": "yh_zone2",
+   "v": "yh",
+   "t": 1,
+   "f": 6,
+   "d": "Illusion burst: a flat isometric pink flower ring blooms from the center, a faint fox silhouette flickers and vanishes in sparkles. Compact."
+  },
+  {
+   "n": "yh_zone3",
+   "v": "yh",
+   "t": 1,
+   "f": 6,
+   "d": "Fox domain: slow pink ring with three rotating fox-tail shapes, pulses once, petals drift. Compact."
+  },
+  {
+   "n": "yh_zone4",
+   "v": "yh",
+   "t": 1,
+   "f": 6,
+   "d": "Myriad fox illusions: a ring of many tiny fox heads flickers around, hearts pop, sparkles. Compact."
+  },
+  {
+   "n": "yh_slash5",
+   "v": "yh",
+   "t": 2,
+   "f": 8,
+   "d": "Big charm sweep: wide fan of three thick pink fox tails with white edges, a small heart explodes at the tips, petals. Large, clear."
+  },
+  {
+   "n": "yh_zone6",
+   "v": "yh",
+   "t": 2,
+   "f": 8,
+   "d": "Fox clones blast: several fox silhouettes burst outward, big pink flower ring, hearts popping, petals. Large."
+  },
+  {
+   "n": "yh_zone8",
+   "v": "yh",
+   "t": 2,
+   "f": 8,
+   "d": "Charm realm: wide pink flower mandala ring with three swirling fox tails, pulses, hearts rise, petals. Large, clear pattern."
+  },
+  {
+   "n": "yh_hit9",
+   "v": "yh",
+   "t": 2,
+   "f": 8,
+   "d": "Soul snatch: pink reticle, then a big heart explodes at the target, a fox-tail whip lashes in, sparkles scatter. Large."
+  },
+  {
+   "n": "yh_t3a",
+   "v": "yh",
+   "t": 3,
+   "f": 12,
+   "d": "Ultimate: fox tails gather, then a ring of countless fox spirits bows toward the center, huge pink heart-flower burst, petal storm. Very large.",
+   "big": 1
+  },
+  {
+   "n": "yh_t3b",
+   "v": "yh",
+   "t": 3,
+   "f": 12,
+   "d": "Transformation: three giant pink fox tails fan out and sweep a full circle, pink aura bursts, hearts and petals. Very large, dramatic.",
+   "big": 1
+  },
+  {
+   "n": "yh_zone_tc",
+   "v": "yh",
+   "t": 2,
+   "f": 8,
+   "d": "Charm shockwave: a pink wave bursts from the caster in a flat ring, small hearts radiate. Large."
+  },
+  {
+   "n": "lh_hit1",
+   "v": "lh",
+   "t": 1,
+   "f": 6,
+   "d": "Flame wolf bite: aim mark, then double wolf-jaw snaps with glowing fangs, burst of embers and grey smoke. Compact."
+  },
+  {
+   "n": "lh_slash2",
+   "v": "lh",
+   "t": 1,
+   "f": 8,
+   "d": "Wolf rush: three orange claw streaks sweep along, fire trail behind, embers. Compact."
+  },
+  {
+   "n": "lh_zone3",
+   "v": "lh",
+   "t": 1,
+   "f": 6,
+   "d": "Wolf howl: flat isometric cracked fire ring, a wolf silhouette runs in a circle, embers and grey smoke. Compact."
+  },
+  {
+   "n": "lh_hit4",
+   "v": "lh",
+   "t": 1,
+   "f": 6,
+   "d": "Fire claw rake: three burning claw marks tear across the point, double-bite flash, embers. Compact."
+  },
+  {
+   "n": "lh_slash5",
+   "v": "lh",
+   "t": 2,
+   "f": 8,
+   "d": "Fang slash: large crescent of fire with two glowing fang tips biting the air, three claw streaks, embers. Large, clear."
+  },
+  {
+   "n": "lh_slash6",
+   "v": "lh",
+   "t": 2,
+   "f": 8,
+   "d": "Long wolf dash: huge fire streak with a wolf shadow blur, burn marks along the path, double bite at the end. Large."
+  },
+  {
+   "n": "lh_burst8",
+   "v": "lh",
+   "t": 2,
+   "f": 8,
+   "d": "Wolf pack: five flame wolf heads burst outward in a fan from the center with fire trails, glowing fangs, embers. Large, clear."
+  },
+  {
+   "n": "lh_hit9",
+   "v": "lh",
+   "t": 2,
+   "f": 8,
+   "d": "Hunt: reticle, then a flame wolf leaps and bites, double-jaw flash with a column of fire, grey smoke. Large."
+  },
+  {
+   "n": "lh_t3a",
+   "v": "lh",
+   "t": 3,
+   "f": 12,
+   "d": "Ultimate: faint ring of fire cracks, then a giant flaming wolf head devours the target in a huge double-jaw bite, fire pillar, ember storm. Very large.",
+   "big": 1
+  },
+  {
+   "n": "lh_t3b",
+   "v": "lh",
+   "t": 3,
+   "f": 12,
+   "d": "Transformation: a huge fire wolf pounces forward with giant fire claw swipes and a roar that blasts flames outward. Very large, dramatic.",
+   "big": 1
+  },
+  {
+   "n": "lh_hit_tc",
+   "v": "lh",
+   "t": 2,
+   "f": 8,
+   "d": "Wolf dash: a wolf shadow blurs past leaving a streak of fire and a double-bite spark. Large."
+  },
+  {
+   "n": "bh_zone1",
+   "v": "bh",
+   "t": 1,
+   "f": 6,
+   "d": "Guardian burst: flat isometric ring of black-and-white tiger stripes spreads from the center, a golden tiger eye in the middle, dust. Compact."
+  },
+  {
+   "n": "bh_slash2",
+   "v": "bh",
+   "t": 1,
+   "f": 8,
+   "d": "Light claw wave: three white claw slashes with black stripes sweep across, golden sparks. Compact."
+  },
+  {
+   "n": "bh_aura3",
+   "v": "bh",
+   "t": 1,
+   "f": 6,
+   "d": "Diamond body: white tiger stripes glow and run around the feet in a ring, diamond scale glints rise, soft white glow. Compact."
+  },
+  {
+   "n": "bh_hit4",
+   "v": "bh",
+   "t": 1,
+   "f": 6,
+   "d": "Tiger pounce: a glowing white paw print stamps onto the point with a small shockwave ring, white dust, golden sparks. Compact."
+  },
+  {
+   "n": "bh_slash5",
+   "v": "bh",
+   "t": 2,
+   "f": 8,
+   "d": "Big claw wave: three thick white claw slashes with black stripes, a paw print stamps at the end, shockwave, golden sparks. Large, clear."
+  },
+  {
+   "n": "bh_aura6",
+   "v": "bh",
+   "t": 2,
+   "f": 8,
+   "d": "Stronger diamond body: white tiger stripes run in a double ring around the feet, big diamond glints, bright steady glow. Large."
+  },
+  {
+   "n": "bh_burst8",
+   "v": "bh",
+   "t": 2,
+   "f": 8,
+   "d": "Meteor rain: tiger-head shaped white light waves fire out in all directions, paw print shockwaves at the tips, golden sparks. Large, clear."
+  },
+  {
+   "n": "bh_zone9",
+   "v": "bh",
+   "t": 2,
+   "f": 8,
+   "d": "Tiger quake: flat isometric striped ring shockwave spreads, striped ground cracks, paw prints stamp, dust. Large."
+  },
+  {
+   "n": "bh_t3a",
+   "v": "bh",
+   "t": 3,
+   "f": 12,
+   "d": "Ultimate: a wide flat striped shockwave ring on the ground, a giant glowing white tiger paw print stamps in its center, black stripe lines radiate outward, golden sparks, dust storm. No filled white shapes, no cat face. Very large.",
+   "big": 1
+  },
+  {
+   "n": "bh_t3b",
+   "v": "bh",
+   "t": 3,
+   "f": 12,
+   "d": "Transformation: a giant white tiger leaps and slaps one huge paw, white claw marks tear across the whole area, golden eyes. Very large, dramatic.",
+   "big": 1
+  },
+  {
+   "n": "bh_slash_tc",
+   "v": "bh",
+   "t": 2,
+   "f": 8,
+   "d": "Shock wave: a white shockwave blast in front with black stripes at the rim, claw marks, golden sparks. Large."
+  },
+  {
+   "n": "hn_t3",
+   "v": "hn",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Fusion strike on a wide ground ring: pink wave rings smash the area, then a black war hammer slams down repeatedly with grey ground cracks and flying rocks, each blow bursting pink petals and white fur. Very large."
+  },
+  {
+   "n": "ub_t3",
+   "v": "ub",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Fusion on a wide ground ring: left half a white tiger shockwave with paw prints, right half violet panther claw slashes, then a huge striped violet-white tiger shadow covers the whole area. Very large."
+  }
+ ]
+}
