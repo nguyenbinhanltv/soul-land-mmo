@@ -56,7 +56,8 @@ Key PixelLab đọc từ file (`PIXELLAB_KEY_FILE`, mặc định `~/.config/pix
 - Khung 160×160, gốc **(80, 124)** trùng chân hồn sư (32, 58) của khung 64×64. Mỗi hướng lấy **hộp bao hợp của cả 16 khung** (idle + attack) rồi đặt sao cho giữa-đáy hộp trùng gốc, nên pháp tướng không nhảy vị trí giữa thở và đánh.
 - Bỏ điểm alpha ≤ 40, còn lại đục 255. **Độ đục hư ảnh do client áp lúc vẽ** (`pt.ghost` 0,88 ở lớp sau; nhân thêm `frontAlpha` 0,7 ở lớp trước), vì sheet chỉ cho alpha 0 / 255.
 - Viền sáng 2 điểm màu `col` của võ hồn (`VOHON`) quanh hình (điểm ngoài dithering); cả sheet giảm còn **48 màu** (median cut, giữ viền `#1a1020` và màu viền sáng); bảng màu riêng từng võ hồn.
-- Hướng sw / w / nw lật từ se / e / ne (client). Lớp theo hướng: `s, se, e` SAU; `ne, n` TRƯỚC mờ 70% (`display.back` / `display.front`), thân hồn sư vẽ giữa hai lớp.
+- Hướng sw / w / nw lật từ se / e / ne (client).
+- **Lớp (H1 chốt): một lớp cho cả khung ở mỗi hướng**, không tách phần sau / phần ló trước trong một khung: `s, se, e` vẽ SAU thân hồn sư; `ne, n` vẽ TRƯỚC thân hồn sư, mờ 70% (`display.back` / `display.front`, `frontAlpha`). Cùng luật cho mọi nhóm (rồng, búa...). Luật này **thay** cách tả lớp theo nhóm ở bản đặc tả H0 đầu (`docs/phap-tuong.md` mục 2 và "hai lớp" ở `GAME_DESIGN.md` 5.18; đã sửa trong PR #492). Bảng nhóm V / S / P / B / T / O / D ở mục 2 đó chỉ còn là gợi ý điểm gắn (dx, dy, tỉ lệ).
 - `display.scale`, `dx`, `dy` (px, quanh gốc, sau lưng hồn sư): Rồng 1,0 / 0 / 0; Búa 0,85 / +12 / −4 (vác sau vai phải). Chỉnh khi thấy che hồn sư; ghi vào `recipe.json` rồi đăng ký lại (manifest lấy `pt` từ đó).
 - Hồn sư thử ghép: m_0 / f_0 của repo (tóc lam), xem trang xem trước H1.
 
