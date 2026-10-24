@@ -5032,15 +5032,15 @@ export const RADAR = {
 
 /**
  * Khóa ảnh giao diện cho R7 (#434) và cỡ đích (pixel). Chưa có ảnh trong manifest thì client dùng CSS tạm; có ảnh thì thay mà không sửa code.
- * - `frame`: khung gỗ sơn mài tròn, vuông `w`×`h`, lòng tròn đường kính `RADAR.size.desktop` nằm giữa (điện thoại thu theo tỉ lệ);
+ * - `frame`: khung gỗ sơn mài tròn, vuông `w`×`h` (lòng khung ≈ 3/4 cỡ ảnh nên 224 ứng lòng tròn `RADAR.size.desktop`), lòng tròn nằm giữa (điện thoại thu theo tỉ lệ);
  * - `compass`: la bàn 4 hướng vuông, tâm trùng tâm radar, vẽ xoay theo `radarCompassRotation` (shared/radar.ts); mũi Bắc không dài hơn
  *   mũi Nam, nên client tô đỏ đầu mũi Bắc và vẽ chữ "B" bằng code (ảnh không có chữ);
  * - `paper`: nền giấy bản đồ khu vực, kéo giãn 9 lát (`nine`).
  */
 export const RADAR_ART = {
-  frame:   { key: "ui_radar_frame",   w: 192, h: 192 },
+  frame:   { key: "ui_radar_frame",   w: 224, h: 224 },
   compass: { key: "ui_radar_compass", w: 160, h: 160 },
-  paper:   { key: "ui_mapview_paper", w: 256, h: 256, nine: 24 },
+  paper:   { key: "ui_mapview_paper", w: 144, h: 105, nine: 16 },
 };
 
 /** Bản đồ khu vực toàn màn hình (phím N): giới hạn phóng (pixel màn hình mỗi ô lưới) và các lớp lọc, mặc định bật hết. */

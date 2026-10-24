@@ -3163,6 +3163,11 @@
       "nine": 14
     },
     {
+      "key": "ui_mapview_paper",
+      "iso": true,
+      "nine": 16
+    },
+    {
       "key": "ui_nut_nhan",
       "iso": true,
       "nine": 6
@@ -3191,6 +3196,14 @@
       "key": "ui_o_chon",
       "iso": true,
       "nine": 4
+    },
+    {
+      "key": "ui_radar_compass",
+      "iso": true
+    },
+    {
+      "key": "ui_radar_frame",
+      "iso": true
     },
     {
       "key": "ui_thanh_hon_luc",
