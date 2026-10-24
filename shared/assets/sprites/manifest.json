@@ -1756,6 +1756,14 @@
       "iso": true
     },
     {
+      "key": "fx_sk_ha_hit9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
       "key": "fx_sk_ha_slash1",
       "frame": [
         72,
@@ -1853,6 +1861,14 @@
     },
     {
       "key": "fx_sk_ha_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone4_g",
       "frame": [
         72,
         72

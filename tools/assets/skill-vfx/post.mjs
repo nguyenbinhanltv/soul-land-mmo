@@ -44,8 +44,9 @@ for (const s of spec.sheets.concat(spec.extra ?? [])) {
   }
   let a = 0, b = n; while (a < b - 1 && frames[a].px < 4) a++; while (b > a + 1 && frames[b - 1].px < 4) b--;
   const kept = frames.slice(a, b);
+  let BT = 0.7; // ngưỡng độ sáng của điểm sáng; sheet quá tối (màu sáng nhất vẫn thấp) hạ xuống 0,55 ở dưới
   // lớp sáng: quanh điểm sáng nhất (nhấn / sáng), viền đặc 2 điểm
-  const bright = (g, x, y) => { const d = (y * W + x) * 4; return g.data[d + 3] === 255 && lum(g.data[d], g.data[d + 1], g.data[d + 2]) > 0.7; };
+  const bright = (g, x, y) => { const d = (y * W + x) * 4; return g.data[d + 3] === 255 && lum(g.data[d], g.data[d + 1], g.data[d + 2]) > BT; };
   const strip = (arr, glow) => {
     const o = { w: W * arr.length, h: W, data: Buffer.alloc(W * arr.length * W * 4) };
     arr.forEach((g, k) => {
@@ -67,7 +68,9 @@ for (const s of spec.sheets.concat(spec.extra ?? [])) {
     return o;
   };
   writeFileSync(path.join(outDir, `sk_${s.n}.png`), encodePng(strip(kept, false)));
-  const gl = strip(kept, true), glowPx = gl.data.reduce((t, v, i) => t + (i % 4 === 3 && v ? 1 : 0), 0);
+  const cnt = (o) => o.data.reduce((t, v, i) => t + (i % 4 === 3 && v ? 1 : 0), 0);
+  let gl = strip(kept, true), glowPx = cnt(gl);
+  if (glowPx <= 20) { BT = 0.55; gl = strip(kept, true); glowPx = cnt(gl); }
   if (glowPx > 20) writeFileSync(path.join(outDir, `sk_${s.n}_g.png`), encodePng(gl));
   const meta = JSON.parse(readFileSync(f.replace(/\.png$/, ".meta.json"), "utf8"));
   console.log(`[post] ${s.n}: ${kept.length}/${n} khung ${W}×${W} fps ${meta.fps} điểm/khung ${kept.map((g) => g.px).join(",")}${glowPx > 20 ? " +sáng" : ""}`);
