@@ -44,6 +44,8 @@ import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets } from "../skillVisual.ts";
+/** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
+const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle } from "../hitFeel.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
@@ -1525,13 +1527,12 @@ export class GameScene extends Phaser.Scene {
     const fd = skillFxOf(VOHON[m.vh].id, m.i, !!m.ct), tc = hex(TIERS[m.tier]?.glow ?? "#ffffff"), r = sk.r * RX;
     const a = Math.PI / 2 + DIRS8.indexOf(v.face) * (Math.PI / 4), at = this.feet(v);
     const go = (kind: FxKind, o: { ang?: number; r?: number; dist?: number; x?: number; y?: number } = {}) =>
-      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, ...o });
-    const vis = skillVisualOf(VOHON[m.vh].id, m.i, !!m.ct), mine0 = m.id === this.me, tl = vis.sheet?.at === "cast" ? 0 : Math.max(r, 24 * SPR) * (sk.area === "proj" ? 0.9 : 0.5);
+      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, partsOnly: replaced, ...o });
+    const vis0 = skillVisualOf(VOHON[m.vh].id, m.i, !!m.ct), vis = SV_OFF ? { ...vis0, sheet: undefined, windupSheet: undefined, aftershock: undefined } : vis0, mine0 = m.id === this.me, tl = vis.sheet?.at === "cast" ? 0 : Math.max(r, 24 * SPR) * (sk.area === "proj" ? 0.9 : 0.5);
     if (mine0) this.castHeavy = { t: this.time.now, heavy: vis.heavy };
     if (vis.tier === 3 && vis.sheet) this.pt.strike(m.id, this.time.now); // T3: pháp tướng ra đòn cùng chiêu (hoạt ảnh đánh H2, không rung màn)
-    const replaced = this.svis.cast(vis, { x: at.x, y: at.y - 8 * SPR, ang: a, tx: at.x + Math.cos(a) * tl, ty: at.y + Math.sin(a) * tl * 0.5 - 8 * SPR, mine: mine0 });
-    if (replaced) { /* sheet thay hiệu ứng G3 (SKILL_VISUAL.replace) */ }
-    else if (sk.area === "proj") {
+    const replaced = this.svis.cast(vis, { x: at.x, y: at.y - 8 * SPR, ang: a, tx: at.x + Math.cos(a) * tl, ty: at.y + Math.sin(a) * tl * 0.5 - 8 * SPR, mine: mine0, r, n: sk.n, everyMs: (sk.every ?? 0) * 1000 });
+    if (sk.area === "proj") { // sheet thay hiệu ứng G3 (SKILL_VISUAL.replace) thì G3 chỉ còn hạt (partsOnly)
       const n = Math.min(sk.n ?? 1, sk.spread && sk.spread >= 360 ? 6 : 3), sp = ((sk.spread ?? 0) * Math.PI) / 180;
       for (let j = 0; j < n; j++) go("proj", { ang: sk.spread && sk.spread >= 360 ? (j / n) * Math.PI * 2 : a + (n > 1 ? (j / (n - 1) - 0.5) * sp : 0), dist: r * 0.9 });
     } else if (sk.area === "around") go("zone");
@@ -2118,6 +2119,11 @@ export class GameScene extends Phaser.Scene {
         const q = this.add.rectangle(at.x + (j - 4.5) * 3 * k, at.y - 2 * k, 2 * k, 2 * k, j % 2 ? 0x86e0b0 : gold).setDepth(99980);
         this.tweens.add({ targets: q, y: at.y - (30 + (j % 3) * 6) * k, alpha: 0, duration: 650, delay: j * 30, onComplete: () => q.destroy() });
       }
+    }
+    // S2 (#548): sheet riêng của tiên cơ (SKILL_VISUAL `<mã>:tc`), chồng lên hiệu ứng hiện có; mức Thấp chỉ còn 1 sheet chính.
+    if (m.vh !== undefined && VOHON[m.vh]) {
+      const tv = skillVisualOf(VOHON[m.vh].id, "tc");
+      if (tv.sheet) this.svis.cast(tv, { x: at.x, y: at.y - 8 * SPR, ang: 0, tx: at.x, ty: at.y - 8 * SPR, mine: m.id === this.me, r: (m.r ?? 56) * RX });
     }
     // Trên danh hiệu để không đè tên hồn sư.
     const name = m.vh !== undefined && VOHON[m.vh] ? tienCoOf(VOHON[m.vh].id).name : TIEN_CO[m.he]?.name ?? "";
