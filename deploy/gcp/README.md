@@ -4,7 +4,7 @@ Chủ repo tự chạy (cần quyền admin ở project GCP). Worker / agent **k
 
 Kết quả sau khi chạy:
 - Artifact Registry `soul-land` (docker, `asia-southeast1`), image `asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game`.
-- Workload Identity Federation: GitHub Actions của đúng repo `nguyenbinhanltv/soul-land-mmo`, đúng nhánh `main`, đẩy image **không cần key JSON**.
+- Workload Identity Federation: GitHub Actions của đúng repo `nguyenbinhanltv/soul-land-mmo`, đúng nhánh `main`, đẩy image **không cần key JSON** (cách mặc định). Nếu WIF lỗi (ví dụ `invalid_target`) thì dùng key JSON của SA writer, mục 2b.
 - Service account **writer** (`soul-land-ci-push`, chỉ `artifactregistry.writer` trên repo `soul-land`) cho CI.
 - Service account **reader** (`soul-land-ar-pull`, chỉ `artifactregistry.reader`) cho cụm K8s kéo image.
 
@@ -30,9 +30,39 @@ Settings → Secrets and variables → Actions:
 | Variable hoặc Secret | `GCP_SA_EMAIL` | `soul-land-ci-push@landing-page-455614.iam.gserviceaccount.com` |
 | Secret | `GITOPS_TOKEN` | xem mục 3 |
 
-Hai giá trị này không phải khoá bí mật (để Variable hay Secret đều được). Không có key JSON nào ở GitHub.
+Hai giá trị này không phải khoá bí mật (để Variable hay Secret đều được). Cách WIF không có key JSON nào ở GitHub.
+
+**Thứ tự chọn của workflow:** có secret `GCP_SA_KEY` thì `release.yml` / `promote.yml` đăng nhập bằng key (mục 2b); không có thì dùng WIF (`GCP_WIF_PROVIDER` + `GCP_SA_EMAIL`); thiếu cả hai thì báo lỗi rõ và dừng. Đẩy image dùng `gcloud auth configure-docker` cho cả hai cách.
 
 Provider WIF chỉ nhận token có `repository == nguyenbinhanltv/soul-land-mmo`, `ref == refs/heads/main`, sự kiện `workflow_run` / `workflow_dispatch` và workflow `release.yml` / `promote.yml` (thêm workflow mới cần mượn quyền thì sửa điều kiện ở `setup.sh` rồi chạy lại). Nên chạy kèm `GITHUB_REPO_ID=$(gh api repos/nguyenbinhanltv/soul-land-mmo --jq .id) deploy/gcp/setup.sh` để quyền gắn theo id repo bất biến (chống tạo lại repo cùng tên). `release.yml` (chạy sau CI của main bằng `workflow_run`) và `promote.yml` (`workflow_dispatch`) đều chạy trên nhánh mặc định nên khớp điều kiện; PR hay nhánh khác không lấy được quyền.
+
+## 2b. Đăng nhập bằng key JSON của service account (thay cho WIF)
+
+Dùng khi WIF chưa chạy được. Key có hiệu lực dài hạn nên rủi ro hơn WIF: SA writer chỉ có `roles/artifactregistry.writer` trên đúng repo `soul-land` (không quyền nào khác ở project), key phải xoay 90 ngày.
+
+1. Tạo key vào file **cục bộ** (script không gửi key đi đâu, file quyền 600, đã nằm trong `.gitignore`):
+   ```bash
+   deploy/gcp/setup.sh --sa-key            # hoặc --dry-run --sa-key để xem trước; mặc định ghi ./soul-land-ci-push-key.json (đổi bằng SA_KEY_FILE)
+   ```
+   Lệnh gcloud tương đương: `gcloud iam service-accounts keys create <file> --iam-account soul-land-ci-push@landing-page-455614.iam.gserviceaccount.com`.
+   Nếu tổ chức GCP bật chính sách `iam.disableServiceAccountKeyCreation` thì lệnh bị từ chối: tắt chính sách đó cho project `landing-page-455614` (cần quyền Organization Policy Administrator) hoặc dùng WIF.
+2. Đặt secret `GCP_SA_KEY` ở repo GitHub (Settings → Secrets and variables → Actions → New repository secret, dán **toàn bộ nội dung file JSON**), hoặc `gh secret set GCP_SA_KEY < soul-land-ci-push-key.json`. Phải là **Secret** (không phải Variable).
+3. **Xóa file key cục bộ ngay** (`rm -f soul-land-ci-push-key.json`; Windows: `del`). Key chỉ còn ở GitHub Secrets. Không dán key vào chat, issue, PR, log.
+4. Chạy tay workflow **Release** (Actions → Release → Run workflow, trên `main`) để thử. Log chỉ ghi "Đăng nhập GCP bằng key service account", không có nội dung key.
+5. **Xoay 90 ngày** (đặt nhắc lịch): tạo key mới (bước 1), cập nhật secret (bước 2), xóa file (bước 3), chạy thử Release, rồi **thu hồi key cũ**:
+   ```bash
+   gcloud iam service-accounts keys list   --iam-account soul-land-ci-push@landing-page-455614.iam.gserviceaccount.com
+   gcloud iam service-accounts keys delete <KEY_ID> --iam-account soul-land-ci-push@landing-page-455614.iam.gserviceaccount.com
+   ```
+   Nghi lộ key thì xóa key ngay (bước thu hồi), rồi tạo key mới.
+6. Chuyển về WIF sau này: xóa secret `GCP_SA_KEY`, thu hồi key trên GCP; workflow tự quay lại nhánh WIF.
+
+| | WIF (mặc định) | Key JSON (`GCP_SA_KEY`) |
+| --- | --- | --- |
+| Bí mật dài hạn ở GitHub | không | có (phải xoay 90 ngày, thu hồi khi lộ) |
+| Giới hạn theo nhánh / workflow | có (điều kiện provider: repo, `main`, release/promote) | không: ai chạy được workflow có secret đều dùng được key (secret không lộ cho PR từ fork, nhưng PR cùng repo sửa workflow có thể đọc) |
+| Thiết lập | pool + provider, dễ sai (`invalid_target`) | một file key, chạy được ngay |
+| Cần cho tổ chức | không | chính sách `iam.disableServiceAccountKeyCreation` phải tắt |
 
 ## 3. `GITOPS_TOKEN` (cho `promote.yml`)
 

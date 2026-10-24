@@ -3,3 +3,6 @@ dist
 .env
 *.log
 ci-logs
+
+# Key JSON service account tạo cục bộ bởi deploy/gcp/setup.sh --sa-key (xóa ngay sau khi dán vào GCP_SA_KEY)
+soul-land-ci-push-key.json

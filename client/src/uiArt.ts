@@ -111,6 +111,7 @@ function applyScale() {
   for (const n of [640, 560, 520, 420]) cl.toggle(`ui-w${n}`, w <= n);
   for (const n of [500, 460]) cl.toggle(`ui-h${n}`, h <= n);
   cl.toggle("ui-portrait", h > w);
+  cl.toggle("ui-wide", w >= 960); // hai bảng Nhân vật / Túi cạnh nhau theo bố cục màn ngang (NV1 #455)
 }
 
 /**
