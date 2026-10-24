@@ -13,7 +13,7 @@ import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
-import { gamePresence, presenceBackend } from "./presence.ts";
+import { gamePresence, presenceBackend, isRedisFailure } from "./presence.ts";
 import { configurePresence as configurePartyPresence } from "./party.ts";
 
 configurePartyPresence(presenceBackend);
@@ -43,7 +43,10 @@ const route = (fn: (req: express.Request, res: express.Response) => Promise<void
 };
 
 // chMax: số người tối đa mỗi kênh (bot đọc để biết server đang hạ CHANNEL_MAX cho phần thử nhiều kênh).
-app.get("/health", (_q, r) => { r.json({ ok: true, chMax: CHANNEL_CAP }); });
+// Redis đã bật mà đang mất (#561): 503 để cân bằng tải / trình quản lý ngừng chuyển người chơi mới tới (fail-closed); tiến trình KHÔNG thoát, tự phục hồi khi
+// Redis có lại. `/live` luôn 200 khi tiến trình còn chạy (dành cho liveness probe, không khởi động lại chỉ vì Redis mất).
+app.get("/health", (_q, r) => { const up = presenceBackend.healthy(); r.status(up ? 200 : 503).json({ ok: up, chMax: CHANNEL_CAP, ...(up ? {} : { redis: "down" }) }); });
+app.get("/live", (_q, r) => { r.json({ ok: true }); });
 
 // Đăng nhập (tự tạo tài khoản nếu tên chưa tồn tại).
 app.post("/api/login", route(async (req, res) => {
@@ -198,6 +201,12 @@ function shutdown(code: number, why: string) {
  * vì đã có handler khác (`uncaughtException` của nó chỉ process.exit(1) khi là listener duy nhất, tức lúc đang khởi động, chưa có ai để lưu).
  */
 function fatal(kind: string, err: unknown) {
+  // Lỗi kết nối Redis từ một lệnh chạy nền không ai bắt (#561): Redis mất không phải lỗi hỏng trạng thái tiến trình. Ghi log rõ rồi chạy tiếp ở chế độ
+  // không phục vụ (/health 503, từ chối vào phòng mới); phiên mất lease tự bị đóng. Mọi lỗi khác vẫn thoát có kiểm soát như trước.
+  if (!stopping && presenceBackend.mode === "redis" && isRedisFailure(err)) {
+    console.error(`Lỗi Redis không ai bắt (${kind}), bỏ qua, tiến trình vẫn chạy (kiểm lệnh presence thiếu bg / catch):`, err);
+    return;
+  }
   console.error(`Lỗi nghiêm trọng ngoài phòng (${kind})${stopping ? " trong lúc đang tắt server" : ""}:`, err);
   shutdown(1, kind);
 }

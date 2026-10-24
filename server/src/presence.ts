@@ -8,12 +8,40 @@ export const PRESENCE_HEARTBEAT_MS = 5_000;
 /** Khóa lease giữ tài khoản của phiên đang chơi (MapRoom.holdAccount); script seed tài khoản test (#517) đọc khóa này để biết có đang online không. */
 export const accountLeaseKey = (accountId: number) => `accountHold:${accountId}`;
 
+/** Lỗi do mất / chập chờn kết nối Redis (ioredis, socket): không phải lỗi logic, nên không được làm chết tiến trình (#561). */
+export function isRedisFailure(e: unknown) {
+  if (!e || typeof e !== "object") return false;
+  const { name, code, message } = e as { name?: string; code?: string; message?: string };
+  return name === "MaxRetriesPerRequestError" || name === "ClusterAllFailedError" || name === "ReplyError" && /LOADING|READONLY|MASTERDOWN|CLUSTERDOWN|TRYAGAIN/.test(message ?? "")
+    || ["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "EPIPE", "ENOTFOUND", "EAI_AGAIN", "NR_CLOSED"].includes(code ?? "")
+    || /Connection is closed|Stream isn't writeable|Reached the max retries per request/.test(message ?? "");
+}
+
+/** Ghi log lỗi nền tối đa một lần mỗi 10 giây cho mỗi `what` (Redis mất cả phút không làm ngập log). */
+const lastLogged = new Map<string, { at: number; skipped: number }>();
+function logLimited(what: string, e: unknown) {
+  const now = Date.now(), prev = lastLogged.get(what);
+  if (prev && now - prev.at < 10_000) { prev.skipped++; return; }
+  lastLogged.set(what, { at: now, skipped: 0 });
+  console.error(`${what}${prev?.skipped ? ` (còn ${prev.skipped} lỗi cùng loại bị ẩn trong 10 giây qua)` : ""}:`, e instanceof Error ? `${e.name}: ${e.message}` : e);
+}
+
+/**
+ * Chạy nền một thao tác presence (publish, ghi khóa TTL…): lỗi (thường là Redis mất) chỉ ghi log, không ném ra thành unhandledRejection
+ * làm chết tiến trình (#561). Chỉ dùng khi chủ ý bỏ kết quả; đường cần biết kết quả vẫn `await` và tự xử lý lỗi (fail-closed).
+ */
+export function bg(op: unknown, what: string) {
+  if (op && typeof (op as PromiseLike<unknown>).then === "function") void Promise.resolve(op).then(undefined, (e) => logLimited(what, e));
+}
+
 type LocalValue = { value: string; expiresAt: number };
 
 export interface PresenceBackend {
   readonly mode: "local" | "redis";
   readonly presence: Presence;
   readonly workerId: string;
+  /** Kết nối presence còn dùng được. Redis mất thì false: server báo /health lỗi và từ chối vào phòng mới (fail-closed, #561); RAM luôn true. */
+  healthy(): boolean;
   acquireLease(key: string, owner: string, ttlMs?: number): Promise<boolean>;
   /** Như acquireLease nhưng trả fencing token (số tăng dần qua mỗi lần lấy khóa, đếm ở một khóa chung `fenceKey`, nên số khóa trong Redis không tăng theo số món); 0 = khóa đang có người giữ. Lỗi Redis thì ném lỗi (fail-closed). */
   acquireFenced(key: string, owner: string, ttlMs?: number, fenceKey?: string): Promise<number>;
@@ -35,6 +63,7 @@ class LocalBackend implements PresenceBackend {
   readonly mode = "local" as const;
   readonly presence = new LocalPresence();
   readonly workerId = `ram-${process.pid}-${randomUUID()}`;
+  healthy() { return true; }
   private readonly values = new Map<string, LocalValue>();
 
   private prune(key: string) {
@@ -114,11 +143,34 @@ class RedisBackend implements PresenceBackend {
   private readonly redis: Redis;
   private readonly prefix: string;
 
+  private down: number | null = null;
+
   constructor(url: string, prefix: string) {
+    // Kết nối lại vô hạn (ioredis mặc định); lệnh đang chờ chỉ thử lại 2 lần rồi báo lỗi, nên mất Redis thì lệnh lỗi nhanh (fail-closed) thay vì treo.
     this.redis = new Redis(url, { lazyConnect: false, maxRetriesPerRequest: 2 });
-    this.presence = new RedisPresence(url);
+    const rp = new RedisPresence(url);
+    this.presence = safePresence(rp);
     this.prefix = prefix;
+    this.watch("Redis (lệnh)", this.redis);
+    // Hai kết nối pub / sub nội bộ của RedisPresence: gắn trình nghe lỗi (không có thì ioredis chỉ in "Unhandled error event") và theo dõi trạng thái.
+    for (const k of ["pub", "sub"] as const) { const c = (rp as unknown as Record<string, unknown>)[k]; if (c instanceof Redis) this.watch(`Redis (${k})`, c); }
   }
+
+  /** Theo dõi một kết nối: mất thì ghi giờ, có lại thì báo log; lỗi kết nối chỉ ghi log có giới hạn. */
+  private watch(label: string, c: Redis) {
+    c.on("error", (e) => logLimited(`${label}: lỗi kết nối`, e));
+    c.on("close", () => {
+      if (c !== this.redis || this.down !== null) return;
+      this.down = Date.now();
+      console.error("Redis mất kết nối: server báo /health lỗi, từ chối người chơi vào phòng mới và tự kết nối lại tới khi Redis có lại.");
+    });
+    c.on("ready", () => {
+      if (c !== this.redis || this.down === null) return;
+      console.error(`Redis đã có lại sau ${Math.round((Date.now() - this.down) / 1000)} giây: server phục vụ lại.`); this.down = null;
+    });
+  }
+
+  healthy() { return this.redis.status === "ready"; }
 
   private key(key: string) { return `${this.prefix}:${key}`; }
 
@@ -185,6 +237,26 @@ class RedisBackend implements PresenceBackend {
   async close() {
     await Promise.allSettled([this.redis.quit(), Promise.resolve((this.presence as RedisPresence).shutdown())]);
   }
+}
+
+/**
+ * Bọc Presence của Colyseus: publish / subscribe / unsubscribe của RedisPresence trả promise mà nhiều chỗ gọi kiểu `this.presence.publish(…)`
+ * không `await` (phòng, lịch boss, hàng chờ đấu trường); Redis lỗi thì lỗi đó thành unhandledRejection. Ở đây bắt lại, ghi log, trả mặc định.
+ * Tin pub/sub vốn không đảm bảo giao (mất kết nối là mất tin), nên bỏ tin lúc Redis mất không đổi hợp đồng.
+ */
+function safePresence(inner: RedisPresence): Presence {
+  const wrapped = new Set(["publish", "subscribe", "unsubscribe"]);
+  return new Proxy(inner, {
+    get(target, prop) {
+      const v = Reflect.get(target, prop, target);
+      if (typeof v !== "function") return v;
+      if (typeof prop !== "string" || !wrapped.has(prop)) return v.bind(target);
+      return (...args: unknown[]) => {
+        try { const r = v.apply(target, args); return r && typeof r.then === "function" ? Promise.resolve(r).catch((e) => { logLimited(`Presence ${prop}`, e); return 0; }) : r; }
+        catch (e) { logLimited(`Presence ${prop}`, e); return 0; }
+      };
+    },
+  }) as unknown as Presence;
 }
 
 export function createPresenceBackend(options: { mode?: "local" | "redis"; redisUrl?: string; prefix?: string } = {}): PresenceBackend {
