@@ -6,7 +6,7 @@ JOBS=$1; PORT=${PORT:-3346}; TAGS=${TAGS:-sau}; OUT=${OUT:?cần OUT}
 W=$(cd "$(dirname "$0")/../../../.." && pwd)
 if netstat -ano | grep -q ":$PORT .*LISTENING"; then echo "cổng $PORT bận"; exit 1; fi
 mkdir -p "$OUT"
-( cd "$W/server" && export GAME_TEST=1 PORT=$PORT && exec node --import tsx src/index.ts > "$OUT/server.log" 2>&1 ) &
+( cd "$W/server" && unset DATABASE_URL REDIS_URL && export GAME_TEST=1 PORT=$PORT && exec node --import tsx src/index.ts > "$OUT/server.log" 2>&1 ) &
 BP=$!; sleep 1; WP=$(cat /proc/$BP/winpid 2>/dev/null); echo "winpid server $WP"
 for i in $(seq 1 60); do curl -s http://localhost:$PORT/health >/dev/null && break; sleep 1; done
 for T in $TAGS; do GOTO=$GOTO node "$W/tools/assets/skill-vfx/preview/real.mjs" http://localhost:$PORT "$OUT/frames" "$(cygpath -w "$OUT/chrome-$T-$RANDOM")" $T "$JOBS"; done
