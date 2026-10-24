@@ -85,7 +85,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 /* Radar tròn (R2 #429): đường kính RADAR.size (168 máy tính, 120 điện thoại ngang); khung gỗ tạm vẽ trong canvas, có ảnh ui_radar_frame thì phủ lên */
 #radar{position:relative;width:168px;height:168px;margin:0 auto;pointer-events:auto}
 #mini{display:block;width:100%;height:100%;border-radius:50%;touch-action:none}
-#radarFrame{position:absolute;left:50%;top:50%;width:calc(192 / 168 * 100%);height:auto;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated}
+#radarFrame{position:absolute;left:50%;top:50%;height:auto;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated}
 #radar .rbtn{position:absolute;width:20px;height:20px;padding:0;font:bold 13px/18px var(--f12);text-align:center;color:var(--paper);background:var(--ink-panel);border:1px solid var(--ink2);border-radius:50%;cursor:pointer}
 #radar .rbtn:disabled{opacity:.4;cursor:default}
 #radar #radarMode{left:-2px;top:-2px}

@@ -206,7 +206,7 @@ class Radar {
   private artCheck() {
     if (!this.frameDone) {
       const u = artUrl(RADAR_ART.frame.key);
-      if (u) { this.frame.src = u; this.frame.hidden = false; this.wrap.classList.add("art"); this.frameDone = true; }
+      if (u) { this.frame.style.width = `${RADAR_ART.frame.w / RADAR.size.desktop * 100}%`; this.frame.src = u; this.frame.hidden = false; this.wrap.classList.add("art"); this.frameDone = true; }
     }
     if (!this.compassTried) {
       const u = artUrl(RADAR_ART.compass.key);
