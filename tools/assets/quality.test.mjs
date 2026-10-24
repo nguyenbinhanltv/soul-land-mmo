@@ -73,9 +73,9 @@ test("writePreview tạo thư mục cha khi file HTML nằm trong đường dẫ
 
 test("qualityCheck báo origin manifest sai so với neo chuẩn của sheetSpec", () => {
   const manifest = JSON.parse(readFileSync(path.join(process.cwd(), "shared/assets/sprites/manifest.json"), "utf8"));
-  const source = manifest.sprites.find((entry) => typeof entry !== "string" && entry.key === "hs_body_m_0");
+  const source = manifest.sprites.find((entry) => typeof entry !== "string" && entry.key === "lpc_dan_khach");
   const result = qualityCheck({ sprites: [{ ...source, origin: [0, 0] }] });
-  assert.match(result.errors.join("\n"), /hs_body_m_0: manifest\.origin lệch neo/);
+  assert.match(result.errors.join("\n"), /lpc_dan_khach: manifest\.origin lệch neo/);
   assert.deepEqual(result.assets[0].expectedOrigin, [32, 58]);
 });
 

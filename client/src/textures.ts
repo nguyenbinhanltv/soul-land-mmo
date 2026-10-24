@@ -1,9 +1,9 @@
 // Sprite pixel vẽ bằng code. Ảnh thật được tải trước theo shared/assets/sprites/manifest.json (sprites.ts);
-// key nào đã có ảnh thì ở đây bỏ qua. Hồn sư ghép lớp theo mục 5.11: hình vẽ nằm trong honsuArt.ts.
+// key nào đã có ảnh thì ở đây bỏ qua. Hồn sư chỉ còn LPC (HL3 #572): ghép lúc chạy ở lpcRig.ts; phụ thể vẽ bằng code nằm trong honsuArt.ts.
 import Phaser from "phaser";
-import { TIERS, VOHON, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, SKIN_TONES, type Looks } from "../../shared/data.ts";
-import { addGridFrames, recolor, createHonsuAnims, honsuKey, HS_FRAME, VH_FRAME } from "./sprites.ts";
-import { honsuSheet, vohonSheets, bufCanvas, type Buf, type Sex } from "./honsuArt.ts";
+import { TIERS, VOHON } from "../../shared/data.ts";
+import { addGridFrames, VH_FRAME } from "./sprites.ts";
+import { vohonSheets, bufCanvas, type Buf } from "./honsuArt.ts";
 import { boneTextures } from "./boneIcons.ts";
 import { coreTextures } from "./coreIcons.ts";
 
@@ -22,9 +22,6 @@ function draw(scene: Phaser.Scene, key: string, w: number, h: number, ox: number
 /** Hồn thú: 48x32, gốc tại chân (24,28). */
 export const BEAST_ORIGIN = { x: 0.5, y: 28 / 32 };
 
-const SEX_KEYS = ["m", "f"] as const;
-export const sexKey = (sex: number): Sex => (sex === 1 ? "f" : "m");
-
 /** Thêm bộ đệm pixel làm texture có khung đánh số theo lưới, như spritesheet tải từ ảnh. Key đã có (ảnh thật) thì bỏ qua. */
 function addSheet(scene: Phaser.Scene, key: string, make: () => Buf, frame: number) {
   if (scene.textures.exists(key)) return;
@@ -41,33 +38,6 @@ export function vohonTextures(scene: Phaser.Scene, vh: number): [string, string]
     addSheet(scene, kf, () => sh.f, VH_FRAME);
   }
   return [kb, kf];
-}
-
-/** Kiểu tóc hợp lệ (0–3) của ngoại hình; ngoài khoảng thì về kiểu 0. */
-const hairOf = (L: Pick<Looks, "sex" | "hair">) => (L.hair >= 0 && L.hair < HAIR_STYLES[L.sex === 1 ? 1 : 0].length ? L.hair : 0);
-
-/** Tông da hợp lệ của ngoại hình; ngoài khoảng thì về tông 0. */
-const skinOf = (L: Pick<Looks, "skin">) => (L.skin > 0 && L.skin < SKIN_TONES.length ? L.skin : 0);
-
-/** Sheet thân (có animation) của bộ giới × kiểu tóc, ví dụ `hs_body_f_2`; tông da khác 0 là bản hoán màu `hs_body_f_2@2` (9.9). */
-export const bodyKey = (L: Pick<Looks, "sex" | "hair" | "skin">) => {
-  const base = honsuKey("body", sexKey(L.sex), hairOf(L)), skin = skinOf(L);
-  return skin ? `${base}@${skin}` : base;
-};
-
-/**
- * Key texture thân, áo, tóc theo ngoại hình: cả 3 lớp cùng bộ giới × kiểu tóc (mục 5.11).
- * Áo và tóc hoán màu (key `hs_hair_f_2@3`, `hs_outfit_f_2@5`), thân hoán 3 sắc da theo tông da (`hs_body_f_2@2`, kèm animation
- * riêng của sheet đó); chỉ tạo khi có người dùng tổ hợp đó.
- */
-export function looksTextures(scene: Phaser.Scene, L: Looks) {
-  const s = sexKey(L.sex), h = hairOf(L), skin = skinOf(L);
-  if (skin) createHonsuAnims(scene, recolor(scene, honsuKey("body", s, h), skin, SKIN_TONES[skin].ramp, SKIN_TONES[0].ramp));
-  return {
-    body: bodyKey(L),
-    outfit: recolor(scene, honsuKey("outfit", s, h), L.outfitCol, (OUTFIT_COLORS[L.outfitCol] ?? OUTFIT_COLORS[0]).ramp),
-    hair: recolor(scene, honsuKey("hair", s, h), L.hairCol, (HAIR_COLORS[L.hairCol] ?? HAIR_COLORS[0]).ramp),
-  };
 }
 
 /**
@@ -106,13 +76,6 @@ export function soulRingKey(scene: Phaser.Scene, tier: number, size: number | "u
 }
 
 export function makeTextures(scene: Phaser.Scene) {
-  // Hồn sư: mỗi bộ giới × kiểu tóc còn thiếu ảnh thật thì vẽ bằng code (thân, áo dải xám, tóc dải xám);
-  // bản hoán màu tạo sau trong looksTextures(). Bản code dùng chung thân và áo cho mọi kiểu tóc.
-  SEX_KEYS.forEach((s, sex) => HAIR_STYLES[sex].forEach((_, h) => {
-    addSheet(scene, honsuKey("body", s, h), () => honsuSheet(s, "body"), HS_FRAME);
-    addSheet(scene, honsuKey("outfit", s, h), () => honsuSheet(s, "outfit"), HS_FRAME);
-    addSheet(scene, honsuKey("hair", s, h), () => honsuSheet(s, "hair", h), HS_FRAME);
-  }));
   // Bóng dưới chân hồn sư: elip 2:1 màu viền tối, mờ 35% (mục 5.11, lớp 1); client phóng SPR thành 24×12.
   if (!scene.textures.exists("hs_shadow")) {
     const g = scene.make.graphics({}, false);

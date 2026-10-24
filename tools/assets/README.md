@@ -18,7 +18,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | 8 | Vòng hồn hoàn, nửa trước | Code (`sring…`) | Cung dưới của elip |
 | 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
 
-- **Key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3), file `honsu/{lớp}_{giới}_{kiểu tóc}.png`; client lấy bằng `honsuKey(lớp, giới, kiểu tóc)`. Key đã hoán màu là key gốc + `@` + chỉ số màu (`hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`), chỉ tạo khi có người dùng.
+- **Đã gỡ khỏi game (HL3 #572):** hồn sư không còn sheet `hs_*` / `honsu/*` trong `shared/assets/sprites` (chỉ còn LPC ghép lúc chạy; dây chuyền bên dưới giữ cho sheet NPC `lpc_<mã>` và lịch sử). Quy cách cũ: **Key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3), file `honsu/{lớp}_{giới}_{kiểu tóc}.png`; client lấy bằng `honsuKey(lớp, giới, kiểu tóc)`. Key đã hoán màu là key gốc + `@` + chỉ số màu (`hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`), chỉ tạo khi có người dùng.
 - **Màu khóa khi vẽ liền một bộ:** tóc lam sáng, áo / quần / váy xám, giày nâu, da bình thường; `normalize --split` tách 3 lớp trên từng khung, từng hướng.
 - Key isometric ghi `"iso": true` trong manifest. Bộ chưa có ảnh `iso` dùng bộ 32×32 cũ (hướng gần nhất trong 4 hướng, phóng `SPR`) tới khi 10.4b xong; client nhận bố cục theo bề ngang sheet (24 cột) nên hai loại bộ dùng chung một đường code, lớp 64×64 trong hình chứa phóng `SPR` thì phóng 1 / `SPR`.
 

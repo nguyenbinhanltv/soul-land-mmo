@@ -152,7 +152,7 @@ export class Crowd {
   }
 
   private play(p: Person, anim: HsAnim) {
-    const { key, flip } = honsuAnimKey(this.scene, p.key, anim, p.dir);
+    const { key, flip } = honsuAnimKey(p.key, anim, p.dir);
     if (p.anim === key) return;
     p.anim = key;
     p.spr.setFlipX(flip);

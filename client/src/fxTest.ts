@@ -33,7 +33,7 @@ class FxTestScene extends Phaser.Scene {
     this.load.once("filecomplete-json-m", (_k: string, _t: string, d: { sprites?: ({ key: string; frame?: [number, number] } | string)[] }) => {
       for (const e of d?.sprites ?? []) if (typeof e !== "string" && /^fx_/.test(e.key) && e.frame) this.load.spritesheet(e.key, `sprites/iso/fx/${e.key.slice(3)}.png`, { frameWidth: e.frame[0], frameHeight: e.frame[1] });
     });
-    for (const l of ["body", "outfit", "hair"]) this.load.spritesheet(`t_${l}`, `sprites/honsu/${l}_m_0.png`, { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet("t_body", "sprites/iso/lpc/dan_khach.png", { frameWidth: 64, frameHeight: 64 }); // thân LPC mẫu (HL3 #572: hết sprite hồn sư preset)
   }
   create() {
     const z = Number(q.get("zoom") ?? 2);
@@ -81,7 +81,7 @@ class FxTestScene extends Phaser.Scene {
     const c = this.add.container(x, y).setDepth(10);
     c.add(this.add.ellipse(0, 0, 22, 9, 0x000000, 0.4));
     // khung 64×64, chân ở (32, 58): dời lên cho chân trùng gốc container
-    c.add(this.add.sprite(0, -26, "t_body", 0)); c.add(this.add.sprite(0, -26, "t_outfit", 0).setTint(tint)); c.add(this.add.sprite(0, -26, "t_hair", 0).setTint(0x6a4a3a));
+    c.add(this.add.sprite(0, -26, "t_body", 0).setTint(tint));
     return c;
   }
   /** Cảm giác đánh thử: tia lửa theo chất liệu + hệ, số sát thương, giật lùi mục tiêu, khựng (chỉ báo thời gian). `nang`: độ nặng khai báo 0..3. */
