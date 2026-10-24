@@ -1,9 +1,10 @@
 // Hậu kỳ asset C6: giảm mẫu nearest-neighbor và lượng tử màu để giữ nét pixel.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { decodePng, encodePng, Img } from "./lib.mjs";
 
-const ROOT = path.resolve(new URL("../..", import.meta.url).pathname);
+const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const jobs = [
   ["logo-raw.png", "logo.png", 512, 512, 128, 128, true],
   ["login-raw.png", "login-bg.png", 1280, 720, 320, 180, false],
