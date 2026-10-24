@@ -61,6 +61,16 @@
     "#ffffff"
    ],
    "theme": "Fusion of ice phoenix crystals and red dragon fire, yin-yang split, icy cyan #a8e8ff, fire red #ff4a2a, deep blue #2a5a8a, white steam."
+  },
+  "hs": {
+   "palette": [
+    "#1a1020",
+    "#701822",
+    "#e8431e",
+    "#ff9a2a",
+    "#ffe08a"
+   ],
+   "theme": "Living flame shadow, silhouettes made of flames with flickering tongues rising, glowing yellow core fading to orange then dark red, dark smoke edges, flying embers, colors yellow #ffe08a, orange #ff9a2a, red #e8431e, dark red #701822."
   }
  },
  "sheets": [
@@ -280,15 +290,15 @@
   },
   {
    "n": "ha_t3a",
-   "v": "ha",
+   "v": "hs",
    "t": 3,
    "f": 12,
    "big": 1,
-   "d": "Heavy-palm ultimate: a colossal flame hand with five rounded curved fingers and a palm, drawn as a clear hand silhouette of crimson fire with flickering edges (not blocks), pressing down from above onto the area, ground cracks glowing orange, fire flows along cracks. Very large, dramatic."
+   "d": "Ultimate: a huge shadow beast shaped like a leaping fire wolf made of flames with licking flame tongues rising from its body, bright yellow core, orange then dark red body, dark smoke edge, it dives down onto the ground and bursts into a big ring of fire with flying embers. Very large, dramatic."
   },
   {
    "n": "ha_t3b",
-   "v": "ha",
+   "v": "hs",
    "t": 3,
    "f": 12,
    "big": 1,
