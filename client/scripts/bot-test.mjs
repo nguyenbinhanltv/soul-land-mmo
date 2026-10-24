@@ -122,6 +122,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
+import * as SD from "../../shared/data.ts"; // E2: rollEquipDrop, rollEquipCharm... (equipDropTest)
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
 import { PLAYER_STATUS } from "../../shared/data.ts";
@@ -312,7 +313,7 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư; E3 cường hóa
+  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await equipDropTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư; E3 cường hóa
   ["sell",3,sellTest],                        //   5 #216
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
@@ -391,7 +392,7 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -5684,9 +5685,22 @@ async function offlineTest(){
   m=await away(H);
   ok(h&&m&&m.kills===0&&m.weak>0&&m.stop==="vùng quá sức",`cấp 1 ở ${deep.name} (${zy(deep).join("–")} năm): không hạ được con nào (${m?.weak} con quá sức, ${m?.stop})`);
 
+  // ---- E2 (#413): túi đầy chỉ vì trang bị rơi thì bỏ món đó, vẫn săn tiếp (không dừng "túi đầy"), báo số món bỏ ----
+  await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
+  await autoOp(A,"set",{cfg:{ring:-1,bone:false,core:false}});
+  const free=()=>A.bag.slots-looseOf(A).length;
+  for(const i of looseOf(A).filter(i=>i.code===RING_ITEM).slice(0,Math.max(0,6-free()))) A.room.send("discard",{id:i.id});
+  await waitFor(()=>free()>=6,2000);
+  const fill=Math.max(0,free()-6);
+  for(let i=0;i<fill;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
+  ok(await waitFor(()=>free()===6,3000),`làm đầy túi bằng ${fill} món trang bị: còn ${free()} ô trống (cần đúng 6)`);
+  await test(A,"auto",{used:0});
+  m=await away(H);
+  ok(m&&m.stop!=="túi đầy"&&m.kills>0&&m.used>m.secs-120&&m.equipLost>0,`túi đầy vì trang bị: vẫn săn đủ ${m?.used}/${m?.secs} giây (${m?.kills} con), bỏ ${m?.equipLost} món (dừng: ${m?.stop})`);
+  await test(A,"gear",{clear:true}); await autoOp(A,"set",{cfg:{}}); await waitFor(()=>free()>6,2000);
+
   // ---- Túi đầy: dừng sớm, chỉ trừ quỹ phần đã săn ----
   await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
-  const free=()=>A.bag.slots-looseOf(A).length;
   await test(A,"give",{code:RING_ITEM,qty:Math.max(0,free()-1),years:20}); await waitFor(()=>free()===1,2000);
   await test(A,"auto",{used:0});
   m=await away(H);
@@ -10987,4 +11001,84 @@ async function splitTest(){
     if(kingB()) await test(F,"kdmg",{v:1e8}).catch(()=>{}); // bài lỗi giữa chừng: không để thú vương sống sang bài khác
     await F.room.leave().catch(()=>{});
   }
+}
+
+// Rơi trang bị (E2, mục 5.15; equipDropTest nằm trong nhóm "bag"): hook `edrop {seed}` đặt RNG có hạt cho mọi lần tung rơi trang bị của người này, bot tung lại
+// cùng hạt bằng rollEquipDrop / rollEquipCharm của shared để so từng món: hồn thú thường rơi đất (nhặt E, túi đầy thì ở lại), đá vào thẳng túi, rương thú vương / boss
+// thế giới cho đồ lúc MỞ (cần đủ ô trống), lưu qua lần vào lại (stats JSON).
+async function equipDropTest(){
+  console.log("[E2] Rơi trang bị: hồn thú thường rơi đất, đá vào túi, rương thú vương / boss thế giới");
+  const mulberry=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6d2b79f5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; };
+  const S=await bot("Rơi trang bị","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua rơi trang bị (cần hook edrop, beast, give): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), eqs=()=>loose().filter(i=>i.code===SD.EQUIP_ITEM), st=S.room.state, mapId=st.mapId;
+  await waitFor(()=>me()&&S.bag,3000);
+  if(!SD.EQUIP_MAPS[mapId]){ console.log(`  ⚠ bỏ qua rơi trang bị: ${mapId} không có bảng rơi`); return; }
+  async function rejoin(){ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; await enter(S); await waitFor(()=>me()&&S.bag&&S.gear,3000); }
+  const plain=e=>({tpl:e.tpl,ilvl:e.ilvl,roll:e.roll,affixes:e.affixes,luck:e.luck});
+  await test(S,"gear",{clear:true});
+  // ---- Hồn thú thường: tìm hạt cho đúng một món trang bị (A) và hạt chỉ ra đá (B) ----
+  const seedFor=(pred)=>{ for(let k=1;k<200000;k++){ const d=SD.rollEquipDrop(0,mapId,mulberry(k)); if(pred(d)) return k; } return 0; };
+  const sA=seedFor(d=>d.length===1&&d[0].kind==="equip"), sB=seedFor(d=>d.length===1&&d[0].kind==="stone");
+  ok(sA>0&&sB>0,`hạt thử: A=${sA} (một món trang bị), B=${sB} (một nhóm đá)`);
+  const zs=JSON.parse(readFileSync(mapUrl(mapId),"utf8")).layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone"), hz=zs.find(z=>/Bãi tập/.test(z.name))??zs[0];
+  // Chỗ đứng được: thử vài điểm trong vùng tới khi hook goto đặt được đúng chỗ.
+  for(let k=0;k<60;k++){ const x=Math.round(hz.x+30+Math.random()*(hz.width-60)), y=Math.round(hz.y+40+Math.random()*(hz.height-80)); await test(S,"goto",{x,y}); await sleep(60); if(me()&&Math.hypot(me().x-x,me().y-y)<1) break; }
+  await test(S,"clear"); await test(S,"bone",{r:100}); await test(S,"core",{r:100}); await test(S,"shard",{r:100}); await test(S,"herb",{r:100}); // chỉ để các rơi khác không xen vào
+  async function kill(seed){
+    await test(S,"edrop",{seed}); const before=new Set(st.drops.keys()), fresh=()=>[...st.drops.entries()].filter(([k])=>!before.has(k));
+    const r=await test(S,"beast",{dx:0,dy:0}); await waitFor(()=>r?.bid&&st.beasts.has(r.bid),1000);
+    for(let i=0;i<15&&r?.bid&&st.beasts.has(r.bid);i++){ S.room.send("attack"); await waitFor(()=>!st.beasts.has(r.bid),450); }
+    await sleep(300); return fresh();
+  }
+  // Món trang bị rơi xuống đất, đúng mẫu và bậc; không có trong túi tới khi nhặt.
+  const e0=eqs().length; S.logs=[]; let nd=await kill(sA); const want=SD.rollEquipDrop(0,mapId,mulberry(sA))[0].item, tpl=SD.equipTemplate(want.tpl);
+  const gd=nd.find(([,d])=>d.item===SD.EQUIP_ITEM);
+  ok(gd&&SD.EQUIP_TEMPLATES[gd[1].cset]?.id===want.tpl&&gd[1].stars===tpl.tier+1&&gd[1].owner===S.room.sessionId&&eqs().length===e0,
+    `hạt ${sA}: ${SD.equipName(want.tpl)} (bậc ${tpl.tier}) rơi xuống đất, thuộc người hạ, chưa vào túi (${gd?.[1].cset}/${gd?.[1].stars})`);
+  ok(S.logs.some(t=>t.includes(SD.equipName(want.tpl))&&/rơi xuống đất/.test(t)),"thông báo món rơi kèm tên");
+  // Hồn hoàn nằm đúng chỗ người hạ đứng nên mỗi lần nhấn E nhặt món gần nhất: nhấn tới khi món trang bị vào túi.
+  for(let k=0;k<6&&st.drops.has(gd[0]);k++){ S.room.send("pickup"); await waitFor(()=>!st.drops.has(gd[0]),400); }
+  ok(await waitFor(()=>eqs().length===e0+1)&&!st.drops.has(gd[0]),"nhặt (E): món vào túi, hết dưới đất");
+  const got=eqs().at(-1); ok(got&&same(plain(parseEquip(got.stats)),plain(want)),`chỉ số trong túi đúng bản đã tung (${JSON.stringify(plain(parseEquip(got.stats)))})`);
+  // Đá: vào thẳng túi, không rơi đất; số lượng theo tung.
+  const wst=SD.rollEquipDrop(0,mapId,mulberry(sB))[0], q0=qtyOf(S,wst.code); S.logs=[]; nd=await kill(sB);
+  ok(await waitFor(()=>qtyOf(S,wst.code)===q0+wst.qty)&&!nd.some(([,d])=>d.item===wst.code||d.item===SD.EQUIP_ITEM),`hạt ${sB}: +${wst.qty} ${SD.itemDef(wst.code).name} vào thẳng túi (${q0} -> ${qtyOf(S,wst.code)}), không rơi đất`);
+  // Túi đầy: món vẫn rơi đất và ở lại sau khi nhặt không được.
+  const free=()=>S.bag.slots-loose().length; if(free()>0) await test(S,"give",{code:RING_ITEM,qty:free(),years:100}); await waitFor(()=>free()===0,3000);
+  nd=await kill(sA); const gf=nd.find(([,d])=>d.item===SD.EQUIP_ITEM); S.logs=[]; S.room.send("pickup"); await sleep(400);
+  ok(gf&&st.drops.has(gf[0])&&/Túi đồ đã đầy/.test(S.logs.at(-1)??""),`túi đầy: không nhặt được, món ở lại dưới đất (${S.logs.at(-1)})`);
+  for(const i of loose().filter(i=>i.code===RING_ITEM&&i.years===100)) S.room.send("discard",{id:i.id}); await waitFor(()=>free()>=SD.WORLD_CHEST.slots,4000);
+  // ---- Rương thú vương / boss thế giới: đồ rơi lúc MỞ ----
+  const kingMap="tinh_dau_ngoai_vi", kingId="huyet_nguyet_lang_vuong", worldB=SD.BOSSES.find(b=>b.rank===3), worldMap=Object.values(SD.MAPS).find(m=>m.world?.includes(worldB.id)).id;
+  ok(SD.EQUIP_MAPS[kingMap]&&SD.EQUIP_MAPS[worldMap],`bản đồ rương có bảng rơi: ${kingMap}, ${worldMap}`);
+  const stoneIds=SD.EQUIP_STONES.map(x=>x.id);
+  async function open(code,rank,map,seed,label){
+    await test(S,"give",{code,qty:1}); await waitFor(()=>qtyOf(S,code)>=1,1500); await test(S,"edrop",{seed});
+    const r=mulberry(seed), drops=SD.rollEquipDrop(rank,map,r), charm=SD.rollEquipCharm(rank,r), e0=eqs().length, c0=qtyOf(S,SD.EQUIP_CHARM), s0=stoneIds.map(c=>qtyOf(S,c));
+    const exp=drops.filter(d=>d.kind==="stone").reduce((a,d)=>(a[d.code]=(a[d.code]??0)+d.qty,a),{}), items=drops.filter(d=>d.kind==="equip").map(d=>d.item);
+    const n=S.bagMsgs??0; S.room.send("open",{id:loose().find(i=>i.code===code).id}); await waitFor(()=>(S.bagMsgs??0)>n,2000); await sleep(200);
+    const newEq=eqs().slice(e0).map(i=>plain(parseEquip(i.stats)));
+    ok(same(newEq,items.map(plain)),`${label}: ${items.length} món trang bị trong rương khớp lần tung (hạt ${seed}): ${newEq.map(x=>x.tpl).join(", ")||"không có"}`);
+    ok(stoneIds.every((c,i)=>qtyOf(S,c)-s0[i]===(exp[c]??0))&&qtyOf(S,SD.EQUIP_CHARM)-c0===charm,`${label}: đá ${JSON.stringify(exp)} và ${charm} Bùa Hộ Mệnh khớp lần tung`);
+    return items;
+  }
+  const findSeed=(rank,map)=>{ for(let k=1;k<5000;k++){ const r=mulberry(k), d=SD.rollEquipDrop(rank,map,r); if(d.some(x=>x.kind==="equip")&&d.some(x=>x.kind==="stone")&&SD.rollEquipCharm(rank,r)) return k; } return 0; };
+  const kSeed=findSeed(2,kingMap), wSeed=findSeed(3,worldMap);
+  ok(kSeed>0&&wSeed>0,`hạt rương có cả trang bị, đá và bùa: thú vương ${kSeed}, boss ${wSeed}`);
+  await open(SD.chestCode(kingId),2,kingMap,kSeed,"rương thú vương");
+  const wi=await open(SD.chestCode(worldB.id),3,worldMap,wSeed,"rương boss thế giới");
+  ok(wi.every(e=>SD.equipTemplate(e.tpl).tier<=SD.EQUIP_MAPS[worldMap].maxTier),"món từ rương không vượt bậc tối đa của bản đồ");
+  // Thiếu ô trống: không mở được, rương còn nguyên (số ô cần đã gồm chỗ cho trang bị).
+  await test(S,"give",{code:SD.chestCode(kingId),qty:1}); await waitFor(()=>qtyOf(S,SD.chestCode(kingId))>=1,1500);
+  const f2=free(); if(f2>=SD.KING_CHEST.slots) await test(S,"give",{code:RING_ITEM,qty:f2-SD.KING_CHEST.slots+1,years:100}); await waitFor(()=>free()===SD.KING_CHEST.slots-1,2000);
+  const lg=S.logs.length; S.room.send("open",{id:loose().find(i=>i.code===SD.chestCode(kingId)).id}); await waitFor(()=>S.logs.length>lg,1500);
+  ok(new RegExp(`Cần ${SD.KING_CHEST.slots} ô trống`).test(S.logs.at(-1)??"")&&qtyOf(S,SD.chestCode(kingId))===1,`túi còn ${SD.KING_CHEST.slots-1} ô: "${S.logs.at(-1)}"`);
+  // ---- Lưu qua lần vào lại (stats JSON ở PgStore / MemoryStore) ----
+  const keep=eqs().map(i=>JSON.stringify([i.id,plain(parseEquip(i.stats)),i.enhance])).sort();
+  await rejoin();
+  ok(keep.length>=3&&same(eqs().map(i=>JSON.stringify([i.id,plain(parseEquip(i.stats)),i.enhance])).sort(),keep),`vào lại: ${keep.length} món trang bị rơi còn nguyên chỉ số`);
+  await test(S,"edrop",{off:true});
+  } finally { await S.room.leave().catch(()=>{}); }
 }

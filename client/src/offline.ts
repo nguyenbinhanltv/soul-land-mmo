@@ -10,7 +10,7 @@ import { autoTimeText, formatHonTe } from "../../shared/data.ts";
  */
 export interface OfflineMsg {
   away: number; secs: number; used: number; map: string; zone: string; kills: number; weak: number; xp: number; coins: number;
-  items: { name: string; qty: number }[]; left: number; max: number; bonus?: number; bonusUsed?: number; stop?: string;
+  items: { name: string; qty: number }[]; left: number; max: number; bonus?: number; bonusUsed?: number; equipLost?: number; stop?: string;
 }
 
 const box = () => document.querySelector<HTMLElement>("#offline");
@@ -31,6 +31,7 @@ export function showOffline(m: OfflineMsg | null) {
     for (const it of m.items) { const li = document.createElement("li"); li.textContent = `${it.qty} × ${it.name}`; ul.appendChild(li); }
     el.appendChild(ul);
   } else add("div", "Không có vật phẩm.", "oline omuted");
+  if (m.equipLost) add("div", `Túi đầy nên bỏ ${m.equipLost} món trang bị.`, "oline omuted");
   if (m.stop) add("div", `Dừng sớm: ${m.stop}.`, "oline ostop");
   if (m.bonusUsed) add("div", `Đã dùng ${autoTimeText(m.bonusUsed)} từ Ủy Thác Lệnh sau khi hết giờ miễn phí.`, "oline omuted");
   add("small", `Giờ treo còn lại: ${autoTimeText(m.left)}${m.bonus ? ` (trong đó ${autoTimeText(m.bonus)} từ Ủy Thác Lệnh)` : ""}; mỗi ngày ${autoTimeText(m.max)} miễn phí, chung với tự săn.`, "rnote");

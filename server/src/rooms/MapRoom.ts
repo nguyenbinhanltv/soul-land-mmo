@@ -14,7 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, type EquipData, type EquipDrop,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
@@ -144,6 +144,7 @@ export interface PData {
   claimBusy: number;    // số lần nhận phần thưởng boss đang chờ DB: chặn mở rương, bán / bỏ / hấp thụ / nộp đồ cho tới khi xong (#165)
   testClaimHold: boolean; // hook test `claimhold` (#165): như đang chờ DB ghi phần thưởng boss, cờ riêng để không đụng bộ đếm claimBusy thật
   testTravelLost: boolean; // hook test `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi, như mất phản hồi sau COMMIT
+  testEquip: (() => number) | null; // hook test `edrop`: RNG có hạt cho mọi lần tung rơi trang bị của người này
   testChest: { bone: number; ur: number; i: number; n: number; s: number } | null; // hook test `chest`: cố định số ngẫu nhiên khi mở rương (−1 = ngẫu nhiên)
   // Kỹ năng bị động của hồn cốt thân / chân trên võ hồn ra trận (từ 4.3, bonePassive): tính lại trong recalc. Không lưu DB.
   passive: BonePassive;
@@ -702,6 +703,8 @@ export class MapRoom extends Room<MapState> {
   eggs = new SpiderEggs(this);
   /** Hồn hạch đang nằm dưới đất (bước 5.1): id đồ rơi -> sao và chỉ số đã tung lúc rơi (DropState chỉ đồng bộ sao và bộ). */
   coreDrops = new Map<string, { stars: number; data: CoreData }>();
+  /** Chỉ số đã tung của trang bị rơi dưới đất (E2, mục 5.15): khóa = id đồ rơi; `DropState.cset` chỉ giữ chỉ số mẫu trong EQUIP_TEMPLATES. */
+  equipDrops = new Map<string, EquipData>();
   projs: Proj[] = [];
   timers: { t: number; fn: () => void }[] = []; // việc hẹn giờ (các nhát của hồn kỹ liên hoàn), chạy trong tick
   /** Lưới không gian và lọc đồng bộ theo vùng gần (11.4, interest.ts). */
@@ -1110,7 +1113,7 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
-      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, enhBusy: false, testEnh: null, testEnhSlow: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
+      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, enhBusy: false, testEnh: null, testEnhSlow: 0, testEquip: null, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
@@ -1673,7 +1676,7 @@ export class MapRoom extends Room<MapState> {
    * tổng tối đa OFFLINE.maxSecs (offlineSplit). Mỗi con: niên hạn và
    * loài tung như hồn thú của vùng, thời gian hạ theo offlineFight (chỉ số võ hồn ra trận lúc vào); kinh nghiệm, Hồn Tệ, mảnh, tiên thảo,
    * hồn cốt / hồn hạch (theo bộ lọc tự săn `bone` / `core`), hồn hoàn (từ `ring` năm, tối đa OFFLINE.rings) như hạ tay. Túi đầy thì dừng
-   * như tự săn; quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
+   * như tự săn (riêng trang bị rơi vào túi đầy thì bị bỏ, không dừng); quỹ hôm nay chỉ trừ phần đã săn. Chỉ gọi trong chuỗi lưu (onJoin xếp vào); ghi DB bằng write() ngay sau đó, gửi tin riêng
    * `offline` (bảng nhận thưởng). Vắng dưới OFFLINE.minSecs hoặc vùng không còn (đổi bản đồ) thì bỏ.
    */
   async claimOffline(id: string) {
@@ -1690,7 +1693,7 @@ export class MapRoom extends Room<MapState> {
     const pw = this.offlinePower(d, p);
     const cfg = d.autoCfg, lv = p.level, got = new Map<string, number>(), rings: number[] = [];
     const add = (name: string, n: number) => got.set(name, (got.get(name) ?? 0) + n);
-    let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false;
+    let t = 0, kills = 0, weak = 0, xp = 0, coins = 0, full = false, equipLost = 0;
     // Mỗi vòng một con; mỗi con tốn ít nhất OFFLINE.seek giây nên vòng lặp tối đa secs / seek lần.
     while (!full) {
       const years = this.offlineYears(zone), species = this.offlineSpecies(zone), beast = BEASTS[species]?.id ?? "";
@@ -1711,6 +1714,12 @@ export class MapRoom extends Room<MapState> {
       if (hc > 0 && Math.random() < hc) {
         const h = HERBS[Math.floor(Math.random() * HERBS.length)];
         if (this.addItem(d, h.id, 1)) add(h.name, 1); else full = true;
+      }
+      // E2: đá vào túi (đầy thì dừng như mảnh), trang bị vào túi (không rơi đất khi vắng mặt); trang bị chưa có bộ lọc, bán hay phân giải
+      // nên túi đầy thì bỏ món đó (đếm ở `equipLost`), không dừng cả lượt săn.
+      for (const e of rollEquipDrop(0, row.mapId, this.equipRng(d), 0)) {
+        if (e.kind === "stone") { const n = this.addItem(d, e.code, e.qty); if (n) add(itemDef(e.code)?.name ?? e.code, n); if (n < e.qty) full = true; }
+        else { const it = this.addEquip(d, e.item); if (it) add(this.itemLabel(it), 1); else equipLost++; }
       }
       if (cfg.bone && Math.random() < boneChance(years)) {
         const it = this.addBone(d, years, beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
@@ -1746,7 +1755,7 @@ export class MapRoom extends Room<MapState> {
     this.sendBag(id); this.sendVohons(c); this.sendSquad(id, true); this.sendAuto(id);
     d.offMsg = { away, secs, used: Math.round(t), map: def.name, zone: zone.name, kills, weak, xp: Math.round(xp), coins,
       items, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus), bonusUsed: Math.round(bonusUsed),
-      ...(stop ? { stop } : {}) };
+      ...(equipLost ? { equipLost } : {}), ...(stop ? { stop } : {}) };
     this.sendOffline(id);
     this.log(id, `Ủy thác ở ${zone.name} (${def.name}): vắng ${autoTimeText(away)}, tính ${autoTimeText(secs)}, hạ ${kills} hồn thú, ` +
       `${formatHonTe(coins)} Hồn Tệ${stop ? ` (dừng: ${stop})` : ""}.`, "#86e0b0");
@@ -2200,6 +2209,75 @@ export class MapRoom extends Room<MapState> {
     return it;
   }
 
+  /** Thêm một món trang bị hồn sư (E2, mỗi món một ô, `stats` = EquipData). Túi đầy thì null, trừ `force` (ô tạm vượt túi, như rương). Không tự gửi tin "bag". */
+  addEquip(d: PData, data: EquipData, force = false) {
+    const def = itemDef(EQUIP_ITEM); if (!def || (!force && bagUsed(d.bag) >= d.bagSlots)) return null;
+    const it = newItem(def, 1); it.stats = { tpl: data.tpl, ilvl: data.ilvl, roll: data.roll, affixes: data.affixes.map(([k, v]) => [k, v]), luck: data.luck };
+    d.bag.push(it); d.bagDirty = true;
+    return it;
+  }
+
+  /** RNG cho rơi trang bị của `d`: hook test `edrop` đặt RNG có hạt, thường là Math.random. */
+  equipRng(d: PData) { return d.testEquip ?? Math.random; }
+
+  /**
+   * Trang bị khi hạ hồn thú thường / tinh anh (E2, mục 5.15): `rollEquipDrop(rank, bản đồ, rng, rate)`. Đá cường hóa vào thẳng túi người
+   * hạ `id` (túi đầy thì phần dư rơi xuống đất như mảnh võ hồn); mỗi món trang bị rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên `owner`.
+   * `rate` = 0 cho tới khi có nguồn sự kiện máy chủ. Bản đồ không có trong EQUIP_MAPS thì không rơi gì.
+   */
+  rollEquipGround(id: string, owner: string, rank: number, x: number, y: number, why?: string) {
+    const d = this.pdata.get(id); if (!d) return;
+    const drops = rollEquipDrop(rank, this.state.mapId, this.equipRng(d), 0); if (!drops.length) return;
+    const spots = [[x - 16, y], [x, y - 8], [x + 8, y - 8], [x - 8, y + 8], [x + 16, y + 8]];
+    let k = 0, bagged = false;
+    for (const e of drops) {
+      if (e.kind === "stone") {
+        const def = itemDef(e.code); if (!def) continue;
+        const got = this.addItem(d, e.code, e.qty);
+        if (got) { this.log(id, `Nhận ${got} ${def.name}.`, def.col); bagged = true; }
+        if (got < e.qty) {
+          const drop = this.map.standable(x + 8, y) ? this.newDrop(x + 8, y, id) : this.newDrop(x, y, id);
+          drop.item = e.code; drop.qty = e.qty - got;
+          this.state.drops.set(uid("d"), drop);
+          this.log(id, `Túi đồ đã đầy (${d.bagSlots} ô): ${drop.qty} ${def.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
+        }
+        continue;
+      }
+      const ti = EQUIP_TEMPLATES.findIndex((t) => t.id === e.item.tpl), tpl = EQUIP_TEMPLATES[ti]; if (!tpl) continue;
+      const [cx, cy] = spots.slice(k).find(([a, b]) => this.map.standable(a, b)) ?? [x, y]; k = Math.min(spots.length - 1, k + 1);
+      const drop = this.newDrop(cx, cy, owner), col = EQUIP_TIERS[tpl.tier].col, did = uid("d");
+      drop.item = EQUIP_ITEM; drop.qty = 1; drop.stars = tpl.tier + 1; drop.cset = ti;
+      this.equipDrops.set(did, e.item); this.state.drops.set(did, drop);
+      this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col });
+      const msg = `${equipName(tpl.id)} (${EQUIP_TIERS[tpl.tier].color}) rơi xuống đất!`;
+      this.log(id, `${msg} ${this.lootNote(owner, id, why)}`, col);
+      if (owner !== id) this.log(owner, `${msg} ${this.lootNote(owner, owner)}`, col);
+    }
+    if (bagged) this.sendBag(id);
+  }
+
+  /**
+   * Phần trang bị của rương thú vương / boss thế giới (E2): tung rollEquipDrop(bậc, bản đồ) và cộng Bùa Hộ Mệnh (rollEquipCharm) ngay
+   * lúc mở. Vào thẳng túi, vượt số ô túi nếu cần (cần KING_CHEST.slots / WORLD_CHEST.slots ô trống từ trước nên thường không vượt;
+   * nhiều hơn chỉ khi `rate` > 0). Thêm mô tả vào `got`.
+   */
+  chestEquip(d: PData, rank: number, mapId: string, got: string[]) {
+    const rng = this.equipRng(d), drops: EquipDrop[] = rollEquipDrop(rank, mapId, rng, 0), charm = rollEquipCharm(rank, rng);
+    const stones = new Map<string, number>();
+    for (const e of drops) {
+      if (e.kind === "stone") { stones.set(e.code, (stones.get(e.code) ?? 0) + e.qty); continue; }
+      if (this.addEquip(d, e.item, true)) got.push(equipName(e.item.tpl));
+    }
+    const give = (code: string, qty: number) => {
+      const def = itemDef(code); if (!def) return;
+      const n = this.addItem(d, code, qty);
+      if (n < qty) { let left = qty - n; while (left > 0) { const q = Math.min(left, def.stack); d.bag.push(newItem(def, q)); left -= q; d.bagDirty = true; } } // vượt ô túi, không mất thưởng
+      got.push(`${qty} ${def.name}`);
+    };
+    for (const [code, qty] of stones) give(code, qty);
+    if (charm) give(EQUIP_CHARM, charm);
+  }
+
   /** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
   itemLabel(it: Item) {
     const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
@@ -2253,6 +2331,17 @@ export class MapRoom extends Room<MapState> {
       if (!this.addCore(d, core.stars, core.data)) return warn(`Túi đồ đã đầy (${d.bagSlots} ô): bỏ bớt vật phẩm rồi mới nhặt được ${name}.`);
       this.state.drops.delete(did); this.coreDrops.delete(did);
       this.log(id, `Nhặt ${name} vào túi đồ (B để xem chỉ số).`, CORE_SETS[dr.cset]?.col);
+      this.sendBag(id);
+      return;
+    }
+    // E2: trang bị dưới đất, cùng luật ưu tiên người hạ; túi đầy thì báo và món ở lại.
+    if (dr.item === EQUIP_ITEM) {
+      const eq = this.equipDrops.get(did), tpl = EQUIP_TEMPLATES[dr.cset], name = equipName(tpl?.id);
+      if (!mine(dr)) return warn(lock(dr, name));
+      if (!eq) { this.state.drops.delete(did); return warn(`${name} đã tan biến.`); } // không xảy ra: mọi trang bị rơi đều có trong equipDrops
+      if (!this.addEquip(d, eq)) return warn(`Túi đồ đã đầy (${d.bagSlots} ô): bỏ bớt vật phẩm rồi mới nhặt được ${name}.`);
+      this.state.drops.delete(did); this.equipDrops.delete(did);
+      this.log(id, `Nhặt ${name} vào túi đồ (B để xem chỉ số).`, EQUIP_TIERS[tpl?.tier ?? 0]?.col);
       this.sendBag(id);
       return;
     }
@@ -3546,6 +3635,12 @@ export class MapRoom extends Room<MapState> {
           d.bag.push(it); d.bagDirty = true; this.sendBag(id); out = { id: it.id };
         }
       }
+    }
+    // E2: `edrop {seed}` đặt RNG có hạt (mulberry32) cho MỌI lần tung rơi trang bị của người này (hạ hồn thú, mở rương, nhận offline); `{off: true}` trả về ngẫu nhiên.
+    // Bot tung lại cùng hạt bằng rollEquipDrop của shared để so kết quả (hạt dùng tiếp theo thứ tự các lần gọi).
+    else if (op === "edrop") {
+      if (o.off === true) d.testEquip = null;
+      else { let a = int(o.seed, 0, 2 ** 31, 1) >>> 0; d.testEquip = () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
     }
     else if (op === "bone") {
       const r = int(o.r, -1, 100, -1);
@@ -5461,6 +5556,7 @@ export class MapRoom extends Room<MapState> {
     const base = e ? Math.max(0, beastIndex(BOSSES[b.species]?.species ?? "")) : b.species;
     this.rollBone(by, drOwner, base, b.years, b.tier, b.x, b.y, elite ? ELITE.bone : 1, why);
     this.rollCoreDrop(by, drOwner, b.years, b.x, b.y, elite, why);
+    this.rollEquipGround(by, drOwner, elite ? 1 : 0, b.x, b.y, why);
   }
 
   /**
@@ -6810,6 +6906,7 @@ export class MapRoom extends Room<MapState> {
     }
     const core = rollCore(years, MAPS[mapId].cores, Math.random, { high: true });
     if (this.addCore(d, core.stars, core.data)) got.push(coreName(core.data.set, core.stars).replace("Hồn hạch", "hồn hạch"));
+    this.chestEquip(d, 2, mapId, got);
     this.sendBag(id);
     this.log(id, `Mở ${def.name}: ${got.join(", ")}.`, def.col);
     if (ur) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} mở ${def.name} nhận được ${ur}!` });
@@ -6838,6 +6935,7 @@ export class MapRoom extends Room<MapState> {
     const [s0, s1] = WORLD_CHEST.stars, stars = s0 + Math.floor(Math.random() * (s1 - s0 + 1));
     const core = rollCore(years, CORE_SETS.map((c) => c.id), Math.random, { stars });
     if (this.addCore(d, core.stars, core.data)) got.push(coreName(core.data.set, core.stars).replace("Hồn hạch", "hồn hạch"));
+    this.chestEquip(d, 3, Object.values(MAPS).find((m) => m.world?.includes(boss.id))?.id ?? "", got);
     this.sendBag(id);
     this.log(id, `Mở ${def.name}: ${got.join(", ")}.`, def.col);
     if (nu) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} mở ${def.name} nhận được ${nu} ${ud!.name}!` });
@@ -7452,7 +7550,7 @@ export class MapRoom extends Room<MapState> {
     // hồn hoàn rơi dưới đất: hết DROP_TTL_SECS giây thì biến mất (từ 3.2 hấp thụ từ túi, không còn ai "đang hấp thụ" hồn hoàn dưới đất)
     this.state.drops.forEach((dr, id) => {
       dr.ttl -= dt; if (dr.ownerTtl > 0) dr.ownerTtl = Math.max(0, dr.ownerTtl - dt);
-      if (dr.ttl <= 0) { this.state.drops.delete(id); this.coreDrops.delete(id); }
+      if (dr.ttl <= 0) { this.state.drops.delete(id); this.coreDrops.delete(id); this.equipDrops.delete(id); }
     });
 
     if (pt) pt[4] = performance.now();
