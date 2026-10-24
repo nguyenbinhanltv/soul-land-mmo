@@ -49,7 +49,7 @@ class FxTestScene extends Phaser.Scene {
       if (this.sheets) { // phần mới của S1: sheet theo bảng (nửa số lần là người khác: bản nhẹ) + tia lửa theo chất liệu
         const keys = Object.keys(SKILL_VISUAL), [vid, vr] = keys[(Math.random() * keys.length) | 0].split(":"); // S2: cả 22 chiêu đã có sheet
         const vis = skillVisualOf(vid, vr === "ct" ? 6 : vr === "tc" ? "tc" : +vr, vr === "ct"), vsk = vr === "tc" ? undefined : vr === "ct" ? chanThanOf(vid)?.skill : ringSkill(vid, +vr);
-        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000 });
+        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000, spread: ((vsk?.spread ?? 0) * Math.PI) / 180 });
         materialSparks(this.fxp, MATERIALS[(Math.random() * 4) | 0], el, x + 40, y - 8 * SPR, (Math.random() * 3) | 0, SPR);
       }
     } });
@@ -154,7 +154,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     s.rr = rr; (window as unknown as { __t0: number }).__t0 = performance.now(); // mốc phát chiêu cho script quay hình
     const withSheet = q.get("sv") !== "0";
     s.fire(d.kind, d.element, withSheet && !!vis.replace && !!vis.sheet && s.svp.sheets.has(vis.sheet.key), area === "around" || area === "self");
-    if (withSheet) s.svp.cast(vis, { x: s.hero.x, y: hy, ang: 0, tx, ty: s.dummy.y - 8 * SPR, mine: own, r: rr, n: sk?.n, everyMs: (sk?.every ?? 0) * 1000 });
+    if (withSheet) s.svp.cast(vis, { x: s.hero.x, y: hy, ang: 0, tx, ty: s.dummy.y - 8 * SPR, mine: own, r: rr, n: sk?.n, everyMs: (sk?.every ?? 0) * 1000, spread: ((sk?.spread ?? 0) * Math.PI) / 180 });
     const key = visualKey(id, vk, ct);
     $("fn").textContent += ` · T${vis.tier} nặng ${vis.heavy}${SKILL_VISUAL[key]?.sheet ? " · sheet " + SKILL_VISUAL[key]!.sheet!.key : " · (chưa có sheet: G3)"}`;
     if (!tc && isCinematic(ring, ct) && q.get("cine") !== "0") sc().cine.show(id, sk?.name ?? "", TIERS[sc().tier].glow, true);

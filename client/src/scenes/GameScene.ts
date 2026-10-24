@@ -43,7 +43,7 @@ import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, be
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
-import { SkillVisualPlayer, skillVisualOf, registerCodeSheets } from "../skillVisual.ts";
+import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
 const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle } from "../hitFeel.ts";
@@ -1531,7 +1531,7 @@ export class GameScene extends Phaser.Scene {
     const vis0 = skillVisualOf(VOHON[m.vh].id, m.i, !!m.ct), vis = SV_OFF ? { ...vis0, sheet: undefined, windupSheet: undefined, aftershock: undefined } : vis0, mine0 = m.id === this.me, tl = vis.sheet?.at === "cast" ? 0 : Math.max(r, 24 * SPR) * (sk.area === "proj" ? 0.9 : 0.5);
     if (mine0) this.castHeavy = { t: this.time.now, heavy: vis.heavy };
     if (vis.tier === 3 && vis.sheet) this.pt.strike(m.id, this.time.now); // T3: pháp tướng ra đòn cùng chiêu (hoạt ảnh đánh H2, không rung màn)
-    const replaced = this.svis.cast(vis, { x: at.x, y: at.y - 8 * SPR, ang: a, tx: at.x + Math.cos(a) * tl, ty: at.y + Math.sin(a) * tl * 0.5 - 8 * SPR, mine: mine0, r, n: sk.n, everyMs: (sk.every ?? 0) * 1000 });
+    const replaced = this.svis.cast(vis, { x: at.x, y: at.y - 8 * SPR, ang: a, tx: at.x + Math.cos(a) * tl, ty: at.y + Math.sin(a) * tl * 0.5 - 8 * SPR, mine: mine0, r, n: sk.n, everyMs: (sk.every ?? 0) * 1000, spread: ((sk.spread ?? 0) * Math.PI) / 180 });
     if (sk.area === "proj") { // sheet thay hiệu ứng G3 (SKILL_VISUAL.replace) thì G3 chỉ còn hạt (partsOnly)
       const n = Math.min(sk.n ?? 1, sk.spread && sk.spread >= 360 ? 6 : 3), sp = ((sk.spread ?? 0) * Math.PI) / 180;
       for (let j = 0; j < n; j++) go("proj", { ang: sk.spread && sk.spread >= 360 ? (j / n) * Math.PI * 2 : a + (n > 1 ? (j / (n - 1) - 0.5) * sp : 0), dist: r * 0.9 });
@@ -2045,8 +2045,11 @@ export class GameScene extends Phaser.Scene {
       }, onComplete: () => this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() }) });
     }
     this.time.delayedCall(BLOOM, () => {
+      // S3 (#566): có sheet riêng của cặp thì sheet thay đóa kính + vòng sóng và không rung màn hình (chỉ còn chớp sáng nhẹ).
+      const fv = SV_OFF ? undefined : FUSION_VISUAL[f.name], sheetOn = !!fv && this.svis.cast({ tier: 3, heavy: 2, ...fv }, { x: c.x, y: c.y - 8 * SPR, ang: 0, tx: c.x, ty: c.y - 8 * SPR, mine: this.me === m.id || this.me === m.to, r: R * RX });
       // Đóa kính lưu ly: vòng trong là mảnh tam giác xen hai màu võ hồn, vòng ngoài là mảnh lam / ngọc / tím lưu ly (_luu_ly.gpl),
       // mọi mảnh viền chì sẫm, mép ngoài viền vàng kim; nở ra rồi mờ dần.
+      if (!sheetOn) {
       const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };
       const draw = () => {
         const r1 = R * o.s, r0 = r1 * 0.45, P = (r: number, j: number) => groundAt(m.x, m.y, r, (j / N) * Math.PI * 2);
@@ -2063,6 +2066,7 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: o, s: 1, duration: 480, ease: "Back.easeOut", onUpdate: draw, onComplete: () =>
         this.tweens.add({ targets: o, a: 0, duration: 650, delay: 250, onUpdate: draw, onComplete: () => g.destroy() }) });
       this.ringFx(c, 6, R, col, 650); this.ringFx(c, 4, R * 0.7, "#ffffff", 550, 120);
+      }
       // Như tuyệt kỹ: hai người dung hợp thấy banner, người khác ở gần thấy tên chiêu lớn bay lên ở điểm giữa.
       const own = this.me === m.id || this.me === m.to;
       if (own) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
@@ -2075,7 +2079,7 @@ export class GameScene extends Phaser.Scene {
       const me = this.players.get(this.me);
       if (me && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) {
         const cc = Phaser.Display.Color.ValueToColor(hex(col));
-        this.flash(260, cc.red, cc.green, cc.blue); this.shake(320, 0.006);
+        this.flash(260, cc.red, cc.green, cc.blue); if (!sheetOn) this.shake(320, 0.006);
       }
     });
   }
