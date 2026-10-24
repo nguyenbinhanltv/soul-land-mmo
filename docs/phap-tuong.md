@@ -5,7 +5,7 @@ Tài liệu đặc tả hình ảnh. Luật chơi của Chân Thân (hồn lực
 ## 1. Quy ước (chủ repo đã chốt 2026-10-24)
 
 - **Cả 25 võ hồn dùng pháp tướng.** Hồn sư giữ nguyên (không đổi thân, không đổi sprite); khi Chân Thân, sau lưng hiện **hư ảnh võ hồn khổng lồ**. Thú võ hồn cũng là pháp tướng (rồng sét cuộn sau lưng, phượng hoàng lửa xòe cánh), không biến thành sinh vật.
-- **Khung 160×160**, nền trong suốt, hai lớp: **SAU thân** và **TRƯỚC thân** (lớp trước chỉ chứa phần ló ra trước thân hồn sư, nhiều võ hồn để trống).
+- **Khung 160×160**, nền trong suốt. **Một lớp cho cả khung ở mỗi hướng** (H1 #485 chốt): `s`, `se`, `e` vẽ **SAU** thân hồn sư; `ne`, `n` vẽ **TRƯỚC** thân hồn sư, mờ 70%. Không tách phần sau / phần ló trước trong một khung.
 - **5 hướng vẽ thật** `s`, `se`, `e`, `ne`, `n`; ba hướng còn lại (`sw`, `w`, `nw`) **lật gương** từ `se`, `e`, `ne` (như hồn sư và hồn thú).
 - **Hai hoạt ảnh**: (1) **vòng lặp "thở"** dùng chung cho đứng và đi (lơ lửng, sáng nhịp); (2) **một động tác đánh / niệm** (rồng gầm, búa vung...) dùng cho đánh thường và tung hồn kỹ. Trúng đòn, gục: không thêm khung (pháp tướng mờ theo thân, tan khi hết Chân Thân).
 - **Concept do PixelLab tự tạo** (prompt ở mục 5); chủ repo duyệt kết quả ở trang xem trước trước khi làm cả bộ.
@@ -15,19 +15,19 @@ Tài liệu đặc tả hình ảnh. Luật chơi của Chân Thân (hồn lực
 
 Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Khi Chân Thân, thân hồn sư phóng `CHAN_THAN_SCALE`; khung pháp tướng **phóng theo cùng tỉ lệ quanh gốc** (đổi nếu thử ở H1 thấy hình quá lớn). Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
 
-Điểm gắn theo nhóm bố cục (cột "Nhóm" ở bảng chuyển động):
+Điểm gắn gợi ý theo nhóm bố cục (cột "Nhóm" ở bảng chuyển động). **Lớp không theo nhóm**: mọi nhóm dùng một luật lớp ở mục 1 (H1 chốt), nhóm chỉ cho biết đặt hình ở đâu quanh gốc (`display.dx`, `dy`, `scale` trong `recipe.json`).
 
-| Nhóm | Loại | Vị trí và lớp theo hướng |
+| Nhóm | Loại | Vị trí gợi ý |
 |---|---|---|
-| V | Vũ khí / vật đứng | Chéo sau vai phải; `s`, `se`, `e`: lớp SAU; `ne`, `n`: lớp SAU nhưng đầu cán ló ra TRƯỚC vai |
-| S | Rồng / rắn cuộn | Cuộn sau lưng, đầu qua một bên vai; `s`, `se`: SAU; `e`: thân SAU, đầu TRƯỚC; `ne`, `n`: thân TRƯỚC (che lưng), đầu ló qua vai |
-| P | Hoa / cây | Mọc từ gốc ở sau lưng; `s`, `se`, `e`: SAU; `ne`, `n`: bông TRƯỚC lưng, mờ 70% |
-| B | Chim xòe cánh | Hai cánh xòe từ lưng; `s`, `se`: SAU; `e`: cánh xa SAU, cánh gần TRƯỚC; `ne`, `n`: cả hai cánh TRƯỚC lưng, mờ 70% |
-| T | Thú đứng / ngồi / phục | Sát sau lưng, đầu cao hơn hồn sư; `s`, `se`, `e`: SAU; `ne`, `n`: TRƯỚC (thấy lưng thú), mờ 70% |
-| O | Vật lơ lửng | Lơ lửng ngang sau đầu, cách đầu ~6 px; mọi hướng SAU, trừ `n`: TRƯỚC mờ 70% |
-| D | Bóng người / quỷ | Sát sau lưng, to gấp ~2 lần hồn sư; `s`, `se`, `e`: SAU; `ne`, `n`: TRƯỚC, mờ 60% |
+| V | Vũ khí / vật đứng | Chéo sau vai phải (H1: Hạo Thiên Chùy tỉ lệ 0,85, dời +12, −4) |
+| S | Rồng / rắn cuộn | Cuộn sau lưng, đầu qua một bên vai (H1: Lam Điện tỉ lệ 1, không dời) |
+| P | Hoa / cây | Mọc từ gốc ở sau lưng |
+| B | Chim xòe cánh | Hai cánh xòe từ lưng |
+| T | Thú đứng / ngồi / phục | Sát sau lưng, đầu cao hơn hồn sư |
+| O | Vật lơ lửng | Lơ lửng ngang sau đầu, cách đầu ~6 px |
+| D | Bóng người / quỷ | Sát sau lưng, to gấp ~2 lần hồn sư |
 
-Quy tắc chung: hướng `s` (hồn sư nhìn về phía người xem) thì pháp tướng nằm hẳn **sau**, thấy rõ hai bên; hướng `n` (hồn sư quay lưng) thì pháp tướng đứng **trước** thân, **mờ 60–70%** để không che hồn sư và hồn thú. Hai hướng chéo giữ lớp như hướng gần nhất. Hướng lật gương lật cả lớp.
+Quy tắc lớp (H1 chốt): hướng `s` (hồn sư nhìn về phía người xem), `se`, `e` pháp tướng nằm hẳn **sau** thân; `ne`, `n` (hồn sư quay lưng) pháp tướng đứng **trước** thân, **mờ 70%** để không che hồn sư và hồn thú. Hướng lật gương (sw, w, nw) lật cả khung và giữ lớp của hướng gốc.
 
 ## 3. Cảm giác chuyển động (chung)
 
