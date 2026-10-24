@@ -967,12 +967,13 @@ export class PgStore implements Store {
     // Cột looks_lpc có chuỗi thì là chế độ Tự tạo (decodeLpc kiểm lại theo danh mục; hỏng thì cũng về mặc định).
     let l = x ? parseLooks(x.looks_lpc ? { mode: "lpc", lpc: decodeLpc(x.looks_lpc) }
       : { sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
-    // HL2 #571: tài khoản đã chọn ngoại hình mà chưa phải LPC thì chuyển lười sang LPC. Ghi có điều kiện looks_lpc vẫn đúng giá trị đã đọc
+    // HL2 #571: tài khoản preset cũ (đã chọn ngoại hình, looks_lpc rỗng) chuyển lười sang LPC. Chuỗi looks_lpc khác rỗng mà hỏng (bản cũ hơn
+    // đọc dữ liệu của bản mới, món bị gỡ) thì KHÔNG đụng vào: chỉ hiển thị mặc định, dữ liệu còn nguyên. Ghi có điều kiện looks_lpc vẫn rỗng
     // (nhiều tiến trình cùng nạp thì cùng ra một kết quả vì hàm thuần; ai ghi trước thắng, cái sau đọc lại). Không đụng looks_changes,
-    // giữ nguyên năm cột preset cũ (chỉ looks_lpc quyết định chế độ).
-    if (x?.looks_chosen && l?.mode !== "lpc") {
-      const lpc = presetToLpc(l ?? DEFAULT_LOOKS);
-      const w = await this.pool.query("UPDATE accounts SET looks_lpc=$2 WHERE id=$1 AND looks_chosen AND looks_lpc=$3", [accountId, encodeLpc(lpc), x.looks_lpc ?? ""]);
+    // giữ nguyên năm cột preset cũ (chỉ looks_lpc quyết định chế độ). Đưa thẳng năm cột thô: số ngoài khoảng được xử lý từng trường.
+    if (x?.looks_chosen && !x.looks_lpc) {
+      const lpc = presetToLpc({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin });
+      const w = await this.pool.query("UPDATE accounts SET looks_lpc=$2 WHERE id=$1 AND looks_chosen AND looks_lpc=''", [accountId, encodeLpc(lpc)]);
       if (!w.rowCount) return this.getLooks(accountId);
       l = parseLooks({ mode: "lpc", lpc });
     }
