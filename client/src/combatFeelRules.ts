@@ -33,11 +33,12 @@ const ELEMENT_STROKE: Record<Element, string> = {
 };
 
 /** Màu / cỡ chữ hiển thị, tách rõ hồi máu, khiên và chí mạng khỏi sát thương thường. */
-export function damageTextStyle(kind: DamageTextKind, crit: boolean, el?: Element, mine = false) {
+export function damageTextStyle(kind: DamageTextKind, crit: boolean, el?: Element, mine = false, serverColor?: string) {
   if (kind === "heal") return { color: "#7dff8a", stroke: "#1f5a2a", font: 13 };
   if (kind === "shield") return { color: "#9ad8ff", stroke: "#24527a", font: 13 };
   if (kind === "immune") return { color: "#d8d8e8", stroke: "#3a3a52", font: 12 };
   if (mine) return { color: "#ff7b72", stroke: "#1a1020", font: crit ? 16 : 12 };
+  if (serverColor) return { color: serverColor, stroke: "#1a1020", font: crit ? 16 : 12 };
   if (kind === "crit") return { color: "#ffe14d", stroke: "#70521a", font: 16 };
   return { color: el ? ELEMENT_TEXT[el] : crit ? "#ffe14d" : "#ff7b72", stroke: el ? ELEMENT_STROKE[el] : "#1a1020", font: crit ? 16 : 12 };
 }
