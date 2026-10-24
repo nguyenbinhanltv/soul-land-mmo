@@ -153,6 +153,8 @@ function creditOf(rel, dir, anim) {
 }
 const rank = (l) => { const f = licenseFlags(l); return (f.includes("NC") ? 3 : 0) + (f.includes("SA") ? 1 : 0) + (f.includes("GPL") ? 2 : 0); };
 const cell = (s) => s.replace(/\|/g, "\\|");
+/** Dòng ghi công có cờ SA (cờ ghi dạng "(cờ SA)" hoặc "(cờ SA, GPL)"). */
+const hasSa = (l) => /\(cờ [^)]*\bSA\b/.test(l);
 const uniq = (a) => [...new Set(a)];
 
 // ---------- Chế độ kiểm ----------
@@ -188,7 +190,7 @@ if (check) {
     for (const p of PARTS) {
       const l = lines.get(p.id);
       if (!l) err(`art/CREDITS.md: thiếu dòng ghi công của ${p.id}`);
-      else if (l.includes("(cờ SA)") !== p.sa) err(`art/CREDITS.md ${p.id}: cờ SA ${l.includes("(cờ SA)")} ≠ LPC_PARTS.sa ${p.sa}`);
+      else if (hasSa(l) !== p.sa) err(`art/CREDITS.md ${p.id}: cờ SA ${hasSa(l)} ≠ LPC_PARTS.sa ${p.sa}`);
       else if (!p.lic.every((x) => l.includes(x))) err(`art/CREDITS.md ${p.id}: giấy phép không khớp LPC_PARTS.lic (${p.lic.join(", ")})`);
     }
     for (const id of lines.keys()) if (!ids.has(id)) err(`art/CREDITS.md: dòng ${id} không có trong LPC_PARTS`);
@@ -225,8 +227,13 @@ for (const sex of ["m", "f"]) {
 const prev = existsSync(path.join(OUT, "manifest.json")) ? JSON.parse(readFileSync(path.join(OUT, "manifest.json"), "utf8")) : null;
 const sheets = {}, creditRows = new Map();
 if (prev && wanted) Object.assign(sheets, prev.sheets);
-if (!wanted) rmSync(OUT, { recursive: true, force: true });
+if (!wanted && existsSync(OUT)) { // chỉ xóa file của chính công cụ, không đụng file lạ (kẻo --out nhầm thư mục)
+  const stray = readdirSync(OUT).filter((f) => f !== "manifest.json" && !/^lpcp_.*.png$/.test(f));
+  if (stray.length) fail(`${OUT}: có file lạ (${stray.slice(0, 3).join(", ")}…), không phải thư mục sheet LPC; kiểm --out`);
+  for (const f of readdirSync(OUT)) rmSync(path.join(OUT, f));
+}
 mkdirSync(OUT, { recursive: true });
+const ROWS_PX_GUARD = F; // điểm tràn ra ngoài khung (trên hoặc dưới) bị cắt, không tràn sang hàng bên
 const clipped = new Map(); // món → số điểm mép trên bị cắt khi dời (khung 64 cố định)
 const partCredits = new Map(); // id → { dirs, authors, licenses, urls, uses[] }
 const todo = PARTS.filter((p) => !wanted || wanted.has(p.id));
@@ -255,7 +262,7 @@ for (const p of todo) {
             const px = sh.get(fr * F + x, sr * F + y);
             if (!px[3]) continue;
             if (px[3] >= 128) solid++;
-            if (y + dy < 0) { clipped.set(p.id, (clipped.get(p.id) ?? 0) + 1); continue; }
+            if (y + dy < 0 || y + dy >= ROWS_PX_GUARD) { clipped.set(p.id, (clipped.get(p.id) ?? 0) + 1); continue; }
             img.set((st.col + i) * F + x, dr * F + y + dy, px);
           }
           // File màu sẵn hỏng (khung phủ kín điểm đặc, hộp đen / trắng che nhân vật, L0 mục 8).

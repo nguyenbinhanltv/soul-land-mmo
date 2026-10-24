@@ -131,6 +131,13 @@ node tools/assets/lpc-beast.mjs --src <thư mục gói thú> --out <tmp>/thu --s
 cp <tmp>/thu/<loài>.png shared/assets/sprites/beast/ && node tools/assets/normal.mjs shared/assets/sprites/beast/<loài>.png
 ```
 
+**Món LPC cho hồn sư chế độ Tự tạo (#508):** `tools/assets/lpc-parts.mjs` đóng gói danh mục `LPC_PARTS` (`shared/data.ts`, nguồn lớp `art/src/lpc-parts.json`) thành sheet `shared/assets/lpcparts/lpcp_*.png` + `manifest.json` và ghi `art/CREDITS.md` (mục `### lpc-parts`). Quy cách ở `tools/assets/README.md`. Kho LPC để ngoài repo, chỉ đọc PNG / JSON.
+```bash
+node tools/assets/lpc-parts.mjs --lpc <repo LPC> [--only <mã,mã>]   # đóng gói (thiếu giấy phép / file màu hỏng thì dừng)
+node tools/assets/lpc-parts.mjs --check                              # kiểm, không cần kho LPC; npm run check đã chạy
+```
+Thêm một món: thêm dòng vào `LPC_PARTS` (giữ dạng JSON; `lic`, `sa`, `idle` phải khớp CREDITS.csv, công cụ báo nếu lệch) và thư mục nguồn từng thể hình vào `art/src/lpc-parts.json` (cùng thứ tự `z`), rồi chạy lại với `--only <mã>`. Không tô màu / viền ở đây: việc của client ghép lớp.
+
 **Biểu tượng vật phẩm và hiệu ứng LPC (chủ repo duyệt từng ảnh, #201):** `tools/assets/lpc-item.mjs` theo công thức `art/src/lpc-item.json` (`packs`: tiêu đề, URL, thư mục, giấy phép như trang OGA; `items`: ô [cột, hàng] của sheet 32×32, `gray`; `fx`: dải khung một hàng). Biểu tượng cắt nguyên ô (không phóng), căn giữa, viền `#1a1020`, giảm còn 24 màu; `gray` (rương, tiên thảo) giãn sáng để client tô theo `col` của món (`TINTED` trong `uiArt.ts`). Hiệu ứng `fx_<tên>` giữ màu gốc, client chạy một lần bằng `playFx` (`sprites.ts`). Tải gói ngoài repo như thú LPC; công cụ ghi manifest và mục `<!-- lpc-item:start -->` của `art/CREDITS.md` kèm cờ SA / GPL.
 - **Đang dùng:** `item_hoi_thanh_phu` (cuộn giấy), `item_ruong`, `item_tien_thao` (LPC Items and game effects, Reemax ⚑ SA), `fx_no` (LPC Explosions, CC0) ở quả nổ tiên cơ Cường Công.
 
