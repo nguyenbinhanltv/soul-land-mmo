@@ -122,7 +122,7 @@ function equipTip(it: BagItem, slotName: string): TipSpec {
 function openBagFor() {
   const el = document.getElementById("bag");
   if (el?.hidden) toggleBag(true);
-  raisePanel(document.body.classList.contains("ui-w560") ? "bag" : "char"); // màn hẹp: Túi nổi lên kể cả khi đã mở sẵn (bảng kia bị ẩn)
+  raisePanel(document.body.classList.contains("ui-w640") ? "bag" : "char"); // màn hẹp: Túi nổi lên kể cả khi đã mở sẵn (bảng kia bị ẩn)
 }
 /** Sau khi chọn món: màn hẹp thì đưa bảng Nhân vật nổi lại để thấy kết quả. */
 const backToChar = () => raisePanel("char");

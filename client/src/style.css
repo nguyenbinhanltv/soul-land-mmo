@@ -1382,9 +1382,9 @@ body.dual-win.ui-wide #bag{left:52%}
 body.dual-win.ui-wide .bgrid{grid-template-columns:repeat(10,1fr)}
 body.dual-win.ui-wide #char .cbody{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
 /* màn hẹp: một bảng một lúc, thẻ chuyển ở đầu màn hình */
-body.dual-win.ui-w560 :is(#char,#bag){left:2%;width:96%;top:46px;max-height:calc(98% - 46px)}
-body.dual-win.ui-w560[data-pick=char] #bag,body.dual-win.ui-w560[data-pick=bag] #char{display:none}
-body.ui-w560.dual-win #dualTabs:not([hidden]){display:flex;position:absolute;left:2%;right:2%;top:4px;height:36px;z-index:6;pointer-events:auto;gap:4px}
+body.dual-win.ui-w640 :is(#char,#bag){left:2%;width:96%;top:46px;max-height:calc(98% - 46px)}
+body.dual-win.ui-w640[data-pick=char] #bag,body.dual-win.ui-w640[data-pick=bag] #char{display:none}
+body.ui-w640.dual-win #dualTabs:not([hidden]){display:flex;position:absolute;left:2%;right:2%;top:4px;height:36px;z-index:6;pointer-events:auto;gap:4px}
 #dualTabs button{flex:1;font:inherit;font-family:var(--f12);border:2px solid var(--line2);background:var(--panel);color:var(--text);cursor:pointer}
 #dualTabs button.on{background:var(--accent);color:#fff}
 
@@ -1438,3 +1438,22 @@ body .dd-bad.dd-over{outline-color:#ff7a6a!important;background:rgba(210,72,61,.
 .cmpdlg .cnew.t-good span,.cmpdlg .cnew.t-bad span{font-weight:700}
 .cmpdlg .cnone{grid-column:1 / -1;color:var(--muted)}
 body.touch .acard .buse,body.touch .cmpdlg .buse{min-height:44px}
+
+/* ===== NV5 (#459): điện thoại ngang thấp / màn hẹp — hai bảng không tràn, nút gọn nhưng vẫn chạm được (≥ 36 px), tab cuộn ngang thay vì xuống dòng ===== */
+#bag .bequip{flex-wrap:wrap}
+body.ui-h460 :is(#char,#bag){padding-top:6px;padding-bottom:6px}
+body.ui-h460 #char .rhead,body.ui-h460 #bag .rhead{padding-bottom:6px}
+body.ui-h460 #char .ctabs,body.ui-h460 #bag .bfilter{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+body.ui-h460 #char .ctabs::-webkit-scrollbar,body.ui-h460 #bag .bfilter::-webkit-scrollbar{display:none}
+body.ui-h460 #char .ctabs .ui-tab,body.ui-h460 #bag .bfilter .ui-tab{flex:none;white-space:nowrap;min-height:36px;padding:0 var(--sp-3);font-size:11px;line-height:1.2}
+body.ui-h460 #char .cstrip{flex-wrap:nowrap;align-items:center}
+body.ui-h460 #char .cgo{min-height:36px;padding:0 var(--sp-3)}
+body.ui-h460.touch :is(#char .cdtabs .ui-tab,#char .ctabs .ui-tab,#bag .bfilter .ui-tab,#char .cgo){min-height:36px}
+body.ui-h460.touch :is(#bag .bequip .bq){width:36px;height:36px;min-width:0;min-height:0}
+body.ui-h460 #bag .bsortsel{margin-left:0}
+body.ui-h460 #char .emid{min-height:170px}
+/* bốn tab búp bê chia đều một hàng (tên trên, số ô dưới) để thấy đủ không phải cuộn */
+body.ui-h460 #char .cdtabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--sp-1)}
+body.ui-h460 #char .cdtabs .ui-tab{flex-direction:column;justify-content:center;gap:0;min-height:36px;padding:0 2px;font-size:11px;line-height:1.15;text-align:center;white-space:nowrap}
+body.ui-h460 #char .cdtabs .ui-tab::before{display:none}
+body.ui-h460 :is(#char,#bag)>*{flex-shrink:0}
