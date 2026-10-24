@@ -9,7 +9,7 @@
 //   thêm `"static": true` là hồn thú lai (#386): 3 ảnh tĩnh nam / đông / bắc, chuyển động vẽ bằng code (staticBeastPose).
 // Key nào chưa có ảnh thì makeTextures() trong textures.ts vẽ bằng code như cũ.
 import Phaser from "phaser";
-import { TELE_WARN } from "../../shared/data.ts";
+import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { legacyDir, SPR, type Dir8 } from "./iso.ts";
 import { attachNormal, lightingOn } from "./lighting.ts";
 
@@ -383,6 +383,8 @@ function sheetSpec(key: string, frame?: readonly [number, number], iso = false):
   // Hiệu ứng (tools/assets/lpc-item.mjs, #201): dải một hàng, manifest ghi `frame`; chạy bằng playFx.
   if ((m = key.match(/^fx_([a-z_]+)$/)) && frame) return { url: `iso/fx/${m[1]}.png`, frame };
   // NPC phụ / dân thường ghép từ LPC (mục 5.11 "NPC phụ và dân thường"): một lớp đã tô màu, bố cục sheet hồn sư isometric.
+  // Pháp tướng Võ Hồn Chân Thân (#482): sheet 16 cột × 5 hàng, khung 160 (PT_FRAME); không có normal map. Do phapTuong.ts dùng.
+  if ((m = key.match(/^pt_([a-z_]+)$/))) return { url: `phaptuong/${m[1]}.png`, frame: [PT_FRAME, PT_FRAME] };
   if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return { url: `iso/lpc/${m[1]}.png`, frame: [ISO_HS_FRAME, ISO_HS_FRAME] };
   return null;
 }
@@ -411,14 +413,14 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts); hiệu ứng `fx_*` (#201) là dải một hàng, chạy bằng playFx.
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
-      if (iso && !/^(hs|vh|beast|fx)_/.test(key)) continue;
+      if (iso && !/^(hs|vh|beast|fx|pt)_/.test(key)) continue;
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
-      if (iso && !key.startsWith("fx_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
+      if (iso && !key.startsWith("fx_") && !key.startsWith("pt_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
     lpc?.(lpcNames);
   });
