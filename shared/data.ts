@@ -3623,6 +3623,18 @@ export const EQUIP_SYNTH: { from: number; p: number; fee: number; essence: numbe
 ];
 export const EQUIP_SYNTH_KEEP = 0.5;
 export const equipSynthStep = (tier: number) => EQUIP_SYNTH.find((s) => s.from === tier) ?? null;
+/**
+ * Kết quả hợp thành từ bậc `from` (hàm thuần; server tung `ok` bằng `rnd() < step.p`): thành công → món mới cấp cường hóa floor(món chính × EQUIP_SYNTH_KEEP);
+ * thất bại → `main` = cấp món chính sau đó (null = mất cả món chính), luôn mất 2 hiến tế, `refund` = Tinh Hoa hoàn lại (làm tròn xuống). Bậc không hợp thành được: null.
+ */
+export function equipSynthOutcome(from: number, mainEnhance: number, ok: boolean): { ok: true; enhance: number } | { ok: false; main: number | null; refund: number } | null {
+  const s = equipSynthStep(from); if (!s) return null;
+  const e = equipEnhanceClamp(mainEnhance);
+  if (ok) return { ok: true, enhance: Math.floor(e * EQUIP_SYNTH_KEEP) };
+  return { ok: false, main: s.all ? null : Math.max(0, e - s.mainLoss), refund: s.all ? Math.floor(s.essence * s.refund) : 0 };
+}
+/** Tối đa ngần này món trong một lệnh phân giải (cỡ một trang túi, BAG_PAGE). */
+export const EQUIP_SALVAGE_MAX = 50;
 
 /**
  * **(chờ duyệt)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
@@ -4189,16 +4201,19 @@ export interface SellSettings {
   bone: number;    // bán hồn cốt cường hóa dưới +bone (0 = không bán hồn cốt)
   core: number;    // bán hồn hạch chưa nâng cấp dưới bấy nhiêu sao (1 = không bán hồn hạch)
   shard: boolean;  // bán mảnh võ hồn (vật phẩm thường thương nhân mua; đan, phù chú, lệnh bài, rương, tiên thảo thì thương nhân không mua)
+  salv: number;    // tự phân giải trang bị hồn sư (E4) bậc dưới `salv` (0 = tắt, mặc định; tối đa EQUIP_MAX_TIER: Chí Bảo không bao giờ tự phân giải); độc lập với `on`
+  salvEnh: number; // chỉ tự phân giải món cường hóa dưới +salvEnh (1 = chỉ món +0)
 }
 /** Mặc định: tắt; khi bật chỉ bán đồ giá trị thấp (hồn hoàn dưới nghìn năm, hồn hạch 1–2 sao), giữ hồn cốt và mảnh võ hồn. */
-export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false };
+export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false, salv: 0, salvEnh: 1 };
 /** Bộ lọc từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định. */
 export function parseSell(raw: unknown): SellSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = SELL_DEFAULTS;
   const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v))) : def);
   const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
   return { on: bool(o.on, D.on), ring: num(o.ring, 0, MAX_YEARS + 1, D.ring), high: bool(o.high, D.high),
-    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard) };
+    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard),
+    salv: num(o.salv, 0, EQUIP_MAX_TIER, D.salv), salvEnh: num(o.salvEnh, 1, EQUIP_MAX_ENHANCE + 1, D.salvEnh) };
 }
 /**
  * Món `it` có bị tự bán theo bộ lọc `s` không (hàm thuần, client dùng để xem trước): không khoá, không gắn, thương nhân mua (sellPrice),
@@ -4214,6 +4229,13 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
   if (kind === "hon_hach") return it.enhance === 0 && (it.stars ?? 1) < s.core;
   if (kind === "manh_vo_hon") return s.shard;
   return false;
+}
+
+/** Món trang bị hồn sư `it` (trong túi) có bị tự phân giải theo bộ lọc `s` không (hàm thuần, client xem trước): không khoá, không mặc, bậc < `salv`, cấp cường hóa < `salvEnh`. */
+export function equipAutoSalvageable(it: { code: string; stats: unknown; enhance: number; locked?: boolean; vohon?: number | null; equipSlot?: number }, s: SellSettings): boolean {
+  if (s.salv <= 0 || it.code !== EQUIP_ITEM || it.locked || (it.vohon ?? null) !== null || it.equipSlot !== undefined) return false;
+  const e = parseEquip(it.stats), t = e ? equipTemplate(e.tpl) : undefined;
+  return !!t && t.tier < s.salv && it.enhance < s.salvEnh;
 }
 
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng đã chốt) ----------

@@ -121,7 +121,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
-import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
+import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
 import * as SD from "../../shared/data.ts"; // E2: rollEquipDrop, rollEquipCharm... (equipDropTest)
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
@@ -313,7 +313,7 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await equipDropTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư; E3 cường hóa
+  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["sell",3,sellTest],                        //   5 #216
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
@@ -392,7 +392,7 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -6639,6 +6639,178 @@ async function gearEnhanceTest(){
   r=await enh(T); ok(r?.ok&&find(T).enhance===2,"sau khi xong, lệnh kế tiếp được nhận lại bình thường");
   await rejoin(); ok(find(T)?.enhance===2,"vào lại: cấp cường hóa đã lưu");
   await test(S,"enhroll",{r:-1}); await test(S,"gear",{clear:true});
+  }finally{ await S.room.leave().catch(()=>{}); }
+}
+/**
+ * E4 (#415) Thợ rèn hợp thành 3 → 1 và phân giải hàng loạt: bảng số và hàm thuần (equipSynthOutcome, equipSalvage, equipAutoSalvageable), thành công (món mới bậc kế,
+ * ilvl cao nhất, giữ nửa cấp), thất bại từng bậc (T2 → T3 mất 2 hiến tế; T3 → T4 món chính −1 cấp; T4 → T5 mất cả 3, hoàn Tinh Hoa), từ chối đúng (khác bậc / ô, khoá,
+ * trùng id, đang mặc, thiếu phí / Tinh Hoa, xa Thợ rèn, bậc cao nhất), 20 lệnh dồn chỉ 1 lệnh được xử lý, phân giải (Hồn Tệ + nguyên liệu, không kinh nghiệm,
+ * túi đầy từ chối cả lượt không mất món), tự phân giải (mặc định tắt, bỏ qua món khoá / cường hóa), lưu qua lần vào lại (với --pg: transaction thật).
+ */
+async function gearSynthTest(){
+  console.log("[E4] Thợ rèn: hợp thành 3 → 1, phân giải hàng loạt, tự phân giải");
+  ok(EQUIP_SYNTH.length===5&&equipSynthStep(5)===null&&equipSynthStep(0).p===1&&equipSynthStep(4).all&&equipSynthStep(3).mainLoss===1&&equipSynthStep(4).essence>0,
+    "bảng hợp thành: T0 → T4 hợp được, T5 không; T3 → T4 món chính −1 cấp, T4 → T5 mất cả 3");
+  ok(same(equipSynthOutcome(2,9,true),{ok:true,enhance:Math.floor(9*EQUIP_SYNTH_KEEP)})&&same(equipSynthOutcome(2,9,false),{ok:false,main:9,refund:0})
+    &&same(equipSynthOutcome(3,9,false),{ok:false,main:8,refund:0})&&same(equipSynthOutcome(3,0,false),{ok:false,main:0,refund:0})
+    &&same(equipSynthOutcome(4,9,false),{ok:false,main:null,refund:Math.floor(equipSynthStep(4).essence*equipSynthStep(4).refund)})&&equipSynthOutcome(5,0,true)===null,
+    "equipSynthOutcome: giữ nửa cấp khi thành công, tụt 1 cấp ở T3, mất cả ba và hoàn Tinh Hoa ở T4, không tụt dưới +0");
+  const lo=equipSalvage(2,5,()=>0), hi=equipSalvage(2,5,()=>0.999);
+  ok(lo.coin===Math.round(EQUIP_SALVAGE[2].coin*2)&&lo.items.length===EQUIP_SALVAGE[2].mats.length&&hi.items.length===1&&hi.coin===lo.coin&&lo.items.every((m,i)=>m.qty===EQUIP_SALVAGE[2].mats[i].qty[0]),
+    "equipSalvage: Hồn Tệ gốc × (1 + cấp / 5), rnd thấp ra đủ nguyên liệu số nhỏ nhất, rnd cao chỉ còn dòng chắc chắn");
+  const mkp=(tier,enhance,extra={})=>({code:"trang_bi",stats:{tpl:["vu_khi","mu","ao"][0]+"_"+["pham_khi","tinh_thiet","han_ngoc","tu_kim","than_khi","chi_bao"][tier],ilvl:1,roll:0,affixes:[],luck:0},enhance,...extra});
+  const cfg=parseSell({salv:3,salvEnh:2});
+  ok(equipAutoSalvageable(mkp(2,1),cfg)&&!equipAutoSalvageable(mkp(3,0),cfg)&&!equipAutoSalvageable(mkp(0,2),cfg)&&!equipAutoSalvageable(mkp(0,0,{locked:true}),cfg)
+    &&!equipAutoSalvageable(mkp(0,0,{equipSlot:0}),cfg)&&!equipAutoSalvageable(mkp(0,0),parseSell({}))&&parseSell({salv:99}).salv===5&&parseSell({}).salv===0,
+    "equipAutoSalvageable: dưới bậc / cấp đặt, bỏ qua món khoá / đang mặc; mặc định tắt; kẹp tối đa T4");
+  const S=await bot("Hop thanh","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua hợp thành / phân giải (cần hook gear, give, coin, synroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
+  const watch=()=>{ S.synN=0; S.synLast=null; S.salvN=0; S.salvLast=null; S.room.onMessage("equipsynd",m=>{ S.synLast=m; S.synN++; }); S.room.onMessage("equipsalvd",m=>{ S.salvLast=m; S.salvN++; }); };
+  watch();
+  S.travel=null; S.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>S.travel,4000);
+  if(S.travel){ const t=S.travel; await S.room.leave(); await sleep(300); S.mapId=t.mapId; await enter(S,t.roomId??undefined); watch(); }
+  await waitFor(()=>me()&&S.bag&&S.gear,4000);
+  async function rejoin(){ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; await enter(S); watch(); await waitFor(()=>me()&&S.bag&&S.gear,4000); }
+  const lr=npcSpot("nac_dinh_thanh","lo_ren");
+  const have=code=>loose().filter(i=>i.code===code).reduce((n,i)=>n+i.qty,0);
+  const equips=()=>loose().filter(i=>i.code==="trang_bi");
+  const give=async(code,qty)=>{ const n=have(code); await test(S,"give",{code,qty}); await waitFor(()=>have(code)===n+qty,2000); };
+  const coin=async n=>{ await test(S,"coin",{n}); await waitFor(()=>S.bag.honTe===n,1500); };
+  const mk=async(tpl,enhance,ilvl=3)=>{ const r=await test(S,"gear",{tpl,enhance,ilvl}); await waitFor(()=>loose().some(i=>i.id===r?.id),1500); return r?.id; };
+  const tierOf=id=>equipTemplate(parseEquip(find(id)?.stats)?.tpl)?.tier;
+  /** Gửi equipsynth; trả kết quả (tin equipsynd) hoặc null kèm dòng log từ chối. */
+  async function syn(main,sac){ const n=S.synN, l=S.logs.length; S.room.send("equipsynth",{main,sacrifice:sac}); await waitFor(()=>S.synN>n||S.logs.length>l,2500); await sleep(150); return S.synN>n?S.synLast:null; }
+  async function salv(ids){ const n=S.salvN, l=S.logs.length; S.room.send("equipsalvage",{ids}); await waitFor(()=>S.salvN>n||S.logs.length>l,2500); await sleep(150); return S.salvN>n?S.salvLast:null; }
+  const clearAll=async()=>{ await test(S,"gear",{clear:true}); await waitFor(()=>!equips().length,1500); };
+  await clearAll(); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await coin(1e6);
+  const ILVL_OF=id=>parseEquip(find(id)?.stats)?.ilvl;
+
+  // ---- Từ chối (không đổi gì) ----
+  const [a1,a2,a3]=[await mk("vu_khi_pham_khi",4,2),await mk("vu_khi_pham_khi",0,5),await mk("vu_khi_pham_khi",0,1)];
+  const snap=()=>JSON.stringify([equips().map(i=>[i.id,i.enhance]).sort(),S.bag.honTe]);
+  const before=snap();
+  let r=await syn(a1,[a2,a3]); ok(r===null&&/lại gần Thợ rèn/.test(S.logs.at(-1))&&snap()===before,`xa Thợ rèn: từ chối, không đổi gì (${S.logs.at(-1)})`);
+  await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"synroll",{r:0});
+  r=await syn(a1,[a2]); ok(r===null&&/đúng 2 món hiến tế/.test(S.logs.at(-1))&&snap()===before,"chỉ 1 hiến tế: từ chối");
+  r=await syn(a1,[a2,a2]); ok(r===null&&/không hợp lệ/.test(S.logs.at(-1))&&snap()===before,"hiến tế trùng id: từ chối");
+  r=await syn(a1,[a1,a2]); ok(r===null&&/không hợp lệ/.test(S.logs.at(-1))&&snap()===before,"món chính cũng là hiến tế: từ chối");
+  r=await syn(a1,[a2,"khong-co-id"]); ok(r===null&&/Không có trang bị/.test(S.logs.at(-1))&&snap()===before,"id lạ: từ chối");
+  const o1=await mk("mu_pham_khi",0), o2=await mk("vu_khi_tinh_thiet",0); const b2=snap();
+  r=await syn(a1,[a2,o1]); ok(r===null&&/cùng bậc và cùng ô/.test(S.logs.at(-1))&&snap()===b2,"khác ô: từ chối");
+  r=await syn(a1,[a2,o2]); ok(r===null&&/cùng bậc và cùng ô/.test(S.logs.at(-1))&&snap()===b2,"khác bậc: từ chối");
+  S.room.send("lock",{id:a3}); await waitFor(()=>find(a3)?.lock===true,1500); const b3=snap();
+  r=await syn(a1,[a2,a3]); ok(r===null&&/đang khóa/.test(S.logs.at(-1))&&snap()===b3,"hiến tế đang khoá: từ chối");
+  S.room.send("lock",{id:a3}); await waitFor(()=>!find(a3)?.lock,1500);
+  S.room.send("equipgear",{id:a3}); await waitFor(()=>S.gear?.items.some(g=>g.id===a3),2000);
+  r=await syn(a1,[a2,a3]); ok(r===null&&/đang mặc/.test(S.logs.at(-1))&&find(a3)?.enhance===0&&equips().length===4,"hiến tế đang mặc: từ chối, món vẫn đang mặc");
+  S.room.send("unequipgear",{slot:0}); await waitFor(()=>!S.gear?.items.length,2000);
+  await coin(equipSynthStep(0).fee-1); r=await syn(a1,[a2,a3]); ok(r===null&&/Không đủ Hồn Tệ/.test(S.logs.at(-1))&&equips().length===5&&S.bag.honTe===equipSynthStep(0).fee-1,"thiếu phí: từ chối, không mất món / tiền");
+  await coin(1e6);
+  const c5=await mk("vu_khi_chi_bao",0), c5b=await mk("vu_khi_chi_bao",0), c5c=await mk("vu_khi_chi_bao",0);
+  r=await syn(c5,[c5b,c5c]); ok(r===null&&/bậc cao nhất/.test(S.logs.at(-1))&&equips().length===8,"Chí Bảo: đã là bậc cao nhất, từ chối");
+  await clearAll();
+
+  // ---- Thành công T0 → T1: ilvl cao nhất, giữ nửa cấp, phí trừ ----
+  const [s1,s2,s3]=[await mk("vu_khi_pham_khi",5,2),await mk("vu_khi_pham_khi",0,5),await mk("vu_khi_pham_khi",0,1)]; const h0=S.bag.honTe;
+  r=await syn(s1,[s2,s3]);
+  const made=r?.made&&find(r.made), me0=made&&parseEquip(made.stats);
+  ok(r?.ok&&!find(s1)&&!find(s2)&&!find(s3)&&equips().length===1&&me0?.tpl==="vu_khi_tinh_thiet"&&me0.ilvl===5&&made.enhance===Math.floor(5*EQUIP_SYNTH_KEEP)&&r.enhance===made.enhance&&S.bag.honTe===h0-equipSynthStep(0).fee,
+    `hợp thành T0 → T1: 3 món thành 1 ${me0?.tpl} (ilvl ${me0?.ilvl}, +${made?.enhance}), phí −${equipSynthStep(0).fee}`);
+  await rejoin(); ok(equips().length===1&&find(r.made)?.enhance===2&&parseEquip(find(r.made).stats)?.tpl==="vu_khi_tinh_thiet","vào lại: món mới đã lưu, 3 món cũ không còn");
+  await clearAll();
+
+  // ---- Thất bại T2 → T3: mất 2 hiến tế, món chính nguyên cấp ----
+  await test(S,"synroll",{r:99});
+  const [f1,f2,f3]=[await mk("vu_khi_han_ngoc",7),await mk("vu_khi_han_ngoc",0),await mk("vu_khi_han_ngoc",0)]; const hf=S.bag.honTe;
+  r=await syn(f1,[f2,f3]); ok(r&&!r.ok&&r.enhance===7&&find(f1)?.enhance===7&&!find(f2)&&!find(f3)&&equips().length===1&&S.bag.honTe===hf-equipSynthStep(2).fee,
+    "T2 → T3 thất bại: mất 2 hiến tế, món chính giữ +7, phí vẫn trừ");
+  await clearAll();
+  // ---- Thất bại T3 → T4: món chính −1 cấp (không dưới +0) ----
+  const [g1,g2,g3]=[await mk("vu_khi_tu_kim",6),await mk("vu_khi_tu_kim",0),await mk("vu_khi_tu_kim",0)];
+  r=await syn(g1,[g2,g3]); ok(r&&!r.ok&&r.enhance===5&&find(g1)?.enhance===5&&equips().length===1,"T3 → T4 thất bại: mất 2 hiến tế, món chính +6 → +5");
+  await clearAll();
+  const [z1,z2,z3]=[await mk("vu_khi_tu_kim",0),await mk("vu_khi_tu_kim",0),await mk("vu_khi_tu_kim",0)];
+  r=await syn(z1,[z2,z3]); ok(r&&!r.ok&&find(z1)?.enhance===0&&equips().length===1,"T3 → T4 thất bại ở +0: không tụt dưới +0");
+  await clearAll();
+  // ---- T4 → T5: cần Tinh Hoa; thất bại mất cả 3, hoàn 30% ----
+  const st4=equipSynthStep(4);
+  const [t1,t2,t3]=[await mk("vu_khi_than_khi",3),await mk("vu_khi_than_khi",0),await mk("vu_khi_than_khi",0)];
+  r=await syn(t1,[t2,t3]); ok(r===null&&/Không đủ Tinh Hoa/.test(S.logs.at(-1))&&equips().length===3&&S.bag.honTe>=st4.fee,"thiếu Tinh Hoa Đường Môn: từ chối, không mất món");
+  await give(EQUIP_ESSENCE,st4.essence+2); const hh=S.bag.honTe;
+  r=await syn(t1,[t2,t3]); const refund=Math.floor(st4.essence*st4.refund);
+  ok(r&&!r.ok&&r.enhance===null&&r.refund===refund&&equips().length===0&&have(EQUIP_ESSENCE)===2+refund&&S.bag.honTe===hh-st4.fee,
+    `T4 → T5 thất bại: mất cả 3 món, Tinh Hoa −${st4.essence} +${refund} hoàn lại (còn ${have(EQUIP_ESSENCE)}), phí −${st4.fee}`);
+  await test(S,"synroll",{r:0});
+  const [u1,u2,u3]=[await mk("vu_khi_than_khi",4),await mk("vu_khi_than_khi",0),await mk("vu_khi_than_khi",0)]; await give(EQUIP_ESSENCE,st4.essence-have(EQUIP_ESSENCE)>0?st4.essence-have(EQUIP_ESSENCE):0); const e0=have(EQUIP_ESSENCE);
+  r=await syn(u1,[u2,u3]); ok(r?.ok&&tierOf(r.made)===5&&find(r.made).enhance===2&&have(EQUIP_ESSENCE)===e0-st4.essence,`T4 → T5 thành công: ra Đường Môn Chí Bảo +2, tiêu ${st4.essence} Tinh Hoa`);
+  await clearAll(); await coin(1e6);
+
+  // ---- 20 lệnh dồn cùng lúc: chỉ một lệnh được xử lý ----
+  const [d1,d2,d3]=[await mk("mu_pham_khi",0),await mk("mu_pham_khi",0),await mk("mu_pham_khi",0)]; const n0=S.synN; await test(S,"enhslow",{ms:400});
+  for(let k=0;k<20;k++) S.room.send("equipsynth",{main:d1,sacrifice:[d2,d3]});
+  await waitFor(()=>S.synN>n0,3000); await sleep(900); await test(S,"enhslow",{ms:0});
+  ok(S.synN===n0+1&&equips().length===1&&tierOf(equips()[0].id)===1,`20 lệnh dồn: đúng 1 lệnh được xử lý (còn ${equips().length} món bậc ${tierOf(equips()[0]?.id)})`);
+  await clearAll();
+
+  // ---- Phân giải: Hồn Tệ + nguyên liệu, không kinh nghiệm ----
+  await test(S,"synroll",{r:0}); await coin(1000);
+  const xp0=me()?.xp ?? null;
+  const p1=await mk("vu_khi_pham_khi",0), p2=await mk("mu_tinh_thiet",5), p3=await mk("ao_than_khi",0);
+  const exp=[[0,0],[1,5],[4,0]].map(([t,e])=>equipSalvage(t,e,()=>0));
+  const coinSum=exp.reduce((a,x)=>a+x.coin,0), mats={}; for(const x of exp) for(const m of x.items) mats[m.code]=(mats[m.code]??0)+m.qty;
+  const before0=Object.fromEntries(Object.keys(mats).map(c=>[c,have(c)]));
+  r=await salv([p1,p2,p3]); await sleep(200);
+  ok(r&&r.n===3&&r.coin===coinSum&&S.bag.honTe===1000+coinSum&&!equips().length&&Object.entries(mats).every(([c,q])=>have(c)===before0[c]+q&&r.items.find(m=>m.code===c)?.qty===q),
+    `phân giải 3 món (T0, T1 +5, T4): +${coinSum} Hồn Tệ và ${Object.entries(mats).map(([c,q])=>`${q} ${c}`).join(", ")}`);
+  ok(xp0===null||me()?.xp===xp0,"phân giải không cho kinh nghiệm");
+  await rejoin(); ok(S.bag.honTe===1000+coinSum&&!equips().length&&Object.entries(mats).every(([c,q])=>have(c)===before0[c]+q),"vào lại: Hồn Tệ và nguyên liệu đã lưu, món đã mất");
+  await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"synroll",{r:0});
+  // từ chối
+  const q1=await mk("vu_khi_pham_khi",0), q2=await mk("mu_pham_khi",0); const bq=snap();
+  r=await salv([]); ok(r===null&&/Chưa chọn/.test(S.logs.at(-1)),"danh sách rỗng: từ chối");
+  r=await salv([q1,"khong-co-id"]); ok(r===null&&/Không có trang bị/.test(S.logs.at(-1))&&snap()===bq,"có id lạ: từ chối cả lượt, không mất món");
+  r=await salv([q1,q1]); ok(r===null&&/không hợp lệ/.test(S.logs.at(-1))&&snap()===bq,"id trùng: từ chối");
+  S.room.send("lock",{id:q2}); await waitFor(()=>find(q2)?.lock===true,1500);
+  r=await salv([q1,q2]); ok(r===null&&/đang khóa/.test(S.logs.at(-1))&&find(q1)&&find(q2),"có món khoá: từ chối cả lượt");
+  S.room.send("lock",{id:q2}); await waitFor(()=>!find(q2)?.lock,1500);
+  S.room.send("equipgear",{id:q1}); await waitFor(()=>S.gear?.items.some(g=>g.id===q1),2000);
+  r=await salv([q1]); ok(r===null&&/đang mặc/.test(S.logs.at(-1))&&S.gear.items.some(g=>g.id===q1),"món đang mặc: từ chối, món vẫn mặc");
+  S.room.send("unequipgear",{slot:0}); await waitFor(()=>!S.gear?.items.length,2000);
+  r=await salv(Array.from({length:51},(_,i)=>"x"+i)); ok(r===null&&/tối đa 50/.test(S.logs.at(-1)),"quá 50 món một lệnh: từ chối");
+  await test(S,"goto",{x:lr.x,y:lr.y+16});
+  await clearAll();
+
+  // ---- Túi đầy: nguyên liệu không có chỗ → từ chối cả lượt, không mất món ----
+  const isMat=i=>/^da_cuong_hoa_/.test(i.code)||i.code===EQUIP_ESSENCE||i.code===EQUIP_SOUL;
+  for(const it of loose().filter(isMat)) S.room.send("discard",{id:it.id}); await waitFor(()=>!loose().some(isMat),3000); // bỏ đá còn thừa để nguyên liệu phải mở ô mới
+  const w1=await mk("mu_tinh_thiet",0); // T1: cần ô mới cho 2 loại đá, nhả 1 ô
+  await test(S,"give",{code:RING_ITEM,qty:S.bag.slots-loose().length,years:10}); await waitFor(()=>loose().length>=S.bag.slots,3000);
+  const full=loose().length, hw=S.bag.honTe;
+  r=await salv([w1]); ok(r===null&&/không đủ chỗ/.test(S.logs.at(-1))&&find(w1)&&loose().length===full&&S.bag.honTe===hw,`túi đầy ${full}/${S.bag.slots}: từ chối cả lượt, món còn nguyên (${S.logs.at(-1)})`);
+  await rejoin(); ok(find(w1)&&S.bag.honTe===hw,"vào lại: món vẫn còn, Hồn Tệ không đổi");
+  for(const it of loose().filter(i=>i.code===RING_ITEM)) S.room.send("discard",{id:it.id});
+  ok(await waitFor(()=>!loose().some(i=>i.code===RING_ITEM),5000),"bỏ hết hồn hoàn thử");
+  await clearAll();
+
+  // ---- Tự phân giải: mặc định tắt; bật thì chỉ món hợp bộ lọc, bỏ qua khoá / cường hóa cao ----
+  await test(S,"synroll",{r:0});
+  const aa=await mk("vu_khi_pham_khi",0), ab=await mk("mu_tinh_thiet",0), ac=await mk("ao_pham_khi",2), ad=await mk("dai_han_ngoc",0), ae=await mk("giay_pham_khi",0);
+  S.room.send("lock",{id:ae}); await waitFor(()=>find(ae)?.lock===true,1500);
+  await test(S,"give",{code:RING_ITEM,qty:S.bag.slots-loose().length-1,years:10}); await waitFor(()=>loose().length>=S.bag.slots-1,3000);
+  await sleep(1500); const nAuto=S.salvN;
+  ok(S.bag.sell?.salv===0&&equips().length===5&&S.salvN===nAuto,"mặc định tắt: túi gần đầy cũng không tự phân giải");
+  const coinA=S.bag.honTe; S.room.send("autosell",{cfg:{on:false,salv:2,salvEnh:1}});
+  ok(await waitFor(()=>S.salvN>nAuto,4000),"bật tự phân giải: server tự phân giải khi túi gần đầy");
+  await sleep(300);
+  ok(!find(aa)&&!find(ab)&&find(ac)&&find(ad)&&find(ae)&&S.salvLast?.auto===true&&S.salvLast.n===2&&S.bag.honTe>coinA&&S.bag.sell.on===false,
+    "tự phân giải đúng 2 món (T0 +0, T1 +0); giữ món +2, T2 và món khoá; không bật tự bán");
+  await rejoin(); ok(!find(aa)&&!find(ab)&&find(ac)&&find(ae)?.lock===true&&S.bag.sell?.salv===2,"vào lại: kết quả và bộ lọc tự phân giải đã lưu");
+  S.room.send("autosell",{cfg:{salv:0}});
+  for(const it of loose().filter(i=>i.code===RING_ITEM)) S.room.send("discard",{id:it.id});
+  await waitFor(()=>!loose().some(i=>i.code===RING_ITEM),5000);
+  await test(S,"synroll",{r:-1}); await clearAll();
   }finally{ await S.room.leave().catch(()=>{}); }
 }
 async function shopBuybackTest(){
