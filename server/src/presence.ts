@@ -15,8 +15,8 @@ export interface PresenceBackend {
   readonly presence: Presence;
   readonly workerId: string;
   acquireLease(key: string, owner: string, ttlMs?: number): Promise<boolean>;
-  /** Như acquireLease nhưng trả fencing token (số tăng dần qua mỗi lần lấy khóa, đếm ở `<key>:fence`, không hết hạn); 0 = khóa đang có người giữ. Lỗi Redis thì ném lỗi (fail-closed). */
-  acquireFenced(key: string, owner: string, ttlMs?: number): Promise<number>;
+  /** Như acquireLease nhưng trả fencing token (số tăng dần qua mỗi lần lấy khóa, đếm ở một khóa chung `fenceKey`, nên số khóa trong Redis không tăng theo số món); 0 = khóa đang có người giữ. Lỗi Redis thì ném lỗi (fail-closed). */
+  acquireFenced(key: string, owner: string, ttlMs?: number, fenceKey?: string): Promise<number>;
   renewLease(key: string, owner: string, ttlMs?: number): Promise<boolean>;
   releaseLease(key: string, owner: string): Promise<boolean>;
   get(key: string): Promise<string | null>;
@@ -50,10 +50,10 @@ class LocalBackend implements PresenceBackend {
   }
 
   private fence = new Map<string, number>();
-  async acquireFenced(key: string, owner: string, ttlMs = PRESENCE_TTL_MS) {
+  async acquireFenced(key: string, owner: string, ttlMs = PRESENCE_TTL_MS, fenceKey = "fence") {
     if (!(await this.acquireLease(key, owner, ttlMs))) return 0;
-    const n = (this.fence.get(key) ?? 0) + 1;
-    this.fence.set(key, n);
+    const n = (this.fence.get(fenceKey) ?? 0) + 1;
+    this.fence.set(fenceKey, n);
     return n;
   }
 
@@ -129,10 +129,10 @@ class RedisBackend implements PresenceBackend {
     return result === 1;
   }
 
-  async acquireFenced(key: string, owner: string, ttlMs = PRESENCE_TTL_MS) {
+  async acquireFenced(key: string, owner: string, ttlMs = PRESENCE_TTL_MS, fenceKey = "fence") {
     const result = await this.redis.eval(
       "if redis.call('exists', KEYS[1]) == 0 then redis.call('psetex', KEYS[1], ARGV[2], ARGV[1]); return redis.call('incr', KEYS[2]) end; return 0",
-      2, this.key(key), this.key(`${key}:fence`), owner, String(ttlMs));
+      2, this.key(key), this.key(fenceKey), owner, String(ttlMs));
     return Number(result);
   }
 

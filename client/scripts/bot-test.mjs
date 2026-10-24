@@ -6979,6 +6979,10 @@ async function gearEnhanceTest(){
     await test(S,"itemlock",{id:LK,on:false}); r=await enh(LK);
     ok(r?.ok&&find(LK).enhance===1&&have(stone(0))===lk0-st(0).qty&&S.bag.honTe===lc0-st(0).fee,"nhả khóa: cường hóa chạy, đúng một lần trừ đá và phí");
     await rejoin(); ok(find(LK)?.enhance===1&&have(stone(0))===lk0-st(0).qty,"vào lại: đúng một lần cường hóa đã lưu (không nhân, không mất đồ)");
+    // Rời game khi món vừa mặc đang bị giữ khóa: lần ghi cuối chờ có hạn rồi vẫn ghi, không mất tiến độ (#559).
+    await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"itemlock",{id:LK,on:true}); S.room.send("equipgear",{id:LK}); await waitFor(()=>S.gear?.items.some(g=>g.id===LK),2000);
+    await rejoin(); await test(S,"itemlock",{id:LK,on:false});
+    ok(S.gear?.items.some(g=>g.id===LK&&g.enhance===1),"rời game khi món đang bị giữ khóa: lần ghi cuối vẫn lưu, vào lại món vẫn đang mặc");
   }
   await test(S,"enhroll",{r:-1}); await test(S,"gear",{clear:true});
   }finally{ await S.room.leave().catch(()=>{}); }

@@ -20,7 +20,7 @@ async function suite(name: string, base: PresenceBackend) {
   assert.equal(ran, 2, `${name}: nhả xong lấy lại được`);
   // Nhiều món: khóa theo id tăng dần, bỏ trùng; fencing token tăng qua mỗi lần lấy.
   const order: string[] = [];
-  const spy = asRedis(base, { acquireFenced: async (k: string, o: string, t?: number) => { order.push(k); return b.acquireFenced(k, o, t); } });
+  const spy = asRedis(base, { acquireFenced: async (k: string, o: string, t?: number, f?: string) => { order.push(k); return b.acquireFenced(k, o, t, f); } });
   const base1 = (await withItemLocks(b, [id(5)], async (g) => g.fence[id(5)]));
   await withItemLocks(spy, [id(3), id(2), id(3), id(1)], async (g) => { assert.deepEqual(Object.keys(g.fence).sort(), [id(1), id(2), id(3)]); assert.equal(await g.held(), true); });
   assert.deepEqual(order, [id(1), id(2), id(3)].map(itemLockKey), `${name}: thứ tự khóa tăng dần`);
@@ -36,6 +36,8 @@ async function suite(name: string, base: PresenceBackend) {
   // Lỗi của run vẫn nhả khóa và ném lên.
   await assert.rejects(withItemLocks(b, [id(7)], async () => { throw new Error("boom"); }), /boom/);
   assert.equal(await b.get(itemLockKey(id(7))), null);
+  // Fencing dùng một bộ đếm chung: không để lại khóa `:fence` theo từng món.
+  assert.equal(await b.get(`${itemLockKey(id(5))}:fence`), null, `${name}: không có khóa fence riêng của món`);
   // Hết hạn (TTL ngắn): khóa bị bỏ rơi tự mở.
   assert.ok(await b.acquireFenced(itemLockKey(id(8)), "ghost", 30)); await sleep(50);
   await withItemLocks(b, [id(8)], async () => {});

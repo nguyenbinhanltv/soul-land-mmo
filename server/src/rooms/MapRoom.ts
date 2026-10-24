@@ -310,6 +310,8 @@ const PERF_SLOW_MS = 50, PERF_GAP_MS = 100;
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
+/** Lần ghi cuối chờ khóa món tối đa FINAL_LOCK_TRIES × FINAL_LOCK_WAIT_MS (#559). */
+const FINAL_LOCK_TRIES = 10, FINAL_LOCK_WAIT_MS = 300;
 const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
 const HOLD_WAIT_MS = 8000;
@@ -1358,7 +1360,19 @@ export class MapRoom extends Room<MapState> {
     if (!d || !ids.length) return this.writeNow(id, final);
     d.lockIds.clear();
     // Khóa Redis theo món (#559): không lấy được thì ném lỗi, chuỗi lưu ghi log; túi vẫn đang bẩn nên lần ghi sau thử lại (món chưa chụp, chưa mất).
-    try { return await withItemLocks(presenceBackend, ids, async (g) => { if (!(await g.held())) throw new ItemLockBusy(ids[0]); return this.writeNow(id, final); }); }
+    // Lần ghi cuối (`final`: rời phòng / đóng phòng) không có lần sau: chờ khóa có hạn, rồi vẫn ghi không khóa (ghi cảnh báo) để không mất tiến độ;
+    // ghi chồng vẫn bị chặn bởi khóa dòng PostgreSQL, `ver` và `Bag.lock`.
+    const lockedWrite = () => withItemLocks(presenceBackend, ids, async (g) => { if (!(await g.held())) throw new ItemLockBusy(ids[0]); return this.writeNow(id, final); });
+    if (final) {
+      for (let k = 0; k < FINAL_LOCK_TRIES; k++) {
+        let ran = false;
+        try { return await withItemLocks(presenceBackend, ids, async (g) => { if (!(await g.held())) throw new ItemLockBusy(ids[0]); ran = true; return this.writeNow(id, final); }); }
+        catch (e) { if (ran) throw e; if (!(e instanceof ItemLockBusy)) break; await new Promise((r) => setTimeout(r, FINAL_LOCK_WAIT_MS)); }
+      }
+      console.error(`Lần ghi cuối tài khoản #${d.accountId}: không lấy được khóa món, ghi không khóa để không mất tiến độ.`);
+      return this.writeNow(id, final);
+    }
+    try { return await lockedWrite(); }
     catch (e) { for (const i of ids) d.lockIds.add(i); throw e; }
   }
   async writeNow(id: string, final = false): Promise<boolean> {

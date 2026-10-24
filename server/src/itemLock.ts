@@ -3,6 +3,8 @@ import type { PresenceBackend } from "./presence.ts";
 
 /** Hạn khóa mỗi món (ms): ngắn, đủ cho một transaction; hết hạn mà chưa nhả thì `held()` báo mất khóa và lệnh hủy (fencing). */
 export const ITEM_LOCK_TTL_MS = 8_000;
+/** Bộ đếm fencing chung cho mọi khóa món (một khóa Redis, không mỗi món một khóa). */
+export const ITEM_FENCE_KEY = "lock:item-fence";
 export const itemLockKey = (itemId: string) => `lock:item:${itemId}`;
 
 /** Khóa món đang có người giữ (tiến trình / phiên khác đang thao tác): từ chối "đang xử lý", như claimBusy. */
@@ -23,7 +25,7 @@ export async function withItemLocks<T>(backend: PresenceBackend, ids: readonly s
   const release = () => Promise.allSettled(taken.map((id) => backend.releaseLease(itemLockKey(id), owner)));
   try {
     for (const id of sorted) {
-      const token = await backend.acquireFenced(itemLockKey(id), owner, ttlMs);
+      const token = await backend.acquireFenced(itemLockKey(id), owner, ttlMs, ITEM_FENCE_KEY);
       if (!token) throw new ItemLockBusy(id);
       fence[id] = token; taken.push(id);
     }
