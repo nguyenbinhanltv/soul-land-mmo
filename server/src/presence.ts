@@ -11,9 +11,10 @@ export const accountLeaseKey = (accountId: number) => `accountHold:${accountId}`
 /** Lỗi do mất / chập chờn kết nối Redis (ioredis, socket): không phải lỗi logic, nên không được làm chết tiến trình (#561). */
 export function isRedisFailure(e: unknown) {
   if (!e || typeof e !== "object") return false;
-  const { name, code, message } = e as { name?: string; code?: string; message?: string };
+  const { name, message } = e as { name?: string; message?: string };
+  // Chỉ dấu hiệu riêng của ioredis: mã socket chung (ECONNRESET…) cũng do pg / fetch ném, không được coi là lỗi Redis. Lỗi socket của chính ioredis đã đi qua
+  // sự kiện `error` (guardClient) nên không cần nhánh mã chung ở đây.
   return name === "MaxRetriesPerRequestError" || name === "ClusterAllFailedError" || name === "ReplyError" && /LOADING|READONLY|MASTERDOWN|CLUSTERDOWN|TRYAGAIN/.test(message ?? "")
-    || ["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "EPIPE", "ENOTFOUND", "EAI_AGAIN", "NR_CLOSED"].includes(code ?? "")
     || /Connection is closed|Stream isn't writeable|Reached the max retries per request/.test(message ?? "");
 }
 
