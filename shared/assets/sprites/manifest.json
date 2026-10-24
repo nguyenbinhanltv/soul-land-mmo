@@ -2282,6 +2282,48 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "pt_hao_thien_chuy",
+      "iso": true,
+      "pt": {
+        "scale": 0.85,
+        "dx": 12,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
+      "key": "pt_lam_dien_ba_vuong_long",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
       "key": "skill_a_ngan_0",
       "iso": true
     },
@@ -3658,6 +3700,30 @@
     },
     {
       "key": "ui_vach_but",
+      "iso": true
+    },
+    {
+      "key": "vh_a_ngan_b",
+      "iso": true
+    },
+    {
+      "key": "vh_a_ngan_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bach_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bach_ho_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_f",
       "iso": true
     },
     {

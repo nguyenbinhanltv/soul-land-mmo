@@ -47,12 +47,23 @@
       <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
       <div id="rcol">
       <section class="panel mapbox">
-        <canvas id="mini"></canvas>
+        <div id="radar" role="img" aria-label="Radar quanh nhân vật">
+          <canvas id="mini"></canvas>
+          <img id="radarFrame" alt="" hidden>
+          <button id="radarMode" class="rbtn" aria-pressed="false" title="Xoay theo màn hình / Nhìn thẳng">◈</button>
+          <button id="radarIn" class="rbtn" title="Phóng to (lăn chuột lên)">+</button>
+          <button id="radarOut" class="rbtn" title="Thu nhỏ (lăn chuột xuống)">−</button>
+          <div id="radarTip" hidden></div>
+        </div>
         <div id="zoneName"></div>
-        <div id="mapLegend" aria-label="Chú giải bản đồ nhỏ"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
+        <div id="radarInfo"></div>
+        <div id="mapLegend" aria-label="Chú giải radar"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
         <div id="online"></div>
-        <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
-        <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
+        <div class="radarbtns">
+          <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
+          <button id="areaBtn" class="minibtn" title="Bản đồ khu vực (phím N, làm ở bước R3)" disabled>Vùng <kbd>N</kbd></button>
+          <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
+        </div>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
       </section>
       <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
