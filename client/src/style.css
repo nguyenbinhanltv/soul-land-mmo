@@ -532,9 +532,30 @@ body.touch .bpick .bitem{cursor:default}
 .bslot b.enh,.bcell b.enh{position:absolute;left:2px;top:0;font-size:10px;font-family:var(--f10);color:#ffe08a;text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
 .epick>small:first-child b{color:var(--c);font-size:12px;font-family:var(--f12)}
 .epick>small:first-child .sbar{margin-top:3px}
-.aopt.eopt{grid-template-columns:minmax(0,1fr) auto}
-.eopt b{white-space:normal;color:color-mix(in srgb,var(--c) 55%,var(--text));min-width:0;overflow-wrap:anywhere}
-.eopt i{grid-column:2;white-space:nowrap}
+.aopt.eopt{grid-template-columns:36px minmax(0,1fr) auto;align-items:center}
+.eopt b{grid-column:2;grid-row:1;white-space:normal;color:color-mix(in srgb,var(--c) 55%,var(--text));min-width:0;overflow-wrap:anywhere}
+.eopt i{grid-column:3;white-space:nowrap}
+.eopt span:empty{display:none}
+/* E5: biểu tượng món + khung bậc trong danh sách Thợ rèn; túi đồ cũng phủ khung bậc lên ô trang bị hồn sư */
+.eopt .eico{grid-column:1;grid-row:1/3;position:relative;width:32px;height:32px;color:inherit}
+.eopt .eico img,.bslot img.efr{image-rendering:pixelated;pointer-events:none}
+.eopt .eico img{width:32px;height:32px}
+.eopt .eico img.efr{position:absolute;inset:0}
+.bslot img.efr{position:absolute;inset:1px;width:calc(100% - 2px);height:calc(100% - 2px)}
+.bslot[data-etier="4"],.bslot[data-etier="5"]{box-shadow:0 0 7px color-mix(in srgb,var(--c) 75%,transparent)}
+/* Bảng xem trước ở Thợ rèn (E5): nhãn bên trái, giá trị bên phải, kẻ chấm giữa các hàng */
+.forge .erow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:3px 0;border-bottom:1px dotted var(--line);font-size:12px;font-family:var(--f12)}
+.forge .erow b{font-weight:normal;color:var(--muted);flex:none}
+.forge .erow span{text-align:right;min-width:0;overflow-wrap:anywhere}
+.forge .echarm{display:block;margin:6px 0;font-size:12px;font-family:var(--f12)}
+/* Kết quả cường hóa / hợp thành / phân giải: một nhịp sáng (thành), rung đỏ (bại), rung mạnh + mờ dần (vỡ) trên trang Thợ rèn */
+.forge.fx-ok{animation:forge-ok .9s ease-out}
+.forge.fx-fail{animation:forge-fail .5s ease-out}
+.forge.fx-break{animation:forge-break .9s ease-out}
+@keyframes forge-ok{0%{box-shadow:0 0 0 0 rgba(255,224,138,.9),inset 0 0 18px rgba(255,224,138,.5)}100%{box-shadow:0 0 0 14px rgba(255,224,138,0),inset 0 0 0 rgba(255,224,138,0)}}
+@keyframes forge-fail{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px);box-shadow:inset 0 0 16px rgba(210,72,61,.6)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+@keyframes forge-break{0%{transform:translate(0);box-shadow:inset 0 0 26px rgba(210,72,61,.85)}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-4px,1px)}60%{transform:translate(3px,0)}100%{transform:translate(0);box-shadow:inset 0 0 0 rgba(210,72,61,0)}}
+@media (prefers-reduced-motion:reduce){.forge.fx-ok,.forge.fx-fail,.forge.fx-break{animation:none}}
 body.touch .eopt{min-height:40px}
 .buse.eok{background:var(--hp);border-color:var(--hp);color:#fff}
 body.touch .minibtn kbd{display:none}

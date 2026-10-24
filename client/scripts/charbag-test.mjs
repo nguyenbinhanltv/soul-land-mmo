@@ -1,7 +1,7 @@
 // Kiểm thử hợp đồng Nhân vật + Túi (client/src/charBagContract.ts, #454): accepts / smartTarget / lệnh server, không cần server hay trình duyệt.
 // Chạy: npm run test:charbag --prefix client (Node >= 22.18 tự bỏ kiểu của file .ts).
 import { acceptsItem, smartTarget, mountCommand, unmountCommand, sameSlot, gearAsBagItem, currentFor, cardActions, quickCommand } from "../src/charBagContract.ts";
-import { compareRows, comparable } from "../src/bag.ts";
+import { compareRows, comparable, inGroup, sortView, rarityOf, equipTierOf, BAG_GROUPS } from "../src/bag.ts";
 import { BONE_ITEM, CORE_ITEM, EQUIP_ITEM, CORE_SLOTS, EQUIP_SLOTS, EQUIP_TEMPLATES, equipSlotIndex } from "../../shared/data.ts";
 
 let fails = 0;
@@ -101,6 +101,18 @@ ok(rowsEmpty && rowsEmpty.every((r) => r.old === 0 && r.d === r.neu), "ô trốn
 const rb = compareRows({ ...nb, years: 20000 }, { ...wb, years: 12000 });
 ok(rb && rb.some((r) => r.d > 0), "hồn cốt niên hạn cao hơn: có chỉ số tăng");
 ok(compareRows(pill, null) === null && !comparable(pill), "đan không so sánh được");
+
+// nhóm túi "Trang bị hồn sư" + sắp xếp (E5 #416)
+const gE = (tpl, enhance = 0, ilvl = 1) => ({ ...equip(tpl), enhance, stats: { tpl, ilvl, roll: 0, affixes: [], luck: 0 } });
+const e0 = gE("mu_pham_khi"), e3 = gE("mu_tu_kim"), e3p = gE("mu_tu_kim", 5), e5 = gE("vu_khi_chi_bao"), e4 = gE("ao_than_khi");
+ok(BAG_GROUPS.some((g) => g.id === "trang_bi_hs"), "có nhóm lọc Trang bị hồn sư");
+ok([e0, e3, e5].every((i) => inGroup(i, "trang_bi_hs")) && !inGroup(bone("dau"), "trang_bi_hs") && !inGroup(core(), "trang_bi_hs") && !inGroup(pill, "trang_bi_hs"), "nhóm Trang bị hồn sư chỉ có trang bị hồn sư");
+ok(!inGroup(e3, "trang_bi") && inGroup(bone("dau"), "trang_bi"), "nhóm Trang bị cũ vẫn chỉ hồn cốt + hồn hạch");
+ok(equipTierOf(e0) === 0 && equipTierOf(e5) === 5 && equipTierOf(pill) === -1 && equipTierOf({ ...e0, stats: { tpl: "la" } }) === -1, "bậc trang bị theo mẫu; mẫu hỏng / món khác = −1");
+ok(rarityOf(e0) === 0 && rarityOf(e5) === 4 && rarityOf(e4) === 4, "độ hiếm trang bị = bậc, kẹp 0..4");
+const byRare = sortView([e0, e3, e3p, e5, e4], "hiem").map((i) => i.id);
+ok(byRare.join() === [e5, e4, e3p, e3, e0].map((i) => i.id).join(), "sắp theo độ hiếm: bậc cao trước, cùng bậc thì cường hóa cao trước");
+ok(sortView([e3, e0, e5], "loai").map((i) => i.id).join() === [e5, e3, e0].map((i) => i.id).join(), "theo loại: trang bị bậc cao trước");
 
 if (fails) { console.log(`\n${fails} kiểm tra trượt`); process.exit(1); }
 console.log("\nđạt hết");
