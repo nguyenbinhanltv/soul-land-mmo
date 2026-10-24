@@ -450,7 +450,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     mkFocus(`core:${v.rowId}:${slot}`, "hon_hach", `Hồn hạch cho ô ${slot + 1} của ${def.name}`, (it) => !!coreOf(it), (it) => act.equipCore(it.id, v.rowId, slot));
   } else if (tab === "equip" && selEquip && !gearBy.has(selEquip)) {
     const slot = selEquip, s = EQUIP_SLOTS.find((x) => x.id === slot)!;
-    mkFocus(`equip:${slot}`, "all", `Trang bị ô ${s.name}`, (it) => it.code === EQUIP_ITEM && equipTemplate(parseEquip(it.stats)?.tpl)?.slot === slot,
+    mkFocus(`equip:${slot}`, "trang_bi_hs", `Trang bị ô ${s.name}`, (it) => it.code === EQUIP_ITEM && equipTemplate(parseEquip(it.stats)?.tpl)?.slot === slot,
       (it) => act.send({ msg: "equipgear", data: { id: it.id } }));
   } else setBagFocus(null);
 }

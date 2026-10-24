@@ -2,13 +2,14 @@
 // thao tác thật (gắn, bán, dùng…) vẫn là lệnh gửi server như nút cũ; số liệu chỉ số lấy từ shared/data.ts.
 import type { BagItem } from "./net.ts";
 import { type CoreStat, type ItemKind, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, RING_ITEM, CORE_SLOTS, CORE_STAT_IDS, CORE_STATS, ITEM_KINDS, boneStats, coreMainValue, itemDef,
-  equipStats, parseBone, parseBoneSubs, parseCore, parseEquip, tierOfYears } from "../../shared/data.ts";
+  equipStats, equipTemplate, parseBone, parseBoneSubs, parseCore, parseEquip, tierOfYears } from "../../shared/data.ts";
 import type { TipLine } from "./tooltip.ts";
 
 /** Nhóm lọc ở đầu túi: `kinds` = nhóm vật phẩm (ITEM_KINDS) thuộc nhóm (null = tất cả). "Trang bị" gộp hồn cốt và hồn hạch. */
 export const BAG_GROUPS: { id: string; name: string; kinds: ItemKind[] | null }[] = [
   { id: "all", name: "Tất cả", kinds: null },
   { id: "trang_bi", name: "Trang bị", kinds: ["hon_cot", "hon_hach"] },
+  { id: "trang_bi_hs", name: "Trang bị hồn sư", kinds: ["trang_bi"] },
   { id: "hon_hoan", name: "Hồn hoàn", kinds: ["hon_hoan"] },
   { id: "hon_cot", name: "Hồn cốt", kinds: ["hon_cot"] },
   { id: "hon_hach", name: "Hồn hạch", kinds: ["hon_hach"] },
@@ -29,11 +30,17 @@ export const inGroup = (it: BagItem, group: string) => {
   return !!k && g.kinds.includes(k);
 };
 
-/** Độ hiếm 0..4 theo bậc niên hạn (hồn hoàn, hồn cốt) hoặc theo sao (hồn hạch: 1★ → 0 … 5★+ → 4); −1 = không có bậc (đan, phù, rương…). */
+/** Bậc (0..EQUIP_MAX_TIER) của một món trang bị hồn sư theo mẫu; −1 nếu không phải trang bị hoặc mẫu hỏng. */
+export const equipTierOf = (it: Pick<BagItem, "code" | "stats">): number => (it.code === EQUIP_ITEM ? equipTemplate(parseEquip(it.stats)?.tpl)?.tier ?? -1 : -1);
+/** Khoá so sánh hai món trang bị: bậc, rồi cấp vật phẩm, rồi cường hóa (lớn trước). Món khác trang bị: 0. */
+const equipRank = (it: BagItem) => (equipTierOf(it) + 1) * 1e6 + (parseEquip(it.stats)?.ilvl ?? 0) * 1e3 + it.enhance;
+
+/** Độ hiếm 0..4 theo bậc niên hạn (hồn hoàn, hồn cốt), theo sao (hồn hạch: 1★ → 0 … 5★+ → 4) hoặc theo bậc trang bị hồn sư (bậc 4, 5 cùng 4); −1 = không có bậc (đan, phù, rương…). */
 export function rarityOf(it: BagItem): number {
   if ((it.code === BONE_ITEM || it.code === RING_ITEM) && it.years !== null) return tierOfYears(it.years);
   if (it.code === CORE_ITEM) return Math.max(0, Math.min(4, (it.stars ?? 1) - 1));
-  return -1;
+  const et = equipTierOf(it);
+  return et >= 0 ? Math.min(4, et) : -1;
 }
 
 // ---------- Mới nhận ----------
@@ -60,11 +67,11 @@ export function sortView(items: BagItem[], mode: BagSort): BagItem[] {
   const idx = new Map(items.map((it, i) => [it.id, i]));
   const by = (cmp: (a: BagItem, b: BagItem) => number) => [...items].sort((a, b) => cmp(a, b) || idx.get(a.id)! - idx.get(b.id)!);
   if (mode === "moi") return by((a, b) => (seq.get(b.id) ?? 0) - (seq.get(a.id) ?? 0));
-  if (mode === "hiem") return by((a, b) => rarityOf(b) - rarityOf(a) || (b.years ?? 0) - (a.years ?? 0) || (b.stars ?? 0) - (a.stars ?? 0) || b.enhance - a.enhance);
+  if (mode === "hiem") return by((a, b) => rarityOf(b) - rarityOf(a) || (b.years ?? 0) - (a.years ?? 0) || (b.stars ?? 0) - (a.stars ?? 0) || equipRank(b) - equipRank(a) || b.enhance - a.enhance);
   if (mode === "loai") {
     const kinds = Object.keys(ITEM_KINDS);
     return by((a, b) => kinds.indexOf(kindOf(a) ?? "") - kinds.indexOf(kindOf(b) ?? "") || a.code.localeCompare(b.code) || (b.years ?? 0) - (a.years ?? 0)
-      || (b.stars ?? 0) - (a.stars ?? 0) || b.enhance - a.enhance);
+      || (b.stars ?? 0) - (a.stars ?? 0) || equipRank(b) - equipRank(a) || b.enhance - a.enhance);
   }
   if (!order.length) return [...items];
   const pos = new Map(order.map((id, i) => [id, i]));
