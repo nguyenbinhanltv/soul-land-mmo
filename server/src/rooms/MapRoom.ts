@@ -61,7 +61,7 @@ import { AutoHunter } from "./autoHunt.ts";
 import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
 import { ItemLockBusy, itemLockKey, withItemLocks } from "../itemLock.ts";
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
+import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey, bg } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
 import { gmAllow, gmEnabled, isAdmin, parseGm, _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { buildPreset } from "../testPreset.ts";
@@ -554,7 +554,7 @@ const testOfflineAgo = new Map<number, number>();
 /** Kênh vừa rời của tài khoản ở bản đồ `mapId` nếu còn khóa và kênh đó còn mở, còn chỗ (trong `list`). */
 async function leftLock(accountId: number, mapId: string, list: ChannelInfo[]) {
   const l = (await presenceBackend.getJson<{ mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>(channelLeftKey(accountId))) ?? leftRoom.get(accountId);
-  if (!l || l.until <= Date.now()) { leftRoom.delete(accountId); void presenceBackend.delete(channelLeftKey(accountId)); return null; }
+  if (!l || l.until <= Date.now()) { leftRoom.delete(accountId); bg(presenceBackend.delete(channelLeftKey(accountId)), "presence"); return null; }
   leftRoom.set(accountId, l);
   return l.mapId === mapId ? list.find((c) => c.roomId === l.roomId && !c.full) ?? null : null;
 }
@@ -627,6 +627,8 @@ export async function seatUsed(accountId: number, sessionId: string) {
  */
 export async function seatAccount(token: unknown, mapId: string | null, check?: (accountId: number) => Promise<unknown>): Promise<SeatPass> {
   const full = new ServerError(429, "Đang vào phòng ở nơi khác, hãy thử lại sau giây lát.");
+  // Redis mất (#561): không nhận phiên mới (fail-closed); người chơi thử lại sau giây lát, server tự phục vụ lại khi Redis có lại.
+  if (!presenceBackend.healthy()) throw new ServerError(503, "Máy chủ đang bảo trì kết nối, hãy thử lại sau giây lát.");
   try {
     const acc = await store.accountFromToken(token);
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
@@ -858,7 +860,9 @@ export class MapRoom extends Room<MapState> {
 
   /** Nhả tài khoản sau lần ghi cuối của phiên `sessionId` (chỉ khi phiên đó vẫn đang giữ). */
   async releaseAccount(accountId: number, sessionId: string) {
-    await presenceBackend.releaseLease(accountLeaseKey(accountId), this.leaseOwner(sessionId));
+    // Redis mất thì không chặn onLeave / onDispose (lần ghi cuối đã xong, tắt server vẫn phải thoát): lease tự hết TTL, phiên mới chờ qua waitOldSession.
+    try { await presenceBackend.releaseLease(accountLeaseKey(accountId), this.leaseOwner(sessionId)); }
+    catch (e) { console.error(`Không nhả được phiên giữ tài khoản #${accountId} (lease tự hết hạn sau ${PRESENCE_TTL_MS / 1000} giây)`, e); }
   }
 
   leaseOwner(sessionId: string) { return `${this.roomId}:${sessionId}`; }
@@ -1122,7 +1126,7 @@ export class MapRoom extends Room<MapState> {
     const { ch, owned, team, looks, loc, bag } = auth;
     // Một tài khoản chỉ được vào một lần: giữ tài khoản cho phiên này, đá phiên cũ ở mọi phòng (kể cả phòng này). onAuth đã
     // chờ phiên cũ lưu xong; lần đá này chặn hai lần vào gần như cùng lúc.
-    if (this.state.channel) { leftRoom.delete(auth.accountId); void presenceBackend.delete(channelLeftKey(auth.accountId)); } // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
+    if (this.state.channel) { leftRoom.delete(auth.accountId); bg(presenceBackend.delete(channelLeftKey(auth.accountId)), "presence"); } // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
     const leaseOwner = this.leaseOwner(client.sessionId);
     this.holdAccount(auth.accountId, client.sessionId);
     void presenceBackend.getJson<Buyback[]>(buybackKey(auth.accountId)).then((list) => { if (list?.length) buybacks.set(auth.accountId, list); else buybacks.delete(auth.accountId); })
@@ -1228,7 +1232,7 @@ export class MapRoom extends Room<MapState> {
       // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
       if (this.state.channel && !d.travelled && !testNoLeaveLock.delete(d.accountId)) {
         const lock = { mapId: this.state.mapId, roomId: this.roomId, ch: this.state.channel, until: Date.now() + CHANNEL_CD * 1000 };
-        leftRoom.set(d.accountId, lock); void presenceBackend.putJson(channelLeftKey(d.accountId), lock, CHANNEL_CD * 1000);
+        leftRoom.set(d.accountId, lock); bg(presenceBackend.putJson(channelLeftKey(d.accountId), lock, CHANNEL_CD * 1000), "presence");
       }
     }
     this.state.players.delete(id);
@@ -2014,7 +2018,7 @@ export class MapRoom extends Room<MapState> {
     if (why !== null) { if (why) warn(why); return; }
     if (!to) return warn(`Kênh ${ch} không còn mở.`);
     if (to.full) return warn(`Kênh ${ch} đã đầy (${to.n}/${to.max}).`);
-    const switched = Date.now(); channelSwitchAt.set(d.accountId, switched); void presenceBackend.putJson(channelSwitchKey(d.accountId), switched, CHANNEL_CD * 1000);
+    const switched = Date.now(); channelSwitchAt.set(d.accountId, switched); bg(presenceBackend.putJson(channelSwitchKey(d.accountId), switched, CHANNEL_CD * 1000), "presence");
     const p = this.state.players.get(id)!;
     this.log(id, `Đang chuyển sang kênh ${ch}…`);
     this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to);
@@ -3624,7 +3628,7 @@ export class MapRoom extends Room<MapState> {
     else if (op === "chan") {
       // Nhiều kênh (mục 6): `reset` xóa thời gian chờ đổi kênh (CHANNEL_CD) của tài khoản; `nolock`: lần rời phòng kế tiếp không khóa
       // vào lại kênh này (leftRoom); trả số người tối đa mỗi kênh, số kênh, phòng.
-      if (o.reset) { channelSwitchAt.delete(d.accountId); leftRoom.delete(d.accountId); void presenceBackend.delete(channelSwitchKey(d.accountId)); void presenceBackend.delete(channelLeftKey(d.accountId)); }
+      if (o.reset) { channelSwitchAt.delete(d.accountId); leftRoom.delete(d.accountId); bg(presenceBackend.delete(channelSwitchKey(d.accountId)), "presence"); bg(presenceBackend.delete(channelLeftKey(d.accountId)), "presence"); }
       if (o.nolock) testNoLeaveLock.add(d.accountId);
       out = { chMax: CHANNEL_CAP, channel: this.state.channel, roomId: this.roomId };
     }
@@ -3634,7 +3638,7 @@ export class MapRoom extends Room<MapState> {
       const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
-    else if (op === "chat") { if (o.cop === "rlreset") { chatReset(d.accountId); void presenceBackend.delete(worldChatKey(d.accountId)); } } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
+    else if (op === "chat") { if (o.cop === "rlreset") { chatReset(d.accountId); bg(presenceBackend.delete(worldChatKey(d.accountId)), "presence"); } } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
     else if (op === "rally") { if (o.rop === "rlreset") rallyReset(d.accountId); } // R6 #433: xóa bộ đếm đặt dấu tập trung của người gọi
     else if (op === "friend") { if (o.fop === "rlreset") friendReset(d.accountId); } // #195: xóa bộ đếm thao tác bạn bè của người gọi
     else if (op === "party") {
@@ -3896,7 +3900,7 @@ export class MapRoom extends Room<MapState> {
       const h0 = d.hpF, m0 = d.mpF, safe = this.regenPlayer(p, d, int(o.s, 0, 60, 0)); // kể cả võ hồn ngoài sân (benchHp)
       out = { safe, hp: d.hpF - h0, mp: d.mpF - m0, hp0: h0, mp0: m0, maxHp: p.maxHp, maxMp: p.maxMp, level: p.level, vh: p.vh };
     }
-    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; fusionReady.delete(d.accountId); void presenceBackend.delete(fusionKey(d.accountId)); p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
+    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; fusionReady.delete(d.accountId); bg(presenceBackend.delete(fusionKey(d.accountId)), "presence"); p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
       const vohon = String(o.vohon ?? "");
       if (vohonIndex(vohon) >= 0) {
@@ -6935,12 +6939,12 @@ export class MapRoom extends Room<MapState> {
     if (ev.phase === "warn") {
       this.bossWarn = { ...ev, at: Date.now() + ev.in * 1000 };
       kingWarns.set(ev.mapId, this.bossWarn);
-      void presenceBackend.putJson(`king-warn:${ev.mapId}`, this.bossWarn, (ev.in + ev.life + 60) * 1000);
+      bg(presenceBackend.putJson(`king-warn:${ev.mapId}`, this.bossWarn, (ev.in + ev.life + 60) * 1000), "presence");
       this.broadcast("boss", this.bossMsg(ev, "warn", ev.in));
     } else if (ev.phase === "spawn") {
       if (this.bossWarn?.mapId === ev.mapId) this.bossWarn = null;
       kingWarns.delete(ev.mapId);
-      void presenceBackend.delete(`king-warn:${ev.mapId}`);
+      bg(presenceBackend.delete(`king-warn:${ev.mapId}`), "presence");
       this.broadcast("boss", this.bossMsg(ev, "spawn", 0));
       if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king);
     }

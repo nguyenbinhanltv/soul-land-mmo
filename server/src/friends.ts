@@ -9,7 +9,7 @@
 // chặn chưa) và thấy bạn online / vị trí (đã bị xóa / chặn thì thôi thấy ngay). Không có Redis thì không phát, không ghi.
 import { FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
 import { nameKey } from "./names.ts";
-import { presenceBackend, PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, type PresenceBackend } from "./presence.ts";
+import { bg, presenceBackend, PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, type PresenceBackend } from "./presence.ts";
 import type { SocialPeer, SocialRow } from "./db.ts";
 
 /** Kênh presence: mọi phòng nghe, gửi lại tin riêng "friends" (và log) cho người chơi của mình có trong `to`. */
@@ -112,7 +112,7 @@ export class FriendHub {
   close() {
     this.backend?.presence.unsubscribe(FRIEND_STATE_TOPIC, this.sub);
     clearInterval(this.beatT);
-    void this.backend?.delete(workerKey(this.id));
+    if (this.backend) bg(this.backend.delete(workerKey(this.id)), "presence");
   }
 
   /** Các lần ghi tài liệu STATE_KEY đang chờ đã xong (bài thử). */
