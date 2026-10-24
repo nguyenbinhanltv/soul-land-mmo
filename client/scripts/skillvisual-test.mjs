@@ -22,6 +22,9 @@ for (const id of ["lam_dien_ba_vuong_long", "hao_thien_chuy", "cuu_tinh_that_sat
 // S3 lô B (#567): 6 thú võ hồn đủ 11 chiêu; dung hợp có sheet trong bảng FUSION_VISUAL.
 for (const id of ["u_minh_linh_mieu", "nhu_cot_tho", "kim_vu_mieu_ung", "yeu_ho", "liet_hoa_thuong_lang", "bach_ho"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
 for (const [n, k] of [["Hạo Thiên Nhu Cốt", "hn_t3"], ["U Minh Bạch Hổ", "ub_t3"]]) ok(src.includes(`"${n}": {`) && src.includes(`sk("${k}"`), `dung hợp ${n} có sheet (FUSION_VISUAL)`);
+// S3 lô C (#568): 5 võ hồn đủ 11 chiêu; dung hợp Băng Hỏa Lưỡng Nghi có sheet.
+for (const id of ["ta_hoa_phuong_hoang", "hoa_long", "hoa_anh", "quy_mi", "bang_phuong_hoang"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
+ok(src.includes("\"Băng Hỏa Lưỡng Nghi\": {") && src.includes("sk(\"bh_t3\""), "dung hợp Băng Hỏa Lưỡng Nghi có sheet (FUSION_VISUAL)");
 // S3 lô D (#569): 5 võ hồn thực vật / độc đủ 11 chiêu; dung hợp Lôi Độc Song Sát có sheet trong bảng FUSION_VISUAL.
 for (const id of ["ky_nhung_thong_thien_cuc", "tu_vong_chu_hoang", "bich_lan_xa_hoang", "lam_ngan_thao", "a_ngan"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
 ok(src.includes(`"Lôi Độc Song Sát": {`), `dung hợp Lôi Độc Song Sát có sheet (FUSION_VISUAL)`);

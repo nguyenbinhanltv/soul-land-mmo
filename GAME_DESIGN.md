@@ -1143,8 +1143,9 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] S2 Thử trọn bộ 11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#548, `docs/ky-nang-cong-thuc.md`, mục 5.11).
 - [ ] S3 lô A: 7 võ hồn + dung hợp Yêu Nguyệt (#566, đã làm: Cửu Tinh Thất Sát Kiếm, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương, Yêu Nguyệt; chờ duyệt / gộp).
 - [x] S3 lô B 6 thú võ hồn (U Minh Linh Miêu, Nhu Cốt Thố, Kim Vũ Miêu Ưng, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ) × 11 chiêu + dung hợp Hạo Thiên Nhu Cốt, U Minh Bạch Hổ: 68 sheet (#567, `tools/assets/skill-vfx/lo-b.json`, `FUSION_VISUAL`).
+- [x] S3 lô C 5 võ hồn (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Quỷ Mị, Băng Phượng Hoàng) × 11 chiêu + dung hợp Băng Hỏa Lưỡng Nghi: 56 sheet (#568, `tools/assets/skill-vfx/lo-c.json`, `FUSION_VISUAL`).
 - [x] S3 lô D: 5 võ hồn thực vật / độc (Kỳ Nhung Thông Thiên Cúc, Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Lam Ngân Thảo, A Ngân) × 11 chiêu + dung hợp Lôi Độc Song Sát: 56 sheet (#569, `tools/assets/skill-vfx/lo-d.json`, `FUSION_VISUAL`).
-- [ ] S3–S5 các võ hồn còn lại (trừ lô A, B, D) theo lô theo công thức S2, hoàn thiện (theo dõi #541, chưa có issue riêng cho từng bước).
+- [ ] S3–S5 các võ hồn còn lại (trừ lô A, B, C, D) theo lô theo công thức S2, hoàn thiện (theo dõi #541, chưa có issue riêng cho từng bước).
 
 **Nhóm Hồn sư tự tạo bằng LPC** (mục 5.11; theo dõi #507; chạy song song chế độ Mẫu dựng sẵn; mỗi bước một PR).
 - [x] L0 Mẫu thử và danh mục 111 món, chủ repo duyệt 4 hướng (không sửa repo).
