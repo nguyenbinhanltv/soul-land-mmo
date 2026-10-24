@@ -3441,6 +3441,30 @@
       "iso": true
     },
     {
+      "key": "vh_kim_vu_mieu_ung_b",
+      "iso": true
+    },
+    {
+      "key": "vh_kim_vu_mieu_ung_f",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_f",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_b",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_f",
+      "iso": true
+    },
+    {
       "key": "vh_lam_ngan_thao_b",
       "iso": true
     },
@@ -3457,11 +3481,27 @@
       "iso": true
     },
     {
+      "key": "vh_nhu_cot_tho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_nhu_cot_tho_f",
+      "iso": true
+    },
+    {
       "key": "vh_pha_hon_thuong_b",
       "iso": true
     },
     {
       "key": "vh_pha_hon_thuong_f",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_f",
       "iso": true
     },
     {
