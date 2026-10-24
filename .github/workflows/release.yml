@@ -170,11 +170,9 @@ jobs:
         id: push
         env:
           TAG: ${{ steps.meta.outputs.tag }}
-          TOKEN: ${{ steps.auth.outputs.access_token }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "::add-mask::$TOKEN"
-          echo "$TOKEN" | docker login -u oauth2accesstoken --password-stdin "$REGISTRY"
+          gcloud auth configure-docker "$REGISTRY" --quiet # credential helper của gcloud, dùng chung cho key và WIF (không đụng token trong lệnh)
           docker push "$IMAGE:$TAG"
           # Hai lượt kết thúc lệch thứ tự không được kéo tag main lùi: chỉ gắn main khi commit này vẫn là đầu main.
           HEAD_MAIN=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
@@ -188,7 +186,7 @@ jobs:
           fi
           DIGEST=$(docker image inspect "$IMAGE:$TAG" --format '{{index .RepoDigests 0}}' 2>/dev/null || true)
           echo "digest=${DIGEST#*@}" >>"$GITHUB_OUTPUT"
-          docker logout "$REGISTRY" >/dev/null
+          docker logout "$REGISTRY" >/dev/null 2>&1 || true
       - name: tóm tắt
         if: ${{ success() }}
         env:
