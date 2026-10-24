@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE } from "../../shared/data.ts";
 import {
   radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarPlace, clampToCircle, radarHit, radarZoomStep, radarPrio,
-  radarSortDots, radarPick,
+  radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, type MapView,
 } from "../../shared/radar.ts";
 
 function test(title: string, fn: () => void) { fn(); console.log(`✓ ${title}`); }
@@ -74,4 +74,29 @@ test("Xếp chấm: ưu tiên thấp vẽ trước, cao đè sau, cùng mức gi
   assert.equal(radarPick(dots, 0, 0)?.n, "boss", "chồng nhau thì chọn mức cao nhất");
   assert.equal(radarPick(dots, 5, 5)?.n, "t2"); assert.equal(radarPick(dots, 50, 50), undefined);
   assert.equal(radarPick([{ prio: 1, x: 1, y: 0 }, { prio: 1, x: 0.2, y: 0 }], 0, 0)?.x, 0.2, "cùng mức thì chọn gần hơn");
+});
+
+test("Bản đồ khu vực: ô ↔ màn hình khứ hồi ở cả hai hướng; phóng quanh con trỏ giữ ô dưới con trỏ; kéo đi theo ngón tay; kẹp", () => {
+  for (const mode of ["iso", "flat"] as const) {
+    const v: MapView = { cx: 100, cy: 60, zoom: 3, mode };
+    const s = mapviewToScreen(v, 130, 40), t = mapviewToTile(v, s.x, s.y); near(t.x, 130, `x ${mode}`, 1e-9); near(t.y, 40, `y ${mode}`, 1e-9);
+    const c = mapviewToScreen(v, 100, 60); near(c.x, 0, "tâm x"); near(c.y, 0, "tâm y");
+    const before = mapviewToTile(v, 70, -30), z = mapviewZoomAt(v, 2, 70, -30), after = mapviewToTile(z, 70, -30);
+    near(z.zoom, 6, "zoom"); near(after.x, before.x, `ô dưới con trỏ x ${mode}`, 1e-9); near(after.y, before.y, `ô dưới con trỏ y ${mode}`, 1e-9);
+    const g = mapviewToScreen(v, 120, 80), p = mapviewPan(v, 25, -10), g2 = mapviewToScreen(p, 120, 80);
+    near(g2.x, g.x + 25, `kéo x ${mode}`, 1e-9); near(g2.y, g.y - 10, `kéo y ${mode}`, 1e-9);
+  }
+  assert.equal(mapviewZoomAt({ cx: 0, cy: 0, zoom: MAPVIEW.zoomMax, mode: "flat" }, 5, 0, 0).zoom, MAPVIEW.zoomMax);
+  assert.equal(mapviewClampZoom(0.01), MAPVIEW.zoomMin);
+  assert.deepEqual(mapviewClampCenter({ cx: -5, cy: 999, zoom: 3, mode: "flat" }, 255, 170), { cx: 0, cy: 170, zoom: 3, mode: "flat" });
+  const up = mapviewToScreen({ cx: 0, cy: 0, zoom: 1, mode: "iso" }, -1, -1); near(up.x, 0, "iso lên x", 1e-9); assert.ok(up.y < 0, "đi lên màn hình thì lên");
+});
+
+test("Lớp lọc: loại chấm → lớp, `layer` tường minh thắng, mọi lớp trong bảng lọc đều có loại chấm hoặc là đồ rơi", () => {
+  assert.equal(mapviewLayer("boss"), "beast"); assert.equal(mapviewLayer("ally"), "player"); assert.equal(mapviewLayer("poi"), "npc");
+  assert.equal(mapviewLayer("quest", "drop"), "drop"); assert.equal(mapviewLayer("la"), "");
+  const ids = new Set(MAPVIEW.layers.map((l) => l.id));
+  for (const l of Object.values(MAPVIEW.layerOf)) assert.ok(ids.has(l), `lớp lạ ${l}`);
+  for (const k of Object.keys(MAPVIEW.layerOf)) assert.ok(RADAR.levels.some((lv) => lv.id === k), `loại chấm lạ ${k}`);
+  assert.ok(MAPVIEW.hitPx > 0 && MAPVIEW.dragPx > 0);
 });

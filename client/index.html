@@ -45,6 +45,22 @@
       <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
       <div id="npc" class="panel" hidden role="dialog" aria-label="Hộp thoại NPC"></div>
       <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
+      <div id="mapview" hidden role="dialog" aria-label="Bản đồ khu vực">
+        <canvas id="mapviewCv"></canvas>
+        <div id="mapviewBar">
+          <span id="mapviewTitle"></span>
+          <div id="mapviewLayers" role="group" aria-label="Lớp hiển thị"></div>
+          <div class="mvtools">
+            <button id="mapviewMode" class="mvbtn" aria-pressed="false" title="Đổi hướng nhìn: xoay theo màn hình / nhìn thẳng (Bắc lên)">Nhìn thẳng</button>
+            <button id="mapviewMe" class="mvbtn" title="Về chỗ mình đứng">Về tôi</button>
+            <button id="mapviewIn" class="mvbtn mvz" title="Phóng to (lăn chuột lên, chụm hai ngón)">+</button>
+            <button id="mapviewOut" class="mvbtn mvz" title="Thu nhỏ">−</button>
+            <button id="mapviewClose" class="mvbtn mvx" title="Đóng (N hoặc Esc)" aria-label="Đóng bản đồ khu vực">✕</button>
+          </div>
+        </div>
+        <div id="mapviewHelp">Kéo để di chuyển · lăn chuột / chụm hai ngón để phóng · N hoặc Esc để đóng</div>
+        <div id="mapviewTip" hidden></div>
+      </div>
       <div id="rcol">
       <section class="panel mapbox">
         <div id="radar" role="img" aria-label="Radar quanh nhân vật">
@@ -61,7 +77,7 @@
         <div id="online"></div>
         <div class="radarbtns">
           <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
-          <button id="areaBtn" class="minibtn" title="Bản đồ khu vực (phím N, làm ở bước R3)" disabled>Vùng <kbd>N</kbd></button>
+          <button id="areaBtn" class="minibtn" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
           <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
         </div>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>

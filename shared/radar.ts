@@ -1,6 +1,6 @@
 // Hàm thuần của radar và bản đồ khu vực (GAME_DESIGN.md mục 5.17): chiếu thế giới → radar, kẹp mũi tên vào mép tròn, xếp chấm theo
 // ưu tiên. Dùng chung client (vẽ) và kiểm thử; không phụ thuộc Phaser / DOM. Số liệu ở `RADAR` (data.ts).
-import { RADAR, TILE } from "./data.ts";
+import { RADAR, MAPVIEW, TILE } from "./data.ts";
 
 /** "iso": xoay khớp màn hình isometric (đi lên màn hình thì chấm đi lên radar); "flat": nhìn thẳng theo lưới Tiled (Bắc = lên). */
 export type RadarMode = "iso" | "flat";
@@ -86,3 +86,37 @@ export function radarPick<T extends RadarPt & { prio: number }>(dots: readonly T
   }
   return best;
 }
+
+// ---------- Bản đồ khu vực toàn màn hình (R3, mục 5.17): phép chiếu theo `MAPVIEW` ----------
+/** Khung nhìn của bản đồ khu vực: tâm (ô, số thực), mức phóng (pixel màn hình mỗi ô), hướng chiếu (cùng `RadarMode` với radar). */
+export interface MapView { cx: number; cy: number; zoom: number; mode: RadarMode }
+
+/** Lớp lọc của một chấm radar: `layer` tường minh (vd. "drop") thắng, không thì tra `MAPVIEW.layerOf` theo loại chấm. */
+export const mapviewLayer = (id: string, layer = "") => layer || MAPVIEW.layerOf[id] || "";
+
+/** Kẹp mức phóng vào `MAPVIEW.zoomMin`…`zoomMax`. */
+export const mapviewClampZoom = (z: number) => Math.min(MAPVIEW.zoomMax, Math.max(MAPVIEW.zoomMin, z));
+
+/** Ô (số thực) → điểm màn hình so với tâm khung vẽ (pixel, y xuống). */
+export function mapviewToScreen(v: MapView, tx: number, ty: number): RadarPt {
+  return radarRotate((tx - v.cx) * v.zoom, (ty - v.cy) * v.zoom, v.mode);
+}
+
+/** Ngược lại `mapviewToScreen`: điểm màn hình so với tâm khung vẽ → ô (số thực). Dùng khi bấm / chạm (R4 đặt cờ, R6 đánh dấu). */
+export function mapviewToTile(v: MapView, sx: number, sy: number): RadarPt {
+  const u = radarUnrotate(sx, sy, v.mode); return { x: v.cx + u.x / v.zoom, y: v.cy + u.y / v.zoom };
+}
+
+/** Phóng / thu `factor` lần quanh điểm màn hình (sx, sy) so với tâm khung vẽ: ô dưới con trỏ đứng yên. Trả khung nhìn mới (không sửa cái cũ). */
+export function mapviewZoomAt(v: MapView, factor: number, sx: number, sy: number): MapView {
+  const zoom = mapviewClampZoom(v.zoom * factor), t = mapviewToTile(v, sx, sy), u = radarUnrotate(sx, sy, v.mode);
+  return { ...v, zoom, cx: t.x - u.x / zoom, cy: t.y - u.y / zoom };
+}
+
+/** Kéo khung nhìn theo độ dời màn hình (dx, dy) pixel: bản đồ đi theo ngón tay. Không sửa cái cũ. */
+export function mapviewPan(v: MapView, dx: number, dy: number): MapView {
+  const u = radarUnrotate(dx, dy, v.mode); return { ...v, cx: v.cx - u.x / v.zoom, cy: v.cy - u.y / v.zoom };
+}
+
+/** Kẹp tâm khung nhìn vào bản đồ `w`×`h` ô (không kéo ra khỏi bản đồ). */
+export const mapviewClampCenter = (v: MapView, w: number, h: number): MapView => ({ ...v, cx: Math.min(w, Math.max(0, v.cx)), cy: Math.min(h, Math.max(0, v.cy)) });

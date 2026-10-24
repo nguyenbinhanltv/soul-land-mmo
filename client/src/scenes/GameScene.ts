@@ -12,7 +12,8 @@ import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soul
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
-import { radar } from "../radar.ts";
+import { radar, type DotSink } from "../radar.ts";
+import { mapview, type MapLabel } from "../mapview.ts";
 import { toast, lootToasts } from "../feedback.ts";
 import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
@@ -665,6 +666,8 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
       if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggle(); return; } // bản đồ khu vực (R3): lớp phủ, không dừng game
+      if (e.code === "Escape" && mapview().isOpen) { mapview().close(); return; }
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
       if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); toggleChar(false); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
@@ -694,6 +697,8 @@ export class GameScene extends Phaser.Scene {
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
     document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
+    mapview().beforeOpen = () => { closeAudioPanel(); closeAutoPanel(); }; // nút Vùng do mapview.ts gắn một lần (cảm ứng chạy ngay lúc chạm)
+    radar().onOpen = () => mapview().open();
     document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); this.openWorld(); }, on);
     // Nút "Tự động" mở bảng cài đặt (Auto 2); phím T vẫn bật / tắt ngay.
     document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); toggleAutoPanel(); }, on);
@@ -2093,7 +2098,7 @@ export class GameScene extends Phaser.Scene {
     for (const r of this.portals) b.fillRect(Math.floor(r.x / TILE), Math.floor(r.y / TILE), Math.max(1, Math.round(r.w / TILE)), Math.max(1, Math.round(r.h / TILE)));
     b.fillStyle = "#8fe0ff"; // truyền tống trận (11.2)
     for (const w of this.waypoints) b.fillRect(Math.floor(w.x / TILE), Math.floor(w.y / TILE), Math.max(1, Math.round(w.w / TILE)), Math.max(1, Math.round(w.h / TILE)));
-    radar().setBase(base, 1, this.mapId);
+    radar().setBase(base, 1, this.mapId); mapview().reset(); mapview().setMap(this.mapId, map.width, map.height);
     // Nền ảnh R1 (shared/assets/mini); lỗi tải thì giữ nền vẽ từ ô ở trên. Chỉ nhận khi radar còn ở bản đồ này.
     const mapId = this.mapId, img = new Image();
     img.onload = () => { if (radar().baseKey === mapId) radar().setBase(img, MINI_BASE.px, mapId); };
@@ -2102,14 +2107,22 @@ export class GameScene extends Phaser.Scene {
 
   /** Gom chấm cho radar tròn (client/src/radar.ts, vẽ RADAR.hz lần mỗi giây; chưa tới lượt thì thoát ngay). Thực thể ở xa theo tin `mini`, ở gần theo state (11.4). */
   drawMinimap() {
-    const R = radar(), now = performance.now(); if (!R.due(now)) return;
+    const R = radar(), V = mapview(), now = performance.now(), dueR = R.due(now), dueV = V.due(now); if (!dueR && !dueV) return;
     const st = this.room.state, me = st.players.get(this.me); if (!me) return;
-    const mx = me.x / TILE, my = me.y / TILE, near = SYNC_VIEW.r / TILE, far = this.far; // ngưỡng vào tầm state là SYNC_VIEW.r (interest.ts), không phải .out
-    R.begin(mx, my, now);
+    const mx = me.x / TILE, my = me.y / TILE;
+    const info = `${MAPS[this.mapId]?.name ?? this.mapId} · ${Math.floor(mx)}, ${Math.floor(my)}${st.channel ? ` · Kênh ${st.channel}` : ""}`;
+    // Cùng một bộ chấm cho radar và bản đồ khu vực (mỗi nơi theo nhịp RADAR.hz riêng).
+    if (dueR) { R.begin(mx, my, now); this.collectDots(R, me, mx, my); R.end(info); }
+    if (dueV) { V.begin(mx, my, now, this.mapLabels(), info); this.collectDots(V, me, mx, my); V.end(); }
+  }
+
+  /** Gom chấm và khung vùng vào `R` (radar hoặc bản đồ khu vực): thực thể ở xa theo tin `mini`, ở gần theo state (11.4). */
+  collectDots(R: DotSink, me: any, mx: number, my: number) {
+    const st = this.room.state, near = SYNC_VIEW.r / TILE, far = this.far; // ngưỡng vào tầm state là SYNC_VIEW.r (interest.ts), không phải .out
     const isNear = (x: number, y: number) => Math.hypot(x - mx, y - my) < near; // trong vùng state đã có, khỏi vẽ trùng bản `mini` chậm 1 giây
-    for (let i = 0; i + 2 < far.d.length; i += 3) if (!isNear(far.d[i], far.d[i + 1])) R.dot(far.d[i + 2] >= 3 ? "quest" : "beast", far.d[i] + 0.5, far.d[i + 1] + 0.5, "Đồ rơi", TIERS[far.d[i + 2]]?.glow ?? "#ffffff");
+    for (let i = 0; i + 2 < far.d.length; i += 3) if (!isNear(far.d[i], far.d[i + 1])) R.dot(far.d[i + 2] >= 3 ? "quest" : "beast", far.d[i] + 0.5, far.d[i + 1] + 0.5, "Đồ rơi", TIERS[far.d[i + 2]]?.glow ?? "#ffffff", "", "drop");
     for (let i = 0; i + 2 < far.b.length; i += 3) if (!isNear(far.b[i], far.b[i + 1])) R.dot("beast", far.b[i] + 0.5, far.b[i + 1] + 0.5, "Hồn thú nghìn năm", far.b[i + 2] === 4 ? "#ff3b3b" : "#8a6bff");
-    st.drops.forEach((d: any) => R.dot(d.tier >= 3 ? "quest" : "beast", d.x / TILE, d.y / TILE, "Đồ rơi", TIERS[d.tier].glow));
+    st.drops.forEach((d: any) => R.dot(d.tier >= 3 ? "quest" : "beast", d.x / TILE, d.y / TILE, "Đồ rơi", TIERS[d.tier].glow, "", "drop"));
     st.beasts.forEach((b: any) => {
       const x = b.x / TILE, y = b.y / TILE;
       if (b.rank >= 2) R.dot("boss", x, y, beastName(b.rank, b.species), BOSSES[b.species]?.aura ?? "");
@@ -2140,8 +2153,23 @@ export class GameScene extends Phaser.Scene {
       const x = Number(far.p[i + 1]) + 0.5, y = Number(far.p[i + 2]) + 0.5, mn = mates.get(id);
       if (mn !== undefined) R.dot("ally", x, y, mn); else R.dot("player", x, y, "Hồn sư");
     }
-    const mapName = MAPS[this.mapId]?.name ?? this.mapId;
-    R.end(`${mapName} · ${Math.floor(mx)}, ${Math.floor(my)}${st.channel ? ` · Kênh ${st.channel}` : ""}`);
+  }
+
+  /**
+   * Nhãn tĩnh của bản đồ khu vực (phím N), dựng từ object Tiled đã đọc ở `create`: vùng săn (kèm niên hạn và cấp), vùng an toàn, hang
+   * thú vương, NPC, cổng ghi bản đồ đích, truyền tống trận (đã mở / chưa mở). Mảng dựng lại mỗi lượt gom của bản đồ đang mở (vài chục
+   * phần tử), nên chỉ tính khi đang mở.
+   */
+  mapLabels(): MapLabel[] {
+    const c = (r: Rect) => ({ x: (r.x + r.w / 2) / TILE, y: (r.y + r.h / 2) / TILE }), sz = (r: Rect) => ({ w: r.w / TILE, h: r.h / TILE });
+    const out: MapLabel[] = [];
+    for (const z of this.zones) out.push({ k: "zone", ...c(z), ...sz(z), text: z.name, sub: z.hint, brief: z.hint.split(" · ").filter((t) => t.startsWith("cấp")).join("") });
+    for (const z of this.safes) out.push({ k: "safe", ...c(z), ...sz(z), text: z.name || "Vùng an toàn", sub: "" });
+    if (this.lair) out.push({ k: "lair", ...c(this.lair), ...sz(this.lair), text: "Hang thú vương", sub: "" });
+    for (const n of this.npcs) out.push({ k: "npc", x: n.x / TILE, y: n.y / TILE, text: n.def?.name ?? n.id, sub: n.def?.title ?? "" });
+    for (const r of this.portals) out.push({ k: "gate", ...c(r), text: `Cổng → ${MAPS[r.to]?.name ?? r.to}`, sub: "" });
+    for (const w of this.waypoints) { const open = this.wpOpen.has(w.key); out.push({ k: "wp", ...c(w), text: w.label || "Truyền tống trận", sub: open ? "đã mở" : "chưa mở", open }); }
+    return out;
   }
 
   /**

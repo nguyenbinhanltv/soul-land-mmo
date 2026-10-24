@@ -6,11 +6,11 @@ import { radarPlace, radarRotate, radarNorthAngle, radarCompassRotation, radarZo
 import { artUrl } from "./uiArt.ts";
 
 const LS_MODE = "soul.radar.mode", LS_ZOOM = "soul.radar.zoom";
-const ls = {
+export const ls = {
   get(k: string) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k: string, v: string) { try { localStorage.setItem(k, v); } catch { /* chế độ riêng tư: bỏ qua */ } },
 };
-const DARK = "#1a1020";
+export const DARK = "#1a1020";
 /** Đầu lâu 9×9 của mức boss / thú vương. */
 const SKULL = ["..#####..", ".#######.", "##.###.##", "##.###.##", ".#######.", "..#####..", "..#.#.#..", "..#####..", "........."];
 const SKULL_CELLS: [number, number][] = [];
@@ -22,7 +22,37 @@ interface Dot { id: string; prio: number; x: number; y: number; wx: number; wy: 
 interface Box { x: number; y: number; w: number; h: number; col: string; }
 const LEVEL = new Map(RADAR.levels.map((l) => [l.id, l]));
 
-class Radar {
+/** Biểu tượng pixel của từng mức, tâm (d.x, d.y), làm tròn xuống số nguyên cho nét sắc. Dùng chung radar và bản đồ khu vực (mapview.ts). */
+export function drawRadarIcon(ctx: CanvasRenderingContext2D, d: { id: string; x: number; y: number; col: string; ring: string }, size: number, dim: boolean) {
+  const x = Math.round(d.x), y = Math.round(d.y), h = size >> 1; ctx.globalAlpha = dim ? 0.45 : 1;
+  switch (d.id) {
+    case "beast": ctx.fillStyle = DARK; ctx.fillRect(x - h, y - h, size, size); ctx.fillStyle = d.col; ctx.fillRect(x - h + 1, y - h + 1, size - 2, size - 2); break;
+    case "player": ctx.fillStyle = DARK; ctx.fillRect(x - h, y - h + 1, size, size - 2); ctx.fillRect(x - h + 1, y - h, size - 2, size); ctx.fillStyle = d.col; ctx.fillRect(x - h + 1, y - h + 1, size - 2, size - 2); break;
+    case "poi": // thoi
+      for (let i = -h; i <= h; i++) { const w = h - Math.abs(i); ctx.fillStyle = DARK; ctx.fillRect(x - w - 1, y + i, 2 * w + 3, 1); }
+      for (let i = -h + 1; i < h; i++) { const w = h - 1 - Math.abs(i); ctx.fillStyle = d.col; ctx.fillRect(x - w, y + i, 2 * w + 1, 1); }
+      break;
+    case "quest": // dấu cộng dày (ngôi sao bốn cánh)
+      ctx.fillStyle = DARK; ctx.fillRect(x - h, y - 2, size, 5); ctx.fillRect(x - 2, y - h, 5, size);
+      ctx.fillStyle = d.col; ctx.fillRect(x - h + 1, y - 1, size - 2, 3); ctx.fillRect(x - 1, y - h + 1, 3, size - 2); break;
+    case "ally": ctx.fillStyle = DARK; ctx.fillRect(x - h, y - h, size, size); ctx.fillStyle = d.ring || d.col; ctx.fillRect(x - h + 1, y - h + 1, size - 2, size - 2);
+      ctx.fillStyle = d.col; ctx.fillRect(x - h + 2, y - h + 2, size - 4, size - 4); break;
+    case "elite": // chữ X sáng màu aura
+      ctx.fillStyle = DARK; for (let i = -h; i <= h; i++) { ctx.fillRect(x + i - 1, y + i - 1, 3, 3); ctx.fillRect(x + i - 1, y - i - 1, 3, 3); }
+      ctx.fillStyle = d.col; for (let i = -h; i <= h; i++) { ctx.fillRect(x + i, y + i, 1, 1); ctx.fillRect(x + i, y - i, 1, 1); } break;
+    default: // boss: đầu lâu
+      ctx.fillStyle = DARK; ctx.fillRect(x - 5, y - 5, 11, 11); ctx.fillStyle = d.col; for (const [cx, cy] of SKULL_CELLS) ctx.fillRect(x - 4 + cx, y - 4 + cy, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/** Nơi nhận chấm của một lượt gom (radar và bản đồ khu vực): GameScene gom một lần cho cả hai. `layer` rỗng thì lớp lọc theo loại chấm (MAPVIEW.layerOf). */
+export interface DotSink {
+  dot(id: string, tx: number, ty: number, name: string, col?: string, ring?: string, layer?: string): void;
+  rect(tx: number, ty: number, w: number, h: number, col: string): void;
+}
+
+class Radar implements DotSink {
   readonly wrap = document.getElementById("radar")!;
   readonly cv = document.getElementById("mini") as HTMLCanvasElement;
   readonly ctx = this.cv.getContext("2d")!;
@@ -44,12 +74,18 @@ class Radar {
   private hover: { x: number; y: number } | null = null; private tipTimer = 0;
   private info = ""; private compass: HTMLImageElement | null = null; private frameDone = false;
   private compassTried = false;
+  /** Bấm vào radar (chuột; cảm ứng thì chạm chỗ không có chấm) mở bản đồ khu vực: GameScene đặt. */
+  onOpen: (() => void) | null = null;
 
   constructor() {
     const cv = this.cv;
     cv.addEventListener("wheel", (e) => { e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1 : -1); }, { passive: false });
     cv.addEventListener("pointermove", (e) => this.point(e));
-    cv.addEventListener("pointerdown", (e) => { this.point(e); if (e.pointerType !== "mouse") { clearTimeout(this.tipTimer); this.tipTimer = window.setTimeout(() => this.point(null), 2500); } });
+    cv.addEventListener("pointerdown", (e) => {
+      this.point(e);
+      if (e.pointerType !== "mouse") { clearTimeout(this.tipTimer); this.tipTimer = window.setTimeout(() => this.point(null), 2500); if (this.tip.hidden) this.onOpen?.(); }
+    });
+    cv.addEventListener("click", (e) => { if ((e as PointerEvent).pointerType === "mouse") this.onOpen?.(); });
     cv.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") this.point(null); });
     document.getElementById("radarIn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.zoomBy(1); });
     document.getElementById("radarOut")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.zoomBy(-1); });
@@ -76,7 +112,7 @@ class Radar {
   begin(tx: number, ty: number, now: number) { this.last = now; this.now = now; this.px = tx; this.py = ty; this.n = 0; this.nb = 0; }
 
   /** Thêm một chấm mức `id` (RADAR.levels) ở vị trí ô (tx, ty). `col` / `ring` đè màu của mức. */
-  dot(id: string, tx: number, ty: number, name: string, col = "", ring = "") {
+  dot(id: string, tx: number, ty: number, name: string, col = "", ring = "", _layer = "") {
     const lv = LEVEL.get(id); if (!lv) return;
     let d = this.pool[this.n]; if (!d) d = this.pool[this.n] = { id: "", prio: 0, x: 0, y: 0, wx: 0, wy: 0, name: "", col: "", ring: "", outside: false, tiles: 0, angle: 0, arrow: false };
     this.n++; d.id = id; d.prio = lv.prio; d.wx = tx; d.wy = ty; d.name = name; d.col = col || lv.col; d.ring = ring; d.arrow = lv.arrow;
@@ -120,8 +156,8 @@ class Radar {
     for (const d of live) {
       const lv = LEVEL.get(d.id)!;
       if (d.outside) { if (arrows++ < 12) this.drawArrow(ctx, d, lv.size); continue; }
-      if (lv.blink && !on) { this.icon(ctx, d, lv.size, true); continue; }
-      this.icon(ctx, d, lv.size, false);
+      if (lv.blink && !on) { drawRadarIcon(ctx, d, lv.size, true); continue; }
+      drawRadarIcon(ctx, d, lv.size, false);
     }
     // Mình: chấm trắng tâm đỏ ở giữa.
     ctx.fillStyle = DARK; ctx.fillRect(-3, -3, 7, 7); ctx.fillStyle = "#fff"; ctx.fillRect(-2, -2, 5, 5); ctx.fillStyle = "#ff4040"; ctx.fillRect(-1, -1, 3, 3);
@@ -153,30 +189,6 @@ class Radar {
   private letter(ctx: CanvasRenderingContext2D, t: string, x: number, y: number, col: string) {
     ctx.font = 'bold 10px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.lineWidth = 3; ctx.strokeStyle = DARK; ctx.strokeText(t, x, y); ctx.fillStyle = col; ctx.fillText(t, x, y);
-  }
-
-  /** Biểu tượng pixel của từng mức, tâm (d.x, d.y), làm tròn xuống số nguyên cho nét sắc. */
-  private icon(ctx: CanvasRenderingContext2D, d: Dot, size: number, dim: boolean) {
-    const x = Math.round(d.x), y = Math.round(d.y), h = size >> 1; ctx.globalAlpha = dim ? 0.45 : 1;
-    switch (d.id) {
-      case "beast": ctx.fillStyle = DARK; ctx.fillRect(x - h, y - h, size, size); ctx.fillStyle = d.col; ctx.fillRect(x - h + 1, y - h + 1, size - 2, size - 2); break;
-      case "player": ctx.fillStyle = DARK; ctx.fillRect(x - h, y - h + 1, size, size - 2); ctx.fillRect(x - h + 1, y - h, size - 2, size); ctx.fillStyle = d.col; ctx.fillRect(x - h + 1, y - h + 1, size - 2, size - 2); break;
-      case "poi": // thoi
-        for (let i = -h; i <= h; i++) { const w = h - Math.abs(i); ctx.fillStyle = DARK; ctx.fillRect(x - w - 1, y + i, 2 * w + 3, 1); }
-        for (let i = -h + 1; i < h; i++) { const w = h - 1 - Math.abs(i); ctx.fillStyle = d.col; ctx.fillRect(x - w, y + i, 2 * w + 1, 1); }
-        break;
-      case "quest": // dấu cộng dày (ngôi sao bốn cánh)
-        ctx.fillStyle = DARK; ctx.fillRect(x - h, y - 2, size, 5); ctx.fillRect(x - 2, y - h, 5, size);
-        ctx.fillStyle = d.col; ctx.fillRect(x - h + 1, y - 1, size - 2, 3); ctx.fillRect(x - 1, y - h + 1, 3, size - 2); break;
-      case "ally": ctx.fillStyle = DARK; ctx.fillRect(x - h, y - h, size, size); ctx.fillStyle = d.ring || d.col; ctx.fillRect(x - h + 1, y - h + 1, size - 2, size - 2);
-        ctx.fillStyle = d.col; ctx.fillRect(x - h + 2, y - h + 2, size - 4, size - 4); break;
-      case "elite": // chữ X sáng màu aura
-        ctx.fillStyle = DARK; for (let i = -h; i <= h; i++) { ctx.fillRect(x + i - 1, y + i - 1, 3, 3); ctx.fillRect(x + i - 1, y - i - 1, 3, 3); }
-        ctx.fillStyle = d.col; for (let i = -h; i <= h; i++) { ctx.fillRect(x + i, y + i, 1, 1); ctx.fillRect(x + i, y - i, 1, 1); } break;
-      default: // boss: đầu lâu
-        ctx.fillStyle = DARK; ctx.fillRect(x - 5, y - 5, 11, 11); ctx.fillStyle = d.col; for (const [cx, cy] of SKULL_CELLS) ctx.fillRect(x - 4 + cx, y - 4 + cy, 1, 1);
-    }
-    ctx.globalAlpha = 1;
   }
 
   /** Mũi tên ở mép hướng về mục tiêu ngoài tầm, kèm khoảng cách (ô). */
