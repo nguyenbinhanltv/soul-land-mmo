@@ -148,7 +148,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     sc().el = d.element; sc().kind = d.kind; $<HTMLSelectElement>("fe").value = d.element; $<HTMLSelectElement>("fk").value = d.kind;
     $("fn").textContent = `→ ${ELEMENT_NAME[d.element]} · ${FX_KIND_NAME[d.kind]} · ${fxTexKey(d.element, d.kind)}${FX_TEX_ELEMENTS.includes(d.element) ? "" : " (chưa có ảnh: chỉ hạt)"}`;
     const vk = tc ? "tc" as const : ring, vis = skillVisualOf(id, vk, ct), s = sc(), hy = s.hero.y - 8 * SPR, own = q.get("others") !== "1";
-    const area = sk?.area ?? "around", rr = (sk?.r ?? 56) * RX, tl = vis.sheet?.at === "cast" ? 0 : Math.max(rr, 24 * SPR) * (area === "proj" ? 0.9 : 0.5);
+    const area = sk?.area ?? "around", rr = (sk?.r ?? (tc ? tienCoOf(id).r : 56)) * RX, tl = vis.sheet?.at === "cast" ? 0 : Math.max(rr, 24 * SPR) * (area === "proj" ? 0.9 : 0.5);
     // Cùng cách tính điểm trúng với GameScene.skillFx; trang thử đặt mục tiêu cố định ở bên phải.
     const tx = area === "target" || area === "front" || area === "dash" || area === "proj" ? s.dummy.x : s.hero.x + tl;
     s.rr = rr; (window as unknown as { __t0: number }).__t0 = performance.now(); // mốc phát chiêu cho script quay hình

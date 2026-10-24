@@ -2123,7 +2123,7 @@ export class GameScene extends Phaser.Scene {
     // S2 (#548): sheet riêng của tiên cơ (SKILL_VISUAL `<mã>:tc`), chồng lên hiệu ứng hiện có; mức Thấp chỉ còn 1 sheet chính.
     if (m.vh !== undefined && VOHON[m.vh]) {
       const tv = skillVisualOf(VOHON[m.vh].id, "tc");
-      if (tv.sheet) this.svis.cast(tv, { x: at.x, y: at.y - 8 * SPR, ang: 0, tx: at.x, ty: at.y - 8 * SPR, mine: m.id === this.me, r: (m.r ?? 56) * RX });
+      if (tv.sheet) this.svis.cast(tv, { x: at.x, y: at.y - 8 * SPR, ang: 0, tx: at.x, ty: at.y - 8 * SPR, mine: m.id === this.me, r: (m.r ?? tienCoOf(VOHON[m.vh].id).r ?? 56) * RX });
     }
     // Trên danh hiệu để không đè tên hồn sư.
     const name = m.vh !== undefined && VOHON[m.vh] ? tienCoOf(VOHON[m.vh].id).name : TIEN_CO[m.he]?.name ?? "";
