@@ -1,11 +1,10 @@
-// Màn tạo / đổi ngoại hình hồn sư (L4 #511; GAME_DESIGN.md mục 5.11 "Hồn sư chế độ Tự tạo"): bước đầu chọn [Mẫu dựng sẵn] hoặc
-// [Tự tạo (LPC)]. Mẫu dựng sẵn là màn cũ (giới tính, tông da, kiểu tóc, màu tóc, màu áo; vẽ bằng honsuArt.ts). Tự tạo cho chọn từng ô
-// của LPC_PARTS + màu, xem trước bốn hướng và đi / đánh / thi triển (lpcPreview.ts dùng bộ ghép của L3).
+// Màn tạo / đổi ngoại hình hồn sư (L4 #511, HL1 #565; GAME_DESIGN.md mục 5.11 "Hồn sư chế độ Tự tạo"): bước đầu chọn [Mẫu dựng sẵn] hoặc
+// [Tự tạo (LPC)]. Cả hai đều lưu Looks.mode = lpc. Mẫu dựng sẵn: lưới các bộ LPC_PRESETS (xem trước xoay bốn hướng), chọn bộ rồi chỉnh
+// màu tóc / da / áo trong dải cho phép. Tự tạo cho chọn từng ô của LPC_PARTS + màu (có nút "Bắt đầu từ mẫu"), xem trước bốn hướng và
+// đi / đánh / thi triển (lpcPreview.ts dùng bộ ghép của L3). Preset kiểu cũ (5 số) không còn được tạo mới; server vẫn đọc tới HL2.
 // Dùng cho hai nơi: lần tạo nhân vật đầu tiên (main.ts) và đổi ngoại hình ở thợ may (hud.ts, `openLooksOverlay`). Client chỉ gửi lựa chọn;
 // server kiểm lại bằng parseLooks (mã lạ bị từ chối), khoảng cách thợ may và Hồn Tệ.
-import { SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, SKIN_TONES, DEFAULT_LOOKS, LPC_PARTS, LPC_SLOTS, LPC_RAMPS, parseLpc,
-  type Looks, type LpcLooks, type LpcPart } from "../../shared/data.ts";
-import { paintHonsuPreview } from "./honsuArt.ts";
+import { SEXES, LPC_PARTS, LPC_SLOTS, LPC_RAMPS, LPC_PRESETS, parseLpc, type Looks, type LpcLooks, type LpcPart } from "../../shared/data.ts";
 import { LpcPreview, PREVIEW_DIRS, type PreviewAnim, type PreviewDir } from "./lpcPreview.ts";
 
 export interface MakerOpts {
@@ -132,31 +131,29 @@ export function mountMaker(o: MakerOpts): () => void {
   let stop = () => {};
   const modeScreen = () => {
     stop(); stop = () => {};
-    const cur = o.current?.mode === "lpc" ? "lpc" : o.current ? "preset" : null;
-    o.host.innerHTML = `<h1>${o.title}</h1><p>${o.intro}</p>
+        o.host.innerHTML = `<h1>${o.title}</h1><p>${o.intro}</p>
       <div class="modes">
-        <button type="button" class="modecard" id="mPreset" aria-pressed="${cur === "preset"}"><b>Mẫu dựng sẵn</b>
-          <span>Chọn giới tính, tông da, kiểu tóc, màu tóc, màu áo trên bộ hồn sư vẽ sẵn. Nhanh, gọn.</span></button>
-        <button type="button" class="modecard" id="mLpc" aria-pressed="${cur === "lpc"}"><b>Tự tạo (LPC)</b>
+        <button type="button" class="modecard" id="mPreset"><b>Mẫu dựng sẵn</b>
+          <span>Chọn một trong ${LPC_PRESETS.length} bộ hồn sư dựng sẵn (học viện, thôn dã, quý tộc, lang thang…), rồi chỉnh màu tóc, da, áo. Nhanh, gọn.</span></button>
+        <button type="button" class="modecard" id="mLpc"><b>Tự tạo (LPC)</b>
           <span>Ghép từng phần: mặt, mày, tóc, áo, quần, giày, áo choàng, đai, mũ, phụ kiện… và màu từng món. Hàng nghìn tổ hợp.</span></button>
       </div>
       <div class="btns"><button class="btn" id="mOut">${o.cancel.label}</button></div>`;
-    o.host.querySelector<HTMLButtonElement>("#mPreset")!.onclick = () => editor("preset");
+    o.host.querySelector<HTMLButtonElement>("#mPreset")!.onclick = () => editor("tpl");
     o.host.querySelector<HTMLButtonElement>("#mLpc")!.onclick = () => editor("lpc");
     o.host.querySelector<HTMLButtonElement>("#mOut")!.onclick = o.cancel.fn;
     o.host.querySelector<HTMLButtonElement>("#mPreset")!.focus();
   };
 
-  const editor = (mode: "preset" | "lpc") => {
+  const editor = (mode: "tpl" | "lpc") => {
     stop();
     o.host.innerHTML = `<h1>${mode === "lpc" ? "Tự tạo hồn sư" : "Mẫu dựng sẵn"}</h1>
-      <div class="maker ${mode === "lpc" ? "mk-lpc" : ""}" id="mk"></div>
+      <div class="maker mk-lpc ${mode === "tpl" ? "mk-tpl" : ""}" id="mk"></div>
       <div class="btns mk-btns"><button class="btn primary" id="ok">${o.okLabel}</button><button class="btn" id="back">‹ Chọn chế độ khác</button><button class="btn" id="out">${o.cancel.label}</button></div>
       <div class="err" id="err"></div>`;
     const mk = o.host.querySelector<HTMLElement>("#mk")!, ok = o.host.querySelector<HTMLButtonElement>("#ok")!, err = o.host.querySelector<HTMLElement>("#err")!;
-    let value: () => Looks;
-    if (mode === "preset") { const e = presetEditor(mk, o.current && o.current.mode !== "lpc" ? o.current : DEFAULT_LOOKS); value = e.value; stop = () => {}; }
-    else { const e = lpcEditor(mk, o.current?.mode === "lpc" && o.current.lpc ? o.current.lpc : null); value = e.value; stop = e.destroy; }
+    const e = lpcEditor(mk, o.current?.mode === "lpc" && o.current.lpc ? o.current.lpc : null, mode === "tpl"), value = e.value;
+    stop = e.destroy;
     o.host.querySelector<HTMLButtonElement>("#back")!.onclick = modeScreen;
     o.host.querySelector<HTMLButtonElement>("#out")!.onclick = o.cancel.fn;
     ok.onclick = async () => {
@@ -171,50 +168,33 @@ export function mountMaker(o: MakerOpts): () => void {
   return () => stop();
 }
 
-/** Màn Mẫu dựng sẵn (giữ nguyên bố cục cũ): xem trước 32×32 bên trái, lựa chọn bên phải. */
-function presetEditor(mk: HTMLElement, from: Looks) {
-  const L: Looks = { sex: from.sex, hair: from.hair, hairCol: from.hairCol, outfitCol: from.outfitCol, skin: from.skin };
-  mk.innerHTML = `<div class="pv"><canvas id="pv" width="32" height="32" aria-label="Xem trước hồn sư"></canvas><div id="pvTxt"></div></div><div class="opts" id="opts"></div>`;
-  const opts = mk.querySelector<HTMLElement>("#opts")!, cv = mk.querySelector<HTMLCanvasElement>("#pv")!;
-  const seg = (k: keyof Looks, names: readonly string[]) => names.map((n, i) =>
-    `<button type="button" class="opt" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}">${n}</button>`).join("");
-  // Ô màu vẽ 3 sắc sáng nhất của dải (tóc / áo 4 sắc, da 3 sắc).
-  const sw = (k: keyof Looks, list: readonly { name: string; ramp: readonly string[] }[]) => list.map((c, i) => {
-    const [a, b, d] = c.ramp.slice(-3);
-    return `<button type="button" class="sw" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}" title="${c.name}" aria-label="${c.name}"
-      style="--a:${a};--b:${b};--c:${d}"></button>`;
-  }).join("");
-  const render = () => {
-    opts.innerHTML = `<h3>Giới tính</h3><div class="seg">${seg("sex", SEXES)}</div>
-      <h3>Tông da · ${SKIN_TONES[L.skin].name}</h3><div class="sws">${sw("skin", SKIN_TONES)}</div>
-      <h3>Kiểu tóc</h3><div class="seg">${seg("hair", HAIR_STYLES[L.sex])}</div>
-      <h3>Màu tóc · ${HAIR_COLORS[L.hairCol].name}</h3><div class="sws">${sw("hairCol", HAIR_COLORS)}</div>
-      <h3>Màu áo · ${OUTFIT_COLORS[L.outfitCol].name}</h3><div class="sws">${sw("outfitCol", OUTFIT_COLORS)}</div>`;
-    const ctx = cv.getContext("2d")!; ctx.clearRect(0, 0, cv.width, cv.height); paintHonsuPreview(ctx, L, 16, 30);
-    mk.querySelector("#pvTxt")!.textContent = `${SEXES[L.sex]} · ${HAIR_STYLES[L.sex][L.hair]}`;
-  };
-  // Một bộ nghe chung cho mọi nút (click chạy cả với chuột và chạm).
-  opts.addEventListener("click", (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-k]"); if (!b) return;
-    const k = b.dataset.k as "sex" | "hair" | "hairCol" | "outfitCol" | "skin", i = Number(b.dataset.i);
-    if (L[k] === i) return;
-    L[k] = i; render();
-    opts.querySelector<HTMLButtonElement>(`button[data-k="${k}"][data-i="${i}"]`)?.focus();
-  });
-  render();
-  return { value: (): Looks => ({ ...L, mode: "preset" }) };
-}
-
-/** Màn Tự tạo: thẻ theo ô, danh sách món hợp thể hình, màu, nút Ngẫu nhiên, xem trước xoay bốn hướng với đi / đánh / thi triển. */
-function lpcEditor(mk: HTMLElement, from: LpcLooks | null) {
-  let l: LpcLooks = from && parseLpc(from) ? structuredClone(from) : defaultLpc(0);
-  let hair = normalize(l, hairOf(l)), tab = "body", anim: PreviewAnim = "idle";
-  mk.innerHTML = `<div class="pv"><canvas id="lpv" width="64" height="64" aria-label="Xem trước hồn sư tự tạo"></canvas>
+/**
+ * Màn Tự tạo (`tpl` = false): thẻ theo ô, danh sách món hợp thể hình, màu, nút Ngẫu nhiên và "Bắt đầu từ mẫu", xem trước xoay bốn hướng với
+ * đi / đánh / thi triển. Màn Mẫu dựng sẵn (`tpl` = true): cùng khung xem trước, bên phải là lưới các bộ LPC_PRESETS + chỉnh màu tóc / da / áo.
+ */
+function lpcEditor(mk: HTMLElement, from: LpcLooks | null, tpl: boolean) {
+  let l: LpcLooks = from && parseLpc(from) ? structuredClone(from) : tpl ? structuredClone(LPC_PRESETS[0].lpc) : defaultLpc(0);
+  let hair = normalize(l, hairOf(l)), tab = "body", anim: PreviewAnim = "idle", presetId = tpl && !from ? LPC_PRESETS[0].id : "";
+  mk.innerHTML = `<div class="pv"><canvas id="lpv" width="64" height="64" aria-label="Xem trước hồn sư"></canvas>
       <div class="pvbar" id="dirs"></div><div class="pvbar" id="anims"></div>
-      <button type="button" class="opt" id="rnd">Ngẫu nhiên</button><div id="pvTxt"></div></div>
-    <div class="opts"><div class="tabs" id="tabs" role="tablist"></div><div class="tabbody" id="tabbody"></div></div>`;
+      ${tpl ? "" : `<button type="button" class="opt" id="rnd">Ngẫu nhiên</button><button type="button" class="opt" id="fromTpl">Bắt đầu từ mẫu</button>`}<div id="pvTxt"></div></div>
+    <div class="opts">${tpl ? "" : `<div class="tabs" id="tabs" role="tablist"></div>`}<div class="tabbody" id="tabbody"></div></div>`;
   const cv = mk.querySelector<HTMLCanvasElement>("#lpv")!, view = new LpcPreview(cv);
-  const tabs = mk.querySelector<HTMLElement>("#tabs")!, body = mk.querySelector<HTMLElement>("#tabbody")!;
+  const tabs = mk.querySelector<HTMLElement>("#tabs"), body = mk.querySelector<HTMLElement>("#tabbody")!;
+  // Ảnh nhỏ từng bộ trong lưới mẫu (mỗi ảnh một LpcPreview đứng nhìn xuống), dựng lại thì hủy bản cũ.
+  let thumbs: LpcPreview[] = [];
+  const dropThumbs = () => { thumbs.forEach((t) => t.destroy()); thumbs = []; };
+  const tplGrid = () => {
+    let h = "", group = "";
+    for (const p of LPC_PRESETS) {
+      if (p.group !== group) { if (group) h += "</div>"; group = p.group; h += `<h3>${esc(group)}</h3><div class="tplgrid">`; }
+      h += `<button type="button" class="tplcard" data-tpl="${p.id}" aria-pressed="${presetId === p.id}" title="${esc(p.note)}"><canvas width="64" height="64" data-tc="${p.id}"></canvas><span>${esc(p.vi)}</span></button>`;
+    }
+    return h + "</div>";
+  };
+  const mountThumbs = (root: HTMLElement) => root.querySelectorAll<HTMLCanvasElement>("canvas[data-tc]").forEach((c) => {
+    const v = new LpcPreview(c); v.spin(false); v.setLooks(LPC_PRESETS.find((p) => p.id === c.dataset.tc)!.lpc); thumbs.push(v);
+  });
   const dirs = mk.querySelector<HTMLElement>("#dirs")!, anims = mk.querySelector<HTMLElement>("#anims")!;
 
   const bars = () => {
@@ -223,9 +203,19 @@ function lpcEditor(mk: HTMLElement, from: LpcLooks | null) {
     anims.innerHTML = ANIMS.map(([a, n]) => `<button type="button" class="opt mini" data-anim="${a}" aria-pressed="${anim === a}">${n}</button>`).join("");
   };
   const tabsRender = () => {
+    if (!tabs) return;
     tabs.innerHTML = TABS.map(([k, n]) => `<button type="button" class="tab" role="tab" data-tab="${k}" aria-selected="${tab === k}">${n}${l.parts[k] && k !== "body" && k !== "head" ? " •" : ""}</button>`).join("");
   };
+  /** Màn Mẫu dựng sẵn: lưới bộ (dựng một lần) + màu tóc / da / áo của bộ đang chọn. */
+  const tplColors = () => {
+    const el = mk.querySelector<HTMLElement>("#tplcol")!, torso = l.parts.torso ? colorFamily(byId.get(l.parts.torso)!) : null;
+    el.innerHTML = `<h3>Màu tóc · ${viColor(hair)}</h3><div class="sws">${LPC_RAMPS.hair.allow.map((c) => swBtn("hair", c, viColor(c), hair === c)).join("")}</div>
+      <h3>Màu da · ${viColor(l.colors.skin)}</h3><div class="sws">${LPC_RAMPS.body.allow.map((c) => swBtn("skin", c, viColor(c), l.colors.skin === c)).join("")}</div>` +
+      (torso && torso.kind !== "none" && torso.kind !== "hair" ? `<h3>Màu áo · ${viColor(l.colors.torso)}</h3><div class="sws">${torso.list.map((c) => swBtn("c:torso", c, viColor(c), l.colors.torso === c)).join("")}</div>` : "");
+  };
   const bodyRender = () => {
+    if (tpl) { tplColors(); return; }
+    if (tab === "tpl") { dropThumbs(); body.innerHTML = `<p class="rnote">Chọn một bộ dựng sẵn làm điểm xuất phát, rồi chỉnh tiếp từng món. Lựa chọn hiện tại sẽ bị thay.</p>${tplGrid()}`; mountThumbs(body); return; }
     if (tab === "body") {
       body.innerHTML = `<h3>Giới (thể hình)</h3><div class="seg">${SEXES.map((n, i) => `<button type="button" class="opt" data-body="${i}" aria-pressed="${l.body === i}">${n}</button>`).join("")}</div>
         <h3>Màu da · ${viColor(l.colors.skin)}</h3><div class="sws">${LPC_RAMPS.body.allow.map((c) => swBtn("skin", c, viColor(c), l.colors.skin === c)).join("")}</div>
@@ -248,20 +238,29 @@ function lpcEditor(mk: HTMLElement, from: LpcLooks | null) {
   };
   const refresh = (what: "all" | "view" = "all") => {
     view.setLooks(l);
-    mk.querySelector("#pvTxt")!.textContent = `${SEXES[l.body]} · ${l.parts.hair ? byId.get(l.parts.hair)!.vi : "đầu trọc"}`;
+    const pre = presetId ? LPC_PRESETS.find((p) => p.id === presetId) : undefined;
+    mk.querySelector("#pvTxt")!.textContent = pre ? pre.vi : `${SEXES[l.body]} · ${l.parts.hair ? byId.get(l.parts.hair)!.vi : "đầu trọc"}`;
     if (what === "all") { tabsRender(); bodyRender(); }
   };
   view.onDir = () => { if (view.isSpinning()) bars(); };
-  const set = (fn: () => void) => { fn(); hair = normalize(l, hair); refresh(); };
+  const set = (fn: () => void) => { fn(); hair = normalize(l, hair); if (!tpl) presetId = ""; refresh(); };
 
   mk.addEventListener("click", (e) => {
     const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button"); if (!b || !mk.contains(b)) return;
     const d = b.dataset;
-    if (d.tab) { tab = d.tab; tabsRender(); bodyRender(); body.scrollTop = 0; return; }
+    if (d.tpl) {
+      const p = LPC_PRESETS.find((x) => x.id === d.tpl); if (!p) return;
+      if (!tpl) dropThumbs();
+      l = structuredClone(p.lpc); presetId = p.id; hair = normalize(l, hairOf(l)); tab = "body";
+      if (tpl) mk.querySelectorAll<HTMLElement>("[data-tpl]").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.tpl === p.id)));
+      refresh(); return;
+    }
+    if (b.id === "fromTpl") { dropThumbs(); tab = "tpl"; tabsRender(); bodyRender(); body.scrollTop = 0; return; }
+    if (d.tab) { dropThumbs(); tab = d.tab; tabsRender(); bodyRender(); body.scrollTop = 0; return; }
     if (d.dir) { view.setDir(d.dir as PreviewDir); bars(); return; }
     if (d.spin) { view.spin(!view.isSpinning()); bars(); return; }
     if (d.anim) { anim = d.anim as PreviewAnim; view.setAnim(anim); bars(); return; }
-    if (b.id === "rnd") { l = randomLpc(); hair = hairOf(l); tab = "body"; refresh(); return; }
+    if (b.id === "rnd") { dropThumbs(); presetId = ""; l = randomLpc(); hair = hairOf(l); tab = "body"; refresh(); return; }
     if (d.body !== undefined) { const nb = Number(d.body); if (nb !== l.body) set(() => { l.body = nb; }); return; }
     if (d.part !== undefined) {
       const id = d.part, slot = tab;
@@ -276,10 +275,12 @@ function lpcEditor(mk: HTMLElement, from: LpcLooks | null) {
     }
   });
 
-  bars(); refresh();
+  bars();
+  if (tpl) { body.innerHTML = `${tplGrid()}<div id="tplcol"></div>`; mountThumbs(body); }
+  refresh();
   return {
     value: (): Looks => { const x = structuredClone(l); return { sex: x.body, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "lpc", lpc: x }; },
-    destroy: () => view.destroy(),
+    destroy: () => { dropThumbs(); view.destroy(); },
   };
 }
 
