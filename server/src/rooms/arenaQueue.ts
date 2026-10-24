@@ -91,7 +91,7 @@ export async function arenaLivePhase(roomId: string, phase: string, secs: number
   o.phase = phase; o.end = Date.now() + secs * 1000;
   for (let i = 1; ; i++) {
     try {
-      await liveEdit((book) => { upsertOwn(book, roomId); const d = book[roomId]; if (d) { d.phase = phase; d.end = o.end; } });
+      await liveEdit((book) => { upsertOwn(book, roomId); const d = book[roomId]; if (d) { d.phase = o.phase; d.end = o.end; } });
       return;
     } catch (err) { if (i >= 3 || !ownLive.has(roomId)) throw err; await new Promise((r) => setTimeout(r, 200 * i)); }
   }
