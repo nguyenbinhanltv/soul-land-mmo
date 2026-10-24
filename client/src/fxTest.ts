@@ -8,16 +8,10 @@ import { TIERS, VOHON, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, type FxLevel } from "./combatFx.ts";
 import { SheetFx } from "./fxSheet.ts";
-<<<<<<< HEAD
-import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, visualKey } from "./skillVisual.ts";
+import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, FUSION_VISUAL, visualKey } from "./skillVisual.ts";
 import { HIT_HES, KNOCK_PX, damageStyle, hitWeight, materialSparks, playHitFeelSheets, registerHitFeelSheets } from "./hitFeel.ts";
 import { COMBAT_MATERIALS, type Material } from "./audio/soundMap.ts";
 import type { He } from "../../shared/data.ts";
-=======
-import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, FUSION_VISUAL, visualKey } from "./skillVisual.ts";
-import { KNOCK_PX, damageStyle, hitWeight, materialSparks } from "./hitFeel.ts";
-import { MATERIALS, type Material } from "./audio/soundMap.ts";
->>>>>>> 7eab8cc92ed3edda49a5d9b8e283fd282e11b565
 import { SPR, RX } from "./iso.ts";
 import { footDustCount } from "./combatFeelRules.ts";
 import { SkillCine } from "./skillCine.ts";
@@ -65,15 +59,10 @@ class FxTestScene extends Phaser.Scene {
       if (this.sheets) { // phần mới của S1/C1: sheet theo bảng (nửa số lần là người khác: bản nhẹ) + tia lửa theo chất liệu
         const keys = Object.keys(SKILL_VISUAL), [vid, vr] = keys[(Math.random() * keys.length) | 0].split(":"); // S2: cả 22 chiêu đã có sheet
         const vis = skillVisualOf(vid, vr === "ct" ? 6 : vr === "tc" ? "tc" : +vr, vr === "ct"), vsk = vr === "tc" ? undefined : vr === "ct" ? chanThanOf(vid)?.skill : ringSkill(vid, +vr);
-<<<<<<< HEAD
-        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000 });
+        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000, spread: ((vsk?.spread ?? 0) * Math.PI) / 180 });
         const mat = COMBAT_MATERIALS[(Math.random() * COMBAT_MATERIALS.length) | 0];
         materialSparks(this.fxp, mat, el, x + 40, y - 8 * SPR, (Math.random() * 3) | 0, SPR);
         playHitFeelSheets(this.svp.sheets, mat, HIT_HES[(Math.random() * HIT_HES.length) | 0], x + 40, y - 8 * SPR, Math.random() < 0.5, 1);
-=======
-        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000, spread: ((vsk?.spread ?? 0) * Math.PI) / 180 });
-        materialSparks(this.fxp, MATERIALS[(Math.random() * 4) | 0], el, x + 40, y - 8 * SPR, (Math.random() * 3) | 0, SPR);
->>>>>>> 7eab8cc92ed3edda49a5d9b8e283fd282e11b565
       }
     } });
     (window as unknown as { __fx: object }).__fx = { fps: () => this.game.loop.actualFps, sprites: () => this.skfx.active, parts: () => this.fxp.count, sheets: () => this.svp.sheets.active, pooled: () => this.svp.sheets.pooled };
