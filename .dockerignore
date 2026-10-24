@@ -1,4 +1,18 @@
-**/node_modules
-**/dist
+# Giữ context build nhỏ: chỉ những gì Dockerfile COPY (server/, client/, shared/, package*.json).
+.git
+.github
+.githooks
+.claude
 .env
 **/.env
+**/node_modules
+**/dist
+ci-logs
+art
+tools
+docs
+workflows
+*.md
+docker-compose.yml
+server/scripts
+client/scripts
