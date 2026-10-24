@@ -26,7 +26,7 @@ Release đã chạy bot khói vào chính image đó với DB rỗng. Không ch�
 ## Thiết lập một lần (chủ repo)
 
 1. Chạy `deploy/gcp/setup.sh` (Artifact Registry, Workload Identity Federation, hai service account), làm theo `deploy/gcp/README.md`.
-2. Ở GitHub repo game đặt `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL` (Variable hoặc Secret đều được: release.yml / promote.yml đọc `vars.X || secrets.X`) và Secret `GITOPS_TOKEN` (hướng dẫn trong README đó).
+2. Đăng nhập GCP của CI: **hoặc** secret `GCP_SA_KEY` (key JSON của SA writer, tạo bằng `deploy/gcp/setup.sh --sa-key`, xoay 90 ngày; `deploy/gcp/README.md` mục 2b), **hoặc** WIF. Có `GCP_SA_KEY` thì workflow dùng key, không thì dùng WIF; thiếu cả hai thì báo lỗi. Với WIF, ở GitHub repo game đặt `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL` (Variable hoặc Secret đều được: release.yml / promote.yml đọc `vars.X || secrets.X`). Cả hai cách đều cần Secret `GITOPS_TOKEN` (hướng dẫn trong README đó).
 3. Repo GitOps (`soul-land-gitops`, private): manifest Kustomize, ArgoCD, SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull`.
 
 ## Thông số image / pod (để khớp repo GitOps)

@@ -2,9 +2,12 @@
 # Dựng phần GCP cho CI/CD của game (K2, #500): Artifact Registry, chính sách dọn, Workload Identity Federation cho GitHub Actions,
 # service account đẩy image (writer) và service account kéo image cho cụm K8s (reader).
 # CHỦ REPO tự chạy (cần quyền Owner hoặc đủ quyền admin ở project). Chạy lại nhiều lần an toàn (mỗi tài nguyên: có rồi thì bỏ qua / cập nhật).
-# Không tạo key JSON nào (key của reader tạo CỤC BỘ theo deploy/gcp/README.md). Không in bí mật.
+# Mặc định không tạo key JSON nào (key của reader tạo CỤC BỘ theo deploy/gcp/README.md). Không in bí mật.
+# Cờ --sa-key: tạo thêm key JSON cho SA writer vào file CỤC BỘ (để dán vào secret GCP_SA_KEY, thay cho WIF). Script không gửi key đi đâu.
 #
-# Cách dùng:  deploy/gcp/setup.sh [--dry-run]     (--dry-run: chỉ in các lệnh gcloud sẽ chạy, không chạm GCP)
+# Cách dùng:  deploy/gcp/setup.sh [--dry-run] [--sa-key]     (--dry-run: chỉ in các lệnh gcloud sẽ chạy, không chạm GCP)
+#   --sa-key: tạo key cho SA writer (soul-land-ci-push) vào file $SA_KEY_FILE (mặc định ./soul-land-ci-push-key.json, quyền 600). Mỗi lần chạy tạo MỘT key mới.
+#   Nếu tổ chức GCP bật chính sách iam.disableServiceAccountKeyCreation thì lệnh tạo key bị từ chối: tắt chính sách đó cho project, hoặc dùng WIF (không cần cờ này).
 # Ghi đè giá trị mặc định bằng biến môi trường: GCP_PROJECT, GCP_REGION, AR_REPO, GITHUB_REPO, GITHUB_REF_ALLOWED, WIF_POOL, WIF_PROVIDER_ID,
 # SA_WRITER, SA_READER, KEEP_TAGGED, UNTAGGED_DAYS, TAGGED_DAYS, CLEANUP_DRY_RUN=true (chính sách dọn chỉ mô phỏng, không xóa thật).
 # Nên đặt GITHUB_REPO_ID (số id của repo: `gh api repos/<chủ>/<repo> --jq .id`): khi đó provider và quyền mượn SA gắn theo id bất biến,
@@ -25,13 +28,17 @@ UNTAGGED_DAYS=${UNTAGGED_DAYS:-14}
 TAGGED_DAYS=${TAGGED_DAYS:-14}
 CLEANUP_DRY_RUN=${CLEANUP_DRY_RUN:-false}
 GH_REPO_ID=${GITHUB_REPO_ID:-}
+SA_KEY_FILE=${SA_KEY_FILE:-./soul-land-ci-push-key.json}
 
 DRY=0
-case "${1:-}" in
-  "") ;;
-  --dry-run) DRY=1 ;;
-  *) echo "Cách dùng: $0 [--dry-run]" >&2; exit 2 ;;
-esac
+MAKE_KEY=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY=1 ;;
+    --sa-key) MAKE_KEY=1 ;;
+    *) echo "Cách dùng: $0 [--dry-run] [--sa-key]" >&2; exit 2 ;;
+  esac
+done
 
 # Chạy lệnh (hoặc chỉ in khi --dry-run).
 run() { if [ "$DRY" = 1 ]; then echo "+ $*"; else "$@"; fi; }
@@ -135,6 +142,18 @@ fi
 run gcloud artifacts repositories add-iam-policy-binding "$REPO" --location "$REGION" --project "$PROJECT" \
   --member "serviceAccount:$READER_EMAIL" --role roles/artifactregistry.reader --condition=None
 
+if [ "$MAKE_KEY" = 1 ]; then
+  step "7. Key JSON cho SA writer '$SA_WRITER' (cho secret GCP_SA_KEY), ghi vào file cục bộ $SA_KEY_FILE"
+  # SA writer chỉ có roles/artifactregistry.writer trên đúng repo $REPO (bước 5), không có quyền nào khác ở project.
+  if [ -e "$SA_KEY_FILE" ]; then echo "File $SA_KEY_FILE đã có: xóa hoặc đổi SA_KEY_FILE rồi chạy lại (script không ghi đè key)." >&2; exit 1; fi
+  if [ "$DRY" = 0 ]; then ( umask 077; : >"$SA_KEY_FILE" ); fi
+  if ! run gcloud iam service-accounts keys create "$SA_KEY_FILE" --iam-account "$WRITER_EMAIL" --project "$PROJECT"; then
+    rm -f "$SA_KEY_FILE"
+    echo "Không tạo được key. Nếu lỗi nói về iam.disableServiceAccountKeyCreation: tổ chức đang cấm tạo key, tắt chính sách đó cho project $PROJECT hoặc dùng WIF." >&2
+    exit 1
+  fi
+fi
+
 WIF_PROVIDER="projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL/providers/$PROVIDER"
 cat <<OUT
 
@@ -147,3 +166,18 @@ Reader (tạo pull secret 'ar-pull' cho cụm): $READER_EMAIL, xem deploy/gcp/RE
 (Secret GITOPS_TOKEN cho promote.yml tạo riêng theo README mục 3.)
 ================================================================
 OUT
+if [ "$MAKE_KEY" = 1 ]; then
+  cat <<OUT
+
+----------------------------------------------------------------
+KEY JSON cho CI (thay cho WIF): file $SA_KEY_FILE   (script KHÔNG gửi key đi đâu)
+  1. Dán vào GitHub: repo $GH_REPO > Settings > Secrets and variables > Actions > New repository secret, tên GCP_SA_KEY.
+     Hoặc từ máy này:  gh secret set GCP_SA_KEY --repo $GH_REPO < "$SA_KEY_FILE"
+  2. Dán xong thì XÓA file ngay:  rm -f "$SA_KEY_FILE"   (key chỉ còn ở GitHub Secrets)
+  3. Xoay key mỗi 90 ngày, thu hồi key cũ:
+       gcloud iam service-accounts keys list   --iam-account $WRITER_EMAIL
+       gcloud iam service-accounts keys delete <KEY_ID> --iam-account $WRITER_EMAIL
+Có GCP_SA_KEY thì release.yml / promote.yml dùng key; không có thì dùng WIF.
+----------------------------------------------------------------
+OUT
+fi
