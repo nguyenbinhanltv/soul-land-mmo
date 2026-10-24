@@ -131,7 +131,7 @@
    "v": "cs",
    "t": 2,
    "f": 8,
-   "d": "A bigger thin silver flying sword pointing right, trailing a comet tail of star sparkles and several faint ghost swords behind it, bright tip flare, fading. Large, clear."
+   "d": "A thick bold silver flying sword pointing right filling most of the canvas width, wide blade with a bright tip flare, comet tail of star sparkles and several ghost swords behind it, fading. Large, bold."
   },
   {
    "n": "cs_hit9",
@@ -146,7 +146,7 @@
    "t": 3,
    "f": 12,
    "big": 1,
-   "d": "Ultimate: a mountain-sized silver sword raised high, then a vertical white slash splits the whole scene in two in one frame, a wide ground crack and shockwave, silver sparks rain. Very large, dramatic."
+   "d": "Ultimate: a mountain-sized sword of blue-grey steel with silver-blue shading and dark outline (white only for edge glints, no solid white fill) raised high, then a vertical white slash splits the scene in two in one frame, ground crack and shockwave, silver sparks rain. Very large, dramatic."
   },
   {
    "n": "cs_t3b",
@@ -361,7 +361,7 @@
    "v": "xx",
    "t": 2,
    "f": 8,
-   "d": "Electric sausage flying right and spinning, white steam trail and small bright electric arcs crackling around it, sparks. Large, clear."
+   "d": "A fat grilled sausage with grill marks flying right and spinning, clear sausage shape filling the middle, crackling electric arcs around it, white steam trail, sparks. Large, bold."
   },
   {
    "n": "xx_aura8",
@@ -563,14 +563,14 @@
    "v": "ph",
    "t": 1,
    "f": 8,
-   "d": "Single straight spear thrust: one thin jade line stabs forward and flares into a bright burst at the tip, jade sparks, small afterimage. Compact."
+   "d": "Bold jade spear thrust: one thick bright jade line stabs forward across most of the canvas and ends in a big bright burst at the tip, jade sparks, afterimage. Compact but bold."
   },
   {
    "n": "ph_dash2",
    "v": "ph",
    "t": 1,
    "f": 8,
-   "d": "Spear dash through enemies: a straight jade streak with speed lines, a bright spear tip at the front, afterimage fades, jade sparks. Compact."
+   "d": "Bold spear dash: a thick jade streak across most of the canvas with speed lines and a big bright spear head at the front, afterimage fades, jade sparks. Compact but bold."
   },
   {
    "n": "ph_hit3",
@@ -584,7 +584,7 @@
    "v": "ph",
    "t": 1,
    "f": 8,
-   "d": "One long jade spear thrust and sweep forward, thin bright line with a flare at the end, faint second line, jade sparks. Compact."
+   "d": "Long thick jade spear sweep across the whole canvas, bold bright line with a big flare at the end, a faint second line, jade sparks. Compact but bold."
   },
   {
    "n": "ph_hit5",
@@ -598,7 +598,7 @@
    "v": "ph",
    "t": 2,
    "f": 8,
-   "d": "Spear-head shaped jade projectile flying right with a red tassel streaming behind, bright tip, jade spark trail and faint ghost copies. Large, clear."
+   "d": "Large spear-head shaped jade projectile pointing right, thick bold body filling most of the canvas width, red tassel streaming behind, jade spark trail and faint ghost copies. Large, bold."
   },
   {
    "n": "ph_slash8",
