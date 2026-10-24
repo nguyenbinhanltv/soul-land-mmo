@@ -8,6 +8,15 @@ Quy định ở `GAME_DESIGN.md` mục 5.11 (phần "Nguồn và giấy phép").
 - **Ảnh AI:** chỉ dùng công cụ mà điều khoản cho phép dùng kết quả (PixelLab: https://pixellab.ai/termsofservice; Gemini: điều khoản Gemini Apps của Google; ComfyUI: giấy phép của từng model, xem mục "Asset tạo bằng AI (ComfyUI)"). Ghi công cụ, prompt, seed (ComfyUI) và ngày; không ghi tên họa sĩ còn sống trong prompt. `tools/assets/validate.mjs --register` tự ghi dòng vào mục "Asset tạo bằng AI (PixelLab)", "(Gemini)" hoặc "(ComfyUI)" theo `--tool`.
 - **Asset bên ngoài** (font, tileset, âm thanh, LPC) nhận mọi giấy phép đã biết (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…), không nhận asset không rõ giấy phép hoặc "all rights reserved". Mỗi asset một dòng: tác giả, nguồn (URL), giấy phép, file trong repo, có sửa gì không. CC-BY / CC-BY-SA / OGA-BY phải hiện tên tác giả trong màn hình giới thiệu của game. Giấy phép SA / GPL / NC ghi kèm **cờ** (SA / GPL: bản đã sửa, kể cả file atlas có gộp asset đó, theo đúng giấy phép; NC: thay nếu thương mại hóa).
 
+## C6 — màn đăng nhập, màn tải, logo, banner sự kiện (#557)
+
+| File | Nguồn | Prompt / hậu kỳ | Ngày |
+|---|---|---|---|
+| `shared/assets/ui/c6/logo.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, nền trong suốt, 512×512 | 2026-10-25 |
+| `shared/assets/ui/c6/login-bg.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, 1280×720 | 2026-10-25 |
+| `shared/assets/ui/c6/loading-bg.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, 1280×720 | 2026-10-25 |
+| `shared/assets/ui/c6/event-banner.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, 1536×512 | 2026-10-25 |
+
 Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm key vào `manifest.json` và ghi một dòng ở đây.
 
 ## Asset tự vẽ
