@@ -6,6 +6,7 @@
 // Không tạo texture mỗi khung: mọi việc nặng nằm trong `step`, mỗi khung hình chỉ chạy tới LPC_VIEW.budgetMs.
 import Phaser from "phaser";
 import { LPC_PARTS, LPC_RAMPS, LPC_SHEET, LPC_VIEW, decodeLpc, type LpcLooks, type LpcPart } from "../../shared/data.ts";
+import { ASSET_RETRIES, MAX_PARALLEL, assetUrl, retryDelay } from "./assetUrl.ts";
 import { ISO_HS_ANIMS, ISO_HS_FRAME, ISO_SHEET_COLS, createHonsuAnims, type HsAnim } from "./sprites.ts";
 
 const F = ISO_HS_FRAME;
@@ -23,8 +24,10 @@ const ANIMS = Object.keys(ISO_HS_ANIMS) as HsAnim[];
 /** Hoạt ảnh ghép ngay khi có tổ hợp (đứng, đi, đánh, thi triển, bị đánh); còn lại ghép khi cần. */
 const EAGER: HsAnim[] = ["idle", "walk", "attack", "cast", "hurt"];
 
-interface Src { key: string; sheet: string; pairs: [number, number][]; refs: number; state: "wait" | "queued" | "ready" | "fail"; img: CanvasImageSource | null }
-interface Raw { refs: number; state: "load" | "ready" | "fail"; img: HTMLImageElement | null; waiting: Src[] }
+interface Src { key: string; sheet: string; pairs: [number, number][]; refs: number; state: "wait" | "queued" | "ready" | "fail"; img: CanvasImageSource | null; redo?: boolean /* đang tải lại sau lỗi: tải xong mới ghép lại tổ hợp dùng nó */ }
+interface Raw { sheet: string; refs: number; state: "load" | "ready" | "fail"; img: HTMLImageElement | null; waiting: Src[]; tries: number; failAt: number }
+/** Sheet tải lỗi hẳn (sau ASSET_RETRIES lần) thì hình dự phòng (bộ thiếu lớp / preset) dùng tạm, và thử tải lại sau chừng này (ms). */
+const RETRY_LATER_MS = 30000;
 export interface Spec { sheet: string; z: number; tint: string; pairs: [number, number][]; idle: boolean }
 interface Combo {
   id: number; str: string; key: string; sex: "m" | "f"; refs: number; freeAt: number;
@@ -98,6 +101,9 @@ export class LpcRig {
   private byKey = new Map<string, Combo>();
   private dirty = new Set<Combo>();
   private seq = 0;
+  private loadQ: Raw[] = [];
+  private inflight = 0;
+  private retryAt = 0;
   private gcAt = 0;
   private tmp = document.createElement("canvas");
   private tctx: CanvasRenderingContext2D;
@@ -160,17 +166,49 @@ export class LpcRig {
     this.tinted.set(k, a);
     let r = this.raw.get(s.sheet);
     if (!r) {
-      const img = new Image();
-      r = { refs: 0, state: "load", img, waiting: [] };
+      r = { sheet: s.sheet, refs: 0, state: "load", img: null, waiting: [], tries: 0, failAt: 0 };
       this.raw.set(s.sheet, r);
-      const rr = r;
-      img.onload = () => { rr.state = "ready"; for (const w of rr.waiting.splice(0)) this.queueSrc(w); };
-      img.onerror = () => { rr.state = "fail"; for (const w of rr.waiting.splice(0)) w.state = "fail"; };
-      img.src = `${BASE}${s.sheet}.png`;
+      this.loadQ.push(r);
+      this.pump();
     }
     r.refs++;
     if (r.state === "ready") this.queueSrc(a); else if (r.state === "fail") a.state = "fail"; else r.waiting.push(a);
     return a;
+  }
+
+  /** Hàng đợi tải riêng: tối đa MAX_PARALLEL sheet cùng lúc, thay vì dồn cả chục sheet mỗi tổ hợp mới. */
+  private pump() {
+    while (this.inflight < MAX_PARALLEL && this.loadQ.length) {
+      const r = this.loadQ.shift()!;
+      if (this.raw.get(r.sheet) !== r) continue; // đã bị giải phóng trong lúc chờ
+      this.inflight++;
+      const img = new Image();
+      r.img = img; r.state = "load";
+      const done = (ok: boolean) => {
+        img.onload = img.onerror = null; this.inflight--;
+        if (this.raw.get(r.sheet) === r) {
+          if (ok) { r.state = "ready"; for (const w of r.waiting.splice(0)) this.queueSrc(w); }
+          else if (r.tries < ASSET_RETRIES) setTimeout(() => { if (this.raw.get(r.sheet) === r) { this.loadQ.push(r); this.pump(); } }, retryDelay(r.tries++));
+          else { r.state = "fail"; r.failAt = performance.now(); for (const w of r.waiting.splice(0)) { w.state = "fail"; w.redo = false; } }
+        }
+        this.pump();
+      };
+      img.onload = () => done(true); img.onerror = () => done(false);
+      img.src = assetUrl(`${BASE}${r.sheet}.png`);
+    }
+  }
+
+  /** Sheet lỗi hẳn từ lâu mà vẫn có tổ hợp cần: tải lại, xong thì ghép lại các tổ hợp đang dùng nó. */
+  private retryFailed(now: number) {
+    for (const r of this.raw.values()) {
+      if (r.state !== "fail" || now - r.failAt < RETRY_LATER_MS) continue;
+      r.state = "load"; r.tries = 0;
+      // Giữ nguyên state "fail" và `done` trong lúc tải lại (texture cũ vẫn dùng được); chỉ khi tải xong mới ghép lại (step).
+      for (const a of this.tinted.values()) if (a.sheet === r.sheet && a.state === "fail") { a.redo = true; r.waiting.push(a); }
+      for (const c of this.combos.values()) if (c.layers.some((L) => L.redo)) this.dirty.add(c);
+      this.loadQ.push(r);
+    }
+    this.pump();
   }
 
   private queueSrc(a: Src) {
@@ -193,7 +231,7 @@ export class LpcRig {
     const r = this.raw.get(a.sheet);
     if (r) {
       const wi = r.waiting.indexOf(a); if (wi >= 0) r.waiting.splice(wi, 1);
-      if (--r.refs <= 0) { if (r.img) { r.img.onload = r.img.onerror = null; r.img.src = ""; } this.raw.delete(a.sheet); }
+      if (--r.refs <= 0) { if (r.img) r.img.src = ""; this.raw.delete(a.sheet); }
     }
   }
 
@@ -228,8 +266,14 @@ export class LpcRig {
     const t0 = performance.now(), over = () => performance.now() - t0 >= budgetMs;
     while (this.queue.length && !over()) this.tint(this.queue.shift()!);
     for (const c of this.dirty) {
-      if (!c.want.size) { this.dirty.delete(c); continue; }
-      if (c.layers.some((L) => L.state === "wait" || L.state === "queued")) continue;
+      const redo = c.layers.some((L) => L.redo);
+      if (!c.want.size && !redo) { this.dirty.delete(c); continue; }
+      if (c.layers.some((L) => L.state === "wait" || L.state === "queued" || (L.redo && this.raw.get(L.sheet)?.state === "load"))) continue;
+      if (redo) {
+        let loaded = false;
+        for (const L of c.layers) if (L.redo) { L.redo = false; if (L.state === "ready") loaded = true; }
+        if (loaded) { for (const a of c.done) c.want.add(a); c.done.clear(); } // ghép lại cả hoạt ảnh đã ghép khi thiếu lớp này
+      }
       for (const a of [...c.want]) {
         if (over()) return;
         this.compose(c, a); c.want.delete(a); c.done.add(a);
@@ -238,6 +282,7 @@ export class LpcRig {
     }
     if (t0 - this.gcAt < 1000) return;
     this.gcAt = t0;
+    this.retryFailed(t0);
     for (const c of [...this.combos.values()]) if (c.refs === 0 && t0 - c.freeAt > LPC_VIEW.graceMs) this.drop(c);
   }
 
