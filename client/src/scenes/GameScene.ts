@@ -58,6 +58,7 @@ import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
+import { assetUrl } from "../assetUrl.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -2329,7 +2330,7 @@ export class GameScene extends Phaser.Scene {
     // Nền ảnh R1 (shared/assets/mini); lỗi tải thì giữ nền vẽ từ ô ở trên. Chỉ nhận khi radar còn ở bản đồ này.
     const mapId = this.mapId, img = new Image();
     img.onload = () => { if (radar().baseKey === mapId) radar().setBase(img, MINI_BASE.px, mapId); };
-    img.src = `/${MINI_BASE.dir}/${mapId}.png`;
+    img.src = assetUrl(`/${MINI_BASE.dir}/${mapId}.png`);
   }
 
   /** Gom chấm cho radar tròn (client/src/radar.ts, vẽ RADAR.hz lần mỗi giây; chưa tới lượt thì thoát ngay). Thực thể ở xa theo tin `mini`, ở gần theo state (11.4). */

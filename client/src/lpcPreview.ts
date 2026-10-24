@@ -4,6 +4,7 @@
 import { LPC_SHEET, type LpcLooks } from "../../shared/data.ts";
 import { layerSpecs, tintImage, flattenFrame, type Spec } from "./lpcRig.ts";
 import { ISO_HS_FRAME } from "./sprites.ts";
+import { loadImageRetry } from "./assetUrl.ts";
 
 const F = ISO_HS_FRAME;
 export type PreviewAnim = "idle" | "walk" | "attack" | "cast";
@@ -17,7 +18,7 @@ const TINT_KEEP = 160;
 const loadRaw = (sheet: string) => {
   let p = raw.get(sheet);
   if (!p) {
-    p = new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = `lpcparts/${sheet}.png`; });
+    p = loadImageRetry(`lpcparts/${sheet}.png`).then((im) => { if (!im) raw.delete(sheet); return im; }); // lỗi hẳn: lần xem sau tải lại
     raw.set(sheet, p);
   }
   return p;

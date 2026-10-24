@@ -1,5 +1,6 @@
 import http from "node:http";
 import { existsSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server, matchMaker } from "colyseus";
@@ -10,6 +11,7 @@ import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
+import { cacheControlFor } from "./staticCache.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
 import { MAPS } from "../../shared/data.ts";
@@ -121,7 +123,19 @@ app.use((err: { status?: number }, _req: express.Request, res: express.Response,
 
 // Khi deploy: phục vụ luôn bản build của client -> chỉ cần một đường link.
 const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
-if (existsSync(dist)) app.use(express.static(dist));
+if (existsSync(dist)) {
+  // Chỉ để thử tải lỗi (#580): GAME_TEST=1 + ASSET_FAIL_RATE=0.3 trả 504 ngẫu nhiên cho 30% request ảnh / json / âm thanh, kiểm client thử lại.
+  const failRate = process.env.GAME_TEST === "1" ? Math.min(1, Number(process.env.ASSET_FAIL_RATE) || 0) : 0;
+  if (failRate > 0) app.use((req, res, next) => { if (/\.(png|json|ogg|m4a)$/.test(req.path) && Math.random() < failRate) { res.status(504).end(); return; } next(); });
+  // cacheControl: false để setHeaders đặt theo loại file (staticCache.ts); ETag / Last-Modified của express.static giữ nguyên.
+  app.use(express.static(dist, {
+    cacheControl: false,
+    setHeaders: (res, file) => {
+      const rel = "/" + path.relative(dist, file).split(path.sep).join("/");
+      res.setHeader("Cache-Control", cacheControlFor(rel, typeof (res.req as express.Request).query.v === "string"));
+    },
+  }));
+}
 
 const server = http.createServer(app);
 // Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
