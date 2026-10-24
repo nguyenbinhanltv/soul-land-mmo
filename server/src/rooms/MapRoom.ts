@@ -4075,6 +4075,8 @@ export class MapRoom extends Room<MapState> {
         drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         // #218: mục tiêu là boss, số lần bắt đầu né, chỗ né đang đi tới, đang lùi vì ít máu, hệ võ hồn cơ chế đang cần.
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
+        // #291: nhịp trước đi thẳng tới mục tiêu ("line") hay theo đường A* ("path"), số lần tìm đường A*, số lần tính đường thẳng.
+        way: a?.way ?? null, plans: a?.plans ?? 0, lines: a?.lines ?? 0,
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm, ret: bd.ret, skip: a && skipTo !== undefined && skipTo > a.clock ? skipTo - a.clock : null, claim } } : {}) };
     }
     else if (op === "tong") {
