@@ -52,10 +52,14 @@ export function beastJerk(rank: number, auto: boolean): boolean {
  * Thời gian dừng hình (ms, 40–80): theo tỉ lệ sát thương / sinh lực tối đa của mục tiêu; chí mạng và kết liễu lâu hơn.
  * `ratio` = sát thương / sinh lực tối đa.
  */
-export function hitstopMs(ratio: number, crit: boolean, kill: boolean): number {
-  if (kill) return 80;
-  return Math.min(80, Math.round(40 + Math.min(1, ratio * 6) * 20 + (crit ? 20 : 0)));
+export function hitstopMs(ratio: number, crit: boolean, kill: boolean, heavy = 0): number {
+  const more = HEAVY_STOP_MS[Math.min(3, heavy)] ?? 0; // chiêu nặng (SKILL_VISUAL.heavy, S1 #542) khựng lâu thêm
+  if (kill) return Math.min(HITSTOP_MAX, 80 + more);
+  return Math.min(HITSTOP_MAX, Math.round(40 + Math.min(1, ratio * 6) * 20 + (crit ? 20 : 0)) + more);
 }
+/** Cộng thêm vào thời gian dừng hình (ms) theo độ nặng khai báo của chiêu (S1 #542); trần chung. */
+export const HEAVY_STOP_MS: readonly number[] = [0, 6, 12, 18];
+export const HITSTOP_MAX = 96;
 /** Cấp rung 0–3 → [ms, cường độ] (trúng thường ≈ 0, chí mạng nhẹ, boss / vòng cao mạnh). */
 export const SHAKE_TIER: [number, number][] = [[0, 0], [90, 0.0015], [170, 0.003], [320, 0.0055]];
 
