@@ -815,7 +815,7 @@ Thay bản đồ nhỏ 150×100 px (vẽ cả bản đồ ×8 dưới 1 px mỗi
 - **Chấm theo 7 mức ưu tiên** (`RADAR.levels`, vẽ thấp → cao, `radarSortDots`; biểu tượng pixel 5–9 px vẽ bằng code): 1 hồn thú (màu theo niên hạn), 2 hồn sư khác, 3 NPC / cổng / truyền tống trận, 4 mục tiêu nhiệm vụ và đồ rơi quý, 5 đồng đội tổ đội / cùng tông môn (viền `RADAR.tongCol`), 6 tinh anh (nhấp nháy, màu aura loài), 7 thú vương / boss thế giới (đầu lâu đỏ nhấp nháy). Cờ người chơi đặt vẽ như mức 4 (`flagCol`).
 - **Mũi tên ở mép:** mức có `arrow` (nhiệm vụ, đồng đội, boss / thú vương) nằm ngoài tầm thì có mũi tên trên viền kèm khoảng cách theo ô (`radarPlace`: `outside`, `tiles`, `angle`, kẹp vào mép lùi `RADAR.arrowInset`). Rê chuột / chạm vào chấm hiện tên (`radarPick`: mức cao nhất, rồi gần nhất).
 - **Bản đồ khu vực** (R3, phím N hoặc bấm radar): toàn bản đồ đang đứng, cùng hướng chiếu, kéo / phóng trong `MAPVIEW.zoomMin`…`zoomMax`, nhãn vùng / NPC / cổng / truyền tống trận / hang thú vương, lọc theo `MAPVIEW.layers`, bấm đặt cờ "Đi tới" (R4, kể cả xuyên bản đồ; server tính đường qua cổng, client chỉ gửi bước đi như thường). Che màn hình nhưng không dừng game.
-- **Nền ảnh** (R1): `tools/maps` sinh ảnh nền thủy mặc từng bản đồ, kiểm trong `npm run check`. Chưa có thì radar dùng nền hiện tại.
+- **Nền ảnh** (R1): `tools/maps` sinh `shared/assets/mini/<mapId>.png` (`MINI_BASE.px` điểm mỗi ô, rộng = số ô × px, mọi điểm đục) từ lớp ô và lớp vật của bản dựng: đất / rừng theo màu ô isometric của từng vùng, chuyển màu nhẹ giữa các tầng niên hạn, đường, suối, vách, nhà / tường thành viền mực. `npm run check` sinh lại và so từng điểm ảnh. Client (R2) cắt nền từ ảnh này; chưa dùng thì bản đồ nhỏ cũ vẫn vẽ bằng `MINI_COLORS`.
 - **Khóa ảnh** (R7, #434): `ui_radar_frame` (khung tròn), `ui_radar_compass`, `ui_mapview_paper` (nền giấy, kéo giãn 9 lát); cỡ đích và `nine` ở `RADAR_ART.frame` / `.compass` / `.paper`. Chưa có ảnh trong manifest thì client dùng CSS tạm; có ảnh thì thay không phải sửa code. Chỗ đặt ở `RADAR_ART`.
 - **Tin `mini` (R5):** hồn sư lạ chỉ gửi trong `RADAR.far` ô quanh từng người; đồng đội, cùng tông, boss luôn gửi, nên người lạ ở xa không lộ vị trí.
 - **Sương mù khám phá (R8, có bảng DB mới):** chưa tới thì mờ trên bản đồ khu vực và radar; bitset mỗi tài khoản × bản đồ, ô thô `FOG.cell`×`FOG.cell` ô lưới, server đánh dấu khi đi tới trong bán kính `FOG.sight` ô, gộp lần ghi vào chuỗi lưu sẵn có. Cổng, truyền tống trận, NPC đã biết và mục tiêu nhiệm vụ vẫn hiện qua sương mù; bản đồ trong `FOG.open` mở sẵn.
@@ -1060,7 +1060,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Nhóm Bản đồ khu vực: radar, bản đồ và sương mù** (mục 5.17; theo dõi #426; mỗi bước một PR).
 - [x] R0 Hằng `RADAR` / `MAPVIEW` / `FOG` / `RADAR_ART`, hàm thuần `shared/radar.ts`, test `npm run test:radar --prefix server` (#427).
 - [x] R7 Ảnh khung / la bàn / nền giấy (#434, PR #472).
-- [ ] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428). R2 Radar tròn (#429). R3 Bản đồ khu vực phím N (#430). R4 Tự đi tới cờ xuyên bản đồ (#431). R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R8 Sương mù khám phá, SQL (#435).
+- [x] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428, PR #473).
+- [ ] R2 Radar tròn (#429). R3 Bản đồ khu vực phím N (#430). R4 Tự đi tới cờ xuyên bản đồ (#431). R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R8 Sương mù khám phá, SQL (#435).
 
 ## 8. Câu hỏi còn mở
 1. **Ngân sách mỹ thuật isometric:** phần còn lại của Giai đoạn 10 (6 bộ hồn sư, 20 phụ thể, 67 loài hồn thú) phụ thuộc cách làm hoạt ảnh 8 hướng bằng ComfyUI (#335; PixelLab đã bỏ); cần chọn thứ tự ưu tiên hoặc chuyển bớt sang Gemini / LPC / vẽ tay.

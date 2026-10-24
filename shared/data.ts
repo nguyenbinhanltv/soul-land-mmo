@@ -5129,3 +5129,9 @@ export const FOG = {
   cell: 8, sight: 12,
   open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
 };
+
+/**
+ * Ảnh nền bản đồ nhỏ / khu vực (R1 #428): `tools/maps` sinh `shared/assets/<dir>/<mapId>.png`, `px` điểm ảnh mỗi ô logic (rộng = số ô × px).
+ * Client (R2) cắt ảnh này làm nền radar và bản đồ khu vực.
+ */
+export const MINI_BASE = { px: 2, dir: "mini" };

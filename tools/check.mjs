@@ -39,7 +39,7 @@ if (mode === "--hook") {
   const all = execSync("git diff --cached --name-only", { cwd: root, encoding: "utf8" });
   assets = /^(shared\/assets\/sprites\/|shared\/assets\/iso\/|shared\/assets\/[a-z_]+(\.v\d+)?\.json$|tools\/assets\/|art\/palette\.gpl$|shared\/data\.ts$)/m.test(all);
   // Bản đồ dựng bằng tools/maps (11.3): file Tiled phải đúng bằng bản sinh từ bố cục + lớp tay (~0,3 giây mỗi bản đồ).
-  maps = /^(tools\/maps\/|shared\/assets\/[a-z_]+\.v\d+\.json$|shared\/assets\/iso\/tiles\.json$|shared\/data\.ts$)/m.test(all);
+  maps = /^(tools\/maps\/|shared\/assets\/[a-z_]+\.v\d+\.json$|shared\/assets\/mini\/|shared\/assets\/iso\/tiles\.json$|shared\/data\.ts$)/m.test(all);
 } else projects = ["server", "client"];
 
 let failed = false;
