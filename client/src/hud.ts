@@ -836,6 +836,18 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     }
     slots.appendChild(box);
   });
+  // Vòng 7 là Võ Hồn Chân Thân (phím riêng, không xếp vào 4 ô): hiện thêm một ô cố định, không chọn / bỏ được.
+  const ct7 = chanThanOf(id);
+  if (ct7) {
+    const open = v.rings.length >= CHAN_THAN_RING, box = document.createElement("div"); box.className = "tslot ava" + (open ? "" : " locked");
+    if (open) box.style.setProperty("--c", ringColor(tiers[CHAN_THAN_RING - 1]));
+    box.title = `${ct7.name}: ${ct7.desc}. Khi biến hình, ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} thành ${ct7.skill.name}.`;
+    box.innerHTML = `<div class="tpick"><b></b><i class="dot"></i><span></span><small></small></div>`;
+    box.querySelector("b")!.textContent = AVA_KEY;
+    box.querySelector("span")!.textContent = ct7.name;
+    box.querySelector("small")!.textContent = `Vòng ${CHAN_THAN_RING} · Võ Hồn Chân Thân${open ? "" : " · chưa mở"} · cố định`;
+    slots.appendChild(box);
+  }
   el.appendChild(slots);
 
   const hint = document.createElement("small"); hint.className = "rnote";

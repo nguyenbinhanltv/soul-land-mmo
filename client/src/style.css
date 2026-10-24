@@ -375,6 +375,9 @@ body.touch #prompt{bottom:160px}
 .tslot:not(.empty){border-color:var(--c)}
 .tslot.empty{border-style:dashed}
 .tslot.sel{box-shadow:0 0 0 2px var(--xp)}
+.tslot.ava{grid-column:1/-1;border-style:dashed}
+.tslot.ava .tpick{cursor:default}
+.tslot.ava.locked{opacity:.6}
 .tpick{flex:1;font:inherit;color:var(--text);background:transparent;border:0;padding:6px 8px;cursor:pointer;text-align:left;min-height:48px;
   display:grid;grid-template-columns:auto auto 1fr;column-gap:6px;align-items:center}
 .tpick>b{grid-row:span 2;font-size:12px;font-family:var(--f12);color:var(--muted)}
