@@ -6,7 +6,7 @@ import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
-import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
+import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
@@ -492,8 +492,10 @@ export class MemoryStore implements Store {
     this.active.set(accountId, a.rowId);
     return copy(a);
   }
-  async getLooks(accountId: number) {
-    const l = this.looks.get(accountId);
+  async getLooks(accountId: number): Promise<AccountLooks> {
+    let l = this.looks.get(accountId);
+    // HL2 #571: đã chọn mà chưa phải LPC thì chuyển sang LPC (cùng luật với PgStore.getLooks), không đụng số lần đổi.
+    if (l && l.mode !== "lpc") { l = parseLooks({ mode: "lpc", lpc: presetToLpc(l) })!; this.looks.set(accountId, l); }
     return { ...(l ?? DEFAULT_LOOKS), chosen: !!l, changes: this.looksChanges.get(accountId) ?? 0 };
   }
   async chooseLooks(accountId: number, looks: Looks) {
@@ -958,13 +960,23 @@ export class PgStore implements Store {
       throw e;
     } finally { db.release(); }
   }
-  async getLooks(accountId: number) {
+  async getLooks(accountId: number): Promise<AccountLooks> {
     const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_lpc, looks_chosen, looks_changes FROM accounts WHERE id=$1", [accountId]);
     const x = r.rows[0];
     // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
     // Cột looks_lpc có chuỗi thì là chế độ Tự tạo (decodeLpc kiểm lại theo danh mục; hỏng thì cũng về mặc định).
-    const l = x ? parseLooks(x.looks_lpc ? { mode: "lpc", lpc: decodeLpc(x.looks_lpc) }
+    let l = x ? parseLooks(x.looks_lpc ? { mode: "lpc", lpc: decodeLpc(x.looks_lpc) }
       : { sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
+    // HL2 #571: tài khoản preset cũ (đã chọn ngoại hình, looks_lpc rỗng) chuyển lười sang LPC. Chuỗi looks_lpc khác rỗng mà hỏng (bản cũ hơn
+    // đọc dữ liệu của bản mới, món bị gỡ) thì KHÔNG đụng vào: chỉ hiển thị mặc định, dữ liệu còn nguyên. Ghi có điều kiện looks_lpc vẫn rỗng
+    // (nhiều tiến trình cùng nạp thì cùng ra một kết quả vì hàm thuần; ai ghi trước thắng, cái sau đọc lại). Không đụng looks_changes,
+    // giữ nguyên năm cột preset cũ (chỉ looks_lpc quyết định chế độ). Đưa thẳng năm cột thô: số ngoài khoảng được xử lý từng trường.
+    if (x?.looks_chosen && !x.looks_lpc) {
+      const lpc = presetToLpc({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin });
+      const w = await this.pool.query("UPDATE accounts SET looks_lpc=$2 WHERE id=$1 AND looks_chosen AND looks_lpc=''", [accountId, encodeLpc(lpc)]);
+      if (!w.rowCount) return this.getLooks(accountId);
+      l = parseLooks({ mode: "lpc", lpc });
+    }
     return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen, changes: Number(x?.looks_changes ?? 0) };
   }
   /**

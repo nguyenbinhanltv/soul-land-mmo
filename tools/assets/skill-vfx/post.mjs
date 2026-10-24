@@ -11,9 +11,9 @@ import { rawStrip } from "../vfx-strip.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-const raw = opt("--raw"), only = opt("--only").split(",").filter(Boolean), THR = +opt("--thr", "90");
+const specName = opt("--spec", "pilot.json"), raw = opt("--raw"), only = opt("--only").split(",").filter(Boolean), THR = +opt("--thr", "90");
 if (!raw) { console.error("cần --raw"); process.exit(1); }
-const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, "pilot.json"), "utf8"));
+const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, specName), "utf8"));
 const outDir = path.join(SPRITES, "iso", "fx"); mkdirSync(outDir, { recursive: true });
 const PAD = 4;
 const mix = (a, b) => a.map((v, i) => Math.round((v + b[i]) / 2));

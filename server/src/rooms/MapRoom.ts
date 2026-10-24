@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, encodeLpc, lpcGearCode, dir4, type Looks,
+  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, lpcGearCode, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
   itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
@@ -2570,7 +2570,7 @@ export class MapRoom extends Room<MapState> {
     if (p.dead || d.travelling) return warn("Lúc này không đổi ngoại hình được.");
     const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "looks" });
     if (!npc || npcDef(npc.id)?.role !== "looks") return warn("Hãy lại gần thợ may hơn để đổi ngoại hình.");
-    const looks = parseLooks(raw);
+    const looks = parseNewLooks(raw);
     if (!looks) return warn("Ngoại hình không hợp lệ.");
     const key = (l: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; lpc?: string }) => l.lpc ? `L${l.lpc}` : `${l.sex}|${l.hair}|${l.hairCol}|${l.outfitCol}|${l.skin}`;
     if (key({ ...looks, lpc: looks.lpc ? encodeLpc(looks.lpc) : "" }) === key(p)) return warn("Ngoại hình này giống hiện tại, không cần đổi.");
@@ -8094,10 +8094,10 @@ export async function awakenAccount(accountId: number, name: string, choice: unk
   return { character };
 }
 
-/** Tạo nhân vật (một lần): client gửi giới tính, kiểu tóc, màu tóc, màu áo, tông da (9.9; thiếu = tông 0); mọi giá trị phải nằm trong bảng ở data.ts. */
+/** Tạo nhân vật (một lần): client gửi ngoại hình LPC (Mẫu dựng sẵn / Tự tạo); preset kiểu cũ (client cũ) được đổi sang LPC gần nhất (HL2 #571, parseNewLooks). */
 export async function chooseLooks(accountId: number, body: unknown):
   Promise<{ looks: AccountLooks } | { status: number; error: string }> {
-  const looks = parseLooks(body);
+  const looks = parseNewLooks(body);
   if (!looks) return { status: 400, error: "Ngoại hình không hợp lệ." };
   if (!(await store.chooseLooks(accountId, looks))) return { status: 409, error: "Bạn đã chọn ngoại hình rồi, không đổi được nữa." };
   return { looks: { ...looks, chosen: true, changes: 0 } };

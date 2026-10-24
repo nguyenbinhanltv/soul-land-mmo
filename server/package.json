@@ -14,6 +14,7 @@
     "test:presence-outage": "tsx scripts/presence-outage-test.ts",
     "test:equip": "tsx scripts/equip-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
+    "test:looks-migrate": "tsx scripts/looks-migrate-test.ts",
     "test:gm": "tsx scripts/gm-test.ts",
     "test:seed": "tsx scripts/seed-test.ts",
     "seed:test": "tsx scripts/seed-test-account.ts",

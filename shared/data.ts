@@ -5646,6 +5646,47 @@ export const LPC_PRESETS: LpcPreset[] = [
 export const lpcPresetById = (id: string) => LPC_PRESETS.find((p) => p.id === id);
 
 /**
+ * Chuyển ngoại hình preset kiểu cũ (5 số) sang LPC gần nhất (HL2 #571, tài khoản cũ tự chuyển lúc nạp). Giới → thể hình; tông da →
+ * màu da LPC; kiểu tóc / màu tóc → món tóc + màu tóc; màu áo → bộ LPC_PRESETS hợp nhất cùng giới + màu áo. Ba bảng dưới đây ánh xạ theo chỉ số
+ * của SEXES / HAIR_STYLES / HAIR_COLORS / OUTFIT_COLORS / SKIN_TONES (thêm mục vào cuối các bảng đó thì dùng bộ đầu / màu mặc định). Luôn trả
+ * tổ hợp hợp lệ theo parseLpc; số ngoài khoảng được coi như 0.
+ */
+const PRESET_HAIR_PART = [
+  ["hair.plain", "hair.ponytail2", "hair.pixie", "hair.parted_side_bangs"],
+  ["hair.long_straight", "hair.high_ponytail", "hair.braid", "hair.bob"],
+];
+const PRESET_HAIR_COL = ["black", "dark_brown", "light_brown", "gray", "navy", "red"];
+const PRESET_SKIN_COL = ["light", "amber", "bronze"];
+const PRESET_OUTFIT_COL = ["navy", "maroon", "forest", "purple", "white", "charcoal"];
+const PRESET_OUTFIT_SET = [
+  ["hocvien_nam", "quytoc_nam", "thonda_nam", "kiemkhach_nam", "hocvien_nam", "langthang_nam"],
+  ["hocvien_nu", "quytoc_nu", "thonda_nu", "tienthu_nu", "tienthu_nu", "langthang_nu"],
+];
+export function presetToLpc(looks: Looks): LpcLooks {
+  const at = <T>(arr: readonly T[], i: number): T => arr[Number.isInteger(i) && i >= 0 && i < arr.length ? i : 0];
+  const sex = looks.sex === 1 ? 1 : 0;
+  const base = lpcPresetById(at(PRESET_OUTFIT_SET[sex], looks.outfitCol))!;
+  const parts = { ...base.lpc.parts }, colors = { ...base.lpc.colors };
+  delete parts.hairext; delete parts.beard; delete colors.hairext; delete colors.beard;
+  parts.hair = at(PRESET_HAIR_PART[sex], looks.hair);
+  const hairCol = at(PRESET_HAIR_COL, looks.hairCol);
+  for (const slot of ["hair", "brow"]) if (parts[slot]) colors[slot] = hairCol;
+  colors.skin = at(PRESET_SKIN_COL, looks.skin);
+  const torso = parts.torso ? lpcPart(parts.torso) : undefined, outfit = at(PRESET_OUTFIT_COL, looks.outfitCol);
+  if (torso && lpcSlotColors(torso).includes(outfit)) colors.torso = outfit;
+  const lpc = parseLpc({ v: 1, body: sex, parts, colors }) ?? structuredClone(base.lpc);
+  return decodeLpc(encodeLpc(lpc))!; // thứ tự khóa chuẩn (như đọc lại từ DB), để kết quả trùng khít sau khi lưu rồi nạp lại
+}
+/**
+ * Ngoại hình mới do người chơi gửi (tạo nhân vật, thợ may; HL2 #571): như parseLooks nhưng không còn tạo preset kiểu cũ nữa, preset
+ * (client cũ) được đổi ngay sang LPC gần nhất bằng presetToLpc. Server vẫn đọc preset cũ qua parseLooks (tài khoản chưa chuyển).
+ */
+export function parseNewLooks(x: unknown): Looks | null {
+  const l = parseLooks(x);
+  return l && l.mode !== "lpc" ? parseLooks({ mode: "lpc", lpc: presetToLpc(l) }) : l;
+}
+
+/**
  * Áo / mũ trang bị hiện lên lớp LPC (HL4 #573, GAME_DESIGN 5.11 + 5.15). Mặc áo (ô `ao`) / mũ (ô `mu`) thì đè ô `torso` / `hat` của ngoại hình
  * LPC; vũ khí vẫn do phụ thể võ hồn. Chỉ phụ thuộc loại ô và bậc (EQUIP_TIERS), không phụ thuộc chỉ số: server chỉ đồng bộ bậc đang mặc
  * (`PlayerState.gearAo` / `gearMu` = bậc + 1, 0 = không mặc). Mỗi bậc: [mã món, màu] cho nam, `f` nếu nữ khác (món phải đúng thể hình,

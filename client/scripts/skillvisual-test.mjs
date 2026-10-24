@@ -16,7 +16,10 @@ for (const [id, r] of keys) {
 const manifest = JSON.parse(readFileSync(new URL("../../shared/assets/sprites/manifest.json", import.meta.url), "utf8")).sprites.map((e) => (typeof e === "string" ? e : e.key));
 const codeSheets = [...src.matchAll(/makeCodeSheet\(scene, "([a-z_]+)"/g)].map((m) => m[1]);
 for (const k of new Set([...body.matchAll(/key: "([a-z_]+)"/g)].map((m) => m[1]))) ok(manifest.includes(k) || codeSheets.includes(k), `sheet ${k} có ảnh (manifest) hoặc dựng bằng code`);
-// S2 (#548): sheet dựng bằng sk("<tên>", …) cần ảnh `fx_sk_<tên>` và lớp sáng `fx_sk_<tên>_g` trong manifest; mỗi võ hồn đã điền đủ 11 chiêu (vòng 1–6, 8, 9, 10, Chân Thân, tiên cơ).
+// S2 / S3 (#548, #566): sheet dựng bằng sk("<tên>", …) cần ảnh `fx_sk_<tên>` và lớp sáng `fx_sk_<tên>_g` trong manifest; mỗi võ hồn đã điền đủ 11 chiêu (vòng 1–6, 8, 9, 10, Chân Thân, tiên cơ).
 for (const n of new Set([...body.matchAll(/sk\("([a-z0-9_]+)"/g)].map((m) => m[1]))) ok(manifest.includes(`fx_sk_${n}`) && manifest.includes(`fx_sk_${n}_g`), `sheet fx_sk_${n} (+ lớp sáng _g) có trong manifest`);
-for (const id of ["lam_dien_ba_vuong_long", "hao_thien_chuy"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
+for (const id of ["lam_dien_ba_vuong_long", "hao_thien_chuy", "cuu_tinh_that_sat_kiem", "nguyet_nhan", "can_khon_hon_nguyen_toa", "xuc_xich", "thien_can_bach_ngoc_dinh", "cuu_bao_luu_ly_thap", "pha_hon_thuong"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
+// S3 lô B (#567): 6 thú võ hồn đủ 11 chiêu; dung hợp có sheet trong bảng FUSION_VISUAL.
+for (const id of ["u_minh_linh_mieu", "nhu_cot_tho", "kim_vu_mieu_ung", "yeu_ho", "liet_hoa_thuong_lang", "bach_ho"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
+for (const [n, k] of [["Hạo Thiên Nhu Cốt", "hn_t3"], ["U Minh Bạch Hổ", "ub_t3"]]) ok(src.includes(`"${n}": {`) && src.includes(`sk("${k}"`), `dung hợp ${n} có sheet (FUSION_VISUAL)`);
 if (fails) { console.error(`${fails} lỗi`); process.exit(1); }
