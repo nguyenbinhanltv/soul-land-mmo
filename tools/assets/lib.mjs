@@ -71,6 +71,8 @@ export const ISO_VH_ANIMS = ["idle", "walk", "attack", "cast"];
  */
 export const ISO_VH_SEXES = ["m", "f"];
 /** Sheet hồn thú: 20 cột × 5 hàng (5 hướng vẽ). */
+export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
+export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
 /**
  * Pháp tướng Võ Hồn Chân Thân (mục 5.18, #482): sheet `phaptuong/<mã võ hồn>.png`, khung 160×160, gốc (80, 124) trùng chân hồn sư (ISO_HS_ORIGIN).
  * 5 hàng hướng (s, se, e, ne, n; sw / w / nw lật), 16 cột: idle 8 (vòng "thở"), attack 8 (đánh / niệm). Ảnh chỉ alpha 0 / 255 (như mọi sheet);
@@ -78,8 +80,6 @@ export const ISO_VH_SEXES = ["m", "f"];
  * Mỗi sheet tối đa PT_MAX_COLORS màu (bảng riêng từng võ hồn, như chân dung). Điểm alpha ≤ PT_ALPHA_MIN của khung nguồn bị bỏ.
  */
 export const PT_FRAME = 160, PT_ORIGIN = [80, 124], PT_COLS = 16, PT_ANIMS = { idle: [0, 8], attack: [8, 8] }, PT_GHOST = 0.88, PT_ALPHA_MIN = 40, PT_MAX_COLORS = 48;
-export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
-export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
 /** pack --code (hurt / die / absorb vẽ bằng code, mục 5.11): dòng hông mặc định trong khung 64, độ hạ thân khi khuỵu / ngồi,
  *  nửa bề ngang người đứng (để đặt người nằm chạm đất). */
 export const ISO_HIP = 40, ISO_KNEEL = 6, ISO_SIT = 10, ISO_LIE_HALF = 10;
