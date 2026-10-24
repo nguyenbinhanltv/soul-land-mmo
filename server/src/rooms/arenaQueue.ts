@@ -8,7 +8,8 @@ import { ARENA, arenaPairs, type ArenaRecord } from "../../../shared/data.ts";
 import { presenceBackend, PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS } from "../presence.ts";
 
 /** Thành viên của một bên: Elo và thành tích được chụp lúc bắt đầu đọc DB. */
-export interface ArenaMember { accountId: number; name: string; rec: ArenaRecord; }
+/** `test`: tài khoản test (is_test, #517): bên có thành viên test chỉ được ghép với bên test, không bao giờ với người thật. */
+export interface ArenaMember { accountId: number; name: string; rec: ArenaRecord; test?: boolean; }
 /** Một bên đang xếp hàng: một người hoặc đúng hai thành viên của tổ đội; các callback do MapRoom sở hữu. */
 export interface ArenaTeamEntry {
   id: string;
@@ -306,7 +307,7 @@ export const arenaReadCancelled = (accountId: number) => reads.get(accountId)?.c
 /** Hook test `aslow {ms}`: làm chậm lần đọc Elo kế tiếp của tài khoản. */
 export function arenaTestSlow(accountId: number, ms: number) { if (ms > 0) slow.set(accountId, ms); else slow.delete(accountId); }
 
-/** Một lượt ghép: chỉ ghép trong cùng nhóm cỡ; arenaPairs vẫn quyết định cửa sổ Elo và đối thủ vừa gặp. */
+/** Một lượt ghép: chỉ ghép trong cùng nhóm cỡ và loại (thật / test); arenaPairs vẫn quyết định cửa sổ Elo và đối thủ vừa gặp. */
 async function pass() {
   busy = true;
   try {
@@ -316,9 +317,10 @@ async function pass() {
     const remote = await liveRemote(raw);
     const entries = new Map(remote.map((r) => [r.id, queue.get(r.id) ?? shadow(r)] as const));
     const list = [...entries.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since)
-      .map((e) => ({ id: e.id, size: e.members.length, elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id) }));
-    const groups = new Map<number, typeof list>();
-    for (const item of list) groups.set(item.size, [...(groups.get(item.size) ?? []), item]);
+      .map((e) => ({ id: e.id, size: e.members.length, test: e.members.some((m) => m.test), elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id) }));
+    // Nhóm theo cỡ và theo loại tài khoản: tài khoản test (#517) chỉ gặp tài khoản test, người thật chỉ gặp người thật.
+    const groups = new Map<string, typeof list>();
+    for (const item of list) { const k = `${item.size}${item.test ? "t" : ""}`; groups.set(k, [...(groups.get(k) ?? []), item]); }
     for (const group of groups.values()) for (const [a, b] of arenaPairs(group)) {
       // Ghép lại đúng đối thủ vừa đấu thì chờ ARENA.rematchSettleSecs giây cho người khác kịp xếp hàng (arenaPairs chỉ tránh được khi họ đã có mặt).
       const waited = (id: string) => group.find((x) => x.id === id)!.wait;
