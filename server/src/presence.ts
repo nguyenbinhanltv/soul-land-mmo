@@ -15,6 +15,8 @@ export interface PresenceBackend {
   readonly presence: Presence;
   readonly workerId: string;
   acquireLease(key: string, owner: string, ttlMs?: number): Promise<boolean>;
+  /** Như acquireLease nhưng trả fencing token (số tăng dần qua mỗi lần lấy khóa, đếm ở `<key>:fence`, không hết hạn); 0 = khóa đang có người giữ. Lỗi Redis thì ném lỗi (fail-closed). */
+  acquireFenced(key: string, owner: string, ttlMs?: number): Promise<number>;
   renewLease(key: string, owner: string, ttlMs?: number): Promise<boolean>;
   releaseLease(key: string, owner: string): Promise<boolean>;
   get(key: string): Promise<string | null>;
@@ -45,6 +47,14 @@ class LocalBackend implements PresenceBackend {
     if (this.prune(key)) return false;
     this.values.set(key, { value: owner, expiresAt: Date.now() + ttlMs });
     return true;
+  }
+
+  private fence = new Map<string, number>();
+  async acquireFenced(key: string, owner: string, ttlMs = PRESENCE_TTL_MS) {
+    if (!(await this.acquireLease(key, owner, ttlMs))) return 0;
+    const n = (this.fence.get(key) ?? 0) + 1;
+    this.fence.set(key, n);
+    return n;
   }
 
   async renewLease(key: string, owner: string, ttlMs = PRESENCE_TTL_MS) {
@@ -117,6 +127,13 @@ class RedisBackend implements PresenceBackend {
       "if redis.call('exists', KEYS[1]) == 0 then redis.call('psetex', KEYS[1], ARGV[2], ARGV[1]); return 1 end; return 0",
       1, this.key(key), owner, String(ttlMs));
     return result === 1;
+  }
+
+  async acquireFenced(key: string, owner: string, ttlMs = PRESENCE_TTL_MS) {
+    const result = await this.redis.eval(
+      "if redis.call('exists', KEYS[1]) == 0 then redis.call('psetex', KEYS[1], ARGV[2], ARGV[1]); return redis.call('incr', KEYS[2]) end; return 0",
+      2, this.key(key), this.key(`${key}:fence`), owner, String(ttlMs));
+    return Number(result);
   }
 
   async renewLease(key: string, owner: string, ttlMs = PRESENCE_TTL_MS) {
