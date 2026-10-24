@@ -1,0 +1,4625 @@
+{
+ "about": "Sheet LPC của chế độ Tự tạo hồn sư (tools/assets/lpc-parts.mjs, GAME_DESIGN.md mục 5.11). Khóa texture = khóa sheet, file <khóa>.png; bố cục khớp LPC_SHEET trong shared/data.ts. `shift` = số điểm đã dời theo chiều dọc để chân thân chạm gốc, từng thể hình × hướng.",
+ "frame": 64,
+ "origin": [
+  32,
+  58
+ ],
+ "rows": {
+  "s": 0,
+  "e": 1,
+  "n": 2,
+  "hurt": 3
+ },
+ "strips": {
+  "idle": {
+   "src": "idle",
+   "frames": [
+    0,
+    1
+   ],
+   "col": 0
+  },
+  "walk": {
+   "src": "walk",
+   "frames": [
+    1,
+    2,
+    4,
+    5,
+    7,
+    8
+   ],
+   "col": 2
+  },
+  "slash": {
+   "src": "slash",
+   "frames": [
+    1,
+    2,
+    3,
+    5
+   ],
+   "col": 8
+  },
+  "spellcast": {
+   "src": "spellcast",
+   "frames": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "col": 12
+  },
+  "hurt": {
+   "src": "hurt",
+   "frames": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "col": 17
+  }
+ },
+ "shift": {
+  "m": {
+   "s": -3,
+   "e": -3,
+   "n": -2
+  },
+  "f": {
+   "s": -3,
+   "e": -3,
+   "n": -2
+  }
+ },
+ "totalBytes": 1342896,
+ "sheets": {
+  "lpcp_arms_bracers_f_70": {
+   "part": "arms.bracers",
+   "sex": "f",
+   "z": 70,
+   "idle": true,
+   "bytes": 1551
+  },
+  "lpcp_arms_bracers_m_70": {
+   "part": "arms.bracers",
+   "sex": "m",
+   "z": 70,
+   "idle": true,
+   "bytes": 1616
+  },
+  "lpcp_arms_cuffs_f_70": {
+   "part": "arms.cuffs",
+   "sex": "f",
+   "z": 70,
+   "idle": true,
+   "bytes": 2120
+  },
+  "lpcp_arms_cuffs_m_70": {
+   "part": "arms.cuffs",
+   "sex": "m",
+   "z": 70,
+   "idle": true,
+   "bytes": 2203
+  },
+  "lpcp_arms_gloves_f_70": {
+   "part": "arms.gloves",
+   "sex": "f",
+   "z": 70,
+   "idle": true,
+   "bytes": 2827
+  },
+  "lpcp_arms_gloves_m_70": {
+   "part": "arms.gloves",
+   "sex": "m",
+   "z": 70,
+   "idle": true,
+   "bytes": 2753
+  },
+  "lpcp_beard_chevron_f_111": {
+   "part": "beard.chevron",
+   "sex": "f",
+   "z": 111,
+   "idle": true,
+   "bytes": 443
+  },
+  "lpcp_beard_chevron_m_111": {
+   "part": "beard.chevron",
+   "sex": "m",
+   "z": 111,
+   "idle": true,
+   "bytes": 443
+  },
+  "lpcp_beard_medium_f_110": {
+   "part": "beard.medium",
+   "sex": "f",
+   "z": 110,
+   "idle": true,
+   "bytes": 752
+  },
+  "lpcp_beard_medium_m_110": {
+   "part": "beard.medium",
+   "sex": "m",
+   "z": 110,
+   "idle": true,
+   "bytes": 752
+  },
+  "lpcp_beard_mustache_f_111": {
+   "part": "beard.mustache",
+   "sex": "f",
+   "z": 111,
+   "idle": true,
+   "bytes": 512
+  },
+  "lpcp_beard_mustache_m_111": {
+   "part": "beard.mustache",
+   "sex": "m",
+   "z": 111,
+   "idle": true,
+   "bytes": 512
+  },
+  "lpcp_beard_trimmed_f_110": {
+   "part": "beard.trimmed",
+   "sex": "f",
+   "z": 110,
+   "idle": true,
+   "bytes": 592
+  },
+  "lpcp_beard_trimmed_m_110": {
+   "part": "beard.trimmed",
+   "sex": "m",
+   "z": 110,
+   "idle": true,
+   "bytes": 592
+  },
+  "lpcp_belt_leather_f_70_brown": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "brown",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_f_70_charcoal": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_f_70_leather": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "leather",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_f_70_slate": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "slate",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_f_70_tan": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "tan",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_f_70_walnut": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "walnut",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_f_70_white": {
+   "part": "belt.leather",
+   "sex": "f",
+   "z": 70,
+   "color": "white",
+   "idle": false,
+   "bytes": 1342
+  },
+  "lpcp_belt_leather_m_70_brown": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "brown",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_leather_m_70_charcoal": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_leather_m_70_leather": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "leather",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_leather_m_70_slate": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "slate",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_leather_m_70_tan": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "tan",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_leather_m_70_walnut": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "walnut",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_leather_m_70_white": {
+   "part": "belt.leather",
+   "sex": "m",
+   "z": 70,
+   "color": "white",
+   "idle": false,
+   "bytes": 1331
+  },
+  "lpcp_belt_mage_f_90_bronze": {
+   "part": "belt.mage",
+   "sex": "f",
+   "z": 90,
+   "color": "bronze",
+   "idle": false,
+   "bytes": 710
+  },
+  "lpcp_belt_mage_f_90_brown": {
+   "part": "belt.mage",
+   "sex": "f",
+   "z": 90,
+   "color": "brown",
+   "idle": false,
+   "bytes": 708
+  },
+  "lpcp_belt_mage_f_90_gold": {
+   "part": "belt.mage",
+   "sex": "f",
+   "z": 90,
+   "color": "gold",
+   "idle": false,
+   "bytes": 710
+  },
+  "lpcp_belt_mage_f_90_silver": {
+   "part": "belt.mage",
+   "sex": "f",
+   "z": 90,
+   "color": "silver",
+   "idle": false,
+   "bytes": 710
+  },
+  "lpcp_belt_obi_f_65_black": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "black",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_brown": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_charcoal": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_forest": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_gray": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_maroon": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_navy": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_red": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "red",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_tan": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_f_65_white": {
+   "part": "belt.obi",
+   "sex": "f",
+   "z": 65,
+   "color": "white",
+   "idle": true,
+   "bytes": 1062
+  },
+  "lpcp_belt_obi_knot_left_f_66_black": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "black",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_brown": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_charcoal": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_forest": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_gray": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_maroon": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_navy": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_red": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "red",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_tan": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_f_66_white": {
+   "part": "belt.obi_knot_left",
+   "sex": "f",
+   "z": 66,
+   "color": "white",
+   "idle": true,
+   "bytes": 1449
+  },
+  "lpcp_belt_obi_knot_left_m_66_black": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "black",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_brown": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_charcoal": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_forest": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_gray": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_maroon": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_navy": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_red": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "red",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_tan": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_left_m_66_white": {
+   "part": "belt.obi_knot_left",
+   "sex": "m",
+   "z": 66,
+   "color": "white",
+   "idle": true,
+   "bytes": 1434
+  },
+  "lpcp_belt_obi_knot_right_f_66_black": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "black",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_brown": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_charcoal": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_forest": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_gray": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_maroon": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_navy": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_red": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "red",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_tan": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_f_66_white": {
+   "part": "belt.obi_knot_right",
+   "sex": "f",
+   "z": 66,
+   "color": "white",
+   "idle": true,
+   "bytes": 1514
+  },
+  "lpcp_belt_obi_knot_right_m_66_black": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "black",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_brown": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_charcoal": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_forest": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_gray": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_maroon": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_navy": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_red": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "red",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_tan": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_knot_right_m_66_white": {
+   "part": "belt.obi_knot_right",
+   "sex": "m",
+   "z": 66,
+   "color": "white",
+   "idle": true,
+   "bytes": 1493
+  },
+  "lpcp_belt_obi_m_65_black": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "black",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_brown": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_charcoal": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_forest": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_gray": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_maroon": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_navy": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_red": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "red",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_tan": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_obi_m_65_white": {
+   "part": "belt.obi",
+   "sex": "m",
+   "z": 65,
+   "color": "white",
+   "idle": true,
+   "bytes": 1167
+  },
+  "lpcp_belt_robe_f_70_teal": {
+   "part": "belt.robe",
+   "sex": "f",
+   "z": 70,
+   "color": "teal",
+   "idle": false,
+   "bytes": 1283
+  },
+  "lpcp_belt_robe_f_70_white": {
+   "part": "belt.robe",
+   "sex": "f",
+   "z": 70,
+   "color": "white",
+   "idle": false,
+   "bytes": 1296
+  },
+  "lpcp_belt_robe_m_70_teal": {
+   "part": "belt.robe",
+   "sex": "m",
+   "z": 70,
+   "color": "teal",
+   "idle": false,
+   "bytes": 1126
+  },
+  "lpcp_belt_robe_m_70_white": {
+   "part": "belt.robe",
+   "sex": "m",
+   "z": 70,
+   "color": "white",
+   "idle": false,
+   "bytes": 1126
+  },
+  "lpcp_belt_sash_f_65_black": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "black",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_brown": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "brown",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_charcoal": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_forest": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_gray": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_maroon": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_navy": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_red": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "red",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_tan": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "tan",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_f_65_white": {
+   "part": "belt.sash",
+   "sex": "f",
+   "z": 65,
+   "color": "white",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_belt_sash_m_65_black": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "black",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_brown": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "brown",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_charcoal": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_forest": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_gray": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_maroon": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_navy": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_red": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "red",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_tan": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "tan",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_m_65_white": {
+   "part": "belt.sash",
+   "sex": "m",
+   "z": 65,
+   "color": "white",
+   "idle": false,
+   "bytes": 2602
+  },
+  "lpcp_belt_sash_narrow_f_65_black": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "black",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_brown": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "brown",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_charcoal": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_forest": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_gray": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_maroon": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_navy": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_red": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "red",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_tan": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "tan",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_f_65_white": {
+   "part": "belt.sash_narrow",
+   "sex": "f",
+   "z": 65,
+   "color": "white",
+   "idle": false,
+   "bytes": 2267
+  },
+  "lpcp_belt_sash_narrow_m_65_black": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "black",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_brown": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "brown",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_charcoal": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_forest": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_gray": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_maroon": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_navy": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_red": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "red",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_tan": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "tan",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_sash_narrow_m_65_white": {
+   "part": "belt.sash_narrow",
+   "sex": "m",
+   "z": 65,
+   "color": "white",
+   "idle": false,
+   "bytes": 2314
+  },
+  "lpcp_belt_waistband_f_65_black": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "black",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_brown": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "brown",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_charcoal": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_forest": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "forest",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_gray": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "gray",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_maroon": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_navy": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "navy",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_red": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "red",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_tan": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "tan",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_belt_waistband_f_65_white": {
+   "part": "belt.waistband",
+   "sex": "f",
+   "z": 65,
+   "color": "white",
+   "idle": false,
+   "bytes": 1053
+  },
+  "lpcp_body_body_f_10": {
+   "part": "body.body",
+   "sex": "f",
+   "z": 10,
+   "idle": true,
+   "bytes": 8453
+  },
+  "lpcp_body_body_m_10": {
+   "part": "body.body",
+   "sex": "m",
+   "z": 10,
+   "idle": true,
+   "bytes": 9413
+  },
+  "lpcp_brow_thick_f_106": {
+   "part": "brow.thick",
+   "sex": "f",
+   "z": 106,
+   "idle": true,
+   "bytes": 369
+  },
+  "lpcp_brow_thick_m_106": {
+   "part": "brow.thick",
+   "sex": "m",
+   "z": 106,
+   "idle": true,
+   "bytes": 369
+  },
+  "lpcp_brow_thin_f_106": {
+   "part": "brow.thin",
+   "sex": "f",
+   "z": 106,
+   "idle": true,
+   "bytes": 292
+  },
+  "lpcp_brow_thin_m_106": {
+   "part": "brow.thin",
+   "sex": "m",
+   "z": 106,
+   "idle": true,
+   "bytes": 292
+  },
+  "lpcp_cape_mantal_f_75": {
+   "part": "cape.mantal",
+   "sex": "f",
+   "z": 75,
+   "idle": true,
+   "bytes": 2797
+  },
+  "lpcp_cape_mantal_m_75": {
+   "part": "cape.mantal",
+   "sex": "m",
+   "z": 75,
+   "idle": true,
+   "bytes": 3047
+  },
+  "lpcp_cape_solid_f_5": {
+   "part": "cape.solid",
+   "sex": "f",
+   "z": 5,
+   "idle": true,
+   "bytes": 2461
+  },
+  "lpcp_cape_solid_f_85": {
+   "part": "cape.solid",
+   "sex": "f",
+   "z": 85,
+   "idle": true,
+   "bytes": 2532
+  },
+  "lpcp_cape_solid_m_5": {
+   "part": "cape.solid",
+   "sex": "m",
+   "z": 5,
+   "idle": true,
+   "bytes": 2461
+  },
+  "lpcp_cape_solid_m_85": {
+   "part": "cape.solid",
+   "sex": "m",
+   "z": 85,
+   "idle": true,
+   "bytes": 2532
+  },
+  "lpcp_cape_tattered_f_5": {
+   "part": "cape.tattered",
+   "sex": "f",
+   "z": 5,
+   "idle": true,
+   "bytes": 2978
+  },
+  "lpcp_cape_tattered_f_85": {
+   "part": "cape.tattered",
+   "sex": "f",
+   "z": 85,
+   "idle": true,
+   "bytes": 2965
+  },
+  "lpcp_cape_tattered_m_5": {
+   "part": "cape.tattered",
+   "sex": "m",
+   "z": 5,
+   "idle": true,
+   "bytes": 2978
+  },
+  "lpcp_cape_tattered_m_85": {
+   "part": "cape.tattered",
+   "sex": "m",
+   "z": 85,
+   "idle": true,
+   "bytes": 2965
+  },
+  "lpcp_cape_trim_f_90": {
+   "part": "cape.trim",
+   "sex": "f",
+   "z": 90,
+   "idle": true,
+   "bytes": 1304
+  },
+  "lpcp_cape_trim_m_90": {
+   "part": "cape.trim",
+   "sex": "m",
+   "z": 90,
+   "idle": true,
+   "bytes": 1304
+  },
+  "lpcp_face_earring_left_f_115_black": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "black",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_brown": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "brown",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_charcoal": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_forest": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "forest",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_gray": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "gray",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_maroon": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_navy": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "navy",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_red": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "red",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_tan": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "tan",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_f_115_white": {
+   "part": "face.earring_left",
+   "sex": "f",
+   "z": 115,
+   "color": "white",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_black": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "black",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_brown": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "brown",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_charcoal": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_forest": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "forest",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_gray": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "gray",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_maroon": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_navy": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "navy",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_red": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "red",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_tan": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "tan",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earring_left_m_115_white": {
+   "part": "face.earring_left",
+   "sex": "m",
+   "z": 115,
+   "color": "white",
+   "idle": true,
+   "bytes": 387
+  },
+  "lpcp_face_earrings_princess_f_115_blue": {
+   "part": "face.earrings_princess",
+   "sex": "f",
+   "z": 115,
+   "color": "blue",
+   "idle": false,
+   "bytes": 806
+  },
+  "lpcp_face_earrings_princess_f_115_green": {
+   "part": "face.earrings_princess",
+   "sex": "f",
+   "z": 115,
+   "color": "green",
+   "idle": false,
+   "bytes": 806
+  },
+  "lpcp_face_earrings_princess_f_115_orange": {
+   "part": "face.earrings_princess",
+   "sex": "f",
+   "z": 115,
+   "color": "orange",
+   "idle": false,
+   "bytes": 806
+  },
+  "lpcp_face_earrings_princess_f_115_purple": {
+   "part": "face.earrings_princess",
+   "sex": "f",
+   "z": 115,
+   "color": "purple",
+   "idle": false,
+   "bytes": 806
+  },
+  "lpcp_face_earrings_princess_f_115_red": {
+   "part": "face.earrings_princess",
+   "sex": "f",
+   "z": 115,
+   "color": "red",
+   "idle": false,
+   "bytes": 806
+  },
+  "lpcp_face_earrings_princess_f_115_yellow": {
+   "part": "face.earrings_princess",
+   "sex": "f",
+   "z": 115,
+   "color": "yellow",
+   "idle": false,
+   "bytes": 806
+  },
+  "lpcp_face_earrings_princess_m_115_blue": {
+   "part": "face.earrings_princess",
+   "sex": "m",
+   "z": 115,
+   "color": "blue",
+   "idle": false,
+   "bytes": 854
+  },
+  "lpcp_face_earrings_princess_m_115_green": {
+   "part": "face.earrings_princess",
+   "sex": "m",
+   "z": 115,
+   "color": "green",
+   "idle": false,
+   "bytes": 854
+  },
+  "lpcp_face_earrings_princess_m_115_orange": {
+   "part": "face.earrings_princess",
+   "sex": "m",
+   "z": 115,
+   "color": "orange",
+   "idle": false,
+   "bytes": 854
+  },
+  "lpcp_face_earrings_princess_m_115_purple": {
+   "part": "face.earrings_princess",
+   "sex": "m",
+   "z": 115,
+   "color": "purple",
+   "idle": false,
+   "bytes": 854
+  },
+  "lpcp_face_earrings_princess_m_115_red": {
+   "part": "face.earrings_princess",
+   "sex": "m",
+   "z": 115,
+   "color": "red",
+   "idle": false,
+   "bytes": 854
+  },
+  "lpcp_face_earrings_princess_m_115_yellow": {
+   "part": "face.earrings_princess",
+   "sex": "m",
+   "z": 115,
+   "color": "yellow",
+   "idle": false,
+   "bytes": 854
+  },
+  "lpcp_face_mask_plain_f_114_black": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "black",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_brown": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_charcoal": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_forest": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_gray": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_maroon": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_navy": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_tan": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_f_114_white": {
+   "part": "face.mask_plain",
+   "sex": "f",
+   "z": 114,
+   "color": "white",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_black": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "black",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_brown": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "brown",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_charcoal": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_forest": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "forest",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_gray": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "gray",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_maroon": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_navy": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "navy",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_tan": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "tan",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_face_mask_plain_m_114_white": {
+   "part": "face.mask_plain",
+   "sex": "m",
+   "z": 114,
+   "color": "white",
+   "idle": true,
+   "bytes": 1405
+  },
+  "lpcp_feet_boots_basic_f_25": {
+   "part": "feet.boots_basic",
+   "sex": "f",
+   "z": 25,
+   "idle": true,
+   "bytes": 2690
+  },
+  "lpcp_feet_boots_basic_m_25": {
+   "part": "feet.boots_basic",
+   "sex": "m",
+   "z": 25,
+   "idle": true,
+   "bytes": 2996
+  },
+  "lpcp_feet_boots_fold_f_25": {
+   "part": "feet.boots_fold",
+   "sex": "f",
+   "z": 25,
+   "idle": true,
+   "bytes": 2609
+  },
+  "lpcp_feet_boots_fold_m_25": {
+   "part": "feet.boots_fold",
+   "sex": "m",
+   "z": 25,
+   "idle": true,
+   "bytes": 2879
+  },
+  "lpcp_feet_boots_rim_f_25": {
+   "part": "feet.boots_rim",
+   "sex": "f",
+   "z": 25,
+   "idle": true,
+   "bytes": 2537
+  },
+  "lpcp_feet_boots_rim_m_25": {
+   "part": "feet.boots_rim",
+   "sex": "m",
+   "z": 25,
+   "idle": true,
+   "bytes": 2781
+  },
+  "lpcp_feet_sandals_f_15": {
+   "part": "feet.sandals",
+   "sex": "f",
+   "z": 15,
+   "idle": true,
+   "bytes": 1670
+  },
+  "lpcp_feet_sandals_m_15": {
+   "part": "feet.sandals",
+   "sex": "m",
+   "z": 15,
+   "idle": true,
+   "bytes": 1670
+  },
+  "lpcp_feet_shoes_basic_f_15": {
+   "part": "feet.shoes_basic",
+   "sex": "f",
+   "z": 15,
+   "idle": true,
+   "bytes": 1941
+  },
+  "lpcp_feet_shoes_basic_m_15": {
+   "part": "feet.shoes_basic",
+   "sex": "m",
+   "z": 15,
+   "idle": true,
+   "bytes": 2133
+  },
+  "lpcp_feet_shoes_sara_f_15": {
+   "part": "feet.shoes_sara",
+   "sex": "f",
+   "z": 15,
+   "idle": true,
+   "bytes": 1690
+  },
+  "lpcp_feet_shoes_sara_m_15": {
+   "part": "feet.shoes_sara",
+   "sex": "m",
+   "z": 15,
+   "idle": true,
+   "bytes": 1870
+  },
+  "lpcp_feet_slippers_f_15": {
+   "part": "feet.slippers",
+   "sex": "f",
+   "z": 15,
+   "idle": true,
+   "bytes": 1343
+  },
+  "lpcp_feet_slippers_m_15": {
+   "part": "feet.slippers",
+   "sex": "m",
+   "z": 15,
+   "idle": true,
+   "bytes": 1351
+  },
+  "lpcp_feet_socks_high_f_14": {
+   "part": "feet.socks_high",
+   "sex": "f",
+   "z": 14,
+   "idle": true,
+   "bytes": 2607
+  },
+  "lpcp_feet_socks_high_m_14": {
+   "part": "feet.socks_high",
+   "sex": "m",
+   "z": 14,
+   "idle": true,
+   "bytes": 2959
+  },
+  "lpcp_feet_socks_tabi_f_14": {
+   "part": "feet.socks_tabi",
+   "sex": "f",
+   "z": 14,
+   "idle": true,
+   "bytes": 1867
+  },
+  "lpcp_feet_socks_tabi_m_14": {
+   "part": "feet.socks_tabi",
+   "sex": "m",
+   "z": 14,
+   "idle": true,
+   "bytes": 1956
+  },
+  "lpcp_hair_bangs_bun_f_120": {
+   "part": "hair.bangs_bun",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3277
+  },
+  "lpcp_hair_bangs_bun_m_120": {
+   "part": "hair.bangs_bun",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3277
+  },
+  "lpcp_hair_bob_f_120": {
+   "part": "hair.bob",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3736
+  },
+  "lpcp_hair_bob_m_120": {
+   "part": "hair.bob",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3736
+  },
+  "lpcp_hair_braid_f_120": {
+   "part": "hair.braid",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3774
+  },
+  "lpcp_hair_braid_f_9": {
+   "part": "hair.braid",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 515
+  },
+  "lpcp_hair_braid_m_120": {
+   "part": "hair.braid",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3774
+  },
+  "lpcp_hair_braid_m_9": {
+   "part": "hair.braid",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 515
+  },
+  "lpcp_hair_curtains_long_f_120": {
+   "part": "hair.curtains_long",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3390
+  },
+  "lpcp_hair_curtains_long_m_120": {
+   "part": "hair.curtains_long",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3390
+  },
+  "lpcp_hair_half_up_f_120": {
+   "part": "hair.half_up",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3953
+  },
+  "lpcp_hair_half_up_m_120": {
+   "part": "hair.half_up",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3953
+  },
+  "lpcp_hair_high_ponytail_f_120": {
+   "part": "hair.high_ponytail",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 2979
+  },
+  "lpcp_hair_high_ponytail_f_9": {
+   "part": "hair.high_ponytail",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 629
+  },
+  "lpcp_hair_high_ponytail_m_120": {
+   "part": "hair.high_ponytail",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 2979
+  },
+  "lpcp_hair_high_ponytail_m_9": {
+   "part": "hair.high_ponytail",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 629
+  },
+  "lpcp_hair_idol_f_120": {
+   "part": "hair.idol",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3790
+  },
+  "lpcp_hair_idol_m_120": {
+   "part": "hair.idol",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3790
+  },
+  "lpcp_hair_lob_f_120": {
+   "part": "hair.lob",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3695
+  },
+  "lpcp_hair_lob_m_120": {
+   "part": "hair.lob",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3695
+  },
+  "lpcp_hair_long_center_part_f_120": {
+   "part": "hair.long_center_part",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3492
+  },
+  "lpcp_hair_long_center_part_f_9": {
+   "part": "hair.long_center_part",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 749
+  },
+  "lpcp_hair_long_center_part_m_120": {
+   "part": "hair.long_center_part",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3492
+  },
+  "lpcp_hair_long_center_part_m_9": {
+   "part": "hair.long_center_part",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 749
+  },
+  "lpcp_hair_long_straight_f_120": {
+   "part": "hair.long_straight",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3502
+  },
+  "lpcp_hair_long_straight_m_120": {
+   "part": "hair.long_straight",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3502
+  },
+  "lpcp_hair_loose_f_120": {
+   "part": "hair.loose",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3530
+  },
+  "lpcp_hair_loose_m_120": {
+   "part": "hair.loose",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3530
+  },
+  "lpcp_hair_page_f_120": {
+   "part": "hair.page",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3002
+  },
+  "lpcp_hair_page_m_120": {
+   "part": "hair.page",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3002
+  },
+  "lpcp_hair_parted_f_120": {
+   "part": "hair.parted",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 2886
+  },
+  "lpcp_hair_parted_m_120": {
+   "part": "hair.parted",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 2886
+  },
+  "lpcp_hair_parted_side_bangs_f_120": {
+   "part": "hair.parted_side_bangs",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 2782
+  },
+  "lpcp_hair_parted_side_bangs_m_120": {
+   "part": "hair.parted_side_bangs",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 2782
+  },
+  "lpcp_hair_pixie_f_120": {
+   "part": "hair.pixie",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3095
+  },
+  "lpcp_hair_pixie_m_120": {
+   "part": "hair.pixie",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3095
+  },
+  "lpcp_hair_plain_f_120": {
+   "part": "hair.plain",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 2961
+  },
+  "lpcp_hair_plain_m_120": {
+   "part": "hair.plain",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 2961
+  },
+  "lpcp_hair_ponytail2_f_120": {
+   "part": "hair.ponytail2",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3682
+  },
+  "lpcp_hair_ponytail2_f_9": {
+   "part": "hair.ponytail2",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 514
+  },
+  "lpcp_hair_ponytail2_m_120": {
+   "part": "hair.ponytail2",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3682
+  },
+  "lpcp_hair_ponytail2_m_9": {
+   "part": "hair.ponytail2",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 514
+  },
+  "lpcp_hair_princess_f_120": {
+   "part": "hair.princess",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3952
+  },
+  "lpcp_hair_princess_f_9": {
+   "part": "hair.princess",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 640
+  },
+  "lpcp_hair_princess_m_120": {
+   "part": "hair.princess",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3952
+  },
+  "lpcp_hair_princess_m_9": {
+   "part": "hair.princess",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 640
+  },
+  "lpcp_hair_relm_short_f_120": {
+   "part": "hair.relm_short",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3597
+  },
+  "lpcp_hair_relm_short_m_120": {
+   "part": "hair.relm_short",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3597
+  },
+  "lpcp_hair_relm_xlong_f_120": {
+   "part": "hair.relm_xlong",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 5049
+  },
+  "lpcp_hair_relm_xlong_f_9": {
+   "part": "hair.relm_xlong",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 4483
+  },
+  "lpcp_hair_relm_xlong_m_120": {
+   "part": "hair.relm_xlong",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 5049
+  },
+  "lpcp_hair_relm_xlong_m_9": {
+   "part": "hair.relm_xlong",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 4483
+  },
+  "lpcp_hair_swoop_side_f_120": {
+   "part": "hair.swoop_side",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3897
+  },
+  "lpcp_hair_swoop_side_m_120": {
+   "part": "hair.swoop_side",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3897
+  },
+  "lpcp_hair_topknot_short_f_120": {
+   "part": "hair.topknot_short",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 2782
+  },
+  "lpcp_hair_topknot_short_f_145": {
+   "part": "hair.topknot_short",
+   "sex": "f",
+   "z": 145,
+   "idle": true,
+   "bytes": 1548
+  },
+  "lpcp_hair_topknot_short_m_120": {
+   "part": "hair.topknot_short",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 2782
+  },
+  "lpcp_hair_topknot_short_m_145": {
+   "part": "hair.topknot_short",
+   "sex": "m",
+   "z": 145,
+   "idle": true,
+   "bytes": 1548
+  },
+  "lpcp_hair_topknot_short2_f_120": {
+   "part": "hair.topknot_short2",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 2805
+  },
+  "lpcp_hair_topknot_short2_f_145": {
+   "part": "hair.topknot_short2",
+   "sex": "f",
+   "z": 145,
+   "idle": true,
+   "bytes": 1548
+  },
+  "lpcp_hair_topknot_short2_m_120": {
+   "part": "hair.topknot_short2",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 2805
+  },
+  "lpcp_hair_topknot_short2_m_145": {
+   "part": "hair.topknot_short2",
+   "sex": "m",
+   "z": 145,
+   "idle": true,
+   "bytes": 1548
+  },
+  "lpcp_hair_wavy_f_120": {
+   "part": "hair.wavy",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 3880
+  },
+  "lpcp_hair_wavy_f_9": {
+   "part": "hair.wavy",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 2009
+  },
+  "lpcp_hair_wavy_m_120": {
+   "part": "hair.wavy",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 3880
+  },
+  "lpcp_hair_wavy_m_9": {
+   "part": "hair.wavy",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 2009
+  },
+  "lpcp_hair_xlong_f_120": {
+   "part": "hair.xlong",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 6465
+  },
+  "lpcp_hair_xlong_f_9": {
+   "part": "hair.xlong",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 2412
+  },
+  "lpcp_hair_xlong_m_120": {
+   "part": "hair.xlong",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 6465
+  },
+  "lpcp_hair_xlong_m_9": {
+   "part": "hair.xlong",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 2412
+  },
+  "lpcp_hair_xlong_wavy_f_120": {
+   "part": "hair.xlong_wavy",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 5831
+  },
+  "lpcp_hair_xlong_wavy_f_9": {
+   "part": "hair.xlong_wavy",
+   "sex": "f",
+   "z": 9,
+   "idle": true,
+   "bytes": 6318
+  },
+  "lpcp_hair_xlong_wavy_m_120": {
+   "part": "hair.xlong_wavy",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 5831
+  },
+  "lpcp_hair_xlong_wavy_m_9": {
+   "part": "hair.xlong_wavy",
+   "sex": "m",
+   "z": 9,
+   "idle": true,
+   "bytes": 6318
+  },
+  "lpcp_hairext_high_bun_f_128": {
+   "part": "hairext.high_bun",
+   "sex": "f",
+   "z": 128,
+   "idle": true,
+   "bytes": 1811
+  },
+  "lpcp_hairext_high_bun_m_128": {
+   "part": "hairext.high_bun",
+   "sex": "m",
+   "z": 128,
+   "idle": true,
+   "bytes": 1811
+  },
+  "lpcp_hairext_topknot_short_f_128": {
+   "part": "hairext.topknot_short",
+   "sex": "f",
+   "z": 128,
+   "idle": true,
+   "bytes": 1548
+  },
+  "lpcp_hairext_topknot_short_m_128": {
+   "part": "hairext.topknot_short",
+   "sex": "m",
+   "z": 128,
+   "idle": true,
+   "bytes": 1548
+  },
+  "lpcp_hat_bandana_f_120": {
+   "part": "hat.bandana",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 1797
+  },
+  "lpcp_hat_bandana_m_120": {
+   "part": "hat.bandana",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 1797
+  },
+  "lpcp_hat_bandana2_f_120": {
+   "part": "hat.bandana2",
+   "sex": "f",
+   "z": 120,
+   "idle": true,
+   "bytes": 1764
+  },
+  "lpcp_hat_bandana2_m_120": {
+   "part": "hat.bandana2",
+   "sex": "m",
+   "z": 120,
+   "idle": true,
+   "bytes": 1764
+  },
+  "lpcp_hat_formal_crown_f_130_black": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "black",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_brown": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "brown",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_charcoal": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_forest": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "forest",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_gray": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "gray",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_maroon": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_navy": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "navy",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_red": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "red",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_tan": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "tan",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_f_130_white": {
+   "part": "hat.formal_crown",
+   "sex": "f",
+   "z": 130,
+   "color": "white",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_black": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "black",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_brown": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "brown",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_charcoal": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_forest": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "forest",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_gray": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "gray",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_maroon": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_navy": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "navy",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_red": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "red",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_tan": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "tan",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_crown_m_130_white": {
+   "part": "hat.formal_crown",
+   "sex": "m",
+   "z": 130,
+   "color": "white",
+   "idle": true,
+   "bytes": 2305
+  },
+  "lpcp_hat_formal_tiara_f_130_black": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "black",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_brown": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "brown",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_charcoal": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_forest": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "forest",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_gray": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "gray",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_maroon": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_navy": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "navy",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_red": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "red",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_tan": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "tan",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_f_130_white": {
+   "part": "hat.formal_tiara",
+   "sex": "f",
+   "z": 130,
+   "color": "white",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_black": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "black",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_brown": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "brown",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_charcoal": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_forest": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "forest",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_gray": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "gray",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_maroon": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_navy": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "navy",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_red": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "red",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_tan": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "tan",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_formal_tiara_m_130_white": {
+   "part": "hat.formal_tiara",
+   "sex": "m",
+   "z": 130,
+   "color": "white",
+   "idle": true,
+   "bytes": 653
+  },
+  "lpcp_hat_headband_hairtie_f_125": {
+   "part": "hat.headband_hairtie",
+   "sex": "f",
+   "z": 125,
+   "idle": true,
+   "bytes": 726
+  },
+  "lpcp_hat_headband_hairtie_m_125": {
+   "part": "hat.headband_hairtie",
+   "sex": "m",
+   "z": 125,
+   "idle": true,
+   "bytes": 726
+  },
+  "lpcp_hat_headband_thick_f_125": {
+   "part": "hat.headband_thick",
+   "sex": "f",
+   "z": 125,
+   "idle": true,
+   "bytes": 1134
+  },
+  "lpcp_hat_headband_thick_m_125": {
+   "part": "hat.headband_thick",
+   "sex": "m",
+   "z": 125,
+   "idle": true,
+   "bytes": 1134
+  },
+  "lpcp_hat_headband_tied_f_125": {
+   "part": "hat.headband_tied",
+   "sex": "f",
+   "z": 125,
+   "idle": true,
+   "bytes": 1413
+  },
+  "lpcp_hat_headband_tied_m_125": {
+   "part": "hat.headband_tied",
+   "sex": "m",
+   "z": 125,
+   "idle": true,
+   "bytes": 1413
+  },
+  "lpcp_hat_hood_cloth_f_130": {
+   "part": "hat.hood_cloth",
+   "sex": "f",
+   "z": 130,
+   "idle": true,
+   "bytes": 5651
+  },
+  "lpcp_hat_hood_cloth_m_130": {
+   "part": "hat.hood_cloth",
+   "sex": "m",
+   "z": 130,
+   "idle": true,
+   "bytes": 5651
+  },
+  "lpcp_head_female_f_100": {
+   "part": "head.female",
+   "sex": "f",
+   "z": 100,
+   "idle": true,
+   "bytes": 2942
+  },
+  "lpcp_head_female_m_100": {
+   "part": "head.female",
+   "sex": "m",
+   "z": 100,
+   "idle": true,
+   "bytes": 2942
+  },
+  "lpcp_head_female_small_f_100": {
+   "part": "head.female_small",
+   "sex": "f",
+   "z": 100,
+   "idle": true,
+   "bytes": 2797
+  },
+  "lpcp_head_female_small_m_100": {
+   "part": "head.female_small",
+   "sex": "m",
+   "z": 100,
+   "idle": true,
+   "bytes": 2797
+  },
+  "lpcp_head_male_elderly_f_100": {
+   "part": "head.male_elderly",
+   "sex": "f",
+   "z": 100,
+   "idle": true,
+   "bytes": 3001
+  },
+  "lpcp_head_male_elderly_m_100": {
+   "part": "head.male_elderly",
+   "sex": "m",
+   "z": 100,
+   "idle": true,
+   "bytes": 3001
+  },
+  "lpcp_head_male_f_100": {
+   "part": "head.male",
+   "sex": "f",
+   "z": 100,
+   "idle": true,
+   "bytes": 2952
+  },
+  "lpcp_head_male_gaunt_f_100": {
+   "part": "head.male_gaunt",
+   "sex": "f",
+   "z": 100,
+   "idle": true,
+   "bytes": 3031
+  },
+  "lpcp_head_male_gaunt_m_100": {
+   "part": "head.male_gaunt",
+   "sex": "m",
+   "z": 100,
+   "idle": true,
+   "bytes": 3031
+  },
+  "lpcp_head_male_m_100": {
+   "part": "head.male",
+   "sex": "m",
+   "z": 100,
+   "idle": true,
+   "bytes": 2952
+  },
+  "lpcp_head_male_small_f_100": {
+   "part": "head.male_small",
+   "sex": "f",
+   "z": 100,
+   "idle": true,
+   "bytes": 2795
+  },
+  "lpcp_head_male_small_m_100": {
+   "part": "head.male_small",
+   "sex": "m",
+   "z": 100,
+   "idle": true,
+   "bytes": 2795
+  },
+  "lpcp_legs_cuffed_f_20": {
+   "part": "legs.cuffed",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 2893
+  },
+  "lpcp_legs_cuffed_m_20": {
+   "part": "legs.cuffed",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 3124
+  },
+  "lpcp_legs_leggings_f_20": {
+   "part": "legs.leggings",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 2138
+  },
+  "lpcp_legs_leggings_m_20": {
+   "part": "legs.leggings",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 2732
+  },
+  "lpcp_legs_pantaloons_f_20": {
+   "part": "legs.pantaloons",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 3032
+  },
+  "lpcp_legs_pantaloons_m_20": {
+   "part": "legs.pantaloons",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 2717
+  },
+  "lpcp_legs_pants_f_20": {
+   "part": "legs.pants",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 2474
+  },
+  "lpcp_legs_pants_m_20": {
+   "part": "legs.pants",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 2912
+  },
+  "lpcp_legs_pants2_f_20": {
+   "part": "legs.pants2",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 2909
+  },
+  "lpcp_legs_pants2_m_20": {
+   "part": "legs.pants2",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 3132
+  },
+  "lpcp_legs_skirt_overskirt_f_35": {
+   "part": "legs.skirt_overskirt",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 2975
+  },
+  "lpcp_legs_skirt_straight_f_20": {
+   "part": "legs.skirt_straight",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 2699
+  },
+  "lpcp_legs_skirts_plain_f_20": {
+   "part": "legs.skirts_plain",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 3143
+  },
+  "lpcp_legs_skirts_plain_m_20": {
+   "part": "legs.skirts_plain",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 3302
+  },
+  "lpcp_legs_skirts_slit_f_20": {
+   "part": "legs.skirts_slit",
+   "sex": "f",
+   "z": 20,
+   "idle": true,
+   "bytes": 2226
+  },
+  "lpcp_legs_skirts_slit_m_20": {
+   "part": "legs.skirts_slit",
+   "sex": "m",
+   "z": 20,
+   "idle": true,
+   "bytes": 2226
+  },
+  "lpcp_neck_amulet_star_f_81_brass_blue": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "brass_blue",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_brass_green": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "brass_green",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_brass_orange": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "brass_orange",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_brass_purple": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "brass_purple",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_brass_red": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "brass_red",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_brass_yellow": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "brass_yellow",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_bronze_blue": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "bronze_blue",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_bronze_green": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "bronze_green",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_bronze_orange": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "bronze_orange",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_f_81_bronze_purple": {
+   "part": "neck.amulet_star",
+   "sex": "f",
+   "z": 81,
+   "color": "bronze_purple",
+   "idle": true,
+   "bytes": 1805
+  },
+  "lpcp_neck_amulet_star_m_81_brass_blue": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "brass_blue",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_brass_green": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "brass_green",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_brass_orange": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "brass_orange",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_brass_purple": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "brass_purple",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_brass_red": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "brass_red",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_brass_yellow": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "brass_yellow",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_bronze_blue": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "bronze_blue",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_bronze_green": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "bronze_green",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_bronze_orange": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "bronze_orange",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_amulet_star_m_81_bronze_purple": {
+   "part": "neck.amulet_star",
+   "sex": "m",
+   "z": 81,
+   "color": "bronze_purple",
+   "idle": true,
+   "bytes": 1779
+  },
+  "lpcp_neck_charm_oval_f_81_brass": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "brass",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_bronze": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "bronze",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_ceramic": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "ceramic",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_copper": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "copper",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_gold": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "gold",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_iron": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "iron",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_silver": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "silver",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_f_81_steel": {
+   "part": "neck.charm_oval",
+   "sex": "f",
+   "z": 81,
+   "color": "steel",
+   "idle": true,
+   "bytes": 705
+  },
+  "lpcp_neck_charm_oval_m_81_brass": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "brass",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_bronze": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "bronze",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_ceramic": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "ceramic",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_copper": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "copper",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_gold": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "gold",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_iron": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "iron",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_silver": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "silver",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_charm_oval_m_81_steel": {
+   "part": "neck.charm_oval",
+   "sex": "m",
+   "z": 81,
+   "color": "steel",
+   "idle": true,
+   "bytes": 708
+  },
+  "lpcp_neck_necklace_chain_f_80_brass": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "brass",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_bronze": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "bronze",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_ceramic": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "ceramic",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_copper": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "copper",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_gold": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "gold",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_iron": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "iron",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_silver": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "silver",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_f_80_steel": {
+   "part": "neck.necklace_chain",
+   "sex": "f",
+   "z": 80,
+   "color": "steel",
+   "idle": true,
+   "bytes": 1036
+  },
+  "lpcp_neck_necklace_chain_m_80_brass": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "brass",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_bronze": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "bronze",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_ceramic": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "ceramic",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_copper": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "copper",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_gold": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "gold",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_iron": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "iron",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_silver": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "silver",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_chain_m_80_steel": {
+   "part": "neck.necklace_chain",
+   "sex": "m",
+   "z": 80,
+   "color": "steel",
+   "idle": true,
+   "bytes": 1012
+  },
+  "lpcp_neck_necklace_simple_f_80_brass": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "brass",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_bronze": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "bronze",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_ceramic": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "ceramic",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_copper": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "copper",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_gold": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "gold",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_iron": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "iron",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_silver": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "silver",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_f_80_steel": {
+   "part": "neck.necklace_simple",
+   "sex": "f",
+   "z": 80,
+   "color": "steel",
+   "idle": true,
+   "bytes": 1017
+  },
+  "lpcp_neck_necklace_simple_m_80_brass": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "brass",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_bronze": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "bronze",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_ceramic": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "ceramic",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_copper": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "copper",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_gold": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "gold",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_iron": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "iron",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_silver": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "silver",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_necklace_simple_m_80_steel": {
+   "part": "neck.necklace_simple",
+   "sex": "m",
+   "z": 80,
+   "color": "steel",
+   "idle": true,
+   "bytes": 993
+  },
+  "lpcp_neck_scarf_f_90": {
+   "part": "neck.scarf",
+   "sex": "f",
+   "z": 90,
+   "idle": true,
+   "bytes": 2187
+  },
+  "lpcp_neck_scarf_m_90": {
+   "part": "neck.scarf",
+   "sex": "m",
+   "z": 90,
+   "idle": true,
+   "bytes": 2187
+  },
+  "lpcp_nose_nose_button_f_105": {
+   "part": "nose.nose_button",
+   "sex": "f",
+   "z": 105,
+   "idle": true,
+   "bytes": 495
+  },
+  "lpcp_nose_nose_button_m_105": {
+   "part": "nose.nose_button",
+   "sex": "m",
+   "z": 105,
+   "idle": true,
+   "bytes": 495
+  },
+  "lpcp_nose_nose_straight_f_105": {
+   "part": "nose.nose_straight",
+   "sex": "f",
+   "z": 105,
+   "idle": true,
+   "bytes": 599
+  },
+  "lpcp_nose_nose_straight_m_105": {
+   "part": "nose.nose_straight",
+   "sex": "m",
+   "z": 105,
+   "idle": true,
+   "bytes": 599
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_black": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "black",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_blue": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "blue",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_forest": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "forest",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_gray": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "gray",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_green": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "green",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_maroon": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_navy": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "navy",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_red": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "red",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_tan": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "tan",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_blouse_longsleeve_f_35_white": {
+   "part": "torso.blouse_longsleeve",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 4058
+  },
+  "lpcp_torso_jacket_iverness_m_55_black": {
+   "part": "torso.jacket_iverness",
+   "sex": "m",
+   "z": 55,
+   "color": "black",
+   "idle": false,
+   "bytes": 5259
+  },
+  "lpcp_torso_jacket_tabard_f_55_black": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "black",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_blue": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "blue",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_forest": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "forest",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_gray": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "gray",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_green": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "green",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_maroon": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_navy": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "navy",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_red": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "red",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_tan": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "tan",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_f_55_white": {
+   "part": "torso.jacket_tabard",
+   "sex": "f",
+   "z": 55,
+   "color": "white",
+   "idle": false,
+   "bytes": 3456
+  },
+  "lpcp_torso_jacket_tabard_m_55_black": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "black",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_blue": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "blue",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_forest": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "forest",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_gray": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "gray",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_green": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "green",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_maroon": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_navy": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "navy",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_red": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "red",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_tan": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "tan",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_jacket_tabard_m_55_white": {
+   "part": "torso.jacket_tabard",
+   "sex": "m",
+   "z": 55,
+   "color": "white",
+   "idle": false,
+   "bytes": 3288
+  },
+  "lpcp_torso_kimono_f_30_black": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "black",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_brown": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "brown",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_charcoal": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_forest": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "forest",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_gray": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "gray",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_maroon": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_navy": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "navy",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_red": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "red",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_tan": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "tan",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_f_30_white": {
+   "part": "torso.kimono",
+   "sex": "f",
+   "z": 30,
+   "color": "white",
+   "idle": true,
+   "bytes": 5170
+  },
+  "lpcp_torso_kimono_split_f_30_black": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "black",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_brown": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "brown",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_charcoal": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_forest": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "forest",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_gray": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "gray",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_maroon": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_navy": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "navy",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_red": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "red",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_tan": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "tan",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_split_f_30_white": {
+   "part": "torso.kimono_split",
+   "sex": "f",
+   "z": 30,
+   "color": "white",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_kimono_trim_f_31_black": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "black",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_brown": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "brown",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_charcoal": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_forest": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "forest",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_gray": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "gray",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_maroon": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_navy": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "navy",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_red": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "red",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_tan": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "tan",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_kimono_trim_f_31_white": {
+   "part": "torso.kimono_trim",
+   "sex": "f",
+   "z": 31,
+   "color": "white",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_longsleeve_f_35": {
+   "part": "torso.longsleeve",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 4372
+  },
+  "lpcp_torso_longsleeve_m_35": {
+   "part": "torso.longsleeve",
+   "sex": "m",
+   "z": 35,
+   "idle": true,
+   "bytes": 4589
+  },
+  "lpcp_torso_longsleeve_scoop_f_35": {
+   "part": "torso.longsleeve_scoop",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 4176
+  },
+  "lpcp_torso_longsleeve_scoop_m_35": {
+   "part": "torso.longsleeve_scoop",
+   "sex": "m",
+   "z": 35,
+   "idle": true,
+   "bytes": 4682
+  },
+  "lpcp_torso_longsleeve2_cardigan_f_35": {
+   "part": "torso.longsleeve2_cardigan",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 4376
+  },
+  "lpcp_torso_longsleeve2_cardigan_m_35": {
+   "part": "torso.longsleeve2_cardigan",
+   "sex": "m",
+   "z": 35,
+   "idle": true,
+   "bytes": 5372
+  },
+  "lpcp_torso_longsleeve2_f_35": {
+   "part": "torso.longsleeve2",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 4338
+  },
+  "lpcp_torso_longsleeve2_m_35": {
+   "part": "torso.longsleeve2",
+   "sex": "m",
+   "z": 35,
+   "idle": true,
+   "bytes": 5272
+  },
+  "lpcp_torso_longsleeve2_vneck_f_35": {
+   "part": "torso.longsleeve2_vneck",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 4378
+  },
+  "lpcp_torso_longsleeve2_vneck_m_35": {
+   "part": "torso.longsleeve2_vneck",
+   "sex": "m",
+   "z": 35,
+   "idle": true,
+   "bytes": 5360
+  },
+  "lpcp_torso_robe_f_35_blue": {
+   "part": "torso.robe",
+   "sex": "f",
+   "z": 35,
+   "color": "blue",
+   "idle": false,
+   "bytes": 5738
+  },
+  "lpcp_torso_robe_f_35_brown": {
+   "part": "torso.robe",
+   "sex": "f",
+   "z": 35,
+   "color": "brown",
+   "idle": false,
+   "bytes": 5738
+  },
+  "lpcp_torso_robe_f_35_purple": {
+   "part": "torso.robe",
+   "sex": "f",
+   "z": 35,
+   "color": "purple",
+   "idle": false,
+   "bytes": 5738
+  },
+  "lpcp_torso_robe_f_35_red": {
+   "part": "torso.robe",
+   "sex": "f",
+   "z": 35,
+   "color": "red",
+   "idle": false,
+   "bytes": 5738
+  },
+  "lpcp_torso_sash_f_30_black": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "black",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_brown": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "brown",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_charcoal": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_forest": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "forest",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_gray": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "gray",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_maroon": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_navy": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "navy",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_red": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "red",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_tan": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "tan",
+   "idle": true,
+   "bytes": 3884
+  },
+  "lpcp_torso_sash_f_30_white": {
+   "part": "torso.sash",
+   "sex": "f",
+   "z": 30,
+   "color": "white",
+   "idle": true,
+   "bytes": 3764
+  },
+  "lpcp_torso_shortsleeve_f_35": {
+   "part": "torso.shortsleeve",
+   "sex": "f",
+   "z": 35,
+   "idle": true,
+   "bytes": 3592
+  },
+  "lpcp_torso_shortsleeve_m_35": {
+   "part": "torso.shortsleeve",
+   "sex": "m",
+   "z": 35,
+   "idle": true,
+   "bytes": 3903
+  },
+  "lpcp_torso_slit_f_30_black": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "black",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_brown": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "brown",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_charcoal": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_forest": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "forest",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_gray": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "gray",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_maroon": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_navy": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "navy",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_red": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "red",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_tan": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "tan",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_slit_f_30_white": {
+   "part": "torso.slit",
+   "sex": "f",
+   "z": 30,
+   "color": "white",
+   "idle": true,
+   "bytes": 3745
+  },
+  "lpcp_torso_tunic_f_35_black": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "black",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_brown": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "brown",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_charcoal": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_forest": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_gray": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_maroon": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_navy": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_red": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "red",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_tan": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "tan",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_f_35_white": {
+   "part": "torso.tunic",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 2642
+  },
+  "lpcp_torso_tunic_sara_f_35_black": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "black",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_brown": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "brown",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_charcoal": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_forest": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "forest",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_gray": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "gray",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_maroon": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_navy": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "navy",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_red": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "red",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_tan": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "tan",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_tunic_sara_f_35_white": {
+   "part": "torso.tunic_sara",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 3521
+  },
+  "lpcp_torso_vest_m_45_black": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "black",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_brown": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "brown",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_charcoal": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_forest": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "forest",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_gray": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "gray",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_maroon": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_navy": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "navy",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_red": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "red",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_tan": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "tan",
+   "idle": true,
+   "bytes": 2596
+  },
+  "lpcp_torso_vest_m_45_white": {
+   "part": "torso.vest",
+   "sex": "m",
+   "z": 45,
+   "color": "white",
+   "idle": true,
+   "bytes": 2596
+  }
+ }
+}

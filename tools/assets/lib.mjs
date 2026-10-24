@@ -146,10 +146,10 @@ export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 // ---------- Giấy phép asset ngoài (GAME_DESIGN.md mục 5.11 "Nguồn và giấy phép") ----------
 /**
  * Giấy phép đã biết, ghi như CREDITS.csv của LPC / trang OpenGameArt ("CC0", "CC-BY 4.0", "CC-BY-SA 3.0", "OGA-BY 3.0+",
- * "GPL 3.0", "CC-BY-NC 4.0", "OGA-SA 3.0"…). Mọi giấy phép đã biết đều dùng được; giấy phép lạ, trống, ND (cấm sửa, mà công cụ
+ * "GPL 3.0", "CC-BY-NC 4.0", "OGA-SA 3.0"…; CC / OGA ghi không kèm số phiên bản như "CC-BY" vẫn đọc được). Mọi giấy phép đã biết đều dùng được; giấy phép lạ, trống, ND (cấm sửa, mà công cụ
  * luôn sửa ảnh) thì công cụ dừng. OGA-SA (OpenGameArt Share-Alike, lớp LPC `neck/scarf`, `torso/clothes/corset`) gắn cờ SA.
  */
-export const LICENSE_KNOWN = /^(CC0|CC-BY(-NC)?(-SA)? \d(\.\d)?\+?|OGA-(BY|SA) \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
+export const LICENSE_KNOWN = /^(CC0|CC-BY(-NC)?(-SA)?( \d(\.\d)?\+?)?|OGA-(BY|SA)( \d(\.\d)?\+?)?|GPL \d(\.\d)?\+?)$/;
 /** Cờ nghĩa vụ của một giấy phép: SA / GPL (bản đã sửa theo đúng giấy phép đó), NC (chỉ dùng khi game phi thương mại). */
 export const licenseFlags = (l) => [/-SA\b/.test(l) && "SA", /^GPL\b/.test(l) && "GPL", /-NC\b/.test(l) && "NC"].filter(Boolean);
 const licenseRank = (l) => { const f = licenseFlags(l); return (f.includes("NC") ? 3 : 0) + (f.includes("SA") ? 1 : 0) + (f.includes("GPL") ? 2 : 0); };
