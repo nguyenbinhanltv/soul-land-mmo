@@ -81,8 +81,9 @@
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
 import { Client } from "colyseus.js";
-import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
-import { findPath, clearLine, pathLength } from "../../shared/path.ts";
+import { solidGrid, hits, isSolidTile, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
+import { findPath, findLongPath, buildNav, navNode, clearLine, pathLength } from "../../shared/path.ts";
+import { autoLeg } from "../../shared/autowalk.ts"; // tự đi tới cờ (R4, #431)
 import { bagDiff, applyBagDelta } from "../../shared/bagSync.ts";
 import { pack } from "@colyseus/msgpackr"; // đo byte tin túi đồ như trên dây (Colyseus mã hóa tin bằng msgpack)
 import { existsSync, readFileSync } from "node:fs";
@@ -121,8 +122,9 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
+import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
-import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
+import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
 import * as SD from "../../shared/data.ts"; // E2: rollEquipDrop, rollEquipCharm... (equipDropTest)
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
@@ -138,6 +140,7 @@ import { SLOW_CAP } from "../../shared/data.ts"; // Thủy Triều Dâng (#174):
 import { AUTO_BOSS } from "../../shared/data.ts"; // tự săn đánh tinh anh, thú vương, boss thế giới (#218)
 import { ATTACK_CD } from "../../shared/data.ts"; // chống gian lận 1 (#164): gửi dồn đánh thường
 import { WORLD_CHAT } from "../../shared/data.ts"; // kênh thế giới (#188)
+import { AUTOWALK, TILE } from "../../shared/data.ts"; // tự đi tới cờ (R4, #431)
 import { FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts"; // bạn bè và chặn (#195)
 import { FUSION, FUSIONS, fusionIndex } from "../../shared/data.ts"; // Võ Hồn Dung Hợp Kỹ (#192)
 import { TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_POOL, TONG_BOARD_CD, tongTaskIds, tongTaskPicks, isTongTask, tongWeekDay, tongTop } from "../../shared/data.ts"; // tông môn 2 (#197)
@@ -193,6 +196,90 @@ async function bot(name,choice,looks,near=false){
   await enter(b);
   return b;
 }
+/**
+ * Looks v2 (#509, BOT_ONLY=looks2): ngoại hình chế độ Tự tạo (LPC) song song với Mẫu dựng sẵn. Hàm thuần parseLooks / parseLpc / encodeLpc;
+ * /api/looks nhận preset (có / không `mode`, như client cũ) và lpc hợp lệ; mã lạ, sai ô, sai giới, màu lạ, quá dài, khóa thừa bị 400
+ * (không tạo nhân vật); lưu qua lần đăng nhập lại; người khác trong phòng nhận đúng chuỗi `lpc` và hồn sư preset có chuỗi rỗng.
+ */
+async function looks2Test(){
+  console.log("[#509] Looks v2: preset / lpc, kiểm theo danh mục, đồng bộ");
+  const partOf=(slot,pred=()=>true)=>LPC_PARTS.find(p=>p.slot===slot&&pred(p));
+  const fOnly=LPC_PARTS.find(p=>p.sex==="f"&&p.slot==="torso");
+  const hair=partOf("hair"), torso=partOf("torso",p=>p.sex==="mf"&&p.mats.some(m=>m.startsWith("cloth"))), fixed=LPC_PARTS.find(p=>p.colors.length&&p.sex==="mf"&&p.slot!=="torso"&&p.slot!=="hair");
+  const good={v:1,body:0,parts:{body:"body.body",head:"head.male",hair:hair.id,torso:torso.id,[fixed.slot]:fixed.id},colors:{skin:LPC_RAMPS.body.allow[2],eye:"green",hair:LPC_RAMPS.hair.allow[1],torso:LPC_RAMPS.cloth.allow[3],[fixed.slot]:fixed.colors[1]}};
+  const L=(lpc,extra={})=>({mode:"lpc",lpc,...extra});
+  const mut=f=>{const c=structuredClone(good); f(c); return c;};
+
+  // Hàm thuần.
+  const g=parseLooks(L(good));
+  ok(g&&g.mode==="lpc"&&g.sex===0&&g.hair===0&&g.hairCol===0&&g.outfitCol===0&&g.skin===0&&g.lpc.parts.hair===hair.id,"parseLooks nhận lpc hợp lệ, sex lấy từ lpc.body, số preset = 0");
+  const enc=encodeLpc(g.lpc), dec=decodeLpc(enc);
+  ok(dec&&encodeLpc(dec)===enc&&enc.length<400&&enc.startsWith("1|0|"),`encodeLpc gọn (${enc.length} ký tự) và decodeLpc khôi phục đúng`);
+  ok(parseLooks({sex:1,hair:2,hairCol:3,outfitCol:4,skin:2}).mode==="preset"&&parseLooks({sex:1,hair:2,hairCol:3,outfitCol:4,mode:"preset"})?.skin===0,"thiếu mode = preset; thiếu skin = 0 (client cũ)");
+  ok(parseLooks({sex:0,hair:0,hairCol:0,outfitCol:0,mode:"xyz"})===null&&parseLooks({sex:0,hair:0,hairCol:0,outfitCol:0,mode:1})===null,"mode lạ -> null");
+  ok(decodeLpc("1|0|||body.body")===null&&decodeLpc("2|0|||body.body,head.male")===null&&decodeLpc("1|0|||body.body,head.male,zzz.x")===null&&decodeLpc("1|0|||body.body,body.body,head.male")===null&&decodeLpc("x".repeat(2000))===null,"decodeLpc: thiếu ô bắt buộc / phiên bản lạ / mã lạ / trùng ô / quá dài -> null");
+
+  // Các ca bị từ chối (cả ở hàm thuần lẫn /api/looks).
+  const bad={
+    "mã lạ":mut(c=>{c.parts.hair="hair.khong_co";}),
+    "sai ô (mã tóc nằm ô áo)":mut(c=>{c.parts.torso=hair.id;}),
+    "ô lạ":mut(c=>{c.parts.wings=hair.id;}),
+    "thiếu thân":mut(c=>{delete c.parts.body;}),
+    "thiếu mặt":mut(c=>{delete c.parts.head;}),
+    "món chỉ nữ, thân nam":mut(c=>{c.parts.torso=fOnly.id; delete c.colors.torso;}),
+    "màu da lạ":mut(c=>{c.colors.skin="tim_than_ky";}),
+    "màu tóc không có trong allow (orange chỉ là dải gốc)":mut(c=>{c.colors.hair="orange";}),
+    "màu sheet vẽ sẵn không có trong món":mut(c=>{c.colors[fixed.slot]="khong_co";}),
+    "màu cho ô không có món":mut(c=>{c.colors.cape="black";}),
+    "màu không phải chuỗi":mut(c=>{c.colors.hair=3;}),
+    "mã không phải chuỗi":mut(c=>{c.parts.hair=5;}),
+    "thể hình lạ":mut(c=>{c.body=2;}),
+    "thể hình không nguyên":mut(c=>{c.body=0.5;}),
+    "phiên bản lạ":mut(c=>{c.v=2;}),
+    "parts là mảng":mut(c=>{c.parts=[];}),
+    "quá nhiều ô":mut(c=>{for(let i=0;i<40;i++) c.parts["x"+i]="body.body";}),
+    "mã quá dài":mut(c=>{c.parts.hair="hair."+"a".repeat(5000);}),
+    "màu khóa toString":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male"},"colors":{"toString":"x"}}'),
+    "màu khóa constructor":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male"},"colors":{"constructor":"x"}}'),
+    "màu khóa __proto__":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male"},"colors":{"__proto__":"x"}}'),
+    "khóa __proto__":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male","__proto__":"x"},"colors":{}}'),
+  };
+  for(const [n,l] of Object.entries(bad)) ok(parseLpc(l)===null&&parseLooks(L(l))===null,`lpc sai (${n}) -> null`);
+  ok(parseLooks({mode:"lpc"})===null&&parseLooks(L(null))===null&&parseLooks(L("x"))===null&&parseLooks(L(good,{sex:1}))===null,"mode lpc thiếu / sai kiểu lpc, hoặc sex khác lpc.body -> null");
+  ok(parseLooks(L(good,{sex:0,hair:3,skin:9}))?.hair===0,"mode lpc bỏ qua các số preset (đặt 0)");
+  ok(parseLooks(L(mut(c=>{c.body=1;}))).sex===1,"thân nữ -> sex 1");
+  const ff=mut(c=>{c.body=1; c.parts.torso=fOnly.id; delete c.colors.torso; if(fOnly.colors.length) c.colors.torso=fOnly.colors[0];});
+  ok(parseLooks(L(ff))!==null,`món chỉ nữ (${fOnly.id}) với thân nữ -> nhận`);
+
+  // /api/looks: ca sai không tạo nhân vật, ca đúng tạo được; nhận qua lần đăng nhập lại.
+  const newAcc=async n=>{ const l=await post("/api/login",{name:`${n} ${RUN}`,password:PASS}); ok(!l.looks?.chosen&&l.looks?.mode!=="lpc"&&l.looks?.lpc===undefined,`${n}: tài khoản mới chưa chọn, mặc định là preset`); return l; };
+  const A=await newAcc("L2 lpc"), B=await newAcc("L2 preset"), C=await newAcc("L2 cu");
+  for(const [n,l] of Object.entries(bad)) ok((await post("/api/looks",{token:A.token,...L(l)})).status===400,`/api/looks lpc sai (${n}) -> 400`);
+  ok((await post("/api/looks",{token:A.token,mode:"lpc"})).status===400&&(await post("/api/looks",{token:A.token,mode:"khac",sex:0,hair:0,hairCol:0,outfitCol:0})).status===400,"/api/looks: lpc thiếu / mode lạ -> 400");
+  ok(!(await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS})).looks?.chosen,"các ca sai không làm tài khoản thành đã chọn");
+  const ra=await post("/api/looks",{token:A.token,...L(good)});
+  ok(ra.status===200&&ra.looks?.chosen&&ra.looks.mode==="lpc"&&ra.looks.sex===0&&JSON.stringify(ra.looks.lpc)===JSON.stringify(parseLpc(good)),"tạo lpc hợp lệ -> 200, trả đúng phần lpc");
+  ok((await post("/api/looks",{token:A.token,...L(good)})).status===409,"đổi / tạo lại sau khi đã chọn -> 409 (luật hiện tại giữ nguyên)");
+  const A2=await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS});
+  ok(A2.looks?.mode==="lpc"&&A2.looks.chosen&&encodeLpc(A2.looks.lpc)===enc,"đăng nhập lại: lpc lưu đúng (DB / RAM)");
+  const rb=await post("/api/looks",{token:B.token,mode:"preset",sex:1,hair:2,hairCol:3,outfitCol:4,skin:1});
+  ok(rb.status===200&&rb.looks.mode==="preset"&&rb.looks.lpc===undefined&&rb.looks.skin===1,"tạo preset có mode -> 200");
+  const rc=await post("/api/looks",{token:C.token,sex:0,hair:3,hairCol:5,outfitCol:1});
+  ok(rc.status===200&&rc.looks.mode==="preset"&&rc.looks.skin===0&&rc.looks.lpc===undefined,"client cũ (không mode, không skin) -> preset, tông 0");
+  ok((await post("/api/login",{name:`L2 cu ${RUN}`,password:PASS})).looks?.mode==="preset","đăng nhập lại tài khoản preset: vẫn preset");
+
+  // Đồng bộ: vào phòng, người khác thấy đúng chuỗi.
+  for(const [x,v] of [[A,"lam_dien_ba_vuong_long"],[B,"bich_lan_xa_hoang"]]){ const a=await post("/api/awaken",{token:x.token,vohon:v}); ok(a.status===200,`thức tỉnh ${v}`); }
+  const mk=async(l,n)=>{ const me=await post("/api/me",{token:l.token}); const b={name:n,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:true,mapId:me.mapId,near:false}; await enter(b); return b; };
+  const ba=await mk(A,"L2 lpc"), bb=await mk(B,"L2 preset");
+  await sleep(800);
+  const seenA=bb.room.state.players.get(ba.room.sessionId), seenB=ba.room.state.players.get(bb.room.sessionId);
+  ok(ba.room.roomId===bb.room.roomId&&seenA&&seenB,"hai bot cùng phòng, thấy nhau");
+  ok(seenA?.lpc===enc&&decodeLpc(seenA.lpc)&&seenA.sex===0&&seenA.hair===0,`B thấy đúng chuỗi lpc của A (${seenA?.lpc?.length} ký tự)`);
+  ok(seenB?.lpc===""&&seenB.sex===1&&seenB.hair===2&&seenB.hairCol===3&&seenB.outfitCol===4&&seenB.skin===1,"A thấy B là preset: lpc rỗng, số preset giữ nguyên");
+  await ba.room.leave(); await bb.room.leave();
+}
+
 /**
  * Vào phòng bản đồ và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). `roomId`: vào thẳng phòng đó: kênh server chọn (như
  * client sau `travel`, mục 6 "Nhiều kênh") hoặc phòng sân đấu server gửi khi ghép trận (7.2).
@@ -316,8 +403,10 @@ const STANDALONE=[
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["sell",3,sellTest],                        //   5 #216
+  ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
+  ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
   ["waypoint",4,waypointTest],                //  45 11.2
   ["camp",3,campTest],                        //   9 #111
   ["bigmap",1,bigMapTest],                    //  78 11.3 / 11.5
@@ -344,7 +433,7 @@ const STANDALONE=[
 ];
 // BOT_PART=smoke (mức "smoke" của CI, job `changes`): chỉ phần chung (đăng nhập, vào bản đồ, di chuyển, đánh quái, túi / nhân vật, tin giao diện cơ bản)
 // cộng các bài độc lập nhẹ ở SMOKE dưới đây, ~2 phút trên runner CI. Không khối INLINE nào chạy ở chế độ này.
-const SMOKE=new Set(["cold","ink","boneSub","sell"]);
+const SMOKE=new Set(["cold","ink","boneSub","sell","looks2"]);
 const PART=process.env.BOT_PART??"", T0=Date.now(), timing=[];
 const inPart=k=>{ if(!(k in INLINE)) throw new Error(`inPart: khóa ${k} chưa có trong INLINE`); return !PART||PART===String(INLINE[k]); };
 for(const [k,n] of [...Object.entries(INLINE),...STANDALONE.map(([k,n])=>[k,n])])
@@ -387,6 +476,8 @@ function finish(){
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
+if(process.env.BOT_ONLY==="looks2"){ await looks2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="flag"){ await flagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -398,6 +489,8 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -5803,6 +5896,131 @@ async function syncViewTest(){
   await V.room.leave(); await W.room.leave();
 }
 /**
+ * Tự đi tới cờ (R4 #431; BOT_ONLY=flag): cùng bản đồ, xuyên một cổng, bị chặn. Client (GameScene.flagTick) chỉ lái hướng đi bằng `input` và gửi
+ * `travel` khi server báo đang đứng trên cổng; bot lặp lại đúng vòng đó với cùng hàm dùng chung (autoLeg, findLongPath) và `route` thật
+ * của tin "daily", để kiểm đường dữ liệu trên bản đồ ×8 thật: đường đi dài, cổng có thật, server không có lệnh dịch chuyển.
+ */
+async function flagTest(){
+  console.log("[R4 #431] Tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn");
+  const HT="thanh_hon_thon", ND="nac_dinh_thanh";
+  const T=await bot("Đi cờ","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:3,outfitCol:2});
+  const me=()=>T.room.state.players?.get(T.room.sessionId);
+  await waitFor(()=>me()&&T.daily,3000);
+  const gridOf=m=>solidGrid(JSON.parse(readFileSync(mapUrl(m),"utf8")));
+  const navOf=new Map(), nav=(m,g)=>{ if(!navOf.has(m)) navOf.set(m,buildNav(g,AUTO_MOVE.nav.block)); return navOf.get(m); };
+  const objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const near=()=>Math.max(3,me().spd*(1/TICK_RATE+0.05));
+  const here=()=>T.room.state.mapId;
+  async function rejoin(){
+    const t=T.travel; await T.room.leave(); await sleep(250); T.mapId=t.mapId; await enter(T,t.roomId??undefined);
+    await waitFor(()=>me(),3000); T.room.send("quest",{op:"get"}); // không chờ tin daily: autoWalk chờ khi cần route, như GameScene.flagTick
+  }
+  /**
+   * Một lần "tự đi" như GameScene.flagTick: chặng cờ / cổng theo autoLeg, đường findLongPath, lái hướng bằng `input`, kẹt 5 giây thì dừng,
+   * đứng trên cổng thì `travel` rồi vào bản đồ mới. Trả "arrived" | "none" | "stuck" | "gate" | "timeout".
+   */
+  async function autoWalk(goal,maxMs=120000){
+    const t0=Date.now(); let best=Infinity, bestT=Date.now(), mapAt=here();
+    while(Date.now()-t0<maxMs){
+      if(here()!==goal.map&&!T.daily&&!(await waitFor(()=>T.daily,AUTOWALK.gateSecs*1000))) return "none"; // vừa qua cổng: chờ tin daily có route
+      const leg=autoLeg(here(),{map:goal.map,tile:goal.tx!=null},T.daily?.route??{});
+      if(leg.k==="arrived") return "arrived";
+      if(leg.k==="none") return "none";
+      const g=gridOf(here()), p=me(), raw=objsOf(here());
+      let tx, ty;
+      if(leg.k==="flag"){ tx=goal.tx*TILE; ty=goal.ty*TILE; }
+      else { const o=raw.find(q=>q.type==="portal"&&(q.properties??[]).find(z=>z.name==="to")?.value===leg.to); if(!o) return "none"; tx=o.x+o.width/2; ty=o.y+o.height/2; }
+      if(mapAt!==here()){ mapAt=here(); best=Infinity; bestT=Date.now(); }
+      if(leg.k==="gate"&&T.portal?.name&&T.portal.to===leg.to){
+        T.room.send("input",{x:0,y:0}); T.travel=null; T.room.send("travel",{portal:T.portal.name});
+        if(!(await waitFor(()=>T.travel?.mapId===leg.to,AUTOWALK.gateSecs*1000))) return "gate";
+        await rejoin(); continue;
+      }
+      const d=Math.hypot(tx-p.x,ty-p.y)/TILE;
+      if(leg.k==="flag"&&d<AUTOWALK.arrive){ T.room.send("input",{x:0,y:0}); return "arrived"; }
+      if(d<best-AUTOWALK.progress){ best=d; bestT=Date.now(); } else if(Date.now()-bestT>AUTOWALK.stuckSecs*1000){ T.room.send("input",{x:0,y:0}); return "stuck"; }
+      const path=findLongPath(g,nav(here(),g),p,{x:tx,y:ty},AUTO_MOVE.nav.look), end=path.at(-1);
+      if(!end||Math.hypot(end.x-tx,end.y-ty)>TILE*2){ T.room.send("input",{x:0,y:0}); return "none"; }
+      // Đi hết đoạn này (như goal của GameScene): tới từng điểm, bỏ khi kẹt 0,5 giây không gần thêm.
+      let i=0, dBest=Infinity, dT=Date.now();
+      while(i<path.length&&Date.now()-t0<maxMs){
+        const q=me(); let w=path[i], L=Math.hypot(w.x-q.x,w.y-q.y);
+        while(L<near()&&i<path.length-1){ w=path[++i]; L=Math.hypot(w.x-q.x,w.y-q.y); dBest=Infinity; dT=Date.now(); }
+        if(L<near()) break;
+        if(Date.now()-dT>500){ if(L>dBest-2) break; dBest=L; dT=Date.now(); }
+        if(leg.k==="gate"&&T.portal?.name) break; // server báo đã đứng trên cổng
+        T.room.send("input",{x:+((w.x-q.x)/L).toFixed(2),y:+((w.y-q.y)/L).toFixed(2)}); await sleep(50);
+      }
+      T.room.send("input",{x:0,y:0}); await sleep(80);
+    }
+    T.room.send("input",{x:0,y:0}); return "timeout";
+  }
+  /** Ô thoáng cách (cx, cy) chừng `r` ô theo hướng a, đi bộ tới được từ vị trí đang đứng (cùng vùng liên thông, không phải ô chặn). */
+  const reachable=(g,nv,from,p)=>{ const a=navNode(nv,from.x,from.y), b=navNode(nv,p.x,p.y); return a>=0&&b>=0&&nv.region[a]===nv.region[b]; };
+
+  if(!(await test(T,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự đi tới cờ (cần hook goto, down): bật server bằng GAME_TEST=1"); await T.room.leave(); return; }
+  // 1. Cùng bản đồ: cờ xa (≥ 50 ô), phải đi vòng vật cản bằng đường dài.
+  await test(T,"clear",{all:true}); T.room.send("input",{x:0,y:0});
+  { const g=gridOf(HT), nv=nav(HT,g), p0={x:me().x,y:me().y}; let flag=null;
+    for(let r=60;r<=140&&!flag;r+=10) for(let a=0;a<24&&!flag;a++){
+      const tx=Math.floor(p0.x/TILE+Math.cos(a*Math.PI/12)*r), ty=Math.floor(p0.y/TILE+Math.sin(a*Math.PI/12)*r), x=(tx+.5)*TILE, y=(ty+.5)*TILE;
+      if(tx<2||ty<2||tx>=g.MW-2||ty>=g.MH-2||isSolidTile(g,tx,ty)||hits(g,x,y,PLAYER_HW+1,PLAYER_HH+1)||!reachable(g,nv,p0,{x,y})) continue;
+      const path=findLongPath(g,nv,p0,{x,y},AUTO_MOVE.nav.look), end=path.at(-1);
+      if(end&&Math.hypot(end.x-x,end.y-y)<TILE&&!clearLine(g,p0,{x,y})) flag={tx:tx+.5,ty:ty+.5,len:pathLength(p0,path)};
+    }
+    if(!flag) console.log("  ⚠ bỏ qua cờ cùng bản đồ: không có ô xa bị chắn quanh",p0.x.toFixed(0),p0.y.toFixed(0));
+    else {
+      const res=await autoWalk({map:HT,tx:flag.tx,ty:flag.ty}), q=me(), d=Math.hypot(q.x-flag.tx*TILE,q.y-flag.ty*TILE)/TILE;
+      ok(res==="arrived"&&d<AUTOWALK.arrive+1,`cờ cùng bản đồ: đường ${(flag.len/TILE).toFixed(0)} ô vòng vật cản, ${res}, còn cách cờ ${d.toFixed(1)} ô (server tính vị trí, không dịch chuyển)`);
+      ok(here()===HT,"cùng bản đồ: không đổi phòng");
+    }
+  }
+  // 2. Xuyên một cổng: tới Nặc Đinh Thành rồi đi tiếp tới một ô trong bản đồ mới.
+  { ok(T.daily.route?.[ND]===ND,`route từ ${MAPS[HT].name}: tới ${MAPS[ND].name} qua cổng trực tiếp (${JSON.stringify(T.daily.route)})`);
+    const res1=await autoWalk({map:ND,tx:null,ty:null});
+    ok(res1==="arrived"&&here()===ND,`đi tới bản đồ ${MAPS[ND].name} qua cổng thật: ${res1}, đang ở ${MAPS[here()]?.name}`);
+    const g=gridOf(ND), nv=nav(ND,g), p0={x:me().x,y:me().y}; let flag=null;
+    for(let r=30;r<=90&&!flag;r+=10) for(let a=0;a<24&&!flag;a++){
+      const tx=Math.floor(p0.x/TILE+Math.cos(a*Math.PI/12)*r), ty=Math.floor(p0.y/TILE+Math.sin(a*Math.PI/12)*r), x=(tx+.5)*TILE, y=(ty+.5)*TILE;
+      if(tx<2||ty<2||tx>=g.MW-2||ty>=g.MH-2||isSolidTile(g,tx,ty)||hits(g,x,y,PLAYER_HW+1,PLAYER_HH+1)||!reachable(g,nv,p0,{x,y})) continue;
+      const end=findLongPath(g,nv,p0,{x,y},AUTO_MOVE.nav.look).at(-1); if(end&&Math.hypot(end.x-x,end.y-y)<TILE) flag={tx:tx+.5,ty:ty+.5};
+    }
+    ok(!!flag,"có ô cờ đi được trong bản đồ mới");
+    if(flag){ const res2=await autoWalk({map:ND,tx:flag.tx,ty:flag.ty}), q=me(), d=Math.hypot(q.x-flag.tx*TILE,q.y-flag.ty*TILE)/TILE;
+      ok(res2==="arrived"&&d<AUTOWALK.arrive+1,`tiếp tục tới cờ trong ${MAPS[ND].name}: ${res2}, còn cách ${d.toFixed(1)} ô`); }
+    // Đi ngược về: cờ ở bản đồ cũ, chặng đầu là cổng (route từ bản đồ mới).
+    ok(T.daily.route?.[HT]===HT,`route từ ${MAPS[ND].name} về ${MAPS[HT].name} là cổng trực tiếp`);
+    const res3=await autoWalk({map:HT,tx:null,ty:null}); ok(res3==="arrived"&&here()===HT,`đi ngược lại ${MAPS[HT].name} qua cổng: ${res3}`);
+  }
+  // 3b. Server không nhận lệnh dịch chuyển: input lạ (toạ độ đích) bị bỏ qua, chỉ hướng đi.
+  { const p=me(), x0=p.x, y0=p.y;
+    T.room.send("input",{x:1,y:0,tx:x0+500,ty:y0+500}); await sleep(300); T.room.send("input",{x:0,y:0}); await sleep(150);
+    ok(Math.hypot(me().x-x0,me().y-y0)<PLAYER_SPEED,`input kèm toạ độ đích không dịch chuyển (đi ${Math.hypot(me().x-x0,me().y-y0).toFixed(0)} px, tối đa ${PLAYER_SPEED} px/giây)`); }
+  // 3. Bị chặn: ô chặn không đặt được cờ, ô không cùng vùng liên thông không có đường, bản đồ không có cổng tới (sân đấu), cổng bị từ chối.
+  { const g=gridOf(HT), nv=nav(HT,g); let solid=null;
+    for(let y=0;y<g.MH&&!solid;y++) for(let x=0;x<g.MW&&!solid;x++) if(isSolidTile(g,x,y)) solid={x,y};
+    ok(!!solid&&isSolidTile(g,solid.x,solid.y),"ô chặn: client từ chối đặt cờ (isSolidTile)");
+    let isle=null; const p0={x:me().x,y:me().y};
+    for(let y=2;y<g.MH-2&&!isle;y+=3) for(let x=2;x<g.MW-2&&!isle;x+=3){ const px=(x+.5)*TILE, py=(y+.5)*TILE;
+      if(!isSolidTile(g,x,y)&&navNode(nv,px,py)>=0&&!reachable(g,nv,p0,{x:px,y:py})) isle={x:x+.5,y:y+.5}; }
+    if(isle){ const res=await autoWalk({map:HT,tx:isle.x,ty:isle.y},8000); ok(res==="none"&&Math.hypot(me().x-p0.x,me().y-p0.y)<TILE,`ô ở vùng tách biệt (${isle.x},${isle.y}): "không có đường", đứng yên`); }
+    else console.log("  ⚠ bỏ qua vùng tách biệt: bản đồ chỉ có một vùng liên thông");
+    ok(autoLeg(HT,{map:"dai_dau_hon_truong",tile:false},T.daily.route).k==="none"&&T.daily.route?.dai_dau_hon_truong===undefined,"bản đồ không có cổng đi bộ tới (sân đấu): không có đường, không tự dùng truyền tống / Hồi Thành Phù");
+    // Cổng bị từ chối: xin qua cổng khi không đứng trong cổng (client sửa / lỗi thời gian) thì server từ chối, không dịch chuyển.
+    const portal=objsOf(HT).find(o=>o.type==="portal"&&(o.properties??[]).find(z=>z.name==="to")?.value===ND);
+    await test(T,"goto",{x:p0.x,y:p0.y}); T.travel=null; const l=T.logs.length; T.room.send("travel",{portal:portal.name}); await sleep(700);
+    ok(!T.travel&&T.logs.slice(l).some(t=>/đứng trong cổng/.test(t))&&here()===HT,`xin qua cổng khi không đứng trong cổng: server từ chối ("${T.logs.at(-1)}"), không dịch chuyển`);
+  }
+  // 5. Hai cổng liên tiếp (#516): Thánh Hồn Thôn → Nặc Đinh Thành → Tinh Đấu Ngoại vi. Vào Nặc Đinh Thành chưa có tin daily mà vẫn phải đi tiếp.
+  { const far="tinh_dau_ngoai_vi";
+    ok(T.daily?.route?.[far]===ND&&autoLeg(HT,{map:far,tile:false},T.daily.route).k==="gate",`route: ${MAPS[far].name} cách hai cổng, chặng đầu là ${MAPS[ND].name}`);
+    let hops=0; T.room.onMessage("travel",()=>{hops++;}); const first=T.room.sessionId;
+    const res=await autoWalk({map:far,tx:null,ty:null},240000);
+    ok(res==="arrived"&&here()===far&&first!==T.room.sessionId,`đi hai cổng liền: ${res}, đang ở ${MAPS[here()]?.name}`); }
+  await T.room.leave();
+}
+
+/**
  * 11.2 Truyền tống trận và bản đồ thế giới: dữ liệu (mọi bản đồ trừ sân đấu có 1–3 object `waypoint`, tâm đứng được, phí theo số lần
  * đi cổng, Hồi Thành Phù bán ở thương nhân, không mua lại). Với hook: bot T (tài khoản mới) mở khóa trận khi bước lên (tin `wp`, bản
  * đồ thế giới ghi đã mở), không đứng trên trận thì chỉ xem, trận chưa mở / thiếu Hồn Tệ / đang giao chiến bị từ chối; niệm WAYPOINT_CAST
@@ -7412,6 +7630,10 @@ async function cucBacTest(){
 
   // Rơi đặc trưng: mảnh của 4 võ hồn Cực Bắc (từ 8.3 có Băng Phượng Hoàng) vào túi người hạ (hook shard cố định võ hồn), hồn hạch sao theo niên hạn.
   await test(C,"core",{r:0});
+  // Túi của C đã gần đầy sau các bài trước (250 ô): mảnh không còn chỗ thì rơi xuống đất thay vì vào túi. Bỏ bớt Hồi Hồn Đan (bài trước nhét đầy túi bằng loại này) chừa chỗ cho mảnh.
+  { const loose=()=>C.bag.items.filter(i=>i.vohon===null), junk=loose().filter(i=>i.code==="hoi_hon_dan").slice(0,Math.max(0,loose().length-(BAG_SLOTS-M.shards.length-1)));
+    for(const i of junk) C.room.send("discard",{id:i.id});
+    ok(await waitFor(()=>loose().length<=BAG_SLOTS-M.shards.length-1,3000),`túi C chừa chỗ cho mảnh rơi đặc trưng: ${loose().length}/${BAG_SLOTS} ô (bỏ ${junk.length} ô Hồi Hồn Đan; còn ${Object.entries(loose().reduce((m,i)=>(m[i.code]=(m[i.code]??0)+1,m),{})).map(([k,v])=>`${k}:${v}`).join(" ")})`); }
   for(let i=0;i<M.shards.length;i++){
     const [n,yr,sp]=TB[i], y=parseLevelRange(yr)[0], code=shardCode(M.shards[i]), q0=qtyOf(C,code);
     await test(C,"clear"); await test(C,"shard",{r:0,i}); const before=new Set(C.room.state.drops.keys());
@@ -7420,7 +7642,8 @@ async function cucBacTest(){
     const nd=[...C.room.state.drops.entries()].filter(([k])=>!before.has(k)).map(([,d])=>d), core=nd.find(d=>d.item===CORE_ITEM), ring=nd.find(d=>!d.item);
     const [lo,hi]=coreStarBand(y);
     ok(sl?.years===y&&qtyOf(C,code)===q0+1&&ring?.years===y&&core&&core.stars>=lo&&core.stars<=hi,
-      `hạ ${BEASTS[beastIndex(sp[0])].name} ${formatYears(y)} (${n}): +1 mảnh ${VOHON[vohonIndex(M.shards[i])].name}, hồn hoàn ${formatYears(ring?.years??0)}, hồn hạch ${core?.stars}★ ${CORE_SETS[core?.cset]?.name}`);
+      `hạ ${BEASTS[beastIndex(sp[0])].name} ${formatYears(y)} (${n}): +1 mảnh ${VOHON[vohonIndex(M.shards[i])].name}, hồn hoàn ${formatYears(ring?.years??0)}, hồn hạch ${core?.stars}★ ${CORE_SETS[core?.cset]?.name}`+
+      (sl?.years===y&&qtyOf(C,code)===q0+1&&ring?.years===y&&core&&core.stars>=lo&&core.stars<=hi?"":` [slay ${sl?.years}, mảnh ${qtyOf(C,code)-q0}, sao ${lo}-${hi}, đồ rơi mới ${nd.map(d=>`${d.item||"hoàn"}:${d.years}:${d.stars}`).join(" ")}]`));
   }
   await test(C,"shard",{r:-1}); await test(C,"core",{r:100}); await test(C,"clear");
   await test(C,"set",{rowId:act,level:v0.level,xp:v0.xp,rings:v0.rings});
@@ -11270,4 +11493,114 @@ async function equipDropTest(){
   ok(keep.length>=3&&same(eqs().map(i=>JSON.stringify([i.id,plain(parseEquip(i.stats)),i.enhance])).sort(),keep),`vào lại: ${keep.length} món trang bị rơi còn nguyên chỉ số`);
   await test(S,"edrop",{off:true});
   } finally { await S.room.leave().catch(()=>{}); }
+}
+
+/**
+ * Tài khoản TEST dựng sẵn (#517, BOT_ONLY=testacc): đăng nhập tài khoản đã dựng bằng `npm run seed:test` (bot:local --pg --seed-test max --only testacc dựng
+ * sẵn trước khi bật server; biến BOT_TEST_NAME / BOT_TEST_PASS / BOT_TEST_PRESET). Kiểm vào game, mở túi, đổi võ hồn, đánh hồn thú, ẩn khỏi xếp hạng, vào lại.
+ */
+async function testAccTest(){
+  const name=process.env.BOT_TEST_NAME, pass=process.env.BOT_TEST_PASS, preset=process.env.BOT_TEST_PRESET??"max";
+  console.log(`[#517] Tài khoản test dựng sẵn (mức ${preset})`);
+  if(!name||!pass){ console.log("  ⚠ bỏ qua: cần tài khoản dựng sẵn (npm run bot:local -- --pg --seed-test max --only testacc)"); return; }
+  const l=await post("/api/login",{name,password:pass});
+  ok(l.token&&l.character&&l.looks?.chosen,`đăng nhập tài khoản test: đã thức tỉnh, đã tạo nhân vật (cấp ${l.character?.level})`);
+  if(!l.token) return;
+  const me0=await post("/api/me",{token:l.token});
+  const b={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me0.looks,isNew:false,mapId:me0.mapId,near:false};
+  await enter(b);
+  const p=()=>b.room.state.players?.get(b.room.sessionId);
+  ok(await waitFor(()=>p()&&b.owned&&b.bag&&b.gear,4000),"vào phòng: nhận danh sách võ hồn, túi đồ, trang bị");
+  const max=preset==="max";
+  if(max){
+    ok(b.owned.list.length===VOHON.length&&b.owned.list.every(v=>v.level===MAX_LEVEL&&v.stars===MAX_STARS&&v.rings.length===MAX_RINGS),`mọi ${VOHON.length} võ hồn cấp ${MAX_LEVEL}, ${MAX_STARS} sao, ${MAX_RINGS} hồn hoàn`);
+    ok(b.owned.list.every(v=>v.skills?.length===4&&v.skills.every(r=>r>=0)),"mỗi võ hồn mang đủ 4 hồn kỹ");
+    ok(b.owned.team.filter(Boolean).length===TEAM_SIZE&&p().level===MAX_LEVEL,`đội ${TEAM_SIZE} võ hồn, hồn sư cấp ${p().level}`);
+    const worn=(b.bag.items??[]).filter(i=>i.vohon!==null);
+    ok(worn.filter(i=>i.code===BONE_ITEM).length===VOHON.length*BONE_SLOTS.length&&worn.filter(i=>i.code===CORE_ITEM).length===VOHON.length*CORE_SLOTS,"túi: hồn cốt 6 / hồn hạch 6 gắn cho từng võ hồn");
+    ok(b.gear.items?.length===EQUIP_SLOTS.length&&b.gear.items.every(i=>i.enhance===EQUIP_MAX_ENHANCE&&i.slot>=0),`${EQUIP_SLOTS.length} trang bị đang mặc, cùng +${EQUIP_MAX_ENHANCE}`);
+    ok(b.bag.honTe>=1e6,`Hồn Tệ ${formatHonTe(b.bag.honTe)}`);
+  }
+  // Mở túi lại, đổi võ hồn trong đội.
+  b.bag=null; b.room.send("bag"); ok(await waitFor(()=>b.bag,2000),"mở túi đồ (xin lại tin bag)");
+  const slot=b.owned.team.findIndex((r,i)=>r&&r!==b.owned.active&&i>0);
+  if(slot>=0){ const want=b.owned.team[slot]; b.room.send("switch",{slot}); ok(await waitFor(()=>b.owned?.active===want,3000),`đổi võ hồn sang ô ${slot+1}`); }
+  // Đánh hồn thú ở bản đồ săn (hook warp, beast, slay).
+  if(!(await test(b,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đánh hồn thú (cần hook warp, beast, slay): bật server bằng GAME_TEST=1"); }
+  else{
+    b.travel=null; b.room.send("test",{op:"warp",mapId:"tinh_dau_ngoai_vi",x:0,y:0});
+    ok(await waitFor(()=>b.travel?.mapId==="tinh_dau_ngoai_vi",4000),"warp -> Tinh Đấu Ngoại vi");
+    await b.room.leave(); await sleep(300); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>p()&&b.bag,3000);
+    const t=await test(b,"beast"), before=b.bag.honTe;
+    await test(b,"slay",{bid:t?.bid});
+    ok(await waitFor(()=>b.bag.honTe>before,3000),`hạ hồn thú: Hồn Tệ ${formatHonTe(before)} -> ${formatHonTe(b.bag.honTe)}`);
+  }
+  // Ẩn khỏi bảng xếp hạng đấu trường và cộng minh.
+  b.top=null; b.room.send("arena",{op:"top"}); ok(await waitFor(()=>b.top,2000),"xin bảng xếp hạng đấu trường");
+  ok(!b.top?.list?.some(r=>r.name===name)&&!b.top?.list?.some(r=>r.me),"tài khoản test không có trong bảng xếp hạng đấu trường, không có hạng");
+  b.resTop=null; b.room.send("resonance",{op:"top",page:1,pageSize:50}); ok(await waitFor(()=>b.resTop,2000),"xin bảng xếp hạng cộng minh");
+  ok(!b.resTop?.list?.some(r=>r.name===name),"tài khoản test không có trong bảng xếp hạng cộng minh");
+  // Thoát rồi vào lại: dữ liệu giữ nguyên.
+  const lv=b.owned.list.length, items=b.bag.items.length;
+  await b.room.leave(); await sleep(500); await enter(b); await waitFor(()=>p()&&b.bag&&b.owned,4000);
+  ok(b.owned.list.length===lv&&b.bag.items.length>=items,"thoát vào lại: đủ võ hồn và đồ như trước");
+  await b.room.leave();
+}
+
+/**
+ * Lệnh GM (#518, BOT_ONLY=gm): tài khoản thường gửi lệnh bị từ chối và không đổi gì; admin (hook `gmadmin`, vì bot không biết trước mã tài khoản) dùng được
+ * level / give / ring / bone / core / gear / vohon / coin / tp, lệnh sai báo lỗi, lần đầu dùng tự bật is_test (ẩn khỏi xếp hạng cộng minh), `preset` ghi đè DB
+ * và không bị lần ghi lúc thoát đè lại.
+ */
+async function gmTest(){
+  console.log("[#518] Lệnh GM của tài khoản admin");
+  const N=await bot("GM thường","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1});
+  const G=await bot("GM admin","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3});
+  if(!(await test(G,"ping"))?.enabled){ console.log("  ⚠ bỏ qua lệnh GM (cần hook gmadmin): bật server bằng GAME_TEST=1"); await N.room.leave(); await G.room.leave(); return; }
+  const me=b=>b.room.state.players?.get(b.room.sessionId);
+  const gm=async(b,cmd)=>{ const l=b.logs.length; b.room.send("gm",{cmd}); await waitFor(()=>b.logs.length>l,2000); await sleep(150); return b.logs.slice(l).join(" | "); };
+  await waitFor(()=>me(N)&&N.bag&&me(G)&&G.bag,4000);
+  // Chưa có admin nào (ADMIN_ACCOUNTS trống): tắt hẳn, người thường bị từ chối.
+  const lv0=me(N).level, honTe0=N.bag.honTe;
+  ok(/Không có quyền/.test(await gm(N,"level 100")),"ADMIN_ACCOUNTS trống: lệnh GM bị từ chối");
+  ok(/Không có quyền/.test(await gm(G,"coin 999")),"chưa là admin: bị từ chối");
+  await test(G,"gmadmin",{on:true});
+  ok(/Không có quyền/.test(await gm(N,"coin 999999")),"đã có admin khác: tài khoản thường vẫn bị từ chối");
+  ok(me(N).level===lv0&&N.bag.honTe===honTe0,"tài khoản thường: không đổi gì");
+  // Admin: từng lệnh.
+  let t=await gm(G,"coin 123456"); ok(/GM: Hồn Tệ/.test(t)&&await waitFor(()=>G.bag.honTe===123456,2000),`coin: ${t}`);
+  t=await gm(G,"give hoi_huyet_dan 150"); ok(await waitFor(()=>G.bag.items.filter(i=>i.code==="hoi_huyet_dan").reduce((a,i)=>a+i.qty,0)>=150,2000),`give: ${t}`);
+  t=await gm(G,"ring 5000 2"); ok(await waitFor(()=>G.bag.items.filter(i=>i.code===RING_ITEM&&i.years===5000).length===2,2000),`ring: ${t}`);
+  t=await gm(G,`bone ${BEASTS[0].id} tay_trai 100000 10`); ok(await waitFor(()=>G.bag.items.some(i=>i.code===BONE_ITEM&&i.enhance===10&&i.years===100000),2000),`bone +10: ${t}`);
+  t=await gm(G,"core hao_thien 5 6"); ok(await waitFor(()=>G.bag.items.some(i=>i.code===CORE_ITEM&&i.enhance===6&&i.stars===5),2000),`core 5★ +6: ${t}`);
+  t=await gm(G,"gear vu_khi_chi_bao 7 15"); ok(await waitFor(()=>G.bag.items.some(i=>i.code===EQUIP_ITEM&&i.enhance===15),2000),`gear +15: ${t}`);
+  t=await gm(G,"vohon hao_thien_chuy 40 3"); ok(await waitFor(()=>G.owned.list.some(v=>v.vohon==="hao_thien_chuy"&&v.level===40&&v.rings.length===3),2000),`vohon: ${t}`);
+  t=await gm(G,"level 60"); ok(await waitFor(()=>me(G).level===60&&G.owned.list.find(v=>v.rowId===G.owned.active).rings.length>=5,2000),`level 60 kèm đủ hồn hoàn: ${t}`);
+  // Lệnh sai / ngoài giới hạn: báo lỗi, không đổi gì.
+  const items=G.bag.items.length;
+  for(const bad of ["level 101","level 0","level x","give khong_co 1","give hon_hoan 1","coin -5",`bone ${BEASTS[0].id} tay_trai 5 0`,"core hao_thien 7","gear vu_khi_chi_bao 8","tp khong_co","tp dai_dau_hon_truong","preset khac","","xyz"])
+    ok(!/GM: /.test(await gm(G,bad)),`lệnh sai bị từ chối: "${bad}"`);
+  ok(G.bag.items.length===items&&me(G).level===60,"lệnh sai không đổi gì");
+  // Tự bật is_test: không còn trong xếp hạng cộng minh dù cấp cao.
+  G.resTop=null; G.room.send("resonance",{op:"top",page:1,pageSize:50}); await waitFor(()=>G.resTop,2000);
+  ok(!G.resTop?.list?.some(r=>r.name===G.name),"admin dùng GM: tự bật is_test, ẩn khỏi xếp hạng cộng minh");
+  // Dịch chuyển.
+  G.travel=null; t=await gm(G,"tp tinh_dau_ngoai_vi"); ok(await waitFor(()=>G.travel?.mapId==="tinh_dau_ngoai_vi",4000),`tp: ${t}`);
+  await G.room.leave(); await sleep(300); G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>me(G)&&G.bag,3000);
+  ok(G.mapId==="tinh_dau_ngoai_vi"&&G.owned.list.some(v=>v.vohon==="hao_thien_chuy")&&G.bag.honTe===123456,"vào lại: bản đồ, võ hồn mới và Hồn Tệ đã lưu");
+  // Mức dựng sẵn: ghi đè DB rồi ngắt; lần ghi lúc thoát không đè lại.
+  t=await gm(G,"preset moi"); ok(/moi/.test(t)&&await waitFor(()=>G.leftCode!==null,3000),`preset moi: ${t} (ngắt kết nối, mã ${G.leftCode})`);
+  await sleep(500); G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>me(G)&&G.bag&&G.owned,4000);
+  ok(G.owned.list.length===2&&G.bag.honTe===0&&G.owned.list.every(v=>v.level===1),`vào lại sau preset: đúng mức mới (${G.owned.list.length} võ hồn, ${formatHonTe(G.bag.honTe)})`);
+  // Thao tác ghi túi ngay sau preset (cửa sổ 800 ms trước khi ngắt): phiên đã khoá nên không chụp túi cũ trong RAM đè mức vừa áp.
+  await gm(G,"coin 777"); t=await gm(G,`give ${AUTO_TOKEN} 1`);
+  await waitFor(()=>G.bag.items.some(i=>i.code===AUTO_TOKEN),2000); const tok=G.bag.items.find(i=>i.code===AUTO_TOKEN); ok(!!tok&&G.bag.honTe===777,`chuẩn bị túi cũ: có Ủy Thác Lệnh, Hồn Tệ 777 (${t})`);
+  G.leftCode=null; G.room.send("gm",{cmd:"preset max"});
+  for(let k=0;k<3;k++){ G.room.send("use",{id:tok.id}); G.room.send("gm",{cmd:"coin 999"}); await sleep(30); }
+  ok(await waitFor(()=>G.leftCode!==null,4000),`preset max rồi ghi túi ngay: bị ngắt kết nối (mã ${G.leftCode})`);
+  await sleep(500); G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>me(G)&&G.bag&&G.owned,4000);
+  ok(G.owned.list.length>2&&G.bag.honTe>999,`vào lại: túi vẫn đúng mức max, không bị túi cũ đè (${G.owned.list.length} võ hồn, ${formatHonTe(G.bag.honTe)})`);
+  await test(G,"gmadmin",{on:false});
+  ok(/Không có quyền/.test(await gm(G,"coin 5")),"bỏ quyền admin: lại bị từ chối");
+  await N.room.leave(); await G.room.leave();
 }

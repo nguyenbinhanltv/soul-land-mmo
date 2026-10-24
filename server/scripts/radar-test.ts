@@ -1,11 +1,13 @@
 // Kiểm thử hàm thuần radar (shared/radar.ts, hằng RADAR / MAPVIEW / FOG ở shared/data.ts, mục 5.17): không cần bật server.
 // Chạy: npm run test:radar --prefix server
 import assert from "node:assert/strict";
-import { RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE } from "../../shared/data.ts";
+import { RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE, AUTOWALK } from "../../shared/data.ts";
 import {
   radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarPlace, clampToCircle, radarHit, radarZoomStep, radarPrio,
   radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, type MapView,
 } from "../../shared/radar.ts";
+import { autoLeg } from "../../shared/autowalk.ts";
+import { mapRoute } from "../src/map.ts";
 
 function test(title: string, fn: () => void) { fn(); console.log(`✓ ${title}`); }
 const near = (got: number, want: number, what: string, tol = 1e-9) => assert.ok(Math.abs(got - want) <= tol, `${what}: ${got} lệch ${want}`);
@@ -99,4 +101,23 @@ test("Lớp lọc: loại chấm → lớp, `layer` tường minh thắng, mọi
   for (const l of Object.values(MAPVIEW.layerOf)) assert.ok(ids.has(l), `lớp lạ ${l}`);
   for (const k of Object.keys(MAPVIEW.layerOf)) assert.ok(RADAR.levels.some((lv) => lv.id === k), `loại chấm lạ ${k}`);
   assert.ok(MAPVIEW.hitPx > 0 && MAPVIEW.dragPx > 0);
+});
+
+test("Tự đi tới cờ (R4): chặng kế tiếp theo bản đồ đứng, bản đồ đích và route", () => {
+  assert.deepEqual(autoLeg("a", { map: "a", tile: true }, {}), { k: "flag" });
+  assert.deepEqual(autoLeg("a", { map: "a", tile: false }, {}), { k: "arrived" });
+  assert.deepEqual(autoLeg("a", { map: "c", tile: true }, { b: "b", c: "b" }), { k: "gate", to: "b" });
+  assert.deepEqual(autoLeg("a", { map: "z", tile: true }, { b: "b" }), { k: "none" });
+  assert.deepEqual(autoLeg("a", { map: "toString", tile: true }, {}), { k: "none" }, "không đọc thuộc tính của Object");
+  assert.ok(AUTOWALK.arrive > 0 && AUTOWALK.stuckSecs > 0 && AUTOWALK.gateSecs > 0 && AUTOWALK.holdMs > 0);
+});
+
+test("Tự đi tới cờ (R4): mọi bản đồ đi bộ được đều có đường tới nhau qua cổng thật (mapRoute)", () => {
+  const ids = Object.keys(MAPS).filter((id) => MAPS[id].kind !== "arena");
+  for (const from of ids) {
+    const r = mapRoute(from);
+    for (const to of Object.keys(r)) assert.ok(Object.hasOwn(MAPS, r[to]) && r[to] !== from, `${from} → ${to}: chặng đầu ${r[to]}`);
+  }
+  const start = ids[0], far = Object.keys(mapRoute(start)).at(-1)!;
+  assert.deepEqual(autoLeg(start, { map: far, tile: true }, mapRoute(start)), { k: "gate", to: mapRoute(start)[far] });
 });
