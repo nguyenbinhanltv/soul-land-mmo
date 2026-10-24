@@ -1239,6 +1239,52 @@ body.touch :is(.cring,.qhead){min-width:0}
 @keyframes ptband{0%{opacity:0}25%{opacity:.35}100%{opacity:0}}
 @keyframes skfade{0%{opacity:0}25%,70%{opacity:1}100%{opacity:0}}
 
+/* ===== NV2 (#456): búp bê 4 tab trong bảng nhân vật; Túi ở chế độ chọn món cho ô (sáng món hợp, mờ món khác) ===== */
+#char .cstrip{display:flex;align-items:flex-start;gap:var(--sp-3);flex-wrap:wrap}
+#char .cstrip .ctabs{flex:1;min-width:0}
+#char .cgo{flex:none;align-self:center}
+#char .cdtabs{display:flex;flex-wrap:wrap;gap:var(--sp-2);border-bottom:var(--bd-fine) solid var(--line);padding-bottom:var(--sp-2)}
+#char .cdtabs .ui-tab small{font:var(--fs-s) var(--f10);color:var(--muted)}
+#char .cdtabs .ui-tab[aria-selected="true"] small{color:inherit}
+#char .cnote{font:var(--fs-m) var(--f12);padding:var(--sp-2) var(--sp-3);border-left:3px solid var(--good);background:var(--wash)}
+#char .cnote.warn{border-left-color:var(--warn);color:var(--warn)}
+#char .cpick{margin-top:var(--sp-2)}
+#char .cadv{align-self:flex-start;margin-top:var(--sp-2)}
+#char .cteam{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
+#char .cteam .vcardx{flex:none}
+#char .cteam .vcardx.view{outline:3px solid var(--xp);outline-offset:1px}
+#char .cteam .cempty{width:96px;min-height:152px;border:2px dashed var(--line);color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:var(--fs-s) var(--f10);text-align:center}
+/* tab Trang bị: khung 10 ô kiểu Mir2 (cột trái, hình hồn sư, cột phải) */
+#char .edoll{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--sp-3);align-items:stretch}
+#char .ecol{display:flex;flex-direction:column;justify-content:space-between;gap:var(--sp-2)}
+#char .ecell{width:56px;min-height:56px;cursor:default}
+#char .ecell span{font-size:10px;font-family:var(--f10);text-align:center;line-height:1.1}
+#char .emid{position:relative;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);background:radial-gradient(circle,color-mix(in srgb,var(--accent) 18%,transparent),rgba(0,0,0,.2) 70%);min-height:260px}
+#char .emid img{width:96px;height:96px;image-rendering:pixelated;margin-bottom:40px}
+#char .emid .ecell{position:absolute;left:50%;bottom:12px;transform:translateX(-50%)}
+/* tab Hồn hạch: vòng đan điền, 6 ô quanh tâm; ô thuộc bộ đang kích hoạt viền màu bộ */
+#char .cring6{position:relative;width:min(300px,100%);aspect-ratio:1;align-self:center;margin:var(--sp-2) 0}
+#char .cring6::before{content:"";position:absolute;inset:13%;border:2px dashed var(--line2);border-radius:50%}
+#char .cring6 .ccell{position:absolute;width:24%;height:24%;min-height:0;transform:translate(-50%,-50%);padding:2px}
+#char .cring6 .ccell svg.ico.core{width:70%;height:70%;max-width:32px;max-height:32px}
+#char .cring6 .ccell.seton{border-color:var(--sc);box-shadow:0 0 0 2px var(--sc),0 0 8px color-mix(in srgb,var(--sc) 70%,transparent)}
+#char .cring6 .ccell.sel{box-shadow:0 0 0 2px var(--xp)}
+#char .cmid{position:absolute;left:50%;top:50%;width:30%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:2px solid var(--sc,var(--line));
+  background:radial-gradient(circle,color-mix(in srgb,var(--sc,var(--line)) 25%,transparent),rgba(0,0,0,.25));display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1;pointer-events:none}
+#char .cmid b{font:var(--fs-s) var(--f10);font-weight:normal;color:var(--text)}
+#char .cmid small{font:var(--fs-s) var(--f10);color:var(--muted)}
+#bag .bfocus{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) var(--sp-3);border:2px solid #ffe08a;background:var(--wash)}
+#bag .bfocus small{flex:1;font:var(--fs-m) var(--f12)}
+.bslot.hint{outline:2px solid #ffe08a;outline-offset:-2px;box-shadow:0 0 8px #ffe08a}
+.bslot.dim{opacity:.35}
+body.touch #char .cdtabs .ui-tab{min-height:40px}
+/* điện thoại ngang thấp / màn hẹp: ô thu gọn */
+body:not(.ui-wide,.touch) #char :is(.ctabs,.cdtabs) .ui-tab{padding:0 var(--sp-3);font-size:11px;line-height:1.2}
+body:not(.ui-wide) #char .cstrip{gap:var(--sp-2)}
+body.dual-win:not(.ui-wide) #char .ecell{width:40px;min-height:40px}
+body.dual-win:not(.ui-wide) #char .emid{min-height:180px}
+body.dual-win:not(.ui-wide) #char .cteam .vcardx{transform:scale(.8);transform-origin:top left;margin:0 -19px -30px 0}
+
 /* ===== NV1 (#455): hai bảng Nhân vật + Túi mở cùng lúc (client/src/dualWindow.ts). Bảng bấm vào thì nổi (.front); mỗi bảng chỉ nhận chuột trong khung của nó. ===== */
 body.dual-win :is(#char,#bag):not(.front){z-index:3}
 .swap{font:inherit;font-family:var(--f12);line-height:1;min-width:32px;height:32px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer}

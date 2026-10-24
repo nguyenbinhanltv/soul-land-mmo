@@ -1856,6 +1856,22 @@ function absorbPicker(ring: BagItem & { years: number }, act: BagActions, again:
   return box;
 }
 
+/**
+ * Chế độ chọn món cho một ô của bảng Nhân vật (NV2 #456): Túi chuyển sang nhóm `group`, món hợp ô (`match`) sáng viền vàng, món khác mờ;
+ * bấm món sáng thì gọi `pick` (bảng Nhân vật gửi lệnh gắn có sẵn, server quyết định), không mở chi tiết. `key` đổi thì Túi vẽ lại.
+ */
+export interface BagFocus { key: string; group: string; label: string; match(it: BagItem): boolean; pick(it: BagItem): void; cancel(): void; }
+let bagFocus: BagFocus | null = null;
+let bagRefresh: (() => void) | null = null; // vẽ lại túi bằng tin "bag" gần nhất (null = chưa vẽ lần nào)
+/** Đặt / bỏ chế độ chọn món. Chỉ vẽ lại Túi khi `key` đổi (bảng Nhân vật vẽ lại mỗi tin state nhưng ô chọn không đổi). */
+export function setBagFocus(f: BagFocus | null) {
+  const changed = (f?.key ?? null) !== (bagFocus?.key ?? null);
+  bagFocus = f;
+  if (!changed) return;
+  if (f) { bagGroup = f.group; bagPage = 0; bagSel = null; sellOpen = false; }
+  bagRefresh?.();
+}
+
 /** Số ô túi của tài khoản theo tin "bag" gần nhất (từ 9.8 mở rộng được; trước tin đầu tiên là mức khởi đầu). */
 let bagCap = BAG_SLOTS;
 let bagGroup = "all";              // nhóm lọc đang chọn (UI-1, BAG_GROUPS)
@@ -1875,6 +1891,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   if (bagConfirm !== bagSel) bagConfirm = null;
   if (pickRing !== bagSel) { pickRing = null; pickVh = null; }
   const again = () => renderBag({ ...bag, cd: Math.max(0, (bagCdEnd - performance.now()) / 1000) }, act);
+  bagRefresh = again;
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Túi đồ (${items.length}/${bag.slots})</b><span><button class="x" aria-label="Đóng">×</button></span>`;
   head.querySelector("span")!.prepend(swapButton("bag", setPanel));
@@ -1887,8 +1904,17 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
   // UI-1: lọc theo nhóm và xếp thứ tự hiển thị chỉ ở client (nút "Sắp xếp" gộp / xếp thật vẫn do server). `view` = cả túi đã xếp, `shown` = sau lọc.
   noteSeen(items);
-  const view = sortView(items, bagSortMode), shown = view.filter((i) => inGroup(i, bagGroup)), filtered = bagGroup !== "all", active = act.active();
+  const view = sortView(items, bagSortMode), filtered = bagGroup !== "all", active = act.active();
+  let shown = view.filter((i) => inGroup(i, bagGroup));
+  if (bagFocus) shown = [...shown.filter(bagFocus.match), ...shown.filter((i) => !bagFocus!.match(i))]; // món hợp ô lên trước
   el.appendChild(bagTools(bag, items, again));
+  if (bagFocus) {
+    const n = shown.filter(bagFocus.match).length, fb = document.createElement("div"); fb.className = "bfocus";
+    fb.innerHTML = `<small></small><button type="button" class="buse drop">Thôi</button>`;
+    fb.querySelector("small")!.textContent = n ? `${bagFocus.label}: bấm một món sáng để gắn (${n} món hợp).` : `${bagFocus.label}: túi không có món nào hợp ô này.`;
+    fb.querySelector("button")!.addEventListener("click", () => { bagFocus?.cancel(); });
+    el.appendChild(fb);
+  }
 
   const pages = Math.max(1, Math.ceil(bag.slots / BAG_PAGE));
   bagPage = Math.max(0, Math.min(pages - 1, bagPage));
@@ -1920,7 +1946,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = shown[k], b = document.createElement("button");
-    b.className = "bslot ui-cell" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "");
+    b.className = "bslot ui-cell" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "") + (it && bagFocus ? (bagFocus.match(it) ? " hint" : " dim") : "");
     // Kéo-thả (UI-1): thả lên ô khác = đổi chỗ (chỉ khi không lọc; thứ tự nhớ ở trình duyệt), kéo lên ô gắn nhanh = gắn (lệnh server như nút "Gắn nhanh").
     if (!filtered) {
       b.addEventListener("dragover", (e) => { if (!e.dataTransfer?.types.includes("text/plain")) return; e.preventDefault(); b.classList.add("over"); });
@@ -1962,7 +1988,11 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       setTip(b, { title: itemName(it) + (it.lock ? " (khoá)" : ""), color: tier >= 0 ? TIERS[tier].glow : undefined, border: itemColor(it),
         sub: tier >= 0 ? `${bone ? "Hồn cốt" : "Hồn hoàn"} · ${TIERS[tier].color} (${TIERS[tier].age})` : def ? ITEM_KINDS[def.kind].name : undefined,
         lines, foot: it.lock ? "Đang khoá: không bán / bỏ được" : undefined });
-      b.addEventListener("click", () => { b.blur(); markSeen(it.id); bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again(); });
+      b.addEventListener("click", () => {
+        b.blur(); markSeen(it.id);
+        if (bagFocus?.match(it)) return bagFocus.pick(it); // đang chọn món cho một ô của bảng Nhân vật: gắn luôn (server quyết định)
+        bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again();
+      });
     } else { b.disabled = true; b.setAttribute("aria-label", "Ô trống"); }
     grid.appendChild(b);
   }
