@@ -1,0 +1,436 @@
+{
+ "_": "S3 lô D (#569): 5 võ hồn thực vật / độc + dung hợp Lôi Độc Song Sát, cùng công thức S2. `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ [viền, tối, chủ, nhấn, sáng]. Chạy: node tools/assets/skill-vfx/run.mjs --spec lo-d.json --out <nháp>",
+ "tag": "S3 lô D (#569)",
+ "common": "Pixel art VFX for an isometric RPG skill, 3/4 top-down view, transparent background, no character, no text, dark outline, limited palette, white-hot core, centered.",
+ "vohon": {
+  "kn": {
+   "palette": [ "#1a1020", "#8a4a12", "#ffb347", "#ffd98a", "#fff3c8" ],
+   "theme": "Golden-orange chrysanthemum magic, long petals as blades, glowing stamen, falling petals, colors orange #ffb347, brown #8a4a12, pale yellow."
+  },
+  "cd": {
+   "palette": [ "#1a1020", "#2a1240", "#9a4aff", "#c8a0ff", "#7aff9a" ],
+   "theme": "Dark purple spider silk magic, eight-spoke web wheel, silk threads, venom drops, colors violet #9a4aff, deep purple #2a1240, pale lilac, green venom."
+  },
+  "bl": {
+   "palette": [ "#1a1020", "#145a38", "#3ad98a", "#9bff9a", "#e4ffa0" ],
+   "theme": "Emerald serpent venom magic, scale glints, fangs, green poison mist, bubbles, colors green #3ad98a, dark green #145a38, lime, pale yellow-green."
+  },
+  "ln": {
+   "palette": [ "#1a1020", "#1f4a6b", "#4ab0ff", "#9adfff", "#ffffff" ],
+   "theme": "Blue grass vine magic, twisting blue vines, light motes, tiny leaves, colors blue #4ab0ff, dark blue #1f4a6b, pale cyan, white."
+  },
+  "an": {
+   "palette": [ "#1a1020", "#24527a", "#7fd8ff", "#ffe08a", "#ffffff" ],
+   "theme": "Gentle healing blue and gold flower magic, glowing flower buds, thin golden vines, soft light motes, colors cyan #7fd8ff, dark blue #24527a, gold #ffe08a, white."
+  },
+  "ld": {
+   "palette": [ "#1a1020", "#1f3f8f", "#5ab8ff", "#3ad98a", "#ffffff" ],
+   "theme": "Fusion of blue lightning and green venom, zigzag blue arcs, emerald serpent, green mist, colors blue #5ab8ff, dark blue #1f3f8f, green #3ad98a, white."
+  }
+ },
+ "sheets": [
+  {
+   "n": "kn_dart1",
+   "v": "kn",
+   "t": 1,
+   "f": 6,
+   "d": "Three long golden chrysanthemum petals shaped like spinning throwing darts fly forward in a narrow fan, a glowing stamen at each base, small petals trailing behind. Compact."
+  },
+  {
+   "n": "kn_zone2",
+   "v": "kn",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: a small multi-layered chrysanthemum blooms flat on the ground from the center out, petals spinning, then scatters into tiny orange petals. Compact."
+  },
+  {
+   "n": "kn_zone3",
+   "v": "kn",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring: golden chrysanthemum stems and petal vines coil around in a flat ring and tighten toward the center, then fade into small petals. Compact."
+  },
+  {
+   "n": "kn_zone4",
+   "v": "kn",
+   "t": 1,
+   "f": 6,
+   "d": "Petal storm on the ground around the caster: a whirling ring of golden chrysanthemum petals as blades spiraling and flying outward, fades. Compact."
+  },
+  {
+   "n": "kn_fan5",
+   "v": "kn",
+   "t": 2,
+   "f": 8,
+   "d": "Seven long golden chrysanthemum petals like darts fan out wide and fly forward spinning, glowing stamens, orange petal trail, at the end each bursts into a spiral of small petals."
+  },
+  {
+   "n": "kn_zone6",
+   "v": "kn",
+   "t": 2,
+   "f": 8,
+   "d": "Ground area burst: a large multi-layered chrysanthemum blooms on the ground from the center, thorny golden vines wrap tight in a ring, a sparkle on the stamen, petals scatter."
+  },
+  {
+   "n": "kn_zone8",
+   "v": "kn",
+   "t": 2,
+   "f": 8,
+   "d": "Chrysanthemum petal storm: two layers of spinning petal blades sweep around the caster in a ring, a flash each turn, petals fly outward and fall like rain."
+  },
+  {
+   "n": "kn_hit9",
+   "v": "kn",
+   "t": 2,
+   "f": 8,
+   "d": "Aim mark flashes on a ground point, then a big chrysanthemum bursts open there and its petals spiral outward, orange slash lines, small petals falling."
+  },
+  {
+   "n": "kn_t3a",
+   "v": "kn",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A giant chrysanthemum blooms fully on the ground, thousands of petals shoot out in a spiral over the area, glowing stamen like a small sun, aftershock ring of falling petals. No filled white disc. Very large."
+  },
+  {
+   "n": "kn_t3b",
+   "v": "kn",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Aim mark on a ground point, a huge chrysanthemum blossoms behind, its petals fly to the point and coil into a spinning ring of blades, then burst, aftershock petals. No filled white disc. Very large."
+  },
+  {
+   "n": "kn_zone_tc",
+   "v": "kn",
+   "t": 2,
+   "f": 8,
+   "d": "Small petal storm: a tight whirl of golden chrysanthemum petals spinning in a ring on the ground around the caster, quick flashes each turn, then scatter. Compact but bright."
+  },
+  {
+   "n": "cd_hit1",
+   "v": "cd",
+   "t": 1,
+   "f": 6,
+   "d": "Twin fang bite on a ground point: two curved purple-black fangs snap shut from both sides, silk threads shoot out and green venom drops splash. Compact."
+  },
+  {
+   "n": "cd_zone2",
+   "v": "cd",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: silk threads race inward from the rim to the center like a web pulled tight, an eight-spoke web wheel flashes, fades. Compact."
+  },
+  {
+   "n": "cd_zone3",
+   "v": "cd",
+   "t": 1,
+   "f": 6,
+   "d": "Poison web laid on the ground: a flat round web with eight spokes and rings in glowing violet silk, green venom beads on the threads, pulses once, fades. Compact."
+  },
+  {
+   "n": "cd_zone4",
+   "v": "cd",
+   "t": 1,
+   "f": 6,
+   "d": "Large ground web closing: eight-spoke violet web over a wide ellipse, outer strands snapping inward to the center in a pulling motion, silk sparkle. Compact."
+  },
+  {
+   "n": "cd_fan5",
+   "v": "cd",
+   "t": 2,
+   "f": 8,
+   "d": "Five silk threads with green venom drops shoot forward in a fan, spinning, thin glowing violet strands trailing, at the end each splats into a small web with venom drops."
+  },
+  {
+   "n": "cd_zone6",
+   "v": "cd",
+   "t": 2,
+   "f": 8,
+   "d": "Net of silk thrown down: a large violet spider web flies open and drapes over the ground area, strands pulse and tighten, venom beads shine, web fades."
+  },
+  {
+   "n": "cd_zone8",
+   "v": "cd",
+   "t": 2,
+   "f": 8,
+   "d": "Swarm of small spiders: dozens of tiny dark spiders with violet eyes crawl in a ring on the ground around the caster, biting, green venom puffs, vanish into silk dust."
+  },
+  {
+   "n": "cd_zone9",
+   "v": "cd",
+   "t": 2,
+   "f": 8,
+   "d": "Spider domain: a huge eight-spoke web wheel spreads on the ground out to the rim, spokes light up one by one in sequence, green venom mist rising, fades."
+  },
+  {
+   "n": "cd_t3a",
+   "v": "cd",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Gigantic silk web spreads across the whole ground area from the center out, spokes flash one after another then the strands tighten and pull toward the center with a violet burst, aftershock ripple. No filled disc. Very large."
+  },
+  {
+   "n": "cd_t3b",
+   "v": "cd",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A huge dark spider silhouette rises behind and spits a round web that expands to cover the whole area, the web ring tightens inward with a violet flash, venom drops fall. No filled white disc. Very large."
+  },
+  {
+   "n": "cd_zone_tc",
+   "v": "cd",
+   "t": 2,
+   "f": 8,
+   "d": "Small web around the caster: silk shoots out and forms a compact eight-spoke web on the ground that tightens inward, quick flash, venom beads."
+  },
+  {
+   "n": "bl_fan1",
+   "v": "bl",
+   "t": 1,
+   "f": 6,
+   "d": "Three emerald poison arrows fly forward in a narrow fan, each with a faint snake head at the tip and a thin green trail, venom droplets scatter. Compact."
+  },
+  {
+   "n": "bl_zone2",
+   "v": "bl",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: green poison mist curls up in swirling puffs, tiny bubbles rising, small snakes sliding in a circle, fades. Compact."
+  },
+  {
+   "n": "bl_zone3",
+   "v": "bl",
+   "t": 1,
+   "f": 6,
+   "d": "Serpent king pressure on the ground: a wide ring wave, snake scale pattern flashes outward, a faint cobra hood silhouette for a moment, fades. Compact."
+  },
+  {
+   "n": "bl_hit4",
+   "v": "bl",
+   "t": 1,
+   "f": 6,
+   "d": "Many small green snakes lunge at a ground point from all sides, fangs bite, a poison burst of green droplets and mist at the impact. Compact."
+  },
+  {
+   "n": "bl_fan5",
+   "v": "bl",
+   "t": 2,
+   "f": 8,
+   "d": "Five thick green venom bolts shoot forward in a fan, each with a snake head biting at its tip, trailing mist, venom splashes into toxic bubbles at the end."
+  },
+  {
+   "n": "bl_zone6",
+   "v": "bl",
+   "t": 2,
+   "f": 8,
+   "d": "Poison array on the ground: a round magic circle of snakes biting each others tails, green venom mist pulsing up from it, bubbles pop, fades."
+  },
+  {
+   "n": "bl_zone8",
+   "v": "bl",
+   "t": 2,
+   "f": 8,
+   "d": "Snake tide: a ring of many green snakes surges outward across the ground around the caster like a wave, scale glints, venom mist behind them."
+  },
+  {
+   "n": "bl_hit9",
+   "v": "bl",
+   "t": 2,
+   "f": 8,
+   "d": "A giant snake head lunges down and swallows a ground point: wide open jaws with fangs snap shut, a green venom burst, mist, ground ripple."
+  },
+  {
+   "n": "bl_t3a",
+   "v": "bl",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A huge serpent head rises over the area, hundreds of small snakes flood out across the ground and green poison mist thickens, venom burst, aftershock ripples. No filled disc. Very large."
+  },
+  {
+   "n": "bl_t3b",
+   "v": "bl",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A giant cobra opens its fangs and spits venom mist that expands into a growing ring, small snakes in the mist, bright green burst, mist settles. No filled white disc. Very large."
+  },
+  {
+   "n": "bl_zone_tc",
+   "v": "bl",
+   "t": 2,
+   "f": 8,
+   "d": "Poison mist explosion around the caster: green mist bursts from the center in a ring, bubbles and a few snakes, quick bright flash, fades."
+  },
+  {
+   "n": "ln_hit1",
+   "v": "ln",
+   "t": 1,
+   "f": 6,
+   "d": "Blue vines spiral up and coil around a ground point, tightening, then glow bright with sparkles and light motes. Compact."
+  },
+  {
+   "n": "ln_hit2",
+   "v": "ln",
+   "t": 1,
+   "f": 6,
+   "d": "A glowing blue seed sprouts at a ground point, thin blue vines grow out and wrap, small leaves unfold, light motes rise. Compact."
+  },
+  {
+   "n": "ln_zone3",
+   "v": "ln",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring: blue vines grow from the rim and sweep inward to the center like a closing cage, tightening, light motes, fades. Compact."
+  },
+  {
+   "n": "ln_zone4",
+   "v": "ln",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring: a net of blue vines weaves across the ground in concentric rings, knots glowing, tightens once, fades. Compact."
+  },
+  {
+   "n": "ln_slash5",
+   "v": "ln",
+   "t": 2,
+   "f": 8,
+   "d": "A spear of woven blue grass vines thrusts forward in a long streak, vines unraveling behind, pierces along a line, light motes and leaves fly, bright tip flash."
+  },
+  {
+   "n": "ln_zone6",
+   "v": "ln",
+   "t": 2,
+   "f": 8,
+   "d": "Domain of blue grass: vines sprout from the center across the ground, small pale flowers bloom on the vine tips, pulsing ring, light motes rising, fades."
+  },
+  {
+   "n": "ln_zone8",
+   "v": "ln",
+   "t": 2,
+   "f": 8,
+   "d": "Sky cage: a dome of blue vines rises from a ring around the caster and closes over the middle like a cage, bars tighten, bright flash, fades."
+  },
+  {
+   "n": "ln_burst9",
+   "v": "ln",
+   "t": 2,
+   "f": 8,
+   "d": "Twelve blue grass tendrils shoot out in all directions from the center in a radial star, spinning, tips glowing, light motes, then fade into sparkles."
+  },
+  {
+   "n": "ln_t3a",
+   "v": "ln",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A forest of blue vines erupts across the whole ground area from the center, sweeping and tightening inward, pale flowers blooming at the vine tips, aftershock ripples of light. No filled disc. Very large."
+  },
+  {
+   "n": "ln_t3b",
+   "v": "ln",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A giant blue vine bursts out in all directions from the center, huge tendrils reaching outward then curling into a ring and blooming as pale flowers, light motes. No filled white disc. Very large."
+  },
+  {
+   "n": "ln_zone_tc",
+   "v": "ln",
+   "t": 2,
+   "f": 8,
+   "d": "Vines wrap around: blue vines spring up in a tight ring around the caster and coil inward, quick bright flash, small flowers open. Compact."
+  },
+  {
+   "n": "an_hit1",
+   "v": "an",
+   "t": 1,
+   "f": 6,
+   "d": "Thin blue vines with small golden flower buds coil around a ground point and tighten, the buds glow, light motes. Compact."
+  },
+  {
+   "n": "an_aura2",
+   "v": "an",
+   "t": 1,
+   "f": 6,
+   "d": "Healing aura: gentle rising blue and gold light motes and small leaves spiral upward around a center, a soft ring of light on the ground, fades. Compact."
+  },
+  {
+   "n": "an_aura3",
+   "v": "an",
+   "t": 1,
+   "f": 6,
+   "d": "Protective aura: a thin ring of golden vines and a soft glowing shield of light closes around a center, a sparkle, fades. Compact."
+  },
+  {
+   "n": "an_zone4",
+   "v": "an",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring: blue flower petals and golden vines sweep inward to the center, a small flower blooms at the center, light motes, fades. Compact."
+  },
+  {
+   "n": "an_zone5",
+   "v": "an",
+   "t": 2,
+   "f": 8,
+   "d": "A large blue and gold flower blooms on the ground, golden vines close inward like a cage toward the center, a tightening pulse, light motes."
+  },
+  {
+   "n": "an_aura6",
+   "v": "an",
+   "t": 2,
+   "f": 8,
+   "d": "Holy healing: a big soft flower of blue and gold light blooms around a center, petals open, healing motes rise, a shield ring forms and a cleansing sparkle wave spreads."
+  },
+  {
+   "n": "an_burst8",
+   "v": "an",
+   "t": 2,
+   "f": 8,
+   "d": "Ten thin vines with golden flower buds shoot out in a circle from the center like a radial star, the buds bloom at the tips into light, light motes."
+  },
+  {
+   "n": "an_aura9",
+   "v": "an",
+   "t": 2,
+   "f": 8,
+   "d": "Blessing aura: golden flower petals rain down and rings of warm gold and blue light rise in layers around a center, upward light motes, shield sparkle."
+  },
+  {
+   "n": "an_t3a",
+   "v": "an",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A gigantic blue and gold flower blooms over the whole area, three waves of soft blue-gold light expand outward one after another, golden vines close in on the center, light motes. No filled white disc. Very large."
+  },
+  {
+   "n": "an_t3b",
+   "v": "an",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Holy light of the flower king: a huge flower blooms around a center, waves of blue-gold light spread out to cover the whole area, petals and light motes rise. No filled white disc. Very large."
+  },
+  {
+   "n": "an_zone_tc",
+   "v": "an",
+   "t": 2,
+   "f": 8,
+   "d": "Blue-gold shockwave bursts around a center: a ring of light and flower petals expands, vines pull inward, healing motes rise, quick flash."
+  },
+  {
+   "n": "fu_ldds",
+   "v": "ld",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A blue lightning dragon and an emerald serpent coil around each other above the area, blue bolts strike down trailing green venom mist, the ground alternates blue and green, several strikes, aftershock ripples. No filled white disc. Very large."
+  }
+ ]
+}
