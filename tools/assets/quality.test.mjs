@@ -71,3 +71,14 @@ test("qualityCheck báo origin manifest sai so với neo chuẩn của sheetSpec
   assert.match(result.errors.join("\n"), /hs_body_m_0: manifest\.origin lệch neo/);
   assert.deepEqual(result.assets[0].expectedOrigin, [32, 58]);
 });
+
+test("qualityCheck đưa asset độc lập thiếu viền vào errors", () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), "asset-quality-"));
+  const file = path.join(root, "shared/assets/sprites/iso/props/test.png");
+  mkdirSync(path.dirname(file), { recursive: true });
+  const noOutline = new Img(16, 16);
+  for (let y = 0; y < noOutline.h; y++) for (let x = 0; x < noOutline.w; x++) noOutline.set(x, y, [100, 80, 90, 255]);
+  writeFileSync(file, encodePng(noOutline));
+  const result = qualityCheck({ sprites: [{ key: "prop_test", iso: true }] }, root);
+  assert.match(result.errors.join("\n"), /prop_test: thiếu viền/);
+});

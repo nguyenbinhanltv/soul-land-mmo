@@ -90,8 +90,10 @@ export function qualityCheck(manifest, root = ROOT) {
     if (entry.frame && spec.frame && JSON.stringify(entry.frame) !== JSON.stringify(spec.frame)) errors.push(`${key}: manifest.frame lệch quy cách ${spec.frame.join("×")}`);
     if (declaredOrigin && JSON.stringify(declaredOrigin) !== JSON.stringify(expectedOrigin)) errors.push(`${key}: manifest.origin lệch neo ${expectedOrigin?.join(",") ?? "không có"}`);
     if (entry.bytes !== undefined && entry.bytes !== info.bytes) errors.push(`${key}: manifest.bytes ${entry.bytes}, thực tế ${info.bytes}`);
-    if (spec.kind === "honsu" || spec.kind === "vohon" || spec.kind === "beast" || spec.kind === "lpc" || spec.kind === "prop") {
-      if (!info.hasOutline) warnings.push(`${key}: chưa thấy viền ${OUTLINE}`);
+    // Phụ thể võ hồn là hai lớp b/f ghép quanh thân; viền có thể nằm ở thân hoặc lớp đối diện,
+    // nên không thể kết luận từ từng PNG riêng. Các asset độc lập phải có viền và làm fail check.
+    if (spec.kind === "honsu" || spec.kind === "beast" || spec.kind === "lpc" || spec.kind === "prop") {
+      if (!info.hasOutline) errors.push(`${key}: thiếu viền ${OUTLINE}`);
     }
     assets.push({ key, url, ...info, origin: expectedOrigin, declaredOrigin, expectedFrame: spec.frame ?? null, expectedOrigin, kind: spec.kind });
   }
