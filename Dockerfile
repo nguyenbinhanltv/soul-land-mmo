@@ -56,5 +56,5 @@ USER node
 WORKDIR /app/server
 EXPOSE 2567
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||2567)+'/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||2567)+'/live').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
 CMD ["node", "--enable-source-maps", "dist/index.mjs"]
