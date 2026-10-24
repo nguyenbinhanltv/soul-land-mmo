@@ -2047,24 +2047,27 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(BLOOM, () => {
       // Đóa kính lưu ly: vòng trong là mảnh tam giác xen hai màu võ hồn, vòng ngoài là mảnh lam / ngọc / tím lưu ly (_luu_ly.gpl),
       // mọi mảnh viền chì sẫm, mép ngoài viền vàng kim; nở ra rồi mờ dần.
-      const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };
-      const draw = () => {
-        const r1 = R * o.s, r0 = r1 * 0.45, P = (r: number, j: number) => groundAt(m.x, m.y, r, (j / N) * Math.PI * 2);
-        g.clear();
-        for (let j = 0; j < N; j++) {
-          const inner = [c, P(r0, j), P(r0, j + 1)], outer = [P(r0, j), P(r1, j), P(r1, j + 1), P(r0, j + 1)];
-          g.fillStyle(cols[j % cols.length] ?? hex(col), 0.5 * o.a).fillPoints(inner, true);
-          g.fillStyle(glass[j % glass.length], 0.42 * o.a).fillPoints(outer, true);
-          g.lineStyle(1.2 * k, 0x1a1020, 0.65 * o.a).strokePoints(inner, true).strokePoints(outer, true);
-        }
-        g.lineStyle(2 * k, 0xffe08a, o.a).strokeEllipse(c.x, c.y, 2 * RX * r1, 2 * RY * r1);
-        g.fillStyle(0xe8f8ff, 0.8 * o.a).fillCircle(c.x, c.y, 3 * k);
-      };
-      this.tweens.add({ targets: o, s: 1, duration: 480, ease: "Back.easeOut", onUpdate: draw, onComplete: () =>
-        this.tweens.add({ targets: o, a: 0, duration: 650, delay: 250, onUpdate: draw, onComplete: () => g.destroy() }) });
+      // S3 lô B (#567): chiêu có sheet riêng (FUSION_VISUAL) thì sheet thay đóa kính, vẫn giữ vòng sáng và tên chiêu bên dưới.
+      const own = this.me === m.id || this.me === m.to, sheetOn = this.svis.fusion(f.name, { x: c.x, y: c.y, r: R * RX, mine: own });
+      if (!sheetOn) {
+        const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };
+        const draw = () => {
+          const r1 = R * o.s, r0 = r1 * 0.45, P = (r: number, j: number) => groundAt(m.x, m.y, r, (j / N) * Math.PI * 2);
+          g.clear();
+          for (let j = 0; j < N; j++) {
+            const inner = [c, P(r0, j), P(r0, j + 1)], outer = [P(r0, j), P(r1, j), P(r1, j + 1), P(r0, j + 1)];
+            g.fillStyle(cols[j % cols.length] ?? hex(col), 0.5 * o.a).fillPoints(inner, true);
+            g.fillStyle(glass[j % glass.length], 0.42 * o.a).fillPoints(outer, true);
+            g.lineStyle(1.2 * k, 0x1a1020, 0.65 * o.a).strokePoints(inner, true).strokePoints(outer, true);
+          }
+          g.lineStyle(2 * k, 0xffe08a, o.a).strokeEllipse(c.x, c.y, 2 * RX * r1, 2 * RY * r1);
+          g.fillStyle(0xe8f8ff, 0.8 * o.a).fillCircle(c.x, c.y, 3 * k);
+        };
+        this.tweens.add({ targets: o, s: 1, duration: 480, ease: "Back.easeOut", onUpdate: draw, onComplete: () =>
+          this.tweens.add({ targets: o, a: 0, duration: 650, delay: 250, onUpdate: draw, onComplete: () => g.destroy() }) });
+      }
       this.ringFx(c, 6, R, col, 650); this.ringFx(c, 4, R * 0.7, "#ffffff", 550, 120);
       // Như tuyệt kỹ: hai người dung hợp thấy banner, người khác ở gần thấy tên chiêu lớn bay lên ở điểm giữa.
-      const own = this.me === m.id || this.me === m.to;
       if (own) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
       else {
         const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
