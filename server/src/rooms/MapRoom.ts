@@ -38,6 +38,8 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
+import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
+import { fogDims, fogEmpty, fogFill, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
@@ -105,6 +107,9 @@ export interface PData {
   travelCast: { portal: Portal; t: number; wp?: RecallCast } | null;
   wps: Set<string>;     // truyền tống trận đã mở khóa (11.2, bảng `waypoints`; mã `<mapId>:<tên>`)
   wpKey: string;        // truyền tống trận đang đứng đã báo cho client ("" = không đứng trên trận)
+  // Sương mù khám phá (R8, bảng `map_fog`, chỉ bản đồ này): bitset ô thô (null = chưa nạp xong hoặc bản đồ mở sẵn), các ô vừa mở chưa gửi
+  // client, và cờ bitset đổi từ lần ghi trước (ghi gộp theo lần lưu định kỳ / đi cổng / rời phòng, không ghi mỗi bước).
+  fog: Uint8Array | null; fogAdd: number[]; fogDirty: boolean;
   travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
   gmReset: boolean;     // lệnh GM `preset` đã ghi đè DB (#518): mọi lần ghi sau của phiên này (kể cả lúc thoát) bị bỏ, không ghi đè mức vừa áp
@@ -728,7 +733,7 @@ export class MapRoom extends Room<MapState> {
   /** Hang chia phần luân phiên của Lưỡng Nghi Luân Chuyển / tơ Vạn Chu Phệ (#173, split.ts; phần đang hóa là vùng lưu lại của ground.ts). */
   split = new LairSplit(this);
   /** Giây tới lần gửi tin `mini` (bản đồ nhỏ, SYNC_VIEW.mini) kế tiếp. */
-  miniT = 0;
+  miniT = 0; fogT = 0; fogSendT = 0;
   /** PERF_LOG=1: đo thời gian tick / bản vá, ghi log mỗi 10 giây (đo hiệu năng 11.4). */
   perf = { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() };
   /**
@@ -1042,6 +1047,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("lock", (c, m: { id: unknown }) => this.lockItem(c.sessionId, m?.id)); // khoá / mở khoá một ô (#216)
     this.onMessage("autosell", (c, m: { cfg: unknown }) => this.setAutoSell(c.sessionId, m?.cfg)); // bộ lọc tự bán (#216)
     this.onMessage("vohons", (c) => this.ask(c.sessionId, "vohons", () => this.sendVohons(c)));
+    this.onMessage("fog", (c) => this.ask(c.sessionId, "fog", () => this.sendFog(c.sessionId))); // client xin lại cả bitset (R8); nội dung tin bị bỏ, server tự quyết ô nào đã khám phá
     this.onMessage("stats", (c, m: { rowId?: unknown }) => { const d = this.pdata.get(c.sessionId); if (d) d.statsRow = m?.rowId; this.ask(c.sessionId, "stats", () => this.sendStats(c.sessionId, this.pdata.get(c.sessionId)?.statsRow)); }); // lần xin dồn trong ASK_CD: gửi võ hồn xin gần nhất // bảng nhân vật (UI-2): chỉ số tổng hợp do server tính
     this.onMessage("boss", (c) => { // #118: client xin tin boss lúc vào phòng (sau khi đã nghe tin); tối đa 1 lần / giây, xin dồn thì bỏ
       const d = this.pdata.get(c.sessionId), now = Date.now();
@@ -1121,7 +1127,7 @@ export class MapRoom extends Room<MapState> {
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
-      wps: new Set(auth.wps), wpKey: "",
+      wps: new Set(auth.wps), wpKey: "", fog: null, fogAdd: [], fogDirty: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
@@ -1143,6 +1149,7 @@ export class MapRoom extends Room<MapState> {
     this.resCheck(client.sessionId, false); // cộng minh (8.2) tính trước chỉ số ban đầu, không báo mốc
     this.recalc(client.sessionId, true);
     if (filled) this.save(client.sessionId); // ghi ngay qua chuỗi lưu để lần vào sau không tung lại
+    this.fogLoad(client.sessionId); // sương mù khám phá (R8): nạp bitset của bản đồ này rồi mở quanh chỗ đứng
     this.chain(d, () => this.claimOffline(client.sessionId)); // ủy thác offline (Auto 3): nhận thưởng thời gian vắng mặt
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
     this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
@@ -1342,6 +1349,7 @@ export class MapRoom extends Room<MapState> {
     // Đã đi cổng / đổi kênh (transaction đi cổng là lần ghi cuối của phòng này): không ghi gì nữa.
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled || d.gmReset) return false;
     await this.flushAuto(d);
+    await this.fogFlush(d);
     const exit = final ? MAPS[this.state.mapId].exit : undefined, out = exit ? this.map.portals.find((q) => q.to === exit) : undefined;
     if (out) {
       const list = this.unsaved(id), bag = this.unsavedBag(d);
@@ -1879,6 +1887,7 @@ export class MapRoom extends Room<MapState> {
     this.chain(d, async () => {
       // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
       await this.flushAuto(d); // giờ treo tự săn (Auto 1): ghi trước, transaction đi cổng là lần ghi cuối của phòng này
+      await this.fogFlush(d); // sương mù khám phá (R8): ghi bitset bản đồ này trước khi rời
       const list = this.unsaved(id), bag = this.unsavedBag(d);
       try {
         await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag);
@@ -4195,6 +4204,16 @@ export class MapRoom extends Room<MapState> {
         return `Đã thêm ${name} cấp ${v.level}, ${v.rings.length} hồn hoàn${cmd.level > v.level ? " (cấp bị kẹp theo bình cảnh, cần thêm hồn hoàn)" : ""}.`;
       }
       case "coin": d.honTe = cmd.n; d.bagDirty = true; return `Hồn Tệ = ${formatHonTe(cmd.n)}.`;
+      case "fog": {
+        // Sương mù khám phá (R8): mở cả bản đồ đang đứng, hoặc xoá về trống (rồi mở quanh chỗ đứng). Ghi DB như mọi lần đánh dấu (fogFlush).
+        if (!this.fogOn) return "Bản đồ này mở sẵn, không có sương mù.";
+        if (!d.fog) return "Sương mù chưa nạp xong, thử lại sau.";
+        const dims = this.fogDims();
+        d.fog = cmd.mode === "open" ? fogFill(dims) : fogEmpty(dims);
+        d.fogDirty = true; if (cmd.mode === "reset") this.fogMarkOne(id, d);
+        this.sendFog(id);
+        return cmd.mode === "open" ? "Đã mở cả bản đồ." : "Đã xoá sương mù về trống (mở lại quanh chỗ đứng).";
+      }
       case "tp": {
         if (cmd.mapId === this.state.mapId) return "Đang ở bản đồ đó rồi.";
         if (d.travelling || d.travelCast) return "Đang đi cổng, thử lại sau.";
@@ -7533,6 +7552,64 @@ export class MapRoom extends Room<MapState> {
     return out;
   }
 
+  // ---------- Sương mù khám phá (R8 #435, GAME_DESIGN.md mục 5.17) ----------
+  /** Bản đồ này có sương mù (bản đồ trong FOG.open mở sẵn; sân đấu nằm trong đó nên không bao giờ có). */
+  get fogOn() { return fogMapOn(this.state.mapId); }
+  fogDims() { return fogDims(this.map.MW, this.map.MH); }
+
+  /**
+   * Nạp bitset của người chơi ở bản đồ này (chạy trong chuỗi lưu: không chạy chồng lần ghi) rồi mở ô quanh chỗ đứng và gửi cả bitset. Dòng ghi cho
+   * file Tiled khác, sai kích thước hoặc có bit thừa (dữ liệu lạ) thì bỏ, bắt đầu từ trống: tài khoản cũ bắt đầu trống và chỉ mở quanh chỗ đứng.
+   */
+  fogLoad(id: string) {
+    const d = this.pdata.get(id); if (!d || !this.fogOn) return;
+    this.chain(d, async () => {
+      const dims = this.fogDims(), mapId = this.state.mapId;
+      let bits: Uint8Array | null = null;
+      try { bits = await store.getFog(d.accountId, mapId, mapFile(mapId)); } catch (e) { console.error(`Không đọc được sương mù của #${d.accountId} (${mapId})`, e); }
+      if (this.pdata.get(id) !== d) return;
+      if (bits && !fogValid(bits, dims)) { console.warn(`[fog] #${d.accountId} ${mapId}: bỏ bitset sai dạng (${bits.length} byte, cần ${dims.bytes})`); bits = null; }
+      d.fog = bits ?? fogEmpty(dims);
+      if (!bits) d.fogDirty = true;
+      this.fogMarkOne(id, d);
+      d.fogAdd.length = 0; // cả bitset gửi ngay dưới đây, không cần gửi lại từng ô
+      this.sendFog(id);
+    });
+  }
+
+  /** Mở ô quanh vị trí thật của một người (server tự lấy từ state, không nhận gì từ client). */
+  fogMarkOne(id: string, d: PData) {
+    const p = this.state.players.get(id); if (!p || !d.fog || d.travelling) return;
+    const add = fogReveal(d.fog, this.fogDims(), p.x / TILE, p.y / TILE);
+    if (add.length) { d.fogDirty = true; for (const i of add) d.fogAdd.push(i); }
+  }
+  fogMark() { this.pdata.forEach((d, id) => this.fogMarkOne(id, d)); }
+
+  /** Gửi các ô vừa mở (tối đa FOG.maxAdd mỗi tin, dư để nhịp sau) cho từng người, tin `fogd {add}`; số ô thô theo thứ tự hàng. */
+  fogSend() {
+    this.pdata.forEach((d, id) => {
+      if (!d.fog || !d.fogAdd.length) return;
+      const c = this.clients.getById(id); if (!c) return;
+      c.send("fogd", { add: d.fogAdd.splice(0, FOG.maxAdd) });
+    });
+  }
+
+  /** Tin riêng `fog {bits}`: cả bitset ô thô của chính người đó ở bản đồ này (cỡ lưới client tự tính từ cỡ bản đồ). Chưa nạp xong thì chưa gửi. */
+  sendFog(id: string) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d?.fog || !c) return;
+    d.fogAdd.length = 0;
+    c.send("fog", { bits: d.fog });
+  }
+
+  /** Ghi bitset nếu đổi từ lần ghi trước (chỉ gọi trong chuỗi lưu). Lỗi ghi: đánh dấu lại để lần sau ghi tiếp, không làm hỏng lần lưu khác. */
+  async fogFlush(d: PData) {
+    if (!d.fog || !d.fogDirty) return;
+    d.fogDirty = false;
+    const mapId = this.state.mapId;
+    try { await store.saveFog(d.accountId, mapId, mapFile(mapId), d.fog); }
+    catch (e) { d.fogDirty = true; console.error(`Lưu sương mù của #${d.accountId} (${mapId}) thất bại`, e); }
+  }
+
   /**
    * Bản đồ nhỏ (tin `mini`, mỗi SYNC_VIEW.mini giây): `p` vị trí theo ô `[sid, x, y]` của hồn sư, hồn thú thường từ nghìn năm `b`
    * `[x, y, bậc]` và đồ rơi `d` `[x, y, bậc]` cả bản đồ, vì `players` / `beasts` / `drops` trong state chỉ còn thực thể ở gần. Tinh anh,
@@ -7880,6 +7957,12 @@ export class MapRoom extends Room<MapState> {
 
     // bản đồ nhỏ (11.4): vị trí cả bản đồ, phòng sân đấu (không lọc) thì không cần
     if (!this.interest.all && (this.miniT -= dt) <= 0) { this.miniT = SYNC_VIEW.mini; this.sendMini(); }
+
+    // sương mù khám phá (R8): đánh dấu ô quanh từng người theo nhịp FOG.markSecs, gửi phần mới theo nhịp FOG.sendSecs
+    if (this.fogOn) {
+      if ((this.fogT -= dt) <= 0) { this.fogT = FOG.markSecs; this.fogMark(); }
+      if ((this.fogSendT -= dt) <= 0) { this.fogSendT = FOG.sendSecs; this.fogSend(); }
+    }
 
     // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
     this.saveT += dt;

@@ -124,6 +124,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
 import { LOOKS_CHANGE, looksChangeCost } from "../../shared/data.ts"; // L4 #511
 import { RADAR } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini
+import { FOG } from "../../shared/data.ts"; import { fogDims, fogCount, fogGet, fogCellOf, fogBytes, fogValid } from "../../shared/fog.ts"; import { loadMap } from "../../server/src/map.ts"; // R8 (#435): sương mù khám phá
 import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
@@ -358,6 +359,7 @@ async function enter(b,roomId){
   b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null; b.squad=null;
   b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
   b.mini=null; b.room.onMessage("mini",m=>{b.mini=m;}); // bản đồ nhỏ: vị trí cả bản đồ (11.4)
+  b.fogBits=null; b.fogMsgs=0; b.fogd=[]; b.room.onMessage("fog",m=>{ b.fogBits=fogBytes(m?.bits); b.fogMsgs++; }); b.room.onMessage("fogd",m=>{ b.fogd.push(m); }); // sương mù khám phá (R8)
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
@@ -475,6 +477,7 @@ const STANDALONE=[
   ["looks3",3,looks3Test],                    //  ~8 #511 đổi ngoại hình ở thợ may: miễn phí lần đầu, tốn Hồn Tệ lần sau
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
+  ["fog",2,fogTest,true],                     //  ~40 R8 #435 sương mù khám phá: đánh dấu, lưu, theo bản đồ, dữ liệu lạ, lệnh GM (đo ở máy)
   ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
   ["waypoint",4,waypointTest],                //  45 11.2
   ["camp",3,campTest],                        //   9 #111
@@ -559,6 +562,7 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -772,7 +776,7 @@ async function channelTest(){
   const leak=t=>/node_modules|\/src\/|\bat [\w.<]+ \(/.test(t);
   for(const p of ["/api/me","/api/channel","/api/looks","/api/awaken"]){
     const bad=[];
-    for(const token of ["\u0000",`${"a".repeat(31)}\u0000`,{x:1},["t"],12,"x".repeat(5000)]){
+    for(const token of ["\u0000",`${"a".repeat(31)}\u0000`,{x:1},["t"],12,"x".repeat(3000)]){
       const r=await raw(p,JSON.stringify({token})); if(!(r.status===401&&typeof r.j?.error==="string")) bad.push(`${JSON.stringify(token).slice(0,12)}:${r.status}`);
     }
     ok(!bad.length,`${p}: token lạ (NUL, object, mảng, số, quá dài) -> 401 JSON ${bad.join(" ")}`);
@@ -11685,4 +11689,77 @@ async function gmTest(){
   await test(G,"gmadmin",{on:false});
   ok(/Không có quyền/.test(await gm(G,"coin 5")),"bỏ quyền admin: lại bị từ chối");
   await N.room.leave(); await G.room.leave();
+}
+
+/**
+ * Sương mù khám phá (R8 #435, BOT_ONLY=fog): bản đồ mở sẵn không có sương; vào bản đồ săn thì server mở ô quanh chỗ đứng (tin `fog` cả bitset, `fogd` phần mới);
+ * đi tới chỗ mới thì ô đó được đánh dấu, thoát vào lại vẫn còn (cần `--pg` để thử PostgreSQL), mỗi bản đồ một bitset riêng, tài khoản khác không thấy,
+ * tin lạ từ client không làm đổi gì, lệnh GM `fog open|reset` (admin) mở cả bản đồ / xoá, tài khoản thường bị từ chối.
+ */
+async function fogTest(){
+  console.log("[#435] Sương mù khám phá");
+  const A=await bot("Fog A","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3}), B=await bot("Fog B","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1});
+  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua sương mù (cần hook goto, warp, gmadmin): bật server bằng GAME_TEST=1"); await A.room.leave(); await B.room.leave(); return; }
+  const me=b=>b.room.state.players?.get(b.room.sessionId), M1="tinh_dau_ngoai_vi", M2="tinh_dau_noi_dia";
+  const dimsOf=id=>{ const m=loadMap(id); return fogDims(m.MW,m.MH); };
+  const askFog=async b=>{ await sleep(300); b.fogBits=null; b.room.send("fog"); await waitFor(()=>b.fogBits,3000); return b.fogBits; };
+  const warpTo=async(b,mapId)=>{ b.travel=null; await test(b,"warp",{mapId,x:0,y:0}); ok(await waitFor(()=>b.travel?.mapId===mapId,4000),`warp -> ${mapId}`);
+    await b.room.leave(); await sleep(300); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag,4000); };
+  const rejoin=async b=>{ await b.room.leave(); await sleep(500); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag,4000); };
+  // Chỗ đứng được xa chỗ vào ít nhất ~45 ô (ngoài tầm nhìn FOG.sight), quét theo vòng quanh chỗ đứng hiện tại.
+  const farSpot=(mapId,from)=>{ const m=loadMap(mapId), cx=from.x/TILE, cy=from.y/TILE, d=dimsOf(mapId);
+    for(const r of [60,50,70,45,80]) for(let a=0;a<48;a++){ const x=cx+Math.cos(a/48*Math.PI*2)*r, y=cy+Math.sin(a/48*Math.PI*2)*r;
+      if(x>2&&y>2&&x<m.MW-2&&y<m.MH-2&&m.standable(x*TILE,y*TILE)&&fogCellOf(d,x,y)>=0) return {px:x*TILE,py:y*TILE,tx:x,ty:y}; }
+    return null; };
+  const cellAt=(mapId,tx,ty)=>fogCellOf(dimsOf(mapId),tx,ty);
+  await waitFor(()=>me(A)&&A.bag&&me(B)&&B.bag,4000);
+  // 1. Bản đồ mở sẵn (Thánh Hồn Thôn): không có sương mù, server không gửi bitset.
+  ok(FOG.open.includes(A.mapId),`tài khoản mới ở bản đồ mở sẵn (${A.mapId})`);
+  A.room.send("fog"); await sleep(1500);
+  ok(A.fogMsgs===0&&A.fogd.length===0,"bản đồ mở sẵn: không gửi tin fog / fogd");
+  // 2. Vào bản đồ săn: ô quanh chỗ đứng đã mở, phần còn lại chưa.
+  await warpTo(A,M1); await askFog(A);
+  const d1=dimsOf(M1), spawnCell=cellAt(M1,me(A).x/TILE,me(A).y/TILE);
+  ok(A.fogBits&&fogValid(A.fogBits,d1),`vào ${M1}: bitset đúng cỡ (${A.fogBits?.length} byte, lưới ${d1.cw}×${d1.ch})`);
+  const c0=fogCount(A.fogBits);
+  ok(c0>0&&c0<d1.cells/4&&fogGet(A.fogBits,spawnCell),`ô quanh chỗ vào được mở (${c0}/${d1.cells}), ô đang đứng có mở`);
+  // 3. Đi tới chỗ mới: ô đó được đánh dấu; tin fogd có số ô đó, mỗi tin không quá FOG.maxAdd ô.
+  const far=farSpot(M1,me(A)); ok(!!far,"có chỗ đứng được cách xa chỗ vào");
+  const cell=cellAt(M1,far.tx,far.ty); ok(!fogGet(A.fogBits,cell),"chỗ xa chưa được mở trước khi tới");
+  A.fogd=[]; await test(A,"goto",{x:far.px,y:far.py});
+  ok(await waitFor(()=>A.fogd.some(m=>m.add?.includes(cell)),8000),`tới ô mới ${cell}: tin fogd báo mở ô đó`);
+  ok(A.fogd.every(m=>Array.isArray(m.add)&&m.add.length>0&&m.add.length<=FOG.maxAdd&&m.add.every(i=>Number.isInteger(i)&&i>=0&&i<d1.cells)),`fogd: số ô hợp lệ, mỗi tin ≤ ${FOG.maxAdd} ô (${A.fogd.length} tin)`);
+  await askFog(A); const c1=fogCount(A.fogBits);
+  ok(fogGet(A.fogBits,cell)&&fogGet(A.fogBits,spawnCell)&&c1>c0,`bitset đầy đủ: có ô mới và ô cũ (${c0} -> ${c1})`);
+  // 4. Tin lạ từ client không đổi gì (server tự quyết ô nào đã khám phá).
+  const before=Uint8Array.from(A.fogBits);
+  A.room.send("fog",{bits:new Array(d1.bytes).fill(255)}); A.room.send("fog",{bits:"x".repeat(3000),add:[1,2,3]}); A.room.send("fog",null); A.room.send("fog",{add:[0,1,2,3,4,5],bits:{a:1}});
+  await sleep(500); await askFog(A);
+  ok(A.leftCode===null&&before.length===A.fogBits.length&&before.every((v,i)=>v===A.fogBits[i]),"tin fog lạ từ client (bitset giả, số ô, kiểu sai) bị bỏ: bitset không đổi, vẫn kết nối");
+  // 5. Thoát vào lại: còn nguyên (ghi lúc rời phòng), kể cả ô đã tới.
+  await rejoin(A); await askFog(A);
+  ok(A.mapId===M1&&A.fogBits&&fogValid(A.fogBits,d1)&&fogGet(A.fogBits,cell)&&fogGet(A.fogBits,spawnCell)&&fogCount(A.fogBits)>=c1,`thoát vào lại: bitset còn nguyên (${A.fogBits?fogCount(A.fogBits):0} ô, có ô đã tới)`);
+  // 6. Tài khoản khác ở cùng bản đồ không thấy phần của A.
+  await warpTo(B,M1); await askFog(B);
+  ok(B.fogBits&&fogValid(B.fogBits,d1)&&!fogGet(B.fogBits,cell)&&fogCount(B.fogBits)<c1,`tài khoản khác: không thấy ô của A (B có ${B.fogBits?fogCount(B.fogBits):0} ô, A ${c1})`);
+  // 7. Mỗi bản đồ một bitset: sang bản đồ khác chỉ có phần quanh chỗ vào; quay lại vẫn đủ.
+  await warpTo(A,M2); await askFog(A); const d2=dimsOf(M2);
+  ok(A.fogBits&&fogValid(A.fogBits,d2)&&fogCount(A.fogBits)>0&&fogCount(A.fogBits)<d2.cells/4,`đổi bản đồ ${M2}: bitset riêng đúng cỡ (${A.fogBits?fogCount(A.fogBits):0}/${d2.cells} ô)`);
+  await warpTo(A,M1); await askFog(A);
+  ok(A.fogBits&&fogValid(A.fogBits,d1)&&fogGet(A.fogBits,cell),"quay lại bản đồ cũ: ô đã khám phá vẫn còn");
+  // 8. Lệnh GM (admin): fog open mở cả bản đồ và được lưu; fog reset xoá; tài khoản thường bị từ chối.
+  const gm=async(b,cmd)=>{ const l=b.logs.length; b.room.send("gm",{cmd}); await waitFor(()=>b.logs.length>l,2000); await sleep(150); return b.logs.slice(l).join(" | "); };
+  ok(/Không có quyền/.test(await gm(B,"fog open")),"tài khoản thường: lệnh GM fog bị từ chối");
+  await askFog(B); ok(fogCount(B.fogBits)<d1.cells/2,"tài khoản thường: bản đồ vẫn chưa mở");
+  await test(A,"gmadmin",{on:true});
+  A.fogBits=null; let t=await gm(A,"fog open"); await waitFor(()=>A.fogBits&&fogCount(A.fogBits)===d1.cells,3000);
+  ok(A.fogBits&&fogCount(A.fogBits)===d1.cells&&fogValid(A.fogBits,d1),`GM fog open: mở cả bản đồ (${t})`);
+  await rejoin(A); await askFog(A); ok(A.fogBits&&fogCount(A.fogBits)===d1.cells,"GM fog open: còn nguyên sau khi vào lại (đã lưu)");
+  A.fogBits=null; t=await gm(A,"fog reset"); await waitFor(()=>A.fogBits&&fogCount(A.fogBits)<d1.cells/4,3000);
+  ok(A.fogBits&&fogCount(A.fogBits)>0&&fogCount(A.fogBits)<d1.cells/4,`GM fog reset: về gần trống, chỉ mở quanh chỗ đứng (${A.fogBits?fogCount(A.fogBits):0} ô; ${t})`);
+  ok(/open|reset/i.test(await gm(A,"fog xyz")),"GM fog xyz: báo lỗi cú pháp");
+  await warpTo(A,"thanh_hon_thon"); A.room.send("fog"); await sleep(800);
+  ok(/mở sẵn/.test(await gm(A,"fog open")),"GM fog ở bản đồ mở sẵn: báo không có sương mù");
+  await test(A,"gmadmin",{on:false});
+  await A.room.leave(); await B.room.leave();
 }

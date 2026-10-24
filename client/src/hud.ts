@@ -19,7 +19,8 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, artUrl, skillImg, tintedUrl } from "./uiArt.ts";
-import { toggleChar } from "./charPanel.ts";
+import { toggleChar, setPanel } from "./charPanel.ts";
+import { panelChanged, swapButton } from "./dualWindow.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
@@ -1672,7 +1673,8 @@ function renderFriends() {
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); toggleChar(false); }
+  if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); } // Túi và Nhân vật mở cạnh nhau (NV1 #455)
+  panelChanged("bag", open);
 }
 
 let bagSel: string | null = null;  // id ô đang chọn để xem chi tiết / dùng
@@ -1875,8 +1877,9 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   if (pickRing !== bagSel) { pickRing = null; pickVh = null; }
   const again = () => renderBag({ ...bag, cd: Math.max(0, (bagCdEnd - performance.now()) / 1000) }, act);
   const head = document.createElement("div"); head.className = "rhead";
-  head.innerHTML = `<b>Túi đồ (${items.length}/${bag.slots})</b><button class="x" aria-label="Đóng">×</button>`;
-  head.querySelector("button")!.addEventListener("click", () => toggleBag(false));
+  head.innerHTML = `<b>Túi đồ (${items.length}/${bag.slots})</b><span><button class="x" aria-label="Đóng">×</button></span>`;
+  head.querySelector("span")!.prepend(swapButton("bag", setPanel));
+  head.querySelector(".x")!.addEventListener("click", () => toggleBag(false));
   el.appendChild(head);
   const coin = document.createElement("div"); coin.className = "coin";
   coin.innerHTML = `<i class="coinico"></i><span>Hồn Tệ:</span> ${honTeHtml(bag.honTe)}`;

@@ -1,4 +1,4 @@
-// Hợp đồng giao diện Nhân vật + Túi (NV0 của #453, mục 5.7 "Hai cửa sổ Nhân vật + Túi" ở GAME_DESIGN.md): chỉ KIỂU và hàm thuần. Chưa nối vào
+// Hợp đồng giao diện Nhân vật + Túi (NV0 của #453, mục 5.16 "Hai cửa sổ Nhân vật + Túi" ở GAME_DESIGN.md): chỉ KIỂU và hàm thuần. Chưa nối vào
 // giao diện nào (NV1+ làm); không DOM, không gửi tin, không đọc state toàn cục, nên chạy thẳng bằng Node (client/scripts/charbag-test.mjs).
 // Quyết định thật vẫn ở server: `accepts` / `smartTarget` chỉ để tô viền xanh / đỏ và chọn ô, server từ chối thì đồ về chỗ cũ.
 import { BONE_ITEM, BONE_SLOTS, CORE_ITEM, CORE_SLOTS, EQUIP_ITEM, coreSlotOf, equipSlotDef, equipSlotIndex, equipTemplate, parseBone, parseEquip } from "../../shared/data.ts";

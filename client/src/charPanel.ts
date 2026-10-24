@@ -4,6 +4,7 @@
 import { TIERS, VOHON, BONE_SLOTS, CORE_SLOTS, CORE_SET_2, CORE_SET_4, MAX_RINGS, TEAM_SIZE, atBottleneck, tierOfYears, vohonIndex,
   ringSkill, loadoutOf, formatYears, coreSetCounts, coreSetIndex, coreSlotOf, boneSkillOf } from "../../shared/data.ts";
 import type { OwnedVohons, BagItem } from "./net.ts";
+import { panelChanged, swapButton } from "./dualWindow.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { skillImg } from "./uiArt.ts";
 import { coreSvg } from "./coreIcons.ts";
@@ -22,15 +23,21 @@ let charRow: number | null = null;   // võ hồn đang xem (null = võ hồn ra
 let again: (() => void) | null = null;
 const BONE_AREA: Record<string, string> = { dau: "1 / 2", tay_trai: "2 / 1", tay_phai: "2 / 3", than: "3 / 2", chan_trai: "3 / 1", chan_phai: "3 / 3" };
 
-/** Mở / đóng bảng (phím H, nút "Hồn sư"); mở thì đóng các bảng cùng chỗ giữa màn hình và xin chỉ số mới. */
+/**
+ * Mở / đóng bảng (phím C / H, nút "Hồn sư"); mở thì đóng các bảng cùng chỗ giữa màn hình (trừ Túi: NV1 #455, hai bảng mở cạnh nhau)
+ * và xin chỉ số mới.
+ */
 export function toggleChar(open = $("#char").hidden) {
   const el = $("#char");
   if (el.hidden === !open) return open;
   el.hidden = !open; document.getElementById("charBtn")?.setAttribute("aria-expanded", String(open));
-  if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); toggleWorld(false); toggleFriends(false); closeNpc(); onOpen?.(); again?.(); }
+  if (open) { toggleRoster(false); toggleReso(false); toggleWorld(false); toggleFriends(false); closeNpc(); onOpen?.(); again?.(); }
   else charRow = null;
+  panelChanged("char", open);
   return open;
 }
+/** Mở / đóng một trong hai bảng Nhân vật / Túi (dùng cho nút ⇆ và thẻ chuyển). */
+export const setPanel = (p: "char" | "bag", on: boolean) => { if (p === "char") toggleChar(on); else toggleBag(on); };
 let onOpen: (() => void) | null = null;
 /** Võ hồn đang xem trên bảng (null = võ hồn ra trận): GameScene xin "stats" đúng võ hồn này. */
 export const charViewRow = () => charRow;
@@ -76,6 +83,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   // Đầu bảng: tên, nút sang Đội hình, đóng.
   const head = mk("div", "rhead");
   head.innerHTML = `<b>Hồn sư</b><span><button class="rlink" type="button">Đội hình</button><button class="x" type="button" aria-label="Đóng">×</button></span>`;
+  head.querySelector("span")!.prepend(swapButton("char", setPanel));
   head.querySelector(".x")!.addEventListener("click", () => toggleChar(false));
   head.querySelector(".rlink")!.addEventListener("click", () => toggleRoster(true));
   el.appendChild(head);

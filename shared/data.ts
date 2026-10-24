@@ -5348,10 +5348,17 @@ export const MAPVIEW = {
  */
 export const AUTOWALK = { arrive: 1.5, stuckSecs: 5, progress: 1.5, gateSecs: 6, replanMs: 250, holdMs: 500 };
 
-/** Sương mù khám phá (R8): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường). */
+/**
+ * Sương mù khám phá (R8 #435, GAME_DESIGN.md mục 5.17): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường).
+ * - `markSecs`: giãn cách server đánh dấu ô quanh từng người (không đánh dấu mỗi tick);
+ * - `sendSecs` / `maxAdd`: giãn cách gửi phần mới xuống client và số ô tối đa mỗi tin (dư thì gửi ở nhịp sau);
+ * - `fadeMs`: client làm sáng dần ô vừa mở (tắt khi Giảm chuyển động / hiệu ứng Thấp);
+ * - `maxCells`: trần số ô thô mỗi bản đồ server chịu lưu (bitset lớn hơn là dữ liệu lạ, bị bỏ).
+ */
 export const FOG = {
   cell: 8, sight: 12,
   open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
+  markSecs: 1, sendSecs: 3, maxAdd: 96, fadeMs: 700, maxCells: 20000,
 };
 
 /**
