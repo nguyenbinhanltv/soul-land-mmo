@@ -109,6 +109,13 @@ export class ParticleLayer {
         { vx: (Math.random() - 0.5) * 24, vy: -(18 + Math.random() * 40), life: 0.7 + Math.random() * 0.5, size: 2, gravity: -10 });
     }
   }
+  /** Bụi chân nhỏ theo nhịp bước; không dùng lõi trắng để không chớp gắt. */
+  footDust(cx: number, cy: number, col: number, n: number, walking: boolean) {
+    for (let k = 0; k < n; k++) {
+      this.emit(cx + (Math.random() - 0.5) * 8 * this.px, cy - Math.random() * 2 * this.px, k % 2 ? col : 0x4a3c35,
+        { vx: (Math.random() - 0.5) * 18 * this.px, vy: -(8 + Math.random() * (walking ? 16 : 22)) * this.px / 2, life: 0.24 + Math.random() * 0.16, size: walking ? 1.5 : 2, gravity: 8 });
+    }
+  }
   update(dt: number) {
     const g = this.g; g.clear();
     let i = 0;
