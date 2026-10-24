@@ -12,7 +12,9 @@ import { fileURLToPath } from "node:url";
 import { hashF, hashStr, fbm, rng } from "./lib/rand.mjs";
 import { shapeTest, rectsOf, spline, astar } from "./lib/geom.mjs";
 import { topdownPreview } from "./lib/preview.mjs";
-import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, SPAWN_CLEAR, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
+import { miniImage, diffImg } from "./lib/mini.mjs";
+import { decodePng, encodePng } from "../assets/lib.mjs";
+import { BEAST_DENSITY, MAPS, BOSSES, TIERS, MAX_YEARS, MINI_BASE, SPAWN_CLEAR, beastIndex, bossIndex, parseLevelRange, TILE } from "../../shared/data.ts";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const LAYOUTS = path.join(ROOT, "tools", "maps", "layouts"), HAND = path.join(ROOT, "tools", "maps", "hand");
@@ -532,6 +534,9 @@ export function build(L, hand = null, seedOverride = null) {
 }
 function gidsOf(v) { return typeof v === "number" ? [v] : Array.isArray(v) ? v : Object.keys(v ?? {}).map(Number); }
 
+/** Ảnh nền bản đồ nhỏ của mapId (R1): shared/assets/mini/<mapId>.png. */
+const miniFile = (mapId) => path.join(ASSETS, MINI_BASE.dir, `${mapId}.png`);
+
 /** Lớp tay của mapId nếu có. */
 function readHand(mapId) {
   const f = path.join(HAND, `${mapId}.json`);
@@ -567,10 +572,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (check) {
       const same = existsSync(out) && readFileSync(out, "utf8") === r.json;
       if (!same) { bad++; console.error(`[maps] ${id}: ${path.relative(ROOT, out)} khác bản sinh từ bố cục (chạy node tools/maps/build.mjs ${id}; sửa tay thì vẽ vào tools/maps/hand)`); }
-      else console.log(`[maps] ${id}: OK (${ms} ms)`);
+      // Ảnh nền bản đồ nhỏ: so theo điểm ảnh (byte PNG phụ thuộc phiên bản zlib).
+      const mini = miniFile(id), why = !existsSync(mini) ? "chưa có file" : diffImg(decodePng(readFileSync(mini)), miniImage(r, L));
+      if (why) { bad++; console.error(`[maps] ${id}: ${path.relative(ROOT, mini)} khác bản sinh (${why}; chạy node tools/maps/build.mjs ${id})`); }
+      else if (same) console.log(`[maps] ${id}: OK (${ms} ms)`);
       continue;
     }
     writeFileSync(out, r.json);
+    mkdirSync(path.dirname(miniFile(id)), { recursive: true });
+    writeFileSync(miniFile(id), encodePng(miniImage(r, L)));
     const s = r.stats;
     console.log(`[maps] Đã sinh ${path.relative(ROOT, out)} ${s.size}, hạt giống ${s.seed}, ${ms} ms: ${s.walkPct}% ô đi được, ${s.beasts} hồn thú thường ` +
       `trong ${s.zoneRects} mảnh vùng, ${s.objects} object, lấp ${s.filled} ô kẹt, ${s.hand} ô chỉnh tay`);
