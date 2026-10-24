@@ -5,7 +5,7 @@
 // Chỗ chừa cho các bước sau (chưa làm ở R3):
 // - R4 (#431) cờ "Đi tới" (đã làm): `onFlag` nhận ô bấm (chuột) hoặc chạm giữ (điện thoại), cờ vẽ bằng `setMarker("flag", …)`, nút Đi / Xoá cờ ở thanh trên;
 // - R6 (#433) "Tập trung ở đây": cùng `setMarker("rally", …)` / `onTap`;
-// - R8 (#435) sương mù: `addOverlay("fog", …)` vẽ trên nền, dưới chấm, theo toạ độ ô (đã áp phép chiếu).
+// - R8 (#435) sương mù (đã làm): fog.ts vẽ ngay trên nền, dưới chấm; nhãn vùng ở chỗ chưa khám phá bị ẩn (cổng, NPC, truyền tống trận vẫn hiện).
 import { RADAR, MAPVIEW, AUTOWALK, TILE as _TILE } from "../../shared/data.ts";
 import {
   mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, radarRotate, radarNorthAngle,
@@ -13,6 +13,7 @@ import {
 } from "../../shared/radar.ts";
 import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./radar.ts";
 import { getFlag } from "./autowalk.ts";
+import { fog } from "./fog.ts";
 
 void _TILE;
 const LS_HIDDEN = "soul.mapview.hidden";
@@ -236,7 +237,7 @@ class MapViewUi implements DotSink {
   private zoneAt(x: number, y: number): Hit | undefined {
     const t = mapviewToTile(this.view, x, y);
     for (const l of this.labels) {
-      if (!l.w || !l.h || l.k === "lair" || t.x < l.x - l.w / 2 || t.x > l.x + l.w / 2 || t.y < l.y - l.h / 2 || t.y > l.y + l.h / 2) continue;
+      if (!l.w || !l.h || l.k === "lair" || !this.known(l) || t.x < l.x - l.w / 2 || t.x > l.x + l.w / 2 || t.y < l.y - l.h / 2 || t.y > l.y + l.h / 2) continue;
       return { x, y, prio: 0, name: l.text, sub: l.sub ?? "", wx: t.x, wy: t.y };
     }
     return undefined;
@@ -260,9 +261,10 @@ class MapViewUi implements DotSink {
     ctx.save(); ctx.translate(c.x, c.y); if (iso) ctx.rotate(Math.PI / 4); ctx.scale(z, z); ctx.translate(-v.cx, -v.cy);
     const R = radar(), base = R.base as HTMLCanvasElement | HTMLImageElement | null;
     if (base) ctx.drawImage(base, 0, 0, base.width / R.baseScale, base.height / R.baseScale);
+    const F = fog(); F.draw(ctx, this.now);
     ctx.lineWidth = 1 / z;
     for (const l of this.labels) {
-      if (!l.w || !l.h) continue;
+      if (!l.w || !l.h || !this.known(l)) continue;
       const x = l.x - l.w / 2, y = l.y - l.h / 2;
       if (l.k === "zone") { ctx.fillStyle = "rgba(255,240,180,.07)"; ctx.fillRect(x, y, l.w, l.h); ctx.strokeStyle = "rgba(255,230,150,.55)"; }
       else if (l.k === "safe") { ctx.fillStyle = "rgba(120,220,170,.10)"; ctx.fillRect(x, y, l.w, l.h); ctx.strokeStyle = "rgba(140,230,190,.6)"; }
@@ -297,8 +299,14 @@ class MapViewUi implements DotSink {
     this.compass(ctx, 34, H - 34, v);
   }
 
+  /** Nhãn vùng (săn, an toàn, hang) có tâm ở chỗ chưa khám phá thì ẩn; cổng, NPC, truyền tống trận luôn hiện (R8). */
+  private known(l: MapLabel) {
+    return !(l.k === "zone" || l.k === "safe" || l.k === "lair") || !l.w || !l.h || fog().explored(l.x, l.y);
+  }
+
   private drawLabel(ctx: CanvasRenderingContext2D, l: MapLabel, p: { x: number; y: number }, c: { x: number; y: number }, z: number, v: MapView) {
     const lz = MAPVIEW.labelZoom;
+    if (!this.known(l)) return;
     if (l.k === "npc" && z < lz.npc) return;
     if (l.k === "gate" && z < lz.gate) return;
     if (l.k === "wp" && z < lz.wp) return;

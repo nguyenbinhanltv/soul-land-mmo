@@ -77,6 +77,7 @@ Cho phép chủ repo chỉnh tài khoản đang chơi mà không phải thoát g
 | `/gm vohon <mã võ hồn> [cấp] [số hồn hoàn]` | Thêm võ hồn kèm hồn hoàn |
 | `/gm coin <đồng>` | Đặt Hồn Tệ |
 | `/gm tp <mã bản đồ>` | Dịch chuyển |
+| `/gm fog [open\|reset]` | Sương mù khám phá: mở cả bản đồ đang đứng (mặc định) hoặc xoá về trống |
 | `/gm preset max\|giua-game\|moi` | Áp mức dựng sẵn (như script) rồi ngắt kết nối; vào lại game để thấy |
 
 Mọi giá trị bị kẹp theo giới hạn của luật (vd cấp ≤ 100, cường hóa ≤ mức tối đa); sai thì báo lỗi, không đổi gì. Tài khoản dùng lệnh GM lần đầu **tự bật `is_test`** (ẩn khỏi xếp hạng, chỉ đấu trường với tài khoản test); tắt cờ chỉ bằng SQL tay (`UPDATE accounts SET is_test=false WHERE id=…`).

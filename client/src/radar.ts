@@ -4,6 +4,7 @@
 import { RADAR, RADAR_ART, TILE } from "../../shared/data.ts";
 import { radarPlace, radarRotate, radarNorthAngle, radarCompassRotation, radarZoomStep, radarPick, type RadarMode } from "../../shared/radar.ts";
 import { artUrl } from "./uiArt.ts";
+import { fog } from "./fog.ts";
 
 const LS_MODE = "soul.radar.mode", LS_ZOOM = "soul.radar.zoom";
 export const ls = {
@@ -154,6 +155,7 @@ class Radar implements DotSink {
     // Nền: ảnh bản đồ (1 hoặc `baseScale` điểm / ô, vẽ về đơn vị ô), tịnh tiến về tâm mình rồi xoay (iso: 45°, không ép dọc) và phóng.
     ctx.translate(c, c); if (mode === "iso") ctx.rotate(Math.PI / 4); ctx.scale(k, k); ctx.translate(-this.px, -this.py);
     if (this.base) { const b = this.base as HTMLCanvasElement | HTMLImageElement; ctx.drawImage(b, 0, 0, b.width / this.baseScale, b.height / this.baseScale); }
+    fog().draw(ctx, this.now); // sương mù khám phá (R8): mờ chỗ chưa tới, dưới khung vùng / đường đi / chấm
     ctx.lineWidth = 1.5 / k;
     for (let i = 0; i < this.nb; i++) { const b = this.boxes[i]; ctx.strokeStyle = b.col; ctx.strokeRect(b.x, b.y, b.w, b.h); }
     if (this.route) strokeRoute(ctx, this.route, this.routeCol, k);

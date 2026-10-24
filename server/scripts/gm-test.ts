@@ -32,6 +32,7 @@ test("lệnh hợp lệ được đọc đúng, mặc định hợp lý", () => 
   assert.deepEqual(ok("vohon hao_thien_chuy 30 2"), { op: "vohon", vohon: "hao_thien_chuy", level: 30, rings: 2 });
   assert.deepEqual(ok("coin 0"), { op: "coin", n: 0 });
   assert.deepEqual(ok("tp thien_dau_thanh"), { op: "tp", mapId: "thien_dau_thanh" });
+  assert.deepEqual(ok("fog"), { op: "fog", mode: "open" }); assert.deepEqual(ok("fog open"), { op: "fog", mode: "open" }); assert.deepEqual(ok("fog reset"), { op: "fog", mode: "reset" });
   assert.deepEqual(ok("preset max"), { op: "preset", preset: "max" });
   assert.deepEqual(ok("  level   7  "), { op: "level", level: 7 });
 });
@@ -40,7 +41,7 @@ test("lệnh sai / ngoài giới hạn bị từ chối (không ném lỗi)", ()
     "give hoi_huyet_dan 0", "give hoi_huyet_dan 99999999999", "ring 5", "ring 100001", "ring 5000 99", "bone", "bone khong_co dau", `bone ${BEASTS[0].id} tay`, `bone ${BEASTS[0].id} dau 5`,
     `bone ${BEASTS[0].id} dau 100000 21`, "core", "core khong_co 3", "core hao_thien 0", "core hao_thien 7", "core hao_thien 3 16", "gear", "gear khong_co", "gear vu_khi_chi_bao 0",
     "gear vu_khi_chi_bao 8", "gear vu_khi_chi_bao 7 16", "vohon", "vohon khong_co", "vohon hao_thien_chuy 0", "vohon hao_thien_chuy 1 11", "coin", "coin -1", "coin 99999999999999",
-    "tp", "tp khong_co", "tp dai_dau_hon_truong", "preset", "preset khac", "__proto__ 1", "constructor"]) bad(s);
+    "tp", "fog xyz", "fog 1", "tp khong_co", "tp dai_dau_hon_truong", "preset", "preset khac", "__proto__ 1", "constructor"]) bad(s);
   for (const x of [null, undefined, 5, {}, [], "x".repeat(201)]) bad(x);
   assert.ok(itemDef("hoi_huyet_dan"));
 });

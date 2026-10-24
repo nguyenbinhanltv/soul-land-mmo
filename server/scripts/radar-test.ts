@@ -6,10 +6,13 @@ import {
   radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarPlace, clampToCircle, radarHit, radarZoomStep, radarPrio,
   radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, type MapView,
 } from "../../shared/radar.ts";
+import { fogDims, fogEmpty, fogGet, fogSet, fogFill, fogCount, fogCellOf, fogReveal, fogValid, fogBytes, fogCells, fogOn } from "../../shared/fog.ts";
 import { autoLeg } from "../../shared/autowalk.ts";
 import { mapRoute } from "../src/map.ts";
+import { MemoryStore } from "../src/db.ts";
 
-function test(title: string, fn: () => void) { fn(); console.log(`✓ ${title}`); }
+const pend: Promise<void>[] = [];
+function test(title: string, fn: () => void | Promise<void>) { const r = fn(); if (r) pend.push(r.then(() => console.log(`✓ ${title}`))); else console.log(`✓ ${title}`); }
 const near = (got: number, want: number, what: string, tol = 1e-9) => assert.ok(Math.abs(got - want) <= tol, `${what}: ${got} lệch ${want}`);
 
 test("Hằng số: tầm mặc định nằm trong bảng phóng, ưu tiên 1..7 liên tiếp, bản đồ mở sẵn có thật", () => {
@@ -121,3 +124,44 @@ test("Tự đi tới cờ (R4): mọi bản đồ đi bộ được đều có �
   const start = ids[0], far = Object.keys(mapRoute(start)).at(-1)!;
   assert.deepEqual(autoLeg(start, { map: far, tile: true }, mapRoute(start)), { k: "gate", to: mapRoute(start)[far] });
 });
+
+test("Sương mù (R8): lưới ô thô, đánh dấu quanh điểm, bit thừa, mở cả bản đồ", () => {
+  const d = fogDims(255, 170); assert.deepEqual([d.cw, d.ch, d.cells, d.bytes], [32, 22, 704, 88], "bản đồ 255×170 khoảng 90 byte");
+  const b = fogEmpty(d); assert.equal(fogCount(b), 0);
+  const add = fogReveal(b, d, 100, 80); assert.ok(add.length > 0 && add.length === fogCount(b));
+  assert.ok(fogGet(b, fogCellOf(d, 100, 80)), "ô đứng được mở");
+  assert.deepEqual(fogReveal(b, d, 100, 80), [], "đứng yên không mở thêm");
+  assert.ok(!fogGet(b, fogCellOf(d, 100 + FOG.sight * 3, 80)), "xa hơn tầm nhìn thì chưa mở");
+  // mọi điểm trong bán kính nhìn đều nằm trong ô đã mở
+  for (let a = 0; a < 16; a++) { const x = 100 + Math.cos(a) * (FOG.sight - 0.01), y = 80 + Math.sin(a) * (FOG.sight - 0.01); assert.ok(fogGet(b, fogCellOf(d, x, y)), `điểm bán kính ${a}`); }
+  assert.deepEqual(fogReveal(fogEmpty(d), d, -50, -50), [], "ngoài bản đồ: không mở gì");
+  assert.equal(fogReveal(fogEmpty(d), d, NaN, 3).length, 0);
+  const full = fogFill(d); assert.equal(fogCount(full), d.cells); assert.ok(fogValid(full, d));
+  const tiny = fogDims(10, 10); assert.equal(tiny.cells, 4); assert.equal(fogFill(tiny)[0], 0b1111, "bit thừa giữ 0");
+  assert.equal(fogSet(fogEmpty(tiny), tiny, 4), false, "ô ngoài lưới bị từ chối"); assert.equal(fogSet(fogEmpty(tiny), tiny, -1), false); assert.equal(fogSet(fogEmpty(tiny), tiny, 1.5), false);
+});
+
+test("Sương mù (R8): dữ liệu lạ bị từ chối (sai kiểu, sai độ dài, bit thừa, lưới quá lớn), danh sách ô lọc và cắt", () => {
+  const d = fogDims(255, 170), t = fogDims(10, 10);
+  assert.ok(fogValid(fogEmpty(d), d));
+  assert.ok(!fogValid(new Uint8Array(d.bytes + 1), d) && !fogValid(new Uint8Array(3), d) && !fogValid("x", d) && !fogValid(null, d) && !fogValid([1, 2], d));
+  assert.ok(!fogValid(Uint8Array.of(0b10000), t), "bit thừa khác 0"); assert.ok(fogValid(Uint8Array.of(0b1111), t));
+  const huge = fogDims(FOG.cell * 1000, FOG.cell * 1000); assert.ok(!fogValid(new Uint8Array(huge.bytes), huge), "lưới vượt FOG.maxCells");
+  assert.deepEqual(fogBytes([1, 2, 255]), Uint8Array.of(1, 2, 255)); assert.equal(fogBytes([1, 256]), null); assert.equal(fogBytes("abc"), null); assert.equal(fogBytes({}), null);
+  assert.deepEqual(fogBytes(Uint8Array.of(7).buffer), Uint8Array.of(7));
+  assert.deepEqual(fogCells([0, 3, -1, 1.5, "2", 999999, 5], d), [0, 3, 5]); assert.deepEqual(fogCells("x", d), []);
+  assert.equal(fogCells(Array.from({ length: 500 }, (_, i) => i), d).length, FOG.maxAdd);
+  assert.ok(FOG.maxAdd > 0 && FOG.markSecs > 0 && FOG.sendSecs >= FOG.markSecs && FOG.fadeMs >= 0);
+  for (const m of FOG.open) assert.ok(!fogOn(m)); assert.ok(fogOn("tinh_dau_noi_dia"));
+  assert.ok(!fogOn(MAPS.dai_dau_hon_truong ? "dai_dau_hon_truong" : ""), "sân đấu không có sương mù");
+});
+
+test("Sương mù (R8): MemoryStore ghi / đọc bitset theo tài khoản × bản đồ, sai file bản đồ thì bỏ", async () => {
+  const st = new MemoryStore(), d = fogDims(255, 170), b = fogEmpty(d); fogReveal(b, d, 100, 80);
+  assert.equal(await st.getFog(1, "m", "f.json"), null, "chưa có");
+  await st.saveFog(1, "m", "f.json", b);
+  assert.deepEqual(await st.getFog(1, "m", "f.json"), b); assert.equal(await st.getFog(2, "m", "f.json"), null, "tài khoản khác không thấy");
+  assert.equal(await st.getFog(1, "n", "f.json"), null, "bản đồ khác không thấy"); assert.equal(await st.getFog(1, "m", "f.v2.json"), null, "file Tiled khác thì bỏ");
+  const got = (await st.getFog(1, "m", "f.json"))!; got[0] ^= 0xff; assert.notDeepEqual(await st.getFog(1, "m", "f.json"), got, "bản đọc ra là bản sao");
+});
+await Promise.all(pend);
