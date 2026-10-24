@@ -6138,15 +6138,15 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
-  /** Tin riêng "gear": các món đang mặc (`slot` = chỉ số trong EQUIP_SLOTS) và chỉ số tổng `st` (equipStats). Chỉ chính chủ; không vào state công khai. */
+  /** Tin riêng "gear": các món đang mặc (`slot` = chỉ số trong EQUIP_SLOTS) và chỉ số tổng `st` (equipStats). Chỉ chính chủ; không vào state công khai (riêng bậc áo / mũ đang mặc được đẩy sang `gearAo` / `gearMu`, `gearLook`). */
   sendGear(id: string) {
     const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    const p = this.state.players.get(id); if (p) gearLook(p, d.gear); // mọi đường đổi d.gear (mặc / tháo / phá huỷ khi cường hóa / hook test) đều gửi tin này
     c.send("gear", { items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt });
   }
   /** Sau khi đổi trang bị: tính lại chỉ số, báo client, ghi ngay qua chuỗi lưu (túi + ô mặc cùng một transaction). */
   afterGear(id: string, d: PData) {
     d.gearSt = gearStats(d.gear); d.bagDirty = true;
-    const p = this.state.players.get(id); if (p) gearLook(p, d.gear);
     this.afterBones(id, d.ch); this.sendGear(id);
     void this.save(id);
   }

@@ -6983,6 +6983,11 @@ async function gearEnhanceTest(){
   ok(r?.destroyed&&!find(W2)&&S.gear.items.length===0&&S.gear.st.weapon===null,"món đang mặc +14 thất bại không bùa: bị phá hủy, ô trống, hết công vũ khí");
   await rejoin(); ok(!find(W2)&&S.gear.items.length===0,"vào lại: món mặc bị phá hủy không xuất hiện lại");
 
+  // HL4 (#573): áo đang mặc bị phá hủy khi cường hóa thì gearAo (state công khai) về 0, người khác không còn thấy áo đó.
+  { const pl=()=>S.room.state.players.get(S.room.sessionId), A=await mk("ao_tu_kim",14); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); S.room.send("equipgear",{id:A}); await waitFor(()=>pl()?.gearAo===4,2000);
+    const worn=pl()?.gearAo; await test(S,"enhroll",{r:99}); await give(stone(14),st(14).qty); await coin(1e6); r=await enh(A); await waitFor(()=>pl()?.gearAo===0,2000);
+    ok(worn===4&&r?.destroyed&&pl()?.gearAo===0,`áo đang mặc +14 bị phá hủy: gearAo ${worn} -> ${pl()?.gearAo} (hết hiện áo trên lớp LPC)`); }
+
   // ---- 20 lệnh dồn cùng lúc: một lệnh được xử lý, không nhân đồ ----
   await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"enhroll",{r:0});
   const T=await mk("day_chuyen_than_khi",0); await give(stone(0),30); await coin(1e6);
