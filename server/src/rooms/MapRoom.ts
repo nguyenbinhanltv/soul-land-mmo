@@ -5930,17 +5930,21 @@ export class MapRoom extends Room<MapState> {
       if (this.countOf(d, stone.id) < step.qty) return warn(`Không đủ ${stone.name}: lên +${from + 1} cần ${step.qty}, đang có ${this.countOf(d, stone.id)}.`);
       if (d.honTe < step.fee) return warn(`Không đủ Hồn Tệ: lên +${from + 1} cần phí ${formatHonTe(step.fee)}, đang có ${formatHonTe(d.honTe)}.`);
       if (charm && step.fail.kind === "destroy" && !this.countOf(d, EQUIP_CHARM)) return warn("Không có Bùa Hộ Mệnh trong túi đồ.");
-      const undoStone = this.spendItem(d, stone.id, step.qty), honTe0 = d.honTe;
+      const undoStone = this.spendItem(d, stone.id, step.qty);
       d.honTe -= step.fee;
       const ok = (d.testEnh ?? Math.random()) < step.p, res = equipEnhanceResult(from, ok, charm)!;
       const undoCharm = res.charmUsed ? this.spendItem(d, EQUIP_CHARM, 1) : () => {};
-      const home = wear ? d.gear : d.bag, at = home.indexOf(it);
-      if (res.destroyed) home.splice(at, 1); else it.enhance = res.enhance;
+      const at = (wear ? d.gear : d.bag).indexOf(it);
+      if (res.destroyed) (wear ? d.gear : d.bag).splice(at, 1); else it.enhance = res.enhance;
       d.bagDirty = true;
       try { await store.saveBag(d.accountId, { ...this.bagSnapshot(d), lock: [{ id: it.id, enhance: from }] }); }
       catch (err) {
-        undoCharm(); undoStone(); d.honTe = honTe0; it.enhance = from; if (res.destroyed) home.splice(Math.min(at, home.length), 0, it); d.bagDirty = true;
-        if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); } else this.sendBag(id);
+        // Hoàn lại trên d.bag / d.gear / d.honTe HIỆN TẠI (trong lúc chờ DB có thể nhặt thêm đồ / Hồn Tệ): cộng lại đúng phần đã trừ, không gán giá trị cũ.
+        undoCharm(); undoStone(); d.honTe += step.fee; it.enhance = from;
+        if (res.destroyed) { const home = wear ? d.gear : d.bag; home.splice(Math.min(at, home.length), 0, it); }
+        d.bagDirty = true;
+        if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+        this.sendBag(id);
         warn("Không lưu được lần cường hóa, đã hoàn lại đá, phí và món đồ. Thử lại sau."); throw err;
       }
       const verb = res.destroyed ? `thất bại, ${label} đã bị PHÁ HỦY` : ok ? `thành công lên +${res.enhance}` : res.charmUsed ? `thất bại, Bùa Hộ Mệnh giữ nguyên +${res.enhance}`
@@ -5948,7 +5952,8 @@ export class MapRoom extends Room<MapState> {
       this.log(id, `Cường hóa ${res.destroyed ? label : equipName(e.tpl, from)} → +${from + 1}: ${verb} (−${step.qty} ${stone.name}, phí −${formatHonTe(step.fee)}${res.charmUsed ? ", −1 Bùa Hộ Mệnh" : ""}).`,
         ok ? "#9cff9c" : res.destroyed ? "#ff5a5a" : "#ffb35c");
       this.clients.getById(id)?.send("equipenhd", { id: it.id, from, to: res.destroyed ? null : res.enhance, ok, destroyed: res.destroyed, charmUsed: res.charmUsed, stone: stone.id, qty: step.qty, fee: step.fee });
-      if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); } else this.sendBag(id);
+      if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+      this.sendBag(id);
       if (!res.destroyed) this.equipEnhancePreview(id, it.id);
     }).then(() => { d.enhBusy = false; d.claimBusy--; });
   }

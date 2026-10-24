@@ -6607,6 +6607,7 @@ async function gearEnhanceTest(){
   const e0=S.gear.st.weapon; await give(stone(0),st(0).qty); await coin(1e6); r=await enh(W);
   const eW=equipStats([{...parseEquip(find(W).stats),enhance:1}]);
   ok(r?.ok&&find(W).enhance===1&&S.gear.items.find(g=>g.id===W).enhance===1&&same(S.gear.st.weapon,eW.weapon)&&S.gear.st.weapon.max>e0.max,"món đang mặc: cường hóa +1, công vũ khí tính lại ngay khớp equipStats");
+  ok(await waitFor(()=>S.bag.honTe===1e6-st(0).fee&&have(stone(0))===0,2000),`món đang mặc: tin bag cũng về đúng (đá còn ${have(stone(0))}, Hồn Tệ ${S.bag.honTe})`);
   await test(S,"enhroll",{r:99}); await test(S,"gear",{clear:true}); // món +14 mặc rồi bị phá hủy: ô trống, chỉ số về 0
   const W2=await mk("vu_khi_chi_bao",14); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); S.room.send("equipgear",{id:W2}); await waitFor(()=>S.gear?.items.some(g=>g.id===W2),2000);
   await give(stone(14),st(14).qty); r=await enh(W2); await sleep(200);
