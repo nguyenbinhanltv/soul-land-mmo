@@ -1,0 +1,143 @@
+# Promote (K3, #500): chạy TAY, mở PR ở repo GitOps đổi tag image prod. KHÔNG tự merge: chủ repo duyệt PR, ArgoCD sync, quay lui = revert PR đó.
+# Đầu vào `sha` (7 đến 40 ký tự hex, hoặc dạng sha-xxxxxxx); để trống = bản main mới nhất đã có trên registry (tag `main`).
+# Gắn thêm tag prod-<sha7> cho bản được promote (registry giữ mãi tag này, để quay lui được).
+# Cần: biến GCP_WIF_PROVIDER, GCP_SA_EMAIL (kiểm tag có trên registry) và secret GITOPS_TOKEN (chỉ quyền contents + pull-requests trên repo GitOps).
+# Hướng dẫn thiết lập: deploy/gcp/README.md. Luồng đầy đủ: docs/deploy.md.
+name: Promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit SHA (7-40 ký tự hex, hoặc sha-xxxxxxx) của bản đã release. Để trống = bản main mới nhất trên registry."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+# Một lượt promote tại một thời điểm (tránh hai PR cùng sửa một file tag).
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+env:
+  IMAGE: asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game
+  GITOPS_REPO: nguyenbinhanltv/soul-land-gitops
+  TAG_FILE: apps/soul-land/overlays/prod/kustomization.yaml
+  IMAGE_NAME: soul-land-game # mục images[].name trong TAG_FILE
+
+jobs:
+  promote:
+    name: mở PR đổi tag prod
+    # Quyền GCP chỉ cấp cho workflow chạy trên main (điều kiện của Workload Identity provider).
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - id: in
+        env:
+          INPUT: ${{ inputs.sha }}
+        run: |
+          s=$(echo "$INPUT" | tr 'A-F' 'a-f' | tr -d '[:space:]'); s=${s#sha-}
+          if [ -n "$s" ] && ! echo "$s" | grep -Eq '^[0-9a-f]{7,40}$'; then echo "::error title=sha::phải là 7-40 ký tự hex (hoặc sha-xxxxxxx), nhận: $INPUT"; exit 1; fi
+          if [ -n "$s" ]; then echo "tag=sha-${s:0:7}" >>"$GITHUB_OUTPUT"; else echo "tag=" >>"$GITHUB_OUTPUT"; fi
+      - id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SA_EMAIL }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - id: tag
+        name: kiểm tag có trên registry
+        env:
+          WANT: ${{ steps.in.outputs.tag }}
+        run: |
+          # Cột: tag (đường dẫn đầy đủ) và version (digest). Bản main mới nhất = tag sha-* cùng digest với tag main.
+          gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' >tags.txt
+          base() { awk -v want="$1" '{ n=split($1,a,"/"); if (a[n]==want) print $2 }' tags.txt; }
+          if [ -z "$WANT" ]; then
+            MAIN_V=$(base main)
+            [ -n "$MAIN_V" ] || { echo "::error title=promote::registry chưa có tag main (chưa release lần nào?)"; exit 1; }
+            WANT=$(awk -v v="$MAIN_V" '{ n=split($1,a,"/"); if ($2==v && a[n] ~ /^sha-/) print a[n] }' tags.txt | head -n 1)
+            [ -n "$WANT" ] || { echo "::error title=promote::tag main không có tag sha-* đi kèm"; exit 1; }
+            echo "Mặc định: bản main mới nhất = $WANT"
+          fi
+          [ -n "$(base "$WANT")" ] || { echo "::error title=promote::registry không có tag $WANT (chưa release, hoặc đã bị chính sách dọn xóa). 5 tag mới nhất:"; awk '{ n=split($1,a,"/"); print a[n] }' tags.txt | head -n 5; exit 1; }
+          echo "tag=$WANT" >>"$GITHUB_OUTPUT"
+      - name: checkout repo GitOps
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops
+          persist-credentials: true # token chỉ có quyền ở repo GitOps; cần để push nhánh
+      - id: edit
+        name: đổi newTag (chỉ ${{ env.TAG_FILE }})
+        working-directory: gitops
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          [ -f "$TAG_FILE" ] || { echo "::error title=promote::không có $TAG_FILE ở $GITOPS_REPO"; exit 1; }
+          export IMAGE_NAME IMAGE
+          [ "$(yq '[.images[] | select(.name == strenv(IMAGE_NAME))] | length' "$TAG_FILE")" = 1 ] || { echo "::error title=promote::$TAG_FILE phải có đúng một mục images[] tên $IMAGE_NAME"; exit 1; }
+          OLD=$(yq '.images[] | select(.name == strenv(IMAGE_NAME)) | .newTag' "$TAG_FILE")
+          echo "old=$OLD" >>"$GITHUB_OUTPUT"
+          if [ "$OLD" = "$TAG" ]; then echo "::notice title=promote::prod đã ở $TAG, không có gì để đổi"; echo "changed=no" >>"$GITHUB_OUTPUT"; exit 0; fi
+          export TAG
+          yq -i '(.images[] | select(.name == strenv(IMAGE_NAME)) | .newName) = strenv(IMAGE) | (.images[] | select(.name == strenv(IMAGE_NAME)) | .newTag) = strenv(TAG)' "$TAG_FILE"
+          # Chỉ đúng file hợp đồng được đổi.
+          [ "$(git status --porcelain | awk '{print $2}')" = "$TAG_FILE" ] || { echo "::error title=promote::thay đổi ngoài $TAG_FILE:"; git status --porcelain; exit 1; }
+          git --no-pager diff
+          echo "changed=yes" >>"$GITHUB_OUTPUT"
+      # Bản được promote mang thêm tag prod-<sha7>: chính sách dọn của registry (deploy/gcp/setup.sh) giữ mãi tag này, nên bản đang chạy ở prod
+      # và các bản prod trước (để quay lui bằng revert PR promote) không bị xóa dù main ra nhiều commit. Gắn ngay khi mở PR (idempotent).
+      - name: gắn tag bảo vệ prod-<sha7>
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          gcloud artifacts docker tags add "$IMAGE:$TAG" "$IMAGE:prod-${TAG#sha-}"
+          echo "Đã gắn $IMAGE:prod-${TAG#sha-}"
+      - name: mở PR (KHÔNG tự merge)
+        if: ${{ steps.edit.outputs.changed == 'yes' }}
+        working-directory: gitops
+        env:
+          GH_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          OLD: ${{ steps.edit.outputs.old }}
+        run: |
+          BRANCH="promote/$TAG"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "::error title=promote::nhánh $BRANCH đã có ở $GITOPS_REPO (PR promote $TAG đang mở hoặc chưa dọn). Xử lý PR đó trước."; exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add "$TAG_FILE"
+          git commit -q -m "promote: soul-land-game ${OLD:-?} -> $TAG (prod)"
+          git push -q origin "$BRANCH"
+          {
+            echo "## Promote bản $TAG lên prod"
+            echo ""
+            echo "- Tag cũ: \`${OLD:-?}\` → tag mới: \`$TAG\`"
+            echo "- Image: \`$IMAGE:$TAG\`"
+            echo "- Commit game: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/${TAG#sha-}"
+            echo "- Lượt chạy: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo ""
+            echo "Merge PR này thì ArgoCD sync, người chơi đang online bị ngắt khoảng 10-30 giây (Recreate, một bản)."
+            echo "**Quay lui:** revert PR này ở repo GitOps (ArgoCD tự sync về \`${OLD:-?}\`)."
+            echo ""
+            echo "PR do workflow Promote của repo game mở, không tự merge."
+          } >body.md
+          URL=$(gh pr create --repo "$GITOPS_REPO" --base main --head "$BRANCH" --title "promote: soul-land-game $TAG (prod)" --body-file body.md)
+          echo "$URL"
+          {
+            echo "### Promote \`$TAG\`"
+            echo ""
+            echo "PR: $URL"
+            echo ""
+            echo "Chưa merge. Chủ repo duyệt và merge thì ArgoCD sync."
+          } >>"$GITHUB_STEP_SUMMARY"

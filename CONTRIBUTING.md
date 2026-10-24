@@ -125,3 +125,7 @@ Bảng GitHub Project 3 của repo phải khớp nhãn issue. Trường Status �
 | Bỏ dở | `san-sang` | Status = Sẵn sàng, Chủ = Chưa giao |
 
 Nhãn là nguồn sự thật. Không sửa được bảng (thiếu quyền) thì ghi việc cần đổi vào comment `Tiến độ` của issue; orchestrator AO đồng bộ hộ.
+
+## Triển khai
+
+Merge vào `main` chỉ dựng, thử và đẩy image (`release.yml`); lên prod bằng workflow `Promote` (mở PR ở repo GitOps, chủ repo duyệt, ArgoCD sync). Quay lui = revert PR promote. Chi tiết, thiết lập GCP và biến GitHub: `docs/deploy.md`, `deploy/gcp/README.md`.
