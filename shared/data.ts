@@ -5545,3 +5545,16 @@ export const LPC_PARTS: LpcPart[] = [
   {"id":"arms.cuffs","slot":"arms","vi":"Cổ tay áo","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"arms.gloves","slot":"arms","vi":"Găng tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false}
 ];
+
+/**
+ * Hiển thị hồn sư chế độ Tự tạo (L3 #510, client/src/lpcRig.ts). Hằng hiển thị, không phải số cân bằng.
+ * `dirHoldMs`: hướng nhìn mới (đổi hàng LPC hoặc lật) phải giữ chừng này ms mới đổi hình, để đi chéo không nháy giữa hai hàng.
+ * `breatheY`: hàng ảnh (trong khung 64, gốc chân ở 58) chia thân: phần trên nhích xuống 1 điểm ở nửa sau chu kỳ idle của bộ thiếu
+ * idle (thở bằng code, như NPC). `outline`: viền ngoài như hồn sư. `budgetMs`: thời gian tối đa mỗi khung dành cho tô màu / ghép
+ * lớp (việc còn lại để khung sau). `graceMs`: tổ hợp hết người dùng vẫn giữ ngần này ms (đi qua lại tầm nhìn không ghép lại).
+ * `vohon`: độ lệch (điểm ảnh nội bộ, dx đổi dấu theo lật ngang) của hai lớp phụ thể so với thân LPC, thân LPC rộng hơn m1.
+ */
+export const LPC_VIEW = {
+  dirHoldMs: 140, breatheY: 30, outline: "#1a1020", budgetMs: 4, graceMs: 8000,
+  vohon: { dx: 0, dy: 0 },
+};
