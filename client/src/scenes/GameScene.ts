@@ -268,7 +268,7 @@ export class GameScene extends Phaser.Scene {
    */
   goal: { x: number; y: number; path: Pt[]; i: number; d: number; t: number; auto?: boolean } | null = null;
   /** Tự đi tới cờ (R4): đồ thị dẫn đường của bản đồ (dựng khi cần), khoảng cách tốt nhất tới đích và lúc cải thiện cuối, lúc xin qua cổng, lúc tính đường kế. */
-  flagNav: Nav | null = null; flagLine: number[] = []; flagBest = Infinity; flagBestT = 0; flagCross = 0; flagPlanT = 0;
+  flagNav: Nav | null = null; flagLine: number[] = []; flagBest = Infinity; flagBestT = 0; flagCross = 0; flagPlanT = 0; flagDailyT = 0;
   grid: SolidGrid | null = null;    // lưới ô chặn của bản đồ (shared/move.ts): dự đoán chuyển động, tìm đường khi bấm chuột
   dir = { x: 0, y: 0 };             // hướng đi đã gửi gần nhất (đã làm tròn và chuẩn hóa như server đọc)
   walk = false;                     // input gửi gần nhất có giữ Shift (đi bộ, 11.1)
@@ -849,7 +849,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Dựng lại ở mỗi bản đồ: vẽ lại cờ, và tiếp tục chuyến đi nếu vừa qua cổng (mất kết nối / thoát ra thì không tự đi lại). */
   initFlag() {
-    const f = getFlag(); this.flagNav = null; this.flagCross = 0;
+    const f = getFlag(); this.flagNav = null; this.flagCross = 0; this.flagDailyT = 0;
     if (!f) return;
     if (f.on && !f.cross) patchFlag({ on: false });
     else if (f.on) { patchFlag({ cross: false }); this.flagBest = Infinity; this.flagBestT = this.time.now; hud.log(`Đã qua cổng, tiếp tục đi tới ${f.name}.`, "#ffb35c"); }
@@ -878,6 +878,7 @@ export class GameScene extends Phaser.Scene {
   flagToMap(map: string) {
     if (this.watching || this.isArena) return;
     if (map === this.mapId) { hud.log("Bạn đang ở bản đồ này rồi.", "#ffb35c"); return; }
+    if (!this.daily) { hud.log("Chưa có dữ liệu đường đi, thử lại sau giây lát.", "#ffb35c"); return; }
     if (autoLeg(this.mapId, { map, tile: false }, this.daily?.route ?? {}).k === "none") { hud.log(`Không có đường đi bộ tới ${mapName(map)}; hãy dùng truyền tống trận.`, "#ffb35c"); return; }
     this.flagStop(null);
     setFlag({ map, tx: null, ty: null, name: mapName(map), on: false, cross: false });
@@ -914,6 +915,13 @@ export class GameScene extends Phaser.Scene {
     if (me.dead) return this.flagStop(AUTO_STOP.dead);
     if (me.auto) return this.flagStop(AUTO_STOP.hunt);
     if (hud.npcOpenId()) return this.flagStop(AUTO_STOP.talk);
+    // Vừa qua cổng: tin `daily` (có `route`) về sau khi vào phòng một vòng mạng; chưa có thì chờ chứ không coi là "không có đường".
+    if (f.map !== this.mapId && !this.daily) {
+      this.flagDailyT ||= now; this.flagBestT = now;
+      if (now - this.flagDailyT > AUTOWALK.gateSecs * 1000) return this.flagStop(AUTO_STOP.none);
+      return;
+    }
+    this.flagDailyT = 0;
     const leg = autoLeg(this.mapId, { map: f.map, tile: f.tx !== null }, this.daily?.route ?? {});
     if (leg.k === "arrived") return this.flagStop(`${AUTO_STOP.arrived}: ${mapName(f.map)}.`, true);
     if (leg.k === "none") return this.flagStop(AUTO_STOP.none);

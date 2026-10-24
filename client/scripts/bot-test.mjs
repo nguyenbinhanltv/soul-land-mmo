@@ -5804,13 +5804,6 @@ async function syncViewTest(){
   await V.room.leave(); await W.room.leave();
 }
 /**
- * 11.2 Truyền tống trận và bản đồ thế giới: dữ liệu (mọi bản đồ trừ sân đấu có 1–3 object `waypoint`, tâm đứng được, phí theo số lần
- * đi cổng, Hồi Thành Phù bán ở thương nhân, không mua lại). Với hook: bot T (tài khoản mới) mở khóa trận khi bước lên (tin `wp`, bản
- * đồ thế giới ghi đã mở), không đứng trên trận thì chỉ xem, trận chưa mở / thiếu Hồn Tệ / đang giao chiến bị từ chối; niệm WAYPOINT_CAST
- * giây rồi dịch chuyển trong cùng bản đồ (trừ phí) và sang bản đồ khác (transaction đi cổng, phí lưu qua đi cổng); bị đánh hoặc di
- * chuyển thì hủy, không mất gì; Hồi Thành Phù về thành gần nhất, mất một phù, bị đánh thì hủy và giữ phù; thoát vào lại vẫn nhớ trận đã mở.
- */
-/**
  * Tự đi tới cờ (R4 #431; BOT_ONLY=flag): cùng bản đồ, xuyên một cổng, bị chặn. Client (GameScene.flagTick) chỉ lái hướng đi bằng `input` và gửi
  * `travel` khi server báo đang đứng trên cổng; bot lặp lại đúng vòng đó với cùng hàm dùng chung (autoLeg, findLongPath) và `route` thật
  * của tin "daily", để kiểm đường dữ liệu trên bản đồ ×8 thật: đường đi dài, cổng có thật, server không có lệnh dịch chuyển.
@@ -5828,7 +5821,7 @@ async function flagTest(){
   const here=()=>T.room.state.mapId;
   async function rejoin(){
     const t=T.travel; await T.room.leave(); await sleep(250); T.mapId=t.mapId; await enter(T,t.roomId??undefined);
-    await waitFor(()=>me(),3000); T.room.send("quest",{op:"get"}); await waitFor(()=>T.daily,3000);
+    await waitFor(()=>me(),3000); T.room.send("quest",{op:"get"}); // không chờ tin daily: autoWalk chờ khi cần route, như GameScene.flagTick
   }
   /**
    * Một lần "tự đi" như GameScene.flagTick: chặng cờ / cổng theo autoLeg, đường findLongPath, lái hướng bằng `input`, kẹt 5 giây thì dừng,
@@ -5837,6 +5830,7 @@ async function flagTest(){
   async function autoWalk(goal,maxMs=120000){
     const t0=Date.now(); let best=Infinity, bestT=Date.now(), mapAt=here();
     while(Date.now()-t0<maxMs){
+      if(here()!==goal.map&&!T.daily&&!(await waitFor(()=>T.daily,AUTOWALK.gateSecs*1000))) return "none"; // vừa qua cổng: chờ tin daily có route
       const leg=autoLeg(here(),{map:goal.map,tile:goal.tx!=null},T.daily?.route??{});
       if(leg.k==="arrived") return "arrived";
       if(leg.k==="none") return "none";
@@ -5925,9 +5919,22 @@ async function flagTest(){
     await test(T,"goto",{x:p0.x,y:p0.y}); T.travel=null; const l=T.logs.length; T.room.send("travel",{portal:portal.name}); await sleep(700);
     ok(!T.travel&&T.logs.slice(l).some(t=>/đứng trong cổng/.test(t))&&here()===HT,`xin qua cổng khi không đứng trong cổng: server từ chối ("${T.logs.at(-1)}"), không dịch chuyển`);
   }
+  // 5. Hai cổng liên tiếp (#516): Thánh Hồn Thôn → Nặc Đinh Thành → Tinh Đấu Ngoại vi. Vào Nặc Đinh Thành chưa có tin daily mà vẫn phải đi tiếp.
+  { const far="tinh_dau_ngoai_vi";
+    ok(T.daily?.route?.[far]===ND&&autoLeg(HT,{map:far,tile:false},T.daily.route).k==="gate",`route: ${MAPS[far].name} cách hai cổng, chặng đầu là ${MAPS[ND].name}`);
+    let hops=0; T.room.onMessage("travel",()=>{hops++;}); const first=T.room.sessionId;
+    const res=await autoWalk({map:far,tx:null,ty:null},240000);
+    ok(res==="arrived"&&here()===far&&first!==T.room.sessionId,`đi hai cổng liền: ${res}, đang ở ${MAPS[here()]?.name}`); }
   await T.room.leave();
 }
 
+/**
+ * 11.2 Truyền tống trận và bản đồ thế giới: dữ liệu (mọi bản đồ trừ sân đấu có 1–3 object `waypoint`, tâm đứng được, phí theo số lần
+ * đi cổng, Hồi Thành Phù bán ở thương nhân, không mua lại). Với hook: bot T (tài khoản mới) mở khóa trận khi bước lên (tin `wp`, bản
+ * đồ thế giới ghi đã mở), không đứng trên trận thì chỉ xem, trận chưa mở / thiếu Hồn Tệ / đang giao chiến bị từ chối; niệm WAYPOINT_CAST
+ * giây rồi dịch chuyển trong cùng bản đồ (trừ phí) và sang bản đồ khác (transaction đi cổng, phí lưu qua đi cổng); bị đánh hoặc di
+ * chuyển thì hủy, không mất gì; Hồi Thành Phù về thành gần nhất, mất một phù, bị đánh thì hủy và giữ phù; thoát vào lại vẫn nhớ trận đã mở.
+ */
 async function waypointTest(){
   console.log("[11.2] Truyền tống trận, bản đồ thế giới, Hồi Thành Phù");
   const objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
