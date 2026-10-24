@@ -302,6 +302,7 @@ export function inviteReset(key: number) { invites.delete(key); }
 
 // ---------- Bạn bè và chặn ----------
 const friendOps = new Map<number, { tokens: number; at: number }>();
+const rallies = new Map<number, { tokens: number; at: number }>(); // dấu "Tập trung ở đây" (R6 #433), hàm rallyCheck ở cuối file
 
 /**
  * Một thao tác bạn bè / chặn của tài khoản `key` (#195): chống spam (thêm theo tên có thể tra DB, mỗi lần ghi DB). Hợp lệ -> null
@@ -344,15 +345,14 @@ export function sweep(now = Date.now()) {
   }
   for (const [k, e] of friendOps) if (now - e.at > CHAT_FORGET_MS) friendOps.delete(k);
   for (const [k, at] of friendNotes) if (now - at >= FRIEND_NOTE_REPEAT_MS) friendNotes.delete(k);
+  for (const [k, e] of rallies) if (now - e.at >= RALLY.burst * RALLY.refillMs) rallies.delete(k); // đã hồi đầy: giống như chưa có
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); rallies.clear(); }
 
 // ---------- Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433) ----------
-const rallies = new Map<number, { tokens: number; at: number }>();
-
 /**
  * Kiểm tra một lần đặt dấu "Tập trung ở đây" của tài khoản `key`: token bucket `RALLY.burst` lượt, hồi 1 lượt mỗi `RALLY.refillMs`. Gọi sau
  * mọi bước kiểm tra luật (dấu không hợp lệ không tốn lượt). Hợp lệ -> null (đã tính lượt); hết lượt -> { error } báo riêng người đặt.

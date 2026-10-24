@@ -1006,7 +1006,7 @@ export class GameScene extends Phaser.Scene {
   rallyNear(tx: number, ty: number) {
     return this.rallyHere().find((r) => Math.hypot(r.tx - tx, r.ty - ty) <= 2);
   }
-  rallyHere() { const ch = this.room.state.channel; return getRallies().filter((r) => r.map === this.mapId && r.ch === ch); }
+  rallyHere() { const ch = this.room.state.channel; const now = Date.now(); return getRallies().filter((r) => r.until > now && r.map === this.mapId && r.ch === ch); }
 
   /** Dấu tập trung vào radar / bản đồ khu vực (mức `rally`: mũi tên ở mép khi ngoài tầm). Dấu hết hạn thì bỏ. */
   collectRally(R: DotSink) {
