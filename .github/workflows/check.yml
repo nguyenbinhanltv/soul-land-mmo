@@ -1,10 +1,15 @@
 # CI: typecheck server + client, validate sprite / tiles.json, build client (check-build); bot RAM và bài thử nhanh (bot-ram, #171)
 # cho mọi PR vào main và mỗi push vào main. Status check check-build, bot-ram: chỉ để tham khảo, không bắt buộc (xem CONTRIBUTING.md).
+# Mức bot chọn theo file PR đổi (job `changes`, tools/ci/changes.sh): skip (chỉ ảnh / âm thanh / tài liệu: không chạy bot),
+# smoke (chỉ mã giao diện client: test client + một lượt bot khói ~2 phút), full (còn lại và mọi push vào main: 4 nhóm).
+# Nhãn PR ép mức: ci:full -> full; ci:bot-khoi -> ít nhất smoke. check-build luôn chạy đủ ở mọi mức.
 name: CI
 
 on:
   pull_request:
     branches: [main]
+    # labeled / unlabeled: đổi nhãn ci:* thì chạy lại (job `changes` bỏ qua mọi nhãn khác, xem output `run`).
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
@@ -13,12 +18,50 @@ permissions:
 
 # Push mới lên cùng PR thì hủy lượt cũ. Trên main mỗi commit một nhóm riêng (theo SHA), nên không lượt nào bị hủy hay bị bỏ.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  # Đổi nhãn không phải ci:* (dang-lam, cho-review...) vào nhóm riêng theo run_id: không hủy lượt đang chạy, và mọi job của lượt đó bị bỏ qua.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}${{ ((github.event.action == 'labeled' || github.event.action == 'unlabeled') && !startsWith(github.event.label.name, 'ci:')) && format('-nhan-{0}', github.run_id) || '' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Chọn mức bot (skip | smoke | full) theo file đổi so với base của PR; push vào main luôn full. Quy tắc ở tools/ci/changes.sh.
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      level: ${{ steps.level.outputs.level }}
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - id: gate
+        env:
+          ACTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
+        run: |
+          # Đổi nhãn không phải ci:* thì không chạy gì (run=false).
+          if { [ "$ACTION" = labeled ] || [ "$ACTION" = unlabeled ]; } && [ "${LABEL#ci:}" = "$LABEL" ]; then echo "run=false" >>"$GITHUB_OUTPUT"; else echo "run=true" >>"$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ steps.gate.outputs.run == 'true' }}
+        with:
+          fetch-depth: 0 # đủ lịch sử để git diff base...head
+          persist-credentials: false
+      - id: level
+        if: ${{ steps.gate.outputs.run == 'true' }}
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            git diff --name-only "$BASE...$HEAD" | bash tools/ci/changes.sh
+          else
+            echo -n | FORCE_FULL=1 bash tools/ci/changes.sh
+          fi
+
   check-build:
     name: check-build
+    needs: changes
+    if: ${{ needs.changes.outputs.run == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -52,6 +95,8 @@ jobs:
   # (bot báo ✗ khi matrix lệch). Nhóm 1 chạy thêm các bài nhanh và lượt nhiều kênh. Job bot-ram (cuối file) gộp kết quả thành một status check.
   bot-ram-part:
     name: bot-ram (nhóm ${{ matrix.part }})
+    needs: changes
+    if: ${{ needs.changes.outputs.level == 'full' }}
     strategy:
       fail-fast: false
       matrix:
@@ -116,20 +161,72 @@ jobs:
           path: ci-logs/
           retention-days: 7
 
-  # Một status check bot-ram cho cả 4 nhóm: đỏ khi có nhóm trượt / bị hủy / hết giờ.
+  # Mức smoke: test client + một lượt bot khói (BOT_PART=smoke: phần chung + vài bài nhẹ). Bước cài thư viện giống bot-ram-part.
+  bot-smoke:
+    name: bot-smoke
+    needs: changes
+    if: ${{ needs.changes.outputs.level == 'smoke' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      - id: nm
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            server/node_modules
+            client/node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('server/package-lock.json', 'client/package-lock.json') }}
+      - id: deps
+        env:
+          HIT: ${{ steps.nm.outputs.cache-hit }}
+        run: |
+          if [ "$HIT" = true ]; then echo "node_modules lấy từ cache"; exit 0; fi
+          npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: npm run test:predict --prefix client
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: npm run test:charbag --prefix client
+      - name: bot khói (server GAME_TEST=1, RAM)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        timeout-minutes: 6
+        env:
+          BOT_PART: smoke
+        run: bash tools/ci/bot-run.sh khoi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: bot-logs-khoi
+          path: ci-logs/
+          retention-days: 7
+
+  # Một status check bot-ram cho mọi mức: full gộp 4 nhóm (đỏ khi có nhóm trượt / bị hủy / hết giờ), smoke theo bot-smoke,
+  # skip báo success (không chạy bot). Không bao giờ ra failure / thiếu ở mức skip. Lượt bỏ qua vì đổi nhãn không liên quan thì job này cũng bỏ qua.
   bot-ram:
     name: bot-ram
-    needs: bot-ram-part
-    if: ${{ !cancelled() }}
+    needs: [changes, bot-ram-part, bot-smoke]
+    if: ${{ !cancelled() && needs.changes.outputs.run == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - env:
-          RESULT: ${{ needs.bot-ram-part.result }}
+          LEVEL: ${{ needs.changes.outputs.level }}
+          RESULT: ${{ needs.changes.result != 'success' && 'changes-loi' || (needs.changes.outputs.level == 'full' && needs.bot-ram-part.result) || (needs.changes.outputs.level == 'smoke' && needs.bot-smoke.result) || 'success' }}
         # Phân biệt "có dòng ✗ / bước bot quá 12 phút" (failure) với "job bị hủy / hết 20 phút" (cancelled) để người đọc khỏi nhầm.
         run: |
-          echo "bot-ram (4 nhóm): $RESULT"
+          echo "bot-ram (mức $LEVEL): $RESULT"
           case "$RESULT" in
+            changes-loi) echo "::error title=bot-ram::job changes lỗi, không chọn được mức bot" ;;
             success) ;;
             failure) echo "::error title=bot-ram::có nhóm trượt (dòng ✗) hoặc bước bot quá 12 phút (treo): xem annotation từng nhóm" ;;
             cancelled) echo "::error title=bot-ram::có nhóm bị hủy hoặc hết giờ job (thường do runner / npm ci chậm, chưa chắc là lỗi bot)" ;;
