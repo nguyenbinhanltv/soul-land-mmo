@@ -12,14 +12,64 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_bang_bich_hat",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_giap_cu_quy",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_nguyen_cu_tuong",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "beast_bang_phong_bach_hung",
       "frame": [
         96,
         96
       ],
       "iso": true,
-      "map": "cuc_bac_chi_dia",
-      "lpc": true
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_tinh_hat",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_vu_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_bich_lan_xa",
@@ -122,6 +172,26 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_han_bang_dia_long",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_han_nguyet_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "beast_hoa_linh_diep",
       "frame": [
         96,
@@ -150,6 +220,16 @@
       "iso": true,
       "static": true,
       "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_huyen_minh_bang_tam",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_kiem_vi_hat",
@@ -438,8 +518,18 @@
         96
       ],
       "iso": true,
-      "map": "cuc_bac_chi_dia",
-      "lpc": true
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_tuyet_ma_vien",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_tuyet_vi_yeu_ho",
@@ -448,8 +538,8 @@
         96
       ],
       "iso": true,
-      "map": "cuc_bac_chi_dia",
-      "lpc": true
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_u_linh_hai_mau",
