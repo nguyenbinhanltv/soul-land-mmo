@@ -3685,6 +3685,14 @@
       "iso": true
     },
     {
+      "key": "vh_bich_lan_xa_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_f",
+      "iso": true
+    },
+    {
       "key": "vh_can_khon_hon_nguyen_toa_b",
       "iso": true
     },
@@ -3714,6 +3722,14 @@
     },
     {
       "key": "vh_hao_thien_chuy_f",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_anh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_anh_f",
       "iso": true
     },
     {
@@ -3773,6 +3789,14 @@
       "iso": true
     },
     {
+      "key": "vh_quy_mi_b",
+      "iso": true
+    },
+    {
+      "key": "vh_quy_mi_f",
+      "iso": true
+    },
+    {
       "key": "vh_ta_hoa_phuong_hoang_b",
       "iso": true
     },
@@ -3789,6 +3813,14 @@
       "iso": true
     },
     {
+      "key": "vh_tu_vong_chu_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_tu_vong_chu_hoang_f",
+      "iso": true
+    },
+    {
       "key": "vh_u_minh_linh_mieu_b",
       "iso": true
     },
@@ -3802,6 +3834,14 @@
     },
     {
       "key": "vh_xuc_xich_f",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_f",
       "iso": true
     }
   ]
