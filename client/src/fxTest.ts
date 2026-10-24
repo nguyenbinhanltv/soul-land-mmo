@@ -1,10 +1,16 @@
 // Trang thử hiệu ứng hồn kỹ theo hệ (G3, #394; mở bằng `?thu=fx`, không cần đăng nhập): chọn hệ / kiểu hoặc một hồn kỹ có thật, phát một lần
 // hoặc lặp, đổi mức Hiệu ứng / Giảm chuyển động, xem cảnh vòng 7+. Tham số URL cho chụp tự động: he, kieu, tier, zoom, lap=1, auto=1, cine=1.
+// S1 (#542): chọn hồn kỹ thì phát cả sheet theo SKILL_VISUAL (nếu có), nút "Đánh thử" cho cảm giác đánh (khựng / tia lửa theo chất liệu / số theo hệ,
+// giật lùi), `stress=P&sheets=0` tắt phần mới để so FPS trước / sau. Tham số thêm: mat, nang (0..3), crit=1.
 // Chỉ để chủ repo duyệt phong cách; không đổi luật chơi.
 import Phaser from "phaser";
 import { TIERS, VOHON, ringSkill, chanThanOf, MAX_RINGS } from "../../shared/data.ts";
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
-import { ParticleLayer, fxPrefs, setFxPrefs, type FxLevel } from "./combatFx.ts";
+import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, type FxLevel } from "./combatFx.ts";
+import { SheetFx } from "./fxSheet.ts";
+import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, visualKey } from "./skillVisual.ts";
+import { KNOCK_PX, damageStyle, hitWeight, materialSparks } from "./hitFeel.ts";
+import { MATERIALS, type Material } from "./audio/soundMap.ts";
 import { SPR } from "./iso.ts";
 import { SkillCine } from "./skillCine.ts";
 import { ELEMENT_NAME, FX_KINDS, FX_KIND_NAME, FX_TEX_ELEMENTS, SkillFx, skillFxOf, fxTexKey, isCinematic, type FxKind } from "./skillFx.ts";
@@ -13,7 +19,7 @@ const q = new URLSearchParams(location.search);
 const pick = <T extends string>(v: string | null, all: readonly T[], d: T): T => ((all as readonly string[]).includes(v ?? "") ? (v as T) : d);
 
 class FxTestScene extends Phaser.Scene {
-  fxp!: ParticleLayer; skfx!: SkillFx; cine = new SkillCine();
+  fxp!: ParticleLayer; skfx!: SkillFx; svp!: SkillVisualPlayer; cine = new SkillCine(); sheets = q.get("sheets") !== "0";
   el: Element = pick(q.get("he"), ELEMENTS, "fire"); kind: FxKind = pick(q.get("kieu"), FX_KINDS, "proj");
   tier = Math.max(0, Math.min(4, Number(q.get("tier") ?? 2) | 0));
   hero!: Phaser.GameObjects.Container; dummy!: Phaser.GameObjects.Container;
@@ -31,16 +37,23 @@ class FxTestScene extends Phaser.Scene {
     this.drawGround();
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.skfx = new SkillFx(this, this.fxp);
+    registerCodeSheets(this); this.svp = new SkillVisualPlayer(new SheetFx(this));
     this.hero = this.person(-70, 12, 0x9fb4e8); this.dummy = this.person(70, 12, 0xd8b090);
-    this.events.on("update", (_t: number, dt: number) => this.fxp.update(dt / 1000));
+    this.events.on("update", (_t: number, dt: number) => { this.fxp.update(dt / 1000); this.svp.sheets.update(dt); });
     // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/hieu-nang-soak.md).
     const P = Number(q.get("stress") ?? 0);
     if (P > 0) this.time.addEvent({ delay: 2500 / P, loop: true, callback: () => {
       const el = ELEMENTS[(Math.random() * ELEMENTS.length) | 0], kind = FX_KINDS[(Math.random() * FX_KINDS.length) | 0];
       const x = (Math.random() - 0.5) * 360, y = (Math.random() - 0.5) * 150, tc = parseInt(TIERS[(Math.random() * 5) | 0].glow.slice(1), 16);
       this.skfx.play(kind, el, { x, y, ang: Math.random() * 6.28, r: 40 + Math.random() * 40, tierCol: tc, dist: 120 });
+      if (this.sheets) { // phần mới của S1: sheet theo bảng (nửa số lần là người khác: bản nhẹ) + tia lửa theo chất liệu
+        const vis = skillVisualOf(Math.random() < 0.5 ? "lam_dien_ba_vuong_long" : "hao_thien_chuy", Math.random() < 0.5 ? 4 : 9);
+        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5 });
+        materialSparks(this.fxp, MATERIALS[(Math.random() * 4) | 0], el, x + 40, y - 8 * SPR, (Math.random() * 3) | 0, SPR);
+      }
     } });
-    (window as unknown as { __fx: object }).__fx = { fps: () => this.game.loop.actualFps, sprites: () => this.skfx.active, parts: () => this.fxp.count };
+    (window as unknown as { __fx: object }).__fx = { fps: () => this.game.loop.actualFps, sprites: () => this.skfx.active, parts: () => this.fxp.count, sheets: () => this.svp.sheets.active, pooled: () => this.svp.sheets.pooled };
+    if (q.get("hit") === "1") this.time.delayedCall(500, () => this.hit(pick(q.get("mat"), MATERIALS, "thit"), Number(q.get("nang") ?? 0), q.get("crit") === "1"));
     if (q.get("auto") === "1") this.time.delayedCall(500, () => this.fire());
   }
   drawGround() {
@@ -57,6 +70,17 @@ class FxTestScene extends Phaser.Scene {
     // khung 64×64, chân ở (32, 58): dời lên cho chân trùng gốc container
     c.add(this.add.sprite(0, -26, "t_body", 0)); c.add(this.add.sprite(0, -26, "t_outfit", 0).setTint(tint)); c.add(this.add.sprite(0, -26, "t_hair", 0).setTint(0x6a4a3a));
     return c;
+  }
+  /** Cảm giác đánh thử: tia lửa theo chất liệu + hệ, số sát thương, giật lùi mục tiêu, khựng (chỉ báo thời gian). `nang`: độ nặng khai báo 0..3. */
+  hit(mat: Material, nang: number, crit: boolean) {
+    const w = hitWeight(0.03, crit, false, nang), d = this.dummy, x = d.x, y = d.y - 26;
+    materialSparks(this.fxp, mat, this.el, x, y, w, SPR);
+    const ds = damageStyle(this.el, crit, true), t = this.add.text(x, y - 10, crit ? "1.280!" : "420", { fontFamily: "system-ui", fontSize: `${ds.font}px`, fontStyle: "bold", color: "#fff2c0", stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: 3 }).setOrigin(0.5).setDepth(50).setScale(0.5);
+    this.tweens.add({ targets: t, y: y - 36, alpha: 0, delay: 350, duration: 550, onComplete: () => t.destroy() });
+    const ms = hitstopMs(0.03, crit, false, nang), dx = KNOCK_PX[w] * SPR;
+    this.tweens.add({ targets: d, x: x + dx, duration: 55, yoyo: true, ease: "Sine.easeOut" });
+    const el = document.getElementById("fn"); if (el) el.textContent = `→ nặng ${w} · khựng ${ms} ms · giật lùi ${KNOCK_PX[w]} px · chất liệu ${mat}`;
+    if (!fxPrefs.reduce && fxPrefs.level !== "low") { this.tweens.timeScale = 0.06; window.setTimeout(() => { this.tweens.timeScale = 1; }, ms); }
   }
   /** Phát lần lượt cả 5 kiểu của hệ đang chọn (xem nhanh một hệ). */
   fireAll(el = this.el) {
@@ -91,7 +115,10 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     <label><input type="checkbox" id="fp"${q.get("lap") === "1" ? " checked" : ""}> Lặp</label>
     <button id="fgo">Phát</button> <button id="fa">Cả 5 kiểu</button>
     <label>Hồn kỹ <select id="fs"><option value="">— chọn hồn kỹ —</option>${opt(sks, "")}</select></label>
-    <button id="fc">Cảnh vòng 7+</button> <span id="fn"></span>`;
+    <button id="fc">Cảnh vòng 7+</button>
+    <label>Chất liệu <select id="fm">${opt(MATERIALS.map((m) => [m, m]), q.get("mat") ?? "thit")}</select></label>
+    <label>Nặng <select id="fh">${opt([["0", "0"], ["1", "1"], ["2", "2"], ["3", "3"]], q.get("nang") ?? "0")}</select></label>
+    <label><input type="checkbox" id="fx"${q.get("crit") === "1" ? " checked" : ""}> Chí mạng</label> <button id="fhit">Đánh thử</button> <span id="fn"></span>`;
   document.body.appendChild(bar);
   const game = new Phaser.Game({ type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true, audio: { noAudio: true },
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight }, scene: FxTestScene });
@@ -107,12 +134,16 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("fp").onchange = () => setLoop($<HTMLInputElement>("fp").checked);
   $("fgo").onclick = () => sc().fire();
   $("fa").onclick = () => sc().fireAll();
+  $("fhit").onclick = () => sc().hit($<HTMLSelectElement>("fm").value as Material, +$<HTMLSelectElement>("fh").value, $<HTMLInputElement>("fx").checked);
   $("fs").onchange = () => {
     const v = $<HTMLSelectElement>("fs").value; if (!v) return;
     const [id, r] = v.split(":"), ct = r === "ct", ring = ct ? 6 : +r, d = skillFxOf(id, ring, ct);
     sc().el = d.element; sc().kind = d.kind; $<HTMLSelectElement>("fe").value = d.element; $<HTMLSelectElement>("fk").value = d.kind;
     $("fn").textContent = `→ ${ELEMENT_NAME[d.element]} · ${FX_KIND_NAME[d.kind]} · ${fxTexKey(d.element, d.kind)}${FX_TEX_ELEMENTS.includes(d.element) ? "" : " (chưa có ảnh: chỉ hạt)"}`;
     sc().fire(d.kind, d.element);
+    const vis = skillVisualOf(id, ring, ct), s = sc(), hy = s.hero.y - 8 * SPR;
+    s.svp.cast(vis, { x: s.hero.x, y: hy, ang: 0, tx: s.dummy.x, ty: s.dummy.y - 8 * SPR, mine: true });
+    $("fn").textContent += ` · T${vis.tier} nặng ${vis.heavy}${SKILL_VISUAL[visualKey(id, ring, ct)]?.sheet ? " · sheet " + SKILL_VISUAL[visualKey(id, ring, ct)]!.sheet!.key : " · (chưa có sheet: G3)"}`;
     if (isCinematic(ring, ct)) sc().cine.show(id, (ct ? chanThanOf(id)?.skill : ringSkill(id, ring))?.name ?? "", TIERS[sc().tier].glow, true);
   };
   $("fc").onclick = () => sc().cine.show(VOHON[0].id, "Vô Ngã Kiếm Trận", TIERS[sc().tier].glow, true);

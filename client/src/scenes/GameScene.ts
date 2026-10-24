@@ -39,9 +39,12 @@ import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
 import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioManager.ts";
-import { RARE_LOOT_MIN, STEP_INTERVAL_MS, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material } from "../audio/soundMap.ts";
+import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material, type Element } from "../audio/soundMap.ts";
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
+import { SheetFx } from "../fxSheet.ts";
+import { SkillVisualPlayer, skillVisualOf, registerCodeSheets } from "../skillVisual.ts";
+import { hitWeight, KNOCK_PX, materialSparks, damageStyle } from "../hitFeel.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
@@ -201,10 +204,11 @@ export class GameScene extends Phaser.Scene {
   bface = new Map<string, Dir8>();
   /** G1 (#392) cảm giác đánh: lớp hạt dùng chung, dừng hình, nháy trắng / đẩy lùi chỉ hình của hồn thú vừa bị đánh, lần đánh cuối để nhận ra hạ thú. */
   fxp!: ParticleLayer; pt!: PhapTuongSystem; ptCut = new PhapTuongCutIn();
-  skfx!: SkillFx; cine = new SkillCine();
+  skfx!: SkillFx; svis!: SkillVisualPlayer; cine = new SkillCine();
+  castHeavy = { t: 0, heavy: 0 }; // độ nặng chiêu mình vừa tung (S1 #542): đòn trúng trong ~0,7 s sau đó khựng / giật lùi / tia lửa nặng hơn
   hitstopEnd = 0; hitstopNext = 0; slowmo = 1;
   hitFlash = new Map<string, number>();
-  hitKick = new Map<string, { dx: number; dy: number; t0: number }>();
+  hitKick = new Map<string, { dx: number; dy: number; t0: number; p: number }>();
   downAt: { x: number; y: number; t: number }[] = []; // nơi hồn thú vừa bị hạ (màn hình): hồn hoàn rơi gần đó mới có vòng sáng
   lastHit = new Map<string, { t: number; tier: number; rank: number; x: number; y: number; mine: boolean; lethal: boolean }>();
   zoomFx: Phaser.Tweens.Tween | null = null;
@@ -405,6 +409,7 @@ export class GameScene extends Phaser.Scene {
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
+    registerCodeSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL)
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
     const cam = this.cameras.main;
     const bb = this.isoMap.bounds();
@@ -1135,7 +1140,7 @@ export class GameScene extends Phaser.Scene {
       if (m.id === this.me && !m.heal && !m.shield && getFlag()?.on) this.flagStop(AUTO_STOP.hit);
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
-      this.damageText(at.x, at.y - at.lift, m);
+      this.damageText(at.x, at.y - at.lift, m, m.by && !m.dot && !m.heal && !m.shield ? elementOfVohonIndex(this.players.get(m.by)?.vh) : undefined);
     });
     this.room.onMessage("fx", (m: any) => this.fx(m));
     // Cổng: server báo riêng khi bước vào / ra khỏi cổng, và khi đã lưu xong thì cho chuyển bản đồ (mục 6).
@@ -1482,13 +1487,16 @@ export class GameScene extends Phaser.Scene {
     if (flashOn()) this.hitFlash.set(m.bid, now + 50);
     if (pv && !fxPrefs.reduce) { // đẩy lùi: lệch khỏi người đánh vài pixel rồi trở về, chỉ cho sprite
       const dx = s.x - pv.root.x, dy = s.y - pv.root.y, d = Math.hypot(dx, dy) || 1;
-      this.hitKick.set(m.bid, { dx: dx / d, dy: dy / d, t0: now });
+      const heavy = mine && now - this.castHeavy.t < 700 ? this.castHeavy.heavy : 0;
+      this.hitKick.set(m.bid, { dx: dx / d, dy: dy / d, t0: now, p: KNOCK_PX[hitWeight(m.v / Math.max(1, b.maxHp), !!m.crit, b.hp <= m.v, heavy)] });
     }
     const ratio = m.v / Math.max(1, b.maxHp);
     const he: He | undefined = pv ? VOHON[pv.vh]?.he : undefined, sp = he ? HIT_SPARK[he] : null, top = s.y - (s.displayHeight || 20) * 0.5;
     if (fxPrefs.level !== "low") this.fxp.burst(s.x, top, sp ? sp.col : hex(m.c), sp ? sp.n : 6, (sp?.speed ?? 80) * SPR / 2, (sp?.size ?? 2) * (m.crit ? 1.5 : 1));
+    const heavy = mine && now - this.castHeavy.t < 700 ? this.castHeavy.heavy : 0, w = hitWeight(ratio, !!m.crit, b.hp <= m.v, heavy);
+    materialSparks(this.fxp, this.hitMaterial(m), pv ? elementOfVohonIndex(pv.vh) : undefined, s.x, top, w, SPR); // tia lửa / mảnh vỡ theo chất liệu mục tiêu (mọi người đánh)
     if (!mine || !beastJerk(b.rank, this.autoOn())) return; // #437: hồn thú thường / đang tự săn: giữ nháy, tia, bụi, số, âm thanh; không dừng hình, rung, zoom
-    this.hitstop(hitstopMs(ratio, !!m.crit, b.hp <= m.v)); // đòn kết liễu: một lần dừng hình dài nhất (80 ms), không để khoảng nghỉ chặn lần sau
+    this.hitstop(hitstopMs(ratio, !!m.crit, b.hp <= m.v, heavy)); // đòn kết liễu: một lần dừng hình dài nhất (80 ms), không để khoảng nghỉ chặn lần sau
     if (b.rank >= 2) this.shakeTier(ratio > 0.02 || m.crit ? 2 : 1); // thú vương / boss: trúng mạnh rung vừa
     else if (m.crit) this.shakeTier(1);
     if (m.crit) this.zoomPunch();
@@ -1518,7 +1526,12 @@ export class GameScene extends Phaser.Scene {
     const a = Math.PI / 2 + DIRS8.indexOf(v.face) * (Math.PI / 4), at = this.feet(v);
     const go = (kind: FxKind, o: { ang?: number; r?: number; dist?: number; x?: number; y?: number } = {}) =>
       this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, ...o });
-    if (sk.area === "proj") {
+    const vis = skillVisualOf(VOHON[m.vh].id, m.i, !!m.ct), mine0 = m.id === this.me, tl = vis.sheet?.at === "cast" ? 0 : Math.max(r, 24 * SPR) * (sk.area === "proj" ? 0.9 : 0.5);
+    if (mine0) this.castHeavy = { t: this.time.now, heavy: vis.heavy };
+    if (vis.tier === 3 && vis.sheet) this.pt.strike(m.id, this.time.now); // T3: pháp tướng ra đòn cùng chiêu (hoạt ảnh đánh H2, không rung màn)
+    const replaced = this.svis.cast(vis, { x: at.x, y: at.y - 8 * SPR, ang: a, tx: at.x + Math.cos(a) * tl, ty: at.y + Math.sin(a) * tl * 0.5 - 8 * SPR, mine: mine0 });
+    if (replaced) { /* sheet thay hiệu ứng G3 (SKILL_VISUAL.replace) */ }
+    else if (sk.area === "proj") {
       const n = Math.min(sk.n ?? 1, sk.spread && sk.spread >= 360 ? 6 : 3), sp = ((sk.spread ?? 0) * Math.PI) / 180;
       for (let j = 0; j < n; j++) go("proj", { ang: sk.spread && sk.spread >= 360 ? (j / n) * Math.PI * 2 : a + (n > 1 ? (j / (n - 1) - 0.5) * sp : 0), dist: r * 0.9 });
     } else if (sk.area === "around") go("zone");
@@ -2117,14 +2130,15 @@ export class GameScene extends Phaser.Scene {
    * "+", bay chậm; miễn sát thương: chữ "Miễn"; sát thương lên chính mình: đỏ đậm, "−", rung rồi rơi xuống (khác số mình gây ra, bay lên).
    * Màu `m.c` do server chọn theo loại (chí mạng vàng, độc xanh lá, khiên đỡ lam).
    */
-  damageText(x: number, y: number, m: { v: number; crit?: boolean; c: string; id?: string; immune?: boolean; heal?: boolean; shield?: boolean }) {
+  damageText(x: number, y: number, m: { v: number; crit?: boolean; c: string; id?: string; by?: string; immune?: boolean; heal?: boolean; shield?: boolean }, el?: Element) {
     const plus = !!(m.heal || m.shield), self = !m.immune && !plus && m.v < 0 && m.id === this.me, k = this.txtK;
     const label = m.immune ? "Miễn" : `${plus ? "+" : self ? "−" : ""}${Math.abs(m.v).toLocaleString("vi-VN")}${m.crit ? "!" : ""}`;
+    const ds = damageStyle(el, !!m.crit, m.by === this.me); // S1 #542: viền theo hệ người đánh (của mình), chí mạng to hơn
     const t = this.add.text(x, y, label, {
-      fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: m.crit ? "24px" : "12px",
+      fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: `${ds.font}px`,
       // khiên đỡ (lam) thì giữ lam dù lên chính mình
       color: self && m.c !== "#9ad8ff" ? "#ff4a4a" : m.c,
-      stroke: "#1a1020", strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
+      stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
     }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
     const base = t.scaleX;
     if (self) {
@@ -2445,7 +2459,7 @@ export class GameScene extends Phaser.Scene {
   // ---------- Đồng bộ trạng thái mỗi khung hình ----------
   update(time: number, delta: number) {
     const dt = delta / 1000, st = this.room.state; if (!st?.players) return;
-    this.endHitstop(performance.now()); this.fxp.update(this.hitstopEnd ? dt * 0.06 : dt);
+    this.endHitstop(performance.now()); this.fxp.update(this.hitstopEnd ? dt * 0.06 : dt); this.svis.sheets.update(this.hitstopEnd ? delta * 0.06 : delta);
     this.sendInput();
     this.crowd?.update(dt);
     this.lpc.step();
@@ -2609,7 +2623,7 @@ export class GameScene extends Phaser.Scene {
       const kick = this.hitKick.get(id);
       if (kick) {
         const f = (time - kick.t0) / 110;
-        if (f >= 1) this.hitKick.delete(id); else { const k = Math.sin(Math.PI * f) * 3 * SPR; s.x += kick.dx * k; s.y += kick.dy * k * 0.5; }
+        if (f >= 1) this.hitKick.delete(id); else { const k = Math.sin(Math.PI * f) * kick.p * SPR; s.x += kick.dx * k; s.y += kick.dy * k * 0.5; }
       }
       const fl = this.hitFlash.get(id);
       if (fl !== undefined) { if (time < fl) s.setTintFill(0xffffff); else { this.hitFlash.delete(id); s.clearTint(); } }
