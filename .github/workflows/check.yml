@@ -84,6 +84,63 @@ jobs:
       - run: npm run check
       - run: npm run build
 
+  # Build thử image (không push, K1 #500): chạy khi PR đổi Dockerfile / .dockerignore / package*.json (gốc, server, client), và luôn chạy trên main.
+  # Bản build thật + thử bằng bot + quét lỗ hổng + đẩy lên registry nằm ở release.yml. Job này chỉ bắt lỗi Dockerfile sớm ở PR.
+  docker-build:
+    name: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # đủ lịch sử để git diff base...head
+          persist-credentials: false
+      - id: need
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then echo "run=true" >>"$GITHUB_OUTPUT"; echo "push vào main: luôn build thử"; exit 0; fi
+          if git diff --name-only "$BASE...$HEAD" | grep -Eq '^(Dockerfile|\.dockerignore|package(-lock)?\.json|(server|client)/package(-lock)?\.json)$'; then
+            echo "run=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "run=false" >>"$GITHUB_OUTPUT"; echo "PR không đổi Dockerfile / .dockerignore / package*.json: bỏ qua build thử"
+          fi
+      - name: build image (không push)
+        if: steps.need.outputs.run == 'true'
+        run: DOCKER_BUILDKIT=1 docker build --build-arg REVISION="$GITHUB_SHA" -t soul-land-game:ci .
+      # Chạy thử nhanh: server lên được, /health trả ok, client đã build được phục vụ, không chạy bằng root.
+      - name: chạy thử container (/health, client, user)
+        if: steps.need.outputs.run == 'true'
+        run: |
+          docker run -d --name g -p 2567:2567 soul-land-game:ci
+          for i in $(seq 1 60); do curl -sf localhost:2567/health && break; sleep 1; done
+          echo; curl -sf localhost:2567/health
+          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ client đã build không được phục vụ"; docker logs g; exit 1; }
+          [ "$(docker exec g id -u)" != 0 ] || { echo "✗ container chạy bằng root"; exit 1; }
+          docker logs g | tail -n 20
+      - name: cỡ image
+        if: steps.need.outputs.run == 'true'
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          size() { docker image inspect "$1" --format '{{.Size}}' | awk '{printf "%.0f MB", $1/1048576}'; }
+          { echo "### Image: \`soul-land-game\`"; echo ""; echo "| | Cỡ |"; echo "|---|---|"; echo "| bản này | $(size soul-land-game:ci) |"; } >>"$GITHUB_STEP_SUMMARY"
+          # PR đổi Dockerfile: dựng thêm Dockerfile của base để so cỡ cũ / mới.
+          if [ "$EVENT" = pull_request ] && ! git diff --quiet "$BASE" HEAD -- Dockerfile; then
+            git show "$BASE:Dockerfile" >Dockerfile.base
+            if DOCKER_BUILDKIT=1 docker build -f Dockerfile.base -t soul-land-game:base . >/dev/null 2>&1; then
+              echo "| base (Dockerfile cũ) | $(size soul-land-game:base) |" >>"$GITHUB_STEP_SUMMARY"
+            else
+              echo "| base (Dockerfile cũ) | không dựng được |" >>"$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          cat "$GITHUB_STEP_SUMMARY" | tail -n 6
+      - if: ${{ always() }}
+        run: docker rm -f g >/dev/null 2>&1 || true
+
   # Bot RAM và các bài thử nhanh (#171), chỉ ubuntu. Chỉ để tham khảo như check-build (không bắt buộc trong bảo vệ nhánh).
   # Bot đầy đủ chạy ~25 phút trên runner nên chia 4 nhóm song song (BOT_PART; phần nào thuộc nhóm nào khai báo ở INLINE / STANDALONE
   # trong client/scripts/bot-test.mjs, #236), mỗi nhóm một server mới bật, ~7 phút (runner chậm ~9). Thêm / bớt nhóm thì sửa cả BOT_PARTS
