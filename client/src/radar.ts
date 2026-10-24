@@ -133,7 +133,7 @@ class Radar {
     const mode = this.mode, img = this.compass, ok = img && img.complete && img.naturalWidth > 0;
     const sz = this.size * RADAR_ART.compass.w / RADAR.size.desktop, na = radarNorthAngle(mode);
     if (ok) {
-      ctx.save(); ctx.globalAlpha = 0.5; ctx.rotate(radarCompassRotation(mode)); ctx.drawImage(img!, -sz / 2, -sz / 2, sz, sz); ctx.restore();
+      ctx.save(); ctx.globalAlpha = 0.38; ctx.rotate(radarCompassRotation(mode)); ctx.drawImage(img!, -sz / 2, -sz / 2, sz, sz); ctx.restore();
       // Đầu mũi Bắc (ảnh không có chữ, hai mũi Bắc / Nam dài bằng nhau): tam giác đỏ ở đầu mũi và chữ "B" ngay ngoài.
       const tip = sz * 0.46;
       ctx.save(); ctx.rotate(na); ctx.fillStyle = "#d8262c"; ctx.strokeStyle = DARK; ctx.lineWidth = 1;
