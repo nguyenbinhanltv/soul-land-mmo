@@ -122,5 +122,43 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 
 **Kết luận.** Hiệu ứng thêm khoảng 0,1–0,2 ms script mỗi khung ở mức Vừa / Cao khi 60 người cùng tung chiêu (0,5 ms trong ngân sách 16,7 ms của 60 khung/giây); sprite và hạt luôn nằm dưới trần theo mức nên chi phí không tăng theo số người. **Giới hạn của phép đo:** không có Chrome nào dựng cả 60 hồn sư, bản đồ và ánh sáng cùng lúc, nên con số này chỉ là phần hiệu ứng cộng thêm; cảnh thật (hồn sư, hồn thú, Light2D) chưa đo trong lượt này. Máy dùng chung với phiên khác.
 
+## 9. Soak Redis hai tiến trình, tắt giữa chừng (#496)
+
+Mục tiêu là kiểm tra Redis mất kết nối không làm hai server chết, dữ liệu presence của arena / bạn bè dùng chung được khi Redis hồi, và DB test không chạm dữ liệu thật.
+
+**Môi trường và an toàn.** Chạy ngày 25-10-2026 trên macOS, Node 22.23.3, Redis 8.10.2 ở `127.0.0.1` cổng riêng, hai server `bot-local --procs 2`, `GAME_TEST=1`, `--heap 512`. PostgreSQL dùng embedded cluster tạm ở cổng 55433, mỗi lượt tạo database riêng rồi xóa; không dùng `DATABASE_URL` trong shell và không dùng DB 5433 đang lỗi `plpgsql`.
+
+| Bài | Thời điểm tắt / bật Redis | Kết quả bot | Thời gian | RAM đỉnh server / bot |
+|---|---|---:|---:|---:|
+| `arena` | khoảng giây 34 / sau 10 giây | **827 ✓, 0 ✗, 0 ⚠** | 160,2 giây | RSS 160 / 158 MB, heap 42 MB |
+| `friend` | khoảng giây 14 / sau 10 giây | **188 ✓, 0 ✗, 0 ⚠** | 33,4 giây | RSS 185 / 151 MB, heap 37 MB |
+
+Trong lượt `arena`, các trận tiếp tục chạy qua lúc Redis tắt và dữ liệu Elo / phần thưởng / sổ xem trận vẫn đạt sau khi Redis hồi. Trong lượt `friend`, thao tác thêm bạn, chặn, chat và nạp lại danh sách đạt sau khi Redis hồi. Cả hai server đều sống đến cuối và log tắt bình thường có `đã lưu người chơi đang online`; database test được xóa sau mỗi lượt.
+
+Kiểm tra bổ sung gồm hai phạm vi. Bài `presence` dùng backend local cố định và đạt các nhánh lock / `arena:live` / `friend:state`:
+
+```bash
+npm run test:presence --prefix server
+```
+
+Bài `presence-kill` dùng Redis localhost riêng, cần prefix an toàn bắt đầu bằng `test`; bài đạt dọn trận sau **15 giây TTL**, nhả lease tài khoản và dọn bản sao bạn bè của tiến trình bị kill:
+
+```bash
+REDIS_URL=redis://127.0.0.1:<cổng-local> \
+REDIS_PREFIX=test:presence-kill \
+npm run test:presence-kill --prefix server
+```
+
+Lệnh tái hiện phần bot:
+
+```bash
+BOT_PG_URL=postgres://bot@127.0.0.1:55433/postgres \
+npm run bot:local -- --only arena --procs 2 --pg --env REDIS_URL=redis://127.0.0.1:<cổng-local>
+BOT_PG_URL=postgres://bot@127.0.0.1:55433/postgres \
+npm run bot:local -- --only friend --procs 2 --pg --env REDIS_URL=redis://127.0.0.1:<cổng-local>
+```
+
+Redis được tắt / bật bởi harness ngoài bài bot đúng giữa lượt; không đưa harness hoặc log tạm vào repo.
+
 ## Trang bị hồn sư (E7, #418)
 Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.
