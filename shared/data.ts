@@ -5236,6 +5236,16 @@ export const MAPVIEW = {
   hitPx: 10, dragPx: 6,
 };
 
+/**
+ * Tự đi tới cờ (R4 #431, GAME_DESIGN.md mục 5.17): client chỉ lái hướng đi (cùng đường `input` như bấm chuột), server vẫn tính vị trí / va chạm / cổng.
+ * - `arrive`: cách cờ dưới chừng này ô thì coi là tới nơi;
+ * - `stuckSecs` / `progress`: quá chừng này giây mà khoảng cách tới đích không giảm thêm `progress` ô thì dừng ("bị kẹt");
+ * - `gateSecs`: đứng trên cổng, đã xin qua mà quá chừng này giây vẫn ở bản đồ cũ (cổng đòi cấp, kênh đầy…) thì dừng;
+ * - `replanMs`: giãn cách tính lại đường khi đoạn đang đi đã hết;
+ * - `holdMs`: chạm giữ trên bản đồ khu vực (điện thoại) đủ lâu thì đặt cờ.
+ */
+export const AUTOWALK = { arrive: 1.5, stuckSecs: 5, progress: 1.5, gateSecs: 6, replanMs: 250, holdMs: 500 };
+
 /** Sương mù khám phá (R8): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường). */
 export const FOG = {
   cell: 8, sight: 12,
