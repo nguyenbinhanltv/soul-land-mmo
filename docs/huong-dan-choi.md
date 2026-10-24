@@ -68,10 +68,10 @@ Chơi được bằng chuột / bàn phím hoặc chạm trên điện thoại.
 Mỗi người có đội tối đa **4 võ hồn**; trên bản đồ chỉ hiện võ hồn đang ra trận (vũ khí, phụ thể và các vòng hồn hoàn dưới chân). Mỗi võ hồn tự có cấp, kinh nghiệm, sao, 10 ô hồn hoàn, 6 ô hồn cốt, 6 ô hồn hạch.
 
 - **4 hệ:** *Cường công* (sát thương chính), *Mẫn công* (nhanh, đánh liên tục, chí mạng), *Khống chế* (choáng, trói, gom quái, gây dễ thương / trúng độc), *Phụ trợ* (hồi máu, khiên, tăng chỉ số, thanh tẩy). Đội tốt nên có đủ vai trò hơn là bốn võ hồn mạnh cùng kiểu.
-- **Lưu phái:** đội xoay quanh một trạng thái (Thiêu đốt, Cảm điện, Trúng độc, Chấn đãng, Phá giáp…) thì đánh mạnh hơn hẳn. Ví dụ:
+- **Lưu phái:** đội xoay quanh một trạng thái (Thiêu đốt, Cảm điện, Trúng độc, Chấn động, Phá giáp…) thì đánh mạnh hơn hẳn. Ví dụ:
   - Thiêu đốt: Tà Hỏa Phượng Hoàng + Hỏa Long + Hỏa Ảnh + Cửu Bảo Lưu Ly Tháp (chồng tầng lửa rồi đổi sang Hỏa Long kích nổ).
   - Cảm điện: Lam Điện Bá Vương Long + Kim Vũ Miêu Ưng + Càn Khôn Hỗn Nguyên Tỏa + Xúc Xích.
-  - Chấn đãng: Hạo Thiên Chùy + Nhu Cốt Thố + Lam Ngân Thảo + Quỷ Mị.
+  - Chấn động: Hạo Thiên Chùy + Nhu Cốt Thố + Lam Ngân Thảo + Quỷ Mị.
   - Trúng độc: Bích Lân Xà Hoàng + Tử Vong Chu Hoàng + Nguyệt Nhận + Thiên Càn Bạch Ngọc Đỉnh.
 - **Ràng buộc:** một số cặp trong truyện (ví dụ Hạo Thiên Chùy + Nhu Cốt Thố, Lam Ngân Thảo + Hạo Thiên Chùy) cùng nằm trong đội thì được cộng thêm hiệu ứng. Bảng đội hình (V) hiện dòng "Ràng buộc".
 - **Xếp đội** (thay, đổi chỗ, bỏ ra) ở bảng đội hình, chỉ khi **ngoài giao chiến**.
@@ -110,7 +110,7 @@ Mỗi người có đội tối đa **4 võ hồn**; trên bản đồ chỉ hi�
 
 ## 8. Hồn hạch
 - 6 ô trên mỗi võ hồn, **ô nào cũng gắn được mọi hồn hạch**. Mỗi viên có **sao 1–6**, thuộc một **bộ**, có 1 chỉ số chính và vài dòng phụ ngẫu nhiên (sao càng cao càng nhiều dòng).
-- **Hiệu ứng bộ:** 2 viên cùng bộ được hiệu ứng 2 món, 4 viên được thêm hiệu ứng 4 món (ghép 4 + 2 hoặc 2 + 2 + 2). Chỉ tính trên **võ hồn đang ra trận**. Các bộ đi theo lưu phái: Phượng Hoàng (Thiêu đốt), Bá Vương Long (Cảm điện), Xà Hoàng (Trúng độc), Hạo Thiên (Chấn đãng), Thất Sát (Phá giáp), Linh Miêu (Mẫn công), Lam Ngân (Khống chế), Lưu Ly (Phụ trợ), Tiên Cơ. Chi tiết hiệu ứng xem trong ô hồn hạch.
+- **Hiệu ứng bộ:** 2 viên cùng bộ được hiệu ứng 2 món, 4 viên được thêm hiệu ứng 4 món (ghép 4 + 2 hoặc 2 + 2 + 2). Chỉ tính trên **võ hồn đang ra trận**. Các bộ đi theo lưu phái: Phượng Hoàng (Thiêu đốt), Bá Vương Long (Cảm điện), Xà Hoàng (Trúng độc), Hạo Thiên (Chấn động), Thất Sát (Phá giáp), Linh Miêu (Mẫn công), Lam Ngân (Khống chế), Lưu Ly (Phụ trợ), Tiên Cơ. Chi tiết hiệu ứng xem trong ô hồn hạch.
 - Mỗi bản đồ săn rơi phần lớn hồn hạch của vài bộ đặc trưng; **tinh anh chắc chắn rơi 1 hồn hạch**.
 - **Gắn** như hồn cốt (nút "Gắn…" hoặc mục "Hồn hạch", kéo thả). **Nâng cấp** ("Nâng cấp…" hoặc Thợ rèn "Nâng cấp hồn hạch"): miễn phí, tiêu hao hồn hạch dư, không thất bại; cùng bộ được thêm điểm; cứ vài cấp thêm hoặc tăng một dòng phụ.
 

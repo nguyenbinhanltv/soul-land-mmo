@@ -333,13 +333,13 @@ export const VOHON: VoHonDef[] = [
   vh("ta_hoa_phuong_hoang", "Tà Hỏa Phượng Hoàng", "cuong_cong", "SSR", "Mã Hồng Tuấn", ["Thiêu đốt"],
     "#ff6a2a", "#8f2a14", "Bay, thiêu đốt diện rộng; trong lãnh vực phượng hoàng địch nhận thêm sát thương."),
   // SSR cơ bản – mẫn công
-  vh("u_minh_linh_mieu", "U Minh Linh Miêu", "man_cong", "SSR", "Chu Trúc Thanh", ["Chấn đãng"],
+  vh("u_minh_linh_mieu", "U Minh Linh Miêu", "man_cong", "SSR", "Chu Trúc Thanh", ["Chấn động"],
     "#b06bff", "#3e2266", "Tốc độ và chí mạng cao, cào liên hoàn."),
   vh("nguyet_nhan", "Nguyệt Nhận", "man_cong", "SSR", "Tà Nguyệt", ["Thiêu đốt", "Phá giáp"],
     "#e6e6f0", "#4a4a5e", "Lướt xuyên hàng trước, hạ nhanh mục tiêu yếu máu."),
   vh("hoa_long", "Hỏa Long", "man_cong", "SSR", "Hỏa Vô Song", ["Thiêu đốt"],
     "#ff4a2a", "#7a1c10", "Đánh tầm xa phạm vi rộng; Viêm bạo kích nổ thiêu đốt."),
-  vh("nhu_cot_tho", "Nhu Cốt Thố", "man_cong", "SSR", "Tiểu Vũ", ["Chấn đãng"],
+  vh("nhu_cot_tho", "Nhu Cốt Thố", "man_cong", "SSR", "Tiểu Vũ", ["Chấn động"],
     "#ffc2e2", "#c86a9a", "Lướt, quật ngã, tăng chí mạng và hút máu."),
   vh("kim_vu_mieu_ung", "Kim Vũ Miêu Ưng", "man_cong", "SSR", "", ["Cảm điện"],
     "#ffd54a", "#7a5a12", "Bay, vuốt gây tê liệt và câm lặng; áo nghĩa phủ Cảm điện toàn vùng."),
@@ -362,23 +362,23 @@ export const VOHON: VoHonDef[] = [
   vh("thien_can_bach_ngoc_dinh", "Thiên Càn Bạch Ngọc Đỉnh", "phu_tro", "SSR", "", ["Đánh boss"],
     "#f0e0a0", "#6a5a2a", "Hồi máu và khiên; xóa buff địch, thanh tẩy đồng đội."),
   // Ngoài danh sách SSR cơ bản
-  vh("lam_ngan_thao", "Lam Ngân Thảo", "khong_che", "SR", "Đường Tam", ["Chấn đãng"],
+  vh("lam_ngan_thao", "Lam Ngân Thảo", "khong_che", "SR", "Đường Tam", ["Chấn động"],
     "#4ab0ff", "#1f4a6b", "Gom quái, trói; tuyệt kỹ kéo cả vùng lại và giam."),
-  vh("hao_thien_chuy", "Hạo Thiên Chùy", "cuong_cong", "UR", "Đường Hạo", ["Chấn đãng"],
+  vh("hao_thien_chuy", "Hạo Thiên Chùy", "cuong_cong", "UR", "Đường Hạo", ["Chấn động"],
     "#9aa0b4", "#22222c", "Sát thương theo % máu; Loạn Phi Phong Chùy Pháp kết thúc bằng hất tung."),
   vh("cuu_bao_luu_ly_thap", "Cửu Bảo Lưu Ly Tháp", "phu_tro", "UR", "Ninh Vinh Vinh", ["Thiêu đốt"],
     "#7ef0ff", "#2a6a7a", "Tăng công, thủ, tốc cho đội; Vô Địch Thần Quang miễn sát thương."),
   // Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (EXTRA_VOHON; hệ, độ hiếm, chủ nhân, lưu phái đã chốt). Chỉ mở bằng mảnh.
   vh("pha_hon_thuong", "Phá Hồn Thương", "cuong_cong", "SSR", "", ["Phá giáp"],
     "#7fe0d0", "#1f4a48", "Trường thương lướt đâm xuyên hàng, Phá giáp; phá hồn gây Câm lặng ngắt chiêu."),
-  vh("a_ngan", "A Ngân", "phu_tro", "SSR", "A Ngân (Lam Ngân Hoàng, mẫu thân Đường Tam)", ["Chấn đãng"],
+  vh("a_ngan", "A Ngân", "phu_tro", "SSR", "A Ngân (Lam Ngân Hoàng, mẫu thân Đường Tam)", ["Chấn động"],
     "#7fd8ff", "#24527a", "Lam Ngân Hoàng mười vạn năm: hồi máu, khiên cho đội; dây Lam Ngân trói và gây Dễ thương."),
   vh("liet_hoa_thuong_lang", "Liệt Hỏa Thương Lang", "man_cong", "SR", "", ["Thiêu đốt"],
     "#ff7a3a", "#4a3a3a", "Sói lửa lao vồ, cắn xé liên hoàn chồng Thiêu đốt; tiếng tru tăng tốc."),
   vh("bang_phuong_hoang", "Băng Phượng Hoàng", "khong_che", "SSR", "Thủy Băng Nhi", ["Băng phong"],
     "#a8e8ff", "#2a5a8a", "Bay, băng phong diện rộng: đóng băng (Choáng), Làm chậm, gây Dễ thương."),
   // #194: võ hồn thêm sau 8.3, chỉ mở bằng mảnh (SHARD_ONLY_VOHON); cặp dung hợp U Minh Bạch Hổ với U Minh Linh Miêu (FUSIONS).
-  vh("bach_ho", "Bạch Hổ", "cuong_cong", "SSR", "Đái Mộc Bạch", ["Chấn đãng"],
+  vh("bach_ho", "Bạch Hổ", "cuong_cong", "SSR", "Đái Mộc Bạch", ["Chấn động"],
     "#f2f2f6", "#3a3a4c", "Hộ thân rồi vồ: Liệt Quang Ba hất lùi, Kim Cương Biến tăng công thủ; tuyệt kỹ chấn cả vùng."),
 ];
 
@@ -1563,7 +1563,7 @@ export const SKILLS: SkillDef[] = [
  * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS: Record<string, SkillDef[]> = {
-  // Khống chế, chấn đãng: trói, gom quái, gây Dễ thương.
+  // Khống chế, chấn động: trói, gom quái, gây Dễ thương.
   lam_ngan_thao: [
     { name: "Triền Nhiễu", desc: "Dây Lam Ngân quấn mục tiêu gần nhất: trói, trúng độc", icon: "❦", cost: 12, cd: 4,
       area: "target", r: 80, dmg: 1.6, status: [{ s: "root" }, { s: "poison" }] },
@@ -1574,7 +1574,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Chu Võng Thúc Phược", desc: "Lưới nhện trói buộc diện rộng: choáng 2 giây", icon: "✳", cost: 40, cd: 13,
       area: "around", r: 70, dmg: 2.6, glow: true, status: [{ s: "stun", secs: 2 }] },
   ],
-  // Cường công, chấn đãng: sát thương theo % sinh lực, phá giáp, hất tung.
+  // Cường công, chấn động: sát thương theo % sinh lực, phá giáp, hất tung.
   hao_thien_chuy: [
     { name: "Hạo Thiên Trọng Kích", desc: "Nện chùy nửa trước mặt, thêm 3% sinh lực tối đa mục tiêu", icon: "⚒", cost: 12, cd: 3.5,
       area: "front", r: 36, dmg: 2.4, pctHp: 0.03 },
@@ -1585,7 +1585,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Hạo Thiên Phá Sơn", desc: "Đại chùy giáng xuống diện rộng, thêm 6% sinh lực tối đa, hất tung", icon: "▲", cost: 40, cd: 14,
       area: "around", r: 80, dmg: 4, pctHp: 0.06, glow: true, shake: true, status: [{ s: "stun", secs: 1.2 }] },
   ],
-  // Mẫn công, chấn đãng: tốc độ, chí mạng cao, cào liên hoàn.
+  // Mẫn công, chấn động: tốc độ, chí mạng cao, cào liên hoàn.
   u_minh_linh_mieu: [
     { name: "U Minh Đột Thứ", desc: "Lướt xuyên hàng hồn thú phía trước, +25% chí mạng", icon: "➹", cost: 12, cd: 3.5,
       area: "dash", r: 70, dmg: 2.2, crit: 0.25, inv: 0.3 },
@@ -1746,7 +1746,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Thất Sát Trảm", desc: "Một kiếm Thất Sát chém nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công", icon: "⚡", cost: 40, cd: 14,
       area: "front", r: 64, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }] },
   ],
-  // Mẫn công, chấn đãng: lướt, quật ngã, tăng chí mạng, hút máu; ràng buộc chí mạng với Hạo Thiên Chùy (BONDS).
+  // Mẫn công, chấn động: lướt, quật ngã, tăng chí mạng, hút máu; ràng buộc chí mạng với Hạo Thiên Chùy (BONDS).
   nhu_cot_tho: [
     { name: "Yêu Cung", desc: "Lướt tới quật mục tiêu bằng Yêu Cung: quật ngã (Choáng 0,6 giây), +20% chí mạng, hút 20% sát thương", icon: "➰", cost: 12, cd: 3.5,
       area: "target", r: 50, dash: 40, dmg: 2, crit: 0.2, lifesteal: 0.2, status: [{ s: "stun", secs: 0.6 }] },
@@ -1806,7 +1806,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Phá Hồn Nhất Thương", desc: "Một thương phá hồn quét nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công, Phá giáp 2 tầng, Câm lặng 1,5 giây", icon: "⚡", cost: 40, cd: 14,
       area: "front", r: 70, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }, { s: "silence", secs: 1.5 }] },
   ],
-  // Phụ trợ, chấn đãng: Lam Ngân Hoàng mười vạn năm (mẫu thân Đường Tam): dây Lam Ngân trói, Dễ thương; hồi máu, khiên, tăng công cho đội
+  // Phụ trợ, chấn động: Lam Ngân Hoàng mười vạn năm (mẫu thân Đường Tam): dây Lam Ngân trói, Dễ thương; hồi máu, khiên, tăng công cho đội
   // (hiệu ứng thuộc hồn sư nên đổi võ hồn vẫn còn).
   a_ngan: [
     { name: "Lam Ngân Triền Phược", desc: "Dây Lam Ngân quấn mục tiêu gần nhất: Trói 2 giây", icon: "❦", cost: 12, cd: 4,
@@ -1840,7 +1840,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Băng Phượng Phong Ấn", desc: "Bay lên rồi giáng băng quanh thân: đóng băng (Choáng 2 giây), Dễ thương 5 giây", icon: "✾", cost: 40, cd: 14,
       area: "around", r: 100, dmg: 2.4, fly: 0.5, glow: true, shake: true, status: [{ s: "stun", secs: 2 }, { s: "vuln" }] },
   ],
-  // #194, Đái Mộc Bạch (cường công, chấn đãng): hộ thân rồi vồ, luồng quang hất lùi, Kim Cương Biến tăng công thủ. Tên vòng 1–3 theo truyện;
+  // #194, Đái Mộc Bạch (cường công, chấn động): hộ thân rồi vồ, luồng quang hất lùi, Kim Cương Biến tăng công thủ. Tên vòng 1–3 theo truyện;
   // vòng 4 và các vòng sau là tên phỏng theo (chưa kiểm được thứ tự và tên gốc).
   bach_ho: [
     { name: "Bạch Hổ Hộ Thân Chướng", desc: "Hộ thể Bạch Hổ bùng quanh thân: sát thương nhận giảm 20%, khiên 8% sinh lực trong 6 giây", icon: "◈", cost: 12, cd: 6,
@@ -1872,7 +1872,7 @@ export const DEFAULT_LOADOUT: readonly number[] = [0, 1, 2, 3];
  * Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
-  // Khống chế, chấn đãng: trói, gom quái, Dễ thương; tuyệt kỹ kéo cả vùng lại và giam (5.1).
+  // Khống chế, chấn động: trói, gom quái, Dễ thương; tuyệt kỹ kéo cả vùng lại và giam (5.1).
   lam_ngan_thao: [
     { name: "Lam Ngân Bá Vương Thương", desc: "Lam Ngân ngưng thành trường thương, lướt xuyên hàng hồn thú: Trói 1,5 giây", icon: "➶", cost: 45, cd: 10,
       area: "dash", r: 100, dmg: 2.6, inv: 0.4, status: [{ s: "root", secs: 1.5 }] },
@@ -1885,7 +1885,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Lam Ngân Thiên Hạ", desc: "Tuyệt kỹ: Lam Ngân phủ kín cả vùng, kéo mọi hồn thú lại và giam: Trói 4 giây, Dễ thương 8 giây, Trúng độc 3 tầng", icon: "❦", cost: 100, cd: 45,
       area: "around", r: 160, dmg: 6, pull: true, glow: true, shake: true, ult: true, status: [{ s: "root", secs: 4 }, { s: "vuln", secs: 8 }, { s: "poison", n: 3 }] },
   ],
-  // Cường công, chấn đãng: % sinh lực, phá giáp, hất tung; tuyệt kỹ là Loạn Phi Phong Chùy Pháp đủ thức (vòng 3 là bản 4 nhát).
+  // Cường công, chấn động: % sinh lực, phá giáp, hất tung; tuyệt kỹ là Loạn Phi Phong Chùy Pháp đủ thức (vòng 3 là bản 4 nhát).
   hao_thien_chuy: [
     { name: "Đại Tu Di Chùy", desc: "Dồn lực Đại Tu Di nện quanh thân, thêm 5% sinh lực tối đa, Phá giáp 2 tầng", icon: "✺", cost: 45, cd: 10,
       area: "around", r: 80, dmg: 3, pctHp: 0.05, shake: true, status: [{ s: "armor", n: 2 }] },
@@ -1898,7 +1898,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Loạn Phi Phong Chùy Pháp · Đại Thành", desc: "Tuyệt kỹ: 12 nhát chùy liên hoàn vào một mục tiêu, mỗi nhát thêm 3% sinh lực tối đa, nhát cuối hất tung (Choáng 2 giây)", icon: "☄", cost: 100, cd: 45,
       area: "target", r: 90, dash: 70, n: 12, every: 0.15, dmg: 0.75, pctHp: 0.03, inv: 0.5, glow: true, shake: true, ult: true, finisher: [{ s: "stun", secs: 2 }] },
   ],
-  // Mẫn công, chấn đãng: tốc độ, chí mạng cao, cào liên hoàn; tuyệt kỹ U Minh Bách Trảo đủ thức (vòng 4 là bản 8 nhát).
+  // Mẫn công, chấn động: tốc độ, chí mạng cao, cào liên hoàn; tuyệt kỹ U Minh Bách Trảo đủ thức (vòng 4 là bản 8 nhát).
   u_minh_linh_mieu: [
     { name: "U Minh Trảm", desc: "Lướt xuyên hàng hồn thú, +30% chí mạng, Phá giáp 1 tầng", icon: "➹", cost: 45, cd: 9,
       area: "dash", r: 100, dmg: 3, crit: 0.3, inv: 0.4, status: [{ s: "armor" }] },
@@ -2094,7 +2094,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Kiếm Trảm Sơn Hà", desc: "Tuyệt kỹ: dồn cả kiếm ý chém một kiếm núi sông nửa trước mặt cả vùng: mỗi tầng Phá giáp trên mục tiêu thêm 80% công, Phá giáp đủ 3 tầng", icon: "⚡", cost: 100, cd: 45,
       area: "front", r: 150, dmg: 7, perStack: { s: "armor", dmg: 0.8 }, inv: 0.5, glow: true, shake: true, ult: true, status: [{ s: "armor", n: 3 }] },
   ],
-  // Mẫn công, chấn đãng: lướt, quật ngã, chí mạng, hút máu; hồn kỹ của Tiểu Vũ (Mị Hoặc, Thuấn Di, Vô Địch Kim Thân, Bát Đoạn Suất).
+  // Mẫn công, chấn động: lướt, quật ngã, chí mạng, hút máu; hồn kỹ của Tiểu Vũ (Mị Hoặc, Thuấn Di, Vô Địch Kim Thân, Bát Đoạn Suất).
   nhu_cot_tho: [
     { name: "Mị Hoặc", desc: "Ánh mắt mị hoặc quét nửa trước mặt, +20% chí mạng: Mị hoặc 2 tầng", icon: "✾", cost: 45, cd: 9,
       area: "front", r: 60, dmg: 2.4, crit: 0.2, status: [{ s: "allure", n: 2 }] },
@@ -2166,7 +2166,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       area: "target", r: 130, dash: 110, n: 6, every: 0.12, dmg: 1.4, perStack: { s: "armor", dmg: 0.3 }, inv: 1, glow: true, shake: true, ult: true,
       status: [{ s: "armor" }, { s: "silence", secs: 3 }], finisher: [{ s: "stun", secs: 1.5 }] },
   ],
-  // Phụ trợ, chấn đãng: Lam Ngân Hoàng giam cả vùng, hồi máu, thanh tẩy, tăng chỉ số cho đội; tuyệt kỹ Lam Ngân Hoàng · Sinh Sinh Bất Tức.
+  // Phụ trợ, chấn động: Lam Ngân Hoàng giam cả vùng, hồi máu, thanh tẩy, tăng chỉ số cho đội; tuyệt kỹ Lam Ngân Hoàng · Sinh Sinh Bất Tức.
   a_ngan: [
     { name: "Lam Ngân Tù Thiên", desc: "Lam Ngân kéo mọi hồn thú quanh thân lại và giam: Trói 2,5 giây, Dễ thương 6 giây", icon: "⌘", cost: 45, cd: 14,
       area: "around", r: 110, dmg: 2.2, pull: true, status: [{ s: "root", secs: 2.5 }, { s: "vuln", secs: 6 }] },
@@ -2208,7 +2208,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       area: "around", r: 170, dmg: 5.5, fly: 0.6, inv: 1, glow: true, shake: true, ult: true,
       status: [{ s: "stun", secs: 3.5 }, { s: "vuln", secs: 8 }, { s: "slow", secs: 4 }] },
   ],
-  // #194: cường công chấn đãng; tuyệt kỹ chấn cả vùng, ngang Kiếm Trảm Sơn Hà. Tên phỏng theo truyện.
+  // #194: cường công chấn động; tuyệt kỹ chấn cả vùng, ngang Kiếm Trảm Sơn Hà. Tên phỏng theo truyện.
   bach_ho: [
     { name: "Liệt Quang Ba · Cường Hóa (phỏng theo)", desc: "Luồng quang Bạch Hổ mạnh hơn quét nửa trước mặt: hất lùi, Phá giáp 1 tầng", icon: "✺", cost: 45, cd: 9,
       area: "front", r: 80, dmg: 3.2, push: 50, status: [{ s: "armor" }] },
@@ -2892,7 +2892,7 @@ export const CORE_SETS: { id: CoreSetId; name: string; tag: string; col: string;
     set4: "Đánh trúng mục tiêu cảm điện hồi 3% hồn lực, mỗi giây 1 lần" },
   { id: "xa_hoang",      name: "Xà Hoàng",      tag: "Trúng độc", col: "#6fd35a", set2: "+15% sát thương độc",
     set4: "Mục tiêu trúng độc từ 5 tầng trở lên bị Dễ thương 10%" },
-  { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn đãng", col: "#b9a3ff", set2: "+15% công",
+  { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn động", col: "#b9a3ff", set2: "+15% công",
     set4: "Đòn đánh thứ 3 liên tiếp gây thêm 40% sát thương" },
   { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "Đòn trực tiếp xuyên 1/3 thủ của hồn thú",
     set4: "Mục tiêu bị Liệt thương nhận thêm 15% chí mạng từ võ hồn mang bộ" },
@@ -3623,6 +3623,18 @@ export const EQUIP_SYNTH: { from: number; p: number; fee: number; essence: numbe
 ];
 export const EQUIP_SYNTH_KEEP = 0.5;
 export const equipSynthStep = (tier: number) => EQUIP_SYNTH.find((s) => s.from === tier) ?? null;
+/**
+ * Kết quả hợp thành từ bậc `from` (hàm thuần; server tung `ok` bằng `rnd() < step.p`): thành công → món mới cấp cường hóa floor(món chính × EQUIP_SYNTH_KEEP);
+ * thất bại → `main` = cấp món chính sau đó (null = mất cả món chính), luôn mất 2 hiến tế, `refund` = Tinh Hoa hoàn lại (làm tròn xuống). Bậc không hợp thành được: null.
+ */
+export function equipSynthOutcome(from: number, mainEnhance: number, ok: boolean): { ok: true; enhance: number } | { ok: false; main: number | null; refund: number } | null {
+  const s = equipSynthStep(from); if (!s) return null;
+  const e = equipEnhanceClamp(mainEnhance);
+  if (ok) return { ok: true, enhance: Math.floor(e * EQUIP_SYNTH_KEEP) };
+  return { ok: false, main: s.all ? null : Math.max(0, e - s.mainLoss), refund: s.all ? Math.floor(s.essence * s.refund) : 0 };
+}
+/** Tối đa ngần này món trong một lệnh phân giải (cỡ một trang túi, BAG_PAGE). */
+export const EQUIP_SALVAGE_MAX = 50;
 
 /**
  * **(chờ duyệt)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
@@ -4189,16 +4201,19 @@ export interface SellSettings {
   bone: number;    // bán hồn cốt cường hóa dưới +bone (0 = không bán hồn cốt)
   core: number;    // bán hồn hạch chưa nâng cấp dưới bấy nhiêu sao (1 = không bán hồn hạch)
   shard: boolean;  // bán mảnh võ hồn (vật phẩm thường thương nhân mua; đan, phù chú, lệnh bài, rương, tiên thảo thì thương nhân không mua)
+  salv: number;    // tự phân giải trang bị hồn sư (E4) bậc dưới `salv` (0 = tắt, mặc định; tối đa EQUIP_MAX_TIER: Chí Bảo không bao giờ tự phân giải); độc lập với `on`
+  salvEnh: number; // chỉ tự phân giải món cường hóa dưới +salvEnh (1 = chỉ món +0)
 }
 /** Mặc định: tắt; khi bật chỉ bán đồ giá trị thấp (hồn hoàn dưới nghìn năm, hồn hạch 1–2 sao), giữ hồn cốt và mảnh võ hồn. */
-export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false };
+export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false, salv: 0, salvEnh: 1 };
 /** Bộ lọc từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định. */
 export function parseSell(raw: unknown): SellSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = SELL_DEFAULTS;
   const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v))) : def);
   const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
   return { on: bool(o.on, D.on), ring: num(o.ring, 0, MAX_YEARS + 1, D.ring), high: bool(o.high, D.high),
-    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard) };
+    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard),
+    salv: num(o.salv, 0, EQUIP_MAX_TIER, D.salv), salvEnh: num(o.salvEnh, 1, EQUIP_MAX_ENHANCE + 1, D.salvEnh) };
 }
 /**
  * Món `it` có bị tự bán theo bộ lọc `s` không (hàm thuần, client dùng để xem trước): không khoá, không gắn, thương nhân mua (sellPrice),
@@ -4214,6 +4229,13 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
   if (kind === "hon_hach") return it.enhance === 0 && (it.stars ?? 1) < s.core;
   if (kind === "manh_vo_hon") return s.shard;
   return false;
+}
+
+/** Món trang bị hồn sư `it` (trong túi) có bị tự phân giải theo bộ lọc `s` không (hàm thuần, client xem trước): không khoá, không mặc, bậc < `salv`, cấp cường hóa < `salvEnh`. */
+export function equipAutoSalvageable(it: { code: string; stats: unknown; enhance: number; locked?: boolean; vohon?: number | null; equipSlot?: number }, s: SellSettings): boolean {
+  if (s.salv <= 0 || it.code !== EQUIP_ITEM || it.locked || (it.vohon ?? null) !== null || it.equipSlot !== undefined) return false;
+  const e = parseEquip(it.stats), t = e ? equipTemplate(e.tpl) : undefined;
+  return !!t && t.tier < s.salv && it.enhance < s.salvEnh;
 }
 
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng đã chốt) ----------
