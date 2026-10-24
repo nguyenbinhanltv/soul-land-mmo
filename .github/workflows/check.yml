@@ -2,14 +2,12 @@
 # cho mọi PR vào main và mỗi push vào main. Status check check-build, bot-ram: chỉ để tham khảo, không bắt buộc (xem CONTRIBUTING.md).
 # Mức bot chọn theo file PR đổi (job `changes`, tools/ci/changes.sh): skip (chỉ ảnh / âm thanh / tài liệu: không chạy bot),
 # smoke (chỉ mã giao diện client: test client + một lượt bot khói ~2 phút), full (còn lại và mọi push vào main: 4 nhóm).
-# Nhãn PR ép mức: ci:full -> full; ci:bot-khoi -> ít nhất smoke. check-build luôn chạy đủ ở mọi mức.
+# Nhãn PR ép mức (đọc lúc chạy, gắn nhãn rồi Re-run hoặc push): ci:full -> full; ci:bot-khoi -> ít nhất smoke. check-build luôn chạy đủ ở mọi mức.
 name: CI
 
 on:
   pull_request:
     branches: [main]
-    # labeled / unlabeled: đổi nhãn ci:* thì chạy lại (job `changes` bỏ qua mọi nhãn khác, xem output `run`).
-    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
@@ -18,8 +16,7 @@ permissions:
 
 # Push mới lên cùng PR thì hủy lượt cũ. Trên main mỗi commit một nhóm riêng (theo SHA), nên không lượt nào bị hủy hay bị bỏ.
 concurrency:
-  # Đổi nhãn không phải ci:* (dang-lam, cho-review...) vào nhóm riêng theo run_id: không hủy lượt đang chạy, và mọi job của lượt đó bị bỏ qua.
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}${{ ((github.event.action == 'labeled' || github.event.action == 'unlabeled') && !startsWith(github.event.label.name, 'ci:')) && format('-nhan-{0}', github.run_id) || '' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -28,31 +25,30 @@ jobs:
     name: changes
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Chỉ job này cần đọc nhãn hiện tại của PR qua API (không đọc payload sự kiện, vì Re-run giữ payload cũ).
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       level: ${{ steps.level.outputs.level }}
-      run: ${{ steps.gate.outputs.run }}
     steps:
-      - id: gate
-        env:
-          ACTION: ${{ github.event.action }}
-          LABEL: ${{ github.event.label.name }}
-        run: |
-          # Đổi nhãn không phải ci:* thì không chạy gì (run=false).
-          if { [ "$ACTION" = labeled ] || [ "$ACTION" = unlabeled ]; } && [ "${LABEL#ci:}" = "$LABEL" ]; then echo "run=false" >>"$GITHUB_OUTPUT"; else echo "run=true" >>"$GITHUB_OUTPUT"; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ steps.gate.outputs.run == 'true' }}
         with:
           fetch-depth: 0 # đủ lịch sử để git diff base...head
           persist-credentials: false
       - id: level
-        if: ${{ steps.gate.outputs.run == 'true' }}
         env:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
-          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
         run: |
           if [ "$EVENT" = pull_request ]; then
+            # Nhãn đọc lúc chạy: gắn ci:full rồi bấm Re-run (hoặc push) là có hiệu lực.
+            LABELS=$(gh api "repos/$REPO/issues/$PR/labels" --jq '[.[].name] | join(",")') || LABELS=ci:full
+            export LABELS
             git diff --name-only "$BASE...$HEAD" | bash tools/ci/changes.sh
           else
             echo -n | FORCE_FULL=1 bash tools/ci/changes.sh
@@ -61,7 +57,6 @@ jobs:
   check-build:
     name: check-build
     needs: changes
-    if: ${{ needs.changes.outputs.run == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -211,11 +206,11 @@ jobs:
           retention-days: 7
 
   # Một status check bot-ram cho mọi mức: full gộp 4 nhóm (đỏ khi có nhóm trượt / bị hủy / hết giờ), smoke theo bot-smoke,
-  # skip báo success (không chạy bot). Không bao giờ ra failure / thiếu ở mức skip. Lượt bỏ qua vì đổi nhãn không liên quan thì job này cũng bỏ qua.
+  # skip báo success (không chạy bot).
   bot-ram:
     name: bot-ram
     needs: [changes, bot-ram-part, bot-smoke]
-    if: ${{ !cancelled() && needs.changes.outputs.run == 'true' }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
