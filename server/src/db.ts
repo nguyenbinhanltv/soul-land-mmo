@@ -332,6 +332,8 @@ export interface Store {
    * Không đụng tài khoản khác, không đổi mật khẩu tài khoản đã có, không đụng Elo / bạn bè.
    */
   seedTestAccount(name: string, password: string | null, data: SeedData): Promise<{ accountId: number; created: boolean }>;
+  /** Bật cờ `is_test` cho tài khoản (admin dùng lệnh GM, #518). Chỉ bật, không có đường tắt cờ qua game; tắt cờ chỉ bằng SQL tay. */
+  markTest(accountId: number): Promise<void>;
   /** Xoá sạch tài khoản TEST `name` (mọi bảng tham chiếu, rồi dòng `accounts`) trong MỘT transaction; trả số dòng đã xoá mỗi bảng. Không có cờ `is_test` thì ném lỗi. */
   removeTestAccount(name: string): Promise<Record<string, number>>;
 }
@@ -693,6 +695,7 @@ export class MemoryStore implements Store {
     return acc ? { id: acc.id, name: this.names.get(acc.id)!, isTest: this.tests.has(acc.id), lastLogin: null } : null;
   }
   async isTestAccount(accountId: number) { return this.tests.has(accountId); }
+  async markTest(accountId: number) { if (this.names.has(accountId)) this.tests.add(accountId); }
   async seedTestAccount(name: string, password: string | null, data: SeedData) {
     // Kiểm tra hết trước khi đụng gì: ghi hết hoặc không ghi gì.
     seedOk(data); bagOk({ honTe: data.honTe, slots: data.slots, items: seedItems(data.items, () => 1) });
@@ -1342,6 +1345,7 @@ export class PgStore implements Store {
     const x = r.rows[0];
     return x ? { id: Number(x.id), name: x.name as string, isTest: !!x.is_test, lastLogin: x.last_login ? new Date(x.last_login).getTime() : null } : null;
   }
+  async markTest(accountId: number) { await this.pool.query("UPDATE accounts SET is_test=true WHERE id=$1", [accountId]); }
   async isTestAccount(accountId: number) {
     const r = await this.pool.query("SELECT is_test FROM accounts WHERE id=$1", [accountId]);
     return !!r.rows[0]?.is_test;

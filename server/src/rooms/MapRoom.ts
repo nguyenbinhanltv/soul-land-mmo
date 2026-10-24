@@ -59,6 +59,9 @@ import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
+import { gmAllow, gmEnabled, isAdmin, parseGm, _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
+import { buildPreset } from "../testPreset.ts";
+import { ringLimit, coreSubRolls, ARENA_MAP } from "../../../shared/data.ts";
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 
@@ -102,6 +105,8 @@ export interface PData {
   wpKey: string;        // truyền tống trận đang đứng đã báo cho client ("" = không đứng trên trận)
   travelling: boolean;  // cờ đang chuyển bản đồ (bước 2) hoặc client đã rời phòng: bỏ qua mọi hành động, lưu định kỳ bỏ qua người này
   travelled: boolean;   // transaction đi cổng đã commit: onLeave không ghi gì nữa
+  gmReset: boolean;     // lệnh GM `preset` đã ghi đè DB (#518): mọi lần ghi sau của phiên này (kể cả lúc thoát) bị bỏ, không ghi đè mức vừa áp
+  gmMarked: boolean;    // đã bật is_test cho tài khoản admin trong phiên này (#518)
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
@@ -1047,6 +1052,7 @@ export class MapRoom extends Room<MapState> {
       this.switchSlot(c, intIn(m?.slot));
     });
     this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
+    this.onMessage("gm", (c, m: { cmd?: unknown }) => this.gmAction(c.sessionId, m?.cmd)); // lệnh GM của tài khoản admin (#518)
     this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, strIn(m?.portal)));
     this.onMessage("wp", (c, m: { op: unknown; key: unknown }) => this.waypointAction(c.sessionId, m?.op, m?.key)); // truyền tống trận (11.2)
     this.onMessage("channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
@@ -1111,7 +1117,7 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false, bossAskAt: 0, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "",
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
@@ -1184,7 +1190,7 @@ export class MapRoom extends Room<MapState> {
       // Nối vào chuỗi lưu: chờ mọi lần ghi trước (kể cả transaction đi cổng) rồi mới xét. Đã đi cổng thành công thì
       // không ghi gì nữa; transaction lỗi hoặc chưa đi cổng thì lưu như thường (có lớp chặn WHERE map_id).
       await this.chain(d, async () => {
-        if (d.travelled) return;
+        if (d.travelled || d.gmReset) return;
         await this.write(id, true);
         // Ủy thác offline (Auto 3, mục 5.13): rời game (không qua cổng / đổi kênh / vào sân đấu) khi đứng trong vùng săn thì ghi vùng và
         // thời điểm (đồng hồ server; hook test `offline` lùi thời điểm), sau lần ghi cuối để giờ treo trong ngày đã lưu.
@@ -1330,7 +1336,7 @@ export class MapRoom extends Room<MapState> {
   /** Trả true khi dữ liệu đã được ghi (tông vụ #197 chỉ cộng điểm sau lần ghi bài đã trả); lỗi DB thì ném. */
   async write(id: string, final = false): Promise<boolean> {
     // Đã đi cổng / đổi kênh (transaction đi cổng là lần ghi cuối của phòng này): không ghi gì nữa.
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled) return false;
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled || d.gmReset) return false;
     await this.flushAuto(d);
     const exit = final ? MAPS[this.state.mapId].exit : undefined, out = exit ? this.map.portals.find((q) => q.to === exit) : undefined;
     if (out) {
@@ -3071,6 +3077,8 @@ export class MapRoom extends Room<MapState> {
       Promise.all(rows.map(([, x]) => store.isTestAccount(x.accountId)))]).then(([recs, tests]) => {
       rows.forEach(([, x]) => { x.arenaBusy = false; });
       if (rows.some(([sid, x]) => this.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return;
+      // Tổ đội lẫn tài khoản test và người thật không xếp hàng được (#518): đội test chỉ gặp đội test, nên người thật trong đó sẽ bị đổi Elo bởi trận với tài khoản test.
+      if (tests.some(Boolean) && !tests.every(Boolean)) return warn("Tổ đội có cả tài khoản test và người thật: không xếp hàng xếp hạng được.");
       const current = this.arenaAccounts(d.accountId);
       if (current.length !== accounts.length || current.some((acc) => !accounts.includes(acc))) return;
       const late = this.arenaBusy(id); if (late) return warn(`${late} Chưa xếp hàng được.`);
@@ -3596,6 +3604,7 @@ export class MapRoom extends Room<MapState> {
       this.sendBag(id);
     }
     else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; this.sendBag(id); }
+    else if (op === "gmadmin") { _gmSetAdmin(d.accountId, o.on !== false); } // #518: bật / tắt quyền admin GM của người gọi (bot không biết trước mã tài khoản)
     else if (op === "shard") {
       const r = int(o.r, -1, 100, -1);
       d.testShard = r < 0 ? null : { r: Math.min(0.9999, r / 100), i: int(o.i, -1, 99, -1) };
@@ -4067,6 +4076,90 @@ export class MapRoom extends Room<MapState> {
     if (!p.dead && this.pdata.get(id) === d) { p.hp = Math.ceil(Math.min(p.maxHp, d.hpF)); p.mp = Math.floor(Math.min(p.maxMp, d.mpF)); }
     this.sendVohons(c);
     c.send("test", { op, enabled: true, ...out });
+  }
+
+  /**
+   * Lệnh GM (#518): chỉ tài khoản trong ADMIN_ACCOUNTS (server-authoritative; trống = tắt hẳn), mỗi lệnh qua gmAllow (giới hạn tốc độ), kiểm bằng
+   * parseGm, ghi nhật ký server một dòng `[GM]`. Người không có quyền chỉ nhận một dòng từ chối. Admin dùng lệnh thì tài khoản tự bật is_test.
+   */
+  gmAction(id: string, raw: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const now = Date.now(), text = typeof raw === "string" ? raw.slice(0, 200) : "";
+    if (!gmAllow(d.accountId, now)) return; // bỏ im lặng: không để spam sinh nhật ký / phản hồi
+    if (!gmEnabled() || !isAdmin(d.accountId)) {
+      console.warn(`[GM] TỪ CHỐI tài khoản #${d.accountId} (${p.name}): ${JSON.stringify(text)}`);
+      return this.log(id, "Không có quyền dùng lệnh GM.", "#ffb35c");
+    }
+    if (this.state.mapId === ARENA_MAP) return this.log(id, "Không dùng lệnh GM trong sân đấu.", "#ffb35c");
+    const cmd = parseGm(text);
+    if ("error" in cmd) { console.log(`[GM] #${d.accountId} ${p.name}: ${JSON.stringify(text)} -> lỗi: ${cmd.error}`); return this.log(id, cmd.error, "#ffb35c"); }
+    if (d.gmReset) return this.log(id, "Đã áp mức dựng sẵn: vào lại game rồi dùng tiếp.", "#ffb35c");
+    const done = (msg: string) => { console.log(`[GM] #${d.accountId} ${p.name}: ${JSON.stringify(text)} -> ${msg}`); this.log(id, `GM: ${msg}`, "#9fd8ff"); };
+    const run = async () => {
+      if (!d.gmMarked) { await store.markTest(d.accountId); d.gmMarked = true; } // tự bật is_test ngay lần dùng đầu
+      if (this.pdata.get(id) !== d) return;
+      done(await this.gmRun(id, d, cmd));
+      if (this.pdata.get(id) === d) { const c = this.clients.getById(id); if (c) this.sendVohons(c); this.sendBag(id); this.sendGear(id); }
+    };
+    this.chain(d, run).catch((e) => { console.error(`[GM] lỗi lệnh ${JSON.stringify(text)}`, e); this.log(id, "Lệnh GM lỗi (xem log server).", "#ff8a8a"); });
+  }
+
+  /** Thực thi một lệnh GM đã kiểm; trả câu mô tả kết quả. Chạy trong chuỗi lưu của người chơi (gmAction), nên ghi DB không chạy chồng lần lưu khác. */
+  async gmRun(id: string, d: PData, cmd: GmCmd): Promise<string> {
+    const p = this.state.players.get(id)!, full = () => `Túi đồ đã đầy (${d.bagSlots} ô).`;
+    switch (cmd.op) {
+      case "level": {
+        const v = d.ch; this.syncCh(id);
+        v.level = cmd.level; v.xp = 0;
+        // Cấp phải đi qua đủ bình cảnh: thiếu hồn hoàn thì thêm hồn hoàn đúng giới hạn của vòng (luôn hợp lệ).
+        while (v.rings.length < Math.min(MAX_RINGS, Math.ceil(cmd.level / 10) - 1)) v.rings.push(ringLimit(v.rings.length + 1));
+        d.ringYears = [...v.rings]; this.showVohon(p, v); this.recalc(id, true); d.dirty.add(v.rowId); this.resCheck(id);
+        return `${VOHON[vohonIndex(v.vohon)].name} cấp ${v.level}, ${v.rings.length} hồn hoàn.`;
+      }
+      case "give": { const n = this.addItem(d, cmd.code, cmd.qty); return n < cmd.qty ? `${full()} Đã cho ${n}/${cmd.qty}.` : `Đã cho ${n} ${itemDef(cmd.code)!.name}.`; }
+      case "ring": { let n = 0; while (n < cmd.qty && this.addRing(d, cmd.years)) n++; return n < cmd.qty ? `${full()} Đã cho ${n}/${cmd.qty} hồn hoàn.` : `Đã cho ${n} hồn hoàn ${formatYears(cmd.years)}.`; }
+      case "bone": {
+        const it = this.addBone(d, cmd.years, cmd.beast, cmd.slot); if (!it) return full();
+        if (cmd.enhance) it.stats = { ...(it.stats as object), xp: boneEnhanceNeed(cmd.enhance), subs: boneAddSubs(cmd.slot, cmd.years, cmd.enhance, [], Math.random).subs };
+        it.enhance = cmd.enhance;
+        return `Đã cho ${boneName(cmd.beast, cmd.slot, cmd.years, cmd.enhance)}.`;
+      }
+      case "core": {
+        const base = rollCoreStats(cmd.stars, [], Math.random, coreSetIndex(cmd.set)), data = cmd.enhance ? coreUpgradeSubs(base, cmd.stars, coreSubRolls(0, cmd.enhance), Math.random).data : base;
+        const it = this.addCore(d, cmd.stars, data); if (!it) return full();
+        if (cmd.enhance) { it.stats = { ...(it.stats as object), subs: data.subs, xp: coreEnhanceNeed(cmd.enhance) }; it.enhance = cmd.enhance; }
+        return `Đã cho ${coreName(cmd.set, cmd.stars, cmd.enhance)}.`;
+      }
+      case "gear": {
+        const tpl = equipTemplate(cmd.tpl)!, it = this.addEquip(d, rollEquip(tpl, cmd.ilvl, () => 0.5)); if (!it) return full();
+        it.enhance = cmd.enhance;
+        return `Đã cho ${equipName(cmd.tpl, cmd.enhance)}.`;
+      }
+      case "vohon": {
+        const vi = vohonIndex(cmd.vohon), name = VOHON[vi].name;
+        if (d.owned.some((v) => v.vohon === cmd.vohon)) return `Đã sở hữu ${name}.`;
+        const v = await store.unlockVohon(d.accountId, p.name, cmd.vohon, 1, this.bagSnapshot(d));
+        if (!v) return `Đã sở hữu ${name}.`;
+        v.rings = Array.from({ length: cmd.rings }, (_, k) => ringLimit(k + 1)); v.level = Math.min(cmd.level, 10 * (v.rings.length + 1)); d.dirty.add(v.rowId);
+        d.owned.push(v); this.resCheck(id);
+        return `Đã thêm ${name} cấp ${v.level}, ${v.rings.length} hồn hoàn${cmd.level > v.level ? " (cấp bị kẹp theo bình cảnh, cần thêm hồn hoàn)" : ""}.`;
+      }
+      case "coin": d.honTe = cmd.n; d.bagDirty = true; return `Hồn Tệ = ${formatHonTe(cmd.n)}.`;
+      case "tp": {
+        if (cmd.mapId === this.state.mapId) return "Đang ở bản đồ đó rồi.";
+        if (d.travelling || d.travelCast) return "Đang đi cổng, thử lại sau.";
+        this.beginTravel(id, { name: "gm", to: cmd.mapId, arrive: "", ax: 0, ay: 0, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 });
+        return `Dịch chuyển tới ${MAPS[cmd.mapId].name}.`;
+      }
+      case "preset": {
+        // Ghi đè DB bằng mức dựng sẵn rồi ngắt client: từ lúc này mọi lần ghi của phiên (kể cả lúc thoát) bị bỏ (gmReset), nên không đè lại mức vừa áp.
+        d.gmReset = true;
+        try { await store.seedTestAccount(p.name, null, buildPreset(cmd.preset)); }
+        catch (e) { d.gmReset = false; throw e; }
+        setTimeout(() => this.clients.getById(id)?.leave(4000), 800);
+        return `Đã áp mức "${cmd.preset}": vào lại game để thấy thay đổi.`;
+      }
+    }
   }
 
   /**
