@@ -1058,7 +1058,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Nhóm Bản đồ khu vực: radar, bản đồ và sương mù** (mục 5.17; theo dõi #426; mỗi bước một PR).
 - [x] R0 Hằng `RADAR` / `MAPVIEW` / `FOG` / `RADAR_ART`, hàm thuần `shared/radar.ts`, test `npm run test:radar --prefix server` (#427).
 - [x] R7 Ảnh khung / la bàn / nền giấy (#434, PR #472).
-- [x] R2 Radar tròn góc màn hình thay bản đồ nhỏ (`client/src/radar.ts`, #429; còn chờ ảnh khung / la bàn R7, nút Vùng N chờ R3).
+- [x] R2 Radar tròn góc màn hình thay bản đồ nhỏ (`client/src/radar.ts`, #429; nút Vùng N chờ R3).
 - [ ] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428). R3 Bản đồ khu vực phím N (#430). R4 Tự đi tới cờ xuyên bản đồ (#431). R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R8 Sương mù khám phá, SQL (#435).
 
 ## 8. Câu hỏi còn mở

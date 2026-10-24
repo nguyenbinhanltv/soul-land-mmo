@@ -2098,7 +2098,7 @@ export class GameScene extends Phaser.Scene {
   drawMinimap() {
     const R = radar(), now = performance.now(); if (!R.due(now)) return;
     const st = this.room.state, me = st.players.get(this.me); if (!me) return;
-    const mx = me.x / TILE, my = me.y / TILE, near = SYNC_VIEW.out / TILE, far = this.far;
+    const mx = me.x / TILE, my = me.y / TILE, near = SYNC_VIEW.r / TILE, far = this.far; // ngưỡng vào tầm state là SYNC_VIEW.r (interest.ts), không phải .out
     R.begin(mx, my, now);
     const isNear = (x: number, y: number) => Math.hypot(x - mx, y - my) < near; // trong vùng state đã có, khỏi vẽ trùng bản `mini` chậm 1 giây
     for (let i = 0; i + 2 < far.d.length; i += 3) if (!isNear(far.d[i], far.d[i + 1])) R.dot(far.d[i + 2] >= 3 ? "quest" : "beast", far.d[i] + 0.5, far.d[i + 1] + 0.5, "Đồ rơi", TIERS[far.d[i + 2]]?.glow ?? "#ffffff");
